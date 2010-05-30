@@ -13763,37 +13763,11 @@ try_cursor_movement (window, startp, scroll_step)
 	    ++row;
 	  if (!row->enabled_p)
 	    rc = CURSOR_MOVEMENT_MUST_SCROLL;
-	  /* If rows are bidi-reordered, back up until we find a row
-	     that does not belong to a continuation line.  This is
-	     because we must consider all rows of a continued line as
-	     candidates for cursor positioning, since row start and
-	     end positions change non-linearly with vertical position
-	     in such rows.  */
-	  /* FIXME: Revisit this when glyph ``spilling'' in
-	     continuation lines' rows is implemented for
-	     bidi-reordered rows.  */
-	  if (!NILP (XBUFFER (w->buffer)->bidi_display_reordering))
-	    {
-	      while (MATRIX_ROW_CONTINUATION_LINE_P (row))
-		{
-		  xassert (row->enabled_p);
-		  --row;
-		  /* If we hit the beginning of the displayed portion
-		     without finding the first row of a continued
-		     line, give up.  */
-		  if (row <= w->current_matrix->rows)
-		    {
-		      rc = CURSOR_MOVEMENT_MUST_SCROLL;
-		      break;
-		    }
-
-		}
-	    }
 	}
 
       if (rc == CURSOR_MOVEMENT_CANNOT_BE_USED)
 	{
-	  int scroll_p = 0;
+	  int scroll_p = 0, must_scroll = 0;
 	  int last_y = window_text_bottom_y (w) - this_scroll_margin;
 
 	  if (PT > XFASTINT (w->last_point))
@@ -13886,10 +13860,41 @@ try_cursor_movement (window, startp, scroll_step)
 	    {
 	      /* if PT is not in the glyph row, give up.  */
 	      rc = CURSOR_MOVEMENT_MUST_SCROLL;
+	      must_scroll = 1;
 	    }
 	  else if (rc != CURSOR_MOVEMENT_SUCCESS
-		   && MATRIX_ROW_PARTIALLY_VISIBLE_P (w, row)
-		   && make_cursor_line_fully_visible_p)
+		   && !NILP (XBUFFER (w->buffer)->bidi_display_reordering))
+	    {
+	      /* If rows are bidi-reordered and point moved, back up
+		 until we find a row that does not belong to a
+		 continuation line.  This is because we must consider
+		 all rows of a continued line as candidates for the
+		 new cursor positioning, since row start and end
+		 positions change non-linearly with vertical position
+		 in such rows.  */
+	      /* FIXME: Revisit this when glyph ``spilling'' in
+		 continuation lines' rows is implemented for
+		 bidi-reordered rows.  */
+	      while (MATRIX_ROW_CONTINUATION_LINE_P (row))
+		{
+		  xassert (row->enabled_p);
+		  --row;
+		  /* If we hit the beginning of the displayed portion
+		     without finding the first row of a continued
+		     line, give up.  */
+		  if (row <= w->current_matrix->rows)
+		    {
+		      rc = CURSOR_MOVEMENT_MUST_SCROLL;
+		      break;
+		    }
+
+		}
+	    }
+	  if (must_scroll)
+	    ;
+	  else if (rc != CURSOR_MOVEMENT_SUCCESS
+	      && MATRIX_ROW_PARTIALLY_VISIBLE_P (w, row)
+	      && make_cursor_line_fully_visible_p)
 	    {
 	      if (PT == MATRIX_ROW_END_CHARPOS (row)
 		  && !row->ends_at_zv_p
@@ -13915,7 +13920,8 @@ try_cursor_movement (window, startp, scroll_step)
 	    }
 	  else if (scroll_p)
 	    rc = CURSOR_MOVEMENT_MUST_SCROLL;
-	  else if (!NILP (XBUFFER (w->buffer)->bidi_display_reordering))
+	  else if (rc != CURSOR_MOVEMENT_SUCCESS
+		   && !NILP (XBUFFER (w->buffer)->bidi_display_reordering))
 	    {
 	      /* With bidi-reordered rows, there could be more than
 		 one candidate row whose start and end positions
@@ -13928,8 +13934,11 @@ try_cursor_movement (window, startp, scroll_step)
 
 	      do
 		{
-		  rv |= set_cursor_from_row (w, row, w->current_matrix,
-					     0, 0, 0, 0);
+		  if (MATRIX_ROW_START_CHARPOS (row) <= PT
+		      && PT <= MATRIX_ROW_END_CHARPOS (row)
+		      && cursor_row_p (w, row))
+		    rv |= set_cursor_from_row (w, row, w->current_matrix,
+					       0, 0, 0, 0);
 		  /* As soon as we've found the first suitable row
 		     whose ends_at_zv_p flag is set, we are done.  */
 		  if (rv
@@ -13940,19 +13949,17 @@ try_cursor_movement (window, startp, scroll_step)
 		    }
 		  ++row;
 		}
-	      while (MATRIX_ROW_BOTTOM_Y (row) < last_y
-		     && MATRIX_ROW_START_CHARPOS (row) <= PT
-		     && PT <= MATRIX_ROW_END_CHARPOS (row)
-		     && cursor_row_p (w, row));
+	      while ((MATRIX_ROW_CONTINUATION_LINE_P (row)
+		      && MATRIX_ROW_BOTTOM_Y (row) <= last_y)
+		     || (MATRIX_ROW_START_CHARPOS (row) == PT
+			 && MATRIX_ROW_BOTTOM_Y (row) < last_y));
 	      /* If we didn't find any candidate rows, or exited the
 		 loop before all the candidates were examined, signal
 		 to the caller that this method failed.  */
 	      if (rc != CURSOR_MOVEMENT_SUCCESS
-		  && (!rv
-		      || (MATRIX_ROW_START_CHARPOS (row) <= PT
-			  && PT <= MATRIX_ROW_END_CHARPOS (row))))
-		rc = CURSOR_MOVEMENT_CANNOT_BE_USED;
-	      else
+		  && (!rv || MATRIX_ROW_CONTINUATION_LINE_P (row)))
+		rc = CURSOR_MOVEMENT_MUST_SCROLL;
+	      else if (rv)
 		rc = CURSOR_MOVEMENT_SUCCESS;
 	    }
 	  else

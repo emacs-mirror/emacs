@@ -235,7 +235,7 @@ that work are: A a c i r S s t u U X g G B C R n and F partly."
 	(if (string-match "--dired " switches)
 	    (setq switches (replace-match "" nil nil switches)))
 	;; Convert SWITCHES to a list of characters.
-	(setq switches (delete ?- (append switches nil)))
+	(setq switches (delete ?\  (delete ?- (append switches nil))))
 	;; Sometimes we get ".../foo*/" as FILE.  While the shell and
 	;; `ls' don't mind, we certainly do, because it makes us think
 	;; there is no wildcard, only a directory name.
@@ -405,7 +405,11 @@ not contain `d', so that a full listing is expected."
 	(setq file (substring file 0 -1)))
     (let ((fattr (file-attributes file 'string)))
       (if fattr
-	  (insert (ls-lisp-format file fattr (nth 7 fattr)
+	  (insert (ls-lisp-format
+		   (if (memq ?F switches)
+		       (ls-lisp-classify-file file fattr)
+		     file)
+		   fattr (nth 7 fattr)
 				  switches time-index (current-time)))
 	(message "%s: doesn't exist or is inaccessible" file)
 	(ding) (sit-for 2)))))		; to show user the message!
@@ -522,29 +526,40 @@ SWITCHES is a list of characters.  Default sorting is alphabetic."
       (nreverse file-alist)
     file-alist))
 
-(defun ls-lisp-classify (filedata)
-  "Append a character to each file name indicating the file type.
-Also, for regular files that are executable, append `*'.
+(defun ls-lisp-classify-file (filename fattr)
+  "Append a character to FILENAME indicating the file type.
+
+FATTR is the file attributes returned by `file-attributes' for the file.
 The file type indicators are `/' for directories, `@' for symbolic
-links, `|' for FIFOs, `=' for sockets, and nothing for regular files.
-\[But FIFOs and sockets are not recognized.]
-FILEDATA has the form (filename . `file-attributes').  Its `cadr' is t
-for directory, string (name linked to) for symbolic link, or nil."
+links, `|' for FIFOs, `=' for sockets, `*' for regular files that
+are executable, and nothing for other types of files."
+  (let* ((type (car fattr))
+	 (modestr (nth 8 fattr))
+	 (typestr (substring modestr 0 1)))
+    (cond
+     (type
+      (concat filename (if (eq type t) "/" "@")))
+     ((string-match "x" modestr)
+      (concat filename "*"))
+     ((string= "p" typestr)
+      (concat filename "|"))
+     ((string= "s" typestr)
+      (concat filename "="))
+     (t filename))))
+
+(defun ls-lisp-classify (filedata)
+  "Append a character to file name in FILEDATA indicating the file type.
+
+FILEDATA has the form (FILENAME . ATTRIBUTES), where ATTRIBUTES is the
+structure returned by `file-attributes' for that file.
+
+The file type indicators are `/' for directories, `@' for symbolic
+links, `|' for FIFOs, `=' for sockets, `*' for regular files that
+are executable, and nothing for other types of files."
   (let ((file-name (car filedata))
-        (type (cadr filedata)))
-    (cond (type
-	   (cons
-	    (concat (propertize file-name 'dired-filename t)
-		    (if (eq type t) "/" "@"))
-	    (cdr filedata)))
-	  ((string-match "x" (nth 9 filedata))
-	   (cons
-	    (concat (propertize file-name 'dired-filename t) "*")
-	    (cdr filedata)))
-	  (t
-	   (cons
-	    (propertize file-name 'dired-filename t)
-	    (cdr filedata))))))
+        (fattr (cdr filedata)))
+    (setq file-name (propertize file-name 'dired-filename t))
+    (cons (ls-lisp-classify-file file-name fattr) fattr)))
 
 (defun ls-lisp-extension (filename)
   "Return extension of FILENAME (ignoring any version extension)

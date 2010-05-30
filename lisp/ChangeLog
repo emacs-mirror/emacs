@@ -1,3 +1,113 @@
+2010-05-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/mule.el (define-coding-system): Doc fix (bug#6313).
+
+2010-05-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emulation/cua-base.el: Recognize also `right-word' and `left-word'.
+	Suggested by Eli Zaretskii <eliz@gnu.org>.
+
+2010-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-file-name-table): Don't return a boundary
+	past the end of `string' (bug#6299).
+	(completion--file-name-table): Delegate to completion-file-name-table
+	for the `boundaries' case.
+
+2010-05-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emulation/cua-base.el: Recognize `right-char' and `left-char' as
+	movement commands.
+
+	* progmodes/ada-xref.el (ada-prj-ada-project-path-sep): Set from
+	`path-separator', but maintain compatibility with Emacs 20.2.
+
+2010-05-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* server.el (server-process-filter): Receive parent-id argument
+	from emacsclient.
+	(server-create-window-system-frame): New arg.  Pass parent-id as
+	frame parameter.
+
+2010-05-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ansi-color.el: Delete unused escape sequences (Bug#6085).
+	(ansi-color-drop-regexp): New constant.
+	(ansi-color-apply, ansi-color-filter-region)
+	(ansi-color-apply-on-region): Delete unrecognized control
+	sequences.
+	(ansi-color-apply): Build string list before calling concat.
+
+2010-05-29  Eli Zaretskii  <eliz@gnu.org>
+
+	Bidi-sensitive word movement with arrow keys.
+	* subr.el (right-arrow-command, left-arrow-command): Move to
+	bindings.el.
+
+	* bindings.el (right-char, left-char): Move from subr.el and
+	rename from right-arrow-command and left-arrow-command.
+	(right-word, left-word): New functions.
+	(global-map) <right>: Bind to right-char.
+	(global-map) <left>: Bind to left-char.
+	(global-map) <C-right>: Bind to right-word.
+	(global-map) <C-left>: Bind to left-word.
+
+	* ls-lisp.el (ls-lisp-classify-file): New function.
+	(ls-lisp-insert-directory): Call it if switches include -F (bug#6294).
+	(ls-lisp-classify): Call ls-lisp-classify-file.
+	(insert-directory): Remove blanks from switches.
+
+2010-05-28  Juri Linkov  <juri@jurta.org>
+
+	* image-dired.el (image-dired-dired-toggle-marked-thumbs):
+	Replace LOCALP arg of `dired-get-filename' 'no-dir with nil.
+	(Bug#5270)
+
+2010-05-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-debug-message): Add `tramp-compat-funcall'
+	to ignored backtrace functions.
+	(with-progress-reporter): Expand docstring.
+	(tramp-handle-delete-file): Implement TRASH argument.
+	(tramp-get-remote-trash): New defun.
+
+2010-05-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-compat.el (tramp-compat-delete-file): Use
+	`symbol-value' for backward compatibility.
+
+	* net/tramp.el (tramp-handle-make-symbolic-link)
+	(tramp-handle-load)
+	(tramp-do-copy-or-rename-file-via-buffer)
+	(tramp-do-copy-or-rename-file-directly)
+	(tramp-do-copy-or-rename-file-out-of-band)
+	(tramp-handle-process-file, tramp-handle-call-process-region)
+	(tramp-handle-shell-command, tramp-handle-file-local-copy)
+	(tramp-handle-insert-file-contents, tramp-handle-write-region)
+	(tramp-delete-temp-file-function): Use `delete-file' instead
+	of `tramp-compat-delete-file'.
+
+	* net/tramp-fish.el (tramp-fish-handle-delete-directory)
+	(tramp-fish-handle-make-symbolic-link)
+	(tramp-fish-handle-process-file): Use `delete-file' instead
+	of `tramp-compat-delete-file'.
+
+	* net/tramp-ftp.el (tramp-ftp-file-name-handler): Use
+	`delete-file' instead of `tramp-compat-delete-file'.
+
+	* net/tramp-gvfs.el (tramp-gvfs-handle-delete-file): Rename arg.
+	(tramp-gvfs-handle-write-region): Use `delete-file' instead of
+	`tramp-compat-delete-file'.
+
+	* net/tramp-imap.el (tramp-imap-do-copy-or-rename-file): Use
+	`delete-file' instead of `tramp-compat-delete-file'.
+
+	* net/tramp-smb.el (tramp-smb-handle-copy-file)
+	(tramp-smb-handle-file-local-copy, tramp-smb-handle-rename-file)
+	(tramp-smb-handle-write-region): Use `delete-file' instead of
+	`tramp-compat-delete-file'.
+	(tramp-smb-handle-delete-directory): Use 'trash as arg.
+
 2010-05-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* dired.el (dired-delete-file): New arg TRASH.

@@ -3802,30 +3802,5 @@ which is higher than \"1alpha\"."
 			  (prin1-to-string (make-hash-table)))))
   (provide 'hashtable-print-readable))
 
-;; Moving with arrows in bidi-sensitive direction.
-(defun right-arrow-command (&optional n)
-  "Move point N characters to the right (to the left if N is negative).
-On reaching beginning or end of buffer, stop and signal error.
-
-Depending on the bidirectional context, this may move either forward
-or backward in the buffer.  This is in contrast with \\[forward-char]
-and \\[backward-char], which see."
-  (interactive "^p")
-  (if (eq (current-bidi-paragraph-direction) 'left-to-right)
-      (forward-char n)
-    (backward-char n)))
-
-(defun left-arrow-command ( &optional n)
-  "Move point N characters to the left (to the right if N is negative).
-On reaching beginning or end of buffer, stop and signal error.
-
-Depending on the bidirectional context, this may move either backward
-or forward in the buffer.  This is in contrast with \\[backward-char]
-and \\[forward-char], which see."
-  (interactive "^p")
-  (if (eq (current-bidi-paragraph-direction) 'left-to-right)
-      (backward-char n)
-    (forward-char n)))
-
 ;; arch-tag: f7e0e6e5-70aa-4897-ae72-7a3511ec40bc
 ;;; subr.el ends here

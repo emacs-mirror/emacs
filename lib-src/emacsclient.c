@@ -138,6 +138,9 @@ int current_frame = 1;
 /* The display on which Emacs should work.  --display.  */
 char *display = NULL;
 
+/* The parent window ID, if we are opening a frame via XEmbed.  */
+char *parent_id = NULL;
+
 /* Nonzero means open a new Emacs frame on the current terminal. */
 int tty = 0;
 
@@ -173,6 +176,7 @@ struct option longopts[] =
 #ifndef WINDOWSNT
   { "display",	required_argument, NULL, 'd' },
 #endif
+  { "parent-id", required_argument, NULL, 'p' },
   { 0, 0, 0, 0 }
 };
 
@@ -583,6 +587,11 @@ decode_options (argc, argv)
           current_frame = 0;
           break;
 
+	case 'p':
+	  parent_id = optarg;
+          current_frame = 0;
+	  break;
+
 	case 'H':
 	  print_help_and_exit ();
 	  break;
@@ -656,7 +665,8 @@ The following OPTIONS are accepted:\n\
 -e, --eval    		Evaluate the FILE arguments as ELisp expressions\n\
 -n, --no-wait		Don't wait for the server to return\n\
 -d DISPLAY, --display=DISPLAY\n\
-			Visit the file in the given display\n"
+			Visit the file in the given display\n\
+--parent-id=ID          Open in parent window ID, via XEmbed\n"
 #ifndef NO_SOCKETS_IN_FILE_SYSTEM
 "-s SOCKET, --socket-name=SOCKET\n\
 			Set filename of the UNIX socket for communication\n"
@@ -1617,6 +1627,13 @@ main (argc, argv)
     {
       send_to_emacs (emacs_socket, "-display ");
       quote_argument (emacs_socket, display);
+      send_to_emacs (emacs_socket, " ");
+    }
+
+  if (parent_id)
+    {
+      send_to_emacs (emacs_socket, "-parent-id ");
+      quote_argument (emacs_socket, parent_id);
       send_to_emacs (emacs_socket, " ");
     }
 

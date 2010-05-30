@@ -345,7 +345,7 @@ PRESERVE-UID-GID is completely ignored."
 	  (condition-case err
 	      (rename-file tmpfile newname ok-if-already-exists)
 	    ((error quit)
-	     (tramp-compat-delete-file tmpfile)
+	     (delete-file tmpfile)
 	     (signal (car err) (cdr err))))
 
 	;; Remote newname.
@@ -382,7 +382,7 @@ PRESERVE-UID-GID is completely ignored."
 	 (lambda (file)
 	   (if (file-directory-p file)
 	       (tramp-compat-delete-directory file recursive)
-	     (tramp-compat-delete-file file t)))
+	     (tramp-compat-delete-file file 'trash)))
 	 ;; We do not want to delete "." and "..".
 	 (directory-files
 	  directory 'full "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*")))
@@ -611,7 +611,7 @@ PRESERVE-UID-GID is completely ignored."
 		 v (format "get \"%s\" \"%s\""
 			   (tramp-smb-get-localname v) tmpfile))
 	  ;; Oops, an error.  We shall cleanup.
-	  (tramp-compat-delete-file tmpfile)
+	  (delete-file tmpfile)
 	  (tramp-error
 	   v 'file-error "Cannot make local copy of file `%s'" filename)))
       tmpfile)))
@@ -861,7 +861,7 @@ target of the symlink differ."
 	  (condition-case err
 	      (rename-file tmpfile newname ok-if-already-exists)
 	    ((error quit)
-	     (tramp-compat-delete-file tmpfile)
+	     (delete-file tmpfile)
 	     (signal (car err) (cdr err))))
 
 	;; Remote newname.
@@ -882,7 +882,7 @@ target of the symlink differ."
 			     filename (tramp-smb-get-localname v)))
 	    (tramp-error v 'file-error "Cannot rename `%s'" filename)))))
 
-    (tramp-compat-delete-file filename)))
+    (delete-file filename)))
 
 (defun tramp-smb-handle-set-file-modes (filename mode)
   "Like `set-file-modes' for Tramp files."
@@ -946,7 +946,7 @@ errors for shares like \"C$/\", which are common in Microsoft Windows."
 		     v (format "put %s \"%s\""
 			       tmpfile (tramp-smb-get-localname v)))
 	      (tramp-error v 'file-error "Cannot write `%s'" filename))
-	  (tramp-compat-delete-file tmpfile)))
+	  (delete-file tmpfile)))
 
       (unless (equal curbuf (current-buffer))
 	(tramp-error

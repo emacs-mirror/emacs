@@ -32,6 +32,10 @@ dnl Support for --program-prefix, --program-suffix and
 dnl --program-transform-name options
 AC_ARG_PROGRAM
 
+dnl It is important that variables on the RHS not be expanded here,
+dnl hence the single quotes.  This is per the GNU coding standards, see
+dnl (autoconf) Installation Directory Variables
+dnl See also epaths.h below.
 lispdir='${datadir}/emacs/${version}/lisp'
 locallisppath='${datadir}/emacs/${version}/site-lisp:'\
 '${datadir}/emacs/site-lisp'
@@ -369,7 +373,7 @@ dnl quotation begins
 ### the appropriate operating system and machine description files.
 
 ### You would hope that you could choose an m/*.h file pretty much
-### based on the machine portion of the configuration name, and an s-
+### based on the machine portion of the configuration name, and an s/*.h
 ### file based on the operating system portion.  However, it turns out
 ### that each m/*.h file is pretty manufacturer-specific - for
 ### example mips.h is MIPS
@@ -381,10 +385,6 @@ dnl quotation begins
 ### /etc/MACHINES doesn't say anything about version numbers, be
 ### prepared to handle anything reasonably.  If version numbers
 ### matter, be sure /etc/MACHINES says something about it.
-###
-### Eric Raymond says we should accept strings like "sysvr4" to mean
-### "System V Release 4"; he writes, "The old convention encouraged
-### confusion between `system' and `release' levels'."
 
 machine='' opsys='' unported=no
 case "${canonical}" in
@@ -393,14 +393,14 @@ case "${canonical}" in
   *-*-freebsd* )
     opsys=freebsd
     case "${canonical}" in
-      alpha*-*-freebsd*)	machine=alpha ;;
-      arm*-*-freebsd*)          machine=arm ;;
-      ia64-*-freebsd*)		machine=ia64 ;;
-      sparc-*-freebsd*)         machine=sparc ;;
-      sparc64-*-freebsd*)	machine=sparc ;;
-      powerpc-*-freebsd*)	machine=macppc ;;
-      i[3456]86-*-freebsd*)	machine=intel386 ;;
-      amd64-*-freebsd*|x86_64-*-freebsd*) machine=amdx86-64 ;;
+      alpha*)           machine=alpha ;;
+      amd64-*|x86_64-*) machine=amdx86-64 ;;
+      arm*)             machine=arm ;;
+      ia64-*)           machine=ia64 ;;
+      i[3456]86-*)      machine=intel386 ;;
+      powerpc-*)        machine=macppc ;;
+      sparc-*)          machine=sparc ;;
+      sparc64-*)        machine=sparc ;;
     esac
   ;;
 
@@ -408,13 +408,13 @@ case "${canonical}" in
   *-*-kfreebsd*gnu* )
     opsys=gnu-kfreebsd
     case "${canonical}" in
-      alpha*-*-kfreebsd*)	machine=alpha ;;
-      ia64-*-kfreebsd*)		machine=ia64 ;;
-      sparc-*-kfreebsd*)	machine=sparc ;;
-      sparc64-*-kfreebsd*)	machine=sparc ;;
-      powerpc-*-kfreebsd*)	machine=macppc ;;
-      i[3456]86-*-kfreebsd*)	machine=intel386 ;;
-      amd64-*-kfreebsd*|x86_64-*-kfreebsd*) machine=amdx86-64 ;;
+      alpha*)           machine=alpha ;;
+      amd64-*|x86_64-*) machine=amdx86-64 ;;
+      ia64-*)           machine=ia64 ;;
+      i[3456]86-*)      machine=intel386 ;;
+      powerpc-*)        machine=macppc ;;
+      sparc-*)          machine=sparc ;;
+      sparc64-*)        machine=sparc ;;
     esac
   ;;
 
@@ -422,18 +422,17 @@ case "${canonical}" in
   *-*-netbsd* )
     opsys=netbsd
     case "${canonical}" in
-      alpha*-*-netbsd*)	machine=alpha ;;
-      i[3456]86-*-netbsd*) machine=intel386 ;;
-      mips-*-netbsd*)	machine=mips ;;
-      mipsel-*-netbsd*)	machine=mips ;;
-      mipseb-*-netbsd*)	machine=mips ;;
-      powerpc-*-netbsd*) machine=macppc ;;
-      sparc*-*-netbsd*)	machine=sparc ;;
-      vax-*-netbsd*)	machine=vax ;;
-      arm-*-netbsd*)	machine=arm ;;
-      x86_64-*-netbsd*)	machine=amdx86-64 ;;
-      hppa-*-netbsd*)	machine=hp800 ;;
-      m68k-*-netbsd*)	machine=m68k ;;
+      alpha*)      machine=alpha ;;
+      x86_64-*)    machine=amdx86-64 ;;
+      arm-*)       machine=arm ;;
+      hppa-*)      machine=hp800 ;;
+      i[3456]86-*) machine=intel386 ;;
+      m68k-*)      machine=m68k ;;
+      powerpc-*)   machine=macppc ;;
+      mips-*)      machine=mips ;;
+      mipse[bl]-*) machine=mips ;;
+      sparc*-)     machine=sparc ;;
+      vax-*)       machine=vax ;;
     esac
   ;;
 
@@ -441,14 +440,14 @@ case "${canonical}" in
   *-*-openbsd* )
     opsys=openbsd
     case "${canonical}" in
-      alpha*-*-openbsd*)	machine=alpha ;;
-      arm-*-openbsd*)          machine=arm ;;
-      i386-*-openbsd*)         machine=intel386 ;;
-      powerpc-*-openbsd*)      machine=macppc ;;
-      sparc*-*-openbsd*)       machine=sparc ;;
-      vax-*-openbsd*)          machine=vax ;;
-      x86_64-*-openbsd*)       machine=amdx86-64 ;;
-      hppa-*-openbsd*)         machine=hp800 ;;
+      alpha*)    machine=alpha ;;
+      x86_64-*)  machine=amdx86-64 ;;
+      arm-*)     machine=arm ;;
+      hppa-*)    machine=hp800 ;;
+      i386-*)    machine=intel386 ;;
+      powerpc-*) machine=macppc ;;
+      sparc*)    machine=sparc ;;
+      vax-*)     machine=vax ;;
     esac
   ;;
 
@@ -499,16 +498,16 @@ case "${canonical}" in
   s390x-*-linux-gnu* )
     machine=ibms390x opsys=gnu-linux
   ;;
-  rs6000-ibm-aix4.2* | powerpc-ibm-aix4.2*  )
+  rs6000-ibm-aix4.[23]* )
     machine=ibmrs6000 opsys=aix4-2
   ;;
-  rs6000-ibm-aix4.3* | powerpc-ibm-aix4.3*  )
+  powerpc-ibm-aix4.[23]*  )
     machine=ibmrs6000 opsys=aix4-2
   ;;
-  rs6000-ibm-aix5* | powerpc-ibm-aix5*  )
+  rs6000-ibm-aix[56]* )
     machine=ibmrs6000 opsys=aix4-2
   ;;
-  rs6000-ibm-aix6* | powerpc-ibm-aix6*  )
+  powerpc-ibm-aix[56]*  )
     machine=ibmrs6000 opsys=aix4-2
   ;;
 
@@ -577,7 +576,7 @@ case "${canonical}" in
     machine=ia64 opsys=gnu-linux
   ;;
 
-  ## Intel 386 machines where we don't care about the manufacturer
+  ## Intel 386 machines where we don't care about the manufacturer.
   i[3456]86-*-* )
     machine=intel386
     case "${canonical}" in
@@ -3755,6 +3754,14 @@ fi
 test "${exec_prefix}" != NONE &&
   exec_prefix=`echo "${exec_prefix}" | sed 's,\([^/]\)/*$,\1,'`]
 
+dnl You might wonder (I did) why epaths.h is generated by running make,
+dnl rather than just letting configure generate it from epaths.in.
+dnl One reason is that the various paths are not fully expanded (see above);
+dnl eg gamedir=${prefix}/var/games/emacs.
+dnl Secondly, the GNU Coding standards require that one should be able
+dnl to run `make prefix=/some/where/else' and override the values set
+dnl by configure.  This also explains the `move-if-change' test and
+dnl the use of force in the `epaths-force' rule in Makefile.in.
 AC_OUTPUT(Makefile lib-src/Makefile oldXMenu/Makefile \
 	doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile \
 	doc/lispref/Makefile src/Makefile \

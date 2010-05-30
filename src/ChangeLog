@@ -1,3 +1,32 @@
+2010-05-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_move_to_visually_next): Make sure the sentinel
+	state is always cached (bug#6306).
+
+2010-05-29  Eli Zaretskii  <eliz@gnu.org>
+
+	Fix cursor motion in bidi-reordered continued lines.
+	* xdisp.c (try_cursor_movement): Backup to non-continuation line
+	only after finding point's row.  Fix the logic.  Rewrite the loop
+	over continuation lines in bidi-reordered buffers.  Return
+	CURSOR_MOVEMENT_MUST_SCROLL upon failure to find a suitable row,
+	rather than CURSOR_MOVEMENT_CANNOT_BE_USED.
+
+2010-05-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* fileio.c (Fdelete_file): Pass TRASH arg to handler call.
+
+2010-05-28  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_delete_unmatched): Check Vface_ignored_fonts.
+	Don't sheck SPEC if it is nil.
+	(font_list_entities): Call font_delete_unmatched if
+	Vface_ignored_fonts is non-nil.
+
+2010-05-28  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (LIBES): Remove $LOADLIBES, it is never set.
+
 2010-05-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* fileio.c (Fdelete_file): Change meaning of optional arg to mean

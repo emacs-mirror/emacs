@@ -581,7 +581,7 @@ SOME_MACHINE_LISP = ../lisp/mouse.elc \
 ## Note that SunOS needs -lm to come before -lc; otherwise, you get
 ## duplicated symbols.  If the standard libraries were compiled
 ## with GCC, we might need LIB_GCC again after them.
-LIBES = $(LOADLIBES) $(LIBS) $(LIBX_BASE) $(LIBX_OTHER) $(LIBSOUND) \
+LIBES = $(LIBS) $(LIBX_BASE) $(LIBX_OTHER) $(LIBSOUND) \
    $(RSVG_LIBS) $(DBUS_LIBS) $(LIBGPM) $(LIBRESOLV) $(LIBS_SYSTEM) \
    $(LIBS_TERMCAP) $(GETLOADAVG_LIBS) ${GCONF_LIBS} ${LIBSELINUX_LIBS} \
    $(FREETYPE_LIBS) $(FONTCONFIG_LIBS) $(LIBOTF_LIBS) $(M17N_FLT_LIBS) \
