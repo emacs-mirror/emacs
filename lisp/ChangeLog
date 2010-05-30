@@ -1,3 +1,8 @@
+2010-05-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/ada-xref.el (ada-prj-ada-project-path-sep): Set from
+	`path-separator', but maintain compatibility with Emacs 20.2.
+
 2010-05-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* server.el (server-process-filter): Receive parent-id argument
