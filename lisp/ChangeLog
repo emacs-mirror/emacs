@@ -1,3 +1,10 @@
+2010-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-file-name-table): Don't return a boundary
+	past the end of `string' (bug#6299).
+	(completion--file-name-table): Delegate to completion-file-name-table
+	for the `boundaries' case.
+
 2010-05-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emulation/cua-base.el: Recognize `right-char' and `left-char' as
