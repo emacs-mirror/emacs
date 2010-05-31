@@ -1,3 +1,8 @@
+2010-05-31  Daiki Ueno  <ueno@unixuser.org>
+
+	* dired.texi (Operating on Files): Mention encryption commands
+	(Bug#6315).
+
 2010-05-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* basic.texi (Moving Point): Update due to renaming of commands bound
