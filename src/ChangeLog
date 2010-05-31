@@ -1,3 +1,8 @@
+2010-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (Fwhere_is_internal): Fix handling of remapping (in thread
+	of bug#6305).
+
 2010-05-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (redisplay_window): After redisplay, check if point is
