@@ -1,3 +1,8 @@
+2010-05-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (momentary-string-display): Just use read-event to read
+	the exit event (Bug#6238).
+
 2010-05-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* ansi-color.el: Delete unused escape sequences (Bug#6085).
