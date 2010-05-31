@@ -2204,22 +2204,11 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
                 (recenter (/ (window-height) 2))))
           (message (or message "Type %s to continue editing.")
                    (single-key-description exit-char))
-          (let (char)
-            (if (integerp exit-char)
-                (condition-case nil
-                    (progn
-                      (setq char (read-char))
-                      (or (eq char exit-char)
-                          (setq unread-command-events (list char))))
-                  (error
-                   ;; `exit-char' is a character, hence it differs
-                   ;; from char, which is an event.
-                   (setq unread-command-events (list char))))
-              ;; `exit-char' can be an event, or an event description list.
-              (setq char (read-event))
-              (or (eq char exit-char)
-                  (eq char (event-convert-list exit-char))
-                  (setq unread-command-events (list char))))))
+	  (let ((event (read-event)))
+	    ;; `exit-char' can be an event, or an event description list.
+	    (or (eq event exit-char)
+		(eq event (event-convert-list exit-char))
+		(setq unread-command-events (list event)))))
       (delete-overlay ol))))
 
 

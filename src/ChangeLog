@@ -21,7 +21,7 @@
 	* font.c (font_delete_unmatched): Check Vface_ignored_fonts.
 	Don't sheck SPEC if it is nil.
 	(font_list_entities): Call font_delete_unmatched if
-	Vface_ignored_fonts is non-nil.
+	Vface_ignored_fonts is non-nil.  (Bug#6287)
 
 2010-05-28  Glenn Morris  <rgm@gnu.org>
 
