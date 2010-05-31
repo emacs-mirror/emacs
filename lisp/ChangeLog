@@ -1,3 +1,8 @@
+2010-05-31  Jonathan Marchand  <jonathlela@gmail.com>
+
+	* cedet/ede/cpp-root.el (ede-set-project-variables): Fix feature name
+	(bug#6231).
+
 2010-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* man.el (Man-completion-table): Let the user type "-k " (bug#6319).
