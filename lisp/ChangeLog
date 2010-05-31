@@ -1,3 +1,7 @@
+2010-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* man.el (Man-completion-table): Let the user type "-k " (bug#6319).
+
 2010-05-31  Drew Adams  <drew.adams@oracle.com>
 
 	* files.el (directory-files-no-dot-files-regexp): Doc fix (bug#6298).
@@ -12,14 +16,13 @@
 	* ansi-color.el: Delete unused escape sequences (Bug#6085).
 	(ansi-color-drop-regexp): New constant.
 	(ansi-color-apply, ansi-color-filter-region)
-	(ansi-color-apply-on-region): Delete unrecognized control
-	sequences.
+	(ansi-color-apply-on-region): Delete unrecognized control sequences.
 	(ansi-color-apply): Build string list before calling concat.
 
 2010-05-27  Chong Yidong  <cyd@stupidchicken.com>
 
-	* progmodes/verilog-mode.el (verilog-type-font-keywords): Use
-	font-lock-constant-face, not obsolete font-lock-reference-face.
+	* progmodes/verilog-mode.el (verilog-type-font-keywords):
+	Use font-lock-constant-face, not obsolete font-lock-reference-face.
 
 2010-05-27  Masatake YAMATO  <yamato@redhat.com>
 
