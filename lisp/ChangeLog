@@ -1,3 +1,19 @@
+2010-05-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/mule.el (define-coding-system): Doc fix (bug#6313).
+
+2010-05-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emulation/cua-base.el: Recognize also `right-word' and `left-word'.
+	Suggested by Eli Zaretskii <eliz@gnu.org>.
+
+2010-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-file-name-table): Don't return a boundary
+	past the end of `string' (bug#6299).
+	(completion--file-name-table): Delegate to completion-file-name-table
+	for the `boundaries' case.
+
 2010-05-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emulation/cua-base.el: Recognize `right-char' and `left-char' as

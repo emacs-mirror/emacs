@@ -1,3 +1,8 @@
+2010-05-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* bidi.c (bidi_move_to_visually_next): Make sure the sentinel
+	state is always cached (bug#6306).
+
 2010-05-29  Eli Zaretskii  <eliz@gnu.org>
 
 	Fix cursor motion in bidi-reordered continued lines.
