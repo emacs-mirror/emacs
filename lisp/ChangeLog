@@ -1,3 +1,7 @@
+2010-05-31  Drew Adams  <drew.adams@oracle.com>
+
+	* files.el (directory-files-no-dot-files-regexp): Doc fix (bug#6298).
+
 2010-05-31  Juanma Barranquero  <lekktu@gmail.com>
 
 	* subr.el (momentary-string-display): Just use read-event to read

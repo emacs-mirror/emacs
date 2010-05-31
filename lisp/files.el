@@ -4647,7 +4647,7 @@ this happens by default."
 
 (defconst directory-files-no-dot-files-regexp
   "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*"
-  "Regexp of file names excluging \".\" an \"..\".")
+  "Regexp matching any file name except \".\" and \"..\".")
 
 (defun delete-directory (directory &optional recursive)
   "Delete the directory named DIRECTORY.  Does not follow symlinks.
