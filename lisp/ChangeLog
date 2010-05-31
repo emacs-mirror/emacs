@@ -1,4 +1,4 @@
-2010-05-31  Jonathan Marchand  <jonathlela@gmail.com>
+2010-05-31  Jonathan Marchand  <jonathlela@gmail.com>  (tiny change)
 
 	* cedet/ede/cpp-root.el (ede-set-project-variables): Fix feature name
 	(bug#6231).
