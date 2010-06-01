@@ -945,10 +945,12 @@ stream.  Standard error output is discarded."
        ((string-match "\\`\\(ancestor\\|branch\\|\\(revno:\\)?[-0-9]+:\\):"
                       string)
         (completion-table-with-context (substring string 0 (match-end 0))
-                                       'completion-file-name-table
+                                       (apply-partially
+                                        'completion-table-with-predicate
+                                        'completion-file-name-table
+                                        'file-directory-p t)
                                        (substring string (match-end 0))
-                                       ;; Dropping `pred' for no good reason.
-                                       'file-directory-p
+                                       pred
                                        action))
        ((string-match "\\`\\(before\\):" string)
         (completion-table-with-context (substring string 0 (match-end 0))

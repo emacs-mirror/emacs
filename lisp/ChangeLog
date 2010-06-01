@@ -1,3 +1,8 @@
+2010-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-bzr.el (vc-bzr-revision-completion-table): Apply
+	`file-directory-p' to the filename part rather than to the whole text.
+
 2010-05-31  Jonathan Marchand  <jonathlela@gmail.com>  (tiny change)
 
 	* cedet/ede/cpp-root.el (ede-set-project-variables): Fix feature name
