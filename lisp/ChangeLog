@@ -1,3 +1,17 @@
+2010-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-bzr.el (vc-bzr-revision-completion-table): Apply
+	`file-directory-p' to the filename part rather than to the whole text.
+
+2010-05-31  Jonathan Marchand  <jonathlela@gmail.com>  (tiny change)
+
+	* cedet/ede/cpp-root.el (ede-set-project-variables): Fix feature name
+	(bug#6231).
+
+2010-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* man.el (Man-completion-table): Let the user type "-k " (bug#6319).
+
 2010-05-31  Drew Adams  <drew.adams@oracle.com>
 
 	* files.el (directory-files-no-dot-files-regexp): Doc fix (bug#6298).
@@ -65,6 +79,14 @@
 	(ls-lisp-insert-directory): Call it if switches include -F (bug#6294).
 	(ls-lisp-classify): Call ls-lisp-classify-file.
 	(insert-directory): Remove blanks from switches.
+
+2010-05-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ansi-color.el: Delete unused escape sequences (Bug#6085).
+	(ansi-color-drop-regexp): New constant.
+	(ansi-color-apply, ansi-color-filter-region)
+	(ansi-color-apply-on-region): Delete unrecognized control sequences.
+	(ansi-color-apply): Build string list before calling concat.
 
 2010-05-28  Juri Linkov  <juri@jurta.org>
 
@@ -212,6 +234,16 @@
 	(smie-next-sexp): Handle nil results from next-token.
 	(smie-indent-calculate): Add a new case for special `fixindent' comments.
 
+2010-05-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/verilog-mode.el (verilog-type-font-keywords):
+	Use font-lock-constant-face, not obsolete font-lock-reference-face.
+
+2010-05-27  Masatake YAMATO  <yamato@redhat.com>
+
+	* htmlfontify.el (hfy-face-resolve-face): New function.
+	(hfy-face-to-style): Use it (Bug#6279).
+
 2010-05-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/ada-xref.el (ada-gnat-parse-gpr):
@@ -316,7 +348,13 @@
 	Register it in composition-function-table for all Hebrew combining
 	characters.
 
+2010-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* epa.el (epa--select-keys): Don't explicitly delete the window since
+	that can fail (e.g. sole window in frame).  Use dedication instead.
+
 2010-05-24  Uday S Reddy  <u.s.reddy@cs.bham.ac.uk>  (tiny change)
+2010-05-19  Uday S Reddy  <u.s.reddy@cs.bham.ac.uk>  (tiny change)
 
 	* textmodes/fill.el (fill-region): Don't fill past the end (bug#6201).
 

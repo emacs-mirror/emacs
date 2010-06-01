@@ -3,6 +3,11 @@
 	* sysdep.c (child_setup_tty): Move the non-canonical initialization to
 	the HAVE_TERMIO where it belongs (bug#6149).
 
+2010-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (Fwhere_is_internal): Fix handling of remapping (in thread
+	of bug#6305).
+
 2010-05-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* bidi.c (bidi_move_to_visually_next): Make sure the sentinel
@@ -122,6 +127,11 @@
 2010-05-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispextern.h (init_iterator): Sync prototype with changed definition.
+
+2010-05-20  enami tsugutomo  <tsugutomo.enami@jp.sony.com>
+
+	* s/netbsd.h: If terminfo is found, use it in preference to
+	termcap.  (Bug#6190)  [Backport from trunk]
 
 2010-05-19  Eli Zaretskii  <eliz@gnu.org>
 
@@ -2270,7 +2280,7 @@
 	(xg_toggle_notify_cb, xg_set_toolkit_scroll_bar_thumb)
 	(xg_create_tool_bar): Remove unused variables.
 	(x_wm_set_size_hint): Move declarations before statements.
-	(xg_create_frame_widgets): Remove variable grav,
+	(xg_create_frame_widgets): Remove variable grav.
 
 2010-02-21  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -2388,7 +2398,7 @@
 
 	* xfns.c (Fx_create_frame): Remove window size matching code from
 	2010-01-15.
-	(x_get_current_desktop, x_get_desktop_workarea): Remove
+	(x_get_current_desktop, x_get_desktop_workarea): Remove.
 
 2010-01-27  Jason Rumney  <jasonr@gnu.org>
 
@@ -3225,7 +3235,7 @@
 	fontconfig settings like hinting.
 	(font_load_for_lface): If spec had a name in it, store it in entity.
 
-	* emacs.c (main): Call syms_of_xsettings
+	* emacs.c (main): Call syms_of_xsettings.
 
 	* config.in: HAVE_GCONF is new.
 
@@ -8810,7 +8820,7 @@
 	(composition_adjust_point, Fcomposition_get_gstring): New functions.
 	(syms_of_composite): Initialize gstring_hash_table, gstrint_work,
 	and gstring_work_headers.  DEFVAR_LISP composition-function-table.
-	Defsubr compostion_get_gstring.
+	Defsubr composition_get_gstring.
 
 	* dispextern.h (struct glyph): New union u.cmp.  Delete the member
 	cmp_id.
