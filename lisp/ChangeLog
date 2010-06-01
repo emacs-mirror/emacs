@@ -1,5 +1,9 @@
 2010-06-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	Improve state updating for VC tag commands.
+	* vc.el (vc-create-tag, vc-retrieve-tag): Call vc-resynch-buffer
+	to update the state of all buffers in the directory.
+
 	* vc-dir.el (vc-dir-update): Remove entries with a nil state (bug#5539).
 
 2010-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
