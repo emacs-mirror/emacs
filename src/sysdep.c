@@ -537,15 +537,6 @@ child_setup_tty (out)
   s.main.c_cflag = (s.main.c_cflag & ~CBAUD) | B9600; /* baud rate sanity */
 #endif /* AIX */
 
-#else /* not HAVE_TERMIO */
-
-  s.main.sg_flags &= ~(ECHO | CRMOD | ANYP | ALLDELAY | RAW | LCASE
-		       | CBREAK | TANDEM);
-  s.main.sg_flags |= LPASS8;
-  s.main.sg_erase = 0377;
-  s.main.sg_kill = 0377;
-  s.lmode = LLITOUT | s.lmode;        /* Don't strip 8th bit */
-
   /* We used to enable ICANON (and set VEOF to 04), but this leads to
      problems where process.c wants to send EOFs every once in a while
      to force the output, which leads to weird effects when the
@@ -557,6 +548,15 @@ child_setup_tty (out)
   s.main.c_lflag &= ~ICANON;	/* Disable line editing and eof processing */
   s.main.c_cc[VMIN] = 1;
   s.main.c_cc[VTIME] = 0;
+
+#else /* not HAVE_TERMIO */
+
+  s.main.sg_flags &= ~(ECHO | CRMOD | ANYP | ALLDELAY | RAW | LCASE
+		       | CBREAK | TANDEM);
+  s.main.sg_flags |= LPASS8;
+  s.main.sg_erase = 0377;
+  s.main.sg_kill = 0377;
+  s.lmode = LLITOUT | s.lmode;        /* Don't strip 8th bit */
 
 #endif /* not HAVE_TERMIO */
 

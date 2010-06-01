@@ -814,6 +814,25 @@ the values @var{string}, @var{predicate} and @code{lambda}; whatever
 it returns, @code{test-completion} returns in turn.
 @end defun
 
+@defun completion-boundaries string collection predicate suffix
+This function returns the boundaries of the field on which @var{collection}
+will operate, assuming that @var{string} holds the text before point
+and @var{suffix} holds the text after point.
+
+Normally completion operates on the whole string, so for all normal
+collections, this will always return @code{(0 . (length
+@var{suffix}))}.  But more complex completion such as completion on
+files is done one field at a time.  For example, completion of
+@code{"/usr/sh"} will include @code{"/usr/share/"} but not
+@code{"/usr/share/doc"} even if @code{"/usr/share/doc"} exists.
+Also @code{all-completions} on @code{"/usr/sh"} will not include
+@code{"/usr/share/"} but only @code{"share/"}.  So if @var{string} is
+@code{"/usr/sh"} and @var{suffix} is @code{"e/doc"},
+@code{completion-boundaries} will return @code{(5 . 1)} which tells us
+that the @var{collection} will only return completion information that
+pertains to the area after @code{"/usr/"} and before @code{"/doc"}.
+@end defun
+
 If you store a completion alist in a variable, you should mark the
 variable as ``risky'' with a non-@code{nil}
 @code{risky-local-variable} property.  @xref{File Local Variables}.
@@ -1618,13 +1637,14 @@ containing all the intended possible completions.  In such a case, you
 can supply your own function to compute the completion of a given
 string.  This is called @dfn{programmed completion}.  Emacs uses
 programmed completion when completing file names (@pxref{File Name
-Completion}).
+Completion}), among many other cases.
 
-  To use this feature, pass a symbol with a function definition as the
-@var{collection} argument to @code{completing-read}.  The function
+  To use this feature, pass a function as the @var{collection}
+argument to @code{completing-read}.  The function
 @code{completing-read} arranges to pass your completion function along
-to @code{try-completion} and @code{all-completions}, which will then let
-your function do all the work.
+to @code{try-completion}, @code{all-completions}, and other basic
+completion functions, which will then let your function do all
+the work.
 
   The completion function should accept three arguments:
 
@@ -1638,10 +1658,14 @@ none.  Your function should call the predicate for each possible match,
 and ignore the possible match if the predicate returns @code{nil}.
 
 @item
-A flag specifying the type of operation.
+A flag specifying the type of operation.  The best way to think about
+it is that the function stands for an object (in the
+``object-oriented'' sense of the word), and this third argument
+specifies which method to run.
 @end itemize
 
-  There are three flag values for three operations:
+  There are currently four methods, i.e. four flag values, one for
+  each of the four different basic operations:
 
 @itemize @bullet
 @item
@@ -1663,6 +1687,13 @@ string.
 @code{lambda} specifies @code{test-completion}.  The completion
 function should return @code{t} if the specified string is an exact
 match for some possibility; @code{nil} otherwise.
+
+@item
+@code{(boundaries . SUFFIX)} specifies @code{completion-boundaries}.
+The function should return a value of the form @code{(boundaries
+START . END)} where START is the position of the beginning boundary in
+in the string to complete, and END is the position of the end boundary
+in SUFFIX.
 @end itemize
 
   It would be consistent and clean for completion functions to allow

@@ -1903,6 +1903,7 @@ checked out in that new branch."
   (when (file-directory-p dir) (setq dir (file-name-as-directory dir)))
   (vc-call-backend (vc-responsible-backend dir)
 		   'create-tag dir name branchp)
+  (vc-resynch-buffer dir t t)
   (message "Making %s... done" (if branchp "branch" "tag")))
 
 ;;;###autoload
@@ -1923,6 +1924,7 @@ allowed and simply skipped)."
     (message "%s" msg)
     (vc-call-backend (vc-responsible-backend dir)
 		     'retrieve-tag dir name update)
+    (vc-resynch-buffer dir t t)
     (message "%s" (concat msg "done"))))
 
 ;; Miscellaneous other entry points
