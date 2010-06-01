@@ -362,6 +362,7 @@ If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
     ;; Insert directory entries in the right places.
     (let ((entry (car entries))
 	  (node (ewoc-nth vc-ewoc 0))
+	  (to-remove nil)
 	  (dotname (file-relative-name default-directory)))
       ;; Insert . if it is not present.
       (unless node
@@ -388,10 +389,16 @@ If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
 	       ((string-lessp nodefile entryfile)
 		(setq node (ewoc-next vc-ewoc node)))
 	       ((string-equal nodefile entryfile)
-		(setf (vc-dir-fileinfo->state (ewoc-data node)) (nth 1 entry))
-		(setf (vc-dir-fileinfo->extra (ewoc-data node)) (nth 2 entry))
-		(setf (vc-dir-fileinfo->needs-update (ewoc-data node)) nil)
-		(ewoc-invalidate vc-ewoc node)
+		(if (nth 1 entry)
+		    (progn
+		      (setf (vc-dir-fileinfo->state (ewoc-data node)) (nth 1 entry))
+		      (setf (vc-dir-fileinfo->extra (ewoc-data node)) (nth 2 entry))
+		      (setf (vc-dir-fileinfo->needs-update (ewoc-data node)) nil)
+		      (ewoc-invalidate vc-ewoc node))
+		  ;; If the state is nil, the file does not exist
+		  ;; anymore, so remember the entry so we can remove
+		  ;; it after we are done inserting all ENTRIES.
+		  (push node to-remove))
 		(setq entries (cdr entries))
 		(setq entry (car entries))
 		(setq node (ewoc-next vc-ewoc node)))
@@ -427,7 +434,10 @@ If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
 		   vc-ewoc (vc-dir-create-fileinfo rd nil nil nil entrydir))))
 	      ;; Now insert the node itself.
 	      (ewoc-enter-last vc-ewoc
-			       (apply 'vc-dir-create-fileinfo entry)))))))))
+			       (apply 'vc-dir-create-fileinfo entry))))))
+      (when to-remove
+	(let ((inhibit-read-only t))
+	  (apply 'ewoc-delete vc-ewoc (nreverse to-remove)))))))
 
 (defun vc-dir-busy ()
   (and (buffer-live-p vc-dir-process-buffer)
