@@ -606,14 +606,38 @@ for the --graph option."
 		(when start-revision (list start-revision))
 		'("--")))))))
 
+(defun vc-git-compute-remote ()
+  (let ((str (with-output-to-string
+	       (with-current-buffer standard-output
+		 (vc-git--out-ok "symbolic-ref" "HEAD"))))
+	branch remote)
+    (if (string-match "^\\(refs/heads/\\)?\\(.+\\)$" str)
+	(progn
+	  (setq branch (match-string 2 str))
+	  (setq remote
+		(with-output-to-string
+		  (with-current-buffer standard-output
+		    (vc-git--out-ok "config"
+				    (concat "branch." branch ".remote")))))
+	  (when (string-match "\\([^\n]+\\)" remote)
+	    (setq remote (match-string 1 remote)))))))
+
+
 (defun vc-git-log-outgoing (buffer remote-location)
   (interactive)
   (vc-git-command
    buffer 0 nil
    "log" (if (string= remote-location "")
-	     ;; FIXME: this hardcodes the location, it should compute
-	     ;; it properly.
-	     "origin/master..HEAD"
+	     (concat (vc-git-compute-remote) "..HEAD")
+	   remote-location)))
+
+
+(defun vc-git-log-incoming (buffer remote-location)
+  (interactive)
+  (vc-git-command
+   buffer 0 nil
+   "log" (if (string= remote-location "")
+	     (concat "HEAD.." (vc-git-compute-remote))
 	   remote-location)))
 
 (defvar log-view-message-re)
