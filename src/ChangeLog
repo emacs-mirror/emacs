@@ -1,5 +1,7 @@
 2010-06-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* gmalloc.c: Remove BROKEN_PROTOTYPES reference, unused.
+
 	* s/sol2-6.h: Remove obsolete comments.
 
 	Remove unnecessary alloca.h includes.
