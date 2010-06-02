@@ -63,18 +63,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
     pty_name[sizeof (pty_name) - 1] = 0;	\
   }
 
-/* This is the only known way to avoid some crashes
-   that seem to relate to screwed up malloc data
-   after deleting a frame.  */
-/* rms: I think the problems using ralloc had to do with system
-   libraries that called the system malloc even if we linked in the
-   GNU malloc.  I could not see any way to fix the problem except to
-   have just one malloc and that had to be the system one.  */
-/* This is not always necessary.  Turned off at present for testers to
-   identify any problems with gmalloc more accurately.  */
-/* #define SYSTEM_MALLOC */
-
-/* Probably OK also on earlier versions.  */
 #define GC_SETJMP_WORKS 1
 #define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
 

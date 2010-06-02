@@ -1,5 +1,7 @@
 2010-06-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* s/sol2-6.h: Remove obsolete comments.
+
 	Remove unnecessary alloca.h includes.
 	* keymap.c: Do not include alloca.h, config.h does that.
 	* sysdep.c: Likewise.  Do not define fwrite, not used.
