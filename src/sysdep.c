@@ -36,9 +36,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#ifdef HAVE_ALLOCA_H
-#include <alloca.h>
-#endif /* HAVE_ALLOCA_H */
 
 #include "lisp.h"
 /* Including stdlib.h isn't necessarily enough to get srandom
@@ -60,13 +57,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define NULL 0
 #endif
 #endif /* not WINDOWSNT */
-
-/* Does anyone other than VMS need this? */
-#ifndef fwrite
-#define sys_fwrite fwrite
-#else
-#undef fwrite
-#endif
 
 #include <sys/types.h>
 #include <sys/stat.h>
