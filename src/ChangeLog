@@ -1,3 +1,24 @@
+2010-06-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Fix config.h includes.
+	* xsettings.c:
+	* xgselect.c:
+	* nsterm.m:
+	* nsselect.m:
+	* nsimage.m:
+	* nsfont.m:
+	* nsfns.m:
+	* dbusbind.c: Use #include <config.h> instead of "config.h" as all
+	other files do.
+
+	* gmalloc.c: Remove BROKEN_PROTOTYPES reference, unused.
+
+	* s/sol2-6.h: Remove obsolete comments.
+
+	Remove unnecessary alloca.h includes.
+	* keymap.c: Do not include alloca.h, config.h does that.
+	* sysdep.c: Likewise.  Do not define fwrite, not used.
+
 2010-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* sysdep.c (child_setup_tty): Move the non-canonical initialization to

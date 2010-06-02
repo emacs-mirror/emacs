@@ -1,3 +1,36 @@
+2010-06-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-indent-hanging-p): Use smie-bolp.
+	(smie-indent-calculate): Simplify and cleanup.
+
+2010-06-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-gvfs.el (top): Require url-util.
+	(tramp-gvfs-mount-point): Remove.
+	(tramp-gvfs-stringify-dbus-message, tramp-gvfs-send-command):
+	New defuns.
+	(with-tramp-dbus-call-method): Format trace message.
+	(tramp-gvfs-handle-copy-file, tramp-gvfs-handle-rename-file):
+	Implement backup call, when operation on local files fails.
+	Use progress reporter.  Flush properties of changed files.
+	(tramp-gvfs-handle-make-directory): Make more traces.
+	(tramp-gvfs-url-file-name): Hexify file name in url.
+	(tramp-gvfs-fuse-file-name): Take also prefix (like dav shares)
+	into account for the resulting file name.
+	(tramp-gvfs-handler-askquestion): Return dummy mountpoint, when
+	the answer is "no".  See `tramp-gvfs-maybe-open-connection'.
+	(tramp-gvfs-handler-mounted-unmounted)
+	(tramp-gvfs-connection-mounted-p): Test also for new mountspec
+	attribute "default_location".  Set "prefix" property.
+	(tramp-gvfs-mount-spec): Return both prefix and mountspec.
+	(tramp-gvfs-maybe-open-connection): Test, whether mountpoint
+	exists.  Raise an error, if not (due to a corresponding answer
+	"no" in interactive questions, for example).
+
+22010-06-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* log-edit.el (log-edit-font-lock-keywords): Make group 4 match lax.
+
 2010-06-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/eldoc.el: Add completions for new commands left-* and
