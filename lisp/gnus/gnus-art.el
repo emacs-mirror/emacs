@@ -2806,22 +2806,28 @@ summary buffer."
 (defun gnus-article-browse-delete-temp-files (&optional how)
   "Delete temp-files created by `gnus-article-browse-html-parts'."
   (when (and gnus-article-browse-html-temp-list
-	     (or how
-		 (setq how gnus-article-browse-delete-temp)))
-    (when (and (eq how 'ask)
-	       (gnus-y-or-n-p (format
-			       "Delete all %s temporary HTML file(s)? "
-			       (length gnus-article-browse-html-temp-list)))
-	       (setq how t)))
+	     (progn
+	       (or how (setq how gnus-article-browse-delete-temp))
+	       (if (eq how 'ask)
+		   (let ((files (length gnus-article-browse-html-temp-list)))
+		     (gnus-y-or-n-p (format
+				     "Delete all %s temporary HTML file%s? "
+				     files
+				     (if (> files 1) "s" ""))))
+		 how)))
     (dolist (file gnus-article-browse-html-temp-list)
-      (when (and (file-exists-p file)
-		 (or (eq how t)
-		     ;; `how' is neither `nil', `ask' nor `t' (i.e. `file'):
-		     (gnus-y-or-n-p
-		      (format "Delete temporary HTML file `%s'? " file))))
-	(if (file-directory-p file)
-	    (gnus-delete-directory file)
-	  (delete-file file))))
+      (cond ((file-directory-p file)
+	     (when (or (not (eq how 'file))
+		       (gnus-y-or-n-p
+			(format
+			 "Delete temporary HTML file(s) in directory `%s'? "
+			 (file-name-as-directory file))))
+	       (gnus-delete-directory file)))
+	    ((file-exists-p file)
+	     (when (or (not (eq how 'file))
+		       (gnus-y-or-n-p
+			(format "Delete temporary HTML file `%s'? " file)))
+	       (delete-file file)))))
     ;; Also remove file from the list when not deleted or if file doesn't
     ;; exist anymore.
     (setq gnus-article-browse-html-temp-list nil))
