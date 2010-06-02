@@ -1,7 +1,8 @@
 2010-06-02  Chong Yidong  <cyd@stupidchicken.com>
 
-	* searching.texi (Regexp Special): Replace "octal 377"
-	with "#o377" (Bug#6283).
+	* searching.texi (Regexp Special): Remove obsolete information
+	about matching non-ASCII characters, and suggest using char
+	classes (Bug#6283).
 
 2010-05-30  Juanma Barranquero  <lekktu@gmail.com>
 
