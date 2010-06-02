@@ -1,13 +1,18 @@
+2010-06-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-indent-hanging-p): Use smie-bolp.
+	(smie-indent-calculate): Simplify and cleanup.
+
 2010-06-02  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-gvfs.el (top): Require url-util.
-	(tramp-gvfs-mount-point): Removed.
-	(tramp-gvfs-stringify-dbus-message, tramp-gvfs-send-command): New
-	defuns.
+	(tramp-gvfs-mount-point): Remove.
+	(tramp-gvfs-stringify-dbus-message, tramp-gvfs-send-command):
+	New defuns.
 	(with-tramp-dbus-call-method): Format trace message.
 	(tramp-gvfs-handle-copy-file, tramp-gvfs-handle-rename-file):
-	Implement backup call, when operation on local files fails.  Use
-	progress reporter.  Flush properties of changed files.
+	Implement backup call, when operation on local files fails.
+	Use progress reporter.  Flush properties of changed files.
 	(tramp-gvfs-handle-make-directory): Make more traces.
 	(tramp-gvfs-url-file-name): Hexify file name in url.
 	(tramp-gvfs-fuse-file-name): Take also prefix (like dav shares)
