@@ -400,14 +400,15 @@ is @samp{@var{c}..?\377}, the other is @samp{@var{c1}..@var{c2}}, where
 @var{c1} is the first character of the charset to which @var{c2}
 belongs.
 
-You cannot always match all non-@acronym{ASCII} characters with the regular
-expression @code{"[\200-\377]"}.  This works when searching a unibyte
-buffer or string (@pxref{Text Representations}), but not in a multibyte
-buffer or string, because many non-@acronym{ASCII} characters have codes
-above octal 0377.  However, the regular expression @code{"[^\000-\177]"}
-does match all non-@acronym{ASCII} characters (see below regarding @samp{^}),
-in both multibyte and unibyte representations, because only the
-@acronym{ASCII} characters are excluded.
+You cannot always match all non-@acronym{ASCII} characters with the
+regular expression @code{"[\200-\377]"}.  This works when searching a
+unibyte buffer or string (@pxref{Text Representations}), but not in a
+multibyte buffer or string, because many non-@acronym{ASCII}
+characters have codes above @code{#o377}.  However, the regular
+expression @code{"[^\000-\177]"} does match all non-@acronym{ASCII}
+characters (see below regarding @samp{^}), in both multibyte and
+unibyte representations, because only the @acronym{ASCII} characters
+are excluded.
 
 A character alternative can also specify named
 character classes (@pxref{Char Classes}).  This is a POSIX feature whose
