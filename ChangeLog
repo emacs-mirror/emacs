@@ -1,5 +1,7 @@
 2010-06-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* configure.in (AC_PREREQ): Require autoconf 2.65.
+
 	* configure.in (unxec): Do not define and substitute.
 	(UNEXEC_OBJ): New output variable, replaces cpp UNEXEC.
 
