@@ -942,6 +942,8 @@ current, and kill the buffer that visits the link."
     (define-key map "i" 'vc-register)
     (define-key map "l" 'vc-print-log)
     (define-key map "L" 'vc-print-root-log)
+    (define-key map "I" 'vc-log-incoming)
+    (define-key map "O" 'vc-log-outgoing)
     (define-key map "m" 'vc-merge)
     (define-key map "r" 'vc-retrieve-tag)
     (define-key map "s" 'vc-create-tag)

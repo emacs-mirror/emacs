@@ -164,6 +164,9 @@ read a file name from the minibuffer instead of using buffer-file-name.
 
 *** New VC commands: vc-log-incoming, vc-log-outgoing, vc-find-conflicted-file.
 
+*** New key bindings: C-x v I and C-x v O bound to vc-log-incoming and
+vc-log-outgoing, respectively.
+
 *** vc-dir for Bzr supports viewing shelve contents and shelving snapshots.
 
 *** Special markup can be added to log-edit buffers.

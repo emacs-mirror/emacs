@@ -1,3 +1,11 @@
+2010-06-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Add bindings for vc-log-incoming and vc-log-outgoing.
+	* vc-hooks.el (vc-prefix-map): Add bindings for vc-log-incoming
+	and vc-log-outgoing.
+	* vc-dir.el (vc-dir-menu-map): Add menu bindings for vc-log-incoming
+	and vc-log-outgoing.
+
 2010-06-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* net/rcirc.el (rcirc-sort-nicknames): Remove.
