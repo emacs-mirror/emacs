@@ -7,15 +7,14 @@
 /* Use the Solaris dldump() function, called from unexsol.c, to dump
    emacs, instead of the generic ELF dump code found in unexelf.c.
    The resulting binary has a complete symbol table, and is better
-   for debugging and other observabilty tools (debuggers, pstack, etc).
+   for debugging and other observability tools (debuggers, pstack, etc).
 
    If you encounter a problem using dldump(), please consider sending
    a message to the OpenSolaris tools-linking mailing list:
         http://mail.opensolaris.org/mailman/listinfo/tools-linking
 
-   It is likely that dldump() works with older Solaris too,
-   but this has not been tested, and so, this change is for
-   Solaris 10 and newer only at this time.  */
+   It is likely that dldump() works with older Solaris too, but this has
+   not been tested, so for now this change is for Solaris 10 or newer.  */
 #undef UNEXEC
 #define UNEXEC unexsol.o
 
