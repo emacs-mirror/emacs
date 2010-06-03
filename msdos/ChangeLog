@@ -1,3 +1,11 @@
+2010-06-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* sed1v2.inp (UNEXEC_OBJ): Use UNEXEC_OBJ instead of unexec.
+
+2010-06-03  Glenn Morris  <rgm@gnu.org>
+
+	* sed2v2.inp: Do not edit HAVE_ALLOCA.
+
 2010-05-26  Glenn Morris  <rgm@gnu.org>
 
 	* sed1v2.inp (@PRE_EDIT_LDFLAGS@, @POST_EDIT_LDFLAGS@): Edit to nothing.

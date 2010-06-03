@@ -31,9 +31,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Greg A. Woods <woods@weird.com> says we must include signal.h
    before syssignal.h is included, to work around interface conflicts
    that are handled with CPP __RENAME() macro in signal.h.  */
-#ifndef NOT_C_CODE
 #include <signal.h>
-#endif
 
 /* Don't close pty in process.c to make it as controlling terminal.
    It is already a controlling terminal of subprocess, because we did

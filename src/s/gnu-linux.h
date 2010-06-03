@@ -29,7 +29,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    It sets the Lisp variable system-type.  */
 #define SYSTEM_TYPE "gnu/linux"		/* All the best software is free. */
 
-#ifndef NOT_C_CODE
 #ifdef emacs
 #ifdef HAVE_LINUX_VERSION_H
 #include <linux/version.h>
@@ -40,7 +39,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif /* LINUX_VERSION_CODE >= 0x20400 */
 #endif /* HAVE_LINUX_VERSION_H */
 #endif /* emacs */
-#endif /* NOT_C_CODE */
 
 #if defined HAVE_GRANTPT
 #define UNIX98_PTYS
@@ -132,8 +130,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define SYSV_SYSTEM_DIR       /* use dirent.h */
 
 #define POSIX                 /* affects getpagesize.h and systty.h */
-
-#define UNEXEC unexelf.o
 
 /* This is to work around mysterious gcc failures in some system versions.
    It is unlikely that Emacs changes will work around this problem;

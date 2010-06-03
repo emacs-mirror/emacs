@@ -1650,6 +1650,31 @@ if NICK is also on `rcirc-ignore-list-automatic'."
 	    rcirc-ignore-list
 	    (delete nick rcirc-ignore-list))))
 
+(defun rcirc-nickname< (s1 s2)
+  "Return t if IRC nickname S1 is less than S2, and nil otherwise.
+Operator nicknames (@) are considered less than voiced
+nicknames (+).  Any other nicknames are greater than voiced
+nicknames.  The comparison is case-insensitive."
+  (setq s1 (downcase s1)
+        s2 (downcase s2))
+  (let* ((s1-op (eq ?@ (string-to-char s1)))
+         (s2-op (eq ?@ (string-to-char s2))))
+    (if s1-op
+        (if s2-op
+            (string< (substring s1 1) (substring s2 1))
+          t)
+      (if s2-op
+          nil
+        (string< s1 s2)))))
+
+(defun rcirc-sort-nicknames-join (input sep)
+  "Return a string of sorted nicknames.
+INPUT is a string containing nicknames separated by SEP.
+This function does not alter the INPUT string."
+  (let* ((parts (split-string input sep t))
+         (sorted (sort parts 'rcirc-nickname<)))
+    (mapconcat 'identity sorted sep)))
+
 ;;; activity tracking
 (defvar rcirc-track-minor-mode-map (make-sparse-keymap)
   "Keymap for rcirc track minor mode.")
@@ -2554,7 +2579,8 @@ keywords when no KEYWORD is given."
          (buffer (rcirc-get-temp-buffer-create process channel)))
     (with-current-buffer buffer
       (rcirc-print process sender "NAMES" channel
-                   (buffer-substring (point-min) (point-max))))
+                   (let ((content (buffer-substring (point-min) (point-max))))
+		     (rcirc-sort-nicknames-join content " "))))
     (kill-buffer buffer)))
 
 (defun rcirc-handler-433 (process sender args text)

@@ -1,3 +1,46 @@
+2010-06-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Move UNEXEC definition to autoconf.
+	* s/usg5-4.h (UNEXEC): Remove, move to configure.in.
+	* s/sol2-10.h (UNEXEC):
+	* s/irix6-5.h (UNEXEC):
+	* s/hpux10-20.h (UNEXEC):
+	* s/gnu-linux.h (UNEXEC):
+	* s/darwin.h (UNEXEC):
+	* s/cygwin.h (UNEXEC):
+	* s/bsd-common.h (UNEXEC):
+	* s/aix4-2.h (UNEXEC):
+	* m/alpha.h (UNEXEC): Likewise.
+	* Makefile.in (UNEXEC_OBJ): Define using @UNEXEC_OBJ@.
+
+2010-06-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	Remove obsolete pre-unicode2 macros.
+	* character.h (MULTIBYTE_FORM_LENGTH, PARSE_MULTIBYTE_SEQ): Remove.
+	* composite.c (composition_reseat_it):
+	* data.c (Faset):
+	* fns.c (Ffillarray):
+	* regex.c (re_search_2): Use BYTES_BY_CHAR_HEAD.
+	[!emacs] (BYTES_BY_CHAR_HEAD): Define instead of MULTIBYTE_FORM_LENGTH.
+
+2010-06-03  Juri Linkov  <juri@jurta.org>
+
+	* buffer.c (Fother_buffer): Add CHECK_FRAME.
+	(Fswitch_to_buffer): Remove unused variable `err'.
+
+2010-06-03  Glenn Morris  <rgm@gnu.org>
+
+	* m/template.h (NO_SOCK_SIGIO): Remove, no longer used.
+
+	* m/hp800.h (alloca) [__NetBSD__ && __GNUC__]: No need to define it,
+	now that AH_BOTTOM does it.
+
+	* m/hp800.h (HAVE_ALLOCA):
+	* m/ibms390x.h (HAVE_ALLOCA): Do not define, no longer needed.
+
+	* m/ia64.h, s/gnu-linux.h, s/gnu.h, s/netbsd.h, s/usg5-4.h:
+	Remove NOT_C_CODE tests, it is always true now.
+
 2010-06-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Fix config.h includes.

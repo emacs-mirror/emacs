@@ -23,7 +23,7 @@ dnl
 dnl  You should have received a copy of the GNU General Public License
 dnl  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-AC_PREREQ(2.62)
+AC_PREREQ(2.65)
 AC_INIT(emacs, 24.0.50)
 AC_CONFIG_HEADER(src/config.h:src/config.in)
 AC_CONFIG_SRCDIR(src/lisp.h)
@@ -854,8 +854,6 @@ echo '
 
 configure___ LIBX=-lX11
 
-configure___ unexec=UNEXEC
-
 #ifdef CANNOT_DUMP
 configure___ cannot_dump=yes
 #else
@@ -925,6 +923,35 @@ rm ${tempcname}
 
 AC_SUBST(cannot_dump)
 
+UNEXEC_OBJ=unexelf.o
+case "$opsys" in
+  aix4-2)
+   UNEXEC_OBJ=unexaix.o
+   ;;
+  cygwin)
+   UNEXEC_OBJ=unexcw.o
+   ;;
+  darwin)
+   UNEXEC_OBJ=unexmacosx.o
+   ;;
+  hpux10-20 | hpux11)
+   UNEXEC_OBJ=unexhp9k800.o
+   ;;
+  sol2-10)
+   # Use the Solaris dldump() function, called from unexsol.c, to dump
+   # emacs, instead of the generic ELF dump code found in unexelf.c.
+   # The resulting binary has a complete symbol table, and is better
+   # for debugging and other observability tools (debuggers, pstack, etc).
+   # 
+   # If you encounter a problem using dldump(), please consider sending
+   # a message to the OpenSolaris tools-linking mailing list:
+   #      http://mail.opensolaris.org/mailman/listinfo/tools-linking
+   # 
+   # It is likely that dldump() works with older Solaris too, but this has
+   # not been tested, so for now this change is for Solaris 10 or newer.
+   UNEXEC_OBJ=unexsol.o
+   ;;
+esac
 
 LD_SWITCH_SYSTEM=
 case "$opsys" in
@@ -985,10 +1012,13 @@ if test "$machine" = "alpha"; then
     else
       AC_MSG_ERROR([What gives?  Fix me if DEC Unix supports ELF now.])
     fi
+  else
+    UNEXEC_OBJ=unexalpha.o 
   fi
 fi
 AC_SUBST(C_SWITCH_MACHINE)
 
+AC_SUBST(UNEXEC_OBJ)
 
 C_SWITCH_SYSTEM=
 ## Some programs in src produce warnings saying certain subprograms
@@ -3082,7 +3112,6 @@ AC_SUBST(docdir)
 AC_SUBST(bitmapdir)
 AC_SUBST(gamedir)
 AC_SUBST(gameuser)
-AC_SUBST(unexec)
 ## FIXME? Nothing uses @LD_SWITCH_X_SITE@.
 ## src/Makefile.in did add LD_SWITCH_X_SITE (as a cpp define) to the
 ## end of LIBX_BASE, but nothing ever set it.
@@ -3546,13 +3575,8 @@ SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
 
 /* Some of the files of Emacs which are intended for use with other
    programs assume that if you have a config.h file, you must declare
-   the type of getenv.
-
-   This declaration shouldn't appear when alloca.s or Makefile.in
-   includes config.h.  */
-#ifndef NOT_C_CODE
+   the type of getenv.  */
 extern char *getenv ();
-#endif
 
 /* These default definitions are good for almost all machines.
    The exceptions override them in m/MACHINE.h.  */
@@ -3593,17 +3617,18 @@ extern char *getenv ();
 # endif  /* GCC.  */
 #endif /* __P */
 
-/* Don't include "string.h" or <stdlib.h> in non-C code.  */
-#ifndef NOT_C_CODE
 #ifdef HAVE_STRING_H
 #include "string.h"
 #endif
+
 #ifdef HAVE_STRINGS_H
 #include "strings.h"  /* May be needed for bcopy & al.  */
 #endif
+
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
+
 #ifdef HAVE_ALLOCA_H
 # include <alloca.h>
 #elif defined __GNUC__
@@ -3617,10 +3642,10 @@ extern "C"
 # endif
 void *alloca (size_t);
 #endif
+
 #ifndef HAVE_SIZE_T
 typedef unsigned size_t;
 #endif
-#endif /* NOT_C_CODE */
 
 /* Define HAVE_X_I18N if we have usable i18n support.  */
 

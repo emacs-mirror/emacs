@@ -235,23 +235,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    : 5)
 
 
-/* Return the length of the multi-byte form at string STR of length
-   LEN while assuming that STR points a valid multi-byte form.  As
-   this macro isn't necessary anymore, all callers will be changed to
-   use BYTES_BY_CHAR_HEAD directly in the future.  */
-
-#define MULTIBYTE_FORM_LENGTH(str, len)		\
-  BYTES_BY_CHAR_HEAD (*(str))
-
-/* Parse multibyte string STR of length LENGTH and set BYTES to the
-   byte length of a character at STR while assuming that STR points a
-   valid multibyte form.  As this macro isn't necessary anymore, all
-   callers will be changed to use BYTES_BY_CHAR_HEAD directly in the
-   future.  */
-
-#define PARSE_MULTIBYTE_SEQ(str, length, bytes)	\
-  (bytes) = BYTES_BY_CHAR_HEAD (*(str))
-
 /* The byte length of multibyte form at unibyte string P ending at
    PEND.  If STR doesn't point to a valid multibyte form, return 0.  */
 

@@ -104,7 +104,5 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    to avoid a crash just use the Emacs implementation for that function.  */
 #define BROKEN_GET_CURRENT_DIR_NAME 1
 
-#define UNEXEC unexaix.o
-
 /* arch-tag: 38fe75ea-6aef-42bd-8449-bc34d921a562
    (do not change this comment) */
