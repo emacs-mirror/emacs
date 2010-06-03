@@ -1,3 +1,8 @@
+2010-06-03  Juri Linkov  <juri@jurta.org>
+
+	* buffer.c (Fother_buffer): Add CHECK_FRAME.
+	(Fswitch_to_buffer): Remove unused variable `err'.
+
 2010-06-03  Glenn Morris  <rgm@gnu.org>
 
 	* m/template.h (NO_SOCK_SIGIO): Remove, no longer used.
