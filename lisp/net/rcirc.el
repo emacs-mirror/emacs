@@ -281,7 +281,8 @@ Called with 5 arguments, PROCESS, SENDER, RESPONSE, TARGET and TEXT."
   :type 'hook
   :group 'rcirc)
 
-(defcustom rcirc-sort-nicknames nil
+;; Does this really merit a config variable?
+(defcustom rcirc-sort-nicknames t
   "If non-nil, sorts nickname listings."
   :type 'boolean
   :group 'rcirc)
@@ -1682,10 +1683,9 @@ nicknames sorted.
 INPUT is a string containing nicknames separated by SEP.
 
 This function is non-destructive, sorting a copy of the input."
-  (let ((parts (split-string input sep t))
-        copy)
-    (setq copy (sort parts 'rcirc-nickname<))
-    (mapconcat 'identity copy sep)))
+  (let* ((parts (split-string input sep t))
+         (sorted (sort parts 'rcirc-nickname<)))
+    (mapconcat 'identity sorted sep)))
 
 ;;; activity tracking
 (defvar rcirc-track-minor-mode-map (make-sparse-keymap)
