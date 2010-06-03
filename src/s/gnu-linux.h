@@ -131,8 +131,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define POSIX                 /* affects getpagesize.h and systty.h */
 
-#define UNEXEC unexelf.o
-
 /* This is to work around mysterious gcc failures in some system versions.
    It is unlikely that Emacs changes will work around this problem;
    therefore, this should remain permanently.  */

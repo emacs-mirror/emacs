@@ -1,3 +1,8 @@
+2010-06-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (unxec): Do not define and substitute.
+	(UNEXEC_OBJ): New output variable, replaces cpp UNEXEC.
+
 2010-06-03  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (AH_BOTTOM): Remove NOT_C_CODE test, it is always true.

@@ -1,3 +1,18 @@
+2010-06-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Move UNEXEC definition to autoconf.
+	* s/usg5-4.h (UNEXEC): Remove, move to configure.in.
+	* s/sol2-10.h (UNEXEC):
+	* s/irix6-5.h (UNEXEC):
+	* s/hpux10-20.h (UNEXEC):
+	* s/gnu-linux.h (UNEXEC):
+	* s/darwin.h (UNEXEC):
+	* s/cygwin.h (UNEXEC):
+	* s/bsd-common.h (UNEXEC):
+	* s/aix4-2.h (UNEXEC):
+	* m/alpha.h (UNEXEC): Likewise.
+	* Makefile.in (UNEXEC_OBJ): Define using @UNEXEC_OBJ@.
+
 2010-06-03  Juanma Barranquero  <lekktu@gmail.com>
 
 	Remove obsolete pre-unicode2 macros.
