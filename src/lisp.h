@@ -930,7 +930,7 @@ struct Lisp_Sub_Char_Table
     struct Lisp_Vector *next;
 
     /* Depth of this sub char-table.  It should be 1, 2, or 3.  A sub
-       char-table of depth 1 contains 16 elments, and each element
+       char-table of depth 1 contains 16 elements, and each element
        covers 4096 (128*32) characters.  A sub char-table of depth 2
        contains 32 elements, and each element covers 128 characters.  A
        sub char-table of depth 3 contains 128 elements, and each element
@@ -1120,7 +1120,7 @@ struct Lisp_Hash_Table
   Lisp_Object user_cmp_function;
 
   /* Only the fields above are traced normally by the GC.  The ones below
-     `count'.  are special and are either ignored by the GC or traced in
+     `count' are special and are either ignored by the GC or traced in
      a special way (e.g. because of weakness).  */
 
   /* Number of key/value entries in the table.  */
@@ -1310,9 +1310,9 @@ struct Lisp_Buffer_Objfwd
    binding into `realvalue' (or through it).  Also update
    LOADED-BINDING to point to the newly loaded binding.
 
-   `local_if_set' indicates that merely setting the variable creates a local
-   binding for the current buffer.  Otherwise the latter, setting the
-   variable does not do that; only make-local-variable does that.  */
+   `local_if_set' indicates that merely setting the variable creates a
+   local binding for the current buffer.  Otherwise the latter, setting
+   the variable does not do that; only make-local-variable does that.  */
 
 struct Lisp_Buffer_Local_Value
   {
@@ -1631,7 +1631,7 @@ typedef struct {
 #define CHECK_VECTOR_OR_STRING(x) \
   CHECK_TYPE (VECTORP (x) || STRINGP (x), Qarrayp, x)
 
-#define CHECK_ARRAY(x, Qxxxp)							\
+#define CHECK_ARRAY(x, Qxxxp) \
   CHECK_TYPE (ARRAYP (x), Qxxxp, x)
 
 #define CHECK_VECTOR_OR_CHAR_TABLE(x) \
@@ -1677,14 +1677,14 @@ typedef struct {
 
 #define XFLOATINT(n) extract_float((n))
 
-#define CHECK_FLOAT(x)		\
+#define CHECK_FLOAT(x) \
   CHECK_TYPE (FLOATP (x), Qfloatp, x)
 
-#define CHECK_NUMBER_OR_FLOAT(x)	\
+#define CHECK_NUMBER_OR_FLOAT(x) \
   CHECK_TYPE (FLOATP (x) || INTEGERP (x), Qnumberp, x)
 
 #define CHECK_NUMBER_OR_FLOAT_COERCE_MARKER(x) \
-  do { if (MARKERP (x)) XSETFASTINT (x, marker_position (x));	\
+  do { if (MARKERP (x)) XSETFASTINT (x, marker_position (x)); \
     else CHECK_TYPE (INTEGERP (x) || FLOATP (x), Qnumber_or_marker_p, x); } while (0)
 
 #define CHECK_OVERLAY(x) \
@@ -1774,8 +1774,8 @@ typedef struct {
 			 Lisp_Object, Lisp_Object, Lisp_Object)
 #define DEFUN_ARGS_8	(Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, \
 			 Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object)
-/* Non-zero if OBJ is a Lisp function.  */
 
+/* Non-zero if OBJ is a Lisp function.  */
 #define FUNCTIONP(OBJ)					\
      ((CONSP (OBJ) && EQ (XCAR (OBJ), Qlambda))		\
       || (SYMBOLP (OBJ) && !NILP (Ffboundp (OBJ)))	\
@@ -1824,12 +1824,11 @@ extern void defvar_kboard (const char *, int);
 
    If the symbol field is a symbol, it is an ordinary variable binding.
 
-   Otherwise, it should be a structure (SYMBOL WHERE
-   . CURRENT-BUFFER), which means having bound a local value while
-   CURRENT-BUFFER was active.  If WHERE is nil this means we saw the
-   default value when binding SYMBOL.  WHERE being a buffer or frame
-   means we saw a buffer-local or frame-local value.  Other values of
-   WHERE mean an internal error.  */
+   Otherwise, it should be a structure (SYMBOL WHERE . CURRENT-BUFFER),
+   which means having bound a local value while CURRENT-BUFFER was active.
+   If WHERE is nil this means we saw the default value when binding SYMBOL.
+   WHERE being a buffer or frame means we saw a buffer-local or frame-local
+   value.  Other values of WHERE mean an internal error.  */
 
 typedef Lisp_Object (*specbinding_func) P_ ((Lisp_Object));
 
@@ -2019,16 +2018,16 @@ extern EMACS_INT memory_full_cons_threshold;
 
 /* Structure for recording stack slots that need marking.  */
 
-/* This is a chain of structures, each of which points at a Lisp_Object variable
- whose value should be marked in garbage collection.
- Normally every link of the chain is an automatic variable of a function,
- and its `val' points to some argument or local variable of the function.
- On exit to the function, the chain is set back to the value it had on entry.
- This way, no link remains in the chain when the stack frame containing the
- link disappears.
+/* This is a chain of structures, each of which points at a Lisp_Object
+   variable whose value should be marked in garbage collection.
+   Normally every link of the chain is an automatic variable of a function,
+   and its `val' points to some argument or local variable of the function.
+   On exit to the function, the chain is set back to the value it had on entry.
+   This way, no link remains in the chain when the stack frame containing the
+   link disappears.
 
- Every function that can call Feval must protect in this fashion all
- Lisp_Object variables whose contents will be used again.  */
+   Every function that can call Feval must protect in this fashion all
+   Lisp_Object variables whose contents will be used again.  */
 
 extern struct gcpro *gcprolist;
 
@@ -2932,7 +2931,7 @@ EXFUN (Ffield_end, 3);
 EXFUN (Ffield_string_no_properties, 1);
 extern void set_time_zone_rule P_ ((char *));
 
-/* defined in buffer.c */
+/* Defined in buffer.c */
 extern int mouse_face_overlay_overlaps P_ ((Lisp_Object));
 extern void nsberror P_ ((Lisp_Object)) NO_RETURN;
 EXFUN (Fset_buffer_multibyte, 1);
@@ -2975,7 +2974,7 @@ extern void init_buffer P_ ((void));
 extern void syms_of_buffer P_ ((void));
 extern void keys_of_buffer P_ ((void));
 
-/* defined in marker.c */
+/* Defined in marker.c */
 
 EXFUN (Fmarker_position, 1);
 EXFUN (Fmarker_buffer, 1);
@@ -3030,7 +3029,7 @@ extern Lisp_Object Qdelete_file;
 
 extern void syms_of_abbrev P_ ((void));
 
-/* defined in search.c */
+/* Defined in search.c */
 extern void shrink_regexp_cache P_ ((void));
 EXFUN (Fstring_match, 3);
 extern void restore_search_regs P_ ((void));
@@ -3054,7 +3053,7 @@ extern int find_before_next_newline P_ ((EMACS_INT, EMACS_INT, int));
 extern void syms_of_search P_ ((void));
 extern void clear_regexp_cache P_ ((void));
 
-/* defined in minibuf.c */
+/* Defined in minibuf.c */
 
 extern Lisp_Object last_minibuf_string;
 extern void choose_minibuf_frame P_ ((void));
@@ -3081,7 +3080,7 @@ EXFUN (Fcall_interactively, 3);
 EXFUN (Fprefix_numeric_value, 1);
 extern void syms_of_callint P_ ((void));
 
-/* defined in casefiddle.c */
+/* Defined in casefiddle.c */
 
 EXFUN (Fdowncase, 1);
 EXFUN (Fupcase, 1);
@@ -3092,14 +3091,14 @@ EXFUN (Fupcase_initials_region, 2);
 extern void syms_of_casefiddle P_ ((void));
 extern void keys_of_casefiddle P_ ((void));
 
-/* defined in casetab.c */
+/* Defined in casetab.c */
 
 EXFUN (Fset_case_table, 1);
 EXFUN (Fset_standard_case_table, 1);
 extern void init_casetab_once P_ ((void));
 extern void syms_of_casetab P_ ((void));
 
-/* defined in keyboard.c */
+/* Defined in keyboard.c */
 
 extern int echoing;
 extern Lisp_Object echo_message_buffer;
@@ -3140,7 +3139,7 @@ extern void keys_of_keyboard P_ ((void));
 extern char *push_key_description P_ ((unsigned int, char *, int));
 
 
-/* defined in indent.c */
+/* Defined in indent.c */
 EXFUN (Fvertical_motion, 2);
 EXFUN (Findent_to, 2);
 EXFUN (Fcurrent_column, 0);
@@ -3150,7 +3149,7 @@ extern void invalidate_current_column P_ ((void));
 extern int indented_beyond_p P_ ((int, int, double));
 extern void syms_of_indent P_ ((void));
 
-/* defined in frame.c */
+/* Defined in frame.c */
 #ifdef HAVE_WINDOW_SYSTEM
 extern Lisp_Object Vx_resource_name;
 extern Lisp_Object Vx_resource_class;
@@ -3193,7 +3192,7 @@ extern void set_frame_buffer_list P_ ((Lisp_Object, Lisp_Object));
 extern void frames_bury_buffer P_ ((Lisp_Object));
 extern void syms_of_frame P_ ((void));
 
-/* defined in emacs.c */
+/* Defined in emacs.c */
 extern Lisp_Object decode_env_path P_ ((char *, char *));
 extern Lisp_Object Vinvocation_name, Vinvocation_directory;
 extern Lisp_Object Vbefore_init_time, Vafter_init_time;
@@ -3211,7 +3210,7 @@ void synchronize_system_time_locale P_ ((void));
 #define synchronize_system_time_locale()
 #endif
 void shut_down_emacs P_ ((int, int, Lisp_Object));
-/* Nonzero means don't do interactive redisplay and don't change tty modes */
+/* Nonzero means don't do interactive redisplay and don't change tty modes.  */
 extern int noninteractive;
 
 /* Nonzero means don't load X resources or Windows Registry settings.  */
@@ -3222,12 +3221,12 @@ extern int inhibit_x_resources;
 extern int daemon_pipe[2];
 #define IS_DAEMON (daemon_pipe[1] != 0)
 
-/* Nonzero means don't do use window-system-specific display code */
+/* Nonzero means don't do use window-system-specific display code.  */
 extern int inhibit_window_system;
 /* Nonzero means that a filter or a sentinel is running.  */
 extern int running_asynch_code;
 
-/* defined in process.c */
+/* Defined in process.c */
 EXFUN (Fget_process, 1);
 EXFUN (Fget_buffer_process, 1);
 EXFUN (Fprocessp, 1);
@@ -3250,7 +3249,7 @@ extern void init_process P_ ((void));
 extern void syms_of_process P_ ((void));
 extern void setup_process_coding_systems P_ ((Lisp_Object));
 
-/* defined in callproc.c */
+/* Defined in callproc.c */
 extern Lisp_Object Vexec_path, Vexec_suffixes,
                    Vexec_directory, Vdata_directory;
 extern Lisp_Object Vdoc_directory;
@@ -3261,7 +3260,7 @@ extern void init_callproc P_ ((void));
 extern void set_initial_environment P_ ((void));
 extern void syms_of_callproc P_ ((void));
 
-/* defined in doc.c */
+/* Defined in doc.c */
 extern Lisp_Object Vdoc_file_name;
 EXFUN (Fsubstitute_command_keys, 1);
 EXFUN (Fdocumentation, 2);
@@ -3271,7 +3270,7 @@ extern Lisp_Object get_doc_string P_ ((Lisp_Object, int, int));
 extern void syms_of_doc P_ ((void));
 extern int read_bytecode_char P_ ((int));
 
-/* defined in bytecode.c */
+/* Defined in bytecode.c */
 extern Lisp_Object Qbytecode;
 EXFUN (Fbyte_code, 3);
 extern void syms_of_bytecode P_ ((void));
@@ -3279,14 +3278,14 @@ extern struct byte_stack *byte_stack_list;
 extern void mark_byte_stack P_ ((void));
 extern void unmark_byte_stack P_ ((void));
 
-/* defined in macros.c */
+/* Defined in macros.c */
 extern Lisp_Object Qexecute_kbd_macro;
 EXFUN (Fexecute_kbd_macro, 3);
 EXFUN (Fcancel_kbd_macro_events, 0);
 extern void init_macros P_ ((void));
 extern void syms_of_macros P_ ((void));
 
-/* defined in undo.c */
+/* Defined in undo.c */
 extern Lisp_Object Qinhibit_read_only;
 EXFUN (Fundo_boundary, 0);
 extern void truncate_undo_list P_ ((struct buffer *));
@@ -3300,7 +3299,7 @@ extern void record_property_change P_ ((int, int, Lisp_Object, Lisp_Object,
 extern void syms_of_undo P_ ((void));
 extern Lisp_Object Vundo_outer_limit;
 
-/* defined in textprop.c */
+/* Defined in textprop.c */
 extern Lisp_Object Qfont, Qmouse_face;
 extern Lisp_Object Qinsert_in_front_hooks, Qinsert_behind_hooks;
 EXFUN (Fnext_single_property_change, 4);
@@ -3317,21 +3316,21 @@ extern Lisp_Object next_single_char_property_change P_ ((Lisp_Object,
 							 Lisp_Object,
 							 Lisp_Object));
 
-/* defined in menu.c */
+/* Defined in menu.c */
 extern void syms_of_menu P_ ((void));
 
-/* defined in xmenu.c */
+/* Defined in xmenu.c */
 EXFUN (Fx_popup_menu, 2);
 EXFUN (Fx_popup_dialog, 3);
 extern void syms_of_xmenu P_ ((void));
 
-/* defined in termchar.h */
+/* Defined in termchar.h */
 struct tty_display_info;
 
-/* defined in termhooks.h */
+/* Defined in termhooks.h */
 struct terminal;
 
-/* defined in sysdep.c */
+/* Defined in sysdep.c */
 #ifndef HAVE_GET_CURRENT_DIR_NAME
 extern char *get_current_dir_name P_ ((void));
 #endif
@@ -3355,7 +3354,7 @@ extern int emacs_close P_ ((int));
 extern int emacs_read P_ ((int, char *, unsigned int));
 extern int emacs_write P_ ((int, const char *, unsigned int));
 
-/* defined in filelock.c */
+/* Defined in filelock.c */
 EXFUN (Funlock_buffer, 0);
 EXFUN (Ffile_locked_p, 1);
 extern void unlock_all_files P_ ((void));

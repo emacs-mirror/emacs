@@ -1,3 +1,7 @@
+2010-06-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ccl.c (Fccl_program_p): Fix typo in docstring.
+
 2010-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keymap.c (Fwhere_is_internal): Fix handling of remapping (in thread
