@@ -34,9 +34,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Some losing code fails to include this and then assumes
    that because it is braindead that O_RDONLY==0.  */
-#ifndef NOT_C_CODE
 #include <fcntl.h>
-#endif
 
 #ifdef emacs
 #include <stdio.h>  /* Get the definition of _IO_STDIO_H.  */

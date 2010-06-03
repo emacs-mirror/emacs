@@ -77,9 +77,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Get FIONREAD from <sys/filio.h>.  Get <sys/ttold.h> to get struct tchars.
    But get <termio.h> first to make sure ttold.h doesn't interfere.
    And don't try to use SIGIO yet.  */
-#ifndef NOT_C_CODE
 #include <sys/wait.h>
-#endif
 
 #ifdef emacs
 #include <sys/filio.h>
