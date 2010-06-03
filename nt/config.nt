@@ -365,13 +365,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef WINDOWSNT
 /* Some of the files of Emacs which are intended for use with other
    programs assume that if you have a config.h file, you must declare
-   the type of getenv.
-
-   This declaration shouldn't appear when alloca.s or Makefile.in
-   includes config.h.  */
-#ifndef NOT_C_CODE
+   the type of getenv.  */
 extern char *getenv ();
-#endif
 #endif
 
 #endif /* EMACS_CONFIG_H */
@@ -414,8 +409,6 @@ extern char *getenv ();
 #endif
 #endif
 
-/* Don't include <string.h> during configure.  */
-#ifndef NOT_C_CODE
 #ifdef HAVE_STRING_H
 #include "string.h"
 #endif
@@ -424,7 +417,6 @@ extern char *getenv ();
 #endif
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
 #endif
 
 #ifndef NO_RETURN
@@ -436,11 +428,9 @@ extern char *getenv ();
 #endif
 
 /* Redefine abort.  */
-#ifndef NOT_C_CODE
 #ifdef HAVE_NTGUI
 #define abort	w32_abort
 void w32_abort (void) NO_RETURN;
-#endif
 #endif
 
 /* Prevent accidental use of features unavailable in

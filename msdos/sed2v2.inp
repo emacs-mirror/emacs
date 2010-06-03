@@ -27,7 +27,6 @@
 #define NSIG 320\
 #endif
 
-/^#undef HAVE_ALLOCA *$/s/^.*$/#define HAVE_ALLOCA 1/
 /^#undef HAVE_SETITIMER *$/s/^.*$/#define HAVE_SETITIMER 1/
 /^#undef HAVE_STRUCT_UTIMBUF *$/s/^.*$/#define HAVE_STRUCT_UTIMBUF 1/
 /^#undef LOCALTIME_CACHE *$/s/^.*$/#define LOCALTIME_CACHE 1/

@@ -1,3 +1,16 @@
+2010-06-03  Glenn Morris  <rgm@gnu.org>
+
+	* m/template.h (NO_SOCK_SIGIO): Remove, no longer used.
+
+	* m/hp800.h (alloca) [__NetBSD__ && __GNUC__]: No need to define it,
+	now that AH_BOTTOM does it.
+
+	* m/hp800.h (HAVE_ALLOCA):
+	* m/ibms390x.h (HAVE_ALLOCA): Do not define, no longer needed.
+
+	* m/ia64.h, s/gnu-linux.h, s/gnu.h, s/netbsd.h, s/usg5-4.h:
+	Remove NOT_C_CODE tests, it is always true now.
+
 2010-06-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Fix config.h includes.

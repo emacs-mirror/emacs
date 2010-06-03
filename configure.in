@@ -3546,13 +3546,8 @@ SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
 
 /* Some of the files of Emacs which are intended for use with other
    programs assume that if you have a config.h file, you must declare
-   the type of getenv.
-
-   This declaration shouldn't appear when alloca.s or Makefile.in
-   includes config.h.  */
-#ifndef NOT_C_CODE
+   the type of getenv.  */
 extern char *getenv ();
-#endif
 
 /* These default definitions are good for almost all machines.
    The exceptions override them in m/MACHINE.h.  */
@@ -3593,17 +3588,18 @@ extern char *getenv ();
 # endif  /* GCC.  */
 #endif /* __P */
 
-/* Don't include "string.h" or <stdlib.h> in non-C code.  */
-#ifndef NOT_C_CODE
 #ifdef HAVE_STRING_H
 #include "string.h"
 #endif
+
 #ifdef HAVE_STRINGS_H
 #include "strings.h"  /* May be needed for bcopy & al.  */
 #endif
+
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
+
 #ifdef HAVE_ALLOCA_H
 # include <alloca.h>
 #elif defined __GNUC__
@@ -3617,10 +3613,10 @@ extern "C"
 # endif
 void *alloca (size_t);
 #endif
+
 #ifndef HAVE_SIZE_T
 typedef unsigned size_t;
 #endif
-#endif /* NOT_C_CODE */
 
 /* Define HAVE_X_I18N if we have usable i18n support.  */
 

@@ -1,3 +1,7 @@
+2010-06-03  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (AH_BOTTOM): Remove NOT_C_CODE test, it is always true.
+
 2010-06-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Fix alloca definition when using gcc on non-gnu systems.
