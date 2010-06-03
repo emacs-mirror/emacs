@@ -1,5 +1,7 @@
 2010-06-03  Glenn Morris  <rgm@gnu.org>
 
+	* m/template.h (NO_SOCK_SIGIO): Remove, no longer used.
+
 	* m/hp800.h (alloca) [__NetBSD__ && __GNUC__]: No need to define it,
 	now that AH_BOTTOM does it.
 
