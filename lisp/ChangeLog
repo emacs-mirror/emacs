@@ -1,3 +1,13 @@
+2010-06-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Split smie-indent-calculate into more manageable chunks.
+	* emacs-lisp/smie.el (smie-indent-virtual, smie-indent-fixindent)
+	(smie-indent-comment, smie-indent-after-keyword, smie-indent-keyword)
+	(smie-indent-close, smie-indent-comment-continue, smie-indent-bob)
+	(smie-indent-exps): Extract from smie-indent-calculate.
+	(smie-indent-functions): New var.
+	(smie-indent-functions): Use them.
+
 2010-06-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/smie.el (smie-indent-hanging-p): Use smie-bolp.
