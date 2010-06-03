@@ -281,6 +281,11 @@ Called with 5 arguments, PROCESS, SENDER, RESPONSE, TARGET and TEXT."
   :type 'hook
   :group 'rcirc)
 
+(defcustom rcirc-sort-nicknames nil
+  "If non-nil, sorts nickname listings."
+  :type 'boolean
+  :group 'rcirc)
+
 (defcustom rcirc-always-use-server-buffer-flag nil
   "Non-nil means messages without a channel target will go to the server buffer."
   :type 'boolean
@@ -1650,6 +1655,38 @@ if NICK is also on `rcirc-ignore-list-automatic'."
 	    rcirc-ignore-list
 	    (delete nick rcirc-ignore-list))))
 
+(defun rcirc-nickname< (s1 s2)
+  "Compares two IRC nicknames.  Operator nicknames (@) are
+considered less than voiced nicknames (+).  Any other nicknames
+are greater than voiced nicknames.
+
+Returns t if S1 is less than S2, otherwise nil.
+
+The comparison is case-insensitive."
+  (setq s1 (downcase s1)
+        s2 (downcase s2))
+  (let* ((s1-op (eq ?@ (string-to-char s1)))
+         (s2-op (eq ?@ (string-to-char s2))))
+    (if s1-op
+        (if s2-op
+            (string< (substring s1 1) (substring s2 1))
+          t)
+      (if s2-op
+          nil
+        (string< s1 s2)))))
+
+(defun rcirc-sort-nicknames-join (input sep)
+  "Takes a string of nicknames and returns the string with the
+nicknames sorted.
+
+INPUT is a string containing nicknames separated by SEP.
+
+This function is non-destructive, sorting a copy of the input."
+  (let ((parts (split-string input sep t))
+        copy)
+    (setq copy (sort parts 'rcirc-nickname<))
+    (mapconcat 'identity copy sep)))
+
 ;;; activity tracking
 (defvar rcirc-track-minor-mode-map (make-sparse-keymap)
   "Keymap for rcirc track minor mode.")
@@ -2554,7 +2591,10 @@ keywords when no KEYWORD is given."
          (buffer (rcirc-get-temp-buffer-create process channel)))
     (with-current-buffer buffer
       (rcirc-print process sender "NAMES" channel
-                   (buffer-substring (point-min) (point-max))))
+                   (let ((content (buffer-substring (point-min) (point-max))))
+                     (if rcirc-sort-nicknames
+                         (rcirc-sort-nicknames-join content " ")
+                       content))))
     (kill-buffer buffer)))
 
 (defun rcirc-handler-433 (process sender args text)

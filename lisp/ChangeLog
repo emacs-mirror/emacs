@@ -1,3 +1,9 @@
+2010-06-03  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+
+	* net/rcirc.el (rcirc-sort-nicknames): New custom.
+	(rcirc-nickname<, rcirc-sort-nicknames-join): New funs.
+	(rcirc-handler-366): Use them.
+
 2010-06-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Split smie-indent-calculate into more manageable chunks.
