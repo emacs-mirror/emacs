@@ -1,3 +1,7 @@
+2010-06-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/smie.el (comment-continue): Declare for byte-compiler.
+
 2010-06-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* net/rcirc.el (rcirc-nickname<, rcirc-sort-nicknames-join): Doc
