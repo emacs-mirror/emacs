@@ -1657,13 +1657,10 @@ if NICK is also on `rcirc-ignore-list-automatic'."
 	    (delete nick rcirc-ignore-list))))
 
 (defun rcirc-nickname< (s1 s2)
-  "Compares two IRC nicknames.  Operator nicknames (@) are
-considered less than voiced nicknames (+).  Any other nicknames
-are greater than voiced nicknames.
-
-Returns t if S1 is less than S2, otherwise nil.
-
-The comparison is case-insensitive."
+  "Return t if IRC nickname S1 is less than S2, and nil otherwise.
+Operator nicknames (@) are considered less than voiced
+nicknames (+).  Any other nicknames are greater than voiced
+nicknames.  The comparison is case-insensitive."
   (setq s1 (downcase s1)
         s2 (downcase s2))
   (let* ((s1-op (eq ?@ (string-to-char s1)))
@@ -1677,12 +1674,9 @@ The comparison is case-insensitive."
         (string< s1 s2)))))
 
 (defun rcirc-sort-nicknames-join (input sep)
-  "Takes a string of nicknames and returns the string with the
-nicknames sorted.
-
+  "Return a string of sorted nicknames.
 INPUT is a string containing nicknames separated by SEP.
-
-This function is non-destructive, sorting a copy of the input."
+This function does not alter the INPUT string."
   (let* ((parts (split-string input sep t))
          (sorted (sort parts 'rcirc-nickname<)))
     (mapconcat 'identity sorted sep)))

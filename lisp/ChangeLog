@@ -1,3 +1,8 @@
+2010-06-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* net/rcirc.el (rcirc-nickname<, rcirc-sort-nicknames-join): Doc
+	fix.
+
 2010-06-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* net/rcirc.el (rcirc-sort-nicknames): Change default.
