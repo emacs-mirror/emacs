@@ -1,3 +1,8 @@
+2010-06-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* net/rcirc.el (rcirc-sort-nicknames): Remove.
+	(rcirc-handler-366): Always sort nicknames.
+
 2010-06-03  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/smie.el (comment-continue): Declare for byte-compiler.

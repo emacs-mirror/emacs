@@ -281,12 +281,6 @@ Called with 5 arguments, PROCESS, SENDER, RESPONSE, TARGET and TEXT."
   :type 'hook
   :group 'rcirc)
 
-;; Does this really merit a config variable?
-(defcustom rcirc-sort-nicknames t
-  "If non-nil, sorts nickname listings."
-  :type 'boolean
-  :group 'rcirc)
-
 (defcustom rcirc-always-use-server-buffer-flag nil
   "Non-nil means messages without a channel target will go to the server buffer."
   :type 'boolean
@@ -2586,9 +2580,7 @@ keywords when no KEYWORD is given."
     (with-current-buffer buffer
       (rcirc-print process sender "NAMES" channel
                    (let ((content (buffer-substring (point-min) (point-max))))
-                     (if rcirc-sort-nicknames
-                         (rcirc-sort-nicknames-join content " ")
-                       content))))
+		     (rcirc-sort-nicknames-join content " "))))
     (kill-buffer buffer)))
 
 (defun rcirc-handler-433 (process sender args text)
