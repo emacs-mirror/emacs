@@ -1,3 +1,9 @@
+2010-06-03  Eric Ludlam  <zappo@gnu.org>
+
+	* cedet/semantic/lex-spp.el
+	(semantic-lex-spp-table-write-slot-value): Instead of erroring on
+	invalid values during save, just save a nil (Bug#6324).
+
 2010-06-03  Glenn Morris  <rgm@gnu.org>
 
 	* desktop.el (desktop-clear-preserve-buffers):
