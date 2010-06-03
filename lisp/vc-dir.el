@@ -188,9 +188,18 @@ See `run-hooks'."
     (define-key map [diff]
       '(menu-item "Compare with Base Version" vc-diff
 		  :help "Compare file set with the base version"))
+    (define-key map [logo]
+      '(menu-item "Show Outgoing Log" vc-log-outgoing
+		  :help "Show a log of changes that will be sent with a push operation"))
+    (define-key map [logi]
+      '(menu-item "Show Incoming Log" vc-log-incoming
+		  :help "Show a log of changes that will be received with a pull operation"))
     (define-key map [log]
-     '(menu-item "Show history" vc-print-log
-     :help "List the change log of the current file set in a window"))
+      '(menu-item "Show history" vc-print-log
+		  :help "List the change log of the current file set in a window"))
+    (define-key map [rlog]
+      '(menu-item "Show Top of the Tree History " vc-print-root-log
+		  :help "List the change log for the current tree in a window"))
     ;; VC commands.
     (define-key map [sepvccmd] '("--"))
     (define-key map [update]
