@@ -1,3 +1,8 @@
+2010-06-03  Glenn Morris  <rgm@gnu.org>
+
+	* desktop.el (desktop-clear-preserve-buffers):
+	Add "*Warnings*" buffer.  (Bug#6336)
+
 2010-06-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-dir.el (vc-dir-update): Remove entries with a nil state (bug#5539).
