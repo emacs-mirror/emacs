@@ -54,11 +54,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    numerically.  */
 #define VIRT_ADDR_VARIES
 
-/* Define HAVE_ALLOCA to say that the system provides a properly
-   working alloca function and it should be used.  Undefine it if an
-   assembler-language alloca in the file alloca.s should be used. */
-#define HAVE_ALLOCA
-
 /* On the 64 bit architecture, we can use 60 bits for addresses */
 #define VALBITS         60
 

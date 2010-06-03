@@ -1,5 +1,8 @@
 2010-06-03  Glenn Morris  <rgm@gnu.org>
 
+	* m/hp800.h (HAVE_ALLOCA):
+	* m/ibms390x.h (HAVE_ALLOCA): Do not define, no longer needed.
+
 	* m/ia64.h, s/gnu-linux.h, s/gnu.h, s/netbsd.h, s/usg5-4.h:
 	Remove NOT_C_CODE tests, it is always true now.
 

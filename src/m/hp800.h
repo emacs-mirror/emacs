@@ -33,7 +33,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef __NetBSD__
 # ifdef __GNUC__
 #  define alloca __builtin_alloca
-#  define HAVE_ALLOCA
 # endif /* __GNUC__ */
 #endif /* __NetBSD__ */
 
