@@ -1,3 +1,8 @@
+2010-06-03  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* process.c (conv_lisp_to_sockaddr): Fix conversion of IPv4
+	address.
+
 2010-06-03  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ccl.c (Fccl_program_p): Fix typo in docstring.
