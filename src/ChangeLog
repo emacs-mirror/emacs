@@ -1,3 +1,13 @@
+2010-06-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	Remove obsolete pre-unicode2 macros.
+	* character.h (MULTIBYTE_FORM_LENGTH, PARSE_MULTIBYTE_SEQ): Remove.
+	* composite.c (composition_reseat_it):
+	* data.c (Faset):
+	* fns.c (Ffillarray):
+	* regex.c (re_search_2): Use BYTES_BY_CHAR_HEAD.
+	[!emacs] (BYTES_BY_CHAR_HEAD): Define instead of MULTIBYTE_FORM_LENGTH.
+
 2010-06-03  Juri Linkov  <juri@jurta.org>
 
 	* buffer.c (Fother_buffer): Add CHECK_FRAME.

@@ -1266,7 +1266,7 @@ composition_reseat_it (cmp_it, charpos, bytepos, endpos, w, face, string)
 	{
 	  if (endpos < 0)
 	    endpos = BEGV;
-	  if (endpos < PT && PT < charpos) 
+	  if (endpos < PT && PT < charpos)
 	    endpos = PT;
 	}
       else if (endpos < 0)
@@ -1317,7 +1317,7 @@ composition_reseat_it (cmp_it, charpos, bytepos, endpos, w, face, string)
 		  || ! INTEGERP (AREF (elt, 1)))
 		continue;
 	      if (XFASTINT (AREF (elt, 1)) != cmp_it->lookback)
-		goto no_composition;		  
+		goto no_composition;
 	      lgstring = autocmp_chars (elt, charpos, bytepos, endpos,
 					w, face, string);
 	      if (composition_gstring_p (lgstring))
@@ -1389,7 +1389,7 @@ composition_reseat_it (cmp_it, charpos, bytepos, endpos, w, face, string)
       if (NILP (string))
 	INC_POS (bytepos);
       else
-	bytepos += MULTIBYTE_FORM_LENGTH (SDATA (string) + bytepos, 0);
+	bytepos += BYTES_BY_CHAR_HEAD (*(SDATA (string) + bytepos));
     }
   else
     {
