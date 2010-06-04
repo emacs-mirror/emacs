@@ -157,7 +157,7 @@
 ;; <interface name='org.gtk.vfs.MountTracker'>
 ;;   <method name='listMounts'>
 ;;     <arg name='mount_info_list'
-;;          type='a{sosssssbay{aya{say}}}'
+;;          type='a{sosssssbay{aya{say}}ay}'
 ;;          direction='out'/>
 ;;   </method>
 ;;   <method name='mountLocation'>
@@ -167,11 +167,11 @@
 ;;   </method>
 ;;   <signal name='mounted'>
 ;;     <arg name='mount_info'
-;;          type='{sosssssbay{aya{say}}}'/>
+;;          type='{sosssssbay{aya{say}}ay}'/>
 ;;   </signal>
 ;;   <signal name='unmounted'>
 ;;     <arg name='mount_info'
-;;          type='{sosssssbay{aya{say}}}'/>
+;;          type='{sosssssbay{aya{say}}ay}'/>
 ;;   </signal>
 ;; </interface>
 ;;
@@ -191,7 +191,7 @@
 ;;       STRUCT		    mount_spec_item
 ;;         STRING	      key (server, share, type, user, host, port)
 ;;         ARRAY BYTE	      value
-;;   STRING               default_location	Since GVFS 1.5 only !!!
+;;   ARRAY BYTE           default_location	Since GVFS 1.5 only !!!
 
 (defconst tramp-gvfs-interface-mountoperation "org.gtk.vfs.MountOperation"
   "Used by the dbus-proxying implementation of GMountOperation.")
@@ -608,6 +608,14 @@ is no information where to trace the message.")
       (tramp-run-real-handler 'expand-file-name (list name nil))
     ;; Dissect NAME.
     (with-parsed-tramp-file-name name nil
+      ;; If there is a default location, expand tilde.
+      (when (string-match "\\`\\(~\\)\\(/\\|\\'\\)" localname)
+	(save-match-data
+	  (tramp-gvfs-maybe-open-connection (vector method user host "/")))
+	(setq localname
+	      (replace-match
+	       (tramp-get-file-property  v "/" "default-location" "~")
+	       nil t localname 1)))
       ;; Tilde expansion is not possible.
       (when (string-match "\\`\\(~[^/]*\\)\\(.*\\)\\'" localname)
 	(tramp-error
@@ -967,47 +975,55 @@ ADDRESS can have the form \"xx:xx:xx:xx:xx:xx\" or \"[xx:xx:xx:xx:xx:xx]\"."
   "Signal handler for the \"org.gtk.vfs.MountTracker.mounted\" and
 \"org.gtk.vfs.MountTracker.unmounted\" signals."
   (ignore-errors
-    ;; The last element could be the default location in newer gvfs
-    ;; versions.  We must check this.
-    (unless (consp (car (last mount-info)))
-      (setq mount-info (butlast mount-info)))
-    (let* ((signal-name (dbus-event-member-name last-input-event))
-	   (mount-spec (cadar (last mount-info)))
-	   (method (dbus-byte-array-to-string (cadr (assoc "type" mount-spec))))
-	   (user (dbus-byte-array-to-string (cadr (assoc "user" mount-spec))))
-	   (domain (dbus-byte-array-to-string
-		    (cadr (assoc "domain" mount-spec))))
-	   (host (dbus-byte-array-to-string
-		  (cadr (or (assoc "host" mount-spec)
-			    (assoc "server" mount-spec)))))
-	   (port (dbus-byte-array-to-string (cadr (assoc "port" mount-spec))))
-	   (ssl (dbus-byte-array-to-string (cadr (assoc "ssl" mount-spec))))
-	   (prefix (concat (dbus-byte-array-to-string (caar (last mount-info)))
-			   (dbus-byte-array-to-string
-			    (cadr (assoc "share" mount-spec))))))
-      (when (string-match "^smb" method)
-	(setq method "smb"))
-      (when (string-equal "obex" method)
-	(setq host (tramp-bluez-device host)))
-      (when (and (string-equal "dav" method) (string-equal "true" ssl))
-	(setq method "davs"))
-      (unless (zerop (length domain))
-	(setq user (concat user tramp-prefix-domain-format domain)))
-      (unless (zerop (length port))
-	(setq host (concat host tramp-prefix-port-format port)))
-      (with-parsed-tramp-file-name
-	  (tramp-make-tramp-file-name method user host "") nil
-	(tramp-message
-	 v 6 "%s %s" signal-name (tramp-gvfs-stringify-dbus-message mount-info))
-	(tramp-set-file-property v "/" "list-mounts" 'undef)
-	(if (string-equal signal-name "unmounted")
-	    (tramp-set-file-property v "/" "fuse-mountpoint" nil)
-	  ;; Set prefix and mountpoint.
-	  (unless (string-equal prefix "/")
-	    (tramp-set-file-property v "/" "prefix" prefix))
-	  (tramp-set-file-property
-	   v "/" "fuse-mountpoint"
-	   (dbus-byte-array-to-string (car (last mount-info 2)))))))))
+    (let ((signal-name (dbus-event-member-name last-input-event))
+	  (elt mount-info))
+      ;; Jump over the first elements of the mount info. Since there
+      ;; were changes in the antries, we cannot access dedicated
+      ;; elements.
+      (while (stringp (car elt)) (setq elt (cdr elt)))
+      (let* ((fuse-mountpoint (dbus-byte-array-to-string (cadr elt)))
+	     (mount-spec (caddr elt))
+	     (default-location (dbus-byte-array-to-string (cadddr elt)))
+	     (method (dbus-byte-array-to-string
+		      (cadr (assoc "type" (cadr mount-spec)))))
+	     (user (dbus-byte-array-to-string
+		    (cadr (assoc "user" (cadr mount-spec)))))
+	     (domain (dbus-byte-array-to-string
+		      (cadr (assoc "domain" (cadr mount-spec)))))
+	     (host (dbus-byte-array-to-string
+		    (cadr (or (assoc "host" (cadr mount-spec))
+			      (assoc "server" (cadr mount-spec))))))
+	     (port (dbus-byte-array-to-string
+		    (cadr (assoc "port" (cadr mount-spec)))))
+	     (ssl (dbus-byte-array-to-string
+		   (cadr (assoc "ssl" (cadr mount-spec)))))
+	     (prefix (concat (dbus-byte-array-to-string (car mount-spec))
+			     (dbus-byte-array-to-string
+			      (cadr (assoc "share" (cadr mount-spec)))))))
+	(when (string-match "^smb" method)
+	  (setq method "smb"))
+	(when (string-equal "obex" method)
+	  (setq host (tramp-bluez-device host)))
+	(when (and (string-equal "dav" method) (string-equal "true" ssl))
+	  (setq method "davs"))
+	(unless (zerop (length domain))
+	  (setq user (concat user tramp-prefix-domain-format domain)))
+	(unless (zerop (length port))
+	  (setq host (concat host tramp-prefix-port-format port)))
+	(with-parsed-tramp-file-name
+	    (tramp-make-tramp-file-name method user host "") nil
+	  (tramp-message
+	   v 6 "%s %s"
+	   signal-name (tramp-gvfs-stringify-dbus-message mount-info))
+	  (tramp-set-file-property v "/" "list-mounts" 'undef)
+	  (if (string-equal signal-name "unmounted")
+	      (tramp-set-file-property v "/" "fuse-mountpoint" nil)
+	    ;; Set prefix, mountpoint and location.
+	    (unless (string-equal prefix "/")
+	      (tramp-set-file-property v "/" "prefix" prefix))
+	    (tramp-set-file-property v "/" "fuse-mountpoint" fuse-mountpoint)
+	    (tramp-set-file-property
+	     v "/" "default-location" default-location)))))))
 
 (dbus-register-signal
  :session nil tramp-gvfs-path-mounttracker
@@ -1031,25 +1047,29 @@ ADDRESS can have the form \"xx:xx:xx:xx:xx:xx\" or \"[xx:xx:xx:xx:xx:xx]\"."
 	      :session tramp-gvfs-service-daemon tramp-gvfs-path-mounttracker
 	      tramp-gvfs-interface-mounttracker "listMounts"))
 	  nil)
-       ;; The last element could be the default location in newer gvfs
-       ;; versions.  We must check this.
-       (unless (consp (car (last elt))) (setq elt (butlast elt)))
-       (let* ((mount-spec (cadar (last elt)))
+       ;; Jump over the first elements of the mount info. Since there
+       ;; were changes in the antries, we cannot access dedicated
+       ;; elements.
+       (while (stringp (car elt)) (setq elt (cdr elt)))
+       (let* ((fuse-mountpoint (dbus-byte-array-to-string (cadr elt)))
+	      (mount-spec (caddr elt))
+	      (default-location (dbus-byte-array-to-string (cadddr elt)))
 	      (method (dbus-byte-array-to-string
-		       (cadr (assoc "type" mount-spec))))
+		       (cadr (assoc "type" (cadr mount-spec)))))
 	      (user (dbus-byte-array-to-string
-		     (cadr (assoc "user" mount-spec))))
+		     (cadr (assoc "user" (cadr mount-spec)))))
 	      (domain (dbus-byte-array-to-string
-		       (cadr (assoc "domain" mount-spec))))
+		       (cadr (assoc "domain" (cadr mount-spec)))))
 	      (host (dbus-byte-array-to-string
-		     (cadr (or (assoc "host" mount-spec)
-			       (assoc "server" mount-spec)))))
+		     (cadr (or (assoc "host" (cadr mount-spec))
+			       (assoc "server" (cadr mount-spec))))))
 	      (port (dbus-byte-array-to-string
-		     (cadr (assoc "port" mount-spec))))
-	      (ssl (dbus-byte-array-to-string (cadr (assoc "ssl" mount-spec))))
-	      (prefix (concat (dbus-byte-array-to-string (caar (last elt)))
+		     (cadr (assoc "port" (cadr mount-spec)))))
+	      (ssl (dbus-byte-array-to-string
+		    (cadr (assoc "ssl" (cadr mount-spec)))))
+	      (prefix (concat (dbus-byte-array-to-string (car mount-spec))
 			      (dbus-byte-array-to-string
-			       (cadr (assoc "share" mount-spec))))))
+			       (cadr (assoc "share" (cadr mount-spec)))))))
 	 (when (string-match "^smb" method)
 	   (setq method "smb"))
 	 (when (string-equal "obex" method)
@@ -1068,12 +1088,11 @@ ADDRESS can have the form \"xx:xx:xx:xx:xx:xx\" or \"[xx:xx:xx:xx:xx:xx]\"."
 		(string-equal host (tramp-file-name-host vec))
 		(string-match (concat "^" (regexp-quote prefix))
 			      (tramp-file-name-localname vec)))
-	   ;; Set prefix and mountpoint.
+	   ;; Set prefix, mountpoint and location.
 	   (unless (string-equal prefix "/")
 	     (tramp-set-file-property vec "/" "prefix" prefix))
-	   (tramp-set-file-property
-	    vec "/" "fuse-mountpoint"
-	    (dbus-byte-array-to-string (car (last elt 2))))
+	   (tramp-set-file-property vec "/" "fuse-mountpoint" fuse-mountpoint)
+	   (tramp-set-file-property vec "/" "default-location" default-location)
 	   (throw 'mounted t)))))))
 
 (defun tramp-gvfs-mount-spec (vec)
