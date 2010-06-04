@@ -1,3 +1,8 @@
+2010-06-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* term/common-win.el (x-colors): Add "dark green" and "dark
+	turquoise" (Bug#6332).
+
 2010-06-03  Eric Ludlam  <zappo@gnu.org>
 
 	* cedet/semantic/lex-spp.el
