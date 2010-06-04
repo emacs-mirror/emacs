@@ -1,3 +1,10 @@
+2010-06-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/mule-cmds.el (nonascii-insert-offset)
+	(nonascii-translation-table): Add obsolescence information.
+
+	* international/mule.el (make-translation-table-from-vector): Doc fix.
+
 2010-06-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	vc-log-incoming/vc-log-outgoing improvements for Git.
