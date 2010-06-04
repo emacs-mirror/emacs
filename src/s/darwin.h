@@ -123,9 +123,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define HAVE_SOCKETS if system supports 4.2-compatible sockets.  */
 #define HAVE_SOCKETS
 
-/* Definitions for how to dump.  Copied from nextstep.h.  */
-#define UNEXEC unexmacosx.o
-
 /* start_of_text isn't actually used, so make it compile without error.  */
 #define TEXT_START (0)
 

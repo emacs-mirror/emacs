@@ -2188,8 +2188,7 @@ character, say TO-ALT, FROM is also translated to TO-ALT."
 (defun make-translation-table-from-vector (vec)
   "Make translation table from decoding vector VEC.
 VEC is an array of 256 elements to map unibyte codes to multibyte
-characters.  Elements may be nil for undefined code points.
-See also the variable `nonascii-translation-table'."
+characters.  Elements may be nil for undefined code points."
   (let ((table (make-char-table 'translation-table))
 	(rev-table (make-char-table 'translation-table))
 	ch)

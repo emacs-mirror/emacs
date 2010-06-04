@@ -1300,6 +1300,8 @@ If BUFFER is omitted or nil, some interesting buffer is returned.  */)
   if (NILP (frame))
     frame = selected_frame;
 
+  CHECK_FRAME (frame);
+
   tail = Vbuffer_alist;
   pred = frame_buffer_predicate (frame);
 
@@ -1785,8 +1787,6 @@ messing with the window-buffer correspondences.  */)
      (buffer_or_name, norecord)
      Lisp_Object buffer_or_name, norecord;
 {
-  char *err;
-
   if (EQ (buffer_or_name, Fwindow_buffer (selected_window)))
     {
       /* Basically a NOP.  Avoid signalling an error in the case where

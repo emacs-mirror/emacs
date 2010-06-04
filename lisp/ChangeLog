@@ -1,3 +1,48 @@
+2010-06-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/mule-cmds.el (nonascii-insert-offset)
+	(nonascii-translation-table): Add obsolescence information.
+
+	* international/mule.el (make-translation-table-from-vector): Doc fix.
+
+2010-06-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	vc-log-incoming/vc-log-outgoing improvements for Git.
+	* vc-git.el (vc-git-log-outgoing): Use the same format as the
+	short log.
+	(vc-git-log-incoming): Likewise.  Run "git fetch" before the log command.
+
+	Add bindings for vc-log-incoming and vc-log-outgoing.
+	* vc-hooks.el (vc-prefix-map): Add bindings for vc-log-incoming
+	and vc-log-outgoing.
+	* vc-dir.el (vc-dir-menu-map): Add menu bindings for vc-log-incoming
+	and vc-log-outgoing.
+
+2010-06-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* net/rcirc.el (rcirc-sort-nicknames): Remove.
+	(rcirc-handler-366): Always sort nicknames.
+
+2010-06-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/smie.el (comment-continue): Declare for byte-compiler.
+
+2010-06-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* net/rcirc.el (rcirc-nickname<, rcirc-sort-nicknames-join): Doc
+	fix.
+
+2010-06-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/rcirc.el (rcirc-sort-nicknames): Change default.
+	(rcirc-sort-nicknames-join): Avoid setq.
+
+2010-06-03  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+
+	* net/rcirc.el (rcirc-sort-nicknames): New custom.
+	(rcirc-nickname<, rcirc-sort-nicknames-join): New funs.
+	(rcirc-handler-366): Use them.
+
 2010-06-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Split smie-indent-calculate into more manageable chunks.

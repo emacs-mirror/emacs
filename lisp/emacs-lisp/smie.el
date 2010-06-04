@@ -65,6 +65,8 @@
 
 (eval-when-compile (require 'cl))
 
+(defvar comment-continue)
+
 ;;; Building precedence level tables from BNF specs.
 
 (defun smie-set-prec2tab (table x y val &optional override)

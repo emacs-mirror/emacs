@@ -281,7 +281,7 @@ RUN_TEMACS = `/bin/pwd`/temacs
 
 START_FILES = @START_FILES@
 
-UNEXEC_OBJ = @unexec@
+UNEXEC_OBJ = @UNEXEC_OBJ@
 
 CANNOT_DUMP=@cannot_dump@
 

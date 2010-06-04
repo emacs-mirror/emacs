@@ -622,23 +622,29 @@ for the --graph option."
 	  (when (string-match "\\([^\n]+\\)" remote)
 	    (setq remote (match-string 1 remote)))))))
 
-
 (defun vc-git-log-outgoing (buffer remote-location)
   (interactive)
   (vc-git-command
    buffer 0 nil
-   "log" (if (string= remote-location "")
-	     (concat (vc-git-compute-remote) "..HEAD")
-	   remote-location)))
-
+   "log"
+   "--no-color" "--graph" "--decorate" "--date=short"
+   "--pretty=tformat:%d%h  %ad  %s" "--abbrev-commit" 
+   (concat (if (string= remote-location "")
+	       (vc-git-compute-remote)
+	     remote-location)
+	   "..HEAD")))
 
 (defun vc-git-log-incoming (buffer remote-location)
   (interactive)
+  (vc-git-command nil 0 nil "fetch")
   (vc-git-command
    buffer 0 nil
-   "log" (if (string= remote-location "")
-	     (concat "HEAD.." (vc-git-compute-remote))
-	   remote-location)))
+   "log" 
+   "--no-color" "--graph" "--decorate" "--date=short"
+   "--pretty=tformat:%d%h  %ad  %s" "--abbrev-commit" 
+   (concat "HEAD.." (if (string= remote-location "")
+			(vc-git-compute-remote)
+		      remote-location))))
 
 (defvar log-view-message-re)
 (defvar log-view-file-re)

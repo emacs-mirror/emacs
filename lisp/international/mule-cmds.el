@@ -287,7 +287,7 @@ wrong, use this command again to toggle back to the right mode."
   (interactive)
   ;; We have to decode the file in any environment.
   (letf ((coding-system-for-read 'iso-2022-7bit))
-	(view-file (expand-file-name "HELLO" data-directory))))
+    (view-file (expand-file-name "HELLO" data-directory))))
 
 (defun universal-coding-system-argument (coding-system)
   "Execute an I/O command using the specified coding system."
@@ -2882,8 +2882,10 @@ on encoding."
   :group 'mule
   :global t)
 
-(defvar nonascii-insert-offset 0 "This variable is obsolete.")
-(defvar nonascii-translation-table nil "This variable is obsolete.")
+(defvar nonascii-insert-offset 0)
+(make-obsolete-variable 'nonascii-insert-offset "do not use it." "23.1")
+(defvar nonascii-translation-table nil)
+(make-obsolete-variable 'nonascii-translation-table "do not use it." "23.1")
 
 (defvar ucs-names nil
   "Alist of cached (CHAR-NAME . CHAR-CODE) pairs.")

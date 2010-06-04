@@ -2280,7 +2280,7 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
 	  if (size != size_byte)
 	    while (p1 < endp)
 	      {
-		int this_len = MULTIBYTE_FORM_LENGTH (p1, endp - p1);
+		int this_len = BYTES_BY_CHAR_HEAD (*p1);
 		if (len != this_len)
 		  error ("Attempt to change byte length of a string");
 		p1 += this_len;

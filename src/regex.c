@@ -300,7 +300,7 @@ enum syntaxcode { Swhitespace = 0, Sword = 1, Ssymbol = 2 };
 # define CHAR_HEAD_P(p) (1)
 # define SINGLE_BYTE_CHAR_P(c) (1)
 # define SAME_CHARSET_P(c1, c2) (1)
-# define MULTIBYTE_FORM_LENGTH(p, s) (1)
+# define BYTES_BY_CHAR_HEAD(p) (1)
 # define PREV_CHAR_BOUNDARY(p, limit) ((p)--)
 # define STRING_CHAR(p) (*(p))
 # define RE_STRING_CHAR(p, multibyte) STRING_CHAR (p)
@@ -4643,7 +4643,7 @@ re_search_2 (bufp, str1, size1, str2, size2, startpos, range, regs, stop)
 	    {
 	      re_char *p = POS_ADDR_VSTRING (startpos);
 	      re_char *pend = STOP_ADDR_VSTRING (startpos);
-	      int len = MULTIBYTE_FORM_LENGTH (p, pend - p);
+	      int len = BYTES_BY_CHAR_HEAD (*p);
 
 	      range -= len;
 	      if (range < 0)
