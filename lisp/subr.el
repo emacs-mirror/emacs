@@ -1089,7 +1089,11 @@ is converted into a string by expressing it in decimal."
 (make-obsolete 'process-filter-multibyte-p nil "23.1")
 (make-obsolete 'set-process-filter-multibyte nil "23.1")
 
-(make-obsolete-variable 'directory-sep-char "do not use it." "21.1")
+(defconst directory-sep-char ?/
+  "Directory separator character for built-in functions that return file names.
+The value is always ?/.")
+(make-obsolete-variable 'directory-sep-char "do not use it, just use `/'." "21.1")
+
 (make-obsolete-variable
  'mode-line-inverse-video
  "use the appropriate faces instead."
