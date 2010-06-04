@@ -1,3 +1,14 @@
+2010-06-04  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (kill-new): Fix logic of kill-do-not-save-duplicates.
+	Instead of setting `replace' to t and replacing the same string
+	with itself, don't do certain actions when
+	kill-do-not-save-duplicates is non-nil and string is equal to car
+	of kill-ring: don't call menu-bar-update-yank-menu, don't push
+	interprogram-paste strings to kill-ring, and don't push the input
+	argument `string' to kill-ring.
+	http://lists.gnu.org/archive/html/emacs-devel/2010-06/msg00072.html
+
 2010-06-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* subr.el (directory-sep-char): Move from fileio.c and make a defconst.
