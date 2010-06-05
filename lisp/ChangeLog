@@ -1,3 +1,12 @@
+2010-06-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	vc-log-incoming/vc-log-outgoing fixes for Git.
+	* vc-git.el (vc-git-log-view-mode): Fix font lock for
+	incoming/outgoing logs.
+	(vc-git-log-outgoing, vc-git-log-incoming): Use @{upstream}
+	instead of vc-git-compute-remote.
+	(vc-git-compute-remote): Remove.
+
 2010-06-04  Juri Linkov  <juri@jurta.org>
 
 	* simple.el (kill-new): Fix logic of kill-do-not-save-duplicates.
