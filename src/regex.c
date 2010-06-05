@@ -290,7 +290,6 @@ enum syntaxcode { Swhitespace = 0, Sword = 1, Ssymbol = 2 };
 #  define SWITCH_ENUM_CAST(x) (x)
 
 /* Dummy macros for non-Emacs environments.  */
-# define BASE_LEADING_CODE_P(c) (0)
 # define CHAR_CHARSET(c) 0
 # define CHARSET_LEADING_CODE_BASE(c) 0
 # define MAX_MULTIBYTE_LENGTH 1
@@ -3805,7 +3804,7 @@ regex_compile (pattern, size, syntax, bufp)
 
 		    if (c1 != c2 && (c1 = RE_CHAR_TO_UNIBYTE (c2)) >= 0)
 		      c = c1;
-		  }		      
+		  }
 		*b++ = c;
 		len = 1;
 	      }
@@ -4125,7 +4124,7 @@ analyse_first (p, pend, fastmap, multibyte)
 	  if (/* Any leading code can possibly start a character
 		 which doesn't match the specified set of characters.  */
 	      not
-	      || 
+	      ||
 	      /* If we can match a character class, we can match any
 		 multibyte characters.  */
 	      (CHARSET_RANGE_TABLE_EXISTS_P (&p[-2])

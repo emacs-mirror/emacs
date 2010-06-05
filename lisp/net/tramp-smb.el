@@ -382,7 +382,7 @@ PRESERVE-UID-GID is completely ignored."
 	 (lambda (file)
 	   (if (file-directory-p file)
 	       (tramp-compat-delete-directory file recursive)
-	     (tramp-compat-delete-file file 'trash)))
+	     (delete-file file)))
 	 ;; We do not want to delete "." and "..".
 	 (directory-files
 	  directory 'full "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*")))

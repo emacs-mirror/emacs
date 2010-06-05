@@ -1762,12 +1762,6 @@ socket connections still exist.  */)
 /* Some miscellaneous functions that are Windows specific, but not GUI
    specific (ie. are applicable in terminal or batch mode as well).  */
 
-/* lifted from fileio.c  */
-#define CORRECT_DIR_SEPS(s) \
-  do { if ('/' == DIRECTORY_SEP) dostounix_filename (s); \
-       else unixtodos_filename (s); \
-  } while (0)
-
 DEFUN ("w32-short-file-name", Fw32_short_file_name, Sw32_short_file_name, 1, 1, 0,
        doc: /* Return the short file name version (8.3) of the full path of FILENAME.
 If FILENAME does not exist, return nil.
@@ -1786,7 +1780,7 @@ All path elements in FILENAME are converted to their short names.  */)
   if (GetShortPathName (SDATA (ENCODE_FILE (filename)), shortname, MAX_PATH) == 0)
     return Qnil;
 
-  CORRECT_DIR_SEPS (shortname);
+  dostounix_filename (shortname);
 
   return build_string (shortname);
 }
@@ -1815,7 +1809,7 @@ All path elements in FILENAME are converted to their long names.  */)
   if (!w32_get_long_filename (SDATA (ENCODE_FILE (filename)), longname, MAX_PATH))
     return Qnil;
 
-  CORRECT_DIR_SEPS (longname);
+  dostounix_filename (longname);
 
   /* If we were passed only a drive, make sure that a slash is not appended
      for consistency with directories.  Allow for drive mapping via SUBST
