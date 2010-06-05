@@ -1,3 +1,13 @@
+2010-06-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	Remove obsolete macro BASE_LEADING_CODE_P.
+	* character.h (BASE_LEADING_CODE_P): Remove.
+	* regex.c [!emacs] (BASE_LEADING_CODE_P): Remove.
+	* buffer.c (Fset_buffer_multibyte):
+	* indent.c (scan_for_column, compute_motion):
+	* insdel.c (count_combining_before, count_combining_after):
+	Use LEADING_CODE_P instead of BASE_LEADING_CODE_P.
+
 2010-06-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	Turn `directory-sep-char' into a noop.
