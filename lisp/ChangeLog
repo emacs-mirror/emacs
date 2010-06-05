@@ -1,3 +1,11 @@
+2010-06-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* net/dbus.el (dbus-register-method): Declare function.
+	(dbus-handle-event, dbus-property-handler): Fix typos in docstrings.
+	(dbus-introspect): Doc fix.
+	(dbus-event-bus-name, dbus-introspect-get-interface)
+	(dbus-introspect-get-argument): Reflow docstrings.
+
 2010-06-04  Chong Yidong  <cyd@stupidchicken.com>
 
 	* term/common-win.el (x-colors): Add "dark green" and "dark
@@ -424,7 +432,7 @@
 
 	* files.el (auto-mode-alist): Accept more verilog file patterns.
 
-2010-03-09  Miles Bader  <miles@gnu.org>>
+2010-03-09  Miles Bader  <miles@gnu.org>
 
 	* vc-git.el (vc-git-print-log): Use "tformat:" for shortlog,
 	instead of "format:"; this ensures that the output is
