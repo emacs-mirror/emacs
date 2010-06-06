@@ -1,3 +1,9 @@
+2010-06-06  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-lazy-highlight-search): Fix looping
+	by checking for empty match.  This syncs this loop with the
+	similar loop in `isearch-search'.  (Bug#6362)
+
 2010-06-05  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	vc-log-incoming/vc-log-outgoing fixes for Git.
