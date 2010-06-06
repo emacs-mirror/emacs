@@ -83,10 +83,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #ifdef DOS_NT
-#define CORRECT_DIR_SEPS(s) \
-  do { if ('/' == DIRECTORY_SEP) dostounix_filename (s); \
-       else unixtodos_filename (s); \
-  } while (0)
 /* On Windows, drive letters must be alphabetic - on DOS, the Netware
    redirector allows the six letters between 'Z' and 'a' as well. */
 #ifdef MSDOS
@@ -474,7 +470,7 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
 	  p = beg + strlen (beg);
 	}
     }
-  CORRECT_DIR_SEPS (beg);
+  dostounix_filename (beg);
 #endif /* DOS_NT */
 
   return make_specified_string (beg, -1, p - beg, STRING_MULTIBYTE (filename));
@@ -561,12 +557,11 @@ file_name_as_directory (out, in)
   /* For Unix syntax, Append a slash if necessary */
   if (!IS_DIRECTORY_SEP (out[size]))
     {
-      /* Cannot use DIRECTORY_SEP, which could have any value */
-      out[size + 1] = '/';
+      out[size + 1] = DIRECTORY_SEP;
       out[size + 2] = '\0';
     }
 #ifdef DOS_NT
-  CORRECT_DIR_SEPS (out);
+  dostounix_filename (out);
 #endif
   return out;
 }
@@ -627,7 +622,7 @@ directory_file_name (src, dst)
       )
     dst[slen - 1] = 0;
 #ifdef DOS_NT
-  CORRECT_DIR_SEPS (dst);
+  dostounix_filename (dst);
 #endif
   return 1;
 }
@@ -1032,10 +1027,9 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
       if (!lose)
 	{
 #ifdef DOS_NT
-	  /* Make sure directories are all separated with / or \ as
-	     desired, but avoid allocation of a new string when not
-	     required. */
-	  CORRECT_DIR_SEPS (nm);
+	  /* Make sure directories are all separated with /, but
+	     avoid allocation of a new string when not required. */
+	  dostounix_filename (nm);
 #ifdef WINDOWSNT
 	  if (IS_DIRECTORY_SEP (nm[1]))
 	    {
@@ -1381,7 +1375,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	target[0] = '/';
 	target[1] = ':';
       }
-    CORRECT_DIR_SEPS (target);
+    dostounix_filename (target);
 #endif /* DOS_NT */
 
     result = make_specified_string (target, -1, o - target, multibyte);
@@ -1659,7 +1653,7 @@ those `/' is discarded.  */)
   bcopy (SDATA (filename), nm, SBYTES (filename) + 1);
 
 #ifdef DOS_NT
-  CORRECT_DIR_SEPS (nm);
+  dostounix_filename (nm);
   substituted = (strcmp (nm, SDATA (filename)) != 0);
 #endif
   endp = nm + SBYTES (filename);
@@ -5786,11 +5780,6 @@ of file names regardless of the current language environment.  */);
 	Fpurecopy (list3 (Qfile_date_error, Qfile_error, Qerror)));
   Fput (Qfile_date_error, Qerror_message,
 	make_pure_c_string ("Cannot set file date"));
-
-  DEFVAR_LISP ("directory-sep-char", &Vdirectory_sep_char,
-	       doc: /* Directory separator character for built-in functions that return file names.
-The value is always ?/.  Don't use this variable, just use `/'.  */);
-  XSETFASTINT (Vdirectory_sep_char, '/');
 
   DEFVAR_LISP ("file-name-handler-alist", &Vfile_name_handler_alist,
 	       doc: /* *Alist of elements (REGEXP . HANDLER) for file names handled specially.

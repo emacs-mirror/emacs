@@ -89,9 +89,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define HAVE_SOCKETS
 
-/* Define this symbol if your system has the functions bcopy, etc.  */
-#define BSTRING
-
 /* This is used in list_system_processes.  */
 #define HAVE_PROCFS 1
 

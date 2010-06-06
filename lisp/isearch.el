@@ -2667,6 +2667,8 @@ Attempt to do the search exactly the way the pending Isearch would."
 	  ;; Clear RETRY unless the search predicate says
 	  ;; to skip this search hit.
 	  (if (or (not success)
+		  (= (point) bound) ; like (bobp) (eobp) in `isearch-search'.
+		  (= (match-beginning 0) (match-end 0))
 		  (funcall isearch-filter-predicate
 			   (match-beginning 0) (match-end 0)))
 	      (setq retry nil)))

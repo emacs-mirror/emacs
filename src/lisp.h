@@ -3509,16 +3509,10 @@ extern char *egetenv P_ ((char *));
 extern void init_system_name P_ ((void));
 
 /* Some systems (e.g., NT) use a different path separator than Unix,
-   in addition to a device separator.  Default the path separator
+   in addition to a device separator.  Set the path separator
    to '/', and don't test for a device separator in IS_ANY_SEP.  */
 
-#ifdef WINDOWSNT
-extern Lisp_Object Vdirectory_sep_char;
-#endif
-
-#ifndef DIRECTORY_SEP
 #define DIRECTORY_SEP '/'
-#endif
 #ifndef IS_DIRECTORY_SEP
 #define IS_DIRECTORY_SEP(_c_) ((_c_) == DIRECTORY_SEP)
 #endif

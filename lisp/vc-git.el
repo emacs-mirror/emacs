@@ -606,39 +606,29 @@ for the --graph option."
 		(when start-revision (list start-revision))
 		'("--")))))))
 
-(defun vc-git-compute-remote ()
-  (let ((str (with-output-to-string
-	       (with-current-buffer standard-output
-		 (vc-git--out-ok "symbolic-ref" "HEAD"))))
-	branch remote)
-    (if (string-match "^\\(refs/heads/\\)?\\(.+\\)$" str)
-	(progn
-	  (setq branch (match-string 2 str))
-	  (setq remote
-		(with-output-to-string
-		  (with-current-buffer standard-output
-		    (vc-git--out-ok "config"
-				    (concat "branch." branch ".remote")))))
-	  (when (string-match "\\([^\n]+\\)" remote)
-	    (setq remote (match-string 1 remote)))))))
-
-
 (defun vc-git-log-outgoing (buffer remote-location)
   (interactive)
   (vc-git-command
    buffer 0 nil
-   "log" (if (string= remote-location "")
-	     (concat (vc-git-compute-remote) "..HEAD")
-	   remote-location)))
-
+   "log"
+   "--no-color" "--graph" "--decorate" "--date=short"
+   "--pretty=tformat:%d%h  %ad  %s" "--abbrev-commit"
+   (concat (if (string= remote-location "")
+	       "@{upstream}"
+	     remote-location)
+	   "..HEAD")))
 
 (defun vc-git-log-incoming (buffer remote-location)
   (interactive)
+  (vc-git-command nil 0 nil "fetch")
   (vc-git-command
    buffer 0 nil
-   "log" (if (string= remote-location "")
-	     (concat "HEAD.." (vc-git-compute-remote))
-	   remote-location)))
+   "log" 
+   "--no-color" "--graph" "--decorate" "--date=short"
+   "--pretty=tformat:%d%h  %ad  %s" "--abbrev-commit"
+   (concat "HEAD.." (if (string= remote-location "")
+			"@{upstream}"
+		      remote-location))))
 
 (defvar log-view-message-re)
 (defvar log-view-file-re)
@@ -651,11 +641,11 @@ for the --graph option."
   (set (make-local-variable 'log-view-file-re) "\\`a\\`")
   (set (make-local-variable 'log-view-per-file-logs) nil)
   (set (make-local-variable 'log-view-message-re)
-       (if (eq vc-log-view-type 'short)
+       (if (not (eq vc-log-view-type 'long))
 	   "^\\(?:[*/\\| ]+ \\)?\\(?: ([^)]+)\\)?\\([0-9a-z]+\\)  \\([-a-z0-9]+\\)  \\(.*\\)"
 	 "^commit *\\([0-9a-z]+\\)"))
   (set (make-local-variable 'log-view-font-lock-keywords)
-       (if (eq vc-log-view-type 'short)
+       (if (not (eq vc-log-view-type 'long))
 	   '(
 	     ;; Same as log-view-message-re, except that we don't
 	     ;; want the shy group for the tag name.

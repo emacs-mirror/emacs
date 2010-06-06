@@ -221,10 +221,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 	(ASCII_BYTE_P (byte) || LEADING_CODE_P (byte))  */
 #define CHAR_HEAD_P(byte) (((byte) & 0xC0) != 0x80)
 
-/* Kept for backward compatibility.  This macro will be removed in the
-   future.  */
-#define BASE_LEADING_CODE_P LEADING_CODE_P
-
 /* How many bytes a character that starts with BYTE occupies in a
    multibyte form.  */
 #define BYTES_BY_CHAR_HEAD(byte)	\
@@ -591,7 +587,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    : 0)
 
 /* If C is a high surrogate, return 1.  If C is a low surrogate,
-   return 0. Otherwise, return 0.  */
+   return 0.  Otherwise, return 0.  */
 
 #define CHAR_SURROGATE_PAIR_P(c)	\
   ((c) < 0xD800 ? 0			\

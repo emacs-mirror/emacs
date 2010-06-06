@@ -1,3 +1,49 @@
+2010-06-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove BSTRING related code, all platforms define it.
+	* s/usg5-4.h (BSTRING): Remove definition.
+	* s/template.h (BSTRING):
+	* s/msdos.h (BSTRING):
+	* s/ms-w32.h (BSTRING):
+	* s/hpux10-20.h (BSTRING):
+	* s/gnu-linux.h (BSTRING):
+	* s/darwin.h (BSTRING):
+	* s/cygwin.h (BSTRING):
+	* s/bsd-common.h (BSTRING):
+	* s/aix4-2.h (BSTRING): Likewise.
+	* sysdep.c: Remove code depending on BSTRING not being defined.
+
+2010-06-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	Remove obsolete macro BASE_LEADING_CODE_P.
+	* character.h (BASE_LEADING_CODE_P): Remove.
+	* regex.c [!emacs] (BASE_LEADING_CODE_P): Remove.
+	* buffer.c (Fset_buffer_multibyte):
+	* indent.c (scan_for_column, compute_motion):
+	* insdel.c (count_combining_before, count_combining_after):
+	Use LEADING_CODE_P instead of BASE_LEADING_CODE_P.
+
+2010-06-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	Turn `directory-sep-char' into a noop.
+
+	* lisp.h [WINDOWSNT] (Vdirectory_sep_char): Don't declare.
+	(DIRECTORY_SEP): Define unconditionally.
+
+	* s/ms-w32.h (DIRECTORY_SEP): Remove.
+
+	* emacs.c (decode_env_path): Don't check DIRECTORY_SEP,
+	call dostounix_filename directly.
+
+	* fileio.c (CORRECT_DIR_SEPS): Remove.
+	(Ffile_name_directory, directory_file_name, Fexpand_file_name)
+	(Fsubstitute_in_file_name): Use dostounix_filename instead.
+	(file_name_as_directory): Use dostounix_filename, DIRECTORY_SEP.
+	(syms_of_fileio) <directory-sep-char>: Move to subr.el.
+
+	* w32proc.c (CORRECT_DIR_SEPS): Remove.
+	(Fw32_short_file_name, Fw32_long_file_name): Use dostounix_filename.
+
 2010-06-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Move UNEXEC definition to autoconf.

@@ -1,4 +1,55 @@
+2010-06-06  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-lazy-highlight-search): Fix looping
+	by checking for empty match.  This syncs this loop with the
+	similar loop in `isearch-search'.  (Bug#6362)
+
+2010-06-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	vc-log-incoming/vc-log-outgoing fixes for Git.
+	* vc-git.el (vc-git-log-view-mode): Fix font lock for
+	incoming/outgoing logs.
+	(vc-git-log-outgoing, vc-git-log-incoming): Use @{upstream}
+	instead of vc-git-compute-remote.
+	(vc-git-compute-remote): Remove.
+
+2010-06-04  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (kill-new): Fix logic of kill-do-not-save-duplicates.
+	Instead of setting `replace' to t and replacing the same string
+	with itself, don't do certain actions when
+	kill-do-not-save-duplicates is non-nil and string is equal to car
+	of kill-ring: don't call menu-bar-update-yank-menu, don't push
+	interprogram-paste strings to kill-ring, and don't push the input
+	argument `string' to kill-ring.
+	http://lists.gnu.org/archive/html/emacs-devel/2010-06/msg00072.html
+
+2010-06-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (directory-sep-char): Move from fileio.c and make a defconst.
+
+2010-06-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-gvfs.el (tramp-gvfs-handle-expand-file-name): Expand "~/".
+	(tramp-gvfs-handler-mounted-unmounted)
+	(tramp-gvfs-connection-mounted-p): Handle default-location.
+
+	* net/tramp-smb.el (tramp-smb-handle-delete-directory): Don't try to
+	move files to trash.
+
+2010-06-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/mule-cmds.el (nonascii-insert-offset)
+	(nonascii-translation-table): Add obsolescence information.
+
+	* international/mule.el (make-translation-table-from-vector): Doc fix.
+
 2010-06-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	vc-log-incoming/vc-log-outgoing improvements for Git.
+	* vc-git.el (vc-git-log-outgoing): Use the same format as the
+	short log.
+	(vc-git-log-incoming): Likewise.  Run "git fetch" before the log command.
 
 	Add bindings for vc-log-incoming and vc-log-outgoing.
 	* vc-hooks.el (vc-prefix-map): Add bindings for vc-log-incoming

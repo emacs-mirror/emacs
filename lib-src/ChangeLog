@@ -1,3 +1,7 @@
+2010-06-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* ntlib.h: Remove code dealing with BSTRING.
+
 2010-05-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacsclient.c (longopts, decode_options, print_help_and_exit):

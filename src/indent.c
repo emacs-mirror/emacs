@@ -506,7 +506,7 @@ check_display_width (EMACS_INT pos, EMACS_INT col, EMACS_INT *endpos)
 	width = XINT (prop) - col;
       else if (FLOATP (prop))
 	width = (int)(XFLOAT_DATA (prop) + 0.5) - col;
-	    
+
       if (width >= 0)
 	{
 	  EMACS_INT start;
@@ -628,7 +628,7 @@ scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
 	 to this character.  */
 
       if (dp != 0
-	  && ! (multibyte && BASE_LEADING_CODE_P (c))
+	  && ! (multibyte && LEADING_CODE_P (c))
 	  && VECTORP (DISP_CHAR_VECTOR (dp, c)))
 	{
 	  Lisp_Object charvec;
@@ -679,7 +679,7 @@ scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
 	      col += tab_width;
 	      col = col / tab_width * tab_width;
 	    }
-	  else if (multibyte && BASE_LEADING_CODE_P (c))
+	  else if (multibyte && LEADING_CODE_P (c))
 	    {
 	      /* Start of multi-byte form.  */
 	      unsigned char *ptr;
@@ -1577,7 +1577,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 	    }
 
 	  if (dp != 0
-	      && ! (multibyte && BASE_LEADING_CODE_P (c))
+	      && ! (multibyte && LEADING_CODE_P (c))
 	      && VECTORP (DISP_CHAR_VECTOR (dp, c)))
 	    {
 	      charvec = DISP_CHAR_VECTOR (dp, c);
@@ -1683,7 +1683,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 			hpos = width;
 		    }
 		}
-	      else if (multibyte && BASE_LEADING_CODE_P (c))
+	      else if (multibyte && LEADING_CODE_P (c))
 		{
 		  /* Start of multi-byte form.  */
 		  unsigned char *ptr;

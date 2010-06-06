@@ -1723,7 +1723,7 @@ main (int argc, char **argv)
 #endif
   init_window ();
   init_font ();
-  
+
   if (!initialized)
     {
       char *file;
@@ -2384,10 +2384,7 @@ decode_env_path (evarname, defalt)
       strcpy (p, path);
       path = p;
 
-      if ('/' == DIRECTORY_SEP)
-	dostounix_filename (path);
-      else
-	unixtodos_filename (path);
+      dostounix_filename (path);
     }
 #endif
   lpath = Qnil;

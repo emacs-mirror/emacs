@@ -63,8 +63,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    for received packets, so datagrams are broken too.  */
 #define BROKEN_DATAGRAM_SOCKETS 1
 
-/* Define this symbol if your system has the functions bcopy, etc.  */
-#define BSTRING
 #define bzero(b, l) memset(b, 0, l)
 #define bcopy(s, d, l) memmove(d, s, l)
 #define bcmp(a, b, l) memcmp(a, b, l)
@@ -94,9 +92,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    that don't exist on your system, or that do different things on
    your system and must be used only through an encapsulation (which
    you should place, by convention, in sysdep.c).  */
-
-/* Define this to be the separator between path elements.  */
-#define DIRECTORY_SEP XINT (Vdirectory_sep_char)
 
 /* Define this to be the separator between devices and paths.  */
 #define DEVICE_SEP ':'

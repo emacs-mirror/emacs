@@ -164,6 +164,11 @@ read a file name from the minibuffer instead of using buffer-file-name.
 
 *** New VC commands: vc-log-incoming, vc-log-outgoing, vc-find-conflicted-file.
 
+**** vc-log-incoming for Git runs "git fetch" so that the necessary
+data is available locally.
+
+**** vc-log-incoming and vc-log-outgoing for Git require version 1.7 (or newer).
+
 *** New key bindings: C-x v I and C-x v O bound to vc-log-incoming and
 vc-log-outgoing, respectively.
 

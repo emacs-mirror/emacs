@@ -52,9 +52,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    functions.  Almost, but not quite the same as the 4.2 functions.  */
 #define SYSV_SYSTEM_DIR
 
-/* Define this symbol if your system has the functions bcopy, etc.  */
-#define BSTRING
-
 /* The file containing the kernel's symbol table is called /unix.  */
 #define KERNEL_FILE "/unix"
 
