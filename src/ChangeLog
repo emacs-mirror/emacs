@@ -1,3 +1,18 @@
+2010-06-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove BSTRING related code, all platforms define it.
+	* s/usg5-4.h (BSTRING): Remove definition.
+	* s/template.h (BSTRING):
+	* s/msdos.h (BSTRING):
+	* s/ms-w32.h (BSTRING):
+	* s/hpux10-20.h (BSTRING):
+	* s/gnu-linux.h (BSTRING):
+	* s/darwin.h (BSTRING):
+	* s/cygwin.h (BSTRING):
+	* s/bsd-common.h (BSTRING):
+	* s/aix4-2.h (BSTRING): Likewise.
+	* sysdep.c: Remove code depending on BSTRING not being defined.
+
 2010-06-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	Remove obsolete macro BASE_LEADING_CODE_P.

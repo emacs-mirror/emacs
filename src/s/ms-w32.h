@@ -63,8 +63,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    for received packets, so datagrams are broken too.  */
 #define BROKEN_DATAGRAM_SOCKETS 1
 
-/* Define this symbol if your system has the functions bcopy, etc.  */
-#define BSTRING
 #define bzero(b, l) memset(b, 0, l)
 #define bcopy(s, d, l) memmove(d, s, l)
 #define bcmp(a, b, l) memcmp(a, b, l)

@@ -43,12 +43,6 @@ int setegid (unsigned gid);
 char * getpass (const char * prompt);
 int fchown (int fd, unsigned uid, unsigned gid);
 
-#ifndef BSTRING
-#define bzero(b, l) memset(b, 0, l)
-#define bcopy(s, d, l) memcpy(d, s, l)
-#define bcmp(a, b, l) memcmp(a, b, l)
-#endif
-
 /* redirect or undo interceptions created by config.h */
 #undef access
 #define access  _access

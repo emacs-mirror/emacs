@@ -63,8 +63,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* If we're using the System V X port, BSD bstring functions will be handy.  */
 #ifdef HAVE_X_WINDOWS
-#define BSTRING
-#endif /* HAVE_X_WINDOWS */
 
 /* On USG systems signal handlers return void.  */
 #define SIGTYPE void

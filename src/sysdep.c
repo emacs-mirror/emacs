@@ -2752,54 +2752,6 @@ rmdir (dpath)
 #endif /* !HAVE_RMDIR */
 
 
-#ifndef BSTRING
-
-#ifndef bzero
-
-void
-bzero (b, length)
-     register char *b;
-     register int length;
-{
-  while (length-- > 0)
-    *b++ = 0;
-}
-
-#endif /* no bzero */
-#endif /* BSTRING */
-
-#if (!defined (BSTRING) && !defined (bcopy)) || defined (NEED_BCOPY)
-#undef bcopy
-
-/* Saying `void' requires a declaration, above, where bcopy is used
-   and that declaration causes pain for systems where bcopy is a macro.  */
-bcopy (b1, b2, length)
-     register char *b1;
-     register char *b2;
-     register int length;
-{
-  while (length-- > 0)
-    *b2++ = *b1++;
-}
-#endif /* (!defined (BSTRING) && !defined (bcopy)) || defined (NEED_BCOPY) */
-
-#ifndef BSTRING
-#ifndef bcmp
-int
-bcmp (b1, b2, length)	/* This could be a macro! */
-     register char *b1;
-     register char *b2;
-     register int length;
-{
-  while (length-- > 0)
-    if (*b1++ != *b2++)
-      return 1;
-
-  return 0;
-}
-#endif /* no bcmp */
-#endif /* not BSTRING */
-
 #ifndef HAVE_STRSIGNAL
 char *
 strsignal (code)

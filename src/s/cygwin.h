@@ -73,9 +73,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
     }							\
   while (0)
 
-/* Define this symbol if your system has the functions bcopy, etc. */
-#define BSTRING
-
 /* Define CLASH_DETECTION if you want lock files to be written
    so that Emacs can tell instantly when you try to modify
    a file that someone else has modified in his Emacs.  */
