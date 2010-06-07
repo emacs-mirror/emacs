@@ -1,3 +1,9 @@
+2010-06-07  Martin Pohlack  <mp26@os.inf.tu-dresden.de>
+
+	* iimage.el: Remove images as soon as the underlying text is modified.
+	(iimage-modification-hook): New function.
+	(iimage-mode-buffer): Use it.
+
 2010-06-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/smie.el (smie-indent-offset-rule): Rename from
@@ -4691,8 +4697,8 @@
 
 2009-12-10  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* whitespace.el (whitespace-display-char-on): Ensure
-	`buffer-display-table' is unique when two or more windows are
+	* whitespace.el (whitespace-display-char-on):
+	Ensure `buffer-display-table' is unique when two or more windows are
 	visible.  Reported by Martin Pohlack <mp26@os.inf.tu-dresden.de>.
 	New version 12.1.
 

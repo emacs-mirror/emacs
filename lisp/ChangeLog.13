@@ -7161,7 +7161,7 @@
 	* doc-view.el (doc-view-search-backward, doc-view-search):
 	Fix assignment to free variable bug.
 
-2007-11-16  Martin Pohlack  <mp26@os.inf.tu-dresden.de>  (tiny change)
+2007-11-16  Martin Pohlack  <mp26@os.inf.tu-dresden.de>
 
 	* emulation/pc-select.el (pc-select-shifted-mark): New var.
 	(ensure-mark): Set it.
