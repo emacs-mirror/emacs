@@ -500,6 +500,7 @@ Possible return values:
   ;; I.e. the indentation after "=" depends on the parent ("structure")
   ;; as well as on the following token ("struct").
   "Rules of the following form.
+\((:before . TOK) . OFFSET-RULES)	how to indent TOK itself.
 \(TOK . OFFSET-RULES)	how to indent right after TOK.
 \((T1 . T2) . OFFSET)	how to indent token T2 w.r.t T1.
 \((t . TOK) . OFFSET)	how to indent TOK with respect to its parent.
@@ -508,12 +509,17 @@ Possible return values:
 \(t . OFFSET)		basic indentation step.
 \(args . OFFSET)		indentation of arguments.
 
-OFFSET-RULES is list of elements which can either be an integer (the offset to
-use), or a cons of the form
+OFFSET-RULES is a list of elements which can each either be:
+
 \(:hanging . OFFSET-RULES)	if TOK is hanging, use OFFSET-RULES.
 \(:parent PARENT . OFFSET-RULES) if TOK's parent is PARENT, use OFFSET-RULES.
 \(:next TOKEN . OFFSET-RULES)	if TOK is followed by TOKEN, use OFFSET-RULES.
-A nil offset defaults to `smie-indent-basic'.")
+\(:prev TOKEN . OFFSET-RULES)	if TOK is preceded by TOKEN, use OFFSET-RULES.
+a number				the offset to use.
+`point'				align with the token.
+`parent'				align with the parent.
+
+A nil offset for indentation after a token defaults to `smie-indent-basic'.")
 
 (defun smie-indent-hanging-p ()
   ;; A hanging keyword is one that's at the end of a line except it's not at
@@ -534,45 +540,46 @@ A nil offset defaults to `smie-indent-basic'.")
       (cdr (assq t smie-indent-rules))
       smie-indent-basic))
 
-(defun smie-indent-offset-after (tokinfo after)
-  ;; Presumes we're right before the token corresponding to `tokinfo'
-  ;; and `after' is the position that we're trying to indent.
+(defun smie-indent-offset-rule (tokinfo &optional after)
+  "Apply the OFFSET-RULES in TOKINFO.
+Point is expected to be right in front of the token corresponding to TOKINFO.
+If computing the indentation after the token, then AFTER is the position
+after the token."
   (let ((rules (cdr tokinfo))
-        parent next offset)
+        parent next prev
+        offset)
     (while (consp rules)
       (let ((rule (pop rules)))
         (cond
          ((not (consp rule)) (setq offset rule))
-         ;; Using this `:hanging' is often "wrong", in that the hangingness
-         ;; of a keyword should usually not affect the indentation of the
-         ;; immediately following expression, but rather should affect the
-         ;; virtual indentation of that keyword (which in turn will affect not
-         ;; only indentation of the immediately following expression, but also
-         ;; other dependent expressions).
-         ;; But there are cases where it's useful: you may want to use it to
-         ;; make the indentation inside parentheses different depending on the
-         ;; hangingness of the open-paren, but without affecting the
-         ;; indentation of the paren-close.
          ((eq (car rule) :hanging)
           (when (smie-indent-hanging-p)
             (setq rules (cdr rule))))
+         ((eq (car rule) :prev)
+          (unless prev
+            (save-excursion
+              (setq prev (smie-indent-backward-token))))
+          (when (equal (car prev) (cadr rule))
+            (setq rules (cddr rule))))
          ((eq (car rule) :next)
           (unless next
+            (unless after
+              (error "Can't use :next in :before indentation rules"))
             (save-excursion
               (goto-char after)
-              (setq next (funcall smie-forward-token-function))))
-          (when (equal next (cadr rule))
+              (setq next (smie-indent-forward-token))))
+          (when (equal (car next) (cadr rule))
             (setq rules (cddr rule))))
          ((eq (car rule) :parent)
           (unless parent
             (save-excursion
-              (goto-char after)
+              (if after (goto-char after))
               (setq parent (smie-backward-sexp 'halfsexp))))
           (when (equal (nth 2 parent) (cadr rule))
             (setq rules (cddr rule))))
-         (t (error "Unknown rule %s for indentation after %s"
+         (t (error "Unknown rule %s for indentation of %s"
                    rule (car tokinfo))))))
-    (or offset (smie-indent-offset t))))
+    offset))
 
 (defun smie-indent-forward-token ()
   "Skip token forward and return it, along with its levels."
@@ -593,24 +600,18 @@ A nil offset defaults to `smie-indent-basic'.")
       (forward-char -1)
       (list (buffer-substring (point) (1+ (point))) nil 0)))))
 
-;; FIXME: The `virtual' arg is fundamentally wrong: the virtual indent
-;; of a position should not depend on the caller, since it leads to situations
-;; where two dependent indentations get indented differently.
-(defun smie-indent-virtual (virtual)
+(defun smie-indent-virtual ()
+  ;; We used to take an optional arg (with value :not-hanging) to specify that
+  ;; we should only use (smie-indent-calculate) if we're looking at a hanging
+  ;; keyword.  This was a bad idea, because the virtual indent of a position
+  ;; should not depend on the caller, since it leads to situations where two
+  ;; dependent indentations get indented differently.
   "Compute the virtual indentation to use for point.
 This is used when we're not trying to indent point but just
 need to compute the column at which point should be indented
-in order to figure out the indentation of some other (further down) point.
-VIRTUAL can take two different values:
-- :bolp: means that the current indentation of point can be trusted
-  to be good only if it follows a line break.
-- :not-hanging: means that the current indentation of point can be
-  trusted to be good except if the following token is hanging."
+in order to figure out the indentation of some other (further down) point."
   ;; Trust pre-existing indentation on other lines.
-  (assert virtual)
-  (if (if (eq virtual :not-hanging) (not (smie-indent-hanging-p)) (smie-bolp))
-      (current-column)
-    (smie-indent-calculate)))
+  (if (smie-bolp) (current-column) (smie-indent-calculate)))
 
 (defun smie-indent-fixindent ()
   ;; Obey the `fixindent' special comment.
@@ -640,20 +641,49 @@ VIRTUAL can take two different values:
       (condition-case nil
           (progn
             (backward-sexp 1)
-            (smie-indent-virtual :not-hanging))
+            (smie-indent-virtual))      ;:not-hanging
         (scan-error nil)))))
 
 (defun smie-indent-keyword ()
   ;; Align closing token with the corresponding opening one.
   ;; (e.g. "of" with "case", or "in" with "let").
-  ;; FIXME: This still looks too much like black magic!!
-  ;; FIXME: Rather than a bunch of rules like (PARENT . TOKEN), we
-  ;; want a single rule for TOKEN with different cases for each PARENT.
   (save-excursion
     (let* ((pos (point))
            (toklevels (smie-indent-forward-token))
            (token (pop toklevels)))
-      (when (car toklevels)
+      (if (null (car toklevels))
+          ;; Different case:
+          ;; - smie-bolp: "indent according to others".
+          ;; - common hanging: "indent according to others".
+          ;; - SML-let hanging: "indent like parent".
+          ;; - if-after-else: "indent-like parent".
+          ;; - middle-of-line: "trust current position".
+          (cond
+           ((null (cdr toklevels)) nil) ;Not a keyword.
+           ((smie-bolp)
+            ;; For an open-paren-like thingy at BOL, always indent only
+            ;; based on other rules (typically smie-indent-after-keyword).
+            nil)
+           (t
+            (let* ((tokinfo (or (assoc (cons :before token) smie-indent-rules)
+                                ;; By default use point unless we're hanging.
+                                (cons (cons :before token)
+                                      '((:hanging nil) point))))
+                   (after (prog1 (point) (goto-char pos)))
+                   (offset (smie-indent-offset-rule tokinfo)))
+              (cond
+               ((eq offset 'point) (current-column))
+               ((eq offset 'parent)
+                (let ((parent (smie-backward-sexp 'halfsexp)))
+                  (if parent (goto-char (cadr parent))))
+                (smie-indent-virtual))
+               ((eq offset nil) nil)
+               (t (error "Unhandled offset %s in %s"
+                         offset (cons :before token)))))))
+
+        ;; FIXME: This still looks too much like black magic!!
+        ;; FIXME: Rather than a bunch of rules like (PARENT . TOKEN), we
+        ;; want a single rule for TOKEN with different cases for each PARENT.
         (let ((res (smie-backward-sexp 'halfsexp)) tmp)
           (cond
            ((not (or (< (point) pos)
@@ -669,17 +699,17 @@ VIRTUAL can take two different values:
             ;;    a -> b -> c
             ;;    -> d
             ;; So as to align with the earliest appropriate place.
-            (smie-indent-virtual :bolp))
+            (smie-indent-virtual))
            ((equal token (save-excursion
                            (funcall smie-backward-token-function)))
             ;; in cases such as "fn x => fn y => fn z =>",
             ;; jump back to the very first fn.
             ;; FIXME: should we only do that for special tokens like "=>"?
-            (smie-indent-virtual :bolp))
+            (smie-indent-virtual))
            ((setq tmp (assoc (cons (caddr res) token)
                              smie-indent-rules))
             (goto-char (cadr res))
-            (+ (cdr tmp) (smie-indent-virtual :not-hanging)))
+            (+ (cdr tmp) (smie-indent-virtual))) ;:not-hanging
            ;; FIXME: The rules ((t . TOK) . OFFSET) either indent
            ;; relative to "before the parent" or "after the parent",
            ;; depending on details of the grammar.
@@ -687,8 +717,15 @@ VIRTUAL can take two different values:
             (assert (eq (point) (cadr res)))
             (goto-char (cadr res))
             (+ (or (cdr (assoc (cons t token) smie-indent-rules)) 0)
-               (smie-indent-virtual :not-hanging)))
-           ((smie-bolp)
+               (smie-indent-virtual)))  ;:not-hanging
+           ((and (= (point) pos) (smie-bolp))
+            ;; Since we started at BOL, we're not computing a virtual
+            ;; indentation, and we're still at the starting point, so the
+            ;; next (default) rule can't be used since it uses `current-column'
+            ;; which would cause. indentation to depend on itself.
+            ;; We could just return nil, but OTOH that's not good enough in
+            ;; some cases.  Instead, we want to combine the offset-rules for
+            ;; the current token with the offset-rules of the previous one.
             (+ (or (cdr (assoc (cons t token) smie-indent-rules)) 0)
                ;; FIXME: This is odd.  Can't we make it use
                ;; smie-indent-(calculate|virtual) somehow?
@@ -707,7 +744,8 @@ VIRTUAL can take two different values:
 
 (defun smie-indent-comment-continue ()
   ;; indentation of comment-continue lines.
-  (let ((continue (comment-string-strip comment-continue t t)))
+  (let ((continue (and comment-continue
+                       (comment-string-strip comment-continue t t))))
     (and (< 0 (length continue))
          (looking-at (regexp-quote continue)) (nth 4 (syntax-ppss))
        (let ((ppss (syntax-ppss)))
@@ -733,7 +771,8 @@ VIRTUAL can take two different values:
       (when toklevel
         (let ((offset
                (cond
-                (tokinfo (smie-indent-offset-after tokinfo pos))
+                (tokinfo (or (smie-indent-offset-rule tokinfo pos)
+                             (smie-indent-offset t)))
                 ;; The default indentation after a keyword/operator
                 ;; is 0 for infix and t for prefix.
                 ;; Using the BNF syntax, we could come up with
@@ -744,7 +783,7 @@ VIRTUAL can take two different values:
           ;; For indentation after "(let" in SML-mode, we end up accumulating
           ;; the offset of "(" and the offset of "let", so we use `min' to try
           ;; and get it right either way.
-          (+ (min (smie-indent-virtual :bolp) (current-column)) offset))))))
+          (+ (min (smie-indent-virtual) (current-column)) offset))))))
 
 (defun smie-indent-exps ()
   ;; Indentation of sequences of simple expressions without
@@ -793,7 +832,7 @@ VIRTUAL can take two different values:
         ;; We're the first arg.
         (goto-char (car positions))
         (+ (smie-indent-offset 'args)
-           ;; We used to use (smie-indent-virtual :bolp), but that
+           ;; We used to use (smie-indent-virtual), but that
            ;; doesn't seem right since it might then indent args less than
            ;; the function itself.
            (current-column)))))))

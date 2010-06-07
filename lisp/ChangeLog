@@ -1,3 +1,11 @@
+2010-06-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-indent-offset-rule): Rename from
+	smie-indent-offset-after.  Add :prev case.  Make a bit more generic.
+	(smie-indent-virtual): Remove `virtual' arg.  Update callers.
+	(smie-indent-keyword): Add handling of open-paren keywords.
+	(smie-indent-comment-continue): Don't assume comment-continue.
+
 2010-06-07  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (pop-to-buffer): Remove the conditional that
