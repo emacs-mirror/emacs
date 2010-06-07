@@ -1,3 +1,8 @@
+2010-06-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* cmds.c (Fforward_char, Fbackward_char): Fix typos in docstrings.
+	(Fforward_line, Fbeginning_of_line): Reflow docstrings.
+
 2010-06-06  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Remove BSTRING related code, all platforms define it.
