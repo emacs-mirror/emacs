@@ -1,3 +1,10 @@
+2010-06-07  Jonathan Rockway  <jon@jrock.us>
+
+	* net/rcirc.el: Add support for password authentication.
+	(rcirc-server-alist): Add :password keyword.
+	(rcirc): Ask for a password, or get it from the server's alist.
+	(rcirc-connect): Add password argument.  Pass it to server.
+
 2010-06-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* net/dbus.el (dbus-register-method): Declare function.
