@@ -1,3 +1,13 @@
+2010-06-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-indent-offset-after)
+	(smie-indent-forward-token, smie-indent-backward-token): New functions.
+	(smie-indent-after-keyword): Use them.
+	(smie-indent-fixindent): Only applies to the indentation of the BOL.
+	(smie-indent-keyword): Tweak the black magic.
+	(smie-indent-comment-continue): Strip comment-continue before use.
+	(smie-indent-functions): Indent comments before keywords.
+
 2010-06-06  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-lazy-highlight-search): Fix looping
