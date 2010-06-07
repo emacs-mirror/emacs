@@ -1,3 +1,8 @@
+2010-06-07  Teemu Likonen  <tlikonen@iki.fi>  (tiny change)
+
+	* gnus-agent.el (gnus-agent-expire-unagentized-dirs): Don't ask about
+	deleting unused directories when gnus-expert-user is t.
+
 2010-06-02  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-article-browse-delete-temp-files): Don't make query
