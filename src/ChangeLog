@@ -1,3 +1,10 @@
+2010-06-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fselect_window): Move `record_buffer' up to the
+	beginning of this function, so the buffer gets recorded
+	even if the selected window does not change.
+	http://lists.gnu.org/archive/html/emacs-devel/2010-06/msg00137.html
+
 2010-06-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* cmds.c (Fforward_char, Fbackward_char): Fix typos in docstrings.
