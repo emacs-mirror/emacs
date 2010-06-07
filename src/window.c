@@ -3611,6 +3611,7 @@ selected window before each command.  */)
     {
       ++window_select_count;
       XSETFASTINT (w->use_time, window_select_count);
+      record_buffer (w->buffer);
     }
 
   if (EQ (window, selected_window))
@@ -3646,8 +3647,6 @@ selected window before each command.  */)
 
   selected_window = window;
 
-  if (NILP (norecord))
-    record_buffer (w->buffer);
   Fset_buffer (w->buffer);
 
   XBUFFER (w->buffer)->last_selected_window = window;
