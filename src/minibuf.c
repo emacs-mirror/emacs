@@ -1590,7 +1590,7 @@ with a space are ignored unless STRING itself starts with a space.  */)
   if (type == 2)
     {
       obsize = XVECTOR (collection)->size;
-      bucket = XVECTOR (collection)->contents[index];
+      bucket = obsize ? XVECTOR (collection)->contents[index] : zero;
     }
 
   while (1)
