@@ -1,3 +1,16 @@
+2010-06-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* lread.c (X_OK): Remove, unused.
+
+	* dispnew.c: Remove obsolete comment.
+
+	Remove INCLUDED_FCNTL.
+	* xterm.c (INCLUDED_FCNTL):
+	* callproc.c (INCLUDED_FCNTL):
+	* alloc.c (INCLUDED_FCNTL):
+	* systty.h (INCLUDED_FCNTL): Remove all uses, not needed anymore.
+	(emacs_get_tty, emacs_set_tty): Declare unconditionally.
+
 2010-06-07  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.c (Fselect_window): Move `record_buffer' up to the

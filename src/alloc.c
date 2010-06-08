@@ -70,7 +70,6 @@ extern POINTER_TYPE *sbrk ();
 #endif
 
 #ifdef HAVE_FCNTL_H
-#define INCLUDED_FCNTL
 #include <fcntl.h>
 #endif
 #ifndef O_WRONLY

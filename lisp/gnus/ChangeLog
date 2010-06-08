@@ -1,3 +1,15 @@
+2010-06-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* auth-source.el (top): Autoload `secrets-list-collections',
+	`secrets-create-item', `secrets-delete-item'.
+	(auth-sources): Fix tag string.
+	(auth-get-source, auth-source-retrieve, auth-source-create)
+	(auth-source-delete): New defuns.
+	(auth-source-pick): Rewrite in order to avoid 2 passes.
+	(auth-source-forget-user-or-password): New parameter USERNAME.
+	(auth-source-user-or-password): New parameters CREATE-MISSING and
+	DELETE-EXISTING.  Retrieve password interactively, if needed.
+
 2010-06-07  Teemu Likonen  <tlikonen@iki.fi>  (tiny change)
 
 	* gnus-agent.el (gnus-agent-expire-unagentized-dirs): Don't ask about

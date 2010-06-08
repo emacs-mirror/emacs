@@ -48,10 +48,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 #endif
 
-#ifndef X_OK
-#define X_OK 01
-#endif
-
 #include <math.h>
 
 #ifdef HAVE_SETLOCALE

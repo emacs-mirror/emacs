@@ -1141,11 +1141,11 @@ extern char *getenv ();
 #endif /* __P */
 
 #ifdef HAVE_STRING_H
-#include "string.h"
+#include <string.h>
 #endif
 
 #ifdef HAVE_STRINGS_H
-#include "strings.h"  /* May be needed for bcopy & al.  */
+#include <strings.h>  /* May be needed for bcopy & al.  */
 #endif
 
 #ifdef HAVE_STDLIB_H
