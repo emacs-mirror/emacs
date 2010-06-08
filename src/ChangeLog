@@ -1,5 +1,7 @@
 2010-06-08  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* lread.c (X_OK): Remove, unused.
+
 	* dispnew.c: Remove obsolete comment.
 
 	Remove INCLUDED_FCNTL.
