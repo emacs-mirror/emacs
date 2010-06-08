@@ -35,10 +35,13 @@
 
 (eval-when-compile (require 'cl))
 (autoload 'netrc-machine-user-or-password "netrc")
-(autoload 'secrets-search-items "secrets")
+(autoload 'secrets-create-item "secrets")
+(autoload 'secrets-delete-item "secrets")
 (autoload 'secrets-get-alias "secrets")
 (autoload 'secrets-get-attribute "secrets")
 (autoload 'secrets-get-secret "secrets")
+(autoload 'secrets-list-collections "secrets")
+(autoload 'secrets-search-items "secrets")
 
 (defgroup auth-source nil
   "Authentication sources."
@@ -122,7 +125,7 @@ can get pretty complex."
 		       (const :format "" :value :source)
 		       (choice :tag "Authentication backend choice"
 		               (string :tag "Authentication Source (file)")
-		               (list :tag "secrets.el (Secret Service API/KWallet/GNOME KeyRing)" 
+		               (list :tag "secrets.el (Secret Service API/KWallet/GNOME Keyring)"
                                      (const :format "" :value :secrets)
                                      (choice :tag "Collection to use"
                                              (string :tag "Collection name")
@@ -178,123 +181,182 @@ can get pretty complex."
 
 ;; (auth-source-pick nil :host "any" :protocol 'imap :user "joe")
 ;; (auth-source-pick t :host "any" :protocol 'imap :user "joe")
-;; (setq auth-sources '((:source (:secrets default) :host t :protocol t :user "joe") 
-;; 		     (:source (:secrets "session") :host t :protocol t :user "joe") 
+;; (setq auth-sources '((:source (:secrets default) :host t :protocol t :user "joe")
+;; 		     (:source (:secrets "session") :host t :protocol t :user "joe")
 ;; 		     (:source (:secrets "login") :host t :protocol t)
 ;; 		     (:source "~/.authinfo.gpg" :host t :protocol t)))
 
-;; (setq auth-sources '((:source (:secrets default) :host t :protocol t :user "joe") 
-;; 		     (:source (:secrets "session") :host t :protocol t :user "joe") 
+;; (setq auth-sources '((:source (:secrets default) :host t :protocol t :user "joe")
+;; 		     (:source (:secrets "session") :host t :protocol t :user "joe")
 ;; 		     (:source (:secrets "login") :host t :protocol t)
 ;; 		     ))
 
 ;; (setq auth-sources '((:source "~/.authinfo.gpg" :host t :protocol t)))
+
+(defun auth-get-source (entry)
+  "Return the source string of ENTRY, which is one entry in `auth-sources'.
+If it is a Secret Service API, return the collection name, otherwise
+the file name."
+  (let ((source (plist-get entry :source)))
+    (if (stringp source)
+	source
+      ;; Secret Service API.
+      (setq source (plist-get source :secrets))
+      (when (eq source 'default)
+	(setq source (or (secrets-get-alias "default") "login")))
+      (or source "session"))))
 
 (defun auth-source-pick (&rest spec)
   "Parse `auth-sources' for matches of the SPEC plist.
 
 Common keys are :host, :protocol, and :user.  A value of t in
 SPEC means to always succeed in the match.  A string value is
-matched as a regex.
+matched as a regex."
+  (let ((keys (loop for i below (length spec) by 2 collect (nth i spec)))
+	choices)
+    (dolist (choice (copy-tree auth-sources) choices)
+      (let ((source (plist-get choice :source))
+	    (match t))
+	(when
+	    (and
+	     ;; Check existence of source.
+	     (if (consp source)
+		 ;; Secret Service API.
+		 (member (auth-get-source choice) (secrets-list-collections))
+	       ;; authinfo file.
+	       (file-exists-p source))
 
-The first pass skips fallback choices.  If no choices are found
-on the first pass, a second pass is made including the fallback
-choices.
+	     ;; Check keywords.
+	     (dolist (k keys match)
+	       (let* ((v (plist-get spec k))
+		      (choicev (plist-get choice k)))
+		 (setq match
+		       (and match
+			    (or
+			     ;; source always matches spec key
+			     (eq t choicev)
+			     ;; source key gives regex to match against spec
+			     (and (stringp choicev) (string-match choicev v))
+			     ;; source key gives symbol to match against spec
+			     (and (symbolp choicev) (eq choicev v))))))))
 
-For string (filename) sources, fallback choices are those where
-PROTOCOL or HOST are nil.
+	  (add-to-list 'choices choice 'append))))))
 
-For secrets.el collections, the :host and :protocol keys are not
-checked for fallback choices."
-  (let (choices)
-    (dolist (fallback '(nil t))
-      (let ((keys (loop for i below (length spec) by 2
-			collect (nth i spec)))
-	    (default-session-fallback "login"))
-	(dolist (choice auth-sources)
-	  (let* ((s (plist-get choice :source))
-		 ;; this is only set for Secret Service API specs (see secrets.el)
-		 (coll (and (consp s) (plist-get s :secrets)))
-		 (score 0))
-	    (cond
-	     (coll				; use secrets.el here
-	      (when (eq coll 'default)
-		(setq coll (secrets-get-alias "default"))
-		(unless coll 
-		  (auth-source-do-debug
-		   "No 'default' alias.  Trying collection '%s'."
-		   default-session-fallback)
-		  (setq coll default-session-fallback)))
-	      (let* ((coll-search (cond
-				   ((stringp coll) coll)
-				   
-				   ;; when the collection is nil:
-				   ;; in fallback mode, accept it as any
-				   ;; otherwise, hope to fail
-				   ((null coll) (if fallback
-						    nil
-						  " *fallback-fail*"))))
-		     ;; assemble a search query for secrets-search-items
-		     ;; in fallback mode, host and protocol are not checked
-		     (other-search (loop for k
-					 in (if fallback
-						(remove :host 
-							(remove :protocol keys))
-					      keys)
-					 append (list
-						 k
-						 ;; convert symbols to a string
-						 (let ((v (plist-get spec k)))
-						   (if (stringp v)
-						       v
-						     (prin1-to-string v))))))
-		     ;; the score is based on how exact the search was, 
-		     ;; plus base score = 1 for any match
-		     (score (1+ (length other-search)))
-		     (results (apply 'secrets-search-items
-				     coll-search
-				     other-search)))
-		(auth-source-do-debug
-		 "auth-source-pick: got items %s in collection '%s' + %s"
-		 results coll-search other-search)
-		;; put the results in the choices variable
-		(dolist (result results)
-		  (setq choices (cons (list score
-					    `(:source secrets
-						      :item ,result
-						      :collection ,coll
-						      :search ,coll-search
-						      ,@other-search))
-				      choices)))))
-	     ;; this is any non-secrets spec (currently means a string filename)
-	     (t
-	      (let ((match t))
-		(dolist (k keys)
-		  (let* ((v (plist-get spec k))
-			 (choicev (plist-get choice k)))
-		    (setq match
-			  (and match
-			       (or (eq t choicev) ; source always matches spec key
-				   ;; source key gives regex to match against spec
-				   (and (stringp choicev) (string-match choicev v))
-				   ;; source key gives symbol to match against spec
-				   (and (symbolp choicev) (eq choicev v))
-				   ;; in fallback mode, missing source key is OK
-				   fallback)))
-		    (when match (incf score)))) ; increment the score for each match
+(defun auth-source-retrieve (mode entry &rest spec)
+  "Retrieve MODE credentials according to SPEC from ENTRY."
+  (catch 'no-password
+    (let ((host (plist-get spec :host))
+	  (user (plist-get spec :user))
+	  (prot (plist-get spec :protocol))
+	  (source (plist-get entry :source))
+	  result)
+      (cond
+       ;; Secret Service API.
+       ((consp source)
+	(let ((coll (auth-get-source entry))
+	      item)
+	  ;; Loop over candidates with a matching host attribute.
+	  (dolist (elt (secrets-search-items coll :host host) item)
+	    (when (and (or (not user)
+			   (string-equal
+			    user (secrets-get-attribute coll elt :user)))
+		       (or (not prot)
+			   (string-equal
+			    prot (secrets-get-attribute coll elt :protocol))))
+	      (setq item elt)
+	      (return elt)))
+	  ;; Compose result.
+	  (when item
+	    (setq result
+		  (mapcar (lambda (m)
+			    (if (string-equal "password" m)
+				(or (secrets-get-secret coll item)
+				    ;; When we do not find a password,
+				    ;; we return nil anyway.
+				    (throw 'no-password nil))
+			      (or (secrets-get-attribute coll item :user)
+				  user)))
+			  (if (consp mode) mode (list mode)))))
+	  (if (consp mode) result (car result))))
+       ;; Anything else is netrc.
+       (t
+	(let ((search (list source (list host) (list (format "%s" prot))
+			    (auth-source-protocol-defaults prot))))
+	  (setq result
+		(mapcar (lambda (m)
+			  (if (string-equal "password" m)
+			      (or (apply
+				   'netrc-machine-user-or-password m search)
+				  ;; When we do not find a password, we
+				  ;; return nil anyway.
+				  (throw 'no-password nil))
+			    (or (apply
+				 'netrc-machine-user-or-password m search)
+				user)))
+			(if (consp mode) mode (list mode)))))
+	(if (consp mode) result (car result)))))))
 
-		;; now if the whole iteration resulted in a match:
-		(when match
-		  (setq choices (cons (list score choice) choices))))))))
-	;; when there were matches, skip the second pass
-	(when choices (return choices))))
+(defun auth-source-create (mode entry &rest spec)
+  "Create interactively credentials according to SPEC in ENTRY.
+Return structure as specified by MODE."
+  (let* ((host (plist-get spec :host))
+	 (user (plist-get spec :user))
+	 (prot (plist-get spec :protocol))
+	 (source (plist-get entry :source))
+	 (name (concat (if user (format "%s@" user))
+		       host
+		       (if prot (format ":%s" prot))))
+	 result)
+    (setq result
+	  (mapcar
+	   (lambda (m)
+	     (if (equal "password" m)
+		 (let ((passwd (read-passwd "Password: ")))
+		   (cond
+		    ;; Secret Service API.
+		    ((consp source)
+		     (apply
+		      'secrets-create-item
+		      (auth-get-source entry) name passwd spec))
+		    (t)) ;; netrc not implemented yes.
+		   passwd)
+	       (or
+		;; the originally requested :user
+		user
+		"unknown-user")))
+	   (if (consp mode) mode (list mode))))
+    (if (consp mode) result (car result))))
 
-      ;; return the results sorted by score
-      (mapcar 'cadr (sort choices (lambda (x y) (> (car x) (car y)))))))
+(defun auth-source-delete (entry &rest spec)
+  "Delete credentials according to SPEC in ENTRY."
+  (let ((host (plist-get spec :host))
+	(user (plist-get spec :user))
+	(prot (plist-get spec :protocol))
+	(source (plist-get entry :source)))
+    (cond
+     ;; Secret Service API.
+     ((consp source)
+      (let ((coll (auth-get-source entry)))
+	;; Loop over candidates with a matching host attribute.
+	(dolist (elt (secrets-search-items coll :host host))
+	  (when (and (or (not user)
+			 (string-equal
+			  user (secrets-get-attribute coll elt :user)))
+		     (or (not prot)
+			 (string-equal
+			  prot (secrets-get-attribute coll elt :protocol))))
+	    (secrets-delete-item coll elt)))))
+     (t)))) ;; netrc not implemented yes.
 
-(defun auth-source-forget-user-or-password (mode host protocol)
+(defun auth-source-forget-user-or-password
+  (mode host protocol &optional username)
+  "Remove cached authentication token."
   (interactive "slogin/password: \nsHost: \nsProtocol: \n") ;for testing
-  (remhash (format "%s %s:%s" mode host protocol) auth-source-cache))
+  (remhash
+   (if username
+       (format "%s %s:%s %s" mode host protocol username)
+     (format "%s %s:%s" mode host protocol))
+   auth-source-cache))
 
 (defun auth-source-forget-all-cached ()
   "Forget all cached auth-source authentication tokens."
@@ -308,7 +370,8 @@ checked for fallback choices."
 ;;    (auth-source-user-or-password '("login" "password") "imap.myhost.com" "other" "tzz")
 ;;    (auth-source-user-or-password '("login" "password") "imap.myhost.com" "other" "joe")))
 
-(defun auth-source-user-or-password (mode host protocol &optional username)
+(defun auth-source-user-or-password
+  (mode host protocol &optional username create-missing delete-existing)
   "Find MODE (string or list of strings) matching HOST and PROTOCOL.
 
 USERNAME is optional and will be used as \"login\" in a search
@@ -317,17 +380,31 @@ items don't have a username.  This means that if you search for
 username \"joe\" and it matches an item but the item doesn't have
 a :user attribute, the username \"joe\" will be returned.
 
-MODE can be \"login\" or \"password\" for example."
+A non nil DELETE-EXISTING means deleting any matching password
+entry in the respective sources.  This is useful only when
+CREATE-MISSING is non nil as well; the intended use case is to
+remove wrong password entries.
+
+If no matching entry is found, and CREATE-MISSING is non nil,
+the password will be retrieved interactively, and it will be
+stored in the password database which matches best (see
+`auth-sources').
+
+MODE can be \"login\" or \"password\"."
   (auth-source-do-debug
    "auth-source-user-or-password: get %s for %s (%s) + user=%s"
    mode host protocol username)
   (let* ((listy (listp mode))
 	 (mode (if listy mode (list mode)))
-	 (extras (when username `(:user ,username)))
-	 (cname (format "%s %s:%s %s" mode host protocol extras))
+	 (cname (if username
+		    (format "%s %s:%s %s" mode host protocol username)
+		  (format "%s %s:%s" mode host protocol)))
 	 (search (list :host host :protocol protocol))
 	 (search (if username (append search (list :user username)) search))
-	 (found (gethash cname auth-source-cache)))
+	 (found (if (not delete-existing)
+		    (gethash cname auth-source-cache)
+		  (remhash cname auth-source-cache)
+		  nil)))
     (if found
 	(progn
 	  (auth-source-do-debug
@@ -337,45 +414,35 @@ MODE can be \"login\" or \"password\" for example."
 	   (if (and (member "password" mode) auth-source-hide-passwords)
 	       "SECRET"
 	     found)
-	   host protocol extras)
+	   host protocol username)
 	  found)			; return the found data
       ;; else, if not found
-      (dolist (choice (apply 'auth-source-pick search))
-	(setq found (cond
-		     ;; the secrets.el spec
-		     ((eq (plist-get choice :source) 'secrets)
-		      (let ((coll (plist-get choice :search))
-			    (item (plist-get choice :item)))
-			(mapcar (lambda (m)
-				  (if (equal "password" m)
-				      (secrets-get-secret coll item)
-				    ;; the user name is either
-				    (or
-				     ;; the secret's attribute :user, or
-				     (secrets-get-attribute coll item :user)
-				     ;; the originally requested :user
-				     username
-				     "unknown-user")))
-				mode)))
-		     (t		; anything else is netrc
-		      (netrc-machine-user-or-password
-		       mode
-		       (plist-get choice :source)
-		       (list host)
-		       (list (format "%s" protocol))
-		       (auth-source-protocol-defaults protocol)))))
+      (let ((choices (apply 'auth-source-pick search)))
+	(dolist (choice choices)
+	  (if delete-existing
+	      (apply 'auth-source-delete choice search)
+	    (setq found (apply 'auth-source-retrieve mode choice search)))
+	  (and found (return found)))
+
+	;; We haven't found something, so we will create it interactively.
+	(when (and (not found) choices create-missing)
+	  (setq found (apply 'auth-source-create mode (car choices) search)))
+
+	;; Cache the result.
 	(when found
 	  (auth-source-do-debug
 	   "auth-source-user-or-password: found %s=%s for %s (%s) + %s"
 	   mode
 	   ;; don't show the password
-	   (if (and (member "password" mode) auth-source-hide-passwords) "SECRET" found)
-	   host protocol extras)
+	   (if (and (member "password" mode) auth-source-hide-passwords)
+	       "SECRET" found)
+	   host protocol username)
 	  (setq found (if listy found (car-safe found)))
 	  (when auth-source-do-cache
 	    (puthash cname found auth-source-cache)))
-	(return found)))))
-  
+
+	found))))
+
 (defun auth-source-protocol-defaults (protocol)
   "Return a list of default ports and names for PROTOCOL."
   (cdr-safe (assoc protocol auth-source-protocols)))

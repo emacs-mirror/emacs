@@ -101,6 +101,19 @@ Examples of image filename regexps:
   (interactive)
   (iimage-mode 0))
 
+(defun iimage-modification-hook (beg end)
+  "Remove display property if a display region is modified."
+  ;;(debug-print "ii1 begin %d, end %d\n" beg end)
+  (let ((inhibit-modification-hooks t)
+        (beg (previous-single-property-change end 'display
+                                              nil (line-beginning-position)))
+        (end (next-single-property-change     beg 'display
+                                              nil (line-end-position))))
+    (when (and beg end (plist-get (text-properties-at beg) 'display))
+      ;;(debug-print "ii2 begin %d, end %d\n" beg end)
+      (remove-text-properties beg end
+                              '(display nil modification-hooks nil)))))
+
 (defun iimage-mode-buffer (arg)
   "Display images if ARG is non-nil, undisplay them otherwise."
   (let ((image-path (cons default-directory iimage-mode-image-search-path))
@@ -110,16 +123,18 @@ Examples of image filename regexps:
         (goto-char (point-min))
         (dolist (pair iimage-mode-image-regex-alist)
           (while (re-search-forward (car pair) nil t)
-            (if (and (setq file (match-string (cdr pair)))
-                     (setq file (locate-file file image-path)))
-                ;; FIXME: we don't mark our images, so we can't reliably
-                ;; remove them either (we may leave some of ours, and we
-                ;; may remove other packages's display properties).
-                (if arg
-                    (add-text-properties (match-beginning 0) (match-end 0)
-                                         (list 'display (create-image file)))
-                  (remove-text-properties (match-beginning 0) (match-end 0)
-                                          '(display))))))))))
+            (when (and (setq file (match-string (cdr pair)))
+                       (setq file (locate-file file image-path)))
+              ;; FIXME: we don't mark our images, so we can't reliably
+              ;; remove them either (we may leave some of ours, and we
+              ;; may remove other packages's display properties).
+              (if arg
+                  (add-text-properties (match-beginning 0) (match-end 0)
+                                       `(display ,(create-image file)
+                                         modification-hooks
+                                         (iimage-modification-hook)))
+                (remove-text-properties (match-beginning 0) (match-end 0)
+                                        '(display modification-hooks))))))))))
 
 ;;;###autoload
 (define-minor-mode iimage-mode

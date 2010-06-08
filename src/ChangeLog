@@ -1,3 +1,43 @@
+2010-06-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* lread.c (X_OK): Remove, unused.
+
+	* dispnew.c: Remove obsolete comment.
+
+	Remove INCLUDED_FCNTL.
+	* xterm.c (INCLUDED_FCNTL):
+	* callproc.c (INCLUDED_FCNTL):
+	* alloc.c (INCLUDED_FCNTL):
+	* systty.h (INCLUDED_FCNTL): Remove all uses, not needed anymore.
+	(emacs_get_tty, emacs_set_tty): Declare unconditionally.
+
+2010-06-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Fselect_window): Move `record_buffer' up to the
+	beginning of this function, so the buffer gets recorded
+	even if the selected window does not change.
+	http://lists.gnu.org/archive/html/emacs-devel/2010-06/msg00137.html
+
+2010-06-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* cmds.c (Fforward_char, Fbackward_char): Fix typos in docstrings.
+	(Fforward_line, Fbeginning_of_line): Reflow docstrings.
+
+2010-06-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove BSTRING related code, all platforms define it.
+	* s/usg5-4.h (BSTRING): Remove definition.
+	* s/template.h (BSTRING):
+	* s/msdos.h (BSTRING):
+	* s/ms-w32.h (BSTRING):
+	* s/hpux10-20.h (BSTRING):
+	* s/gnu-linux.h (BSTRING):
+	* s/darwin.h (BSTRING):
+	* s/cygwin.h (BSTRING):
+	* s/bsd-common.h (BSTRING):
+	* s/aix4-2.h (BSTRING): Likewise.
+	* sysdep.c: Remove code depending on BSTRING not being defined.
+
 2010-06-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	Remove obsolete macro BASE_LEADING_CODE_P.

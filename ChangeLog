@@ -1,3 +1,12 @@
+2010-06-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in: Include <strings.h> and <string.h> instead of
+	"strings.h" and "string.h".
+
+2010-06-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in: Remove code dealing with BSTRING.
+
 2010-06-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in (AC_PREREQ): Require autoconf 2.65.

@@ -49,7 +49,6 @@ subprocesses    System can use subprocesses (for M-x shell for example).  Define
 USE_LISP_UNION_TYPE Define it in lisp.h to make Lisp_Object be a union type instead of the default int.
 
 ** System specific macros, decribed in detail in src/s/template.h
-BSTRING
 CLASH_DETECTION
 COFF
 FIRST_PTY_LETTER

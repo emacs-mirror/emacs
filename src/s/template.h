@@ -78,9 +78,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define HAVE_PTYS if the system supports pty devices.  */
 #define HAVE_PTYS
 
-/* Define this symbol if your system has the functions bcopy, etc.  */
-#define BSTRING
-
 /* subprocesses should be undefined if you do NOT want to
    have code for asynchronous subprocesses
    (as used in M-x compile and M-x shell).

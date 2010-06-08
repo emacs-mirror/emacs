@@ -3565,14 +3565,6 @@ SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
 
 #define my_strftime nstrftime	/* for strftime.c */
 
-/* The rest of the code currently tests the CPP symbol BSTRING.
-   Override any claims made by the system-description files.
-   Note that on some SCO version it is possible to have bcopy and not bcmp.  */
-#undef BSTRING
-#if defined (HAVE_BCOPY) && defined (HAVE_BCMP)
-#define BSTRING
-#endif
-
 /* Some of the files of Emacs which are intended for use with other
    programs assume that if you have a config.h file, you must declare
    the type of getenv.  */
@@ -3618,11 +3610,11 @@ extern char *getenv ();
 #endif /* __P */
 
 #ifdef HAVE_STRING_H
-#include "string.h"
+#include <string.h>
 #endif
 
 #ifdef HAVE_STRINGS_H
-#include "strings.h"  /* May be needed for bcopy & al.  */
+#include <strings.h>  /* May be needed for bcopy & al.  */
 #endif
 
 #ifdef HAVE_STDLIB_H

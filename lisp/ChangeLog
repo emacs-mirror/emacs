@@ -1,3 +1,40 @@
+2010-06-07  Martin Pohlack  <mp26@os.inf.tu-dresden.de>
+
+	* iimage.el: Remove images as soon as the underlying text is modified.
+	(iimage-modification-hook): New function.
+	(iimage-mode-buffer): Use it.
+
+2010-06-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-indent-offset-rule): Rename from
+	smie-indent-offset-after.  Add :prev case.  Make a bit more generic.
+	(smie-indent-virtual): Remove `virtual' arg.  Update callers.
+	(smie-indent-keyword): Add handling of open-paren keywords.
+	(smie-indent-comment-continue): Don't assume comment-continue.
+
+2010-06-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (pop-to-buffer): Remove the conditional that
+	compares new-window and old-window, so it will reselect
+	the selected window unconditionally.
+	http://lists.gnu.org/archive/html/emacs-devel/2010-06/msg00078.html
+
+2010-06-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-indent-offset-after)
+	(smie-indent-forward-token, smie-indent-backward-token): New functions.
+	(smie-indent-after-keyword): Use them.
+	(smie-indent-fixindent): Only applies to the indentation of the BOL.
+	(smie-indent-keyword): Tweak the black magic.
+	(smie-indent-comment-continue): Strip comment-continue before use.
+	(smie-indent-functions): Indent comments before keywords.
+
+2010-06-06  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-lazy-highlight-search): Fix looping
+	by checking for empty match.  This syncs this loop with the
+	similar loop in `isearch-search'.  (Bug#6362)
+
 2010-06-05  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	vc-log-incoming/vc-log-outgoing fixes for Git.
@@ -4660,8 +4697,8 @@
 
 2009-12-10  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* whitespace.el (whitespace-display-char-on): Ensure
-	`buffer-display-table' is unique when two or more windows are
+	* whitespace.el (whitespace-display-char-on):
+	Ensure `buffer-display-table' is unique when two or more windows are
 	visible.  Reported by Martin Pohlack <mp26@os.inf.tu-dresden.de>.
 	New version 12.1.
 

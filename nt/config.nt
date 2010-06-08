@@ -347,14 +347,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define my_strftime nstrftime   /* for strftime.c */
 
-/* The rest of the code currently tests the CPP symbol BSTRING.
-   Override any claims made by the system-description files.
-   Note that on some SCO version it is possible to have bcopy and not bcmp.  */
-#undef BSTRING
-#if defined (HAVE_BCOPY) && defined (HAVE_BCMP)
-#define BSTRING
-#endif
-
 /* Non-ANSI C compilers usually don't have volatile.  */
 #ifndef HAVE_VOLATILE
 #ifndef __STDC__
