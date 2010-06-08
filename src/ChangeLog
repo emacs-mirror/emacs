@@ -1,3 +1,7 @@
+2010-06-08  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* minibuf.c (Fall_completions): Add more checks.
+
 2010-06-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* minibuf.c (Fall_completions): Check COLLECTION's size (bug#6378).

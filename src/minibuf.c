@@ -1590,7 +1590,9 @@ with a space are ignored unless STRING itself starts with a space.  */)
   if (type == 2)
     {
       obsize = XVECTOR (collection)->size;
-      bucket = obsize ? XVECTOR (collection)->contents[index] : zero;
+      if (obsize == 0)
+	return Qnil;
+      bucket = XVECTOR (collection)->contents[index];
     }
 
   while (1)
@@ -1610,7 +1612,7 @@ with a space are ignored unless STRING itself starts with a space.  */)
 	}
       else if (type == 2)
 	{
-	  if (!EQ (bucket, zero))
+	  if (SYMBOLP (bucket))
 	    {
 	      elt = bucket;
 	      eltstring = elt;
