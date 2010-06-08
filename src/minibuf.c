@@ -1589,9 +1589,8 @@ with a space are ignored unless STRING itself starts with a space.  */)
   tail = collection;
   if (type == 2)
     {
+      collection = check_obarray (collection);
       obsize = XVECTOR (collection)->size;
-      if (obsize == 0)
-	return Qnil;
       bucket = XVECTOR (collection)->contents[index];
     }
 
@@ -1612,8 +1611,10 @@ with a space are ignored unless STRING itself starts with a space.  */)
 	}
       else if (type == 2)
 	{
-	  if (SYMBOLP (bucket))
+	  if (!EQ (bucket, zero))
 	    {
+	      if (!SYMBOLP (bucket))
+		error ("Bad data in guts of obarray");
 	      elt = bucket;
 	      eltstring = elt;
 	      if (XSYMBOL (bucket)->next)
