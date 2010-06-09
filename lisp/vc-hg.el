@@ -429,7 +429,8 @@ COMMENT is ignored."
 REV is ignored."
   (apply 'vc-hg-command nil 0 files
          (nconc (list "commit" "-m")
-                (log-edit-extract-headers '(("Author" . "--user"))
+                (log-edit-extract-headers '(("Author" . "--user")
+					    ("Date" . "--date"))
                                           comment))))
 
 (defun vc-hg-find-revision (file rev buffer)

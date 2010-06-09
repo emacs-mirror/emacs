@@ -173,7 +173,11 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 (defun vc-mtn-could-register (file) (vc-mtn-root file))
 
 (defun vc-mtn-checkin (files rev comment  &optional extra-args-ignored)
-  (vc-mtn-command nil 0 files "commit" "-m" comment))
+  (apply 'vc-mtn-command nil 0 files
+	 (nconc (list "commit" "-m")
+		(log-edit-extract-headers '(("Author" . "--author")
+					    ("Date" . "--date"))
+					  comment))))
 
 (defun vc-mtn-find-revision (file rev buffer)
   (vc-mtn-command buffer 0 file "cat" "-r" rev))
