@@ -297,8 +297,6 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 	  ("^tag: +\\([^ ]+\\)$" (1 'highlight))
 	  ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message)))))))
 
-(declare-function log-edit-extract-headers "log-edit" (headers string))
-
 (defun vc-hg-diff (files &optional oldvers newvers buffer)
   "Get a difference report using hg between two revisions of FILES."
   (let* ((firstfile (car files))
