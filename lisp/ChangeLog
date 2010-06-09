@@ -1,3 +1,10 @@
+2010-06-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-dispatcher.el: Rename mode-line-hook to vc-mode-line-hook;
+	declare it, make it buffer-local and permanent-local (bug#6324).
+	(vc-resynch-window): Adjust name.
+	* vc-hooks.el (vc-find-file-hook): Adjust name.
+
 2010-06-07  Jonathan Rockway  <jon@jrock.us>
 
 	* net/rcirc.el: Add support for password authentication.

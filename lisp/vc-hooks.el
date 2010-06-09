@@ -880,7 +880,8 @@ current, and kill the buffer that visits the link."
     (setq vc-mode nil))
   (when buffer-file-name
     (vc-file-clearprops buffer-file-name)
-    (add-hook 'mode-line-hook 'vc-mode-line nil t)
+    ;; FIXME: Why use a hook?  Why pass it buffer-file-name?
+    (add-hook 'vc-mode-line-hook 'vc-mode-line nil t)
     (let (backend)
       (cond
        ((setq backend (with-demoted-errors (vc-backend buffer-file-name)))
