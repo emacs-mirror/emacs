@@ -446,7 +446,7 @@ ARG and NO-CONFIRM are passed on to `revert-buffer'."
       (revert-buffer arg no-confirm t))
     (vc-restore-buffer-context context)))
 
-(defun vc-resynch-window (file &optional keep noquery)
+(defun vc-resynch-window (file &optional keep noquery reset-vc-info)
   "If FILE is in the current buffer, either revert or unvisit it.
 The choice between revert (to see expanded keywords) and unvisit
 depends on KEEP.  NOQUERY if non-nil inhibits confirmation for
@@ -457,6 +457,8 @@ editing!"
   (and (string= buffer-file-name file)
        (if keep
 	   (when (file-exists-p file)
+	     (when reset-vc-info
+	       (vc-file-clearprops file))
 	     (vc-revert-buffer-internal t noquery)
 
 	     ;; VC operations might toggle the read-only state.  In
@@ -477,24 +479,24 @@ editing!"
 (declare-function vc-dir-resynch-file "vc-dir" (&optional fname))
 (declare-function vc-string-prefix-p "vc" (prefix string))
 
-(defun vc-resynch-buffers-in-directory (directory &optional keep noquery)
+(defun vc-resynch-buffers-in-directory (directory &optional keep noquery reset-vc-info)
   "Resync all buffers that visit files in DIRECTORY."
   (dolist (buffer (buffer-list))
     (let ((fname (buffer-file-name buffer)))
       (when (and fname (vc-string-prefix-p directory fname))
 	(with-current-buffer buffer
-	  (vc-resynch-buffer fname keep noquery))))))
+	  (vc-resynch-buffer fname keep noquery reset-vc-info))))))
 
-(defun vc-resynch-buffer (file &optional keep noquery)
+(defun vc-resynch-buffer (file &optional keep noquery reset-vc-info)
   "If FILE is currently visited, resynch its buffer."
   (if (string= buffer-file-name file)
-      (vc-resynch-window file keep noquery)
+      (vc-resynch-window file keep noquery reset-vc-info)
     (if (file-directory-p file)
-	(vc-resynch-buffers-in-directory file keep noquery)
+	(vc-resynch-buffers-in-directory file keep noquery reset-vc-info)
       (let ((buffer (get-file-buffer file)))
 	(when buffer
 	  (with-current-buffer buffer
-	    (vc-resynch-window file keep noquery))))))
+	    (vc-resynch-window file keep noquery reset-vc-info))))))
   ;; Try to avoid unnecessary work, a *vc-dir* buffer is only present
   ;; if this is true.
   (when vc-dir-buffers

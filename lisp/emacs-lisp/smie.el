@@ -45,7 +45,7 @@
 ;;   the parser's state;
 ;; - because of that locality, indentation also works just fine when earlier
 ;;   parts of the buffer are syntactically incorrect since the indentation
-;;   looks at "as little as possible" of the buffer make an indentation
+;;   looks at "as little as possible" of the buffer to make an indentation
 ;;   decision.
 ;; - they typically have no error handling and can't even detect a parsing
 ;;   error, so we don't have to worry about what to do in case of a syntax
@@ -58,14 +58,17 @@
 ;; and Ceriel Jacobs (BookBody.pdf available at
 ;; http://www.cs.vu.nl/~dick/PTAPG.html).
 ;;
-;; OTOH we had to kill many chickens, read many coffee grounds, and practiced
-;; untold numbers of black magic spells.
+;; OTOH we had to kill many chickens, read many coffee grounds, and practice
+;; untold numbers of black magic spells, to come up with the indentation code.
+;; Since then, some of that code has been beaten into submission, but the
+;; smie-indent-keyword is still pretty obscure.
 
 ;;; Code:
 
 (eval-when-compile (require 'cl))
 
 (defvar comment-continue)
+(declare-function comment-string-strip "newcomment" (str beforep afterp))
 
 ;;; Building precedence level tables from BNF specs.
 
@@ -87,7 +90,7 @@
   "Compute a 2D precedence table from a list of precedences.
 PRECS should be a list, sorted by precedence (e.g. \"+\" will
 come before \"*\"), of elements of the form \(left OP ...)
-or (right OP ...) or (nonassoc OP ...)  or (assoc OP ...).  All operators in
+or (right OP ...) or (nonassoc OP ...) or (assoc OP ...).  All operators in
 one of those elements share the same precedence level and associativity."
   (let ((prec2-table (make-hash-table :test 'equal)))
     (dolist (prec precs)
@@ -699,12 +702,6 @@ in order to figure out the indentation of some other (further down) point."
             ;;    a -> b -> c
             ;;    -> d
             ;; So as to align with the earliest appropriate place.
-            (smie-indent-virtual))
-           ((equal token (save-excursion
-                           (funcall smie-backward-token-function)))
-            ;; in cases such as "fn x => fn y => fn z =>",
-            ;; jump back to the very first fn.
-            ;; FIXME: should we only do that for special tokens like "=>"?
             (smie-indent-virtual))
            ((setq tmp (assoc (cons (caddr res) token)
                              smie-indent-rules))

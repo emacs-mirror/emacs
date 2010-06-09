@@ -580,9 +580,6 @@
 ;;   display the branch name in the mode-line. Replace
 ;;   vc-cvs-sticky-tag with that.
 ;;
-;; - vc-create-tag and vc-retrieve-tag should update the
-;;   buffers that might be visiting the affected files.
-;;
 ;;;; Internal cleanups:
 ;;
 ;; - backends that care about vc-stay-local should try to take it into
@@ -1896,14 +1893,22 @@ the named configuration.  If the prefix argument BRANCHP is
 given, the tag is made as a new branch and the files are
 checked out in that new branch."
   (interactive
-   (list (read-file-name "Directory: " default-directory default-directory t)
-         (read-string "New tag name: ")
-	 current-prefix-arg))
+   (let ((granularity
+	  (vc-call-backend (vc-responsible-backend default-directory)
+			   'revision-granularity)))
+     (list
+      (if (eq granularity 'repository)
+	  ;; For VC's that do not work at file level, it's pointless
+	  ;; to ask for a directory, branches are created at repository level.
+	  default-directory
+	(read-file-name "Directory: " default-directory default-directory t))
+      (read-string (if current-prefix-arg "New branch name: " "New tag name: "))
+      current-prefix-arg)))
   (message "Making %s... " (if branchp "branch" "tag"))
   (when (file-directory-p dir) (setq dir (file-name-as-directory dir)))
   (vc-call-backend (vc-responsible-backend dir)
 		   'create-tag dir name branchp)
-  (vc-resynch-buffer dir t t)
+  (vc-resynch-buffer dir t t t)
   (message "Making %s... done" (if branchp "branch" "tag")))
 
 ;;;###autoload
@@ -1914,8 +1919,16 @@ If locking is used for the files in DIR, then there must not be any
 locked files at or below DIR (but if NAME is empty, locked files are
 allowed and simply skipped)."
   (interactive
-   (list (read-file-name "Directory: " default-directory default-directory t)
-         (read-string "Tag name to retrieve (default latest revisions): ")))
+   (let ((granularity
+	  (vc-call-backend (vc-responsible-backend default-directory)
+			   'revision-granularity)))
+     (list
+      (if (eq granularity 'repository)
+	  ;; For VC's that do not work at file level, it's pointless
+	  ;; to ask for a directory, branches are created at repository level.
+	  default-directory
+	(read-file-name "Directory: " default-directory default-directory t))
+      (read-string "Tag name to retrieve (default latest revisions): "))))
   (let ((update (yes-or-no-p "Update any affected buffers? "))
 	(msg (if (or (not name) (string= name ""))
 		 (format "Updating %s... " (abbreviate-file-name dir))
@@ -1924,8 +1937,9 @@ allowed and simply skipped)."
     (message "%s" msg)
     (vc-call-backend (vc-responsible-backend dir)
 		     'retrieve-tag dir name update)
-    (vc-resynch-buffer dir t t)
+    (vc-resynch-buffer dir t t t)
     (message "%s" (concat msg "done"))))
+
 
 ;; Miscellaneous other entry points
 

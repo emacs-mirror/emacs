@@ -1,3 +1,47 @@
+2010-06-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/smie.el (comment-string-strip): Declare function.
+	(smie-precs-precedence-table): Fix typo in docstring.
+
+	* vc-mtn.el (log-edit-extract-headers): Declare function.
+
+	* vc-hg.el (log-edit-extract-headers): Remove duplicate declaration.
+
+	* net/notifications.el (dbus-register-signal): Declare function.
+	(notifications-notify): Fix typos and reflow docstring.
+
+2010-06-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Improve VC create/retrieve tag/branch.
+	* vc.el (vc-create-tag): Do not read the directory name for VCs
+	with repository revision granularity.  Adjust the tag/branch
+	prompt.  Reset VC properties.
+	(vc-retrieve-tag): Do not read the directory name for VCs
+	with repository revision granularity.  Reset VC properties.
+
+2010-06-09  Julien Danjou  <julien@danjou.info>
+
+	* net/notifications.el: New file.
+
+2010-06-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Add optional support for resetting VC properties.
+	* vc-dispatcher.el (vc-resynch-window): Add new optional argument,
+	call vc-file-clearprops when true.
+	(vc-resynch-buffer): Add new optional argument, pass it down.
+	(vc-resynch-buffers-in-directory): Likewise.
+
+	Improve support for special markup in the VC commit message.
+	* vc-mtn.el (vc-mtn-checkin): Add support for Author: and Date: markup.
+	* vc-hg.el (vc-hg-checkin): Add support for Date:.
+	* vc-git.el (vc-git-checkin):
+	* vc-bzr.el (vc-bzr-checkin): Likewise.
+
+2010-06-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-indent-keyword): Remove special case that
+	can be handled with a ((:before "fn") (:prev "=>" parent)) rule.
+
 2010-06-07  Martin Pohlack  <mp26@os.inf.tu-dresden.de>
 
 	* iimage.el: Remove images as soon as the underlying text is modified.

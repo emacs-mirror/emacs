@@ -554,7 +554,8 @@ or an empty string if none."
   (let ((coding-system-for-write vc-git-commits-coding-system))
     (apply 'vc-git-command nil 0 files
 	   (nconc (list "commit" "-m")
-                  (log-edit-extract-headers '(("Author" . "--author"))
+                  (log-edit-extract-headers '(("Author" . "--author")
+					      ("Date" . "--date"))
                                             comment)
                   (list "--only" "--")))))
 
