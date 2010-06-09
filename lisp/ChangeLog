@@ -1,3 +1,81 @@
+2010-06-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/advice.el (ad-compile-function):
+	Define warning-suppress-types before we let-bind it (bug#6275).
+
+	* vc-dispatcher.el: Rename mode-line-hook to vc-mode-line-hook;
+	declare it, make it buffer-local and permanent-local (bug#6324).
+	(vc-resynch-window): Adjust name.
+	* vc-hooks.el (vc-find-file-hook): Adjust name.
+
+2010-06-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/notifications.el (notifications-notify): Fix docstring.
+
+2010-06-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	Update to Unicode 6.0.0 beta.
+	* international/charprop.el: Update copyright.
+	* international/mule-cmds.el (ucs-names): Update character ranges.
+	* international/uni-bidi.el:
+	* international/uni-category.el:
+	* international/uni-combining.el:
+	* international/uni-comment.el:
+	* international/uni-decimal.el:
+	* international/uni-decomposition.el:
+	* international/uni-digit.el:
+	* international/uni-lowercase.el:
+	* international/uni-mirrored.el:
+	* international/uni-name.el:
+	* international/uni-numeric.el:
+	* international/uni-old-name.el:
+	* international/uni-titlecase.el:
+	* international/uni-uppercase.el: Regenerate.
+
+2010-06-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/smie.el (comment-string-strip): Declare function.
+	(smie-precs-precedence-table): Fix typo in docstring.
+
+	* vc-mtn.el (log-edit-extract-headers): Declare function.
+
+	* vc-hg.el (log-edit-extract-headers): Remove duplicate declaration.
+
+	* net/notifications.el (dbus-register-signal): Declare function.
+	(notifications-notify): Fix typos and reflow docstring.
+
+2010-06-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Improve VC create/retrieve tag/branch.
+	* vc.el (vc-create-tag): Do not read the directory name for VCs
+	with repository revision granularity.  Adjust the tag/branch
+	prompt.  Reset VC properties.
+	(vc-retrieve-tag): Do not read the directory name for VCs
+	with repository revision granularity.  Reset VC properties.
+
+2010-06-09  Julien Danjou  <julien@danjou.info>
+
+	* net/notifications.el: New file.
+
+2010-06-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Add optional support for resetting VC properties.
+	* vc-dispatcher.el (vc-resynch-window): Add new optional argument,
+	call vc-file-clearprops when true.
+	(vc-resynch-buffer): Add new optional argument, pass it down.
+	(vc-resynch-buffers-in-directory): Likewise.
+
+	Improve support for special markup in the VC commit message.
+	* vc-mtn.el (vc-mtn-checkin): Add support for Author: and Date: markup.
+	* vc-hg.el (vc-hg-checkin): Add support for Date:.
+	* vc-git.el (vc-git-checkin):
+	* vc-bzr.el (vc-bzr-checkin): Likewise.
+
+2010-06-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-indent-keyword): Remove special case that
+	can be handled with a ((:before "fn") (:prev "=>" parent)) rule.
+
 2010-06-07  Martin Pohlack  <mp26@os.inf.tu-dresden.de>
 
 	* iimage.el: Remove images as soon as the underlying text is modified.
@@ -35,6 +113,14 @@
 	by checking for empty match.  This syncs this loop with the
 	similar loop in `isearch-search'.  (Bug#6362)
 
+2010-06-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* net/dbus.el (dbus-register-method): Declare function.
+	(dbus-handle-event, dbus-property-handler): Fix typos in docstrings.
+	(dbus-introspect): Doc fix.
+	(dbus-event-bus-name, dbus-introspect-get-interface)
+	(dbus-introspect-get-argument): Reflow docstrings.
+
 2010-06-05  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	vc-log-incoming/vc-log-outgoing fixes for Git.
@@ -43,6 +129,11 @@
 	(vc-git-log-outgoing, vc-git-log-incoming): Use @{upstream}
 	instead of vc-git-compute-remote.
 	(vc-git-compute-remote): Remove.
+
+2010-06-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* term/common-win.el (x-colors): Add "dark green" and "dark
+	turquoise" (Bug#6332).
 
 2010-06-04  Juri Linkov  <juri@jurta.org>
 
@@ -74,6 +165,17 @@
 	(nonascii-translation-table): Add obsolescence information.
 
 	* international/mule.el (make-translation-table-from-vector): Doc fix.
+
+2010-06-03  Eric Ludlam  <zappo@gnu.org>
+
+	* cedet/semantic/lex-spp.el
+	(semantic-lex-spp-table-write-slot-value): Instead of erroring on
+	invalid values during save, just save a nil (Bug#6324).
+
+2010-06-03  Glenn Morris  <rgm@gnu.org>
+
+	* desktop.el (desktop-clear-preserve-buffers):
+	Add "*Warnings*" buffer.  (Bug#6336)
 
 2010-06-03  Dan Nicolaescu  <dann@ics.uci.edu>
 

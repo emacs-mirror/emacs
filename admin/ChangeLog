@@ -1,3 +1,8 @@
+2010-06-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* unidata/UnicodeData.txt: Update from
+	http://www.unicode.org/Public/6.0.0/ucd/UnicodeData-6.0.0d5.txt
+
 2010-05-27  Glenn Morris  <rgm@gnu.org>
 
 	* quick-install-emacs (AVOID): No more Makefile.c files.

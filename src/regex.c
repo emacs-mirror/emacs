@@ -2085,7 +2085,7 @@ struct range_table_work_area
   } while (0)
 
 
-/* Both FROM and TO are mulitbyte characters.  */
+/* Both FROM and TO are multibyte characters.  */
 
 #define SETUP_MULTIBYTE_RANGE(work_area, FROM, TO)			   \
   do {									   \

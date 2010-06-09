@@ -1,3 +1,21 @@
+2010-06-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dbusbind.c (xd_append_arg): Don't "make-unibyte" the string.
+	Check `object's type before accessing its guts.
+
+2010-06-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/usg5-4.h: Fix previous change.
+	Suggested by Lawrence Mitchell <wence@gmx.li>
+
+2010-06-08  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* minibuf.c (Fall_completions): Add more checks.
+
+2010-06-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuf.c (Fall_completions): Check COLLECTION's size (bug#6378).
+
 2010-06-08  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* lread.c (X_OK): Remove, unused.
@@ -68,6 +86,15 @@
 
 	* w32proc.c (CORRECT_DIR_SEPS): Remove.
 	(Fw32_short_file_name, Fw32_long_file_name): Use dostounix_filename.
+
+2010-06-03  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* process.c (conv_lisp_to_sockaddr): Fix conversion of IPv4
+	address.  (Bug#6346)
+
+2010-06-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ccl.c (Fccl_program_p): Fix typo in docstring.
 
 2010-06-03  Dan Nicolaescu  <dann@ics.uci.edu>
 

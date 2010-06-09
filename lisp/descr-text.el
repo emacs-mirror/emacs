@@ -426,7 +426,7 @@ as well as widgets, buttons, overlays, and text properties."
         ;; When the composition is trivial (i.e. composed only with the
         ;; current character itself without any alternate characters),
         ;; we don't show the composition information.  Otherwise, store
-        ;; two descriptive strings in the first two elments of
+        ;; two descriptive strings in the first two elements of
         ;; COMPOSITION.
         (or (catch 'tag
               (let ((from (car composition))
