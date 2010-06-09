@@ -3,7 +3,7 @@
 ;; Copyright (C) 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
-;; Keywords: 
+;; Keywords:
 
 ;; This file is part of GNU Emacs.
 
@@ -22,7 +22,7 @@
 
 ;;; Commentary:
 
-;; 
+;;
 
 ;;; TODO:
 
@@ -171,6 +171,8 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 
 (defun vc-mtn-responsible-p (file) (vc-mtn-root file))
 (defun vc-mtn-could-register (file) (vc-mtn-root file))
+
+(declare-function log-edit-extract-headers "log-edit" (headers string))
 
 (defun vc-mtn-checkin (files rev comment  &optional extra-args-ignored)
   (apply 'vc-mtn-command nil 0 files

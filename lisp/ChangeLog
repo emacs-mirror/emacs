@@ -1,5 +1,7 @@
 2010-06-09  Juanma Barranquero  <lekktu@gmail.com>
 
+	* vc-mtn.el (log-edit-extract-headers): Declare function.
+
 	* vc-hg.el (log-edit-extract-headers): Remove duplicate declaration.
 
 	* net/notifications.el (dbus-register-signal): Declare function.
