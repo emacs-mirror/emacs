@@ -130,7 +130,7 @@ Various PARAMS can be set:
                  where KEY and TITLE are both strings.
                  The default action (usually invoked by clicking the
                  notification) should have a key named \"default\".
-                 The name can be anything, though implementations are free
+                 The title can be anything, though implementations are free
                  not to display it.
  :timeout        The timeout time in milliseconds since the display
                  of the notification at which the notification should

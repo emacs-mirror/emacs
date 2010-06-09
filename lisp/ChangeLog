@@ -1,3 +1,7 @@
+2010-06-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/notifications.el (notifications-notify): Fix docstring.
+
 2010-06-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	Update to Unicode 6.0.0 beta.
