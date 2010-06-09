@@ -1,6 +1,6 @@
 2010-06-09  Julien Danjou  <julien@danjou.info>
 
-	* notifications.el: New file.
+	* net/notifications.el: New file.
 
 2010-06-09  Dan Nicolaescu  <dann@ics.uci.edu>
 
