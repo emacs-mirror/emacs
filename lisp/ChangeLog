@@ -1,3 +1,7 @@
+2010-06-09  Julien Danjou  <julien@danjou.info>
+
+	* notifications.el: New file.
+
 2010-06-09  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Add optional support for resetting VC properties.
