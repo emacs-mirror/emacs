@@ -81,11 +81,6 @@ VALUE must be a number or string.  If absent,
 VALUE must be a string.  If absent, `rcirc-default-user-name' is
 used.
 
-`:password'
-
-VALUE must be a string.  If absent, no PASS command will be sent
-to the server.
-
 `:full-name'
 
 VALUE must be a string.  If absent, `rcirc-default-full-name' is
@@ -104,7 +99,6 @@ connected to automatically."
 		:value-type (plist :options ((:nick string)
 					     (:port integer)
 					     (:user-name string)
-					     (:password string)
 					     (:full-name string)
 					     (:pass string)
 					     (:channels (repeat string)))))
@@ -435,8 +429,7 @@ If ARG is non-nil, instead prompt for connection parameters."
               (pass (plist-get (cdr c) :pass))
 	      (full-name (or (plist-get (cdr c) :full-name)
 			     rcirc-default-full-name))
-	      (channels (plist-get (cdr c) :channels))
-              (password (plist-get (cdr c) :password)))
+	      (channels (plist-get (cdr c) :channels)))
 	  (when server
 	    (let (connected)
 	      (dolist (p (rcirc-process-list))
@@ -445,7 +438,7 @@ If ARG is non-nil, instead prompt for connection parameters."
 	      (if (not connected)
 		  (condition-case e
 		      (rcirc-connect server port nick user-name pass
-				     full-name channels password)
+				     full-name channels)
 		    (quit (message "Quit connecting to %s" server)))
 		(with-current-buffer (process-buffer connected)
 		  (setq connected-servers

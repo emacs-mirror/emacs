@@ -76,13 +76,6 @@
 	* emacs-lisp/smie.el (smie-indent-keyword): Remove special case that
 	can be handled with a ((:before "fn") (:prev "=>" parent)) rule.
 
-2010-06-07  Jonathan Rockway  <jon@jrock.us>
-
-	* net/rcirc.el: Add support for password authentication.
-	(rcirc-server-alist): Add :password keyword.
-	(rcirc): Ask for a password, or get it from the server's alist.
-	(rcirc-connect): Add password argument.  Pass it to server.
-
 2010-06-07  Martin Pohlack  <mp26@os.inf.tu-dresden.de>
 
 	* iimage.el: Remove images as soon as the underlying text is modified.
