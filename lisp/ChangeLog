@@ -1,5 +1,8 @@
 2010-06-09  Juanma Barranquero  <lekktu@gmail.com>
 
+	* emacs-lisp/smie.el (comment-string-strip): Declare function.
+	(smie-precs-precedence-table): Fix typo in docstring.
+
 	* vc-mtn.el (log-edit-extract-headers): Declare function.
 
 	* vc-hg.el (log-edit-extract-headers): Remove duplicate declaration.

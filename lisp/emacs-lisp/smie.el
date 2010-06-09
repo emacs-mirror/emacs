@@ -68,6 +68,7 @@
 (eval-when-compile (require 'cl))
 
 (defvar comment-continue)
+(declare-function comment-string-strip "newcomment" (str beforep afterp))
 
 ;;; Building precedence level tables from BNF specs.
 
@@ -89,7 +90,7 @@
   "Compute a 2D precedence table from a list of precedences.
 PRECS should be a list, sorted by precedence (e.g. \"+\" will
 come before \"*\"), of elements of the form \(left OP ...)
-or (right OP ...) or (nonassoc OP ...)  or (assoc OP ...).  All operators in
+or (right OP ...) or (nonassoc OP ...) or (assoc OP ...).  All operators in
 one of those elements share the same precedence level and associativity."
   (let ((prec2-table (make-hash-table :test 'equal)))
     (dolist (prec precs)
