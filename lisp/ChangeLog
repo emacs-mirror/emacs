@@ -1,5 +1,25 @@
 2010-06-09  Juanma Barranquero  <lekktu@gmail.com>
 
+	Update to Unicode 6.0.0 beta.
+	* international/charprop.el: Update copyright.
+	* international/mule-cmds.el (ucs-names): Update character ranges.
+	* international/uni-bidi.el:
+	* international/uni-category.el:
+	* international/uni-combining.el:
+	* international/uni-comment.el:
+	* international/uni-decimal.el:
+	* international/uni-decomposition.el:
+	* international/uni-digit.el:
+	* international/uni-lowercase.el:
+	* international/uni-mirrored.el:
+	* international/uni-name.el:
+	* international/uni-numeric.el:
+	* international/uni-old-name.el:
+	* international/uni-titlecase.el:
+	* international/uni-uppercase.el: Regenerate.
+
+2010-06-09  Juanma Barranquero  <lekktu@gmail.com>
+
 	* emacs-lisp/smie.el (comment-string-strip): Declare function.
 	(smie-precs-precedence-table): Fix typo in docstring.
 

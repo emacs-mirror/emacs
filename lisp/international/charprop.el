@@ -1,4 +1,4 @@
-;; Copyright (C) 1991-2009 Unicode, Inc.
+;; Copyright (C) 1991-2010 Unicode, Inc.
 ;; This file was generated from the Unicode data file at
 ;; http://www.unicode.org/Public/UNIDATA/UnicodeData.txt.
 ;; See lisp/international/README for the copyright and permission notice.
