@@ -1,3 +1,8 @@
+2010-06-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dbusbind.c (xd_append_arg): Don't "make-unibyte" the string.
+	Check `object's type before accessing its guts.
+
 2010-06-08  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* minibuf.c (Fall_completions): Add more checks.
