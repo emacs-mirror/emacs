@@ -1,3 +1,8 @@
+2010-06-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-indent-keyword): Remove special case that
+	can be handled with a ((:before "fn") (:prev "=>" parent)) rule.
+
 2010-06-07  Martin Pohlack  <mp26@os.inf.tu-dresden.de>
 
 	* iimage.el: Remove images as soon as the underlying text is modified.
