@@ -405,6 +405,7 @@ xd_append_arg (dtype, object, iter)
     switch (dtype)
       {
       case DBUS_TYPE_BYTE:
+	CHECK_NUMBER (object);
 	{
 	  unsigned char val = XUINT (object) & 0xFF;
 	  XD_DEBUG_MESSAGE ("%c %d", dtype, val);
@@ -423,6 +424,7 @@ xd_append_arg (dtype, object, iter)
 	}
 
       case DBUS_TYPE_INT16:
+	CHECK_NUMBER (object);
 	{
 	  dbus_int16_t val = XINT (object);
 	  XD_DEBUG_MESSAGE ("%c %d", dtype, (int) val);
@@ -432,6 +434,7 @@ xd_append_arg (dtype, object, iter)
 	}
 
       case DBUS_TYPE_UINT16:
+	CHECK_NUMBER (object);
 	{
 	  dbus_uint16_t val = XUINT (object);
 	  XD_DEBUG_MESSAGE ("%c %u", dtype, (unsigned int) val);
@@ -441,6 +444,7 @@ xd_append_arg (dtype, object, iter)
 	}
 
       case DBUS_TYPE_INT32:
+	CHECK_NUMBER (object);
 	{
 	  dbus_int32_t val = XINT (object);
 	  XD_DEBUG_MESSAGE ("%c %d", dtype, val);
@@ -450,6 +454,7 @@ xd_append_arg (dtype, object, iter)
 	}
 
       case DBUS_TYPE_UINT32:
+	CHECK_NUMBER (object);
 	{
 	  dbus_uint32_t val = XUINT (object);
 	  XD_DEBUG_MESSAGE ("%c %u", dtype, val);
@@ -459,6 +464,7 @@ xd_append_arg (dtype, object, iter)
 	}
 
       case DBUS_TYPE_INT64:
+	CHECK_NUMBER (object);
 	{
 	  dbus_int64_t val = XINT (object);
 	  XD_DEBUG_MESSAGE ("%c %d", dtype, (int) val);
@@ -468,6 +474,7 @@ xd_append_arg (dtype, object, iter)
 	}
 
       case DBUS_TYPE_UINT64:
+	CHECK_NUMBER (object);
 	{
 	  dbus_uint64_t val = XUINT (object);
 	  XD_DEBUG_MESSAGE ("%c %u", dtype, (unsigned int) val);
@@ -477,6 +484,7 @@ xd_append_arg (dtype, object, iter)
 	}
 
       case DBUS_TYPE_DOUBLE:
+	CHECK_FLOAT (object);
 	{
 	  double val = XFLOAT_DATA (object);
 	  XD_DEBUG_MESSAGE ("%c %f", dtype, val);
@@ -488,8 +496,13 @@ xd_append_arg (dtype, object, iter)
       case DBUS_TYPE_STRING:
       case DBUS_TYPE_OBJECT_PATH:
       case DBUS_TYPE_SIGNATURE:
+	CHECK_STRING (object);
 	{
-	  char *val = SDATA (Fstring_make_unibyte (object));
+	  /* We need to send a valid UTF-8 string.  We could encode `object'
+	     but by not encoding it, we guarantee it's valid utf-8, even if
+	     it contains eight-bit-bytes.  Of course, you can still send
+	     manually-crafted junk by passing a unibyte string.  */
+	  char *val = SDATA (object);
 	  XD_DEBUG_MESSAGE ("%c %s", dtype, val);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
 	    XD_SIGNAL2 (build_string ("Unable to append argument"), object);

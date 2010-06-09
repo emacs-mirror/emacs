@@ -362,7 +362,7 @@ the two brackets are what this character alternative can match.
 
 Thus, @samp{[ad]} matches either one @samp{a} or one @samp{d}, and
 @samp{[ad]*} matches any string composed of just @samp{a}s and @samp{d}s
-(including the empty string), from which it follows that @samp{c[ad]*r}
+(including the empty string).  It follows that @samp{c[ad]*r}
 matches @samp{cr}, @samp{car}, @samp{cdr}, @samp{caddaar}, etc.
 
 You can also include character ranges in a character alternative, by
@@ -400,20 +400,11 @@ is @samp{@var{c}..?\377}, the other is @samp{@var{c1}..@var{c2}}, where
 @var{c1} is the first character of the charset to which @var{c2}
 belongs.
 
-You cannot always match all non-@acronym{ASCII} characters with the regular
-expression @code{"[\200-\377]"}.  This works when searching a unibyte
-buffer or string (@pxref{Text Representations}), but not in a multibyte
-buffer or string, because many non-@acronym{ASCII} characters have codes
-above octal 0377.  However, the regular expression @code{"[^\000-\177]"}
-does match all non-@acronym{ASCII} characters (see below regarding @samp{^}),
-in both multibyte and unibyte representations, because only the
-@acronym{ASCII} characters are excluded.
-
-A character alternative can also specify named
-character classes (@pxref{Char Classes}).  This is a POSIX feature whose
-syntax is @samp{[:@var{class}:]}.  Using a character class is equivalent
-to mentioning each of the characters in that class; but the latter is
-not feasible in practice, since some classes include thousands of
+A character alternative can also specify named character classes
+(@pxref{Char Classes}).  This is a POSIX feature whose syntax is
+@samp{[:@var{class}:]}.  Using a character class is equivalent to
+mentioning each of the characters in that class; but the latter is not
+feasible in practice, since some classes include thousands of
 different characters.
 
 @item @samp{[^ @dots{} ]}
@@ -430,6 +421,10 @@ were first (in other words, @samp{-} and @samp{]} are not special there).
 A complemented character alternative can match a newline, unless newline is
 mentioned as one of the characters not to match.  This is in contrast to
 the handling of regexps in programs such as @code{grep}.
+
+You can specify named character classes, just like in character
+alternatives.  For instance, @samp{[^[:ascii:]]} matches any
+non-@acronym{ASCII} character.  @xref{Char Classes}.
 
 @item @samp{^}
 @cindex beginning of line in regexp

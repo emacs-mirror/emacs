@@ -1121,37 +1121,31 @@ The VALUE is a spp lexical table."
       (prin1 (car sym))
       (let* ((first (car (cdr sym)))
 	     (rest (cdr sym)))
-	(when (not (listp first))
-	  (error "Error in macro \"%s\"" (car sym)))
-	(when (eq (car first) 'spp-arg-list)
-	  (princ " ")
-	  (prin1 first)
-	  (setq rest (cdr rest))
-	  )
+	(if (not (listp first))
+	    (insert "nil ;; bogus macro found.\n")
+	  (when (eq (car first) 'spp-arg-list)
+	    (princ " ")
+	    (prin1 first)
+	    (setq rest (cdr rest)))
 
-	(when rest
-	  (princ " . ")
-	  (let ((len (length (cdr rest))))
-	    (cond ((< len 2)
-		   (condition-case nil
-		       (prin1 rest)
-		     (error
-		      (princ "nil ;; Error writing macro\n"))))
-		  ((< len semantic-lex-spp-macro-max-length-to-save)
-		   (princ "\n              ")
-		   (condition-case nil
-		       (prin1 rest)
-		     (error
-		      (princ "nil ;; Error writing macro\n          ")))
-		   )
-		  (t ;; Too Long!
-		   (princ "nil ;; Too Long!\n          ")
-		   ))))
-	)
-      (princ ")\n          ")
-      )
-    (princ ")\n"))
-)
+	  (when rest
+	    (princ " . ")
+	    (let ((len (length (cdr rest))))
+	      (cond ((< len 2)
+		     (condition-case nil
+			 (prin1 rest)
+		       (error
+			(princ "nil ;; Error writing macro\n"))))
+		    ((< len semantic-lex-spp-macro-max-length-to-save)
+		     (princ "\n              ")
+		     (condition-case nil
+			 (prin1 rest)
+		       (error
+			(princ "nil ;; Error writing macro\n          "))))
+		    (t ;; Too Long!
+		     (princ "nil ;; Too Long!\n          ")))))))
+      (princ ")\n          "))
+    (princ ")\n")))
 
 ;;; MACRO TABLE DEBUG
 ;;

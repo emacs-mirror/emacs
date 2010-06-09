@@ -264,7 +264,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* If P is before LIMIT, advance P to the next character boundary.
    Assumes that P is already at a character boundary of the same
-   mulitbyte form whose end address is LIMIT.  */
+   multibyte form whose end address is LIMIT.  */
 
 #define NEXT_CHAR_BOUNDARY(p, limit)	\
   do {					\
