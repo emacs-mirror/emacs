@@ -1,3 +1,12 @@
+2010-06-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Improve VC create/retrieve tag/branch.
+	* vc.el (vc-create-tag): Do not read the directory name for VCs
+	with repository revision granularity.  Adjust the tag/branch
+	prompt.  Reset VC properties.
+	(vc-retrieve-tag): Do not read the directory name for VCs
+	with repository revision granularity.  Reset VC properties.
+
 2010-06-09  Julien Danjou  <julien@danjou.info>
 
 	* net/notifications.el: New file.
