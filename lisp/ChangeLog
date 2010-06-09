@@ -1,5 +1,11 @@
 2010-06-09  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	Add optional support for resetting VC properties.
+	* vc-dispatcher.el (vc-resynch-window): Add new optional argument,
+	call vc-file-clearprops when true.
+	(vc-resynch-buffer): Add new optional argument, pass it down.
+	(vc-resynch-buffers-in-directory): Likewise.
+
 	Improve support for special markup in the VC commit message.
 	* vc-mtn.el (vc-mtn-checkin): Add support for Author: and Date: markup.
 	* vc-hg.el (vc-hg-checkin): Add support for Date:.
