@@ -1,5 +1,8 @@
 2010-06-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/advice.el (ad-compile-function):
+	Define warning-suppress-types before we let-bind it (bug#6275).
+
 	* vc-dispatcher.el: Rename mode-line-hook to vc-mode-line-hook;
 	declare it, make it buffer-local and permanent-local (bug#6324).
 	(vc-resynch-window): Adjust name.

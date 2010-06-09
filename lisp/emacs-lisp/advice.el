@@ -2684,6 +2684,8 @@ For that it has to be fbound with a non-autoload definition."
       ;; because `byte-compile' uses `fset':
       (ad-with-auto-activation-disabled
        (require 'bytecomp)
+       (require 'warnings)              ;To define warning-suppress-types
+                                        ;before we let-bind it.
        (let ((symbol (make-symbol "advice-compilation"))
 	     (byte-compile-warnings byte-compile-warnings)
              ;; Don't pop up windows showing byte-compiler warnings.
