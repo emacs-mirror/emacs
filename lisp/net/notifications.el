@@ -38,6 +38,7 @@
 ;; disabled with configuration option "--without-dbus".  Declare used
 ;; subroutines and variables of `dbus' therefore.
 (declare-function dbus-call-method "dbusbind.c")
+(declare-function dbus-register-signal "dbusbind.c")
 
 (require 'dbus)
 
@@ -127,9 +128,10 @@ Various PARAMS can be set:
  :actions        A list of actions in the form:
                    (KEY TITLE KEY TITLE ...)
                  where KEY and TITLE are both strings.
-                 The default action (usually invoked by clicking the notification)
-                 should have a key named \"default\". The name can be anything,
-                 though implementations are free not to display it.
+                 The default action (usually invoked by clicking the
+                 notification) should have a key named \"default\".
+                 The name can be anything, though implementations are free
+                 not to display it.
  :timeout        The timeout time in milliseconds since the display
                  of the notification at which the notification should
                  automatically close.
@@ -150,14 +152,14 @@ Various PARAMS can be set:
  :suppress-sound Causes the server to suppress playing any sounds, if it has
                  that ability.
  :x              Specifies the X location on the screen that the notification
-                 should point to. The \"y\" hint must also be specified.
+                 should point to.  The \"y\" hint must also be specified.
  :y              Specifies the Y location on the screen that the notification
-                 should point to. The \"x\" hint must also be specified.
- :on-action      Function to call when an action is invoked. The key of the
+                 should point to.  The \"x\" hint must also be specified.
+ :on-action      Function to call when an action is invoked.  The key of the
                  action is passed as argument to the function.
  :on-close       Function to call when the notification has been closed
                  by timeout or by the user.
-                 The function receive the closing reason as argument:
+                 The function receives the closing reason as argument:
                    - `expired' if the notification has expired
                    - `dismissed' if the notification was dismissed by the user
                    - `close-notification' if the notification was closed

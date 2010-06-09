@@ -1,3 +1,8 @@
+2010-06-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* net/notifications.el (dbus-register-signal): Declare function.
+	(notifications-notify): Fix typos and reflow docstring.
+
 2010-06-09  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Improve VC create/retrieve tag/branch.
