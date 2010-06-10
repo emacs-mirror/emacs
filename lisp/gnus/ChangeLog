@@ -1,3 +1,12 @@
+2010-06-10  Dan Christensen  <jdc@uwo.ca>
+
+	* gnus-util.el (gnus-user-date): Use gnus-date-get-time.
+	(gnus-dd-mmm): Use gnus-date-get-time.
+	* gnus-sum.el (gnus-thread-latest-date): Use gnus-date-get-time and
+	simplify logic.
+	(gnus-summary-limit-to-age): Use gnus-date-get-time.
+	(gnus-sort-threads): emit message if gnus-sort-threads-loop used.
+
 2010-06-08  Michael Albinus  <michael.albinus@gmx.de>
 
 	* auth-source.el (top): Autoload `secrets-list-collections',
