@@ -330,15 +330,6 @@
 	(server-create-window-system-frame): New arg.  Pass parent-id as
 	frame parameter.
 
-2010-05-29  Chong Yidong  <cyd@stupidchicken.com>
-
-	* ansi-color.el: Delete unused escape sequences (Bug#6085).
-	(ansi-color-drop-regexp): New constant.
-	(ansi-color-apply, ansi-color-filter-region)
-	(ansi-color-apply-on-region): Delete unrecognized control
-	sequences.
-	(ansi-color-apply): Build string list before calling concat.
-
 2010-05-29  Eli Zaretskii  <eliz@gnu.org>
 
 	Bidi-sensitive word movement with arrow keys.
@@ -487,11 +478,6 @@
 	* progmodes/verilog-mode.el (verilog-type-font-keywords): Use
 	font-lock-constant-face, not obsolete font-lock-reference-face.
 
-2010-05-27  Masatake YAMATO  <yamato@redhat.com>
-
-	* htmlfontify.el (hfy-face-resolve-face): New function.
-	(hfy-face-to-style): Use it (Bug#6279).
-
 2010-05-27  Kenichi Handa  <handa@m17n.org>
 
 	* language/hebrew.el (hebrew-shape-gstring): Check if a glyph
@@ -632,11 +618,6 @@
 2010-05-24  Uday S Reddy  <u.s.reddy@cs.bham.ac.uk>  (tiny change)
 
 	* textmodes/fill.el (fill-region): Don't fill past the end (bug#6201).
-
-2010-05-24  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	* subr.el (read-quoted-char): Resolve modifiers after key
-	remapping (bug#6212).
 
 2010-05-22  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -1543,11 +1524,6 @@
 2010-04-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* minibuffer.el (tags-completion-at-point-function): Fix return value.
-
-2010-04-30  Eli Zaretskii  <eliz@gnu.org>
-
-	* composite.el (compose-region, reference-point-alist): Fix typos
-	in the doc strings.
 
 2010-04-29  Chong Yidong  <cyd@stupidchicken.com>
 
