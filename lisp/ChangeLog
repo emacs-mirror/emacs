@@ -1,3 +1,8 @@
+2010-06-10  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/authors.el (authors-ignored-files)
+	(authors-valid-file-names): Add some files.
+
 2010-06-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* net/rcirc.el (rcirc-server-alist, rcirc, rcirc-connect): Resolve

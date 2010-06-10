@@ -266,7 +266,7 @@ listed.")
     "3B-MAXMEM" "AIX.DUMP" "SUN-SUPPORT" "XENIX"
     "CODINGS" "CHARSETS"
     "calc/INSTALL" "calc/Makefile"
-    "vms-pp.trans" "_emacs" "batcomp.com"
+    "vms-pp.trans" "_emacs" "batcomp.com" "notes/cpp" ; admin/
     ;; MH-E stuff not in Emacs:
     "import-emacs" "release-utils"
     ;; Erc stuff not in Emacs:
@@ -505,6 +505,7 @@ Changes to files in this list are not listed.")
     "getdate.y"
     "ymakefile"
     "permute-index" "index.perm"
+    "ibmrs6000.inp"
     "emacs.ico"
     "emacs21.ico"
     "LPF" "LEDIT" "OTHER.EMACSES"
