@@ -1,3 +1,7 @@
+2010-06-10  Glenn Morris  <rgm@gnu.org>
+
+	* m/ibms390x.h: Rather than duplicating ibms390.h, just include it.
+
 2010-06-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* dbusbind.c (xd_append_arg): Don't "make-unibyte" the string.
