@@ -1,3 +1,8 @@
+2010-06-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/rcirc.el (rcirc-server-alist, rcirc, rcirc-connect): Resolve
+	merge conflict, giving preference to the emacs-23 version of the code.
+
 2010-06-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/advice.el (ad-compile-function):
