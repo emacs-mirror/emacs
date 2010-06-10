@@ -1,3 +1,11 @@
+2010-06-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-mime-buttonized-part-id): New internal variable.
+	(gnus-article-edit-part): Bind it to make last part that is substituted
+	or deleted visible.
+	(gnus-mime-display-single): Buttonize part of which id equals to
+	gnus-mime-buttonized-part-id.
+
 2010-06-10  Dan Christensen  <jdc@uwo.ca>
 
 	* gnus-util.el (gnus-user-date): Use gnus-date-get-time.
