@@ -1,3 +1,10 @@
+2010-06-10  Julien Danjou  <julien@danjou.info>
+
+	* net/notifications.el (notifications-on-action-signal)
+	(notifications-on-closed-signal): Pass notification id as first
+	argument to the callback functions. Add docstrings.
+	(notifications-notify): Fix docstring.
+
 2010-06-10  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/authors.el (authors-ignored-files)
