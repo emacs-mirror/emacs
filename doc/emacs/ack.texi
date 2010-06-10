@@ -227,6 +227,10 @@ Mathias Dahl wrote @file{image-dired.el}, a package for viewing image
 files as ``thumbnails.''
 
 @item
+Julien Danjou wrote an implementation of ``Desktop Notifications''
+(@file{notifications.el}).
+
+@item
 Vivek Dasmohapatra wrote @file{htmlfontify.el}, to convert a buffer or
 source tree to HTML.
 
