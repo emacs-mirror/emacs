@@ -1,3 +1,8 @@
+2010-06-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* notifications.el: Move file from lisp/net, because it is
+	supposed to talk locally to the user.
+
 2010-06-10  Julien Danjou  <julien@danjou.info>
 
 	* net/notifications.el (notifications-on-action-signal)
