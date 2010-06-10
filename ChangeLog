@@ -1,5 +1,7 @@
 2010-06-10  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (install-arch-indep): Gzip the info files too.
+
 	* make-dist: Remove references to non-existent directories and files.
 
 2010-06-08  Dan Nicolaescu  <dann@ics.uci.edu>
