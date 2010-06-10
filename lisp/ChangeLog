@@ -576,11 +576,15 @@
 
 2010-05-25  Ryan Yeske  <rcyeske@gmail.com>
 
-	* net/rcirc.el (rcirc-server-alist): Add :pass.
-	(rcirc-default-user-name): Change to "user".
+	* net/rcirc.el (rcirc-default-user-name): Change to "user".
 	(rcirc-default-full-name): Change to "unknown".
 	(rcirc-user-name-history): Add variable.
-	(rcirc): When prompting for connection paramaters, also prompt for
+
+2010-05-25  Ryan Yeske  <rcyeske@gmail.com>
+	    Jonathan Rockway  <jon@jrock.us>
+
+	* net/rcirc.el (rcirc-server-alist): Add :pass.
+	(rcirc): When prompting for connection parameters, also prompt for
 	username and password.
 	(rcirc-connect): Take a PASS argument.	If PASS is non-nil, send
 	value to server when connecting.
