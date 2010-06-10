@@ -1,3 +1,8 @@
+2010-06-10  Glenn Morris  <rgm@gnu.org>
+
+	* idlwave.texi (Load-Path Shadows):
+	* org.texi (Handling links): Fix typos.
+
 2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 23.2 released.
