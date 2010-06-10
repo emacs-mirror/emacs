@@ -1,3 +1,8 @@
+2010-06-10  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments):
+	* emacs.texi (Acknowledgments): Update for notifications.el.
+
 2010-05-31  Daiki Ueno  <ueno@unixuser.org>
 
 	* dired.texi (Operating on Files): Mention encryption commands

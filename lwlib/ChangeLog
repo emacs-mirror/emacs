@@ -891,11 +891,6 @@
 	[USE_XAW]: Include <X11/Xaw/Paned.h>.
 	(lwlib_memset, lwlib_bcopy): Explicitly declare return type.
 
-1997-12-20  Richard Stallman  <rms@delysid.gnu.org>
-
-	* lwlib-Xm.c (update_one_menu_entry):
-	Add conditional in case XmNpositionIndex is missing.
-
 1997-12-20  Richard Stallman  <rms@psilocin.gnu.org>
 
 	* lwlib-Xm.c (update_one_menu_entry):
@@ -1175,12 +1170,6 @@
 	cascade button as the parent of the pulldown, rather than the
 	cascade button itself.  This works around a Motif SIGSEGV in the
 	function `InSharedMenuHierarchy'.
-
-1994-10-29  Richard Stallman  <rms@duality.gnu.ai.mit.edu>
-
-	* xlwmenu.c (xlwmenu_default_font): New global variable.
-	(XlwMenuInitialize): Use xlwmenu_default_font to default
-	the font if necessary.  Make mw, itself, an argument.
 
 1994-10-26  Richard Stallman  <rms@duality.gnu.ai.mit.edu>
 

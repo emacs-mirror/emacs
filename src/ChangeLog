@@ -1,3 +1,7 @@
+2010-06-10  Glenn Morris  <rgm@gnu.org>
+
+	* m/ibms390x.h: Rather than duplicating ibms390.h, just include it.
+
 2010-06-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* dbusbind.c (xd_append_arg): Don't "make-unibyte" the string.
@@ -1942,11 +1946,6 @@
 	(gif_load): Put GIF extension data to the property
 	`Qextension_data'.
 
-2010-04-05  Chong Yidong  <cyd@stupidchicken.com>
-
-	* xdisp.c (prepare_menu_bars): Don't call ns_set_doc_edited for
-	terminal frames (Bug#5837).
-
 2010-03-31  Chong Yidong  <cyd@stupidchicken.com>
 
 	* nsfns.m (ns_set_doc_edited): Remove unused arg OLDVAL.
@@ -2187,11 +2186,6 @@
 	(encode_coding_ccl): Don't setup ccl program here.  Fix for the
 	case that the output buffer is fullfilled.
 	(encode_coding): Setup ccl program here.
-
-2010-03-24  Andreas Politz  <politza@fh-trier.de>  (tiny change)
-
-	* editfns.c (Fformat): Account for string precision when computing
-	field width (Bug#5710).
 
 2010-03-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -14022,12 +14016,6 @@
 	Throw an error if max_color_idx is outside the supported range.
 	Report an error when image size is invalid.
 	Read two bytes at a time when raw images have max_color_idx above 255.
-
-2008-04-05  Eli Zaretskii  <eliz@gnu.org>
-
-	* w32.c (readdir): If FindFirstFile/FindNextFile return in
-	cFileName a file name that includes `?' characters, use the 8+3
-	alias in cAlternateFileName instead.
 
 2008-04-05  Kenichi Handa  <handa@ni.aist.go.jp>
 
