@@ -1,7 +1,8 @@
 /* Lisp functions pertaining to editing.
-   Copyright (C) 1985, 1986, 1987, 1989, 1993, 1994, 1995, 1996,
-                 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+
+Copyright (C) 1985, 1986, 1987, 1989, 1993, 1994, 1995, 1996, 1997,
+  1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+  2009, 2010 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -225,8 +226,9 @@ DEFUN ("byte-to-string", Fbyte_to_string, Sbyte_to_string, 1, 1, 0,
      (byte)
      Lisp_Object byte;
 {
+  unsigned char b;
   CHECK_NUMBER (byte);
-  unsigned char b = XINT (byte);
+  b = XINT (byte);
   return make_string_from_bytes (&b, 1, 1);
 }
 
