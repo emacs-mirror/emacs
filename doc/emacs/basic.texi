@@ -93,9 +93,9 @@ of overwriting with it.
 @vindex read-quoted-char-radix
 @noindent
 To use decimal or hexadecimal instead of octal, set the variable
-@code{read-quoted-char-radix} to 10 or 16.  If the radix is greater
-than 10, some letters starting with @kbd{a} serve as part of a
-character code, just like digits.
+@code{read-quoted-char-radix} to 10 or 16.  If the radix is 16,
+the letters @kbd{a} to @kbd{f} serve as part of a character code,
+just like digits.  Case is ignored.
 
   A numeric argument tells @kbd{C-q} how many copies of the quoted
 character to insert (@pxref{Arguments}).
