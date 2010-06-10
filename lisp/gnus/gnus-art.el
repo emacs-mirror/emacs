@@ -4896,6 +4896,10 @@ General format specifiers can also be used.  See Info node
 	  (t
 	   (gnus-article-goto-part n)))))
 
+(defvar gnus-mime-buttonized-part-id nil
+  "ID of a mime part that should be buttonized.
+`gnus-mime-save-part-and-strip' and `gnus-mime-delete-part' bind it.")
+
 (eval-when-compile
   (defsubst gnus-article-edit-part (handles &optional current-id)
     "Edit an article in order to delete a mime part.
@@ -4938,10 +4942,15 @@ and `gnus-mime-delete-part', and not provided at run-time normally."
 	 ,(gnus-group-read-only-p)
 	 ,gnus-summary-buffer no-highlight))
      t)
-    (gnus-article-edit-done)
+    ;; Force buttonizing this part.
+    (let ((gnus-mime-buttonized-part-id current-id))
+      (gnus-article-edit-done))
     (gnus-configure-windows 'article)
     (when (and current-id (integerp gnus-auto-select-part))
-      (gnus-article-jump-to-part (+ current-id gnus-auto-select-part)))))
+      (gnus-article-jump-to-part
+       (min (max (+ current-id gnus-auto-select-part) 1)
+	    (with-current-buffer gnus-article-buffer
+	      (length gnus-article-mime-handle-alist)))))))
 
 (defun gnus-mime-replace-part (file)
   "Replace MIME part under point with an external body."
@@ -5844,7 +5853,8 @@ If displaying \"text/html\" is discouraged \(see
 		   ((or (bobp) (eq (char-before (1- (point))) ?\n)) 0)
 		   (t 1))))
 	  (when (or (not display)
-		    (not (gnus-unbuttonized-mime-type-p type)))
+		    (not (gnus-unbuttonized-mime-type-p type))
+		    (eq id gnus-mime-buttonized-part-id))
 	    (gnus-insert-mime-button
 	     handle id (list (or display (and not-attachment text))))
 	    (gnus-article-insert-newline)
