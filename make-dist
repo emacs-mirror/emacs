@@ -281,7 +281,7 @@ echo "Making lisp/MANIFEST"
 (cd lisp;
  files=`echo [!=]*.el | sed -e 's/ subdirs.el / /' -e 's/ default.el / /'`
  for dir in [!=]*; do
-  if [ -d $dir ] && [ $dir != term ] && [ $dir != CVS ] && [ $dir != RCS ]
+  if [ -d $dir ] && [ $dir != term ]
   then
     echo $dir
     thisdir=`echo $dir/[!=]*.el | sed -e 's/ subdirs.el / /'`
@@ -383,7 +383,7 @@ echo "Making links to \`lisp' and its subdirectories"
  ## Find all subdirs of lisp dir
  for file in `find . -type d -print`; do
    case $file in
-     . | .. | */Old | */CVS | */RCS | */=*)
+     . | .. | */=*)
        ;;
      *)
        if [ -d $file ]; then
@@ -580,7 +580,7 @@ echo "Making links to \`etc'"
 ### Don't distribute = files, TAGS, DOC files, backups, autosaves, or
 ### tex litter.
 (cd etc
- files=`ls -d * | grep -v CVS | grep -v RCS | grep -v 'Old' | grep -v '^e$' \
+ files=`ls -d * | grep -v '^e$' \
         | grep -v '^charsets$' | grep -v '^gnus$' | grep -v '^images$' | grep -v '^nxml$' \
         | grep -v '^refcards$' | grep -v '^tutorials$'| grep -v '^schema$'`
  ln $files ../${tempdir}/etc
@@ -608,7 +608,7 @@ echo "Making links to \`etc'"
 for dir in etc/charsets etc/e etc/gnus etc/nxml etc/tutorials etc/refcards etc/schema ; do
     echo "Making links to \`${dir}'"
     (cd ${dir}
-	ln `ls -d * | grep -v CVS | grep -v RCS` ../../${tempdir}/${dir}
+	ln `ls -d *` ../../${tempdir}/${dir}
 	cd ../../${tempdir}/${dir}
 	rm -f *~ \#*\# *,v =* core)
 done
@@ -642,7 +642,7 @@ for dir in etc/images/tree-widget/default etc/images/tree-widget/folder \
     etc/images/smilies/grayscale  etc/images/smilies/medium; do
     echo "Making links to \`${dir}'"
     (cd ${dir}
-     ln `ls -d * | grep -v CVS | grep -v RCS` ../../../../${tempdir}/${dir}
+     ln `ls -d *` ../../../../${tempdir}/${dir}
      cd ../../../../${tempdir}/${dir}
      rm -f *~ \#*\# *,v =* core)
 done
@@ -651,7 +651,7 @@ for dir in etc/images/icons/hicolor/*/apps \
     etc/images/icons/hicolor/*/mimetypes; do
     echo "Making links to \`${dir}'"
     (cd ${dir}
-     ln `ls -d * | grep -v CVS | grep -v RCS` ../../../../../../${tempdir}/${dir}
+     ln `ls -d *` ../../../../../../${tempdir}/${dir}
      cd ../../../../../../${tempdir}/${dir}
      rm -f *~ \#*\# *,v =* core)
 done
@@ -659,7 +659,7 @@ done
 echo "Making links to \`info'"
 # Don't distribute backups or autosaves.
 (cd info
- ln `find . -type f -print | grep -v CVS | grep -v RCS | grep -v cvsignore` ../${tempdir}/info
+ ln `find . -type f -print` ../${tempdir}/info
  #ln [a-zA-Z]* ../${tempdir}/info
  cd ../${tempdir}/info
  # Avoid an error when expanding the wildcards later.

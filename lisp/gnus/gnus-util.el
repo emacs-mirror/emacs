@@ -455,10 +455,10 @@ respectively.")
 
 (defun gnus-user-date (messy-date)
   "Format the messy-date according to gnus-user-date-format-alist.
-Returns \"  ?  \" if there's bad input or if an other error occurs.
+Returns \"  ?  \" if there's bad input or if another error occurs.
 Input should look like this: \"Sun, 14 Oct 2001 13:34:39 +0200\"."
   (condition-case ()
-      (let* ((messy-date (gnus-float-time (safe-date-to-time messy-date)))
+      (let* ((messy-date (gnus-float-time (gnus-date-get-time messy-date)))
 	     (now (gnus-float-time))
 	     ;;If we don't find something suitable we'll use this one
 	     (my-format "%b %d '%y"))
@@ -477,7 +477,7 @@ Input should look like this: \"Sun, 14 Oct 2001 13:34:39 +0200\"."
 (defun gnus-dd-mmm (messy-date)
   "Return a string like DD-MMM from a big messy string."
   (condition-case ()
-      (format-time-string "%d-%b" (safe-date-to-time messy-date))
+      (format-time-string "%d-%b" (gnus-date-get-time messy-date))
     (error "  -   ")))
 
 (defmacro gnus-date-get-time (date)

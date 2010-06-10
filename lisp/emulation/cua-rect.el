@@ -231,7 +231,7 @@
     (move-to-column mc)
     (set-mark (point))
     (goto-char pp)
-    ;; Move cursor inside rectangle, except if char at rigth edge is a tab.
+    ;; Move cursor inside rectangle, except if char at right edge is a tab.
     (if (and (if (cua--rectangle-right-side)
 		 (and (= (move-to-column pc) (- pc tab-width))
 		      (not (eolp)))

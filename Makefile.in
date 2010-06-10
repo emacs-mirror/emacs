@@ -580,6 +580,8 @@ install-arch-indep: mkdir info install-etc
 	      for f in `ls $$elt $$elt-[1-9] $$elt-[1-9][0-9] 2>/dev/null`; do \
 	        ${INSTALL_DATA} $$f $(DESTDIR)${infodir}/$$f; \
 	        chmod a+r $(DESTDIR)${infodir}/$$f; \
+	        [ -n "${GZIP_PROG}" ] && \
+	          ${GZIP_PROG} -9n $(DESTDIR)${infodir}/$$f; \
 	      done; \
 	   done); \
 	else true; fi
