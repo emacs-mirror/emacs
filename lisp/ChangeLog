@@ -1,3 +1,7 @@
+2010-06-11  Stephen Eglen  <stephen@gnu.org>
+
+	* shell.el: Bind `shell-resync-dirs' to M-RET.
+
 2010-06-10  Michael Albinus  <michael.albinus@gmx.de>
 
 	* notifications.el: Move file from lisp/net, because it is

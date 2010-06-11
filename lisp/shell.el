@@ -340,6 +340,7 @@ Thus, this does not include the shell's current directory.")
        (define-key shell-mode-map "\C-c\C-f" 'shell-forward-command)
        (define-key shell-mode-map "\C-c\C-b" 'shell-backward-command)
        (define-key shell-mode-map "\t" 'comint-dynamic-complete)
+       (define-key shell-mode-map (kbd "M-RET") 'shell-resync-dirs)
        (define-key shell-mode-map "\M-?"
 	 'comint-dynamic-list-filename-completions)
        (define-key shell-mode-map [menu-bar completion]
