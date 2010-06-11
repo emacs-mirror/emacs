@@ -1,5 +1,7 @@
 2010-06-11  Juanma Barranquero  <lekktu@gmail.com>
 
+	* makefile.w32-in (WINS_BASIC): Include new directory vc.
+
 	* loadup.el ("vc-hooks", "ediff-hook"): Load from lisp/vc/.
 
 2010-06-11  Juri Linkov  <juri@jurta.org>
