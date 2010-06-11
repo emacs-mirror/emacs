@@ -1,3 +1,7 @@
+2010-06-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* loadup.el ("vc-hooks", "ediff-hook"): Load from lisp/vc/.
+
 2010-06-11  Juri Linkov  <juri@jurta.org>
 
 	* finder.el (finder-known-keywords): Add keyword "vc"
