@@ -86,9 +86,10 @@
   "Mapping between notification and close callback functions.")
 
 (defun notifications-on-action-signal (id action)
+  "Dispatch signals to callback functions from `notifications-on-action-map'."
   (let ((entry (assoc id notifications-on-action-map)))
     (when entry
-      (funcall (cadr entry) action)
+      (funcall (cadr entry) id action)
       (remove entry 'notifications-on-action-map))))
 
 (dbus-register-signal
@@ -100,9 +101,11 @@
  'notifications-on-action-signal)
 
 (defun notifications-on-closed-signal (id reason)
+  "Dispatch signals to callback functions from `notifications-on-closed-map'."
   (let ((entry (assoc id notifications-on-close-map)))
     (when entry
-      (funcall (cadr entry) (cadr (assoc reason notifications-closed-reason)))
+      (funcall (cadr entry)
+	       id (cadr (assoc reason notifications-closed-reason)))
       (remove entry 'notifications-on-close-map))))
 
 (dbus-register-signal
@@ -155,11 +158,13 @@ Various PARAMS can be set:
                  should point to.  The \"y\" hint must also be specified.
  :y              Specifies the Y location on the screen that the notification
                  should point to.  The \"x\" hint must also be specified.
- :on-action      Function to call when an action is invoked.  The key of the
-                 action is passed as argument to the function.
+ :on-action      Function to call when an action is invoked.
+                 The notification id and the key of the action are passed
+                 as arguments to the function.
  :on-close       Function to call when the notification has been closed
                  by timeout or by the user.
-                 The function receives the closing reason as argument:
+                 The function receive the notification id and the closing
+                 reason as arguments:
                    - `expired' if the notification has expired
                    - `dismissed' if the notification was dismissed by the user
                    - `close-notification' if the notification was closed
