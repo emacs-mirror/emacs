@@ -1,3 +1,12 @@
+2010-06-11  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (--without-compress-info): New option.
+	(GZIP_INFO): New output variable.
+
+	* Makefile.in (GZIP_INFO): New, set by configure.
+	(install-arch-indep): Don't gzip info pages if GZIP_INFO is nil.
+	Handle man pages in the same way.
+
 2010-06-10  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (install-arch-indep): Gzip the info files too.
