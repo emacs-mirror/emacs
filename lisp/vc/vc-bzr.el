@@ -4,7 +4,7 @@
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; 	   Riccardo Murri <riccardo.murri@gmail.com>
-;; Keywords: tools
+;; Keywords: vc tools
 ;; Created: Sept 2006
 ;; Version: 2008-01-04 (Bzr revno 25)
 ;; URL: http://launchpad.net/vc-bzr

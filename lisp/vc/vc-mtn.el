@@ -3,7 +3,7 @@
 ;; Copyright (C) 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
-;; Keywords:
+;; Keywords: vc
 
 ;; This file is part of GNU Emacs.
 

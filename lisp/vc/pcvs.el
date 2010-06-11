@@ -13,7 +13,7 @@
 ;;	(Greg Klanderman) greg@alphatech.com
 ;;	(Jari Aalto+mail.emacs) jari.aalto@poboxes.com
 ;; Maintainer: (Stefan Monnier) monnier@gnu.org
-;; Keywords: CVS, version control, release management
+;; Keywords: CVS, vc, release management
 
 ;; This file is part of GNU Emacs.
 

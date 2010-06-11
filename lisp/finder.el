@@ -76,6 +76,7 @@
     (tex	. "supporting code for the TeX formatter")
     (tools	. "programming tools")
     (unix	. "front-ends/assistants for, or emulators of, UNIX-like features")
+    (vc		. "version control")
     (wp		. "word processing")
     ))
 

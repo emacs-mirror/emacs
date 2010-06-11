@@ -4,7 +4,7 @@
 ;;   2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
-;; Keywords: tools revision-control merge diff3 cvs conflict
+;; Keywords: vc, tools, revision control, merge, diff3, cvs, conflict
 
 ;; This file is part of GNU Emacs.
 

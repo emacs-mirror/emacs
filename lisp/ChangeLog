@@ -1,5 +1,15 @@
 2010-06-11  Juri Linkov  <juri@jurta.org>
 
+	* finder.el (finder-known-keywords): Add keyword "vc"
+	for version control.
+
+	* add-log.el, cvs-status.el, diff.el, diff-mode.el, ediff.el,
+	* emerge.el, log-edit.el, log-view.el, pcvs.el, smerge-mode.el,
+	* vc-annotate.el, vc-bzr.el, vc-dir.el, vc-dispatcher.el, vc-git.el,
+	* vc-hg.el, vc-mtn.el, vc.el: Add keyword "vc".
+
+2010-06-11  Juri Linkov  <juri@jurta.org>
+
 	Move version control related files to the "vc" subdirectory.
 	* add-log.el, cvs-status.el, diff.el, diff-mode.el, ediff-diff.el,
 	* ediff.el, ediff-help.el, ediff-hook.el, ediff-init.el,

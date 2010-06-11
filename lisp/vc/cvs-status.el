@@ -4,7 +4,7 @@
 ;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
-;; Keywords: pcl-cvs cvs status tree tools
+;; Keywords: pcl-cvs cvs status tree vc tools
 
 ;; This file is part of GNU Emacs.
 
