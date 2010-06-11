@@ -1,3 +1,8 @@
+2010-06-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* comint.el (comint-password-prompt-regexp): Fix 2010-04-10 change
+	(Bug#6367).
+
 2010-06-11  Stephen Eglen  <stephen@gnu.org>
 
 	* shell.el: Bind `shell-resync-dirs' to M-RET.
