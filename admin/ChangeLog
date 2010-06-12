@@ -1,3 +1,11 @@
+2010-06-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* unidata/biditype.awk: New file.
+
+	* unidata/Makefile.in (../../src/biditype.h): New target.
+
+	* unidata/makefile.w32-in (../../src/biditype.h): New target.
+
 2010-06-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* unidata/UnicodeData.txt: Update from

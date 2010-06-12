@@ -1,5 +1,11 @@
 2010-06-12  Eli Zaretskii  <eliz@gnu.org>
 
+	* bidi.c (bidi_initialize): Remove explicit initialization of
+	bidi_type_table; include biditype.h instead.  Don't support
+	entries whose second codepoint is zero.
+
+	* biditype.h: New file.
+
 	* window.c (syms_of_window): Doc fix (bug#6409).
 
 2010-06-12  Romain Francoise  <romain@orebokech.com>

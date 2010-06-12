@@ -29,7 +29,7 @@ EMACSLOADPATH = $(lisp);$(lisp)/international;$(lisp)/emacs-lisp
 # Quote EMACS so it could be a file name with embedded whitespace
 RUNEMACS = "$(EMACS)" -Q --multibyte -batch
 
-all: $(DSTDIR)/charprop.el
+all: $(DSTDIR)/charprop.el ../../src/biditype.h
 
 .el.elc:
 	$(RUNEMACS) -f batch-byte-compile $<
@@ -50,6 +50,11 @@ charprop-CMD: unidata-gen.elc unidata.txt
 
 ${DSTDIR}/charprop.el: charprop-$(SHELLTYPE)
 
+../../src/biditype.h: UnicodeData.txt
+	gawk -F";" -f biditype.awk -v BINMODE=2 $< > biditype.h
+	$(CP) -f biditype.h $@
+	$(DEL) biditype.h
+
 clean:
-	- $(DEL) unidata-gen.elc unidata.txt
+	- $(DEL) unidata-gen.elc unidata.txt biditype.h
 
