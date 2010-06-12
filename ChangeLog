@@ -1,3 +1,7 @@
+2010-06-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* INSTALL: Update font information (Bug#6389).
+
 2010-06-10  Glenn Morris  <rgm@gnu.org>
 
 	* INSTALL: General update.
