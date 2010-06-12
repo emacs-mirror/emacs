@@ -1,3 +1,20 @@
+2010-06-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-remote-process-environment): Protect version
+	string by apostroph.
+	(tramp-shell-prompt-pattern): Do not use a shy group in case of
+	XEmacs.
+	(tramp-file-name-for-operation): Add `call-process-region'.
+	(tramp-set-process-query-on-exit-flag): Fix wrong parentheses.
+
+	* net/tramp-compat.el (top): Do not autoload
+	`tramp-handle-file-remote-p'.  Load tramp-util.el and tramp-vc.el
+	only when `start-file-process' is not bound.
+	(tramp-advice-file-expand-wildcards): Do not use
+	`tramp-handle-file-remote-p'.
+	(tramp-compat-make-temp-file): Handle the case, that
+	`make-temp-file' has no third argument EXTENSION.
+
 2010-06-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (WINS_BASIC): Include new directory vc.
@@ -45,7 +62,7 @@
 
 	* net/notifications.el (notifications-on-action-signal)
 	(notifications-on-closed-signal): Pass notification id as first
-	argument to the callback functions. Add docstrings.
+	argument to the callback functions.  Add docstrings.
 	(notifications-notify): Fix docstring.
 
 2010-06-10  Glenn Morris  <rgm@gnu.org>
