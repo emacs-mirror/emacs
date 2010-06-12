@@ -1,3 +1,7 @@
+2010-06-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* window.c (syms_of_window): Doc fix (bug#6409).
+
 2010-06-12  Romain Francoise  <romain@orebokech.com>
 
 	* Makefile.in (lisp, shortlisp): Use new location of vc-hooks and
