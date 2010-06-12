@@ -1,3 +1,7 @@
+2010-06-12  Glenn Morris  <rgm@gnu.org>
+
+	* tutorials/TUTORIAL.bg, tutorials/TUTORIAL.es: Fix typos.
+
 2010-05-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* NEWS: Add sections for Emacs-23.3.
