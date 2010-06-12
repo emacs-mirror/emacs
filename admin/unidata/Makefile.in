@@ -23,7 +23,7 @@ EMACS = ../../src/emacs
 DSTDIR = ../../lisp/international
 RUNEMACS = ${EMACS} -Q --multibyte -batch
 
-all: ${DSTDIR}/charprop.el ../../src/biditype.h
+all: ${DSTDIR}/charprop.el ../../src/biditype.h ../../src/bidimirror.h
 
 .el.elc:
 	${RUNEMACS} -batch -f batch-byte-compile $<
@@ -39,6 +39,9 @@ ${DSTDIR}/charprop.el: unidata-gen.elc unidata.txt
 
 ../../src/biditype.h: UnicodeData.txt
 	gawk -F";" -f biditype.awk $< > $@
+
+../../src/bidimirror.h: BidiMirroring.txt
+	gawk -F"[; ]+" -f bidimirror.awk $< > $@
 
 install: charprop.el
 	cp charprop.el ${DSTDIR}

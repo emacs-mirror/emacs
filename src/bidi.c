@@ -68,7 +68,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 static int bidi_initialized = 0;
 
-static Lisp_Object bidi_type_table;
+static Lisp_Object bidi_type_table, bidi_mirror_table;
 
 /* FIXME: Remove these when bidi_explicit_dir_char uses a lookup table.  */
 #define LRM_CHAR   0x200E
@@ -110,6 +110,7 @@ bidi_initialize ()
 {
 
 #include "biditype.h"
+#include "bidimirror.h"
 
   int i;
 
@@ -119,6 +120,13 @@ bidi_initialize ()
   for (i = 0; i < sizeof bidi_type / sizeof bidi_type[0]; i++)
     char_table_set_range (bidi_type_table, bidi_type[i].from, bidi_type[i].to,
 			  make_number (bidi_type[i].type));
+
+  bidi_mirror_table = Fmake_char_table (Qnil, Qnil);
+  staticpro (&bidi_mirror_table);
+
+  for (i = 0; i < sizeof bidi_mirror / sizeof bidi_mirror[0]; i++)
+    char_table_set (bidi_mirror_table, bidi_mirror[i].from,
+		    make_number (bidi_mirror[i].to));
 
   Qparagraph_start = intern ("paragraph-start");
   staticpro (&Qparagraph_start);
@@ -226,20 +234,27 @@ bidi_get_category (bidi_type_t type)
 
    Note: The conditions in UAX#9 clause L4 must be tested by the
    caller.  */
-/* FIXME: exceedingly temporary!  Should consult the Unicode database
-   of character properties.  */
 int
 bidi_mirror_char (int c)
 {
-  static const char mirrored_pairs[] = "()<>[]{}";
-  const char *p = c > 0 && c < 128 ? strchr (mirrored_pairs, c) : NULL;
+  Lisp_Object val;
 
-  if (p)
+  if (c == BIDI_EOB)
+    return c;
+  if (c < 0 || c > MAX_CHAR)
+    abort ();
+
+  val = CHAR_TABLE_REF (bidi_mirror_table, c);
+  if (INTEGERP (val))
     {
-      size_t i = p - mirrored_pairs;
+      int v = XINT (val);
 
-      return mirrored_pairs [(i ^ 1)];
+      if (v < 0 || v > MAX_CHAR)
+	abort ();
+
+      return v;
     }
+
   return c;
 }
 
