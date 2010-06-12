@@ -1,3 +1,8 @@
+2010-06-12  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>  (tiny change)
+
+	* vc-svn.el (vc-svn-after-dir-status): Fix regexp for Subversions
+	older than version 1.6.  (Bug#6361)
+
 2010-06-12  Helmut Eller  <eller.helmut@gmail.com>
 
 	* emacs-lisp/cl-macs.el (destructuring-bind): Bind `bind-enquote',
