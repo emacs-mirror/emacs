@@ -7290,7 +7290,7 @@ with the relevant frame selected.  */);
 
   DEFVAR_LISP ("recenter-redisplay", &Vrecenter_redisplay,
 	       doc: /* If non-nil, then the `recenter' command with a nil argument
-the entire frame to be redrawn; the special value `tty' causes the
+will redraw the entire frame; the special value `tty' causes the
 frame to be redrawn only if it is a tty frame.  */);
   Vrecenter_redisplay = Qtty;
 

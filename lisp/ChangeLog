@@ -1,3 +1,7 @@
+2010-06-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (make-directory): Doc fix (bug#6396).
+
 2010-06-12  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-remote-process-environment): Protect version
