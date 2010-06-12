@@ -1,3 +1,8 @@
+2010-06-12  Helmut Eller  <eller.helmut@gmail.com>
+
+	* emacs-lisp/cl-macs.el (destructuring-bind): Bind `bind-enquote',
+	used by cl-do-arglist.  (Bug#6408)
+
 2010-06-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/advice.el (ad-compile-function):
