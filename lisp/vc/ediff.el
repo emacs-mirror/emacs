@@ -5,7 +5,7 @@
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Created: February 2, 1994
-;; Keywords: comparing, merging, patching, tools, unix
+;; Keywords: comparing, merging, patching, vc, tools, unix
 
 ;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this
 ;; file on 20/3/2008, and the maintainer agreed that when a bug is

@@ -1,3 +1,58 @@
+2010-06-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-remote-process-environment): Protect version
+	string by apostroph.
+	(tramp-shell-prompt-pattern): Do not use a shy group in case of
+	XEmacs.
+	(tramp-file-name-for-operation): Add `call-process-region'.
+	(tramp-set-process-query-on-exit-flag): Fix wrong parentheses.
+
+	* net/tramp-compat.el (top): Do not autoload
+	`tramp-handle-file-remote-p'.  Load tramp-util.el and tramp-vc.el
+	only when `start-file-process' is not bound.
+	(tramp-advice-file-expand-wildcards): Do not use
+	`tramp-handle-file-remote-p'.
+	(tramp-compat-make-temp-file): Handle the case, that
+	`make-temp-file' has no third argument EXTENSION.
+
+2010-06-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (WINS_BASIC): Include new directory vc.
+
+	* loadup.el ("vc-hooks", "ediff-hook"): Load from lisp/vc/.
+
+2010-06-11  Juri Linkov  <juri@jurta.org>
+
+	* finder.el (finder-known-keywords): Add keyword "vc"
+	for version control.
+
+	* add-log.el, cvs-status.el, diff.el, diff-mode.el, ediff.el,
+	* emerge.el, log-edit.el, log-view.el, pcvs.el, smerge-mode.el,
+	* vc-annotate.el, vc-bzr.el, vc-dir.el, vc-dispatcher.el, vc-git.el,
+	* vc-hg.el, vc-mtn.el, vc.el: Add keyword "vc".
+
+2010-06-11  Juri Linkov  <juri@jurta.org>
+
+	Move version control related files to the "vc" subdirectory.
+	* add-log.el, cvs-status.el, diff.el, diff-mode.el, ediff-diff.el,
+	* ediff.el, ediff-help.el, ediff-hook.el, ediff-init.el,
+	* ediff-merg.el, ediff-mult.el, ediff-ptch.el, ediff-util.el,
+	* ediff-vers.el, ediff-wind.el, emerge.el, log-edit.el, log-view.el,
+	* pcvs-defs.el, pcvs.el, pcvs-info.el, pcvs-parse.el, pcvs-util.el,
+	* smerge-mode.el, vc-annotate.el, vc-arch.el, vc-bzr.el, vc-cvs.el,
+	* vc-dav.el, vc-dir.el, vc-dispatcher.el, vc.el, vc-git.el,
+	* vc-hg.el, vc-hooks.el, vc-mtn.el, vc-rcs.el, vc-sccs.el, vc-svn.el:
+	Move files to the "vc" subdirectory.
+
+2010-06-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* comint.el (comint-password-prompt-regexp): Fix 2010-04-10 change
+	(Bug#6367).
+
+2010-06-11  Stephen Eglen  <stephen@gnu.org>
+
+	* shell.el: Bind `shell-resync-dirs' to M-RET.
+
 2010-06-10  Michael Albinus  <michael.albinus@gmx.de>
 
 	* notifications.el: Move file from lisp/net, because it is
@@ -7,7 +62,7 @@
 
 	* net/notifications.el (notifications-on-action-signal)
 	(notifications-on-closed-signal): Pass notification id as first
-	argument to the callback functions. Add docstrings.
+	argument to the callback functions.  Add docstrings.
 	(notifications-notify): Fix docstring.
 
 2010-06-10  Glenn Morris  <rgm@gnu.org>

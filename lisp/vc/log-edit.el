@@ -4,7 +4,7 @@
 ;;   2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
-;; Keywords: pcl-cvs cvs commit log
+;; Keywords: pcl-cvs cvs commit log vc
 
 ;; This file is part of GNU Emacs.
 

@@ -583,6 +583,7 @@ install-arch-indep: mkdir info install-etc
 	        ${INSTALL_DATA} $$f $(DESTDIR)${infodir}/$$f; \
 	        chmod a+r $(DESTDIR)${infodir}/$$f; \
 	        if [ -n "${GZIP_INFO}" ] && [ -n "${GZIP_PROG}" ]; then \
+	          rm -f $(DESTDIR)${infodir}/$$f.gz; \
 	          ${GZIP_PROG} -9n $(DESTDIR)${infodir}/$$f; \
 	        else true; fi; \
 	      done; \
@@ -606,6 +607,7 @@ install-arch-indep: mkdir info install-etc
 	   ${INSTALL_DATA} ${mansrcdir}/$${page} $(DESTDIR)${man1dir}/$${page}; \
 	   chmod a+r $(DESTDIR)${man1dir}/$${page}; \
 	   if [ -n "${GZIP_INFO}" ] && [ -n "${GZIP_PROG}" ]; then \
+	     rm -f $(DESTDIR)${man1dir}/$${page}.gz; \
 	     ${GZIP_PROG} -9n $(DESTDIR)${man1dir}/$${page}; \
 	   else true; fi ); \
 	done
