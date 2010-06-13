@@ -701,7 +701,15 @@ If CHAR is not a character, return nil."
 (defun eval-last-sexp-1 (eval-last-sexp-arg-internal)
   "Evaluate sexp before point; print value in minibuffer.
 With argument, print output into current buffer."
-  (let ((standard-output (if eval-last-sexp-arg-internal (current-buffer) t)))
+  (let ((standard-output (if eval-last-sexp-arg-internal (current-buffer) t))
+	;; preserve the current lexical environment
+	(internal-interpreter-environment internal-interpreter-environment))
+    ;; Setup the lexical environment if lexical-binding is enabled.
+    ;; Note that `internal-interpreter-environment' _can't_ be both
+    ;; assigned and let-bound above -- it's treated specially (and
+    ;; oddly) by the interpreter!
+    (when lexical-binding
+      (setq internal-interpreter-environment '(t)))
     (eval-last-sexp-print-value (eval (preceding-sexp)))))
 
 

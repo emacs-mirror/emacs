@@ -56,7 +56,7 @@ Lisp_Object Qfunction_documentation;
 /* A list of files used to build this Emacs binary.  */
 static Lisp_Object Vbuild_files;
 
-extern Lisp_Object Voverriding_local_map;
+extern Lisp_Object Voverriding_local_map, Qclosure;
 
 extern Lisp_Object Qremap;
 
@@ -385,6 +385,11 @@ string is passed through `substitute-command-keys'.  */)
       else
 	return Qnil;
     }
+  else if (FUNVECP (fun))
+    {
+      /* Unless otherwise handled, funvecs have no documentation.  */
+      return Qnil;
+    }
   else if (STRINGP (fun) || VECTORP (fun))
     {
       return build_string ("Keyboard macro.");
@@ -412,6 +417,8 @@ string is passed through `substitute-command-keys'.  */)
 	  else
 	    return Qnil;
 	}
+      else if (EQ (funcar, Qclosure))
+ 	return Fdocumentation (Fcdr (XCDR (fun)), raw);
       else if (EQ (funcar, Qmacro))
 	return Fdocumentation (Fcdr (fun), raw);
       else
@@ -542,6 +549,8 @@ store_function_docstring (fun, offset)
 	}
       else if (EQ (tem, Qmacro))
 	store_function_docstring (XCDR (fun), offset);
+      else if (EQ (tem, Qclosure))
+	store_function_docstring (Fcdr (XCDR (fun)), offset);
     }
 
   /* Bytecode objects sometimes have slots for it.  */

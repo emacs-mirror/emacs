@@ -1340,7 +1340,7 @@ print_preprocess (obj)
 
  loop:
   if (STRINGP (obj) || CONSP (obj) || VECTORP (obj)
-      || COMPILEDP (obj) || CHAR_TABLE_P (obj) || SUB_CHAR_TABLE_P (obj)
+      || FUNVECP (obj) || CHAR_TABLE_P (obj) || SUB_CHAR_TABLE_P (obj)
       || HASH_TABLE_P (obj)
       || (! NILP (Vprint_gensym)
 	  && SYMBOLP (obj)
@@ -1543,7 +1543,7 @@ print_object (obj, printcharfun, escapeflag)
 
   /* Detect circularities and truncate them.  */
   if (STRINGP (obj) || CONSP (obj) || VECTORP (obj)
-      || COMPILEDP (obj) || CHAR_TABLE_P (obj) || SUB_CHAR_TABLE_P (obj)
+      || FUNVECP (obj) || CHAR_TABLE_P (obj) || SUB_CHAR_TABLE_P (obj)
       || HASH_TABLE_P (obj)
       || (! NILP (Vprint_gensym)
 	  && SYMBOLP (obj)
@@ -2175,7 +2175,7 @@ print_object (obj, printcharfun, escapeflag)
       else
 	{
 	  EMACS_INT size = XVECTOR (obj)->size;
-	  if (COMPILEDP (obj))
+	  if (FUNVECP (obj))
 	    {
 	      PRINTCHAR ('#');
 	      size &= PSEUDOVECTOR_SIZE_MASK;

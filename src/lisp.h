@@ -344,7 +344,7 @@ enum pvec_type
   PVEC_NORMAL_VECTOR = 0,
   PVEC_PROCESS = 0x200,
   PVEC_FRAME = 0x400,
-  PVEC_COMPILED = 0x800,
+  PVEC_FUNVEC = 0x800,
   PVEC_WINDOW = 0x1000,
   PVEC_WINDOW_CONFIGURATION = 0x2000,
   PVEC_SUBR = 0x4000,
@@ -623,7 +623,7 @@ extern size_t pure_size;
 #define XSETWINDOW(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_WINDOW))
 #define XSETTERMINAL(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_TERMINAL))
 #define XSETSUBR(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_SUBR))
-#define XSETCOMPILED(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_COMPILED))
+#define XSETFUNVEC(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_FUNVEC))
 #define XSETBUFFER(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_BUFFER))
 #define XSETCHAR_TABLE(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_CHAR_TABLE))
 #define XSETBOOL_VECTOR(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_BOOL_VECTOR))
@@ -638,6 +638,9 @@ extern size_t pure_size;
   (eassert ((IDX) == (IDX)),				\
    eassert ((IDX) >= 0 && (IDX) < ASIZE (ARRAY)),	\
    AREF ((ARRAY), (IDX)) = (VAL))
+
+/* Return the size of the psuedo-vector object FUNVEC.  */
+#define FUNVEC_SIZE(funvec)	(ASIZE (funvec) & PSEUDOVECTOR_SIZE_MASK)
 
 /* Convenience macros for dealing with Lisp strings.  */
 
@@ -1020,6 +1023,10 @@ struct Lisp_Symbol
   /* Interned state of the symbol.  This is an enumerator from
      enum symbol_interned.  */
   unsigned interned : 2;
+  
+  /* Non-zero means that this variable has been explicitly declared
+     special (with `defvar' etc), and shouldn't be lexically bound.  */
+  unsigned declared_special : 1;
 
   /* The symbol's name, as a Lisp string.
 
@@ -1475,7 +1482,7 @@ struct Lisp_Float
 typedef unsigned char UCHAR;
 #endif
 
-/* Meanings of slots in a Lisp_Compiled:  */
+/* Meanings of slots in a byte-compiled function vector:  */
 
 #define COMPILED_ARGLIST 0
 #define COMPILED_BYTECODE 1
@@ -1483,6 +1490,25 @@ typedef unsigned char UCHAR;
 #define COMPILED_STACK_DEPTH 3
 #define COMPILED_DOC_STRING 4
 #define COMPILED_INTERACTIVE 5
+#define COMPILED_PUSH_ARGS 6
+
+/* Return non-zero if TAG, the first element from a funvec object, refers
+   to a byte-code object.  Byte-code objects are distinguished from other
+   `funvec' objects by having a (possibly empty) list as their first
+   element -- other funvec types use a non-nil symbol there.  */
+#define FUNVEC_COMPILED_TAG_P(tag)					      \
+  (NILP (tag) || CONSP (tag))
+
+/* Return non-zero if FUNVEC, which should be a `funvec' object, is a
+   byte-compiled function. Byte-compiled function are funvecs with the
+   arglist as the first element (other funvec types will have a symbol
+   identifying the type as the first object).  */
+#define FUNVEC_COMPILED_P(funvec)					      \
+  (FUNVEC_SIZE (funvec) > 0 && FUNVEC_COMPILED_TAG_P (AREF (funvec, 0)))
+
+/* Return non-zero if OBJ is byte-compile function.  */
+#define COMPILEDP(obj)							      \
+  (FUNVECP (obj) && FUNVEC_COMPILED_P (obj))
 
 /* Flag bits in a character.  These also get used in termhooks.h.
    Richard Stallman <rms@gnu.ai.mit.edu> thinks that MULE
@@ -1604,7 +1630,7 @@ typedef struct {
 #define WINDOWP(x) PSEUDOVECTORP (x, PVEC_WINDOW)
 #define TERMINALP(x) PSEUDOVECTORP (x, PVEC_TERMINAL)
 #define SUBRP(x) PSEUDOVECTORP (x, PVEC_SUBR)
-#define COMPILEDP(x) PSEUDOVECTORP (x, PVEC_COMPILED)
+#define FUNVECP(x) PSEUDOVECTORP (x, PVEC_FUNVEC)
 #define BUFFERP(x) PSEUDOVECTORP (x, PVEC_BUFFER)
 #define CHAR_TABLE_P(x) PSEUDOVECTORP (x, PVEC_CHAR_TABLE)
 #define SUB_CHAR_TABLE_P(x) PSEUDOVECTORP (x, PVEC_SUB_CHAR_TABLE)
@@ -1797,7 +1823,7 @@ typedef struct {
 #define FUNCTIONP(OBJ)					\
      ((CONSP (OBJ) && EQ (XCAR (OBJ), Qlambda))		\
       || (SYMBOLP (OBJ) && !NILP (Ffboundp (OBJ)))	\
-      || COMPILEDP (OBJ)				\
+      || FUNVECP (OBJ)					\
       || SUBRP (OBJ))
 
 /* defsubr (Sname);
@@ -2697,6 +2723,7 @@ EXFUN (Fmake_list, 2);
 extern Lisp_Object allocate_misc P_ ((void));
 EXFUN (Fmake_vector, 2);
 EXFUN (Fvector, MANY);
+EXFUN (Ffunvec, MANY);
 EXFUN (Fmake_symbol, 1);
 EXFUN (Fmake_marker, 0);
 EXFUN (Fmake_string, 2);
@@ -2715,6 +2742,7 @@ extern Lisp_Object make_pure_c_string (const char *data);
 extern Lisp_Object pure_cons P_ ((Lisp_Object, Lisp_Object));
 extern Lisp_Object make_pure_vector P_ ((EMACS_INT));
 EXFUN (Fgarbage_collect, 0);
+extern Lisp_Object make_funvec P_ ((Lisp_Object, int, int, Lisp_Object *));
 EXFUN (Fmake_byte_code, MANY);
 EXFUN (Fmake_bool_vector, 2);
 extern Lisp_Object Qchar_table_extra_slots;
@@ -2894,7 +2922,7 @@ extern Lisp_Object call5 P_ ((Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object
 extern Lisp_Object call6 P_ ((Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object));
 extern Lisp_Object call7 P_ ((Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object));
 EXFUN (Fdo_auto_save, 2);
-extern Lisp_Object apply_lambda P_ ((Lisp_Object, Lisp_Object, int));
+extern Lisp_Object apply_lambda P_ ((Lisp_Object, Lisp_Object, int, Lisp_Object));
 extern Lisp_Object internal_catch P_ ((Lisp_Object, Lisp_Object (*) (Lisp_Object), Lisp_Object));
 extern Lisp_Object internal_lisp_condition_case P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 extern Lisp_Object internal_condition_case P_ ((Lisp_Object (*) (void), Lisp_Object, Lisp_Object (*) (Lisp_Object)));
@@ -3312,11 +3340,13 @@ extern int read_bytecode_char P_ ((int));
 
 /* Defined in bytecode.c */
 extern Lisp_Object Qbytecode;
-EXFUN (Fbyte_code, 3);
+EXFUN (Fbyte_code, MANY);
 extern void syms_of_bytecode P_ ((void));
 extern struct byte_stack *byte_stack_list;
 extern void mark_byte_stack P_ ((void));
 extern void unmark_byte_stack P_ ((void));
+extern Lisp_Object exec_byte_code P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
+				       Lisp_Object, int, Lisp_Object *));
 
 /* Defined in macros.c */
 extern Lisp_Object Qexecute_kbd_macro;

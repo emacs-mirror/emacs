@@ -248,7 +248,7 @@ Programming Types
 * Macro Type::          A method of expanding an expression into another
                           expression, more fundamental but less pretty.
 * Primitive Function Type::     A function written in C, callable from Lisp.
-* Byte-Code Type::      A function written in Lisp, then compiled.
+* Funvec Type::         A vector type callable as a function.
 * Autoload Type::       A type used for automatically loading seldom-used
                           functions.
 
@@ -463,10 +463,11 @@ Functions
 * Inline Functions::	    Defining functions that the compiler
                               will open code.
 * Declaring Functions::	    Telling the compiler that a function is defined.
+* Function Currying::       Making wrapper functions that pre-specify
+                              some arguments.
 * Function Safety::         Determining whether a function is safe to call.
 * Related Topics::          Cross-references to specific Lisp primitives
-                              that have a special bearing on how
-                              functions work.
+                              that have a special bearing on how functions work.
 
 Lambda Expressions
 

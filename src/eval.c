@@ -62,6 +62,9 @@ Lisp_Object Qinhibit_quit, Vinhibit_quit, Vquit_flag;
 Lisp_Object Qand_rest, Qand_optional;
 Lisp_Object Qdebug_on_error;
 Lisp_Object Qdeclare;
+Lisp_Object Qcurry, Qunevalled;
+Lisp_Object Qinternal_interpreter_environment, Qclosure;
+
 Lisp_Object Qdebug;
 extern Lisp_Object Qinteractive_form;
 
@@ -77,6 +80,13 @@ Lisp_Object Vrun_hooks;
    (FUN . ODEF) for a defun, (0 . OFEATURES) for a provide.  */
 
 Lisp_Object Vautoload_queue;
+
+/* When lexical binding is being used, this is non-nil, and contains an
+   alist of lexically-bound variable, or t, indicating an empty
+   environment.  The lisp name of this variable is
+   `internal-interpreter-lexical-environment'.  */
+
+Lisp_Object Vinternal_interpreter_environment;
 
 /* Current number of specbindings allocated in specpdl.  */
 
@@ -167,10 +177,11 @@ int handling_signal;
 Lisp_Object Vmacro_declaration_function;
 
 extern Lisp_Object Qrisky_local_variable;
-
 extern Lisp_Object Qfunction;
 
-static Lisp_Object funcall_lambda P_ ((Lisp_Object, int, Lisp_Object*));
+static Lisp_Object funcall_lambda P_ ((Lisp_Object, int, Lisp_Object *,
+				       Lisp_Object));
+
 static void unwind_to_catch P_ ((struct catchtag *, Lisp_Object)) NO_RETURN;
 
 #if __GNUC__
@@ -504,7 +515,7 @@ usage: (setq [SYM VAL]...)  */)
      Lisp_Object args;
 {
   register Lisp_Object args_left;
-  register Lisp_Object val, sym;
+  register Lisp_Object val, sym, lex_binding;
   struct gcpro gcpro1;
 
   if (NILP (args))
@@ -517,7 +528,15 @@ usage: (setq [SYM VAL]...)  */)
     {
       val = Feval (Fcar (Fcdr (args_left)));
       sym = Fcar (args_left);
-      Fset (sym, val);
+
+      if (!NILP (Vinternal_interpreter_environment)
+	  && SYMBOLP (sym)
+	  && !XSYMBOL (sym)->declared_special
+	  && !NILP (lex_binding = Fassq (sym, Vinternal_interpreter_environment)))
+	XSETCDR (lex_binding, val); /* SYM is lexically bound.  */
+      else
+	Fset (sym, val);	/* SYM is dynamically bound.  */
+
       args_left = Fcdr (Fcdr (args_left));
     }
   while (!NILP(args_left));
@@ -545,9 +564,20 @@ usage: (function ARG)  */)
      (args)
      Lisp_Object args;
 {
+  Lisp_Object quoted = XCAR (args);
+
   if (!NILP (Fcdr (args)))
     xsignal2 (Qwrong_number_of_arguments, Qfunction, Flength (args));
-  return Fcar (args);
+
+  if (!NILP (Vinternal_interpreter_environment)
+      && CONSP (quoted)
+      && EQ (XCAR (quoted), Qlambda))
+    /* This is a lambda expression within a lexical environment;
+       return an interpreted closure instead of a simple lambda.  */
+    return Fcons (Qclosure, Fcons (Vinternal_interpreter_environment, quoted));
+  else
+    /* Simply quote the argument.  */
+    return quoted;
 }
 
 
@@ -570,7 +600,7 @@ spec that specifies non-nil unconditionally (such as \"p\"); or (ii)
 use `called-interactively-p'.  */)
      ()
 {
-  return (INTERACTIVE && interactive_p (1)) ? Qt : Qnil;
+  return interactive_p (1) ? Qt : Qnil;
 }
 
 
@@ -666,6 +696,8 @@ usage: (defun NAME ARGLIST [DOCSTRING] BODY...)  */)
   fn_name = Fcar (args);
   CHECK_SYMBOL (fn_name);
   defn = Fcons (Qlambda, Fcdr (args));
+  if (! NILP (Vinternal_interpreter_environment))
+    defn = Fcons (Qclosure, Fcons (Vinternal_interpreter_environment, defn));
   if (!NILP (Vpurify_flag))
     defn = Fpurecopy (defn);
   if (CONSP (XSYMBOL (fn_name)->function)
@@ -738,7 +770,11 @@ usage: (defmacro NAME ARGLIST [DOCSTRING] [DECL] BODY...)  */)
     tail = Fcons (lambda_list, tail);
   else
     tail = Fcons (lambda_list, Fcons (doc, tail));
-  defn = Fcons (Qmacro, Fcons (Qlambda, tail));
+  
+  defn = Fcons (Qlambda, tail);
+  if (! NILP (Vinternal_interpreter_environment))
+    defn = Fcons (Qclosure, Fcons (Vinternal_interpreter_environment, defn));
+  defn = Fcons (Qmacro, defn);
 
   if (!NILP (Vpurify_flag))
     defn = Fpurecopy (defn);
@@ -799,6 +835,7 @@ The return value is BASE-VARIABLE.  */)
 	error ("Don't know how to make a let-bound variable an alias");
   }
 
+  sym->declared_special = 1;
   sym->redirect = SYMBOL_VARALIAS;
   SET_SYMBOL_ALIAS (sym, XSYMBOL (base_variable));
   sym->constant = SYMBOL_CONSTANT_P (base_variable);
@@ -889,6 +926,9 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
        It could get in the way of other definitions, and unloading this
        package could try to make the variable unbound.  */
     ;
+    
+  if (SYMBOLP (sym))
+    XSYMBOL (sym)->declared_special = 1;
 
   return sym;
 }
@@ -918,6 +958,7 @@ usage: (defconst SYMBOL INITVALUE [DOCSTRING])  */)
   if (!NILP (Vpurify_flag))
     tem = Fpurecopy (tem);
   Fset_default (sym, tem);
+  XSYMBOL (sym)->declared_special = 1;
   tem = Fcar (Fcdr (Fcdr (args)));
   if (!NILP (tem))
     {
@@ -1006,30 +1047,50 @@ usage: (let* VARLIST BODY...)  */)
      (args)
      Lisp_Object args;
 {
-  Lisp_Object varlist, val, elt;
+  Lisp_Object varlist, var, val, elt, lexenv;
   int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3;
 
   GCPRO3 (args, elt, varlist);
 
+  lexenv = Vinternal_interpreter_environment;
+
   varlist = Fcar (args);
-  while (!NILP (varlist))
+  while (CONSP (varlist))
     {
       QUIT;
-      elt = Fcar (varlist);
+
+      elt = XCAR (varlist);
       if (SYMBOLP (elt))
-	specbind (elt, Qnil);
+	{
+	  var = elt;
+	  val = Qnil;
+	}
       else if (! NILP (Fcdr (Fcdr (elt))))
 	signal_error ("`let' bindings can have only one value-form", elt);
       else
 	{
+	  var = Fcar (elt);
 	  val = Feval (Fcar (Fcdr (elt)));
-	  specbind (Fcar (elt), val);
 	}
-      varlist = Fcdr (varlist);
+
+      if (!NILP (lexenv) && SYMBOLP (var) && !XSYMBOL (var)->declared_special)
+	/* Lexically bind VAR by adding it to the interpreter's binding
+	   alist.  */
+	{
+	  lexenv = Fcons (Fcons (var, val), lexenv);
+	  specbind (Qinternal_interpreter_environment, lexenv);
+	}
+      else
+	specbind (var, val);
+
+      varlist = XCDR (varlist);
     }
+
   UNGCPRO;
+
   val = Fprogn (Fcdr (args));
+
   return unbind_to (count, val);
 }
 
@@ -1043,7 +1104,7 @@ usage: (let VARLIST BODY...)  */)
      (args)
      Lisp_Object args;
 {
-  Lisp_Object *temps, tem;
+  Lisp_Object *temps, tem, lexenv;
   register Lisp_Object elt, varlist;
   int count = SPECPDL_INDEX ();
   register int argnum;
@@ -1074,18 +1135,31 @@ usage: (let VARLIST BODY...)  */)
     }
   UNGCPRO;
 
+  lexenv = Vinternal_interpreter_environment;
+
   varlist = Fcar (args);
   for (argnum = 0; CONSP (varlist); varlist = XCDR (varlist))
     {
+      Lisp_Object var;
+
       elt = XCAR (varlist);
+      var = SYMBOLP (elt) ? elt : Fcar (elt);
       tem = temps[argnum++];
-      if (SYMBOLP (elt))
-	specbind (elt, tem);
+
+      if (!NILP (lexenv) && SYMBOLP (var) && !XSYMBOL (var)->declared_special)
+	/* Lexically bind VAR by adding it to the lexenv alist.  */
+	lexenv = Fcons (Fcons (var, tem), lexenv);
       else
-	specbind (Fcar (elt), tem);
+	/* Dynamically bind VAR.  */
+	specbind (var, tem);
     }
 
+  if (!EQ (lexenv, Vinternal_interpreter_environment))
+    /* Instantiate a new lexical environment.  */
+    specbind (Qinternal_interpreter_environment, lexenv);
+
   elt = Fprogn (Fcdr (args));
+
   return unbind_to (count, elt);
 }
 
@@ -2292,7 +2366,28 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
     abort ();
 
   if (SYMBOLP (form))
-    return Fsymbol_value (form);
+    {
+      /* If there's an active lexical environment, and the variable
+	 isn't declared special, look up its binding in the lexical
+	 environment.  */
+      if (!NILP (Vinternal_interpreter_environment)
+	  && !XSYMBOL (form)->declared_special)
+	{
+	  Lisp_Object lex_binding
+	    = Fassq (form, Vinternal_interpreter_environment);
+
+	  /* If we found a lexical binding for FORM, return the value.
+	     Otherwise, we just drop through and look for a dynamic
+	     binding -- the variable isn't declared special, but there's
+	     not much else we can do, and Fsymbol_value will take care
+	     of signaling an error if there is no binding at all.  */
+	  if (CONSP (lex_binding))
+	    return XCDR (lex_binding);
+	}
+      
+      return Fsymbol_value (form);
+    }
+
   if (!CONSP (form))
     return form;
 
@@ -2452,8 +2547,8 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
 	  abort ();
 	}
     }
-  if (COMPILEDP (fun))
-    val = apply_lambda (fun, original_args, 1);
+  if (FUNVECP (fun))
+    val = apply_lambda (fun, original_args, 1, Qnil);
   else
     {
       if (EQ (fun, Qunbound))
@@ -2471,7 +2566,18 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
       if (EQ (funcar, Qmacro))
 	val = Feval (apply1 (Fcdr (fun), original_args));
       else if (EQ (funcar, Qlambda))
-	val = apply_lambda (fun, original_args, 1);
+	val = apply_lambda (fun, original_args, 1,
+			    /* Only pass down the current lexical environment
+			       if FUN is lexically embedded in FORM.  */
+			    (CONSP (original_fun)
+			     ? Vinternal_interpreter_environment
+			     : Qnil));
+      else if (EQ (funcar, Qclosure)
+	       && CONSP (XCDR (fun))
+	       && CONSP (XCDR (XCDR (fun)))
+	       && EQ (XCAR (XCDR (XCDR (fun))), Qlambda))
+	val = apply_lambda (XCDR (XCDR (fun)), original_args, 1,
+			    XCAR (XCDR (fun)));
       else
 	xsignal1 (Qinvalid_function, original_fun);
     }
@@ -2981,6 +3087,40 @@ call7 (fn, arg1, arg2, arg3, arg4, arg5, arg6, arg7)
 
 /* The caller should GCPRO all the elements of ARGS.  */
 
+DEFUN ("functionp", Ffunctionp, Sfunctionp, 1, 1, 0,
+       doc: /* Return non-nil if OBJECT is a type of object that can be called as a function.  */)
+     (object)
+     Lisp_Object object;
+{
+  if (SYMBOLP (object) && !NILP (Ffboundp (object)))
+    {
+      object = Findirect_function (object, Qnil);
+
+      if (CONSP (object) && EQ (XCAR (object), Qautoload))
+	{
+	  /* Autoloaded symbols are functions, except if they load
+	     macros or keymaps.  */
+	  int i;
+	  for (i = 0; i < 4 && CONSP (object); i++)
+	    object = XCDR (object);
+
+	  return (CONSP (object) && !NILP (XCAR (object))) ? Qnil : Qt;
+	}
+    }
+
+  if (SUBRP (object))
+    return (XSUBR (object)->max_args != Qunevalled) ? Qt : Qnil;
+  else if (FUNVECP (object))
+    return Qt;
+  else if (CONSP (object))
+    {
+      Lisp_Object car = XCAR (object);
+      return (EQ (car, Qlambda) || EQ (car, Qclosure)) ? Qt : Qnil;
+    }
+  else
+    return Qnil;
+}
+
 DEFUN ("funcall", Ffuncall, Sfuncall, 1, MANY, 0,
        doc: /* Call first argument as a function, passing remaining arguments to it.
 Return the value that function returns.
@@ -3115,8 +3255,9 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 	  abort ();
 	}
     }
-  if (COMPILEDP (fun))
-    val = funcall_lambda (fun, numargs, args + 1);
+
+  if (FUNVECP (fun))
+    val = funcall_lambda (fun, numargs, args + 1, Qnil);
   else
     {
       if (EQ (fun, Qunbound))
@@ -3127,7 +3268,13 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
       if (!SYMBOLP (funcar))
 	xsignal1 (Qinvalid_function, original_fun);
       if (EQ (funcar, Qlambda))
-	val = funcall_lambda (fun, numargs, args + 1);
+	val = funcall_lambda (fun, numargs, args + 1, Qnil);
+      else if (EQ (funcar, Qclosure)
+	       && CONSP (XCDR (fun))
+	       && CONSP (XCDR (XCDR (fun)))
+	       && EQ (XCAR (XCDR (XCDR (fun))), Qlambda))
+	val = funcall_lambda (XCDR (XCDR (fun)), numargs, args + 1,
+			      XCAR (XCDR (fun)));
       else if (EQ (funcar, Qautoload))
 	{
 	  do_autoload (fun, original_fun);
@@ -3147,9 +3294,10 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 }
 
 Lisp_Object
-apply_lambda (fun, args, eval_flag)
+apply_lambda (fun, args, eval_flag, lexenv)
      Lisp_Object fun, args;
      int eval_flag;
+     Lisp_Object lexenv;
 {
   Lisp_Object args_left;
   Lisp_Object numargs;
@@ -3181,7 +3329,7 @@ apply_lambda (fun, args, eval_flag)
       backtrace_list->nargs = i;
     }
   backtrace_list->evalargs = 0;
-  tem = funcall_lambda (fun, XINT (numargs), arg_vector);
+  tem = funcall_lambda (fun, XINT (numargs), arg_vector, lexenv);
 
   /* Do the debug-on-exit now, while arg_vector still exists.  */
   if (backtrace_list->debug_on_exit)
@@ -3191,19 +3339,99 @@ apply_lambda (fun, args, eval_flag)
   return tem;
 }
 
+
+/* Call a non-bytecode funvec object FUN, on the argments in ARGS (of
+   length NARGS).  */
+
+static Lisp_Object
+funcall_funvec (fun, nargs, args)
+     Lisp_Object fun;
+     int nargs;
+     Lisp_Object *args;
+{
+  int size = FUNVEC_SIZE (fun);
+  Lisp_Object tag = (size > 0 ? AREF (fun, 0) : Qnil);
+
+  if (EQ (tag, Qcurry))
+    {
+      /* A curried function is a way to attach arguments to a another
+	 function. The first element of the vector is the identifier
+	 `curry', the second is the wrapped function, and remaining
+	 elements are the attached arguments.  */
+      int num_curried_args = size - 2;
+      /* Offset of the curried and user args in the final arglist.  Curried
+	 args are first in the new arg vector, after the function.  User
+	 args follow.  */
+      int curried_args_offs = 1;
+      int user_args_offs = curried_args_offs + num_curried_args;
+      /* The curried function and arguments.  */
+      Lisp_Object *curry_params = XVECTOR (fun)->contents + 1;
+      /* The arguments in the curry vector.  */
+      Lisp_Object *curried_args = curry_params + 1;
+      /* The number of arguments with which we'll call funcall, and the
+	 arguments themselves.  */
+      int num_funcall_args = 1 + num_curried_args + nargs;
+      Lisp_Object *funcall_args
+	= (Lisp_Object *) alloca (num_funcall_args * sizeof (Lisp_Object));
+
+      /* First comes the real function.  */
+      funcall_args[0] = curry_params[0];
+
+      /* Then the arguments in the appropriate order.  */
+      bcopy (curried_args, funcall_args + curried_args_offs,
+	     num_curried_args * sizeof (Lisp_Object));
+      bcopy (args, funcall_args + user_args_offs,
+	     nargs * sizeof (Lisp_Object));
+
+      return Ffuncall (num_funcall_args, funcall_args);
+    }
+  else
+    xsignal1 (Qinvalid_function, fun);
+}
+
+
 /* Apply a Lisp function FUN to the NARGS evaluated arguments in ARG_VECTOR
    and return the result of evaluation.
    FUN must be either a lambda-expression or a compiled-code object.  */
 
 static Lisp_Object
-funcall_lambda (fun, nargs, arg_vector)
+funcall_lambda (fun, nargs, arg_vector, lexenv)
      Lisp_Object fun;
      int nargs;
      register Lisp_Object *arg_vector;
+     Lisp_Object lexenv;
 {
   Lisp_Object val, syms_left, next;
   int count = SPECPDL_INDEX ();
   int i, optional, rest;
+
+  if (COMPILEDP (fun)
+      && FUNVEC_SIZE (fun) > COMPILED_PUSH_ARGS
+      && ! NILP (XVECTOR (fun)->contents[COMPILED_PUSH_ARGS]))
+    /* A byte-code object with a non-nil `push args' slot means we
+       shouldn't bind any arguments, instead just call the byte-code
+       interpreter directly; it will push arguments as necessary.
+
+       Byte-code objects with either a non-existant, or a nil value for
+       the `push args' slot (the default), have dynamically-bound
+       arguments, and use the argument-binding code below instead (as do
+       all interpreted functions, even lexically bound ones).  */
+    {
+      /* If we have not actually read the bytecode string
+	 and constants vector yet, fetch them from the file.  */
+      if (CONSP (AREF (fun, COMPILED_BYTECODE)))
+	Ffetch_bytecode (fun);
+      return exec_byte_code (AREF (fun, COMPILED_BYTECODE),
+			     AREF (fun, COMPILED_CONSTANTS),
+			     AREF (fun, COMPILED_STACK_DEPTH),
+			     AREF (fun, COMPILED_ARGLIST),
+			     nargs, arg_vector);
+    }
+
+  if (FUNVECP (fun) && !FUNVEC_COMPILED_P (fun))
+    /* Byte-compiled functions are handled directly below, but we
+       call other funvec types via funcall_funvec.  */
+    return funcall_funvec (fun, nargs, arg_vector);
 
   if (CONSP (fun))
     {
@@ -3236,18 +3464,37 @@ funcall_lambda (fun, nargs, arg_vector)
 	  specbind (next, Flist (nargs - i, &arg_vector[i]));
 	  i = nargs;
 	}
-      else if (i < nargs)
-	specbind (next, arg_vector[i++]);
-      else if (!optional)
-	xsignal2 (Qwrong_number_of_arguments, fun, make_number (nargs));
       else
-	specbind (next, Qnil);
+	{
+	  Lisp_Object val;
+
+	  /* Get the argument's actual value.  */
+	  if (i < nargs)
+	    val = arg_vector[i++];
+	  else if (!optional)
+	    xsignal2 (Qwrong_number_of_arguments, fun, make_number (nargs));
+	  else
+	    val = Qnil;
+
+	  /* Bind the argument.  */
+	  if (!NILP (lexenv)
+	      && SYMBOLP (next) && !XSYMBOL (next)->declared_special)
+	    /* Lexically bind NEXT by adding it to the lexenv alist.  */
+	    lexenv = Fcons (Fcons (next, val), lexenv);
+	  else
+	    /* Dynamically bind NEXT.  */
+	    specbind (next, val);
+	}
     }
 
   if (!NILP (syms_left))
     xsignal1 (Qinvalid_function, fun);
   else if (i < nargs)
     xsignal2 (Qwrong_number_of_arguments, fun, make_number (nargs));
+
+  if (!EQ (lexenv, Vinternal_interpreter_environment))
+    /* Instantiate a new lexical environment.  */
+    specbind (Qinternal_interpreter_environment, lexenv);
 
   if (CONSP (fun))
     val = Fprogn (XCDR (XCDR (fun)));
@@ -3257,9 +3504,10 @@ funcall_lambda (fun, nargs, arg_vector)
 	 and constants vector yet, fetch them from the file.  */
       if (CONSP (AREF (fun, COMPILED_BYTECODE)))
 	Ffetch_bytecode (fun);
-      val = Fbyte_code (AREF (fun, COMPILED_BYTECODE),
-			AREF (fun, COMPILED_CONSTANTS),
-			AREF (fun, COMPILED_STACK_DEPTH));
+      val = exec_byte_code (AREF (fun, COMPILED_BYTECODE),
+			    AREF (fun, COMPILED_CONSTANTS),
+			    AREF (fun, COMPILED_STACK_DEPTH),
+			    Qnil, 0, 0);
     }
 
   return unbind_to (count, val);
@@ -3502,7 +3750,42 @@ unbind_to (count, value)
   UNGCPRO;
   return value;
 }
+
 
+
+DEFUN ("specialp", Fspecialp, Sspecialp, 1, 1, 0,
+       doc: /* Return non-nil if SYMBOL's global binding has been declared special.
+A special variable is one that will be bound dynamically, even in a
+context where binding is lexical by default.  */)
+  (symbol)
+     Lisp_Object symbol;
+{
+   CHECK_SYMBOL (symbol);
+   return XSYMBOL (symbol)->declared_special ? Qt : Qnil;
+}
+
+
+
+DEFUN ("curry", Fcurry, Scurry, 1, MANY, 0,
+       doc: /* Return FUN curried with ARGS.
+The result is a function-like object that will append any arguments it
+is called with to ARGS, and call FUN with the resulting list of arguments.
+
+For instance:
+  (funcall (curry '+ 3 4 5) 2) is the same as (funcall '+ 3 4 5 2)
+and:
+  (mapcar (curry 'concat "The ") '("a" "b" "c"))
+  => ("The a" "The b" "The c")
+
+usage: (curry FUN &rest ARGS)  */)
+     (nargs, args)
+     register int nargs;
+     Lisp_Object *args;
+{
+  return make_funvec (Qcurry, 0, nargs, args);
+}
+
+
 DEFUN ("backtrace-debug", Fbacktrace_debug, Sbacktrace_debug, 2, 2, 0,
        doc: /* Set the debug-on-exit flag of eval frame LEVEL levels down to FLAG.
 The debugger is entered when that frame exits, if the flag is non-nil.  */)
@@ -3713,6 +3996,15 @@ before making `inhibit-quit' nil.  */);
   Qand_optional = intern_c_string ("&optional");
   staticpro (&Qand_optional);
 
+  Qclosure = intern_c_string ("closure");
+  staticpro (&Qclosure);
+
+  Qcurry = intern_c_string ("curry");
+  staticpro (&Qcurry);
+
+  Qunevalled = intern_c_string ("unevalled");
+  staticpro (&Qunevalled);
+
   Qdebug = intern_c_string ("debug");
   staticpro (&Qdebug);
 
@@ -3788,6 +4080,17 @@ DECL is a list `(declare ...)' containing the declarations.
 The value the function returns is not used.  */);
   Vmacro_declaration_function = Qnil;
 
+  Qinternal_interpreter_environment
+    = intern_c_string ("internal-interpreter-environment");
+  staticpro (&Qinternal_interpreter_environment);
+  DEFVAR_LISP ("internal-interpreter-environment",
+	       &Vinternal_interpreter_environment,
+	       doc: /* If non-nil, the current lexical environment of the lisp interpreter.
+When lexical binding is not being used, this variable is nil.
+A value of `(t)' indicates an empty environment, otherwise it is an
+alist of active lexical bindings.  */);
+  Vinternal_interpreter_environment = Qnil;
+
   Vrun_hooks = intern_c_string ("run-hooks");
   staticpro (&Vrun_hooks);
 
@@ -3833,9 +4136,13 @@ The value the function returns is not used.  */);
   defsubr (&Srun_hook_with_args_until_success);
   defsubr (&Srun_hook_with_args_until_failure);
   defsubr (&Sfetch_bytecode);
+  defsubr (&Scurry);
   defsubr (&Sbacktrace_debug);
   defsubr (&Sbacktrace);
   defsubr (&Sbacktrace_frame);
+  defsubr (&Scurry);
+  defsubr (&Sspecialp);
+  defsubr (&Sfunctionp);
 }
 
 /* arch-tag: 014a07aa-33ab-4a8f-a3d2-ee8a4a9ff7fb

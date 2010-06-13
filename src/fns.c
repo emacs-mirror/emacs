@@ -149,8 +149,8 @@ To get the number of bytes, use `string-bytes'.  */)
     XSETFASTINT (val, MAX_CHAR);
   else if (BOOL_VECTOR_P (sequence))
     XSETFASTINT (val, XBOOL_VECTOR (sequence)->size);
-  else if (COMPILEDP (sequence))
-    XSETFASTINT (val, ASIZE (sequence) & PSEUDOVECTOR_SIZE_MASK);
+  else if (FUNVECP (sequence))
+    XSETFASTINT (val, FUNVEC_SIZE (sequence));
   else if (CONSP (sequence))
     {
       i = 0;
@@ -535,7 +535,7 @@ concat (nargs, args, target_type, last_special)
     {
       this = args[argnum];
       if (!(CONSP (this) || NILP (this) || VECTORP (this) || STRINGP (this)
-	    || COMPILEDP (this) || BOOL_VECTOR_P (this)))
+	    || FUNVECP (this) || BOOL_VECTOR_P (this)))
 	wrong_type_argument (Qsequencep, this);
     }
 
@@ -559,7 +559,7 @@ concat (nargs, args, target_type, last_special)
 	  Lisp_Object ch;
 	  int this_len_byte;
 
-	  if (VECTORP (this))
+	  if (VECTORP (this) || FUNVECP (this))
 	    for (i = 0; i < len; i++)
 	      {
 		ch = AREF (this, i);
@@ -1383,7 +1383,9 @@ DEFUN ("elt", Felt, Selt, 2, 2, 0,
     return Fcar (Fnthcdr (n, sequence));
 
   /* Faref signals a "not array" error, so check here.  */
-  CHECK_ARRAY (sequence, Qsequencep);
+  if (! FUNVECP (sequence))
+    CHECK_ARRAY (sequence, Qsequencep);
+
   return Faref (sequence, n);
 }
 
@@ -2199,13 +2201,14 @@ internal_equal (o1, o2, depth, props)
 	if (WINDOW_CONFIGURATIONP (o1))
 	  return compare_window_configurations (o1, o2, 0);
 
-	/* Aside from them, only true vectors, char-tables, compiled
-	   functions, and fonts (font-spec, font-entity, font-ojbect)
-	   are sensible to compare, so eliminate the others now.  */
+	/* Aside from them, only true vectors, char-tables, function vectors,
+	   and fonts (font-spec, font-entity, font-ojbect) are sensible to
+	   compare, so eliminate the others now.  */
 	if (size & PSEUDOVECTOR_FLAG)
 	  {
-	    if (!(size & (PVEC_COMPILED
-			  | PVEC_CHAR_TABLE | PVEC_SUB_CHAR_TABLE | PVEC_FONT)))
+	    if (!(size & (PVEC_FUNVEC
+			  | PVEC_CHAR_TABLE | PVEC_SUB_CHAR_TABLE
+			  | PVEC_FONT)))
 	      return 0;
 	    size &= PSEUDOVECTOR_SIZE_MASK;
 	  }
@@ -2416,7 +2419,7 @@ mapcar1 (leni, vals, fn, seq)
     1) lists are not relocated and 2) the list is marked via `seq' so will not
     be freed */
 
-  if (VECTORP (seq))
+  if (VECTORP (seq) || FUNVECP (seq))
     {
       for (i = 0; i < leni; i++)
 	{

@@ -1,0 +1,10 @@
+2004-05-20  Miles Bader  <miles@gnu.org>
+
+	* subr.el (functionp): Use `funvecp' instead of
+	`byte-compiled-function-p'.
+	* help-fns.el (describe-function-1): Describe curried functions
+	and other funvecs as such.
+	(help-highlight-arguments): Only format things that look like a
+	function.
+
+;; arch-tag: 87f75aac-de53-40d7-96c7-3befaa771cb1

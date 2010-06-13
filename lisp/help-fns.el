@@ -100,6 +100,8 @@ ARGLIST can also be t or a string of the form \"(FUN ARG1 ARG2 ...)\"."
   (if (and (symbolp def) (fboundp def)) (setq def (indirect-function def)))
   ;; If definition is a macro, find the function inside it.
   (if (eq (car-safe def) 'macro) (setq def (cdr def)))
+  ;; and do the same for interpreted closures
+  (if (eq (car-safe def) 'closure) (setq def (cddr def)))
   (cond
    ((byte-code-function-p def) (aref def 0))
    ((eq (car-safe def) 'lambda) (nth 1 def))
@@ -190,7 +192,7 @@ if the variable `help-downcase-arguments' is non-nil."
                  doc t t 1)))))
 
 (defun help-highlight-arguments (usage doc &rest args)
-  (when usage
+  (when (and usage (string-match "^(" usage))
     (with-temp-buffer
       (insert usage)
       (goto-char (point-min))
@@ -347,8 +349,7 @@ suitable file is found, return nil."
          (pt1 (with-current-buffer (help-buffer) (point)))
 	 errtype)
     (setq string
-	  (cond ((or (stringp def)
-		     (vectorp def))
+	  (cond ((or (stringp def) (vectorp def))
 		 "a keyboard macro")
 		((subrp def)
 		 (if (eq 'unevalled (cdr (subr-arity def)))
@@ -356,6 +357,13 @@ suitable file is found, return nil."
 		   (concat beg "built-in function")))
 		((byte-code-function-p def)
 		 (concat beg "compiled Lisp function"))
+		((and (funvecp def) (eq (aref def 0) 'curry))
+		 (if (symbolp (aref def 1))
+		     (format "a curried function calling `%s'" (aref def 1))
+		   "a curried function"))
+		((funvecp def)
+		 (format "a function-vector (funvec) of type `%s'"
+			 (aref def 0)))
 		((symbolp def)
 		 (while (and (fboundp def)
 			     (symbolp (symbol-function def)))
@@ -367,6 +375,8 @@ suitable file is found, return nil."
 		 (concat beg "Lisp function"))
 		((eq (car-safe def) 'macro)
 		 "a Lisp macro")
+		((eq (car-safe def) 'closure)
+		 (concat beg "Lisp closure"))
 		((eq (car-safe def) 'autoload)
 		 (format "%s autoloaded %s"
 			 (if (commandp def) "an interactive" "an")
@@ -494,27 +504,42 @@ suitable file is found, return nil."
 			 ((or (stringp def)
 			      (vectorp def))
 			  (format "\nMacro: %s" (format-kbd-macro def)))
+			 ((and (funvecp def) (eq (aref def 0) 'curry))
+			  ;; Describe a curried-function's function and args
+			  (let ((slot 0))
+			    (mapconcat (lambda (arg)
+					 (setq slot (1+ slot))
+					 (cond
+					  ((= slot 1) "")
+					  ((= slot 2)
+					   (format "  Function: %S" arg))
+					  (t
+					   (format "Argument %d: %S"
+						   (- slot 3) arg))))
+				       def
+				       "\n")))
+			 ((funvecp def) nil)
 			 (t "[Missing arglist.  Please make a bug report.]")))
 		   (high (help-highlight-arguments use doc)))
 	      (let ((fill-begin (point)))
 		(insert (car high) "\n")
-		(fill-region fill-begin (point)))
-	      (setq doc (cdr high))))
-	  (let* ((obsolete (and
-			    ;; function might be a lambda construct.
-			    (symbolp function)
-			    (get function 'byte-obsolete-info)))
-		 (use (car obsolete)))
-	    (when obsolete
-	      (princ "\nThis function is obsolete")
-	      (when (nth 2 obsolete)
-		(insert (format " since %s" (nth 2 obsolete))))
-	      (insert (cond ((stringp use) (concat ";\n" use))
-			    (use (format ";\nuse `%s' instead." use))
-			    (t "."))
-		      "\n"))
-	    (insert "\n"
-		    (or doc "Not documented."))))))))
+		(fill-region fill-begin (point))))
+            (setq doc (cdr high))))
+	(let* ((obsolete (and
+			  ;; function might be a lambda construct.
+			  (symbolp function)
+			  (get function 'byte-obsolete-info)))
+	       (use (car obsolete)))
+	  (when obsolete
+	    (princ "\nThis function is obsolete")
+	    (when (nth 2 obsolete)
+	      (insert (format " since %s" (nth 2 obsolete))))
+	    (insert (cond ((stringp use) (concat ";\n" use))
+			  (use (format ";\nuse `%s' instead." use))
+			  (t "."))
+		    "\n"))
+	  (insert "\n"
+		  (or doc "Not documented.")))))))
 
 
 ;; Variables

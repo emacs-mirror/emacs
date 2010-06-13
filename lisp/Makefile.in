@@ -71,6 +71,13 @@ AUTOGENEL = loaddefs.el \
 	cedet/ede/loaddefs.el \
 	cedet/srecode/loaddefs.el
 
+# Value of max-lisp-eval-depth when compiling initially.
+# During bootstrapping the byte-compiler is run interpreted when compiling
+# itself, and uses more stack than usual.
+#
+BIG_STACK_DEPTH = 1000
+BIG_STACK_OPTS = --eval "(setq max-lisp-eval-depth $(BIG_STACK_DEPTH))"
+
 # Files to compile before others during a bootstrap.  This is done to
 # speed up the bootstrap process.
 
@@ -195,7 +202,7 @@ compile-onefile:
 	@echo Compiling $(THEFILE)
 	@# Use byte-compile-refresh-preloaded to try and work around some of
 	@# the most common bootstrapping problems.
-	@$(emacs) -l bytecomp -f byte-compile-refresh-preloaded $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $(THEFILE)
+	@$(emacs) -l bytecomp.el -f byte-compile-refresh-preloaded $(BIG_STACK_OPTS) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $(THEFILE)
 
 # Files MUST be compiled one by one. If we compile several files in a
 # row (i.e., in the same instance of Emacs) we can't make sure that
