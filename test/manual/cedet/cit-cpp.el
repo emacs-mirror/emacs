@@ -3,7 +3,7 @@
 ;; Copyright (C) 2008, 2009, 2010 Eric M. Ludlam
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
-;; X-RCS: $Id: cit-cpp.el,v 1.12 2010-05-16 13:32:27 zappo Exp $
+;; X-RCS: $Id: cit-cpp.el,v 1.13 2010-06-13 01:14:46 zappo Exp $
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -72,7 +72,7 @@
 (defvar cit-src-cpp-tags
   (list
    (semantic-tag-new-include "stdio.h" nil)
-   (semantic-tag-new-include "foo.hh" nil)
+   (semantic-tag-new-include "foo.hpp" nil)
    (semantic-tag-new-function
     "doSomethingPublic" "void"
     (list (semantic-tag-new-variable "ctxt" "int")
@@ -107,7 +107,7 @@
 
 (defvar cit-main-cpp-tags
   (list
-   (semantic-tag-new-include "foo.hh" nil)
+   (semantic-tag-new-include "foo.hpp" nil)
    (semantic-tag-new-include "string.h" nil)
    (semantic-tag-new-function
     "main" "int"
@@ -134,7 +134,7 @@ MAKE-TYPE is the type of make process to use."
 
   ;; 2 b) Test various templates.
 
-  (cit-srecode-fill-with-stuff "include/foo.hh" cit-header-cpp-tags)
+  (cit-srecode-fill-with-stuff "include/foo.hpp" cit-header-cpp-tags)
   (ede-new make-type "Includes")
   ;; 1 e) Tell EDE where the srcs are
   (ede-new-target "Includes" "miscellaneous" "n")
