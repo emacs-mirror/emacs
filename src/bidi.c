@@ -230,10 +230,10 @@ bidi_get_category (bidi_type_t type)
     }
 }
 
-/* Return the mirrored character of C, if any.
-
-   Note: The conditions in UAX#9 clause L4 must be tested by the
-   caller.  */
+/* Return the mirrored character of C, if it has one.  If C has no
+   mirrored counterpart, return C.
+   Note: The conditions in UAX#9 clause L4 regarding the surrounding
+   context must be tested by the caller.  */
 int
 bidi_mirror_char (int c)
 {
