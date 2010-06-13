@@ -3,7 +3,7 @@
 ;; Copyright (C) 2010 Eric M. Ludlam
 ;;
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
-;; X-RCS: $Id: cit-symref.el,v 1.1 2010-04-18 00:33:36 zappo Exp $
+;; X-RCS: $Id: cit-symref.el,v 1.2 2010-06-13 01:12:27 zappo Exp $
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -32,36 +32,53 @@
 
 (defun cit-symref ()
   "Test the symref tool."
-  ;; Start in a C++ file.
-  (find-file (cit-file "src/main.cpp"))
+  (save-excursion
+    ;; Start in a C++ file.
+    (find-file (cit-file "src/main.cpp"))
 
-  (let* ((target (car cit-symref-operations))
-	 (dest (car (cdr cit-symref-operations)))
-	 )
+    (let* ((target (car cit-symref-operations))
+	   (dest (car (cdr cit-symref-operations)))
+	   )
+      ;; 7 - Run the symref tool
+      ;; Create the UI
+      (semantic-symref-symbol target)
+      (cit-symref-count '(2 3 0 0))
+
+      ;; expand them all
+      (semantic-symref-list-expand-all)
+      (cit-symref-count '(2 3 4 0))
+
+      ;; Perform a rename.
+      (semantic-symref-list-rename-open-hits dest)
+      (save-some-buffers t)
+      (cit-symref-count '(2 3 4 0))
+
+      ;; Create a new symref buffer!
+      (find-file (cit-file "src/main.cpp"))
+      (semantic-symref-symbol dest)
+      (cit-symref-count '(2 3 0 0))
+
+      ;; Compile and run the refactored code.
+      (find-file (cit-file "src/main.cpp"))
+      (cit-compile-and-wait)
+      (find-file (cit-file "src/main.cpp"))
+      (cit-run-target "./Prog")
+      )))
+
+(defun cit-symref-quick-find-test ()
+  "Test symref finding something, but not the more detailed test."
+  (save-excursion
+    ;; Start in a C++ file.
+    (find-file (cit-file "src/main.cpp"))
+
+    ;; Force new detection for every test.
+    (setq semantic-symref-tool 'detect)
+
     ;; 7 - Run the symref tool
     ;; Create the UI
-    (semantic-symref-symbol target)
-    (cit-symref-count '(2 3 0 0))
+    (semantic-symref-regexp "doSomethingPublic")
 
-    ;; expand them all
-    (semantic-symref-list-expand-all)
-    (cit-symref-count '(2 3 4 0))
-
-    ;; Perform a rename.
-    (semantic-symref-list-rename-open-hits dest)
-    (save-some-buffers t)
-    (cit-symref-count '(2 3 4 0))
-
-    ;; Create a new symref buffer!
-    (find-file (cit-file "src/main.cpp"))
-    (semantic-symref-symbol dest)
-    (cit-symref-count '(2 3 0 0))
-
-    ;; Compile and run the refactored code.
-    (find-file (cit-file "src/main.cpp"))
-    (cit-compile-and-wait)
-    (find-file (cit-file "src/main.cpp"))
-    (cit-run-target "./Prog")
+    (cit-symref-count '(3 3 0 0))
     ))
 
 (defun cit-symref-count (expected)
@@ -69,7 +86,7 @@
 Argument EXPECTED is the expected result count."
   (save-excursion
     (goto-char (point-min))
-    (sit-for 0)
+    (sit-for .1)
     (let ((files 0)
 	  (hits 0)
 	  (res 0)
