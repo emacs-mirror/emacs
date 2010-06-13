@@ -68,7 +68,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 static int bidi_initialized = 0;
 
-static Lisp_Object bidi_type_table;
+static Lisp_Object bidi_type_table, bidi_mirror_table;
 
 /* FIXME: Remove these when bidi_explicit_dir_char uses a lookup table.  */
 #define LRM_CHAR   0x200E
@@ -108,296 +108,25 @@ static Lisp_Object Qparagraph_start, Qparagraph_separate;
 static void
 bidi_initialize ()
 {
-  /* FIXME: This should come from the Unicode Database.  */
-  struct {
-    int from, to;
-    bidi_type_t type;
-  } bidi_type[] =
-      { { 0x0000, 0x0008, WEAK_BN },
-	{ 0x0009, 0x0000, NEUTRAL_S },
-	{ 0x000A, 0x0000, NEUTRAL_B },
-	{ 0x000B, 0x0000, NEUTRAL_S },
-	{ 0x000C, 0x0000, NEUTRAL_WS },
-	{ 0x000D, 0x0000, NEUTRAL_B },
-	{ 0x000E, 0x001B, WEAK_BN },
-	{ 0x001C, 0x001E, NEUTRAL_B },
-	{ 0x001F, 0x0000, NEUTRAL_S },
-	{ 0x0020, 0x0000, NEUTRAL_WS },
-	{ 0x0021, 0x0022, NEUTRAL_ON },
-	{ 0x0023, 0x0025, WEAK_ET },
-	{ 0x0026, 0x002A, NEUTRAL_ON },
-	{ 0x002B, 0x0000, WEAK_ES },
-	{ 0x002C, 0x0000, WEAK_CS },
-	{ 0x002D, 0x0000, WEAK_ES },
-	{ 0x002E, 0x002F, WEAK_CS },
-	{ 0x0030, 0x0039, WEAK_EN },
-	{ 0x003A, 0x0000, WEAK_CS },
-	{ 0x003B, 0x0040, NEUTRAL_ON },
-	{ 0x005B, 0x0060, NEUTRAL_ON },
-	{ 0x007B, 0x007E, NEUTRAL_ON },
-	{ 0x007F, 0x0084, WEAK_BN },
-	{ 0x0085, 0x0000, NEUTRAL_B },
-	{ 0x0086, 0x009F, WEAK_BN },
-	{ 0x00A0, 0x0000, WEAK_CS },
-	{ 0x00A1, 0x0000, NEUTRAL_ON },
-	{ 0x00A2, 0x00A5, WEAK_ET },
-	{ 0x00A6, 0x00A9, NEUTRAL_ON },
-	{ 0x00AB, 0x00AC, NEUTRAL_ON },
-	{ 0x00AD, 0x0000, WEAK_BN },
-	{ 0x00AE, 0x00Af, NEUTRAL_ON },
-	{ 0x00B0, 0x00B1, WEAK_ET },
-	{ 0x00B2, 0x00B3, WEAK_EN },
-	{ 0x00B4, 0x0000, NEUTRAL_ON },
-	{ 0x00B6, 0x00B8, NEUTRAL_ON },
-	{ 0x00B9, 0x0000, WEAK_EN },
-	{ 0x00BB, 0x00BF, NEUTRAL_ON },
-	{ 0x00D7, 0x0000, NEUTRAL_ON },
-	{ 0x00F7, 0x0000, NEUTRAL_ON },
-	{ 0x02B9, 0x02BA, NEUTRAL_ON },
-	{ 0x02C2, 0x02CF, NEUTRAL_ON },
-	{ 0x02D2, 0x02DF, NEUTRAL_ON },
-	{ 0x02E5, 0x02ED, NEUTRAL_ON },
-	{ 0x0300, 0x036F, WEAK_NSM },
-	{ 0x0374, 0x0375, NEUTRAL_ON },
-	{ 0x037E, 0x0385, NEUTRAL_ON },
-	{ 0x0387, 0x0000, NEUTRAL_ON },
-	{ 0x03F6, 0x0000, NEUTRAL_ON },
-	{ 0x0483, 0x0489, WEAK_NSM },
-	{ 0x058A, 0x0000, NEUTRAL_ON },
-	{ 0x0591, 0x05BD, WEAK_NSM },
-	{ 0x05BE, 0x0000, STRONG_R },
-	{ 0x05BF, 0x0000, WEAK_NSM },
-	{ 0x05C0, 0x0000, STRONG_R },
-	{ 0x05C1, 0x05C2, WEAK_NSM },
-	{ 0x05C3, 0x0000, STRONG_R },
-	{ 0x05C4, 0x05C5, WEAK_NSM },
-	{ 0x05C6, 0x0000, STRONG_R },
-	{ 0x05C7, 0x0000, WEAK_NSM },
-	{ 0x05D0, 0x05F4, STRONG_R },
-	{ 0x060C, 0x0000, WEAK_CS },
-	{ 0x061B, 0x064A, STRONG_AL },
-	{ 0x064B, 0x0655, WEAK_NSM },
-	{ 0x0660, 0x0669, WEAK_AN },
-	{ 0x066A, 0x0000, WEAK_ET },
-	{ 0x066B, 0x066C, WEAK_AN },
-	{ 0x066D, 0x066F, STRONG_AL },
-	{ 0x0670, 0x0000, WEAK_NSM },
-	{ 0x0671, 0x06D5, STRONG_AL },
-	{ 0x06D6, 0x06DC, WEAK_NSM },
-	{ 0x06DD, 0x0000, STRONG_AL },
-	{ 0x06DE, 0x06E4, WEAK_NSM },
-	{ 0x06E5, 0x06E6, STRONG_AL },
-	{ 0x06E7, 0x06E8, WEAK_NSM },
-	{ 0x06E9, 0x0000, NEUTRAL_ON },
-	{ 0x06EA, 0x06ED, WEAK_NSM },
-	{ 0x06F0, 0x06F9, WEAK_EN },
-	{ 0x06FA, 0x070D, STRONG_AL },
-	{ 0x070F, 0x0000, WEAK_BN },
-	{ 0x0710, 0x0000, STRONG_AL },
-	{ 0x0711, 0x0000, WEAK_NSM },
-	{ 0x0712, 0x072C, STRONG_AL },
-	{ 0x0730, 0x074A, WEAK_NSM },
-	{ 0x0780, 0x07A5, STRONG_AL },
-	{ 0x07A6, 0x07B0, WEAK_NSM },
-	{ 0x07B1, 0x0000, STRONG_AL },
-	{ 0x0901, 0x0902, WEAK_NSM },
-	{ 0x093C, 0x0000, WEAK_NSM },
-	{ 0x0941, 0x0948, WEAK_NSM },
-	{ 0x094D, 0x0000, WEAK_NSM },
-	{ 0x0951, 0x0954, WEAK_NSM },
-	{ 0x0962, 0x0963, WEAK_NSM },
-	{ 0x0981, 0x0000, WEAK_NSM },
-	{ 0x09BC, 0x0000, WEAK_NSM },
-	{ 0x09C1, 0x09C4, WEAK_NSM },
-	{ 0x09CD, 0x0000, WEAK_NSM },
-	{ 0x09E2, 0x09E3, WEAK_NSM },
-	{ 0x09F2, 0x09F3, WEAK_ET },
-	{ 0x0A02, 0x0000, WEAK_NSM },
-	{ 0x0A3C, 0x0000, WEAK_NSM },
-	{ 0x0A41, 0x0A4D, WEAK_NSM },
-	{ 0x0A70, 0x0A71, WEAK_NSM },
-	{ 0x0A81, 0x0A82, WEAK_NSM },
-	{ 0x0ABC, 0x0000, WEAK_NSM },
-	{ 0x0AC1, 0x0AC8, WEAK_NSM },
-	{ 0x0ACD, 0x0000, WEAK_NSM },
-	{ 0x0B01, 0x0000, WEAK_NSM },
-	{ 0x0B3C, 0x0000, WEAK_NSM },
-	{ 0x0B3F, 0x0000, WEAK_NSM },
-	{ 0x0B41, 0x0B43, WEAK_NSM },
-	{ 0x0B4D, 0x0B56, WEAK_NSM },
-	{ 0x0B82, 0x0000, WEAK_NSM },
-	{ 0x0BC0, 0x0000, WEAK_NSM },
-	{ 0x0BCD, 0x0000, WEAK_NSM },
-	{ 0x0C3E, 0x0C40, WEAK_NSM },
-	{ 0x0C46, 0x0C56, WEAK_NSM },
-	{ 0x0CBF, 0x0000, WEAK_NSM },
-	{ 0x0CC6, 0x0000, WEAK_NSM },
-	{ 0x0CCC, 0x0CCD, WEAK_NSM },
-	{ 0x0D41, 0x0D43, WEAK_NSM },
-	{ 0x0D4D, 0x0000, WEAK_NSM },
-	{ 0x0DCA, 0x0000, WEAK_NSM },
-	{ 0x0DD2, 0x0DD6, WEAK_NSM },
-	{ 0x0E31, 0x0000, WEAK_NSM },
-	{ 0x0E34, 0x0E3A, WEAK_NSM },
-	{ 0x0E3F, 0x0000, WEAK_ET },
-	{ 0x0E47, 0x0E4E, WEAK_NSM },
-	{ 0x0EB1, 0x0000, WEAK_NSM },
-	{ 0x0EB4, 0x0EBC, WEAK_NSM },
-	{ 0x0EC8, 0x0ECD, WEAK_NSM },
-	{ 0x0F18, 0x0F19, WEAK_NSM },
-	{ 0x0F35, 0x0000, WEAK_NSM },
-	{ 0x0F37, 0x0000, WEAK_NSM },
-	{ 0x0F39, 0x0000, WEAK_NSM },
-	{ 0x0F3A, 0x0F3D, NEUTRAL_ON },
-	{ 0x0F71, 0x0F7E, WEAK_NSM },
-	{ 0x0F80, 0x0F84, WEAK_NSM },
-	{ 0x0F86, 0x0F87, WEAK_NSM },
-	{ 0x0F90, 0x0FBC, WEAK_NSM },
-	{ 0x0FC6, 0x0000, WEAK_NSM },
-	{ 0x102D, 0x1030, WEAK_NSM },
-	{ 0x1032, 0x1037, WEAK_NSM },
-	{ 0x1039, 0x0000, WEAK_NSM },
-	{ 0x1058, 0x1059, WEAK_NSM },
-	{ 0x1680, 0x0000, NEUTRAL_WS },
-	{ 0x169B, 0x169C, NEUTRAL_ON },
-	{ 0x1712, 0x1714, WEAK_NSM },
-	{ 0x1732, 0x1734, WEAK_NSM },
-	{ 0x1752, 0x1753, WEAK_NSM },
-	{ 0x1772, 0x1773, WEAK_NSM },
-	{ 0x17B7, 0x17BD, WEAK_NSM },
-	{ 0x17C6, 0x0000, WEAK_NSM },
-	{ 0x17C9, 0x17D3, WEAK_NSM },
-	{ 0x17DB, 0x0000, WEAK_ET },
-	{ 0x1800, 0x180A, NEUTRAL_ON },
-	{ 0x180B, 0x180D, WEAK_NSM },
-	{ 0x180E, 0x0000, WEAK_BN },
-	{ 0x18A9, 0x0000, WEAK_NSM },
-	{ 0x1FBD, 0x0000, NEUTRAL_ON },
-	{ 0x1FBF, 0x1FC1, NEUTRAL_ON },
-	{ 0x1FCD, 0x1FCF, NEUTRAL_ON },
-	{ 0x1FDD, 0x1FDF, NEUTRAL_ON },
-	{ 0x1FED, 0x1FEF, NEUTRAL_ON },
-	{ 0x1FFD, 0x1FFE, NEUTRAL_ON },
-	{ 0x2000, 0x200A, NEUTRAL_WS },
-	{ 0x200B, 0x200D, WEAK_BN },
-	{ 0x200F, 0x0000, STRONG_R },
-	{ 0x2010, 0x2027, NEUTRAL_ON },
-	{ 0x2028, 0x0000, NEUTRAL_WS },
-	{ 0x2029, 0x0000, NEUTRAL_B },
-	{ 0x202A, 0x0000, LRE },
-	{ 0x202B, 0x0000, RLE },
-	{ 0x202C, 0x0000, PDF },
-	{ 0x202D, 0x0000, LRO },
-	{ 0x202E, 0x0000, RLO },
-	{ 0x202F, 0x0000, NEUTRAL_WS },
-	{ 0x2030, 0x2034, WEAK_ET },
-	{ 0x2035, 0x2057, NEUTRAL_ON },
-	{ 0x205F, 0x0000, NEUTRAL_WS },
-	{ 0x2060, 0x206F, WEAK_BN },
-	{ 0x2070, 0x0000, WEAK_EN },
-	{ 0x2074, 0x2079, WEAK_EN },
-	{ 0x207A, 0x207B, WEAK_ET },
-	{ 0x207C, 0x207E, NEUTRAL_ON },
-	{ 0x2080, 0x2089, WEAK_EN },
-	{ 0x208A, 0x208B, WEAK_ET },
-	{ 0x208C, 0x208E, NEUTRAL_ON },
-	{ 0x20A0, 0x20B1, WEAK_ET },
-	{ 0x20D0, 0x20EA, WEAK_NSM },
-	{ 0x2100, 0x2101, NEUTRAL_ON },
-	{ 0x2103, 0x2106, NEUTRAL_ON },
-	{ 0x2108, 0x2109, NEUTRAL_ON },
-	{ 0x2114, 0x0000, NEUTRAL_ON },
-	{ 0x2116, 0x2118, NEUTRAL_ON },
-	{ 0x211E, 0x2123, NEUTRAL_ON },
-	{ 0x2125, 0x0000, NEUTRAL_ON },
-	{ 0x2127, 0x0000, NEUTRAL_ON },
-	{ 0x2129, 0x0000, NEUTRAL_ON },
-	{ 0x212E, 0x0000, WEAK_ET },
-	{ 0x2132, 0x0000, NEUTRAL_ON },
-	{ 0x213A, 0x0000, NEUTRAL_ON },
-	{ 0x2140, 0x2144, NEUTRAL_ON },
-	{ 0x214A, 0x215F, NEUTRAL_ON },
-	{ 0x2190, 0x2211, NEUTRAL_ON },
-	{ 0x2212, 0x2213, WEAK_ET },
-	{ 0x2214, 0x2335, NEUTRAL_ON },
-	{ 0x237B, 0x2394, NEUTRAL_ON },
-	{ 0x2396, 0x244A, NEUTRAL_ON },
-	{ 0x2460, 0x249B, WEAK_EN },
-	{ 0x24EA, 0x0000, WEAK_EN },
-	{ 0x24EB, 0x2FFB, NEUTRAL_ON },
-	{ 0x3000, 0x0000, NEUTRAL_WS },
-	{ 0x3001, 0x3004, NEUTRAL_ON },
-	{ 0x3008, 0x3020, NEUTRAL_ON },
-	{ 0x302A, 0x302F, WEAK_NSM },
-	{ 0x3030, 0x0000, NEUTRAL_ON },
-	{ 0x3036, 0x3037, NEUTRAL_ON },
-	{ 0x303D, 0x303F, NEUTRAL_ON },
-	{ 0x3099, 0x309A, WEAK_NSM },
-	{ 0x309B, 0x309C, NEUTRAL_ON },
-	{ 0x30A0, 0x0000, NEUTRAL_ON },
-	{ 0x30FB, 0x0000, NEUTRAL_ON },
-	{ 0x3251, 0x325F, NEUTRAL_ON },
-	{ 0x32B1, 0x32BF, NEUTRAL_ON },
-	{ 0xA490, 0xA4C6, NEUTRAL_ON },
-	{ 0xFB1D, 0x0000, STRONG_R },
-	{ 0xFB1E, 0x0000, WEAK_NSM },
-	{ 0xFB1F, 0xFB28, STRONG_R },
-	{ 0xFB29, 0x0000, WEAK_ET },
-	{ 0xFB2A, 0xFB4F, STRONG_R },
-	{ 0xFB50, 0xFD3D, STRONG_AL },
-	{ 0xFD3E, 0xFD3F, NEUTRAL_ON },
-	{ 0xFD50, 0xFDFC, STRONG_AL },
-	{ 0xFE00, 0xFE23, WEAK_NSM },
-	{ 0xFE30, 0xFE4F, NEUTRAL_ON },
-	{ 0xFE50, 0x0000, WEAK_CS },
-	{ 0xFE51, 0x0000, NEUTRAL_ON },
-	{ 0xFE52, 0x0000, WEAK_CS },
-	{ 0xFE54, 0x0000, NEUTRAL_ON },
-	{ 0xFE55, 0x0000, WEAK_CS },
-	{ 0xFE56, 0xFE5E, NEUTRAL_ON },
-	{ 0xFE5F, 0x0000, WEAK_ET },
-	{ 0xFE60, 0xFE61, NEUTRAL_ON },
-	{ 0xFE62, 0xFE63, WEAK_ET },
-	{ 0xFE64, 0xFE68, NEUTRAL_ON },
-	{ 0xFE69, 0xFE6A, WEAK_ET },
-	{ 0xFE6B, 0x0000, NEUTRAL_ON },
-	{ 0xFE70, 0xFEFC, STRONG_AL },
-	{ 0xFEFF, 0x0000, WEAK_BN },
-	{ 0xFF01, 0xFF02, NEUTRAL_ON },
-	{ 0xFF03, 0xFF05, WEAK_ET },
-	{ 0xFF06, 0xFF0A, NEUTRAL_ON },
-	{ 0xFF0B, 0x0000, WEAK_ET },
-	{ 0xFF0C, 0x0000, WEAK_CS },
-	{ 0xFF0D, 0x0000, WEAK_ET },
-	{ 0xFF0E, 0x0000, WEAK_CS },
-	{ 0xFF0F, 0x0000, WEAK_ES },
-	{ 0xFF10, 0xFF19, WEAK_EN },
-	{ 0xFF1A, 0x0000, WEAK_CS },
-	{ 0xFF1B, 0xFF20, NEUTRAL_ON },
-	{ 0xFF3B, 0xFF40, NEUTRAL_ON },
-	{ 0xFF5B, 0xFF65, NEUTRAL_ON },
-	{ 0xFFE0, 0xFFE1, WEAK_ET },
-	{ 0xFFE2, 0xFFE4, NEUTRAL_ON },
-	{ 0xFFE5, 0xFFE6, WEAK_ET },
-	{ 0xFFE8, 0xFFEE, NEUTRAL_ON },
-	{ 0xFFF9, 0xFFFB, WEAK_BN },
-	{ 0xFFFC, 0xFFFD, NEUTRAL_ON },
-	{ 0x1D167, 0x1D169, WEAK_NSM },
-	{ 0x1D173, 0x1D17A, WEAK_BN },
-	{ 0x1D17B, 0x1D182, WEAK_NSM },
-	{ 0x1D185, 0x1D18B, WEAK_NSM },
-	{ 0x1D1AA, 0x1D1AD, WEAK_NSM },
-	{ 0x1D7CE, 0x1D7FF, WEAK_EN },
-	{ 0xE0001, 0xE007F, WEAK_BN } };
+
+#include "biditype.h"
+#include "bidimirror.h"
+
   int i;
 
   bidi_type_table = Fmake_char_table (Qnil, make_number (STRONG_L));
   staticpro (&bidi_type_table);
 
   for (i = 0; i < sizeof bidi_type / sizeof bidi_type[0]; i++)
-    char_table_set_range (bidi_type_table, bidi_type[i].from,
-			  bidi_type[i].to ? bidi_type[i].to : bidi_type[i].from,
+    char_table_set_range (bidi_type_table, bidi_type[i].from, bidi_type[i].to,
 			  make_number (bidi_type[i].type));
+
+  bidi_mirror_table = Fmake_char_table (Qnil, Qnil);
+  staticpro (&bidi_mirror_table);
+
+  for (i = 0; i < sizeof bidi_mirror / sizeof bidi_mirror[0]; i++)
+    char_table_set (bidi_mirror_table, bidi_mirror[i].from,
+		    make_number (bidi_mirror[i].to));
 
   Qparagraph_start = intern ("paragraph-start");
   staticpro (&Qparagraph_start);
@@ -505,20 +234,27 @@ bidi_get_category (bidi_type_t type)
 
    Note: The conditions in UAX#9 clause L4 must be tested by the
    caller.  */
-/* FIXME: exceedingly temporary!  Should consult the Unicode database
-   of character properties.  */
 int
 bidi_mirror_char (int c)
 {
-  static const char mirrored_pairs[] = "()<>[]{}";
-  const char *p = c > 0 && c < 128 ? strchr (mirrored_pairs, c) : NULL;
+  Lisp_Object val;
 
-  if (p)
+  if (c == BIDI_EOB)
+    return c;
+  if (c < 0 || c > MAX_CHAR)
+    abort ();
+
+  val = CHAR_TABLE_REF (bidi_mirror_table, c);
+  if (INTEGERP (val))
     {
-      size_t i = p - mirrored_pairs;
+      int v = XINT (val);
 
-      return mirrored_pairs [(i ^ 1)];
+      if (v < 0 || v > MAX_CHAR)
+	abort ();
+
+      return v;
     }
+
   return c;
 }
 
