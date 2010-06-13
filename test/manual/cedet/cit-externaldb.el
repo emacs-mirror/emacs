@@ -3,7 +3,7 @@
 ;; Copyright (C) 2010 Eric M. Ludlam
 ;;
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
-;; X-RCS: $Id: cit-externaldb.el,v 1.1 2010-06-13 01:12:50 zappo Exp $
+;; X-RCS: $Id: cit-externaldb.el,v 1.2 2010-06-13 13:54:59 zappo Exp $
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -35,7 +35,8 @@
 
 (defvar cit-externaldb-files-to-find
   '(("foo.hpp" . "include/foo.hpp")
-    ("bar.cpp" . "src/bar.cpp")
+    ;;("foo.cpp" . "src/foo.cpp")
+    ("umltest.cpp" . "uml/umltest.cpp")
     ;("elfoo.el" . "src/elfoo.el")
     ;("foodoc.texi" . "src/foodoc.texi")
     ;("DNE.cpp" . "doesnotexist.cpp")
@@ -114,9 +115,13 @@
     (funcall createfcn nil)
 
     ;; 2) force ede's find file to use gnu global
+    (require 'ede-locate)
     (let* ((ede-locate-setup-options (list edelocatesym))
 	   (base default-directory)
 	   (fname nil))
+
+      ;; Change the locate tool active on this project.
+      (ede-enable-locate-on-project)
 
       (dolist (F cit-externaldb-files-to-find)
 	(let* ((raw (ede-expand-filename (ede-current-project) (car F)))
@@ -127,10 +132,14 @@
 	  (when (not (string= result expect))
 	    (error "%s: Expected %s; Found %s" symrefsym expect result))
 	  ))
+
+      (let ((fail (ede-expand-filename (ede-current-project) "doesnotexist.cpp")))
+	(if fail
+	    (error "%s TEST: Found a file that shouldn't exist." symrefsym)))
       )
-    (let ((fail (ede-expand-filename (ede-current-project) "doesnotexist.cpp")))
-      (if fail
-	  (error "%s TEST: Found a file that shouldn't exist." symrefsym)))
+
+    ;; After removing the old locate system, restore the old one.
+    (ede-enable-locate-on-project)
 
     ;; 3) Look up tags with a GNU Global database
     (if semanticdbenablefcn
