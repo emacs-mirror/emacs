@@ -1065,7 +1065,7 @@ as given in your `~/.profile'."
   `("HISTFILE=$HOME/.tramp_history" "HISTSIZE=1" "LC_ALL=C"
     ,(format "TERM=%s" tramp-terminal-type)
     "EMACS=t" ;; Deprecated.
-    ,(format "INSIDE_EMACS=%s,tramp:%s" emacs-version tramp-version)
+    ,(format "INSIDE_EMACS='%s,tramp:%s'" emacs-version tramp-version)
     "CDPATH=" "HISTORY=" "MAIL=" "MAILCHECK=" "MAILPATH="
     "autocorrect=" "correct=")
 
@@ -1091,8 +1091,10 @@ Sometimes the prompt is reported to look like \"login as:\"."
 
 (defcustom tramp-shell-prompt-pattern
   ;; Allow a prompt to start right after a ^M since it indeed would be
-  ;; displayed at the beginning of the line (and Zsh uses it).
-  "\\(?:^\\|\r\\)[^#$%>\n]*#?[#$%>] *\\(\e\\[[0-9;]*[a-zA-Z] *\\)*"
+  ;; displayed at the beginning of the line (and Zsh uses it).  This
+  ;; regexp works only for GNU Emacs.
+  (concat (if (featurep 'xemacs) "" "\\(?:^\\|\r\\)")
+	  "[^#$%>\n]*#?[#$%>] *\\(\e\\[[0-9;]*[a-zA-Z] *\\)*")
   "Regexp to match prompts from remote shell.
 Normally, Tramp expects you to configure `shell-prompt-pattern'
 correctly, but sometimes it happens that you are connecting to a
@@ -5513,7 +5515,8 @@ ARGS are the arguments OPERATION has been called with."
 	          ;; XEmacs only.
 		  'dired-print-file 'dired-shell-call-process
 		  ;; nowhere yet.
-		  'executable-find 'start-process 'call-process))
+		  'executable-find 'start-process
+		  'call-process 'call-process-region))
     default-directory)
    ;; Unknown file primitive.
    (t (error "unknown file I/O primitive: %s" operation))))
@@ -8758,7 +8761,7 @@ If the second argument flag is non-nil, Emacs will query the user before
 exiting if process is running."
   (if (fboundp 'set-process-query-on-exit-flag)
       (tramp-compat-funcall 'set-process-query-on-exit-flag process flag)
-    (tramp-compat-funcall 'process-kill-without-query) process flag))
+    (tramp-compat-funcall 'process-kill-without-query process flag)))
 
 
 ;; ------------------------------------------------------------
@@ -8914,7 +8917,7 @@ Only works for Bourne-like shells."
 ;;   rsync).
 ;; * Keep a second connection open for out-of-band methods like scp or
 ;;   rsync.
-;; * Support ptys in `tramp-handle-start-file-process'.  (Bug#4604)
+;; * Support ptys in `tramp-handle-start-file-process'.  (Bug#4604, Bug#6360)
 ;; * IMHO, it's a drawback that currently Tramp doesn't support
 ;;   Unicode in Dired file names by default.  Is it possible to
 ;;   improve Tramp to set LC_ALL to "C" only for commands where Tramp

@@ -4,7 +4,7 @@
 ;;   2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
-;; Keywords: pcl-cvs cvs commit log
+;; Keywords: pcl-cvs cvs commit log vc
 
 ;; This file is part of GNU Emacs.
 
@@ -360,7 +360,7 @@ automatically."
       (3 (or (cdr (assoc (match-string 2) log-edit-headers-alist))
              'log-edit-header)
          nil lax)
-      (4 font-lock-warning-face nil lax)))))
+      (4 font-lock-warning-face)))))
 
 ;;;###autoload
 (defun log-edit (callback &optional setup params buffer mode &rest ignore)

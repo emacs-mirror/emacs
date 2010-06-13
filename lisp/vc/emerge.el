@@ -5,7 +5,7 @@
 ;; This file is part of GNU Emacs.
 
 ;; Author: Dale R. Worley <worley@world.std.com>
-;; Keywords: unix, tools
+;; Keywords: unix, vc, tools
 
 ;; This software was created by Dale R. Worley and is
 ;; distributed free of charge.  It is placed in the public domain and

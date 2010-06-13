@@ -3,7 +3,7 @@
 ;; Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: Alexandre Julliard <julliard@winehq.org>
-;; Keywords: tools
+;; Keywords: vc tools
 
 ;; This file is part of GNU Emacs.
 

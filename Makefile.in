@@ -243,6 +243,8 @@ INSTALL_STRIP =
 
 # We use gzip to compress installed .el files.
 GZIP_PROG = @GZIP_PROG@
+# If non-nil, gzip the installed Info and man pages.
+GZIP_INFO = @GZIP_INFO@
 
 # ============================= Targets ==============================
 
@@ -580,8 +582,10 @@ install-arch-indep: mkdir info install-etc
 	      for f in `ls $$elt $$elt-[1-9] $$elt-[1-9][0-9] 2>/dev/null`; do \
 	        ${INSTALL_DATA} $$f $(DESTDIR)${infodir}/$$f; \
 	        chmod a+r $(DESTDIR)${infodir}/$$f; \
-	        [ -n "${GZIP_PROG}" ] && \
+	        if [ -n "${GZIP_INFO}" ] && [ -n "${GZIP_PROG}" ]; then \
+	          rm -f $(DESTDIR)${infodir}/$$f.gz; \
 	          ${GZIP_PROG} -9n $(DESTDIR)${infodir}/$$f; \
+	        else true; fi; \
 	      done; \
 	   done); \
 	else true; fi
@@ -601,7 +605,11 @@ install-arch-indep: mkdir info install-etc
 	for page in ${MAN_PAGES}; do \
 	  (cd $${thisdir}; \
 	   ${INSTALL_DATA} ${mansrcdir}/$${page} $(DESTDIR)${man1dir}/$${page}; \
-	   chmod a+r $(DESTDIR)${man1dir}/$${page}); \
+	   chmod a+r $(DESTDIR)${man1dir}/$${page}; \
+	   if [ -n "${GZIP_INFO}" ] && [ -n "${GZIP_PROG}" ]; then \
+	     rm -f $(DESTDIR)${man1dir}/$${page}.gz; \
+	     ${GZIP_PROG} -9n $(DESTDIR)${man1dir}/$${page}; \
+	   else true; fi ); \
 	done
 
 ## Install those items from etc/ that need to end up elsewhere.
