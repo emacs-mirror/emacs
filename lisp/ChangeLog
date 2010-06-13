@@ -1,3 +1,14 @@
+2010-06-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* term/common-win.el (x-colors): Add all the color names defined
+	in rgb.txt (Bug#6332).
+
+	* facemenu.el (list-colors-print): Don't print extra names if it
+	will overflow the window width.
+
+	* vc/log-edit.el (log-edit-font-lock-keywords): Revert 2010-06-02
+	change (Bug#6343).
+
 2010-06-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* files.el (make-directory): Doc fix (bug#6396).
@@ -335,7 +346,7 @@
 	exists.  Raise an error, if not (due to a corresponding answer
 	"no" in interactive questions, for example).
 
-22010-06-02  Dan Nicolaescu  <dann@ics.uci.edu>
+2010-06-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* log-edit.el (log-edit-font-lock-keywords): Make group 4 match lax.
 

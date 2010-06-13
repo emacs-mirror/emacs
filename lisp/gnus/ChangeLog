@@ -1,3 +1,7 @@
+2010-06-12  Romain Francoise  <romain@orebokech.com>
+
+	* gnus-util.el (gnus-date-get-time): Move up before first use.
+
 2010-06-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-mime-buttonized-part-id): New internal variable.

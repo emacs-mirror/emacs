@@ -429,6 +429,20 @@ TIME defaults to the current time."
     (+ (car now) (* (car (cdr now)) 60) (* (car (nthcdr 2 now)) 3600)
        (* (- (string-to-number days) 1) 3600 24))))
 
+(defmacro gnus-date-get-time (date)
+  "Convert DATE string to Emacs time.
+Cache the result as a text property stored in DATE."
+  ;; Either return the cached value...
+  `(let ((d ,date))
+     (if (equal "" d)
+	 '(0 0)
+       (or (get-text-property 0 'gnus-time d)
+	   ;; or compute the value...
+	   (let ((time (safe-date-to-time d)))
+	     ;; and store it back in the string.
+	     (put-text-property 0 1 'gnus-time time d)
+	     time)))))
+
 (defvar gnus-user-date-format-alist
   '(((gnus-seconds-today) . "%k:%M")
     (604800 . "%a %k:%M")                   ;;that's one week
@@ -479,20 +493,6 @@ Input should look like this: \"Sun, 14 Oct 2001 13:34:39 +0200\"."
   (condition-case ()
       (format-time-string "%d-%b" (gnus-date-get-time messy-date))
     (error "  -   ")))
-
-(defmacro gnus-date-get-time (date)
-  "Convert DATE string to Emacs time.
-Cache the result as a text property stored in DATE."
-  ;; Either return the cached value...
-  `(let ((d ,date))
-     (if (equal "" d)
-	 '(0 0)
-       (or (get-text-property 0 'gnus-time d)
-	   ;; or compute the value...
-	   (let ((time (safe-date-to-time d)))
-	     ;; and store it back in the string.
-	     (put-text-property 0 1 'gnus-time time d)
-	     time)))))
 
 (defsubst gnus-time-iso8601 (time)
   "Return a string of TIME in YYYYMMDDTHHMMSS format."
