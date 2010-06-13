@@ -1,0 +1,174 @@
+;;; cit-global.el ---
+;;
+;; Copyright (C) 2010 Eric M. Ludlam
+;;
+;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; X-RCS: $Id: cit-externaldb.el,v 1.1 2010-06-13 01:12:50 zappo Exp $
+;;
+;; This program is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License as
+;; published by the Free Software Foundation; either version 2, or (at
+;; your option) any later version.
+
+;; This program is distributed in the hope that it will be useful, but
+;; WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program; see the file COPYING.  If not, write to
+;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
+
+;;; Commentary:
+;;
+;; Test GNU Global functionality against the current project.
+;;
+;; 1) Create a database
+;; 2) Test the find-file feature
+;; 3) Test the tag lookup feature.
+;; 4) Test the symbol references lookup via symref
+
+(require 'cit-symref)
+
+;;; Code:
+
+(defvar cit-externaldb-files-to-find
+  '(("foo.hpp" . "include/foo.hpp")
+    ("bar.cpp" . "src/bar.cpp")
+    ;("elfoo.el" . "src/elfoo.el")
+    ;("foodoc.texi" . "src/foodoc.texi")
+    ;("DNE.cpp" . "doesnotexist.cpp")
+    )
+  "List of file names to lookup and their locations.")
+
+(defvar cit-external-db-tool-list
+  '( (global ;; 0 tool name (used by symref)
+      cedet-global ;; 1 library support for tool
+      cedet-gnu-global-version-check ;; 2 version check
+      cedet-gnu-global-gtags-call ;; 3 create a db
+      ede-locate-global ;; 4 ede locate tool name
+      semanticdb-global ;; 5 database src file
+      semanticdb-enable-gnu-global-in-buffer ;; 6 enable db in a buffer
+      semanticdb-table-global ;; 7 the database type
+      ( "GTAGS" "GPATH" "GSYMS" "GRTAGS" ) ;; 8 files created
+      )
+     (idutils ;; 0 tool name (used by symref)
+      cedet-idutils ;; 1 library support for tool
+      cedet-idutils-version-check ;; 2 version check
+      cedet-idutils-mkid-call ;; 3 create a db
+      ede-locate-idutils ;; 4 ede locate tool name
+      nil ;; 5 database src file
+      nil ;; 6 enable db in a buffer
+      nil ;; 7 the database type
+      ( "ID" ) ;; 8 files created
+      )
+     (cscope ;; 0 tool name (used by symref)
+      cedet-cscope ;; 1 library support for tool
+      cedet-cscope-version-check ;; 2 version check
+      cedet-cscope-create ;; 3 create a db
+      ede-locate-cscope ;; 4 ede locate tool name
+      nil ;; 5 database src file
+      nil ;; 6 enable db in a buffer
+      nil ;; 7 the database type
+      ( "cscope.out" "cscope.files") ;; 8 files created
+      )
+
+     )
+  "Different external DB tools to test.")
+
+(defun cit-externaldb-test ()
+  "Test the external database tools."
+  (dolist (TOOL cit-external-db-tool-list)
+    ;; Pull in the tool libraries needed
+    (require (nth 1 TOOL))
+    (when (nth 5 TOOL) (require (nth 5 TOOL)))
+
+    ;; Check the tool
+    (if (not (funcall (nth 2 TOOL) t))
+	(progn
+	  (message "Skipping %s test." (nth 0 TOOL))
+	  (sit-for 1))
+
+      ;; Call to test this instance.
+      (cit-gnu-externaldb-test-one (nth 0 TOOL)
+				   (nth 3 TOOL)
+				   (nth 4 TOOL)
+				   (nth 6 TOOL)
+				   (nth 7 TOOL)
+				   (nth 8 TOOL)
+				   ))))
+
+(defun cit-gnu-externaldb-test-one (symrefsym
+				    createfcn
+				    edelocatesym
+				    semanticdbenablefcn
+				    semanticdbclass
+				    cleanupfiles)
+  "Test GNU Global tooling integration if it is available."
+  (let ((bufftokill (find-file (cit-file "Project.ede"))))
+
+    ;; 1) Create
+    ;; We are at the root of the created CIT project.  Lets create a
+    ;; database.
+    (funcall createfcn nil)
+
+    ;; 2) force ede's find file to use gnu global
+    (let* ((ede-locate-setup-options (list edelocatesym))
+	   (base default-directory)
+	   (fname nil))
+
+      (dolist (F cit-externaldb-files-to-find)
+	(let* ((raw (ede-expand-filename (ede-current-project) (car F)))
+	       (expect (cdr F))
+	       (result (when (stringp raw)
+			 (file-relative-name raw default-directory))))
+
+	  (when (not (string= result expect))
+	    (error "%s: Expected %s; Found %s" symrefsym expect result))
+	  ))
+      )
+    (let ((fail (ede-expand-filename (ede-current-project) "doesnotexist.cpp")))
+      (if fail
+	  (error "%s TEST: Found a file that shouldn't exist." symrefsym)))
+
+    ;; 3) Look up tags with a GNU Global database
+    (if semanticdbenablefcn
+	(save-excursion
+	  (let ((killme (find-file (cit-file "src/main.cpp"))))
+	    (funcall semanticdbenablefcn)
+
+	    (let ((res (semanticdb-find-tags-by-name "doSomethingPublic")))
+
+	      ;; There is only one database result because we never enabled
+	      ;; semanticdb minor mode.
+	      (if (not (object-of-class-p (car (car res)) semanticdbclass))
+		  (error "Did not find %s results table." symrefsym))
+
+	      (when (/= (semanticdb-find-result-length res) 1)
+		(error "%s should find 1 tag, found %d"
+		       symrefsym
+		       (semanticdb-find-result-length res)))
+
+	      (kill-buffer killme))))
+      ;; else, message
+      (message "Skipping %s database test : Nothing to test." symrefsym))
+
+    ;; 4) Symref symbol lookup via our external tool
+    (setq semantic-symref-tool 'detect)
+    (when (not (eq (semantic-symref-detect-symref-tool) symrefsym))
+      (error "Symref doesn't recognize %s backend." symrefsym))
+
+    ;; Do the tests again.
+    (cit-symref-quick-find-test)
+
+    ;; Delete the GTAGS and other files.
+    (dolist (F cleanupfiles)
+      (when (file-exists-p F)
+	(delete-file F)))
+
+    (kill-buffer bufftokill)))
+
+(provide 'cit-externaldb)
+
+;;; cit-externaldb.el ends here
