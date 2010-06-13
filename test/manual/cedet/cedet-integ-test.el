@@ -87,6 +87,10 @@
 ;;    c make a new dist.  Verify version number.
 ;;    d In a fresh dir, unpack the dist.
 ;;    e Compile that dist.
+;; 8) Try out some external database tools
+;;    a Gnu Global
+;;    b Cscope
+;;    c Idutils
 
 (require 'semantic)
 (require 'ede)
@@ -105,6 +109,7 @@
 (require 'cit-srec)
 (require 'cit-el)
 (require 'cit-texi)
+(require 'cit-externaldb)
 (require 'cit-gnustep)
 (require 'cit-dist)
 
@@ -166,6 +171,9 @@ Optional argument MAKE-TYPE is the style of EDE project to test."
 
     ;; 6) Test symref/refactoring tools
     (cit-symref)
+
+    ;; 8 a) Try out gnu-global and other external databases.
+    (cit-externaldb-test)
 
     ;; 2 e) srecode map manipulation
     (cit-srecode-map-test)
