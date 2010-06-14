@@ -202,7 +202,9 @@ compile-onefile:
 	@echo Compiling $(THEFILE)
 	@# Use byte-compile-refresh-preloaded to try and work around some of
 	@# the most common bootstrapping problems.
-	@$(emacs) -l bytecomp.el -f byte-compile-refresh-preloaded $(BIG_STACK_OPTS) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $(THEFILE)
+	@$(emacs) -l bytecomp.el -f byte-compile-refresh-preloaded \
+		$(BIG_STACK_OPTS) $(BYTE_COMPILE_EXTRA_FLAGS) \
+		-f batch-byte-compile $(THEFILE)
 
 # Files MUST be compiled one by one. If we compile several files in a
 # row (i.e., in the same instance of Emacs) we can't make sure that
@@ -217,7 +219,8 @@ compile-onefile:
 # cannot have prerequisites.
 .el.elc:
 	@echo Compiling $<
-	@$(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $<
+	@$(emacs) $(BIG_STACK_OPTS) $(BYTE_COMPILE_EXTRA_FLAGS) \
+		-f batch-byte-compile $<
 
 .PHONY: compile-first compile-main compile compile-always
 

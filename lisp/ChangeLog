@@ -1,3 +1,10 @@
+2010-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-check-variable):
+	Update byte-compile-not-obsolete-var to byte-compile-not-obsolete-vars.
+
+	* Makefile.in (.el.elc): Increase max-lisp-eval-depth.
+
 2010-06-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* term/common-win.el (x-colors): Add all the color names defined

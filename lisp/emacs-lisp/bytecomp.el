@@ -3038,7 +3038,7 @@ If BINDING is non-nil, VAR is being bound."
 			      (if (symbolp var) "constant" "nonvariable")
 			      (prin1-to-string var))))
 	((and (get var 'byte-obsolete-variable)
-	      (not (eq var byte-compile-not-obsolete-var)))
+	      (not (memq var byte-compile-not-obsolete-vars)))
 	 (byte-compile-warn-obsolete var))))
 
 (defsubst byte-compile-dynamic-variable-op (base-op var)
