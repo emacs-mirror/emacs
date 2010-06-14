@@ -697,21 +697,17 @@ shall be displayed."
 ;;;###autoload
 (defun imagemagick-register-types ()
   "Register file types that imagemagick is able to handle."
-  (let ((im-types (imagemagick-types))
-        (im-inhibit imagemagick-types-inhibit))
-    (while im-inhibit
-      (setq im-types (remove (car im-inhibit) im-types))
-      (setq im-inhibit (cdr im-inhibit)))
-    (while im-types
-      (let
-	  ((extension (downcase (symbol-name (car im-types)))))
+  (let ((im-types (imagemagick-types)))
+    (dolist im-inhibit
+      (setq im-types (remove im-inhibit im-types)))
+    (dolist im-type im-types
+      (let ((extension (downcase (symbol-name im-type))))
 	(push
 	 (cons  (concat "\\." extension "\\'") 'image-mode)
 	 auto-mode-alist)
 	(push
 	 (cons  (concat "\\." extension "\\'") 'imagemagick)
-	 image-type-file-name-regexps)
-	(setq im-types (cdr im-types))))))
+	 image-type-file-name-regexps)))))
 
 
 
