@@ -1,3 +1,24 @@
+2010-06-14  Juri Linkov  <juri@jurta.org>
+
+	Add sort option `list-colors-sort'.  (Bug#6332)
+	* facemenu.el (color-rgb-to-hsv): New function.
+	(list-colors-sort): New defcustom.
+	(list-colors-sort-key): New function.
+	(list-colors-display): Doc fix.  Sort list according to the option
+	`list-colors-sort'.
+	(list-colors-print): Add HSV values to `help-echo' property of
+	RGB strings.
+
+2010-06-14  Juri Linkov  <juri@jurta.org>
+
+	* compare-w.el: Move to the "vc" subdirectory.
+
+2010-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* image-mode.el (image-mode-map): Remap left-char and right-char.
+
+	* nxml/nxml-mode.el (nxml-indent-line): Standardize indent behavior.
+
 2010-06-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* term/common-win.el (x-colors): Add all the color names defined

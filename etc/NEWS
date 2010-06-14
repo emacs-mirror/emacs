@@ -125,6 +125,9 @@ trashing.  This avoids inadvertently trashing temporary files.
 *** Calling `delete-file' or `delete-directory' with a prefix argument
 now forces true deletion, regardless of `delete-by-moving-to-trash'.
 
+** New option `list-colors-sort' defines the color sort order
+for `list-colors-display'.
+
 
 * Editing Changes in Emacs 24.1
 
