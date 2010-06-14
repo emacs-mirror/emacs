@@ -1370,17 +1370,21 @@ of the inserted start-tag or nil if none was inserted."
 
 (defun nxml-indent-line ()
   "Indent current line as XML."
-  (let ((indent (nxml-compute-indent))
-	(from-end (- (point-max) (point))))
-    (when (and indent
-	       (/= indent (current-indentation)))
-      (beginning-of-line)
-      (let ((bol (point)))
-	(skip-chars-forward " \t")
-	(delete-region bol (point)))
-      (indent-to indent)
-      (when (> (- (point-max) from-end) (point))
-	(goto-char (- (point-max) from-end))))))
+  (let* ((savep (point))
+         (indent (condition-case nil
+                     (save-excursion
+                       (forward-line 0)
+                       (skip-chars-forward " \t")
+                       (if (>= (point) savep) (setq savep nil))
+                       (or (nxml-compute-indent) 0))
+                   (error 0))))
+    (if (not (numberp indent))
+        ;; If something funny is used (e.g. `noindent'), return it.
+        indent
+      (if (< indent 0) (setq indent 0)) ;Just in case.
+      (if savep
+          (save-excursion (indent-line-to indent))
+        (indent-line-to indent)))))
 
 (defun nxml-compute-indent ()
   "Return the indent for the line containing point."
