@@ -4,7 +4,7 @@
 ;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
-;; Keywords: convenience patch diff
+;; Keywords: convenience patch diff vc
 
 ;; This file is part of GNU Emacs.
 

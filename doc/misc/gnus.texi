@@ -22906,8 +22906,11 @@ default.
 @item gnus-expert-user
 @vindex gnus-expert-user
 If this variable is non-@code{nil}, you will seldom be asked any
-questions by Gnus.  It will simply assume you know what you're doing, no
-matter how strange.
+questions by Gnus.  It will simply assume you know what you're doing,
+no matter how strange.  For example, quitting Gnus, exiting a group
+without an update, catching up with a group, deleting expired
+articles, and replying by mail to a news message will not require
+confirmation.
 
 @item gnus-interactive-catchup
 @vindex gnus-interactive-catchup

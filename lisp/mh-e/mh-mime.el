@@ -508,6 +508,15 @@ decoding the same message multiple times."
       (rfc2047-decode-region (point-min) (mh-mail-header-end)))))
 
 ;;;###mh-autoload
+(defun mh-decode-message-subject ()
+  "Decode RFC2047 encoded message header fields."
+  (when mh-decode-mime-flag
+    (save-excursion
+      (let ((buffer-read-only nil))
+        (rfc2047-decode-region (progn (mh-goto-header-field "subject:") (point))
+                               (progn (mh-header-field-end) (point)))))))
+
+;;;###mh-autoload
 (defun mh-mime-display (&optional pre-dissected-handles)
   "Display (and possibly decode) MIME handles.
 Optional argument, PRE-DISSECTED-HANDLES is a list of MIME

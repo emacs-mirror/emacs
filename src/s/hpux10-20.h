@@ -45,12 +45,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define HAVE_SOCKETS if system supports 4.2-compatible sockets.  */
 #define HAVE_SOCKETS
 
-/* Define this symbol if your system has the functions bcopy, etc.
-   s800 and later versions of s300 (s200) kernels have equivalents
-   of the BSTRING functions of BSD.  If your s200 kernel doesn't have
-   em comment out this section.  */
-#define BSTRING
-
 /* Define CLASH_DETECTION if you want lock files to be written
    so that Emacs can tell instantly when you try to modify
    a file that someone else has modified in his Emacs.  */
@@ -67,8 +61,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Some additional system facilities exist.  */
 #define HAVE_PERROR  /* Delete this line for version 6.  */
-
-#define UNEXEC unexhp9k800.o
 
 /* This is how to get the device name of the tty end of a pty.  */
 #define PTY_TTY_NAME_SPRINTF \

@@ -298,6 +298,8 @@ This variable is used to display the current image type in the mode line.")
     (define-key map (kbd "DEL")       'image-scroll-down)
     (define-key map [remap forward-char] 'image-forward-hscroll)
     (define-key map [remap backward-char] 'image-backward-hscroll)
+    (define-key map [remap right-char] 'image-forward-hscroll)
+    (define-key map [remap left-char] 'image-backward-hscroll)
     (define-key map [remap previous-line] 'image-previous-line)
     (define-key map [remap next-line] 'image-next-line)
     (define-key map [remap scroll-up] 'image-scroll-up)
@@ -357,6 +359,7 @@ to toggle between display as an image and display as text."
 	(image-mode-setup-winprops)
 
 	(add-hook 'change-major-mode-hook 'image-toggle-display-text nil t)
+	(add-hook 'after-revert-hook 'image-after-revert-hook nil t)
 	(run-mode-hooks 'image-mode-hook)
 	(message "%s" (concat
 		       (substitute-command-keys
@@ -448,7 +451,7 @@ Remove text properties that display the image."
 
 (defvar archive-superior-buffer)
 (defvar tar-superior-buffer)
-(declare-function image-refresh "image.c" (spec &optional frame))
+(declare-function image-flush "image.c" (spec &optional frame))
 
 (defun image-toggle-display-image ()
   "Show the image of the image file.
@@ -477,7 +480,7 @@ was inserted."
 	 (inhibit-read-only t)
 	 (buffer-undo-list t)
 	 (modified (buffer-modified-p)))
-    (image-refresh image)
+    (image-flush image)
     (let ((buffer-file-truename nil)) ; avoid changing dir mtime by lock_file
       (add-text-properties (point-min) (point-max) props)
       (restore-buffer-modified-p modified))
@@ -503,6 +506,14 @@ the image file and `image-mode' showing the image as an image."
   (if (image-get-display-property)
       (image-mode-as-text)
     (image-mode)))
+
+(defun image-after-revert-hook ()
+  (when (image-get-display-property)
+    (image-toggle-display-text)
+    ;; Update image display.
+    (redraw-frame (selected-frame))
+    (image-toggle-display-image)))
+
 
 ;;; Support for bookmark.el
 (declare-function bookmark-make-record-default "bookmark"

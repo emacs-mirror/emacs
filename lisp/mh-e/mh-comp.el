@@ -905,6 +905,9 @@ letter."
   (mh-identity-make-menu)
   (mh-identity-add-menu)
 
+  ;; Cleanup possibly RFC2047 encoded subject header
+  (mh-decode-message-subject)
+
   ;; Insert extra fields.
   (mh-insert-x-mailer)
   (mh-insert-x-face)

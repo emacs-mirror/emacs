@@ -1,3 +1,128 @@
+2010-06-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* sed1v2.inp (UNEXEC_OBJ): Use UNEXEC_OBJ instead of unexec.
+
+2010-06-03  Glenn Morris  <rgm@gnu.org>
+
+	* sed2v2.inp: Do not edit HAVE_ALLOCA.
+
+2010-05-26  Glenn Morris  <rgm@gnu.org>
+
+	* sed1v2.inp (@PRE_EDIT_LDFLAGS@, @POST_EDIT_LDFLAGS@): Edit to nothing.
+
+	* sed1v2.inp (NS_IMPL_GNUSTEP_INC, NS_IMPL_GNUSTEP_TEMACS_LDFLAGS):
+	No longer present.
+
+2010-05-25  Glenn Morris  <rgm@gnu.org>
+
+	* sed1v2.inp (LD_SWITCH_SYSTEM_EXTRA): No longer present.
+
+2010-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* sed1v2.inp (@ns_frag@): Edit to nothing.
+
+	* sed1x.inp (OLDXMENU): Replace any initial value.
+	* sed1v2.inp (OLDXMENU): Edit to "nothing".
+
+	* sed1v2.inp (CANNOT_DUMP): Edit to no.
+
+2010-05-20  Glenn Morris  <rgm@gnu.org>
+
+	* sed1v2.inp (DEPFLAGS, deps_frag): Edit to empty.
+	(MKDEPDIR): Edit to ':'.
+
+2010-05-19  Glenn Morris  <rgm@gnu.org>
+
+	* sed2v2.inp (ORDINARY_LINK): Set here rather than in s/msdos.h.
+
+	* sed1v2.inp (LD): Edit to $(CC).
+	(YMF_PASS_LDFLAGS): Edit to `flags'.
+
+2010-05-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1x.inp: Add copyright notice.
+
+2010-05-18  Glenn Morris  <rgm@gnu.org>
+
+	* sed1v2.inp (RALLOC_OBJ): Edit to ralloc.o.
+
+	* sed1v2.inp (GMALLOC_OBJ): Edit to gmalloc.o.
+	(VMLIMIT_OBJ): Edit to vm-limit.o.
+
+2010-05-17  Glenn Morris  <rgm@gnu.org>
+
+	* sed1v2.inp (OLDXMENU_DEPS): Edit to empty.
+	* sed1x.inp (OLDXMENU_DEPS): Edit to ${OLDXMENU} ../src/${OLDXMENU}.
+
+2010-05-16  Glenn Morris  <rgm@gnu.org>
+
+	* sed1v2.inp (TEMACS_LDFLAGS2): Edit to $(LDFLAGS).
+
+	* sed1v2.inp (GNUSTEP_SYSTEM_LIBRARIES): Remove.
+	(NS_IMPL_GNUSTEP_TEMACS_LDFLAGS): Edit to empty.
+
+2010-05-15  Glenn Morris  <rgm@gnu.org>
+
+	* sed1v2.inp (LIBXMENU): Edit to empty.
+	* sed1x.inp (LIBXMENU): Expect empty initial value.
+
+	* sed1v2.inp (OLDXMENU): Edit to empty.
+	* sed1x.inp (OLDXMENU): Expect empty initial value.
+
+	* sed1v2.inp (LIBX_OTHER): Edit to empty.
+	* sed1x.inp (LIBX_OTHER): Expect empty initial value.
+
+	* sed1v2.inp (FONT_OBJ): Edit to empty for non-X case.
+	* sed1x.inp (FONT_OBJ): Edit to xfont.o for X case.
+
+2010-05-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed3v2.inp (INSTALLABLES): Edit out extra ${EXEEXT} after
+	"emacsclient".
+	(emacsserver, timer, wakeup): Remove edit-out commands.
+
+	* sed1v2.inp (MSDOS_OBJ): Add w16select.o.
+	(TERMCAP_OBJ): Add termcap.o.
+
+2010-05-15  Glenn Morris  <rgm@gnu.org>
+
+	* sed1v2.inp (OLDXMENU_TARGET): Edit to empty.
+	* sed1x.inp (OLDXMENU_TARGET): Edit to really-oldxmenu.
+
+	* sed1v2.inp (LIBXT_OTHER): Edit to empty.
+
+2010-05-14  Glenn Morris  <rgm@gnu.org>
+
+	* sed1v2.inp (ns_appdir, ns_appbindir, ns_appsrc): Edit to empty.
+
+	* sed1v2.inp (MSDOS_OBJ): Edit to dosfns.o msdos.o.
+	(MSDOS_SUPPORT): Edit to $(MSDOS_SUPPORT_REAL).
+	* sed1x.inp (MSDOS_X_OBJ): Edit to w16select.o termcap.o.
+
+	* sed2x.inp (HAVE_WINDOW_SYSTEM): Define.
+	* sed1x.inp (TOOLTIP_SUPPORT): Edit to ${lispsource}tooltip.elc.
+	(WINDOW_SUPPORT): Edit to $(BASE_WINDOW_SUPPORT) $(X_WINDOW_SUPPORT).
+	* sed1v2.inp (MOUSE_SUPPORT): Edit to $(REAL_MOUSE_SUPPORT).
+	(TOOLTIP_SUPPORT, WINDOW_SUPPORT): Edit to empty.
+
+	* sed1v2.inp (FONT_OBJ): Use the plain X version (no XFT, Freetype).
+
+	* sed1v2.inp (@NS_IMPL_GNUSTEP_INC@): Edit to nil.
+
+2010-05-13  Glenn Morris  <rgm@gnu.org>
+
+	* sed1x.inp (OLDXMENU): Edit to ${oldXMenudir}libXMenu11.a.
+	(LIBXMENU): Edit to ${OLDXMENU}.
+	(LIBX_OTHER): Edit to ${LIBXT} ${LIBX_EXTRA}.
+
+	* sed1v2.inp (C_SWITCH_X_SYSTEM, C_SWITCH_X_SITE, LIB_STANDARD)
+	(FONTCONFIG_CFLAGS, FONTCONFIG_LIBS, FREETYPE_CFLAGS, FREETYPE_LIBS)
+	(LIBOTF_CFLAGS, LIBOTF_LIBS, M17N_FLT_CFLAGS, M17N_FLT_LIBS)
+	(GNU_OBJC_CFLAGS, GNUSTEP_SYSTEM_LIBRARIES, LIBRESOLV, LIBGPM):
+	Edit to empty,
+	(LIB_MATH): Edit to -lm.
+	(UNEXEC_OBJ): Edit to unexec.o.
+
 2010-05-12  Glenn Morris  <rgm@gnu.org>
 
 	* sed3v2.inp (INSTALLABLES): No more @LIB_SRC_EXTRA_INSTALLABLES@.

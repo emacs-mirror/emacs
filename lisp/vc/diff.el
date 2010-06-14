@@ -6,7 +6,7 @@
 ;; Author: Frank Bresz
 ;; (according to authors.el)
 ;; Maintainer: FSF
-;; Keywords: unix, tools
+;; Keywords: unix, vc, tools
 
 ;; This file is part of GNU Emacs.
 
@@ -64,8 +64,8 @@
   "Code run when the diff process exits.
 CODE is the exit code of the process.  It should be 0 only if no diffs
 were found."
-  (if diff-old-temp-file (delete-file diff-old-temp-file t))
-  (if diff-new-temp-file (delete-file diff-new-temp-file t))
+  (if diff-old-temp-file (delete-file diff-old-temp-file))
+  (if diff-new-temp-file (delete-file diff-new-temp-file))
   (save-excursion
     (goto-char (point-max))
     (let ((inhibit-read-only t))

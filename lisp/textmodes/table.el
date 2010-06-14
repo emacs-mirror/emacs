@@ -919,12 +919,12 @@ This is always set to nil at the entry to `table-with-cache-buffer' before execu
 (defvar table-source-info-plist nil
   "General storage for temporary information used while generating source.")
 
-;;; The following history containers not only keep the history of user
-;;; entries but also serve as the default value providers.  When an
-;;; interactive command is invoked it offers a user the latest entry
-;;; of the history as a default selection.  Therefore the values below
-;;; are the first default value when a command is invoked for the very
-;;; first time when there is no real history existing yet.
+;; The following history containers not only keep the history of user
+;; entries but also serve as the default value providers.  When an
+;; interactive command is invoked it offers a user the latest entry
+;; of the history as a default selection.  Therefore the values below
+;; are the first default value when a command is invoked for the very
+;; first time when there is no real history existing yet.
 (defvar table-cell-span-direction-history '("right"))
 (defvar table-cell-split-orientation-history '("horizontally"))
 (defvar table-cell-split-contents-to-history '("split"))
@@ -948,19 +948,19 @@ This is always set to nil at the entry to `table-with-cache-buffer' before execu
 (defvar table-capture-columns-history '(""))
 (defvar table-target-history '("cell"))
 
-;;; Some entries in `table-cell-bindings' are duplicated in
-;;; `table-command-remap-alist'.  There is a good reason for
-;;; this.  Common key like return key may be taken by some other
-;;; function than normal `newline' function.  Thus binding return key
-;;; directly for `*table--cell-newline' ensures that the correct enter
-;;; operation in a table cell.  However
-;;; `table-command-remap-alist' has an additional role than
-;;; replacing commands.  It is also used to construct a table command
-;;; list.  This list is very important because it is used to check if
-;;; the previous command was one of them in this list or not.  If the
-;;; previous command is found in the list the current command will not
-;;; refill the table cache.  If the command were not listed fast
-;;; typing can cause unwanted cache refill.
+;; Some entries in `table-cell-bindings' are duplicated in
+;; `table-command-remap-alist'.  There is a good reason for
+;; this.  Common key like return key may be taken by some other
+;; function than normal `newline' function.  Thus binding return key
+;; directly for `*table--cell-newline' ensures that the correct enter
+;; operation in a table cell.  However
+;; `table-command-remap-alist' has an additional role than
+;; replacing commands.  It is also used to construct a table command
+;; list.  This list is very important because it is used to check if
+;; the previous command was one of them in this list or not.  If the
+;; previous command is found in the list the current command will not
+;; refill the table cache.  If the command were not listed fast
+;; typing can cause unwanted cache refill.
 (defconst table-cell-bindings
   '(([(control i)]	. table-forward-cell)
     ([(control I)]	. table-backward-cell)

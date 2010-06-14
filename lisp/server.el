@@ -345,7 +345,7 @@ If CLIENT is non-nil, add a description of it to the logged message."
   (and (process-contact proc :server)
        (eq (process-status proc) 'closed)
        (ignore-errors
-	(delete-file (process-get proc :server-file) t)))
+	(delete-file (process-get proc :server-file))))
   (server-log (format "Status changed to %s: %s" (process-status proc) msg) proc)
   (server-delete-client proc))
 
@@ -711,7 +711,7 @@ Server mode runs a process that accepts commands from the
                                      (number-to-string (emacs-pid)) "\n"))
     frame))
 
-(defun server-create-window-system-frame (display nowait proc)
+(defun server-create-window-system-frame (display nowait proc parent-id)
   (add-to-list 'frame-inherited-parameters 'client)
   (if (not (fboundp 'make-frame-on-display))
       (progn
@@ -727,12 +727,14 @@ Server mode runs a process that accepts commands from the
     (let* ((params `((client . ,(if nowait 'nowait proc))
                      ;; This is a leftover, see above.
                      (environment . ,(process-get proc 'env))))
-           (frame (make-frame-on-display
-                   (or display
-                       (frame-parameter nil 'display)
-                       (getenv "DISPLAY")
-                       (error "Please specify display"))
-                   params)))
+	   (display (or display
+			(frame-parameter nil 'display)
+			(getenv "DISPLAY")
+			(error "Please specify display")))
+	   frame)
+      (if parent-id
+	  (push (cons 'parent-id (string-to-number parent-id)) params))
+      (setq frame (make-frame-on-display display params))
       (server-log (format "%s created" frame) proc)
       (select-frame frame)
       (process-put proc 'frame frame)
@@ -900,15 +902,16 @@ The following commands are accepted by the client:
 		(coding-system (and (default-value 'enable-multibyte-characters)
 				    (or file-name-coding-system
 					default-file-name-coding-system)))
-		nowait ; t if emacsclient does not want to wait for us.
-		frame ; The frame that was opened for the client (if any).
-		display		     ; Open the frame on this display.
-		dontkill       ; t if the client should not be killed.
+		nowait     ; t if emacsclient does not want to wait for us.
+		frame      ; Frame opened for the client (if any).
+		display    ; Open frame on this display.
+		parent-id  ; Window ID for XEmbed
+		dontkill   ; t if client should not be killed.
 		commands
 		dir
 		use-current-frame
-		tty-name       ;nil, `window-system', or the tty name.
-		tty-type             ;string.
+		tty-name   ; nil, `window-system', or the tty name.
+		tty-type   ; string.
 		files
 		filepos
 		command-line-args-left
@@ -934,6 +937,12 @@ The following commands are accepted by the client:
 		 ((and (equal "-display" arg) command-line-args-left)
 		  (setq display (pop command-line-args-left))
                   (if (zerop (length display)) (setq display nil)))
+
+		 ;; -parent-id ID:
+		 ;; Open X frame within window ID, via XEmbed.
+		 ((and (equal "-parent-id" arg) command-line-args-left)
+		  (setq parent-id (pop command-line-args-left))
+                  (if (zerop (length parent-id)) (setq parent-id nil)))
 
 		 ;; -window-system:  Open a new X frame.
 		 ((equal "-window-system" arg)
@@ -1039,7 +1048,8 @@ The following commands are accepted by the client:
 		    (setq tty-name nil tty-type nil)
 		    (if display (server-select-display display)))
 		   ((eq tty-name 'window-system)
-		    (server-create-window-system-frame display nowait proc))
+		    (server-create-window-system-frame display nowait proc
+						       parent-id))
 		   ;; When resuming on a tty, tty-name is nil.
 		   (tty-name
 		    (server-create-tty-frame tty-name tty-type proc))))

@@ -8316,7 +8316,7 @@ Use TAB to complete link prefixes, then RET for type-specific completion support
     (setq file (read-file-name "File: "))
     (let ((pwd (file-name-as-directory (expand-file-name ".")))
 	  (pwd1 (file-name-as-directory (abbreviate-file-name
-					 (expand-file-name ".")))))
+					 default-directory))))
       (cond
        ((equal arg '(16))
 	(setq link (org-make-link

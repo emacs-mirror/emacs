@@ -60,14 +60,14 @@
 	    (input-method . "hebrew")
 	    (unibyte-display . hebrew-iso-8bit)
 	    (sample-text . "Hebrew	,Hylem(B")
-	    (documentation . "Right-to-left writing is not yet supported.")))
+	    (documentation . "Bidirectional editing is supported.")))
 
 (set-language-info-alist
  "Windows-1255" '((coding-priority windows-1255)
 		  (coding-system windows-1255)
 		  (documentation . "\
 Support for Windows-1255 encoding, e.g. for Yiddish.
-Right-to-left writing is not yet supported.")))
+Bidirectional editing is supported.")))
 
 (define-coding-system 'windows-1255
   "windows-1255 (Hebrew) encoding (MIME: WINDOWS-1255)"
@@ -84,6 +84,38 @@ Right-to-left writing is not yet supported.")))
   :charset-list '(cp862)
   :mime-charset 'cp862)
 (define-coding-system-alias 'ibm862 'cp862)
+
+;; Composition function for hebrew.
+(defun hebrew-shape-gstring (gstring)
+  (setq gstring (font-shape-gstring gstring))
+  (let ((header (lgstring-header gstring))
+	(nchars (lgstring-char-len gstring))
+	(nglyphs (lgstring-glyph-len gstring))
+	(base-width (lglyph-width (lgstring-glyph gstring 0))))
+    (while (and (> nglyphs 1)
+		(not (lgstring-glyph gstring (1- nglyphs))))
+      (setq nglyphs (1- nglyphs)))
+    (while (> nglyphs 1)
+      (setq nglyphs (1- nglyphs))
+      (let* ((glyph (lgstring-glyph gstring nglyphs))
+	     (adjust (and glyph (lglyph-adjustment glyph))))
+	(if adjust
+	    (setq nglyphs 0)
+	  (if (>= (lglyph-lbearing glyph) 0)
+	      (lglyph-set-adjustment glyph (- base-width) 0 0))))))
+  gstring)
+
+(let ((pattern1 "[\u05D0-\u05F2][\u0591-\u05BF\u05C1-\u05C5\u05C7]+")
+      (pattern2 "[\u05D0-\u05F2]\u200D[\u0591-\u05BF\u05C1-\u05C5\u05C7]+"))
+  (set-char-table-range
+   composition-function-table '(#x591 . #x5C7)
+   (list (vector pattern2 2 'hebrew-shape-gstring)
+	 (vector pattern1 1 'hebrew-shape-gstring)
+	 ["[\u0591-\u05C7]" 0 font-shape-gstring]))
+  (set-char-table-range
+   composition-function-table #x5C0 nil)
+  (set-char-table-range
+   composition-function-table #x5C6 nil))
 
 (provide 'hebrew)
 

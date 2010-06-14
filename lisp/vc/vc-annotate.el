@@ -5,7 +5,7 @@
 
 ;; Author:     Martin Lorentzson  <emwson@emw.ericsson.se>
 ;; Maintainer: FSF
-;; Keywords: tools
+;; Keywords: vc tools
 
 ;; This file is part of GNU Emacs.
 

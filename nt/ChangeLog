@@ -1,3 +1,15 @@
+2010-06-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* config.nt: Remove code depending on BSTRING.
+
+2010-06-03  Glenn Morris  <rgm@gnu.org>
+
+	* config.nt: Remove NOT_C_CODE tests, it is always true now.
+
+2010-05-13  Glenn Morris  <rgm@gnu.org>
+
+	* config.nt (LD_SWITCH_X_SITE, C_SWITCH_X_SITE): Remove undefs.
+
 2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 23.2 released.

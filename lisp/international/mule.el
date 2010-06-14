@@ -608,9 +608,8 @@ VALUE must be one of `charset', `utf-8', `utf-16', `iso-2022',
 VALUE is the EOL (end-of-line) format of the coding system.  It must be
 one of `unix', `dos', `mac'.  The symbol `unix' means Unix-like EOL
 \(i.e. single LF), `dos' means DOS-like EOL \(i.e. sequence of CR LF),
-and `mac' means Mac-like EOL \(i.e. single CR).  If omitted, on
-decoding by the coding system, Emacs automatically detects the EOL
-format of the source text.
+and `mac' means Mac-like EOL \(i.e. single CR).  If omitted, Emacs
+detects the EOL format automatically when decoding.
 
 `:charset-list'
 
@@ -663,13 +662,6 @@ the coding system is replaced with VALUE.
 
 VALUE non-nil means that visiting a file with the coding system
 results in a unibyte buffer.
-
-`:eol-type'
-
-VALUE must be `unix', `dos', `mac'.  The symbol `unix' means Unix-like
-EOL (LF), `dos' means DOS-like EOL (CRLF), and `mac' means Mac-like
-EOL (CR).  If omitted, on decoding, the coding system detects EOL
-format automatically, and on encoding, uses Unix-like EOL.
 
 `:mime-charset'
 
@@ -2196,8 +2188,7 @@ character, say TO-ALT, FROM is also translated to TO-ALT."
 (defun make-translation-table-from-vector (vec)
   "Make translation table from decoding vector VEC.
 VEC is an array of 256 elements to map unibyte codes to multibyte
-characters.  Elements may be nil for undefined code points.
-See also the variable `nonascii-translation-table'."
+characters.  Elements may be nil for undefined code points."
   (let ((table (make-char-table 'translation-table))
 	(rev-table (make-char-table 'translation-table))
 	ch)

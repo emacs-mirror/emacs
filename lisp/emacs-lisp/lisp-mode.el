@@ -221,8 +221,6 @@ font-lock keywords will not be case sensitive."
   ;;(set (make-local-variable 'adaptive-fill-mode) nil)
   (make-local-variable 'indent-line-function)
   (setq indent-line-function 'lisp-indent-line)
-  (make-local-variable 'parse-sexp-ignore-comments)
-  (setq parse-sexp-ignore-comments t)
   (make-local-variable 'outline-regexp)
   (setq outline-regexp ";;;\\(;* [^ \t\n]\\|###autoload\\)\\|(")
   (make-local-variable 'outline-level)
@@ -431,7 +429,7 @@ All commands in `lisp-mode-shared-map' are inherited by this map.")
   :type 'hook
   :group 'lisp)
 
-(define-derived-mode emacs-lisp-mode nil "Emacs-Lisp"
+(define-derived-mode emacs-lisp-mode prog-mode "Emacs-Lisp"
   "Major mode for editing Lisp code to run in Emacs.
 Commands:
 Delete converts tabs to spaces as it moves back.
@@ -466,7 +464,7 @@ if that value is non-nil."
   "Keymap for ordinary Lisp mode.
 All commands in `lisp-mode-shared-map' are inherited by this map.")
 
-(define-derived-mode lisp-mode nil "Lisp"
+(define-derived-mode lisp-mode prog-mode "Lisp"
   "Major mode for editing Lisp code for Lisps other than GNU Emacs Lisp.
 Commands:
 Delete converts tabs to spaces as it moves back.

@@ -1,3 +1,11 @@
+2010-05-15  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (mostlyclean): Remove references to non-existent files.
+
+2010-05-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* lwlib-Xaw.c (make_dialog): Remove extra arg to XtVaGetSubresources.
+
 2010-05-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xlwmenu.c (XlwMenuDestroy): Remove XtDestroyWidget on subwidgets
@@ -883,11 +891,6 @@
 	[USE_XAW]: Include <X11/Xaw/Paned.h>.
 	(lwlib_memset, lwlib_bcopy): Explicitly declare return type.
 
-1997-12-20  Richard Stallman  <rms@delysid.gnu.org>
-
-	* lwlib-Xm.c (update_one_menu_entry):
-	Add conditional in case XmNpositionIndex is missing.
-
 1997-12-20  Richard Stallman  <rms@psilocin.gnu.org>
 
 	* lwlib-Xm.c (update_one_menu_entry):
@@ -1167,12 +1170,6 @@
 	cascade button as the parent of the pulldown, rather than the
 	cascade button itself.  This works around a Motif SIGSEGV in the
 	function `InSharedMenuHierarchy'.
-
-1994-10-29  Richard Stallman  <rms@duality.gnu.ai.mit.edu>
-
-	* xlwmenu.c (xlwmenu_default_font): New global variable.
-	(XlwMenuInitialize): Use xlwmenu_default_font to default
-	the font if necessary.  Make mw, itself, an argument.
 
 1994-10-26  Richard Stallman  <rms@duality.gnu.ai.mit.edu>
 

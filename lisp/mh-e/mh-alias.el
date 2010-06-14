@@ -234,7 +234,7 @@ returns the string unchanged if not defined. The same is done here."
         (let ((user-arg (if user "-user" "-nouser")))
           (mh-exec-cmd-quiet t "ali" user-arg "-nolist" alias))
         (goto-char (point-max))
-        (if (looking-at "^$") (delete-backward-char 1))
+        (if (looking-at "^$") (delete-char -1))
         (buffer-substring (point-min)(point-max)))
     (error (progn
              (message "%s" (error-message-string err))

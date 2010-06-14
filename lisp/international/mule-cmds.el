@@ -140,7 +140,7 @@
 
     (define-key-after map [describe-language-environment]
       `(menu-item ,(purecopy "Describe Language Environment")
-            describe-language-environment-map
+            ,describe-language-environment-map
             :help ,(purecopy "Show multilingual settings for a specific language")))
     (define-key-after map [describe-input-method]
       `(menu-item ,(purecopy "Describe Input Method...") describe-input-method
@@ -287,7 +287,7 @@ wrong, use this command again to toggle back to the right mode."
   (interactive)
   ;; We have to decode the file in any environment.
   (letf ((coding-system-for-read 'iso-2022-7bit))
-	(view-file (expand-file-name "HELLO" data-directory))))
+    (view-file (expand-file-name "HELLO" data-directory))))
 
 (defun universal-coding-system-argument (coding-system)
   "Execute an I/O command using the specified coding system."
@@ -2882,8 +2882,10 @@ on encoding."
   :group 'mule
   :global t)
 
-(defvar nonascii-insert-offset 0 "This variable is obsolete.")
-(defvar nonascii-translation-table nil "This variable is obsolete.")
+(defvar nonascii-insert-offset 0)
+(make-obsolete-variable 'nonascii-insert-offset "do not use it." "23.1")
+(defvar nonascii-translation-table nil)
+(make-obsolete-variable 'nonascii-translation-table "do not use it." "23.1")
 
 (defvar ucs-names nil
   "Alist of cached (CHAR-NAME . CHAR-CODE) pairs.")
@@ -2893,17 +2895,21 @@ on encoding."
   (or ucs-names
       (let ((bmp-ranges
 	     '((#x0000 . #x33FF)
-	       ;; (#x3400 . #x4DBF) CJK Ideograph Extension A
+	       ;; (#x3400 . #x4DBF) CJK Ideographs Extension A
 	       (#x4DC0 . #x4DFF)
-	       ;; (#x4E00 . #x9FFF) CJK Ideograph
-	       (#xA000 . #x0D7FF)
+	       ;; (#x4E00 . #x9FFF) CJK Unified Ideographs
+	       (#xA000 . #xD7FF)
 	       ;; (#xD800 . #xFAFF) Surrogate/Private
 	       (#xFB00 . #xFFFD)))
 	    (upper-ranges
 	     '((#x10000 . #x134FF)
-	       ;; (#x13500 . #x1CFFF) unsed
+	       ;; (#x13500 . #x167FF) unused
+	       (#x16800 . #x16A3F)
+	       ;; (#x16A40 . #x1AFFF) unused
+	       (#x1B000 . #x1B0FF)
+	       ;; (#x1B100 . #x1CFFF) unused
 	       (#x1D000 . #x1FFFF)
-	       ;; (#x20000 . #xDFFFF) CJK Ideograph Extension A, B, etc, unsed
+	       ;; (#x20000 . #xDFFFF) CJK Ideograph Extension A, B, etc, unused
 	       (#xE0000 . #xE01FF)))
 	    (gc-cons-threshold 10000000)
 	    c end name names)

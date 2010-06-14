@@ -1,7 +1,8 @@
 /* Random utility Lisp functions.
    Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997,
                  1998, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+                 2005, 2006, 2007, 2008, 2009, 2010
+		 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -514,7 +515,7 @@ concat (nargs, args, target_type, last_special)
      So, we record strings that have text properties to be copied
      here, and copy the text properties after the concatination.  */
   struct textprop_rec  *textprops = NULL;
-  /* Number of elments in textprops.  */
+  /* Number of elements in textprops.  */
   int num_textprops = 0;
   USE_SAFE_ALLOCA;
 
@@ -2280,7 +2281,7 @@ ARRAY is a vector, string, char-table, or bool-vector.  */)
 	  if (size != size_byte)
 	    while (p1 < endp)
 	      {
-		int this_len = MULTIBYTE_FORM_LENGTH (p1, endp - p1);
+		int this_len = BYTES_BY_CHAR_HEAD (*p1);
 		if (len != this_len)
 		  error ("Attempt to change byte length of a string");
 		p1 += this_len;

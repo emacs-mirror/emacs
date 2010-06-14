@@ -83,8 +83,6 @@ char *_getpty();
 /* Tell process_send_signal to use VSUSP instead of VSWTCH.  */
 #define PREFER_VSUSP
 
-#define UNEXEC unexelf.o
-
 #define NARROWPROTO 1
 
 #define USE_MMAP_FOR_BUFFERS 1

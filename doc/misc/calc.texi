@@ -76,7 +76,6 @@
 @newcount@calcpageno
 @newtoks@calcoldeverypar @calcoldeverypar=@everypar
 @everypar={@calceverypar@the@calcoldeverypar}
-@ifx@turnoffactive@undefinedzzz@def@turnoffactive{}@fi
 @ifx@ninett@undefinedzzz@font@ninett=cmtt9@fi
 @catcode`@\=0 \catcode`\@=11
 \r@ggedbottomtrue
@@ -1804,7 +1803,6 @@ or, in large mathematical notation,
 @end example
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplay
 $$ 2 + { 3 \times 4 \times 5 \over 6 \times 7^8 } - 9 $$
 \afterdisplay
@@ -3358,7 +3356,6 @@ Suppose we had the following set of equations:
 @end group
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplayh
 $$ \openup1\jot \tabskip=0pt plus1fil
 \halign to\displaywidth{\tabskip=0pt
@@ -3385,7 +3382,6 @@ This can be cast into the matrix equation,
 @end group
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplay
 $$ \pmatrix{ 1 & 2 & 3 \cr 4 & 5 & 6 \cr 7 & 6 & 0 }
    \times
@@ -3457,7 +3453,6 @@ in terms of @expr{a} and @expr{b}.
 @end group
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplay
 $$ \eqalign{ x &+ a y = 6 \cr
              x &+ b y = 10}
@@ -3483,7 +3478,6 @@ on the left by the transpose of @expr{A}:
 @samp{trn(A)*A*X = trn(A)*B}.
 @end ifnottex
 @tex
-\turnoffactive
 $A^T A \, X = A^T B$, where $A^T$ is the transpose \samp{trn(A)}.
 @end tex
 Now 
@@ -3506,7 +3500,6 @@ system:
 @end group
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplayh
 $$ \openup1\jot \tabskip=0pt plus1fil
 \halign to\displaywidth{\tabskip=0pt
@@ -3778,7 +3771,6 @@ m = (N sum(x y) - sum(x) sum(y)) / (N sum(x^2) - sum(x)^2)
 @end example
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplay
 $$ m = {N \sum x y - \sum x \sum y  \over
         N \sum x^2 - \left( \sum x \right)^2} $$
@@ -3820,7 +3812,6 @@ respectively.  (We could have used @kbd{*} to compute @samp{sum(x^2)} and
 @samp{sum(x y)}.)
 @end ifnottex
 @tex
-\turnoffactive
 These are $\sum x$, $\sum x^2$, $\sum y$, and $\sum x y$,
 respectively.  (We could have used \kbd{*} to compute $\sum x^2$ and
 $\sum x y$.)
@@ -3874,7 +3865,6 @@ b = (sum(y) - m sum(x)) / N
 @end example
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplay
 $$ b = {\sum y - m \sum x \over N} $$
 \afterdisplay
@@ -5223,7 +5213,6 @@ down to the formula,
 @end example
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplay
 $$ \displaylines{
       \qquad {h \over 3} (f(a) + 4 f(a+h) + 2 f(a+2h) + 4 f(a+3h) + \cdots
@@ -5245,7 +5234,6 @@ h * (f(a) + f(a+h) + f(a+2h) + f(a+3h) + ...
 @end example
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplay
 $$ h (f(a) + f(a+h) + f(a+2h) + f(a+3h) + \cdots
            + f(a+(n-2)h) + f(a+(n-1)h)) $$
@@ -5686,7 +5674,6 @@ cos(x) = 1 - x^2 / 2! + x^4 / 4! - x^6 / 6! + ...
 @end example
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplay
 $$ \cos x = 1 - {x^2 \over 2!} + {x^4 \over 4!} - {x^6 \over 6!} + \cdots $$
 \afterdisplay
@@ -5704,7 +5691,6 @@ cos(x) = 1 - x^2 / 2! + O(x^3)
 @end example
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplay
 $$ \cos x = 1 - {x^2 \over 2!} + O(x^3) $$
 \afterdisplay
@@ -6336,7 +6322,6 @@ s(n+1,m) = s(n,m-1) - n s(n,m)   for n >= m >= 1.
 @end example
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplay
 $$ \eqalign{ s(n,n)   &= 1 \qquad \hbox{for } n \ge 0,  \cr
              s(n,0)   &= 0 \qquad \hbox{for } n > 0, \cr
@@ -6875,7 +6860,6 @@ get the row sum.  Similarly, use @kbd{[1 1] r 4 *} to get the column sum.
 @end example
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplay
 $$ \eqalign{ x &+ a y = 6 \cr
              x &+ b y = 10}
@@ -6939,7 +6923,6 @@ which we can solve using Calc's @samp{/} command.
 @end example
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplayh
 $$ \openup1\jot \tabskip=0pt plus1fil
 \halign to\displaywidth{\tabskip=0pt
@@ -7074,7 +7057,6 @@ the first job is to form the matrix that describes the problem.
 @end example
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplay
 $$ m \times x + b \times 1 = y $$
 \afterdisplay
@@ -7865,7 +7847,6 @@ So the result when we take the modulo after every step is,
 @end example
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplay
 $$ 3 (3 a + b - 511 m) + c - 511 n $$
 \afterdisplay
@@ -7881,7 +7862,6 @@ the distributive law yields
 @end example
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplay
 $$ 9 a + 3 b + c - 511\times3 m - 511 n $$
 \afterdisplay
@@ -7899,7 +7879,6 @@ term.  So we can take it out to get an equivalent formula with
 @end example
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplay
 $$ 9 a + 3 b + c - 511 n^{\prime} $$
 \afterdisplay
@@ -14408,7 +14387,6 @@ $$ \sin\left( a^2 \over b_i \right) $$
 @end group
 @end example
 @tex
-\turnoffactive
 $$ [3 + 4i, {3 \over 4}, 3 \pm 4, [ 3 \ldots \infty)] $$
 @end tex
 @sp 1
@@ -14434,7 +14412,6 @@ $$ [|a|, \left| a \over b \right|,
 @end group
 @end example
 @tex
-\turnoffactive
 $$ [\sin{a}, \sin{2 a}, \sin(2 + a), \sin\left( {a \over b} \right)] $$
 @end tex
 @sp 2
@@ -14467,7 +14444,6 @@ First with @samp{\def\evalto@{@}}, then with @samp{\def\evalto#1\to@{@}}:
 @end group
 @end example
 @tex
-\turnoffactive
 $$ 2 + 3 \to 5 $$
 $$ 5 $$
 @end tex
@@ -14482,7 +14458,6 @@ First with standard @code{\to}, then with @samp{\let\to\Rightarrow}:
 @end group
 @end example
 @tex
-\turnoffactive
 $$ [{2 + 3 \to 5}, {{a \over 2} \to {b + c \over 2}}] $$
 {\let\to\Rightarrow
 $$ [{2 + 3 \to 5}, {{a \over 2} \to {b + c \over 2}}] $$}
@@ -14499,7 +14474,6 @@ Matrices normally, then changing @code{\matrix} to @code{\pmatrix}:
 @end group
 @end example
 @tex
-\turnoffactive
 $$ \matrix{ {a \over b} & 0 \cr 0 & 2^{(x + 1)} } $$
 $$ \pmatrix{ {a \over b} & 0 \cr 0 & 2^{(x + 1)} } $$
 @end tex
@@ -17935,7 +17909,6 @@ ddb(cost, salv, life, per) = --------,  book = cost - depreciation so far
 @end example
 @end ifnottex
 @tex
-\turnoffactive
 $$ \code{fv}(r, n, p) = p { (1 + r)^n - 1 \over r } $$
 $$ \code{fvb}(r, n, p) = p { ((1 + r)^n - 1) (1 + r) \over r } $$
 $$ \code{fvl}(r, n, p) = p (1 + r)^n $$
@@ -18591,7 +18564,6 @@ letter gamma).  You can obtain these using the @kbd{H f G} [@code{gammag}]
 and @kbd{H I f G} [@code{gammaG}] commands.
 @end ifnottex
 @tex
-\turnoffactive
 The functions corresponding to the integrals that define $P(a,x)$
 and $Q(a,x)$ but without the normalizing $1/\Gamma(a)$
 factor are called $\gamma(a,x)$ and $\Gamma(a,x)$, respectively.
@@ -20058,6 +20030,20 @@ range are ignored.  (You can tell if elements have been ignored by noting
 that the counts in the result vector don't add up to the length of the
 input vector.)
 
+If no prefix is given, then you will be prompted for a vector which
+will be used to determine the bins. (If a positive integer is given at
+this prompt, it will be still treated as if it were given as a
+prefix.)  Each bin will consist of the interval of numbers closest to
+the corresponding number of this new vector; if the vector 
+@expr{[a, b, c, ...]} is entered at the prompt, the bins will be 
+@expr{(-inf, (a+b)/2]}, @expr{((a+b)/2, (b+c)/2]}, etc.  The result of 
+this command will be a vector counting how many elements of the
+original vector are in each bin.
+
+The result will then be a vector with the same length as this new vector;
+each element of the new vector will be replaced by the number of
+elements of the original vector which are closest to it.
+
 @kindex H v H
 @kindex H V H
 With the Hyperbolic flag, @kbd{H V H} pulls two vectors from the stack.
@@ -20559,7 +20545,6 @@ this is the weighted mean of the @expr{x} values with weights
 @texline @math{1 /\sigma^2}.
 @infoline @expr{1 / s^2}.
 @tex
-\turnoffactive
 $$ \mu = { \displaystyle \sum { x_i \over \sigma_i^2 } \over
            \displaystyle \sum { 1 \over \sigma_i^2 } } $$
 @end tex
@@ -20593,7 +20578,6 @@ root of the reciprocal of the sum of the reciprocals of the squares
 of the input errors.  (I.e., the variance is the reciprocal of the
 sum of the reciprocals of the variances.)
 @tex
-\turnoffactive
 $$ \sigma_\mu^2 = {1 \over \displaystyle \sum {1 \over \sigma_i^2}} $$
 @end tex
 If the inputs are plain
@@ -20603,7 +20587,6 @@ out to be equivalent to calculating the standard deviation and
 then assuming each value's error is equal to this standard
 deviation.)
 @tex
-\turnoffactive
 $$ \sigma_\mu^2 = {\sigma^2 \over N} $$
 @end tex
 
@@ -20636,7 +20619,6 @@ command computes the harmonic mean of the data values.  This is
 defined as the reciprocal of the arithmetic mean of the reciprocals
 of the values.
 @tex
-\turnoffactive
 $$ { N \over \displaystyle \sum {1 \over x_i} } $$
 @end tex
 
@@ -20650,7 +20632,6 @@ is the @var{n}th root of the product of the values.  This is also
 equal to the @code{exp} of the arithmetic mean of the logarithms
 of the data values.
 @tex
-\turnoffactive
 $$ \exp \left ( \sum { \ln x_i } \right ) =
    \left ( \prod { x_i } \right)^{1 / N} $$
 @end tex
@@ -20662,7 +20643,6 @@ mean'' of two numbers taken from the stack.  This is computed by
 replacing the two numbers with their arithmetic mean and geometric
 mean, then repeating until the two values converge.
 @tex
-\turnoffactive
 $$ a_{i+1} = { a_i + b_i \over 2 } , \qquad b_{i+1} = \sqrt{a_i b_i} $$
 @end tex
 
@@ -20685,7 +20665,6 @@ deviation, whose value is the square root of the sum of the squares of
 the differences between the values and the mean of the @expr{N} values,
 divided by @expr{N-1}.
 @tex
-\turnoffactive
 $$ \sigma^2 = {1 \over N - 1} \sum (x_i - \mu)^2 $$
 @end tex
 
@@ -20712,7 +20691,6 @@ is used when the input represents a sample of the set of all
 data values, so that the mean computed from the input is itself
 only an estimate of the true mean.
 @tex
-\turnoffactive
 $$ \sigma^2 = {1 \over N} \sum (x_i - \mu)^2 $$
 @end tex
 
@@ -20777,7 +20755,6 @@ are composed of error forms, the error for a given data point
 is taken as the square root of the sum of the squares of the two
 input errors.
 @tex
-\turnoffactive
 $$ \sigma_{x\!y}^2 = {1 \over N-1} \sum (x_i - \mu_x) (y_i - \mu_y) $$
 $$ \sigma_{x\!y}^2 =
     {\displaystyle {1 \over N-1}
@@ -20805,7 +20782,6 @@ This is defined by the covariance of the vectors divided by the
 product of their standard deviations.  (There is no difference
 between sample or population statistics here.)
 @tex
-\turnoffactive
 $$ r_{x\!y} = { \sigma_{x\!y}^2 \over \sigma_x^2 \sigma_y^2 } $$
 @end tex
 
@@ -24361,8 +24337,6 @@ For example, suppose the data matrix
 @end example
 @end ifnottex
 @tex
-\turnoffactive
-\turnoffactive
 \beforedisplay
 $$ \pmatrix{ 1 & 2 & 3 & 4  & 5  \cr
              5 & 7 & 9 & 11 & 13 }
@@ -24422,7 +24396,6 @@ chi^2 = sum((y_i - (a + b x_i))^2, i, 1, N)
 @end example
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplay
 $$ \chi^2 = \sum_{i=1}^N (y_i - (a + b x_i))^2 $$
 \afterdisplay
@@ -24613,7 +24586,6 @@ chi^2 = sum(((y_i - (a + b x_i)) / sigma_i)^2, i, 1, N)
 @end example
 @end ifnottex
 @tex
-\turnoffactive
 \beforedisplay
 $$ \chi^2 = \sum_{i=1}^N \left(y_i - (a + b x_i) \over \sigma_i\right)^2 $$
 \afterdisplay
@@ -25388,7 +25360,6 @@ any later ones are answered by reading additional elements from
 the stack.  Thus, @kbd{' k^2 @key{RET} ' k @key{RET} 1 @key{RET} 5 @key{RET} a + @key{RET}}
 produces the result 55.
 @tex
-\turnoffactive
 $$ \sum_{k=1}^5 k^2 = 55 $$
 @end tex
 

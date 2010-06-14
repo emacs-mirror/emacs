@@ -1220,19 +1220,16 @@ at the front of the list of recently selected ones."
                (let ((buf (get-buffer-create buffer-or-name)))
                  (set-buffer-major-mode buf)
                  buf))))
-	(old-window (selected-window))
 	(old-frame (selected-frame))
 	new-window new-frame)
     (set-buffer buffer)
     (setq new-window (display-buffer buffer other-window))
-    (unless (eq new-window old-window)
-      ;; `display-buffer' has chosen another window, select it.
-      (select-window new-window norecord)
-      (setq new-frame (window-frame new-window))
-      (unless (eq new-frame old-frame)
-	;; `display-buffer' has chosen another frame, make sure it gets
-	;; input focus and is risen.
-	(select-frame-set-input-focus new-frame)))
+    (select-window new-window norecord)
+    (setq new-frame (window-frame new-window))
+    (unless (eq new-frame old-frame)
+      ;; `display-buffer' has chosen another frame, make sure it gets
+      ;; input focus and is risen.
+      (select-frame-set-input-focus new-frame))
     buffer))
 
 ;; I think this should be the default; I think people will prefer it--rms.

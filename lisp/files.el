@@ -574,6 +574,9 @@ Runs the usual ange-ftp hook, but only for completion operations."
 	  (inhibit-file-name-operation op))
       (apply op args))))
 
+(declare-function dos-convert-standard-filename "dos-fns.el" (filename))
+(declare-function w32-convert-standard-filename "w32-fns.el" (filename))
+
 (defun convert-standard-filename (filename)
   "Convert a standard file's name to something suitable for the OS.
 This means to guarantee valid names and perhaps to canonicalize
@@ -591,15 +594,20 @@ and also turn slashes into backslashes if the shell requires it (see
 `w32-shell-dos-semantics').
 
 See Info node `(elisp)Standard File Names' for more details."
-  (if (eq system-type 'cygwin)
-      (let ((name (copy-sequence filename))
-	    (start 0))
-	;; Replace invalid filename characters with !
-	(while (string-match "[?*:<>|\"\000-\037]" name start)
-	       (aset name (match-beginning 0) ?!)
-	  (setq start (match-end 0)))
-	name)
-    filename))
+  (cond
+   ((eq system-type 'cygwin)
+    (let ((name (copy-sequence filename))
+	  (start 0))
+      ;; Replace invalid filename characters with !
+      (while (string-match "[?*:<>|\"\000-\037]" name start)
+	(aset name (match-beginning 0) ?!)
+	(setq start (match-end 0)))
+      name))
+   ((eq system-type 'windows-nt)
+    (w32-convert-standard-filename filename))
+   ((eq system-type 'ms-dos)
+    (dos-convert-standard-filename filename))
+   (t filename)))
 
 (defun read-directory-name (prompt &optional dir default-dirname mustmatch initial)
   "Read directory name, prompting with PROMPT and completing in directory DIR.
@@ -4627,16 +4635,17 @@ or multiple mail buffers, etc."
       (force-mode-line-update))))
 
 (defun make-directory (dir &optional parents)
-  "Create the directory DIR and any nonexistent parent dirs.
-If DIR already exists as a directory, signal an error, unless PARENTS is set.
+  "Create the directory DIR and optionally any nonexistent parent dirs.
+If DIR already exists as a directory, signal an error, unless
+PARENTS is non-nil.
 
-Interactively, the default choice of directory to create
-is the current default directory for file names.
-That is useful when you have visited a file in a nonexistent directory.
+Interactively, the default choice of directory to create is the
+current buffer's default directory.  That is useful when you have
+visited a file in a nonexistent directory.
 
-Noninteractively, the second (optional) argument PARENTS says whether
-to create parent directories if they don't exist.  Interactively,
-this happens by default."
+Noninteractively, the second (optional) argument PARENTS, if
+non-nil, says whether to create parent directories that don't
+exist.  Interactively, this happens by default."
   (interactive
    (list (read-file-name "Make directory: " default-directory default-directory
 			 nil nil)
@@ -4665,21 +4674,32 @@ this happens by default."
 
 (defconst directory-files-no-dot-files-regexp
   "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*"
-  "Regexp of file names excluging \".\" an \"..\".")
+  "Regexp matching any file name except \".\" and \"..\".")
 
-(defun delete-directory (directory &optional recursive)
+(defun delete-directory (directory &optional recursive trash)
   "Delete the directory named DIRECTORY.  Does not follow symlinks.
-If RECURSIVE is non-nil, all files in DIRECTORY are deleted as well."
+If RECURSIVE is non-nil, all files in DIRECTORY are deleted as well.
+TRASH non-nil means to trash the directory instead, provided
+`delete-by-moving-to-trash' is non-nil.
+
+When called interactively, TRASH is t if no prefix argument is
+given.  With a prefix argument, TRASH is nil."
   (interactive
-   (let ((dir (expand-file-name
-	       (read-file-name
-		"Delete directory: "
-		default-directory default-directory nil nil))))
+   (let* ((trashing (and delete-by-moving-to-trash
+			 (null current-prefix-arg)))
+	  (dir (expand-file-name
+		(read-file-name
+		 (if trashing
+		     "Move directory to trash: "
+		   "Delete directory: ")
+		 default-directory default-directory nil nil))))
      (list dir
 	   (if (directory-files	dir nil directory-files-no-dot-files-regexp)
 	       (y-or-n-p
-		(format "Directory `%s' is not empty, really delete? " dir))
-	     nil))))
+		(format "Directory `%s' is not empty, really %s? "
+			dir (if trashing "trash" "delete")))
+	     nil)
+	   (null current-prefix-arg))))
   ;; If default-directory is a remote directory, make sure we find its
   ;; delete-directory handler.
   (setq directory (directory-file-name (expand-file-name directory)))
@@ -4687,7 +4707,7 @@ If RECURSIVE is non-nil, all files in DIRECTORY are deleted as well."
     (cond
      (handler
       (funcall handler 'delete-directory directory recursive))
-     (delete-by-moving-to-trash
+     ((and delete-by-moving-to-trash trash)
       ;; Only move non-empty dir to trash if recursive deletion was
       ;; requested.  This mimics the non-`delete-by-moving-to-trash'
       ;; case, where the operation fails in delete-directory-internal.
@@ -4707,8 +4727,8 @@ If RECURSIVE is non-nil, all files in DIRECTORY are deleted as well."
 		  ;; (and (file-directory-p fn) (not (file-symlink-p fn)))
 		  ;; but more efficient
 		  (if (eq t (car (file-attributes file)))
-		      (delete-directory file recursive)
-		    (delete-file file)))
+		      (delete-directory file recursive nil)
+		    (delete-file file nil)))
 		;; We do not want to delete "." and "..".
 		(directory-files
 		 directory 'full directory-files-no-dot-files-regexp)))

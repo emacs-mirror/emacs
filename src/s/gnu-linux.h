@@ -29,7 +29,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    It sets the Lisp variable system-type.  */
 #define SYSTEM_TYPE "gnu/linux"		/* All the best software is free. */
 
-#ifndef NOT_C_CODE
 #ifdef emacs
 #ifdef HAVE_LINUX_VERSION_H
 #include <linux/version.h>
@@ -40,7 +39,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif /* LINUX_VERSION_CODE >= 0x20400 */
 #endif /* HAVE_LINUX_VERSION_H */
 #endif /* emacs */
-#endif /* NOT_C_CODE */
 
 #if defined HAVE_GRANTPT
 #define UNIX98_PTYS
@@ -91,12 +89,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define HAVE_SOCKETS
 
-/* Define this symbol if your system has the functions bcopy, etc.  */
-#define BSTRING
-
 /* This is used in list_system_processes.  */
 #define HAVE_PROCFS 1
-
 
 /* Define CLASH_DETECTION if you want lock files to be written
    so that Emacs can tell instantly when you try to modify
@@ -126,17 +120,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define GNU_LIBRARY_PENDING_OUTPUT_COUNT(FILE) \
   ((FILE)->_pptr - (FILE)->_pbase)
 #endif /* !_IO_STDIO_H && ! __UCLIBC__ */
-#endif /* emacs */
 
-#ifdef emacs
 #define INTERRUPT_INPUT
-#endif
+#endif /* emacs */
 
 #define SYSV_SYSTEM_DIR       /* use dirent.h */
 
 #define POSIX                 /* affects getpagesize.h and systty.h */
-
-#define UNEXEC unexelf.o
 
 /* This is to work around mysterious gcc failures in some system versions.
    It is unlikely that Emacs changes will work around this problem;
@@ -146,11 +136,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #define NARROWPROTO 1
-
-/* Use mmap directly for allocating larger buffers.  */
-#ifdef DOUG_LEA_MALLOC
-#undef REL_ALLOC
-#endif
 
 /* Tell that garbage collector that setjmp is known to save all
    registers relevant for conservative garbage collection in the jmp_buf.  */

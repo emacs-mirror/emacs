@@ -2446,12 +2446,12 @@ See also `verilog-font-lock-extra-types'.")
 		 (list
 		  (concat "\\<function\\>\\s-+\\(integer\\|real\\(time\\)?\\|time\\)\\s-+\\(\\sw+\\)" )
 		       '(1 font-lock-keyword-face)
-		       '(3 font-lock-reference-face prepend))
+		       '(3 font-lock-constant-face prepend))
 		 '("\\<function\\>\\s-+\\(\\[[^]]+\\]\\)\\s-+\\(\\sw+\\)"
 		   (1 font-lock-keyword-face)
-		   (2 font-lock-reference-face append))
+		   (2 font-lock-constant-face append))
 		 '("\\<function\\>\\s-+\\(\\sw+\\)"
-		   1 'font-lock-reference-face append))))
+		   1 'font-lock-constant-face append))))
 
   (setq verilog-font-lock-keywords-2
 	(append verilog-font-lock-keywords-1
@@ -9305,11 +9305,11 @@ For more information see the \\[verilog-faq] and forums at URL
 		 (delete-char 1)
 		 (insert ");")
 		 (search-forward "\n")	;; Added by inst-port
-		 (delete-backward-char 1)
+		 (delete-char -1)
 		 (if (search-forward ")" nil t) ;; From user, moved up a line
-		     (delete-backward-char 1))
+		     (delete-char -1))
 		 (if (search-forward ";" nil t) ;; Don't error if user had syntax error and forgot it
-		     (delete-backward-char 1)))))))))
+		     (delete-char -1)))))))))
 
 (defun verilog-auto-inst-param ()
   "Expand AUTOINSTPARAM statements, as part of \\[verilog-auto].
@@ -9412,9 +9412,9 @@ Templates:
 		 (delete-char 1)
 		 (insert ")")
 		 (search-forward "\n")	;; Added by inst-port
-		 (delete-backward-char 1)
+		 (delete-char -1)
 		 (if (search-forward ")" nil t) ;; From user, moved up a line
-		     (delete-backward-char 1)))))))))
+		     (delete-char -1)))))))))
 
 (defun verilog-auto-reg ()
   "Expand AUTOREG statements, as part of \\[verilog-auto].

@@ -39,7 +39,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <sys/file.h>
 #ifdef HAVE_FCNTL_H
-#define INCLUDED_FCNTL
 #include <fcntl.h>
 #endif
 
@@ -53,7 +52,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #ifdef MSDOS	/* Demacs 1.1.1 91/10/16 HIRANO Satoshi */
-#define INCLUDED_FCNTL
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/param.h>
@@ -856,7 +854,7 @@ delete_temp_file (name)
   /* Suppress jka-compr handling, etc.  */
   int count = SPECPDL_INDEX ();
   specbind (intern ("file-name-handler-alist"), Qnil);
-  internal_delete_file (name, Qt);
+  internal_delete_file (name);
   unbind_to (count, Qnil);
   return Qnil;
 }

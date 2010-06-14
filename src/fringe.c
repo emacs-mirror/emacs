@@ -730,7 +730,7 @@ get_logical_fringe_bitmap (w, bitmap, right_p, partial_p)
      Elements are:
 	BITMAP		-- use for all
 	(L R)		-- use for left right (whether partial or not)
-	(L R PL PR)	-- use for left rigth partial-left partial-right
+	(L R PL PR)	-- use for left right partial-left partial-right
 	If any value in local binding is not present or t, use global value.
 
      If partial, lookup partial bitmap in default value if not found here.

@@ -1,4 +1,4 @@
-/* machine description file for IBM S390 in 64-bit mode
+/* Machine description file for IBM S390 in 64-bit mode
 
 Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
   Free Software Foundation, Inc.
@@ -18,16 +18,10 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-/* This file was made by copying the significant parts of amdx86-64.h
-   into ibms390.h.  */
+#include "ibms390.h"
 
-/* Used for machine IBM s390 64 bits with opsys gnu-linux.  */
 #define BITS_PER_LONG 64
 #define BITS_PER_EMACS_INT 64
-
-/* Define WORDS_BIG_ENDIAN if lowest-numbered byte in a word
-   is the most significant byte.  */
-#define WORDS_BIG_ENDIAN
 
 /* Define the type to use.  */
 #define EMACS_INT long
@@ -40,29 +34,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    This flag only matters if you use USE_LISP_UNION_TYPE.  */
 #undef EXPLICIT_SIGN_EXTEND
 
-/* Data type of load average, as read out of kmem.  */
-#define LOAD_AVE_TYPE long
-
-/* Convert that into an integer that is 100 for a load average of 1.0  */
-#define LOAD_AVE_CVT(x) (int) (((double) (x)) * 100.0 / FSCALE)
-
-/* Define VIRT_ADDR_VARIES if the virtual addresses of
-   pure and impure space as loaded can vary, and even their
-   relative order cannot be relied on.
-
-   Otherwise Emacs assumes that text space precedes data space,
-   numerically.  */
-#define VIRT_ADDR_VARIES
-
-/* Define HAVE_ALLOCA to say that the system provides a properly
-   working alloca function and it should be used.  Undefine it if an
-   assembler-language alloca in the file alloca.s should be used. */
-#define HAVE_ALLOCA
-
 /* On the 64 bit architecture, we can use 60 bits for addresses */
 #define VALBITS         60
-
-#define LINKER $(CC) -nostdlib
 
 /* Define XPNTR to avoid or'ing with DATA_SEG_BITS */
 #define XPNTR(a) XUINT (a)

@@ -44,33 +44,31 @@
 
   (autoload 'tramp-tramp-file-p "tramp")
   (autoload 'tramp-file-name-handler "tramp")
-  (autoload 'tramp-handle-file-remote-p "tramp")
 
-  ;; tramp-util offers integration into other (X)Emacs packages like
-  ;; compile.el, gud.el etc.  Not necessary in Emacs 23.
-  (eval-after-load "tramp"
-    ;; We check whether `start-file-process' is an alias.
-    '(when (or (not (fboundp 'start-file-process))
-	       (symbolp (symbol-function 'start-file-process)))
-       (require 'tramp-util)
-       (add-hook 'tramp-unload-hook
-		 '(lambda ()
-		    (when (featurep 'tramp-util)
-		      (unload-feature 'tramp-util 'force))))))
+  ;; We check whether `start-file-process' is bound.
+  (unless (fboundp 'start-file-process)
 
-  ;; Make sure that we get integration with the VC package.  When it
-  ;; is loaded, we need to pull in the integration module.  Not
-  ;; necessary in Emacs 23.
-  (eval-after-load "vc"
+    ;; tramp-util offers integration into other (X)Emacs packages like
+    ;; compile.el, gud.el etc.  Not necessary in Emacs 23.
     (eval-after-load "tramp"
-      ;; We check whether `start-file-process' is an alias.
-      '(when (or (not (fboundp 'start-file-process))
-		 (symbolp (symbol-function 'start-file-process)))
-	 (require 'tramp-vc)
+      '(progn
+	 (require 'tramp-util)
 	 (add-hook 'tramp-unload-hook
 		   '(lambda ()
-		      (when (featurep 'tramp-vc)
-			(unload-feature 'tramp-vc 'force)))))))
+		      (when (featurep 'tramp-util)
+			(unload-feature 'tramp-util 'force))))))
+
+    ;; Make sure that we get integration with the VC package.  When it
+    ;; is loaded, we need to pull in the integration module.  Not
+    ;; necessary in Emacs 23.
+    (eval-after-load "vc"
+      (eval-after-load "tramp"
+	'(progn
+	   (require 'tramp-vc)
+	   (add-hook 'tramp-unload-hook
+		     '(lambda ()
+			(when (featurep 'tramp-vc)
+			  (unload-feature 'tramp-vc 'force))))))))
 
   ;; Avoid byte-compiler warnings if the byte-compiler supports this.
   ;; Currently, XEmacs supports this.
@@ -176,7 +174,8 @@
 	(if (and
 	     (tramp-tramp-file-p name)
 	     (not (string-match
-		   "[[*?]" (tramp-handle-file-remote-p name 'localname))))
+		   "[[*?]" (tramp-compat-funcall
+			    'file-remote-p name 'localname))))
 	    (setq ad-return-value (list name))
 	  ;; Otherwise, just run the original function.
 	  ad-do-it)))
@@ -236,22 +235,23 @@ Add the extension of FILENAME, if existing."
 		  (tramp-compat-temporary-file-directory)))
 	 (extension (file-name-extension filename t))
 	 result)
-    (if (fboundp 'make-temp-file)
+    (condition-case nil
 	(setq result
 	      (tramp-compat-funcall 'make-temp-file prefix dir-flag extension))
-      ;; We use our own implementation, taken from files.el.
-      (while
-	  (condition-case ()
-	      (progn
-		(setq result (concat (make-temp-name prefix) extension))
-		(if dir-flag
-		    (make-directory result)
-		  (write-region "" nil result nil 'silent))
-		nil)
-	    (file-already-exists t))
-	;; The file was somehow created by someone else between
-	;; `make-temp-name' and `write-region', let's try again.
-	nil))
+      (error
+       ;; We use our own implementation, taken from files.el.
+       (while
+	   (condition-case ()
+	       (progn
+		 (setq result (concat (make-temp-name prefix) extension))
+		 (if dir-flag
+		     (make-directory result)
+		   (write-region "" nil result nil 'silent))
+		 nil)
+	     (file-already-exists t))
+	 ;; The file was somehow created by someone else between
+	 ;; `make-temp-name' and `write-region', let's try again.
+	 nil)))
     result))
 
 ;; `most-positive-fixnum' does not exist in XEmacs.
@@ -334,23 +334,18 @@ Add the extension of FILENAME, if existing."
 	(if keep-time
 	    (set-file-times newname (nth 5 (file-attributes directory))))))))
 
-;; FORCE has been introduced with Emacs 24.1.
-(defun tramp-compat-delete-file (filename &optional force)
+;; TRASH has been introduced with Emacs 24.1.
+(defun tramp-compat-delete-file (filename &optional trash)
   "Like `delete-file' for Tramp files (compat function)."
-  (if (null force)
-      (delete-file filename)
-    (condition-case nil
-	(tramp-compat-funcall 'delete-file filename force)
-      ;; This Emacs version does not support the FORCE flag.  Setting
-      ;; `delete-by-moving-to-trash' shall give us the same effect.
-      (wrong-number-of-arguments
-       (let ((delete-by-moving-to-trash
-	      (cond
-	       ((null force) t)
-	       ((boundp 'delete-by-moving-to-trash)
-		(symbol-value 'delete-by-moving-to-trash))
-	       (t nil))))
-	 (delete-file filename))))))
+  (condition-case nil
+      (tramp-compat-funcall 'delete-file filename trash)
+    ;; This Emacs version does not support the TRASH flag.
+    (wrong-number-of-arguments
+     (let ((delete-by-moving-to-trash
+	    (and (boundp 'delete-by-moving-to-trash)
+		 (symbol-value 'delete-by-moving-to-trash)
+		 trash)))
+       (delete-file filename)))))
 
 ;; RECURSIVE has been introduced with Emacs 23.2.
 (defun tramp-compat-delete-directory (directory &optional recursive)

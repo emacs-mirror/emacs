@@ -48,13 +48,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Convert that into an integer that is 100 for a load average of 1.0  */
 #define LOAD_AVE_CVT(x) (int) (((double) (x)) * 100.0 / FSCALE)
 
-#ifdef __ELF__
-#undef UNEXEC
-#define UNEXEC unexelf.o
-#endif
-
-#ifndef NOT_C_CODE
-
 #ifdef REL_ALLOC
 #ifndef _MALLOC_INTERNAL
 /* "char *" because ralloc.c defines it that way.  gmalloc.c thinks it
@@ -64,8 +57,6 @@ extern char *r_alloc (), *r_re_alloc ();
 extern void r_alloc_free ();
 #endif /* not _MALLOC_INTERNAL */
 #endif /* REL_ALLOC */
-
-#endif /* not NOT_C_CODE */
 
 #define HAVE_TEXT_START
 

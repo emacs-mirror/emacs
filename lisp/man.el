@@ -759,6 +759,9 @@ POS defaults to `point'."
   (cond
    ((eq action 'lambda)
     (not (string-match "([^)]*\\'" string)))
+   ((equal string "-k")
+    ;; Let SPC (minibuffer-complete-word) insert the space.
+    (complete-with-action action '("-k ") string pred))
    (t
     (let ((table (cdr Man-completion-cache))
           (section nil)

@@ -1,8 +1,8 @@
 #!/bin/sh
 ### quick-install-emacs --- do a halfway-decent job of installing emacs quickly
 
-## Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-##   Free Software Foundation, Inc.
+## Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+##   2010  Free Software Foundation, Inc.
 
 ## Author: Miles Bader <miles@gnu.org>
 
@@ -31,7 +31,7 @@
 PUBLIC_LIBSRC_BINARIES='b2m emacsclient etags ctags ebrowse'
 PUBLIC_LIBSRC_SCRIPTS='grep-changelog rcs-checkin'
 
-AVOID="CVS -DIC README COPYING ChangeLog ~ [.]orig$ [.]rej$ Makefile$ Makefile.in$ Makefile.c$ makefile$ makefile.w32-in$ stamp-subdir [.]cvsignore [.]arch-ids [{]arch[}] [.][cho]$ make-docfile testfile test-distrib"
+AVOID="CVS -DIC README COPYING ChangeLog ~ [.]orig$ [.]rej$ Makefile$ Makefile.in$ makefile$ makefile.w32-in$ stamp-subdir [.]cvsignore [.]arch-ids [{]arch[}] [.][cho]$ make-docfile testfile test-distrib"
 
 # Prune old binaries lying around in the source tree
 PRUNE=no
@@ -171,7 +171,7 @@ test x"$SRC" = x && { SRC="`get_config_var srcdir`" || exit 4 ; }
 test x"$prefix" = x && { prefix="`get_config_var prefix`" || exit 4 ; }
 test x"$ARCH" = x && { ARCH="`get_config_var host`" || exit 4 ; }
 
-VERSION=`grep 'defconst[	 ]*emacs-version' $SRC/lisp/version.el \
+VERSION=`grep 'char emacs_version' $SRC/src/emacs.c \
          | sed -e 's/^[^"]*"\([^"]*\)".*$/\1/'`
 
 DST_SHARE="$prefix/share/emacs/$VERSION"

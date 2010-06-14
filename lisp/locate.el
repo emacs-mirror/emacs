@@ -326,7 +326,7 @@ ARG is the interactive prefix arg."
 	(locate-do-setup search-string)
 	))
     (and (not (string-equal (buffer-name) locate-buffer-name))
-	(switch-to-buffer-other-window locate-buffer-name))
+	(pop-to-buffer locate-buffer-name))
 
     (run-hooks 'dired-mode-hook)
     (dired-next-line 3)			;move to first matching file.

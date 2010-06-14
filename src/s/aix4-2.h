@@ -52,20 +52,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    functions.  Almost, but not quite the same as the 4.2 functions.  */
 #define SYSV_SYSTEM_DIR
 
-/* Define this symbol if your system has the functions bcopy, etc.  */
-#define BSTRING
-
 /* The file containing the kernel's symbol table is called /unix.  */
 #define KERNEL_FILE "/unix"
 
 /* The kernel symbol where the load average is found is named avenrun.  */
 #define LDAV_SYMBOL "avenrun"
 
-/* Special itemss needed to make Emacs run on this system.  */
-
-#ifndef __GNUC__
-#define LINKER cc
-#endif
+/* Special items needed to make Emacs run on this system.  */
 
 /* The following definition seems to be needed in AIX version 3.1.6.8.
    It may not have been needed in certain earlier versions.  */
@@ -107,10 +100,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    Emacs currently calls xrealloc on the results of get_current_dir name,
    to avoid a crash just use the Emacs implementation for that function.  */
 #define BROKEN_GET_CURRENT_DIR_NAME 1
-
-#define UNEXEC unexaix.o
-
-#define ORDINARY_LINK
 
 /* arch-tag: 38fe75ea-6aef-42bd-8449-bc34d921a562
    (do not change this comment) */

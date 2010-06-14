@@ -748,20 +748,28 @@ struct glyph_row
 
   /* First position in this row.  This is the text position, including
      overlay position information etc, where the display of this row
-     started, and can thus be less the position of the first glyph
-     (e.g. due to invisible text or horizontal scrolling).  BIDI Note:
-     This is the smallest character position in the row, but not
-     necessarily the character that is the leftmost on the display.  */
+     started, and can thus be less than the position of the first
+     glyph (e.g. due to invisible text or horizontal scrolling).
+     BIDI Note: In R2L rows, that have its reversed_p flag set, this
+     position is at or beyond the right edge of the row.  */
   struct display_pos start;
 
   /* Text position at the end of this row.  This is the position after
      the last glyph on this row.  It can be greater than the last
-     glyph position + 1, due to truncation, invisible text etc.  In an
-     up-to-date display, this should always be equal to the start
-     position of the next row.  BIDI Note: this is the character whose
-     buffer position is the largest, but not necessarily the rightmost
-     one on the display.  */
+     glyph position + 1, due to a newline that ends the line,
+     truncation, invisible text etc.  In an up-to-date display, this
+     should always be equal to the start position of the next row.
+     BIDI Note: In R2L rows, this position is at or beyond the left
+     edge of the row.  */
   struct display_pos end;
+
+  /* The smallest and the largest buffer positions that contributed to
+     glyphs in this row.  Note that due to bidi reordering, these are
+     in general different from the text positions stored in `start'
+     and `end' members above, and also different from the buffer
+     positions recorded in the glyphs displayed the leftmost and
+     rightmost on the screen.  */
+  struct text_pos minpos, maxpos;
 
   /* Non-zero means the overlay arrow bitmap is on this line.
      -1 means use default overlay arrow bitmap, else
@@ -947,16 +955,16 @@ struct glyph_row *matrix_row P_ ((struct glyph_matrix *, int));
    displayed by ROW, which is not necessarily the smallest horizontal
    position.  */
 
-#define MATRIX_ROW_START_CHARPOS(ROW) ((ROW)->start.pos.charpos)
-#define MATRIX_ROW_START_BYTEPOS(ROW) ((ROW)->start.pos.bytepos)
+#define MATRIX_ROW_START_CHARPOS(ROW) ((ROW)->minpos.charpos)
+#define MATRIX_ROW_START_BYTEPOS(ROW) ((ROW)->minpos.bytepos)
 
 /* Return the character/ byte position at which ROW ends.  BIDI Note:
    this is the largest character/byte position among characters in
    ROW, i.e. the last logical-order character displayed by ROW, which
    is not necessarily the largest horizontal position.  */
 
-#define MATRIX_ROW_END_CHARPOS(ROW) ((ROW)->end.pos.charpos)
-#define MATRIX_ROW_END_BYTEPOS(ROW) ((ROW)->end.pos.bytepos)
+#define MATRIX_ROW_END_CHARPOS(ROW) ((ROW)->maxpos.charpos)
+#define MATRIX_ROW_END_BYTEPOS(ROW) ((ROW)->maxpos.bytepos)
 
 /* Return the vertical position of ROW in MATRIX.  */
 
@@ -1789,7 +1797,7 @@ struct bidi_it {
   EMACS_INT next_en_pos;	/* position of next EN char for ET */
   EMACS_INT ignore_bn_limit;	/* position until which to ignore BNs */
   bidi_dir_t sor;		/* direction of start-of-run in effect */
-  int scan_dir;			/* direction of text scan */
+  int scan_dir;			/* direction of text scan, 1: forw, -1: back */
   int stack_idx;		/* index of current data on the stack */
   /* Note: Everything from here on is not copied/saved when the bidi
      iterator state is saved, pushed, or popped.  So only put here
@@ -1968,17 +1976,31 @@ struct composition_it
      are not iterating over a composition now.  */
   int id;
   /* If non-negative, character that triggers the automatic
-     composition at `stop_pos', and this is an automatic compositoin.
+     composition at `stop_pos', and this is an automatic composition.
      If negative, this is a static composition.  This is set to -2
      temporarily if searching of composition reach a limit or a
      newline.  */
   int ch;
-  /* If this an automatic composition, how many characters to look back
-     from the position where a character triggering the composition
-     exists.  */
+  /* If this is an automatic composition, index of a rule for making
+     the automatic composition.  Provided that ELT is an element of
+     Vcomposition_function_table for CH, (nth ELT RULE_IDX) is the
+     rule for the composition.  */
+  int rule_idx;
+  /* If this is an automatic composition, how many characters to look
+     back from the position where a character triggering the
+     composition exists.  */
   int lookback;
   /* If non-negative, number of glyphs of the glyph-string.  */
   int nglyphs;
+  /* Nonzero iff the composition is created while buffer is scanned in
+     reverse order, and thus the grapheme clusters must be rendered
+     from the last to the first.  */
+  int reversed_p;
+
+  /** The following members contain information about the current
+      grapheme cluster.  */
+  /* Position of the first character of the current grapheme cluster.  */
+  EMACS_INT charpos;
   /* Number of characters and bytes of the current grapheme cluster.  */
   int nchars, nbytes;
   /* Indices of the glyphs for the current grapheme cluster.  */
@@ -2864,7 +2886,7 @@ extern EMACS_INT tool_bar_button_relief;
 /* Defined in bidi.c */
 
 extern void bidi_init_it P_ ((EMACS_INT, EMACS_INT, struct bidi_it *));
-extern void bidi_get_next_char_visually P_ ((struct bidi_it *));
+extern void bidi_move_to_visually_next P_ ((struct bidi_it *));
 extern void bidi_paragraph_init P_ ((bidi_dir_t, struct bidi_it *));
 extern int  bidi_mirror_char P_ ((int));
 
@@ -2899,8 +2921,8 @@ void mark_window_display_accurate P_ ((Lisp_Object, int));
 void redisplay_preserve_echo_area P_ ((int));
 int set_cursor_from_row P_ ((struct window *, struct glyph_row *,
 			     struct glyph_matrix *, int, int, int, int));
-void init_iterator P_ ((struct it *, struct window *, int,
-			int, struct glyph_row *, enum face_id));
+void init_iterator P_ ((struct it *, struct window *, EMACS_INT,
+			EMACS_INT, struct glyph_row *, enum face_id));
 void init_iterator_to_row_start P_ ((struct it *, struct window *,
 				     struct glyph_row *));
 int get_next_display_element P_ ((struct it *));

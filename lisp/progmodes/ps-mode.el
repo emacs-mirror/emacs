@@ -681,7 +681,7 @@ defines the beginning of a group. These tokens are:  {  [  <<"
     (if (or (not ps-mode-auto-indent)
 	    (< ps-mode-tab 1)
 	    (not (re-search-backward "^[ \t]+\\=" nil t)))
-	(delete-backward-char 1)
+	(call-interactively 'delete-backward-char)
       (setq target (ps-mode-target-column))
       (while (> column target)
 	(setq target (+ target ps-mode-tab)))

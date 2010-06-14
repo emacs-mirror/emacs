@@ -164,7 +164,6 @@ VPATH=@srcdir@
 x_default_search_path=@x_default_search_path@
 
 # Location to install Emacs.app under NeXT/Open/GNUstep / Cocoa
-ns_appdir=@ns_appdir@
 ns_appbindir=@ns_appbindir@
 ns_appresdir=@ns_appresdir@
 
@@ -244,6 +243,8 @@ INSTALL_STRIP =
 
 # We use gzip to compress installed .el files.
 GZIP_PROG = @GZIP_PROG@
+# If non-nil, gzip the installed Info and man pages.
+GZIP_INFO = @GZIP_INFO@
 
 # ============================= Targets ==============================
 
@@ -280,6 +281,9 @@ all: ${SUBDIR} leim
 removenullpaths=sed -e 's/^://g' -e 's/:$$//g' -e 's/::/:/g'
 
 # Generate epaths.h from epaths.in.  This target is invoked by `configure'.
+# See comments in configure.in for why it is done this way, as opposed
+# to just letting configure generate epaths.h from epaths.in in a
+# similar way to how Makefile is made from Makefile.in.
 epaths-force: FRC
 	@(lisppath=`echo ${lisppath} | ${removenullpaths}` ;		\
 	  buildlisppath=`echo ${buildlisppath} | ${removenullpaths}` ;	\
@@ -336,9 +340,13 @@ src: Makefile FRC
 	      CC='${CC}' CFLAGS='${CFLAGS}' CPPFLAGS='${CPPFLAGS}'         \
 	      LDFLAGS='${LDFLAGS}' MAKE='${MAKE}' BOOTSTRAPEMACS="$$boot"; \
 	fi;
+	if [ -r .bzr/checkout/dirstate ]; then 			\
+	    vcswitness="$$(pwd)/.bzr/checkout/dirstate"; 	\
+	fi; 							\
 	cd $@; $(MAKE) all $(MFLAGS)                           \
 	  CC='${CC}' CFLAGS='${CFLAGS}' CPPFLAGS='${CPPFLAGS}' \
-	  LDFLAGS='${LDFLAGS}' MAKE='${MAKE}' BOOTSTRAPEMACS=""
+	  LDFLAGS='${LDFLAGS}' MAKE='${MAKE}' BOOTSTRAPEMACS=""	\
+	  VCSWITNESS="$$vcswitness"
 
 blessmail: Makefile src FRC
 	cd lib-src; $(MAKE) maybe-blessmail $(MFLAGS) \
@@ -370,7 +378,11 @@ $(srcdir)/configure: $(AUTOCONF_INPUTS)
 	cd ${srcdir} && autoconf
 
 $(srcdir)/src/config.in: $(srcdir)/src/stamp-h.in
-	@true
+	@ # Usually, there's no need to rebuild src/config.in just
+	@ # because stamp-h.in has changed (since building stamp-h.in
+	@ # refreshes config.in as well), but if config.in is missing
+	@ # then we really need to do something more.
+	[ -r "$@" ] || ( cd ${srcdir} && autoheader )
 $(srcdir)/src/stamp-h.in: $(AUTOCONF_INPUTS)
 	cd ${srcdir} && autoheader
 	rm -f $(srcdir)/src/stamp-h.in
@@ -418,16 +430,21 @@ install-arch-dep: mkdir
 	    ${INSTALL_DATA} lib-src/$$f $(DESTDIR)${archlibdir}/$$f; \
 	  else true; fi ; \
 	done
-	if test "${ns_appdir}" != ""; then \
+	if test "${ns_appresdir}" != ""; then \
 	  ( cd ${ns_appresdir} ; \
 	    if test -d share/emacs ; then dir=share/emacs/*/*; $(MV_DIRS); fi;\
 	    if test -d share/info ; then dir=share/info; $(MV_DIRS) ; fi ; \
 	    rm -fr share ) ; \
-	  ( cd ${ns_appbindir}/libexec ; dir=emacs/*/*/* ; $(MV_DIRS); \
+	  ( cd ${ns_appbindir}libexec ; dir=emacs/*/*/* ; $(MV_DIRS); \
 	    rm -fr emacs ) ; \
-	  ( cd ${ns_appbindir}/bin ; rm -f emacs emacs-23* ; \
+	  ( cd ${ns_appbindir}bin ; rm -f emacs emacs-24* ; \
 	    ln -sf ../libexec/* .) ; \
 	else true ; fi
+
+## FIXME is the emacs-24* bit above really necessary and correct?
+## What if I have 24.1 and 24.2 installed at the same time?
+## In any case, it should use something like echo $version | sed 's/\..*//'
+## instead of hard-coding a version.
 
 ## http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg01672.html
 ## Needs to be the user running install, so configure can't set it.
@@ -476,11 +493,8 @@ install-arch-indep: mkdir info install-etc
 		| (cd $${dest}; umask 022; \
                    tar -xvf - && cat > /dev/null) || exit 1; \
 	      find $${dest} -exec chown $${installuser} {} ';' ;\
-	      for subdir in `find $${dest} -type d ! -name RCS ! -name CVS -print` ; do \
+	      for subdir in `find $${dest} -type d -print` ; do \
 		chmod a+rx $${subdir} ; \
-		rm -rf $${subdir}/RCS ; \
-		rm -rf $${subdir}/CVS ; \
-		rm -f  $${subdir}/.cvsignore ; \
 		rm -f  $${subdir}/.gitignore ; \
 		rm -f  $${subdir}/.arch-inventory ; \
 		rm -f  $${subdir}/.DS_Store ; \
@@ -492,7 +506,6 @@ install-arch-indep: mkdir info install-etc
 		 rm -f $${subdir}/[mM]akefile*.c $${subdir}/[mM]akefile*[.-]in \
 		   $${subdir}/[mM]akefile ; \
 		rm -f  $${subdir}/ChangeLog* ; \
-		rm -f  $${subdir}/dired.todo ; \
 	      done) ; \
 	done
 	-rm -f $(DESTDIR)${lispdir}/subdirs.el
@@ -569,6 +582,10 @@ install-arch-indep: mkdir info install-etc
 	      for f in `ls $$elt $$elt-[1-9] $$elt-[1-9][0-9] 2>/dev/null`; do \
 	        ${INSTALL_DATA} $$f $(DESTDIR)${infodir}/$$f; \
 	        chmod a+r $(DESTDIR)${infodir}/$$f; \
+	        if [ -n "${GZIP_INFO}" ] && [ -n "${GZIP_PROG}" ]; then \
+	          rm -f $(DESTDIR)${infodir}/$$f.gz; \
+	          ${GZIP_PROG} -9n $(DESTDIR)${infodir}/$$f; \
+	        else true; fi; \
 	      done; \
 	   done); \
 	else true; fi
@@ -588,7 +605,11 @@ install-arch-indep: mkdir info install-etc
 	for page in ${MAN_PAGES}; do \
 	  (cd $${thisdir}; \
 	   ${INSTALL_DATA} ${mansrcdir}/$${page} $(DESTDIR)${man1dir}/$${page}; \
-	   chmod a+r $(DESTDIR)${man1dir}/$${page}); \
+	   chmod a+r $(DESTDIR)${man1dir}/$${page}; \
+	   if [ -n "${GZIP_INFO}" ] && [ -n "${GZIP_PROG}" ]; then \
+	     rm -f $(DESTDIR)${man1dir}/$${page}.gz; \
+	     ${GZIP_PROG} -9n $(DESTDIR)${man1dir}/$${page}; \
+	   else true; fi ); \
 	done
 
 ## Install those items from etc/ that need to end up elsewhere.

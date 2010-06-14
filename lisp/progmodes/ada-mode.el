@@ -1645,7 +1645,7 @@ ARG is the prefix the user entered with \\[universal-argument]."
 		     (insert " ")
 		     (ada-adjust-case)
 		     ;; horrible dekludge
-		     (delete-backward-char 1)
+		     (delete-char -1)
 		     ;; some special keys and their bindings
 		     (cond
 		      ((eq lastk ?\n)

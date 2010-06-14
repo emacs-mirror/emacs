@@ -27,9 +27,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define EMACS_CONFIG_H
 
 
-/* Generate dependencies with gcc. */
-#undef AUTO_DEPEND
-
 /* Define to 1 if the mktime function is broken. */
 #undef BROKEN_MKTIME
 
@@ -43,12 +40,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if using `getloadavg.c'. */
 #undef C_GETLOADAVG
-
-/* Define C_SWITCH_X_SITE to contain any special flags your compiler may need
-   to deal with X Windows. For instance, if you've defined HAVE_X_WINDOWS
-   above and your X include files aren't in a place that your compiler can
-   find on its own, you might want to add "-I/..." or something similar. */
-#undef C_SWITCH_X_SITE
 
 /* Define to 1 for DGUX with <sys/dg_sys_info.h>. */
 #undef DGUX
@@ -324,10 +315,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <kerberos/krb.h> header file. */
 #undef HAVE_KERBEROS_KRB_H
 
-/* Define to 1 if `e_text' is member of `krb5_error'. */
+/* Define to 1 if `e_text' is a member of `krb5_error'. */
 #undef HAVE_KRB5_ERROR_E_TEXT
 
-/* Define to 1 if `text' is member of `krb5_error'. */
+/* Define to 1 if `text' is a member of `krb5_error'. */
 #undef HAVE_KRB5_ERROR_TEXT
 
 /* Define to 1 if you have the <krb5.h> header file. */
@@ -494,6 +485,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have a working `mmap' system call. */
 #undef HAVE_MMAP
 
+/* Define if you have mouse support. */
+#undef HAVE_MOUSE
+
 /* Define to 1 if you have the `mremap' function. */
 #undef HAVE_MREMAP
 
@@ -618,25 +612,25 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `strsignal' function. */
 #undef HAVE_STRSIGNAL
 
-/* Define to 1 if `ifr_addr' is member of `struct ifreq'. */
+/* Define to 1 if `ifr_addr' is a member of `struct ifreq'. */
 #undef HAVE_STRUCT_IFREQ_IFR_ADDR
 
-/* Define to 1 if `ifr_broadaddr' is member of `struct ifreq'. */
+/* Define to 1 if `ifr_broadaddr' is a member of `struct ifreq'. */
 #undef HAVE_STRUCT_IFREQ_IFR_BROADADDR
 
-/* Define to 1 if `ifr_flags' is member of `struct ifreq'. */
+/* Define to 1 if `ifr_flags' is a member of `struct ifreq'. */
 #undef HAVE_STRUCT_IFREQ_IFR_FLAGS
 
-/* Define to 1 if `ifr_hwaddr' is member of `struct ifreq'. */
+/* Define to 1 if `ifr_hwaddr' is a member of `struct ifreq'. */
 #undef HAVE_STRUCT_IFREQ_IFR_HWADDR
 
-/* Define to 1 if `ifr_netmask' is member of `struct ifreq'. */
+/* Define to 1 if `ifr_netmask' is a member of `struct ifreq'. */
 #undef HAVE_STRUCT_IFREQ_IFR_NETMASK
 
-/* Define to 1 if `n_un.n_name' is member of `struct nlist'. */
+/* Define to 1 if `n_un.n_name' is a member of `struct nlist'. */
 #undef HAVE_STRUCT_NLIST_N_UN_N_NAME
 
-/* Define to 1 if `tm_zone' is member of `struct tm'. */
+/* Define to 1 if `tm_zone' is a member of `struct tm'. */
 #undef HAVE_STRUCT_TM_TM_ZONE
 
 /* Define to 1 if `struct utimbuf' is declared by <utime.h>. */
@@ -749,6 +743,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <vfork.h> header file. */
 #undef HAVE_VFORK_H
 
+/* Define if you have a window system. */
+#undef HAVE_WINDOW_SYSTEM
+
 /* Define to 1 if `fork' works. */
 #undef HAVE_WORKING_FORK
 
@@ -810,12 +807,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to use Kerberos 5 instead of Kerberos 4. */
 #undef KERBEROS5
 
-/* Define LD_SWITCH_X_SITE to contain any special flags your loader may need
-   to deal with X Windows. For instance, if you've defined HAVE_X_WINDOWS
-   above and your X libraries aren't in a place that your loader can find on
-   its own, you might want to add "-L/..." or something similar. */
-#undef LD_SWITCH_X_SITE
-
 /* Define to 1 if localtime caches TZ. */
 #undef LOCALTIME_CACHE
 
@@ -853,6 +844,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you are using NS windowing under GNUstep. */
 #undef NS_IMPL_GNUSTEP
 
+/* Define if the C compiler is the linker. */
+#undef ORDINARY_LINK
+
 /* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT
 
@@ -864,6 +858,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to the one symbol short name of this package. */
 #undef PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
@@ -1022,12 +1019,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef volatile
 
 
-/* If we're using X11/Carbon/GNUstep, define some consequences.  */
-#if defined(HAVE_X_WINDOWS) || defined(HAVE_NS)
-#define HAVE_WINDOW_SYSTEM
-#define HAVE_MOUSE
-#endif
-
 /* Define AMPERSAND_FULL_NAME if you use the convention
    that & in the full name stands for the login id.  */
 /* Turned on June 1996 supposing nobody will mind it.  */
@@ -1052,7 +1043,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #endif /* __FreeBSD__ || __NetBSD__ || __linux__  */
 
-/* If using GNU, then support inline function declarations. */
+/* If using GNU, then support inline function declarations.  */
 /* Don't try to switch on inline handling as detected by AC_C_INLINE
    generally, because even if non-gcc compilers accept `inline', they
    may reject `extern inline'.  */
@@ -1077,7 +1068,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Set up some defines, C and LD flags for NeXTstep interface on GNUstep.
   (There is probably a better place to do this, but right now the Cocoa
    side does this in s/darwin.h and we cannot
-   parallel this exactly since GNUstep is multi-OS. */
+   parallel this exactly since GNUstep is multi-OS.  */
 #ifdef HAVE_NS
 # ifdef NS_IMPL_GNUSTEP
 /* GNUstep needs a bit more pure memory.  Of the existing knobs,
@@ -1111,23 +1102,10 @@ SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
 
 #define my_strftime nstrftime	/* for strftime.c */
 
-/* The rest of the code currently tests the CPP symbol BSTRING.
-   Override any claims made by the system-description files.
-   Note that on some SCO version it is possible to have bcopy and not bcmp.  */
-#undef BSTRING
-#if defined (HAVE_BCOPY) && defined (HAVE_BCMP)
-#define BSTRING
-#endif
-
 /* Some of the files of Emacs which are intended for use with other
    programs assume that if you have a config.h file, you must declare
-   the type of getenv.
-
-   This declaration shouldn't appear when alloca.s or Makefile.in
-   includes config.h.  */
-#ifndef NOT_C_CODE
+   the type of getenv.  */
 extern char *getenv ();
-#endif
 
 /* These default definitions are good for almost all machines.
    The exceptions override them in m/MACHINE.h.  */
@@ -1168,36 +1146,39 @@ extern char *getenv ();
 # endif  /* GCC.  */
 #endif /* __P */
 
-/* Don't include "string.h" or <stdlib.h> in non-C code.  */
-#ifndef NOT_C_CODE
 #ifdef HAVE_STRING_H
-#include "string.h"
+#include <string.h>
 #endif
+
 #ifdef HAVE_STRINGS_H
-#include "strings.h"  /* May be needed for bcopy & al. */
+#include <strings.h>  /* May be needed for bcopy & al.  */
 #endif
+
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
-#ifndef __GNUC__
-# ifdef HAVE_ALLOCA_H
-#  include <alloca.h>
-# else /* AIX files deal with #pragma.  */
-#  ifndef alloca /* predefined by HP cc +Olibcalls */
-char *alloca ();
-#  endif
-# endif /* HAVE_ALLOCA_H */
-#endif /* __GNUC__ */
+
+#ifdef HAVE_ALLOCA_H
+# include <alloca.h>
+#elif defined __GNUC__
+# define alloca __builtin_alloca
+#elif defined _AIX
+# define alloca __alloca
+#else
+# include <stddef.h>
+# ifdef  __cplusplus
+extern "C"
+# endif
+void *alloca (size_t);
+#endif
+
 #ifndef HAVE_SIZE_T
 typedef unsigned size_t;
 #endif
-#endif /* NOT_C_CODE */
 
 /* Define HAVE_X_I18N if we have usable i18n support.  */
 
 #ifdef HAVE_X11R6
-#define HAVE_X_I18N
-#elif !defined X11R5_INHIBIT_I18N
 #define HAVE_X_I18N
 #endif
 
@@ -1218,11 +1199,7 @@ typedef unsigned size_t;
    that the stack is continuous.  */
 #ifdef __GNUC__
 #  ifndef GC_SETJMP_WORKS
-  /* GC_SETJMP_WORKS is nearly always appropriate for GCC --
-     see NON_SAVING_SETJMP in the target descriptions.  */
-  /* Exceptions (see NON_SAVING_SETJMP in target description) are
-     SCO5 non-ELF (but Emacs specifies ELF) and SVR3 on x86.
-     Fixme: Deal with SVR3.  */
+  /* GC_SETJMP_WORKS is nearly always appropriate for GCC.  */
 #    define GC_SETJMP_WORKS 1
 #  endif
 #  ifndef GC_LISP_OBJECT_ALIGNMENT

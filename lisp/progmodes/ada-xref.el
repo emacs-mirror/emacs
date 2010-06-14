@@ -108,10 +108,9 @@ the Ada mode project."
   :type 'string :group 'ada)
 
 (defcustom ada-prj-ada-project-path-sep
-  (if (or (equal system-type 'windows-nt)
-	  (equal system-type 'ms-dos))
-      ";"
-    ":")
+  (cond ((boundp 'path-separator) path-separator) ; 20.3+
+	((memq system-type '(windows-nt ms-dos)) ";")
+	(t ":"))
   "Default separator for ada_project_path project variable."
   :type 'string :group 'ada)
 
@@ -381,9 +380,9 @@ Assumes environment variable ADA_PROJECT_PATH is set properly."
 	  (forward-line 1) ; first directory in list
 	  (while (not (looking-at "^$")) ; terminate on blank line
 	    (back-to-indentation) ; skip whitespace
-	    (if (looking-at "<Current_Directory>")
-		(add-to-list 'src-dir  (expand-file-name "."))
-	      (add-to-list 'src-dir
+	    (add-to-list 'src-dir
+                         (if (looking-at "<Current_Directory>")
+                             default-directory
 			   (expand-file-name
 			    (buffer-substring-no-properties
 			     (point) (line-end-position)))))
@@ -395,9 +394,9 @@ Assumes environment variable ADA_PROJECT_PATH is set properly."
 	  (forward-line 1)
 	  (while (not (looking-at "^$"))
 	    (back-to-indentation)
-	    (if (looking-at "<Current_Directory>")
-		(add-to-list 'obj-dir (expand-file-name "."))
-	      (add-to-list 'obj-dir
+	    (add-to-list 'obj-dir
+                         (if (looking-at "<Current_Directory>")
+                             default-directory
 			   (expand-file-name
 			    (buffer-substring-no-properties
 			     (point) (line-end-position)))))

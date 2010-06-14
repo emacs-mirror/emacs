@@ -1,3 +1,10 @@
+2010-05-14  Peter S Galbraith  <psg@debian.org>
+
+	* mh-mime.el (mh-decode-message-subject): New function to decode
+	RFC2047 encoded Subject lines. Used for reply drafts.
+	* mh-comp.el (mh-compose-and-send-mail): Call
+	`mh-decode-message-subject' on (reply or forward) message drafts.
+
 2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 23.2 released.

@@ -1,6 +1,7 @@
 ;;; rcirc.el --- default, simple IRC client.
 
-;; Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Ryan Yeske
 ;; URL: http://www.nongnu.org/rcirc
@@ -80,6 +81,11 @@ VALUE must be a number or string.  If absent,
 VALUE must be a string.  If absent, `rcirc-default-user-name' is
 used.
 
+`:password'
+
+VALUE must be a string.  If absent, no PASS command will be sent
+to the server.
+
 `:full-name'
 
 VALUE must be a string.  If absent, `rcirc-default-full-name' is
@@ -94,6 +100,7 @@ connected to automatically."
 		:value-type (plist :options ((:nick string)
 					     (:port integer)
 					     (:user-name string)
+					     (:password string)
 					     (:full-name string)
 					     (:channels (repeat string)))))
   :group 'rcirc)
@@ -108,15 +115,15 @@ connected to automatically."
   :type 'string
   :group 'rcirc)
 
-(defcustom rcirc-default-user-name (user-login-name)
+(defcustom rcirc-default-user-name "user"
   "Your user name sent to the server when connecting."
+  :version "24.1"                       ; changed default
   :type 'string
   :group 'rcirc)
 
-(defcustom rcirc-default-full-name (if (string= (user-full-name) "")
-				       rcirc-default-user-name
-				     (user-full-name))
+(defcustom rcirc-default-full-name "unknown"
   "The full name sent to the server when connecting."
+  :version "24.1"                       ; changed default
   :type 'string
   :group 'rcirc)
 
@@ -369,6 +376,9 @@ and the cdr part is used for encoding."
 (defvar rcirc-nick-name-history nil
   "History variable for \\[rcirc] call.")
 
+(defvar rcirc-user-name-history nil
+  "History variable for \\[rcirc] call.")
+
 ;;;###autoload
 (defun rcirc (arg)
   "Connect to all servers in `rcirc-server-alist'.
@@ -393,6 +403,12 @@ If ARG is non-nil, instead prompt for connection parameters."
 				(or (plist-get server-plist :nick)
 				    rcirc-default-nick)
 				'rcirc-nick-name-history))
+	     (user-name (read-string "IRC Username: "
+                                     (or (plist-get server-plist :user-name)
+                                         rcirc-default-user-name)
+                                     'rcirc-user-name-history))
+	     (password (read-passwd "IRC Password: " nil
+                                    (plist-get server-plist :password)))
 	     (channels (split-string
 			(read-string "IRC Channels: "
 				     (mapconcat 'identity
@@ -400,9 +416,9 @@ If ARG is non-nil, instead prompt for connection parameters."
 							   :channels)
 						" "))
 			"[, ]+" t)))
-	(rcirc-connect server port nick rcirc-default-user-name
+	(rcirc-connect server port nick user-name
 		       rcirc-default-full-name
-		       channels))
+		       channels password))
     ;; connect to servers in `rcirc-server-alist'
     (let (connected-servers)
       (dolist (c rcirc-server-alist)
@@ -413,7 +429,8 @@ If ARG is non-nil, instead prompt for connection parameters."
 			     rcirc-default-user-name))
 	      (full-name (or (plist-get (cdr c) :full-name)
 			     rcirc-default-full-name))
-	      (channels (plist-get (cdr c) :channels)))
+	      (channels (plist-get (cdr c) :channels))
+              (password (plist-get (cdr c) :password)))
 	  (when server
 	    (let (connected)
 	      (dolist (p (rcirc-process-list))
@@ -422,7 +439,7 @@ If ARG is non-nil, instead prompt for connection parameters."
 	      (if (not connected)
 		  (condition-case e
 		      (rcirc-connect server port nick user-name
-				     full-name channels)
+				     full-name channels password)
 		    (quit (message "Quit connecting to %s" server)))
 		(with-current-buffer (process-buffer connected)
 		  (setq connected-servers
@@ -453,8 +470,8 @@ If ARG is non-nil, instead prompt for connection parameters."
 (defvar rcirc-process nil)
 
 ;;;###autoload
-(defun rcirc-connect (server &optional port nick user-name full-name
-			     startup-channels)
+(defun rcirc-connect (server &optional port nick user-name
+                             full-name startup-channels password)
   (save-excursion
     (message "Connecting to %s..." server)
     (let* ((inhibit-eol-conversion)
@@ -503,10 +520,11 @@ If ARG is non-nil, instead prompt for connection parameters."
       (add-hook 'auto-save-hook 'rcirc-log-write)
 
       ;; identify
+      (when password
+        (rcirc-send-string process (concat "PASS " password)))
       (rcirc-send-string process (concat "NICK " nick))
       (rcirc-send-string process (concat "USER " user-name
-                                      " hostname servername :"
-                                      full-name))
+                                         " 0 * :" full-name))
 
       ;; setup ping timer if necessary
       (unless rcirc-keepalive-timer
@@ -1067,8 +1085,8 @@ Create the buffer if it doesn't exist."
     (goto-char (point-max))
     (when (not (equal 0 (- (point) rcirc-prompt-end-marker)))
       ;; delete a trailing newline
-      (when (eq (point) (point-at-bol))
-	(delete-backward-char 1))
+      (when (bolp)
+	(delete-char -1))
       (let ((input (buffer-substring-no-properties
 		    rcirc-prompt-end-marker (point))))
 	(dolist (line (split-string input "\n"))
@@ -1632,6 +1650,31 @@ if NICK is also on `rcirc-ignore-list-automatic'."
 	    (delete nick rcirc-ignore-list-automatic)
 	    rcirc-ignore-list
 	    (delete nick rcirc-ignore-list))))
+
+(defun rcirc-nickname< (s1 s2)
+  "Return t if IRC nickname S1 is less than S2, and nil otherwise.
+Operator nicknames (@) are considered less than voiced
+nicknames (+).  Any other nicknames are greater than voiced
+nicknames.  The comparison is case-insensitive."
+  (setq s1 (downcase s1)
+        s2 (downcase s2))
+  (let* ((s1-op (eq ?@ (string-to-char s1)))
+         (s2-op (eq ?@ (string-to-char s2))))
+    (if s1-op
+        (if s2-op
+            (string< (substring s1 1) (substring s2 1))
+          t)
+      (if s2-op
+          nil
+        (string< s1 s2)))))
+
+(defun rcirc-sort-nicknames-join (input sep)
+  "Return a string of sorted nicknames.
+INPUT is a string containing nicknames separated by SEP.
+This function does not alter the INPUT string."
+  (let* ((parts (split-string input sep t))
+         (sorted (sort parts 'rcirc-nickname<)))
+    (mapconcat 'identity sorted sep)))
 
 ;;; activity tracking
 (defvar rcirc-track-minor-mode-map (make-sparse-keymap)
@@ -2537,7 +2580,8 @@ keywords when no KEYWORD is given."
          (buffer (rcirc-get-temp-buffer-create process channel)))
     (with-current-buffer buffer
       (rcirc-print process sender "NAMES" channel
-                   (buffer-substring (point-min) (point-max))))
+                   (let ((content (buffer-substring (point-min) (point-max))))
+		     (rcirc-sort-nicknames-join content " "))))
     (kill-buffer buffer)))
 
 (defun rcirc-handler-433 (process sender args text)

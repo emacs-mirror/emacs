@@ -422,6 +422,13 @@ Other major modes are defined by comparison with this one."
   "Parent major mode from which special major modes should inherit."
   (setq buffer-read-only t))
 
+;; Major mode meant to be the parent of programming modes.
+
+(define-derived-mode prog-mode fundamental-mode "Prog"
+  "Major mode for editing programming language source code."
+  (set (make-local-variable 'require-final-newline) mode-require-final-newline)
+  (set (make-local-variable 'parse-sexp-ignore-comments) t))
+
 ;; Making and deleting lines.
 
 (defvar hard-newline (propertize "\n" 'hard t 'rear-nonsticky '(hard))
@@ -2070,7 +2077,11 @@ to `shell-command-history'."
 
 Like `shell-command' but if COMMAND doesn't end in ampersand, adds `&'
 surrounded by whitespace and executes the command asynchronously.
-The output appears in the buffer `*Async Shell Command*'."
+The output appears in the buffer `*Async Shell Command*'.
+
+In Elisp, you will often be better served by calling `start-process'
+directly, since it offers more control and does not impose the use of a
+shell (with its need to quote arguments)."
   (interactive
    (list
     (read-shell-command "Async shell command: " nil nil
@@ -2131,7 +2142,11 @@ If the optional third argument ERROR-BUFFER is non-nil, it is a buffer
 or buffer name to which to direct the command's standard error output.
 If it is nil, error output is mingled with regular output.
 In an interactive call, the variable `shell-command-default-error-buffer'
-specifies the value of ERROR-BUFFER."
+specifies the value of ERROR-BUFFER.
+
+In Elisp, you will often be better served by calling `call-process' or
+`start-process' directly, since it offers more control and does not impose
+the use of a shell (with its need to quote arguments)."
 
   (interactive
    (list
@@ -2890,24 +2905,27 @@ argument should still be a \"useful\" string for such uses."
     (if yank-handler
 	(signal 'args-out-of-range
 		(list string "yank-handler specified for empty string"))))
-  (when (and kill-do-not-save-duplicates
-             (equal string (car kill-ring)))
-    (setq replace t))
-  (if (fboundp 'menu-bar-update-yank-menu)
-      (menu-bar-update-yank-menu string (and replace (car kill-ring))))
+  (unless (and kill-do-not-save-duplicates
+	       (equal string (car kill-ring)))
+    (if (fboundp 'menu-bar-update-yank-menu)
+	(menu-bar-update-yank-menu string (and replace (car kill-ring)))))
   (when save-interprogram-paste-before-kill
     (let ((interprogram-paste (and interprogram-paste-function
                                    (funcall interprogram-paste-function))))
       (when interprogram-paste
-        (if (listp interprogram-paste)
-            (dolist (s (nreverse interprogram-paste))
-              (push s kill-ring))
-            (push interprogram-paste kill-ring)))))
-  (if (and replace kill-ring)
-      (setcar kill-ring string)
-    (push string kill-ring)
-    (if (> (length kill-ring) kill-ring-max)
-	(setcdr (nthcdr (1- kill-ring-max) kill-ring) nil)))
+        (dolist (s (if (listp interprogram-paste)
+		       (nreverse interprogram-paste)
+		     (list interprogram-paste)))
+	  (unless (and kill-do-not-save-duplicates
+		       (equal s (car kill-ring)))
+	    (push s kill-ring))))))
+  (unless (and kill-do-not-save-duplicates
+	       (equal string (car kill-ring)))
+    (if (and replace kill-ring)
+	(setcar kill-ring string)
+      (push string kill-ring)
+      (if (> (length kill-ring) kill-ring-max)
+	  (setcdr (nthcdr (1- kill-ring-max) kill-ring) nil))))
   (setq kill-ring-yank-pointer kill-ring)
   (if interprogram-cut-function
       (funcall interprogram-cut-function string (not replace))))
@@ -4524,6 +4542,9 @@ rests."
 	       (let ((goal-column 0)
 		     (line-move-visual nil))
 		 (and (line-move arg t)
+		      ;; With bidi reordering, we may not be at bol,
+		      ;; so make sure we are.
+		      (skip-chars-backward "^\n")
 		      (not (bobp))
 		      (progn
 			(while (and (not (bobp)) (invisible-p (1- (point))))

@@ -62,7 +62,7 @@ IMAP non-nil means use the IMAP version."
 		(decode-coding-region p (point) 'utf-16be)
 		(save-excursion
 		  (goto-char p)
-		  (delete-backward-char 1)))))))
+		  (delete-char -1)))))))
       (- (point-max) (point-min)))))
 
 ;;;###autoload

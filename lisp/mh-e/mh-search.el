@@ -1511,7 +1511,7 @@ construct the base name."
       (delete-char 1))
     (goto-char (point-max))
     (while (and (not (bobp)) (memq (char-before) '(?  ?\t ?\n ?\r ?_)))
-      (delete-backward-char 1))
+      (delete-char -1))
     (subst-char-in-region (point-min) (point-max) ?  ?_ t)
     (subst-char-in-region (point-min) (point-max) ?\t ?_ t)
     (subst-char-in-region (point-min) (point-max) ?\n ?_ t)

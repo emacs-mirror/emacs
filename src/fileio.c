@@ -83,10 +83,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #ifdef DOS_NT
-#define CORRECT_DIR_SEPS(s) \
-  do { if ('/' == DIRECTORY_SEP) dostounix_filename (s); \
-       else unixtodos_filename (s); \
-  } while (0)
 /* On Windows, drive letters must be alphabetic - on DOS, the Netware
    redirector allows the six letters between 'Z' and 'a' as well. */
 #ifdef MSDOS
@@ -474,7 +470,7 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
 	  p = beg + strlen (beg);
 	}
     }
-  CORRECT_DIR_SEPS (beg);
+  dostounix_filename (beg);
 #endif /* DOS_NT */
 
   return make_specified_string (beg, -1, p - beg, STRING_MULTIBYTE (filename));
@@ -561,12 +557,11 @@ file_name_as_directory (out, in)
   /* For Unix syntax, Append a slash if necessary */
   if (!IS_DIRECTORY_SEP (out[size]))
     {
-      /* Cannot use DIRECTORY_SEP, which could have any value */
-      out[size + 1] = '/';
+      out[size + 1] = DIRECTORY_SEP;
       out[size + 2] = '\0';
     }
 #ifdef DOS_NT
-  CORRECT_DIR_SEPS (out);
+  dostounix_filename (out);
 #endif
   return out;
 }
@@ -627,7 +622,7 @@ directory_file_name (src, dst)
       )
     dst[slen - 1] = 0;
 #ifdef DOS_NT
-  CORRECT_DIR_SEPS (dst);
+  dostounix_filename (dst);
 #endif
   return 1;
 }
@@ -1032,10 +1027,9 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
       if (!lose)
 	{
 #ifdef DOS_NT
-	  /* Make sure directories are all separated with / or \ as
-	     desired, but avoid allocation of a new string when not
-	     required. */
-	  CORRECT_DIR_SEPS (nm);
+	  /* Make sure directories are all separated with /, but
+	     avoid allocation of a new string when not required. */
+	  dostounix_filename (nm);
 #ifdef WINDOWSNT
 	  if (IS_DIRECTORY_SEP (nm[1]))
 	    {
@@ -1381,7 +1375,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	target[0] = '/';
 	target[1] = ':';
       }
-    CORRECT_DIR_SEPS (target);
+    dostounix_filename (target);
 #endif /* DOS_NT */
 
     result = make_specified_string (target, -1, o - target, multibyte);
@@ -1659,7 +1653,7 @@ those `/' is discarded.  */)
   bcopy (SDATA (filename), nm, SBYTES (filename) + 1);
 
 #ifdef DOS_NT
-  CORRECT_DIR_SEPS (nm);
+  dostounix_filename (nm);
   substituted = (strcmp (nm, SDATA (filename)) != 0);
 #endif
   endp = nm + SBYTES (filename);
@@ -1925,7 +1919,7 @@ A prefix arg makes KEEP-TIME non-nil.
 If PRESERVE-UID-GID is non-nil, we try to transfer the
 uid and gid of FILE to NEWNAME.
 
-If PRESERVE-SELINUX-CONTEXT is non-nil and SELinux is enabled 
+If PRESERVE-SELINUX-CONTEXT is non-nil and SELinux is enabled
 on the system, we copy the SELinux context of FILE to NEWNAME.  */)
      (file, newname, ok_if_already_exists, keep_time, preserve_uid_gid, preserve_selinux_context)
      Lisp_Object file, newname, ok_if_already_exists, keep_time;
@@ -2180,12 +2174,7 @@ DEFUN ("delete-directory-internal", Fdelete_directory_internal,
 
   CHECK_STRING (directory);
   directory = Fdirectory_file_name (Fexpand_file_name (directory, Qnil));
-
-  if (delete_by_moving_to_trash)
-    return call1 (Qmove_file_to_trash, directory);
-
   encoded_dir = ENCODE_FILE (directory);
-
   dir = SDATA (encoded_dir);
 
   if (rmdir (dir) != 0)
@@ -2194,17 +2183,22 @@ DEFUN ("delete-directory-internal", Fdelete_directory_internal,
   return Qnil;
 }
 
-DEFUN ("delete-file", Fdelete_file, Sdelete_file, 1, 2, "fDelete file: \nP",
+DEFUN ("delete-file", Fdelete_file, Sdelete_file, 1, 2,
+       "(list (read-file-name \
+                (if (and delete-by-moving-to-trash (null current-prefix-arg)) \
+                    \"Move file to trash: \" \"Delete file: \") \
+                nil default-directory (confirm-nonexistent-file-or-buffer)) \
+              (null current-prefix-arg))",
        doc: /* Delete file named FILENAME.  If it is a symlink, remove the symlink.
 If file has multiple names, it continues to exist with the other names.
+TRASH non-nil means to trash the file instead of deleting, provided
+`delete-by-moving-to-trash' is non-nil.
 
-If optional arg FORCE is non-nil, really delete the file regardless of
-`delete-by-moving-to-trash'.  Otherwise, \"deleting\" actually moves
-it to the system's trash can if `delete-by-moving-to-trash' is non-nil.
-Interactively, FORCE is non-nil if called with a prefix arg.  */)
-     (filename, force)
+When called interactively, TRASH is t if no prefix argument is given.
+With a prefix argument, TRASH is nil.  */)
+     (filename, trash)
      Lisp_Object filename;
-     Lisp_Object force;
+     Lisp_Object trash;
 {
   Lisp_Object handler;
   Lisp_Object encoded_file;
@@ -2221,9 +2215,9 @@ Interactively, FORCE is non-nil if called with a prefix arg.  */)
 
   handler = Ffind_file_name_handler (filename, Qdelete_file);
   if (!NILP (handler))
-    return call2 (handler, Qdelete_file, filename);
+    return call3 (handler, Qdelete_file, filename, trash);
 
-  if (delete_by_moving_to_trash && NILP (force))
+  if (delete_by_moving_to_trash && !NILP (trash))
     return call1 (Qmove_file_to_trash, filename);
 
   encoded_file = ENCODE_FILE (filename);
@@ -2241,14 +2235,14 @@ internal_delete_file_1 (ignore)
 }
 
 /* Delete file FILENAME, returning 1 if successful and 0 if failed.
-   FORCE means to ignore `delete-by-moving-to-trash'.  */
+   This ignores `delete-by-moving-to-trash'.  */
 
 int
-internal_delete_file (Lisp_Object filename, Lisp_Object force)
+internal_delete_file (Lisp_Object filename)
 {
   Lisp_Object tem;
 
-  tem = internal_condition_case_2 (Fdelete_file, filename, force,
+  tem = internal_condition_case_2 (Fdelete_file, filename, Qnil,
 				   Qt, internal_delete_file_1);
   return NILP (tem);
 }
@@ -2342,7 +2336,7 @@ This is what happens in interactive use with M-x.  */)
 	      )
 	    call2 (Qdelete_directory, file, Qt);
 	  else
-	    Fdelete_file (file, Qt);
+	    Fdelete_file (file, Qnil);
 	  unbind_to (count, Qnil);
 	}
       else
@@ -5787,11 +5781,6 @@ of file names regardless of the current language environment.  */);
   Fput (Qfile_date_error, Qerror_message,
 	make_pure_c_string ("Cannot set file date"));
 
-  DEFVAR_LISP ("directory-sep-char", &Vdirectory_sep_char,
-	       doc: /* Directory separator character for built-in functions that return file names.
-The value is always ?/.  Don't use this variable, just use `/'.  */);
-  XSETFASTINT (Vdirectory_sep_char, '/');
-
   DEFVAR_LISP ("file-name-handler-alist", &Vfile_name_handler_alist,
 	       doc: /* *Alist of elements (REGEXP . HANDLER) for file names handled specially.
 If a file name matches REGEXP, then all I/O on that file is done by calling
@@ -5914,8 +5903,10 @@ A non-nil value may result in data loss!  */);
 
   DEFVAR_BOOL ("delete-by-moving-to-trash", &delete_by_moving_to_trash,
                doc: /* Specifies whether to use the system's trash can.
-When non-nil, the function `move-file-to-trash' will be used by
-`delete-file' and `delete-directory'.  */);
+When non-nil, certain file deletion commands use the function
+`move-file-to-trash' instead of deleting files outright.
+This includes interactive calls to `delete-file' and
+`delete-directory' and the Dired deletion commands.  */);
   delete_by_moving_to_trash = 0;
   Qdelete_by_moving_to_trash = intern_c_string ("delete-by-moving-to-trash");
   Qmove_file_to_trash = intern_c_string ("move-file-to-trash");

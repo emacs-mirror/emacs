@@ -2094,7 +2094,7 @@ Formats current entry according to variable `bibtex-entry-format'."
                                 ;; if match not at left subfield boundary...
                                 (if (< (1+ (nth 1 bounds)) (match-beginning 0))
                                     (insert (bibtex-field-right-delimiter) " # ")
-                                  (delete-backward-char 1))))))))
+                                  (delete-char -1))))))))
 
                     ;; use book title of crossref'd entry
                     (if (and (memq 'inherit-booktitle format)

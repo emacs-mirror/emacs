@@ -685,7 +685,7 @@ PROPLIST is a list of the sort returned by `symbol-plist'.
     (setq last (point))
     (goto-char (1+ pt))
     (while (search-forward "(quote " last t)
-      (delete-backward-char 7)
+      (delete-char -7)
       (insert "'")
       (forward-sexp)
       (delete-char 1))

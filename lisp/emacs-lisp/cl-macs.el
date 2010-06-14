@@ -1813,6 +1813,7 @@ Example:
 (defsetf window-height () (store)
   (list 'progn (list 'enlarge-window (list '- store '(window-height))) store))
 (defsetf window-hscroll set-window-hscroll)
+(defsetf window-parameter set-window-parameter)
 (defsetf window-point set-window-point)
 (defsetf window-start set-window-start)
 (defsetf window-width () (store)

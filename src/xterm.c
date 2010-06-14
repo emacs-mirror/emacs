@@ -56,9 +56,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "systime.h"
 
-#ifndef INCLUDED_FCNTL
 #include <fcntl.h>
-#endif
 #include <ctype.h>
 #include <errno.h>
 #include <setjmp.h>

@@ -22,9 +22,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <stdio.h>
 #include <setjmp.h>
-#if HAVE_ALLOCA_H
-# include <alloca.h>
-#endif
 #include "lisp.h"
 #include "commands.h"
 #include "buffer.h"
@@ -2829,16 +2826,16 @@ remapped command in the returned list.  */)
   Lisp_Object found = Qnil;
   /* 1 means ignore all menu bindings entirely.  */
   int nomenus = !NILP (firstonly) && !EQ (firstonly, Qnon_ascii);
-  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
+  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
   /* List of sequences found via remapping.  Keep them in a separate
      variable, so as to push them later, since we prefer
      non-remapped binding.  */
   Lisp_Object remapped_sequences = Qnil;
   /* Whether or not we're handling remapped sequences.  This is needed
      because remapping is not done recursively by Fcommand_remapping: you
-     can't remap and remapped command.  */
+     can't remap a remapped command.  */
   int remapped = 0;
-  Lisp_Object tem;
+  Lisp_Object tem = Qnil;
 
   /* Refresh the C version of the modifier preference.  */
   where_is_preferred_modifier
@@ -2852,17 +2849,25 @@ remapped command in the returned list.  */)
   else
     keymaps = Fcurrent_active_maps (Qnil, Qnil);
 
-  GCPRO5 (definition, keymaps, found, sequences, remapped_sequences);
+  GCPRO6 (definition, keymaps, found, sequences, remapped_sequences, tem);
 
-  /* If this command is remapped, then it has no key bindings of its own.
-     FIXME: Actually, this is not quite right: if A is remapped to
-     `definition', then bindings to A will actually bind the key to
-     `definition' despite the remapping from `definition' to something else.
-     Another corner case is if `definition' is remapped to itself.  */
-  if (NILP (no_remap)
-      && SYMBOLP (definition)
-      && !NILP (Fcommand_remapping (definition, Qnil, keymaps)))
-    RETURN_UNGCPRO (Qnil);
+  tem = Fcommand_remapping (definition, Qnil, keymaps);
+  /* If `definition' is remapped to tem', then OT1H no key will run
+     that command (since they will run `tem' instead), so we should
+     return nil; but OTOH all keys bound to `definition' (or to `tem')
+     will run the same command.
+     So for menu-shortcut purposes, we want to find all the keys bound (maybe
+     via remapping) to `tem'.  But for the purpose of finding the keys that
+     run `definition', then we'd want to just return nil.
+     We choose to make it work right for menu-shortcuts, since it's the most
+     common use.
+     Known bugs: if you remap switch-to-buffer to toto, C-h f switch-to-buffer
+     will tell you that switch-to-buffer is bound to C-x b even though C-x b
+     will run toto instead.  And if `toto' is itself remapped to forward-char,
+     then C-h f toto will tell you that it's bound to C-f even though C-f does
+     not run toto and it won't tell you that C-x b does run toto.  */
+  if (NILP (no_remap) && !NILP (tem))
+    definition = tem;
 
   if (SYMBOLP (definition)
       && !NILP (firstonly)

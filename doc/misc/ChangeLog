@@ -1,3 +1,21 @@
+2010-06-07  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus.texi (Interactive): Explain effect of gnus-expert-user better.
+
+2010-05-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	* eshell.texi (Built-ins): Describe, how to disable a built-in command
+	by an alias.  (Bug#6226)
+
+2010-05-16  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Manipulating Vectors): Mention that vectors can
+	be used to determine bins for `calc-histogram'.
+
+2010-05-13  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi: Remove "\turnoffactive" commands throughout.
+
 2010-05-08  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
 
 	* url.texi (HTTP language/coding, Customization):
@@ -2299,10 +2317,6 @@
 
 	* gnus-news.texi, gnus-coding.texi, sasl.texi: New files.
 
-2007-10-28  Emanuele Giaquinta  <e.giaquinta@glauco.it>  (tiny change)
-
-	* gnus-faq.texi ([5.12]): Remove reference to discontinued service.
-
 2007-10-28  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (Sorting the Summary Buffer): Remove
@@ -3838,19 +3852,6 @@
 
 	* org.texi (Progress logging): New section.
 
-2006-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	* viper.texi (Viper Specials):
-	* gnus.texi (Example Setup):
-	* faq.texi (Backspace invokes help):
-	* dired-x.texi (Optional Installation Dired Jump):
-	* calc.texi (Defining Simple Commands): Use ;; instead of ;;; to better
-	follow coding conventions.
-
-2006-05-18  Reiner Steib  <Reiner.Steib@gmx.de>
-
-	* gnus.texi (Saving Articles): Clarify gnus-summary-save-article-mail.
-
 2006-06-06  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi (ASCII export): Document indentation adaptation.
@@ -3897,6 +3898,15 @@
 2006-05-30  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi: Small typo fixes.
+
+2006-05-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* viper.texi (Viper Specials):
+	* gnus.texi (Example Setup):
+	* faq.texi (Backspace invokes help):
+	* dired-x.texi (Optional Installation Dired Jump):
+	* calc.texi (Defining Simple Commands): Use ;; instead of ;;; to better
+	follow coding conventions.
 
 2006-05-29  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -4453,10 +4463,6 @@
 2006-01-13  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.texi (Article Washing): Additions.
-
-2006-01-08  Alex Schroeder  <alex@gnu.org>
-
-	* pgg.texi (Caching passphrase): Rewording.
 
 2006-01-13  Carsten Dominik  <dominik@science.uva.nl>
 

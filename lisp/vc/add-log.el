@@ -5,7 +5,7 @@
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
-;; Keywords: tools
+;; Keywords: vc tools
 
 ;; This file is part of GNU Emacs.
 
@@ -245,7 +245,7 @@ Note: The search is conducted only within 10%, at the beginning of the file."
     ;; wrongly with a non-date line existing as a random note.  In
     ;; addition, using any kind of fixed setting like this doesn't
     ;; work if a user customizes add-log-time-format.
-    ("^[0-9-]+ +\\|^\\(Sun\\|Mon\\|Tue\\|Wed\\|Thu\\|Fri\\|Sat\\) [A-z][a-z][a-z] [0-9:+ ]+"
+    ("^[0-9-]+ +\\|^ \\{11,\\}\\|^\\(Sun\\|Mon\\|Tue\\|Wed\\|Thu\\|Fri\\|Sat\\) [A-z][a-z][a-z] [0-9:+ ]+"
      (0 'change-log-date-face)
      ;; Name and e-mail; some people put e-mail in parens, not angles.
      ("\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]" nil nil

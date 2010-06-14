@@ -1,3 +1,20 @@
+2010-06-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Add notifications.el.
+
+2010-05-28  Glenn Morris  <rgm@gnu.org>
+
+	* MACHINES: Remove some old information no longer of relevance.
+	Switch to outline-mode.
+
+2010-05-27  Glenn Morris  <rgm@gnu.org>
+
+	* PROBLEMS: Remove old information no longer of relevance.
+
+2010-05-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* NEWS: Add sections for Emacs-23.3.
+
 2010-05-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* PROBLEMS: Document gcc-4.5 bug (Bug#6031).
@@ -43,8 +60,7 @@
 
 2010-03-24  Francesc Rocher  <rocher@member.fsf.org>
 
-	* MORE.STUFF: Remove CEDET entry, now distributed as part of
-	Emacs.
+	* MORE.STUFF: Remove CEDET entry, now distributed as part of Emacs.
 
 2010-03-22  Teodor Zlatanov  <tzz@lifelogs.com>
 

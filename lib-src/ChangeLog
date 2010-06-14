@@ -1,3 +1,30 @@
+2010-06-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (lisp2): Fix references to vc/vc-hooks.elc
+	and vc/ediff-hook.elc.
+
+2010-06-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* ntlib.h: Remove code dealing with BSTRING.
+
+2010-05-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacsclient.c (longopts, decode_options, print_help_and_exit):
+	New arg `-parent-id'.
+	(main): Send parent-id to Emacs.
+
+2010-05-27  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (distclean): No more Makefile.c.
+
+2010-05-22  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* Makefile.in (STAMP_INST_SCRIPTS, STAMP_SCRIPS): New (Bug #6246).
+	(all): Depend onSTAMP_INST_SCRIPTS, STAMP_SCRIPS (Bug #6246).
+	(stamp-rcs2log, stamp-rcs-checkin, stamp-grep-changelog, stamp-vcdiff):
+	New rules (Bug #6246).
+	(clean): Remove stamp-* (Bug #6246).
+
 2010-05-12  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (INSTALLABLES): Remove @LIB_SRC_EXTRA_INSTALLABLES@.
@@ -24,11 +51,6 @@
 	(LOADLIBES): Use LIBS_SYSTEM as a variable.
 
 	* Makefile.in (BLESSMAIL_TARGET): Set with configure, not cpp.
-
-2010-05-08  Christoph  <cschol2112@googlemail.com>  (tiny change)
-
-	* makefile.w32-in (OTHER_PLATFORM_SUPPORT): Use parenthesis
-	for macros for nmake compatibility.
 
 2010-05-08  Glenn Morris  <rgm@gnu.org>
 
@@ -4555,16 +4577,6 @@
 
 	* Makefile.in.in (install, maybe-blessmail): Don't cd ..;
 	configure has already set $(INSTALL) to the proper relative path.
-
-1995-06-27  Francesco Potortì  (pot@cnuce.cnr.it)
-
-	* etags.c (plain_C_entries): New function.
-	(lowcase): New macro.
-	(tail, Fortran_functions, Pascal_functions): Use new macro lowcase.
-	(lang_suffixes): New suffix ".pc" for Pro*C files.
-	(consider_token): Don't tag all tokens beginning with DEFUN & Co..
-	(tail): Look for the end of the token when comparing.
-	(takeprec): Since now tail behaves differently, use strneq.
 
 1995-07-08  Paul Eggert  <eggert@twinsun.com>
 

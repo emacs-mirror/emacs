@@ -42,9 +42,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 
 #define SYSV_SYSTEM_DIR
 
-/* Define this symbol if your system has the functions bcopy, etc.  */
-#define BSTRING
-
 /* Define this is the compiler understands `volatile'.  */
 #define HAVE_VOLATILE
 
@@ -81,8 +78,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #define TEXT_START  &start
 
 #define _NAIVE_DOS_REGS
-
-#define ORDINARY_LINK
 
 /* command.com does not understand `...` so we define this.  */
 #define SEPCHAR ';'

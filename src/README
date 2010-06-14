@@ -1,5 +1,5 @@
-Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-  Free Software Foundation, Inc.
+Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+  2010  Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
@@ -10,12 +10,10 @@ and installed, if the dumped Emacs (on Unix systems) is copied elsewhere.
 See the files ../README and then ../INSTALL for installation instructions.
 
 Under GNU and Unix systems, the file `Makefile.in' is used as a
-template by the script `../configure' to produce `Makefile.c'.  The
-same script then uses `cpp' to produce the machine-dependent
-`Makefile' from `Makefile.c'; `Makefile' is the file which actually
-controls the compilation of Emacs.  Most of this should work
-transparently to the user; you should only need to run `../configure',
-and then type `make'.
+template by the script `../configure' to produce `Makefile'.  This
+is the file which actually controls the compilation of Emacs.
+All of this should work transparently to the user; you should only
+need to run `../configure', and then type `make'.
 
 
 This file is part of GNU Emacs.

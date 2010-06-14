@@ -237,8 +237,6 @@ install: all
 	    tar -chf - quail/* ja-dic \
 		| (cd ${INSTALLDIR}; umask 0; tar -xvf - && cat > /dev/null) ;\
 	  fi; \
-	  rm -rf ${INSTALLDIR}/CVS        ${INSTALLDIR}/*/CVS; \
-	  rm -f  ${INSTALLDIR}/.cvsignore ${INSTALLDIR}/*/.cvsignore; \
 	  rm -f  ${INSTALLDIR}/.gitignore ${INSTALLDIR}/*/.gitignore; \
 	  rm -f  ${INSTALLDIR}/.arch-inventory ${INSTALLDIR}/*/.arch-inventory; \
 	  rm -f  ${INSTALLDIR}/\#*        ${INSTALLDIR}/*/\#* ; \

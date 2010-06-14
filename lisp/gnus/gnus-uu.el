@@ -1488,7 +1488,7 @@ When called interactively, prompt for REGEXP."
       (when gnus-uu-kill-carriage-return
 	(save-excursion
 	  (while (search-forward "\r" nil t)
-	    (delete-backward-char 1))))
+	    (delete-char -1))))
 
       (while (or (re-search-forward gnus-uu-begin-string nil t)
 		 (re-search-forward gnus-uu-body-line nil t))

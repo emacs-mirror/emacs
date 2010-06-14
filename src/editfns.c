@@ -1,7 +1,8 @@
 /* Lisp functions pertaining to editing.
-   Copyright (C) 1985, 1986, 1987, 1989, 1993, 1994, 1995, 1996,
-                 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+
+Copyright (C) 1985, 1986, 1987, 1989, 1993, 1994, 1995, 1996, 1997,
+  1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+  2009, 2010 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -218,6 +219,17 @@ usage: (char-to-string CHAR)  */)
 
   len = CHAR_STRING (XFASTINT (character), str);
   return make_string_from_bytes (str, 1, len);
+}
+
+DEFUN ("byte-to-string", Fbyte_to_string, Sbyte_to_string, 1, 1, 0,
+       doc: /* Convert arg BYTE to a string containing that byte.  */)
+     (byte)
+     Lisp_Object byte;
+{
+  unsigned char b;
+  CHECK_NUMBER (byte);
+  b = XINT (byte);
+  return make_string_from_bytes (&b, 1, 1);
 }
 
 DEFUN ("string-to-char", Fstring_to_char, Sstring_to_char, 1, 1, 0,
@@ -4686,6 +4698,7 @@ functions if all the text being accessed has this property.  */);
   defsubr (&Sgoto_char);
   defsubr (&Sstring_to_char);
   defsubr (&Schar_to_string);
+  defsubr (&Sbyte_to_string);
   defsubr (&Sbuffer_substring);
   defsubr (&Sbuffer_substring_no_properties);
   defsubr (&Sbuffer_string);

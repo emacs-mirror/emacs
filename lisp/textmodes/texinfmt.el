@@ -2507,7 +2507,7 @@ For example, @verb\{|@|\} results in @ and
       (error "Not found: @verb start brace"))
     (delete-region texinfo-command-start (+ 2 texinfo-command-end))
     (search-forward  delimiter))
-  (delete-backward-char 1)
+  (delete-char -1)
   (unless (looking-at "}")
     (error "Not found: @verb end brace"))
   (delete-char 1))

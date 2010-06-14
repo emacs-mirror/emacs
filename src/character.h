@@ -221,10 +221,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 	(ASCII_BYTE_P (byte) || LEADING_CODE_P (byte))  */
 #define CHAR_HEAD_P(byte) (((byte) & 0xC0) != 0x80)
 
-/* Kept for backward compatibility.  This macro will be removed in the
-   future.  */
-#define BASE_LEADING_CODE_P LEADING_CODE_P
-
 /* How many bytes a character that starts with BYTE occupies in a
    multibyte form.  */
 #define BYTES_BY_CHAR_HEAD(byte)	\
@@ -234,23 +230,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    : !((byte) & 0x08) ? 4		\
    : 5)
 
-
-/* Return the length of the multi-byte form at string STR of length
-   LEN while assuming that STR points a valid multi-byte form.  As
-   this macro isn't necessary anymore, all callers will be changed to
-   use BYTES_BY_CHAR_HEAD directly in the future.  */
-
-#define MULTIBYTE_FORM_LENGTH(str, len)		\
-  BYTES_BY_CHAR_HEAD (*(str))
-
-/* Parse multibyte string STR of length LENGTH and set BYTES to the
-   byte length of a character at STR while assuming that STR points a
-   valid multibyte form.  As this macro isn't necessary anymore, all
-   callers will be changed to use BYTES_BY_CHAR_HEAD directly in the
-   future.  */
-
-#define PARSE_MULTIBYTE_SEQ(str, length, bytes)	\
-  (bytes) = BYTES_BY_CHAR_HEAD (*(str))
 
 /* The byte length of multibyte form at unibyte string P ending at
    PEND.  If STR doesn't point to a valid multibyte form, return 0.  */
@@ -285,7 +264,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* If P is before LIMIT, advance P to the next character boundary.
    Assumes that P is already at a character boundary of the same
-   mulitbyte form whose end address is LIMIT.  */
+   multibyte form whose end address is LIMIT.  */
 
 #define NEXT_CHAR_BOUNDARY(p, limit)	\
   do {					\
@@ -608,7 +587,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    : 0)
 
 /* If C is a high surrogate, return 1.  If C is a low surrogate,
-   return 0. Otherwise, return 0.  */
+   return 0.  Otherwise, return 0.  */
 
 #define CHAR_SURROGATE_PAIR_P(c)	\
   ((c) < 0xD800 ? 0			\

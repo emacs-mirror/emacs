@@ -112,7 +112,7 @@ Use IMAP modification if FOR-IMAP is non-nil."
 		 (skip-chars-forward not-direct-encoding-chars)))
 	    (if (and (= fc esc-char)
 		     (= run-length 1))	; Lone esc-char?
-		(delete-backward-char 1) ; Now there's one too many
+		(delete-char -1)        ; Now there's one too many
 	      (utf7-fragment-encode p (point) for-imap))
 	    (insert "-")))))))
 
@@ -153,7 +153,7 @@ Use IMAP modification if FOR-IMAP is non-nil."
 	      (save-excursion
 		(utf7-fragment-decode p (point) for-imap)
 		(goto-char p)
-		(delete-backward-char 1)))))))))
+		(delete-char -1)))))))))
 
 (defun utf7-fragment-decode (start end &optional for-imap)
   "Decode base64 encoded fragment from START to END of UTF-7 text in buffer.

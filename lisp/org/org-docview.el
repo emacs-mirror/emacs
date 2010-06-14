@@ -1,9 +1,8 @@
 ;;; org-docview.el --- support for links to doc-view-mode buffers
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 2009, 2010  Free Software Foundation, Inc.
 
-;; Author: Jan BÃ¶cker <jan.boecker at jboecker dot de>
+;; Author: Jan Böcker <jan.boecker at jboecker dot de>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
 ;; Version: 6.35i

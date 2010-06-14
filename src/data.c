@@ -959,14 +959,14 @@ store_symval_forwarding (/* symbol, */ valcontents, newval, buf)
       CHECK_NUMBER (newval);
       *XINTFWD (valcontents)->intvar = XINT (newval);
       break;
-      
+
     case Lisp_Fwd_Bool:
       *XBOOLFWD (valcontents)->boolvar = !NILP (newval);
       break;
-      
+
     case Lisp_Fwd_Obj:
       *XOBJFWD (valcontents)->objvar = newval;
-      
+
       /* If this variable is a default for something stored
 	 in the buffer itself, such as default-fill-column,
 	 find the buffers that don't have local values for it
@@ -977,12 +977,12 @@ store_symval_forwarding (/* symbol, */ valcontents, newval, buf)
 	  int offset = ((char *) XOBJFWD (valcontents)->objvar
 			- (char *) &buffer_defaults);
 	  int idx = PER_BUFFER_IDX (offset);
-	  
+
 	  Lisp_Object tail;
-	  
+
 	  if (idx <= 0)
 	    break;
-	  
+
 	  for (tail = Vbuffer_alist; CONSP (tail); tail = XCDR (tail))
 	    {
 	      Lisp_Object buf;
@@ -1943,7 +1943,7 @@ BUFFER defaults to the current buffer.  */)
 	Lisp_Object tail, elt, tmp;
 	struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (sym);
 	XSETBUFFER (tmp, buf);
-	
+
 	for (tail = buf->local_var_alist; CONSP (tail); tail = XCDR (tail))
 	  {
 	    elt = XCAR (tail);
@@ -2274,7 +2274,7 @@ bool-vector.  IDX starts at 0.  */)
 
       idxval_byte = string_char_to_byte (array, idxval);
       p1 = SDATA (array) + idxval_byte;
-      PARSE_MULTIBYTE_SEQ (p1, nbytes - idxval_byte, prev_bytes);
+      prev_bytes = BYTES_BY_CHAR_HEAD (*p1);
       new_bytes = CHAR_STRING (XINT (newelt), p0);
       if (prev_bytes != new_bytes)
 	{

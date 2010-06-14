@@ -106,14 +106,16 @@ INSTALL_STRIP =
 
 # ========================== Lists of Files ===========================
 
-# Things that a user might actually run,
-# which should be installed in bindir.
-INSTALLABLES = etags${EXEEXT} ctags${EXEEXT} emacsclient${EXEEXT} b2m${EXEEXT} ebrowse${EXEEXT}
+# Things that a user might actually run, which should be installed in bindir.
+INSTALLABLES = etags${EXEEXT} ctags${EXEEXT} emacsclient${EXEEXT} \
+               b2m${EXEEXT} ebrowse${EXEEXT}
+
 INSTALLABLE_SCRIPTS = rcs-checkin grep-changelog
+STAMP_INST_SCRIPTS = stamp-rcs-checkin stamp-grep-changelog
 
 # Things that Emacs runs internally, or during the build process,
 #  which should not be installed in bindir.
-UTILITIES=  profile${EXEEXT} digest-doc${EXEEXT} sorted-doc${EXEEXT} \
+UTILITIES = profile${EXEEXT} digest-doc${EXEEXT} sorted-doc${EXEEXT} \
             movemail${EXEEXT} fakemail${EXEEXT} \
             hexl${EXEEXT} update-game-score${EXEEXT}
 
@@ -122,6 +124,7 @@ DONT_INSTALL= test-distrib${EXEEXT} make-docfile${EXEEXT}
 # Like UTILITIES, but they're not system-dependent, and should not be
 #  deleted by the distclean target.
 SCRIPTS= rcs2log vcdiff
+STAMP_SCRIPTS= stamp-rcs2log stamp-vcdiff
 
 EXECUTABLES= ${UTILITIES} ${INSTALLABLES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS}
 
@@ -153,7 +156,8 @@ LIBRESOLV=@LIBRESOLV@
 LIBS_MAIL=@LIBS_MAIL@
 
 ## Extra libraries to use when linking movemail.
-LIBS_MOVE = $(LIBS_MAIL) $(KRB4LIB) $(DESLIB) $(KRB5LIB) $(CRYPTOLIB) $(COM_ERRLIB) $(LIBHESIOD) $(LIBRESOLV)
+LIBS_MOVE = $(LIBS_MAIL) $(KRB4LIB) $(DESLIB) $(KRB5LIB) $(CRYPTOLIB) \
+            $(COM_ERRLIB) $(LIBHESIOD) $(LIBRESOLV)
 
 ## Some systems define this to request special libraries.
 LIBS_SYSTEM = @LIBS_SYSTEM@
@@ -161,7 +165,8 @@ LIBS_SYSTEM = @LIBS_SYSTEM@
 # Those files shared with other GNU utilities need HAVE_CONFIG_H
 # defined before they know they can take advantage of the information
 # in ../src/config.h.
-BASE_CFLAGS = $(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) -DHAVE_CONFIG_H -I. -I../src -I${srcdir} -I${srcdir}/../src
+BASE_CFLAGS = $(C_SWITCH_SYSTEM) $(C_SWITCH_MACHINE) -DHAVE_CONFIG_H \
+              -I. -I../src -I${srcdir} -I${srcdir}/../src
 
 ALL_CFLAGS = ${BASE_CFLAGS} ${LDFLAGS} ${CPPFLAGS} ${CFLAGS}
 LINK_CFLAGS = ${BASE_CFLAGS} ${LDFLAGS} ${CFLAGS}
@@ -177,23 +182,27 @@ LOADLIBES=$(LIBS_SYSTEM)
 .c.o:
 	${CC} -c ${CPP_CFLAGS} $<
 
-all: ${DONT_INSTALL} ${UTILITIES} ${INSTALLABLES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS}
+all: ${DONT_INSTALL} ${UTILITIES} ${INSTALLABLES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS}  ${STAMP_INST_SCRIPTS} ${STAMP_SCRIPTS}
 
 ## These targets copy the scripts into the build directory so that
 ## they can be run from there in an uninstalled Emacs.
 ## The "-" is prepended because some versions of cp barf when srcdir
 ## is the current directory, and thus the file will be copied into itself.
-rcs2log: $(srcdir)/rcs2log
+stamp-rcs2log: $(srcdir)/rcs2log
 	-cp -p $(srcdir)/rcs2log rcs2log
+	touch $@
 
-rcs-checkin: $(srcdir)/rcs-checkin
+stamp-rcs-checkin: $(srcdir)/rcs-checkin
 	-cp -p $(srcdir)/rcs-checkin rcs-checkin
+	touch $@
 
-grep-changelog: $(srcdir)/grep-changelog
+stamp-grep-changelog: $(srcdir)/grep-changelog
 	-cp -p $(srcdir)/grep-changelog grep-changelog
+	touch $@
 
-vcdiff: $(srcdir)/vcdiff
+stamp-vcdiff: $(srcdir)/vcdiff
 	-cp -p $(srcdir)/vcdiff vcdiff
+	touch $@
 
 ## Only used if we need blessmail, but no harm in always defining.
 ## This makes the actual blessmail executable.
@@ -270,11 +279,11 @@ mostlyclean:
 
 clean: mostlyclean
 	-rm -f ${INSTALLABLES} ${UTILITIES} ${DONT_INSTALL}
-	-rm -f fns*.el *.tab.c *.tab.h
+	-rm -f fns*.el *.tab.c *.tab.h stamp-*
 
 distclean: clean
 	-rm -f TAGS
-	-rm -f Makefile Makefile.c blessmail
+	-rm -f Makefile blessmail
 
 maintainer-clean: distclean
 	true
@@ -316,24 +325,31 @@ REGEXPOBJ = regex.o
 REGEXPDEPS = $(REGEXPOBJ) $(srcdir)/../src/regex.h
 
 regex.o: $(srcdir)/../src/regex.c $(srcdir)/../src/regex.h ../src/config.h
-	${CC} -c ${CPP_CFLAGS} -DCONFIG_BROKETS -DINHIBIT_STRING_HEADER ${srcdir}/../src/regex.c
+	${CC} -c ${CPP_CFLAGS} -DCONFIG_BROKETS -DINHIBIT_STRING_HEADER \
+	  ${srcdir}/../src/regex.c
 
 etags${EXEEXT}: ${srcdir}/etags.c $(GETOPTDEPS) $(REGEXPDEPS) ../src/config.h
-	$(CC) ${ALL_CFLAGS} -DEMACS_NAME="\"GNU Emacs\"" -DVERSION="\"${version}\"" ${srcdir}/etags.c $(GETOPTOBJS) $(REGEXPOBJ) $(LOADLIBES) -o etags
+	$(CC) ${ALL_CFLAGS} -DEMACS_NAME="\"GNU Emacs\"" \
+	  -DVERSION="\"${version}\"" ${srcdir}/etags.c $(GETOPTOBJS) \
+	  $(REGEXPOBJ) $(LOADLIBES) -o etags
 
 ebrowse${EXEEXT}: ${srcdir}/ebrowse.c $(GETOPTDEPS) ../src/config.h
-	$(CC) ${ALL_CFLAGS} -DVERSION="\"${version}\"" ${srcdir}/ebrowse.c $(GETOPTOBJS) $(LOADLIBES) -o ebrowse
+	$(CC) ${ALL_CFLAGS} -DVERSION="\"${version}\"" \
+	  ${srcdir}/ebrowse.c $(GETOPTOBJS) $(LOADLIBES) -o ebrowse
 
 ## We depend on etags to assure that parallel makes do not write two
 ## etags.o files on top of each other.
 ctags${EXEEXT}: etags${EXEEXT}
-	$(CC) ${ALL_CFLAGS} -DCTAGS -DEMACS_NAME="\"GNU Emacs\"" -DVERSION="\"${version}\"" ${srcdir}/etags.c $(GETOPTOBJS) $(REGEXPOBJ) $(LOADLIBES) -o ctags
+	$(CC) ${ALL_CFLAGS} -DCTAGS -DEMACS_NAME="\"GNU Emacs\"" \
+	  -DVERSION="\"${version}\"" ${srcdir}/etags.c $(GETOPTOBJS) \
+	  $(REGEXPOBJ) $(LOADLIBES) -o ctags
 
 profile${EXEEXT}: ${srcdir}/profile.c ../src/config.h
 	$(CC) ${ALL_CFLAGS} ${srcdir}/profile.c $(LOADLIBES) -o profile
 
 make-docfile${EXEEXT}: ${srcdir}/make-docfile.c ../src/config.h
-	$(CC) ${ALL_CFLAGS} ${srcdir}/make-docfile.c $(LOADLIBES) -o make-docfile
+	$(CC) ${ALL_CFLAGS} ${srcdir}/make-docfile.c $(LOADLIBES) \
+	  -o make-docfile
 
 digest-doc${EXEEXT}: ${srcdir}/digest-doc.c
 	$(CC) ${ALL_CFLAGS} ${srcdir}/digest-doc.c $(LOADLIBES) -o digest-doc
@@ -346,9 +362,9 @@ b2m${EXEEXT}: ${srcdir}/b2m.c ../src/config.h $(GETOPTDEPS)
 	   $(GETOPTOBJS) $(LOADLIBES) -o b2m
 
 movemail${EXEEXT}: movemail.o pop.o $(GETOPTDEPS)
-	$(CC) ${LINK_CFLAGS} ${MOVE_FLAGS} movemail.o pop.o $(GETOPTOBJS) $(LOADLIBES) $(LIBS_MOVE) -o movemail
+	$(CC) ${LINK_CFLAGS} ${MOVE_FLAGS} movemail.o pop.o \
+	  $(GETOPTOBJS) $(LOADLIBES) $(LIBS_MOVE) -o movemail
 
-## We need to define emacs to get the right version of something (what?).
 movemail.o: ${srcdir}/movemail.c ../src/config.h $(GETOPT_H)
 	$(CC) -c ${CPP_CFLAGS} ${MOVE_FLAGS} ${srcdir}/movemail.c
 
@@ -367,7 +383,8 @@ hexl${EXEEXT}: ${srcdir}/hexl.c ../src/config.h
 	$(CC) ${ALL_CFLAGS} ${srcdir}/hexl.c $(LOADLIBES) -o hexl
 
 update-game-score${EXEEXT}: update-game-score.o $(GETOPTDEPS)
-	$(CC) ${LINK_CFLAGS} update-game-score.o $(GETOPTOBJS) $(LOADLIBES) -o update-game-score
+	$(CC) ${LINK_CFLAGS} update-game-score.o $(GETOPTOBJS) \
+	  $(LOADLIBES) -o update-game-score
 
 update-game-score.o: ${srcdir}/update-game-score.c ../src/config.h $(GETOPT_H)
 	$(CC) -c ${CPP_CFLAGS} ${srcdir}/update-game-score.c \

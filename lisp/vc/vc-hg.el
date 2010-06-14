@@ -3,7 +3,7 @@
 ;; Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: Ivan Kanis
-;; Keywords: tools
+;; Keywords: vc tools
 
 ;; This file is part of GNU Emacs.
 
@@ -297,8 +297,6 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 	  ("^tag: +\\([^ ]+\\)$" (1 'highlight))
 	  ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message)))))))
 
-(declare-function log-edit-extract-headers "log-edit" (headers string))
-
 (defun vc-hg-diff (files &optional oldvers newvers buffer)
   "Get a difference report using hg between two revisions of FILES."
   (let* ((firstfile (car files))
@@ -429,7 +427,8 @@ COMMENT is ignored."
 REV is ignored."
   (apply 'vc-hg-command nil 0 files
          (nconc (list "commit" "-m")
-                (log-edit-extract-headers '(("Author" . "--user"))
+                (log-edit-extract-headers '(("Author" . "--user")
+					    ("Date" . "--date"))
                                           comment))))
 
 (defun vc-hg-find-revision (file rev buffer)

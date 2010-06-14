@@ -1,6 +1,7 @@
 /* GNU Emacs site configuration template file.  -*- C -*-
-   Copyright (C) 1988, 1993, 1994, 2001, 2002, 2003, 2004, 2005, 2006,
-     2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+
+Copyright (C) 1988, 1993, 1994, 2001, 2002, 2003, 2004, 2005, 2006,
+  2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -318,20 +319,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define subprocesses
 
-/* Define LD_SWITCH_X_SITE to contain any special flags your loader
-   may need to deal with X Windows.  For instance, if you've defined
-   HAVE_X_WINDOWS above and your X libraries aren't in a place that
-   your loader can find on its own, you might want to add "-L/..." or
-   something similar.  */
-#undef LD_SWITCH_X_SITE
-
-/* Define C_SWITCH_X_SITE to contain any special flags your compiler
-   may need to deal with X Windows.  For instance, if you've defined
-   HAVE_X_WINDOWS above and your X include files aren't in a place
-   that your compiler can find on its own, you might want to add
-   "-I/..." or something similar.  */
-#undef C_SWITCH_X_SITE
-
 /* Define STACK_DIRECTION here, but not if m/foo.h did.  */
 #ifndef STACK_DIRECTION
 #undef STACK_DIRECTION
@@ -360,14 +347,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define my_strftime nstrftime   /* for strftime.c */
 
-/* The rest of the code currently tests the CPP symbol BSTRING.
-   Override any claims made by the system-description files.
-   Note that on some SCO version it is possible to have bcopy and not bcmp.  */
-#undef BSTRING
-#if defined (HAVE_BCOPY) && defined (HAVE_BCMP)
-#define BSTRING
-#endif
-
 /* Non-ANSI C compilers usually don't have volatile.  */
 #ifndef HAVE_VOLATILE
 #ifndef __STDC__
@@ -378,13 +357,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef WINDOWSNT
 /* Some of the files of Emacs which are intended for use with other
    programs assume that if you have a config.h file, you must declare
-   the type of getenv.
-
-   This declaration shouldn't appear when alloca.s or Makefile.in
-   includes config.h.  */
-#ifndef NOT_C_CODE
+   the type of getenv.  */
 extern char *getenv ();
-#endif
 #endif
 
 #endif /* EMACS_CONFIG_H */
@@ -427,8 +401,6 @@ extern char *getenv ();
 #endif
 #endif
 
-/* Don't include <string.h> during configure.  */
-#ifndef NOT_C_CODE
 #ifdef HAVE_STRING_H
 #include "string.h"
 #endif
@@ -437,7 +409,6 @@ extern char *getenv ();
 #endif
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
 #endif
 
 #ifndef NO_RETURN
@@ -449,11 +420,9 @@ extern char *getenv ();
 #endif
 
 /* Redefine abort.  */
-#ifndef NOT_C_CODE
 #ifdef HAVE_NTGUI
 #define abort	w32_abort
 void w32_abort (void) NO_RETURN;
-#endif
 #endif
 
 /* Prevent accidental use of features unavailable in

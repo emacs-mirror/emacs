@@ -61,27 +61,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* The docs for system V/386 suggest v.3 has sigpause, so let's try it.  */
 #define HAVE_SYSV_SIGPAUSE
 
-/* If we're using the System V X port, BSD bstring functions will be handy.  */
-#ifdef HAVE_X_WINDOWS
-#define BSTRING
-#endif /* HAVE_X_WINDOWS */
-
 /* On USG systems signal handlers return void.  */
 #define SIGTYPE void
 
-#define ORDINARY_LINK
-
-/* Undump with ELF.  */
 #undef COFF
-
-#define UNEXEC unexelf.o
 
 /* Get FIONREAD from <sys/filio.h>.  Get <sys/ttold.h> to get struct tchars.
    But get <termio.h> first to make sure ttold.h doesn't interfere.
    And don't try to use SIGIO yet.  */
-#ifndef NOT_C_CODE
 #include <sys/wait.h>
-#endif
 
 #ifdef emacs
 #include <sys/filio.h>

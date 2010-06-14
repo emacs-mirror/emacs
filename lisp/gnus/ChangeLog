@@ -1,3 +1,71 @@
+2010-06-12  Romain Francoise  <romain@orebokech.com>
+
+	* gnus-util.el (gnus-date-get-time): Move up before first use.
+
+2010-06-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-mime-buttonized-part-id): New internal variable.
+	(gnus-article-edit-part): Bind it to make last part that is substituted
+	or deleted visible.
+	(gnus-mime-display-single): Buttonize part of which id equals to
+	gnus-mime-buttonized-part-id.
+
+2010-06-10  Dan Christensen  <jdc@uwo.ca>
+
+	* gnus-util.el (gnus-user-date): Use gnus-date-get-time.
+	(gnus-dd-mmm): Use gnus-date-get-time.
+	* gnus-sum.el (gnus-thread-latest-date): Use gnus-date-get-time and
+	simplify logic.
+	(gnus-summary-limit-to-age): Use gnus-date-get-time.
+	(gnus-sort-threads): emit message if gnus-sort-threads-loop used.
+
+2010-06-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* auth-source.el (top): Autoload `secrets-list-collections',
+	`secrets-create-item', `secrets-delete-item'.
+	(auth-sources): Fix tag string.
+	(auth-get-source, auth-source-retrieve, auth-source-create)
+	(auth-source-delete): New defuns.
+	(auth-source-pick): Rewrite in order to avoid 2 passes.
+	(auth-source-forget-user-or-password): New parameter USERNAME.
+	(auth-source-user-or-password): New parameters CREATE-MISSING and
+	DELETE-EXISTING.  Retrieve password interactively, if needed.
+
+2010-06-07  Teemu Likonen  <tlikonen@iki.fi>  (tiny change)
+
+	* gnus-agent.el (gnus-agent-expire-unagentized-dirs): Don't ask about
+	deleting unused directories when gnus-expert-user is t.
+
+2010-06-02  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-browse-delete-temp-files): Don't make query
+	for each temp file when gnus-article-browse-delete-temp is ask.
+
+2010-05-20  Kevin Ryde  <user42@zip.com.au>
+
+	* gnus-start.el (gnus-level-unsubscribed): Doc fix.  (Bug#6206)
+
+2010-05-14  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-save-article): Don't bother to re-fetch
+	article unless decoding article to be saved.
+
+2010-05-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mml1991.el (mml1991-mailcrypt-encrypt, mml1991-gpg-encrypt)
+	* mml2015.el (mml2015-gpg-encrypt): Disable multibyte in buffers
+	generated within the mm-with-unibyte-current-buffer macro.
+
+2010-05-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-bind-safe-url-regexp): Bind mm-w3m-safe-url-regexp
+	to nil when we're in a mml-preview buffer and no group is selected.
+
+2010-05-12  Andreas Seltenreich  <seltenreich@gmx.de>
+
+	* gnus-sum.el (gnus-summary-read-group-1): Don't jump to next group
+	when catching the `C-g'.  Reported by: "Leo"
+
 2010-05-12  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* message.el (message-forward-make-body-plain)

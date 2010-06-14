@@ -3634,7 +3634,8 @@ articles in every agentized group? "))
  deleting them?")))
           (while to-remove
             (let ((dir (pop to-remove)))
-              (if (gnus-y-or-n-p (format "Delete %s? " dir))
+              (if (or gnus-expert-user
+		      (gnus-y-or-n-p (format "Delete %s? " dir)))
                   (let* (delete-recursive
 			 files f
                          (delete-recursive

@@ -2821,6 +2821,14 @@ font_clear_cache (f, cache, driver)
 
 static Lisp_Object scratch_font_spec, scratch_font_prefer;
 
+/* Check each font-entity in VEC, and return a list of font-entities
+   that satisfy this condition:
+     (1) matches with SPEC and SIZE if SPEC is not nil, and
+     (2) doesn't match with any regexps in Vface_ignored_fonts (if non-nil).
+*/
+
+extern Lisp_Object Vface_ignored_fonts;
+
 Lisp_Object
 font_delete_unmatched (vec, spec, size)
      Lisp_Object vec, spec;
@@ -2833,6 +2841,29 @@ font_delete_unmatched (vec, spec, size)
   for (val = Qnil, i = ASIZE (vec) - 1; i >= 0; i--)
     {
       entity = AREF (vec, i);
+      if (! NILP (Vface_ignored_fonts))
+	{
+	  char name[256];
+	  Lisp_Object tail, regexp;
+
+	  if (font_unparse_xlfd (entity, 0, name, 256) >= 0)
+	    {
+	      for (tail = Vface_ignored_fonts; CONSP (tail); tail = XCDR (tail))
+		{
+		  regexp = XCAR (tail);
+		  if (STRINGP (regexp)
+		      && fast_c_string_match_ignore_case (regexp, name) >= 0)
+		    break;
+		}
+	      if (CONSP (tail))
+		continue;
+	    }
+	}
+      if (NILP (spec))
+	{
+	  val = Fcons (entity, val);
+	  continue;
+	}
       for (prop = FONT_WEIGHT_INDEX; prop < FONT_SIZE_INDEX; prop++)
 	if (INTEGERP (AREF (spec, prop))
 	    && ((XINT (AREF (spec, prop)) >> 8)
@@ -2932,8 +2963,10 @@ font_list_entities (frame, spec)
 	    ASET (copy, FONT_TYPE_INDEX, driver_list->driver->type);
 	    XSETCDR (cache, Fcons (Fcons (copy, val), XCDR (cache)));
 	  }
-	if (ASIZE (val) > 0 && need_filtering)
-	  val = font_delete_unmatched (val, spec, size);
+	if (ASIZE (val) > 0
+	    && (need_filtering
+		|| ! NILP (Vface_ignored_fonts)))
+	  val = font_delete_unmatched (val, need_filtering ? spec : Qnil, size);
 	if (ASIZE (val) > 0)
 	  list = Fcons (val, list);
       }
@@ -3961,7 +3994,7 @@ font_range (pos, limit, w, face, string)
      struct face *face;
      Lisp_Object string;
 {
-  EMACS_INT pos_byte, ignore, start, start_byte;
+  EMACS_INT pos_byte, ignore;
   int c;
   Lisp_Object font_object = Qnil;
 
@@ -3983,7 +4016,6 @@ font_range (pos, limit, w, face, string)
       pos_byte = string_char_to_byte (string, pos);
     }
 
-  start = pos, start_byte = pos_byte;
   while (pos < *limit)
     {
       Lisp_Object category;
@@ -3992,6 +4024,10 @@ font_range (pos, limit, w, face, string)
 	FETCH_CHAR_ADVANCE_NO_CHECK (c, pos, pos_byte);
       else
 	FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c, string, pos, pos_byte);
+      category = CHAR_TABLE_REF (Vunicode_category_table, c);
+      if (EQ (category, QCf)
+	  || CHAR_VARIATION_SELECTOR_P (c))
+	continue;
       if (NILP (font_object))
 	{
 	  font_object = font_for_char (face, c, pos - 1, string);
@@ -3999,40 +4035,8 @@ font_range (pos, limit, w, face, string)
 	    return Qnil;
 	  continue;
 	}
-
-      category = CHAR_TABLE_REF (Vunicode_category_table, c);
-      if (! EQ (category, QCf)
-	  && ! CHAR_VARIATION_SELECTOR_P (c)
-	  && font_encode_char (font_object, c) == FONT_INVALID_CODE)
-	{
-	  Lisp_Object f = font_for_char (face, c, pos - 1, string);
-	  EMACS_INT i, i_byte;
-
-
-	  if (NILP (f))
-	    {
-	      *limit = pos - 1;
-	      return font_object;
-	    }
-	  i = start, i_byte = start_byte;
-	  while (i < pos - 1)
-	    {
-
-	      if (NILP (string))
-		FETCH_CHAR_ADVANCE_NO_CHECK (c, i, i_byte);
-	      else
-		FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c, string, i, i_byte);
-	      category = CHAR_TABLE_REF (Vunicode_category_table, c);
-	      if (! EQ (category, QCf)
-		  && ! CHAR_VARIATION_SELECTOR_P (c)
-		  && font_encode_char (f, c) == FONT_INVALID_CODE)
-		{
-		  *limit = pos - 1;
-		  return font_object;
-		}
-	    }
-	  font_object = f;
-	}
+      if (font_encode_char (font_object, c) == FONT_INVALID_CODE)
+	*limit = pos - 1;
     }
   return font_object;
 }

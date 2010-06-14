@@ -1,3 +1,23 @@
+2010-06-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* searching.texi (Regexp Special): Remove obsolete information
+	about matching non-ASCII characters, and suggest using char
+	classes (Bug#6283).
+
+2010-05-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuf.texi (Basic Completion): Add missing "@end defun".
+
+2010-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuf.texi (Basic Completion): Document completion-boundaries.
+	(Programmed Completion): Document the new fourth method for boundaries.
+
+2010-05-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Image Cache): Update documentation about image
+	caching.
+
 2010-05-08  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
 
 	* windows.texi (Textual Scrolling):

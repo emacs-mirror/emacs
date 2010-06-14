@@ -4,7 +4,7 @@
 ;;   2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
-;; Keywords: pcl-cvs cvs commit log
+;; Keywords: pcl-cvs cvs commit log vc
 
 ;; This file is part of GNU Emacs.
 
@@ -149,12 +149,12 @@ can be obtained from `log-edit-files'."
   :type '(hook :options (log-edit-set-common-indentation
 			 log-edit-add-to-changelog)))
 
-(defcustom log-edit-strip-single-file-name t
+(defcustom log-edit-strip-single-file-name nil
   "If non-nil, remove file name from single-file log entries."
   :type 'boolean
   :safe 'booleanp
   :group 'log-edit
-  :version "23.2")
+  :version "24.1")
 
 (defvar cvs-changelog-full-paragraphs t)
 (make-obsolete-variable 'cvs-changelog-full-paragraphs
@@ -691,7 +691,7 @@ Return non-nil if it is."
 (defun log-edit-changelog-entries (file)
   "Return the ChangeLog entries for FILE, and the ChangeLog they came from.
 The return value looks like this:
-  (LOGBUFFER (ENTRYSTART . ENTRYEND) ...)
+  (LOGBUFFER (ENTRYSTART ENTRYEND) ...)
 where LOGBUFFER is the name of the ChangeLog buffer, and each
 \(ENTRYSTART . ENTRYEND\) pair is a buffer region."
   (let ((changelog-file-name
@@ -749,34 +749,51 @@ where LOGBUFFER is the name of the ChangeLog buffer, and each
 
 	      (cons (current-buffer) texts))))))))
 
-(defun log-edit-changelog-insert-entries (buffer regions)
-  "Insert those regions in BUFFER specified in REGIONS.
-Sort REGIONS front-to-back first."
-  (let ((regions (sort regions 'car-less-than-car))
-        (last))
-    (dolist (region regions)
-      (when (and last (< last (car region))) (newline))
-      (setq last (elt region 1))
-      (apply 'insert-buffer-substring buffer region))))
+(defun log-edit-changelog-insert-entries (buffer beg end &rest files)
+  "Insert the text from BUFFER between BEG and END.
+Rename relative filenames in the ChangeLog entry as FILES."
+  (let ((opoint (point))
+	(log-name (buffer-file-name buffer))
+	(case-fold-search nil)
+	bound)
+    (insert-buffer-substring buffer beg end)
+    (setq bound (point-marker))
+    (when log-name
+      (dolist (f files)
+	(save-excursion
+	  (goto-char opoint)
+	  (when (re-search-forward
+		 (concat "\\(^\\|[ \t]\\)\\("
+			 (file-relative-name f (file-name-directory log-name))
+			 "\\)[, :\n]")
+		 bound t)
+	    (replace-match f t t nil 2)))))
+    ;; Eliminate tabs at the beginning of the line.
+    (save-excursion
+      (goto-char opoint)
+      (while (re-search-forward "^\\(\t+\\)" bound t)
+	(replace-match "")))))
 
 (defun log-edit-insert-changelog-entries (files)
   "Given a list of files FILES, insert the ChangeLog entries for them."
-  (let ((buffer-entries nil))
-
-    ;; Add each buffer to buffer-entries, and associate it with the list
-    ;; of entries we want from that file.
+  (let ((log-entries nil))
+    ;; Note that any ChangeLog entry can apply to more than one file.
+    ;; Here we construct a log-entries list with elements of the form
+    ;;   ((LOGBUFFER ENTRYSTART ENTRYEND) FILE1 FILE2...)
     (dolist (file files)
       (let* ((entries (log-edit-changelog-entries file))
-             (pair (assq (car entries) buffer-entries)))
-        (if pair
-            (setcdr pair (cvs-union (cdr pair) (cdr entries)))
-          (push entries buffer-entries))))
-
-    ;; Now map over each buffer in buffer-entries, sort the entries for
-    ;; each buffer, and extract them as strings.
-    (dolist (buffer-entry buffer-entries)
-      (log-edit-changelog-insert-entries (car buffer-entry) (cdr buffer-entry))
-      (when (cdr buffer-entry) (newline)))))
+	     (buf (car entries))
+	     key entry)
+	(dolist (region (cdr entries))
+	  (setq key (cons buf region))
+	  (if (setq entry (assoc key log-entries))
+	      (setcdr entry (append (cdr entry) (list file)))
+	    (push (list key file) log-entries)))))
+    ;; Now map over log-entries, and extract the strings.
+    (dolist (log-entry (nreverse log-entries))
+      (apply 'log-edit-changelog-insert-entries
+	     (append (car log-entry) (cdr log-entry)))
+      (insert "\n"))))
 
 (defun log-edit-extract-headers (headers comment)
   "Extract headers from COMMENT to form command line arguments.

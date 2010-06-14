@@ -2,9 +2,11 @@ dnl  Autoconf script for GNU Emacs
 dnl To rebuild the `configure' script from this, execute the command
 dnl 	autoconf
 dnl in the directory containing this script.
+dnl If you changed any AC_DEFINES, also run autoheader.
 dnl
-dnl  Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2003,
-dnl    2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+dnl  Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2003, 2004,
+dnl    2005, 2006, 2007, 2008, 2009, 2010
+dnl    Free Software Foundation, Inc.
 dnl
 dnl  This file is part of GNU Emacs.
 dnl
@@ -21,7 +23,7 @@ dnl
 dnl  You should have received a copy of the GNU General Public License
 dnl  along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
-AC_PREREQ(2.62)
+AC_PREREQ(2.65)
 AC_INIT(emacs, 24.0.50)
 AC_CONFIG_HEADER(src/config.h:src/config.in)
 AC_CONFIG_SRCDIR(src/lisp.h)
@@ -30,6 +32,10 @@ dnl Support for --program-prefix, --program-suffix and
 dnl --program-transform-name options
 AC_ARG_PROGRAM
 
+dnl It is important that variables on the RHS not be expanded here,
+dnl hence the single quotes.  This is per the GNU coding standards, see
+dnl (autoconf) Installation Directory Variables
+dnl See also epaths.h below.
 lispdir='${datadir}/emacs/${version}/lisp'
 locallisppath='${datadir}/emacs/${version}/site-lisp:'\
 '${datadir}/emacs/site-lisp'
@@ -169,14 +175,15 @@ OPTION_DEFAULT_ON([selinux],[don't compile with SELinux support])
 dnl http://lists.gnu.org/archive/html/emacs-devel/2008-04/msg01844.html
 OPTION_DEFAULT_ON([makeinfo],[don't require makeinfo for building manuals])
 
-dnl Can remove these in Emacs 24.
-AC_ARG_WITH([gtk],,
-  [AC_MSG_ERROR([--with-gtk has been removed.  Use --with-x-toolkit to
-specify a toolkit.])],,)
-
-AC_ARG_WITH([gcc],,
-  [AC_MSG_ERROR([--with-gcc has been removed.  Set the `CC' environment
-variable to specify a compiler.])],,)
+## This is an option because I do not know if all info/man support
+## compressed files, nor how to test if they do so.
+OPTION_DEFAULT_ON([compress-info],[don't compress the installed Info pages])
+if test $with_compress_info = yes; then
+   GZIP_INFO=yes
+else
+   GZIP_INFO=
+fi
+AC_SUBST(GZIP_INFO)
 
 AC_ARG_WITH([pkg-config-prog],dnl
 [AS_HELP_STRING([--with-pkg-config-prog=PATH],
@@ -377,7 +384,7 @@ dnl quotation begins
 ### the appropriate operating system and machine description files.
 
 ### You would hope that you could choose an m/*.h file pretty much
-### based on the machine portion of the configuration name, and an s-
+### based on the machine portion of the configuration name, and an s/*.h
 ### file based on the operating system portion.  However, it turns out
 ### that each m/*.h file is pretty manufacturer-specific - for
 ### example mips.h is MIPS
@@ -389,10 +396,6 @@ dnl quotation begins
 ### /etc/MACHINES doesn't say anything about version numbers, be
 ### prepared to handle anything reasonably.  If version numbers
 ### matter, be sure /etc/MACHINES says something about it.
-###
-### Eric Raymond says we should accept strings like "sysvr4" to mean
-### "System V Release 4"; he writes, "The old convention encouraged
-### confusion between `system' and `release' levels'."
 
 machine='' opsys='' unported=no
 case "${canonical}" in
@@ -401,14 +404,14 @@ case "${canonical}" in
   *-*-freebsd* )
     opsys=freebsd
     case "${canonical}" in
-      alpha*-*-freebsd*)	machine=alpha ;;
-      arm*-*-freebsd*)          machine=arm ;;
-      ia64-*-freebsd*)		machine=ia64 ;;
-      sparc-*-freebsd*)         machine=sparc ;;
-      sparc64-*-freebsd*)	machine=sparc ;;
-      powerpc-*-freebsd*)	machine=macppc ;;
-      i[3456]86-*-freebsd*)	machine=intel386 ;;
-      amd64-*-freebsd*|x86_64-*-freebsd*) machine=amdx86-64 ;;
+      alpha*)           machine=alpha ;;
+      amd64-*|x86_64-*) machine=amdx86-64 ;;
+      arm*)             machine=arm ;;
+      ia64-*)           machine=ia64 ;;
+      i[3456]86-*)      machine=intel386 ;;
+      powerpc-*)        machine=macppc ;;
+      sparc-*)          machine=sparc ;;
+      sparc64-*)        machine=sparc ;;
     esac
   ;;
 
@@ -416,13 +419,13 @@ case "${canonical}" in
   *-*-kfreebsd*gnu* )
     opsys=gnu-kfreebsd
     case "${canonical}" in
-      alpha*-*-kfreebsd*)	machine=alpha ;;
-      ia64-*-kfreebsd*)		machine=ia64 ;;
-      sparc-*-kfreebsd*)	machine=sparc ;;
-      sparc64-*-kfreebsd*)	machine=sparc ;;
-      powerpc-*-kfreebsd*)	machine=macppc ;;
-      i[3456]86-*-kfreebsd*)	machine=intel386 ;;
-      amd64-*-kfreebsd*|x86_64-*-kfreebsd*) machine=amdx86-64 ;;
+      alpha*)           machine=alpha ;;
+      amd64-*|x86_64-*) machine=amdx86-64 ;;
+      ia64-*)           machine=ia64 ;;
+      i[3456]86-*)      machine=intel386 ;;
+      powerpc-*)        machine=macppc ;;
+      sparc-*)          machine=sparc ;;
+      sparc64-*)        machine=sparc ;;
     esac
   ;;
 
@@ -430,18 +433,17 @@ case "${canonical}" in
   *-*-netbsd* )
     opsys=netbsd
     case "${canonical}" in
-      alpha*-*-netbsd*)	machine=alpha ;;
-      i[3456]86-*-netbsd*) machine=intel386 ;;
-      mips-*-netbsd*)	machine=mips ;;
-      mipsel-*-netbsd*)	machine=mips ;;
-      mipseb-*-netbsd*)	machine=mips ;;
-      powerpc-*-netbsd*) machine=macppc ;;
-      sparc*-*-netbsd*)	machine=sparc ;;
-      vax-*-netbsd*)	machine=vax ;;
-      arm-*-netbsd*)	machine=arm ;;
-      x86_64-*-netbsd*)	machine=amdx86-64 ;;
-      hppa-*-netbsd*)	machine=hp800 ;;
-      m68k-*-netbsd*)	machine=m68k ;;
+      alpha*)      machine=alpha ;;
+      x86_64-*)    machine=amdx86-64 ;;
+      arm-*)       machine=arm ;;
+      hppa-*)      machine=hp800 ;;
+      i[3456]86-*) machine=intel386 ;;
+      m68k-*)      machine=m68k ;;
+      powerpc-*)   machine=macppc ;;
+      mips-*)      machine=mips ;;
+      mipse[bl]-*) machine=mips ;;
+      sparc*-)     machine=sparc ;;
+      vax-*)       machine=vax ;;
     esac
   ;;
 
@@ -449,14 +451,14 @@ case "${canonical}" in
   *-*-openbsd* )
     opsys=openbsd
     case "${canonical}" in
-      alpha*-*-openbsd*)	machine=alpha ;;
-      arm-*-openbsd*)          machine=arm ;;
-      i386-*-openbsd*)         machine=intel386 ;;
-      powerpc-*-openbsd*)      machine=macppc ;;
-      sparc*-*-openbsd*)       machine=sparc ;;
-      vax-*-openbsd*)          machine=vax ;;
-      x86_64-*-openbsd*)       machine=amdx86-64 ;;
-      hppa-*-openbsd*)         machine=hp800 ;;
+      alpha*)    machine=alpha ;;
+      x86_64-*)  machine=amdx86-64 ;;
+      arm-*)     machine=arm ;;
+      hppa-*)    machine=hp800 ;;
+      i386-*)    machine=intel386 ;;
+      powerpc-*) machine=macppc ;;
+      sparc*)    machine=sparc ;;
+      vax-*)     machine=vax ;;
     esac
   ;;
 
@@ -507,16 +509,16 @@ case "${canonical}" in
   s390x-*-linux-gnu* )
     machine=ibms390x opsys=gnu-linux
   ;;
-  rs6000-ibm-aix4.2* | powerpc-ibm-aix4.2*  )
+  rs6000-ibm-aix4.[23]* )
     machine=ibmrs6000 opsys=aix4-2
   ;;
-  rs6000-ibm-aix4.3* | powerpc-ibm-aix4.3*  )
+  powerpc-ibm-aix4.[23]*  )
     machine=ibmrs6000 opsys=aix4-2
   ;;
-  rs6000-ibm-aix5* | powerpc-ibm-aix5*  )
+  rs6000-ibm-aix[56]* )
     machine=ibmrs6000 opsys=aix4-2
   ;;
-  rs6000-ibm-aix6* | powerpc-ibm-aix6*  )
+  powerpc-ibm-aix[56]*  )
     machine=ibmrs6000 opsys=aix4-2
   ;;
 
@@ -585,7 +587,7 @@ case "${canonical}" in
     machine=ia64 opsys=gnu-linux
   ;;
 
-  ## Intel 386 machines where we don't care about the manufacturer
+  ## Intel 386 machines where we don't care about the manufacturer.
   i[3456]86-*-* )
     machine=intel386
     case "${canonical}" in
@@ -863,7 +865,11 @@ echo '
 
 configure___ LIBX=-lX11
 
-configure___ unexec=UNEXEC
+#ifdef CANNOT_DUMP
+configure___ cannot_dump=yes
+#else
+configure___ cannot_dump=no
+#endif
 
 #ifdef SYSTEM_MALLOC
 configure___ system_malloc=yes
@@ -926,6 +932,38 @@ fi]
 rm ${tempcname}
 
 
+AC_SUBST(cannot_dump)
+
+UNEXEC_OBJ=unexelf.o
+case "$opsys" in
+  aix4-2)
+   UNEXEC_OBJ=unexaix.o
+   ;;
+  cygwin)
+   UNEXEC_OBJ=unexcw.o
+   ;;
+  darwin)
+   UNEXEC_OBJ=unexmacosx.o
+   ;;
+  hpux10-20 | hpux11)
+   UNEXEC_OBJ=unexhp9k800.o
+   ;;
+  sol2-10)
+   # Use the Solaris dldump() function, called from unexsol.c, to dump
+   # emacs, instead of the generic ELF dump code found in unexelf.c.
+   # The resulting binary has a complete symbol table, and is better
+   # for debugging and other observability tools (debuggers, pstack, etc).
+   # 
+   # If you encounter a problem using dldump(), please consider sending
+   # a message to the OpenSolaris tools-linking mailing list:
+   #      http://mail.opensolaris.org/mailman/listinfo/tools-linking
+   # 
+   # It is likely that dldump() works with older Solaris too, but this has
+   # not been tested, so for now this change is for Solaris 10 or newer.
+   UNEXEC_OBJ=unexsol.o
+   ;;
+esac
+
 LD_SWITCH_SYSTEM=
 case "$opsys" in
   freebsd)
@@ -954,16 +992,17 @@ AC_SUBST(LD_SWITCH_SYSTEM)
 
 ac_link="$ac_link $LD_SWITCH_SYSTEM"
 
-## This is fun.  Some settings of LD_SWITCH_SYSTEM reference
-## LD_SWITCH_X_SITE_AUX, which has not been defined yet.  When using
-## cpp, it was expanded to null.  Thus LD_SWITCH_SYSTEM had different
-## values in configure and the Makefiles.  How helpful.
-## FIXME why not use LD_SWITCH_SYSTEM_TEMACS (or somesuch) instead?
+## This setting of LD_SWITCH_SYSTEM references LD_SWITCH_X_SITE_AUX,
+## which has not been defined yet.  When this was handled with cpp,
+## it was expanded to null when configure sourced the s/*.h file.
+## Thus LD_SWITCH_SYSTEM had different values in configure and the Makefiles.
+## FIXME it would be cleaner to put this in LD_SWITCH_SYSTEM_TEMACS
+## (or somesuch), but because it is supposed to go at the _front_
+## of LD_SWITCH_SYSTEM, we cannot do that in exactly the same way.
+## Compare with the gnu-linux case below, which added to the end
+## of LD_SWITCH_SYSTEM, and so can instead go at the front of
+## LD_SWITCH_SYSTEM_TEMACS.
 case "$opsys" in
-  gnu-linux)
-   ## LD_SWITCH_X_SITE_AUX is a -R option saying where to find X at run-time.
-   LD_SWITCH_SYSTEM="$LD_SWITCH_SYSTEM \$(LD_SWITCH_X_SITE_AUX)" ;;
-
   netbsd|openbsd)
    ## _AUX_RPATH is like _AUX, but uses -rpath instead of -R.
    LD_SWITCH_SYSTEM="\$(LD_SWITCH_X_SITE_AUX_RPATH) $LD_SWITCH_SYSTEM" ;;
@@ -984,10 +1023,13 @@ if test "$machine" = "alpha"; then
     else
       AC_MSG_ERROR([What gives?  Fix me if DEC Unix supports ELF now.])
     fi
+  else
+    UNEXEC_OBJ=unexalpha.o 
   fi
 fi
 AC_SUBST(C_SWITCH_MACHINE)
 
+AC_SUBST(UNEXEC_OBJ)
 
 C_SWITCH_SYSTEM=
 ## Some programs in src produce warnings saying certain subprograms
@@ -1095,7 +1137,7 @@ case $opsys in
     START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o'
     ;;
   netbsd | openbsd )
-    if test -f $(CRT_DIR)/crti.o; then
+    if test -f $CRT_DIR/crti.o; then
 	LIB_STANDARD='-lgcc -lc -lgcc $(CRT_DIR)/crtend.o $(CRT_DIR)/crtn.o'
         START_FILES='pre-crt0.o $(CRT_DIR)/crt0.o $(CRT_DIR)/crti.o $(CRT_DIR)/crtbegin.o'
     else
@@ -1349,6 +1391,9 @@ dnl AC_C_BIGENDIAN
 dnl check for Make feature
 AC_PROG_MAKE_SET
 
+DEPFLAGS=
+MKDEPDIR=":"
+deps_frag=deps.mk
 dnl check for GNU Make if we have GCC and autodepend is on.
 if test "$GCC" = yes && test "$ac_enable_autodepend" = yes; then
    AC_MSG_CHECKING([whether we are using GNU Make])
@@ -1371,9 +1416,19 @@ if test "$GCC" = yes && test "$ac_enable_autodepend" = yes; then
       AC_MSG_RESULT([$ac_enable_autodepend])
    fi
    if test $ac_enable_autodepend = yes; then
-      AC_DEFINE(AUTO_DEPEND, 1, [Generate dependencies with gcc.])
+      DEPFLAGS='-MMD -MF ${DEPDIR}/$*.d'
+      ## In parallel builds, another make might create depdir between
+      ## the first test and mkdir, so stick another test on the end.
+      ## Or use mkinstalldirs?  mkdir -p is not portable.
+      MKDEPDIR='test -d ${DEPDIR} || mkdir ${DEPDIR} || test -d ${DEPDIR}'
+      deps_frag=autodeps.mk
    fi
 fi
+deps_frag=$srcdir/src/$deps_frag
+AC_SUBST(MKDEPDIR)
+AC_SUBST(DEPFLAGS)
+AC_SUBST_FILE(deps_frag)
+
 
 dnl checks for operating system services
 AC_SYS_LONG_FILE_NAMES
@@ -1457,28 +1512,40 @@ tmp_CPPFLAGS="$CPPFLAGS"
 tmp_CFLAGS="$CFLAGS"
 CPPFLAGS="$CPPFLAGS -x objective-c"
 CFLAGS="$CFLAGS -x objective-c"
+TEMACS_LDFLAGS2="\${LDFLAGS}"
+dnl I don't think it's especially important, but src/Makefile.in
+dnl (now the only user of ns_appdir) used to go to the trouble of adding a
+dnl trailing "/" to it, so now we do it here.
 if test "${with_ns}" != no; then
   if test "${opsys}" = darwin; then
      NS_IMPL_COCOA=yes
-     ns_appdir=`pwd`/nextstep/Emacs.app
-     ns_appbindir=`pwd`/nextstep/Emacs.app/Contents/MacOS
-     ns_appresdir=`pwd`/nextstep/Emacs.app/Contents/Resources
+     ns_appdir=`pwd`/nextstep/Emacs.app/
+     ns_appbindir=${ns_appdir}Contents/MacOS/
+     ns_appresdir=${ns_appdir}Contents/Resources
      ns_appsrc=${srcdir}/nextstep/Cocoa/Emacs.base
   elif test -f $GNUSTEP_CONFIG_FILE; then
      NS_IMPL_GNUSTEP=yes
-     ns_appdir=`pwd`/nextstep/Emacs.app
-     ns_appbindir=`pwd`/nextstep/Emacs.app
-     ns_appresdir=`pwd`/nextstep/Emacs.app/Resources
+     ns_appdir=`pwd`/nextstep/Emacs.app/
+     ns_appbindir=${ns_appdir}
+     ns_appresdir=${ns_appdir}Resources
      ns_appsrc=${srcdir}/nextstep/GNUstep/Emacs.base
-     dnl FIXME sourcing this 3 times in subshells seems inefficient.
-     GNUSTEP_MAKEFILES="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_MAKEFILES)"
+     dnl FIXME sourcing this several times in subshells seems inefficient.
      GNUSTEP_SYSTEM_HEADERS="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_HEADERS)"
      GNUSTEP_SYSTEM_LIBRARIES="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_SYSTEM_LIBRARIES)"
-     CPPFLAGS="$CPPFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
-     CFLAGS="$CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
-     REAL_CFLAGS="$REAL_CFLAGS -I${GNUSTEP_SYSTEM_HEADERS}"
-     LDFLAGS="$LDFLAGS -L${GNUSTEP_SYSTEM_LIBRARIES}"
+     dnl I seemed to need these as well with GNUstep-startup 0.25.
+     GNUSTEP_LOCAL_HEADERS="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_LOCAL_HEADERS)"
+     GNUSTEP_LOCAL_LIBRARIES="$(. $GNUSTEP_CONFIG_FILE; echo $GNUSTEP_LOCAL_LIBRARIES)"
+     test "x${GNUSTEP_LOCAL_HEADERS}" != "x" && \
+       GNUSTEP_LOCAL_HEADERS="-I${GNUSTEP_LOCAL_HEADERS}"
+     test "x${GNUSTEP_LOCAL_LIBRARIES}" != "x" && \
+       GNUSTEP_LOCAL_LIBRARIES="-L${GNUSTEP_LOCAL_LIBRARIES}"
+     CPPFLAGS="$CPPFLAGS -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
+     CFLAGS="$CFLAGS -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
+     REAL_CFLAGS="$REAL_CFLAGS -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
+     LDFLAGS="$LDFLAGS -L${GNUSTEP_SYSTEM_LIBRARIES} ${GNUSTEP_LOCAL_LIBRARIES}"
      LIB_STANDARD=
+     START_FILES=
+     TEMACS_LDFLAGS2=
   fi
   AC_CHECK_HEADER([AppKit/AppKit.h], [HAVE_NS=yes],
   		  [AC_MSG_ERROR([`--with-ns' was specified, but the include
@@ -1492,7 +1559,9 @@ if test "${with_ns}" != no; then
     NS_HAVE_NSINTEGER=no
   fi
 fi
+AC_SUBST(TEMACS_LDFLAGS2)
 
+ns_frag=/dev/null
 NS_OBJ=
 NS_SUPPORT=
 if test "${HAVE_NS}" = yes; then
@@ -1504,6 +1573,7 @@ if test "${HAVE_NS}" = yes; then
   if test "${EN_NS_SELF_CONTAINED}" = yes; then
      prefix=${ns_appresdir}
   fi
+  ns_frag=$srcdir/src/ns.mk
   NS_OBJ="nsterm.o nsfns.o nsmenu.o nsselect.o nsimage.o nsfont.o fontset.o fringe.o image.o"
   NS_SUPPORT="\${lispsource}emacs-lisp/easymenu.elc \${lispsource}term/ns-win.elc"
 fi
@@ -1512,6 +1582,7 @@ CPPFLAGS="$tmp_CPPFLAGS"
 AC_SUBST(NS_OBJ)
 AC_SUBST(NS_SUPPORT)
 AC_SUBST(LIB_STANDARD)
+AC_SUBST_FILE(ns_frag)
 
 case "${window_system}" in
   x11 )
@@ -1573,11 +1644,20 @@ AC_CACHE_CHECK(whether __after_morecore_hook exists,
 if test $emacs_cv_var___after_morecore_hook = no; then
   doug_lea_malloc=no
 fi
+
 if test "${system_malloc}" = "yes"; then
   GNU_MALLOC=no
   GNU_MALLOC_reason="
     (The GNU allocators don't work with this system configuration.)"
+  GMALLOC_OBJ=
+  VMLIMIT_OBJ=
+else
+  test "$doug_lea_malloc" != "yes" && GMALLOC_OBJ=gmalloc.o
+  VMLIMIT_OBJ=vm-limit.o
 fi
+AC_SUBST(GMALLOC_OBJ)
+AC_SUBST(VMLIMIT_OBJ)
+
 if test "$doug_lea_malloc" = "yes" ; then
   if test "$GNU_MALLOC" = yes ; then
     GNU_MALLOC_reason="
@@ -1585,6 +1665,14 @@ if test "$doug_lea_malloc" = "yes" ; then
   fi
   AC_DEFINE(DOUG_LEA_MALLOC, 1,
 	    [Define to 1 if you are using the GNU C Library.])
+
+  ## Use mmap directly for allocating larger buffers.
+  ## FIXME this comes from src/s/{gnu,gnu-linux}.h:
+  ## #ifdef DOUG_LEA_MALLOC; #undef REL_ALLOC; #endif
+  ## Does the AC_FUNC_MMAP test below make this check unecessary?
+  case "$opsys" in
+    gnu*) REL_ALLOC=no ;;
+  esac
 fi
 
 if test x"${REL_ALLOC}" = x; then
@@ -2242,14 +2330,6 @@ else
     HAVE_M17N_FLT=no
 fi
 
-FONT_OBJ=xfont.o
-if test "$HAVE_XFT" = "yes"; then
-  FONT_OBJ="$FONT_OBJ ftfont.o xftfont.o ftxfont.o"
-elif test "$HAVE_FREETYPE" = "yes"; then
-  FONT_OBJ="$FONT_OBJ ftfont.o ftxfont.o"
-fi
-AC_SUBST(FONT_OBJ)
-
 ### End of font-backend (under X11) section.
 
 AC_SUBST(FREETYPE_CFLAGS)
@@ -2411,7 +2491,7 @@ fi
 ### Use -lgpm if available, unless `--with-gpm=no'.
 HAVE_GPM=no
 LIBGPM=
-GPM_MOUSE_SUPPORT=
+MOUSE_SUPPORT=
 if test "${with_gpm}" != "no"; then
   AC_CHECK_HEADER(gpm.h,
     [AC_CHECK_LIB(gpm, Gpm_Open, HAVE_GPM=yes)])
@@ -2419,11 +2499,11 @@ if test "${with_gpm}" != "no"; then
   if test "${HAVE_GPM}" = "yes"; then
     AC_DEFINE(HAVE_GPM, 1, [Define to 1 if you have the gpm library (-lgpm).])
     LIBGPM=-lgpm
-    GPM_MOUSE_SUPPORT="\${lispsource}mouse.elc"
+    ## May be reset below.
+    MOUSE_SUPPORT="\$(GPM_MOUSE_SUPPORT)"
   fi
 fi
 AC_SUBST(LIBGPM)
-AC_SUBST(GPM_MOUSE_SUPPORT)
 
 dnl Check for malloc/malloc.h on darwin
 AC_CHECK_HEADER(malloc/malloc.h, [AC_DEFINE(HAVE_MALLOC_MALLOC_H, 1, [Define to 1 if you have the <malloc/malloc.h> header file.])])
@@ -2631,7 +2711,7 @@ HAVE_LIBNCURSES=yes
 
 ## Use terminfo instead of termcap?
 ## Note only system files NOT using terminfo are:
-## bsd-common, freebsd < 40000, ms-w32, msdos, netbsd, and
+## freebsd < 40000, ms-w32, msdos, netbsd < 599002500, and
 ## darwin|gnu without ncurses.
 TERMINFO=no
 LIBS_TERMCAP=
@@ -2640,7 +2720,7 @@ case "$opsys" in
   ## hpux10-20: Use the system provided termcap(3) library.
   ## openbsd: David Mazieres <dm@reeducation-labor.lcs.mit.edu> says this
   ##  is necessary.  Otherwise Emacs dumps core when run -nw.
-  aix4-2|cygwin|hpux*|irix6-5|openbsd|usg5-4|sol2*|unixware) TERMINFO=yes ;;
+  aix4-2|cygwin|hpux*|irix6-5|openbsd|sol2*|unixware) TERMINFO=yes ;;
 
   ## darwin: Prevents crashes when running Emacs in Terminal.app under 10.2.
   ##  The ncurses library has been moved out of the System framework in
@@ -2673,13 +2753,22 @@ fail;
     fi
     ;;
 
+  netbsd)
+    if test $ac_cv_search_tputs = -lterminfo; then
+      TERMINFO=yes
+      LIBS_TERMCAP="-lterminfo"
+    else
+      LIBS_TERMCAP="-ltermcap"
+    fi
+    ;;
+
 esac
 
 case "$opsys" in
   ## hpux: Make sure we get select from libc rather than from libcurses
   ##  because libcurses on HPUX 10.10 has a broken version of select.
   ##  We used to use -lc -lcurses, but this may be cleaner.
-  hpux*|netbsd) LIBS_TERMCAP="-ltermcap" ;;
+  hpux*) LIBS_TERMCAP="-ltermcap" ;;
 
   openbsd) LIBS_TERMCAP="-lncurses" ;;
 
@@ -3019,19 +3108,20 @@ if test "x$GCC" = xyes \
 fi
 
 #### Find out which version of Emacs this is.
-[version=`grep 'defconst[	 ]*emacs-version' ${srcdir}/lisp/version.el \
+[version=`grep 'const char emacs_version' ${srcdir}/src/emacs.c \
 	 | sed -e 's/^[^"]*"\([^"]*\)".*$/\1/'`]
 if test x"${version}" = x; then
-  AC_MSG_ERROR([can't find current emacs version in `${srcdir}/lisp/version.el'.])
+  AC_MSG_ERROR([can't find current emacs version in `${srcdir}/src/emacs.c'.])
 fi
 if test x"${version}" != x"$PACKAGE_VERSION"; then
-  AC_MSG_WARN([version mismatch between `${srcdir}/configure.in' and `${srcdir}/lisp/version.el'.])
+  AC_MSG_WARN([version mismatch between `${srcdir}/configure.in' and `${srcdir}/src/emacs.c'.])
 fi
 
 ### Specify what sort of things we'll be editing into Makefile and config.h.
 ### Use configuration here uncanonicalized to avoid exceeding size limits.
 AC_SUBST(version)
 AC_SUBST(configuration)
+## Unused?
 AC_SUBST(canonical)
 AC_SUBST(srcdir)
 AC_SUBST(prefix)
@@ -3052,7 +3142,9 @@ AC_SUBST(docdir)
 AC_SUBST(bitmapdir)
 AC_SUBST(gamedir)
 AC_SUBST(gameuser)
-AC_SUBST(unexec)
+## FIXME? Nothing uses @LD_SWITCH_X_SITE@.
+## src/Makefile.in did add LD_SWITCH_X_SITE (as a cpp define) to the
+## end of LIBX_BASE, but nothing ever set it.
 AC_SUBST(LD_SWITCH_X_SITE)
 AC_SUBST(C_SWITCH_X_SITE)
 AC_SUBST(C_SWITCH_X_SYSTEM)
@@ -3066,9 +3158,6 @@ AC_SUBST(ns_appdir)
 AC_SUBST(ns_appbindir)
 AC_SUBST(ns_appresdir)
 AC_SUBST(ns_appsrc)
-AC_SUBST(GNUSTEP_MAKEFILES)
-AC_SUBST(GNUSTEP_SYSTEM_HEADERS)
-AC_SUBST(GNUSTEP_SYSTEM_LIBRARIES)
 AC_SUBST(GNU_OBJC_CFLAGS)
 AC_SUBST(OTHER_FILES)
 
@@ -3080,29 +3169,26 @@ AC_DEFINE_UNQUOTED(config_machfile,  "${machfile}",
 		   [Define to the used machine dependent file.])
 AC_DEFINE_UNQUOTED(config_opsysfile, "${opsysfile}",
 		   [Define to the used os dependent file.])
-AC_DEFINE_UNQUOTED(LD_SWITCH_X_SITE, ${LD_SWITCH_X_SITE},
-[Define LD_SWITCH_X_SITE to contain any special flags your loader
- may need to deal with X Windows.  For instance, if you've defined
- HAVE_X_WINDOWS above and your X libraries aren't in a place that
- your loader can find on its own, you might want to add "-L/..." or
- something similar.])
-AC_DEFINE_UNQUOTED(C_SWITCH_X_SITE,  ${C_SWITCH_X_SITE},
-[Define C_SWITCH_X_SITE to contain any special flags your compiler
- may need to deal with X Windows.  For instance, if you've defined
- HAVE_X_WINDOWS above and your X include files aren't in a place
- that your compiler can find on its own, you might want to add
- "-I/..." or something similar.])
 
 XMENU_OBJ=
 XOBJ=
+FONT_OBJ=
 if test "${HAVE_X_WINDOWS}" = "yes" ; then
   AC_DEFINE(HAVE_X_WINDOWS, 1,
 	    [Define to 1 if you want to use the X window system.])
   XMENU_OBJ=xmenu.o
   XOBJ="xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o fringe.o image.o xsettings.o xgselect.o"
+  FONT_OBJ=xfont.o
+  if test "$HAVE_XFT" = "yes"; then
+    FONT_OBJ="$FONT_OBJ ftfont.o xftfont.o ftxfont.o"
+  elif test "$HAVE_FREETYPE" = "yes"; then
+    FONT_OBJ="$FONT_OBJ ftfont.o ftxfont.o"
+  fi
+  AC_SUBST(FONT_OBJ)
 fi
 AC_SUBST(XMENU_OBJ)
 AC_SUBST(XOBJ)
+AC_SUBST(FONT_OBJ)
 
 WIDGET_OBJ=
 MOTIF_LIBW=
@@ -3146,8 +3232,10 @@ AC_SUBST(TOOLKIT_LIBW)
 
 if test "$USE_X_TOOLKIT" = "none"; then
   LIBXT_OTHER="\$(LIBXSM)"
+  OLDXMENU_TARGET="really-oldXMenu"
 else
   LIBXT_OTHER="\$(LIBXMU) -lXt \$(LIBXTR6) -lXext"
+  OLDXMENU_TARGET="really-lwlib"
 fi
 AC_SUBST(LIBXT_OTHER)
 
@@ -3166,20 +3254,33 @@ if test "${HAVE_X11}" = "yes" ; then
   fi
   LIBXMENU="\$(OLDXMENU)"
   LIBX_OTHER="\$(LIBXT) \$(LIBX_EXTRA)"
+  OLDXMENU_DEPS="\${OLDXMENU} ../src/\${OLDXMENU}"
 else
-  OLDXMENU=
-  LIBXMENU="-lXMenu"
+  ## For a syntactically valid Makefile; not actually used for anything.
+  ## See comments in src/Makefile.in.
+  OLDXMENU=nothing
+  ## FIXME This case (!HAVE_X11 && HAVE_X_WINDOWS) is no longer possible(?).
+  if test "${HAVE_X_WINDOWS}" = "yes"; then
+    LIBXMENU="-lXMenu"
+  else
+    LIBXMENU=
+  fi
   LIBX_OTHER=
+  OLDXMENU_DEPS=
 fi
 
-if test "$HAVE_GTK" = "yes"; then
-  OLDXMENU=
+if test "$HAVE_GTK" = "yes" || test "$HAVE_MENUS" != "yes"; then
+  OLDXMENU_TARGET=
+  OLDXMENU=nothing  
   LIBXMENU=
+  OLDXMENU_DEPS=
 fi
 
+AC_SUBST(OLDXMENU_TARGET)
 AC_SUBST(OLDXMENU)
 AC_SUBST(LIBXMENU)
 AC_SUBST(LIBX_OTHER)
+AC_SUBST(OLDXMENU_DEPS)
 
 if test "${HAVE_MENUS}" = "yes" ; then
   AC_DEFINE(HAVE_MENUS, 1,
@@ -3187,26 +3288,31 @@ if test "${HAVE_MENUS}" = "yes" ; then
 	     (This is automatic if you use X, but the option to specify it remains.)
 	     It is also defined with other window systems that support xmenu.c.])
 fi
+
 if test "${GNU_MALLOC}" = "yes" ; then
   AC_DEFINE(GNU_MALLOC, 1,
 	    [Define to 1 if you want to use the GNU memory allocator.])
 fi
+
+RALLOC_OBJ=
 if test "${REL_ALLOC}" = "yes" ; then
   AC_DEFINE(REL_ALLOC, 1,
 	    [Define REL_ALLOC if you want to use the relocating allocator for
 	     buffer space.])
-fi
 
+  test "$system_malloc" != "yes" && RALLOC_OBJ=ralloc.o
+fi
+AC_SUBST(RALLOC_OBJ)
 
 if test "$opsys" = "cygwin"; then
   CYGWIN_OBJ="sheap.o"
   ## Cygwin differs because of its unexec().
   PRE_ALLOC_OBJ=
-  POST_ALLOC_OBJ="lastfile.o vm-limit.o"
+  POST_ALLOC_OBJ=lastfile.o
 else
   CYGWIN_OBJ=
   PRE_ALLOC_OBJ=lastfile.o
-  POST_ALLOC_OBJ="\$(vmlimitobj)"
+  POST_ALLOC_OBJ=
 fi
 AC_SUBST(CYGWIN_OBJ)
 AC_SUBST(PRE_ALLOC_OBJ)
@@ -3217,44 +3323,121 @@ case "$opsys" in
   aix4-2) LD_SWITCH_SYSTEM_TEMACS="-Wl,-bnodelcsect" ;;
 
   darwin)
-  ## The -headerpad option tells ld (see man page) to leave room at the
-  ## end of the header for adding load commands.  Needed for dumping.
-  ## 0x690 is the total size of 30 segment load commands (at 56
-  ## each); under Cocoa 31 commands are required.
-  if test "$HAVE_NS" = "yes"; then
-    libs_nsgui="-framework AppKit"
-    headerpad_extra=6C8
-  else
-    libs_nsgui=
-    headerpad_extra=690
-  fi
-  LD_SWITCH_SYSTEM_TEMACS="-prebind $libs_nsgui -Xlinker -headerpad -Xlinker $headerpad_extra"
-  ;;
+   ## The -headerpad option tells ld (see man page) to leave room at the
+   ## end of the header for adding load commands.  Needed for dumping.
+   ## 0x690 is the total size of 30 segment load commands (at 56
+   ## each); under Cocoa 31 commands are required.
+   if test "$HAVE_NS" = "yes"; then
+     libs_nsgui="-framework AppKit"
+     headerpad_extra=6C8
+   else
+     libs_nsgui=
+     headerpad_extra=690
+   fi
+   LD_SWITCH_SYSTEM_TEMACS="-prebind $libs_nsgui -Xlinker -headerpad -Xlinker $headerpad_extra"
+ 
+   ## This is here because src/Makefile.in did some extra fiddling around
+   ## with LD_SWITCH_SYSTEM.  The cpp logic was:
+   ##   #ifndef LD_SWITCH_SYSTEM
+   ##   #if !defined (__GNUC__) && ((defined (BSD_SYSTEM) && !defined (COFF)))
+   ## Since all the *bsds define LD_SWITCH_SYSTEM, this simplifies to:
+   ## not using gcc, darwin system not on an alpha (ie darwin, since
+   ## darwin + alpha does not occur).
+   ## Because this was done in src/Makefile.in, the resulting part of
+   ## LD_SWITCH_SYSTEM was not used in configure (ie, in ac_link).
+   ## It therefore seems cleaner to put this in LD_SWITCH_SYSTEM_TEMACS,
+   ## rather than LD_SWITCH_SYSTEM.
+   test "x$LD_SWITCH_SYSTEM" = "x" && test "x$GCC" != "xyes" && \
+     LD_SWITCH_SYSTEM_TEMACS="-X $LD_SWITCH_SYSTEM_TEMACS"
+   ;;
+
+  ## LD_SWITCH_X_SITE_AUX is a -R option saying where to find X at run-time.
+  ## When handled by cpp, this was in LD_SWITCH_SYSTEM.  However, at
+  ## the point where configure sourced the s/*.h file, LD_SWITCH_X_SITE_AUX
+  ## had not yet been defined and was expanded to null.  Hence LD_SWITCH_SYSTEM
+  ## had different values in configure (in ac_link) and src/Makefile.in.
+  ## It seems clearer therefore to put this piece in LD_SWITCH_SYSTEM_TEMACS.
+  gnu-linux) LD_SWITCH_SYSTEM_TEMACS="\$(LD_SWITCH_X_SITE_AUX)" ;;
 
   *) LD_SWITCH_SYSTEM_TEMACS= ;;
 esac
+
+if test "$NS_IMPL_GNUSTEP" = "yes"; then
+  LD_SWITCH_SYSTEM_TEMACS="${LD_SWITCH_SYSTEM_TEMACS} -L${GNUSTEP_SYSTEM_LIBRARIES} ${GNUSTEP_LOCAL_LIBRARIES} -lgnustep-gui -lgnustep-base -lobjc -lpthread"
+fi
+
 AC_SUBST(LD_SWITCH_SYSTEM_TEMACS)
 
 
-## This exists because src/Makefile.in did some extra fiddling around
-## with LD_SWITCH_SYSTEM.  The cpp logic was:
-##   #ifndef LD_SWITCH_SYSTEM
-##   #if !defined (__GNUC__) && ((defined (BSD_SYSTEM) && !defined (COFF)))
-## Since all the *bsds define LD_SWITCH_SYSTEM, this simplifies to:
-## not using gcc, darwin system not on an alpha (ie darwin, since
-## darwin + alpha does not occur).
-## Note that unlike L_S_S, this is not used in ac_link.
-if test "x$LD_SWITCH_SYSTEM" = "x" && test "x$GCC" != "xyes" && \
-   test "$opsys" = "darwin"; then
-  LD_SWITCH_SYSTEM_EXTRA="-X"
-else
-  LD_SWITCH_SYSTEM_EXTRA=
+LINKER=
+ORDINARY_LINK=
+case "$opsys" in
+  ## gnu: GNU needs its own crt0.
+  aix4-2|darwin|gnu|usg5-4|irix6-5|sol2*|unixware) ORDINARY_LINK=yes ;;
+
+  cygwin) LINKER="\$(CC)" ;;
+
+  ## On post 1.3 releases of NetBSD, gcc -nostdlib also clears the
+  ## library search parth, i.e. it won't search /usr/lib for libc and
+  ## friends.  Using -nostartfiles instead avoids this problem, and
+  ## will also work on earlier NetBSD releases.
+  netbsd|openbsd) LINKER="\$(CC) -nostartfiles" ;;
+
+  ## macpcc: NAKAJI Hiroyuki <nakaji@tutrp.tut.ac.jp> says
+  ##   MkLinux/LinuxPPC needs this.
+  ## ibms390x only supports opsys = gnu-linux so it can be added here.
+  gnu-*)
+    case "$machine" in
+      macppc|ibms390x) LINKER="\$(CC) -nostdlib" ;;
+    esac
+    ;;
+esac
+
+
+PRE_EDIT_LDFLAGS=
+POST_EDIT_LDFLAGS=
+if test "x$ORDINARY_LINK" = "xyes"; then
+
+  LINKER="\$(CC)"
+  AC_DEFINE(ORDINARY_LINK, 1, [Define if the C compiler is the linker.])
+
+## The system files defining neither ORDINARY_LINK nor LINKER are:
+## (bsd-common), freebsd, gnu-* not on macppc|ibms390x, hpux*.
+elif test "x$GCC" = "xyes" && test "x$LINKER" = "x"; then
+
+  ## Versions of GCC >= 2.0 put their library, libgcc.a, in obscure
+  ## places that are difficult to figure out at make time.  Fortunately,
+  ## these same versions allow you to pass arbitrary flags on to the
+  ## linker, so there is no reason not to use it as a linker.
+  ##
+  ## Well, it is not quite perfect.  The "-nostdlib" keeps GCC from
+  ## searching for libraries in its internal directories, so we have to
+  ## ask GCC explicitly where to find libgcc.a (LIB_GCC below).
+  LINKER="\$(CC) -nostdlib"
+  ## GCC passes any argument prefixed with -Xlinker directly to the linker.
+  ## See prefix-args.c for an explanation of why we do not do this with the
+  ## shell''s ``for'' construct.  Note that sane people do not have '.' in
+  ## their paths, so we must use ./prefix-args.
+  ## TODO either make prefix-args check ORDINARY_LINK internally,
+  ## or remove it altogether (bug#6184), removing the need for this hack.
+  PRE_EDIT_LDFLAGS='`./prefix-args -Xlinker'
+  POST_EDIT_LDFLAGS='`'
 fi
-AC_SUBST(LD_SWITCH_SYSTEM_EXTRA)
+AC_SUBST(PRE_EDIT_LDFLAGS)
+AC_SUBST(POST_EDIT_LDFLAGS)
+
+test "x$LINKER" = "x" && LINKER=ld
+## FIXME? What setting of EDIT_LDFLAGS should this have?
+test "$NS_IMPL_GNUSTEP" = "yes" && LINKER="\$(CC) -rdynamic"
+
+AC_SUBST(LINKER)
 
 
+## FIXME? The logic here is not precisely the same as that above.
+## There is no check here for a pre-defined LINKER.
+## Should we only be setting LIB_GCC if LD ~ -nostdlib?
 LIB_GCC=
-if test "x$GCC" = "xyes"; then
+if test "x$GCC" = "xyes" && test "x$ORDINARY_LINK" != "xyes"; then
 
   case "$opsys" in
     ## cygwin: don't link against static libgcc.
@@ -3270,16 +3453,35 @@ if test "x$GCC" = "xyes"; then
         ## FIXME? s/gnu-linux.h used to define LIB_GCC as below, then
         ## immediately undefine it again and redefine it to empty.
         ## Was the C_SWITCH_X_SITE part really necessary?
-##      LIB_GCC=`$(CC) $(C_SWITCH_X_SITE) -print-libgcc-file-name`
+##      LIB_GCC=`$CC $C_SWITCH_X_SITE -print-libgcc-file-name`
         LIB_GCC=
       fi
       ;;
 
     ## Ask GCC where to find libgcc.a.
-    *) LIB_GCC=`$(CC) -print-libgcc-file-name 2> /dev/null` ;;
+    *) LIB_GCC=`$CC -print-libgcc-file-name 2> /dev/null` ;;
   esac
 fi                              dnl if $GCC
 AC_SUBST(LIB_GCC)
+
+
+TOOLTIP_SUPPORT=
+WINDOW_SUPPORT=
+## If we're using X11/GNUstep, define some consequences.
+if test "$HAVE_X_WINDOWS" = "yes" || test "$HAVE_NS" = "yes"; then
+  AC_DEFINE(HAVE_WINDOW_SYSTEM, 1, [Define if you have a window system.])
+  AC_DEFINE(HAVE_MOUSE, 1, [Define if you have mouse support.])
+  MOUSE_SUPPORT="\$(REAL_MOUSE_SUPPORT)"
+  TOOLTIP_SUPPORT="\${lispsource}mouse.elc"
+
+  WINDOW_SUPPORT="\$(BASE_WINDOW_SUPPORT)"
+  test "$HAVE_X_WINDOWS" = "yes" && \
+    WINDOW_SUPPORT="$WINDOW_SUPPORT \$(X_WINDOW_SUPPORT)"
+
+fi
+AC_SUBST(MOUSE_SUPPORT)
+AC_SUBST(TOOLTIP_SUPPORT)
+AC_SUBST(WINDOW_SUPPORT)
 
 
 AH_TOP([/* GNU Emacs site configuration template file.
@@ -3310,12 +3512,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 ])dnl
 
 AH_BOTTOM([
-/* If we're using X11/Carbon/GNUstep, define some consequences.  */
-#if defined(HAVE_X_WINDOWS) || defined(HAVE_NS)
-#define HAVE_WINDOW_SYSTEM
-#define HAVE_MOUSE
-#endif
-
 /* Define AMPERSAND_FULL_NAME if you use the convention
    that & in the full name stands for the login id.  */
 /* Turned on June 1996 supposing nobody will mind it.  */
@@ -3340,7 +3536,7 @@ AH_BOTTOM([
 #endif
 #endif /* __FreeBSD__ || __NetBSD__ || __linux__  */
 
-/* If using GNU, then support inline function declarations. */
+/* If using GNU, then support inline function declarations.  */
 /* Don't try to switch on inline handling as detected by AC_C_INLINE
    generally, because even if non-gcc compilers accept `inline', they
    may reject `extern inline'.  */
@@ -3365,7 +3561,7 @@ AH_BOTTOM([
 /* Set up some defines, C and LD flags for NeXTstep interface on GNUstep.
   (There is probably a better place to do this, but right now the Cocoa
    side does this in s/darwin.h and we cannot
-   parallel this exactly since GNUstep is multi-OS. */
+   parallel this exactly since GNUstep is multi-OS.  */
 #ifdef HAVE_NS
 # ifdef NS_IMPL_GNUSTEP
 /* GNUstep needs a bit more pure memory.  Of the existing knobs,
@@ -3399,23 +3595,10 @@ SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
 
 #define my_strftime nstrftime	/* for strftime.c */
 
-/* The rest of the code currently tests the CPP symbol BSTRING.
-   Override any claims made by the system-description files.
-   Note that on some SCO version it is possible to have bcopy and not bcmp.  */
-#undef BSTRING
-#if defined (HAVE_BCOPY) && defined (HAVE_BCMP)
-#define BSTRING
-#endif
-
 /* Some of the files of Emacs which are intended for use with other
    programs assume that if you have a config.h file, you must declare
-   the type of getenv.
-
-   This declaration shouldn't appear when alloca.s or Makefile.in
-   includes config.h.  */
-#ifndef NOT_C_CODE
+   the type of getenv.  */
 extern char *getenv ();
-#endif
 
 /* These default definitions are good for almost all machines.
    The exceptions override them in m/MACHINE.h.  */
@@ -3456,36 +3639,39 @@ extern char *getenv ();
 # endif  /* GCC.  */
 #endif /* __P */
 
-/* Don't include "string.h" or <stdlib.h> in non-C code.  */
-#ifndef NOT_C_CODE
 #ifdef HAVE_STRING_H
-#include "string.h"
+#include <string.h>
 #endif
+
 #ifdef HAVE_STRINGS_H
-#include "strings.h"  /* May be needed for bcopy & al. */
+#include <strings.h>  /* May be needed for bcopy & al.  */
 #endif
+
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
-#ifndef __GNUC__
-# ifdef HAVE_ALLOCA_H
-#  include <alloca.h>
-# else /* AIX files deal with #pragma.  */
-#  ifndef alloca /* predefined by HP cc +Olibcalls */
-char *alloca ();
-#  endif
-# endif /* HAVE_ALLOCA_H */
-#endif /* __GNUC__ */
+
+#ifdef HAVE_ALLOCA_H
+# include <alloca.h>
+#elif defined __GNUC__
+# define alloca __builtin_alloca
+#elif defined _AIX
+# define alloca __alloca
+#else
+# include <stddef.h>
+# ifdef  __cplusplus
+extern "C"
+# endif
+void *alloca (size_t);
+#endif
+
 #ifndef HAVE_SIZE_T
 typedef unsigned size_t;
 #endif
-#endif /* NOT_C_CODE */
 
 /* Define HAVE_X_I18N if we have usable i18n support.  */
 
 #ifdef HAVE_X11R6
-#define HAVE_X_I18N
-#elif !defined X11R5_INHIBIT_I18N
 #define HAVE_X_I18N
 #endif
 
@@ -3506,11 +3692,7 @@ typedef unsigned size_t;
    that the stack is continuous.  */
 #ifdef __GNUC__
 #  ifndef GC_SETJMP_WORKS
-  /* GC_SETJMP_WORKS is nearly always appropriate for GCC --
-     see NON_SAVING_SETJMP in the target descriptions.  */
-  /* Exceptions (see NON_SAVING_SETJMP in target description) are
-     SCO5 non-ELF (but Emacs specifies ELF) and SVR3 on x86.
-     Fixme: Deal with SVR3.  */
+  /* GC_SETJMP_WORKS is nearly always appropriate for GCC.  */
 #    define GC_SETJMP_WORKS 1
 #  endif
 #  ifndef GC_LISP_OBJECT_ALIGNMENT
@@ -3624,29 +3806,17 @@ fi
 test "${exec_prefix}" != NONE &&
   exec_prefix=`echo "${exec_prefix}" | sed 's,\([^/]\)/*$,\1,'`]
 
-# Now get this: Some word that is part of the ${srcdir} directory name
-# or the ${configuration} value might, just might, happen to be an
-# identifier like `sun4' or `i386' or something, and be predefined by
-# the C preprocessor to some helpful value like 1, or maybe the empty
-# string.  Needless to say consequent macro substitutions are less
-# than conducive to the makefile finding the correct directory.
-[cpp_undefs="`echo $srcdir $configuration $canonical unix |
-  sed -e 's/[^a-zA-Z0-9_]/ /g' -e 's/^/ /' -e 's/  *$//' \
-  -e 's/  */ -U/g' -e 's/-U[0-9][^ ]*//g'`"]
-
-## Check if the C preprocessor will convert `..' to `. .'.  If so, set
-## CPP_NEED_TRADITIONAL to `yes' so that the code to generate Makefile
-## from Makefile.c can correctly provide the arg `-traditional' to the
-## C preprocessor.
-
-AC_EGREP_CPP(yes..yes,
-	[yes..yes],
-	CPP_NEED_TRADITIONAL=no,
-	CPP_NEED_TRADITIONAL=yes)
-
+dnl You might wonder (I did) why epaths.h is generated by running make,
+dnl rather than just letting configure generate it from epaths.in.
+dnl One reason is that the various paths are not fully expanded (see above);
+dnl eg gamedir=${prefix}/var/games/emacs.
+dnl Secondly, the GNU Coding standards require that one should be able
+dnl to run `make prefix=/some/where/else' and override the values set
+dnl by configure.  This also explains the `move-if-change' test and
+dnl the use of force in the `epaths-force' rule in Makefile.in.
 AC_OUTPUT(Makefile lib-src/Makefile oldXMenu/Makefile \
 	doc/emacs/Makefile doc/misc/Makefile doc/lispintro/Makefile \
-	doc/lispref/Makefile src/Makefile.c:src/Makefile.in \
+	doc/lispref/Makefile src/Makefile \
 	lwlib/Makefile lisp/Makefile leim/Makefile, [
 
 ### Make the necessary directories, if they don't exist.
@@ -3654,42 +3824,15 @@ for dir in etc lisp ; do
   test -d ${dir} || mkdir ${dir}
 done
 
-# Build src/Makefile from ${srcdir}/src/Makefile.c
-# and lib-src/Makefile from ${srcdir}/lib-src/Makefile.c
-# This must be done after src/config.h is built, since we rely on that file.
-
 echo creating src/epaths.h
 ${MAKE-make} epaths-force
-
-# As of 2000-11-19, newest development versions of GNU cpp preprocess
-# `..' to `. .'  unless invoked with -traditional
-
-if test "x$GCC" = xyes && test "x$CPP_NEED_TRADITIONAL" = xyes; then
-  CPPFLAGS="$CPPFLAGS -traditional"
-fi
-
-echo creating src/Makefile
-( cd src
-  rm -f junk.c junk1.c junk2.c
-  sed -e '/start of cpp stuff/q' \
-      < Makefile.c > junk1.c
-  sed -e '1,/start of cpp stuff/d'\
-      -e 's,/\*\*/#\(.*\)$,/* \1 */,' \
-      < Makefile.c > junk.c
-  $CPP -P $cpp_undefs -I. -I$srcdir/src $CPPFLAGS junk.c | \
-      sed -e 's/^ /	/' -e '/^#/d' -e '/^[ 	]*$/d' > junk2.c
-  cat junk1.c junk2.c > Makefile.new
-  rm -f junk.c junk1.c junk2.c
-  chmod 444 Makefile.new
-  mv -f Makefile.new Makefile
-)
 
 if test ! -f src/.gdbinit && test -f $srcdir/src/.gdbinit; then
   echo creating src/.gdbinit
   echo source $srcdir/src/.gdbinit > src/.gdbinit
 fi
 
-], [GCC="$GCC" NON_GNU_CPP="$NON_GNU_CPP" CPP="$CPP" CPP_NEED_TRADITIONAL="$CPP_NEED_TRADITIONAL" CPPFLAGS="$CPPFLAGS" cpp_undefs="$cpp_undefs"])
+], [GCC="$GCC" NON_GNU_CPP="$NON_GNU_CPP" CPP="$CPP" CPPFLAGS="$CPPFLAGS"])
 
 m4_if(dnl	Do not change this comment
    arch-tag: 156a4dd5-bddc-4d18-96ac-f37742cf6a5e

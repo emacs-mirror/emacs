@@ -309,7 +309,6 @@ the function `comint-truncate-buffer' is on `comint-output-filter-functions'."
   :type 'integer
   :group 'comint)
 
-;; FIXME: this should be defcustom
 (defcustom comint-input-ring-size 500
   "Size of the input history ring in `comint-mode'."
   :type 'integer
@@ -341,7 +340,7 @@ This variable is buffer-local."
 ;; Something called "perforce" uses "Enter password:".
 (defcustom comint-password-prompt-regexp
   (concat
-   "^\\("
+   "\\("
    (regexp-opt
     '("Enter" "Enter same" "Old" "old" "New" "new" "'s" "login"
       "Kerberos" "CVS" "UNIX" " SMB" "LDAP" "[sudo]" "Repeat" "Bad"))

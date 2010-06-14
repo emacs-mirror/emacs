@@ -999,9 +999,12 @@ Used by `calc-user-invocation'.")
 (defvar math-working-step-2 nil)
 (defvar var-i '(special-const (math-imaginary 1)))
 (defvar var-pi '(special-const (math-pi)))
+(defvar var-π '(special-const (math-pi)))
 (defvar var-e '(special-const (math-e)))
 (defvar var-phi '(special-const (math-phi)))
+(defvar var-φ '(special-const (math-phi)))
 (defvar var-gamma '(special-const (math-gamma-const)))
+(defvar var-γ '(special-const (math-gamma-const)))
 (defvar var-Modes '(special-const (math-get-modes-vec)))
 
 (mapc (lambda (v) (or (boundp v) (set v nil)))
@@ -2383,7 +2386,7 @@ See calc-keypad for details."
 	    (progn
 	      (require 'calc-ext)
 	      (calc-digit-dots))
-	  (delete-backward-char 1)
+	  (delete-char -1)
 	  (beep)
 	  (calc-temp-minibuffer-message " [Bad format]"))))))
   (setq calc-prev-prev-char calc-prev-char

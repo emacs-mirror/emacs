@@ -101,6 +101,11 @@ This takes effect when first loading the `sgml-mode' library.")
     (define-key map "\C-c\^?" 'sgml-delete-tag)
     (define-key map "\C-c?" 'sgml-tag-help)
     (define-key map "\C-c/" 'sgml-close-tag)
+
+    ;; Redundant keybindings, for consistency with TeX mode.
+    (define-key map "\C-c\C-o" 'sgml-tag)
+    (define-key map "\C-c\C-e" 'sgml-close-tag)
+
     (define-key map "\C-c8" 'sgml-name-8bit-mode)
     (define-key map "\C-c\C-v" 'sgml-validate)
     (when sgml-quick-keys
@@ -521,7 +526,7 @@ Behaves electrically if `sgml-quick-keys' is non-nil."
     (insert-char ?/ 1)
     (indent-according-to-mode))
    ((eq sgml-quick-keys 'close)
-    (delete-backward-char 1)
+    (delete-char -1)
     (sgml-close-tag))
    (t
     (sgml-slash-matching arg))))
@@ -578,7 +583,7 @@ encoded keyboard operation."
   (insert ?&)
   (or char
       (setq char (read-quoted-char "Enter char or octal number")))
-  (delete-backward-char 1)
+  (delete-char -1)
   (insert char)
   (undo-boundary)
   (sgml-namify-char))
@@ -596,7 +601,7 @@ Uses `sgml-char-names'."
 	   ((encode-char char 'ucs)))))
     (if (not name)
 	(error "Don't know the name of `%c'" char)
-      (delete-backward-char 1)
+      (delete-char -1)
       (insert (format (if (numberp name) "&#%d;" "&%s;") name)))))
 
 (defun sgml-name-self ()
@@ -702,7 +707,7 @@ If QUIET, do not print a message when there are no attributes for TAG."
 	      (sgml-value (assoc (downcase attribute) alist))
 	      (setq i (1- i))))
 	  (if (eq (preceding-char) ?\s)
-	      (delete-backward-char 1)))
+	      (delete-char -1)))
 	car)))
 
 (defun sgml-auto-attributes (arg)
@@ -1112,7 +1117,7 @@ See `sgml-tag-alist' for info about attribute rules."
 	  (setq alist (skeleton-read '(completing-read "Value: " (cdr alist))))
 	  (if (string< "" alist)
 	      (insert alist ?\")
-	    (delete-backward-char 2)))
+	    (delete-char -2)))
       (insert "=\"")
       (if (cdr alist)
           (insert (skeleton-read '(completing-read "Value: " alist)))

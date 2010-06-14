@@ -99,9 +99,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    for process-connection-type dependent on the kernel version.  */
 #define MIN_PTY_KERNEL_VERSION '7'
 
-/* Define this symbol if your system has the functions bcopy, etc. */
-#define BSTRING
-
 /* Define CLASH_DETECTION if you want lock files to be written
    so that Emacs can tell instantly when you try to modify
    a file that someone else has modified in his Emacs.  */
@@ -123,9 +120,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define HAVE_SOCKETS if system supports 4.2-compatible sockets.  */
 #define HAVE_SOCKETS
 
-/* Definitions for how to dump.  Copied from nextstep.h.  */
-#define UNEXEC unexmacosx.o
-
 /* start_of_text isn't actually used, so make it compile without error.  */
 #define TEXT_START (0)
 
@@ -146,9 +140,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Don't use posix_memalign because it is not compatible with unexmacosx.c.  */
 #undef HAVE_POSIX_MEMALIGN
 #endif
-
-/* Link this program just by running cc.  */
-#define ORDINARY_LINK
 
 /* Define the following so emacs symbols will not conflict with those
    in the System framework.  Otherwise -prebind will not work.  */

@@ -1334,7 +1334,7 @@ Unlike (get-char-property POS 'field), this works with empty fields too."
 		     (goto-char end)
 		     (while (and (eq (preceding-char) ?\s)
 				 (> (point) begin))
-		       (delete-backward-char 1)))))))
+		       (delete-char -1)))))))
 	(widget-specify-secret field))
       (widget-apply field :notify field))))
 
@@ -1477,7 +1477,7 @@ If that does not exist, call the value of `widget-complete-field'."
      ;; Parse escapes in format.
      (while (re-search-forward "%\\(.\\)" nil t)
        (let ((escape (char-after (match-beginning 1))))
-	 (delete-backward-char 2)
+	 (delete-char -2)
 	 (cond ((eq escape ?%)
 		(insert ?%))
 	       ((eq escape ?\[)
@@ -1510,7 +1510,7 @@ If that does not exist, call the value of `widget-complete-field'."
 		    (setq doc-begin (point))
 		    (insert doc)
 		    (while (eq (preceding-char) ?\n)
-		      (delete-backward-char 1))
+		      (delete-char -1))
 		    (insert ?\n)
 		    (setq doc-end (point)))))
 	       ((eq escape ?h)
@@ -2258,7 +2258,7 @@ If the item is checked, CHOSEN is a cons whose cdr is the value."
      ;; Parse % escapes in format.
      (while (re-search-forward "%\\([bv%]\\)" nil t)
        (let ((escape (char-after (match-beginning 1))))
-	 (delete-backward-char 2)
+	 (delete-char -2)
 	 (cond ((eq escape ?%)
 		(insert ?%))
 	       ((eq escape ?b)
@@ -2441,7 +2441,7 @@ Return an alist of (TYPE MATCH)."
      ;; Parse % escapes in format.
      (while (re-search-forward "%\\([bv%]\\)" nil t)
        (let ((escape (char-after (match-beginning 1))))
-	 (delete-backward-char 2)
+	 (delete-char -2)
 	 (cond ((eq escape ?%)
 		(insert ?%))
 	       ((eq escape ?b)
@@ -2720,7 +2720,7 @@ Return an alist of (TYPE MATCH)."
      ;; Parse % escapes in format.
      (while (re-search-forward "%\\(.\\)" nil t)
        (let ((escape (char-after (match-beginning 1))))
-	 (delete-backward-char 2)
+	 (delete-char -2)
 	 (cond ((eq escape ?%)
 		(insert ?%))
 	       ((eq escape ?i)

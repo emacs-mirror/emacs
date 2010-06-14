@@ -1089,7 +1089,11 @@ is converted into a string by expressing it in decimal."
 (make-obsolete 'process-filter-multibyte-p nil "23.1")
 (make-obsolete 'set-process-filter-multibyte nil "23.1")
 
-(make-obsolete-variable 'directory-sep-char "do not use it." "21.1")
+(defconst directory-sep-char ?/
+  "Directory separator character for built-in functions that return file names.
+The value is always ?/.")
+(make-obsolete-variable 'directory-sep-char "do not use it, just use `/'." "21.1")
+
 (make-obsolete-variable
  'mode-line-inverse-video
  "use the appropriate faces instead."
@@ -1868,16 +1872,14 @@ any other non-digit terminates the character code and is then used as input."))
 	(if inhibit-quit (setq quit-flag nil)))
       ;; Translate TAB key into control-I ASCII character, and so on.
       ;; Note: `read-char' does it using the `ascii-character' property.
-      ;; We could try and use read-key-sequence instead, but then C-q ESC
-      ;; or C-q C-x might not return immediately since ESC or C-x might be
-      ;; bound to some prefix in function-key-map or key-translation-map.
+      ;; We should try and use read-key instead.
+      (let ((translation (lookup-key local-function-key-map (vector char))))
+	(if (arrayp translation)
+	    (setq translated (aref translation 0))))
       (setq translated
 	    (if (integerp char)
 		(char-resolve-modifiers char)
 	      char))
-      (let ((translation (lookup-key local-function-key-map (vector char))))
-	(if (arrayp translation)
-	    (setq translated (aref translation 0))))
       (cond ((null translated))
 	    ((not (integerp translated))
 	     (setq unread-command-events (list char)
@@ -2206,22 +2208,11 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
                 (recenter (/ (window-height) 2))))
           (message (or message "Type %s to continue editing.")
                    (single-key-description exit-char))
-          (let (char)
-            (if (integerp exit-char)
-                (condition-case nil
-                    (progn
-                      (setq char (read-char))
-                      (or (eq char exit-char)
-                          (setq unread-command-events (list char))))
-                  (error
-                   ;; `exit-char' is a character, hence it differs
-                   ;; from char, which is an event.
-                   (setq unread-command-events (list char))))
-              ;; `exit-char' can be an event, or an event description list.
-              (setq char (read-event))
-              (or (eq char exit-char)
-                  (eq char (event-convert-list exit-char))
-                  (setq unread-command-events (list char))))))
+	  (let ((event (read-event)))
+	    ;; `exit-char' can be an event, or an event description list.
+	    (or (eq event exit-char)
+		(eq event (event-convert-list exit-char))
+		(setq unread-command-events (list event)))))
       (delete-overlay ol))))
 
 

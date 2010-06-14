@@ -42,8 +42,7 @@ Fifth Floor, Boston, MA 02110-1301, USA.
 #endif
 
 #if ((defined __cplusplus || (defined (__STDC__) && __STDC__) \
-      || defined STDC_HEADERS || defined PROTOTYPES) \
-     && ! defined (BROKEN_PROTOTYPES))
+      || defined STDC_HEADERS || defined PROTOTYPES))
 #undef	PP
 #define	PP(args)	args
 #undef	__ptr_t

@@ -804,7 +804,10 @@ line, when one line of text is split into multiple lines on the
 screen.  The left fringe shows a curving arrow for each screen line
 except the first, indicating that ``this is not the real beginning.''
 The right fringe shows a curving arrow for each screen line except the
-last, indicating that ``this is not the real end.''
+last, indicating that ``this is not the real end.''  If the line's
+direction is right-to-left (@pxref{Bidirectional Editing}), the
+meaning of the curving arrows in the left and right fringes are
+swapped.
 
   The fringes indicate line truncation with short horizontal arrows
 meaning ``there's more text on this line which is scrolled
@@ -1191,8 +1194,8 @@ can display long lines by @dfn{truncation}.  This means that all the
 characters that do not fit in the width of the screen or window do not
 appear at all.  On graphical displays, a small straight arrow in the
 fringe indicates truncation at either end of the line.  On text-only
-terminals, @samp{$} appears in the first column when there is text
-truncated to the left, and in the last column when there is text
+terminals, @samp{$} appears in the leftmost column when there is text
+truncated to the left, and in the rightmost column when there is text
 truncated to the right.
 
 @vindex truncate-lines

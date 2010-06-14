@@ -4,7 +4,7 @@
 ;;   2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
-;; Keywords: tools revision-control merge diff3 cvs conflict
+;; Keywords: vc, tools, revision control, merge, diff3, cvs, conflict
 
 ;; This file is part of GNU Emacs.
 
@@ -457,8 +457,8 @@ BUF contains a plain diff between match-1 and match-3."
 
 (defun smerge-resolve (&optional safe)
   "Resolve the conflict at point intelligently.
-This relies on mode-specific knowledge and thus only works in
-some major modes.  Uses `smerge-resolve-function' to do the actual work."
+This relies on mode-specific knowledge and thus only works in some
+major modes.  Uses `smerge-resolve-function' to do the actual work."
   (interactive)
   (smerge-match-conflict)
   (smerge-remove-props (match-beginning 0) (match-end 0))
@@ -815,12 +815,12 @@ Its behavior has mainly two restrictions:
   This only matters if `smerge-refine-weight-hack' is nil.")
 
 (defvar smerge-refine-ignore-whitespace t
-  "If non-nil,Indicate that smerge-refine should try to ignore change in whitespace.")
+  "If non-nil, indicate that `smerge-refine' should try to ignore change in whitespace.")
 
 (defvar smerge-refine-weight-hack t
   "If non-nil, pass to diff as many lines as there are chars in the region.
 I.e. each atomic element (e.g. word) will be copied as many times (on different
-lines) as it has chars.  This has 2 advantages:
+lines) as it has chars.  This has two advantages:
 - if `diff' tries to minimize the number *lines* (rather than chars)
   added/removed, this adjust the weights so that adding/removing long
   symbols is considered correspondingly more costly.
@@ -919,8 +919,8 @@ chars to try and eliminate some spurious differences."
   "Show fine differences in the two regions BEG1..END1 and BEG2..END2.
 PROPS is an alist of properties to put (via overlays) on the changes.
 If non-nil, PREPROC is called with no argument in a buffer that contains
-a copy of a region, just before preparing it to for `diff'.  It can be used to
-replace chars to try and eliminate some spurious differences."
+a copy of a region, just before preparing it to for `diff'.  It can be
+used to replace chars to try and eliminate some spurious differences."
   (let* ((buf (current-buffer))
          (pos (point))
          (file1 (make-temp-file "diff1"))
@@ -988,9 +988,9 @@ replace chars to try and eliminate some spurious differences."
 
 (defun smerge-refine (&optional part)
   "Highlight the words of the conflict that are different.
-For 3-way conflicts, highlights only 2 of the 3 parts.
-A numeric argument PART can be used to specify which 2 parts;
-repeating the command will highlight other 2 parts."
+For 3-way conflicts, highlights only two of the three parts.
+A numeric argument PART can be used to specify which two parts;
+repeating the command will highlight other two parts."
   (interactive
    (if (integerp current-prefix-arg) (list current-prefix-arg)
      (smerge-match-conflict)
@@ -1161,7 +1161,7 @@ buffer names."
 
 (defun smerge-makeup-conflict (pt1 pt2 pt3 &optional pt4)
   "Insert diff3 markers to make a new conflict.
-Uses point and mark for 2 of the relevant positions and previous marks
+Uses point and mark for two of the relevant positions and previous marks
 for the other ones.
 By default, makes up a 2-way conflict,
 with a \\[universal-argument] prefix, makes up a 3-way conflict."
@@ -1184,7 +1184,7 @@ with a \\[universal-argument] prefix, makes up a 3-way conflict."
     (insert "<<<<<<< MINE\n"))
   (if smerge-mode nil (smerge-mode 1))
   (smerge-refine))
-      
+
 
 (defconst smerge-parsep-re
   (concat smerge-begin-re "\\|" smerge-end-re "\\|"

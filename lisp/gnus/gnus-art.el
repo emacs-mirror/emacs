@@ -2806,22 +2806,28 @@ summary buffer."
 (defun gnus-article-browse-delete-temp-files (&optional how)
   "Delete temp-files created by `gnus-article-browse-html-parts'."
   (when (and gnus-article-browse-html-temp-list
-	     (or how
-		 (setq how gnus-article-browse-delete-temp)))
-    (when (and (eq how 'ask)
-	       (gnus-y-or-n-p (format
-			       "Delete all %s temporary HTML file(s)? "
-			       (length gnus-article-browse-html-temp-list)))
-	       (setq how t)))
+	     (progn
+	       (or how (setq how gnus-article-browse-delete-temp))
+	       (if (eq how 'ask)
+		   (let ((files (length gnus-article-browse-html-temp-list)))
+		     (gnus-y-or-n-p (format
+				     "Delete all %s temporary HTML file%s? "
+				     files
+				     (if (> files 1) "s" ""))))
+		 how)))
     (dolist (file gnus-article-browse-html-temp-list)
-      (when (and (file-exists-p file)
-		 (or (eq how t)
-		     ;; `how' is neither `nil', `ask' nor `t' (i.e. `file'):
-		     (gnus-y-or-n-p
-		      (format "Delete temporary HTML file `%s'? " file))))
-	(if (file-directory-p file)
-	    (gnus-delete-directory file)
-	  (delete-file file))))
+      (cond ((file-directory-p file)
+	     (when (or (not (eq how 'file))
+		       (gnus-y-or-n-p
+			(format
+			 "Delete temporary HTML file(s) in directory `%s'? "
+			 (file-name-as-directory file))))
+	       (gnus-delete-directory file)))
+	    ((file-exists-p file)
+	     (when (or (not (eq how 'file))
+		       (gnus-y-or-n-p
+			(format "Delete temporary HTML file `%s'? " file)))
+	       (delete-file file)))))
     ;; Also remove file from the list when not deleted or if file doesn't
     ;; exist anymore.
     (setq gnus-article-browse-html-temp-list nil))
@@ -4822,7 +4828,11 @@ General format specifiers can also be used.  See Info node
 			   (with-current-buffer gnus-article-current-summary
 			     gnus-newsgroup-name)
 			 gnus-newsgroup-name)))
-	    (if (cond ((stringp gnus-safe-html-newsgroups)
+	    (if (cond ((not group)
+		       ;; Maybe we're in a mml-preview buffer
+		       ;; and no group is selected.
+		       t)
+		      ((stringp gnus-safe-html-newsgroups)
 		       (string-match gnus-safe-html-newsgroups group))
 		      ((consp gnus-safe-html-newsgroups)
 		       (member group gnus-safe-html-newsgroups)))
@@ -4886,6 +4896,10 @@ General format specifiers can also be used.  See Info node
 	  (t
 	   (gnus-article-goto-part n)))))
 
+(defvar gnus-mime-buttonized-part-id nil
+  "ID of a mime part that should be buttonized.
+`gnus-mime-save-part-and-strip' and `gnus-mime-delete-part' bind it.")
+
 (eval-when-compile
   (defsubst gnus-article-edit-part (handles &optional current-id)
     "Edit an article in order to delete a mime part.
@@ -4928,10 +4942,15 @@ and `gnus-mime-delete-part', and not provided at run-time normally."
 	 ,(gnus-group-read-only-p)
 	 ,gnus-summary-buffer no-highlight))
      t)
-    (gnus-article-edit-done)
+    ;; Force buttonizing this part.
+    (let ((gnus-mime-buttonized-part-id current-id))
+      (gnus-article-edit-done))
     (gnus-configure-windows 'article)
     (when (and current-id (integerp gnus-auto-select-part))
-      (gnus-article-jump-to-part (+ current-id gnus-auto-select-part)))))
+      (gnus-article-jump-to-part
+       (min (max (+ current-id gnus-auto-select-part) 1)
+	    (with-current-buffer gnus-article-buffer
+	      (length gnus-article-mime-handle-alist)))))))
 
 (defun gnus-mime-replace-part (file)
   "Replace MIME part under point with an external body."
@@ -5834,7 +5853,8 @@ If displaying \"text/html\" is discouraged \(see
 		   ((or (bobp) (eq (char-before (1- (point))) ?\n)) 0)
 		   (t 1))))
 	  (when (or (not display)
-		    (not (gnus-unbuttonized-mime-type-p type)))
+		    (not (gnus-unbuttonized-mime-type-p type))
+		    (eq id gnus-mime-buttonized-part-id))
 	    (gnus-insert-mime-button
 	     handle id (list (or display (and not-attachment text))))
 	    (gnus-article-insert-newline)

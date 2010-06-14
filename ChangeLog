@@ -1,3 +1,214 @@
+2010-06-12  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-arch-indep): Delete any old info .gz files first.
+
+2010-06-11  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (--without-compress-info): New option.
+	(GZIP_INFO): New output variable.
+
+	* Makefile.in (GZIP_INFO): New, set by configure.
+	(install-arch-indep): Don't gzip info pages if GZIP_INFO is nil.
+	Handle man pages in the same way.
+
+2010-06-10  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-arch-indep): Gzip the info files too.
+
+	* make-dist: Remove references to non-existent directories and files.
+
+2010-06-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in: Include <strings.h> and <string.h> instead of
+	"strings.h" and "string.h".
+
+2010-06-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in: Remove code dealing with BSTRING.
+
+2010-06-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (AC_PREREQ): Require autoconf 2.65.
+
+	* configure.in (unxec): Do not define and substitute.
+	(UNEXEC_OBJ): New output variable, replaces cpp UNEXEC.
+
+2010-06-03  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (AH_BOTTOM): Remove NOT_C_CODE test, it is always true.
+
+2010-06-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Fix alloca definition when using gcc on non-gnu systems.
+	* configure.in: Use the code sequence indicated by "info autoconf"
+	for alloca (bug#6170).
+
+2010-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* .bzrignore: Ignore new files from trunk, which appear if you use
+	colocated branches (i.e. "bzr switch").
+
+2010-05-28  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Simplify some of the $canonical tests.
+
+2010-05-27  Glenn Morris  <rgm@gnu.org>
+
+	* config.bat: Do not preprocess src/Makefile.in.
+
+	* configure.in: Do not preprocess src/Makefile.in.
+	(cpp_undefs, CPP_NEED_TRADITIONAL): Remove.
+	(AC_EGREP_CPP): Test no longer needed.
+
+	* make-dist: No more Makefile.c files.
+
+2010-05-26  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (YMF_PASS_LDFLAGS): Remove.
+	(PRE_EDIT_LDFLAGS, POST_EDIT_LDFLAGS): New output variables.
+
+	* configure.in (CPPFLAGS, CFLAGS, REAL_CFLAGS):
+	Add $GNUSTEP_LOCAL_HEADERS.
+	(LDFLAGS, LD_SWITCH_SYSTEM_TEMACS): Add $GNUSTEP_LOCAL_LIBRARIES.
+
+	* configure.in (NS_IMPL_GNUSTEP_INC, NS_IMPL_GNUSTEP_TEMACS_LDFLAGS)
+	(GNUSTEP_MAKEFILES): Remove.
+	(LD_SWITCH_SYSTEM_TEMACS): Move NS_IMPL_GNUSTEP_TEMACS_LDFLAGS
+	stuff to here.
+
+2010-05-25  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (LD_SWITCH_SYSTEM): Move some gnu-linux stuff...
+	(LD_SWITCH_SYSTEM_TEMACS): ... to here.
+
+	* configure.in (LD_SWITCH_SYSTEM_EXTRA): Remove.
+	(LD_SWITCH_SYSTEM_TEMACS): Put darwin stuff from LD_SWITCH_SYSTEM_EXTRA
+	here instead.
+
+2010-05-24  Romain Francoise  <romain@orebokech.com>
+
+	* make-dist: Look for version in src/emacs.c.
+	Use lisp/subr.el rather than lisp/version.el for location check.
+
+2010-05-21  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (MKDEPDIR): Parallel build tweak.
+
+	* configure.in (ns_frag): New output file.
+
+	* configure.in (OLDXMENU): Set to "nothing" if !HAVE_X11 || USE_GTK.
+	(OLDXMENU_TARGET): Set to empty if USE_GTK.
+
+	* configure.in (cannot_dump): New output variable.
+
+2010-05-20  enami tsugutomo  <tsugutomo.enami@jp.sony.com>
+
+	* configure.in: On NetBSD, if terminfo is found, use it in
+	preference to termcap.  (Bug#6190)
+
+2010-05-20  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist (src): Include *.mk.
+	* config.bat: Concatenate deps.mk onto the end of src/Makefile.
+	* configure.in (DEPFLAGS, MKDEPDIR): New output variables.
+	(deps_frag): New output file.
+	(AUTO_DEPEND): Remove this definition.
+
+	* configure.in (--with-gtk, --with-gcc): Remove option stubs.
+
+2010-05-19  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (LINKER, YMF_PASS_LDFLAGS): New output variables.
+	(ORDINARY_LINK): New AC_DEFINE.
+	(LIB_GCC): No need to set if ORDINARY_LINK.
+
+2010-05-18  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (POST_ALLOC_OBJ) [cygwin]: Omit vm-limit.o.
+	(POST_ALLOC_OBJ) [!cygwin]: Set to empty.
+
+	* config.bat (RALLOC_OBJ): Edit to empty if sys_malloc.
+	* configure.in (REL_ALLOC): Unset on gnu, gnu-linux if DOUG_LEA_MALLOC.
+	(RALLOC_OBJ): New output variable.
+
+	* config.bat (GMALLOC_OBJ, VMLIMIT_OBJ): Edit to empty if sys_malloc.
+	* configure.in (GMALLOC_OBJ, VMLIMIT_OBJ): New output variables.
+
+2010-05-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (src): Provide the name of the VCS file that witnesses
+	a pull.
+	($(srcdir)/src/config.in): Handle accidental removal of src/config.in.
+
+2010-05-17  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (OLDXMENU_DEPS): New output variable.
+
+2010-05-16  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (ns_appbindir, ns_appresdir): Set using $ns_appdir.
+
+	* configure.in (ns_appdir, ns_appbindir): Add trailing "/" to value.
+	* Makefile.in (install-arch-dep): Update for above change.
+
+	* Makefile.in (ns_appdir): Remove.
+	(install-arch-dep): Test $ns_appresdir instead of $ns_appdir.
+
+	* configure.in (TEMACS_LDFLAGS2): New output variable.
+
+	* configure.in (NS_IMPL_GNUSTEP_TEMACS_LDFLAGS): New output variable.
+	(START_FILES): Set to empty if NS_IMPL_GNUSTEP.
+	(GNUSTEP_SYSTEM_HEADERS, GNUSTEP_SYSTEM_LIBRARIES): Do not output,
+	nothing uses.
+
+2010-05-16  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in: Remove references to usg5-4 and bsd-common, $opsys
+	does not use them.
+	(X11R5_INHIBIT_I18N): Remove, unused.
+
+2010-05-15  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (LIBXMENU): Set to empty if !HAVE_X_WINDOWS.
+
+	* configure.in (FONT_OBJ): Set to empty if !HAVE_X_WINDOWS.
+
+2010-05-15  Ken Raeburn  <raeburn@raeburn.org>
+
+	* configure.in: Look for version string in its new location.
+
+2010-05-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.bat: Remove support for DJGPP v1.x.
+
+2010-05-15  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (OLDXMENU_TARGET): New output variable.
+
+	* Makefile.in (install-arch-dep): Update odd NS rule for Emacs version.
+
+	* Makefile.in (install-arch-indep): Remove references to RCS, CVS,
+	and other files that no longer exist.
+
+2010-05-14  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (cpp_undefs): Add mktime, register, X11.
+
+	* configure.in (GPM_MOUSE_SUPPORT): Remove.
+	(MOUSE_SUPPORT, TOOLTIP_SUPPORT, WINDOW_SUPPORT): New output variables.
+	(HAVE_WINDOW_SYSTEM, HAVE_MOUSE): Move out of AC_BOTTOM.
+
+	* configure.in (NS_IMPL_GNUSTEP_INC): New output variable.
+	(GNUSTEP_MAKEFILES): Do not output.
+
+2010-05-13  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Fix some paren typos.
+
+	* configure.in (OLDXMENU, LIBXMENU): Set to empty if !HAVE_MENUS.
+
+	* configure.in (LD_SWITCH_X_SITE, C_SWITCH_X_SITE): Do not define.
+
 2010-05-12  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (LIB_SRC_EXTRA_INSTALLABLES): Remove, unused.
@@ -1949,6 +2160,10 @@
 2006-04-20  Ramprasad B  <ramprasad_i82@yahoo.com>
 
 	Update copyright year(s) in many files.
+
+2006-04-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure: Regenerated.
 
 2006-04-01  Emanuele Giaquinta  <emanuele.giaquinta@gmail.com>  (tiny change)
 
@@ -3909,6 +4124,11 @@
 
 	* make-dist: Unset EMACS_UNIBYTE, so Emacs runs in its default state.
 	Quote $EMACS, in case it's a program with args.
+
+1999-06-15  Gerd Moellmann  <gerd@gnu.org>
+
+	* configure.in (HAVE_GIF): Use libungif instead of libgif
+	because the former doesn't contain patented compression code.
 
 1999-05-29  Richard M. Stallman  <rms@gnu.org>
 
