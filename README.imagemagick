@@ -15,18 +15,45 @@ autoconf
 
 
 * TODO
-** complete documentation drafts below
+#B _ complete documentation drafts below
 
-** fix inconsistencys with spelling of imagemagick in the src
-** report number of images in image bundle types somehow
-** probably add pdf to inhibited types
-** inhibit types is defconst should probably be defcustom
-** decide what to do with some uncommitted imagemagick support
+#B X fix inconsistencys with spelling of imagemagick in the src
+#B X report number of images in image bundle types somehow
+Works like for "gif" support. Thanks to Juri Linkov.
+#B X probably add pdf to inhibited types
+#B X inhibit types is defconst should probably be defcustom
+#B _ decide what to do with some uncommitted imagemagick support
   functions for image size etc.
-** Test with more systems
+#B _ Test with more systems
 Tested on Fedora 12 so far, and the libmagick that ships with it.
 Ubuntu 8.04 was also tested, but it seems it ships a broken ImageMagick.
-Also need some way to handle render methods that only work on newer ImageMagicks
+#B X Also need some way to handle render methods that only work on newer ImageMagicks
+Is handled by configure now
+
+* Some nits from Stefan Monnier
+I just took a quick look at the code and I see the following nits to fix:
+#B _ obviously a merge will have to come with a good ChangeLog.
+#B X also the merge will need to come with documentation.  Maybe not in the
+   Texinfo form yet, but at least in the etc/NEWS with enough info that
+   describes the `scale' and other such arguments that someone can start
+   using them.
+#B X the README talks about naming inconsistencies, I think these should be
+  fixed before a first commit (should be straightforward).
+
+#B X the "let" in image.el should not be followed by a line break and the while
+   should be replaced by a dolist.
+
+#B X the prototype of imagemagick_load_image has some odd indentation in ([[2010.06.14]])
+   its args, not sure what happened.
+#B X a few lines in the C code break the 80columns limit.
+#B X please use ANSI style function declarations rather than K&R for new code. ([[2010.06.14]])
+#B X you can get rid of the prototypes by reordering the code. ([[2010.06.14]])
+#B X the docstrings in DEFUN should not be indented (they'll display ([[2010.06.14]])
+   weirdly otherwise in C-h f).
+#B X Some "{" are at the end of a for/if rather than on their own line. ([[2010.06.14]])
+#B X why use "*( imtypes + i)" rather than "imtypes[i]"? ([[2010.06.14]])
+#B X some "," lack a space after them. ([[2010.06.14]])
+#B X several "=" and "==" lack spaces around them. ([[2010.06.14]])
 
 
 * NEWS entry
@@ -44,7 +71,7 @@ The function (imagemagick-register-types) will enable the imagemagick
 support for the extensions in imagemagick-types minus the types listed
 in imagemagick-types-inhibit.
 
-imagemagick-types-inhibit has the value  '(C HTML HTM TXT) by default.
+imagemagick-types-inhibit has the value  '(C HTML HTM TXT PDF) by default.
 This means imagemagick will be used also to load jpeg files, if you
 have both jpeg and imagemagick libraries linked. Add 'JPG to
 imagemagick-types-inhibit if you do not want this.
@@ -52,22 +79,36 @@ imagemagick-types-inhibit if you do not want this.
 Images loaded with imagemagick will support a couple of new display
 specifications:
 
-- scale
-- rotation
-- index
+- :scale takes a geometry string as defined by ImageMagick:
 
-See the ImageMagick manual for information on how these specifications
-work.
+scale%            
+scale-x%xscale-y% 
+width             
+xheight           
+widthxheight      
+widthxheight^     
+widthxheight!     
+widthxheight>     
+widthxheight<     
+area@             
+{size}{offset}                                                                                                                                                               {size}{+-}x{+-}y
+
+See the ImageMagick manual for more information.
+
+- :rotation specifies a rotation angle in degrees.
+
+- :index specifies which image inside an image bundle file format, such
+as TIFF or DJVM, to view.
 
 The image-metadata function can be used to retrieve the total number
-of images in an image bundle, and the :index property can be used to
-show a particular image within the bundle. This is simmilar to how GIF
-files work.
-
+of images in an image bundle. This is simmilar to how GIF files work.
 
 
 * Changelog entry
-nothing yet
+2010-06-12 Joakim Verona <joakim@verona.se>
+           * image.c
+           * image.el
+           
 
 * Manual entry
-nothing yet
+nothing yet, but the NEWS entry could be adapted.

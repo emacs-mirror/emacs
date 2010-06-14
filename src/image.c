@@ -7645,21 +7645,28 @@ imagemagick_image_p (Lisp_Object object)
 #define DrawRectangle DrawRectangleGif
 #include <wand/MagickWand.h>
 
-/* imagemagick_load_image is a helper function for imagemagick_load, which does the
-   actual loading given contents and size, apart from frame and image
-   structures, passed from imagemagick_load.
+/* imagemagick_load_image is a helper function for imagemagick_load,
+   which does the actual loading given contents and size, apart from
+   frame and image structures, passed from imagemagick_load.
 
    Uses librimagemagick to do most of the image processing.
 
-   Returns non-zero when successful.
+    non-zero when successful.
 */
 
 static int
-imagemagick_load_image (struct frame *f,        /* Pointer to emacs frame structure.  */
-                        struct image *img,      /* Pointer to emacs image structure.  */
-                        unsigned char *contents,/* String containing the IMAGEMAGICK data to be parsed.  */
-                        unsigned int size,      /* Size of data in bytes.  */
-                        unsigned char *filename)/* Filename, either pass filename or contents/size.  */
+imagemagick_load_image (/* Pointer to emacs frame structure.  */
+                        struct frame *f,
+                        /* Pointer to emacs image structure.  */
+                        struct image *img, 
+                        /* String containing the IMAGEMAGICK data to
+                           be parsed.  */
+                        unsigned char *contents,
+                        /* Size of data in bytes.  */
+                        unsigned int size,
+                        /* Filename, either pass filename or
+                           contents/size.  */
+                        unsigned char *filename)
 {
   long unsigned int width;
   long unsigned int height;
@@ -7716,17 +7723,17 @@ imagemagick_load_image (struct frame *f,        /* Pointer to emacs frame struct
 
  
   if (MagickGetNumberImages(image_wand) > 1)
-    img->data.lisp_val = Fcons (Qcount,
-                                Fcons (make_number (MagickGetNumberImages(image_wand)),
-                                       img->data.lisp_val));
+    img->data.lisp_val =
+      Fcons (Qcount,
+             Fcons (make_number (MagickGetNumberImages(image_wand)),
+                    img->data.lisp_val));
   if(ino == 0)
     MagickSetFirstIterator(image_wand);
   else
     MagickSetIteratorIndex(image_wand, ino);
 
-  /*
-    If width and/or height is set in the display spec
-    assume we want to scale to those.  */
+  /* If width and/or height is set in the display spec assume we want
+    to scale to those.  */
 
   value = image_spec_value (img->spec, QCwidth, NULL);
   desired_width = (INTEGERP (value)  ? XFASTINT (value) : -1);
@@ -7742,22 +7749,25 @@ imagemagick_load_image (struct frame *f,        /* Pointer to emacs frame struct
       }
     }
 
-  /* Also support :geometry and :crop which are imagemagick specific descriptors.  */
+  /* Also support :geometry and :crop which are imagemagick specific
+     descriptors.  */
 
   crop     = image_spec_value (img->spec, QCcrop, NULL);
   geometry = image_spec_value (img->spec, QCgeometry, NULL);
   if (STRINGP (crop) && STRINGP (geometry))
     {
       printf("MagickTransformImage %s %s\n", SDATA(crop), SDATA(geometry));
-      image_wand = MagickTransformImage (image_wand, SDATA (crop), SDATA (geometry));
+      image_wand = MagickTransformImage (image_wand, SDATA (crop),
+                                         SDATA (geometry));
       /* TODO differ between image_wand and transform_wand. */
     }
 
-  /* Furthermore :rotation. we need background color and angle for rotation.  */
+  /* Furthermore :rotation. we need background color and angle for
+     rotation.  */
   /*
-    TODO background handling for rotation
-    specified_bg = image_spec_value (img->spec, QCbackground, NULL);
-    if (!STRINGP (specified_bg)
+    TODO background handling for rotation specified_bg =
+    image_spec_value (img->spec, QCbackground, NULL); if (!STRINGP
+    (specified_bg)
   */
   value = image_spec_value (img->spec, QCrotation, NULL);
   if (FLOATP (value))
@@ -7799,11 +7809,13 @@ imagemagick_load_image (struct frame *f,        /* Pointer to emacs frame struct
   
 
   init_color_table ();
-  imagemagick_rendermethod = (INTEGERP (Vimagemagick_render_type) ? XFASTINT (Vimagemagick_render_type) : 0);
+  imagemagick_rendermethod = (INTEGERP (Vimagemagick_render_type)
+                              ? XFASTINT (Vimagemagick_render_type) : 0);
   if (imagemagick_rendermethod == 0)
     {
       /* Try to create a x pixmap to hold the imagemagick pixmap.  */
-      if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg, &img->pixmap))
+      if (!x_create_x_image_and_pixmap (f, width, height, 0,
+                                        &ximg, &img->pixmap))
         {
           image_error("Imagemagick X bitmap allocation failure", Qnil, Qnil);
           goto imagemagick_error;
@@ -7820,7 +7832,8 @@ imagemagick_load_image (struct frame *f,        /* Pointer to emacs frame struct
       iterator = NewPixelIterator (image_wand);
       if ((iterator == (PixelIterator *) NULL))
         {
-          image_error ("Imagemagick pixel iterator creation failed", Qnil, Qnil);
+          image_error ("Imagemagick pixel iterator creation failed",
+                       Qnil, Qnil);
           goto imagemagick_error;
         }
 
@@ -7832,7 +7845,11 @@ imagemagick_load_image (struct frame *f,        /* Pointer to emacs frame struct
           for (x = 0; x < (long) width; x++)
             {
               PixelGetMagickColor (pixels[x], &pixel);
-              XPutPixel (ximg, x, y, lookup_rgb_color (f, pixel.red, pixel.green, pixel.blue));      
+              XPutPixel (ximg, x, y,
+                         lookup_rgb_color (f,
+                                           pixel.red,
+                                           pixel.green,
+                                           pixel.blue));
             }
         }
       DestroyPixelIterator (iterator);
@@ -7841,13 +7858,16 @@ imagemagick_load_image (struct frame *f,        /* Pointer to emacs frame struct
   if (imagemagick_rendermethod == 1)
     {
       /* Try if magicexportimage is any faster than pixelpushing. */
-      /* printf("ximg: bitmap_unit:%d format:%d byte_order:%d depth:%d bits_per_pixel:%d\n", */
-      /*        ximg->bitmap_unit,ximg->format,ximg->byte_order,ximg->depth,ximg->bits_per_pixel); */
+      /* printf("ximg: bitmap_unit:%d format:%d byte_order:%d depth:%d
+         bits_per_pixel:%d\n", */
+      /*        ximg->bitmap_unit,ximg->format,ximg->byte_order,
+                ximg->depth,ximg->bits_per_pixel); */
       int imagedepth = 24;/*MagickGetImageDepth(image_wand);*/
       char* exportdepth = imagedepth <= 8 ? "I" : "BGRP";/*"RGBP";*/
       /* Try to create a x pixmap to hold the imagemagick pixmap.  */
       printf("imagedepth:%d exportdepth:%s\n", imagedepth, exportdepth);
-      if (!x_create_x_image_and_pixmap (f, width, height, imagedepth, &ximg, &img->pixmap)){
+      if (!x_create_x_image_and_pixmap (f, width, height, imagedepth,
+                                        &ximg, &img->pixmap)){
         image_error("Imagemagick X bitmap allocation failure", Qnil, Qnil);
         goto imagemagick_error;
       }
@@ -7884,7 +7904,7 @@ imagemagick_load_image (struct frame *f,        /* Pointer to emacs frame struct
                               /*&(img->pixmap));*/
                               ximg->data);
 #else
-      image_error("You dont have MagickExportImagePixels, upgrade ImageMagick if you want to try it!",
+      image_error("You dont have MagickExportImagePixels, upgrade ImageMagick!",
                   Qnil, Qnil);
 #endif    
     }
@@ -7957,7 +7977,8 @@ imagemagick_load (struct frame *f,
       /* contents = slurp_file (SDATA (file), &size); */
       /* if (contents == NULL) */
       /*   { */
-      /*     image_error ("Error loading IMAGEMAGICK image `%s'", img->spec, Qnil); */
+      /*     image_error ("Error loading IMAGEMAGICK image `%s'",
+             img->spec, Qnil); */
       /*     UNGCPRO; */
       /*     return 0; */
       /*   } */
@@ -7972,21 +7993,24 @@ imagemagick_load (struct frame *f,
       Lisp_Object data;
 
       data = image_spec_value (img->spec, QCdata, NULL);
-      success_p = imagemagick_load_image (f, img, SDATA (data), SBYTES (data), NULL);
+      success_p = imagemagick_load_image (f, img, SDATA (data),
+                                          SBYTES (data), NULL);
     }
 
   return success_p;
 }
 
-/* Structure describing the image type `imagemagick'.  Its the same type of
-   structure defined for all image formats, handled by Emacs image
-   functions.  See struct image_type in dispextern.h.  */
+/* Structure describing the image type `imagemagick'.  Its the same
+   type of structure defined for all image formats, handled by Emacs
+   image functions.  See struct image_type in dispextern.h.  */
 
 static struct image_type imagemagick_type =
   {
-    /* An identifier showing that this is an image structure for the IMAGEMAGICK format.  */
+    /* An identifier showing that this is an image structure for the
+       IMAGEMAGICK format.  */
     &Qimagemagick,
-    /* Handle to a function that can be used to identify a IMAGEMAGICK file.  */
+    /* Handle to a function that can be used to identify a IMAGEMAGICK
+       file.  */
     imagemagick_image_p,
     /* Handle to function used to load a IMAGEMAGICK file.  */
     imagemagick_load,
@@ -8002,8 +8026,8 @@ static struct image_type imagemagick_type =
 
 DEFUN ("imagemagick-types", Fimagemagick_types, Simagemagick_types, 0, 0, 0, 
        doc: /* Return image file types supported by ImageMagick.
-               Since ImageMagick recognizes a lot of file-types that clash with Emacs,
-               such as .c, we want to be able to alter the list at the lisp level.  */)
+Since ImageMagick recognizes a lot of file-types that clash with Emacs,
+such as .c, we want to be able to alter the list at the lisp level.  */)
   ()
 {
   Lisp_Object typelist = Qnil;
@@ -8824,7 +8848,8 @@ of `image-library-alist', which see).  */)
   if (EQ (type, Qimagemagick)){
     /* MagickWandGenesis() initalizes the imagemagick library.  */
     MagickWandGenesis(); 
-    return CHECK_LIB_AVAILABLE (&imagemagick_type, init_imagemagick_functions, libraries);
+    return CHECK_LIB_AVAILABLE (&imagemagick_type, init_imagemagick_functions,
+                                libraries);
   }
 #endif
 

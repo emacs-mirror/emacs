@@ -694,8 +694,8 @@ shall be displayed."
 	(cons images tmo))))))
 
 
-(defconst imagemagick-types-inhibit
-  '(C HTML HTM TXT)
+(defcustom imagemagick-types-inhibit
+  '(C HTML HTM TXT PDF)
   "Types the imagemagick loader should not try to handle.")
 
 ;;;###autoload
