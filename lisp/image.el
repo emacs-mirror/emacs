@@ -702,9 +702,9 @@ shall be displayed."
 (defun imagemagick-register-types ()
   "Register file types that imagemagick is able to handle."
   (let ((im-types (imagemagick-types)))
-    (dolist im-inhibit
+    (dolist (im-inhibit imagemagick-types-inhibit)
       (setq im-types (remove im-inhibit im-types)))
-    (dolist im-type im-types
+    (dolist (im-type im-types)
       (let ((extension (downcase (symbol-name im-type))))
 	(push
 	 (cons  (concat "\\." extension "\\'") 'image-mode)
