@@ -1,3 +1,7 @@
+2010-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* nxml/nxml-mode.el (nxml-indent-line): Standardize indent behavior.
+
 2010-06-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* term/common-win.el (x-colors): Add all the color names defined
