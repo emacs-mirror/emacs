@@ -1,5 +1,7 @@
 2010-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* image-mode.el (image-mode-map): Remap left-char and right-char.
+
 	* nxml/nxml-mode.el (nxml-indent-line): Standardize indent behavior.
 
 2010-06-12  Chong Yidong  <cyd@stupidchicken.com>
