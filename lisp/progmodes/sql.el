@@ -3119,7 +3119,7 @@ The default comes from `process-coding-system-alist' and
 	(setq params (append (list sql-database) params)))
     (if (not (string= "" sql-server))
 	(setq params (append (list (concat "--host=" sql-server)) params)))
-    (if (not (and sql-port (numberp sql-port)))
+    (if (and sql-port (numberp sql-port))
 	(setq params (append (list (concat "--port=" (number-to-string sql-port))) params)))
     (if (not (string= "" sql-password))
 	(setq params (append (list (concat "--password=" sql-password)) params)))

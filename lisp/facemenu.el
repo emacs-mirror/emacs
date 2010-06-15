@@ -479,6 +479,73 @@ These special properties include `invisible', `intangible' and `read-only'."
 	nil
       col)))
 
+(defun color-rgb-to-hsv (r g b)
+  "For R, G, B color components return a list of hue, saturation, value.
+R, G, B input values should be in [0..65535] range.
+Output values for hue are integers in [0..360] range.
+Output values for saturation and value are integers in [0..100] range."
+  (let* ((r (/ r 65535.0))
+	 (g (/ g 65535.0))
+	 (b (/ b 65535.0))
+	 (max (max r g b))
+	 (min (min r g b))
+	 (h (cond ((= max min) 0)
+		  ((= max r) (mod (+ (* 60 (/ (- g b) (- max min))) 360) 360))
+		  ((= max g) (+ (* 60 (/ (- b r) (- max min))) 120))
+		  ((= max b) (+ (* 60 (/ (- r g) (- max min))) 240))))
+	 (s (cond ((= max 0) 0)
+		  (t (- 1 (/ min max)))))
+	 (v max))
+    (list (round h) (round s 0.01) (round v 0.01))))
+
+(defcustom list-colors-sort nil
+  "Color sort order for `list-colors-display'.
+`nil' means default implementation-dependent order (defined in `x-colors').
+`name' sorts by color name.
+`rgb' sorts by red, green, blue components.
+`(rgb-dist . COLOR)' sorts by the RGB distance to the specified color.
+`hsv' sorts by hue, saturation, value.
+`(hsv-dist . COLOR)' sorts by the HSV distance to the specified color
+and excludes grayscale colors."
+  :type '(choice (const :tag "Unsorted" nil)
+		 (const :tag "Color Name" name)
+		 (const :tag "Red-Green-Blue" rgb)
+		 (cons :tag "Distance on RGB cube"
+		       (const :tag "Distance from Color" rgb-dist)
+		       (color :tag "Source Color Name"))
+		 (const :tag "Hue-Saturation-Value" hsv)
+		 (cons :tag "Distance on HSV cylinder"
+		       (const :tag "Distance from Color" hsv-dist)
+		       (color :tag "Source Color Name")))
+  :group 'facemenu
+  :version "24.1")
+
+(defun list-colors-sort-key (color)
+  "Return a list of keys for sorting colors depending on `list-colors-sort'.
+COLOR is the name of the color.  When return value is nil,
+filter out the color from the output."
+  (cond
+   ((null list-colors-sort) color)
+   ((eq list-colors-sort 'name)
+    (downcase color))
+   ((eq list-colors-sort 'rgb)
+    (color-values color))
+   ((eq (car-safe list-colors-sort) 'rgb-dist)
+    (color-distance color (cdr list-colors-sort)))
+   ((eq list-colors-sort 'hsv)
+    (apply 'color-rgb-to-hsv (color-values color)))
+   ((eq (car-safe list-colors-sort) 'hsv-dist)
+    (let* ((c-rgb (color-values color))
+	   (c-hsv (apply 'color-rgb-to-hsv c-rgb))
+	   (o-hsv (apply 'color-rgb-to-hsv
+			 (color-values (cdr list-colors-sort)))))
+      (unless (and (eq (nth 0 c-rgb) (nth 1 c-rgb)) ; exclude grayscale
+		   (eq (nth 1 c-rgb) (nth 2 c-rgb)))
+	;; 3D Euclidean distance (sqrt is not needed for sorting)
+	(+ (expt (- 180 (abs (- 180 (abs (- (nth 0 c-hsv) ; wrap hue
+					    (nth 0 o-hsv)))))) 2)
+	   (expt (- (nth 1 c-hsv) (nth 1 o-hsv)) 2)
+	   (expt (- (nth 2 c-hsv) (nth 2 o-hsv)) 2)))))))
 
 (defun list-colors-display (&optional list buffer-name callback)
   "Display names of defined colors, and show what they look like.
@@ -492,10 +559,38 @@ If the optional argument BUFFER-NAME is nil, it defaults to
 If the optional argument CALLBACK is non-nil, it should be a
 function to call each time the user types RET or clicks on a
 color.  The function should accept a single argument, the color
-name."
+name.
+
+You can change the color sort order by customizing `list-colors-sort'."
   (interactive)
   (when (and (null list) (> (display-color-cells) 0))
     (setq list (list-colors-duplicates (defined-colors)))
+    (when list-colors-sort
+      ;; Schwartzian transform with `(color key1 key2 key3 ...)'.
+      (setq list (mapcar
+		  'car
+		  (sort (delq nil (mapcar
+				   (lambda (c)
+				     (let ((key (list-colors-sort-key
+						 (car c))))
+				       (when key
+					 (cons c (if (consp key) key
+						   (list key))))))
+				   list))
+			(lambda (a b)
+			  (let* ((a-keys (cdr a))
+				 (b-keys (cdr b))
+				 (a-key (car a-keys))
+				 (b-key (car b-keys)))
+			    ;; Skip common keys at the beginning of key lists.
+			    (while (and a-key b-key (equal a-key b-key))
+			      (setq a-keys (cdr a-keys) a-key (car a-keys)
+				    b-keys (cdr b-keys) b-key (car b-keys)))
+			    (cond
+			     ((and (numberp a-key) (numberp b-key))
+			      (< a-key b-key))
+			     ((and (stringp a-key) (stringp b-key))
+			      (string< a-key b-key)))))))))
     (when (memq (display-visual-class) '(gray-scale pseudo-color direct-color))
       ;; Don't show more than what the display can handle.
       (let ((lc (nthcdr (1- (display-color-cells)) list)))
@@ -550,9 +645,16 @@ name."
 	 (point)
 	 'face (list :foreground (car color)))
 	(indent-to (max (- (window-width) 8) 44))
-	(insert (apply 'format "#%02x%02x%02x"
-		       (mapcar (lambda (c) (lsh c -8))
-			       color-values)))
+	(insert (propertize
+		 (apply 'format "#%02x%02x%02x"
+			(mapcar (lambda (c) (lsh c -8))
+				color-values))
+		 'mouse-face 'highlight
+		 'help-echo
+		 (let ((hsv (apply 'color-rgb-to-hsv
+				   (color-values (car color)))))
+		   (format "H:%d S:%d V:%d"
+			   (nth 0 hsv) (nth 1 hsv) (nth 2 hsv)))))
 	(when callback
 	  (make-text-button
 	   opoint (point)
