@@ -1,3 +1,11 @@
+2010-06-15  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/appt.el (appt-time-msg-list): Doc fix.
+	(appt-check): Let-bind appt-warn-time.
+	(appt-add): Make the 3rd argument optional.
+	Simplify argument names.  Doc fix.  Check for integer WARNTIME.
+	Only add WARNTIME to the output list if non-nil.
+
 2010-06-15  Ivan Kanis  <apple@kanis.eu>
 
 	* calendar/appt.el (appt-check): Let the 3rd element of
