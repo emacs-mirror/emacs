@@ -1,3 +1,7 @@
+2010-06-15  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>  (tiny change)
+
+	* progmodes/sql.el (sql-connect-mysql): Fix typo.
+
 2010-06-14  Juri Linkov  <juri@jurta.org>
 
 	Add sort option `list-colors-sort'.  (Bug#6332)
