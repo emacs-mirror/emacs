@@ -1,3 +1,7 @@
+2010-06-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* facemenu.el (list-colors-sort): Doc fix.
+
 2010-06-15  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>  (tiny change)
 
 	* progmodes/sql.el (sql-connect-mysql): Fix typo.
