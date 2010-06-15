@@ -1,3 +1,7 @@
+2010-06-15  Glenn Morris  <rgm@gnu.org>
+
+	* editfns.c (Fbyte_to_string): Pacify compiler.
+
 2010-06-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* dbusbind.c (xd_append_arg): Don't "make-unibyte" the string.
