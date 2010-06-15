@@ -503,9 +503,9 @@ Output values for saturation and value are integers in [0..100] range."
 `nil' means default implementation-dependent order (defined in `x-colors').
 `name' sorts by color name.
 `rgb' sorts by red, green, blue components.
-`rgb-dist' sorts by the RGB distance to the specified color.
+`(rgb-dist . COLOR)' sorts by the RGB distance to the specified color.
 `hsv' sorts by hue, saturation, value.
-`hsv-dist' sorts by the HVS distance to the specified color
+`(hsv-dist . COLOR)' sorts by the HSV distance to the specified color
 and excludes grayscale colors."
   :type '(choice (const :tag "Unsorted" nil)
 		 (const :tag "Color Name" name)
