@@ -1742,7 +1742,7 @@ exec_byte_code (bytestr, vector, maxdepth, args_template, nargs, args)
 	    if (! VECTORP (vec))
 	      wrong_type_argument (Qvectorp, vec);
 	    else if (index < 0 || index >= XVECTOR (vec)->size)
-	      args_out_of_range (vec, index);
+	      args_out_of_range (vec, make_number (index));
 
 	    if (op == Bvec_ref)
 	      PUSH (XVECTOR (vec)->contents[index]);

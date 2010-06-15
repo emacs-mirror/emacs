@@ -479,10 +479,7 @@ This list lives partly on the stack.")
 				(cons 'progn body)
 				byte-compile-initial-macro-environment))))))
     (eval-and-compile . (lambda (&rest body)
-			  (byte-compile-eval-before-compile
-			   (macroexpand-all
-			    (cons 'progn body)
-			    byte-compile-initial-macro-environment))
+			  (byte-compile-eval-before-compile (cons 'progn body))
 			  (cons 'progn body))))
   "The default macro-environment passed to macroexpand by the compiler.
 Placing a macro here will cause a macro to have different semantics when

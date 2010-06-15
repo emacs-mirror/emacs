@@ -1,3 +1,9 @@
+2010-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-initial-macro-environment):
+	Don't macroexpand before evaluating in eval-and-compile, in case
+	`body's macro expansion uses macros and functions defined in itself.
+
 2010-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el (byte-compile-check-variable):

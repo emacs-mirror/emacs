@@ -1,3 +1,8 @@
+2010-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bytecode.c (exec_byte_code):
+	* eval.c (Ffunctionp): Fix up int/Lisp_Object confusions.
+
 2010-06-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in ($(BLD)/bidi.$(O)): Depend on biditype.h and
