@@ -353,6 +353,8 @@ displayed in a window:
         ;; calculate the number of minutes until the appointment.
         (when (and appt-issue-message appt-time-msg-list)
           (setq appt-comp-time (caar (car appt-time-msg-list))
+                appt-warn-time (or (nth 3 (car appt-time-msg-list))
+                                   appt-message-warning-time)
                 min-to-app (- appt-comp-time cur-comp-time))
           (while (and appt-time-msg-list
                       (< appt-comp-time cur-comp-time))
@@ -360,21 +362,21 @@ displayed in a window:
             (if appt-time-msg-list
                 (setq appt-comp-time (caar (car appt-time-msg-list)))))
           ;; If we have an appointment between midnight and
-          ;; `appt-message-warning-time' minutes after midnight, we
+          ;; `appt-warn-time' minutes after midnight, we
           ;; must begin to issue a message before midnight.  Midnight
           ;; is considered 0 minutes and 11:59pm is 1439
           ;; minutes.  Therefore we must recalculate the minutes to
           ;; appointment variable.  It is equal to the number of
           ;; minutes before midnight plus the number of minutes after
           ;; midnight our appointment is.
-          (if (and (< appt-comp-time appt-message-warning-time)
-                   (> (+ cur-comp-time appt-message-warning-time)
+          (if (and (< appt-comp-time appt-warn-time)
+                   (> (+ cur-comp-time appt-warn-time)
                       appt-max-time))
               (setq min-to-app (+ (- (1+ appt-max-time) cur-comp-time)
                                   appt-comp-time)))
           ;; Issue warning if the appointment time is within
           ;; appt-message-warning time.
-          (when (and (<= min-to-app appt-message-warning-time)
+          (when (and (<= min-to-app appt-warn-time)
                      (>= min-to-app 0))
             (setq appt-now-displayed t
                   appt-display-count (1+ prev-appt-display-count))
@@ -470,14 +472,20 @@ Usually just deletes the appointment buffer."
   "[0-9]?[0-9]\\(h\\([0-9][0-9]\\)?\\|[:.][0-9][0-9]\\)\\(am\\|pm\\)?")
 
 ;;;###autoload
-(defun appt-add (new-appt-time new-appt-msg)
+(defun appt-add (new-appt-time new-appt-msg new-appt-warning-time)
   "Add an appointment for today at NEW-APPT-TIME with message NEW-APPT-MSG.
 The time should be in either 24 hour format or am/pm format."
-  (interactive "sTime (hh:mm[am/pm]): \nsMessage: ")
+  (interactive "sTime (hh:mm[am/pm]): \nsMessage: 
+sDelay in minutes (press return for default): ")
   (unless (string-match appt-time-regexp new-appt-time)
     (error "Unacceptable time-string"))
+  (setq new-appt-warning-time
+        (if (string= new-appt-warning-time "")
+            appt-message-warning-time
+          (string-to-number new-appt-warning-time)))
   (let ((time-msg (list (list (appt-convert-time new-appt-time))
-                        (concat new-appt-time " " new-appt-msg) t)))
+                        (concat new-appt-time " " new-appt-msg) t
+                        new-appt-warning-time)))
     (unless (member time-msg appt-time-msg-list)
       (setq appt-time-msg-list
             (appt-sort-list (nconc appt-time-msg-list (list time-msg)))))))

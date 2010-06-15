@@ -1,3 +1,9 @@
+2010-06-15  Ivan Kanis  <apple@kanis.eu>
+
+	* calendar/appt.el (appt-check): Let the 3rd element of
+	appt-time-msg-list specify the warning time.
+	(appt-add): Add new argument with the warning time.  (Bug#5176)
+
 2010-06-12  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>  (tiny change)
 
 	* vc-svn.el (vc-svn-after-dir-status): Fix regexp for Subversions
