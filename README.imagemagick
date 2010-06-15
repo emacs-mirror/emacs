@@ -79,7 +79,7 @@ imagemagick-types-inhibit if you do not want this.
 Images loaded with imagemagick will support a couple of new display
 specifications:
 
-- :scale takes a geometry string as defined by ImageMagick:
+- :geometry takes a geometry string as defined by ImageMagick:
 
 scale%            
 scale-x%xscale-y% 
@@ -91,9 +91,13 @@ widthxheight!
 widthxheight>     
 widthxheight<     
 area@             
-{size}{offset}                                                                                                                                                               {size}{+-}x{+-}y
+{size}{offset}
+{size}{+-}x{+-}y
 
 See the ImageMagick manual for more information.
+
+Furthermore, if the :width and :height keywords are specified, these
+values are used for scaling the image.
 
 - :rotation specifies a rotation angle in degrees.
 
@@ -102,6 +106,13 @@ as TIFF or DJVM, to view.
 
 The image-metadata function can be used to retrieve the total number
 of images in an image bundle. This is simmilar to how GIF files work.
+
+- :crop is used to specify a croping area, with the {size}{offset}
+syntax.  This is similar to the slice image specification, but has a
+different purpose. :crop removes the croped areas from memory, so its
+memory efficient if you only need to view a certain part of the
+image. :slice can be used to pick diferent parts of the same image, so
+its more disk and display efficient.
 
 
 * Changelog entry
