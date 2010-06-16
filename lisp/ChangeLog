@@ -1,5 +1,8 @@
 2010-06-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/macroexp.el (macroexpand-all-1): Don't handle `lambda'
+	specially, since it's a macro.  Fix up wrong hint passed to maybe-cons.
+
 	* font-lock.el (font-lock-major-mode): Rename from
 	font-lock-mode-major-mode to distinguish it from
 	global-font-lock-mode's own font-lock-mode-major-mode (bug#6135).
