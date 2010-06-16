@@ -1,3 +1,7 @@
+2010-06-12  Glenn Morris  <rgm@gnu.org>
+
+	* tutorials/TUTORIAL.bg, tutorials/TUTORIAL.es: Fix typos.
+
 2010-06-09  Michael Albinus  <michael.albinus@gmx.de>
 
 	* NEWS: Add notifications.el.

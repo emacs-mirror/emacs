@@ -438,7 +438,7 @@ It is a list of elements of the form either:
 ;;;###autoload
 (defmacro destructuring-bind (args expr &rest body)
   (let* ((bind-lets nil) (bind-forms nil) (bind-inits nil)
-	 (bind-defs nil) (bind-block 'cl-none))
+	 (bind-defs nil) (bind-block 'cl-none) (bind-enquote nil))
     (cl-do-arglist (or args '(&aux)) expr)
     (append '(progn) bind-inits
 	    (list (nconc (list 'let* (nreverse bind-lets))

@@ -600,9 +600,11 @@ You can change the color sort order by customizing `list-colors-sort'."
     (with-current-buffer buf
       (erase-buffer)
       (setq truncate-lines t)
+      ;; Display buffer before generating content to allow
+      ;; `list-colors-print' to get the right window-width.
+      (pop-to-buffer buf)
       (list-colors-print list callback)
-      (set-buffer-modified-p nil))
-    (pop-to-buffer buf))
+      (set-buffer-modified-p nil)))
   (if callback
       (message "Click on a color to select it.")))
 

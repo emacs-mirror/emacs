@@ -1,5 +1,11 @@
 2010-06-10  Glenn Morris  <rgm@gnu.org>
 
+	* basic.texi (Inserting Text): Minor clarification.  (Bug#6374)
+
+	* basic.texi (Inserting Text): Fix typo.
+
+2010-06-10  Glenn Morris  <rgm@gnu.org>
+
 	* ack.texi (Acknowledgments):
 	* emacs.texi (Acknowledgments): Update for notifications.el.
 

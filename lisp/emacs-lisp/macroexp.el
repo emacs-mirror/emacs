@@ -134,7 +134,7 @@ Assumes the caller has bound `macroexpand-all-environment'."
 		(maybe-cons fun
 			    (maybe-cons (macroexpand-all-forms (cadr form) 2)
 					nil
-					(cadr form))
+					(cdr form))
 			    form)
 	      form))
 	   ((memq fun '(let let*))
@@ -145,11 +145,6 @@ Assumes the caller has bound `macroexpand-all-environment'."
 			form))
 	   ((eq fun 'quote)
 	    form)
-	   ((and (consp fun) (eq (car fun) 'lambda))
-	    ;; embedded lambda
-	    (maybe-cons (macroexpand-all-forms fun 2)
-			(macroexpand-all-forms (cdr form))
-			form))
 	   ;; The following few cases are for normal function calls that
 	   ;; are known to funcall one of their arguments.  The byte
 	   ;; compiler has traditionally handled these functions specially
