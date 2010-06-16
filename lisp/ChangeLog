@@ -1,3 +1,40 @@
+2010-06-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock-major-mode): Rename from
+	font-lock-mode-major-mode to distinguish it from
+	global-font-lock-mode's own font-lock-mode-major-mode (bug#6135).
+	(font-lock-set-defaults):
+	* font-core.el (font-lock-default-function): Adjust users.
+	(font-lock-mode): Don't set it at all.
+
+2010-06-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-annotate.el (vc-annotate): Use vc-read-revision.
+
+2010-06-16  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/appt.el (appt-time-msg-list): Doc fix.
+	(appt-check): Let-bind appt-warn-time.
+	(appt-add): Make the 3rd argument optional.
+	Simplify argument names.  Doc fix.  Check for integer WARNTIME.
+	Only add WARNTIME to the output list if non-nil.
+
+2010-06-16  Ivan Kanis  <apple@kanis.eu>
+
+	* calendar/appt.el (appt-check): Let the 3rd element of
+	appt-time-msg-list specify the warning time.
+	(appt-add): Add new argument with the warning time.  (Bug#5176)
+
+2010-06-16  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>  (tiny change)
+
+	* vc-svn.el (vc-svn-after-dir-status): Fix regexp for Subversions
+	older than version 1.6.  (Bug#6361)
+
+2010-06-16  Helmut Eller  <eller.helmut@gmail.com>
+
+	* emacs-lisp/cl-macs.el (destructuring-bind): Bind `bind-enquote',
+	used by cl-do-arglist.  (Bug#6408)
+
 2010-06-16  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* ispell.el (ispell-dictionary-base-alist): Fix

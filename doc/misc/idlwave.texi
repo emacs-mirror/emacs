@@ -3717,7 +3717,7 @@ C-i}.  Here are the different routines (also available in the Menu
 
 @table @asis
 @item @kbd{M-x idlwave-list-buffer-load-path-shadows}
-This commands checks the names of all routines defined in the current
+This command checks the names of all routines defined in the current
 buffer for shadowing conflicts with other routines accessible to
 IDLWAVE.  The command also has a key binding: @kbd{C-c C-b}
 @item @kbd{M-x idlwave-list-shell-load-path-shadows}.

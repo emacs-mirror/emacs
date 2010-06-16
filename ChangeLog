@@ -1,6 +1,15 @@
+2010-06-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* INSTALL: Update font information (Bug#6389).
+
+2010-06-16  Glenn Morris  <rgm@gnu.org>
+
+	* INSTALL: General update.
+
 2010-06-12  Glenn Morris  <rgm@gnu.org>
 
-	* Makefile.in (install-arch-indep): Delete any old info .gz files first.
+	* Makefile.in (install-arch-indep): Delete any old info .gz files
+	first.
 
 2010-06-11  Glenn Morris  <rgm@gnu.org>
 

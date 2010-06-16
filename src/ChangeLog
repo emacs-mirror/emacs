@@ -1,3 +1,7 @@
+2010-06-16  Glenn Morris  <rgm@gnu.org>
+
+	* editfns.c (Fbyte_to_string): Pacify compiler.
+
 2010-06-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lread.c (read1): Phase out old-style backquotes a bit more.
