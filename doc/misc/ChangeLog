@@ -6356,10 +6356,6 @@
 	(INFO_TARGETS): Add ../info/cc-mode.
 	(DVI_TARGETS): Add cc-mode.dvi.
 
-1996-05-25  Karl Heuer  <kwzh@gnu.ai.mit.edu>
-
-	* Version 19.31 released.
-
 1995-11-24  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
 	* Version 19.30 released.
