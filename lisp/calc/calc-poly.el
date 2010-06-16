@@ -663,7 +663,7 @@
 		  (cons 'vec (cons (nth 1 facs) (cons (list 'vec fac pow)
 						      (cdr (cdr facs)))))
 		(cons 'vec (cons (list 'vec fac pow) (cdr facs))))))))
-    (math-mul (math-pow fac pow) facs)))
+    (math-mul (math-pow fac pow) (math-factor-protect facs))))
 
 (defun math-factor-poly-coefs (p &optional square-free)    ; uses "x"
   (let (t1 t2 temp)
