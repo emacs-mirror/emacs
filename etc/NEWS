@@ -257,7 +257,11 @@ Notifications API.  It requires D-Bus for communication.
 
 * Incompatible Lisp Changes in Emacs 24.1
 
+** A backquote not followed by a space is now always treated as new-style.
+
 ** Test for special mode-class was moved from view-file to view-buffer.
+FIXME: This only says what was changed, but not what are the
+programmer-visible consequences.
 
 ** Passing a nil argument to a minor mode function now turns the mode
    ON unconditionally.

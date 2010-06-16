@@ -2683,7 +2683,17 @@ read1 (readcharfun, pch, first_in_list)
       }
 
     case '`':
-      if (first_in_list)
+      /* Transition from old-style to new-style:
+	 If we see "(`" it used to mean old-style, which usually works
+	 fine because ` should almost never appear in such a position
+	 for new-style.  But occasionally we need "(`" to mean new
+	 style, so we try to distinguish the two by the fact that we
+	 can either write "( `foo" or "(` foo", where the first
+	 intends to use new-style whereas the second intends to use
+	 old-style.  For Emacs-25, we should completely remove this
+	 first_in_list exception (old-style can still be obtained via
+	 "(\`" anyway).  */
+      if (first_in_list && (c = READCHAR, UNREAD (c), c == ' '))
 	{
 	  Vold_style_backquotes = Qt;
 	  goto default_label;

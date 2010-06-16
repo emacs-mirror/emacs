@@ -1,3 +1,7 @@
+2010-06-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c (read1): Phase out old-style backquotes a bit more.
+
 2010-06-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in ($(BLD)/bidi.$(O)): Depend on biditype.h and
@@ -7,8 +11,7 @@
 
 	* bidi.c (bidi_initialize): Remove explicit initialization of
 	bidi_type_table; include biditype.h instead.  Don't support
-	entries whose second codepoint is zero.  Initialize
-	bidi_mirror_table.
+	entries whose second codepoint is zero.  Initialize bidi_mirror_table.
 	(bidi_mirror_char): Use bidi_mirror_table.
 
 	* biditype.h: New file.
