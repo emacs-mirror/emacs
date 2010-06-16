@@ -1,3 +1,8 @@
+2010-06-16  Juri Linkov  <juri@jurta.org>
+
+	* facemenu.el (list-colors-display): Call `pop-to-buffer' before
+	`list-colors-print'.  (Bug#6332)
+
 2010-06-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/macroexp.el (macroexpand-all-1): Don't handle `lambda'
