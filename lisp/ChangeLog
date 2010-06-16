@@ -1,3 +1,12 @@
+2010-06-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock-major-mode): Rename from
+	font-lock-mode-major-mode to distinguish it from
+	global-font-lock-mode's own font-lock-mode-major-mode (bug#6135).
+	(font-lock-set-defaults):
+	* font-core.el (font-lock-default-function): Adjust users.
+	(font-lock-mode): Don't set it at all.
+
 2010-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-annotate.el (vc-annotate): Use vc-read-revision.
