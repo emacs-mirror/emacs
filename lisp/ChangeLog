@@ -1,5 +1,8 @@
 2010-06-17  Juanma Barranquero  <lekktu@gmail.com>
 
+	* emacs-lisp/package.el (package-menu-mode-map):
+	Move initialization into declaration.
+
 	* menu-bar.el (menu-bar-options-menu): Fix typo in menu entry.
 
 2010-06-17  Chong Yidong  <cyd@stupidchicken.com>

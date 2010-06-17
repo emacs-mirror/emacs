@@ -1040,26 +1040,24 @@ The variable `package-load-list' controls which packages to load."
 
 ;;;; Package menu mode.
 
-(defvar package-menu-mode-map nil
+(defvar package-menu-mode-map
+  (let ((map (make-keymap)))
+    (suppress-keymap map)
+    (define-key map "q" 'quit-window)
+    (define-key map "n" 'next-line)
+    (define-key map "p" 'previous-line)
+    (define-key map "u" 'package-menu-mark-unmark)
+    (define-key map "\177" 'package-menu-backup-unmark)
+    (define-key map "d" 'package-menu-mark-delete)
+    (define-key map "i" 'package-menu-mark-install)
+    (define-key map "g" 'package-menu-revert)
+    (define-key map "r" 'package-menu-refresh)
+    (define-key map "~" 'package-menu-mark-obsolete-for-deletion)
+    (define-key map "x" 'package-menu-execute)
+    (define-key map "h" 'package-menu-quick-help)
+    (define-key map "?" 'package-menu-view-commentary)
+    map)
   "Local keymap for `package-menu-mode' buffers.")
-
-(unless package-menu-mode-map
-  (setq package-menu-mode-map (make-keymap))
-  (suppress-keymap package-menu-mode-map)
-  (define-key package-menu-mode-map "q" 'quit-window)
-  (define-key package-menu-mode-map "n" 'next-line)
-  (define-key package-menu-mode-map "p" 'previous-line)
-  (define-key package-menu-mode-map "u" 'package-menu-mark-unmark)
-  (define-key package-menu-mode-map "\177" 'package-menu-backup-unmark)
-  (define-key package-menu-mode-map "d" 'package-menu-mark-delete)
-  (define-key package-menu-mode-map "i" 'package-menu-mark-install)
-  (define-key package-menu-mode-map "g" 'package-menu-revert)
-  (define-key package-menu-mode-map "r" 'package-menu-refresh)
-  (define-key package-menu-mode-map "~"
-    'package-menu-mark-obsolete-for-deletion)
-  (define-key package-menu-mode-map "x" 'package-menu-execute)
-  (define-key package-menu-mode-map "h" 'package-menu-quick-help)
-  (define-key package-menu-mode-map "?" 'package-menu-view-commentary))
 
 (defvar package-menu-sort-button-map
   (let ((map (make-sparse-keymap)))
