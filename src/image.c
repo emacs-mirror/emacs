@@ -7739,6 +7739,21 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
   desired_width = (INTEGERP (value)  ? XFASTINT (value) : -1);
   value = image_spec_value (img->spec, QCheight, NULL);
   desired_height = (INTEGERP (value) ? XFASTINT (value) : -1);
+  /* TODO if h or w is left out, it should be calculated to preserve aspect ratio */
+  /* get original w and h, these will be recalculated before final blit*/
+  height = MagickGetImageHeight (image_wand);
+  width = MagickGetImageWidth (image_wand);
+
+  if(desired_width != -1 && desired_height == -1)
+    {
+      /* w known, calculate h*/
+      desired_height = ( (double)desired_width / width  ) * height;
+    }
+  if(desired_width == -1 && desired_height != -1)
+    {
+      /* h known, calculate w*/
+      desired_width = ( (double)desired_height / height  ) * width;
+    }  
   if(desired_width != -1 && desired_height != -1)
     {
       printf("MagickScaleImage %d %d\n", desired_width, desired_height);
@@ -7754,6 +7769,33 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
 
   crop     = image_spec_value (img->spec, QCcrop, NULL);
   geometry = image_spec_value (img->spec, QCgeometry, NULL);
+
+  if(CONSP (crop))
+    {
+      /* TODO test if MagickCropImage is more efficient than MagickTransformImage
+
+         idea: crop can be a list or a string. if its a string, do
+         "magicktransformimage" as before. if its a list, try MagickCropImage.
+         args should be somewhat compatible with "slice".
+         `(slice X Y WIDTH HEIGHT)'
+
+         after some testing, it seems cropping is indeed faster this
+         way, but its early days still. this crop function seems to do
+         less copying, but it still reads the entire image into memory
+         before croping, which is aparently difficult to avoid when using imagemagick.
+
+         also this interface is better because it is lisp based and not IM specific
+      */
+      
+      int w,h,x,y;
+      w=XFASTINT(XCAR(crop));
+      h=XFASTINT(XCAR(XCDR(crop)));
+      x=XFASTINT(XCAR(XCDR(XCDR(crop))));
+      y=XFASTINT(XCAR(XCDR(XCDR(XCDR(crop)))));
+      printf("MagickCropImage(image_wand, %d,%d, %d,%d)\n", w, h, x, y);
+      MagickCropImage(image_wand, w,h, x,y);
+    }
+  
   if (STRINGP (crop) && STRINGP (geometry))
     {
       printf("MagickTransformImage %s %s\n", SDATA(crop), SDATA(geometry));
@@ -7762,6 +7804,7 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
       /* TODO differ between image_wand and transform_wand. */
     }
 
+  
   /* Furthermore :rotation. we need background color and angle for
      rotation.  */
   /*
