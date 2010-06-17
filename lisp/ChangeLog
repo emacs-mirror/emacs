@@ -1,3 +1,7 @@
+2010-06-17  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacs-lisp/package.el (package-menu-mode-map): Add a menu.
+
 2010-06-17  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* ispell.el (ispell-aspell-find-dictionary): Fix regexp for
