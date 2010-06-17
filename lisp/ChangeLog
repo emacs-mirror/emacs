@@ -1,3 +1,17 @@
+2010-06-17  Juri Linkov  <juri@jurta.org>
+
+	* help-mode.el (help-mode): Set buffer-local variable
+	revert-buffer-function to help-mode-revert-buffer.
+	(help-mode-revert-buffer): New function.
+
+	* info.el (Info-revert-find-node): Check for major-mode Info-mode
+	before popping to "*info*" (like in other Info functions).
+	Keep buffer-name in old-buffer-name.  Keep Info-history-forward in
+	old-history-forward.  Pop to old-buffer-name or "*info*" to
+	recreate the killed buffer.  Set Info-history-forward from
+	old-history-forward.
+	(Info-breadcrumbs-depth): Add :group and :version.
+
 2010-06-17  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* emacs-lisp/package.el (package-menu-mode-map): Add a menu.
