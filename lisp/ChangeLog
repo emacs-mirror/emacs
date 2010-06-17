@@ -1,3 +1,8 @@
+2010-06-17  Agustín Martín  <agustin.martin@hispalinux.es>
+
+	* ispell.el (ispell-aspell-find-dictionary): Fix regexp for
+	languages like Portuguese with pt_{BR,PT} and no plain pt.
+
 2010-06-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/package.el (package-menu-mode-map):
