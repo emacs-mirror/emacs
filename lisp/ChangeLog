@@ -1,3 +1,61 @@
+2010-06-17  Juri Linkov  <juri@jurta.org>
+
+	* help-mode.el (help-mode): Set buffer-local variable
+	revert-buffer-function to help-mode-revert-buffer.
+	(help-mode-revert-buffer): New function.
+
+	* info.el (Info-revert-find-node): Check for major-mode Info-mode
+	before popping to "*info*" (like in other Info functions).
+	Keep buffer-name in old-buffer-name.  Keep Info-history-forward in
+	old-history-forward.  Pop to old-buffer-name or "*info*" to
+	recreate the killed buffer.  Set Info-history-forward from
+	old-history-forward.
+	(Info-breadcrumbs-depth): Add :group and :version.
+
+2010-06-17  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacs-lisp/package.el (package-menu-mode-map): Add a menu.
+
+2010-06-17  Agustín Martín  <agustin.martin@hispalinux.es>
+
+	* ispell.el (ispell-aspell-find-dictionary): Fix regexp for
+	languages like Portuguese with pt_{BR,PT} and no plain pt.
+
+2010-06-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/package.el (package-menu-mode-map):
+	Move initialization into declaration.
+
+	* menu-bar.el (menu-bar-options-menu): Fix typo in menu entry.
+
+2010-06-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package-archive-base): Point to
+	elpa.gnu.org.
+	(package-enable, package-load-list): New defcustoms.
+	(package-user-dir, package-directory-list): Turn into defcustoms.
+	Don't include package-user-dir in package-directory-list.
+	(package--builtins-base): Don't include Emacs as a "package".
+	(package-subdirectory-regexp): New var.
+	(package-load-all-descriptors, package-compute-transaction)
+	(package-download-transaction): Obey package-load-list.
+	(package-activate-1): Rename from package-do-activate.
+	(package-list-packages-internal): Check package-load-list.
+	(package-load-descriptor, package-generate-autoloads)
+	(package-unpack, package-unpack-single)
+	(package--read-archive-file, package-delete): Use
+	expand-file-name.
+
+	* emacs-lisp/package-x.el: New file.  Package uploading
+	functionality split out from package.el.
+
+	* startup.el (command-line): Load packages after reading init
+	file.
+
+2010-06-17  Tom Tromey  <tromey@redhat.com>
+
+	* emacs-lisp/package.el: New file.
+
 2010-06-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/macroexp.el (macroexpand-all-1): Put back special

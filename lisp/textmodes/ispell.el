@@ -982,8 +982,8 @@ Assumes that value contains no whitespace."
   ;; This returns nil if the data file does not exist.
   ;; Can someone please explain the return value format when the
   ;; file does exist -- rms?
-  (let* ((lang ;; Strip out region, variant, etc.
-	  (and (string-match "^[[:alpha:]]+" dict-name)
+  (let* ((lang ;; Strip out variant, etc.
+	  (and (string-match "^[[:alpha:]_]+" dict-name)
 	       (match-string 0 dict-name)))
 	 (data-file
 	  (concat (or ispell-aspell-data-dir
