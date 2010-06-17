@@ -1,3 +1,13 @@
+2010-06-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/macroexp.el (macroexpand-all-1): Put back special
+	handling for `lambda' (misunderstanding).
+
+2010-06-16  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-poly.el: (math-accum-factors):  Make sure that
+	constants aren't distributed after they are factored out.
+
 2010-06-16  Juri Linkov  <juri@jurta.org>
 
 	* facemenu.el (list-colors-display): Call `pop-to-buffer' before
