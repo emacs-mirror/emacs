@@ -145,6 +145,11 @@ Assumes the caller has bound `macroexpand-all-environment'."
 			form))
 	   ((eq fun 'quote)
 	    form)
+	   ((and (consp fun) (eq (car fun) 'lambda))
+	    ;; Embedded lambda in function position.
+	    (maybe-cons (macroexpand-all-forms fun 2)
+			(macroexpand-all-forms (cdr form))
+			form))
 	   ;; The following few cases are for normal function calls that
 	   ;; are known to funcall one of their arguments.  The byte
 	   ;; compiler has traditionally handled these functions specially
