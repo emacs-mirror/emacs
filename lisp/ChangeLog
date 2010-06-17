@@ -1,3 +1,31 @@
+2010-06-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package-archive-base): Point to
+	elpa.gnu.org.
+	(package-enable, package-load-list): New defcustoms.
+	(package-user-dir, package-directory-list): Turn into defcustoms.
+	Don't include package-user-dir in package-directory-list.
+	(package--builtins-base): Don't include Emacs as a "package".
+	(package-subdirectory-regexp): New var.
+	(package-load-all-descriptors, package-compute-transaction)
+	(package-download-transaction): Obey package-load-list.
+	(package-activate-1): Rename from package-do-activate.
+	(package-list-packages-internal): Check package-load-list.
+	(package-load-descriptor, package-generate-autoloads)
+	(package-unpack, package-unpack-single)
+	(package--read-archive-file, package-delete): Use
+	expand-file-name.
+
+	* emacs-lisp/package-x.el: New file.  Package uploading
+	functionality split out from package.el.
+
+	* startup.el (command-line): Load packages after reading init
+	file.
+
+2010-06-17  Tom Tromey  <tromey@redhat.com>
+
+	* emacs-lisp/package.el: New file.
+
 2010-06-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/macroexp.el (macroexpand-all-1): Put back special
