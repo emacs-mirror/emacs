@@ -3753,7 +3753,7 @@ unbind_to (count, value)
 
 
 
-DEFUN ("specialp", Fspecialp, Sspecialp, 1, 1, 0,
+DEFUN ("special-variable-p", Fspecial_variable_p, Sspecial_variable_p, 1, 1, 0,
        doc: /* Return non-nil if SYMBOL's global binding has been declared special.
 A special variable is one that will be bound dynamically, even in a
 context where binding is lexical by default.  */)
@@ -4138,7 +4138,7 @@ alist of active lexical bindings.  */);
   defsubr (&Sbacktrace);
   defsubr (&Sbacktrace_frame);
   defsubr (&Scurry);
-  defsubr (&Sspecialp);
+  defsubr (&Sspecial_variable_p);
   defsubr (&Sfunctionp);
 }
 

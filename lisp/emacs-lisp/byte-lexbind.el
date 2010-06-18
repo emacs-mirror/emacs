@@ -1,6 +1,6 @@
 ;;; byte-lexbind.el --- Lexical binding support for byte-compiler
 ;;
-;; Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2010 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: lisp, compiler, lexical binding
@@ -9,7 +9,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -123,7 +123,7 @@ The result is an `lforminfo' data structure."
 	    ;; Find the bound variables
 	    (dolist (clause (cadr form))
 	      (let ((var (if (consp clause) (car clause) clause)))
-		(unless (or (specialp var) (memq var special))
+		(unless (or (special-variable-p var) (memq var special))
 		  (byte-compile-lforminfo-add-var lforminfo var t))))
 	    ;; Analyze the body
 	    (unless (null (byte-compile-lforminfo-vars lforminfo))
@@ -137,7 +137,7 @@ The result is an `lforminfo' data structure."
 		(when (and (consp clause) lforminfo)
 		  (byte-compile-lforminfo-analyze lforminfo (cadr clause)
 						  special nil))
-		(unless (or (specialp var) (memq var special))
+		(unless (or (special-variable-p var) (memq var special))
 		  (byte-compile-lforminfo-add-var lforminfo var t))))
 	    ;; Analyze the body
 	    (unless (null (byte-compile-lforminfo-vars lforminfo))
