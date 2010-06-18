@@ -1,3 +1,8 @@
+2010-06-10  Glenn Morris  <rgm@gnu.org>
+
+	* idlwave.texi (Load-Path Shadows):
+	* org.texi (Handling links): Fix typos.
+
 2010-06-07  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus.texi (Interactive): Explain effect of gnus-expert-user better.

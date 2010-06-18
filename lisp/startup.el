@@ -1166,6 +1166,9 @@ the `--debug-init' option to view a complete error backtrace."
 		 (eq face-ignored-fonts old-face-ignored-fonts))
       (clear-face-cache)))
 
+  ;; Load ELPA packages.
+  (and user-init-file package-enable-at-startup (package-initialize))
+
   (setq after-init-time (current-time))
   (run-hooks 'after-init-hook)
 

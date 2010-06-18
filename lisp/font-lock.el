@@ -1783,15 +1783,18 @@ preserve `hi-lock-mode' highlighting patterns."
   (kill-local-variable 'font-lock-set-defaults)
   (font-lock-mode 1))
 
-(defvar font-lock-mode-major-mode)
+(defvar font-lock-major-mode nil
+  "Major mode for which the font-lock settings have been setup.")
+(make-variable-buffer-local 'font-lock-major-mode)
+
 (defun font-lock-set-defaults ()
   "Set fontification defaults appropriately for this mode.
 Sets various variables using `font-lock-defaults' (or, if nil, using
 `font-lock-defaults-alist') and `font-lock-maximum-decoration'."
   ;; Set fontification defaults if not previously set for correct major mode.
   (unless (and font-lock-set-defaults
-	       (eq font-lock-mode-major-mode major-mode))
-    (setq font-lock-mode-major-mode major-mode)
+	       (eq font-lock-major-mode major-mode))
+    (setq font-lock-major-mode major-mode)
     (set (make-local-variable 'font-lock-set-defaults) t)
     (make-local-variable 'font-lock-fontified)
     (make-local-variable 'font-lock-multiline)
