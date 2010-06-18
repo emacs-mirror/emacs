@@ -1,3 +1,8 @@
+2010-06-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/edebug.el (edebug-read-list):
+	Phase out old-style backquotes.
+
 2010-06-17  Juri Linkov  <juri@jurta.org>
 
 	* help-mode.el (help-mode): Set buffer-local variable
