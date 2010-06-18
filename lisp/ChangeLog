@@ -1,5 +1,100 @@
 2012-09-13  Stephen Berman  <stephen.berman@gmx.net>
 
+	* calendar/todos.el: Numerous spelling and comment fixes, doc
+	string fixes to conform with checkdoc, further rearrangement of
+	definitions, etc.
+	(todos-previous-line, todos-previous-answer)
+	(todos-insert-item-ask-date, todos-change-date)
+	(todos-date-nodayname-pattern, todos-dayname-date-pattern)
+	(todos-count-items-in-category, todos-count-all-items): Remove.
+	(todos-update-numbered-prefix, todos-item-start-overlays)
+	(todos-add-item-non-interactively): Comment out, also in uses.
+	(todos-done-separator): Change default value.
+	(todos-always-add-time-string): Rename from todos-add-time-string
+	and adjust uses.
+	(todos-read-category): Rename from todos-completing-read and
+	adjust callers; use todos-current-category.
+	(todos-make-categories-alist): Rename from function
+	todos-categories-alist.
+	(todos-categories-alist): New variable.
+	(todos-indent-to-here): New defcustom.
+	(todos-button): New face.
+	(todos-display-categories-alphabetically, todos-raise-category)
+	(todos-lower-category, todos-insert-item-for-diary-ask-date-time)
+	(todos-insert-item-here-ask-date-time)
+	(todos-insert-item-ask-date-time)
+	(todos-insert-item-ask-dayname-time): New commands.
+	(todos-edit-item-header): New command replacing todos-change-date.
+	(todos-category-number, todos-indent, todos-item-counts)
+	(todos-check-category-name, todos-read-date, todos-read-dayname)
+	(todos-read-time, todos-padded-string)
+	(todos-insert-category-name): New functions.
+	(todos-set-item-priority): New function replacing
+	todos-add-item-non-interactively.
+	(todos-mode-map): Remap newline to newline-and-indent.
+	(todos-edit-mode-map): Make sparse keymap; remap newline to
+	newline-and-indent.
+	(todos-categories-mode-map): New keymap.
+	(todos-mode, todos-edit-mode): Make indent-line-function local
+	variable and set to todos-indent.
+	(todos-categories-mode): New major mode.
+	(todos-display-categories): List categories initially in their
+	numerical order; add optional argument to switch to alphabetical
+	listing.
+	(todos-toggle-view-done-items): Simplify implementation.
+	(todos-toggle-display-date-time): Fix regexp search string.
+	(todos-backward-item, todos-forward-item): Use variable
+	todos-item-start.
+	(todos-add-category): Use todos-check-category-name and
+	todos-categories-alist.
+	(todos-rename-category): Use todos-current-category,
+	todos-check-category-name and todos-categories-alist.
+	(todos-delete-category): Use todos-check-category-name and
+	todos-categories-alist and take done items into account.
+	(todos-insert-item): Use separate arguments to handle insertion of
+	date/dayname and time strings, add new argument to mark item for
+	diary inclusion, use new todos-read-* functions,
+	todos-set-item-priority and todos-item-counts.
+	(todos-insert-item-here, todos-insert-item-for-diary)
+	(todos-insert-item-from-calendar): Adapt to new version of
+	todos-insert-item.
+	(todos-delete-item, todos-item-done): Use todos-item-counts.
+	(todos-edit-item): Indent newlines inserted by C-q C-j if nonspace
+	char follows.
+	(todos-lower-item): Ensure only not-done items can be lowered.
+	(todos-move-item): Use todos-current-category, todos-read-category
+	and todos-item-counts.
+	(todos-archive-done-items): Use todos-current-category and
+	todos-item-counts; fix regexp search string.
+	(todos-item-undo): Use todos-current-category,
+	todos-set-item-priority, todos-insert-with-overlays and
+	todos-item-counts; restore if user quits before inserting undone
+	item.
+	(todos-date-pattern): Rewrite without using
+	todos-date-nodayname-pattern and todos-dayname-date-pattern.
+	(todos-date-string-match): Do not make todos-date-pattern an
+	unnumbered group.
+	(todos-time-string-match): Make todos-date-pattern a shy group.
+	(todos-wrap-and-indent): Use todos-indent-to-here.
+	(todos-reset-prefix): Revert to using todos-show instead of
+	todos-category-select.
+	(todos-prefix-overlays): Fix numbering of done items and updating
+	of prefix.
+	(todos-category-select): Use todos-current-category; fix display
+	of separator string; don't move point to top of category.
+	(todos-jump-to-category-noninteractively): Use todos-category-number.
+	(todos-insert-with-overlays): Use todos-item-start unconditionally.
+	(todos-item-start): New variable.
+	(todos-item-start): Use it to define this function.
+	(todos-item-end): Adjust if item is last unfinished one before
+	displayed done items.
+	(todos-remove-item): Use todos-item-start and todos-item-end
+	instead of todos-forward-item and todos-backward-item.
+	(todos-longest-category-name-length): Add argument for list of
+	categories.
+
+2012-09-13  Stephen Berman  <stephen.berman@gmx.net>
+
 	* calendar/todos.el: Comment out calendar require, since diary-lib
 	requires calendar.  Rearrange file to group definitions according
 	to their use (types of commands, internal functions, etc.)
@@ -10,9 +105,8 @@
 	(todos-current-date, todos-item-end-overlays)
 	(todos-list-categories): Remove.
 	(todos-item-end): Remove (the variable, not the function).
-	(todos-item-overlays): Rename to todos-prefix-overlays and adjust
+	(todos-prefix-overlays): Rename from todos-item-overlays and adjust
 	callers.
-	(todos-prefix-overlays): Rename from todos-item-overlays.
 	(todos-done-separator, todos-done-string, todos-show-with-done)
 	(todos-files, todos-archive-file, todos-categories-buffer)
 	(todos-archived-categories-buffer, todos-wrap-lines)
@@ -35,7 +129,7 @@
 	(todos-insert-item-from-calendar, todos-edit-quit)
 	(todos-change-date, todos-item-done, todos-archive-done-items)
 	(todos-item-undo): New commands.
-	(todos-archive-mode): New mode.
+	(todos-archive-mode): New major mode.
 	(todos-archive-mode-map, todos-edit-mode-map): New keymaps.
 	(todos-category-beg): Change value.
 	(todos-number-prefix): Change default value.
