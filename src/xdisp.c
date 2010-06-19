@@ -13436,14 +13436,17 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 	     the user limited scrolling by a small number of lines, but
 	     always finds PT if scroll_conservatively is set to a large
 	     number, such as most-positive-fixnum.  */
-	  int slack = min (scroll_max, 10 * FRAME_LINE_HEIGHT (f));
+	  int slack = max (scroll_max, 10 * FRAME_LINE_HEIGHT (f));
+	  int y_to_move =
+	    slack >= INT_MAX - it.last_visible_y
+	    ? INT_MAX
+	    : it.last_visible_y + slack;
 
 	  /* Compute the distance from the scroll margin to PT or to
 	     the scroll limit, whichever comes first.  This should
 	     include the height of the cursor line, to make that line
 	     fully visible.  */
-	  move_it_to (&it, PT, -1,
-	  	      it.last_visible_y + slack,
+	  move_it_to (&it, PT, -1, y_to_move,
 	  	      -1, MOVE_TO_POS | MOVE_TO_Y);
 	  dy = line_bottom_y (&it) - y0;
 
