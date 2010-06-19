@@ -301,7 +301,7 @@ This function is semi-obsolete.  Use `get-char-code-property'."
 				   (lambda (arg)
 				     (string (string-to-number arg 16)))
 				   parts " "))
-		      (concat info parts))))
+		      (concat info (if info " ") parts))))
 	       (list "Decimal digit value"
 		     (nth 5 fields))
 	       (list "Digit value"

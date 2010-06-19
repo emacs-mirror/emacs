@@ -1,5 +1,8 @@
 2010-06-19  Glenn Morris  <rgm@gnu.org>
 
+	* descr-text.el (describe-char-unicode-data): Insert separating
+	space when needed.  (Bug#6422)
+
 	* progmodes/idlwave.el (idlwave-action-and-binding):
 	Fix typo in 2009-12-03 change.  (Bug#6450)
 
