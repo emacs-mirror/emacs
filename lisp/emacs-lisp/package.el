@@ -211,7 +211,6 @@ If VERSION is nil, the package is not loaded (it is \"disabled\")."
   :version "24.1")
 
 (defvar Info-directory-list)
-(defvar gnus-article-buffer)
 (declare-function info-initialize "info" ())
 (declare-function url-http-parse-response "url-http" ())
 (declare-function lm-header "lisp-mnt" (header))
@@ -423,33 +422,35 @@ updates `package-alist' and `package-obsolete-alist'."
   "Extract the kind of download from an archive package description vector."
   (aref desc 3))
 
-(defun package-activate-1 (package pkg-vec)
-  (let* ((pkg-name (symbol-name package))
-	 (pkg-ver-str (package-version-join (package-desc-vers pkg-vec)))
+(defun package--dir (name version-string)
+  (let* ((subdir (concat name "-" version-string))
 	 (dir-list (cons package-user-dir package-directory-list))
-	 (pkg-dir))
+	 pkg-dir)
     (while dir-list
-      (let ((subdir (expand-file-name (concat pkg-name "-" pkg-ver-str)
-				      (car dir-list))))
-	(if (file-directory-p subdir)
-	    (progn
-	      (setq pkg-dir subdir)
-	      (setq dir-list nil))
+      (let ((subdir-full (expand-file-name subdir (car dir-list))))
+	(if (file-directory-p subdir-full)
+	    (setq pkg-dir  subdir-full
+		  dir-list nil)
 	  (setq dir-list (cdr dir-list)))))
+    pkg-dir))
+
+(defun package-activate-1 (package pkg-vec)
+  (let* ((name (symbol-name package))
+	 (version-str (package-version-join (package-desc-vers pkg-vec)))
+	 (pkg-dir (package--dir name version-str)))
     (unless pkg-dir
       (error "Internal error: could not find directory for %s-%s"
-	     pkg-name pkg-ver-str))
+	     name version-str))
+    ;; Add info node.
     (if (file-exists-p (expand-file-name "dir" pkg-dir))
 	(progn
 	  ;; FIXME: not the friendliest, but simple.
 	  (require 'info)
 	  (info-initialize)
 	  (setq Info-directory-list (cons pkg-dir Info-directory-list))))
+    ;; Add to load path, add autoloads, and activate the package.
     (setq load-path (cons pkg-dir load-path))
-    ;; Load the autoloads and activate the package.
-    (load (expand-file-name (concat (symbol-name package) "-autoloads")
-			    pkg-dir)
-	  nil t)
+    (load (expand-file-name (concat name "-autoloads") pkg-dir) nil t)
     (setq package-activated-list (cons package package-activated-list))
     ;; Don't return nil.
     t))
@@ -474,8 +475,7 @@ Return nil if the package could not be activated."
     (let* ((pkg-desc (assq package package-alist))
 	   (this-version (package-desc-vers (cdr pkg-desc)))
 	   (req-list (package-desc-reqs (cdr pkg-desc)))
-	   ;; If the package was never activated, we want to do it
-	   ;; now.
+	   ;; If the package was never activated, do it now.
 	   (keep-going (or (not (memq package package-activated-list))
 			   (package-version-compare this-version version '>))))
       (while (and req-list keep-going)
@@ -1037,7 +1037,70 @@ The variable `package-load-list' controls which packages to load."
 	package-alist))
 
 
+;;;; Package description buffer.
 
+;;;###autoload
+(defun describe-package (package)
+  "Display the full documentation of PACKAGE (a symbol)."
+  (interactive
+   (let* ((packages (append (mapcar 'car package-alist)
+			    (mapcar 'car package-archive-contents)))
+	  (guess (function-called-at-point))
+	  val)
+     (unless (memq guess packages)
+       (setq guess nil))
+     (setq packages (mapcar 'symbol-name packages))
+     (setq val
+	   (completing-read (if guess
+				(format "Describe package (default %s): "
+					guess)
+			      "Describe package: ")
+			    packages nil t nil nil guess))
+     (list (if (equal val "")
+	       guess
+	     (intern val)))))
+  (if (or (null package) (null (symbolp package)))
+      (message "You did not specify a package")
+    (help-setup-xref (list #'describe-package package)
+		     (called-interactively-p 'interactive))
+    (with-help-window (help-buffer)
+      (with-current-buffer standard-output
+	(describe-package-1 package)))))
+
+(defun describe-package-1 (package)
+  (let ((desc (cdr (assq package package-alist)))
+	version)
+    (prin1 package)
+    (princ " is ")
+    (cond
+     (desc
+      ;; This package is loaded (i.e. in `package-alist').
+      (let (pkg-dir)
+	(setq version (package-version-join (package-desc-vers desc)))
+	(if (assq package package--builtins)
+	    (princ "a built-in package.\n\n")
+	  (setq pkg-dir (package--dir (symbol-name package) version))
+	  (if pkg-dir
+	      (progn
+		(insert "a package installed in `")
+		(help-insert-xref-button (file-name-as-directory pkg-dir)
+					 'help-package-def pkg-dir)
+		(insert "'.\n\n"))
+	    ;; This normally does not happen.
+	    (insert "a deleted package.\n\n")
+	    (setq version nil)))))
+     (t
+      ;; An uninstalled package.
+      (setq desc (cdr (assq package package-archive-contents)))
+      (setq version (package-version-join (package-desc-vers desc)))
+      (insert "a package that is not installed.\n\n")))
+    (if version
+	(insert "      Version: " version "\n"))
+    (insert "  Description: " (package-desc-doc desc) "\n")))
+;; To do: add buttons for installing, uninstalling, etc.
+
+
+
 ;;;; Package menu mode.
 
 (defvar package-menu-mode-map
@@ -1442,11 +1505,6 @@ Does not fetch the updated list of packages before displaying.
 The list is displayed in a buffer named `*Packages*'."
   (interactive)
   (package--list-packages))
-
-;; Make it appear on the menu.
-(define-key-after menu-bar-options-menu [package]
-  '(menu-item "Manage Packages" package-list-packages
-	      :help "Install or uninstall additional Emacs packages"))
 
 (provide 'package)
 

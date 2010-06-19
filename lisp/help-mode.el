@@ -244,6 +244,11 @@ The format is (FUNCTION ARGS...).")
 		       (message "Unable to find location in file"))))
   'help-echo (purecopy "mouse-2, RET: find face's definition"))
 
+(define-button-type 'help-package-def
+  :supertype 'help-xref
+  'help-function (lambda (file) (dired file))
+  'help-echo (purecopy "mouse-2, RET: visit package directory"))
+
 
 ;;;###autoload
 (defun help-mode ()

@@ -31,6 +31,9 @@
 
 ;;; Code:
 
+(require 'package)
+(defvar gnus-article-buffer)
+
 ;; Note that this only works if you have the password, which you
 ;; probably don't :-).
 (defvar package-archive-upload-base nil
