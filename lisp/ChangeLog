@@ -1,3 +1,8 @@
+2010-06-19  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/idlwave.el (idlwave-action-and-binding):
+	Fix typo in 2009-12-03 change.  (Bug#6450)
+
 2010-06-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (read-quoted-char): Fix up last change (bug#6290).

@@ -1601,7 +1601,7 @@ Capitalize system variables - action only
         `(lambda ()
            (interactive)
            (self-insert-command 1)
-           ,@(if (listp cmd) cmd (list cmd))))))
+           ,(if (listp cmd) cmd (list cmd))))))
 
 ;; Set action and key bindings.
 ;; See description of the function `idlwave-action-and-binding'.
