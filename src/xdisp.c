@@ -13431,14 +13431,19 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
       if (PT > CHARPOS (it.current.pos))
 	{
 	  int y0 = line_bottom_y (&it);
+	  /* Compute how many pixels below window bottom to stop searching
+	     for PT.  This avoids costly search for PT that is far away if
+	     the user limited scrolling by a small number of lines, but
+	     always finds PT if scroll_conservatively is set to a large
+	     number, such as most-positive-fixnum.  */
+	  int slack = min (scroll_max, 10 * FRAME_LINE_HEIGHT (f));
 
-	  /* Compute the distance from the scroll margin to PT
-	     (including the height of the cursor line).  Moving the
-	     iterator unconditionally to PT can be slow if PT is far
-	     away, so stop 10 lines past the window bottom (is there a
-	     way to do the right thing quickly?).  */
+	  /* Compute the distance from the scroll margin to PT or to
+	     the scroll limit, whichever comes first.  This should
+	     include the height of the cursor line, to make that line
+	     fully visible.  */
 	  move_it_to (&it, PT, -1,
-	  	      it.last_visible_y + 10 * FRAME_LINE_HEIGHT (f),
+	  	      it.last_visible_y + slack,
 	  	      -1, MOVE_TO_POS | MOVE_TO_Y);
 	  dy = line_bottom_y (&it) - y0;
 
