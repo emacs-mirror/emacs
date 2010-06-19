@@ -760,7 +760,7 @@ not try to give commands in it when no longer really in the debugger.
 * New function `switch-to-buffer-other-window'.
 
 This is the new primitive to select a specified buffer (the
-argument)  in another window.  It is not quite the same as
+argument) in another window.  It is not quite the same as
 `pop-to-buffer', because it is guaranteed to create another
 window (assuming there is room on the screen) so that it can
 leave the current window's old buffer displayed as well.
@@ -971,7 +971,7 @@ once again "unmodified".
 This command creates an inferior Lisp process whose input and output
 appear in the Emacs buffer named `*lisp*'.  That buffer uses a major mode
 called inferior-lisp-mode, which has many of the commands of lisp-mode
-and those of shell-mode.   Calls the value of shell-mode-hook and
+and those of shell-mode.  Calls the value of shell-mode-hook and
 lisp-mode-hook, in that order, if non-nil.
 
 Meanwhile, in lisp-mode, the command C-M-x is defined to
@@ -1421,7 +1421,7 @@ Changes in Emacs 15
  of the executing emacs, for use in run-time conditionalization.
 
  The function  featurep  of one argument may be used to test for the
- presence of a feature. It is just the same as
+ presence of a feature.  It is just the same as
  (not (null (memq FEATURE features))) where FEATURE is its argument.
  For example, (if (featurep 'magic-window-hack)
 		  (transmogrify-window 'vertical)
@@ -1541,13 +1541,13 @@ Changes in Emacs 15
 
  This function returns a cons cell whose car is the object produced
  by reading from the string and whose cdr is a number giving the
- index in the string of the first character not read. That index may
+ index in the string of the first character not read.  That index may
  be passed as the second argument to a later call to  read-from-string
  to read the next form represented by the string.
 
  In addition, the function  read  now accepts a string as its argument.
  In this case, it calls  read-from-string  on the whole string, and
- returns the car of the result. (ie the actual object read.)
+ returns the car of the result (ie the actual object read.)
 
 
 

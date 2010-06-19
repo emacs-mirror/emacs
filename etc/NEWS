@@ -128,6 +128,16 @@ now forces true deletion, regardless of `delete-by-moving-to-trash'.
 ** New option `list-colors-sort' defines the color sort order
 for `list-colors-display'.
 
+** An Emacs Lisp package manager is now included.
+This is a convenient way to download and install additional packages,
+from elpa.gnu.org.  `M-x package-list-packages' shows a list of
+packages, which can be selected for installation.
+
+*** By default, all installed packages are loaded and activated
+automatically when Emacs starts up.  To disable this, set
+`package-enable-at-startup' to nil.  To change which packages are
+loaded, customize `package-load-list'.
+
 
 * Editing Changes in Emacs 24.1
 
@@ -257,7 +267,11 @@ Notifications API.  It requires D-Bus for communication.
 
 * Incompatible Lisp Changes in Emacs 24.1
 
+** A backquote not followed by a space is now always treated as new-style.
+
 ** Test for special mode-class was moved from view-file to view-buffer.
+FIXME: This only says what was changed, but not what are the
+programmer-visible consequences.
 
 ** Passing a nil argument to a minor mode function now turns the mode
    ON unconditionally.

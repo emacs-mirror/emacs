@@ -229,7 +229,8 @@ matched as a regex."
 	     ;; Check keywords.
 	     (dolist (k keys match)
 	       (let* ((v (plist-get spec k))
-		      (choicev (plist-get choice k)))
+		      (choicev (if (plist-member choice k)
+				   (plist-get choice k) t)))
 		 (setq match
 		       (and match
 			    (or

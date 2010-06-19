@@ -238,7 +238,9 @@ This only has an effect if `Info-hide-note-references' is non-nil."
 (defcustom Info-breadcrumbs-depth 4
   "Depth of breadcrumbs to display.
 0 means do not display breadcrumbs."
-  :type 'integer)
+  :version "23.1"
+  :type 'integer
+  :group 'info)
 
 (defcustom Info-search-whitespace-regexp "\\s-+"
   "If non-nil, regular expression to match a sequence of whitespace chars.
@@ -800,17 +802,22 @@ otherwise, that defaults to `Top'."
   "Go to an Info node FILENAME and NODENAME, re-reading disk contents.
 When *info* is already displaying FILENAME and NODENAME, the window position
 is preserved, if possible."
-  (pop-to-buffer "*info*")
+  (or (eq major-mode 'Info-mode) (pop-to-buffer "*info*"))
   (let ((old-filename Info-current-file)
 	(old-nodename Info-current-node)
+	(old-buffer-name (buffer-name))
 	(pcolumn      (current-column))
 	(pline        (count-lines (point-min) (line-beginning-position)))
 	(wline        (count-lines (point-min) (window-start)))
+	(old-history-forward Info-history-forward)
 	(old-history  Info-history)
 	(new-history  (and Info-current-file
 			   (list Info-current-file Info-current-node (point)))))
     (kill-buffer (current-buffer))
+    (pop-to-buffer (or old-buffer-name "*info*"))
+    (Info-mode)
     (Info-find-node filename nodename)
+    (setq Info-history-forward old-history-forward)
     (setq Info-history old-history)
     (if (and (equal old-filename Info-current-file)
 	     (equal old-nodename Info-current-node))

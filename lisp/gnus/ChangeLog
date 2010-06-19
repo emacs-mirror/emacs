@@ -1,3 +1,8 @@
+2010-06-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* auth-source.el (auth-source-pick): If choice does not contain a
+	questioned keyword, set the check to t.
+
 2010-06-12  Romain Francoise  <romain@orebokech.com>
 
 	* gnus-util.el (gnus-date-get-time): Move up before first use.

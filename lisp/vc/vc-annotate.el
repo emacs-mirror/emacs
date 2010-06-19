@@ -316,7 +316,7 @@ use; you may override this using the second optional arg MODE."
 
 ;;;###autoload
 (defun vc-annotate (file rev &optional display-mode buf move-point-to)
-  "Display the edit history of the current file using colors.
+  "Display the edit history of the current FILE using colors.
 
 This command creates a buffer that shows, for each line of the current
 file, when it was last edited and by whom.  Additionally, colors are
@@ -326,7 +326,7 @@ default, the time scale stretches back one year into the past;
 everything that is older than that is shown in blue.
 
 With a prefix argument, this command asks two questions in the
-minibuffer.  First, you may enter a revision number; then the buffer
+minibuffer.  First, you may enter a revision number REV; then the buffer
 displays and annotates that revision instead of the working revision
 \(type RET in the minibuffer to leave that default unchanged).  Then,
 you are prompted for the time span in days which the color range
@@ -348,9 +348,9 @@ mode-specific menu.  `vc-annotate-color-map' and
      (list buffer-file-name
 	   (let ((def (vc-working-revision buffer-file-name)))
 	     (if (null current-prefix-arg) def
-	       (read-string
+	       (vc-read-revision
 		(format "Annotate from revision (default %s): " def)
-		nil nil def)))
+		(list buffer-file-name) nil def)))
 	   (if (null current-prefix-arg)
 	       vc-annotate-display-mode
 	     (float (string-to-number

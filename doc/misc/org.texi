@@ -2978,7 +2978,7 @@ link and description parts of the link.
 Open link at point.  This will launch a web browser for URLs (using
 @command{browse-url-at-point}), run VM/MH-E/Wanderlust/Rmail/Gnus/BBDB for
 the corresponding links, and execute the command in a shell link.  When the
-cursor is on an internal link, this commands runs the corresponding search.
+cursor is on an internal link, this command runs the corresponding search.
 When the cursor is on a TAG list in a headline, it creates the corresponding
 TAGS view.  If the cursor is on a timestamp, it compiles the agenda for that
 date.  Furthermore, it will visit text and remote files in @samp{file:} links

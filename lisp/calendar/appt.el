@@ -183,16 +183,25 @@ Only relevant if reminders are being displayed in a window."
 (defconst appt-buffer-name "*appt-buf*"
   "Name of the appointments buffer.")
 
+;; TODO Turn this into an alist?  It would be easier to add more
+;; optional elements.
+;; TODO There should be a way to set WARNTIME (and other properties)
+;; from the diary-file.  Implementing that would be a good reason
+;; to change this to an alist.
 (defvar appt-time-msg-list nil
   "The list of appointments for today.
 Use `appt-add' and `appt-delete' to add and delete appointments.
 The original list is generated from today's `diary-entries-list', and
 can be regenerated using the function `appt-check'.
-Each element of the generated list has the form (MINUTES STRING [FLAG]); where
-MINUTES is the time in minutes of the appointment after midnight, and
-STRING is the description of the appointment.
-FLAG, if non-nil, says that the element was made with `appt-add'
-so calling `appt-make-list' again should preserve it.")
+Each element of the generated list has the form
+\(MINUTES STRING [FLAG] [WARNTIME])
+where MINUTES is the time in minutes of the appointment after midnight,
+and STRING is the description of the appointment.
+FLAG and WARNTIME can only be present if the element was made
+with `appt-add'.  A non-nil FLAG indicates that the element was made
+with `appt-add', so calling `appt-make-list' again should preserve it.
+If WARNTIME is non-nil, it is an integer to use in place
+of `appt-message-warning-time'.")
 
 (defconst appt-max-time (1- (* 24 60))
   "11:59pm in minutes - number of minutes in a day minus 1.")
@@ -313,7 +322,7 @@ displayed in a window:
               (zerop (mod prev-appt-display-count appt-display-interval))))
          ;; Non-nil means only update the interval displayed in the mode line.
          (mode-line-only (unless full-check appt-now-displayed))
-         now cur-comp-time appt-comp-time)
+         now cur-comp-time appt-comp-time appt-warn-time)
     (when (or full-check mode-line-only)
       (save-excursion
         ;; Convert current time to minutes after midnight (12.01am = 1).
@@ -353,6 +362,8 @@ displayed in a window:
         ;; calculate the number of minutes until the appointment.
         (when (and appt-issue-message appt-time-msg-list)
           (setq appt-comp-time (caar (car appt-time-msg-list))
+                appt-warn-time (or (nth 3 (car appt-time-msg-list))
+                                   appt-message-warning-time)
                 min-to-app (- appt-comp-time cur-comp-time))
           (while (and appt-time-msg-list
                       (< appt-comp-time cur-comp-time))
@@ -360,21 +371,21 @@ displayed in a window:
             (if appt-time-msg-list
                 (setq appt-comp-time (caar (car appt-time-msg-list)))))
           ;; If we have an appointment between midnight and
-          ;; `appt-message-warning-time' minutes after midnight, we
+          ;; `appt-warn-time' minutes after midnight, we
           ;; must begin to issue a message before midnight.  Midnight
           ;; is considered 0 minutes and 11:59pm is 1439
           ;; minutes.  Therefore we must recalculate the minutes to
           ;; appointment variable.  It is equal to the number of
           ;; minutes before midnight plus the number of minutes after
           ;; midnight our appointment is.
-          (if (and (< appt-comp-time appt-message-warning-time)
-                   (> (+ cur-comp-time appt-message-warning-time)
+          (if (and (< appt-comp-time appt-warn-time)
+                   (> (+ cur-comp-time appt-warn-time)
                       appt-max-time))
               (setq min-to-app (+ (- (1+ appt-max-time) cur-comp-time)
                                   appt-comp-time)))
           ;; Issue warning if the appointment time is within
           ;; appt-message-warning time.
-          (when (and (<= min-to-app appt-message-warning-time)
+          (when (and (<= min-to-app appt-warn-time)
                      (>= min-to-app 0))
             (setq appt-now-displayed t
                   appt-display-count (1+ prev-appt-display-count))
@@ -470,14 +481,28 @@ Usually just deletes the appointment buffer."
   "[0-9]?[0-9]\\(h\\([0-9][0-9]\\)?\\|[:.][0-9][0-9]\\)\\(am\\|pm\\)?")
 
 ;;;###autoload
-(defun appt-add (new-appt-time new-appt-msg)
-  "Add an appointment for today at NEW-APPT-TIME with message NEW-APPT-MSG.
-The time should be in either 24 hour format or am/pm format."
-  (interactive "sTime (hh:mm[am/pm]): \nsMessage: ")
-  (unless (string-match appt-time-regexp new-appt-time)
+(defun appt-add (time msg &optional warntime)
+  "Add an appointment for today at TIME with message MSG.
+The time should be in either 24 hour format or am/pm format.
+Optional argument WARNTIME is an integer (or string) giving the number
+of minutes before the appointment at which to start warning.
+The default is `appt-message-warning-time'."
+  (interactive "sTime (hh:mm[am/pm]): \nsMessage: 
+sMinutes before the appointment to start warning: ")
+  (unless (string-match appt-time-regexp time)
     (error "Unacceptable time-string"))
-  (let ((time-msg (list (list (appt-convert-time new-appt-time))
-                        (concat new-appt-time " " new-appt-msg) t)))
+  (and (stringp warntime)
+       (setq warntime (unless (string-equal warntime "")
+                        (string-to-number warntime))))
+  (and warntime
+       (not (integerp warntime))
+       (error "Argument WARNTIME must be an integer, or nil"))
+  (let ((time-msg (list (list (appt-convert-time time))
+                        (concat time " " msg) t)))
+    ;; It is presently non-sensical to have multiple warnings about
+    ;; the same appointment with just different delays, but it might
+    ;; not always be so.  TODO
+    (if warntime (setq time-msg (append time-msg (list warntime))))
     (unless (member time-msg appt-time-msg-list)
       (setq appt-time-msg-list
             (appt-sort-list (nconc appt-time-msg-list (list time-msg)))))))
