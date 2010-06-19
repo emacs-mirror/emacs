@@ -1,3 +1,7 @@
+2010-06-19  Gustav Hållberg  <gustav@gmail.com>  (tiny change)
+
+	* descr-text.el (describe-char): Avoid trailing whitespace.  (Bug#6423)
+
 2010-06-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/edebug.el (edebug-read-list):
