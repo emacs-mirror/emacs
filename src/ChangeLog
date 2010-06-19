@@ -1,3 +1,7 @@
+2010-06-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keymap.c (Fdefine_key): Doc fix (Bug#6460).
+
 2010-06-15  Glenn Morris  <rgm@gnu.org>
 
 	* editfns.c (Fbyte_to_string): Pacify compiler.
