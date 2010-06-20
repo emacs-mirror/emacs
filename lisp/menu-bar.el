@@ -703,6 +703,10 @@ by \"Save Options\" in Custom buffers.")
     (when need-save
       (custom-save-all))))
 
+(define-key menu-bar-options-menu [package]
+  '(menu-item "Manage Emacs Packages" package-list-packages
+	      :help "Install or uninstall additional Emacs packages"))
+
 (define-key menu-bar-options-menu [save]
   `(menu-item ,(purecopy "Save Options") menu-bar-options-save
 	      :help ,(purecopy "Save options set from the menu above")))

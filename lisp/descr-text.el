@@ -618,7 +618,7 @@ as well as widgets, buttons, overlays, and text properties."
               ,@(if (not eight-bit-p)
                     (let ((unicodedata (describe-char-unicode-data char)))
                       (if unicodedata
-                          (cons (list "Unicode data" " ") unicodedata))))))
+                          (cons (list "Unicode data" "") unicodedata))))))
       (setq max-width (apply 'max (mapcar (lambda (x)
                                             (if (cadr x) (length (car x)) 0))
                                           item-list)))
@@ -642,7 +642,8 @@ as well as widgets, buttons, overlays, and text properties."
                               (window-width))
                       (insert "\n")
                       (indent-to (1+ max-width)))
-                    (insert " " clm)))
+                    (unless (zerop (length clm))
+                      (insert " " clm))))
                 (insert "\n"))))
 
           (when overlays

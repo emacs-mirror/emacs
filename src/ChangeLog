@@ -1,3 +1,19 @@
+2010-06-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (try_scrolling): When scroll-conservatively is set to
+	most-positive-fixnum, be extra accurate when scrolling window
+	start, to avoid missing the cursor line.
+
+2010-06-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (try_scrolling): Compute the limit for searching point
+	in forward scroll from scroll_max, instead of an arbitrary limit
+	of 10 screen lines.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2010-06/msg00766.html
+	and
+	http://lists.gnu.org/archive/html/emacs-devel/2010-06/msg00773.html
+	for details.
+
 2010-06-16  Glenn Morris  <rgm@gnu.org>
 
 	* editfns.c (Fbyte_to_string): Pacify compiler.
