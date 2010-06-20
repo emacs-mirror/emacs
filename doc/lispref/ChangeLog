@@ -1,3 +1,7 @@
+2010-06-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* modes.texi (Minor Mode Conventions): Fix typo (Bug#6477).
+
 2010-06-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* errors.texi (Standard Errors): Remove unnecessary markup

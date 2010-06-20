@@ -1342,7 +1342,7 @@ or like this, using @code{add-to-list} (@pxref{List Variables}):
   Global minor modes distributed with Emacs should if possible support
 enabling and disabling via Custom (@pxref{Customization}).  To do this,
 the first step is to define the mode variable with @code{defcustom}, and
-specify @code{:type boolean}.
+specify @code{:type 'boolean}.
 
   If just setting the variable is not sufficient to enable the mode, you
 should also specify a @code{:set} method which enables the mode by
