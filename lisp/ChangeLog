@@ -1,3 +1,13 @@
+2010-06-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package-print-package): Add link to
+	package description via describe-package.
+	(describe-package-1): List package requirements.  Add button to
+	perform installation.
+	(package-menu-describe-package): New command.
+
+	* help-mode.el (help-package): New button type.
+
 2010-06-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/package.el: Move package-list-packages binding to

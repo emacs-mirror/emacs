@@ -1069,7 +1069,7 @@ The variable `package-load-list' controls which packages to load."
 
 (defun describe-package-1 (package)
   (let ((desc (cdr (assq package package-alist)))
-	version)
+	reqs version installable)
     (prin1 package)
     (princ " is ")
     (cond
@@ -1091,14 +1091,51 @@ The variable `package-load-list' controls which packages to load."
 	    (setq version nil)))))
      (t
       ;; An uninstalled package.
-      (setq desc (cdr (assq package package-archive-contents)))
-      (setq version (package-version-join (package-desc-vers desc)))
-      (insert "a package that is not installed.\n\n")))
+      (setq desc (cdr (assq package package-archive-contents))
+	    version (package-version-join (package-desc-vers desc))
+	    installable t)
+      (insert "an installable package.\n\n")))
     (if version
 	(insert "      Version: " version "\n"))
-    (insert "  Description: " (package-desc-doc desc) "\n")))
-;; To do: add buttons for installing, uninstalling, etc.
-
+    (setq reqs (package-desc-reqs desc))
+    (when reqs
+      (insert "     Requires: ")
+      (let ((first t)
+	    name vers text)
+	(dolist (req reqs)
+	  (setq name (car req)
+		vers (cadr req)
+		text (format "%s-%s" (symbol-name name)
+			     (package-version-join vers)))
+	  (cond (first (setq first nil))
+		((>= (+ 2 (current-column) (length text))
+		     (window-width))
+		 (insert ",\n               "))
+		(t (insert ", ")))
+	  (help-insert-xref-button text 'help-package name))
+	(insert "\n")))
+    (insert "  Description: " (package-desc-doc desc) "\n")
+    ;; Todo: button for uninstalling a package.
+    (when installable
+      (let ((button-text (if (display-graphic-p)
+			     "Install"
+			   "[Install]"))
+	    (button-face (if (display-graphic-p)
+			     '(:box (:line-width 2 :color "dark grey")
+				    :background "light grey"
+				    :foreground "black")
+			   'link)))
+	(insert "\n")
+	(insert-text-button button-text
+			    'face button-face
+			    'follow-link t
+			    'package-symbol package
+			    'action (lambda (button)
+				      (package-install
+				       (button-get button 'package-symbol))
+				      (revert-buffer nil t)
+				      (goto-char (point-min))))
+	(insert "\n")))))
 
 
 ;;;; Package menu mode.
@@ -1107,6 +1144,7 @@ The variable `package-load-list' controls which packages to load."
   (let ((map (make-keymap))
 	(menu-map (make-sparse-keymap "Package")))
     (suppress-keymap map)
+    (define-key map "\C-m" 'package-menu-describe-package)
     (define-key map "q" 'quit-window)
     (define-key map "n" 'next-line)
     (define-key map "p" 'previous-line)
@@ -1208,6 +1246,14 @@ available for download."
   (interactive)
   (package-list-packages-internal))
 
+(defun package-menu-describe-package ()
+  "Describe the package in the current line."
+  (interactive)
+  (let ((name (package-menu-get-package)))
+    (if name
+	(describe-package (intern name))
+      (message "No package on this line"))))
+
 (defun package-menu-mark-internal (what)
   (unless (eobp)
     (let ((buffer-read-only nil))
@@ -1286,7 +1332,7 @@ For larger packages, shows the README file."
   (save-excursion
     (beginning-of-line)
     (if (looking-at ". \\([^ \t]*\\)")
-	(match-string 1))))
+	(match-string-no-properties 1))))
 
 ;; Return the version of the package on the current line.
 (defun package-menu-get-version ()
@@ -1342,14 +1388,20 @@ Emacs."
 	       (t ; obsolete, but also the default.
 		'font-lock-warning-face))))
     (insert (propertize "  " 'font-lock-face face))
-    (insert (propertize (symbol-name package) 'font-lock-face face))
+    (insert-text-button (symbol-name package)
+			'face 'link
+			'follow-link t
+			'package-symbol package
+			'action (lambda (button)
+				  (describe-package
+				   (button-get button 'package-symbol))))
     (indent-to 20 1)
     (insert (propertize (package-version-join version) 'font-lock-face face))
-    (indent-to 30 1)
+    (indent-to 32 1)
     (insert (propertize key 'font-lock-face face))
     ;; FIXME: this 'when' is bogus...
     (when desc
-      (indent-to 41 1)
+      (indent-to 43 1)
       (insert (propertize desc 'font-lock-face face)))
     (insert "\n")))
 
