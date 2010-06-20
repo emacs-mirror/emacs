@@ -13486,7 +13486,26 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 	return SCROLLING_FAILED;
 
       start_display (&it, w, startp);
-      move_it_vertically (&it, amount_to_scroll);
+      if (scroll_max < INT_MAX)
+	move_it_vertically (&it, amount_to_scroll);
+      else
+	{
+	  /* Extra precision for users who set scroll-conservatively
+	     to most-positive-fixnum: make sure the amount we scroll
+	     the window start is never less than amount_to_scroll,
+	     which was computed as distance from window bottom to
+	     point.  This matters when lines at window top and lines
+	     below window bottom have different height.  */
+	  struct it it1 = it;
+	  /* We use a temporary it1 because line_bottom_y can modify
+	     its argument, if it moves one line down; see there.  */
+	  int start_y = line_bottom_y (&it1);
+
+	  do {
+	    move_it_by_lines (&it, 1, 1);
+	    it1 = it;
+	  } while (line_bottom_y (&it1) - start_y < amount_to_scroll);
+	}
 
       /* If STARTP is unchanged, move it down another screen line.  */
       if (CHARPOS (it.current.pos) == CHARPOS (startp))

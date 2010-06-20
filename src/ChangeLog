@@ -1,3 +1,9 @@
+2010-06-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (try_scrolling): When scroll-conservatively is set to
+	most-positive-fixnum, be extra accurate when scrolling window
+	start, to avoid missing the cursor line.
+
 2010-06-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (try_scrolling): Compute the limit for searching point
