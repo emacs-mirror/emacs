@@ -1,3 +1,27 @@
+2010-06-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package-print-package): Add link to
+	package description via describe-package.
+	(describe-package-1): List package requirements.  Add button to
+	perform installation.
+	(package-menu-describe-package): New command.
+
+	* help-mode.el (help-package): New button type.
+
+2010-06-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el: Move package-list-packages binding to
+	menu-bar.el.
+	(describe-package, describe-package-1, package--dir): New funs.
+	(package-activate-1): Use package--dir.
+
+	* emacs-lisp/package-x.el (gnus-article-buffer): Require package.
+
+	* help-mode.el (help-package-def): New button type.
+
+	* menu-bar.el: Move package-list-packages binding here from
+	package.el.
+
 2010-06-19  Gustav Hållberg  <gustav@gmail.com>  (tiny change)
 
 	* descr-text.el (describe-char): Avoid trailing whitespace.  (Bug#6423)
