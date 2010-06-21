@@ -1,3 +1,21 @@
+2010-06-21  Alan Mackenzie  <bug-cc-mode@gnu.org>
+
+	Fix an indentation bug:
+
+	* progmodes/cc-mode.el (c-common-init): Initialise c-new-BEG/END.
+	(c-neutralize-syntax-in-and-mark-CPP): c-new-BEG/END: Take account
+	of existing values.
+
+	* progmodes/cc-engine.el (c-clear-<-pair-props-if-match-after)
+	(c-clear->-pair-props-if-match-before): now return t when they've
+	cleared properties, nil otherwise.
+	(c-before-change-check-<>-operators): Set c-new-beg/end correctly
+	by taking account of the existing value.
+
+	* progmodes/cc-defs.el
+	(c-clear-char-property-with-value-function): Fix this to clear the
+	property rather than overwriting it with nil.
+
 2010-06-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/package.el (package-print-package): Add link to
