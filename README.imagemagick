@@ -13,6 +13,24 @@ autoconf
 ./configure --with-imagemagick
 
 
+* TODO
+
+- image-type-header-regexps priorities the jpeg loader over the
+imagemagick one. This is not wrong, but how should a user go about
+prefering the imagemagick loader? The user might like zooming etc in
+jpegs.
+
+- For some reason its unbearably slow to look at a page in a large
+  image bundle using the :index feature. The imagemagick "display"
+  command is also a bit slow, but nowhere near as slow as the emacs
+  code. It seems imagemagick tries to unpack every page when loading
+  the bundle. This feature is not the primary usecase for the
+  imagemagick patch though.
+
+- zooming the image like what is done for fonts in face-remap.el would
+  be a useful and demo friendly addition.
+
+- figure out what to do with the experimental features noted below.  
 
 * TODO
 #B _ complete documentation drafts below
@@ -102,15 +120,17 @@ as TIFF or DJVM, to view.
 The image-metadata function can be used to retrieve the total number
 of images in an image bundle. This is simmilar to how GIF files work.
 
+* experimental
+
 - :crop is used to specify a croping area: (width height x y).  This
 is similar to the slice image specification, but has a different
 purpose. :crop removes the croped areas from memory, so its memory
 efficient if you only need to view a certain part of the image. The
 slice specification can be used to pick diferent parts of the same
-image, so its more disk and display efficient.
+image, so its more disk and display efficient. :crop works well, but
+it would still be better to find a way to have :splice do the same
+thing.
 
-
-* experimental
 - :geometry takes a geometry string as defined by ImageMagick:
 
 scale%            
