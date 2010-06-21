@@ -105,8 +105,7 @@ sections if you need to.
 
   Note that the install automatically saves space by compressing
   (provided you have the `gzip' program) those installed Lisp source (.el)
-  files that have corresponding .elc versions.  You may also wish
-  to compress the installed Info files.
+  files that have corresponding .elc versions, as well as the Info files.
 
 
 ADDITIONAL DISTRIBUTION FILES
