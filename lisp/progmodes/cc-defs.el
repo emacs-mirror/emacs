@@ -1082,7 +1082,7 @@ been put there by c-put-char-property.  POINT remains unchanged."
 	    (setq place (next-single-property-change place property nil to)))
 	  (< place to))
       (setq end-place (next-single-property-change place property nil to))
-      (put-text-property place end-place property nil)
+      (remove-text-properties place end-place (cons property nil))
       ;; Do we have to do anything with stickiness here?
       (setq place end-place))))
 
