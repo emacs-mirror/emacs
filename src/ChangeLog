@@ -1,3 +1,48 @@
+2010-06-22  Martin Rudalics  <rudalics@gmx.at>
+
+
+	* frame.c (Fother_visible_frames_p): New function.
+	(Fwindow_frame, Fframe_root_window, Fframe_first_window)
+	(Fframe_selected_window, Fset_frame_selected_window): Move to
+	window.c.
+	(Factive_minibuffer_window): Move to minibuf.c.
+	(delete_frame): If we are not allowed to run hooks, don't run
+	them.  For tooltip frames neither run hooks nor update the
+	modeline.
+
+	* minibuf.c (Factive_minibuffer_window): Move here from frame.c.
+
+	* window.c (decode_window, decode_any_window, make_window)
+	(Fselected_window, Fpos_visible_in_window_p)
+	(select_window_norecord, select_frame_norecord): Move to more
+	appropriate positions within window.c.
+	(Fwindow_frame, Fset_frame_selected_window): Move here from
+	frame.c.
+	(Fframe_first_window, Fframe_selected_window)
+	(Fframe_root_window): Move here from frame.c, handle window or
+	frame as argument.
+	(Fwindow_parent, Fwindow_vchild, Fwindow_hchild, Fwindow_next)
+	(Fwindow_prev, Fwindow_use_time, window_show_other_buffer)
+	(Fwindow_list_1, Frun_window_configuration_change_hook): New
+	functions.
+	(Fwindow_live_p, Fselected_window, Fminibuffer_window)
+	(Fwindow_minibuffer_p, Fwindow_hscroll, Fwindow_point)
+	(Fwindow_at, Fwindow_start, Fwindow_end, Fset_window_point)
+	(Fset_window_dedicated_p, Fnext_window, Fprevious_window)
+	(Fset_window_buffer): Rewrite doc-strings.
+	(Fwindow_buffer): Return nil for internal window.
+	(Fwindow_parameters, Fwindow_parameter, Fset_window_parameter):
+	Internal windows may have parameters too.
+	(saved_window, save_window_save): Save window parameters too.
+	(Fset_window_configuration): Restore window parameters.  Delete
+	restored window if it is dedicated and its buffer is dead.  If
+	window cannot be deleted, reset its dedicated status.
+	(Fselect_window): Don't return prematurely if selected window
+	does not change; fixing the fix from 2010-06-07.
+	(window_loop): Use window_show_other_buffer to avoid changing
+	the current buffer when the buffer of the selected window is
+	killed. (Bug#4654)
+
 2010-06-16  Glenn Morris  <rgm@gnu.org>
 
 	* editfns.c (Fbyte_to_string): Pacify compiler.

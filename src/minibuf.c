@@ -200,6 +200,14 @@ choose_minibuf_frame_1 (ignore)
   return Qnil;
 }
 
+DEFUN ("active-minibuffer-window", Factive_minibuffer_window,
+       Sactive_minibuffer_window, 0, 0, 0,
+       doc: /* Return the currently active minibuffer window, or nil if none.  */)
+     ()
+{
+  return minibuf_level ? minibuf_window : Qnil;
+}
+
 DEFUN ("set-minibuffer-window", Fset_minibuffer_window,
        Sset_minibuffer_window, 1, 1, 0,
        doc: /* Specify which minibuffer window to use for the minibuffer.
@@ -2266,6 +2274,7 @@ properties.  */);
 	       doc: /* Minibuffer keymap used for reading Lisp expressions.  */);
   Vread_expression_map = Qnil;
 
+  defsubr (&Sactive_minibuffer_window);
   defsubr (&Sset_minibuffer_window);
   defsubr (&Sread_from_minibuffer);
   defsubr (&Seval_minibuffer);
