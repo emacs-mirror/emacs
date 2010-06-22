@@ -488,6 +488,9 @@ Kind can be any of `latex', `html', `ascii', `latin1', or `utf8'."
 
 (provide 'org-entities)
 
-;; arch-tag: e6bd163f-7419-4009-9c93-a74623016424
+;; Local variables:
+;; coding: utf-8
+;; End:
 
+;; arch-tag: e6bd163f-7419-4009-9c93-a74623016424
 ;;; org-entities.el ends here

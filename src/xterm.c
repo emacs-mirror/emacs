@@ -4998,7 +4998,6 @@ x_scroll_bar_create (w, top, left, width, height)
                              left + VERTICAL_SCROLL_BAR_WIDTH_TRIM,
                              width - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2,
                              max (height, 1));
-    xg_show_scroll_bar (bar->x_window);
 #else /* not USE_GTK */
     Widget scroll_bar = SCROLL_BAR_X_WIDGET (FRAME_X_DISPLAY (f), bar);
     XtConfigureWidget (scroll_bar,

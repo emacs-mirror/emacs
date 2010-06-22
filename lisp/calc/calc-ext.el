@@ -1,7 +1,7 @@
 ;;; calc-ext.el --- various extension functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -960,7 +960,7 @@ math-read-brackets math-reduce-cols math-reduce-vec math-transpose)
 
  ("calc-yank" calc-alg-edit calc-clean-newlines
 calc-do-grab-rectangle calc-do-grab-region calc-finish-stack-edit
-calc-copy-to-register calc-insert-register 
+calc-copy-to-register calc-insert-register
 calc-append-to-register calc-prepend-to-register
 calc-force-refresh calc-locate-cursor-element calc-show-edit-buffer)
 
@@ -989,7 +989,7 @@ calc-floor calc-idiv calc-increment calc-mant-part calc-max calc-min
 calc-round calc-scale-float calc-sign calc-trunc calc-xpon-part)
 
  ("calc-bin" calc-and calc-binary-radix calc-clip calc-twos-complement-mode
-calc-decimal-radix calc-diff calc-hex-radix calc-leading-zeros 
+calc-decimal-radix calc-diff calc-hex-radix calc-leading-zeros
 calc-lshift-arith calc-lshift-binary calc-not calc-octal-radix calc-or calc-radix
 calc-rotate-binary calc-rshift-arith calc-rshift-binary calc-word-size
 calc-xor)
@@ -1415,7 +1415,7 @@ calc-kill calc-kill-region calc-yank))))
                        (with-current-buffer calc-main-buffer
                          calc-option-flag)
                      calc-option-flag))
-         (msg 
+         (msg
           (cond
            ((and opt-flag hyp-flag) "Option Inverse Hyperbolic...")
            (hyp-flag "Inverse Hyperbolic...")
@@ -1505,8 +1505,8 @@ calc-kill calc-kill-region calc-yank))))
                        (with-current-buffer calc-main-buffer
                          calc-option-flag)
                      calc-option-flag))
-         (msg 
-          (cond 
+         (msg
+          (cond
            ((and opt-flag inv-flag) "Option Inverse Hyperbolic...")
            (opt-flag "Option Hyperbolic...")
            (inv-flag "Inverse Hyperbolic...")
@@ -1537,8 +1537,8 @@ calc-kill calc-kill-region calc-yank))))
                        (with-current-buffer calc-main-buffer
                          calc-hyperbolic-flag)
                      calc-hyperbolic-flag))
-         (msg 
-          (cond 
+         (msg
+          (cond
            ((and hyp-flag inv-flag) "Option Inverse Hyperbolic...")
            (hyp-flag "Option Hyperbolic...")
            (inv-flag "Option Inverse...")
@@ -1702,8 +1702,8 @@ calc-kill calc-kill-region calc-yank))))
 (defun calc-execute-extended-command (n)
   (interactive "P")
   (let* ((prompt (concat (calc-num-prefix-name n) "M-x "))
-	 (cmd (intern 
-               (completing-read prompt obarray 'commandp t "calc-" 
+	 (cmd (intern
+               (completing-read prompt obarray 'commandp t "calc-"
                                 'calc-extended-command-history))))
     (setq prefix-arg n)
     (command-execute cmd)))
@@ -3499,6 +3499,10 @@ A key may contain additional specs for Inverse, Hyperbolic, and Inv+Hyp.")
 (run-hooks 'calc-ext-load-hook)
 
 (provide 'calc-ext)
+
+;; Local variables:
+;; coding: utf-8
+;; End:
 
 ;; arch-tag: 1814ba7f-a390-49dc-9e25-a5adc205e97e
 ;;; calc-ext.el ends here
