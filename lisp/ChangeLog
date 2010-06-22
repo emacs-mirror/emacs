@@ -1,5 +1,11 @@
 2010-06-22  Glenn Morris  <rgm@gnu.org>
 
+	* textmodes/texinfmt.el (texinfo-format-region)
+	(texinfo-raise-lower-sections, texinfo-format-separate-node)
+	(texinfo-itemize-item, texinfo-multitable-item, texinfo-alias)
+	(texinfo-format-option, texinfo-noindent):
+	Use line-beginning-position and line-end-position.
+
 	* calc/calc-aent.el, calc/calc-ext.el, calc/calc-lang.el:
 	* calc/calc-store.el, calc/calc-units.el, calc/calc.el:
 	* calc/calccomp.el: Add explicit utf-8 coding cookies to files with
