@@ -418,6 +418,48 @@ spaces.  Die Die Die."
 	     (mm-url-form-encode-xwfu (cdr data))))
    pairs "&"))
 
+(defun mm-url-encode-multipart-form-data (pairs &optional boundary)
+  "Return PAIRS encoded in multipart/form-data."
+  ;; RFC1867
+
+  ;; Get a good boundary
+  (unless boundary
+    (setq boundary (mml-compute-boundary '())))
+
+  (concat
+
+   ;; Start with the boundary
+   "--" boundary "\r\n"
+
+   ;; Create name value pairs
+   (mapconcat
+    'identity
+    ;; Delete any returned items that are empty
+    (delq nil
+          (mapcar (lambda (data)
+            (when (car data)
+              ;; For each pair
+              (concat
+
+               ;; Encode the name
+               "Content-Disposition: form-data; name=\""
+               (car data) "\"\r\n"
+               "Content-Type: text/plain; charset=utf-8\r\n"
+               "Content-Transfer-Encoding: binary\r\n\r\n"
+
+               (cond ((stringp (cdr data))
+                      (cdr data))
+                     ((integerp (cdr data))
+                      (int-to-string (cdr data))))
+
+               "\r\n")))
+                  pairs))
+    ;; use the boundary as a separator
+    (concat "--" boundary "\r\n"))
+
+   ;; put a boundary at the end.
+   "--" boundary "--\r\n"))
+
 (defun mm-url-fetch-form (url pairs)
   "Fetch a form from URL with PAIRS as the data using the POST method."
   (mm-url-load-url)

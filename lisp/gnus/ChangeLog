@@ -1,3 +1,8 @@
+2010-06-22  Mark A. Hershberger  <mah@everybody.org>
+
+	* mm-url.el (mm-url-encode-multipart-form-data): New function to handle
+	the *other* type of HTML form submission.
+
 2010-06-15  Michael Albinus  <michael.albinus@gmx.de>
 
 	* auth-source.el (auth-source-pick): If choice does not contain a
