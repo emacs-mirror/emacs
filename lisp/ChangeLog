@@ -1,3 +1,7 @@
+2010-06-22  Jürgen Hötzel  <juergen@hoetzel.info>  (tiny change)
+
+	* wid-edit.el (widget-complete): Fix typo in 2009-12-02 change.
+
 2010-06-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Fix annotating other revisions for renamed files in vc-annotate.

@@ -1161,9 +1161,9 @@ the field."
 When not inside a field, move to the previous button or field."
   (interactive)
   (let ((field (widget-field-find (point))))
-    (when field
-      (widget-apply field :complete))
-    (error "Not in an editable field")))
+    (if field
+	(widget-apply field :complete)
+      (error "Not in an editable field"))))
 
 ;;; Setting up the buffer.
 
