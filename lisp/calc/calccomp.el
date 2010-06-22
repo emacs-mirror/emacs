@@ -1,7 +1,7 @@
 ;;; calccomp.el --- composition functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -50,19 +50,19 @@
 ;;;
 ;;;    (tag X C)             Composition C corresponds to sub-expression X
 
-;; math-comp-just and math-comp-comma-spc are local to 
-;; math-compose-expr, but are used by math-compose-matrix, which is 
+;; math-comp-just and math-comp-comma-spc are local to
+;; math-compose-expr, but are used by math-compose-matrix, which is
 ;; called by math-compose-expr
 (defvar math-comp-just)
 (defvar math-comp-comma-spc)
 
-;; math-comp-vector-prec is local to math-compose-expr, but is used by 
-;; math-compose-matrix and math-compose-rows, which are called by 
+;; math-comp-vector-prec is local to math-compose-expr, but is used by
+;; math-compose-matrix and math-compose-rows, which are called by
 ;; math-compose-expr.
 (defvar math-comp-vector-prec)
 
-;; math-comp-left-bracket, math-comp-right-bracket and math-comp-comma are 
-;; local to math-compose-expr, but are used by math-compose-rows, which is 
+;; math-comp-left-bracket, math-comp-right-bracket and math-comp-comma are
+;; local to math-compose-expr, but are used by math-compose-rows, which is
 ;; called by math-compose-expr.
 (defvar math-comp-left-bracket)
 (defvar math-comp-right-bracket)
@@ -100,7 +100,7 @@
 	(list 'tag a (math-compose-expr a prec))))
      ((and (not (consp a)) (not (integerp a)))
       (concat "'" (prin1-to-string a)))
-     ((setq spfn (assq (car-safe a) 
+     ((setq spfn (assq (car-safe a)
                        (get calc-language 'math-special-function-table)))
       (setq spfn (cdr spfn))
       (if (consp spfn)
@@ -111,12 +111,12 @@
 	      (and (nth 1 calc-frac-format) (Math-integerp a)))
 	  (if (and
                calc-language
-               (not (memq calc-language 
+               (not (memq calc-language
                           '(flat big unform))))
 	      (let ((aa (math-adjust-fraction a))
 		    (calc-frac-format nil))
 		(math-compose-expr (list '/
-					 (if (memq calc-language 
+					 (if (memq calc-language
                                                    calc-lang-slash-idiv)
 					     (math-float (nth 1 aa))
 					   (nth 1 aa))
@@ -281,22 +281,22 @@
 					    (cdr a)
 					    (if full rows 3) t)))))
 	      (if (or calc-full-vectors (< (length a) 7))
-                  (if (and 
+                  (if (and
                        (setq spfn (get calc-language 'math-matrix-formatter))
                        (math-matrixp a))
                       (funcall spfn a)
                     (list 'horiz
                           math-comp-left-bracket
-                          (math-compose-vector (cdr a) 
+                          (math-compose-vector (cdr a)
                                                (concat math-comp-comma " ")
                                                math-comp-vector-prec)
                           math-comp-right-bracket))
 		(list 'horiz
 		      math-comp-left-bracket
 		      (math-compose-vector (list (nth 1 a) (nth 2 a) (nth 3 a))
-					   (concat math-comp-comma " ") 
+					   (concat math-comp-comma " ")
                                            math-comp-vector-prec)
-		      math-comp-comma 
+		      math-comp-comma
                       (if (setq spfn (get calc-language 'math-dots))
                           (concat " " spfn)
                         " ...")
@@ -869,7 +869,7 @@
 						    math-comp-vector-prec)
 						   (if (= col cols)
 						       ""
-						     (concat 
+						     (concat
                                                       math-comp-comma-spc " ")))))
 					  a)))
 		      res)))
@@ -880,7 +880,7 @@
       (if (<= count 0)
 	  (if (< count 0)
 	      (math-compose-rows (cdr a) -1 nil)
-	    (cons (concat 
+	    (cons (concat
                    (let ((mdots (get calc-language 'math-dots)))
                      (if mdots
                          (concat " " mdots)
@@ -1119,7 +1119,7 @@
 	       (if (memq prec '(196 201)) ")" "")))))
 
 ;; The variables math-svo-c, math-svo-wid and math-svo-off are local
-;; to math-stack-value-offset in calc.el, but are used by 
+;; to math-stack-value-offset in calc.el, but are used by
 ;; math-stack-value-offset-fancy, which is called by math-stack-value-offset..
 (defvar math-svo-c)
 (defvar math-svo-wid)
@@ -1195,11 +1195,11 @@
 ;;; of the formula.
 
 ;; The variables math-comp-full-width, math-comp-highlight, math-comp-word,
-;; math-comp-level, math-comp-margin and math-comp-buf are local to 
-;; math-comp-to-string-flat, but are used by math-comp-to-string-flat-term, 
+;; math-comp-level, math-comp-margin and math-comp-buf are local to
+;; math-comp-to-string-flat, but are used by math-comp-to-string-flat-term,
 ;; which is called by math-comp-to-string-flat.
-;; math-comp-highlight and math-comp-buf are also local to 
-;; math-comp-simplify-term and math-comp-simplify respectively, but are used 
+;; math-comp-highlight and math-comp-buf are also local to
+;; math-comp-simplify-term and math-comp-simplify respectively, but are used
 ;; by math-comp-add-string.
 (defvar math-comp-full-width)
 (defvar math-comp-highlight)
@@ -1244,7 +1244,7 @@
   (cond ((not (consp c))
 	 (if math-comp-highlight
 	     (setq c (math-comp-highlight-string c)))
-	 (setq math-comp-word (if (= (length math-comp-word) 0) c 
+	 (setq math-comp-word (if (= (length math-comp-word) 0) c
                                 (concat math-comp-word c))
 	       math-comp-pos (+ math-comp-pos (length c))))
 
@@ -1347,8 +1347,8 @@
 
 
 ;; The variable math-comp-sel-tag is local to calc-find-selected-part
-;; in calc-sel.el, but is used by math-comp-sel-flat-term and 
-;; math-comp-add-string-sel, which are called (indirectly) by 
+;; in calc-sel.el, but is used by math-comp-sel-flat-term and
+;; math-comp-add-string-sel, which are called (indirectly) by
 ;; calc-find-selected-part.
 (defvar math-comp-sel-tag)
 
@@ -1667,6 +1667,10 @@
     ""))
 
 (provide 'calccomp)
+
+;; Local variables:
+;; coding: utf-8
+;; End:
 
 ;; arch-tag: 7c45d10a-a286-4dab-af49-7ae8989fbf78
 ;;; calccomp.el ends here
