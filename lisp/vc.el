@@ -1655,8 +1655,9 @@ If `F.~REV~' already exists, use it instead of checking it out again."
 		    rev)))
     (switch-to-buffer-other-window (vc-find-revision file revision))))
 
-(defun vc-find-revision (file revision)
-  "Read REVISION of FILE into a buffer and return the buffer."
+(defun vc-find-revision (file revision &optional backend)
+  "Read REVISION of FILE into a buffer and return the buffer.
+Use BACKEND as the VC backend if specified."
   (let ((automatic-backup (vc-version-backup-file-name file revision))
 	(filebuf (or (get-file-buffer file) (current-buffer)))
         (filename (vc-version-backup-file-name file revision 'manual)))
@@ -1674,7 +1675,9 @@ If `F.~REV~' already exists, use it instead of checking it out again."
 		      ;; Change buffer to get local value of
 		      ;; vc-checkout-switches.
 		      (with-current-buffer filebuf
-			(vc-call find-revision file revision outbuf))))
+			(if backend
+			    (vc-call-backend backend 'find-revision file revision outbuf)
+			  (vc-call find-revision file revision outbuf)))))
 		  (setq failed nil))
 	      (when (and failed (file-exists-p filename))
 		(delete-file filename))))

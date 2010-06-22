@@ -1,5 +1,13 @@
 2010-06-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	Fix finding revisions in for renamed files in vc-annotate.
+	* vc.el (vc-find-revision): Add an optional argument for
+	the VC backend.  Use it when non-nil.
+	* vc-annotate.el (vc-annotate-find-revision-at-line): Pass the VC
+	backend to vc-find-revision.  (Bug#6487)
+
+2010-06-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
 	Fix reading file names in Git annotate buffers.
 	* vc-git.el (vc-git-annotate-extract-revision-at-line): Remove
 	trailing whitespace.  Suggested by Eric Hanchrow.  (Bug#6481)

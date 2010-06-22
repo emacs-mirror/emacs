@@ -461,7 +461,7 @@ Return a cons (REV . FILENAME)."
       (if (not rev-at-line)
 	  (message "Cannot extract revision number from the current line")
 	(switch-to-buffer-other-window
-	 (vc-find-revision (cdr rev-at-line) (car rev-at-line)))))))
+	 (vc-find-revision (cdr rev-at-line) (car rev-at-line) vc-annotate-backend))))))
 
 (defun vc-annotate-revision-previous-to-line ()
   "Visit the annotation of the revision before the revision at line."
