@@ -4985,7 +4985,8 @@ comment at the start of cc-engine.el for more info."
   ;; POS (default point) is at a < character.  If it is both marked
   ;; with open/close paren syntax-table property, and has a matching >
   ;; (also marked) which is after LIM, remove the property both from
-  ;; the current > and its partner.
+  ;; the current > and its partner.  Return t when this happens, nil
+  ;; when it doesn't.
   (save-excursion
     (if pos
 	(goto-char pos)
@@ -4998,13 +4999,15 @@ comment at the start of cc-engine.el for more info."
 		 (equal (c-get-char-property (1- (point)) 'syntax-table)
 			c->-as-paren-syntax)) ; should always be true.
 	(c-unmark-<->-as-paren (1- (point)))
-	(c-unmark-<->-as-paren pos)))))
+	(c-unmark-<->-as-paren pos))
+      t)))
 
 (defun c-clear->-pair-props-if-match-before (lim &optional pos)
   ;; POS (default point) is at a > character.  If it is both marked
   ;; with open/close paren syntax-table property, and has a matching <
   ;; (also marked) which is before LIM, remove the property both from
-  ;; the current < and its partner.
+  ;; the current < and its partner.  Return t when this happens, nil
+  ;; when it doesn't.
   (save-excursion
     (if pos
 	(goto-char pos)
@@ -5017,7 +5020,8 @@ comment at the start of cc-engine.el for more info."
 		 (equal (c-get-char-property (point) 'syntax-table)
 			c-<-as-paren-syntax)) ; should always be true.
 	(c-unmark-<->-as-paren (point))
-	(c-unmark-<->-as-paren pos)))))
+	(c-unmark-<->-as-paren pos))
+      t)))
 
 (defun c-before-change-check-<>-operators (beg end)
   ;; Unmark certain pairs of "< .... >" which are currently marked as
@@ -5040,25 +5044,39 @@ comment at the start of cc-engine.el for more info."
   ;; 2010-01-29.
   (save-excursion
     (let ((beg-lit-limits (progn (goto-char beg) (c-literal-limits)))
-	  (end-lit-limits (progn (goto-char end) (c-literal-limits))))
+	  (end-lit-limits (progn (goto-char end) (c-literal-limits)))
+	  new-beg new-end need-new-beg need-new-end)
       ;; Locate the barrier before the changed region
       (goto-char  (if beg-lit-limits (car beg-lit-limits) beg))
       (c-syntactic-skip-backward "^;{}" (max (- beg 2048) (point-min)))
+      (setq new-beg (point))
 
       ;; Remove the syntax-table properties from each pertinent <...> pair.
       ;; Firsly, the ones with the < before beg and > after beg.
       (while (c-search-forward-char-property 'category 'c-<-as-paren-syntax beg)
-	(c-clear-<-pair-props-if-match-after beg (1- (point))))
+	(if (c-clear-<-pair-props-if-match-after beg (1- (point)))
+	    (setq need-new-beg t)))
 
       ;; Locate the barrier after END.
       (goto-char (if end-lit-limits (cdr end-lit-limits) end))
       (c-syntactic-re-search-forward "[;{}]"
 				     (min (+ end 2048) (point-max)) 'end)
+      (setq new-end (point))
 
       ;; Remove syntax-table properties from the remaining pertinent <...>
       ;; pairs, those with a > after end and < before end.
       (while (c-search-backward-char-property 'category 'c->-as-paren-syntax end)
-	(c-clear->-pair-props-if-match-before end)))))
+	(if (c-clear->-pair-props-if-match-before end)
+	    (setq need-new-end t)))
+
+      ;; Extend the fontification region, if needed.
+      (when need-new-beg
+	(goto-char new-beg)
+	(c-forward-syntactic-ws)
+	(and (< (point) c-new-BEG) (setq c-new-BEG (point))))
+
+      (when need-new-end
+	(and (> new-end c-new-END) (setq c-new-END new-end))))))
 
 
 

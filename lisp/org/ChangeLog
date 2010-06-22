@@ -1,3 +1,8 @@
+2010-06-22  Glenn Morris  <rgm@gnu.org>
+
+	* org-entities.el: Add explicit utf-8 coding cookie to file with
+	utf-8 characters.
+
 2010-05-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* org.el (org-file-complete-link): Avoid (expand-file-name ".").
