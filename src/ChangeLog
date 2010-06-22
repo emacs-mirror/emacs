@@ -1,3 +1,8 @@
+2010-06-22  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (x_default_font_parameter): Try to open font from system
+	before using it (bug#6478).  Rename got_from_gconf to got_from_system.
+
 2010-06-22  Keith Packard <keithp@keithp.com> (tiny change)
 
 	* font.c (font_parse_fcname): Allow . for sizes like 7.5 (bug#6437).
