@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 
-;; Author: Jan DjÃ¤rv <jan.h.d@swipnet.se>
+;; Author: Jan Djärv <jan.h.d@swipnet.se>
 ;; Maintainer: FSF
 ;; Keywords: font, system-font
 
