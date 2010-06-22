@@ -1,5 +1,8 @@
 2010-06-22  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/js.el (js-mode-map): Use standard capitalization and
+	ellipses for menu entries.
+
 	* wid-edit.el (widget-complete): Doc fix.
 
 2010-06-22  Jürgen Hötzel  <juergen@hoetzel.info>  (tiny change)
