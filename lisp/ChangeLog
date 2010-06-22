@@ -1,3 +1,7 @@
+2010-06-22  Glenn Morris  <rgm@gnu.org>
+
+	* wid-edit.el (widget-complete): Doc fix.
+
 2010-06-22  Jürgen Hötzel  <juergen@hoetzel.info>  (tiny change)
 
 	* wid-edit.el (widget-complete): Fix typo in 2009-12-02 change.

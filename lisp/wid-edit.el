@@ -1156,9 +1156,12 @@ the field."
     (if field
 	(narrow-to-region (line-beginning-position) (line-end-position)))))
 
+;; This used to say:
+;; "When not inside a field, move to the previous button or field."
+;; but AFAICS, it has always just thrown an error.
 (defun widget-complete ()
   "Complete content of editable field from point.
-When not inside a field, move to the previous button or field."
+When not inside a field, signal an error."
   (interactive)
   (let ((field (widget-field-find (point))))
     (if field
