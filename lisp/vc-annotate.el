@@ -526,7 +526,7 @@ the file in question, search for the log entry required and move point ."
 	  (message "Cannot extract revision number from the current line")
 	(setq prev-rev
 	      (vc-call-backend vc-annotate-backend 'previous-revision
-                               fname rev))
+                               (if filediff fname nil) rev))
 	(if (not prev-rev)
 	    (message "Cannot diff from any revision prior to %s" rev)
 	  (save-window-excursion

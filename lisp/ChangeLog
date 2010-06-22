@@ -1,3 +1,10 @@
+2010-06-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Fix vc-annotate-show-changeset-diff-revision-at-line for git.
+	* vc-annotate.el (vc-annotate-show-diff-revision-at-line-internal):
+	Do not pass the file name to the 'previous-revision call when we
+	don't want a file diff.  (Bug#6489)
+
 2010-06-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Fix finding revisions in for renamed files in vc-annotate.
