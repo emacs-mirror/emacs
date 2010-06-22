@@ -1544,7 +1544,7 @@ font_parse_fcname (name, font)
 	      int size_found = 1;
 
 	      for (q = p + 1; *q && *q != ' '; q++)
-		if (! isdigit (*q))
+		if (! isdigit (*q) && *q != '.')
 		  {
 		    size_found = 0;
 		    break;

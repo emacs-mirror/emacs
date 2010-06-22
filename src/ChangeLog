@@ -1,3 +1,7 @@
+2010-06-22  Keith Packard <keithp@keithp.com> (tiny change)
+
+	* font.c (font_parse_fcname): Allow . for sizes like 7.5 (bug#6437).
+
 2010-06-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (try_scrolling): When scroll-conservatively is set to
