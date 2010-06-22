@@ -1,3 +1,13 @@
+2010-06-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Fix vc-annotate for renamed files when using Git.
+	* vc-git.el (vc-git-find-revision): Deal with empty results from
+	ls-files.  Doe not pass the object as a file name to cat-file, it
+	is not a file name.
+	(vc-git-annotate-command): Pass the file name using -- to avoid
+	ambiguity with the revision.
+	(vc-git-previous-revision): Pass a relative file name.
+
 2010-06-22  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/js.el (js-mode-map): Use standard capitalization and

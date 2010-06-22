@@ -551,13 +551,18 @@ or an empty string if none."
   (let* (process-file-side-effects
 	 (coding-system-for-read 'binary)
 	 (coding-system-for-write 'binary)
-	 (fullname (substring
-		    (vc-git--run-command-string
-		     file "ls-files" "-z" "--full-name" "--")
-		    0 -1)))
+	 (fullname
+	  (let ((fn (vc-git--run-command-string
+		     file "ls-files" "-z" "--full-name" "--")))
+	    ;; ls-files does not return anything when looking for a
+	    ;; revision of a file that has been renamed or removed.
+	    (if (string= fn "")
+		(file-relative-name file (vc-git-root default-directory))
+	      (substring fn 0 -1)))))
     (vc-git-command
      buffer 0
-     (concat (if rev rev "HEAD") ":" fullname) "cat-file" "blob")))
+     nil
+     "cat-file" "blob" (concat (if rev rev "HEAD") ":" fullname))))
 
 (defun vc-git-checkout (file &optional editable rev)
   (vc-git-command nil 0 file "checkout" (or rev "HEAD")))
@@ -689,7 +694,7 @@ or BRANCH^ (where \"^\" can be repeated)."
 
 (defun vc-git-annotate-command (file buf &optional rev)
   (let ((name (file-relative-name file)))
-    (vc-git-command buf 'async name "blame" "--date=iso" "-C" "-C" rev)))
+    (vc-git-command buf 'async nil "blame" "--date=iso" "-C" "-C" rev "--" name)))
 
 (declare-function vc-annotate-convert-time "vc-annotate" (time))
 
@@ -735,11 +740,10 @@ or BRANCH^ (where \"^\" can be repeated)."
 (defun vc-git-previous-revision (file rev)
   "Git-specific version of `vc-previous-revision'."
   (if file
-      (let* ((default-directory (file-name-directory (expand-file-name file)))
-             (file (file-name-nondirectory file))
+      (let* ((fname (file-relative-name file))
              (prev-rev (with-temp-buffer
                          (and
-                          (vc-git--out-ok "rev-list" "-2" rev "--" file)
+                          (vc-git--out-ok "rev-list" "-2" rev "--" fname)
                           (goto-char (point-max))
                           (bolp)
                           (zerop (forward-line -1))
