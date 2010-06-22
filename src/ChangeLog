@@ -1,5 +1,13 @@
 2010-06-22  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* xterm.c (x_scroll_bar_create): Remove call to xg_show_scroll_bar.
+
+	* gtkutil.h (xg_show_scroll_bar): : Remove.
+
+	* gtkutil.c (xg_update_scrollbar_pos): Show/hide scroll bar as needed
+	if height is less than scroll bar min size.
+	(xg_show_scroll_bar): Remove, show moved to xg_update_scrollbar_pos.
+
 	* xfns.c (x_default_font_parameter): Try to open font from system
 	before using it (bug#6478).  Rename got_from_gconf to got_from_system.
 

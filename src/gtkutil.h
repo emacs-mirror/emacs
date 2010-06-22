@@ -163,7 +163,6 @@ extern void xg_create_scroll_bar P_ ((FRAME_PTR f,
                                       GCallback scroll_callback,
                                       GCallback end_callback,
                                       char *scroll_bar_name));
-extern void xg_show_scroll_bar P_ ((int scrollbar_id));
 extern void xg_remove_scroll_bar P_ ((FRAME_PTR f, int scrollbar_id));
 
 extern void xg_update_scrollbar_pos P_ ((FRAME_PTR f,
