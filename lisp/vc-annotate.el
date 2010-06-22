@@ -314,7 +314,7 @@ use; you may override this using the second optional arg MODE."
 		  vc-annotate-display-mode))))
 
 ;;;###autoload
-(defun vc-annotate (file rev &optional display-mode buf move-point-to)
+(defun vc-annotate (file rev &optional display-mode buf move-point-to vc-bk)
   "Display the edit history of the current FILE using colors.
 
 This command creates a buffer that shows, for each line of the current
@@ -334,6 +334,8 @@ over the past 20 days are shown in red to blue, according to their
 age, and everything that is older than that is shown in blue.
 
 If MOVE-POINT-TO is given, move the point to that line.
+
+If VC-BK is given used that VC backend.
 
 Customization variables:
 
@@ -375,7 +377,7 @@ mode-specific menu.  `vc-annotate-color-map' and
 		;; In case it had to be uniquified.
 		(setq temp-buffer-name (buffer-name))))
     (with-output-to-temp-buffer temp-buffer-name
-      (let ((backend (vc-backend file))
+      (let ((backend (or vc-bk (vc-backend file)))
 	    (coding-system-for-read buffer-file-coding-system))
         (vc-call-backend backend 'annotate-command file
                          (get-buffer temp-buffer-name) rev)
@@ -596,7 +598,8 @@ describes a revision number, so warp to that revision."
 		     ;; place the point in the line.
 		     (min oldline (progn (goto-char (point-max))
                                          (forward-line -1)
-                                         (line-number-at-pos))))))))
+                                         (line-number-at-pos)))
+		     vc-annotate-backend)))))
 
 (defun vc-annotate-compcar (threshold a-list)
   "Test successive cons cells of A-LIST against THRESHOLD.

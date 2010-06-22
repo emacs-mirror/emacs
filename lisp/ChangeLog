@@ -1,5 +1,10 @@
 2010-06-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	Fix annotating other revisions for renamed files in vc-annotate.
+	* vc-annotate.el (vc-annotate): Add an optional argument for the
+	VC backend.  Use it when non-nil.
+	(vc-annotate-warp-revision): Pass the VC backend to vc-annotate.  (Bug#6487)
+
 	Fix vc-annotate-show-changeset-diff-revision-at-line for git.
 	* vc-annotate.el (vc-annotate-show-diff-revision-at-line-internal):
 	Do not pass the file name to the 'previous-revision call when we
@@ -7,7 +12,7 @@
 
 2010-06-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	Fix finding revisions in for renamed files in vc-annotate.
+	Fix finding revisions for renamed files in vc-annotate.
 	* vc.el (vc-find-revision): Add an optional argument for
 	the VC backend.  Use it when non-nil.
 	* vc-annotate.el (vc-annotate-find-revision-at-line): Pass the VC
