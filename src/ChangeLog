@@ -1,6 +1,5 @@
 2010-06-22  Martin Rudalics  <rudalics@gmx.at>
 
-
 	* frame.c (Fother_visible_frames_p): New function.
 	(Fwindow_frame, Fframe_root_window, Fframe_first_window)
 	(Fframe_selected_window, Fset_frame_selected_window): Move to
