@@ -1,3 +1,9 @@
+2010-06-21  Karl Fogel  <kfogel@red-bean.com>
+
+	* simple.el (compose-mail): Fix doc string to refer to
+	`compose-mail-user-agent-warnings', instead of to the
+	nonexistent `compose-mail-check-user-agent'.
+
 2010-06-21  Alan Mackenzie  <bug-cc-mode@gnu.org>
 
 	Fix an indentation bug:
