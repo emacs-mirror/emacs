@@ -42,6 +42,39 @@
 	the current buffer when the buffer of the selected window is
 	killed. (Bug#4654)
 
+2010-06-22  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_scroll_bar_create): Remove call to xg_show_scroll_bar.
+
+	* gtkutil.h (xg_show_scroll_bar): : Remove.
+
+	* gtkutil.c (xg_update_scrollbar_pos): Show/hide scroll bar as needed
+	if height is less than scroll bar min size.
+	(xg_show_scroll_bar): Remove, show moved to xg_update_scrollbar_pos.
+
+	* xfns.c (x_default_font_parameter): Try to open font from system
+	before using it (bug#6478).  Rename got_from_gconf to got_from_system.
+
+2010-06-22  Keith Packard <keithp@keithp.com> (tiny change)
+
+	* font.c (font_parse_fcname): Allow . for sizes like 7.5 (bug#6437).
+
+2010-06-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (try_scrolling): When scroll-conservatively is set to
+	most-positive-fixnum, be extra accurate when scrolling window
+	start, to avoid missing the cursor line.
+
+2010-06-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (try_scrolling): Compute the limit for searching point
+	in forward scroll from scroll_max, instead of an arbitrary limit
+	of 10 screen lines.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2010-06/msg00766.html
+	and
+	http://lists.gnu.org/archive/html/emacs-devel/2010-06/msg00773.html
+	for details.
+
 2010-06-16  Glenn Morris  <rgm@gnu.org>
 
 	* editfns.c (Fbyte_to_string): Pacify compiler.

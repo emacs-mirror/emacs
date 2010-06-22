@@ -3064,8 +3064,8 @@ x_default_font_parameter (f, parms)
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   Lisp_Object font_param = x_get_arg (dpyinfo, parms, Qfont, NULL, NULL,
                                       RES_TYPE_STRING);
-  Lisp_Object font;
-  int got_from_gconf = 0;
+  Lisp_Object font = Qnil;
+  int got_from_system = 0;
   if (EQ (font_param, Qunbound))
     font_param = Qnil;
 
@@ -3075,14 +3075,20 @@ x_default_font_parameter (f, parms)
          regardless of font-use-system-font because .emacs may not have been
          read yet.  */
       const char *system_font = xsettings_get_system_font ();
-      if (system_font) font_param = make_string (system_font,
-                                                 strlen (system_font));
+      if (system_font)
+        {
+          char *name = xstrdup (system_font);
+          font = font_open_by_name (f, name);
+          got_from_system = ! NILP (font);
+          free (name);
+        }
     }
-  
-  font = !NILP (font_param) ? font_param
-    : x_get_arg (dpyinfo, parms, Qfont, "font", "Font", RES_TYPE_STRING);
 
-  if (! STRINGP (font))
+  if (NILP (font))
+      font = !NILP (font_param) ? font_param
+      : x_get_arg (dpyinfo, parms, Qfont, "font", "Font", RES_TYPE_STRING);
+
+  if (! FONTP (font) && ! STRINGP (font))
     {
       char *names[]
 	= {
@@ -3120,8 +3126,8 @@ x_default_font_parameter (f, parms)
     }
 
   x_default_parameter (f, parms, Qfont, font,
-                       got_from_gconf ? NULL : "font",
-                       got_from_gconf ? NULL : "Font",
+                       got_from_system ? NULL : "font",
+                       got_from_system ? NULL : "Font",
                        RES_TYPE_STRING);
 }
 

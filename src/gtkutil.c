@@ -3174,17 +3174,6 @@ xg_create_scroll_bar (f, bar, scroll_callback, end_callback, scroll_bar_name)
   bar->x_window = scroll_id;
 }
 
-/* Make the scroll bar represented by SCROLLBAR_ID visible.  */
-
-void
-xg_show_scroll_bar (scrollbar_id)
-     int scrollbar_id;
-{
-  GtkWidget *w = xg_get_widget_from_map (scrollbar_id);
-  if (w)
-    gtk_widget_show_all (gtk_widget_get_parent (w));
-}
-
 /* Remove the scroll bar represented by SCROLLBAR_ID from the frame F.  */
 
 void
@@ -3243,10 +3232,23 @@ xg_update_scrollbar_pos (f, scrollbar_id, top, left, width, height)
 
       /* Move and resize to new values.  */
       gtk_fixed_move (GTK_FIXED (wfixed), wparent, left, top);
-      gtk_widget_set_size_request (wscroll, width, height);
+      gint msl;
+      gtk_widget_style_get (wscroll, "min-slider-length", &msl, NULL);
+      if (msl > height)
+        {
+          /* No room.  Hide scroll bar as some themes output a warning if
+             the height is less than the min size.  */
+          gtk_widget_hide (wparent);
+          gtk_widget_hide (wscroll);
+        }
+      else
+        {
+          gtk_widget_show_all (wparent);
+          gtk_widget_set_size_request (wscroll, width, height);
+        }
       gtk_widget_queue_draw (wfixed);
       gdk_window_process_all_updates ();
-      if (oldx != -1) 
+      if (oldx != -1 && oldw > 0 && oldh > 0)
         {
           /* Clear under old scroll bar position.  This must be done after
              the gtk_widget_queue_draw and gdk_window_process_all_updates

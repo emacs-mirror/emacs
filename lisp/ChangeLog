@@ -1,3 +1,73 @@
+2010-06-22  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/texinfmt.el (texinfo-format-region)
+	(texinfo-raise-lower-sections, texinfo-format-separate-node)
+	(texinfo-itemize-item, texinfo-multitable-item, texinfo-alias)
+	(texinfo-format-option, texinfo-noindent):
+	Use line-beginning-position and line-end-position.
+
+	* calc/calc-aent.el, calc/calc-ext.el, calc/calc-lang.el:
+	* calc/calc-store.el, calc/calc-units.el, calc/calc.el:
+	* calc/calccomp.el: Add explicit utf-8 coding cookies to files with
+	utf-8 characters.
+
+2010-06-21  Karl Fogel  <kfogel@red-bean.com>
+
+	* simple.el (compose-mail): Fix doc string to refer to
+	`compose-mail-user-agent-warnings', instead of to the
+	nonexistent `compose-mail-check-user-agent'.
+
+2010-06-21  Alan Mackenzie  <bug-cc-mode@gnu.org>
+
+	Fix an indentation bug:
+
+	* progmodes/cc-mode.el (c-common-init): Initialise c-new-BEG/END.
+	(c-neutralize-syntax-in-and-mark-CPP): c-new-BEG/END: Take account
+	of existing values.
+
+	* progmodes/cc-engine.el (c-clear-<-pair-props-if-match-after)
+	(c-clear->-pair-props-if-match-before): now return t when they've
+	cleared properties, nil otherwise.
+	(c-before-change-check-<>-operators): Set c-new-beg/end correctly
+	by taking account of the existing value.
+
+	* progmodes/cc-defs.el
+	(c-clear-char-property-with-value-function): Fix this to clear the
+	property rather than overwriting it with nil.
+
+2010-06-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package-print-package): Add link to
+	package description via describe-package.
+	(describe-package-1): List package requirements.  Add button to
+	perform installation.
+	(package-menu-describe-package): New command.
+
+	* help-mode.el (help-package): New button type.
+
+2010-06-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el: Move package-list-packages binding to
+	menu-bar.el.
+	(describe-package, describe-package-1, package--dir): New funs.
+	(package-activate-1): Use package--dir.
+
+	* emacs-lisp/package-x.el (gnus-article-buffer): Require package.
+
+	* help-mode.el (help-package-def): New button type.
+
+	* menu-bar.el: Move package-list-packages binding here from
+	package.el.
+
+2010-06-19  Gustav Hållberg  <gustav@gmail.com>  (tiny change)
+
+	* descr-text.el (describe-char): Avoid trailing whitespace.  (Bug#6423)
+
+2010-06-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/edebug.el (edebug-read-list):
+	Phase out old-style backquotes.
+
 2010-06-17  Juri Linkov  <juri@jurta.org>
 
 	* help-mode.el (help-mode): Set buffer-local variable
