@@ -4,8 +4,8 @@
 	* custom.texi, dired.texi, display.texi, emacs.texi, emerge-xtra.texi:
 	* files.texi, fortran-xtra.texi, frames.texi, help.texi, killing.texi:
 	* maintaining.texi, mark.texi, mini.texi, misc.texi, msdog.texi:
-	* programs.texi, rmail.texi, screen.texi, search.texi, sending.texi:
-	* text.texi, trouble.texi, vc1-xtra.texi, xresources.texi:
+	* mule.texi, programs.texi, rmail.texi, screen.texi, search.texi:
+	* sending.texi, text.texi, trouble.texi, vc1-xtra.texi, xresources.texi:
 	Untabify Texinfo files.
 
 2010-06-10  Glenn Morris  <rgm@gnu.org>
