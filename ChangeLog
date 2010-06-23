@@ -1,3 +1,7 @@
+2010-06-23  Glenn Morris  <rgm@gnu.org>
+
+	* info/dir: Start descriptions in column 32, per Texinfo convention.
+
 2010-06-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* INSTALL: Update font information (Bug#6389).
