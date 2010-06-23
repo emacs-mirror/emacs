@@ -1,3 +1,7 @@
+2010-06-23  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* lread.c (read1): Signal error if #s is not followed by paren.
+
 2010-06-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image.c (free_image): Mark frame as garbaged (Bug#6426).
