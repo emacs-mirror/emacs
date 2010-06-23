@@ -25,6 +25,7 @@
 ;;; Code:
 
 (require 'url-vars)
+(require 'auth-source)
 (eval-when-compile (require 'cl))
 
 (autoload 'url-scheme-get-property "url-methods")
@@ -173,6 +174,25 @@ TYPE USER PASSWORD HOST PORTSPEC FILENAME TARGET ATTRIBUTES FULLNESS."
               (setq host (url-unhex-string host)))
           (url-parse-make-urlobj
            prot user pass host port file refs attr full)))))))
+
+(defmacro url-bit-for-url (method lookfor url)
+  `(let* ((urlobj (url-generic-parse-url url))
+          (bit (funcall ,method urlobj))
+          (methods (list 'url-recreate-url
+                         'url-host)))
+     (while (and (not bit) (> (length methods) 0))
+       (setq bit
+             (auth-source-user-or-password
+              ,lookfor (funcall (pop methods) urlobj) (url-type urlobj))))
+     bit))
+
+(defun url-user-for-url (url)
+  "Attempt to use .authinfo to find a user for this URL."
+  (url-bit-for-url 'url-user "login" url))
+
+(defun url-password-for-url (url)
+  "Attempt to use .authinfo to find a password for this URL."
+  (url-bit-for-url 'url-password "password" url))
 
 (provide 'url-parse)
 
