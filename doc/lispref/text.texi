@@ -1,7 +1,8 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/text
 @node Text, Non-ASCII Characters, Markers, Top
@@ -42,7 +43,7 @@ the character after point.
 * The Kill Ring::    Where removed text sometimes is saved for later use.
 * Undo::             Undoing changes to the text of a buffer.
 * Maintaining Undo:: How to enable and disable undo information.
-			How to control how much information is kept.
+                        How to control how much information is kept.
 * Filling::          Functions for explicit filling.
 * Margins::          How to specify margins for filling commands.
 * Adaptive Fill::    Adaptive Fill mode chooses a fill prefix from context.
@@ -821,7 +822,7 @@ would be difficult to change the terminology now.
 * Kill Functions::         Functions that kill text.
 * Yanking::                How yanking is done.
 * Yank Commands::          Commands that access the kill ring.
-* Low-Level Kill Ring::	   Functions and variables for kill ring access.
+* Low-Level Kill Ring::    Functions and variables for kill ring access.
 * Internals of Kill Ring:: Variables that hold kill ring data.
 @end menu
 
@@ -2593,9 +2594,9 @@ along with the characters; this includes such diverse functions as
 
 @menu
 * Examining Properties::   Looking at the properties of one character.
-* Changing Properties::	   Setting the properties of a range of text.
-* Property Search::	   Searching for where a property changes value.
-* Special Properties::	   Particular properties with special meanings.
+* Changing Properties::    Setting the properties of a range of text.
+* Property Search::        Searching for where a property changes value.
+* Special Properties::     Particular properties with special meanings.
 * Format Properties::      Properties for representing formatting of text.
 * Sticky Properties::      How inserted text gets properties from
                              neighboring text.
@@ -2605,8 +2606,8 @@ along with the characters; this includes such diverse functions as
                              do something when you click on them.
 * Fields::                 The @code{field} property defines
                              fields within the buffer.
-* Not Intervals::	   Why text properties do not use
-			     Lisp-visible text intervals.
+* Not Intervals::          Why text properties do not use
+                             Lisp-visible text intervals.
 @end menu
 
 @node Examining Properties

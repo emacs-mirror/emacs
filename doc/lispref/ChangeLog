@@ -1,3 +1,13 @@
+2010-06-23  Glenn Morris  <rgm@gnu.org>
+
+	* abbrevs.texi, commands.texi, compile.texi, debugging.texi:
+	* display.texi, edebug.texi, elisp.texi, eval.texi, files.texi:
+	* frames.texi, functions.texi, internals.texi, keymaps.texi:
+	* loading.texi, minibuf.texi, numbers.texi, os.texi, processes.texi:
+	* searching.texi, sequences.texi, strings.texi, syntax.texi:
+	* text.texi, tips.texi, vol1.texi, vol2.texi, windows.texi:
+	Untabify Texinfo files.
+
 2010-06-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* modes.texi (Minor Mode Conventions): Fix typo (Bug#6477).

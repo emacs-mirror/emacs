@@ -1,7 +1,8 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/files
 @node Files, Backups and Auto-Saving, Documentation, Top
@@ -38,9 +39,9 @@ to locale @code{system-message-locale}, and decoded using coding system
 * Changing Files::           Renaming files, changing protection, etc.
 * File Names::               Decomposing and expanding file names.
 * Contents of Directories::  Getting a list of the files in a directory.
-* Create/Delete Dirs::	     Creating and Deleting Directories.
-* Magic File Names::	     Defining "magic" special handling
-			       for certain file names.
+* Create/Delete Dirs::       Creating and Deleting Directories.
+* Magic File Names::         Defining "magic" special handling
+                               for certain file names.
 * Format Conversion::        Conversion to and from various file formats.
 @end menu
 
@@ -755,7 +756,7 @@ otherwise noted.
 @menu
 * Testing Accessibility::   Is a given file readable?  Writable?
 * Kinds of Files::          Is it a directory?  A symbolic link?
-* Truenames::		    Eliminating symbolic links from a file name.
+* Truenames::               Eliminating symbolic links from a file name.
 * File Attributes::         How large is it?  Any other names?  Etc.
 * Locating Files::          How to find a file in standard places.
 @end menu
