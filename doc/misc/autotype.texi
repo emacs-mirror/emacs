@@ -92,7 +92,7 @@ completions and expansions of text at point.
                              after point.
 * Autoinserting::          Filling up empty files as soon as you visit them.
 * Copyrights::             Inserting and updating copyrights.
-* Executables::	           Turning interpreter scripts into executables.
+* Executables::            Turning interpreter scripts into executables.
 * Timestamps::             Updating dates and times in modified files.
 * QuickURL::               Inserting URLs based on text at point.
 * Tempo::                  Flexible template insertion.
@@ -201,7 +201,7 @@ the output from @kbd{M-x list-abbrevs} to make it look like this:
 
 @example
 (c-mode-abbrev-table)
-"if"	       0    ""	       c-if
+"if"           0    ""         c-if
 @end example
 
 @noindent

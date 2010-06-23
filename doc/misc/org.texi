@@ -7393,12 +7393,12 @@ Internet, and outside of business hours, with something like this:
 @group
 (defun org-my-auto-exclude-function (tag)
   (and (cond
-	((string= tag "Net")
-	 (/= 0 (call-process "/sbin/ping" nil nil nil
-			     "-c1" "-q" "-t1" "mail.gnu.org")))
-	((or (string= tag "Errand") (string= tag "Call"))
-	 (let ((hour (nth 2 (decode-time))))
-	   (or (< hour 8) (> hour 21)))))
+        ((string= tag "Net")
+         (/= 0 (call-process "/sbin/ping" nil nil nil
+                             "-c1" "-q" "-t1" "mail.gnu.org")))
+        ((or (string= tag "Errand") (string= tag "Call"))
+         (let ((hour (nth 2 (decode-time))))
+           (or (< hour 8) (> hour 21)))))
        (concat "-" tag)))
 
 (setq org-agenda-auto-exclude-function 'org-my-auto-exclude-function)
@@ -11040,9 +11040,9 @@ fixed this problem:
 
 @lisp
 (add-hook 'org-mode-hook
-	  (lambda ()
-	    (org-set-local 'yas/trigger-key [tab])
-	    (define-key yas/keymap [tab] 'yas/next-field-group)))
+          (lambda ()
+            (org-set-local 'yas/trigger-key [tab])
+            (define-key yas/keymap [tab] 'yas/next-field-group)))
 @end lisp
 
 @item @file{windmove.el} by Hovav Shacham

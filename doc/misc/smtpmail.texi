@@ -44,17 +44,17 @@ developing GNU and promoting software freedom.''
 @end ifnottex
 
 @menu
-* How Mail Works::	Brief introduction to mail concepts.
+* How Mail Works::      Brief introduction to mail concepts.
 * Emacs Speaks SMTP::   How to use the SMTP library in Emacs.
-* Authentication::	Authenticating yourself to the server.
-* Queued delivery::	Sending mail without an internet connection.
-* Server workarounds::	Mail servers with special requirements.
-* Debugging::		Tracking down problems.
+* Authentication::      Authenticating yourself to the server.
+* Queued delivery::     Sending mail without an internet connection.
+* Server workarounds::  Mail servers with special requirements.
+* Debugging::           Tracking down problems.
 * GNU Free Documentation License:: The license for this documentation.
 
 Indices
 
-* Index::		Index over variables and functions.
+* Index::               Index over variables and functions.
 @end menu
 
 @node How Mail Works

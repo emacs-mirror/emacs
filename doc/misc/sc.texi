@@ -7,7 +7,7 @@
 @finalout
 @end iftex
 
-@c @setchapternewpage odd		% For book style double sided manual.
+@c @setchapternewpage odd               % For book style double sided manual.
 @comment %**end of header (This is for running Texinfo on a region.)
 
 @copying
@@ -35,8 +35,8 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* SC: (sc).		Supercite lets you cite parts of messages you're
-			  replying to, in flexible ways.
+* SC: (sc).                     Supercite lets you cite parts of messages
+                                  you're replying to, in flexible ways.
 @end direntry
 
 @titlepage
