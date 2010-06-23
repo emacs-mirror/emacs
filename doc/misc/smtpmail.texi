@@ -355,15 +355,15 @@ configurations of sendmail requires this behavior.  Don't bother to
 set this unless you have get an error like:
 
 @example
-	Sending failed; SMTP protocol error
+        Sending failed; SMTP protocol error
 @end example
 
 when sending mail, and the debug buffer (@pxref{Debugging})) contains
 an error such as:
 
 @example
-	RCPT TO: @var{someone}
-	501 @var{someone}: recipient address must contain a domain
+        RCPT TO: @var{someone}
+        501 @var{someone}: recipient address must contain a domain
 @end example
 
 @end table

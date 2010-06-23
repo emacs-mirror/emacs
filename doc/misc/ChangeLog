@@ -1,11 +1,11 @@
 2010-06-23  Glenn Morris  <rgm@gnu.org>
 
 	* autotype.texi, cl.texi, dired-x.texi, ebrowse.texi, ede.texi:
-	* eieio.texi, faq.texi, flymake.texi, forms.texi, gnus-faq.texi:
-	* idlwave.texi, mh-e.texi, org.texi, pcl-cvs.texi, pgg.texi:
-	* reftex.texi, sasl.texi, sc.texi, sem-user.texi, semantic.texi:
-	* sieve.texi, smtpmail.texi, speedbar.texi, vip.texi, viper.texi:
-	* widget.texi: Untabify.
+	* eieio.texi, epa.texi, faq.texi, flymake.texi, forms.texi:
+	* gnus-faq.texi, idlwave.texi, mh-e.texi, nxml-mode.texi, org.texi:
+	* pcl-cvs.texi, pgg.texi, reftex.texi, sasl.texi, sc.texi,
+	* sem-user.texi, semantic.texi, sieve.texi, smtpmail.texi,
+	* speedbar.texi, vip.texi, viper.texi, widget.texi: Untabify.
 
 2010-06-10  Glenn Morris  <rgm@gnu.org>
 
