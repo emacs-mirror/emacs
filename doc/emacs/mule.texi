@@ -221,7 +221,7 @@ in a buffer whose coding system is @code{utf-8-unix}:
         character: @`A (192, #o300, #xc0)
 preferred charset: unicode (Unicode (ISO10646))
        code point: 0xC0
-           syntax: w 	which means: word
+           syntax: w    which means: word
          category: j:Japanese l:Latin v:Vietnamese
       buffer code: #xC3 #x80
         file code: not encodable by coding system undecided-unix

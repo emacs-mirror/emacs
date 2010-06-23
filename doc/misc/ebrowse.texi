@@ -625,15 +625,13 @@ given by a prefix argument.
 Here is an example of a tree buffer with file names displayed.
 
 @example
-|  Collection		(unknown)
-|    IndexedCollection	(indexedcltn.h)
-|      Array		(array.h)
-|        FixedArray	(fixedarray.h)
-|    Set		(set.h)
-|    Dictionary		(dict.h)
+|  Collection           (unknown)
+|    IndexedCollection  (indexedcltn.h)
+|      Array            (array.h)
+|        FixedArray     (fixedarray.h)
+|    Set                (set.h)
+|    Dictionary         (dict.h)
 @end example
-
-
 
 
 @node Expanding and Collapsing, Tree Indentation, File Name Display, Tree Buffers
