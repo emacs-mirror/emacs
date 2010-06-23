@@ -426,10 +426,10 @@ problem in these two documents might provide you with a solution or a
 work-around, or give you additional information about related issues.
 
 @menu
-* Criteria:  Bug Criteria.	 Have you really found a bug?
-* Understanding Bug Reporting::	 How to report a bug effectively.
-* Checklist::			 Steps to follow for a good bug report.
-* Sending Patches::		 How to send a patch for GNU Emacs.
+* Criteria:  Bug Criteria.       Have you really found a bug?
+* Understanding Bug Reporting::  How to report a bug effectively.
+* Checklist::                    Steps to follow for a good bug report.
+* Sending Patches::              How to send a patch for GNU Emacs.
 @end menu
 
 @node Bug Criteria

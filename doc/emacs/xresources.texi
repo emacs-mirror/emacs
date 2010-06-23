@@ -436,14 +436,14 @@ Resources for @emph{non-menubar} toolkit pop-up menus have
 the font @samp{8x16} for the pop-up menu items, write this:
 
 @example
-Emacs.menu*.font:	8x16
+Emacs.menu*.font:  8x16
 @end example
 
 @noindent
 For dialog boxes, use @samp{dialog*}:
 
 @example
-Emacs.dialog*.font:	8x16
+Emacs.dialog*.font:  8x16
 @end example
 
 @noindent
