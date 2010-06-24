@@ -30,7 +30,7 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* Flymake: (flymake). A universal on-the-fly syntax checker.
+* Flymake: (flymake).           A universal on-the-fly syntax checker.
 @end direntry
 
 @titlepage

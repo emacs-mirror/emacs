@@ -10,8 +10,8 @@
 @c  @cindex autotypist
 
 @copying
-Copyright @copyright{} 1994, 1995, 1999, 2001, 2002, 2003, 2004,
-2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright @copyright{} 1994, 1995, 1999, 2001, 2002, 2003, 2004, 2005,
+2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -29,8 +29,8 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* Autotype: (autotype). Convenient features for text that you enter frequently
-                          in Emacs.
+* Autotype: (autotype).         Convenient features for text that you
+                                  enter frequently in Emacs.
 @end direntry
 
 @titlepage

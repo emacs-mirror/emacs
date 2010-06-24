@@ -23,7 +23,7 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* Speedbar: (speedbar). File/Tag summarizing utility.
+* Speedbar: (speedbar).         File/Tag summarizing utility.
 @end direntry
 
 @titlepage

@@ -27,7 +27,7 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* PGG: (pgg).   Emacs interface to various PGP implementations.
+* PGG: (pgg).                   Emacs interface to various PGP implementations.
 @end direntry
 
 @titlepage

@@ -32,7 +32,7 @@ license to the document, as described in section 6 of the license.
 
 @dircategory Emacs
 @direntry
-* SASL: (sasl).   The Emacs SASL library.
+* SASL: (sasl).                 The Emacs SASL library.
 @end direntry
 
 

@@ -46,7 +46,8 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* RefTeX: (reftex).      Emacs support for LaTeX cross-references and citations.
+* RefTeX: (reftex).             Emacs support for LaTeX cross-references
+                                  and citations.
 @end direntry
 
 @finalout

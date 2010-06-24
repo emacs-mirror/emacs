@@ -15,7 +15,7 @@
 @dircategory World Wide Web
 @dircategory Emacs
 @direntry
-* URL: (url).                 URL loading package.
+* URL: (url).                   URL loading package.
 @end direntry
 
 @copying

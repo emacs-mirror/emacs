@@ -29,7 +29,7 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* eieio: (eieio).       Objects for Emacs
+* eieio: (eieio).               Objects for Emacs.
 @end direntry
 
 @titlepage

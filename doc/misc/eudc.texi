@@ -31,7 +31,7 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* EUDC: (eudc).   An Emacs client for directory servers (LDAP, PH).
+* EUDC: (eudc).                 Emacs client for directory servers (LDAP, PH).
 @end direntry
 
 @footnotestyle end

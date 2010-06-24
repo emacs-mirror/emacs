@@ -43,7 +43,7 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* Semantic: (semantic).      Source code parser library and utilities.
+* Semantic: (semantic).         Source code parser library and utilities.
 @end direntry
 
 @titlepage

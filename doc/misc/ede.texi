@@ -24,7 +24,7 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* ede: (ede).       Project management for Emacs
+* ede: (ede).                   Project management for Emacs.
 @end direntry
 
 @titlepage

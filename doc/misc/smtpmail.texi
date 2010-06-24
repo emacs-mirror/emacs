@@ -22,7 +22,7 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* SMTP: (smtpmail). Emacs library for sending mail via SMTP.
+* SMTP: (smtpmail).             Emacs library for sending mail via SMTP.
 @end direntry
 
 @titlepage

@@ -27,8 +27,8 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* Widget: (widget).      The "widget" package used by the Emacs Customization
-                           facility.
+* Widget: (widget).             The "widget" package used by the Emacs
+                                  Customization facility.
 @end direntry
 
 @contents

@@ -68,7 +68,7 @@ license to the document, as described in section 6 of the license.
 
 @dircategory Emacs
 @direntry
-* Org Mode: (org).      Outline-based notes management and organizer
+* Org Mode: (org).              Outline-based notes management and organizer.
 @end direntry
 
 @titlepage
