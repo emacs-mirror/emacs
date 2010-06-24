@@ -1,3 +1,8 @@
+2010-06-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gtkutil.c (xg_update_scrollbar_pos):
+	Avoid C99 mid-block variable declaration.
+
 2010-06-22  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_scroll_bar_create): Remove call to xg_show_scroll_bar.
