@@ -53,16 +53,19 @@ function.  If the key is @kbd{M-x}, then it reads the name of another
 command, which it then calls.  This is done by the command
 @code{execute-extended-command} (@pxref{Interactive Call}).
 
-  To execute a command requires first reading the arguments for it.
-This is done by calling @code{command-execute} (@pxref{Interactive
-Call}).  For commands written in Lisp, the @code{interactive}
-specification says how to read the arguments.  This may use the prefix
-argument (@pxref{Prefix Command Arguments}) or may read with prompting
-in the minibuffer (@pxref{Minibuffers}).  For example, the command
-@code{find-file} has an @code{interactive} specification which says to
-read a file name using the minibuffer.  The command's function body does
-not use the minibuffer; if you call this command from Lisp code as a
-function, you must supply the file name string as an ordinary Lisp
+  Prior to executing the command, Emacs runs @code{undo-boundary} to
+create an undo boundary.  @xref{Maintaining Undo}.
+
+  To execute a command, Emacs first reads its arguments by calling
+@code{command-execute} (@pxref{Interactive Call}).  For commands
+written in Lisp, the @code{interactive} specification says how to read
+the arguments.  This may use the prefix argument (@pxref{Prefix
+Command Arguments}) or may read with prompting in the minibuffer
+(@pxref{Minibuffers}).  For example, the command @code{find-file} has
+an @code{interactive} specification which says to read a file name
+using the minibuffer.  The function body of @code{find-file} does not
+use the minibuffer, so if you call @code{find-file} as a function from
+Lisp code, you must supply the file name string as an ordinary Lisp
 function argument.
 
   If the command is a string or vector (i.e., a keyboard macro) then
