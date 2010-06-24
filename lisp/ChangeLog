@@ -1,3 +1,8 @@
+2010-06-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* kmacro.el (kmacro-call-macro): Don't issue hint message if the
+	echo area is in use (Bug#3412).
+
 2010-06-22  Glenn Morris  <rgm@gnu.org>
 
 	* textmodes/texinfmt.el (texinfo-format-region)
