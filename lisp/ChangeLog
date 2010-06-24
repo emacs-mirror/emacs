@@ -1,3 +1,8 @@
+2010-06-24  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
+
+	* comint.el (make-comint, make-comint-in-buffer): Mention return
+	value in the docstrings.  (Bug#6498)
+
 2010-06-24  Yoni Rabkin  <yoni@rabkins.net>
 
 	* bs.el (bs-mode-font-lock-keywords): Remove "by" from Dired pattern,
