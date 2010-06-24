@@ -1,3 +1,8 @@
+2010-06-24  Yoni Rabkin  <yoni@rabkins.net>
+
+	* bs.el (bs-mode-font-lock-keywords): Remove "by" from Dired pattern,
+	since it is not present when using some non-default switches.
+
 2010-06-23  Karl Fogel  <kfogel@red-bean.com>
 
 	* simple.el (compose-mail): Fix doc string to refer to

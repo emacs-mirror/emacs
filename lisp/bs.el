@@ -195,7 +195,7 @@ return a string representing the column's value."
 	     'font-lock-constant-face
 	   'font-lock-comment-face))
    ;; Dired-Buffers
-   '("^..\\(.*Dired by .*\\)$" 1 font-lock-function-name-face)
+   '("^..\\(.*Dired .*\\)$" 1 font-lock-function-name-face)
    ;; the star for modified buffers
    '("^.\\(\\*\\) +[^\\*]"     1 font-lock-comment-face))
   "Default font lock expressions for Buffer Selection Menu.")
