@@ -703,6 +703,10 @@ by \"Save Options\" in Custom buffers.")
     (when need-save
       (custom-save-all))))
 
+(define-key menu-bar-options-menu [package]
+  '(menu-item "Manage Emacs Packages" package-list-packages
+	      :help "Install or uninstall additional Emacs packages"))
+
 (define-key menu-bar-options-menu [save]
   `(menu-item ,(purecopy "Save Options") menu-bar-options-save
 	      :help ,(purecopy "Save options set from the menu above")))
@@ -1055,7 +1059,7 @@ mail status in mode line"))
 (define-key menu-bar-options-menu [cua-emulation-mode]
   (menu-bar-make-mm-toggle cua-mode
 			   "Shift movement mark region (CUA)"
-			   "Use shifted movement keys to set and extend the region."
+			   "Use shifted movement keys to set and extend the region"
 			   (:visible (and (boundp 'cua-enable-cua-keys)
 					  (not cua-enable-cua-keys)))))
 

@@ -62,7 +62,7 @@ On reaching end or beginning of buffer, stop and signal error.
 
 Depending on the bidirectional context, the movement may be to the
 right or to the left on the screen.  This is in contrast with
-\\[right-arrow-command], which see.  */)
+\\[right-char], which see.  */)
      (n)
      Lisp_Object n;
 {
@@ -102,7 +102,7 @@ On attempt to pass beginning or end of buffer, stop and signal error.
 
 Depending on the bidirectional context, the movement may be to the
 right or to the left on the screen.  This is in contrast with
-\\[left-arrow-command], which see.  */)
+\\[left-char], which see.  */)
      (n)
      Lisp_Object n;
 {
@@ -122,7 +122,7 @@ If there isn't room, go as far as possible (no error).
 Returns the count of lines left to move.  If moving forward,
 that is N - number of lines moved; if backward, N + number moved.
 With positive N, a non-empty line at the end counts as one line
-  successfully moved (for the return value).  */)
+successfully moved (for the return value).  */)
      (n)
      Lisp_Object n;
 {
@@ -167,8 +167,8 @@ With argument N not nil or 1, move forward N - 1 lines first.
 If point reaches the beginning or end of buffer, it stops there.
 
 This function constrains point to the current field unless this moves
-point to a different line than the original, unconstrained result.  If
-N is nil or 1, and a front-sticky field starts at point, the point
+point to a different line than the original, unconstrained result.
+If N is nil or 1, and a front-sticky field starts at point, the point
 does not move.  To ignore field boundaries bind
 `inhibit-field-text-motion' to t, or use the `forward-line' function
 instead.  For instance, `(forward-line 0)' does the same thing as

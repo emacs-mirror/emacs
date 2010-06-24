@@ -4635,16 +4635,17 @@ or multiple mail buffers, etc."
       (force-mode-line-update))))
 
 (defun make-directory (dir &optional parents)
-  "Create the directory DIR and any nonexistent parent dirs.
-If DIR already exists as a directory, signal an error, unless PARENTS is set.
+  "Create the directory DIR and optionally any nonexistent parent dirs.
+If DIR already exists as a directory, signal an error, unless
+PARENTS is non-nil.
 
-Interactively, the default choice of directory to create
-is the current default directory for file names.
-That is useful when you have visited a file in a nonexistent directory.
+Interactively, the default choice of directory to create is the
+current buffer's default directory.  That is useful when you have
+visited a file in a nonexistent directory.
 
-Noninteractively, the second (optional) argument PARENTS says whether
-to create parent directories if they don't exist.  Interactively,
-this happens by default."
+Noninteractively, the second (optional) argument PARENTS, if
+non-nil, says whether to create parent directories that don't
+exist.  Interactively, this happens by default."
   (interactive
    (list (read-file-name "Make directory: " default-directory default-directory
 			 nil nil)
@@ -4673,7 +4674,7 @@ this happens by default."
 
 (defconst directory-files-no-dot-files-regexp
   "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*"
-  "Regexp of file names excluging \".\" an \"..\".")
+  "Regexp matching any file name except \".\" and \"..\".")
 
 (defun delete-directory (directory &optional recursive trash)
   "Delete the directory named DIRECTORY.  Does not follow symlinks.

@@ -1,3 +1,11 @@
+2010-06-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* comint-testsuite.el: New file.
+
+2010-06-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent: New dir.
+
 2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 23.2 released.

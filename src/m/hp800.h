@@ -29,13 +29,5 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    This flag only matters if you use USE_LISP_UNION_TYPE.  */
 #define EXPLICIT_SIGN_EXTEND
 
-/* Systems with GCC don't need to lose. */
-#ifdef __NetBSD__
-# ifdef __GNUC__
-#  define alloca __builtin_alloca
-#  define HAVE_ALLOCA
-# endif /* __GNUC__ */
-#endif /* __NetBSD__ */
-
 /* arch-tag: 809436e6-1645-4b92-b40d-2de5d6e7227c
    (do not change this comment) */

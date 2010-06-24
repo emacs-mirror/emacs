@@ -290,7 +290,6 @@ enum syntaxcode { Swhitespace = 0, Sword = 1, Ssymbol = 2 };
 #  define SWITCH_ENUM_CAST(x) (x)
 
 /* Dummy macros for non-Emacs environments.  */
-# define BASE_LEADING_CODE_P(c) (0)
 # define CHAR_CHARSET(c) 0
 # define CHARSET_LEADING_CODE_BASE(c) 0
 # define MAX_MULTIBYTE_LENGTH 1
@@ -300,7 +299,7 @@ enum syntaxcode { Swhitespace = 0, Sword = 1, Ssymbol = 2 };
 # define CHAR_HEAD_P(p) (1)
 # define SINGLE_BYTE_CHAR_P(c) (1)
 # define SAME_CHARSET_P(c1, c2) (1)
-# define MULTIBYTE_FORM_LENGTH(p, s) (1)
+# define BYTES_BY_CHAR_HEAD(p) (1)
 # define PREV_CHAR_BOUNDARY(p, limit) ((p)--)
 # define STRING_CHAR(p) (*(p))
 # define RE_STRING_CHAR(p, multibyte) STRING_CHAR (p)
@@ -2086,7 +2085,7 @@ struct range_table_work_area
   } while (0)
 
 
-/* Both FROM and TO are mulitbyte characters.  */
+/* Both FROM and TO are multibyte characters.  */
 
 #define SETUP_MULTIBYTE_RANGE(work_area, FROM, TO)			   \
   do {									   \
@@ -3805,7 +3804,7 @@ regex_compile (pattern, size, syntax, bufp)
 
 		    if (c1 != c2 && (c1 = RE_CHAR_TO_UNIBYTE (c2)) >= 0)
 		      c = c1;
-		  }		      
+		  }
 		*b++ = c;
 		len = 1;
 	      }
@@ -4125,7 +4124,7 @@ analyse_first (p, pend, fastmap, multibyte)
 	  if (/* Any leading code can possibly start a character
 		 which doesn't match the specified set of characters.  */
 	      not
-	      || 
+	      ||
 	      /* If we can match a character class, we can match any
 		 multibyte characters.  */
 	      (CHARSET_RANGE_TABLE_EXISTS_P (&p[-2])
@@ -4643,7 +4642,7 @@ re_search_2 (bufp, str1, size1, str2, size2, startpos, range, regs, stop)
 	    {
 	      re_char *p = POS_ADDR_VSTRING (startpos);
 	      re_char *pend = STOP_ADDR_VSTRING (startpos);
-	      int len = MULTIBYTE_FORM_LENGTH (p, pend - p);
+	      int len = BYTES_BY_CHAR_HEAD (*p);
 
 	      range -= len;
 	      if (range < 0)

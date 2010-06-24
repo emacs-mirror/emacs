@@ -36,9 +36,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#ifdef HAVE_ALLOCA_H
-#include <alloca.h>
-#endif /* HAVE_ALLOCA_H */
 
 #include "lisp.h"
 /* Including stdlib.h isn't necessarily enough to get srandom
@@ -60,13 +57,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define NULL 0
 #endif
 #endif /* not WINDOWSNT */
-
-/* Does anyone other than VMS need this? */
-#ifndef fwrite
-#define sys_fwrite fwrite
-#else
-#undef fwrite
-#endif
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -537,15 +527,6 @@ child_setup_tty (out)
   s.main.c_cflag = (s.main.c_cflag & ~CBAUD) | B9600; /* baud rate sanity */
 #endif /* AIX */
 
-#else /* not HAVE_TERMIO */
-
-  s.main.sg_flags &= ~(ECHO | CRMOD | ANYP | ALLDELAY | RAW | LCASE
-		       | CBREAK | TANDEM);
-  s.main.sg_flags |= LPASS8;
-  s.main.sg_erase = 0377;
-  s.main.sg_kill = 0377;
-  s.lmode = LLITOUT | s.lmode;        /* Don't strip 8th bit */
-
   /* We used to enable ICANON (and set VEOF to 04), but this leads to
      problems where process.c wants to send EOFs every once in a while
      to force the output, which leads to weird effects when the
@@ -557,6 +538,15 @@ child_setup_tty (out)
   s.main.c_lflag &= ~ICANON;	/* Disable line editing and eof processing */
   s.main.c_cc[VMIN] = 1;
   s.main.c_cc[VTIME] = 0;
+
+#else /* not HAVE_TERMIO */
+
+  s.main.sg_flags &= ~(ECHO | CRMOD | ANYP | ALLDELAY | RAW | LCASE
+		       | CBREAK | TANDEM);
+  s.main.sg_flags |= LPASS8;
+  s.main.sg_erase = 0377;
+  s.main.sg_kill = 0377;
+  s.lmode = LLITOUT | s.lmode;        /* Don't strip 8th bit */
 
 #endif /* not HAVE_TERMIO */
 
@@ -2761,54 +2751,6 @@ rmdir (dpath)
 }
 #endif /* !HAVE_RMDIR */
 
-
-#ifndef BSTRING
-
-#ifndef bzero
-
-void
-bzero (b, length)
-     register char *b;
-     register int length;
-{
-  while (length-- > 0)
-    *b++ = 0;
-}
-
-#endif /* no bzero */
-#endif /* BSTRING */
-
-#if (!defined (BSTRING) && !defined (bcopy)) || defined (NEED_BCOPY)
-#undef bcopy
-
-/* Saying `void' requires a declaration, above, where bcopy is used
-   and that declaration causes pain for systems where bcopy is a macro.  */
-bcopy (b1, b2, length)
-     register char *b1;
-     register char *b2;
-     register int length;
-{
-  while (length-- > 0)
-    *b2++ = *b1++;
-}
-#endif /* (!defined (BSTRING) && !defined (bcopy)) || defined (NEED_BCOPY) */
-
-#ifndef BSTRING
-#ifndef bcmp
-int
-bcmp (b1, b2, length)	/* This could be a macro! */
-     register char *b1;
-     register char *b2;
-     register int length;
-{
-  while (length-- > 0)
-    if (*b1++ != *b2++)
-      return 1;
-
-  return 0;
-}
-#endif /* no bcmp */
-#endif /* not BSTRING */
 
 #ifndef HAVE_STRSIGNAL
 char *

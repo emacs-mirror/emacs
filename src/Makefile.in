@@ -281,7 +281,7 @@ RUN_TEMACS = `/bin/pwd`/temacs
 
 START_FILES = @START_FILES@
 
-UNEXEC_OBJ = @unexec@
+UNEXEC_OBJ = @UNEXEC_OBJ@
 
 CANNOT_DUMP=@cannot_dump@
 
@@ -458,8 +458,8 @@ lisp= \
 	${lispsource}textmodes/text-mode.elc \
 	${lispsource}emacs-lisp/timer.elc \
 	${lispsource}jka-cmpr-hook.elc \
-	${lispsource}vc-hooks.elc \
-	${lispsource}ediff-hook.elc \
+	${lispsource}vc/vc-hooks.elc \
+	${lispsource}vc/ediff-hook.elc \
 	${lispsource}epa-hook.elc \
 	${TOOLTIP_SUPPORT} \
 	${MSDOS_SUPPORT} \
@@ -549,9 +549,9 @@ shortlisp= \
 	../lisp/textmodes/paragraphs.elc \
 	../lisp/textmodes/text-mode.elc \
 	../lisp/emacs-lisp/timer.elc \
-	../lisp/vc-hooks.elc \
+	../lisp/vc/vc-hooks.elc \
+	../lisp/vc/ediff-hook.elc \
 	../lisp/jka-cmpr-hook.elc \
-	../lisp/ediff-hook.elc \
 	../lisp/epa-hook.elc \
 	../lisp/widget.elc \
 	../lisp/window.elc \

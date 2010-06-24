@@ -3,7 +3,7 @@
 ;; Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: Alexandre Julliard <julliard@winehq.org>
-;; Keywords: tools
+;; Keywords: vc tools
 
 ;; This file is part of GNU Emacs.
 
@@ -554,7 +554,8 @@ or an empty string if none."
   (let ((coding-system-for-write vc-git-commits-coding-system))
     (apply 'vc-git-command nil 0 files
 	   (nconc (list "commit" "-m")
-                  (log-edit-extract-headers '(("Author" . "--author"))
+                  (log-edit-extract-headers '(("Author" . "--author")
+					      ("Date" . "--date"))
                                             comment)
                   (list "--only" "--")))))
 
@@ -610,11 +611,25 @@ for the --graph option."
   (interactive)
   (vc-git-command
    buffer 0 nil
-   "log" (if (string= remote-location "")
-	     ;; FIXME: this hardcodes the location, it should compute
-	     ;; it properly.
-	     "origin/master..HEAD"
-	   remote-location)))
+   "log"
+   "--no-color" "--graph" "--decorate" "--date=short"
+   "--pretty=tformat:%d%h  %ad  %s" "--abbrev-commit"
+   (concat (if (string= remote-location "")
+	       "@{upstream}"
+	     remote-location)
+	   "..HEAD")))
+
+(defun vc-git-log-incoming (buffer remote-location)
+  (interactive)
+  (vc-git-command nil 0 nil "fetch")
+  (vc-git-command
+   buffer 0 nil
+   "log" 
+   "--no-color" "--graph" "--decorate" "--date=short"
+   "--pretty=tformat:%d%h  %ad  %s" "--abbrev-commit"
+   (concat "HEAD.." (if (string= remote-location "")
+			"@{upstream}"
+		      remote-location))))
 
 (defvar log-view-message-re)
 (defvar log-view-file-re)
@@ -627,11 +642,11 @@ for the --graph option."
   (set (make-local-variable 'log-view-file-re) "\\`a\\`")
   (set (make-local-variable 'log-view-per-file-logs) nil)
   (set (make-local-variable 'log-view-message-re)
-       (if (eq vc-log-view-type 'short)
+       (if (not (eq vc-log-view-type 'long))
 	   "^\\(?:[*/\\| ]+ \\)?\\(?: ([^)]+)\\)?\\([0-9a-z]+\\)  \\([-a-z0-9]+\\)  \\(.*\\)"
 	 "^commit *\\([0-9a-z]+\\)"))
   (set (make-local-variable 'log-view-font-lock-keywords)
-       (if (eq vc-log-view-type 'short)
+       (if (not (eq vc-log-view-type 'long))
 	   '(
 	     ;; Same as log-view-message-re, except that we don't
 	     ;; want the shy group for the tag name.

@@ -47,9 +47,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "blockinput.h"
 #include "process.h"
 
-/* I don't know why DEC Alpha OSF1 fail to compile this file if we
-   include the following file.  */
-/* #include "systty.h" */
 #include "syssignal.h"
 
 #ifdef HAVE_X_WINDOWS

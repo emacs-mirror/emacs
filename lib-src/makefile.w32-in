@@ -279,8 +279,8 @@ lisp2 = \
 	$(lispsource)textmodes/text-mode.elc \
 	$(lispsource)emacs-lisp/timer.elc \
 	$(lispsource)jka-cmpr-hook.elc \
-	$(lispsource)vc-hooks.elc \
-	$(lispsource)ediff-hook.elc \
+	$(lispsource)vc/vc-hooks.elc \
+	$(lispsource)vc/ediff-hook.elc \
 	$(lispsource)epa-hook.elc \
 	$(TOOLTIP_SUPPORT) \
 	$(WINNT_SUPPORT) \

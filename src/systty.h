@@ -27,17 +27,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef NO_TERMIO
 #include <termio.h>
 #endif /* not NO_TERMIO */
-#ifndef INCLUDED_FCNTL
-#define INCLUDED_FCNTL
 #include <fcntl.h>
-#endif
 #else /* not HAVE_TERMIO */
 #ifdef HAVE_TERMIOS
 #ifndef NO_TERMIO
 #include <termio.h>
 #endif
 #include <termios.h>
-#define INCLUDED_FCNTL
 #include <fcntl.h>
 #else /* neither HAVE_TERMIO nor HAVE_TERMIOS */
 #ifndef DOS_NT
@@ -247,10 +243,8 @@ struct emacs_tty {
    expression, so we moved them out to their own functions in sysdep.c.  */
 #define EMACS_GET_TTY(fd, p)        (emacs_get_tty ((fd), (p)))
 #define EMACS_SET_TTY(fd, p, waitp) (emacs_set_tty ((fd), (p), (waitp)))
-#ifdef P_  /* Unfortunately this file is sometimes included before lisp.h */
-extern int emacs_get_tty P_ ((int, struct emacs_tty *));
-extern int emacs_set_tty P_ ((int, struct emacs_tty *, int));
-#endif
+extern int emacs_get_tty (int, struct emacs_tty *);
+extern int emacs_set_tty (int, struct emacs_tty *, int);
 
 
 /* Define EMACS_TTY_TABS_OK.  */

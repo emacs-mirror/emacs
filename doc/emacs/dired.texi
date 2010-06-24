@@ -688,6 +688,34 @@ suitable guess made using the variables @code{lpr-command} and
 Compress the specified files (@code{dired-do-compress}).  If the file
 appears to be a compressed file already, uncompress it instead.
 
+@findex epa-dired-do-decrypt
+@kindex :d @r{(Dired)}
+@cindex decrypting files (in Dired)
+@item :d
+Decrypt the specified files (@code{epa-dired-do-decrypt}).
+@xref{Dired integration,,, epa, EasyPG Assistant User's Manual}.
+
+@findex epa-dired-do-verify
+@kindex :v @r{(Dired)}
+@cindex verifying digital signatures on files (in Dired)
+@item :v
+Verify digital signatures on the specified files (@code{epa-dired-do-verify}).
+@xref{Dired integration,,, epa, EasyPG Assistant User's Manual}.
+
+@findex epa-dired-do-sign
+@kindex :s @r{(Dired)}
+@cindex signing files (in Dired)
+@item :s
+Digitally sign the specified files (@code{epa-dired-do-sign}).
+@xref{Dired integration,,, epa, EasyPG Assistant User's Manual}.
+
+@findex epa-dired-do-encrypt
+@kindex :e @r{(Dired)}
+@cindex encrypting files (in Dired)
+@item :e
+Encrypt the specified files (@code{epa-dired-do-encrypt}).
+@xref{Dired integration,,, epa, EasyPG Assistant User's Manual}.
+
 @findex dired-do-load
 @kindex L @r{(Dired)}
 @cindex loading several files (in Dired)

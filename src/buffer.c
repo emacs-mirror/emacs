@@ -1300,6 +1300,8 @@ If BUFFER is omitted or nil, some interesting buffer is returned.  */)
   if (NILP (frame))
     frame = selected_frame;
 
+  CHECK_FRAME (frame);
+
   tail = Vbuffer_alist;
   pred = frame_buffer_predicate (frame);
 
@@ -1785,8 +1787,6 @@ messing with the window-buffer correspondences.  */)
      (buffer_or_name, norecord)
      Lisp_Object buffer_or_name, norecord;
 {
-  char *err;
-
   if (EQ (buffer_or_name, Fwindow_buffer (selected_window)))
     {
       /* Basically a NOP.  Avoid signalling an error in the case where
@@ -2189,7 +2189,7 @@ DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
   other_buffer = XBUFFER (buffer);
 
   if (NILP (other_buffer->name))
-    error ("Cannot swap a dead buffer's text");    
+    error ("Cannot swap a dead buffer's text");
 
   /* Actually, it probably works just fine.
    * if (other_buffer == current_buffer)
@@ -2436,7 +2436,7 @@ current buffer is cleared.  */)
 	  unsigned char *p = GPT_ADDR - 1;
 
 	  while (! CHAR_HEAD_P (*p) && p > BEG_ADDR) p--;
-	  if (BASE_LEADING_CODE_P (*p))
+	  if (LEADING_CODE_P (*p))
 	    {
 	      int new_gpt = GPT_BYTE - (GPT_ADDR - p);
 
@@ -4339,7 +4339,7 @@ add_overlay_mod_hooklist (functionlist, overlay)
   int oldsize = XVECTOR (last_overlay_modification_hooks)->size;
 
   if (last_overlay_modification_hooks_used == oldsize)
-    last_overlay_modification_hooks = larger_vector 
+    last_overlay_modification_hooks = larger_vector
       (last_overlay_modification_hooks, oldsize * 2, Qnil);
   ASET (last_overlay_modification_hooks, last_overlay_modification_hooks_used,
 	functionlist); last_overlay_modification_hooks_used++;

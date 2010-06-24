@@ -52,9 +52,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    functions.  Almost, but not quite the same as the 4.2 functions.  */
 #define SYSV_SYSTEM_DIR
 
-/* Define this symbol if your system has the functions bcopy, etc.  */
-#define BSTRING
-
 /* The file containing the kernel's symbol table is called /unix.  */
 #define KERNEL_FILE "/unix"
 
@@ -103,8 +100,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    Emacs currently calls xrealloc on the results of get_current_dir name,
    to avoid a crash just use the Emacs implementation for that function.  */
 #define BROKEN_GET_CURRENT_DIR_NAME 1
-
-#define UNEXEC unexaix.o
 
 /* arch-tag: 38fe75ea-6aef-42bd-8449-bc34d921a562
    (do not change this comment) */

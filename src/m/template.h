@@ -58,17 +58,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    code will not be sharable; but that's better than failing completely.  */
 #define NO_REMAP
 
-/* Some really obscure 4.2-based systems (like Sequent DYNIX)
-   do not support asynchronous I/O (using SIGIO) on sockets,
-   even though it works fine on tty's.  If you have one of
-   these systems, define the following, and then use it in
-   config.h (or elsewhere) to decide when (not) to use SIGIO.
-
-   You'd think this would go in an operating-system description file,
-   but since it only occurs on some, but not all, BSD systems, the
-   reasonable place to select for it is in the machine description file.  */
-#define NO_SOCK_SIGIO
-
 /* After adding support for a new machine, modify the large case
    statement in configure.in to recognize reasonable
    configuration names, and add a description of the system to

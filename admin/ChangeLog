@@ -1,3 +1,27 @@
+2010-06-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* unidata/bidimirror.awk: New file.
+
+	* unidata/BidiMirroring.txt: New file from
+	http://www.unicode.org/Public/6.0.0/ucd/BidiMirroring-6.0.0d1.txt.
+
+	* unidata/Makefile.in: (../../src/bidimirror.h): New target.
+	(all): Depend on ../../src/biditype.h and ../../src/bidimirror.h.
+
+	* unidata/makefile.w32-in (../../src/bidimirror.h): New target.
+	(all): Depend on ../../src/biditype.h and ../../src/bidimirror.h.
+
+	* unidata/biditype.awk: New file.
+
+	* unidata/Makefile.in (../../src/biditype.h): New target.
+
+	* unidata/makefile.w32-in (../../src/biditype.h): New target.
+
+2010-06-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* unidata/UnicodeData.txt: Update from
+	http://www.unicode.org/Public/6.0.0/ucd/UnicodeData-6.0.0d5.txt
+
 2010-05-27  Glenn Morris  <rgm@gnu.org>
 
 	* quick-install-emacs (AVOID): No more Makefile.c files.

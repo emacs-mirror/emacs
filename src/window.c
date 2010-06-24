@@ -3611,6 +3611,7 @@ selected window before each command.  */)
     {
       ++window_select_count;
       XSETFASTINT (w->use_time, window_select_count);
+      record_buffer (w->buffer);
     }
 
   if (EQ (window, selected_window))
@@ -3646,8 +3647,6 @@ selected window before each command.  */)
 
   selected_window = window;
 
-  if (NILP (norecord))
-    record_buffer (w->buffer);
   Fset_buffer (w->buffer);
 
   XBUFFER (w->buffer)->last_selected_window = window;
@@ -7291,7 +7290,7 @@ with the relevant frame selected.  */);
 
   DEFVAR_LISP ("recenter-redisplay", &Vrecenter_redisplay,
 	       doc: /* If non-nil, then the `recenter' command with a nil argument
-the entire frame to be redrawn; the special value `tty' causes the
+will redraw the entire frame; the special value `tty' causes the
 frame to be redrawn only if it is a tty frame.  */);
   Vrecenter_redisplay = Qtty;
 

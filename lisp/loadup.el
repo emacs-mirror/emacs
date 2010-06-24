@@ -243,8 +243,8 @@
     (progn		; floating pt. functions if we have float support.
       (load "emacs-lisp/float-sup")))
 
-(load "vc-hooks")
-(load "ediff-hook")
+(load "vc/vc-hooks")
+(load "vc/ediff-hook")
 (if (fboundp 'x-show-tip) (load "tooltip"))
 
 ;If you want additional libraries to be preloaded and their

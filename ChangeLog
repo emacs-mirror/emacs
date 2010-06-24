@@ -1,3 +1,62 @@
+2010-06-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* INSTALL: Update font information (Bug#6389).
+
+2010-06-16  Glenn Morris  <rgm@gnu.org>
+
+	* INSTALL: General update.
+
+2010-06-12  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-arch-indep): Delete any old info .gz files
+	first.
+
+2010-06-11  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (--without-compress-info): New option.
+	(GZIP_INFO): New output variable.
+
+	* Makefile.in (GZIP_INFO): New, set by configure.
+	(install-arch-indep): Don't gzip info pages if GZIP_INFO is nil.
+	Handle man pages in the same way.
+
+2010-06-10  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (install-arch-indep): Gzip the info files too.
+
+	* make-dist: Remove references to non-existent directories and files.
+
+2010-06-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in: Include <strings.h> and <string.h> instead of
+	"strings.h" and "string.h".
+
+2010-06-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in: Remove code dealing with BSTRING.
+
+2010-06-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (AC_PREREQ): Require autoconf 2.65.
+
+	* configure.in (unxec): Do not define and substitute.
+	(UNEXEC_OBJ): New output variable, replaces cpp UNEXEC.
+
+2010-06-03  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (AH_BOTTOM): Remove NOT_C_CODE test, it is always true.
+
+2010-06-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Fix alloca definition when using gcc on non-gnu systems.
+	* configure.in: Use the code sequence indicated by "info autoconf"
+	for alloca (bug#6170).
+
+2010-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* .bzrignore: Ignore new files from trunk, which appear if you use
+	colocated branches (i.e. "bzr switch").
+
 2010-05-28  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in: Simplify some of the $canonical tests.

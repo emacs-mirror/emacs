@@ -108,10 +108,9 @@ the Ada mode project."
   :type 'string :group 'ada)
 
 (defcustom ada-prj-ada-project-path-sep
-  (if (or (equal system-type 'windows-nt)
-	  (equal system-type 'ms-dos))
-      ";"
-    ":")
+  (cond ((boundp 'path-separator) path-separator) ; 20.3+
+	((memq system-type '(windows-nt ms-dos)) ";")
+	(t ":"))
   "Default separator for ada_project_path project variable."
   :type 'string :group 'ada)
 

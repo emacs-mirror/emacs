@@ -13431,14 +13431,22 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
       if (PT > CHARPOS (it.current.pos))
 	{
 	  int y0 = line_bottom_y (&it);
+	  /* Compute how many pixels below window bottom to stop searching
+	     for PT.  This avoids costly search for PT that is far away if
+	     the user limited scrolling by a small number of lines, but
+	     always finds PT if scroll_conservatively is set to a large
+	     number, such as most-positive-fixnum.  */
+	  int slack = max (scroll_max, 10 * FRAME_LINE_HEIGHT (f));
+	  int y_to_move =
+	    slack >= INT_MAX - it.last_visible_y
+	    ? INT_MAX
+	    : it.last_visible_y + slack;
 
-	  /* Compute the distance from the scroll margin to PT
-	     (including the height of the cursor line).  Moving the
-	     iterator unconditionally to PT can be slow if PT is far
-	     away, so stop 10 lines past the window bottom (is there a
-	     way to do the right thing quickly?).  */
-	  move_it_to (&it, PT, -1,
-	  	      it.last_visible_y + 10 * FRAME_LINE_HEIGHT (f),
+	  /* Compute the distance from the scroll margin to PT or to
+	     the scroll limit, whichever comes first.  This should
+	     include the height of the cursor line, to make that line
+	     fully visible.  */
+	  move_it_to (&it, PT, -1, y_to_move,
 	  	      -1, MOVE_TO_POS | MOVE_TO_Y);
 	  dy = line_bottom_y (&it) - y0;
 
@@ -13478,7 +13486,26 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 	return SCROLLING_FAILED;
 
       start_display (&it, w, startp);
-      move_it_vertically (&it, amount_to_scroll);
+      if (scroll_max < INT_MAX)
+	move_it_vertically (&it, amount_to_scroll);
+      else
+	{
+	  /* Extra precision for users who set scroll-conservatively
+	     to most-positive-fixnum: make sure the amount we scroll
+	     the window start is never less than amount_to_scroll,
+	     which was computed as distance from window bottom to
+	     point.  This matters when lines at window top and lines
+	     below window bottom have different height.  */
+	  struct it it1 = it;
+	  /* We use a temporary it1 because line_bottom_y can modify
+	     its argument, if it moves one line down; see there.  */
+	  int start_y = line_bottom_y (&it1);
+
+	  do {
+	    move_it_by_lines (&it, 1, 1);
+	    it1 = it;
+	  } while (line_bottom_y (&it1) - start_y < amount_to_scroll);
+	}
 
       /* If STARTP is unchanged, move it down another screen line.  */
       if (CHARPOS (it.current.pos) == CHARPOS (startp))
@@ -13763,37 +13790,11 @@ try_cursor_movement (window, startp, scroll_step)
 	    ++row;
 	  if (!row->enabled_p)
 	    rc = CURSOR_MOVEMENT_MUST_SCROLL;
-	  /* If rows are bidi-reordered, back up until we find a row
-	     that does not belong to a continuation line.  This is
-	     because we must consider all rows of a continued line as
-	     candidates for cursor positioning, since row start and
-	     end positions change non-linearly with vertical position
-	     in such rows.  */
-	  /* FIXME: Revisit this when glyph ``spilling'' in
-	     continuation lines' rows is implemented for
-	     bidi-reordered rows.  */
-	  if (!NILP (XBUFFER (w->buffer)->bidi_display_reordering))
-	    {
-	      while (MATRIX_ROW_CONTINUATION_LINE_P (row))
-		{
-		  xassert (row->enabled_p);
-		  --row;
-		  /* If we hit the beginning of the displayed portion
-		     without finding the first row of a continued
-		     line, give up.  */
-		  if (row <= w->current_matrix->rows)
-		    {
-		      rc = CURSOR_MOVEMENT_MUST_SCROLL;
-		      break;
-		    }
-
-		}
-	    }
 	}
 
       if (rc == CURSOR_MOVEMENT_CANNOT_BE_USED)
 	{
-	  int scroll_p = 0;
+	  int scroll_p = 0, must_scroll = 0;
 	  int last_y = window_text_bottom_y (w) - this_scroll_margin;
 
 	  if (PT > XFASTINT (w->last_point))
@@ -13886,10 +13887,41 @@ try_cursor_movement (window, startp, scroll_step)
 	    {
 	      /* if PT is not in the glyph row, give up.  */
 	      rc = CURSOR_MOVEMENT_MUST_SCROLL;
+	      must_scroll = 1;
 	    }
 	  else if (rc != CURSOR_MOVEMENT_SUCCESS
-		   && MATRIX_ROW_PARTIALLY_VISIBLE_P (w, row)
-		   && make_cursor_line_fully_visible_p)
+		   && !NILP (XBUFFER (w->buffer)->bidi_display_reordering))
+	    {
+	      /* If rows are bidi-reordered and point moved, back up
+		 until we find a row that does not belong to a
+		 continuation line.  This is because we must consider
+		 all rows of a continued line as candidates for the
+		 new cursor positioning, since row start and end
+		 positions change non-linearly with vertical position
+		 in such rows.  */
+	      /* FIXME: Revisit this when glyph ``spilling'' in
+		 continuation lines' rows is implemented for
+		 bidi-reordered rows.  */
+	      while (MATRIX_ROW_CONTINUATION_LINE_P (row))
+		{
+		  xassert (row->enabled_p);
+		  --row;
+		  /* If we hit the beginning of the displayed portion
+		     without finding the first row of a continued
+		     line, give up.  */
+		  if (row <= w->current_matrix->rows)
+		    {
+		      rc = CURSOR_MOVEMENT_MUST_SCROLL;
+		      break;
+		    }
+
+		}
+	    }
+	  if (must_scroll)
+	    ;
+	  else if (rc != CURSOR_MOVEMENT_SUCCESS
+	      && MATRIX_ROW_PARTIALLY_VISIBLE_P (w, row)
+	      && make_cursor_line_fully_visible_p)
 	    {
 	      if (PT == MATRIX_ROW_END_CHARPOS (row)
 		  && !row->ends_at_zv_p
@@ -13915,7 +13947,8 @@ try_cursor_movement (window, startp, scroll_step)
 	    }
 	  else if (scroll_p)
 	    rc = CURSOR_MOVEMENT_MUST_SCROLL;
-	  else if (!NILP (XBUFFER (w->buffer)->bidi_display_reordering))
+	  else if (rc != CURSOR_MOVEMENT_SUCCESS
+		   && !NILP (XBUFFER (w->buffer)->bidi_display_reordering))
 	    {
 	      /* With bidi-reordered rows, there could be more than
 		 one candidate row whose start and end positions
@@ -13928,8 +13961,11 @@ try_cursor_movement (window, startp, scroll_step)
 
 	      do
 		{
-		  rv |= set_cursor_from_row (w, row, w->current_matrix,
-					     0, 0, 0, 0);
+		  if (MATRIX_ROW_START_CHARPOS (row) <= PT
+		      && PT <= MATRIX_ROW_END_CHARPOS (row)
+		      && cursor_row_p (w, row))
+		    rv |= set_cursor_from_row (w, row, w->current_matrix,
+					       0, 0, 0, 0);
 		  /* As soon as we've found the first suitable row
 		     whose ends_at_zv_p flag is set, we are done.  */
 		  if (rv
@@ -13940,19 +13976,17 @@ try_cursor_movement (window, startp, scroll_step)
 		    }
 		  ++row;
 		}
-	      while (MATRIX_ROW_BOTTOM_Y (row) < last_y
-		     && MATRIX_ROW_START_CHARPOS (row) <= PT
-		     && PT <= MATRIX_ROW_END_CHARPOS (row)
-		     && cursor_row_p (w, row));
+	      while ((MATRIX_ROW_CONTINUATION_LINE_P (row)
+		      && MATRIX_ROW_BOTTOM_Y (row) <= last_y)
+		     || (MATRIX_ROW_START_CHARPOS (row) == PT
+			 && MATRIX_ROW_BOTTOM_Y (row) < last_y));
 	      /* If we didn't find any candidate rows, or exited the
 		 loop before all the candidates were examined, signal
 		 to the caller that this method failed.  */
 	      if (rc != CURSOR_MOVEMENT_SUCCESS
-		  && (!rv
-		      || (MATRIX_ROW_START_CHARPOS (row) <= PT
-			  && PT <= MATRIX_ROW_END_CHARPOS (row))))
-		rc = CURSOR_MOVEMENT_CANNOT_BE_USED;
-	      else
+		  && (!rv || MATRIX_ROW_CONTINUATION_LINE_P (row)))
+		rc = CURSOR_MOVEMENT_MUST_SCROLL;
+	      else if (rv)
 		rc = CURSOR_MOVEMENT_SUCCESS;
 	    }
 	  else

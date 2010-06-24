@@ -660,8 +660,8 @@ re-start Emacs."
      "[^A-Za-z\241\243\246\254\257\261\263\266\274\277\306\312\321\323\346\352\361\363]"
      "[.]" nil nil nil iso-8859-2)
     ("portugues"                        ; Portuguese mode
-     "[a-zA-Z\301\302\311\323\340\341\342\351\352\355\363\343\372]"
-     "[^a-zA-Z\301\302\311\323\340\341\342\351\352\355\363\343\372]"
+     "[a-zA-Z\301\302\307\311\323\340\341\342\351\352\355\363\343\347\372]"
+     "[^a-zA-Z\301\302\307\311\323\340\341\342\351\352\355\363\343\347\372]"
      "[']" t ("-C") "~latin1" iso-8859-1)
     ("russian"				; Russian.aff (KOI8-R charset)
      "[\341\342\367\347\344\345\263\366\372\351\352\353\354\355\356\357\360\362\363\364\365\346\350\343\376\373\375\370\371\377\374\340\361\301\302\327\307\304\305\243\326\332\311\312\313\314\315\316\317\320\322\323\324\325\306\310\303\336\333\335\330\331\337\334\300\321]"
@@ -982,8 +982,8 @@ Assumes that value contains no whitespace."
   ;; This returns nil if the data file does not exist.
   ;; Can someone please explain the return value format when the
   ;; file does exist -- rms?
-  (let* ((lang ;; Strip out region, variant, etc.
-	  (and (string-match "^[[:alpha:]]+" dict-name)
+  (let* ((lang ;; Strip out variant, etc.
+	  (and (string-match "^[[:alpha:]_]+" dict-name)
 	       (match-string 0 dict-name)))
 	 (data-file
 	  (concat (or ispell-aspell-data-dir

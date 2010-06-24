@@ -4819,7 +4819,8 @@ If LINE, insert the rebuilt thread starting on line LINE."
 	  ;; Even after binding max-lisp-eval-depth, the recursive
 	  ;; sorter might fail for very long threads.  In that case,
 	  ;; try using a (less well-tested) non-recursive sorter.
-	  (error (gnus-sort-threads-loop
+	  (error (gnus-message 9 "Sorting threads with loop...")
+		 (gnus-sort-threads-loop
 		  threads (gnus-make-sort-function
 			   gnus-thread-sort-functions))))
       (gnus-message 8 "Sorting threads...done"))))
@@ -4986,22 +4987,17 @@ Unscored articles will be counted as having a score of zero."
   "Sort threads such that the thread with the most recently dated article comes first."
   (> (gnus-thread-latest-date h1) (gnus-thread-latest-date h2)))
 
+; Since this is called not only to sort the top-level threads, but
+; also in recursive sorts to order the articles within a thread, each
+; article will be processed many times.  Thus it speeds things up
+; quite a bit to use gnus-date-get-time, which caches the time value.
 (defun gnus-thread-latest-date (thread)
   "Return the highest article date in THREAD."
-  (let ((previous-time 0))
-    (apply 'max
-	   (mapcar
-	    (lambda (header)
-	      (setq previous-time
-		    (condition-case ()
-			(gnus-float-time (mail-header-parse-date
-					  (mail-header-date header)))
-		      (error previous-time))))
-	    (sort
-	     (message-flatten-list thread)
-	     (lambda (h1 h2)
-	       (< (mail-header-number h1)
-		  (mail-header-number h2))))))))
+  (apply 'max
+	 (mapcar (lambda (header) (gnus-float-time
+				   (gnus-date-get-time
+				    (mail-header-date header))))
+		 (message-flatten-list thread))))
 
 (defun gnus-thread-total-score-1 (root)
   ;; This function find the total score of the thread below ROOT.
@@ -8236,9 +8232,7 @@ articles that are younger than AGE days."
 	  (when (and (vectorp (gnus-data-header d))
 		     (setq date (mail-header-date (gnus-data-header d))))
 	    (setq is-younger (time-less-p
-			      (time-since (condition-case ()
-					      (date-to-time date)
-					    (error '(0 0))))
+			      (time-since (gnus-date-get-time date))
 			      cutoff))
 	    (when (if younger-p
 		      is-younger

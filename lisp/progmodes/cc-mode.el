@@ -640,6 +640,8 @@ compatible with old code; callers should always specify it."
   ;; Starting a mode is a sort of "change".  So call the change functions...
   (save-restriction
     (widen)
+    (setq c-new-BEG (point-min))
+    (setq c-new-END (point-max))
     (save-excursion
       (if c-get-state-before-change-functions
 	  (mapc (lambda (fn)
@@ -886,17 +888,19 @@ Note that the style variables are always made local to the buffer."
     ;; inside a string, comment, or macro.
     (goto-char c-old-BOM)	  ; already set to old start of macro or begg.
     (setq c-new-BEG
-	  (if (setq limits (c-state-literal-at (point)))
-	      (cdr limits)	    ; go forward out of any string or comment.
-	    (point)))
+	  (min c-new-BEG
+	       (if (setq limits (c-state-literal-at (point)))
+		   (cdr limits)	    ; go forward out of any string or comment.
+		 (point))))
 
     (goto-char endd)
     (if (setq limits (c-state-literal-at (point)))
 	(goto-char (car limits)))  ; go backward out of any string or comment.
     (if (c-beginning-of-macro)
 	(c-end-of-macro))
-    (setq c-new-END (max (+ (- c-old-EOM old-len) (- endd begg))
-		   (point)))
+    (setq c-new-END (max c-new-END
+			 (+ (- c-old-EOM old-len) (- endd begg))
+			 (point)))
 
     ;; Clear all old relevant properties.
     (c-clear-char-property-with-value c-new-BEG c-new-END 'syntax-table '(1))

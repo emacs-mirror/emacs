@@ -1,8 +1,727 @@
+2010-06-22  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/texinfmt.el (texinfo-format-region)
+	(texinfo-raise-lower-sections, texinfo-format-separate-node)
+	(texinfo-itemize-item, texinfo-multitable-item, texinfo-alias)
+	(texinfo-format-option, texinfo-noindent):
+	Use line-beginning-position and line-end-position.
+
+	* calc/calc-aent.el, calc/calc-ext.el, calc/calc-lang.el:
+	* calc/calc-store.el, calc/calc-units.el, calc/calc.el:
+	* calc/calccomp.el: Add explicit utf-8 coding cookies to files with
+	utf-8 characters.
+
+2010-06-21  Karl Fogel  <kfogel@red-bean.com>
+
+	* simple.el (compose-mail): Fix doc string to refer to
+	`compose-mail-user-agent-warnings', instead of to the
+	nonexistent `compose-mail-check-user-agent'.
+
+2010-06-21  Alan Mackenzie  <bug-cc-mode@gnu.org>
+
+	Fix an indentation bug:
+
+	* progmodes/cc-mode.el (c-common-init): Initialise c-new-BEG/END.
+	(c-neutralize-syntax-in-and-mark-CPP): c-new-BEG/END: Take account
+	of existing values.
+
+	* progmodes/cc-engine.el (c-clear-<-pair-props-if-match-after)
+	(c-clear->-pair-props-if-match-before): now return t when they've
+	cleared properties, nil otherwise.
+	(c-before-change-check-<>-operators): Set c-new-beg/end correctly
+	by taking account of the existing value.
+
+	* progmodes/cc-defs.el
+	(c-clear-char-property-with-value-function): Fix this to clear the
+	property rather than overwriting it with nil.
+
+2010-06-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package-print-package): Add link to
+	package description via describe-package.
+	(describe-package-1): List package requirements.  Add button to
+	perform installation.
+	(package-menu-describe-package): New command.
+
+	* help-mode.el (help-package): New button type.
+
+2010-06-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el: Move package-list-packages binding to
+	menu-bar.el.
+	(describe-package, describe-package-1, package--dir): New funs.
+	(package-activate-1): Use package--dir.
+
+	* emacs-lisp/package-x.el (gnus-article-buffer): Require package.
+
+	* help-mode.el (help-package-def): New button type.
+
+	* menu-bar.el: Move package-list-packages binding here from
+	package.el.
+
+2010-06-19  Gustav Hållberg  <gustav@gmail.com>  (tiny change)
+
+	* descr-text.el (describe-char): Avoid trailing whitespace.  (Bug#6423)
+
+2010-06-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/edebug.el (edebug-read-list):
+	Phase out old-style backquotes.
+
+2010-06-17  Juri Linkov  <juri@jurta.org>
+
+	* help-mode.el (help-mode): Set buffer-local variable
+	revert-buffer-function to help-mode-revert-buffer.
+	(help-mode-revert-buffer): New function.
+
+	* info.el (Info-revert-find-node): Check for major-mode Info-mode
+	before popping to "*info*" (like in other Info functions).
+	Keep buffer-name in old-buffer-name.  Keep Info-history-forward in
+	old-history-forward.  Pop to old-buffer-name or "*info*" to
+	recreate the killed buffer.  Set Info-history-forward from
+	old-history-forward.
+	(Info-breadcrumbs-depth): Add :group and :version.
+
+2010-06-17  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacs-lisp/package.el (package-menu-mode-map): Add a menu.
+
+2010-06-17  Agustín Martín  <agustin.martin@hispalinux.es>
+
+	* ispell.el (ispell-aspell-find-dictionary): Fix regexp for
+	languages like Portuguese with pt_{BR,PT} and no plain pt.
+
+2010-06-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/package.el (package-menu-mode-map):
+	Move initialization into declaration.
+
+	* menu-bar.el (menu-bar-options-menu): Fix typo in menu entry.
+
+2010-06-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package-archive-base): Point to
+	elpa.gnu.org.
+	(package-enable, package-load-list): New defcustoms.
+	(package-user-dir, package-directory-list): Turn into defcustoms.
+	Don't include package-user-dir in package-directory-list.
+	(package--builtins-base): Don't include Emacs as a "package".
+	(package-subdirectory-regexp): New var.
+	(package-load-all-descriptors, package-compute-transaction)
+	(package-download-transaction): Obey package-load-list.
+	(package-activate-1): Rename from package-do-activate.
+	(package-list-packages-internal): Check package-load-list.
+	(package-load-descriptor, package-generate-autoloads)
+	(package-unpack, package-unpack-single)
+	(package--read-archive-file, package-delete): Use
+	expand-file-name.
+
+	* emacs-lisp/package-x.el: New file.  Package uploading
+	functionality split out from package.el.
+
+	* startup.el (command-line): Load packages after reading init
+	file.
+
+2010-06-17  Tom Tromey  <tromey@redhat.com>
+
+	* emacs-lisp/package.el: New file.
+
+2010-06-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/macroexp.el (macroexpand-all-1): Put back special
+	handling for `lambda' (misunderstanding).
+
+2010-06-16  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-poly.el: (math-accum-factors):  Make sure that
+	constants aren't distributed after they are factored out.
+
+2010-06-16  Juri Linkov  <juri@jurta.org>
+
+	* facemenu.el (list-colors-display): Call `pop-to-buffer' before
+	`list-colors-print'.  (Bug#6332)
+
+2010-06-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/macroexp.el (macroexpand-all-1): Don't handle `lambda'
+	specially, since it's a macro.  Fix up wrong hint passed to maybe-cons.
+
+	* font-lock.el (font-lock-major-mode): Rename from
+	font-lock-mode-major-mode to distinguish it from
+	global-font-lock-mode's own font-lock-mode-major-mode (bug#6135).
+	(font-lock-set-defaults):
+	* font-core.el (font-lock-default-function): Adjust users.
+	(font-lock-mode): Don't set it at all.
+
+2010-06-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-annotate.el (vc-annotate): Use vc-read-revision.
+
+2010-06-16  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/appt.el (appt-time-msg-list): Doc fix.
+	(appt-check): Let-bind appt-warn-time.
+	(appt-add): Make the 3rd argument optional.
+	Simplify argument names.  Doc fix.  Check for integer WARNTIME.
+	Only add WARNTIME to the output list if non-nil.
+
+2010-06-16  Ivan Kanis  <apple@kanis.eu>
+
+	* calendar/appt.el (appt-check): Let the 3rd element of
+	appt-time-msg-list specify the warning time.
+	(appt-add): Add new argument with the warning time.  (Bug#5176)
+
+2010-06-16  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>  (tiny change)
+
+	* vc-svn.el (vc-svn-after-dir-status): Fix regexp for Subversions
+	older than version 1.6.  (Bug#6361)
+
+2010-06-16  Helmut Eller  <eller.helmut@gmail.com>
+
+	* emacs-lisp/cl-macs.el (destructuring-bind): Bind `bind-enquote',
+	used by cl-do-arglist.  (Bug#6408)
+
+2010-06-16  Agustín Martín  <agustin.martin@hispalinux.es>
+
+	* ispell.el (ispell-dictionary-base-alist): Fix
+	portuguese casechars/not-casechars for missing 'çÇ'.
+	Suggested by Rolando Pereira (bug#6434).
+
+2010-06-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* facemenu.el (list-colors-sort): Doc fix.
+
+2010-06-15  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>  (tiny change)
+
+	* progmodes/sql.el (sql-connect-mysql): Fix typo.
+
+2010-06-14  Juri Linkov  <juri@jurta.org>
+
+	Add sort option `list-colors-sort'.  (Bug#6332)
+	* facemenu.el (color-rgb-to-hsv): New function.
+	(list-colors-sort): New defcustom.
+	(list-colors-sort-key): New function.
+	(list-colors-display): Doc fix.  Sort list according to the option
+	`list-colors-sort'.
+	(list-colors-print): Add HSV values to `help-echo' property of
+	RGB strings.
+
+2010-06-14  Juri Linkov  <juri@jurta.org>
+
+	* compare-w.el: Move to the "vc" subdirectory.
+
+2010-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* image-mode.el (image-mode-map): Remap left-char and right-char.
+
+	* nxml/nxml-mode.el (nxml-indent-line): Standardize indent behavior.
+
+2010-06-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* term/common-win.el (x-colors): Add all the color names defined
+	in rgb.txt (Bug#6332).
+
+	* facemenu.el (list-colors-print): Don't print extra names if it
+	will overflow the window width.
+
+	* vc/log-edit.el (log-edit-font-lock-keywords): Revert 2010-06-02
+	change (Bug#6343).
+
+2010-06-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (make-directory): Doc fix (bug#6396).
+
+2010-06-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-remote-process-environment): Protect version
+	string by apostroph.
+	(tramp-shell-prompt-pattern): Do not use a shy group in case of
+	XEmacs.
+	(tramp-file-name-for-operation): Add `call-process-region'.
+	(tramp-set-process-query-on-exit-flag): Fix wrong parentheses.
+
+	* net/tramp-compat.el (top): Do not autoload
+	`tramp-handle-file-remote-p'.  Load tramp-util.el and tramp-vc.el
+	only when `start-file-process' is not bound.
+	(tramp-advice-file-expand-wildcards): Do not use
+	`tramp-handle-file-remote-p'.
+	(tramp-compat-make-temp-file): Handle the case, that
+	`make-temp-file' has no third argument EXTENSION.
+
+2010-06-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (WINS_BASIC): Include new directory vc.
+
+	* loadup.el ("vc-hooks", "ediff-hook"): Load from lisp/vc/.
+
+2010-06-11  Juri Linkov  <juri@jurta.org>
+
+	* finder.el (finder-known-keywords): Add keyword "vc"
+	for version control.
+
+	* add-log.el, cvs-status.el, diff.el, diff-mode.el, ediff.el,
+	* emerge.el, log-edit.el, log-view.el, pcvs.el, smerge-mode.el,
+	* vc-annotate.el, vc-bzr.el, vc-dir.el, vc-dispatcher.el, vc-git.el,
+	* vc-hg.el, vc-mtn.el, vc.el: Add keyword "vc".
+
+2010-06-11  Juri Linkov  <juri@jurta.org>
+
+	Move version control related files to the "vc" subdirectory.
+	* add-log.el, cvs-status.el, diff.el, diff-mode.el, ediff-diff.el,
+	* ediff.el, ediff-help.el, ediff-hook.el, ediff-init.el,
+	* ediff-merg.el, ediff-mult.el, ediff-ptch.el, ediff-util.el,
+	* ediff-vers.el, ediff-wind.el, emerge.el, log-edit.el, log-view.el,
+	* pcvs-defs.el, pcvs.el, pcvs-info.el, pcvs-parse.el, pcvs-util.el,
+	* smerge-mode.el, vc-annotate.el, vc-arch.el, vc-bzr.el, vc-cvs.el,
+	* vc-dav.el, vc-dir.el, vc-dispatcher.el, vc.el, vc-git.el,
+	* vc-hg.el, vc-hooks.el, vc-mtn.el, vc-rcs.el, vc-sccs.el, vc-svn.el:
+	Move files to the "vc" subdirectory.
+
+2010-06-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* comint.el (comint-password-prompt-regexp): Fix 2010-04-10 change
+	(Bug#6367).
+
+2010-06-11  Stephen Eglen  <stephen@gnu.org>
+
+	* shell.el: Bind `shell-resync-dirs' to M-RET.
+
+2010-06-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* notifications.el: Move file from lisp/net, because it is
+	supposed to talk locally to the user.
+
+2010-06-10  Julien Danjou  <julien@danjou.info>
+
+	* net/notifications.el (notifications-on-action-signal)
+	(notifications-on-closed-signal): Pass notification id as first
+	argument to the callback functions.  Add docstrings.
+	(notifications-notify): Fix docstring.
+
+2010-06-10  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/authors.el (authors-ignored-files)
+	(authors-valid-file-names): Add some files.
+
+2010-06-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/rcirc.el (rcirc-server-alist, rcirc, rcirc-connect): Resolve
+	merge conflict, giving preference to the emacs-23 version of the code.
+
+2010-06-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/advice.el (ad-compile-function):
+	Define warning-suppress-types before we let-bind it (bug#6275).
+
+	* vc-dispatcher.el: Rename mode-line-hook to vc-mode-line-hook;
+	declare it, make it buffer-local and permanent-local (bug#6324).
+	(vc-resynch-window): Adjust name.
+	* vc-hooks.el (vc-find-file-hook): Adjust name.
+
+2010-06-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/notifications.el (notifications-notify): Fix docstring.
+
+2010-06-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	Update to Unicode 6.0.0 beta.
+	* international/charprop.el: Update copyright.
+	* international/mule-cmds.el (ucs-names): Update character ranges.
+	* international/uni-bidi.el:
+	* international/uni-category.el:
+	* international/uni-combining.el:
+	* international/uni-comment.el:
+	* international/uni-decimal.el:
+	* international/uni-decomposition.el:
+	* international/uni-digit.el:
+	* international/uni-lowercase.el:
+	* international/uni-mirrored.el:
+	* international/uni-name.el:
+	* international/uni-numeric.el:
+	* international/uni-old-name.el:
+	* international/uni-titlecase.el:
+	* international/uni-uppercase.el: Regenerate.
+
+2010-06-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/smie.el (comment-string-strip): Declare function.
+	(smie-precs-precedence-table): Fix typo in docstring.
+
+	* vc-mtn.el (log-edit-extract-headers): Declare function.
+
+	* vc-hg.el (log-edit-extract-headers): Remove duplicate declaration.
+
+	* net/notifications.el (dbus-register-signal): Declare function.
+	(notifications-notify): Fix typos and reflow docstring.
+
+2010-06-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Improve VC create/retrieve tag/branch.
+	* vc.el (vc-create-tag): Do not read the directory name for VCs
+	with repository revision granularity.  Adjust the tag/branch
+	prompt.  Reset VC properties.
+	(vc-retrieve-tag): Do not read the directory name for VCs
+	with repository revision granularity.  Reset VC properties.
+
+2010-06-09  Julien Danjou  <julien@danjou.info>
+
+	* net/notifications.el: New file.
+
+2010-06-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Add optional support for resetting VC properties.
+	* vc-dispatcher.el (vc-resynch-window): Add new optional argument,
+	call vc-file-clearprops when true.
+	(vc-resynch-buffer): Add new optional argument, pass it down.
+	(vc-resynch-buffers-in-directory): Likewise.
+
+	Improve support for special markup in the VC commit message.
+	* vc-mtn.el (vc-mtn-checkin): Add support for Author: and Date: markup.
+	* vc-hg.el (vc-hg-checkin): Add support for Date:.
+	* vc-git.el (vc-git-checkin):
+	* vc-bzr.el (vc-bzr-checkin): Likewise.
+
+2010-06-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-indent-keyword): Remove special case that
+	can be handled with a ((:before "fn") (:prev "=>" parent)) rule.
+
+2010-06-07  Martin Pohlack  <mp26@os.inf.tu-dresden.de>
+
+	* iimage.el: Remove images as soon as the underlying text is modified.
+	(iimage-modification-hook): New function.
+	(iimage-mode-buffer): Use it.
+
+2010-06-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-indent-offset-rule): Rename from
+	smie-indent-offset-after.  Add :prev case.  Make a bit more generic.
+	(smie-indent-virtual): Remove `virtual' arg.  Update callers.
+	(smie-indent-keyword): Add handling of open-paren keywords.
+	(smie-indent-comment-continue): Don't assume comment-continue.
+
+2010-06-07  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (pop-to-buffer): Remove the conditional that
+	compares new-window and old-window, so it will reselect
+	the selected window unconditionally.
+	http://lists.gnu.org/archive/html/emacs-devel/2010-06/msg00078.html
+
+2010-06-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-indent-offset-after)
+	(smie-indent-forward-token, smie-indent-backward-token): New functions.
+	(smie-indent-after-keyword): Use them.
+	(smie-indent-fixindent): Only applies to the indentation of the BOL.
+	(smie-indent-keyword): Tweak the black magic.
+	(smie-indent-comment-continue): Strip comment-continue before use.
+	(smie-indent-functions): Indent comments before keywords.
+
+2010-06-06  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-lazy-highlight-search): Fix looping
+	by checking for empty match.  This syncs this loop with the
+	similar loop in `isearch-search'.  (Bug#6362)
+
+2010-06-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* net/dbus.el (dbus-register-method): Declare function.
+	(dbus-handle-event, dbus-property-handler): Fix typos in docstrings.
+	(dbus-introspect): Doc fix.
+	(dbus-event-bus-name, dbus-introspect-get-interface)
+	(dbus-introspect-get-argument): Reflow docstrings.
+
+2010-06-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	vc-log-incoming/vc-log-outgoing fixes for Git.
+	* vc-git.el (vc-git-log-view-mode): Fix font lock for
+	incoming/outgoing logs.
+	(vc-git-log-outgoing, vc-git-log-incoming): Use @{upstream}
+	instead of vc-git-compute-remote.
+	(vc-git-compute-remote): Remove.
+
+2010-06-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* term/common-win.el (x-colors): Add "dark green" and "dark
+	turquoise" (Bug#6332).
+
+2010-06-04  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (kill-new): Fix logic of kill-do-not-save-duplicates.
+	Instead of setting `replace' to t and replacing the same string
+	with itself, don't do certain actions when
+	kill-do-not-save-duplicates is non-nil and string is equal to car
+	of kill-ring: don't call menu-bar-update-yank-menu, don't push
+	interprogram-paste strings to kill-ring, and don't push the input
+	argument `string' to kill-ring.
+	http://lists.gnu.org/archive/html/emacs-devel/2010-06/msg00072.html
+
+2010-06-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (directory-sep-char): Move from fileio.c and make a defconst.
+
+2010-06-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-gvfs.el (tramp-gvfs-handle-expand-file-name): Expand "~/".
+	(tramp-gvfs-handler-mounted-unmounted)
+	(tramp-gvfs-connection-mounted-p): Handle default-location.
+
+	* net/tramp-smb.el (tramp-smb-handle-delete-directory): Don't try to
+	move files to trash.
+
+2010-06-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/mule-cmds.el (nonascii-insert-offset)
+	(nonascii-translation-table): Add obsolescence information.
+
+	* international/mule.el (make-translation-table-from-vector): Doc fix.
+
+2010-06-03  Eric Ludlam  <zappo@gnu.org>
+
+	* cedet/semantic/lex-spp.el
+	(semantic-lex-spp-table-write-slot-value): Instead of erroring on
+	invalid values during save, just save a nil (Bug#6324).
+
+2010-06-03  Glenn Morris  <rgm@gnu.org>
+
+	* desktop.el (desktop-clear-preserve-buffers):
+	Add "*Warnings*" buffer.  (Bug#6336)
+
+2010-06-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	vc-log-incoming/vc-log-outgoing improvements for Git.
+	* vc-git.el (vc-git-log-outgoing): Use the same format as the
+	short log.
+	(vc-git-log-incoming): Likewise.  Run "git fetch" before the log command.
+
+	Add bindings for vc-log-incoming and vc-log-outgoing.
+	* vc-hooks.el (vc-prefix-map): Add bindings for vc-log-incoming
+	and vc-log-outgoing.
+	* vc-dir.el (vc-dir-menu-map): Add menu bindings for vc-log-incoming
+	and vc-log-outgoing.
+
+2010-06-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* net/rcirc.el (rcirc-sort-nicknames): Remove.
+	(rcirc-handler-366): Always sort nicknames.
+
+2010-06-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/smie.el (comment-continue): Declare for byte-compiler.
+
+2010-06-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* net/rcirc.el (rcirc-nickname<, rcirc-sort-nicknames-join): Doc
+	fix.
+
+2010-06-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/rcirc.el (rcirc-sort-nicknames): Change default.
+	(rcirc-sort-nicknames-join): Avoid setq.
+
+2010-06-03  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+
+	* net/rcirc.el (rcirc-sort-nicknames): New custom.
+	(rcirc-nickname<, rcirc-sort-nicknames-join): New funs.
+	(rcirc-handler-366): Use them.
+
+2010-06-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Split smie-indent-calculate into more manageable chunks.
+	* emacs-lisp/smie.el (smie-indent-virtual, smie-indent-fixindent)
+	(smie-indent-comment, smie-indent-after-keyword, smie-indent-keyword)
+	(smie-indent-close, smie-indent-comment-continue, smie-indent-bob)
+	(smie-indent-exps): Extract from smie-indent-calculate.
+	(smie-indent-functions): New var.
+	(smie-indent-functions): Use them.
+
+2010-06-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-indent-hanging-p): Use smie-bolp.
+	(smie-indent-calculate): Simplify and cleanup.
+
+2010-06-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-gvfs.el (top): Require url-util.
+	(tramp-gvfs-mount-point): Remove.
+	(tramp-gvfs-stringify-dbus-message, tramp-gvfs-send-command):
+	New defuns.
+	(with-tramp-dbus-call-method): Format trace message.
+	(tramp-gvfs-handle-copy-file, tramp-gvfs-handle-rename-file):
+	Implement backup call, when operation on local files fails.
+	Use progress reporter.  Flush properties of changed files.
+	(tramp-gvfs-handle-make-directory): Make more traces.
+	(tramp-gvfs-url-file-name): Hexify file name in url.
+	(tramp-gvfs-fuse-file-name): Take also prefix (like dav shares)
+	into account for the resulting file name.
+	(tramp-gvfs-handler-askquestion): Return dummy mountpoint, when
+	the answer is "no".  See `tramp-gvfs-maybe-open-connection'.
+	(tramp-gvfs-handler-mounted-unmounted)
+	(tramp-gvfs-connection-mounted-p): Test also for new mountspec
+	attribute "default_location".  Set "prefix" property.
+	(tramp-gvfs-mount-spec): Return both prefix and mountspec.
+	(tramp-gvfs-maybe-open-connection): Test, whether mountpoint
+	exists.  Raise an error, if not (due to a corresponding answer
+	"no" in interactive questions, for example).
+
+2010-06-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* log-edit.el (log-edit-font-lock-keywords): Make group 4 match lax.
+
+2010-06-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/eldoc.el: Add completions for new commands left-* and
+	right-*.  (Bug#6265)
+
+2010-06-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Add support for vc-log-incoming, improve vc-log-outgoing for Git.
+	* vc-git.el (vc-git-compute-remote): New function.
+	(vc-git-log-outgoing): Use it instead of hard coding a value.
+	(vc-git-log-incoming): New function.
+
+	Improve state updating for VC tag commands.
+	* vc.el (vc-create-tag, vc-retrieve-tag): Call vc-resynch-buffer
+	to update the state of all buffers in the directory.
+
+	* vc-dir.el (vc-dir-update): Remove entries with a nil state (bug#5539).
+
+2010-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-bzr.el (vc-bzr-revision-completion-table): Apply
+	`file-directory-p' to the filename part rather than to the whole text.
+
+2010-05-31  Jonathan Marchand  <jonathlela@gmail.com>  (tiny change)
+
+	* cedet/ede/cpp-root.el (ede-set-project-variables): Fix feature name
+	(bug#6231).
+
+2010-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* man.el (Man-completion-table): Let the user type "-k " (bug#6319).
+
+2010-05-31  Drew Adams  <drew.adams@oracle.com>
+
+	* files.el (directory-files-no-dot-files-regexp): Doc fix (bug#6298).
+
+2010-05-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (momentary-string-display): Just use read-event to read
+	the exit event (Bug#6238).
+
+2010-05-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/mule.el (define-coding-system): Doc fix (bug#6313).
+
+2010-05-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emulation/cua-base.el: Recognize also `right-word' and `left-word'.
+	Suggested by Eli Zaretskii <eliz@gnu.org>.
+
+2010-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion-file-name-table): Don't return a boundary
+	past the end of `string' (bug#6299).
+	(completion--file-name-table): Delegate to completion-file-name-table
+	for the `boundaries' case.
+
+2010-05-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emulation/cua-base.el: Recognize `right-char' and `left-char' as
+	movement commands.
+
+	* progmodes/ada-xref.el (ada-prj-ada-project-path-sep): Set from
+	`path-separator', but maintain compatibility with Emacs 20.2.
+
+2010-05-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* server.el (server-process-filter): Receive parent-id argument
+	from emacsclient.
+	(server-create-window-system-frame): New arg.  Pass parent-id as
+	frame parameter.
+
+2010-05-29  Eli Zaretskii  <eliz@gnu.org>
+
+	Bidi-sensitive word movement with arrow keys.
+	* subr.el (right-arrow-command, left-arrow-command): Move to
+	bindings.el.
+
+	* bindings.el (right-char, left-char): Move from subr.el and
+	rename from right-arrow-command and left-arrow-command.
+	(right-word, left-word): New functions.
+	(global-map) <right>: Bind to right-char.
+	(global-map) <left>: Bind to left-char.
+	(global-map) <C-right>: Bind to right-word.
+	(global-map) <C-left>: Bind to left-word.
+
+	* ls-lisp.el (ls-lisp-classify-file): New function.
+	(ls-lisp-insert-directory): Call it if switches include -F (bug#6294).
+	(ls-lisp-classify): Call ls-lisp-classify-file.
+	(insert-directory): Remove blanks from switches.
+
+2010-05-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ansi-color.el: Delete unused escape sequences (Bug#6085).
+	(ansi-color-drop-regexp): New constant.
+	(ansi-color-apply, ansi-color-filter-region)
+	(ansi-color-apply-on-region): Delete unrecognized control sequences.
+	(ansi-color-apply): Build string list before calling concat.
+
+2010-05-28  Juri Linkov  <juri@jurta.org>
+
+	* image-dired.el (image-dired-dired-toggle-marked-thumbs):
+	Replace LOCALP arg of `dired-get-filename' 'no-dir with nil.
+	(Bug#5270)
+
+2010-05-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-debug-message): Add `tramp-compat-funcall'
+	to ignored backtrace functions.
+	(with-progress-reporter): Expand docstring.
+	(tramp-handle-delete-file): Implement TRASH argument.
+	(tramp-get-remote-trash): New defun.
+
+2010-05-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-compat.el (tramp-compat-delete-file): Use
+	`symbol-value' for backward compatibility.
+
+	* net/tramp.el (tramp-handle-make-symbolic-link)
+	(tramp-handle-load)
+	(tramp-do-copy-or-rename-file-via-buffer)
+	(tramp-do-copy-or-rename-file-directly)
+	(tramp-do-copy-or-rename-file-out-of-band)
+	(tramp-handle-process-file, tramp-handle-call-process-region)
+	(tramp-handle-shell-command, tramp-handle-file-local-copy)
+	(tramp-handle-insert-file-contents, tramp-handle-write-region)
+	(tramp-delete-temp-file-function): Use `delete-file' instead
+	of `tramp-compat-delete-file'.
+
+	* net/tramp-fish.el (tramp-fish-handle-delete-directory)
+	(tramp-fish-handle-make-symbolic-link)
+	(tramp-fish-handle-process-file): Use `delete-file' instead
+	of `tramp-compat-delete-file'.
+
+	* net/tramp-ftp.el (tramp-ftp-file-name-handler): Use
+	`delete-file' instead of `tramp-compat-delete-file'.
+
+	* net/tramp-gvfs.el (tramp-gvfs-handle-delete-file): Rename arg.
+	(tramp-gvfs-handle-write-region): Use `delete-file' instead of
+	`tramp-compat-delete-file'.
+
+	* net/tramp-imap.el (tramp-imap-do-copy-or-rename-file): Use
+	`delete-file' instead of `tramp-compat-delete-file'.
+
+	* net/tramp-smb.el (tramp-smb-handle-copy-file)
+	(tramp-smb-handle-file-local-copy, tramp-smb-handle-rename-file)
+	(tramp-smb-handle-write-region): Use `delete-file' instead of
+	`tramp-compat-delete-file'.
+	(tramp-smb-handle-delete-directory): Use 'trash as arg.
+
 2010-05-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* dired.el (dired-delete-file): New arg TRASH.
-	(dired-internal-do-deletions): New arg TRASH.  Use progress
-	reporter.
+	(dired-internal-do-deletions): New arg TRASH.  Use progress reporter.
 	(dired-do-flagged-delete, dired-do-delete): Use trash.
 
 	* speedbar.el (speedbar-item-delete): Allow trashing.
@@ -21,8 +740,7 @@
 	* net/tramp-compat.el (tramp-compat-delete-file): Rewrite to
 	handle new TRASH arg of `delete-file'.
 
-	* net/tramp.el (tramp-handle-delete-file): Change FORCE arg to
-	TRASH.
+	* net/tramp.el (tramp-handle-delete-file): Change FORCE arg to TRASH.
 	(tramp-handle-make-symbolic-link, tramp-handle-load)
 	(tramp-do-copy-or-rename-file-via-buffer)
 	(tramp-do-copy-or-rename-file-directly)
@@ -70,11 +788,6 @@
 	* progmodes/verilog-mode.el (verilog-type-font-keywords): Use
 	font-lock-constant-face, not obsolete font-lock-reference-face.
 
-2010-05-27  Masatake YAMATO  <yamato@redhat.com>
-
-	* htmlfontify.el (hfy-face-resolve-face): New function.
-	(hfy-face-to-style): Use it (Bug#6279).
-
 2010-05-27  Kenichi Handa  <handa@m17n.org>
 
 	* language/hebrew.el (hebrew-shape-gstring): Check if a glyph
@@ -92,6 +805,16 @@
 	skip comments.
 	(smie-next-sexp): Handle nil results from next-token.
 	(smie-indent-calculate): Add a new case for special `fixindent' comments.
+
+2010-05-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/verilog-mode.el (verilog-type-font-keywords):
+	Use font-lock-constant-face, not obsolete font-lock-reference-face.
+
+2010-05-27  Masatake YAMATO  <yamato@redhat.com>
+
+	* htmlfontify.el (hfy-face-resolve-face): New function.
+	(hfy-face-to-style): Use it (Bug#6279).
 
 2010-05-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -158,11 +881,15 @@
 
 2010-05-25  Ryan Yeske  <rcyeske@gmail.com>
 
-	* net/rcirc.el (rcirc-server-alist): Add :pass.
-	(rcirc-default-user-name): Change to "user".
+	* net/rcirc.el (rcirc-default-user-name): Change to "user".
 	(rcirc-default-full-name): Change to "unknown".
 	(rcirc-user-name-history): Add variable.
-	(rcirc): When prompting for connection paramaters, also prompt for
+
+2010-05-25  Ryan Yeske  <rcyeske@gmail.com>
+	    Jonathan Rockway  <jon@jrock.us>
+
+	* net/rcirc.el (rcirc-server-alist): Add :pass.
+	(rcirc): When prompting for connection parameters, also prompt for
 	username and password.
 	(rcirc-connect): Take a PASS argument.	If PASS is non-nil, send
 	value to server when connecting.
@@ -197,14 +924,14 @@
 	Register it in composition-function-table for all Hebrew combining
 	characters.
 
+2010-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* epa.el (epa--select-keys): Don't explicitly delete the window since
+	that can fail (e.g. sole window in frame).  Use dedication instead.
+
 2010-05-24  Uday S Reddy  <u.s.reddy@cs.bham.ac.uk>  (tiny change)
 
 	* textmodes/fill.el (fill-region): Don't fill past the end (bug#6201).
-
-2010-05-24  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	* subr.el (read-quoted-char): Resolve modifiers after key
-	remapping (bug#6212).
 
 2010-05-22  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -1111,11 +1838,6 @@
 2010-04-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* minibuffer.el (tags-completion-at-point-function): Fix return value.
-
-2010-04-30  Eli Zaretskii  <eliz@gnu.org>
-
-	* composite.el (compose-region, reference-point-alist): Fix typos
-	in the doc strings.
 
 2010-04-29  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -4367,8 +5089,8 @@
 
 2009-12-10  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* whitespace.el (whitespace-display-char-on): Ensure
-	`buffer-display-table' is unique when two or more windows are
+	* whitespace.el (whitespace-display-char-on):
+	Ensure `buffer-display-table' is unique when two or more windows are
 	visible.  Reported by Martin Pohlack <mp26@os.inf.tu-dresden.de>.
 	New version 12.1.
 

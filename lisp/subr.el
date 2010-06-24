@@ -1089,7 +1089,11 @@ is converted into a string by expressing it in decimal."
 (make-obsolete 'process-filter-multibyte-p nil "23.1")
 (make-obsolete 'set-process-filter-multibyte nil "23.1")
 
-(make-obsolete-variable 'directory-sep-char "do not use it." "21.1")
+(defconst directory-sep-char ?/
+  "Directory separator character for built-in functions that return file names.
+The value is always ?/.")
+(make-obsolete-variable 'directory-sep-char "do not use it, just use `/'." "21.1")
+
 (make-obsolete-variable
  'mode-line-inverse-video
  "use the appropriate faces instead."
@@ -2204,22 +2208,11 @@ If MESSAGE is nil, instructions to type EXIT-CHAR are displayed there."
                 (recenter (/ (window-height) 2))))
           (message (or message "Type %s to continue editing.")
                    (single-key-description exit-char))
-          (let (char)
-            (if (integerp exit-char)
-                (condition-case nil
-                    (progn
-                      (setq char (read-char))
-                      (or (eq char exit-char)
-                          (setq unread-command-events (list char))))
-                  (error
-                   ;; `exit-char' is a character, hence it differs
-                   ;; from char, which is an event.
-                   (setq unread-command-events (list char))))
-              ;; `exit-char' can be an event, or an event description list.
-              (setq char (read-event))
-              (or (eq char exit-char)
-                  (eq char (event-convert-list exit-char))
-                  (setq unread-command-events (list char))))))
+	  (let ((event (read-event)))
+	    ;; `exit-char' can be an event, or an event description list.
+	    (or (eq event exit-char)
+		(eq event (event-convert-list exit-char))
+		(setq unread-command-events (list event)))))
       (delete-overlay ol))))
 
 
@@ -3801,31 +3794,6 @@ which is higher than \"1alpha\"."
 (when (hash-table-p (car (read-from-string
 			  (prin1-to-string (make-hash-table)))))
   (provide 'hashtable-print-readable))
-
-;; Moving with arrows in bidi-sensitive direction.
-(defun right-arrow-command (&optional n)
-  "Move point N characters to the right (to the left if N is negative).
-On reaching beginning or end of buffer, stop and signal error.
-
-Depending on the bidirectional context, this may move either forward
-or backward in the buffer.  This is in contrast with \\[forward-char]
-and \\[backward-char], which see."
-  (interactive "^p")
-  (if (eq (current-bidi-paragraph-direction) 'left-to-right)
-      (forward-char n)
-    (backward-char n)))
-
-(defun left-arrow-command ( &optional n)
-  "Move point N characters to the left (to the right if N is negative).
-On reaching beginning or end of buffer, stop and signal error.
-
-Depending on the bidirectional context, this may move either backward
-or forward in the buffer.  This is in contrast with \\[backward-char]
-and \\[forward-char], which see."
-  (interactive "^p")
-  (if (eq (current-bidi-paragraph-direction) 'left-to-right)
-      (backward-char n)
-    (forward-char n)))
 
 ;; arch-tag: f7e0e6e5-70aa-4897-ae72-7a3511ec40bc
 ;;; subr.el ends here

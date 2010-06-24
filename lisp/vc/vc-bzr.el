@@ -4,7 +4,7 @@
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; 	   Riccardo Murri <riccardo.murri@gmail.com>
-;; Keywords: tools
+;; Keywords: vc tools
 ;; Created: Sept 2006
 ;; Version: 2008-01-04 (Bzr revno 25)
 ;; URL: http://launchpad.net/vc-bzr
@@ -459,6 +459,7 @@ REV non-nil gets an error."
   (if rev (error "Can't check in a specific revision with bzr"))
   (apply 'vc-bzr-command "commit" nil 0
          files (cons "-m" (log-edit-extract-headers '(("Author" . "--author")
+						      ("Date" . "--commit-time")
                                                       ("Fixes" . "--fixes"))
                                                     comment))))
 
@@ -999,10 +1000,12 @@ stream.  Standard error output is discarded."
        ((string-match "\\`\\(ancestor\\|branch\\|\\(revno:\\)?[-0-9]+:\\):"
                       string)
         (completion-table-with-context (substring string 0 (match-end 0))
-                                       'completion-file-name-table
+                                       (apply-partially
+                                        'completion-table-with-predicate
+                                        'completion-file-name-table
+                                        'file-directory-p t)
                                        (substring string (match-end 0))
-                                       ;; Dropping `pred' for no good reason.
-                                       'file-directory-p
+                                       pred
                                        action))
        ((string-match "\\`\\(before\\):" string)
         (completion-table-with-context (substring string 0 (match-end 0))

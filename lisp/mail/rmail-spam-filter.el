@@ -414,7 +414,7 @@ message%s"
     ;; to make sure message-subject is actually evaluated and its value
     ;; substituted.
     (add-to-list 'rsf-definitions-alist
-		 ;; Note that an empty elment is treated the same as
+		 ;; Note that an empty element is treated the same as
 		 ;; an absent one, so why does it bother to add them?
 		 (list '(from . "")
 		       '(to . "")

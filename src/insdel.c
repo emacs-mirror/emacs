@@ -437,7 +437,7 @@ adjust_markers_for_insert (EMACS_INT from, EMACS_INT from_byte,
     }
 
   /* Adjusting only markers whose insertion-type is t may result in
-     - disordered start and end in overlays, and 
+     - disordered start and end in overlays, and
      - disordered overlays in the slot `overlays_before' of current_buffer.  */
   if (adjusted)
     {
@@ -843,7 +843,7 @@ count_combining_before (const unsigned char *string, EMACS_INT length,
   len = 1;
   p = BYTE_POS_ADDR (pos_byte - 1);
   while (! CHAR_HEAD_P (*p)) p--, len++;
-  if (! BASE_LEADING_CODE_P (*p)) /* case (3) */
+  if (! LEADING_CODE_P (*p)) /* case (3) */
     return 0;
 
   combining_bytes = BYTES_BY_CHAR_HEAD (*p) - len;
@@ -906,7 +906,7 @@ count_combining_after (const unsigned char *string,
       i = pos_byte - 2;
       while (i >= 0 && ! CHAR_HEAD_P (p[i]))
 	i--;
-      if (i < 0 || !BASE_LEADING_CODE_P (p[i]))
+      if (i < 0 || !LEADING_CODE_P (p[i]))
 	return 0;
 
       bytes = BYTES_BY_CHAR_HEAD (p[i]);
@@ -914,7 +914,7 @@ count_combining_after (const unsigned char *string,
 	      ? 0
 	      : bytes - (pos_byte - 1 - i + length));
     }
-  if (!BASE_LEADING_CODE_P (string[i]))
+  if (!LEADING_CODE_P (string[i]))
     return 0;
 
   bytes = BYTES_BY_CHAR_HEAD (string[i]) - (length - i);

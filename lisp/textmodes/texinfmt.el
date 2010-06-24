@@ -1,8 +1,8 @@
 ;;; texinfmt.el --- format Texinfo files into Info files
 
-;; Copyright (C) 1985, 1986, 1988, 1990, 1991, 1992, 1993,
-;;   1994, 1995, 1996, 1997, 1998, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1988, 1990, 1991, 1992, 1993, 1994, 1995,
+;;   1996, 1997, 1998, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Maintainer: Robert J. Chassell <bug-texinfo@gnu.org>
 ;; Keywords: maint, tex, docs
@@ -224,7 +224,7 @@ converted to Info is stored in a temporary buffer."
         (save-restriction
           (widen)
           (goto-char (point-min))
-          (let ((search-end (save-excursion (forward-line 100) (point))))
+          (let ((search-end (line-beginning-position 101)))
             (if (or
                  ;; Either copy header text.
                  (and
@@ -285,7 +285,7 @@ converted to Info is stored in a temporary buffer."
       (let ((filename (concat input-directory
                               (texinfo-parse-line-arg))))
         (re-search-backward "^@include")
-        (delete-region (point) (save-excursion (forward-line 1) (point)))
+        (delete-region (point) (line-beginning-position 2))
         (message "Reading included file: %s" filename)
         (save-excursion
           (save-restriction
@@ -323,8 +323,7 @@ converted to Info is stored in a temporary buffer."
 
     ;; Insert Info region title text.
     (goto-char (point-min))
-    (if (search-forward
-         "@setfilename" (save-excursion (forward-line 100) (point)) t)
+    (if (search-forward "@setfilename" (line-beginning-position 101) t)
         (progn
           (setq texinfo-command-end (point))
           (beginning-of-line)
@@ -772,13 +771,13 @@ commands."
        ((eq type '@raisesections)
         (setq level (1+ level))
         (delete-region
-         (point) (save-excursion (forward-line 1) (point))))
+         (point) (line-beginning-position 2)))
 
        ;; 2. Decrement level
        ((eq type '@lowersections)
         (setq level (1- level))
         (delete-region
-         (point) (save-excursion (forward-line 1) (point))))
+         (point) (line-beginning-position 2)))
 
        ;; Now handle structuring commands
        ((cond
@@ -1505,9 +1504,7 @@ The node is constructed automatically."
              (progn (goto-char node-name-beginning) ; skip over node command
                     (skip-chars-forward " \t")  ; and over spaces
                     (point))
-             (if (search-forward
-                  ","
-                  (save-excursion (end-of-line) (point)) t) ; bound search
+             (if (search-forward "," (line-end-position) t) ; bound search
                  (1- (point))
                (end-of-line) (point))))))
     (texinfo-discard-command)  ; remove or insert whitespace, as needed
@@ -1692,7 +1689,7 @@ Used by @refill indenting command to avoid indenting within lists, etc.")
 (put 'itemize 'texinfo-item 'texinfo-itemize-item)
 (defun texinfo-itemize-item ()
   ;; (texinfo-discard-line)   ; Did not handle text on same line as @item.
-  (delete-region (1+ (point)) (save-excursion (beginning-of-line) (point)))
+  (delete-region (1+ (point)) (line-beginning-position))
   (if (looking-at "[ \t]*[^ \t\n]+")
       ;; Text on same line as @item command.
       (insert "\b   " (nth 1 (car texinfo-stack)) " \n")
@@ -2132,10 +2129,10 @@ This command is executed when texinfmt sees @item inside @multitable."
       (narrow-to-region start end)
       ;; Remove whitespace before and after entry.
       (skip-chars-forward " ")
-      (delete-region (point) (save-excursion (beginning-of-line) (point)))
+      (delete-region (point) (line-beginning-position))
       (goto-char (point-max))
       (skip-chars-backward " ")
-      (delete-region (point) (save-excursion (end-of-line) (point)))
+      (delete-region (point) (line-end-position))
       ;; Temporarily set texinfo-stack to nil so texinfo-format-scan
       ;; does not see an unterminated @multitable.
       (let (texinfo-stack)                      ; nil
@@ -2409,16 +2406,14 @@ Use only the FILENAME arg; for Info, ignore the other arguments to @image."
   (let ((start (1- (point)))
         args)
     (skip-chars-forward " ")
-    (save-excursion (end-of-line) (setq texinfo-command-end (point)))
+    (setq texinfo-command-end (line-end-position))
     (if (not (looking-at "\\([^=]+\\)=\\(.*\\)"))
 	(error "Invalid alias command")
       (push (cons
              (match-string-no-properties 1)
              (match-string-no-properties 2))
             texinfo-alias-list)
-      (texinfo-discard-command))
-    )
-  )
+      (texinfo-discard-command))))
 
 
 ;;; @var, @code and the like
@@ -2455,7 +2450,7 @@ Use only the FILENAME arg; for Info, ignore the other arguments to @image."
   "Insert ` ... ' around arg unless inside a table; in that case, no quotes."
   ;; `looking-at-backward' not available in v. 18.57, 20.2
   (if (not (search-backward ""    ; searched-for character is a control-H
-                    (save-excursion (beginning-of-line) (point))
+                    (line-beginning-position)
                     t))
       (insert "`" (texinfo-parse-arg-discard) "'")
       (insert  (texinfo-parse-arg-discard)))
@@ -2840,8 +2835,7 @@ Default is to leave paragraph indentation as is."
 (defun texinfo-noindent ()
   (save-excursion
     (forward-paragraph 1)
-    (if (search-backward "@refill"
-                            (save-excursion (forward-line -1) (point)) t)
+    (if (search-backward "@refill" (line-beginning-position 0) t)
         () ; leave @noindent command so @refill command knows not to indent
       ;; else
       (texinfo-discard-line))))

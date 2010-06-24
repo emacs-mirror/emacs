@@ -1342,12 +1342,19 @@ same as `substitute-in-file-name'."
    ((eq (car-safe action) 'boundaries)
     (let ((start (length (file-name-directory string)))
           (end (string-match-p "/" (cdr action))))
-      (list* 'boundaries start end)))
+      (list* 'boundaries
+             ;; if `string' is "C:" in w32, (file-name-directory string)
+             ;; returns "C:/", so `start' is 3 rather than 2.
+             ;; Not quite sure what is The Right Fix, but clipping it
+             ;; back to 2 will work for this particular case.  We'll
+             ;; see if we can come up with a better fix when we bump
+             ;; into more such problematic cases.
+             (min start (length string)) end)))
 
-     ((eq action 'lambda)
-      (if (zerop (length string))
-          nil    ;Not sure why it's here, but it probably doesn't harm.
-        (funcall (or pred 'file-exists-p) string)))
+   ((eq action 'lambda)
+    (if (zerop (length string))
+        nil    ;Not sure why it's here, but it probably doesn't harm.
+      (funcall (or pred 'file-exists-p) string)))
 
    (t
       (let* ((name (file-name-nondirectory string))
@@ -1395,19 +1402,20 @@ except that it passes the file name through `substitute-in-file-name'."
   (cond
    ((eq (car-safe action) 'boundaries)
     ;; For the boundaries, we can't really delegate to
-    ;; completion-file-name-table and then fix them up, because it
-    ;; would require us to track the relationship between `str' and
+    ;; substitute-in-file-name+completion-file-name-table and then fix
+    ;; them up (as we do for the other actions), because it would
+    ;; require us to track the relationship between `str' and
     ;; `string', which is difficult.  And in any case, if
-    ;; substitute-in-file-name turns "fo-$TO-ba" into "fo-o/b-ba", there's
-    ;; no way for us to return proper boundaries info, because the
-    ;; boundary is not (yet) in `string'.
-    ;; FIXME: Actually there is a way to return correct boundaries info,
-    ;; at the condition of modifying the all-completions return accordingly.
-    (let ((start (length (file-name-directory string)))
-          (end (string-match-p "/" (cdr action))))
-      (list* 'boundaries start end)))
+    ;; substitute-in-file-name turns "fo-$TO-ba" into "fo-o/b-ba",
+    ;; there's no way for us to return proper boundaries info, because
+    ;; the boundary is not (yet) in `string'.
+    ;;
+    ;; FIXME: Actually there is a way to return correct boundaries
+    ;; info, at the condition of modifying the all-completions
+    ;; return accordingly. But for now, let's not bother.
+    (completion-file-name-table string pred action))
 
-       (t
+   (t
     (let* ((default-directory
              (if (stringp pred)
                  ;; It used to be that `pred' was abused to pass `dir'

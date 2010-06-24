@@ -114,7 +114,8 @@ WINS_BASIC=\
 	play \
 	progmodes \
 	textmodes \
-	url
+	url \
+	vc
 
 # Directories with lisp files to compile, and to extract data from
 # (customs, autoloads, etc.)

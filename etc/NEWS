@@ -24,6 +24,13 @@ so we will look at it and add it to the manual.
 
 * Installation Changes in Emacs 24.1
 
+** Configure links against libselinux if it is found.
+You can disable this by using --without-selinux.
+
+---
+** By default, the installed Info and man pages are compressed.
+You can disable this by configuring --without-compress-info.
+
 ---
 ** There are new configure options:
 --with-mmdf, --with-mail-unlink, --with-mailhost.
@@ -34,14 +41,15 @@ lib-src/Makefile by hand in order to use the associated features.
 ** There is a new configure option --with-crt-dir.
 This is only useful if your crt*.o files are in a non-standard location.
 
-** Configure links against libselinux if it is found.
-You can disable this by using --without-selinux.
-
 
 * Startup Changes in Emacs 24.1
 
 
 * Changes in Emacs 24.1
+
+** New emacsclient argument --parent-id ID can be used to open a
+client frame in parent X window ID, via XEmbed.  This works like the
+--parent-id argument to Emacs.
 
 ** Completion can cycle, depending on completion-cycle-threshold.
 
@@ -117,6 +125,19 @@ trashing.  This avoids inadvertently trashing temporary files.
 *** Calling `delete-file' or `delete-directory' with a prefix argument
 now forces true deletion, regardless of `delete-by-moving-to-trash'.
 
+** New option `list-colors-sort' defines the color sort order
+for `list-colors-display'.
+
+** An Emacs Lisp package manager is now included.
+This is a convenient way to download and install additional packages,
+from elpa.gnu.org.  `M-x package-list-packages' shows a list of
+packages, which can be selected for installation.
+
+*** By default, all installed packages are loaded and activated
+automatically when Emacs starts up.  To disable this, set
+`package-enable-at-startup' to nil.  To change which packages are
+loaded, customize `package-load-list'.
+
 
 * Editing Changes in Emacs 24.1
 
@@ -160,6 +181,14 @@ read a file name from the minibuffer instead of using buffer-file-name.
 
 *** New VC commands: vc-log-incoming, vc-log-outgoing, vc-find-conflicted-file.
 
+**** vc-log-incoming for Git runs "git fetch" so that the necessary
+data is available locally.
+
+**** vc-log-incoming and vc-log-outgoing for Git require version 1.7 (or newer).
+
+*** New key bindings: C-x v I and C-x v O bound to vc-log-incoming and
+vc-log-outgoing, respectively.
+
 *** vc-dir for Bzr supports viewing shelve contents and shelving snapshots.
 
 *** Special markup can be added to log-edit buffers.
@@ -170,6 +199,11 @@ with headers of the form:
   Fixes: <reference to the bug fixed by this change>
 Some backends handle some of those headers specially, but any unknown header
 is just left as is in the message, so it is not lost.
+
+**** vc-git handles Author: and Date:
+**** vc-hg handles  Author: and Date:
+**** vc-bzr handles Author:, Date: and Fixes:
+**** vc-mtn handles Author: and Date:
 
 ** Directory local variables can apply to file-less buffers.
 For example, adding "(diff-mode . ((mode . whitespace)))" to your
@@ -227,10 +261,17 @@ Secret Service API requires D-Bus for communication.  The command
 `secrets-show-secrets' offers a buffer with a visualization of the
 secrets.
 
+** notifications.el provides an implementation of the Desktop
+Notifications API.  It requires D-Bus for communication.
+
 
 * Incompatible Lisp Changes in Emacs 24.1
 
+** A backquote not followed by a space is now always treated as new-style.
+
 ** Test for special mode-class was moved from view-file to view-buffer.
+FIXME: This only says what was changed, but not what are the
+programmer-visible consequences.
 
 ** Passing a nil argument to a minor mode function now turns the mode
    ON unconditionally.

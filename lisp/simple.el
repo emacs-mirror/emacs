@@ -2905,24 +2905,27 @@ argument should still be a \"useful\" string for such uses."
     (if yank-handler
 	(signal 'args-out-of-range
 		(list string "yank-handler specified for empty string"))))
-  (when (and kill-do-not-save-duplicates
-             (equal string (car kill-ring)))
-    (setq replace t))
-  (if (fboundp 'menu-bar-update-yank-menu)
-      (menu-bar-update-yank-menu string (and replace (car kill-ring))))
+  (unless (and kill-do-not-save-duplicates
+	       (equal string (car kill-ring)))
+    (if (fboundp 'menu-bar-update-yank-menu)
+	(menu-bar-update-yank-menu string (and replace (car kill-ring)))))
   (when save-interprogram-paste-before-kill
     (let ((interprogram-paste (and interprogram-paste-function
                                    (funcall interprogram-paste-function))))
       (when interprogram-paste
-        (if (listp interprogram-paste)
-            (dolist (s (nreverse interprogram-paste))
-              (push s kill-ring))
-            (push interprogram-paste kill-ring)))))
-  (if (and replace kill-ring)
-      (setcar kill-ring string)
-    (push string kill-ring)
-    (if (> (length kill-ring) kill-ring-max)
-	(setcdr (nthcdr (1- kill-ring-max) kill-ring) nil)))
+        (dolist (s (if (listp interprogram-paste)
+		       (nreverse interprogram-paste)
+		     (list interprogram-paste)))
+	  (unless (and kill-do-not-save-duplicates
+		       (equal s (car kill-ring)))
+	    (push s kill-ring))))))
+  (unless (and kill-do-not-save-duplicates
+	       (equal string (car kill-ring)))
+    (if (and replace kill-ring)
+	(setcar kill-ring string)
+      (push string kill-ring)
+      (if (> (length kill-ring) kill-ring-max)
+	  (setcdr (nthcdr (1- kill-ring-max) kill-ring) nil))))
   (setq kill-ring-yank-pointer kill-ring)
   (if interprogram-cut-function
       (funcall interprogram-cut-function string (not replace))))
@@ -5695,7 +5698,7 @@ Each action has the form (FUNCTION . ARGS)."
 The default mail mode is now Message mode.
 You have the following Mail mode variable%s customized:
 \n  %s\n\nTo use Mail mode, set `mail-user-agent' to sendmail-user-agent.
-To disable this warning, set `compose-mail-check-user-agent' to nil."
+To disable this warning, set `compose-mail-user-agent-warnings' to nil."
 				    (if (> (length warn-vars) 1) "s" "")
 				    (mapconcat 'symbol-name
 					       warn-vars " "))))))

@@ -340,7 +340,7 @@ This variable is buffer-local."
 ;; Something called "perforce" uses "Enter password:".
 (defcustom comint-password-prompt-regexp
   (concat
-   "^\\("
+   "\\("
    (regexp-opt
     '("Enter" "Enter same" "Old" "old" "New" "new" "'s" "login"
       "Kerberos" "CVS" "UNIX" " SMB" "LDAP" "[sudo]" "Repeat" "Bad"))

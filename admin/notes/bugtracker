@@ -149,6 +149,23 @@ Discard mails matching:
 
 ^X-GNU-PR-Message: (transcript|closed)
 
+** Not receiving messages in response to your control commands?
+The messages debbugs sends out in response to control-server commands
+always have headers To: your@email, and Cc: tracker@debbugs.gnu.org
+(the latter is an alias for the emacs-bug-tracker mailing list).
+These are also the addresses to which a copy of the response is sent.
+(In general, there need not be any relation between the To: and Cc:
+headers visible in a message and where debbugs actually sends it.)
+If you used an X-Debbugs-No-Ack header, however, a copy is _not_ sent
+to you, but the To: header is unchanged.  If you are subscribed to the
+emacs-bug-tracker mailing list and have duplicate suppression turned
+on, the presence of your address in the To: header will cause Mailman
+to not send you a list copy, because it thinks you have received a
+direct copy.  If you used X-Debbugs-No-Ack, this is not the case, and
+you won't get any copy at all.  If this bothers you, don't use both
+X-Debbugs-No-Ack and Mailman duplicate suppression for the
+emacs-bug-tracker mailing list, just pick one or the other.
+
 ** How to avoid multiple copies of mails.
 If you reply to reports in the normal way, this should work fine.
 Basically, reply only to the numbered bug address (and any individual

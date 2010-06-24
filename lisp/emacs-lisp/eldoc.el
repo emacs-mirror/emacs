@@ -530,13 +530,13 @@ The words \"&rest\", \"&optional\" are returned unchanged."
 
 ;; Prime the command list.
 (eldoc-add-command-completions
- "backward-" "beginning-of-" "move-beginning-of-" "delete-other-windows"
- "delete-window" "handle-select-window"
- "end-of-" "move-end-of-" "exchange-point-and-mark" "forward-"
- "indent-for-tab-command" "goto-" "mark-page" "mark-paragraph"
- "mouse-set-point" "move-" "pop-global-mark" "next-" "other-window"
- "previous-" "recenter" "scroll-" "self-insert-command"
- "split-window-" "up-list" "down-list")
+ "backward-" "beginning-of-" "delete-other-windows" "delete-window"
+ "down-list" "end-of-" "exchange-point-and-mark" "forward-" "goto-"
+ "handle-select-window" "indent-for-tab-command" "left-" "mark-page"
+ "mark-paragraph" "mouse-set-point" "move-" "move-beginning-of-"
+ "move-end-of-" "next-" "other-window" "pop-global-mark" "previous-"
+ "recenter" "right-" "scroll-" "self-insert-command" "split-window-"
+ "up-list")
 
 (provide 'eldoc)
 

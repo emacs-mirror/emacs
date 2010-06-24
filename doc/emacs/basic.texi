@@ -1,6 +1,7 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Basic, Minibuffer, Exiting, Top
 @chapter Basic Editing Commands
@@ -92,9 +93,9 @@ of overwriting with it.
 @vindex read-quoted-char-radix
 @noindent
 To use decimal or hexadecimal instead of octal, set the variable
-@code{read-quoted-char-radix} to 10 or 16.  If the radix is greater
-than 10, some letters starting with @kbd{a} serve as part of a
-character code, just like digits.
+@code{read-quoted-char-radix} to 10 or 16.  If the radix is 16,
+the letters @kbd{a} to @kbd{f} serve as part of a character code,
+just like digits.  Case is ignored.
 
   A numeric argument tells @kbd{C-q} how many copies of the quoted
 character to insert (@pxref{Arguments}).
@@ -104,7 +105,7 @@ character to insert (@pxref{Arguments}).
 @cindex Unicode
   Instead of @kbd{C-q}, you can use @kbd{C-x 8 @key{RET}}
 (@code{ucs-insert}) to insert a character based on its Unicode name or
-code-point.  This commands prompts for a character to insert, using
+code-point.  This command prompts for a character to insert, using
 the minibuffer; you can specify the character using either (i) the
 character's name in the Unicode standard, or (ii) the character's
 code-point in the Unicode standard.  If you specify the character's
@@ -146,8 +147,8 @@ keyboard commands that move point in more sophisticated ways.
 @findex move-end-of-line
 @findex forward-char
 @findex backward-char
-@findex right-arrow-command
-@findex left-arrow-command
+@findex right-char
+@findex left-char
 @findex next-line
 @findex previous-line
 @findex beginning-of-buffer
@@ -165,7 +166,7 @@ Move to the end of the line (@code{move-end-of-line}).
 @item C-f
 Move forward one character (@code{forward-char}).
 @item @key{right}
-Move one character to the right (@code{right-arrow-command}).  This
+Move one character to the right (@code{right-char}).  This
 moves one character forward in text that is read in the usual
 left-to-right direction, but one character @emph{backward} if the text
 is read right-to-left, as needed for right-to-left scripts such as
@@ -173,17 +174,23 @@ Arabic.  @xref{Bidirectional Editing}.
 @item C-b
 Move backward one character (@code{backward-char}).
 @item @key{left}
-Move one character to the left (@code{left-arrow-command}).  This
+Move one character to the left (@code{left-char}).  This
 moves one character backward in left-to-right text and one character
 forward in right-to-left text.
 @item M-f
 @itemx M-@key{right}
-@itemx C-@key{right}
 Move forward one word (@code{forward-word}).
+@item C-@key{right}
+Move one word to the right (@code{right-word}).  This moves one word
+forward in left-to-right text and one word backward in right-to-left
+text.
 @item M-b
 @itemx M-@key{left}
-@itemx C-@key{left}
 Move backward one word (@code{backward-word}).
+@item C-@key{left}
+Move one word to the left (@code{left-word}).  This moves one word
+backward in left-to-right text and one word forward in right-to-left
+text.
 @item C-n
 @itemx @key{down}
 Move down one screen line (@code{next-line}).  This command attempts

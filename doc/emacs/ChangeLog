@@ -1,3 +1,24 @@
+2010-06-10  Glenn Morris  <rgm@gnu.org>
+
+	* basic.texi (Inserting Text): Minor clarification.  (Bug#6374)
+
+	* basic.texi (Inserting Text): Fix typo.
+
+2010-06-10  Glenn Morris  <rgm@gnu.org>
+
+	* ack.texi (Acknowledgments):
+	* emacs.texi (Acknowledgments): Update for notifications.el.
+
+2010-05-31  Daiki Ueno  <ueno@unixuser.org>
+
+	* dired.texi (Operating on Files): Mention encryption commands
+	(Bug#6315).
+
+2010-05-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* basic.texi (Moving Point): Update due to renaming of commands bound
+	to arrows.  Document bidi-aware behavior of C-<right> and C-<left>.
+
 2010-05-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* display.texi (Fringes): Document reversal of fringe arrows for R2L

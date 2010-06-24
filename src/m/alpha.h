@@ -62,8 +62,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef __ELF__
 
-#undef UNEXEC
-#define UNEXEC unexelf.o
 #if !defined(GNU_LINUX) && !defined(__NetBSD__)
 #define DATA_START    0x140000000
 #endif
@@ -77,9 +75,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Describe layout of the address space in an executing process.  */
 #define TEXT_START    0x120000000
 #define DATA_START    0x140000000
-
-/* The program to be used for unexec. */
-#define UNEXEC unexalpha.o
 
 #endif /* __ELF__ */
 
