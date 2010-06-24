@@ -1,3 +1,19 @@
+2010-06-24  Juri Linkov  <juri@jurta.org>
+
+	* minibuffer.el (completions-format): Change default from nil to
+	`horizontal'.  Remove `nil' value from :type.  Doc fix.  (Bug#6459)
+
+2010-06-24  Juri Linkov  <juri@jurta.org>
+
+	* vc/vc.el (vc-diff-internal): Set `revert-buffer-function'
+	buffer-locally to lambda that re-runs the vc diff command.
+	(Bug#6447)
+
+2010-06-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* kmacro.el (kmacro-call-macro): Don't issue hint message if the
+	echo area is in use (Bug#3412).
+
 2010-06-22  Glenn Morris  <rgm@gnu.org>
 
 	* textmodes/texinfmt.el (texinfo-format-region)
