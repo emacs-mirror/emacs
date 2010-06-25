@@ -2622,7 +2622,7 @@ Keeps argument list for future ispell invocations for no async support."
 	   ;; Restart check for personal dictionary is done in
 	   ;; `ispell-internal-change-dictionary', called from `ispell-buffer-local-dict'
 	   (or (or ispell-local-pdict ispell-personal-dictionary)
-	       (equal ispell-process-directory default-directory)))
+	       (equal ispell-process-directory (expand-file-name default-directory))))
       (setq ispell-filter nil ispell-filter-continue nil)
     ;; may need to restart to select new personal dictionary.
     (ispell-kill-ispell t)
@@ -2638,13 +2638,13 @@ Keeps argument list for future ispell invocations for no async support."
     (if (window-minibuffer-p)
 	(if (fboundp 'minibuffer-selected-window)
 	    ;; Assign ispell process to parent buffer
-	    (setq ispell-process-directory default-directory
+	    (setq ispell-process-directory (expand-file-name default-directory)
 		  ispell-process-buffer-name (window-buffer (minibuffer-selected-window)))
 	  ;; Force `ispell-process-directory' to $HOME and use a dummy name
 	  (setq ispell-process-directory (expand-file-name "~/")
 		ispell-process-buffer-name " * Minibuffer-has-spellcheck-enabled"))
       ;; Not in a minibuffer
-      (setq ispell-process-directory default-directory
+      (setq ispell-process-directory (expand-file-name default-directory)
 	    ispell-process-buffer-name (buffer-name)))
     (if ispell-async-processp
 	(set-process-filter ispell-process 'ispell-filter))
