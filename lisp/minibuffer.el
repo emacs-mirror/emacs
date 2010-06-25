@@ -891,13 +891,13 @@ Return nil if there is no valid completion, else t."
 (defface completions-annotations '((t :inherit italic))
   "Face to use for annotations in the *Completions* buffer.")
 
-(defcustom completions-format nil
+(defcustom completions-format 'horizontal
   "Define the appearance and sorting of completions.
 If the value is `vertical', display completions sorted vertically
 in columns in the *Completions* buffer.
-If the value is `horizontal' or nil, display completions sorted
+If the value is `horizontal', display completions sorted
 horizontally in alphabetical order, rather than down the screen."
-  :type '(choice (const nil) (const horizontal) (const vertical))
+  :type '(choice (const horizontal) (const vertical))
   :group 'minibuffer
   :version "23.2")
 
