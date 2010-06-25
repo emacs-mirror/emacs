@@ -1,9 +1,3 @@
-2010-06-25  Chong Yidong  <cyd@stupidchicken.com>
-
-	* frame.c (Vdefault_frame_alist): Give default value entries for
-	menu-bar-lines and tool-bar-lines consistent with the startup
-	default (Bug#2249).
-
 2010-06-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* gtkutil.c (xg_update_scrollbar_pos):

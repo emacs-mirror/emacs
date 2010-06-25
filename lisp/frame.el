@@ -52,8 +52,7 @@ Parameters specified here supersede the values given in
 ;; The initial value given here used to ask for a minibuffer.
 ;; But that's not necessary, because the default is to have one.
 ;; By not specifying it here, we let an X resource specify it.
-(defcustom initial-frame-alist
-  '((menu-bar-lines . 1) (tool-bar-lines . 1))
+(defcustom initial-frame-alist nil
   "Alist of parameters for the initial X window frame.
 You can set this in your init file; for example,
 

@@ -4595,8 +4595,7 @@ For values specific to the separate minibuffer frame, see
 The `menu-bar-lines' element of the list controls whether new frames
  have menu bars; `menu-bar-mode' works by altering this element.
 Setting this variable does not affect existing frames, only new ones.  */);
-  Vdefault_frame_alist = list2 (Fcons (Qmenu_bar_lines, make_number (1)),
-				Fcons (Qtool_bar_lines, make_number (1)));
+  Vdefault_frame_alist = Qnil;
 
   DEFVAR_LISP ("default-frame-scroll-bars", &Vdefault_frame_scroll_bars,
 	       doc: /* Default position of scroll bars on this window-system.  */);
