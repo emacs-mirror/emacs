@@ -1,3 +1,9 @@
+2010-06-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.el (initial-frame-alist): Give default value entries for
+	menu-bar-lines and tool-bar-lines consistent with the startup
+	default (Bug#2249).
+
 2010-06-25  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* flyspell.el (flyspell-check-previous-highlighted-word): Make
