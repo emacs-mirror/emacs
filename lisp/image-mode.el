@@ -471,7 +471,10 @@ was inserted."
 			    (buffer-substring-no-properties (point-min) (point-max)))
 			 filename))
 	 (type (image-type file-or-data nil data-p))
-	 (image (create-animated-image file-or-data type data-p))
+         (image0 (create-animated-image file-or-data type data-p))
+	 (image (append image0
+                        (image-transform-properties image0)
+                        ))
 	 (props
 	  `(display ,image
 		    intangible ,image
@@ -534,6 +537,72 @@ the image file and `image-mode' showing the image as an image."
     (when (not (string= image-type (bookmark-prop-get bmk 'image-type)))
       (image-toggle-display))))
 
+
+(defvar image-transform-minor-mode-map
+  (let ((map (make-sparse-keymap)))
+;    (define-key map  [(control ?+)] 'image-scale-in)
+;    (define-key map  [(control ?-)] 'image-scale-out)
+;    (define-key map  [(control ?=)] 'image-scale-none)
+;;    (define-key map "c f h" 'image-scale-fit-height)    
+;;    (define-key map "c ]" 'image-rotate-right)            
+    map)
+  "Minor mode keymap for transforming the view of images Image mode.")
+
+(define-minor-mode image-transform-mode
+  "minor mode for scaleing and rotation"
+  nil "image-transform"
+  image-transform-minor-mode-map)
+
+;;these are supposed to be buffer local
+;(defvar image-transform-height 100);;nil should mean 100%
+;;the interface could rather be:
+(defvar image-transform-resize
+  nil
+  "values: fit-height  number=scale nil=scale100% TODO fit-width fit-page"
+  )
+
+;;TODO 0 90 180 270 degrees are the only reasonable angles here
+;;otherwise combining with rescaling will get very awkward
+(defvar image-transform-rotation 0.0)
+
+;;then it would be nice with a bunch of globals like:
+;; image-transform-always-resize values: 'fit-height nil=100% number=scale TODO  'fit-width 'fit-page
+;; image-transform-always-rotate value: angle
+
+(defun image-transform-properties (display)
+  (let*
+      ((size (image-size display t))
+       (height
+        (cond
+         ((and (numberp image-transform-resize) (eq 100 image-transform-resize))
+          nil)
+         ((numberp image-transform-resize)
+          (* image-transform-resize (cdr size)))
+         ((eq image-transform-resize 'fit-height)
+          (nth 3 (window-inside-pixel-edges)))
+         )))
+       `(,@(if height (list :height height))
+         ,@(if (not (equal 0.0 image-transform-rotation))
+               (list :rotation image-transform-rotation))
+        )))
+
+(defun image-transform-set-scale (scale)
+  (interactive "nscale:")
+  (image-transform-set-resize (float scale)))
+
+(defun image-transform-fit-to-height ()
+  (interactive)
+  (image-transform-set-resize 'fit-height))
+
+(defun image-transform-set-resize (resize)
+  (setq image-transform-resize resize)
+  (image-toggle-display-image))
+
+(defun image-transform-set-rotation (rotation)
+  (interactive "nrotation:")
+  (setq image-transform-rotation (float rotation))
+  (image-toggle-display-image))
+
 (provide 'image-mode)
 
 ;; arch-tag: b5b2b7e6-26a7-4b79-96e3-1546b5c4c6cb

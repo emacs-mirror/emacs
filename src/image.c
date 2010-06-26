@@ -7592,6 +7592,10 @@ enum imagemagick_keyword_index
     IMAGEMAGICK_HEURISTIC_MASK,
     IMAGEMAGICK_MASK,
     IMAGEMAGICK_BACKGROUND,
+    IMAGEMAGICK_HEIGHT,
+    IMAGEMAGICK_WIDTH,
+    IMAGEMAGICK_ROTATION,
+    IMAGEMAGICK_CROP,
     IMAGEMAGICK_LAST
   };
 
@@ -7609,7 +7613,11 @@ static struct image_keyword imagemagick_format[IMAGEMAGICK_LAST] =
     {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
     {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
     {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-    {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
+    {":background",	IMAGE_STRING_OR_NIL_VALUE,		0},
+    {":height",		IMAGE_INTEGER_VALUE,			0},    
+    {":width",		IMAGE_INTEGER_VALUE,			0},    
+    {":rotation",	IMAGE_NUMBER_VALUE,     		0},    
+    {":crop",		IMAGE_DONT_CHECK_VALUE_TYPE,		0}
   };
 /* Free X resources of imagemagick image IMG which is used on frame F.  */
 
@@ -7733,14 +7741,15 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
     MagickSetIteratorIndex(image_wand, ino);
 
   /* If width and/or height is set in the display spec assume we want
-    to scale to those.  */
+    to scale to those values.  if either h or w is unspecified, the
+    unspecified should be calculated from the specified to preserve
+    aspect ratio. */
 
   value = image_spec_value (img->spec, QCwidth, NULL);
   desired_width = (INTEGERP (value)  ? XFASTINT (value) : -1);
   value = image_spec_value (img->spec, QCheight, NULL);
   desired_height = (INTEGERP (value) ? XFASTINT (value) : -1);
-  /* TODO if h or w is left out, it should be calculated to preserve aspect ratio */
-  /* get original w and h, these will be recalculated before final blit*/
+
   height = MagickGetImageHeight (image_wand);
   width = MagickGetImageWidth (image_wand);
 
@@ -7796,15 +7805,6 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
       MagickCropImage(image_wand, w,h, x,y);
     }
   
-  if (STRINGP (crop) && STRINGP (geometry))
-    {
-      printf("MagickTransformImage %s %s\n", SDATA(crop), SDATA(geometry));
-      image_wand = MagickTransformImage (image_wand, SDATA (crop),
-                                         SDATA (geometry));
-      /* TODO differ between image_wand and transform_wand. */
-    }
-
-  
   /* Furthermore :rotation. we need background color and angle for
      rotation.  */
   /*
@@ -7830,8 +7830,8 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
         }
     }
   
-  /* Finaly we are done manipulating the image,
-     figure out resulting width, height, and then transfer ownerwship to Emacs.
+  /* Finaly we are done manipulating the image, figure out resulting
+     width, height, and then transfer ownerwship to Emacs.
   */
   height = MagickGetImageHeight (image_wand);
   width = MagickGetImageWidth (image_wand);
@@ -7866,9 +7866,7 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
     
       /* Copy imagegmagick image to x with primitive yet robust pixel
          pusher loop.  This has been tested a lot with many different
-         images, it doesnt work too well with image archive formats though!
-
-         Also seems slow.
+         images.
       */
   
       /* Copy pixels from the imagemagick image structure to the x image map. */
@@ -7901,10 +7899,6 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
   if (imagemagick_rendermethod == 1)
     {
       /* Try if magicexportimage is any faster than pixelpushing. */
-      /* printf("ximg: bitmap_unit:%d format:%d byte_order:%d depth:%d
-         bits_per_pixel:%d\n", */
-      /*        ximg->bitmap_unit,ximg->format,ximg->byte_order,
-                ximg->depth,ximg->bits_per_pixel); */
       int imagedepth = 24;/*MagickGetImageDepth(image_wand);*/
       char* exportdepth = imagedepth <= 8 ? "I" : "BGRP";/*"RGBP";*/
       /* Try to create a x pixmap to hold the imagemagick pixmap.  */

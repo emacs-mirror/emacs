@@ -27,11 +27,21 @@ jpegs.
   the bundle. This feature is not the primary usecase for the
   imagemagick patch though.
 
+- optimize number of pages calculation for bundles as suggested by
+  imagemagick forum: "set the density to something low like 2 and use
+  MagickPingImage()"
+  
 - zooming the image like what is done for fonts in face-remap.el would
-  be a useful and demo friendly addition.
+  be a useful and demo friendly addition. Some work has been done on
+  image-mode.el to acihieve this.
 
-- figure out what to do with the experimental features noted below.  
+- look for optimizations for handling images with low depth
+  
+- it would be neat if the graphicsmagick fork of imagemagick could
+  optionaly be used.
 
+
+  
 * TODO
 #B _ complete documentation drafts below
 
@@ -119,41 +129,6 @@ as TIFF or DJVM, to view.
 
 The image-metadata function can be used to retrieve the total number
 of images in an image bundle. This is simmilar to how GIF files work.
-
-* experimental
-
-- :crop is used to specify a croping area: (width height x y).  This
-is similar to the slice image specification, but has a different
-purpose. :crop removes the croped areas from memory, so its memory
-efficient if you only need to view a certain part of the image. The
-slice specification can be used to pick diferent parts of the same
-image, so its more disk and display efficient. :crop works well, but
-it would still be better to find a way to have :splice do the same
-thing.
-
-- :geometry takes a geometry string as defined by ImageMagick:
-
-scale%            
-scale-x%xscale-y% 
-width             
-xheight           
-widthxheight      
-widthxheight^     
-widthxheight!     
-widthxheight>     
-widthxheight<     
-area@             
-{size}{offset}
-{size}{+-}x{+-}y
-
-See the ImageMagick manual for more information.
-
-- :crop is used to specify a croping area, with the "{size}{offset}" syntax.
-
-:geometry and :crop with a string argument, are both particular to
-ImageMagick, whereas the lisp interface is more general. Currently it
-seems like the lisp interface is good enough, so the string argument
-interface will probably be removed.
 
 * Changelog entry
 2010-06-12 Joakim Verona <joakim@verona.se>
