@@ -1,3 +1,7 @@
+2010-06-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32-fns.el (w32-convert-standard-filename): Doc fix.
+
 2010-06-25  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* flyspell.el (flyspell-check-previous-highlighted-word): Make
