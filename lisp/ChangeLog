@@ -1,3 +1,7 @@
+2010-06-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32-fns.el (w32-convert-standard-filename): Doc fix.
+
 2010-05-15  Eli Zaretskii  <eliz@gnu.org>
 
 	Don't override standard definition of convert-standard-filename.
