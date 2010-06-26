@@ -1778,7 +1778,7 @@ x_set_tool_bar_lines (f, value, oldval)
     }
 
   FRAME_TOOL_BAR_LINES (f) = nlines;
-  change_window_heights (root_window, delta);
+  resize_frame_windows (f, FRAME_LINES (f), 0);
   adjust_glyphs (f);
 
   /* We also have to make sure that the internal border at the top of
@@ -1813,6 +1813,9 @@ x_set_tool_bar_lines (f, value, oldval)
       if (WINDOWP (f->tool_bar_window))
 	clear_glyph_matrix (XWINDOW (f->tool_bar_window)->current_matrix);
     }
+
+  run_window_configuration_change_hook (f);
+
 }
 
 
@@ -6015,8 +6018,6 @@ Value is t if tooltip was open, nil otherwise.  */)
   UNGCPRO;
   return unbind_to (count, deleted);
 }
-
-
 
 /***********************************************************************
 			File selection dialog

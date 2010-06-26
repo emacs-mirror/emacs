@@ -26678,30 +26678,26 @@ Value must be an integer or float.  */);
 void
 init_xdisp ()
 {
-  Lisp_Object root_window;
-  struct window *mini_w;
-
   current_header_line_height = current_mode_line_height = -1;
 
   CHARPOS (this_line_start_pos) = 0;
 
-  mini_w = XWINDOW (minibuf_window);
-  root_window = FRAME_ROOT_WINDOW (XFRAME (WINDOW_FRAME (mini_w)));
-
   if (!noninteractive)
     {
-      struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (root_window)));
+      /* Does it really make sense to "bootstrap" from minibuf_window?  */
+      struct window *m = XWINDOW (minibuf_window);
+      Lisp_Object frame = m->frame;
+      struct frame *f = XFRAME (frame);
+      Lisp_Object root = FRAME_ROOT_WINDOW (f);
+      struct window *r = XWINDOW (root);
       int i;
 
-      XWINDOW (root_window)->top_line = make_number (FRAME_TOP_MARGIN (f));
-      set_window_height (root_window,
-			 FRAME_LINES (f) - 1 - FRAME_TOP_MARGIN (f),
-			 0);
-      mini_w->top_line = make_number (FRAME_LINES (f) - 1);
-      set_window_height (minibuf_window, 1, 0);
-
-      XWINDOW (root_window)->total_cols = make_number (FRAME_COLS (f));
-      mini_w->total_cols = make_number (FRAME_COLS (f));
+      XSETFASTINT (r->top_line, FRAME_TOP_MARGIN (f));
+      XSETFASTINT (r->total_lines, FRAME_LINES (f) - 1 - FRAME_TOP_MARGIN (f));
+      XSETFASTINT (r->total_cols, FRAME_COLS (f));
+      XSETFASTINT (m->top_line, FRAME_LINES (f) - 1);
+      XSETFASTINT (m->total_lines, 1);
+      XSETFASTINT (m->total_cols, FRAME_COLS (f));
 
       scratch_glyph_row.glyphs[TEXT_AREA] = scratch_glyphs;
       scratch_glyph_row.glyphs[TEXT_AREA + 1]

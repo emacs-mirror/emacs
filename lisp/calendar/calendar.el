@@ -1330,7 +1330,7 @@ display the generated calendar."
         ;; the right thing in that case.
         ;;
         ;; Is this a wide frame?  If so, split it horizontally.
-        (if (window-splittable-p t) (split-window-horizontally))
+        (if (window-sensibly-splittable-p t) (split-window-horizontally))
         (pop-to-buffer calendar-buffer)
         ;; Has the window already been split vertically?
         (when (and (not (window-dedicated-p))

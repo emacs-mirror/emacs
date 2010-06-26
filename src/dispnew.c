@@ -2132,13 +2132,13 @@ adjust_frame_glyphs_initially ()
 
   /* Do it for the root window.  */
   XSETFASTINT (root->top_line, top_margin);
+  XSETFASTINT (root->total_lines, frame_lines - 1 - top_margin);
   XSETFASTINT (root->total_cols, frame_cols);
-  set_window_height (sf->root_window, frame_lines - 1 - top_margin, 0);
 
   /* Do it for the mini-buffer window.  */
   XSETFASTINT (mini->top_line, frame_lines - 1);
+  XSETFASTINT (mini->total_lines, 1);
   XSETFASTINT (mini->total_cols, frame_cols);
-  set_window_height (root->next, 1, 0);
 
   adjust_frame_glyphs (sf);
   glyphs_initialized_initially_p = 1;
@@ -5975,24 +5975,7 @@ change_frame_size_1 (f, newheight, newwidth, pretend, delay, safe)
 
   if (newheight != FRAME_LINES (f))
     {
-      if (FRAME_HAS_MINIBUF_P (f) && !FRAME_MINIBUF_ONLY_P (f))
-	{
-	  /* Frame has both root and mini-buffer.  */
-	  XSETFASTINT (XWINDOW (FRAME_ROOT_WINDOW (f))->top_line,
-		       FRAME_TOP_MARGIN (f));
-	  set_window_height (FRAME_ROOT_WINDOW (f),
-			     (newheight
-			      - 1
-			      - FRAME_TOP_MARGIN (f)),
-			     2);
-	  XSETFASTINT (XWINDOW (FRAME_MINIBUF_WINDOW (f))->top_line,
-		       newheight - 1);
-	  set_window_height (FRAME_MINIBUF_WINDOW (f), 1, 0);
-	}
-      else
-	/* Frame has just one top-level window.  */
-	set_window_height (FRAME_ROOT_WINDOW (f),
-			   newheight - FRAME_TOP_MARGIN (f), 2);
+      resize_frame_windows (f, newheight, 0);
 
       /* MSDOS frames cannot PRETEND, as they change frame size by
 	 manipulating video hardware.  */
@@ -6002,9 +5985,7 @@ change_frame_size_1 (f, newheight, newwidth, pretend, delay, safe)
 
   if (new_frame_total_cols != FRAME_TOTAL_COLS (f))
     {
-      set_window_width (FRAME_ROOT_WINDOW (f), new_frame_total_cols, 2);
-      if (FRAME_HAS_MINIBUF_P (f))
-	set_window_width (FRAME_MINIBUF_WINDOW (f), new_frame_total_cols, 0);
+      resize_frame_windows (f, new_frame_total_cols, 1);
 
       /* MSDOS frames cannot PRETEND, as they change frame size by
 	 manipulating video hardware.  */

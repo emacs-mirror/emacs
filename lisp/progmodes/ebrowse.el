@@ -1639,8 +1639,7 @@ The new frame is deleted when you quit viewing the file in that frame."
 	  (and (not had-a-buf)
 	       (not (buffer-modified-p buf-to-view))
 	       'kill-buffer))
-    (view-mode-enter (cons (selected-window) (cons (selected-window) t))
-		     'ebrowse-view-exit-fn)))
+    (view-mode-enter nil 'ebrowse-view-exit-fn)))
 
 (defun ebrowse-view/find-file-and-search-pattern
   (struc info file tags-file-name &optional view where)

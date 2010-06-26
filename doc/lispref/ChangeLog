@@ -1,3 +1,65 @@
+2010-06-26  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi: Adapt node references accordingly.  Add new
+	sections Window Sizes, Composite Windows, Compound Windows and
+	Window Groups.
+	(Basic Windows): Clarify distinction of live and internal
+	windows.  Add descriptions of window-live-p, window-internal-p,
+	window-any-p, normalize-any-window and normalize-live-window.
+	(Frames and Windows): Move here from frames.texi.  Describe
+	window-list and window-tree here.  Explain window trees and
+	desribe frame-root-window here.  Add descriptions for
+	window-parent, window-vchild, window-hchild, window-child,
+	window-iso-combined-p, window-next, window-prev.
+	(Window Sizes): New section.  Clarify distinction of window body
+	and total sizes.  Add descriptions for window-total-size,
+	window-total-height, window-total-width, window-full-height-p,
+	window-top-line, window-left-column, window-body-size,
+	window-body-height, window-body-width and window-size-fixed-p.
+	Move descriptions of window-height, window-width,
+	window-min-height, window-min-width and window-size-fixed here.
+	(Resizing Windows): Explain that resizing windows doesn't delete
+	windows.  Describe window-resizable, resize-window,
+	maximize-window, minimize-window.
+	(Splitting Windows): Describe new behavior of split-window.
+	Describe new variable window-splits.
+	(Deleting Windows): Describe behavior for composite windows.
+	Describe frame-selected-window and set-frame-selected-window
+	here.
+	(Cyclic Window Ordering): Describe window-list-1.  Move
+	description of get-lru-window, get-largest-window and
+	get-window-with-predicate here.
+	(Buffers and Windows): Say that window-buffer works on internal
+	windows too.  Move up buffer-display-time.  Describe
+	replace-buffer-in-windows here.
+	(Switching Buffers): Rename from Displaying Buffers in Windows.
+	(Displaying Buffers): Rename from Choosing a Window for Display.
+	Describe new values recognized for pop-up-windows.  Describe how
+	window-splits affects splitting.  Describe new command
+	quit-restore-window.
+	(Dedicated Windows): Clarify effect of killing a buffer shown in
+	dedicated windows.
+	(Window Parameters): Describe ignore-window-parameters variable
+	and quit-restore parameter.
+	(Composite Windows, Compound Windows, Window Groups): New
+	sections.
+
+	* elisp.texi (Top): Move frames chapter before windows chapter.
+	In windows chapter add new sections Window Sizes, Composite
+	Windows, Compound Windows and Window Groups.  Frames and Windows
+	section moves from frames.texi to windows.texi.
+
+	* locals.texi (Standard Buffer-Local Variables): Have
+	window-size-fixed reference Window Sizes section.
+
+	* frames.texi: Adapt node references accordingly.  Move Frames and
+	Windows section to windows.texi.
+	(Cursor Parameters, Input Focus): Add xrefs to selected window.
+
+	* buffers.texi: Adapt node references accordingly.
+
+	* positions.texi: Adapt node references accordingly.
+
 2010-06-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* searching.texi (Regexp Special): Remove obsolete information

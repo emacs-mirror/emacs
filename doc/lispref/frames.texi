@@ -5,7 +5,7 @@
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/frames
-@node Frames, Positions, Windows, Top
+@node Frames, Windows, Buffers, Top
 @chapter Frames
 @cindex frame
 
@@ -87,8 +87,6 @@ is the same as for @code{framep} above.
 * Frame Titles::                Automatic updating of frame titles.
 * Deleting Frames::		Frames last until explicitly deleted.
 * Finding All Frames::		How to examine all existing frames.
-* Frames and Windows::		A frame contains windows;
-				  display of text always works through windows.
 * Minibuffers and Frames::	How a frame finds the minibuffer to use.
 * Input Focus::			Specifying the selected frame.
 * Visibility of Frames::	Frames may be visible or invisible, or icons.
@@ -773,11 +771,13 @@ it and see if it works.)
 @node Cursor Parameters
 @subsubsection Cursor Parameters
 
-  This frame parameter controls the way the cursor looks.
+This frame parameter controls the way the cursor looks like in the
+selected window, see @ref{Selecting Windows}.
 
 @table @code
 @item cursor-type
-How to display the cursor.  Legitimate values are:
+How to display the cursor in the selected window.  Legitimate values
+are:
 
 @table @code
 @item box
@@ -1242,53 +1242,6 @@ direction.
   See also @code{next-window} and @code{previous-window}, in @ref{Cyclic
 Window Ordering}.
 
-@node Frames and Windows
-@section Frames and Windows
-
-  Each window is part of one and only one frame; you can get that frame
-with @code{window-frame}.
-
-@defun window-frame window
-This function returns the frame that @var{window} is on.
-@end defun
-
-  All the non-minibuffer windows in a frame are arranged in a cyclic
-order.  The order runs from the frame's top window, which is at the
-upper left corner, down and to the right, until it reaches the window at
-the lower right corner (always the minibuffer window, if the frame has
-one), and then it moves back to the top.  @xref{Cyclic Window Ordering}.
-
-@defun frame-first-window &optional frame
-This returns the topmost, leftmost window of frame @var{frame}.
-If omitted or @code{nil}, @var{frame} defaults to the selected frame.
-@end defun
-
-At any time, exactly one window on any frame is @dfn{selected within the
-frame}.  The significance of this designation is that selecting the
-frame also selects this window.  Conversely, selecting a window for
-Emacs with @code{select-window} also makes that window selected within
-its frame.  @xref{Selecting Windows}.
-
-@defun frame-selected-window  &optional frame
-This function returns the window on @var{frame} that is selected
-within @var{frame}.  If omitted or @code{nil}, @var{frame} defaults to
-the selected frame.
-@end defun
-
-@defun set-frame-selected-window frame window &optional norecord
-This sets the selected window of frame @var{frame} to @var{window}.
-If @var{frame} is @code{nil}, it operates on the selected frame.  If
-@var{frame} is the selected frame, this makes @var{window} the
-selected window.  This function returns @var{window}.
-
-Optional argument @var{norecord} non-@code{nil} means to neither change
-the order of recently selected windows nor the buffer list (@pxref{The
-Buffer List}).
-@end defun
-
-  Another function that (usually) returns one of the windows in a given
-frame is @code{minibuffer-window}.  @xref{Definition of minibuffer-window}.
-
 @node Minibuffers and Frames
 @section Minibuffers and Frames
 
@@ -1378,8 +1331,8 @@ have the window system's input focus.)
 The specified @var{frame} becomes the selected frame, as explained
 above, and the terminal that @var{frame} is on becomes the selected
 terminal.  The window selected within @var{frame} becomes the selected
-window.  This function returns @var{frame}, or @code{nil} if @var{frame}
-has been deleted.
+window, see @ref{Selecting Windows}.  This function returns @var{frame},
+or @code{nil} if @var{frame} has been deleted.
 
 Optional argument @var{norecord} non-@code{nil} means to neither change
 the order of recently selected windows nor the buffer list.  @xref{The

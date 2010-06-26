@@ -1,3 +1,154 @@
+2010-06-25  Martin Rudalics  <rudalics@gmx.at>
+
+	* files.el (read-buffer-to-switch)
+	(switch-to-buffer-other-window, switch-to-buffer-other-frame):
+	Move to window.el.
+
+	* window.el (display-buffer): New customization group.
+	(special-display-buffer-names, special-display-regexps)
+	(same-window-buffer-names, same-window-regexps, pop-up-frames)
+	(display-buffer-reuse-frames, pop-up-windows)
+	(split-window-preferred-function, split-height-threshold)
+	(split-width-threshold, even-window-heights): Move or add to
+	display-buffer customization group.
+	(window-size-fixed): Move down in code, rewrite doc-string.
+	(window-right, window-left, window-child, window-internal-p)
+	(window-any-p, normalize-live-buffer, normalize-live-frame)
+	(normalize-any-window, normalize-live-window)
+	(window-iso-combined-p, walk-window-tree-1, walk-window-tree)
+	(window-in-direction-2, window-in-direction, window-tree-1)
+	(window-size-ignore, window-sizable, window-sizable-p)
+	(window-min-size, window-min-size-1, window-size-fixed-p)
+	(window-size-fixed-1, window-min-delta, window-min-delta-1)
+	(window-max-delta, window-max-delta-1, window-resizable)
+	(window-resizable-p, window-total-height, window-height)
+	(window-full-height-p, window-total-width, window-body-height)
+	(window-body-width, window-width, resize-window-reset)
+	(resize-window-reset-1, resize-window, resize-subwindows-skip-p)
+	(resize-subwindows-normal, resize-subwindows)
+	(resize-other-windows, resize-this-window, resize-mini-window)
+	(resize-root-window, resize-root-window-vertically)
+	(window-deletable-p, window-or-subwindow-p)
+	(kill-or-unrecord-buffer, quit-restore-window)
+	(window-split-min-size, window-children-count)
+	(split-window-quit-restore): New functions.
+	(ignore-window-parameters, display-buffer-window-and-buffer)
+	(resize-window-safe-window): New variables.
+	(window-safe-min-height, window-safe-min-width): New constants.
+	(window-min-height, window-min-width, window-full-width-p)
+	(get-lru-window, get-largest-window)
+	(adjust-window-trailing-edge, window-tree, other-window)
+	(replace-buffer-in-windows, split-window): Move here from
+	window.c.
+	(window-current-scroll-bars): Use normalize-live-window.
+	(get-window-with-predicate): Use window-list-1.
+	(get-buffer-window-list): Use normalize-live-buffer and
+	window-list-1.
+	(count-windows): Use window-list-1.
+	(enlarge-window, shrink-window): Use resize-window.
+	(maximize-window, minimize-window, frame-root-window-p)
+	(composite-window-p, composite-root-window-p)
+	(composite-main-window-p, composite-support-window-p)
+	(composite-root-window, composite-major-window)
+	(composite-main-sibling, composite-lowest-child-role)
+	(compound-window-p, compound-main-window-p)
+	(compound-root-window, group-window-p, group-window-main-p)
+	(group-root-window, make-compound-window, make-window-group)
+	(make-support-window): New functions for composite windows.
+	(one-window-p): Rewrite doc-string.
+	(delete-window, delete-other-windows, delete-windows-on)
+	(bury-buffer, switch-to-buffer): Move here from buffer.c.
+	(split-window-vertically, split-window-horizontally): Call
+	split-window-quit-restore.
+	(bw-get-tree, bw-get-tree-1, bw-find-tree-sub)
+	(bw-find-tree-sub-1, bw-l, bw-t, bw-r, bw-b, bw-dir, bw-eqdir)
+	(bw-refresh-edges, bw-balance-sub): Replace by new balance
+	windows functions.
+	(balance-windows, balance-windows-1, balance-windows-2): New
+	functions for balancing windows.
+	(bw-adjust-window): Rename to balance-windows-area-adjust.
+	(balance-windows-area): Call balance-windows-area-adjust.
+	(pop-up-windows): New values `selected' and `root'.
+	(window-splittable-p): Rename to window-sensibly-splittable-p.
+	(split-window-sensibly): Call window-sensibly-splittable-p.
+	(window--display-buffer-1, window--display-buffer-2): Remove.
+	(display-buffer-window-and-buffer)
+	(window--display-buffer-in-window, window--reuse-window)
+	(window--pop-up-window, window--pop-up-frame)
+	(window--raise-window-frame): New helper functions for
+	display-buffer.
+	(display-buffer): Rewrite using the new helper functions.
+	(read-buffer-to-switch, switch-to-buffer-other-window)
+	(switch-to-buffer-other-frame): Move here from files.el.
+	(set-window-text-height, fit-window-to-buffer): Use
+	normalize-live-window and resize-window.
+	(shrink-window-if-larger-than-buffer): Use normalize-live-window
+	and window-iso-combined-p.
+	(temp-buffer-max-height, temp-buffer-resize-mode): Move here
+	from help.el.
+	(resize-temp-buffer-window): Move here from help.el and use
+	window-iso-combined-p.
+	(ctl-x-map): Move bindings for non-scrolling commands here from
+	window.c.
+
+	* cus-start.el (all): Remove window-min-height and
+	window-min-width entries.  Add recenter-redisplay and
+	window-splits entries.
+
+	* calendar/calendar.el (calendar-basic-setup):  Call
+	window-sensibly-splittable-p instead of window-splittable-p.
+
+	* dired.el (dired-pop-to-buffer): Call
+	window-sensibly-splittable-p instead of window-splittable-p.
+
+	* help-mode.el (help-mode-finish): Remove help-window and
+	view-return-to-alist handling code.
+
+	* help.el (help-window): Remove variable.
+	(help-window-point-marker): Fix doc-string.
+	(temp-buffer-max-height, temp-buffer-resize-mode)
+	(resize-temp-buffer-window): Move to window.el.
+	(help-window-display-message): Fix doc-string and handling of
+	optional argument.
+	(help-window-setup-finish): Remove.
+	(help-window-setup): Remove handling of list-of-frames and
+	list-of-window-tuples.  These are handled by the quit-restore
+	window mechanism now.
+	(with-help-window): Remove setup of list-of-frames and
+	list-of-window-tuples.  Reset display-buffer-window-and-buffer
+	and call help-window-setup when the buffr display mechanism
+	called by with-output-to-temp-buffer has set it.
+
+	* view.el (view-exits-all-viewing-windows): Fix doc-string.
+	(view-return-to-alist): Remove variable.
+	(view-file-other-window): Remove second argument in call of
+	view-buffer-other-window.
+	(view-file-other-frame): Remove second argument in call of
+	view-buffer-other-frame.
+	(view-buffer): Remove the undo-window mechanism and fix call of
+	view-mode-enter.
+	(view-buffer-other-window, view-buffer-other-frame): Remove
+	second argument and return-to mechanism and fix call of
+	view-mode-enter.
+	(view-return-to-alist-update): Remove function.
+	(view-mode-enter): Rename second argument to quit-restore and
+	replace view-return-to-alist mechanism by quit-restore
+	parameter.  Rewrite doc-string.
+	(view-mode-exit): Rename arguments and replace
+	view-return-to-alist mechanism by calling quit-restore-window.
+	(View-exit, View-exit-and-edit, View-leave, View-quit)
+	(View-quit-all, View-kill-and-leave): Call view-mode-exit with
+	appropriate argument(s).
+	(view-end-message): Instead of checking view-return-to-alist
+	look at quit-restore window parameter.
+
+	* progmodes/ebrowse.el (ebrowse-view-file-other-frame): Adjust
+	call of view-mode-enter to the latter's new definition.
+
+	* progmodes/python.el (view-return-to-alist): Remove defvar.
+	(python-describe-symbol): Don't set view-return-to-alist any
+	more.
+
 2010-06-22  Glenn Morris  <rgm@gnu.org>
 
 	* textmodes/texinfmt.el (texinfo-format-region)

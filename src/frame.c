@@ -151,11 +151,6 @@ set_menu_bar_lines_1 (window, n)
   XSETFASTINT (w->top_line, XFASTINT (w->top_line) + n);
   XSETFASTINT (w->total_lines, XFASTINT (w->total_lines) - n);
 
-  if (INTEGERP (w->orig_top_line))
-    XSETFASTINT (w->orig_top_line, XFASTINT (w->orig_top_line) + n);
-  if (INTEGERP (w->orig_total_lines))
-    XSETFASTINT (w->orig_total_lines, XFASTINT (w->orig_total_lines) - n);
-
   /* Handle just the top child in a vertical split.  */
   if (!NILP (w->vchild))
     set_menu_bar_lines_1 (w->vchild, n);
@@ -1373,7 +1368,7 @@ delete_frame (frame, force)
 
   /* Mark all the windows that used to be on FRAME as deleted, and then
      remove the reference to them.  */
-  delete_all_subwindows (XWINDOW (f->root_window));
+  delete_all_subwindows (f->root_window);
   f->root_window = Qnil;
 
   Vframe_list = Fdelq (frame, Vframe_list);

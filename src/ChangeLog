@@ -1,3 +1,92 @@
+2010-06-25  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.h (struct window): Add new members normal_lines,
+	normal_cols, new_total, new_normal, inhibit_recombine.  Remove
+	members resize_proportionally, orig_total_lines and
+	orig_top_line.
+	(WINDOW_TOTAL_SIZE, MIN_SAFE_WINDOW_WIDTH)
+	(MIN_SAFE_WINDOW_HEIGHT): Move here from window.c.
+	(delete_window, set_window_height, set_window_width)
+	(change_window_height, window_internal_width): Remove externs.
+	(window_box_text_cols): Rename to window_body_cols.
+	(Fwindow_full_width_p, Fdelete_window, Fsplit_window): Remove
+	EXFUNs.
+	(delete_all_subwindows): Make argument a Lisp_Object.
+	(resize_frame_windows, window_body_lines): Add externs.
+
+	* window.c (Qwindow_deletable_p, Qdelete_window)
+	(Qresize_root_window, Qresize_root_window_vertically)
+	(Qset, Qabove, Qbelow, Qnest, Qgroup, Qresize): Add declarations
+	and staticpro them.
+	(Qwindow_size_fixed, window_min_height, window_min_width)
+	(window_deletion_count): Remove declarations.
+	(Vwindow_splits): New variable.
+	(Fwindow_height, Fwindow_width, Fwindow_full_width_p)
+	(Fdelete_window, Fother_window, Fget_lru_window)
+	(Fget_largest_window, Fdelete_other_windows)
+	(Fdelete_windows_on, window_fixed_size_p, Fsplit_window)
+	(Fenlarge_window, Fshrink_window, Fadjust_window_trailing_edge)
+	(Fwindow_tree): Move to window.el.
+	(shrink_windows, window_min_size_1, window_min_size_2)
+	(window_min_size, size_window, window_height, window_width)
+	(window_fixed_size_p, enlarge_window)
+	(adjust_window_trailing_edge, shrink_window_lowest_first)
+	(window_tree): Remove functions, their functionality partially
+	taken over by functions in window.el.
+	(Fwindow_total_size, Fwindow_new_total_size)
+	(Fwindow_normal_size, Fwindow_new_normal_size)
+	(Fwindow_left_column, Fwindow_top_line, window_body_lines)
+	(window_body_cols, Fwindow_body_size, recombine_windows)
+	(resize_root_window, Fdelete_other_windows_internal)
+	(Fresize_window_total, Fresize_window_normal)
+	(resize_window_check, resize_window_apply, Fresize_window_apply)
+	(resize_frame_windows, Fsplit_window_internal)
+	(Fdelete_window_internal, Sresize_mini_window_internal): New
+	functions.
+	(make_dummy_parent): Rename to make_parent_window and handle
+	changed members of struct window.
+	(make_window, replace_window): Handle changed members of struct
+	window.
+	(Fset_window_dedicated_p): Rewrite doc-string.
+	(delete_window): Replace by delete_deletable_window.
+	(window_loop): Don't handle GET_LRU_WINDOW,
+	DELETE_OTHER_WINDOWS, DELETE_BUFFER_WINDOWS and
+	GET_LARGEST_WINDOW any more.  Call delete_deletable_window
+	instead of delete_window.
+	(Fget_buffer_window): Rename second argument to all_frames,
+	rewrite doc-string.
+	(MIN_SAFE_WINDOW_WIDTH, MIN_SAFE_WINDOW_HEIGHT)
+	(WINDOW_TOTAL_SIZE): Move to window.h.
+	(compare_window_configurations): Rewrite.
+	(keys_of_window): Move all non-scroll-related bindings to
+	window.el.
+
+	* frame.c (set_menu_bar_lines_1): Do not handle orig_top_line
+	and orig_total_lines any more.
+	(delete_frame): Pass root window to delete_all_subwindows.
+
+	* buffer.c (Frecord_buffer, Funrecord_buffer): New functions.
+	(switch_to_buffer_1): Remove.
+	(Fswitch_to_buffer, Fbury_buffer): Move to window.el.
+
+	* indent.c (compute_motion, Fcompute_motion): Use
+	window_body_cols instead of window_box_text_cols.
+
+	* dispnew.c (adjust_frame_glyphs_initially): Don't use
+	set_window_height but set heights directly.
+	(change_frame_size_1): Use resize_frame_windows.
+
+	* xdisp.c (init_xdisp): Don't use set_window_height but set
+	heights directly.
+
+	* xfns.c (x_set_menu_bar_lines, x_set_tool_bar_lines): Use
+	resize_frame_windows instead of change_window_heights and run
+	run_window_configuration_change_hook.
+
+	* w32fns.c (x_set_tool_bar_lines): Use resize_frame_windows
+	instead of change_window_heights and run
+	run_window_configuration_change_hook.
+
 2010-06-22  Martin Rudalics  <rudalics@gmx.at>
 
 	* frame.c (Fother_visible_frames_p): New function.
@@ -33,9 +122,9 @@
 	(Fwindow_parameters, Fwindow_parameter, Fset_window_parameter):
 	Internal windows may have parameters too.
 	(saved_window, save_window_save): Save window parameters too.
-	(Fset_window_configuration): Restore window parameters.  Delete
-	restored window if it is dedicated and its buffer is dead.  If
-	window cannot be deleted, reset its dedicated status.
+	(Fset_window_configuration): Restore window parameters.  Try to
+	delete a restored window if it is dedicated and its buffer is
+	dead.  If window cannot be deleted, reset its dedicated status.
 	(Fselect_window): Don't return prematurely if selected window
 	does not change; fixing the fix from 2010-06-07.
 	(window_loop): Use window_show_other_buffer to avoid changing

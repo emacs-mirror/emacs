@@ -1745,7 +1745,6 @@ in a buffer that doesn't have a local value of `python-buffer'."
   "Syntax table giving `.' symbol syntax.
 Otherwise inherits from `python-mode-syntax-table'.")
 
-(defvar view-return-to-alist)
 (eval-when-compile (autoload 'help-buffer "help-fns"))
 
 (defvar python-imports)			; forward declaration
@@ -1780,9 +1779,7 @@ will."
   ;; allow C-c C-f in help buffer.
   (let ((temp-buffer-show-hook		; avoid xref stuff
 	 (lambda ()
-	   (toggle-read-only 1)
-	   (setq view-return-to-alist
-		 (list (cons (selected-window) help-return-method))))))
+	   (toggle-read-only 1))))
     (with-output-to-temp-buffer (help-buffer)
       (with-current-buffer standard-output
  	;; Fixme: Is this actually useful?

@@ -1129,8 +1129,8 @@ struct position val_compute_motion;
 	    WINDOW_HAS_VERTICAL_SCROLL_BAR (window)
 	  and frame_cols = FRAME_COLS (XFRAME (window->frame))
 
-   Or you can let window_box_text_cols do this all for you, and write:
-	window_box_text_cols (w) - 1
+   Or you can let window_body_cols do this all for you, and write:
+	window_body_cols (w) - 1
 
    The `-1' accounts for the continuation-line backslashes; the rest
    accounts for window borders if the window is split horizontally, and
@@ -1211,7 +1211,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
   /* Negative width means use all available text columns.  */
   if (width < 0)
     {
-      width = window_box_text_cols (win);
+      width = window_body_cols (win);
       /* We must make room for continuation marks if we don't have fringes.  */
 #ifdef HAVE_WINDOW_SYSTEM
       if (!FRAME_WINDOW_P (XFRAME (win->frame)))
@@ -1827,7 +1827,7 @@ visible section of the buffer, and pass LINE and COL as TOPOS.  */)
 			 ? window_internal_height (w)
 			 : XINT (XCDR (topos))),
 			(NILP (topos)
-			 ? (window_box_text_cols (w)
+			 ? (window_body_cols (w)
 			    - (
 #ifdef HAVE_WINDOW_SYSTEM
 			       FRAME_WINDOW_P (XFRAME (w->frame)) ? 0 :

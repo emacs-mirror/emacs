@@ -4,7 +4,7 @@
 @c   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/buffers
-@node Buffers, Windows, Backups and Auto-Saving, Top
+@node Buffers, Frames, Backups and Auto-Saving, Top
 @chapter Buffers
 @cindex buffer
 

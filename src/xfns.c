@@ -1031,7 +1031,7 @@ x_set_mouse_color (f, arg, oldval)
 
   if (FRAME_X_DISPLAY_INFO (f)->invisible_cursor == 0)
     FRAME_X_DISPLAY_INFO (f)->invisible_cursor = make_invisible_cursor (f);
-  
+
   if (cursor != x->text_cursor
       && x->text_cursor != 0)
     XFreeCursor (dpy, x->text_cursor);
@@ -1315,7 +1315,7 @@ x_set_menu_bar_lines (f, value, oldval)
     }
 #else /* not USE_X_TOOLKIT && not USE_GTK */
   FRAME_MENU_BAR_LINES (f) = nlines;
-  change_window_heights (f->root_window, nlines - olines);
+  resize_frame_windows (f, FRAME_LINES (f), 0);
 
   /* If the menu bar height gets changed, the internal border below
      the top margin has to be cleared.  Also, if the menu bar gets
@@ -1354,6 +1354,7 @@ x_set_menu_bar_lines (f, value, oldval)
     }
 #endif /* not USE_X_TOOLKIT && not USE_GTK */
   adjust_glyphs (f);
+  run_window_configuration_change_hook (f);
 }
 
 
@@ -1416,7 +1417,7 @@ x_set_tool_bar_lines (f, value, oldval)
     }
 
   FRAME_TOOL_BAR_LINES (f) = nlines;
-  change_window_heights (root_window, delta);
+  resize_frame_windows (f, FRAME_LINES (f), 0);
   adjust_glyphs (f);
 
   /* We also have to make sure that the internal border at the top of
@@ -1452,6 +1453,9 @@ x_set_tool_bar_lines (f, value, oldval)
       if (WINDOWP (f->tool_bar_window))
 	clear_glyph_matrix (XWINDOW (f->tool_bar_window)->current_matrix);
     }
+
+    run_window_configuration_change_hook (f);
+
 }
 
 
@@ -3560,7 +3564,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
     }
 
   BLOCK_INPUT;
-                       
+
   /* Set machine name and pid for the purpose of window managers.  */
   set_machine_and_pid_properties(f);
 

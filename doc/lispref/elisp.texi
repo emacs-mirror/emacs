@@ -142,8 +142,8 @@ Cover art by Etienne Suvasa.
 * Backups and Auto-Saving:: Controlling how backups and auto-save
                               files are made.
 * Buffers::                 Creating and using buffer objects.
-* Windows::                 Manipulating windows and displaying buffers.
 * Frames::		    Making multiple system-level windows.
+* Windows::                 Manipulating windows and displaying buffers.
 * Positions::               Buffer positions and motion functions.
 * Markers::                 Markers represent positions and update
                               automatically when the text is changed.
@@ -924,35 +924,6 @@ Buffers
 * Swapping Text::           Swapping text between two buffers.
 * Buffer Gap::              The gap in the buffer.
 
-Windows
-
-* Basic Windows::           Basic information on using windows.
-* Splitting Windows::       Splitting one window into two windows.
-* Deleting Windows::        Deleting a window gives its space to other windows.
-* Selecting Windows::       The selected window is the one that you edit in.
-* Cyclic Window Ordering::  Moving around the existing windows.
-* Buffers and Windows::     Each window displays the contents of a buffer.
-* Displaying Buffers::      Higher-level functions for displaying a buffer
-                              and choosing a window for it.
-* Choosing Window::	    How to choose a window for displaying a buffer.
-* Dedicated Windows::	    How to avoid displaying another buffer in
-                              a specific window.          
-* Window Point::            Each window has its own location of point.
-* Window Start and End::    Buffer positions indicating which text is
-                              on-screen in a window.
-* Textual Scrolling::       Moving text up and down through the window.
-* Vertical Scrolling::      Moving the contents up and down on the window.
-* Horizontal Scrolling::    Moving the contents sideways on the window.
-* Size of Window::          Accessing the size of a window.
-* Resizing Windows::        Changing the size of a window.
-* Coordinates and Windows:: Converting coordinates to windows.
-* Window Tree::             The layout and sizes of all windows in a frame.
-* Window Configurations::   Saving and restoring the state of the screen.
-* Window Parameters::       Associating additional information with windows.
-* Window Hooks::            Hooks for scrolling, window size changes,
-                              redisplay going past a certain point,
-                              or window configuration changes.
-
 Frames
 
 * Creating Frames::	    Creating additional frames.
@@ -1001,6 +972,38 @@ Window Frame Parameters
 * Management Parameters::   Communicating with the window manager.
 * Cursor Parameters::       Controlling the cursor appearance.
 * Font and Color Parameters:: Fonts and colors for the frame text.
+
+Windows
+
+* Basic Windows::           Basic information on using windows.
+* Frames and Windows::      Relating windows to the frame they appear on.
+* Window Sizes::            Accessing a window's size.
+* Resizing Windows::        Changing the sizes of windows.
+* Splitting Windows::       Splitting one window into two windows.
+* Deleting Windows::        Deleting a window gives its space to other windows.
+* Selecting Windows::       The selected window is the one that you edit in.
+* Cyclic Window Ordering::  Moving around the existing windows.
+* Buffers and Windows::     Each window displays the contents of a buffer.
+* Switching Buffers::       Higher-level functions for switching to a buffer
+                              in some window.
+* Displaying Buffers::	    How to choose a window for displaying a buffer.
+* Dedicated Windows::	    How to avoid displaying another buffer in
+                              a specific window.          
+* Window Point::            Each window has its own location of point.
+* Window Start and End::    Buffer positions indicating which text is
+                              on-screen in a window.
+* Textual Scrolling::       Moving text up and down through the window.
+* Vertical Scrolling::      Moving the contents up and down on the window.
+* Horizontal Scrolling::    Moving the contents sideways on the window.
+* Coordinates and Windows:: Converting coordinates to windows.
+* Window Configurations::   Saving and restoring the state of the screen.
+* Window Parameters::       Associating additional information with windows.
+* Composite Windows::       Composing aggregations of windows.
+* Compound Windows::        Making several windows behave like a single one.
+* Window Groups::           Implementing IDE style window compositions.
+* Window Hooks::            Hooks for scrolling, window size changes,
+                              redisplay going past a certain point,
+                              or window configuration changes.
 
 Positions
 
@@ -1474,8 +1477,8 @@ Object Internals
 
 @include backups.texi
 @include buffers.texi
-@include windows.texi
 @include frames.texi
+@include windows.texi
 
 @include positions.texi
 @include markers.texi

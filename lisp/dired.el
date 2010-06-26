@@ -2751,7 +2751,7 @@ name, or the marker and a count of marked files."
   (let ((split-window-preferred-function
 	 (lambda (window)
 	   (or (and (let ((split-height-threshold 0))
-		      (window-splittable-p (selected-window)))
+		      (window-sensibly-splittable-p (selected-window)))
 		    ;; Try to split the selected window vertically if
 		    ;; that's possible.  (Bug#1806)
 		    (split-window-vertically))

@@ -211,7 +211,7 @@ Used for communication between mouse commands and scroll-bar commands.
 @xref{Scroll Bars}.
 
 @item window-size-fixed
-@xref{Resizing Windows}.
+@xref{Window Sizes}.
 
 @item write-contents-functions
 @xref{Saving Buffers}.

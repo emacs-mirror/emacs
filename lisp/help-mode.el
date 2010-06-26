@@ -294,23 +294,6 @@ Commands:
 
 ;;;###autoload
 (defun help-mode-finish ()
-  (if (eq help-window t)
-      ;; If `help-window' is t, `view-return-to-alist' is handled by
-      ;; `with-help-window'.  In this case set `help-window' to the
-      ;; selected window since now is the only moment where we can
-      ;; unambiguously identify it.
-      (setq help-window (selected-window))
-    (let ((entry (assq (selected-window) view-return-to-alist)))
-      (if entry
-	  ;; When entering Help mode from the Help window,
-	  ;; such as by following a link, preserve the same
-	  ;; meaning for the q command.
-	  ;; (setcdr entry (cons (selected-window) help-return-method))
-	  nil
-	(setq view-return-to-alist
-	      (cons (cons (selected-window) help-return-method)
-		    view-return-to-alist)))))
-
   (when (eq major-mode 'help-mode)
     ;; View mode's read-only status of existing *Help* buffer is lost
     ;; by with-output-to-temp-buffer.

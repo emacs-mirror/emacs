@@ -299,19 +299,21 @@ since it could result in memory overflow and make Emacs crash."
 	     ;; window.c
 	     (temp-buffer-show-function windows (choice (const nil) function))
 	     (next-screen-context-lines windows integer)
-	     (window-min-height windows integer)
-	     (window-min-width windows integer)
  	     (scroll-preserve-screen-position
  	      windows (choice
  		       (const :tag "Off (nil)" :value nil)
  		       (const :tag "Full screen (t)" :value t)
  		       (other :tag "Always" 1)) "22.1")
-	     (recenter-redisplay windows
-				 (choice
-				  (const :tag "Never (nil)" :value nil)
-				  (const :tag "Only on ttys" :value tty)
-				  (other :tag "Always" t))
-				 "23.1")
+	     (recenter-redisplay
+	      windows (choice
+		       (const :tag "Never (nil)" :value nil)
+		       (const :tag "Only on ttys" :value tty)
+		       (other :tag "Always" t)) "23.1")
+	     (window-splits
+	      windows (choice
+		       (const :tag "Standard" :value nil)
+		       (const :tag "Nest" :value nest)
+		       (const :tag "Resize" :value resize)) "24.1")
 	     ;; xdisp.c
 	     (scroll-step windows integer)
 	     (scroll-conservatively windows integer)
