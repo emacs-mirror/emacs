@@ -191,7 +191,7 @@ if exist dir.h ren dir.h vmsdir.h
 
 rem   Create "makefile" from "makefile.in".
 rm -f Makefile makefile.tmp
-copy Makefile.in + deps.mk makefile.tmp
+copy Makefile.in+deps.mk makefile.tmp
 sed -f ../msdos/sed1v2.inp <makefile.tmp >Makefile
 rm -f makefile.tmp
 
