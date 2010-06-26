@@ -1,3 +1,8 @@
+2010-06-26  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* alloc.c (Fmake_byte_code): Don't access undefined argument
+	(Bug#6517).
+
 2010-06-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (next_element_from_image): Ensure that after-strings are

@@ -3094,7 +3094,7 @@ usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INT
   else
     val = Fmake_vector (len, Qnil);
 
-  if (STRINGP (args[1]) && STRING_MULTIBYTE (args[1]))
+  if (nargs > 1 && STRINGP (args[1]) && STRING_MULTIBYTE (args[1]))
     /* BYTECODE-STRING must have been produced by Emacs 20.2 or the
        earlier because they produced a raw 8-bit string for byte-code
        and now such a byte-code string is loaded as multibyte while
