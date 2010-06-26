@@ -1,7 +1,3 @@
-2010-06-26  Ken Brown <kbrown@cornell.edu>
-
-	* PROBLEMS: Update Cygwin-related info regarding GCC versions.
-
 2010-06-12  Glenn Morris  <rgm@gnu.org>
 
 	* tutorials/TUTORIAL.bg, tutorials/TUTORIAL.es: Fix typos.
