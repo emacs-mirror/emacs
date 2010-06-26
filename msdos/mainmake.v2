@@ -65,7 +65,7 @@ MAKESHELL=/xyzzy/command
 top_srcdir := $(subst \,/,$(shell cd))
 
 # Find out which version of Emacs this is.
-version := ${shell sed -n -e '/(defconst emacs-version/s/^[^"]*\("[^"]*"\).*/\1/p' lisp/version.el}
+version := ${shell sed -n -e '/^const char emacs_version/s/^[^"]*\("[^"]*"\).*/\1/p' src/emacs.c}
 
 # Q: Do we need to bootstrap?
 # A: Only if we find admin/admin.el, i.e. we are building out of 

@@ -1547,6 +1547,9 @@ returns t if the buffer had changes, nil otherwise."
           (message "%s" (cdr messages))
           nil)
       (diff-mode)
+      (set (make-local-variable 'revert-buffer-function)
+	   `(lambda (ignore-auto noconfirm)
+	      (vc-diff-internal ,async ',vc-fileset ,rev1 ,rev2 ,verbose)))
       ;; Make the *vc-diff* buffer read only, the diff-mode key
       ;; bindings are nicer for read only buffers. pcl-cvs does the
       ;; same thing.

@@ -1,3 +1,7 @@
+2010-06-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32-fns.el (w32-convert-standard-filename): Doc fix.
+
 2010-06-25  Martin Rudalics  <rudalics@gmx.at>
 
 	* files.el (read-buffer-to-switch)
@@ -148,6 +152,30 @@
 	* progmodes/python.el (view-return-to-alist): Remove defvar.
 	(python-describe-symbol): Don't set view-return-to-alist any
 	more.
+
+2010-06-25  Agustín Martín  <agustin.martin@hispalinux.es>
+
+	* flyspell.el (flyspell-check-previous-highlighted-word): Make
+	sure `flyspell-word' re-checks word after function run (Bug#6504).
+
+	* ispell.el (ispell-init-process): Make sure ispell and default
+	directories are expanded. (Bug#6143).
+
+2010-06-24  Juri Linkov  <juri@jurta.org>
+
+	* minibuffer.el (completions-format): Change default from nil to
+	`horizontal'.  Remove `nil' value from :type.  Doc fix.  (Bug#6459)
+
+2010-06-24  Juri Linkov  <juri@jurta.org>
+
+	* vc/vc.el (vc-diff-internal): Set `revert-buffer-function'
+	buffer-locally to lambda that re-runs the vc diff command.
+	(Bug#6447)
+
+2010-06-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* kmacro.el (kmacro-call-macro): Don't issue hint message if the
+	echo area is in use (Bug#3412).
 
 2010-06-22  Glenn Morris  <rgm@gnu.org>
 

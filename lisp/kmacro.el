@@ -642,11 +642,13 @@ others, use \\[kmacro-name-last-macro]."
 		       kmacro-call-repeat-key)))
       (setq repeat-key-str (format-kbd-macro (vector repeat-key) nil))
       (while repeat-key
-	(message "(Type %s to repeat macro%s)"
-		 repeat-key-str
-		 (if (and kmacro-call-repeat-with-arg
-			  arg (> arg 1))
-		     (format " %d times" arg) ""))
+	;; Issue a hint to the user, if the echo area isn't in use.
+	(unless (current-message)
+	  (message "(Type %s to repeat macro%s)"
+		   repeat-key-str
+		   (if (and kmacro-call-repeat-with-arg
+			    arg (> arg 1))
+		       (format " %d times" arg) "")))
 	(if (equal repeat-key (read-event))
 	    (progn
 	      (clear-this-command-keys t)

@@ -3213,6 +3213,7 @@ xg_update_scrollbar_pos (f, scrollbar_id, top, left, width, height)
       GtkWidget *wfixed = f->output_data.x->edit_widget;
       GtkWidget *wparent = gtk_widget_get_parent (wscroll);
       GtkFixed *wf = GTK_FIXED (wfixed);
+      gint msl;
 
       /* Clear out old position.  */
       GList *iter;
@@ -3232,7 +3233,6 @@ xg_update_scrollbar_pos (f, scrollbar_id, top, left, width, height)
 
       /* Move and resize to new values.  */
       gtk_fixed_move (GTK_FIXED (wfixed), wparent, left, top);
-      gint msl;
       gtk_widget_style_get (wscroll, "min-slider-length", &msl, NULL);
       if (msl > height)
         {

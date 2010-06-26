@@ -87,6 +87,11 @@
 	instead of change_window_heights and run
 	run_window_configuration_change_hook.
 
+2010-06-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gtkutil.c (xg_update_scrollbar_pos):
+	Avoid C99 mid-block variable declaration.
+
 2010-06-22  Martin Rudalics  <rudalics@gmx.at>
 
 	* frame.c (Fother_visible_frames_p): New function.

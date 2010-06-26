@@ -612,7 +612,7 @@ error (s1, s2, s3)
   else if (s2)
     fprintf (stderr, s1, s2);
   else
-    fprintf (stderr, s1);
+    fprintf (stderr, "%s", s1);
   fprintf (stderr, "\n");
 }
 

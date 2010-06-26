@@ -1,3 +1,9 @@
+2010-06-22  Mark A. Hershberger  <mah@everybody.org>
+
+	* url-parse.el (url-user-for-url, url-password-for-url):
+	Convenience functions that get usernames and passwords for urls
+	from auth-source functions.
+
 2010-06-12  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
 
 	* url-vars.el (url-privacy-level): Fix doc typo.  (Bug#6406)
