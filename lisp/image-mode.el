@@ -579,12 +579,16 @@ the image file and `image-mode' showing the image as an image."
          ((numberp image-transform-resize)
           (* image-transform-resize (cdr size)))
          ((eq image-transform-resize 'fit-height)
-          (nth 3 (window-inside-pixel-edges)))
-         )))
-       `(,@(if height (list :height height))
-         ,@(if (not (equal 0.0 image-transform-rotation))
-               (list :rotation image-transform-rotation))
-        )))
+          (- (nth 3 (window-inside-pixel-edges)) (nth 1 (window-inside-pixel-edges))))
+         (t nil)))
+       (width (if (eq image-transform-resize 'fit-width)
+                  (- (nth 2 (window-inside-pixel-edges)) (nth 0 (window-inside-pixel-edges))))))
+
+    `(,@(if height (list :height height))
+      ,@(if width (list :width width))
+      ,@(if (not (equal 0.0 image-transform-rotation))
+            (list :rotation image-transform-rotation))
+      )))
 
 (defun image-transform-set-scale (scale)
   (interactive "nscale:")
@@ -594,9 +598,13 @@ the image file and `image-mode' showing the image as an image."
   (interactive)
   (image-transform-set-resize 'fit-height))
 
+(defun image-transform-fit-to-width ()
+  (interactive)
+  (image-transform-set-resize 'fit-width))
+
 (defun image-transform-set-resize (resize)
   (setq image-transform-resize resize)
-  (image-toggle-display-image))
+  (if (eq 'image-mode major-mode) (image-toggle-display-image)))
 
 (defun image-transform-set-rotation (rotation)
   (interactive "nrotation:")
