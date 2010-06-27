@@ -254,7 +254,7 @@ You should set this to t when using a non-system shell.\n\n"))))
 ;;				     (expand-file-name ".." exec-directory)))))
 
 (defun w32-convert-standard-filename (filename)
-  "Convert a standard file's name to something suitable for the MS-Windows.
+  "Convert a standard file's name to something suitable for MS-Windows.
 This means to guarantee valid names and perhaps to canonicalize
 certain patterns.
 

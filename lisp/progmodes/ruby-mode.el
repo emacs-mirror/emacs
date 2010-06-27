@@ -166,7 +166,6 @@ This should only be called after matching against `ruby-here-doc-end-re'."
     (define-key map (kbd "M-C-n") 'ruby-end-of-block)
     (define-key map (kbd "M-C-h") 'ruby-mark-defun)
     (define-key map (kbd "M-C-q") 'ruby-indent-exp)
-    (define-key map (kbd "TAB")   'ruby-indent-line)
     (define-key map (kbd "C-M-h") 'backward-kill-word)
     (define-key map (kbd "C-j")   'reindent-then-newline-and-indent)
     (define-key map (kbd "C-m")   'newline)
@@ -1390,6 +1389,8 @@ The variable `ruby-indent-level' controls the amount of indentation.
   (setq major-mode 'ruby-mode)
   (ruby-mode-variables)
 
+  (set (make-local-variable 'indent-line-function)
+       'ruby-indent-line)
   (set (make-local-variable 'imenu-create-index-function)
        'ruby-imenu-create-index)
   (set (make-local-variable 'add-log-current-defun-function)

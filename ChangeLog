@@ -1,3 +1,7 @@
+2010-06-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.bat: Remove white space around "+" in COPY commands.
+
 2010-06-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* INSTALL: Update font information (Bug#6389).

@@ -1924,28 +1924,20 @@ Buffers menu is regenerated."
     `(menu-item ,(purecopy "Previous History Item") previous-history-element
 		:help ,(purecopy "Put previous minibuffer history element in the minibuffer"))))
 
-;;;###autoload
-;; This comment is taken from tool-bar.el near
-;; (put 'tool-bar-mode ...)
-;; We want to pretend the menu bar by standard is on, as this will make
-;; customize consider disabling the menu bar a customization, and save
-;; that.  We could do this for real by setting :init-value below, but
-;; that would overwrite disabling the tool bar from X resources.
-(put 'menu-bar-mode 'standard-value '(t))
-
 (define-minor-mode menu-bar-mode
   "Toggle display of a menu bar on each frame.
 This command applies to all frames that exist and frames to be
 created in the future.
 With a numeric argument, if the argument is positive,
 turn on menu bars; otherwise, turn off menu bars."
-  :init-value nil
+  :init-value t
   :global t
   :group 'frames
 
-  ;; Make menu-bar-mode and default-frame-alist consistent.
-  (modify-all-frames-parameters (list (cons 'menu-bar-lines
-					    (if menu-bar-mode 1 0))))
+  ;; Turn the menu-bars on all frames on or off.
+  (let ((val (if menu-bar-mode 1 0)))
+    (dolist (frame (frame-list))
+      (set-frame-parameter frame 'menu-bar-lines val)))
 
   ;; Make the message appear when Emacs is idle.  We can not call message
   ;; directly.  The minor-mode message "Menu-bar mode disabled" comes

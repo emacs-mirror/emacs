@@ -275,6 +275,15 @@ programmer-visible consequences.
 
 ** Passing a nil argument to a minor mode function now turns the mode
    ON unconditionally.
+
+** During startup, Emacs no longer adds entries for `menu-bar-lines'
+and `tool-bar-lines' to `default-frame-alist' and
+`initial-frame-alist'.  With these alist entries omitted, `make-frame'
+checks the value of the variable `menu-bar-mode'/`tool-bar-mode' to
+determine whether to create a menu-bar or tool-bar, respectively.
+If the alist entries are added, they override the value of
+`menu-bar-mode'/`tool-bar-mode'.
+
 
 * Lisp changes in Emacs 24.1
 

@@ -1817,7 +1817,9 @@ misspelled words backwards."
 			(throw 'exit t)))))))
 	(save-excursion
 	  (goto-char pos)
-	  (ispell-word))
+	  (ispell-word)
+	  (setq flyspell-word-cache-word nil) ;; Force flyspell-word re-check
+	  (flyspell-word))
       (error "No word to correct before point"))))
 
 ;;*---------------------------------------------------------------------*/
