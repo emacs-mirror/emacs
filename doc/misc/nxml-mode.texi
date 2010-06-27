@@ -520,7 +520,7 @@ enough.
 
 If you want to use a schema that has not yet been added to the
 schema locating files, you can use the command @kbd{C-c C-s C-f}
-to manually select the file contaiing the schema for the document in
+to manually select the file containing the schema for the document in
 current buffer.  Emacs will read the file-name of the schema from the
 minibuffer. After reading the file-name, Emacs will ask whether you
 wish to add a rule to a schema locating file that persistently
