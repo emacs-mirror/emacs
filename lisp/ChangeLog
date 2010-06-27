@@ -1,5 +1,9 @@
 2010-06-27  Chong Yidong  <cyd@stupidchicken.com>
 
+	* startup.el (command-line): Recognize "0" X resource value.
+
+2010-06-27  Chong Yidong  <cyd@stupidchicken.com>
+
 	* startup.el (command-line): Use X resources to set the value of
 	menu-bar-mode and tool-bar-mode, before calling frame-initialize.
 
