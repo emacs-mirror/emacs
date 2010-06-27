@@ -204,6 +204,8 @@ extern Lisp_Object Vsystem_name;
 
 /* The below are defined in frame.c.  */
 
+extern Lisp_Object Vmenu_bar_mode, Vtool_bar_mode;
+
 #if GLYPH_DEBUG
 int image_cache_refcount, dpyinfo_refcount;
 #endif
@@ -3454,10 +3456,18 @@ This function is an internal primitive--use `make-frame' instead.  */)
      happen.  */
   init_frame_faces (f);
 
-  x_default_parameter (f, parms, Qmenu_bar_lines, make_number (1),
-		       "menuBar", "MenuBar", RES_TYPE_BOOLEAN_NUMBER);
-  x_default_parameter (f, parms, Qtool_bar_lines, make_number (1),
-		       "toolBar", "ToolBar", RES_TYPE_NUMBER);
+  /* The X resources controlling the menu-bar and tool-bar are
+     processed specially at startup, and reflected in the mode
+     variables; ignore them here.  */
+  x_default_parameter (f, parms, Qmenu_bar_lines,
+		       NILP (Vmenu_bar_mode)
+		       ? make_number (0) : make_number (1),
+		       NULL, NULL, RES_TYPE_NUMBER);
+  x_default_parameter (f, parms, Qtool_bar_lines,
+		       NILP (Vtool_bar_mode)
+		       ? make_number (0) : make_number (1),
+		       NULL, NULL, RES_TYPE_NUMBER);
+
   x_default_parameter (f, parms, Qbuffer_predicate, Qnil,
 		       "bufferPredicate", "BufferPredicate",
 		       RES_TYPE_SYMBOL);

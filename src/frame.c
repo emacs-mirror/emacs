@@ -119,6 +119,7 @@ Lisp_Object Qtitle, Qname;
 Lisp_Object Qexplicit_name;
 Lisp_Object Qunsplittable;
 Lisp_Object Qmenu_bar_lines, Qtool_bar_lines;
+Lisp_Object Vmenu_bar_mode, Vtool_bar_mode;
 Lisp_Object Qleft_fringe, Qright_fringe;
 Lisp_Object Qbuffer_predicate, Qbuffer_list, Qburied_buffer_list;
 Lisp_Object Qtty_color_mode;
@@ -4546,6 +4547,14 @@ recursively).  */);
   Vdelete_frame_functions = Qnil;
   Qdelete_frame_functions = intern_c_string ("delete-frame-functions");
   staticpro (&Qdelete_frame_functions);
+
+  DEFVAR_LISP ("menu-bar-mode", &Vmenu_bar_mode,
+               doc: /* Non-nil if Menu-Bar mode is enabled.  */);
+  Vmenu_bar_mode = Qt;
+
+  DEFVAR_LISP ("tool-bar-mode", &Vtool_bar_mode,
+               doc: /* Non-nil if Tool-Bar mode is enabled.  */);
+  Vtool_bar_mode = Qt;
 
   DEFVAR_KBOARD ("default-minibuffer-frame", Vdefault_minibuffer_frame,
 		 doc: /* Minibufferless frames use this frame's minibuffer.

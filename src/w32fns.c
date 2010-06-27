@@ -290,6 +290,7 @@ static unsigned menu_free_timer = 0;
 
 /* The below are defined in frame.c.  */
 
+extern Lisp_Object Vmenu_bar_mode, Vtool_bar_mode;
 extern Lisp_Object Vwindow_system_version;
 
 #ifdef GLYPH_DEBUG
@@ -4465,10 +4466,17 @@ This function is an internal primitive--use `make-frame' instead.  */)
      happen.  */
   init_frame_faces (f);
 
-  x_default_parameter (f, parameters, Qmenu_bar_lines, make_number (1),
-		       "menuBar", "MenuBar", RES_TYPE_NUMBER);
-  x_default_parameter (f, parameters, Qtool_bar_lines, make_number (1),
-                       "toolBar", "ToolBar", RES_TYPE_NUMBER);
+  /* The X resources controlling the menu-bar and tool-bar are
+     processed specially at startup, and reflected in the mode
+     variables; ignore them here.  */
+  x_default_parameter (f, parameters, Qmenu_bar_lines,
+		       NILP (Vmenu_bar_mode)
+		       ? make_number (0) : make_number (1),
+		       NULL, NULL, RES_TYPE_NUMBER);
+  x_default_parameter (f, parameters, Qtool_bar_lines,
+		       NILP (Vtool_bar_mode)
+		       ? make_number (0) : make_number (1),
+		       NULL, NULL, RES_TYPE_NUMBER);
 
   x_default_parameter (f, parameters, Qbuffer_predicate, Qnil,
 		       "bufferPredicate", "BufferPredicate", RES_TYPE_SYMBOL);
