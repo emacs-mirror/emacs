@@ -1,3 +1,16 @@
+2010-06-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (command-line): Use X resources to set the value of
+	menu-bar-mode and tool-bar-mode, before calling frame-initialize.
+
+	* menu-bar.el (menu-bar-mode):
+	* tool-bar.el (tool-bar-mode): Don't change default-frame-alist.
+	Set init-value to t.
+
+	* frame.el (frame-notice-user-settings): Don't change
+	default-frame-alist based on menu-bar-mode and tool-bar-mode, or
+	vice versa (Bug#2249).
+
 2010-06-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32-fns.el (w32-convert-standard-filename): Doc fix.
