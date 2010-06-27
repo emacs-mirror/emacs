@@ -959,7 +959,7 @@ See also `hfy-display-class' for details of valid values for CLASS."
                new-spec)))))
     (if (or (memq :inherit face-spec) (eq 'default face))
         face-spec
-      (nconc face-spec (list :inherit 'default))) ))
+      (append face-spec (list :inherit 'default)))))
 
 ;; construct an assoc of (css-tag-name . css-tag-value) pairs
 ;; from a face or assoc of face attributes:
