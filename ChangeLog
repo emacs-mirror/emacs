@@ -3,7 +3,7 @@
 	* configure.in: Add --with-x-toolkit=gtk3. Remove HAVE_GTK_MULTIDISPLAY,
 	check for gtk_file_chooser_dialog_new, and HAVE_GTK_FILE_BOTH (implied
 	by minimum required Gtk+ 2.6).  Add checks for functions introduced
-	in Gtk+ 2.14 or newer.
+	in Gtk+ 2.14 or newer (bug#6505).
 
 2010-06-26  Eli Zaretskii  <eliz@gnu.org>
 
