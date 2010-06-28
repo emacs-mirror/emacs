@@ -1,3 +1,14 @@
+2010-06-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* mainmake.v2 (version): Use emacs_version[] in src/emacs.c
+	instead of lisp/version.el (see revno 100306).
+
+	* sed1v2.inp (MKDEPDIR): Edit to empty.
+	Delete lines in rules that invoke $(MKDEPDIR).
+	Fix editing rules that begin with "cd ../lisp".
+	Edit out sh if-then-else-fi constructs that test ${CANNOT_DUMP}.
+	Edit out "|| exit ;\" constructs in emacs${EXEEXT} rule.
+
 2010-06-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* sed1v2.inp (UNEXEC_OBJ): Use UNEXEC_OBJ instead of unexec.

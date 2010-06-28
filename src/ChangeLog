@@ -1,3 +1,29 @@
+2010-06-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cmds.c (Fdelete_backward_char): Move into Lisp.
+
+2010-06-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/freebsd.h (BSD4_2): Remove redundant definition.
+	bsd-common.h defines it already.
+
+2010-06-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfns.c (Fx_create_frame): Don't consult X resouces when setting
+	menu-bar-lines and tool-bar-lines.  Use menu-bar-mode and
+	tool-bar-mode, which are now set using these X resources at
+	startup, to determine the defaults (Bug#2249).
+
+	* w32fns.c (Fx_create_frame):
+	* nsfns.m (Fx_create_frame): Likewise.
+
+	* frame.c (Vmenu_bar_mode, Vtool_bar_mode): New vars.
+
+2010-06-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gtkutil.c (xg_update_scrollbar_pos):
+	Avoid C99 mid-block variable declaration.
+
 2010-06-22  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_scroll_bar_create): Remove call to xg_show_scroll_bar.

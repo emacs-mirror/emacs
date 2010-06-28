@@ -1,3 +1,13 @@
+2010-06-26  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org-agenda.el (org-agenda-goto-calendar): Do not bind obsolete
+	variables.
+
+	* org.el (calendar): Require calendar now on top level in org.el
+	and define aliases to new variables when needed.
+	(org-read-date, org-goto-calendar): Do not bind obsolete
+	variables.
+
 2010-06-22  Glenn Morris  <rgm@gnu.org>
 
 	* org-entities.el: Add explicit utf-8 coding cookie to file with

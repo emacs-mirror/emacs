@@ -1,3 +1,7 @@
+2010-06-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* movemail.c (error): Avoid warning when there are no args.
+
 2010-06-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (lisp2): Fix references to vc/vc-hooks.elc

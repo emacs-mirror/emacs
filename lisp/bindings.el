@@ -822,6 +822,9 @@ if `inhibit-field-text-motion' is non-nil."
     (setq i (1+ i))))
 (define-key global-map [?\C-\M--] 'negative-argument)
 
+(define-key global-map "\177" 'delete-backward-char)
+(define-key global-map "\C-d" 'delete-forward-char)
+
 (define-key global-map "\C-k" 'kill-line)
 (define-key global-map "\C-w" 'kill-region)
 (define-key esc-map "w" 'kill-ring-save)
