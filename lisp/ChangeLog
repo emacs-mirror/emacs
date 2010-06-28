@@ -1,3 +1,15 @@
+2010-06-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (delete-active-region): New option.
+	(delete-backward-char): Implement in Lisp.
+	(delete-forward-char): New command.
+
+	* mouse.el (mouse-region-delete-keys): Deleted.
+	(mouse-show-mark): Simplify.
+
+	* bindings.el (global-map): Bind delete and DEL, the former to
+	delete-forward-char.
+
 2010-01-16  Lennart Borgman  <lennart.borgman@gmail.com>
 
 	* progmodes/ruby-mode.el (ruby-mode-map): Don't bind TAB.
