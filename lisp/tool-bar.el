@@ -48,21 +48,17 @@ With numeric ARG, display the tool bar if and only if ARG is positive.
 
 See `tool-bar-add-item' and `tool-bar-add-item-from-menu' for
 conveniently adding tool bar items."
-  :init-value nil
+  :init-value t
   :global t
   :group 'mouse
   :group 'frames
-  (if tool-bar-mode
-      (progn
-	;; Make one tool-bar-line for any - including non-graphical -
-	;; terminal, see Bug#1754.  If this causes problems, we should
-	;; handle the problem in `modify-frame-parameters' or do not
-	;; call `modify-all-frames-parameters' when toggling the tool
-	;; bar off either.
-	(modify-all-frames-parameters (list (cons 'tool-bar-lines 1)))
-	(if (= 1 (length (default-value 'tool-bar-map))) ; not yet setup
-	    (tool-bar-setup)))
-    (modify-all-frames-parameters (list (cons 'tool-bar-lines 0)))))
+  ;; Make tool-bar even if terminal is non-graphical (Bug#1754).
+  (let ((val (if tool-bar-mode 1 0)))
+    (dolist (frame (frame-list))
+      (set-frame-parameter frame 'tool-bar-lines val)))
+  (when tool-bar-mode
+    (if (= 1 (length (default-value 'tool-bar-map))) ; not yet setup
+	(tool-bar-setup))))
 
 ;;;###autoload
 ;; Used in the Show/Hide menu, to have the toggle reflect the current frame.
@@ -73,17 +69,6 @@ See `tool-bar-mode' for more information."
   (if (eq arg 'toggle)
       (tool-bar-mode (if (> (frame-parameter nil 'tool-bar-lines) 0) 0 1))
     (tool-bar-mode arg)))
-
-;;;###autoload
-;; We want to pretend the toolbar by standard is on, as this will make
-;; customize consider disabling the toolbar a customization, and save
-;; that.  We could do this for real by setting :init-value above, but
-;; that would turn on the toolbar in MS Windows where it is currently
-;; useless, and it would overwrite disabling the tool bar from X
-;; resources.  If anyone want to implement this in a cleaner way,
-;; please do so.
-;; -- Per Abrahamsen <abraham@dina.kvl.dk> 2002-02-21.
-(put 'tool-bar-mode 'standard-value '(t))
 
 (defvar tool-bar-map (make-sparse-keymap)
   "Keymap for the tool bar.

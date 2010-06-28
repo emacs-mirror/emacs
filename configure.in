@@ -129,7 +129,7 @@ dnl This should be the last --with option, because --with-x is
 dnl added later on when we find the path of X, and it's best to
 dnl keep them together visually.
 AC_ARG_WITH([x-toolkit],[AS_HELP_STRING([--with-x-toolkit=KIT],
- [use an X toolkit (KIT one of: yes or gtk, lucid or athena, motif, no)])],
+ [use an X toolkit (KIT one of: yes or gtk, gtk3, lucid or athena, motif, no)])],
 [	  case "${withval}" in
 	    y | ye | yes )	val=gtk ;;
 	    n | no )		val=no  ;;
@@ -137,10 +137,11 @@ AC_ARG_WITH([x-toolkit],[AS_HELP_STRING([--with-x-toolkit=KIT],
 	    a | at | ath | athe | athen | athena )	val=athena ;;
 	    m | mo | mot | moti | motif )	val=motif ;;
 	    g | gt | gtk  )	val=gtk ;;
+	    gtk3  )	val=gtk3 ;;
 	    * )
 AC_MSG_ERROR([`--with-x-toolkit=$withval' is invalid;
-this option's value should be `yes', `no', `lucid', `athena', `motif' or `gtk'.
-`yes' and `gtk' are synonyms. `athena' and `lucid' are synonyms.])
+this option's value should be `yes', `no', `lucid', `athena', `motif', `gtk' or
+`gtk3'.  `yes' and `gtk' are synonyms. `athena' and `lucid' are synonyms.])
 	    ;;
 	  esac
 	  with_x_toolkit=$val
@@ -1594,6 +1595,8 @@ case "${window_system}" in
 dnl Dont set this for GTK.  A lot of tests below assumes Xt when
 dnl USE_X_TOOLKIT is set.
             USE_X_TOOLKIT=none ;;
+      gtk3 ) with_gtk3=yes
+             USE_X_TOOLKIT=none ;;
       no ) USE_X_TOOLKIT=none ;;
 dnl If user did not say whether to use a toolkit, make this decision later:
 dnl use the toolkit if we have gtk, or X11R5 or newer.
@@ -1842,6 +1845,20 @@ fi
 
 
 HAVE_GTK=no
+if test "${with_gtk3}" = "yes"; then
+  GLIB_REQUIRED=2.6
+  GTK_REQUIRED=2.90
+  GTK_MODULES="gtk+-3.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
+
+  dnl Checks for libraries.
+  PKG_CHECK_MODULES(GTK, $GTK_MODULES, pkg_check_gtk=yes, pkg_check_gtk=no)
+  if test "$pkg_check_gtk" = "no" && test "$USE_X_TOOLKIT" != "maybe"; then
+     AC_MSG_ERROR($GTK_PKG_ERRORS)
+  fi
+fi
+
+if test "$pkg_check_gtk" != "yes"; then
+  HAVE_GTK=no
 if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "maybe"; then
   GLIB_REQUIRED=2.6
   GTK_REQUIRED=2.6
@@ -1853,7 +1870,7 @@ if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "maybe"; then
      AC_MSG_ERROR($GTK_PKG_ERRORS)
   fi
 fi
-
+fi
 
 GTK_OBJ=
 if test x"$pkg_check_gtk" = xyes; then
@@ -1898,15 +1915,6 @@ if test "${HAVE_GTK}" = "yes"; then
     with_toolkit_scroll_bars=yes
   fi
 
-  dnl  Check if we can use multiple displays with this GTK version.
-  dnl  If gdk_display_open exists, assume all others are there also.
-  HAVE_GTK_MULTIDISPLAY=no
-  AC_CHECK_FUNCS(gdk_display_open, HAVE_GTK_MULTIDISPLAY=yes)
-  if test "${HAVE_GTK_MULTIDISPLAY}" = "yes"; then
-    AC_DEFINE(HAVE_GTK_MULTIDISPLAY, 1,
-              [Define to 1 if GTK can handle more than one display.])
-  fi
-
   dnl  Check if we have the old file selection dialog declared and
   dnl  in the link library.  In 2.x it may be in the library,
   dnl  but not declared if deprecated featured has been selected out.
@@ -1916,29 +1924,11 @@ if test "${HAVE_GTK}" = "yes"; then
                    HAVE_GTK_FILE_SELECTION=no, [AC_INCLUDES_DEFAULT
 #include <gtk/gtk.h>])
   if test "$HAVE_GTK_FILE_SELECTION" = yes; then
-    AC_CHECK_FUNCS(gtk_file_selection_new, HAVE_GTK_FILE_SELECTION=yes,
-                   HAVE_GTK_FILE_SELECTION=no)
-  fi
-
-  dnl  Check if we have the new file chooser dialog
-  HAVE_GTK_FILE_CHOOSER=no
-  AC_CHECK_DECL(GTK_TYPE_FILE_CHOOSER, HAVE_GTK_FILE_CHOOSER=yes,
-                HAVE_GTK_FILE_CHOOSER=no, [AC_INCLUDES_DEFAULT
-#include <gtk/gtk.h>])
-  if test "$HAVE_GTK_FILE_CHOOSER" = yes; then
-    AC_CHECK_FUNCS(gtk_file_chooser_dialog_new, HAVE_GTK_FILE_CHOOSER=yes,
-                   HAVE_GTK_FILE_CHOOSER=no)
-  fi
-
-  if test "$HAVE_GTK_FILE_SELECTION" = yes \
-     && test "$HAVE_GTK_FILE_CHOOSER" = yes;  then
-    AC_DEFINE(HAVE_GTK_FILE_BOTH, 1,
-              [Define to 1 if GTK has both file selection and chooser dialog.])
+    AC_CHECK_FUNCS(gtk_file_selection_new)
   fi
 
   dnl Check if pthreads are available.  Emacs only needs this when using
   dnl gtk_file_chooser under Gnome.
-  if test "$HAVE_GTK_FILE_CHOOSER" = yes; then
     HAVE_GTK_AND_PTHREAD=no
     AC_CHECK_HEADERS(pthread.h)
     if test "$ac_cv_header_pthread_h"; then
@@ -1952,7 +1942,13 @@ if test "${HAVE_GTK}" = "yes"; then
       AC_DEFINE(HAVE_GTK_AND_PTHREAD, 1,
                [Define to 1 if you have GTK and pthread (-lpthread).])
     fi
-  fi
+
+  dnl Check for functions introduced in 2.14 and later.
+  AC_CHECK_FUNCS(gtk_widget_get_window gtk_widget_set_has_window \
+                 gtk_dialog_get_action_area gtk_widget_get_sensitive \
+                 gtk_widget_get_mapped gtk_adjustment_get_page_size \
+                 gtk_orientable_set_orientation)
+
 fi
 
 dnl D-Bus has been tested under GNU/Linux only.  Must be adapted for

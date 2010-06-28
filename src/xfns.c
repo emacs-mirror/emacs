@@ -204,6 +204,8 @@ extern Lisp_Object Vsystem_name;
 
 /* The below are defined in frame.c.  */
 
+extern Lisp_Object Vmenu_bar_mode, Vtool_bar_mode;
+
 #if GLYPH_DEBUG
 int image_cache_refcount, dpyinfo_refcount;
 #endif
@@ -3065,13 +3067,12 @@ x_default_font_parameter (f, parms)
   Lisp_Object font_param = x_get_arg (dpyinfo, parms, Qfont, NULL, NULL,
                                       RES_TYPE_STRING);
   Lisp_Object font = Qnil;
-  int got_from_system = 0;
   if (EQ (font_param, Qunbound))
     font_param = Qnil;
 
   if (NILP (font_param))
     {
-      /* System font takes precedendce over X resources.  We must suggest this
+      /* System font should take precedendce over X resources.  We suggest this
          regardless of font-use-system-font because .emacs may not have been
          read yet.  */
       const char *system_font = xsettings_get_system_font ();
@@ -3079,7 +3080,6 @@ x_default_font_parameter (f, parms)
         {
           char *name = xstrdup (system_font);
           font = font_open_by_name (f, name);
-          got_from_system = ! NILP (font);
           free (name);
         }
     }
@@ -3125,10 +3125,8 @@ x_default_font_parameter (f, parms)
       x_set_frame_parameters (f, Fcons (Fcons (Qfont_param, font_param), Qnil));
     }
 
-  x_default_parameter (f, parms, Qfont, font,
-                       got_from_system ? NULL : "font",
-                       got_from_system ? NULL : "Font",
-                       RES_TYPE_STRING);
+  /* This call will make X resources override any system font setting.  */
+  x_default_parameter (f, parms, Qfont, font, "font", "Font", RES_TYPE_STRING);
 }
 
 
@@ -3450,10 +3448,18 @@ This function is an internal primitive--use `make-frame' instead.  */)
      happen.  */
   init_frame_faces (f);
 
-  x_default_parameter (f, parms, Qmenu_bar_lines, make_number (1),
-		       "menuBar", "MenuBar", RES_TYPE_BOOLEAN_NUMBER);
-  x_default_parameter (f, parms, Qtool_bar_lines, make_number (1),
-		       "toolBar", "ToolBar", RES_TYPE_NUMBER);
+  /* The X resources controlling the menu-bar and tool-bar are
+     processed specially at startup, and reflected in the mode
+     variables; ignore them here.  */
+  x_default_parameter (f, parms, Qmenu_bar_lines,
+		       NILP (Vmenu_bar_mode)
+		       ? make_number (0) : make_number (1),
+		       NULL, NULL, RES_TYPE_NUMBER);
+  x_default_parameter (f, parms, Qtool_bar_lines,
+		       NILP (Vtool_bar_mode)
+		       ? make_number (0) : make_number (1),
+		       NULL, NULL, RES_TYPE_NUMBER);
+
   x_default_parameter (f, parms, Qbuffer_predicate, Qnil,
 		       "bufferPredicate", "BufferPredicate",
 		       RES_TYPE_SYMBOL);

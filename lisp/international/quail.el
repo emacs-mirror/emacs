@@ -811,7 +811,7 @@ The format of KBD-LAYOUT is the same as `quail-keyboard-layout'."
 		      (setq translation (aref (cdr translation) 0))
 		    (setq translation " ")))
 	      (setq done-list (cons translation done-list)))
-	  (setq translation ch))
+	  (setq translation (aref kbd-layout i)))
 	(aset layout i translation))
       (setq i (1+ i)))
 

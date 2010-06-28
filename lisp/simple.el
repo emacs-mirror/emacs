@@ -844,6 +844,78 @@ Don't use this command in Lisp programs!
 	 (overlay-recenter (point))
 	 (recenter -3))))
 
+(defcustom delete-active-region t
+  "Whether single-char deletion commands delete an active region.
+This has an effect only if Transient Mark mode is enabled, and
+affects `delete-forward-char' and `delete-backward-char', though
+not `delete-char'.
+
+If the value is the symbol `kill', the active region is killed
+instead of deleted."
+  :type '(choice (const :tag "Delete active region" t)
+                 (const :tag "Kill active region" kill)
+                 (const :tag "Do ordinary deletion" nil))
+  :group 'editing
+  :version "24.1")
+
+(defun delete-backward-char (n &optional killflag)
+  "Delete the previous N characters (following if N is negative).
+If Transient Mark mode is enabled, the mark is active, and N is 1,
+delete the text in the region and deactivate the mark instead.
+To disable this, set `delete-active-region' to nil.
+
+Optional second arg KILLFLAG, if non-nil, means to kill (save in
+kill ring) instead of delete.  Interactively, N is the prefix
+arg, and KILLFLAG is set if N is explicitly specified.
+
+In Overwrite mode, single character backward deletion may replace
+tabs with spaces so as to back over columns, unless point is at
+the end of the line."
+  (interactive "p\nP")
+  (unless (integerp n)
+    (signal 'wrong-type-argument (list 'integerp n)))
+  (cond ((and (use-region-p)
+	      delete-active-region
+	      (= n 1))
+	 ;; If a region is active, kill or delete it.
+	 (if (eq delete-active-region 'kill)
+	     (kill-region (region-beginning) (region-end))
+	   (delete-region (region-beginning) (region-end))))
+	;; In Overwrite mode, maybe untabify while deleting
+	((null (or (null overwrite-mode)
+		   (<= n 0)
+		   (memq (char-before) '(?\t ?\n))
+		   (eobp)
+		   (eq (char-after) ?\n)))
+	 (let* ((ocol (current-column))
+		(val (delete-char (- n) killflag)))
+	   (save-excursion
+	     (insert-char ?\s (- ocol (current-column)) nil))))
+	;; Otherwise, do simple deletion.
+	(t (delete-char (- n) killflag))))
+
+(defun delete-forward-char (n &optional killflag)
+  "Delete the previous N characters (following if N is negative).
+If Transient Mark mode is enabled, the mark is active, and N is 1,
+delete the text in the region and deactivate the mark instead.
+To disable this, set `delete-active-region' to nil.
+
+Optional second arg KILLFLAG non-nil means to kill (save in kill
+ring) instead of delete.  Interactively, N is the prefix arg, and
+KILLFLAG is set if N was explicitly specified."
+  (interactive "p\nP")
+  (unless (integerp n)
+    (signal 'wrong-type-argument (list 'integerp n)))
+  (cond ((and (use-region-p)
+	      delete-active-region
+	      (= n 1))
+	 ;; If a region is active, kill or delete it.
+	 (if (eq delete-active-region 'kill)
+	     (kill-region (region-beginning) (region-end))
+	   (delete-region (region-beginning) (region-end))))
+	;; Otherwise, do simple deletion.
+	(t (delete-char n killflag))))
+
 (defun mark-whole-buffer ()
   "Put point at beginning and mark at end of buffer.
 You probably should not use this function in Lisp programs;

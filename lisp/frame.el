@@ -39,13 +39,6 @@ as its argument.")
 
 (defvar window-system-default-frame-alist nil
   "Alist of window-system dependent default frame parameters.
-You can set this in your init file; for example,
-
- ;; Disable menubar and toolbar on the console, but enable them under X.
- (setq window-system-default-frame-alist
-       '((x (menu-bar-lines . 1) (tool-bar-lines . 1))
-         (nil (menu-bar-lines . 0) (tool-bar-lines . 0))))
-
 Parameters specified here supersede the values given in
 `default-frame-alist'.")
 
@@ -287,36 +280,6 @@ and (cdr ARGS) as second."
 React to settings of `initial-frame-alist',
 `window-system-default-frame-alist' and `default-frame-alist'
 there (in decreasing order of priority)."
-  ;; Make menu-bar-mode and default-frame-alist consistent.
-  (when (boundp 'menu-bar-mode)
-    (let ((default (assq 'menu-bar-lines default-frame-alist)))
-      (if default
-	  (setq menu-bar-mode (not (eq (cdr default) 0)))
-	(setq default-frame-alist
-	      (cons (cons 'menu-bar-lines (if menu-bar-mode 1 0))
-		    default-frame-alist)))))
-
-  ;; Make tool-bar-mode and default-frame-alist consistent.  Don't do
-  ;; it in batch mode since that would leave a tool-bar-lines
-  ;; parameter in default-frame-alist in a dumped Emacs, which is not
-  ;; what we want.
-  (when (and (boundp 'tool-bar-mode)
- 	     (not noninteractive))
-    (let ((default (assq 'tool-bar-lines default-frame-alist)))
-      (if default
- 	  (setq tool-bar-mode (not (eq (cdr default) 0)))
-	;; If Emacs was started on a tty, changing default-frame-alist
-	;; would disable the toolbar on X frames created later.  We
-	;; want to keep the default of showing a toolbar under X even
-	;; in this case.
-	;;
-	;; If the user explicitly called `tool-bar-mode' in .emacs,
-	;; then default-frame-alist is already changed anyway.
-	(when initial-window-system
-	  (setq default-frame-alist
-		(cons (cons 'tool-bar-lines (if tool-bar-mode 1 0))
-		      default-frame-alist))))))
-
   ;; Creating and deleting frames may shift the selected frame around,
   ;; and thus the current buffer.  Protect against that.  We don't
   ;; want to use save-excursion here, because that may also try to set
