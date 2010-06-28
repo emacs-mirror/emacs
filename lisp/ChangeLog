@@ -1,3 +1,8 @@
+2010-06-28  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* dynamic-setting.el (font-setting-change-default-font): Remove
+	call to message.
+
 2010-06-28  Kenichi Handa  <handa@m17n.org>
 
 	* international/quail.el (quail-insert-kbd-layout): Fix the
