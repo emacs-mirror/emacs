@@ -1565,7 +1565,7 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click, timestamp)
 
   record_unwind_protect (pop_down_menu, make_save_value (menu, 0));
 
-  if (GTK_WIDGET_MAPPED (menu))
+  if (gtk_widget_get_mapped (menu))
     {
       /* Set this to one.  popup_widget_loop increases it by one, so it becomes
          two.  show_help_echo uses this to detect popup menus.  */

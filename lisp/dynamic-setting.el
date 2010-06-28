@@ -65,7 +65,6 @@ current form for the frame (i.e. hinting or somesuch changed)."
 		      frame-font)))
 	      (if font-to-set
 		  (progn
-		    (message "setting %s" font-to-set)
 		    (set-frame-parameter f 'font-parameter font-to-set)
 		    (set-face-attribute 'default f
 					:width 'normal

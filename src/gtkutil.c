@@ -47,12 +47,33 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Avoid "differ in sign" warnings */
 #define SSDATA(x)  ((char *) SDATA (x))
 
+#ifndef HAVE_GTK_WIDGET_SET_HAS_WINDOW
+#define gtk_widget_set_has_window(w, b) \
+  (gtk_fixed_set_has_window (GTK_FIXED (w), b))
+#endif
+#ifndef HAVE_GTK_DIALOG_GET_ACTION_AREA
+#define gtk_dialog_get_action_area(w) ((w)->action_area)
+#define gtk_dialog_get_content_area(w) ((w)->vbox)
+#endif
+#ifndef HAVE_GTK_WIDGET_GET_SENSITIVE
+#define gtk_widget_get_sensitive(w) (GTK_WIDGET_SENSITIVE (w))
+#endif
+#ifndef HAVE_GTK_ADJUSTMENT_GET_PAGE_SIZE
+#define gtk_adjustment_set_page_size(w, s) ((w)->page_size = (s))
+#define gtk_adjustment_set_page_increment(w, s) ((w)->page_increment = (s))
+#define gtk_adjustment_get_step_increment(w) ((w)->step_increment)
+#define gtk_adjustment_set_step_increment(w, s) ((w)->step_increment = (s))
+#endif
+#if GTK_MAJOR_VERSION > 2 || GTK_MINOR_VERSION > 11
+#define remove_submenu(w) gtk_menu_item_set_submenu ((w), NULL)
+#else
+#define remove_submenu(w) gtk_menu_item_remove_submenu ((w))
+#endif
+
 
 /***********************************************************************
                       Display handling functions
  ***********************************************************************/
-
-#ifdef HAVE_GTK_MULTIDISPLAY
 
 /* Keep track of the default display, or NULL if there is none.  Emacs
    may close all its displays.  */
@@ -81,20 +102,6 @@ xg_set_screen (w, f)
 }
 
 
-#else /* not HAVE_GTK_MULTIDISPLAY */
-
-/* Make some defines so we can use the GTK 2.2 functions when
-   compiling with GTK 2.0.  */
-
-#define xg_set_screen(w, f)
-#define gdk_xid_table_lookup_for_display(dpy, w)    gdk_xid_table_lookup (w)
-#define gdk_pixmap_foreign_new_for_display(dpy, p)  gdk_pixmap_foreign_new (p)
-#define gdk_cursor_new_for_display(dpy, c)          gdk_cursor_new (c)
-#define gdk_x11_lookup_xdisplay(dpy)                0
-#define GdkDisplay                                  void
-
-#endif /* not HAVE_GTK_MULTIDISPLAY */
-
 /* Open a display named by DISPLAY_NAME.  The display is returned in *DPY.
    *DPY is set to NULL if the display can't be opened.
 
@@ -102,12 +109,11 @@ xg_set_screen (w, f)
    be opened, and less than zero if the GTK version doesn't support
    multipe displays.  */
 
-int
+void
 xg_display_open (display_name, dpy)
      char *display_name;
      Display **dpy;
 {
-#ifdef HAVE_GTK_MULTIDISPLAY
   GdkDisplay *gdpy;
 
   gdpy = gdk_display_open (display_name);
@@ -119,12 +125,6 @@ xg_display_open (display_name, dpy)
     }
 
   *dpy = gdpy ? GDK_DISPLAY_XDISPLAY (gdpy) : NULL;
-  return gdpy != NULL;
-
-#else /* not HAVE_GTK_MULTIDISPLAY */
-
-  return -1;
-#endif /* not HAVE_GTK_MULTIDISPLAY */
 }
 
 
@@ -133,7 +133,6 @@ xg_display_open (display_name, dpy)
 void
 xg_display_close (Display *dpy)
 {
-#ifdef HAVE_GTK_MULTIDISPLAY
   GdkDisplay *gdpy = gdk_x11_lookup_xdisplay (dpy);
 
   /* If this is the default display, try to change it before closing.
@@ -165,7 +164,6 @@ xg_display_close (Display *dpy)
   /* This seems to be fixed in GTK 2.10. */
   gdk_display_close (gdpy);
 #endif
-#endif /* HAVE_GTK_MULTIDISPLAY */
 }
 
 
@@ -397,9 +395,10 @@ xg_set_cursor (w, cursor)
      GtkWidget *w;
      GdkCursor *cursor;
 {
-  GList *children = gdk_window_peek_children (w->window);
+  GdkWindow *window = gtk_widget_get_window(w);
+  GList *children = gdk_window_peek_children (window);
 
-  gdk_window_set_cursor (w->window, cursor);
+  gdk_window_set_cursor (window, cursor);
 
   /* The scroll bar widget has more than one GDK window (had to look at
      the source to figure this out), and there is no way to set cursor
@@ -606,8 +605,9 @@ xg_frame_resized (f, pixelwidth, pixelheight)
 
   if (pixelwidth == -1 && pixelheight == -1)
     {
-      if (FRAME_GTK_WIDGET (f) && GTK_WIDGET_MAPPED (FRAME_GTK_WIDGET (f)))
-          gdk_window_get_geometry (FRAME_GTK_WIDGET (f)->window, 0, 0,
+      if (FRAME_GTK_WIDGET (f) && gtk_widget_get_mapped (FRAME_GTK_WIDGET (f)))
+          gdk_window_get_geometry (gtk_widget_get_window (FRAME_GTK_WIDGET (f)),
+                                   0, 0,
                                    &pixelwidth, &pixelheight, 0);
       else return;
     }
@@ -802,7 +802,7 @@ xg_create_frame_widgets (f)
   FRAME_GTK_WIDGET (f) = wfixed;
   f->output_data.x->vbox_widget = wvbox;
 
-  gtk_fixed_set_has_window (GTK_FIXED (wfixed), TRUE);
+  gtk_widget_set_has_window (wfixed, TRUE);
 
   gtk_container_add (GTK_CONTAINER (wtop), wvbox);
   gtk_box_pack_end (GTK_BOX (wvbox), wfixed, TRUE, TRUE, 0);
@@ -1093,8 +1093,9 @@ create_dialog (wv, select_cb, deactivate_cb)
   int button_nr = 0;
   int button_spacing = 10;
   GtkWidget *wdialog = gtk_dialog_new ();
+  GtkDialog *wd = GTK_DIALOG (wdialog);
+  GtkBox *cur_box = GTK_BOX (gtk_dialog_get_action_area (wd));
   widget_value *item;
-  GtkBox *cur_box;
   GtkWidget *wvbox;
   GtkWidget *whbox_up;
   GtkWidget *whbox_down;
@@ -1109,7 +1110,6 @@ create_dialog (wv, select_cb, deactivate_cb)
   gtk_window_set_title (GTK_WINDOW (wdialog), title);
   gtk_widget_set_name (wdialog, "emacs-dialog");
 
-  cur_box = GTK_BOX (GTK_DIALOG (wdialog)->action_area);
 
   if (make_two_rows)
     {
@@ -1141,21 +1141,18 @@ create_dialog (wv, select_cb, deactivate_cb)
 
       if (item->name && strcmp (item->name, "message") == 0)
         {
+          GtkBox *wvbox = GTK_BOX (gtk_dialog_get_content_area (wd));
           /* This is the text part of the dialog.  */
           w = gtk_label_new (utf8_label);
-          gtk_box_pack_start (GTK_BOX (GTK_DIALOG (wdialog)->vbox),
-                              gtk_label_new (""),
-                              FALSE, FALSE, 0);
-          gtk_box_pack_start (GTK_BOX (GTK_DIALOG (wdialog)->vbox), w,
-                              TRUE, TRUE, 0);
+          gtk_box_pack_start (wvbox, gtk_label_new (""), FALSE, FALSE, 0);
+          gtk_box_pack_start (wvbox, w, TRUE, TRUE, 0);
           gtk_misc_set_alignment (GTK_MISC (w), 0.1, 0.5);
 
           /* Try to make dialog look better.  Must realize first so
              the widget can calculate the size it needs.  */
           gtk_widget_realize (w);
           gtk_widget_size_request (w, &req);
-          gtk_box_set_spacing (GTK_BOX (GTK_DIALOG (wdialog)->vbox),
-                               req.height);
+          gtk_box_set_spacing (wvbox, req.height);
 	  if (item->value && strlen (item->value) > 0)
             button_spacing = 2*req.width/strlen (item->value);
         }
@@ -1313,24 +1310,16 @@ xg_dialog_run (f, w)
 int
 xg_uses_old_file_dialog ()
 {
-#ifdef HAVE_GTK_FILE_BOTH
+#ifdef HAVE_GTK_FILE_SELECTION_NEW
   extern int x_gtk_use_old_file_dialog;
   return x_gtk_use_old_file_dialog;
-#else /* ! HAVE_GTK_FILE_BOTH */
-
-#ifdef HAVE_GTK_FILE_SELECTION_NEW
-  return 1;
 #else
   return 0;
 #endif
-
-#endif /* ! HAVE_GTK_FILE_BOTH */
 }
 
 
 typedef char * (*xg_get_file_func) P_ ((GtkWidget *));
-
-#ifdef HAVE_GTK_FILE_CHOOSER_DIALOG_NEW
 
 /* Return the selected file for file chooser dialog W.
    The returned string must be free:d.  */
@@ -1507,7 +1496,6 @@ xg_get_file_with_chooser (f, prompt, default_filename,
   *func = xg_get_file_name_from_chooser;
   return filewin;
 }
-#endif /* HAVE_GTK_FILE_CHOOSER_DIALOG_NEW */
 
 #ifdef HAVE_GTK_FILE_SELECTION_NEW
 
@@ -1595,7 +1583,7 @@ xg_get_file_name (f, prompt, default_filename, mustmatch_p, only_dir_p)
   sigblock (sigmask (__SIGRTMIN));
 #endif /* HAVE_GTK_AND_PTHREAD */
 
-#ifdef HAVE_GTK_FILE_BOTH
+#ifdef HAVE_GTK_FILE_SELECTION_NEW
 
   if (xg_uses_old_file_dialog ())
     w = xg_get_file_with_selection (f, prompt, default_filename,
@@ -1604,18 +1592,10 @@ xg_get_file_name (f, prompt, default_filename, mustmatch_p, only_dir_p)
     w = xg_get_file_with_chooser (f, prompt, default_filename,
                                   mustmatch_p, only_dir_p, &func);
 
-#else /* not HAVE_GTK_FILE_BOTH */
-
-#ifdef HAVE_GTK_FILE_SELECTION_NEW
-  w = xg_get_file_with_selection (f, prompt, default_filename,
-                                  mustmatch_p, only_dir_p, &func);
-#endif
-#ifdef HAVE_GTK_FILE_CHOOSER_DIALOG_NEW
+#else /* not HAVE_GTK_FILE_SELECTION_NEW */
   w = xg_get_file_with_chooser (f, prompt, default_filename,
                                 mustmatch_p, only_dir_p, &func);
-#endif
-
-#endif /* HAVE_GTK_FILE_BOTH */
+#endif /* not HAVE_GTK_FILE_SELECTION_NEW */
 
   gtk_widget_set_name (w, "emacs-filedialog");
 
@@ -2473,7 +2453,7 @@ xg_update_menubar (menubar, f, list, iter, pos, val,
                 New:      A C
               Remove B.  */
 
-          gtk_widget_ref (GTK_WIDGET (witem));
+          g_object_ref (G_OBJECT (witem));
           gtk_container_remove (GTK_CONTAINER (menubar), GTK_WIDGET (witem));
           gtk_widget_destroy (GTK_WIDGET (witem));
 
@@ -2555,11 +2535,11 @@ xg_update_menubar (menubar, f, list, iter, pos, val,
                 New:      A C B
               Move C before B  */
 
-          gtk_widget_ref (GTK_WIDGET (witem2));
+          g_object_ref (G_OBJECT (witem2));
           gtk_container_remove (GTK_CONTAINER (menubar), GTK_WIDGET (witem2));
           gtk_menu_shell_insert (GTK_MENU_SHELL (menubar),
                                  GTK_WIDGET (witem2), pos);
-          gtk_widget_unref (GTK_WIDGET (witem2));
+          g_object_unref (G_OBJECT (witem2));
 
           g_list_free (*list);
           *list = iter = gtk_container_get_children (GTK_CONTAINER (menubar));
@@ -2613,9 +2593,10 @@ xg_update_menu_item (val, w, select_cb, highlight_cb, cl_data)
       if (! utf8_key)
         {
           /* Remove the key and keep just the label.  */
-          gtk_widget_ref (GTK_WIDGET (wlbl));
+          g_object_ref (G_OBJECT (wlbl));
           gtk_container_remove (GTK_CONTAINER (w), wchild);
           gtk_container_add (GTK_CONTAINER (w), GTK_WIDGET (wlbl));
+          g_object_unref (G_OBJECT (wlbl));
           wkey = 0;
         }
 
@@ -2652,9 +2633,9 @@ xg_update_menu_item (val, w, select_cb, highlight_cb, cl_data)
   if (utf8_key && utf8_key != val->key) g_free (utf8_key);
   if (utf8_label && utf8_label != val->name) g_free (utf8_label);
 
-  if (! val->enabled && GTK_WIDGET_SENSITIVE (w))
+  if (! val->enabled && gtk_widget_get_sensitive (w))
     gtk_widget_set_sensitive (w, FALSE);
-  else if (val->enabled && ! GTK_WIDGET_SENSITIVE (w))
+  else if (val->enabled && ! gtk_widget_get_sensitive (w))
     gtk_widget_set_sensitive (w, TRUE);
 
   cb_data = (xg_menu_item_cb_data*) g_object_get_data (G_OBJECT (w),
@@ -2793,8 +2774,8 @@ xg_update_submenu (submenu, f, val,
         if (sub && ! cur->contents)
           {
             /* Not a submenu anymore.  */
-            gtk_widget_ref (sub);
-            gtk_menu_item_remove_submenu (witem);
+            g_object_ref (G_OBJECT (sub));
+            remove_submenu (witem);
             gtk_widget_destroy (sub);
           }
         else if (cur->contents)
@@ -2940,7 +2921,7 @@ xg_update_frame_menubar (f)
   struct x_output *x = f->output_data.x;
   GtkRequisition req;
 
-  if (!x->menubar_widget || GTK_WIDGET_MAPPED (x->menubar_widget))
+  if (!x->menubar_widget || gtk_widget_get_mapped (x->menubar_widget))
     return 0;
 
   if (x->menubar_widget && gtk_widget_get_parent (x->menubar_widget))
@@ -3212,24 +3193,16 @@ xg_update_scrollbar_pos (f, scrollbar_id, top, left, width, height)
     {
       GtkWidget *wfixed = f->output_data.x->edit_widget;
       GtkWidget *wparent = gtk_widget_get_parent (wscroll);
-      GtkFixed *wf = GTK_FIXED (wfixed);
       gint msl;
 
       /* Clear out old position.  */
-      GList *iter;
       int oldx = -1, oldy = -1, oldw, oldh;
-      for (iter = wf->children; iter; iter = iter->next)
-        if (((GtkFixedChild *)iter->data)->widget == wparent)
-          {
-            GtkFixedChild *ch = (GtkFixedChild *)iter->data;
-            if (ch->x != left || ch->y != top)
-              {
-                oldx = ch->x;
-                oldy = ch->y;
-                gtk_widget_get_size_request (wscroll, &oldw, &oldh);
-              }
-            break;
-          }
+      if (gtk_widget_get_parent (wparent) == wfixed)
+        {
+          gtk_container_child_get (GTK_CONTAINER (wfixed), wparent,
+                                   "x", &oldx, "y", &oldy, NULL);
+          gtk_widget_get_size_request (wscroll, &oldw, &oldh);
+        }
 
       /* Move and resize to new values.  */
       gtk_fixed_move (GTK_FIXED (wfixed), wparent, left, top);
@@ -3318,13 +3291,13 @@ xg_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
       /* Assume all lines are of equal size.  */
       new_step = size / max (1, FRAME_LINES (f));
 
-      if ((int) adj->page_size != size
-          || (int) adj->step_increment != new_step)
+      if ((int) gtk_adjustment_get_page_size (adj) != size
+          || (int) gtk_adjustment_get_step_increment (adj) != new_step)
         {
-          adj->page_size = size;
-          adj->step_increment = new_step;
+          gtk_adjustment_set_page_size (adj, size);
+          gtk_adjustment_set_step_increment (adj, new_step);
           /* Assume a page increment is about 95% of the page size  */
-          adj->page_increment = (int) (0.95*adj->page_size);
+          gtk_adjustment_set_page_increment (adj,(int) (0.95*size));
           changed = 1;
         }
 
@@ -3367,7 +3340,7 @@ xg_event_is_for_scrollbar (f, event)
       /* Check if press occurred outside the edit widget.  */
       GdkDisplay *gdpy = gdk_x11_lookup_xdisplay (FRAME_X_DISPLAY (f));
       retval = gdk_display_get_window_at_pointer (gdpy, NULL, NULL)
-        != f->output_data.x->edit_widget->window;
+        != gtk_widget_get_window (f->output_data.x->edit_widget);
     }
   else if (f
            && ((event->type == ButtonRelease && event->xbutton.button < 4)
@@ -3512,6 +3485,17 @@ xg_tool_bar_proxy_help_callback (w, event, client_data)
   return xg_tool_bar_help_callback (wbutton, event, client_data);
 }
 
+static GtkWidget *
+xg_get_tool_bar_widgets (GtkWidget *vb, GtkWidget **wimage)
+{
+  GList *clist = gtk_container_get_children (GTK_CONTAINER (vb));
+  GtkWidget *c1 = (GtkWidget *) clist->data;
+  GtkWidget *c2 = (GtkWidget *) clist->next->data;
+  *wimage = GTK_IS_IMAGE (c1) ? c1 : c2;
+  g_list_free (clist);
+  return GTK_IS_LABEL (c1) ? c1 : c2;
+}
+
 
 /* This callback is called when a tool item should create a proxy item,
    such as for the overflow menu.  Also called when the tool bar is detached.
@@ -3525,17 +3509,14 @@ xg_tool_bar_menu_proxy (toolitem, user_data)
 {
   GtkWidget *weventbox = gtk_bin_get_child (GTK_BIN (toolitem));
   GtkButton *wbutton = GTK_BUTTON (gtk_bin_get_child (GTK_BIN (weventbox)));
-  GtkBox *vb = GTK_BOX (gtk_bin_get_child (GTK_BIN (wbutton)));
-  GtkBoxChild *c1 = (GtkBoxChild *) vb->children->data;
-  GtkBoxChild *c2 = (GtkBoxChild *) vb->children->next->data;
-  GtkImage *wimage = GTK_IS_IMAGE (c1->widget)
-    ? GTK_IMAGE (c1->widget) : GTK_IMAGE (c2->widget);
-  GtkLabel *wlbl = GTK_IS_LABEL (c1->widget)
-    ? GTK_LABEL (c1->widget) : GTK_LABEL (c2->widget);
+  GtkWidget *vb = gtk_bin_get_child (GTK_BIN (wbutton));
+  GtkWidget *c1;
+  GtkLabel *wlbl = GTK_LABEL (xg_get_tool_bar_widgets (vb, &c1));
+  GtkImage *wimage = GTK_IMAGE (c1);
   GtkWidget *wmenuitem = gtk_image_menu_item_new_with_label
     (gtk_label_get_text (wlbl));
-
   GtkWidget *wmenuimage;
+
 
   if (gtk_button_get_use_stock (wbutton))
     wmenuimage = gtk_image_new_from_stock (gtk_button_get_label (wbutton),
@@ -3607,7 +3588,8 @@ xg_tool_bar_menu_proxy (toolitem, user_data)
   g_object_set_data (G_OBJECT (wmenuitem), XG_TOOL_BAR_PROXY_BUTTON,
                      (gpointer) wbutton);
   gtk_tool_item_set_proxy_menu_item (toolitem, "Emacs toolbar item", wmenuitem);
-  gtk_widget_set_sensitive (wmenuitem, GTK_WIDGET_SENSITIVE (wbutton));
+  gtk_widget_set_sensitive (wmenuitem,
+                            gtk_widget_get_sensitive (GTK_WIDGET (wbutton)));
 
   /* Use enter/leave notify to show help.  We use the events
      rather than the GtkButton specific signals "enter" and
@@ -3786,6 +3768,13 @@ xg_pack_tool_bar (f)
 }
 
 /* Create a tool bar for frame F.  */
+#ifdef HAVE_GTK_ORIENTABLE_SET_ORIENTATION
+#define toolbar_set_orientation(w, o) \
+  gtk_orientable_set_orientation (GTK_ORIENTABLE (w), o)
+#else
+#define toolbar_set_orientation(w, o) \
+  gtk_toolbar_set_orientation (GTK_TOOLBAR (w), o)
+#endif
 
 static void
 xg_create_tool_bar (f)
@@ -3799,7 +3788,7 @@ xg_create_tool_bar (f)
   gtk_widget_set_name (x->toolbar_widget, "emacs-toolbar");
 
   gtk_toolbar_set_style (GTK_TOOLBAR (x->toolbar_widget), GTK_TOOLBAR_ICONS);
-  gtk_toolbar_set_orientation (GTK_TOOLBAR (x->toolbar_widget),
+  toolbar_set_orientation (x->toolbar_widget,
                                GTK_ORIENTATION_HORIZONTAL);
 }
 
@@ -3854,9 +3843,9 @@ xg_make_tool_item (FRAME_PTR f,
   GtkWidget *weventbox = gtk_event_box_new ();
 
   if (wimage)
-    gtk_box_pack_start_defaults (GTK_BOX (vb), wimage);
+    gtk_box_pack_start (GTK_BOX (vb), wimage, TRUE, TRUE, 0);
 
-  gtk_box_pack_start_defaults (GTK_BOX (vb), gtk_label_new (label));
+  gtk_box_pack_start (GTK_BOX (vb), gtk_label_new (label), TRUE, TRUE, 0);
   gtk_button_set_focus_on_click (GTK_BUTTON (wb), FALSE);
   gtk_button_set_relief (GTK_BUTTON (wb), GTK_RELIEF_NONE);
   gtk_container_add (GTK_CONTAINER (wb), vb);
@@ -3926,13 +3915,9 @@ xg_show_toolbar_item (GtkToolItem *ti)
 
   GtkWidget *weventbox = gtk_bin_get_child (GTK_BIN (ti));
   GtkWidget *wbutton = gtk_bin_get_child (GTK_BIN (weventbox));
-  GtkBox *vb = GTK_BOX (gtk_bin_get_child (GTK_BIN (wbutton)));
-  GtkBoxChild *c1 = (GtkBoxChild *) vb->children->data;
-  GtkBoxChild *c2 = (GtkBoxChild *) vb->children->next->data;
-  GtkWidget *wimage = GTK_IS_IMAGE (c1->widget)
-    ? c1->widget : c2->widget;
-  GtkWidget *wlbl = GTK_IS_LABEL (c1->widget)
-    ? c1->widget : c2->widget;
+  GtkWidget *vb = gtk_bin_get_child (GTK_BIN (wbutton));
+  GtkWidget *wimage;
+  GtkWidget *wlbl = xg_get_tool_bar_widgets (vb, &wimage);
   GtkWidget *new_box = NULL;
 
   if (GTK_IS_VBOX (vb) && horiz)
@@ -3941,17 +3926,17 @@ xg_show_toolbar_item (GtkToolItem *ti)
     new_box = gtk_vbox_new (FALSE, 0);
   if (new_box)
     {
-      gtk_widget_ref (wimage);
-      gtk_widget_ref (wlbl);
+      g_object_ref (G_OBJECT (wimage));
+      g_object_ref (G_OBJECT (wlbl));
       gtk_container_remove (GTK_CONTAINER (vb), wimage);
       gtk_container_remove (GTK_CONTAINER (vb), wlbl);
       gtk_widget_destroy (GTK_WIDGET (vb));
-      gtk_box_pack_start_defaults (GTK_BOX (new_box), wimage);
-      gtk_box_pack_start_defaults (GTK_BOX (new_box), wlbl);
+      gtk_box_pack_start (GTK_BOX (new_box), wimage, TRUE, TRUE, 0);
+      gtk_box_pack_start (GTK_BOX (new_box), wlbl, TRUE, TRUE, 0);
       gtk_container_add (GTK_CONTAINER (wbutton), new_box);
-      gtk_widget_unref (wimage);
-      gtk_widget_unref (wlbl);
-      vb = GTK_BOX (new_box);
+      g_object_unref (G_OBJECT (wimage));
+      g_object_unref (G_OBJECT (wlbl));
+      vb = new_box;
     }
 
   if (show_label) gtk_widget_show (wlbl);
@@ -4167,13 +4152,9 @@ update_frame_tool_bar (f)
         }
       else
         {
-          GtkBox *vb = GTK_BOX (gtk_bin_get_child (GTK_BIN (wbutton)));
-          GtkBoxChild *c1 = (GtkBoxChild *) vb->children->data;
-          GtkBoxChild *c2 = (GtkBoxChild *) vb->children->next->data;
-          GtkWidget *wimage = GTK_IS_IMAGE (c1->widget)
-            ? c1->widget : c2->widget;
-          GtkWidget *wlbl = GTK_IS_LABEL (c1->widget)
-            ? c1->widget : c2->widget;
+          GtkWidget *vb = gtk_bin_get_child (GTK_BIN (wbutton));
+          GtkWidget *wimage;
+          GtkWidget *wlbl = xg_get_tool_bar_widgets (vb, &wimage);
 
           Pixmap old_img = (Pixmap)g_object_get_data (G_OBJECT (wimage),
                                                       XG_TOOL_BAR_IMAGE_DATA);

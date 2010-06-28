@@ -41,6 +41,12 @@ lib-src/Makefile by hand in order to use the associated features.
 ** There is a new configure option --with-crt-dir.
 This is only useful if your crt*.o files are in a non-standard location.
 
+---
+** Emacs can be compiled against Gtk+ 3.0 if you pass --with-x-toolkit=gtk3 
+to configure.  Note that other libraries used by Emacs, RSVG and GConf,
+also depend on Gtk+.  You can disable them with --without-rsvg and
+--without-gconf.
+
 
 * Startup Changes in Emacs 24.1
 
@@ -144,6 +150,25 @@ loaded, customize `package-load-list'.
 ** completion-at-point is now an alias for complete-symbol.
 
 ** mouse-region-delete-keys has been deleted.
+
+** Deletion changes
+
+*** New option `delete-active-region'.
+If non-nil, C-d, [delete], and DEL delete the region if it is active
+and no prefix argument is given.  If set to `kill', these commands
+kill instead.
+
+*** New command `delete-forward-char', bound to C-d and [delete].
+This is meant for interactive use, and obeys `delete-active-region';
+delete-char, meant for Lisp, does not obey `delete-active-region'.
+
+*** `delete-backward-char' is now a Lisp function.
+Apart from obeying `delete-active-region', its behavior is unchanged.
+However, the byte compiler now warns if it is called from Lisp; you
+should use delete-char with a negative argument instead.
+
+*** The option `mouse-region-delete-keys' has been deleted.
+
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
 

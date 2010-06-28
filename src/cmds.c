@@ -240,7 +240,9 @@ DEFUN ("delete-char", Fdelete_char, Sdelete_char, 1, 2, "p\nP",
        doc: /* Delete the following N characters (previous if N is negative).
 Optional second arg KILLFLAG non-nil means kill instead (save in kill ring).
 Interactively, N is the prefix arg, and KILLFLAG is set if
-N was explicitly specified.  */)
+N was explicitly specified.
+
+The command `delete-forward' is preferable for interactive use.  */)
      (n, killflag)
      Lisp_Object n, killflag;
 {
@@ -271,60 +273,6 @@ N was explicitly specified.  */)
       call1 (Qkill_forward_chars, n);
     }
   return Qnil;
-}
-
-DEFUN ("delete-backward-char", Fdelete_backward_char, Sdelete_backward_char,
-       1, 2, "p\nP",
-       doc: /* Delete the previous N characters (following if N is negative).
-Optional second arg KILLFLAG non-nil means kill instead (save in kill ring).
-Interactively, N is the prefix arg, and KILLFLAG is set if
-N was explicitly specified.
-This is meant for interactive use only; from Lisp, better use `delete-char'
-with a negated argument.  */)
-     (n, killflag)
-     Lisp_Object n, killflag;
-{
-  Lisp_Object value;
-  int deleted_special = 0;
-  int pos, pos_byte, i;
-
-  CHECK_NUMBER (n);
-
-  /* See if we are about to delete a tab or newline backwards.  */
-  pos = PT;
-  pos_byte = PT_BYTE;
-  for (i = 0; i < XINT (n) && pos_byte > BEGV_BYTE; i++)
-    {
-      int c;
-
-      DEC_BOTH (pos, pos_byte);
-      c = FETCH_BYTE (pos_byte);
-      if (c == '\t' || c == '\n')
-	{
-	  deleted_special = 1;
-	  break;
-	}
-    }
-
-  /* In overwrite mode, back over columns while clearing them out,
-     unless at end of line.  */
-  if (XINT (n) > 0
-      && ! NILP (current_buffer->overwrite_mode)
-      && ! deleted_special
-      && ! (PT == ZV || FETCH_BYTE (PT_BYTE) == '\n'))
-    {
-      int column = (int) current_column (); /* iftc */
-
-      value = Fdelete_char (make_number (-XINT (n)), killflag);
-      i = column - (int) current_column (); /* iftc */
-      Finsert_char (make_number (' '), make_number (i), Qnil);
-      /* Whitespace chars are ASCII chars, so we can simply subtract.  */
-      SET_PT_BOTH (PT - i, PT_BYTE - i);
-    }
-  else
-    value = Fdelete_char (make_number (-XINT (n)), killflag);
-
-  return value;
 }
 
 static int nonundocount;
@@ -635,8 +583,6 @@ More precisely, a char with closeparen syntax is self-inserted.  */);
   defsubr (&Send_of_line);
 
   defsubr (&Sdelete_char);
-  defsubr (&Sdelete_backward_char);
-
   defsubr (&Sself_insert_command);
 }
 
@@ -658,10 +604,8 @@ keys_of_cmds ()
 
   initial_define_key (global_map, Ctl ('A'), "beginning-of-line");
   initial_define_key (global_map, Ctl ('B'), "backward-char");
-  initial_define_key (global_map, Ctl ('D'), "delete-char");
   initial_define_key (global_map, Ctl ('E'), "end-of-line");
   initial_define_key (global_map, Ctl ('F'), "forward-char");
-  initial_define_key (global_map, 0177, "delete-backward-char");
 }
 
 /* arch-tag: 022ba3cd-67f9-4978-9c5d-7d2b18d8644e
