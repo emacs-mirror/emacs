@@ -1,3 +1,7 @@
+2010-06-29  Leo  <sdl.web@gmail.com>  (tiny change)
+
+	* emacs-lisp/rx.el (rx): Doc fix.  (Bug#6537)
+
 2010-06-27  Oleksandr Gavenko  <gavenkoa@gmail.com>  (tiny change)
 
 	* generic-x.el (bat-generic-mode): Fix regexp for command line
