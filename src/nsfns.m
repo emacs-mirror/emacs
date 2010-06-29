@@ -83,6 +83,10 @@ extern Lisp_Object Qunsplittable, Qmenu_bar_lines, Qbuffer_predicate, Qtitle;
 extern Lisp_Object Qnone;
 extern Lisp_Object Vframe_title_format;
 
+/* The below are defined in frame.c.  */
+
+extern Lisp_Object Vmenu_bar_mode, Vtool_bar_mode;
+
 Lisp_Object Qbuffered;
 Lisp_Object Qfontsize;
 
@@ -224,7 +228,8 @@ ns_get_screen (Lisp_Object screen)
   else
     {
       struct ns_display_info *dpyinfo = terminal->display_info.ns;
-      f = (dpyinfo->x_focus_frame || dpyinfo->x_highlight_frame);
+      f = dpyinfo->x_focus_frame
+        ? dpyinfo->x_focus_frame : dpyinfo->x_highlight_frame;
     }
 
   return ((f && FRAME_NS_P (f)) ? [[FRAME_NS_VIEW (f) window] screen]
@@ -2381,9 +2386,10 @@ If omitted or nil, that stands for the selected frame's display.  */)
      (display)
      Lisp_Object display;
 {
+  struct ns_display_info *dpyinfo;
   check_ns ();
-  struct ns_display_info *dpyinfo = check_ns_display_info (display);
-
+  
+  dpyinfo = check_ns_display_info (display);
   /* We force 24+ bit depths to 24-bit to prevent an overflow.  */
   return make_number (1 << min (dpyinfo->n_planes, 24));
 }
