@@ -913,6 +913,16 @@ Within directories, only files already under version control are noticed."
     (nreverse flattened)))
 
 (defvar vc-dir-backend)
+(defvar log-view-vc-backend)
+(defvar diff-vc-backend)
+
+(defun vc-deduce-backend ()
+  (cond ((derived-mode-p 'vc-dir-mode)   vc-dir-backend)
+	((derived-mode-p 'log-view-mode) log-view-vc-backend)
+	((derived-mode-p 'diff-mode)     diff-vc-backend)
+	((derived-mode-p 'dired-mode)
+	 (vc-responsible-backend default-directory))
+	(vc-mode (vc-backend buffer-file-name))))
 
 (declare-function vc-dir-current-file "vc-dir" ())
 (declare-function vc-dir-deduce-fileset "vc-dir" (&optional state-model-only-files))
@@ -1547,6 +1557,7 @@ returns t if the buffer had changes, nil otherwise."
           (message "%s" (cdr messages))
           nil)
       (diff-mode)
+      (set (make-local-variable 'diff-vc-backend) (car vc-fileset))
       (set (make-local-variable 'revert-buffer-function)
 	   `(lambda (ignore-auto noconfirm)
 	      (vc-diff-internal ,async ',vc-fileset ,rev1 ,rev2 ,verbose)))
@@ -1656,10 +1667,7 @@ saving the buffer."
       ;; that's not what we want here, we want the diff for the VC root dir.
       (call-interactively 'vc-version-diff)
     (when buffer-file-name (vc-buffer-sync not-urgent))
-    (let ((backend
-	   (cond ((derived-mode-p 'vc-dir-mode)  vc-dir-backend)
-		 ((derived-mode-p 'dired-mode) (vc-responsible-backend default-directory))
-		 (vc-mode (vc-backend buffer-file-name))))
+    (let ((backend (vc-deduce-backend))
 	  rootdir working-revision)
       (unless backend
 	(error "Buffer is not version controlled"))
@@ -1956,7 +1964,6 @@ If it contains `directory' then if the fileset contains a directory show a short
 If it contains `file' then show short logs for files.
 Not all VC backends support short logs!")
 
-(defvar log-view-vc-backend)
 (defvar log-view-vc-fileset)
 
 (defun vc-print-log-setup-buttons (working-revision is-start-revision limit pl-return)
@@ -2105,10 +2112,7 @@ When called interactively with a prefix argument, prompt for LIMIT."
        (list lim)))
     (t
      (list (when (> vc-log-show-limit 0) vc-log-show-limit)))))
-  (let ((backend
-	 (cond ((derived-mode-p 'vc-dir-mode)  vc-dir-backend)
-	       ((derived-mode-p 'dired-mode) (vc-responsible-backend default-directory))
-	       (vc-mode (vc-backend buffer-file-name))))
+  (let ((backend (vc-deduce-backend))
 	rootdir working-revision)
     (unless backend
       (error "Buffer is not version controlled"))
@@ -2120,10 +2124,7 @@ When called interactively with a prefix argument, prompt for LIMIT."
 (defun vc-log-incoming (&optional remote-location)
   "Show a log of changes that will be received with a pull operation from REMOTE-LOCATION."
   (interactive "sRemote location (empty for default): ")
-  (let ((backend
-	 (cond ((derived-mode-p 'vc-dir-mode)  vc-dir-backend)
-	       ((derived-mode-p 'dired-mode) (vc-responsible-backend default-directory))
-	       (vc-mode (vc-backend buffer-file-name))))
+  (let ((backend (vc-deduce-backend))
 	rootdir working-revision)
     (unless backend
       (error "Buffer is not version controlled"))
@@ -2133,10 +2134,7 @@ When called interactively with a prefix argument, prompt for LIMIT."
 (defun vc-log-outgoing (&optional remote-location)
   "Show a log of changes that will be sent with a push operation to REMOTE-LOCATION."
   (interactive "sRemote location (empty for default): ")
-  (let ((backend
-	 (cond ((derived-mode-p 'vc-dir-mode)  vc-dir-backend)
-	       ((derived-mode-p 'dired-mode) (vc-responsible-backend default-directory))
-	       (vc-mode (vc-backend buffer-file-name))))
+  (let ((backend (vc-deduce-backend))
 	rootdir working-revision)
     (unless backend
       (error "Buffer is not version controlled"))
