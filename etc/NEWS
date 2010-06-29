@@ -41,6 +41,12 @@ lib-src/Makefile by hand in order to use the associated features.
 ** There is a new configure option --with-crt-dir.
 This is only useful if your crt*.o files are in a non-standard location.
 
+---
+** Emacs can be compiled against Gtk+ 3.0 if you pass --with-x-toolkit=gtk3 
+to configure.  Note that other libraries used by Emacs, RSVG and GConf,
+also depend on Gtk+.  You can disable them with --without-rsvg and
+--without-gconf.
+
 
 * Startup Changes in Emacs 24.1
 

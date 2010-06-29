@@ -3017,18 +3017,16 @@ XTflash (f)
 #ifdef USE_GTK
     /* Use Gdk routines to draw.  This way, we won't draw over scroll bars
        when the scroll bars and the edit widget share the same X window.  */
+    GdkWindow *window = gtk_widget_get_window (FRAME_GTK_WIDGET (f));
     GdkGCValues vals;
     GdkGC *gc;
     vals.foreground.pixel = (FRAME_FOREGROUND_PIXEL (f)
                              ^ FRAME_BACKGROUND_PIXEL (f));
     vals.function = GDK_XOR;
-    gc = gdk_gc_new_with_values (FRAME_GTK_WIDGET (f)->window,
-                                 &vals,
-                                 GDK_GC_FUNCTION
-                                 | GDK_GC_FOREGROUND);
+    gc = gdk_gc_new_with_values (window,
+                                 &vals, GDK_GC_FUNCTION | GDK_GC_FOREGROUND);
 #define XFillRectangle(d, win, gc, x, y, w, h) \
-    gdk_draw_rectangle (FRAME_GTK_WIDGET (f)->window, \
-                        gc, TRUE, x, y, w, h)
+    gdk_draw_rectangle (window, gc, TRUE, x, y, w, h)
 #else
     GC gc;
 
@@ -4428,7 +4426,8 @@ xg_scroll_callback (GtkRange     *range,
           && FRAME_X_DISPLAY_INFO (f)->grabbed < (1 << 4))
         {
           part = scroll_bar_handle;
-          whole = adj->upper - adj->page_size;
+          whole = gtk_adjustment_get_upper (adj) -
+            gtk_adjustment_get_page_size (adj);
           portion = min ((int)position, whole);
           bar->dragging = make_number ((int)portion);
         }
@@ -6845,7 +6844,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
           /* GTK creates windows but doesn't map them.
              Only get real positions when mapped. */
           if (FRAME_GTK_OUTER_WIDGET (f)
-              && GTK_WIDGET_MAPPED (FRAME_GTK_OUTER_WIDGET (f)))
+              && gtk_widget_get_mapped (FRAME_GTK_OUTER_WIDGET (f)))
 #endif
             {
 	      x_real_positions (f, &f->left_pos, &f->top_pos);
@@ -10109,20 +10108,10 @@ x_term_init (display_name, xrm_option, resource_name)
     char *argv[NUM_ARGV];
     char **argv2 = argv;
     guint id;
-#ifndef HAVE_GTK_MULTIDISPLAY
-    if (!EQ (Vinitial_window_system, Qx))
-      error ("Sorry, you cannot connect to X servers with the GTK toolkit");
-#endif
 
     if (x_initialized++ > 1)
       {
-#ifdef HAVE_GTK_MULTIDISPLAY
-        /* Opening another display.  If xg_display_open returns less
-           than zero, we are probably on GTK 2.0, which can only handle
-           one display.  GTK 2.2 or later can handle more than one.  */
-        if (xg_display_open (SDATA (display_name), &dpy) < 0)
-#endif
-          error ("Sorry, this version of GTK can only handle one display");
+        xg_display_open (SDATA (display_name), &dpy);
       }
     else
       {

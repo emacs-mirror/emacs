@@ -661,8 +661,22 @@ enum
                                FRAME_X_WINDOW (f))
 #else
 #ifdef USE_GTK
+/* Functions not present in older Gtk+ */
+
+#ifndef HAVE_GTK_WIDGET_GET_WINDOW
+#define gtk_widget_get_window(w) ((w)->window)
+#endif
+#ifndef HAVE_GTK_WIDGET_GET_MAPPED
+#define gtk_widget_get_mapped(w) (GTK_WIDGET_MAPPED (w))
+#endif
+#ifndef HAVE_GTK_ADJUSTMENT_GET_PAGE_SIZE
+#define gtk_adjustment_get_page_size(w) ((w)->page_size)
+#define gtk_adjustment_get_upper(w) ((w)->upper)
+#endif
+
 #define GTK_WIDGET_TO_X_WIN(w) \
-  ((w) && (w)->window ? GDK_WINDOW_XWINDOW ((w)->window) : 0)
+  ((w) && gtk_widget_get_window (w) \
+   ? GDK_WINDOW_XWINDOW (gtk_widget_get_window (w)) : 0)
 
 #define FRAME_GTK_OUTER_WIDGET(f) ((f)->output_data.x->widget)
 #define FRAME_GTK_WIDGET(f) ((f)->output_data.x->edit_widget)
