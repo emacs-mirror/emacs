@@ -3071,13 +3071,12 @@ x_default_font_parameter (f, parms)
   Lisp_Object font_param = x_get_arg (dpyinfo, parms, Qfont, NULL, NULL,
                                       RES_TYPE_STRING);
   Lisp_Object font = Qnil;
-  int got_from_system = 0;
   if (EQ (font_param, Qunbound))
     font_param = Qnil;
 
   if (NILP (font_param))
     {
-      /* System font takes precedendce over X resources.  We must suggest this
+      /* System font should take precedendce over X resources.  We suggest this
          regardless of font-use-system-font because .emacs may not have been
          read yet.  */
       const char *system_font = xsettings_get_system_font ();
@@ -3085,7 +3084,6 @@ x_default_font_parameter (f, parms)
         {
           char *name = xstrdup (system_font);
           font = font_open_by_name (f, name);
-          got_from_system = ! NILP (font);
           free (name);
         }
     }
@@ -3131,10 +3129,8 @@ x_default_font_parameter (f, parms)
       x_set_frame_parameters (f, Fcons (Fcons (Qfont_param, font_param), Qnil));
     }
 
-  x_default_parameter (f, parms, Qfont, font,
-                       got_from_system ? NULL : "font",
-                       got_from_system ? NULL : "Font",
-                       RES_TYPE_STRING);
+  /* This call will make X resources override any system font setting.  */
+  x_default_parameter (f, parms, Qfont, font, "font", "Font", RES_TYPE_STRING);
 }
 
 

@@ -195,9 +195,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if using GConf. */
 #undef HAVE_GCONF
 
-/* Define to 1 if you have the `gdk_display_open' function. */
-#undef HAVE_GDK_DISPLAY_OPEN
-
 /* Define to 1 if you have the `getaddrinfo' function. */
 #undef HAVE_GETADDRINFO
 
@@ -264,14 +261,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `grantpt' function. */
 #undef HAVE_GRANTPT
 
+/* Define to 1 if you have the `gtk_adjustment_get_page_size' function. */
+#undef HAVE_GTK_ADJUSTMENT_GET_PAGE_SIZE
+
 /* Define to 1 if you have GTK and pthread (-lpthread). */
 #undef HAVE_GTK_AND_PTHREAD
 
-/* Define to 1 if GTK has both file selection and chooser dialog. */
-#undef HAVE_GTK_FILE_BOTH
-
-/* Define to 1 if you have the `gtk_file_chooser_dialog_new' function. */
-#undef HAVE_GTK_FILE_CHOOSER_DIALOG_NEW
+/* Define to 1 if you have the `gtk_dialog_get_action_area' function. */
+#undef HAVE_GTK_DIALOG_GET_ACTION_AREA
 
 /* Define to 1 if you have the `gtk_file_selection_new' function. */
 #undef HAVE_GTK_FILE_SELECTION_NEW
@@ -279,8 +276,20 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `gtk_main' function. */
 #undef HAVE_GTK_MAIN
 
-/* Define to 1 if GTK can handle more than one display. */
-#undef HAVE_GTK_MULTIDISPLAY
+/* Define to 1 if you have the `gtk_orientable_set_orientation' function. */
+#undef HAVE_GTK_ORIENTABLE_SET_ORIENTATION
+
+/* Define to 1 if you have the `gtk_widget_get_mapped' function. */
+#undef HAVE_GTK_WIDGET_GET_MAPPED
+
+/* Define to 1 if you have the `gtk_widget_get_sensitive' function. */
+#undef HAVE_GTK_WIDGET_GET_SENSITIVE
+
+/* Define to 1 if you have the `gtk_widget_get_window' function. */
+#undef HAVE_GTK_WIDGET_GET_WINDOW
+
+/* Define to 1 if you have the `gtk_widget_set_has_window' function. */
+#undef HAVE_GTK_WIDGET_SET_HAS_WINDOW
 
 /* Define to 1 if netdb.h declares h_errno. */
 #undef HAVE_H_ERRNO

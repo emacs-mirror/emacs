@@ -745,6 +745,7 @@ build_vendor
 build_cpu
 build
 MAINT
+GZIP_INFO
 target_alias
 host_alias
 build_alias
@@ -815,6 +816,7 @@ with_dbus
 with_gconf
 with_selinux
 with_makeinfo
+with_compress_info
 with_pkg_config_prog
 with_crt_dir
 with_gnustep_conf
@@ -1495,8 +1497,8 @@ Optional Packages:
                           string giving default POP mail host
   --without-sound         don't compile with sound support
   --without-sync-input    process async input synchronously
-  --with-x-toolkit=KIT    use an X toolkit (KIT one of: yes or gtk, lucid or
-                          athena, motif, no)
+  --with-x-toolkit=KIT    use an X toolkit (KIT one of: yes or gtk, gtk3,
+                          lucid or athena, motif, no)
   --without-xpm           don't compile with XPM image support
   --without-jpeg          don't compile with JPEG image support
   --without-tiff          don't compile with TIFF image support
@@ -1517,6 +1519,7 @@ Optional Packages:
   --without-gconf         don't compile with GConf support
   --without-selinux       don't compile with SELinux support
   --without-makeinfo      don't require makeinfo for building manuals
+  --without-compress-info don't compress the installed Info pages
   --with-pkg-config-prog=PATH
                           path to pkg-config for finding GTK and librsvg
   --with-crt-dir=DIR      directory containing crtn.o etc. The default is
@@ -2658,10 +2661,11 @@ if test "${with_x_toolkit+set}" = set; then :
 	    a | at | ath | athe | athen | athena )	val=athena ;;
 	    m | mo | mot | moti | motif )	val=motif ;;
 	    g | gt | gtk  )	val=gtk ;;
+	    gtk3  )	val=gtk3 ;;
 	    * )
 as_fn_error "\`--with-x-toolkit=$withval' is invalid;
-this option's value should be \`yes', \`no', \`lucid', \`athena', \`motif' or \`gtk'.
-\`yes' and \`gtk' are synonyms. \`athena' and \`lucid' are synonyms." "$LINENO" 5
+this option's value should be \`yes', \`no', \`lucid', \`athena', \`motif', \`gtk' or
+\`gtk3'.  \`yes' and \`gtk' are synonyms. \`athena' and \`lucid' are synonyms." "$LINENO" 5
 	    ;;
 	  esac
 	  with_x_toolkit=$val
@@ -2817,6 +2821,23 @@ if test "${with_makeinfo+set}" = set; then :
   withval=$with_makeinfo;
 else
      with_makeinfo=yes
+fi
+
+
+## This is an option because I do not know if all info/man support
+## compressed files, nor how to test if they do so.
+
+# Check whether --with-compress-info was given.
+if test "${with_compress_info+set}" = set; then :
+  withval=$with_compress_info;
+else
+     with_compress_info=yes
+fi
+
+if test $with_compress_info = yes; then
+   GZIP_INFO=yes
+else
+   GZIP_INFO=
 fi
 
 
@@ -7482,6 +7503,8 @@ case "${window_system}" in
       motif ) USE_X_TOOLKIT=MOTIF ;;
       gtk ) with_gtk=yes
             USE_X_TOOLKIT=none ;;
+      gtk3 ) with_gtk3=yes
+             USE_X_TOOLKIT=none ;;
       no ) USE_X_TOOLKIT=none ;;
       * ) USE_X_TOOLKIT=maybe ;;
     esac
@@ -8317,6 +8340,112 @@ fi
 
 
 HAVE_GTK=no
+if test "${with_gtk3}" = "yes"; then
+  GLIB_REQUIRED=2.6
+  GTK_REQUIRED=2.90
+  GTK_MODULES="gtk+-3.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
+
+
+  succeeded=no
+
+  # Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if test "${ac_cv_path_PKG_CONFIG+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $PKG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PKG_CONFIG="$PKG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_PKG_CONFIG" && ac_cv_path_PKG_CONFIG="no"
+  ;;
+esac
+fi
+PKG_CONFIG=$ac_cv_path_PKG_CONFIG
+if test -n "$PKG_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PKG_CONFIG" >&5
+$as_echo "$PKG_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+
+  if test "$PKG_CONFIG" = "no" ; then
+     pkg_check_gtk=no
+  else
+     PKG_CONFIG_MIN_VERSION=0.9.0
+     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $GTK_MODULES" >&5
+$as_echo_n "checking for $GTK_MODULES... " >&6; }
+
+        if $PKG_CONFIG --exists "$GTK_MODULES" 2>&5; then
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+            succeeded=yes
+
+            { $as_echo "$as_me:${as_lineno-$LINENO}: checking GTK_CFLAGS" >&5
+$as_echo_n "checking GTK_CFLAGS... " >&6; }
+            GTK_CFLAGS=`$PKG_CONFIG --cflags "$GTK_MODULES"|sed -e 's,///*,/,g'`
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GTK_CFLAGS" >&5
+$as_echo "$GTK_CFLAGS" >&6; }
+
+            { $as_echo "$as_me:${as_lineno-$LINENO}: checking GTK_LIBS" >&5
+$as_echo_n "checking GTK_LIBS... " >&6; }
+            GTK_LIBS=`$PKG_CONFIG --libs "$GTK_MODULES"|sed -e 's,///*,/,g'`
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GTK_LIBS" >&5
+$as_echo "$GTK_LIBS" >&6; }
+        else
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+            GTK_CFLAGS=""
+            GTK_LIBS=""
+            ## If we have a custom action on failure, don't print errors, but
+            ## do set a variable so people can do so.
+            GTK_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "$GTK_MODULES"`
+
+        fi
+
+
+
+     else
+        echo "*** Your version of pkg-config is too old. You need version $PKG_CONFIG_MIN_VERSION or newer."
+        echo "*** See http://www.freedesktop.org/software/pkgconfig"
+     fi
+  fi
+
+  if test $succeeded = yes; then
+     pkg_check_gtk=yes
+  else
+     pkg_check_gtk=no
+  fi
+
+  if test "$pkg_check_gtk" = "no" && test "$USE_X_TOOLKIT" != "maybe"; then
+     as_fn_error "$GTK_PKG_ERRORS" "$LINENO" 5
+  fi
+fi
+
+if test "$pkg_check_gtk" != "yes"; then
+  HAVE_GTK=no
 if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "maybe"; then
   GLIB_REQUIRED=2.6
   GTK_REQUIRED=2.6
@@ -8420,7 +8549,7 @@ $as_echo "no" >&6; }
      as_fn_error "$GTK_PKG_ERRORS" "$LINENO" 5
   fi
 fi
-
+fi
 
 GTK_OBJ=
 if test x"$pkg_check_gtk" = xyes; then
@@ -8478,24 +8607,6 @@ if test "${HAVE_GTK}" = "yes"; then
     with_toolkit_scroll_bars=yes
   fi
 
-      HAVE_GTK_MULTIDISPLAY=no
-  for ac_func in gdk_display_open
-do :
-  ac_fn_c_check_func "$LINENO" "gdk_display_open" "ac_cv_func_gdk_display_open"
-if test "x$ac_cv_func_gdk_display_open" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_GDK_DISPLAY_OPEN 1
-_ACEOF
- HAVE_GTK_MULTIDISPLAY=yes
-fi
-done
-
-  if test "${HAVE_GTK_MULTIDISPLAY}" = "yes"; then
-
-$as_echo "#define HAVE_GTK_MULTIDISPLAY 1" >>confdefs.h
-
-  fi
-
           HAVE_GTK_FILE_SELECTION=no
   ac_fn_c_check_decl "$LINENO" "GTK_TYPE_FILE_SELECTION" "ac_cv_have_decl_GTK_TYPE_FILE_SELECTION" "$ac_includes_default
 #include <gtk/gtk.h>
@@ -8514,49 +8625,13 @@ if test "x$ac_cv_func_gtk_file_selection_new" = x""yes; then :
   cat >>confdefs.h <<_ACEOF
 #define HAVE_GTK_FILE_SELECTION_NEW 1
 _ACEOF
- HAVE_GTK_FILE_SELECTION=yes
-else
-  HAVE_GTK_FILE_SELECTION=no
+
 fi
 done
 
   fi
 
-    HAVE_GTK_FILE_CHOOSER=no
-  ac_fn_c_check_decl "$LINENO" "GTK_TYPE_FILE_CHOOSER" "ac_cv_have_decl_GTK_TYPE_FILE_CHOOSER" "$ac_includes_default
-#include <gtk/gtk.h>
-"
-if test "x$ac_cv_have_decl_GTK_TYPE_FILE_CHOOSER" = x""yes; then :
-  HAVE_GTK_FILE_CHOOSER=yes
-else
-  HAVE_GTK_FILE_CHOOSER=no
-fi
-
-  if test "$HAVE_GTK_FILE_CHOOSER" = yes; then
-    for ac_func in gtk_file_chooser_dialog_new
-do :
-  ac_fn_c_check_func "$LINENO" "gtk_file_chooser_dialog_new" "ac_cv_func_gtk_file_chooser_dialog_new"
-if test "x$ac_cv_func_gtk_file_chooser_dialog_new" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_GTK_FILE_CHOOSER_DIALOG_NEW 1
-_ACEOF
- HAVE_GTK_FILE_CHOOSER=yes
-else
-  HAVE_GTK_FILE_CHOOSER=no
-fi
-done
-
-  fi
-
-  if test "$HAVE_GTK_FILE_SELECTION" = yes \
-     && test "$HAVE_GTK_FILE_CHOOSER" = yes;  then
-
-$as_echo "#define HAVE_GTK_FILE_BOTH 1" >>confdefs.h
-
-  fi
-
-      if test "$HAVE_GTK_FILE_CHOOSER" = yes; then
-    HAVE_GTK_AND_PTHREAD=no
+        HAVE_GTK_AND_PTHREAD=no
     for ac_header in pthread.h
 do :
   ac_fn_c_check_header_mongrel "$LINENO" "pthread.h" "ac_cv_header_pthread_h" "$ac_includes_default"
@@ -8620,7 +8695,24 @@ fi
 $as_echo "#define HAVE_GTK_AND_PTHREAD 1" >>confdefs.h
 
     fi
-  fi
+
+    for ac_func in gtk_widget_get_window gtk_widget_set_has_window \
+                 gtk_dialog_get_action_area gtk_widget_get_sensitive \
+                 gtk_widget_get_mapped gtk_adjustment_get_page_size \
+                 gtk_orientable_set_orientation
+do :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+eval as_val=\$$as_ac_var
+   if test "x$as_val" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+
 fi
 
 HAVE_DBUS=no

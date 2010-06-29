@@ -929,7 +929,7 @@ should only be used by mouse-drag-region."
   (mouse-minibuffer-check start-event)
   (setq mouse-selection-click-count-buffer (current-buffer))
   ;; We must call deactivate-mark before repositioning point.
-  ;; Otherwise, for select-active-regions non-nil, we get the wrong
+  ;; Otherwise, for `select-active-regions' non-nil, we get the wrong
   ;; selection if the user drags a region, clicks elsewhere to
   ;; reposition point, then middle-clicks to paste the selection.
   (deactivate-mark)
@@ -1263,11 +1263,6 @@ If MODE is 2 then do the same for lines."
 
 ;; Momentarily show where the mark is, if highlighting doesn't show it.
 
-(defcustom mouse-region-delete-keys '([delete] [deletechar] [backspace])
-  "List of keys that should cause the mouse region to be deleted."
-  :group 'mouse
-  :type '(repeat key-sequence))
-
 (defun mouse-show-mark ()
   (let ((inhibit-quit t)
 	(echo-keystrokes 0)
@@ -1297,8 +1292,7 @@ If MODE is 2 then do the same for lines."
 				 'vertical-scroll-bar))
 			(and (memq 'down (event-modifiers event))
 			     (not (key-binding key))
-			     (not (mouse-undouble-last-event events))
-			     (not (member key mouse-region-delete-keys)))))
+			     (not (mouse-undouble-last-event events)))))
 	(and (consp event)
 	     (or (eq (car event) 'switch-frame)
 		 (eq (posn-point (event-end event))
@@ -1311,22 +1305,9 @@ If MODE is 2 then do the same for lines."
 		      (setq events nil)))))))
     ;; If we lost the selection, just turn off the highlighting.
     (unless ignore
-      ;; For certain special keys, delete the region.
-      (if (member key mouse-region-delete-keys)
-	  (progn
-	    ;; Since notionally this is a separate command,
-	    ;; run all the hooks that would be run if it were
-	    ;; executed separately.
-	    (run-hooks 'post-command-hook)
-	    (setq last-command this-command)
-	    (setq this-original-command 'delete-region)
-	    (setq this-command (or (command-remapping this-original-command)
-				   this-original-command))
-	    (run-hooks 'pre-command-hook)
-	    (call-interactively this-command))
-	;; Otherwise, unread the key so it gets executed normally.
-	(setq unread-command-events
-	      (nconc events unread-command-events))))
+      ;; Unread the key so it gets executed normally.
+      (setq unread-command-events
+	    (nconc events unread-command-events)))
     (setq quit-flag nil)
     (unless transient-mark-mode
       (delete-overlay mouse-drag-overlay))))

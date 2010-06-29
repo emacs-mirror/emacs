@@ -38,7 +38,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Key for data that menu items hold.  */
 #define XG_ITEM_DATA "emacs_menuitem"
 
-
 /* Button types in menus.  */
 enum button_type
 {
@@ -119,7 +118,7 @@ typedef struct _widget_value
   struct _widget_value *free_list;
 } widget_value;
 
-#ifdef HAVE_GTK_FILE_BOTH
+#ifdef HAVE_GTK_FILE_SELECTION_NEW
 extern int use_old_gtk_file_dialog;
 #endif
 
@@ -187,7 +186,7 @@ extern void xg_frame_resized P_ ((FRAME_PTR f,
 extern void xg_frame_set_char_size P_ ((FRAME_PTR f, int cols, int rows));
 extern GtkWidget * xg_win_to_widget P_ ((Display *dpy, Window wdesc));
 
-extern int xg_display_open P_ ((char *display_name, Display **dpy));
+extern void xg_display_open P_ ((char *display_name, Display **dpy));
 extern void xg_display_close P_ ((Display *dpy));
 extern GdkCursor * xg_create_default_cursor P_ ((Display *dpy));
 

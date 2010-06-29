@@ -1,3 +1,34 @@
+2010-06-28  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* dynamic-setting.el (font-setting-change-default-font): Remove
+	call to message.
+
+2010-06-28  Kenichi Handa  <handa@m17n.org>
+
+	* international/quail.el (quail-insert-kbd-layout): Fix the
+	showing of untranslated characters.
+
+2010-06-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (delete-active-region): New option.
+	(delete-backward-char): Implement in Lisp.
+	(delete-forward-char): New command.
+
+	* mouse.el (mouse-region-delete-keys): Deleted.
+	(mouse-show-mark): Simplify.
+
+	* bindings.el (global-map): Bind delete and DEL, the former to
+	delete-forward-char.
+
+2010-01-16  Lennart Borgman  <lennart.borgman@gmail.com>
+
+	* progmodes/ruby-mode.el (ruby-mode-map): Don't bind TAB.
+	(ruby-mode): Bind indent-line-function (Bug#5119).
+
+2010-06-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (command-line): Recognize "0" X resource value.
+
 2010-06-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* startup.el (command-line): Use X resources to set the value of

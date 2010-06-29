@@ -1,3 +1,71 @@
+2010-06-28  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (x_default_font_parameter): Remove got_from_system
+	(Bug#6526).
+
+	* xterm.h (gtk_widget_get_window, gtk_widget_get_mapped)
+	(gtk_adjustment_get_page_size, gtk_adjustment_get_upper): New
+	defines based on what configure finds.
+
+	* xterm.c (XTflash): Use gtk_widget_get_window.
+	(xg_scroll_callback): Use gtk_adjustment_get_upper and
+	gtk_adjustment_get_page_size.
+	(handle_one_xevent): Use gtk_widget_get_mapped.
+	(x_term_init): Remove HAVE_GTK_MULTIDISPLAY and associated error
+	messages.
+
+	* xmenu.c (create_and_show_popup_menu): Call gtk_widget_get_mapped.
+
+	* gtkutil.h: Replace HAVE_GTK_FILE_BOTH with
+	HAVE_GTK_FILE_SELECTION_NEW.
+
+	* gtkutil.c (xg_display_open, xg_display_close): Remove
+	HAVE_GTK_MULTIDISPLAY, it is always defined.
+	(xg_display_open): Return type is void.
+	(gtk_widget_set_has_window)
+	(gtk_dialog_get_action_area, gtk_dialog_get_content_area)
+	(gtk_widget_get_sensitive, gtk_adjustment_set_page_size)
+	(gtk_adjustment_set_page_increment)
+	(gtk_adjustment_get_step_increment): #define these if not found
+	by configure.
+	(remove_submenu): New define based on Gtk+ version.
+	(xg_set_cursor, xg_frame_resized, xg_event_is_for_scrollbar): Use
+	gtk_widget_get_window.
+	(xg_frame_resized, xg_update_frame_menubar): Use gtk_widget_get_mapped.
+	(xg_create_frame_widgets): Use gtk_widget_set_has_window.
+	(create_dialog): Use gtk_dialog_get_action_area and
+	gtk_dialog_get_content_area.
+	(xg_uses_old_file_dialog, xg_get_file_name): Remove HAVE_GTK_FILE_BOTH
+	and HAVE_GTK_FILE_CHOOSER_DIALOG_NEW.  File chooser is always
+	available, so checking for HAVE_GTK_FILE_SELECTION_NEW is enough.
+	(xg_update_menubar, xg_update_submenu, xg_show_toolbar_item): Use
+	g_object_ref and g_object_unref.
+	(xg_update_menu_item, xg_tool_bar_menu_proxy): Use
+	gtk_widget_get_sensitive.
+	(xg_update_submenu): Use remove_submenu.
+	(xg_update_scrollbar_pos): Don't use GtkFixedChild, use child
+	properties instead to get old x and y position.
+	(xg_set_toolkit_scroll_bar_thumb): Use gtk_adjustment_get_page_size,
+	gtk_adjustment_get_step_increment, gtk_adjustment_set_page_size,
+        gtk_adjustment_set_step_increment and gtk_adjustment_set_page_increment.
+	(xg_get_tool_bar_widgets): New function.
+	(xg_tool_bar_menu_proxy, xg_show_toolbar_item)
+	(update_frame_tool_bar): Call xg_get_tool_bar_widgets.
+	(toolbar_set_orientation): New #define based on if configure
+	finds gtk_orientable_set_orientation.
+	(xg_create_tool_bar): Call toolbar_set_orientation.
+	(xg_make_tool_item, xg_show_toolbar_item): Call gtk_box_pack_start
+	instead of gtk_box_pack_start_defaults.
+
+2010-06-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cmds.c (Fdelete_backward_char): Move into Lisp.
+
+2010-06-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/freebsd.h (BSD4_2): Remove redundant definition.
+	bsd-common.h defines it already.
+
 2010-06-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xfns.c (Fx_create_frame): Don't consult X resouces when setting

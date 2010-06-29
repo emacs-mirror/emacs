@@ -889,7 +889,7 @@ opening the first frame (e.g. open a connection to an X server).")
 	    no-blinking-cursor t))
      ;; Check X resources if available.
      ((memq initial-window-system '(x w32 ns))
-      (let ((no-vals  '("no" "off" "false")))
+      (let ((no-vals  '("no" "off" "false" "0")))
 	(if (member (x-get-resource "menuBar" "MenuBar") no-vals)
 	    (setq menu-bar-mode nil))
 	(if (member (x-get-resource "toolBar" "ToolBar") no-vals)
