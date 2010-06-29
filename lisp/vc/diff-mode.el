@@ -97,6 +97,9 @@ when editing big diffs)."
   :options '(diff-delete-empty-files diff-make-unified)
   :group 'diff-mode)
 
+(defvar diff-vc-backend nil
+  "The VC backend that created the current Diff buffer, if any.")
+
 (defvar diff-outline-regexp
   "\\([*+][*+][*+] [^0-9]\\|@@ ...\\|\\*\\*\\* [0-9].\\|--- [0-9]..\\)")
 

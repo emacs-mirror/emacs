@@ -1,3 +1,9 @@
+2010-06-29  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m: extern declare Vmenu_bar_mode, Vtool_bar_mode.
+	(ns_get_screen): Don't assign integer to f.
+	(Fx_display_color_cells): Declarations before statements.
+
 2010-06-28  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (x_default_font_parameter): Remove got_from_system
