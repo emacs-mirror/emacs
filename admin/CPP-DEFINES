@@ -60,10 +60,8 @@ NARROWPROTO
 SEPCHAR
 SIGTYPE
 SYSTEM_TYPE
-USE_MMAP_FOR_BUFFERS
 
 ** Machine specific macros, decribed in detail in src/m/template.h
-CANNOT_DUMP
 EXPLICIT_SIGN_EXTEND
 LOAD_AVE_CVT
 LOAD_AVE_TYPE

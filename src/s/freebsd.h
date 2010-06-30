@@ -67,9 +67,5 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Use the GC_MAKE_GCPROS_NOOPS (see lisp.h) method for marking the stack.  */
 #define GC_MARK_STACK 	GC_MAKE_GCPROS_NOOPS
 
-/* Define USE_MMAP_FOR_BUFFERS to let Emacs use mmap(2) to allocate
-   buffer text.  This overrides REL_ALLOC.  */
-#define USE_MMAP_FOR_BUFFERS	1
-
 /* arch-tag: 426529ca-b7c4-448f-b10a-d4dcdc9c78eb
    (do not change this comment) */

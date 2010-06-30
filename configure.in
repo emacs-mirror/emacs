@@ -710,14 +710,13 @@ then
   CC="$NON_GNU_CC"
 fi
 
-if test x$GCC = xyes && test "x$GCC_TEST_OPTIONS" != x
-then
-  CC="$CC $GCC_TEST_OPTIONS"
-fi
-
-if test x$GCC = x && test "x$NON_GCC_TEST_OPTIONS" != x
-then
-  CC="$CC $NON_GCC_TEST_OPTIONS"
+if test x$GCC = xyes; then
+  C_OPTIMIZE_SWITCH=-O2
+  test "x$GCC_TEST_OPTIONS" != x && CC="$CC $GCC_TEST_OPTIONS"
+else
+  dnl FIXME? unused.
+  C_OPTIMIZE_SWITCH=-O
+  test "x$NON_GCC_TEST_OPTIONS" != x && CC="$CC $NON_GCC_TEST_OPTIONS"
 fi
 
 dnl checks for Unix variants
@@ -863,43 +862,11 @@ echo '
 #include "'${srcdir}'/src/'${opsysfile}'"
 #include "'${srcdir}'/src/'${machfile}'"
 
-configure___ LIBX=-lX11
-
-#ifdef CANNOT_DUMP
-configure___ cannot_dump=yes
-#else
-configure___ cannot_dump=no
-#endif
-
-#ifdef SYSTEM_MALLOC
-configure___ system_malloc=yes
-#else
-configure___ system_malloc=no
-#endif
-
-#ifdef USE_MMAP_FOR_BUFFERS
-configure___ use_mmap_for_buffers=yes
-#else
-configure___ use_mmap_for_buffers=no
-#endif
-
-#ifndef C_OPTIMIZE_SWITCH
-#ifdef __GNUC__
-#define C_OPTIMIZE_SWITCH -O2
-#else
-#define C_OPTIMIZE_SWITCH -O
-#endif
-#endif
-
-#ifndef C_WARNINGS_SWITCH
-#define C_WARNINGS_SWITCH ${C_WARNINGS_SWITCH}
-#endif
-
 #ifdef THIS_IS_CONFIGURE
 
 /* Get the CFLAGS for tests in configure.  */
 #ifdef __GNUC__
-configure___ CFLAGS=-g C_OPTIMIZE_SWITCH '${SPECIFIED_CFLAGS}'
+configure___ CFLAGS=-g ${C_OPTIMIZE_SWITCH} '${SPECIFIED_CFLAGS}'
 #else
 configure___ CFLAGS='${SPECIFIED_CFLAGS}'
 #endif
@@ -908,7 +875,7 @@ configure___ CFLAGS='${SPECIFIED_CFLAGS}'
 
 /* Get the CFLAGS for real compilation.  */
 #ifdef __GNUC__
-configure___ REAL_CFLAGS=-g C_OPTIMIZE_SWITCH C_WARNINGS_SWITCH ${PROFILING_CFLAGS} '${SPECIFIED_CFLAGS}'
+configure___ REAL_CFLAGS=-g ${C_OPTIMIZE_SWITCH} ${C_WARNINGS_SWITCH} ${PROFILING_CFLAGS} '${SPECIFIED_CFLAGS}'
 #else
 configure___ REAL_CFLAGS='${SPECIFIED_CFLAGS}'
 #endif
@@ -932,7 +899,18 @@ fi]
 rm ${tempcname}
 
 
-AC_SUBST(cannot_dump)
+dnl Not used by any currently supported platform.
+dnl The function dump-emacs will not be defined and temacs will do
+dnl (load "loadup") automatically unless told otherwise.
+CANNOT_DUMP=no
+case "$opsys" in
+  your-opsys-here)
+   CANNOT_DUMP=yes
+   AC_DEFINE(CANNOT_DUMP, 1, [Define if Emacs cannot be dumped on your system.])
+  ;;
+esac
+AC_SUBST(CANNOT_DUMP)
+
 
 UNEXEC_OBJ=unexelf.o
 case "$opsys" in
@@ -1647,7 +1625,16 @@ if test $emacs_cv_var___after_morecore_hook = no; then
   doug_lea_malloc=no
 fi
 
+
+dnl See comments in aix4-2.h about maybe using system malloc there.
+system_malloc=no
+case "$opsys" in
+  ## darwin ld insists on the use of malloc routines in the System framework.
+  darwin|sol2-10) system_malloc=yes ;;
+esac
+
 if test "${system_malloc}" = "yes"; then
+  AC_DEFINE(SYSTEM_MALLOC, 1, [Define to use system malloc.])
   GNU_MALLOC=no
   GNU_MALLOC_reason="
     (The GNU allocators don't work with this system configuration.)"
@@ -1681,12 +1668,14 @@ if test x"${REL_ALLOC}" = x; then
   REL_ALLOC=${GNU_MALLOC}
 fi
 
-dnl For now, need to use an explicit `#define USE_MMAP_FOR_BUFFERS 1'
-dnl the system configuration file (s/*.h) to turn the use of mmap
-dnl in the relocating allocator on.
+use_mmap_for_buffers=no
+case "$opsys" in
+  freebsd|irix6-5) use_mmap_for_buffers=yes ;;
+esac
 
 AC_FUNC_MMAP
 if test $use_mmap_for_buffers = yes; then
+  AC_DEFINE(USE_MMAP_FOR_BUFFERS, 1, [Define to use mmap to allocate buffer text.])
   REL_ALLOC=no
 fi
 
@@ -1741,7 +1730,7 @@ REAL_CPPFLAGS="$CPPFLAGS"
 if test "${HAVE_X11}" = "yes"; then
   DEFS="$C_SWITCH_X_SITE $DEFS"
   LDFLAGS="$LDFLAGS $LD_SWITCH_X_SITE"
-  LIBS="$LIBX $LIBS"
+  LIBS="-lX11 $LIBS"
   CFLAGS="$C_SWITCH_X_SITE $CFLAGS"
   CPPFLAGS="$C_SWITCH_X_SITE $CPPFLAGS"
 

@@ -116,7 +116,7 @@ s/\.h\.in/.h-in/
 /^PRE_ALLOC_OBJ *=/s/@PRE_ALLOC_OBJ@/lastfile.o/
 /^POST_ALLOC_OBJ *=/s/@POST_ALLOC_OBJ@/$(vmlimitobj)/
 /^UNEXEC_OBJ *=/s/@UNEXEC_OBJ@/unexec.o/
-/^CANNOT_DUMP *=/s/@cannot_dump@/no/
+/^CANNOT_DUMP *=/s/@CANNOT_DUMP@/no/
 /^DEPFLAGS *=/s/@DEPFLAGS@//
 /^MKDEPDIR *=/s/@MKDEPDIR@//
 /^version *=/s/@[^@\n]*@//

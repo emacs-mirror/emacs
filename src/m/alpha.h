@@ -47,19 +47,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Convert that into an integer that is 100 for a load average of 1.0  */
 #define LOAD_AVE_CVT(x) (int) (((double) (x)) * 100.0 / FSCALE)
 
-/* GNU malloc and the relocating allocator do not work together
-   with X.   [Who wrote that?]  */
-
-/* May 1995: reportedly [Rainer Schoepf <schoepf@uni-mainz.de>] both the
-   system and the gnu malloc system work with "alpha-dec-osf3.0" and
-   "alpha-dec-osf3.2".  */
-
-/* May 1995: it seems to me [Morten Welinder <terra@diku.dk>] that both
-   mallocs work with "alpha-dec-osf2.0", but I daren't break anything
-   right now.  Feel free to play if you want.  */
-
-/* #define SYSTEM_MALLOC */
-
 #ifdef __ELF__
 
 #if !defined(GNU_LINUX) && !defined(__NetBSD__)
