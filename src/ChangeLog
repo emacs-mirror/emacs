@@ -1,3 +1,9 @@
+2010-06-30  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* process.c (create_process): Avoid using invalid file descriptors.
+
+	* callproc.c (child_setup): Avoid closing a file descriptor twice.
+
 2010-06-30  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xsettings.c (Ffont_get_system_normal_font, Ffont_get_system_font):
