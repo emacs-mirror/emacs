@@ -1,3 +1,7 @@
+2010-06-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xml.el (xml-parse-region): Avoid infloop (Bug#5281).
+
 2010-06-29  Leo  <sdl.web@gmail.com>
 
 	* emacs-lisp/rx.el (rx): Doc fix.  (Bug#6537)
