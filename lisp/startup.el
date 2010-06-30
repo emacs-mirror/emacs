@@ -899,10 +899,11 @@ opening the first frame (e.g. open a connection to an X server).")
 	    (setq no-blinking-cursor t)))))
     (frame-initialize))
 
-  ;; Set up the tool-bar (even in tty frames, since Emacs might open a
-  ;; graphical frame later).
-  (unless noninteractive
-    (tool-bar-setup))
+  (when (fboundp 'x-create-frame)
+    ;; Set up the tool-bar (even in tty frames, since Emacs might open a
+    ;; graphical frame later).
+    (unless noninteractive
+      (tool-bar-setup)))
 
   ;; Turn off blinking cursor if so specified in X resources.  This is here
   ;; only because all other settings of no-blinking-cursor are here.
