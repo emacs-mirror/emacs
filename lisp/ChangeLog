@@ -1,3 +1,12 @@
+2010-06-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc/vc.el (vc-deduce-backend): New fun.  Handle diff buffers.
+	(vc-root-diff, vc-print-root-log, vc-log-incoming)
+	(vc-log-outgoing): Use it.
+	(vc-diff-internal): Set diff-vc-backend.
+
+	* vc/diff-mode.el (diff-vc-backend): New var.
+
 2010-06-28  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* dynamic-setting.el (font-setting-change-default-font): Remove

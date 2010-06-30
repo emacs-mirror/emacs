@@ -2,8 +2,6 @@
 
 #include "sol2-6.h"
 
-#define SYSTEM_MALLOC
-
 /* This is used in list_system_processes.  */
 #define HAVE_PROCFS 1
 

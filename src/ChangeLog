@@ -1,3 +1,20 @@
+2010-06-30  Glenn Morris  <rgm@gnu.org>
+
+	* s/sol2-6.h (INHIBIT_X11R6_XIM): Remove, handled by configure now.
+
+	* Makefile.in (CANNOT_DUMP): Update for configure name change.
+
+	* s/freebsd.h (USE_MMAP_FOR_BUFFERS):
+	* s/irix6-5.h (USE_MMAP_FOR_BUFFERS):
+	* s/darwin.h (SYSTEM_MALLOC):
+	* s/sol2-10.h (SYSTEM_MALLOC): Move to configure.
+
+2010-06-29  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m: extern declare Vmenu_bar_mode, Vtool_bar_mode.
+	(ns_get_screen): Don't assign integer to f.
+	(Fx_display_color_cells): Declarations before statements.
+
 2010-06-28  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (x_default_font_parameter): Remove got_from_system
