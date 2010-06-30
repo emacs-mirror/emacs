@@ -1,3 +1,11 @@
+2010-06-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Avoid displaying files with a nil state in vc-dir.
+	* vc-dir.el (vc-dir-update): Obey the noinsert argument in all
+	cases that cause insertion.
+	(vc-dir-resynch-file): Tell vc-dir-update to avoid inserting files
+	with a nil state.
+
 2010-06-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xml.el (xml-parse-region): Avoid infloop (Bug#5281).

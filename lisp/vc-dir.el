@@ -398,22 +398,24 @@ If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
 		(setq entry (car entries))
 		(setq node (ewoc-next vc-ewoc node)))
 	       (t
-		(ewoc-enter-before vc-ewoc node
-				   (apply 'vc-dir-create-fileinfo entry))
+		(unless noinsert
+		  (ewoc-enter-before vc-ewoc node
+				     (apply 'vc-dir-create-fileinfo entry)))
 		(setq entries (cdr entries))
 		(setq entry (car entries))))))
 	   (t
-	    ;; We might need to insert a directory node if the
-	    ;; previous node was in a different directory.
-	    (let* ((rd (file-relative-name entrydir))
-		   (prev-node (ewoc-prev vc-ewoc node))
-		   (prev-dir (vc-dir-node-directory prev-node)))
-	      (unless (string-equal entrydir prev-dir)
-		(ewoc-enter-before
-		 vc-ewoc node (vc-dir-create-fileinfo rd nil nil nil entrydir))))
-	    ;; Now insert the node itself.
-	    (ewoc-enter-before vc-ewoc node
-			       (apply 'vc-dir-create-fileinfo entry))
+	    (unless noinsert
+	      ;; We might need to insert a directory node if the
+	      ;; previous node was in a different directory.
+	      (let* ((rd (file-relative-name entrydir))
+		     (prev-node (ewoc-prev vc-ewoc node))
+		     (prev-dir (vc-dir-node-directory prev-node)))
+		(unless (string-equal entrydir prev-dir)
+		  (ewoc-enter-before
+		   vc-ewoc node (vc-dir-create-fileinfo rd nil nil nil entrydir))))
+	      ;; Now insert the node itself.
+	      (ewoc-enter-before vc-ewoc node
+				 (apply 'vc-dir-create-fileinfo entry)))
 	    (setq entries (cdr entries) entry (car entries))))))
       ;; We're past the last node, all remaining entries go to the end.
       (unless (or node noinsert)
@@ -888,10 +890,12 @@ If it is a file, return the corresponding cons for the file itself."
 		      (vc-dir-resync-directory-files file)
 		      (ewoc-set-hf vc-ewoc
 				   (vc-dir-headers vc-dir-backend default-directory) ""))
-                  (let ((state (vc-dir-recompute-file-state file ddir)))
+                  (let* ((complete-state (vc-dir-recompute-file-state file ddir))
+			 (state (cadr complete-state)))
                     (vc-dir-update
-                     (list state)
-                     status-buf (eq (cadr state) 'up-to-date))))))))))
+                     (list complete-state)
+                     status-buf (or (not state)
+				    (eq state 'up-to-date)))))))))))
     ;; Remove out-of-date entries from vc-dir-buffers.
     (dolist (b drop) (setq vc-dir-buffers (delq b vc-dir-buffers)))))
 
