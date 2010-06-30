@@ -714,7 +714,6 @@ if test x$GCC = xyes; then
   C_OPTIMIZE_SWITCH=-O2
   test "x$GCC_TEST_OPTIONS" != x && CC="$CC $GCC_TEST_OPTIONS"
 else
-  dnl FIXME? unused.
   C_OPTIMIZE_SWITCH=-O
   test "x$NON_GCC_TEST_OPTIONS" != x && CC="$CC $NON_GCC_TEST_OPTIONS"
 fi
