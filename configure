@@ -5436,21 +5436,18 @@ CPP=`eval "echo $CPP"`
 
 ### First figure out CFLAGS (which we use for running the compiler here)
 ### and REAL_CFLAGS (which we use for real compilation).
-### The two are the same except on a few systems, where they are made
-### different to work around various lossages.  For example,
-### GCC 2.5 on GNU/Linux needs them to be different because it treats -g
-### as implying static linking.
+### The two are the same except when using GCC where we might use
+### extra warning and profiling flags.
 
 ### If the CFLAGS env var is specified, we use that value
 ### instead of the default.
 
 if test "x$SPECIFIED_CFLAGS" = x; then
+  CFLAGS="-g $C_OPTIMIZE_SWITCH"
   if test x$GCC = xyes; then
-    CFLAGS="-g $C_OPTIMIZE_SWITCH"
     REAL_CFLAGS="$CFLAGS $C_WARNINGS_SWITCH $PROFILING_CFLAGS"
   else
-    CFLAGS=
-    REAL_CFLAGS=
+    REAL_CFLAGS="$CFLAGS"
   fi
 else
   REAL_CFLAGS="$CFLAGS"

@@ -1,3 +1,10 @@
+2010-06-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Fix CFLAGS for non-GCC compilers.
+	* configure.in (CFLAGS): Always use -g like it was done before the
+	2010-03-30 change.
+	(REAL_CFLAGS): Use CFLAGS for non-GCC to get optimization flags.  (Bug#6538)
+
 2010-06-30  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (HAVE_SOUND, HAVE_X_I18N, HAVE_X11R6_XIM):
