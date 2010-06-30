@@ -5393,12 +5393,12 @@ fi
 
 if test x$GCC = xyes && test "x$GCC_LINK_TEST_OPTIONS" != x
 then
-    ac_link="$ac_link $GCC_LINK_TEST_OPTIONS"
+  ac_link="$ac_link $GCC_LINK_TEST_OPTIONS"
 fi
 
 if test x$GCC = x && test "x$NON_GCC_LINK_TEST_OPTIONS" != x
 then
-    ac_link="$ac_link $NON_GCC_LINK_TEST_OPTIONS"
+  ac_link="$ac_link $NON_GCC_LINK_TEST_OPTIONS"
 fi
 
 

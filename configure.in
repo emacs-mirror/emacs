@@ -810,12 +810,12 @@ dnl Add our options to ac_link now, after it is set up.
 
 if test x$GCC = xyes && test "x$GCC_LINK_TEST_OPTIONS" != x
 then
-    ac_link="$ac_link $GCC_LINK_TEST_OPTIONS"
+  ac_link="$ac_link $GCC_LINK_TEST_OPTIONS"
 fi
 
 if test x$GCC = x && test "x$NON_GCC_LINK_TEST_OPTIONS" != x
 then
-    ac_link="$ac_link $NON_GCC_LINK_TEST_OPTIONS"
+  ac_link="$ac_link $NON_GCC_LINK_TEST_OPTIONS"
 fi
 
 dnl We need -znocombreloc if we're using a relatively recent GNU ld.
@@ -3504,9 +3504,9 @@ AH_BOTTOM([
    parallel this exactly since GNUstep is multi-OS.  */
 #ifdef HAVE_NS
 # ifdef NS_IMPL_GNUSTEP
-  /* GNUstep needs a bit more pure memory.  Of the existing knobs,
+/* GNUstep needs a bit more pure memory.  Of the existing knobs,
 SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
-  #  define SYSTEM_PURESIZE_EXTRA 30000
+#  define SYSTEM_PURESIZE_EXTRA 30000
 # endif /* NS_IMPL_GNUSTEP */
 #endif /* HAVE_NS */
 
