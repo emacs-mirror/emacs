@@ -1,3 +1,10 @@
+2010-06-30  Naohiro Aota  <naota@elisp.net>  (tiny change)
+
+	* xftfont.c (xftfont_open): Check font width one by one also when
+	spacing is dual.
+
+	* ftfont.c (ftfont_open): Ditto.
+
 2010-06-26  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* alloc.c (Fmake_byte_code): Don't access undefined argument

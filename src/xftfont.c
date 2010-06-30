@@ -429,7 +429,7 @@ xftfont_open (f, entity, pixel_size)
 	ascii_printable[i] = ' ' + i;
     }
   BLOCK_INPUT;
-  if (spacing != FC_PROPORTIONAL)
+  if (spacing != FC_PROPORTIONAL && spacing != FC_DUAL)
     {
       font->min_width = font->average_width = font->space_width
 	= xftfont->max_advance_width;
