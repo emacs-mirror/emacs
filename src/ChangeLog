@@ -1,3 +1,9 @@
+2010-06-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsettings.c (Ffont_get_system_normal_font, Ffont_get_system_font):
+	Improve documentation.  Return font regardless of use_system_font.
+	(syms_of_xsettings): Improve documentation for font-use-system-font.
+
 2009-06-17  Naohiro Aota  <naota@elisp.net>  (tiny change)
 
 	* xftfont.c (xftfont_open): Check font width one by one also when
