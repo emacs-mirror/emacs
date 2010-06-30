@@ -718,7 +718,7 @@ C_SWITCH_SYSTEM
 UNEXEC_OBJ
 C_SWITCH_MACHINE
 LD_SWITCH_SYSTEM
-cannot_dump
+CANNOT_DUMP
 MAKEINFO
 GZIP_PROG
 INSTALL_INFO
@@ -4286,14 +4286,12 @@ then
   CC="$NON_GNU_CC"
 fi
 
-if test x$GCC = xyes && test "x$GCC_TEST_OPTIONS" != x
-then
-  CC="$CC $GCC_TEST_OPTIONS"
-fi
-
-if test x$GCC = x && test "x$NON_GCC_TEST_OPTIONS" != x
-then
-  CC="$CC $NON_GCC_TEST_OPTIONS"
+if test x$GCC = xyes; then
+  C_OPTIMIZE_SWITCH=-O2
+  test "x$GCC_TEST_OPTIONS" != x && CC="$CC $GCC_TEST_OPTIONS"
+else
+    C_OPTIMIZE_SWITCH=-O
+  test "x$NON_GCC_TEST_OPTIONS" != x && CC="$CC $NON_GCC_TEST_OPTIONS"
 fi
 
 ac_ext=c
@@ -5428,14 +5426,13 @@ fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 
-#### Extract some information from the operating system and machine files.
+LDFLAGS="${LDFLAGS} ${PROFILING_LDFLAGS}"
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking the machine- and system-dependent files to find out
- - which libraries the lib-src programs will want, and
- - whether the GNU malloc routines are usable..." >&5
-$as_echo "$as_me: checking the machine- and system-dependent files to find out
- - which libraries the lib-src programs will want, and
- - whether the GNU malloc routines are usable..." >&6;}
+
+# The value of CPP is a quoted variable reference, so we need to do this
+# to get its actual value...
+CPP=`eval "echo $CPP"`
+
 
 ### First figure out CFLAGS (which we use for running the compiler here)
 ### and REAL_CFLAGS (which we use for real compilation).
@@ -5447,83 +5444,28 @@ $as_echo "$as_me: checking the machine- and system-dependent files to find out
 ### If the CFLAGS env var is specified, we use that value
 ### instead of the default.
 
-### It's not important that this name contain the PID; you can't run
-### two configures in the same directory and have anything work
-### anyway.
-tempcname="conftest.c"
-
-echo '
-#include "'${srcdir}'/src/'${opsysfile}'"
-#include "'${srcdir}'/src/'${machfile}'"
-
-configure___ LIBX=-lX11
-
-#ifdef CANNOT_DUMP
-configure___ cannot_dump=yes
-#else
-configure___ cannot_dump=no
-#endif
-
-#ifdef SYSTEM_MALLOC
-configure___ system_malloc=yes
-#else
-configure___ system_malloc=no
-#endif
-
-#ifdef USE_MMAP_FOR_BUFFERS
-configure___ use_mmap_for_buffers=yes
-#else
-configure___ use_mmap_for_buffers=no
-#endif
-
-#ifndef C_OPTIMIZE_SWITCH
-#ifdef __GNUC__
-#define C_OPTIMIZE_SWITCH -O2
-#else
-#define C_OPTIMIZE_SWITCH -O
-#endif
-#endif
-
-#ifndef C_WARNINGS_SWITCH
-#define C_WARNINGS_SWITCH ${C_WARNINGS_SWITCH}
-#endif
-
-#ifdef THIS_IS_CONFIGURE
-
-/* Get the CFLAGS for tests in configure.  */
-#ifdef __GNUC__
-configure___ CFLAGS=-g C_OPTIMIZE_SWITCH '${SPECIFIED_CFLAGS}'
-#else
-configure___ CFLAGS='${SPECIFIED_CFLAGS}'
-#endif
-
-#else /* not THIS_IS_CONFIGURE */
-
-/* Get the CFLAGS for real compilation.  */
-#ifdef __GNUC__
-configure___ REAL_CFLAGS=-g C_OPTIMIZE_SWITCH C_WARNINGS_SWITCH ${PROFILING_CFLAGS} '${SPECIFIED_CFLAGS}'
-#else
-configure___ REAL_CFLAGS='${SPECIFIED_CFLAGS}'
-#endif
-
-#endif /* not THIS_IS_CONFIGURE */
-' > ${tempcname}
-
-LDFLAGS="${LDFLAGS} ${PROFILING_LDFLAGS}"
-
-# The value of CPP is a quoted variable reference, so we need to do this
-# to get its actual value...
-CPP=`eval "echo $CPP"`
-eval `${CPP} -Isrc ${tempcname} \
-       | sed -n -e 's/^configure___ \([^=]*=\)\(.*\)$/\1"\2"/p'`
 if test "x$SPECIFIED_CFLAGS" = x; then
-  eval `${CPP} -Isrc -DTHIS_IS_CONFIGURE ${tempcname} \
-	 | sed -n -e 's/^configure___ \([^=]*=\)\(.*\)$/\1"\2"/p'`
+  if test x$GCC = xyes; then
+    CFLAGS="-g $C_OPTIMIZE_SWITCH"
+    REAL_CFLAGS="$CFLAGS $C_WARNINGS_SWITCH $PROFILING_CFLAGS"
+  else
+    CFLAGS=
+    REAL_CFLAGS=
+  fi
 else
   REAL_CFLAGS="$CFLAGS"
 fi
-rm ${tempcname}
 
+
+CANNOT_DUMP=no
+case "$opsys" in
+  your-opsys-here)
+   CANNOT_DUMP=yes
+
+$as_echo "#define CANNOT_DUMP 1" >>confdefs.h
+
+  ;;
+esac
 
 
 
@@ -7623,7 +7565,17 @@ if test $emacs_cv_var___after_morecore_hook = no; then
   doug_lea_malloc=no
 fi
 
+
+system_malloc=no
+case "$opsys" in
+  ## darwin ld insists on the use of malloc routines in the System framework.
+  darwin|sol2-10) system_malloc=yes ;;
+esac
+
 if test "${system_malloc}" = "yes"; then
+
+$as_echo "#define SYSTEM_MALLOC 1" >>confdefs.h
+
   GNU_MALLOC=no
   GNU_MALLOC_reason="
     (The GNU allocators don't work with this system configuration.)"
@@ -7658,6 +7610,10 @@ if test x"${REL_ALLOC}" = x; then
   REL_ALLOC=${GNU_MALLOC}
 fi
 
+use_mmap_for_buffers=no
+case "$opsys" in
+  freebsd|irix6-5) use_mmap_for_buffers=yes ;;
+esac
 
 
 
@@ -7861,6 +7817,9 @@ fi
 rm -f conftest.mmap conftest.txt
 
 if test $use_mmap_for_buffers = yes; then
+
+$as_echo "#define USE_MMAP_FOR_BUFFERS 1" >>confdefs.h
+
   REL_ALLOC=no
 fi
 
@@ -8054,7 +8013,7 @@ REAL_CPPFLAGS="$CPPFLAGS"
 if test "${HAVE_X11}" = "yes"; then
   DEFS="$C_SWITCH_X_SITE $DEFS"
   LDFLAGS="$LDFLAGS $LD_SWITCH_X_SITE"
-  LIBS="$LIBX $LIBS"
+  LIBS="-lX11 $LIBS"
   CFLAGS="$C_SWITCH_X_SITE $CFLAGS"
   CPPFLAGS="$C_SWITCH_X_SITE $CPPFLAGS"
 

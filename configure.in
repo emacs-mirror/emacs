@@ -837,11 +837,13 @@ AC_LINK_IFELSE([main(){return 0;}],
   LDFLAGS=$late_LDFLAGS
   [AC_MSG_RESULT(no)])
 
-#### Extract some information from the operating system and machine files.
+LDFLAGS="${LDFLAGS} ${PROFILING_LDFLAGS}"
 
-AC_CHECKING([the machine- and system-dependent files to find out
- - which libraries the lib-src programs will want, and
- - whether the GNU malloc routines are usable])
+
+# The value of CPP is a quoted variable reference, so we need to do this
+# to get its actual value...
+CPP=`eval "echo $CPP"`
+
 
 ### First figure out CFLAGS (which we use for running the compiler here)
 ### and REAL_CFLAGS (which we use for real compilation).
@@ -853,50 +855,19 @@ AC_CHECKING([the machine- and system-dependent files to find out
 ### If the CFLAGS env var is specified, we use that value
 ### instead of the default.
 
-### It's not important that this name contain the PID; you can't run
-### two configures in the same directory and have anything work
-### anyway.
-tempcname="conftest.c"
-
-echo '
-#include "'${srcdir}'/src/'${opsysfile}'"
-#include "'${srcdir}'/src/'${machfile}'"
-
-#ifdef THIS_IS_CONFIGURE
-
-/* Get the CFLAGS for tests in configure.  */
-#ifdef __GNUC__
-configure___ CFLAGS=-g ${C_OPTIMIZE_SWITCH} '${SPECIFIED_CFLAGS}'
-#else
-configure___ CFLAGS='${SPECIFIED_CFLAGS}'
-#endif
-
-#else /* not THIS_IS_CONFIGURE */
-
-/* Get the CFLAGS for real compilation.  */
-#ifdef __GNUC__
-configure___ REAL_CFLAGS=-g ${C_OPTIMIZE_SWITCH} ${C_WARNINGS_SWITCH} ${PROFILING_CFLAGS} '${SPECIFIED_CFLAGS}'
-#else
-configure___ REAL_CFLAGS='${SPECIFIED_CFLAGS}'
-#endif
-
-#endif /* not THIS_IS_CONFIGURE */
-' > ${tempcname}
-
-LDFLAGS="${LDFLAGS} ${PROFILING_LDFLAGS}"
-
-# The value of CPP is a quoted variable reference, so we need to do this
-# to get its actual value...
-CPP=`eval "echo $CPP"`
-[eval `${CPP} -Isrc ${tempcname} \
-       | sed -n -e 's/^configure___ \([^=]*=\)\(.*\)$/\1"\2"/p'`
+dnl C_OPTIMIZE_SWITCH unused save for gcc, so why set it for non-gcc?
+dnl Note AC_PROG_CC sets CFLAGS to -g -O2 for gcc anyway.
 if test "x$SPECIFIED_CFLAGS" = x; then
-  eval `${CPP} -Isrc -DTHIS_IS_CONFIGURE ${tempcname} \
-	 | sed -n -e 's/^configure___ \([^=]*=\)\(.*\)$/\1"\2"/p'`
+  if test x$GCC = xyes; then
+    CFLAGS="-g $C_OPTIMIZE_SWITCH"
+    REAL_CFLAGS="$CFLAGS $C_WARNINGS_SWITCH $PROFILING_CFLAGS"
+  else
+    CFLAGS=
+    REAL_CFLAGS=
+  fi
 else
-  REAL_CFLAGS="$CFLAGS"
-fi]
-rm ${tempcname}
+  REAL_CFLAGS="$CFLAGS" 
+fi
 
 
 dnl Not used by any currently supported platform.

@@ -30,6 +30,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if the mktime function is broken. */
 #undef BROKEN_MKTIME
 
+/* Define if Emacs cannot be dumped on your system. */
+#undef CANNOT_DUMP
+
 /* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
    systems. This function is required for `alloca.c' support on those systems.
    */
@@ -899,6 +902,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Process async input synchronously. */
 #undef SYNC_INPUT
 
+/* Define to use system malloc. */
+#undef SYSTEM_MALLOC
+
 /* Define to 1 if you use terminfo instead of termcap. */
 #undef TERMINFO
 
@@ -920,6 +926,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if using the Lucid X toolkit. */
 #undef USE_LUCID
+
+/* Define to use mmap to allocate buffer text. */
+#undef USE_MMAP_FOR_BUFFERS
 
 /* Define to 1 if using the Motif X toolkit. */
 #undef USE_MOTIF

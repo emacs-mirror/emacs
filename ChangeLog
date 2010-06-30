@@ -1,7 +1,8 @@
 2010-06-30  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (C_OPTIMIZE_SWITCH, CANNOT_DUMP, SYSTEM_MALLOC):
-	(USE_MMAP_FOR_BUFFERS, C_WARNING_SWITCH): Set with shell, not cpp.
+	(USE_MMAP_FOR_BUFFERS, C_WARNING_SWITCH, CFLAGS, REAL_CFLAGS):
+	Set with shell, not cpp.
 	(LIBX): Remove, just use -lX11 in the one place this was used.
 	(cannot_dump): Replace with CANNOT_DUMP.
 
