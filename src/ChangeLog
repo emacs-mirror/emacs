@@ -1,5 +1,7 @@
 2010-06-30  Glenn Morris  <rgm@gnu.org>
 
+	* s/sol2-6.h (INHIBIT_X11R6_XIM): Remove, handled by configure now.
+
 	* Makefile.in (CANNOT_DUMP): Update for configure name change.
 
 	* s/freebsd.h (USE_MMAP_FOR_BUFFERS):

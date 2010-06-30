@@ -1,5 +1,8 @@
 2010-06-30  Glenn Morris  <rgm@gnu.org>
 
+	* configure.in (HAVE_SOUND, HAVE_X_I18N, HAVE_X11R6_XIM):
+	Set with AC_DEFINE rather than AH_BOTTOM.
+
 	* configure.in (C_OPTIMIZE_SWITCH, CANNOT_DUMP, SYSTEM_MALLOC):
 	(USE_MMAP_FOR_BUFFERS, C_WARNING_SWITCH, CFLAGS, REAL_CFLAGS):
 	Set with shell, not cpp.

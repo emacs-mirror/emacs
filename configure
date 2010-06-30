@@ -5393,12 +5393,12 @@ fi
 
 if test x$GCC = xyes && test "x$GCC_LINK_TEST_OPTIONS" != x
 then
-  ac_link="$ac_link $GCC_LINK_TEST_OPTIONS"
+    ac_link="$ac_link $GCC_LINK_TEST_OPTIONS"
 fi
 
 if test x$GCC = x && test "x$NON_GCC_LINK_TEST_OPTIONS" != x
 then
-  ac_link="$ac_link $NON_GCC_LINK_TEST_OPTIONS"
+    ac_link="$ac_link $NON_GCC_LINK_TEST_OPTIONS"
 fi
 
 
@@ -5898,7 +5898,7 @@ eval as_val=\$$as_ac_Header
   cat >>confdefs.h <<_ACEOF
 #define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
 _ACEOF
-
+ have_sound_header=yes
 fi
 
 done
@@ -6098,6 +6098,17 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 $as_echo "#define HAVE_ALSA 1" >>confdefs.h
 
   fi
+
+        if test x$have_sound_header = xyes || test $HAVE_ALSA = yes; then
+     case "$opsys" in
+              gnu-linux|freebsd|netbsd)
+
+$as_echo "#define HAVE_SOUND 1" >>confdefs.h
+
+         ;;
+     esac
+  fi
+
 
 fi
 
@@ -8175,6 +8186,18 @@ $as_echo "6 or newer" >&6; }
 
 $as_echo "#define HAVE_X11R6 1" >>confdefs.h
 
+
+$as_echo "#define HAVE_X_I18N 1" >>confdefs.h
+
+    ## inoue@ainet.or.jp says Solaris has a bug related to X11R6-style
+    ## XIM support.
+    case "$opsys" in
+      sol2-*) : ;;
+      *)
+$as_echo "#define HAVE_X11R6_XIM 1" >>confdefs.h
+
+         ;;
+    esac
   else
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: before 6" >&5
 $as_echo "before 6" >&6; }

@@ -810,12 +810,12 @@ dnl Add our options to ac_link now, after it is set up.
 
 if test x$GCC = xyes && test "x$GCC_LINK_TEST_OPTIONS" != x
 then
-  ac_link="$ac_link $GCC_LINK_TEST_OPTIONS"
+    ac_link="$ac_link $GCC_LINK_TEST_OPTIONS"
 fi
 
 if test x$GCC = x && test "x$NON_GCC_LINK_TEST_OPTIONS" != x
 then
-  ac_link="$ac_link $NON_GCC_LINK_TEST_OPTIONS"
+    ac_link="$ac_link $NON_GCC_LINK_TEST_OPTIONS"
 fi
 
 dnl We need -znocombreloc if we're using a relatively recent GNU ld.
@@ -866,7 +866,7 @@ if test "x$SPECIFIED_CFLAGS" = x; then
     REAL_CFLAGS=
   fi
 else
-  REAL_CFLAGS="$CFLAGS" 
+  REAL_CFLAGS="$CFLAGS"
 fi
 
 
@@ -1155,7 +1155,8 @@ AC_DEFUN([PKG_CHECK_MODULES], [
 
 if test "${with_sound}" != "no"; then
   # Sound support for GNU/Linux and the free BSDs.
-  AC_CHECK_HEADERS(machine/soundcard.h sys/soundcard.h soundcard.h)
+  AC_CHECK_HEADERS(machine/soundcard.h sys/soundcard.h soundcard.h, 
+    have_sound_header=yes)
   # Emulation library used on NetBSD.
   AC_CHECK_LIB(ossaudio, _oss_ioctl, LIBSOUND=-lossaudio, LIBSOUND=)
   AC_SUBST(LIBSOUND)
@@ -1188,6 +1189,19 @@ if test "${with_sound}" != "no"; then
     CFLAGS_SOUND="$CFLAGS_SOUND $ALSA_CFLAGS"
     AC_DEFINE(HAVE_ALSA, 1, [Define to 1 if ALSA is available.])
   fi
+
+  dnl Define HAVE_SOUND if we have sound support.  We know it works and
+  dnl compiles only on the specified platforms.  For others, it
+  dnl probably doesn't make sense to try.
+  if test x$have_sound_header = xyes || test $HAVE_ALSA = yes; then
+     case "$opsys" in
+       dnl defined __FreeBSD__ || defined __NetBSD__ || defined __linux__
+       gnu-linux|freebsd|netbsd)
+         AC_DEFINE(HAVE_SOUND, 1, [Define to 1 if you have sound support.])
+         ;;
+     esac
+  fi
+
   AC_SUBST(CFLAGS_SOUND)
 fi
 
@@ -1777,6 +1791,15 @@ fail;
     AC_MSG_RESULT(6 or newer)
     AC_DEFINE(HAVE_X11R6, 1,
 	      [Define to 1 if you have the X11R6 or newer version of Xlib.])
+    AC_DEFINE(HAVE_X_I18N, 1, [Define if you have usable i18n support.])
+    ## inoue@ainet.or.jp says Solaris has a bug related to X11R6-style
+    ## XIM support.
+    case "$opsys" in
+      sol2-*) : ;;
+      *) AC_DEFINE(HAVE_X11R6_XIM, 1,
+           [Define if you have usable X11R6-style XIM support.])
+         ;;
+    esac
   else
     AC_MSG_RESULT(before 6)
   fi
@@ -3453,25 +3476,6 @@ AH_BOTTOM([
 /* Turned on June 1996 supposing nobody will mind it.  */
 #define AMPERSAND_FULL_NAME
 
-/* Define HAVE_SOUND if we have sound support.  We know it works
-   and compiles only on the specified platforms.   For others,
-   it probably doesn't make sense to try.  */
-
-#if defined __FreeBSD__ || defined __NetBSD__ || defined __linux__
-#ifdef HAVE_MACHINE_SOUNDCARD_H
-#define HAVE_SOUND 1
-#endif
-#ifdef HAVE_SYS_SOUNDCARD_H
-#define HAVE_SOUND 1
-#endif
-#ifdef HAVE_SOUNDCARD_H
-#define HAVE_SOUND 1
-#endif
-#ifdef HAVE_ALSA
-#define HAVE_SOUND 1
-#endif
-#endif /* __FreeBSD__ || __NetBSD__ || __linux__  */
-
 /* If using GNU, then support inline function declarations.  */
 /* Don't try to switch on inline handling as detected by AC_C_INLINE
    generally, because even if non-gcc compilers accept `inline', they
@@ -3500,9 +3504,9 @@ AH_BOTTOM([
    parallel this exactly since GNUstep is multi-OS.  */
 #ifdef HAVE_NS
 # ifdef NS_IMPL_GNUSTEP
-/* GNUstep needs a bit more pure memory.  Of the existing knobs,
+  /* GNUstep needs a bit more pure memory.  Of the existing knobs,
 SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
-#  define SYSTEM_PURESIZE_EXTRA 30000
+  #  define SYSTEM_PURESIZE_EXTRA 30000
 # endif /* NS_IMPL_GNUSTEP */
 #endif /* HAVE_NS */
 
@@ -3562,9 +3566,8 @@ extern char *getenv ();
 #endif
 #endif
 
-/* Define if the compiler supports function prototypes.  It may do so
-   but not define __STDC__ (e.g. DEC C by default) or may define it as
-   zero.  */
+/* Define if the compiler supports function prototypes.  It may do so but
+   not define __STDC__ (e.g. DEC C by default) or may define it as zero.  */
 #undef PROTOTYPES
 /* For mktime.c:  */
 #ifndef __P
@@ -3603,18 +3606,6 @@ void *alloca (size_t);
 
 #ifndef HAVE_SIZE_T
 typedef unsigned size_t;
-#endif
-
-/* Define HAVE_X_I18N if we have usable i18n support.  */
-
-#ifdef HAVE_X11R6
-#define HAVE_X_I18N
-#endif
-
-/* Define HAVE_X11R6_XIM if we have usable X11R6-style XIM support.  */
-
-#if defined HAVE_X11R6 && !defined INHIBIT_X11R6_XIM
-#define HAVE_X11R6_XIM
 #endif
 
 #if defined __GNUC__ && (__GNUC__ > 2 \
