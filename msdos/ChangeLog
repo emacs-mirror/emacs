@@ -1,3 +1,7 @@
+2010-06-30  Glenn Morris  <rgm@gnu.org>
+
+	* sed1v2.inp (CANNOT_DUMP): Update for configure name change.
+
 2010-06-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* mainmake.v2 (version): Use emacs_version[] in src/emacs.c

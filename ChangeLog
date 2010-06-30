@@ -1,3 +1,21 @@
+2010-06-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Fix CFLAGS for non-GCC compilers.
+	* configure.in (CFLAGS): Always use -g like it was done before the
+	2010-03-30 change.
+	(REAL_CFLAGS): Use CFLAGS for non-GCC to get optimization flags.  (Bug#6538)
+
+2010-06-30  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (HAVE_SOUND, HAVE_X_I18N, HAVE_X11R6_XIM):
+	Set with AC_DEFINE rather than AH_BOTTOM.
+
+	* configure.in (C_OPTIMIZE_SWITCH, CANNOT_DUMP, SYSTEM_MALLOC):
+	(USE_MMAP_FOR_BUFFERS, C_WARNING_SWITCH, CFLAGS, REAL_CFLAGS):
+	Set with shell, not cpp.
+	(LIBX): Remove, just use -lX11 in the one place this was used.
+	(cannot_dump): Replace with CANNOT_DUMP.
+
 2010-06-28  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in: Add --with-x-toolkit=gtk3. Remove HAVE_GTK_MULTIDISPLAY,

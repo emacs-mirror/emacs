@@ -1,3 +1,9 @@
+2010-06-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ruler-mode.el (ruler--save-header-line-format): New fun.
+	(ruler-mode): Use it as a setter function, so as not to overwrite
+	ruler-mode-header-line-format-old if Ruler mode is on (Bug#5370).
+
 2010-06-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* vc/vc.el (vc-deduce-backend): New fun.  Handle diff buffers.
