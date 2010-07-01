@@ -1948,8 +1948,7 @@ according to the `background-mode' and `display-type' frame parameters."
   "Add geometry parameters for a named frame to parameter list PARAMETERS.
 Value is the new parameter list."
   ;; Note that `x-resource-name' has a global meaning.
-  (let ((x-resource-name (or (cdr (assq 'name parameters))
-			     (cdr (assq 'name default-frame-alist)))))
+  (let ((x-resource-name (cdr (assq 'name parameters))))
     (when x-resource-name
       ;; Before checking X resources, we must have an X connection.
       (or (window-system)
@@ -1960,7 +1959,7 @@ Value is the new parameter list."
 	(and (setq res-geometry (x-get-resource "geometry" "Geometry"))
 	     (setq parsed (x-parse-geometry res-geometry))
 	     (setq parameters
-		   (append parameters default-frame-alist parsed
+		   (append parameters parsed
 			   ;; If the resource specifies a position,
 			   ;; take note of that.
 			   (if (or (assq 'top parsed) (assq 'left parsed))
@@ -1972,7 +1971,6 @@ Value is the new parameter list."
   "Handle the reverse-video frame parameter and X resource.
 `x-create-frame' does not handle this one."
   (when (cdr (or (assq 'reverse parameters)
-		 (assq 'reverse default-frame-alist)
 		 (let ((resource (x-get-resource "reverseVideo"
 						 "ReverseVideo")))
 		   (if resource
@@ -1998,13 +1996,10 @@ Value is the new parameter list."
 (declare-function x-setup-function-keys "term/x-win" (frame))
 
 (defun x-create-frame-with-faces (&optional parameters)
-  "Create a frame from optional frame parameters PARAMETERS.
-Parameters not specified by PARAMETERS are taken from
-`default-frame-alist'.  If PARAMETERS specify a frame name,
-handle X geometry resources for that name.  If either PARAMETERS
-or `default-frame-alist' contains a `reverse' parameter, or
-the X resource ``reverseVideo'' is present, handle that.
-Value is the new frame created."
+  "Create and return a frame with frame parameters PARAMETERS.
+If PARAMETERS specify a frame name, handle X geometry resources
+for that name.  If PARAMETERS includes a `reverse' parameter, or
+the X resource ``reverseVideo'' is present, handle that."
   (setq parameters (x-handle-named-frame-geometry parameters))
   (let* ((params (copy-tree parameters))
 	 (visibility-spec (assq 'visibility parameters))
@@ -2035,7 +2030,7 @@ Value is the new frame created."
 Calculate the face definitions using the face specs, custom theme
 settings, X resources, and `face-new-frame-defaults'.
 Finally, apply any relevant face attributes found amongst the
-frame parameters in PARAMETERS and `default-frame-alist'."
+frame parameters in PARAMETERS."
   (dolist (face (nreverse (face-list))) ;Why reverse?  --Stef
     (condition-case ()
 	(progn
@@ -2061,16 +2056,14 @@ frame parameters in PARAMETERS and `default-frame-alist'."
   		       (mouse-color mouse :background))))
     (dolist (param face-params)
       (let* ((param-name (nth 0 param))
-  	     (value (cdr (or (assq param-name parameters)
-  			     (assq param-name default-frame-alist)))))
+  	     (value (cdr (assq param-name parameters))))
   	(if value
   	    (set-face-attribute (nth 1 param) frame
 				(nth 2 param) value))))))
 
 (defun tty-handle-reverse-video (frame parameters)
   "Handle the reverse-video frame parameter for terminal frames."
-  (when (cdr (or (assq 'reverse parameters)
-		 (assq 'reverse default-frame-alist)))
+  (when (cdr (assq 'reverse parameters))
     (let* ((params (frame-parameters frame))
 	   (bg (cdr (assq 'foreground-color params)))
 	   (fg (cdr (assq 'background-color params))))
@@ -2086,11 +2079,8 @@ frame parameters in PARAMETERS and `default-frame-alist'."
 
 
 (defun tty-create-frame-with-faces (&optional parameters)
-  "Create a frame from optional frame parameters PARAMETERS.
-Parameters not specified by PARAMETERS are taken from
-`default-frame-alist'.  If either PARAMETERS or `default-frame-alist'
-contains a `reverse' parameter, handle that.  Value is the new frame
-created."
+  "Create and return a frame from optional frame parameters PARAMETERS.
+If PARAMETERS contains a `reverse' parameter, handle that."
   (let ((frame (make-terminal-frame parameters))
 	success)
     (unwind-protect
