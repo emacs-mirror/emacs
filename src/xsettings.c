@@ -719,20 +719,20 @@ xsettings_get_system_normal_font ()
 DEFUN ("font-get-system-normal-font", Ffont_get_system_normal_font,
        Sfont_get_system_normal_font,
        0, 0, 0,
-       doc: /* Get the system default font. */)
+       doc: /* Get the system default application font. */)
   ()
 {
-  return current_font && use_system_font
+  return current_font
     ? make_string (current_font, strlen (current_font))
     : Qnil;
 }
 
 DEFUN ("font-get-system-font", Ffont_get_system_font, Sfont_get_system_font,
        0, 0, 0,
-       doc: /* Get the system default monospaced font. */)
+       doc: /* Get the system default fixed width font. */)
   ()
 {
-  return current_mono_font && use_system_font
+  return current_mono_font
     ? make_string (current_mono_font, strlen (current_mono_font))
     : Qnil;
 }
@@ -774,7 +774,10 @@ syms_of_xsettings ()
   defsubr (&Sfont_get_system_normal_font);
 
   DEFVAR_BOOL ("font-use-system-font", &use_system_font,
-    doc: /* *Non-nil means to use the system defined font.  */);
+    doc: /* *Non-nil means to apply the system defined font dynamically.
+When this is non-nil and the system defined fixed width font changes, we
+update frames dynamically.
+If this variable is nil, Emacs ignores system font changes.  */);
   use_system_font = 0;
 
   DEFVAR_LISP ("xft-settings", &Vxft_settings,
