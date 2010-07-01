@@ -948,7 +948,7 @@
 	can specify the frame to use, when applicable.  Adjust callers.
 
 2010-05-07  Vincent Belaïche  <vincent.belaiche@gmail.com>
-	    Stefan Monnier  <monnier@iro.umontreal.ca>
+            Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* floatfns.c (Fisnan, Fcopysign, Ffrexp, Fldexp): New functions.
 
@@ -1576,7 +1576,7 @@
 	(Frename_file): Preserve selinux context when renaming by copy-file.
 
 2010-04-21  Juanma Barranquero  <lekktu@gmail.com>
-	    Eli Zaretskii  <eliz@gnu.org>
+            Eli Zaretskii  <eliz@gnu.org>
 
 	Don't depend on cm.c or termcap.c on Windows, use stubs.
 	* makefile.w32-in (OBJ1): Remove cm.$(O) and termcap.$(O).
@@ -9757,7 +9757,7 @@
 	<after-change-functions>: Reflow docstrings.
 
 2008-08-04  Adrian Robert  <Adrian.B.Robert@gmail.com>
-	    Ken Raeburn  <raeburn@gnu.org>
+            Ken Raeburn  <raeburn@gnu.org>
 
 	Dock menu customization, based on a patch by Ken Raeburn, plus some
 	other fixes.
@@ -10822,7 +10822,7 @@
 	batch-compiling for bootstrap).
 
 2008-07-15  Chris Hall  <chris@web.workinglinux.com>  (tiny change)
-	    YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+            YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	(make_initial_frame): Call init_frame_faces(f) in CANNOT_DUMP case --
 	fix crash due to different init order.
@@ -11440,7 +11440,7 @@
 	(USG_SHARED_LIBRARIES): Remove duplicate definition.
 
 2008-06-26  Juanma Barranquero  <lekktu@gmail.com>
-	    Eli Zaretskii  <eliz@gnu.org>
+            Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (LOCAL_FLAGS):
 	Don't include WINDOWSNT, DOS_NT and _UCHAR_T.
@@ -11688,7 +11688,7 @@
 	the property of LFACE_FONT of LFACE (if any).
 
 2008-06-21  Seiji Zenitani  <zenitani@mac.com>
-	    Ryo Yoshitake  <ryo@shiftmode.net>
+            Ryo Yoshitake  <ryo@shiftmode.net>
 
 	* xterm.c (x_set_frame_alpha): Add x_catch_errors for bug#437.
 
@@ -12784,7 +12784,7 @@
 	* xterm.c (x_set_frame_alpha): Move declarations before statements.
 
 2008-05-21  Seiji Zenitani  <zenitani@mac.com>
-	    Ryo Yoshitake  <ryo@shiftmode.net>
+            Ryo Yoshitake  <ryo@shiftmode.net>
 
 	* frame.c (Qalpha): Add a new frame parameter `alpha'.
 	(Vframe_alpha_lower_limit): New variable.

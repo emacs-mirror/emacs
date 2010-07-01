@@ -978,7 +978,7 @@
 	(rcirc-user-name-history): Add variable.
 
 2010-05-25  Ryan Yeske  <rcyeske@gmail.com>
-	    Jonathan Rockway  <jon@jrock.us>
+            Jonathan Rockway  <jon@jrock.us>
 
 	* net/rcirc.el (rcirc-server-alist): Add :pass.
 	(rcirc): When prompting for connection parameters, also prompt for
