@@ -999,7 +999,9 @@ free_frame_tool_bar (FRAME_PTR f)
     Under NS we just hide the toolbar until it might be needed again.
    -------------------------------------------------------------------------- */
 {
+  BLOCK_INPUT;
   [[FRAME_NS_VIEW (f) toolbar] setVisible: NO];
+  UNBLOCK_INPUT;
 }
 
 void
@@ -1011,6 +1013,7 @@ update_frame_tool_bar (FRAME_PTR f)
   int i;
   EmacsToolbar *toolbar = [FRAME_NS_VIEW (f) toolbar];
 
+  BLOCK_INPUT;
   [toolbar clearActive];
 
   /* update EmacsToolbar as in GtkUtils, build items list */
@@ -1094,6 +1097,7 @@ update_frame_tool_bar (FRAME_PTR f)
       [newDict release];
     }
 
+  UNBLOCK_INPUT;
 }
 
 
