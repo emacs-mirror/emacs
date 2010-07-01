@@ -1,3 +1,44 @@
+2010-06-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.c (get_future_frame_param, Fmake_terminal_frame): Don't
+	check default-frame-alist.
+
+2010-06-30  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* process.c (create_process): Avoid using invalid file descriptors.
+
+	* callproc.c (child_setup): Avoid closing a file descriptor twice.
+
+2010-06-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsettings.c (Ffont_get_system_normal_font, Ffont_get_system_font):
+	Improve documentation.  Return font regardless of use_system_font.
+	(syms_of_xsettings): Improve documentation for font-use-system-font.
+
+2009-06-17  Naohiro Aota  <naota@elisp.net>  (tiny change)
+
+	* xftfont.c (xftfont_open): Check font width one by one also when
+	spacing is dual.
+
+	* ftfont.c (ftfont_open): Ditto.
+
+2010-06-30  Glenn Morris  <rgm@gnu.org>
+
+	* s/sol2-6.h (INHIBIT_X11R6_XIM): Remove, handled by configure now.
+
+	* Makefile.in (CANNOT_DUMP): Update for configure name change.
+
+	* s/freebsd.h (USE_MMAP_FOR_BUFFERS):
+	* s/irix6-5.h (USE_MMAP_FOR_BUFFERS):
+	* s/darwin.h (SYSTEM_MALLOC):
+	* s/sol2-10.h (SYSTEM_MALLOC): Move to configure.
+
+2010-06-29  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m: extern declare Vmenu_bar_mode, Vtool_bar_mode.
+	(ns_get_screen): Don't assign integer to f.
+	(Fx_display_color_cells): Declarations before statements.
+
 2010-06-28  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (x_default_font_parameter): Remove got_from_system
@@ -47,7 +88,7 @@
 	properties instead to get old x and y position.
 	(xg_set_toolkit_scroll_bar_thumb): Use gtk_adjustment_get_page_size,
 	gtk_adjustment_get_step_increment, gtk_adjustment_set_page_size,
-        gtk_adjustment_set_step_increment and gtk_adjustment_set_page_increment.
+	gtk_adjustment_set_step_increment and gtk_adjustment_set_page_increment.
 	(xg_get_tool_bar_widgets): New function.
 	(xg_tool_bar_menu_proxy, xg_show_toolbar_item)
 	(update_frame_tool_bar): Call xg_get_tool_bar_widgets.
@@ -220,7 +261,7 @@
 
 	* xterm.c (x_scroll_bar_create): Remove call to xg_show_scroll_bar.
 
-	* gtkutil.h (xg_show_scroll_bar): : Remove.
+	* gtkutil.h (xg_show_scroll_bar): Remove.
 
 	* gtkutil.c (xg_update_scrollbar_pos): Show/hide scroll bar as needed
 	if height is less than scroll bar min size.

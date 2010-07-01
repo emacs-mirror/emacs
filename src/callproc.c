@@ -1244,8 +1244,10 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
   dup2 (out, 1);
   dup2 (err, 2);
   emacs_close (in);
-  emacs_close (out);
-  emacs_close (err);
+  if (out != in)
+    emacs_close (out);
+  if (err != in && err != out)
+    emacs_close (err);
 #endif /* not MSDOS */
 #endif /* not WINDOWSNT */
 

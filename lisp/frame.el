@@ -683,15 +683,17 @@ The functions are run with one arg, the newly created frame.")
 
 (defun make-frame (&optional parameters)
   "Return a newly created frame displaying the current buffer.
-Optional argument PARAMETERS is an alist of parameters for the new frame.
-Each element of PARAMETERS should have the form (NAME . VALUE), for example:
+Optional argument PARAMETERS is an alist of frame parameters for
+the new frame.  Each element of PARAMETERS should have the
+form (NAME . VALUE), for example:
 
  (name . STRING)	The frame should be named STRING.
 
  (width . NUMBER)	The frame should be NUMBER characters in width.
  (height . NUMBER)	The frame should be NUMBER text lines high.
 
-You cannot specify either `width' or `height', you must use neither or both.
+You cannot specify either `width' or `height', you must specify
+neither or both.
 
  (minibuffer . t)	The frame should have a minibuffer.
  (minibuffer . nil)	The frame should have no minibuffer.
@@ -703,15 +705,17 @@ You cannot specify either `width' or `height', you must use neither or both.
 
  (terminal . TERMINAL)  The frame should use the terminal object TERMINAL.
 
-Before the frame is created (via `frame-creation-function-alist'), functions on the
-hook `before-make-frame-hook' are run.  After the frame is created, functions
-on `after-make-frame-functions' are run with one arg, the newly created frame.
+In addition, any parameter specified in `default-frame-alist',
+but not present in PARAMETERS, is applied.
 
-This function itself does not make the new frame the selected frame.
-The previously selected frame remains selected.  However, the
-window system may select the new frame for its own reasons, for
-instance if the frame appears under the mouse pointer and your
-setup is for focus to follow the pointer."
+Before creating the frame (via `frame-creation-function-alist'),
+this function runs the hook `before-make-frame-hook'.  After
+creating the frame, it runs the hook `after-make-frame-functions'
+with one arg, the newly created frame.
+
+On graphical displays, this function does not itself make the new
+frame the selected frame.  However, the window system may select
+the new frame according to its own rules."
   (interactive)
   (let* ((w (cond
 	     ((assq 'terminal parameters)
@@ -726,14 +730,21 @@ setup is for focus to follow the pointer."
 	     (t window-system)))
 	 (frame-creation-function (cdr (assq w frame-creation-function-alist)))
 	 (oldframe (selected-frame))
+	 (params parameters)
 	 frame)
     (unless frame-creation-function
       (error "Don't know how to create a frame on window system %s" w))
+    ;; Add parameters from `window-system-default-frame-alist'.
+    (dolist (p (cdr (assq w window-system-default-frame-alist)))
+      (unless (memq (car p) params)
+	(push p params)))
+    ;; Add parameters from `default-frame-alist'.
+    (dolist (p default-frame-alist)
+      (unless (memq (car p) params)
+	(push p params)))
+    ;; Now make the frame.
     (run-hooks 'before-make-frame-hook)
-    (setq frame
-          (funcall frame-creation-function
-                   (append parameters
-                           (cdr (assq w window-system-default-frame-alist)))))
+    (setq frame (funcall frame-creation-function params))
     (normal-erase-is-backspace-setup-frame frame)
     ;; Inherit the original frame's parameters.
     (dolist (param frame-inherited-parameters)

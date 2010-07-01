@@ -114,9 +114,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* System uses OXTABS instead of the expected TAB3.  (Copied from bsd386.h.)  */
 #define TAB3 OXTABS
 
-/* Darwin ld insists on the use of malloc routines in the System framework.  */
-#define SYSTEM_MALLOC
-
 /* Define HAVE_SOCKETS if system supports 4.2-compatible sockets.  */
 #define HAVE_SOCKETS
 

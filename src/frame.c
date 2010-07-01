@@ -622,8 +622,7 @@ make_terminal_frame (struct terminal *terminal)
 
 /* Get a suitable value for frame parameter PARAMETER for a newly
    created frame, based on (1) the user-supplied frame parameter
-   alist SUPPLIED_PARMS, (2) CURRENT_VALUE, and finally, if all else
-   fails, (3) Vdefault_frame_alist.  */
+   alist SUPPLIED_PARMS, and (2) CURRENT_VALUE.  */
 
 static Lisp_Object
 get_future_frame_param (Lisp_Object parameter,
@@ -637,8 +636,6 @@ get_future_frame_param (Lisp_Object parameter,
     result = Fassq (parameter, XFRAME (selected_frame)->param_alist);
   if (NILP (result) && current_value != NULL)
     result = build_string (current_value);
-  if (NILP (result))
-    result = Fassq (parameter, Vdefault_frame_alist);
   if (!NILP (result) && !STRINGP (result))
     result = XCDR (result);
   if (NILP (result) || !STRINGP (result))
@@ -743,7 +740,6 @@ affects all frames on the same terminal device.  */)
   adjust_glyphs (f);
   calculate_costs (f);
   XSETFRAME (frame, f);
-  Fmodify_frame_parameters (frame, Vdefault_frame_alist);
   Fmodify_frame_parameters (frame, parms);
   Fmodify_frame_parameters (frame, Fcons (Fcons (Qtty_type,
                                                  build_string (t->display_info.tty->type)),

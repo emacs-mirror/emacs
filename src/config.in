@@ -30,6 +30,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if the mktime function is broken. */
 #undef BROKEN_MKTIME
 
+/* Define if Emacs cannot be dumped on your system. */
+#undef CANNOT_DUMP
+
 /* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
    systems. This function is required for `alloca.c' support on those systems.
    */
@@ -585,6 +588,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if the system has the type `size_t'. */
 #undef HAVE_SIZE_T
 
+/* Define to 1 if you have sound support. */
+#undef HAVE_SOUND
+
 /* Define to 1 if you have the <soundcard.h> header file. */
 #undef HAVE_SOUNDCARD_H
 
@@ -762,6 +768,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the X11R6 or newer version of Xlib. */
 #undef HAVE_X11R6
 
+/* Define if you have usable X11R6-style XIM support. */
+#undef HAVE_X11R6_XIM
+
 /* Define to 1 if you have the X11R6 or newer version of Xt. */
 #undef HAVE_X11XTR6
 
@@ -791,6 +800,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `XSetWMProtocols' function. */
 #undef HAVE_XSETWMPROTOCOLS
+
+/* Define if you have usable i18n support. */
+#undef HAVE_X_I18N
 
 /* Define to 1 if you have the SM library (-lSM). */
 #undef HAVE_X_SM
@@ -899,6 +911,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Process async input synchronously. */
 #undef SYNC_INPUT
 
+/* Define to use system malloc. */
+#undef SYSTEM_MALLOC
+
 /* Define to 1 if you use terminfo instead of termcap. */
 #undef TERMINFO
 
@@ -920,6 +935,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if using the Lucid X toolkit. */
 #undef USE_LUCID
+
+/* Define to use mmap to allocate buffer text. */
+#undef USE_MMAP_FOR_BUFFERS
 
 /* Define to 1 if using the Motif X toolkit. */
 #undef USE_MOTIF
@@ -1027,25 +1045,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Turned on June 1996 supposing nobody will mind it.  */
 #define AMPERSAND_FULL_NAME
 
-/* Define HAVE_SOUND if we have sound support.  We know it works
-   and compiles only on the specified platforms.   For others,
-   it probably doesn't make sense to try.  */
-
-#if defined __FreeBSD__ || defined __NetBSD__ || defined __linux__
-#ifdef HAVE_MACHINE_SOUNDCARD_H
-#define HAVE_SOUND 1
-#endif
-#ifdef HAVE_SYS_SOUNDCARD_H
-#define HAVE_SOUND 1
-#endif
-#ifdef HAVE_SOUNDCARD_H
-#define HAVE_SOUND 1
-#endif
-#ifdef HAVE_ALSA
-#define HAVE_SOUND 1
-#endif
-#endif /* __FreeBSD__ || __NetBSD__ || __linux__  */
-
 /* If using GNU, then support inline function declarations.  */
 /* Don't try to switch on inline handling as detected by AC_C_INLINE
    generally, because even if non-gcc compilers accept `inline', they
@@ -1136,9 +1135,8 @@ extern char *getenv ();
 #endif
 #endif
 
-/* Define if the compiler supports function prototypes.  It may do so
-   but not define __STDC__ (e.g. DEC C by default) or may define it as
-   zero.  */
+/* Define if the compiler supports function prototypes.  It may do so but
+   not define __STDC__ (e.g. DEC C by default) or may define it as zero.  */
 #undef PROTOTYPES
 /* For mktime.c:  */
 #ifndef __P
@@ -1177,18 +1175,6 @@ void *alloca (size_t);
 
 #ifndef HAVE_SIZE_T
 typedef unsigned size_t;
-#endif
-
-/* Define HAVE_X_I18N if we have usable i18n support.  */
-
-#ifdef HAVE_X11R6
-#define HAVE_X_I18N
-#endif
-
-/* Define HAVE_X11R6_XIM if we have usable X11R6-style XIM support.  */
-
-#if defined HAVE_X11R6 && !defined INHIBIT_X11R6_XIM
-#define HAVE_X11R6_XIM
 #endif
 
 #if defined __GNUC__ && (__GNUC__ > 2 \
