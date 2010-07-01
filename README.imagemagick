@@ -27,6 +27,9 @@ jpegs.
   the bundle. This feature is not the primary usecase for the
   imagemagick patch though.
 
+  ImageMagick 6.6.2-8 introduced a bugfix for single page djvu load.
+  To benefit from the bugfix, the loader code in image.c must be changed.
+  
 - optimize number of pages calculation for bundles as suggested by
   imagemagick forum: "set the density to something low like 2 and use
   MagickPingImage()"
