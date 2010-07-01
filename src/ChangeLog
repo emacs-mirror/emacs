@@ -1,5 +1,8 @@
 2010-07-01  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* nsfns.m (compute_tip_xy): Do not convert coordinates from frame
+	parameters, they are already absolute.
+
 	* nsterm.m (x_set_window_size, initFrameFromEmacs): Renamed
 	FRAME_NS_TOOLBAR_HEIGHT to FRAME_TOOLBAR_HEIGHT.
 
