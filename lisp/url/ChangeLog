@@ -1,3 +1,9 @@
+2010-07-01  Mark A. Hershberger  <mah@everybody.org>
+
+	* url-http.el (url-http-create-request): Add a CRLF on the end so
+	that POSTs with content to https urls work. See
+	<https://bugs.launchpad.net/mediawiki-el/+bug/540759>
+
 2010-06-22  Mark A. Hershberger  <mah@everybody.org>
 
 	* url-parse.el (url-user-for-url, url-password-for-url):

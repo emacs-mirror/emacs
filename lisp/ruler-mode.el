@@ -557,15 +557,14 @@ Use the command `ruler-mode' to change this variable.")
 
 (defun ruler--save-header-line-format ()
   "Install the header line format for Ruler mode.
-Unless if Ruler mode is already enabled, save the old header line
+Unless Ruler mode is already enabled, save the old header line
 format first."
-  (when enable
-    (when (and (not ruler-mode)
-	       (local-variable-p 'header-line-format)
-	       (not (local-variable-p 'ruler-mode-header-line-format-old)))
-      (set (make-local-variable 'ruler-mode-header-line-format-old)
-	   header-line-format))
-    (setq header-line-format ruler-mode-header-line-format)))
+  (when (and (not ruler-mode)
+	     (local-variable-p 'header-line-format)
+	     (not (local-variable-p 'ruler-mode-header-line-format-old)))
+    (set (make-local-variable 'ruler-mode-header-line-format-old)
+	 header-line-format))
+  (setq header-line-format ruler-mode-header-line-format))
 
 ;;;###autoload
 (define-minor-mode ruler-mode

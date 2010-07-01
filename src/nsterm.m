@@ -1138,15 +1138,15 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
     /* NOTE: previously this would generate wrong result if toolbar not
              yet displayed and fixing toolbar_height=32 helped, but
              now (200903) seems no longer needed */
-    FRAME_NS_TOOLBAR_HEIGHT (f) =
+    FRAME_TOOLBAR_HEIGHT (f) =
       NSHeight ([window frameRectForContentRect: NSMakeRect (0, 0, 0, 0)])
         - FRAME_NS_TITLEBAR_HEIGHT (f);
   else
-    FRAME_NS_TOOLBAR_HEIGHT (f) = 0;
+    FRAME_TOOLBAR_HEIGHT (f) = 0;
 
   wr.size.width = pixelwidth + f->border_width;
   wr.size.height = pixelheight + FRAME_NS_TITLEBAR_HEIGHT (f) 
-                  + FRAME_NS_TOOLBAR_HEIGHT (f);
+                  + FRAME_TOOLBAR_HEIGHT (f);
 
   /* constrain to screen if we can */
   if (screen)
@@ -4894,16 +4894,16 @@ ns_term_shutdown (int sig)
   rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (emacsframe, frameSize.height
 #ifdef NS_IMPL_GNUSTEP
       - FRAME_NS_TITLEBAR_HEIGHT (emacsframe) + 3
-        - FRAME_NS_TOOLBAR_HEIGHT (emacsframe));
+        - FRAME_TOOLBAR_HEIGHT (emacsframe));
 #else
       - FRAME_NS_TITLEBAR_HEIGHT (emacsframe)
-        - FRAME_NS_TOOLBAR_HEIGHT (emacsframe));
+        - FRAME_TOOLBAR_HEIGHT (emacsframe));
 #endif
   if (rows < MINHEIGHT)
     rows = MINHEIGHT;
   frameSize.height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (emacsframe, rows)
                        + FRAME_NS_TITLEBAR_HEIGHT (emacsframe)
-                       + FRAME_NS_TOOLBAR_HEIGHT (emacsframe);
+                       + FRAME_TOOLBAR_HEIGHT (emacsframe);
 #ifdef NS_IMPL_COCOA
   {
     /* this sets window title to have size in it; the wm does this under GS */
@@ -5114,7 +5114,7 @@ ns_term_shutdown (int sig)
   [toggleButton setTarget: self];
   [toggleButton setAction: @selector (toggleToolbar: )];
 #endif
-  FRAME_NS_TOOLBAR_HEIGHT (f) = 0;
+  FRAME_TOOLBAR_HEIGHT (f) = 0;
 
   tem = f->icon_name;
   if (!NILP (tem))
