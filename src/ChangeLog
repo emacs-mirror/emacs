@@ -1,5 +1,13 @@
 2010-07-01  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* nsterm.m (x_set_window_size, initFrameFromEmacs): Renamed
+	FRAME_NS_TOOLBAR_HEIGHT to FRAME_TOOLBAR_HEIGHT.
+
+	* nsterm.h (FRAME_NS_TOOLBAR_HEIGHT): Rename to FRAME_TOOLBAR_HEIGH
+
+	* nsmenu.m (update_frame_tool_bar, free_frame_tool_bar): Update
+	FRAME_TOOLBAR_HEIGHT.
+
 	* nsmenu.m (free_frame_tool_bar, update_frame_tool_bar): Add
 	BLOCK/UNBLOCK_INPUT so asserts don't trigger.
 
