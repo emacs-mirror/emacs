@@ -1,5 +1,7 @@
 2010-07-01  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* window.c (Fwindow_absolute_pixel_edges): Doc fix.
+
 	* window.c (calc_absolute_offset, Fwindow_absolute_pixel_edges)
 	(Fwindow_inside_absolute_pixel_edges): New functions (bug#5721).
 

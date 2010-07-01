@@ -679,7 +679,7 @@ RIGHT is one more than the rightmost x position occupied by WINDOW.
 BOTTOM is one more than the bottommost y position occupied by WINDOW.
 The pixel edges include the space used by WINDOW's scroll bar, display
 margins, fringes, header line, and/or mode line.  For the pixel edges
-of just the text area, use `window-inside-pixel-edges'.  */)
+of just the text area, use `window-inside-absolute-pixel-edges'.  */)
      (window)
      Lisp_Object window;
 {
