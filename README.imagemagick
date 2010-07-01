@@ -20,32 +20,31 @@ imagemagick one. This is not wrong, but how should a user go about
 prefering the imagemagick loader? The user might like zooming etc in
 jpegs.
 
-- For some reason its unbearably slow to look at a page in a large
+#B _  For some reason its unbearably slow to look at a page in a large
   image bundle using the :index feature. The imagemagick "display"
   command is also a bit slow, but nowhere near as slow as the emacs
   code. It seems imagemagick tries to unpack every page when loading
   the bundle. This feature is not the primary usecase for the
   imagemagick patch though.
 
-  ImageMagick 6.6.2-8 introduced a bugfix for single page djvu load.
-  To benefit from the bugfix, the loader code in image.c must be changed.
-  
-- optimize number of pages calculation for bundles as suggested by
+  ImageMagick 6.6.2-9 introduced a bugfix for single page djvu load.
+  It is now way faster to use the :index feature, but its still not
+  very fast.
+
+#B X optimize number of pages calculation for bundles as suggested by
   imagemagick forum: "set the density to something low like 2 and use
   MagickPingImage()"
   
-- zooming the image like what is done for fonts in face-remap.el would
+  
+#B _ zooming the image like what is done for fonts in face-remap.el would
   be a useful and demo friendly addition. Some work has been done on
   image-mode.el to acihieve this.
 
-- look for optimizations for handling images with low depth
+#B _ look for optimizations for handling images with low depth
   
-- it would be neat if the graphicsmagick fork of imagemagick could
-  optionaly be used.
-
-
   
 * TODO
+
 #B _ complete documentation drafts below
 
 #B X fix inconsistencys with spelling of imagemagick in the src
