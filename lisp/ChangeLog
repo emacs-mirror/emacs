@@ -1,3 +1,7 @@
+2010-07-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ruler-mode.el (ruler--save-header-line-format): Fix typos.
+
 2010-06-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frame.el (make-frame): Add default-frame-alist to the PARAMETERS
