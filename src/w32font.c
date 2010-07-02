@@ -106,28 +106,28 @@ static Lisp_Object Vw32_charset_info_alist;
 /* Font spacing symbols - defined in font.c.  */
 extern Lisp_Object Qc, Qp, Qm;
 
-static void fill_in_logfont P_ ((FRAME_PTR, LOGFONT *, Lisp_Object));
+static void fill_in_logfont (FRAME_PTR, LOGFONT *, Lisp_Object);
 
-static BYTE w32_antialias_type P_ ((Lisp_Object));
-static Lisp_Object lispy_antialias_type P_ ((BYTE));
+static BYTE w32_antialias_type (Lisp_Object);
+static Lisp_Object lispy_antialias_type (BYTE);
 
-static Lisp_Object font_supported_scripts P_ ((FONTSIGNATURE *));
-static int w32font_full_name P_ ((LOGFONT *, Lisp_Object, int, char *, int));
-static void compute_metrics P_ ((HDC, struct w32font_info *, unsigned int,
-				 struct w32_metric_cache *));
+static Lisp_Object font_supported_scripts (FONTSIGNATURE *);
+static int w32font_full_name (LOGFONT *, Lisp_Object, int, char *, int);
+static void compute_metrics (HDC, struct w32font_info *, unsigned int,
+                             struct w32_metric_cache *);
 
-static Lisp_Object w32_registry P_ ((LONG, DWORD));
+static Lisp_Object w32_registry (LONG, DWORD);
 
 /* EnumFontFamiliesEx callbacks.  */
-static int CALLBACK add_font_entity_to_list P_ ((ENUMLOGFONTEX *,
+static int CALLBACK add_font_entity_to_list (ENUMLOGFONTEX *,
+                                             NEWTEXTMETRICEX *,
+                                             DWORD, LPARAM);
+static int CALLBACK add_one_font_entity_to_list (ENUMLOGFONTEX *,
                                                  NEWTEXTMETRICEX *,
-                                                 DWORD, LPARAM));
-static int CALLBACK add_one_font_entity_to_list P_ ((ENUMLOGFONTEX *,
-                                                     NEWTEXTMETRICEX *,
-                                                     DWORD, LPARAM));
-static int CALLBACK add_font_name_to_list P_ ((ENUMLOGFONTEX *,
-                                               NEWTEXTMETRICEX *,
-                                               DWORD, LPARAM));
+                                                 DWORD, LPARAM);
+static int CALLBACK add_font_name_to_list (ENUMLOGFONTEX *,
+                                           NEWTEXTMETRICEX *,
+                                           DWORD, LPARAM);
 
 /* struct passed in as LPARAM arg to EnumFontFamiliesEx, for keeping track
    of what we really want.  */
@@ -149,7 +149,7 @@ struct font_callback_data
 
 /* Handles the problem that EnumFontFamiliesEx will not return all
    style variations if the font name is not specified.  */
-static void list_all_matching_fonts P_ ((struct font_callback_data *));
+static void list_all_matching_fonts (struct font_callback_data *);
 
 
 static int
@@ -971,8 +971,8 @@ add_font_name_to_list (logical_font, physical_font, font_type, list_object)
   return 1;
 }
 
-static int w32_decode_weight P_ ((int));
-static int w32_encode_weight P_ ((int));
+static int w32_decode_weight (int);
+static int w32_encode_weight (int);
 
 /* Convert an enumerated Windows font to an Emacs font entity.  */
 static Lisp_Object

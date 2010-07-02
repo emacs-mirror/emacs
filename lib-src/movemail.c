@@ -142,10 +142,10 @@ static char *mail_spool_name ();
 
 char *strerror ();
 #ifdef HAVE_INDEX
-extern char *index __P ((const char *, int));
+extern char *index (const char *, int);
 #endif
 #ifdef HAVE_RINDEX
-extern char *rindex __P((const char *, int));
+extern char *rindex (const char *, int);
 #endif
 
 void fatal ();

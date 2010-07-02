@@ -234,43 +234,43 @@ extern EMACS_INT extra_keyboard_modifiers;
 /* Keyboard code page - may be changed by language-change events.  */
 static int keyboard_codepage;
 
-static void x_update_window_end P_ ((struct window *, int, int));
-static void w32_handle_tool_bar_click P_ ((struct frame *,
-                                          struct input_event *));
-static void w32_define_cursor P_ ((Window, Cursor));
+static void x_update_window_end (struct window *, int, int);
+static void w32_handle_tool_bar_click (struct frame *,
+                                       struct input_event *);
+static void w32_define_cursor (Window, Cursor);
 
-void x_lower_frame P_ ((struct frame *));
-void x_scroll_bar_clear P_ ((struct frame *));
-void x_wm_set_size_hint P_ ((struct frame *, long, int));
-void x_raise_frame P_ ((struct frame *));
-void x_set_window_size P_ ((struct frame *, int, int, int));
-void x_wm_set_window_state P_ ((struct frame *, int));
-void x_wm_set_icon_pixmap P_ ((struct frame *, int));
-static void w32_initialize P_ ((void));
-static void x_update_end P_ ((struct frame *));
-static void w32_frame_up_to_date P_ ((struct frame *));
-static void w32_set_terminal_modes P_ ((struct terminal *));
-static void w32_reset_terminal_modes P_ ((struct terminal *));
-static void x_clear_frame P_ ((struct frame *));
-static void frame_highlight P_ ((struct frame *));
-static void frame_unhighlight P_ ((struct frame *));
-static void x_new_focus_frame P_ ((struct w32_display_info *,
-				   struct frame *));
-static void x_focus_changed P_ ((int, int, struct w32_display_info *,
-				  struct frame *, struct input_event *));
-static void w32_detect_focus_change P_ ((struct w32_display_info *,
-                                       W32Msg *, struct input_event *));
-static void w32_frame_rehighlight P_ ((struct frame *));
-static void x_frame_rehighlight P_ ((struct w32_display_info *));
-static void x_draw_hollow_cursor P_ ((struct window *, struct glyph_row *));
-static void x_draw_bar_cursor P_ ((struct window *, struct glyph_row *, int,
-				   enum text_cursor_kinds));
-static void w32_clip_to_row P_ ((struct window *, struct glyph_row *, int, HDC));
-static BOOL my_show_window P_ ((struct frame *, HWND, int));
-static void my_set_window_pos P_ ((HWND, HWND, int, int, int, int, UINT));
-static void my_set_focus P_ ((struct frame *, HWND));
-static void my_set_foreground_window P_ ((HWND));
-static void my_destroy_window P_ ((struct frame *, HWND));
+void x_lower_frame (struct frame *);
+void x_scroll_bar_clear (struct frame *);
+void x_wm_set_size_hint (struct frame *, long, int);
+void x_raise_frame (struct frame *);
+void x_set_window_size (struct frame *, int, int, int);
+void x_wm_set_window_state (struct frame *, int);
+void x_wm_set_icon_pixmap (struct frame *, int);
+static void w32_initialize (void);
+static void x_update_end (struct frame *);
+static void w32_frame_up_to_date (struct frame *);
+static void w32_set_terminal_modes (struct terminal *);
+static void w32_reset_terminal_modes (struct terminal *);
+static void x_clear_frame (struct frame *);
+static void frame_highlight (struct frame *);
+static void frame_unhighlight (struct frame *);
+static void x_new_focus_frame (struct w32_display_info *,
+                               struct frame *);
+static void x_focus_changed (int, int, struct w32_display_info *,
+                             struct frame *, struct input_event *);
+static void w32_detect_focus_change (struct w32_display_info *,
+                                     W32Msg *, struct input_event *);
+static void w32_frame_rehighlight (struct frame *);
+static void x_frame_rehighlight (struct w32_display_info *);
+static void x_draw_hollow_cursor (struct window *, struct glyph_row *);
+static void x_draw_bar_cursor (struct window *, struct glyph_row *, int,
+                               enum text_cursor_kinds);
+static void w32_clip_to_row (struct window *, struct glyph_row *, int, HDC);
+static BOOL my_show_window (struct frame *, HWND, int);
+static void my_set_window_pos (HWND, HWND, int, int, int, int, UINT);
+static void my_set_focus (struct frame *, HWND);
+static void my_set_foreground_window (HWND);
+static void my_destroy_window (struct frame *, HWND);
 
 static Lisp_Object Qvendor_specific_keysyms;
 
@@ -947,32 +947,32 @@ w32_reset_terminal_modes (struct terminal *term)
 
 /* Function prototypes of this page.  */
 
-static void x_set_glyph_string_clipping P_ ((struct glyph_string *));
-static void x_set_glyph_string_gc P_ ((struct glyph_string *));
-static void x_draw_glyph_string_background P_ ((struct glyph_string *,
-						int));
-static void x_draw_glyph_string_foreground P_ ((struct glyph_string *));
-static void x_draw_composite_glyph_string_foreground P_ ((struct glyph_string *));
-static void x_draw_glyph_string_box P_ ((struct glyph_string *));
-static void x_draw_glyph_string  P_ ((struct glyph_string *));
-static void x_set_cursor_gc P_ ((struct glyph_string *));
-static void x_set_mode_line_face_gc P_ ((struct glyph_string *));
-static void x_set_mouse_face_gc P_ ((struct glyph_string *));
+static void x_set_glyph_string_clipping (struct glyph_string *);
+static void x_set_glyph_string_gc (struct glyph_string *);
+static void x_draw_glyph_string_background (struct glyph_string *,
+                                            int);
+static void x_draw_glyph_string_foreground (struct glyph_string *);
+static void x_draw_composite_glyph_string_foreground (struct glyph_string *);
+static void x_draw_glyph_string_box (struct glyph_string *);
+static void x_draw_glyph_string  (struct glyph_string *);
+static void x_set_cursor_gc (struct glyph_string *);
+static void x_set_mode_line_face_gc (struct glyph_string *);
+static void x_set_mouse_face_gc (struct glyph_string *);
 static int w32_alloc_lighter_color (struct frame *, COLORREF *, double, int);
-static void w32_setup_relief_color P_ ((struct frame *, struct relief *,
-                                        double, int, COLORREF));
-static void x_setup_relief_colors P_ ((struct glyph_string *));
-static void x_draw_image_glyph_string P_ ((struct glyph_string *));
-static void x_draw_image_relief P_ ((struct glyph_string *));
-static void x_draw_image_foreground P_ ((struct glyph_string *));
-static void w32_draw_image_foreground_1 P_ ((struct glyph_string *, HBITMAP));
-static void x_clear_glyph_string_rect P_ ((struct glyph_string *, int,
-					   int, int, int));
-static void w32_draw_relief_rect P_ ((struct frame *, int, int, int, int,
-				      int, int, int, int, int, int,
-				      RECT *));
-static void w32_draw_box_rect P_ ((struct glyph_string *, int, int, int, int,
-				 int, int, int, RECT *));
+static void w32_setup_relief_color (struct frame *, struct relief *,
+                                    double, int, COLORREF);
+static void x_setup_relief_colors (struct glyph_string *);
+static void x_draw_image_glyph_string (struct glyph_string *);
+static void x_draw_image_relief (struct glyph_string *);
+static void x_draw_image_foreground (struct glyph_string *);
+static void w32_draw_image_foreground_1 (struct glyph_string *, HBITMAP);
+static void x_clear_glyph_string_rect (struct glyph_string *, int,
+                                       int, int, int);
+static void w32_draw_relief_rect (struct frame *, int, int, int, int,
+                                  int, int, int, int, int, int,
+                                  RECT *);
+static void w32_draw_box_rect (struct glyph_string *, int, int, int, int,
+                               int, int, int, RECT *);
 
 
 /* Set S->gc to a suitable GC for drawing glyph string S in cursor
@@ -3170,7 +3170,7 @@ note_mouse_movement (frame, msg)
 
 static struct scroll_bar *x_window_to_scroll_bar ();
 static void x_scroll_bar_report_motion ();
-static void x_check_fullscreen P_ ((struct frame *));
+static void x_check_fullscreen (struct frame *);
 
 static void
 redo_mouse_highlight ()

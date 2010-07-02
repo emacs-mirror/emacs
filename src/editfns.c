@@ -86,38 +86,38 @@ extern char **environ;
     (1000 - TM_YEAR_BASE <= (tm_year) && (tm_year) <= 9999 - TM_YEAR_BASE)
 #endif
 
-extern size_t emacs_strftimeu P_ ((char *, size_t, const char *,
-				   const struct tm *, int));
+extern size_t emacs_strftimeu (char *, size_t, const char *,
+                               const struct tm *, int);
 
 #ifdef WINDOWSNT
 extern Lisp_Object w32_get_internal_run_time ();
 #endif
 
-static int tm_diff P_ ((struct tm *, struct tm *));
-static void find_field P_ ((Lisp_Object, Lisp_Object, Lisp_Object, int *, Lisp_Object, int *));
-static void update_buffer_properties P_ ((int, int));
-static Lisp_Object region_limit P_ ((int));
-int lisp_time_argument P_ ((Lisp_Object, time_t *, int *));
-static size_t emacs_memftimeu P_ ((char *, size_t, const char *,
-				   size_t, const struct tm *, int));
+static int tm_diff (struct tm *, struct tm *);
+static void find_field (Lisp_Object, Lisp_Object, Lisp_Object, int *, Lisp_Object, int *);
+static void update_buffer_properties (int, int);
+static Lisp_Object region_limit (int);
+int lisp_time_argument (Lisp_Object, time_t *, int *);
+static size_t emacs_memftimeu (char *, size_t, const char *,
+                               size_t, const struct tm *, int);
 static void general_insert_function (void (*) (const unsigned char *, EMACS_INT),
 				     void (*) (Lisp_Object, EMACS_INT,
 					       EMACS_INT, EMACS_INT,
 					       EMACS_INT, int),
 				     int, int, Lisp_Object *);
-static Lisp_Object subst_char_in_region_unwind P_ ((Lisp_Object));
-static Lisp_Object subst_char_in_region_unwind_1 P_ ((Lisp_Object));
-static void transpose_markers P_ ((int, int, int, int, int, int, int, int));
+static Lisp_Object subst_char_in_region_unwind (Lisp_Object);
+static Lisp_Object subst_char_in_region_unwind_1 (Lisp_Object);
+static void transpose_markers (int, int, int, int, int, int, int, int);
 
 #ifdef HAVE_INDEX
-extern char *index P_ ((const char *, int));
+extern char *index (const char *, int);
 #endif
 
 Lisp_Object Vbuffer_access_fontify_functions;
 Lisp_Object Qbuffer_access_fontify_functions;
 Lisp_Object Vbuffer_access_fontified_property;
 
-Lisp_Object Fuser_full_name P_ ((Lisp_Object));
+Lisp_Object Fuser_full_name (Lisp_Object);
 
 /* Non-nil means don't stop at field boundary in text motion commands.  */
 
@@ -2953,7 +2953,7 @@ Both characters must have the same length of multi-byte form.  */)
 }
 
 
-static Lisp_Object check_translation P_ ((int, int, int, Lisp_Object));
+static Lisp_Object check_translation (int, int, int, Lisp_Object);
 
 /* Helper function for Ftranslate_region_internal.
 

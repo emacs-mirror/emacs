@@ -20,13 +20,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef EMACS_ATIMER_H
 #define EMACS_ATIMER_H
 
-/* Declare the prototype for a general external function.  */
-#if defined (PROTOTYPES) || defined (WINDOWSNT)
-#define P_(proto) proto
-#else
-#define P_(proto) ()
-#endif
-
 #include "systime.h"		/* for EMACS_TIME */
 
 /* Forward declaration.  */

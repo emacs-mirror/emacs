@@ -116,16 +116,16 @@ extern int h_errno;
 # endif /* __STDC__ */
 #endif /* ! __P */
 
-static int socket_connection __P((char *, int));
-static int pop_getline __P((popserver, char **));
-static int sendline __P((popserver, char *));
-static int fullwrite __P((int, char *, int));
-static int getok __P((popserver));
+static int socket_connection (char *, int);
+static int pop_getline (popserver, char **);
+static int sendline (popserver, char *);
+static int fullwrite (int, char *, int);
+static int getok (popserver);
 #if 0
-static int gettermination __P((popserver));
+static int gettermination (popserver);
 #endif
-static void pop_trash __P((popserver));
-static char *find_crlf __P((char *, int));
+static void pop_trash (popserver);
+static char *find_crlf (char *, int);
 
 #define ERROR_MAX 160		/* a pretty arbitrary size, but needs
 				   to be bigger than the original

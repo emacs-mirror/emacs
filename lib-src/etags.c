@@ -158,20 +158,20 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 #  include <stdlib.h>
 #  include <string.h>
 # else /* no standard C headers */
-   extern char *getenv __P((const char *));
-   extern char *strcpy __P((char *, const char *));
-   extern char *strncpy __P((char *, const char *, unsigned long));
-   extern char *strcat __P((char *, const char *));
-   extern char *strncat __P((char *, const char *, unsigned long));
-   extern int strcmp __P((const char *, const char *));
-   extern int strncmp __P((const char *, const char *, unsigned long));
-   extern int system __P((const char *));
-   extern unsigned long strlen __P((const char *));
-   extern void *malloc __P((unsigned long));
-   extern void *realloc __P((void *, unsigned long));
-   extern void exit __P((int));
-   extern void free __P((void *));
-   extern void *memmove __P((void *, const void *, unsigned long));
+   extern char *getenv (const char *);
+   extern char *strcpy (char *, const char *);
+   extern char *strncpy (char *, const char *, unsigned long);
+   extern char *strcat (char *, const char *);
+   extern char *strncat (char *, const char *, unsigned long);
+   extern int strcmp (const char *, const char *);
+   extern int strncmp (const char *, const char *, unsigned long);
+   extern int system (const char *);
+   extern unsigned long strlen (const char *);
+   extern void *malloc (unsigned long);
+   extern void *realloc (void *, unsigned long);
+   extern void exit (int);
+   extern void free (void *);
+   extern void *memmove (void *, const void *, unsigned long);
 #  define EXIT_SUCCESS	0
 #  define EXIT_FAILURE	1
 # endif
@@ -273,7 +273,7 @@ If you want regular expression support, you should delete this notice and
 
 #define bool int
 
-typedef void Lang_function __P((FILE *));
+typedef void Lang_function (FILE *);
 
 typedef struct
 {
@@ -365,87 +365,87 @@ typedef struct regexp
 /* Many compilers barf on this:
 	Lang_function Ada_funcs;
    so let's write it this way */
-static void Ada_funcs __P((FILE *));
-static void Asm_labels __P((FILE *));
-static void C_entries __P((int c_ext, FILE *));
-static void default_C_entries __P((FILE *));
-static void plain_C_entries __P((FILE *));
-static void Cjava_entries __P((FILE *));
-static void Cobol_paragraphs __P((FILE *));
-static void Cplusplus_entries __P((FILE *));
-static void Cstar_entries __P((FILE *));
-static void Erlang_functions __P((FILE *));
-static void Forth_words __P((FILE *));
-static void Fortran_functions __P((FILE *));
-static void HTML_labels __P((FILE *));
-static void Lisp_functions __P((FILE *));
-static void Lua_functions __P((FILE *));
-static void Makefile_targets __P((FILE *));
-static void Pascal_functions __P((FILE *));
-static void Perl_functions __P((FILE *));
-static void PHP_functions __P((FILE *));
-static void PS_functions __P((FILE *));
-static void Prolog_functions __P((FILE *));
-static void Python_functions __P((FILE *));
-static void Scheme_functions __P((FILE *));
-static void TeX_commands __P((FILE *));
-static void Texinfo_nodes __P((FILE *));
-static void Yacc_entries __P((FILE *));
-static void just_read_file __P((FILE *));
+static void Ada_funcs (FILE *);
+static void Asm_labels (FILE *);
+static void C_entries (int c_ext, FILE *);
+static void default_C_entries (FILE *);
+static void plain_C_entries (FILE *);
+static void Cjava_entries (FILE *);
+static void Cobol_paragraphs (FILE *);
+static void Cplusplus_entries (FILE *);
+static void Cstar_entries (FILE *);
+static void Erlang_functions (FILE *);
+static void Forth_words (FILE *);
+static void Fortran_functions (FILE *);
+static void HTML_labels (FILE *);
+static void Lisp_functions (FILE *);
+static void Lua_functions (FILE *);
+static void Makefile_targets (FILE *);
+static void Pascal_functions (FILE *);
+static void Perl_functions (FILE *);
+static void PHP_functions (FILE *);
+static void PS_functions (FILE *);
+static void Prolog_functions (FILE *);
+static void Python_functions (FILE *);
+static void Scheme_functions (FILE *);
+static void TeX_commands (FILE *);
+static void Texinfo_nodes (FILE *);
+static void Yacc_entries (FILE *);
+static void just_read_file (FILE *);
 
-static void print_language_names __P((void));
-static void print_version __P((void));
-static void print_help __P((argument *));
-int main __P((int, char **));
+static void print_language_names (void);
+static void print_version (void);
+static void print_help (argument *);
+int main (int, char **);
 
-static compressor *get_compressor_from_suffix __P((char *, char **));
-static language *get_language_from_langname __P((const char *));
-static language *get_language_from_interpreter __P((char *));
-static language *get_language_from_filename __P((char *, bool));
-static void readline __P((linebuffer *, FILE *));
-static long readline_internal __P((linebuffer *, FILE *));
-static bool nocase_tail __P((char *));
-static void get_tag __P((char *, char **));
+static compressor *get_compressor_from_suffix (char *, char **);
+static language *get_language_from_langname (const char *);
+static language *get_language_from_interpreter (char *);
+static language *get_language_from_filename (char *, bool);
+static void readline (linebuffer *, FILE *);
+static long readline_internal (linebuffer *, FILE *);
+static bool nocase_tail (char *);
+static void get_tag (char *, char **);
 
-static void analyse_regex __P((char *));
-static void free_regexps __P((void));
-static void regex_tag_multiline __P((void));
-static void error __P((const char *, const char *));
-static void suggest_asking_for_help __P((void));
-void fatal __P((char *, char *));
-static void pfatal __P((char *));
-static void add_node __P((node *, node **));
+static void analyse_regex (char *);
+static void free_regexps (void);
+static void regex_tag_multiline (void);
+static void error (const char *, const char *);
+static void suggest_asking_for_help (void);
+void fatal (char *, char *);
+static void pfatal (char *);
+static void add_node (node *, node **);
 
-static void init __P((void));
-static void process_file_name __P((char *, language *));
-static void process_file __P((FILE *, char *, language *));
-static void find_entries __P((FILE *));
-static void free_tree __P((node *));
-static void free_fdesc __P((fdesc *));
-static void pfnote __P((char *, bool, char *, int, int, long));
-static void make_tag __P((char *, int, bool, char *, int, int, long));
-static void invalidate_nodes __P((fdesc *, node **));
-static void put_entries __P((node *));
+static void init (void);
+static void process_file_name (char *, language *);
+static void process_file (FILE *, char *, language *);
+static void find_entries (FILE *);
+static void free_tree (node *);
+static void free_fdesc (fdesc *);
+static void pfnote (char *, bool, char *, int, int, long);
+static void make_tag (char *, int, bool, char *, int, int, long);
+static void invalidate_nodes (fdesc *, node **);
+static void put_entries (node *);
 
-static char *concat __P((char *, char *, char *));
-static char *skip_spaces __P((char *));
-static char *skip_non_spaces __P((char *));
-static char *savenstr __P((char *, int));
-static char *savestr __P((char *));
-static char *etags_strchr __P((const char *, int));
-static char *etags_strrchr __P((const char *, int));
-static int etags_strcasecmp __P((const char *, const char *));
-static int etags_strncasecmp __P((const char *, const char *, int));
-static char *etags_getcwd __P((void));
-static char *relative_filename __P((char *, char *));
-static char *absolute_filename __P((char *, char *));
-static char *absolute_dirname __P((char *, char *));
-static bool filename_is_absolute __P((char *f));
-static void canonicalize_filename __P((char *));
-static void linebuffer_init __P((linebuffer *));
-static void linebuffer_setlen __P((linebuffer *, int));
-static PTR xmalloc __P((unsigned int));
-static PTR xrealloc __P((char *, unsigned int));
+static char *concat (char *, char *, char *);
+static char *skip_spaces (char *);
+static char *skip_non_spaces (char *);
+static char *savenstr (char *, int);
+static char *savestr (char *);
+static char *etags_strchr (const char *, int);
+static char *etags_strrchr (const char *, int);
+static int etags_strcasecmp (const char *, const char *);
+static int etags_strncasecmp (const char *, const char *, int);
+static char *etags_getcwd (void);
+static char *relative_filename (char *, char *);
+static char *absolute_filename (char *, char *);
+static char *absolute_dirname (char *, char *);
+static bool filename_is_absolute (char *f);
+static void canonicalize_filename (char *);
+static void linebuffer_init (linebuffer *);
+static void linebuffer_setlen (linebuffer *, int);
+static PTR xmalloc (unsigned int);
+static PTR xrealloc (char *, unsigned int);
 
 
 static char searchar = '/';	/* use /.../ searches */
@@ -2178,8 +2178,8 @@ invalidate_nodes (badfdp, npp)
 }
 
 
-static int total_size_of_entries __P((node *));
-static int number_len __P((long));
+static int total_size_of_entries (node *);
+static int number_len (long);
 
 /* Length of a non-negative number's decimal representation. */
 static int
@@ -2330,9 +2330,9 @@ enum sym_type
   st_C_struct, st_C_extern, st_C_enum, st_C_define, st_C_typedef
 };
 
-static unsigned int hash __P((const char *, unsigned int));
-static struct C_stab_entry * in_word_set __P((const char *, unsigned int));
-static enum sym_type C_symtype __P((char *, int, int));
+static unsigned int hash (const char *, unsigned int);
+static struct C_stab_entry * in_word_set (const char *, unsigned int);
+static enum sym_type C_symtype (char *, int, int);
 
 /* Feed stuff between (but not including) %[ and %] lines to:
      gperf -m 5
@@ -2646,9 +2646,9 @@ static struct tok
  * Variables and functions for dealing with nested structures.
  * Idea by Mykola Dzyuba <mdzyuba@yahoo.com> (2001)
  */
-static void pushclass_above __P((int, char *, int));
-static void popclass_above __P((int));
-static void write_classname __P((linebuffer *, char *qualifier));
+static void pushclass_above (int, char *, int);
+static void popclass_above (int);
+static void write_classname (linebuffer *, char *qualifier);
 
 static struct {
   char **cname;			/* nested class names */
@@ -2736,8 +2736,8 @@ write_classname (cn, qualifier)
 }
 
 
-static bool consider_token __P((char *, int, int, int *, int, int, bool *));
-static void make_C_tag __P((bool));
+static bool consider_token (char *, int, int, int *, int, int, bool *);
+static void make_C_tag (bool);
 
 /*
  * consider_token ()
@@ -4043,8 +4043,8 @@ just_read_file (inf)
 
 /* Fortran parsing */
 
-static void F_takeprec __P((void));
-static void F_getit __P((FILE *));
+static void F_takeprec (void);
+static void F_getit (FILE *);
 
 static void
 F_takeprec ()
@@ -4178,7 +4178,7 @@ Fortran_functions (inf)
  * Philippe Waroquiers (1998)
  */
 
-static void Ada_getit __P((FILE *, char *));
+static void Ada_getit (FILE *, char *);
 
 /* Once we are positioned after an "interesting" keyword, let's get
    the real tag value necessary. */
@@ -4832,7 +4832,7 @@ Pascal_functions (inf)
  *  look for (def or (DEF, quote or QUOTE
  */
 
-static void L_getit __P((void));
+static void L_getit (void);
 
 static void
 L_getit ()
@@ -5032,8 +5032,8 @@ static char *TEX_defenv = "\
 :part:appendix:entry:index:def\
 :newcommand:renewcommand:newenvironment:renewenvironment";
 
-static void TEX_mode __P((FILE *));
-static void TEX_decode_env __P((char *, char *));
+static void TEX_mode (FILE *);
+static void TEX_decode_env (char *, char *);
 
 static char TEX_esc = '\\';
 static char TEX_opgrp = '{';
@@ -5338,9 +5338,9 @@ HTML_labels (inf)
  * Original code by Sunichirou Sugou (1989)
  * Rewritten by Anders Lindgren (1996)
  */
-static int prolog_pr __P((char *, char *));
-static void prolog_skip_comment __P((linebuffer *, FILE *));
-static int prolog_atom __P((char *, int));
+static int prolog_pr (char *, char *);
+static void prolog_skip_comment (linebuffer *, FILE *);
+static int prolog_atom (char *, int);
 
 static void
 Prolog_functions (inf)
@@ -5503,9 +5503,9 @@ prolog_atom (s, pos)
  * Assumes that Erlang functions start at column 0.
  * Original code by Anders Lindgren (1996)
  */
-static int erlang_func __P((char *, char *));
-static void erlang_attribute __P((char *));
-static int erlang_atom __P((char *));
+static int erlang_func (char *, char *);
+static void erlang_attribute (char *);
+static int erlang_atom (char *);
 
 static void
 Erlang_functions (inf)
@@ -5652,9 +5652,9 @@ erlang_atom (s)
 }
 
 
-static char *scan_separators __P((char *));
-static void add_regex __P((char *, language *));
-static char *substitute __P((char *, char *, struct re_registers *));
+static char *scan_separators (char *);
+static void add_regex (char *, language *);
+static char *substitute (char *, char *, struct re_registers *);
 
 /*
  * Take a string like "/blah/" and turn it into "blah", verifying

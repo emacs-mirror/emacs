@@ -2057,7 +2057,7 @@ If the current binding is global (the default), the value is nil.  */)
 /* This code is disabled now that we use the selected frame to return
    keyboard-local-values. */
 #if 0
-extern struct terminal *get_terminal P_ ((Lisp_Object display, int));
+extern struct terminal *get_terminal (Lisp_Object display, int);
 
 DEFUN ("terminal-local-value", Fterminal_local_value, Sterminal_local_value, 2, 2, 0,
        doc: /* Return the terminal-local value of SYMBOL on TERMINAL.
@@ -2605,8 +2605,8 @@ enum arithop
     Amin
   };
 
-static Lisp_Object float_arith_driver P_ ((double, int, enum arithop,
-					   int, Lisp_Object *));
+static Lisp_Object float_arith_driver (double, int, enum arithop,
+                                       int, Lisp_Object *);
 extern Lisp_Object fmod_float ();
 
 Lisp_Object

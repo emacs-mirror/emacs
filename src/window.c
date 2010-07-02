@@ -59,32 +59,32 @@ Lisp_Object Qwindow_size_fixed;
 
 extern Lisp_Object Qleft_margin, Qright_margin;
 
-static int displayed_window_lines P_ ((struct window *));
-static struct window *decode_window P_ ((Lisp_Object));
-static int count_windows P_ ((struct window *));
-static int get_leaf_windows P_ ((struct window *, struct window **, int));
-static void window_scroll P_ ((Lisp_Object, int, int, int));
-static void window_scroll_pixel_based P_ ((Lisp_Object, int, int, int));
-static void window_scroll_line_based P_ ((Lisp_Object, int, int, int));
-static int window_min_size_1 P_ ((struct window *, int, int));
-static int window_min_size_2 P_ ((struct window *, int, int));
-static int window_min_size P_ ((struct window *, int, int, int, int *));
-static void size_window P_ ((Lisp_Object, int, int, int, int, int));
-static int freeze_window_start P_ ((struct window *, void *));
-static int window_fixed_size_p P_ ((struct window *, int, int));
-static void enlarge_window P_ ((Lisp_Object, int, int));
-static Lisp_Object window_list P_ ((void));
-static int add_window_to_list P_ ((struct window *, void *));
-static int candidate_window_p P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
-				   Lisp_Object));
-static Lisp_Object next_window P_ ((Lisp_Object, Lisp_Object,
-				    Lisp_Object, int));
-static void decode_next_window_args P_ ((Lisp_Object *, Lisp_Object *,
-					 Lisp_Object *));
-static int foreach_window_1 P_ ((struct window *,
-				 int (* fn) (struct window *, void *),
-				 void *));
-static Lisp_Object window_list_1 P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
+static int displayed_window_lines (struct window *);
+static struct window *decode_window (Lisp_Object);
+static int count_windows (struct window *);
+static int get_leaf_windows (struct window *, struct window **, int);
+static void window_scroll (Lisp_Object, int, int, int);
+static void window_scroll_pixel_based (Lisp_Object, int, int, int);
+static void window_scroll_line_based (Lisp_Object, int, int, int);
+static int window_min_size_1 (struct window *, int, int);
+static int window_min_size_2 (struct window *, int, int);
+static int window_min_size (struct window *, int, int, int, int *);
+static void size_window (Lisp_Object, int, int, int, int, int);
+static int freeze_window_start (struct window *, void *);
+static int window_fixed_size_p (struct window *, int, int);
+static void enlarge_window (Lisp_Object, int, int);
+static Lisp_Object window_list (void);
+static int add_window_to_list (struct window *, void *);
+static int candidate_window_p (Lisp_Object, Lisp_Object, Lisp_Object,
+                               Lisp_Object);
+static Lisp_Object next_window (Lisp_Object, Lisp_Object,
+                                Lisp_Object, int);
+static void decode_next_window_args (Lisp_Object *, Lisp_Object *,
+                                     Lisp_Object *);
+static int foreach_window_1 (struct window *,
+                             int (* fn) (struct window *, void *),
+                             void *);
+static Lisp_Object window_list_1 (Lisp_Object, Lisp_Object, Lisp_Object);
 
 /* This is the window in which the terminal's cursor should
    be left when nothing is being done with it.  This must
@@ -4126,9 +4126,9 @@ enlarge_window (window, delta, horiz_flag)
   struct window *p;
   Lisp_Object *sizep;
   int maximum;
-  int (*sizefun) P_ ((Lisp_Object))
+  int (*sizefun) (Lisp_Object)
     = horiz_flag ? window_width : window_height;
-  void (*setsizefun) P_ ((Lisp_Object, int, int))
+  void (*setsizefun) (Lisp_Object, int, int)
     = (horiz_flag ? set_window_width : set_window_height);
 
   /* Give up if this window cannot be resized.  */
@@ -4554,7 +4554,7 @@ are not deleted; instead, we signal an error.  */)
 			Resizing Mini-Windows
  ***********************************************************************/
 
-static void shrink_window_lowest_first P_ ((struct window *, int));
+static void shrink_window_lowest_first (struct window *, int);
 
 enum save_restore_action
 {
@@ -4563,8 +4563,8 @@ enum save_restore_action
     RESTORE_ORIG_SIZES
 };
 
-static int save_restore_orig_size P_ ((struct window *,
-                                       enum save_restore_action));
+static int save_restore_orig_size (struct window *,
+                                   enum save_restore_action);
 
 /* Shrink windows rooted in window W to HEIGHT.  Take the space needed
    from lowest windows first.  */
@@ -7012,7 +7012,7 @@ If PIXELS-P is non-nil, the return value is VSCROLL.  */)
 void
 foreach_window (f, fn, user_data)
      struct frame *f;
-     int (* fn) P_ ((struct window *, void *));
+     int (* fn) (struct window *, void *);
      void *user_data;
 {
   /* delete_frame may set FRAME_ROOT_WINDOW (f) to Qnil.  */
@@ -7029,7 +7029,7 @@ foreach_window (f, fn, user_data)
 static int
 foreach_window_1 (w, fn, user_data)
      struct window *w;
-     int (* fn) P_ ((struct window *, void *));
+     int (* fn) (struct window *, void *);
      void *user_data;
 {
   int cont;

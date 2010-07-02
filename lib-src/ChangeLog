@@ -1,3 +1,11 @@
+2010-07-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* ebrowse.c: Remove P_ and __P.
+	* etags.c:
+	* movemail.c:
+	* pop.c:
+	* update-game-score.c: Likewise.
+
 2010-06-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* movemail.c (error): Avoid warning when there are no args.

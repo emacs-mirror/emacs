@@ -30,7 +30,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keymap.h"
 
 #ifdef HAVE_INDEX
-extern char *index P_ ((const char *, int));
+extern char *index (const char *, int);
 #endif
 
 extern Lisp_Object Qcursor_in_echo_area;

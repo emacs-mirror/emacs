@@ -201,8 +201,8 @@ static void Right();
 static void Select();
 static void Key();
 static void Nothing();
-static int separator_height __P ((enum menu_separator));
-static void pop_up_menu __P ((XlwMenuWidget, XButtonPressedEvent *));
+static int separator_height (enum menu_separator);
+static void pop_up_menu (XlwMenuWidget, XButtonPressedEvent *);
 
 
 static XtActionsRec

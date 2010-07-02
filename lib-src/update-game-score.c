@@ -89,8 +89,8 @@ usage (err)
   exit (err);
 }
 
-int lock_file P_ ((const char *filename, void **state));
-int unlock_file P_ ((const char *filename, void *state));
+int lock_file (const char *filename, void **state);
+int unlock_file (const char *filename, void *state);
 
 struct score_entry
 {
@@ -99,15 +99,15 @@ struct score_entry
   char *data;
 };
 
-int read_scores P_ ((const char *filename, struct score_entry **scores,
-		     int *count));
-int push_score P_ ((struct score_entry **scores, int *count,
-		    int newscore, char *username, char *newdata));
-void sort_scores P_ ((struct score_entry *scores, int count, int reverse));
-int write_scores P_ ((const char *filename, const struct score_entry *scores,
-		      int count));
+int read_scores (const char *filename, struct score_entry **scores,
+                 int *count);
+int push_score (struct score_entry **scores, int *count,
+                int newscore, char *username, char *newdata);
+void sort_scores (struct score_entry *scores, int count, int reverse);
+int write_scores (const char *filename, const struct score_entry *scores,
+                  int count);
 
-void lose P_ ((const char *msg)) NO_RETURN;
+void lose (const char *msg) NO_RETURN;
 
 void
 lose (msg)
@@ -117,7 +117,7 @@ lose (msg)
   exit (EXIT_FAILURE);
 }
 
-void lose_syserr P_ ((const char *msg)) NO_RETURN;
+void lose_syserr (const char *msg) NO_RETURN;
 
 /* Taken from sysdep.c.  */
 #ifndef HAVE_STRERROR
@@ -145,7 +145,7 @@ lose_syserr (msg)
 }
 
 char *
-get_user_id P_ ((void))
+get_user_id (void)
 {
   char *name;
   struct passwd *buf = getpwuid (getuid ());

@@ -58,14 +58,14 @@ struct matrix_elt
     unsigned char writecount;
   };
 
-static void do_direct_scrolling P_ ((struct frame *,
-                                     struct glyph_matrix *,
-				     struct matrix_elt *,
-				     int, int));
-static void do_scrolling P_ ((struct frame *,
-                              struct glyph_matrix *,
-			      struct matrix_elt *,
-			      int, int));
+static void do_direct_scrolling (struct frame *,
+                                 struct glyph_matrix *,
+                                 struct matrix_elt *,
+                                 int, int);
+static void do_scrolling (struct frame *,
+                          struct glyph_matrix *,
+                          struct matrix_elt *,
+                          int, int);
 
 
 /* Determine, in matrix[i,j], the cost of updating the first j old

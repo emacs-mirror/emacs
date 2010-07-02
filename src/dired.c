@@ -93,7 +93,7 @@ extern struct direct *readdir ();
 extern struct re_pattern_buffer *compile_pattern ();
 
 /* From filemode.c.  Can't go in Lisp.h because of `stat'.  */
-extern void filemodestring P_ ((struct stat *, char *));
+extern void filemodestring (struct stat *, char *);
 
 /* if system does not have symbolic links, it does not have lstat.
    In that case, use ordinary stat instead.  */
@@ -115,7 +115,7 @@ Lisp_Object Qfile_name_all_completions;
 Lisp_Object Qfile_attributes;
 Lisp_Object Qfile_attributes_lessp;
 
-static int scmp P_ ((unsigned char *, unsigned char *, int));
+static int scmp (unsigned char *, unsigned char *, int);
 
 #ifdef WINDOWSNT
 Lisp_Object

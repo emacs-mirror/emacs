@@ -104,13 +104,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #ifdef USE_LUCID
-extern int xlwmenu_window_p P_ ((Widget w, Window window));
-extern void xlwmenu_redisplay P_ ((Widget));
+extern int xlwmenu_window_p (Widget w, Window window);
+extern void xlwmenu_redisplay (Widget);
 #endif
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
 
-extern void free_frame_menubar P_ ((struct frame *));
+extern void free_frame_menubar (struct frame *);
 #endif
 
 #ifdef USE_X_TOOLKIT
@@ -332,54 +332,54 @@ Lisp_Object Qx_gtk_map_stock;
 
 extern Lisp_Object Vinhibit_redisplay;
 
-extern XrmDatabase x_load_resources P_ ((Display *, char *, char *, char *));
-extern int x_bitmap_mask P_ ((FRAME_PTR, int));
+extern XrmDatabase x_load_resources (Display *, char *, char *, char *);
+extern int x_bitmap_mask (FRAME_PTR, int);
 
-static int x_alloc_nearest_color_1 P_ ((Display *, Colormap, XColor *));
-static void x_set_window_size_1 P_ ((struct frame *, int, int, int));
-static const XColor *x_color_cells P_ ((Display *, int *));
-static void x_update_window_end P_ ((struct window *, int, int));
+static int x_alloc_nearest_color_1 (Display *, Colormap, XColor *);
+static void x_set_window_size_1 (struct frame *, int, int, int);
+static const XColor *x_color_cells (Display *, int *);
+static void x_update_window_end (struct window *, int, int);
 
-static int x_io_error_quitter P_ ((Display *));
-static struct terminal *x_create_terminal P_ ((struct x_display_info *));
-void x_delete_terminal P_ ((struct terminal *));
-static void x_update_end P_ ((struct frame *));
-static void XTframe_up_to_date P_ ((struct frame *));
-static void XTset_terminal_modes P_ ((struct terminal *));
-static void XTreset_terminal_modes P_ ((struct terminal *));
-static void x_clear_frame P_ ((struct frame *));
-static void frame_highlight P_ ((struct frame *));
-static void frame_unhighlight P_ ((struct frame *));
-static void x_new_focus_frame P_ ((struct x_display_info *, struct frame *));
-static void  x_focus_changed P_ ((int, int, struct x_display_info *,
-				  struct frame *, struct input_event *));
-static void x_detect_focus_change P_ ((struct x_display_info *,
-                                       XEvent *, struct input_event *));
-static void XTframe_rehighlight P_ ((struct frame *));
-static void x_frame_rehighlight P_ ((struct x_display_info *));
-static void x_draw_hollow_cursor P_ ((struct window *, struct glyph_row *));
-static void x_draw_bar_cursor P_ ((struct window *, struct glyph_row *, int,
-				   enum text_cursor_kinds));
+static int x_io_error_quitter (Display *);
+static struct terminal *x_create_terminal (struct x_display_info *);
+void x_delete_terminal (struct terminal *);
+static void x_update_end (struct frame *);
+static void XTframe_up_to_date (struct frame *);
+static void XTset_terminal_modes (struct terminal *);
+static void XTreset_terminal_modes (struct terminal *);
+static void x_clear_frame (struct frame *);
+static void frame_highlight (struct frame *);
+static void frame_unhighlight (struct frame *);
+static void x_new_focus_frame (struct x_display_info *, struct frame *);
+static void  x_focus_changed (int, int, struct x_display_info *,
+                              struct frame *, struct input_event *);
+static void x_detect_focus_change (struct x_display_info *,
+                                   XEvent *, struct input_event *);
+static void XTframe_rehighlight (struct frame *);
+static void x_frame_rehighlight (struct x_display_info *);
+static void x_draw_hollow_cursor (struct window *, struct glyph_row *);
+static void x_draw_bar_cursor (struct window *, struct glyph_row *, int,
+                               enum text_cursor_kinds);
 
-static void x_clip_to_row P_ ((struct window *, struct glyph_row *, int, GC));
-static void x_flush P_ ((struct frame *f));
-static void x_update_begin P_ ((struct frame *));
-static void x_update_window_begin P_ ((struct window *));
-static void x_after_update_window_line P_ ((struct glyph_row *));
-static struct scroll_bar *x_window_to_scroll_bar P_ ((Display *, Window));
-static void x_scroll_bar_report_motion P_ ((struct frame **, Lisp_Object *,
-					    enum scroll_bar_part *,
-					    Lisp_Object *, Lisp_Object *,
-					    unsigned long *));
-static void x_handle_net_wm_state P_ ((struct frame *, XPropertyEvent *));
-static void x_check_fullscreen P_ ((struct frame *));
-static void x_check_expected_move P_ ((struct frame *, int, int));
-static void x_sync_with_move P_ ((struct frame *, int, int, int));
-static int handle_one_xevent P_ ((struct x_display_info *, XEvent *,
-				  int *, struct input_event *));
+static void x_clip_to_row (struct window *, struct glyph_row *, int, GC);
+static void x_flush (struct frame *f);
+static void x_update_begin (struct frame *);
+static void x_update_window_begin (struct window *);
+static void x_after_update_window_line (struct glyph_row *);
+static struct scroll_bar *x_window_to_scroll_bar (Display *, Window);
+static void x_scroll_bar_report_motion (struct frame **, Lisp_Object *,
+                                        enum scroll_bar_part *,
+                                        Lisp_Object *, Lisp_Object *,
+                                        unsigned long *);
+static void x_handle_net_wm_state (struct frame *, XPropertyEvent *);
+static void x_check_fullscreen (struct frame *);
+static void x_check_expected_move (struct frame *, int, int);
+static void x_sync_with_move (struct frame *, int, int, int);
+static int handle_one_xevent (struct x_display_info *, XEvent *,
+                              int *, struct input_event *);
 /* Don't declare this NO_RETURN because we want no
    interference with debugging failing X calls.  */
-static SIGTYPE x_connection_closed P_ ((Display *, char *));
+static SIGTYPE x_connection_closed (Display *, char *);
 
 
 /* Flush display of frame F, or of all frames if F is null.  */
@@ -931,37 +931,37 @@ XTreset_terminal_modes (struct terminal *terminal)
 
 
 
-static void x_set_glyph_string_clipping P_ ((struct glyph_string *));
-static void x_set_glyph_string_gc P_ ((struct glyph_string *));
-static void x_draw_glyph_string_background P_ ((struct glyph_string *,
-						int));
-static void x_draw_glyph_string_foreground P_ ((struct glyph_string *));
-static void x_draw_composite_glyph_string_foreground P_ ((struct glyph_string *));
-static void x_draw_glyph_string_box P_ ((struct glyph_string *));
-static void x_draw_glyph_string  P_ ((struct glyph_string *));
-static void x_compute_glyph_string_overhangs P_ ((struct glyph_string *));
-static void x_set_cursor_gc P_ ((struct glyph_string *));
-static void x_set_mode_line_face_gc P_ ((struct glyph_string *));
-static void x_set_mouse_face_gc P_ ((struct glyph_string *));
-static int x_alloc_lighter_color P_ ((struct frame *, Display *, Colormap,
-				      unsigned long *, double, int));
-static void x_setup_relief_color P_ ((struct frame *, struct relief *,
-				      double, int, unsigned long));
-static void x_setup_relief_colors P_ ((struct glyph_string *));
-static void x_draw_image_glyph_string P_ ((struct glyph_string *));
-static void x_draw_image_relief P_ ((struct glyph_string *));
-static void x_draw_image_foreground P_ ((struct glyph_string *));
-static void x_draw_image_foreground_1 P_ ((struct glyph_string *, Pixmap));
-static void x_clear_glyph_string_rect P_ ((struct glyph_string *, int,
-					   int, int, int));
-static void x_draw_relief_rect P_ ((struct frame *, int, int, int, int,
-				    int, int, int, int, int, int,
-				    XRectangle *));
-static void x_draw_box_rect P_ ((struct glyph_string *, int, int, int, int,
-				 int, int, int, XRectangle *));
+static void x_set_glyph_string_clipping (struct glyph_string *);
+static void x_set_glyph_string_gc (struct glyph_string *);
+static void x_draw_glyph_string_background (struct glyph_string *,
+                                            int);
+static void x_draw_glyph_string_foreground (struct glyph_string *);
+static void x_draw_composite_glyph_string_foreground (struct glyph_string *);
+static void x_draw_glyph_string_box (struct glyph_string *);
+static void x_draw_glyph_string  (struct glyph_string *);
+static void x_compute_glyph_string_overhangs (struct glyph_string *);
+static void x_set_cursor_gc (struct glyph_string *);
+static void x_set_mode_line_face_gc (struct glyph_string *);
+static void x_set_mouse_face_gc (struct glyph_string *);
+static int x_alloc_lighter_color (struct frame *, Display *, Colormap,
+                                  unsigned long *, double, int);
+static void x_setup_relief_color (struct frame *, struct relief *,
+                                  double, int, unsigned long);
+static void x_setup_relief_colors (struct glyph_string *);
+static void x_draw_image_glyph_string (struct glyph_string *);
+static void x_draw_image_relief (struct glyph_string *);
+static void x_draw_image_foreground (struct glyph_string *);
+static void x_draw_image_foreground_1 (struct glyph_string *, Pixmap);
+static void x_clear_glyph_string_rect (struct glyph_string *, int,
+                                       int, int, int);
+static void x_draw_relief_rect (struct frame *, int, int, int, int,
+                                int, int, int, int, int, int,
+                                XRectangle *);
+static void x_draw_box_rect (struct glyph_string *, int, int, int, int,
+                             int, int, int, XRectangle *);
 
 #if GLYPH_DEBUG
-static void x_check_font P_ ((struct frame *, struct font *));
+static void x_check_font (struct frame *, struct font *);
 #endif
 
 
@@ -1401,11 +1401,11 @@ x_draw_composite_glyph_string_foreground (s)
 
 #ifdef USE_X_TOOLKIT
 
-static struct frame *x_frame_of_widget P_ ((Widget));
-static Boolean cvt_string_to_pixel P_ ((Display *, XrmValue *, Cardinal *,
-					XrmValue *, XrmValue *, XtPointer *));
-static void cvt_pixel_dtor P_ ((XtAppContext, XrmValue *, XtPointer,
-				XrmValue *, Cardinal *));
+static struct frame *x_frame_of_widget (Widget);
+static Boolean cvt_string_to_pixel (Display *, XrmValue *, Cardinal *,
+                                    XrmValue *, XrmValue *, XtPointer *);
+static void cvt_pixel_dtor (XtAppContext, XrmValue *, XtPointer,
+                            XrmValue *, Cardinal *);
 
 
 /* Return the frame on which widget WIDGET is used.. Abort if frame
@@ -4125,12 +4125,12 @@ x_window_to_menu_bar (window)
 
 #ifdef USE_TOOLKIT_SCROLL_BARS
 
-static void x_scroll_bar_to_input_event P_ ((XEvent *, struct input_event *));
-static void x_send_scroll_bar_event P_ ((Lisp_Object, int, int, int));
-static void x_create_toolkit_scroll_bar P_ ((struct frame *,
-					     struct scroll_bar *));
-static void x_set_toolkit_scroll_bar_thumb P_ ((struct scroll_bar *,
-						int, int, int));
+static void x_scroll_bar_to_input_event (XEvent *, struct input_event *);
+static void x_send_scroll_bar_event (Lisp_Object, int, int, int);
+static void x_create_toolkit_scroll_bar (struct frame *,
+                                         struct scroll_bar *);
+static void x_set_toolkit_scroll_bar_thumb (struct scroll_bar *,
+                                            int, int, int);
 
 
 /* Lisp window being scrolled.  Set when starting to interact with
@@ -7919,7 +7919,7 @@ x_connection_closed (dpy, error_message)
       /* If DPYINFO is null, this means we didn't open the display
 	 in the first place, so don't try to close it.  */
       {
-	extern void (*fatal_error_signal_hook) P_ ((void));
+        extern void (*fatal_error_signal_hook) (void);
 	fatal_error_signal_hook = x_fatal_error_signal;
 	XtCloseDisplay (dpy);
 	fatal_error_signal_hook = NULL;
@@ -7980,7 +7980,7 @@ x_connection_closed (dpy, error_message)
 
 /* We specifically use it before defining it, so that gcc doesn't inline it,
    otherwise gdb doesn't know how to properly put a breakpoint on it.  */
-static void x_error_quitter P_ ((Display *, XErrorEvent *));
+static void x_error_quitter (Display *, XErrorEvent *);
 
 /* This is the first-level handler for X protocol errors.
    It calls x_error_quitter or x_error_catcher.  */
@@ -8167,7 +8167,7 @@ xim_destroy_callback (xim, client_data, call_data)
 
 #ifdef HAVE_X11R6
 /* This isn't prototyped in OSF 5.0 or 5.1a.  */
-extern char *XSetIMValues P_ ((XIM, ...));
+extern char *XSetIMValues (XIM, ...);
 #endif
 
 /* Open the connection to the XIM server on display DPYINFO.
@@ -9357,7 +9357,7 @@ x_make_frame_visible (f)
 	    /* It could be confusing if a real alarm arrives while
 	       processing the fake one.  Turn it off and let the
 	       handler reset it.  */
-	    extern void poll_for_input_1 P_ ((void));
+            extern void poll_for_input_1 (void);
 	    int old_poll_suppress_count = poll_suppress_count;
 	    poll_suppress_count = 1;
 	    poll_for_input_1 ();

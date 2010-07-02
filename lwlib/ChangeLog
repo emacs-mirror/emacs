@@ -1,5 +1,10 @@
 2010-07-02  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* lwlib-Xm.c: Remove __P and P_ from .c and .m files.
+	* lwlib-Xm.c:
+	* lwlib.c:
+	* xlwmenu.c: Likewise.
+
 	Remove P_ and __P macros.
 	* lwlib-Xaw.h: Remove P_ and __P macros.
 	* lwlib-Xlw.h:

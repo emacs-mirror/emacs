@@ -725,7 +725,7 @@ equivalent and can be merged.  It defaults to `equal'.  */)
 static Lisp_Object
 map_sub_char_table (c_function, function, table, arg, val, range,
 		    default_val, parent)
-     void (*c_function) P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
+     void (*c_function) (Lisp_Object, Lisp_Object, Lisp_Object);
      Lisp_Object function, table, arg, val, range, default_val, parent;
 {
   /* Pointer to the elements of TABLE. */
@@ -841,7 +841,7 @@ map_sub_char_table (c_function, function, table, arg, val, range,
 
 void
 map_char_table (c_function, function, table, arg)
-     void (*c_function) P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
+     void (*c_function) (Lisp_Object, Lisp_Object, Lisp_Object);
      Lisp_Object function, table, arg;
 {
   Lisp_Object range, val;
@@ -915,7 +915,7 @@ range of characters that have the same value.  */)
 static void
 map_sub_char_table_for_charset (c_function, function, table, arg, range,
 				charset, from, to)
-     void (*c_function) P_ ((Lisp_Object, Lisp_Object));
+     void (*c_function) (Lisp_Object, Lisp_Object);
      Lisp_Object function, table, arg, range;
      struct charset *charset;
      unsigned from, to;
@@ -1002,7 +1002,7 @@ map_sub_char_table_for_charset (c_function, function, table, arg, range,
 void
 map_char_table_for_charset (c_function, function, table, arg,
 			    charset, from, to)
-     void (*c_function) P_ ((Lisp_Object, Lisp_Object));
+     void (*c_function) (Lisp_Object, Lisp_Object);
      Lisp_Object function, table, arg;
      struct charset *charset;
      unsigned from, to;

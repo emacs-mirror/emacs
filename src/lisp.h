@@ -21,9 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef EMACS_LISP_H
 #define EMACS_LISP_H
 
-/* Declare the prototype for a general external function.  */
-#define P_(proto) proto
-
 /* Use the configure flag --enable-checking[=LIST] to enable various
    types of run time checks for Lisp objects.  */
 
