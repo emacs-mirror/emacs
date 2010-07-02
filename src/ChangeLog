@@ -1,3 +1,12 @@
+2010-07-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.c (term_clear_mouse_face, Fidentity):
+	* syssignal.h (signal_handler_t):
+	* lisp.h (memory_warnings):
+	* coding.h (preferred_coding_system):
+	* cm.h (evalcost):
+	* blockinput.h (reinvoke_input_signal): Convert to standard C prototypes.
+
 2010-07-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* dosfns.h (msdos_stdcolor_idx, msdos_stdcolor_name): Remove P_

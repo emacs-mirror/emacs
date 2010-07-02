@@ -187,7 +187,7 @@ extern char *tgetstr ();
 #ifdef HAVE_GPM
 #include <sys/fcntl.h>
 
-static void term_clear_mouse_face ();
+static void term_clear_mouse_face (void);
 static void term_mouse_highlight (struct frame *f, int x, int y);
 
 /* The device for which we have enabled gpm support (or NULL).  */
@@ -1385,7 +1385,7 @@ term_get_fkeys (address, kboard)
      function key specification, rather than giving the user an error and
      refusing to run at all on such a terminal.  */
 
-  extern Lisp_Object Fidentity ();
+  extern Lisp_Object Fidentity (Lisp_Object);
   term_get_fkeys_address = address;
   term_get_fkeys_kboard = kboard;
   internal_condition_case (term_get_fkeys_1, Qerror, Fidentity);

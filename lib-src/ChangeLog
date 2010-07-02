@@ -1,3 +1,9 @@
+2010-07-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* make-docfile.c (xmalloc, xrealloc, concat, readline, fatal):
+	* b2m.c (scan_file, scan_lisp_file, scan_c_file): Convert to
+	standard C prototypes.
+
 2010-07-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* ebrowse.c: Remove P_ and __P.

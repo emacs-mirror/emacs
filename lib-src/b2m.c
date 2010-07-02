@@ -66,10 +66,11 @@ struct linebuffer
 
 extern char *strtok();
 
-long *xmalloc (), *xrealloc ();
-char *concat ();
-long readline ();
-void fatal ();
+long *xmalloc (unsigned int size);
+long *xrealloc (char *ptr, unsigned int size);
+char *concat (char *s1, char *s2, char *s3);
+long readline (struct linebuffer *linebuffer, register FILE *stream);
+void fatal (char *message);
 
 /*
  * xnew -- allocate storage.  SYNOPSIS: Type *xnew (int n, Type);

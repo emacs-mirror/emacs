@@ -67,9 +67,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define IS_DIRECTORY_SEP(_c_) ((_c_) == DIRECTORY_SEP)
 #endif
 
-int scan_file ();
-int scan_lisp_file ();
-int scan_c_file ();
+int scan_file (char *filename);
+int scan_lisp_file (char *filename, char *mode);
+int scan_c_file (char *filename, char *mode);
 
 #ifdef MSDOS
 /* s/msdos.h defines this as sys_chdir, but we're not linking with the

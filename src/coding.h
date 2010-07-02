@@ -753,7 +753,7 @@ extern void encode_coding_object (struct coding_system *,
   } while (0)
 
 
-extern Lisp_Object preferred_coding_system ();
+extern Lisp_Object preferred_coding_system (void);
 
 
 extern Lisp_Object Qutf_8, Qutf_8_emacs;
