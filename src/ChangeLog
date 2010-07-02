@@ -79,6 +79,7 @@
 	* composite.h:
 	* dispextern.h:
 	* disptab.h:
+	* dosfns.h:
 	* font.h:
 	* fontset.h:
 	* frame.h:
@@ -99,6 +100,7 @@
 	* syssignal.h:
 	* systime.h:
 	* termhooks.h:
+	* w32font.h:
 	* w32term.h:
 	* widget.h:
 	* window.h:

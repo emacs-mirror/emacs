@@ -108,14 +108,6 @@ extern int h_errno;
 #endif
 #endif
 
-#ifndef __P
-# ifdef __STDC__
-#  define __P(a) a
-# else
-#  define __P(a) ()
-# endif /* __STDC__ */
-#endif /* ! __P */
-
 static int socket_connection (char *, int);
 static int pop_getline (popserver, char **);
 static int sendline (popserver, char *);

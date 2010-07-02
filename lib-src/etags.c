@@ -100,15 +100,10 @@ char pot_etags_version[] = "@(#) pot revision number is 17.38.1.4";
 # ifndef PTR			/* for XEmacs */
 #   define PTR void *
 # endif
-# ifndef __P			/* for XEmacs */
-#   define __P(args) args
-# endif
 #else  /* no config.h */
 # if defined(__STDC__) && (__STDC__ || defined(__SUNPRO_C))
-#   define __P(args) args	/* use prototypes */
 #   define PTR void *		/* for generic pointers */
 # else /* not standard C */
-#   define __P(args) ()		/* no prototypes */
 #   define const		/* remove const for old compilers' sake */
 #   define PTR long *		/* don't use void* */
 # endif

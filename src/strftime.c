@@ -131,14 +131,6 @@ extern char *tzname[];
 # endif
 #endif
 
-#ifndef __P
-# if defined __GNUC__ || (defined __STDC__ && __STDC__) || defined (PROTOTYPES)
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif  /* GCC.  */
-#endif  /* Not __P.  */
-
 #ifndef PTR
 # ifdef __STDC__
 #  define PTR void *
