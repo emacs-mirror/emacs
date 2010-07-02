@@ -1,3 +1,11 @@
+2010-07-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emulation/viper-cmd.el (viper-delete-backward-char)
+	(viper-del-backward-char-in-insert)
+	(viper-del-backward-char-in-replace, viper-change)
+	(viper-backward-indent): Replace delete-backward-char with
+	delete-char (Bug#6552).
+
 2010-07-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* ruler-mode.el (ruler--save-header-line-format): Fix typos.
