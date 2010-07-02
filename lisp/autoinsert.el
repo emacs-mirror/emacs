@@ -126,10 +126,10 @@ If this contains a %s, that will be replaced by the matching rule."
      _ "\n\\begin{document}\n" _
      "\n\\end{document}")
 
-    (("/bin/.*[^/]\\'" . "Shell-Script mode magic number")
-     lambda ()
+    (("/bin/.*[^/]\\'" . "Shell-Script mode magic number") .
+     (lambda ()
        (if (eq major-mode (default-value 'major-mode))
-	 (sh-mode)))
+	   (sh-mode))))
 
     (ada-mode . ada-header)
 

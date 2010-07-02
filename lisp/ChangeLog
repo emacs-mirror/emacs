@@ -1,5 +1,10 @@
 2010-07-02  Juri Linkov  <juri@jurta.org>
 
+	* autoinsert.el (auto-insert-alist): Fix readability
+	by using dotted pair notation for lambda.
+
+2010-07-02  Juri Linkov  <juri@jurta.org>
+
 	* faces.el (read-face-name): Rename arg `string-describing-default'
 	to `default'.  Doc fix.  Display the default value in quotes
 	in the prompt.  With empty input, return the `default' arg,
