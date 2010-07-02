@@ -1,3 +1,24 @@
+2010-07-01  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* window.c (Fwindow_absolute_pixel_edges): Doc fix.
+
+	* window.c (calc_absolute_offset, Fwindow_absolute_pixel_edges)
+	(Fwindow_inside_absolute_pixel_edges): New functions (bug#5721).
+
+	* nsfns.m (compute_tip_xy): Do not convert coordinates from frame
+	parameters, they are already absolute.
+
+	* nsterm.m (x_set_window_size, initFrameFromEmacs): Renamed
+	FRAME_NS_TOOLBAR_HEIGHT to FRAME_TOOLBAR_HEIGHT.
+
+	* nsterm.h (FRAME_NS_TOOLBAR_HEIGHT): Rename to FRAME_TOOLBAR_HEIGH
+
+	* nsmenu.m (update_frame_tool_bar, free_frame_tool_bar): Update
+	FRAME_TOOLBAR_HEIGHT.
+
+	* nsmenu.m (free_frame_tool_bar, update_frame_tool_bar): Add
+	BLOCK/UNBLOCK_INPUT so asserts don't trigger.
+
 2010-06-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frame.c (get_future_frame_param, Fmake_terminal_frame): Don't

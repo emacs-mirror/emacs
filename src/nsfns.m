@@ -2412,22 +2412,27 @@ compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
 
   /* Start with user-specified or mouse position.  */
   left = Fcdr (Fassq (Qleft, parms));
-  if (INTEGERP (left))
-    pt.x = XINT (left);
-  else
-    pt.x = last_mouse_motion_position.x;
   top = Fcdr (Fassq (Qtop, parms));
-  if (INTEGERP (top))
-    pt.y = XINT (top);
+
+  if (!INTEGERP (left) || !INTEGERP (top))
+    {
+      pt = last_mouse_motion_position;
+      /* Convert to screen coordinates */
+      pt = [view convertPoint: pt toView: nil];
+      pt = [[view window] convertBaseToScreen: pt];
+    }
   else
-    pt.y = last_mouse_motion_position.y;
-
-  /* Convert to screen coordinates */
-  pt = [view convertPoint: pt toView: nil];
-  pt = [[view window] convertBaseToScreen: pt];
-
+    {
+      /* Absolute coordinates.  */
+      pt.x = XINT (left);
+      pt.y = x_display_pixel_height (FRAME_NS_DISPLAY_INFO (f)) - XINT (top)
+        - height;
+    }
+  
   /* Ensure in bounds.  (Note, screen origin = lower left.) */
-  if (pt.x + XINT (dx) <= 0)
+  if (INTEGERP (left))
+    *root_x = pt.x;
+  else if (pt.x + XINT (dx) <= 0)
     *root_x = 0; /* Can happen for negative dx */
   else if (pt.x + XINT (dx) + width
 	   <= x_display_pixel_width (FRAME_NS_DISPLAY_INFO (f)))
@@ -2440,7 +2445,9 @@ compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
     /* Put it left justified on the screen -- it ought to fit that way.  */
     *root_x = 0;
 
-  if (pt.y - XINT (dy) - height >= 0)
+  if (INTEGERP (top))
+    *root_y = pt.y;
+  else if (pt.y - XINT (dy) - height >= 0)
     /* It fits below the pointer.  */
     *root_y = pt.y - height - XINT (dy);
   else if (pt.y + XINT (dy) + height

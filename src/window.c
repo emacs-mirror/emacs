@@ -775,6 +775,48 @@ of just the text area, use `window-inside-pixel-edges'.  */)
 		Qnil))));
 }
 
+static void
+calc_absolute_offset(struct window *w, int *add_x, int *add_y)
+{
+  struct frame *f = XFRAME (w->frame);
+  *add_y = f->top_pos;
+#ifdef FRAME_MENUBAR_HEIGHT
+  *add_y += FRAME_MENUBAR_HEIGHT (f);
+#endif
+#ifdef FRAME_TOOLBAR_HEIGHT
+  *add_y += FRAME_TOOLBAR_HEIGHT (f);
+#endif
+#ifdef FRAME_NS_TITLEBAR_HEIGHT
+  *add_y += FRAME_NS_TITLEBAR_HEIGHT (f);
+#endif
+  *add_x = f->left_pos;
+}
+
+DEFUN ("window-absolute-pixel-edges", Fwindow_absolute_pixel_edges,
+       Swindow_absolute_pixel_edges, 0, 1, 0,
+       doc: /* Return a list of the edge pixel coordinates of WINDOW.
+The list has the form (LEFT TOP RIGHT BOTTOM), all relative to 0, 0 at
+the top left corner of the display.
+
+RIGHT is one more than the rightmost x position occupied by WINDOW.
+BOTTOM is one more than the bottommost y position occupied by WINDOW.
+The pixel edges include the space used by WINDOW's scroll bar, display
+margins, fringes, header line, and/or mode line.  For the pixel edges
+of just the text area, use `window-inside-absolute-pixel-edges'.  */)
+     (window)
+     Lisp_Object window;
+{
+  register struct window *w = decode_any_window (window);
+  int add_x, add_y;
+  calc_absolute_offset(w, &add_x, &add_y);
+
+  return Fcons (make_number (WINDOW_LEFT_EDGE_X (w) + add_x),
+         Fcons (make_number (WINDOW_TOP_EDGE_Y (w) + add_y),
+	 Fcons (make_number (WINDOW_RIGHT_EDGE_X (w) + add_x),
+	 Fcons (make_number (WINDOW_BOTTOM_EDGE_Y (w) + add_y),
+		Qnil))));
+}
+
 DEFUN ("window-inside-edges", Fwindow_inside_edges, Swindow_inside_edges, 0, 1, 0,
        doc: /* Return a list of the edge coordinates of WINDOW.
 The list has the form (LEFT TOP RIGHT BOTTOM).
@@ -826,6 +868,36 @@ display margins, fringes, header line, and/or mode line.  */)
 			     - WINDOW_RIGHT_FRINGE_WIDTH (w)),
 		make_number (WINDOW_BOTTOM_EDGE_Y (w)
 			     - WINDOW_MODE_LINE_HEIGHT (w)));
+}
+
+DEFUN ("window-inside-absolute-pixel-edges",
+       Fwindow_inside_absolute_pixel_edges,
+       Swindow_inside_absolute_pixel_edges, 0, 1, 0,
+       doc: /* Return a list of the edge pixel coordinates of WINDOW.
+The list has the form (LEFT TOP RIGHT BOTTOM), all relative to 0, 0 at
+the top left corner of the display.
+
+RIGHT is one more than the rightmost x position of WINDOW's text area.
+BOTTOM is one more than the bottommost y position of WINDOW's text area.
+The inside edges do not include the space used by WINDOW's scroll bar,
+display margins, fringes, header line, and/or mode line.  */)
+     (window)
+     Lisp_Object window;
+{
+  register struct window *w = decode_any_window (window);
+  int add_x, add_y;
+  calc_absolute_offset(w, &add_x, &add_y);
+
+  return list4 (make_number (WINDOW_BOX_LEFT_EDGE_X (w)
+			     + WINDOW_LEFT_MARGIN_WIDTH (w)
+			     + WINDOW_LEFT_FRINGE_WIDTH (w) + add_x),
+		make_number (WINDOW_TOP_EDGE_Y (w)
+			     + WINDOW_HEADER_LINE_HEIGHT (w) + add_y),
+		make_number (WINDOW_BOX_RIGHT_EDGE_X (w)
+			     - WINDOW_RIGHT_MARGIN_WIDTH (w)
+			     - WINDOW_RIGHT_FRINGE_WIDTH (w) + add_x),
+		make_number (WINDOW_BOTTOM_EDGE_Y (w)
+			     - WINDOW_MODE_LINE_HEIGHT (w) + add_y));
 }
 
 /* Test if the character at column *X, row *Y is within window W.
@@ -6742,8 +6814,10 @@ small or of fixed size.  */);
   defsubr (&Sset_window_redisplay_end_trigger);
   defsubr (&Swindow_edges);
   defsubr (&Swindow_pixel_edges);
+  defsubr (&Swindow_absolute_pixel_edges);
   defsubr (&Swindow_inside_edges);
   defsubr (&Swindow_inside_pixel_edges);
+  defsubr (&Swindow_inside_absolute_pixel_edges);
   defsubr (&Scoordinates_in_window_p);
   defsubr (&Swindow_at);
   defsubr (&Swindow_point);
