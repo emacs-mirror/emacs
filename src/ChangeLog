@@ -1,3 +1,10 @@
+2010-07-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* dosfns.h (msdos_stdcolor_idx, msdos_stdcolor_name): Remove P_
+	from prototypes.
+
+	* msdos.h (load_pixmap): Don't define away.
+
 2010-07-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* lisp.h:
