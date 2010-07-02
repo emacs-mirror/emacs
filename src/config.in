@@ -933,6 +933,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if using GTK. */
 #undef USE_GTK
 
+/* Define this to use a lisp union for the Lisp_Object data type. */
+#undef USE_LISP_UNION_TYPE
+
 /* Define to 1 if using the Lucid X toolkit. */
 #undef USE_LUCID
 

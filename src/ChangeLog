@@ -1,5 +1,7 @@
 2010-07-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* lisp.h: Document that USE_LISP_UNION_TYPE is now enabled using autoconf.
+
 	Cleanup old code.
 	* dired.c (BSD4_3): Remove all uses, redundant with BSD4_2.
 	* syssignal.h: Remove code for Lynx, not supported anymore.

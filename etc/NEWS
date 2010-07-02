@@ -47,6 +47,10 @@ to configure.  Note that other libraries used by Emacs, RSVG and GConf,
 also depend on Gtk+.  You can disable them with --without-rsvg and
 --without-gconf.
 
+** There is a new configure option --enable-use-lisp-union-type.
+This is only useful for Emacs developers to debug certain types of bugs.
+These is not a new feature; only the configure flag is new.
+
 
 * Startup Changes in Emacs 24.1
 

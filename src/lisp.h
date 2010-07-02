@@ -95,10 +95,9 @@ extern void die P_((const char *, const char *, int)) NO_RETURN;
 #endif
 #endif /* ENABLE_CHECKING */
 
-/* Define this to make Lisp_Object use a union type instead of the
-   default int.  FIXME: It might be better to add a flag to configure
-   to do this.  */
-/* #define USE_LISP_UNION_TYPE */
+/* Use the configure flag --enable-use-lisp-union-type to make
+   Lisp_Object use a union type instead of the default int.  The flag
+   causes USE_LISP_UNION_TYPE to be defined.  */
 
 /***** Select the tagging scheme.  *****/
 /* There are basically two options that control the tagging scheme:
