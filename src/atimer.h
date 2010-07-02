@@ -49,7 +49,7 @@ enum atimer_type
 
 /* Type of timer callback functions.  */
 
-typedef void (* atimer_callback) P_ ((struct atimer *timer));
+typedef void (* atimer_callback) (struct atimer *timer);
 
 /* Structure describing an asynchronous timer.  */
 
@@ -77,15 +77,15 @@ struct atimer
 
 /* Function prototypes.  */
 
-struct atimer *start_atimer P_ ((enum atimer_type, EMACS_TIME,
-				 atimer_callback, void *));
-void cancel_atimer P_ ((struct atimer *));
-void do_pending_atimers P_ ((void));
-void init_atimer P_ ((void));
-void turn_on_atimers P_ ((int));
-void stop_other_atimers P_ ((struct atimer *));
-void run_all_atimers P_ ((void));
-Lisp_Object unwind_stop_other_atimers P_ ((Lisp_Object));
+struct atimer *start_atimer (enum atimer_type, EMACS_TIME,
+                             atimer_callback, void *);
+void cancel_atimer (struct atimer *);
+void do_pending_atimers (void);
+void init_atimer (void);
+void turn_on_atimers (int);
+void stop_other_atimers (struct atimer *);
+void run_all_atimers (void);
+Lisp_Object unwind_stop_other_atimers (Lisp_Object);
 
 #endif /* EMACS_ATIMER_H */
 

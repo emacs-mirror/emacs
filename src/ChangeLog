@@ -1,3 +1,43 @@
+2010-07-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	Remove P_ and __P macros.
+	* buffer.h: Remove P_ and __P macros.
+	* category.h:
+	* ccl.h:
+	* character.h:
+	* charset.h:
+	* cm.h:
+	* coding.h:
+	* composite.h:
+	* dispextern.h:
+	* disptab.h:
+	* font.h:
+	* fontset.h:
+	* frame.h:
+	* gtkutil.h:
+	* indent.h:
+	* intervals.h:
+	* keyboard.h:
+	* keymap.h:
+	* lisp.h:
+	* macros.h:
+	* md5.h:
+	* menu.h:
+	* msdos.h:
+	* nsterm.h:
+	* puresize.h:
+	* region-cache.h:
+	* syntax.h:
+	* syssignal.h:
+	* systime.h:
+	* termhooks.h:
+	* w32term.h:
+	* widget.h:
+	* window.h:
+	* xgselect.h:
+	* xsettings.h:
+	* xterm.h: Likewise.
+
 2010-07-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* lisp.h: Document that USE_LISP_UNION_TYPE is now enabled using autoconf.

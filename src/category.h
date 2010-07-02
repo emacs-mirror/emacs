@@ -113,8 +113,8 @@ extern Lisp_Object _temp_category_set;
   (!(SINGLE_BYTE_CHAR_P (c1) && SINGLE_BYTE_CHAR_P (c2))	\
    && word_boundary_p (c1, c2))
 
-extern int word_boundary_p P_ ((int, int));
-extern void set_category_set P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
+extern int word_boundary_p (int, int);
+extern void set_category_set (Lisp_Object, Lisp_Object, Lisp_Object);
 
 /* arch-tag: 309dfe83-c3e2-4d22-8e81-faae5aece0ff
    (do not change this comment) */

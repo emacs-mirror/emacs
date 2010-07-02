@@ -19,7 +19,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 extern Lisp_Object Qsyntax_table_p;
-extern void update_syntax_table P_ ((int, int, int, Lisp_Object));
+extern void update_syntax_table (int, int, int, Lisp_Object);
 
 /* The standard syntax table is stored where it will automatically
    be used in all new buffers.  */
@@ -346,9 +346,9 @@ struct gl_state_s
 
 extern struct gl_state_s gl_state;
 extern int parse_sexp_lookup_properties;
-extern INTERVAL interval_of P_ ((int, Lisp_Object));
+extern INTERVAL interval_of (int, Lisp_Object);
 
-extern int scan_words P_ ((int, int));
+extern int scan_words (int, int);
 
 /* arch-tag: 28833cca-cd73-4741-8c85-a3111166a0e0
    (do not change this comment) */

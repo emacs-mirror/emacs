@@ -17,7 +17,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-extern void init_signals P_ ((void));
+extern void init_signals (void);
 
 #if defined (HAVE_GTK_AND_PTHREAD) || defined (HAVE_NS)
 #include <pthread.h>
@@ -78,10 +78,10 @@ extern sigset_t sys_sigmask ();
    appears to be assumed in the source, for example data.c:arith_error.  */
 typedef RETSIGTYPE (*signal_handler_t) (/*int*/);
 
-signal_handler_t sys_signal P_ ((int signal_number, signal_handler_t action));
-sigset_t sys_sigblock   P_ ((sigset_t new_mask));
-sigset_t sys_sigunblock P_ ((sigset_t new_mask));
-sigset_t sys_sigsetmask P_ ((sigset_t new_mask));
+signal_handler_t sys_signal (int signal_number, signal_handler_t action);
+sigset_t sys_sigblock   (sigset_t new_mask);
+sigset_t sys_sigunblock (sigset_t new_mask);
+sigset_t sys_sigsetmask (sigset_t new_mask);
 
 #define sys_sigdel(MASK,SIG) sigdelset (&MASK,SIG)
 
