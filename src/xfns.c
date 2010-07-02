@@ -205,6 +205,8 @@ extern Lisp_Object Vwindow_system_version;
 
 /* The below are defined in frame.c.  */
 
+extern Lisp_Object Qtooltip;
+
 #if GLYPH_DEBUG
 int image_cache_refcount, dpyinfo_refcount;
 #endif
@@ -4914,9 +4916,8 @@ x_create_tip_frame (dpyinfo, parms, text)
   change_frame_size (f, height, width, 1, 0, 0);
 
   /* Add `tooltip' frame parameter's default value. */
-  if (NILP (Fframe_parameter (frame, intern ("tooltip"))))
-    Fmodify_frame_parameters (frame, Fcons (Fcons (intern ("tooltip"), Qt),
-					    Qnil));
+  if (NILP (Fframe_parameter (frame, Qtooltip)))
+    Fmodify_frame_parameters (frame, Fcons (Fcons (Qtooltip, Qt), Qnil));
 
   /* FIXME - can this be done in a similar way to normal frames?
      http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg00641.html */

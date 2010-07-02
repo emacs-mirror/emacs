@@ -1,3 +1,12 @@
+2010-07-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.c (Qtooltip): New var.
+	(delete_frame): Use it.  Fix faulty if statement.  Don't update
+	mode line for tooltip frames.  Suggested by Martin Rudalics.
+
+	* xfns.c (x_create_tip_frame):
+	* w32fns.c (x_create_tip_frame): Use it.
+
 2010-06-30  Naohiro Aota  <naota@elisp.net>  (tiny change)
 
 	* xftfont.c (xftfont_open): Check font width one by one also when
