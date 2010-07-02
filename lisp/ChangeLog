@@ -1,3 +1,12 @@
+2010-07-02  Juri Linkov  <juri@jurta.org>
+
+	* faces.el (read-face-name): Rename arg `string-describing-default'
+	to `default'.  Doc fix.  Display the default value in quotes
+	in the prompt.  With empty input, return the `default' arg,
+	unless the default value is a string (in which case return nil).
+	(describe-face): Replace the string `default' arg of `read-face-name'
+	with the symbol `default'.
+
 2010-07-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emulation/viper-cmd.el (viper-delete-backward-char)

@@ -915,13 +915,14 @@ of the default face.  Value is FACE."
 ;;; Interactively modifying faces.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun read-face-name (prompt &optional string-describing-default multiple)
+(defun read-face-name (prompt &optional default multiple)
   "Read a face, defaulting to the face or faces on the char after point.
 If it has the property `read-face-name', that overrides the `face' property.
 PROMPT should be a string that describes what the caller will do with the face;
 it should not end in a space.
-STRING-DESCRIBING-DEFAULT should describe what default the caller will use if
-the user just types RET; you can omit it.
+The optional argument DEFAULT provides the value to display in the
+minibuffer prompt that is returned if the user just types RET
+unless DEFAULT is a string (in which case nil is returned).
 If MULTIPLE is non-nil, return a list of faces (possibly only one).
 Otherwise, return a single face."
   (let ((faceprop (or (get-char-property (point) 'read-face-name)
@@ -960,10 +961,10 @@ Otherwise, return a single face."
     (let* ((input
 	    ;; Read the input.
 	    (completing-read-multiple
-	     (if (or faces string-describing-default)
-		 (format "%s (default %s): " prompt
+	     (if (or faces default)
+		 (format "%s (default `%s'): " prompt
 			 (if faces (mapconcat 'symbol-name faces ",")
-			   string-describing-default))
+			   default))
 	       (format "%s: " prompt))
 	     (completion-table-in-turn nonaliasfaces aliasfaces)
 	     nil t nil 'face-name-history
@@ -971,7 +972,7 @@ Otherwise, return a single face."
 	   ;; Canonicalize the output.
 	   (output
 	    (cond ((or (equal input "") (equal input '("")))
-		   faces)
+		   (or faces (unless (stringp default) default)))
 		  ((stringp input)
 		   (mapcar 'intern (split-string input ", *" t)))
 		  ((listp input)
@@ -1334,7 +1335,7 @@ and FRAME defaults to the selected frame.
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame."
-  (interactive (list (read-face-name "Describe face" "= `default' face" t)))
+  (interactive (list (read-face-name "Describe face" 'default t)))
   (let* ((attrs '((:family . "Family")
 		  (:foundry . "Foundry")
 		  (:width . "Width")
