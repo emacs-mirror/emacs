@@ -979,10 +979,10 @@ so last access time will always be midnight of that day.  */)
   Lisp_Object values[12];
   Lisp_Object encoded;
   struct stat s;
-#if defined (BSD4_2) || defined (BSD4_3)
+#ifdef BSD4_2
   Lisp_Object dirname;
   struct stat sdir;
-#endif
+#endif /* BSD4_2 */
   char modes[10];
   Lisp_Object handler;
   struct gcpro gcpro1;
@@ -1049,7 +1049,7 @@ so last access time will always be midnight of that day.  */)
 
   filemodestring (&s, modes);
   values[8] = make_string (modes, 10);
-#if defined (BSD4_2) || defined (BSD4_3) /* file gid will be dir gid */
+#ifdef BSD4_2 /* file gid will be dir gid */
   dirname = Ffile_name_directory (filename);
   if (! NILP (dirname))
     encoded = ENCODE_FILE (dirname);
@@ -1059,7 +1059,7 @@ so last access time will always be midnight of that day.  */)
     values[9] = Qt;
 #else					/* file gid will be egid */
   values[9] = (s.st_gid != getegid ()) ? Qt : Qnil;
-#endif	/* BSD4_2 (or BSD4_3) */
+#endif	/* not BSD4_2 */
   if (!FIXNUM_OVERFLOW_P (s.st_ino))
     /* Keep the most common cases as integers.  */
     values[10] = make_number (s.st_ino);

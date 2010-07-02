@@ -113,9 +113,6 @@ sigset_t sys_sigsetmask P_ ((sigset_t new_mask));
 #endif
 #if defined (SIGIO) && defined (BROKEN_SIGIO)
 # undef SIGIO
-# if defined (__Lynx__)
-# undef SIGPOLL /* Defined as SIGIO on LynxOS */
-# endif
 #endif
 #if defined (SIGPOLL) && defined (BROKEN_SIGPOLL)
 #undef SIGPOLL

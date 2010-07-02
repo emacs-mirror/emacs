@@ -1,3 +1,12 @@
+2010-07-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Cleanup old code.
+	* dired.c (BSD4_3): Remove all uses, redundant with BSD4_2.
+	* syssignal.h: Remove code for Lynx, not supported anymore.
+	* vm-limit.c: Remove unused code the depends on emacs not being
+	defined and NO_LIM_DATA being defined.
+	* mem-limits.h: Remove dead code.
+
 2010-07-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* window.c (Fwindow_absolute_pixel_edges): Doc fix.
