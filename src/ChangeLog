@@ -1,5 +1,9 @@
 2010-07-03  Eli Zaretskii  <eliz@gnu.org>
 
+	* msdos.c (IT_set_frame_parameters): Set menu-bar-lines according
+	to menu-bar-mode, if not set in the frame parameters or in
+	default-frame-alist.
+
 	* w32console.c (sys_tputs): Adjust argument list to prototype in
 	term.c.
 

@@ -2098,6 +2098,10 @@ IT_set_frame_parameters (f, alist)
   Lisp_Object frame_bg, frame_fg;
   extern Lisp_Object Qdefault, QCforeground, QCbackground;
   struct tty_display_info *tty = FRAME_TTY (f);
+  extern Lisp_Object Qmenu_bar_lines;
+  extern Lisp_Object Vmenu_bar_mode;
+  int menu_bar_lines_defined =
+    !NILP (Fassq (Qmenu_bar_lines, Vdefault_frame_alist));
 
   /* If we are creating a new frame, begin with the original screen colors
      used for the initial frame.  */
@@ -2144,6 +2148,8 @@ IT_set_frame_parameters (f, alist)
 
       if (EQ (prop, Qreverse))
 	reverse = EQ (val, Qt);
+      else if (!menu_bar_lines_defined && EQ (prop, Qmenu_bar_lines))
+	menu_bar_lines_defined = 1;
     }
 
   need_to_reverse = reverse && !was_reverse;
@@ -2224,6 +2230,18 @@ IT_set_frame_parameters (f, alist)
 		     SBYTES (val), SDATA (val));
 	}
       store_frame_param (f, prop, val);
+    }
+
+  /* If menu-bar-lines is neither in the frame parameters nor in
+     default-frame-alist, set it according to menu-bar-mode.  */
+  if (!menu_bar_lines_defined)
+    {
+      store_frame_param (f, Qmenu_bar_lines,
+			 NILP (Vmenu_bar_mode)
+			 ? make_number (0) : make_number (1));
+      if (tty->termscript)
+	fprintf (tty->termscript, "<MENU BAR LINES DEFAULTED: %d\n",
+		 !NILP (Vmenu_bar_mode));
     }
 
   /* If they specified "reverse", but not the colors, we need to swap
