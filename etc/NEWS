@@ -313,6 +313,10 @@ determine whether to create a menu-bar or tool-bar, respectively.
 If the alist entries are added, they override the value of
 `menu-bar-mode'/`tool-bar-mode'.
 
+** Mouse dragging is not any differently from active regions.
+The internal variables `mouse-drag-overlay', and the internal function
+`mouse-move-drag-overlay' and `mouse-show-mark', have been deleted.
+
 
 * Lisp changes in Emacs 24.1
 
