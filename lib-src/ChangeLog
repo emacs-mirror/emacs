@@ -1,5 +1,9 @@
 2010-07-03  Juanma Barranquero  <lekktu@gmail.com>
 
+	* ebrowse.c (match_qualified_namespace_alias): Check for null pointer.
+
+2010-07-03  Juanma Barranquero  <lekktu@gmail.com>
+
 	Fix prototype warnings.
 
 	* ebrowse.c (match_qualified_namespace_alias):
