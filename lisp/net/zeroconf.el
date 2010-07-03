@@ -336,6 +336,23 @@ The attributes of SERVICE can be retrieved via the functions
       (puthash type l-hook zeroconf-service-removed-hooks-hash)))
    (t (error "EVENT must be either `:new' or `:removed'"))))
 
+(defun zeroconf-service-remove-hook (type event function)
+  "Remove FUNCTION from the hook of service type TYPE.
+
+EVENT must be either :new or :removed and has to match the event
+type used when registering FUNCTION."
+  (let* ((table (cond
+		 ((equal event :new)
+		  zeroconf-service-added-hooks-hash)
+		 ((equal event :removed)
+		  zeroconf-service-removed-hooks-hash)
+		 (t (error "EVENT must be either `:new' or `:removed'"))))
+	 (l-hook (gethash type table nil)))
+    (remove-hook 'l-hook function)
+    (if l-hook
+	(puthash type l-hook table)
+      (remhash type table))))
+
 (defun zeroconf-get-host ()
   "Returns the local host name as string."
   (dbus-call-method

@@ -1,3 +1,7 @@
+2010-07-03  Jan Moringen  <jan.moringen@uni-bielefeld.de>
+
+	* net/zeroconf.el (zeroconf-service-remove-hook): New defun.
+
 2010-06-30  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Avoid displaying files with a nil state in vc-dir.
