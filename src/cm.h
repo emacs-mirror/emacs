@@ -158,7 +158,7 @@ extern char PC;			/* Pad character */
 #define losecursor(tty)	 (curX(tty) = -1, curY(tty) = -1)
 
 extern int cost;
-extern int evalcost (char c);
+extern int evalcost (int c);
 
 #define emacs_tputs(tty, str, affcnt, putc) (current_tty = (tty), tputs (str, affcnt, putc))
 

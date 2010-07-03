@@ -1,3 +1,11 @@
+2010-07-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* lisp.h (memory_warnings): Fix prototype.
+
+	* cm.h (evalcost): Fix prototype.
+
+	* cm.c (evalcost): Fix arg type.
+
 2010-07-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term.c (term_clear_mouse_face, Fidentity):

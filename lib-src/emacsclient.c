@@ -764,7 +764,7 @@ sock_err_message (char *function_name)
    - the buffer is full (but this shouldn't happen)
    Otherwise, we just accumulate it.  */
 void
-send_to_emacs (int s, char *data)
+send_to_emacs (HSOCKET s, char *data)
 {
   while (data)
     {
@@ -801,9 +801,9 @@ send_to_emacs (int s, char *data)
    any initial -.  Change spaces to underscores, too, so that the
    return value never contains a space.
 
-   Does not change the string.  Outputs the result to STREAM.  */
+   Does not change the string.  Outputs the result to S.  */
 void
-quote_argument (int s, char *str)
+quote_argument (HSOCKET s, char *str)
 {
   char *copy = (char *) xmalloc (strlen (str) * 2 + 1);
   char *p, *q;

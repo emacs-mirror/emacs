@@ -110,6 +110,7 @@ cmpdoc (DOCSTR **a, DOCSTR **b)
   return (*a)->type - (*b)->type;
 }
 
+typedef int (*qsort_compare) (const void *, const void *);
 
 enum state
 {
@@ -227,7 +228,7 @@ main (void)
 
     /* sort the array by name; within each name, by type */
 
-    qsort ((char*)array, cnt, sizeof (DOCSTR*), cmpdoc);
+    qsort ((char*)array, cnt, sizeof (DOCSTR*), (qsort_compare)cmpdoc);
 
     /* write the output header */
 
