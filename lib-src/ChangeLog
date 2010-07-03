@@ -1,3 +1,18 @@
+2010-07-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* update-game-score.c: Convert function definitions to standard C.
+	* sorted-doc.c:
+	* profile.c:
+	* pop.c:
+	* movemail.c:
+	* make-docfile.c:
+	* hexl.c:
+	* fakemail.c:
+	* etags.c:
+	* ebrowse.c:
+	* digest-doc.c:
+	* b2m.c: Likewise.
+
 2010-07-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* make-docfile.c (xmalloc, xrealloc, concat, readline, fatal):

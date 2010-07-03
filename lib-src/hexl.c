@@ -49,12 +49,10 @@ int base = DEFAULT_BASE, un_flag = FALSE, iso_flag = FALSE, endian = 1;
 int group_by = DEFAULT_GROUPING;
 char *progname;
 
-void usage();
+void usage(void);
 
 int
-main (argc, argv)
-     int argc;
-     char *argv[];
+main (int argc, char **argv)
 {
   register long address;
   char string[18];
@@ -278,7 +276,7 @@ main (argc, argv)
 }
 
 void
-usage ()
+usage (void)
 {
   fprintf (stderr, "usage: %s [-de] [-iso]\n", progname);
   exit (EXIT_FAILURE);

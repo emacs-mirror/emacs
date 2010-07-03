@@ -147,8 +147,8 @@ static line_list file_preface;
 static stream_list the_streams;
 static boolean no_problems = true;
 
-extern FILE *popen ();
-extern int fclose (), pclose ();
+extern FILE *popen (const char *, const char *);
+extern int fclose (FILE *), pclose (FILE *);
 
 #ifdef CURRENT_USER
 extern struct passwd *getpwuid ();
@@ -164,8 +164,7 @@ static struct passwd *my_entry;
 /* Print error message.  `s1' is printf control string, `s2' is arg for it. */
 
 static void
-error (s1, s2)
-     char *s1, *s2;
+error (char *s1, char *s2)
 {
   printf ("%s: ", my_name);
   printf (s1, s2);
@@ -176,8 +175,7 @@ error (s1, s2)
 /* Print error message and exit.  */
 
 static void
-fatal (s1)
-     char *s1;
+fatal (char *s1)
 {
   error ("%s", s1);
   exit (EXIT_FAILURE);
@@ -186,8 +184,7 @@ fatal (s1)
 /* Like malloc but get fatal error if memory is exhausted.  */
 
 static long *
-xmalloc (size)
-     int size;
+xmalloc (int size)
 {
   long *result = (long *) malloc (((unsigned) size));
   if (result == ((long *) NULL))
@@ -196,9 +193,7 @@ xmalloc (size)
 }
 
 static long *
-xrealloc (ptr, size)
-     long *ptr;
-     int size;
+xrealloc (long int *ptr, int size)
 {
   long *result = (long *) realloc (ptr, ((unsigned) size));
   if (result == ((long *) NULL))
@@ -209,8 +204,7 @@ xrealloc (ptr, size)
 /* Initialize a linebuffer for use */
 
 void
-init_linebuffer (linebuffer)
-     struct linebuffer *linebuffer;
+init_linebuffer (struct linebuffer *linebuffer)
 {
   linebuffer->size = INITIAL_LINE_SIZE;
   linebuffer->buffer = ((char *) xmalloc (INITIAL_LINE_SIZE));
@@ -220,9 +214,7 @@ init_linebuffer (linebuffer)
    Return the length of the line.  */
 
 long
-readline (linebuffer, stream)
-     struct linebuffer *linebuffer;
-     FILE *stream;
+readline (struct linebuffer *linebuffer, FILE *stream)
 {
   char *buffer = linebuffer->buffer;
   char *p = linebuffer->buffer;
@@ -257,9 +249,7 @@ readline (linebuffer, stream)
    If there is no keyword, return NULL and don't alter *REST.  */
 
 char *
-get_keyword (field, rest)
-     register char *field;
-     char **rest;
+get_keyword (register char *field, char **rest)
 {
   static char keyword[KEYWORD_SIZE];
   register char *ptr;
@@ -284,8 +274,7 @@ get_keyword (field, rest)
 /* Nonzero if the string FIELD starts with a colon-terminated keyword.  */
 
 boolean
-has_keyword (field)
-     char *field;
+has_keyword (char *field)
 {
   char *ignored;
   return (get_keyword (field, &ignored) != ((char *) NULL));
@@ -302,9 +291,7 @@ has_keyword (field)
    the caller has to make it big enough.  */
 
 char *
-add_field (the_list, field, where)
-     line_list the_list;
-     register char *field, *where;
+add_field (line_list the_list, register char *field, register char *where)
 {
   register char c;
   while (true)
@@ -360,7 +347,7 @@ add_field (the_list, field, where)
 }
 
 line_list
-make_file_preface ()
+make_file_preface (void)
 {
   char *the_string, *temp;
   long idiotic_interface;
@@ -404,9 +391,7 @@ make_file_preface ()
 }
 
 void
-write_line_list (the_list, the_stream)
-     register line_list the_list;
-     FILE *the_stream;
+write_line_list (register line_list the_list, FILE *the_stream)
 {
   for ( ;
       the_list != ((line_list) NULL) ;
@@ -419,7 +404,7 @@ write_line_list (the_list, the_stream)
 }
 
 int
-close_the_streams ()
+close_the_streams (void)
 {
   register stream_list rem;
   for (rem = the_streams;
@@ -432,9 +417,7 @@ close_the_streams ()
 }
 
 void
-add_a_stream (the_stream, closing_action)
-     FILE *the_stream;
-     int (*closing_action)();
+add_a_stream (FILE *the_stream, int (*closing_action) (/* ??? */))
 {
   stream_list old = the_streams;
   the_streams = new_stream ();
@@ -445,8 +428,7 @@ add_a_stream (the_stream, closing_action)
 }
 
 int
-my_fclose (the_file)
-     FILE *the_file;
+my_fclose (FILE *the_file)
 {
   putc ('\n', the_file);
   fflush (the_file);
@@ -454,8 +436,7 @@ my_fclose (the_file)
 }
 
 boolean
-open_a_file (name)
-     char *name;
+open_a_file (char *name)
 {
   FILE *the_stream = fopen (name, "a");
   if (the_stream != ((FILE *) NULL))
@@ -470,8 +451,7 @@ open_a_file (name)
 }
 
 void
-put_string (s)
-     char *s;
+put_string (char *s)
 {
   register stream_list rem;
   for (rem = the_streams;
@@ -482,8 +462,7 @@ put_string (s)
 }
 
 void
-put_line (string)
-     char *string;
+put_line (char *string)
 {
   register stream_list rem;
   for (rem = the_streams;
@@ -543,9 +522,7 @@ put_line (string)
    Call open_a_file for each file.  */
 
 void
-setup_files (the_list, field)
-     register line_list the_list;
-     register char *field;
+setup_files (register line_list the_list, register char *field)
 {
   register char *start;
   register char c;
@@ -581,8 +558,7 @@ setup_files (the_list, field)
    The result says how big to make the buffer to pass to parse_header.  */
 
 int
-args_size (the_header)
-     header the_header;
+args_size (header the_header)
 {
   register header old = the_header;
   register line_list rem;
@@ -613,9 +589,7 @@ args_size (the_header)
    Also, if the header has any FCC fields, call setup_files for each one.  */
 
 void
-parse_header (the_header, where)
-     header the_header;
-     register char *where;
+parse_header (header the_header, register char *where)
 {
   register header old = the_header;
   do
@@ -647,7 +621,7 @@ parse_header (the_header, where)
    Continuation lines are grouped in the headers they continue.  */
 
 header
-read_header ()
+read_header (void)
 {
   register header the_header = ((header) NULL);
   register line_list *next_line = ((line_list *) NULL);
@@ -701,8 +675,7 @@ read_header ()
 }
 
 void
-write_header (the_header)
-     header the_header;
+write_header (header the_header)
 {
   register header old = the_header;
   do
@@ -719,9 +692,7 @@ write_header (the_header)
 }
 
 int
-main (argc, argv)
-     int argc;
-     char **argv;
+main (int argc, char **argv)
 {
   char *command_line;
   header the_header;
@@ -731,7 +702,7 @@ main (argc, argv)
   register int size;
   FILE *the_pipe;
 
-  extern char *getenv ();
+  extern char *getenv (const char *);
 
   mail_program_name = getenv ("FAKEMAILER");
   if (!(mail_program_name && *mail_program_name))
