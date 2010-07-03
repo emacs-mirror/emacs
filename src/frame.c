@@ -1722,7 +1722,7 @@ before calling this function on it, like this.
   return Qnil;
 }
 
-static void make_frame_visible_1 P_ ((Lisp_Object));
+static void make_frame_visible_1 (Lisp_Object);
 
 DEFUN ("make-frame-visible", Fmake_frame_visible, Smake_frame_visible,
        0, 1, "",
@@ -3723,8 +3723,8 @@ validate_x_resource_name ()
 }
 
 
-extern char *x_get_string_resource P_ ((XrmDatabase, char *, char *));
-extern Display_Info *check_x_display_info P_ ((Lisp_Object));
+extern char *x_get_string_resource (XrmDatabase, char *, char *);
+extern Display_Info *check_x_display_info (Lisp_Object);
 
 
 /* Get specified attribute from resource database RDB.

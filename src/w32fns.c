@@ -74,10 +74,10 @@ void globals_of_w32fns ();
 
 extern void free_frame_menubar ();
 extern double atof ();
-extern int w32_console_toggle_lock_key P_ ((int, Lisp_Object));
-extern void w32_menu_display_help P_ ((HWND, HMENU, UINT, UINT));
-extern void w32_free_menu_strings P_ ((HWND));
-extern const char *map_w32_filename P_ ((const char *, const char **));
+extern int w32_console_toggle_lock_key (int, Lisp_Object);
+extern void w32_menu_display_help (HWND, HMENU, UINT, UINT);
+extern void w32_free_menu_strings (HWND);
+extern const char *map_w32_filename (const char *, const char **);
 
 extern int quit_char;
 
@@ -320,8 +320,8 @@ extern void syms_of_w32uniscribe ();
 extern int uniscribe_available;
 
 /* Function prototypes for hourglass support.  */
-static void w32_show_hourglass P_ ((struct frame *));
-static void w32_hide_hourglass P_ ((void));
+static void w32_show_hourglass (struct frame *);
+static void w32_hide_hourglass (void);
 
 
 
@@ -420,26 +420,26 @@ x_window_to_frame (dpyinfo, wdesc)
 }
 
 
-static Lisp_Object unwind_create_frame P_ ((Lisp_Object));
-static Lisp_Object unwind_create_tip_frame P_ ((Lisp_Object));
-static void my_create_window P_ ((struct frame *));
-static void my_create_tip_window P_ ((struct frame *));
+static Lisp_Object unwind_create_frame (Lisp_Object);
+static Lisp_Object unwind_create_tip_frame (Lisp_Object);
+static void my_create_window (struct frame *);
+static void my_create_tip_window (struct frame *);
 
 /* TODO: Native Input Method support; see x_create_im.  */
-void x_set_foreground_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
-void x_set_background_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
-void x_set_mouse_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
-void x_set_cursor_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
-void x_set_border_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
-void x_set_cursor_type P_ ((struct frame *, Lisp_Object, Lisp_Object));
-void x_set_icon_type P_ ((struct frame *, Lisp_Object, Lisp_Object));
-void x_set_icon_name P_ ((struct frame *, Lisp_Object, Lisp_Object));
-void x_explicitly_set_name P_ ((struct frame *, Lisp_Object, Lisp_Object));
-void x_set_menu_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
-void x_set_title P_ ((struct frame *, Lisp_Object, Lisp_Object));
-void x_set_tool_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
-static void x_edge_detection P_ ((struct frame *, struct image *, Lisp_Object,
-				  Lisp_Object));
+void x_set_foreground_color (struct frame *, Lisp_Object, Lisp_Object);
+void x_set_background_color (struct frame *, Lisp_Object, Lisp_Object);
+void x_set_mouse_color (struct frame *, Lisp_Object, Lisp_Object);
+void x_set_cursor_color (struct frame *, Lisp_Object, Lisp_Object);
+void x_set_border_color (struct frame *, Lisp_Object, Lisp_Object);
+void x_set_cursor_type (struct frame *, Lisp_Object, Lisp_Object);
+void x_set_icon_type (struct frame *, Lisp_Object, Lisp_Object);
+void x_set_icon_name (struct frame *, Lisp_Object, Lisp_Object);
+void x_explicitly_set_name (struct frame *, Lisp_Object, Lisp_Object);
+void x_set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
+void x_set_title (struct frame *, Lisp_Object, Lisp_Object);
+void x_set_tool_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
+static void x_edge_detection (struct frame *, struct image *, Lisp_Object,
+                              Lisp_Object);
 
 
 
@@ -5363,10 +5363,10 @@ w32_hide_hourglass ()
 				Tool tips
  ***********************************************************************/
 
-static Lisp_Object x_create_tip_frame P_ ((struct w32_display_info *,
-					   Lisp_Object, Lisp_Object));
-static void compute_tip_xy P_ ((struct frame *, Lisp_Object, Lisp_Object,
-				Lisp_Object, int, int, int *, int *));
+static Lisp_Object x_create_tip_frame (struct w32_display_info *,
+                                       Lisp_Object, Lisp_Object);
+static void compute_tip_xy (struct frame *, Lisp_Object, Lisp_Object,
+                            Lisp_Object, int, int, int *, int *);
 
 /* The frame of a currently visible tooltip.  */
 

@@ -122,22 +122,22 @@ extern Lisp_Object Qoverriding_local_map, Qoverriding_terminal_local_map;
 extern Lisp_Object Qmenu_bar_update_hook;
 
 #ifdef USE_X_TOOLKIT
-extern void set_frame_menubar P_ ((FRAME_PTR, int, int));
+extern void set_frame_menubar (FRAME_PTR, int, int);
 extern XtAppContext Xt_app_con;
 
-static Lisp_Object xdialog_show P_ ((FRAME_PTR, int, Lisp_Object, Lisp_Object,
-				     char **));
-static void popup_get_selection P_ ((XEvent *, struct x_display_info *,
-                                     LWLIB_ID, int));
+static Lisp_Object xdialog_show (FRAME_PTR, int, Lisp_Object, Lisp_Object,
+                                 char **);
+static void popup_get_selection (XEvent *, struct x_display_info *,
+                                 LWLIB_ID, int);
 #endif /* USE_X_TOOLKIT */
 
 #ifdef USE_GTK
-extern void set_frame_menubar P_ ((FRAME_PTR, int, int));
-static Lisp_Object xdialog_show P_ ((FRAME_PTR, int, Lisp_Object, Lisp_Object,
-				     char **));
+extern void set_frame_menubar (FRAME_PTR, int, int);
+static Lisp_Object xdialog_show (FRAME_PTR, int, Lisp_Object, Lisp_Object,
+                                 char **);
 #endif
 
-static int update_frame_menubar P_ ((struct frame *));
+static int update_frame_menubar (struct frame *);
 
 /* Flag which when set indicates a dialog or menu has been posted by
    Xt on behalf of one of the widget sets.  */
@@ -147,8 +147,8 @@ static int next_menubar_widget_id;
 
 /* For NS and NTGUI, these prototypes are defined in keyboard.h.  */
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
-extern widget_value *xmalloc_widget_value P_ ((void));
-extern widget_value *digest_single_submenu P_ ((int, int, int));
+extern widget_value *xmalloc_widget_value (void);
+extern widget_value *digest_single_submenu (int, int, int);
 #endif
 
 /* This is set nonzero after the user activates the menu bar, and set

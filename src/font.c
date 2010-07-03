@@ -229,10 +229,10 @@ font_make_object (size, entity, pixelsize)
 
 
 
-static int font_pixel_size P_ ((FRAME_PTR f, Lisp_Object));
-static Lisp_Object font_open_entity P_ ((FRAME_PTR, Lisp_Object, int));
-static Lisp_Object font_matching_entity P_ ((FRAME_PTR, Lisp_Object *,
-					     Lisp_Object));
+static int font_pixel_size (FRAME_PTR f, Lisp_Object);
+static Lisp_Object font_open_entity (FRAME_PTR, Lisp_Object, int);
+static Lisp_Object font_matching_entity (FRAME_PTR, Lisp_Object *,
+                                         Lisp_Object);
 
 /* Number of registered font drivers.  */
 static int num_font_drivers;
@@ -416,7 +416,7 @@ font_style_symbolic (font, prop, for_face)
 
 extern Lisp_Object Vface_alternative_font_family_alist;
 
-extern Lisp_Object find_font_encoding P_ ((Lisp_Object));
+extern Lisp_Object find_font_encoding (Lisp_Object);
 
 
 /* Return ENCODING or a cons of ENCODING and REPERTORY of the font
@@ -508,12 +508,12 @@ font_registry_charsets (registry, encoding, repertory)
 /* Font property value validaters.  See the comment of
    font_property_table for the meaning of the arguments.  */
 
-static Lisp_Object font_prop_validate P_ ((int, Lisp_Object, Lisp_Object));
-static Lisp_Object font_prop_validate_symbol P_ ((Lisp_Object, Lisp_Object));
-static Lisp_Object font_prop_validate_style P_ ((Lisp_Object, Lisp_Object));
-static Lisp_Object font_prop_validate_non_neg P_ ((Lisp_Object, Lisp_Object));
-static Lisp_Object font_prop_validate_spacing P_ ((Lisp_Object, Lisp_Object));
-static int get_font_prop_index P_ ((Lisp_Object));
+static Lisp_Object font_prop_validate (int, Lisp_Object, Lisp_Object);
+static Lisp_Object font_prop_validate_symbol (Lisp_Object, Lisp_Object);
+static Lisp_Object font_prop_validate_style (Lisp_Object, Lisp_Object);
+static Lisp_Object font_prop_validate_non_neg (Lisp_Object, Lisp_Object);
+static Lisp_Object font_prop_validate_spacing (Lisp_Object, Lisp_Object);
+static int get_font_prop_index (Lisp_Object);
 
 static Lisp_Object
 font_prop_validate_symbol (prop, val)
@@ -638,7 +638,7 @@ struct
   /* Function to validate PROP's value VAL, or NULL if any value is
      ok.  The value is VAL or its regularized value if VAL is valid,
      and Qerror if not.  */
-  Lisp_Object (*validater) P_ ((Lisp_Object prop, Lisp_Object val));
+  Lisp_Object (*validater) (Lisp_Object prop, Lisp_Object val);
 } font_property_table[] =
   { { &QCtype, font_prop_validate_symbol },
     { &QCfoundry, font_prop_validate_symbol },
@@ -740,9 +740,9 @@ font_put_extra (font, prop, val)
 
 /* Font name parser and unparser */
 
-static int parse_matrix P_ ((char *));
-static int font_expand_wildcards P_ ((Lisp_Object *, int));
-static int font_parse_name P_ ((char *, Lisp_Object));
+static int parse_matrix (char *);
+static int font_expand_wildcards (Lisp_Object *, int);
+static int font_parse_name (char *, Lisp_Object);
 
 /* An enumerator for each field of an XLFD font name.  */
 enum xlfd_field_index
@@ -2220,10 +2220,10 @@ font_otf_Anchor (anchor)
 
 /* Font sorting */
 
-static unsigned font_score P_ ((Lisp_Object, Lisp_Object *));
-static int font_compare P_ ((const void *, const void *));
-static Lisp_Object font_sort_entities P_ ((Lisp_Object, Lisp_Object,
-					  Lisp_Object, int));
+static unsigned font_score (Lisp_Object, Lisp_Object *);
+static int font_compare (const void *, const void *);
+static Lisp_Object font_sort_entities (Lisp_Object, Lisp_Object,
+                                       Lisp_Object, int);
 
 /* Return a rescaling ratio of FONT_ENTITY.  */
 extern Lisp_Object Vface_font_rescale_alist;
@@ -2701,11 +2701,11 @@ font_match_p (spec, font)
    is a number frames sharing this cache, and FONT-CACHE-DATA is a
    cons (FONT-SPEC FONT-ENTITY ...).  */
 
-static void font_prepare_cache P_ ((FRAME_PTR, struct font_driver *));
-static void font_finish_cache P_ ((FRAME_PTR, struct font_driver *));
-static Lisp_Object font_get_cache P_ ((FRAME_PTR, struct font_driver *));
-static void font_clear_cache P_ ((FRAME_PTR, Lisp_Object,
-				  struct font_driver *));
+static void font_prepare_cache (FRAME_PTR, struct font_driver *);
+static void font_finish_cache (FRAME_PTR, struct font_driver *);
+static Lisp_Object font_get_cache (FRAME_PTR, struct font_driver *);
+static void font_clear_cache (FRAME_PTR, Lisp_Object,
+                              struct font_driver *);
 
 static void
 font_prepare_cache (f, driver)
@@ -5249,14 +5249,14 @@ font_deferred_log (action, arg, result)
   ASET (Vfont_log_deferred, 2, result);
 }
 
-extern void syms_of_ftfont P_ (());
-extern void syms_of_xfont P_ (());
-extern void syms_of_xftfont P_ (());
-extern void syms_of_ftxfont P_ (());
-extern void syms_of_bdffont P_ (());
-extern void syms_of_w32font P_ (());
-extern void syms_of_atmfont P_ (());
-extern void syms_of_nsfont P_ (());
+extern void syms_of_ftfont ();
+extern void syms_of_xfont ();
+extern void syms_of_xftfont ();
+extern void syms_of_ftxfont ();
+extern void syms_of_bdffont ();
+extern void syms_of_w32font ();
+extern void syms_of_atmfont ();
+extern void syms_of_nsfont ();
 
 void
 syms_of_font ()

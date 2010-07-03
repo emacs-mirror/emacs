@@ -1,3 +1,32 @@
+2010-07-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* update-game-score.c: Convert function definitions to standard C.
+	* sorted-doc.c:
+	* profile.c:
+	* pop.c:
+	* movemail.c:
+	* make-docfile.c:
+	* hexl.c:
+	* fakemail.c:
+	* etags.c:
+	* ebrowse.c:
+	* digest-doc.c:
+	* b2m.c: Likewise.
+
+2010-07-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* make-docfile.c (xmalloc, xrealloc, concat, readline, fatal):
+	* b2m.c (scan_file, scan_lisp_file, scan_c_file): Convert to
+	standard C prototypes.
+
+2010-07-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* ebrowse.c: Remove P_ and __P.
+	* etags.c:
+	* movemail.c:
+	* pop.c:
+	* update-game-score.c: Likewise.
+
 2010-06-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* movemail.c (error): Avoid warning when there are no args.

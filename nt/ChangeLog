@@ -1,3 +1,7 @@
+2010-07-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt (__P): Remove.
+
 2010-06-06  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* config.nt: Remove code depending on BSTRING.

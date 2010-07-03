@@ -510,56 +510,56 @@ int menu_face_changed_default;
 struct table_entry;
 struct named_merge_point;
 
-static void map_tty_color P_ ((struct frame *, struct face *,
-			       enum lface_attribute_index, int *));
-static Lisp_Object resolve_face_name P_ ((Lisp_Object, int));
-static int may_use_scalable_font_p P_ ((const char *));
-static void set_font_frame_param P_ ((Lisp_Object, Lisp_Object));
-static int get_lface_attributes P_ ((struct frame *, Lisp_Object, Lisp_Object *,
-				     int, struct named_merge_point *));
-static int load_pixmap P_ ((struct frame *, Lisp_Object, unsigned *, unsigned *));
-static struct frame *frame_or_selected_frame P_ ((Lisp_Object, int));
-static void load_face_colors P_ ((struct frame *, struct face *, Lisp_Object *));
-static void free_face_colors P_ ((struct frame *, struct face *));
-static int face_color_gray_p P_ ((struct frame *, char *));
-static struct face *realize_face P_ ((struct face_cache *, Lisp_Object *,
-				      int));
-static struct face *realize_non_ascii_face P_ ((struct frame *, Lisp_Object,
-						struct face *));
-static struct face *realize_x_face P_ ((struct face_cache *, Lisp_Object *));
-static struct face *realize_tty_face P_ ((struct face_cache *, Lisp_Object *));
-static int realize_basic_faces P_ ((struct frame *));
-static int realize_default_face P_ ((struct frame *));
-static void realize_named_face P_ ((struct frame *, Lisp_Object, int));
-static int lface_fully_specified_p P_ ((Lisp_Object *));
-static int lface_equal_p P_ ((Lisp_Object *, Lisp_Object *));
-static unsigned hash_string_case_insensitive P_ ((Lisp_Object));
-static unsigned lface_hash P_ ((Lisp_Object *));
-static int lface_same_font_attributes_p P_ ((Lisp_Object *, Lisp_Object *));
-static struct face_cache *make_face_cache P_ ((struct frame *));
-static void clear_face_gcs P_ ((struct face_cache *));
-static void free_face_cache P_ ((struct face_cache *));
-static int face_fontset P_ ((Lisp_Object *));
-static void merge_face_vectors P_ ((struct frame *, Lisp_Object *, Lisp_Object*,
-				    struct named_merge_point *));
-static int merge_face_ref P_ ((struct frame *, Lisp_Object, Lisp_Object *,
-			       int, struct named_merge_point *));
-static int set_lface_from_font P_ ((struct frame *, Lisp_Object, Lisp_Object,
-				    int));
-static Lisp_Object lface_from_face_name P_ ((struct frame *, Lisp_Object, int));
-static struct face *make_realized_face P_ ((Lisp_Object *));
-static void cache_face P_ ((struct face_cache *, struct face *, unsigned));
-static void uncache_face P_ ((struct face_cache *, struct face *));
+static void map_tty_color (struct frame *, struct face *,
+                           enum lface_attribute_index, int *);
+static Lisp_Object resolve_face_name (Lisp_Object, int);
+static int may_use_scalable_font_p (const char *);
+static void set_font_frame_param (Lisp_Object, Lisp_Object);
+static int get_lface_attributes (struct frame *, Lisp_Object, Lisp_Object *,
+                                 int, struct named_merge_point *);
+static int load_pixmap (struct frame *, Lisp_Object, unsigned *, unsigned *);
+static struct frame *frame_or_selected_frame (Lisp_Object, int);
+static void load_face_colors (struct frame *, struct face *, Lisp_Object *);
+static void free_face_colors (struct frame *, struct face *);
+static int face_color_gray_p (struct frame *, char *);
+static struct face *realize_face (struct face_cache *, Lisp_Object *,
+                                  int);
+static struct face *realize_non_ascii_face (struct frame *, Lisp_Object,
+                                            struct face *);
+static struct face *realize_x_face (struct face_cache *, Lisp_Object *);
+static struct face *realize_tty_face (struct face_cache *, Lisp_Object *);
+static int realize_basic_faces (struct frame *);
+static int realize_default_face (struct frame *);
+static void realize_named_face (struct frame *, Lisp_Object, int);
+static int lface_fully_specified_p (Lisp_Object *);
+static int lface_equal_p (Lisp_Object *, Lisp_Object *);
+static unsigned hash_string_case_insensitive (Lisp_Object);
+static unsigned lface_hash (Lisp_Object *);
+static int lface_same_font_attributes_p (Lisp_Object *, Lisp_Object *);
+static struct face_cache *make_face_cache (struct frame *);
+static void clear_face_gcs (struct face_cache *);
+static void free_face_cache (struct face_cache *);
+static int face_fontset (Lisp_Object *);
+static void merge_face_vectors (struct frame *, Lisp_Object *, Lisp_Object*,
+                                struct named_merge_point *);
+static int merge_face_ref (struct frame *, Lisp_Object, Lisp_Object *,
+                           int, struct named_merge_point *);
+static int set_lface_from_font (struct frame *, Lisp_Object, Lisp_Object,
+                                int);
+static Lisp_Object lface_from_face_name (struct frame *, Lisp_Object, int);
+static struct face *make_realized_face (Lisp_Object *);
+static void cache_face (struct face_cache *, struct face *, unsigned);
+static void uncache_face (struct face_cache *, struct face *);
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-static GC x_create_gc P_ ((struct frame *, unsigned long, XGCValues *));
-static void x_free_gc P_ ((struct frame *, GC));
+static GC x_create_gc (struct frame *, unsigned long, XGCValues *);
+static void x_free_gc (struct frame *, GC);
 
 #ifdef USE_X_TOOLKIT
-static void x_update_menu_appearance P_ ((struct frame *));
+static void x_update_menu_appearance (struct frame *);
 
-extern void free_frame_menubar P_ ((struct frame *));
+extern void free_frame_menubar (struct frame *);
 #endif /* USE_X_TOOLKIT */
 
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -3778,7 +3778,7 @@ x_update_menu_appearance (f)
 	    {
 #if defined HAVE_X_I18N
 	      extern char *xic_create_fontsetname
-		P_ ((char *base_fontname, Bool motif));
+                (char *base_fontname, Bool motif);
 	      char *fontsetname = xic_create_fontsetname (SDATA (xlfd), motif);
 #else
 	      char *fontsetname = (char *) SDATA (xlfd);

@@ -98,13 +98,13 @@ static EMACS_INT find_start_begv;
 static int find_start_modiff;
 
 
-static Lisp_Object skip_chars P_ ((int, Lisp_Object, Lisp_Object, int));
-static Lisp_Object skip_syntaxes P_ ((int, Lisp_Object, Lisp_Object));
-static Lisp_Object scan_lists P_ ((EMACS_INT, EMACS_INT, EMACS_INT, int));
-static void scan_sexps_forward P_ ((struct lisp_parse_state *,
-				    EMACS_INT, EMACS_INT, EMACS_INT, int,
-				    int, Lisp_Object, int));
-static int in_classes P_ ((int, Lisp_Object));
+static Lisp_Object skip_chars (int, Lisp_Object, Lisp_Object, int);
+static Lisp_Object skip_syntaxes (int, Lisp_Object, Lisp_Object);
+static Lisp_Object scan_lists (EMACS_INT, EMACS_INT, EMACS_INT, int);
+static void scan_sexps_forward (struct lisp_parse_state *,
+                                EMACS_INT, EMACS_INT, EMACS_INT, int,
+                                int, Lisp_Object, int);
+static int in_classes (int, Lisp_Object);
 
 
 struct gl_state_s gl_state;		/* Global state of syntax parser.  */

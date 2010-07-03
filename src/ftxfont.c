@@ -39,12 +39,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 static Lisp_Object Qftx;
 
 /* Prototypes for helper function.  */
-static GC *ftxfont_get_gcs P_ ((FRAME_PTR, unsigned long, unsigned long));
-static int ftxfont_draw_bitmap P_ ((FRAME_PTR, GC, GC *, struct font *,
-				    unsigned, int, int, XPoint *, int, int *,
-				    int));
-static void ftxfont_draw_backgrond P_ ((FRAME_PTR, struct font *, GC,
-					int, int, int));
+static GC *ftxfont_get_gcs (FRAME_PTR, unsigned long, unsigned long);
+static int ftxfont_draw_bitmap (FRAME_PTR, GC, GC *, struct font *,
+                                unsigned, int, int, XPoint *, int, int *,
+                                int);
+static void ftxfont_draw_backgrond (FRAME_PTR, struct font *, GC,
+                                    int, int, int);
 
 struct ftxfont_frame_data
 {
@@ -241,11 +241,11 @@ ftxfont_draw_backgrond (f, font, gc, x, y, width)
 }
 
 /* Prototypes for font-driver methods.  */
-static Lisp_Object ftxfont_list P_ ((Lisp_Object, Lisp_Object));
-static Lisp_Object ftxfont_match P_ ((Lisp_Object, Lisp_Object));
-static Lisp_Object ftxfont_open P_ ((FRAME_PTR, Lisp_Object, int));
-static void ftxfont_close P_ ((FRAME_PTR, struct font *));
-static int ftxfont_draw P_ ((struct glyph_string *, int, int, int, int, int));
+static Lisp_Object ftxfont_list (Lisp_Object, Lisp_Object);
+static Lisp_Object ftxfont_match (Lisp_Object, Lisp_Object);
+static Lisp_Object ftxfont_open (FRAME_PTR, Lisp_Object, int);
+static void ftxfont_close (FRAME_PTR, struct font *);
+static int ftxfont_draw (struct glyph_string *, int, int, int, int, int);
 
 struct font_driver ftxfont_driver;
 

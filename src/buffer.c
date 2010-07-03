@@ -106,13 +106,13 @@ static char buffer_permanent_local_flags[MAX_PER_BUFFER_VARS];
 int last_per_buffer_idx;
 
 EXFUN (Fset_buffer, 1);
-void set_buffer_internal P_ ((struct buffer *b));
-void set_buffer_internal_1 P_ ((struct buffer *b));
-static void call_overlay_mod_hooks P_ ((Lisp_Object list, Lisp_Object overlay,
-					int after, Lisp_Object arg1,
-					Lisp_Object arg2, Lisp_Object arg3));
-static void swap_out_buffer_local_variables P_ ((struct buffer *b));
-static void reset_buffer_local_variables P_ ((struct buffer *b, int permanent_too));
+void set_buffer_internal (struct buffer *b);
+void set_buffer_internal_1 (struct buffer *b);
+static void call_overlay_mod_hooks (Lisp_Object list, Lisp_Object overlay,
+                                    int after, Lisp_Object arg1,
+                                    Lisp_Object arg2, Lisp_Object arg3);
+static void swap_out_buffer_local_variables (struct buffer *b);
+static void reset_buffer_local_variables (struct buffer *b, int permanent_too);
 
 /* Alist of all buffer names vs the buffers. */
 /* This used to be a variable, but is no longer,
@@ -168,13 +168,13 @@ Lisp_Object Qmodification_hooks;
 Lisp_Object Qinsert_in_front_hooks;
 Lisp_Object Qinsert_behind_hooks;
 
-static void alloc_buffer_text P_ ((struct buffer *, size_t));
-static void free_buffer_text P_ ((struct buffer *b));
-static struct Lisp_Overlay * copy_overlays P_ ((struct buffer *, struct Lisp_Overlay *));
-static void modify_overlay P_ ((struct buffer *, EMACS_INT, EMACS_INT));
-static Lisp_Object buffer_lisp_local_variables P_ ((struct buffer *));
+static void alloc_buffer_text (struct buffer *, size_t);
+static void free_buffer_text (struct buffer *b);
+static struct Lisp_Overlay * copy_overlays (struct buffer *, struct Lisp_Overlay *);
+static void modify_overlay (struct buffer *, EMACS_INT, EMACS_INT);
+static Lisp_Object buffer_lisp_local_variables (struct buffer *);
 
-extern char * emacs_strerror P_ ((int));
+extern char * emacs_strerror (int);
 
 /* For debugging; temporary.  See set_buffer_internal.  */
 /* Lisp_Object Qlisp_mode, Vcheck_symbol; */
@@ -2071,7 +2071,7 @@ advance_to_char_boundary (byte_pos)
 }
 
 #ifdef REL_ALLOC
-extern void r_alloc_reset_variable P_ ((POINTER_TYPE *, POINTER_TYPE *));
+extern void r_alloc_reset_variable (POINTER_TYPE *, POINTER_TYPE *);
 #endif /* REL_ALLOC */
 
 DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
@@ -4589,13 +4589,13 @@ static int mmap_initialized_p;
 
 /* Function prototypes.  */
 
-static int mmap_free_1 P_ ((struct mmap_region *));
-static int mmap_enlarge P_ ((struct mmap_region *, int));
-static struct mmap_region *mmap_find P_ ((POINTER_TYPE *, POINTER_TYPE *));
-static POINTER_TYPE *mmap_alloc P_ ((POINTER_TYPE **, size_t));
-static POINTER_TYPE *mmap_realloc P_ ((POINTER_TYPE **, size_t));
-static void mmap_free P_ ((POINTER_TYPE **ptr));
-static void mmap_init P_ ((void));
+static int mmap_free_1 (struct mmap_region *);
+static int mmap_enlarge (struct mmap_region *, int);
+static struct mmap_region *mmap_find (POINTER_TYPE *, POINTER_TYPE *);
+static POINTER_TYPE *mmap_alloc (POINTER_TYPE **, size_t);
+static POINTER_TYPE *mmap_realloc (POINTER_TYPE **, size_t);
+static void mmap_free (POINTER_TYPE **ptr);
+static void mmap_init (void);
 
 
 /* Return a region overlapping address range START...END, or null if
@@ -4928,9 +4928,9 @@ mmap_init ()
  ***********************************************************************/
 
 #ifdef REL_ALLOC
-extern POINTER_TYPE *r_alloc P_ ((POINTER_TYPE **, size_t));
-extern POINTER_TYPE *r_re_alloc P_ ((POINTER_TYPE **, size_t));
-extern void r_alloc_free P_ ((POINTER_TYPE **ptr));
+extern POINTER_TYPE *r_alloc (POINTER_TYPE **, size_t);
+extern POINTER_TYPE *r_re_alloc (POINTER_TYPE **, size_t);
+extern void r_alloc_free (POINTER_TYPE **ptr);
 #endif /* REL_ALLOC */
 
 

@@ -62,26 +62,26 @@ struct w32font_info
 
 #define CACHE_BLOCKSIZE 128
 
-Lisp_Object w32font_get_cache P_ ((FRAME_PTR fe));
-Lisp_Object w32font_list_internal P_ ((Lisp_Object frame,
-                                       Lisp_Object font_spec,
-                                       int opentype_only));
-Lisp_Object w32font_match_internal P_ ((Lisp_Object frame,
-                                        Lisp_Object font_spec,
-                                        int opentype_only));
-int w32font_open_internal P_ ((FRAME_PTR f, Lisp_Object font_entity,
-                               int pixel_size, Lisp_Object font_object));
-void w32font_close P_ ((FRAME_PTR f, struct font *font));
-int w32font_has_char P_ ((Lisp_Object entity, int c));
-int w32font_text_extents P_ ((struct font *font, unsigned *code, int nglyphs,
-                              struct font_metrics *metrics));
-int w32font_draw P_ ((struct glyph_string *s, int from, int to,
-                      int x, int y, int with_background));
+Lisp_Object w32font_get_cache (FRAME_PTR fe);
+Lisp_Object w32font_list_internal (Lisp_Object frame,
+                                   Lisp_Object font_spec,
+                                   int opentype_only);
+Lisp_Object w32font_match_internal (Lisp_Object frame,
+                                    Lisp_Object font_spec,
+                                    int opentype_only);
+int w32font_open_internal (FRAME_PTR f, Lisp_Object font_entity,
+                           int pixel_size, Lisp_Object font_object);
+void w32font_close (FRAME_PTR f, struct font *font);
+int w32font_has_char (Lisp_Object entity, int c);
+int w32font_text_extents (struct font *font, unsigned *code, int nglyphs,
+                          struct font_metrics *metrics);
+int w32font_draw (struct glyph_string *s, int from, int to,
+                  int x, int y, int with_background);
 
 
-int uniscribe_check_otf P_ ((LOGFONT *font, Lisp_Object otf_spec));
+int uniscribe_check_otf (LOGFONT *font, Lisp_Object otf_spec);
 
-Lisp_Object intern_font_name P_ ((char *));
+Lisp_Object intern_font_name (char *);
 
 #endif
 

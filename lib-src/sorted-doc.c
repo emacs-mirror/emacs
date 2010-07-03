@@ -65,8 +65,7 @@ struct docstr			/* Allocated thing for an entry. */
 /* Print error message.  `s1' is printf control string, `s2' is arg for it. */
 
 void
-error (s1, s2)
-     char *s1, *s2;
+error (char *s1, char *s2)
 {
   fprintf (stderr, "sorted-doc: ");
   fprintf (stderr, s1, s2);
@@ -76,8 +75,7 @@ error (s1, s2)
 /* Print error message and exit.  */
 
 void
-fatal (s1, s2)
-     char *s1, *s2;
+fatal (char *s1, char *s2)
 {
   error (s1, s2);
   exit (EXIT_FAILURE);
@@ -86,8 +84,7 @@ fatal (s1, s2)
 /* Like malloc but get fatal error if memory is exhausted.  */
 
 char *
-xmalloc (size)
-     int size;
+xmalloc (int size)
 {
   char *result = malloc ((unsigned)size);
   if (result == NULL)
@@ -96,8 +93,7 @@ xmalloc (size)
 }
 
 char *
-xstrdup (str)
-     char * str;
+xstrdup (char *str)
 {
   char *buf = xmalloc (strlen (str) + 1);
   (void) strcpy (buf, str);
@@ -107,9 +103,7 @@ xstrdup (str)
 /* Comparison function for qsort to call.  */
 
 int
-cmpdoc (a, b)
-     DOCSTR **a;
-     DOCSTR **b;
+cmpdoc (DOCSTR **a, DOCSTR **b)
 {
   register int val = strcmp ((*a)->name, (*b)->name);
   if (val) return val;
@@ -128,7 +122,7 @@ char *states[] =
 };
 
 int
-main ()
+main (void)
 {
   register DOCSTR *dp = NULL;	/* allocated DOCSTR */
   register LINE *lp = NULL;	/* allocated line */

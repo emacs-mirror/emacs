@@ -933,6 +933,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if using GTK. */
 #undef USE_GTK
 
+/* Define this to use a lisp union for the Lisp_Object data type. */
+#undef USE_LISP_UNION_TYPE
+
 /* Define to 1 if using the Lucid X toolkit. */
 #undef USE_LUCID
 
@@ -1138,14 +1141,6 @@ extern char *getenv ();
 /* Define if the compiler supports function prototypes.  It may do so but
    not define __STDC__ (e.g. DEC C by default) or may define it as zero.  */
 #undef PROTOTYPES
-/* For mktime.c:  */
-#ifndef __P
-# if defined PROTOTYPES
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif  /* GCC.  */
-#endif /* __P */
 
 #ifdef HAVE_STRING_H
 #include <string.h>

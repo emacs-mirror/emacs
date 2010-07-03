@@ -53,8 +53,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define TMEM(sym, set) (CONSP (set) ? ! NILP (Fmemq (sym, set)) : ! NILP (set))
 
 Lisp_Object merge_properties_sticky ();
-static INTERVAL reproduce_tree P_ ((INTERVAL, INTERVAL));
-static INTERVAL reproduce_tree_obj P_ ((INTERVAL, Lisp_Object));
+static INTERVAL reproduce_tree (INTERVAL, INTERVAL);
+static INTERVAL reproduce_tree_obj (INTERVAL, Lisp_Object);
 
 /* Utility functions for intervals.  */
 
@@ -208,7 +208,7 @@ intervals_equal (i0, i1)
 void
 traverse_intervals_noorder (tree, function, arg)
      INTERVAL tree;
-     void (* function) P_ ((INTERVAL, Lisp_Object));
+     void (* function) (INTERVAL, Lisp_Object);
      Lisp_Object arg;
 {
   /* Minimize stack usage.  */
@@ -232,7 +232,7 @@ void
 traverse_intervals (tree, position, function, arg)
      INTERVAL tree;
      int position;
-     void (* function) P_ ((INTERVAL, Lisp_Object));
+     void (* function) (INTERVAL, Lisp_Object);
      Lisp_Object arg;
 {
   while (!NULL_INTERVAL_P (tree))

@@ -140,33 +140,31 @@ static char *mail_spool_name ();
 #endif
 #endif
 
-char *strerror ();
+char *strerror (int);
 #ifdef HAVE_INDEX
-extern char *index __P ((const char *, int));
+extern char *index (const char *, int);
 #endif
 #ifdef HAVE_RINDEX
-extern char *rindex __P((const char *, int));
+extern char *rindex (const char *, int);
 #endif
 
-void fatal ();
-void error ();
-void pfatal_with_name ();
-void pfatal_and_delete ();
-char *concat ();
-long *xmalloc ();
-int popmail ();
-int pop_retr ();
-int mbx_write ();
-int mbx_delimit_begin ();
-int mbx_delimit_end ();
+void fatal (char *s1, char *s2, char *s3);
+void error (char *s1, char *s2, char *s3);
+void pfatal_with_name (char *name);
+void pfatal_and_delete (char *name);
+char *concat (char *s1, char *s2, char *s3);
+long *xmalloc (unsigned int size);
+int popmail (char *mailbox, char *outfile, int preserve, char *password, int reverse_order);
+int pop_retr (popserver server, int msgno, FILE *arg);
+int mbx_write (char *line, int len, FILE *mbf);
+int mbx_delimit_begin (FILE *mbf);
+int mbx_delimit_end (FILE *mbf);
 
 /* Nonzero means this is name of a lock file to delete on fatal error.  */
 char *delete_lockname;
 
 int
-main (argc, argv)
-     int argc;
-     char **argv;
+main (int argc, char **argv)
 {
   char *inname, *outname;
   int indesc, outdesc;
@@ -590,8 +588,7 @@ mail_spool_name (inname)
 /* Print error message and exit.  */
 
 void
-fatal (s1, s2, s3)
-     char *s1, *s2, *s3;
+fatal (char *s1, char *s2, char *s3)
 {
   if (delete_lockname)
     unlink (delete_lockname);
@@ -603,8 +600,7 @@ fatal (s1, s2, s3)
    are args for it or null. */
 
 void
-error (s1, s2, s3)
-     char *s1, *s2, *s3;
+error (char *s1, char *s2, char *s3)
 {
   fprintf (stderr, "movemail: ");
   if (s3)
@@ -617,15 +613,13 @@ error (s1, s2, s3)
 }
 
 void
-pfatal_with_name (name)
-     char *name;
+pfatal_with_name (char *name)
 {
   fatal ("%s for %s", strerror (errno), name);
 }
 
 void
-pfatal_and_delete (name)
-     char *name;
+pfatal_and_delete (char *name)
 {
   char *s = strerror (errno);
   unlink (name);
@@ -635,8 +629,7 @@ pfatal_and_delete (name)
 /* Return a newly-allocated string whose contents concatenate those of s1, s2, s3.  */
 
 char *
-concat (s1, s2, s3)
-     char *s1, *s2, *s3;
+concat (char *s1, char *s2, char *s3)
 {
   int len1 = strlen (s1), len2 = strlen (s2), len3 = strlen (s3);
   char *result = (char *) xmalloc (len1 + len2 + len3 + 1);
@@ -652,8 +645,7 @@ concat (s1, s2, s3)
 /* Like malloc but get fatal error if memory is exhausted.  */
 
 long *
-xmalloc (size)
-     unsigned size;
+xmalloc (unsigned int size)
 {
   long *result = (long *) malloc (size);
   if (!result)
@@ -703,18 +695,13 @@ char Errmsg[200];		/* POP errors, at least, can exceed
  */
 
 int
-popmail (mailbox, outfile, preserve, password, reverse_order)
-     char *mailbox;
-     char *outfile;
-     int preserve;
-     char *password;
-     int reverse_order;
+popmail (char *mailbox, char *outfile, int preserve, char *password, int reverse_order)
 {
   int nmsgs, nbytes;
   register int i;
   int mbfi;
   FILE *mbf;
-  char *getenv ();
+  char *getenv (const char *);
   popserver server;
   int start, end, increment;
   char *user, *hostname;
@@ -834,12 +821,9 @@ popmail (mailbox, outfile, preserve, password, reverse_order)
 }
 
 int
-pop_retr (server, msgno, arg)
-     popserver server;
-     int msgno;
-     FILE *arg;
+pop_retr (popserver server, int msgno, FILE *arg)
 {
-  extern char *strerror ();
+  extern char *strerror (int);
   char *line;
   int ret;
 
@@ -885,10 +869,7 @@ pop_retr (server, msgno, arg)
 			 && (a[4] == ' '))
 
 int
-mbx_write (line, len, mbf)
-     char *line;
-     int len;
-     FILE *mbf;
+mbx_write (char *line, int len, FILE *mbf)
 {
 #ifdef MOVEMAIL_QUOTE_POP_FROM_LINES
   if (IS_FROM_LINE (line))
@@ -912,8 +893,7 @@ mbx_write (line, len, mbf)
 }
 
 int
-mbx_delimit_begin (mbf)
-     FILE *mbf;
+mbx_delimit_begin (FILE *mbf)
 {
   time_t now;
   struct tm *ltime;
@@ -930,8 +910,7 @@ mbx_delimit_begin (mbf)
 }
 
 int
-mbx_delimit_end (mbf)
-     FILE *mbf;
+mbx_delimit_end (FILE *mbf)
 {
   if (putc ('\n', mbf) == EOF)
     return (NOTOK);

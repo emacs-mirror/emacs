@@ -114,73 +114,73 @@ struct dim
 
 /* Function prototypes.  */
 
-static struct glyph_matrix *save_current_matrix P_ ((struct frame *));
-static void restore_current_matrix P_ ((struct frame *, struct glyph_matrix *));
-static int showing_window_margins_p P_ ((struct window *));
-static void fake_current_matrices P_ ((Lisp_Object));
-static void redraw_overlapping_rows P_ ((struct window *, int));
-static void redraw_overlapped_rows P_ ((struct window *, int));
-static int count_blanks P_ ((struct glyph *, int));
-static int count_match P_ ((struct glyph *, struct glyph *,
-			    struct glyph *, struct glyph *));
-static unsigned line_draw_cost P_ ((struct glyph_matrix *, int));
-static void update_frame_line P_ ((struct frame *, int));
+static struct glyph_matrix *save_current_matrix (struct frame *);
+static void restore_current_matrix (struct frame *, struct glyph_matrix *);
+static int showing_window_margins_p (struct window *);
+static void fake_current_matrices (Lisp_Object);
+static void redraw_overlapping_rows (struct window *, int);
+static void redraw_overlapped_rows (struct window *, int);
+static int count_blanks (struct glyph *, int);
+static int count_match (struct glyph *, struct glyph *,
+                        struct glyph *, struct glyph *);
+static unsigned line_draw_cost (struct glyph_matrix *, int);
+static void update_frame_line (struct frame *, int);
 static struct dim allocate_matrices_for_frame_redisplay
-     P_ ((Lisp_Object, int, int, int, int *));
-static void allocate_matrices_for_window_redisplay P_ ((struct window *));
-static int realloc_glyph_pool P_ ((struct glyph_pool *, struct dim));
-static void adjust_frame_glyphs P_ ((struct frame *));
-struct glyph_matrix *new_glyph_matrix P_ ((struct glyph_pool *));
-static void free_glyph_matrix P_ ((struct glyph_matrix *));
-static void adjust_glyph_matrix P_ ((struct window *, struct glyph_matrix *,
-				     int, int, struct dim));
-static void change_frame_size_1 P_ ((struct frame *, int, int, int, int, int));
-static void swap_glyph_pointers P_ ((struct glyph_row *, struct glyph_row *));
+     (Lisp_Object, int, int, int, int *);
+static void allocate_matrices_for_window_redisplay (struct window *);
+static int realloc_glyph_pool (struct glyph_pool *, struct dim);
+static void adjust_frame_glyphs (struct frame *);
+struct glyph_matrix *new_glyph_matrix (struct glyph_pool *);
+static void free_glyph_matrix (struct glyph_matrix *);
+static void adjust_glyph_matrix (struct window *, struct glyph_matrix *,
+                                 int, int, struct dim);
+static void change_frame_size_1 (struct frame *, int, int, int, int, int);
+static void swap_glyph_pointers (struct glyph_row *, struct glyph_row *);
 #if GLYPH_DEBUG
-static int glyph_row_slice_p P_ ((struct glyph_row *, struct glyph_row *));
+static int glyph_row_slice_p (struct glyph_row *, struct glyph_row *);
 #endif
-static void fill_up_frame_row_with_spaces P_ ((struct glyph_row *, int));
-static void build_frame_matrix_from_window_tree P_ ((struct glyph_matrix *,
-						     struct window *));
-static void build_frame_matrix_from_leaf_window P_ ((struct glyph_matrix *,
-						     struct window *));
-static struct glyph_pool *new_glyph_pool P_ ((void));
-static void free_glyph_pool P_ ((struct glyph_pool *));
-static void adjust_frame_glyphs_initially P_ ((void));
-static void adjust_frame_message_buffer P_ ((struct frame *));
-static void adjust_decode_mode_spec_buffer P_ ((struct frame *));
-static void fill_up_glyph_row_with_spaces P_ ((struct glyph_row *));
-static void build_frame_matrix P_ ((struct frame *));
-void clear_current_matrices P_ ((struct frame *));
-void scroll_glyph_matrix_range P_ ((struct glyph_matrix *, int, int,
-				    int, int));
-static void clear_window_matrices P_ ((struct window *, int));
-static void fill_up_glyph_row_area_with_spaces P_ ((struct glyph_row *, int));
-static int scrolling_window P_ ((struct window *, int));
-static int update_window_line P_ ((struct window *, int, int *));
-static void update_marginal_area P_ ((struct window *, int, int));
-static int update_text_area P_ ((struct window *, int));
-static void make_current P_ ((struct glyph_matrix *, struct glyph_matrix *,
-			      int));
-static void mirror_make_current P_ ((struct window *, int));
-void check_window_matrix_pointers P_ ((struct window *));
+static void fill_up_frame_row_with_spaces (struct glyph_row *, int);
+static void build_frame_matrix_from_window_tree (struct glyph_matrix *,
+                                                 struct window *);
+static void build_frame_matrix_from_leaf_window (struct glyph_matrix *,
+                                                 struct window *);
+static struct glyph_pool *new_glyph_pool (void);
+static void free_glyph_pool (struct glyph_pool *);
+static void adjust_frame_glyphs_initially (void);
+static void adjust_frame_message_buffer (struct frame *);
+static void adjust_decode_mode_spec_buffer (struct frame *);
+static void fill_up_glyph_row_with_spaces (struct glyph_row *);
+static void build_frame_matrix (struct frame *);
+void clear_current_matrices (struct frame *);
+void scroll_glyph_matrix_range (struct glyph_matrix *, int, int,
+                                int, int);
+static void clear_window_matrices (struct window *, int);
+static void fill_up_glyph_row_area_with_spaces (struct glyph_row *, int);
+static int scrolling_window (struct window *, int);
+static int update_window_line (struct window *, int, int *);
+static void update_marginal_area (struct window *, int, int);
+static int update_text_area (struct window *, int);
+static void make_current (struct glyph_matrix *, struct glyph_matrix *,
+                          int);
+static void mirror_make_current (struct window *, int);
+void check_window_matrix_pointers (struct window *);
 #if GLYPH_DEBUG
-static void check_matrix_pointers P_ ((struct glyph_matrix *,
-				       struct glyph_matrix *));
+static void check_matrix_pointers (struct glyph_matrix *,
+                                   struct glyph_matrix *);
 #endif
-static void mirror_line_dance P_ ((struct window *, int, int, int *, char *));
-static int update_window_tree P_ ((struct window *, int));
-static int update_window P_ ((struct window *, int));
-static int update_frame_1 P_ ((struct frame *, int, int));
-static void set_window_cursor_after_update P_ ((struct window *));
-static int row_equal_p P_ ((struct window *, struct glyph_row *,
-			    struct glyph_row *, int));
-static void adjust_frame_glyphs_for_window_redisplay P_ ((struct frame *));
-static void adjust_frame_glyphs_for_frame_redisplay P_ ((struct frame *));
-static void reverse_rows P_ ((struct glyph_matrix *, int, int));
-static int margin_glyphs_to_reserve P_ ((struct window *, int, Lisp_Object));
-static void sync_window_with_frame_matrix_rows P_ ((struct window *));
-struct window *frame_row_to_window P_ ((struct window *, int));
+static void mirror_line_dance (struct window *, int, int, int *, char *);
+static int update_window_tree (struct window *, int);
+static int update_window (struct window *, int);
+static int update_frame_1 (struct frame *, int, int);
+static void set_window_cursor_after_update (struct window *);
+static int row_equal_p (struct window *, struct glyph_row *,
+                        struct glyph_row *, int);
+static void adjust_frame_glyphs_for_window_redisplay (struct frame *);
+static void adjust_frame_glyphs_for_frame_redisplay (struct frame *);
+static void reverse_rows (struct glyph_matrix *, int, int);
+static int margin_glyphs_to_reserve (struct window *, int, Lisp_Object);
+static void sync_window_with_frame_matrix_rows (struct window *);
+struct window *frame_row_to_window (struct window *, int);
 
 
 /* Non-zero means don't pause redisplay for pending input.  (This is
@@ -325,8 +325,8 @@ int fonts_changed_p;
 
 #if GLYPH_DEBUG
 
-static int window_to_frame_vpos P_ ((struct window *, int));
-static int window_to_frame_hpos P_ ((struct window *, int));
+static int window_to_frame_vpos (struct window *, int);
+static int window_to_frame_hpos (struct window *, int);
 #define WINDOW_TO_FRAME_VPOS(W, VPOS) window_to_frame_vpos ((W), (VPOS))
 #define WINDOW_TO_FRAME_HPOS(W, HPOS) window_to_frame_hpos ((W), (HPOS))
 
@@ -355,8 +355,8 @@ static int history_idx;
 
 static unsigned history_tick;
 
-static void add_frame_display_history P_ ((struct frame *, int));
-static void add_window_display_history P_ ((struct window *, char *, int));
+static void add_frame_display_history (struct frame *, int);
+static void add_window_display_history (struct window *, char *, int);
 
 /* Add to the redisplay history how window W has been displayed.
    MSG is a trace containing the information how W's glyph matrix

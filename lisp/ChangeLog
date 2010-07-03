@@ -1,3 +1,38 @@
+2010-07-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse.el (mouse-drag-overlay): Variable deleted.
+	(mouse-move-drag-overlay, mouse-show-mark): Functions deleted.
+	(mouse--remap-link-click-p): New function.
+	(mouse-drag-track): Handle dragging by using temporary Transient
+	Mark mode, instead of a special overlay.
+	(mouse-kill-ring-save, mouse-save-then-kill): Don't call
+	mouse-show-mark.
+
+	* mouse-sel.el (mouse-sel-selection-alist): mouse-drag-overlay
+	deleted.
+
+2010-07-02  Juri Linkov  <juri@jurta.org>
+
+	* autoinsert.el (auto-insert-alist): Fix readability
+	by using dotted pair notation for lambda.
+
+2010-07-02  Juri Linkov  <juri@jurta.org>
+
+	* faces.el (read-face-name): Rename arg `string-describing-default'
+	to `default'.  Doc fix.  Display the default value in quotes
+	in the prompt.  With empty input, return the `default' arg,
+	unless the default value is a string (in which case return nil).
+	(describe-face): Replace the string `default' arg of `read-face-name'
+	with the symbol `default'.
+
+2010-07-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emulation/viper-cmd.el (viper-delete-backward-char)
+	(viper-del-backward-char-in-insert)
+	(viper-del-backward-char-in-replace, viper-change)
+	(viper-backward-indent): Replace delete-backward-char with
+	delete-char (Bug#6552).
+
 2010-07-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* ruler-mode.el (ruler--save-header-line-format): Fix typos.

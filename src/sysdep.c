@@ -169,7 +169,7 @@ static const int baud_convert[] =
 
 int emacs_ospeed;
 
-void croak P_ ((char *)) NO_RETURN;
+void croak (char *) NO_RETURN;
 
 /* Temporary used by `sigblock' when defined in terms of signprocmask.  */
 
@@ -561,11 +561,11 @@ child_setup_tty (out)
 struct save_signal
 {
   int code;
-  SIGTYPE (*handler) P_ ((int));
+  SIGTYPE (*handler) (int);
 };
 
-static void save_signal_handlers P_ ((struct save_signal *));
-static void restore_signal_handlers P_ ((struct save_signal *));
+static void save_signal_handlers (struct save_signal *);
+static void restore_signal_handlers (struct save_signal *);
 
 /* Suspend the Emacs process; give terminal to its superior.  */
 
@@ -725,7 +725,7 @@ save_signal_handlers (saved_handlers)
   while (saved_handlers->code)
     {
       saved_handlers->handler
-	= (SIGTYPE (*) P_ ((int))) signal (saved_handlers->code, SIG_IGN);
+        = (SIGTYPE (*) (int)) signal (saved_handlers->code, SIG_IGN);
       saved_handlers++;
     }
 }

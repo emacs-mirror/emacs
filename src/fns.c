@@ -74,10 +74,10 @@ Lisp_Object Qcodeset, Qdays, Qmonths, Qpaper;
 
 extern Lisp_Object Qinput_method_function;
 
-static int internal_equal P_ ((Lisp_Object , Lisp_Object, int, int));
+static int internal_equal (Lisp_Object , Lisp_Object, int, int);
 
 extern long get_random ();
-extern void seed_random P_ ((long));
+extern void seed_random (long);
 
 #ifndef HAVE_UNISTD_H
 extern long time ();
@@ -383,9 +383,9 @@ Symbols are also allowed; their print names are used instead.  */)
 /* "gcc -O3" enables automatic function inlining, which optimizes out
    the arguments for the invocations of this function, whereas it
    expects these values on the stack.  */
-static Lisp_Object concat P_ ((int nargs, Lisp_Object *args, enum Lisp_Type target_type, int last_special)) __attribute__((noinline));
+static Lisp_Object concat (int nargs, Lisp_Object *args, enum Lisp_Type target_type, int last_special) __attribute__((noinline));
 #else  /* !__GNUC__ */
-static Lisp_Object concat P_ ((int nargs, Lisp_Object *args, enum Lisp_Type target_type, int last_special));
+static Lisp_Object concat (int nargs, Lisp_Object *args, enum Lisp_Type target_type, int last_special);
 #endif
 
 /* ARGSUSED */
@@ -3224,8 +3224,8 @@ static const short base64_char_to_value[128] =
    base64 characters.  */
 
 
-static int base64_encode_1 P_ ((const char *, char *, int, int, int));
-static int base64_decode_1 P_ ((const char *, char *, int, int, int *));
+static int base64_encode_1 (const char *, char *, int, int, int);
+static int base64_decode_1 (const char *, char *, int, int, int *);
 
 DEFUN ("base64-encode-region", Fbase64_encode_region, Sbase64_encode_region,
        2, 3, "r",
@@ -3652,25 +3652,25 @@ Lisp_Object Qhash_table_test, Qkey_or_value, Qkey_and_value;
 
 /* Function prototypes.  */
 
-static struct Lisp_Hash_Table *check_hash_table P_ ((Lisp_Object));
-static int get_key_arg P_ ((Lisp_Object, int, Lisp_Object *, char *));
-static void maybe_resize_hash_table P_ ((struct Lisp_Hash_Table *));
-static int cmpfn_eql P_ ((struct Lisp_Hash_Table *, Lisp_Object, unsigned,
-			  Lisp_Object, unsigned));
-static int cmpfn_equal P_ ((struct Lisp_Hash_Table *, Lisp_Object, unsigned,
-			    Lisp_Object, unsigned));
-static int cmpfn_user_defined P_ ((struct Lisp_Hash_Table *, Lisp_Object,
-				   unsigned, Lisp_Object, unsigned));
-static unsigned hashfn_eq P_ ((struct Lisp_Hash_Table *, Lisp_Object));
-static unsigned hashfn_eql P_ ((struct Lisp_Hash_Table *, Lisp_Object));
-static unsigned hashfn_equal P_ ((struct Lisp_Hash_Table *, Lisp_Object));
-static unsigned hashfn_user_defined P_ ((struct Lisp_Hash_Table *,
-					 Lisp_Object));
-static unsigned sxhash_string P_ ((unsigned char *, int));
-static unsigned sxhash_list P_ ((Lisp_Object, int));
-static unsigned sxhash_vector P_ ((Lisp_Object, int));
-static unsigned sxhash_bool_vector P_ ((Lisp_Object));
-static int sweep_weak_table P_ ((struct Lisp_Hash_Table *, int));
+static struct Lisp_Hash_Table *check_hash_table (Lisp_Object);
+static int get_key_arg (Lisp_Object, int, Lisp_Object *, char *);
+static void maybe_resize_hash_table (struct Lisp_Hash_Table *);
+static int cmpfn_eql (struct Lisp_Hash_Table *, Lisp_Object, unsigned,
+                      Lisp_Object, unsigned);
+static int cmpfn_equal (struct Lisp_Hash_Table *, Lisp_Object, unsigned,
+                        Lisp_Object, unsigned);
+static int cmpfn_user_defined (struct Lisp_Hash_Table *, Lisp_Object,
+                               unsigned, Lisp_Object, unsigned);
+static unsigned hashfn_eq (struct Lisp_Hash_Table *, Lisp_Object);
+static unsigned hashfn_eql (struct Lisp_Hash_Table *, Lisp_Object);
+static unsigned hashfn_equal (struct Lisp_Hash_Table *, Lisp_Object);
+static unsigned hashfn_user_defined (struct Lisp_Hash_Table *,
+                                     Lisp_Object);
+static unsigned sxhash_string (unsigned char *, int);
+static unsigned sxhash_list (Lisp_Object, int);
+static unsigned sxhash_vector (Lisp_Object, int);
+static unsigned sxhash_bool_vector (Lisp_Object);
+static int sweep_weak_table (struct Lisp_Hash_Table *, int);
 
 
 

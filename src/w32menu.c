@@ -90,16 +90,16 @@ extern Lisp_Object Qoverriding_local_map, Qoverriding_terminal_local_map;
 
 extern Lisp_Object Qmenu_bar_update_hook;
 
-void set_frame_menubar P_ ((FRAME_PTR, int, int));
+void set_frame_menubar (FRAME_PTR, int, int);
 
 #ifdef HAVE_DIALOGS
-static Lisp_Object w32_dialog_show P_ ((FRAME_PTR, int, Lisp_Object, char**));
+static Lisp_Object w32_dialog_show (FRAME_PTR, int, Lisp_Object, char**);
 #else
-static int is_simple_dialog P_ ((Lisp_Object));
-static Lisp_Object simple_dialog_show P_ ((FRAME_PTR, Lisp_Object, Lisp_Object));
+static int is_simple_dialog (Lisp_Object);
+static Lisp_Object simple_dialog_show (FRAME_PTR, Lisp_Object, Lisp_Object);
 #endif
 
-void w32_free_menu_strings P_((HWND));
+void w32_free_menu_strings (HWND);
 
 
 /* This is set nonzero after the user activates the menu bar, and set

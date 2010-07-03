@@ -499,33 +499,33 @@ x_top_window_to_frame (dpyinfo, wdesc)
 
 
 
-static void x_default_font_parameter P_ ((struct frame *, Lisp_Object));
+static void x_default_font_parameter (struct frame *, Lisp_Object);
 
-static Lisp_Object unwind_create_frame P_ ((Lisp_Object));
-static Lisp_Object unwind_create_tip_frame P_ ((Lisp_Object));
+static Lisp_Object unwind_create_frame (Lisp_Object);
+static Lisp_Object unwind_create_tip_frame (Lisp_Object);
 
-void x_set_foreground_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
-static void x_set_wait_for_wm P_ ((struct frame *, Lisp_Object, Lisp_Object));
-void x_set_background_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
-void x_set_mouse_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
-void x_set_cursor_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
-void x_set_border_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
-void x_set_cursor_type P_ ((struct frame *, Lisp_Object, Lisp_Object));
-void x_set_icon_type P_ ((struct frame *, Lisp_Object, Lisp_Object));
-void x_set_icon_name P_ ((struct frame *, Lisp_Object, Lisp_Object));
-void x_explicitly_set_name P_ ((struct frame *, Lisp_Object, Lisp_Object));
-void x_set_menu_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
-void x_set_title P_ ((struct frame *, Lisp_Object, Lisp_Object));
-void x_set_tool_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
-void x_set_scroll_bar_foreground P_ ((struct frame *, Lisp_Object,
-				      Lisp_Object));
-void x_set_scroll_bar_background P_ ((struct frame *, Lisp_Object,
-				      Lisp_Object));
-static Lisp_Object x_default_scroll_bar_color_parameter P_ ((struct frame *,
-							     Lisp_Object,
-							     Lisp_Object,
-							     char *, char *,
-							     int));
+void x_set_foreground_color (struct frame *, Lisp_Object, Lisp_Object);
+static void x_set_wait_for_wm (struct frame *, Lisp_Object, Lisp_Object);
+void x_set_background_color (struct frame *, Lisp_Object, Lisp_Object);
+void x_set_mouse_color (struct frame *, Lisp_Object, Lisp_Object);
+void x_set_cursor_color (struct frame *, Lisp_Object, Lisp_Object);
+void x_set_border_color (struct frame *, Lisp_Object, Lisp_Object);
+void x_set_cursor_type (struct frame *, Lisp_Object, Lisp_Object);
+void x_set_icon_type (struct frame *, Lisp_Object, Lisp_Object);
+void x_set_icon_name (struct frame *, Lisp_Object, Lisp_Object);
+void x_explicitly_set_name (struct frame *, Lisp_Object, Lisp_Object);
+void x_set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
+void x_set_title (struct frame *, Lisp_Object, Lisp_Object);
+void x_set_tool_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
+void x_set_scroll_bar_foreground (struct frame *, Lisp_Object,
+                                  Lisp_Object);
+void x_set_scroll_bar_background (struct frame *, Lisp_Object,
+                                  Lisp_Object);
+static Lisp_Object x_default_scroll_bar_color_parameter (struct frame *,
+                                                         Lisp_Object,
+                                                         Lisp_Object,
+                                                         char *, char *,
+                                                         int);
 
 
 /* Store the screen positions of frame F into XPTR and YPTR.
@@ -1942,8 +1942,8 @@ hack_wm_protocols (f, widget)
 
 #ifdef HAVE_X_I18N
 
-static XFontSet xic_create_xfontset P_ ((struct frame *));
-static XIMStyle best_xim_style P_ ((XIMStyles *, XIMStyles *));
+static XFontSet xic_create_xfontset (struct frame *);
+static XIMStyle best_xim_style (XIMStyles *, XIMStyles *);
 
 
 /* Supported XIM styles, ordered by preference.  */
@@ -4669,10 +4669,10 @@ hide_hourglass ()
 				Tool tips
  ***********************************************************************/
 
-static Lisp_Object x_create_tip_frame P_ ((struct x_display_info *,
-					   Lisp_Object, Lisp_Object));
-static void compute_tip_xy P_ ((struct frame *, Lisp_Object, Lisp_Object,
-				Lisp_Object, int, int, int *, int *));
+static Lisp_Object x_create_tip_frame (struct x_display_info *,
+                                       Lisp_Object, Lisp_Object);
+static void compute_tip_xy (struct frame *, Lisp_Object, Lisp_Object,
+                            Lisp_Object, int, int, int *, int *);
 
 /* The frame of a currently visible tooltip.  */
 
@@ -5345,7 +5345,7 @@ Value is t if tooltip was open, nil otherwise.  */)
       {
 	struct frame *f = SELECTED_FRAME ();
 	Widget w = f->output_data.x->menubar_widget;
-	extern void xlwmenu_redisplay P_ ((Widget));
+        extern void xlwmenu_redisplay (Widget);
 
 	if (!DoesSaveUnders (FRAME_X_DISPLAY_INFO (f)->screen)
 	    && w != NULL)

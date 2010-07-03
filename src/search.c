@@ -98,18 +98,18 @@ Lisp_Object Vsearch_spaces_regexp;
    only.  */
 Lisp_Object Vinhibit_changing_match_data;
 
-static void set_search_regs P_ ((EMACS_INT, EMACS_INT));
-static void save_search_regs P_ ((void));
-static EMACS_INT simple_search P_ ((int, unsigned char *, int, int,
-				    Lisp_Object, EMACS_INT, EMACS_INT,
-				    EMACS_INT, EMACS_INT));
-static EMACS_INT boyer_moore P_ ((int, unsigned char *, int, int,
-				  Lisp_Object, Lisp_Object,
-				  EMACS_INT, EMACS_INT,
-				  EMACS_INT, EMACS_INT, int));
-static EMACS_INT search_buffer P_ ((Lisp_Object, EMACS_INT, EMACS_INT,
-				    EMACS_INT, EMACS_INT, int, int,
-				    Lisp_Object, Lisp_Object, int));
+static void set_search_regs (EMACS_INT, EMACS_INT);
+static void save_search_regs (void);
+static EMACS_INT simple_search (int, unsigned char *, int, int,
+                                Lisp_Object, EMACS_INT, EMACS_INT,
+                                EMACS_INT, EMACS_INT);
+static EMACS_INT boyer_moore (int, unsigned char *, int, int,
+                              Lisp_Object, Lisp_Object,
+                              EMACS_INT, EMACS_INT,
+                              EMACS_INT, EMACS_INT, int);
+static EMACS_INT search_buffer (Lisp_Object, EMACS_INT, EMACS_INT,
+                                EMACS_INT, EMACS_INT, int, int,
+                                Lisp_Object, Lisp_Object, int);
 static void matcher_overflow () NO_RETURN;
 
 static void

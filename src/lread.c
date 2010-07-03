@@ -219,18 +219,18 @@ int force_load_messages;
 
 static Lisp_Object Vbytecomp_version_regexp;
 
-static int read_emacs_mule_char P_ ((int, int (*) (int, Lisp_Object),
-				     Lisp_Object));
+static int read_emacs_mule_char (int, int (*) (int, Lisp_Object),
+                                 Lisp_Object);
 
-static void readevalloop P_ ((Lisp_Object, FILE*, Lisp_Object,
-			      Lisp_Object (*) (), int,
-			      Lisp_Object, Lisp_Object,
-			      Lisp_Object, Lisp_Object));
-static Lisp_Object load_unwind P_ ((Lisp_Object));
-static Lisp_Object load_descriptor_unwind P_ ((Lisp_Object));
+static void readevalloop (Lisp_Object, FILE*, Lisp_Object,
+                          Lisp_Object (*) (), int,
+                          Lisp_Object, Lisp_Object,
+                          Lisp_Object, Lisp_Object);
+static Lisp_Object load_unwind (Lisp_Object);
+static Lisp_Object load_descriptor_unwind (Lisp_Object);
 
-static void invalid_syntax P_ ((const char *, int)) NO_RETURN;
-static void end_of_file_error P_ (()) NO_RETURN;
+static void invalid_syntax (const char *, int) NO_RETURN;
+static void end_of_file_error () NO_RETURN;
 
 
 /* Functions that read one byte from the current source READCHARFUN
@@ -239,9 +239,9 @@ static void end_of_file_error P_ (()) NO_RETURN;
    is 0 or positive, it unreads C, and the return value is not
    interesting.  */
 
-static int readbyte_for_lambda P_ ((int, Lisp_Object));
-static int readbyte_from_file P_ ((int, Lisp_Object));
-static int readbyte_from_string P_ ((int, Lisp_Object));
+static int readbyte_for_lambda (int, Lisp_Object);
+static int readbyte_from_file (int, Lisp_Object);
+static int readbyte_from_string (int, Lisp_Object);
 
 /* Handle unreading and rereading of characters.
    Write READCHAR to read a character,
@@ -268,7 +268,7 @@ readchar (readcharfun, multibyte)
 {
   Lisp_Object tem;
   register int c;
-  int (*readbyte) P_ ((int, Lisp_Object));
+  int (*readbyte) (int, Lisp_Object);
   unsigned char buf[MAX_MULTIBYTE_LENGTH];
   int i, len;
   int emacs_mule_encoding = 0;
@@ -575,7 +575,7 @@ extern char emacs_mule_bytes[256];
 static int
 read_emacs_mule_char (c, readbyte, readcharfun)
      int c;
-     int (*readbyte) P_ ((int, Lisp_Object));
+     int (*readbyte) (int, Lisp_Object);
      Lisp_Object readcharfun;
 {
   /* Emacs-mule coding uses at most 4-byte for one character.  */
@@ -635,19 +635,19 @@ read_emacs_mule_char (c, readbyte, readcharfun)
 }
 
 
-static Lisp_Object read_internal_start P_ ((Lisp_Object, Lisp_Object,
-					    Lisp_Object));
-static Lisp_Object read0 P_ ((Lisp_Object));
-static Lisp_Object read1 P_ ((Lisp_Object, int *, int));
+static Lisp_Object read_internal_start (Lisp_Object, Lisp_Object,
+                                        Lisp_Object);
+static Lisp_Object read0 (Lisp_Object);
+static Lisp_Object read1 (Lisp_Object, int *, int);
 
-static Lisp_Object read_list P_ ((int, Lisp_Object));
-static Lisp_Object read_vector P_ ((Lisp_Object, int));
+static Lisp_Object read_list (int, Lisp_Object);
+static Lisp_Object read_vector (Lisp_Object, int);
 
-static Lisp_Object substitute_object_recurse P_ ((Lisp_Object, Lisp_Object,
-						  Lisp_Object));
-static void substitute_object_in_subtree P_ ((Lisp_Object,
-					      Lisp_Object));
-static void substitute_in_interval P_ ((INTERVAL, Lisp_Object));
+static Lisp_Object substitute_object_recurse (Lisp_Object, Lisp_Object,
+                                              Lisp_Object);
+static void substitute_object_in_subtree (Lisp_Object,
+                                          Lisp_Object);
+static void substitute_in_interval (INTERVAL, Lisp_Object);
 
 
 /* Get a character from the tty.  */
@@ -3873,7 +3873,7 @@ hash_string (ptr, len)
 void
 map_obarray (obarray, fn, arg)
      Lisp_Object obarray;
-     void (*fn) P_ ((Lisp_Object, Lisp_Object));
+     void (*fn) (Lisp_Object, Lisp_Object);
      Lisp_Object arg;
 {
   register int i;

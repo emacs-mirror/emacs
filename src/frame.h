@@ -828,19 +828,19 @@ extern Lisp_Object Qnoelisp;
 
 extern struct frame *last_nonminibuf_frame;
 
-extern struct frame *make_initial_frame P_ ((void));
-extern struct frame *make_terminal_frame P_ ((struct terminal *));
-extern struct frame *make_frame P_ ((int));
+extern struct frame *make_initial_frame (void);
+extern struct frame *make_terminal_frame (struct terminal *);
+extern struct frame *make_frame (int);
 #ifdef HAVE_WINDOW_SYSTEM
-extern struct frame *make_minibuffer_frame P_ ((void));
-extern struct frame *make_frame_without_minibuffer P_ ((Lisp_Object,
-							struct kboard *,
-							Lisp_Object));
+extern struct frame *make_minibuffer_frame (void);
+extern struct frame *make_frame_without_minibuffer (Lisp_Object,
+                                                    struct kboard *,
+                                                    Lisp_Object);
 #endif /* HAVE_WINDOW_SYSTEM */
-extern int other_visible_frames P_ ((struct frame *));
-extern void frame_make_pointer_invisible P_ ((void));
-extern void frame_make_pointer_visible P_ ((void));
-extern Lisp_Object delete_frame P_ ((Lisp_Object, Lisp_Object));
+extern int other_visible_frames (struct frame *);
+extern void frame_make_pointer_invisible (void);
+extern void frame_make_pointer_visible (void);
+extern Lisp_Object delete_frame (Lisp_Object, Lisp_Object);
 
 extern Lisp_Object Vframe_list;
 extern Lisp_Object Vdefault_frame_alist;
@@ -1081,11 +1081,11 @@ extern Lisp_Object Qdisplay;
 
 /* These are in xterm.c, w32term.c, etc.  */
 
-extern void x_set_scroll_bar_default_width P_ ((struct frame *));
-extern void x_set_offset P_ ((struct frame *, int, int, int));
-extern void x_wm_set_icon_position P_ ((struct frame *, int, int));
+extern void x_set_scroll_bar_default_width (struct frame *);
+extern void x_set_offset (struct frame *, int, int, int);
+extern void x_wm_set_icon_position (struct frame *, int, int);
 
-extern Lisp_Object x_new_font P_ ((struct frame *, Lisp_Object, int));
+extern Lisp_Object x_new_font (struct frame *, Lisp_Object, int);
 
 /* These are in frame.c  */
 
@@ -1095,38 +1095,38 @@ extern Lisp_Object Vx_resource_class;
 
 extern Lisp_Object Qface_set_after_frame_default;
 
-extern void x_fullscreen_adjust P_ ((struct frame *f, int *, int *,
-				     int *, int *));
+extern void x_fullscreen_adjust (struct frame *f, int *, int *,
+                                 int *, int *);
 
-extern void x_set_frame_parameters P_ ((struct frame *, Lisp_Object));
-extern void x_report_frame_params P_ ((struct frame *, Lisp_Object *));
+extern void x_set_frame_parameters (struct frame *, Lisp_Object);
+extern void x_report_frame_params (struct frame *, Lisp_Object *);
 
-extern void x_set_fullscreen P_ ((struct frame *, Lisp_Object, Lisp_Object));
-extern void x_set_line_spacing P_ ((struct frame *, Lisp_Object, Lisp_Object));
-extern void x_set_screen_gamma P_ ((struct frame *, Lisp_Object, Lisp_Object));
-extern void x_set_font P_ ((struct frame *, Lisp_Object, Lisp_Object));
-extern void x_set_font_backend P_ ((struct frame *, Lisp_Object, Lisp_Object));
-extern void x_set_fringe_width P_ ((struct frame *, Lisp_Object, Lisp_Object));
-extern void x_set_border_width P_ ((struct frame *, Lisp_Object, Lisp_Object));
-extern void x_set_internal_border_width P_ ((struct frame *, Lisp_Object,
-					     Lisp_Object));
-extern void x_set_visibility P_ ((struct frame *, Lisp_Object, Lisp_Object));
-extern void x_set_autoraise P_ ((struct frame *, Lisp_Object, Lisp_Object));
-extern void x_set_autolower P_ ((struct frame *, Lisp_Object, Lisp_Object));
-extern void x_set_unsplittable P_ ((struct frame *, Lisp_Object, Lisp_Object));
-extern void x_set_vertical_scroll_bars P_ ((struct frame *, Lisp_Object,
-					    Lisp_Object));
-extern void x_set_scroll_bar_width P_ ((struct frame *, Lisp_Object,
-					Lisp_Object));
+extern void x_set_fullscreen (struct frame *, Lisp_Object, Lisp_Object);
+extern void x_set_line_spacing (struct frame *, Lisp_Object, Lisp_Object);
+extern void x_set_screen_gamma (struct frame *, Lisp_Object, Lisp_Object);
+extern void x_set_font (struct frame *, Lisp_Object, Lisp_Object);
+extern void x_set_font_backend (struct frame *, Lisp_Object, Lisp_Object);
+extern void x_set_fringe_width (struct frame *, Lisp_Object, Lisp_Object);
+extern void x_set_border_width (struct frame *, Lisp_Object, Lisp_Object);
+extern void x_set_internal_border_width (struct frame *, Lisp_Object,
+                                         Lisp_Object);
+extern void x_set_visibility (struct frame *, Lisp_Object, Lisp_Object);
+extern void x_set_autoraise (struct frame *, Lisp_Object, Lisp_Object);
+extern void x_set_autolower (struct frame *, Lisp_Object, Lisp_Object);
+extern void x_set_unsplittable (struct frame *, Lisp_Object, Lisp_Object);
+extern void x_set_vertical_scroll_bars (struct frame *, Lisp_Object,
+                                        Lisp_Object);
+extern void x_set_scroll_bar_width (struct frame *, Lisp_Object,
+                                    Lisp_Object);
 
-extern Lisp_Object x_icon_type P_ ((struct frame *));
+extern Lisp_Object x_icon_type (struct frame *);
 
-extern int x_figure_window_size P_ ((struct frame *, Lisp_Object, int));
+extern int x_figure_window_size (struct frame *, Lisp_Object, int);
 
 extern Lisp_Object Vframe_alpha_lower_limit;
-extern void x_set_alpha P_ ((struct frame *, Lisp_Object, Lisp_Object));
+extern void x_set_alpha (struct frame *, Lisp_Object, Lisp_Object);
 
-extern void validate_x_resource_name P_ ((void));
+extern void validate_x_resource_name (void);
                                            
 extern Lisp_Object display_x_get_resource (Display_Info *,
 					   Lisp_Object attribute,

@@ -270,7 +270,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) \
     || defined(HAVE_NS) || defined (USE_GTK)
-extern void set_frame_menubar P_ ((struct frame *f, int, int));
+extern void set_frame_menubar (struct frame *f, int, int);
 extern int pending_menu_activation;
 #endif
 
@@ -831,15 +831,15 @@ struct props
 
   /* A handler function called to set up iterator IT from the property
      at IT's current position.  Value is used to steer handle_stop.  */
-  enum prop_handled (*handler) P_ ((struct it *it));
+  enum prop_handled (*handler) (struct it *it);
 };
 
-static enum prop_handled handle_face_prop P_ ((struct it *));
-static enum prop_handled handle_invisible_prop P_ ((struct it *));
-static enum prop_handled handle_display_prop P_ ((struct it *));
-static enum prop_handled handle_composition_prop P_ ((struct it *));
-static enum prop_handled handle_overlay_change P_ ((struct it *));
-static enum prop_handled handle_fontified_prop P_ ((struct it *));
+static enum prop_handled handle_face_prop (struct it *);
+static enum prop_handled handle_invisible_prop (struct it *);
+static enum prop_handled handle_display_prop (struct it *);
+static enum prop_handled handle_composition_prop (struct it *);
+static enum prop_handled handle_overlay_change (struct it *);
+static enum prop_handled handle_fontified_prop (struct it *);
 
 /* Properties handled by iterators.  */
 
@@ -949,149 +949,149 @@ Lisp_Object Vhourglass_delay;
 
 /* Function prototypes.  */
 
-static void setup_for_ellipsis P_ ((struct it *, int));
-static void mark_window_display_accurate_1 P_ ((struct window *, int));
-static int single_display_spec_string_p P_ ((Lisp_Object, Lisp_Object));
-static int display_prop_string_p P_ ((Lisp_Object, Lisp_Object));
-static int cursor_row_p P_ ((struct window *, struct glyph_row *));
-static int redisplay_mode_lines P_ ((Lisp_Object, int));
-static char *decode_mode_spec_coding P_ ((Lisp_Object, char *, int));
+static void setup_for_ellipsis (struct it *, int);
+static void mark_window_display_accurate_1 (struct window *, int);
+static int single_display_spec_string_p (Lisp_Object, Lisp_Object);
+static int display_prop_string_p (Lisp_Object, Lisp_Object);
+static int cursor_row_p (struct window *, struct glyph_row *);
+static int redisplay_mode_lines (Lisp_Object, int);
+static char *decode_mode_spec_coding (Lisp_Object, char *, int);
 
-static Lisp_Object get_it_property P_ ((struct it *it, Lisp_Object prop));
+static Lisp_Object get_it_property (struct it *it, Lisp_Object prop);
 
-static void handle_line_prefix P_ ((struct it *));
+static void handle_line_prefix (struct it *);
 
-static void pint2str P_ ((char *, int, int));
-static void pint2hrstr P_ ((char *, int, int));
-static struct text_pos run_window_scroll_functions P_ ((Lisp_Object,
-							struct text_pos));
-static void reconsider_clip_changes P_ ((struct window *, struct buffer *));
-static int text_outside_line_unchanged_p P_ ((struct window *, int, int));
-static void store_mode_line_noprop_char P_ ((char));
-static int store_mode_line_noprop P_ ((const unsigned char *, int, int));
-static void x_consider_frame_title P_ ((Lisp_Object));
-static void handle_stop P_ ((struct it *));
-static void handle_stop_backwards P_ ((struct it *, EMACS_INT));
-static int tool_bar_lines_needed P_ ((struct frame *, int *));
-static int single_display_spec_intangible_p P_ ((Lisp_Object));
-static void ensure_echo_area_buffers P_ ((void));
-static Lisp_Object unwind_with_echo_area_buffer P_ ((Lisp_Object));
-static Lisp_Object with_echo_area_buffer_unwind_data P_ ((struct window *));
-static int with_echo_area_buffer P_ ((struct window *, int,
-				      int (*) (EMACS_INT, Lisp_Object, EMACS_INT, EMACS_INT),
-				      EMACS_INT, Lisp_Object, EMACS_INT, EMACS_INT));
-static void clear_garbaged_frames P_ ((void));
-static int current_message_1 P_ ((EMACS_INT, Lisp_Object, EMACS_INT, EMACS_INT));
-static int truncate_message_1 P_ ((EMACS_INT, Lisp_Object, EMACS_INT, EMACS_INT));
-static int set_message_1 P_ ((EMACS_INT, Lisp_Object, EMACS_INT, EMACS_INT));
-static int display_echo_area P_ ((struct window *));
-static int display_echo_area_1 P_ ((EMACS_INT, Lisp_Object, EMACS_INT, EMACS_INT));
-static int resize_mini_window_1 P_ ((EMACS_INT, Lisp_Object, EMACS_INT, EMACS_INT));
-static Lisp_Object unwind_redisplay P_ ((Lisp_Object));
-static int string_char_and_length P_ ((const unsigned char *, int *));
-static struct text_pos display_prop_end P_ ((struct it *, Lisp_Object,
-					     struct text_pos));
-static int compute_window_start_on_continuation_line P_ ((struct window *));
-static Lisp_Object safe_eval_handler P_ ((Lisp_Object));
-static void insert_left_trunc_glyphs P_ ((struct it *));
-static struct glyph_row *get_overlay_arrow_glyph_row P_ ((struct window *,
-							  Lisp_Object));
-static void extend_face_to_end_of_line P_ ((struct it *));
-static int append_space_for_newline P_ ((struct it *, int));
-static int cursor_row_fully_visible_p P_ ((struct window *, int, int));
-static int try_scrolling P_ ((Lisp_Object, int, EMACS_INT, EMACS_INT, int, int));
-static int try_cursor_movement P_ ((Lisp_Object, struct text_pos, int *));
-static int trailing_whitespace_p P_ ((int));
-static int message_log_check_duplicate P_ ((int, int, int, int));
-static void push_it P_ ((struct it *));
-static void pop_it P_ ((struct it *));
-static void sync_frame_with_window_matrix_rows P_ ((struct window *));
-static void select_frame_for_redisplay P_ ((Lisp_Object));
-static void redisplay_internal P_ ((int));
-static int echo_area_display P_ ((int));
-static void redisplay_windows P_ ((Lisp_Object));
-static void redisplay_window P_ ((Lisp_Object, int));
+static void pint2str (char *, int, int);
+static void pint2hrstr (char *, int, int);
+static struct text_pos run_window_scroll_functions (Lisp_Object,
+                                                    struct text_pos);
+static void reconsider_clip_changes (struct window *, struct buffer *);
+static int text_outside_line_unchanged_p (struct window *, int, int);
+static void store_mode_line_noprop_char (char);
+static int store_mode_line_noprop (const unsigned char *, int, int);
+static void x_consider_frame_title (Lisp_Object);
+static void handle_stop (struct it *);
+static void handle_stop_backwards (struct it *, EMACS_INT);
+static int tool_bar_lines_needed (struct frame *, int *);
+static int single_display_spec_intangible_p (Lisp_Object);
+static void ensure_echo_area_buffers (void);
+static Lisp_Object unwind_with_echo_area_buffer (Lisp_Object);
+static Lisp_Object with_echo_area_buffer_unwind_data (struct window *);
+static int with_echo_area_buffer (struct window *, int,
+                                  int (*) (EMACS_INT, Lisp_Object, EMACS_INT, EMACS_INT),
+                                  EMACS_INT, Lisp_Object, EMACS_INT, EMACS_INT);
+static void clear_garbaged_frames (void);
+static int current_message_1 (EMACS_INT, Lisp_Object, EMACS_INT, EMACS_INT);
+static int truncate_message_1 (EMACS_INT, Lisp_Object, EMACS_INT, EMACS_INT);
+static int set_message_1 (EMACS_INT, Lisp_Object, EMACS_INT, EMACS_INT);
+static int display_echo_area (struct window *);
+static int display_echo_area_1 (EMACS_INT, Lisp_Object, EMACS_INT, EMACS_INT);
+static int resize_mini_window_1 (EMACS_INT, Lisp_Object, EMACS_INT, EMACS_INT);
+static Lisp_Object unwind_redisplay (Lisp_Object);
+static int string_char_and_length (const unsigned char *, int *);
+static struct text_pos display_prop_end (struct it *, Lisp_Object,
+                                         struct text_pos);
+static int compute_window_start_on_continuation_line (struct window *);
+static Lisp_Object safe_eval_handler (Lisp_Object);
+static void insert_left_trunc_glyphs (struct it *);
+static struct glyph_row *get_overlay_arrow_glyph_row (struct window *,
+                                                      Lisp_Object);
+static void extend_face_to_end_of_line (struct it *);
+static int append_space_for_newline (struct it *, int);
+static int cursor_row_fully_visible_p (struct window *, int, int);
+static int try_scrolling (Lisp_Object, int, EMACS_INT, EMACS_INT, int, int);
+static int try_cursor_movement (Lisp_Object, struct text_pos, int *);
+static int trailing_whitespace_p (int);
+static int message_log_check_duplicate (int, int, int, int);
+static void push_it (struct it *);
+static void pop_it (struct it *);
+static void sync_frame_with_window_matrix_rows (struct window *);
+static void select_frame_for_redisplay (Lisp_Object);
+static void redisplay_internal (int);
+static int echo_area_display (int);
+static void redisplay_windows (Lisp_Object);
+static void redisplay_window (Lisp_Object, int);
 static Lisp_Object redisplay_window_error ();
-static Lisp_Object redisplay_window_0 P_ ((Lisp_Object));
-static Lisp_Object redisplay_window_1 P_ ((Lisp_Object));
-static int update_menu_bar P_ ((struct frame *, int, int));
-static int try_window_reusing_current_matrix P_ ((struct window *));
-static int try_window_id P_ ((struct window *));
-static int display_line P_ ((struct it *));
-static int display_mode_lines P_ ((struct window *));
-static int display_mode_line P_ ((struct window *, enum face_id, Lisp_Object));
-static int display_mode_element P_ ((struct it *, int, int, int, Lisp_Object, Lisp_Object, int));
-static int store_mode_line_string P_ ((char *, Lisp_Object, int, int, int, Lisp_Object));
-static char *decode_mode_spec P_ ((struct window *, int, int, int,
-				   Lisp_Object *));
-static void display_menu_bar P_ ((struct window *));
-static int display_count_lines P_ ((int, int, int, int, int *));
-static int display_string P_ ((unsigned char *, Lisp_Object, Lisp_Object,
-			       EMACS_INT, EMACS_INT, struct it *, int, int, int, int));
-static void compute_line_metrics P_ ((struct it *));
-static void run_redisplay_end_trigger_hook P_ ((struct it *));
-static int get_overlay_strings P_ ((struct it *, int));
-static int get_overlay_strings_1 P_ ((struct it *, int, int));
-static void next_overlay_string P_ ((struct it *));
-static void reseat P_ ((struct it *, struct text_pos, int));
-static void reseat_1 P_ ((struct it *, struct text_pos, int));
-static void back_to_previous_visible_line_start P_ ((struct it *));
-void reseat_at_previous_visible_line_start P_ ((struct it *));
-static void reseat_at_next_visible_line_start P_ ((struct it *, int));
-static int next_element_from_ellipsis P_ ((struct it *));
-static int next_element_from_display_vector P_ ((struct it *));
-static int next_element_from_string P_ ((struct it *));
-static int next_element_from_c_string P_ ((struct it *));
-static int next_element_from_buffer P_ ((struct it *));
-static int next_element_from_composition P_ ((struct it *));
-static int next_element_from_image P_ ((struct it *));
-static int next_element_from_stretch P_ ((struct it *));
-static void load_overlay_strings P_ ((struct it *, int));
-static int init_from_display_pos P_ ((struct it *, struct window *,
-				      struct display_pos *));
-static void reseat_to_string P_ ((struct it *, unsigned char *,
-				  Lisp_Object, int, int, int, int));
+static Lisp_Object redisplay_window_0 (Lisp_Object);
+static Lisp_Object redisplay_window_1 (Lisp_Object);
+static int update_menu_bar (struct frame *, int, int);
+static int try_window_reusing_current_matrix (struct window *);
+static int try_window_id (struct window *);
+static int display_line (struct it *);
+static int display_mode_lines (struct window *);
+static int display_mode_line (struct window *, enum face_id, Lisp_Object);
+static int display_mode_element (struct it *, int, int, int, Lisp_Object, Lisp_Object, int);
+static int store_mode_line_string (char *, Lisp_Object, int, int, int, Lisp_Object);
+static char *decode_mode_spec (struct window *, int, int, int,
+                               Lisp_Object *);
+static void display_menu_bar (struct window *);
+static int display_count_lines (int, int, int, int, int *);
+static int display_string (unsigned char *, Lisp_Object, Lisp_Object,
+                           EMACS_INT, EMACS_INT, struct it *, int, int, int, int);
+static void compute_line_metrics (struct it *);
+static void run_redisplay_end_trigger_hook (struct it *);
+static int get_overlay_strings (struct it *, int);
+static int get_overlay_strings_1 (struct it *, int, int);
+static void next_overlay_string (struct it *);
+static void reseat (struct it *, struct text_pos, int);
+static void reseat_1 (struct it *, struct text_pos, int);
+static void back_to_previous_visible_line_start (struct it *);
+void reseat_at_previous_visible_line_start (struct it *);
+static void reseat_at_next_visible_line_start (struct it *, int);
+static int next_element_from_ellipsis (struct it *);
+static int next_element_from_display_vector (struct it *);
+static int next_element_from_string (struct it *);
+static int next_element_from_c_string (struct it *);
+static int next_element_from_buffer (struct it *);
+static int next_element_from_composition (struct it *);
+static int next_element_from_image (struct it *);
+static int next_element_from_stretch (struct it *);
+static void load_overlay_strings (struct it *, int);
+static int init_from_display_pos (struct it *, struct window *,
+                                  struct display_pos *);
+static void reseat_to_string (struct it *, unsigned char *,
+                              Lisp_Object, int, int, int, int);
 static enum move_it_result
        move_it_in_display_line_to (struct it *, EMACS_INT, int,
 				   enum move_operation_enum);
-void move_it_vertically_backward P_ ((struct it *, int));
-static void init_to_row_start P_ ((struct it *, struct window *,
-				   struct glyph_row *));
-static int init_to_row_end P_ ((struct it *, struct window *,
-				struct glyph_row *));
-static void back_to_previous_line_start P_ ((struct it *));
-static int forward_to_next_line_start P_ ((struct it *, int *));
-static struct text_pos string_pos_nchars_ahead P_ ((struct text_pos,
-						    Lisp_Object, int));
-static struct text_pos string_pos P_ ((int, Lisp_Object));
-static struct text_pos c_string_pos P_ ((int, unsigned char *, int));
-static int number_of_chars P_ ((unsigned char *, int));
-static void compute_stop_pos P_ ((struct it *));
-static void compute_string_pos P_ ((struct text_pos *, struct text_pos,
-				    Lisp_Object));
-static int face_before_or_after_it_pos P_ ((struct it *, int));
-static EMACS_INT next_overlay_change P_ ((EMACS_INT));
-static int handle_single_display_spec P_ ((struct it *, Lisp_Object,
-					   Lisp_Object, Lisp_Object,
-					   struct text_pos *, int));
-static int underlying_face_id P_ ((struct it *));
-static int in_ellipses_for_invisible_text_p P_ ((struct display_pos *,
-						 struct window *));
+void move_it_vertically_backward (struct it *, int);
+static void init_to_row_start (struct it *, struct window *,
+                               struct glyph_row *);
+static int init_to_row_end (struct it *, struct window *,
+                            struct glyph_row *);
+static void back_to_previous_line_start (struct it *);
+static int forward_to_next_line_start (struct it *, int *);
+static struct text_pos string_pos_nchars_ahead (struct text_pos,
+                                                Lisp_Object, int);
+static struct text_pos string_pos (int, Lisp_Object);
+static struct text_pos c_string_pos (int, unsigned char *, int);
+static int number_of_chars (unsigned char *, int);
+static void compute_stop_pos (struct it *);
+static void compute_string_pos (struct text_pos *, struct text_pos,
+                                Lisp_Object);
+static int face_before_or_after_it_pos (struct it *, int);
+static EMACS_INT next_overlay_change (EMACS_INT);
+static int handle_single_display_spec (struct it *, Lisp_Object,
+                                       Lisp_Object, Lisp_Object,
+                                       struct text_pos *, int);
+static int underlying_face_id (struct it *);
+static int in_ellipses_for_invisible_text_p (struct display_pos *,
+                                             struct window *);
 
 #define face_before_it_pos(IT) face_before_or_after_it_pos ((IT), 1)
 #define face_after_it_pos(IT)  face_before_or_after_it_pos ((IT), 0)
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-static void update_tool_bar P_ ((struct frame *, int));
-static void build_desired_tool_bar_string P_ ((struct frame *f));
-static int redisplay_tool_bar P_ ((struct frame *));
-static void display_tool_bar_line P_ ((struct it *, int));
-static void notice_overwritten_cursor P_ ((struct window *,
-					   enum glyph_row_area,
-					   int, int, int, int));
-static void append_stretch_glyph P_ ((struct it *, Lisp_Object,
-				      int, int, int));
+static void update_tool_bar (struct frame *, int);
+static void build_desired_tool_bar_string (struct frame *f);
+static int redisplay_tool_bar (struct frame *);
+static void display_tool_bar_line (struct it *, int);
+static void notice_overwritten_cursor (struct window *,
+                                       enum glyph_row_area,
+                                       int, int, int, int);
+static void append_stretch_glyph (struct it *, Lisp_Object,
+                                  int, int, int);
 
 
 
@@ -5839,7 +5839,7 @@ reseat_to_string (it, s, string, charpos, precision, field_width, multibyte)
 
 /* Map enum it_method value to corresponding next_element_from_* function.  */
 
-static int (* get_next_element[NUM_IT_METHODS]) P_ ((struct it *it)) =
+static int (* get_next_element[NUM_IT_METHODS]) (struct it *it) =
 {
   next_element_from_buffer,
   next_element_from_display_vector,
@@ -8813,7 +8813,7 @@ static int
 with_echo_area_buffer (w, which, fn, a1, a2, a3, a4)
      struct window *w;
      int which;
-     int (*fn) P_ ((EMACS_INT, Lisp_Object, EMACS_INT, EMACS_INT));
+     int (*fn) (EMACS_INT, Lisp_Object, EMACS_INT, EMACS_INT);
      EMACS_INT a1;
      Lisp_Object a2;
      EMACS_INT a3, a4;
@@ -11204,8 +11204,8 @@ note_tool_bar_highlight (f, x, y)
 			 Horizontal scrolling
  ************************************************************************/
 
-static int hscroll_window_tree P_ ((Lisp_Object));
-static int hscroll_windows P_ ((Lisp_Object));
+static int hscroll_window_tree (Lisp_Object);
+static int hscroll_windows (Lisp_Object);
 
 /* For all leaf windows in the window tree rooted at WINDOW, set their
    hscroll value so that PT is (i) visible in the window, and (ii) so
@@ -15384,12 +15384,12 @@ try_window_reusing_current_matrix (w)
    Window redisplay reusing current matrix when buffer has changed
  ************************************************************************/
 
-static struct glyph_row *find_last_unchanged_at_beg_row P_ ((struct window *));
-static struct glyph_row *find_first_unchanged_at_end_row P_ ((struct window *,
-							     int *, int *));
+static struct glyph_row *find_last_unchanged_at_beg_row (struct window *);
+static struct glyph_row *find_first_unchanged_at_end_row (struct window *,
+                                                          int *, int *);
 static struct glyph_row *
-find_last_row_displaying_text P_ ((struct glyph_matrix *, struct it *,
-				   struct glyph_row *));
+find_last_row_displaying_text (struct glyph_matrix *, struct it *,
+                               struct glyph_row *);
 
 
 /* Return the last row in MATRIX displaying text.  If row START is
@@ -16447,9 +16447,9 @@ try_window_id (w)
 
 #if GLYPH_DEBUG
 
-void dump_glyph_row P_ ((struct glyph_row *, int, int));
-void dump_glyph_matrix P_ ((struct glyph_matrix *, int));
-void dump_glyph P_ ((struct glyph_row *, struct glyph *, int));
+void dump_glyph_row (struct glyph_row *, int, int);
+void dump_glyph_matrix (struct glyph_matrix *, int);
+void dump_glyph (struct glyph_row *, struct glyph *, int);
 
 
 /* Dump the contents of glyph matrix MATRIX on stderr.

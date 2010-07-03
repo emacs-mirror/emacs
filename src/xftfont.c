@@ -70,9 +70,9 @@ struct xftface_info
   XftColor xft_bg;		/* color for face->background */
 };
 
-static void xftfont_get_colors P_ ((FRAME_PTR, struct face *, GC gc,
-				    struct xftface_info *,
-				    XftColor *fg, XftColor *bg));
+static void xftfont_get_colors (FRAME_PTR, struct face *, GC gc,
+                                struct xftface_info *,
+                                XftColor *fg, XftColor *bg);
 
 
 /* Setup foreground and background colors of GC into FG and BG.  If
@@ -141,18 +141,18 @@ xftfont_get_colors (f, face, gc, xftface_info, fg, bg)
 }
 
 
-static Lisp_Object xftfont_list P_ ((Lisp_Object, Lisp_Object));
-static Lisp_Object xftfont_match P_ ((Lisp_Object, Lisp_Object));
-static Lisp_Object xftfont_open P_ ((FRAME_PTR, Lisp_Object, int));
-static void xftfont_close P_ ((FRAME_PTR, struct font *));
-static int xftfont_prepare_face P_ ((FRAME_PTR, struct face *));
-static void xftfont_done_face P_ ((FRAME_PTR, struct face *));
-static int xftfont_has_char P_ ((Lisp_Object, int));
-static unsigned xftfont_encode_char P_ ((struct font *, int));
-static int xftfont_text_extents P_ ((struct font *, unsigned *, int,
-				     struct font_metrics *));
-static int xftfont_draw P_ ((struct glyph_string *, int, int, int, int, int));
-static int xftfont_end_for_frame P_ ((FRAME_PTR f));
+static Lisp_Object xftfont_list (Lisp_Object, Lisp_Object);
+static Lisp_Object xftfont_match (Lisp_Object, Lisp_Object);
+static Lisp_Object xftfont_open (FRAME_PTR, Lisp_Object, int);
+static void xftfont_close (FRAME_PTR, struct font *);
+static int xftfont_prepare_face (FRAME_PTR, struct face *);
+static void xftfont_done_face (FRAME_PTR, struct face *);
+static int xftfont_has_char (Lisp_Object, int);
+static unsigned xftfont_encode_char (struct font *, int);
+static int xftfont_text_extents (struct font *, unsigned *, int,
+                                 struct font_metrics *);
+static int xftfont_draw (struct glyph_string *, int, int, int, int, int);
+static int xftfont_end_for_frame (FRAME_PTR f);
 
 struct font_driver xftfont_driver;
 
@@ -180,8 +180,8 @@ xftfont_match (frame, spec)
   return entity;
 }
 
-extern Lisp_Object ftfont_font_format P_ ((FcPattern *, Lisp_Object));
-extern FcCharSet *ftfont_get_fc_charset P_ ((Lisp_Object));
+extern Lisp_Object ftfont_font_format (FcPattern *, Lisp_Object);
+extern FcCharSet *ftfont_get_fc_charset (Lisp_Object);
 extern Lisp_Object QCantialias;
 
 static FcChar8 ascii_printable[95];

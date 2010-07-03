@@ -825,6 +825,7 @@ enable_asserts
 enable_maintainer_mode
 enable_locallisppath
 enable_checking
+enable_use_lisp_union_type
 enable_profiling
 enable_autodepend
 enable_largefile
@@ -1477,6 +1478,10 @@ Optional Features:
                           only specific categories of checks. Categories are:
                           all,yes,no. Flags are: stringbytes, stringoverrun,
                           stringfreelist, xmallocoverrun, conslist
+  --enable-use-lisp-union-type
+                          use a union for the Lisp_Object data type. This is
+                          only useful for development for catching certain
+                          types of bugs.
   --enable-profiling      build emacs with profiling support. This might not
                           work on all platforms
   --enable-autodepend     automatically generate dependencies to .h-files.
@@ -2978,6 +2983,17 @@ $as_echo "#define GC_CHECK_CONS_LIST 1" >>confdefs.h
 
 fi
 
+# Check whether --enable-use-lisp-union-type was given.
+if test "${enable_use_lisp_union_type+set}" = set; then :
+  enableval=$enable_use_lisp_union_type; if test "${enableval}" != "no"; then
+
+$as_echo "#define USE_LISP_UNION_TYPE 1" >>confdefs.h
+
+fi
+fi
+
+
+
 # Check whether --enable-profiling was given.
 if test "${enable_profiling+set}" = set; then :
   enableval=$enable_profiling; ac_enable_profiling="${enableval}"
@@ -4290,7 +4306,7 @@ if test x$GCC = xyes; then
   C_OPTIMIZE_SWITCH=-O2
   test "x$GCC_TEST_OPTIONS" != x && CC="$CC $GCC_TEST_OPTIONS"
 else
-    C_OPTIMIZE_SWITCH=-O
+  C_OPTIMIZE_SWITCH=-O
   test "x$NON_GCC_TEST_OPTIONS" != x && CC="$CC $NON_GCC_TEST_OPTIONS"
 fi
 

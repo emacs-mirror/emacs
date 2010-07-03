@@ -228,19 +228,19 @@ without invoking the usual minibuffer commands.  */)
 
 /* Actual minibuffer invocation. */
 
-static Lisp_Object read_minibuf_unwind P_ ((Lisp_Object));
-static Lisp_Object run_exit_minibuf_hook P_ ((Lisp_Object));
-static Lisp_Object read_minibuf P_ ((Lisp_Object, Lisp_Object,
-				     Lisp_Object, Lisp_Object,
-				     int, Lisp_Object,
-				     Lisp_Object, Lisp_Object,
-				     int, int));
-static Lisp_Object read_minibuf_noninteractive P_ ((Lisp_Object, Lisp_Object,
-						    Lisp_Object, Lisp_Object,
-						    int, Lisp_Object,
-						    Lisp_Object, Lisp_Object,
-						    int, int));
-static Lisp_Object string_to_object P_ ((Lisp_Object, Lisp_Object));
+static Lisp_Object read_minibuf_unwind (Lisp_Object);
+static Lisp_Object run_exit_minibuf_hook (Lisp_Object);
+static Lisp_Object read_minibuf (Lisp_Object, Lisp_Object,
+                                 Lisp_Object, Lisp_Object,
+                                 int, Lisp_Object,
+                                 Lisp_Object, Lisp_Object,
+                                 int, int);
+static Lisp_Object read_minibuf_noninteractive (Lisp_Object, Lisp_Object,
+                                                Lisp_Object, Lisp_Object,
+                                                int, Lisp_Object,
+                                                Lisp_Object, Lisp_Object,
+                                                int, int);
+static Lisp_Object string_to_object (Lisp_Object, Lisp_Object);
 
 
 /* Read a Lisp object from VAL and return it.  If VAL is an empty

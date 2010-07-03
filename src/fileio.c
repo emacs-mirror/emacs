@@ -240,9 +240,9 @@ Lisp_Object Qfile_name_history;
 
 Lisp_Object Qcar_less_than_car;
 
-static int a_write P_ ((int, Lisp_Object, int, int,
-			Lisp_Object *, struct coding_system *));
-static int e_write P_ ((int, Lisp_Object, int, int, struct coding_system *));
+static int a_write (int, Lisp_Object, int, int,
+                    Lisp_Object *, struct coding_system *);
+static int e_write (int, Lisp_Object, int, int, struct coding_system *);
 
 
 void
@@ -3101,7 +3101,7 @@ The value is an integer.  */)
   return value;
 }
 
-extern int lisp_time_argument P_ ((Lisp_Object, time_t *, int *));
+extern int lisp_time_argument (Lisp_Object, time_t *, int *);
 
 DEFUN ("set-file-times", Fset_file_times, Sset_file_times, 1, 2, 0,
        doc: /* Set times of file FILENAME to TIME.
@@ -4445,7 +4445,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
   RETURN_UNGCPRO (unbind_to (count, val));
 }
 
-static Lisp_Object build_annotations P_ ((Lisp_Object, Lisp_Object));
+static Lisp_Object build_annotations (Lisp_Object, Lisp_Object);
 
 static Lisp_Object
 build_annotations_unwind (arg)

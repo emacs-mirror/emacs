@@ -378,13 +378,13 @@ extern int use_xim;
 #endif
 
 /* This checks to make sure we have a display.  */
-extern void check_x P_ ((void));
+extern void check_x (void);
 
-extern struct frame *x_window_to_frame P_ ((struct x_display_info *, int));
+extern struct frame *x_window_to_frame (struct x_display_info *, int);
 
-extern struct frame *x_any_window_to_frame P_ ((struct x_display_info *, int));
-extern struct frame *x_menubar_window_to_frame P_ ((struct x_display_info *, int));
-extern struct frame *x_top_window_to_frame P_ ((struct x_display_info *, int));
+extern struct frame *x_any_window_to_frame (struct x_display_info *, int);
+extern struct frame *x_menubar_window_to_frame (struct x_display_info *, int);
+extern struct frame *x_top_window_to_frame (struct x_display_info *, int);
 
 #if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
 #define x_any_window_to_frame x_window_to_frame
@@ -403,14 +403,14 @@ extern Lisp_Object x_display_name_list;
 /* Regexp matching a font name whose width is the same as `PIXEL_SIZE'.  */
 extern Lisp_Object Vx_pixel_size_width_font_regexp;
 
-extern struct x_display_info *x_display_info_for_display P_ ((Display *));
-extern struct x_display_info *x_display_info_for_name P_ ((Lisp_Object));
-extern void x_set_frame_alpha P_ ((struct frame *));
+extern struct x_display_info *x_display_info_for_display (Display *);
+extern struct x_display_info *x_display_info_for_name (Lisp_Object);
+extern void x_set_frame_alpha (struct frame *);
 
-extern struct x_display_info *x_term_init P_ ((Lisp_Object, char *, char *));
-extern int x_display_ok  P_ ((const char *));
+extern struct x_display_info *x_term_init (Lisp_Object, char *, char *);
+extern int x_display_ok  (const char *);
 
-extern void select_visual P_ ((struct x_display_info *));
+extern void select_visual (struct x_display_info *);
 
 
 struct font;
@@ -915,168 +915,168 @@ struct image;
 
 /* From xselect.c.  */
 
-void x_handle_selection_notify P_ ((XSelectionEvent *));
-void x_handle_property_notify P_ ((XPropertyEvent *));
+void x_handle_selection_notify (XSelectionEvent *);
+void x_handle_property_notify (XPropertyEvent *);
 
 /* From xfns.c.  */
 
-Lisp_Object display_x_get_resource P_ ((struct x_display_info *,
-					Lisp_Object, Lisp_Object,
-					Lisp_Object, Lisp_Object));
-struct frame *check_x_frame P_ ((Lisp_Object));
+Lisp_Object display_x_get_resource (struct x_display_info *,
+                                    Lisp_Object, Lisp_Object,
+                                    Lisp_Object, Lisp_Object);
+struct frame *check_x_frame (Lisp_Object);
 EXFUN (Fx_display_color_p, 1);
 EXFUN (Fx_display_grayscale_p, 1);
-extern void x_free_gcs P_ ((struct frame *));
+extern void x_free_gcs (struct frame *);
 
 /* From xrdb.c.  */
 
-char *x_get_customization_string P_ ((XrmDatabase, char *, char *));
-XrmDatabase x_load_resources P_ ((Display *, char *, char *, char *));
-int x_get_resource P_ ((XrmDatabase, char *, char *,
-			XrmRepresentation, XrmValue *));
-void x_delete_display P_ ((struct x_display_info *));
-void x_make_frame_visible P_ ((struct frame *));
-void x_iconify_frame P_ ((struct frame *));
-void x_wm_set_size_hint P_ ((struct frame *, long, int));
-int x_text_icon P_ ((struct frame *, char *));
-int x_bitmap_icon P_ ((struct frame *, Lisp_Object));
-void x_set_window_size P_ ((struct frame *, int, int, int));
-void x_wm_set_window_state P_ ((struct frame *, int));
-int x_alloc_nearest_color P_ ((struct frame *, Colormap, XColor *));
+char *x_get_customization_string (XrmDatabase, char *, char *);
+XrmDatabase x_load_resources (Display *, char *, char *, char *);
+int x_get_resource (XrmDatabase, char *, char *,
+                    XrmRepresentation, XrmValue *);
+void x_delete_display (struct x_display_info *);
+void x_make_frame_visible (struct frame *);
+void x_iconify_frame (struct frame *);
+void x_wm_set_size_hint (struct frame *, long, int);
+int x_text_icon (struct frame *, char *);
+int x_bitmap_icon (struct frame *, Lisp_Object);
+void x_set_window_size (struct frame *, int, int, int);
+void x_wm_set_window_state (struct frame *, int);
+int x_alloc_nearest_color (struct frame *, Colormap, XColor *);
 
 /* Defined in xterm.c */
 
-extern void cancel_mouse_face P_ ((struct frame *));
-extern void x_scroll_bar_clear P_ ((struct frame *));
-extern int x_text_icon P_ ((struct frame *, char *));
-extern int x_bitmap_icon P_ ((struct frame *, Lisp_Object));
-extern void x_catch_errors P_ ((Display *));
-extern void x_check_errors P_ ((Display *, char *));
-extern int x_had_errors_p P_ ((Display *));
-extern int x_catching_errors P_ ((void));
-extern void x_uncatch_errors P_ ((void));
-extern void x_clear_errors P_ ((Display *));
-extern void x_set_window_size P_ ((struct frame *, int, int, int));
-extern void x_set_mouse_position P_ ((struct frame *, int, int));
-extern void x_set_mouse_pixel_position P_ ((struct frame *, int, int));
-extern void x_ewmh_activate_frame P_ ((struct frame *));
-extern void x_raise_frame P_ ((struct frame *));
-extern void x_lower_frame P_ ((struct frame *));
-extern void x_make_frame_visible P_ ((struct frame *));
-extern void x_make_frame_invisible P_ ((struct frame *));
-extern void x_iconify_frame P_ ((struct frame *));
-extern void x_free_frame_resources P_ ((struct frame *));
-extern void x_destroy_window P_ ((struct frame *));
-extern void x_wm_set_size_hint P_ ((struct frame *, long, int));
-extern void x_wm_set_window_state P_ ((struct frame *, int));
-extern void x_wm_set_icon_pixmap P_ ((struct frame *, int));
-extern void x_delete_display P_ ((struct x_display_info *));
-extern void x_delete_terminal P_ ((struct terminal *terminal));
-extern void x_initialize P_ ((void));
-extern unsigned long x_copy_color P_ ((struct frame *, unsigned long));
+extern void cancel_mouse_face (struct frame *);
+extern void x_scroll_bar_clear (struct frame *);
+extern int x_text_icon (struct frame *, char *);
+extern int x_bitmap_icon (struct frame *, Lisp_Object);
+extern void x_catch_errors (Display *);
+extern void x_check_errors (Display *, char *);
+extern int x_had_errors_p (Display *);
+extern int x_catching_errors (void);
+extern void x_uncatch_errors (void);
+extern void x_clear_errors (Display *);
+extern void x_set_window_size (struct frame *, int, int, int);
+extern void x_set_mouse_position (struct frame *, int, int);
+extern void x_set_mouse_pixel_position (struct frame *, int, int);
+extern void x_ewmh_activate_frame (struct frame *);
+extern void x_raise_frame (struct frame *);
+extern void x_lower_frame (struct frame *);
+extern void x_make_frame_visible (struct frame *);
+extern void x_make_frame_invisible (struct frame *);
+extern void x_iconify_frame (struct frame *);
+extern void x_free_frame_resources (struct frame *);
+extern void x_destroy_window (struct frame *);
+extern void x_wm_set_size_hint (struct frame *, long, int);
+extern void x_wm_set_window_state (struct frame *, int);
+extern void x_wm_set_icon_pixmap (struct frame *, int);
+extern void x_delete_display (struct x_display_info *);
+extern void x_delete_terminal (struct terminal *terminal);
+extern void x_initialize (void);
+extern unsigned long x_copy_color (struct frame *, unsigned long);
 #ifdef USE_X_TOOLKIT
 extern XtAppContext Xt_app_con;
-extern int x_alloc_lighter_color_for_widget __P ((Widget, Display*, Colormap,
-						  unsigned long *,
-						  double, int));
-extern void x_activate_timeout_atimer P_ ((void));
+extern int x_alloc_lighter_color_for_widget (Widget, Display*, Colormap,
+                                             unsigned long *,
+                                             double, int);
+extern void x_activate_timeout_atimer (void);
 #endif
-extern void x_query_colors P_ ((struct frame *f, XColor *, int));
-extern void x_query_color P_ ((struct frame *f, XColor *));
-extern void x_clear_area P_ ((Display *, Window, int, int, int, int, int));
-extern void set_vertical_scroll_bar P_ ((struct window *));
+extern void x_query_colors (struct frame *f, XColor *, int);
+extern void x_query_color (struct frame *f, XColor *);
+extern void x_clear_area (Display *, Window, int, int, int, int, int);
+extern void set_vertical_scroll_bar (struct window *);
 
-extern int x_dispatch_event P_ ((XEvent *, Display *));
-extern unsigned int x_x_to_emacs_modifiers P_ ((struct x_display_info *,
-						unsigned));
-extern int x_display_pixel_height P_ ((struct x_display_info *));
-extern int x_display_pixel_width P_ ((struct x_display_info *));
+extern int x_dispatch_event (XEvent *, Display *);
+extern unsigned int x_x_to_emacs_modifiers (struct x_display_info *,
+                                            unsigned);
+extern int x_display_pixel_height (struct x_display_info *);
+extern int x_display_pixel_width (struct x_display_info *);
 
-extern void x_set_sticky P_ ((struct frame *, Lisp_Object, Lisp_Object));
-extern void x_wait_for_event P_ ((struct frame *, int));
+extern void x_set_sticky (struct frame *, Lisp_Object, Lisp_Object);
+extern void x_wait_for_event (struct frame *, int);
 
 /* Defined in xselect.c */
 
-extern void x_handle_property_notify P_ ((XPropertyEvent *));
-extern void x_handle_selection_notify P_ ((XSelectionEvent *));
-extern void x_handle_selection_event P_ ((struct input_event *));
-extern void x_clear_frame_selections P_ ((struct frame *));
+extern void x_handle_property_notify (XPropertyEvent *);
+extern void x_handle_selection_notify (XSelectionEvent *);
+extern void x_handle_selection_event (struct input_event *);
+extern void x_clear_frame_selections (struct frame *);
 
-extern int x_handle_dnd_message P_ ((struct frame *,
-                                     XClientMessageEvent *,
-                                     struct x_display_info *,
-                                     struct input_event *bufp));
-extern int x_check_property_data P_ ((Lisp_Object));
-extern void x_fill_property_data P_ ((Display *,
-                                      Lisp_Object,
-                                      void *,
-                                      int));
-extern Lisp_Object x_property_data_to_lisp P_ ((struct frame *,
-                                                unsigned char *,
-                                                Atom,
-                                                int,
-                                                unsigned long));
+extern int x_handle_dnd_message (struct frame *,
+                                 XClientMessageEvent *,
+                                 struct x_display_info *,
+                                 struct input_event *bufp);
+extern int x_check_property_data (Lisp_Object);
+extern void x_fill_property_data (Display *,
+                                  Lisp_Object,
+                                  void *,
+                                  int);
+extern Lisp_Object x_property_data_to_lisp (struct frame *,
+                                            unsigned char *,
+                                            Atom,
+                                            int,
+                                            unsigned long);
 
 /* Defined in xfns.c */
 
-extern struct x_display_info * check_x_display_info P_ ((Lisp_Object frame));
+extern struct x_display_info * check_x_display_info (Lisp_Object frame);
 
 #ifdef USE_GTK
-extern int xg_set_icon P_ ((struct frame *, Lisp_Object));
-extern int xg_set_icon_from_xpm_data P_ ((struct frame *, char**));
+extern int xg_set_icon (struct frame *, Lisp_Object);
+extern int xg_set_icon_from_xpm_data (struct frame *, char**);
 #endif /* USE_GTK */
 
-extern void x_real_positions P_ ((struct frame *, int *, int *));
-extern int defined_color P_ ((struct frame *, char *, XColor *, int));
-extern void x_set_border_pixel P_ ((struct frame *, int));
-extern void x_set_menu_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
-extern void x_implicitly_set_name P_ ((struct frame *, Lisp_Object, Lisp_Object));
-extern void xic_free_xfontset P_ ((struct frame *));
-extern void create_frame_xic P_ ((struct frame *));
-extern void destroy_frame_xic P_ ((struct frame *));
-extern void xic_set_preeditarea P_ ((struct window *, int, int));
-extern void xic_set_statusarea P_ ((struct frame *));
-extern void xic_set_xfontset P_ ((struct frame *, char *));
-extern int x_pixel_width P_ ((struct frame *));
-extern int x_pixel_height P_ ((struct frame *));
-extern int x_char_width P_ ((struct frame *));
-extern int x_char_height P_ ((struct frame *));
-extern int x_screen_planes P_ ((struct frame *));
-extern void x_sync P_ ((struct frame *));
-extern int x_defined_color P_ ((struct frame *, char *, XColor *, int));
+extern void x_real_positions (struct frame *, int *, int *);
+extern int defined_color (struct frame *, char *, XColor *, int);
+extern void x_set_border_pixel (struct frame *, int);
+extern void x_set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
+extern void x_implicitly_set_name (struct frame *, Lisp_Object, Lisp_Object);
+extern void xic_free_xfontset (struct frame *);
+extern void create_frame_xic (struct frame *);
+extern void destroy_frame_xic (struct frame *);
+extern void xic_set_preeditarea (struct window *, int, int);
+extern void xic_set_statusarea (struct frame *);
+extern void xic_set_xfontset (struct frame *, char *);
+extern int x_pixel_width (struct frame *);
+extern int x_pixel_height (struct frame *);
+extern int x_char_width (struct frame *);
+extern int x_char_height (struct frame *);
+extern int x_screen_planes (struct frame *);
+extern void x_sync (struct frame *);
+extern int x_defined_color (struct frame *, char *, XColor *, int);
 #ifdef HAVE_X_I18N
-extern void free_frame_xic P_ ((struct frame *));
+extern void free_frame_xic (struct frame *);
 #endif
-extern void x_set_tool_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
+extern void x_set_tool_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
 
 /* Defined in xfaces.c */
 
-extern int compute_glyph_face P_ ((struct frame *, int, int));
-extern int compute_glyph_face_1 P_ ((struct frame *, Lisp_Object, int));
-extern void x_free_dpy_colors P_ ((Display *, Screen *, Colormap,
-				   unsigned long *, int));
+extern int compute_glyph_face (struct frame *, int, int);
+extern int compute_glyph_face_1 (struct frame *, Lisp_Object, int);
+extern void x_free_dpy_colors (Display *, Screen *, Colormap,
+                               unsigned long *, int);
 
 /* Defined in xmenu.c */
 
-extern void x_menu_set_in_use P_ ((int));
-extern void x_menu_wait_for_event P_ ((void *data));
-extern void x_activate_menubar P_ ((struct frame *));
-extern int popup_activated P_ ((void));
-extern void initialize_frame_menubar P_ ((struct frame *));
-extern void free_frame_menubar P_ ((struct frame *));
+extern void x_menu_set_in_use (int);
+extern void x_menu_wait_for_event (void *data);
+extern void x_activate_menubar (struct frame *);
+extern int popup_activated (void);
+extern void initialize_frame_menubar (struct frame *);
+extern void free_frame_menubar (struct frame *);
 
 /* Defined in widget.c */
 
 #ifdef USE_X_TOOLKIT
-extern void widget_store_internal_border P_ ((Widget));
+extern void widget_store_internal_border (Widget);
 #endif
 
 /* Defined in xsmfns.c */
 #ifdef HAVE_X_SM
-extern void x_session_initialize P_ ((struct x_display_info *dpyinfo));
-extern int x_session_check_input P_ ((struct input_event *bufp));
-extern int x_session_have_connection P_ ((void));
-extern void x_session_close P_ ((void));
+extern void x_session_initialize (struct x_display_info *dpyinfo);
+extern int x_session_check_input (struct input_event *bufp);
+extern int x_session_have_connection (void);
+extern void x_session_close (void);
 #endif
 
 /* XEmbed implementation.  */
@@ -1129,10 +1129,10 @@ enum xembed_accelerator
 
 /* Defined in xterm.c */
 
-extern void xembed_set_info P_ ((struct frame *f, enum xembed_info flags));
-extern void xembed_send_message P_ ((struct frame *f, Time time,
-				     enum xembed_message message,
-				     long detail, long data1, long data2));
+extern void xembed_set_info (struct frame *f, enum xembed_info flags);
+extern void xembed_send_message (struct frame *f, Time time,
+                                 enum xembed_message message,
+                                 long detail, long data1, long data2);
 
 /* Is the frame embedded into another application? */
 

@@ -47,6 +47,10 @@ to configure.  Note that other libraries used by Emacs, RSVG and GConf,
 also depend on Gtk+.  You can disable them with --without-rsvg and
 --without-gconf.
 
+** There is a new configure option --enable-use-lisp-union-type.
+This is only useful for Emacs developers to debug certain types of bugs.
+These is not a new feature; only the configure flag is new.
+
 
 * Startup Changes in Emacs 24.1
 
@@ -308,6 +312,11 @@ checks the value of the variable `menu-bar-mode'/`tool-bar-mode' to
 determine whether to create a menu-bar or tool-bar, respectively.
 If the alist entries are added, they override the value of
 `menu-bar-mode'/`tool-bar-mode'.
+
+** Regions created by mouse dragging are now normal active regions,
+similar to the ones created by shift-selection.  In previous Emacs
+versions, these regions were delineated by `mouse-drag-overlay', which
+has now been removed.
 
 
 * Lisp changes in Emacs 24.1

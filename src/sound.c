@@ -115,10 +115,10 @@ enum sound_attr
   SOUND_ATTR_SENTINEL
 };
 
-static void alsa_sound_perror P_ ((char *, int)) NO_RETURN;
-static void sound_perror P_ ((char *)) NO_RETURN;
-static void sound_warning P_ ((char *));
-static int parse_sound P_ ((Lisp_Object, Lisp_Object *));
+static void alsa_sound_perror (char *, int) NO_RETURN;
+static void sound_perror (char *) NO_RETURN;
+static void sound_warning (char *);
+static int parse_sound (Lisp_Object, Lisp_Object *);
 
 /* END: Common Definitions */
 
@@ -225,25 +225,25 @@ struct sound_device
   int channels;
 
   /* Open device SD.  */
-  void (* open) P_ ((struct sound_device *sd));
+  void (* open) (struct sound_device *sd);
 
   /* Close device SD.  */
-  void (* close) P_ ((struct sound_device *sd));
+  void (* close) (struct sound_device *sd);
 
   /* Configure SD accoring to device-dependent parameters.  */
-  void (* configure) P_ ((struct sound_device *device));
+  void (* configure) (struct sound_device *device);
 
   /* Choose a device-dependent format for outputting sound S.  */
-  void (* choose_format) P_ ((struct sound_device *sd,
-			      struct sound *s));
+  void (* choose_format) (struct sound_device *sd,
+                          struct sound *s);
 
   /* Return a preferred data size in bytes to be sent to write (below)
      each time.  2048 is used if this is NULL.  */
-  int (* period_size) P_ ((struct sound_device *sd));
+  int (* period_size) (struct sound_device *sd);
 
   /* Write NYBTES bytes from BUFFER to device SD.  */
-  void (* write) P_ ((struct sound_device *sd, const char *buffer,
-		      int nbytes));
+  void (* write) (struct sound_device *sd, const char *buffer,
+                  int nbytes);
 
   /* A place for devices to store additional data.  */
   void *data;
@@ -279,7 +279,7 @@ struct sound
   Lisp_Object data;
 
   /* Play sound file S on device SD.  */
-  void (* play) P_ ((struct sound *s, struct sound_device *sd));
+  void (* play) (struct sound *s, struct sound_device *sd);
 };
 
 /* These are set during `play-sound-internal' so that sound_cleanup has
@@ -290,30 +290,30 @@ struct sound *current_sound;
 
 /* Function prototypes.  */
 
-static void vox_open P_ ((struct sound_device *));
-static void vox_configure P_ ((struct sound_device *));
-static void vox_close P_ ((struct sound_device *sd));
-static void vox_choose_format P_ ((struct sound_device *, struct sound *));
-static int vox_init P_ ((struct sound_device *));
-static void vox_write P_ ((struct sound_device *, const char *, int));
-static void find_sound_type P_ ((struct sound *));
-static u_int32_t le2hl P_ ((u_int32_t));
-static u_int16_t le2hs P_ ((u_int16_t));
-static u_int32_t be2hl P_ ((u_int32_t));
-static int wav_init P_ ((struct sound *));
-static void wav_play P_ ((struct sound *, struct sound_device *));
-static int au_init P_ ((struct sound *));
-static void au_play P_ ((struct sound *, struct sound_device *));
+static void vox_open (struct sound_device *);
+static void vox_configure (struct sound_device *);
+static void vox_close (struct sound_device *sd);
+static void vox_choose_format (struct sound_device *, struct sound *);
+static int vox_init (struct sound_device *);
+static void vox_write (struct sound_device *, const char *, int);
+static void find_sound_type (struct sound *);
+static u_int32_t le2hl (u_int32_t);
+static u_int16_t le2hs (u_int16_t);
+static u_int32_t be2hl (u_int32_t);
+static int wav_init (struct sound *);
+static void wav_play (struct sound *, struct sound_device *);
+static int au_init (struct sound *);
+static void au_play (struct sound *, struct sound_device *);
 
 #if 0 /* Currently not used.  */
-static u_int16_t be2hs P_ ((u_int16_t));
+static u_int16_t be2hs (u_int16_t);
 #endif
 
 /* END: Non Windows Definitions */
 #else /* WINDOWSNT */
 
 /* BEGIN: Windows Specific Definitions */
-static int do_play_sound P_ ((const char *, unsigned long));
+static int do_play_sound (const char *, unsigned long);
 /*
   END: Windows Specific Definitions */
 #endif /* WINDOWSNT */

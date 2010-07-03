@@ -225,12 +225,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define BUF_TEMP_SET_PT(buffer, position) \
   (temp_set_point ((buffer), (position)))
 
-extern void set_point P_ ((EMACS_INT));
-extern INLINE void temp_set_point P_ ((struct buffer *, EMACS_INT));
-extern void set_point_both P_ ((EMACS_INT, EMACS_INT));
-extern INLINE void temp_set_point_both P_ ((struct buffer *,
-					    EMACS_INT, EMACS_INT));
-extern void enlarge_buffer_text P_ ((struct buffer *, EMACS_INT));
+extern void set_point (EMACS_INT);
+extern INLINE void temp_set_point (struct buffer *, EMACS_INT);
+extern void set_point_both (EMACS_INT, EMACS_INT);
+extern INLINE void temp_set_point_both (struct buffer *,
+                                        EMACS_INT, EMACS_INT);
+extern void enlarge_buffer_text (struct buffer *, EMACS_INT);
 
 
 /* Macros for setting the BEGV, ZV or PT of a given buffer.
@@ -857,23 +857,23 @@ extern struct buffer buffer_local_flags;
 
 extern struct buffer buffer_local_symbols;
 
-extern void delete_all_overlays P_ ((struct buffer *));
-extern void reset_buffer P_ ((struct buffer *));
-extern void evaporate_overlays P_ ((EMACS_INT));
-extern int overlays_at P_ ((EMACS_INT pos, int extend, Lisp_Object **vec_ptr,
-			    int *len_ptr, EMACS_INT *next_ptr,
-			    EMACS_INT *prev_ptr, int change_req));
-extern int sort_overlays P_ ((Lisp_Object *, int, struct window *));
-extern void recenter_overlay_lists P_ ((struct buffer *, EMACS_INT));
-extern int overlay_strings P_ ((EMACS_INT, struct window *, unsigned char **));
-extern void validate_region P_ ((Lisp_Object *, Lisp_Object *));
-extern void set_buffer_internal P_ ((struct buffer *));
-extern void set_buffer_internal_1 P_ ((struct buffer *));
-extern void set_buffer_temp P_ ((struct buffer *));
-extern void record_buffer P_ ((Lisp_Object));
-extern void buffer_slot_type_mismatch P_ ((Lisp_Object, int)) NO_RETURN;
-extern void fix_overlays_before P_ ((struct buffer *, EMACS_INT, EMACS_INT));
-extern void mmap_set_vars P_ ((int));
+extern void delete_all_overlays (struct buffer *);
+extern void reset_buffer (struct buffer *);
+extern void evaporate_overlays (EMACS_INT);
+extern int overlays_at (EMACS_INT pos, int extend, Lisp_Object **vec_ptr,
+                        int *len_ptr, EMACS_INT *next_ptr,
+                        EMACS_INT *prev_ptr, int change_req);
+extern int sort_overlays (Lisp_Object *, int, struct window *);
+extern void recenter_overlay_lists (struct buffer *, EMACS_INT);
+extern int overlay_strings (EMACS_INT, struct window *, unsigned char **);
+extern void validate_region (Lisp_Object *, Lisp_Object *);
+extern void set_buffer_internal (struct buffer *);
+extern void set_buffer_internal_1 (struct buffer *);
+extern void set_buffer_temp (struct buffer *);
+extern void record_buffer (Lisp_Object);
+extern void buffer_slot_type_mismatch (Lisp_Object, int) NO_RETURN;
+extern void fix_overlays_before (struct buffer *, EMACS_INT, EMACS_INT);
+extern void mmap_set_vars (int);
 
 /* Get overlays at POSN into array OVERLAYS with NOVERLAYS elements.
    If NEXTP is non-NULL, return next overlay there.

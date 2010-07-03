@@ -61,8 +61,8 @@ EMACS_INT last_known_column_point;
 
 static int last_known_column_modified;
 
-static double current_column_1 P_ ((void));
-static double position_indentation P_ ((int));
+static double current_column_1 (void);
+static double position_indentation (int);
 
 /* Cache of beginning of line found by the last call of
    current_column. */
@@ -867,7 +867,7 @@ The return value is COLUMN.  */)
 }
 
 
-static double position_indentation P_ ((int));
+static double position_indentation (int);
 
 DEFUN ("current-indentation", Fcurrent_indentation, Scurrent_indentation,
        0, 0, 0,

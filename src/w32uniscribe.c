@@ -57,9 +57,9 @@ extern int initialized;
 extern struct font_driver uniscribe_font_driver;
 
 /* EnumFontFamiliesEx callback.  */
-static int CALLBACK add_opentype_font_name_to_list P_ ((ENUMLOGFONTEX *,
-                                                        NEWTEXTMETRICEX *,
-                                                        DWORD, LPARAM));
+static int CALLBACK add_opentype_font_name_to_list (ENUMLOGFONTEX *,
+                                                    NEWTEXTMETRICEX *,
+                                                    DWORD, LPARAM);
 /* Used by uniscribe_otf_capability.  */
 static Lisp_Object otf_features (HDC context, char *table);
 

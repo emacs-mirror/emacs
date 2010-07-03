@@ -122,89 +122,89 @@ typedef struct _widget_value
 extern int use_old_gtk_file_dialog;
 #endif
 
-extern widget_value *malloc_widget_value P_ ((void));
-extern void free_widget_value P_ ((widget_value *));
+extern widget_value *malloc_widget_value (void);
+extern void free_widget_value (widget_value *);
 
-extern int xg_uses_old_file_dialog P_ ((void));
+extern int xg_uses_old_file_dialog (void);
 
-extern char *xg_get_file_name P_ ((FRAME_PTR f,
-                                   char *prompt,
-                                   char *default_filename,
-                                   int mustmatch_p,
-                                   int only_dir_p));
+extern char *xg_get_file_name (FRAME_PTR f,
+                               char *prompt,
+                               char *default_filename,
+                               int mustmatch_p,
+                               int only_dir_p);
 
-extern char *xg_get_font_name P_ ((FRAME_PTR f, char *));
+extern char *xg_get_font_name (FRAME_PTR f, char *);
 
-extern GtkWidget *xg_create_widget P_ ((char *type,
-                                        char *name,
-                                        FRAME_PTR f,
-                                        widget_value *val,
-                                        GCallback select_cb,
-                                        GCallback deactivate_cb,
-                                        GCallback hightlight_cb));
+extern GtkWidget *xg_create_widget (char *type,
+                                    char *name,
+                                    FRAME_PTR f,
+                                    widget_value *val,
+                                    GCallback select_cb,
+                                    GCallback deactivate_cb,
+                                    GCallback hightlight_cb);
 
-extern void xg_modify_menubar_widgets P_ ((GtkWidget *menubar,
-                                           FRAME_PTR f,
-                                           widget_value *val,
-                                           int deep_p,
-                                           GCallback select_cb,
-                                           GCallback deactivate_cb,
-                                           GCallback hightlight_cb));
+extern void xg_modify_menubar_widgets (GtkWidget *menubar,
+                                       FRAME_PTR f,
+                                       widget_value *val,
+                                       int deep_p,
+                                       GCallback select_cb,
+                                       GCallback deactivate_cb,
+                                       GCallback hightlight_cb);
 
-extern int xg_update_frame_menubar P_ ((FRAME_PTR f));
+extern int xg_update_frame_menubar (FRAME_PTR f);
 
-extern int xg_have_tear_offs P_ ((void));
+extern int xg_have_tear_offs (void);
 
-extern int xg_get_scroll_id_for_window P_ ((Display *dpy, Window wid));
+extern int xg_get_scroll_id_for_window (Display *dpy, Window wid);
 
-extern void xg_create_scroll_bar P_ ((FRAME_PTR f,
-                                      struct scroll_bar *bar,
-                                      GCallback scroll_callback,
-                                      GCallback end_callback,
-                                      char *scroll_bar_name));
-extern void xg_remove_scroll_bar P_ ((FRAME_PTR f, int scrollbar_id));
+extern void xg_create_scroll_bar (FRAME_PTR f,
+                                  struct scroll_bar *bar,
+                                  GCallback scroll_callback,
+                                  GCallback end_callback,
+                                  char *scroll_bar_name);
+extern void xg_remove_scroll_bar (FRAME_PTR f, int scrollbar_id);
 
-extern void xg_update_scrollbar_pos P_ ((FRAME_PTR f,
-                                         int scrollbar_id,
-                                         int top,
-                                         int left,
-                                         int width,
-                                         int height));
+extern void xg_update_scrollbar_pos (FRAME_PTR f,
+                                     int scrollbar_id,
+                                     int top,
+                                     int left,
+                                     int width,
+                                     int height);
 
-extern void xg_set_toolkit_scroll_bar_thumb P_ ((struct scroll_bar *bar,
-                                                 int portion,
-                                                 int position,
-                                                 int whole));
-extern int xg_event_is_for_scrollbar P_ ((FRAME_PTR f, XEvent *event));
+extern void xg_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar,
+                                             int portion,
+                                             int position,
+                                             int whole);
+extern int xg_event_is_for_scrollbar (FRAME_PTR f, XEvent *event);
 
-extern void update_frame_tool_bar P_ ((FRAME_PTR f));
-extern void free_frame_tool_bar P_ ((FRAME_PTR f));
+extern void update_frame_tool_bar (FRAME_PTR f);
+extern void free_frame_tool_bar (FRAME_PTR f);
 
-extern void xg_frame_resized P_ ((FRAME_PTR f,
-                                  int pixelwidth,
-                                  int pixelheight));
-extern void xg_frame_set_char_size P_ ((FRAME_PTR f, int cols, int rows));
-extern GtkWidget * xg_win_to_widget P_ ((Display *dpy, Window wdesc));
+extern void xg_frame_resized (FRAME_PTR f,
+                              int pixelwidth,
+                              int pixelheight);
+extern void xg_frame_set_char_size (FRAME_PTR f, int cols, int rows);
+extern GtkWidget * xg_win_to_widget (Display *dpy, Window wdesc);
 
-extern void xg_display_open P_ ((char *display_name, Display **dpy));
-extern void xg_display_close P_ ((Display *dpy));
-extern GdkCursor * xg_create_default_cursor P_ ((Display *dpy));
+extern void xg_display_open (char *display_name, Display **dpy);
+extern void xg_display_close (Display *dpy);
+extern GdkCursor * xg_create_default_cursor (Display *dpy);
 
-extern int xg_create_frame_widgets P_ ((FRAME_PTR f));
-extern void x_wm_set_size_hint P_ ((FRAME_PTR f,
-                                    long flags,
-                                    int user_position));
-extern void xg_set_background_color P_ ((FRAME_PTR f, unsigned long bg));
+extern int xg_create_frame_widgets (FRAME_PTR f);
+extern void x_wm_set_size_hint (FRAME_PTR f,
+                                long flags,
+                                int user_position);
+extern void xg_set_background_color (FRAME_PTR f, unsigned long bg);
 
-extern void xg_set_frame_icon P_ ((FRAME_PTR f,
-                                   Pixmap icon_pixmap,
-                                   Pixmap icon_mask));
+extern void xg_set_frame_icon (FRAME_PTR f,
+                               Pixmap icon_pixmap,
+                               Pixmap icon_mask);
 
 /* Mark all callback data that are Lisp_object:s during GC.  */
-extern void xg_mark_data P_ ((void));
+extern void xg_mark_data (void);
 
 /* Initialize GTK specific parts.  */
-extern void xg_initialize P_ ((void));
+extern void xg_initialize (void);
 
 /* Setting scrollbar values invokes the callback.  Use this variable
    to indicate that the callback should do nothing.  */

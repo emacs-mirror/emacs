@@ -618,7 +618,7 @@ temp_output_buffer_setup (bufname)
 Lisp_Object
 internal_with_output_to_temp_buffer (bufname, function, args)
      const char *bufname;
-     Lisp_Object (*function) P_ ((Lisp_Object));
+     Lisp_Object (*function) (Lisp_Object);
      Lisp_Object args;
 {
   int count = SPECPDL_INDEX ();

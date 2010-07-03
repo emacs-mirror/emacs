@@ -479,62 +479,62 @@ struct search_path *search_path_tail;
 
 /* Function prototypes.  */
 
-int yylex P_ ((void));
-void yyparse P_ ((void));
-void re_init_parser P_ ((void));
-char *token_string P_ ((int));
-char *matching_regexp P_ ((void));
-void init_sym P_ ((void));
-struct sym *add_sym P_ ((char *, struct sym *));
-void add_link P_ ((struct sym *, struct sym *));
-void add_member_defn P_ ((struct sym *, char *, char *,
-			  int, unsigned, int, int, int));
-void add_member_decl P_ ((struct sym *, char *, char *, int,
-			  unsigned, int, int, int, int));
-void dump_roots P_ ((FILE *));
-void *xmalloc P_ ((int));
-void xfree P_ ((void *));
-void add_global_defn P_ ((char *, char *, int, unsigned, int, int, int));
-void add_global_decl P_ ((char *, char *, int, unsigned, int, int, int));
-void add_define P_ ((char *, char *, int));
-void mark_inherited_virtual P_ ((void));
-void leave_namespace P_ ((void));
-void enter_namespace P_ ((char *));
-void register_namespace_alias P_ ((char *, struct link *));
-void insert_keyword P_ ((char *, int));
-void re_init_scanner P_ ((void));
-void init_scanner P_ ((void));
-void usage P_ ((int));
-void version P_ ((void));
-void process_file P_ ((char *));
-void add_search_path P_ ((char *));
-FILE *open_file P_ ((char *));
-int process_pp_line P_ ((void));
-int dump_members P_ ((FILE *, struct member *));
-void dump_sym P_ ((FILE *, struct sym *));
-int dump_tree P_ ((FILE *, struct sym *));
-struct member *find_member P_ ((struct sym *, char *, int, int, unsigned));
-struct member *add_member P_ ((struct sym *, char *, int, int, unsigned));
-void mark_virtual P_ ((struct sym *));
-void mark_virtual P_ ((struct sym *));
-struct sym *make_namespace P_ ((char *, struct sym *));
-char *sym_scope P_ ((struct sym *));
-char *sym_scope_1 P_ ((struct sym *));
-int skip_to P_ ((int));
-void skip_matching P_ ((void));
-void member P_ ((struct sym *, int));
-void class_body P_ ((struct sym *, int));
-void class_definition P_ ((struct sym *, int, int, int));
-void declaration P_ ((int));
-unsigned parm_list P_ ((int *));
-char *operator_name P_ ((int *));
-struct sym *parse_classname P_ ((void));
-struct sym *parse_qualified_ident_or_type P_ ((char **));
-void parse_qualified_param_ident_or_type P_ ((char **));
-int globals P_ ((int));
-void yyerror P_ ((char *, char *));
-void usage P_ ((int)) NO_RETURN;
-void version P_ (()) NO_RETURN;
+int yylex (void);
+void yyparse (void);
+void re_init_parser (void);
+char *token_string (int);
+char *matching_regexp (void);
+void init_sym (void);
+struct sym *add_sym (char *, struct sym *);
+void add_link (struct sym *, struct sym *);
+void add_member_defn (struct sym *, char *, char *,
+                      int, unsigned, int, int, int);
+void add_member_decl (struct sym *, char *, char *, int,
+                      unsigned, int, int, int, int);
+void dump_roots (FILE *);
+void *xmalloc (int);
+void xfree (void *);
+void add_global_defn (char *, char *, int, unsigned, int, int, int);
+void add_global_decl (char *, char *, int, unsigned, int, int, int);
+void add_define (char *, char *, int);
+void mark_inherited_virtual (void);
+void leave_namespace (void);
+void enter_namespace (char *);
+void register_namespace_alias (char *, struct link *);
+void insert_keyword (char *, int);
+void re_init_scanner (void);
+void init_scanner (void);
+void usage (int);
+void version (void);
+void process_file (char *);
+void add_search_path (char *);
+FILE *open_file (char *);
+int process_pp_line (void);
+int dump_members (FILE *, struct member *);
+void dump_sym (FILE *, struct sym *);
+int dump_tree (FILE *, struct sym *);
+struct member *find_member (struct sym *, char *, int, int, unsigned);
+struct member *add_member (struct sym *, char *, int, int, unsigned);
+void mark_virtual (struct sym *);
+void mark_virtual (struct sym *);
+struct sym *make_namespace (char *, struct sym *);
+char *sym_scope (struct sym *);
+char *sym_scope_1 (struct sym *);
+int skip_to (int);
+void skip_matching (void);
+void member (struct sym *, int);
+void class_body (struct sym *, int);
+void class_definition (struct sym *, int, int, int);
+void declaration (int);
+unsigned parm_list (int *);
+char *operator_name (int *);
+struct sym *parse_classname (void);
+struct sym *parse_qualified_ident_or_type (char **);
+void parse_qualified_param_ident_or_type (char **);
+int globals (int);
+void yyerror (char *, char *);
+void usage (int) NO_RETURN;
+void version (void) NO_RETURN;
 
 
 
@@ -546,8 +546,7 @@ void version P_ (()) NO_RETURN;
    name and line number.  */
 
 void
-yyerror (format, s)
-     char *format, *s;
+yyerror (char *format, char *s)
 {
   fprintf (stderr, "%s:%d: ", filename, yyline);
   fprintf (stderr, format, s);
@@ -559,8 +558,7 @@ yyerror (format, s)
    available.  */
 
 void *
-xmalloc (nbytes)
-     int nbytes;
+xmalloc (int nbytes)
 {
   void *p = malloc (nbytes);
   if (p == NULL)
@@ -575,9 +573,7 @@ xmalloc (nbytes)
 /* Like realloc but print an error and exit if out of memory.  */
 
 void *
-xrealloc (p, sz)
-     void *p;
-     int sz;
+xrealloc (void *p, int sz)
 {
   p = realloc (p, sz);
   if (p == NULL)
@@ -593,8 +589,7 @@ xrealloc (p, sz)
    available..  If S is null, return null.  */
 
 char *
-xstrdup (s)
-     char *s;
+xstrdup (char *s)
 {
   if (s)
     s = strcpy (xmalloc (strlen (s) + 1), s);
@@ -611,7 +606,7 @@ xstrdup (s)
    special symbol for globals (`*Globals*').  */
 
 void
-init_sym ()
+init_sym (void)
 {
   global_symbols = add_sym (GLOBALS_NAME, NULL);
 }
@@ -625,9 +620,7 @@ init_sym ()
    create a new symbol and set it to default values.  */
 
 struct sym *
-add_sym (name, nested_in_class)
-     char *name;
-     struct sym *nested_in_class;
+add_sym (char *name, struct sym *nested_in_class)
 {
   struct sym *sym;
   unsigned h;
@@ -668,8 +661,7 @@ add_sym (name, nested_in_class)
 /* Add links between superclass SUPER and subclass SUB.  */
 
 void
-add_link (super, sub)
-     struct sym *super, *sub;
+add_link (struct sym *super, struct sym *sub)
 {
   struct link *lnk, *lnk2, *p, *prev;
 
@@ -709,11 +701,7 @@ add_link (super, sub)
    found or null if not found.  */
 
 struct member *
-find_member (cls, name, var, sc, hash)
-     struct sym *cls;
-     char *name;
-     int var, sc;
-     unsigned hash;
+find_member (struct sym *cls, char *name, int var, int sc, unsigned int hash)
 {
   struct member **list;
   struct member *p;
@@ -763,16 +751,7 @@ find_member (cls, name, var, sc, hash)
    F_* defines).  */
 
 void
-add_member_decl (cls, name, regexp, pos, hash, var, sc, vis, flags)
-     struct sym *cls;
-     char *name;
-     char *regexp;
-     int pos;
-     unsigned hash;
-     int var;
-     int sc;
-     int vis;
-     int flags;
+add_member_decl (struct sym *cls, char *name, char *regexp, int pos, unsigned int hash, int var, int sc, int vis, int flags)
 {
   struct member *m;
 
@@ -820,15 +799,7 @@ add_member_decl (cls, name, regexp, pos, hash, var, sc, vis, flags)
    F_* defines).  */
 
 void
-add_member_defn (cls, name, regexp, pos, hash, var, sc, flags)
-     struct sym *cls;
-     char *name;
-     char *regexp;
-     int pos;
-     unsigned hash;
-     int var;
-     int sc;
-     int flags;
+add_member_defn (struct sym *cls, char *name, char *regexp, int pos, unsigned int hash, int var, int sc, int flags)
 {
   struct member *m;
 
@@ -870,9 +841,7 @@ add_member_defn (cls, name, regexp, pos, hash, var, sc, flags)
    if it is non-null.  POS is the position in the file.  */
 
 void
-add_define (name, regexp, pos)
-     char *name, *regexp;
-     int pos;
+add_define (char *name, char *regexp, int pos)
 {
   add_global_defn (name, regexp, pos, 0, 1, SC_FRIEND, F_DEFINE);
   add_global_decl (name, regexp, pos, 0, 1, SC_FRIEND, F_DEFINE);
@@ -890,13 +859,7 @@ add_define (name, regexp, pos)
    F_* defines).  */
 
 void
-add_global_defn (name, regexp, pos, hash, var, sc, flags)
-     char *name, *regexp;
-     int pos;
-     unsigned hash;
-     int var;
-     int sc;
-     int flags;
+add_global_defn (char *name, char *regexp, int pos, unsigned int hash, int var, int sc, int flags)
 {
   int i;
   struct sym *sym;
@@ -927,13 +890,7 @@ add_global_defn (name, regexp, pos, hash, var, sc, flags)
    F_* defines).  */
 
 void
-add_global_decl (name, regexp, pos, hash, var, sc, flags)
-     char *name, *regexp;
-     int pos;
-     unsigned hash;
-     int var;
-     int sc;
-     int flags;
+add_global_decl (char *name, char *regexp, int pos, unsigned int hash, int var, int sc, int flags)
 {
   /* Add declaration only if not already declared.  Header files must
      be processed before source files for this to have the right effect.
@@ -972,12 +929,7 @@ add_global_decl (name, regexp, pos, hash, var, sc, flags)
    Value is a pointer to the member's structure.  */
 
 struct member *
-add_member (cls, name, var, sc, hash)
-     struct sym *cls;
-     char *name;
-     int var;
-     int sc;
-     unsigned hash;
+add_member (struct sym *cls, char *name, int var, int sc, unsigned int hash)
 {
   struct member *m = (struct member *) xmalloc (sizeof *m + strlen (name));
   struct member **list;
@@ -1048,8 +1000,7 @@ add_member (cls, name, var, sc, hash)
    in base classes.  */
 
 void
-mark_virtual (r)
-     struct sym *r;
+mark_virtual (struct sym *r)
 {
   struct link *p;
   struct member *m, *m2;
@@ -1073,7 +1024,7 @@ mark_virtual (r)
    are virtual because of a virtual declaration in a base class.  */
 
 void
-mark_inherited_virtual ()
+mark_inherited_virtual (void)
 {
   struct sym *r;
   int i;
@@ -1088,9 +1039,7 @@ mark_inherited_virtual ()
 /* Create and return a symbol for a namespace with name NAME.  */
 
 struct sym *
-make_namespace (name, context)
-     char *name;
-     struct sym *context;
+make_namespace (char *name, struct sym *context)
 {
   struct sym *s = (struct sym *) xmalloc (sizeof *s + strlen (name));
   bzero (s, sizeof *s);
@@ -1105,9 +1054,7 @@ make_namespace (name, context)
 /* Find the symbol for namespace NAME.  If not found, retrun NULL */
 
 struct sym *
-check_namespace (name, context)
-     char *name;
-     struct sym *context;
+check_namespace (char *name, struct sym *context)
 {
   struct sym *p = NULL;
 
@@ -1124,9 +1071,7 @@ check_namespace (name, context)
    for NAME to all_namespaces.  */
 
 struct sym *
-find_namespace (name, context)
-     char *name;
-     struct sym *context;
+find_namespace (char *name, struct sym *context)
 {
   struct sym *p = check_namespace (name, context);
 
@@ -1140,8 +1085,7 @@ find_namespace (name, context)
 /* Find namespace alias with name NAME. If not found return NULL. */
 
 struct link *
-check_namespace_alias (name)
-    char *name;
+check_namespace_alias (char *name)
 {
   struct link *p = NULL;
   struct alias *al;
@@ -1165,9 +1109,7 @@ check_namespace_alias (name)
 /* Register the name NEW_NAME as an alias for namespace list OLD_NAME.  */
 
 void
-register_namespace_alias (new_name, old_name)
-     char *new_name;
-     struct link *old_name;
+register_namespace_alias (char *new_name, struct link *old_name)
 {
   unsigned h;
   char *s;
@@ -1195,8 +1137,7 @@ register_namespace_alias (new_name, old_name)
 /* Enter namespace with name NAME.  */
 
 void
-enter_namespace (name)
-     char *name;
+enter_namespace (char *name)
 {
   struct sym *p = find_namespace (name, current_namespace);
 
@@ -1217,7 +1158,7 @@ enter_namespace (name)
 /* Leave the current namespace.  */
 
 void
-leave_namespace ()
+leave_namespace (void)
 {
   assert (namespace_sp > 0);
   current_namespace = namespace_stack[--namespace_sp];
@@ -1259,8 +1200,7 @@ int scope_buffer_len;
 /* Make sure scope_buffer has enough room to add LEN chars to it.  */
 
 void
-ensure_scope_buffer_room (len)
-     int len;
+ensure_scope_buffer_room (int len)
 {
   if (scope_buffer_len + len >= scope_buffer_size)
     {
@@ -1276,8 +1216,7 @@ ensure_scope_buffer_room (len)
    scope name constructed.  */
 
 char *
-sym_scope_1 (p)
-     struct sym *p;
+sym_scope_1 (struct sym *p)
 {
   int len;
 
@@ -1311,8 +1250,7 @@ sym_scope_1 (p)
    as it would appear in a C*+ source file.  */
 
 char *
-sym_scope (p)
-     struct sym *p;
+sym_scope (struct sym *p)
 {
   if (!scope_buffer)
     {
@@ -1334,9 +1272,7 @@ sym_scope (p)
    list.  */
 
 int
-dump_members (fp, m)
-     FILE *fp;
-     struct member *m;
+dump_members (FILE *fp, struct member *m)
 {
   int n;
 
@@ -1369,9 +1305,7 @@ dump_members (fp, m)
 /* Dump class ROOT to stream FP.  */
 
 void
-dump_sym (fp, root)
-     FILE *fp;
-     struct sym *root;
+dump_sym (FILE *fp, struct sym *root)
 {
   fputs (CLASS_STRUCT, fp);
   PUTSTR (root->name, fp);
@@ -1397,9 +1331,7 @@ dump_sym (fp, root)
    number of classes written.  */
 
 int
-dump_tree (fp, root)
-     FILE *fp;
-     struct sym *root;
+dump_tree (FILE *fp, struct sym *root)
 {
   struct link *lk;
   unsigned n = 0;
@@ -1446,8 +1378,7 @@ dump_tree (fp, root)
 /* Dump the entire class tree to file FP.  */
 
 void
-dump_roots (fp)
-     FILE *fp;
+dump_roots (FILE *fp)
 {
   int i, n = 0;
   struct sym *r;
@@ -1521,7 +1452,7 @@ do {						\
    input buffer not consumed.  */
 
 int
-process_pp_line ()
+process_pp_line (void)
 {
   int in_comment = 0, in_string = 0;
   int c;
@@ -1592,7 +1523,7 @@ process_pp_line ()
 /* Value is the next token from the input buffer.  */
 
 int
-yylex ()
+yylex (void)
 {
   int c;
   char end_char;
@@ -2009,7 +1940,7 @@ static char *matching_regexp_buffer, *matching_regexp_end_buf;
    shorter than min_regexp.  */
 
 char *
-matching_regexp ()
+matching_regexp (void)
 {
   char *p;
   char *s;
@@ -2060,8 +1991,7 @@ matching_regexp ()
 /* Return a printable representation of token T.  */
 
 char *
-token_string (t)
-     int t;
+token_string (int t)
 {
   static char b[3];
 
@@ -2178,7 +2108,7 @@ token_string (t)
 /* Reinitialize the scanner for a new input file.  */
 
 void
-re_init_scanner ()
+re_init_scanner (void)
 {
   in = inbuffer;
   yyline = 1;
@@ -2196,9 +2126,7 @@ re_init_scanner ()
    table.  */
 
 void
-insert_keyword (name, tk)
-     char *name;
-     int tk;
+insert_keyword (char *name, int tk)
 {
   char *s;
   unsigned h = 0;
@@ -2219,7 +2147,7 @@ insert_keyword (name, tk)
    character class vectors and fills the keyword hash table.  */
 
 void
-init_scanner ()
+init_scanner (void)
 {
   int i;
 
@@ -2363,8 +2291,7 @@ init_scanner ()
    the current lookahead token after skipping.  */
 
 int
-skip_to (token)
-     int token;
+skip_to (int token)
 {
   while (!LOOKING_AT2 (YYEOF, token))
     MATCH ();
@@ -2375,7 +2302,7 @@ skip_to (token)
    angle brackets, curly brackets) matching the current lookahead.  */
 
 void
-skip_matching ()
+skip_matching (void)
 {
   int open, close, n;
 
@@ -2418,7 +2345,7 @@ skip_matching ()
 }
 
 void
-skip_initializer ()
+skip_initializer (void)
 {
   for (;;)
     {
@@ -2445,7 +2372,7 @@ skip_initializer ()
 /* Build qualified namespace alias (A::B::c) and return it. */
 
 struct link *
-match_qualified_namespace_alias ()
+match_qualified_namespace_alias (void)
 {
   struct link *head = NULL;
   struct link *cur = NULL;
@@ -2482,7 +2409,7 @@ match_qualified_namespace_alias ()
 /* Re-initialize the parser by resetting the lookahead token.  */
 
 void
-re_init_parser ()
+re_init_parser (void)
 {
   tk = -1;
 }
@@ -2495,8 +2422,7 @@ re_init_parser ()
    distinguish between overloaded functions.  */
 
 unsigned
-parm_list (flags)
-     int *flags;
+parm_list (int *flags)
 {
   unsigned hash = 0;
   int type_seen = 0;
@@ -2609,7 +2535,7 @@ parm_list (flags)
 /* Print position info to stdout.  */
 
 void
-print_info ()
+print_info (void)
 {
   if (info_position >= 0 && BUFFER_POS () <= info_position)
     if (info_cls)
@@ -2624,9 +2550,7 @@ print_info ()
    public).  */
 
 void
-member (cls, vis)
-     struct sym *cls;
-     int vis;
+member (struct sym *cls, int vis)
 {
   char *id = NULL;
   int sc = SC_MEMBER;
@@ -2835,9 +2759,7 @@ member (cls, vis)
    union, class).  */
 
 void
-class_body (cls, tag)
-     struct sym *cls;
-     int tag;
+class_body (struct sym *cls, int tag)
 {
   int vis = tag == CLASS ? PRIVATE : PUBLIC;
   int temp;
@@ -2898,7 +2820,7 @@ class_body (cls, tag)
    symbol for that class.  */
 
 struct sym *
-parse_classname ()
+parse_classname (void)
 {
   struct sym *last_class = NULL;
 
@@ -2928,8 +2850,7 @@ parse_classname ()
    a static buffer holding the constructed operator name string.  */
 
 char *
-operator_name (sc)
-     int *sc;
+operator_name (int *sc)
 {
   static int id_size = 0;
   static char *id = NULL;
@@ -3019,8 +2940,7 @@ operator_name (sc)
    symbol structure for the ident.  */
 
 struct sym *
-parse_qualified_ident_or_type (last_id)
-     char **last_id;
+parse_qualified_ident_or_type (char **last_id)
 {
   struct sym *cls = NULL;
   char *id = NULL;
@@ -3085,8 +3005,7 @@ parse_qualified_ident_or_type (last_id)
    symbol structure for the ident.  */
 
 void
-parse_qualified_param_ident_or_type (last_id)
-     char **last_id;
+parse_qualified_param_ident_or_type (char **last_id)
 {
   struct sym *cls = NULL;
   static char *id = NULL;
@@ -3128,11 +3047,7 @@ parse_qualified_param_ident_or_type (last_id)
    Current lookahead is the class name.  */
 
 void
-class_definition (containing, tag, flags, nested)
-     struct sym *containing;
-     int tag;
-     int flags;
-     int nested;
+class_definition (struct sym *containing, int tag, int flags, int nested)
 {
   struct sym *current;
   struct sym *base_class;
@@ -3229,10 +3144,7 @@ class_definition (containing, tag, flags, nested)
    information about the member (see the F_* defines).  */
 
 void
-add_declarator (cls, id, flags, sc)
-     struct sym **cls;
-     char **id;
-     int flags, sc;
+add_declarator (struct sym **cls, char **id, int flags, int sc)
 {
   if (LOOKING_AT2 (';', ','))
     {
@@ -3275,8 +3187,7 @@ add_declarator (cls, id, flags, sc)
 /* Parse a declaration.  */
 
 void
-declaration (flags)
-     int flags;
+declaration (int flags)
 {
   char *id = NULL;
   struct sym *cls = NULL;
@@ -3430,8 +3341,7 @@ declaration (flags)
    otherwise.  */
 
 int
-globals (start_flags)
-     int start_flags;
+globals (int start_flags)
 {
   int anonymous;
   int class_tk;
@@ -3549,7 +3459,7 @@ globals (start_flags)
 /* Parse the current input file.  */
 
 void
-yyparse ()
+yyparse (void)
 {
   while (globals (0) == 0)
     MATCH_IF ('}');
@@ -3565,8 +3475,7 @@ yyparse ()
    input files.  */
 
 void
-add_search_path (path_list)
-     char *path_list;
+add_search_path (char *path_list)
 {
   while (*path_list)
     {
@@ -3601,8 +3510,7 @@ add_search_path (path_list)
    unchanged file name.  */
 
 FILE *
-open_file (file)
-     char *file;
+open_file (char *file)
 {
   FILE *fp = NULL;
   static char *buffer;
@@ -3661,8 +3569,7 @@ Usage: ebrowse [options] {files}\n\
 "
 
 void
-usage (error)
-     int error;
+usage (int error)
 {
   puts (USAGE);
   exit (error ? EXIT_FAILURE : EXIT_SUCCESS);
@@ -3677,7 +3584,7 @@ usage (error)
 #endif
 
 void
-version ()
+version (void)
 {
   /* Makes it easier to update automatically. */
   char emacs_copyright[] = "Copyright (C) 2010 Free Software Foundation, Inc.";
@@ -3693,8 +3600,7 @@ version ()
    table.  */
 
 void
-process_file (file)
-     char *file;
+process_file (char *file)
 {
   FILE *fp;
 
@@ -3749,8 +3655,7 @@ process_file (file)
    is null when EOF is reached.  */
 
 char *
-read_line (fp)
-     FILE *fp;
+read_line (FILE *fp)
 {
   static char *buffer;
   static int buffer_size;
@@ -3786,9 +3691,7 @@ read_line (fp)
 /* Main entry point.  */
 
 int
-main (argc, argv)
-     int argc;
-     char **argv;
+main (int argc, char **argv)
 {
   int i;
   int any_inputfiles = 0;

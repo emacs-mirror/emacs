@@ -1,3 +1,140 @@
+2010-07-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.c (term_clear_mouse_face, Fidentity):
+	* syssignal.h (signal_handler_t):
+	* lisp.h (memory_warnings):
+	* coding.h (preferred_coding_system):
+	* cm.h (evalcost):
+	* blockinput.h (reinvoke_input_signal): Convert to standard C prototypes.
+
+2010-07-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* dosfns.h (msdos_stdcolor_idx, msdos_stdcolor_name): Remove P_
+	from prototypes.
+
+	* msdos.h (load_pixmap): Don't define away.
+
+2010-07-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* lisp.h:
+	* atimer.h: Remove define for P_.
+
+	* alloc.c: Remove __P and P_ from .c and .m files.
+	* atimer.c:
+	* buffer.c:
+	* callint.c:
+	* category.c:
+	* charset.c:
+	* chartab.c:
+	* cm.c:
+	* coding.c:
+	* composite.c:
+	* data.c:
+	* dired.c:
+	* dispnew.c:
+	* doc.c:
+	* editfns.c:
+	* emacs.c:
+	* eval.c:
+	* fileio.c:
+	* filelock.c:
+	* fns.c:
+	* font.c:
+	* fontset.c:
+	* frame.c:
+	* ftfont.c:
+	* ftxfont.c:
+	* gmalloc.c:
+	* gtkutil.c:
+	* image.c:
+	* indent.c:
+	* intervals.c:
+	* keyboard.c:
+	* keymap.c:
+	* lread.c:
+	* marker.c:
+	* menu.c:
+	* minibuf.c:
+	* print.c:
+	* process.c:
+	* scroll.c:
+	* search.c:
+	* sound.c:
+	* strftime.c:
+	* syntax.c:
+	* sysdep.c:
+	* term.c:
+	* terminal.c:
+	* textprop.c:
+	* unexalpha.c:
+	* w32console.c:
+	* w32fns.c:
+	* w32font.c:
+	* w32menu.c:
+	* w32term.c:
+	* w32uniscribe.c:
+	* window.c:
+	* xdisp.c:
+	* xfaces.c:
+	* xfns.c:
+	* xfont.c:
+	* xftfont.c:
+	* xmenu.c:
+	* xselect.c:
+	* xterm.c: Likewise.
+
+	Remove P_ and __P macros.
+	* atimer.h: Remove P_ and __P macros.
+	* buffer.h:
+	* category.h:
+	* ccl.h:
+	* character.h:
+	* charset.h:
+	* cm.h:
+	* coding.h:
+	* composite.h:
+	* dispextern.h:
+	* disptab.h:
+	* dosfns.h:
+	* font.h:
+	* fontset.h:
+	* frame.h:
+	* gtkutil.h:
+	* indent.h:
+	* intervals.h:
+	* keyboard.h:
+	* keymap.h:
+	* lisp.h:
+	* macros.h:
+	* md5.h:
+	* menu.h:
+	* msdos.h:
+	* nsterm.h:
+	* puresize.h:
+	* region-cache.h:
+	* syntax.h:
+	* syssignal.h:
+	* systime.h:
+	* termhooks.h:
+	* w32font.h:
+	* w32term.h:
+	* widget.h:
+	* window.h:
+	* xgselect.h:
+	* xsettings.h:
+	* xterm.h: Likewise.
+
+2010-07-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* lisp.h: Document that USE_LISP_UNION_TYPE is now enabled using autoconf.
+
+	Cleanup old code.
+	* dired.c (BSD4_3): Remove all uses, redundant with BSD4_2.
+	* syssignal.h: Remove code for Lynx, not supported anymore.
+	* vm-limit.c: Remove unused code the depends on emacs not being
+	defined and NO_LIM_DATA being defined.
+	* mem-limits.h: Remove dead code.
+
 2010-07-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* window.c (Fwindow_absolute_pixel_edges): Doc fix.

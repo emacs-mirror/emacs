@@ -129,10 +129,10 @@ Lisp_Object Vcurrent_iso639_language;
 
 /* Defined in chartab.c */
 extern void
-map_char_table_for_charset P_ ((void (*c_function) (Lisp_Object, Lisp_Object),
-				Lisp_Object function, Lisp_Object table,
-				Lisp_Object arg, struct charset *charset,
-				unsigned from, unsigned to));
+map_char_table_for_charset (void (*c_function) (Lisp_Object, Lisp_Object),
+                            Lisp_Object function, Lisp_Object table,
+                            Lisp_Object arg, struct charset *charset,
+                            unsigned from, unsigned to);
 
 #define CODE_POINT_TO_INDEX(charset, code)				\
   ((charset)->code_linear_p						\
@@ -497,7 +497,7 @@ extern Lisp_Object Qfile_name_handler_alist;
    Note that this function uses `openp' to open MAPFILE but ignores
    `file-name-handler-alist' to avoid running any Lisp code.  */
 
-extern void add_to_log P_ ((char *, Lisp_Object, Lisp_Object));
+extern void add_to_log (char *, Lisp_Object, Lisp_Object);
 
 static void
 load_charset_map_from_file (charset, mapfile, control_flag)
@@ -684,9 +684,9 @@ DEFUN ("charsetp", Fcharsetp, Scharsetp, 1, 1, 0,
 }
 
 
-void map_charset_for_dump P_ ((void (*c_function) (Lisp_Object, Lisp_Object),
-			       Lisp_Object function, Lisp_Object arg,
-			       unsigned from, unsigned to));
+void map_charset_for_dump (void (*c_function) (Lisp_Object, Lisp_Object),
+                           Lisp_Object function, Lisp_Object arg,
+                           unsigned from, unsigned to);
 
 void
 map_charset_for_dump (c_function, function, arg, from, to)
@@ -750,7 +750,7 @@ map_charset_for_dump (c_function, function, arg, from, to)
 void
 map_charset_chars (c_function, function, arg,
 		   charset, from, to)
-     void (*c_function) P_ ((Lisp_Object, Lisp_Object));
+     void (*c_function) (Lisp_Object, Lisp_Object);
      Lisp_Object function, arg;
      struct charset *charset;
      unsigned from, to;

@@ -285,11 +285,11 @@ static Lisp_Object Vprocess_adaptive_read_buffering;
 
 #include "sysselect.h"
 
-static int keyboard_bit_set P_ ((SELECT_TYPE *));
-static void deactivate_process P_ ((Lisp_Object));
-static void status_notify P_ ((struct Lisp_Process *));
-static int read_process_output P_ ((Lisp_Object, int));
-static void create_pty P_ ((Lisp_Object));
+static int keyboard_bit_set (SELECT_TYPE *);
+static void deactivate_process (Lisp_Object);
+static void status_notify (struct Lisp_Process *);
+static int read_process_output (Lisp_Object, int);
+static void create_pty (Lisp_Object);
 
 /* If we support a window system, turn on the code to poll periodically
    to detect C-g.  It isn't actually used when doing interrupt input.  */

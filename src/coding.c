@@ -896,80 +896,80 @@ static struct coding_system coding_categories[coding_category_max];
 
 
 /* Prototypes for static functions.  */
-static void record_conversion_result P_ ((struct coding_system *coding,
-					  enum coding_result_code result));
-static int detect_coding_utf_8 P_ ((struct coding_system *,
-				    struct coding_detection_info *info));
-static void decode_coding_utf_8 P_ ((struct coding_system *));
-static int encode_coding_utf_8 P_ ((struct coding_system *));
+static void record_conversion_result (struct coding_system *coding,
+                                      enum coding_result_code result);
+static int detect_coding_utf_8 (struct coding_system *,
+                                struct coding_detection_info *info);
+static void decode_coding_utf_8 (struct coding_system *);
+static int encode_coding_utf_8 (struct coding_system *);
 
-static int detect_coding_utf_16 P_ ((struct coding_system *,
-				     struct coding_detection_info *info));
-static void decode_coding_utf_16 P_ ((struct coding_system *));
-static int encode_coding_utf_16 P_ ((struct coding_system *));
+static int detect_coding_utf_16 (struct coding_system *,
+                                 struct coding_detection_info *info);
+static void decode_coding_utf_16 (struct coding_system *);
+static int encode_coding_utf_16 (struct coding_system *);
 
-static int detect_coding_iso_2022 P_ ((struct coding_system *,
-				       struct coding_detection_info *info));
-static void decode_coding_iso_2022 P_ ((struct coding_system *));
-static int encode_coding_iso_2022 P_ ((struct coding_system *));
+static int detect_coding_iso_2022 (struct coding_system *,
+                                   struct coding_detection_info *info);
+static void decode_coding_iso_2022 (struct coding_system *);
+static int encode_coding_iso_2022 (struct coding_system *);
 
-static int detect_coding_emacs_mule P_ ((struct coding_system *,
-					 struct coding_detection_info *info));
-static void decode_coding_emacs_mule P_ ((struct coding_system *));
-static int encode_coding_emacs_mule P_ ((struct coding_system *));
+static int detect_coding_emacs_mule (struct coding_system *,
+                                     struct coding_detection_info *info);
+static void decode_coding_emacs_mule (struct coding_system *);
+static int encode_coding_emacs_mule (struct coding_system *);
 
-static int detect_coding_sjis P_ ((struct coding_system *,
-				   struct coding_detection_info *info));
-static void decode_coding_sjis P_ ((struct coding_system *));
-static int encode_coding_sjis P_ ((struct coding_system *));
+static int detect_coding_sjis (struct coding_system *,
+                               struct coding_detection_info *info);
+static void decode_coding_sjis (struct coding_system *);
+static int encode_coding_sjis (struct coding_system *);
 
-static int detect_coding_big5 P_ ((struct coding_system *,
-				   struct coding_detection_info *info));
-static void decode_coding_big5 P_ ((struct coding_system *));
-static int encode_coding_big5 P_ ((struct coding_system *));
+static int detect_coding_big5 (struct coding_system *,
+                               struct coding_detection_info *info);
+static void decode_coding_big5 (struct coding_system *);
+static int encode_coding_big5 (struct coding_system *);
 
-static int detect_coding_ccl P_ ((struct coding_system *,
-				  struct coding_detection_info *info));
-static void decode_coding_ccl P_ ((struct coding_system *));
-static int encode_coding_ccl P_ ((struct coding_system *));
+static int detect_coding_ccl (struct coding_system *,
+                              struct coding_detection_info *info);
+static void decode_coding_ccl (struct coding_system *);
+static int encode_coding_ccl (struct coding_system *);
 
-static void decode_coding_raw_text P_ ((struct coding_system *));
-static int encode_coding_raw_text P_ ((struct coding_system *));
+static void decode_coding_raw_text (struct coding_system *);
+static int encode_coding_raw_text (struct coding_system *);
 
-static void coding_set_source P_ ((struct coding_system *));
-static void coding_set_destination P_ ((struct coding_system *));
-static void coding_alloc_by_realloc P_ ((struct coding_system *, EMACS_INT));
-static void coding_alloc_by_making_gap P_ ((struct coding_system *,
-					    EMACS_INT, EMACS_INT));
-static unsigned char *alloc_destination P_ ((struct coding_system *,
-					     EMACS_INT, unsigned char *));
-static void setup_iso_safe_charsets P_ ((Lisp_Object));
-static unsigned char *encode_designation_at_bol P_ ((struct coding_system *,
-						     int *, int *,
-						     unsigned char *));
-static int detect_eol P_ ((const unsigned char *,
-			   EMACS_INT, enum coding_category));
-static Lisp_Object adjust_coding_eol_type P_ ((struct coding_system *, int));
-static void decode_eol P_ ((struct coding_system *));
-static Lisp_Object get_translation_table P_ ((Lisp_Object, int, int *));
-static Lisp_Object get_translation P_ ((Lisp_Object, int *, int *));
-static int produce_chars P_ ((struct coding_system *, Lisp_Object, int));
-static INLINE void produce_charset P_ ((struct coding_system *, int *,
-					EMACS_INT));
-static void produce_annotation P_ ((struct coding_system *, EMACS_INT));
-static int decode_coding P_ ((struct coding_system *));
-static INLINE int *handle_composition_annotation P_ ((EMACS_INT, EMACS_INT,
-						      struct coding_system *,
-						      int *, EMACS_INT *));
-static INLINE int *handle_charset_annotation P_ ((EMACS_INT, EMACS_INT,
-						  struct coding_system *,
-						  int *, EMACS_INT *));
-static void consume_chars P_ ((struct coding_system *, Lisp_Object, int));
-static int encode_coding P_ ((struct coding_system *));
-static Lisp_Object make_conversion_work_buffer P_ ((int));
-static Lisp_Object code_conversion_restore P_ ((Lisp_Object));
-static INLINE int char_encodable_p P_ ((int, Lisp_Object));
-static Lisp_Object make_subsidiaries P_ ((Lisp_Object));
+static void coding_set_source (struct coding_system *);
+static void coding_set_destination (struct coding_system *);
+static void coding_alloc_by_realloc (struct coding_system *, EMACS_INT);
+static void coding_alloc_by_making_gap (struct coding_system *,
+                                        EMACS_INT, EMACS_INT);
+static unsigned char *alloc_destination (struct coding_system *,
+                                         EMACS_INT, unsigned char *);
+static void setup_iso_safe_charsets (Lisp_Object);
+static unsigned char *encode_designation_at_bol (struct coding_system *,
+                                                 int *, int *,
+                                                 unsigned char *);
+static int detect_eol (const unsigned char *,
+                       EMACS_INT, enum coding_category);
+static Lisp_Object adjust_coding_eol_type (struct coding_system *, int);
+static void decode_eol (struct coding_system *);
+static Lisp_Object get_translation_table (Lisp_Object, int, int *);
+static Lisp_Object get_translation (Lisp_Object, int *, int *);
+static int produce_chars (struct coding_system *, Lisp_Object, int);
+static INLINE void produce_charset (struct coding_system *, int *,
+                                    EMACS_INT);
+static void produce_annotation (struct coding_system *, EMACS_INT);
+static int decode_coding (struct coding_system *);
+static INLINE int *handle_composition_annotation (EMACS_INT, EMACS_INT,
+                                                  struct coding_system *,
+                                                  int *, EMACS_INT *);
+static INLINE int *handle_charset_annotation (EMACS_INT, EMACS_INT,
+                                              struct coding_system *,
+                                              int *, EMACS_INT *);
+static void consume_chars (struct coding_system *, Lisp_Object, int);
+static int encode_coding (struct coding_system *);
+static Lisp_Object make_conversion_work_buffer (int);
+static Lisp_Object code_conversion_restore (Lisp_Object);
+static INLINE int char_encodable_p (int, Lisp_Object);
+static Lisp_Object make_subsidiaries (Lisp_Object);
 
 static void
 record_conversion_result (struct coding_system *coding,
@@ -3442,7 +3442,7 @@ detect_coding_iso_2022 (coding, detect_info)
 
 /* Finish the current composition as invalid.  */
 
-static int finish_composition P_ ((int *, struct composition_status *));
+static int finish_composition (int *, struct composition_status *);
 
 static int
 finish_composition (charbuf, cmp_status)

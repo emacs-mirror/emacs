@@ -57,14 +57,6 @@
 # define mktime my_mktime
 #endif /* DEBUG */
 
-#ifndef __P
-# if defined __GNUC__ || (defined __STDC__ && __STDC__)
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif  /* GCC.  */
-#endif  /* Not __P.  */
-
 #ifndef CHAR_BIT
 # define CHAR_BIT 8
 #endif

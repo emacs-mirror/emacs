@@ -46,7 +46,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "buildobj.h"
 
 #ifdef HAVE_INDEX
-extern char *index P_ ((const char *, int));
+extern char *index (const char *, int);
 #endif
 
 Lisp_Object Vdoc_file_name;
@@ -65,7 +65,7 @@ static char *get_doc_string_buffer;
 static int get_doc_string_buffer_size;
 
 static unsigned char *read_bytecode_pointer;
-Lisp_Object Fsnarf_documentation P_ ((Lisp_Object));
+Lisp_Object Fsnarf_documentation (Lisp_Object);
 
 /* readchar in lread.c calls back here to fetch the next byte.
    If UNREADFLAG is 1, we unread a byte.  */

@@ -272,8 +272,8 @@ struct skp
      int notbuttons;
   };
 
-static void single_menu_item P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
-				  void *));
+static void single_menu_item (Lisp_Object, Lisp_Object, Lisp_Object,
+                              void *);
 
 /* This is a recursive subroutine of keymap_panes.
    It handles one keymap, KEYMAP.
@@ -1164,12 +1164,12 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 	Lisp_Object bar_window;
 	enum scroll_bar_part part;
 	unsigned long time;
-	void (*mouse_position_hook) P_ ((struct frame **, int,
-					 Lisp_Object *,
-					 enum scroll_bar_part *,
-					 Lisp_Object *,
-					 Lisp_Object *,
-					 unsigned long *)) =
+        void (*mouse_position_hook) (struct frame **, int,
+                                     Lisp_Object *,
+                                     enum scroll_bar_part *,
+                                     Lisp_Object *,
+                                     Lisp_Object *,
+                                     unsigned long *) =
 	  FRAME_TERMINAL (new_f)->mouse_position_hook;
 
 	if (mouse_position_hook)
