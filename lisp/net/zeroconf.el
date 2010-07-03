@@ -424,7 +424,7 @@ TYPE. The resulting list has the format
 	      (elt (nth 9 result))) ;; TXT.
 	 ;; The TXT field has the signature "aay".  Transform to "as".
 	 (while elt
-	   (setcar elt (apply 'string (car elt)))
+	   (setcar elt (dbus-byte-array-to-string (car elt)))
 	   (setq elt (cdr elt)))
 
 	 (when nil ;; We discard it, no use so far.
@@ -616,7 +616,7 @@ DOMAIN is nil, the local domain is used."
   ;; The "TXT" field has the signature "aay".  Transform to "as".
   (let ((elt (nth 9 val)))
     (while elt
-      (setcar elt (apply 'string (car elt)))
+      (setcar elt (dbus-byte-array-to-string (car elt)))
       (setq elt (cdr elt))))
   (when zeroconf-debug
     (message "zeroconf-service-resolver-handler: %s %S"
@@ -658,11 +658,7 @@ For the description of arguments, see `zeroconf-resolved-services-hash'."
 
     ;; The TXT field has the signature "as".  Transform to "aay".
     (dolist (elt txt)
-      (let (args)
-	(add-to-list
-	 'result
-	 (dolist (elt1 (string-to-list elt) (append '(:array) args))
-	   (setq args (append args (list :byte elt1)))))))
+      (add-to-list 'result (dbus-string-to-byte-array elt)))
 
     ;; Add the service.
     (dbus-call-method

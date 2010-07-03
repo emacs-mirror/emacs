@@ -1,3 +1,10 @@
+2010-07-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/zeroconf.el (zeroconf-resolve-service)
+	(zeroconf-service-resolver-handler): Use
+	`dbus-byte-array-to-string'.
+	(zeroconf-publish-service): Use `dbus-string-to-byte-array'.
+
 2010-07-03  Jan Moringen  <jan.moringen@uni-bielefeld.de>
 
 	* net/zeroconf.el (zeroconf-service-remove-hook): New defun.
