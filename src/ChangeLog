@@ -1,5 +1,18 @@
 2010-07-03  Eli Zaretskii  <eliz@gnu.org>
 
+	* msdos.c (IT_set_frame_parameters): Fix setting of colors in
+	frames other than the initial one.  Fix reversal of colors when
+	`reverse' is specified in the frame parameters.  Call
+	update_face_from_frame_parameter instead of
+	internal-set-lisp-face-attribute.  Initialize screen colors from
+	initial_screen_colors[] when f->default_face_done_p is zero,
+	instead of depending on being called with default-frame-alist as
+	the alist argument.
+
+	* xfaces.c (update_face_from_frame_parameter): Move out of
+	HAVE_WINDOW_SYSTEM portion.  Condition window-system only parts
+	with HAVE_WINDOW_SYSTEM.
+
 	* msdos.c (IT_set_frame_parameters): Set menu-bar-lines according
 	to menu-bar-mode, if not set in the frame parameters or in
 	default-frame-alist.
