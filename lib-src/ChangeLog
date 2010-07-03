@@ -1,3 +1,19 @@
+2010-07-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ebrowse.c (match_qualified_namespace_alias): Check for null pointer.
+
+2010-07-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	Fix prototype warnings.
+
+	* ebrowse.c (match_qualified_namespace_alias):
+	Pass sym* to find_namespace, not link*.
+
+	* emacsclient.c (send_to_emacs, quote_argument): Arg s is HSOCKET.
+
+	* sorted-doc.c (qsort_compare): New typedef.
+	(main): Use it to cast cmpdoc.
+
 2010-07-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* update-game-score.c: Convert function definitions to standard C.

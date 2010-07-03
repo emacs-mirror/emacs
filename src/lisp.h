@@ -2668,7 +2668,7 @@ extern int pos_visible_p (struct window *, int, int *,
 extern void syms_of_xsettings (void);
 
 /* Defined in vm-limit.c.  */
-extern void memory_warnings (POINTER_TYPE *, void (*warnfun) (const char*));
+extern void memory_warnings (POINTER_TYPE *, void (*warnfun) (char*));
 
 /* Defined in alloc.c */
 extern void check_pure_size (void);

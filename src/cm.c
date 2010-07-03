@@ -46,7 +46,7 @@ int cost;		/* sums up costs */
 /* ARGSUSED */
 int
 evalcost (c)
-     char c;
+     int c;
 {
   cost++;
   return c;

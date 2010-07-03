@@ -2385,7 +2385,7 @@ match_qualified_namespace_alias (void)
         {
         case IDENT:
           tmp = (struct link *) xmalloc (sizeof *cur);
-          tmp->sym = find_namespace (yytext, cur);
+          tmp->sym = find_namespace (yytext, cur ? cur->sym : NULL);
           tmp->next = NULL;
           if (head)
             {
