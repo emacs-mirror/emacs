@@ -684,6 +684,14 @@ x_activate_menubar (f)
   set_frame_menubar (f, 0, 1);
   BLOCK_INPUT;
 #ifdef USE_GTK
+  /* If we click outside any menu item, the menu bar still grabs.
+     So we send Press and the Release.  If outside, grab is released.
+     If on a menu item, it is popped up normally.
+     PutBack is like a stack, so we put back in reverse order.  */
+  f->output_data.x->saved_menu_event->type = ButtonRelease;
+  XPutBackEvent (f->output_data.x->display_info->display,
+                 f->output_data.x->saved_menu_event);
+  f->output_data.x->saved_menu_event->type = ButtonPress;
   XPutBackEvent (f->output_data.x->display_info->display,
                  f->output_data.x->saved_menu_event);
   popup_activated_flag = 1;
