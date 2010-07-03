@@ -103,14 +103,14 @@ xstrdup (char *str)
 /* Comparison function for qsort to call.  */
 
 int
-cmpdoc (DOCSTR **a, DOCSTR **b)
+cmpdoc (const void *va, const void *vb)
 {
+  DOCSTR *const *a = va;
+  DOCSTR *const *b = vb;
   register int val = strcmp ((*a)->name, (*b)->name);
   if (val) return val;
   return (*a)->type - (*b)->type;
 }
-
-typedef int (*qsort_compare) (const void *, const void *);
 
 enum state
 {
@@ -228,7 +228,7 @@ main (void)
 
     /* sort the array by name; within each name, by type */
 
-    qsort ((char*)array, cnt, sizeof (DOCSTR*), (qsort_compare)cmpdoc);
+    qsort ((char*)array, cnt, sizeof (DOCSTR*), cmpdoc);
 
     /* write the output header */
 
