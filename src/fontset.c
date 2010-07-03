@@ -203,23 +203,23 @@ Lisp_Object Vvertical_centering_font_regexp;
 Lisp_Object Votf_script_alist;
 
 /* Check if any window system is used now.  */
-void (*check_window_system_func) P_ ((void));
+void (*check_window_system_func) (void);
 
 
 /* Prototype declarations for static functions.  */
-static Lisp_Object fontset_add P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
-				    Lisp_Object));
-static Lisp_Object fontset_find_font P_ ((Lisp_Object, int, struct face *,
-					  int, int));
-static void reorder_font_vector P_ ((Lisp_Object, struct font *));
-static Lisp_Object fontset_font P_ ((Lisp_Object, int, struct face *, int));
-static Lisp_Object make_fontset P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
-static Lisp_Object fontset_pattern_regexp P_ ((Lisp_Object));
-static void accumulate_script_ranges P_ ((Lisp_Object, Lisp_Object,
-					  Lisp_Object));
-Lisp_Object find_font_encoding P_ ((Lisp_Object));
+static Lisp_Object fontset_add (Lisp_Object, Lisp_Object, Lisp_Object,
+                                Lisp_Object);
+static Lisp_Object fontset_find_font (Lisp_Object, int, struct face *,
+                                      int, int);
+static void reorder_font_vector (Lisp_Object, struct font *);
+static Lisp_Object fontset_font (Lisp_Object, int, struct face *, int);
+static Lisp_Object make_fontset (Lisp_Object, Lisp_Object, Lisp_Object);
+static Lisp_Object fontset_pattern_regexp (Lisp_Object);
+static void accumulate_script_ranges (Lisp_Object, Lisp_Object,
+                                      Lisp_Object);
+Lisp_Object find_font_encoding (Lisp_Object);
 
-static void set_fontset_font P_ ((Lisp_Object, Lisp_Object));
+static void set_fontset_font (Lisp_Object, Lisp_Object);
 
 #ifdef FONTSET_DEBUG
 
@@ -1440,7 +1440,7 @@ set_fontset_font (arg, range)
 }
 
 extern Lisp_Object QCfamily, QCregistry;
-static void update_auto_fontset_alist P_ ((Lisp_Object, Lisp_Object));
+static void update_auto_fontset_alist (Lisp_Object, Lisp_Object);
 
 
 DEFUN ("set-fontset-font", Fset_fontset_font, Sset_fontset_font, 3, 5, 0,

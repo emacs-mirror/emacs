@@ -651,9 +651,9 @@ compose_text (start, end, components, modification_func, string)
 }
 
 
-static Lisp_Object autocmp_chars P_ ((Lisp_Object, EMACS_INT, EMACS_INT,
-				      EMACS_INT, struct window *,
-				      struct face *, Lisp_Object));
+static Lisp_Object autocmp_chars (Lisp_Object, EMACS_INT, EMACS_INT,
+                                  EMACS_INT, struct window *,
+                                  struct face *, Lisp_Object);
 
 
 /* Lisp glyph-string handlers */
@@ -664,7 +664,7 @@ static Lisp_Object autocmp_chars P_ ((Lisp_Object, EMACS_INT, EMACS_INT,
 
 static Lisp_Object gstring_hash_table;
 
-static Lisp_Object gstring_lookup_cache P_ ((Lisp_Object));
+static Lisp_Object gstring_lookup_cache (Lisp_Object);
 
 static Lisp_Object
 gstring_lookup_cache (header)
@@ -715,9 +715,9 @@ composition_gstring_from_id (id)
   return HASH_VALUE (h, id);
 }
 
-static Lisp_Object fill_gstring_header P_ ((Lisp_Object, Lisp_Object,
-					    Lisp_Object, Lisp_Object,
-					    Lisp_Object));
+static Lisp_Object fill_gstring_header (Lisp_Object, Lisp_Object,
+                                        Lisp_Object, Lisp_Object,
+                                        Lisp_Object);
 
 int
 composition_gstring_p (gstring)
@@ -869,7 +869,7 @@ fill_gstring_header (header, start, end, font_object, string)
   return header;
 }
 
-extern void font_fill_lglyph_metrics P_ ((Lisp_Object, Lisp_Object));
+extern void font_fill_lglyph_metrics (Lisp_Object, Lisp_Object);
 
 static void
 fill_gstring_body (gstring)

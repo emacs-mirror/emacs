@@ -64,10 +64,10 @@ int pending_atimers;
 
 /* Function prototypes.  */
 
-static void set_alarm P_ ((void));
-static void schedule_atimer P_ ((struct atimer *));
-static struct atimer *append_atimer_lists P_ ((struct atimer *,
-					       struct atimer *));
+static void set_alarm (void);
+static void schedule_atimer (struct atimer *);
+static struct atimer *append_atimer_lists (struct atimer *,
+                                           struct atimer *);
 SIGTYPE alarm_signal_handler ();
 
 

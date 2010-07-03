@@ -89,8 +89,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    memory use the libc malloc implementation. Calling xfree or
    xrealloc on the results of such functions results in a crash.
 
-   One solution for this could be to define SYSTEM_MALLOC here, but
-   that does not currently work on this system.
+   One solution for this could be to define SYSTEM_MALLOC in configure,
+   but that does not currently work on this system.
 
    It is possible to completely override the malloc implementation on
    AIX, but that involves putting the malloc functions in a shared

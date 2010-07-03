@@ -71,39 +71,39 @@ char *lwlib_toolkit_type = "motif";
 char *lwlib_toolkit_type = "lucid";
 #endif
 
-static widget_value *merge_widget_value P_ ((widget_value *,
-					     widget_value *,
-					     int, int *));
-static void instantiate_widget_instance P_ ((widget_instance *));
-static int my_strcasecmp P_ ((char *, char *));
-static void safe_free_str P_ ((char *));
-static void free_widget_value_tree P_ ((widget_value *));
-static widget_value *copy_widget_value_tree P_ ((widget_value *,
-						 change_type));
-static widget_info *allocate_widget_info P_ ((char *, char *, LWLIB_ID,
-					      widget_value *,
-					      lw_callback, lw_callback,
-					      lw_callback, lw_callback));
-static void free_widget_info P_ ((widget_info *));
-static void mark_widget_destroyed P_ ((Widget, XtPointer, XtPointer));
-static widget_instance *allocate_widget_instance P_ ((widget_info *,
-						      Widget, Boolean));
-static void free_widget_instance P_ ((widget_instance *));
-static widget_info *get_widget_info P_ ((LWLIB_ID, Boolean));
-static widget_instance *get_widget_instance P_ ((Widget, Boolean));
-static widget_instance *find_instance P_ ((LWLIB_ID, Widget, Boolean));
-static Boolean safe_strcmp P_ ((char *, char *));
-static Widget name_to_widget P_ ((widget_instance *, char *));
-static void set_one_value P_ ((widget_instance *, widget_value *, Boolean));
-static void update_one_widget_instance P_ ((widget_instance *, Boolean));
-static void update_all_widget_values P_ ((widget_info *, Boolean));
-static void initialize_widget_instance P_ ((widget_instance *));
-static widget_creation_function find_in_table P_ ((char *, widget_creation_entry *));
-static Boolean dialog_spec_p P_ ((char *));
-static void destroy_one_instance P_ ((widget_instance *));
-static void lw_pop_all_widgets P_ ((LWLIB_ID, Boolean));
-static Boolean get_one_value P_ ((widget_instance *, widget_value *));
-static void show_one_widget_busy P_ ((Widget, Boolean));
+static widget_value *merge_widget_value (widget_value *,
+                                         widget_value *,
+                                         int, int *);
+static void instantiate_widget_instance (widget_instance *);
+static int my_strcasecmp (char *, char *);
+static void safe_free_str (char *);
+static void free_widget_value_tree (widget_value *);
+static widget_value *copy_widget_value_tree (widget_value *,
+                                             change_type);
+static widget_info *allocate_widget_info (char *, char *, LWLIB_ID,
+                                          widget_value *,
+                                          lw_callback, lw_callback,
+                                          lw_callback, lw_callback);
+static void free_widget_info (widget_info *);
+static void mark_widget_destroyed (Widget, XtPointer, XtPointer);
+static widget_instance *allocate_widget_instance (widget_info *,
+                                                  Widget, Boolean);
+static void free_widget_instance (widget_instance *);
+static widget_info *get_widget_info (LWLIB_ID, Boolean);
+static widget_instance *get_widget_instance (Widget, Boolean);
+static widget_instance *find_instance (LWLIB_ID, Widget, Boolean);
+static Boolean safe_strcmp (char *, char *);
+static Widget name_to_widget (widget_instance *, char *);
+static void set_one_value (widget_instance *, widget_value *, Boolean);
+static void update_one_widget_instance (widget_instance *, Boolean);
+static void update_all_widget_values (widget_info *, Boolean);
+static void initialize_widget_instance (widget_instance *);
+static widget_creation_function find_in_table (char *, widget_creation_entry *);
+static Boolean dialog_spec_p (char *);
+static void destroy_one_instance (widget_instance *);
+static void lw_pop_all_widgets (LWLIB_ID, Boolean);
+static Boolean get_one_value (widget_instance *, widget_value *);
+static void show_one_widget_busy (Widget, Boolean);
 
 void
 lwlib_memset (address, value, length)

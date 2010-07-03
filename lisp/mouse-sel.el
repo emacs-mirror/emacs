@@ -129,11 +129,6 @@
 ;;   that the X primary selection is used.  Under other windowing systems,
 ;;   alternate functions are used, which simply store the selection value
 ;;   in a variable.
-;;
-;; * You can change the selection highlight face by altering the properties
-;;   of mouse-drag-overlay, eg.
-;;
-;;     (overlay-put mouse-drag-overlay 'face 'bold)
 
 ;;; Code:
 
@@ -293,8 +288,7 @@ primary selection and region."
   (overlay-put mouse-secondary-overlay 'face 'secondary-selection))
 
 (defconst mouse-sel-selection-alist
-  '((PRIMARY mouse-drag-overlay mouse-sel-primary-thing)
-    (SECONDARY mouse-secondary-overlay mouse-sel-secondary-thing))
+  '((SECONDARY mouse-secondary-overlay mouse-sel-secondary-thing))
   "Alist associating selections with variables.
 Each element is of the form:
 

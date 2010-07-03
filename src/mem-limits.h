@@ -49,15 +49,7 @@ extern int etext, __data_start; weak_extern (__data_start)
 #define BSD4_2
 #endif
 
-#ifndef BSD4_2
-#ifndef USG
-#ifndef MSDOS
-#ifndef WINDOWSNT
-#include <sys/vlimit.h>
-#endif /* not WINDOWSNT */
-#endif /* not MSDOS */
-#endif /* not USG */
-#else /* if BSD4_2 */
+#ifdef BSD4_2
 #include <sys/time.h>
 #include <sys/resource.h>
 #endif /* BSD4_2 */

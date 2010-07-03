@@ -123,7 +123,7 @@ extern int pending_atimers;
 
 /* Defined in keyboard.c */
 /* Don't use a prototype here; it causes trouble in some files.  */
-extern void reinvoke_input_signal ();
+extern void reinvoke_input_signal (void);
 
 #endif /* EMACS_BLOCKINPUT_H */
 

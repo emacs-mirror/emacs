@@ -329,23 +329,23 @@ Lisp_Object Vpost_gc_hook, Qpost_gc_hook;
 Lisp_Object Vgc_elapsed;	/* accumulated elapsed time in GC  */
 EMACS_INT gcs_done;		/* accumulated GCs  */
 
-static void mark_buffer P_ ((Lisp_Object));
-static void mark_terminals P_ ((void));
-extern void mark_kboards P_ ((void));
-extern void mark_ttys P_ ((void));
-extern void mark_backtrace P_ ((void));
-static void gc_sweep P_ ((void));
-static void mark_glyph_matrix P_ ((struct glyph_matrix *));
-static void mark_face_cache P_ ((struct face_cache *));
+static void mark_buffer (Lisp_Object);
+static void mark_terminals (void);
+extern void mark_kboards (void);
+extern void mark_ttys (void);
+extern void mark_backtrace (void);
+static void gc_sweep (void);
+static void mark_glyph_matrix (struct glyph_matrix *);
+static void mark_face_cache (struct face_cache *);
 
 #ifdef HAVE_WINDOW_SYSTEM
-extern void mark_fringe_data P_ ((void));
+extern void mark_fringe_data (void);
 #endif /* HAVE_WINDOW_SYSTEM */
 
-static struct Lisp_String *allocate_string P_ ((void));
-static void compact_small_strings P_ ((void));
-static void free_large_strings P_ ((void));
-static void sweep_strings P_ ((void));
+static struct Lisp_String *allocate_string (void);
+static void compact_small_strings (void);
+static void free_large_strings (void);
+static void sweep_strings (void);
 
 extern int message_enable_multibyte;
 
@@ -369,8 +369,8 @@ enum mem_type
   MEM_TYPE_VECTORLIKE
 };
 
-static POINTER_TYPE *lisp_align_malloc P_ ((size_t, enum mem_type));
-static POINTER_TYPE *lisp_malloc P_ ((size_t, enum mem_type));
+static POINTER_TYPE *lisp_align_malloc (size_t, enum mem_type);
+static POINTER_TYPE *lisp_malloc (size_t, enum mem_type);
 void refill_memory_reserve ();
 
 
@@ -452,31 +452,31 @@ static void *min_heap_address, *max_heap_address;
 static struct mem_node mem_z;
 #define MEM_NIL &mem_z
 
-static POINTER_TYPE *lisp_malloc P_ ((size_t, enum mem_type));
-static struct Lisp_Vector *allocate_vectorlike P_ ((EMACS_INT));
-static void lisp_free P_ ((POINTER_TYPE *));
-static void mark_stack P_ ((void));
-static int live_vector_p P_ ((struct mem_node *, void *));
-static int live_buffer_p P_ ((struct mem_node *, void *));
-static int live_string_p P_ ((struct mem_node *, void *));
-static int live_cons_p P_ ((struct mem_node *, void *));
-static int live_symbol_p P_ ((struct mem_node *, void *));
-static int live_float_p P_ ((struct mem_node *, void *));
-static int live_misc_p P_ ((struct mem_node *, void *));
-static void mark_maybe_object P_ ((Lisp_Object));
-static void mark_memory P_ ((void *, void *, int));
-static void mem_init P_ ((void));
-static struct mem_node *mem_insert P_ ((void *, void *, enum mem_type));
-static void mem_insert_fixup P_ ((struct mem_node *));
-static void mem_rotate_left P_ ((struct mem_node *));
-static void mem_rotate_right P_ ((struct mem_node *));
-static void mem_delete P_ ((struct mem_node *));
-static void mem_delete_fixup P_ ((struct mem_node *));
-static INLINE struct mem_node *mem_find P_ ((void *));
+static POINTER_TYPE *lisp_malloc (size_t, enum mem_type);
+static struct Lisp_Vector *allocate_vectorlike (EMACS_INT);
+static void lisp_free (POINTER_TYPE *);
+static void mark_stack (void);
+static int live_vector_p (struct mem_node *, void *);
+static int live_buffer_p (struct mem_node *, void *);
+static int live_string_p (struct mem_node *, void *);
+static int live_cons_p (struct mem_node *, void *);
+static int live_symbol_p (struct mem_node *, void *);
+static int live_float_p (struct mem_node *, void *);
+static int live_misc_p (struct mem_node *, void *);
+static void mark_maybe_object (Lisp_Object);
+static void mark_memory (void *, void *, int);
+static void mem_init (void);
+static struct mem_node *mem_insert (void *, void *, enum mem_type);
+static void mem_insert_fixup (struct mem_node *);
+static void mem_rotate_left (struct mem_node *);
+static void mem_rotate_right (struct mem_node *);
+static void mem_delete (struct mem_node *);
+static void mem_delete_fixup (struct mem_node *);
+static INLINE struct mem_node *mem_find (void *);
 
 
 #if GC_MARK_STACK == GC_MARK_STACK_CHECK_GCPROS
-static void check_gcpros P_ ((void));
+static void check_gcpros (void);
 #endif
 
 #endif /* GC_MARK_STACK || GC_MALLOC_CHECK */
@@ -495,7 +495,7 @@ static Lisp_Object *staticvec[NSTATICS] = {&Vpurify_flag};
 
 static int staticidx = 0;
 
-static POINTER_TYPE *pure_alloc P_ ((size_t, int));
+static POINTER_TYPE *pure_alloc (size_t, int);
 
 
 /* Value is SZ rounded up to the next multiple of ALIGNMENT.
@@ -1164,14 +1164,14 @@ allocate_buffer ()
    there's no need to block input around malloc.  */
 
 #ifndef DOUG_LEA_MALLOC
-extern void * (*__malloc_hook) P_ ((size_t, const void *));
-extern void * (*__realloc_hook) P_ ((void *, size_t, const void *));
-extern void (*__free_hook) P_ ((void *, const void *));
+extern void * (*__malloc_hook) (size_t, const void *);
+extern void * (*__realloc_hook) (void *, size_t, const void *);
+extern void (*__free_hook) (void *, const void *);
 /* Else declared in malloc.h, perhaps with an extra arg.  */
 #endif /* DOUG_LEA_MALLOC */
-static void * (*old_malloc_hook) P_ ((size_t, const void *));
-static void * (*old_realloc_hook) P_ ((void *,  size_t, const void*));
-static void (*old_free_hook) P_ ((void*, const void*));
+static void * (*old_malloc_hook) (size_t, const void *);
+static void * (*old_realloc_hook) (void *,  size_t, const void*);
+static void (*old_free_hook) (void*, const void*);
 
 /* This function is used as the hook for free to call.  */
 
@@ -1767,8 +1767,8 @@ init_strings ()
 
 static int check_string_bytes_count;
 
-static void check_string_bytes P_ ((int));
-static void check_sblock P_ ((struct sblock *));
+static void check_string_bytes (int);
+static void check_sblock (struct sblock *);
 
 #define CHECK_STRING_BYTES(S)	STRING_BYTES (S)
 

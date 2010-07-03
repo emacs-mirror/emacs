@@ -115,20 +115,20 @@ static Lisp_Object where_is_cache;
 /* Which keymaps are reverse-stored in the cache.  */
 static Lisp_Object where_is_cache_keymaps;
 
-static Lisp_Object store_in_keymap P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
-static void fix_submap_inheritance P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
+static Lisp_Object store_in_keymap (Lisp_Object, Lisp_Object, Lisp_Object);
+static void fix_submap_inheritance (Lisp_Object, Lisp_Object, Lisp_Object);
 
-static Lisp_Object define_as_prefix P_ ((Lisp_Object, Lisp_Object));
-static void describe_command P_ ((Lisp_Object, Lisp_Object));
-static void describe_translation P_ ((Lisp_Object, Lisp_Object));
-static void describe_map P_ ((Lisp_Object, Lisp_Object,
-			      void (*) P_ ((Lisp_Object, Lisp_Object)),
-			      int, Lisp_Object, Lisp_Object*, int, int));
-static void describe_vector P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
-				 void (*) (Lisp_Object, Lisp_Object), int,
-				 Lisp_Object, Lisp_Object, int *,
-				 int, int, int));
-static void silly_event_symbol_error P_ ((Lisp_Object));
+static Lisp_Object define_as_prefix (Lisp_Object, Lisp_Object);
+static void describe_command (Lisp_Object, Lisp_Object);
+static void describe_translation (Lisp_Object, Lisp_Object);
+static void describe_map (Lisp_Object, Lisp_Object,
+                          void (*) (Lisp_Object, Lisp_Object),
+			  int, Lisp_Object, Lisp_Object*, int, int);
+static void describe_vector (Lisp_Object, Lisp_Object, Lisp_Object,
+                             void (*) (Lisp_Object, Lisp_Object), int,
+                             Lisp_Object, Lisp_Object, int *,
+                             int, int, int);
+static void silly_event_symbol_error (Lisp_Object);
 
 /* Keymap object support - constructors and predicates.			*/
 
@@ -2643,8 +2643,8 @@ preferred_sequence_p (seq)
 
 /* where-is - finding a command in a set of keymaps.			*/
 
-static void where_is_internal_1 P_ ((Lisp_Object key, Lisp_Object binding,
-				     Lisp_Object args, void *data));
+static void where_is_internal_1 (Lisp_Object key, Lisp_Object binding,
+                                 Lisp_Object args, void *data);
 
 /* Like Flookup_key, but uses a list of keymaps SHADOW instead of a single map.
    Returns the first non-nil binding found in any of those maps.
@@ -3440,7 +3440,7 @@ describe_map (map, prefix, elt_describer, partial, shadow,
 	      seen, nomenu, mention_shadow)
      register Lisp_Object map;
      Lisp_Object prefix;
-     void (*elt_describer) P_ ((Lisp_Object, Lisp_Object));
+     void (*elt_describer) (Lisp_Object, Lisp_Object);
      int partial;
      Lisp_Object shadow;
      Lisp_Object *seen;
@@ -3692,7 +3692,7 @@ describe_vector (vector, prefix, args, elt_describer,
 		 mention_shadow)
      register Lisp_Object vector;
      Lisp_Object prefix, args;
-     void (*elt_describer) P_ ((Lisp_Object, Lisp_Object));
+     void (*elt_describer) (Lisp_Object, Lisp_Object);
      int partial;
      Lisp_Object shadow;
      Lisp_Object entire_map;

@@ -23,13 +23,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "lisp.h"
 #endif
 
-#ifndef emacs
-#include <stddef.h>
-typedef size_t SIZE;
-typedef void *POINTER;
-#define EXCEEDS_LISP_PTR(x) 0
-#endif
-
 #include "mem-limits.h"
 
 #ifdef HAVE_GETRLIMIT
@@ -57,14 +50,6 @@ static POINTER data_space_start;
 /* Number of bytes of writable memory we can expect to be able to get.  */
 static unsigned long lim_data;
 
-
-#ifdef NO_LIM_DATA
-static void
-get_lim_data ()
-{
-  lim_data = -1;
-}
-#else /* not NO_LIM_DATA */
 
 #if defined (HAVE_GETRLIMIT) && defined (RLIMIT_AS)
 static void
@@ -181,7 +166,6 @@ get_lim_data ()
 #endif /* not WINDOWSNT */
 #endif /* not USG */
 #endif /* not HAVE_GETRLIMIT */
-#endif /* not NO_LIM_DATA */
 
 /* Verify amount of memory available, complaining if we're near the end. */
 

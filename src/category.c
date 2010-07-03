@@ -59,7 +59,7 @@ Lisp_Object _temp_category_set;
 
 /* Category set staff.  */
 
-static Lisp_Object hash_get_category_set P_ ((Lisp_Object, Lisp_Object));
+static Lisp_Object hash_get_category_set (Lisp_Object, Lisp_Object);
 
 static Lisp_Object
 hash_get_category_set (table, category_set)

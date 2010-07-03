@@ -40,7 +40,7 @@ struct terminal *initial_terminal;
 /* Function to use to ring the bell.  */
 Lisp_Object Vring_bell_function;
 
-static void delete_initial_terminal P_ ((struct terminal *));
+static void delete_initial_terminal (struct terminal *);
 
 
 

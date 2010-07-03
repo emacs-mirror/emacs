@@ -47,9 +47,9 @@ struct xfont_info
 };
 
 /* Prototypes of support functions.  */
-extern void x_clear_errors P_ ((Display *));
+extern void x_clear_errors (Display *);
 
-static XCharStruct *xfont_get_pcm P_ ((XFontStruct *, XChar2b *));
+static XCharStruct *xfont_get_pcm (XFontStruct *, XChar2b *);
 
 /* Get metrics of character CHAR2B in XFONT.  Value is null if CHAR2B
    is not contained in the font.  */
@@ -119,19 +119,19 @@ xfont_get_pcm (xfont, char2b)
 	  ? NULL : pcm);
 }
 
-static Lisp_Object xfont_get_cache P_ ((FRAME_PTR));
-static Lisp_Object xfont_list P_ ((Lisp_Object, Lisp_Object));
-static Lisp_Object xfont_match P_ ((Lisp_Object, Lisp_Object));
-static Lisp_Object xfont_list_family P_ ((Lisp_Object));
-static Lisp_Object xfont_open P_ ((FRAME_PTR, Lisp_Object, int));
-static void xfont_close P_ ((FRAME_PTR, struct font *));
-static int xfont_prepare_face P_ ((FRAME_PTR, struct face *));
-static int xfont_has_char P_ ((Lisp_Object, int));
-static unsigned xfont_encode_char P_ ((struct font *, int));
-static int xfont_text_extents P_ ((struct font *, unsigned *, int,
-				   struct font_metrics *));
-static int xfont_draw P_ ((struct glyph_string *, int, int, int, int, int));
-static int xfont_check P_ ((FRAME_PTR, struct font *));
+static Lisp_Object xfont_get_cache (FRAME_PTR);
+static Lisp_Object xfont_list (Lisp_Object, Lisp_Object);
+static Lisp_Object xfont_match (Lisp_Object, Lisp_Object);
+static Lisp_Object xfont_list_family (Lisp_Object);
+static Lisp_Object xfont_open (FRAME_PTR, Lisp_Object, int);
+static void xfont_close (FRAME_PTR, struct font *);
+static int xfont_prepare_face (FRAME_PTR, struct face *);
+static int xfont_has_char (Lisp_Object, int);
+static unsigned xfont_encode_char (struct font *, int);
+static int xfont_text_extents (struct font *, unsigned *, int,
+                               struct font_metrics *);
+static int xfont_draw (struct glyph_string *, int, int, int, int, int);
+static int xfont_check (FRAME_PTR, struct font *);
 
 struct font_driver xfont_driver =
   {

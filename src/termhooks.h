@@ -39,7 +39,7 @@ enum scroll_bar_part {
 /* If the value of the frame parameter changed, whis hook is called.
    For example, if going from fullscreen to not fullscreen this hook
    may do something OS dependent, like extended window manager hints on X11.  */
-extern void (*fullscreen_hook) P_ ((struct frame *f));
+extern void (*fullscreen_hook) (struct frame *f);
 
 
 /* Input queue declarations and hooks.  */
@@ -415,28 +415,28 @@ struct terminal
 
   /* Text display hooks.  */
 
-  void (*cursor_to_hook) P_ ((struct frame *f, int vpos, int hpos));
-  void (*raw_cursor_to_hook) P_ ((struct frame *, int, int));
+  void (*cursor_to_hook) (struct frame *f, int vpos, int hpos);
+  void (*raw_cursor_to_hook) (struct frame *, int, int);
 
-  void (*clear_to_end_hook) P_ ((struct frame *));
-  void (*clear_frame_hook) P_ ((struct frame *));
-  void (*clear_end_of_line_hook) P_ ((struct frame *, int));
+  void (*clear_to_end_hook) (struct frame *);
+  void (*clear_frame_hook) (struct frame *);
+  void (*clear_end_of_line_hook) (struct frame *, int);
 
-  void (*ins_del_lines_hook) P_ ((struct frame *f, int, int));
+  void (*ins_del_lines_hook) (struct frame *f, int, int);
 
-  void (*insert_glyphs_hook) P_ ((struct frame *f, struct glyph *s, int n));
-  void (*write_glyphs_hook) P_ ((struct frame *f, struct glyph *s, int n));
-  void (*delete_glyphs_hook) P_ ((struct frame *, int));
+  void (*insert_glyphs_hook) (struct frame *f, struct glyph *s, int n);
+  void (*write_glyphs_hook) (struct frame *f, struct glyph *s, int n);
+  void (*delete_glyphs_hook) (struct frame *, int);
 
-  void (*ring_bell_hook) P_ ((struct frame *f));
-  void (*toggle_invisible_pointer_hook) P_ ((struct frame *f, int invisible));
+  void (*ring_bell_hook) (struct frame *f);
+  void (*toggle_invisible_pointer_hook) (struct frame *f, int invisible);
 
-  void (*reset_terminal_modes_hook) P_ ((struct terminal *));
-  void (*set_terminal_modes_hook) P_ ((struct terminal *));
+  void (*reset_terminal_modes_hook) (struct terminal *);
+  void (*set_terminal_modes_hook) (struct terminal *);
 
-  void (*update_begin_hook) P_ ((struct frame *));
-  void (*update_end_hook) P_ ((struct frame *));
-  void (*set_terminal_window_hook) P_ ((struct frame *, int));
+  void (*update_begin_hook) (struct frame *);
+  void (*update_end_hook) (struct frame *);
+  void (*set_terminal_window_hook) (struct frame *, int);
 
   /* Multi-frame and mouse support hooks.  */
 
@@ -458,12 +458,12 @@ struct terminal
 
      This should clear mouse_moved until the next motion
      event arrives.  */
-  void (*mouse_position_hook) P_ ((struct frame **f, int,
-                                   Lisp_Object *bar_window,
-                                   enum scroll_bar_part *part,
-                                   Lisp_Object *x,
-                                   Lisp_Object *y,
-                                   unsigned long *time));
+  void (*mouse_position_hook) (struct frame **f, int,
+                               Lisp_Object *bar_window,
+                               enum scroll_bar_part *part,
+                               Lisp_Object *x,
+                               Lisp_Object *y,
+                               unsigned long *time);
 
   /* The window system handling code should set this if the mouse has
      moved since the last call to the mouse_position_hook.  Calling that
@@ -473,7 +473,7 @@ struct terminal
   /* When a frame's focus redirection is changed, this hook tells the
      window system code to re-decide where to put the highlight.  Under
      X, this means that Emacs lies about where the focus is.  */
-  void (*frame_rehighlight_hook) P_ ((struct frame *));
+  void (*frame_rehighlight_hook) (struct frame *);
 
   /* If we're displaying frames using a window system that can stack
      frames on top of each other, this hook allows you to bring a frame
@@ -485,12 +485,12 @@ struct terminal
      If RAISE is non-zero, F is brought to the front, before all other
      windows.  If RAISE is zero, F is sent to the back, behind all other
      windows.  */
-  void (*frame_raise_lower_hook) P_ ((struct frame *f, int raise));
+  void (*frame_raise_lower_hook) (struct frame *f, int raise);
 
   /* If the value of the frame parameter changed, whis hook is called.
      For example, if going from fullscreen to not fullscreen this hook
      may do something OS dependent, like extended window manager hints on X11.  */
-  void (*fullscreen_hook) P_ ((struct frame *f));
+  void (*fullscreen_hook) (struct frame *f);
 
   
   /* Scroll bar hooks.  */
@@ -520,9 +520,9 @@ struct terminal
      indicate that we are displaying PORTION characters out of a total
      of WHOLE characters, starting at POSITION.  If WINDOW doesn't yet
      have a scroll bar, create one for it.  */
-  void (*set_vertical_scroll_bar_hook) P_ ((struct window *window,
-                                            int portion, int whole,
-                                            int position));
+  void (*set_vertical_scroll_bar_hook) (struct window *window,
+                                        int portion, int whole,
+                                        int position);
 
 
   /* The following three hooks are used when we're doing a thorough
@@ -545,11 +545,11 @@ struct terminal
      If non-zero, this hook should be safe to apply to any frame,
      whether or not it can support scroll bars, and whether or not it is
      currently displaying them.  */
-  void (*condemn_scroll_bars_hook) P_ ((struct frame *frame));
+  void (*condemn_scroll_bars_hook) (struct frame *frame);
 
   /* Unmark WINDOW's scroll bar for deletion in this judgement cycle.
      Note that it's okay to redeem a scroll bar that is not condemned.  */
-  void (*redeem_scroll_bar_hook) P_ ((struct window *window));
+  void (*redeem_scroll_bar_hook) (struct window *window);
 
   /* Remove all scroll bars on FRAME that haven't been saved since the
      last call to `*condemn_scroll_bars_hook'.
@@ -562,7 +562,7 @@ struct terminal
      If non-zero, this hook should be safe to apply to any frame,
      whether or not it can support scroll bars, and whether or not it is
      currently displaying them.  */
-  void (*judge_scroll_bars_hook) P_ ((struct frame *FRAME));
+  void (*judge_scroll_bars_hook) (struct frame *FRAME);
 
 
   /* Called to read input events.
@@ -584,17 +584,17 @@ struct terminal
      Therefore, in most cases EXPECTED should be simply ignored.
 
      XXX This documentation needs to be updated.  */
-  int (*read_socket_hook) P_ ((struct terminal *terminal,
-                               int expected,
-                               struct input_event *hold_quit));
+  int (*read_socket_hook) (struct terminal *terminal,
+                           int expected,
+                           struct input_event *hold_quit);
 
   /* Called when a frame's display becomes entirely up to date.  */
-  void (*frame_up_to_date_hook) P_ ((struct frame *));
+  void (*frame_up_to_date_hook) (struct frame *);
 
 
   /* Called to delete the device-specific portions of a frame that is
      on this terminal device. */
-  void (*delete_frame_hook) P_ ((struct frame *));
+  void (*delete_frame_hook) (struct frame *);
 
   /* Called after the last frame on this terminal is deleted, or when
      the display device was closed (hangup).
@@ -606,7 +606,7 @@ struct terminal
      on the terminal.  delete_frame ensures that there are no live
      frames on the terminal when it calls this hook, so infinite
      recursion is prevented.  */
-  void (*delete_terminal_hook) P_ ((struct terminal *));
+  void (*delete_terminal_hook) (struct terminal *);
 };
 
 
@@ -647,10 +647,10 @@ extern struct terminal *terminal_list;
 /* Return true if the terminal device is not suspended. */
 #define TERMINAL_ACTIVE_P(d) (((d)->type != output_termcap && (d)->type !=output_msdos_raw) || (d)->display_info.tty->input)
 
-extern Lisp_Object get_terminal_param P_ ((struct terminal *, Lisp_Object));
-extern struct terminal *get_terminal P_ ((Lisp_Object terminal, int));
-extern struct terminal *create_terminal P_ ((void));
-extern void delete_terminal P_ ((struct terminal *));
+extern Lisp_Object get_terminal_param (struct terminal *, Lisp_Object);
+extern struct terminal *get_terminal (Lisp_Object terminal, int);
+extern struct terminal *create_terminal (void);
+extern void delete_terminal (struct terminal *);
 
 /* The initial terminal device, created by initial_term_init. */
 extern struct terminal *initial_terminal;

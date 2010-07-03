@@ -170,8 +170,8 @@ extern Lisp_Object Qrisky_local_variable;
 
 extern Lisp_Object Qfunction;
 
-static Lisp_Object funcall_lambda P_ ((Lisp_Object, int, Lisp_Object*));
-static void unwind_to_catch P_ ((struct catchtag *, Lisp_Object)) NO_RETURN;
+static Lisp_Object funcall_lambda (Lisp_Object, int, Lisp_Object*);
+static void unwind_to_catch (struct catchtag *, Lisp_Object) NO_RETURN;
 
 #if __GNUC__
 /* "gcc -O3" enables automatic function inlining, which optimizes out
@@ -1660,8 +1660,8 @@ internal_condition_case_n (Lisp_Object (*bfun) (int, Lisp_Object*),
 }
 
 
-static Lisp_Object find_handler_clause P_ ((Lisp_Object, Lisp_Object,
-					    Lisp_Object, Lisp_Object));
+static Lisp_Object find_handler_clause (Lisp_Object, Lisp_Object,
+                                        Lisp_Object, Lisp_Object);
 
 DEFUN ("signal", Fsignal, Ssignal, 2, 2, 0,
        doc: /* Signal an error.  Args are ERROR-SYMBOL and associated DATA.
@@ -2574,8 +2574,8 @@ usage: (apply FUNCTION &rest ARGUMENTS)  */)
 /* Run hook variables in various ways.  */
 
 enum run_hooks_condition {to_completion, until_success, until_failure};
-static Lisp_Object run_hook_with_args P_ ((int, Lisp_Object *,
-					   enum run_hooks_condition));
+static Lisp_Object run_hook_with_args (int, Lisp_Object *,
+                                       enum run_hooks_condition);
 
 DEFUN ("run-hooks", Frun_hooks, Srun_hooks, 0, MANY, 0,
        doc: /* Run each hook in HOOKS.
@@ -3424,7 +3424,7 @@ specbind (symbol, value)
 
 void
 record_unwind_protect (function, arg)
-     Lisp_Object (*function) P_ ((Lisp_Object));
+     Lisp_Object (*function) (Lisp_Object);
      Lisp_Object arg;
 {
   eassert (!handling_signal);

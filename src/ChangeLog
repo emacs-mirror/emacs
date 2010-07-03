@@ -1,3 +1,209 @@
+2010-07-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32console.c (sys_tputs): Adjust argument list to prototype in
+	term.c.
+
+2010-07-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* lisp.h (memory_warnings): Fix prototype.
+
+	* cm.h (evalcost): Fix prototype.
+
+	* cm.c (evalcost): Fix arg type.
+
+2010-07-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.c (term_clear_mouse_face, Fidentity):
+	* syssignal.h (signal_handler_t):
+	* lisp.h (memory_warnings):
+	* coding.h (preferred_coding_system):
+	* cm.h (evalcost):
+	* blockinput.h (reinvoke_input_signal): Convert to standard C prototypes.
+
+2010-07-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* dosfns.h (msdos_stdcolor_idx, msdos_stdcolor_name): Remove P_
+	from prototypes.
+
+	* msdos.h (load_pixmap): Don't define away.
+
+2010-07-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* lisp.h:
+	* atimer.h: Remove define for P_.
+
+	* alloc.c: Remove __P and P_ from .c and .m files.
+	* atimer.c:
+	* buffer.c:
+	* callint.c:
+	* category.c:
+	* charset.c:
+	* chartab.c:
+	* cm.c:
+	* coding.c:
+	* composite.c:
+	* data.c:
+	* dired.c:
+	* dispnew.c:
+	* doc.c:
+	* editfns.c:
+	* emacs.c:
+	* eval.c:
+	* fileio.c:
+	* filelock.c:
+	* fns.c:
+	* font.c:
+	* fontset.c:
+	* frame.c:
+	* ftfont.c:
+	* ftxfont.c:
+	* gmalloc.c:
+	* gtkutil.c:
+	* image.c:
+	* indent.c:
+	* intervals.c:
+	* keyboard.c:
+	* keymap.c:
+	* lread.c:
+	* marker.c:
+	* menu.c:
+	* minibuf.c:
+	* print.c:
+	* process.c:
+	* scroll.c:
+	* search.c:
+	* sound.c:
+	* strftime.c:
+	* syntax.c:
+	* sysdep.c:
+	* term.c:
+	* terminal.c:
+	* textprop.c:
+	* unexalpha.c:
+	* w32console.c:
+	* w32fns.c:
+	* w32font.c:
+	* w32menu.c:
+	* w32term.c:
+	* w32uniscribe.c:
+	* window.c:
+	* xdisp.c:
+	* xfaces.c:
+	* xfns.c:
+	* xfont.c:
+	* xftfont.c:
+	* xmenu.c:
+	* xselect.c:
+	* xterm.c: Likewise.
+
+	Remove P_ and __P macros.
+	* atimer.h: Remove P_ and __P macros.
+	* buffer.h:
+	* category.h:
+	* ccl.h:
+	* character.h:
+	* charset.h:
+	* cm.h:
+	* coding.h:
+	* composite.h:
+	* dispextern.h:
+	* disptab.h:
+	* dosfns.h:
+	* font.h:
+	* fontset.h:
+	* frame.h:
+	* gtkutil.h:
+	* indent.h:
+	* intervals.h:
+	* keyboard.h:
+	* keymap.h:
+	* lisp.h:
+	* macros.h:
+	* md5.h:
+	* menu.h:
+	* msdos.h:
+	* nsterm.h:
+	* puresize.h:
+	* region-cache.h:
+	* syntax.h:
+	* syssignal.h:
+	* systime.h:
+	* termhooks.h:
+	* w32font.h:
+	* w32term.h:
+	* widget.h:
+	* window.h:
+	* xgselect.h:
+	* xsettings.h:
+	* xterm.h: Likewise.
+
+2010-07-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* lisp.h: Document that USE_LISP_UNION_TYPE is now enabled using autoconf.
+
+	Cleanup old code.
+	* dired.c (BSD4_3): Remove all uses, redundant with BSD4_2.
+	* syssignal.h: Remove code for Lynx, not supported anymore.
+	* vm-limit.c: Remove unused code the depends on emacs not being
+	defined and NO_LIM_DATA being defined.
+	* mem-limits.h: Remove dead code.
+
+2010-07-01  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* window.c (Fwindow_absolute_pixel_edges): Doc fix.
+
+	* window.c (calc_absolute_offset, Fwindow_absolute_pixel_edges)
+	(Fwindow_inside_absolute_pixel_edges): New functions (bug#5721).
+
+	* nsfns.m (compute_tip_xy): Do not convert coordinates from frame
+	parameters, they are already absolute.
+
+	* nsterm.m (x_set_window_size, initFrameFromEmacs): Renamed
+	FRAME_NS_TOOLBAR_HEIGHT to FRAME_TOOLBAR_HEIGHT.
+
+	* nsterm.h (FRAME_NS_TOOLBAR_HEIGHT): Rename to FRAME_TOOLBAR_HEIGH
+
+	* nsmenu.m (update_frame_tool_bar, free_frame_tool_bar): Update
+	FRAME_TOOLBAR_HEIGHT.
+
+	* nsmenu.m (free_frame_tool_bar, update_frame_tool_bar): Add
+	BLOCK/UNBLOCK_INPUT so asserts don't trigger.
+
+2010-06-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.c (get_future_frame_param, Fmake_terminal_frame): Don't
+	check default-frame-alist.
+
+2010-06-30  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* process.c (create_process): Avoid using invalid file descriptors.
+
+	* callproc.c (child_setup): Avoid closing a file descriptor twice.
+
+2010-06-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsettings.c (Ffont_get_system_normal_font, Ffont_get_system_font):
+	Improve documentation.  Return font regardless of use_system_font.
+	(syms_of_xsettings): Improve documentation for font-use-system-font.
+
+2009-06-17  Naohiro Aota  <naota@elisp.net>  (tiny change)
+
+	* xftfont.c (xftfont_open): Check font width one by one also when
+	spacing is dual.
+
+	* ftfont.c (ftfont_open): Ditto.
+
+2010-06-30  Glenn Morris  <rgm@gnu.org>
+
+	* s/sol2-6.h (INHIBIT_X11R6_XIM): Remove, handled by configure now.
+
+	* Makefile.in (CANNOT_DUMP): Update for configure name change.
+
+	* s/freebsd.h (USE_MMAP_FOR_BUFFERS):
+	* s/irix6-5.h (USE_MMAP_FOR_BUFFERS):
+	* s/darwin.h (SYSTEM_MALLOC):
+	* s/sol2-10.h (SYSTEM_MALLOC): Move to configure.
+
 2010-06-29  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsfns.m: extern declare Vmenu_bar_mode, Vtool_bar_mode.
@@ -53,7 +259,7 @@
 	properties instead to get old x and y position.
 	(xg_set_toolkit_scroll_bar_thumb): Use gtk_adjustment_get_page_size,
 	gtk_adjustment_get_step_increment, gtk_adjustment_set_page_size,
-        gtk_adjustment_set_step_increment and gtk_adjustment_set_page_increment.
+	gtk_adjustment_set_step_increment and gtk_adjustment_set_page_increment.
 	(xg_get_tool_bar_widgets): New function.
 	(xg_tool_bar_menu_proxy, xg_show_toolbar_item)
 	(update_frame_tool_bar): Call xg_get_tool_bar_widgets.
@@ -93,7 +299,7 @@
 
 	* xterm.c (x_scroll_bar_create): Remove call to xg_show_scroll_bar.
 
-	* gtkutil.h (xg_show_scroll_bar): : Remove.
+	* gtkutil.h (xg_show_scroll_bar): Remove.
 
 	* gtkutil.c (xg_update_scrollbar_pos): Show/hide scroll bar as needed
 	if height is less than scroll bar min size.

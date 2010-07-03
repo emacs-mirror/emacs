@@ -1,3 +1,73 @@
+2010-07-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse.el (mouse-drag-overlay): Variable deleted.
+	(mouse-move-drag-overlay, mouse-show-mark): Functions deleted.
+	(mouse--remap-link-click-p): New function.
+	(mouse-drag-track): Handle dragging by using temporary Transient
+	Mark mode, instead of a special overlay.
+	(mouse-kill-ring-save, mouse-save-then-kill): Don't call
+	mouse-show-mark.
+
+	* mouse-sel.el (mouse-sel-selection-alist): mouse-drag-overlay
+	deleted.
+
+2010-07-02  Juri Linkov  <juri@jurta.org>
+
+	* autoinsert.el (auto-insert-alist): Fix readability
+	by using dotted pair notation for lambda.
+
+2010-07-02  Juri Linkov  <juri@jurta.org>
+
+	* faces.el (read-face-name): Rename arg `string-describing-default'
+	to `default'.  Doc fix.  Display the default value in quotes
+	in the prompt.  With empty input, return the `default' arg,
+	unless the default value is a string (in which case return nil).
+	(describe-face): Replace the string `default' arg of `read-face-name'
+	with the symbol `default'.
+
+2010-07-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emulation/viper-cmd.el (viper-delete-backward-char)
+	(viper-del-backward-char-in-insert)
+	(viper-del-backward-char-in-replace, viper-change)
+	(viper-backward-indent): Replace delete-backward-char with
+	delete-char (Bug#6552).
+
+2010-07-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ruler-mode.el (ruler--save-header-line-format): Fix typos.
+
+2010-06-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.el (make-frame): Add default-frame-alist to the PARAMETERS
+	argument passed to frame-creation-function (Bug#5378).
+
+	* faces.el (x-handle-named-frame-geometry)
+	(x-handle-reverse-video, x-create-frame-with-faces)
+	(face-set-after-frame-default, tty-create-frame-with-faces): Don't
+	separately consult default-frame-alist.  It is now passed as the
+	PARAMETER argument.
+
+2010-06-30  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* startup.el (command-line): Don't call tool-bar-setup in a
+	tty-only build.
+
+2010-06-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ruler-mode.el (ruler--save-header-line-format): New fun.
+	(ruler-mode): Use it as a setter function, so as not to overwrite
+	ruler-mode-header-line-format-old if Ruler mode is on (Bug#5370).
+
+2010-06-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc/vc.el (vc-deduce-backend): New fun.  Handle diff buffers.
+	(vc-root-diff, vc-print-root-log, vc-log-incoming)
+	(vc-log-outgoing): Use it.
+	(vc-diff-internal): Set diff-vc-backend.
+
+	* vc/diff-mode.el (diff-vc-backend): New var.
+
 2010-06-28  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* dynamic-setting.el (font-setting-change-default-font): Remove
@@ -958,7 +1028,7 @@
 	(rcirc-user-name-history): Add variable.
 
 2010-05-25  Ryan Yeske  <rcyeske@gmail.com>
-	    Jonathan Rockway  <jon@jrock.us>
+            Jonathan Rockway  <jon@jrock.us>
 
 	* net/rcirc.el (rcirc-server-alist): Add :pass.
 	(rcirc): When prompting for connection parameters, also prompt for

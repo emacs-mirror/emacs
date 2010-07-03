@@ -108,9 +108,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    is not ':', #define this to be the appropriate character constant.  */
 /* #define SEPCHAR ':' */
 
-/* Define this if the system can use mmap for buffer text allocation.  */
-/* #define USE_MMAP_FOR_BUFFERS 1 */
-
 /* ============================================================ */
 
 /* Here, add any special hacks needed to make Emacs work on this

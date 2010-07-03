@@ -550,21 +550,36 @@ This variable is expected to be made buffer-local by modes.")
 Call `ruler-mode-ruler-function' to compute the ruler value.")
 
 ;;;###autoload
+(defvar ruler-mode nil
+  "Non-nil if Ruler mode is enabled.
+Use the command `ruler-mode' to change this variable.")
+(make-variable-buffer-local 'ruler-mode)
+
+(defun ruler--save-header-line-format ()
+  "Install the header line format for Ruler mode.
+Unless Ruler mode is already enabled, save the old header line
+format first."
+  (when (and (not ruler-mode)
+	     (local-variable-p 'header-line-format)
+	     (not (local-variable-p 'ruler-mode-header-line-format-old)))
+    (set (make-local-variable 'ruler-mode-header-line-format-old)
+	 header-line-format))
+  (setq header-line-format ruler-mode-header-line-format))
+
+;;;###autoload
 (define-minor-mode ruler-mode
-  "Display a ruler in the header line if ARG > 0."
+  "Toggle Ruler mode.
+In Ruler mode, Emacs displays a ruler in the header line."
   nil nil
   ruler-mode-map
   :group 'ruler-mode
+  :variable (ruler-mode
+	     . (lambda (enable)
+		 (when enable
+		   (ruler--save-header-line-format))
+		 (setq ruler-mode enable)))
   (if ruler-mode
-      (progn
-        ;; When `ruler-mode' is on save previous header line format
-        ;; and install the ruler header line format.
-        (when (and (local-variable-p 'header-line-format)
-		   (not (local-variable-p 'ruler-mode-header-line-format-old)))
-          (set (make-local-variable 'ruler-mode-header-line-format-old)
-               header-line-format))
-        (setq header-line-format ruler-mode-header-line-format)
-        (add-hook 'post-command-hook 'force-mode-line-update nil t))
+      (add-hook 'post-command-hook 'force-mode-line-update nil t)
     ;; When `ruler-mode' is off restore previous header line format if
     ;; the current one is the ruler header line format.
     (when (eq header-line-format ruler-mode-header-line-format)

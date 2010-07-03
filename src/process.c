@@ -285,11 +285,11 @@ static Lisp_Object Vprocess_adaptive_read_buffering;
 
 #include "sysselect.h"
 
-static int keyboard_bit_set P_ ((SELECT_TYPE *));
-static void deactivate_process P_ ((Lisp_Object));
-static void status_notify P_ ((struct Lisp_Process *));
-static int read_process_output P_ ((Lisp_Object, int));
-static void create_pty P_ ((Lisp_Object));
+static int keyboard_bit_set (SELECT_TYPE *);
+static void deactivate_process (Lisp_Object);
+static void status_notify (struct Lisp_Process *);
+static int read_process_output (Lisp_Object, int);
+static void create_pty (Lisp_Object);
 
 /* If we support a window system, turn on the code to poll periodically
    to detect C-g.  It isn't actually used when doing interrupt input.  */
@@ -2038,7 +2038,7 @@ create_process (process, new_argv, current_dir)
 	   process_set_signal to fail on SGI when using a pipe.  */
 	setsid ();
 	/* Make the pty's terminal the controlling terminal.  */
-	if (pty_flag)
+	if (pty_flag && xforkin >= 0)
 	  {
 #ifdef TIOCSCTTY
 	    /* We ignore the return value
@@ -2081,8 +2081,11 @@ create_process (process, new_argv, current_dir)
 	    /* I wonder: would just ioctl (0, TIOCNOTTY, 0) work here?
 	       I can't test it since I don't have 4.3.  */
 	    int j = emacs_open ("/dev/tty", O_RDWR, 0);
-	    ioctl (j, TIOCNOTTY, 0);
-	    emacs_close (j);
+	    if (j >= 0)
+	      {
+		ioctl (j, TIOCNOTTY, 0);
+		emacs_close (j);
+	      }
 #ifndef USG
 	    /* In order to get a controlling terminal on some versions
 	       of BSD, it is necessary to put the process in pgrp 0

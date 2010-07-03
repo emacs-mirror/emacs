@@ -34,10 +34,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define HAVE_LIBKSTAT
 #endif
 
-/* inoue@ainet.or.jp says Solaris has a bug related to X11R6-style
-   XIM support.  */
-#define INHIBIT_X11R6_XIM
-
 /* This is the same definition as in usg5-4.h, but with sigblock/sigunblock
    rather than sighold/sigrelse, which appear to be BSD4.1 specific.
    It may also be appropriate for SVR4.x

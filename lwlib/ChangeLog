@@ -1,3 +1,18 @@
+2010-07-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* lwlib-Xm.c: Remove __P and P_ from .c and .m files.
+	* lwlib-Xm.c:
+	* lwlib.c:
+	* xlwmenu.c: Likewise.
+
+	Remove P_ and __P macros.
+	* lwlib-Xaw.h: Remove P_ and __P macros.
+	* lwlib-Xlw.h:
+	* lwlib-Xm.h:
+	* lwlib-int.h:
+	* lwlib-utils.h:
+	* lwlib.h: Likewise.
+
 2010-05-15  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (mostlyclean): Remove references to non-existent files.

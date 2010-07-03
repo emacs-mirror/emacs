@@ -45,44 +45,44 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 struct prop_location;
 
-static Lisp_Object x_atom_to_symbol P_ ((Display *dpy, Atom atom));
-static Atom symbol_to_x_atom P_ ((struct x_display_info *, Display *,
-				  Lisp_Object));
-static void x_own_selection P_ ((Lisp_Object, Lisp_Object));
-static Lisp_Object x_get_local_selection P_ ((Lisp_Object, Lisp_Object, int));
-static void x_decline_selection_request P_ ((struct input_event *));
-static Lisp_Object x_selection_request_lisp_error P_ ((Lisp_Object));
-static Lisp_Object queue_selection_requests_unwind P_ ((Lisp_Object));
-static Lisp_Object some_frame_on_display P_ ((struct x_display_info *));
-static Lisp_Object x_catch_errors_unwind P_ ((Lisp_Object));
-static void x_reply_selection_request P_ ((struct input_event *, int,
-					   unsigned char *, int, Atom));
-static int waiting_for_other_props_on_window P_ ((Display *, Window));
-static struct prop_location *expect_property_change P_ ((Display *, Window,
-							 Atom, int));
-static void unexpect_property_change P_ ((struct prop_location *));
-static Lisp_Object wait_for_property_change_unwind P_ ((Lisp_Object));
-static void wait_for_property_change P_ ((struct prop_location *));
-static Lisp_Object x_get_foreign_selection P_ ((Lisp_Object,
-                                                Lisp_Object,
-                                                Lisp_Object));
-static void x_get_window_property P_ ((Display *, Window, Atom,
-				       unsigned char **, int *,
-				       Atom *, int *, unsigned long *, int));
-static void receive_incremental_selection P_ ((Display *, Window, Atom,
-					       Lisp_Object, unsigned,
-					       unsigned char **, int *,
-					       Atom *, int *, unsigned long *));
-static Lisp_Object x_get_window_property_as_lisp_data P_ ((Display *,
-							   Window, Atom,
-							   Lisp_Object, Atom));
-static Lisp_Object selection_data_to_lisp_data P_ ((Display *, unsigned char *,
-						    int, Atom, int));
-static void lisp_data_to_selection_data P_ ((Display *, Lisp_Object,
-					     unsigned char **, Atom *,
-					     unsigned *, int *, int *));
-static Lisp_Object clean_local_selection_data P_ ((Lisp_Object));
-static void initialize_cut_buffers P_ ((Display *, Window));
+static Lisp_Object x_atom_to_symbol (Display *dpy, Atom atom);
+static Atom symbol_to_x_atom (struct x_display_info *, Display *,
+                              Lisp_Object);
+static void x_own_selection (Lisp_Object, Lisp_Object);
+static Lisp_Object x_get_local_selection (Lisp_Object, Lisp_Object, int);
+static void x_decline_selection_request (struct input_event *);
+static Lisp_Object x_selection_request_lisp_error (Lisp_Object);
+static Lisp_Object queue_selection_requests_unwind (Lisp_Object);
+static Lisp_Object some_frame_on_display (struct x_display_info *);
+static Lisp_Object x_catch_errors_unwind (Lisp_Object);
+static void x_reply_selection_request (struct input_event *, int,
+                                       unsigned char *, int, Atom);
+static int waiting_for_other_props_on_window (Display *, Window);
+static struct prop_location *expect_property_change (Display *, Window,
+                                                     Atom, int);
+static void unexpect_property_change (struct prop_location *);
+static Lisp_Object wait_for_property_change_unwind (Lisp_Object);
+static void wait_for_property_change (struct prop_location *);
+static Lisp_Object x_get_foreign_selection (Lisp_Object,
+                                            Lisp_Object,
+                                            Lisp_Object);
+static void x_get_window_property (Display *, Window, Atom,
+                                   unsigned char **, int *,
+                                   Atom *, int *, unsigned long *, int);
+static void receive_incremental_selection (Display *, Window, Atom,
+                                           Lisp_Object, unsigned,
+                                           unsigned char **, int *,
+                                           Atom *, int *, unsigned long *);
+static Lisp_Object x_get_window_property_as_lisp_data (Display *,
+                                                       Window, Atom,
+                                                       Lisp_Object, Atom);
+static Lisp_Object selection_data_to_lisp_data (Display *, unsigned char *,
+                                                int, Atom, int);
+static void lisp_data_to_selection_data (Display *, Lisp_Object,
+                                         unsigned char **, Atom *,
+                                         unsigned *, int *, int *);
+static Lisp_Object clean_local_selection_data (Lisp_Object);
+static void initialize_cut_buffers (Display *, Window);
 
 
 /* Printing traces to stderr.  */

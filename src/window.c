@@ -59,32 +59,32 @@ Lisp_Object Qwindow_size_fixed;
 
 extern Lisp_Object Qleft_margin, Qright_margin;
 
-static int displayed_window_lines P_ ((struct window *));
-static struct window *decode_window P_ ((Lisp_Object));
-static int count_windows P_ ((struct window *));
-static int get_leaf_windows P_ ((struct window *, struct window **, int));
-static void window_scroll P_ ((Lisp_Object, int, int, int));
-static void window_scroll_pixel_based P_ ((Lisp_Object, int, int, int));
-static void window_scroll_line_based P_ ((Lisp_Object, int, int, int));
-static int window_min_size_1 P_ ((struct window *, int, int));
-static int window_min_size_2 P_ ((struct window *, int, int));
-static int window_min_size P_ ((struct window *, int, int, int, int *));
-static void size_window P_ ((Lisp_Object, int, int, int, int, int));
-static int freeze_window_start P_ ((struct window *, void *));
-static int window_fixed_size_p P_ ((struct window *, int, int));
-static void enlarge_window P_ ((Lisp_Object, int, int));
-static Lisp_Object window_list P_ ((void));
-static int add_window_to_list P_ ((struct window *, void *));
-static int candidate_window_p P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
-				   Lisp_Object));
-static Lisp_Object next_window P_ ((Lisp_Object, Lisp_Object,
-				    Lisp_Object, int));
-static void decode_next_window_args P_ ((Lisp_Object *, Lisp_Object *,
-					 Lisp_Object *));
-static int foreach_window_1 P_ ((struct window *,
-				 int (* fn) (struct window *, void *),
-				 void *));
-static Lisp_Object window_list_1 P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
+static int displayed_window_lines (struct window *);
+static struct window *decode_window (Lisp_Object);
+static int count_windows (struct window *);
+static int get_leaf_windows (struct window *, struct window **, int);
+static void window_scroll (Lisp_Object, int, int, int);
+static void window_scroll_pixel_based (Lisp_Object, int, int, int);
+static void window_scroll_line_based (Lisp_Object, int, int, int);
+static int window_min_size_1 (struct window *, int, int);
+static int window_min_size_2 (struct window *, int, int);
+static int window_min_size (struct window *, int, int, int, int *);
+static void size_window (Lisp_Object, int, int, int, int, int);
+static int freeze_window_start (struct window *, void *);
+static int window_fixed_size_p (struct window *, int, int);
+static void enlarge_window (Lisp_Object, int, int);
+static Lisp_Object window_list (void);
+static int add_window_to_list (struct window *, void *);
+static int candidate_window_p (Lisp_Object, Lisp_Object, Lisp_Object,
+                               Lisp_Object);
+static Lisp_Object next_window (Lisp_Object, Lisp_Object,
+                                Lisp_Object, int);
+static void decode_next_window_args (Lisp_Object *, Lisp_Object *,
+                                     Lisp_Object *);
+static int foreach_window_1 (struct window *,
+                             int (* fn) (struct window *, void *),
+                             void *);
+static Lisp_Object window_list_1 (Lisp_Object, Lisp_Object, Lisp_Object);
 
 /* This is the window in which the terminal's cursor should
    be left when nothing is being done with it.  This must
@@ -652,6 +652,48 @@ of just the text area, use `window-inside-pixel-edges'.  */)
 		Qnil))));
 }
 
+static void
+calc_absolute_offset(struct window *w, int *add_x, int *add_y)
+{
+  struct frame *f = XFRAME (w->frame);
+  *add_y = f->top_pos;
+#ifdef FRAME_MENUBAR_HEIGHT
+  *add_y += FRAME_MENUBAR_HEIGHT (f);
+#endif
+#ifdef FRAME_TOOLBAR_HEIGHT
+  *add_y += FRAME_TOOLBAR_HEIGHT (f);
+#endif
+#ifdef FRAME_NS_TITLEBAR_HEIGHT
+  *add_y += FRAME_NS_TITLEBAR_HEIGHT (f);
+#endif
+  *add_x = f->left_pos;
+}
+
+DEFUN ("window-absolute-pixel-edges", Fwindow_absolute_pixel_edges,
+       Swindow_absolute_pixel_edges, 0, 1, 0,
+       doc: /* Return a list of the edge pixel coordinates of WINDOW.
+The list has the form (LEFT TOP RIGHT BOTTOM), all relative to 0, 0 at
+the top left corner of the display.
+
+RIGHT is one more than the rightmost x position occupied by WINDOW.
+BOTTOM is one more than the bottommost y position occupied by WINDOW.
+The pixel edges include the space used by WINDOW's scroll bar, display
+margins, fringes, header line, and/or mode line.  For the pixel edges
+of just the text area, use `window-inside-absolute-pixel-edges'.  */)
+     (window)
+     Lisp_Object window;
+{
+  register struct window *w = decode_any_window (window);
+  int add_x, add_y;
+  calc_absolute_offset(w, &add_x, &add_y);
+
+  return Fcons (make_number (WINDOW_LEFT_EDGE_X (w) + add_x),
+         Fcons (make_number (WINDOW_TOP_EDGE_Y (w) + add_y),
+	 Fcons (make_number (WINDOW_RIGHT_EDGE_X (w) + add_x),
+	 Fcons (make_number (WINDOW_BOTTOM_EDGE_Y (w) + add_y),
+		Qnil))));
+}
+
 DEFUN ("window-inside-edges", Fwindow_inside_edges, Swindow_inside_edges, 0, 1, 0,
        doc: /* Return a list of the edge coordinates of WINDOW.
 The list has the form (LEFT TOP RIGHT BOTTOM).
@@ -703,6 +745,36 @@ display margins, fringes, header line, and/or mode line.  */)
 			     - WINDOW_RIGHT_FRINGE_WIDTH (w)),
 		make_number (WINDOW_BOTTOM_EDGE_Y (w)
 			     - WINDOW_MODE_LINE_HEIGHT (w)));
+}
+
+DEFUN ("window-inside-absolute-pixel-edges",
+       Fwindow_inside_absolute_pixel_edges,
+       Swindow_inside_absolute_pixel_edges, 0, 1, 0,
+       doc: /* Return a list of the edge pixel coordinates of WINDOW.
+The list has the form (LEFT TOP RIGHT BOTTOM), all relative to 0, 0 at
+the top left corner of the display.
+
+RIGHT is one more than the rightmost x position of WINDOW's text area.
+BOTTOM is one more than the bottommost y position of WINDOW's text area.
+The inside edges do not include the space used by WINDOW's scroll bar,
+display margins, fringes, header line, and/or mode line.  */)
+     (window)
+     Lisp_Object window;
+{
+  register struct window *w = decode_any_window (window);
+  int add_x, add_y;
+  calc_absolute_offset(w, &add_x, &add_y);
+
+  return list4 (make_number (WINDOW_BOX_LEFT_EDGE_X (w)
+			     + WINDOW_LEFT_MARGIN_WIDTH (w)
+			     + WINDOW_LEFT_FRINGE_WIDTH (w) + add_x),
+		make_number (WINDOW_TOP_EDGE_Y (w)
+			     + WINDOW_HEADER_LINE_HEIGHT (w) + add_y),
+		make_number (WINDOW_BOX_RIGHT_EDGE_X (w)
+			     - WINDOW_RIGHT_MARGIN_WIDTH (w)
+			     - WINDOW_RIGHT_FRINGE_WIDTH (w) + add_x),
+		make_number (WINDOW_BOTTOM_EDGE_Y (w)
+			     - WINDOW_MODE_LINE_HEIGHT (w) + add_y));
 }
 
 /* Test if the character at column *X, row *Y is within window W.
@@ -4054,9 +4126,9 @@ enlarge_window (window, delta, horiz_flag)
   struct window *p;
   Lisp_Object *sizep;
   int maximum;
-  int (*sizefun) P_ ((Lisp_Object))
+  int (*sizefun) (Lisp_Object)
     = horiz_flag ? window_width : window_height;
-  void (*setsizefun) P_ ((Lisp_Object, int, int))
+  void (*setsizefun) (Lisp_Object, int, int)
     = (horiz_flag ? set_window_width : set_window_height);
 
   /* Give up if this window cannot be resized.  */
@@ -4482,7 +4554,7 @@ are not deleted; instead, we signal an error.  */)
 			Resizing Mini-Windows
  ***********************************************************************/
 
-static void shrink_window_lowest_first P_ ((struct window *, int));
+static void shrink_window_lowest_first (struct window *, int);
 
 enum save_restore_action
 {
@@ -4491,8 +4563,8 @@ enum save_restore_action
     RESTORE_ORIG_SIZES
 };
 
-static int save_restore_orig_size P_ ((struct window *,
-                                       enum save_restore_action));
+static int save_restore_orig_size (struct window *,
+                                   enum save_restore_action);
 
 /* Shrink windows rooted in window W to HEIGHT.  Take the space needed
    from lowest windows first.  */
@@ -6940,7 +7012,7 @@ If PIXELS-P is non-nil, the return value is VSCROLL.  */)
 void
 foreach_window (f, fn, user_data)
      struct frame *f;
-     int (* fn) P_ ((struct window *, void *));
+     int (* fn) (struct window *, void *);
      void *user_data;
 {
   /* delete_frame may set FRAME_ROOT_WINDOW (f) to Qnil.  */
@@ -6957,7 +7029,7 @@ foreach_window (f, fn, user_data)
 static int
 foreach_window_1 (w, fn, user_data)
      struct window *w;
-     int (* fn) P_ ((struct window *, void *));
+     int (* fn) (struct window *, void *);
      void *user_data;
 {
   int cont;
@@ -7312,8 +7384,10 @@ frame to be redrawn only if it is a tty frame.  */);
   defsubr (&Sset_window_redisplay_end_trigger);
   defsubr (&Swindow_edges);
   defsubr (&Swindow_pixel_edges);
+  defsubr (&Swindow_absolute_pixel_edges);
   defsubr (&Swindow_inside_edges);
   defsubr (&Swindow_inside_pixel_edges);
+  defsubr (&Swindow_inside_absolute_pixel_edges);
   defsubr (&Scoordinates_in_window_p);
   defsubr (&Swindow_at);
   defsubr (&Swindow_point);

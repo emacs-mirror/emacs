@@ -1319,7 +1319,7 @@ xg_uses_old_file_dialog ()
 }
 
 
-typedef char * (*xg_get_file_func) P_ ((GtkWidget *));
+typedef char * (*xg_get_file_func) (GtkWidget *);
 
 /* Return the selected file for file chooser dialog W.
    The returned string must be free:d.  */
@@ -2087,9 +2087,9 @@ xg_create_one_menuitem (item, f, select_cb, highlight_cb, cl_data, group)
   return w;
 }
 
-static GtkWidget *create_menus P_ ((widget_value *, FRAME_PTR, GCallback,
-				    GCallback, GCallback, int, int, int,
-				    GtkWidget *, xg_menu_cb_data *, char *));
+static GtkWidget *create_menus (widget_value *, FRAME_PTR, GCallback,
+                                GCallback, GCallback, int, int, int,
+                                GtkWidget *, xg_menu_cb_data *, char *);
 
 /* Create a full menu tree specified by DATA.
    F is the frame the created menu belongs to.
@@ -3466,9 +3466,9 @@ xg_tool_bar_proxy_callback (w, client_data)
 
 
 static gboolean
-xg_tool_bar_help_callback P_ ((GtkWidget *w,
-                               GdkEventCrossing *event,
-                               gpointer client_data));
+xg_tool_bar_help_callback (GtkWidget *w,
+                           GdkEventCrossing *event,
+                           gpointer client_data);
 
 /* This callback is called when a help is to be shown for an item in
    the detached tool bar when the detached tool bar it is not expanded.  */

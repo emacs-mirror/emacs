@@ -70,13 +70,12 @@ struct window;
 
 /* Defined in xfns.c; emulated on msdos.c */
 
-extern void x_set_menu_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
-extern int x_pixel_width P_ ((struct frame *));
-extern int x_pixel_height P_ ((struct frame *));
+extern void x_set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
+extern int x_pixel_width (struct frame *);
+extern int x_pixel_height (struct frame *);
 
 #define XFreeGC (void)
 #define x_destroy_bitmap(p1,p2)
-#define load_pixmap(p1,p2,p3,p4) (0)
 #define XGetGeometry(p1,p2,p3,p4,p5,p6,p7,p8,p9)
 #define DisplayWidth(p1,p2) (SELECTED_FRAME()->text_cols)
 #define DisplayHeight(p1,p2) (SELECTED_FRAME()->text_lines)

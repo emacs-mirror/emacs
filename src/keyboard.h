@@ -300,7 +300,7 @@ enum menu_item_idx
   MENU_ITEMS_ITEM_LENGTH
 };
 
-extern Lisp_Object unuse_menu_items P_ ((Lisp_Object dummy));
+extern Lisp_Object unuse_menu_items (Lisp_Object dummy);
 
 /* This is how to deal with multibyte text if HAVE_MULTILINGUAL_MENU
    isn't defined.  The use of HAVE_MULTILINGUAL_MENU could probably be
@@ -366,8 +366,8 @@ typedef struct _widget_value
   struct _widget_value*	next;
 } widget_value;
 
-extern widget_value *xmalloc_widget_value P_ ((void));
-extern widget_value *digest_single_submenu P_ ((int, int, int));
+extern widget_value *xmalloc_widget_value (void);
+extern widget_value *digest_single_submenu (int, int, int);
 #endif /* HAVE_NS || HAVE_NTGUI */
 
 
@@ -430,10 +430,10 @@ extern Lisp_Object Qmode_line, Qvertical_line, Qheader_line;
 /* Forward declaration for prototypes.  */
 struct input_event;
 
-extern Lisp_Object parse_modifiers P_ ((Lisp_Object));
-extern Lisp_Object reorder_modifiers P_ ((Lisp_Object));
-extern Lisp_Object read_char P_ ((int, int, Lisp_Object *, Lisp_Object,
-				  int *, EMACS_TIME *));
+extern Lisp_Object parse_modifiers (Lisp_Object);
+extern Lisp_Object reorder_modifiers (Lisp_Object);
+extern Lisp_Object read_char (int, int, Lisp_Object *, Lisp_Object,
+                              int *, EMACS_TIME *);
 extern int parse_solitary_modifier (Lisp_Object symbol);
 
 
@@ -445,50 +445,50 @@ extern Lisp_Object Vkey_translation_map;
 
 extern int parse_menu_item (Lisp_Object, int);
 
-extern void echo_now P_ ((void));
-extern void init_kboard P_ ((KBOARD *));
-extern void delete_kboard P_ ((KBOARD *));
-extern void not_single_kboard_state P_ ((KBOARD *));
-extern void push_kboard P_ ((struct kboard *));
-extern void push_frame_kboard P_ ((struct frame *));
-extern void pop_kboard P_ ((void));
-extern void temporarily_switch_to_single_kboard P_ ((struct frame *));
-extern void record_asynch_buffer_change P_ ((void));
-extern SIGTYPE input_poll_signal P_ ((int));
-extern void start_polling P_ ((void));
-extern void stop_polling P_ ((void));
-extern void set_poll_suppress_count P_ ((int));
-extern void gobble_input P_ ((int));
-extern int input_polling_used P_ ((void));
-extern void clear_input_pending P_ ((void));
-extern int requeued_events_pending_p P_ ((void));
-extern void bind_polling_period P_ ((int));
-extern void stuff_buffered_input P_ ((Lisp_Object));
-extern void clear_waiting_for_input P_ ((void));
-extern void swallow_events P_ ((int));
-extern int help_char_p P_ ((Lisp_Object));
-extern void quit_throw_to_read_char P_ ((void)) NO_RETURN;
-extern void cmd_error_internal P_ ((Lisp_Object, char *));
-extern int lucid_event_type_list_p P_ ((Lisp_Object));
-extern void kbd_buffer_store_event P_ ((struct input_event *));
-extern void kbd_buffer_store_event_hold P_ ((struct input_event *,
-					     struct input_event *));
-extern void kbd_buffer_unget_event P_ ((struct input_event *));
+extern void echo_now (void);
+extern void init_kboard (KBOARD *);
+extern void delete_kboard (KBOARD *);
+extern void not_single_kboard_state (KBOARD *);
+extern void push_kboard (struct kboard *);
+extern void push_frame_kboard (struct frame *);
+extern void pop_kboard (void);
+extern void temporarily_switch_to_single_kboard (struct frame *);
+extern void record_asynch_buffer_change (void);
+extern SIGTYPE input_poll_signal (int);
+extern void start_polling (void);
+extern void stop_polling (void);
+extern void set_poll_suppress_count (int);
+extern void gobble_input (int);
+extern int input_polling_used (void);
+extern void clear_input_pending (void);
+extern int requeued_events_pending_p (void);
+extern void bind_polling_period (int);
+extern void stuff_buffered_input (Lisp_Object);
+extern void clear_waiting_for_input (void);
+extern void swallow_events (int);
+extern int help_char_p (Lisp_Object);
+extern void quit_throw_to_read_char (void) NO_RETURN;
+extern void cmd_error_internal (Lisp_Object, char *);
+extern int lucid_event_type_list_p (Lisp_Object);
+extern void kbd_buffer_store_event (struct input_event *);
+extern void kbd_buffer_store_event_hold (struct input_event *,
+                                         struct input_event *);
+extern void kbd_buffer_unget_event (struct input_event *);
 #ifdef POLL_FOR_INPUT
-extern void poll_for_input_1 P_ ((void));
+extern void poll_for_input_1 (void);
 #endif
-extern void show_help_echo P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
-				Lisp_Object, int));
-extern void gen_help_event P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
-			       Lisp_Object, int));
-extern void kbd_buffer_store_help_event P_ ((Lisp_Object, Lisp_Object));
-extern Lisp_Object menu_item_eval_property P_ ((Lisp_Object));
-extern int  kbd_buffer_events_waiting P_ ((int));
-extern void add_user_signal P_ ((int, const char *));
+extern void show_help_echo (Lisp_Object, Lisp_Object, Lisp_Object,
+                            Lisp_Object, int);
+extern void gen_help_event (Lisp_Object, Lisp_Object, Lisp_Object,
+                            Lisp_Object, int);
+extern void kbd_buffer_store_help_event (Lisp_Object, Lisp_Object);
+extern Lisp_Object menu_item_eval_property (Lisp_Object);
+extern int  kbd_buffer_events_waiting (int);
+extern void add_user_signal (int, const char *);
 
-extern int tty_read_avail_input P_ ((struct terminal *, int,
-                                     struct input_event *));
-extern EMACS_TIME timer_check P_ ((int));
+extern int tty_read_avail_input (struct terminal *, int,
+                                 struct input_event *);
+extern EMACS_TIME timer_check (int);
 
 /* arch-tag: 769cbade-1ba9-4950-b886-db265b061aa3
    (do not change this comment) */
