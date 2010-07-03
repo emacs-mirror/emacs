@@ -492,7 +492,7 @@ w32con_set_terminal_window (struct frame *f, int size)
  ***********************************************************************/
 
 void
-sys_tputs (char *str, int nlines, int (*outfun)())
+sys_tputs (char *str, int nlines, int (*outfun)(int))
 {
 }
 
