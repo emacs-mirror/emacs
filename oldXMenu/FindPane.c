@@ -17,9 +17,7 @@
 #include "XMenuInt.h"
 
 int
-XMenuFindPane(menu, label)
-    register XMenu *menu;
-    register char *label;
+XMenuFindPane(register XMenu *menu, register char *label)
 {
     register XMPane *p_ptr;
     register int i = 0;

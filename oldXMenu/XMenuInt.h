@@ -37,7 +37,7 @@
 /*
  * XMenu internal event handler variable.
  */
-extern int (*_XMEventHandler)();
+extern int (*_XMEventHandler)(XEvent*);
 
 #ifndef Pixel
 #define Pixel unsigned long
@@ -46,19 +46,17 @@ extern int (*_XMEventHandler)();
 /*
  * Internal routine declarations.
  */
-int _XMWinQueInit();		/* No value actually returned. */
-int _XMWinQueAddPane();
-int _XMWinQueAddSelection();
-int _XMWinQueFlush();
-XMPane *_XMGetPanePtr();
-XMSelect *_XMGetSelectionPtr();
-int _XMRecomputeGlobals();	/* No value actually returned. */
-int _XMRecomputePane();
-int _XMRecomputeSelection();
-int _XMTransToOrigin();		/* No value actually returned. */
-int _XMRefreshPane();		/* No value actually returned. */
-int _XMRefreshSelections();	/* No value actually returned. */
-int _XMHighlightSelection();	/* No value actually returned. */
+int _XMWinQueInit(void);		/* No value actually returned. */
+int _XMWinQueAddPane(register Display *display, register XMenu *menu, register XMPane *p_ptr);
+int _XMWinQueAddSelection(register Display *display, register XMenu *menu, register XMSelect *s_ptr);
+int _XMWinQueFlush(register Display *display, register XMenu *menu, register XMPane *pane, XMSelect *select);
+XMPane *_XMGetPanePtr(register XMenu *menu, register int p_num);
+XMSelect *_XMGetSelectionPtr(register XMPane *p_ptr, register int s_num);
+int _XMRecomputeGlobals(register Display *display, register XMenu *menu);	/* No value actually returned. */
+int _XMRecomputePane(register Display *display, register XMenu *menu, register XMPane *p_ptr, register int p_num);
+int _XMRecomputeSelection(register Display *display, register XMenu *menu, register XMSelect *s_ptr, register int s_num);
+int _XMTransToOrigin(Display *display, register XMenu *menu, register XMPane *p_ptr, register XMSelect *s_ptr, int x_pos, int y_pos, int *orig_x, int *orig_y);		/* No value actually returned. */
+int _XMRefreshPane(register Display *display, register XMenu *menu, register XMPane *pane);		/* No value actually returned. */
 
 #endif
 /* Don't add stuff after this #endif */

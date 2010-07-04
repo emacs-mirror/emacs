@@ -17,7 +17,7 @@
 #include "XMenuInt.h"
 
 char *
-XMenuError()
+XMenuError(void)
 {
     static char message[128];		/* Error message buffer. */
 
