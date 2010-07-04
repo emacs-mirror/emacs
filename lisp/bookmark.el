@@ -1860,8 +1860,7 @@ With a prefix arg, prompts for a file to save them in."
         (pop-up-windows t))
     (delete-other-windows)
     (switch-to-buffer (other-buffer))
-    (let ((bookmark-automatically-show-annotations nil)) ;FIXME: needed?
-      (bookmark--jump-via bmrk 'pop-to-buffer))
+    (bookmark--jump-via bmrk 'pop-to-buffer)
     (bury-buffer menu)))
 
 
@@ -1875,8 +1874,7 @@ With a prefix arg, prompts for a file to save them in."
   "Select this line's bookmark in other window, leaving bookmark menu visible."
   (interactive)
   (let ((bookmark (bookmark-bmenu-bookmark)))
-    (let ((bookmark-automatically-show-annotations t)) ;FIXME: needed?
-      (bookmark--jump-via bookmark 'switch-to-buffer-other-window))))
+    (bookmark--jump-via bookmark 'switch-to-buffer-other-window)))
 
 
 (defun bookmark-bmenu-switch-other-window ()
@@ -1887,8 +1885,7 @@ The current window remains selected."
         (pop-up-windows t)
         same-window-buffer-names
         same-window-regexps)
-    (let ((bookmark-automatically-show-annotations t)) ;FIXME: needed?
-      (bookmark--jump-via bookmark 'display-buffer))))
+    (bookmark--jump-via bookmark 'display-buffer)))
 
 (defun bookmark-bmenu-other-window-with-mouse (event)
   "Select bookmark at the mouse pointer in other window, leaving bookmark menu visible."
