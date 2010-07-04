@@ -1,3 +1,7 @@
+2010-07-04  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.el (get-mru-window): New function.
+
 2010-07-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mouse.el (mouse-drag-overlay): Variable deleted.

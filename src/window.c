@@ -54,6 +54,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 Lisp_Object Qwindowp, Qwindow_live_p, Qwindow_configuration_p;
 Lisp_Object Qwindow_deletable_p, Qdelete_window, Qdisplay_buffer;
+Lisp_Object Qget_mru_window;
 Lisp_Object Qresize_root_window, Qresize_root_window_vertically;
 Lisp_Object Qscroll_up, Qscroll_down, Qscroll_command;
 Lisp_Object Qset, Qabove, Qbelow, Qnest, Qgroup, Qresize;
@@ -264,8 +265,7 @@ WINDOW can be any window and defaults to the selected one.  */)
   return MINI_WINDOW_P (decode_any_window (window)) ? Qt : Qnil;
 }
 
-/* We could move this to window.el but there are some C functions that
-   want it.  */
+/* Don't move this to window.el - this must be a safe routine.  */
 DEFUN ("frame-first-window", Fframe_first_window, Sframe_first_window, 0, 1, 0,
        doc: /* Return the topmost, leftmost live window on FRAME_OR_WINDOW.
 If omitted, FRAME_OR_WINDOW defaults to the currently selected frame.
@@ -3988,7 +3988,6 @@ when WINDOW is the only window on its frame.  */)
      register Lisp_Object window;
 {
   register Lisp_Object parent, sibling, frame, root;
-  register Lisp_Object swindow, pwindow;
   struct window *w, *p, *s, *r;
   struct frame *f;
   int horflag;
@@ -4018,47 +4017,6 @@ when WINDOW is the only window on its frame.  */)
 
   root = FRAME_ROOT_WINDOW (f);
   r = XWINDOW (root);
-
-  /* See if the frame's selected window is WINDOW or any subwindow of
-     it, by finding all the selected window's parents and comparing each
-     one with WINDOW, making another window selected if necessary.  */
-  swindow = FRAME_SELECTED_WINDOW (f);
-  while (1)
-    {
-      pwindow = swindow;
-      while (!NILP (pwindow) && !EQ (window, pwindow))
-	pwindow = XWINDOW (pwindow)->parent;
-
-      if (!EQ (window, pwindow))
-	/* If the window being deleted is not a parent of SWINDOW, then
-	   SWINDOW is ok as the new selected window.  */
-	break;
-      else if (EQ (Vwindow_splits, Qnest) && !bflag)
-	{
-	  /* For binary splitting try to select SWINDOW's buddy.  Set
-	     BFLAG to make sure this branch is not taken again.  */
-	  bflag = 1;
-	  if (!NILP (XWINDOW (swindow)->prev)
-	      && !NILP (XWINDOW (XWINDOW (swindow)->prev)->buffer))
-	    swindow = XWINDOW (swindow)->prev;
-	  else if (!NILP (XWINDOW (swindow)->next)
-		   && !NILP (XWINDOW (XWINDOW (swindow)->next)->buffer))
-	    swindow = XWINDOW (swindow)->next;
-	  else
-	    /* This may happen iff we allow matrjoshka windows.  */
-	    swindow = Fprevious_window (swindow, Qlambda, Qnil);
-	}
-      else
-	/* In any other case, try the previous window for SWINDOW, it's
-	   the one that quite likely gets enlarged.  For displayed
-	   buffers another mechanism should supersede this.  */
-	swindow = Fprevious_window (swindow, Qlambda, Qnil);
-
-      /* This should have been caught above.  If we ever get this far
-	 the Fprevious_window mechanism must be broken.  */
-      if (EQ (swindow, FRAME_SELECTED_WINDOW (f)))
-	error ("Cannot delete window");
-    }
 
   /* Unlink WINDOW from window tree.  */
   if (NILP (w->prev))
@@ -4136,21 +4094,39 @@ when WINDOW is the only window on its frame.  */)
 	}
 
       adjust_glyphs (f);
-      UNBLOCK_INPUT;
 
-      /* If we need to change SWINDOW, do it.  */
-      if (!EQ (swindow, FRAME_SELECTED_WINDOW (f)))
+      if (!WINDOW_LIVE_P (FRAME_SELECTED_WINDOW (f)))
+	/* We deleted the frame's selected window.  */
 	{
-	  /* If we're about to delete the selected window on the
-	     selected frame, then we should use Fselect_window to select
-	     the new window.  On the other hand, if we're about to
-	     delete the selected window on any other frame, we shouldn't
-	     do anything but set the frame's selected_window slot.  */
+	  /* Use the frame's first window as fallback ...  */
+	  Lisp_Object new_selected_window = Fframe_first_window (frame);
+	  /* ... but preferably use its most recently used window.  */
+	  Lisp_Object mru_window;
+
+	  /* `get-mru-window' might fail for some reason so play it safe
+	  - promote the first window _without recording it_ first.  */
 	  if (EQ (FRAME_SELECTED_WINDOW (f), selected_window))
-	    Fselect_window (swindow, Qnil);
+	    Fselect_window (new_selected_window, Qt);
 	  else
-	    FRAME_SELECTED_WINDOW (f) = swindow;
+	    FRAME_SELECTED_WINDOW (f) = new_selected_window;
+
+	  UNBLOCK_INPUT;
+
+	  /* Now look whether `get-mru-window' gets us something.  */
+	  mru_window = call1 (Qget_mru_window, frame);
+	  if (WINDOW_LIVE_P (mru_window)
+	      && XWINDOW (mru_window)->frame == frame)
+	    new_selected_window = mru_window;
+
+	  /* If all ended up well, we now promote the mru window.  */
+	  if (EQ (FRAME_SELECTED_WINDOW (f), selected_window))
+	    Fselect_window (new_selected_window, Qnil);
+	  else
+	    FRAME_SELECTED_WINDOW (f) = new_selected_window;
 	}
+      else
+	UNBLOCK_INPUT;
+
       /* Must be run by the caller:
 	 run_window_configuration_change_hook (f);  */
     }
@@ -6669,6 +6645,9 @@ syms_of_window ()
 
   Qdisplay_buffer = intern_c_string ("display-buffer");
   staticpro (&Qdisplay_buffer);
+
+  Qget_mru_window = intern_c_string ("get-mru-window");
+  staticpro (&Qget_mru_window);
 
   Qtemp_buffer_show_hook = intern_c_string ("temp-buffer-show-hook");
   staticpro (&Qtemp_buffer_show_hook);

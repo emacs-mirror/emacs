@@ -947,6 +947,32 @@ selected frame and no others."
 	    (setq best-window window)))))
     (or best-window second-best-window)))
 
+(defun get-mru-window (&optional all-frames)
+   "Return the least recently used window on frames specified by ALL-FRAMES.
+Do not return a minibuffer window.
+
+The following non-nil values of the optional argument ALL-FRAMES
+have special meanings:
+
+- t means consider all windows on all existing frames.
+
+- `visible' means consider all windows on all visible frames.
+
+- 0 (the number zero) means consider all windows on all visible
+    and iconified frames.
+
+- A frame means consider all windows on that frame only.
+
+Any other value of ALL-FRAMES means consider all windows on the
+selected frame and no others."
+   (let (best-window best-time time)
+    (dolist (window (window-list-1 nil nil all-frames))
+      (setq time (window-use-time window))
+      (when (or (not best-time) (> time best-time))
+	(setq best-time time)
+	(setq best-window window)))
+    best-window))
+
 (defun get-largest-window (&optional all-frames dedicated)
   "Return the largest window on frames specified by ALL-FRAMES.
 A minibuffer window is never a candidate.  A dedicated window is

@@ -1,3 +1,9 @@
+2010-07-04  Martin Rudalics  <rudalics@gmx.at>
+
+	* window.c (Qget_mru_window): Add declaration and staticpro it.
+	(Fdelete_window_internal): Rewrite to select the most recently
+	window instead of the previous window (Bug#6400).
+
 2010-07-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32console.c (sys_tputs): Adjust argument list to prototype in
