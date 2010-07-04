@@ -1,5 +1,5 @@
 2010-07-04  Tetsurou Okazaki  <okazaki@be.to>  (tiny change)
-	        Stefan Monnier  <monnier@iro.umontreal.ca>
+            Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lread.c (read1): Fix up last change to not mess up `c'.
 
@@ -13,8 +13,8 @@
 
 	* atimer.c (start_atimer): Use EMACS_TIME, not struct timeval.
 	* dired.c (file_name_completion_stat): Use DIRENTRY, not struct dirent.
-	* fileio.c (read_non_regular, read_non_regular_quit): Pass Lisp_Object,
-	as required by internal_condition_case_1.
+	* fileio.c (read_non_regular, read_non_regular_quit): Add Lisp_Object
+	arg, as required by internal_condition_case_1.
 	* print.c (strout): Use const char* for arg PTR.
 	* regex.c (bcmp_translate): Use RE_TRANSLATE_TYPE, not Lisp_Object.
 	(analyse_first): Fix "const const".
