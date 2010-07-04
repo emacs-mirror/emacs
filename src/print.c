@@ -350,7 +350,8 @@ printchar (unsigned int ch, Lisp_Object fun)
    to data in a Lisp string.  Otherwise that is not safe.  */
 
 static void
-strout (char *ptr, int size, int size_byte, Lisp_Object printcharfun, int multibyte)
+strout (const char *ptr, int size, int size_byte, Lisp_Object printcharfun,
+	int multibyte)
 {
   if (size < 0)
     size_byte = size = strlen (ptr);
