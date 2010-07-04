@@ -288,9 +288,13 @@ unsigned int msh_mousewheel = 0;
 #define MENU_FREE_DELAY 1000
 static unsigned menu_free_timer = 0;
 
-/* The below are defined in frame.c.  */
+/* In dispnew.c */
 
 extern Lisp_Object Vwindow_system_version;
+
+/* The below are defined in frame.c.  */
+
+extern Lisp_Object Qtooltip;
 
 #ifdef GLYPH_DEBUG
 int image_cache_refcount, dpyinfo_refcount;
