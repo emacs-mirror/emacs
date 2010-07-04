@@ -3253,7 +3253,7 @@ static EMACS_INT non_regular_nbytes;
    Value is the number of bytes read.  */
 
 static Lisp_Object
-read_non_regular (Lisp_Object ignored)
+read_non_regular (Lisp_Object ignore)
 {
   EMACS_INT nbytes;
 
@@ -3271,7 +3271,7 @@ read_non_regular (Lisp_Object ignored)
    in insert-file-contents.  */
 
 static Lisp_Object
-read_non_regular_quit (Lisp_Object ignored)
+read_non_regular_quit (Lisp_Object ignore)
 {
   return Qnil;
 }
