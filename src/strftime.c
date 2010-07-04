@@ -367,7 +367,11 @@ static CHAR_T *memcpy_lowcase (CHAR_T *dest, const CHAR_T *src,
                                size_t len LOCALE_PARAM_PROTO);
 
 static CHAR_T *
-memcpy_lowcase (char *dest, const char *src, size_t len)
+memcpy_lowcase (dest, src, len LOCALE_PARAM)
+     CHAR_T *dest;
+     const CHAR_T *src;
+     size_t len;
+     LOCALE_PARAM_DECL
 {
   while (len-- > 0)
     dest[len] = TOLOWER ((UCHAR_T) src[len], loc);
@@ -378,7 +382,11 @@ static CHAR_T *memcpy_uppcase (CHAR_T *dest, const CHAR_T *src,
                                size_t len LOCALE_PARAM_PROTO);
 
 static CHAR_T *
-memcpy_uppcase (char *dest, const char *src, size_t len)
+memcpy_uppcase (dest, src, len LOCALE_PARAM)
+     CHAR_T *dest;
+     const CHAR_T *src;
+     size_t len;
+     LOCALE_PARAM_DECL
 {
   while (len-- > 0)
     dest[len] = TOUPPER ((UCHAR_T) src[len], loc);
@@ -429,7 +437,9 @@ static int iso_week_days (int, int);
 __inline__
 #endif
 static int
-iso_week_days (int yday, int wday)
+iso_week_days (yday, wday)
+     int yday;
+     int wday;
 {
   /* Add enough to the first operand of % to make it nonnegative.  */
   int big_enough_multiple_of_7 = (-YDAY_MINIMUM / 7 + 2) * 7;
@@ -1464,7 +1474,12 @@ libc_hidden_def (my_strftime)
 /* For Emacs we have a separate interface which corresponds to the normal
    strftime function plus the ut argument, but without the ns argument.  */
 size_t
-emacs_strftimeu (char *s, size_t maxsize, const char *format, const struct tm *tp, int ut)
+emacs_strftimeu (s, maxsize, format, tp, ut)
+      char *s;
+      size_t maxsize;
+      const char *format;
+      const struct tm *tp;
+      int ut;
 {
   return my_strftime (s, maxsize, format, tp, ut, 0);
 }

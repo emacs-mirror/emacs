@@ -1,5 +1,9 @@
 2010-07-04  Juanma Barranquero  <lekktu@gmail.com>
 
+	* strftime.c: Revert conversion to standard C (revno:100708).
+
+2010-07-04  Juanma Barranquero  <lekktu@gmail.com>
+
 	Fix prototypes.
 
 	* atimer.c (start_atimer): Use EMACS_TIME, not struct timeval.
