@@ -95,7 +95,7 @@ Lisp_Object Vx_session_previous_id;
 #define CHDIR_OPT "--chdir="
 
 static void
-ice_connection_closed ()
+ice_connection_closed (void)
 {
   if (ice_fd >= 0)
     delete_keyboard_wait_descriptor (ice_fd);
@@ -108,8 +108,7 @@ ice_connection_closed ()
    Otherwise returns 1 if SAVE_SESSION_EVENT is stored in buffer BUFP.  */
 
 int
-x_session_check_input (bufp)
-     struct input_event *bufp;
+x_session_check_input (struct input_event *bufp)
 {
   SELECT_TYPE read_fds;
   EMACS_TIME tmout;
@@ -160,7 +159,7 @@ x_session_check_input (bufp)
 /* Return non-zero if we have a connection to a session manager.  */
 
 int
-x_session_have_connection ()
+x_session_have_connection (void)
 {
   return ice_fd != -1;
 }
@@ -170,9 +169,7 @@ x_session_have_connection ()
    Then lisp code can interact with the user.  */
 
 static void
-smc_interact_CB (smcConn, clientData)
-     SmcConn smcConn;
-     SmPointer clientData;
+smc_interact_CB (SmcConn smcConn, SmPointer clientData)
 {
   doing_interact = True;
   emacs_event.kind = SAVE_SESSION_EVENT;
@@ -311,9 +308,7 @@ smc_save_yourself_CB (smcConn,
 /* According to the SM specification, this shall close the connection.  */
 
 static void
-smc_die_CB (smcConn, clientData)
-     SmcConn smcConn;
-     SmPointer clientData;
+smc_die_CB (SmcConn smcConn, SmPointer clientData)
 {
   SmcCloseConnection (smcConn, 0, 0);
   ice_connection_closed ();
@@ -326,17 +321,13 @@ smc_die_CB (smcConn, clientData)
    even seem necessary.  */
 
 static void
-smc_save_complete_CB (smcConn, clientData)
-     SmcConn smcConn;
-     SmPointer clientData;
+smc_save_complete_CB (SmcConn smcConn, SmPointer clientData)
 {
   /* Empty */
 }
 
 static void
-smc_shutdown_cancelled_CB (smcConn, clientData)
-     SmcConn smcConn;
-     SmPointer clientData;
+smc_shutdown_cancelled_CB (SmcConn smcConn, SmPointer clientData)
 {
   /* Empty */
 }
@@ -384,8 +375,7 @@ ice_error_handler (iceConn,
 
 
 static void
-ice_io_error_handler (iceConn)
-     IceConn iceConn;
+ice_io_error_handler (IceConn iceConn)
 {
   /* Connection probably gone.  */
   ice_connection_closed ();
@@ -395,11 +385,7 @@ ice_io_error_handler (iceConn)
    uses ICE as it transport protocol.  */
 
 static void
-ice_conn_watch_CB (iceConn, clientData, opening, watchData)
-     IceConn iceConn;
-     IcePointer clientData;
-     Bool opening;
-     IcePointer *watchData;
+ice_conn_watch_CB (IceConn iceConn, IcePointer clientData, int opening, IcePointer *watchData)
 {
   if (! opening)
     {
@@ -423,9 +409,7 @@ ice_conn_watch_CB (iceConn, clientData, opening, watchData)
 /* Create the client leader window.  */
 
 static void
-create_client_leader_window (dpyinfo, client_id)
-     struct x_display_info *dpyinfo;
-     char *client_id;
+create_client_leader_window (struct x_display_info *dpyinfo, char *client_id)
 {
   Window w;
   XClassHint class_hints;
@@ -451,8 +435,7 @@ create_client_leader_window (dpyinfo, client_id)
 /* Try to open a connection to the session manager.  */
 
 void
-x_session_initialize (dpyinfo)
-     struct x_display_info *dpyinfo;
+x_session_initialize (struct x_display_info *dpyinfo)
 {
 #define SM_ERRORSTRING_LEN 512
   char errorstring[SM_ERRORSTRING_LEN];
@@ -532,7 +515,7 @@ x_session_initialize (dpyinfo)
 /* Ensure that the session manager is not contacted again. */
 
 void
-x_session_close ()
+x_session_close (void)
 {
   ice_connection_closed ();
 }
@@ -575,7 +558,7 @@ Do not call this function yourself. */)
 			    Initialization
  ***********************************************************************/
 void
-syms_of_xsmfns ()
+syms_of_xsmfns (void)
 {
   DEFVAR_LISP ("x-session-id", &Vx_session_id,
     doc: /* The session id Emacs got from the session manager for this session.

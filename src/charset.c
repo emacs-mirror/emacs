@@ -267,11 +267,7 @@ struct charset_map_entries
 */
 
 static void
-load_charset_map (charset, entries, n_entries, control_flag)
-  struct charset *charset;
-  struct charset_map_entries *entries;
-  int n_entries;
-  int control_flag;
+load_charset_map (struct charset *charset, struct charset_map_entries *entries, int n_entries, int control_flag)
 {
   Lisp_Object vec, table;
   unsigned max_code = CHARSET_MAX_CODE (charset);
@@ -440,9 +436,7 @@ load_charset_map (charset, entries, n_entries, control_flag)
    paying attention to comment charcter '#'.  */
 
 static INLINE unsigned
-read_hex (fp, eof)
-     FILE *fp;
-     int *eof;
+read_hex (FILE *fp, int *eof)
 {
   int c;
   unsigned n;
@@ -500,10 +494,7 @@ extern Lisp_Object Qfile_name_handler_alist;
 extern void add_to_log (char *, Lisp_Object, Lisp_Object);
 
 static void
-load_charset_map_from_file (charset, mapfile, control_flag)
-     struct charset *charset;
-     Lisp_Object mapfile;
-     int control_flag;
+load_charset_map_from_file (struct charset *charset, Lisp_Object mapfile, int control_flag)
 {
   unsigned min_code = CHARSET_MIN_CODE (charset);
   unsigned max_code = CHARSET_MAX_CODE (charset);
@@ -573,10 +564,7 @@ load_charset_map_from_file (charset, mapfile, control_flag)
 }
 
 static void
-load_charset_map_from_vector (charset, vec, control_flag)
-     struct charset *charset;
-     Lisp_Object vec;
-     int control_flag;
+load_charset_map_from_vector (struct charset *charset, Lisp_Object vec, int control_flag)
 {
   unsigned min_code = CHARSET_MIN_CODE (charset);
   unsigned max_code = CHARSET_MAX_CODE (charset);
@@ -652,9 +640,7 @@ load_charset_map_from_vector (charset, vec, control_flag)
    map it is (see the comment of load_charset_map for the detail).  */
 
 static void
-load_charset (charset, control_flag)
-     struct charset *charset;
-     int control_flag;
+load_charset (struct charset *charset, int control_flag)
 {
   Lisp_Object map;
 
@@ -689,10 +675,7 @@ void map_charset_for_dump (void (*c_function) (Lisp_Object, Lisp_Object),
                            unsigned from, unsigned to);
 
 void
-map_charset_for_dump (c_function, function, arg, from, to)
-     void (*c_function) (Lisp_Object, Lisp_Object);
-     Lisp_Object function, arg;
-     unsigned from, to;
+map_charset_for_dump (void (*c_function) (Lisp_Object, Lisp_Object), Lisp_Object function, Lisp_Object arg, unsigned int from, unsigned int to)
 {
   int from_idx = CODE_POINT_TO_INDEX (temp_charset_work->current, from);
   int to_idx = CODE_POINT_TO_INDEX (temp_charset_work->current, to);
@@ -1484,8 +1467,7 @@ return nil.  */)
 }
 
 static void
-check_iso_charset_parameter (dimension, chars, final_char)
-     Lisp_Object dimension, chars, final_char;
+check_iso_charset_parameter (Lisp_Object dimension, Lisp_Object chars, Lisp_Object final_char)
 {
   CHECK_NATNUM (dimension);
   CHECK_NATNUM (chars);
@@ -1535,8 +1517,7 @@ if CHARSET is designated instead.  */)
 */
 
 int
-string_xstring_p (string)
-     Lisp_Object string;
+string_xstring_p (Lisp_Object string)
 {
   const unsigned char *p = SDATA (string);
   const unsigned char *endp = p + SBYTES (string);
@@ -1563,11 +1544,7 @@ string_xstring_p (string)
    It may lookup a translation table TABLE if supplied.  */
 
 static void
-find_charsets_in_text (ptr, nchars, nbytes, charsets, table, multibyte)
-     const unsigned char *ptr;
-     EMACS_INT nchars, nbytes;
-     Lisp_Object charsets, table;
-     int multibyte;
+find_charsets_in_text (const unsigned char *ptr, EMACS_INT nchars, EMACS_INT nbytes, Lisp_Object charsets, Lisp_Object table, int multibyte)
 {
   const unsigned char *pend = ptr + nbytes;
 
@@ -1689,9 +1666,7 @@ only `ascii', `eight-bit-control', and `eight-bit-graphic'. */)
    value of Vchar_unify_table for C; i.e. it is nil, an integer, or a
    charset symbol.  */
 int
-maybe_unify_char (c, val)
-     int c;
-     Lisp_Object val;
+maybe_unify_char (int c, Lisp_Object val)
 {
   struct charset *charset;
 
@@ -1724,9 +1699,7 @@ maybe_unify_char (c, val)
    CHARSET.  */
 
 int
-decode_char (charset, code)
-     struct charset *charset;
-     unsigned code;
+decode_char (struct charset *charset, unsigned int code)
 {
   int c, char_index;
   enum charset_method method = CHARSET_METHOD (charset);
@@ -1805,9 +1778,7 @@ Lisp_Object charset_work;
    use CHARSET's strict_max_char instead of max_char.  */
 
 unsigned
-encode_char (charset, c)
-     struct charset *charset;
-     int c;
+encode_char (struct charset *charset, int c)
 {
   unsigned code;
   enum charset_method method = CHARSET_METHOD (charset);
@@ -2057,10 +2028,7 @@ is specified.  */)
    Vcharset_ordered_list.  */
 
 struct charset *
-char_charset (c, charset_list, code_return)
-     int c;
-     Lisp_Object charset_list;
-     unsigned *code_return;
+char_charset (int c, Lisp_Object charset_list, unsigned int *code_return)
 {
   int maybe_null = 0;
 
@@ -2314,7 +2282,7 @@ Return charset identification number of CHARSET.  */)
 
 
 void
-init_charset ()
+init_charset (void)
 {
   Lisp_Object tempdir;
   tempdir = Fexpand_file_name (build_string ("charsets"), Vdata_directory);
@@ -2332,7 +2300,7 @@ Please check your installation!\n",
 
 
 void
-init_charset_once ()
+init_charset_once (void)
 {
   int i, j, k;
 
@@ -2353,7 +2321,7 @@ init_charset_once ()
 #ifdef emacs
 
 void
-syms_of_charset ()
+syms_of_charset (void)
 {
   DEFSYM (Qcharsetp, "charsetp");
 

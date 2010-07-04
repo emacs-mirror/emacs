@@ -127,8 +127,7 @@ directory_files_internal_w32_unwind (Lisp_Object arg)
 #endif
 
 Lisp_Object
-directory_files_internal_unwind (dh)
-     Lisp_Object dh;
+directory_files_internal_unwind (Lisp_Object dh)
 {
   DIR *d = (DIR *) XSAVE_VALUE (dh)->pointer;
   BLOCK_INPUT;
@@ -143,10 +142,7 @@ directory_files_internal_unwind (dh)
    In the latter case, ID_FORMAT is passed to Ffile_attributes.  */
 
 Lisp_Object
-directory_files_internal (directory, full, match, nosort, attrs, id_format)
-     Lisp_Object directory, full, match, nosort;
-     int attrs;
-     Lisp_Object id_format;
+directory_files_internal (Lisp_Object directory, Lisp_Object full, Lisp_Object match, Lisp_Object nosort, int attrs, Lisp_Object id_format)
 {
   DIR *d;
   int directory_nbytes;
@@ -417,7 +413,7 @@ which see.  */)
 }
 
 
-Lisp_Object file_name_completion ();
+Lisp_Object file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int ver_flag, Lisp_Object predicate);
 
 DEFUN ("file-name-completion", Ffile_name_completion, Sfile_name_completion,
        2, 3, 0,
@@ -476,14 +472,11 @@ These are all file names in directory DIRECTORY which begin with FILE.  */)
   return file_name_completion (file, directory, 1, 0, Qnil);
 }
 
-static int file_name_completion_stat ();
+static int file_name_completion_stat (Lisp_Object dirname, struct dirent *dp, struct stat *st_addr);
 Lisp_Object Qdefault_directory;
 
 Lisp_Object
-file_name_completion (file, dirname, all_flag, ver_flag, predicate)
-     Lisp_Object file, dirname;
-     int all_flag, ver_flag;
-     Lisp_Object predicate;
+file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int ver_flag, Lisp_Object predicate)
 {
   DIR *d;
   int bestmatchsize = 0;
@@ -825,9 +818,7 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
    else number of chars that match at the beginning.  */
 
 static int
-scmp (s1, s2, len)
-     register unsigned char *s1, *s2;
-     int len;
+scmp (register unsigned char *s1, register unsigned char *s2, int len)
 {
   register int l = len;
 
@@ -848,10 +839,7 @@ scmp (s1, s2, len)
 }
 
 static int
-file_name_completion_stat (dirname, dp, st_addr)
-     Lisp_Object dirname;
-     DIRENTRY *dp;
-     struct stat *st_addr;
+file_name_completion_stat (Lisp_Object dirname, struct dirent *dp, struct stat *st_addr)
 {
   int len = NAMLEN (dp);
   int pos = SCHARS (dirname);
@@ -893,8 +881,7 @@ file_name_completion_stat (dirname, dp, st_addr)
 }
 
 Lisp_Object
-make_time (time)
-     time_t time;
+make_time (time_t time)
 {
   return Fcons (make_number (time >> 16),
 		Fcons (make_number (time & 0177777), Qnil));
@@ -1103,7 +1090,7 @@ Comparison is in lexicographic order and case is significant.  */)
 }
 
 void
-syms_of_dired ()
+syms_of_dired (void)
 {
   Qdirectory_files = intern_c_string ("directory-files");
   Qdirectory_files_and_attributes = intern_c_string ("directory-files-and-attributes");

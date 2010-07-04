@@ -50,7 +50,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 
-extern char *getenv ();
+extern char *getenv (const char *);
 
 /* This does cause trouble on AIX.  I'm going to take the comment at
    face value.  */
@@ -64,8 +64,8 @@ extern short getuid ();		/* If this causes portability problems,
 extern struct passwd *getpwuid (uid_t);
 extern struct passwd *getpwnam (const char *);
 #else
-extern struct passwd *getpwuid ();
-extern struct passwd *getpwnam ();
+extern struct passwd *getpwuid (uid_t);
+extern struct passwd *getpwnam (const char *);
 #endif
 
 extern char *get_system_name ();
@@ -82,8 +82,8 @@ extern char *get_system_name ();
 #define free xfree
 #endif
 
-char *x_get_string_resource ();
-static int file_p ();
+char *x_get_string_resource (XrmDatabase rdb, char *name, char *class);
+static int file_p (char *filename);
 
 
 /* X file search path processing.  */
@@ -98,9 +98,7 @@ char *x_customization_string;
    resource, for later use in search path decoding.  If we find no
    such resource, return zero.  */
 char *
-x_get_customization_string (db, name, class)
-     XrmDatabase db;
-     char *name, *class;
+x_get_customization_string (XrmDatabase db, char *name, char *class)
 {
   char *full_name
     = (char *) alloca (strlen (name) + sizeof ("customization") + 3);
@@ -155,10 +153,7 @@ x_get_customization_string (db, name, class)
    Return NULL otherwise.  */
 
 static char *
-magic_file_p (string, string_len, class, escaped_suffix, suffix)
-     char *string;
-     int string_len;
-     char *class, *escaped_suffix, *suffix;
+magic_file_p (char *string, int string_len, char *class, char *escaped_suffix, char *suffix)
 {
   char *lang = getenv ("LANG");
 
@@ -281,7 +276,7 @@ magic_file_p (string, string_len, class, escaped_suffix, suffix)
 
 
 static char *
-gethomedir ()
+gethomedir (void)
 {
   struct passwd *pw;
   char *ptr;
@@ -311,8 +306,7 @@ gethomedir ()
 
 
 static int
-file_p (filename)
-     char *filename;
+file_p (char *filename)
 {
   struct stat status;
 
@@ -327,8 +321,7 @@ file_p (filename)
    the path name of the one we found otherwise.  */
 
 static char *
-search_magic_path (search_path, class, escaped_suffix, suffix)
-     char *search_path, *class, *escaped_suffix, *suffix;
+search_magic_path (char *search_path, char *class, char *escaped_suffix, char *suffix)
 {
   register char *s, *p;
 
@@ -363,8 +356,7 @@ search_magic_path (search_path, class, escaped_suffix, suffix)
 /* Producing databases for individual sources.  */
 
 static XrmDatabase
-get_system_app (class)
-     char *class;
+get_system_app (char *class)
 {
   XrmDatabase db = NULL;
   char *path;
@@ -384,16 +376,14 @@ get_system_app (class)
 
 
 static XrmDatabase
-get_fallback (display)
-     Display *display;
+get_fallback (Display *display)
 {
   return NULL;
 }
 
 
 static XrmDatabase
-get_user_app (class)
-     char *class;
+get_user_app (char *class)
 {
   char *path;
   char *file = 0;
@@ -428,8 +418,7 @@ get_user_app (class)
 
 
 static XrmDatabase
-get_user_db (display)
-     Display *display;
+get_user_db (Display *display)
 {
   XrmDatabase db;
   char *xdefs;
@@ -470,7 +459,7 @@ get_user_db (display)
 }
 
 static XrmDatabase
-get_environ_db ()
+get_environ_db (void)
 {
   XrmDatabase db;
   char *p;
@@ -505,9 +494,7 @@ XrmRepresentation x_rm_string;	/* Quark representation */
 /* Load X resources based on the display and a possible -xrm option. */
 
 XrmDatabase
-x_load_resources (display, xrm_string, myname, myclass)
-     Display *display;
-     char *xrm_string, *myname, *myclass;
+x_load_resources (Display *display, char *xrm_string, char *myname, char *myclass)
 {
   XrmDatabase user_database;
   XrmDatabase rdb;
@@ -641,11 +628,7 @@ x_load_resources (display, xrm_string, myname, myclass)
    and of type TYPE from database RDB.  The value is returned in RET_VALUE. */
 
 int
-x_get_resource (rdb, name, class, expected_type, ret_value)
-     XrmDatabase rdb;
-     char *name, *class;
-     XrmRepresentation expected_type;
-     XrmValue *ret_value;
+x_get_resource (XrmDatabase rdb, char *name, char *class, XrmRepresentation expected_type, XrmValue *ret_value)
 {
   XrmValue value;
   XrmName namelist[100];
@@ -673,9 +656,7 @@ x_get_resource (rdb, name, class, expected_type, ret_value)
    database RDB. */
 
 char *
-x_get_string_resource (rdb, name, class)
-     XrmDatabase rdb;
-     char *name, *class;
+x_get_string_resource (XrmDatabase rdb, char *name, char *class)
 {
   XrmValue value;
 

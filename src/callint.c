@@ -140,8 +140,7 @@ usage: (interactive &optional ARGS)  */)
 /* Quotify EXP: if EXP is constant, return it.
    If EXP is not constant, return (quote EXP).  */
 Lisp_Object
-quotify_arg (exp)
-     register Lisp_Object exp;
+quotify_arg (register Lisp_Object exp)
 {
   if (!INTEGERP (exp) && !STRINGP (exp)
       && !NILP (exp) && !EQ (exp, Qt))
@@ -152,8 +151,7 @@ quotify_arg (exp)
 
 /* Modify EXP by quotifying each element (except the first).  */
 Lisp_Object
-quotify_args (exp)
-     Lisp_Object exp;
+quotify_args (Lisp_Object exp)
 {
   register Lisp_Object tail;
   Lisp_Object next;
@@ -169,8 +167,7 @@ char *callint_argfuns[]
     = {"", "point", "mark", "region-beginning", "region-end"};
 
 static void
-check_mark (for_region)
-     int for_region;
+check_mark (int for_region)
 {
   Lisp_Object tem;
   tem = Fmarker_buffer (current_buffer->mark);
@@ -191,8 +188,7 @@ check_mark (for_region)
    of VALUES to do its job.  */
 
 static void
-fix_command (input, values)
-     Lisp_Object input, values;
+fix_command (Lisp_Object input, Lisp_Object values)
 {
   if (CONSP (input))
     {
@@ -897,7 +893,7 @@ Its numeric meaning is what you would get from `(interactive "p")'.  */)
 }
 
 void
-syms_of_callint ()
+syms_of_callint (void)
 {
   point_marker = Fmake_marker ();
   staticpro (&point_marker);

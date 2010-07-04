@@ -50,7 +50,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <math.h>
 
 #if !defined (atof)
-extern double atof ();
+extern double atof (const char *);
 #endif /* !atof */
 
 Lisp_Object Qnil, Qt, Qquote, Qlambda, Qsubr, Qunbound;
@@ -97,16 +97,14 @@ Lisp_Object Vmost_positive_fixnum, Vmost_negative_fixnum;
 
 
 void
-circular_list_error (list)
-     Lisp_Object list;
+circular_list_error (Lisp_Object list)
 {
   xsignal (Qcircular_list, list);
 }
 
 
 Lisp_Object
-wrong_type_argument (predicate, value)
-     register Lisp_Object predicate, value;
+wrong_type_argument (register Lisp_Object predicate, register Lisp_Object value)
 {
   /* If VALUE is not even a valid Lisp object, we'd want to abort here
      where we can get a backtrace showing where it came from.  We used
@@ -119,21 +117,19 @@ wrong_type_argument (predicate, value)
 }
 
 void
-pure_write_error ()
+pure_write_error (void)
 {
   error ("Attempt to modify read-only object");
 }
 
 void
-args_out_of_range (a1, a2)
-     Lisp_Object a1, a2;
+args_out_of_range (Lisp_Object a1, Lisp_Object a2)
 {
   xsignal2 (Qargs_out_of_range, a1, a2);
 }
 
 void
-args_out_of_range_3 (a1, a2, a3)
-     Lisp_Object a1, a2, a3;
+args_out_of_range_3 (Lisp_Object a1, Lisp_Object a2, Lisp_Object a3)
 {
   xsignal3 (Qargs_out_of_range, a1, a2, a3);
 }
@@ -146,8 +142,7 @@ int sign_extend_temp;
 /* On a few machines, XINT can only be done by calling this.  */
 
 int
-sign_extend_lisp_int (num)
-     EMACS_INT num;
+sign_extend_lisp_int (EMACS_INT num)
 {
   if (num & (((EMACS_INT) 1) << (VALBITS - 1)))
     return num | (((EMACS_INT) (-1)) << VALBITS);
@@ -840,8 +835,7 @@ Value, if non-nil, is a list \(interactive SPEC).  */)
    indirections contains a loop.  */
 
 struct Lisp_Symbol *
-indirect_variable (symbol)
-     struct Lisp_Symbol *symbol;
+indirect_variable (struct Lisp_Symbol *symbol)
 {
   struct Lisp_Symbol *tortoise, *hare;
 
@@ -892,8 +886,7 @@ variable chain of symbols.  */)
   ((blv)->forwarded ? do_symval_forwarding (BLV_FWD (blv)) : BLV_VALUE (blv))
 
 Lisp_Object
-do_symval_forwarding (valcontents)
-     register union Lisp_Fwd *valcontents;
+do_symval_forwarding (register union Lisp_Fwd *valcontents)
 {
   register Lisp_Object val;
   switch (XFWDTYPE (valcontents))
@@ -947,11 +940,11 @@ do_symval_forwarding (valcontents)
   } while (0)
 
 static void
-store_symval_forwarding (/* symbol, */ valcontents, newval, buf)
+store_symval_forwarding (union Lisp_Fwd *valcontents, register Lisp_Object newval, struct buffer *buf)
      /* struct Lisp_Symbol *symbol; */
-     union Lisp_Fwd *valcontents;
-     register Lisp_Object newval;
-     struct buffer *buf;
+                                 
+                                 
+                        
 {
   switch (XFWDTYPE (valcontents))
     {
@@ -1032,8 +1025,7 @@ store_symval_forwarding (/* symbol, */ valcontents, newval, buf)
    This makes it safe to alter the status of other bindings.  */
 
 void
-swap_in_global_binding (symbol)
-     struct Lisp_Symbol *symbol;
+swap_in_global_binding (struct Lisp_Symbol *symbol)
 {
   struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (symbol);
 
@@ -1059,9 +1051,7 @@ swap_in_global_binding (symbol)
    This could be another forwarding pointer.  */
 
 static void
-swap_in_symval_forwarding (symbol, blv)
-     struct Lisp_Symbol *symbol;
-     struct Lisp_Buffer_Local_Value *blv;
+swap_in_symval_forwarding (struct Lisp_Symbol *symbol, struct Lisp_Buffer_Local_Value *blv)
 {
   register Lisp_Object tem1;
 
@@ -1111,8 +1101,7 @@ swap_in_symval_forwarding (symbol, blv)
    within this function.  Great care is required for this.  */
 
 Lisp_Object
-find_symbol_value (symbol)
-     Lisp_Object symbol;
+find_symbol_value (Lisp_Object symbol)
 {
   struct Lisp_Symbol *sym;
 
@@ -1183,8 +1172,7 @@ let_shadows_buffer_binding_p (struct Lisp_Symbol *symbol)
 }
 
 static int
-let_shadows_global_binding_p (symbol)
-     Lisp_Object symbol;
+let_shadows_global_binding_p (Lisp_Object symbol)
 {
   struct specbinding *p;
 
@@ -1204,9 +1192,7 @@ let_shadows_global_binding_p (symbol)
    If BINDFLAG is nonzero, we don't do that.  */
 
 void
-set_internal (symbol, newval, where, bindflag)
-     register Lisp_Object symbol, newval, where;
-     int bindflag;
+set_internal (register Lisp_Object symbol, register Lisp_Object newval, register Lisp_Object where, int bindflag)
 {
   int voide = EQ (newval, Qunbound);
   struct Lisp_Symbol *sym;
@@ -1357,8 +1343,7 @@ set_internal (symbol, newval, where, bindflag)
    Return Qunbound if it is void.  */
 
 Lisp_Object
-default_value (symbol)
-     Lisp_Object symbol;
+default_value (Lisp_Object symbol)
 {
   struct Lisp_Symbol *sym;
 
@@ -2109,8 +2094,7 @@ selected frame's terminal device).  */)
    This is like Findirect_function, except that it doesn't signal an
    error if the chain ends up unbound.  */
 Lisp_Object
-indirect_function (object)
-     register Lisp_Object object;
+indirect_function (register Lisp_Object object)
 {
   Lisp_Object tortoise, hare;
 
@@ -2326,9 +2310,7 @@ bool-vector.  IDX starts at 0.  */)
 enum comparison { equal, notequal, less, grtr, less_or_equal, grtr_or_equal };
 
 Lisp_Object
-arithcompare (num1, num2, comparison)
-     Lisp_Object num1, num2;
-     enum comparison comparison;
+arithcompare (Lisp_Object num1, Lisp_Object num2, enum comparison comparison)
 {
   double f1 = 0, f2 = 0;
   int floatp = 0;
@@ -2454,8 +2436,7 @@ DEFUN ("zerop", Fzerop, Szerop, 1, 1, 0,
    when the value fits in one.  */
 
 Lisp_Object
-long_to_cons (i)
-     unsigned long i;
+long_to_cons (long unsigned int i)
 {
   unsigned long top = i >> 16;
   unsigned int bot = i & 0xFFFF;
@@ -2467,8 +2448,7 @@ long_to_cons (i)
 }
 
 unsigned long
-cons_to_long (c)
-     Lisp_Object c;
+cons_to_long (Lisp_Object c)
 {
   Lisp_Object top, bot;
   if (INTEGERP (c))
@@ -2509,8 +2489,7 @@ NUMBER may be an integer or a floating point number.  */)
 }
 
 INLINE static int
-digit_to_number (character, base)
-     int character, base;
+digit_to_number (int character, int base)
 {
   int digit;
 
@@ -2610,10 +2589,7 @@ static Lisp_Object float_arith_driver (double, int, enum arithop,
 extern Lisp_Object fmod_float ();
 
 Lisp_Object
-arith_driver (code, nargs, args)
-     enum arithop code;
-     int nargs;
-     register Lisp_Object *args;
+arith_driver (enum arithop code, int nargs, register Lisp_Object *args)
 {
   register Lisp_Object val;
   register int argnum;
@@ -2698,12 +2674,7 @@ arith_driver (code, nargs, args)
 #define isnan(x) ((x) != (x))
 
 static Lisp_Object
-float_arith_driver (accum, argnum, code, nargs, args)
-     double accum;
-     register int argnum;
-     enum arithop code;
-     int nargs;
-     register Lisp_Object *args;
+float_arith_driver (double accum, register int argnum, enum arithop code, int nargs, register Lisp_Object *args)
 {
   register Lisp_Object val;
   double next;
@@ -3038,7 +3009,7 @@ lowercase l) for small endian machines.  */)
 
 
 void
-syms_of_data ()
+syms_of_data (void)
 {
   Lisp_Object error_tail, arith_tail;
 
@@ -3467,8 +3438,7 @@ syms_of_data ()
 }
 
 SIGTYPE
-arith_error (signo)
-     int signo;
+arith_error (int signo)
 {
   sigsetmask (SIGEMPTYMASK);
 
@@ -3477,7 +3447,7 @@ arith_error (signo)
 }
 
 void
-init_data ()
+init_data (void)
 {
   /* Don't do this if just dumping out.
      We don't want to call `signal' in this case

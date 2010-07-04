@@ -34,9 +34,9 @@ Lisp_Object Vascii_canon_table, Vascii_eqv_table;
 int case_temp1;
 Lisp_Object case_temp2;
 
-static void set_canon ();
-static void set_identity ();
-static void shuffle ();
+static void set_canon (Lisp_Object case_table, Lisp_Object range, Lisp_Object elt);
+static void set_identity (Lisp_Object table, Lisp_Object c, Lisp_Object elt);
+static void shuffle (Lisp_Object table, Lisp_Object c, Lisp_Object elt);
 
 DEFUN ("case-table-p", Fcase_table_p, Scase_table_p, 1, 1, 0,
        doc: /* Return t if OBJECT is a case table.
@@ -63,8 +63,7 @@ See `set-case-table' for more information on these data structures.  */)
 }
 
 static Lisp_Object
-check_case_table (obj)
-     Lisp_Object obj;
+check_case_table (Lisp_Object obj)
 {
   CHECK_TYPE (!NILP (Fcase_table_p (obj)), Qcase_table_p, obj);
   return (obj);
@@ -85,7 +84,7 @@ This is the one used for new buffers.  */)
   return Vascii_downcase_table;
 }
 
-static Lisp_Object set_case_table ();
+static Lisp_Object set_case_table (Lisp_Object table, int standard);
 
 DEFUN ("set-case-table", Fset_case_table, Sset_case_table, 1, 1, 0,
        doc: /* Select a new case table for the current buffer.
@@ -120,9 +119,7 @@ See `set-case-table' for more info on case tables.  */)
 }
 
 static Lisp_Object
-set_case_table (table, standard)
-     Lisp_Object table;
-     int standard;
+set_case_table (Lisp_Object table, int standard)
 {
   Lisp_Object up, canon, eqv;
 
@@ -184,8 +181,7 @@ set_case_table (table, standard)
    CASE_TABLE.  */
 
 static void
-set_canon (case_table, range, elt)
-     Lisp_Object case_table, range, elt;
+set_canon (Lisp_Object case_table, Lisp_Object range, Lisp_Object elt)
 {
   Lisp_Object up = XCHAR_TABLE (case_table)->extras[0];
   Lisp_Object canon = XCHAR_TABLE (case_table)->extras[1];
@@ -200,8 +196,7 @@ set_canon (case_table, range, elt)
    character.  This is called in map_char_table.  */
 
 static void
-set_identity (table, c, elt)
-     Lisp_Object table, c, elt;
+set_identity (Lisp_Object table, Lisp_Object c, Lisp_Object elt)
 {
   if (NATNUMP (elt))
     {
@@ -225,8 +220,7 @@ set_identity (table, c, elt)
    operated.  */
 
 static void
-shuffle (table, c, elt)
-     Lisp_Object table, c, elt;
+shuffle (Lisp_Object table, Lisp_Object c, Lisp_Object elt)
 {
   if (NATNUMP (elt))
     {
@@ -250,7 +244,7 @@ shuffle (table, c, elt)
 }
 
 void
-init_casetab_once ()
+init_casetab_once (void)
 {
   register int i;
   Lisp_Object down, up;
@@ -296,7 +290,7 @@ init_casetab_once ()
 }
 
 void
-syms_of_casetab ()
+syms_of_casetab (void)
 {
   Qcase_table_p = intern_c_string ("case-table-p");
   staticpro (&Qcase_table_p);

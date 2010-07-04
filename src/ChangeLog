@@ -1,3 +1,81 @@
+2010-07-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* alloc.c: Convert function definitions to standard C.
+	* atimer.c:
+	* bidi.c:
+	* bytecode.c:
+	* callint.c:
+	* callproc.c:
+	* casefiddle.c:
+	* casetab.c:
+	* category.c:
+	* ccl.c:
+	* character.c:
+	* charset.c:
+	* chartab.c:
+	* cmds.c:
+	* coding.c:
+	* composite.c:
+	* data.c:
+	* dbusbind.c:
+	* dired.c:
+	* dispnew.c:
+	* doc.c:
+	* doprnt.c:
+	* ecrt0.c:
+	* editfns.c:
+	* fileio.c:
+	* filelock.c:
+	* filemode.c:
+	* fns.c:
+	* font.c:
+	* fontset.c:
+	* frame.c:
+	* fringe.c:
+	* ftfont.c:
+	* ftxfont.c:
+	* gtkutil.c:
+	* indent.c:
+	* insdel.c:
+	* intervals.c:
+	* keymap.c:
+	* lread.c:
+	* macros.c:
+	* marker.c:
+	* md5.c:
+	* menu.c:
+	* minibuf.c:
+	* prefix-args.c:
+	* print.c:
+	* ralloc.c:
+	* regex.c:
+	* region-cache.c:
+	* scroll.c:
+	* search.c:
+	* sound.c:
+	* strftime.c:
+	* syntax.c:
+	* sysdep.c:
+	* termcap.c:
+	* terminal.c:
+	* terminfo.c:
+	* textprop.c:
+	* tparam.c:
+	* undo.c:
+	* unexelf.c:
+	* window.c:
+	* xfaces.c:
+	* xfns.c:
+	* xfont.c:
+	* xftfont.c:
+	* xgselect.c:
+	* xmenu.c:
+	* xrdb.c:
+	* xselect.c:
+	* xsettings.c:
+	* xsmfns.c:
+	* xterm.c: Likewise.
+
 2010-07-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdos.c (IT_set_frame_parameters): Fix setting of colors in

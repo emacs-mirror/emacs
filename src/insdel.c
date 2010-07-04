@@ -51,7 +51,7 @@ static void adjust_markers_for_replace (EMACS_INT, EMACS_INT, EMACS_INT,
 					EMACS_INT, EMACS_INT, EMACS_INT);
 static void adjust_point (EMACS_INT nchars, EMACS_INT nbytes);
 
-Lisp_Object Fcombine_after_change_execute ();
+Lisp_Object Fcombine_after_change_execute (void);
 
 /* Non-nil means don't call the after-change-functions right away,
    just record an element in combine_after_change_list.  */
@@ -85,7 +85,7 @@ static int check_markers_debug_flag;
   else
 
 void
-check_markers ()
+check_markers (void)
 {
   register struct Lisp_Marker *tail;
   int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
@@ -2132,8 +2132,7 @@ prepare_to_modify_buffer (EMACS_INT start, EMACS_INT end,
    NO-ERROR-FLAG is nil if there was an error,
    anything else meaning no error (so this function does nothing).  */
 Lisp_Object
-reset_var_on_error (val)
-     Lisp_Object val;
+reset_var_on_error (Lisp_Object val)
 {
   if (NILP (XCDR (val)))
     Fset (XCAR (val), Qnil);
@@ -2297,8 +2296,7 @@ signal_after_change (EMACS_INT charpos, EMACS_INT lendel, EMACS_INT lenins)
 }
 
 Lisp_Object
-Fcombine_after_change_execute_1 (val)
-     Lisp_Object val;
+Fcombine_after_change_execute_1 (Lisp_Object val)
 {
   Vcombine_after_change_calls = val;
   return val;
@@ -2390,7 +2388,7 @@ DEFUN ("combine-after-change-execute", Fcombine_after_change_execute,
 }
 
 void
-syms_of_insdel ()
+syms_of_insdel (void)
 {
   staticpro (&combine_after_change_list);
   staticpro (&combine_after_change_buffer);

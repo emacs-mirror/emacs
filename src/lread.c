@@ -230,7 +230,7 @@ static Lisp_Object load_unwind (Lisp_Object);
 static Lisp_Object load_descriptor_unwind (Lisp_Object);
 
 static void invalid_syntax (const char *, int) NO_RETURN;
-static void end_of_file_error () NO_RETURN;
+static void end_of_file_error (void) NO_RETURN;
 
 
 /* Functions that read one byte from the current source READCHARFUN
@@ -262,9 +262,7 @@ static int readbyte_from_string (int, Lisp_Object);
 static int unread_char;
 
 static int
-readchar (readcharfun, multibyte)
-     Lisp_Object readcharfun;
-     int *multibyte;
+readchar (Lisp_Object readcharfun, int *multibyte)
 {
   Lisp_Object tem;
   register int c;
@@ -435,9 +433,7 @@ readchar (readcharfun, multibyte)
    If the stream is a user function, call it with the char as argument.  */
 
 static void
-unreadchar (readcharfun, c)
-     Lisp_Object readcharfun;
-     int c;
+unreadchar (Lisp_Object readcharfun, int c)
 {
   readchar_count--;
   if (c == -1)
@@ -501,18 +497,14 @@ unreadchar (readcharfun, c)
 }
 
 static int
-readbyte_for_lambda (c, readcharfun)
-     int c;
-     Lisp_Object readcharfun;
+readbyte_for_lambda (int c, Lisp_Object readcharfun)
 {
   return read_bytecode_char (c >= 0);
 }
 
 
 static int
-readbyte_from_file (c, readcharfun)
-     int c;
-     Lisp_Object readcharfun;
+readbyte_from_file (int c, Lisp_Object readcharfun)
 {
   if (c >= 0)
     {
@@ -543,9 +535,7 @@ readbyte_from_file (c, readcharfun)
 }
 
 static int
-readbyte_from_string (c, readcharfun)
-     int c;
-     Lisp_Object readcharfun;
+readbyte_from_string (int c, Lisp_Object readcharfun)
 {
   Lisp_Object string = XCAR (readcharfun);
 
@@ -573,10 +563,7 @@ readbyte_from_string (c, readcharfun)
 extern char emacs_mule_bytes[256];
 
 static int
-read_emacs_mule_char (c, readbyte, readcharfun)
-     int c;
-     int (*readbyte) (int, Lisp_Object);
-     Lisp_Object readcharfun;
+read_emacs_mule_char (int c, int (*readbyte) (int, Lisp_Object), Lisp_Object readcharfun)
 {
   /* Emacs-mule coding uses at most 4-byte for one character.  */
   unsigned char buf[4];
@@ -871,8 +858,7 @@ DEFUN ("get-file-char", Fget_file_char, Sget_file_char, 0, 0, 0,
    because of an incompatible change in the byte compiler.  */
 
 static int
-safe_to_load_p (fd)
-     int fd;
+safe_to_load_p (int fd)
 {
   char buf[512];
   int nbytes, i;
@@ -909,8 +895,7 @@ safe_to_load_p (fd)
    after loading a file successfully.  */
 
 static Lisp_Object
-record_load_unwind (old)
-     Lisp_Object old;
+record_load_unwind (Lisp_Object old)
 {
   return Vloads_in_progress = old;
 }
@@ -918,15 +903,13 @@ record_load_unwind (old)
 /* This handler function is used via internal_condition_case_1.  */
 
 static Lisp_Object
-load_error_handler (data)
-     Lisp_Object data;
+load_error_handler (Lisp_Object data)
 {
   return Qnil;
 }
 
 static Lisp_Object
-load_warn_old_style_backquotes (file)
-     Lisp_Object file;
+load_warn_old_style_backquotes (Lisp_Object file)
 {
   if (!NILP (Vold_style_backquotes))
     {
@@ -1299,8 +1282,8 @@ Return t if the file exists and loads successfully.  */)
 }
 
 static Lisp_Object
-load_unwind (arg)  /* used as unwind-protect function in load */
-     Lisp_Object arg;
+load_unwind (Lisp_Object arg)  /* used as unwind-protect function in load */
+                     
 {
   FILE *stream = (FILE *) XSAVE_VALUE (arg)->pointer;
   if (stream != NULL)
@@ -1313,8 +1296,7 @@ load_unwind (arg)  /* used as unwind-protect function in load */
 }
 
 static Lisp_Object
-load_descriptor_unwind (oldlist)
-     Lisp_Object oldlist;
+load_descriptor_unwind (Lisp_Object oldlist)
 {
   load_descriptor_list = oldlist;
   return Qnil;
@@ -1324,7 +1306,7 @@ load_descriptor_unwind (oldlist)
    This is used when starting a subprocess.  */
 
 void
-close_load_descs ()
+close_load_descs (void)
 {
 #ifndef WINDOWSNT
   Lisp_Object tail;
@@ -1334,8 +1316,7 @@ close_load_descs ()
 }
 
 static int
-complete_filename_p (pathname)
-     Lisp_Object pathname;
+complete_filename_p (Lisp_Object pathname)
 {
   register const unsigned char *s = SDATA (pathname);
   return (IS_DIRECTORY_SEP (s[0])
@@ -1383,11 +1364,7 @@ in which case file-name-handlers are ignored.  */)
    but store the found remote file name in *STOREPTR.  */
 
 int
-openp (path, str, suffixes, storeptr, predicate)
-     Lisp_Object path, str;
-     Lisp_Object suffixes;
-     Lisp_Object *storeptr;
-     Lisp_Object predicate;
+openp (Lisp_Object path, Lisp_Object str, Lisp_Object suffixes, Lisp_Object *storeptr, Lisp_Object predicate)
 {
   register int fd;
   int fn_size = 100;
@@ -1539,9 +1516,7 @@ openp (path, str, suffixes, storeptr, predicate)
    ENTIRE is 1 if loading that entire file, 0 if evaluating part of it.  */
 
 static void
-build_load_history (filename, entire)
-     Lisp_Object filename;
-     int entire;
+build_load_history (Lisp_Object filename, int entire)
 {
   register Lisp_Object tail, prev, newelt;
   register Lisp_Object tem, tem2;
@@ -1601,16 +1576,15 @@ build_load_history (filename, entire)
 }
 
 Lisp_Object
-unreadpure (junk) /* Used as unwind-protect function in readevalloop */
-     Lisp_Object junk;
+unreadpure (Lisp_Object junk) /* Used as unwind-protect function in readevalloop */
+                      
 {
   read_pure = 0;
   return Qnil;
 }
 
 static Lisp_Object
-readevalloop_1 (old)
-     Lisp_Object old;
+readevalloop_1 (Lisp_Object old)
 {
   load_convert_to_unibyte = ! NILP (old);
   return Qnil;
@@ -1620,7 +1594,7 @@ readevalloop_1 (old)
    information.  */
 
 static void
-end_of_file_error ()
+end_of_file_error (void)
 {
   if (STRINGP (Vload_file_name))
     xsignal1 (Qend_of_file, Vload_file_name);
@@ -1924,10 +1898,10 @@ START and END optionally delimit a substring of STRING from which to read;
 /* Function to set up the global context we need in toplevel read
    calls. */
 static Lisp_Object
-read_internal_start (stream, start, end)
-     Lisp_Object stream;
-     Lisp_Object start; /* Only used when stream is a string. */
-     Lisp_Object end; /* Only used when stream is a string. */
+read_internal_start (Lisp_Object stream, Lisp_Object start, Lisp_Object end)
+                        
+                        /* Only used when stream is a string. */
+                      /* Only used when stream is a string. */
 {
   Lisp_Object retval;
 
@@ -1985,9 +1959,7 @@ read_internal_start (stream, start, end)
    S is error string of length N (if > 0)  */
 
 static void
-invalid_syntax (s, n)
-     const char *s;
-     int n;
+invalid_syntax (const char *s, int n)
 {
   if (!n)
     n = strlen (s);
@@ -1999,8 +1971,7 @@ invalid_syntax (s, n)
    are not allowed. */
 
 static Lisp_Object
-read0 (readcharfun)
-     Lisp_Object readcharfun;
+read0 (Lisp_Object readcharfun)
 {
   register Lisp_Object val;
   int c;
@@ -2020,9 +1991,7 @@ static char *read_buffer;
    If the escape sequence forces unibyte, return eight-bit char.  */
 
 static int
-read_escape (readcharfun, stringp)
-     Lisp_Object readcharfun;
-     int stringp;
+read_escape (Lisp_Object readcharfun, int stringp)
 {
   register int c = READCHAR;
   /* \u allows up to four hex digits, \U up to eight.  Default to the
@@ -2236,9 +2205,7 @@ read_escape (readcharfun, stringp)
    range.  */
 
 static Lisp_Object
-read_integer (readcharfun, radix)
-     Lisp_Object readcharfun;
-     int radix;
+read_integer (Lisp_Object readcharfun, int radix)
 {
   int ndigits = 0, invalid_p, c, sign = 0;
   /* We use a floating point number because  */
@@ -2303,10 +2270,7 @@ read_integer (readcharfun, radix)
    FIRST_IN_LIST is nonzero if this is the first element of a list.  */
 
 static Lisp_Object
-read1 (readcharfun, pch, first_in_list)
-     register Lisp_Object readcharfun;
-     int *pch;
-     int first_in_list;
+read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 {
   register int c;
   int uninterned_symbol = 0;
@@ -3110,9 +3074,7 @@ read1 (readcharfun, pch, first_in_list)
 static Lisp_Object seen_list;
 
 static void
-substitute_object_in_subtree (object, placeholder)
-     Lisp_Object object;
-     Lisp_Object placeholder;
+substitute_object_in_subtree (Lisp_Object object, Lisp_Object placeholder)
 {
   Lisp_Object check_object;
 
@@ -3147,10 +3109,7 @@ substitute_object_in_subtree (object, placeholder)
   } while (0)
 
 static Lisp_Object
-substitute_object_recurse (object, placeholder, subtree)
-     Lisp_Object object;
-     Lisp_Object placeholder;
-     Lisp_Object subtree;
+substitute_object_recurse (Lisp_Object object, Lisp_Object placeholder, Lisp_Object subtree)
 {
   /* If we find the placeholder, return the target object. */
   if (EQ (placeholder, subtree))
@@ -3225,9 +3184,7 @@ substitute_object_recurse (object, placeholder, subtree)
 
 /*  Helper function for substitute_object_recurse.  */
 static void
-substitute_in_interval (interval, arg)
-     INTERVAL    interval;
-     Lisp_Object arg;
+substitute_in_interval (INTERVAL interval, Lisp_Object arg)
 {
   Lisp_Object object      = Fcar (arg);
   Lisp_Object placeholder = Fcdr (arg);
@@ -3243,9 +3200,7 @@ substitute_in_interval (interval, arg)
 #define EXP_INT 16
 
 int
-isfloat_string (cp, ignore_trailing)
-     register char *cp;
-     int ignore_trailing;
+isfloat_string (register char *cp, int ignore_trailing)
 {
   register int state;
 
@@ -3310,9 +3265,7 @@ isfloat_string (cp, ignore_trailing)
 
 
 static Lisp_Object
-read_vector (readcharfun, bytecodeflag)
-     Lisp_Object readcharfun;
-     int bytecodeflag;
+read_vector (Lisp_Object readcharfun, int bytecodeflag)
 {
   register int i;
   register int size;
@@ -3395,9 +3348,7 @@ read_vector (readcharfun, bytecodeflag)
     and make structure pure.  */
 
 static Lisp_Object
-read_list (flag, readcharfun)
-     int flag;
-     register Lisp_Object readcharfun;
+read_list (int flag, register Lisp_Object readcharfun)
 {
   /* -1 means check next element for defun,
      0 means don't check,
@@ -3585,14 +3536,13 @@ Lisp_Object initial_obarray;
 
 int oblookup_last_bucket_number;
 
-static int hash_string ();
+static int hash_string (const unsigned char *ptr, int len);
 
 /* Get an error if OBARRAY is not an obarray.
    If it is one, return it.  */
 
 Lisp_Object
-check_obarray (obarray)
-     Lisp_Object obarray;
+check_obarray (Lisp_Object obarray)
 {
   if (!VECTORP (obarray) || XVECTOR (obarray)->size == 0)
     {
@@ -3607,8 +3557,7 @@ check_obarray (obarray)
    interned in the current obarray.  */
 
 Lisp_Object
-intern (str)
-     const char *str;
+intern (const char *str)
 {
   Lisp_Object tem;
   int len = strlen (str);
@@ -3649,8 +3598,7 @@ intern_c_string (const char *str)
 /* Create an uninterned symbol with name STR.  */
 
 Lisp_Object
-make_symbol (str)
-     char *str;
+make_symbol (char *str)
 {
   int len = strlen (str);
 
@@ -3812,10 +3760,7 @@ OBARRAY defaults to the value of the variable `obarray'.  */)
    Also store the bucket number in oblookup_last_bucket_number.  */
 
 Lisp_Object
-oblookup (obarray, ptr, size, size_byte)
-     Lisp_Object obarray;
-     register const char *ptr;
-     int size, size_byte;
+oblookup (Lisp_Object obarray, register const char *ptr, int size, int size_byte)
 {
   int hash;
   int obsize;
@@ -3852,9 +3797,7 @@ oblookup (obarray, ptr, size, size_byte)
 }
 
 static int
-hash_string (ptr, len)
-     const unsigned char *ptr;
-     int len;
+hash_string (const unsigned char *ptr, int len)
 {
   register const unsigned char *p = ptr;
   register const unsigned char *end = p + len;
@@ -3871,10 +3814,7 @@ hash_string (ptr, len)
 }
 
 void
-map_obarray (obarray, fn, arg)
-     Lisp_Object obarray;
-     void (*fn) (Lisp_Object, Lisp_Object);
-     Lisp_Object arg;
+map_obarray (Lisp_Object obarray, void (*fn) (Lisp_Object, Lisp_Object), Lisp_Object arg)
 {
   register int i;
   register Lisp_Object tail;
@@ -3894,8 +3834,7 @@ map_obarray (obarray, fn, arg)
 }
 
 void
-mapatoms_1 (sym, function)
-     Lisp_Object sym, function;
+mapatoms_1 (Lisp_Object sym, Lisp_Object function)
 {
   call1 (function, sym);
 }
@@ -3916,7 +3855,7 @@ OBARRAY defaults to the value of `obarray'.  */)
 #define OBARRAY_SIZE 1511
 
 void
-init_obarray ()
+init_obarray (void)
 {
   Lisp_Object oblength;
 
@@ -3957,8 +3896,7 @@ init_obarray ()
 }
 
 void
-defsubr (sname)
-     struct Lisp_Subr *sname;
+defsubr (struct Lisp_Subr *sname)
 {
   Lisp_Object sym;
   sym = intern_c_string (sname->symbol_name);
@@ -4053,7 +3991,7 @@ defvar_kboard (struct Lisp_Kboard_Objfwd *ko_fwd,
 static Lisp_Object dump_path;
 
 void
-init_lread ()
+init_lread (void)
 {
   char *normal;
   int turn_off_warning = 0;
@@ -4246,9 +4184,7 @@ init_lread ()
    does not exist.  Print it on stderr and put it in *Messages*.  */
 
 void
-dir_warning (format, dirname)
-     char *format;
-     Lisp_Object dirname;
+dir_warning (char *format, Lisp_Object dirname)
 {
   char *buffer
     = (char *) alloca (SCHARS (dirname) + strlen (format) + 5);
@@ -4261,7 +4197,7 @@ dir_warning (format, dirname)
 }
 
 void
-syms_of_lread ()
+syms_of_lread (void)
 {
   defsubr (&Sread);
   defsubr (&Sread_from_string);

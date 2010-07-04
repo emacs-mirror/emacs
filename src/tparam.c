@@ -90,15 +90,11 @@ xrealloc (ptr, size)
 
    The fourth and following args to tparam serve as the parameter values.  */
 
-static char *tparam1 ();
+static char *tparam1 (char *string, char *outstring, int len, char *up, char *left, register int *argp);
 
 /* VARARGS 2 */
 char *
-tparam (string, outstring, len, arg0, arg1, arg2, arg3)
-     char *string;
-     char *outstring;
-     int len;
-     int arg0, arg1, arg2, arg3;
+tparam (char *string, char *outstring, int len, int arg0, int arg1, int arg2, int arg3)
 {
   int arg[4];
 
@@ -115,9 +111,7 @@ char *UP;
 static char tgoto_buf[50];
 
 char *
-tgoto (cm, hpos, vpos)
-     char *cm;
-     int hpos, vpos;
+tgoto (char *cm, int hpos, int vpos)
 {
   int args[2];
   if (!cm)
@@ -128,12 +122,7 @@ tgoto (cm, hpos, vpos)
 }
 
 static char *
-tparam1 (string, outstring, len, up, left, argp)
-     char *string;
-     char *outstring;
-     int len;
-     char *up, *left;
-     register int *argp;
+tparam1 (char *string, char *outstring, int len, char *up, char *left, register int *argp)
 {
   register int c;
   register char *p = string;

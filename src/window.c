@@ -220,7 +220,7 @@ DEFUN ("window-live-p", Fwindow_live_p, Swindow_live_p, 1, 1, 0,
 }
 
 Lisp_Object
-make_window ()
+make_window (void)
 {
   Lisp_Object val;
   register struct window *p;
@@ -483,8 +483,7 @@ Return nil if window display is not up-to-date.  In that case, use
 
 
 static struct window *
-decode_window (window)
-     register Lisp_Object window;
+decode_window (register Lisp_Object window)
 {
   if (NILP (window))
     return XWINDOW (selected_window);
@@ -494,8 +493,7 @@ decode_window (window)
 }
 
 static struct window *
-decode_any_window (window)
-     register Lisp_Object window;
+decode_any_window (register Lisp_Object window)
 {
   if (NILP (window))
     return XWINDOW (selected_window);
@@ -799,9 +797,7 @@ display margins, fringes, header line, and/or mode line.  */)
    X and Y are frame relative pixel coordinates.  */
 
 static enum window_part
-coordinates_in_window (w, x, y)
-     register struct window *w;
-     register int *x, *y;
+coordinates_in_window (register struct window *w, register int *x, register int *y)
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   int left_x, right_x, top_y, bottom_y;
@@ -1084,9 +1080,7 @@ struct check_window_data
 };
 
 static int
-check_window_containing (w, user_data)
-     struct window *w;
-     void *user_data;
+check_window_containing (struct window *w, void *user_data)
 {
   struct check_window_data *cw = (struct check_window_data *) user_data;
   enum window_part found;
@@ -1124,12 +1118,7 @@ check_window_containing (w, user_data)
    case.  */
 
 Lisp_Object
-window_from_coordinates (f, x, y, part, wx, wy, tool_bar_p)
-     struct frame *f;
-     int x, y;
-     enum window_part *part;
-     int *wx, *wy;
-     int tool_bar_p;
+window_from_coordinates (struct frame *f, int x, int y, enum window_part *part, int *wx, int *wy, int tool_bar_p)
 {
   Lisp_Object window;
   struct check_window_data cw;
@@ -1469,8 +1458,7 @@ WINDOW defaults to the selected window.  */)
    return 0.  */
 
 struct Lisp_Char_Table *
-window_display_table (w)
-     struct window *w;
+window_display_table (struct window *w)
 {
   struct Lisp_Char_Table *dp = NULL;
 
@@ -1504,8 +1492,7 @@ DEFUN ("set-window-display-table", Fset_window_display_table, Sset_window_displa
 /* Record info on buffer window w is displaying
    when it is about to cease to display that buffer.  */
 static void
-unshow_buffer (w)
-     register struct window *w;
+unshow_buffer (register struct window *w)
 {
   Lisp_Object buf;
   struct buffer *b;
@@ -1553,8 +1540,7 @@ unshow_buffer (w)
 
 /* Put replacement into the window structure in place of old. */
 static void
-replace_window (old, replacement)
-     Lisp_Object old, replacement;
+replace_window (Lisp_Object old, Lisp_Object replacement)
 {
   register Lisp_Object tem;
   register struct window *o = XWINDOW (old), *p = XWINDOW (replacement);
@@ -1628,8 +1614,7 @@ Signal an error when WINDOW is the only window on its frame.  */)
 }
 
 void
-delete_window (window)
-     register Lisp_Object window;
+delete_window (register Lisp_Object window)
 {
   register Lisp_Object tem, parent, sib;
   register struct window *p;
@@ -1843,9 +1828,7 @@ delete_window (window)
    function window_list.  */
 
 static int
-add_window_to_list (w, user_data)
-     struct window *w;
-     void *user_data;
+add_window_to_list (struct window *w, void *user_data)
 {
   Lisp_Object *list = (Lisp_Object *) user_data;
   Lisp_Object window;
@@ -1860,7 +1843,7 @@ add_window_to_list (w, user_data)
    list, cache it in Vwindow_list, and return that.  */
 
 static Lisp_Object
-window_list ()
+window_list (void)
 {
   if (!CONSP (Vwindow_list))
     {
@@ -1901,8 +1884,7 @@ window_list ()
 		a frame means consider windows on that frame, only.  */
 
 static int
-candidate_window_p (window, owindow, minibuf, all_frames)
-     Lisp_Object window, owindow, minibuf, all_frames;
+candidate_window_p (Lisp_Object window, Lisp_Object owindow, Lisp_Object minibuf, Lisp_Object all_frames)
 {
   struct window *w = XWINDOW (window);
   struct frame *f = XFRAME (w->frame);
@@ -1967,8 +1949,7 @@ candidate_window_p (window, owindow, minibuf, all_frames)
    ALL_FRAMES.  */
 
 static void
-decode_next_window_args (window, minibuf, all_frames)
-     Lisp_Object *window, *minibuf, *all_frames;
+decode_next_window_args (Lisp_Object *window, Lisp_Object *minibuf, Lisp_Object *all_frames)
 {
   if (NILP (*window))
     *window = selected_window;
@@ -2014,9 +1995,7 @@ decode_next_window_args (window, minibuf, all_frames)
    ALL_FRAMES.  */
 
 static Lisp_Object
-next_window (window, minibuf, all_frames, next_p)
-     Lisp_Object window, minibuf, all_frames;
-     int next_p;
+next_window (Lisp_Object window, Lisp_Object minibuf, Lisp_Object all_frames, int next_p)
 {
   decode_next_window_args (&window, &minibuf, &all_frames);
 
@@ -2200,8 +2179,7 @@ MINIBUF neither nil nor t means never include the minibuffer window.  */)
    for `next-window'.  */
 
 static Lisp_Object
-window_list_1 (window, minibuf, all_frames)
-     Lisp_Object window, minibuf, all_frames;
+window_list_1 (Lisp_Object window, Lisp_Object minibuf, Lisp_Object all_frames)
 {
   Lisp_Object tail, list, rest;
 
@@ -2249,10 +2227,7 @@ enum window_loop
 };
 
 static Lisp_Object
-window_loop (type, obj, mini, frames)
-     enum window_loop type;
-     Lisp_Object obj, frames;
-     int mini;
+window_loop (enum window_loop type, Lisp_Object obj, int mini, Lisp_Object frames)
 {
   Lisp_Object window, windows, best_window, frame_arg;
   struct frame *f;
@@ -2479,7 +2454,7 @@ window_loop (type, obj, mini, frames)
 /* Used for debugging.  Abort if any window has a dead buffer.  */
 
 void
-check_all_windows ()
+check_all_windows (void)
 {
   window_loop (CHECK_ALL_WINDOWS, Qnil, 1, Qt);
 }
@@ -2690,8 +2665,7 @@ frames left, some other buffer is displayed in that window.  */)
    of all frames, even those on other keyboards.  */
 
 void
-replace_buffer_in_all_windows (buffer)
-     Lisp_Object buffer;
+replace_buffer_in_all_windows (Lisp_Object buffer)
 {
   Lisp_Object tail, frame;
 
@@ -2720,9 +2694,7 @@ replace_buffer_in_all_windows (buffer)
    minimum allowable size.  */
 
 void
-check_frame_size (frame, rows, cols)
-     FRAME_PTR frame;
-     int *rows, *cols;
+check_frame_size (FRAME_PTR frame, int *rows, int *cols)
 {
   /* For height, we have to see:
      how many windows the frame has at minimum (one or two),
@@ -2748,9 +2720,7 @@ check_frame_size (frame, rows, cols)
    either.  */
 
 static int
-window_fixed_size_p (w, width_p, check_siblings_p)
-     struct window *w;
-     int width_p, check_siblings_p;
+window_fixed_size_p (struct window *w, int width_p, int check_siblings_p)
 {
   int fixed_p;
   struct window *c;
@@ -2850,9 +2820,7 @@ window_fixed_size_p (w, width_p, check_siblings_p)
    minibuffer window, always return 1.  */
 
 static int
-window_min_size_2 (w, width_p, safe_p)
-     struct window *w;
-     int width_p, safe_p;
+window_min_size_2 (struct window *w, int width_p, int safe_p)
 {
   /* We should consider buffer-local values of window_min_height and
      window_min_width here.  */
@@ -2886,9 +2854,7 @@ window_min_size_2 (w, width_p, safe_p)
    sizes of W's children.  */
 
 static int
-window_min_size_1 (w, width_p, safe_p)
-     struct window *w;
-     int width_p, safe_p;
+window_min_size_1 (struct window *w, int width_p, int safe_p)
 {
   struct window *c;
   int size;
@@ -2963,9 +2929,7 @@ window_min_size_1 (w, width_p, safe_p)
    to 1 if W is fixed-size unless FIXED is null.  */
 
 static int
-window_min_size (w, width_p, safe_p, ignore_fixed_p, fixed)
-     struct window *w;
-     int width_p, safe_p, ignore_fixed_p, *fixed;
+window_min_size (struct window *w, int width_p, int safe_p, int ignore_fixed_p, int *fixed)
 {
   int size, fixed_p;
 
@@ -2991,8 +2955,7 @@ window_min_size (w, width_p, safe_p, ignore_fixed_p, fixed)
    is still too narrow.  */
 
 static int
-adjust_window_margins (w)
-     struct window *w;
+adjust_window_margins (struct window *w)
 {
   int box_cols = (WINDOW_TOTAL_COLS (w)
 		  - WINDOW_FRINGE_COLS (w)
@@ -3190,10 +3153,7 @@ shrink_windows (total, size, nchildren, shrinkable, resize_fixed_p,
    This should give better behavior when resizing frames.  */
 
 static void
-size_window (window, size, width_p, nodelete_p, first_only, last_only)
-     Lisp_Object window;
-     int size, width_p, nodelete_p;
-     int first_only, last_only;
+size_window (Lisp_Object window, int size, int width_p, int nodelete_p, int first_only, int last_only)
 {
   struct window *w = XWINDOW (window);
   struct window *c;
@@ -3384,10 +3344,7 @@ size_window (window, size, width_p, nodelete_p, first_only, last_only)
    displayed correctly.  */
 
 void
-set_window_height (window, height, nodelete)
-     Lisp_Object window;
-     int height;
-     int nodelete;
+set_window_height (Lisp_Object window, int height, int nodelete)
 {
   size_window (window, height, 0, nodelete, 0, 0);
 }
@@ -3401,10 +3358,7 @@ set_window_height (window, height, nodelete)
    displayed correctly.  */
 
 void
-set_window_width (window, width, nodelete)
-     Lisp_Object window;
-     int width;
-     int nodelete;
+set_window_width (Lisp_Object window, int width, int nodelete)
 {
   size_window (window, width, 1, nodelete, 0, 0);
 }
@@ -3412,9 +3366,7 @@ set_window_width (window, width, nodelete)
 /* Change window heights in windows rooted in WINDOW by N lines.  */
 
 void
-change_window_heights (window, n)
-     Lisp_Object window;
-     int n;
+change_window_heights (Lisp_Object window, int n)
 {
   struct window *w = XWINDOW (window);
 
@@ -3510,9 +3462,7 @@ run_window_configuration_change_hook (struct frame *f)
    reset from the buffer's local settings.  */
 
 void
-set_window_buffer (window, buffer, run_hooks_p, keep_margins_p)
-     Lisp_Object window, buffer;
-     int run_hooks_p, keep_margins_p;
+set_window_buffer (Lisp_Object window, Lisp_Object buffer, int run_hooks_p, int keep_margins_p)
 {
   struct window *w = XWINDOW (window);
   struct buffer *b = XBUFFER (buffer);
@@ -3743,24 +3693,21 @@ selected window before each command.  */)
 }
 
 static Lisp_Object
-select_window_norecord (window)
-     Lisp_Object window;
+select_window_norecord (Lisp_Object window)
 {
   return WINDOW_LIVE_P (window)
     ? Fselect_window (window, Qt) : selected_window;
 }
 
 static Lisp_Object
-select_frame_norecord (frame)
-     Lisp_Object frame;
+select_frame_norecord (Lisp_Object frame)
 {
   return FRAME_LIVE_P (XFRAME (frame))
     ? Fselect_frame (frame, Qt) : selected_frame;
 }
 
 Lisp_Object
-display_buffer (buffer, not_this_window_p, override_frame)
-     Lisp_Object buffer, not_this_window_p, override_frame;
+display_buffer (Lisp_Object buffer, Lisp_Object not_this_window_p, Lisp_Object override_frame)
 {
   return call3 (Qdisplay_buffer, buffer, not_this_window_p, override_frame);
 }
@@ -3811,8 +3758,7 @@ displaying that buffer.  */)
 
 
 void
-temp_output_buffer_show (buf)
-     register Lisp_Object buf;
+temp_output_buffer_show (register Lisp_Object buf)
 {
   register struct buffer *old = current_buffer;
   register Lisp_Object window;
@@ -3872,8 +3818,7 @@ temp_output_buffer_show (buf)
 }
 
 static void
-make_dummy_parent (window)
-     Lisp_Object window;
+make_dummy_parent (Lisp_Object window)
 {
   Lisp_Object new;
   register struct window *o, *p;
@@ -4087,16 +4032,14 @@ fixed size windows is not altered by this function. */)
 }
 
 int
-window_height (window)
-     Lisp_Object window;
+window_height (Lisp_Object window)
 {
   register struct window *p = XWINDOW (window);
   return WINDOW_TOTAL_LINES (p);
 }
 
 int
-window_width (window)
-     Lisp_Object window;
+window_width (Lisp_Object window)
 {
   register struct window *p = XWINDOW (window);
   return WINDOW_TOTAL_COLS (p);
@@ -4118,9 +4061,7 @@ window_width (window)
    deleted.  */
 
 static void
-enlarge_window (window, delta, horiz_flag)
-     Lisp_Object window;
-     int delta, horiz_flag;
+enlarge_window (Lisp_Object window, int delta, int horiz_flag)
 {
   Lisp_Object parent, next, prev;
   struct window *p;
@@ -4396,9 +4337,7 @@ enlarge_window (window, delta, horiz_flag)
    are not deleted; instead, we signal an error.  */
 
 static void
-adjust_window_trailing_edge (window, delta, horiz_flag)
-     Lisp_Object window;
-     int delta, horiz_flag;
+adjust_window_trailing_edge (Lisp_Object window, int delta, int horiz_flag)
 {
   Lisp_Object parent, child;
   struct window *p;
@@ -4570,9 +4509,7 @@ static int save_restore_orig_size (struct window *,
    from lowest windows first.  */
 
 static void
-shrink_window_lowest_first (w, height)
-     struct window *w;
-     int height;
+shrink_window_lowest_first (struct window *w, int height)
 {
   struct window *c;
   Lisp_Object child;
@@ -4654,9 +4591,7 @@ shrink_window_lowest_first (w, height)
    stored in orig_top_line and orig_total_lines for all windows.  */
 
 static int
-save_restore_orig_size (w, action)
-     struct window *w;
-     enum save_restore_action action;
+save_restore_orig_size (struct window *w, enum save_restore_action action)
 {
   int success_p = 1;
 
@@ -4711,9 +4646,7 @@ save_restore_orig_size (w, action)
    without deleting other windows.  */
 
 void
-grow_mini_window (w, delta)
-     struct window *w;
-     int delta;
+grow_mini_window (struct window *w, int delta)
 {
   struct frame *f = XFRAME (w->frame);
   struct window *root;
@@ -4762,8 +4695,7 @@ grow_mini_window (w, delta)
    line.  */
 
 void
-shrink_mini_window (w)
-     struct window *w;
+shrink_mini_window (struct window *w)
 {
   struct frame *f = XFRAME (w->frame);
   struct window *root = XWINDOW (FRAME_ROOT_WINDOW (f));
@@ -4793,8 +4725,7 @@ shrink_mini_window (w)
    the frame are cleared.  */
 
 void
-mark_window_cursors_off (w)
-     struct window *w;
+mark_window_cursors_off (struct window *w)
 {
   while (w)
     {
@@ -4813,8 +4744,7 @@ mark_window_cursors_off (w)
 /* Return number of lines of text (not counting mode lines) in W.  */
 
 int
-window_internal_height (w)
-     struct window *w;
+window_internal_height (struct window *w)
 {
   int ht = XFASTINT (w->total_lines);
 
@@ -4841,8 +4771,7 @@ window_internal_height (w)
    separating W from the sibling to its right.  */
 
 int
-window_box_text_cols (w)
-     struct window *w;
+window_box_text_cols (struct window *w)
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   int width = XINT (w->total_cols);
@@ -4879,11 +4808,7 @@ window_box_text_cols (w)
    respectively.  */
 
 static void
-window_scroll (window, n, whole, noerror)
-     Lisp_Object window;
-     int n;
-     int whole;
-     int noerror;
+window_scroll (Lisp_Object window, int n, int whole, int noerror)
 {
   immediate_quit = 1;
 
@@ -4903,11 +4828,7 @@ window_scroll (window, n, whole, noerror)
    descriptions.  */
 
 static void
-window_scroll_pixel_based (window, n, whole, noerror)
-     Lisp_Object window;
-     int n;
-     int whole;
-     int noerror;
+window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
 {
   struct it it;
   struct window *w = XWINDOW (window);
@@ -5253,11 +5174,7 @@ window_scroll_pixel_based (window, n, whole, noerror)
    See the comment of window_scroll for parameter descriptions.  */
 
 static void
-window_scroll_line_based (window, n, whole, noerror)
-     Lisp_Object window;
-     int n;
-     int whole;
-     int noerror;
+window_scroll_line_based (Lisp_Object window, int n, int whole, int noerror)
 {
   register struct window *w = XWINDOW (window);
   register int opoint = PT, opoint_byte = PT_BYTE;
@@ -5415,9 +5332,7 @@ window_scroll_line_based (window, n, whole, noerror)
    up.  This is the guts of Fscroll_up and Fscroll_down.  */
 
 static void
-scroll_command (n, direction)
-     Lisp_Object n;
-     int direction;
+scroll_command (Lisp_Object n, int direction)
 {
   int count = SPECPDL_INDEX ();
 
@@ -5644,8 +5559,7 @@ Returns nil, if selected window is not a minibuffer window.  */)
    as opposed to its height.  */
 
 static int
-displayed_window_lines (w)
-     struct window *w;
+displayed_window_lines (struct window *w)
 {
   struct it it;
   struct text_pos start;
@@ -6390,8 +6304,7 @@ the return value is nil.  Otherwise the value is t.  */)
    by setting their buffers to nil.  */
 
 void
-delete_all_subwindows (w)
-     register struct window *w;
+delete_all_subwindows (register struct window *w)
 {
   if (!NILP (w->next))
     delete_all_subwindows (XWINDOW (w->next));
@@ -6417,8 +6330,7 @@ delete_all_subwindows (w)
 }
 
 static int
-count_windows (window)
-     register struct window *window;
+count_windows (register struct window *window)
 {
   register int count = 1;
   if (!NILP (window->next))
@@ -6435,10 +6347,7 @@ count_windows (window)
    Value is last index + 1.  */
 
 static int
-get_leaf_windows (w, flat, i)
-     struct window *w;
-     struct window **flat;
-     int i;
+get_leaf_windows (struct window *w, struct window **flat, int i)
 {
   while (w)
     {
@@ -6461,8 +6370,7 @@ get_leaf_windows (w, flat, i)
    can be returned.  */
 
 struct glyph *
-get_phys_cursor_glyph (w)
-     struct window *w;
+get_phys_cursor_glyph (struct window *w)
 {
   struct glyph_row *row;
   struct glyph *glyph;
@@ -6481,10 +6389,7 @@ get_phys_cursor_glyph (w)
 
 
 static int
-save_window_save (window, vector, i)
-     Lisp_Object window;
-     struct Lisp_Vector *vector;
-     int i;
+save_window_save (Lisp_Object window, struct Lisp_Vector *vector, int i)
 {
   register struct saved_window *p;
   register struct window *w;
@@ -6642,8 +6547,7 @@ usage: (save-window-excursion BODY...)  */)
  ***********************************************************************/
 
 static Lisp_Object
-window_tree (w)
-     struct window *w;
+window_tree (struct window *w)
 {
   Lisp_Object tail = Qnil;
   Lisp_Object result = Qnil;
@@ -7010,10 +6914,7 @@ If PIXELS-P is non-nil, the return value is VSCROLL.  */)
    additional argument USER_DATA.  Stops when FN returns 0.  */
 
 void
-foreach_window (f, fn, user_data)
-     struct frame *f;
-     int (* fn) (struct window *, void *);
-     void *user_data;
+foreach_window (struct frame *f, int (*fn) (struct window *, void *), void *user_data)
 {
   /* delete_frame may set FRAME_ROOT_WINDOW (f) to Qnil.  */
   if (WINDOWP (FRAME_ROOT_WINDOW (f)))
@@ -7027,10 +6928,7 @@ foreach_window (f, fn, user_data)
    Stop when FN returns 0.  Value is 0 if stopped by FN.  */
 
 static int
-foreach_window_1 (w, fn, user_data)
-     struct window *w;
-     int (* fn) (struct window *, void *);
-     void *user_data;
+foreach_window_1 (struct window *w, int (*fn) (struct window *, void *), void *user_data)
 {
   int cont;
 
@@ -7055,9 +6953,7 @@ foreach_window_1 (w, fn, user_data)
    the window start.  */
 
 static int
-freeze_window_start (w, freeze_p)
-     struct window *w;
-     void *freeze_p;
+freeze_window_start (struct window *w, void *freeze_p)
 {
   if (MINI_WINDOW_P (w)
       || (WINDOWP (selected_window) /* Can be nil in corner cases.  */
@@ -7077,9 +6973,7 @@ freeze_window_start (w, freeze_p)
    means freeze the window start.  */
 
 void
-freeze_window_starts (f, freeze_p)
-     struct frame *f;
-     int freeze_p;
+freeze_window_starts (struct frame *f, int freeze_p)
 {
   foreach_window (f, freeze_window_start, (void *) (freeze_p ? f : 0));
 }
@@ -7093,9 +6987,7 @@ freeze_window_starts (f, freeze_p)
    describe the same state of affairs.  This is used by Fequal.  */
 
 int
-compare_window_configurations (c1, c2, ignore_positions)
-     Lisp_Object c1, c2;
-     int ignore_positions;
+compare_window_configurations (Lisp_Object c1, Lisp_Object c2, int ignore_positions)
 {
   register struct save_window_data *d1, *d2;
   struct Lisp_Vector *sw1, *sw2;
@@ -7221,7 +7113,7 @@ and scrolling positions.  */)
 }
 
 void
-init_window_once ()
+init_window_once (void)
 {
   struct frame *f = make_initial_frame ();
   XSETFRAME (selected_frame, f);
@@ -7234,13 +7126,13 @@ init_window_once ()
 }
 
 void
-init_window ()
+init_window (void)
 {
   Vwindow_list = Qnil;
 }
 
 void
-syms_of_window ()
+syms_of_window (void)
 {
   Qscroll_up = intern_c_string ("scroll-up");
   staticpro (&Qscroll_up);
@@ -7449,7 +7341,7 @@ frame to be redrawn only if it is a tty frame.  */);
 }
 
 void
-keys_of_window ()
+keys_of_window (void)
 {
   initial_define_key (control_x_map, '1', "delete-other-windows");
   initial_define_key (control_x_map, '2', "split-window");

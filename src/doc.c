@@ -71,8 +71,7 @@ Lisp_Object Fsnarf_documentation (Lisp_Object);
    If UNREADFLAG is 1, we unread a byte.  */
 
 int
-read_bytecode_char (unreadflag)
-     int unreadflag;
+read_bytecode_char (int unreadflag)
 {
   if (unreadflag)
     {
@@ -102,9 +101,7 @@ read_bytecode_char (unreadflag)
    and return a cons cell.  */
 
 Lisp_Object
-get_doc_string (filepos, unibyte, definition)
-     Lisp_Object filepos;
-     int unibyte, definition;
+get_doc_string (Lisp_Object filepos, int unibyte, int definition)
 {
   char *from, *to;
   register int fd;
@@ -311,15 +308,13 @@ get_doc_string (filepos, unibyte, definition)
    of a compiled function from the .elc file.  */
 
 Lisp_Object
-read_doc_string (filepos)
-     Lisp_Object filepos;
+read_doc_string (Lisp_Object filepos)
 {
   return get_doc_string (filepos, 0, 1);
 }
 
 static int
-reread_doc_file (file)
-     Lisp_Object file;
+reread_doc_file (Lisp_Object file)
 {
 #if 0
   Lisp_Object reply, prompt[3];
@@ -515,10 +510,10 @@ aren't strings.  */)
 /* Scanning the DOC files and placing docstring offsets into functions.  */
 
 static void
-store_function_docstring (fun, offset)
-     Lisp_Object fun;
+store_function_docstring (Lisp_Object fun, EMACS_INT offset)
+                     
      /* Use EMACS_INT because we get this from pointer subtraction.  */
-     EMACS_INT offset;
+                      
 {
   fun = indirect_function (fun);
 
@@ -951,7 +946,7 @@ a new string, without any text properties, is returned.  */)
 }
 
 void
-syms_of_doc ()
+syms_of_doc (void)
 {
   Qfunction_documentation = intern_c_string ("function-documentation");
   staticpro (&Qfunction_documentation);

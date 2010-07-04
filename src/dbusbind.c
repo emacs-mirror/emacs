@@ -163,8 +163,7 @@ int xd_in_read_queued_messages = 0;
 /* Determine the DBusType of a given Lisp symbol.  OBJECT must be one
    of the predefined D-Bus type symbols.  */
 static int
-xd_symbol_to_dbus_type (object)
-     Lisp_Object object;
+xd_symbol_to_dbus_type (Lisp_Object object)
 {
   return
     ((EQ (object, QCdbus_type_byte)) ? DBUS_TYPE_BYTE
@@ -221,10 +220,7 @@ xd_symbol_to_dbus_type (object)
    signature is embedded, or DBUS_TYPE_INVALID.  It is needed for the
    check that DBUS_TYPE_DICT_ENTRY occurs only as array element.  */
 static void
-xd_signature (signature, dtype, parent_type, object)
-     char *signature;
-     unsigned int dtype, parent_type;
-     Lisp_Object object;
+xd_signature (char *signature, unsigned int dtype, unsigned int parent_type, Lisp_Object object)
 {
   unsigned int subtype;
   Lisp_Object elt;
@@ -393,10 +389,7 @@ xd_signature (signature, dtype, parent_type, object)
    `dbus-send-signal', into corresponding C values appended as
    arguments to a D-Bus message.  */
 static void
-xd_append_arg (dtype, object, iter)
-     unsigned int dtype;
-     Lisp_Object object;
-     DBusMessageIter *iter;
+xd_append_arg (unsigned int dtype, Lisp_Object object, DBusMessageIter *iter)
 {
   char signature[DBUS_MAXIMUM_SIGNATURE_LENGTH];
   DBusMessageIter subiter;
@@ -604,9 +597,7 @@ xd_append_arg (dtype, object, iter)
    D-Bus message must be a valid DBusType.  Compound D-Bus types
    result always in a Lisp list.  */
 static Lisp_Object
-xd_retrieve_arg (dtype, iter)
-     unsigned int dtype;
-     DBusMessageIter *iter;
+xd_retrieve_arg (unsigned int dtype, DBusMessageIter *iter)
 {
 
   switch (dtype)
@@ -725,8 +716,7 @@ xd_retrieve_arg (dtype, iter)
 /* Initialize D-Bus connection.  BUS is a Lisp symbol, either :system
    or :session.  It tells which D-Bus to be initialized.  */
 static DBusConnection *
-xd_initialize (bus)
-     Lisp_Object bus;
+xd_initialize (Lisp_Object bus)
 {
   DBusConnection *connection;
   DBusError derror;
@@ -766,9 +756,7 @@ xd_initialize (bus)
 /* Add connection file descriptor to input_wait_mask, in order to
    let select() detect, whether a new message has been arrived.  */
 dbus_bool_t
-xd_add_watch (watch, data)
-     DBusWatch *watch;
-     void *data;
+xd_add_watch (DBusWatch *watch, void *data)
 {
   /* We check only for incoming data.  */
   if (dbus_watch_get_flags (watch) & DBUS_WATCH_READABLE)
@@ -797,9 +785,7 @@ xd_add_watch (watch, data)
 /* Remove connection file descriptor from input_wait_mask.  DATA is
    the used bus, either QCdbus_system_bus or QCdbus_session_bus.  */
 void
-xd_remove_watch (watch, data)
-     DBusWatch *watch;
-     void *data;
+xd_remove_watch (DBusWatch *watch, void *data)
 {
   /* We check only for incoming data.  */
   if (dbus_watch_get_flags (watch) & DBUS_WATCH_READABLE)
@@ -1569,8 +1555,7 @@ usage: (dbus-send-signal BUS SERVICE PATH INTERFACE SIGNAL &rest ARGS)  */)
 /* Check, whether there is pending input in the message queue of the
    D-Bus BUS.  BUS is a Lisp symbol, either :system or :session.  */
 int
-xd_get_dispatch_status (bus)
-     Lisp_Object bus;
+xd_get_dispatch_status (Lisp_Object bus)
 {
   DBusConnection *connection;
 
@@ -1589,7 +1574,7 @@ xd_get_dispatch_status (bus)
 
 /* Check for queued incoming messages from the system and session buses.  */
 int
-xd_pending_messages ()
+xd_pending_messages (void)
 {
 
   /* Vdbus_registered_objects_table will be initialized as hash table
@@ -1606,8 +1591,7 @@ xd_pending_messages ()
 /* Read queued incoming message of the D-Bus BUS.  BUS is a Lisp
    symbol, either :system or :session.  */
 static Lisp_Object
-xd_read_message (bus)
-     Lisp_Object bus;
+xd_read_message (Lisp_Object bus)
 {
   Lisp_Object args, key, value;
   struct gcpro gcpro1;
@@ -1764,7 +1748,7 @@ xd_read_message (bus)
 
 /* Read queued incoming messages from the system and session buses.  */
 void
-xd_read_queued_messages ()
+xd_read_queued_messages (void)
 {
 
   /* Vdbus_registered_objects_table will be initialized as hash table
@@ -1990,7 +1974,7 @@ used for composing the returning D-Bus message.  */)
 
 
 void
-syms_of_dbusbind ()
+syms_of_dbusbind (void)
 {
 
   Qdbus_init_bus = intern_c_string ("dbus-init-bus");
