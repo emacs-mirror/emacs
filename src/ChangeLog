@@ -10,6 +10,7 @@
 	* regex.c (bcmp_translate): Use RE_TRANSLATE_TYPE, not Lisp_Object.
 	(analyse_first): Fix "const const".
 	* sysdep.c (set_file_times): Use EMACS_TIME, not struct timeval.
+	* unexelf.c (round_up, find_section): Use ElfW macro for arguments.
 	* xgselect.c (xg_select): Use SELECT_TYPE, EMACS_TIME.
 
 2010-07-04  Dan Nicolaescu  <dann@ics.uci.edu>

@@ -594,7 +594,7 @@ typedef unsigned char byte;
 /* Round X up to a multiple of Y.  */
 
 static ElfW(Addr)
-round_up (Elf32_Addr x, Elf32_Addr y)
+round_up (ElfW(Addr) x, ElfW(Addr) y)
 {
   int rem = x % y;
   if (rem == 0)
@@ -610,7 +610,8 @@ round_up (Elf32_Addr x, Elf32_Addr y)
    if NOERROR is 0; we return -1 if NOERROR is nonzero.  */
 
 static int
-find_section (char *name, char *section_names, char *file_name, Elf32_Ehdr *old_file_h, Elf32_Shdr *old_section_h, int noerror)
+find_section (char *name, char *section_names, char *file_name,
+	      ElfW(Ehdr) *old_file_h, ElfW(Shdr) *old_section_h, int noerror)
 {
   int idx;
 
@@ -645,7 +646,8 @@ find_section (char *name, char *section_names, char *file_name, Elf32_Ehdr *old_
  *
  */
 void
-unexec (char *new_name, char *old_name, unsigned int data_start, unsigned int bss_start, unsigned int entry_address)
+unexec (char *new_name, char *old_name, unsigned int data_start,
+	unsigned int bss_start, unsigned int entry_address)
 {
   int new_file, old_file, new_file_size;
 
