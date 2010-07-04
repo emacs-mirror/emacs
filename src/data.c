@@ -941,10 +941,6 @@ do_symval_forwarding (register union Lisp_Fwd *valcontents)
 
 static void
 store_symval_forwarding (union Lisp_Fwd *valcontents, register Lisp_Object newval, struct buffer *buf)
-     /* struct Lisp_Symbol *symbol; */
-                                 
-                                 
-                        
 {
   switch (XFWDTYPE (valcontents))
     {

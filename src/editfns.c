@@ -1436,7 +1436,7 @@ get_system_name (void)
 }
 
 char *
-get_operating_system_release(void)
+get_operating_system_release (void)
 {
   if (STRINGP (Voperating_system_release))
     return (char *) SDATA (Voperating_system_release);
@@ -3592,7 +3592,7 @@ usage: (format STRING &rest OBJECTS)  */)
      string itself, will not be used.  Element NARGS, corresponding to
      no argument, *will* be assigned to in the case that a `%' and `.'
      occur after the final format specifier.  */
-  int *precision = (int *) (alloca((nargs + 1) * sizeof (int)));
+  int *precision = (int *) (alloca ((nargs + 1) * sizeof (int)));
   int longest_format;
   Lisp_Object val;
   int arg_intervals = 0;
@@ -3763,7 +3763,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	       string will finally appear (Bug#5710). */
 	    actual_width = lisp_string_width (args[n], -1, NULL, NULL);
 	    if (precision[n] != -1)
-	      actual_width = min(actual_width,precision[n]);
+	      actual_width = min (actual_width, precision[n]);
 	  }
 	/* Would get MPV otherwise, since Lisp_Int's `point' to low memory.  */
 	else if (INTEGERP (args[n]) && *format != 's')
@@ -3876,7 +3876,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	  discarded[format - format_start] = 1;
 	  format++;
 
-	  while (index("-+0# ", *format))
+	  while (index ("-+0# ", *format))
 	    {
 	      if (*format == '-')
 		{

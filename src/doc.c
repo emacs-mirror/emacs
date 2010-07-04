@@ -511,9 +511,7 @@ aren't strings.  */)
 
 static void
 store_function_docstring (Lisp_Object fun, EMACS_INT offset)
-                     
-     /* Use EMACS_INT because we get this from pointer subtraction.  */
-                      
+/* Use EMACS_INT because we get offset from pointer subtraction.  */
 {
   fun = indirect_function (fun);
 

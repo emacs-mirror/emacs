@@ -1899,9 +1899,7 @@ START and END optionally delimit a substring of STRING from which to read;
    calls. */
 static Lisp_Object
 read_internal_start (Lisp_Object stream, Lisp_Object start, Lisp_Object end)
-                        
-                        /* Only used when stream is a string. */
-                      /* Only used when stream is a string. */
+/* start, end only used when stream is a string. */
 {
   Lisp_Object retval;
 
