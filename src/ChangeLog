@@ -1,3 +1,8 @@
+2010-07-04  Tetsurou Okazaki  <okazaki@be.to>  (tiny change)
+	        Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c (read1): Fix up last change to not mess up `c'.
+
 2010-07-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* strftime.c: Revert conversion to standard C (revno:100708).

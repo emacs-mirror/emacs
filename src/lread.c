@@ -2645,32 +2645,35 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
       }
 
     case '`':
-      /* Transition from old-style to new-style:
-	 If we see "(`" it used to mean old-style, which usually works
-	 fine because ` should almost never appear in such a position
-	 for new-style.  But occasionally we need "(`" to mean new
-	 style, so we try to distinguish the two by the fact that we
-	 can either write "( `foo" or "(` foo", where the first
-	 intends to use new-style whereas the second intends to use
-	 old-style.  For Emacs-25, we should completely remove this
-	 first_in_list exception (old-style can still be obtained via
-	 "(\`" anyway).  */
-      if (first_in_list && (c = READCHAR, UNREAD (c), c == ' '))
-	{
-	  Vold_style_backquotes = Qt;
-	  goto default_label;
-	}
-      else
-	{
-	  Lisp_Object value;
+      {
+	int next_char = READCHAR;
+	UNREAD (next_char);
+	/* Transition from old-style to new-style:
+	   If we see "(`" it used to mean old-style, which usually works
+	   fine because ` should almost never appear in such a position
+	   for new-style.  But occasionally we need "(`" to mean new
+	   style, so we try to distinguish the two by the fact that we
+	   can either write "( `foo" or "(` foo", where the first
+	   intends to use new-style whereas the second intends to use
+	   old-style.  For Emacs-25, we should completely remove this
+	   first_in_list exception (old-style can still be obtained via
+	   "(\`" anyway).  */
+	if (first_in_list && next_char == ' ')
+	  {
+	    Vold_style_backquotes = Qt;
+	    goto default_label;
+	  }
+	else
+	  {
+	    Lisp_Object value;
 
-	  new_backquote_flag++;
-	  value = read0 (readcharfun);
-	  new_backquote_flag--;
+	    new_backquote_flag++;
+	    value = read0 (readcharfun);
+	    new_backquote_flag--;
 
-	  return Fcons (Qbackquote, Fcons (value, Qnil));
-	}
-
+	    return Fcons (Qbackquote, Fcons (value, Qnil));
+	  }
+      }
     case ',':
       if (new_backquote_flag)
 	{
