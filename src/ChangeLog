@@ -1,3 +1,13 @@
+2010-07-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	Fix prototypes.
+
+	* dired.c (file_name_completion_stat): Use DIRENTRY, not struct dirent.
+	* fileio.c (read_non_regular, read_non_regular_quit): Pass Lisp_Object,
+	as required by internal_condition_case_1.
+	* regex.c (bcmp_translate): Use RE_TRANSLATE_TYPE, not Lisp_Object.
+	(analyse_first): Fix "const const".
+
 2010-07-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* alloc.c: Convert function definitions to standard C.

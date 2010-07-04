@@ -3984,7 +3984,7 @@ group_in_compile_stack (compile_stack_type compile_stack, regnum_t regnum)
    Return -1 if fastmap was not updated accurately.  */
 
 static int
-analyse_first (const re_char *p, const re_char *pend, char *fastmap, const const int multibyte)
+analyse_first (const re_char *p, const re_char *pend, char *fastmap, const int multibyte)
 {
   int j, k;
   boolean not;
@@ -6385,7 +6385,8 @@ re_match_2_internal (struct re_pattern_buffer *bufp, const re_char *string1, int
    bytes; nonzero otherwise.  */
 
 static int
-bcmp_translate (const re_char *s1, const re_char *s2, register int len, Lisp_Object translate, const const int target_multibyte)
+bcmp_translate (const re_char *s1, const re_char *s2, register int len,
+		RE_TRANSLATE_TYPE translate, const int target_multibyte)
 {
   register re_char *p1 = s1, *p2 = s2;
   re_char *p1_end = s1 + len;

@@ -3248,12 +3248,12 @@ static EMACS_INT non_regular_nbytes;
 
 
 /* Read from a non-regular file.
-   Read non_regular_trytry bytes max from non_regular_fd.
+   Read non_regular_nbytes bytes max from non_regular_fd.
    Non_regular_inserted specifies where to put the read bytes.
    Value is the number of bytes read.  */
 
 static Lisp_Object
-read_non_regular (void)
+read_non_regular (Lisp_Object ignored)
 {
   EMACS_INT nbytes;
 
@@ -3271,7 +3271,7 @@ read_non_regular (void)
    in insert-file-contents.  */
 
 static Lisp_Object
-read_non_regular_quit (void)
+read_non_regular_quit (Lisp_Object ignored)
 {
   return Qnil;
 }

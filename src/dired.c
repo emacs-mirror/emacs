@@ -472,7 +472,7 @@ These are all file names in directory DIRECTORY which begin with FILE.  */)
   return file_name_completion (file, directory, 1, 0, Qnil);
 }
 
-static int file_name_completion_stat (Lisp_Object dirname, struct dirent *dp, struct stat *st_addr);
+static int file_name_completion_stat (Lisp_Object dirname, DIRENTRY *dp, struct stat *st_addr);
 Lisp_Object Qdefault_directory;
 
 Lisp_Object
@@ -839,7 +839,7 @@ scmp (register unsigned char *s1, register unsigned char *s2, int len)
 }
 
 static int
-file_name_completion_stat (Lisp_Object dirname, struct dirent *dp, struct stat *st_addr)
+file_name_completion_stat (Lisp_Object dirname, DIRENTRY *dp, struct stat *st_addr)
 {
   int len = NAMLEN (dp);
   int pos = SCHARS (dirname);
