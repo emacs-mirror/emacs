@@ -29,7 +29,8 @@ static GPollFD *gfds;
 static int gfds_size;
 
 int
-xg_select (int max_fds, fd_set *rfds, fd_set *wfds, fd_set *efds, struct timeval *timeout)
+xg_select (int max_fds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
+	   EMACS_TIME *timeout)
 {
   SELECT_TYPE all_rfds, all_wfds;
   EMACS_TIME tmo, *tmop = timeout;

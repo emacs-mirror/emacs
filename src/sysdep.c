@@ -2579,7 +2579,7 @@ closedir (DIR *dirp /* stream from opendir */)
 
 
 int
-set_file_times (const char *filename, struct timeval atime, struct timeval mtime)
+set_file_times (const char *filename, EMACS_TIME atime, EMACS_TIME mtime)
 {
 #ifdef HAVE_UTIMES
   struct timeval tv[2];

@@ -90,7 +90,8 @@ SIGTYPE alarm_signal_handler (int signo);
    to cancel_atimer; don't free it yourself.  */
 
 struct atimer *
-start_atimer (enum atimer_type type, struct timeval time, atimer_callback fn, void *client_data)
+start_atimer (enum atimer_type type, EMACS_TIME time, atimer_callback fn,
+	      void *client_data)
 {
   struct atimer *t;
 
