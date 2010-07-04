@@ -1,3 +1,12 @@
+2010-07-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* lwlib-Xaw.c: Convert function definitions to standard C.
+	* lwlib-Xlw.c:
+	* lwlib-utils.c:
+	* lwlib.c:
+	* lwlib.h:
+	* xlwmenu.c: Likewise.
+
 2010-07-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* lwlib-Xm.c: Remove __P and P_ from .c and .m files.

@@ -70,12 +70,11 @@ struct widget_xft_data
 
 #endif
 
-static void xaw_generic_callback (/*Widget, XtPointer, XtPointer*/);
+static void xaw_generic_callback (Widget widget, XtPointer closure, XtPointer call_data);
 
 
 Boolean
-lw_xaw_widget_p (widget)
-     Widget widget;
+lw_xaw_widget_p (Widget widget)
 {
   return (XtIsSubclass (widget, scrollbarWidgetClass) ||
 	  XtIsSubclass (widget, dialogWidgetClass));
@@ -427,10 +426,7 @@ xaw_update_one_widget (instance, widget, val, deep_p)
 }
 
 void
-xaw_update_one_value (instance, widget, val)
-     widget_instance *instance;
-     Widget widget;
-     widget_value *val;
+xaw_update_one_value (widget_instance *instance, Widget widget, widget_value *val)
 {
   /* This function is not used by the scrollbars and those are the only
      Athena widget implemented at the moment so do nothing. */
@@ -438,8 +434,7 @@ xaw_update_one_value (instance, widget, val)
 }
 
 void
-xaw_destroy_instance (instance)
-     widget_instance *instance;
+xaw_destroy_instance (widget_instance *instance)
 {
 #ifdef HAVE_XFT
   if (instance->xft_data) 
@@ -471,9 +466,7 @@ xaw_destroy_instance (instance)
 }
 
 void
-xaw_popup_menu (widget, event)
-     Widget widget;
-     XEvent *event;
+xaw_popup_menu (Widget widget, XEvent *event)
 {
   /* An Athena menubar has not been implemented. */
   return;
@@ -557,7 +550,7 @@ static char overrideTrans[] =
 /* Dialogs pop down on any key press */
 static char dialogOverride[] =
        "<KeyPress>Escape:	lwlib_delete_dialog()";
-static void wm_delete_window();
+static void wm_delete_window(Widget w, XtPointer closure, XtPointer call_data);
 static XtActionsRec xaw_actions [] = {
   {"lwlib_delete_dialog", wm_delete_window}
 };
@@ -748,8 +741,7 @@ make_dialog (name, parent, pop_up_p, shell_title, icon_name, text_input_slot,
 }
 
 Widget
-xaw_create_dialog (instance)
-     widget_instance* instance;
+xaw_create_dialog (widget_instance *instance)
 {
   char *name = instance->info->type;
   Widget parent = instance->parent;
@@ -813,10 +805,7 @@ xaw_create_dialog (instance)
 
 
 static void
-xaw_generic_callback (widget, closure, call_data)
-     Widget widget;
-     XtPointer closure;
-     XtPointer call_data;
+xaw_generic_callback (Widget widget, XtPointer closure, XtPointer call_data)
 {
   widget_instance *instance = (widget_instance *) closure;
   Widget instance_widget;
@@ -862,10 +851,7 @@ xaw_generic_callback (widget, closure, call_data)
 }
 
 static void
-wm_delete_window (w, closure, call_data)
-     Widget w;
-     XtPointer closure;
-     XtPointer call_data;
+wm_delete_window (Widget w, XtPointer closure, XtPointer call_data)
 {
   LWLIB_ID id;
   Cardinal nkids;
@@ -966,8 +952,7 @@ xaw_scrollbar_jump (widget, closure, call_data)
 #endif
 
 static Widget
-xaw_create_scrollbar (instance)
-     widget_instance *instance;
+xaw_create_scrollbar (widget_instance *instance)
 {
 #if 0
   Arg av[20];
@@ -1007,8 +992,7 @@ xaw_create_scrollbar (instance)
 }
 
 static Widget
-xaw_create_main (instance)
-     widget_instance *instance;
+xaw_create_main (widget_instance *instance)
 {
   Arg al[1];
   int ac;
