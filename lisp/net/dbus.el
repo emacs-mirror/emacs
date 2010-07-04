@@ -39,6 +39,7 @@
 (declare-function dbus-method-error-internal "dbusbind.c")
 (declare-function dbus-register-signal "dbusbind.c")
 (declare-function dbus-register-method "dbusbind.c")
+(declare-function dbus-send-signal "dbusbind.c")
 (defvar dbus-debug)
 (defvar dbus-registered-objects-table)
 
