@@ -1969,12 +1969,12 @@ Fifth Floor, Boston, MA 02110-1301, USA.
 #endif
 
 /* Old hook values.  */
-static void (*old_free_hook) __P ((__ptr_t ptr));
-static __ptr_t (*old_malloc_hook) __P ((__malloc_size_t size));
-static __ptr_t (*old_realloc_hook) __P ((__ptr_t ptr, __malloc_size_t size));
+static void (*old_free_hook) (__ptr_t ptr);
+static __ptr_t (*old_malloc_hook) (__malloc_size_t size);
+static __ptr_t (*old_realloc_hook) (__ptr_t ptr, __malloc_size_t size);
 
 /* Function to call when something awful happens.  */
-static void (*abortfunc) __P ((enum mcheck_status));
+static void (*abortfunc) (enum mcheck_status);
 
 /* Arbitrary magical numbers.  */
 #define MAGICWORD	0xfedabeeb
@@ -1992,7 +1992,7 @@ struct hdr
 #if	defined(_LIBC) || defined(STDC_HEADERS) || defined(USG)
 #define flood memset
 #else
-static void flood __P ((__ptr_t, int, __malloc_size_t));
+static void flood (__ptr_t, int, __malloc_size_t);
 static void
 flood (ptr, val, size)
      __ptr_t ptr;
@@ -2005,7 +2005,7 @@ flood (ptr, val, size)
 }
 #endif
 
-static enum mcheck_status checkhdr __P ((const struct hdr *));
+static enum mcheck_status checkhdr (const struct hdr *);
 static enum mcheck_status
 checkhdr (hdr)
      const struct hdr *hdr;
@@ -2031,7 +2031,7 @@ checkhdr (hdr)
   return status;
 }
 
-static void freehook __P ((__ptr_t));
+static void freehook (__ptr_t);
 static void
 freehook (ptr)
      __ptr_t ptr;
@@ -2053,7 +2053,7 @@ freehook (ptr)
   __free_hook = freehook;
 }
 
-static __ptr_t mallochook __P ((__malloc_size_t));
+static __ptr_t mallochook (__malloc_size_t);
 static __ptr_t
 mallochook (size)
      __malloc_size_t size;
@@ -2073,7 +2073,7 @@ mallochook (size)
   return (__ptr_t) (hdr + 1);
 }
 
-static __ptr_t reallochook __P ((__ptr_t, __malloc_size_t));
+static __ptr_t reallochook (__ptr_t, __malloc_size_t);
 static __ptr_t
 reallochook (ptr, size)
      __ptr_t ptr;
@@ -2146,7 +2146,7 @@ static int mcheck_used = 0;
 
 int
 mcheck (func)
-     void (*func) __P ((enum mcheck_status));
+     void (*func) (enum mcheck_status);
 {
   abortfunc = (func != NULL) ? func : &mabort;
 

@@ -31,7 +31,7 @@ but in texinfo format and sorted by function/variable name.  */
 #endif
 
 int
-main ()
+main (void)
 {
   register int ch;
   register int notfirst = 0;

@@ -34,10 +34,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "XMenuInt.h"
 
 int
-XMenuFindSelection(menu, p_num, label)
-    register XMenu *menu;
-    int p_num;
-    register char *label;
+XMenuFindSelection(register XMenu *menu, int p_num, register char *label)
 {
     register XMPane *p_ptr;
     register XMSelect *s_ptr;

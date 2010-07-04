@@ -61,13 +61,7 @@ static int doprnt1 ();
    Integers are passed as C integers.  */
 
 int
-doprnt (buffer, bufsize, format, format_end, nargs, args)
-     char *buffer;
-     register int bufsize;
-     char *format;
-     char *format_end;
-     int nargs;
-     char **args;
+doprnt (char *buffer, register int bufsize, char *format, char *format_end, int nargs, char **args)
 {
   int cnt = 0;			/* Number of arg to gobble next */
   register char *fmt = format;	/* Pointer into format string */

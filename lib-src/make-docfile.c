@@ -67,9 +67,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define IS_DIRECTORY_SEP(_c_) ((_c_) == DIRECTORY_SEP)
 #endif
 
-int scan_file ();
-int scan_lisp_file ();
-int scan_c_file ();
+int scan_file (char *filename);
+int scan_lisp_file (char *filename, char *mode);
+int scan_c_file (char *filename, char *mode);
 
 #ifdef MSDOS
 /* s/msdos.h defines this as sys_chdir, but we're not linking with the
@@ -91,8 +91,7 @@ char *progname;
 
 /* VARARGS1 */
 void
-error (s1, s2)
-     char *s1, *s2;
+error (char *s1, char *s2)
 {
   fprintf (stderr, "%s: ", progname);
   fprintf (stderr, s1, s2);
@@ -103,8 +102,7 @@ error (s1, s2)
 
 /* VARARGS1 */
 void
-fatal (s1, s2)
-     char *s1, *s2;
+fatal (char *s1, char *s2)
 {
   error (s1, s2);
   exit (EXIT_FAILURE);
@@ -113,8 +111,7 @@ fatal (s1, s2)
 /* Like malloc but get fatal error if memory is exhausted.  */
 
 void *
-xmalloc (size)
-     unsigned int size;
+xmalloc (unsigned int size)
 {
   void *result = (void *) malloc (size);
   if (result == NULL)
@@ -123,9 +120,7 @@ xmalloc (size)
 }
 
 int
-main (argc, argv)
-     int argc;
-     char **argv;
+main (int argc, char **argv)
 {
   int i;
   int err_count = 0;
@@ -187,8 +182,7 @@ main (argc, argv)
 
 /* Add a source file name boundary marker in the output file.  */
 void
-put_filename (filename)
-     char *filename;
+put_filename (char *filename)
 {
   char *tmp;
 
@@ -207,8 +201,7 @@ put_filename (filename)
 /* Return 1 if file is not found, 0 if it is found.  */
 
 int
-scan_file (filename)
-     char *filename;
+scan_file (char *filename)
 {
   int len = strlen (filename);
 
@@ -251,9 +244,7 @@ struct rcsoc_state
    spaces are output first.  */
 
 static INLINE void
-put_char (ch, state)
-     int ch;
-     struct rcsoc_state *state;
+put_char (int ch, struct rcsoc_state *state)
 {
   int out_ch;
   do
@@ -286,9 +277,7 @@ put_char (ch, state)
    keyword, but were in fact not.  */
 
 static void
-scan_keyword_or_put_char (ch, state)
-     int ch;
-     struct rcsoc_state *state;
+scan_keyword_or_put_char (int ch, struct rcsoc_state *state)
 {
   if (state->keyword
       && *state->cur_keyword_ptr == ch
@@ -359,11 +348,7 @@ scan_keyword_or_put_char (ch, state)
    true if any were encountered.  */
 
 int
-read_c_string_or_comment (infile, printflag, comment, saw_usage)
-     FILE *infile;
-     int printflag;
-     int *saw_usage;
-     int comment;
+read_c_string_or_comment (FILE *infile, int printflag, int comment, int *saw_usage)
 {
   register int c;
   struct rcsoc_state state;
@@ -451,10 +436,7 @@ read_c_string_or_comment (infile, printflag, comment, saw_usage)
    MINARGS and MAXARGS are the minimum and maximum number of arguments.  */
 
 void
-write_c_args (out, func, buf, minargs, maxargs)
-     FILE *out;
-     char *func, *buf;
-     int minargs, maxargs;
+write_c_args (FILE *out, char *func, char *buf, int minargs, int maxargs)
 {
   register char *p;
   int in_ident = 0;
@@ -538,8 +520,7 @@ write_c_args (out, func, buf, minargs, maxargs)
    Accepts any word starting DEF... so it finds DEFSIMPLE and DEFPRED.  */
 
 int
-scan_c_file (filename, mode)
-     char *filename, *mode;
+scan_c_file (char *filename, char *mode)
 {
   FILE *infile;
   register int c;
@@ -815,8 +796,7 @@ scan_c_file (filename, mode)
  */
 
 void
-skip_white (infile)
-     FILE *infile;
+skip_white (FILE *infile)
 {
   char c = ' ';
   while (c == ' ' || c == '\t' || c == '\n' || c == '\r')
@@ -825,9 +805,7 @@ skip_white (infile)
 }
 
 void
-read_lisp_symbol (infile, buffer)
-     FILE *infile;
-     char *buffer;
+read_lisp_symbol (FILE *infile, char *buffer)
 {
   char c;
   char *fillp = buffer;
@@ -855,8 +833,7 @@ read_lisp_symbol (infile, buffer)
 }
 
 int
-scan_lisp_file (filename, mode)
-     char *filename, *mode;
+scan_lisp_file (char *filename, char *mode)
 {
   FILE *infile;
   register int c;

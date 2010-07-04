@@ -1,3 +1,11 @@
+2010-07-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in: Remove define __P.
+
+2010-07-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (--enable-use-lisp-union-type): New flag.
+
 2010-06-30  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Fix CFLAGS for non-GCC compilers.

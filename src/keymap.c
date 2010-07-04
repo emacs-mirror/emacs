@@ -115,20 +115,20 @@ static Lisp_Object where_is_cache;
 /* Which keymaps are reverse-stored in the cache.  */
 static Lisp_Object where_is_cache_keymaps;
 
-static Lisp_Object store_in_keymap P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
-static void fix_submap_inheritance P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
+static Lisp_Object store_in_keymap (Lisp_Object, Lisp_Object, Lisp_Object);
+static void fix_submap_inheritance (Lisp_Object, Lisp_Object, Lisp_Object);
 
-static Lisp_Object define_as_prefix P_ ((Lisp_Object, Lisp_Object));
-static void describe_command P_ ((Lisp_Object, Lisp_Object));
-static void describe_translation P_ ((Lisp_Object, Lisp_Object));
-static void describe_map P_ ((Lisp_Object, Lisp_Object,
-			      void (*) P_ ((Lisp_Object, Lisp_Object)),
-			      int, Lisp_Object, Lisp_Object*, int, int));
-static void describe_vector P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
-				 void (*) (Lisp_Object, Lisp_Object), int,
-				 Lisp_Object, Lisp_Object, int *,
-				 int, int, int));
-static void silly_event_symbol_error P_ ((Lisp_Object));
+static Lisp_Object define_as_prefix (Lisp_Object, Lisp_Object);
+static void describe_command (Lisp_Object, Lisp_Object);
+static void describe_translation (Lisp_Object, Lisp_Object);
+static void describe_map (Lisp_Object, Lisp_Object,
+                          void (*) (Lisp_Object, Lisp_Object),
+			  int, Lisp_Object, Lisp_Object*, int, int);
+static void describe_vector (Lisp_Object, Lisp_Object, Lisp_Object,
+                             void (*) (Lisp_Object, Lisp_Object), int,
+                             Lisp_Object, Lisp_Object, int *,
+                             int, int, int);
+static void silly_event_symbol_error (Lisp_Object);
 
 /* Keymap object support - constructors and predicates.			*/
 
@@ -183,19 +183,13 @@ in case you use it as a menu with `x-popup-menu'.  */)
    initial_define_key (control_x_map, Ctl('X'), "exchange-point-and-mark");  */
 
 void
-initial_define_key (keymap, key, defname)
-     Lisp_Object keymap;
-     int key;
-     char *defname;
+initial_define_key (Lisp_Object keymap, int key, char *defname)
 {
   store_in_keymap (keymap, make_number (key), intern_c_string (defname));
 }
 
 void
-initial_define_lispy_key (keymap, keyname, defname)
-     Lisp_Object keymap;
-     char *keyname;
-     char *defname;
+initial_define_lispy_key (Lisp_Object keymap, char *keyname, char *defname)
 {
   store_in_keymap (keymap, intern_c_string (keyname), intern_c_string (defname));
 }
@@ -255,9 +249,7 @@ when reading a key-sequence to be looked-up in this keymap.  */)
    do_autoload which can GC.  */
 
 Lisp_Object
-get_keymap (object, error, autoload)
-     Lisp_Object object;
-     int error, autoload;
+get_keymap (Lisp_Object object, int error, int autoload)
 {
   Lisp_Object tem;
 
@@ -309,9 +301,7 @@ get_keymap (object, error, autoload)
    We assume that KEYMAP is a valid keymap.  */
 
 Lisp_Object
-keymap_parent (keymap, autoload)
-     Lisp_Object keymap;
-     int autoload;
+keymap_parent (Lisp_Object keymap, int autoload)
 {
   Lisp_Object list;
 
@@ -340,8 +330,7 @@ If KEYMAP has no parent, return nil.  */)
 
 /* Check whether MAP is one of MAPS parents.  */
 int
-keymap_memberp (map, maps)
-     Lisp_Object map, maps;
+keymap_memberp (Lisp_Object map, Lisp_Object maps)
 {
   if (NILP (map)) return 0;
   while (KEYMAPP (maps) && !EQ (map, maps))
@@ -437,8 +426,7 @@ Return PARENT.  PARENT should be nil or another keymap.  */)
    make sure that SUBMAP inherits that definition as its own parent.  */
 
 static void
-fix_submap_inheritance (map, event, submap)
-     Lisp_Object map, event, submap;
+fix_submap_inheritance (Lisp_Object map, Lisp_Object event, Lisp_Object submap)
 {
   Lisp_Object map_parent, parent_entry;
 
@@ -500,12 +488,7 @@ fix_submap_inheritance (map, event, submap)
    If NOINHERIT, don't accept a subkeymap found in an inherited keymap.  */
 
 Lisp_Object
-access_keymap (map, idx, t_ok, noinherit, autoload)
-     Lisp_Object map;
-     Lisp_Object idx;
-     int t_ok;
-     int noinherit;
-     int autoload;
+access_keymap (Lisp_Object map, Lisp_Object idx, int t_ok, int noinherit, int autoload)
 {
   Lisp_Object val;
 
@@ -634,10 +617,7 @@ access_keymap (map, idx, t_ok, noinherit, autoload)
 }
 
 static void
-map_keymap_item (fun, args, key, val, data)
-     map_keymap_function_t fun;
-     Lisp_Object args, key, val;
-     void *data;
+map_keymap_item (map_keymap_function_t fun, Lisp_Object args, Lisp_Object key, Lisp_Object val, void *data)
 {
   /* We should maybe try to detect bindings shadowed by previous
      ones and things like that.  */
@@ -647,8 +627,7 @@ map_keymap_item (fun, args, key, val, data)
 }
 
 static void
-map_keymap_char_table_item (args, key, val)
-     Lisp_Object args, key, val;
+map_keymap_char_table_item (Lisp_Object args, Lisp_Object key, Lisp_Object val)
 {
   if (!NILP (val))
     {
@@ -707,9 +686,7 @@ map_keymap_internal (Lisp_Object map,
 }
 
 static void
-map_keymap_call (key, val, fun, dummy)
-     Lisp_Object key, val, fun;
-     void *dummy;
+map_keymap_call (Lisp_Object key, Lisp_Object val, Lisp_Object fun, void *dummy)
 {
   call2 (fun, key, val);
 }
@@ -717,11 +694,7 @@ map_keymap_call (key, val, fun, dummy)
 /* Same as map_keymap_internal, but doesn't traverses parent keymaps as well.
    A non-zero AUTOLOAD indicates that autoloaded keymaps should be loaded.  */
 void
-map_keymap (map, fun, args, data, autoload)
-     map_keymap_function_t fun;
-     Lisp_Object map, args;
-     void *data;
-     int autoload;
+map_keymap (Lisp_Object map, map_keymap_function_t fun, Lisp_Object args, void *data, int autoload)
 {
   struct gcpro gcpro1;
   GCPRO1 (args);
@@ -739,10 +712,7 @@ Lisp_Object Qkeymap_canonicalize;
 /* Same as map_keymap, but does it right, properly eliminating duplicate
    bindings due to inheritance.   */
 void
-map_keymap_canonical (map, fun, args, data)
-     map_keymap_function_t fun;
-     Lisp_Object map, args;
-     void *data;
+map_keymap_canonical (Lisp_Object map, map_keymap_function_t fun, Lisp_Object args, void *data)
 {
   struct gcpro gcpro1;
   GCPRO1 (args);
@@ -804,9 +774,7 @@ usage: (map-keymap FUNCTION KEYMAP)  */)
    This can GC because menu_item_eval_property calls Feval.  */
 
 Lisp_Object
-get_keyelt (object, autoload)
-     Lisp_Object object;
-     int autoload;
+get_keyelt (Lisp_Object object, int autoload)
 {
   while (1)
     {
@@ -886,10 +854,7 @@ get_keyelt (object, autoload)
 }
 
 static Lisp_Object
-store_in_keymap (keymap, idx, def)
-     Lisp_Object keymap;
-     register Lisp_Object idx;
-     Lisp_Object def;
+store_in_keymap (Lisp_Object keymap, register Lisp_Object idx, Lisp_Object def)
 {
   /* Flush any reverse-map cache.  */
   where_is_cache = Qnil;
@@ -1044,8 +1009,7 @@ store_in_keymap (keymap, idx, def)
 EXFUN (Fcopy_keymap, 1);
 
 Lisp_Object
-copy_keymap_item (elt)
-     Lisp_Object elt;
+copy_keymap_item (Lisp_Object elt)
 {
   Lisp_Object res, tem;
 
@@ -1118,8 +1082,7 @@ copy_keymap_item (elt)
 }
 
 static void
-copy_keymap_1 (chartable, idx, elt)
-     Lisp_Object chartable, idx, elt;
+copy_keymap_1 (Lisp_Object chartable, Lisp_Object idx, Lisp_Object elt)
 {
   Fset_char_table_range (chartable, idx, copy_keymap_item (elt));
 }
@@ -1412,8 +1375,7 @@ recognize the default bindings, just as `read-key-sequence' does.  */)
    Return the keymap.  */
 
 static Lisp_Object
-define_as_prefix (keymap, c)
-     Lisp_Object keymap, c;
+define_as_prefix (Lisp_Object keymap, Lisp_Object c)
 {
   Lisp_Object cmd;
 
@@ -1430,8 +1392,7 @@ define_as_prefix (keymap, c)
 /* Append a key to the end of a key sequence.  We always make a vector.  */
 
 Lisp_Object
-append_key (key_sequence, key)
-     Lisp_Object key_sequence, key;
+append_key (Lisp_Object key_sequence, Lisp_Object key)
 {
   Lisp_Object args[2];
 
@@ -1445,8 +1406,7 @@ append_key (key_sequence, key)
    signal an error if is a mistake such as RET or M-RET or C-DEL, etc.  */
 
 static void
-silly_event_symbol_error (c)
-     Lisp_Object c;
+silly_event_symbol_error (Lisp_Object c)
 {
   Lisp_Object parsed, base, name, assoc;
   int modifiers;
@@ -1515,8 +1475,7 @@ static int cmm_size = 0;
    list, let the key sequence be read, and hope some other piece of
    code signals the error.  */
 int
-current_minor_maps (modeptr, mapptr)
-     Lisp_Object **modeptr, **mapptr;
+current_minor_maps (Lisp_Object **modeptr, Lisp_Object **mapptr)
 {
   int i = 0;
   int list_number = 0;
@@ -2128,10 +2087,8 @@ struct accessible_keymaps_data {
 };
 
 static void
-accessible_keymaps_1 (key, cmd, args, data)
-     Lisp_Object key, cmd, args;
-     /* Use void* to be compatible with map_keymap_function_t.  */
-     void *data;
+accessible_keymaps_1 (Lisp_Object key, Lisp_Object cmd, Lisp_Object args, void *data)
+/* Use void* data to be compatible with map_keymap_function_t.  */
 {
   struct accessible_keymaps_data *d = data; /* Cast! */
   Lisp_Object maps = d->maps;
@@ -2389,10 +2346,7 @@ spaces are put between sequence elements, etc.  */)
 
 
 char *
-push_key_description (c, p, force_multibyte)
-     register unsigned int c;
-     register char *p;
-     int force_multibyte;
+push_key_description (register unsigned int c, register char *p, int force_multibyte)
 {
   unsigned c2;
 
@@ -2549,9 +2503,7 @@ around function keys and event symbols.  */)
 }
 
 char *
-push_text_char_description (c, p)
-     register unsigned int c;
-     register char *p;
+push_text_char_description (register unsigned int c, register char *p)
 {
   if (c >= 0200)
     {
@@ -2611,8 +2563,7 @@ static int where_is_preferred_modifier;
    Else, return 2 if SEQ uses the where_is_preferred_modifier,
    and 1 otherwise.  */
 static int
-preferred_sequence_p (seq)
-     Lisp_Object seq;
+preferred_sequence_p (Lisp_Object seq)
 {
   int i;
   int len = XINT (Flength (seq));
@@ -2643,8 +2594,8 @@ preferred_sequence_p (seq)
 
 /* where-is - finding a command in a set of keymaps.			*/
 
-static void where_is_internal_1 P_ ((Lisp_Object key, Lisp_Object binding,
-				     Lisp_Object args, void *data));
+static void where_is_internal_1 (Lisp_Object key, Lisp_Object binding,
+                                 Lisp_Object args, void *data);
 
 /* Like Flookup_key, but uses a list of keymaps SHADOW instead of a single map.
    Returns the first non-nil binding found in any of those maps.
@@ -2982,9 +2933,7 @@ remapped command in the returned list.  */)
 /* This function can GC because get_keyelt can.  */
 
 static void
-where_is_internal_1 (key, binding, args, data)
-     Lisp_Object key, binding, args;
-     void *data;
+where_is_internal_1 (Lisp_Object key, Lisp_Object binding, Lisp_Object args, void *data)
 {
   struct where_is_internal_data *d = data; /* Cast! */
   Lisp_Object definition = d->definition;
@@ -3342,8 +3291,7 @@ key             binding\n\
 static int previous_description_column;
 
 static void
-describe_command (definition, args)
-     Lisp_Object definition, args;
+describe_command (Lisp_Object definition, Lisp_Object args)
 {
   register Lisp_Object tem1;
   int column = (int) current_column (); /* iftc */
@@ -3379,8 +3327,7 @@ describe_command (definition, args)
 }
 
 static void
-describe_translation (definition, args)
-     Lisp_Object definition, args;
+describe_translation (Lisp_Object definition, Lisp_Object args)
 {
   register Lisp_Object tem1;
 
@@ -3413,8 +3360,7 @@ struct describe_map_elt { Lisp_Object event; Lisp_Object definition; int shadowe
    the event field.  */
 
 static int
-describe_map_compare (aa, bb)
-     const void *aa, *bb;
+describe_map_compare (const void *aa, const void *bb)
 {
   const struct describe_map_elt *a = aa, *b = bb;
   if (INTEGERP (a->event) && INTEGERP (b->event))
@@ -3440,7 +3386,7 @@ describe_map (map, prefix, elt_describer, partial, shadow,
 	      seen, nomenu, mention_shadow)
      register Lisp_Object map;
      Lisp_Object prefix;
-     void (*elt_describer) P_ ((Lisp_Object, Lisp_Object));
+     void (*elt_describer) (Lisp_Object, Lisp_Object);
      int partial;
      Lisp_Object shadow;
      Lisp_Object *seen;
@@ -3624,8 +3570,7 @@ describe_map (map, prefix, elt_describer, partial, shadow,
 }
 
 static void
-describe_vector_princ (elt, fun)
-     Lisp_Object elt, fun;
+describe_vector_princ (Lisp_Object elt, Lisp_Object fun)
 {
   Findent_to (make_number (16), make_number (1));
   call1 (fun, elt);
@@ -3692,7 +3637,7 @@ describe_vector (vector, prefix, args, elt_describer,
 		 mention_shadow)
      register Lisp_Object vector;
      Lisp_Object prefix, args;
-     void (*elt_describer) P_ ((Lisp_Object, Lisp_Object));
+     void (*elt_describer) (Lisp_Object, Lisp_Object);
      int partial;
      Lisp_Object shadow;
      Lisp_Object entire_map;
@@ -3893,8 +3838,7 @@ static Lisp_Object apropos_predicate;
 static Lisp_Object apropos_accumulate;
 
 static void
-apropos_accum (symbol, string)
-     Lisp_Object symbol, string;
+apropos_accum (Lisp_Object symbol, Lisp_Object string)
 {
   register Lisp_Object tem;
 
@@ -3925,7 +3869,7 @@ Return list of symbols found.  */)
 }
 
 void
-syms_of_keymap ()
+syms_of_keymap (void)
 {
   Qkeymap = intern_c_string ("keymap");
   staticpro (&Qkeymap);
@@ -4119,7 +4063,7 @@ preferred.  */);
 }
 
 void
-keys_of_keymap ()
+keys_of_keymap (void)
 {
   initial_define_key (global_map, 033, "ESC-prefix");
   initial_define_key (global_map, Ctl ('X'), "Control-X-prefix");

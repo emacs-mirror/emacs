@@ -613,39 +613,39 @@ Lisp_Object Venable_disabled_menus_and_buttons;
 /* Function for init_keyboard to call with no args (if nonzero).  */
 void (*keyboard_init_hook) ();
 
-static int read_avail_input P_ ((int));
-static void get_input_pending P_ ((int *, int));
-static int readable_events P_ ((int));
-static Lisp_Object read_char_x_menu_prompt P_ ((int, Lisp_Object *,
-						Lisp_Object, int *));
+static int read_avail_input (int);
+static void get_input_pending (int *, int);
+static int readable_events (int);
+static Lisp_Object read_char_x_menu_prompt (int, Lisp_Object *,
+                                            Lisp_Object, int *);
 static Lisp_Object read_char_x_menu_prompt ();
-static Lisp_Object read_char_minibuf_menu_prompt P_ ((int, int,
-						      Lisp_Object *));
-static Lisp_Object make_lispy_event P_ ((struct input_event *));
+static Lisp_Object read_char_minibuf_menu_prompt (int, int,
+                                                  Lisp_Object *);
+static Lisp_Object make_lispy_event (struct input_event *);
 #if defined (HAVE_MOUSE) || defined (HAVE_GPM)
-static Lisp_Object make_lispy_movement P_ ((struct frame *, Lisp_Object,
-					    enum scroll_bar_part,
-					    Lisp_Object, Lisp_Object,
-					    unsigned long));
+static Lisp_Object make_lispy_movement (struct frame *, Lisp_Object,
+                                        enum scroll_bar_part,
+                                        Lisp_Object, Lisp_Object,
+                                        unsigned long);
 #endif
-static Lisp_Object modify_event_symbol P_ ((int, unsigned, Lisp_Object,
-					    Lisp_Object, char **,
-					    Lisp_Object *, unsigned));
-static Lisp_Object make_lispy_switch_frame P_ ((Lisp_Object));
-static void save_getcjmp P_ ((jmp_buf));
+static Lisp_Object modify_event_symbol (int, unsigned, Lisp_Object,
+                                        Lisp_Object, char **,
+                                        Lisp_Object *, unsigned);
+static Lisp_Object make_lispy_switch_frame (Lisp_Object);
+static void save_getcjmp (jmp_buf);
 static void save_getcjmp ();
-static void restore_getcjmp P_ ((jmp_buf));
-static Lisp_Object apply_modifiers P_ ((int, Lisp_Object));
-static void clear_event P_ ((struct input_event *));
-static Lisp_Object restore_kboard_configuration P_ ((Lisp_Object));
-static SIGTYPE interrupt_signal P_ ((int signalnum));
-static void handle_interrupt P_ ((void));
-static void timer_start_idle P_ ((void));
-static void timer_stop_idle P_ ((void));
-static void timer_resume_idle P_ ((void));
-static SIGTYPE handle_user_signal P_ ((int));
-static char *find_user_signal_name P_ ((int));
-static int store_user_signal_events P_ ((void));
+static void restore_getcjmp (jmp_buf);
+static Lisp_Object apply_modifiers (int, Lisp_Object);
+static void clear_event (struct input_event *);
+static Lisp_Object restore_kboard_configuration (Lisp_Object);
+static SIGTYPE interrupt_signal (int signalnum);
+static void handle_interrupt (void);
+static void timer_start_idle (void);
+static void timer_stop_idle (void);
+static void timer_resume_idle (void);
+static SIGTYPE handle_user_signal (int);
+static char *find_user_signal_name (int);
+static int store_user_signal_events (void);
 
 /* Nonzero means don't try to suspend even if the operating system seems
    to support it.  */
@@ -1499,10 +1499,10 @@ some_mouse_moved ()
 /* This is the actual command reading loop,
    sans error-handling encapsulation.  */
 
-static int read_key_sequence P_ ((Lisp_Object *, int, Lisp_Object,
-				  int, int, int));
-void safe_run_hooks P_ ((Lisp_Object));
-static void adjust_point_for_property P_ ((int, int));
+static int read_key_sequence (Lisp_Object *, int, Lisp_Object,
+                              int, int, int);
+void safe_run_hooks (Lisp_Object);
+static void adjust_point_for_property (int, int);
 
 /* Cancel hourglass from protect_unwind.
    ARG is not used.  */
@@ -1862,7 +1862,7 @@ extern Lisp_Object Qcomposition, Qdisplay;
    LAST_PT is the last position of point.  */
 
 extern Lisp_Object Qafter_string, Qbefore_string;
-extern Lisp_Object get_pos_property P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
+extern Lisp_Object get_pos_property (Lisp_Object, Lisp_Object, Lisp_Object);
 
 static void
 adjust_point_for_property (last_pt, modified)
@@ -7509,7 +7509,7 @@ store_user_signal_events ()
 }
 
 
-static void menu_bar_item P_ ((Lisp_Object, Lisp_Object, Lisp_Object, void*));
+static void menu_bar_item (Lisp_Object, Lisp_Object, Lisp_Object, void*);
 static Lisp_Object menu_bar_one_keymap_changed_items;
 
 /* These variables hold the vector under construction within
@@ -8077,10 +8077,10 @@ Lisp_Object Qrtl;
 
 /* Function prototypes.  */
 
-static void init_tool_bar_items P_ ((Lisp_Object));
-static void process_tool_bar_item P_ ((Lisp_Object, Lisp_Object, Lisp_Object, void*));
-static int parse_tool_bar_item P_ ((Lisp_Object, Lisp_Object));
-static void append_tool_bar_item P_ ((void));
+static void init_tool_bar_items (Lisp_Object);
+static void process_tool_bar_item (Lisp_Object, Lisp_Object, Lisp_Object, void*);
+static int parse_tool_bar_item (Lisp_Object, Lisp_Object);
+static void append_tool_bar_item (void);
 
 
 /* Return a vector of tool bar items for keymaps currently in effect.
@@ -10876,7 +10876,7 @@ On such systems, Emacs starts a subshell instead of suspending.  */)
   reset_all_sys_modes ();
   /* sys_suspend can get an error if it tries to fork a subshell
      and the system resources aren't available for that.  */
-  record_unwind_protect ((Lisp_Object (*) P_ ((Lisp_Object))) init_all_sys_modes,
+  record_unwind_protect ((Lisp_Object (*) (Lisp_Object)) init_all_sys_modes,
 			 Qnil);
   stuff_buffered_input (stuffstring);
   if (cannot_suspend)

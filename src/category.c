@@ -59,11 +59,10 @@ Lisp_Object _temp_category_set;
 
 /* Category set staff.  */
 
-static Lisp_Object hash_get_category_set P_ ((Lisp_Object, Lisp_Object));
+static Lisp_Object hash_get_category_set (Lisp_Object, Lisp_Object);
 
 static Lisp_Object
-hash_get_category_set (table, category_set)
-     Lisp_Object table, category_set;
+hash_get_category_set (Lisp_Object table, Lisp_Object category_set)
 {
   Lisp_Object val;
   struct Lisp_Hash_Table *h;
@@ -117,7 +116,7 @@ those categories.  */)
 
 /* Category staff.  */
 
-Lisp_Object check_category_table ();
+Lisp_Object check_category_table (Lisp_Object table);
 
 DEFUN ("define-category", Fdefine_category, Sdefine_category, 2, 3, 0,
        doc: /* Define CATEGORY as a category which is described by DOCSTRING.
@@ -196,8 +195,7 @@ DEFUN ("category-table-p", Fcategory_table_p, Scategory_table_p, 1, 1, 0,
    wrong-type-argument.  */
 
 Lisp_Object
-check_category_table (table)
-     Lisp_Object table;
+check_category_table (Lisp_Object table)
 {
   if (NILP (table))
     return current_buffer->category_table;
@@ -224,8 +222,7 @@ This is the one used for new buffers.  */)
 
 
 static void
-copy_category_entry (table, c, val)
-     Lisp_Object table, c, val;
+copy_category_entry (Lisp_Object table, Lisp_Object c, Lisp_Object val)
 {
   val = Fcopy_sequence (val);
   if (CONSP (c))
@@ -240,8 +237,7 @@ copy_category_entry (table, c, val)
    binding TABLE to a sub char table.  */
 
 Lisp_Object
-copy_category_table (table)
-     Lisp_Object table;
+copy_category_table (Lisp_Object table)
 {
   table = copy_char_table (table);
 
@@ -304,8 +300,7 @@ Return TABLE.  */)
 
 
 Lisp_Object
-char_category_set (c)
-     int c;
+char_category_set (int c)
 {
   return CHAR_TABLE_REF (current_buffer->category_table, c);
 }
@@ -344,8 +339,7 @@ The return value is a string containing those same categories.  */)
 }
 
 void
-set_category_set (category_set, category, val)
-     Lisp_Object category_set, category, val;
+set_category_set (Lisp_Object category_set, Lisp_Object category, Lisp_Object val)
 {
   do {
     int idx = XINT (category) / 8;
@@ -420,8 +414,7 @@ then delete CATEGORY from the category set instead of adding it.  */)
    directly.  */
 
 int
-word_boundary_p (c1, c2)
-     int c1, c2;
+word_boundary_p (int c1, int c2)
 {
   Lisp_Object category_set1, category_set2;
   Lisp_Object tail;
@@ -466,7 +459,7 @@ word_boundary_p (c1, c2)
 
 
 void
-init_category_once ()
+init_category_once (void)
 {
   /* This has to be done here, before we call Fmake_char_table.  */
   Qcategory_table = intern_c_string ("category-table");
@@ -489,7 +482,7 @@ init_category_once ()
 }
 
 void
-syms_of_category ()
+syms_of_category (void)
 {
   Qcategoryp = intern_c_string ("categoryp");
   staticpro (&Qcategoryp);

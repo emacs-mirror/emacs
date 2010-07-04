@@ -81,10 +81,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define	_SBSS		".sbss"
 #endif /* __NetBSD__ || __OpenBSD__ */
 
-static void fatal_unexec __P ((char *, char *));
-static void mark_x __P ((char *));
+static void fatal_unexec (char *, char *);
+static void mark_x (char *);
 
-static void update_dynamic_symbols __P ((char *, char *, int, struct aouthdr));
+static void update_dynamic_symbols (char *, char *, int, struct aouthdr);
 
 #define READ(_fd, _buffer, _size, _error_message, _error_arg) \
 	errno = EEOF; \

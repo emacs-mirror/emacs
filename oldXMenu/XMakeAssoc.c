@@ -13,25 +13,20 @@
 #define NULL 0
 #endif
 
-extern int errno;
-
-void emacs_insque();
 struct qelem {
 	struct    qelem *q_forw;
 	struct    qelem *q_back;
 	char q_data[1];
 };
+void emacs_insque (struct qelem *elem, struct qelem *prev);
+
 /*
  * XMakeAssoc - Insert data into an XAssocTable keyed on an XId.
  * Data is inserted into the table only once.  Redundant inserts are
  * meaningless (but cause no problems).  The queue in each association
  * bucket is sorted (lowest XId to highest XId).
  */
-XMakeAssoc(dpy, table, x_id, data)
-	register Display *dpy;
-	register XAssocTable *table;
-	register XID x_id;
-	register caddr_t data;
+XMakeAssoc(register Display *dpy, register XAssocTable *table, register XID x_id, register caddr_t data)
 {
 	int hash;
 	register XAssoc *bucket;

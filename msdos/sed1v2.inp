@@ -47,7 +47,7 @@ s/\.h\.in/.h-in/
 /^LD_SWITCH_SYSTEM *=/s/@LD_SWITCH_SYSTEM@//
 /^TEMACS_LDFLAGS2 *=/s/@TEMACS_LDFLAGS2@/$(LDFLAGS)/
 /^LIBS_SYSTEM *=/s/@LIBS_SYSTEM@//
-/^LIB_GCC *=/s/@LIB_GCC@/-Lgcc/
+/^LIB_GCC *=/s/@LIB_GCC@//
 /^LD *=/s/@LINKER@/$(CC)/
 /^LIB_STANDARD *=/s/@LIB_STANDARD@//
 /^LIB_MATH *=/s/@LIB_MATH@/-lm/
@@ -169,6 +169,7 @@ s/echo.*buildobj.lst/dj&/
 	djecho bootlisp > bootlisp
 /^	-\{0,1\}rm -f/s/\\#/#/
 /^	@\{0,1\}cd ..\/lisp;.*[^\]$/s|$|\; cd ../src|
+/^	 *THEFILE=/s|$|\; cd ../src|
 /^	echo.* buildobj.h/s|echo |djecho |
 
 # arch-tag: c7e3aacb-4162-460e-99f9-4252bca68d2c

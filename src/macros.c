@@ -53,7 +53,7 @@ Lisp_Object executing_kbd_macro;
 
 extern Lisp_Object real_this_command;
 
-Lisp_Object Fexecute_kbd_macro ();
+Lisp_Object Fexecute_kbd_macro (Lisp_Object macro, Lisp_Object count, Lisp_Object loopfunc);
 
 DEFUN ("start-kbd-macro", Fstart_kbd_macro, Sstart_kbd_macro, 1, 2, "P",
        doc: /* Record subsequent keyboard input, defining a keyboard macro.
@@ -140,7 +140,7 @@ macro before appending to it. */)
 /* Finish defining the current keyboard macro.  */
 
 void
-end_kbd_macro ()
+end_kbd_macro (void)
 {
   current_kboard->defining_kbd_macro = Qnil;
   update_mode_lines++;
@@ -194,8 +194,7 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
 /* Store character c into kbd macro being defined */
 
 void
-store_kbd_macro_char (c)
-     Lisp_Object c;
+store_kbd_macro_char (Lisp_Object c)
 {
   struct kboard *kb = current_kboard;
 
@@ -223,7 +222,7 @@ store_kbd_macro_char (c)
  really belong to it.  This is done in between editor commands.  */
 
 void
-finalize_kbd_macro_chars ()
+finalize_kbd_macro_chars (void)
 {
   current_kboard->kbd_macro_end = current_kboard->kbd_macro_ptr;
 }
@@ -286,8 +285,7 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
    Called when the unwind-protect in Fexecute_kbd_macro gets invoked.  */
 
 static Lisp_Object
-pop_kbd_macro (info)
-     Lisp_Object info;
+pop_kbd_macro (Lisp_Object info)
 {
   Lisp_Object tem;
   Vexecuting_kbd_macro = XCAR (info);
@@ -367,14 +365,14 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
 }
 
 void
-init_macros ()
+init_macros (void)
 {
   Vexecuting_kbd_macro = Qnil;
   executing_kbd_macro = Qnil;
 }
 
 void
-syms_of_macros ()
+syms_of_macros (void)
 {
   Qexecute_kbd_macro = intern_c_string ("execute-kbd-macro");
   staticpro (&Qexecute_kbd_macro);

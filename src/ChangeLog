@@ -1,3 +1,272 @@
+2010-07-04  Tetsurou Okazaki  <okazaki@be.to>  (tiny change)
+	        Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c (read1): Fix up last change to not mess up `c'.
+
+2010-07-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* strftime.c: Revert conversion to standard C (revno:100708).
+
+2010-07-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	Fix prototypes.
+
+	* atimer.c (start_atimer): Use EMACS_TIME, not struct timeval.
+	* dired.c (file_name_completion_stat): Use DIRENTRY, not struct dirent.
+	* fileio.c (read_non_regular, read_non_regular_quit): Pass Lisp_Object,
+	as required by internal_condition_case_1.
+	* print.c (strout): Use const char* for arg PTR.
+	* regex.c (bcmp_translate): Use RE_TRANSLATE_TYPE, not Lisp_Object.
+	(analyse_first): Fix "const const".
+	* sysdep.c (set_file_times): Use EMACS_TIME, not struct timeval.
+	* unexelf.c (round_up, find_section): Use ElfW macro for arguments.
+	* xgselect.c (xg_select): Use SELECT_TYPE, EMACS_TIME.
+
+2010-07-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* alloc.c: Convert function definitions to standard C.
+	* atimer.c:
+	* bidi.c:
+	* bytecode.c:
+	* callint.c:
+	* callproc.c:
+	* casefiddle.c:
+	* casetab.c:
+	* category.c:
+	* ccl.c:
+	* character.c:
+	* charset.c:
+	* chartab.c:
+	* cmds.c:
+	* coding.c:
+	* composite.c:
+	* data.c:
+	* dbusbind.c:
+	* dired.c:
+	* dispnew.c:
+	* doc.c:
+	* doprnt.c:
+	* ecrt0.c:
+	* editfns.c:
+	* fileio.c:
+	* filelock.c:
+	* filemode.c:
+	* fns.c:
+	* font.c:
+	* fontset.c:
+	* frame.c:
+	* fringe.c:
+	* ftfont.c:
+	* ftxfont.c:
+	* gtkutil.c:
+	* indent.c:
+	* insdel.c:
+	* intervals.c:
+	* keymap.c:
+	* lread.c:
+	* macros.c:
+	* marker.c:
+	* md5.c:
+	* menu.c:
+	* minibuf.c:
+	* prefix-args.c:
+	* print.c:
+	* ralloc.c:
+	* regex.c:
+	* region-cache.c:
+	* scroll.c:
+	* search.c:
+	* sound.c:
+	* strftime.c:
+	* syntax.c:
+	* sysdep.c:
+	* termcap.c:
+	* terminal.c:
+	* terminfo.c:
+	* textprop.c:
+	* tparam.c:
+	* undo.c:
+	* unexelf.c:
+	* window.c:
+	* xfaces.c:
+	* xfns.c:
+	* xfont.c:
+	* xftfont.c:
+	* xgselect.c:
+	* xmenu.c:
+	* xrdb.c:
+	* xselect.c:
+	* xsettings.c:
+	* xsmfns.c:
+	* xterm.c: Likewise.
+
+2010-07-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.c (IT_set_frame_parameters): Fix setting of colors in
+	frames other than the initial one.  Fix reversal of colors when
+	`reverse' is specified in the frame parameters.  Call
+	update_face_from_frame_parameter instead of
+	internal-set-lisp-face-attribute.  Initialize screen colors from
+	initial_screen_colors[] when f->default_face_done_p is zero,
+	instead of depending on being called with default-frame-alist as
+	the alist argument.
+
+	* xfaces.c (update_face_from_frame_parameter): Move out of
+	HAVE_WINDOW_SYSTEM portion.  Condition window-system only parts
+	with HAVE_WINDOW_SYSTEM.
+
+	* msdos.c (IT_set_frame_parameters): Set menu-bar-lines according
+	to menu-bar-mode, if not set in the frame parameters or in
+	default-frame-alist.
+
+	* w32console.c (sys_tputs): Adjust argument list to prototype in
+	term.c.
+
+2010-07-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* lisp.h (memory_warnings): Fix prototype.
+
+	* cm.h (evalcost): Fix prototype.
+
+	* cm.c (evalcost): Fix arg type.
+
+2010-07-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.c (term_clear_mouse_face, Fidentity):
+	* syssignal.h (signal_handler_t):
+	* lisp.h (memory_warnings):
+	* coding.h (preferred_coding_system):
+	* cm.h (evalcost):
+	* blockinput.h (reinvoke_input_signal): Convert to standard C prototypes.
+
+2010-07-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* dosfns.h (msdos_stdcolor_idx, msdos_stdcolor_name): Remove P_
+	from prototypes.
+
+	* msdos.h (load_pixmap): Don't define away.
+
+2010-07-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* lisp.h:
+	* atimer.h: Remove define for P_.
+
+	* alloc.c: Remove __P and P_ from .c and .m files.
+	* atimer.c:
+	* buffer.c:
+	* callint.c:
+	* category.c:
+	* charset.c:
+	* chartab.c:
+	* cm.c:
+	* coding.c:
+	* composite.c:
+	* data.c:
+	* dired.c:
+	* dispnew.c:
+	* doc.c:
+	* editfns.c:
+	* emacs.c:
+	* eval.c:
+	* fileio.c:
+	* filelock.c:
+	* fns.c:
+	* font.c:
+	* fontset.c:
+	* frame.c:
+	* ftfont.c:
+	* ftxfont.c:
+	* gmalloc.c:
+	* gtkutil.c:
+	* image.c:
+	* indent.c:
+	* intervals.c:
+	* keyboard.c:
+	* keymap.c:
+	* lread.c:
+	* marker.c:
+	* menu.c:
+	* minibuf.c:
+	* print.c:
+	* process.c:
+	* scroll.c:
+	* search.c:
+	* sound.c:
+	* strftime.c:
+	* syntax.c:
+	* sysdep.c:
+	* term.c:
+	* terminal.c:
+	* textprop.c:
+	* unexalpha.c:
+	* w32console.c:
+	* w32fns.c:
+	* w32font.c:
+	* w32menu.c:
+	* w32term.c:
+	* w32uniscribe.c:
+	* window.c:
+	* xdisp.c:
+	* xfaces.c:
+	* xfns.c:
+	* xfont.c:
+	* xftfont.c:
+	* xmenu.c:
+	* xselect.c:
+	* xterm.c: Likewise.
+
+	Remove P_ and __P macros.
+	* atimer.h: Remove P_ and __P macros.
+	* buffer.h:
+	* category.h:
+	* ccl.h:
+	* character.h:
+	* charset.h:
+	* cm.h:
+	* coding.h:
+	* composite.h:
+	* dispextern.h:
+	* disptab.h:
+	* dosfns.h:
+	* font.h:
+	* fontset.h:
+	* frame.h:
+	* gtkutil.h:
+	* indent.h:
+	* intervals.h:
+	* keyboard.h:
+	* keymap.h:
+	* lisp.h:
+	* macros.h:
+	* md5.h:
+	* menu.h:
+	* msdos.h:
+	* nsterm.h:
+	* puresize.h:
+	* region-cache.h:
+	* syntax.h:
+	* syssignal.h:
+	* systime.h:
+	* termhooks.h:
+	* w32font.h:
+	* w32term.h:
+	* widget.h:
+	* window.h:
+	* xgselect.h:
+	* xsettings.h:
+	* xterm.h: Likewise.
+
+2010-07-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* lisp.h: Document that USE_LISP_UNION_TYPE is now enabled using autoconf.
+
+	Cleanup old code.
+	* dired.c (BSD4_3): Remove all uses, redundant with BSD4_2.
+	* syssignal.h: Remove code for Lynx, not supported anymore.
+	* vm-limit.c: Remove unused code the depends on emacs not being
+	defined and NO_LIM_DATA being defined.
+	* mem-limits.h: Remove dead code.
+
 2010-07-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* window.c (Fwindow_absolute_pixel_edges): Doc fix.

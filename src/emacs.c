@@ -90,10 +90,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 const char emacs_copyright[] = "Copyright (C) 2010 Free Software Foundation, Inc.";
 const char emacs_version[] = "24.0.50";
 
-extern void malloc_warning P_ ((char *));
-extern void set_time_zone_rule P_ ((char *));
+extern void malloc_warning (char *);
+extern void set_time_zone_rule (char *);
 #ifdef HAVE_INDEX
-extern char *index P_ ((const char *, int));
+extern char *index (const char *, int);
 #endif
 
 /* Make these values available in GDB, which doesn't see macros.  */
@@ -361,7 +361,7 @@ int fatal_error_in_progress;
 /* If non-null, call this function from fatal_error_signal before
    committing suicide.  */
 
-void (*fatal_error_signal_hook) P_ ((void));
+void (*fatal_error_signal_hook) (void);
 
 #ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
 /* When compiled with GTK and running under Gnome,
@@ -1202,7 +1202,7 @@ main (int argc, char **argv)
 #endif
 #if defined (HAVE_GTK_AND_PTHREAD) && !defined (SYSTEM_MALLOC) && !defined (DOUG_LEA_MALLOC)
       {
-	extern void malloc_enable_thread P_ ((void));
+        extern void malloc_enable_thread (void);
 
 	malloc_enable_thread ();
       }

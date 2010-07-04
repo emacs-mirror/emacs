@@ -58,14 +58,14 @@ struct matrix_elt
     unsigned char writecount;
   };
 
-static void do_direct_scrolling P_ ((struct frame *,
-                                     struct glyph_matrix *,
-				     struct matrix_elt *,
-				     int, int));
-static void do_scrolling P_ ((struct frame *,
-                              struct glyph_matrix *,
-			      struct matrix_elt *,
-			      int, int));
+static void do_direct_scrolling (struct frame *,
+                                 struct glyph_matrix *,
+                                 struct matrix_elt *,
+                                 int, int);
+static void do_scrolling (struct frame *,
+                          struct glyph_matrix *,
+                          struct matrix_elt *,
+                          int, int);
 
 
 /* Determine, in matrix[i,j], the cost of updating the first j old
@@ -244,12 +244,7 @@ calculate_scrolling (frame, matrix, window_size, lines_below,
    of lines.  */
 
 static void
-do_scrolling (frame, current_matrix, matrix, window_size, unchanged_at_top)
-     struct frame *frame;
-     struct glyph_matrix *current_matrix;
-     struct matrix_elt *matrix;
-     int window_size;
-     int unchanged_at_top;
+do_scrolling (struct frame *frame, struct glyph_matrix *current_matrix, struct matrix_elt *matrix, int window_size, int unchanged_at_top)
 {
   struct matrix_elt *p;
   int i, j, k;
@@ -854,9 +849,7 @@ scrolling_1 (frame, window_size, unchanged_at_top, unchanged_at_bottom,
    such a line will have little weight.  */
 
 int
-scrolling_max_lines_saved (start, end, oldhash, newhash, cost)
-     int start, end;
-     int *oldhash, *newhash, *cost;
+scrolling_max_lines_saved (int start, int end, int *oldhash, int *newhash, int *cost)
 {
   struct { int hash; int count; } lines[01000];
   register int i, h;
@@ -909,9 +902,7 @@ scrolling_max_lines_saved (start, end, oldhash, newhash, cost)
    to scroll_frame_lines to perform this scrolling.  */
 
 int
-scroll_cost (frame, from, to, amount)
-     FRAME_PTR frame;
-     int from, to, amount;
+scroll_cost (FRAME_PTR frame, int from, int to, int amount)
 {
   /* Compute how many lines, at bottom of frame,
      will not be involved in actual motion.  */
@@ -948,11 +939,7 @@ scroll_cost (frame, from, to, amount)
    overhead and multiply factor values */
 
 static void
-line_ins_del (frame, ov1, pf1, ovn, pfn, ov, mf)
-     FRAME_PTR frame;
-     int ov1, ovn;
-     int pf1, pfn;
-     register int *ov, *mf;
+line_ins_del (FRAME_PTR frame, int ov1, int pf1, int ovn, int pfn, register int *ov, register int *mf)
 {
   register int i;
   register int frame_lines = FRAME_LINES (frame);

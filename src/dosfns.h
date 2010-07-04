@@ -38,8 +38,8 @@ extern Lisp_Object Vdos_windows_version;
 #ifndef HAVE_X_WINDOWS
 extern Lisp_Object Vdos_display_scancodes;
 
-extern int         msdos_stdcolor_idx  P_ ((const char *));
-extern Lisp_Object msdos_stdcolor_name P_ ((int));
+extern int         msdos_stdcolor_idx  (const char *);
+extern Lisp_Object msdos_stdcolor_name (int);
 #endif
 
 /* arch-tag: a83b8c4c-63c8-451e-9e94-bc72e3e2f8bc

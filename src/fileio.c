@@ -240,15 +240,13 @@ Lisp_Object Qfile_name_history;
 
 Lisp_Object Qcar_less_than_car;
 
-static int a_write P_ ((int, Lisp_Object, int, int,
-			Lisp_Object *, struct coding_system *));
-static int e_write P_ ((int, Lisp_Object, int, int, struct coding_system *));
+static int a_write (int, Lisp_Object, int, int,
+                    Lisp_Object *, struct coding_system *);
+static int e_write (int, Lisp_Object, int, int, struct coding_system *);
 
 
 void
-report_file_error (string, data)
-     const char *string;
-     Lisp_Object data;
+report_file_error (const char *string, Lisp_Object data)
 {
   Lisp_Object errstring;
   int errorno = errno;
@@ -286,8 +284,7 @@ report_file_error (string, data)
 }
 
 Lisp_Object
-close_file_unwind (fd)
-     Lisp_Object fd;
+close_file_unwind (Lisp_Object fd)
 {
   emacs_close (XFASTINT (fd));
   return Qnil;
@@ -296,8 +293,7 @@ close_file_unwind (fd)
 /* Restore point, having saved it as a marker.  */
 
 Lisp_Object
-restore_point_unwind (location)
-     Lisp_Object location;
+restore_point_unwind (Lisp_Object location)
 {
   Fgoto_char (location);
   Fset_marker (location, Qnil, Qnil);
@@ -539,8 +535,7 @@ get a current directory to run processes in.  */)
 
 
 char *
-file_name_as_directory (out, in)
-     char *out, *in;
+file_name_as_directory (char *out, char *in)
 {
   int size = strlen (in) - 1;
 
@@ -604,8 +599,7 @@ For a Unix-syntax file name, just appends a slash.  */)
  */
 
 int
-directory_file_name (src, dst)
-     char *src, *dst;
+directory_file_name (char *src, char *dst)
 {
   long slen;
 
@@ -688,9 +682,7 @@ static unsigned make_temp_name_count, make_temp_name_count_initialized_p;
    generated.  */
 
 Lisp_Object
-make_temp_name (prefix, base64_p)
-     Lisp_Object prefix;
-     int base64_p;
+make_temp_name (Lisp_Object prefix, int base64_p)
 {
   Lisp_Object val;
   int len, clen;
@@ -1558,8 +1550,7 @@ See also the function `substitute-in-file-name'.")
 
 /* If /~ or // appears, discard everything through first slash.  */
 static int
-file_name_absolute_p (filename)
-     const unsigned char *filename;
+file_name_absolute_p (const unsigned char *filename)
 {
   return
     (IS_DIRECTORY_SEP (*filename) || *filename == '~'
@@ -1571,8 +1562,7 @@ file_name_absolute_p (filename)
 }
 
 static unsigned char *
-search_embedded_absfilename (nm, endp)
-     unsigned char *nm, *endp;
+search_embedded_absfilename (unsigned char *nm, unsigned char *endp)
 {
   unsigned char *p, *s;
 
@@ -1823,8 +1813,7 @@ those `/' is discarded.  */)
    (directory-file-name (expand-file-name FOO)).  */
 
 Lisp_Object
-expand_and_dir_to_file (filename, defdir)
-     Lisp_Object filename, defdir;
+expand_and_dir_to_file (Lisp_Object filename, Lisp_Object defdir)
 {
   register Lisp_Object absname;
 
@@ -1853,12 +1842,7 @@ expand_and_dir_to_file (filename, defdir)
    If QUICK is nonzero, we ask for y or n, not yes or no.  */
 
 void
-barf_or_query_if_file_exists (absname, querystring, interactive, statptr, quick)
-     Lisp_Object absname;
-     unsigned char *querystring;
-     int interactive;
-     struct stat *statptr;
-     int quick;
+barf_or_query_if_file_exists (Lisp_Object absname, unsigned char *querystring, int interactive, struct stat *statptr, int quick)
 {
   register Lisp_Object tem, encoded_filename;
   struct stat statbuf;
@@ -2228,8 +2212,7 @@ With a prefix argument, TRASH is nil.  */)
 }
 
 static Lisp_Object
-internal_delete_file_1 (ignore)
-     Lisp_Object ignore;
+internal_delete_file_1 (Lisp_Object ignore)
 {
   return Qt;
 }
@@ -2495,8 +2478,7 @@ On Unix, this is a name starting with a `/' or a `~'.  */)
 /* Return nonzero if file FILENAME exists and can be executed.  */
 
 static int
-check_executable (filename)
-     char *filename;
+check_executable (char *filename)
 {
 #ifdef DOS_NT
   int len = strlen (filename);
@@ -2520,8 +2502,7 @@ check_executable (filename)
 /* Return nonzero if file FILENAME exists and can be written.  */
 
 static int
-check_writable (filename)
-     char *filename;
+check_writable (char *filename)
 {
 #ifdef MSDOS
   struct stat st;
@@ -3101,7 +3082,7 @@ The value is an integer.  */)
   return value;
 }
 
-extern int lisp_time_argument P_ ((Lisp_Object, time_t *, int *));
+extern int lisp_time_argument (Lisp_Object, time_t *, int *);
 
 DEFUN ("set-file-times", Fset_file_times, Sset_file_times, 1, 2, 0,
        doc: /* Set times of file FILENAME to TIME.
@@ -3235,8 +3216,7 @@ Lisp_Object Qfind_buffer_file_type;
 	o set back the buffer multibyteness.  */
 
 static Lisp_Object
-decide_coding_unwind (unwind_data)
-     Lisp_Object unwind_data;
+decide_coding_unwind (Lisp_Object unwind_data)
 {
   Lisp_Object multibyte, undo_list, buffer;
 
@@ -3268,12 +3248,12 @@ static EMACS_INT non_regular_nbytes;
 
 
 /* Read from a non-regular file.
-   Read non_regular_trytry bytes max from non_regular_fd.
+   Read non_regular_nbytes bytes max from non_regular_fd.
    Non_regular_inserted specifies where to put the read bytes.
    Value is the number of bytes read.  */
 
 static Lisp_Object
-read_non_regular ()
+read_non_regular (Lisp_Object ignored)
 {
   EMACS_INT nbytes;
 
@@ -3291,7 +3271,7 @@ read_non_regular ()
    in insert-file-contents.  */
 
 static Lisp_Object
-read_non_regular_quit ()
+read_non_regular_quit (Lisp_Object ignored)
 {
   return Qnil;
 }
@@ -4445,11 +4425,10 @@ variable `last-coding-system-used' to the coding system actually used.  */)
   RETURN_UNGCPRO (unbind_to (count, val));
 }
 
-static Lisp_Object build_annotations P_ ((Lisp_Object, Lisp_Object));
+static Lisp_Object build_annotations (Lisp_Object, Lisp_Object);
 
 static Lisp_Object
-build_annotations_unwind (arg)
-     Lisp_Object arg;
+build_annotations_unwind (Lisp_Object arg)
 {
   Vwrite_region_annotation_buffers = arg;
   return Qnil;
@@ -4923,8 +4902,7 @@ DEFUN ("car-less-than-car", Fcar_less_than_car, Scar_less_than_car, 2, 2, 0,
    as save-excursion would do.  */
 
 static Lisp_Object
-build_annotations (start, end)
-     Lisp_Object start, end;
+build_annotations (Lisp_Object start, Lisp_Object end)
 {
   Lisp_Object annotations;
   Lisp_Object p, res;
@@ -5013,13 +4991,7 @@ build_annotations (start, end)
    The return value is negative in case of system call failure.  */
 
 static int
-a_write (desc, string, pos, nchars, annot, coding)
-     int desc;
-     Lisp_Object string;
-     register int nchars;
-     int pos;
-     Lisp_Object *annot;
-     struct coding_system *coding;
+a_write (int desc, Lisp_Object string, int pos, register int nchars, Lisp_Object *annot, struct coding_system *coding)
 {
   Lisp_Object tem;
   int nextpos;
@@ -5063,11 +5035,7 @@ a_write (desc, string, pos, nchars, annot, coding)
    are indexes to the string STRING.  */
 
 static int
-e_write (desc, string, start, end, coding)
-     int desc;
-     Lisp_Object string;
-     int start, end;
-     struct coding_system *coding;
+e_write (int desc, Lisp_Object string, int start, int end, struct coding_system *coding)
 {
   if (STRINGP (string))
     {
@@ -5259,8 +5227,7 @@ An argument specifies the modification time value to use
 }
 
 Lisp_Object
-auto_save_error (error)
-     Lisp_Object error;
+auto_save_error (Lisp_Object error)
 {
   Lisp_Object args[3], msg;
   int i, nbytes;
@@ -5296,7 +5263,7 @@ auto_save_error (error)
 }
 
 Lisp_Object
-auto_save_1 ()
+auto_save_1 (void)
 {
   struct stat st;
   Lisp_Object modes;
@@ -5322,8 +5289,8 @@ auto_save_1 ()
 }
 
 static Lisp_Object
-do_auto_save_unwind (arg)  /* used as unwind-protect function */
-     Lisp_Object arg;
+do_auto_save_unwind (Lisp_Object arg)  /* used as unwind-protect function */
+                     
 {
   FILE *stream = (FILE *) XSAVE_VALUE (arg)->pointer;
   auto_saving = 0;
@@ -5337,16 +5304,15 @@ do_auto_save_unwind (arg)  /* used as unwind-protect function */
 }
 
 static Lisp_Object
-do_auto_save_unwind_1 (value)  /* used as unwind-protect function */
-     Lisp_Object value;
+do_auto_save_unwind_1 (Lisp_Object value)  /* used as unwind-protect function */
+                       
 {
   minibuffer_auto_raise = XINT (value);
   return Qnil;
 }
 
 static Lisp_Object
-do_auto_save_make_dir (dir)
-     Lisp_Object dir;
+do_auto_save_make_dir (Lisp_Object dir)
 {
   Lisp_Object mode;
 
@@ -5356,8 +5322,7 @@ do_auto_save_make_dir (dir)
 }
 
 static Lisp_Object
-do_auto_save_eh (ignore)
-     Lisp_Object ignore;
+do_auto_save_eh (Lisp_Object ignore)
 {
   return Qnil;
 }
@@ -5627,8 +5592,7 @@ before any other event (mouse or keypress) is handled.  */)
 }
 
 Lisp_Object
-Fread_file_name (prompt, dir, default_filename, mustmatch, initial, predicate)
-     Lisp_Object prompt, dir, default_filename, mustmatch, initial, predicate;
+Fread_file_name (Lisp_Object prompt, Lisp_Object dir, Lisp_Object default_filename, Lisp_Object mustmatch, Lisp_Object initial, Lisp_Object predicate)
 {
   struct gcpro gcpro1, gcpro2;
   Lisp_Object args[7];
@@ -5646,7 +5610,7 @@ Fread_file_name (prompt, dir, default_filename, mustmatch, initial, predicate)
 
 
 void
-syms_of_fileio ()
+syms_of_fileio (void)
 {
   Qoperations = intern_c_string ("operations");
   Qexpand_file_name = intern_c_string ("expand-file-name");

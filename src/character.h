@@ -596,24 +596,24 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    : 0)
 
 
-extern int char_resolve_modifier_mask P_ ((int));
-extern int char_string P_ ((unsigned, unsigned char *));
-extern int string_char P_ ((const unsigned char *,
-			    const unsigned char **, int *));
+extern int char_resolve_modifier_mask (int);
+extern int char_string (unsigned, unsigned char *);
+extern int string_char (const unsigned char *,
+                        const unsigned char **, int *);
 
-extern int translate_char P_ ((Lisp_Object, int c));
-extern int char_printable_p P_ ((int c));
-extern void parse_str_as_multibyte P_ ((const unsigned char *, int, int *,
-					int *));
-extern int parse_str_to_multibyte P_ ((unsigned char *, int));
-extern int str_as_multibyte P_ ((unsigned char *, int, int, int *));
-extern int str_to_multibyte P_ ((unsigned char *, int, int));
-extern int str_as_unibyte P_ ((unsigned char *, int));
-extern EMACS_INT str_to_unibyte P_ ((const unsigned char *, unsigned char *,
-				     EMACS_INT, int));
-extern int strwidth P_ ((unsigned char *, int));
-extern int c_string_width P_ ((const unsigned char *, int, int, int *, int *));
-extern int lisp_string_width P_ ((Lisp_Object, int, int *, int *));
+extern int translate_char (Lisp_Object, int c);
+extern int char_printable_p (int c);
+extern void parse_str_as_multibyte (const unsigned char *, int, int *,
+                                    int *);
+extern int parse_str_to_multibyte (unsigned char *, int);
+extern int str_as_multibyte (unsigned char *, int, int, int *);
+extern int str_to_multibyte (unsigned char *, int, int);
+extern int str_as_unibyte (unsigned char *, int);
+extern EMACS_INT str_to_unibyte (const unsigned char *, unsigned char *,
+                                 EMACS_INT, int);
+extern int strwidth (unsigned char *, int);
+extern int c_string_width (const unsigned char *, int, int, int *, int *);
+extern int lisp_string_width (Lisp_Object, int, int *, int *);
 
 extern Lisp_Object Vprintable_chars;
 
@@ -624,7 +624,7 @@ extern Lisp_Object Vchar_direction_table;
 extern Lisp_Object Vchar_unify_table;
 extern Lisp_Object Vunicode_category_table;
 
-extern Lisp_Object string_escape_byte8 P_ ((Lisp_Object));
+extern Lisp_Object string_escape_byte8 (Lisp_Object);
 
 /* Return a translation table of id number ID.  */
 #define GET_TRANSLATION_TABLE(id) \

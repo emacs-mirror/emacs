@@ -286,8 +286,8 @@ w32con_insert_glyphs (struct frame *f, register struct glyph *start, register in
     }
 }
 
-extern unsigned char *encode_terminal_code P_ ((struct glyph *, int, 
-						struct coding_system *));
+extern unsigned char *encode_terminal_code (struct glyph *, int, 
+                                            struct coding_system *);
 
 static void
 w32con_write_glyphs (struct frame *f, register struct glyph *string,
@@ -492,7 +492,7 @@ w32con_set_terminal_window (struct frame *f, int size)
  ***********************************************************************/
 
 void
-sys_tputs (char *str, int nlines, int (*outfun)())
+sys_tputs (char *str, int nlines, int (*outfun)(int))
 {
 }
 

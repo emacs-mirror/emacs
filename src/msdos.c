@@ -2092,33 +2092,27 @@ IT_set_frame_parameters (f, alist)
     = (Lisp_Object *) alloca (length * sizeof (Lisp_Object));
   /* Do we have to reverse the foreground and background colors?  */
   int reverse = EQ (Fcdr (Fassq (Qreverse, f->param_alist)), Qt);
-  int need_to_reverse, was_reverse = reverse;
   int redraw = 0, fg_set = 0, bg_set = 0;
   unsigned long orig_fg, orig_bg;
   Lisp_Object frame_bg, frame_fg;
-  extern Lisp_Object Qdefault, QCforeground, QCbackground;
   struct tty_display_info *tty = FRAME_TTY (f);
+  extern Lisp_Object Qmenu_bar_lines;
+  extern Lisp_Object Vmenu_bar_mode;
+  int menu_bar_lines_defined =
+    !NILP (Fassq (Qmenu_bar_lines, Vdefault_frame_alist));
 
   /* If we are creating a new frame, begin with the original screen colors
      used for the initial frame.  */
-  if (EQ (alist, Vdefault_frame_alist)
+  if (!f->default_face_done_p
       && initial_screen_colors[0] != -1 && initial_screen_colors[1] != -1)
     {
       FRAME_FOREGROUND_PIXEL (f) = initial_screen_colors[0];
       FRAME_BACKGROUND_PIXEL (f) = initial_screen_colors[1];
       init_frame_faces (f);
+      f->default_face_done_p = 1;
     }
-  orig_fg = FRAME_FOREGROUND_PIXEL (f);
-  orig_bg = FRAME_BACKGROUND_PIXEL (f);
-  frame_fg = Fcdr (Fassq (Qforeground_color, f->param_alist));
-  frame_bg = Fcdr (Fassq (Qbackground_color, f->param_alist));
-  /* frame_fg and frame_bg could be nil if, for example,
-     f->param_alist is nil, e.g. if we are called from
-     Fmake_terminal_frame.  */
-  if (NILP (frame_fg))
-    frame_fg = build_string (unspecified_fg);
-  if (NILP (frame_bg))
-    frame_bg = build_string (unspecified_bg);
+  orig_fg = reverse ? FRAME_BACKGROUND_PIXEL (f) : FRAME_FOREGROUND_PIXEL (f);
+  orig_bg = reverse ? FRAME_FOREGROUND_PIXEL (f) : FRAME_BACKGROUND_PIXEL (f);
 
   /* Extract parm names and values into those vectors.  */
   i = 0;
@@ -2144,60 +2138,79 @@ IT_set_frame_parameters (f, alist)
 
       if (EQ (prop, Qreverse))
 	reverse = EQ (val, Qt);
+      else if (!menu_bar_lines_defined && EQ (prop, Qmenu_bar_lines))
+	menu_bar_lines_defined = 1;
     }
 
-  need_to_reverse = reverse && !was_reverse;
-  if (tty->termscript && need_to_reverse)
+  if (tty->termscript && reverse)
     fprintf (tty->termscript, "<INVERSE-VIDEO>\n");
 
   /* Now process the alist elements in reverse of specified order.  */
   for (i--; i >= 0; i--)
     {
-      Lisp_Object prop, val, frame;
+      Lisp_Object prop, val;
 
       prop = parms[i];
       val  = values[i];
 
       if (EQ (prop, Qforeground_color))
 	{
-	  unsigned long new_color = load_color (f, NULL, val, need_to_reverse
+	  unsigned long new_color = load_color (f, NULL, val, reverse
 						? LFACE_BACKGROUND_INDEX
 						: LFACE_FOREGROUND_INDEX);
 	  if (new_color !=  FACE_TTY_DEFAULT_COLOR
 	      && new_color != FACE_TTY_DEFAULT_FG_COLOR
 	      && new_color != FACE_TTY_DEFAULT_BG_COLOR)
 	    {
-	      FRAME_FOREGROUND_PIXEL (f) = new_color;
-	      /* Make sure the foreground of the default face for this
-		 frame is changed as well.  */
-	      XSETFRAME (frame, f);
-	      Finternal_set_lisp_face_attribute (Qdefault, QCforeground,
-						 val, frame);
-	      fg_set = 1;
+	      if (!reverse)
+		{
+		  FRAME_FOREGROUND_PIXEL (f) = new_color;
+		  /* Make sure the foreground of the default face for
+		     this frame is changed as well.  */
+		  update_face_from_frame_parameter (f, Qforeground_color, val);
+		  fg_set = 1;
+		  if (tty->termscript)
+		    fprintf (tty->termscript, "<FGCOLOR %lu>\n", new_color);
+		}
+	      else
+		{
+		  FRAME_BACKGROUND_PIXEL (f) = new_color;
+		  update_face_from_frame_parameter (f, Qbackground_color, val);
+		  bg_set = 1;
+		  if (tty->termscript)
+		    fprintf (tty->termscript, "<BGCOLOR %lu>\n", new_color);
+		}
 	      redraw = 1;
-	      if (tty->termscript)
-		fprintf (tty->termscript, "<FGCOLOR %lu>\n", new_color);
 	    }
 	}
       else if (EQ (prop, Qbackground_color))
 	{
-	  unsigned long new_color = load_color (f, NULL, val, need_to_reverse
+	  unsigned long new_color = load_color (f, NULL, val, reverse
 						? LFACE_FOREGROUND_INDEX
 						: LFACE_BACKGROUND_INDEX);
 	  if (new_color != FACE_TTY_DEFAULT_COLOR
 	      && new_color != FACE_TTY_DEFAULT_FG_COLOR
 	      && new_color != FACE_TTY_DEFAULT_BG_COLOR)
 	    {
-	      FRAME_BACKGROUND_PIXEL (f) = new_color;
-	      /* Make sure the background of the default face for this
-		 frame is changed as well.  */
-	      XSETFRAME (frame, f);
-	      Finternal_set_lisp_face_attribute (Qdefault, QCbackground,
-						 val, frame);
-	      bg_set = 1;
+	      if (!reverse)
+		{
+		  FRAME_BACKGROUND_PIXEL (f) = new_color;
+		  /* Make sure the background of the default face for
+		     this frame is changed as well.  */
+		  bg_set = 1;
+		  update_face_from_frame_parameter (f, Qbackground_color, val);
+		  if (tty->termscript)
+		    fprintf (tty->termscript, "<BGCOLOR %lu>\n", new_color);
+		}
+	      else
+		{
+		  FRAME_FOREGROUND_PIXEL (f) = new_color;
+		  fg_set = 1;
+		  update_face_from_frame_parameter (f, Qforeground_color, val);
+		  if (tty->termscript)
+		    fprintf (tty->termscript, "<FGCOLOR %lu>\n", new_color);
+		}
 	      redraw = 1;
-	      if (tty->termscript)
-		fprintf (tty->termscript, "<BGCOLOR %lu>\n", new_color);
 	    }
 	}
       else if (EQ (prop, Qtitle))
@@ -2226,26 +2239,36 @@ IT_set_frame_parameters (f, alist)
       store_frame_param (f, prop, val);
     }
 
+  /* If menu-bar-lines is neither in the frame parameters nor in
+     default-frame-alist, set it according to menu-bar-mode.  */
+  if (!menu_bar_lines_defined)
+    {
+      store_frame_param (f, Qmenu_bar_lines,
+			 NILP (Vmenu_bar_mode)
+			 ? make_number (0) : make_number (1));
+      if (tty->termscript)
+	fprintf (tty->termscript, "<MENU BAR LINES DEFAULTED: %d\n",
+		 !NILP (Vmenu_bar_mode));
+    }
+
   /* If they specified "reverse", but not the colors, we need to swap
      the current frame colors.  */
-  if (need_to_reverse)
+  if (reverse)
     {
       Lisp_Object frame;
 
       if (!fg_set)
 	{
-	  XSETFRAME (frame, f);
-	  Finternal_set_lisp_face_attribute (Qdefault, QCforeground,
-					     tty_color_name (f, orig_bg),
-					     frame);
+	  FRAME_FOREGROUND_PIXEL (f) = orig_bg;
+	  update_face_from_frame_parameter (f, Qforeground_color,
+					    tty_color_name (f, orig_bg));
 	  redraw = 1;
 	}
       if (!bg_set)
 	{
-	  XSETFRAME (frame, f);
-	  Finternal_set_lisp_face_attribute (Qdefault, QCbackground,
-					     tty_color_name (f, orig_fg),
-					     frame);
+	  FRAME_BACKGROUND_PIXEL (f) = orig_fg;
+	  update_face_from_frame_parameter (f, Qbackground_color,
+					    tty_color_name (f, orig_fg));
 	  redraw = 1;
 	}
     }

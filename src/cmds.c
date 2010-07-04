@@ -356,9 +356,7 @@ After insertion, the value of `auto-fill-function' is called if the
 static Lisp_Object Qexpand_abbrev;
 
 int
-internal_self_insert (c, noautofill)
-     int c;
-     int noautofill;
+internal_self_insert (int c, int noautofill)
 {
   int hairy = 0;
   Lisp_Object tem;
@@ -546,7 +544,7 @@ internal_self_insert (c, noautofill)
 /* module initialization */
 
 void
-syms_of_cmds ()
+syms_of_cmds (void)
 {
   Qkill_backward_chars = intern_c_string ("kill-backward-chars");
   staticpro (&Qkill_backward_chars);
@@ -587,7 +585,7 @@ More precisely, a char with closeparen syntax is self-inserted.  */);
 }
 
 void
-keys_of_cmds ()
+keys_of_cmds (void)
 {
   int n;
 

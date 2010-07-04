@@ -86,63 +86,63 @@ typedef struct _destroyed_instance
   struct _destroyed_instance*	next;
 } destroyed_instance;
 
-static destroyed_instance *make_destroyed_instance P_ ((char *, char *,
-							Widget, Widget,
-							Boolean));
-static void free_destroyed_instance P_ ((destroyed_instance*));
-Widget first_child P_ ((Widget));
-Boolean lw_motif_widget_p P_ ((Widget));
-static XmString resource_motif_string P_ ((Widget, char *));
-static void destroy_all_children P_ ((Widget, int));
-static void xm_update_label P_ ((widget_instance *, Widget, widget_value *));
-static void xm_update_list P_ ((widget_instance *, Widget, widget_value *));
-static void xm_update_pushbutton P_ ((widget_instance *, Widget,
-				      widget_value *));
-static void xm_update_cascadebutton P_ ((widget_instance *, Widget,
-					 widget_value *));
-static void xm_update_toggle P_ ((widget_instance *, Widget, widget_value *));
-static void xm_update_radiobox P_ ((widget_instance *, Widget, widget_value *));
-static void make_menu_in_widget P_ ((widget_instance *, Widget,
-				     widget_value *, int));
-static void update_one_menu_entry P_ ((widget_instance *, Widget,
-				       widget_value *, Boolean));
-static void xm_update_menu P_ ((widget_instance *, Widget, widget_value *,
-				Boolean));
-static void xm_update_text P_ ((widget_instance *, Widget, widget_value *));
-static void xm_update_text_field P_ ((widget_instance *, Widget,
-				      widget_value *));
-void xm_update_one_value P_ ((widget_instance *, Widget, widget_value *));
-static void activate_button P_ ((Widget, XtPointer, XtPointer));
-static Widget make_dialog P_ ((char *, Widget, Boolean, char *, char *,
-			       Boolean, Boolean, Boolean, int, int));
-static destroyed_instance* find_matching_instance P_ ((widget_instance*));
-static void mark_dead_instance_destroyed P_ ((Widget, XtPointer, XtPointer));
-static void recenter_widget P_ ((Widget));
-static Widget recycle_instance P_ ((destroyed_instance*));
-Widget xm_create_dialog P_ ((widget_instance*));
-static Widget make_menubar P_ ((widget_instance*));
-static void remove_grabs P_ ((Widget, XtPointer, XtPointer));
-static Widget make_popup_menu P_ ((widget_instance*));
-static Widget make_main P_ ((widget_instance*));
-void xm_destroy_instance P_ ((widget_instance*));
-void xm_popup_menu P_ ((Widget, XEvent *));
-static void set_min_dialog_size P_ ((Widget));
-static void do_call P_ ((Widget, XtPointer, enum do_call_type));
-static void xm_generic_callback P_ ((Widget, XtPointer, XtPointer));
-static void xm_nosel_callback P_ ((Widget, XtPointer, XtPointer));
-static void xm_pull_down_callback P_ ((Widget, XtPointer, XtPointer));
-static void xm_pop_down_callback P_ ((Widget, XtPointer, XtPointer));
-void xm_set_keyboard_focus P_ ((Widget, Widget));
-void xm_set_main_areas P_ ((Widget, Widget, Widget));
-static void xm_internal_update_other_instances P_ ((Widget, XtPointer,
-						    XtPointer));
-static void xm_arm_callback P_ ((Widget, XtPointer, XtPointer));
+static destroyed_instance *make_destroyed_instance (char *, char *,
+                                                    Widget, Widget,
+                                                    Boolean);
+static void free_destroyed_instance (destroyed_instance*);
+Widget first_child (Widget);
+Boolean lw_motif_widget_p (Widget);
+static XmString resource_motif_string (Widget, char *);
+static void destroy_all_children (Widget, int);
+static void xm_update_label (widget_instance *, Widget, widget_value *);
+static void xm_update_list (widget_instance *, Widget, widget_value *);
+static void xm_update_pushbutton (widget_instance *, Widget,
+                                  widget_value *);
+static void xm_update_cascadebutton (widget_instance *, Widget,
+                                     widget_value *);
+static void xm_update_toggle (widget_instance *, Widget, widget_value *);
+static void xm_update_radiobox (widget_instance *, Widget, widget_value *);
+static void make_menu_in_widget (widget_instance *, Widget,
+                                 widget_value *, int);
+static void update_one_menu_entry (widget_instance *, Widget,
+                                   widget_value *, Boolean);
+static void xm_update_menu (widget_instance *, Widget, widget_value *,
+                            Boolean);
+static void xm_update_text (widget_instance *, Widget, widget_value *);
+static void xm_update_text_field (widget_instance *, Widget,
+                                  widget_value *);
+void xm_update_one_value (widget_instance *, Widget, widget_value *);
+static void activate_button (Widget, XtPointer, XtPointer);
+static Widget make_dialog (char *, Widget, Boolean, char *, char *,
+                           Boolean, Boolean, Boolean, int, int);
+static destroyed_instance* find_matching_instance (widget_instance*);
+static void mark_dead_instance_destroyed (Widget, XtPointer, XtPointer);
+static void recenter_widget (Widget);
+static Widget recycle_instance (destroyed_instance*);
+Widget xm_create_dialog (widget_instance*);
+static Widget make_menubar (widget_instance*);
+static void remove_grabs (Widget, XtPointer, XtPointer);
+static Widget make_popup_menu (widget_instance*);
+static Widget make_main (widget_instance*);
+void xm_destroy_instance (widget_instance*);
+void xm_popup_menu (Widget, XEvent *);
+static void set_min_dialog_size (Widget);
+static void do_call (Widget, XtPointer, enum do_call_type);
+static void xm_generic_callback (Widget, XtPointer, XtPointer);
+static void xm_nosel_callback (Widget, XtPointer, XtPointer);
+static void xm_pull_down_callback (Widget, XtPointer, XtPointer);
+static void xm_pop_down_callback (Widget, XtPointer, XtPointer);
+void xm_set_keyboard_focus (Widget, Widget);
+void xm_set_main_areas (Widget, Widget, Widget);
+static void xm_internal_update_other_instances (Widget, XtPointer,
+                                                XtPointer);
+static void xm_arm_callback (Widget, XtPointer, XtPointer);
 
 #if 0
-void xm_update_one_widget P_ ((widget_instance *, Widget, widget_value *,
-			       Boolean));
-void xm_pop_instance P_ ((widget_instance*, Boolean));
-void xm_manage_resizing P_ ((Widget, Boolean));
+void xm_update_one_widget (widget_instance *, Widget, widget_value *,
+                           Boolean);
+void xm_pop_instance (widget_instance*, Boolean);
+void xm_manage_resizing (Widget, Boolean);
 #endif
 
 

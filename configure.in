@@ -305,6 +305,16 @@ if test x$ac_gc_check_cons_list != x ; then
 [Define this to check for errors in cons list.])
 fi
 
+AC_ARG_ENABLE(use-lisp-union-type,
+[AS_HELP_STRING([--enable-use-lisp-union-type],
+                [use a union for the Lisp_Object data type.
+		This is only useful for development for catching certain types of bugs.])],
+if test "${enableval}" != "no"; then
+   AC_DEFINE(USE_LISP_UNION_TYPE, 1,
+   [Define this to use a lisp union for the Lisp_Object data type.])
+fi)
+
+
 AC_ARG_ENABLE(profiling,
 [AS_HELP_STRING([--enable-profiling],
 		[build emacs with profiling support.
@@ -3564,14 +3574,6 @@ extern char *getenv ();
 /* Define if the compiler supports function prototypes.  It may do so but
    not define __STDC__ (e.g. DEC C by default) or may define it as zero.  */
 #undef PROTOTYPES
-/* For mktime.c:  */
-#ifndef __P
-# if defined PROTOTYPES
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif  /* GCC.  */
-#endif /* __P */
 
 #ifdef HAVE_STRING_H
 #include <string.h>

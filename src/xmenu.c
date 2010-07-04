@@ -122,22 +122,22 @@ extern Lisp_Object Qoverriding_local_map, Qoverriding_terminal_local_map;
 extern Lisp_Object Qmenu_bar_update_hook;
 
 #ifdef USE_X_TOOLKIT
-extern void set_frame_menubar P_ ((FRAME_PTR, int, int));
+extern void set_frame_menubar (FRAME_PTR, int, int);
 extern XtAppContext Xt_app_con;
 
-static Lisp_Object xdialog_show P_ ((FRAME_PTR, int, Lisp_Object, Lisp_Object,
-				     char **));
-static void popup_get_selection P_ ((XEvent *, struct x_display_info *,
-                                     LWLIB_ID, int));
+static Lisp_Object xdialog_show (FRAME_PTR, int, Lisp_Object, Lisp_Object,
+                                 char **);
+static void popup_get_selection (XEvent *, struct x_display_info *,
+                                 LWLIB_ID, int);
 #endif /* USE_X_TOOLKIT */
 
 #ifdef USE_GTK
-extern void set_frame_menubar P_ ((FRAME_PTR, int, int));
-static Lisp_Object xdialog_show P_ ((FRAME_PTR, int, Lisp_Object, Lisp_Object,
-				     char **));
+extern void set_frame_menubar (FRAME_PTR, int, int);
+static Lisp_Object xdialog_show (FRAME_PTR, int, Lisp_Object, Lisp_Object,
+                                 char **);
 #endif
 
-static int update_frame_menubar P_ ((struct frame *));
+static int update_frame_menubar (struct frame *);
 
 /* Flag which when set indicates a dialog or menu has been posted by
    Xt on behalf of one of the widget sets.  */
@@ -147,8 +147,8 @@ static int next_menubar_widget_id;
 
 /* For NS and NTGUI, these prototypes are defined in keyboard.h.  */
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
-extern widget_value *xmalloc_widget_value P_ ((void));
-extern widget_value *digest_single_submenu P_ ((int, int, int));
+extern widget_value *xmalloc_widget_value (void);
+extern widget_value *digest_single_submenu (int, int, int);
 #endif
 
 /* This is set nonzero after the user activates the menu bar, and set
@@ -196,10 +196,7 @@ menubar_id_to_frame (id)
    the scroll bar or the edit window.  Fx_popup_menu needs to be
    sure it is the edit window.  */
 void
-mouse_position_for_popup (f, x, y)
-     FRAME_PTR f;
-     int *x;
-     int *y;
+mouse_position_for_popup (FRAME_PTR f, int *x, int *y)
 {
   Window root, dummy_window;
   int dummy;
@@ -391,8 +388,7 @@ for instance using the window manager, then this produces a quit and
 /* Set menu_items_inuse so no other popup menu or dialog is created.  */
 
 void
-x_menu_set_in_use (in_use)
-     int in_use;
+x_menu_set_in_use (int in_use)
 {
   menu_items_inuse = in_use ? Qt : Qnil;
   popup_activated_flag = in_use;
@@ -638,9 +634,7 @@ If FRAME is nil or not given, use the selected frame.  */)
    Used for popup menus and dialogs. */
 
 static void
-popup_widget_loop (do_timers, widget)
-     int do_timers;
-     GtkWidget *widget;
+popup_widget_loop (int do_timers, GtkWidget *widget)
 {
   ++popup_activated_flag;
 
@@ -668,8 +662,7 @@ popup_widget_loop (do_timers, widget)
    execute Lisp code.  */
 
 void
-x_activate_menubar (f)
-     FRAME_PTR f;
+x_activate_menubar (FRAME_PTR f)
 {
   if (! FRAME_X_P (f))
     abort ();
@@ -724,9 +717,7 @@ popup_activate_callback (widget, id, client_data)
 
 #ifdef USE_GTK
 static void
-popup_deactivate_callback (widget, client_data)
-     GtkWidget *widget;
-     gpointer client_data;
+popup_deactivate_callback (GtkWidget *widget, gpointer client_data)
 {
   popup_activated_flag = 0;
 }
@@ -746,10 +737,7 @@ popup_deactivate_callback (widget, id, client_data)
    for that widget.
    F is the frame if known, or NULL if not known.  */
 static void
-show_help_event (f, widget, help)
-     FRAME_PTR f;
-     xt_or_gtk_widget widget;
-     Lisp_Object help;
+show_help_event (FRAME_PTR f, xt_or_gtk_widget widget, Lisp_Object help)
 {
   Lisp_Object frame;
 
@@ -787,9 +775,7 @@ show_help_event (f, widget, help)
 
 #ifdef USE_GTK
 void
-menu_highlight_callback (widget, call_data)
-     GtkWidget *widget;
-     gpointer call_data;
+menu_highlight_callback (GtkWidget *widget, gpointer call_data)
 {
   xg_menu_item_cb_data *cb_data;
   Lisp_Object help;
@@ -839,9 +825,7 @@ static int xg_crazy_callback_abort;
    Figure out what the user chose
    and put the appropriate events into the keyboard buffer.  */
 static void
-menubar_selection_callback (widget, client_data)
-     GtkWidget *widget;
-     gpointer client_data;
+menubar_selection_callback (GtkWidget *widget, gpointer client_data)
 {
   xg_menu_item_cb_data *cb_data = (xg_menu_item_cb_data*) client_data;
 
@@ -903,8 +887,7 @@ menubar_selection_callback (widget, id, client_data)
    changed.  Value is non-zero if widgets were updated.  */
 
 static int
-update_frame_menubar (f)
-     FRAME_PTR f;
+update_frame_menubar (FRAME_PTR f)
 {
 #ifdef USE_GTK
   return xg_update_frame_menubar (f);
@@ -995,10 +978,7 @@ apply_systemfont_to_menu (w)
    it is set the first time this is called, from initialize_frame_menubar.  */
 
 void
-set_frame_menubar (f, first_time, deep_p)
-     FRAME_PTR f;
-     int first_time;
-     int deep_p;
+set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 {
   xt_or_gtk_widget menubar_widget;
 #ifdef USE_X_TOOLKIT
@@ -1347,8 +1327,7 @@ set_frame_menubar (f, first_time, deep_p)
    is visible.  */
 
 void
-initialize_frame_menubar (f)
-     FRAME_PTR f;
+initialize_frame_menubar (FRAME_PTR f)
 {
   /* This function is called before the first chance to redisplay
      the frame.  It has to be, so the frame will have the right size.  */
@@ -1458,12 +1437,7 @@ struct next_popup_x_y
 
    Here only X and Y are used.  */
 static void
-menu_position_func (menu, x, y, push_in, user_data)
-     GtkMenu *menu;
-     gint *x;
-     gint *y;
-     gboolean *push_in;
-     gpointer user_data;
+menu_position_func (GtkMenu *menu, gint *x, gint *y, gboolean *push_in, gpointer user_data)
 {
   struct next_popup_x_y* data = (struct next_popup_x_y*)user_data;
   GtkRequisition req;
@@ -1484,9 +1458,7 @@ menu_position_func (menu, x, y, push_in, user_data)
 }
 
 static void
-popup_selection_callback (widget, client_data)
-     GtkWidget *widget;
-     gpointer client_data;
+popup_selection_callback (GtkWidget *widget, gpointer client_data)
 {
   xg_menu_item_cb_data *cb_data = (xg_menu_item_cb_data*) client_data;
 
@@ -1495,8 +1467,7 @@ popup_selection_callback (widget, client_data)
 }
 
 static Lisp_Object
-pop_down_menu (arg)
-     Lisp_Object arg;
+pop_down_menu (Lisp_Object arg)
 {
   struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
 
@@ -1511,13 +1482,7 @@ pop_down_menu (arg)
    menu pops down.
    menu_item_selection will be set to the selection.  */
 static void
-create_and_show_popup_menu (f, first_wv, x, y, for_click, timestamp)
-     FRAME_PTR f;
-     widget_value *first_wv;
-     int x;
-     int y;
-     int for_click;
-     EMACS_UINT timestamp;
+create_and_show_popup_menu (FRAME_PTR f, widget_value *first_wv, int x, int y, int for_click, EMACS_UINT timestamp)
 {
   int i;
   GtkWidget *menu;
@@ -1977,9 +1942,7 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 
 #ifdef USE_GTK
 static void
-dialog_selection_callback (widget, client_data)
-     GtkWidget *widget;
-     gpointer client_data;
+dialog_selection_callback (GtkWidget *widget, gpointer client_data)
 {
   /* The EMACS_INT cast avoids a warning.  There's no problem
      as long as pointers have enough bits to hold small integers.  */
@@ -1993,9 +1956,7 @@ dialog_selection_callback (widget, client_data)
    dialog pops down.
    menu_item_selection will be set to the selection.  */
 static void
-create_and_show_dialog (f, first_wv)
-     FRAME_PTR f;
-     widget_value *first_wv;
+create_and_show_dialog (FRAME_PTR f, widget_value *first_wv)
 {
   GtkWidget *menu;
 
@@ -2092,11 +2053,7 @@ static char * button_names [] = {
   "button6", "button7", "button8", "button9", "button10" };
 
 static Lisp_Object
-xdialog_show (f, keymaps, title, header, error_name)
-     FRAME_PTR f;
-     int keymaps;
-     Lisp_Object title, header;
-     char **error_name;
+xdialog_show (FRAME_PTR f, int keymaps, Lisp_Object title, Lisp_Object header, char **error_name)
 {
   int i, nb_buttons=0;
   char dialog_name[6];
@@ -2658,7 +2615,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error, timestamp)
 /* Detect if a dialog or menu has been posted.  */
 
 int
-popup_activated ()
+popup_activated (void)
 {
   return popup_activated_flag;
 }
@@ -2677,7 +2634,7 @@ DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_
 }
 
 void
-syms_of_xmenu ()
+syms_of_xmenu (void)
 {
   Qdebug_on_next_call = intern_c_string ("debug-on-next-call");
   staticpro (&Qdebug_on_next_call);

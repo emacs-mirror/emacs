@@ -92,9 +92,7 @@ the char-table has no extra slot.  */)
 }
 
 static Lisp_Object
-make_sub_char_table (depth, min_char, defalt)
-     int depth, min_char;
-     Lisp_Object defalt;
+make_sub_char_table (int depth, int min_char, Lisp_Object defalt)
 {
   Lisp_Object table;
   int size = VECSIZE (struct Lisp_Sub_Char_Table) - 1 + chartab_size[depth];
@@ -108,8 +106,7 @@ make_sub_char_table (depth, min_char, defalt)
 }
 
 static Lisp_Object
-char_table_ascii (table)
-     Lisp_Object table;
+char_table_ascii (Lisp_Object table)
 {
   Lisp_Object sub;
 
@@ -123,8 +120,7 @@ char_table_ascii (table)
 }
 
 Lisp_Object
-copy_sub_char_table (table)
-     Lisp_Object table;
+copy_sub_char_table (Lisp_Object table)
 {
   Lisp_Object copy;
   int depth = XINT (XSUB_CHAR_TABLE (table)->depth);
@@ -148,8 +144,7 @@ copy_sub_char_table (table)
 
 
 Lisp_Object
-copy_char_table (table)
-     Lisp_Object table;
+copy_char_table (Lisp_Object table)
 {
   Lisp_Object copy;
   int size = XCHAR_TABLE (table)->size & PSEUDOVECTOR_SIZE_MASK;
@@ -175,9 +170,7 @@ copy_char_table (table)
 }
 
 Lisp_Object
-sub_char_table_ref (table, c)
-     Lisp_Object table;
-     int c;
+sub_char_table_ref (Lisp_Object table, int c)
 {
   struct Lisp_Sub_Char_Table *tbl = XSUB_CHAR_TABLE (table);
   int depth = XINT (tbl->depth);
@@ -191,9 +184,7 @@ sub_char_table_ref (table, c)
 }
 
 Lisp_Object
-char_table_ref (table, c)
-     Lisp_Object table;
-     int c;
+char_table_ref (Lisp_Object table, int c)
 {
   struct Lisp_Char_Table *tbl = XCHAR_TABLE (table);
   Lisp_Object val;
@@ -220,11 +211,7 @@ char_table_ref (table, c)
 }
 
 static Lisp_Object
-sub_char_table_ref_and_range (table, c, from, to, defalt)
-     Lisp_Object table;
-     int c;
-     int *from, *to;
-     Lisp_Object defalt;
+sub_char_table_ref_and_range (Lisp_Object table, int c, int *from, int *to, Lisp_Object defalt)
 {
   struct Lisp_Sub_Char_Table *tbl = XSUB_CHAR_TABLE (table);
   int depth = XINT (tbl->depth);
@@ -286,10 +273,7 @@ sub_char_table_ref_and_range (table, c, from, to, defalt)
    1) are different from that of C.  */
 
 Lisp_Object
-char_table_ref_and_range (table, c, from, to)
-     Lisp_Object table;
-     int c;
-     int *from, *to;
+char_table_ref_and_range (Lisp_Object table, int c, int *from, int *to)
 {
   struct Lisp_Char_Table *tbl = XCHAR_TABLE (table);
   int index = CHARTAB_IDX (c, 0, 0), idx;
@@ -363,10 +347,7 @@ char_table_ref_and_range (table, c, from, to)
 
 
 static void
-sub_char_table_set (table, c, val)
-     Lisp_Object table;
-     int c;
-     Lisp_Object val;
+sub_char_table_set (Lisp_Object table, int c, Lisp_Object val)
 {
   struct Lisp_Sub_Char_Table *tbl = XSUB_CHAR_TABLE (table);
   int depth = XINT ((tbl)->depth);
@@ -390,10 +371,7 @@ sub_char_table_set (table, c, val)
 }
 
 Lisp_Object
-char_table_set (table, c, val)
-     Lisp_Object table;
-     int c;
-     Lisp_Object val;
+char_table_set (Lisp_Object table, int c, Lisp_Object val)
 {
   struct Lisp_Char_Table *tbl = XCHAR_TABLE (table);
 
@@ -421,12 +399,7 @@ char_table_set (table, c, val)
 }
 
 static void
-sub_char_table_set_range (table, depth, min_char, from, to, val)
-     Lisp_Object *table;
-     int depth;
-     int min_char;
-     int from, to;
-     Lisp_Object val;
+sub_char_table_set_range (Lisp_Object *table, int depth, int min_char, int from, int to, Lisp_Object val)
 {
   int max_char = min_char + chartab_chars[depth] - 1;
 
@@ -454,10 +427,7 @@ sub_char_table_set_range (table, depth, min_char, from, to, val)
 
 
 Lisp_Object
-char_table_set_range (table, from, to, val)
-     Lisp_Object table;
-     int from, to;
-     Lisp_Object val;
+char_table_set_range (Lisp_Object table, int from, int to, Lisp_Object val)
 {
   struct Lisp_Char_Table *tbl = XCHAR_TABLE (table);
   Lisp_Object *contents = tbl->contents;
@@ -640,9 +610,7 @@ This function is obsolete and has no effect.  */)
    integer.  If the element is not a character, return CH itself.  */
 
 int
-char_table_translate (table, ch)
-     Lisp_Object table;
-     int ch;
+char_table_translate (Lisp_Object table, int ch)
 {
   Lisp_Object value;
   value = Faref (table, make_number (ch));
@@ -652,8 +620,7 @@ char_table_translate (table, ch)
 }
 
 static Lisp_Object
-optimize_sub_char_table (table, test)
-     Lisp_Object table, test;
+optimize_sub_char_table (Lisp_Object table, Lisp_Object test)
 {
   struct Lisp_Sub_Char_Table *tbl = XSUB_CHAR_TABLE (table);
   int depth = XINT (tbl->depth);
@@ -725,7 +692,7 @@ equivalent and can be merged.  It defaults to `equal'.  */)
 static Lisp_Object
 map_sub_char_table (c_function, function, table, arg, val, range,
 		    default_val, parent)
-     void (*c_function) P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
+     void (*c_function) (Lisp_Object, Lisp_Object, Lisp_Object);
      Lisp_Object function, table, arg, val, range, default_val, parent;
 {
   /* Pointer to the elements of TABLE. */
@@ -840,9 +807,7 @@ map_sub_char_table (c_function, function, table, arg, val, range,
    ARG is passed to C_FUNCTION when that is called.  */
 
 void
-map_char_table (c_function, function, table, arg)
-     void (*c_function) P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
-     Lisp_Object function, table, arg;
+map_char_table (void (*c_function) (Lisp_Object, Lisp_Object, Lisp_Object), Lisp_Object function, Lisp_Object table, Lisp_Object arg)
 {
   Lisp_Object range, val;
   struct gcpro gcpro1, gcpro2, gcpro3;
@@ -915,7 +880,7 @@ range of characters that have the same value.  */)
 static void
 map_sub_char_table_for_charset (c_function, function, table, arg, range,
 				charset, from, to)
-     void (*c_function) P_ ((Lisp_Object, Lisp_Object));
+     void (*c_function) (Lisp_Object, Lisp_Object);
      Lisp_Object function, table, arg, range;
      struct charset *charset;
      unsigned from, to;
@@ -1002,7 +967,7 @@ map_sub_char_table_for_charset (c_function, function, table, arg, range,
 void
 map_char_table_for_charset (c_function, function, table, arg,
 			    charset, from, to)
-     void (*c_function) P_ ((Lisp_Object, Lisp_Object));
+     void (*c_function) (Lisp_Object, Lisp_Object);
      Lisp_Object function, table, arg;
      struct charset *charset;
      unsigned from, to;
@@ -1049,7 +1014,7 @@ map_char_table_for_charset (c_function, function, table, arg,
 
 
 void
-syms_of_chartab ()
+syms_of_chartab (void)
 {
   defsubr (&Smake_char_table);
   defsubr (&Schar_table_parent);

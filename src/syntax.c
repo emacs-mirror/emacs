@@ -98,18 +98,18 @@ static EMACS_INT find_start_begv;
 static int find_start_modiff;
 
 
-static Lisp_Object skip_chars P_ ((int, Lisp_Object, Lisp_Object, int));
-static Lisp_Object skip_syntaxes P_ ((int, Lisp_Object, Lisp_Object));
-static Lisp_Object scan_lists P_ ((EMACS_INT, EMACS_INT, EMACS_INT, int));
-static void scan_sexps_forward P_ ((struct lisp_parse_state *,
-				    EMACS_INT, EMACS_INT, EMACS_INT, int,
-				    int, Lisp_Object, int));
-static int in_classes P_ ((int, Lisp_Object));
+static Lisp_Object skip_chars (int, Lisp_Object, Lisp_Object, int);
+static Lisp_Object skip_syntaxes (int, Lisp_Object, Lisp_Object);
+static Lisp_Object scan_lists (EMACS_INT, EMACS_INT, EMACS_INT, int);
+static void scan_sexps_forward (struct lisp_parse_state *,
+                                EMACS_INT, EMACS_INT, EMACS_INT, int,
+                                int, Lisp_Object, int);
+static int in_classes (int, Lisp_Object);
 
 
 struct gl_state_s gl_state;		/* Global state of syntax parser.  */
 
-INTERVAL interval_of ();
+INTERVAL interval_of (int, Lisp_Object);
 #define INTERVALS_AT_ONCE 10		/* 1 + max-number of intervals
 					   to scan to property-change.  */
 
@@ -127,9 +127,7 @@ INTERVAL interval_of ();
    start/end of OBJECT.  */
 
 void
-update_syntax_table (charpos, count, init, object)
-     int charpos, count, init;
-     Lisp_Object object;
+update_syntax_table (int charpos, int count, int init, Lisp_Object object)
 {
   Lisp_Object tmp_table;
   int cnt = 0, invalidate = 1;
@@ -318,8 +316,7 @@ char_quoted (EMACS_INT charpos, EMACS_INT bytepos)
    We assume that BYTEPOS is not at the end of the buffer.  */
 
 INLINE EMACS_INT
-inc_bytepos (bytepos)
-     EMACS_INT bytepos;
+inc_bytepos (EMACS_INT bytepos)
 {
   if (NILP (current_buffer->enable_multibyte_characters))
     return bytepos + 1;
@@ -332,8 +329,7 @@ inc_bytepos (bytepos)
    We assume that BYTEPOS is not at the start of the buffer.  */
 
 INLINE EMACS_INT
-dec_bytepos (bytepos)
-     EMACS_INT bytepos;
+dec_bytepos (EMACS_INT bytepos)
 {
   if (NILP (current_buffer->enable_multibyte_characters))
     return bytepos - 1;
@@ -357,8 +353,7 @@ dec_bytepos (bytepos)
    update the global data.  */
 
 static EMACS_INT
-find_defun_start (pos, pos_byte)
-     EMACS_INT pos, pos_byte;
+find_defun_start (EMACS_INT pos, EMACS_INT pos_byte)
 {
   EMACS_INT opoint = PT, opoint_byte = PT_BYTE;
 
@@ -422,8 +417,7 @@ find_defun_start (pos, pos_byte)
 /* Return the SYNTAX_COMEND_FIRST of the character before POS, POS_BYTE.  */
 
 static int
-prev_char_comend_first (pos, pos_byte)
-     int pos, pos_byte;
+prev_char_comend_first (int pos, int pos_byte)
 {
   int c, val;
 
@@ -465,10 +459,7 @@ prev_char_comend_first (pos, pos_byte)
    the returned value (or at FROM, if the search was not successful).  */
 
 static int
-back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_ptr)
-     EMACS_INT from, from_byte, stop;
-     int comnested, comstyle;
-     EMACS_INT *charpos_ptr, *bytepos_ptr;
+back_comment (EMACS_INT from, EMACS_INT from_byte, EMACS_INT stop, int comnested, int comstyle, EMACS_INT *charpos_ptr, EMACS_INT *bytepos_ptr)
 {
   /* Look back, counting the parity of string-quotes,
      and recording the comment-starters seen.
@@ -740,8 +731,7 @@ Currently, any char-table counts as a syntax table.  */)
 }
 
 static void
-check_syntax_table (obj)
-     Lisp_Object obj;
+check_syntax_table (Lisp_Object obj)
 {
   CHECK_TYPE (CHAR_TABLE_P (obj) && EQ (XCHAR_TABLE (obj)->purpose, Qsyntax_table),
 	      Qsyntax_table_p, obj);
@@ -1185,8 +1175,7 @@ Lisp_Object Vfind_word_boundary_function_table;
    COUNT negative means scan backward and stop at word beginning.  */
 
 int
-scan_words (from, count)
-     register int from, count;
+scan_words (register int from, register int count)
 {
   register int beg = BEGV;
   register int end = ZV;
@@ -1395,10 +1384,7 @@ This function returns the distance traveled, either zero or negative.  */)
 }
 
 static Lisp_Object
-skip_chars (forwardp, string, lim, handle_iso_classes)
-     int forwardp;
-     Lisp_Object string, lim;
-     int handle_iso_classes;
+skip_chars (int forwardp, Lisp_Object string, Lisp_Object lim, int handle_iso_classes)
 {
   register unsigned int c;
   unsigned char fastmap[0400];
@@ -1892,9 +1878,7 @@ skip_chars (forwardp, string, lim, handle_iso_classes)
 
 
 static Lisp_Object
-skip_syntaxes (forwardp, string, lim)
-     int forwardp;
-     Lisp_Object string, lim;
+skip_syntaxes (int forwardp, Lisp_Object string, Lisp_Object lim)
 {
   register unsigned int c;
   unsigned char fastmap[0400];
@@ -2067,9 +2051,7 @@ skip_syntaxes (forwardp, string, lim)
    integer which is its type according to re_wctype.  */
 
 static int
-in_classes (c, iso_classes)
-     int c;
-     Lisp_Object iso_classes;
+in_classes (int c, Lisp_Object iso_classes)
 {
   int fits_class = 0;
 
@@ -2422,10 +2404,7 @@ between them, return t; otherwise return nil.  */)
    ? SYNTAX (c) : Ssymbol)
 
 static Lisp_Object
-scan_lists (from, count, depth, sexpflag)
-     register EMACS_INT from;
-     EMACS_INT count, depth;
-     int sexpflag;
+scan_lists (register EMACS_INT from, EMACS_INT count, EMACS_INT depth, int sexpflag)
 {
   Lisp_Object val;
   register EMACS_INT stop = count > 0 ? ZV : BEGV;
@@ -3324,7 +3303,7 @@ Sixth arg COMMENTSTOP non-nil means stop at the start of a comment.
 }
 
 void
-init_syntax_once ()
+init_syntax_once (void)
 {
   register int i, c;
   Lisp_Object temp;
@@ -3414,7 +3393,7 @@ init_syntax_once ()
 }
 
 void
-syms_of_syntax ()
+syms_of_syntax (void)
 {
   Qsyntax_table_p = intern_c_string ("syntax-table-p");
   staticpro (&Qsyntax_table_p);

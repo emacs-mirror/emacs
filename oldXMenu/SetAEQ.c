@@ -18,9 +18,9 @@
 
 #include "XMenuInt.h"
 
-XMenuSetAEQ(menu, aeq)
-    register XMenu *menu;	/* Menu object to be modified. */
-    register int aeq;		/* AEQ mode? */
+XMenuSetAEQ(register XMenu *menu, register int aeq)
+                         	/* Menu object to be modified. */
+                     		/* AEQ mode? */
 {
     /*
      * Set the AEQ mode switch.

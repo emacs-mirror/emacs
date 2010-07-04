@@ -66,10 +66,10 @@ static int been_here = -1;
 /* For now, don't try to include termcap.h.  On some systems,
    configure finds a non-standard termcap.h that the main build
    won't find.  */
-extern void tputs P_ ((const char *, int, int (*)(int)));
-extern int tgetent P_ ((char *, const char *));
-extern int tgetflag P_ ((char *id));
-extern int tgetnum P_ ((char *id));
+extern void tputs (const char *, int, int (*)(int));
+extern int tgetent (char *, const char *);
+extern int tgetflag (char *id);
+extern int tgetnum (char *id);
 
 #include "cm.h"
 #ifdef HAVE_X_WINDOWS
@@ -91,16 +91,16 @@ extern int tgetnum P_ ((char *id));
 #define DEV_TTY  "/dev/tty"
 #endif
 
-static void tty_set_scroll_region P_ ((struct frame *f, int start, int stop));
-static void turn_on_face P_ ((struct frame *, int face_id));
-static void turn_off_face P_ ((struct frame *, int face_id));
-static void tty_show_cursor P_ ((struct tty_display_info *));
-static void tty_hide_cursor P_ ((struct tty_display_info *));
-static void tty_background_highlight P_ ((struct tty_display_info *tty));
-static void clear_tty_hooks P_ ((struct terminal *terminal));
-static void set_tty_hooks P_ ((struct terminal *terminal));
-static void dissociate_if_controlling_tty P_ ((int fd));
-static void delete_tty P_ ((struct terminal *));
+static void tty_set_scroll_region (struct frame *f, int start, int stop);
+static void turn_on_face (struct frame *, int face_id);
+static void turn_off_face (struct frame *, int face_id);
+static void tty_show_cursor (struct tty_display_info *);
+static void tty_hide_cursor (struct tty_display_info *);
+static void tty_background_highlight (struct tty_display_info *tty);
+static void clear_tty_hooks (struct terminal *terminal);
+static void set_tty_hooks (struct terminal *terminal);
+static void dissociate_if_controlling_tty (int fd);
+static void delete_tty (struct terminal *);
 
 #define OUTPUT(tty, a)                                          \
   emacs_tputs ((tty), a,                                        \
@@ -187,7 +187,7 @@ extern char *tgetstr ();
 #ifdef HAVE_GPM
 #include <sys/fcntl.h>
 
-static void term_clear_mouse_face ();
+static void term_clear_mouse_face (void);
 static void term_mouse_highlight (struct frame *f, int x, int y);
 
 /* The device for which we have enabled gpm support (or NULL).  */
@@ -1385,7 +1385,7 @@ term_get_fkeys (address, kboard)
      function key specification, rather than giving the user an error and
      refusing to run at all on such a terminal.  */
 
-  extern Lisp_Object Fidentity ();
+  extern Lisp_Object Fidentity (Lisp_Object);
   term_get_fkeys_address = address;
   term_get_fkeys_kboard = kboard;
   internal_condition_case (term_get_fkeys_1, Qerror, Fidentity);
@@ -1517,10 +1517,10 @@ term_get_fkeys_1 ()
 #define produce_composite_glyph produce_composite_glyph_term
 #endif
 
-static void append_glyph P_ ((struct it *));
-static void produce_stretch_glyph P_ ((struct it *));
-static void append_composite_glyph P_ ((struct it *));
-static void produce_composite_glyph P_ ((struct it *));
+static void append_glyph (struct it *);
+static void produce_stretch_glyph (struct it *);
+static void append_composite_glyph (struct it *);
+static void produce_composite_glyph (struct it *);
 
 /* Append glyphs to IT's glyph_row.  Called from produce_glyphs for
    terminal frames if IT->glyph_row != NULL.  IT->char_to_display is
