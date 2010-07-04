@@ -1,3 +1,10 @@
+2010-07-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* fakemail.c (action): Convert function definitions to standard C.
+	(add_a_stream):
+	* test-distrib.c (cool_read):
+	(main): Likewise.
+
 2010-07-03  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* sorted-doc.c (cmpdoc): Fix signature.
