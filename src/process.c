@@ -182,7 +182,7 @@ Lisp_Object Quser, Qgroup, Qetime, Qpcpu, Qpmem, Qtime, Qctime;
 
 #include "syswait.h"
 
-extern char *get_operating_system_release ();
+extern char *get_operating_system_release (void);
 
 /* Serial processes require termios or Windows.  */
 #if defined (HAVE_TERMIOS) || defined (WINDOWSNT)
@@ -5606,7 +5606,7 @@ send_process (volatile Lisp_Object proc, unsigned char *volatile buf,
   int rv;
   struct coding_system *coding;
   struct gcpro gcpro1;
-  SIGTYPE (*volatile old_sigpipe) ();
+  SIGTYPE (*volatile old_sigpipe) (int);
 
   GCPRO1 (object);
 
@@ -5719,7 +5719,7 @@ send_process (volatile Lisp_Object proc, unsigned char *volatile buf,
 	  while (this > 0)
 	    {
 	      int outfd = p->outfd;
-	      old_sigpipe = (SIGTYPE (*) ()) signal (SIGPIPE, send_process_trap);
+	      old_sigpipe = (SIGTYPE (*) (int)) signal (SIGPIPE, send_process_trap);
 #ifdef DATAGRAM_SOCKETS
 	      if (DATAGRAM_CHAN_P (outfd))
 		{

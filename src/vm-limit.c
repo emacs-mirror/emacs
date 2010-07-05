@@ -251,7 +251,7 @@ check_memory_limits (void)
 void
 memory_warnings (POINTER start, void (*warnfun) (char *))
 {
-  extern void (* __after_morecore_hook) ();     /* From gmalloc.c */
+  extern void (* __after_morecore_hook) (void);     /* From gmalloc.c */
 
   if (start)
     data_space_start = start;
