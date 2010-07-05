@@ -1,5 +1,8 @@
 2010-07-05  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* atimer.c: Use "" instead of <> for local includes for
+	consistency with the rest of the code.
+
 	* xsmfns.c (smc_save_yourself_CB, smc_error_handler):
 	* xrdb.c (get_system_name):
 	* window.c (shrink_windows):
