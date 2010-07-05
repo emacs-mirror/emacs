@@ -941,8 +941,7 @@ With optional DIVISOR, truncate ARG/DIVISOR.  */)
 
 
 Lisp_Object
-fmod_float (x, y)
-     register Lisp_Object x, y;
+fmod_float (Lisp_Object x, Lisp_Object y)
 {
   double f1, f2;
 

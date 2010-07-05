@@ -48,8 +48,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    another macro.  */
 #include "character.h"
 
-static int doprnt1 ();
-
 /* Generate output from a format-spec FORMAT,
    terminated at position FORMAT_END.
    Output goes in BUFFER, which has room for BUFSIZE chars.

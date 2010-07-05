@@ -1154,12 +1154,9 @@ struct xg_dialog_data
    USER_DATA is what we passed in to g_signal_connect.  */
 
 static void
-xg_dialog_response_cb (w,
-                       response,
-                       user_data)
-     GtkDialog *w;
-     gint response;
-     gpointer user_data;
+xg_dialog_response_cb (GtkDialog *w,
+		       gint response,
+		       gpointer user_data)
 {
   struct xg_dialog_data *dd = (struct xg_dialog_data *)user_data;
   dd->response = response;
@@ -1338,13 +1335,11 @@ xg_toggle_notify_cb (GObject *gobject, GParamSpec *arg1, gpointer user_data)
    Returns the created widget.  */
 
 static GtkWidget *
-xg_get_file_with_chooser (f, prompt, default_filename,
-                          mustmatch_p, only_dir_p, func)
-     FRAME_PTR f;
-     char *prompt;
-     char *default_filename;
-     int mustmatch_p, only_dir_p;
-     xg_get_file_func *func;
+xg_get_file_with_chooser (FRAME_PTR f,
+			  char *prompt,
+			  char *default_filename,
+			  int mustmatch_p, int only_dir_p,
+			  xg_get_file_func *func)
 {
   char message[1024];
 
@@ -1464,13 +1459,12 @@ xg_get_file_name_from_selector (GtkWidget *w)
    Returns the created widget.  */
 
 static GtkWidget *
-xg_get_file_with_selection (f, prompt, default_filename,
-                            mustmatch_p, only_dir_p, func)
-     FRAME_PTR f;
-     char *prompt;
-     char *default_filename;
-     int mustmatch_p, only_dir_p;
-     xg_get_file_func *func;
+xg_get_file_with_selection (
+     FRAME_PTR f,
+     char *prompt,
+     char *default_filename,
+     int mustmatch_p, int only_dir_p,
+     xg_get_file_func *func)
 {
   GtkWidget *filewin;
   GtkFileSelection *filesel;
@@ -2278,18 +2272,16 @@ xg_destroy_widgets (GList *list)
    This function calls itself to walk through the menu bar names.  */
 
 static void
-xg_update_menubar (menubar, f, list, iter, pos, val,
-                   select_cb, deactivate_cb, highlight_cb, cl_data)
-     GtkWidget *menubar;
-     FRAME_PTR f;
-     GList **list;
-     GList *iter;
-     int pos;
-     widget_value *val;
-     GCallback select_cb;
-     GCallback deactivate_cb;
-     GCallback highlight_cb;
-     xg_menu_cb_data *cl_data;
+xg_update_menubar (GtkWidget *menubar,
+		   FRAME_PTR f,
+		   GList **list,
+		   GList *iter,
+		   int pos,
+		   widget_value *val,
+		   GCallback select_cb,
+		   GCallback deactivate_cb,
+		   GCallback highlight_cb,
+		   xg_menu_cb_data *cl_data)
 {
   if (! iter && ! val)
     return;
@@ -2590,15 +2582,13 @@ xg_update_radio_item (widget_value *val, GtkWidget *w)
    was NULL.  */
 
 static GtkWidget *
-xg_update_submenu (submenu, f, val,
-                   select_cb, deactivate_cb, highlight_cb, cl_data)
-     GtkWidget *submenu;
-     FRAME_PTR f;
-     widget_value *val;
-     GCallback select_cb;
-     GCallback deactivate_cb;
-     GCallback highlight_cb;
-     xg_menu_cb_data *cl_data;
+xg_update_submenu (GtkWidget *submenu,
+		   FRAME_PTR f,
+		   widget_value *val,
+		   GCallback select_cb,
+		   GCallback deactivate_cb,
+		   GCallback highlight_cb,
+		   xg_menu_cb_data *cl_data)
 {
   GtkWidget *newsub = submenu;
   GList *list = 0;

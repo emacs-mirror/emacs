@@ -1,3 +1,29 @@
+2010-07-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xsmfns.c (smc_save_yourself_CB, smc_error_handler):
+	* xrdb.c (get_system_name):
+	* window.c (shrink_windows):
+	* syntax.c (forw_comment):
+	* scroll.c (calculate_scrolling, calculate_direct_scrolling)
+	(ins_del_costs):
+	* mem-limits.h (start_of_data):
+	* lread.c (readevalloop):
+	* gtkutil.c (xg_dialog_response_cb, xg_get_file_with_chooser)
+	(xg_get_file_with_selection, xg_update_menubar, xg_update_submenu):
+	* frame.c (x_get_focus_frame):
+	* floatfns.c (fmod_float):
+	* fileio.c (choose_write_coding_system):
+	* emacs.c (fatal_error_signal, init_cmdargs, argmatch)
+	(malloc_initialize_hook, sort_args, synchronize_locale):
+	* doprnt.c (doprnt):
+	* dired.c (compile_pattern):
+	* data.c (fmod_float):
+	* chartab.c (map_sub_char_table, map_sub_char_table_for_charset)
+	(map_char_table_for_charset):
+	* charset.c (define_charset_internal):
+	* alloc.c (Fgarbage_collect): Convert declarations or definitions
+	to standard C.
+
 2010-07-04  Tetsurou Okazaki  <okazaki@be.to>  (tiny change)
             Stefan Monnier  <monnier@iro.umontreal.ca>
 

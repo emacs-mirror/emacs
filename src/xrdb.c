@@ -68,7 +68,7 @@ extern struct passwd *getpwuid (uid_t);
 extern struct passwd *getpwnam (const char *);
 #endif
 
-extern char *get_system_name ();
+extern char *get_system_name (void);
 
 /* Make sure not to #include anything after these definitions.  Let's
    not step on anyone's prototypes.  */

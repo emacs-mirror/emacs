@@ -157,9 +157,9 @@ int initialized;
    static data inside glibc's malloc.  */
 void *malloc_state_ptr;
 /* From glibc, a routine that returns a copy of the malloc internal state.  */
-extern void *malloc_get_state ();
+extern void *malloc_get_state (void);
 /* From glibc, a routine that overwrites the malloc internal state.  */
-extern int malloc_set_state ();
+extern int malloc_set_state (void*);
 /* Non-zero if the MALLOC_CHECK_ environment variable was set while
    dumping.  Used to work around a bug in glibc's malloc.  */
 int malloc_using_checking;
@@ -252,8 +252,8 @@ int daemon_pipe[2];
 char **initial_argv;
 int initial_argc;
 
-static void sort_args ();
-void syms_of_emacs ();
+static void sort_args (int argc, char **argv);
+void syms_of_emacs (void);
 
 /* MSVC needs each string be shorter than 2048 bytes, so the usage
    strings below are split to not overflow this limit.  */
@@ -374,8 +374,7 @@ pthread_t main_thread;
 
 /* Handle bus errors, invalid instruction, etc.  */
 SIGTYPE
-fatal_error_signal (sig)
-     int sig;
+fatal_error_signal (int sig)
 {
   SIGNAL_THREAD_CHECK (sig);
   fatal_error_code = sig;
@@ -444,10 +443,7 @@ abort ()
 /* Code for dealing with Lisp access to the Unix command line.  */
 
 static void
-init_cmdargs (argc, argv, skip_args)
-     int argc;
-     char **argv;
-     int skip_args;
+init_cmdargs (int argc, char **argv, int skip_args)
 {
   register int i;
   Lisp_Object name, dir, tem;
@@ -644,14 +640,7 @@ void __main ()
    enough information to do it right.  */
 
 static int
-argmatch (argv, argc, sstr, lstr, minlen, valptr, skipptr)
-     char **argv;
-     int argc;
-     char *sstr;
-     char *lstr;
-     int minlen;
-     char **valptr;
-     int *skipptr;
+argmatch (char **argv, int argc, char *sstr, char *lstr, int minlen, char **valptr, int *skipptr)
 {
   char *p = NULL;
   int arglen;
@@ -709,7 +698,7 @@ argmatch (argv, argc, sstr, lstr, minlen, valptr, skipptr)
    possible using this special hook.  */
 
 static void
-malloc_initialize_hook ()
+malloc_initialize_hook (void)
 {
 #ifndef USE_CRT_DLL
   extern char **environ;
@@ -747,7 +736,7 @@ malloc_initialize_hook ()
     }
 }
 
-void (*__malloc_initialize_hook) () = malloc_initialize_hook;
+void (*__malloc_initialize_hook) (void) = malloc_initialize_hook;
 
 #endif /* DOUG_LEA_MALLOC */
 
@@ -1928,9 +1917,7 @@ const struct standard_args standard_args[] =
    than once, eliminate all but one copy of it.  */
 
 static void
-sort_args (argc, argv)
-     int argc;
-     char **argv;
+sort_args (int argc, char **argv)
 {
   char **new = (char **) xmalloc (sizeof (char *) * argc);
   /* For each element of argv,
@@ -2322,10 +2309,7 @@ fixup_locale ()
 /* Set system locale CATEGORY, with previous locale *PLOCALE, to
    DESIRED_LOCALE.  */
 static void
-synchronize_locale (category, plocale, desired_locale)
-     int category;
-     Lisp_Object *plocale;
-     Lisp_Object desired_locale;
+synchronize_locale (int category, Lisp_Object *plocale, Lisp_Object desired_locale)
 {
   if (! EQ (*plocale, desired_locale))
     {

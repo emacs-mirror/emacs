@@ -2582,7 +2582,7 @@ enum arithop
 
 static Lisp_Object float_arith_driver (double, int, enum arithop,
                                        int, Lisp_Object *);
-extern Lisp_Object fmod_float ();
+extern Lisp_Object fmod_float (Lisp_Object, Lisp_Object);
 
 Lisp_Object
 arith_driver (enum arithop code, int nargs, register Lisp_Object *args)

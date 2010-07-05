@@ -184,18 +184,12 @@ smc_interact_CB (SmcConn smcConn, SmPointer clientData)
    we do so, because we don't know what the lisp code might do.  */
 
 static void
-smc_save_yourself_CB (smcConn,
-                      clientData,
-                      saveType,
-                      shutdown,
-                      interactStyle,
-                      fast)
-     SmcConn smcConn;
-     SmPointer clientData;
-     int saveType;
-     Bool shutdown;
-     int interactStyle;
-     Bool fast;
+smc_save_yourself_CB (SmcConn smcConn,
+		      SmPointer clientData,
+		      int saveType,
+		      Bool shutdown,
+		      int interactStyle,
+		      Bool fast)
 {
 #define NR_PROPS 5
 
@@ -336,39 +330,25 @@ smc_shutdown_cancelled_CB (SmcConn smcConn, SmPointer clientData)
    because there is some error in the session management.  */
 
 static void
-smc_error_handler (smcConn,
-                   swap,
-                   offendingMinorOpcode,
-                   offendingSequence,
-                   errorClass,
-                   severity,
-                   values)
-     SmcConn smcConn;
-     Bool swap;
-     int offendingMinorOpcode;
-     unsigned long offendingSequence;
-     int errorClass;
-     int severity;
-     SmPointer values;
+smc_error_handler (SmcConn smcConn,
+		   Bool swap,
+		   int offendingMinorOpcode,
+		   unsigned long offendingSequence,
+		   int errorClass,
+		   int severity,
+		   SmPointer values)
 {
   /* Empty  */
 }
 
 static void
-ice_error_handler (iceConn,
-                   swap,
-                   offendingMinorOpcode,
-                   offendingSequence,
-                   errorClass,
-                   severity,
-                   values)
-     IceConn iceConn;
-     Bool swap;
-     int offendingMinorOpcode;
-     unsigned long offendingSequence;
-     int errorClass;
-     int severity;
-     IcePointer values;
+ice_error_handler (IceConn iceConn,
+		   Bool swap,
+		   int offendingMinorOpcode,
+		   unsigned long offendingSequence,
+		   int errorClass,
+		   int severity,
+		   IcePointer values)
 {
   /* Empty  */
 }

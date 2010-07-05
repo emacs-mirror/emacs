@@ -67,7 +67,7 @@ typedef unsigned long SIZE;
 #endif
 #define NULL ((POINTER) 0)
 
-extern POINTER start_of_data ();
+extern POINTER start_of_data (void);
 #if defined USE_LSB_TAG
 #define EXCEEDS_LISP_PTR(ptr) 0
 #elif defined DATA_SEG_BITS

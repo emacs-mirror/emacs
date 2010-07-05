@@ -3009,11 +3009,8 @@ adjust_window_margins (struct window *w)
    a specific window, it will attempt to strictly resize that window
    proportionally, even at the expense of deleting smaller windows.  */
 static int *
-shrink_windows (total, size, nchildren, shrinkable, resize_fixed_p,
-		forward, width_p, safe_p)
-     int total, size, nchildren, shrinkable;
-     int resize_fixed_p, width_p, safe_p;
-     Lisp_Object forward;
+shrink_windows (int total, int size, int nchildren, int shrinkable, 
+		int resize_fixed_p, Lisp_Object forward, int width_p, int safe_p)
 {
   int available_resize = 0;
   int *new_sizes, *min_sizes;

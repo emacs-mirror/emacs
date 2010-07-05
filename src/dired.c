@@ -90,7 +90,7 @@ extern struct direct *readdir ();
 #include "blockinput.h"
 
 /* Returns a search buffer, with a fastmap allocated and ready to go.  */
-extern struct re_pattern_buffer *compile_pattern ();
+extern struct re_pattern_buffer *compile_pattern (Lisp_Object, struct re_registers *, Lisp_Object, int, int);
 
 /* From filemode.c.  Can't go in Lisp.h because of `stat'.  */
 extern void filemodestring (struct stat *, char *);

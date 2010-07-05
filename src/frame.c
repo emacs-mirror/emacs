@@ -201,7 +201,7 @@ extern Lisp_Object Vminibuffer_list;
 extern Lisp_Object get_minibuffer (int);
 extern Lisp_Object Fhandle_switch_frame (Lisp_Object event);
 extern Lisp_Object Fredirect_frame_focus (Lisp_Object frame, Lisp_Object focus_frame);
-extern Lisp_Object x_get_focus_frame ();
+extern Lisp_Object x_get_focus_frame (struct frame *frame);
 extern Lisp_Object QCname, Qfont_param;
 
 
