@@ -1,3 +1,8 @@
+2010-07-05  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* keyboard.c: Remove duplicate <setjmp.h>.
+	(read_key_sequence): Remove volatile qualifiers.
+
 2010-07-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* dispextern.h (FRINGE_HEIGHT_BITS): New define.
