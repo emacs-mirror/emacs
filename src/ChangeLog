@@ -1,3 +1,14 @@
+2010-07-05  James Cloos  <cloos@jhcloos.com>
+
+	* xterm.h (Xatom_net_wm_name, Xatom_net_wm_icon_name): New.
+
+	* xterm.c (x_term_init): Intern the _NET_WM_NAME and
+	_NET_WM_ICON_NAME atoms.
+
+	* xfns.c (x_set_name_internal): Set the EWMH _NET_WM_NAME
+	and _NET_WM_ICON_NAME properties, too, matching what is
+	done in the Gtk+ case.
+
 2010-07-05  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (XTring_bell, XTset_terminal_window): Fix wrong prototype.

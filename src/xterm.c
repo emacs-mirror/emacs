@@ -10207,6 +10207,10 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     = XInternAtom (dpyinfo->display, "_NET_WM_WINDOW_TYPE", False);
   dpyinfo->Xatom_net_window_type_tooltip
     = XInternAtom (dpyinfo->display, "_NET_WM_WINDOW_TYPE_TOOLTIP", False);
+  dpyinfo->Xatom_net_wm_icon_name
+    = XInternAtom (dpyinfo->display, "_NET_WM_ICON_NAME", False);
+  dpyinfo->Xatom_net_wm_name
+    = XInternAtom (dpyinfo->display, "_NET_WM_NAME", False);
   
   dpyinfo->cut_buffers_initialized = 0;
 

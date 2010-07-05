@@ -1553,8 +1553,8 @@ x_set_name_internal (FRAME_PTR f, Lisp_Object name)
 	int bytes, stringp;
         int do_free_icon_value = 0, do_free_text_value = 0;
 	Lisp_Object coding_system;
-#ifdef USE_GTK
 	Lisp_Object encoded_name;
+	Lisp_Object encoded_icon_name;
 	struct gcpro gcpro1;
 
 	/* As ENCODE_UTF_8 may cause GC and relocation of string data,
@@ -1562,7 +1562,6 @@ x_set_name_internal (FRAME_PTR f, Lisp_Object name)
 	GCPRO1 (name);
 	encoded_name = ENCODE_UTF_8 (name);
 	UNGCPRO;
-#endif
 
 	coding_system = Qcompound_text;
 	/* Note: Encoding strategy
@@ -1578,7 +1577,12 @@ x_set_name_internal (FRAME_PTR f, Lisp_Object name)
 	   We may also be able to use "UTF8_STRING" in text.encoding
 	   in the future which can encode all Unicode characters.
 	   But, for the moment, there's no way to know that the
-	   current window manager supports it or not.  */
+	   current window manager supports it or not.
+
+	   Either way, we also set the _NET_WM_NAME and _NET_WM_ICON_NAME
+	   properties.  Per the EWMH specification, those two properties
+	   are always UTF8_STRING.  This matches what gtk_window_set_title()
+	   does in the USE_GTK case. */
 	text.value = x_encode_text (name, coding_system, 0, &bytes, &stringp,
 				    &do_free_text_value);
 	text.encoding = (stringp ? XA_STRING
@@ -1589,6 +1593,7 @@ x_set_name_internal (FRAME_PTR f, Lisp_Object name)
 	if (!STRINGP (f->icon_name))
 	  {
 	    icon = text;
+	    encoded_icon_name = encoded_name;
 	  }
 	else
 	  {
@@ -1599,6 +1604,8 @@ x_set_name_internal (FRAME_PTR f, Lisp_Object name)
 			     : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
 	    icon.format = 8;
 	    icon.nitems = bytes;
+
+	    encoded_icon_name = ENCODE_UTF_8 (f->icon_name);
 	  }
 
 #ifdef USE_GTK
@@ -1606,9 +1613,21 @@ x_set_name_internal (FRAME_PTR f, Lisp_Object name)
                               (char *) SDATA (encoded_name));
 #else /* not USE_GTK */
 	XSetWMName (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), &text);
+	XChangeProperty (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
+			 FRAME_X_DISPLAY_INFO (f)->Xatom_net_wm_name,
+			 FRAME_X_DISPLAY_INFO (f)->Xatom_UTF8_STRING,
+			 8, PropModeReplace,
+			 (char *) SDATA (encoded_name),
+			 SBYTES (encoded_name));
 #endif /* not USE_GTK */
 
 	XSetWMIconName (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), &icon);
+	XChangeProperty (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f),
+			 FRAME_X_DISPLAY_INFO (f)->Xatom_net_wm_icon_name,
+			 FRAME_X_DISPLAY_INFO (f)->Xatom_UTF8_STRING,
+			 8, PropModeReplace,
+			 (char *) SDATA (encoded_icon_name),
+			 SBYTES (encoded_icon_name));
 
 	if (do_free_icon_value)
 	  xfree (icon.value);
