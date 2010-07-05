@@ -761,7 +761,6 @@ w32_draw_fringe_bitmap (w, row, p)
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   HDC hdc;
   struct face *face = p->face;
-  int rowY;
 
   hdc = get_frame_dc (f);
 
@@ -820,21 +819,7 @@ w32_draw_fringe_bitmap (w, row, p)
     }
 
   /* Must clip because of partially visible lines.  */
-  rowY = WINDOW_TO_FRAME_PIXEL_Y (w, row->y);
-  if (p->y < rowY)
-    {
-      /* Adjust position of "bottom aligned" bitmap on partially
-	 visible last row.  */
-      int oldY = row->y;
-      int oldVH = row->visible_height;
-      row->visible_height = p->h;
-      row->y -= rowY - p->y;
-      w32_clip_to_row (w, row, -1, hdc);
-      row->y = oldY;
-      row->visible_height = oldVH;
-    }
-  else
-    w32_clip_to_row (w, row, -1, hdc);
+  w32_clip_to_row (w, row, -1, hdc);
 
   if (p->which && p->which < max_fringe_bmp)
     {

@@ -105,6 +105,8 @@ enum window_part
 /* Number of bits allocated to store fringe bitmap numbers.  */
 #define FRINGE_ID_BITS  16
 
+/* Number of bits allocated to store fringe bitmap height.  */
+#define FRINGE_HEIGHT_BITS 8
 
 
 /***********************************************************************
@@ -777,6 +779,12 @@ struct glyph_row
 
   /* Face of the right fringe glyph.  */
   unsigned right_fringe_face_id : FACE_ID_BITS;
+
+  /* Vertical offset of the left fringe bitmap.  */
+  signed left_fringe_offset : FRINGE_HEIGHT_BITS;
+
+  /* Vertical offset of the right fringe bitmap.  */
+  signed right_fringe_offset : FRINGE_HEIGHT_BITS;
 
   /* 1 means that we must draw the bitmaps of this row.  */
   unsigned redraw_fringe_bitmaps_p : 1;
