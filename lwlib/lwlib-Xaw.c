@@ -26,6 +26,7 @@ Boston, MA 02110-1301, USA.  */
 
 #include <stdio.h>
 #include <setjmp.h>
+#include <ctype.h>
 
 #include "../src/lisp.h"
 
@@ -151,7 +152,6 @@ fill_xft_data (struct widget_xft_data *data, Widget widget, XftFont *font)
 {
   Pixel bg, fg;
   XColor colors[2];
-  int screen = XScreenNumberOfScreen (XtScreen (widget));
 
   data->widget = widget;
   data->xft_font = font;
@@ -252,7 +252,9 @@ draw_text (struct widget_xft_data *data, char *lbl, int inverse)
       char *cp = strchr (bp, '\n');
       XftDrawStringUtf8 (data->xft_draw,
                          inverse ? &data->xft_bg : &data->xft_fg,
-                         data->xft_font, x, y, bp, cp ? cp - bp : strlen (bp));
+                         data->xft_font, x, y,
+                         (FcChar8 *) bp,
+                         cp ? cp - bp : strlen (bp));
       bp = cp ? cp + 1 : NULL;
       /* 1.2 gives reasonable line spacing.  */
       y += data->xft_font->height * 1.2;
@@ -264,7 +266,6 @@ draw_text (struct widget_xft_data *data, char *lbl, int inverse)
 static void
 set_text (struct widget_xft_data *data, Widget toplevel, char *lbl, int margin)
 {
-  int screen = XScreenNumberOfScreen (XtScreen (data->widget));
   int width, height;
 
   width = get_text_width_and_height (data->widget, lbl, data->xft_font,
@@ -293,7 +294,7 @@ find_xft_data (Widget widget)
       inst = lw_get_widget_instance (parent);
       parent = XtParent (parent);
     }
-  if (!inst || !inst->xft_data || !inst->xft_data[0].xft_font) return;
+  if (!inst || !inst->xft_data || !inst->xft_data[0].xft_font) return 0;
 
   for (nr = 0; data == NULL && nr < inst->nr_xft_data; ++nr) 
     {
@@ -550,7 +551,10 @@ static char overrideTrans[] =
 /* Dialogs pop down on any key press */
 static char dialogOverride[] =
        "<KeyPress>Escape:	lwlib_delete_dialog()";
-static void wm_delete_window(Widget w, XtPointer closure, XtPointer call_data);
+static void wm_delete_window (Widget w,
+                              XEvent *event,
+                              String *params,
+                              Cardinal *num_params);
 static XtActionsRec xaw_actions [] = {
   {"lwlib_delete_dialog", wm_delete_window}
 };
@@ -851,13 +855,16 @@ xaw_generic_callback (Widget widget, XtPointer closure, XtPointer call_data)
 }
 
 static void
-wm_delete_window (Widget w, XtPointer closure, XtPointer call_data)
+wm_delete_window (Widget w,
+                  XEvent *event,
+                  String *params,
+                  Cardinal *num_params)
 {
   LWLIB_ID id;
   Cardinal nkids;
   int i;
   Widget *kids = 0;
-  Widget widget, shell;
+  Widget widget = 0, shell;
 
   if (XtIsSubclass (w, dialogWidgetClass))
     shell = XtParent (w);
@@ -876,6 +883,8 @@ wm_delete_window (Widget w, XtPointer closure, XtPointer call_data)
       if (XtIsSubclass (widget, dialogWidgetClass))
 	break;
     }
+  if (! widget) return;
+
   id = lw_get_widget_id (widget);
   if (! id) abort ();
 

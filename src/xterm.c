@@ -3103,10 +3103,8 @@ XTtoggle_invisible_pointer (FRAME_PTR f, int invisible)
 /* Make audible bell.  */
 
 void
-XTring_bell (void)
+XTring_bell (struct frame *f)
 {
-  struct frame *f = SELECTED_FRAME ();
-
   if (FRAME_X_DISPLAY (f))
     {
 #if defined (HAVE_TIMEVAL) && defined (HAVE_SELECT)
@@ -3130,7 +3128,7 @@ XTring_bell (void)
    that is bounded by calls to x_update_begin and x_update_end.  */
 
 static void
-XTset_terminal_window (register int n)
+XTset_terminal_window (struct frame *f, int n)
 {
   /* This function intentionally left blank.  */
 }
@@ -10209,6 +10207,10 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     = XInternAtom (dpyinfo->display, "_NET_WM_WINDOW_TYPE", False);
   dpyinfo->Xatom_net_window_type_tooltip
     = XInternAtom (dpyinfo->display, "_NET_WM_WINDOW_TYPE_TOOLTIP", False);
+  dpyinfo->Xatom_net_wm_icon_name
+    = XInternAtom (dpyinfo->display, "_NET_WM_ICON_NAME", False);
+  dpyinfo->Xatom_net_wm_name
+    = XInternAtom (dpyinfo->display, "_NET_WM_NAME", False);
   
   dpyinfo->cut_buffers_initialized = 0;
 

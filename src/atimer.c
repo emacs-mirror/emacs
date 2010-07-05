@@ -21,11 +21,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <signal.h>
 #include <stdio.h>
 #include <setjmp.h>
-#include <lisp.h>
-#include <syssignal.h>
-#include <systime.h>
-#include <blockinput.h>
-#include <atimer.h>
+#include "lisp.h"
+#include "syssignal.h"
+#include "systime.h"
+#include "blockinput.h"
+#include "atimer.h"
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>

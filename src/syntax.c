@@ -1331,7 +1331,7 @@ and the function returns nil.  Field boundaries are not noticed if
   return val == orig_val ? Qt : Qnil;
 }
 
-Lisp_Object skip_chars ();
+Lisp_Object skip_chars (int, Lisp_Object, Lisp_Object, int);
 
 DEFUN ("skip-chars-forward", Fskip_chars_forward, Sskip_chars_forward, 1, 2, 0,
        doc: /* Move point forward, stopping before a char not in STRING, or at pos LIM.
@@ -2093,12 +2093,10 @@ in_classes (int c, Lisp_Object iso_classes)
    remains valid for forward search starting at the returned position. */
 
 static int
-forw_comment (from, from_byte, stop, nesting, style, prev_syntax,
-	      charpos_ptr, bytepos_ptr, incomment_ptr)
-     EMACS_INT from, from_byte, stop;
-     int nesting, style, prev_syntax;
-     EMACS_INT *charpos_ptr, *bytepos_ptr;
-     int *incomment_ptr;
+forw_comment (EMACS_INT from, EMACS_INT from_byte, EMACS_INT stop,
+	      int nesting, int style, int prev_syntax,
+	      EMACS_INT *charpos_ptr, EMACS_INT *bytepos_ptr,
+	      int *incomment_ptr)
 {
   register int c, c1;
   register enum syntaxcode code;

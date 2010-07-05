@@ -1,3 +1,91 @@
+2010-07-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vm-limit.c (memory_warnings):
+	* keyboard.c (modify_event_symbol):
+	* floatfns.c (rounding_driver, ceiling2, floor2, truncate2)
+	(round2, emacs_rint):
+	* process.c (send_process, old_sigpipe): Convert function
+	definitions and declarations to standard C.
+
+2010-07-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* buffer.c, cm.c, eval.c, keyboard.c, process.c, term.c, vm-limit.c,
+	* xdisp.c: Convert function definitions to standard C.
+
+	* cm.c (cmputc): Arg C is now int, not char.
+	* process.c (Fmake_network_process): Cast sockaddr_in* to sockaddr*.
+
+2010-07-05  James Cloos  <cloos@jhcloos.com>
+
+	* xterm.h (Xatom_net_wm_name, Xatom_net_wm_icon_name): New.
+
+	* xterm.c (x_term_init): Intern the _NET_WM_NAME and
+	_NET_WM_ICON_NAME atoms.
+
+	* xfns.c (x_set_name_internal): Set the EWMH _NET_WM_NAME
+	and _NET_WM_ICON_NAME properties, too, matching what is
+	done in the Gtk+ case.
+
+2010-07-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (XTring_bell, XTset_terminal_window): Fix wrong prototype.
+
+	* xsmfns.c (SSDATA): New macro.
+	(smc_save_yourself_CB, x_session_initialize): Use SSDATA for strings
+	passed to strlen/strcpy/strcat.
+	(create_client_leader_window): Surround with #ifndef USE_GTK.  Cast
+	7:th arg to XChangeProperty to (unsigned char *)
+
+	* xsettings.c (something_changedCB, parse_settings)
+	(apply_xft_settings): Reformat prototype.
+	(something_changedCB, init_gconf): Remove unused variable i.
+	(read_settings): Remove unused variable long_len.
+
+	* gtkutil.c (xg_get_pixbuf_from_pix_and_mask)
+	(xg_get_image_for_pixmap, create_dialog)
+	(xg_get_file_with_selection, xg_get_file_name, update_cl_data)
+	(menuitem_highlight_callback, make_menu_item)
+	(xg_create_one_menuitem, create_menus, xg_update_menu_item)
+	(xg_create_scroll_bar, xg_update_scrollbar_pos)
+	(xg_set_toolkit_scroll_bar_thumb, xg_tool_bar_button_cb)
+	(xg_tool_bar_proxy_help_callback, xg_tool_bar_detach_callback)
+	(xg_tool_bar_attach_callback, xg_tool_bar_help_callback)
+	(xg_tool_bar_item_expose_callback): Reformat prototype.
+	(xg_update_menubar): GList *group => GSList *group.
+	(xg_modify_menubar_widgets): Initialize witem to 0, check witem != 0
+	before use.
+	(update_frame_tool_bar): 4:th param to xg_get_image_for_pixmap changed
+	to GTK_IMAGE (wimage).
+
+2010-07-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* atimer.c: Use "" instead of <> for local includes for
+	consistency with the rest of the code.
+
+	* xsmfns.c (smc_save_yourself_CB, smc_error_handler):
+	* xrdb.c (get_system_name):
+	* window.c (shrink_windows):
+	* syntax.c (forw_comment):
+	* scroll.c (calculate_scrolling, calculate_direct_scrolling)
+	(ins_del_costs):
+	* mem-limits.h (start_of_data):
+	* lread.c (readevalloop):
+	* gtkutil.c (xg_dialog_response_cb, xg_get_file_with_chooser)
+	(xg_get_file_with_selection, xg_update_menubar, xg_update_submenu):
+	* frame.c (x_get_focus_frame):
+	* floatfns.c (fmod_float):
+	* fileio.c (choose_write_coding_system):
+	* emacs.c (fatal_error_signal, init_cmdargs, argmatch)
+	(malloc_initialize_hook, sort_args, synchronize_locale):
+	* doprnt.c (doprnt):
+	* dired.c (compile_pattern):
+	* data.c (fmod_float):
+	* chartab.c (map_sub_char_table, map_sub_char_table_for_charset)
+	(map_char_table_for_charset):
+	* charset.c (define_charset_internal):
+	* alloc.c (Fgarbage_collect): Convert declarations or definitions
+	to standard C.
+
 2010-07-04  Tetsurou Okazaki  <okazaki@be.to>  (tiny change)
             Stefan Monnier  <monnier@iro.umontreal.ca>
 

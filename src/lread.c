@@ -223,7 +223,7 @@ static int read_emacs_mule_char (int, int (*) (int, Lisp_Object),
                                  Lisp_Object);
 
 static void readevalloop (Lisp_Object, FILE*, Lisp_Object,
-                          Lisp_Object (*) (), int,
+                          Lisp_Object (*) (Lisp_Object), int,
                           Lisp_Object, Lisp_Object,
                           Lisp_Object, Lisp_Object);
 static Lisp_Object load_unwind (Lisp_Object);
@@ -1610,15 +1610,13 @@ end_of_file_error (void)
    If the input is not from a buffer, they must be nil.  */
 
 static void
-readevalloop (readcharfun, stream, sourcename, evalfun,
-	      printflag, unibyte, readfun, start, end)
-     Lisp_Object readcharfun;
-     FILE *stream;
-     Lisp_Object sourcename;
-     Lisp_Object (*evalfun) ();
-     int printflag;
-     Lisp_Object unibyte, readfun;
-     Lisp_Object start, end;
+readevalloop (Lisp_Object readcharfun,
+	      FILE *stream,
+	      Lisp_Object sourcename,
+	      Lisp_Object (*evalfun) (Lisp_Object),
+	      int printflag,
+	      Lisp_Object unibyte, Lisp_Object readfun,
+	      Lisp_Object start, Lisp_Object end)
 {
   register int c;
   register Lisp_Object val;

@@ -231,7 +231,9 @@ xg_create_default_cursor (Display *dpy)
 /* Apply GMASK to GPIX and return a GdkPixbuf with an alpha channel.  */
 
 static GdkPixbuf *
-xg_get_pixbuf_from_pix_and_mask (GdkPixmap *gpix, GdkPixmap *gmask, GdkColormap *cmap)
+xg_get_pixbuf_from_pix_and_mask (GdkPixmap *gpix,
+                                 GdkPixmap *gmask,
+                                 GdkColormap *cmap)
 {
   int width, height;
   GdkPixbuf *icon_buf, *tmp_buf;
@@ -309,7 +311,10 @@ file_for_image (Lisp_Object image)
    If OLD_WIDGET is not NULL, that widget is modified.  */
 
 static GtkWidget *
-xg_get_image_for_pixmap (FRAME_PTR f, struct image *img, GtkWidget *widget, GtkImage *old_widget)
+xg_get_image_for_pixmap (FRAME_PTR f,
+                         struct image *img,
+                         GtkWidget *widget,
+                         GtkImage *old_widget)
 {
   GdkPixmap *gpix;
   GdkPixmap *gmask;
@@ -1039,7 +1044,9 @@ dialog_delete_callback (GtkWidget *w, GdkEvent *event, gpointer user_data)
    Returns the GTK dialog widget.  */
 
 static GtkWidget *
-create_dialog (widget_value *wv, GCallback select_cb, GCallback deactivate_cb)
+create_dialog (widget_value *wv,
+               GCallback select_cb,
+               GCallback deactivate_cb)
 {
   char *title = get_dialog_title (wv->name[0]);
   int total_buttons = wv->name[1] - '0';
@@ -1154,12 +1161,9 @@ struct xg_dialog_data
    USER_DATA is what we passed in to g_signal_connect.  */
 
 static void
-xg_dialog_response_cb (w,
-                       response,
-                       user_data)
-     GtkDialog *w;
-     gint response;
-     gpointer user_data;
+xg_dialog_response_cb (GtkDialog *w,
+		       gint response,
+		       gpointer user_data)
 {
   struct xg_dialog_data *dd = (struct xg_dialog_data *)user_data;
   dd->response = response;
@@ -1338,13 +1342,11 @@ xg_toggle_notify_cb (GObject *gobject, GParamSpec *arg1, gpointer user_data)
    Returns the created widget.  */
 
 static GtkWidget *
-xg_get_file_with_chooser (f, prompt, default_filename,
-                          mustmatch_p, only_dir_p, func)
-     FRAME_PTR f;
-     char *prompt;
-     char *default_filename;
-     int mustmatch_p, only_dir_p;
-     xg_get_file_func *func;
+xg_get_file_with_chooser (FRAME_PTR f,
+			  char *prompt,
+			  char *default_filename,
+			  int mustmatch_p, int only_dir_p,
+			  xg_get_file_func *func)
 {
   char message[1024];
 
@@ -1464,13 +1466,11 @@ xg_get_file_name_from_selector (GtkWidget *w)
    Returns the created widget.  */
 
 static GtkWidget *
-xg_get_file_with_selection (f, prompt, default_filename,
-                            mustmatch_p, only_dir_p, func)
-     FRAME_PTR f;
-     char *prompt;
-     char *default_filename;
-     int mustmatch_p, only_dir_p;
-     xg_get_file_func *func;
+xg_get_file_with_selection (FRAME_PTR f,
+                            char *prompt,
+                            char *default_filename,
+                            int mustmatch_p, int only_dir_p,
+                            xg_get_file_func *func)
 {
   GtkWidget *filewin;
   GtkFileSelection *filesel;
@@ -1508,7 +1508,11 @@ xg_get_file_with_selection (f, prompt, default_filename,
    The returned string must be freed by the caller.  */
 
 char *
-xg_get_file_name (FRAME_PTR f, char *prompt, char *default_filename, int mustmatch_p, int only_dir_p)
+xg_get_file_name (FRAME_PTR f,
+                  char *prompt,
+                  char *default_filename,
+                  int mustmatch_p,
+                  int only_dir_p)
 {
   GtkWidget *w = 0;
   char *fn = 0;
@@ -1658,7 +1662,9 @@ make_cl_data (xg_menu_cb_data *cl_data, FRAME_PTR f, GCallback highlight_cb)
    creating the menu bar.  */
 
 static void
-update_cl_data (xg_menu_cb_data *cl_data, FRAME_PTR f, GCallback highlight_cb)
+update_cl_data (xg_menu_cb_data *cl_data,
+                FRAME_PTR f,
+                GCallback highlight_cb)
 {
   if (cl_data)
     {
@@ -1729,7 +1735,9 @@ menuitem_destroy_callback (GtkWidget *w, gpointer client_data)
    Returns FALSE to tell GTK to keep processing this event.  */
 
 static gboolean
-menuitem_highlight_callback (GtkWidget *w, GdkEventCrossing *event, gpointer client_data)
+menuitem_highlight_callback (GtkWidget *w,
+                             GdkEventCrossing *event,
+                             gpointer client_data)
 {
   GdkEvent ev;
   GtkWidget *subwidget;
@@ -1806,7 +1814,10 @@ make_widget_for_menu_item (char *utf8_label, char *utf8_key)
    but the MacOS X version doesn't either, so I guess that is OK.  */
 
 static GtkWidget *
-make_menu_item (char *utf8_label, char *utf8_key, widget_value *item, GSList **group)
+make_menu_item (char *utf8_label,
+                char *utf8_key,
+                widget_value *item,
+                GSList **group)
 {
   GtkWidget *w;
   GtkWidget *wtoadd = 0;
@@ -1951,7 +1962,12 @@ tearoff_activate (GtkWidget *widget, gpointer client_data)
    Returns the created GtkWidget.  */
 
 static GtkWidget *
-xg_create_one_menuitem (widget_value *item, FRAME_PTR f, GCallback select_cb, GCallback highlight_cb, xg_menu_cb_data *cl_data, GSList **group)
+xg_create_one_menuitem (widget_value *item,
+                        FRAME_PTR f,
+                        GCallback select_cb,
+                        GCallback highlight_cb,
+                        xg_menu_cb_data *cl_data,
+                        GSList **group)
 {
   char *utf8_label;
   char *utf8_key;
@@ -1994,10 +2010,6 @@ xg_create_one_menuitem (widget_value *item, FRAME_PTR f, GCallback select_cb, GC
   return w;
 }
 
-static GtkWidget *create_menus (widget_value *, FRAME_PTR, GCallback,
-                                GCallback, GCallback, int, int, int,
-                                GtkWidget *, xg_menu_cb_data *, char *);
-
 /* Create a full menu tree specified by DATA.
    F is the frame the created menu belongs to.
    SELECT_CB is the callback to use when a menu item is selected.
@@ -2021,19 +2033,17 @@ static GtkWidget *create_menus (widget_value *, FRAME_PTR, GCallback,
    This function calls itself to create submenus.  */
 
 static GtkWidget *
-create_menus (data, f, select_cb, deactivate_cb, highlight_cb,
-              pop_up_p, menu_bar_p, add_tearoff_p, topmenu, cl_data, name)
-     widget_value *data;
-     FRAME_PTR f;
-     GCallback select_cb;
-     GCallback deactivate_cb;
-     GCallback highlight_cb;
-     int pop_up_p;
-     int menu_bar_p;
-     int add_tearoff_p;
-     GtkWidget *topmenu;
-     xg_menu_cb_data *cl_data;
-     char *name;
+create_menus (widget_value *data,
+              FRAME_PTR f,
+              GCallback select_cb,
+              GCallback deactivate_cb,
+              GCallback highlight_cb,
+              int pop_up_p,
+              int menu_bar_p,
+              int add_tearoff_p,
+              GtkWidget *topmenu,
+              xg_menu_cb_data *cl_data,
+              char *name)
 {
   widget_value *item;
   GtkWidget *wmenu = topmenu;
@@ -2278,18 +2288,16 @@ xg_destroy_widgets (GList *list)
    This function calls itself to walk through the menu bar names.  */
 
 static void
-xg_update_menubar (menubar, f, list, iter, pos, val,
-                   select_cb, deactivate_cb, highlight_cb, cl_data)
-     GtkWidget *menubar;
-     FRAME_PTR f;
-     GList **list;
-     GList *iter;
-     int pos;
-     widget_value *val;
-     GCallback select_cb;
-     GCallback deactivate_cb;
-     GCallback highlight_cb;
-     xg_menu_cb_data *cl_data;
+xg_update_menubar (GtkWidget *menubar,
+		   FRAME_PTR f,
+		   GList **list,
+		   GList *iter,
+		   int pos,
+		   widget_value *val,
+		   GCallback select_cb,
+		   GCallback deactivate_cb,
+		   GCallback highlight_cb,
+		   xg_menu_cb_data *cl_data)
 {
   if (! iter && ! val)
     return;
@@ -2405,7 +2413,7 @@ xg_update_menubar (menubar, f, list, iter, pos, val,
               Insert X.  */
 
           int nr = pos;
-          GList *group = 0;
+          GSList *group = 0;
           GtkWidget *w = xg_create_one_menuitem (val,
                                                  f,
                                                  select_cb,
@@ -2464,7 +2472,11 @@ xg_update_menubar (menubar, f, list, iter, pos, val,
    CL_DATA is the data to set in the widget for menu invocation.  */
 
 static void
-xg_update_menu_item (widget_value *val, GtkWidget *w, GCallback select_cb, GCallback highlight_cb, xg_menu_cb_data *cl_data)
+xg_update_menu_item (widget_value *val,
+                     GtkWidget *w,
+                     GCallback select_cb,
+                     GCallback highlight_cb,
+                     xg_menu_cb_data *cl_data)
 {
   GtkWidget *wchild;
   GtkLabel *wlbl = 0;
@@ -2590,15 +2602,13 @@ xg_update_radio_item (widget_value *val, GtkWidget *w)
    was NULL.  */
 
 static GtkWidget *
-xg_update_submenu (submenu, f, val,
-                   select_cb, deactivate_cb, highlight_cb, cl_data)
-     GtkWidget *submenu;
-     FRAME_PTR f;
-     widget_value *val;
-     GCallback select_cb;
-     GCallback deactivate_cb;
-     GCallback highlight_cb;
-     xg_menu_cb_data *cl_data;
+xg_update_submenu (GtkWidget *submenu,
+		   FRAME_PTR f,
+		   widget_value *val,
+		   GCallback select_cb,
+		   GCallback deactivate_cb,
+		   GCallback highlight_cb,
+		   xg_menu_cb_data *cl_data)
 {
   GtkWidget *newsub = submenu;
   GList *list = 0;
@@ -2770,7 +2780,7 @@ xg_modify_menubar_widgets (menubar, f, val, deep_p,
           GList *iter;
           GtkWidget *sub = 0;
           GtkWidget *newsub;
-          GtkMenuItem *witem;
+          GtkMenuItem *witem = 0;
 
           /* Find sub menu that corresponds to val and update it.  */
           for (iter = list ; iter; iter = g_list_next (iter))
@@ -2793,7 +2803,7 @@ xg_modify_menubar_widgets (menubar, f, val, deep_p,
           /* sub may still be NULL.  If we just updated non deep and added
              a new menu bar item, it has no sub menu yet.  So we set the
              newly created sub menu under witem.  */
-          if (newsub != sub)
+          if (newsub != sub && witem != 0)
             {
               xg_set_screen (newsub, f);
               gtk_menu_item_set_submenu (witem, newsub);
@@ -2986,7 +2996,11 @@ xg_gtk_scroll_destroy (GtkWidget *widget, gpointer data)
    to set resources for the widget.  */
 
 void
-xg_create_scroll_bar (FRAME_PTR f, struct scroll_bar *bar, GCallback scroll_callback, GCallback end_callback, char *scroll_bar_name)
+xg_create_scroll_bar (FRAME_PTR f,
+                      struct scroll_bar *bar,
+                      GCallback scroll_callback,
+                      GCallback end_callback,
+                      char *scroll_bar_name)
 {
   GtkWidget *wscroll;
   GtkWidget *webox;
@@ -3057,7 +3071,12 @@ xg_remove_scroll_bar (FRAME_PTR f, int scrollbar_id)
    WIDTH, HEIGHT is the size in pixels the bar shall have.  */
 
 void
-xg_update_scrollbar_pos (FRAME_PTR f, int scrollbar_id, int top, int left, int width, int height)
+xg_update_scrollbar_pos (FRAME_PTR f,
+                         int scrollbar_id,
+                         int top,
+                         int left,
+                         int width,
+                         int height)
 {
 
   GtkWidget *wscroll = xg_get_widget_from_map (scrollbar_id);
@@ -3118,7 +3137,10 @@ xg_update_scrollbar_pos (FRAME_PTR f, int scrollbar_id, int top, int left, int w
    displaying PORTION out of a whole WHOLE, and our position POSITION.  */
 
 void
-xg_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar, int portion, int position, int whole)
+xg_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar,
+                                 int portion,
+                                 int position,
+                                 int whole)
 {
   GtkWidget *wscroll = xg_get_widget_from_map (bar->x_window);
 
@@ -3255,7 +3277,9 @@ xg_event_is_for_scrollbar (FRAME_PTR f, XEvent *event)
    tool bar.  0 is the first button.  */
 
 static gboolean
-xg_tool_bar_button_cb (GtkWidget *widget, GdkEventButton *event, gpointer user_data)
+xg_tool_bar_button_cb (GtkWidget *widget,
+                       GdkEventButton *event,
+                       gpointer user_data)
 {
   /* Casts to avoid warnings when gpointer is 64 bits and int is 32 bits */
   gpointer ptr = (gpointer) (EMACS_INT) event->state;
@@ -3336,7 +3360,9 @@ xg_tool_bar_help_callback (GtkWidget *w,
    the detached tool bar when the detached tool bar it is not expanded.  */
 
 static gboolean
-xg_tool_bar_proxy_help_callback (GtkWidget *w, GdkEventCrossing *event, gpointer client_data)
+xg_tool_bar_proxy_help_callback (GtkWidget *w,
+                                 GdkEventCrossing *event,
+                                 gpointer client_data)
 {
   GtkWidget *wbutton = GTK_WIDGET (g_object_get_data (G_OBJECT (w),
                                                       XG_TOOL_BAR_PROXY_BUTTON));
@@ -3472,7 +3498,9 @@ xg_tool_bar_menu_proxy (GtkToolItem *toolitem, gpointer user_data)
    CLIENT_DATA is a pointer to the frame the tool bar belongs to.  */
 
 static void
-xg_tool_bar_detach_callback (GtkHandleBox *wbox, GtkWidget *w, gpointer client_data)
+xg_tool_bar_detach_callback (GtkHandleBox *wbox,
+                             GtkWidget *w,
+                             gpointer client_data)
 {
   FRAME_PTR f = (FRAME_PTR) client_data;
   extern int x_gtk_whole_detached_tool_bar;
@@ -3500,7 +3528,9 @@ xg_tool_bar_detach_callback (GtkHandleBox *wbox, GtkWidget *w, gpointer client_d
    CLIENT_DATA is a pointer to the frame the tool bar belongs to.  */
 
 static void
-xg_tool_bar_attach_callback (GtkHandleBox *wbox, GtkWidget *w, gpointer client_data)
+xg_tool_bar_attach_callback (GtkHandleBox *wbox,
+                             GtkWidget *w,
+                             gpointer client_data)
 {
   FRAME_PTR f = (FRAME_PTR) client_data;
   g_object_set (G_OBJECT (w), "show-arrow", TRUE, NULL);
@@ -3527,7 +3557,9 @@ xg_tool_bar_attach_callback (GtkHandleBox *wbox, GtkWidget *w, gpointer client_d
    Returns FALSE to tell GTK to keep processing this event.  */
 
 static gboolean
-xg_tool_bar_help_callback (GtkWidget *w, GdkEventCrossing *event, gpointer client_data)
+xg_tool_bar_help_callback (GtkWidget *w,
+                           GdkEventCrossing *event,
+                           gpointer client_data)
 {
   /* The EMACS_INT cast avoids a warning. */
   int idx = (int) (EMACS_INT) client_data;
@@ -3566,7 +3598,9 @@ xg_tool_bar_help_callback (GtkWidget *w, GdkEventCrossing *event, gpointer clien
    Returns FALSE to tell GTK to keep processing this event.  */
 
 static gboolean
-xg_tool_bar_item_expose_callback (GtkWidget *w, GdkEventExpose *event, gpointer client_data)
+xg_tool_bar_item_expose_callback (GtkWidget *w,
+                                  GdkEventExpose *event,
+                                  gpointer client_data)
 {
   gint width, height;
 
@@ -3859,7 +3893,6 @@ update_frame_tool_bar (FRAME_PTR f)
       GtkWidget *wbutton = NULL;
       GtkWidget *weventbox;
       Lisp_Object specified_file;
-      Lisp_Object lbl = PROP (TOOL_BAR_ITEM_LABEL);
       char *label = SSDATA (PROP (TOOL_BAR_ITEM_LABEL));
       
       ti = gtk_toolbar_get_nth_item (GTK_TOOLBAR (wtoolbar), i);
@@ -4030,7 +4063,8 @@ update_frame_tool_bar (FRAME_PTR f)
             }
           else if (img && old_img != img->pixmap)
             {
-              (void) xg_get_image_for_pixmap (f, img, x->widget, wimage);
+              (void) xg_get_image_for_pixmap (f, img, x->widget,
+                                              GTK_IMAGE (wimage));
               g_object_set_data (G_OBJECT (wimage), XG_TOOL_BAR_IMAGE_DATA,
                                  (gpointer)img->pixmap);
 

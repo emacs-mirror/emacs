@@ -42,6 +42,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termopts.h"
 #include "xterm.h"
 
+/* Avoid "differ in sign" warnings */
+#define SSDATA(x)  ((char *) SDATA (x))
+
 /* The user login name.  */
 
 extern Lisp_Object Vuser_login_name;
@@ -184,18 +187,12 @@ smc_interact_CB (SmcConn smcConn, SmPointer clientData)
    we do so, because we don't know what the lisp code might do.  */
 
 static void
-smc_save_yourself_CB (smcConn,
-                      clientData,
-                      saveType,
-                      shutdown,
-                      interactStyle,
-                      fast)
-     SmcConn smcConn;
-     SmPointer clientData;
-     int saveType;
-     Bool shutdown;
-     int interactStyle;
-     Bool fast;
+smc_save_yourself_CB (SmcConn smcConn,
+		      SmPointer clientData,
+		      int saveType,
+		      Bool shutdown,
+		      int interactStyle,
+		      Bool fast)
 {
 #define NR_PROPS 5
 
@@ -225,7 +222,7 @@ smc_save_yourself_CB (smcConn,
   props[props_idx]->type = SmARRAY8;
   props[props_idx]->num_vals = 1;
   props[props_idx]->vals = &values[val_idx++];
-  props[props_idx]->vals[0].length = strlen (SDATA (Vinvocation_name));
+  props[props_idx]->vals[0].length = strlen (SSDATA (Vinvocation_name));
   props[props_idx]->vals[0].value = SDATA (Vinvocation_name);
   ++props_idx;
 
@@ -269,7 +266,7 @@ smc_save_yourself_CB (smcConn,
   props[props_idx]->type = SmARRAY8;
   props[props_idx]->num_vals = 1;
   props[props_idx]->vals = &values[val_idx++];
-  props[props_idx]->vals[0].length = strlen (SDATA (Vuser_login_name));
+  props[props_idx]->vals[0].length = strlen (SSDATA (Vuser_login_name));
   props[props_idx]->vals[0].value = SDATA (Vuser_login_name);
   ++props_idx;
 
@@ -336,39 +333,25 @@ smc_shutdown_cancelled_CB (SmcConn smcConn, SmPointer clientData)
    because there is some error in the session management.  */
 
 static void
-smc_error_handler (smcConn,
-                   swap,
-                   offendingMinorOpcode,
-                   offendingSequence,
-                   errorClass,
-                   severity,
-                   values)
-     SmcConn smcConn;
-     Bool swap;
-     int offendingMinorOpcode;
-     unsigned long offendingSequence;
-     int errorClass;
-     int severity;
-     SmPointer values;
+smc_error_handler (SmcConn smcConn,
+		   Bool swap,
+		   int offendingMinorOpcode,
+		   unsigned long offendingSequence,
+		   int errorClass,
+		   int severity,
+		   SmPointer values)
 {
   /* Empty  */
 }
 
 static void
-ice_error_handler (iceConn,
-                   swap,
-                   offendingMinorOpcode,
-                   offendingSequence,
-                   errorClass,
-                   severity,
-                   values)
-     IceConn iceConn;
-     Bool swap;
-     int offendingMinorOpcode;
-     unsigned long offendingSequence;
-     int errorClass;
-     int severity;
-     IcePointer values;
+ice_error_handler (IceConn iceConn,
+		   Bool swap,
+		   int offendingMinorOpcode,
+		   unsigned long offendingSequence,
+		   int errorClass,
+		   int severity,
+		   IcePointer values)
 {
   /* Empty  */
 }
@@ -408,6 +391,7 @@ ice_conn_watch_CB (IceConn iceConn, IcePointer clientData, int opening, IcePoint
 
 /* Create the client leader window.  */
 
+#ifndef USE_GTK
 static void
 create_client_leader_window (struct x_display_info *dpyinfo, char *client_id)
 {
@@ -427,10 +411,12 @@ create_client_leader_window (struct x_display_info *dpyinfo, char *client_id)
 
   sm_id = XInternAtom (dpyinfo->display, "SM_CLIENT_ID", False);
   XChangeProperty (dpyinfo->display, w, sm_id, XA_STRING, 8, PropModeReplace,
-                   client_id, strlen (client_id));
+                   (unsigned char *)client_id, strlen (client_id));
 
   dpyinfo->client_leader_window = w;
 }
+#endif /* ! USE_GTK */
+
 
 /* Try to open a connection to the session manager.  */
 
@@ -449,12 +435,12 @@ x_session_initialize (struct x_display_info *dpyinfo)
   /* Check if we where started by the session manager.  If so, we will
      have a previous id.  */
   if (! EQ (Vx_session_previous_id, Qnil) && STRINGP (Vx_session_previous_id))
-    previous_id = SDATA (Vx_session_previous_id);
+    previous_id = SSDATA (Vx_session_previous_id);
 
   /* Construct the path to the Emacs program.  */
   if (! EQ (Vinvocation_directory, Qnil))
-    name_len += strlen (SDATA (Vinvocation_directory));
-  name_len += strlen (SDATA (Vinvocation_name));
+    name_len += strlen (SSDATA (Vinvocation_directory));
+  name_len += strlen (SSDATA (Vinvocation_name));
 
   /* This malloc will not be freed, but it is only done once, and hopefully
      not very large   */
@@ -462,8 +448,8 @@ x_session_initialize (struct x_display_info *dpyinfo)
   emacs_program[0] = '\0';
 
   if (! EQ (Vinvocation_directory, Qnil))
-    strcpy (emacs_program, SDATA (Vinvocation_directory));
-  strcat (emacs_program, SDATA (Vinvocation_name));
+    strcpy (emacs_program, SSDATA (Vinvocation_directory));
+  strcat (emacs_program, SSDATA (Vinvocation_name));
 
   /* The SM protocol says all callbacks are mandatory, so set up all
      here and in the mask passed to SmcOpenConnection.  */

@@ -5015,7 +5015,7 @@ returns nil, because real GC can't be done.  */)
 
 #ifdef USE_GTK
   {
-    extern void xg_mark_data ();
+    extern void xg_mark_data (void);
     xg_mark_data ();
   }
 #endif

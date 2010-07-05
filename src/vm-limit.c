@@ -42,7 +42,7 @@ static enum warnlevel warnlevel;
 
 /* Function to call to issue a warning;
    0 means don't issue them.  */
-static void (*warn_function) ();
+static void (*warn_function) (char *);
 
 /* Start of data space; can be changed by calling malloc_init.  */
 static POINTER data_space_start;
@@ -53,7 +53,7 @@ static unsigned long lim_data;
 
 #if defined (HAVE_GETRLIMIT) && defined (RLIMIT_AS)
 static void
-get_lim_data ()
+get_lim_data (void)
 {
   struct rlimit rlimit;
 
@@ -170,7 +170,7 @@ get_lim_data ()
 /* Verify amount of memory available, complaining if we're near the end. */
 
 static void
-check_memory_limits ()
+check_memory_limits (void)
 {
 #ifdef REL_ALLOC
   extern POINTER (*real_morecore) ();
@@ -249,11 +249,9 @@ check_memory_limits ()
    WARNFUN specifies the function to call to issue a warning.  */
 
 void
-memory_warnings (start, warnfun)
-     POINTER start;
-     void (*warnfun) ();
+memory_warnings (POINTER start, void (*warnfun) (char *))
 {
-  extern void (* __after_morecore_hook) ();     /* From gmalloc.c */
+  extern void (* __after_morecore_hook) (void);     /* From gmalloc.c */
 
   if (start)
     data_space_start = start;

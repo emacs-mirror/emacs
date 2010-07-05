@@ -4437,10 +4437,9 @@ build_annotations_unwind (Lisp_Object arg)
 /* Decide the coding-system to encode the data with.  */
 
 static Lisp_Object
-choose_write_coding_system (start, end, filename,
-			    append, visit, lockname, coding)
-     Lisp_Object start, end, filename, append, visit, lockname;
-     struct coding_system *coding;
+choose_write_coding_system (Lisp_Object start, Lisp_Object end, Lisp_Object filename,
+			    Lisp_Object append, Lisp_Object visit, Lisp_Object lockname,
+			    struct coding_system *coding)
 {
   Lisp_Object val;
   Lisp_Object eol_parent = Qnil;
@@ -4883,7 +4882,7 @@ This calls `write-region-annotate-functions' at the start, and
   return Qnil;
 }
 
-Lisp_Object merge ();
+Lisp_Object merge (Lisp_Object, Lisp_Object, Lisp_Object);
 
 DEFUN ("car-less-than-car", Fcar_less_than_car, Scar_less_than_car, 2, 2, 0,
        doc: /* Return t if (car A) is numerically less than (car B).  */)

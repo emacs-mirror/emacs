@@ -185,10 +185,11 @@ xlwMenuResources[] =
 };
 #undef offset
 
-static Boolean XlwMenuSetValues(Widget current, Widget request, Widget new);
+static Boolean XlwMenuSetValues(Widget current, Widget request, Widget new,
+                                ArgList args, Cardinal *num_args);
 static void XlwMenuRealize(Widget w, Mask *valueMask, XSetWindowAttributes *attributes);
 static void XlwMenuResize(Widget w);
-static void XlwMenuInitialize(Widget request, XlwMenuWidget mw, ArgList args, Cardinal *num_args);
+static void XlwMenuInitialize(Widget request, Widget mw, ArgList args, Cardinal *num_args);
 static void XlwMenuRedisplay(Widget w, XEvent *ev, Region region);
 static void XlwMenuDestroy(Widget w);
 static void XlwMenuClassInitialize(void);
@@ -1086,7 +1087,6 @@ display_menu_item (mw, val, ws, where, highlighted_p, horizontal_p,
 #ifdef HAVE_XFT
                   if (ws->xft_draw)
                     {
-                      XGlyphInfo gi;
                       int draw_x = ws->width - ws->max_rest_width
                         + mw->menu.arrow_spacing;
                       int draw_y = y + v_spacing + shadow + font_ascent;
@@ -1277,9 +1277,6 @@ make_windows_if_needed (XlwMenuWidget mw, int n)
   int i;
   int start_at;
   window_state* windows;
-#ifdef HAVE_XFT
-  int screen = XScreenNumberOfScreen (mw->core.screen);
-#endif
 
   if (mw->menu.windows_length >= n)
     return;
@@ -1852,10 +1849,10 @@ openXftFont (XlwMenuWidget mw)
 #endif
 
 static void
-XlwMenuInitialize (Widget request, XlwMenuWidget mw, ArgList args, Cardinal *num_args)
+XlwMenuInitialize (Widget request, Widget w, ArgList args, Cardinal *num_args)
 {
   /* Get the GCs and the widget size */
-
+  XlwMenuWidget mw = (XlwMenuWidget) w;
   Window window = RootWindowOfScreen (DefaultScreenOfDisplay (XtDisplay (mw)));
   Display* display = XtDisplay (mw);
 
@@ -2003,7 +2000,6 @@ static void
 XlwMenuRedisplay (Widget w, XEvent *ev, Region region)
 {
   XlwMenuWidget mw = (XlwMenuWidget)w;
-  int i;
 
   /* If we have a depth beyond 1, it's because a submenu was displayed.
      If the submenu has been destroyed, set the depth back to 1.  */
@@ -2106,7 +2102,8 @@ facename_changed (XlwMenuWidget newmw,
 #endif
 
 static Boolean
-XlwMenuSetValues (Widget current, Widget request, Widget new)
+XlwMenuSetValues (Widget current, Widget request, Widget new,
+                  ArgList args, Cardinal *num_args)
 {
   XlwMenuWidget oldmw = (XlwMenuWidget)current;
   XlwMenuWidget newmw = (XlwMenuWidget)new;

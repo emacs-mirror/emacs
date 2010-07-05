@@ -52,13 +52,19 @@ conveniently adding tool bar items."
   :global t
   :group 'mouse
   :group 'frames
-  ;; Make tool-bar even if terminal is non-graphical (Bug#1754).
   (let ((val (if tool-bar-mode 1 0)))
     (dolist (frame (frame-list))
-      (set-frame-parameter frame 'tool-bar-lines val)))
-  (when tool-bar-mode
-    (if (= 1 (length (default-value 'tool-bar-map))) ; not yet setup
-	(tool-bar-setup))))
+      (set-frame-parameter frame 'tool-bar-lines val))
+    ;; If the user has given `default-frame-alist' a `tool-bar-lines'
+    ;; parameter, replace it.
+    (if (assq 'tool-bar-lines default-frame-alist)
+	(setq default-frame-alist
+	      (cons (cons 'tool-bar-lines val)
+		    (assq-delete-all 'tool-bar-lines
+				     default-frame-alist)))))
+  (and tool-bar-mode
+       (= 1 (length (default-value 'tool-bar-map))) ; not yet setup
+       (tool-bar-setup)))
 
 ;;;###autoload
 ;; Used in the Show/Hide menu, to have the toggle reflect the current frame.
