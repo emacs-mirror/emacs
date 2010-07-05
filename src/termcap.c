@@ -127,15 +127,14 @@ xrealloc (ptr, size)
    for tgetnum, tgetflag and tgetstr to find.  */
 static char *term_entry;
 
-static char *tgetst1 ();
+static char *tgetst1 (char *ptr, char **area);
 
 /* Search entry BP for capability CAP.
    Return a pointer to the capability (in BP) if found,
    0 if not found.  */
 
 static char *
-find_capability (bp, cap)
-     register char *bp, *cap;
+find_capability (register char *bp, register char *cap)
 {
   for (; *bp; bp++)
     if (bp[0] == ':'
@@ -146,8 +145,7 @@ find_capability (bp, cap)
 }
 
 int
-tgetnum (cap)
-     char *cap;
+tgetnum (char *cap)
 {
   register char *ptr = find_capability (term_entry, cap);
   if (!ptr || ptr[-1] != '#')
@@ -156,8 +154,7 @@ tgetnum (cap)
 }
 
 int
-tgetflag (cap)
-     char *cap;
+tgetflag (char *cap)
 {
   register char *ptr = find_capability (term_entry, cap);
   return ptr && ptr[-1] == ':';
@@ -169,9 +166,7 @@ tgetflag (cap)
    If AREA is null, space is allocated with `malloc'.  */
 
 char *
-tgetstr (cap, area)
-     char *cap;
-     char **area;
+tgetstr (char *cap, char **area)
 {
   register char *ptr = find_capability (term_entry, cap);
   if (!ptr || (ptr[-1] != '=' && ptr[-1] != '~'))
@@ -209,9 +204,7 @@ static const char esctab[]
    or NULL if PTR is NULL.  */
 
 static char *
-tgetst1 (ptr, area)
-     char *ptr;
-     char **area;
+tgetst1 (char *ptr, char **area)
 {
   register char *p, *r;
   register int c;
@@ -357,10 +350,7 @@ static const int speeds[] =
 #endif /* not emacs */
 
 void
-tputs (str, nlines, outfun)
-     register char *str;
-     int nlines;
-     register int (*outfun) ();
+tputs (register char *str, int nlines, register int (*outfun) (/* ??? */))
 {
   register int padcount = 0;
   register int speed;
@@ -432,10 +422,10 @@ struct termcap_buffer
 
 /* Forward declarations of static functions.  */
 
-static int scan_file ();
-static char *gobble_line ();
-static int compare_contin ();
-static int name_match ();
+static int scan_file (char *str, int fd, register struct termcap_buffer *bufp);
+static char *gobble_line (int fd, register struct termcap_buffer *bufp, char *append_end);
+static int compare_contin (register char *str1, register char *str2);
+static int name_match (char *line, char *name);
 
 #ifdef MSDOS /* MW, May 1993 */
 static int
@@ -460,8 +450,7 @@ valid_filename_p (fn)
    in it, and some other value otherwise.  */
 
 int
-tgetent (bp, name)
-     char *bp, *name;
+tgetent (char *bp, char *name)
 {
   register char *termcap_name;
   register int fd;
@@ -625,10 +614,7 @@ tgetent (bp, name)
    or 0 if no entry is found in the file.  */
 
 static int
-scan_file (str, fd, bufp)
-     char *str;
-     int fd;
-     register struct termcap_buffer *bufp;
+scan_file (char *str, int fd, register struct termcap_buffer *bufp)
 {
   register char *end;
 
@@ -665,8 +651,7 @@ scan_file (str, fd, bufp)
    by termcap entry LINE.  */
 
 static int
-name_match (line, name)
-     char *line, *name;
+name_match (char *line, char *name)
 {
   register char *tem;
 
@@ -681,8 +666,7 @@ name_match (line, name)
 }
 
 static int
-compare_contin (str1, str2)
-     register char *str1, *str2;
+compare_contin (register char *str1, register char *str2)
 {
   register int c1, c2;
   while (1)
@@ -722,10 +706,7 @@ compare_contin (str1, str2)
    thing as one line.  The caller decides when a line is continued.  */
 
 static char *
-gobble_line (fd, bufp, append_end)
-     int fd;
-     register struct termcap_buffer *bufp;
-     char *append_end;
+gobble_line (int fd, register struct termcap_buffer *bufp, char *append_end)
 {
   register char *end;
   register int nread;

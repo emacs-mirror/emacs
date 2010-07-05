@@ -17,17 +17,17 @@
 #include "XMenuInt.h"
 
 int
-XMenuLocate(display, menu, p_num, s_num, x_pos, y_pos, ul_x, ul_y, width, height)
-    register Display *display;	/* Previously opened display. */
-    register XMenu *menu;	/* Menu object being located. */
-    int p_num;			/* Active pane number. */
-    int s_num;			/* Active selection number. */
-    int x_pos;			/* X coordinate of mouse active position. */
-    int y_pos;			/* Y coordinate of mouse active position. */
-    int *ul_x;			/* Returned upper left menu X coordinate. */
-    int *ul_y;			/* Returned upper left menu Y coordinate. */
-    int *width;			/* Returned menu width. */
-    int *height;		/* Returned menu height. */
+XMenuLocate(register Display *display, register XMenu *menu, int p_num, int s_num, int x_pos, int y_pos, int *ul_x, int *ul_y, int *width, int *height)
+                              	/* Previously opened display. */
+                         	/* Menu object being located. */
+              			/* Active pane number. */
+              			/* Active selection number. */
+              			/* X coordinate of mouse active position. */
+              			/* Y coordinate of mouse active position. */
+              			/* Returned upper left menu X coordinate. */
+              			/* Returned upper left menu Y coordinate. */
+               			/* Returned menu width. */
+                		/* Returned menu height. */
 {
     register XMPane *p_ptr;	/* XMPane pointer. */
     register XMSelect *s_ptr;	/* XMSelect pointer. */

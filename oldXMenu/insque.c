@@ -30,8 +30,7 @@ struct qelem {
 /* Insert ELEM into a doubly-linked list, after PREV.  */
 
 void
-emacs_insque (elem, prev)
-     struct qelem *elem, *prev;
+emacs_insque (struct qelem *elem, struct qelem *prev)
 {
   struct qelem *next = prev->q_forw;
   prev->q_forw = elem;
@@ -43,8 +42,7 @@ emacs_insque (elem, prev)
 
 /* Unlink ELEM from the doubly-linked list that it is in.  */
 
-emacs_remque (elem)
-     struct qelem *elem;
+emacs_remque (struct qelem *elem)
 {
   struct qelem *next = elem->q_forw;
   struct qelem *prev = elem->q_back;

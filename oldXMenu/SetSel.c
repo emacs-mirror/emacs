@@ -16,11 +16,11 @@
 #include "XMenuInt.h"
 
 int
-XMenuSetSelection(menu, p_num, s_num, active)
-    register XMenu *menu;	/* Menu object to be modified. */
-    register int p_num;		/* Pane number to be modified. */
-    register int s_num;		/* Selection number to modified. */
-    int active;			/* Make selection active? */
+XMenuSetSelection(register XMenu *menu, register int p_num, register int s_num, int active)
+                         	/* Menu object to be modified. */
+                       		/* Pane number to be modified. */
+                       		/* Selection number to modified. */
+               			/* Make selection active? */
 {
     register XMPane *p_ptr;	/* XMPane pointer. */
     register XMSelect *s_ptr;	/* XMSelect pointer. */

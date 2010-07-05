@@ -100,7 +100,7 @@ typedef struct header_record *header;
 struct stream_record
 {
   FILE *handle;
-  int (*action)();
+  int (*action)(FILE *);
   struct stream_record *rest_streams;
 };
 typedef struct stream_record *stream_list;
@@ -417,7 +417,7 @@ close_the_streams (void)
 }
 
 void
-add_a_stream (FILE *the_stream, int (*closing_action) (/* ??? */))
+add_a_stream (FILE *the_stream, int (*closing_action) (FILE *))
 {
   stream_list old = the_streams;
   the_streams = new_stream ();

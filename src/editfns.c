@@ -141,7 +141,7 @@ Lisp_Object Qboundary;
 
 
 void
-init_editfns ()
+init_editfns (void)
 {
   char *user_name;
   register unsigned char *p;
@@ -253,8 +253,7 @@ A multibyte character is handled correctly.  */)
 }
 
 static Lisp_Object
-buildmark (charpos, bytepos)
-     int charpos, bytepos;
+buildmark (int charpos, int bytepos)
 {
   register Lisp_Object mark;
   mark = Fmake_marker ();
@@ -280,8 +279,7 @@ DEFUN ("point-marker", Fpoint_marker, Spoint_marker, 0, 0, 0,
 }
 
 int
-clip_to_bounds (lower, num, upper)
-     int lower, num, upper;
+clip_to_bounds (int lower, int num, int upper)
 {
   if (num < lower)
     return lower;
@@ -328,8 +326,7 @@ The return value is POSITION.  */)
    If there is no region active, signal an error. */
 
 static Lisp_Object
-region_limit (beginningp)
-     int beginningp;
+region_limit (int beginningp)
 {
   extern Lisp_Object Vmark_even_if_inactive; /* Defined in callint.c. */
   Lisp_Object m;
@@ -377,10 +374,7 @@ If you set the marker not to point anywhere, the buffer will have no mark.  */)
    of length LEN.  */
 
 static int
-overlays_around (pos, vec, len)
-     int pos;
-     Lisp_Object *vec;
-     int len;
+overlays_around (int pos, Lisp_Object *vec, int len)
 {
   Lisp_Object overlay, start, end;
   struct Lisp_Overlay *tail;
@@ -436,9 +430,7 @@ overlays_around (pos, vec, len)
    window-specific overlays are considered only if they are associated
    with OBJECT. */
 Lisp_Object
-get_pos_property (position, prop, object)
-     Lisp_Object position, object;
-     register Lisp_Object prop;
+get_pos_property (Lisp_Object position, register Lisp_Object prop, Lisp_Object object)
 {
   CHECK_NUMBER_COERCE_MARKER (position);
 
@@ -533,11 +525,7 @@ get_pos_property (position, prop, object)
    is not stored.  */
 
 static void
-find_field (pos, merge_at_boundary, beg_limit, beg, end_limit, end)
-     Lisp_Object pos;
-     Lisp_Object merge_at_boundary;
-     Lisp_Object beg_limit, end_limit;
-     int *beg, *end;
+find_field (Lisp_Object pos, Lisp_Object merge_at_boundary, Lisp_Object beg_limit, int *beg, Lisp_Object end_limit, int *end)
 {
   /* Fields right before and after the point.  */
   Lisp_Object before_field, after_field;
@@ -900,7 +888,7 @@ This function does not move point.  */)
 
 
 Lisp_Object
-save_excursion_save ()
+save_excursion_save (void)
 {
   int visible = (XBUFFER (XWINDOW (selected_window)->buffer)
 		 == current_buffer);
@@ -913,8 +901,7 @@ save_excursion_save ()
 }
 
 Lisp_Object
-save_excursion_restore (info)
-     Lisp_Object info;
+save_excursion_restore (Lisp_Object info)
 {
   Lisp_Object tem, tem1, omark, nmark;
   struct gcpro gcpro1, gcpro2, gcpro3;
@@ -1440,7 +1427,7 @@ DEFUN ("system-name", Fsystem_name, Ssystem_name, 0, 0, 0,
 /* For the benefit of callers who don't want to include lisp.h */
 
 char *
-get_system_name ()
+get_system_name (void)
 {
   if (STRINGP (Vsystem_name))
     return (char *) SDATA (Vsystem_name);
@@ -1449,7 +1436,7 @@ get_system_name ()
 }
 
 char *
-get_operating_system_release()
+get_operating_system_release (void)
 {
   if (STRINGP (Voperating_system_release))
     return (char *) SDATA (Voperating_system_release);
@@ -1527,10 +1514,7 @@ on systems that do not provide resolution finer than a second.  */)
 
 
 int
-lisp_time_argument (specified_time, result, usec)
-     Lisp_Object specified_time;
-     time_t *result;
-     int *usec;
+lisp_time_argument (Lisp_Object specified_time, time_t *result, int *usec)
 {
   if (NILP (specified_time))
     {
@@ -1611,13 +1595,7 @@ or (if you need time as a string) `format-time-string'.  */)
    This function behaves like emacs_strftimeu, except it allows null
    bytes in FORMAT.  */
 static size_t
-emacs_memftimeu (s, maxsize, format, format_len, tp, ut)
-      char *s;
-      size_t maxsize;
-      const char *format;
-      size_t format_len;
-      const struct tm *tp;
-      int ut;
+emacs_memftimeu (char *s, size_t maxsize, const char *format, size_t format_len, const struct tm *tp, int ut)
 {
   size_t total = 0;
 
@@ -1950,8 +1928,7 @@ but this is considered obsolete.  */)
 /* Yield A - B, measured in seconds.
    This function is copied from the GNU C Library.  */
 static int
-tm_diff (a, b)
-     struct tm *a, *b;
+tm_diff (struct tm *a, struct tm *b)
 {
   /* Compute intervening leap days correctly even if year is negative.
      Take care to avoid int overflow in leap day calculations,
@@ -2098,8 +2075,7 @@ static char set_time_zone_rule_tz2[] = "TZ=GMT+1";
    responsibility to free.  */
 
 void
-set_time_zone_rule (tzstring)
-     char *tzstring;
+set_time_zone_rule (char *tzstring)
 {
   int envptrs;
   char **from, **to, **newenv;
@@ -2221,8 +2197,7 @@ general_insert_function (void (*insert_func)
 }
 
 void
-insert1 (arg)
-     Lisp_Object arg;
+insert1 (Lisp_Object arg)
 {
   Finsert (1, &arg);
 }
@@ -2408,9 +2383,7 @@ from adjoining text, if those properties are sticky.  */)
    buffer substrings.  */
 
 Lisp_Object
-make_buffer_string (start, end, props)
-     int start, end;
-     int props;
+make_buffer_string (int start, int end, int props)
 {
   int start_byte = CHAR_TO_BYTE (start);
   int end_byte = CHAR_TO_BYTE (end);
@@ -2434,9 +2407,7 @@ make_buffer_string (start, end, props)
    buffer substrings.  */
 
 Lisp_Object
-make_buffer_string_both (start, start_byte, end, end_byte, props)
-     int start, start_byte, end, end_byte;
-     int props;
+make_buffer_string_both (int start, int start_byte, int end, int end_byte, int props)
 {
   Lisp_Object result, tem, tem1;
 
@@ -2470,8 +2441,7 @@ make_buffer_string_both (start, start_byte, end, end_byte, props)
    in the current buffer, if necessary.  */
 
 static void
-update_buffer_properties (start, end)
-     int start, end;
+update_buffer_properties (int start, int end)
 {
   /* If this buffer has some access functions,
      call them, specifying the range of the buffer being accessed.  */
@@ -2757,15 +2727,13 @@ determines whether case is significant or ignored.  */)
 }
 
 static Lisp_Object
-subst_char_in_region_unwind (arg)
-     Lisp_Object arg;
+subst_char_in_region_unwind (Lisp_Object arg)
 {
   return current_buffer->undo_list = arg;
 }
 
 static Lisp_Object
-subst_char_in_region_unwind_1 (arg)
-     Lisp_Object arg;
+subst_char_in_region_unwind_1 (Lisp_Object arg)
 {
   return current_buffer->filename = arg;
 }
@@ -2962,9 +2930,7 @@ static Lisp_Object check_translation (int, int, int, Lisp_Object);
    element is found, return it.  Otherwise return Qnil.  */
 
 static Lisp_Object
-check_translation (pos, pos_byte, end, val)
-     int pos, pos_byte, end;
-     Lisp_Object val;
+check_translation (int pos, int pos_byte, int end, Lisp_Object val)
 {
   int buf_size = 16, buf_used = 0;
   int *buf = alloca (sizeof (int) * buf_size);
@@ -3263,7 +3229,7 @@ or markers) bounding the text that should remain visible.  */)
 }
 
 Lisp_Object
-save_restriction_save ()
+save_restriction_save (void)
 {
   if (BEGV == BEG && ZV == Z)
     /* The common case that the buffer isn't narrowed.
@@ -3287,8 +3253,7 @@ save_restriction_save ()
 }
 
 Lisp_Object
-save_restriction_restore (data)
-     Lisp_Object data;
+save_restriction_restore (Lisp_Object data)
 {
   struct buffer *cur = NULL;
   struct buffer *buf = (CONSP (data)
@@ -3627,7 +3592,7 @@ usage: (format STRING &rest OBJECTS)  */)
      string itself, will not be used.  Element NARGS, corresponding to
      no argument, *will* be assigned to in the case that a `%' and `.'
      occur after the final format specifier.  */
-  int *precision = (int *) (alloca((nargs + 1) * sizeof (int)));
+  int *precision = (int *) (alloca ((nargs + 1) * sizeof (int)));
   int longest_format;
   Lisp_Object val;
   int arg_intervals = 0;
@@ -3798,7 +3763,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	       string will finally appear (Bug#5710). */
 	    actual_width = lisp_string_width (args[n], -1, NULL, NULL);
 	    if (precision[n] != -1)
-	      actual_width = min(actual_width,precision[n]);
+	      actual_width = min (actual_width, precision[n]);
 	  }
 	/* Would get MPV otherwise, since Lisp_Int's `point' to low memory.  */
 	else if (INTEGERP (args[n]) && *format != 's')
@@ -3911,7 +3876,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	  discarded[format - format_start] = 1;
 	  format++;
 
-	  while (index("-+0# ", *format))
+	  while (index ("-+0# ", *format))
 	    {
 	      if (*format == '-')
 		{
@@ -4209,9 +4174,7 @@ usage: (format STRING &rest OBJECTS)  */)
 }
 
 Lisp_Object
-format2 (string1, arg0, arg1)
-     char *string1;
-     Lisp_Object arg0, arg1;
+format2 (char *string1, Lisp_Object arg0, Lisp_Object arg1)
 {
   Lisp_Object args[3];
   args[0] = build_string (string1);
@@ -4639,7 +4602,7 @@ Transposing beyond buffer boundaries is an error.  */)
 
 
 void
-syms_of_editfns ()
+syms_of_editfns (void)
 {
   environbuf = 0;
   initial_tz = 0;

@@ -96,7 +96,7 @@ _XMErrorList[XME_CODE_COUNT] = {
 /*
  * _XMEventHandler - Internal event handler variable.
  */
-int (*_XMEventHandler)() = NULL;
+int (*_XMEventHandler)(XEvent*) = NULL;
 
 
 
@@ -104,7 +104,7 @@ int (*_XMEventHandler)() = NULL;
  * _XMWinQueInit - Internal routine to initialize the window
  *		   queue.
  */
-_XMWinQueInit()
+_XMWinQueInit(void)
 {
     /*
      * If the queue is not initialized initialize it.
@@ -138,10 +138,10 @@ _XMWinQueInit()
  *		      window queue.
  */
 int
-_XMWinQueAddPane(display, menu, p_ptr)
-    register Display *display;
-    register XMenu *menu;	/* Menu being manipulated. */
-    register XMPane *p_ptr;	/* XMPane being queued. */
+_XMWinQueAddPane(register Display *display, register XMenu *menu, register XMPane *p_ptr)
+                              
+                         	/* Menu being manipulated. */
+                           	/* XMPane being queued. */
 {
     /*
      * If the queue is currently full then flush it.
@@ -172,10 +172,10 @@ _XMWinQueAddPane(display, menu, p_ptr)
  *			   the selection window queue.
  */
 int
-_XMWinQueAddSelection(display, menu, s_ptr)
-    register Display *display;
-    register XMenu *menu;	/* Menu being manipulated. */
-    register XMSelect *s_ptr;	/* XMSelection being queued. */
+_XMWinQueAddSelection(register Display *display, register XMenu *menu, register XMSelect *s_ptr)
+                              
+                         	/* Menu being manipulated. */
+                             	/* XMSelection being queued. */
 {
     /*
      * If this entry will overflow the queue then flush it.
@@ -206,10 +206,10 @@ _XMWinQueAddSelection(display, menu, s_ptr)
  *		    selection window queues.
  */
 int
-_XMWinQueFlush(display, menu, pane, select)
-    register Display *display;
-    register XMenu *menu;		/* Menu being manipulated. */
-    register XMPane *pane;		/* Current pane. */
+_XMWinQueFlush(register Display *display, register XMenu *menu, register XMPane *pane, XMSelect *select)
+                              
+                         		/* Menu being manipulated. */
+                          		/* Current pane. */
 {
     register int pq_index;		/* Pane queue index. */
     register int sq_index;		/* Selection queue index. */
@@ -346,9 +346,9 @@ _XMWinQueFlush(display, menu, pane, select)
  *			a pane pointer that points to the indexed pane.
  */
 XMPane *
-_XMGetPanePtr(menu, p_num)
-    register XMenu *menu;	/* Menu to find the pane in. */
-    register int p_num;		/* Index number of pane to find. */
+_XMGetPanePtr(register XMenu *menu, register int p_num)
+                         	/* Menu to find the pane in. */
+                       		/* Index number of pane to find. */
 {
     register XMPane *p_ptr;	/* Pane pointer to be returned. */
     register int i;		/* Loop counter. */
@@ -382,9 +382,9 @@ _XMGetPanePtr(menu, p_num)
  *			indexed selection.
  */
 XMSelect *
-_XMGetSelectionPtr(p_ptr, s_num)
-    register XMPane *p_ptr;	/* Pane to find the selection in. */
-    register int s_num;		/* Index number of the selection to find. */
+_XMGetSelectionPtr(register XMPane *p_ptr, register int s_num)
+                           	/* Pane to find the selection in. */
+                       		/* Index number of the selection to find. */
 {
     register XMSelect *s_ptr;	/* Selection pointer to be returned. */
     register int i;		/* Loop counter. */
@@ -416,9 +416,9 @@ _XMGetSelectionPtr(p_ptr, s_num)
  * _XMRecomputeGlobals - Internal subroutine to recompute menu wide
  *			 global values.
  */
-_XMRecomputeGlobals(display, menu)
-    register Display *display; /*X11 display variable. */
-    register XMenu *menu;	/* Menu object to compute from. */
+_XMRecomputeGlobals(register Display *display, register XMenu *menu)
+                               /*X11 display variable. */
+                         	/* Menu object to compute from. */
 {
     register XMPane *p_ptr;	/* Pane pointer. */
     register XMSelect *s_ptr;	/* Selection pointer. */
@@ -531,11 +531,11 @@ _XMRecomputeGlobals(display, menu)
  *		      window dependencies.
  */
 int
-_XMRecomputePane(display, menu, p_ptr, p_num)
-    register Display *display;	/* Standard X display variable. */
-    register XMenu *menu;	/* Menu object being recomputed. */
-    register XMPane *p_ptr;	/* Pane pointer. */
-    register int p_num;		/* Pane sequence number. */
+_XMRecomputePane(register Display *display, register XMenu *menu, register XMPane *p_ptr, register int p_num)
+                              	/* Standard X display variable. */
+                         	/* Menu object being recomputed. */
+                           	/* Pane pointer. */
+                       		/* Pane sequence number. */
 {
     register int window_x;	/* Recomputed window X coordinate. */
     register int window_y;	/* Recomputed window Y coordinate. */
@@ -681,11 +681,11 @@ _XMRecomputePane(display, menu, p_ptr, p_num)
  *			   selection window dependencies.
  */
 int
-_XMRecomputeSelection(display, menu, s_ptr, s_num)
-    register Display *display;
-    register XMenu *menu;	/* Menu object being recomputed. */
-    register XMSelect *s_ptr;	/* Selection pointer. */
-    register int s_num;		/* Selection sequence number. */
+_XMRecomputeSelection(register Display *display, register XMenu *menu, register XMSelect *s_ptr, register int s_num)
+                              
+                         	/* Menu object being recomputed. */
+                             	/* Selection pointer. */
+                       		/* Selection sequence number. */
 {
     register Bool config_s = False;	/* Reconfigure selection window? */
     XWindowChanges *changes;		/* Values to change in configure. */
@@ -811,15 +811,15 @@ _XMRecomputeSelection(display, menu, s_ptr, s_num)
  *			recomputed before calling this routine or
  *			unpredictable results will follow.
  */
-_XMTransToOrigin(display, menu, p_ptr, s_ptr, x_pos, y_pos, orig_x, orig_y)
-    Display *display;		/* Not used. Included for consistency. */
-    register XMenu *menu;	/* Menu being computed against. */
-    register XMPane *p_ptr;	/* Current pane pointer. */
-    register XMSelect *s_ptr;	/* Current selection pointer. */
-    int x_pos;			/* X coordinate of point to translate. */
-    int y_pos;			/* Y coordinate of point to translate. */
-    int *orig_x;		/* Return value X coord. of the menu origin. */
-    int *orig_y;		/* Return value Y coord. of the menu origin. */
+_XMTransToOrigin(Display *display, register XMenu *menu, register XMPane *p_ptr, register XMSelect *s_ptr, int x_pos, int y_pos, int *orig_x, int *orig_y)
+                     		/* Not used. Included for consistency. */
+                         	/* Menu being computed against. */
+                           	/* Current pane pointer. */
+                             	/* Current selection pointer. */
+              			/* X coordinate of point to translate. */
+              			/* Y coordinate of point to translate. */
+                		/* Return value X coord. of the menu origin. */
+                		/* Return value Y coord. of the menu origin. */
 {
     register int l_orig_x;	/* Local X coordinate of the menu origin. */
     register int l_orig_y;	/* Local Y coordinate of the menu origin. */
@@ -871,10 +871,7 @@ _XMTransToOrigin(display, menu, p_ptr, s_ptr, x_pos, y_pos, orig_x, orig_y)
  * _XMRefreshPane - Internal subroutine to completely refresh
  *		    the contents of a pane.
  */
-_XMRefreshPane(display, menu, pane)
-    register Display *display;
-    register XMenu *menu;
-    register XMPane *pane;
+_XMRefreshPane(register Display *display, register XMenu *menu, register XMPane *pane)
 {
     register XMSelect *s_list = pane->s_list;
     register XMSelect *s_ptr;
@@ -941,10 +938,7 @@ _XMRefreshPane(display, menu, pane)
  * _XMRefreshSelection - Internal subroutine that refreshes
  *			 a single selection window.
  */
-_XMRefreshSelection(display, menu, select)
-    register Display *display;
-    register XMenu *menu;
-    register XMSelect *select;
+_XMRefreshSelection(register Display *display, register XMenu *menu, register XMSelect *select)
 {
     register int width = select->window_w;
     register int height = select->window_h;

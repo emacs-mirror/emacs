@@ -16,11 +16,11 @@
 #include "XMenuInt.h"
 
 int
-XMenuAddPane(display, menu, label, active)
-    Display *display;
-    register XMenu *menu;	/* Menu object to be modified. */
-    register char *label;	/* Selection label. */
-    int active;			/* Make selection active? */
+XMenuAddPane(Display *display, register XMenu *menu, register char *label, int active)
+                     
+                         	/* Menu object to be modified. */
+                         	/* Selection label. */
+               			/* Make selection active? */
 {
     register XMPane *pane;	/* Newly created pane. */
     register XMSelect *select;	/* Initial selection for the new pane. */

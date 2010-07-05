@@ -33,9 +33,7 @@ enum case_action {CASE_UP, CASE_DOWN, CASE_CAPITALIZE, CASE_CAPITALIZE_UP};
 Lisp_Object Qidentity;
 
 Lisp_Object
-casify_object (flag, obj)
-     enum case_action flag;
-     Lisp_Object obj;
+casify_object (enum case_action flag, Lisp_Object obj)
 {
   register int c, c1;
   register int inword = flag == CASE_DOWN;
@@ -200,9 +198,7 @@ The argument object is not altered--the value is a copy.  */)
    b and e specify range of buffer to operate on. */
 
 void
-casify_region (flag, b, e)
-     enum case_action flag;
-     Lisp_Object b, e;
+casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
 {
   register int c;
   register int inword = flag == CASE_DOWN;
@@ -358,9 +354,7 @@ character positions to operate on.  */)
 }
 
 static Lisp_Object
-operate_on_word (arg, newpoint)
-     Lisp_Object arg;
-     EMACS_INT *newpoint;
+operate_on_word (Lisp_Object arg, EMACS_INT *newpoint)
 {
   Lisp_Object val;
   int farend;
@@ -427,7 +421,7 @@ With negative argument, capitalize previous words but do not move.  */)
 }
 
 void
-syms_of_casefiddle ()
+syms_of_casefiddle (void)
 {
   Qidentity = intern_c_string ("identity");
   staticpro (&Qidentity);
@@ -445,7 +439,7 @@ syms_of_casefiddle ()
 }
 
 void
-keys_of_casefiddle ()
+keys_of_casefiddle (void)
 {
   initial_define_key (control_x_map, Ctl('U'), "upcase-region");
   Fput (intern ("upcase-region"), Qdisabled, Qt);

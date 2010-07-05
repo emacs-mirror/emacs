@@ -17,14 +17,14 @@
 #include "XMenuInt.h"
 
 int
-XMenuAddSelection(display, menu, p_num, data, label, active, help)
-    Display *display;
-    register XMenu *menu;	/* Menu object to be modified. */
-    register int p_num;		/* Pane number to be modified. */
-    char *data;			/* Data value. */
-    char *label;		/* Selection label. */
-    int active;			/* Make selection active? */
-    char *help;			/* Help string */
+XMenuAddSelection(Display *display, register XMenu *menu, register int p_num, char *data, char *label, int active, char *help)
+                     
+                         	/* Menu object to be modified. */
+                       		/* Pane number to be modified. */
+               			/* Data value. */
+                		/* Selection label. */
+               			/* Make selection active? */
+               			/* Help string */
 {
     register XMPane *pane;	/* Pane containing the new selection. */
     register XMSelect *select;	/* Newly created selection. */

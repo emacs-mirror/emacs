@@ -435,9 +435,7 @@ selected frame's terminal). */)
 
 /* Return the value of terminal parameter PARAM in terminal T.  */
 Lisp_Object
-get_terminal_param (t, param)
-     struct terminal *t;
-     Lisp_Object param;
+get_terminal_param (struct terminal *t, Lisp_Object param)
 {
   Lisp_Object tem = Fassq (param, t->param_alist);
   if (EQ (tem, Qnil))
@@ -449,10 +447,7 @@ get_terminal_param (t, param)
    Return the previous value.  */
 
 Lisp_Object
-store_terminal_param (t, parameter, value)
-     struct terminal *t;
-     Lisp_Object parameter;
-     Lisp_Object value;
+store_terminal_param (struct terminal *t, Lisp_Object parameter, Lisp_Object value)
 {
   Lisp_Object old_alist_elt = Fassq (parameter, t->param_alist);
   if (EQ (old_alist_elt, Qnil))
@@ -552,7 +547,7 @@ delete_initial_terminal (struct terminal *terminal)
 }
 
 void
-syms_of_terminal ()
+syms_of_terminal (void)
 {
 
   DEFVAR_LISP ("ring-bell-function", &Vring_bell_function,

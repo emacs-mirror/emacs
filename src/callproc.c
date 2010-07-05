@@ -137,8 +137,7 @@ static int call_process_exited;
 EXFUN (Fgetenv_internal, 2);
 
 static Lisp_Object
-call_process_kill (fdpid)
-     Lisp_Object fdpid;
+call_process_kill (Lisp_Object fdpid)
 {
   emacs_close (XFASTINT (Fcar (fdpid)));
   EMACS_KILLPG (XFASTINT (Fcdr (fdpid)), SIGKILL);
@@ -147,8 +146,7 @@ call_process_kill (fdpid)
 }
 
 Lisp_Object
-call_process_cleanup (arg)
-     Lisp_Object arg;
+call_process_cleanup (Lisp_Object arg)
 {
   Lisp_Object fdpid = Fcdr (arg);
 #if defined (MSDOS)
@@ -848,8 +846,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 }
 
 static Lisp_Object
-delete_temp_file (name)
-     Lisp_Object name;
+delete_temp_file (Lisp_Object name)
 {
   /* Suppress jka-compr handling, etc.  */
   int count = SPECPDL_INDEX ();
@@ -997,7 +994,7 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
   RETURN_UNGCPRO (unbind_to (count, Fcall_process (nargs, args)));
 }
 
-static int relocate_fd ();
+static int relocate_fd (int fd, int minfd);
 
 static char **
 add_env (char **env, char **new_env, char *string)
@@ -1052,11 +1049,7 @@ add_env (char **env, char **new_env, char *string)
    executable directory by the parent.  */
 
 int
-child_setup (in, out, err, new_argv, set_pgrp, current_dir)
-     int in, out, err;
-     register char **new_argv;
-     int set_pgrp;
-     Lisp_Object current_dir;
+child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, Lisp_Object current_dir)
 {
   char **env;
   char *pwd_var;
@@ -1295,8 +1288,7 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
 /* Move the file descriptor FD so that its number is not less than MINFD.
    If the file descriptor is moved at all, the original is freed.  */
 static int
-relocate_fd (fd, minfd)
-     int fd, minfd;
+relocate_fd (int fd, int minfd)
 {
   if (fd >= minfd)
     return fd;
@@ -1322,12 +1314,7 @@ relocate_fd (fd, minfd)
 }
 
 static int
-getenv_internal_1 (var, varlen, value, valuelen, env)
-     char *var;
-     int varlen;
-     char **value;
-     int *valuelen;
-     Lisp_Object env;
+getenv_internal_1 (char *var, int varlen, char **value, int *valuelen, Lisp_Object env)
 {
   for (; CONSP (env); env = XCDR (env))
     {
@@ -1361,12 +1348,7 @@ getenv_internal_1 (var, varlen, value, valuelen, env)
 }
 
 static int
-getenv_internal (var, varlen, value, valuelen, frame)
-     char *var;
-     int varlen;
-     char **value;
-     int *valuelen;
-     Lisp_Object frame;
+getenv_internal (char *var, int varlen, char **value, int *valuelen, Lisp_Object frame)
 {
   /* Try to find VAR in Vprocess_environment first.  */
   if (getenv_internal_1 (var, varlen, value, valuelen,
@@ -1428,8 +1410,7 @@ If optional parameter ENV is a list, then search this list instead of
 /* A version of getenv that consults the Lisp environment lists,
    easily callable from C.  */
 char *
-egetenv (var)
-     char *var;
+egetenv (char *var)
 {
   char *value;
   int valuelen;
@@ -1444,7 +1425,7 @@ egetenv (var)
 /* This is run before init_cmdargs.  */
 
 void
-init_callproc_1 ()
+init_callproc_1 (void)
 {
   char *data_dir = egetenv ("EMACSDATA");
   char *doc_dir = egetenv ("EMACSDOC");
@@ -1466,7 +1447,7 @@ init_callproc_1 ()
 /* This is run after init_cmdargs, when Vinstallation_directory is valid.  */
 
 void
-init_callproc ()
+init_callproc (void)
 {
   char *data_dir = egetenv ("EMACSDATA");
 
@@ -1555,7 +1536,7 @@ init_callproc ()
 }
 
 void
-set_initial_environment ()
+set_initial_environment (void)
 {
   register char **envp;
 #ifndef CANNOT_DUMP
@@ -1575,7 +1556,7 @@ set_initial_environment ()
 }
 
 void
-syms_of_callproc ()
+syms_of_callproc (void)
 {
 #ifdef DOS_NT
   Qbuffer_file_type = intern ("buffer-file-type");

@@ -86,17 +86,12 @@ static void do_scrolling (struct frame *,
    new contents appears.  */
 
 static void
-calculate_scrolling (frame, matrix, window_size, lines_below,
-		     draw_cost, old_hash, new_hash,
-		     free_at_end)
-     FRAME_PTR frame;
-     /* matrix is of size window_size + 1 on each side.  */
-     struct matrix_elt *matrix;
-     int window_size, lines_below;
-     int *draw_cost;
-     int *old_hash;
-     int *new_hash;
-     int free_at_end;
+calculate_scrolling (FRAME_PTR frame,
+		     /* matrix is of size window_size + 1 on each side.  */
+		     struct matrix_elt *matrix,
+		     int window_size, int lines_below,
+		     int *draw_cost, int *old_hash, int *new_hash,
+		     int free_at_end)
 {
   register int i, j;
   int frame_lines = FRAME_LINES (frame);
@@ -244,12 +239,7 @@ calculate_scrolling (frame, matrix, window_size, lines_below,
    of lines.  */
 
 static void
-do_scrolling (frame, current_matrix, matrix, window_size, unchanged_at_top)
-     struct frame *frame;
-     struct glyph_matrix *current_matrix;
-     struct matrix_elt *matrix;
-     int window_size;
-     int unchanged_at_top;
+do_scrolling (struct frame *frame, struct glyph_matrix *current_matrix, struct matrix_elt *matrix, int window_size, int unchanged_at_top)
 {
   struct matrix_elt *p;
   int i, j, k;
@@ -429,18 +419,13 @@ do_scrolling (frame, current_matrix, matrix, window_size, unchanged_at_top)
    is the equivalent of draw_cost for the old line contents */
 
 static void
-calculate_direct_scrolling (frame, matrix, window_size, lines_below,
-			    draw_cost, old_draw_cost, old_hash, new_hash,
-			    free_at_end)
-     FRAME_PTR frame;
-     /* matrix is of size window_size + 1 on each side.  */
-     struct matrix_elt *matrix;
-     int window_size, lines_below;
-     int *draw_cost;
-     int *old_draw_cost;
-     int *old_hash;
-     int *new_hash;
-     int free_at_end;
+calculate_direct_scrolling (FRAME_PTR frame,
+			    /* matrix is of size window_size + 1 on each side.  */
+			    struct matrix_elt *matrix,
+			    int window_size, int lines_below,
+			    int *draw_cost, int *old_draw_cost,
+			    int *old_hash, int *new_hash,
+			    int free_at_end)
 {
   register int i, j;
   int frame_lines = FRAME_LINES (frame);
@@ -854,9 +839,7 @@ scrolling_1 (frame, window_size, unchanged_at_top, unchanged_at_bottom,
    such a line will have little weight.  */
 
 int
-scrolling_max_lines_saved (start, end, oldhash, newhash, cost)
-     int start, end;
-     int *oldhash, *newhash, *cost;
+scrolling_max_lines_saved (int start, int end, int *oldhash, int *newhash, int *cost)
 {
   struct { int hash; int count; } lines[01000];
   register int i, h;
@@ -909,9 +892,7 @@ scrolling_max_lines_saved (start, end, oldhash, newhash, cost)
    to scroll_frame_lines to perform this scrolling.  */
 
 int
-scroll_cost (frame, from, to, amount)
-     FRAME_PTR frame;
-     int from, to, amount;
+scroll_cost (FRAME_PTR frame, int from, int to, int amount)
 {
   /* Compute how many lines, at bottom of frame,
      will not be involved in actual motion.  */
@@ -948,11 +929,7 @@ scroll_cost (frame, from, to, amount)
    overhead and multiply factor values */
 
 static void
-line_ins_del (frame, ov1, pf1, ovn, pfn, ov, mf)
-     FRAME_PTR frame;
-     int ov1, ovn;
-     int pf1, pfn;
-     register int *ov, *mf;
+line_ins_del (FRAME_PTR frame, int ov1, int pf1, int ovn, int pfn, register int *ov, register int *mf)
 {
   register int i;
   register int frame_lines = FRAME_LINES (frame);
@@ -969,15 +946,11 @@ line_ins_del (frame, ov1, pf1, ovn, pfn, ov, mf)
 }
 
 static void
-ins_del_costs (frame,
-	       one_line_string, multi_string,
-	       setup_string, cleanup_string,
-	       costvec, ncostvec, coefficient)
-     FRAME_PTR frame;
-     char *one_line_string, *multi_string;
-     char *setup_string, *cleanup_string;
-     int *costvec, *ncostvec;
-     int coefficient;
+ins_del_costs (FRAME_PTR frame,
+	       char *one_line_string, char *multi_string,
+	       char *setup_string, char *cleanup_string,
+	       int *costvec, int *ncostvec,
+	       int coefficient)
 {
   if (multi_string)
     line_ins_del (frame,

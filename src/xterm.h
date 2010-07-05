@@ -370,6 +370,9 @@ struct x_display_info
   /* XSettings atoms and windows.  */
   Atom Xatom_xsettings_sel, Xatom_xsettings_prop, Xatom_xsettings_mgr;
   Window xsettings_window;
+
+  /* Frame name and icon name */
+  Atom Xatom_net_wm_name, Xatom_net_wm_icon_name;
 };
 
 #ifdef HAVE_X_I18N

@@ -15,9 +15,9 @@
 
 #include "XMenuInt.h"
 
-XMenuDestroy(display, menu)
-    Display *display;
-    register XMenu *menu;	/* Menu object to destroy. */
+XMenuDestroy(Display *display, register XMenu *menu)
+                     
+                         	/* Menu object to destroy. */
 {
     register XMPane *p_ptr;	/* Pointer to the current pane. */
     register XMPane *p_next;	/* Pointer to the next pane. */

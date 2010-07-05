@@ -254,7 +254,7 @@ get_current_dir_name ()
 /* Discard pending input on all input descriptors.  */
 
 void
-discard_tty_input ()
+discard_tty_input (void)
 {
 #ifndef WINDOWSNT
   struct emacs_tty buf;
@@ -353,8 +353,7 @@ init_baud_rate (int fd)
 
 /*ARGSUSED*/
 void
-set_exclusive_use (fd)
-     int fd;
+set_exclusive_use (int fd)
 {
 #ifdef FIOCLEX
   ioctl (fd, FIOCLEX, 0);
@@ -376,15 +375,14 @@ int wait_debugging;   /* Set nonzero to make following function work under dbx
 			 (at least for bsd).  */
 
 SIGTYPE
-wait_for_termination_signal ()
+wait_for_termination_signal (void)
 {}
 
 /* Wait for subprocess with process id `pid' to terminate and
    make sure it will get eliminated (not remain forever as a zombie) */
 
 void
-wait_for_termination (pid)
-     int pid;
+wait_for_termination (int pid)
 {
   while (1)
     {
@@ -438,8 +436,7 @@ wait_for_termination (pid)
  */
 
 void
-flush_pending_output (channel)
-     int channel;
+flush_pending_output (int channel)
 {
 #ifdef HAVE_TERMIOS
   /* If we try this, we get hit with SIGTTIN, because
@@ -465,8 +462,7 @@ flush_pending_output (channel)
     in Emacs.  No padding needed for insertion into an Emacs buffer.  */
 
 void
-child_setup_tty (out)
-     int out;
+child_setup_tty (int out)
 {
 #ifndef DOS_NT
   struct emacs_tty s;
@@ -570,7 +566,7 @@ static void restore_signal_handlers (struct save_signal *);
 /* Suspend the Emacs process; give terminal to its superior.  */
 
 void
-sys_suspend ()
+sys_suspend (void)
 {
 #if defined (SIGTSTP) && !defined (MSDOS)
 
@@ -591,7 +587,7 @@ sys_suspend ()
 /* Fork a subshell.  */
 
 void
-sys_subshell ()
+sys_subshell (void)
 {
 #ifdef DOS_NT	/* Demacs 1.1.2 91/10/20 Manabu Higashida */
   int st;
@@ -719,8 +715,7 @@ sys_subshell ()
 }
 
 static void
-save_signal_handlers (saved_handlers)
-     struct save_signal *saved_handlers;
+save_signal_handlers (struct save_signal *saved_handlers)
 {
   while (saved_handlers->code)
     {
@@ -731,8 +726,7 @@ save_signal_handlers (saved_handlers)
 }
 
 static void
-restore_signal_handlers (saved_handlers)
-     struct save_signal *saved_handlers;
+restore_signal_handlers (struct save_signal *saved_handlers)
 {
   while (saved_handlers->code)
     {
@@ -769,8 +763,7 @@ unrequest_sigio (void)
 int old_fcntl_flags[MAXDESC];
 
 void
-init_sigio (fd)
-     int fd;
+init_sigio (int fd)
 {
 #ifdef FASYNC
   old_fcntl_flags[fd] = fcntl (fd, F_GETFL, 0) & ~FASYNC;
@@ -780,8 +773,7 @@ init_sigio (fd)
 }
 
 void
-reset_sigio (fd)
-     int fd;
+reset_sigio (int fd)
 {
 #ifdef FASYNC
   fcntl (fd, F_SETFL, old_fcntl_flags[fd]);
@@ -793,7 +785,7 @@ reset_sigio (fd)
 /* XXX Yeah, but you need it for SIGIO, don't you? */
 
 void
-request_sigio ()
+request_sigio (void)
 {
   if (noninteractive)
     return;
@@ -857,9 +849,7 @@ unrequest_sigio ()
    Return zero if all's well, or -1 if we ran into an error we
    couldn't deal with.  */
 int
-emacs_get_tty (fd, settings)
-     int fd;
-     struct emacs_tty *settings;
+emacs_get_tty (int fd, struct emacs_tty *settings)
 {
   /* Retrieve the primary parameters - baud rate, character size, etcetera.  */
 #ifdef HAVE_TCATTR
@@ -906,10 +896,7 @@ emacs_get_tty (fd, settings)
    Return 0 if all went well, and -1 if anything failed.  */
 
 int
-emacs_set_tty (fd, settings, flushp)
-     int fd;
-     struct emacs_tty *settings;
-     int flushp;
+emacs_set_tty (int fd, struct emacs_tty *settings, int flushp)
 {
   /* Set the primary parameters - baud rate, character size, etcetera.  */
 #ifdef HAVE_TCATTR
@@ -1021,8 +1008,7 @@ init_all_sys_modes (void)
 /* Initialize the terminal mode on the given tty device. */
 
 void
-init_sys_modes (tty_out)
-     struct tty_display_info *tty_out;
+init_sys_modes (struct tty_display_info *tty_out)
 {
   struct emacs_tty tty;
 
@@ -1365,8 +1351,7 @@ get_tty_size (int fd, int *widthp, int *heightp)
    to HEIGHT and WIDTH.  This is used mainly with ptys.  */
 
 int
-set_window_size (fd, height, width)
-     int fd, height, width;
+set_window_size (int fd, int height, int width)
 {
 #ifdef TIOCSWINSZ
 
@@ -1414,8 +1399,7 @@ reset_all_sys_modes (void)
    bottom of the frame, turn off interrupt-driven I/O, etc.  */
 
 void
-reset_sys_modes (tty_out)
-     struct tty_display_info *tty_out;
+reset_sys_modes (struct tty_display_info *tty_out)
 {
   if (noninteractive)
     {
@@ -1490,8 +1474,7 @@ reset_sys_modes (tty_out)
 /* Set up the proper status flags for use of a pty.  */
 
 void
-setup_pty (fd)
-     int fd;
+setup_pty (int fd)
 {
   /* I'm told that TOICREMOTE does not mean control chars
      "can't be sent" but rather that they don't have
@@ -1540,7 +1523,7 @@ setup_pty (fd)
 #if !(defined (__NetBSD__) && defined (__ELF__))
 #ifndef HAVE_TEXT_START
 char *
-start_of_text ()
+start_of_text (void)
 {
 #ifdef TEXT_START
   return ((char *) TEXT_START);
@@ -1580,7 +1563,7 @@ start_of_text ()
 
 #ifndef start_of_data
 char *
-start_of_data ()
+start_of_data (void)
 {
 #ifdef DATA_START
   return ((char *) DATA_START);
@@ -1621,7 +1604,7 @@ extern int h_errno;
 #endif /* TRY_AGAIN */
 
 void
-init_system_name ()
+init_system_name (void)
 {
 #ifndef HAVE_GETHOSTNAME
   struct utsname uts;
@@ -2077,7 +2060,7 @@ static char *my_sys_siglist[NSIG];
 #endif
 
 void
-init_signals ()
+init_signals (void)
 {
   sigemptyset (&empty_mask);
   sigfillset (&full_mask);
@@ -2283,8 +2266,7 @@ init_signals ()
 #endif /* !RAND_BITS */
 
 void
-seed_random (arg)
-     long arg;
+seed_random (long int arg)
 {
 #ifdef HAVE_RANDOM
   srandom ((unsigned int)arg);
@@ -2302,7 +2284,7 @@ seed_random (arg)
  * This suffices even for a 64-bit architecture with a 15-bit rand.
  */
 long
-get_random ()
+get_random (void)
 {
   long val = random ();
 #if VALBITS > RAND_BITS
@@ -2337,9 +2319,7 @@ strerror (errnum)
 #endif /* ! HAVE_STRERROR */
 
 int
-emacs_open (path, oflag, mode)
-     const char *path;
-     int oflag, mode;
+emacs_open (const char *path, int oflag, int mode)
 {
   register int rtnval;
 
@@ -2350,8 +2330,7 @@ emacs_open (path, oflag, mode)
 }
 
 int
-emacs_close (fd)
-     int fd;
+emacs_close (int fd)
 {
   int did_retry = 0;
   register int rtnval;
@@ -2370,10 +2349,7 @@ emacs_close (fd)
 }
 
 int
-emacs_read (fildes, buf, nbyte)
-     int fildes;
-     char *buf;
-     unsigned int nbyte;
+emacs_read (int fildes, char *buf, unsigned int nbyte)
 {
   register int rtnval;
 
@@ -2384,10 +2360,7 @@ emacs_read (fildes, buf, nbyte)
 }
 
 int
-emacs_write (fildes, buf, nbyte)
-     int fildes;
-     const char *buf;
-     unsigned int nbyte;
+emacs_write (int fildes, const char *buf, unsigned int nbyte)
 {
   register int rtnval, bytes_written;
 
@@ -2574,8 +2547,7 @@ gettimeofday (tp, tzp)
  */
 
 void
-croak (badfunc)
-     char *badfunc;
+croak (char *badfunc)
 {
   printf ("%s not yet implemented\r\n", badfunc);
   reset_all_sys_modes ();
@@ -2607,9 +2579,7 @@ closedir (DIR *dirp /* stream from opendir */)
 
 
 int
-set_file_times (filename, atime, mtime)
-     const char *filename;
-     EMACS_TIME atime, mtime;
+set_file_times (const char *filename, EMACS_TIME atime, EMACS_TIME mtime)
 {
 #ifdef HAVE_UTIMES
   struct timeval tv[2];
@@ -2993,7 +2963,7 @@ serial_configure (struct Lisp_Process *p,
 /* Process enumeration and access via /proc.  */
 
 Lisp_Object
-list_system_processes ()
+list_system_processes (void)
 {
   Lisp_Object procdir, match, proclist, next;
   struct gcpro gcpro1, gcpro2;

@@ -1,3 +1,8 @@
+2010-07-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Receiving Method Calls): Add optional argument
+	EMITS-SIGNAL to `dbus-register-property'.
+
 2010-06-10  Glenn Morris  <rgm@gnu.org>
 
 	* idlwave.texi (Load-Path Shadows):

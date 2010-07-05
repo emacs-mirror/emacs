@@ -1,4 +1,203 @@
+2010-07-05  Dan Nicolaescu  <dann@ics.uci.edu>
+            Juanma Barranquero  <lekktu@gmail.com>
+
+	* buffer.c, cm.c, eval.c, keyboard.c, process.c, term.c, vm-limit.c,
+	* xdisp.c: Convert function definitions to standard C.
+
+	* cm.c (cmputc): Arg C is now int, not char.
+	* process.c (Fmake_network_process): Cast sockaddr_in* to sockaddr*.
+
+2010-07-05  James Cloos  <cloos@jhcloos.com>
+
+	* xterm.h (Xatom_net_wm_name, Xatom_net_wm_icon_name): New.
+
+	* xterm.c (x_term_init): Intern the _NET_WM_NAME and
+	_NET_WM_ICON_NAME atoms.
+
+	* xfns.c (x_set_name_internal): Set the EWMH _NET_WM_NAME
+	and _NET_WM_ICON_NAME properties, too, matching what is
+	done in the Gtk+ case.
+
+2010-07-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (XTring_bell, XTset_terminal_window): Fix wrong prototype.
+
+	* xsmfns.c (SSDATA): New macro.
+	(smc_save_yourself_CB, x_session_initialize): Use SSDATA for strings
+	passed to strlen/strcpy/strcat.
+	(create_client_leader_window): Surround with #ifndef USE_GTK.  Cast
+	7:th arg to XChangeProperty to (unsigned char *)
+
+	* xsettings.c (something_changedCB, parse_settings)
+	(apply_xft_settings): Reformat prototype.
+	(something_changedCB, init_gconf): Remove unused variable i.
+	(read_settings): Remove unused variable long_len.
+
+	* gtkutil.c (xg_get_pixbuf_from_pix_and_mask)
+	(xg_get_image_for_pixmap, create_dialog)
+	(xg_get_file_with_selection, xg_get_file_name, update_cl_data)
+	(menuitem_highlight_callback, make_menu_item)
+	(xg_create_one_menuitem, create_menus, xg_update_menu_item)
+	(xg_create_scroll_bar, xg_update_scrollbar_pos)
+	(xg_set_toolkit_scroll_bar_thumb, xg_tool_bar_button_cb)
+	(xg_tool_bar_proxy_help_callback, xg_tool_bar_detach_callback)
+	(xg_tool_bar_attach_callback, xg_tool_bar_help_callback)
+	(xg_tool_bar_item_expose_callback): Reformat prototype.
+	(xg_update_menubar): GList *group => GSList *group.
+	(xg_modify_menubar_widgets): Initialize witem to 0, check witem != 0
+	before use.
+	(update_frame_tool_bar): 4:th param to xg_get_image_for_pixmap changed
+	to GTK_IMAGE (wimage).
+
+2010-07-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* atimer.c: Use "" instead of <> for local includes for
+	consistency with the rest of the code.
+
+	* xsmfns.c (smc_save_yourself_CB, smc_error_handler):
+	* xrdb.c (get_system_name):
+	* window.c (shrink_windows):
+	* syntax.c (forw_comment):
+	* scroll.c (calculate_scrolling, calculate_direct_scrolling)
+	(ins_del_costs):
+	* mem-limits.h (start_of_data):
+	* lread.c (readevalloop):
+	* gtkutil.c (xg_dialog_response_cb, xg_get_file_with_chooser)
+	(xg_get_file_with_selection, xg_update_menubar, xg_update_submenu):
+	* frame.c (x_get_focus_frame):
+	* floatfns.c (fmod_float):
+	* fileio.c (choose_write_coding_system):
+	* emacs.c (fatal_error_signal, init_cmdargs, argmatch)
+	(malloc_initialize_hook, sort_args, synchronize_locale):
+	* doprnt.c (doprnt):
+	* dired.c (compile_pattern):
+	* data.c (fmod_float):
+	* chartab.c (map_sub_char_table, map_sub_char_table_for_charset)
+	(map_char_table_for_charset):
+	* charset.c (define_charset_internal):
+	* alloc.c (Fgarbage_collect): Convert declarations or definitions
+	to standard C.
+
+2010-07-04  Tetsurou Okazaki  <okazaki@be.to>  (tiny change)
+            Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c (read1): Fix up last change to not mess up `c'.
+
+2010-07-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* strftime.c: Revert conversion to standard C (revno:100708).
+
+2010-07-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	Fix prototypes.
+
+	* atimer.c (start_atimer): Use EMACS_TIME, not struct timeval.
+	* dired.c (file_name_completion_stat): Use DIRENTRY, not struct dirent.
+	* fileio.c (read_non_regular, read_non_regular_quit): Add Lisp_Object
+	arg, as required by internal_condition_case_1.
+	* print.c (strout): Use const char* for arg PTR.
+	* regex.c (bcmp_translate): Use RE_TRANSLATE_TYPE, not Lisp_Object.
+	(analyse_first): Fix "const const".
+	* sysdep.c (set_file_times): Use EMACS_TIME, not struct timeval.
+	* unexelf.c (round_up, find_section): Use ElfW macro for arguments.
+	* xgselect.c (xg_select): Use SELECT_TYPE, EMACS_TIME.
+
+2010-07-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* alloc.c: Convert function definitions to standard C.
+	* atimer.c:
+	* bidi.c:
+	* bytecode.c:
+	* callint.c:
+	* callproc.c:
+	* casefiddle.c:
+	* casetab.c:
+	* category.c:
+	* ccl.c:
+	* character.c:
+	* charset.c:
+	* chartab.c:
+	* cmds.c:
+	* coding.c:
+	* composite.c:
+	* data.c:
+	* dbusbind.c:
+	* dired.c:
+	* dispnew.c:
+	* doc.c:
+	* doprnt.c:
+	* ecrt0.c:
+	* editfns.c:
+	* fileio.c:
+	* filelock.c:
+	* filemode.c:
+	* fns.c:
+	* font.c:
+	* fontset.c:
+	* frame.c:
+	* fringe.c:
+	* ftfont.c:
+	* ftxfont.c:
+	* gtkutil.c:
+	* indent.c:
+	* insdel.c:
+	* intervals.c:
+	* keymap.c:
+	* lread.c:
+	* macros.c:
+	* marker.c:
+	* md5.c:
+	* menu.c:
+	* minibuf.c:
+	* prefix-args.c:
+	* print.c:
+	* ralloc.c:
+	* regex.c:
+	* region-cache.c:
+	* scroll.c:
+	* search.c:
+	* sound.c:
+	* strftime.c:
+	* syntax.c:
+	* sysdep.c:
+	* termcap.c:
+	* terminal.c:
+	* terminfo.c:
+	* textprop.c:
+	* tparam.c:
+	* undo.c:
+	* unexelf.c:
+	* window.c:
+	* xfaces.c:
+	* xfns.c:
+	* xfont.c:
+	* xftfont.c:
+	* xgselect.c:
+	* xmenu.c:
+	* xrdb.c:
+	* xselect.c:
+	* xsettings.c:
+	* xsmfns.c:
+	* xterm.c: Likewise.
+
 2010-07-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.c (IT_set_frame_parameters): Fix setting of colors in
+	frames other than the initial one.  Fix reversal of colors when
+	`reverse' is specified in the frame parameters.  Call
+	update_face_from_frame_parameter instead of
+	internal-set-lisp-face-attribute.  Initialize screen colors from
+	initial_screen_colors[] when f->default_face_done_p is zero,
+	instead of depending on being called with default-frame-alist as
+	the alist argument.
+
+	* xfaces.c (update_face_from_frame_parameter): Move out of
+	HAVE_WINDOW_SYSTEM portion.  Condition window-system only parts
+	with HAVE_WINDOW_SYSTEM.
+
+	* msdos.c (IT_set_frame_parameters): Set menu-bar-lines according
+	to menu-bar-mode, if not set in the frame parameters or in
+	default-frame-alist.
 
 	* w32console.c (sys_tputs): Adjust argument list to prototype in
 	term.c.

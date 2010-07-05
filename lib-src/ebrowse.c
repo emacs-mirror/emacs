@@ -1062,10 +1062,10 @@ check_namespace (char *name, struct sym *context)
     {
       if (streq (p->name, name) && (p->namesp == context))
 	    break;
-	}
+    }
 
   return p;
-    }
+}
 
 /* Find the symbol for namespace NAME.  If not found, add a new symbol
    for NAME to all_namespaces.  */
