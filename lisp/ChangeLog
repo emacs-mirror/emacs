@@ -1,5 +1,9 @@
 2010-07-05  Chong Yidong  <cyd@stupidchicken.com>
 
+	* menu-bar.el (menu-bar-mode):
+	* tool-bar.el (tool-bar-mode): Replace default-frame-alist element
+	if it has been set.
+
 	* mouse.el (mouse-drag-track): Call mouse-start-end to handle
 	word/line selection (Bug#6565).
 
