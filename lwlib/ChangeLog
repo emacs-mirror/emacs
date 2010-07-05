@@ -1,3 +1,17 @@
+2010-07-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xlwmenu.c (XlwMenuSetValues, XlwMenuInitialize): Correct prototype.
+	(display_menu_item): Remove unused variable gi.
+	(make_windows_if_needed): Remove unused variable screen.
+	(XlwMenuRedisplay): Remove unused variable i.
+
+	* lwlib-Xaw.c: Include <ctype.h> for isdigit.
+	(fill_xft_data, set_text): Remove unused variable screen.
+	(draw_text): Cast bp to FcChar8*.
+	(find_xft_data): Return 0 if inst or xft_data is not set.
+	(wm_delete_window): Correct prototype.  Initialize widget to 0
+	and return if widget is still 0 after loop.
+
 2010-07-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* lwlib-Xaw.c: Convert function definitions to standard C.

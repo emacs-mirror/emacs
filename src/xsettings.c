@@ -100,7 +100,10 @@ struct xsettings
    that is SYSTEM_MONO_FONT.  */
 
 static void
-something_changedCB (GConfClient *client, guint cnxn_id, GConfEntry *entry, gpointer user_data)
+something_changedCB (GConfClient *client,
+                     guint cnxn_id,
+                     GConfEntry *entry,
+                     gpointer user_data)
 {
   GConfValue *v = gconf_entry_get_value (entry);
   
@@ -108,7 +111,6 @@ something_changedCB (GConfClient *client, guint cnxn_id, GConfEntry *entry, gpoi
   if (v->type == GCONF_VALUE_STRING)
     {
       const char *value = gconf_value_get_string (v);
-      int i;
       if (current_mono_font != NULL && strcmp (value, current_mono_font) == 0)
         return; /* No change. */
 
@@ -222,7 +224,9 @@ get_prop_window (struct x_display_info *dpyinfo)
 */
 
 static int
-parse_settings (unsigned char *prop, long unsigned int bytes, struct xsettings *settings)
+parse_settings (unsigned char *prop,
+                long unsigned int bytes,
+                struct xsettings *settings)
 {
   Lisp_Object byteorder = Fbyteorder ();
   int my_bo = XFASTINT (byteorder) == 'B' ? MSBFirst : LSBFirst;
@@ -394,7 +398,6 @@ parse_settings (unsigned char *prop, long unsigned int bytes, struct xsettings *
 static int
 read_settings (struct x_display_info *dpyinfo, struct xsettings *settings)
 {
-  long long_len;
   Atom act_type;
   int act_form;
   unsigned long nitems, bytes_after;
@@ -423,7 +426,9 @@ read_settings (struct x_display_info *dpyinfo, struct xsettings *settings)
 
 
 static void
-apply_xft_settings (struct x_display_info *dpyinfo, int send_event_p, struct xsettings *settings)
+apply_xft_settings (struct x_display_info *dpyinfo,
+                    int send_event_p,
+                    struct xsettings *settings)
 {
 #ifdef HAVE_XFT
   FcPattern *pat;
@@ -620,7 +625,6 @@ static void
 init_gconf (void)
 {
 #if defined (HAVE_GCONF) && defined (HAVE_XFT)
-  int i;
   char *s;
 
   g_type_init ();

@@ -1,3 +1,32 @@
+2010-07-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsmfns.c (SSDATA): New macro.
+	(smc_save_yourself_CB, x_session_initialize): Use SSDATA for strings
+	passed to strlen/strcpy/strcat.
+	(create_client_leader_window): Surround with #ifndef USE_GTK.  Cast
+	7:th arg to XChangeProperty to (unsigned char *)
+
+	* xsettings.c (something_changedCB, parse_settings)
+	(apply_xft_settings): Reformat prototype.
+	(something_changedCB, init_gconf): Remove unused variable i.
+	(read_settings): Remove unused variable long_len.
+
+	* gtkutil.c (xg_get_pixbuf_from_pix_and_mask)
+	(xg_get_image_for_pixmap, create_dialog)
+	(xg_get_file_with_selection, xg_get_file_name, update_cl_data)
+	(menuitem_highlight_callback, make_menu_item)
+	(xg_create_one_menuitem, create_menus, xg_update_menu_item)
+	(xg_create_scroll_bar, xg_update_scrollbar_pos)
+	(xg_set_toolkit_scroll_bar_thumb, xg_tool_bar_button_cb)
+	(xg_tool_bar_proxy_help_callback, xg_tool_bar_detach_callback)
+	(xg_tool_bar_attach_callback, xg_tool_bar_help_callback)
+	(xg_tool_bar_item_expose_callback): Reformat prototype.
+	(xg_update_menubar): GList *group => GSList *group.
+	(xg_modify_menubar_widgets): Initialize witem to 0, check witem != 0
+	before use.
+	(update_frame_tool_bar): 4:th param to xg_get_image_for_pixmap changed
+	to GTK_IMAGE (wimage).
+
 2010-07-05  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* atimer.c: Use "" instead of <> for local includes for
