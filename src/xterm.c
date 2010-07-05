@@ -3103,10 +3103,8 @@ XTtoggle_invisible_pointer (FRAME_PTR f, int invisible)
 /* Make audible bell.  */
 
 void
-XTring_bell (void)
+XTring_bell (struct frame *f)
 {
-  struct frame *f = SELECTED_FRAME ();
-
   if (FRAME_X_DISPLAY (f))
     {
 #if defined (HAVE_TIMEVAL) && defined (HAVE_SELECT)
@@ -3130,7 +3128,7 @@ XTring_bell (void)
    that is bounded by calls to x_update_begin and x_update_end.  */
 
 static void
-XTset_terminal_window (register int n)
+XTset_terminal_window (struct frame *f, int n)
 {
   /* This function intentionally left blank.  */
 }

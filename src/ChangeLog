@@ -1,5 +1,7 @@
 2010-07-05  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* xterm.c (XTring_bell, XTset_terminal_window): Fix wrong prototype.
+
 	* xsmfns.c (SSDATA): New macro.
 	(smc_save_yourself_CB, x_session_initialize): Use SSDATA for strings
 	passed to strlen/strcpy/strcat.
