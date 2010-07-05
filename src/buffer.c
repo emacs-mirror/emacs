@@ -180,8 +180,7 @@ extern char * emacs_strerror (int);
 /* Lisp_Object Qlisp_mode, Vcheck_symbol; */
 
 void
-nsberror (spec)
-     Lisp_Object spec;
+nsberror (Lisp_Object spec)
 {
   if (STRINGP (spec))
     error ("No buffer named %s", SDATA (spec));
@@ -248,9 +247,7 @@ frame parameter come first, followed by the rest of the buffers.  */)
    and don't ever QUIT.  */
 
 static Lisp_Object
-assoc_ignore_text_properties (key, list)
-     register Lisp_Object key;
-     Lisp_Object list;
+assoc_ignore_text_properties (register Lisp_Object key, Lisp_Object list)
 {
   register Lisp_Object tail;
   for (tail = list; CONSP (tail); tail = XCDR (tail))
@@ -312,8 +309,7 @@ See also `find-buffer-visiting'.  */)
 }
 
 Lisp_Object
-get_truename_buffer (filename)
-     register Lisp_Object filename;
+get_truename_buffer (register Lisp_Object filename)
 {
   register Lisp_Object tail, buf, tem;
 
@@ -437,9 +433,7 @@ even if it is dead.  The return value is never nil.  */)
    LIST, but for buffer B.  */
 
 static struct Lisp_Overlay *
-copy_overlays (b, list)
-     struct buffer *b;
-     struct Lisp_Overlay *list;
+copy_overlays (struct buffer *b, struct Lisp_Overlay *list)
 {
   Lisp_Object buffer;
   struct Lisp_Overlay *result = NULL, *tail = NULL;
@@ -489,8 +483,7 @@ copy_overlays (b, list)
    copied.  */
 
 static void
-clone_per_buffer_values (from, to)
-     struct buffer *from, *to;
+clone_per_buffer_values (struct buffer *from, struct buffer *to)
 {
   Lisp_Object to_buffer;
   int offset;
@@ -658,8 +651,7 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
 }
 
 void
-delete_all_overlays (b)
-     struct buffer *b;
+delete_all_overlays (struct buffer *b)
 {
   Lisp_Object overlay;
 
@@ -689,8 +681,7 @@ delete_all_overlays (b)
    claims it doesn't belong to it.  */
 
 void
-reset_buffer (b)
-     register struct buffer *b;
+reset_buffer (register struct buffer *b)
 {
   b->filename = Qnil;
   b->file_truename = Qnil;
@@ -734,9 +725,7 @@ reset_buffer (b)
    we preserve those.  */
 
 static void
-reset_buffer_local_variables (b, permanent_too)
-     register struct buffer *b;
-     int permanent_too;
+reset_buffer_local_variables (register struct buffer *b, int permanent_too)
 {
   register int offset;
   int i;
@@ -993,8 +982,7 @@ is the default binding of the variable. */)
    in special slots in the buffer object.  */
 
 static Lisp_Object
-buffer_lisp_local_variables (buf)
-     struct buffer *buf;
+buffer_lisp_local_variables (struct buffer *buf)
 {
   Lisp_Object result = Qnil;
   register Lisp_Object tail;
@@ -1293,7 +1281,7 @@ If BUFFER is omitted or nil, some interesting buffer is returned.  */)
      (buffer, visible_ok, frame)
      register Lisp_Object buffer, visible_ok, frame;
 {
-  Lisp_Object Fset_buffer_major_mode ();
+  Lisp_Object Fset_buffer_major_mode (Lisp_Object buffer);
   register Lisp_Object tail, buf, notsogood, tem, pred, add_ons;
   notsogood = Qnil;
 
@@ -1618,8 +1606,7 @@ with SIGHUP.  */)
    means that other_buffer is more likely to choose a relevant buffer.  */
 
 void
-record_buffer (buf)
-     Lisp_Object buf;
+record_buffer (Lisp_Object buf)
 {
   register Lisp_Object link, prev;
   Lisp_Object frame;
@@ -1734,8 +1721,7 @@ the current buffer's major mode.  */)
    If NORECORD is non-nil, don't call record_buffer.  */
 
 Lisp_Object
-switch_to_buffer_1 (buffer_or_name, norecord)
-     Lisp_Object buffer_or_name, norecord;
+switch_to_buffer_1 (Lisp_Object buffer_or_name, Lisp_Object norecord)
 {
   register Lisp_Object buffer;
 
@@ -1831,8 +1817,7 @@ DEFUN ("current-buffer", Fcurrent_buffer, Scurrent_buffer, 0, 0, 0,
    time, and that increments windows_or_buffers_changed.  */
 
 void
-set_buffer_internal (b)
-     register struct buffer *b;
+set_buffer_internal (register struct buffer *b)
 {
   if (current_buffer != b)
     set_buffer_internal_1 (b);
@@ -1842,8 +1827,7 @@ set_buffer_internal (b)
    This is used by redisplay.  */
 
 void
-set_buffer_internal_1 (b)
-     register struct buffer *b;
+set_buffer_internal_1 (register struct buffer *b)
 {
   register struct buffer *old_buf;
   register Lisp_Object tail;
@@ -1939,8 +1923,7 @@ set_buffer_internal_1 (b)
    This avoids certain things that don't need to be done within redisplay.  */
 
 void
-set_buffer_temp (b)
-     struct buffer *b;
+set_buffer_temp (struct buffer *b)
 {
   register struct buffer *old_buf;
 
@@ -2019,8 +2002,7 @@ ends when the current command terminates.  Use `switch-to-buffer' or
 /* Set the current buffer to BUFFER provided it is alive.  */
 
 Lisp_Object
-set_buffer_if_live (buffer)
-     Lisp_Object buffer;
+set_buffer_if_live (Lisp_Object buffer)
 {
   if (! NILP (XBUFFER (buffer)->name))
     Fset_buffer (buffer);
@@ -2120,8 +2102,7 @@ so the buffer is truly empty after this.  */)
 }
 
 void
-validate_region (b, e)
-     register Lisp_Object *b, *e;
+validate_region (register Lisp_Object *b, register Lisp_Object *e)
 {
   CHECK_NUMBER_COERCE_MARKER (*b);
   CHECK_NUMBER_COERCE_MARKER (*e);
@@ -2141,8 +2122,7 @@ validate_region (b, e)
    and return the adjusted position.  */
 
 static int
-advance_to_char_boundary (byte_pos)
-     int byte_pos;
+advance_to_char_boundary (int byte_pos)
 {
   int c;
 
@@ -2644,8 +2624,7 @@ the normal hook `change-major-mode-hook'.  */)
    for their current values.  */
 
 static void
-swap_out_buffer_local_variables (b)
-     struct buffer *b;
+swap_out_buffer_local_variables (struct buffer *b)
 {
   Lisp_Object oalist, alist, buffer;
 
@@ -2690,14 +2669,8 @@ swap_out_buffer_local_variables (b)
    default (BEGV or ZV).  */
 
 int
-overlays_at (pos, extend, vec_ptr, len_ptr, next_ptr, prev_ptr, change_req)
-     EMACS_INT pos;
-     int extend;
-     Lisp_Object **vec_ptr;
-     int *len_ptr;
-     EMACS_INT *next_ptr;
-     EMACS_INT *prev_ptr;
-     int change_req;
+overlays_at (EMACS_INT pos, int extend, Lisp_Object **vec_ptr, int *len_ptr,
+	     EMACS_INT *next_ptr, EMACS_INT *prev_ptr, int change_req)
 {
   Lisp_Object overlay, start, end;
   struct Lisp_Overlay *tail;
@@ -2835,13 +2808,8 @@ overlays_at (pos, extend, vec_ptr, len_ptr, next_ptr, prev_ptr, change_req)
    But we still return the total number of overlays.  */
 
 static int
-overlays_in (beg, end, extend, vec_ptr, len_ptr, next_ptr, prev_ptr)
-     int beg, end;
-     int extend;
-     Lisp_Object **vec_ptr;
-     int *len_ptr;
-     int *next_ptr;
-     int *prev_ptr;
+overlays_in (int beg, int end, int extend, Lisp_Object **vec_ptr, int *len_ptr,
+	     int *next_ptr, int *prev_ptr)
 {
   Lisp_Object overlay, ostart, oend;
   struct Lisp_Overlay *tail;
@@ -2962,8 +2930,7 @@ overlays_in (beg, end, extend, vec_ptr, len_ptr, next_ptr, prev_ptr)
    `mouse-face' property overlapping OVERLAY.  */
 
 int
-mouse_face_overlay_overlaps (overlay)
-     Lisp_Object overlay;
+mouse_face_overlay_overlaps (Lisp_Object overlay)
 {
   int start = OVERLAY_POSITION (OVERLAY_START (overlay));
   int end = OVERLAY_POSITION (OVERLAY_END (overlay));
@@ -2992,8 +2959,7 @@ mouse_face_overlay_overlaps (overlay)
 
 /* Fast function to just test if we're at an overlay boundary.  */
 int
-overlay_touches_p (pos)
-     int pos;
+overlay_touches_p (int pos)
 {
   Lisp_Object overlay;
   struct Lisp_Overlay *tail;
@@ -3038,8 +3004,7 @@ struct sortvec
 };
 
 static int
-compare_overlays (v1, v2)
-     const void *v1, *v2;
+compare_overlays (const void *v1, const void *v2)
 {
   const struct sortvec *s1 = (const struct sortvec *) v1;
   const struct sortvec *s2 = (const struct sortvec *) v2;
@@ -3056,10 +3021,7 @@ compare_overlays (v1, v2)
    The return value is the new size; this may be smaller than the original
    size if some of the overlays were invalid or were window-specific.  */
 int
-sort_overlays (overlay_vec, noverlays, w)
-     Lisp_Object *overlay_vec;
-     int noverlays;
-     struct window *w;
+sort_overlays (Lisp_Object *overlay_vec, int noverlays, struct window *w)
 {
   int i, j;
   struct sortvec *sortvec;
@@ -3139,8 +3101,7 @@ static int overlay_str_len;
 
 /* A comparison function suitable for passing to qsort.  */
 static int
-cmp_for_strings (as1, as2)
-     char *as1, *as2;
+cmp_for_strings (const void *as1, const void *as2)
 {
   struct sortstr *s1 = (struct sortstr *)as1;
   struct sortstr *s2 = (struct sortstr *)as2;
@@ -3152,10 +3113,7 @@ cmp_for_strings (as1, as2)
 }
 
 static void
-record_overlay_string (ssl, str, str2, pri, size)
-     struct sortstrlist *ssl;
-     Lisp_Object str, str2, pri;
-     int size;
+record_overlay_string (struct sortstrlist *ssl, Lisp_Object str, Lisp_Object str2, Lisp_Object pri, int size)
 {
   int nbytes;
 
@@ -3211,10 +3169,7 @@ record_overlay_string (ssl, str, str2, pri, size)
    subsequent calls.  */
 
 int
-overlay_strings (pos, w, pstr)
-     EMACS_INT pos;
-     struct window *w;
-     unsigned char **pstr;
+overlay_strings (EMACS_INT pos, struct window *w, unsigned char **pstr)
 {
   Lisp_Object overlay, window, str;
   struct Lisp_Overlay *ov;
@@ -3337,9 +3292,7 @@ overlay_strings (pos, w, pstr)
 /* Shift overlays in BUF's overlay lists, to center the lists at POS.  */
 
 void
-recenter_overlay_lists (buf, pos)
-     struct buffer *buf;
-     EMACS_INT pos;
+recenter_overlay_lists (struct buffer *buf, EMACS_INT pos)
 {
   Lisp_Object overlay, beg, end;
   struct Lisp_Overlay *prev, *tail, *next;
@@ -3488,9 +3441,7 @@ recenter_overlay_lists (buf, pos)
 }
 
 void
-adjust_overlays_for_insert (pos, length)
-     EMACS_INT pos;
-     EMACS_INT length;
+adjust_overlays_for_insert (EMACS_INT pos, EMACS_INT length)
 {
   /* After an insertion, the lists are still sorted properly,
      but we may need to update the value of the overlay center.  */
@@ -3499,9 +3450,7 @@ adjust_overlays_for_insert (pos, length)
 }
 
 void
-adjust_overlays_for_delete (pos, length)
-     EMACS_INT pos;
-     EMACS_INT length;
+adjust_overlays_for_delete (EMACS_INT pos, EMACS_INT length)
 {
   if (current_buffer->overlay_center < pos)
     /* The deletion was to our right.  No change needed; the before- and
@@ -3526,8 +3475,7 @@ adjust_overlays_for_delete (pos, length)
    Such an overlay might even have negative size at this point.
    If so, we'll make the overlay empty. */
 void
-fix_start_end_in_overlays (start, end)
-     register int start, end;
+fix_start_end_in_overlays (register int start, register int end)
 {
   Lisp_Object overlay;
   struct Lisp_Overlay *before_list, *after_list;
@@ -3673,9 +3621,7 @@ fix_start_end_in_overlays (start, end)
    was at PREV, and now is at POS.  */
 
 void
-fix_overlays_before (bp, prev, pos)
-     struct buffer *bp;
-     EMACS_INT prev, pos;
+fix_overlays_before (struct buffer *bp, EMACS_INT prev, EMACS_INT pos)
 {
   /* If parent is nil, replace overlays_before; otherwise, parent->next.  */
   struct Lisp_Overlay *tail = bp->overlays_before, *parent = NULL, *right_pair;
@@ -3841,9 +3787,7 @@ for the rear of the overlay advance when text is inserted there
 /* Mark a section of BUF as needing redisplay because of overlays changes.  */
 
 static void
-modify_overlay (buf, start, end)
-     struct buffer *buf;
-     EMACS_INT start, end;
+modify_overlay (struct buffer *buf, EMACS_INT start, EMACS_INT end)
 {
   if (start > end)
     {
@@ -3870,11 +3814,10 @@ modify_overlay (buf, start, end)
 }
 
 
-Lisp_Object Fdelete_overlay ();
+Lisp_Object Fdelete_overlay (Lisp_Object overlay);
 
 static struct Lisp_Overlay *
-unchain_overlay (list, overlay)
-     struct Lisp_Overlay *list, *overlay;
+unchain_overlay (struct Lisp_Overlay *list, struct Lisp_Overlay *overlay)
 {
   struct Lisp_Overlay *tmp, *prev;
   for (tmp = list, prev = NULL; tmp; prev = tmp, tmp = tmp->next)
@@ -4333,8 +4276,7 @@ static int last_overlay_modification_hooks_used;
    to the end of last_overlay_modification_hooks.  */
 
 static void
-add_overlay_mod_hooklist (functionlist, overlay)
-     Lisp_Object functionlist, overlay;
+add_overlay_mod_hooklist (Lisp_Object functionlist, Lisp_Object overlay)
 {
   int oldsize = XVECTOR (last_overlay_modification_hooks)->size;
 
@@ -4362,10 +4304,8 @@ add_overlay_mod_hooklist (functionlist, overlay)
    and the length of deleted or replaced old text.  */
 
 void
-report_overlay_modification (start, end, after, arg1, arg2, arg3)
-     Lisp_Object start, end;
-     int after;
-     Lisp_Object arg1, arg2, arg3;
+report_overlay_modification (Lisp_Object start, Lisp_Object end, int after,
+			     Lisp_Object arg1, Lisp_Object arg2, Lisp_Object arg3)
 {
   Lisp_Object prop, overlay;
   struct Lisp_Overlay *tail;
@@ -4490,10 +4430,8 @@ report_overlay_modification (start, end, after, arg1, arg2, arg3)
 }
 
 static void
-call_overlay_mod_hooks (list, overlay, after, arg1, arg2, arg3)
-     Lisp_Object list, overlay;
-     int after;
-     Lisp_Object arg1, arg2, arg3;
+call_overlay_mod_hooks (Lisp_Object list, Lisp_Object overlay, int after,
+			Lisp_Object arg1, Lisp_Object arg2, Lisp_Object arg3)
 {
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
 
@@ -4513,8 +4451,7 @@ call_overlay_mod_hooks (list, overlay, after, arg1, arg2, arg3)
 /* Delete any zero-sized overlays at position POS, if the `evaporate'
    property is set.  */
 void
-evaporate_overlays (pos)
-     EMACS_INT pos;
+evaporate_overlays (EMACS_INT pos)
 {
   Lisp_Object overlay, hit_list;
   struct Lisp_Overlay *tail;
@@ -4552,9 +4489,7 @@ evaporate_overlays (pos)
    in the slot with offset OFFSET.  */
 
 void
-buffer_slot_type_mismatch (newval, type)
-     Lisp_Object newval;
-     int type;
+buffer_slot_type_mismatch (Lisp_Object newval, int type)
 {
   Lisp_Object predicate;
 
@@ -5041,9 +4976,7 @@ extern void r_alloc_free (POINTER_TYPE **ptr);
 /* Allocate NBYTES bytes for buffer B's text buffer.  */
 
 static void
-alloc_buffer_text (b, nbytes)
-     struct buffer *b;
-     size_t nbytes;
+alloc_buffer_text (struct buffer *b, size_t nbytes)
 {
   POINTER_TYPE *p;
 
@@ -5098,8 +5031,7 @@ enlarge_buffer_text (struct buffer *b, EMACS_INT delta)
 /* Free buffer B's text buffer.  */
 
 static void
-free_buffer_text (b)
-     struct buffer *b;
+free_buffer_text (struct buffer *b)
 {
   BLOCK_INPUT;
 
@@ -5122,7 +5054,7 @@ free_buffer_text (b)
  ***********************************************************************/
 
 void
-init_buffer_once ()
+init_buffer_once (void)
 {
   int idx;
 
@@ -5318,7 +5250,7 @@ init_buffer_once ()
 }
 
 void
-init_buffer ()
+init_buffer (void)
 {
   char *pwd;
   Lisp_Object temp;
@@ -5402,12 +5334,8 @@ init_buffer ()
   } while (0)
 
 static void
-defvar_per_buffer (bo_fwd, namestring, address, type, doc)
-     struct Lisp_Buffer_Objfwd *bo_fwd;
-     char *namestring;
-     Lisp_Object *address;
-     Lisp_Object type;
-     char *doc;
+defvar_per_buffer (struct Lisp_Buffer_Objfwd *bo_fwd, char *namestring,
+		   Lisp_Object *address, Lisp_Object type, char *doc)
 {
   struct Lisp_Symbol *sym;
   int offset;
@@ -5435,7 +5363,7 @@ defvar_per_buffer (bo_fwd, namestring, address, type, doc)
 
 /* initialize the buffer routines */
 void
-syms_of_buffer ()
+syms_of_buffer (void)
 {
   staticpro (&last_overlay_modification_hooks);
   last_overlay_modification_hooks
@@ -6338,7 +6266,7 @@ The function `kill-all-local-variables' runs this before doing anything else.  *
 }
 
 void
-keys_of_buffer ()
+keys_of_buffer (void)
 {
   initial_define_key (control_x_map, 'b', "switch-to-buffer");
   initial_define_key (control_x_map, 'k', "kill-buffer");
