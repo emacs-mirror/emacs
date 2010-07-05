@@ -1,3 +1,8 @@
+2010-07-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse.el (mouse-drag-track): Call mouse-start-end to handle
+	word/line selection (Bug#6565).
+
 2010-07-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* net/dbus.el (dbus-send-signal): Declare function.

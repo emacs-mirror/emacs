@@ -936,25 +936,30 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
                        ;; treatment, in case we click on a link inside an
                        ;; intangible text.
                        (mouse-on-link-p start-posn)))
+	 (click-count (1- (event-click-count start-event)))
 	 ;; Suppress automatic hscrolling, because that is a nuisance
 	 ;; when setting point near the right fringe (but see below).
 	 (automatic-hscrolling-saved automatic-hscrolling)
 	 (automatic-hscrolling nil)
 	 event end end-point)
 
-    (setq mouse-selection-click-count (1- (event-click-count start-event)))
+    (setq mouse-selection-click-count click-count)
     ;; In case the down click is in the middle of some intangible text,
     ;; use the end of that text, and put it in START-POINT.
     (if (< (point) start-point)
 	(goto-char start-point))
     (setq start-point (point))
 
-    ;; Activate the mark.
+    ;; Activate the region, using `mouse-start-end' to determine where
+    ;; to put point and mark (e.g., double-click will select a word).
     (setq transient-mark-mode
 	  (if (eq transient-mark-mode 'lambda)
 	      '(only)
 	    (cons 'only transient-mark-mode)))
-    (push-mark nil nil t)
+    (let ((range (mouse-start-end start-point start-point click-count)))
+      (goto-char (nth 0 range))
+      (push-mark nil nil t)
+      (goto-char (nth 1 range)))
 
     ;; Track the mouse until we get a non-movement event.
     (track-mouse
@@ -1017,8 +1022,9 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
 		     (copy-region-as-kill (mark) (point)))))
 	  ;; If point hasn't moved, run the binding of the
 	  ;; terminating up-event.
-	  (if do-multi-click (goto-char start-point))
-	  (deactivate-mark)
+	  (if do-multi-click
+	      (goto-char start-point)
+	    (deactivate-mark))
 	  (when (and (functionp fun)
 		     (= start-hscroll (window-hscroll start-window))
 		     ;; Don't run the up-event handler if the window
