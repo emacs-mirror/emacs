@@ -1,3 +1,9 @@
+2010-07-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse.el (mouse-appearance-menu): Add docstring.
+
+	* help.el (describe-key): Print up-event using key-description.
+
 2010-07-03  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/zeroconf.el (zeroconf-resolve-service)

@@ -768,9 +768,10 @@ temporarily enables it to allow getting help on disabled items and buttons."
 
 ----------------- up-event %s----------------
 
-<%S>%s%s runs the command %S, which is "
+%s%s%s runs the command %S, which is "
 			   (if mouse-1-tricky "(short click) " "")
-			   ev-type mouse-msg
+			   (key-description (vector up-event))
+			   mouse-msg
 			   (if mouse-1-remapped
                                " is remapped to <mouse-2>, which" "")
 			   defn-up))

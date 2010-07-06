@@ -2483,6 +2483,7 @@ choose a font."
 (declare-function font-face-attributes "font.c" (font &optional frame))
 
 (defun mouse-appearance-menu (event)
+  "Show a menu for changing the default face in the current buffer."
   (interactive "@e")
   (require 'face-remap)
   (when (display-multi-font-p)
