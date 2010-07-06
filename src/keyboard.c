@@ -6581,7 +6581,6 @@ modify_event_symbol (int symbol_num, unsigned int modifiers, Lisp_Object symbol_
 #ifdef HAVE_WINDOW_SYSTEM
       if (NILP (value))
 	{
-	  extern char *x_get_keysym_name (KeySym keysym);
 	  char *name = x_get_keysym_name (symbol_num);
 	  if (name)
 	    value = intern (name);

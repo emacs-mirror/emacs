@@ -3469,6 +3469,11 @@ extern void syms_of_xselect (void);
 extern void syms_of_xterm (void);
 #endif /* HAVE_X_WINDOWS */
 
+#ifdef HAVE_WINDOW_SYSTEM
+/* Defined in xterm.c, nsterm.m, w32term.c */
+extern char *x_get_keysym_name (int);
+#endif /* HAVE_WINDOW_SYSTEM */
+
 #ifdef MSDOS
 /* Defined in msdos.c */
 EXFUN (Fmsdos_downcase_filename, 1);

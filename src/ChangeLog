@@ -1,3 +1,10 @@
+2010-07-06  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* xterm.c (x_get_keysym_name): Change type of parameter to int.
+	* lisp.h: Declare x_get_keysym_name.
+	* keyboard.c (modify_event_symbol): Don't declare
+	x_get_keysym_name here.
+
 2010-07-06  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* ecrt0.c: Revert conversion to standard C.
