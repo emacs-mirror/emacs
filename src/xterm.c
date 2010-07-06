@@ -3595,7 +3595,7 @@ x_emacs_to_x_modifiers (struct x_display_info *dpyinfo, unsigned int state)
 /* Convert a keysym to its name.  */
 
 char *
-x_get_keysym_name (KeySym keysym)
+x_get_keysym_name (int keysym)
 {
   char *value;
 
