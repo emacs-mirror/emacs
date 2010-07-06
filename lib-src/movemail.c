@@ -154,11 +154,13 @@ void pfatal_with_name (char *name);
 void pfatal_and_delete (char *name);
 char *concat (char *s1, char *s2, char *s3);
 long *xmalloc (unsigned int size);
+#ifdef MAIL_USE_POP
 int popmail (char *mailbox, char *outfile, int preserve, char *password, int reverse_order);
 int pop_retr (popserver server, int msgno, FILE *arg);
 int mbx_write (char *line, int len, FILE *mbf);
 int mbx_delimit_begin (FILE *mbf);
 int mbx_delimit_end (FILE *mbf);
+#endif
 
 /* Nonzero means this is name of a lock file to delete on fatal error.  */
 char *delete_lockname;
