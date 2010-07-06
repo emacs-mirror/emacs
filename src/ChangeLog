@@ -1,3 +1,8 @@
+2010-07-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* fringe.c (draw_fringe_bitmap_1): Use lookup_named_face to get
+	fringe face id, so face-remapping-alist works (Bug#6091).
+
 2010-07-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32.c, w32console.c, w32fns.c, w32font.c, w32heap.c, w32inevt.c

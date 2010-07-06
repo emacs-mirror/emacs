@@ -576,11 +576,10 @@ draw_fringe_bitmap_1 (struct window *w, struct glyph_row *row, int left_p, int o
 
   if (face_id == DEFAULT_FACE_ID)
     {
-      Lisp_Object face;
-
-      if ((face = fringe_faces[which], NILP (face))
-	  || (face_id = lookup_derived_face (f, face, FRINGE_FACE_ID, 0),
-	      face_id < 0))
+      Lisp_Object face = fringe_faces[which];
+      face_id = NILP (face) ? lookup_named_face (f, Qfringe, 0)
+	: lookup_derived_face (f, face, FRINGE_FACE_ID, 0);
+      if (face_id < 0)
 	face_id = FRINGE_FACE_ID;
     }
 
