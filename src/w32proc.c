@@ -117,7 +117,8 @@ extern Lisp_Object Qlocal;
 Lisp_Object Qhigh, Qlow;
 
 #ifdef EMACSDEBUG
-void _DebPrint (const char *fmt, ...)
+void
+_DebPrint (const char *fmt, ...)
 {
   char buf[1024];
   va_list args;
@@ -608,7 +609,10 @@ get_result:
 #endif
 
 void
-w32_executable_type (char * filename, int * is_dos_app, int * is_cygnus_app, int * is_gui_app)
+w32_executable_type (char * filename,
+		     int * is_dos_app,
+		     int * is_cygnus_app,
+		     int * is_gui_app)
 {
   file_data executable;
   char * p;
@@ -1875,7 +1879,8 @@ If successful, the return value is t, otherwise nil.  */)
 
 #ifdef HAVE_LANGINFO_CODESET
 /* Emulation of nl_langinfo.  Used in fns.c:Flocale_info.  */
-char *nl_langinfo (nl_item item)
+char *
+nl_langinfo (nl_item item)
 {
   /* Conversion of Posix item numbers to their Windows equivalents.  */
   static const LCTYPE w32item[] = {
@@ -2003,7 +2008,8 @@ human-readable form.  */)
   return make_number (GetThreadLocale ());
 }
 
-DWORD int_from_hex (char * s)
+DWORD
+int_from_hex (char * s)
 {
   DWORD val = 0;
   static char hex[] = "0123456789abcdefABCDEF";
@@ -2024,7 +2030,8 @@ DWORD int_from_hex (char * s)
    function isn't given a context pointer.  */
 Lisp_Object Vw32_valid_locale_ids;
 
-BOOL CALLBACK enum_locale_fn (LPTSTR localeNum)
+BOOL CALLBACK
+enum_locale_fn (LPTSTR localeNum)
 {
   DWORD id = int_from_hex (localeNum);
   Vw32_valid_locale_ids = Fcons (make_number (id), Vw32_valid_locale_ids);
@@ -2089,7 +2096,8 @@ If successful, the new locale id is returned, otherwise nil.  */)
    function isn't given a context pointer.  */
 Lisp_Object Vw32_valid_codepages;
 
-BOOL CALLBACK enum_codepage_fn (LPTSTR codepageNum)
+BOOL CALLBACK
+enum_codepage_fn (LPTSTR codepageNum)
 {
   DWORD id = atoi (codepageNum);
   Vw32_valid_codepages = Fcons (make_number (id), Vw32_valid_codepages);
@@ -2265,7 +2273,8 @@ If successful, the new layout id is returned, otherwise nil.  */)
 }
 
 
-syms_of_ntproc ()
+void
+syms_of_ntproc (void)
 {
   DEFSYM (Qhigh, "high");
   DEFSYM (Qlow, "low");

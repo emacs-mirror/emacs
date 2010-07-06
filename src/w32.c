@@ -148,7 +148,7 @@ extern Lisp_Object QCflowcontrol, Qhw, Qsw, QCsummary;
 typedef HRESULT (WINAPI * ShGetFolderPath_fn)
   (IN HWND, IN int, IN HANDLE, IN DWORD, OUT char *);
 
-void globals_of_w32 ();
+void globals_of_w32 (void);
 static DWORD get_rid (PSID);
 
 extern Lisp_Object Vw32_downcase_file_names;
@@ -308,7 +308,7 @@ typedef BOOL (WINAPI * GetSystemTimes_Proc) (
 
   /* ** A utility function ** */
 static BOOL
-is_windows_9x ()
+is_windows_9x (void)
 {
   static BOOL s_b_ret=0;
   OSVERSIONINFO os_ver;
@@ -329,7 +329,7 @@ is_windows_9x ()
    Returns a list of three integers if the times are provided by the OS
    (NT derivatives), otherwise it returns the result of current-time. */
 Lisp_Object
-w32_get_internal_run_time ()
+w32_get_internal_run_time (void)
 {
   if (get_process_times_fn)
     {
@@ -1035,13 +1035,13 @@ static struct group dflt_group =
 };
 
 unsigned
-getuid ()
+getuid (void)
 {
   return dflt_passwd.pw_uid;
 }
 
 unsigned
-geteuid ()
+geteuid (void)
 {
   /* I could imagine arguing for checking to see whether the user is
      in the Administrators group and returning a UID of 0 for that
@@ -1050,13 +1050,13 @@ geteuid ()
 }
 
 unsigned
-getgid ()
+getgid (void)
 {
   return dflt_passwd.pw_gid;
 }
 
 unsigned
-getegid ()
+getegid (void)
 {
   return getgid ();
 }
@@ -1091,7 +1091,7 @@ getpwnam (char *name)
 }
 
 void
-init_user_info ()
+init_user_info (void)
 {
   /* Find the user's real name by opening the process token and
      looking up the name associated with the user-sid in that token.
@@ -1207,7 +1207,7 @@ init_user_info ()
 }
 
 int
-random ()
+random (void)
 {
   /* rand () on NT gives us 15 random bits...hack together 30 bits.  */
   return ((rand () << 15) | rand ());
@@ -1225,9 +1225,7 @@ srandom (int seed)
    case path name components to lower case.  */
 
 static void
-normalize_filename (fp, path_sep)
-     register char *fp;
-     char path_sep;
+normalize_filename (register char *fp, char path_sep)
 {
   char sep;
   char *elem;
@@ -1283,16 +1281,14 @@ normalize_filename (fp, path_sep)
 
 /* Destructively turn backslashes into slashes.  */
 void
-dostounix_filename (p)
-     register char *p;
+dostounix_filename (register char *p)
 {
   normalize_filename (p, '/');
 }
 
 /* Destructively turn slashes into backslashes.  */
 void
-unixtodos_filename (p)
-     register char *p;
+unixtodos_filename (register char *p)
 {
   normalize_filename (p, '\\');
 }
@@ -1301,9 +1297,7 @@ unixtodos_filename (p)
    (From msdos.c...probably should figure out a way to share it,
    although this code isn't going to ever change.)  */
 int
-crlf_to_lf (n, buf)
-     register int n;
-     register unsigned char *buf;
+crlf_to_lf (register int n, register unsigned char *buf)
 {
   unsigned char *np = buf;
   unsigned char *startp = buf;
@@ -1520,9 +1514,7 @@ alarm (int seconds)
 #define REG_ROOT "SOFTWARE\\GNU\\Emacs"
 
 LPBYTE
-w32_get_resource (key, lpdwtype)
-    char *key;
-    LPDWORD lpdwtype;
+w32_get_resource (char *key, LPDWORD lpdwtype)
 {
   LPBYTE lpvalue;
   HKEY hrootkey = NULL;
@@ -2691,7 +2683,7 @@ sys_creat (const char * path, int mode)
 }
 
 FILE *
-sys_fopen(const char * path, const char * mode)
+sys_fopen (const char * path, const char * mode)
 {
   int fd;
   int oflag;
@@ -2980,7 +2972,7 @@ static int init = 0;
   } while (0)
 
 static void
-initialize_utc_base ()
+initialize_utc_base (void)
 {
   /* Determine the delta between 1-Jan-1601 and 1-Jan-1970. */
   SYSTEMTIME st;
@@ -3904,7 +3896,7 @@ BOOL WINAPI global_memory_status_ex (
 }
 
 Lisp_Object
-list_system_processes ()
+list_system_processes (void)
 {
   struct gcpro gcpro1;
   Lisp_Object proclist = Qnil;
@@ -3995,8 +3987,7 @@ restore_privilege (TOKEN_PRIVILEGES *priv)
 }
 
 static Lisp_Object
-ltime (time_sec, time_usec)
-     long time_sec, time_usec;
+ltime (long time_sec, long time_usec)
 {
   return list3 (make_number ((time_sec >> 16) & 0xffff),
 		make_number (time_sec & 0xffff),
@@ -4006,10 +3997,9 @@ ltime (time_sec, time_usec)
 #define U64_TO_LISP_TIME(time) ltime ((time) / 1000000L, (time) % 1000000L)
 
 static int
-process_times (h_proc, ctime, etime, stime, utime, ttime, pcpu)
-     HANDLE h_proc;
-     Lisp_Object *ctime, *etime, *stime, *utime, *ttime;
-     double *pcpu;
+process_times (HANDLE h_proc, Lisp_Object *ctime, Lisp_Object *etime,
+	       Lisp_Object *stime, Lisp_Object *utime, Lisp_Object *ttime,
+	       double *pcpu)
 {
   FILETIME ft_creation, ft_exit, ft_kernel, ft_user, ft_current;
   ULONGLONG tem1, tem2, tem3, tem;
@@ -4059,8 +4049,7 @@ process_times (h_proc, ctime, etime, stime, utime, ttime, pcpu)
 }
 
 Lisp_Object
-system_process_attributes (pid)
-     Lisp_Object pid;
+system_process_attributes (Lisp_Object pid)
 {
   struct gcpro gcpro1, gcpro2, gcpro3;
   Lisp_Object attrs = Qnil;
@@ -4526,7 +4515,7 @@ int h_errno = 0;
    normal system codes where they overlap (non-overlapping definitions
    are already in <sys/socket.h> */
 static void
-set_errno ()
+set_errno (void)
 {
   if (winsock_lib == NULL)
     h_errno = EINVAL;
@@ -4548,7 +4537,7 @@ set_errno ()
 }
 
 static void
-check_errno ()
+check_errno (void)
 {
   if (h_errno == 0 && winsock_lib != NULL)
     pfn_WSASetLastError (0);
@@ -5038,7 +5027,7 @@ sys_accept (int s, struct sockaddr * addr, int * addrlen)
 
 int
 sys_recvfrom (int s, char * buf, int len, int flags,
-	  struct sockaddr * from, int * fromlen)
+	      struct sockaddr * from, int * fromlen)
 {
   if (winsock_lib == NULL)
     {
@@ -5733,7 +5722,7 @@ sys_write (int fd, const void * buffer, unsigned int count)
 }
 
 static void
-check_windows_init_file ()
+check_windows_init_file (void)
 {
   extern int noninteractive, inhibit_window_system;
 
@@ -5789,7 +5778,7 @@ check_windows_init_file ()
 }
 
 void
-term_ntproc ()
+term_ntproc (void)
 {
 #ifdef HAVE_SOCKETS
   /* shutdown the socket interface if necessary */
@@ -5800,7 +5789,7 @@ term_ntproc ()
 }
 
 void
-init_ntproc ()
+init_ntproc (void)
 {
 #ifdef HAVE_SOCKETS
   /* Initialise the socket interface now if available and requested by
@@ -5908,7 +5897,8 @@ init_ntproc ()
         shutdown_handler ensures that buffers' autosave files are
 	up to date when the user logs off, or the system shuts down.
 */
-BOOL WINAPI shutdown_handler(DWORD type)
+BOOL WINAPI
+shutdown_handler(DWORD type)
 {
   /* Ctrl-C and Ctrl-Break are already suppressed, so don't handle them.  */
   if (type == CTRL_CLOSE_EVENT        /* User closes console window.  */
@@ -5929,7 +5919,7 @@ BOOL WINAPI shutdown_handler(DWORD type)
 	initialized is non zero (see the function main in emacs.c).
 */
 void
-globals_of_w32 ()
+globals_of_w32 (void)
 {
   HMODULE kernel32 = GetModuleHandle ("kernel32.dll");
 
@@ -5974,7 +5964,8 @@ globals_of_w32 ()
 }
 
 /* For make-serial-process  */
-int serial_open (char *port)
+int
+serial_open (char *port)
 {
   HANDLE hnd;
   child_process *cp;
@@ -6014,7 +6005,7 @@ int serial_open (char *port)
 /* For serial-process-configure  */
 void
 serial_configure (struct Lisp_Process *p,
-		      Lisp_Object contact)
+		  Lisp_Object contact)
 {
   Lisp_Object childp2 = Qnil;
   Lisp_Object tem = Qnil;

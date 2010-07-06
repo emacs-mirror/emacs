@@ -684,7 +684,7 @@ resize_event (WINDOW_BUFFER_SIZE_RECORD *event)
 }
 
 static void
-maybe_generate_resize_event ()
+maybe_generate_resize_event (void)
 {
   CONSOLE_SCREEN_BUFFER_INFO info;
   FRAME_PTR f = get_frame ();

@@ -64,8 +64,7 @@ static int CALLBACK add_opentype_font_name_to_list (ENUMLOGFONTEX *,
 static Lisp_Object otf_features (HDC context, char *table);
 
 static int
-memq_no_quit (elt, list)
-     Lisp_Object elt, list;
+memq_no_quit (Lisp_Object elt, Lisp_Object list)
 {
   while (CONSP (list) && ! EQ (XCAR (list), elt))
     list = XCDR (list);
@@ -75,8 +74,7 @@ memq_no_quit (elt, list)
 
 /* Font backend interface implementation.  */
 static Lisp_Object
-uniscribe_list (frame, font_spec)
-     Lisp_Object frame, font_spec;
+uniscribe_list (Lisp_Object frame, Lisp_Object font_spec)
 {
   Lisp_Object fonts = w32font_list_internal (frame, font_spec, 1);
   FONT_ADD_LOG ("uniscribe-list", font_spec, fonts);
@@ -84,8 +82,7 @@ uniscribe_list (frame, font_spec)
 }
 
 static Lisp_Object
-uniscribe_match (frame, font_spec)
-     Lisp_Object frame, font_spec;
+uniscribe_match (Lisp_Object frame, Lisp_Object font_spec)
 {
   Lisp_Object entity = w32font_match_internal (frame, font_spec, 1);
   FONT_ADD_LOG ("uniscribe-match", font_spec, entity);
@@ -93,8 +90,7 @@ uniscribe_match (frame, font_spec)
 }
 
 static Lisp_Object
-uniscribe_list_family (frame)
-     Lisp_Object frame;
+uniscribe_list_family (Lisp_Object frame)
 {
   Lisp_Object list = Qnil;
   LOGFONT font_match_pattern;
@@ -116,10 +112,7 @@ uniscribe_list_family (frame)
 }
 
 static Lisp_Object
-uniscribe_open (f, font_entity, pixel_size)
-     FRAME_PTR f;
-     Lisp_Object font_entity;
-     int pixel_size;
+uniscribe_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
 {
   Lisp_Object font_object
     = font_make_object (VECSIZE (struct uniscribe_font_info),
@@ -148,9 +141,7 @@ uniscribe_open (f, font_entity, pixel_size)
 }
 
 static void
-uniscribe_close (f, font)
-     FRAME_PTR f;
-     struct font *font;
+uniscribe_close (FRAME_PTR f, struct font *font)
 {
   struct uniscribe_font_info *uniscribe_font
     = (struct uniscribe_font_info *) font;
@@ -164,8 +155,7 @@ uniscribe_close (f, font)
 /* Return a list describing which scripts/languages FONT supports by
    which GSUB/GPOS features of OpenType tables.  */
 static Lisp_Object
-uniscribe_otf_capability (font)
-     struct font *font;
+uniscribe_otf_capability (struct font *font)
 {
   HDC context;
   HFONT old_font;
@@ -202,8 +192,7 @@ uniscribe_otf_capability (font)
    than the length of LGSTRING, nil should be return.  In that case,
    this function is called again with the larger LGSTRING.  */
 static Lisp_Object
-uniscribe_shape (lgstring)
-     Lisp_Object lgstring;
+uniscribe_shape (Lisp_Object lgstring)
 {
   struct font * font;
   struct uniscribe_font_info * uniscribe_font;
@@ -451,9 +440,7 @@ uniscribe_shape (lgstring)
    Return a glyph code of FONT for characer C (Unicode code point).
    If FONT doesn't have such a glyph, return FONT_INVALID_CODE.  */
 static unsigned
-uniscribe_encode_char (font, c)
-     struct font *font;
-     int c;
+uniscribe_encode_char (struct font *font, int c)
 {
   HDC context = NULL;
   struct frame *f = NULL;
@@ -574,12 +561,9 @@ uniscribe_encode_char (font, c)
    Adds the name of opentype fonts to a Lisp list (passed in as the
    lParam arg). */
 static int CALLBACK
-add_opentype_font_name_to_list (logical_font, physical_font, font_type,
-                                list_object)
-     ENUMLOGFONTEX *logical_font;
-     NEWTEXTMETRICEX *physical_font;
-     DWORD font_type;
-     LPARAM list_object;
+add_opentype_font_name_to_list (ENUMLOGFONTEX *logical_font,
+				NEWTEXTMETRICEX *physical_font,
+				DWORD font_type, LPARAM list_object)
 {
   Lisp_Object* list = (Lisp_Object *) list_object;
   Lisp_Object family;
@@ -650,9 +634,8 @@ static char* NOTHING = "    ";
 /* Check if font supports the otf script/language/features specified.
    OTF_SPEC is in the format
      (script lang [(gsub_feature ...)|nil] [(gpos_feature ...)]?) */
-int uniscribe_check_otf (font, otf_spec)
-     LOGFONT *font;
-     Lisp_Object otf_spec;
+int
+uniscribe_check_otf (LOGFONT *font, Lisp_Object otf_spec)
 {
   Lisp_Object script, lang, rest;
   Lisp_Object features[2];
@@ -947,7 +930,7 @@ struct font_driver uniscribe_font_driver =
     NULL, /* get_outline */
     NULL, /* free_outline */
     NULL, /* anchor_point */
-    uniscribe_otf_capability, /* Defined so (font-get FONTOBJ :otf) works.  */ 
+    uniscribe_otf_capability, /* Defined so (font-get FONTOBJ :otf) works.  */
     NULL, /* otf_drive - use shape instead.  */
     NULL, /* start_for_frame */
     NULL, /* end_for_frame */
@@ -957,7 +940,7 @@ struct font_driver uniscribe_font_driver =
 /* Note that this should be called at every startup, not just when dumping,
    as it needs to test for the existence of the Uniscribe library.  */
 void
-syms_of_w32uniscribe ()
+syms_of_w32uniscribe (void)
 {
   HMODULE uniscribe;
 
