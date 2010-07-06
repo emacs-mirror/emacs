@@ -1,6 +1,19 @@
 2010-07-06  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* movemail.c: Add MAIL_USE_POP around prototypes.
+	Include <string.h> if HAVE_STRING_H.
+	(strerror): Only declare if !HAVE_STRERROR.
+	(fatal): Make static.
+	(error): Likewise.
+	(pfatal_with_name): Likewise.
+	(pfatal_and_delete). Likewise.
+	(concat): Likewise.
+	(xmalloc): Likewise.
+	(popmail): Likewise.
+	(pop_retr): Likewise.
+	(mbx_write): Likewise.
+	(mbx_delimit_begin): Likewise.
+	(mbx_delimit_end): Likewise.
 
 2010-07-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
