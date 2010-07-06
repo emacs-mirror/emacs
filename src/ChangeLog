@@ -1,3 +1,7 @@
+2010-07-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* ecrt0.c: Revert conversion to standard C.
+
 2010-07-05  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vm-limit.c (memory_warnings):
