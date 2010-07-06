@@ -528,8 +528,6 @@ EMACS_TIME timer_check (int do_it_now);
 
 extern Lisp_Object Vhistory_length, Vtranslation_table_for_input;
 
-extern char *x_get_keysym_name ();
-
 static void record_menu_key (Lisp_Object c);
 static int echo_length (void);
 
@@ -611,7 +609,7 @@ Lisp_Object Venable_disabled_menus_and_buttons;
 #define READABLE_EVENTS_IGNORE_SQUEEZABLES	(1 << 2)
 
 /* Function for init_keyboard to call with no args (if nonzero).  */
-void (*keyboard_init_hook) ();
+void (*keyboard_init_hook) (void);
 
 static int read_avail_input (int);
 static void get_input_pending (int *, int);
@@ -6583,6 +6581,7 @@ modify_event_symbol (int symbol_num, unsigned int modifiers, Lisp_Object symbol_
 #ifdef HAVE_WINDOW_SYSTEM
       if (NILP (value))
 	{
+	  extern char *x_get_keysym_name (KeySym keysym);
 	  char *name = x_get_keysym_name (symbol_num);
 	  if (name)
 	    value = intern (name);

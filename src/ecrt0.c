@@ -61,21 +61,23 @@ int data_start = 0;
 
 char **environ;
 
-static start1 (int bogus_fp, int argc, char *xargv);
+static start1 ();
 
 /* Define symbol "start": here; some systems want that symbol.  */
 asm("	.text		");
 asm("	.globl start	");
 asm("	start:		");
 
-_start (void)
+_start ()
 {
 /* On vax, nothing is pushed here  */
   start1 ();
 }
 
 static
-start1 (int bogus_fp, int argc, char *xargv)
+start1 (bogus_fp, argc, xargv)
+     int argc;
+     char *xargv;
 {
   register char **argv = &xargv;
   environ = argv + argc + 1;

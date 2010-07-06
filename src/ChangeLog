@@ -1,5 +1,17 @@
+2010-07-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* ecrt0.c: Revert conversion to standard C.
+
 2010-07-05  Dan Nicolaescu  <dann@ics.uci.edu>
-            Juanma Barranquero  <lekktu@gmail.com>
+
+	* vm-limit.c (memory_warnings):
+	* keyboard.c (modify_event_symbol):
+	* floatfns.c (rounding_driver, ceiling2, floor2, truncate2)
+	(round2, emacs_rint):
+	* process.c (send_process, old_sigpipe): Convert function
+	definitions and declarations to standard C.
+
+2010-07-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* buffer.c, cm.c, eval.c, keyboard.c, process.c, term.c, vm-limit.c,
 	* xdisp.c: Convert function definitions to standard C.
