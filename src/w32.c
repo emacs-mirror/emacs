@@ -315,8 +315,8 @@ is_windows_9x (void)
   if (g_b_init_is_windows_9x == 0)
     {
       g_b_init_is_windows_9x = 1;
-      ZeroMemory(&os_ver, sizeof(OSVERSIONINFO));
-      os_ver.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+      ZeroMemory (&os_ver, sizeof (OSVERSIONINFO));
+      os_ver.dwOSVersionInfoSize = sizeof (OSVERSIONINFO);
       if (GetVersionEx (&os_ver))
         {
           s_b_ret = (os_ver.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS);
@@ -334,7 +334,7 @@ w32_get_internal_run_time (void)
   if (get_process_times_fn)
     {
       FILETIME create, exit, kernel, user;
-      HANDLE proc = GetCurrentProcess();
+      HANDLE proc = GetCurrentProcess ();
       if ((*get_process_times_fn) (proc, &create, &exit, &kernel, &user))
         {
           LARGE_INTEGER user_int, kernel_int, total;
@@ -753,7 +753,7 @@ void WINAPI get_native_system_info (
     lpSystemInfo->dwNumberOfProcessors = -1;
 }
 
-BOOL WINAPI get_system_times(
+BOOL WINAPI get_system_times (
     LPFILETIME lpIdleTime,
     LPFILETIME lpKernelTime,
     LPFILETIME lpUserTime)
@@ -1634,7 +1634,7 @@ init_environment (char ** argv)
       {"LANG", NULL},
     };
 
-#define N_ENV_VARS sizeof(dflt_envvars)/sizeof(dflt_envvars[0])
+#define N_ENV_VARS sizeof (dflt_envvars)/sizeof (dflt_envvars[0])
 
     /* We need to copy dflt_envvars[] and work on the copy because we
        don't want the dumped Emacs to inherit the values of
@@ -1707,7 +1707,7 @@ init_environment (char ** argv)
 	  for (p = modname; *p; p++)
 	    if (*p == '\\') *p = '/';
 
-	  _snprintf (buf, sizeof(buf)-1, "emacs_dir=%s", modname);
+	  _snprintf (buf, sizeof (buf)-1, "emacs_dir=%s", modname);
 	  _putenv (strdup (buf));
 	}
       /* Handle running emacs from the build directory: src/oo-spd/i386/  */
@@ -1731,7 +1731,7 @@ init_environment (char ** argv)
 		  for (p = modname; *p; p++)
 		    if (*p == '\\') *p = '/';
 
-		  _snprintf (buf, sizeof(buf)-1, "emacs_dir=%s", modname);
+		  _snprintf (buf, sizeof (buf)-1, "emacs_dir=%s", modname);
 		  _putenv (strdup (buf));
 		}
 	    }
@@ -1759,12 +1759,12 @@ init_environment (char ** argv)
 		char buf1[SET_ENV_BUF_SIZE], buf2[SET_ENV_BUF_SIZE];
 
 		if (dwType == REG_EXPAND_SZ)
-		  ExpandEnvironmentStrings ((LPSTR) lpval, buf1, sizeof(buf1));
+		  ExpandEnvironmentStrings ((LPSTR) lpval, buf1, sizeof (buf1));
 		else if (dwType == REG_SZ)
 		  strcpy (buf1, lpval);
 		if (dwType == REG_EXPAND_SZ || dwType == REG_SZ)
 		  {
-		    _snprintf (buf2, sizeof(buf2)-1, "%s=%s", env_vars[i].name,
+		    _snprintf (buf2, sizeof (buf2)-1, "%s=%s", env_vars[i].name,
 			       buf1);
 		    _putenv (strdup (buf2));
 		  }
@@ -2107,7 +2107,7 @@ GetCachedVolumeInformation (char * root_dir)
      involve network access, and so is extremely quick).  */
 
   /* Map drive letter to UNC if remote. */
-  if ( isalpha( root_dir[0] ) && !fixed[ DRIVE_INDEX( root_dir[0] ) ] )
+  if (isalpha (root_dir[0]) && !fixed[DRIVE_INDEX (root_dir[0])])
     {
       char remote_name[ 256 ];
       char drive[3] = { root_dir[0], ':' };
@@ -2506,8 +2506,8 @@ open_unc_volume (const char *path)
   nr.lpComment = NULL;
   nr.lpProvider = NULL;
 
-  result = WNetOpenEnum(RESOURCE_GLOBALNET, RESOURCETYPE_DISK,
-			RESOURCEUSAGE_CONNECTABLE, &nr, &henum);
+  result = WNetOpenEnum (RESOURCE_GLOBALNET, RESOURCETYPE_DISK,
+			 RESOURCEUSAGE_CONNECTABLE, &nr, &henum);
 
   if (result == NO_ERROR)
     return henum;
@@ -2770,7 +2770,7 @@ sys_link (const char * old, const char * new)
 
 	  data.wid.dwStreamId = BACKUP_LINK;
 	  data.wid.dwStreamAttributes = 0;
-	  data.wid.Size.LowPart = wlen * sizeof(WCHAR);
+	  data.wid.Size.LowPart = wlen * sizeof (WCHAR);
 	  data.wid.Size.HighPart = 0;
 	  data.wid.dwStreamNameSize = 0;
 
@@ -3183,7 +3183,7 @@ get_name_and_id (PSECURITY_DESCRIPTOR psd, const char *fname,
   char name[UNLEN+1];
   DWORD name_len = sizeof (name);
   char domain[1024];
-  DWORD domain_len = sizeof(domain);
+  DWORD domain_len = sizeof (domain);
   char *mp = NULL;
   int use_dflt = 0;
   int result;
@@ -3658,7 +3658,7 @@ utime (const char *name, struct utimbuf *times)
 
 /* Helper wrapper functions.  */
 
-HANDLE WINAPI create_toolhelp32_snapshot(
+HANDLE WINAPI create_toolhelp32_snapshot (
     DWORD Flags,
     DWORD Ignored)
 {
@@ -3678,7 +3678,7 @@ HANDLE WINAPI create_toolhelp32_snapshot(
   return (s_pfn_Create_Toolhelp32_Snapshot (Flags, Ignored));
 }
 
-BOOL WINAPI process32_first(
+BOOL WINAPI process32_first (
     HANDLE hSnapshot,
     LPPROCESSENTRY32 lppe)
 {
@@ -3698,7 +3698,7 @@ BOOL WINAPI process32_first(
   return (s_pfn_Process32_First (hSnapshot, lppe));
 }
 
-BOOL WINAPI process32_next(
+BOOL WINAPI process32_next (
     HANDLE hSnapshot,
     LPPROCESSENTRY32 lppe)
 {
@@ -4006,8 +4006,8 @@ process_times (HANDLE h_proc, Lisp_Object *ctime, Lisp_Object *etime,
 
   if (!h_proc
       || !get_process_times_fn
-      || !(*get_process_times_fn)(h_proc, &ft_creation, &ft_exit,
-				  &ft_kernel, &ft_user))
+      || !(*get_process_times_fn) (h_proc, &ft_creation, &ft_exit,
+				   &ft_kernel, &ft_user))
     return 0;
 
   GetSystemTimeAsFileTime (&ft_current);
@@ -4448,34 +4448,34 @@ init_winsock (int load_now)
       if ((pfn_##fn = (void *) GetProcAddress (winsock_lib, #fn)) == NULL) \
         goto fail;
 
-      LOAD_PROC( WSAStartup );
-      LOAD_PROC( WSASetLastError );
-      LOAD_PROC( WSAGetLastError );
-      LOAD_PROC( WSAEventSelect );
-      LOAD_PROC( WSACreateEvent );
-      LOAD_PROC( WSACloseEvent );
-      LOAD_PROC( socket );
-      LOAD_PROC( bind );
-      LOAD_PROC( connect );
-      LOAD_PROC( ioctlsocket );
-      LOAD_PROC( recv );
-      LOAD_PROC( send );
-      LOAD_PROC( closesocket );
-      LOAD_PROC( shutdown );
-      LOAD_PROC( htons );
-      LOAD_PROC( ntohs );
-      LOAD_PROC( inet_addr );
-      LOAD_PROC( gethostname );
-      LOAD_PROC( gethostbyname );
-      LOAD_PROC( getservbyname );
-      LOAD_PROC( getpeername );
-      LOAD_PROC( WSACleanup );
-      LOAD_PROC( setsockopt );
-      LOAD_PROC( listen );
-      LOAD_PROC( getsockname );
-      LOAD_PROC( accept );
-      LOAD_PROC( recvfrom );
-      LOAD_PROC( sendto );
+      LOAD_PROC (WSAStartup);
+      LOAD_PROC (WSASetLastError);
+      LOAD_PROC (WSAGetLastError);
+      LOAD_PROC (WSAEventSelect);
+      LOAD_PROC (WSACreateEvent);
+      LOAD_PROC (WSACloseEvent);
+      LOAD_PROC (socket);
+      LOAD_PROC (bind);
+      LOAD_PROC (connect);
+      LOAD_PROC (ioctlsocket);
+      LOAD_PROC (recv);
+      LOAD_PROC (send);
+      LOAD_PROC (closesocket);
+      LOAD_PROC (shutdown);
+      LOAD_PROC (htons);
+      LOAD_PROC (ntohs);
+      LOAD_PROC (inet_addr);
+      LOAD_PROC (gethostname);
+      LOAD_PROC (gethostbyname);
+      LOAD_PROC (getservbyname);
+      LOAD_PROC (getpeername);
+      LOAD_PROC (WSACleanup);
+      LOAD_PROC (setsockopt);
+      LOAD_PROC (listen);
+      LOAD_PROC (getsockname);
+      LOAD_PROC (accept);
+      LOAD_PROC (recvfrom);
+      LOAD_PROC (sendto);
 #undef LOAD_PROC
 
       /* specify version 1.1 of winsock */
@@ -4620,7 +4620,7 @@ struct {
 };
 
 char *
-sys_strerror(int error_no)
+sys_strerror (int error_no)
 {
   int i;
   static char unknown_msg[40];
@@ -4632,7 +4632,7 @@ sys_strerror(int error_no)
     if (_wsa_errlist[i].errnum == error_no)
       return _wsa_errlist[i].msg;
 
-  sprintf(unknown_msg, "Unidentified error: %d", error_no);
+  sprintf (unknown_msg, "Unidentified error: %d", error_no);
   return unknown_msg;
 }
 
@@ -4651,7 +4651,7 @@ sys_strerror(int error_no)
 int socket_to_fd (SOCKET s);
 
 int
-sys_socket(int af, int type, int protocol)
+sys_socket (int af, int type, int protocol)
 {
   SOCKET s;
 
@@ -4854,7 +4854,7 @@ sys_gethostname (char * name, int namelen)
 }
 
 struct hostent *
-sys_gethostbyname(const char * name)
+sys_gethostbyname (const char * name)
 {
   struct hostent * host;
 
@@ -4872,7 +4872,7 @@ sys_gethostbyname(const char * name)
 }
 
 struct servent *
-sys_getservbyname(const char * name, const char * proto)
+sys_getservbyname (const char * name, const char * proto)
 {
   struct servent * serv;
 
@@ -5525,8 +5525,8 @@ sys_read (int fd, char * buffer, unsigned int count)
 		  int res = pfn_recv (SOCK_HANDLE (fd), buffer, count, 0);
 		  if (res == SOCKET_ERROR)
 		    {
-		      DebPrint(("sys_read.recv failed with error %d on socket %ld\n",
-				pfn_WSAGetLastError (), SOCK_HANDLE (fd)));
+		      DebPrint (("sys_read.recv failed with error %d on socket %ld\n",
+				 pfn_WSAGetLastError (), SOCK_HANDLE (fd)));
 		      set_errno ();
 		      return -1;
 		    }
@@ -5682,8 +5682,8 @@ sys_write (int fd, const void * buffer, unsigned int count)
 
       if (nchars == SOCKET_ERROR)
         {
-	  DebPrint(("sys_write.send failed with error %d on socket %ld\n",
-		    pfn_WSAGetLastError (), SOCK_HANDLE (fd)));
+	  DebPrint (("sys_write.send failed with error %d on socket %ld\n",
+		     pfn_WSAGetLastError (), SOCK_HANDLE (fd)));
 	  set_errno ();
 	}
     }
@@ -5898,7 +5898,7 @@ init_ntproc (void)
 	up to date when the user logs off, or the system shuts down.
 */
 BOOL WINAPI
-shutdown_handler(DWORD type)
+shutdown_handler (DWORD type)
 {
   /* Ctrl-C and Ctrl-Break are already suppressed, so don't handle them.  */
   if (type == CTRL_CLOSE_EVENT        /* User closes console window.  */
@@ -5957,7 +5957,7 @@ globals_of_w32 (void)
      console apps. This actually applies to Emacs in both console and
      GUI modes, since we had to fool windows into thinking emacs is a
      console application to get console mode to work.  */
-  SetConsoleCtrlHandler(shutdown_handler, TRUE);
+  SetConsoleCtrlHandler (shutdown_handler, TRUE);
 
   /* "None" is the default group name on standalone workstations.  */
   strcpy (dflt_group_name, "None");

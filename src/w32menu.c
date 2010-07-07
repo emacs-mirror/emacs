@@ -1118,7 +1118,7 @@ w32_dialog_show (FRAME_PTR f, int keymaps,
     /*  Frame title: 'Q' = Question, 'I' = Information.
         Can also have 'E' = Error if, one day, we want
         a popup for errors. */
-    if (NILP(header))
+    if (NILP (header))
       dialog_name[0] = 'Q';
     else
       dialog_name[0] = 'I';

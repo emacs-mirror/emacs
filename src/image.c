@@ -157,7 +157,7 @@ XGetImage (Display *display, Pixmap pixmap, int x, int y,
            unsigned long plane_mask, int format)
 {
   /* TODO: not sure what this function is supposed to do.. */
-  ns_retain_object(pixmap);
+  ns_retain_object (pixmap);
   return pixmap;
 }
 
@@ -165,7 +165,7 @@ XGetImage (Display *display, Pixmap pixmap, int x, int y,
 unsigned long
 XGetPixel (XImagePtr ximage, int x, int y)
 {
-  return ns_get_pixel(ximage, x, y);
+  return ns_get_pixel (ximage, x, y);
 }
 
 /* use with imgs created by ns_image_for_XPM; alpha set to 1;
@@ -173,7 +173,7 @@ XGetPixel (XImagePtr ximage, int x, int y)
 void
 XPutPixel (XImagePtr ximage, int x, int y, unsigned long pixel)
 {
-  ns_put_pixel(ximage, x, y, pixel);
+  ns_put_pixel (ximage, x, y, pixel);
 }
 #endif /* HAVE_NS */
 
@@ -274,7 +274,7 @@ x_create_bitmap_from_data (struct frame *f, char *bits, unsigned int width, unsi
 #endif /* HAVE_NTGUI */
 
 #ifdef HAVE_NS
-  void *bitmap = ns_image_from_XBM(bits, width, height);
+  void *bitmap = ns_image_from_XBM (bits, width, height);
   if (!bitmap)
       return -1;
 #endif
@@ -319,7 +319,7 @@ x_create_bitmap_from_file (struct frame *f, Lisp_Object file)
 
 #ifdef HAVE_NS
   int id;
-  void *bitmap = ns_image_from_file(file);
+  void *bitmap = ns_image_from_file (file);
 
   if (!bitmap)
       return -1;
@@ -330,8 +330,8 @@ x_create_bitmap_from_file (struct frame *f, Lisp_Object file)
   dpyinfo->bitmaps[id - 1].refcount = 1;
   dpyinfo->bitmaps[id - 1].file = (char *) xmalloc (SBYTES (file) + 1);
   dpyinfo->bitmaps[id - 1].depth = 1;
-  dpyinfo->bitmaps[id - 1].height = ns_image_width(bitmap);
-  dpyinfo->bitmaps[id - 1].width = ns_image_height(bitmap);
+  dpyinfo->bitmaps[id - 1].height = ns_image_width (bitmap);
+  dpyinfo->bitmaps[id - 1].width = ns_image_height (bitmap);
   strcpy (dpyinfo->bitmaps[id - 1].file, SDATA (file));
   return id;
 #endif
@@ -399,7 +399,7 @@ free_bitmap_record (Display_Info *dpyinfo, Bitmap_Record *bm)
 #endif /* HAVE_NTGUI */
 
 #ifdef HAVE_NS
-  ns_release_object(bm->img);
+  ns_release_object (bm->img);
 #endif
 
   if (bm->file)
@@ -1211,10 +1211,10 @@ four_corners_best (XImagePtr_or_DC ximg, int *corners,
 #elif defined (HAVE_NS)
 
 #define Destroy_Image(ximg, dummy) \
-  ns_release_object(ximg)
+  ns_release_object (ximg)
 
 #define Free_Pixmap(display, pixmap) \
-  ns_release_object(pixmap)
+  ns_release_object (pixmap)
 
 #else
 
@@ -2099,7 +2099,7 @@ x_create_x_image_and_pixmap (struct frame *f, int width, int height, int depth,
 #endif /* HAVE_NTGUI */
 
 #ifdef HAVE_NS
-  *pixmap = ns_image_for_XPM(width, height, depth);
+  *pixmap = ns_image_for_XPM (width, height, depth);
   if (*pixmap == 0)
     {
       *ximg = NULL;
@@ -2131,7 +2131,7 @@ x_destroy_x_image (XImagePtr ximg)
       xfree (ximg);
 #endif /* HAVE_NTGUI */
 #ifdef HAVE_NS
-      ns_release_object(ximg);
+      ns_release_object (ximg);
 #endif /* HAVE_NS */
     }
 }
@@ -2162,7 +2162,7 @@ x_put_x_image (struct frame *f, XImagePtr ximg, Pixmap pixmap, int width, int he
 
 #ifdef HAVE_NS
   xassert (ximg == pixmap);
-  ns_retain_object(ximg);
+  ns_retain_object (ximg);
 #endif
 }
 
@@ -2619,7 +2619,7 @@ Create_Pixmap_From_Bitmap_Data (struct frame *f, struct image *img, char *data,
     convert_mono_to_color_image (f, img, fg, bg);
 
 #elif defined (HAVE_NS)
-  img->pixmap = ns_image_from_XBM(data, img->width, img->height);
+  img->pixmap = ns_image_from_XBM (data, img->width, img->height);
 
 #else
   img->pixmap
@@ -2982,7 +2982,7 @@ xbm_load (struct frame *f, struct image *img)
             invertedBits = bits;
             nbytes = (img->width + BITS_PER_CHAR - 1) / BITS_PER_CHAR
               * img->height;
-            bits = (char *) alloca(nbytes);
+            bits = (char *) alloca (nbytes);
             for (i = 0; i < nbytes; i++)
               bits[i] = XBM_BIT_SHUFFLE (invertedBits[i]);
           }
@@ -3859,7 +3859,7 @@ xpm_load_image (f, img, contents, end)
   if (!(end - s >= 9 && memcmp (s, "/* XPM */", 9) == 0))
     goto failure;
   s += 9;
-  match();
+  match ();
   expect_ident ("static");
   expect_ident ("char");
   expect ('*');
@@ -4009,8 +4009,8 @@ xpm_load_image (f, img, contents, end)
 		     (!EQ (color_val, Qt) ? PIX_MASK_DRAW
 		      : (have_mask = 1, PIX_MASK_RETAIN)));
 #else
-          if (EQ(color_val, Qt))
-            ns_set_alpha(ximg, x, y, 0);
+          if (EQ (color_val, Qt))
+            ns_set_alpha (ximg, x, y, 0);
 #endif
 	}
       if (y + 1 < height)
@@ -4897,7 +4897,7 @@ x_build_heuristic_mask (struct frame *f, struct image *img, Lisp_Object how)
 				  ? PIX_MASK_DRAW : PIX_MASK_RETAIN));
 #else
       if (XGetPixel (ximg, x, y) == bg)
-        ns_set_alpha(ximg, x, y, 0);
+        ns_set_alpha (ximg, x, y, 0);
 #endif /* HAVE_NS */
 #ifndef HAVE_NS
   /* Fill in the background_transparent field while we have the mask handy. */
@@ -6485,9 +6485,9 @@ jpeg_load (struct frame *f, struct image *img)
 static int
 jpeg_load (struct frame *f, struct image *img)
 {
-  return ns_load_image(f, img,
-                       image_spec_value (img->spec, QCfile, NULL),
-                       image_spec_value (img->spec, QCdata, NULL));
+  return ns_load_image (f, img,
+			image_spec_value (img->spec, QCfile, NULL),
+			image_spec_value (img->spec, QCdata, NULL));
 }
 #endif  /* HAVE_NS */
 
@@ -6912,9 +6912,9 @@ tiff_load (struct frame *f, struct image *img)
 static int
 tiff_load (struct frame *f, struct image *img)
 {
-  return ns_load_image(f, img,
-                       image_spec_value (img->spec, QCfile, NULL),
-                       image_spec_value (img->spec, QCdata, NULL));
+  return ns_load_image (f, img,
+                        image_spec_value (img->spec, QCfile, NULL),
+                        image_spec_value (img->spec, QCdata, NULL));
 }
 #endif  /* HAVE_NS */
 
@@ -7342,9 +7342,9 @@ gif_load (struct frame *f, struct image *img)
 static int
 gif_load (struct frame *f, struct image *img)
 {
-  return ns_load_image(f, img,
-                       image_spec_value (img->spec, QCfile, NULL),
-                       image_spec_value (img->spec, QCdata, NULL));
+  return ns_load_image (f, img,
+                        image_spec_value (img->spec, QCfile, NULL),
+			image_spec_value (img->spec, QCdata, NULL));
 }
 #endif /* HAVE_NS */
 
@@ -7666,7 +7666,7 @@ svg_load_image (struct frame *f,         /* Pointer to emacs frame structure.  *
       background.pixel = FRAME_BACKGROUND_PIXEL (f);
       x_query_color (f, &background);
 #else
-      ns_query_color(FRAME_BACKGROUND_COLOR (f), &background, 1);
+      ns_query_color (FRAME_BACKGROUND_COLOR (f), &background, 1);
 #endif
     }
 

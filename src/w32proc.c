@@ -46,7 +46,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <windows.h>
 #ifdef __GNUC__
 /* This definition is missing from mingw32 headers. */
-extern BOOL WINAPI IsValidLocale(LCID, DWORD);
+extern BOOL WINAPI IsValidLocale (LCID, DWORD);
 #endif
 
 #ifdef HAVE_LANGINFO_CODESET
@@ -130,7 +130,7 @@ _DebPrint (const char *fmt, ...)
 }
 #endif
 
-typedef void (_CALLBACK_ *signal_handler)(int);
+typedef void (_CALLBACK_ *signal_handler) (int);
 
 /* Signal handlers...SIG_DFL == 0 so this is initialized correctly.  */
 static signal_handler sig_handlers[NSIG];
@@ -176,7 +176,7 @@ new_child (void)
   cp = &child_procs[child_proc_count++];
 
  Initialise:
-  memset (cp, 0, sizeof(*cp));
+  memset (cp, 0, sizeof (*cp));
   cp->fd = -1;
   cp->pid = -1;
   cp->procinfo.hProcess = NULL;
@@ -399,7 +399,7 @@ create_child (char *exe, char *cmdline, char *env, int is_gui_app,
   return TRUE;
 
  EH_Fail:
-  DebPrint (("create_child.CreateProcess failed: %ld\n", GetLastError()););
+  DebPrint (("create_child.CreateProcess failed: %ld\n", GetLastError ()););
   return FALSE;
 }
 
@@ -2015,7 +2015,7 @@ int_from_hex (char * s)
   static char hex[] = "0123456789abcdefABCDEF";
   char * p;
 
-  while (*s && (p = strchr(hex, *s)) != NULL)
+  while (*s && (p = strchr (hex, *s)) != NULL)
     {
       unsigned digit = p - hex;
       if (digit > 15)

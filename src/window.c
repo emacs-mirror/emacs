@@ -683,7 +683,7 @@ of just the text area, use `window-inside-absolute-pixel-edges'.  */)
 {
   register struct window *w = decode_any_window (window);
   int add_x, add_y;
-  calc_absolute_offset(w, &add_x, &add_y);
+  calc_absolute_offset (w, &add_x, &add_y);
 
   return Fcons (make_number (WINDOW_LEFT_EDGE_X (w) + add_x),
          Fcons (make_number (WINDOW_TOP_EDGE_Y (w) + add_y),
@@ -761,7 +761,7 @@ display margins, fringes, header line, and/or mode line.  */)
 {
   register struct window *w = decode_any_window (window);
   int add_x, add_y;
-  calc_absolute_offset(w, &add_x, &add_y);
+  calc_absolute_offset (w, &add_x, &add_y);
 
   return list4 (make_number (WINDOW_BOX_LEFT_EDGE_X (w)
 			     + WINDOW_LEFT_MARGIN_WIDTH (w)
@@ -3009,7 +3009,7 @@ adjust_window_margins (struct window *w)
    a specific window, it will attempt to strictly resize that window
    proportionally, even at the expense of deleting smaller windows.  */
 static int *
-shrink_windows (int total, int size, int nchildren, int shrinkable, 
+shrink_windows (int total, int size, int nchildren, int shrinkable,
 		int resize_fixed_p, Lisp_Object forward, int width_p, int safe_p)
 {
   int available_resize = 0;

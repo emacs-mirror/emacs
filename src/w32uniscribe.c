@@ -165,7 +165,7 @@ uniscribe_otf_capability (struct font *font)
 
   f = XFRAME (selected_frame);
   context = get_frame_dc (f);
-  old_font = SelectObject (context, FONT_HANDLE(font));
+  old_font = SelectObject (context, FONT_HANDLE (font));
 
   features = otf_features (context, "GSUB");
   XSETCAR (capability, features);
@@ -276,7 +276,7 @@ uniscribe_shape (Lisp_Object lgstring)
 	     passed in.  */
 	  f = XFRAME (selected_frame);
 	  context = get_frame_dc (f);
-	  old_font = SelectObject (context, FONT_HANDLE(font));
+	  old_font = SelectObject (context, FONT_HANDLE (font));
 
 	  result = ScriptShape (context, &(uniscribe_font->cache),
 				chars + items[i].iCharPos, nchars_in_run,
@@ -311,7 +311,7 @@ uniscribe_shape (Lisp_Object lgstring)
 	      /* Cache not complete...  */
 	      f = XFRAME (selected_frame);
 	      context = get_frame_dc (f);
-	      old_font = SelectObject (context, FONT_HANDLE(font));
+	      old_font = SelectObject (context, FONT_HANDLE (font));
 
 	      result = ScriptPlace (context, &(uniscribe_font->cache),
 				    glyphs, nglyphs, attributes, &(items[i].a),
@@ -386,7 +386,7 @@ uniscribe_shape (Lisp_Object lgstring)
 		      /* Cache incomplete... */
 		      f = XFRAME (selected_frame);
 		      context = get_frame_dc (f);
-		      old_font = SelectObject (context, FONT_HANDLE(font));
+		      old_font = SelectObject (context, FONT_HANDLE (font));
 		      result = ScriptGetGlyphABCWidth (context,
 						       &(uniscribe_font->cache),
 						       glyphs[j], &char_metric);
@@ -496,7 +496,7 @@ uniscribe_encode_char (struct font *font, int c)
                  the frame.  */
               f = XFRAME (selected_frame);
               context = get_frame_dc (f);
-              old_font = SelectObject (context, FONT_HANDLE(font));
+              old_font = SelectObject (context, FONT_HANDLE (font));
               result = ScriptShape (context, &(uniscribe_font->cache),
                                     ch, len, 2, &(items[0].a),
                                     glyphs, clusters, attrs, &nglyphs);
