@@ -1447,7 +1447,7 @@ decode_coding_utf_8 (struct coding_system *coding)
 	{
 	  c = - c1;
 	}
-      else if (UTF_8_1_OCTET_P(c1))
+      else if (UTF_8_1_OCTET_P (c1))
 	{
 	  if (eol_crlf && c1 == '\r')
 	    ONE_MORE_BYTE (byte_after_cr);
@@ -2187,7 +2187,7 @@ emacs_mule_char (struct coding_system *coding, const unsigned char *src, int *nb
    (3) alt&rule composition: 0x80 0xF5 BYTES CHARS | ALT RULE ... ALT CHAR ...
 
    and these old form:
-  
+
    (4) relative composition: 0x80 | MSEQ ... MSEQ
    (5) rulebase composition: 0x80 0xFF | MSEQ MRULE ... MSEQ
 
@@ -4284,7 +4284,7 @@ decode_coding_iso_2022 (struct coding_system *coding)
 
 #define ENCODE_ISO_CHARACTER(charset, c)				   \
   do {									   \
-    int code = ENCODE_CHAR ((charset),(c));				   \
+    int code = ENCODE_CHAR ((charset), (c));				   \
 									   \
     if (CHARSET_DIMENSION (charset) == 1)				   \
       ENCODE_ISO_CHARACTER_DIMENSION1 ((charset), code);		   \
@@ -7562,7 +7562,7 @@ code_conversion_save (int with_work_buf, int multibyte)
 int
 decode_coding_gap (struct coding_system *coding, EMACS_INT chars, EMACS_INT bytes)
 {
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   Lisp_Object attrs;
 
   code_conversion_save (0, 0);
@@ -7607,7 +7607,7 @@ decode_coding_gap (struct coding_system *coding, EMACS_INT chars, EMACS_INT byte
 int
 encode_coding_gap (struct coding_system *coding, EMACS_INT chars, EMACS_INT bytes)
 {
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
 
   code_conversion_save (0, 0);
 
@@ -7665,7 +7665,7 @@ decode_coding_object (coding, src_object, from, from_byte, to, to_byte,
      EMACS_INT from, from_byte, to, to_byte;
      Lisp_Object dst_object;
 {
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   unsigned char *destination;
   EMACS_INT dst_bytes;
   EMACS_INT chars = to - from;
@@ -7856,7 +7856,7 @@ encode_coding_object (coding, src_object, from, from_byte, to, to_byte,
      EMACS_INT from, from_byte, to, to_byte;
      Lisp_Object dst_object;
 {
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   EMACS_INT chars = to - from;
   EMACS_INT bytes = to_byte - from_byte;
   Lisp_Object attrs;
@@ -10854,7 +10854,7 @@ character.");
     for (i = 0; i < coding_category_max; i++)
       Fset (AREF (Vcoding_category_table, i), Qno_conversion);
   }
-#if defined (MSDOS) || defined (WINDOWSNT)
+#if defined (DOS_NT)
   system_eol_type = Qdos;
 #else
   system_eol_type = Qunix;
