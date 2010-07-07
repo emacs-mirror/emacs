@@ -2264,13 +2264,13 @@ bool-vector.  IDX starts at 0.  */)
 	  USE_SAFE_ALLOCA;
 
 	  SAFE_ALLOCA (str, unsigned char *, nbytes);
-	  bcopy (SDATA (array), str, nbytes);
+	  memcpy (str, SDATA (array), nbytes);
 	  allocate_string_data (XSTRING (array), nchars,
 				nbytes + new_bytes - prev_bytes);
-	  bcopy (str, SDATA (array), idxval_byte);
+	  memcpy (SDATA (array), str, idxval_byte);
 	  p1 = SDATA (array) + idxval_byte;
-	  bcopy (str + idxval_byte + prev_bytes, p1 + new_bytes,
-		 nbytes - (idxval_byte + prev_bytes));
+	  memcpy (p1 + new_bytes, str + idxval_byte + prev_bytes,
+		  nbytes - (idxval_byte + prev_bytes));
 	  SAFE_FREE ();
 	  clear_string_char_byte_cache ();
 	}

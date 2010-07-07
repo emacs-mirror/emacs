@@ -97,7 +97,7 @@ uniscribe_list_family (Lisp_Object frame)
   HDC dc;
   FRAME_PTR f = XFRAME (frame);
 
-  bzero (&font_match_pattern, sizeof (font_match_pattern));
+  memset (&font_match_pattern, 0, sizeof (font_match_pattern));
   /* Limit enumerated fonts to outline fonts to save time.  */
   font_match_pattern.lfOutPrecision = OUT_OUTLINE_PRECIS;
 

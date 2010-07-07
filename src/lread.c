@@ -1125,8 +1125,7 @@ Return t if the file exists and loads successfully.  */)
   specbind (Qold_style_backquotes, Qnil);
   record_unwind_protect (load_warn_old_style_backquotes, file);
 
-  if (!bcmp (SDATA (found) + SBYTES (found) - 4,
-	     ".elc", 4)
+  if (!memcmp (SDATA (found) + SBYTES (found) - 4, ".elc", 4)
       || (fd >= 0 && (version = safe_to_load_p (fd)) > 0))
     /* Load .elc files directly, but not when they are
        remote and have no handler!  */
@@ -2430,8 +2429,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 		invalid_syntax ("#&...", 5);
 
 	      val = Fmake_bool_vector (length, Qnil);
-	      bcopy (SDATA (tmp), XBOOL_VECTOR (val)->data,
-		     size_in_chars);
+	      memcpy (XBOOL_VECTOR (val)->data, SDATA (tmp), size_in_chars);
 	      /* Clear the extraneous bits in the last byte.  */
 	      if (XINT (length) != size_in_chars * BOOL_VECTOR_BITS_PER_CHAR)
 		XBOOL_VECTOR (val)->data[size_in_chars - 1]
@@ -3786,7 +3784,7 @@ oblookup (Lisp_Object obarray, register const char *ptr, int size, int size_byte
       {
 	if (SBYTES (SYMBOL_NAME (tail)) == size_byte
 	    && SCHARS (SYMBOL_NAME (tail)) == size
-	    && !bcmp (SDATA (SYMBOL_NAME (tail)), ptr, size_byte))
+	    && !memcmp (SDATA (SYMBOL_NAME (tail)), ptr, size_byte))
 	  return tail;
 	else if (XSYMBOL (tail)->next == 0)
 	  break;

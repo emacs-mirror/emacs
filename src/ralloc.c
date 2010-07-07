@@ -37,11 +37,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 typedef POINTER_TYPE *POINTER;
 typedef size_t SIZE;
 
-/* Declared in dispnew.c, this version doesn't screw up if regions
-   overlap.  */
-
-extern void safe_bcopy (const char *, char *, int);
-
 #ifdef DOUG_LEA_MALLOC
 #define M_TOP_PAD           -2
 extern int mallopt (int, int);
@@ -60,9 +55,6 @@ typedef void *POINTER;
 
 #include <unistd.h>
 #include <malloc.h>
-
-#define safe_bcopy(x, y, z) memmove (y, x, z)
-#define bzero(x, len) memset (x, 0, len)
 
 #endif	/* not emacs */
 
@@ -676,7 +668,7 @@ resize_bloc (bloc_ptr bloc, SIZE size)
             }
 	  else
 	    {
-	      safe_bcopy (b->data, b->new_data, b->size);
+	      memmove (b->new_data, b->data, b->size);
 	      *b->variable = b->data = b->new_data;
             }
 	}
@@ -687,8 +679,8 @@ resize_bloc (bloc_ptr bloc, SIZE size)
 	}
       else
 	{
-	  safe_bcopy (bloc->data, bloc->new_data, old_size);
-	  bzero ((char *) bloc->new_data + old_size, size - old_size);
+	  memmove (bloc->new_data, bloc->data, old_size);
+	  memset (bloc->new_data + old_size, 0, size - old_size);
 	  *bloc->variable = bloc->data = bloc->new_data;
 	}
     }
@@ -703,7 +695,7 @@ resize_bloc (bloc_ptr bloc, SIZE size)
             }
 	  else
 	    {
-	      safe_bcopy (b->data, b->new_data, b->size);
+	      memmove (b->new_data, b->data, b->size);
 	      *b->variable = b->data = b->new_data;
 	    }
 	}
@@ -856,7 +848,7 @@ r_alloc_sbrk (long int size)
 	     header.  */
 	  for (b = last_bloc; b != NIL_BLOC; b = b->prev)
 	    {
-	      safe_bcopy (b->data, b->new_data, b->size);
+	      memmove (b->new_data, b->data, b->size);
 	      *b->variable = b->data = b->new_data;
 	    }
 
@@ -883,7 +875,7 @@ r_alloc_sbrk (long int size)
 	    last_heap = first_heap;
 	}
 
-      bzero (address, size);
+      memset (address, 0, size);
     }
   else /* size < 0 */
     {
@@ -902,7 +894,7 @@ r_alloc_sbrk (long int size)
 
 	  for (b = first_bloc; b != NIL_BLOC; b = b->next)
 	    {
-	      safe_bcopy (b->data, b->new_data, b->size);
+	      memmove (b->new_data, b->data, b->size);
 	      *b->variable = b->data = b->new_data;
 	    }
 	}
@@ -1082,7 +1074,7 @@ r_alloc_thaw (void)
     abort ();
 
   /* This frees all unused blocs.  It is not too inefficient, as the resize
-     and bcopy is done only once.  Afterwards, all unreferenced blocs are
+     and memcpy is done only once.  Afterwards, all unreferenced blocs are
      already shrunk to zero size.  */
   if (!r_alloc_freeze_level)
     {
@@ -1292,8 +1284,8 @@ r_alloc_init (void)
      even though it is after the sbrk value.  */
   /* Doubly true, with the additional call that explicitly adds the
      rest of that page to the address space.  */
-  bzero (first_heap->start,
-	 (char *) first_heap->end - (char *) first_heap->start);
+  memset (first_heap->start, 0,
+	  (char *) first_heap->end - (char *) first_heap->start);
   virtual_break_value = break_value = first_heap->bloc_start = first_heap->end;
 #endif
 

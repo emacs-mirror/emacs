@@ -218,7 +218,7 @@ unexec_write_zero (off_t dest, size_t count)
   char buf[UNEXEC_COPY_BUFSZ];
   ssize_t bytes;
 
-  bzero (buf, UNEXEC_COPY_BUFSZ);
+  memset (buf, 0, UNEXEC_COPY_BUFSZ);
   if (lseek (outfd, dest, SEEK_SET) != dest)
     return 0;
 

@@ -764,7 +764,7 @@ x_create_gc (f, mask, xgcv)
 {
   GC gc = xmalloc (sizeof (*gc));
   if (gc)
-      bcopy (xgcv, gc, sizeof (XGCValues));
+    memcpy (gc, xgcv, sizeof (XGCValues));
   return gc;
 }
 
@@ -2190,8 +2190,8 @@ get_lface_attributes_no_remap (struct frame *f, Lisp_Object face_name, Lisp_Obje
   lface = lface_from_face_name_no_resolve (f, face_name, signal_p);
 
   if (! NILP (lface))
-    bcopy (XVECTOR (lface)->contents, attrs,
-	   LFACE_VECTOR_SIZE * sizeof *attrs);
+    memcpy (attrs, XVECTOR (lface)->contents,
+	    LFACE_VECTOR_SIZE * sizeof *attrs);
 
   return !NILP (lface);
 }
@@ -2861,8 +2861,8 @@ The value is TO.  */)
       copy = Finternal_make_lisp_face (to, new_frame);
     }
 
-  bcopy (XVECTOR (lface)->contents, XVECTOR (copy)->contents,
-	 LFACE_VECTOR_SIZE * sizeof (Lisp_Object));
+  memcpy (XVECTOR (copy)->contents, XVECTOR (lface)->contents,
+	  LFACE_VECTOR_SIZE * sizeof (Lisp_Object));
 
   /* Changing a named face means that all realized faces depending on
      that face are invalid.  Since we cannot tell which realized faces
@@ -3890,9 +3890,9 @@ Default face attributes override any local face attributes.  */)
 	{
 	  /* Ensure that the face vector is fully specified by merging
 	     the previously-cached vector.  */
-	  bcopy (oldface->lface, attrs, sizeof attrs);
+	  memcpy (attrs, oldface->lface, sizeof attrs);
 	  merge_face_vectors (f, lvec, attrs, 0);
-	  bcopy (attrs, lvec, sizeof attrs);
+	  memcpy (lvec, attrs, sizeof attrs);
 	  newface = realize_face (c, lvec, DEFAULT_FACE_ID);
 
 	  if ((! UNSPECIFIEDP (gvec[LFACE_FAMILY_INDEX])
@@ -3997,7 +3997,7 @@ face_attr_equal_p (Lisp_Object v1, Lisp_Object v2)
       if (SBYTES (v1) != SBYTES (v2))
 	return 0;
 
-      return bcmp (SDATA (v1), SDATA (v2), SBYTES (v1)) == 0;
+      return memcmp (SDATA (v1), SDATA (v2), SBYTES (v1)) == 0;
 
     case_Lisp_Int:
     case Lisp_Symbol:
@@ -4169,9 +4169,9 @@ static struct face *
 make_realized_face (Lisp_Object *attr)
 {
   struct face *face = (struct face *) xmalloc (sizeof *face);
-  bzero (face, sizeof *face);
+  memset (face, 0, sizeof *face);
   face->ascii_face = face;
-  bcopy (attr, face->lface, sizeof face->lface);
+  memcpy (face->lface, attr, sizeof face->lface);
   return face;
 }
 
@@ -4316,10 +4316,10 @@ make_face_cache (struct frame *f)
   int size;
 
   c = (struct face_cache *) xmalloc (sizeof *c);
-  bzero (c, sizeof *c);
+  memset (c, 0, sizeof *c);
   size = FACE_CACHE_BUCKETS_SIZE * sizeof *c->buckets;
   c->buckets = (struct face **) xmalloc (size);
-  bzero (c->buckets, size);
+  memset (c->buckets, 0, size);
   c->size = 50;
   c->faces_by_id = (struct face **) xmalloc (c->size * sizeof *c->faces_by_id);
   c->f = f;
@@ -4383,7 +4383,7 @@ free_realized_faces (struct face_cache *c)
 
       c->used = 0;
       size = FACE_CACHE_BUCKETS_SIZE * sizeof *c->buckets;
-      bzero (c->buckets, size);
+      memset (c->buckets, 0, size);
 
       /* Must do a thorough redisplay the next time.  Mark current
 	 matrices as invalid because they will reference faces freed
@@ -4680,7 +4680,7 @@ lookup_named_face (struct frame *f, Lisp_Object symbol, int signal_p)
   if (! get_lface_attributes (f, symbol, symbol_attrs, signal_p, 0))
     return -1;
 
-  bcopy (default_face->lface, attrs, sizeof attrs);
+  memcpy (attrs, default_face->lface, sizeof attrs);
   merge_face_vectors (f, symbol_attrs, attrs, 0);
 
   return lookup_face (f, attrs);
@@ -4781,7 +4781,7 @@ smaller_face (struct frame *f, int face_id, int steps)
   steps = eabs (steps);
 
   face = FACE_FROM_ID (f, face_id);
-  bcopy (face->lface, attrs, sizeof attrs);
+  memcpy (attrs, face->lface, sizeof attrs);
   pt = last_pt = XFASTINT (attrs[LFACE_HEIGHT_INDEX]);
   new_face_id = face_id;
   last_height = FONT_HEIGHT (face->font);
@@ -4832,7 +4832,7 @@ face_with_height (struct frame *f, int face_id, int height)
     return face_id;
 
   face = FACE_FROM_ID (f, face_id);
-  bcopy (face->lface, attrs, sizeof attrs);
+  memcpy (attrs, face->lface, sizeof attrs);
   attrs[LFACE_HEIGHT_INDEX] = make_number (height);
   font_clear_prop (attrs, FONT_SIZE_INDEX);
   face_id = lookup_face (f, attrs);
@@ -4862,7 +4862,7 @@ lookup_derived_face (struct frame *f, Lisp_Object symbol, int face_id, int signa
   if (!get_lface_attributes (f, symbol, symbol_attrs, signal_p, 0))
     return -1;
 
-  bcopy (default_face->lface, attrs, sizeof attrs);
+  memcpy (attrs, default_face->lface, sizeof attrs);
   merge_face_vectors (f, symbol_attrs, attrs, 0);
   return lookup_face (f, attrs);
 }
@@ -4953,7 +4953,7 @@ x_supports_face_attributes_p (struct frame *f, Lisp_Object *attrs, struct face *
       Lisp_Object merged_attrs[LFACE_VECTOR_SIZE];
       int i;
 
-      bcopy (def_attrs, merged_attrs, sizeof merged_attrs);
+      memcpy (merged_attrs, def_attrs, sizeof merged_attrs);
 
       merge_face_vectors (f, attrs, merged_attrs, 0);
 
@@ -5274,7 +5274,7 @@ Value is ORDER.  */)
   int indices[DIM (font_sort_order)];
 
   CHECK_LIST (order);
-  bzero (indices, sizeof indices);
+  memset (indices, 0, sizeof indices);
   i = 0;
 
   for (list = order;
@@ -5306,9 +5306,9 @@ Value is ORDER.  */)
     if (indices[i] == 0)
       signal_error ("Invalid font sort order", order);
 
-  if (bcmp (indices, font_sort_order, sizeof indices) != 0)
+  if (memcmp (indices, font_sort_order, sizeof indices) != 0)
     {
-      bcopy (indices, font_sort_order, sizeof font_sort_order);
+      memcpy (font_sort_order, indices, sizeof font_sort_order);
       free_all_realized_faces (Qnil);
     }
 
@@ -5553,7 +5553,7 @@ realize_default_face (struct frame *f)
   /* Realize the face; it must be fully-specified now.  */
   xassert (lface_fully_specified_p (XVECTOR (lface)->contents));
   check_lface (lface);
-  bcopy (XVECTOR (lface)->contents, attrs, sizeof attrs);
+  memcpy (attrs, XVECTOR (lface)->contents, sizeof attrs);
   face = realize_face (c, attrs, DEFAULT_FACE_ID);
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -6074,7 +6074,7 @@ compute_char_face (struct frame *f, int ch, Lisp_Object prop)
     {
       Lisp_Object attrs[LFACE_VECTOR_SIZE];
       struct face *default_face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
-      bcopy (default_face->lface, attrs, sizeof attrs);
+      memcpy (attrs, default_face->lface, sizeof attrs);
       merge_face_ref (f, prop, attrs, 1, 0);
       face_id = lookup_face (f, attrs);
     }
@@ -6163,7 +6163,7 @@ face_at_buffer_position (w, pos, region_beg, region_end,
     return default_face->id;
 
   /* Begin with attributes from the default face.  */
-  bcopy (default_face->lface, attrs, sizeof attrs);
+  memcpy (attrs, default_face->lface, sizeof attrs);
 
   /* Merge in attributes specified via text properties.  */
   if (!NILP (prop))
@@ -6257,7 +6257,7 @@ face_for_overlay_string (w, pos, region_beg, region_end,
     return DEFAULT_FACE_ID;
 
   /* Begin with attributes from the default face.  */
-  bcopy (default_face->lface, attrs, sizeof attrs);
+  memcpy (attrs, default_face->lface, sizeof attrs);
 
   /* Merge in attributes specified via text properties.  */
   if (!NILP (prop))
@@ -6358,7 +6358,7 @@ face_at_string_position (w, string, pos, bufpos, region_beg,
     return base_face->id;
 
   /* Begin with attributes from the base face.  */
-  bcopy (base_face->lface, attrs, sizeof attrs);
+  memcpy (attrs, base_face->lface, sizeof attrs);
 
   /* Merge in attributes specified via text properties.  */
   if (!NILP (prop))
@@ -6413,7 +6413,7 @@ merge_faces (struct frame *f, Lisp_Object face_name, int face_id, int base_face_
     }
 
   /* Begin with attributes from the base face.  */
-  bcopy (base_face->lface, attrs, sizeof attrs);
+  memcpy (attrs, base_face->lface, sizeof attrs);
 
   if (!NILP (face_name))
     {

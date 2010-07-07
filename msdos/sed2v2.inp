@@ -38,6 +38,8 @@
 /^#undef HAVE_CBRT *$/s/^.*$/#define HAVE_CBRT 1/
 /^#undef HAVE_DIFFTIME *$/s/^.*$/#define HAVE_DIFFTIME 1/
 /^#undef HAVE_FPATHCONF *$/s/^.*$/#define HAVE_FPATHCONF 1/
+/^#undef HAVE_MEMCPY *$/s/^.*$/#define HAVE_MEMCPY 1/
+/^#undef HAVE_MEMSET *$/s/^.*$/#define HAVE_MEMSET 1/
 /^#undef HAVE_MEMCMP *$/s/^.*$/#define HAVE_MEMCMP 1/
 /^#undef HAVE_MEMMOVE *$/s/^.*$/#define HAVE_MEMMOVE 1/
 /^#undef HAVE_SETRLIMIT *$/s/^.*$/#define HAVE_SETRLIMIT 1/
@@ -83,14 +85,6 @@ s/^#undef POINTER_TYPE *$/#define POINTER_TYPE void/
 #define HAVE_STDINT_H 1\
 #else\
 #undef HAVE_STDINT_H\
-#endif
-# GCC 3.x has a built-in bzero, which conflicts with the define at
-# the end of config.in
-/^#undef HAVE_BZERO/c\
-#if __GNUC__ >= 3\
-#define HAVE_BZERO 1\
-#else\
-#undef HAVE_BZERO\
 #endif
 
 # Comment out any remaining undef directives, because some of them

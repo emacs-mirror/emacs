@@ -472,7 +472,7 @@ write_segment (new, ptr, end)
   int pagesize = getpagesize ();
   char zeros[1 << 13];
 
-  bzero (zeros, sizeof (zeros));
+  memset (zeros, 0, sizeof (zeros));
 
   for (i = 0; ptr < end;)
     {

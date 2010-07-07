@@ -1067,8 +1067,8 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 
       /* Save the frame's previous menu bar contents data.  */
       if (previous_menu_items_used)
-	bcopy (XVECTOR (f->menu_bar_vector)->contents, previous_items,
-	       previous_menu_items_used * sizeof (Lisp_Object));
+	memcpy (previous_items, XVECTOR (f->menu_bar_vector)->contents,
+		previous_menu_items_used * sizeof (Lisp_Object));
 
       /* Fill in menu_items with the current menu bar contents.
 	 This can evaluate Lisp code.  */
@@ -2452,12 +2452,10 @@ xmenu_show (f, x, y, for_click, keymaps, title, error, timestamp)
 	      item_data
 		= (unsigned char *) alloca (maxwidth
 					    + SBYTES (descrip) + 1);
-	      bcopy (SDATA (item_name), item_data,
-		     SBYTES (item_name));
+	      memcpy (item_data, SDATA (item_name), SBYTES (item_name));
 	      for (j = SCHARS (item_name); j < maxwidth; j++)
 		item_data[j] = ' ';
-	      bcopy (SDATA (descrip), item_data + j,
-		     SBYTES (descrip));
+	      memcpy (item_data + j, SDATA (descrip), SBYTES (descrip));
 	      item_data[j + SBYTES (descrip)] = 0;
 	    }
 	  else

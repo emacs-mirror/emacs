@@ -522,7 +522,7 @@ load_charset_map_from_file (struct charset *charset, Lisp_Object mapfile, int co
   SAFE_ALLOCA (head, struct charset_map_entries *,
 	       sizeof (struct charset_map_entries));
   entries = head;
-  bzero (entries, sizeof (struct charset_map_entries));
+  memset (entries, 0, sizeof (struct charset_map_entries));
 
   n_entries = 0;
   eof = 0;
@@ -549,7 +549,7 @@ load_charset_map_from_file (struct charset *charset, Lisp_Object mapfile, int co
 	  SAFE_ALLOCA (entries->next, struct charset_map_entries *,
 		       sizeof (struct charset_map_entries));
 	  entries = entries->next;
-	  bzero (entries, sizeof (struct charset_map_entries));
+	  memset (entries, 0, sizeof (struct charset_map_entries));
 	}
       idx = n_entries % 0x10000;
       entries->entry[idx].from = from;
@@ -585,7 +585,7 @@ load_charset_map_from_vector (struct charset *charset, Lisp_Object vec, int cont
   SAFE_ALLOCA (head, struct charset_map_entries *,
 	       sizeof (struct charset_map_entries));
   entries = head;
-  bzero (entries, sizeof (struct charset_map_entries));
+  memset (entries, 0, sizeof (struct charset_map_entries));
 
   n_entries = 0;
   for (i = 0; i < len; i += 2)
@@ -622,7 +622,7 @@ load_charset_map_from_vector (struct charset *charset, Lisp_Object vec, int cont
 	  SAFE_ALLOCA (entries->next, struct charset_map_entries *,
 		       sizeof (struct charset_map_entries));
 	  entries = entries->next;
-	  bzero (entries, sizeof (struct charset_map_entries));
+	  memset (entries, 0, sizeof (struct charset_map_entries));
 	}
       idx = n_entries % 0x10000;
       entries->entry[idx].from = from;
@@ -935,7 +935,7 @@ usage: (define-charset-internal ...)  */)
   if (! charset.code_linear_p)
     {
       charset.code_space_mask = (unsigned char *) xmalloc (256);
-      bzero (charset.code_space_mask, 256);
+      memset (charset.code_space_mask, 0, 256);
       for (i = 0; i < 4; i++)
 	for (j = charset.code_space[i * 4]; j <= charset.code_space[i * 4 + 1];
 	     j++)
@@ -1058,7 +1058,7 @@ usage: (define-charset-internal ...)  */)
 
   charset.unified_p = 0;
 
-  bzero (charset.fast_map, sizeof (charset.fast_map));
+  memset (charset.fast_map, 0, sizeof (charset.fast_map));
 
   if (! NILP (args[charset_arg_code_offset]))
     {
@@ -1191,8 +1191,8 @@ usage: (define-charset-internal ...)  */)
 	  struct charset *new_table
 	    = (struct charset *) xmalloc (sizeof (struct charset)
 					  * (charset_table_size + 16));
-	  bcopy (charset_table, new_table,
-		 sizeof (struct charset) * charset_table_size);
+	  memcpy (new_table, charset_table,
+		  sizeof (struct charset) * charset_table_size);
 	  charset_table_size += 16;
 	  charset_table = new_table;
 	}

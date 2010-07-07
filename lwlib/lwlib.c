@@ -104,24 +104,6 @@ static void destroy_one_instance (widget_instance *);
 static void lw_pop_all_widgets (LWLIB_ID, Boolean);
 static Boolean get_one_value (widget_instance *, widget_value *);
 static void show_one_widget_busy (Widget, Boolean);
-
-void
-lwlib_memset (char *address, int value, size_t length)
-{
-  int i;
-
-  for (i = 0; i < length; i++)
-    address[i] = value;
-}
-
-void
-lwlib_bcopy (char *from, char *to, int length)
-{
-  int i;
-
-  for (i = 0; i < length; i++)
-    to[i] = from[i];
-}
 /* utility functions for widget_instance and widget_info */
 char *
 safe_strdup (const char *s)
@@ -179,7 +161,7 @@ malloc_widget_value (void)
       wv = (widget_value *) malloc (sizeof (widget_value));
       malloc_cpt++;
     }
-  lwlib_memset ((void*) wv, 0, sizeof (widget_value));
+  memset ((void*) wv, 0, sizeof (widget_value));
   return wv;
 }
 
@@ -302,7 +284,7 @@ free_widget_info (widget_info *info)
   safe_free_str (info->type);
   safe_free_str (info->name);
   free_widget_value_tree (info->val);
-  lwlib_memset ((void*)info, 0xDEADBEEF, sizeof (widget_info));
+  memset ((void*)info, 0xDEADBEEF, sizeof (widget_info));
   free (info);
 }
 
@@ -331,7 +313,7 @@ allocate_widget_instance (info, parent, pop_up_p)
 {
   widget_instance* instance =
     (widget_instance*)malloc (sizeof (widget_instance));
-  bzero (instance, sizeof *instance);
+  memset (instance, 0, sizeof *instance);
   instance->parent = parent;
   instance->pop_up_p = pop_up_p;
   instance->info = info;
@@ -348,7 +330,7 @@ allocate_widget_instance (info, parent, pop_up_p)
 static void
 free_widget_instance (widget_instance *instance)
 {
-  lwlib_memset ((void*)instance, 0xDEADBEEF, sizeof (widget_instance));
+  memset ((void*)instance, 0xDEADBEEF, sizeof (widget_instance));
   free (instance);
 }
 
@@ -1453,7 +1435,7 @@ lw_separator_p (char *label, enum menu_separator *type, int motif_p)
   int separator_p = 0;
 
   if (strlen (label) >= 3
-      && bcmp (label, "--:", 3) == 0)
+      && memcmp (label, "--:", 3) == 0)
     {
       static struct separator_table
       {
@@ -1496,7 +1478,7 @@ lw_separator_p (char *label, enum menu_separator *type, int motif_p)
 	  }
     }
   else if (strlen (label) > 3
-	   && bcmp (label, "--", 2) == 0
+	   && memcmp (label, "--", 2) == 0
 	   && label[2] != '-')
     {
       /* Alternative, more Emacs-style names.  */

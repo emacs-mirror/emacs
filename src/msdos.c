@@ -35,7 +35,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/time.h>
 #include <dos.h>
 #include <errno.h>
-#include <string.h>	 /* for bzero and string functions */
+#include <string.h>	 /* for memset and string functions */
 #include <sys/stat.h>    /* for _fixpath */
 #include <unistd.h>	 /* for chdir, dup, dup2, etc. */
 #include <dir.h>	 /* for getdisk */
@@ -2929,12 +2929,10 @@ and then the scan code.  */)
   else
     {
       val = Fvector (NUM_RECENT_DOSKEYS, keys);
-      bcopy (keys + recent_doskeys_index,
-	     XVECTOR (val)->contents,
-	     (NUM_RECENT_DOSKEYS - recent_doskeys_index) * sizeof (Lisp_Object));
-      bcopy (keys,
-	     XVECTOR (val)->contents + NUM_RECENT_DOSKEYS - recent_doskeys_index,
-	     recent_doskeys_index * sizeof (Lisp_Object));
+      memcpy (XVECTOR (val)->contents, keys + recent_doskeys_index,
+	      (NUM_RECENT_DOSKEYS - recent_doskeys_index) * sizeof (Lisp_Object));
+      memcpy (XVECTOR (val)->contents + NUM_RECENT_DOSKEYS - recent_doskeys_index,
+	      keys, recent_doskeys_index * sizeof (Lisp_Object));
       return val;
     }
 }

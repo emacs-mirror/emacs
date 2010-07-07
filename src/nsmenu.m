@@ -219,8 +219,8 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
 
       /* Save the frame's previous menu bar contents data */
       if (previous_menu_items_used)
-	bcopy (XVECTOR (f->menu_bar_vector)->contents, previous_items,
-	       previous_menu_items_used * sizeof (Lisp_Object));
+	memcpy (previous_items, XVECTOR (f->menu_bar_vector)->contents,
+		previous_menu_items_used * sizeof (Lisp_Object));
 
       /* parse stage 1: extract from lisp */
       save_menu_items ();

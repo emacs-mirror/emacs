@@ -229,12 +229,12 @@ doprnt (char *buffer, register int bufsize, char *format, char *format_end, int 
 		  /* Truncate the string at character boundary.  */
 		  tem = bufsize;
 		  while (!CHAR_HEAD_P (string[tem - 1])) tem--;
-		  bcopy (string, bufptr, tem);
+		  memcpy (bufptr, string, tem);
 		  /* We must calculate WIDTH again.  */
 		  width = strwidth (bufptr, tem);
 		}
 	      else
-		bcopy (string, bufptr, tem);
+		memcpy (bufptr, string, tem);
 	      bufptr += tem;
 	      bufsize -= tem;
 	      if (minlen < 0)

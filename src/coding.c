@@ -6550,7 +6550,7 @@ decode_eol (struct coding_system *coding)
 	  for (p = pend - 2; p >= pbeg; p--)
 	    if (*p == '\r')
 	      {
-		safe_bcopy ((char *) (p + 1), (char *) p, pend-- - p - 1);
+		memmove (p, p + 1, pend-- - p - 1);
 		n++;
 	      }
 	}
@@ -7814,7 +7814,7 @@ decode_coding_object (struct coding_system *coding,
 	    }
 	  if (BEGV < GPT && GPT < BEGV + coding->produced_char)
 	    move_gap_both (BEGV, BEGV_BYTE);
-	  bcopy (BEGV_ADDR, destination, coding->produced);
+	  memcpy (destination, BEGV_ADDR, coding->produced);
 	  coding->destination = destination;
 	}
     }
@@ -9482,7 +9482,7 @@ usage: (set-coding-system-priority &rest coding-systems)  */)
   int changed[coding_category_max];
   enum coding_category priorities[coding_category_max];
 
-  bzero (changed, sizeof changed);
+  memset (changed, 0, sizeof changed);
 
   for (i = j = 0; i < nargs; i++)
     {
@@ -9517,7 +9517,7 @@ usage: (set-coding-system-priority &rest coding-systems)  */)
       priorities[i] = coding_priorities[j];
     }
 
-  bcopy (priorities, coding_priorities, sizeof priorities);
+  memcpy (coding_priorities, priorities, sizeof priorities);
 
   /* Update `coding-category-list'.  */
   Vcoding_category_list = Qnil;
@@ -9568,11 +9568,11 @@ make_subsidiaries (Lisp_Object base)
   char *buf = (char *) alloca (base_name_len + 6);
   int i;
 
-  bcopy (SDATA (SYMBOL_NAME (base)), buf, base_name_len);
+  memcpy (buf, SDATA (SYMBOL_NAME (base)), base_name_len);
   subsidiaries = Fmake_vector (make_number (3), Qnil);
   for (i = 0; i < 3; i++)
     {
-      bcopy (suffixes[i], buf + base_name_len, strlen (suffixes[i]) + 1);
+      memcpy (buf + base_name_len, suffixes[i], strlen (suffixes[i]) + 1);
       ASET (subsidiaries, i, intern (buf));
     }
   return subsidiaries;

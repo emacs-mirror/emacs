@@ -35,11 +35,6 @@ char *malloc ();
 char *realloc ();
 #endif
 
-/* Do this after the include, in case string.h prototypes bcopy.  */
-#if (defined(HAVE_STRING_H) || defined(STDC_HEADERS)) && !defined(bcopy)
-#define bcopy(s, d, n) memcpy ((d), (s), (n))
-#endif
-
 #endif /* not emacs */
 
 #ifndef NULL
@@ -151,7 +146,7 @@ tparam1 (char *string, char *outstring, int len, char *up, char *left, register 
 	    {
 	      outlen = len + 40;
 	      new = (char *) xmalloc (outlen);
-	      bcopy (outstring, new, offset);
+	      memcpy (new, outstring, offset);
 	    }
 	  else
 	    {

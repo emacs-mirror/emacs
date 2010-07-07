@@ -1,3 +1,9 @@
+2010-07-07  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* ebrowse.c (add_sym, make_namespace): Replace bcopy, bzero by
+	memcpy, memmove, memset.
+	* pop.c (pop_retrieve, socket_connection, pop_getline): Likewise.
+
 2010-07-06  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* movemail.c: Add MAIL_USE_POP around prototypes.

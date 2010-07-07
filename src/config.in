@@ -102,15 +102,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if ALSA is available. */
 #undef HAVE_ALSA
 
-/* Define to 1 if you have the `bcmp' function. */
-#undef HAVE_BCMP
-
-/* Define to 1 if you have the `bcopy' function. */
-#undef HAVE_BCOPY
-
-/* Define to 1 if you have the `bzero' function. */
-#undef HAVE_BZERO
-
 /* Define to 1 if you have the `cbrt' function. */
 #undef HAVE_CBRT
 
@@ -1141,10 +1132,6 @@ SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
 #include <string.h>
 #endif
 
-#ifdef HAVE_STRINGS_H
-#include <strings.h>  /* May be needed for bcopy & al.  */
-#endif
-
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
@@ -1184,16 +1171,6 @@ typedef unsigned size_t;
 #  ifndef GC_LISP_OBJECT_ALIGNMENT
 #    define GC_LISP_OBJECT_ALIGNMENT (__alignof__ (Lisp_Object))
 #  endif
-#endif
-
-#ifndef HAVE_BCOPY
-#define bcopy(a,b,s) memcpy (b,a,s)
-#endif
-#ifndef HAVE_BZERO
-#define bzero(a,s) memset (a,0,s)
-#endif
-#ifndef HAVE_BCMP
-#define BCMP memcmp
 #endif
 
 #endif /* EMACS_CONFIG_H */

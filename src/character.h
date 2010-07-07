@@ -636,18 +636,6 @@ extern Lisp_Object Vauto_fill_chars;
 extern Lisp_Object Vchar_script_table;
 extern Lisp_Object Vscript_representative_chars;
 
-/* Copy LEN bytes from FROM to TO.  This macro should be used only
-   when a caller knows that LEN is short and the obvious copy loop is
-   faster than calling bcopy which has some overhead.  Copying a
-   multibyte sequence of a character is the typical case.  */
-
-#define BCOPY_SHORT(from, to, len)		\
-  do {						\
-    int i = len;				\
-    unsigned char *from_p = from, *to_p = to;	\
-    while (i--) *to_p++ = *from_p++;		\
-  } while (0)
-
 #define DEFSYM(sym, name)	\
   do { (sym) = intern_c_string ((name)); staticpro (&(sym)); } while (0)
 

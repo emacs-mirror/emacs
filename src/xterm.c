@@ -4131,7 +4131,7 @@ x_send_scroll_bar_event (Lisp_Object window, int part, int portion, int whole)
 
       scroll_bar_windows = (struct window **) xrealloc (scroll_bar_windows,
 							nbytes);
-      bzero (&scroll_bar_windows[i], nbytes - old_nbytes);
+      memset (&scroll_bar_windows[i], 0, nbytes - old_nbytes);
       scroll_bar_windows_size = new_size;
     }
 
@@ -5608,7 +5608,7 @@ static struct x_display_info *next_noop_dpyinfo;
 	 if (f->output_data.x->saved_menu_event == 0)			\
            f->output_data.x->saved_menu_event				\
 	     = (XEvent *) xmalloc (sizeof (XEvent));			\
-         bcopy (&event, f->output_data.x->saved_menu_event, size);	\
+         memcpy (f->output_data.x->saved_menu_event, &event, size);	\
 	 inev.ie.kind = MENU_BAR_ACTIVATE_EVENT;			\
 	 XSETFRAME (inev.ie.frame_or_window, f);			\
        }								\
@@ -6245,7 +6245,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventp, int *finish, 
              this enables ComposeCharacter to work whether or
              not it is combined with Meta.  */
           if (modifiers & dpyinfo->meta_mod_mask)
-            bzero (&compose_status, sizeof (compose_status));
+            memset (&compose_status, 0, sizeof (compose_status));
 
 #ifdef HAVE_X_I18N
           if (FRAME_XIC (f))
@@ -6293,7 +6293,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventp, int *finish, 
           if (compose_status.chars_matched > 0 && nbytes == 0)
             break;
 
-          bzero (&compose_status, sizeof (compose_status));
+          memset (&compose_status, 0, sizeof (compose_status));
           orig_keysym = keysym;
 
  	  /* Common for all keysym input events.  */
@@ -6707,7 +6707,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventp, int *finish, 
            by the rest of Emacs, we put it here.  */
         int tool_bar_p = 0;
 
-        bzero (&compose_status, sizeof (compose_status));
+        memset (&compose_status, 0, sizeof (compose_status));
 	last_mouse_glyph_frame = 0;
         last_user_time = event.xbutton.time;
 
@@ -7553,7 +7553,7 @@ x_check_errors (Display *dpy, char *format)
   if (x_error_message->string[0])
     {
       char string[X_ERROR_MESSAGE_SIZE];
-      bcopy (x_error_message->string, string, X_ERROR_MESSAGE_SIZE);
+      memcpy (string, x_error_message->string, X_ERROR_MESSAGE_SIZE);
       x_uncatch_errors ();
       error (format, string);
     }
@@ -8077,7 +8077,7 @@ xim_initialize (struct x_display_info *dpyinfo, char *resource_name)
       xim_inst->dpyinfo = dpyinfo;
       len = strlen (resource_name);
       xim_inst->resource_name = (char *) xmalloc (len + 1);
-      bcopy (resource_name, xim_inst->resource_name, len + 1);
+      memcpy (xim_inst->resource_name, resource_name, len + 1);
       XRegisterIMInstantiateCallback (dpyinfo->display, dpyinfo->xrdb,
 				      resource_name, EMACS_CLASS,
 				      xim_instantiate_callback,
@@ -9929,7 +9929,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   /* We have definitely succeeded.  Record the new connection.  */
 
   dpyinfo = (struct x_display_info *) xmalloc (sizeof (struct x_display_info));
-  bzero (dpyinfo, sizeof *dpyinfo);
+  memset (dpyinfo, 0, sizeof *dpyinfo);
 
   terminal = x_create_terminal (dpyinfo);
 

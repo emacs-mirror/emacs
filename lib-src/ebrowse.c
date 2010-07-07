@@ -647,7 +647,7 @@ add_sym (char *name, struct sym *nested_in_class)
 	}
 
       sym = (struct sym *) xmalloc (sizeof *sym + strlen (name));
-      bzero (sym, sizeof *sym);
+      memset (sym, 0, sizeof *sym);
       strcpy (sym->name, name);
       sym->namesp = scope;
       sym->next = class_table[h];
@@ -1042,7 +1042,7 @@ struct sym *
 make_namespace (char *name, struct sym *context)
 {
   struct sym *s = (struct sym *) xmalloc (sizeof *s + strlen (name));
-  bzero (s, sizeof *s);
+  memset (s, 0, sizeof *s);
   strcpy (s->name, name);
   s->next = all_namespaces;
   s->namesp = context;

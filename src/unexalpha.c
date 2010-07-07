@@ -260,7 +260,7 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
 
   Brk = brk;
 
-  bcopy (data_section, &old_data_scnhdr, sizeof (old_data_scnhdr));
+  memcpy (&old_data_scnhdr, data_section, sizeof (old_data_scnhdr));
 
   nhdr.aout.dsize = brk - DATA_START;
   nhdr.aout.bsize = 0;
@@ -328,7 +328,7 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
 #ifdef _GOT
   if (got_section != NULL)
     {
-      bcopy (got_section, buffer, sizeof (struct scnhdr));
+      memcpy (buffer, got_section, sizeof (struct scnhdr));
 
       got_section->s_vaddr = vaddr;
       got_section->s_paddr = vaddr;
@@ -376,7 +376,7 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
    * Construct new symbol table header
    */
 
-  bcopy (oldptr + nhdr.fhdr.f_symptr, buffer, cbHDRR);
+  memcpy (buffer, oldptr + nhdr.fhdr.f_symptr, cbHDRR);
 
 #define symhdr ((pHDRR)buffer)
   newsyms = nhdr.aout.tsize + nhdr.aout.dsize;

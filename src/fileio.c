@@ -425,7 +425,7 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
   filename = FILE_SYSTEM_CASE (filename);
 #ifdef DOS_NT
   beg = (unsigned char *) alloca (SBYTES (filename) + 1);
-  bcopy (SDATA (filename), beg, SBYTES (filename) + 1);
+  memcpy (beg, SDATA (filename), SBYTES (filename) + 1);
 #else
   beg = SDATA (filename);
 #endif
@@ -725,10 +725,10 @@ make_temp_name (Lisp_Object prefix, int base64_p)
   if (!STRING_MULTIBYTE (prefix))
     STRING_SET_UNIBYTE (val);
   data = SDATA (val);
-  bcopy(SDATA (prefix), data, len);
+  memcpy (data, SDATA (prefix), len);
   p = data + len;
 
-  bcopy (pidbuf, p, pidlen);
+  memcpy (p, pidbuf, pidlen);
   p += pidlen;
 
   /* Here we try to minimize useless stat'ing when this function is
@@ -939,7 +939,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 
   /* Make a local copy of nm[] to protect it from GC in DECODE_FILE below. */
   nm = (unsigned char *) alloca (SBYTES (name) + 1);
-  bcopy (SDATA (name), nm, SBYTES (name) + 1);
+  memcpy (nm, SDATA (name), SBYTES (name) + 1);
 
 #ifdef DOS_NT
   /* Note if special escape prefix is present, but remove for now.  */
@@ -1093,7 +1093,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	  unsigned char *o, *p;
 	  for (p = nm; *p && (!IS_DIRECTORY_SEP (*p)); p++);
 	  o = alloca (p - nm + 1);
-	  bcopy ((char *) nm, o, p - nm);
+	  memcpy (o, nm, p - nm);
 	  o [p - nm] = 0;
 
 	  BLOCK_INPUT;
@@ -1244,7 +1244,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	  )
 	{
 	  unsigned char *temp = (unsigned char *) alloca (length);
-	  bcopy (newdir, temp, length - 1);
+	  memcpy (temp, newdir, length - 1);
 	  temp[length - 1] = 0;
 	  newdir = temp;
 	}
@@ -1467,7 +1467,7 @@ See also the function `substitute-in-file-name'.")
 	int len = ptr ? ptr - user : strlen (user);
 	/* Copy the user name into temp storage. */
 	o = (unsigned char *) alloca (len + 1);
-	bcopy ((char *) user, o, len);
+	memcpy (o, user, len);
 	o[len] = 0;
 
 	/* Look up the user name. */
@@ -1583,7 +1583,7 @@ search_embedded_absfilename (unsigned char *nm, unsigned char *endp)
 	    {
 	      unsigned char *o = alloca (s - p + 1);
 	      struct passwd *pw;
-	      bcopy (p, o, s - p);
+	      memcpy (o, p, s - p);
 	      o [s - p] = 0;
 
 	      /* If we have ~user and `user' exists, discard
@@ -1640,7 +1640,7 @@ those `/' is discarded.  */)
      decode of environment variables, causing the original Lisp_String
      data to be relocated.  */
   nm = (unsigned char *) alloca (SBYTES (filename) + 1);
-  bcopy (SDATA (filename), nm, SBYTES (filename) + 1);
+  memcpy (nm, SDATA (filename), SBYTES (filename) + 1);
 
 #ifdef DOS_NT
   dostounix_filename (nm);
@@ -2733,7 +2733,7 @@ points to a nonexistent file.  */)
     {
       bufsize *= 2;
       buf = (char *) xrealloc (buf, bufsize);
-      bzero (buf, bufsize);
+      memset (buf, 0, bufsize);
 
       errno = 0;
       valsize = readlink (SDATA (filename), buf, bufsize);
@@ -3837,7 +3837,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 				  conversion_buffer);
 	  unprocessed = coding.carryover_bytes;
 	  if (coding.carryover_bytes > 0)
-	    bcopy (coding.carryover, read_buf, unprocessed);
+	    memcpy (read_buf, coding.carryover, unprocessed);
 	}
       UNGCPRO;
       emacs_close (fd);
@@ -5245,7 +5245,7 @@ auto_save_error (Lisp_Object error)
   GCPRO1 (msg);
   nbytes = SBYTES (msg);
   SAFE_ALLOCA (msgbuf, char *, nbytes);
-  bcopy (SDATA (msg), msgbuf, nbytes);
+  memcpy (msgbuf, SDATA (msg), nbytes);
 
   for (i = 0; i < 3; ++i)
     {

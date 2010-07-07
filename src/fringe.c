@@ -1493,7 +1493,7 @@ If BITMAP already exists, the existing definition is replaced.  */)
   xfb = (struct fringe_bitmap *) xmalloc (sizeof fb
 					  + fb.height * BYTES_PER_BITMAP_ROW);
   fb.bits = b = (unsigned short *) (xfb + 1);
-  bzero (b, fb.height);
+  memset (b, 0, fb.height);
 
   j = 0;
   while (j < fb.height)

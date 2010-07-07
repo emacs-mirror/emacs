@@ -430,7 +430,7 @@ cmgoto (struct tty_display_info *tty, int row, int col)
 void
 Wcm_clear (struct tty_display_info *tty)
 {
-  bzero (tty->Wcm, sizeof (struct cm));
+  memset (tty->Wcm, 0, sizeof (struct cm));
   UP = 0;
   BC = 0;
 }

@@ -1405,7 +1405,7 @@ name, or nil if there is no such user.  */)
 
       login = Fuser_login_name (make_number (pw->pw_uid));
       r = (unsigned char *) alloca (strlen (p) + SCHARS (login) + 1);
-      bcopy (p, r, q - p);
+      memcpy (r, p, q - p);
       r[q - p] = 0;
       strcat (r, SDATA (login));
       r[q - p] = UPCASE (r[q - p]);
@@ -2418,8 +2418,7 @@ make_buffer_string_both (int start, int start_byte, int end, int end_byte, int p
     result = make_uninit_multibyte_string (end - start, end_byte - start_byte);
   else
     result = make_uninit_string (end - start);
-  bcopy (BYTE_POS_ADDR (start_byte), SDATA (result),
-	 end_byte - start_byte);
+  memcpy (SDATA (result), BYTE_POS_ADDR (start_byte), end_byte - start_byte);
 
   /* If desired, update and copy the text properties.  */
   if (props)
@@ -3437,7 +3436,7 @@ usage: (message-box FORMAT-STRING &rest ARGS)  */)
 	  message_length = SBYTES (val);
 	  message_text = (char *)xrealloc (message_text, message_length);
 	}
-      bcopy (SDATA (val), message_text, SBYTES (val));
+      memcpy (message_text, SDATA (val), SBYTES (val));
       message2 (message_text, SBYTES (val),
 		STRING_MULTIBYTE (val));
       return val;
@@ -3654,12 +3653,12 @@ usage: (format STRING &rest OBJECTS)  */)
     int i;
     if (!info)
       info = (struct info *) alloca (nbytes);
-    bzero (info, nbytes);
+    memset (info, 0, nbytes);
     for (i = 0; i <= nargs; i++)
       info[i].start = -1;
     if (!discarded)
       SAFE_ALLOCA (discarded, char *, SBYTES (args[0]));
-    bzero (discarded, SBYTES (args[0]));
+    memset (discarded, 0, SBYTES (args[0]));
   }
 
   /* Add to TOTAL enough space to hold the converted arguments.  */
@@ -3973,8 +3972,8 @@ usage: (format STRING &rest OBJECTS)  */)
 	    {
 	      int this_nchars;
 
-	      bcopy (this_format_start, this_format,
-		     format - this_format_start);
+	      memcpy (this_format, this_format_start,
+		      format - this_format_start);
 	      this_format[format - this_format_start] = 0;
 
 	      if (format[-1] == 'e' || format[-1] == 'f' || format[-1] == 'g')
@@ -4451,9 +4450,9 @@ Transposing beyond buffer boundaries is an error.  */)
 	  start1_addr = BYTE_POS_ADDR (start1_byte);
 	  start2_addr = BYTE_POS_ADDR (start2_byte);
 
-          bcopy (start2_addr, temp, len2_byte);
-          bcopy (start1_addr, start1_addr + len2_byte, len1_byte);
-          bcopy (temp, start1_addr, len2_byte);
+          memcpy (temp, start2_addr, len2_byte);
+          memcpy (start1_addr + len2_byte, start1_addr, len1_byte);
+          memcpy (start1_addr, temp, len2_byte);
 	  SAFE_FREE ();
         }
       else
@@ -4464,9 +4463,9 @@ Transposing beyond buffer boundaries is an error.  */)
 	  SAFE_ALLOCA (temp, unsigned char *, len1_byte);
 	  start1_addr = BYTE_POS_ADDR (start1_byte);
 	  start2_addr = BYTE_POS_ADDR (start2_byte);
-          bcopy (start1_addr, temp, len1_byte);
-          bcopy (start2_addr, start1_addr, len2_byte);
-          bcopy (temp, start1_addr + len2_byte, len1_byte);
+          memcpy (temp, start1_addr, len1_byte);
+          memcpy (start1_addr, start2_addr, len2_byte);
+          memcpy (start1_addr + len2_byte, temp, len1_byte);
 	  SAFE_FREE ();
         }
       graft_intervals_into_buffer (tmp_interval1, start1 + len2,
@@ -4504,9 +4503,9 @@ Transposing beyond buffer boundaries is an error.  */)
 	  SAFE_ALLOCA (temp, unsigned char *, len1_byte);
 	  start1_addr = BYTE_POS_ADDR (start1_byte);
 	  start2_addr = BYTE_POS_ADDR (start2_byte);
-          bcopy (start1_addr, temp, len1_byte);
-          bcopy (start2_addr, start1_addr, len2_byte);
-          bcopy (temp, start2_addr, len1_byte);
+          memcpy (temp, start1_addr, len1_byte);
+          memcpy (start1_addr, start2_addr, len2_byte);
+          memcpy (start2_addr, temp, len1_byte);
 	  SAFE_FREE ();
 
           graft_intervals_into_buffer (tmp_interval1, start2,
@@ -4534,10 +4533,10 @@ Transposing beyond buffer boundaries is an error.  */)
 	  SAFE_ALLOCA (temp, unsigned char *, len2_byte);
 	  start1_addr = BYTE_POS_ADDR (start1_byte);
 	  start2_addr = BYTE_POS_ADDR (start2_byte);
-          bcopy (start2_addr, temp, len2_byte);
-          bcopy (start1_addr, start1_addr + len_mid + len2_byte, len1_byte);
-          safe_bcopy (start1_addr + len1_byte, start1_addr + len2_byte, len_mid);
-          bcopy (temp, start1_addr, len2_byte);
+          memcpy (temp, start2_addr, len2_byte);
+          memcpy (start1_addr + len_mid + len2_byte, start1_addr, len1_byte);
+          memmove (start1_addr + len2_byte, start1_addr + len1_byte, len_mid);
+          memcpy (start1_addr, temp, len2_byte);
 	  SAFE_FREE ();
 
           graft_intervals_into_buffer (tmp_interval1, end2 - len1,
@@ -4567,10 +4566,10 @@ Transposing beyond buffer boundaries is an error.  */)
 	  SAFE_ALLOCA (temp, unsigned char *, len1_byte);
 	  start1_addr = BYTE_POS_ADDR (start1_byte);
 	  start2_addr = BYTE_POS_ADDR (start2_byte);
-          bcopy (start1_addr, temp, len1_byte);
-          bcopy (start2_addr, start1_addr, len2_byte);
-          bcopy (start1_addr + len1_byte, start1_addr + len2_byte, len_mid);
-          bcopy (temp, start1_addr + len2_byte + len_mid, len1_byte);
+          memcpy (temp, start1_addr, len1_byte);
+          memcpy (start1_addr, start2_addr, len2_byte);
+          memcpy (start1_addr + len2_byte, start1_addr + len1_byte, len_mid);
+          memcpy (start1_addr + len2_byte + len_mid, temp, len1_byte);
 	  SAFE_FREE ();
 
           graft_intervals_into_buffer (tmp_interval1, end2 - len1,

@@ -720,7 +720,7 @@ encode_terminal_code (struct glyph *src, int src_len, struct coding_system *codi
 						  encode_terminal_src_size);
 		  buf = encode_terminal_src + nbytes;
 		}
-	      bcopy (SDATA (string), buf, SBYTES (string));
+	      memcpy (buf, SDATA (string), SBYTES (string));
 	      buf += SBYTES (string);
 	      nchars += SCHARS (string);
 	    }
@@ -1225,8 +1225,8 @@ calculate_costs (struct frame *frame)
           = (int *) xmalloc (sizeof (int)
                              + 2 * max_frame_cols * sizeof (int));
 
-      bzero (char_ins_del_vector, (sizeof (int)
-                                   + 2 * max_frame_cols * sizeof (int)));
+      memset (char_ins_del_vector, 0,
+	      (sizeof (int) + 2 * max_frame_cols * sizeof (int)));
 
 
       if (f && (!tty->TS_ins_line && !tty->TS_del_line))
@@ -1893,7 +1893,7 @@ produce_special_glyphs (struct it *it, enum display_element_type what)
   temp_it.what = IT_CHARACTER;
   temp_it.len = 1;
   temp_it.object = make_number (0);
-  bzero (&temp_it.current, sizeof temp_it.current);
+  memset (&temp_it.current, 0, sizeof temp_it.current);
 
   if (what == IT_CONTINUATION)
     {
@@ -3229,7 +3229,7 @@ create_tty_output (struct frame *f)
     abort ();
 
   t = xmalloc (sizeof (struct tty_output));
-  bzero (t, sizeof (struct tty_output));
+  memset (t, 0, sizeof (struct tty_output));
 
   t->display_info = FRAME_TERMINAL (f)->display_info.tty;
 
@@ -3436,7 +3436,7 @@ init_tty (char *name, char *terminal_type, int must_succeed)
 #else
   tty = (struct tty_display_info *) xmalloc (sizeof (struct tty_display_info));
 #endif
-  bzero (tty, sizeof (struct tty_display_info));
+  memset (tty, 0, sizeof (struct tty_display_info));
   tty->next = tty_list;
   tty_list = tty;
 
@@ -4028,7 +4028,7 @@ delete_tty (struct terminal *terminal)
   xfree (tty->termcap_strings_buffer);
   xfree (tty->termcap_term_buffer);
 
-  bzero (tty, sizeof (struct tty_display_info));
+  memset (tty, 0, sizeof (struct tty_display_info));
   xfree (tty);
 }
 

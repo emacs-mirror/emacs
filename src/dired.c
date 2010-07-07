@@ -289,15 +289,14 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full, Lisp_Object m
 		  int nchars;
 
 		  fullname = make_uninit_multibyte_string (nbytes, nbytes);
-		  bcopy (SDATA (directory), SDATA (fullname),
-			 directory_nbytes);
+		  memcpy (SDATA (fullname), SDATA (directory),
+			  directory_nbytes);
 
 		  if (needsep)
 		    SSET (fullname, directory_nbytes, DIRECTORY_SEP);
 
-		  bcopy (SDATA (name),
-			 SDATA (fullname) + directory_nbytes + needsep,
-			 len);
+		  memcpy (SDATA (fullname) + directory_nbytes + needsep,
+			  SDATA (name), len);
 
 		  nchars = chars_in_text (SDATA (fullname), nbytes);
 
@@ -857,11 +856,11 @@ file_name_completion_stat (Lisp_Object dirname, DIRENTRY *dp, struct stat *st_ad
   _djstat_flags = _STAT_INODE | _STAT_EXEC_MAGIC | _STAT_DIRSIZE;
 #endif /* MSDOS */
 
-  bcopy (SDATA (dirname), fullname, pos);
+  memcpy (fullname, SDATA (dirname), pos);
   if (!IS_DIRECTORY_SEP (fullname[pos - 1]))
     fullname[pos++] = DIRECTORY_SEP;
 
-  bcopy (dp->d_name, fullname + pos, len);
+  memcpy (fullname + pos, dp->d_name, len);
   fullname[pos + len] = 0;
 
 #ifdef S_IFLNK

@@ -546,7 +546,7 @@ scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
   w = ! NILP (window) ? XWINDOW (window) : NULL;
 
   if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
-  bzero (&cmp_it, sizeof cmp_it);
+  memset (&cmp_it, 0, sizeof cmp_it);
   cmp_it.id = -1;
   composition_compute_stop_pos (&cmp_it, scan, scan_byte, end, Qnil);
 
@@ -1214,7 +1214,7 @@ compute_motion (EMACS_INT from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
   pos_byte = prev_pos_byte = CHAR_TO_BYTE (from);
   contin_hpos = 0;
   prev_tab_offset = tab_offset;
-  bzero (&cmp_it, sizeof cmp_it);
+  memset (&cmp_it, 0, sizeof cmp_it);
   cmp_it.id = -1;
   composition_compute_stop_pos (&cmp_it, pos, pos_byte, to, Qnil);
 

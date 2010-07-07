@@ -2746,7 +2746,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
       {
   	PAINTSTRUCT paintStruct;
         RECT update_rect;
-	bzero (&update_rect, sizeof (update_rect));
+	memset (&update_rect, 0, sizeof (update_rect));
 
 	f = x_window_to_frame (dpyinfo, hwnd);
 	if (f == 0)
@@ -4275,7 +4275,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   f->output_method = output_w32;
   f->output_data.w32 =
     (struct w32_output *) xmalloc (sizeof (struct w32_output));
-  bzero (f->output_data.w32, sizeof (struct w32_output));
+  memset (f->output_data.w32, 0, sizeof (struct w32_output));
   FRAME_FONTSET (f) = -1;
 
   f->icon_name
@@ -5388,7 +5388,7 @@ x_create_tip_frame (struct w32_display_info *dpyinfo,
   f->output_method = output_w32;
   f->output_data.w32 =
     (struct w32_output *) xmalloc (sizeof (struct w32_output));
-  bzero (f->output_data.w32, sizeof (struct w32_output));
+  memset (f->output_data.w32, 0, sizeof (struct w32_output));
 
   FRAME_FONTSET (f)  = -1;
   f->icon_name = Qnil;
@@ -6046,7 +6046,7 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
     specbind (Qinhibit_redisplay, Qt);
     BLOCK_INPUT;
 
-    bzero (&new_file_details, sizeof (new_file_details));
+    memset (&new_file_details, 0, sizeof (new_file_details));
     /* Apparently NT4 crashes if you give it an unexpected size.
        I'm not sure about Windows 9x, so play it safe.  */
     if (w32_major_version > 4 && w32_major_version < 95)
@@ -6157,10 +6157,10 @@ DEFUN ("system-move-file-to-trash", Fsystem_move_file_to_trash,
     /* On Windows, write permission is required to delete/move files.  */
     _chmod (path, 0666);
 
-    bzero (tmp_path, sizeof (tmp_path));
+    memset (tmp_path, 0, sizeof (tmp_path));
     strcpy (tmp_path, path);
 
-    bzero (&file_op, sizeof (file_op));
+    memset (&file_op, 0, sizeof (file_op));
     file_op.hwnd = HWND_DESKTOP;
     file_op.wFunc = FO_DELETE;
     file_op.pFrom = tmp_path;

@@ -1,3 +1,8 @@
+2010-07-07  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in: Don't check for bcopy, bcmp, bzero.  Don't include
+	<strings.h> and don't define bcopy, bzero, BCMP in config.h.
+
 2010-07-07  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in (getenv): Remove K&R declaration.

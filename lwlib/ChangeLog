@@ -1,3 +1,13 @@
+2010-07-07  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* lwlib.c (lwlib_memset, lwlib_bcopy): Remove.
+	(malloc_widget_value, free_widget_info, allocate_widget_instance)
+	(lw_separator_p): Replace lwlib_memset, lwlib_bcopy, bzero, bcmp by
+	memset, memcpy, memcmp.
+	* lwlib-utils.c (XtApplyToWidgets): Likewise.
+	* xlwmenu.c (XlwMenuInitialize): Likewise.
+	* lwlib.h (lwlib_bcopy): Remove declaration.
+
 2010-07-05  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xlwmenu.c (XlwMenuSetValues, XlwMenuInitialize): Correct prototype.

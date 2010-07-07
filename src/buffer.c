@@ -514,7 +514,7 @@ clone_per_buffer_values (struct buffer *from, struct buffer *to)
       PER_BUFFER_VALUE (to, offset) = obj;
     }
 
-  bcopy (from->local_flags, to->local_flags, sizeof to->local_flags);
+  memcpy (to->local_flags, from->local_flags, sizeof to->local_flags);
 
   to->overlays_before = copy_overlays (to, from->overlays_before);
   to->overlays_after = copy_overlays (to, from->overlays_after);
@@ -4413,8 +4413,8 @@ report_overlay_modification (Lisp_Object start, Lisp_Object end, int after,
     Lisp_Object *copy = (Lisp_Object *) alloca (size * sizeof (Lisp_Object));
     int i;
 
-    bcopy (XVECTOR (last_overlay_modification_hooks)->contents,
-	   copy, size * sizeof (Lisp_Object));
+    memcpy (copy, XVECTOR (last_overlay_modification_hooks)->contents,
+	    size * sizeof (Lisp_Object));
     gcpro1.var = copy;
     gcpro1.nvars = size;
 
@@ -4877,7 +4877,7 @@ mmap_realloc (var, nbytes)
 	    }
 	  else if (mmap_alloc (var, nbytes))
 	    {
-	      bcopy (old_ptr, *var, r->nbytes_specified);
+	      memcpy (*var, old_ptr, r->nbytes_specified);
 	      mmap_free_1 (MMAP_REGION (old_ptr));
 	      result = *var;
 	      r = MMAP_REGION (result);
@@ -5058,7 +5058,7 @@ init_buffer_once (void)
 {
   int idx;
 
-  bzero (buffer_permanent_local_flags, sizeof buffer_permanent_local_flags);
+  memset (buffer_permanent_local_flags, 0, sizeof buffer_permanent_local_flags);
 
   /* Make sure all markable slots in buffer_defaults
      are initialized reasonably, so mark_buffer won't choke.  */
@@ -5146,7 +5146,7 @@ init_buffer_once (void)
   if (sizeof (EMACS_INT) != sizeof (Lisp_Object)) abort ();
 
   /* 0 means not a lisp var, -1 means always local, else mask */
-  bzero (&buffer_local_flags, sizeof buffer_local_flags);
+  memset (&buffer_local_flags, 0, sizeof buffer_local_flags);
   XSETINT (buffer_local_flags.filename, -1);
   XSETINT (buffer_local_flags.directory, -1);
   XSETINT (buffer_local_flags.backed_up, -1);

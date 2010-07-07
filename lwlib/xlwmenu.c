@@ -1861,7 +1861,7 @@ XlwMenuInitialize (Widget request, Widget w, ArgList args, Cardinal *num_args)
 
   /* _XtCreate is freeing the object that was passed to us,
      so make a copy that we will actually keep.  */
-  lwlib_bcopy (mw->menu.contents, tem, sizeof (widget_value));
+  memcpy (tem, mw->menu.contents, sizeof (widget_value));
   mw->menu.contents = tem;
 #endif
 

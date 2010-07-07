@@ -1404,7 +1404,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 		}
 
 	      /* Store this character into the translated pattern.  */
-	      bcopy (str, pat, charlen);
+	      memcpy (pat, str, charlen);
 	      pat += charlen;
 	      base_pat += in_charlen;
 	      len_byte -= in_charlen;
@@ -2178,8 +2178,7 @@ wordify (Lisp_Object string, int lax)
 
       if (SYNTAX (c) == Sword)
 	{
-	  bcopy (SDATA (string) + i_byte_orig, o,
-		 i_byte - i_byte_orig);
+	  memcpy (o, SDATA (string) + i_byte_orig, i_byte - i_byte_orig);
 	  o += i_byte - i_byte_orig;
 	}
       else if (i > 0 && SYNTAX (prev_c) == Sword && --word_count)
@@ -2774,7 +2773,7 @@ since only regular expressions have distinguished subexpressions.  */)
 	  /* Now add to the end of SUBSTED.  */
 	  if (add_stuff)
 	    {
-	      bcopy (add_stuff, substed + substed_len, add_len);
+	      memcpy (substed + substed_len, add_stuff, add_len);
 	      substed_len += add_len;
 	    }
 	}

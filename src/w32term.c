@@ -323,7 +323,7 @@ XGCValues *
 XCreateGC (void *ignore, Window window, unsigned long mask, XGCValues *xgcv)
 {
   XGCValues *gc = (XGCValues *) xmalloc (sizeof (XGCValues));
-  bzero (gc, sizeof (XGCValues));
+  memset (gc, 0, sizeof (XGCValues));
 
   XChangeGC (ignore, gc, mask, xgcv);
 
@@ -5826,7 +5826,7 @@ w32_initialize_display_info (Lisp_Object display_name)
 {
   struct w32_display_info *dpyinfo = &one_w32_display_info;
 
-  bzero (dpyinfo, sizeof (*dpyinfo));
+  memset (dpyinfo, 0, sizeof (*dpyinfo));
 
   /* Put it on w32_display_name_list.  */
   w32_display_name_list = Fcons (Fcons (display_name, Qnil),

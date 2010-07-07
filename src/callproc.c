@@ -775,10 +775,8 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 				  PT_BYTE + process_coding.produced);
 		carryover = process_coding.carryover_bytes;
 		if (carryover > 0)
-		  /* As CARRYOVER should not be that large, we had
-		     better avoid overhead of bcopy.  */
-		  BCOPY_SHORT (process_coding.carryover, buf,
-			       process_coding.carryover_bytes);
+		  memcpy (buf, process_coding.carryover,
+			  process_coding.carryover_bytes);
 	      }
 	  }
 
@@ -916,7 +914,7 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
 
   pattern = Fexpand_file_name (Vtemp_file_name_pattern, tmpdir);
   tempfile = (char *) alloca (SBYTES (pattern) + 1);
-  bcopy (SDATA (pattern), tempfile, SBYTES (pattern) + 1);
+  memcpy (tempfile, SDATA (pattern), SBYTES (pattern) + 1);
   coding_systems = Qt;
 
 #ifdef HAVE_MKSTEMP
@@ -1099,8 +1097,8 @@ child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, L
     pwd_var = (char *) alloca (i + 6);
 #endif
     temp = pwd_var + 4;
-    bcopy ("PWD=", pwd_var, 4);
-    bcopy (SDATA (current_dir), temp, i);
+    memcpy (pwd_var, "PWD=", 4);
+    memcpy (temp, SDATA (current_dir), i);
     if (!IS_DIRECTORY_SEP (temp[i - 1])) temp[i++] = DIRECTORY_SEP;
     temp[i] = 0;
 
@@ -1325,7 +1323,7 @@ getenv_internal_1 (char *var, int varlen, char **value, int *valuelen, Lisp_Obje
 	  /* NT environment variables are case insensitive.  */
 	  && ! strnicmp (SDATA (entry), var, varlen)
 #else  /* not WINDOWSNT */
-	  && ! bcmp (SDATA (entry), var, varlen)
+	  && ! memcmp (SDATA (entry), var, varlen)
 #endif /* not WINDOWSNT */
 	  )
 	{

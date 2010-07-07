@@ -46,11 +46,6 @@ char *malloc ();
 char *realloc ();
 #endif
 
-/* Do this after the include, in case string.h prototypes bcopy.  */
-#if (defined(HAVE_STRING_H) || defined(STDC_HEADERS)) && !defined(bcopy)
-#define bcopy(s, d, n) memcpy ((d), (s), (n))
-#endif
-
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -315,7 +310,7 @@ tgetst1 (char *ptr, char **area)
 
 	cut[last_p_param].len = r - cut[last_p_param].beg;
 	for (i = 0, wp = ret; i <= last_p_param; wp += cut[i++].len)
-	  bcopy (cut[i].beg, wp, cut[i].len);
+	  memcpy (wp, cut[i].beg, cut[i].len);
 	r = wp;
       }
   }
@@ -739,7 +734,7 @@ gobble_line (int fd, register struct termcap_buffer *bufp, char *append_end)
       else
 	{
 	  append_end -= bufp->ptr - buf;
-	  bcopy (bufp->ptr, buf, bufp->full -= bufp->ptr - buf);
+	  memcpy (buf, bufp->ptr, bufp->full -= bufp->ptr - buf);
 	  bufp->ptr = buf;
 	}
       if (!(nread = read (fd, buf + bufp->full, bufp->size - bufp->full)))
