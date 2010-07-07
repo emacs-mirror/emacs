@@ -1,3 +1,15 @@
+2010-07-07  Agustín Martín  <agustin.martin@hispalinux.es>
+
+	* ispell.el (ispell-alternate-dictionary): Use file-readable-p.
+	Return nil if no word-list is found at default locations.
+	(ispell-complete-word-dict): Default to nil.
+	(ispell-command-loop): Use 'word-list' when using lookup-words.
+	(lookup-words): Use ispell-complete-word-dict or
+	ispell-alternate-dictionary.  Check for word-list availability
+	and handle errors if needed with better messages (Bug#6539).
+	(ispell-complete-word): Use ispell-complete-word-dict or
+	ispell-alternate-dictionary.
+
 2010-07-07  Glenn Morris  <rgm@gnu.org>
 
 	* play/zone.el (top-level): Do not require timer, tabify, or cl.
