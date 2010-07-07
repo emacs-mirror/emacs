@@ -1,3 +1,13 @@
+2010-07-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.h:
+	* msdos.c:
+	* dosfns.c:
+	* w16select.c: Convert function definitions to ANSI C.
+
+	* msdos.h (ctrl_break_func, install_ctrl_break_check): Remove
+	unused prototypes.
+
 2010-07-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* coding.c, sysdep.c: Convert some more functions to standard C.

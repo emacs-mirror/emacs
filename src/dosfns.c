@@ -283,7 +283,7 @@ restore_parent_vm_title (void)
 #endif /* !HAVE_X_WINDOWS */
 
 void
-init_dosfns ()
+init_dosfns (void)
 {
   union REGS regs;
   _go32_dpmi_registers dpmiregs;
@@ -481,9 +481,7 @@ w95_set_virtual_machine_title (const char *title_string)
    sets the name in the frame struct, but has no other effects.  */
 
 void
-x_set_title (f, name)
-     struct frame *f;
-     Lisp_Object name;
+x_set_title (struct frame *f, Lisp_Object name)
 {
   /* Don't change the title if it's already NAME.  */
   if (EQ (name, f->title))
@@ -536,7 +534,7 @@ If the underlying system call fails, value is nil.  */)
    (There are no other processes on DOS, right?)  */
 
 Lisp_Object
-list_system_processes ()
+list_system_processes (void)
 {
   Lisp_Object proclist = Qnil;
 
@@ -689,7 +687,8 @@ dos_cleanup (void)
 /*
  *	Define everything
  */
-syms_of_dosfns ()
+void
+syms_of_dosfns (void)
 {
   defsubr (&Sint86);
   defsubr (&Sdos_memget);
