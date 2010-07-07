@@ -764,7 +764,7 @@ x_create_gc (f, mask, xgcv)
 {
   GC gc = xmalloc (sizeof (*gc));
   if (gc)
-      bcopy(xgcv, gc, sizeof(XGCValues));
+      bcopy (xgcv, gc, sizeof (XGCValues));
   return gc;
 }
 

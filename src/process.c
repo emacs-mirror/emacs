@@ -3003,7 +3003,7 @@ usage:  (make-serial-process &rest ARGS)  */)
   p->inherit_coding_system_flag
     = !(!NILP (tem) || NILP (buffer) || !inherit_process_coding_system);
 
-  Fserial_process_configure(nargs, args);
+  Fserial_process_configure (nargs, args);
 
   specpdl_ptr = specpdl + specpdl_count;
 
@@ -3401,7 +3401,7 @@ usage: (make-network-process &rest ARGS)  */)
       ret = getaddrinfo (SDATA (host), portstring, &hints, &res);
       if (ret)
 #ifdef HAVE_GAI_STRERROR
-	error ("%s/%s %s", SDATA (host), portstring, gai_strerror(ret));
+	error ("%s/%s %s", SDATA (host), portstring, gai_strerror (ret));
 #else
 	error ("%s/%s getaddrinfo error %d", SDATA (host), portstring, ret);
 #endif
@@ -3900,7 +3900,7 @@ format; see the description of ADDRESS in `make-network-process'.  */)
 
  again:
   ifaces += 25;
-  buf_size = ifaces * sizeof(ifreqs[0]);
+  buf_size = ifaces * sizeof (ifreqs[0]);
   ifreqs = (struct ifreq *)xrealloc(ifreqs, buf_size);
   if (!ifreqs)
     {
@@ -4362,7 +4362,7 @@ server_accept_connection (Lisp_Object server, int channel)
 	int i;
 	args[0] = build_string ("%x:%x:%x:%x:%x:%x:%x:%x");
 	for (i = 0; i < 8; i++)
-	  args[i+1] = make_number (ntohs(ip6[i]));
+	  args[i+1] = make_number (ntohs (ip6[i]));
 	host = Fformat (9, args);
 	service = make_number (ntohs (saddr.in.sin_port));
 
@@ -5164,23 +5164,23 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 	      /* getsockopt(,,SO_ERROR,,) is said to hang on some systems.
 		 So only use it on systems where it is known to work.  */
 	      {
-		int xlen = sizeof(xerrno);
-		if (getsockopt(channel, SOL_SOCKET, SO_ERROR, &xerrno, &xlen))
+		int xlen = sizeof (xerrno);
+		if (getsockopt (channel, SOL_SOCKET, SO_ERROR, &xerrno, &xlen))
 		  xerrno = errno;
 	      }
 #else
 	      {
 		struct sockaddr pname;
-		int pnamelen = sizeof(pname);
+		int pnamelen = sizeof (pname);
 
 		/* If connection failed, getpeername will fail.  */
 		xerrno = 0;
-		if (getpeername(channel, &pname, &pnamelen) < 0)
+		if (getpeername (channel, &pname, &pnamelen) < 0)
 		  {
 		    /* Obtain connect failure code through error slippage.  */
 		    char dummy;
 		    xerrno = errno;
-		    if (errno == ENOTCONN && read(channel, &dummy, 1) < 0)
+		    if (errno == ENOTCONN && read (channel, &dummy, 1) < 0)
 		      xerrno = errno;
 		  }
 	      }
@@ -6336,7 +6336,7 @@ SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
       CHECK_SYMBOL (sigcode);
       name = SDATA (SYMBOL_NAME (sigcode));
 
-      if (!strncmp(name, "SIG", 3) || !strncmp(name, "sig", 3))
+      if (!strncmp (name, "SIG", 3) || !strncmp (name, "sig", 3))
 	name += 3;
 
       if (0)
@@ -7252,7 +7252,7 @@ init_process (void)
      processes.  As such, we only change the default value.  */
  if (initialized)
   {
-    char *release = get_operating_system_release();
+    char *release = get_operating_system_release ();
     if (!release || !release[0] || (release[0] < MIN_PTY_KERNEL_VERSION
 				    && release[1] == '.')) {
       Vprocess_connection_type = Qnil;

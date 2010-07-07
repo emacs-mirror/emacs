@@ -1,3 +1,41 @@
+2010-07-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* coding.c, sysdep.c: Convert some more functions to standard C.
+
+2010-07-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* coding.c (decode_coding_gap, encode_coding_gap, decode_coding_object)
+	(encode_coding_object): Use SPECPDL_INDEX.
+	(syms_of_coding): Use DOS_NT.
+
+2010-07-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* intervals.h (interval): Use EMACS_UINT instead of unsigned EMACS_INT.
+
+	Make the function member of Lisp_Subr use standard C prototypes.
+	* lisp.h (struct Lisp_Subr): Use a union for the function member.
+	(DECL_ALIGN): Add a cast for the function.
+	* eval.c (Feval, Ffuncall): Use the proper type for each type
+	function call.
+
+2010-07-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* fringe.c (draw_fringe_bitmap_1): Use lookup_named_face to get
+	fringe face id, so face-remapping-alist works (Bug#6091).
+
+2010-07-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32.c, w32console.c, w32fns.c, w32font.c, w32heap.c, w32inevt.c
+	* w32menu.c, w32proc.c, w32reg.c, w32select.c, w32term.c
+	* w32uniscribe.c, w32xfns.c: Convert function definitions to standard C.
+
+2010-07-06  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* xterm.c (x_get_keysym_name): Change type of parameter to int.
+	* lisp.h: Declare x_get_keysym_name.
+	* keyboard.c (modify_event_symbol): Don't declare
+	x_get_keysym_name here.
+
 2010-07-06  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* ecrt0.c: Revert conversion to standard C.

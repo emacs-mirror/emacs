@@ -182,7 +182,7 @@ SIGMASKTYPE sigprocmask_set;
    Any other returned value must be freed with free. This is used
    only when get_current_dir_name is not defined on the system.  */
 char*
-get_current_dir_name ()
+get_current_dir_name (void)
 {
   char *buf;
   char *pwd;
@@ -363,7 +363,8 @@ set_exclusive_use (int fd)
 
 #ifndef subprocesses
 
-wait_without_blocking ()
+void
+wait_without_blocking (void)
 {
   croak ("wait_without_blocking");
   synch_process_alive = 0;
@@ -800,7 +801,7 @@ request_sigio (void)
 
 void
 unrequest_sigio (void)
-{ 
+{
   if (noninteractive)
     return;
 
@@ -820,7 +821,7 @@ unrequest_sigio (void)
 #ifndef MSDOS
 
 void
-request_sigio ()
+request_sigio (void)
 {
   if (noninteractive || read_socket_hook)
     return;
@@ -829,7 +830,7 @@ request_sigio ()
 }
 
 void
-unrequest_sigio ()
+unrequest_sigio (void)
 {
   if (noninteractive || read_socket_hook)
     return;
@@ -1019,10 +1020,10 @@ init_sys_modes (struct tty_display_info *tty_out)
 
   if (!tty_out->output)
     return;                     /* The tty is suspended. */
-  
+
   if (! tty_out->old_tty)
     tty_out->old_tty = (struct emacs_tty *) xmalloc (sizeof (struct emacs_tty));
-      
+
   EMACS_GET_TTY (fileno (tty_out->input), tty_out->old_tty);
 
   tty = *tty_out->old_tty;
@@ -1080,7 +1081,7 @@ init_sys_modes (struct tty_display_info *tty_out)
          means that the interrupt and quit feature must be
          disabled on secondary ttys, or we would not even see the
          keypress.
-         
+
          Note that even though emacsclient could have special code
          to pass SIGINT to Emacs, we should _not_ enable
          interrupt/quit keys for emacsclient frames.  This means
@@ -1098,7 +1099,7 @@ init_sys_modes (struct tty_display_info *tty_out)
   tty.main.c_cc[VSWTCH] = CDISABLE;	/* Turn off shell layering use
 					   of C-z */
 #endif /* VSWTCH */
-  
+
 #if defined (__mips__) || defined (HAVE_TCATTR)
 #ifdef VSUSP
   tty.main.c_cc[VSUSP] = CDISABLE;	/* Turn off mips handling of C-z.  */
@@ -1189,9 +1190,9 @@ init_sys_modes (struct tty_display_info *tty_out)
       tty.tchars.t_startc = '\021';
       tty.tchars.t_stopc = '\023';
     }
-  
+
   tty.lmode = LDECCTQ | LLITOUT | LPASS8 | LNOFLSH | tty_out->old_tty.lmode;
-  
+
 #endif /* HAVE_TCHARS */
 #endif /* not HAVE_TERMIO */
 
@@ -1411,11 +1412,11 @@ reset_sys_modes (struct tty_display_info *tty_out)
 
   if (!tty_out->output)
     return;                     /* The tty is suspended. */
-  
+
   /* Go to and clear the last line of the terminal. */
 
   cmgoto (tty_out, FrameRows (tty_out) - 1, 0);
-  
+
   /* Code adapted from tty_clear_end_of_line. */
   if (tty_out->TS_clr_line)
     {
@@ -1425,16 +1426,16 @@ reset_sys_modes (struct tty_display_info *tty_out)
     {			/* have to do it the hard way */
       int i;
       tty_turn_off_insert (tty_out);
-      
+
       for (i = curX (tty_out); i < FrameCols (tty_out) - 1; i++)
         {
           fputc (' ', tty_out->output);
         }
     }
-  
+
   cmgoto (tty_out, FrameRows (tty_out) - 1, 0);
   fflush (tty_out->output);
-  
+
   if (tty_out->terminal->reset_terminal_modes_hook)
     tty_out->terminal->reset_terminal_modes_hook (tty_out->terminal);
 
@@ -1645,7 +1646,7 @@ init_system_name (void)
         struct addrinfo hints;
         int ret;
 
-        memset (&hints, 0, sizeof(hints));
+        memset (&hints, 0, sizeof (hints));
         hints.ai_socktype = SOCK_STREAM;
         hints.ai_flags = AI_CANONNAME;
 
@@ -1757,8 +1758,8 @@ jmp_buf read_alarm_throw;
 
 int read_alarm_should_throw;
 
-SIGTYPE
-select_alarm ()
+void
+select_alarm (int ignore)
 {
   select_alarmed = 1;
   signal (SIGALRM, SIG_IGN);
@@ -1770,13 +1771,12 @@ select_alarm ()
 #ifndef WINDOWSNT
 /* Only rfds are checked.  */
 int
-sys_select (nfds, rfds, wfds, efds, timeout)
-     int nfds;
-     SELECT_TYPE *rfds, *wfds, *efds;
-     EMACS_TIME *timeout;
+sys_select (int nfds,
+	    SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
+	    EMACS_TIME *timeout)
 {
   /* XXX This needs to be updated for multi-tty support.  Is there
-     anybody who needs to emulate select these days?  */ 
+     anybody who needs to emulate select these days?  */
  int ravail = 0;
   SELECT_TYPE orfds;
   int timeoutval;
@@ -1907,7 +1907,7 @@ sys_select (nfds, rfds, wfds, efds, timeout)
    waiting for at least one character.  */
 
 void
-read_input_waiting ()
+read_input_waiting (void)
 {
   /* XXX This needs to be updated for multi-tty support.  Is there
      anybody who needs to emulate select these days?  */
@@ -2421,11 +2421,10 @@ emacs_write (int fildes, const char *buf, unsigned int nbyte)
 #ifndef HAVE_GETWD
 
 char *
-getwd (pathname)
-     char *pathname;
+getwd (char *pathname)
 {
   char *npath, *spath;
-  extern char *getcwd ();
+  extern char *getcwd (char *, size_t);
 
   BLOCK_INPUT;			/* getcwd uses malloc */
   spath = npath = getcwd ((char *) 0, MAXPATHLEN);
@@ -2454,9 +2453,8 @@ getwd (pathname)
 
 #ifndef HAVE_RENAME
 
-rename (from, to)
-     const char *from;
-     const char *to;
+int
+rename (const char *from, const char *to)
 {
   if (access (from, 0) == 0)
     {
@@ -2476,7 +2474,8 @@ rename (from, to)
 /* HPUX curses library references perror, but as far as we know
    it won't be called.  Anyway this definition will do for now.  */
 
-perror ()
+void
+perror (void)
 {
 }
 #endif /* HPUX and not HAVE_PERROR */
@@ -2489,9 +2488,8 @@ perror ()
  *	until we are, then close the unsuccessful ones.
  */
 
-dup2 (oldd, newd)
-     int oldd;
-     int newd;
+int
+dup2 (int oldd, int newd)
 {
   register int fd, ret;
 
@@ -2525,11 +2523,9 @@ dup2 (oldd, newd)
 
 /* ARGSUSED */
 int
-gettimeofday (tp, tzp)
-     struct timeval *tp;
-     struct timezone *tzp;
+gettimeofday (struct timeval *tp, struct timezone *tzp)
 {
-  extern long time ();
+  extern long time (long);
 
   tp->tv_sec = time ((long *)0);
   tp->tv_usec = 0;
@@ -2616,9 +2612,7 @@ set_file_times (const char *filename, EMACS_TIME atime, EMACS_TIME mtime)
  * Make a directory.
  */
 int
-mkdir (dpath, dmode)
-     char *dpath;
-     int dmode;
+mkdir (char *dpath, int dmode)
 {
   int cpid, status, fd;
   struct stat statbuf;
@@ -2676,8 +2670,7 @@ mkdir (dpath, dmode)
 
 #ifndef HAVE_RMDIR
 int
-rmdir (dpath)
-     char *dpath;
+rmdir (char *dpath)
 {
   int cpid, status, fd;
   struct stat statbuf;
@@ -2724,8 +2717,7 @@ rmdir (dpath)
 
 #ifndef HAVE_STRSIGNAL
 char *
-strsignal (code)
-     int code;
+strsignal (int code)
 {
   char *signame = 0;
 
@@ -2741,7 +2733,8 @@ strsignal (code)
 
 #ifdef HAVE_TERMIOS
 /* For make-serial-process  */
-int serial_open (char *port)
+int
+serial_open (char *port)
 {
   int fd = -1;
 
@@ -2774,7 +2767,8 @@ int serial_open (char *port)
 #if !defined (HAVE_CFMAKERAW)
 /* Workaround for targets which are missing cfmakeraw.  */
 /* Pasted from man page.  */
-static void cfmakeraw (struct termios *termios_p)
+static void
+cfmakeraw (struct termios *termios_p)
 {
     termios_p->c_iflag &= ~(IGNBRK|BRKINT|PARMRK|ISTRIP|INLCR|IGNCR|ICRNL|IXON);
     termios_p->c_oflag &= ~OPOST;
@@ -2786,7 +2780,8 @@ static void cfmakeraw (struct termios *termios_p)
 
 #if !defined (HAVE_CFSETSPEED)
 /* Workaround for targets which are missing cfsetspeed.  */
-static int cfsetspeed (struct termios *termios_p, speed_t vitesse)
+static int
+cfsetspeed (struct termios *termios_p, speed_t vitesse)
 {
   return (cfsetispeed (termios_p, vitesse)
 	  + cfsetospeed (termios_p, vitesse));
@@ -2796,7 +2791,7 @@ static int cfsetspeed (struct termios *termios_p, speed_t vitesse)
 /* For serial-process-configure  */
 void
 serial_configure (struct Lisp_Process *p,
-		      Lisp_Object contact)
+		  Lisp_Object contact)
 {
   Lisp_Object childp2 = Qnil;
   Lisp_Object tem = Qnil;
@@ -2839,7 +2834,7 @@ serial_configure (struct Lisp_Process *p,
   CHECK_NUMBER (tem);
   if (XINT (tem) != 7 && XINT (tem) != 8)
     error (":bytesize must be nil (8), 7, or 8");
-  summary[0] = XINT(tem) + '0';
+  summary[0] = XINT (tem) + '0';
 #if defined (CSIZE) && defined (CS7) && defined (CS8)
   attr.c_cflag &= ~CSIZE;
   attr.c_cflag |= ((XINT (tem) == 7) ? CS7 : CS8);
@@ -2997,7 +2992,7 @@ list_system_processes (void)
 #elif !defined (WINDOWSNT) && !defined (MSDOS)
 
 Lisp_Object
-list_system_processes ()
+list_system_processes (void)
 {
   return Qnil;
 }
@@ -3196,7 +3191,7 @@ system_process_attributes (Lisp_Object pid)
   procfn_end = fn + strlen (fn);
   strcpy (procfn_end, "/stat");
   fd = emacs_open (fn, O_RDONLY, 0);
-  if (fd >= 0 && (nread = emacs_read (fd, procbuf, sizeof(procbuf) - 1)) > 0)
+  if (fd >= 0 && (nread = emacs_read (fd, procbuf, sizeof (procbuf) - 1)) > 0)
     {
       procbuf[nread] = '\0';
       p = procbuf;
@@ -3457,7 +3452,7 @@ system_process_attributes (Lisp_Object pid)
   strcpy (procfn_end, "/psinfo");
   fd = emacs_open (fn, O_RDONLY, 0);
   if (fd >= 0
-      && (nread = read (fd, (char*)&pinfo, sizeof(struct psinfo)) > 0))
+      && (nread = read (fd, (char*)&pinfo, sizeof (struct psinfo)) > 0))
     {
           attrs = Fcons (Fcons (Qppid, make_fixnum_or_float (pinfo.pr_ppid)), attrs);
 	  attrs = Fcons (Fcons (Qpgrp, make_fixnum_or_float (pinfo.pr_pgid)), attrs);

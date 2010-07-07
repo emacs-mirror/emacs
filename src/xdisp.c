@@ -12933,7 +12933,7 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 	 point.  */
       if (/* previous candidate is a glyph in TEXT_AREA of that row */
 	  w->cursor.hpos >= 0
-	  && w->cursor.hpos < MATRIX_ROW_USED(matrix, w->cursor.vpos)
+	  && w->cursor.hpos < MATRIX_ROW_USED (matrix, w->cursor.vpos)
 	  && BUFFERP (g1->object)
 	  && (g1->charpos == pt_old /* an exact match always wins */
 	      || (BUFFERP (glyph->object)
@@ -22309,7 +22309,7 @@ x_produce_glyphs (struct it *it)
 	  it->pixel_width = 0;
 	  it->nglyphs = 0;
 
-	  height = get_it_property(it, Qline_height);
+	  height = get_it_property (it, Qline_height);
 	  /* Split (line-height total-height) list */
 	  if (CONSP (height)
 	      && CONSP (XCDR (height))
@@ -22318,7 +22318,7 @@ x_produce_glyphs (struct it *it)
 	      total_height = XCAR (XCDR (height));
 	      height = XCAR (height);
 	    }
-	  height = calc_line_height_property(it, height, font, boff, 1);
+	  height = calc_line_height_property (it, height, font, boff, 1);
 
 	  if (it->override_ascent >= 0)
 	    {
@@ -22368,11 +22368,11 @@ x_produce_glyphs (struct it *it)
 		it->ascent = XINT (height) - it->descent;
 
 	      if (!NILP (total_height))
-		spacing = calc_line_height_property(it, total_height, font, boff, 0);
+		spacing = calc_line_height_property (it, total_height, font, boff, 0);
 	      else
 		{
-		  spacing = get_it_property(it, Qline_spacing);
-		  spacing = calc_line_height_property(it, spacing, font, boff, 0);
+		  spacing = get_it_property (it, Qline_spacing);
+		  spacing = calc_line_height_property (it, spacing, font, boff, 0);
 		}
 	      if (INTEGERP (spacing))
 		{

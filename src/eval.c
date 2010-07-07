@@ -2330,7 +2330,7 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
       if (XSUBR (fun)->max_args == UNEVALLED)
 	{
 	  backtrace.evalargs = 0;
-	  val = (*XSUBR (fun)->function) (args_left);
+	  val = (XSUBR (fun)->function.a1) (args_left);
 	  goto done;
 	}
 
@@ -2356,7 +2356,7 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
 	  backtrace.args = vals;
 	  backtrace.nargs = XINT (numargs);
 
-	  val = (*XSUBR (fun)->function) (XINT (numargs), vals);
+	  val = (XSUBR (fun)->function.am) (XINT (numargs), vals);
 	  UNGCPRO;
 	  goto done;
 	}
@@ -2380,40 +2380,40 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
       switch (i)
 	{
 	case 0:
-	  val = (*XSUBR (fun)->function) ();
+	  val = (XSUBR (fun)->function.a0) ();
 	  goto done;
 	case 1:
-	  val = (*XSUBR (fun)->function) (argvals[0]);
+	  val = (XSUBR (fun)->function.a1) (argvals[0]);
 	  goto done;
 	case 2:
-	  val = (*XSUBR (fun)->function) (argvals[0], argvals[1]);
+	  val = (XSUBR (fun)->function.a2) (argvals[0], argvals[1]);
 	  goto done;
 	case 3:
-	  val = (*XSUBR (fun)->function) (argvals[0], argvals[1],
-					  argvals[2]);
+	  val = (XSUBR (fun)->function.a3) (argvals[0], argvals[1],
+					    argvals[2]);
 	  goto done;
 	case 4:
-	  val = (*XSUBR (fun)->function) (argvals[0], argvals[1],
-					  argvals[2], argvals[3]);
+	  val = (XSUBR (fun)->function.a4) (argvals[0], argvals[1],
+					    argvals[2], argvals[3]);
 	  goto done;
 	case 5:
-	  val = (*XSUBR (fun)->function) (argvals[0], argvals[1], argvals[2],
-					  argvals[3], argvals[4]);
+	  val = (XSUBR (fun)->function.a5) (argvals[0], argvals[1], argvals[2],
+					    argvals[3], argvals[4]);
 	  goto done;
 	case 6:
-	  val = (*XSUBR (fun)->function) (argvals[0], argvals[1], argvals[2],
-					  argvals[3], argvals[4], argvals[5]);
+	  val = (XSUBR (fun)->function.a6) (argvals[0], argvals[1], argvals[2],
+					    argvals[3], argvals[4], argvals[5]);
 	  goto done;
 	case 7:
-	  val = (*XSUBR (fun)->function) (argvals[0], argvals[1], argvals[2],
-					  argvals[3], argvals[4], argvals[5],
-					  argvals[6]);
+	  val = (XSUBR (fun)->function.a7) (argvals[0], argvals[1], argvals[2],
+					    argvals[3], argvals[4], argvals[5],
+					    argvals[6]);
 	  goto done;
 
 	case 8:
-	  val = (*XSUBR (fun)->function) (argvals[0], argvals[1], argvals[2],
-					  argvals[3], argvals[4], argvals[5],
-					  argvals[6], argvals[7]);
+	  val = (XSUBR (fun)->function.a8) (argvals[0], argvals[1], argvals[2],
+					    argvals[3], argvals[4], argvals[5],
+					    argvals[6], argvals[7]);
 	  goto done;
 
 	default:
@@ -3011,7 +3011,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 
       if (XSUBR (fun)->max_args == MANY)
 	{
-	  val = (*XSUBR (fun)->function) (numargs, args + 1);
+	  val = (XSUBR (fun)->function.am) (numargs, args + 1);
 	  goto done;
 	}
 
@@ -3027,44 +3027,44 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
       switch (XSUBR (fun)->max_args)
 	{
 	case 0:
-	  val = (*XSUBR (fun)->function) ();
+	  val = (XSUBR (fun)->function.a0) ();
 	  goto done;
 	case 1:
-	  val = (*XSUBR (fun)->function) (internal_args[0]);
+	  val = (XSUBR (fun)->function.a1) (internal_args[0]);
 	  goto done;
 	case 2:
-	  val = (*XSUBR (fun)->function) (internal_args[0], internal_args[1]);
+	  val = (XSUBR (fun)->function.a2) (internal_args[0], internal_args[1]);
 	  goto done;
 	case 3:
-	  val = (*XSUBR (fun)->function) (internal_args[0], internal_args[1],
-					  internal_args[2]);
+	  val = (XSUBR (fun)->function.a3) (internal_args[0], internal_args[1],
+					    internal_args[2]);
 	  goto done;
 	case 4:
-	  val = (*XSUBR (fun)->function) (internal_args[0], internal_args[1],
-					  internal_args[2], internal_args[3]);
+	  val = (XSUBR (fun)->function.a4) (internal_args[0], internal_args[1],
+					    internal_args[2], internal_args[3]);
 	  goto done;
 	case 5:
-	  val = (*XSUBR (fun)->function) (internal_args[0], internal_args[1],
-					  internal_args[2], internal_args[3],
-					  internal_args[4]);
+	  val = (XSUBR (fun)->function.a5) (internal_args[0], internal_args[1],
+					    internal_args[2], internal_args[3],
+					    internal_args[4]);
 	  goto done;
 	case 6:
-	  val = (*XSUBR (fun)->function) (internal_args[0], internal_args[1],
-					  internal_args[2], internal_args[3],
-					  internal_args[4], internal_args[5]);
+	  val = (XSUBR (fun)->function.a6) (internal_args[0], internal_args[1],
+					    internal_args[2], internal_args[3],
+					    internal_args[4], internal_args[5]);
 	  goto done;
 	case 7:
-	  val = (*XSUBR (fun)->function) (internal_args[0], internal_args[1],
-					  internal_args[2], internal_args[3],
-					  internal_args[4], internal_args[5],
-					  internal_args[6]);
+	  val = (XSUBR (fun)->function.a7) (internal_args[0], internal_args[1],
+					    internal_args[2], internal_args[3],
+					    internal_args[4], internal_args[5],
+					    internal_args[6]);
 	  goto done;
 
 	case 8:
-	  val = (*XSUBR (fun)->function) (internal_args[0], internal_args[1],
-					  internal_args[2], internal_args[3],
-					  internal_args[4], internal_args[5],
-					  internal_args[6], internal_args[7]);
+	  val = (XSUBR (fun)->function.a8) (internal_args[0], internal_args[1],
+					    internal_args[2], internal_args[3],
+					    internal_args[4], internal_args[5],
+					    internal_args[6], internal_args[7]);
 	  goto done;
 
 	default:

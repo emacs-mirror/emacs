@@ -69,11 +69,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define FOF_NO_CONNECTED_ELEMENTS 0x2000
 #endif
 
-void syms_of_w32fns ();
-void globals_of_w32fns ();
+void syms_of_w32fns (void);
+void globals_of_w32fns (void);
 
-extern void free_frame_menubar ();
-extern double atof ();
+extern void free_frame_menubar (struct frame *);
+extern double atof (const char *);
 extern int w32_console_toggle_lock_key (int, Lisp_Object);
 extern void w32_menu_display_help (HWND, HMENU, UINT, UINT);
 extern void w32_free_menu_strings (HWND);
@@ -316,7 +316,7 @@ extern HMENU current_popup_menu;
 static int menubar_in_use = 0;
 
 /* From w32uniscribe.c  */
-extern void syms_of_w32uniscribe ();
+extern void syms_of_w32uniscribe (void);
 extern int uniscribe_available;
 
 /* Function prototypes for hourglass support.  */
@@ -327,7 +327,7 @@ static void w32_hide_hourglass (void);
 
 /* Error if we are not connected to MS-Windows.  */
 void
-check_w32 ()
+check_w32 (void)
 {
   if (! w32_in_use)
     error ("MS-Windows not in use or not initialized");
@@ -337,7 +337,7 @@ check_w32 ()
    You should not call this unless HAVE_MENUS is defined.  */
 
 int
-have_menus_p ()
+have_menus_p (void)
 {
   return w32_in_use;
 }
@@ -346,8 +346,7 @@ have_menus_p ()
    and checking validity for W32.  */
 
 FRAME_PTR
-check_x_frame (frame)
-     Lisp_Object frame;
+check_x_frame (Lisp_Object frame)
 {
   FRAME_PTR f;
 
@@ -365,8 +364,7 @@ check_x_frame (frame)
    the first display on the list.  */
 
 struct w32_display_info *
-check_x_display_info (frame)
-     Lisp_Object frame;
+check_x_display_info (Lisp_Object frame)
 {
   if (NILP (frame))
     {
@@ -397,9 +395,7 @@ check_x_display_info (frame)
 /* This function can be called during GC, so use GC_xxx type test macros.  */
 
 struct frame *
-x_window_to_frame (dpyinfo, wdesc)
-     struct w32_display_info *dpyinfo;
-     HWND wdesc;
+x_window_to_frame (struct w32_display_info *dpyinfo, HWND wdesc)
 {
   Lisp_Object tail, frame;
   struct frame *f;
@@ -449,9 +445,7 @@ static void x_edge_detection (struct frame *, struct image *, Lisp_Object,
    not Emacs's own window.  */
 
 void
-x_real_positions (f, xptr, yptr)
-     FRAME_PTR f;
-     int *xptr, *yptr;
+x_real_positions (FRAME_PTR f, int *xptr, int *yptr)
 {
   POINT pt;
   RECT rect;
@@ -790,8 +784,7 @@ DEFUN ("w32-default-color-map", Fw32_default_color_map, Sw32_default_color_map,
 }
 
 static Lisp_Object
-w32_to_x_color (rgb)
-     Lisp_Object rgb;
+w32_to_x_color (Lisp_Object rgb)
 {
   Lisp_Object color;
 
@@ -810,8 +803,7 @@ w32_to_x_color (rgb)
 }
 
 static Lisp_Object
-w32_color_map_lookup (colorname)
-     char *colorname;
+w32_color_map_lookup (char *colorname)
 {
   Lisp_Object tail, ret = Qnil;
 
@@ -843,8 +835,7 @@ w32_color_map_lookup (colorname)
 
 
 static void
-add_system_logical_colors_to_map (system_colors)
-     Lisp_Object *system_colors;
+add_system_logical_colors_to_map (Lisp_Object *system_colors)
 {
   HKEY colors_key;
 
@@ -892,8 +883,7 @@ add_system_logical_colors_to_map (system_colors)
 
 
 static Lisp_Object
-x_to_w32_color (colorname)
-     char * colorname;
+x_to_w32_color (char * colorname)
 {
   register Lisp_Object ret = Qnil;
 
@@ -1204,9 +1194,7 @@ w32_unmap_color (FRAME_PTR f, COLORREF color)
 /* Gamma-correct COLOR on frame F.  */
 
 void
-gamma_correct (f, color)
-     struct frame *f;
-     COLORREF *color;
+gamma_correct (struct frame *f, COLORREF *color)
 {
   if (f->gamma)
     {
@@ -1223,11 +1211,7 @@ gamma_correct (f, color)
    If ALLOC is nonzero, allocate a new colormap cell.  */
 
 int
-w32_defined_color (f, color, color_def, alloc)
-     FRAME_PTR f;
-     char *color;
-     XColor *color_def;
-     int alloc;
+w32_defined_color (FRAME_PTR f, char *color, XColor *color_def, int alloc)
 {
   register Lisp_Object tem;
   COLORREF w32_color_ref;
@@ -1299,10 +1283,7 @@ w32_defined_color (f, color, color_def, alloc)
    ARG says.  */
 
 int
-x_decode_color (f, arg, def)
-     FRAME_PTR f;
-     Lisp_Object arg;
-     int def;
+x_decode_color (FRAME_PTR f, Lisp_Object arg, int def)
 {
   XColor cdef;
 
@@ -1336,9 +1317,7 @@ x_decode_color (f, arg, def)
    in the standard place; do not attempt to change the window.  */
 
 void
-x_set_foreground_color (f, arg, oldval)
-     struct frame *f;
-     Lisp_Object arg, oldval;
+x_set_foreground_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   struct w32_output *x = f->output_data.w32;
   PIX_TYPE fg, old_fg;
@@ -1359,9 +1338,7 @@ x_set_foreground_color (f, arg, oldval)
 }
 
 void
-x_set_background_color (f, arg, oldval)
-     struct frame *f;
-     Lisp_Object arg, oldval;
+x_set_background_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   FRAME_BACKGROUND_PIXEL (f)
     = x_decode_color (f, arg, WHITE_PIX_DEFAULT (f));
@@ -1379,9 +1356,7 @@ x_set_background_color (f, arg, oldval)
 }
 
 void
-x_set_mouse_color (f, arg, oldval)
-     struct frame *f;
-     Lisp_Object arg, oldval;
+x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   Cursor cursor, nontext_cursor, mode_cursor, hand_cursor;
   int count;
@@ -1528,9 +1503,7 @@ x_set_mouse_color (f, arg, oldval)
 }
 
 void
-x_set_cursor_color (f, arg, oldval)
-     struct frame *f;
-     Lisp_Object arg, oldval;
+x_set_cursor_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   unsigned long fore_pixel, pixel;
 
@@ -1577,9 +1550,7 @@ x_set_cursor_color (f, arg, oldval)
    F has a window.  */
 
 void
-x_set_border_pixel (f, pix)
-     struct frame *f;
-     int pix;
+x_set_border_pixel (struct frame *f, int pix)
 {
 
   f->output_data.w32->border_pixel = pix;
@@ -1598,9 +1569,7 @@ x_set_border_pixel (f, pix)
    F has a window; it must be redone when the window is created.  */
 
 void
-x_set_border_color (f, arg, oldval)
-     struct frame *f;
-     Lisp_Object arg, oldval;
+x_set_border_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   int pix;
 
@@ -1612,9 +1581,7 @@ x_set_border_color (f, arg, oldval)
 
 
 void
-x_set_cursor_type (f, arg, oldval)
-     FRAME_PTR f;
-     Lisp_Object arg, oldval;
+x_set_cursor_type (FRAME_PTR f, Lisp_Object arg, Lisp_Object oldval)
 {
   set_frame_cursor_types (f, arg);
 
@@ -1623,9 +1590,7 @@ x_set_cursor_type (f, arg, oldval)
 }
 
 void
-x_set_icon_type (f, arg, oldval)
-     struct frame *f;
-     Lisp_Object arg, oldval;
+x_set_icon_type (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   int result;
 
@@ -1652,9 +1617,7 @@ x_set_icon_type (f, arg, oldval)
 }
 
 void
-x_set_icon_name (f, arg, oldval)
-     struct frame *f;
-     Lisp_Object arg, oldval;
+x_set_icon_name (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 {
   if (STRINGP (arg))
     {
@@ -1702,9 +1665,7 @@ x_set_icon_name (f, arg, oldval)
 
 
 void
-x_set_menu_bar_lines (f, value, oldval)
-     struct frame *f;
-     Lisp_Object value, oldval;
+x_set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
   int nlines;
   int olines = FRAME_MENU_BAR_LINES (f);
@@ -1747,9 +1708,7 @@ x_set_menu_bar_lines (f, value, oldval)
    The frame's height doesn't change.  */
 
 void
-x_set_tool_bar_lines (f, value, oldval)
-     struct frame *f;
-     Lisp_Object value, oldval;
+x_set_tool_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 {
   int delta, nlines, root_height;
   Lisp_Object root_window;
@@ -1829,10 +1788,7 @@ x_set_tool_bar_lines (f, value, oldval)
        F->explicit_name is set, ignore the new name; otherwise, set it.  */
 
 void
-x_set_name (f, name, explicit)
-     struct frame *f;
-     Lisp_Object name;
-     int explicit;
+x_set_name (struct frame *f, Lisp_Object name, int explicit)
 {
   /* Make sure that requests from lisp code override requests from
      Emacs redisplay code.  */
@@ -1887,9 +1843,7 @@ x_set_name (f, name, explicit)
    specified a name for the frame; the name will override any set by the
    redisplay code.  */
 void
-x_explicitly_set_name (f, arg, oldval)
-     FRAME_PTR f;
-     Lisp_Object arg, oldval;
+x_explicitly_set_name (FRAME_PTR f, Lisp_Object arg, Lisp_Object oldval)
 {
   x_set_name (f, arg, 1);
 }
@@ -1898,9 +1852,7 @@ x_explicitly_set_name (f, arg, oldval)
    name; names set this way will never override names set by the user's
    lisp code.  */
 void
-x_implicitly_set_name (f, arg, oldval)
-     FRAME_PTR f;
-     Lisp_Object arg, oldval;
+x_implicitly_set_name (FRAME_PTR f, Lisp_Object arg, Lisp_Object oldval)
 {
   x_set_name (f, arg, 0);
 }
@@ -1909,9 +1861,7 @@ x_implicitly_set_name (f, arg, oldval)
    If NAME is nil, use the frame name as the title.  */
 
 void
-x_set_title (f, name, old_name)
-     struct frame *f;
-     Lisp_Object name, old_name;
+x_set_title (struct frame *f, Lisp_Object name, Lisp_Object old_name)
 {
   /* Don't change the title if it's already NAME.  */
   if (EQ (name, f->title))
@@ -1936,8 +1886,8 @@ x_set_title (f, name, old_name)
 }
 
 
-void x_set_scroll_bar_default_width (f)
-     struct frame *f;
+void
+x_set_scroll_bar_default_width (struct frame *f)
 {
   int wid = FRAME_COLUMN_WIDTH (f);
 
@@ -1965,11 +1915,10 @@ w32_load_cursor (LPCTSTR name)
   return cursor;
 }
 
-extern LRESULT CALLBACK w32_wnd_proc ();
+extern LRESULT CALLBACK w32_wnd_proc (HWND, UINT, WPARAM, LPARAM);
 
 static BOOL
-w32_init_class (hinst)
-     HINSTANCE hinst;
+w32_init_class (HINSTANCE hinst)
 {
   WNDCLASS wc;
 
@@ -1988,9 +1937,7 @@ w32_init_class (hinst)
 }
 
 static HWND
-w32_createscrollbar (f, bar)
-     struct frame *f;
-     struct scroll_bar * bar;
+w32_createscrollbar (struct frame *f, struct scroll_bar * bar)
 {
   return (CreateWindow ("SCROLLBAR", "", SBS_VERT | WS_CHILD | WS_VISIBLE,
 			/* Position and size of scroll bar.  */
@@ -2005,8 +1952,7 @@ w32_createscrollbar (f, bar)
 }
 
 static void
-w32_createwindow (f)
-     struct frame *f;
+w32_createwindow (struct frame *f)
 {
   HWND hwnd;
   RECT rect;
@@ -2076,12 +2022,7 @@ w32_createwindow (f)
 }
 
 static void
-my_post_msg (wmsg, hwnd, msg, wParam, lParam)
-     W32Msg * wmsg;
-     HWND hwnd;
-     UINT msg;
-     WPARAM wParam;
-     LPARAM lParam;
+my_post_msg (W32Msg * wmsg, HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
   wmsg->msg.hwnd = hwnd;
   wmsg->msg.message = msg;
@@ -2175,7 +2116,7 @@ record_keyup (unsigned int wparam, unsigned int lparam)
    it regains focus, be conservative and clear all modifiers since
    we cannot reconstruct the left and right modifier state.  */
 static void
-reset_modifiers ()
+reset_modifiers (void)
 {
   SHORT ctrl, alt;
 
@@ -2222,7 +2163,7 @@ reset_modifiers ()
    modifier keys, we know that, if no modifiers are set, then neither
    the left or right modifier should be set.  */
 static void
-sync_modifiers ()
+sync_modifiers (void)
 {
   if (!modifiers_recorded)
     return;
@@ -2308,7 +2249,7 @@ w32_key_to_modifier (int key)
 }
 
 static unsigned int
-w32_get_modifiers ()
+w32_get_modifiers (void)
 {
   return ((modifier_set (VK_SHIFT)   ? shift_modifier : 0) |
 	  (modifier_set (VK_CONTROL) ? ctrl_modifier  : 0) |
@@ -2325,7 +2266,7 @@ w32_get_modifiers ()
    and window input.  */
 
 static int
-construct_console_modifiers ()
+construct_console_modifiers (void)
 {
   int mods;
 
@@ -2397,8 +2338,7 @@ static Lisp_Object w32_grabbed_keys;
    combinations like Alt-Tab which are used by the system.  */
 
 static void
-register_hot_keys (hwnd)
-     HWND hwnd;
+register_hot_keys (HWND hwnd)
 {
   Lisp_Object keylist;
 
@@ -2417,8 +2357,7 @@ register_hot_keys (hwnd)
 }
 
 static void
-unregister_hot_keys (hwnd)
-     HWND hwnd;
+unregister_hot_keys (HWND hwnd)
 {
   Lisp_Object keylist;
 
@@ -2624,7 +2563,7 @@ complete_deferred_msg (HWND hwnd, UINT msg, LRESULT result)
 }
 
 static void
-cancel_all_deferred_msgs ()
+cancel_all_deferred_msgs (void)
 {
   deferred_msg * item;
 
@@ -2669,7 +2608,7 @@ w32_msg_worker (void *arg)
 }
 
 static void
-signal_user_input ()
+signal_user_input (void)
 {
   /* Interrupt any lisp that wants to be interrupted by input.  */
   if (!NILP (Vthrow_on_input))
@@ -2687,13 +2626,9 @@ signal_user_input ()
 
 
 static void
-post_character_message (hwnd, msg, wParam, lParam, modifiers)
-     HWND hwnd;
-     UINT msg;
-     WPARAM wParam;
-     LPARAM lParam;
-     DWORD  modifiers;
-
+post_character_message (HWND hwnd, UINT msg,
+			WPARAM wParam, LPARAM lParam,
+			DWORD modifiers)
 {
   W32Msg wmsg;
 
@@ -2753,11 +2688,7 @@ post_character_message (hwnd, msg, wParam, lParam, modifiers)
 /* Main window procedure */
 
 LRESULT CALLBACK
-w32_wnd_proc (hwnd, msg, wParam, lParam)
-     HWND hwnd;
-     UINT msg;
-     WPARAM wParam;
-     LPARAM lParam;
+w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
   struct frame *f;
   struct w32_display_info *dpyinfo = &one_w32_display_info;
@@ -3163,7 +3094,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
           wmsg.dwModifiers = w32_get_key_modifiers (wParam, lParam);
           /* Get buffer size.  */
           size = get_composition_string_fn (context, GCS_RESULTSTR, buffer, 0);
-          buffer = alloca(size);
+          buffer = alloca (size);
           size = get_composition_string_fn (context, GCS_RESULTSTR,
                                             buffer, size);
 	  release_ime_context_fn (hwnd, context);
@@ -4007,8 +3938,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 }
 
 static void
-my_create_window (f)
-     struct frame * f;
+my_create_window (struct frame * f)
 {
   MSG msg;
 
@@ -4023,8 +3953,7 @@ my_create_window (f)
    messages for the tooltip.  Creating tooltips indirectly also creates
    deadlocks when tooltips are created for menu items.  */
 static void
-my_create_tip_window (f)
-     struct frame *f;
+my_create_tip_window (struct frame *f)
 {
   RECT rect;
 
@@ -4067,10 +3996,7 @@ my_create_tip_window (f)
 /* Create and set up the w32 window for frame F.  */
 
 static void
-w32_window (f, window_prompting, minibuffer_only)
-     struct frame *f;
-     long window_prompting;
-     int minibuffer_only;
+w32_window (struct frame *f, long window_prompting, int minibuffer_only)
 {
   BLOCK_INPUT;
 
@@ -4118,9 +4044,7 @@ w32_window (f, window_prompting, minibuffer_only)
    well.  */
 
 static void
-x_icon (f, parms)
-     struct frame *f;
-     Lisp_Object parms;
+x_icon (struct frame *f, Lisp_Object parms)
 {
   Lisp_Object icon_x, icon_y;
   struct w32_display_info *dpyinfo = &one_w32_display_info;
@@ -4159,8 +4083,7 @@ x_icon (f, parms)
 
 
 static void
-x_make_gc (f)
-     struct frame *f;
+x_make_gc (struct frame *f)
 {
   XGCValues gc_values;
 
@@ -4193,8 +4116,7 @@ x_make_gc (f)
    constructed.  */
 
 static Lisp_Object
-unwind_create_frame (frame)
-     Lisp_Object frame;
+unwind_create_frame (Lisp_Object frame)
 {
   struct frame *f = XFRAME (frame);
 
@@ -4219,9 +4141,7 @@ unwind_create_frame (frame)
 }
 
 static void
-x_default_font_parameter (f, parms)
-     struct frame *f;
-     Lisp_Object parms;
+x_default_font_parameter (struct frame *f, Lisp_Object parms)
 {
   struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
   Lisp_Object font_param = x_get_arg (dpyinfo, parms, Qfont, NULL, NULL,
@@ -4587,8 +4507,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
    display info directly because we're called from frame.c, which doesn't
    know about that structure.  */
 Lisp_Object
-x_get_focus_frame (frame)
-     struct frame *frame;
+x_get_focus_frame (struct frame *frame)
 {
   struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (frame);
   Lisp_Object xfocus;
@@ -4899,36 +4818,31 @@ If omitted or nil, that stands for the selected frame's display.  */)
 }
 
 int
-x_pixel_width (f)
-     register struct frame *f;
+x_pixel_width (register struct frame *f)
 {
   return FRAME_PIXEL_WIDTH (f);
 }
 
 int
-x_pixel_height (f)
-     register struct frame *f;
+x_pixel_height (register struct frame *f)
 {
   return FRAME_PIXEL_HEIGHT (f);
 }
 
 int
-x_char_width (f)
-     register struct frame *f;
+x_char_width (register struct frame *f)
 {
   return FRAME_COLUMN_WIDTH (f);
 }
 
 int
-x_char_height (f)
-     register struct frame *f;
+x_char_height (register struct frame *f)
 {
   return FRAME_LINE_HEIGHT (f);
 }
 
 int
-x_screen_planes (f)
-     register struct frame *f;
+x_screen_planes (register struct frame *f)
 {
   return FRAME_W32_DISPLAY_INFO (f)->n_planes;
 }
@@ -4937,8 +4851,7 @@ x_screen_planes (f)
    Open a new connection if necessary.  */
 
 struct w32_display_info *
-x_display_info_for_name (name)
-     Lisp_Object name;
+x_display_info_for_name (Lisp_Object name)
 {
   Lisp_Object names;
   struct w32_display_info *dpyinfo;
@@ -5253,7 +5166,7 @@ extern Lisp_Object Vhourglass_delay;
    	    xdisp.c could be used. */
 
 int
-hourglass_started ()
+hourglass_started (void)
 {
   return hourglass_shown_p || hourglass_timer;
 }
@@ -5261,7 +5174,7 @@ hourglass_started ()
 /* Cancel a currently active hourglass timer, and start a new one.  */
 
 void
-start_hourglass ()
+start_hourglass (void)
 {
   DWORD delay;
   int secs, msecs = 0;
@@ -5297,7 +5210,7 @@ start_hourglass ()
    cursor if shown.  */
 
 void
-cancel_hourglass ()
+cancel_hourglass (void)
 {
   if (hourglass_timer)
     {
@@ -5316,8 +5229,7 @@ cancel_hourglass ()
    to indicate that an hourglass cursor is shown.  */
 
 static void
-w32_show_hourglass (f)
-     struct frame *f;
+w32_show_hourglass (struct frame *f)
 {
   if (!hourglass_shown_p)
     {
@@ -5332,7 +5244,7 @@ w32_show_hourglass (f)
 /* Hide the hourglass cursor on all frames, if it is currently shown.  */
 
 static void
-w32_hide_hourglass ()
+w32_hide_hourglass (void)
 {
   if (hourglass_shown_p)
     {
@@ -5386,8 +5298,7 @@ Lisp_Object Vx_max_tooltip_size;
 
 
 static Lisp_Object
-unwind_create_tip_frame (frame)
-     Lisp_Object frame;
+unwind_create_tip_frame (Lisp_Object frame)
 {
   Lisp_Object deleted;
 
@@ -5412,9 +5323,8 @@ unwind_create_tip_frame (frame)
    when this happens.  */
 
 static Lisp_Object
-x_create_tip_frame (dpyinfo, parms, text)
-     struct w32_display_info *dpyinfo;
-     Lisp_Object parms, text;
+x_create_tip_frame (struct w32_display_info *dpyinfo,
+		    Lisp_Object parms, Lisp_Object text)
 {
   struct frame *f;
   Lisp_Object frame, tem;
@@ -5654,11 +5564,9 @@ x_create_tip_frame (dpyinfo, parms, text)
    the display in *ROOT_X, and *ROOT_Y.  */
 
 static void
-compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
-     struct frame *f;
-     Lisp_Object parms, dx, dy;
-     int width, height;
-     int *root_x, *root_y;
+compute_tip_xy (struct frame *f,
+		Lisp_Object parms, Lisp_Object dx, Lisp_Object dy,
+		int width, int height, int *root_x, int *root_y)
 {
   Lisp_Object left, top;
   int min_x, min_y, max_x, max_y;
@@ -6037,11 +5945,7 @@ extern Lisp_Object Qfile_name_history;
    allows us to work around the fact that the standard Open File
    dialog does not support directories.  */
 UINT CALLBACK
-file_dialog_callback (hwnd, msg, wParam, lParam)
-     HWND hwnd;
-     UINT msg;
-     WPARAM wParam;
-     LPARAM lParam;
+file_dialog_callback (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
   if (msg == WM_NOTIFY)
     {
@@ -6395,8 +6299,7 @@ lookup_vk_code (char *key)
 /* Convert a one-element vector style key sequence to a hot key
    definition.  */
 static Lisp_Object
-w32_parse_hot_key (key)
-     Lisp_Object key;
+w32_parse_hot_key (Lisp_Object key)
 {
   /* Copied from Fdefine_key and store_in_keymap.  */
   register Lisp_Object c;
@@ -6625,7 +6528,7 @@ DEFUN ("w32-window-exists-p", Fw32_window_exists_p, Sw32_window_exists_p,
 
 This is a direct interface to the Windows API FindWindow function.  */)
   (class, name)
-Lisp_Object class, name;
+     Lisp_Object class, name;
 {
   HWND hnd;
 
@@ -6963,7 +6866,7 @@ frame_parm_handler w32_frame_parm_handlers[] =
 };
 
 void
-syms_of_w32fns ()
+syms_of_w32fns (void)
 {
   globals_of_w32fns ();
   /* This is zero if not using MS-Windows.  */
@@ -7320,7 +7223,7 @@ only be necessary if the default setting causes problems.  */);
 	is non zero.
  */
 void
-globals_of_w32fns ()
+globals_of_w32fns (void)
 {
   HMODULE user32_lib = GetModuleHandle ("user32.dll");
   /*
@@ -7363,7 +7266,7 @@ globals_of_w32fns ()
 #undef abort
 
 void
-w32_abort ()
+w32_abort (void)
 {
   int button;
   button = MessageBox (NULL,
@@ -7391,7 +7294,7 @@ w32_abort ()
 
 /* For convenience when debugging.  */
 int
-w32_last_error ()
+w32_last_error (void)
 {
   return GetLastError ();
 }

@@ -481,7 +481,7 @@ x_set_frame_alpha (struct frame *f)
   if (FRAME_X_DISPLAY_INFO (f)->root_window != FRAME_X_OUTPUT (f)->parent_desc)
     /* Since the WM decoration lies under the FRAME_OUTER_WINDOW,
        we must treat the former instead of the latter. */
-    win = FRAME_X_OUTPUT(f)->parent_desc;
+    win = FRAME_X_OUTPUT (f)->parent_desc;
 
   if (dpyinfo->x_highlight_frame == f)
     alpha = f->alpha[0];
@@ -510,10 +510,10 @@ x_set_frame_alpha (struct frame *f)
     unsigned long n, left;
 
     x_catch_errors (dpy);
-    rc = XGetWindowProperty(dpy, win, XInternAtom(dpy, OPACITY, False),
-			    0L, 1L, False, XA_CARDINAL,
-			    &actual, &format, &n, &left,
-			    &data);
+    rc = XGetWindowProperty (dpy, win, XInternAtom(dpy, OPACITY, False),
+			     0L, 1L, False, XA_CARDINAL,
+			     &actual, &format, &n, &left,
+			     &data);
 
     if (rc == Success && actual != None)
       if (*(unsigned long *)data == opac)
@@ -2259,7 +2259,7 @@ x_draw_image_relief (struct glyph_string *s)
 
   extra = s->face->id == TOOL_BAR_FACE_ID
     ? XINT (Vtool_bar_button_margin) : 0;
-  
+
   x0 = x - thick - extra;
   y0 = y - thick - extra;
   x1 = x + s->slice.width + thick - 1 + extra;
@@ -2879,7 +2879,7 @@ x_clear_frame (struct frame *f)
      redisplay, do it here.  */
   gtk_widget_queue_draw (FRAME_GTK_WIDGET (f));
 #endif
-  
+
   XFlush (FRAME_X_DISPLAY (f));
 
   UNBLOCK_INPUT;
@@ -3086,7 +3086,7 @@ static void
 XTtoggle_invisible_pointer (FRAME_PTR f, int invisible)
 {
   BLOCK_INPUT;
-  if (invisible) 
+  if (invisible)
     {
       if (FRAME_X_DISPLAY_INFO (f)->invisible_cursor != 0)
         XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
@@ -3595,7 +3595,7 @@ x_emacs_to_x_modifiers (struct x_display_info *dpyinfo, unsigned int state)
 /* Convert a keysym to its name.  */
 
 char *
-x_get_keysym_name (KeySym keysym)
+x_get_keysym_name (int keysym)
 {
   char *value;
 
@@ -4553,7 +4553,7 @@ x_create_toolkit_scroll_bar (f, bar)
   if (f->output_data.x->scroll_bar_top_shadow_pixel == -1)
     {
       pixel = f->output_data.x->scroll_bar_background_pixel;
-      if (pixel != -1) 
+      if (pixel != -1)
         {
           if (!x_alloc_lighter_color (f, FRAME_X_DISPLAY (f),
                                       FRAME_X_COLORMAP (f),
@@ -4565,7 +4565,7 @@ x_create_toolkit_scroll_bar (f, bar)
   if (f->output_data.x->scroll_bar_bottom_shadow_pixel == -1)
     {
       pixel = f->output_data.x->scroll_bar_background_pixel;
-      if (pixel != -1) 
+      if (pixel != -1)
         {
           if (!x_alloc_lighter_color (f, FRAME_X_DISPLAY (f),
                                       FRAME_X_COLORMAP (f),
@@ -5729,10 +5729,10 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventp, int *finish, 
   EVENT_INIT (inev.ie);
   inev.ie.kind = NO_EVENT;
   inev.ie.arg = Qnil;
-  
+
   if (pending_event_wait.eventtype == event.type)
     pending_event_wait.eventtype = 0; /* Indicates we got it.  */
-  
+
   switch (event.type)
     {
     case ClientMessage:
@@ -6652,7 +6652,7 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventp, int *finish, 
                             event.xconfigure.height);
           f = 0;
         }
-#endif  
+#endif
       if (f)
         {
 #ifndef USE_X_TOOLKIT
@@ -8386,7 +8386,7 @@ do_ewmh_fullscreen (struct frame *f)
       set_wm_state (frame, 0, fs, NULL);
       set_wm_state (frame, 0, fh, NULL);
       set_wm_state (frame, 0, fw, NULL);
-      
+
       /* If there are _NET_ atoms we assume we have extended window manager
          hints.  */
       switch (f->want_fullscreen)
@@ -8459,7 +8459,7 @@ x_handle_net_wm_state (struct frame *f, XPropertyEvent *event)
   for (i = 0; i < actual_size; ++i)
     {
       Atom a = ((Atom*)tmp_data)[i];
-      if (a == dpyinfo->Xatom_net_wm_state_maximized_horz) 
+      if (a == dpyinfo->Xatom_net_wm_state_maximized_horz)
         {
           if (value == FULLSCREEN_HEIGHT)
             value = FULLSCREEN_MAXIMIZED;
@@ -8480,7 +8480,7 @@ x_handle_net_wm_state (struct frame *f, XPropertyEvent *event)
     }
 
   lval = Qnil;
-  switch (value) 
+  switch (value)
     {
     case FULLSCREEN_WIDTH:
       lval = Qfullwidth;
@@ -8495,7 +8495,7 @@ x_handle_net_wm_state (struct frame *f, XPropertyEvent *event)
       lval = Qmaximized;
       break;
     }
-      
+
   store_frame_param (f, Qfullscreen, lval);
   store_frame_param (f, Qsticky, sticky ? Qt : Qnil);
 
@@ -8533,7 +8533,7 @@ x_check_fullscreen (struct frame *f)
         case FULLSCREEN_HEIGHT:
           height = x_display_pixel_height (dpyinfo);
         }
-      
+
       if (FRAME_COLS (f) != width || FRAME_LINES (f) != height)
         {
           change_frame_size (f, height, width, 0, 1, 0);
@@ -8661,7 +8661,7 @@ x_wait_for_event (struct frame *f, int eventtype)
 
       FD_ZERO (&fds);
       FD_SET (fd, &fds);
-      
+
       EMACS_GET_TIME (time_now);
       EMACS_SUB_TIME (tmo, tmo_at, time_now);
 
@@ -8751,7 +8751,7 @@ x_set_window_size (struct frame *f, int change_gravity, int cols, int rows)
   if (NILP (tip_frame) || XFRAME (tip_frame) != f)
     {
       int r, c;
-	  
+
       /* When the frame is maximized/fullscreen or running under for
          example Xmonad, x_set_window_size_1 will be a no-op.
          In that case, the right thing to do is extend rows/cols to
@@ -9790,7 +9790,7 @@ my_log_handler (const gchar *log_domain, GLogLevelFlags log_level, const gchar *
       fprintf (stderr, "%s-WARNING **: %s\n", log_domain, message);
 }
 #endif
-  
+
 /* Open a connection to X display DISPLAY_NAME, and return
    the structure that describes the open display.
    If we cannot contact the display, return null.  */
@@ -10211,7 +10211,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     = XInternAtom (dpyinfo->display, "_NET_WM_ICON_NAME", False);
   dpyinfo->Xatom_net_wm_name
     = XInternAtom (dpyinfo->display, "_NET_WM_NAME", False);
-  
+
   dpyinfo->cut_buffers_initialized = 0;
 
   dpyinfo->x_dnd_atoms_size = 8;
@@ -10340,7 +10340,7 @@ x_delete_display (struct x_display_info *dpyinfo)
 #ifdef HAVE_X_SM
         /* Close X session management when we close its display.  */
         if (t->id == 1 && x_session_have_connection ())
-          x_session_close();
+          x_session_close ();
 #endif
         delete_terminal (t);
         break;
