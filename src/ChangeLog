@@ -1,5 +1,7 @@
 2010-07-07  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* intervals.h (interval): Use EMACS_UINT instead of unsigned EMACS_INT.
+
 	Make the function member of Lisp_Subr use standard C prototypes.
 	* lisp.h (struct Lisp_Subr): Use a union for the function member.
 	(DECL_ALIGN): Add a cast for the function.
