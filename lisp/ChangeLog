@@ -1,3 +1,8 @@
+2010-07-07  Glenn Morris  <rgm@gnu.org>
+
+	* play/zone.el (zone-fall-through-ws): Fix next-line ->
+	forward-line fallout.
+
 2010-07-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mouse.el (mouse-appearance-menu): Add docstring.
