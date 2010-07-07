@@ -635,6 +635,7 @@ static Lisp_Object apply_modifiers (int, Lisp_Object);
 static void clear_event (struct input_event *);
 static Lisp_Object restore_kboard_configuration (Lisp_Object);
 static SIGTYPE interrupt_signal (int signalnum);
+static SIGTYPE input_available_signal (int signo);
 static void handle_interrupt (void);
 static void timer_start_idle (void);
 static void timer_stop_idle (void);
@@ -3590,6 +3591,18 @@ event_to_kboard (struct input_event *event)
     return FRAME_KBOARD (XFRAME (frame));
 }
 
+/* Return the number of slots occupied in kbd_buffer.  */
+
+static int
+kbd_buffer_nr_stored ()
+{
+  return kbd_fetch_ptr == kbd_store_ptr
+    ? 0
+    : (kbd_fetch_ptr < kbd_store_ptr
+       ? kbd_store_ptr - kbd_fetch_ptr
+       : ((kbd_buffer + KBD_BUFFER_SIZE) - kbd_fetch_ptr
+          + (kbd_store_ptr - kbd_buffer)));
+}
 
 Lisp_Object Vthrow_on_input;
 
@@ -3711,6 +3724,17 @@ kbd_buffer_store_event_hold (register struct input_event *event,
     {
       *kbd_store_ptr = *event;
       ++kbd_store_ptr;
+      if (kbd_buffer_nr_stored () > KBD_BUFFER_SIZE/2 && ! kbd_on_hold_p ())
+        {
+          /* Don't read keyboard input until we have processed kbd_buffer.
+             This happens when pasting text longer than KBD_BUFFER_SIZE/2.  */
+          hold_keyboard_input ();
+#ifdef SIGIO
+          if (!noninteractive)
+            signal (SIGIO, SIG_IGN);
+#endif
+          stop_polling ();
+        }
     }
 
   /* If we're inside while-no-input, and this event qualifies
@@ -3866,10 +3890,24 @@ clear_event (struct input_event *event)
    We always read and discard one event.  */
 
 static Lisp_Object
-kbd_buffer_get_event (KBOARD **kbp, int *used_mouse_menu, struct timeval *end_time)
+kbd_buffer_get_event (KBOARD **kbp,
+                      int *used_mouse_menu,
+                      struct timeval *end_time)
 {
   register int c;
   Lisp_Object obj;
+  
+  if (kbd_on_hold_p () && kbd_buffer_nr_stored () < KBD_BUFFER_SIZE/4)
+    {
+      /* Start reading input again, we have processed enough so we can
+         accept new events again.  */
+      unhold_keyboard_input ();
+#ifdef SIGIO
+      if (!noninteractive)
+        signal (SIGIO, input_available_signal);
+#endif /* SIGIO */
+      start_polling ();
+    }
 
   if (noninteractive
       /* In case we are running as a daemon, only do this before
@@ -7039,6 +7077,10 @@ tty_read_avail_input (struct terminal *terminal,
   int n_to_read, i;
   struct tty_display_info *tty = terminal->display_info.tty;
   int nread = 0;
+  int buffer_free = KBD_BUFFER_SIZE - kbd_buffer_nr_stored () - 1;
+
+  if (kbd_on_hold_p () || buffer_free <= 0)
+    return 0;
 
   if (!terminal->name)		/* Don't read from a dead terminal. */
     return 0;
@@ -7119,6 +7161,10 @@ tty_read_avail_input (struct terminal *terminal,
   you lose;
 #endif
 #endif
+
+  /* Don't read more than we can store.  */
+  if (n_to_read > buffer_free)
+    n_to_read = buffer_free;
 
   /* Now read; for one reason or another, this will not block.
      NREAD is set to the number of chars read.  */

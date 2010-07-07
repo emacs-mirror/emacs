@@ -1,3 +1,24 @@
+2010-07-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* process.c (kbd_is_on_hold): New variable.
+	(hold_keyboard_input, unhold_keyboard_input, kbd_on_hold_p): New
+	functions.
+	(wait_reading_process_output): If kbd_on_hold_p returns non-zero,
+	select on empty input mask.
+	(init_process): Initialize kbd_is_on_hold to 0.
+
+	* process.h (hold_keyboard_input, unhold_keyboard_input)
+	(kbd_on_hold_p): Declare.
+
+	* keyboard.c (input_available_signal): Declare.
+	(kbd_buffer_nr_stored): New function.
+	(kbd_buffer_store_event_hold): If kbd_buffer_nr_stored returns
+	more than KBD_BUFFER_SIZE/2, stop reding input (Bug#6571).
+	(kbd_buffer_get_event): If input is suspended and kbd_buffer_nr_stored
+	returns less than KBD_BUFFER_SIZE/4, resume reding input (Bug#6571).
+	(tty_read_avail_input): If input is on hold, return.
+	Don't read more that free slots in kbd_buffer (Bug#6571).
+
 2010-07-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdos.h:

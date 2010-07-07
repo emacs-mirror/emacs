@@ -306,6 +306,10 @@ extern int timers_run;
 
 static SELECT_TYPE input_wait_mask;
 
+/* Non-zero if keyboard input is on hold, zero otherwise.  */
+
+static int kbd_is_on_hold;
+
 /* Mask that excludes keyboard input descriptor(s).  */
 
 static SELECT_TYPE non_keyboard_wait_mask;
@@ -4731,7 +4735,10 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 	  SELECT_TYPE Ctemp;
 #endif
 
-	  Atemp = input_wait_mask;
+          if (kbd_on_hold_p ())
+            FD_ZERO (&Atemp);
+          else
+            Atemp = input_wait_mask;
 	  IF_NON_BLOCKING_CONNECT (Ctemp = connect_wait_mask);
 
 	  EMACS_SET_SECS_USECS (timeout, 0, 0);
@@ -7010,6 +7017,30 @@ DEFUN ("process-filter-multibyte-p", Fprocess_filter_multibyte_p,
 
 
 
+/* Stop reading input from keyboard sources.  */
+
+void
+hold_keyboard_input (void)
+{
+  kbd_is_on_hold = 1;
+}
+
+/* Resume reading input from keyboard sources.  */
+
+void
+unhold_keyboard_input (void)
+{
+  kbd_is_on_hold = 0;
+}
+
+/* Return non-zero if keyboard input is on hold, zero otherwise.  */
+
+int
+kbd_on_hold_p (void)
+{
+  return kbd_is_on_hold;
+}
+
 /* Add DESC to the set of keyboard input descriptors.  */
 
 void
@@ -7901,6 +7932,7 @@ integer or floating point values.
 void
 init_process ()
 {
+  kbd_is_on_hold = 0;
 }
 
 void
