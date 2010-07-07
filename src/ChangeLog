@@ -1,5 +1,9 @@
 2010-07-07  Juanma Barranquero  <lekktu@gmail.com>
 
+	* coding.c, sysdep.c: Convert some more functions to standard C.
+
+2010-07-07  Juanma Barranquero  <lekktu@gmail.com>
+
 	* coding.c (decode_coding_gap, encode_coding_gap, decode_coding_object)
 	(encode_coding_object): Use SPECPDL_INDEX.
 	(syms_of_coding): Use DOS_NT.
