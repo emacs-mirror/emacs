@@ -1,3 +1,11 @@
+2010-07-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Make the function member of Lisp_Subr use standard C prototypes.
+	* lisp.h (struct Lisp_Subr): Use a union for the function member.
+	(DECL_ALIGN): Add a cast for the function.
+	* eval.c (Feval, Ffuncall): Use the proper type for each type
+	function call.
+
 2010-07-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* fringe.c (draw_fringe_bitmap_1): Use lookup_named_face to get

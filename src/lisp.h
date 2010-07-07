@@ -965,7 +965,18 @@ struct Lisp_Bool_Vector
 struct Lisp_Subr
   {
     EMACS_UINT size;
-    Lisp_Object (*function) ();
+    union {
+      Lisp_Object (*a0) (void);
+      Lisp_Object (*a1) (Lisp_Object);
+      Lisp_Object (*a2) (Lisp_Object, Lisp_Object);
+      Lisp_Object (*a3) (Lisp_Object, Lisp_Object, Lisp_Object);
+      Lisp_Object (*a4) (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object);
+      Lisp_Object (*a5) (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object);
+      Lisp_Object (*a6) (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object);
+      Lisp_Object (*a7) (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object);
+      Lisp_Object (*a8) (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object);
+      Lisp_Object (*am) (int, Lisp_Object *);
+    } function;
     short min_args, max_args;
     const char *symbol_name;
     char *intspec;
@@ -1768,7 +1779,7 @@ typedef struct {
   Lisp_Object fnname DEFUN_ARGS_ ## maxargs ;				\
   DECL_ALIGN (struct Lisp_Subr, sname) =				\
     { PVEC_SUBR | (sizeof (struct Lisp_Subr) / sizeof (EMACS_INT)),	\
-      fnname, minargs, maxargs, lname, intspec, 0};			\
+      (Lisp_Object(*)(void)) fnname, minargs, maxargs, lname, intspec, 0}; \
   Lisp_Object fnname
 
 /* Note that the weird token-substitution semantics of ANSI C makes
