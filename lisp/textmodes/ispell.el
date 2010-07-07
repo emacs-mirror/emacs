@@ -357,21 +357,21 @@ Must be greater than 1."
   :group 'ispell)
 
 (defcustom ispell-alternate-dictionary
-  (cond ((file-exists-p "/usr/dict/web2") "/usr/dict/web2")
-	((file-exists-p "/usr/share/dict/web2") "/usr/share/dict/web2")
-	((file-exists-p "/usr/dict/words") "/usr/dict/words")
-	((file-exists-p "/usr/lib/dict/words") "/usr/lib/dict/words")
-	((file-exists-p "/usr/share/dict/words") "/usr/share/dict/words")
-	((file-exists-p "/usr/share/lib/dict/words")
+  (cond ((file-readable-p "/usr/dict/web2") "/usr/dict/web2")
+	((file-readable-p "/usr/share/dict/web2") "/usr/share/dict/web2")
+	((file-readable-p "/usr/dict/words") "/usr/dict/words")
+	((file-readable-p "/usr/lib/dict/words") "/usr/lib/dict/words")
+	((file-readable-p "/usr/share/dict/words") "/usr/share/dict/words")
+	((file-readable-p "/usr/share/lib/dict/words")
 	 "/usr/share/lib/dict/words")
-	((file-exists-p "/sys/dict") "/sys/dict")
-	(t "/usr/dict/words"))
-  "*Alternate dictionary for spelling help."
+	((file-readable-p "/sys/dict") "/sys/dict"))
+  "*Alternate plain word-list dictionary for spelling help."
   :type '(choice file (const :tag "None" nil))
   :group 'ispell)
 
-(defcustom ispell-complete-word-dict ispell-alternate-dictionary
-  "*Dictionary used for word completion."
+(defcustom ispell-complete-word-dict nil
+  "*Plain word-list dictionary used for word completion if
+different from `ispell-alternate-dictionary'."
   :type '(choice file (const :tag "None" nil))
   :group 'ispell)
 
@@ -2049,10 +2049,11 @@ Global `ispell-quit' set to start location to continue spell session."
 			      (erase-buffer)
 			      (setq count ?0
 				    skipped 0
-				    mode-line-format
+				    mode-line-format ;; setup the *Choices* buffer with valid data.
 				    (concat "--  %b  --  word: " new-word
-					    "  --  dict: "
-					    ispell-alternate-dictionary)
+					    "  --  word-list: "
+					    (or ispell-complete-word-dict
+						ispell-alternate-dictionary))
 				    miss (lookup-words new-word)
 				    choices miss
 				    line ispell-choices-win-default-height)
@@ -2267,11 +2268,20 @@ Otherwise the variable `ispell-grep-command' contains the command used to
 search for the words (usually egrep).
 
 Optional second argument contains the dictionary to use; the default is
-`ispell-alternate-dictionary'."
+`ispell-alternate-dictionary', overriden by `ispell-complete-word-dict'
+if defined."
   ;; We don't use the filter for this function, rather the result is written
   ;; into a buffer.  Hence there is no need to save the filter values.
   (if (null lookup-dict)
-      (setq lookup-dict ispell-alternate-dictionary))
+      (setq lookup-dict (or ispell-complete-word-dict
+			    ispell-alternate-dictionary)))
+
+  (if lookup-dict
+      (unless (file-readable-p lookup-dict)
+	(error "lookup-words error: Unreadable or missing plain word-list %s."
+	       lookup-dict))
+    (error (concat "lookup-words error: No plain word-list found at system default "
+		   "locations.  Customize `ispell-alternate-dictionary' to set yours.")))
 
   (let* ((process-connection-type ispell-use-ptys-p)
 	 (wild-p (string-match "\\*" word))
@@ -3342,7 +3352,8 @@ Standard ispell choices are then available."
 	      (lookup-words (concat (and interior-frag "*") word
 				    (if (or interior-frag (null ispell-look-p))
 					"*"))
-			    ispell-complete-word-dict)))
+			    (or ispell-complete-word-dict
+				ispell-alternate-dictionary))))
     (cond ((eq possibilities t)
 	   (message "No word to complete"))
 	  ((null possibilities)

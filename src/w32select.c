@@ -224,7 +224,7 @@ convert_to_handle_as_coded (Lisp_Object coding_system)
 		    SDATA (SYMBOL_NAME (coding_system))));
 
   setup_windows_coding_system (coding_system, &coding);
-  coding.dst_bytes = SBYTES(current_text) * 2;
+  coding.dst_bytes = SBYTES (current_text) * 2;
   coding.destination = (unsigned char *) xmalloc (coding.dst_bytes);
   encode_coding_object (&coding, current_text, 0, 0,
 			SCHARS (current_text), SBYTES (current_text), Qnil);
@@ -290,7 +290,7 @@ render (Lisp_Object oformat)
 
   if (SetClipboardData (format, htext) == NULL)
     {
-      GlobalFree(htext);
+      GlobalFree (htext);
       return Qnil;
     }
 
@@ -314,7 +314,7 @@ render_locale (void)
 
   if ((lcid_ptr = (LCID *) GlobalLock (hlocale)) == NULL)
     {
-      GlobalFree(hlocale);
+      GlobalFree (hlocale);
       return Qnil;
     }
 
@@ -323,7 +323,7 @@ render_locale (void)
 
   if (SetClipboardData (CF_LOCALE, hlocale) == NULL)
     {
-      GlobalFree(hlocale);
+      GlobalFree (hlocale);
       return Qnil;
     }
 
@@ -380,7 +380,7 @@ render_all (Lisp_Object ignore)
        automatic conversions anywhere else, so to get consistent
        results, we probably don't want to rely on it here either.  */
 
-  render_locale();
+  render_locale ();
 
   if (current_clipboard_type == CF_UNICODETEXT)
     render (make_number (CF_TEXT));
@@ -744,7 +744,7 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data,
   /* If we have something non-ASCII we may want to set a locale.  We
      do that directly (non-delayed), as it's just a small bit.  */
   if (ok)
-    ok = !NILP(render_locale());
+    ok = !NILP (render_locale ());
 
   if (ok)
     {
@@ -753,7 +753,7 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data,
 	  /* If for some reason we don't have a clipboard_owner, we
 	     just set the text format as chosen by the configuration
 	     and than forget about the whole thing.  */
-	  ok = !NILP(render (make_number (current_clipboard_type)));
+	  ok = !NILP (render (make_number (current_clipboard_type)));
 	  current_text = Qnil;
 	  current_coding_system = Qnil;
 	}

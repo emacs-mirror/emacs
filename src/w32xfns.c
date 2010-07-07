@@ -214,7 +214,7 @@ get_next_msg (W32Msg * lpmsg, BOOL bWait)
                   if (!UnionRect (&(lpmsg->rect), &(lpmsg->rect),
                                   &(lpCur->w32msg.rect)))
                     {
-                      SetRectEmpty(&(lpmsg->rect));
+                      SetRectEmpty (&(lpmsg->rect));
                     }
 
                   myfree (lpCur);

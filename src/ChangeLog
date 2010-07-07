@@ -1,3 +1,54 @@
+2010-07-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* process.c (kbd_is_on_hold): New variable.
+	(hold_keyboard_input, unhold_keyboard_input, kbd_on_hold_p): New
+	functions.
+	(wait_reading_process_output): If kbd_on_hold_p returns non-zero,
+	select on empty input mask.
+	(init_process): Initialize kbd_is_on_hold to 0.
+
+	* process.h (hold_keyboard_input, unhold_keyboard_input)
+	(kbd_on_hold_p): Declare.
+
+	* keyboard.c (input_available_signal): Declare.
+	(kbd_buffer_nr_stored): New function.
+	(kbd_buffer_store_event_hold): If kbd_buffer_nr_stored returns
+	more than KBD_BUFFER_SIZE/2, stop reding input (Bug#6571).
+	(kbd_buffer_get_event): If input is suspended and kbd_buffer_nr_stored
+	returns less than KBD_BUFFER_SIZE/4, resume reding input (Bug#6571).
+	(tty_read_avail_input): If input is on hold, return.
+	Don't read more that free slots in kbd_buffer (Bug#6571).
+
+2010-07-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.h:
+	* msdos.c:
+	* dosfns.c:
+	* w16select.c: Convert function definitions to ANSI C.
+
+	* msdos.h (ctrl_break_func, install_ctrl_break_check): Remove
+	unused prototypes.
+
+2010-07-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* coding.c, sysdep.c: Convert some more functions to standard C.
+
+2010-07-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* coding.c (decode_coding_gap, encode_coding_gap, decode_coding_object)
+	(encode_coding_object): Use SPECPDL_INDEX.
+	(syms_of_coding): Use DOS_NT.
+
+2010-07-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* intervals.h (interval): Use EMACS_UINT instead of unsigned EMACS_INT.
+
+	Make the function member of Lisp_Subr use standard C prototypes.
+	* lisp.h (struct Lisp_Subr): Use a union for the function member.
+	(DECL_ALIGN): Add a cast for the function.
+	* eval.c (Feval, Ffuncall): Use the proper type for each type
+	function call.
+
 2010-07-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* fringe.c (draw_fringe_bitmap_1): Use lookup_named_face to get

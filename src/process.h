@@ -170,5 +170,9 @@ extern Lisp_Object Qtime, Qctime;
 extern Lisp_Object list_system_processes (void);
 extern Lisp_Object system_process_attributes (Lisp_Object);
 
+extern void hold_keyboard_input (void);
+extern void unhold_keyboard_input (void);
+extern int kbd_on_hold_p (void);
+
 /* arch-tag: dffedfc4-d7bc-4b58-a26f-c16155449c72
    (do not change this comment) */

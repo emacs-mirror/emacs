@@ -3094,7 +3094,7 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
           wmsg.dwModifiers = w32_get_key_modifiers (wParam, lParam);
           /* Get buffer size.  */
           size = get_composition_string_fn (context, GCS_RESULTSTR, buffer, 0);
-          buffer = alloca(size);
+          buffer = alloca (size);
           size = get_composition_string_fn (context, GCS_RESULTSTR,
                                             buffer, size);
 	  release_ime_context_fn (hwnd, context);

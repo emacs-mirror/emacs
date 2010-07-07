@@ -306,6 +306,10 @@ extern int timers_run;
 
 static SELECT_TYPE input_wait_mask;
 
+/* Non-zero if keyboard input is on hold, zero otherwise.  */
+
+static int kbd_is_on_hold;
+
 /* Mask that excludes keyboard input descriptor(s).  */
 
 static SELECT_TYPE non_keyboard_wait_mask;
@@ -3003,7 +3007,7 @@ usage:  (make-serial-process &rest ARGS)  */)
   p->inherit_coding_system_flag
     = !(!NILP (tem) || NILP (buffer) || !inherit_process_coding_system);
 
-  Fserial_process_configure(nargs, args);
+  Fserial_process_configure (nargs, args);
 
   specpdl_ptr = specpdl + specpdl_count;
 
@@ -3401,7 +3405,7 @@ usage: (make-network-process &rest ARGS)  */)
       ret = getaddrinfo (SDATA (host), portstring, &hints, &res);
       if (ret)
 #ifdef HAVE_GAI_STRERROR
-	error ("%s/%s %s", SDATA (host), portstring, gai_strerror(ret));
+	error ("%s/%s %s", SDATA (host), portstring, gai_strerror (ret));
 #else
 	error ("%s/%s getaddrinfo error %d", SDATA (host), portstring, ret);
 #endif
@@ -3900,7 +3904,7 @@ format; see the description of ADDRESS in `make-network-process'.  */)
 
  again:
   ifaces += 25;
-  buf_size = ifaces * sizeof(ifreqs[0]);
+  buf_size = ifaces * sizeof (ifreqs[0]);
   ifreqs = (struct ifreq *)xrealloc(ifreqs, buf_size);
   if (!ifreqs)
     {
@@ -4362,7 +4366,7 @@ server_accept_connection (Lisp_Object server, int channel)
 	int i;
 	args[0] = build_string ("%x:%x:%x:%x:%x:%x:%x:%x");
 	for (i = 0; i < 8; i++)
-	  args[i+1] = make_number (ntohs(ip6[i]));
+	  args[i+1] = make_number (ntohs (ip6[i]));
 	host = Fformat (9, args);
 	service = make_number (ntohs (saddr.in.sin_port));
 
@@ -4731,7 +4735,10 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 	  SELECT_TYPE Ctemp;
 #endif
 
-	  Atemp = input_wait_mask;
+          if (kbd_on_hold_p ())
+            FD_ZERO (&Atemp);
+          else
+            Atemp = input_wait_mask;
 	  IF_NON_BLOCKING_CONNECT (Ctemp = connect_wait_mask);
 
 	  EMACS_SET_SECS_USECS (timeout, 0, 0);
@@ -5164,23 +5171,23 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 	      /* getsockopt(,,SO_ERROR,,) is said to hang on some systems.
 		 So only use it on systems where it is known to work.  */
 	      {
-		int xlen = sizeof(xerrno);
-		if (getsockopt(channel, SOL_SOCKET, SO_ERROR, &xerrno, &xlen))
+		int xlen = sizeof (xerrno);
+		if (getsockopt (channel, SOL_SOCKET, SO_ERROR, &xerrno, &xlen))
 		  xerrno = errno;
 	      }
 #else
 	      {
 		struct sockaddr pname;
-		int pnamelen = sizeof(pname);
+		int pnamelen = sizeof (pname);
 
 		/* If connection failed, getpeername will fail.  */
 		xerrno = 0;
-		if (getpeername(channel, &pname, &pnamelen) < 0)
+		if (getpeername (channel, &pname, &pnamelen) < 0)
 		  {
 		    /* Obtain connect failure code through error slippage.  */
 		    char dummy;
 		    xerrno = errno;
-		    if (errno == ENOTCONN && read(channel, &dummy, 1) < 0)
+		    if (errno == ENOTCONN && read (channel, &dummy, 1) < 0)
 		      xerrno = errno;
 		  }
 	      }
@@ -6336,7 +6343,7 @@ SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
       CHECK_SYMBOL (sigcode);
       name = SDATA (SYMBOL_NAME (sigcode));
 
-      if (!strncmp(name, "SIG", 3) || !strncmp(name, "sig", 3))
+      if (!strncmp (name, "SIG", 3) || !strncmp (name, "sig", 3))
 	name += 3;
 
       if (0)
@@ -7010,6 +7017,30 @@ DEFUN ("process-filter-multibyte-p", Fprocess_filter_multibyte_p,
 
 
 
+/* Stop reading input from keyboard sources.  */
+
+void
+hold_keyboard_input (void)
+{
+  kbd_is_on_hold = 1;
+}
+
+/* Resume reading input from keyboard sources.  */
+
+void
+unhold_keyboard_input (void)
+{
+  kbd_is_on_hold = 0;
+}
+
+/* Return non-zero if keyboard input is on hold, zero otherwise.  */
+
+int
+kbd_on_hold_p (void)
+{
+  return kbd_is_on_hold;
+}
+
 /* Add DESC to the set of keyboard input descriptors.  */
 
 void
@@ -7252,7 +7283,7 @@ init_process (void)
      processes.  As such, we only change the default value.  */
  if (initialized)
   {
-    char *release = get_operating_system_release();
+    char *release = get_operating_system_release ();
     if (!release || !release[0] || (release[0] < MIN_PTY_KERNEL_VERSION
 				    && release[1] == '.')) {
       Vprocess_connection_type = Qnil;
@@ -7901,6 +7932,7 @@ integer or floating point values.
 void
 init_process ()
 {
+  kbd_is_on_hold = 0;
 }
 
 void

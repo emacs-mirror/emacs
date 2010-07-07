@@ -2359,7 +2359,7 @@ x_draw_glyph_string (struct glyph_string *s)
 
       /* Draw strike-through.  */
       if (s->face->strike_through_p
-          && !FONT_TEXTMETRIC(s->font).tmStruckOut)
+          && !FONT_TEXTMETRIC (s->font).tmStruckOut)
         {
           unsigned long h = 1;
           unsigned long dy = (s->height - h) / 2;
@@ -3294,7 +3294,7 @@ w32_set_scroll_bar_thumb (struct scroll_bar *bar,
       BLOCK_INPUT;
       si.cbSize = sizeof (si);
       si.fMask = SIF_POS | SIF_PAGE;
-      GetScrollInfo(w, SB_CTL, &si);
+      GetScrollInfo (w, SB_CTL, &si);
       near_bottom_p = si.nPos + si.nPage >= range;
       UNBLOCK_INPUT;
       if (!near_bottom_p)
@@ -4169,7 +4169,7 @@ w32_read_socket (struct terminal *terminal, int expected,
 		temp_index = 0;
 	      temp_buffer[temp_index++] = msg.msg.wParam;
 	      inev.kind = MULTIMEDIA_KEY_EVENT;
-	      inev.code = GET_APPCOMMAND_LPARAM(msg.msg.lParam);
+	      inev.code = GET_APPCOMMAND_LPARAM (msg.msg.lParam);
 	      inev.modifiers = msg.dwModifiers;
 	      XSETFRAME (inev.frame_or_window, f);
 	      inev.timestamp = msg.msg.time;
@@ -4217,7 +4217,7 @@ w32_read_socket (struct terminal *terminal, int expected,
 		     selected now and last mouse movement event was
 		     not in it.  Minibuffer window will be selected
 		     only when it is active.  */
-		  if (WINDOWP(window)
+		  if (WINDOWP (window)
 		      && !EQ (window, last_window)
 		      && !EQ (window, selected_window)
 		      /* For click-to-focus window managers
@@ -5344,8 +5344,8 @@ x_set_window_size (struct frame *f, int change_gravity, int cols, int rows)
     rect.right = pixelwidth;
     rect.bottom = pixelheight;
 
-    AdjustWindowRect(&rect, f->output_data.w32->dwStyle,
-		     FRAME_EXTERNAL_MENU_BAR (f));
+    AdjustWindowRect (&rect, f->output_data.w32->dwStyle,
+		      FRAME_EXTERNAL_MENU_BAR (f));
 
     my_set_window_pos (FRAME_W32_WINDOW (f),
 		       NULL,
@@ -5587,8 +5587,8 @@ x_make_frame_visible (struct frame *f)
 
 	  /* Adjust vertical window position in order to avoid being
 	     covered by a task bar placed at the bottom of the desktop. */
-	  SystemParametersInfo(SPI_GETWORKAREA, 0, &workarea_rect, 0);
-	  GetWindowRect(FRAME_W32_WINDOW(f), &window_rect);
+	  SystemParametersInfo (SPI_GETWORKAREA, 0, &workarea_rect, 0);
+	  GetWindowRect (FRAME_W32_WINDOW(f), &window_rect);
 	  if (window_rect.bottom > workarea_rect.bottom
 	      && window_rect.top > workarea_rect.top)
 	    f->top_pos = max (window_rect.top
@@ -6145,7 +6145,7 @@ x_delete_display (struct w32_display_info *dpyinfo)
     }
     dpyinfo->color_list = NULL;
     if (dpyinfo->palette)
-      DeleteObject(dpyinfo->palette);
+      DeleteObject (dpyinfo->palette);
   }
   xfree (dpyinfo->w32_id_name);
 

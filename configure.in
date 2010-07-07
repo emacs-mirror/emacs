@@ -3540,11 +3540,6 @@ SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
 
 #define my_strftime nstrftime	/* for strftime.c */
 
-/* Some of the files of Emacs which are intended for use with other
-   programs assume that if you have a config.h file, you must declare
-   the type of getenv.  */
-extern char *getenv ();
-
 /* These default definitions are good for almost all machines.
    The exceptions override them in m/MACHINE.h.  */
 

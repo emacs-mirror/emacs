@@ -549,7 +549,7 @@ w32font_draw (struct glyph_string *s, int from, int to,
 
       /* Save clip region for later restoration.  */
       orig_clip = CreateRectRgn (0, 0, 0, 0);
-      if (!GetClipRgn(s->hdc, orig_clip))
+      if (!GetClipRgn (s->hdc, orig_clip))
 	{
 	  DeleteObject (orig_clip);
 	  orig_clip = NULL;
@@ -1785,7 +1785,7 @@ w32_registry (LONG w32_charset, DWORD font_type)
     return font_type == TRUETYPE_FONTTYPE ? Qiso10646_1 : Qunknown;
 
   charset = w32_to_x_charset (w32_charset, NULL);
-  return font_intern_prop (charset, strlen(charset), 1);
+  return font_intern_prop (charset, strlen (charset), 1);
 }
 
 static int
