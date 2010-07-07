@@ -1,3 +1,9 @@
+2010-07-07  Christoph Scholtes  <cschol2112@gmail.com>
+
+	* progmodes/python.el (python-font-lock-keywords): Add Python 2.7
+	builtins (BufferError, BytesWarning, WindowsError; callables
+	bin, bytearray, bytes, format, memoryview, next, print; __package__).
+
 2010-07-07  Glenn Morris  <rgm@gnu.org>
 
 	* play/zone.el (zone-fall-through-ws): Fix next-line ->
