@@ -38,7 +38,6 @@
 /^#undef HAVE_CBRT *$/s/^.*$/#define HAVE_CBRT 1/
 /^#undef HAVE_DIFFTIME *$/s/^.*$/#define HAVE_DIFFTIME 1/
 /^#undef HAVE_FPATHCONF *$/s/^.*$/#define HAVE_FPATHCONF 1/
-/^#undef HAVE_MEMCPY *$/s/^.*$/#define HAVE_MEMCPY 1/
 /^#undef HAVE_MEMSET *$/s/^.*$/#define HAVE_MEMSET 1/
 /^#undef HAVE_MEMCMP *$/s/^.*$/#define HAVE_MEMCMP 1/
 /^#undef HAVE_MEMMOVE *$/s/^.*$/#define HAVE_MEMMOVE 1/

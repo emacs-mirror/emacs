@@ -1,3 +1,8 @@
+2010-07-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* process.c (kbd_is_on_hold, hold_keyboard_input)
+	(unhold_keyboard_input, kbd_on_hold_p) [!subprocesses]: Define.
+
 2010-07-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xmenu.c (set_frame_menubar, create_and_show_popup_menu)
