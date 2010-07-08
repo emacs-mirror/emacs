@@ -7600,6 +7600,9 @@ Lisp_Object Qminflt, Qmajflt, Qcminflt, Qcmajflt, Qutime, Qstime, Qcstime;
 Lisp_Object Qcutime, Qpri, Qnice, Qthcount, Qstart, Qvsize, Qrss, Qargs;
 Lisp_Object Quser, Qgroup, Qetime, Qpcpu, Qpmem, Qtime, Qctime;
 
+/* Non-zero if keyboard input is on hold, zero otherwise.  */
+static int kbd_is_on_hold;
+
 /* As described above, except assuming that there are no subprocesses:
 
    Wait for timeout to elapse and/or keyboard input to be available.
@@ -7858,6 +7861,31 @@ void
 kill_buffer_processes (buffer)
      Lisp_Object buffer;
 {
+}
+
+
+/* Stop reading input from keyboard sources.  */
+
+void
+hold_keyboard_input (void)
+{
+  kbd_is_on_hold = 1;
+}
+
+/* Resume reading input from keyboard sources.  */
+
+void
+unhold_keyboard_input (void)
+{
+  kbd_is_on_hold = 0;
+}
+
+/* Return non-zero if keyboard input is on hold, zero otherwise.  */
+
+int
+kbd_on_hold_p (void)
+{
+  return kbd_is_on_hold;
 }
 
 DEFUN ("list-system-processes", Flist_system_processes, Slist_system_processes,
