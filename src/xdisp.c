@@ -9630,12 +9630,7 @@ unwind_format_mode_line (Lisp_Object vector)
    Re-allocate mode_line_noprop_buf if necessary.  */
 
 static void
-#ifdef PROTOTYPES
 store_mode_line_noprop_char (char c)
-#else
-store_mode_line_noprop_char (c)
-    char c;
-#endif
 {
   /* If output position has reached the end of the allocated buffer,
      double the buffer's size.  */

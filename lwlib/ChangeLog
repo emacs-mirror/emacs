@@ -1,3 +1,18 @@
+2010-07-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* lwlib.c (allocate_widget_instance, get_widget_info)
+	(get_widget_instance, find_instance, set_one_value)
+	(update_one_widget_instance, update_all_widget_values)
+	(lw_modify_all_widgets, lw_get_widget, lw_make_widget)
+	(lw_create_widget, lw_pop_all_widgets, lw_show_busy)
+	(lw_refigure_widget, lw_allow_resizing): Remove alternative K&R
+	declarations.
+	* lwlib-Xlw.c (xlw_update_one_widget):
+	(xlw_pop_instance): Likewise.
+	* lwlib-Xaw.c (xaw_update_one_widget, xaw_pop_instance):
+	Likewise.
+	* lwlib-Xm.c (P_): Remove.
+
 2010-07-07  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* lwlib.c (lwlib_memset, lwlib_bcopy): Remove.

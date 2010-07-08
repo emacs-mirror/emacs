@@ -1,5 +1,7 @@
 2010-07-08  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* xdisp.c (store_mode_line_noprop_char): Remove K&R alternative declaration.
+
 	Clean up include guards.
 	* tparam.c: Remove include guards for config.h, string.h and code
 	that assumes #ifndef emacs.

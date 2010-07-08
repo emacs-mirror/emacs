@@ -65,13 +65,6 @@ Boston, MA 02110-1301, USA.  */
 #include <Xm/DialogS.h>
 #include <Xm/Form.h>
 
-#undef P_
-#if defined __STDC__ || defined PROTOTYPES
-#define P_(X) X
-#else
-#define P_(X) ()
-#endif
-
 enum do_call_type { pre_activate, selection, no_selection, post_activate };
 
 

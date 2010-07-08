@@ -348,16 +348,8 @@ command_reset (Widget widget,
 #endif
 
 void
-#ifdef PROTOTYPES
 xaw_update_one_widget (widget_instance *instance, Widget widget,
 		       widget_value *val, Boolean deep_p)
-#else
-xaw_update_one_widget (instance, widget, val, deep_p)
-     widget_instance *instance;
-     Widget widget;
-     widget_value *val;
-     Boolean deep_p;
-#endif
 {
 #if 0
   if (XtIsSubclass (widget, scrollbarWidgetClass))
@@ -474,13 +466,7 @@ xaw_popup_menu (Widget widget, XEvent *event)
 }
 
 void
-#ifdef PROTOTYPES
 xaw_pop_instance (widget_instance *instance, Boolean up)
-#else
-xaw_pop_instance (instance, up)
-     widget_instance *instance;
-     Boolean up;
-#endif
 {
   Widget widget = instance->widget;
 

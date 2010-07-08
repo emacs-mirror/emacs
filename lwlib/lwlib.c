@@ -298,18 +298,8 @@ mark_widget_destroyed (Widget widget, XtPointer closure, XtPointer call_data)
     instance->widget = NULL;
 }
 
-/* The messy #ifdef PROTOTYPES here and elsewhere are prompted by a
-   flood of warnings about argument promotion from proprietary ISO C
-   compilers.  (etags still only makes one entry for each function.)  */
 static widget_instance *
-#ifdef PROTOTYPES
 allocate_widget_instance (widget_info* info, Widget parent, Boolean pop_up_p)
-#else
-allocate_widget_instance (info, parent, pop_up_p)
-     widget_info* info;
-     Widget parent;
-     Boolean pop_up_p;
-#endif
 {
   widget_instance* instance =
     (widget_instance*)malloc (sizeof (widget_instance));
@@ -335,13 +325,7 @@ free_widget_instance (widget_instance *instance)
 }
 
 static widget_info *
-#ifdef PROTOTYPES
 get_widget_info (LWLIB_ID id, Boolean remove_p)
-#else
-get_widget_info (id, remove_p)
-     LWLIB_ID id;
-     Boolean remove_p;
-#endif
 {
   widget_info* info;
   widget_info* prev;
@@ -371,13 +355,7 @@ lw_get_widget_info (LWLIB_ID id)
 }
 
 static widget_instance *
-#ifdef PROTOTYPES
 get_widget_instance (Widget widget, Boolean remove_p)
-#else
-get_widget_instance (widget, remove_p)
-     Widget widget;
-     Boolean remove_p;
-#endif
 {
   widget_info* info;
   widget_instance* instance;
@@ -410,14 +388,7 @@ lw_get_widget_instance (Widget widget)
 }
 
 static widget_instance*
-#ifdef PROTOTYPES
 find_instance (LWLIB_ID id, Widget parent, Boolean pop_up_p)
-#else
-find_instance (id, parent, pop_up_p)
-     LWLIB_ID id;
-     Widget parent;
-     Boolean pop_up_p;
-#endif
 {
   widget_info* info = get_widget_info (id, False);
   widget_instance* instance;
@@ -638,14 +609,7 @@ name_to_widget (widget_instance *instance, char *name)
 }
 
 static void
-#ifdef PROTOTYPES
 set_one_value (widget_instance* instance, widget_value* val, Boolean deep_p)
-#else
-set_one_value (instance, val, deep_p)
-     widget_instance* instance;
-     widget_value* val;
-     Boolean deep_p;
-#endif
 {
   Widget widget = name_to_widget (instance, val->name);
 
@@ -667,13 +631,7 @@ set_one_value (instance, val, deep_p)
 }
 
 static void
-#ifdef PROTOTYPES
 update_one_widget_instance (widget_instance* instance, Boolean deep_p)
-#else
-update_one_widget_instance (instance, deep_p)
-     widget_instance* instance;
-     Boolean deep_p;
-#endif
 {
   widget_value *val;
 
@@ -687,13 +645,7 @@ update_one_widget_instance (instance, deep_p)
 }
 
 static void
-#ifdef PROTOTYPES
 update_all_widget_values (widget_info* info, Boolean deep_p)
-#else
-update_all_widget_values (info, deep_p)
-     widget_info* info;
-     Boolean deep_p;
-#endif
 {
   widget_instance* instance;
   widget_value* val;
@@ -706,14 +658,7 @@ update_all_widget_values (info, deep_p)
 }
 
 int
-#ifdef PROTOTYPES
 lw_modify_all_widgets (LWLIB_ID id, widget_value* val, Boolean deep_p)
-#else
-lw_modify_all_widgets (id, val, deep_p)
-     LWLIB_ID id;
-     widget_value* val;
-     Boolean deep_p;
-#endif
 {
   widget_info* info = get_widget_info (id, False);
   widget_value* new_val;
@@ -894,14 +839,7 @@ lw_register_widget (type, name, id, val, pre_activate_cb,
 }
 
 Widget
-#ifdef PROTOTYPES
 lw_get_widget (LWLIB_ID id, Widget parent, Boolean pop_up_p)
-#else
-lw_get_widget (id, parent, pop_up_p)
-     LWLIB_ID id;
-     Widget parent;
-     Boolean pop_up_p;
-#endif
 {
   widget_instance* instance;
 
@@ -910,14 +848,7 @@ lw_get_widget (id, parent, pop_up_p)
 }
 
 Widget
-#ifdef PROTOTYPES
 lw_make_widget (LWLIB_ID id, Widget parent, Boolean pop_up_p)
-#else
-lw_make_widget (id, parent, pop_up_p)
-     LWLIB_ID id;
-     Widget parent;
-     Boolean pop_up_p;
-#endif
 {
   widget_instance* instance;
   widget_info* info;
@@ -937,25 +868,10 @@ lw_make_widget (id, parent, pop_up_p)
 }
 
 Widget
-#ifdef PROTOTYPES
 lw_create_widget (char* type, char* name, LWLIB_ID id, widget_value* val,
 		  Widget parent, Boolean pop_up_p,
 		  lw_callback pre_activate_cb, lw_callback selection_cb,
 		  lw_callback post_activate_cb, lw_callback highlight_cb)
-#else
-lw_create_widget (type, name, id, val, parent, pop_up_p, pre_activate_cb,
-		  selection_cb, post_activate_cb, highlight_cb)
-     char* type;
-     char* name;
-     LWLIB_ID id;
-     widget_value* val;
-     Widget parent;
-     Boolean pop_up_p;
-     lw_callback pre_activate_cb;
-     lw_callback selection_cb;
-     lw_callback post_activate_cb;
-     lw_callback highlight_cb;
-#endif
 {
   lw_register_widget (type, name, id, val, pre_activate_cb, selection_cb,
 		      post_activate_cb, highlight_cb);
@@ -1102,13 +1018,7 @@ lw_raise_all_pop_up_widgets (void)
 }
 
 static void
-#ifdef PROTOTYPES
 lw_pop_all_widgets (LWLIB_ID id, Boolean up)
-#else
-lw_pop_all_widgets (id, up)
-     LWLIB_ID id;
-     Boolean up;
-#endif
 {
   widget_info* info = get_widget_info (id, False);
   widget_instance* instance;
@@ -1309,13 +1219,7 @@ lw_set_keyboard_focus (Widget parent, Widget w)
 
 /* Show busy */
 static void
-#ifdef PROTOTYPES
 show_one_widget_busy (Widget w, Boolean flag)
-#else
-show_one_widget_busy (w, flag)
-     Widget w;
-     Boolean flag;
-#endif
 {
   Pixel foreground = 0;
   Pixel background = 1;
@@ -1334,13 +1238,7 @@ show_one_widget_busy (w, flag)
 }
 
 void
-#ifdef PROTOTYPES
 lw_show_busy (Widget w, Boolean busy)
-#else
-lw_show_busy (w, busy)
-     Widget w;
-     Boolean busy;
-#endif
 {
   widget_instance* instance = get_widget_instance (w, False);
   widget_info* info;
@@ -1362,13 +1260,7 @@ lw_show_busy (w, busy)
 /* This hack exists because Lucid/Athena need to execute the strange
    function below to support geometry management. */
 void
-#ifdef PROTOTYPES
 lw_refigure_widget (Widget w, Boolean doit)
-#else
-lw_refigure_widget (w, doit)
-     Widget w;
-     Boolean doit;
-#endif
 {
 #if defined (USE_XAW)
   XawPanedSetRefigureMode (w, doit);
@@ -1410,13 +1302,7 @@ lw_set_main_areas (Widget parent, Widget menubar, Widget work_area)
 /* Manage resizing for Motif.  This disables resizing when the menubar
    is about to be modified. */
 void
-#ifdef PROTOTYPES
 lw_allow_resizing (Widget w, Boolean flag)
-#else
-lw_allow_resizing (w, flag)
-     Widget w;
-     Boolean flag;
-#endif
 {
 #if defined (USE_MOTIF)
   xm_manage_resizing (w, flag);
