@@ -190,8 +190,7 @@ nsberror (Lisp_Object spec)
 DEFUN ("buffer-live-p", Fbuffer_live_p, Sbuffer_live_p, 1, 1, 0,
        doc: /* Return non-nil if OBJECT is a buffer which has not been killed.
 Value is nil if OBJECT is not a buffer or if it has been killed.  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   return ((BUFFERP (object) && ! NILP (XBUFFER (object)->name))
 	  ? Qt : Qnil);
@@ -202,8 +201,7 @@ DEFUN ("buffer-list", Fbuffer_list, Sbuffer_list, 0, 1, 0,
 If the optional arg FRAME is a frame, we return the buffer list
 in the proper order for that frame: the buffers in FRAME's `buffer-list'
 frame parameter come first, followed by the rest of the buffers.  */)
-     (frame)
-     Lisp_Object frame;
+  (Lisp_Object frame)
 {
   Lisp_Object general;
   general = Fmapcar (Qcdr, Vbuffer_alist);
@@ -266,8 +264,7 @@ DEFUN ("get-buffer", Fget_buffer, Sget_buffer, 1, 1, 0,
 BUFFER-OR-NAME must be either a string or a buffer.  If BUFFER-OR-NAME
 is a string and there is no buffer with that name, return nil.  If
 BUFFER-OR-NAME is a buffer, return it as given.  */)
-     (buffer_or_name)
-     register Lisp_Object buffer_or_name;
+  (register Lisp_Object buffer_or_name)
 {
   if (BUFFERP (buffer_or_name))
     return buffer_or_name;
@@ -281,8 +278,7 @@ DEFUN ("get-file-buffer", Fget_file_buffer, Sget_file_buffer, 1, 1, 0,
 The buffer's `buffer-file-name' must match exactly the expansion of FILENAME.
 If there is no such live buffer, return nil.
 See also `find-buffer-visiting'.  */)
-     (filename)
-     register Lisp_Object filename;
+  (register Lisp_Object filename)
 {
   register Lisp_Object tail, buf, tem;
   Lisp_Object handler;
@@ -337,8 +333,7 @@ buffer does not keep undo information.
 
 If BUFFER-OR-NAME is a buffer instead of a string, return it as given,
 even if it is dead.  The return value is never nil.  */)
-     (buffer_or_name)
-     register Lisp_Object buffer_or_name;
+  (register Lisp_Object buffer_or_name)
 {
   register Lisp_Object buffer, name;
   register struct buffer *b;
@@ -514,7 +509,7 @@ clone_per_buffer_values (struct buffer *from, struct buffer *to)
       PER_BUFFER_VALUE (to, offset) = obj;
     }
 
-  bcopy (from->local_flags, to->local_flags, sizeof to->local_flags);
+  memcpy (to->local_flags, from->local_flags, sizeof to->local_flags);
 
   to->overlays_before = copy_overlays (to, from->overlays_before);
   to->overlays_after = copy_overlays (to, from->overlays_after);
@@ -533,8 +528,7 @@ NAME should be a string which is not the name of an existing buffer.
 Optional argument CLONE non-nil means preserve BASE-BUFFER's state,
 such as major and minor modes, in the indirect buffer.
 CLONE nil means the indirect buffer's state is reset to default values.  */)
-     (base_buffer, name, clone)
-     Lisp_Object base_buffer, name, clone;
+  (Lisp_Object base_buffer, Lisp_Object name, Lisp_Object clone)
 {
   Lisp_Object buf, tem;
   struct buffer *b;
@@ -829,8 +823,7 @@ Otherwise modify name by appending `<NUMBER>', incrementing NUMBER
 \(starting at 2) until an unused name is found, and then return that name.
 Optional second argument IGNORE specifies a name that is okay to use (if
 it is in the sequence to be tried) even if a buffer with that name exists.  */)
-     (name, ignore)
-     register Lisp_Object name, ignore;
+  (register Lisp_Object name, Lisp_Object ignore)
 {
   register Lisp_Object gentemp, tem;
   int count;
@@ -864,8 +857,7 @@ DEFUN ("buffer-name", Fbuffer_name, Sbuffer_name, 0, 1, 0,
        doc: /* Return the name of BUFFER, as a string.
 BUFFER defaults to the current buffer.
 Return nil if BUFFER has been killed.  */)
-     (buffer)
-     register Lisp_Object buffer;
+  (register Lisp_Object buffer)
 {
   if (NILP (buffer))
     return current_buffer->name;
@@ -876,8 +868,7 @@ Return nil if BUFFER has been killed.  */)
 DEFUN ("buffer-file-name", Fbuffer_file_name, Sbuffer_file_name, 0, 1, 0,
        doc: /* Return name of file BUFFER is visiting, or nil if none.
 No argument or nil as argument means use the current buffer.  */)
-     (buffer)
-     register Lisp_Object buffer;
+  (register Lisp_Object buffer)
 {
   if (NILP (buffer))
     return current_buffer->filename;
@@ -890,8 +881,7 @@ DEFUN ("buffer-base-buffer", Fbuffer_base_buffer, Sbuffer_base_buffer,
        doc: /* Return the base buffer of indirect buffer BUFFER.
 If BUFFER is not indirect, return nil.
 BUFFER defaults to the current buffer.  */)
-     (buffer)
-     register Lisp_Object buffer;
+  (register Lisp_Object buffer)
 {
   struct buffer *base;
   Lisp_Object base_buffer;
@@ -915,9 +905,7 @@ DEFUN ("buffer-local-value", Fbuffer_local_value,
        doc: /* Return the value of VARIABLE in BUFFER.
 If VARIABLE does not have a buffer-local binding in BUFFER, the value
 is the default binding of the variable. */)
-     (variable, buffer)
-     register Lisp_Object variable;
-     register Lisp_Object buffer;
+  (register Lisp_Object variable, register Lisp_Object buffer)
 {
   register struct buffer *buf;
   register Lisp_Object result;
@@ -1015,8 +1003,7 @@ Most elements look like (SYMBOL . VALUE), describing one variable.
 For a symbol that is locally unbound, just the symbol appears in the value.
 Note that storing new VALUEs in these elements doesn't change the variables.
 No argument or nil as argument means use current buffer as BUFFER.  */)
-     (buffer)
-     register Lisp_Object buffer;
+  (register Lisp_Object buffer)
 {
   register struct buffer *buf;
   register Lisp_Object result;
@@ -1058,8 +1045,7 @@ DEFUN ("buffer-modified-p", Fbuffer_modified_p, Sbuffer_modified_p,
        0, 1, 0,
        doc: /* Return t if BUFFER was modified since its file was last read or saved.
 No argument or nil as argument means use current buffer as BUFFER.  */)
-     (buffer)
-     register Lisp_Object buffer;
+  (register Lisp_Object buffer)
 {
   register struct buffer *buf;
   if (NILP (buffer))
@@ -1077,8 +1063,7 @@ DEFUN ("set-buffer-modified-p", Fset_buffer_modified_p, Sset_buffer_modified_p,
        1, 1, 0,
        doc: /* Mark current buffer as modified or unmodified according to FLAG.
 A non-nil FLAG means mark the buffer modified.  */)
-     (flag)
-     register Lisp_Object flag;
+  (register Lisp_Object flag)
 {
   register int already;
   register Lisp_Object fn;
@@ -1147,8 +1132,7 @@ DEFUN ("restore-buffer-modified-p", Frestore_buffer_modified_p,
        doc: /* Like `set-buffer-modified-p', with a difference concerning redisplay.
 It is not ensured that mode lines will be updated to show the modified
 state of the current buffer.  Use with care.  */)
-     (flag)
-     Lisp_Object flag;
+  (Lisp_Object flag)
 {
 #ifdef CLASH_DETECTION
   Lisp_Object fn;
@@ -1178,8 +1162,7 @@ DEFUN ("buffer-modified-tick", Fbuffer_modified_tick, Sbuffer_modified_tick,
 Each buffer has a tick counter which is incremented each time the
 text in that buffer is changed.  It wraps around occasionally.
 No argument or nil as argument means use current buffer as BUFFER.  */)
-     (buffer)
-     register Lisp_Object buffer;
+  (register Lisp_Object buffer)
 {
   register struct buffer *buf;
   if (NILP (buffer))
@@ -1203,8 +1186,7 @@ values returned by two individual calls of `buffer-chars-modified-tick',
 you can tell whether a character change occurred in that buffer in
 between these calls.  No argument or nil as argument means use current
 buffer as BUFFER.  */)
-     (buffer)
-     register Lisp_Object buffer;
+  (register Lisp_Object buffer)
 {
   register struct buffer *buf;
   if (NILP (buffer))
@@ -1230,8 +1212,7 @@ If UNIQUE is non-nil, come up with a new name using
 Interactively, you can set UNIQUE with a prefix argument.
 We return the name we actually gave the buffer.
 This does not change the name of the visited file (if any).  */)
-     (newname, unique)
-     register Lisp_Object newname, unique;
+  (register Lisp_Object newname, Lisp_Object unique)
 {
   register Lisp_Object tem, buf;
 
@@ -1278,8 +1259,7 @@ If the optional third argument FRAME is non-nil, use that frame's
 buffer list instead of the selected frame's buffer list.
 If no other buffer exists, the buffer `*scratch*' is returned.
 If BUFFER is omitted or nil, some interesting buffer is returned.  */)
-     (buffer, visible_ok, frame)
-     register Lisp_Object buffer, visible_ok, frame;
+  (register Lisp_Object buffer, Lisp_Object visible_ok, Lisp_Object frame)
 {
   Lisp_Object Fset_buffer_major_mode (Lisp_Object buffer);
   register Lisp_Object tail, buf, notsogood, tem, pred, add_ons;
@@ -1350,8 +1330,7 @@ DEFUN ("buffer-enable-undo", Fbuffer_enable_undo, Sbuffer_enable_undo,
        0, 1, "",
        doc: /* Start keeping undo information for buffer BUFFER.
 No argument or nil as argument means do this for the current buffer.  */)
-     (buffer)
-     register Lisp_Object buffer;
+  (register Lisp_Object buffer)
 {
   Lisp_Object real_buffer;
 
@@ -1392,8 +1371,7 @@ is running.
 
 Any processes that have this buffer as the `process-buffer' are killed
 with SIGHUP.  */)
-     (buffer_or_name)
-     Lisp_Object buffer_or_name;
+  (Lisp_Object buffer_or_name)
 {
   Lisp_Object buffer;
   register struct buffer *b;
@@ -1682,8 +1660,7 @@ For the *scratch* buffer, use `initial-major-mode', otherwise choose a mode
 according to `default-major-mode'.
 Use this function before selecting the buffer, since it may need to inspect
 the current buffer's major mode.  */)
-     (buffer)
-     Lisp_Object buffer;
+  (Lisp_Object buffer)
 {
   int count;
   Lisp_Object function;
@@ -1770,8 +1747,7 @@ its buffer, use `pop-to-buffer' for displaying the buffer.
 WARNING: This is NOT the way to work on another buffer temporarily
 within a Lisp program!  Use `set-buffer' instead.  That avoids
 messing with the window-buffer correspondences.  */)
-     (buffer_or_name, norecord)
-     Lisp_Object buffer_or_name, norecord;
+  (Lisp_Object buffer_or_name, Lisp_Object norecord)
 {
   if (EQ (buffer_or_name, Fwindow_buffer (selected_window)))
     {
@@ -1800,7 +1776,7 @@ messing with the window-buffer correspondences.  */)
 
 DEFUN ("current-buffer", Fcurrent_buffer, Scurrent_buffer, 0, 0, 0,
        doc: /* Return the current buffer as a Lisp object.  */)
-     ()
+  (void)
 {
   register Lisp_Object buf;
   XSETBUFFER (buf, current_buffer);
@@ -1986,8 +1962,7 @@ also `save-excursion' when you want to make a buffer current
 temporarily.  This function does not display the buffer, so its effect
 ends when the current command terminates.  Use `switch-to-buffer' or
 `pop-to-buffer' to switch buffers permanently.  */)
-     (buffer_or_name)
-     register Lisp_Object buffer_or_name;
+  (register Lisp_Object buffer_or_name)
 {
   register Lisp_Object buffer;
   buffer = Fget_buffer (buffer_or_name);
@@ -2012,7 +1987,7 @@ set_buffer_if_live (Lisp_Object buffer)
 DEFUN ("barf-if-buffer-read-only", Fbarf_if_buffer_read_only,
 				   Sbarf_if_buffer_read_only, 0, 0, 0,
        doc: /* Signal a `buffer-read-only' error if the current buffer is read-only.  */)
-     ()
+  (void)
 {
   if (!NILP (current_buffer->read_only)
       && NILP (Vinhibit_read_only))
@@ -2032,8 +2007,7 @@ from the selected window if it is displayed there.  If the selected
 window is dedicated to its buffer, delete that window if there are other
 windows on the same frame.  If the selected window is the only window on
 its frame, iconify that frame.  */)
-     (buffer_or_name)
-     register Lisp_Object buffer_or_name;
+  (register Lisp_Object buffer_or_name)
 {
   Lisp_Object buffer;
 
@@ -2087,7 +2061,7 @@ DEFUN ("erase-buffer", Ferase_buffer, Serase_buffer, 0, 0, "*",
        doc: /* Delete the entire contents of the current buffer.
 Any narrowing restriction in effect (see `narrow-to-region') is removed,
 so the buffer is truly empty after this.  */)
-     ()
+  (void)
 {
   Fwiden ();
 
@@ -2161,8 +2135,7 @@ extern void r_alloc_reset_variable (POINTER_TYPE *, POINTER_TYPE *);
 DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
        1, 1, 0,
        doc: /* Swap the text between current buffer and BUFFER.  */)
-     (buffer)
-     Lisp_Object buffer;
+  (Lisp_Object buffer)
 {
   struct buffer *other_buffer;
   CHECK_BUFFER (buffer);
@@ -2300,8 +2273,7 @@ If FLAG is `to', this makes the buffer a multibyte buffer by changing
 all eight-bit bytes to eight-bit characters.
 If the multibyte flag was really changed, undo information of the
 current buffer is cleared.  */)
-     (flag)
-     Lisp_Object flag;
+  (Lisp_Object flag)
 {
   struct Lisp_Marker *tail, *markers;
   struct buffer *other;
@@ -2599,7 +2571,7 @@ a non-nil `permanent-local' property are not eliminated by this function.
 
 The first thing this function does is run
 the normal hook `change-major-mode-hook'.  */)
-     ()
+  (void)
 {
   if (!NILP (Vrun_hooks))
     call1 (Vrun_hooks, Qchange_major_mode_hook);
@@ -3700,8 +3672,7 @@ fix_overlays_before (struct buffer *bp, EMACS_INT prev, EMACS_INT pos)
 
 DEFUN ("overlayp", Foverlayp, Soverlayp, 1, 1, 0,
        doc: /* Return t if OBJECT is an overlay.  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   return (OVERLAYP (object) ? Qt : Qnil);
 }
@@ -3716,9 +3687,7 @@ for the front of the overlay advance when text is inserted there
 The fifth arg REAR-ADVANCE, if non-nil, makes the marker
 for the rear of the overlay advance when text is inserted there
 \(which means the text *is* included in the overlay).  */)
-     (beg, end, buffer, front_advance, rear_advance)
-     Lisp_Object beg, end, buffer;
-     Lisp_Object front_advance, rear_advance;
+  (Lisp_Object beg, Lisp_Object end, Lisp_Object buffer, Lisp_Object front_advance, Lisp_Object rear_advance)
 {
   Lisp_Object overlay;
   struct buffer *b;
@@ -3838,8 +3807,7 @@ DEFUN ("move-overlay", Fmove_overlay, Smove_overlay, 3, 4, 0,
 If BUFFER is omitted, leave OVERLAY in the same buffer it inhabits now.
 If BUFFER is omitted, and OVERLAY is in no buffer, put it in the current
 buffer.  */)
-     (overlay, beg, end, buffer)
-     Lisp_Object overlay, beg, end, buffer;
+  (Lisp_Object overlay, Lisp_Object beg, Lisp_Object end, Lisp_Object buffer)
 {
   struct buffer *b, *ob;
   Lisp_Object obuffer;
@@ -3948,8 +3916,7 @@ buffer.  */)
 
 DEFUN ("delete-overlay", Fdelete_overlay, Sdelete_overlay, 1, 1, 0,
        doc: /* Delete the overlay OVERLAY from its buffer.  */)
-     (overlay)
-     Lisp_Object overlay;
+  (Lisp_Object overlay)
 {
   Lisp_Object buffer;
   struct buffer *b;
@@ -3989,8 +3956,7 @@ DEFUN ("delete-overlay", Fdelete_overlay, Sdelete_overlay, 1, 1, 0,
 
 DEFUN ("overlay-start", Foverlay_start, Soverlay_start, 1, 1, 0,
        doc: /* Return the position at which OVERLAY starts.  */)
-     (overlay)
-     Lisp_Object overlay;
+  (Lisp_Object overlay)
 {
   CHECK_OVERLAY (overlay);
 
@@ -3999,8 +3965,7 @@ DEFUN ("overlay-start", Foverlay_start, Soverlay_start, 1, 1, 0,
 
 DEFUN ("overlay-end", Foverlay_end, Soverlay_end, 1, 1, 0,
        doc: /* Return the position at which OVERLAY ends.  */)
-     (overlay)
-     Lisp_Object overlay;
+  (Lisp_Object overlay)
 {
   CHECK_OVERLAY (overlay);
 
@@ -4010,8 +3975,7 @@ DEFUN ("overlay-end", Foverlay_end, Soverlay_end, 1, 1, 0,
 DEFUN ("overlay-buffer", Foverlay_buffer, Soverlay_buffer, 1, 1, 0,
        doc: /* Return the buffer OVERLAY belongs to.
 Return nil if OVERLAY has been deleted.  */)
-     (overlay)
-       Lisp_Object overlay;
+  (Lisp_Object overlay)
 {
   CHECK_OVERLAY (overlay);
 
@@ -4022,8 +3986,7 @@ DEFUN ("overlay-properties", Foverlay_properties, Soverlay_properties, 1, 1, 0,
        doc: /* Return a list of the properties on OVERLAY.
 This is a copy of OVERLAY's plist; modifying its conses has no effect on
 OVERLAY.  */)
-     (overlay)
-    Lisp_Object overlay;
+  (Lisp_Object overlay)
 {
   CHECK_OVERLAY (overlay);
 
@@ -4033,8 +3996,7 @@ OVERLAY.  */)
 
 DEFUN ("overlays-at", Foverlays_at, Soverlays_at, 1, 1, 0,
        doc: /* Return a list of the overlays that contain the character at POS.  */)
-     (pos)
-     Lisp_Object pos;
+  (Lisp_Object pos)
 {
   int noverlays;
   Lisp_Object *overlay_vec;
@@ -4066,8 +4028,7 @@ and also contained within the specified region.
 Empty overlays are included in the result if they are located at BEG,
 between BEG and END, or at END provided END denotes the position at the
 end of the buffer.  */)
-     (beg, end)
-     Lisp_Object beg, end;
+  (Lisp_Object beg, Lisp_Object end)
 {
   int noverlays;
   Lisp_Object *overlay_vec;
@@ -4097,8 +4058,7 @@ DEFUN ("next-overlay-change", Fnext_overlay_change, Snext_overlay_change,
        doc: /* Return the next position after POS where an overlay starts or ends.
 If there are no overlay boundaries from POS to (point-max),
 the value is (point-max).  */)
-     (pos)
-     Lisp_Object pos;
+  (Lisp_Object pos)
 {
   int noverlays;
   EMACS_INT endpos;
@@ -4139,8 +4099,7 @@ DEFUN ("previous-overlay-change", Fprevious_overlay_change,
        doc: /* Return the previous position before POS where an overlay starts or ends.
 If there are no overlay boundaries from (point-min) to POS,
 the value is (point-min).  */)
-     (pos)
-     Lisp_Object pos;
+  (Lisp_Object pos)
 {
   int noverlays;
   EMACS_INT prevpos;
@@ -4176,7 +4135,7 @@ the cdr has all the overlays after the overlay center.
 Recentering overlays moves overlays between these lists.
 The lists you get are copies, so that changing them has no effect.
 However, the overlays you get are the real objects that the buffer uses.  */)
-     ()
+  (void)
 {
   struct Lisp_Overlay *ol;
   Lisp_Object before = Qnil, after = Qnil, tmp;
@@ -4197,8 +4156,7 @@ DEFUN ("overlay-recenter", Foverlay_recenter, Soverlay_recenter, 1, 1, 0,
        doc: /* Recenter the overlays of the current buffer around position POS.
 That makes overlay lookup faster for positions near POS (but perhaps slower
 for positions far away from POS).  */)
-     (pos)
-     Lisp_Object pos;
+  (Lisp_Object pos)
 {
   CHECK_NUMBER_COERCE_MARKER (pos);
 
@@ -4208,8 +4166,7 @@ for positions far away from POS).  */)
 
 DEFUN ("overlay-get", Foverlay_get, Soverlay_get, 2, 2, 0,
        doc: /* Get the property of overlay OVERLAY with property name PROP.  */)
-     (overlay, prop)
-     Lisp_Object overlay, prop;
+  (Lisp_Object overlay, Lisp_Object prop)
 {
   CHECK_OVERLAY (overlay);
   return lookup_char_property (XOVERLAY (overlay)->plist, prop, 0);
@@ -4217,8 +4174,7 @@ DEFUN ("overlay-get", Foverlay_get, Soverlay_get, 2, 2, 0,
 
 DEFUN ("overlay-put", Foverlay_put, Soverlay_put, 3, 3, 0,
        doc: /* Set one property of overlay OVERLAY: give property PROP value VALUE.  */)
-     (overlay, prop, value)
-     Lisp_Object overlay, prop, value;
+  (Lisp_Object overlay, Lisp_Object prop, Lisp_Object value)
 {
   Lisp_Object tail, buffer;
   int changed;
@@ -4413,8 +4369,8 @@ report_overlay_modification (Lisp_Object start, Lisp_Object end, int after,
     Lisp_Object *copy = (Lisp_Object *) alloca (size * sizeof (Lisp_Object));
     int i;
 
-    bcopy (XVECTOR (last_overlay_modification_hooks)->contents,
-	   copy, size * sizeof (Lisp_Object));
+    memcpy (copy, XVECTOR (last_overlay_modification_hooks)->contents,
+	    size * sizeof (Lisp_Object));
     gcpro1.var = copy;
     gcpro1.nvars = size;
 
@@ -4877,7 +4833,7 @@ mmap_realloc (var, nbytes)
 	    }
 	  else if (mmap_alloc (var, nbytes))
 	    {
-	      bcopy (old_ptr, *var, r->nbytes_specified);
+	      memcpy (*var, old_ptr, r->nbytes_specified);
 	      mmap_free_1 (MMAP_REGION (old_ptr));
 	      result = *var;
 	      r = MMAP_REGION (result);
@@ -5058,7 +5014,7 @@ init_buffer_once (void)
 {
   int idx;
 
-  bzero (buffer_permanent_local_flags, sizeof buffer_permanent_local_flags);
+  memset (buffer_permanent_local_flags, 0, sizeof buffer_permanent_local_flags);
 
   /* Make sure all markable slots in buffer_defaults
      are initialized reasonably, so mark_buffer won't choke.  */
@@ -5146,7 +5102,7 @@ init_buffer_once (void)
   if (sizeof (EMACS_INT) != sizeof (Lisp_Object)) abort ();
 
   /* 0 means not a lisp var, -1 means always local, else mask */
-  bzero (&buffer_local_flags, sizeof buffer_local_flags);
+  memset (&buffer_local_flags, 0, sizeof buffer_local_flags);
   XSETINT (buffer_local_flags.filename, -1);
   XSETINT (buffer_local_flags.directory, -1);
   XSETINT (buffer_local_flags.backed_up, -1);

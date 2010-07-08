@@ -720,7 +720,7 @@ encode_terminal_code (struct glyph *src, int src_len, struct coding_system *codi
 						  encode_terminal_src_size);
 		  buf = encode_terminal_src + nbytes;
 		}
-	      bcopy (SDATA (string), buf, SBYTES (string));
+	      memcpy (buf, SDATA (string), SBYTES (string));
 	      buf += SBYTES (string);
 	      nchars += SCHARS (string);
 	    }
@@ -1225,8 +1225,8 @@ calculate_costs (struct frame *frame)
           = (int *) xmalloc (sizeof (int)
                              + 2 * max_frame_cols * sizeof (int));
 
-      bzero (char_ins_del_vector, (sizeof (int)
-                                   + 2 * max_frame_cols * sizeof (int)));
+      memset (char_ins_del_vector, 0,
+	      (sizeof (int) + 2 * max_frame_cols * sizeof (int)));
 
 
       if (f && (!tty->TS_ins_line && !tty->TS_del_line))
@@ -1893,7 +1893,7 @@ produce_special_glyphs (struct it *it, enum display_element_type what)
   temp_it.what = IT_CHARACTER;
   temp_it.len = 1;
   temp_it.object = make_number (0);
-  bzero (&temp_it.current, sizeof temp_it.current);
+  memset (&temp_it.current, 0, sizeof temp_it.current);
 
   if (what == IT_CONTINUATION)
     {
@@ -2133,8 +2133,7 @@ DEFUN ("tty-display-color-p", Ftty_display_color_p, Stty_display_color_p,
 TERMINAL can be a terminal object, a frame, or nil (meaning the
 selected frame's terminal).  This function always returns nil if
 TERMINAL does not refer to a text-only terminal.  */)
-     (terminal)
-     Lisp_Object terminal;
+  (Lisp_Object terminal)
 {
   struct terminal *t = get_tty_terminal (terminal, 0);
   if (!t)
@@ -2151,8 +2150,7 @@ DEFUN ("tty-display-color-cells", Ftty_display_color_cells,
 TERMINAL can be a terminal object, a frame, or nil (meaning the
 selected frame's terminal).  This function always returns 0 if
 TERMINAL does not refer to a text-only terminal.  */)
-     (terminal)
-     Lisp_Object terminal;
+  (Lisp_Object terminal)
 {
   struct terminal *t = get_tty_terminal (terminal, 0);
   if (!t)
@@ -2336,8 +2334,7 @@ Returns nil if TERMINAL is not on a tty device.
 
 TERMINAL can be a terminal object, a frame, or nil (meaning the
 selected frame's terminal).  */)
-     (terminal)
-     Lisp_Object terminal;
+  (Lisp_Object terminal)
 {
   struct terminal *t = get_terminal (terminal, 1);
 
@@ -2356,8 +2353,7 @@ DEFUN ("controlling-tty-p", Fcontrolling_tty_p, Scontrolling_tty_p, 0, 1, 0,
 TERMINAL can be a terminal object, a frame, or nil (meaning the
 selected frame's terminal).  This function always returns nil if
 TERMINAL is not on a tty device.  */)
-     (terminal)
-     Lisp_Object terminal;
+  (Lisp_Object terminal)
 {
   struct terminal *t = get_terminal (terminal, 1);
 
@@ -2377,8 +2373,7 @@ no effect if used on a non-tty terminal.
 TERMINAL can be a terminal object, a frame or nil (meaning the
 selected frame's terminal).  This function always returns nil if
 TERMINAL does not refer to a text-only terminal.  */)
-  (terminal)
-     Lisp_Object terminal;
+  (Lisp_Object terminal)
 {
   struct terminal *t = get_terminal (terminal, 1);
 
@@ -2408,8 +2403,7 @@ terminal device.
 suspended.
 
 A suspended tty may be resumed by calling `resume-tty' on it.  */)
-     (tty)
-     Lisp_Object tty;
+  (Lisp_Object tty)
 {
   struct terminal *t = get_tty_terminal (tty, 1);
   FILE *f;
@@ -2475,8 +2469,7 @@ suspended.
 
 TTY may be a terminal object, a frame, or nil (meaning the selected
 frame's terminal). */)
-     (tty)
-     Lisp_Object tty;
+  (Lisp_Object tty)
 {
   struct terminal *t = get_tty_terminal (tty, 1);
   int fd;
@@ -3148,7 +3141,7 @@ DEFUN ("gpm-mouse-start", Fgpm_mouse_start, Sgpm_mouse_start,
        0, 0, 0,
        doc: /* Open a connection to Gpm.
 Gpm-mouse can only be activated for one tty at a time.  */)
-     ()
+  (void)
 {
   struct frame *f = SELECTED_FRAME ();
   struct tty_display_info *tty
@@ -3196,7 +3189,7 @@ close_gpm (int fd)
 DEFUN ("gpm-mouse-stop", Fgpm_mouse_stop, Sgpm_mouse_stop,
        0, 0, 0,
        doc: /* Close a connection to Gpm.  */)
-     ()
+  (void)
 {
   struct frame *f = SELECTED_FRAME ();
   struct tty_display_info *tty
@@ -3229,7 +3222,7 @@ create_tty_output (struct frame *f)
     abort ();
 
   t = xmalloc (sizeof (struct tty_output));
-  bzero (t, sizeof (struct tty_output));
+  memset (t, 0, sizeof (struct tty_output));
 
   t->display_info = FRAME_TERMINAL (f)->display_info.tty;
 
@@ -3436,7 +3429,7 @@ init_tty (char *name, char *terminal_type, int must_succeed)
 #else
   tty = (struct tty_display_info *) xmalloc (sizeof (struct tty_display_info));
 #endif
-  bzero (tty, sizeof (struct tty_display_info));
+  memset (tty, 0, sizeof (struct tty_display_info));
   tty->next = tty_list;
   tty_list = tty;
 
@@ -4028,7 +4021,7 @@ delete_tty (struct terminal *terminal)
   xfree (tty->termcap_strings_buffer);
   xfree (tty->termcap_term_buffer);
 
-  bzero (tty, sizeof (struct tty_display_info));
+  memset (tty, 0, sizeof (struct tty_display_info));
   xfree (tty);
 }
 

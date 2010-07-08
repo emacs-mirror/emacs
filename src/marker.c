@@ -433,8 +433,7 @@ buf_bytepos_to_charpos (struct buffer *b, int bytepos)
 DEFUN ("marker-buffer", Fmarker_buffer, Smarker_buffer, 1, 1, 0,
        doc: /* Return the buffer that MARKER points into, or nil if none.
 Returns nil if MARKER points into a dead buffer.  */)
-     (marker)
-     register Lisp_Object marker;
+  (register Lisp_Object marker)
 {
   register Lisp_Object buf;
   CHECK_MARKER (marker);
@@ -454,8 +453,7 @@ Returns nil if MARKER points into a dead buffer.  */)
 DEFUN ("marker-position", Fmarker_position, Smarker_position, 1, 1, 0,
        doc: /* Return the position MARKER points at, as a character number.
 Returns nil if MARKER points nowhere.  */)
-     (marker)
-     Lisp_Object marker;
+  (Lisp_Object marker)
 {
   CHECK_MARKER (marker);
   if (XMARKER (marker)->buffer)
@@ -470,8 +468,7 @@ BUFFER defaults to the current buffer.
 If POSITION is nil, makes marker point nowhere.
 Then it no longer slows down editing in any buffer.
 Returns MARKER.  */)
-     (marker, position, buffer)
-     Lisp_Object marker, position, buffer;
+  (Lisp_Object marker, Lisp_Object position, Lisp_Object buffer)
 {
   register int charno, bytepos;
   register struct buffer *b;
@@ -815,8 +812,7 @@ If argument is a number, makes a new marker pointing
 at that position in the current buffer.
 The optional argument TYPE specifies the insertion type of the new marker;
 see `marker-insertion-type'.  */)
-     (marker, type)
-     register Lisp_Object marker, type;
+  (register Lisp_Object marker, Lisp_Object type)
 {
   register Lisp_Object new;
 
@@ -833,8 +829,7 @@ DEFUN ("marker-insertion-type", Fmarker_insertion_type,
        Smarker_insertion_type, 1, 1, 0,
        doc: /* Return insertion type of MARKER: t if it stays after inserted text.
 The value nil means the marker stays before text inserted there.  */)
-     (marker)
-     register Lisp_Object marker;
+  (register Lisp_Object marker)
 {
   CHECK_MARKER (marker);
   return XMARKER (marker)->insertion_type ? Qt : Qnil;
@@ -845,8 +840,7 @@ DEFUN ("set-marker-insertion-type", Fset_marker_insertion_type,
        doc: /* Set the insertion-type of MARKER to TYPE.
 If TYPE is t, it means the marker advances when you insert text at it.
 If TYPE is nil, it means the marker stays behind when you insert text at it.  */)
-     (marker, type)
-     Lisp_Object marker, type;
+  (Lisp_Object marker, Lisp_Object type)
 {
   CHECK_MARKER (marker);
 
@@ -857,8 +851,7 @@ If TYPE is nil, it means the marker stays behind when you insert text at it.  */
 DEFUN ("buffer-has-markers-at", Fbuffer_has_markers_at, Sbuffer_has_markers_at,
        1, 1, 0,
        doc: /* Return t if there are markers pointing at POSITION in the current buffer.  */)
-     (position)
-     Lisp_Object position;
+  (Lisp_Object position)
 {
   register struct Lisp_Marker *tail;
   register int charno;

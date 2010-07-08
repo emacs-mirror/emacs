@@ -28,10 +28,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Convert that into an integer that is 100 for a load average of 1.0  */
 #define LOAD_AVE_CVT(x) (int) (((double) (x)) * 100.0 / FSCALE)
 
-#if (defined (__NetBSD__) || defined (__OpenBSD__)) && defined (__ELF__)
-#define HAVE_TEXT_START
-#endif
-
 #ifdef _ARCH_PPC64
 #ifndef _LP64
 #define _LP64

@@ -104,24 +104,6 @@ static void destroy_one_instance (widget_instance *);
 static void lw_pop_all_widgets (LWLIB_ID, Boolean);
 static Boolean get_one_value (widget_instance *, widget_value *);
 static void show_one_widget_busy (Widget, Boolean);
-
-void
-lwlib_memset (char *address, int value, size_t length)
-{
-  int i;
-
-  for (i = 0; i < length; i++)
-    address[i] = value;
-}
-
-void
-lwlib_bcopy (char *from, char *to, int length)
-{
-  int i;
-
-  for (i = 0; i < length; i++)
-    to[i] = from[i];
-}
 /* utility functions for widget_instance and widget_info */
 char *
 safe_strdup (const char *s)
@@ -179,7 +161,7 @@ malloc_widget_value (void)
       wv = (widget_value *) malloc (sizeof (widget_value));
       malloc_cpt++;
     }
-  lwlib_memset ((void*) wv, 0, sizeof (widget_value));
+  memset ((void*) wv, 0, sizeof (widget_value));
   return wv;
 }
 
@@ -267,16 +249,14 @@ copy_widget_value_tree (widget_value *val, change_type change)
 }
 
 static widget_info *
-allocate_widget_info (type, name, id, val, pre_activate_cb,
-		      selection_cb, post_activate_cb, highlight_cb)
-     char* type;
-     char* name;
-     LWLIB_ID id;
-     widget_value* val;
-     lw_callback pre_activate_cb;
-     lw_callback selection_cb;
-     lw_callback post_activate_cb;
-     lw_callback highlight_cb;
+allocate_widget_info (char* type,
+                      char* name,
+                      LWLIB_ID id,
+                      widget_value* val,
+                      lw_callback pre_activate_cb,
+                      lw_callback selection_cb,
+                      lw_callback post_activate_cb,
+                      lw_callback highlight_cb)
 {
   widget_info* info = (widget_info*)malloc (sizeof (widget_info));
   info->type = safe_strdup (type);
@@ -302,7 +282,7 @@ free_widget_info (widget_info *info)
   safe_free_str (info->type);
   safe_free_str (info->name);
   free_widget_value_tree (info->val);
-  lwlib_memset ((void*)info, 0xDEADBEEF, sizeof (widget_info));
+  memset ((void*)info, 0xDEADBEEF, sizeof (widget_info));
   free (info);
 }
 
@@ -316,22 +296,12 @@ mark_widget_destroyed (Widget widget, XtPointer closure, XtPointer call_data)
     instance->widget = NULL;
 }
 
-/* The messy #ifdef PROTOTYPES here and elsewhere are prompted by a
-   flood of warnings about argument promotion from proprietary ISO C
-   compilers.  (etags still only makes one entry for each function.)  */
 static widget_instance *
-#ifdef PROTOTYPES
 allocate_widget_instance (widget_info* info, Widget parent, Boolean pop_up_p)
-#else
-allocate_widget_instance (info, parent, pop_up_p)
-     widget_info* info;
-     Widget parent;
-     Boolean pop_up_p;
-#endif
 {
   widget_instance* instance =
     (widget_instance*)malloc (sizeof (widget_instance));
-  bzero (instance, sizeof *instance);
+  memset (instance, 0, sizeof *instance);
   instance->parent = parent;
   instance->pop_up_p = pop_up_p;
   instance->info = info;
@@ -348,18 +318,12 @@ allocate_widget_instance (info, parent, pop_up_p)
 static void
 free_widget_instance (widget_instance *instance)
 {
-  lwlib_memset ((void*)instance, 0xDEADBEEF, sizeof (widget_instance));
+  memset ((void*)instance, 0xDEADBEEF, sizeof (widget_instance));
   free (instance);
 }
 
 static widget_info *
-#ifdef PROTOTYPES
 get_widget_info (LWLIB_ID id, Boolean remove_p)
-#else
-get_widget_info (id, remove_p)
-     LWLIB_ID id;
-     Boolean remove_p;
-#endif
 {
   widget_info* info;
   widget_info* prev;
@@ -389,13 +353,7 @@ lw_get_widget_info (LWLIB_ID id)
 }
 
 static widget_instance *
-#ifdef PROTOTYPES
 get_widget_instance (Widget widget, Boolean remove_p)
-#else
-get_widget_instance (widget, remove_p)
-     Widget widget;
-     Boolean remove_p;
-#endif
 {
   widget_info* info;
   widget_instance* instance;
@@ -428,14 +386,7 @@ lw_get_widget_instance (Widget widget)
 }
 
 static widget_instance*
-#ifdef PROTOTYPES
 find_instance (LWLIB_ID id, Widget parent, Boolean pop_up_p)
-#else
-find_instance (id, parent, pop_up_p)
-     LWLIB_ID id;
-     Widget parent;
-     Boolean pop_up_p;
-#endif
 {
   widget_info* info = get_widget_info (id, False);
   widget_instance* instance;
@@ -478,7 +429,10 @@ safe_strcmp (char *s1, char *s2)
 
 
 static widget_value *
-merge_widget_value (widget_value *val1, widget_value *val2, int level, int *change_p)
+merge_widget_value (widget_value *val1,
+                    widget_value *val2,
+                    int level,
+                    int *change_p)
 {
   change_type change, this_one_change;
   widget_value* merged_next;
@@ -656,14 +610,7 @@ name_to_widget (widget_instance *instance, char *name)
 }
 
 static void
-#ifdef PROTOTYPES
 set_one_value (widget_instance* instance, widget_value* val, Boolean deep_p)
-#else
-set_one_value (instance, val, deep_p)
-     widget_instance* instance;
-     widget_value* val;
-     Boolean deep_p;
-#endif
 {
   Widget widget = name_to_widget (instance, val->name);
 
@@ -685,13 +632,7 @@ set_one_value (instance, val, deep_p)
 }
 
 static void
-#ifdef PROTOTYPES
 update_one_widget_instance (widget_instance* instance, Boolean deep_p)
-#else
-update_one_widget_instance (instance, deep_p)
-     widget_instance* instance;
-     Boolean deep_p;
-#endif
 {
   widget_value *val;
 
@@ -705,13 +646,7 @@ update_one_widget_instance (instance, deep_p)
 }
 
 static void
-#ifdef PROTOTYPES
 update_all_widget_values (widget_info* info, Boolean deep_p)
-#else
-update_all_widget_values (info, deep_p)
-     widget_info* info;
-     Boolean deep_p;
-#endif
 {
   widget_instance* instance;
   widget_value* val;
@@ -724,14 +659,7 @@ update_all_widget_values (info, deep_p)
 }
 
 int
-#ifdef PROTOTYPES
 lw_modify_all_widgets (LWLIB_ID id, widget_value* val, Boolean deep_p)
-#else
-lw_modify_all_widgets (id, val, deep_p)
-     LWLIB_ID id;
-     widget_value* val;
-     Boolean deep_p;
-#endif
 {
   widget_info* info = get_widget_info (id, False);
   widget_value* new_val;
@@ -895,16 +823,14 @@ instantiate_widget_instance (widget_instance *instance)
 }
 
 void
-lw_register_widget (type, name, id, val, pre_activate_cb,
-		    selection_cb, post_activate_cb, highlight_cb)
-     char* type;
-     char* name;
-     LWLIB_ID id;
-     widget_value* val;
-     lw_callback pre_activate_cb;
-     lw_callback selection_cb;
-     lw_callback post_activate_cb;
-     lw_callback highlight_cb;
+lw_register_widget (char* type,
+                    char* name,
+                    LWLIB_ID id,
+                    widget_value* val,
+                    lw_callback pre_activate_cb,
+                    lw_callback selection_cb,
+                    lw_callback post_activate_cb,
+                    lw_callback highlight_cb)
 {
   if (!get_widget_info (id, False))
     allocate_widget_info (type, name, id, val, pre_activate_cb, selection_cb,
@@ -912,14 +838,7 @@ lw_register_widget (type, name, id, val, pre_activate_cb,
 }
 
 Widget
-#ifdef PROTOTYPES
 lw_get_widget (LWLIB_ID id, Widget parent, Boolean pop_up_p)
-#else
-lw_get_widget (id, parent, pop_up_p)
-     LWLIB_ID id;
-     Widget parent;
-     Boolean pop_up_p;
-#endif
 {
   widget_instance* instance;
 
@@ -928,14 +847,7 @@ lw_get_widget (id, parent, pop_up_p)
 }
 
 Widget
-#ifdef PROTOTYPES
 lw_make_widget (LWLIB_ID id, Widget parent, Boolean pop_up_p)
-#else
-lw_make_widget (id, parent, pop_up_p)
-     LWLIB_ID id;
-     Widget parent;
-     Boolean pop_up_p;
-#endif
 {
   widget_instance* instance;
   widget_info* info;
@@ -955,25 +867,10 @@ lw_make_widget (id, parent, pop_up_p)
 }
 
 Widget
-#ifdef PROTOTYPES
 lw_create_widget (char* type, char* name, LWLIB_ID id, widget_value* val,
 		  Widget parent, Boolean pop_up_p,
 		  lw_callback pre_activate_cb, lw_callback selection_cb,
 		  lw_callback post_activate_cb, lw_callback highlight_cb)
-#else
-lw_create_widget (type, name, id, val, parent, pop_up_p, pre_activate_cb,
-		  selection_cb, post_activate_cb, highlight_cb)
-     char* type;
-     char* name;
-     LWLIB_ID id;
-     widget_value* val;
-     Widget parent;
-     Boolean pop_up_p;
-     lw_callback pre_activate_cb;
-     lw_callback selection_cb;
-     lw_callback post_activate_cb;
-     lw_callback highlight_cb;
-#endif
 {
   lw_register_widget (type, name, id, val, pre_activate_cb, selection_cb,
 		      post_activate_cb, highlight_cb);
@@ -1120,13 +1017,7 @@ lw_raise_all_pop_up_widgets (void)
 }
 
 static void
-#ifdef PROTOTYPES
 lw_pop_all_widgets (LWLIB_ID id, Boolean up)
-#else
-lw_pop_all_widgets (id, up)
-     LWLIB_ID id;
-     Boolean up;
-#endif
 {
   widget_info* info = get_widget_info (id, False);
   widget_instance* instance;
@@ -1270,7 +1161,9 @@ static Boolean lwlib_updating;
   modified to update other instances of the widgets.  Closure should be the
   widget_instance. */
 void
-lw_internal_update_other_instances (Widget widget, XtPointer closure, XtPointer call_data)
+lw_internal_update_other_instances (Widget widget,
+                                    XtPointer closure,
+                                    XtPointer call_data)
 {
   widget_instance* instance = (widget_instance*)closure;
   char* name = XtName (widget);
@@ -1327,13 +1220,7 @@ lw_set_keyboard_focus (Widget parent, Widget w)
 
 /* Show busy */
 static void
-#ifdef PROTOTYPES
 show_one_widget_busy (Widget w, Boolean flag)
-#else
-show_one_widget_busy (w, flag)
-     Widget w;
-     Boolean flag;
-#endif
 {
   Pixel foreground = 0;
   Pixel background = 1;
@@ -1352,13 +1239,7 @@ show_one_widget_busy (w, flag)
 }
 
 void
-#ifdef PROTOTYPES
 lw_show_busy (Widget w, Boolean busy)
-#else
-lw_show_busy (w, busy)
-     Widget w;
-     Boolean busy;
-#endif
 {
   widget_instance* instance = get_widget_instance (w, False);
   widget_info* info;
@@ -1380,13 +1261,7 @@ lw_show_busy (w, busy)
 /* This hack exists because Lucid/Athena need to execute the strange
    function below to support geometry management. */
 void
-#ifdef PROTOTYPES
 lw_refigure_widget (Widget w, Boolean doit)
-#else
-lw_refigure_widget (w, doit)
-     Widget w;
-     Boolean doit;
-#endif
 {
 #if defined (USE_XAW)
   XawPanedSetRefigureMode (w, doit);
@@ -1428,13 +1303,7 @@ lw_set_main_areas (Widget parent, Widget menubar, Widget work_area)
 /* Manage resizing for Motif.  This disables resizing when the menubar
    is about to be modified. */
 void
-#ifdef PROTOTYPES
 lw_allow_resizing (Widget w, Boolean flag)
-#else
-lw_allow_resizing (w, flag)
-     Widget w;
-     Boolean flag;
-#endif
 {
 #if defined (USE_MOTIF)
   xm_manage_resizing (w, flag);
@@ -1453,7 +1322,7 @@ lw_separator_p (char *label, enum menu_separator *type, int motif_p)
   int separator_p = 0;
 
   if (strlen (label) >= 3
-      && bcmp (label, "--:", 3) == 0)
+      && memcmp (label, "--:", 3) == 0)
     {
       static struct separator_table
       {
@@ -1496,7 +1365,7 @@ lw_separator_p (char *label, enum menu_separator *type, int motif_p)
 	  }
     }
   else if (strlen (label) > 3
-	   && bcmp (label, "--", 2) == 0
+	   && memcmp (label, "--", 2) == 0
 	   && label[2] != '-')
     {
       /* Alternative, more Emacs-style names.  */

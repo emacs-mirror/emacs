@@ -154,7 +154,7 @@ x_session_check_input (struct input_event *bufp)
   /* Check if smc_interact_CB was called and we shall generate a
      SAVE_SESSION_EVENT.  */
   if (emacs_event.kind != NO_EVENT)
-    bcopy (&emacs_event, bufp, sizeof (struct input_event));
+    memcpy (bufp, &emacs_event, sizeof (struct input_event));
 
   return emacs_event.kind != NO_EVENT ? 1 : 0;
 }
@@ -519,8 +519,7 @@ from `emacs-session-save'  If the return value is non-nil the session manager
 is told to abort the window system shutdown.
 
 Do not call this function yourself. */)
-     (event)
-     Lisp_Object event;
+  (Lisp_Object event)
 {
   /* Check doing_interact so that we don't do anything if someone called
      this at the wrong time. */

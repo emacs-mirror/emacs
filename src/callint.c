@@ -131,8 +131,7 @@ If the string begins with `^' and `shift-select-mode' is non-nil,
 You may use `@', `*', and `^' together.  They are processed in the
  order that they appear, before reading any arguments.
 usage: (interactive &optional ARGS)  */)
-     (args)
-     Lisp_Object args;
+  (Lisp_Object args)
 {
   return Qnil;
 }
@@ -263,8 +262,7 @@ Optional third arg KEYS, if given, specifies the sequence of events to
 supply, as a vector, if the command inquires which events were used to
 invoke it.  If KEYS is omitted or nil, the return value of
 `this-command-keys-vector' is used.  */)
-     (function, record_flag, keys)
-     Lisp_Object function, record_flag, keys;
+  (Lisp_Object function, Lisp_Object record_flag, Lisp_Object keys)
 {
   Lisp_Object *args, *visargs;
   Lisp_Object specs;
@@ -348,8 +346,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
       /* Make a copy of string so that if a GC relocates specs,
 	 `string' will still be valid.  */
       string = (unsigned char *) alloca (SBYTES (specs) + 1);
-      bcopy (SDATA (specs), string,
-	     SBYTES (specs) + 1);
+      memcpy (string, SDATA (specs), SBYTES (specs) + 1);
     }
   else
     {
@@ -873,8 +870,7 @@ DEFUN ("prefix-numeric-value", Fprefix_numeric_value, Sprefix_numeric_value,
        doc: /* Return numeric meaning of raw prefix argument RAW.
 A raw prefix argument is what you get from `(interactive "P")'.
 Its numeric meaning is what you would get from `(interactive "p")'.  */)
-     (raw)
-     Lisp_Object raw;
+  (Lisp_Object raw)
 {
   Lisp_Object val;
 

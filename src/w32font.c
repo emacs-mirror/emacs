@@ -225,7 +225,7 @@ w32font_list_family (Lisp_Object frame)
   HDC dc;
   FRAME_PTR f = XFRAME (frame);
 
-  bzero (&font_match_pattern, sizeof (font_match_pattern));
+  memset (&font_match_pattern, 0, sizeof (font_match_pattern));
   font_match_pattern.lfCharSet = DEFAULT_CHARSET;
 
   dc = get_frame_dc (f);
@@ -373,7 +373,7 @@ w32font_text_extents (struct font *font, unsigned *code,
 
   if (metrics)
     {
-      bzero (metrics, sizeof (struct font_metrics));
+      memset (metrics, 0, sizeof (struct font_metrics));
       metrics->ascent = font->ascent;
       metrics->descent = font->descent;
 
@@ -394,9 +394,9 @@ w32font_text_extents (struct font *font, unsigned *code,
 		  = xrealloc (w32_font->cached_metrics,
 			      (block + 1)
 			      * sizeof (struct w32_metric_cache *));
-	      bzero (w32_font->cached_metrics + w32_font->n_cache_blocks,
-		     ((block + 1 - w32_font->n_cache_blocks)
-		      * sizeof (struct w32_metric_cache *)));
+	      memset (w32_font->cached_metrics + w32_font->n_cache_blocks, 0,
+		      ((block + 1 - w32_font->n_cache_blocks)
+		       * sizeof (struct w32_metric_cache *)));
 	      w32_font->n_cache_blocks = block + 1;
 	    }
 
@@ -404,8 +404,8 @@ w32font_text_extents (struct font *font, unsigned *code,
 	    {
 	      w32_font->cached_metrics[block]
 		= xmalloc (CACHE_BLOCKSIZE * sizeof (struct w32_metric_cache));
-	      bzero (w32_font->cached_metrics[block],
-		     CACHE_BLOCKSIZE * sizeof (struct w32_metric_cache));
+	      memset (w32_font->cached_metrics[block], 0,
+		      CACHE_BLOCKSIZE * sizeof (struct w32_metric_cache));
 	    }
 
 	  char_metric = w32_font->cached_metrics[block] + pos_in_block;
@@ -706,7 +706,7 @@ w32font_list_internal (Lisp_Object frame, Lisp_Object font_spec, int opentype_on
   match_data.list = Qnil;
   match_data.frame = frame;
 
-  bzero (&match_data.pattern, sizeof (LOGFONT));
+  memset (&match_data.pattern, 0, sizeof (LOGFONT));
   fill_in_logfont (f, &match_data.pattern, font_spec);
 
   /* If the charset is unrecognized, then we won't find a font, so don't
@@ -759,7 +759,7 @@ w32font_match_internal (Lisp_Object frame, Lisp_Object font_spec, int opentype_o
   match_data.frame = frame;
   match_data.list = Qnil;
 
-  bzero (&match_data.pattern, sizeof (LOGFONT));
+  memset (&match_data.pattern, 0, sizeof (LOGFONT));
   fill_in_logfont (f, &match_data.pattern, font_spec);
 
   match_data.opentype_only = opentype_only;
@@ -795,7 +795,7 @@ w32font_open_internal (FRAME_PTR f, Lisp_Object font_entity,
   if (!font)
     return 0;
 
-  bzero (&logfont, sizeof (logfont));
+  memset (&logfont, 0, sizeof (logfont));
   fill_in_logfont (f, &logfont, font_entity);
 
   /* Prefer truetype fonts, to avoid known problems with type1 fonts, and
@@ -824,8 +824,8 @@ w32font_open_internal (FRAME_PTR f, Lisp_Object font_entity,
     {
       metrics = (OUTLINETEXTMETRICW *) alloca (len);
       if (GetOutlineTextMetricsW (dc, len, metrics))
-        bcopy (&metrics->otmTextMetrics, &w32_font->metrics,
-               sizeof (TEXTMETRICW));
+        memcpy (&w32_font->metrics, &metrics->otmTextMetrics,
+		sizeof (TEXTMETRICW));
       else
         metrics = NULL;
     }
@@ -2306,7 +2306,7 @@ compute_metrics (HDC dc, struct w32font_info *w32_font, unsigned int code,
   if (w32_font->glyph_idx)
     options |= GGO_GLYPH_INDEX;
 
-  bzero (&transform, sizeof (transform));
+  memset (&transform, 0, sizeof (transform));
   transform.eM11.value = 1;
   transform.eM22.value = 1;
 
@@ -2329,8 +2329,7 @@ Return fontconfig style font string corresponding to the selection.
 If FRAME is omitted or nil, it defaults to the selected frame.
 If EXCLUDE-PROPORTIONAL is non-nil, exclude proportional fonts
 in the font selection dialog. */)
-  (frame, exclude_proportional)
-     Lisp_Object frame, exclude_proportional;
+  (Lisp_Object frame, Lisp_Object exclude_proportional)
 {
   FRAME_PTR f = check_x_frame (frame);
   CHOOSEFONT cf;
@@ -2340,8 +2339,8 @@ in the font selection dialog. */)
   HANDLE oldobj;
   char buf[100];
 
-  bzero (&cf, sizeof (cf));
-  bzero (&lf, sizeof (lf));
+  memset (&cf, 0, sizeof (cf));
+  memset (&lf, 0, sizeof (lf));
 
   cf.lStructSize = sizeof (cf);
   cf.hwndOwner = FRAME_W32_WINDOW (f);

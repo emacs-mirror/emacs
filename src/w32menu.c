@@ -156,8 +156,7 @@ on the left of the dialog box and all following items on the right.
 
 If HEADER is non-nil, the frame title for the box is "Information",
 otherwise it is "Question". */)
-  (position, contents, header)
-     Lisp_Object position, contents, header;
+  (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
 {
   FRAME_PTR f = NULL;
   Lisp_Object window;
@@ -450,8 +449,8 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 
       /* Save the frame's previous menu bar contents data.  */
       if (previous_menu_items_used)
-	bcopy (XVECTOR (f->menu_bar_vector)->contents, previous_items,
-	       previous_menu_items_used * sizeof (Lisp_Object));
+	memcpy (previous_items, XVECTOR (f->menu_bar_vector)->contents,
+		previous_menu_items_used * sizeof (Lisp_Object));
 
       /* Fill in menu_items with the current menu bar contents.
 	 This can evaluate Lisp code.  */
@@ -1522,7 +1521,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
       if (set_menu_item_info)
 	{
 	  MENUITEMINFO info;
-	  bzero (&info, sizeof (info));
+	  memset (&info, 0, sizeof (info));
 	  info.cbSize = sizeof (info);
 	  info.fMask = MIIM_DATA;
 
@@ -1605,7 +1604,7 @@ w32_menu_display_help (HWND owner, HMENU menu, UINT item, UINT flags)
 	{
 	  MENUITEMINFO info;
 
-	  bzero (&info, sizeof (info));
+	  memset (&info, 0, sizeof (info));
 	  info.cbSize = sizeof (info);
 	  info.fMask = MIIM_DATA;
 	  get_menu_item_info (menu, item, FALSE, &info);
@@ -1642,7 +1641,7 @@ w32_free_submenu_strings (HMENU menu)
   for (i = 0; i < num; i++)
     {
       MENUITEMINFO info;
-      bzero (&info, sizeof (info));
+      memset (&info, 0, sizeof (info));
       info.cbSize = sizeof (info);
       info.fMask = MIIM_DATA | MIIM_TYPE | MIIM_SUBMENU;
 
@@ -1688,7 +1687,7 @@ w32_free_menu_strings (HWND hwnd)
 
 DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_p, 0, 0, 0,
        doc: /* Return t if a menu or popup dialog is active on selected frame.  */)
-     ()
+  (void)
 {
 #ifdef HAVE_MENUS
   FRAME_PTR f;

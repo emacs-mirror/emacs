@@ -890,6 +890,8 @@ AC_SUBST(CANNOT_DUMP)
 
 UNEXEC_OBJ=unexelf.o
 case "$opsys" in
+  # MSDOS uses unexec.o
+  # MSWindows uses unexw32.o
   aix4-2)
    UNEXEC_OBJ=unexaix.o
    ;;
@@ -2615,12 +2617,12 @@ AC_SUBST(BLESSMAIL_TARGET)
 
 AC_CHECK_FUNCS(gethostname getdomainname dup2 \
 rename closedir mkdir rmdir sysinfo getrusage get_current_dir_name \
-random lrand48 bcopy bcmp logb frexp fmod rint cbrt ftime setsid \
+random lrand48 logb frexp fmod rint cbrt ftime setsid \
 strerror fpathconf select mktime euidaccess getpagesize tzset setlocale \
 utimes getrlimit setrlimit setpgid getcwd getwd shutdown getaddrinfo \
 __fpending mblen mbrlen mbsinit strsignal setitimer ualarm index rindex \
 sendto recvfrom getsockopt setsockopt getsockname getpeername \
-gai_strerror mkstemp getline getdelim mremap memmove fsync sync bzero \
+gai_strerror mkstemp getline getdelim mremap memmove fsync sync \
 memset memcmp difftime memcpy mempcpy mblen mbrlen posix_memalign \
 cfmakeraw cfsetspeed isnan copysign)
 
@@ -3358,8 +3360,6 @@ case "$opsys" in
 esac
 
 
-PRE_EDIT_LDFLAGS=
-POST_EDIT_LDFLAGS=
 if test "x$ORDINARY_LINK" = "xyes"; then
 
   LINKER="\$(CC)"
@@ -3378,17 +3378,7 @@ elif test "x$GCC" = "xyes" && test "x$LINKER" = "x"; then
   ## searching for libraries in its internal directories, so we have to
   ## ask GCC explicitly where to find libgcc.a (LIB_GCC below).
   LINKER="\$(CC) -nostdlib"
-  ## GCC passes any argument prefixed with -Xlinker directly to the linker.
-  ## See prefix-args.c for an explanation of why we do not do this with the
-  ## shell''s ``for'' construct.  Note that sane people do not have '.' in
-  ## their paths, so we must use ./prefix-args.
-  ## TODO either make prefix-args check ORDINARY_LINK internally,
-  ## or remove it altogether (bug#6184), removing the need for this hack.
-  PRE_EDIT_LDFLAGS='`./prefix-args -Xlinker'
-  POST_EDIT_LDFLAGS='`'
 fi
-AC_SUBST(PRE_EDIT_LDFLAGS)
-AC_SUBST(POST_EDIT_LDFLAGS)
 
 test "x$LINKER" = "x" && LINKER=ld
 ## FIXME? What setting of EDIT_LDFLAGS should this have?
@@ -3574,10 +3564,6 @@ SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
 #include <string.h>
 #endif
 
-#ifdef HAVE_STRINGS_H
-#include <strings.h>  /* May be needed for bcopy & al.  */
-#endif
-
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
@@ -3617,16 +3603,6 @@ typedef unsigned size_t;
 #  ifndef GC_LISP_OBJECT_ALIGNMENT
 #    define GC_LISP_OBJECT_ALIGNMENT (__alignof__ (Lisp_Object))
 #  endif
-#endif
-
-#ifndef HAVE_BCOPY
-#define bcopy(a,b,s) memcpy (b,a,s)
-#endif
-#ifndef HAVE_BZERO
-#define bzero(a,s) memset (a,0,s)
-#endif
-#ifndef HAVE_BCMP
-#define BCMP memcmp
 #endif
 
 #endif /* EMACS_CONFIG_H */

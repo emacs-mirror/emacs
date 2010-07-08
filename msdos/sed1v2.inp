@@ -128,8 +128,6 @@ s/\.h\.in/.h-in/
 /^[ 	]*$/d
 /^	if test -f/,/^	fi$/c\
 	command.com /c if exist .gdbinit rm -f _gdbinit
-/^temacs:/s/prefix-args//
-/^temacs:/s/stamp-oldxmenu//
 /^	if test "\${CANNOT_DUMP}" =/,/^	else /d
 /^	fi/d
 /^	LC_ALL=C \$(RUN_TEMACS)/i\

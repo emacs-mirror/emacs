@@ -346,8 +346,7 @@ If OPERATION equals `inhibit-file-name-operation', then we ignore
 any handlers that are members of `inhibit-file-name-handlers',
 but we still do run any other handlers.  This lets handlers
 use the standard functions without calling themselves recursively.  */)
-     (filename, operation)
-     Lisp_Object filename, operation;
+  (Lisp_Object filename, Lisp_Object operation)
 {
   /* This function must not munge the match data.  */
   Lisp_Object chain, inhibited_handlers, result;
@@ -403,8 +402,7 @@ DEFUN ("file-name-directory", Ffile_name_directory, Sfile_name_directory,
 Return nil if FILENAME does not include a directory.
 Otherwise return a directory name.
 Given a Unix syntax file name, returns a string ending in slash.  */)
-     (filename)
-     Lisp_Object filename;
+  (Lisp_Object filename)
 {
 #ifndef DOS_NT
   register const unsigned char *beg;
@@ -425,7 +423,7 @@ Given a Unix syntax file name, returns a string ending in slash.  */)
   filename = FILE_SYSTEM_CASE (filename);
 #ifdef DOS_NT
   beg = (unsigned char *) alloca (SBYTES (filename) + 1);
-  bcopy (SDATA (filename), beg, SBYTES (filename) + 1);
+  memcpy (beg, SDATA (filename), SBYTES (filename) + 1);
 #else
   beg = SDATA (filename);
 #endif
@@ -478,8 +476,7 @@ DEFUN ("file-name-nondirectory", Ffile_name_nondirectory,
 For example, in a Unix-syntax file name,
 this is everything after the last slash,
 or the entire name if it contains no slash.  */)
-     (filename)
-     Lisp_Object filename;
+  (Lisp_Object filename)
 {
   register const unsigned char *beg, *p, *end;
   Lisp_Object handler;
@@ -519,8 +516,7 @@ If FILENAME refers to a file which is not accessible from a local process,
 then this should return nil.
 The `call-process' and `start-process' functions use this function to
 get a current directory to run processes in.  */)
-     (filename)
-     Lisp_Object filename;
+  (Lisp_Object filename)
 {
   Lisp_Object handler;
 
@@ -569,8 +565,7 @@ a directory is different from its name as a file.
 The result can be used as the value of `default-directory'
 or passed as second argument to `expand-file-name'.
 For a Unix-syntax file name, just appends a slash.  */)
-     (file)
-     Lisp_Object file;
+  (Lisp_Object file)
 {
   char *buf;
   Lisp_Object handler;
@@ -628,8 +623,7 @@ This is the name of the file that holds the data for the directory DIRECTORY.
 This operation exists because a directory is also a file, but its name as
 a directory is different from its name as a file.
 In Unix-syntax, this function just removes the final slash.  */)
-     (directory)
-     Lisp_Object directory;
+  (Lisp_Object directory)
 {
   char *buf;
   Lisp_Object handler;
@@ -725,10 +719,10 @@ make_temp_name (Lisp_Object prefix, int base64_p)
   if (!STRING_MULTIBYTE (prefix))
     STRING_SET_UNIBYTE (val);
   data = SDATA (val);
-  bcopy(SDATA (prefix), data, len);
+  memcpy (data, SDATA (prefix), len);
   p = data + len;
 
-  bcopy (pidbuf, p, pidlen);
+  memcpy (p, pidbuf, pidlen);
   p += pidlen;
 
   /* Here we try to minimize useless stat'ing when this function is
@@ -801,8 +795,7 @@ probably use `make-temp-file' instead, except in three circumstances:
 * If you are creating the file in the user's home directory.
 * If you are creating a directory rather than an ordinary file.
 * If you are taking special precautions as `make-temp-file' does.  */)
-     (prefix)
-     Lisp_Object prefix;
+  (Lisp_Object prefix)
 {
   return make_temp_name (prefix, 0);
 }
@@ -827,8 +820,7 @@ non-intuitive results for the root directory; for instance,
 \(expand-file-name ".." "/") returns "/..".  For this reason, use
 (directory-file-name (file-name-directory dirname)) to traverse a
 filesystem tree, not (expand-file-name ".."  dirname).  */)
-     (name, default_directory)
-     Lisp_Object name, default_directory;
+  (Lisp_Object name, Lisp_Object default_directory)
 {
   /* These point to SDATA and need to be careful with string-relocation
      during GC (via DECODE_FILE).  */
@@ -939,7 +931,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 
   /* Make a local copy of nm[] to protect it from GC in DECODE_FILE below. */
   nm = (unsigned char *) alloca (SBYTES (name) + 1);
-  bcopy (SDATA (name), nm, SBYTES (name) + 1);
+  memcpy (nm, SDATA (name), SBYTES (name) + 1);
 
 #ifdef DOS_NT
   /* Note if special escape prefix is present, but remove for now.  */
@@ -1093,7 +1085,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	  unsigned char *o, *p;
 	  for (p = nm; *p && (!IS_DIRECTORY_SEP (*p)); p++);
 	  o = alloca (p - nm + 1);
-	  bcopy ((char *) nm, o, p - nm);
+	  memcpy (o, nm, p - nm);
 	  o [p - nm] = 0;
 
 	  BLOCK_INPUT;
@@ -1244,7 +1236,7 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 	  )
 	{
 	  unsigned char *temp = (unsigned char *) alloca (length);
-	  bcopy (newdir, temp, length - 1);
+	  memcpy (temp, newdir, length - 1);
 	  temp[length - 1] = 0;
 	  newdir = temp;
 	}
@@ -1467,7 +1459,7 @@ See also the function `substitute-in-file-name'.")
 	int len = ptr ? ptr - user : strlen (user);
 	/* Copy the user name into temp storage. */
 	o = (unsigned char *) alloca (len + 1);
-	bcopy ((char *) user, o, len);
+	memcpy (o, user, len);
 	o[len] = 0;
 
 	/* Look up the user name. */
@@ -1583,7 +1575,7 @@ search_embedded_absfilename (unsigned char *nm, unsigned char *endp)
 	    {
 	      unsigned char *o = alloca (s - p + 1);
 	      struct passwd *pw;
-	      bcopy (p, o, s - p);
+	      memcpy (o, p, s - p);
 	      o [s - p] = 0;
 
 	      /* If we have ~user and `user' exists, discard
@@ -1613,8 +1605,7 @@ the entire variable name in braces.
 If `/~' appears, all of FILENAME through that `/' is discarded.
 If `//' appears, everything up to and including the first of
 those `/' is discarded.  */)
-     (filename)
-     Lisp_Object filename;
+  (Lisp_Object filename)
 {
   unsigned char *nm;
 
@@ -1640,7 +1631,7 @@ those `/' is discarded.  */)
      decode of environment variables, causing the original Lisp_String
      data to be relocated.  */
   nm = (unsigned char *) alloca (SBYTES (filename) + 1);
-  bcopy (SDATA (filename), nm, SBYTES (filename) + 1);
+  memcpy (nm, SDATA (filename), SBYTES (filename) + 1);
 
 #ifdef DOS_NT
   dostounix_filename (nm);
@@ -1905,9 +1896,7 @@ uid and gid of FILE to NEWNAME.
 
 If PRESERVE-SELINUX-CONTEXT is non-nil and SELinux is enabled
 on the system, we copy the SELinux context of FILE to NEWNAME.  */)
-     (file, newname, ok_if_already_exists, keep_time, preserve_uid_gid, preserve_selinux_context)
-     Lisp_Object file, newname, ok_if_already_exists, keep_time;
-     Lisp_Object preserve_uid_gid, preserve_selinux_context;
+  (Lisp_Object file, Lisp_Object newname, Lisp_Object ok_if_already_exists, Lisp_Object keep_time, Lisp_Object preserve_uid_gid, Lisp_Object preserve_selinux_context)
 {
   int ifd, ofd, n;
   char buf[16 * 1024];
@@ -2118,8 +2107,7 @@ on the system, we copy the SELinux context of FILE to NEWNAME.  */)
 DEFUN ("make-directory-internal", Fmake_directory_internal,
        Smake_directory_internal, 1, 1, 0,
        doc: /* Create a new directory named DIRECTORY.  */)
-     (directory)
-     Lisp_Object directory;
+  (Lisp_Object directory)
 {
   const unsigned char *dir;
   Lisp_Object handler;
@@ -2149,8 +2137,7 @@ DEFUN ("make-directory-internal", Fmake_directory_internal,
 DEFUN ("delete-directory-internal", Fdelete_directory_internal,
        Sdelete_directory_internal, 1, 1, 0,
        doc: /* Delete the directory named DIRECTORY.  Does not follow symlinks.  */)
-     (directory)
-     Lisp_Object directory;
+  (Lisp_Object directory)
 {
   const unsigned char *dir;
   Lisp_Object handler;
@@ -2180,9 +2167,7 @@ TRASH non-nil means to trash the file instead of deleting, provided
 
 When called interactively, TRASH is t if no prefix argument is given.
 With a prefix argument, TRASH is nil.  */)
-     (filename, trash)
-     Lisp_Object filename;
-     Lisp_Object trash;
+  (Lisp_Object filename, Lisp_Object trash)
 {
   Lisp_Object handler;
   Lisp_Object encoded_file;
@@ -2238,8 +2223,7 @@ Signals a `file-already-exists' error if a file NEWNAME already exists
 unless optional third argument OK-IF-ALREADY-EXISTS is non-nil.
 A number as third arg means request confirmation if NEWNAME already exists.
 This is what happens in interactive use with M-x.  */)
-     (file, newname, ok_if_already_exists)
-     Lisp_Object file, newname, ok_if_already_exists;
+  (Lisp_Object file, Lisp_Object newname, Lisp_Object ok_if_already_exists)
 {
   Lisp_Object handler;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
@@ -2336,8 +2320,7 @@ Signals a `file-already-exists' error if a file NEWNAME already exists
 unless optional third argument OK-IF-ALREADY-EXISTS is non-nil.
 A number as third arg means request confirmation if NEWNAME already exists.
 This is what happens in interactive use with M-x.  */)
-     (file, newname, ok_if_already_exists)
-     Lisp_Object file, newname, ok_if_already_exists;
+  (Lisp_Object file, Lisp_Object newname, Lisp_Object ok_if_already_exists)
 {
   Lisp_Object handler;
   Lisp_Object encoded_file, encoded_newname;
@@ -2392,8 +2375,7 @@ Signals a `file-already-exists' error if a file LINKNAME already exists
 unless optional third argument OK-IF-ALREADY-EXISTS is non-nil.
 A number as third arg means request confirmation if LINKNAME already exists.
 This happens for interactive use with M-x.  */)
-     (filename, linkname, ok_if_already_exists)
-     Lisp_Object filename, linkname, ok_if_already_exists;
+  (Lisp_Object filename, Lisp_Object linkname, Lisp_Object ok_if_already_exists)
 {
   Lisp_Object handler;
   Lisp_Object encoded_filename, encoded_linkname;
@@ -2468,8 +2450,7 @@ DEFUN ("file-name-absolute-p", Ffile_name_absolute_p, Sfile_name_absolute_p,
        1, 1, 0,
        doc: /* Return t if file FILENAME specifies an absolute file name.
 On Unix, this is a name starting with a `/' or a `~'.  */)
-     (filename)
-     Lisp_Object filename;
+  (Lisp_Object filename)
 {
   CHECK_STRING (filename);
   return file_name_absolute_p (SDATA (filename)) ? Qt : Qnil;
@@ -2528,8 +2509,7 @@ DEFUN ("file-exists-p", Ffile_exists_p, Sfile_exists_p, 1, 1, 0,
 See also `file-readable-p' and `file-attributes'.
 This returns nil for a symlink to a nonexistent file.
 Use `file-symlink-p' to test for such links.  */)
-     (filename)
-     Lisp_Object filename;
+  (Lisp_Object filename)
 {
   Lisp_Object absname;
   Lisp_Object handler;
@@ -2552,8 +2532,7 @@ Use `file-symlink-p' to test for such links.  */)
 DEFUN ("file-executable-p", Ffile_executable_p, Sfile_executable_p, 1, 1, 0,
        doc: /* Return t if FILENAME can be executed by you.
 For a directory, this means you can access files in that directory.  */)
-     (filename)
-     Lisp_Object filename;
+  (Lisp_Object filename)
 {
   Lisp_Object absname;
   Lisp_Object handler;
@@ -2575,8 +2554,7 @@ For a directory, this means you can access files in that directory.  */)
 DEFUN ("file-readable-p", Ffile_readable_p, Sfile_readable_p, 1, 1, 0,
        doc: /* Return t if file FILENAME exists and you can read it.
 See also `file-exists-p' and `file-attributes'.  */)
-     (filename)
-     Lisp_Object filename;
+  (Lisp_Object filename)
 {
   Lisp_Object absname;
   Lisp_Object handler;
@@ -2625,8 +2603,7 @@ See also `file-exists-p' and `file-attributes'.  */)
    on the RT/PC.  */
 DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
        doc: /* Return t if file FILENAME can be written or created by you.  */)
-     (filename)
-     Lisp_Object filename;
+  (Lisp_Object filename)
 {
   Lisp_Object absname, dir, encoded;
   Lisp_Object handler;
@@ -2670,8 +2647,7 @@ DEFUN ("access-file", Faccess_file, Saccess_file, 2, 2, 0,
        doc: /* Access file FILENAME, and get an error if that does not work.
 The second argument STRING is used in the error message.
 If there is no error, returns nil.  */)
-     (filename, string)
-     Lisp_Object filename, string;
+  (Lisp_Object filename, Lisp_Object string)
 {
   Lisp_Object handler, encoded_filename, absname;
   int fd;
@@ -2704,8 +2680,7 @@ Otherwise it returns nil.
 
 This function returns t when given the name of a symlink that
 points to a nonexistent file.  */)
-     (filename)
-     Lisp_Object filename;
+  (Lisp_Object filename)
 {
   Lisp_Object handler;
 
@@ -2733,7 +2708,7 @@ points to a nonexistent file.  */)
     {
       bufsize *= 2;
       buf = (char *) xrealloc (buf, bufsize);
-      bzero (buf, bufsize);
+      memset (buf, 0, bufsize);
 
       errno = 0;
       valsize = readlink (SDATA (filename), buf, bufsize);
@@ -2769,8 +2744,7 @@ DEFUN ("file-directory-p", Ffile_directory_p, Sfile_directory_p, 1, 1, 0,
        doc: /* Return t if FILENAME names an existing directory.
 Symbolic links to directories count as directories.
 See `file-symlink-p' to distinguish symlinks.  */)
-     (filename)
-     Lisp_Object filename;
+  (Lisp_Object filename)
 {
   register Lisp_Object absname;
   struct stat st;
@@ -2799,8 +2773,7 @@ directory as a buffer's current directory, this predicate must return true.
 A directory name spec may be given instead; then the value is t
 if the directory so specified exists and really is a readable and
 searchable directory.  */)
-     (filename)
-     Lisp_Object filename;
+  (Lisp_Object filename)
 {
   Lisp_Object handler;
   int tem;
@@ -2824,8 +2797,7 @@ DEFUN ("file-regular-p", Ffile_regular_p, Sfile_regular_p, 1, 1, 0,
 This is the sort of file that holds an ordinary stream of data bytes.
 Symbolic links to regular files count as regular files.
 See `file-symlink-p' to distinguish symlinks.  */)
-     (filename)
-     Lisp_Object filename;
+  (Lisp_Object filename)
 {
   register Lisp_Object absname;
   struct stat st;
@@ -2867,8 +2839,7 @@ DEFUN ("file-selinux-context", Ffile_selinux_context,
        doc: /* Return SELinux context of file named FILENAME,
 as a list ("user", "role", "type", "range"). Return (nil, nil, nil, nil)
 if file does not exist, is not accessible, or SELinux is disabled */)
-     (filename)
-     Lisp_Object filename;
+  (Lisp_Object filename)
 {
   Lisp_Object absname;
   Lisp_Object values[4];
@@ -2923,8 +2894,7 @@ DEFUN ("set-file-selinux-context", Fset_file_selinux_context,
        doc: /* Set SELinux context of file named FILENAME to CONTEXT
 as a list ("user", "role", "type", "range"). Has no effect if SELinux
 is disabled. */)
-     (filename, context)
-     Lisp_Object filename, context;
+  (Lisp_Object filename, Lisp_Object context)
 {
   Lisp_Object absname, encoded_absname;
   Lisp_Object handler;
@@ -2999,8 +2969,7 @@ is disabled. */)
 DEFUN ("file-modes", Ffile_modes, Sfile_modes, 1, 1, 0,
        doc: /* Return mode bits of file named FILENAME, as an integer.
 Return nil, if file does not exist or is not accessible.  */)
-     (filename)
-     Lisp_Object filename;
+  (Lisp_Object filename)
 {
   Lisp_Object absname;
   struct stat st;
@@ -3030,8 +2999,7 @@ Only the 12 low bits of MODE are used.
 
 Interactively, mode bits are read by `read-file-modes', which accepts
 symbolic notation, like the `chmod' command from GNU Coreutils.  */)
-  (filename, mode)
-     Lisp_Object filename, mode;
+  (Lisp_Object filename, Lisp_Object mode)
 {
   Lisp_Object absname, encoded_absname;
   Lisp_Object handler;
@@ -3057,8 +3025,7 @@ DEFUN ("set-default-file-modes", Fset_default_file_modes, Sset_default_file_mode
        doc: /* Set the file permission bits for newly created files.
 The argument MODE should be an integer; only the low 9 bits are used.
 This setting is inherited by subprocesses.  */)
-     (mode)
-     Lisp_Object mode;
+  (Lisp_Object mode)
 {
   CHECK_NUMBER (mode);
 
@@ -3070,7 +3037,7 @@ This setting is inherited by subprocesses.  */)
 DEFUN ("default-file-modes", Fdefault_file_modes, Sdefault_file_modes, 0, 0, 0,
        doc: /* Return the default file protection for created files.
 The value is an integer.  */)
-     ()
+  (void)
 {
   int realmask;
   Lisp_Object value;
@@ -3090,8 +3057,7 @@ Set both access and modification times.
 Return t on success, else nil.
 Use the current time if TIME is nil.  TIME is in the format of
 `current-time'. */)
-  (filename, time)
-     Lisp_Object filename, time;
+  (Lisp_Object filename, Lisp_Object time)
 {
   Lisp_Object absname, encoded_absname;
   Lisp_Object handler;
@@ -3138,7 +3104,7 @@ Use the current time if TIME is nil.  TIME is in the format of
 #ifdef HAVE_SYNC
 DEFUN ("unix-sync", Funix_sync, Sunix_sync, 0, 0, "",
        doc: /* Tell Unix to finish all pending disk updates.  */)
-     ()
+  (void)
 {
   sync ();
   return Qnil;
@@ -3150,8 +3116,7 @@ DEFUN ("file-newer-than-file-p", Ffile_newer_than_file_p, Sfile_newer_than_file_
        doc: /* Return t if file FILE1 is newer than file FILE2.
 If FILE1 does not exist, the answer is nil;
 otherwise, if FILE2 does not exist, the answer is t.  */)
-     (file1, file2)
-     Lisp_Object file1, file2;
+  (Lisp_Object file1, Lisp_Object file2)
 {
   Lisp_Object absname1, absname2;
   struct stat st;
@@ -3300,8 +3265,7 @@ the number of characters that replace previous buffer contents.
 This function does code conversion according to the value of
 `coding-system-for-read' or `file-coding-system-alist', and sets the
 variable `last-coding-system-used' to the coding system actually used.  */)
-     (filename, visit, beg, end, replace)
-     Lisp_Object filename, visit, beg, end, replace;
+  (Lisp_Object filename, Lisp_Object visit, Lisp_Object beg, Lisp_Object end, Lisp_Object replace)
 {
   struct stat st;
   register int fd;
@@ -3837,7 +3801,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 				  conversion_buffer);
 	  unprocessed = coding.carryover_bytes;
 	  if (coding.carryover_bytes > 0)
-	    bcopy (coding.carryover, read_buf, unprocessed);
+	    memcpy (read_buf, coding.carryover, unprocessed);
 	}
       UNGCPRO;
       emacs_close (fd);
@@ -4580,8 +4544,7 @@ This does code conversion according to the value of
 
 This calls `write-region-annotate-functions' at the start, and
 `write-region-post-annotation-function' at the end.  */)
-     (start, end, filename, append, visit, lockname, mustbenew)
-     Lisp_Object start, end, filename, append, visit, lockname, mustbenew;
+  (Lisp_Object start, Lisp_Object end, Lisp_Object filename, Lisp_Object append, Lisp_Object visit, Lisp_Object lockname, Lisp_Object mustbenew)
 {
   register int desc;
   int failure;
@@ -4886,8 +4849,7 @@ Lisp_Object merge (Lisp_Object, Lisp_Object, Lisp_Object);
 
 DEFUN ("car-less-than-car", Fcar_less_than_car, Scar_less_than_car, 2, 2, 0,
        doc: /* Return t if (car A) is numerically less than (car B).  */)
-     (a, b)
-     Lisp_Object a, b;
+  (Lisp_Object a, Lisp_Object b)
 {
   return Flss (Fcar (a), Fcar (b));
 }
@@ -5114,8 +5076,7 @@ DEFUN ("verify-visited-file-modtime", Fverify_visited_file_modtime,
        doc: /* Return t if last mod time of BUF's visited file matches what BUF records.
 This means that the file has not been changed since it was visited or saved.
 See Info node `(elisp)Modification Time' for more details.  */)
-     (buf)
-     Lisp_Object buf;
+  (Lisp_Object buf)
 {
   struct buffer *b;
   struct stat st;
@@ -5161,7 +5122,7 @@ DEFUN ("clear-visited-file-modtime", Fclear_visited_file_modtime,
        Sclear_visited_file_modtime, 0, 0, 0,
        doc: /* Clear out records of last mod time of visited file.
 Next attempt to save will certainly not complain of a discrepancy.  */)
-     ()
+  (void)
 {
   current_buffer->modtime = 0;
   current_buffer->modtime_size = -1;
@@ -5175,7 +5136,7 @@ The value is a list of the form (HIGH LOW), like the time values
 that `file-attributes' returns.  If the current buffer has no recorded
 file modification time, this function returns 0.
 See Info node `(elisp)Modification Time' for more details.  */)
-     ()
+  (void)
 {
   if (! current_buffer->modtime)
     return make_number (0);
@@ -5190,8 +5151,7 @@ or if the file itself has been changed for some known benign reason.
 An argument specifies the modification time value to use
 \(instead of that of the visited file), in the form of a list
 \(HIGH . LOW) or (HIGH LOW).  */)
-     (time_list)
-     Lisp_Object time_list;
+  (Lisp_Object time_list)
 {
   if (!NILP (time_list))
     {
@@ -5245,7 +5205,7 @@ auto_save_error (Lisp_Object error)
   GCPRO1 (msg);
   nbytes = SBYTES (msg);
   SAFE_ALLOCA (msgbuf, char *, nbytes);
-  bcopy (SDATA (msg), msgbuf, nbytes);
+  memcpy (msgbuf, SDATA (msg), nbytes);
 
   for (i = 0; i < 3; ++i)
     {
@@ -5337,8 +5297,7 @@ Normally we run the normal hook `auto-save-hook' before saving.
 
 A non-nil NO-MESSAGE argument means do not print any message if successful.
 A non-nil CURRENT-ONLY argument means save only current buffer.  */)
-     (no_message, current_only)
-     Lisp_Object no_message, current_only;
+  (Lisp_Object no_message, Lisp_Object current_only)
 {
   struct buffer *old = current_buffer, *b;
   Lisp_Object tail, buf;
@@ -5539,7 +5498,7 @@ DEFUN ("set-buffer-auto-saved", Fset_buffer_auto_saved,
        Sset_buffer_auto_saved, 0, 0, 0,
        doc: /* Mark current buffer as auto-saved with its current text.
 No auto-save file will be written until the buffer changes again.  */)
-     ()
+  (void)
 {
   /* FIXME: This should not be called in indirect buffers, since
      they're not autosaved.  */
@@ -5552,7 +5511,7 @@ No auto-save file will be written until the buffer changes again.  */)
 DEFUN ("clear-buffer-auto-save-failure", Fclear_buffer_auto_save_failure,
        Sclear_buffer_auto_save_failure, 0, 0, 0,
        doc: /* Clear any record of a recent auto-save failure in the current buffer.  */)
-     ()
+  (void)
 {
   current_buffer->auto_save_failure_time = -1;
   return Qnil;
@@ -5564,7 +5523,7 @@ DEFUN ("recent-auto-save-p", Frecent_auto_save_p, Srecent_auto_save_p,
 More precisely, if it has been auto-saved since last read from or saved
 in the visited file.  If the buffer has no visited file,
 then any auto-save counts as "recent".  */)
-     ()
+  (void)
 {
   /* FIXME: maybe we should return nil for indirect buffers since
      they're never autosaved.  */
@@ -5578,7 +5537,7 @@ DEFUN ("next-read-file-uses-dialog-p", Fnext_read_file_uses_dialog_p,
        doc: /* Return t if a call to `read-file-name' will use a dialog.
 The return value is only relevant for a call to `read-file-name' that happens
 before any other event (mouse or keypress) is handled.  */)
-  ()
+  (void)
 {
 #if defined (USE_MOTIF) || defined (HAVE_NTGUI) || defined (USE_GTK)
   if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))

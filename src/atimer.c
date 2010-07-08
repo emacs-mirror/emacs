@@ -116,7 +116,7 @@ start_atimer (enum atimer_type type, EMACS_TIME time, atimer_callback fn,
     t = (struct atimer *) xmalloc (sizeof *t);
 
   /* Fill the atimer structure.  */
-  bzero (t, sizeof *t);
+  memset (t, 0, sizeof *t);
   t->type = type;
   t->fn = fn;
   t->client_data = client_data;
@@ -308,7 +308,7 @@ set_alarm (void)
 	  EMACS_SET_USECS (time, 1000);
 	}
 
-      bzero (&it, sizeof it);
+      memset (&it, 0, sizeof it);
       it.it_value = time;
       setitimer (ITIMER_REAL, &it, 0);
 #else /* not HAVE_SETITIMER */

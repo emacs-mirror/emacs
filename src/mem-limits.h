@@ -25,17 +25,6 @@ extern int etext;
 /* Some systems need this before <sys/resource.h>.  */
 #include <sys/types.h>
 
-#ifdef _LIBC
-
-#include <sys/resource.h>
-#define BSD4_2			/* Tell code below to use getrlimit.  */
-
-/* Old Linux startup code won't define __data_start.  */
-extern int etext, __data_start; weak_extern (__data_start)
-#define start_of_data()	(&__data_start ?: &etext)
-
-#else /* not _LIBC */
-
 #ifdef HAVE_SYS_RESOURCE_H
 # include <sys/time.h>
 # include <sys/resource.h>
@@ -54,7 +43,6 @@ extern int etext, __data_start; weak_extern (__data_start)
 #include <sys/resource.h>
 #endif /* BSD4_2 */
 
-#ifdef emacs
 /* The important properties of this type are that 1) it's a pointer, and
    2) arithmetic on it should work as if the size of the object pointed
    to has a size of 1.  */
@@ -76,27 +64,6 @@ extern POINTER start_of_data (void);
 #else
 #define EXCEEDS_LISP_PTR(ptr) ((EMACS_UINT) (ptr) >> VALBITS)
 #endif
-
-#ifdef DATA_START
-#define start_of_data() ((char *)DATA_START)
-#endif
-
-#ifdef BSD_SYSTEM
-#ifndef DATA_SEG_BITS
-#ifndef DATA_START
-extern char etext;
-#define start_of_data() &etext
-#endif
-#endif
-#endif
-
-#else  /* not emacs */
-extern char etext;
-#define start_of_data() &etext
-#endif /* not emacs */
-
-#endif /* not _LIBC */
-
 
 /* arch-tag: fe39244e-e54f-4208-b7aa-02556f7841c5
    (do not change this comment) */

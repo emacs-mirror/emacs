@@ -1,3 +1,19 @@
+2010-07-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1v2.inp (stamp-oldxmenu): Don't edit out in `temacs:' target,
+	which doesn't exist.
+
+	* sed2v2.inp (HAVE_MEMCPY): Don't edit, defined on <sys/config.h>.
+
+2010-07-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* sed1v2.inp: Remove reference to prefix-args.
+
+2010-07-07  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* sed2v2.inp (HAVE_MEMCPY, HAVE_MEMSET): Edit to 1.
+	(HAVE_BZERO): Don't edit.
+
 2010-07-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* sed1v2.inp (LIB_GCC): Edit to empty.

@@ -244,6 +244,46 @@ check_memory_limits (void)
     (*warn_function) ("Warning: memory in use exceeds lisp pointer size");
 }
 
+#if !defined(CANNOT_DUMP) || !defined(SYSTEM_MALLOC)
+/* Some systems that cannot dump also cannot implement these.  */
+
+/*
+ *	Return the address of the start of the data segment prior to
+ *	doing an unexec.  After unexec the return value is undefined.
+ *	See crt0.c for further information and definition of data_start.
+ *
+ *	Apparently, on BSD systems this is etext at startup.  On
+ *	USG systems (swapping) this is highly mmu dependent and
+ *	is also dependent on whether or not the program is running
+ *	with shared text.  Generally there is a (possibly large)
+ *	gap between end of text and start of data with shared text.
+ *
+ */
+
+POINTER
+start_of_data (void)
+{
+#ifdef BSD_SYSTEM
+  extern char etext;
+  return (POINTER)(&etext);
+#elif defined DATA_START
+  return ((POINTER) DATA_START);
+#elif defined ORDINARY_LINK
+  /*
+   * This is a hack.  Since we're not linking crt0.c or pre_crt0.c,
+   * data_start isn't defined.  We take the address of environ, which
+   * is known to live at or near the start of the system crt0.c, and
+   * we don't sweat the handful of bytes that might lose.
+   */
+  extern char **environ;
+  return ((POINTER) &environ);
+#else
+  extern int data_start;
+  return ((POINTER) &data_start);
+#endif
+}
+#endif /* (not CANNOT_DUMP or not SYSTEM_MALLOC) */
+
 /* Enable memory usage warnings.
    START says where the end of pure storage is.
    WARNFUN specifies the function to call to issue a warning.  */

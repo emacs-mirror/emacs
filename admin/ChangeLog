@@ -1,3 +1,13 @@
+2010-07-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* MAINTAINERS: Update my responsibilities.
+
+2010-07-07  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* CPP-DEFINES (BCOPY_DOWNWARD_SAFE, BCOPY_UPWARD_SAFE)
+	(GAP_USE_BCOPY, HAVE_BCMP, HAVE_BCOPY, bcmp, bcopy, bzero):
+	Remove.
+
 2010-06-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* unidata/bidimirror.awk: New file.

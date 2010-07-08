@@ -2576,7 +2576,7 @@ init_iterator (struct it *it, struct window *w,
     }
 
   /* Clear IT.  */
-  bzero (it, sizeof *it);
+  memset (it, 0, sizeof *it);
   it->current.overlay_string_index = -1;
   it->current.dpvec_index = -1;
   it->base_face_id = remapped_base_face_id;
@@ -4912,7 +4912,7 @@ load_overlay_strings (struct it *it, int charpos)
 	  entries =							\
             (struct overlay_entry *) alloca (new_size			\
 					     * sizeof *entries);	\
-	  bcopy (old, entries, size * sizeof *entries);			\
+	  memcpy (entries, old, size * sizeof *entries);		\
 	  size = new_size;						\
 	}								\
 									\
@@ -5630,7 +5630,7 @@ reseat_to_string (struct it *it, unsigned char *s, Lisp_Object string,
   it->stop_charpos = -1;
 
   /* Set iterator position and end position.  */
-  bzero (&it->current, sizeof it->current);
+  memset (&it->current, 0, sizeof it->current);
   it->current.overlay_string_index = -1;
   it->current.dpvec_index = -1;
   xassert (charpos >= 0);
@@ -7999,7 +7999,7 @@ add_to_log (char *format, Lisp_Object arg1, Lisp_Object arg2)
 
   len = SBYTES (msg) + 1;
   SAFE_ALLOCA (buffer, char *, len);
-  bcopy (SDATA (msg), buffer, len);
+  memcpy (buffer, SDATA (msg), len);
 
   message_dolog (buffer, len - 1, 1, 0);
   SAFE_FREE ();
@@ -8328,7 +8328,7 @@ message3 (Lisp_Object m, int nbytes, int multibyte)
       USE_SAFE_ALLOCA;
 
       SAFE_ALLOCA (buffer, char *, nbytes);
-      bcopy (SDATA (m), buffer, nbytes);
+      memcpy (buffer, SDATA (m), nbytes);
       message_dolog (buffer, nbytes, 1, multibyte);
       SAFE_FREE ();
     }
@@ -9630,12 +9630,7 @@ unwind_format_mode_line (Lisp_Object vector)
    Re-allocate mode_line_noprop_buf if necessary.  */
 
 static void
-#ifdef PROTOTYPES
 store_mode_line_noprop_char (char c)
-#else
-store_mode_line_noprop_char (c)
-    char c;
-#endif
 {
   /* If output position has reached the end of the allocated buffer,
      double the buffer's size.  */
@@ -9754,7 +9749,7 @@ x_consider_frame_title (Lisp_Object frame)
 	 higher level than this.)  */
       if (! STRINGP (f->name)
 	  || SBYTES (f->name) != len
-	  || bcmp (title, SDATA (f->name), len) != 0)
+	  || memcmp (title, SDATA (f->name), len) != 0)
 	x_implicitly_set_name (f, make_string (title, len), Qnil);
     }
 }
@@ -10529,8 +10524,7 @@ tool_bar_lines_needed (struct frame *f, int *n_rows)
 DEFUN ("tool-bar-lines-needed", Ftool_bar_lines_needed, Stool_bar_lines_needed,
        0, 1, 0,
        doc: /* Return the number of lines occupied by the tool bar of FRAME.  */)
-     (frame)
-     Lisp_Object frame;
+  (Lisp_Object frame)
 {
   struct frame *f;
   struct window *w;
@@ -16375,8 +16369,7 @@ DEFUN ("dump-glyph-matrix", Fdump_glyph_matrix,
 Shows contents of glyph row structures.  With non-nil
 parameter GLYPHS, dump glyphs as well.  If GLYPHS is 1 show
 glyphs in short form, otherwise show glyphs in long form.  */)
-     (glyphs)
-     Lisp_Object glyphs;
+  (Lisp_Object glyphs)
 {
   struct window *w = XWINDOW (selected_window);
   struct buffer *buffer = XBUFFER (w->buffer);
@@ -16394,7 +16387,7 @@ glyphs in short form, otherwise show glyphs in long form.  */)
 
 DEFUN ("dump-frame-glyph-matrix", Fdump_frame_glyph_matrix,
        Sdump_frame_glyph_matrix, 0, 0, "", doc: /* */)
-     ()
+  (void)
 {
   struct frame *f = XFRAME (selected_frame);
   dump_glyph_matrix (f->current_matrix, 1);
@@ -16407,8 +16400,7 @@ DEFUN ("dump-glyph-row", Fdump_glyph_row, Sdump_glyph_row, 1, 2, "",
 GLYPH 0 means don't dump glyphs.
 GLYPH 1 means dump glyphs in short form.
 GLYPH > 1 or omitted means dump glyphs in long form.  */)
-     (row, glyphs)
-     Lisp_Object row, glyphs;
+  (Lisp_Object row, Lisp_Object glyphs)
 {
   struct glyph_matrix *matrix;
   int vpos;
@@ -16429,8 +16421,7 @@ DEFUN ("dump-tool-bar-row", Fdump_tool_bar_row, Sdump_tool_bar_row, 1, 2, "",
 GLYPH 0 means don't dump glyphs.
 GLYPH 1 means dump glyphs in short form.
 GLYPH > 1 or omitted means dump glyphs in long form.  */)
-     (row, glyphs)
-     Lisp_Object row, glyphs;
+  (Lisp_Object row, Lisp_Object glyphs)
 {
   struct frame *sf = SELECTED_FRAME ();
   struct glyph_matrix *m = XWINDOW (sf->tool_bar_window)->current_matrix;
@@ -16448,8 +16439,7 @@ GLYPH > 1 or omitted means dump glyphs in long form.  */)
 DEFUN ("trace-redisplay", Ftrace_redisplay, Strace_redisplay, 0, 1, "P",
        doc: /* Toggle tracing of redisplay.
 With ARG, turn tracing on if and only if ARG is positive.  */)
-     (arg)
-     Lisp_Object arg;
+  (Lisp_Object arg)
 {
   if (NILP (arg))
     trace_redisplay_p = !trace_redisplay_p;
@@ -16466,9 +16456,7 @@ With ARG, turn tracing on if and only if ARG is positive.  */)
 DEFUN ("trace-to-stderr", Ftrace_to_stderr, Strace_to_stderr, 1, MANY, "",
        doc: /* Like `format', but print result to stderr.
 usage: (trace-to-stderr STRING &rest OBJECTS)  */)
-     (nargs, args)
-     int nargs;
-     Lisp_Object *args;
+  (int nargs, Lisp_Object *args)
 {
   Lisp_Object s = Fformat (nargs, args);
   fprintf (stderr, "%s", SDATA (s));
@@ -16763,7 +16751,7 @@ append_space_for_newline (struct it *it, int default_face_p)
 	  saved_pos = it->position;
 
 	  it->what = IT_CHARACTER;
-	  bzero (&it->position, sizeof it->position);
+	  memset (&it->position, 0, sizeof it->position);
 	  it->object = make_number (0);
 	  it->c = ' ';
 	  it->len = 1;
@@ -16883,7 +16871,7 @@ extend_face_to_end_of_line (struct it *it)
 		(((it->ascent + it->descent)
 		  * FONT_BASE (font)) / FONT_HEIGHT (font));
 	      saved_pos = it->position;
-	      bzero (&it->position, sizeof it->position);
+	      memset (&it->position, 0, sizeof it->position);
 	      saved_avoid_cursor = it->avoid_cursor_p;
 	      it->avoid_cursor_p = 1;
 	      saved_face_id = it->face_id;
@@ -16916,7 +16904,7 @@ extend_face_to_end_of_line (struct it *it)
       saved_pos = it->position;
 
       it->what = IT_CHARACTER;
-      bzero (&it->position, sizeof it->position);
+      memset (&it->position, 0, sizeof it->position);
       it->object = make_number (0);
       it->c = ' ';
       it->len = 1;
@@ -17987,8 +17975,7 @@ and the reading direction is generally left to right.  In right-to-left
 paragraphs, text begins at the right margin and is read from right to left.
 
 See also `bidi-paragraph-direction'.  */)
-     (buffer)
-     Lisp_Object buffer;
+  (Lisp_Object buffer)
 {
   struct buffer *buf;
   struct buffer *old;
@@ -18952,8 +18939,7 @@ If FACE is an integer, the value string has no text properties.
 Optional third and fourth args WINDOW and BUFFER specify the window
 and buffer to use as the context for the formatting (defaults
 are the selected window and the window's buffer).  */)
-     (format, face, window, buffer)
-     Lisp_Object format, face, window, buffer;
+  (Lisp_Object format, Lisp_Object face, Lisp_Object window, Lisp_Object buffer)
 {
   struct it it;
   int len;
@@ -19259,7 +19245,7 @@ decode_mode_spec_coding (Lisp_Object coding_system, register char *buf, int eol_
 	  eol_str = invalid_eol_type;
 	  eol_str_len = sizeof (invalid_eol_type) - 1;
 	}
-      bcopy (eol_str, buf, eol_str_len);
+      memcpy (buf, eol_str, eol_str_len);
       buf += eol_str_len;
     }
 
@@ -20073,8 +20059,7 @@ is checked; or it can be some other value, which is then presumed to be the
 value of the `invisible' property of the text of interest.
 The non-nil value returned can be t for truly invisible text or something
 else if the text is replaced by an ellipsis.  */)
-     (pos_or_prop)
-     Lisp_Object pos_or_prop;
+  (Lisp_Object pos_or_prop)
 {
   Lisp_Object prop
     = (NATNUMP (pos_or_prop) || MARKERP (pos_or_prop)
@@ -20397,7 +20382,7 @@ init_glyph_string (struct glyph_string *s,
 		   XChar2b *char2b, struct window *w, struct glyph_row *row,
 		   enum glyph_row_area area, int start, enum draw_glyphs_face hl)
 {
-  bzero (s, sizeof *s);
+  memset (s, 0, sizeof *s);
   s->w = w;
   s->f = XFRAME (w->frame);
 #ifdef HAVE_NTGUI
@@ -24235,9 +24220,7 @@ and the radius of the circle; r may be a float or integer.
 A polygon is a cons (poly . [x0 y0 x1 y1 ...]) where each pair in the
 vector describes one corner in the polygon.
 Returns the alist element for the first matching AREA in MAP.  */)
-     (map, x, y)
-     Lisp_Object map;
-     Lisp_Object x, y;
+  (Lisp_Object map, Lisp_Object x, Lisp_Object y)
 {
   if (NILP (map))
     return Qnil;

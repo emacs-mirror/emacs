@@ -413,7 +413,7 @@ add_frame_display_history (f, paused_p)
 DEFUN ("dump-redisplay-history", Fdump_redisplay_history,
        Sdump_redisplay_history, 0, 0, "",
        doc: /* Dump redisplay history to stderr.  */)
-     ()
+  (void)
 {
   int i;
 
@@ -436,62 +436,15 @@ DEFUN ("dump-redisplay-history", Fdump_redisplay_history,
 #endif /* GLYPH_DEBUG == 0 */
 
 
-/* Like bcopy except never gets confused by overlap.  Let this be the
-   first function defined in this file, or change emacs.c where the
-   address of this function is used.  */
+#ifdef PROFILING
+/* FIXME: only used to find text start for profiling.  */
 
 void
 safe_bcopy (const char *from, char *to, int size)
 {
-  if (size <= 0 || from == to)
-    return;
-
-  /* If the source and destination don't overlap, then bcopy can
-     handle it.  If they do overlap, but the destination is lower in
-     memory than the source, we'll assume bcopy can handle that.  */
-  if (to < from || from + size <= to)
-    bcopy (from, to, size);
-
-  /* Otherwise, we'll copy from the end.  */
-  else
-    {
-      register const char *endf = from + size;
-      register char *endt = to + size;
-
-      /* If TO - FROM is large, then we should break the copy into
-	 nonoverlapping chunks of TO - FROM bytes each.  However, if
-	 TO - FROM is small, then the bcopy function call overhead
-	 makes this not worth it.  The crossover point could be about
-	 anywhere.  Since I don't think the obvious copy loop is too
-	 bad, I'm trying to err in its favor.  */
-      if (to - from < 64)
-	{
-	  do
-	    *--endt = *--endf;
-	  while (endf != from);
-	}
-      else
-	{
-	  for (;;)
-	    {
-	      endt -= (to - from);
-	      endf -= (to - from);
-
-	      if (endt < to)
-		break;
-
-	      bcopy (endf, endt, to - from);
-	    }
-
-	  /* If SIZE wasn't a multiple of TO - FROM, there will be a
-	     little left over.  The amount left over is (endt + (to -
-	     from)) - to, which is endt - from.  */
-	  bcopy (from, to, endt - from);
-	}
-    }
+  abort ();
 }
-
-
+#endif
 
 /***********************************************************************
 			    Glyph Matrices
@@ -510,7 +463,7 @@ new_glyph_matrix (struct glyph_pool *pool)
 
   /* Allocate and clear.  */
   result = (struct glyph_matrix *) xmalloc (sizeof *result);
-  bzero (result, sizeof *result);
+  memset (result, 0, sizeof *result);
 
   /* Increment number of allocated matrices.  This count is used
      to detect memory leaks.  */
@@ -655,8 +608,8 @@ adjust_glyph_matrix (struct window *w, struct glyph_matrix *matrix, int x, int y
       int size = dim.height * sizeof (struct glyph_row);
       new_rows = dim.height - matrix->rows_allocated;
       matrix->rows = (struct glyph_row *) xrealloc (matrix->rows, size);
-      bzero (matrix->rows + matrix->rows_allocated,
-	     new_rows * sizeof *matrix->rows);
+      memset (matrix->rows + matrix->rows_allocated, 0,
+	      new_rows * sizeof *matrix->rows);
       matrix->rows_allocated = dim.height;
     }
   else
@@ -1103,7 +1056,7 @@ clear_glyph_row (struct glyph_row *row)
 	 returned by xmalloc.  If flickering happens again, activate
 	 the code below.  If the flickering is gone with that, chances
 	 are that the flickering has the same reason as here.  */
-  bzero (p[0], (char *) p[LAST_AREA] - (char *) p[0]);
+  memset (p[0], 0, (char *) p[LAST_AREA] - (char *) p[0]);
 #endif
 }
 
@@ -1237,13 +1190,13 @@ copy_row_except_pointers (struct glyph_row *to, struct glyph_row *from)
   struct glyph *pointers[1 + LAST_AREA];
 
   /* Save glyph pointers of TO.  */
-  bcopy (to->glyphs, pointers, sizeof to->glyphs);
+  memcpy (pointers, to->glyphs, sizeof to->glyphs);
 
   /* Do a structure assignment.  */
   *to = *from;
 
   /* Restore original pointers of TO.  */
-  bcopy (pointers, to->glyphs, sizeof to->glyphs);
+  memcpy (to->glyphs, pointers, sizeof to->glyphs);
 }
 
 
@@ -1264,8 +1217,8 @@ copy_glyph_row_contents (struct glyph_row *to, struct glyph_row *from, int delta
   /* Copy glyphs from FROM to TO.  */
   for (area = 0; area < LAST_AREA; ++area)
     if (from->used[area])
-      bcopy (from->glyphs[area], to->glyphs[area],
-	     from->used[area] * sizeof (struct glyph));
+      memcpy (to->glyphs[area], from->glyphs[area],
+	      from->used[area] * sizeof (struct glyph));
 
   /* Increment buffer positions in TO by DELTA.  */
   increment_row_positions (to, delta, delta_bytes);
@@ -1524,7 +1477,7 @@ new_glyph_pool (void)
 
   /* Allocate a new glyph_pool and clear it.  */
   result = (struct glyph_pool *) xmalloc (sizeof *result);
-  bzero (result, sizeof *result);
+  memset (result, 0, sizeof *result);
 
   /* For memory leak and double deletion checking.  */
   ++glyph_pool_count;
@@ -1585,7 +1538,7 @@ realloc_glyph_pool (struct glyph_pool *pool, struct dim matrix_dim)
       else
 	{
 	  pool->glyphs = (struct glyph *) xmalloc (size);
-	  bzero (pool->glyphs, size);
+	  memset (pool->glyphs, 0, size);
 	}
 
       pool->nglyphs = needed;
@@ -2196,11 +2149,11 @@ save_current_matrix (struct frame *f)
   struct glyph_matrix *saved;
 
   saved = (struct glyph_matrix *) xmalloc (sizeof *saved);
-  bzero (saved, sizeof *saved);
+  memset (saved, 0, sizeof *saved);
   saved->nrows = f->current_matrix->nrows;
   saved->rows = (struct glyph_row *) xmalloc (saved->nrows
 					      * sizeof *saved->rows);
-  bzero (saved->rows, saved->nrows * sizeof *saved->rows);
+  memset (saved->rows, 0, saved->nrows * sizeof *saved->rows);
 
   for (i = 0; i < saved->nrows; ++i)
     {
@@ -2208,7 +2161,7 @@ save_current_matrix (struct frame *f)
       struct glyph_row *to = saved->rows + i;
       size_t nbytes = from->used[TEXT_AREA] * sizeof (struct glyph);
       to->glyphs[TEXT_AREA] = (struct glyph *) xmalloc (nbytes);
-      bcopy (from->glyphs[TEXT_AREA], to->glyphs[TEXT_AREA], nbytes);
+      memcpy (to->glyphs[TEXT_AREA], from->glyphs[TEXT_AREA], nbytes);
       to->used[TEXT_AREA] = from->used[TEXT_AREA];
     }
 
@@ -2229,7 +2182,7 @@ restore_current_matrix (struct frame *f, struct glyph_matrix *saved)
       struct glyph_row *from = saved->rows + i;
       struct glyph_row *to = f->current_matrix->rows + i;
       size_t nbytes = from->used[TEXT_AREA] * sizeof (struct glyph);
-      bcopy (from->glyphs[TEXT_AREA], to->glyphs[TEXT_AREA], nbytes);
+      memcpy (to->glyphs[TEXT_AREA], from->glyphs[TEXT_AREA], nbytes);
       to->used[TEXT_AREA] = from->used[TEXT_AREA];
       xfree (from->glyphs[TEXT_AREA]);
     }
@@ -2740,9 +2693,9 @@ build_frame_matrix_from_leaf_window (struct glyph_matrix *frame_matrix, struct w
       if (current_row_p)
 	{
 	  /* Copy window row to frame row.  */
-	  bcopy (window_row->glyphs[0],
-		 frame_row->glyphs[TEXT_AREA] + window_matrix->matrix_x,
-		 window_matrix->matrix_w * sizeof (struct glyph));
+	  memcpy (frame_row->glyphs[TEXT_AREA] + window_matrix->matrix_x,
+		  window_row->glyphs[0],
+		  window_matrix->matrix_w * sizeof (struct glyph));
 	}
       else
 	{
@@ -2979,7 +2932,7 @@ mirrored_line_dance (matrix, unchanged_at_top, nlines, copy_from,
 
   /* Make a copy of the original rows.  */
   old_rows = (struct glyph_row *) alloca (nlines * sizeof *old_rows);
-  bcopy (new_rows, old_rows, nlines * sizeof *old_rows);
+  memcpy (old_rows, new_rows, nlines * sizeof *old_rows);
 
   /* Assign new rows, maybe clear lines.  */
   for (i = 0; i < nlines; ++i)
@@ -3097,7 +3050,7 @@ mirror_line_dance (struct window *w, int unchanged_at_top, int nlines, int *copy
 
 	  /* Make a copy of the original rows of matrix m.  */
 	  old_rows = (struct glyph_row *) alloca (m->nrows * sizeof *old_rows);
-	  bcopy (m->rows, old_rows, m->nrows * sizeof *old_rows);
+	  memcpy (old_rows, m->rows, m->nrows * sizeof *old_rows);
 
 	  for (i = 0; i < nlines; ++i)
 	    {
@@ -3291,8 +3244,7 @@ window_to_frame_hpos (w, hpos)
 
 DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
        doc: /* Clear frame FRAME and output again what is supposed to appear on it.  */)
-     (frame)
-     Lisp_Object frame;
+  (Lisp_Object frame)
 {
   struct frame *f;
 
@@ -3339,7 +3291,7 @@ redraw_frame (struct frame *f)
 
 DEFUN ("redraw-display", Fredraw_display, Sredraw_display, 0, 0, "",
        doc: /* Clear and redisplay all visible frames.  */)
-     ()
+  (void)
 {
   Lisp_Object tail, frame;
 
@@ -4563,7 +4515,7 @@ scrolling_window (struct window *w, int header_line_p)
       row_table_size = next_almost_prime (3 * n);
       nbytes = row_table_size * sizeof *row_table;
       row_table = (struct row_entry **) xrealloc (row_table, nbytes);
-      bzero (row_table, nbytes);
+      memset (row_table, 0, nbytes);
     }
 
   if (n > row_entry_pool_size)
@@ -5902,8 +5854,7 @@ DEFUN ("open-termscript", Fopen_termscript, Sopen_termscript,
        1, 1, "FOpen termscript file: ",
        doc: /* Start writing all terminal output to FILE as well as the terminal.
 FILE = nil means just close any termscript file currently open.  */)
-     (file)
-     Lisp_Object file;
+  (Lisp_Object file)
 {
   struct tty_display_info *tty;
 
@@ -5941,9 +5892,7 @@ Optional parameter TERMINAL specifies the tty terminal device to use.
 It may be a terminal object, a frame, or nil for the terminal used by
 the currently selected frame.  In batch mode, STRING is sent to stdout
 when TERMINAL is nil.  */)
-  (string, terminal)
-     Lisp_Object string;
-     Lisp_Object terminal;
+  (Lisp_Object string, Lisp_Object terminal)
 {
   struct terminal *t = get_terminal (terminal, 1);
   FILE *out;
@@ -5984,8 +5933,7 @@ DEFUN ("ding", Fding, Sding, 0, 1, 0,
        doc: /* Beep, or flash the screen.
 Also, unless an argument is given,
 terminate any keyboard macro currently executing.  */)
-     (arg)
-  Lisp_Object arg;
+  (Lisp_Object arg)
 {
   if (!NILP (arg))
     {
@@ -6024,8 +5972,7 @@ fraction of a second.  Optional second arg MILLISECONDS specifies an
 additional wait period, in milliseconds; this may be useful if your
 Emacs was built without floating point support.
 \(Not all operating systems support waiting for a fraction of a second.)  */)
-     (seconds, milliseconds)
-     Lisp_Object seconds, milliseconds;
+  (Lisp_Object seconds, Lisp_Object milliseconds)
 {
   int sec, usec;
 
@@ -6129,8 +6076,7 @@ DEFUN ("redisplay", Fredisplay, Sredisplay, 0, 1, 0,
 If optional arg FORCE is non-nil or `redisplay-dont-pause' is non-nil,
 perform a full redisplay even if input is available.
 Return t if redisplay was performed, nil otherwise.  */)
-     (force)
-  Lisp_Object force;
+  (Lisp_Object force)
 {
   int count;
 
@@ -6174,8 +6120,7 @@ the current state.
 
 If VARIABLE is nil, an internal variable is used.  Users should not
 pass nil for VARIABLE.  */)
-     (variable)
-     Lisp_Object variable;
+  (Lisp_Object variable)
 {
   Lisp_Object state, tail, frame, buf;
   Lisp_Object *vecp, *end;
@@ -6501,8 +6446,7 @@ DEFUN ("internal-show-cursor", Finternal_show_cursor,
 WINDOW nil means use the selected window.  SHOW non-nil means
 show a cursor in WINDOW in the next redisplay.  SHOW nil means
 don't show a cursor.  */)
-     (window, show)
-     Lisp_Object window, show;
+  (Lisp_Object window, Lisp_Object show)
 {
   /* Don't change cursor state while redisplaying.  This could confuse
      output routines.  */
@@ -6524,8 +6468,7 @@ DEFUN ("internal-show-cursor-p", Finternal_show_cursor_p,
        Sinternal_show_cursor_p, 0, 1, 0,
        doc: /* Value is non-nil if next redisplay will display a cursor in WINDOW.
 WINDOW nil or omitted means report on the selected window.  */)
-     (window)
-     Lisp_Object window;
+  (Lisp_Object window)
 {
   struct window *w;
 
@@ -6541,7 +6484,7 @@ WINDOW nil or omitted means report on the selected window.  */)
 DEFUN ("last-nonminibuffer-frame", Flast_nonminibuf_frame,
        Slast_nonminibuf_frame, 0, 0, 0,
        doc: /* Value is last nonminibuffer frame. */)
-     ()
+  (void)
 {
   Lisp_Object frame = Qnil;
 

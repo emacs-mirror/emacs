@@ -43,8 +43,7 @@ Boston, MA 02110-1301, USA.  */
    This is sometimes handy to have available.  */
 
 void
-x_print_complete_resource_name (widget)
-     Widget widget;
+x_print_complete_resource_name (Widget widget)
 {
   int i;
   String names[100];
@@ -210,16 +209,8 @@ lw_lucid_widget_p (Widget widget)
 }
 
 void
-#ifdef PROTOTYPES
 xlw_update_one_widget (widget_instance* instance, Widget widget,
 		       widget_value* val, Boolean deep_p)
-#else
-xlw_update_one_widget (instance, widget, val, deep_p)
-     widget_instance* instance;
-     Widget widget;
-     widget_value* val;
-     Boolean deep_p;
-#endif
 {
   Arg al[1];
 
@@ -231,19 +222,15 @@ xlw_update_one_widget (instance, widget, val, deep_p)
 }
 
 void
-xlw_update_one_value (widget_instance *instance, Widget widget, widget_value *val)
+xlw_update_one_value (widget_instance *instance,
+                      Widget widget,
+                      widget_value *val)
 {
   return;
 }
 
 void
-#ifdef PROTOTYPES
 xlw_pop_instance (widget_instance* instance, Boolean up)
-#else
-xlw_pop_instance (instance, up)
-     widget_instance* instance;
-     Boolean up;
-#endif
 {
 }
 

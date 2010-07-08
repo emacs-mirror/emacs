@@ -550,7 +550,7 @@ wav_init (struct sound *s)
   struct wav_header *header = (struct wav_header *) s->header;
 
   if (s->header_size < sizeof *header
-      || bcmp (s->header, "RIFF", 4) != 0)
+      || memcmp (s->header, "RIFF", 4) != 0)
     return 0;
 
   /* WAV files are in little-endian order.  Convert the header
@@ -658,7 +658,7 @@ au_init (struct sound *s)
   struct au_header *header = (struct au_header *) s->header;
 
   if (s->header_size < sizeof *header
-      || bcmp (s->header, ".snd", 4) != 0)
+      || memcmp (s->header, ".snd", 4) != 0)
     return 0;
 
   header->magic_number = be2hl (header->magic_number);
@@ -1353,8 +1353,7 @@ DEFUN ("play-sound-internal", Fplay_sound_internal, Splay_sound_internal, 1, 1, 
        doc: /* Play sound SOUND.
 
 Internal use only, use `play-sound' instead.  */)
-     (sound)
-     Lisp_Object sound;
+  (Lisp_Object sound)
 {
   Lisp_Object attrs[SOUND_ATTR_SENTINEL];
   int count = SPECPDL_INDEX ();
@@ -1380,9 +1379,9 @@ Internal use only, use `play-sound' instead.  */)
   file = Qnil;
   GCPRO2 (sound, file);
   current_sound_device = (struct sound_device *) xmalloc (sizeof (struct sound_device));
-  bzero (current_sound_device, sizeof (struct sound_device));
+  memset (current_sound_device, 0, sizeof (struct sound_device));
   current_sound = (struct sound *) xmalloc (sizeof (struct sound));
-  bzero (current_sound, sizeof (struct sound));
+  memset (current_sound, 0, sizeof (struct sound));
   record_unwind_protect (sound_cleanup, Qnil);
   current_sound->header = (char *) alloca (MAX_SOUND_HEADER_BYTES);
 
@@ -1405,7 +1404,8 @@ Internal use only, use `play-sound' instead.  */)
     {
       current_sound->data = attrs[SOUND_DATA];
       current_sound->header_size = min (MAX_SOUND_HEADER_BYTES, SBYTES (current_sound->data));
-      bcopy (SDATA (current_sound->data), current_sound->header, current_sound->header_size);
+      memcpy (current_sound->header, SDATA (current_sound->data),
+	      current_sound->header_size);
     }
 
   /* Find out the type of sound.  Give up if we can't tell.  */

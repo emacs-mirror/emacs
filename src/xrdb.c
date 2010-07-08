@@ -233,7 +233,7 @@ magic_file_p (char *string, int string_len, char *class, char *escaped_suffix, c
 	  path = (char *) realloc (path, path_size);
 	}
 
-      bcopy (next, path + path_len, next_len);
+      memcpy (path + path_len, next, next_len);
       path_len += next_len;
 
       p++;
@@ -259,7 +259,7 @@ magic_file_p (char *string, int string_len, char *class, char *escaped_suffix, c
 	  path = (char *) realloc (path, path_size);
 	}
 
-      bcopy (suffix, path + path_len, suffix_len);
+      memcpy (path + path_len, suffix, suffix_len);
       path_len += suffix_len;
     }
 
@@ -644,7 +644,7 @@ x_get_resource (XrmDatabase rdb, char *name, char *class, XrmRepresentation expe
       if (type == x_rm_string)
 	ret_value->addr = (char *) value.addr;
       else
-	bcopy (value.addr, ret_value->addr, ret_value->size);
+	memcpy (ret_value->addr, value.addr, ret_value->size);
 
       return value.size;
     }

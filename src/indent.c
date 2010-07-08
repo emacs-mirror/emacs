@@ -312,7 +312,7 @@ Whether the line is visible (if `selective-display' is t) has no effect;
 however, ^M is treated as end of line when `selective-display' is t.
 Text that has an invisible property is considered as having width 0, unless
 `buffer-invisibility-spec' specifies that it is replaced by an ellipsis.  */)
-     ()
+  (void)
 {
   Lisp_Object temp;
   XSETFASTINT (temp, (int) current_column ()); /* iftc */
@@ -546,7 +546,7 @@ scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
   w = ! NILP (window) ? XWINDOW (window) : NULL;
 
   if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
-  bzero (&cmp_it, sizeof cmp_it);
+  memset (&cmp_it, 0, sizeof cmp_it);
   cmp_it.id = -1;
   composition_compute_stop_pos (&cmp_it, scan, scan_byte, end, Qnil);
 
@@ -812,8 +812,7 @@ Optional second argument MINIMUM says always do at least MINIMUM spaces
 even if that goes past COLUMN; by default, MINIMUM is zero.
 
 The return value is COLUMN.  */)
-     (column, minimum)
-     Lisp_Object column, minimum;
+  (Lisp_Object column, Lisp_Object minimum)
 {
   int mincol;
   register int fromcol;
@@ -864,7 +863,7 @@ DEFUN ("current-indentation", Fcurrent_indentation, Scurrent_indentation,
        doc: /* Return the indentation of the current line.
 This is the horizontal position of the character
 following any initial whitespace.  */)
-     ()
+  (void)
 {
   Lisp_Object val;
   int opoint = PT, opoint_byte = PT_BYTE;
@@ -998,8 +997,7 @@ In addition, if FORCE is t, and the line is too short to reach
 COLUMN, add spaces/tabs to get there.
 
 The return value is the current column.  */)
-     (column, force)
-     Lisp_Object column, force;
+  (Lisp_Object column, Lisp_Object force)
 {
   EMACS_INT pos;
   EMACS_INT col, prev_col;
@@ -1214,7 +1212,7 @@ compute_motion (EMACS_INT from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
   pos_byte = prev_pos_byte = CHAR_TO_BYTE (from);
   contin_hpos = 0;
   prev_tab_offset = tab_offset;
-  bzero (&cmp_it, sizeof cmp_it);
+  memset (&cmp_it, 0, sizeof cmp_it);
   cmp_it.id = -1;
   composition_compute_stop_pos (&cmp_it, pos, pos_byte, to, Qnil);
 
@@ -1757,9 +1755,7 @@ of a certain window, pass the window's starting location as FROM
 and the window's upper-left coordinates as FROMPOS.
 Pass the buffer's (point-max) as TO, to limit the scan to the end of the
 visible section of the buffer, and pass LINE and COL as TOPOS.  */)
-     (from, frompos, to, topos, width, offsets, window)
-     Lisp_Object from, frompos, to, topos;
-     Lisp_Object width, offsets, window;
+  (Lisp_Object from, Lisp_Object frompos, Lisp_Object to, Lisp_Object topos, Lisp_Object width, Lisp_Object offsets, Lisp_Object window)
 {
   struct window *w;
   Lisp_Object bufpos, hpos, vpos, prevhpos;
@@ -2001,8 +1997,7 @@ regardless of which buffer is displayed in WINDOW.
 This is consistent with other cursor motion functions
 and makes it possible to use `vertical-motion' in any buffer,
 whether or not it is currently displayed in some window.  */)
-     (lines, window)
-     Lisp_Object lines, window;
+  (Lisp_Object lines, Lisp_Object window)
 {
   struct it it;
   struct text_pos pt;

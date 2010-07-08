@@ -178,7 +178,7 @@ get_next_msg (W32Msg * lpmsg, BOOL bWait)
 
   if (nQueue)
     {
-      bcopy (&(lpHead->w32msg), lpmsg, sizeof (W32Msg));
+      memcpy (lpmsg, &lpHead->w32msg, sizeof (W32Msg));
 
       {
 	int_msg * lpCur = lpHead;
@@ -250,7 +250,7 @@ post_msg (W32Msg * lpmsg)
   if (!lpNew)
     return (FALSE);
 
-  bcopy (lpmsg, &(lpNew->w32msg), sizeof (W32Msg));
+  memcpy (&lpNew->w32msg, lpmsg, sizeof (W32Msg));
   lpNew->lpNext = NULL;
 
   enter_crit ();
@@ -280,7 +280,7 @@ prepend_msg (W32Msg *lpmsg)
   if (!lpNew)
     return (FALSE);
 
-  bcopy (lpmsg, &(lpNew->w32msg), sizeof (W32Msg));
+  memcpy (&lpNew->w32msg, lpmsg, sizeof (W32Msg));
 
   enter_crit ();
 

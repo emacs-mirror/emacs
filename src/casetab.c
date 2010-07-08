@@ -41,8 +41,7 @@ static void shuffle (Lisp_Object table, Lisp_Object c, Lisp_Object elt);
 DEFUN ("case-table-p", Fcase_table_p, Scase_table_p, 1, 1, 0,
        doc: /* Return t if OBJECT is a case table.
 See `set-case-table' for more information on these data structures.  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   Lisp_Object up, canon, eqv;
 
@@ -71,7 +70,7 @@ check_case_table (Lisp_Object obj)
 
 DEFUN ("current-case-table", Fcurrent_case_table, Scurrent_case_table, 0, 0, 0,
        doc: /* Return the case table of the current buffer.  */)
-     ()
+  (void)
 {
   return current_buffer->downcase_table;
 }
@@ -79,7 +78,7 @@ DEFUN ("current-case-table", Fcurrent_case_table, Scurrent_case_table, 0, 0, 0,
 DEFUN ("standard-case-table", Fstandard_case_table, Sstandard_case_table, 0, 0, 0,
        doc: /* Return the standard case table.
 This is the one used for new buffers.  */)
-     ()
+  (void)
 {
   return Vascii_downcase_table;
 }
@@ -103,8 +102,7 @@ CANONICALIZE maps each character to a canonical equivalent;
 EQUIVALENCES is a map that cyclicly permutes each equivalence class
  (of characters with the same canonical equivalent); it may be nil,
  in which case it is deduced from CANONICALIZE.  */)
-     (table)
-     Lisp_Object table;
+  (Lisp_Object table)
 {
   return set_case_table (table, 0);
 }
@@ -112,8 +110,7 @@ EQUIVALENCES is a map that cyclicly permutes each equivalence class
 DEFUN ("set-standard-case-table", Fset_standard_case_table, Sset_standard_case_table, 1, 1, 0,
        doc: /* Select a new standard case table for new buffers.
 See `set-case-table' for more info on case tables.  */)
-     (table)
-     Lisp_Object table;
+  (Lisp_Object table)
 {
   return set_case_table (table, 1);
 }

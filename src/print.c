@@ -289,7 +289,7 @@ int print_output_debug_flag = 1;
 static Lisp_Object
 print_unwind (Lisp_Object saved_text)
 {
-  bcopy (SDATA (saved_text), print_buffer, SCHARS (saved_text));
+  memcpy (print_buffer, SDATA (saved_text), SCHARS (saved_text));
   return Qnil;
 }
 
@@ -316,7 +316,7 @@ printchar (unsigned int ch, Lisp_Object fun)
 	  if (print_buffer_pos_byte + len >= print_buffer_size)
 	    print_buffer = (char *) xrealloc (print_buffer,
 					      print_buffer_size *= 2);
-	  bcopy (str, print_buffer + print_buffer_pos_byte, len);
+	  memcpy (print_buffer + print_buffer_pos_byte, str, len);
 	  print_buffer_pos += 1;
 	  print_buffer_pos_byte += len;
 	}
@@ -364,7 +364,7 @@ strout (const char *ptr, int size, int size_byte, Lisp_Object printcharfun,
 	  print_buffer = (char *) xrealloc (print_buffer,
 					    print_buffer_size);
 	}
-      bcopy (ptr, print_buffer + print_buffer_pos_byte, size_byte);
+      memcpy (print_buffer + print_buffer_pos_byte, ptr, size_byte);
       print_buffer_pos += size;
       print_buffer_pos_byte += size_byte;
     }
@@ -461,7 +461,7 @@ print_string (Lisp_Object string, Lisp_Object printcharfun)
 	  if (chars < bytes)
 	    {
 	      newstr = make_uninit_multibyte_string (chars, bytes);
-	      bcopy (SDATA (string), SDATA (newstr), chars);
+	      memcpy (SDATA (newstr), SDATA (string), chars);
 	      str_to_multibyte (SDATA (newstr), bytes, chars);
 	      string = newstr;
 	    }
@@ -480,7 +480,7 @@ print_string (Lisp_Object string, Lisp_Object printcharfun)
 	  USE_SAFE_ALLOCA;
 
 	  SAFE_ALLOCA (buffer, char *, nbytes);
-	  bcopy (SDATA (string), buffer, nbytes);
+	  memcpy (buffer, SDATA (string), nbytes);
 
 	  strout (buffer, chars, SBYTES (string),
 		  printcharfun, STRING_MULTIBYTE (string));
@@ -522,8 +522,7 @@ print_string (Lisp_Object string, Lisp_Object printcharfun)
 DEFUN ("write-char", Fwrite_char, Swrite_char, 1, 2, 0,
        doc: /* Output character CHARACTER to stream PRINTCHARFUN.
 PRINTCHARFUN defaults to the value of `standard-output' (which see).  */)
-     (character, printcharfun)
-     Lisp_Object character, printcharfun;
+  (Lisp_Object character, Lisp_Object printcharfun)
 {
   PRINTDECLARE;
 
@@ -653,8 +652,7 @@ temporarily selected.  But it doesn't run `temp-buffer-show-hook'
 if it uses `temp-buffer-show-function'.
 
 usage: (with-output-to-temp-buffer BUFNAME BODY...)  */)
-     (args)
-     Lisp_Object args;
+  (Lisp_Object args)
 {
   struct gcpro gcpro1;
   Lisp_Object name;
@@ -686,8 +684,7 @@ static void print_object (Lisp_Object obj, register Lisp_Object printcharfun, in
 DEFUN ("terpri", Fterpri, Sterpri, 0, 1, 0,
        doc: /* Output a newline to stream PRINTCHARFUN.
 If PRINTCHARFUN is omitted or nil, the value of `standard-output' is used.  */)
-  (printcharfun)
-     Lisp_Object printcharfun;
+  (Lisp_Object printcharfun)
 {
   PRINTDECLARE;
 
@@ -722,8 +719,7 @@ of these:
 
 If PRINTCHARFUN is omitted, the value of `standard-output' (which see)
 is used instead.  */)
-     (object, printcharfun)
-     Lisp_Object object, printcharfun;
+  (Lisp_Object object, Lisp_Object printcharfun)
 {
   PRINTDECLARE;
 
@@ -749,8 +745,7 @@ OBJECT is any of the Lisp data types: a number, a string, a symbol,
 a list, a buffer, a window, a frame, etc.
 
 A printed representation of an object is text which describes that object.  */)
-     (object, noescape)
-     Lisp_Object object, noescape;
+  (Lisp_Object object, Lisp_Object noescape)
 {
   Lisp_Object printcharfun;
   /* struct gcpro gcpro1, gcpro2; */
@@ -818,8 +813,7 @@ of these:
 
 If PRINTCHARFUN is omitted, the value of `standard-output' (which see)
 is used instead.  */)
-     (object, printcharfun)
-     Lisp_Object object, printcharfun;
+  (Lisp_Object object, Lisp_Object printcharfun)
 {
   PRINTDECLARE;
 
@@ -854,8 +848,7 @@ of these:
 
 If PRINTCHARFUN is omitted, the value of `standard-output' (which see)
 is used instead.  */)
-     (object, printcharfun)
-     Lisp_Object object, printcharfun;
+  (Lisp_Object object, Lisp_Object printcharfun)
 {
   PRINTDECLARE;
   struct gcpro gcpro1;
@@ -880,8 +873,7 @@ DEFUN ("external-debugging-output", Fexternal_debugging_output, Sexternal_debugg
        doc: /* Write CHARACTER to stderr.
 You can call print while debugging emacs, and pass it this function
 to make it write to the debugging output.  */)
-     (character)
-     Lisp_Object character;
+  (Lisp_Object character)
 {
   CHECK_NUMBER (character);
   putc (XINT (character), stderr);
@@ -923,8 +915,7 @@ DEFUN ("redirect-debugging-output", Fredirect_debugging_output, Sredirect_debugg
 If FILE is nil, reset target to the initial stderr stream.
 Optional arg APPEND non-nil (interactively, with prefix arg) means
 append to existing target file.  */)
-     (file, append)
-     Lisp_Object file, append;
+  (Lisp_Object file, Lisp_Object append)
 {
   if (initial_stderr_stream != NULL)
     {
@@ -982,8 +973,7 @@ DEFUN ("error-message-string", Ferror_message_string, Serror_message_string,
        doc: /* Convert an error value (ERROR-SYMBOL . DATA) to an error message.
 See Info anchor `(elisp)Definition of signal' for some details on how this
 error message is constructed.  */)
-     (obj)
-     Lisp_Object obj;
+  (Lisp_Object obj)
 {
   struct buffer *old = current_buffer;
   Lisp_Object value;
@@ -1032,7 +1022,7 @@ print_error_message (Lisp_Object data, Lisp_Object stream, char *context, Lisp_O
     {
       Lisp_Object cname = SYMBOL_NAME (caller);
       char *name = alloca (SBYTES (cname));
-      bcopy (SDATA (cname), name, SBYTES (cname));
+      memcpy (name, SDATA (cname), SBYTES (cname));
       message_dolog (name, SBYTES (cname), 0, 0);
       message_dolog (": ", 2, 0, 0);
     }

@@ -62,8 +62,7 @@ PURPOSE should be a symbol.  If it has a `char-table-extra-slots'
 property, the property's value should be an integer between 0 and 10
 that specifies how many extra slots the char-table has.  Otherwise,
 the char-table has no extra slot.  */)
-     (purpose, init)
-     register Lisp_Object purpose, init;
+  (register Lisp_Object purpose, Lisp_Object init)
 {
   Lisp_Object vector;
   Lisp_Object n;
@@ -452,8 +451,7 @@ DEFUN ("char-table-subtype", Fchar_table_subtype, Schar_table_subtype,
        1, 1, 0,
        doc: /*
 Return the subtype of char-table CHAR-TABLE.  The value is a symbol.  */)
-     (char_table)
-     Lisp_Object char_table;
+  (Lisp_Object char_table)
 {
   CHECK_CHAR_TABLE (char_table);
 
@@ -467,8 +465,7 @@ The value is either nil or another char-table.
 If CHAR-TABLE holds nil for a given character,
 then the actual applicable value is inherited from the parent char-table
 \(or from its parents, if necessary).  */)
-  (char_table)
-     Lisp_Object char_table;
+  (Lisp_Object char_table)
 {
   CHECK_CHAR_TABLE (char_table);
 
@@ -479,8 +476,7 @@ DEFUN ("set-char-table-parent", Fset_char_table_parent, Sset_char_table_parent,
        2, 2, 0,
        doc: /* Set the parent char-table of CHAR-TABLE to PARENT.
 Return PARENT.  PARENT must be either nil or another char-table.  */)
-     (char_table, parent)
-     Lisp_Object char_table, parent;
+  (Lisp_Object char_table, Lisp_Object parent)
 {
   Lisp_Object temp;
 
@@ -503,8 +499,7 @@ Return PARENT.  PARENT must be either nil or another char-table.  */)
 DEFUN ("char-table-extra-slot", Fchar_table_extra_slot, Schar_table_extra_slot,
        2, 2, 0,
        doc: /* Return the value of CHAR-TABLE's extra-slot number N.  */)
-     (char_table, n)
-     Lisp_Object char_table, n;
+  (Lisp_Object char_table, Lisp_Object n)
 {
   CHECK_CHAR_TABLE (char_table);
   CHECK_NUMBER (n);
@@ -519,8 +514,7 @@ DEFUN ("set-char-table-extra-slot", Fset_char_table_extra_slot,
        Sset_char_table_extra_slot,
        3, 3, 0,
        doc: /* Set CHAR-TABLE's extra-slot number N to VALUE.  */)
-     (char_table, n, value)
-     Lisp_Object char_table, n, value;
+  (Lisp_Object char_table, Lisp_Object n, Lisp_Object value)
 {
   CHECK_CHAR_TABLE (char_table);
   CHECK_NUMBER (n);
@@ -536,8 +530,7 @@ DEFUN ("char-table-range", Fchar_table_range, Schar_table_range,
        doc: /* Return the value in CHAR-TABLE for a range of characters RANGE.
 RANGE should be nil (for the default value),
 a cons of character codes (for characters in the range), or a character code.  */)
-     (char_table, range)
-     Lisp_Object char_table, range;
+  (Lisp_Object char_table, Lisp_Object range)
 {
   Lisp_Object val;
   CHECK_CHAR_TABLE (char_table);
@@ -567,8 +560,7 @@ DEFUN ("set-char-table-range", Fset_char_table_range, Sset_char_table_range,
 RANGE should be t (for all characters), nil (for the default value),
 a cons of character codes (for characters in the range),
 or a character code.  Return VALUE.  */)
-     (char_table, range, value)
-     Lisp_Object char_table, range, value;
+  (Lisp_Object char_table, Lisp_Object range, Lisp_Object value)
 {
   CHECK_CHAR_TABLE (char_table);
   if (EQ (range, Qt))
@@ -600,8 +592,7 @@ DEFUN ("set-char-table-default", Fset_char_table_default,
        Sset_char_table_default, 3, 3, 0,
        doc: /*
 This function is obsolete and has no effect.  */)
-     (char_table, ch, value)
-     Lisp_Object char_table, ch, value;
+  (Lisp_Object char_table, Lisp_Object ch, Lisp_Object value)
 {
   return Qnil;
 }
@@ -653,8 +644,7 @@ DEFUN ("optimize-char-table", Foptimize_char_table, Soptimize_char_table,
        doc: /* Optimize CHAR-TABLE.
 TEST is the comparison function used to decide whether two entries are
 equivalent and can be merged.  It defaults to `equal'.  */)
-     (char_table, test)
-     Lisp_Object char_table, test;
+  (Lisp_Object char_table, Lisp_Object test)
 {
   Lisp_Object elt;
   int i;
@@ -866,8 +856,7 @@ Call FUNCTION for each character in CHAR-TABLE that has non-nil value.
 FUNCTION is called with two arguments--a key and a value.
 The key is a character code or a cons of character codes specifying a
 range of characters that have the same value.  */)
-     (function, char_table)
-     Lisp_Object function, char_table;
+  (Lisp_Object function, Lisp_Object char_table)
 {
   CHECK_CHAR_TABLE (char_table);
 

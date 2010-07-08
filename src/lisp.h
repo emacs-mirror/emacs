@@ -647,7 +647,7 @@ extern size_t pure_size;
     (XSTRING (string)->size = (newsize))
 
 #define STRING_COPYIN(string, index, new, count) \
-    bcopy (new, SDATA (string) + index, count)
+    memcpy (SDATA (string) + index, new, count)
 
 /* Type checking.  */
 
@@ -2628,7 +2628,6 @@ EXFUN (Fredisplay, 1);
 extern Lisp_Object sit_for (Lisp_Object, int, int);
 extern void init_display (void);
 extern void syms_of_display (void);
-extern void safe_bcopy (const char *, char *, int);
 
 /* Defined in xdisp.c */
 extern Lisp_Object Qinhibit_point_motion_hooks;
@@ -3400,6 +3399,18 @@ extern int emacs_open (const char *, int, int);
 extern int emacs_close (int);
 extern int emacs_read (int, char *, unsigned int);
 extern int emacs_write (int, const char *, unsigned int);
+#ifndef HAVE_MEMSET
+extern void *memset P_ ((void *, int, size_t));
+#endif
+#ifndef HAVE_MEMCPY
+extern void *memcpy P_ ((void *, void *, size_t));
+#endif
+#ifndef HAVE_MEMMOVE
+extern void *memmove P_ ((void *, void *, size_t));
+#endif
+#ifndef HAVE_MEMCMP
+extern int memcmp P_ ((void *, void *, size_t));
+#endif
 
 /* Defined in filelock.c */
 EXFUN (Funlock_buffer, 0);

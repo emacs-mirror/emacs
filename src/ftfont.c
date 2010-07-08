@@ -1365,7 +1365,7 @@ ftfont_text_extents (struct font *font, unsigned int *code, int nglyphs, struct 
   if (ftfont_info->ft_size != ft_face->size)
     FT_Activate_Size (ftfont_info->ft_size);
   if (metrics)
-    bzero (metrics, sizeof (struct font_metrics));
+    memset (metrics, 0, sizeof (struct font_metrics));
   for (i = 0, first = 1; i < nglyphs; i++)
     {
       if (FT_Load_Glyph (ft_face, code[i], FT_LOAD_DEFAULT) == 0)
