@@ -3078,7 +3078,7 @@ font_open_entity (f, entity, pixel_size)
     return Qnil;
   ASET (entity, FONT_OBJLIST_INDEX,
 	Fcons (font_object, AREF (entity, FONT_OBJLIST_INDEX)));
-  ASET (font_object, FONT_OBJLIST_INDEX, Qnil);
+  ASET (font_object, FONT_ENTITY_INDEX, entity);
   num_fonts++;
 
   font = XFONT_OBJECT (font_object);
@@ -4231,16 +4231,25 @@ properties in TO.  */)
 DEFUN ("font-get", Ffont_get, Sfont_get, 2, 2, 0,
        doc: /* Return the value of FONT's property KEY.
 FONT is a font-spec, a font-entity, or a font-object.
-KEY must be one of these symbols:
+KEY is any symbol, but these are reserved for specific meanings:
   :family, :weight, :slant, :width, :foundry, :adstyle, :registry,
-  :size, :name, :script
+  :size, :name, :script, :otf
 See the documentation of `font-spec' for their meanings.
-If FONT is a font-entity or font-object, the value of :script may be
-a list of scripts that are supported by the font.  */)
+In addition, if FONT is a font-entity or a font-object, values of
+:script and :otf are different from those of a font-spec as below:
+
+The value of :script may be a list of scripts that are supported by the font.
+
+The value of :otf is a cons (GSUB . GPOS) where GSUB and GPOS are lists
+representing the OpenType features supported by the font by this form:
+  ((SCRIPT (LANGSYS FEATURE ...) ...) ...)
+SCRIPT, LANGSYS, and FEATURE are all symbols representing OpenType
+Layout tags.  */)
      (font, key)
      Lisp_Object font, key;
 {
   int idx;
+  Lisp_Object val;
 
   CHECK_FONT (font);
   CHECK_SYMBOL (key);
@@ -4250,7 +4259,28 @@ a list of scripts that are supported by the font.  */)
     return font_style_symbolic (font, idx, 0);
   if (idx >= 0 && idx < FONT_EXTRA_INDEX)
     return AREF (font, idx);
-  return Fcdr (Fassq (key, AREF (font, FONT_EXTRA_INDEX)));
+  val = Fassq (key, AREF (font, FONT_EXTRA_INDEX));
+  if (NILP (val) && EQ (key, QCotf) && FONT_OBJECT_P (font))
+    {
+      struct font *fontp = XFONT_OBJECT (font);
+      Lisp_Object entity = AREF (font, FONT_ENTITY_INDEX);
+
+      val = Fassq (key, AREF (entity, FONT_EXTRA_INDEX));
+      if (NILP (val))
+	{
+	  if (fontp->driver->otf_capability)
+	    val = fontp->driver->otf_capability (fontp);
+	  else
+	    val = Fcons (Qnil, Qnil);
+	  font_put_extra (font, QCotf, val);
+	  font_put_extra (entity, QCotf, val);
+	}
+      else
+	val = Fcdr (val);
+    }
+  else
+    val = Fcdr (val);
+  return val;
 }
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -4342,18 +4372,37 @@ are to be displayed on.  If omitted, the selected frame is used.  */)
 #endif
 
 DEFUN ("font-put", Ffont_put, Sfont_put, 3, 3, 0,
-       doc: /* Set one property of FONT-SPEC: give property PROP value VAL.  */)
-     (font_spec, prop, val)
-     Lisp_Object font_spec, prop, val;
+       doc: /* Set one property of FONT: give property KEY value VAL.
+FONT is a font-spec, a font-entity, or a font-object.
+
+If FONT is a font-spec, KEY can be any symbol.  But if KEY is the one
+accepted by the function `font-spec' (which see), VAL must be what
+allowed in `font-spec'.
+
+If FONT is a font-entity or a font-object, KEY must not be the one
+accepted by `font-spec'.  */)
+     (font, prop, val)
+     Lisp_Object font, prop, val;
 {
   int idx;
 
-  CHECK_FONT_SPEC (font_spec);
   idx = get_font_prop_index (prop);
   if (idx >= 0 && idx < FONT_EXTRA_INDEX)
-    ASET (font_spec, idx, font_prop_validate (idx, Qnil, val));
+    {
+      CHECK_FONT_SPEC (font);
+      ASET (font, idx, font_prop_validate (idx, Qnil, val));
+    }
   else
-    font_put_extra (font_spec, prop, font_prop_validate (0, prop, val));
+    {
+      if (EQ (prop, QCname)
+	  || EQ (prop, QCscript)
+	  || EQ (prop, QClang)
+	  || EQ (prop, QCotf))
+	CHECK_FONT_SPEC (font);
+      else
+	CHECK_FONT (font);
+      font_put_extra (font, prop, font_prop_validate (0, prop, val));
+    }
   return val;
 }
 
@@ -4906,25 +4955,99 @@ If the font is not OpenType font, CAPABILITY is nil.  */)
   return val;
 }
 
-DEFUN ("get-font-glyphs", Fget_font_glyphs, Sget_font_glyphs, 2, 2, 0,
-       doc: /* Return a vector of glyphs of FONT-OBJECT for drawing STRING.
-Each element is a vector [GLYPH-CODE LBEARING RBEARING WIDTH ASCENT DESCENT].  */)
-     (font_object, string)
-     Lisp_Object font_object, string;
+DEFUN ("font-get-glyphs", Ffont_get_glyphs, Sfont_get_glyphs, 3, 4, 0,
+       doc:
+       /* Return a vector of FONT-OBJECT's glyphs for the specified characters.
+FROM and TO are positions (integers or markers) specifying a region
+of the current buffer.
+If the optional fourth arg OBJECT is not nil, it is a string or a
+vector containing the target characters.
+
+Each element is a vector containing information of a glyph in this format:
+  [FROM-IDX TO-IDX C CODE WIDTH LBEARING RBEARING ASCENT DESCENT ADJUSTMENT]
+where
+  FROM is an index numbers of a character the glyph corresponds to.
+  TO is the same as FROM.
+  C is the character of the glyph.
+  CODE is the glyph-code of C in FONT-OBJECT.
+  WIDTH thru DESCENT are the metrics (in pixels) of the glyph.
+  ADJUSTMENT is always nil.
+If FONT-OBJECT doesn't have a glyph for a character,
+the corresponding element is nil.  */)
+     (font_object, from, to, object)
+     Lisp_Object font_object, from, to, object;
 {
   struct font *font;
-  int i, len;
-  Lisp_Object vec;
+  int i, len, c;
+  Lisp_Object *chars, vec;
+  USE_SAFE_ALLOCA;
 
   CHECK_FONT_GET_OBJECT (font_object, font);
-  CHECK_STRING (string);
-  len = SCHARS (string);
+  if (NILP (object))
+    {
+      EMACS_INT charpos, bytepos;
+
+      validate_region (&from, &to);
+      if (EQ (from, to))
+	return Qnil;
+      len = XFASTINT (to) - XFASTINT (from);
+      SAFE_ALLOCA_LISP (chars, len);
+      charpos = XFASTINT (from);
+      bytepos = CHAR_TO_BYTE (charpos);
+      for (i = 0; charpos < XFASTINT (to); i++)
+	{
+	  FETCH_CHAR_ADVANCE (c, charpos, bytepos);
+	  chars[i] = make_number (c);
+	}
+    }
+  else if (STRINGP (object))
+    {
+      const unsigned char *p;
+
+      CHECK_NUMBER (from);
+      CHECK_NUMBER (to);
+      if (XINT (from) < 0 || XINT (from) > XINT (to)
+	  || XINT (to) > SCHARS (object))
+	args_out_of_range_3 (object, from, to);
+      if (EQ (from, to))
+	return Qnil;
+      len = XFASTINT (to) - XFASTINT (from);
+      SAFE_ALLOCA_LISP (chars, len);
+      p = SDATA (object);
+      if (STRING_MULTIBYTE (object))
+	for (i = 0; i < len; i++)
+	  {
+	    c = STRING_CHAR_ADVANCE (p);
+	    chars[i] = make_number (c);
+	  }
+      else
+	for (i = 0; i < len; i++)
+	  chars[i] = make_number (p[i]);
+    }
+  else
+    {
+      CHECK_VECTOR (object);
+      CHECK_NUMBER (from);
+      CHECK_NUMBER (to);
+      if (XINT (from) < 0 || XINT (from) > XINT (to)
+	  || XINT (to) > ASIZE (object))
+	args_out_of_range_3 (object, from, to);
+      if (EQ (from, to))
+	return Qnil;
+      len = XFASTINT (to) - XFASTINT (from);
+      for (i = 0; i < len; i++)
+	{
+	  Lisp_Object elt = AREF (object, XFASTINT (from) + i);
+	  CHECK_CHARACTER (elt);
+	}
+      chars = &(AREF (object, XFASTINT (from)));
+    }
+
   vec = Fmake_vector (make_number (len), Qnil);
   for (i = 0; i < len; i++)
     {
-      Lisp_Object ch = Faref (string, make_number (i));
-      Lisp_Object val;
-      int c = XINT (ch);
+      Lisp_Object g;
+      int c = XFASTINT (chars[i]);
       unsigned code;
       EMACS_INT cod;
       struct font_metrics metrics;
@@ -4932,20 +5055,21 @@ Each element is a vector [GLYPH-CODE LBEARING RBEARING WIDTH ASCENT DESCENT].  *
       cod = code = font->driver->encode_char (font, c);
       if (code == FONT_INVALID_CODE)
 	continue;
-      val = Fmake_vector (make_number (6), Qnil);
-      if (cod <= MOST_POSITIVE_FIXNUM)
-	ASET (val, 0, make_number (code));
-      else
-	ASET (val, 0, Fcons (make_number (code >> 16),
-			     make_number (code & 0xFFFF)));
+      g = Fmake_vector (make_number (LGLYPH_SIZE), Qnil);
+      LGLYPH_SET_FROM (g, i);
+      LGLYPH_SET_TO (g, i);
+      LGLYPH_SET_CHAR (g, c);
+      LGLYPH_SET_CODE (g, code);
       font->driver->text_extents (font, &code, 1, &metrics);
-      ASET (val, 1, make_number (metrics.lbearing));
-      ASET (val, 2, make_number (metrics.rbearing));
-      ASET (val, 3, make_number (metrics.width));
-      ASET (val, 4, make_number (metrics.ascent));
-      ASET (val, 5, make_number (metrics.descent));
-      ASET (vec, i, val);
+      LGLYPH_SET_WIDTH (g, metrics.width);
+      LGLYPH_SET_LBEARING (g, metrics.lbearing);
+      LGLYPH_SET_RBEARING (g, metrics.rbearing);
+      LGLYPH_SET_ASCENT (g, metrics.ascent);
+      LGLYPH_SET_DESCENT (g, metrics.descent);
+      ASET (vec, i, g);
     }
+  if (! VECTORP (object))
+    SAFE_FREE ();
   return vec;
 }
 
@@ -5347,7 +5471,7 @@ syms_of_font ()
   defsubr (&Sopen_font);
   defsubr (&Sclose_font);
   defsubr (&Squery_font);
-  defsubr (&Sget_font_glyphs);
+  defsubr (&Sfont_get_glyphs);
   defsubr (&Sfont_match_p);
   defsubr (&Sfont_at);
 #if 0

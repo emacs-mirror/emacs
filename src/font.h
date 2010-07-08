@@ -159,13 +159,18 @@ enum font_property_index
     /* This value is the length of font-spec vector.  */
     FONT_SPEC_MAX,
 
-    /* The followings are used only for a font-entity.  */
+    /* The followings are used only for a font-entity and a font-object.  */
 
     /* List of font-objects opened from the font-entity.  */
     FONT_OBJLIST_INDEX = FONT_SPEC_MAX,
 
+    /* Font-entity from which the font-object is opened.  */
+    FONT_ENTITY_INDEX = FONT_SPEC_MAX,
+
     /* This value is the length of font-entity vector.  */
     FONT_ENTITY_MAX,
+
+    /* The followings are used only for a font-object.  */
 
     /* XLFD name of the font (string). */
     FONT_NAME_INDEX = FONT_ENTITY_MAX,
