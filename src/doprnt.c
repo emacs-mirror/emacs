@@ -48,8 +48,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    another macro.  */
 #include "character.h"
 
-static int doprnt1 ();
-
 /* Generate output from a format-spec FORMAT,
    terminated at position FORMAT_END.
    Output goes in BUFFER, which has room for BUFSIZE chars.
@@ -61,13 +59,7 @@ static int doprnt1 ();
    Integers are passed as C integers.  */
 
 int
-doprnt (buffer, bufsize, format, format_end, nargs, args)
-     char *buffer;
-     register int bufsize;
-     char *format;
-     char *format_end;
-     int nargs;
-     char **args;
+doprnt (char *buffer, register int bufsize, char *format, char *format_end, int nargs, char **args)
 {
   int cnt = 0;			/* Number of arg to gobble next */
   register char *fmt = format;	/* Pointer into format string */
@@ -237,12 +229,12 @@ doprnt (buffer, bufsize, format, format_end, nargs, args)
 		  /* Truncate the string at character boundary.  */
 		  tem = bufsize;
 		  while (!CHAR_HEAD_P (string[tem - 1])) tem--;
-		  bcopy (string, bufptr, tem);
+		  memcpy (bufptr, string, tem);
 		  /* We must calculate WIDTH again.  */
 		  width = strwidth (bufptr, tem);
 		}
 	      else
-		bcopy (string, bufptr, tem);
+		memcpy (bufptr, string, tem);
 	      bufptr += tem;
 	      bufsize -= tem;
 	      if (minlen < 0)

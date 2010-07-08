@@ -499,10 +499,10 @@ struct coding_system
 
   int default_char;
 
-  int (*detector) P_ ((struct coding_system *,
-		       struct coding_detection_info *));
-  void (*decoder) P_ ((struct coding_system *));
-  int (*encoder) P_ ((struct coding_system *));
+  int (*detector) (struct coding_system *,
+                   struct coding_detection_info *);
+  void (*decoder) (struct coding_system *);
+  int (*encoder) (struct coding_system *);
 };
 
 /* Meanings of bits in the member `common_flags' of the structure
@@ -691,33 +691,33 @@ struct coding_system
 #define ENCODE_UTF_8(str) code_convert_string_norecord (str, Qutf_8, 1)
 
 /* Extern declarations.  */
-extern Lisp_Object code_conversion_save P_ ((int, int));
-extern int decoding_buffer_size P_ ((struct coding_system *, int));
-extern int encoding_buffer_size P_ ((struct coding_system *, int));
-extern void setup_coding_system P_ ((Lisp_Object, struct coding_system *));
-extern Lisp_Object coding_charset_list P_ ((struct coding_system *));
-extern Lisp_Object coding_system_charset_list P_ ((Lisp_Object));
-extern void detect_coding P_ ((struct coding_system *));
-extern Lisp_Object code_convert_region P_ ((Lisp_Object, Lisp_Object,
-					    Lisp_Object, Lisp_Object,
-					    int, int));
-extern Lisp_Object code_convert_string P_ ((Lisp_Object, Lisp_Object,
-					    Lisp_Object, int, int, int));
-extern Lisp_Object code_convert_string_norecord P_ ((Lisp_Object, Lisp_Object,
-						     int));
-extern Lisp_Object raw_text_coding_system P_ ((Lisp_Object));
-extern Lisp_Object coding_inherit_eol_type P_ ((Lisp_Object, Lisp_Object));
+extern Lisp_Object code_conversion_save (int, int);
+extern int decoding_buffer_size (struct coding_system *, int);
+extern int encoding_buffer_size (struct coding_system *, int);
+extern void setup_coding_system (Lisp_Object, struct coding_system *);
+extern Lisp_Object coding_charset_list (struct coding_system *);
+extern Lisp_Object coding_system_charset_list (Lisp_Object);
+extern void detect_coding (struct coding_system *);
+extern Lisp_Object code_convert_region (Lisp_Object, Lisp_Object,
+                                        Lisp_Object, Lisp_Object,
+                                        int, int);
+extern Lisp_Object code_convert_string (Lisp_Object, Lisp_Object,
+                                        Lisp_Object, int, int, int);
+extern Lisp_Object code_convert_string_norecord (Lisp_Object, Lisp_Object,
+                                                 int);
+extern Lisp_Object raw_text_coding_system (Lisp_Object);
+extern Lisp_Object coding_inherit_eol_type (Lisp_Object, Lisp_Object);
 
-extern int decode_coding_gap P_ ((struct coding_system *,
-				  EMACS_INT, EMACS_INT));
-extern int encode_coding_gap P_ ((struct coding_system *,
-				  EMACS_INT, EMACS_INT));
-extern void decode_coding_object P_ ((struct coding_system *,
-				      Lisp_Object, EMACS_INT, EMACS_INT,
-				      EMACS_INT, EMACS_INT, Lisp_Object));
-extern void encode_coding_object P_ ((struct coding_system *,
-				      Lisp_Object, EMACS_INT, EMACS_INT,
-				      EMACS_INT, EMACS_INT, Lisp_Object));
+extern int decode_coding_gap (struct coding_system *,
+                              EMACS_INT, EMACS_INT);
+extern int encode_coding_gap (struct coding_system *,
+                              EMACS_INT, EMACS_INT);
+extern void decode_coding_object (struct coding_system *,
+                                  Lisp_Object, EMACS_INT, EMACS_INT,
+                                  EMACS_INT, EMACS_INT, Lisp_Object);
+extern void encode_coding_object (struct coding_system *,
+                                  Lisp_Object, EMACS_INT, EMACS_INT,
+                                  EMACS_INT, EMACS_INT, Lisp_Object);
 
 /* Macros for backward compatibility.  */
 
@@ -753,7 +753,7 @@ extern void encode_coding_object P_ ((struct coding_system *,
   } while (0)
 
 
-extern Lisp_Object preferred_coding_system P_ (());
+extern Lisp_Object preferred_coding_system (void);
 
 
 extern Lisp_Object Qutf_8, Qutf_8_emacs;
@@ -780,7 +780,7 @@ extern Lisp_Object Qcall_process, Qcall_process_region;
 extern Lisp_Object Qstart_process, Qopen_network_stream;
 extern Lisp_Object Qwrite_region;
 
-extern char *emacs_strerror P_ ((int));
+extern char *emacs_strerror (int);
 
 /* Coding-system for reading files and receiving data from process.  */
 extern Lisp_Object Vcoding_system_for_read;
@@ -823,7 +823,7 @@ extern Lisp_Object Vdefault_file_name_coding_system;
 extern Lisp_Object Qcoding_system_error;
 
 extern char emacs_mule_bytes[256];
-extern int emacs_mule_string_char P_ ((unsigned char *));
+extern int emacs_mule_string_char (unsigned char *);
 
 #endif /* EMACS_CODING_H */
 

@@ -154,7 +154,7 @@ extern Lisp_Object Qfield;
    or when a minibuffer exits.  */
 
 void
-choose_minibuf_frame ()
+choose_minibuf_frame (void)
 {
   if (FRAMEP (selected_frame)
       && FRAME_LIVE_P (XFRAME (selected_frame))
@@ -193,8 +193,7 @@ choose_minibuf_frame ()
 }
 
 Lisp_Object
-choose_minibuf_frame_1 (ignore)
-     Lisp_Object ignore;
+choose_minibuf_frame_1 (Lisp_Object ignore)
 {
   choose_minibuf_frame ();
   return Qnil;
@@ -220,27 +219,26 @@ without invoking the usual minibuffer commands.  */)
 
 /* Actual minibuffer invocation. */
 
-static Lisp_Object read_minibuf_unwind P_ ((Lisp_Object));
-static Lisp_Object run_exit_minibuf_hook P_ ((Lisp_Object));
-static Lisp_Object read_minibuf P_ ((Lisp_Object, Lisp_Object,
-				     Lisp_Object, Lisp_Object,
-				     int, Lisp_Object,
-				     Lisp_Object, Lisp_Object,
-				     int, int));
-static Lisp_Object read_minibuf_noninteractive P_ ((Lisp_Object, Lisp_Object,
-						    Lisp_Object, Lisp_Object,
-						    int, Lisp_Object,
-						    Lisp_Object, Lisp_Object,
-						    int, int));
-static Lisp_Object string_to_object P_ ((Lisp_Object, Lisp_Object));
+static Lisp_Object read_minibuf_unwind (Lisp_Object);
+static Lisp_Object run_exit_minibuf_hook (Lisp_Object);
+static Lisp_Object read_minibuf (Lisp_Object, Lisp_Object,
+                                 Lisp_Object, Lisp_Object,
+                                 int, Lisp_Object,
+                                 Lisp_Object, Lisp_Object,
+                                 int, int);
+static Lisp_Object read_minibuf_noninteractive (Lisp_Object, Lisp_Object,
+                                                Lisp_Object, Lisp_Object,
+                                                int, Lisp_Object,
+                                                Lisp_Object, Lisp_Object,
+                                                int, int);
+static Lisp_Object string_to_object (Lisp_Object, Lisp_Object);
 
 
 /* Read a Lisp object from VAL and return it.  If VAL is an empty
    string, and DEFALT is a string, read from DEFALT instead of VAL.  */
 
 static Lisp_Object
-string_to_object (val, defalt)
-     Lisp_Object val, defalt;
+string_to_object (Lisp_Object val, Lisp_Object defalt)
 {
   struct gcpro gcpro1, gcpro2;
   Lisp_Object expr_and_pos;
@@ -839,12 +837,11 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
  used for nonrecursive minibuffer invocations */
 
 Lisp_Object
-get_minibuffer (depth)
-     int depth;
+get_minibuffer (int depth)
 {
   Lisp_Object tail, num, buf;
   char name[24];
-  extern Lisp_Object nconc2 ();
+  extern Lisp_Object nconc2 (Lisp_Object, Lisp_Object);
 
   XSETFASTINT (num, depth);
   tail = Fnthcdr (num, Vminibuffer_list);
@@ -884,8 +881,7 @@ get_minibuffer (depth)
 }
 
 static Lisp_Object
-run_exit_minibuf_hook (data)
-     Lisp_Object data;
+run_exit_minibuf_hook (Lisp_Object data)
 {
   if (!NILP (Vminibuffer_exit_hook) && !EQ (Vminibuffer_exit_hook, Qunbound)
       && !NILP (Vrun_hooks))
@@ -898,8 +894,7 @@ run_exit_minibuf_hook (data)
    not, and it restores the current window, buffer, etc. */
 
 static Lisp_Object
-read_minibuf_unwind (data)
-     Lisp_Object data;
+read_minibuf_unwind (Lisp_Object data)
 {
   Lisp_Object old_deactivate_mark;
   Lisp_Object window;
@@ -1249,8 +1244,7 @@ function, instead of the usual behavior.  */)
 }
 
 static Lisp_Object
-minibuf_conform_representation (string, basis)
-     Lisp_Object string, basis;
+minibuf_conform_representation (Lisp_Object string, Lisp_Object basis)
 {
   if (STRING_MULTIBYTE (string) == STRING_MULTIBYTE (basis))
     return string;
@@ -1843,7 +1837,7 @@ Completion ignores case if the ambient value of
   RETURN_UNGCPRO (unbind_to (count, val));
 }
 
-Lisp_Object Fassoc_string ();
+Lisp_Object Fassoc_string (register Lisp_Object key, Lisp_Object list, Lisp_Object case_fold);
 
 /* Test whether TXT is an exact completion.  */
 DEFUN ("test-completion", Ftest_completion, Stest_completion, 2, 3, 0,
@@ -2061,14 +2055,14 @@ If no minibuffer is active, return nil.  */)
 
 
 void
-init_minibuf_once ()
+init_minibuf_once (void)
 {
   Vminibuffer_list = Qnil;
   staticpro (&Vminibuffer_list);
 }
 
 void
-syms_of_minibuf ()
+syms_of_minibuf (void)
 {
   minibuf_level = 0;
   minibuf_prompt = Qnil;

@@ -102,15 +102,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if ALSA is available. */
 #undef HAVE_ALSA
 
-/* Define to 1 if you have the `bcmp' function. */
-#undef HAVE_BCMP
-
-/* Define to 1 if you have the `bcopy' function. */
-#undef HAVE_BCOPY
-
-/* Define to 1 if you have the `bzero' function. */
-#undef HAVE_BZERO
-
 /* Define to 1 if you have the `cbrt' function. */
 #undef HAVE_CBRT
 
@@ -933,6 +924,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if using GTK. */
 #undef USE_GTK
 
+/* Define this to use a lisp union for the Lisp_Object data type. */
+#undef USE_LISP_UNION_TYPE
+
 /* Define to 1 if using the Lucid X toolkit. */
 #undef USE_LUCID
 
@@ -1104,11 +1098,6 @@ SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
 
 #define my_strftime nstrftime	/* for strftime.c */
 
-/* Some of the files of Emacs which are intended for use with other
-   programs assume that if you have a config.h file, you must declare
-   the type of getenv.  */
-extern char *getenv ();
-
 /* These default definitions are good for almost all machines.
    The exceptions override them in m/MACHINE.h.  */
 
@@ -1138,21 +1127,9 @@ extern char *getenv ();
 /* Define if the compiler supports function prototypes.  It may do so but
    not define __STDC__ (e.g. DEC C by default) or may define it as zero.  */
 #undef PROTOTYPES
-/* For mktime.c:  */
-#ifndef __P
-# if defined PROTOTYPES
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif  /* GCC.  */
-#endif /* __P */
 
 #ifdef HAVE_STRING_H
 #include <string.h>
-#endif
-
-#ifdef HAVE_STRINGS_H
-#include <strings.h>  /* May be needed for bcopy & al.  */
 #endif
 
 #ifdef HAVE_STDLIB_H
@@ -1194,16 +1171,6 @@ typedef unsigned size_t;
 #  ifndef GC_LISP_OBJECT_ALIGNMENT
 #    define GC_LISP_OBJECT_ALIGNMENT (__alignof__ (Lisp_Object))
 #  endif
-#endif
-
-#ifndef HAVE_BCOPY
-#define bcopy(a,b,s) memcpy (b,a,s)
-#endif
-#ifndef HAVE_BZERO
-#define bzero(a,s) memset (a,0,s)
-#endif
-#ifndef HAVE_BCMP
-#define BCMP memcmp
 #endif
 
 #endif /* EMACS_CONFIG_H */

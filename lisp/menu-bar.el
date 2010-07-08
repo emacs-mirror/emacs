@@ -1937,15 +1937,20 @@ turn on menu bars; otherwise, turn off menu bars."
   ;; Turn the menu-bars on all frames on or off.
   (let ((val (if menu-bar-mode 1 0)))
     (dolist (frame (frame-list))
-      (set-frame-parameter frame 'menu-bar-lines val)))
-
+      (set-frame-parameter frame 'menu-bar-lines val))
+    ;; If the user has given `default-frame-alist' a `menu-bar-lines'
+    ;; parameter, replace it.
+    (if (assq 'menu-bar-lines default-frame-alist)
+	(setq default-frame-alist
+	      (cons (cons 'menu-bar-lines val)
+		    (assq-delete-all 'menu-bar-lines
+				     default-frame-alist)))))
   ;; Make the message appear when Emacs is idle.  We can not call message
   ;; directly.  The minor-mode message "Menu-bar mode disabled" comes
   ;; after this function returns, overwriting any message we do here.
   (when (and (called-interactively-p 'interactive) (not menu-bar-mode))
     (run-with-idle-timer 0 nil 'message
-			 "Menu-bar mode disabled.  Use M-x menu-bar-mode to make the menu bar appear."))
-  menu-bar-mode)
+			 "Menu-bar mode disabled.  Use M-x menu-bar-mode to make the menu bar appear.")))
 
 (defun toggle-menu-bar-mode-from-frame (&optional arg)
   "Toggle menu bar on or off, based on the status of the current frame.

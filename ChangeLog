@@ -1,3 +1,27 @@
+2010-07-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (PRE_EDIT_LDFLAGS, POST_EDIT_LDFLAGS): Remove.
+
+	* configure.in (UNEXEC_OBJ): Add comment about values for MSDOS
+	and MSWindows.
+
+2010-07-07  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in: Don't check for bcopy, bcmp, bzero.  Don't include
+	<strings.h> and don't define bcopy, bzero, BCMP in config.h.
+
+2010-07-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (getenv): Remove K&R declaration.
+
+2010-07-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in: Remove define __P.
+
+2010-07-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (--enable-use-lisp-union-type): New flag.
+
 2010-06-30  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Fix CFLAGS for non-GCC compilers.

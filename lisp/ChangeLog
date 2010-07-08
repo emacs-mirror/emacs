@@ -1,3 +1,90 @@
+2010-07-08  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa-file.el (epa-file-error, epa-file--find-file-not-found-function)
+	(epa-file-insert-file-contents): Hack to prevent
+	find-file from opening empty buffer when decryptin failed
+	(bug#6568).
+
+2010-07-07  Agustín Martín  <agustin.martin@hispalinux.es>
+
+	* ispell.el (ispell-alternate-dictionary): Use file-readable-p.
+	Return nil if no word-list is found at default locations.
+	(ispell-complete-word-dict): Default to nil.
+	(ispell-command-loop): Use 'word-list' when using lookup-words.
+	(lookup-words): Use ispell-complete-word-dict or
+	ispell-alternate-dictionary.  Check for word-list availability
+	and handle errors if needed with better messages (Bug#6539).
+	(ispell-complete-word): Use ispell-complete-word-dict or
+	ispell-alternate-dictionary.
+
+2010-07-07  Glenn Morris  <rgm@gnu.org>
+
+	* play/zone.el (top-level): Do not require timer, tabify, or cl.
+	(zone-shift-left): Ignore intangibility, and any errors from
+	forward-char.
+	(zone-shift-right): Remove no-op end-of-line.  Ignore intangibility.
+	(zone-pgm-putz-with-case): Use upcase-region rather than inserting,
+	deleting, and copying text properties.
+	(zone-line-specs, zone-pgm-stress): Check forward-line exit status.
+	(zone-pgm-rotate): Handle odd buffers like that of gomoku, where getting
+	to point-max is hard.
+	(zone-fret, zone-fill-out-screen): Replace cl's do with dotimes.
+	(zone-fill-out-screen): Ignore intangibility.
+
+2010-07-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* menu-bar.el (menu-bar-mode):
+	* tool-bar.el (tool-bar-mode): Replace default-frame-alist element
+	if it has been set.
+
+	* mouse.el (mouse-drag-track): Call mouse-start-end to handle
+	word/line selection (Bug#6565).
+
+2010-07-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* net/dbus.el (dbus-send-signal): Declare function.
+
+2010-07-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el: Implement signal "PropertiesChanged" (from D-Bus 1.3.1).
+	(dbus-register-property): New optional argument EMITS-SIGNAL.
+	(dbus-property-handler): Send signal "PropertiesChanged" if requested.
+
+2010-07-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse.el (mouse-drag-overlay): Variable deleted.
+	(mouse-move-drag-overlay, mouse-show-mark): Functions deleted.
+	(mouse--remap-link-click-p): New function.
+	(mouse-drag-track): Handle dragging by using temporary Transient
+	Mark mode, instead of a special overlay.
+	(mouse-kill-ring-save, mouse-save-then-kill): Don't call
+	mouse-show-mark.
+
+	* mouse-sel.el (mouse-sel-selection-alist): mouse-drag-overlay
+	deleted.
+
+2010-07-02  Juri Linkov  <juri@jurta.org>
+
+	* autoinsert.el (auto-insert-alist): Fix readability
+	by using dotted pair notation for lambda.
+
+2010-07-02  Juri Linkov  <juri@jurta.org>
+
+	* faces.el (read-face-name): Rename arg `string-describing-default'
+	to `default'.  Doc fix.  Display the default value in quotes
+	in the prompt.  With empty input, return the `default' arg,
+	unless the default value is a string (in which case return nil).
+	(describe-face): Replace the string `default' arg of `read-face-name'
+	with the symbol `default'.
+
+2010-07-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emulation/viper-cmd.el (viper-delete-backward-char)
+	(viper-del-backward-char-in-insert)
+	(viper-del-backward-char-in-replace, viper-change)
+	(viper-backward-indent): Replace delete-backward-char with
+	delete-char (Bug#6552).
+
 2010-07-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* ruler-mode.el (ruler--save-header-line-format): Fix typos.

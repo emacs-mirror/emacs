@@ -58,7 +58,5 @@ extern void r_alloc_free ();
 #endif /* not _MALLOC_INTERNAL */
 #endif /* REL_ALLOC */
 
-#define HAVE_TEXT_START
-
 /* arch-tag: 9b8e9fb2-2e49-4c22-b68f-11a488e77c66
    (do not change this comment) */

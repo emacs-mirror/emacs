@@ -28,9 +28,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/mman.h>
 #include <stdio.h>
 #include <errno.h>
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
 #if !defined (__NetBSD__) && !defined (__OpenBSD__)
 #include <filehdr.h>
 #include <aouthdr.h>
@@ -79,12 +77,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define	_RDATA		".rdata"
 #define	_SDATA		".sdata"
 #define	_SBSS		".sbss"
+#define TEXT_START     0x120000000
 #endif /* __NetBSD__ || __OpenBSD__ */
 
-static void fatal_unexec __P ((char *, char *));
-static void mark_x __P ((char *));
 
-static void update_dynamic_symbols __P ((char *, char *, int, struct aouthdr));
+static void fatal_unexec (char *, char *);
+static void mark_x (char *);
+
+static void update_dynamic_symbols (char *, char *, int, struct aouthdr);
 
 #define READ(_fd, _buffer, _size, _error_message, _error_arg) \
 	errno = EEOF; \
@@ -260,7 +260,7 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
 
   Brk = brk;
 
-  bcopy (data_section, &old_data_scnhdr, sizeof (old_data_scnhdr));
+  memcpy (&old_data_scnhdr, data_section, sizeof (old_data_scnhdr));
 
   nhdr.aout.dsize = brk - DATA_START;
   nhdr.aout.bsize = 0;
@@ -328,7 +328,7 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
 #ifdef _GOT
   if (got_section != NULL)
     {
-      bcopy (got_section, buffer, sizeof (struct scnhdr));
+      memcpy (buffer, got_section, sizeof (struct scnhdr));
 
       got_section->s_vaddr = vaddr;
       got_section->s_paddr = vaddr;
@@ -376,7 +376,7 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
    * Construct new symbol table header
    */
 
-  bcopy (oldptr + nhdr.fhdr.f_symptr, buffer, cbHDRR);
+  memcpy (buffer, oldptr + nhdr.fhdr.f_symptr, cbHDRR);
 
 #define symhdr ((pHDRR)buffer)
   newsyms = nhdr.aout.tsize + nhdr.aout.dsize;

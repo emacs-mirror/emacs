@@ -10,8 +10,7 @@
  * XDestroyAssocTable - Destroy (free the memory associated with)
  * an XAssocTable.
  */
-XDestroyAssocTable(table)
-	register XAssocTable *table;
+XDestroyAssocTable(register XAssocTable *table)
 {
 	register int i;
 	register XAssoc *bucket;

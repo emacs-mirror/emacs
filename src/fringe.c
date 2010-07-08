@@ -490,8 +490,7 @@ int max_used_fringe_bitmap = MAX_STANDARD_FRINGE_BITMAPS;
    Return 0 if not a bitmap.  */
 
 int
-lookup_fringe_bitmap (bitmap)
-     Lisp_Object bitmap;
+lookup_fringe_bitmap (Lisp_Object bitmap)
 {
   int bn;
 
@@ -517,8 +516,7 @@ lookup_fringe_bitmap (bitmap)
    Return BN if not found in Vfringe_bitmaps.  */
 
 static Lisp_Object
-get_fringe_bitmap_name (bn)
-     int bn;
+get_fringe_bitmap_name (int bn)
 {
   Lisp_Object bitmaps;
   Lisp_Object num;
@@ -550,11 +548,7 @@ get_fringe_bitmap_name (bn)
 */
 
 static void
-draw_fringe_bitmap_1 (w, row, left_p, overlay, which)
-     struct window *w;
-     struct glyph_row *row;
-     int left_p, overlay;
-     int which;
+draw_fringe_bitmap_1 (struct window *w, struct glyph_row *row, int left_p, int overlay, int which)
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   struct draw_fringe_bitmap_params p;
@@ -582,11 +576,10 @@ draw_fringe_bitmap_1 (w, row, left_p, overlay, which)
 
   if (face_id == DEFAULT_FACE_ID)
     {
-      Lisp_Object face;
-
-      if ((face = fringe_faces[which], NILP (face))
-	  || (face_id = lookup_derived_face (f, face, FRINGE_FACE_ID, 0),
-	      face_id < 0))
+      Lisp_Object face = fringe_faces[which];
+      face_id = NILP (face) ? lookup_named_face (f, Qfringe, 0)
+	: lookup_derived_face (f, face, FRINGE_FACE_ID, 0);
+      if (face_id < 0)
 	face_id = FRINGE_FACE_ID;
     }
 
@@ -690,9 +683,7 @@ draw_fringe_bitmap_1 (w, row, left_p, overlay, which)
 }
 
 static int
-get_logical_cursor_bitmap (w, cursor)
-     struct window *w;
-     Lisp_Object cursor;
+get_logical_cursor_bitmap (struct window *w, Lisp_Object cursor)
 {
   Lisp_Object cmap, bm = Qnil;
 
@@ -715,10 +706,7 @@ get_logical_cursor_bitmap (w, cursor)
 }
 
 static int
-get_logical_fringe_bitmap (w, bitmap, right_p, partial_p)
-     struct window *w;
-     Lisp_Object bitmap;
-     int right_p, partial_p;
+get_logical_fringe_bitmap (struct window *w, Lisp_Object bitmap, int right_p, int partial_p)
 {
   Lisp_Object cmap, bm1 = Qnil, bm2 = Qnil, bm;
   int ln1 = 0, ln2 = 0;
@@ -818,10 +806,7 @@ get_logical_fringe_bitmap (w, bitmap, right_p, partial_p)
 
 
 void
-draw_fringe_bitmap (w, row, left_p)
-     struct window *w;
-     struct glyph_row *row;
-     int left_p;
+draw_fringe_bitmap (struct window *w, struct glyph_row *row, int left_p)
 {
   int overlay = 0;
 
@@ -874,9 +859,7 @@ draw_fringe_bitmap (w, row, left_p)
    function with input blocked.  */
 
 void
-draw_row_fringe_bitmaps (w, row)
-     struct window *w;
-     struct glyph_row *row;
+draw_row_fringe_bitmaps (struct window *w, struct glyph_row *row)
 {
   xassert (interrupt_input_blocked);
 
@@ -904,9 +887,7 @@ draw_row_fringe_bitmaps (w, row)
 */
 
 int
-draw_window_fringes (w, no_fringe)
-     struct window *w;
-     int no_fringe;
+draw_window_fringes (struct window *w, int no_fringe)
 {
   struct glyph_row *row;
   int yb = window_text_bottom_y (w);
@@ -944,9 +925,7 @@ draw_window_fringes (w, no_fringe)
    If KEEP_CURRENT_P is 0, update current_matrix too.  */
 
 int
-update_window_fringes (w, keep_current_p)
-     struct window *w;
-     int keep_current_p;
+update_window_fringes (struct window *w, int keep_current_p)
 {
   struct glyph_row *row, *cur = 0;
   int yb = window_text_bottom_y (w);
@@ -1188,9 +1167,7 @@ update_window_fringes (w, keep_current_p)
 */
 
 void
-compute_fringe_widths (f, redraw)
-     struct frame *f;
-     int redraw;
+compute_fringe_widths (struct frame *f, int redraw)
 {
   int o_left = FRAME_LEFT_FRINGE_WIDTH (f);
   int o_right = FRAME_RIGHT_FRINGE_WIDTH (f);
@@ -1272,8 +1249,7 @@ compute_fringe_widths (f, redraw)
 /* Free resources used by a user-defined bitmap.  */
 
 void
-destroy_fringe_bitmap (n)
-     int n;
+destroy_fringe_bitmap (int n)
 {
   struct fringe_bitmap **fbp;
 
@@ -1342,10 +1318,7 @@ static const unsigned char swap_nibble[16] = {
 #endif                          /* HAVE_X_WINDOWS */
 
 void
-init_fringe_bitmap (which, fb, once_p)
-     int which;
-     struct fringe_bitmap *fb;
-     int once_p;
+init_fringe_bitmap (int which, struct fringe_bitmap *fb, int once_p)
 {
   if (once_p || fb->dynamic)
     {
@@ -1520,7 +1493,7 @@ If BITMAP already exists, the existing definition is replaced.  */)
   xfb = (struct fringe_bitmap *) xmalloc (sizeof fb
 					  + fb.height * BYTES_PER_BITMAP_ROW);
   fb.bits = b = (unsigned short *) (xfb + 1);
-  bzero (b, fb.height);
+  memset (b, 0, fb.height);
 
   j = 0;
   while (j < fb.height)
@@ -1620,7 +1593,7 @@ Return nil if POS is not visible in WINDOW.  */)
  ***********************************************************************/
 
 void
-syms_of_fringe ()
+syms_of_fringe (void)
 {
   Qtruncation = intern_c_string ("truncation");
   staticpro (&Qtruncation);
@@ -1657,7 +1630,7 @@ If nil, also continue lines which are exactly as wide as the window.  */);
 /* Garbage collection hook */
 
 void
-mark_fringe_data ()
+mark_fringe_data (void)
 {
   int i;
 
@@ -1669,7 +1642,7 @@ mark_fringe_data ()
 /* Initialize this module when Emacs starts.  */
 
 void
-init_fringe_once ()
+init_fringe_once (void)
 {
   int bt;
 
@@ -1678,7 +1651,7 @@ init_fringe_once ()
 }
 
 void
-init_fringe ()
+init_fringe (void)
 {
   int i;
 

@@ -46,7 +46,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "buildobj.h"
 
 #ifdef HAVE_INDEX
-extern char *index P_ ((const char *, int));
+extern char *index (const char *, int);
 #endif
 
 Lisp_Object Vdoc_file_name;
@@ -65,14 +65,13 @@ static char *get_doc_string_buffer;
 static int get_doc_string_buffer_size;
 
 static unsigned char *read_bytecode_pointer;
-Lisp_Object Fsnarf_documentation P_ ((Lisp_Object));
+Lisp_Object Fsnarf_documentation (Lisp_Object);
 
 /* readchar in lread.c calls back here to fetch the next byte.
    If UNREADFLAG is 1, we unread a byte.  */
 
 int
-read_bytecode_char (unreadflag)
-     int unreadflag;
+read_bytecode_char (int unreadflag)
 {
   if (unreadflag)
     {
@@ -102,9 +101,7 @@ read_bytecode_char (unreadflag)
    and return a cons cell.  */
 
 Lisp_Object
-get_doc_string (filepos, unibyte, definition)
-     Lisp_Object filepos;
-     int unibyte, definition;
+get_doc_string (Lisp_Object filepos, int unibyte, int definition)
 {
   char *from, *to;
   register int fd;
@@ -311,15 +308,13 @@ get_doc_string (filepos, unibyte, definition)
    of a compiled function from the .elc file.  */
 
 Lisp_Object
-read_doc_string (filepos)
-     Lisp_Object filepos;
+read_doc_string (Lisp_Object filepos)
 {
   return get_doc_string (filepos, 0, 1);
 }
 
 static int
-reread_doc_file (file)
-     Lisp_Object file;
+reread_doc_file (Lisp_Object file)
 {
 #if 0
   Lisp_Object reply, prompt[3];
@@ -515,10 +510,8 @@ aren't strings.  */)
 /* Scanning the DOC files and placing docstring offsets into functions.  */
 
 static void
-store_function_docstring (fun, offset)
-     Lisp_Object fun;
-     /* Use EMACS_INT because we get this from pointer subtraction.  */
-     EMACS_INT offset;
+store_function_docstring (Lisp_Object fun, EMACS_INT offset)
+/* Use EMACS_INT because we get offset from pointer subtraction.  */
 {
   fun = indirect_function (fun);
 
@@ -693,7 +686,7 @@ the same file name is found in the `doc-directory'.  */)
 	}
       pos += end - buf;
       filled -= end - buf;
-      bcopy (end, buf, filled);
+      memcpy (buf, end, filled);
     }
   emacs_close (fd);
   return Qnil;
@@ -772,7 +765,7 @@ a new string, without any text properties, is returned.  */)
 	      if (len == 1)
 		*bufp = *strp;
 	      else
-		bcopy (strp, bufp, len);
+		memcpy (bufp, strp, len);
 	      strp += len;
 	      bufp += len;
 	      nchars++;
@@ -824,7 +817,7 @@ a new string, without any text properties, is returned.  */)
 	      int offset = bufp - buf;
 	      buf = (unsigned char *) xrealloc (buf, bsize += 4);
 	      bufp = buf + offset;
-	      bcopy ("M-x ", bufp, 4);
+	      memcpy (bufp, "M-x ", 4);
 	      bufp += 4;
 	      nchars += 4;
 	      if (multibyte)
@@ -918,7 +911,7 @@ a new string, without any text properties, is returned.  */)
 	    int offset = bufp - buf;
 	    buf = (unsigned char *) xrealloc (buf, bsize += length_byte);
 	    bufp = buf + offset;
-	    bcopy (start, bufp, length_byte);
+	    memcpy (bufp, start, length_byte);
 	    bufp += length_byte;
 	    nchars += length;
 	    /* Check STRING again in case gc relocated it.  */
@@ -935,7 +928,7 @@ a new string, without any text properties, is returned.  */)
 	  if (len == 1)
 	    *bufp = *strp;
 	  else
-	    bcopy (strp, bufp, len);
+	    memcpy (bufp, strp, len);
 	  strp += len;
 	  bufp += len;
 	  nchars++;
@@ -951,7 +944,7 @@ a new string, without any text properties, is returned.  */)
 }
 
 void
-syms_of_doc ()
+syms_of_doc (void)
 {
   Qfunction_documentation = intern_c_string ("function-documentation");
   staticpro (&Qfunction_documentation);

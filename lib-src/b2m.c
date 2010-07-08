@@ -64,12 +64,13 @@ struct linebuffer
   char *buffer;
 };
 
-extern char *strtok();
+extern char *strtok(char *, const char *);
 
-long *xmalloc (), *xrealloc ();
-char *concat ();
-long readline ();
-void fatal ();
+long *xmalloc (unsigned int size);
+long *xrealloc (char *ptr, unsigned int size);
+char *concat (char *s1, char *s2, char *s3);
+long readline (struct linebuffer *linebuffer, register FILE *stream);
+void fatal (char *message);
 
 /*
  * xnew -- allocate storage.  SYNOPSIS: Type *xnew (int n, Type);
@@ -90,9 +91,7 @@ struct option longopts[] =
 extern int optind;
 
 int
-main (argc, argv)
-     int argc;
-     char **argv;
+main (int argc, char **argv)
 {
   logical labels_saved, printing, header, first, last_was_blank_line;
   time_t ltoday;
@@ -219,8 +218,7 @@ main (argc, argv)
  * concatenate those of s1, s2, s3.
  */
 char *
-concat (s1, s2, s3)
-     char *s1, *s2, *s3;
+concat (char *s1, char *s2, char *s3)
 {
   int len1 = strlen (s1), len2 = strlen (s2), len3 = strlen (s3);
   char *result = xnew (len1 + len2 + len3 + 1, char);
@@ -239,9 +237,7 @@ concat (s1, s2, s3)
  * which is the length of the line including the newline, if any.
  */
 long
-readline (linebuffer, stream)
-     struct linebuffer *linebuffer;
-     register FILE *stream;
+readline (struct linebuffer *linebuffer, register FILE *stream)
 {
   char *buffer = linebuffer->buffer;
   register char *p = linebuffer->buffer;
@@ -291,8 +287,7 @@ readline (linebuffer, stream)
  * Like malloc but get fatal error if memory is exhausted.
  */
 long *
-xmalloc (size)
-     unsigned int size;
+xmalloc (unsigned int size)
 {
   long *result = (long *) malloc (size);
   if (result == NULL)
@@ -301,9 +296,7 @@ xmalloc (size)
 }
 
 long *
-xrealloc (ptr, size)
-     char *ptr;
-     unsigned int size;
+xrealloc (char *ptr, unsigned int size)
 {
   long *result = (long *) realloc (ptr, size);
   if (result == NULL)
@@ -312,8 +305,7 @@ xrealloc (ptr, size)
 }
 
 void
-fatal (message)
-     char *message;
+fatal (char *message)
 {
   fprintf (stderr, "%s: %s\n", progname, message);
   exit (EXIT_FAILURE);

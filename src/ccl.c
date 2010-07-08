@@ -862,11 +862,7 @@ struct ccl_prog_stack
 static struct ccl_prog_stack ccl_prog_stack_struct[256];
 
 void
-ccl_driver (ccl, source, destination, src_size, dst_size, charset_list)
-     struct ccl_program *ccl;
-     int *source, *destination;
-     int src_size, dst_size;
-     Lisp_Object charset_list;
+ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size, int dst_size, Lisp_Object charset_list)
 {
   register int *reg = ccl->reg;
   register int ic = ccl->ic;
@@ -1719,7 +1715,7 @@ ccl_driver (ccl, source, destination, src_size, dst_size, charset_list)
 	    msglen = strlen (msg);
 	    if (dst + msglen <= (dst_bytes ? dst_end : src))
 	      {
-		bcopy (msg, dst, msglen);
+		memcpy (dst, msg, msglen);
 		dst += msglen;
 	      }
 
@@ -1732,7 +1728,7 @@ ccl_driver (ccl, source, destination, src_size, dst_size, charset_list)
 		msglen = strlen (msg);
 		if (dst + msglen > (dst_bytes ? dst_end : src))
 		  break;
-		bcopy (msg, dst, msglen);
+		memcpy (dst, msg, msglen);
 		dst += msglen;
 	      }
 	    goto ccl_finish;
@@ -1765,7 +1761,7 @@ ccl_driver (ccl, source, destination, src_size, dst_size, charset_list)
 	  int i = src_end - src;
 	  if (dst_bytes && (dst_end - dst) < i)
 	    i = dst_end - dst;
-	  bcopy (src, dst, i);
+	  memcpy (dst, src, i);
 	  src += i;
 	  dst += i;
 #else
@@ -1795,8 +1791,7 @@ ccl_driver (ccl, source, destination, src_size, dst_size, charset_list)
    or nil if CCL contains invalid data.  */
 
 static Lisp_Object
-resolve_symbol_ccl_program (ccl)
-     Lisp_Object ccl;
+resolve_symbol_ccl_program (Lisp_Object ccl)
 {
   int i, veclen, unresolved = 0;
   Lisp_Object result, contents, val;
@@ -1867,9 +1862,7 @@ resolve_symbol_ccl_program (ccl)
    symbols, return Qnil.  */
 
 static Lisp_Object
-ccl_get_compiled_code (ccl_prog, idx)
-     Lisp_Object ccl_prog;
-     int *idx;
+ccl_get_compiled_code (Lisp_Object ccl_prog, int *idx)
 {
   Lisp_Object val, slot;
 
@@ -1910,9 +1903,7 @@ ccl_get_compiled_code (ccl_prog, idx)
 
    If CCL_PROG is nil, we just reset the structure pointed by CCL.  */
 int
-setup_ccl_program (ccl, ccl_prog)
-     struct ccl_program *ccl;
-     Lisp_Object ccl_prog;
+setup_ccl_program (struct ccl_program *ccl, Lisp_Object ccl_prog)
 {
   int i;
 
@@ -1953,8 +1944,7 @@ setup_ccl_program (ccl, ccl_prog)
 /* Check if CCL is updated or not.  If not, re-setup members of CCL.  */
 
 int
-check_ccl_update (ccl)
-     struct ccl_program *ccl;
+check_ccl_update (struct ccl_program *ccl)
 {
   Lisp_Object slot, ccl_prog;
 
@@ -2315,7 +2305,7 @@ Return index number of the registered map.  */)
 
 
 void
-syms_of_ccl ()
+syms_of_ccl (void)
 {
   staticpro (&Vccl_program_table);
   Vccl_program_table = Fmake_vector (make_number (32), Qnil);

@@ -66,10 +66,10 @@ static int been_here = -1;
 /* For now, don't try to include termcap.h.  On some systems,
    configure finds a non-standard termcap.h that the main build
    won't find.  */
-extern void tputs P_ ((const char *, int, int (*)(int)));
-extern int tgetent P_ ((char *, const char *));
-extern int tgetflag P_ ((char *id));
-extern int tgetnum P_ ((char *id));
+extern void tputs (const char *, int, int (*)(int));
+extern int tgetent (char *, const char *);
+extern int tgetflag (char *id);
+extern int tgetnum (char *id);
 
 #include "cm.h"
 #ifdef HAVE_X_WINDOWS
@@ -91,16 +91,16 @@ extern int tgetnum P_ ((char *id));
 #define DEV_TTY  "/dev/tty"
 #endif
 
-static void tty_set_scroll_region P_ ((struct frame *f, int start, int stop));
-static void turn_on_face P_ ((struct frame *, int face_id));
-static void turn_off_face P_ ((struct frame *, int face_id));
-static void tty_show_cursor P_ ((struct tty_display_info *));
-static void tty_hide_cursor P_ ((struct tty_display_info *));
-static void tty_background_highlight P_ ((struct tty_display_info *tty));
-static void clear_tty_hooks P_ ((struct terminal *terminal));
-static void set_tty_hooks P_ ((struct terminal *terminal));
-static void dissociate_if_controlling_tty P_ ((int fd));
-static void delete_tty P_ ((struct terminal *));
+static void tty_set_scroll_region (struct frame *f, int start, int stop);
+static void turn_on_face (struct frame *, int face_id);
+static void turn_off_face (struct frame *, int face_id);
+static void tty_show_cursor (struct tty_display_info *);
+static void tty_hide_cursor (struct tty_display_info *);
+static void tty_background_highlight (struct tty_display_info *tty);
+static void clear_tty_hooks (struct terminal *terminal);
+static void set_tty_hooks (struct terminal *terminal);
+static void dissociate_if_controlling_tty (int fd);
+static void delete_tty (struct terminal *);
 
 #define OUTPUT(tty, a)                                          \
   emacs_tputs ((tty), a,                                        \
@@ -181,13 +181,13 @@ static int system_uses_terminfo;
 
 char *tparam ();
 
-extern char *tgetstr ();
+extern char *tgetstr (char *, char **);
 
 
 #ifdef HAVE_GPM
 #include <sys/fcntl.h>
 
-static void term_clear_mouse_face ();
+static void term_clear_mouse_face (void);
 static void term_mouse_highlight (struct frame *f, int x, int y);
 
 /* The device for which we have enabled gpm support (or NULL).  */
@@ -558,10 +558,7 @@ static int encode_terminal_dst_size;
    sequence, and return a pointer to that byte sequence.  */
 
 unsigned char *
-encode_terminal_code (src, src_len, coding)
-     struct glyph *src;
-     int src_len;
-     struct coding_system *coding;
+encode_terminal_code (struct glyph *src, int src_len, struct coding_system *coding)
 {
   struct glyph *src_end = src + src_len;
   unsigned char *buf;
@@ -723,7 +720,7 @@ encode_terminal_code (src, src_len, coding)
 						  encode_terminal_src_size);
 		  buf = encode_terminal_src + nbytes;
 		}
-	      bcopy (SDATA (string), buf, SBYTES (string));
+	      memcpy (buf, SDATA (string), SBYTES (string));
 	      buf += SBYTES (string);
 	      nchars += SCHARS (string);
 	    }
@@ -836,10 +833,8 @@ tty_write_glyphs (struct frame *f, struct glyph *string, int len)
 #ifdef HAVE_GPM			/* Only used by GPM code.  */
 
 static void
-tty_write_glyphs_with_face (f, string, len, face_id)
-     register struct frame *f;
-     register struct glyph *string;
-     register int len, face_id;
+tty_write_glyphs_with_face (register struct frame *f, register struct glyph *string,
+			    register int len, register int face_id)
 {
   unsigned char *conversion_buffer;
   struct coding_system *coding;
@@ -1230,8 +1225,8 @@ calculate_costs (struct frame *frame)
           = (int *) xmalloc (sizeof (int)
                              + 2 * max_frame_cols * sizeof (int));
 
-      bzero (char_ins_del_vector, (sizeof (int)
-                                   + 2 * max_frame_cols * sizeof (int)));
+      memset (char_ins_del_vector, 0,
+	      (sizeof (int) + 2 * max_frame_cols * sizeof (int)));
 
 
       if (f && (!tty->TS_ins_line && !tty->TS_del_line))
@@ -1366,16 +1361,14 @@ static struct fkey_table keys[] =
 
 static char **term_get_fkeys_address;
 static KBOARD *term_get_fkeys_kboard;
-static Lisp_Object term_get_fkeys_1 ();
+static Lisp_Object term_get_fkeys_1 (void);
 
 /* Find the escape codes sent by the function keys for Vinput_decode_map.
    This function scans the termcap function key sequence entries, and
    adds entries to Vinput_decode_map for each function key it finds.  */
 
 static void
-term_get_fkeys (address, kboard)
-     char **address;
-     KBOARD *kboard;
+term_get_fkeys (char **address, KBOARD *kboard)
 {
   /* We run the body of the function (term_get_fkeys_1) and ignore all Lisp
      errors during the call.  The only errors should be from Fdefine_key
@@ -1385,14 +1378,14 @@ term_get_fkeys (address, kboard)
      function key specification, rather than giving the user an error and
      refusing to run at all on such a terminal.  */
 
-  extern Lisp_Object Fidentity ();
+  extern Lisp_Object Fidentity (Lisp_Object);
   term_get_fkeys_address = address;
   term_get_fkeys_kboard = kboard;
   internal_condition_case (term_get_fkeys_1, Qerror, Fidentity);
 }
 
 static Lisp_Object
-term_get_fkeys_1 ()
+term_get_fkeys_1 (void)
 {
   int i;
 
@@ -1517,10 +1510,10 @@ term_get_fkeys_1 ()
 #define produce_composite_glyph produce_composite_glyph_term
 #endif
 
-static void append_glyph P_ ((struct it *));
-static void produce_stretch_glyph P_ ((struct it *));
-static void append_composite_glyph P_ ((struct it *));
-static void produce_composite_glyph P_ ((struct it *));
+static void append_glyph (struct it *);
+static void produce_stretch_glyph (struct it *);
+static void append_composite_glyph (struct it *);
+static void produce_composite_glyph (struct it *);
 
 /* Append glyphs to IT's glyph_row.  Called from produce_glyphs for
    terminal frames if IT->glyph_row != NULL.  IT->char_to_display is
@@ -1529,8 +1522,7 @@ static void produce_composite_glyph P_ ((struct it *));
    IT->pixel_width > 1.  */
 
 static void
-append_glyph (it)
-     struct it *it;
+append_glyph (struct it *it)
 {
   struct glyph *glyph, *end;
   int i;
@@ -1609,8 +1601,7 @@ append_glyph (it)
    instead they use the macro PRODUCE_GLYPHS.  */
 
 void
-produce_glyphs (it)
-     struct it *it;
+produce_glyphs (struct it *it)
 {
   /* If a hook is installed, let it do the work.  */
 
@@ -1728,8 +1719,7 @@ produce_glyphs (it)
    to reach HPOS, a value in canonical character units.  */
 
 static void
-produce_stretch_glyph (it)
-     struct it *it;
+produce_stretch_glyph (struct it *it)
 {
   /* (space :width WIDTH ...)  */
   Lisp_Object prop, plist;
@@ -1798,8 +1788,7 @@ produce_stretch_glyph (it)
    face.  */
 
 static void
-append_composite_glyph (it)
-     struct it *it;
+append_composite_glyph (struct it *it)
 {
   struct glyph *glyph;
 
@@ -1863,8 +1852,7 @@ append_composite_glyph (it)
    correctly.  */
 
 static void
-produce_composite_glyph (it)
-     struct it *it;
+produce_composite_glyph (struct it *it)
 {
   int c;
 
@@ -1894,9 +1882,7 @@ produce_composite_glyph (it)
    face_id, c, len of IT are left untouched.  */
 
 void
-produce_special_glyphs (it, what)
-     struct it *it;
-     enum display_element_type what;
+produce_special_glyphs (struct it *it, enum display_element_type what)
 {
   struct it temp_it;
   Lisp_Object gc;
@@ -1907,7 +1893,7 @@ produce_special_glyphs (it, what)
   temp_it.what = IT_CHARACTER;
   temp_it.len = 1;
   temp_it.object = make_number (0);
-  bzero (&temp_it.current, sizeof temp_it.current);
+  memset (&temp_it.current, 0, sizeof temp_it.current);
 
   if (what == IT_CONTINUATION)
     {
@@ -1970,9 +1956,7 @@ produce_special_glyphs (it, what)
    FACE_ID is a realized face ID number, in the face cache.  */
 
 static void
-turn_on_face (f, face_id)
-     struct frame *f;
-     int face_id;
+turn_on_face (struct frame *f, int face_id)
 {
   struct face *face = FACE_FROM_ID (f, face_id);
   long fg = face->foreground;
@@ -2069,9 +2053,7 @@ turn_on_face (f, face_id)
 /* Turn off appearances of face FACE_ID on tty frame F.  */
 
 static void
-turn_off_face (f, face_id)
-     struct frame *f;
-     int face_id;
+turn_off_face (struct frame *f, int face_id)
 {
   struct face *face = FACE_FROM_ID (f, face_id);
   struct tty_display_info *tty = FRAME_TTY (f);
@@ -2124,10 +2106,8 @@ turn_off_face (f, face_id)
    colors FG and BG.  */
 
 int
-tty_capable_p (tty, caps, fg, bg)
-     struct tty_display_info *tty;
-     unsigned caps;
-     unsigned long fg, bg;
+tty_capable_p (struct tty_display_info *tty, unsigned int caps,
+	       unsigned long fg, unsigned long bg)
 {
 #define TTY_CAPABLE_P_TRY(tty, cap, TS, NC_bit)				\
   if ((caps & (cap)) && (!(TS) || !MAY_USE_WITH_COLORS_P(tty, NC_bit)))	\
@@ -2267,9 +2247,7 @@ tty_setup_colors (struct tty_display_info *tty, int mode)
 }
 
 void
-set_tty_color_mode (tty, f)
-     struct tty_display_info *tty;
-     struct frame *f;
+set_tty_color_mode (struct tty_display_info *tty, struct frame *f)
 {
   Lisp_Object tem, val;
   Lisp_Object color_mode;
@@ -2333,8 +2311,7 @@ get_tty_terminal (Lisp_Object terminal, int throw)
    Returns NULL if the named terminal device is not opened.  */
 
 struct terminal *
-get_named_tty (name)
-     char *name;
+get_named_tty (char *name)
 {
   struct terminal *t;
 
@@ -2664,7 +2641,7 @@ term_show_mouse_face (enum draw_glyphs_face draw)
 }
 
 static void
-term_clear_mouse_face ()
+term_clear_mouse_face (void)
 {
   if (!NILP (mouse_face_window))
     term_show_mouse_face (DRAW_NORMAL_TEXT);
@@ -3252,7 +3229,7 @@ create_tty_output (struct frame *f)
     abort ();
 
   t = xmalloc (sizeof (struct tty_output));
-  bzero (t, sizeof (struct tty_output));
+  memset (t, 0, sizeof (struct tty_output));
 
   t->display_info = FRAME_TERMINAL (f)->display_info.tty;
 
@@ -3459,7 +3436,7 @@ init_tty (char *name, char *terminal_type, int must_succeed)
 #else
   tty = (struct tty_display_info *) xmalloc (sizeof (struct tty_display_info));
 #endif
-  bzero (tty, sizeof (struct tty_display_info));
+  memset (tty, 0, sizeof (struct tty_display_info));
   tty->next = tty_list;
   tty_list = tty;
 
@@ -4051,7 +4028,7 @@ delete_tty (struct terminal *terminal)
   xfree (tty->termcap_strings_buffer);
   xfree (tty->termcap_term_buffer);
 
-  bzero (tty, sizeof (struct tty_display_info));
+  memset (tty, 0, sizeof (struct tty_display_info));
   xfree (tty);
 }
 
@@ -4072,7 +4049,7 @@ mark_ttys (void)
 
 
 void
-syms_of_term ()
+syms_of_term (void)
 {
   DEFVAR_BOOL ("system-uses-terminfo", &system_uses_terminfo,
     doc: /* Non-nil means the system uses terminfo rather than termcap.

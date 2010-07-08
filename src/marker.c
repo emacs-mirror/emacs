@@ -32,15 +32,14 @@ static int cached_bytepos;
 static struct buffer *cached_buffer;
 static int cached_modiff;
 
-static void byte_char_debug_check P_ ((struct buffer *, int, int));
+static void byte_char_debug_check (struct buffer *, int, int);
 
 /* Nonzero means enable debugging checks on byte/char correspondences.  */
 
 static int byte_debug_flag;
 
 void
-clear_charpos_cache (b)
-     struct buffer *b;
+clear_charpos_cache (struct buffer *b)
 {
   if (cached_buffer == b)
     cached_buffer = 0;
@@ -100,9 +99,7 @@ clear_charpos_cache (b)
 }
 
 static void
-byte_char_debug_check (b, charpos, bytepos)
-     struct buffer *b;
-     int charpos, bytepos;
+byte_char_debug_check (struct buffer *b, int charpos, int bytepos)
 {
   int nchars = 0;
 
@@ -122,16 +119,13 @@ byte_char_debug_check (b, charpos, bytepos)
 }
 
 int
-charpos_to_bytepos (charpos)
-     int charpos;
+charpos_to_bytepos (int charpos)
 {
   return buf_charpos_to_bytepos (current_buffer, charpos);
 }
 
 int
-buf_charpos_to_bytepos (b, charpos)
-     struct buffer *b;
-     int charpos;
+buf_charpos_to_bytepos (struct buffer *b, int charpos)
 {
   struct Lisp_Marker *tail;
   int best_above, best_above_byte;
@@ -254,8 +248,7 @@ buf_charpos_to_bytepos (b, charpos)
    in the simplest, most reliable way.  */
 
 int
-verify_bytepos (charpos)
-     int charpos;
+verify_bytepos (int charpos)
 {
   int below = 1;
   int below_byte = 1;
@@ -315,16 +308,13 @@ verify_bytepos (charpos)
 }
 
 int
-bytepos_to_charpos (bytepos)
-     int bytepos;
+bytepos_to_charpos (int bytepos)
 {
   return buf_bytepos_to_charpos (current_buffer, bytepos);
 }
 
 int
-buf_bytepos_to_charpos (b, bytepos)
-     struct buffer *b;
-     int bytepos;
+buf_bytepos_to_charpos (struct buffer *b, int bytepos)
 {
   struct Lisp_Marker *tail;
   int best_above, best_above_byte;
@@ -556,8 +546,7 @@ Returns MARKER.  */)
    be outside the visible part.  */
 
 Lisp_Object
-set_marker_restricted (marker, pos, buffer)
-     Lisp_Object marker, pos, buffer;
+set_marker_restricted (Lisp_Object marker, Lisp_Object pos, Lisp_Object buffer)
 {
   register int charno, bytepos;
   register struct buffer *b;
@@ -632,9 +621,7 @@ set_marker_restricted (marker, pos, buffer)
    character position and the corresponding byte position.  */
 
 Lisp_Object
-set_marker_both (marker, buffer, charpos, bytepos)
-     Lisp_Object marker, buffer;
-     int charpos, bytepos;
+set_marker_both (Lisp_Object marker, Lisp_Object buffer, int charpos, int bytepos)
 {
   register struct buffer *b;
   register struct Lisp_Marker *m;
@@ -682,9 +669,7 @@ set_marker_both (marker, buffer, charpos, bytepos)
    be outside the visible part.  */
 
 Lisp_Object
-set_marker_restricted_both (marker, buffer, charpos, bytepos)
-     Lisp_Object marker, buffer;
-     int charpos, bytepos;
+set_marker_restricted_both (Lisp_Object marker, Lisp_Object buffer, int charpos, int bytepos)
 {
   register struct buffer *b;
   register struct Lisp_Marker *m;
@@ -745,8 +730,7 @@ set_marker_restricted_both (marker, buffer, charpos, bytepos)
    including those in chain fields of markers.  */
 
 void
-unchain_marker (marker)
-     register struct Lisp_Marker *marker;
+unchain_marker (register struct Lisp_Marker *marker)
 {
   register struct Lisp_Marker *tail, *prev, *next;
   register struct buffer *b;
@@ -796,8 +780,7 @@ unchain_marker (marker)
 /* Return the char position of marker MARKER, as a C integer.  */
 
 int
-marker_position (marker)
-     Lisp_Object marker;
+marker_position (Lisp_Object marker)
 {
   register struct Lisp_Marker *m = XMARKER (marker);
   register struct buffer *buf = m->buffer;
@@ -811,8 +794,7 @@ marker_position (marker)
 /* Return the byte position of marker MARKER, as a C integer.  */
 
 int
-marker_byte_position (marker)
-     Lisp_Object marker;
+marker_byte_position (Lisp_Object marker)
 {
   register struct Lisp_Marker *m = XMARKER (marker);
   register struct buffer *buf = m->buffer;
@@ -898,8 +880,7 @@ DEFUN ("buffer-has-markers-at", Fbuffer_has_markers_at, Sbuffer_has_markers_at,
 /* For debugging -- count the markers in buffer BUF.  */
 
 int
-count_markers (buf)
-     struct buffer *buf;
+count_markers (struct buffer *buf)
 {
   int total = 0;
   struct Lisp_Marker *tail;
@@ -911,7 +892,7 @@ count_markers (buf)
 }
 
 void
-syms_of_marker ()
+syms_of_marker (void)
 {
   defsubr (&Smarker_position);
   defsubr (&Smarker_buffer);

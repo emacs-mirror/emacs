@@ -26,7 +26,7 @@ Boston, MA 02110-1301, USA.  */
 
 #include "lwlib.h"
 
-extern char *safe_strdup __P ((const char *));
+extern char *safe_strdup (const char *);
 
 struct widget_xft_data;
 
@@ -70,14 +70,14 @@ typedef struct _widget_creation_entry
 /* update all other instances of a widget.  Can be used in a callback when
    a widget has been used by the user */
 void
-lw_internal_update_other_instances __P ((Widget, XtPointer, XtPointer));
+lw_internal_update_other_instances (Widget, XtPointer, XtPointer);
 
 /* get the widget_value for a widget in a given instance */
 widget_value*
-lw_get_widget_value_for_widget __P ((widget_instance *, Widget));
+lw_get_widget_value_for_widget (widget_instance *, Widget);
 
-widget_info *lw_get_widget_info __P ((LWLIB_ID));
-widget_instance * lw_get_widget_instance __P ((Widget));
+widget_info *lw_get_widget_info (LWLIB_ID);
+widget_instance * lw_get_widget_instance (Widget);
 
 #endif /* LWLIB_INTERNAL_H */
 

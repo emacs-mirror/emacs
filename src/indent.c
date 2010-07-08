@@ -61,8 +61,8 @@ EMACS_INT last_known_column_point;
 
 static int last_known_column_modified;
 
-static double current_column_1 P_ ((void));
-static double position_indentation P_ ((int));
+static double current_column_1 (void);
+static double position_indentation (int);
 
 /* Cache of beginning of line found by the last call of
    current_column. */
@@ -72,7 +72,7 @@ static EMACS_INT current_column_bol_cache;
 /* Get the display table to use for the current buffer.  */
 
 struct Lisp_Char_Table *
-buffer_display_table ()
+buffer_display_table (void)
 {
   Lisp_Object thisbuf;
 
@@ -89,9 +89,7 @@ buffer_display_table ()
 /* Return the width of character C under display table DP.  */
 
 static int
-character_width (c, dp)
-     int c;
-     struct Lisp_Char_Table *dp;
+character_width (int c, struct Lisp_Char_Table *dp)
 {
   Lisp_Object elt;
 
@@ -125,9 +123,7 @@ character_width (c, dp)
    invalidate the buffer's width_run_cache.  */
 
 int
-disptab_matches_widthtab (disptab, widthtab)
-     struct Lisp_Char_Table *disptab;
-     struct Lisp_Vector *widthtab;
+disptab_matches_widthtab (struct Lisp_Char_Table *disptab, struct Lisp_Vector *widthtab)
 {
   int i;
 
@@ -145,9 +141,7 @@ disptab_matches_widthtab (disptab, widthtab)
 /* Recompute BUF's width table, using the display table DISPTAB.  */
 
 void
-recompute_width_table (buf, disptab)
-     struct buffer *buf;
-     struct Lisp_Char_Table *disptab;
+recompute_width_table (struct buffer *buf, struct Lisp_Char_Table *disptab)
 {
   int i;
   struct Lisp_Vector *widthtab;
@@ -166,7 +160,7 @@ recompute_width_table (buf, disptab)
    state of current_buffer's cache_long_line_scans variable.  */
 
 static void
-width_run_cache_on_off ()
+width_run_cache_on_off (void)
 {
   if (NILP (current_buffer->cache_long_line_scans)
       /* And, for the moment, this feature doesn't work on multibyte
@@ -217,11 +211,7 @@ width_run_cache_on_off ()
    will equal the return value.  */
 
 EMACS_INT
-skip_invisible (pos, next_boundary_p, to, window)
-     EMACS_INT pos;
-     EMACS_INT *next_boundary_p;
-     EMACS_INT to;
-     Lisp_Object window;
+skip_invisible (EMACS_INT pos, EMACS_INT *next_boundary_p, EMACS_INT to, Lisp_Object window)
 {
   Lisp_Object prop, position, overlay_limit, proplimit;
   Lisp_Object buffer, tmp;
@@ -332,13 +322,13 @@ Text that has an invisible property is considered as having width 0, unless
 /* Cancel any recorded value of the horizontal position.  */
 
 void
-invalidate_current_column ()
+invalidate_current_column (void)
 {
   last_known_column_point = 0;
 }
 
 double
-current_column ()
+current_column (void)
 {
   register int col;
   register unsigned char *ptr, *stop;
@@ -556,7 +546,7 @@ scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
   w = ! NILP (window) ? XWINDOW (window) : NULL;
 
   if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
-  bzero (&cmp_it, sizeof cmp_it);
+  memset (&cmp_it, 0, sizeof cmp_it);
   cmp_it.id = -1;
   composition_compute_stop_pos (&cmp_it, scan, scan_byte, end, Qnil);
 
@@ -723,7 +713,7 @@ scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
    due to text properties or overlays.  */
 
 static double
-current_column_1 ()
+current_column_1 (void)
 {
   EMACS_INT col = MOST_POSITIVE_FIXNUM;
   EMACS_INT opoint = PT;
@@ -867,7 +857,7 @@ The return value is COLUMN.  */)
 }
 
 
-static double position_indentation P_ ((int));
+static double position_indentation (int);
 
 DEFUN ("current-indentation", Fcurrent_indentation, Scurrent_indentation,
        0, 0, 0,
@@ -887,8 +877,7 @@ following any initial whitespace.  */)
 }
 
 static double
-position_indentation (pos_byte)
-     register int pos_byte;
+position_indentation (register int pos_byte)
 {
   register EMACS_INT column = 0;
   register EMACS_INT tab_width = XINT (current_buffer->tab_width);
@@ -977,9 +966,7 @@ position_indentation (pos_byte)
    preceding line.  */
 
 int
-indented_beyond_p (pos, pos_byte, column)
-     int pos, pos_byte;
-     double column;
+indented_beyond_p (int pos, int pos_byte, double column)
 {
   double val;
   int opoint = PT, opoint_byte = PT_BYTE;
@@ -1137,12 +1124,7 @@ struct position val_compute_motion;
    the scroll bars if they are turned on.  */
 
 struct position *
-compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width, hscroll, tab_offset, win)
-     EMACS_INT from, fromvpos, fromhpos, to, tovpos, tohpos;
-     int did_motion;
-     EMACS_INT width;
-     EMACS_INT hscroll, tab_offset;
-     struct window *win;
+compute_motion (EMACS_INT from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_motion, EMACS_INT to, EMACS_INT tovpos, EMACS_INT tohpos, EMACS_INT width, EMACS_INT hscroll, EMACS_INT tab_offset, struct window *win)
 {
   register EMACS_INT hpos = fromhpos;
   register EMACS_INT vpos = fromvpos;
@@ -1232,7 +1214,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
   pos_byte = prev_pos_byte = CHAR_TO_BYTE (from);
   contin_hpos = 0;
   prev_tab_offset = tab_offset;
-  bzero (&cmp_it, sizeof cmp_it);
+  memset (&cmp_it, 0, sizeof cmp_it);
   cmp_it.id = -1;
   composition_compute_stop_pos (&cmp_it, pos, pos_byte, to, Qnil);
 
@@ -1856,9 +1838,7 @@ visible section of the buffer, and pass LINE and COL as TOPOS.  */)
 struct position val_vmotion;
 
 struct position *
-vmotion (from, vtarget, w)
-     register EMACS_INT from, vtarget;
-     struct window *w;
+vmotion (register EMACS_INT from, register EMACS_INT vtarget, struct window *w)
 {
   EMACS_INT hscroll = XINT (w->hscroll);
   struct position pos;
@@ -2183,7 +2163,7 @@ whether or not it is currently displayed in some window.  */)
 /* File's initialization.  */
 
 void
-syms_of_indent ()
+syms_of_indent (void)
 {
   DEFVAR_BOOL ("indent-tabs-mode", &indent_tabs_mode,
 	       doc: /* *Indentation can insert tabs if this is non-nil.  */);

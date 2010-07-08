@@ -1359,7 +1359,7 @@ The test runs then
 @end example
 @end defun
 
-@defun dbus-register-property bus service path interface property access value
+@defun dbus-register-property bus service path interface property access value &optional emits-signal
 With this function, an application declares a @var{property} on the D-Bus
 @var{bus}.
 
@@ -1387,7 +1387,11 @@ only way to change their values.  Properties with access type
 
 The interface @samp{org.freedesktop.DBus.Properties} is added to
 @var{path}, including a default handler for the @samp{Get},
-@samp{GetAll} and @samp{Set} methods of this interface.  Example:
+@samp{GetAll} and @samp{Set} methods of this interface.  When
+@var{emits-signal} is non-nil, the signal @samp{PropertiesChanged} is
+sent when the property is changed by @code{dbus-set-property}.
+
+@noindent Example:
 
 @lisp
 (dbus-register-property
@@ -1399,7 +1403,7 @@ The interface @samp{org.freedesktop.DBus.Properties} is added to
 
 (dbus-register-property
   :session "org.freedesktop.TextEditor" "/org/freedesktop/TextEditor"
-  "org.freedesktop.TextEditor" "version" :readwrite emacs-version)
+  "org.freedesktop.TextEditor" "version" :readwrite emacs-version t)
 
 @result{} ((:session "org.freedesktop.TextEditor" "version")
     ("org.freedesktop.TextEditor" "/org/freedesktop/TextEditor"))

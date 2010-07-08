@@ -24,11 +24,11 @@ EXFUN (Ffont_get_system_font, 0);
 EXFUN (Ffont_get_system_normal_font, 0);
 EXFUN (Ftool_bar_get_system_style, 0);
 
-extern void xsettings_initialize P_ ((struct x_display_info *dpyinfo));
-extern void xft_settings_event P_ ((struct x_display_info *dpyinfo,
-                                    XEvent *));
-extern const char *xsettings_get_system_font P_ ((void));
-extern const char *xsettings_get_system_normal_font P_ ((void));
+extern void xsettings_initialize (struct x_display_info *dpyinfo);
+extern void xft_settings_event (struct x_display_info *dpyinfo,
+                                XEvent *);
+extern const char *xsettings_get_system_font (void);
+extern const char *xsettings_get_system_normal_font (void);
 
 
 #endif /* XSETTINGS_H */

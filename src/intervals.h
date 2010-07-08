@@ -28,8 +28,8 @@ struct interval
 {
   /* The first group of entries deal with the tree structure.  */
 
-  unsigned EMACS_INT total_length; /* Length of myself and both children.  */
-  unsigned EMACS_INT position;	/* Cache of interval's character position.  */
+  EMACS_UINT total_length;      /* Length of myself and both children.  */
+  EMACS_UINT position;	        /* Cache of interval's character position.  */
 				/* This field is usually updated
 				   simultaneously with an interval
 				   traversal, there is no guarantee
@@ -243,49 +243,49 @@ struct interval
 
 /* Declared in alloc.c */
 
-extern INTERVAL make_interval P_ ((void));
+extern INTERVAL make_interval (void);
 
 /* Declared in intervals.c */
 
-extern INTERVAL create_root_interval P_ ((Lisp_Object));
-extern void copy_properties P_ ((INTERVAL, INTERVAL));
-extern int intervals_equal P_ ((INTERVAL, INTERVAL));
-extern void traverse_intervals P_ ((INTERVAL, int,
-				    void (*) (INTERVAL, Lisp_Object),
-				    Lisp_Object));
-extern void traverse_intervals_noorder P_ ((INTERVAL,
-				    void (*) (INTERVAL, Lisp_Object),
-				    Lisp_Object));
-extern INTERVAL split_interval_right P_ ((INTERVAL, int));
-extern INTERVAL split_interval_left P_ ((INTERVAL, int));
-extern INTERVAL find_interval P_ ((INTERVAL, int));
-extern INTERVAL next_interval P_ ((INTERVAL));
-extern INTERVAL previous_interval P_ ((INTERVAL));
-extern INTERVAL merge_interval_left P_ ((INTERVAL));
-extern INTERVAL merge_interval_right P_ ((INTERVAL));
-extern void delete_interval P_ ((INTERVAL));
-extern INLINE void offset_intervals P_ ((struct buffer *, int, int));
-extern void graft_intervals_into_buffer P_ ((INTERVAL, int, int,
-					     struct buffer *, int));
-extern void verify_interval_modification P_ ((struct buffer *, int, int));
-extern INTERVAL balance_intervals P_ ((INTERVAL));
-extern INLINE void copy_intervals_to_string P_ ((Lisp_Object, struct buffer *,
-						 int, int));
-extern INTERVAL copy_intervals P_ ((INTERVAL, int, int));
-extern int compare_string_intervals P_ ((Lisp_Object, Lisp_Object));
-extern Lisp_Object textget P_ ((Lisp_Object, Lisp_Object));
-extern Lisp_Object lookup_char_property P_ ((Lisp_Object, Lisp_Object, int));
-extern void move_if_not_intangible P_ ((int));
-extern int get_property_and_range P_ ((int, Lisp_Object, Lisp_Object *,
-				       EMACS_INT *, EMACS_INT *, Lisp_Object));
-extern Lisp_Object get_local_map P_ ((int, struct buffer *, Lisp_Object));
-extern INTERVAL update_interval P_ ((INTERVAL, int));
-extern void set_intervals_multibyte P_ ((int));
-extern INTERVAL validate_interval_range P_ ((Lisp_Object, Lisp_Object *,
-					     Lisp_Object *, int));
+extern INTERVAL create_root_interval (Lisp_Object);
+extern void copy_properties (INTERVAL, INTERVAL);
+extern int intervals_equal (INTERVAL, INTERVAL);
+extern void traverse_intervals (INTERVAL, int,
+                                void (*) (INTERVAL, Lisp_Object),
+                                Lisp_Object);
+extern void traverse_intervals_noorder (INTERVAL,
+                                        void (*) (INTERVAL, Lisp_Object),
+                                        Lisp_Object);
+extern INTERVAL split_interval_right (INTERVAL, int);
+extern INTERVAL split_interval_left (INTERVAL, int);
+extern INTERVAL find_interval (INTERVAL, int);
+extern INTERVAL next_interval (INTERVAL);
+extern INTERVAL previous_interval (INTERVAL);
+extern INTERVAL merge_interval_left (INTERVAL);
+extern INTERVAL merge_interval_right (INTERVAL);
+extern void delete_interval (INTERVAL);
+extern INLINE void offset_intervals (struct buffer *, int, int);
+extern void graft_intervals_into_buffer (INTERVAL, int, int,
+                                         struct buffer *, int);
+extern void verify_interval_modification (struct buffer *, int, int);
+extern INTERVAL balance_intervals (INTERVAL);
+extern INLINE void copy_intervals_to_string (Lisp_Object, struct buffer *,
+                                             int, int);
+extern INTERVAL copy_intervals (INTERVAL, int, int);
+extern int compare_string_intervals (Lisp_Object, Lisp_Object);
+extern Lisp_Object textget (Lisp_Object, Lisp_Object);
+extern Lisp_Object lookup_char_property (Lisp_Object, Lisp_Object, int);
+extern void move_if_not_intangible (int);
+extern int get_property_and_range (int, Lisp_Object, Lisp_Object *,
+                                   EMACS_INT *, EMACS_INT *, Lisp_Object);
+extern Lisp_Object get_local_map (int, struct buffer *, Lisp_Object);
+extern INTERVAL update_interval (INTERVAL, int);
+extern void set_intervals_multibyte (int);
+extern INTERVAL validate_interval_range (Lisp_Object, Lisp_Object *,
+                                         Lisp_Object *, int);
 
 /* Defined in xdisp.c */
-extern int invisible_p P_ ((Lisp_Object, Lisp_Object));
+extern int invisible_p (Lisp_Object, Lisp_Object);
 
 /* Declared in textprop.c */
 
@@ -323,27 +323,27 @@ EXFUN (Fremove_text_properties, 4);
 EXFUN (Ftext_property_any, 5);
 EXFUN (Ftext_property_not_all, 5);
 EXFUN (Fprevious_single_char_property_change, 4);
-extern Lisp_Object copy_text_properties P_ ((Lisp_Object, Lisp_Object,
-					     Lisp_Object, Lisp_Object,
-					     Lisp_Object, Lisp_Object));
-extern Lisp_Object set_text_properties P_ ((Lisp_Object, Lisp_Object,
-					    Lisp_Object, Lisp_Object,
-					    Lisp_Object));
-extern void set_text_properties_1 P_ ((Lisp_Object, Lisp_Object,
-				       Lisp_Object, Lisp_Object, INTERVAL));
+extern Lisp_Object copy_text_properties (Lisp_Object, Lisp_Object,
+                                         Lisp_Object, Lisp_Object,
+                                         Lisp_Object, Lisp_Object);
+extern Lisp_Object set_text_properties (Lisp_Object, Lisp_Object,
+                                        Lisp_Object, Lisp_Object,
+                                        Lisp_Object);
+extern void set_text_properties_1 (Lisp_Object, Lisp_Object,
+                                   Lisp_Object, Lisp_Object, INTERVAL);
 
-Lisp_Object text_property_list P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
-				    Lisp_Object));
-int add_text_properties_from_list P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
-Lisp_Object extend_property_ranges P_ ((Lisp_Object, Lisp_Object));
-Lisp_Object get_char_property_and_overlay P_ ((Lisp_Object, Lisp_Object,
-					       Lisp_Object, Lisp_Object*));
-extern int text_property_stickiness P_ ((Lisp_Object prop, Lisp_Object pos,
-					 Lisp_Object buffer));
-extern Lisp_Object get_pos_property P_ ((Lisp_Object pos, Lisp_Object prop,
-					 Lisp_Object object));
+Lisp_Object text_property_list (Lisp_Object, Lisp_Object, Lisp_Object,
+                                Lisp_Object);
+int add_text_properties_from_list (Lisp_Object, Lisp_Object, Lisp_Object);
+Lisp_Object extend_property_ranges (Lisp_Object, Lisp_Object);
+Lisp_Object get_char_property_and_overlay (Lisp_Object, Lisp_Object,
+                                           Lisp_Object, Lisp_Object*);
+extern int text_property_stickiness (Lisp_Object prop, Lisp_Object pos,
+                                     Lisp_Object buffer);
+extern Lisp_Object get_pos_property (Lisp_Object pos, Lisp_Object prop,
+                                     Lisp_Object object);
 
-extern void syms_of_textprop P_ ((void));
+extern void syms_of_textprop (void);
 
 #include "composite.h"
 

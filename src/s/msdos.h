@@ -75,7 +75,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #define _longjmp longjmp
 
 #define DATA_START  (&etext + 1)
-#define TEXT_START  &start
 
 #define _NAIVE_DOS_REGS
 
@@ -104,10 +103,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #define IS_DIRECTORY_SEP(_c_) ((_c_) == '/' || (_c_) == '\\')
 #define IS_ANY_SEP(_c_) (IS_DIRECTORY_SEP (_c_) || IS_DEVICE_SEP (_c_))
 
-/* bcopy under djgpp is quite safe.  */
-#define GAP_USE_BCOPY
-#define BCOPY_UPWARD_SAFE 1
-#define BCOPY_DOWNWARD_SAFE 1
 
 /* Mode line description of a buffer's type.  */
 #define MODE_LINE_BINARY_TEXT(buf) (NILP(buf->buffer_file_type) ? "T" : "B")

@@ -4247,7 +4247,7 @@ Null string will repeat previous search."
 	  (setq viper-use-register nil)))
     (if (and (bolp) viper-ex-style-editing)
 	(ding))
-    (delete-backward-char val t)))
+    (delete-char (- val) t)))
 
 
 (defun viper-del-backward-char-in-insert ()
@@ -4256,7 +4256,7 @@ Null string will repeat previous search."
   (if (and viper-ex-style-editing (bolp))
       (beep 1)
     ;; don't put on kill ring
-    (delete-backward-char 1 nil)))
+    (delete-char -1 nil)))
 
 
 (defun viper-del-backward-char-in-replace ()
@@ -4269,14 +4269,14 @@ cursor move past the beginning of line."
   (cond (viper-delete-backwards-in-replace
 	 (cond ((not (bolp))
 		;; don't put on kill ring
-		(delete-backward-char 1 nil))
+		(delete-char -1 nil))
 	       (viper-ex-style-editing
 		(beep 1))
 	       ((bobp)
 		(beep 1))
 	       (t
 		;; don't put on kill ring
-		(delete-backward-char 1 nil))))
+		(delete-char -1 nil))))
 	(viper-ex-style-editing
 	 (if (bolp)
 	     (beep 1)
@@ -4344,7 +4344,7 @@ cursor move past the beginning of line."
 	    (insert-before-markers "@") ; put placeholder after the TAB
 	    (untabify (viper-replace-start) (point))
 	    ;; del @, don't put on kill ring
-	    (delete-backward-char 1)
+	    (delete-char -1)
 
 	    (viper-set-replace-overlay-glyphs
 	     viper-replace-region-start-delimiter
@@ -4622,7 +4622,7 @@ One can use `` and '' to temporarily jump 1 step back."
 	    (progn
 	      (if (eq ?^ (preceding-char))
 		  (setq viper-preserve-indent t))
-	      (delete-backward-char 1)
+	      (delete-char -1)
 	      (setq p (point))
 	      (setq indent nil)))
 	(save-excursion

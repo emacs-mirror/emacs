@@ -70,7 +70,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* This declaration is omitted on some systems, like Ultrix.  */
 #if !defined (HPUX) && defined (HAVE_LOGB) && !defined (logb)
-extern double logb ();
+extern double logb (double);
 #endif /* not HPUX and HAVE_LOGB and no logb macro */
 
 #if defined(DOMAIN) && defined(SING) && defined(OVERFLOW)
@@ -778,11 +778,10 @@ This is the same as the exponent of a float.  */)
 /* the rounding functions  */
 
 static Lisp_Object
-rounding_driver (arg, divisor, double_round, int_round2, name)
-     register Lisp_Object arg, divisor;
-     double (*double_round) ();
-     EMACS_INT (*int_round2) ();
-     char *name;
+rounding_driver (Lisp_Object arg, Lisp_Object divisor,
+		 double (*double_round) (double),
+		 EMACS_INT (*int_round2) (EMACS_INT, EMACS_INT),
+		 char *name)
 {
   CHECK_NUMBER_OR_FLOAT (arg);
 
@@ -832,8 +831,7 @@ rounding_driver (arg, divisor, double_round, int_round2, name)
    integer functions.  */
 
 static EMACS_INT
-ceiling2 (i1, i2)
-     EMACS_INT i1, i2;
+ceiling2 (EMACS_INT i1, EMACS_INT i2)
 {
   return (i2 < 0
 	  ? (i1 < 0  ?  ((-1 - i1) / -i2) + 1  :  - (i1 / -i2))
@@ -841,8 +839,7 @@ ceiling2 (i1, i2)
 }
 
 static EMACS_INT
-floor2 (i1, i2)
-     EMACS_INT i1, i2;
+floor2 (EMACS_INT i1, EMACS_INT i2)
 {
   return (i2 < 0
 	  ? (i1 <= 0  ?  -i1 / -i2  :  -1 - ((i1 - 1) / -i2))
@@ -850,8 +847,7 @@ floor2 (i1, i2)
 }
 
 static EMACS_INT
-truncate2 (i1, i2)
-     EMACS_INT i1, i2;
+truncate2 (EMACS_INT i1, EMACS_INT i2)
 {
   return (i2 < 0
 	  ? (i1 < 0  ?  -i1 / -i2  :  - (i1 / -i2))
@@ -859,8 +855,7 @@ truncate2 (i1, i2)
 }
 
 static EMACS_INT
-round2 (i1, i2)
-     EMACS_INT i1, i2;
+round2 (EMACS_INT i1, EMACS_INT i2)
 {
   /* The C language's division operator gives us one remainder R, but
      we want the remainder R1 on the other side of 0 if R1 is closer
@@ -880,16 +875,14 @@ round2 (i1, i2)
 #define emacs_rint rint
 #else
 static double
-emacs_rint (d)
-     double d;
+emacs_rint (double d)
 {
   return floor (d + 0.5);
 }
 #endif
 
 static double
-double_identity (d)
-     double d;
+double_identity (double d)
 {
   return d;
 }
@@ -941,8 +934,7 @@ With optional DIVISOR, truncate ARG/DIVISOR.  */)
 
 
 Lisp_Object
-fmod_float (x, y)
-     register Lisp_Object x, y;
+fmod_float (Lisp_Object x, Lisp_Object y)
 {
   double f1, f2;
 

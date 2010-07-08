@@ -228,14 +228,14 @@ extern Lisp_Object Vx_pixel_size_width_font_regexp;
 
 struct w32_display_info *x_display_info_for_name ();
 
-Lisp_Object display_x_get_resource P_ ((struct w32_display_info *,
-					Lisp_Object, Lisp_Object,
-					Lisp_Object, Lisp_Object));
+Lisp_Object display_x_get_resource (struct w32_display_info *,
+                                    Lisp_Object, Lisp_Object,
+                                    Lisp_Object, Lisp_Object);
 
 extern struct w32_display_info *w32_term_init ();
 
-extern int x_display_pixel_height P_ ((struct w32_display_info *));
-extern int x_display_pixel_width P_ ((struct w32_display_info *));
+extern int x_display_pixel_height (struct w32_display_info *);
+extern int x_display_pixel_width (struct w32_display_info *);
 
 
 #define PIX_TYPE COLORREF
