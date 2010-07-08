@@ -1,3 +1,8 @@
+2010-07-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (UNEXEC_OBJ): Add comment about values for MSDOS
+	and MSWindows.
+
 2010-07-07  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* configure.in: Don't check for bcopy, bcmp, bzero.  Don't include
