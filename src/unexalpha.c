@@ -28,9 +28,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/mman.h>
 #include <stdio.h>
 #include <errno.h>
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
 #if !defined (__NetBSD__) && !defined (__OpenBSD__)
 #include <filehdr.h>
 #include <aouthdr.h>

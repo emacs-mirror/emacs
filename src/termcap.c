@@ -18,12 +18,7 @@ the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 Boston, MA 02110-1301, USA.  */
 
 /* Emacs config.h may rename various library functions such as malloc.  */
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
-
-#ifdef emacs
-
 #include <setjmp.h>
 #include <lisp.h>		/* xmalloc is here */
 /* Get the O_* definitions for open et al.  */
@@ -34,26 +29,6 @@ Boston, MA 02110-1301, USA.  */
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-
-#else /* not emacs */
-
-#ifdef STDC_HEADERS
-#include <stdlib.h>
-#include <string.h>
-#else
-char *getenv ();
-char *malloc ();
-char *realloc ();
-#endif
-
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-#ifdef HAVE_FCNTL_H
-#include <fcntl.h>
-#endif
-
-#endif /* not emacs */
 
 #ifndef NULL
 #define NULL (char *) 0
@@ -84,37 +59,6 @@ int bufsize = 128;
 #define TERMCAP_FILE "/etc/termcap"
 #endif
 
-#ifndef emacs
-static void
-memory_out ()
-{
-  write (2, "virtual memory exhausted\n", 25);
-  exit (1);
-}
-
-static char *
-xmalloc (size)
-     unsigned size;
-{
-  register char *tem = malloc (size);
-
-  if (!tem)
-    memory_out ();
-  return tem;
-}
-
-static char *
-xrealloc (ptr, size)
-     char *ptr;
-     unsigned size;
-{
-  register char *tem = realloc (ptr, size);
-
-  if (!tem)
-    memory_out ();
-  return tem;
-}
-#endif /* not emacs */
 
 /* Looking up capabilities in the entry already found.  */
 
