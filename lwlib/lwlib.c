@@ -249,16 +249,14 @@ copy_widget_value_tree (widget_value *val, change_type change)
 }
 
 static widget_info *
-allocate_widget_info (type, name, id, val, pre_activate_cb,
-		      selection_cb, post_activate_cb, highlight_cb)
-     char* type;
-     char* name;
-     LWLIB_ID id;
-     widget_value* val;
-     lw_callback pre_activate_cb;
-     lw_callback selection_cb;
-     lw_callback post_activate_cb;
-     lw_callback highlight_cb;
+allocate_widget_info (char* type,
+                      char* name,
+                      LWLIB_ID id,
+                      widget_value* val,
+                      lw_callback pre_activate_cb,
+                      lw_callback selection_cb,
+                      lw_callback post_activate_cb,
+                      lw_callback highlight_cb)
 {
   widget_info* info = (widget_info*)malloc (sizeof (widget_info));
   info->type = safe_strdup (type);
@@ -431,7 +429,10 @@ safe_strcmp (char *s1, char *s2)
 
 
 static widget_value *
-merge_widget_value (widget_value *val1, widget_value *val2, int level, int *change_p)
+merge_widget_value (widget_value *val1,
+                    widget_value *val2,
+                    int level,
+                    int *change_p)
 {
   change_type change, this_one_change;
   widget_value* merged_next;
@@ -822,16 +823,14 @@ instantiate_widget_instance (widget_instance *instance)
 }
 
 void
-lw_register_widget (type, name, id, val, pre_activate_cb,
-		    selection_cb, post_activate_cb, highlight_cb)
-     char* type;
-     char* name;
-     LWLIB_ID id;
-     widget_value* val;
-     lw_callback pre_activate_cb;
-     lw_callback selection_cb;
-     lw_callback post_activate_cb;
-     lw_callback highlight_cb;
+lw_register_widget (char* type,
+                    char* name,
+                    LWLIB_ID id,
+                    widget_value* val,
+                    lw_callback pre_activate_cb,
+                    lw_callback selection_cb,
+                    lw_callback post_activate_cb,
+                    lw_callback highlight_cb)
 {
   if (!get_widget_info (id, False))
     allocate_widget_info (type, name, id, val, pre_activate_cb, selection_cb,
@@ -1162,7 +1161,9 @@ static Boolean lwlib_updating;
   modified to update other instances of the widgets.  Closure should be the
   widget_instance. */
 void
-lw_internal_update_other_instances (Widget widget, XtPointer closure, XtPointer call_data)
+lw_internal_update_other_instances (Widget widget,
+                                    XtPointer closure,
+                                    XtPointer call_data)
 {
   widget_instance* instance = (widget_instance*)closure;
   char* name = XtName (widget);
