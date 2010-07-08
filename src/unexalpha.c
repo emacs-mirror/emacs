@@ -79,7 +79,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define	_RDATA		".rdata"
 #define	_SDATA		".sdata"
 #define	_SBSS		".sbss"
+#define TEXT_START     0x120000000
 #endif /* __NetBSD__ || __OpenBSD__ */
+
 
 static void fatal_unexec (char *, char *);
 static void mark_x (char *);

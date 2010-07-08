@@ -1,3 +1,34 @@
+2010-07-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Simplify cstart_of_data, start_of_code and related code.
+	* mem-limits.h: Remove !emacs and _LIBC conditional code.
+	(start_of_data): Merge into start_of_data function.
+	* sysdep.c (start_of_text): Remove.  Move simplified versions of
+	it in the only users: unexaix.c and unexec.c.
+	(read_input_waiting): Remove local declaration of quit_char.
+	(start, etext): Remove declarations.
+	(start_of_data): Merge with the version in mem-limits.h and move
+	to vm-limits.c.
+	* vm-limit.c (start_of_data): Merged and simplified version of the
+	code formerly in mem-limits.h and sysdep.c.
+	* unexec.c (start): New declaration, moved from sysdep.c.
+	(start_of_text): Simplified version of the code formerly in sysdep.c.
+	* unexaix.c (start_of_text): Simplified version of the code
+	formerly in sysdep.c.
+	* m/alpha.h (HAVE_TEXT_START): Remove.
+	(TEXT_START): Move ...
+	* unexalpha.c (TEXT_START): ... here.
+	* s/hpux10-20.h (TEXT_START): Remove.
+	* s/darwin.h (TEXT_START):
+	* m/mips.h (TEXT_START):
+	* m/macppc.h (HAVE_TEXT_START):
+	* m/m68k.h (TEXT_START):
+	* m/iris4d.h (TEXT_START):
+	* m/intel386.h (TEXT_START):
+	* m/ibmrs6000.h (TEXT_START):
+	* m/ia64.h (HAVE_TEXT_START):
+	* s/msdos.h (TEXT_START): Likewise.
+
 2010-07-07  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* alloc.c (overrun_check_malloc, overrun_check_realloc)

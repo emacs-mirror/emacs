@@ -23,10 +23,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    is the most significant byte.  */
 #undef WORDS_BIG_ENDIAN
 
-#ifdef USG
-#define TEXT_START 0
-#endif /* USG */
-
 #ifdef WINDOWSNT
 #define VIRT_ADDR_VARIES
 #define DATA_START 	get_data_start ()

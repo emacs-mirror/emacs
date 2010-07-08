@@ -71,7 +71,7 @@ what you give them.   Help stamp out software-hoarding!  */
 #include <unistd.h>
 #include <fcntl.h>
 
-extern char *start_of_text (void);		/* Start of text */
+char *start_of_text (void);		        /* Start of text */
 extern char *start_of_data (void);		/* Start of initialized data */
 
 extern int _data;
@@ -667,6 +667,19 @@ unrelocate_symbols (int new, int a_out, char *a_name, char *new_name)
 	}
     }
   return 0;
+}
+
+/*
+ *	Return the address of the start of the text segment prior to
+ *	doing an unexec.  After unexec the return value is undefined.
+ *	See crt0.c for further explanation and _start.
+ *
+ */
+
+char *
+start_of_text (void)
+{
+  return ((char *) 0x10000000);
 }
 
 /* arch-tag: 0783857a-7c2d-456f-a426-58b722d69fd0

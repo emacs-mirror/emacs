@@ -687,6 +687,21 @@ adjust_lnnoptrs (writedesc, readdesc, new_name)
   return 0;
 }
 
+extern unsigned start __asm__ ("start");
+
+/*
+ *	Return the address of the start of the text segment prior to
+ *	doing an unexec.  After unexec the return value is undefined.
+ *	See crt0.c for further explanation and _start.
+ *
+ */
+
+char *
+start_of_text (void)
+{
+  return ((char *) &start);
+}
+
 /* ****************************************************************
  * unexec
  *

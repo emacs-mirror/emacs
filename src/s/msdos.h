@@ -75,7 +75,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #define _longjmp longjmp
 
 #define DATA_START  (&etext + 1)
-#define TEXT_START  &start
 
 #define _NAIVE_DOS_REGS
 

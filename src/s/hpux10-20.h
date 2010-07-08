@@ -131,7 +131,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define DATA_SEG_BITS 0x40000000
 
 #define DATA_START    0x40000000
-#define TEXT_START    0x00000000
 
 /* Data type of load average, as read out of kmem.  */
 #define LOAD_AVE_TYPE double

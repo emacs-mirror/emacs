@@ -79,9 +79,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "dosfns.h"
 #include "msdos.h"
 #include <sys/param.h>
-
-extern int etext;
-extern unsigned start __asm__ ("start");
 #endif
 
 #include <sys/file.h>
@@ -1511,83 +1508,6 @@ setup_pty (int fd)
 }
 #endif /* HAVE_PTYS */
 
-#if !defined(CANNOT_DUMP) || !defined(SYSTEM_MALLOC)
-/* Some systems that cannot dump also cannot implement these.  */
-
-/*
- *	Return the address of the start of the text segment prior to
- *	doing an unexec.  After unexec the return value is undefined.
- *	See crt0.c for further explanation and _start.
- *
- */
-
-#if !(defined (__NetBSD__) && defined (__ELF__))
-#ifndef HAVE_TEXT_START
-char *
-start_of_text (void)
-{
-#ifdef TEXT_START
-  return ((char *) TEXT_START);
-#else
-  extern int _start ();
-  return ((char *) _start);
-#endif /* TEXT_START */
-}
-#endif /* not HAVE_TEXT_START */
-#endif
-
-/*
- *	Return the address of the start of the data segment prior to
- *	doing an unexec.  After unexec the return value is undefined.
- *	See crt0.c for further information and definition of data_start.
- *
- *	Apparently, on BSD systems this is etext at startup.  On
- *	USG systems (swapping) this is highly mmu dependent and
- *	is also dependent on whether or not the program is running
- *	with shared text.  Generally there is a (possibly large)
- *	gap between end of text and start of data with shared text.
- *
- *	On Uniplus+ systems with shared text, data starts at a
- *	fixed address.  Each port (from a given oem) is generally
- *	different, and the specific value of the start of data can
- *	be obtained via the UniPlus+ specific "uvar" system call,
- *	however the method outlined in crt0.c seems to be more portable.
- *
- *	Probably what will have to happen when a USG unexec is available,
- *	at least on UniPlus, is temacs will have to be made unshared so
- *	that text and data are contiguous.  Then once loadup is complete,
- *	unexec will produce a shared executable where the data can be
- *	at the normal shared text boundary and the startofdata variable
- *	will be patched by unexec to the correct value.
- *
- */
-
-#ifndef start_of_data
-char *
-start_of_data (void)
-{
-#ifdef DATA_START
-  return ((char *) DATA_START);
-#else
-#ifdef ORDINARY_LINK
-  /*
-   * This is a hack.  Since we're not linking crt0.c or pre_crt0.c,
-   * data_start isn't defined.  We take the address of environ, which
-   * is known to live at or near the start of the system crt0.c, and
-   * we don't sweat the handful of bytes that might lose.
-   */
-  extern char **environ;
-
-  return ((char *) &environ);
-#else
-  extern int data_start;
-  return ((char *) &data_start);
-#endif /* ORDINARY_LINK */
-#endif /* DATA_START */
-}
-#endif /* start_of_data */
-#endif /* NEED_STARTS (not CANNOT_DUMP or not SYSTEM_MALLOC) */
-
 /* init_system_name sets up the string for the Lisp function
    system-name to return. */
 
@@ -1912,7 +1832,6 @@ read_input_waiting (void)
   /* XXX This needs to be updated for multi-tty support.  Is there
      anybody who needs to emulate select these days?  */
   int nread, i;
-  extern int quit_char;
 
   if (read_socket_hook)
     {
