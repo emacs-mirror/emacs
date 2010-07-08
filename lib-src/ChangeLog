@@ -1,3 +1,9 @@
+2010-07-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* update-game-score.c (P_): Remove macro.
+	* ebrowse.c: Remove include guards.
+	(P_): Remove macro.
+
 2010-07-07  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* ebrowse.c (add_sym, make_namespace): Replace bcopy, bzero by

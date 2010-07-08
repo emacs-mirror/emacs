@@ -64,13 +64,6 @@ extern int optind, opterr;
 #define MAX_SCORES 200
 #define MAX_DATA_LEN 1024
 
-/* Declare the prototype for a general external function.  */
-#if defined (PROTOTYPES) || defined (WINDOWSNT)
-#define P_(proto) proto
-#else
-#define P_(proto) ()
-#endif
-
 #ifndef HAVE_DIFFTIME
 /* OK on POSIX (time_t is arithmetic type) modulo overflow in subtraction.  */
 #define difftime(t1, t0) (double)((t1) - (t0))

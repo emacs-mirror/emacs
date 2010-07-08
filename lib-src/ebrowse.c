@@ -20,20 +20,14 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
-
 #include <stdio.h>
 
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
 
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
-
 #include <ctype.h>
 #include <assert.h>
 #include "getopt.h"
@@ -44,12 +38,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 /* Conditionalize function prototypes.  */
-
-#ifdef PROTOTYPES		/* From config.h.  */
-#define P_(x) x
-#else
-#define P_(x) ()
-#endif
 
 /* Value is non-zero if strings X and Y compare equal.  */
 
