@@ -1761,13 +1761,14 @@ main (int argc, char **argv)
       extern char etext;
 #endif
       extern void safe_bcopy ();
-      extern void dump_opcode_frequencies ();
 
       atexit (_mcleanup);
       /* This uses safe_bcopy because that function comes first in the
 	 Emacs executable.  It might be better to use something that
 	 gives the start of the text segment, but start_of_text is not
 	 defined on all systems now.  */
+      /* FIXME: Does not work on architectures with function
+	 descriptors.  */
       monstartup (safe_bcopy, &etext);
     }
   else
@@ -2058,7 +2059,7 @@ sort_args (int argc, char **argv)
   while (to < argc)
     new[to++] = 0;
 
-  bcopy (new, argv, sizeof (char *) * argc);
+  memcpy (argv, new, sizeof (char *) * argc);
 
   xfree (options);
   xfree (new);

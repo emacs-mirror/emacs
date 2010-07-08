@@ -562,7 +562,7 @@ xfont_list (Lisp_Object frame, Lisp_Object spec)
       val = assq_no_quit (QCname, AREF (spec, FONT_EXTRA_INDEX));
       if (CONSP (val) && STRINGP (XCDR (val)) && SBYTES (XCDR (val)) < 512)
 	{
-	  bcopy (SDATA (XCDR (val)), name, SBYTES (XCDR (val)) + 1);
+	  memcpy (name, SDATA (XCDR (val)), SBYTES (XCDR (val)) + 1);
 	  if (xfont_encode_coding_xlfd (name) < 0)
 	    return Qnil;
 	  list = xfont_list_pattern (display, name, registry, script);
@@ -590,7 +590,7 @@ xfont_match (Lisp_Object frame, Lisp_Object spec)
 	return Qnil;
     }
   else if (SBYTES (XCDR (val)) < 512)
-    bcopy (SDATA (XCDR (val)), name, SBYTES (XCDR (val)) + 1);
+    memcpy (name, SDATA (XCDR (val)), SBYTES (XCDR (val)) + 1);
   else
     return Qnil;
   if (xfont_encode_coding_xlfd (name) < 0)
@@ -669,7 +669,7 @@ xfont_list_family (Lisp_Object frame)
       if (! *p1 || p1 == p0)
 	continue;
       if (last_len == p1 - p0
-	  && bcmp (last_family, p0, last_len) == 0)
+	  && memcmp (last_family, p0, last_len) == 0)
 	continue;
       last_len = p1 - p0;
       last_family = p0;
@@ -980,7 +980,7 @@ xfont_text_extents (struct font *font, unsigned int *code, int nglyphs, struct f
   int i, first, x;
 
   if (metrics)
-    bzero (metrics, sizeof (struct font_metrics));
+    memset (metrics, 0, sizeof (struct font_metrics));
   for (i = 0, x = 0, first = 1; i < nglyphs; i++)
     {
       XChar2b char2b;

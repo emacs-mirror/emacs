@@ -635,6 +635,7 @@ static Lisp_Object apply_modifiers (int, Lisp_Object);
 static void clear_event (struct input_event *);
 static Lisp_Object restore_kboard_configuration (Lisp_Object);
 static SIGTYPE interrupt_signal (int signalnum);
+static SIGTYPE input_available_signal (int signo);
 static void handle_interrupt (void);
 static void timer_start_idle (void);
 static void timer_stop_idle (void);
@@ -715,7 +716,7 @@ echo_char (Lisp_Object c)
 	      ptr = buffer + offset;
 	    }
 
-	  bcopy (text, ptr, len);
+	  memcpy (ptr, text, len);
 	  ptr += len;
 	}
 
@@ -3480,13 +3481,13 @@ print_help (Lisp_Object object)
 static void
 save_getcjmp (jmp_buf temp)
 {
-  bcopy (getcjmp, temp, sizeof getcjmp);
+  memcpy (temp, getcjmp, sizeof getcjmp);
 }
 
 static void
 restore_getcjmp (jmp_buf temp)
 {
-  bcopy (temp, getcjmp, sizeof getcjmp);
+  memcpy (getcjmp, temp, sizeof getcjmp);
 }
 
 /* Low level keyboard/mouse input.
@@ -3590,6 +3591,18 @@ event_to_kboard (struct input_event *event)
     return FRAME_KBOARD (XFRAME (frame));
 }
 
+/* Return the number of slots occupied in kbd_buffer.  */
+
+static int
+kbd_buffer_nr_stored ()
+{
+  return kbd_fetch_ptr == kbd_store_ptr
+    ? 0
+    : (kbd_fetch_ptr < kbd_store_ptr
+       ? kbd_store_ptr - kbd_fetch_ptr
+       : ((kbd_buffer + KBD_BUFFER_SIZE) - kbd_fetch_ptr
+          + (kbd_store_ptr - kbd_buffer)));
+}
 
 Lisp_Object Vthrow_on_input;
 
@@ -3662,7 +3675,7 @@ kbd_buffer_store_event_hold (register struct input_event *event,
 
 	  if (hold_quit)
 	    {
-	      bcopy (event, (char *) hold_quit, sizeof (*event));
+	      memcpy (hold_quit, event, sizeof (*event));
 	      return;
 	    }
 
@@ -3711,6 +3724,17 @@ kbd_buffer_store_event_hold (register struct input_event *event,
     {
       *kbd_store_ptr = *event;
       ++kbd_store_ptr;
+      if (kbd_buffer_nr_stored () > KBD_BUFFER_SIZE/2 && ! kbd_on_hold_p ())
+        {
+          /* Don't read keyboard input until we have processed kbd_buffer.
+             This happens when pasting text longer than KBD_BUFFER_SIZE/2.  */
+          hold_keyboard_input ();
+#ifdef SIGIO
+          if (!noninteractive)
+            signal (SIGIO, SIG_IGN);
+#endif
+          stop_polling ();
+        }
     }
 
   /* If we're inside while-no-input, and this event qualifies
@@ -3866,10 +3890,24 @@ clear_event (struct input_event *event)
    We always read and discard one event.  */
 
 static Lisp_Object
-kbd_buffer_get_event (KBOARD **kbp, int *used_mouse_menu, struct timeval *end_time)
+kbd_buffer_get_event (KBOARD **kbp,
+                      int *used_mouse_menu,
+                      struct timeval *end_time)
 {
   register int c;
   Lisp_Object obj;
+  
+  if (kbd_on_hold_p () && kbd_buffer_nr_stored () < KBD_BUFFER_SIZE/4)
+    {
+      /* Start reading input again, we have processed enough so we can
+         accept new events again.  */
+      unhold_keyboard_input ();
+#ifdef SIGIO
+      if (!noninteractive)
+        signal (SIGIO, input_available_signal);
+#endif /* SIGIO */
+      start_polling ();
+    }
 
   if (noninteractive
       /* In case we are running as a daemon, only do this before
@@ -6298,8 +6336,8 @@ apply_modifiers_uncached (int modifiers, char *base, int base_len, int base_len_
 
     new_name = make_uninit_multibyte_string (mod_len + base_len,
 					     mod_len + base_len_byte);
-    bcopy (new_mods, SDATA (new_name),	       mod_len);
-    bcopy (base,     SDATA (new_name) + mod_len, base_len_byte);
+    memcpy (SDATA (new_name), new_mods, mod_len);
+    memcpy (SDATA (new_name) + mod_len, base, base_len_byte);
 
     return Fintern (new_name, Qnil);
   }
@@ -7039,6 +7077,10 @@ tty_read_avail_input (struct terminal *terminal,
   int n_to_read, i;
   struct tty_display_info *tty = terminal->display_info.tty;
   int nread = 0;
+  int buffer_free = KBD_BUFFER_SIZE - kbd_buffer_nr_stored () - 1;
+
+  if (kbd_on_hold_p () || buffer_free <= 0)
+    return 0;
 
   if (!terminal->name)		/* Don't read from a dead terminal. */
     return 0;
@@ -7119,6 +7161,10 @@ tty_read_avail_input (struct terminal *terminal,
   you lose;
 #endif
 #endif
+
+  /* Don't read more than we can store.  */
+  if (n_to_read > buffer_free)
+    n_to_read = buffer_free;
 
   /* Now read; for one reason or another, this will not block.
      NREAD is set to the number of chars read.  */
@@ -7402,7 +7448,7 @@ store_user_signal_events (void)
 
 	if (nstored == 0)
 	  {
-	    bzero (&buf, sizeof buf);
+	    memset (&buf, 0, sizeof buf);
 	    buf.kind = USER_SIGNAL_EVENT;
 	    buf.frame_or_window = selected_frame;
 	  }
@@ -7506,7 +7552,7 @@ menu_bar_items (Lisp_Object old)
 	nmaps = 0;
 	if (tem = get_local_map (PT, current_buffer, Qkeymap), !NILP (tem))
 	  maps[nmaps++] = tem;
-	bcopy (tmaps, (void *) (maps + nmaps), nminor * sizeof (maps[0]));
+	memcpy (maps + nmaps, tmaps, nminor * sizeof (maps[0]));
 	nmaps += nminor;
 	maps[nmaps++] = get_local_map (PT, current_buffer, Qlocal_map);
       }
@@ -7547,9 +7593,9 @@ menu_bar_items (Lisp_Object old)
 	    tem2 = XVECTOR (menu_bar_items_vector)->contents[i + 2];
 	    tem3 = XVECTOR (menu_bar_items_vector)->contents[i + 3];
 	    if (end > i + 4)
-	      bcopy (&XVECTOR (menu_bar_items_vector)->contents[i + 4],
-		     &XVECTOR (menu_bar_items_vector)->contents[i],
-		     (end - i - 4) * sizeof (Lisp_Object));
+	      memmove (&XVECTOR (menu_bar_items_vector)->contents[i],
+		       &XVECTOR (menu_bar_items_vector)->contents[i + 4],
+		       (end - i - 4) * sizeof (Lisp_Object));
 	    XVECTOR (menu_bar_items_vector)->contents[end - 4] = tem0;
 	    XVECTOR (menu_bar_items_vector)->contents[end - 3] = tem1;
 	    XVECTOR (menu_bar_items_vector)->contents[end - 2] = tem2;
@@ -7594,9 +7640,9 @@ menu_bar_item (Lisp_Object key, Lisp_Object item, Lisp_Object dummy1, void *dumm
 	if (EQ (key, XVECTOR (menu_bar_items_vector)->contents[i]))
 	  {
 	    if (menu_bar_items_index > i + 4)
-	      bcopy (&XVECTOR (menu_bar_items_vector)->contents[i + 4],
-		     &XVECTOR (menu_bar_items_vector)->contents[i],
-		     (menu_bar_items_index - i - 4) * sizeof (Lisp_Object));
+	      memmove (&XVECTOR (menu_bar_items_vector)->contents[i],
+		       &XVECTOR (menu_bar_items_vector)->contents[i + 4],
+		       (menu_bar_items_index - i - 4) * sizeof (Lisp_Object));
 	    menu_bar_items_index -= 4;
 	  }
     }
@@ -8044,7 +8090,7 @@ tool_bar_items (Lisp_Object reuse, int *nitems)
       nmaps = 0;
       if (tem = get_local_map (PT, current_buffer, Qkeymap), !NILP (tem))
 	maps[nmaps++] = tem;
-      bcopy (tmaps, (void *) (maps + nmaps), nminor * sizeof (maps[0]));
+      memcpy (maps + nmaps, tmaps, nminor * sizeof (maps[0]));
       nmaps += nminor;
       maps[nmaps++] = get_local_map (PT, current_buffer, Qlocal_map);
     }
@@ -8094,9 +8140,9 @@ process_tool_bar_item (Lisp_Object key, Lisp_Object def, Lisp_Object data, void 
 	  if (EQ (key, v[TOOL_BAR_ITEM_KEY]))
 	    {
 	      if (ntool_bar_items > i + TOOL_BAR_ITEM_NSLOTS)
-		bcopy (v + TOOL_BAR_ITEM_NSLOTS, v,
-		       ((ntool_bar_items - i - TOOL_BAR_ITEM_NSLOTS)
-			* sizeof (Lisp_Object)));
+		memmove (v, v + TOOL_BAR_ITEM_NSLOTS,
+			 ((ntool_bar_items - i - TOOL_BAR_ITEM_NSLOTS)
+			  * sizeof (Lisp_Object)));
 	      ntool_bar_items -= TOOL_BAR_ITEM_NSLOTS;
 	      break;
 	    }
@@ -8379,7 +8425,7 @@ append_tool_bar_item (void)
      tool_bar_items_vector.  */
   to = XVECTOR (tool_bar_items_vector)->contents + ntool_bar_items;
   from = XVECTOR (tool_bar_item_properties)->contents;
-  bcopy (from, to, TOOL_BAR_ITEM_NSLOTS * sizeof *to);
+  memcpy (to, from, TOOL_BAR_ITEM_NSLOTS * sizeof *to);
   ntool_bar_items += TOOL_BAR_ITEM_NSLOTS;
 }
 
@@ -8672,7 +8718,7 @@ read_char_minibuf_menu_prompt (int commandflag, int nmaps, Lisp_Object *maps)
 			  thiswidth = SCHARS (desc);
 			  if (thiswidth + i > width)
 			    thiswidth = width - i;
-			  bcopy (SDATA (desc), menu + i, thiswidth);
+			  memcpy (menu + i, SDATA (desc), thiswidth);
 			  i += thiswidth;
 			  strcpy (menu + i, " = ");
 			  i += 3;
@@ -8682,7 +8728,7 @@ read_char_minibuf_menu_prompt (int commandflag, int nmaps, Lisp_Object *maps)
 		      thiswidth = SCHARS (s);
 		      if (thiswidth + i > width)
 			thiswidth = width - i;
-		      bcopy (SDATA (s), menu + i, thiswidth);
+		      memcpy (menu + i, SDATA (s), thiswidth);
 		      i += thiswidth;
 		      menu[i] = 0;
 		    }
@@ -9166,8 +9212,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
       if (!NILP (orig_keymap))
 	submaps[nmaps++] = orig_keymap;
 
-      bcopy (maps, (void *) (submaps + nmaps),
-	     nminor * sizeof (submaps[0]));
+      memcpy (submaps + nmaps, maps, nminor * sizeof (submaps[0]));
 
       nmaps += nminor;
 
@@ -10101,7 +10146,7 @@ will read just one key sequence.  */)
   specbind (Qinput_method_use_echo_area,
 	    (NILP (command_loop) ? Qt : Qnil));
 
-  bzero (keybuf, sizeof keybuf);
+  memset (keybuf, 0, sizeof keybuf);
   GCPRO1 (keybuf[0]);
   gcpro1.nvars = (sizeof keybuf/sizeof (keybuf[0]));
 
@@ -10161,7 +10206,7 @@ DEFUN ("read-key-sequence-vector", Fread_key_sequence_vector,
   specbind (Qinput_method_use_echo_area,
 	    (NILP (command_loop) ? Qt : Qnil));
 
-  bzero (keybuf, sizeof keybuf);
+  memset (keybuf, 0, sizeof keybuf);
   GCPRO1 (keybuf[0]);
   gcpro1.nvars = (sizeof keybuf/sizeof (keybuf[0]));
 
@@ -10551,12 +10596,10 @@ DEFUN ("recent-keys", Frecent_keys, Srecent_keys, 0, 0, 0,
   else
     {
       val = Fvector (NUM_RECENT_KEYS, keys);
-      bcopy (keys + recent_keys_index,
-	     XVECTOR (val)->contents,
-	     (NUM_RECENT_KEYS - recent_keys_index) * sizeof (Lisp_Object));
-      bcopy (keys,
-	     XVECTOR (val)->contents + NUM_RECENT_KEYS - recent_keys_index,
-	     recent_keys_index * sizeof (Lisp_Object));
+      memcpy (XVECTOR (val)->contents, keys + recent_keys_index,
+	      (NUM_RECENT_KEYS - recent_keys_index) * sizeof (Lisp_Object));
+      memcpy (XVECTOR (val)->contents + NUM_RECENT_KEYS - recent_keys_index,
+	      keys, recent_keys_index * sizeof (Lisp_Object));
       return val;
     }
 }

@@ -472,7 +472,7 @@ write_segment (new, ptr, end)
   int pagesize = getpagesize ();
   char zeros[1 << 13];
 
-  bzero (zeros, sizeof (zeros));
+  memset (zeros, 0, sizeof (zeros));
 
   for (i = 0; ptr < end;)
     {
@@ -685,6 +685,21 @@ adjust_lnnoptrs (writedesc, readdesc, new_name)
   close (new);
 #endif
   return 0;
+}
+
+extern unsigned start __asm__ ("start");
+
+/*
+ *	Return the address of the start of the text segment prior to
+ *	doing an unexec.  After unexec the return value is undefined.
+ *	See crt0.c for further explanation and _start.
+ *
+ */
+
+char *
+start_of_text (void)
+{
+  return ((char *) &start);
 }
 
 /* ****************************************************************

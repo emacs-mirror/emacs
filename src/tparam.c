@@ -18,65 +18,13 @@ the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 Boston, MA 02110-1301, USA.  */
 
 /* Emacs config.h may rename various library functions such as malloc.  */
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
-
-#ifdef emacs
 #include <setjmp.h>
 #include "lisp.h"		/* for xmalloc */
-#else
-
-#ifdef STDC_HEADERS
-#include <stdlib.h>
-#include <string.h>
-#else
-char *malloc ();
-char *realloc ();
-#endif
-
-/* Do this after the include, in case string.h prototypes bcopy.  */
-#if (defined(HAVE_STRING_H) || defined(STDC_HEADERS)) && !defined(bcopy)
-#define bcopy(s, d, n) memcpy ((d), (s), (n))
-#endif
-
-#endif /* not emacs */
 
 #ifndef NULL
 #define NULL (char *) 0
 #endif
-
-#ifndef emacs
-static void
-memory_out ()
-{
-  write (2, "virtual memory exhausted\n", 25);
-  exit (1);
-}
-
-static char *
-xmalloc (size)
-     unsigned size;
-{
-  register char *tem = malloc (size);
-
-  if (!tem)
-    memory_out ();
-  return tem;
-}
-
-static char *
-xrealloc (ptr, size)
-     char *ptr;
-     unsigned size;
-{
-  register char *tem = realloc (ptr, size);
-
-  if (!tem)
-    memory_out ();
-  return tem;
-}
-#endif /* not emacs */
 
 /* Assuming STRING is the value of a termcap string entry
    containing `%' constructs to expand parameters,
@@ -151,7 +99,7 @@ tparam1 (char *string, char *outstring, int len, char *up, char *left, register 
 	    {
 	      outlen = len + 40;
 	      new = (char *) xmalloc (outlen);
-	      bcopy (outstring, new, offset);
+	      memcpy (new, outstring, offset);
 	    }
 	  else
 	    {

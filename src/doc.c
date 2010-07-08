@@ -686,7 +686,7 @@ the same file name is found in the `doc-directory'.  */)
 	}
       pos += end - buf;
       filled -= end - buf;
-      bcopy (end, buf, filled);
+      memcpy (buf, end, filled);
     }
   emacs_close (fd);
   return Qnil;
@@ -765,7 +765,7 @@ a new string, without any text properties, is returned.  */)
 	      if (len == 1)
 		*bufp = *strp;
 	      else
-		bcopy (strp, bufp, len);
+		memcpy (bufp, strp, len);
 	      strp += len;
 	      bufp += len;
 	      nchars++;
@@ -817,7 +817,7 @@ a new string, without any text properties, is returned.  */)
 	      int offset = bufp - buf;
 	      buf = (unsigned char *) xrealloc (buf, bsize += 4);
 	      bufp = buf + offset;
-	      bcopy ("M-x ", bufp, 4);
+	      memcpy (bufp, "M-x ", 4);
 	      bufp += 4;
 	      nchars += 4;
 	      if (multibyte)
@@ -911,7 +911,7 @@ a new string, without any text properties, is returned.  */)
 	    int offset = bufp - buf;
 	    buf = (unsigned char *) xrealloc (buf, bsize += length_byte);
 	    bufp = buf + offset;
-	    bcopy (start, bufp, length_byte);
+	    memcpy (bufp, start, length_byte);
 	    bufp += length_byte;
 	    nchars += length;
 	    /* Check STRING again in case gc relocated it.  */
@@ -928,7 +928,7 @@ a new string, without any text properties, is returned.  */)
 	  if (len == 1)
 	    *bufp = *strp;
 	  else
-	    bcopy (strp, bufp, len);
+	    memcpy (bufp, strp, len);
 	  strp += len;
 	  bufp += len;
 	  nchars++;

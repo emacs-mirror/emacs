@@ -1,3 +1,262 @@
+2010-07-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (set_frame_menubar, create_and_show_popup_menu)
+	(create_and_show_dialog): Don't call apply_systemfont_to_(menu|dialog)
+	unless USE_LUCID.
+
+2010-07-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xdisp.c (store_mode_line_noprop_char): Remove K&R alternative declaration.
+
+	Clean up include guards.
+	* tparam.c: Remove include guards for config.h, string.h and code
+	that assumes #ifndef emacs.
+	* termcap.c:
+	* unexalpha.c:
+	* sysdep.c:
+	* filemode.c:
+	* filelock.c:
+	* bidi.c: Likewise.
+
+	Remove prefix-args.c
+	* prefix-args.c: Remove file.
+	* autodeps.mk (ALLOBJS): Remove reference to prefix-args.
+	* Makefile.in (temacs${EXEEXT}): Remove references to
+	PRE_EDIT_LDFLAGS and POST_EDIT_LDFLAGS.
+	(mostlyclean): Remove reference to prefix-args.
+	(prefix-args): Remove.
+
+	Simplify cstart_of_data, start_of_code and related code.
+	* mem-limits.h: Remove !emacs and _LIBC conditional code.
+	(start_of_data): Merge into start_of_data function.
+	* sysdep.c (start_of_text): Remove.  Move simplified versions of
+	it in the only users: unexaix.c and unexec.c.
+	(read_input_waiting): Remove local declaration of quit_char.
+	(start, etext): Remove declarations.
+	(start_of_data): Merge with the version in mem-limits.h and move
+	to vm-limits.c.
+	* vm-limit.c (start_of_data): Merged and simplified version of the
+	code formerly in mem-limits.h and sysdep.c.
+	* unexec.c (start): New declaration, moved from sysdep.c.
+	(start_of_text): Simplified version of the code formerly in sysdep.c.
+	* unexaix.c (start_of_text): Simplified version of the code
+	formerly in sysdep.c.
+	* m/alpha.h (HAVE_TEXT_START): Remove.
+	(TEXT_START): Move ...
+	* unexalpha.c (TEXT_START): ... here.
+	* s/hpux10-20.h (TEXT_START): Remove.
+	* s/darwin.h (TEXT_START):
+	* m/mips.h (TEXT_START):
+	* m/macppc.h (HAVE_TEXT_START):
+	* m/m68k.h (TEXT_START):
+	* m/iris4d.h (TEXT_START):
+	* m/intel386.h (TEXT_START):
+	* m/ibmrs6000.h (TEXT_START):
+	* m/ia64.h (HAVE_TEXT_START):
+	* s/msdos.h (TEXT_START): Likewise.
+
+2010-07-07  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* alloc.c (overrun_check_malloc, overrun_check_realloc)
+	(overrun_check_free, xstrdup, allocate_string)
+	(allocate_string_data, compact_small_strings, Fmake_string)
+	(make_unibyte_string, make_multibyte_string)
+	(make_string_from_bytes, make_specified_string, make_float)
+	(Fcons, allocate_terminal, allocate_frame, make_pure_string)
+	(Fgarbage_collect): Replace bcopy, safe_bcopy, bzero, bcmp by
+	memcpy, memmove, memset, memcmp.
+	* atimer.c (start_atimer, set_alarm): Likewise.
+	* buffer.c (clone_per_buffer_values, report_overlay_modification)
+	(mmap_realloc, init_buffer_once): Likewise.
+	* callint.c (Fcall_interactively): Likewise.
+	* callproc.c (Fcall_process, Fcall_process_region, child_setup)
+	(getenv_internal_1): Likewise.
+	* casefiddle.c (casify_object): Likewise.
+	* ccl.c (ccl_driver): Likewise.
+	* character.c (str_as_multibyte, str_to_multibyte): Likewise.
+	* charset.c (load_charset_map_from_file)
+	(load_charset_map_from_file, load_charset_map_from_vector)
+	(Fdefine_charset_internal): Likewise.
+	* cm.c (Wcm_clear): Likewise.
+	* coding.c (decode_eol, decode_coding_object)
+	(Fset_coding_system_priority, make_subsidiaries): Likewise.
+	* data.c (Faset): Likewise.
+	* dired.c (directory_files_internal, file_name_completion_stat):
+	Likewise.
+	* dispnew.c (new_glyph_matrix, adjust_glyph_matrix)
+	(clear_glyph_row, copy_row_except_pointers)
+	(copy_glyph_row_contents, new_glyph_pool, realloc_glyph_pool)
+	(save_current_matrix, restore_current_matrix)
+	(build_frame_matrix_from_leaf_window, mirrored_line_dance)
+	(mirror_line_dance, scrolling_window): Likewise.
+	* doc.c (Fsnarf_documentation, Fsubstitute_command_keys):
+	Likewise.
+	* doprnt.c (doprnt): Likewise.
+	* editfns.c (Fuser_full_name, make_buffer_string_both)
+	(Fmessage_box, Fformat, Ftranspose_regions): Likewise.
+	* emacs.c (sort_args): Likewise.
+	* eval.c (Fapply, Ffuncall): Likewise.
+	* fileio.c (Ffile_name_directory, make_temp_name)
+	(Fexpand_file_name, search_embedded_absfilename)
+	(Fsubstitute_in_file_name, Ffile_symlink_p, Finsert_file_contents)
+	(auto_save_error): Likewise.
+	* fns.c (Fstring_equal, Fcopy_sequence, concat)
+	(string_to_multibyte, Fstring_as_unibyte, Fstring_as_multibyte)
+	(internal_equal, Fclear_string, larger_vector, copy_hash_table)
+	(Fmake_hash_table): Likewise.
+	* fringe.c (Fdefine_fringe_bitmap): Likewise.
+	* ftfont.c (ftfont_text_extents): Likewise.
+	* getloadavg.c (getloadavg): Likewise.
+	* image.c (define_image_type, make_image, make_image_cache)
+	(x_create_x_image_and_pixmap, xbm_image_p)
+	(w32_create_pixmap_from_bitmap_data, xbm_load, xpm_lookup_color)
+	(xpm_image_p, x_create_bitmap_from_xpm_data, xpm_load)
+	(init_color_table, x_build_heuristic_mask, pbm_image_p, pbm_load)
+	(png_image_p, png_read_from_memory, png_load, jpeg_image_p)
+	(tiff_image_p, tiff_read_from_memory, gif_image_p)
+	(gif_read_from_memory, gif_load, svg_image_p, gs_image_p):
+	Likewise.
+	* indent.c (scan_for_column, compute_motion): Likewise.
+	* insdel.c (gap_left, gap_right, make_gap_smaller, copy_text)
+	(insert_1_both, insert_from_gap, replace_range_2): Likewise.
+	* intervals.c (reproduce_tree, reproduce_tree_obj): Likewise.
+	* keyboard.c (echo_char, save_getcjmp, restore_getcjmp)
+	(kbd_buffer_store_event_hold, apply_modifiers_uncached)
+	(store_user_signal_events, menu_bar_items, tool_bar_items)
+	(process_tool_bar_item, append_tool_bar_item)
+	(read_char_minibuf_menu_prompt, read_key_sequence)
+	(Fread_key_sequence, Fread_key_sequence_vector, Frecent_keys):
+	Likewise.
+	* keymap.c (current_minor_maps, Fdescribe_buffer_bindings):
+	Likewise.
+	* lisp.h (STRING_COPYIN): Likewise.
+	* lread.c (Fload, read1, oblookup): Likewise.
+	* msdos.c (Frecent_doskeys): Likewise.
+	* nsfns.m (Fx_create_frame): Likewise.
+	* nsfont.m (nsfont_open, nsfont_text_extents, ns_glyph_metrics):
+	Likewise.
+	* nsimage.m (EmacsImage-initFromSkipXBM:width:height:)
+	(EmacsImage-initForXPMWithDepth:width:height:flip:length:):
+	Likewise.
+	* nsmenu.m (ns_update_menubar): Likewise.
+	* nsterm.m (ns_draw_fringe_bitmap, ns_term_init): Likewise.
+	* print.c (print_unwind, printchar, strout, print_string)
+	(print_error_message): Likewise.
+	* process.c (conv_lisp_to_sockaddr, set_socket_option)
+	(Fmake_network_process, Fnetwork_interface_list)
+	(Fnetwork_interface_info, read_process_output, Fprocess_send_eof)
+	(init_process): Likewise.
+	* ralloc.c (resize_bloc, r_alloc_sbrk, r_alloc_init): Likewise.
+	* regex.c (init_syntax_once, regex_compile, re_compile_fastmap):
+	Likewise.
+	* scroll.c (do_scrolling, do_direct_scrolling)
+	(scrolling_max_lines_saved): Likewise.
+	* search.c (search_buffer, wordify, Freplace_match): Likewise.
+	* sound.c (wav_init, au_init, Fplay_sound_internal): Likewise.
+	* syntax.c (skip_chars, skip_syntaxes): Likewise.
+	* sysdep.c (child_setup_tty, sys_subshell, emacs_get_tty)
+	(emacs_set_tty): Likewise.
+	* term.c (encode_terminal_code, calculate_costs)
+	(produce_special_glyphs, create_tty_output, init_tty, delete_tty):
+	Likewise.
+	* termcap.c (tgetst1, gobble_line): Likewise.
+	* termhooks.h (EVENT_INIT): Likewise.
+	* tparam.c (tparam1): Likewise.
+	* unexalpha.c (unexec): Likewise.
+	* unexec.c (write_segment): Likewise.
+	* unexmacosx.c (unexec_write_zero): Likewise.
+	* w32fns.c (w32_wnd_proc, Fx_create_frame, x_create_tip_frame)
+	(Fx_file_dialog, Fsystem_move_file_to_trash): Likewise.
+	* w32font.c (w32font_list_family, w32font_text_extents)
+	(w32font_list_internal, w32font_match_internal)
+	(w32font_open_internal, compute_metrics, Fx_select_font):
+	Likewise.
+	* w32menu.c (set_frame_menubar, add_menu_item)
+	(w32_menu_display_help, w32_free_submenu_strings): Likewise.
+	* w32term.c (XCreateGC, w32_initialize_display_info): Likewise.
+	* w32uniscribe.c (uniscribe_list_family): Likewise.
+	* w32xfns.c (get_next_msg, post_msg, prepend_msg): Likewise.
+	* window.c (make_window, replace_window, set_window_buffer)
+	(Fsplit_window): Likewise.
+	* xdisp.c (init_iterator, RECORD_OVERLAY_STRING, reseat_to_string)
+	(add_to_log, message3, x_consider_frame_title)
+	(append_space_for_newline, extend_face_to_end_of_line)
+	(decode_mode_spec_coding, init_glyph_string): Likewise.
+	* xfaces.c (x_create_gc, get_lface_attributes_no_remap)
+	(Finternal_copy_lisp_face, Finternal_merge_in_global_face)
+	(face_attr_equal_p, make_realized_face, make_face_cache)
+	(free_realized_faces, lookup_named_face, smaller_face)
+	(face_with_height, lookup_derived_face)
+	(x_supports_face_attributes_p, Finternal_set_font_selection_order)
+	(Finternal_set_font_selection_order, realize_default_face)
+	(compute_char_face, face_at_buffer_position)
+	(face_for_overlay_string, face_at_string_position, merge_faces):
+	Likewise.
+	* xfns.c (xic_create_fontsetname, Fx_create_frame)
+	(Fx_window_property, x_create_tip_frame)
+	(Fx_backspace_delete_keys_p): Likewise.
+	* xfont.c (xfont_list, xfont_match, xfont_list_family)
+	(xfont_text_extents): Likewise.
+	* xmenu.c (set_frame_menubar, xmenu_show): Likewise.
+	* xrdb.c (magic_file_p, x_get_resource): Likewise.
+	* xselect.c (x_queue_event, x_get_window_property)
+	(receive_incremental_selection): Likewise.
+	* xsmfns.c (x_session_check_input): Likewise.
+	* xterm.c (x_send_scroll_bar_event, SET_SAVED_MENU_EVENT)
+	(handle_one_xevent, x_check_errors, xim_initialize, x_term_init):
+	Likewise.
+	* character.h (BCOPY_SHORT): Removed.
+	* config.in: Regenerate.
+	* dispnew.c (safe_bcopy): Only define as dummy if PROFILING.
+	* emacs.c (main) [PROFILING]: Don't declare
+	dump_opcode_frequencies.
+	* lisp.h (safe_bcopy): Remove declaration.
+	(memset) [!HAVE_MEMSET]: Declare.
+	(memcpy) [!HAVE_MEMCPY]: Likewise.
+	(memmove) [!HAVE_MEMMOVE]: Likewise.
+	(memcmp) [!HAVE_MEMCMP]: Likewise.
+	* s/ms-w32.h (bzero, bcopy, bcmp, GAP_USE_BCOPY)
+	(BCOPY_UPWARD_SAFE, BCOPY_DOWNWARD_SAFE, HAVE_BCOPY, HAVE_BCMP):
+	Don't define.
+	(HAVE_MEMCMP, HAVE_MEMCPY, HAVE_MEMMOVE, HAVE_MEMSET): Define.
+	* s/msdos.h (GAP_USE_BCOPY, BCOPY_UPWARD_SAFE)
+	(BCOPY_DOWNWARD_SAFE): Don't define.
+	* sysdep.c (memset) [!HAVE_MEMSET]: Define.
+	(memcpy) [!HAVE_MEMCPY]: Define.
+	(memmove) [!HAVE_MEMMOVE]: Define.
+	(memcmp) [!HAVE_MEMCMP]: Define.
+
+2010-07-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* process.c (kbd_is_on_hold): New variable.
+	(hold_keyboard_input, unhold_keyboard_input, kbd_on_hold_p): New
+	functions.
+	(wait_reading_process_output): If kbd_on_hold_p returns non-zero,
+	select on empty input mask.
+	(init_process): Initialize kbd_is_on_hold to 0.
+
+	* process.h (hold_keyboard_input, unhold_keyboard_input)
+	(kbd_on_hold_p): Declare.
+
+	* keyboard.c (input_available_signal): Declare.
+	(kbd_buffer_nr_stored): New function.
+	(kbd_buffer_store_event_hold): If kbd_buffer_nr_stored returns
+	more than KBD_BUFFER_SIZE/2, stop reding input (Bug#6571).
+	(kbd_buffer_get_event): If input is suspended and kbd_buffer_nr_stored
+	returns less than KBD_BUFFER_SIZE/4, resume reding input (Bug#6571).
+	(tty_read_avail_input): If input is on hold, return.
+	Don't read more that free slots in kbd_buffer (Bug#6571).
+
+2010-07-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.h:
+	* msdos.c:
+	* dosfns.c:
+	* w16select.c: Convert function definitions to ANSI C.
+
+	* msdos.h (ctrl_break_func, install_ctrl_break_check): Remove
+	unused prototypes.
+
 2010-07-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* coding.c, sysdep.c: Convert some more functions to standard C.

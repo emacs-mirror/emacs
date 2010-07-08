@@ -289,7 +289,7 @@ int print_output_debug_flag = 1;
 static Lisp_Object
 print_unwind (Lisp_Object saved_text)
 {
-  bcopy (SDATA (saved_text), print_buffer, SCHARS (saved_text));
+  memcpy (print_buffer, SDATA (saved_text), SCHARS (saved_text));
   return Qnil;
 }
 
@@ -316,7 +316,7 @@ printchar (unsigned int ch, Lisp_Object fun)
 	  if (print_buffer_pos_byte + len >= print_buffer_size)
 	    print_buffer = (char *) xrealloc (print_buffer,
 					      print_buffer_size *= 2);
-	  bcopy (str, print_buffer + print_buffer_pos_byte, len);
+	  memcpy (print_buffer + print_buffer_pos_byte, str, len);
 	  print_buffer_pos += 1;
 	  print_buffer_pos_byte += len;
 	}
@@ -364,7 +364,7 @@ strout (const char *ptr, int size, int size_byte, Lisp_Object printcharfun,
 	  print_buffer = (char *) xrealloc (print_buffer,
 					    print_buffer_size);
 	}
-      bcopy (ptr, print_buffer + print_buffer_pos_byte, size_byte);
+      memcpy (print_buffer + print_buffer_pos_byte, ptr, size_byte);
       print_buffer_pos += size;
       print_buffer_pos_byte += size_byte;
     }
@@ -461,7 +461,7 @@ print_string (Lisp_Object string, Lisp_Object printcharfun)
 	  if (chars < bytes)
 	    {
 	      newstr = make_uninit_multibyte_string (chars, bytes);
-	      bcopy (SDATA (string), SDATA (newstr), chars);
+	      memcpy (SDATA (newstr), SDATA (string), chars);
 	      str_to_multibyte (SDATA (newstr), bytes, chars);
 	      string = newstr;
 	    }
@@ -480,7 +480,7 @@ print_string (Lisp_Object string, Lisp_Object printcharfun)
 	  USE_SAFE_ALLOCA;
 
 	  SAFE_ALLOCA (buffer, char *, nbytes);
-	  bcopy (SDATA (string), buffer, nbytes);
+	  memcpy (buffer, SDATA (string), nbytes);
 
 	  strout (buffer, chars, SBYTES (string),
 		  printcharfun, STRING_MULTIBYTE (string));
@@ -1032,7 +1032,7 @@ print_error_message (Lisp_Object data, Lisp_Object stream, char *context, Lisp_O
     {
       Lisp_Object cname = SYMBOL_NAME (caller);
       char *name = alloca (SBYTES (cname));
-      bcopy (SDATA (cname), name, SBYTES (cname));
+      memcpy (name, SDATA (cname), SBYTES (cname));
       message_dolog (name, SBYTES (cname), 0, 0);
       message_dolog (": ", 2, 0, 0);
     }

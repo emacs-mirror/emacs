@@ -1067,8 +1067,8 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 
       /* Save the frame's previous menu bar contents data.  */
       if (previous_menu_items_used)
-	bcopy (XVECTOR (f->menu_bar_vector)->contents, previous_items,
-	       previous_menu_items_used * sizeof (Lisp_Object));
+	memcpy (previous_items, XVECTOR (f->menu_bar_vector)->contents,
+		previous_menu_items_used * sizeof (Lisp_Object));
 
       /* Fill in menu_items with the current menu bar contents.
 	 This can evaluate Lisp code.  */
@@ -1282,7 +1282,9 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 
       /* Make menu pop down on C-g.  */
       XtOverrideTranslations (menubar_widget, override);
+#ifdef USE_LUCID
       apply_systemfont_to_menu (menubar_widget);
+#endif
     }
 
   {
@@ -1614,7 +1616,9 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click, timestamp)
                            popup_deactivate_callback,
                            menu_highlight_callback);
 
+#ifdef USE_LUCID
   apply_systemfont_to_menu (menu);
+#endif
 
   dummy.type = ButtonPress;
   dummy.serial = 0;
@@ -2016,7 +2020,7 @@ create_and_show_dialog (f, first_wv)
     abort();
 
   dialog_id = widget_id_tick++;
-#ifdef HAVE_XFT
+#ifdef USE_LUCID
   apply_systemfont_to_dialog (f->output_data.x->widget);
 #endif
   lw_create_widget (first_wv->name, "dialog", dialog_id, first_wv,
@@ -2452,12 +2456,10 @@ xmenu_show (f, x, y, for_click, keymaps, title, error, timestamp)
 	      item_data
 		= (unsigned char *) alloca (maxwidth
 					    + SBYTES (descrip) + 1);
-	      bcopy (SDATA (item_name), item_data,
-		     SBYTES (item_name));
+	      memcpy (item_data, SDATA (item_name), SBYTES (item_name));
 	      for (j = SCHARS (item_name); j < maxwidth; j++)
 		item_data[j] = ' ';
-	      bcopy (SDATA (descrip), item_data + j,
-		     SBYTES (descrip));
+	      memcpy (item_data + j, SDATA (descrip), SBYTES (descrip));
 	      item_data[j + SBYTES (descrip)] = 0;
 	    }
 	  else

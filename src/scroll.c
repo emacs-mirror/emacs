@@ -258,7 +258,7 @@ do_scrolling (struct frame *frame, struct glyph_matrix *current_matrix, struct m
   int *copy_from = (int *) alloca (window_size * sizeof (int));
 
   /* Zero means line is empty.  */
-  bzero (retained_p, window_size * sizeof (char));
+  memset (retained_p, 0, window_size * sizeof (char));
   for (k = 0; k < window_size; ++k)
     copy_from[k] = -1;
 
@@ -677,7 +677,7 @@ do_direct_scrolling (frame, current_matrix, cost_matrix,
      old matrix.  Lines not retained are empty.  */
   char *retained_p = (char *) alloca (window_size * sizeof (char));
 
-  bzero (retained_p, window_size * sizeof (char));
+  memset (retained_p, 0, window_size * sizeof (char));
 
   /* Perform some sanity checks when GLYPH_DEBUG is on.  */
   CHECK_MATRIX (current_matrix);
@@ -855,7 +855,7 @@ scrolling_max_lines_saved (int start, int end, int *oldhash, int *newhash, int *
   avg_length /= end - start;
   threshold = avg_length / 4;
 
-  bzero (lines, sizeof lines);
+  memset (lines, 0, sizeof lines);
 
   /* Put new lines' hash codes in hash table.  Ignore lines shorter
      than the threshold.  Thus, if the lines that are in common are

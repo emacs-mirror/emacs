@@ -1715,7 +1715,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	    msglen = strlen (msg);
 	    if (dst + msglen <= (dst_bytes ? dst_end : src))
 	      {
-		bcopy (msg, dst, msglen);
+		memcpy (dst, msg, msglen);
 		dst += msglen;
 	      }
 
@@ -1728,7 +1728,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 		msglen = strlen (msg);
 		if (dst + msglen > (dst_bytes ? dst_end : src))
 		  break;
-		bcopy (msg, dst, msglen);
+		memcpy (dst, msg, msglen);
 		dst += msglen;
 	      }
 	    goto ccl_finish;
@@ -1761,7 +1761,7 @@ ccl_driver (struct ccl_program *ccl, int *source, int *destination, int src_size
 	  int i = src_end - src;
 	  if (dst_bytes && (dst_end - dst) < i)
 	    i = dst_end - dst;
-	  bcopy (src, dst, i);
+	  memcpy (dst, src, i);
 	  src += i;
 	  dst += i;
 #else

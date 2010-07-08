@@ -636,10 +636,12 @@ overrun_check_malloc (size)
   val = (unsigned char *) malloc (size + overhead);
   if (val && check_depth == 1)
     {
-      bcopy (xmalloc_overrun_check_header, val, XMALLOC_OVERRUN_CHECK_SIZE - 4);
+      memcpy (val, xmalloc_overrun_check_header,
+	      XMALLOC_OVERRUN_CHECK_SIZE - 4);
       val += XMALLOC_OVERRUN_CHECK_SIZE;
       XMALLOC_PUT_SIZE(val, size);
-      bcopy (xmalloc_overrun_check_trailer, val + size, XMALLOC_OVERRUN_CHECK_SIZE);
+      memcpy (val + size, xmalloc_overrun_check_trailer,
+	      XMALLOC_OVERRUN_CHECK_SIZE);
     }
   --check_depth;
   return (POINTER_TYPE *)val;
@@ -659,28 +661,29 @@ overrun_check_realloc (block, size)
 
   if (val
       && check_depth == 1
-      && bcmp (xmalloc_overrun_check_header,
-	       val - XMALLOC_OVERRUN_CHECK_SIZE,
-	       XMALLOC_OVERRUN_CHECK_SIZE - 4) == 0)
+      && memcmp (xmalloc_overrun_check_header,
+		 val - XMALLOC_OVERRUN_CHECK_SIZE,
+		 XMALLOC_OVERRUN_CHECK_SIZE - 4) == 0)
     {
       size_t osize = XMALLOC_GET_SIZE (val);
-      if (bcmp (xmalloc_overrun_check_trailer,
-		val + osize,
-		XMALLOC_OVERRUN_CHECK_SIZE))
+      if (memcmp (xmalloc_overrun_check_trailer, val + osize,
+		  XMALLOC_OVERRUN_CHECK_SIZE))
 	abort ();
-      bzero (val + osize, XMALLOC_OVERRUN_CHECK_SIZE);
+      memset (val + osize, 0, XMALLOC_OVERRUN_CHECK_SIZE);
       val -= XMALLOC_OVERRUN_CHECK_SIZE;
-      bzero (val, XMALLOC_OVERRUN_CHECK_SIZE);
+      memset (val, 0, XMALLOC_OVERRUN_CHECK_SIZE);
     }
 
   val = (unsigned char *) realloc ((POINTER_TYPE *)val, size + overhead);
 
   if (val && check_depth == 1)
     {
-      bcopy (xmalloc_overrun_check_header, val, XMALLOC_OVERRUN_CHECK_SIZE - 4);
+      memcpy (val, xmalloc_overrun_check_header,
+	      XMALLOC_OVERRUN_CHECK_SIZE - 4);
       val += XMALLOC_OVERRUN_CHECK_SIZE;
       XMALLOC_PUT_SIZE(val, size);
-      bcopy (xmalloc_overrun_check_trailer, val + size, XMALLOC_OVERRUN_CHECK_SIZE);
+      memcpy (val + size, xmalloc_overrun_check_trailer,
+	      XMALLOC_OVERRUN_CHECK_SIZE);
     }
   --check_depth;
   return (POINTER_TYPE *)val;
@@ -697,22 +700,21 @@ overrun_check_free (block)
   ++check_depth;
   if (val
       && check_depth == 1
-      && bcmp (xmalloc_overrun_check_header,
-	       val - XMALLOC_OVERRUN_CHECK_SIZE,
-	       XMALLOC_OVERRUN_CHECK_SIZE - 4) == 0)
+      && memcmp (xmalloc_overrun_check_header,
+		 val - XMALLOC_OVERRUN_CHECK_SIZE,
+		 XMALLOC_OVERRUN_CHECK_SIZE - 4) == 0)
     {
       size_t osize = XMALLOC_GET_SIZE (val);
-      if (bcmp (xmalloc_overrun_check_trailer,
-		val + osize,
-		XMALLOC_OVERRUN_CHECK_SIZE))
+      if (memcmp (xmalloc_overrun_check_trailer, val + osize,
+		  XMALLOC_OVERRUN_CHECK_SIZE))
 	abort ();
 #ifdef XMALLOC_CLEAR_FREE_MEMORY
       val -= XMALLOC_OVERRUN_CHECK_SIZE;
       memset (val, 0xff, osize + XMALLOC_OVERRUN_CHECK_SIZE*2);
 #else
-      bzero (val + osize, XMALLOC_OVERRUN_CHECK_SIZE);
+      memset (val + osize, 0, XMALLOC_OVERRUN_CHECK_SIZE);
       val -= XMALLOC_OVERRUN_CHECK_SIZE;
-      bzero (val, XMALLOC_OVERRUN_CHECK_SIZE);
+      memset (val, 0, XMALLOC_OVERRUN_CHECK_SIZE);
 #endif
     }
 
@@ -799,7 +801,7 @@ xstrdup (const char *s)
 {
   size_t len = strlen (s) + 1;
   char *p = (char *) xmalloc (len);
-  bcopy (s, p, len);
+  memcpy (p, s, len);
   return p;
 }
 
@@ -1873,7 +1875,7 @@ allocate_string (void)
       int i;
 
       b = (struct string_block *) lisp_malloc (sizeof *b, MEM_TYPE_STRING);
-      bzero (b, sizeof *b);
+      memset (b, 0, sizeof *b);
       b->next = string_blocks;
       string_blocks = b;
       ++n_string_blocks;
@@ -1897,7 +1899,7 @@ allocate_string (void)
   MALLOC_UNBLOCK_INPUT;
 
   /* Probably not strictly necessary, but play it safe.  */
-  bzero (s, sizeof *s);
+  memset (s, 0, sizeof *s);
 
   --total_free_strings;
   ++total_strings;
@@ -2005,8 +2007,7 @@ allocate_string_data (struct Lisp_String *s, int nchars, int nbytes)
   s->size_byte = nbytes;
   s->data[nbytes] = '\0';
 #ifdef GC_CHECK_STRING_OVERRUN
-  bcopy (string_overrun_cookie, (char *) data + needed,
-	 GC_STRING_OVERRUN_COOKIE_SIZE);
+  memcpy (data + needed, string_overrun_cookie, GC_STRING_OVERRUN_COOKIE_SIZE);
 #endif
 
   /* If S had already data assigned, mark that as free by setting its
@@ -2197,9 +2198,9 @@ compact_small_strings (void)
 	  from_end = (struct sdata *) ((char *) from + nbytes + GC_STRING_EXTRA);
 
 #ifdef GC_CHECK_STRING_OVERRUN
-	  if (bcmp (string_overrun_cookie,
-		    ((char *) from_end) - GC_STRING_OVERRUN_COOKIE_SIZE,
-		    GC_STRING_OVERRUN_COOKIE_SIZE))
+	  if (memcmp (string_overrun_cookie,
+		      (char *) from_end - GC_STRING_OVERRUN_COOKIE_SIZE,
+		      GC_STRING_OVERRUN_COOKIE_SIZE))
 	    abort ();
 #endif
 
@@ -2221,7 +2222,7 @@ compact_small_strings (void)
 	      if (from != to)
 		{
 		  xassert (tb != b || to <= from);
-		  safe_bcopy ((char *) from, (char *) to, nbytes + GC_STRING_EXTRA);
+		  memmove (to, from, nbytes + GC_STRING_EXTRA);
 		  to->string->data = SDATA_DATA (to);
 		}
 
@@ -2280,7 +2281,7 @@ INIT must be an integer that represents a character.  */)
       end = p + nbytes;
       while (p != end)
 	{
-	  bcopy (str, p, len);
+	  memcpy (p, str, len);
 	  p += len;
 	}
     }
@@ -2362,7 +2363,7 @@ make_unibyte_string (const char *contents, int length)
 {
   register Lisp_Object val;
   val = make_uninit_string (length);
-  bcopy (contents, SDATA (val), length);
+  memcpy (SDATA (val), contents, length);
   STRING_SET_UNIBYTE (val);
   return val;
 }
@@ -2376,7 +2377,7 @@ make_multibyte_string (const char *contents, int nchars, int nbytes)
 {
   register Lisp_Object val;
   val = make_uninit_multibyte_string (nchars, nbytes);
-  bcopy (contents, SDATA (val), nbytes);
+  memcpy (SDATA (val), contents, nbytes);
   return val;
 }
 
@@ -2389,7 +2390,7 @@ make_string_from_bytes (const char *contents, int nchars, int nbytes)
 {
   register Lisp_Object val;
   val = make_uninit_multibyte_string (nchars, nbytes);
-  bcopy (contents, SDATA (val), nbytes);
+  memcpy (SDATA (val), contents, nbytes);
   if (SBYTES (val) == SCHARS (val))
     STRING_SET_UNIBYTE (val);
   return val;
@@ -2414,7 +2415,7 @@ make_specified_string (const char *contents, int nchars, int nbytes, int multiby
 	nchars = nbytes;
     }
   val = make_uninit_multibyte_string (nchars, nbytes);
-  bcopy (contents, SDATA (val), nbytes);
+  memcpy (SDATA (val), contents, nbytes);
   if (!multibyte)
     STRING_SET_UNIBYTE (val);
   return val;
@@ -2587,7 +2588,7 @@ make_float (double float_value)
 	  new = (struct float_block *) lisp_align_malloc (sizeof *new,
 							  MEM_TYPE_FLOAT);
 	  new->next = float_block;
-	  bzero ((char *) new->gcmarkbits, sizeof new->gcmarkbits);
+	  memset (new->gcmarkbits, 0, sizeof new->gcmarkbits);
 	  float_block = new;
 	  float_block_index = 0;
 	  n_float_blocks++;
@@ -2709,7 +2710,7 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
 	  register struct cons_block *new;
 	  new = (struct cons_block *) lisp_align_malloc (sizeof *new,
 							 MEM_TYPE_CONS);
-	  bzero ((char *) new->gcmarkbits, sizeof new->gcmarkbits);
+	  memset (new->gcmarkbits, 0, sizeof new->gcmarkbits);
 	  new->next = cons_block;
 	  cons_block = new;
 	  cons_block_index = 0;
@@ -2950,8 +2951,8 @@ allocate_terminal (void)
   struct terminal *t = ALLOCATE_PSEUDOVECTOR (struct terminal,
 					      next_terminal, PVEC_TERMINAL);
   /* Zero out the non-GC'd fields.  FIXME: This should be made unnecessary.  */
-  bzero (&(t->next_terminal),
-	 ((char*)(t+1)) - ((char*)&(t->next_terminal)));
+  memset (&t->next_terminal, 0,
+	  (char*) (t + 1) - (char*) &t->next_terminal);
 
   return t;
 }
@@ -2962,8 +2963,8 @@ allocate_frame (void)
   struct frame *f = ALLOCATE_PSEUDOVECTOR (struct frame,
 					   face_cache, PVEC_FRAME);
   /* Zero out the non-GC'd fields.  FIXME: This should be made unnecessary.  */
-  bzero (&(f->face_cache),
-	 ((char*)(f+1)) - ((char*)&(f->face_cache)));
+  memset (&f->face_cache, 0,
+	  (char *) (f + 1) - (char *) &f->face_cache);
   return f;
 }
 
@@ -4713,7 +4714,7 @@ make_pure_string (const char *data, int nchars, int nbytes, int multibyte)
   if (s->data == NULL)
     {
       s->data = (unsigned char *) pure_alloc (nbytes + 1, -1);
-      bcopy (data, s->data, nbytes);
+      memcpy (s->data, data, nbytes);
       s->data[nbytes] = '\0';
     }
   s->size = nchars;
@@ -4980,9 +4981,9 @@ returns nil, because real GC can't be done.  */)
 	  if (stack_copy)
 	    {
 	      if ((EMACS_INT) (&stack_top_variable - stack_bottom) > 0)
-		bcopy (stack_bottom, stack_copy, i);
+		memcpy (stack_copy, stack_bottom, i);
 	      else
-		bcopy (&stack_top_variable, stack_copy, i);
+		memcpy (stack_copy, &stack_top_variable, i);
 	    }
 	}
     }

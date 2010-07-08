@@ -117,9 +117,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define HAVE_SOCKETS if system supports 4.2-compatible sockets.  */
 #define HAVE_SOCKETS
 
-/* start_of_text isn't actually used, so make it compile without error.  */
-#define TEXT_START (0)
-
 /* Definitions for how to compile & link.  */
 #ifdef HAVE_NS
 #define SYSTEM_PURESIZE_EXTRA 200000

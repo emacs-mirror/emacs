@@ -154,7 +154,7 @@ x_session_check_input (struct input_event *bufp)
   /* Check if smc_interact_CB was called and we shall generate a
      SAVE_SESSION_EVENT.  */
   if (emacs_event.kind != NO_EVENT)
-    bcopy (&emacs_event, bufp, sizeof (struct input_event));
+    memcpy (bufp, &emacs_event, sizeof (struct input_event));
 
   return emacs_event.kind != NO_EVENT ? 1 : 0;
 }

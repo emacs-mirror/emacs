@@ -348,8 +348,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
       /* Make a copy of string so that if a GC relocates specs,
 	 `string' will still be valid.  */
       string = (unsigned char *) alloca (SBYTES (specs) + 1);
-      bcopy (SDATA (specs), string,
-	     SBYTES (specs) + 1);
+      memcpy (string, SDATA (specs), SBYTES (specs) + 1);
     }
   else
     {

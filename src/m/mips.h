@@ -31,8 +31,5 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    This flag only matters if you use USE_LISP_UNION_TYPE.  */
 #define EXPLICIT_SIGN_EXTEND
 
-/* Describe layout of the address space in an executing process.  */
-#define TEXT_START      0x00400000
-
 /* arch-tag: 8fd020ee-78a7-4d87-96ce-6129f52f7bee
    (do not change this comment) */

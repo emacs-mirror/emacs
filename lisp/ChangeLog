@@ -1,3 +1,10 @@
+2010-07-08  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa-file.el (epa-file-error, epa-file--find-file-not-found-function)
+	(epa-file-insert-file-contents): Hack to prevent
+	find-file from opening empty buffer when decryptin failed
+	(bug#6568).
+
 2010-07-07  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* ispell.el (ispell-alternate-dictionary): Use file-readable-p.

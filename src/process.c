@@ -306,6 +306,10 @@ extern int timers_run;
 
 static SELECT_TYPE input_wait_mask;
 
+/* Non-zero if keyboard input is on hold, zero otherwise.  */
+
+static int kbd_is_on_hold;
+
 /* Mask that excludes keyboard input descriptor(s).  */
 
 static SELECT_TYPE non_keyboard_wait_mask;
@@ -2436,7 +2440,7 @@ conv_lisp_to_sockaddr (int family, Lisp_Object address, struct sockaddr *sa, int
   register unsigned char *cp = NULL;
   register int i;
 
-  bzero (sa, len);
+  memset (sa, 0, len);
 
   if (VECTORP (address))
     {
@@ -2631,12 +2635,12 @@ set_socket_option (int s, Lisp_Object opt, Lisp_Object val)
 	/* This is broken, at least in the Linux 2.4 kernel.
 	   To unbind, the arg must be a zero integer, not the empty string.
 	   This should work on all systems.   KFS. 2003-09-23.  */
-	bzero (devname, sizeof devname);
+	memset (devname, 0, sizeof devname);
 	if (STRINGP (val))
 	  {
 	    char *arg = (char *) SDATA (val);
 	    int len = min (strlen (arg), IFNAMSIZ);
-	    bcopy (arg, devname, len);
+	    memcpy (devname, arg, len);
 	  }
 	else if (!NILP (val))
 	  error ("Bad option value for %s", name);
@@ -3345,7 +3349,7 @@ usage: (make-network-process &rest ARGS)  */)
 	  host = Qnil;
 	}
       CHECK_STRING (service);
-      bzero (&address_un, sizeof address_un);
+      memset (&address_un, 0, sizeof address_un);
       address_un.sun_family = AF_LOCAL;
       strncpy (address_un.sun_path, SDATA (service), sizeof address_un.sun_path);
       ai.ai_addr = (struct sockaddr *) &address_un;
@@ -3429,7 +3433,7 @@ usage: (make-network-process &rest ARGS)  */)
       port = svc_info->s_port;
     }
 
-  bzero (&address_in, sizeof address_in);
+  memset (&address_in, 0, sizeof address_in);
   address_in.sin_family = family;
   address_in.sin_addr.s_addr = INADDR_ANY;
   address_in.sin_port = port;
@@ -3453,8 +3457,8 @@ usage: (make-network-process &rest ARGS)  */)
 
       if (host_info_ptr)
 	{
-	  bcopy (host_info_ptr->h_addr, (char *) &address_in.sin_addr,
-		 host_info_ptr->h_length);
+	  memcpy (&address_in.sin_addr, host_info_ptr->h_addr,
+		  host_info_ptr->h_length);
 	  family = host_info_ptr->h_addrtype;
 	  address_in.sin_family = family;
 	}
@@ -3466,8 +3470,8 @@ usage: (make-network-process &rest ARGS)  */)
 	  if (numeric_addr == -1)
 	    error ("Unknown host \"%s\"", SDATA (host));
 
-	  bcopy ((char *)&numeric_addr, (char *) &address_in.sin_addr,
-		 sizeof (address_in.sin_addr));
+	  memcpy (&address_in.sin_addr, &numeric_addr,
+		  sizeof (address_in.sin_addr));
 	}
 
     }
@@ -3651,7 +3655,7 @@ usage: (make-network-process &rest ARGS)  */)
 	  if (is_server)
 	    {
 	      Lisp_Object remote;
-	      bzero (datagram_address[s].sa, lres->ai_addrlen);
+	      memset (datagram_address[s].sa, 0, lres->ai_addrlen);
 	      if (remote = Fplist_get (contact, QCremote), !NILP (remote))
 		{
 		  int rfamily, rlen;
@@ -3662,7 +3666,7 @@ usage: (make-network-process &rest ARGS)  */)
 		}
 	    }
 	  else
-	    bcopy (lres->ai_addr, datagram_address[s].sa, lres->ai_addrlen);
+	    memcpy (datagram_address[s].sa, lres->ai_addr, lres->ai_addrlen);
 	}
 #endif
       contact = Fplist_put (contact, QCaddress,
@@ -3929,7 +3933,7 @@ format; see the description of ADDRESS in `make-network-process'.  */)
       char namebuf[sizeof (ifq->ifr_name) + 1];
       if (ifq->ifr_addr.sa_family != AF_INET)
 	continue;
-      bcopy (ifq->ifr_name, namebuf, sizeof (ifq->ifr_name));
+      memcpy (namebuf, ifq->ifr_name, sizeof (ifq->ifr_name));
       namebuf[sizeof (ifq->ifr_name)] = 0;
       res = Fcons (Fcons (build_string (namebuf),
 			  conv_sockaddr_to_lisp (&ifq->ifr_addr,
@@ -4032,7 +4036,7 @@ FLAGS is the current flags of the interface.  */)
 
   CHECK_STRING (ifname);
 
-  bzero (rq.ifr_name, sizeof rq.ifr_name);
+  memset (rq.ifr_name, 0, sizeof rq.ifr_name);
   strncpy (rq.ifr_name, SDATA (ifname), sizeof (rq.ifr_name));
 
   s = socket (AF_INET, SOCK_STREAM, 0);
@@ -4731,7 +4735,10 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 	  SELECT_TYPE Ctemp;
 #endif
 
-	  Atemp = input_wait_mask;
+          if (kbd_on_hold_p ())
+            FD_ZERO (&Atemp);
+          else
+            Atemp = input_wait_mask;
 	  IF_NON_BLOCKING_CONNECT (Ctemp = connect_wait_mask);
 
 	  EMACS_SET_SECS_USECS (timeout, 0, 0);
@@ -5270,7 +5277,7 @@ read_process_output (Lisp_Object proc, register int channel)
   chars = (char *) alloca (carryover + readmax);
   if (carryover)
     /* See the comment above.  */
-    bcopy (SDATA (p->decoding_buf), chars, carryover);
+    memcpy (chars, SDATA (p->decoding_buf), carryover);
 
 #ifdef DATAGRAM_SOCKETS
   /* We have a working select, so proc_buffered_char is always -1.  */
@@ -5414,8 +5421,8 @@ read_process_output (Lisp_Object proc, register int channel)
 	{
 	  if (SCHARS (p->decoding_buf) < coding->carryover_bytes)
 	    p->decoding_buf = make_uninit_string (coding->carryover_bytes);
-	  bcopy (coding->carryover, SDATA (p->decoding_buf),
-		 coding->carryover_bytes);
+	  memcpy (SDATA (p->decoding_buf), coding->carryover,
+		  coding->carryover_bytes);
 	  p->decoding_carryover = coding->carryover_bytes;
 	}
       if (SBYTES (text) > 0)
@@ -5506,8 +5513,8 @@ read_process_output (Lisp_Object proc, register int channel)
 	{
 	  if (SCHARS (p->decoding_buf) < coding->carryover_bytes)
 	    p->decoding_buf = make_uninit_string (coding->carryover_bytes);
-	  bcopy (coding->carryover, SDATA (p->decoding_buf),
-		 coding->carryover_bytes);
+	  memcpy (SDATA (p->decoding_buf), coding->carryover,
+		  coding->carryover_bytes);
 	  p->decoding_carryover = coding->carryover_bytes;
 	}
       /* Adjust the multibyteness of TEXT to that of the buffer.  */
@@ -6510,11 +6517,11 @@ process has been transmitted to the serial port.  */)
       if (!proc_encode_coding_system[new_outfd])
 	proc_encode_coding_system[new_outfd]
 	  = (struct coding_system *) xmalloc (sizeof (struct coding_system));
-      bcopy (proc_encode_coding_system[old_outfd],
-	     proc_encode_coding_system[new_outfd],
-	     sizeof (struct coding_system));
-      bzero (proc_encode_coding_system[old_outfd],
-	     sizeof (struct coding_system));
+      memcpy (proc_encode_coding_system[new_outfd],
+	      proc_encode_coding_system[old_outfd],
+	      sizeof (struct coding_system));
+      memset (proc_encode_coding_system[old_outfd], 0,
+	      sizeof (struct coding_system));
 
       XPROCESS (proc)->outfd = new_outfd;
     }
@@ -7010,6 +7017,30 @@ DEFUN ("process-filter-multibyte-p", Fprocess_filter_multibyte_p,
 
 
 
+/* Stop reading input from keyboard sources.  */
+
+void
+hold_keyboard_input (void)
+{
+  kbd_is_on_hold = 1;
+}
+
+/* Resume reading input from keyboard sources.  */
+
+void
+unhold_keyboard_input (void)
+{
+  kbd_is_on_hold = 0;
+}
+
+/* Return non-zero if keyboard input is on hold, zero otherwise.  */
+
+int
+kbd_on_hold_p (void)
+{
+  return kbd_is_on_hold;
+}
+
 /* Add DESC to the set of keyboard input descriptors.  */
 
 void
@@ -7203,10 +7234,10 @@ init_process (void)
       chan_process[i] = Qnil;
       proc_buffered_char[i] = -1;
     }
-  bzero (proc_decode_coding_system, sizeof proc_decode_coding_system);
-  bzero (proc_encode_coding_system, sizeof proc_encode_coding_system);
+  memset (proc_decode_coding_system, 0, sizeof proc_decode_coding_system);
+  memset (proc_encode_coding_system, 0, sizeof proc_encode_coding_system);
 #ifdef DATAGRAM_SOCKETS
-  bzero (datagram_address, sizeof datagram_address);
+  memset (datagram_address, 0, sizeof datagram_address);
 #endif
 
 #ifdef HAVE_SOCKETS
@@ -7901,6 +7932,7 @@ integer or floating point values.
 void
 init_process ()
 {
+  kbd_is_on_hold = 0;
 }
 
 void

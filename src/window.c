@@ -243,9 +243,9 @@ make_window (void)
   p->dedicated = Qnil;
   p->window_parameters = Qnil;
   p->pseudo_window_p = 0;
-  bzero (&p->cursor, sizeof (p->cursor));
-  bzero (&p->last_cursor, sizeof (p->last_cursor));
-  bzero (&p->phys_cursor, sizeof (p->phys_cursor));
+  memset (&p->cursor, 0, sizeof (p->cursor));
+  memset (&p->last_cursor, 0, sizeof (p->last_cursor));
+  memset (&p->phys_cursor, 0, sizeof (p->phys_cursor));
   p->desired_matrix = p->current_matrix = 0;
   p->nrows_scale_factor = p->ncols_scale_factor = 1;
   p->phys_cursor_type = -1;
@@ -1557,9 +1557,9 @@ replace_window (Lisp_Object old, Lisp_Object replacement)
   p->total_lines = o->total_lines;
   p->desired_matrix = p->current_matrix = 0;
   p->vscroll = 0;
-  bzero (&p->cursor, sizeof (p->cursor));
-  bzero (&p->last_cursor, sizeof (p->last_cursor));
-  bzero (&p->phys_cursor, sizeof (p->phys_cursor));
+  memset (&p->cursor, 0, sizeof (p->cursor));
+  memset (&p->last_cursor, 0, sizeof (p->last_cursor));
+  memset (&p->phys_cursor, 0, sizeof (p->phys_cursor));
   p->phys_cursor_type = -1;
   p->phys_cursor_width = -1;
   p->must_be_updated_p = 0;
@@ -3481,7 +3481,7 @@ set_window_buffer (Lisp_Object window, Lisp_Object buffer, int run_hooks_p, int 
 
   XSETFASTINT (w->window_end_pos, 0);
   XSETFASTINT (w->window_end_vpos, 0);
-  bzero (&w->last_cursor, sizeof w->last_cursor);
+  memset (&w->last_cursor, 0, sizeof w->last_cursor);
   w->window_end_valid = Qnil;
   if (!(keep_margins_p && samebuf))
     { /* If we're not actually changing the buffer, don't reset hscroll and
@@ -3948,7 +3948,7 @@ See Info node `(elisp)Splitting Windows' for more details and examples.  */)
   p->parent = o->parent;
   p->buffer = Qt;
   p->window_end_valid = Qnil;
-  bzero (&p->last_cursor, sizeof p->last_cursor);
+  memset (&p->last_cursor, 0, sizeof p->last_cursor);
 
   /* Duplicate special geometry settings.  */
 

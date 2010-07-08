@@ -1159,7 +1159,7 @@ be shared by the new frame.  */)
 
   f->output_method = output_ns;
   f->output_data.ns = (struct ns_output *)xmalloc (sizeof *(f->output_data.ns));
-  bzero (f->output_data.ns, sizeof (*(f->output_data.ns)));
+  memset (f->output_data.ns, 0, sizeof (*(f->output_data.ns)));
 
   FRAME_FONTSET (f) = -1;
 

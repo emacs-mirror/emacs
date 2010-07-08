@@ -1534,7 +1534,8 @@ current_minor_maps (Lisp_Object **modeptr, Lisp_Object **mapptr)
 		  {
 		    if (cmm_modes)
 		      {
-			bcopy (cmm_modes, newmodes, cmm_size * sizeof cmm_modes[0]);
+			memcpy (newmodes, cmm_modes,
+				cmm_size * sizeof cmm_modes[0]);
 			free (cmm_modes);
 		      }
 		    cmm_modes = newmodes;
@@ -1545,7 +1546,8 @@ current_minor_maps (Lisp_Object **modeptr, Lisp_Object **mapptr)
 		  {
 		    if (cmm_maps)
 		      {
-			bcopy (cmm_maps, newmaps, cmm_size * sizeof cmm_maps[0]);
+			memcpy (newmaps, cmm_maps,
+				cmm_size * sizeof cmm_maps[0]);
 			free (cmm_maps);
 		      }
 		    cmm_maps = newmaps;
@@ -3100,12 +3102,12 @@ You type        Translation\n\
 	  *p++ = '\f';
 	  *p++ = '\n';
 	  *p++ = '`';
-	  bcopy (SDATA (SYMBOL_NAME (modes[i])), p,
-		 SCHARS (SYMBOL_NAME (modes[i])));
+	  memcpy (p, SDATA (SYMBOL_NAME (modes[i])),
+		  SCHARS (SYMBOL_NAME (modes[i])));
 	  p += SCHARS (SYMBOL_NAME (modes[i]));
 	  *p++ = '\'';
-	  bcopy (" Minor Mode Bindings", p, sizeof (" Minor Mode Bindings") - 1);
-	  p += sizeof (" Minor Mode Bindings") - 1;
+	  memcpy (p, " Minor Mode Bindings", strlen (" Minor Mode Bindings"));
+	  p += strlen (" Minor Mode Bindings");
 	  *p = 0;
 
 	  describe_map_tree (maps[i], 1, shadow, prefix,

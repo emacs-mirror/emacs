@@ -668,7 +668,7 @@ str_as_multibyte (unsigned char *str, int len, int nbytes, int *nchars)
   to = p;
   nbytes = endp - p;
   endp = str + len;
-  safe_bcopy ((char *) p, (char *) (endp - nbytes), nbytes);
+  memmove (endp - nbytes, p, nbytes);
   p = endp - nbytes;
 
   if (nbytes >= MAX_MULTIBYTE_LENGTH)
@@ -746,7 +746,7 @@ str_to_multibyte (unsigned char *str, int len, int bytes)
   to = p;
   bytes = endp - p;
   endp = str + len;
-  safe_bcopy ((char *) p, (char *) (endp - bytes), bytes);
+  memmove (endp - bytes, p, bytes);
   p = endp - bytes;
   while (p < endp)
     {

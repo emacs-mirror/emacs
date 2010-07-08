@@ -625,7 +625,7 @@ define_image_type (struct image_type *type, int loaded)
       /* Make a copy of TYPE to avoid a bus error in a dumped Emacs.
          The initialized data segment is read-only.  */
       struct image_type *p = (struct image_type *) xmalloc (sizeof *p);
-      bcopy (type, p, sizeof *p);
+      memcpy (p, type, sizeof *p);
       p->next = image_types;
       image_types = p;
       success = Qt;
@@ -1020,7 +1020,7 @@ make_image (Lisp_Object spec, unsigned int hash)
   Lisp_Object file = image_spec_value (spec, QCfile, NULL);
 
   xassert (valid_image_p (spec));
-  bzero (img, sizeof *img);
+  memset (img, 0, sizeof *img);
   img->dependencies = NILP (file) ? Qnil : list1 (file);
   img->type = lookup_image_type (image_spec_value (spec, QCtype, NULL));
   xassert (img->type != NULL);
@@ -1424,12 +1424,12 @@ make_image_cache (void)
   struct image_cache *c = (struct image_cache *) xmalloc (sizeof *c);
   int size;
 
-  bzero (c, sizeof *c);
+  memset (c, 0, sizeof *c);
   c->size = 50;
   c->images = (struct image **) xmalloc (c->size * sizeof *c->images);
   size = IMAGE_CACHE_BUCKETS_SIZE * sizeof *c->buckets;
   c->buckets = (struct image **) xmalloc (size);
-  bzero (c->buckets, size);
+  memset (c->buckets, 0, size);
   return c;
 }
 
@@ -2048,8 +2048,8 @@ x_create_x_image_and_pixmap (struct frame *f, int width, int height, int depth,
       return 0;
     }
 
-  header = &((*ximg)->info.bmiHeader);
-  bzero (&((*ximg)->info), sizeof (BITMAPINFO));
+  header = &(*ximg)->info.bmiHeader;
+  memset (&(*ximg)->info, 0, sizeof (BITMAPINFO));
   header->biSize = sizeof (*header);
   header->biWidth = width;
   header->biHeight = -height;  /* negative indicates a top-down bitmap.  */
@@ -2353,7 +2353,7 @@ xbm_image_p (Lisp_Object object)
 {
   struct image_keyword kw[XBM_LAST];
 
-  bcopy (xbm_format, kw, sizeof kw);
+  memcpy (kw, xbm_format, sizeof kw);
   if (!parse_image_spec (object, kw, XBM_LAST, Qxbm))
     return 0;
 
@@ -2543,7 +2543,7 @@ w32_create_pixmap_from_bitmap_data (int width, int height, char *data)
   w1 = (width + 7) / 8;         /* nb of 8bits elt in X bitmap */
   w2 = ((width + 15) / 16) * 2; /* nb of 16bits elt in W32 bitmap */
   bits = (unsigned char *) alloca (height * w2);
-  bzero (bits, height * w2);
+  memset (bits, 0, height * w2);
   for (i = 0; i < height; i++)
     {
       p = bits + i*w2;
@@ -2918,7 +2918,7 @@ xbm_load (struct frame *f, struct image *img)
       in_memory_file_p = xbm_file_p (data);
 
       /* Parse the image specification.  */
-      bcopy (xbm_format, fmt, sizeof fmt);
+      memcpy (fmt, xbm_format, sizeof fmt);
       parsed_p = parse_image_spec (img->spec, fmt, XBM_LAST, Qxbm);
       xassert (parsed_p);
 
@@ -2964,9 +2964,9 @@ xbm_load (struct frame *f, struct image *img)
 		{
 		  Lisp_Object line = XVECTOR (data)->contents[i];
 		  if (STRINGP (line))
-		    bcopy (SDATA (line), p, nbytes);
+		    memcpy (p, SDATA (line), nbytes);
 		  else
-		    bcopy (XBOOL_VECTOR (line)->data, p, nbytes);
+		    memcpy (p, XBOOL_VECTOR (line)->data, nbytes);
 		}
 	    }
 	  else if (STRINGP (data))
@@ -3248,7 +3248,7 @@ xpm_lookup_color (struct frame *f, char *color_name, XColor *color)
      with transparency, and it's useful.  */
   else if (strcmp ("opaque", color_name) == 0)
     {
-      bzero (color, sizeof (XColor));  /* Is this necessary/correct?  */
+      memset (color, 0, sizeof (XColor));  /* Is this necessary/correct?  */
       color->pixel = FRAME_FOREGROUND_PIXEL (f);
       p = xpm_cache_color (f, color_name, color, h);
     }
@@ -3337,7 +3337,7 @@ static int
 xpm_image_p (Lisp_Object object)
 {
   struct image_keyword fmt[XPM_LAST];
-  bcopy (xpm_format, fmt, sizeof fmt);
+  memcpy (fmt, xpm_format, sizeof fmt);
   return (parse_image_spec (object, fmt, XPM_LAST, Qxpm)
 	  /* Either `:file' or `:data' must be present.  */
 	  && fmt[XPM_FILE].count + fmt[XPM_DATA].count == 1
@@ -3358,7 +3358,7 @@ x_create_bitmap_from_xpm_data (struct frame *f, char **bits)
   XpmAttributes attrs;
   Pixmap bitmap, mask;
 
-  bzero (&attrs, sizeof attrs);
+  memset (&attrs, 0, sizeof attrs);
 
   attrs.visual = FRAME_X_VISUAL (f);
   attrs.colormap = FRAME_X_COLORMAP (f);
@@ -3406,7 +3406,7 @@ xpm_load (struct frame *f, struct image *img)
 
   /* Configure the XPM lib.  Use the visual of frame F.  Allocate
      close colors.  Return colors allocated.  */
-  bzero (&attrs, sizeof attrs);
+  memset (&attrs, 0, sizeof attrs);
 
 #ifndef HAVE_NTGUI
   attrs.visual = FRAME_X_VISUAL (f);
@@ -3453,7 +3453,7 @@ xpm_load (struct frame *f, struct image *img)
       /* Allocate an XpmColorSymbol array.  */
       size = attrs.numsymbols * sizeof *xpm_syms;
       xpm_syms = (XpmColorSymbol *) alloca (size);
-      bzero (xpm_syms, size);
+      memset (xpm_syms, 0, size);
       attrs.colorsymbols = xpm_syms;
 
       /* Fill the color symbol array.  */
@@ -4152,7 +4152,7 @@ init_color_table (void)
 {
   int size = CT_SIZE * sizeof (*ct_table);
   ct_table = (struct ct_color **) xmalloc (size);
-  bzero (ct_table, size);
+  memset (ct_table, 0, size);
   ct_colors_allocated = 0;
 }
 
@@ -4848,7 +4848,7 @@ x_build_heuristic_mask (struct frame *f, struct image *img, Lisp_Object how)
   /* Create the bit array serving as mask.  */
   row_width = (img->width + 7) / 8;
   mask_img = xmalloc (row_width * img->height);
-  bzero (mask_img, row_width * img->height);
+  memset (mask_img, 0, row_width * img->height);
 
   /* Create a memory device context for IMG->pixmap.  */
   frame_dc = get_frame_dc (f);
@@ -5000,7 +5000,7 @@ pbm_image_p (Lisp_Object object)
 {
   struct image_keyword fmt[PBM_LAST];
 
-  bcopy (pbm_format, fmt, sizeof fmt);
+  memcpy (fmt, pbm_format, sizeof fmt);
 
   if (!parse_image_spec (object, fmt, PBM_LAST, Qpbm))
     return 0;
@@ -5212,7 +5212,7 @@ pbm_load (struct frame *f, struct image *img)
       unsigned long bg = FRAME_BACKGROUND_PIXEL (f);
 
       /* Parse the image specification.  */
-      bcopy (pbm_format, fmt, sizeof fmt);
+      memcpy (fmt, pbm_format, sizeof fmt);
       parse_image_spec (img->spec, fmt, PBM_LAST, Qpbm);
 
       /* Get foreground and background colors, maybe allocate colors.  */
@@ -5415,7 +5415,7 @@ static int
 png_image_p (Lisp_Object object)
 {
   struct image_keyword fmt[PNG_LAST];
-  bcopy (png_format, fmt, sizeof fmt);
+  memcpy (fmt, png_format, sizeof fmt);
 
   if (!parse_image_spec (object, fmt, PNG_LAST, Qpng))
     return 0;
@@ -5554,7 +5554,7 @@ png_read_from_memory (png_structp png_ptr, png_bytep data, png_size_t length)
   if (length > tbr->len - tbr->index)
     fn_png_error (png_ptr, "Read error");
 
-  bcopy (tbr->bytes + tbr->index, data, length);
+  memcpy (data, tbr->bytes + tbr->index, length);
   tbr->index = tbr->index + length;
 }
 
@@ -5756,7 +5756,7 @@ png_load (struct frame *f, struct image *img)
 	    {
 	      png_color_16 user_bg;
 
-	      bzero (&user_bg, sizeof user_bg);
+	      memset (&user_bg, 0, sizeof user_bg);
 	      user_bg.red = color.red >> shift;
 	      user_bg.green = color.green >> shift;
 	      user_bg.blue = color.blue >> shift;
@@ -5776,7 +5776,7 @@ png_load (struct frame *f, struct image *img)
 	  color.pixel = FRAME_BACKGROUND_PIXEL (f);
 	  x_query_color (f, &color);
 
-	  bzero (&frame_background, sizeof frame_background);
+	  memset (&frame_background, 0, sizeof frame_background);
 	  frame_background.red = color.red >> shift;
 	  frame_background.green = color.green >> shift;
 	  frame_background.blue = color.blue >> shift;
@@ -6005,7 +6005,7 @@ jpeg_image_p (Lisp_Object object)
 {
   struct image_keyword fmt[JPEG_LAST];
 
-  bcopy (jpeg_format, fmt, sizeof fmt);
+  memcpy (fmt, jpeg_format, sizeof fmt);
 
   if (!parse_image_spec (object, fmt, JPEG_LAST, Qjpeg))
     return 0;
@@ -6561,7 +6561,7 @@ static int
 tiff_image_p (Lisp_Object object)
 {
   struct image_keyword fmt[TIFF_LAST];
-  bcopy (tiff_format, fmt, sizeof fmt);
+  memcpy (fmt, tiff_format, sizeof fmt);
 
   if (!parse_image_spec (object, fmt, TIFF_LAST, Qtiff))
     return 0;
@@ -6644,7 +6644,7 @@ tiff_read_from_memory (thandle_t data, tdata_t buf, tsize_t size)
 
   if (size > src->len - src->index)
     return (size_t) -1;
-  bcopy (src->bytes + src->index, buf, size);
+  memcpy (buf, src->bytes + src->index, size);
   src->index += size;
   return size;
 }
@@ -6999,7 +6999,7 @@ static int
 gif_image_p (Lisp_Object object)
 {
   struct image_keyword fmt[GIF_LAST];
-  bcopy (gif_format, fmt, sizeof fmt);
+  memcpy (fmt, gif_format, sizeof fmt);
 
   if (!parse_image_spec (object, fmt, GIF_LAST, Qgif))
     return 0;
@@ -7086,7 +7086,7 @@ gif_read_from_memory (GifFileType *file, GifByteType *buf, int len)
   if (len > src->len - src->index)
     return -1;
 
-  bcopy (src->bytes + src->index, buf, len);
+  memcpy (buf, src->bytes + src->index, len);
   src->index += len;
   return len;
 }
@@ -7222,7 +7222,7 @@ gif_load (struct frame *f, struct image *img)
   if (!gif_color_map)
     gif_color_map = gif->SColorMap;
   init_color_table ();
-  bzero (pixel_colors, sizeof pixel_colors);
+  memset (pixel_colors, 0, sizeof pixel_colors);
 
   if (gif_color_map)
     for (i = 0; i < gif_color_map->ColorCount; ++i)
@@ -7432,7 +7432,7 @@ static int
 svg_image_p (Lisp_Object object)
 {
   struct image_keyword fmt[SVG_LAST];
-  bcopy (svg_format, fmt, sizeof fmt);
+  memcpy (fmt, svg_format, sizeof fmt);
 
   if (!parse_image_spec (object, fmt, SVG_LAST, Qsvg))
     return 0;
@@ -7839,7 +7839,7 @@ gs_image_p (Lisp_Object object)
   Lisp_Object tem;
   int i;
 
-  bcopy (gs_format, fmt, sizeof fmt);
+  memcpy (fmt, gs_format, sizeof fmt);
 
   if (!parse_image_spec (object, fmt, GS_LAST, Qpostscript))
     return 0;

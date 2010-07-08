@@ -1558,7 +1558,7 @@ reproduce_tree (INTERVAL source, INTERVAL parent)
 {
   register INTERVAL t = make_interval ();
 
-  bcopy (source, t, INTERVAL_SIZE);
+  memcpy (t, source, INTERVAL_SIZE);
   copy_properties (source, t);
   SET_INTERVAL_PARENT (t, parent);
   if (! NULL_LEFT_CHILD (source))
@@ -1574,7 +1574,7 @@ reproduce_tree_obj (INTERVAL source, Lisp_Object parent)
 {
   register INTERVAL t = make_interval ();
 
-  bcopy (source, t, INTERVAL_SIZE);
+  memcpy (t, source, INTERVAL_SIZE);
   copy_properties (source, t);
   SET_INTERVAL_OBJECT (t, parent);
   if (! NULL_LEFT_CHILD (source))

@@ -2576,7 +2576,7 @@ init_iterator (struct it *it, struct window *w,
     }
 
   /* Clear IT.  */
-  bzero (it, sizeof *it);
+  memset (it, 0, sizeof *it);
   it->current.overlay_string_index = -1;
   it->current.dpvec_index = -1;
   it->base_face_id = remapped_base_face_id;
@@ -4912,7 +4912,7 @@ load_overlay_strings (struct it *it, int charpos)
 	  entries =							\
             (struct overlay_entry *) alloca (new_size			\
 					     * sizeof *entries);	\
-	  bcopy (old, entries, size * sizeof *entries);			\
+	  memcpy (entries, old, size * sizeof *entries);		\
 	  size = new_size;						\
 	}								\
 									\
@@ -5630,7 +5630,7 @@ reseat_to_string (struct it *it, unsigned char *s, Lisp_Object string,
   it->stop_charpos = -1;
 
   /* Set iterator position and end position.  */
-  bzero (&it->current, sizeof it->current);
+  memset (&it->current, 0, sizeof it->current);
   it->current.overlay_string_index = -1;
   it->current.dpvec_index = -1;
   xassert (charpos >= 0);
@@ -7999,7 +7999,7 @@ add_to_log (char *format, Lisp_Object arg1, Lisp_Object arg2)
 
   len = SBYTES (msg) + 1;
   SAFE_ALLOCA (buffer, char *, len);
-  bcopy (SDATA (msg), buffer, len);
+  memcpy (buffer, SDATA (msg), len);
 
   message_dolog (buffer, len - 1, 1, 0);
   SAFE_FREE ();
@@ -8328,7 +8328,7 @@ message3 (Lisp_Object m, int nbytes, int multibyte)
       USE_SAFE_ALLOCA;
 
       SAFE_ALLOCA (buffer, char *, nbytes);
-      bcopy (SDATA (m), buffer, nbytes);
+      memcpy (buffer, SDATA (m), nbytes);
       message_dolog (buffer, nbytes, 1, multibyte);
       SAFE_FREE ();
     }
@@ -9630,12 +9630,7 @@ unwind_format_mode_line (Lisp_Object vector)
    Re-allocate mode_line_noprop_buf if necessary.  */
 
 static void
-#ifdef PROTOTYPES
 store_mode_line_noprop_char (char c)
-#else
-store_mode_line_noprop_char (c)
-    char c;
-#endif
 {
   /* If output position has reached the end of the allocated buffer,
      double the buffer's size.  */
@@ -9754,7 +9749,7 @@ x_consider_frame_title (Lisp_Object frame)
 	 higher level than this.)  */
       if (! STRINGP (f->name)
 	  || SBYTES (f->name) != len
-	  || bcmp (title, SDATA (f->name), len) != 0)
+	  || memcmp (title, SDATA (f->name), len) != 0)
 	x_implicitly_set_name (f, make_string (title, len), Qnil);
     }
 }
@@ -16763,7 +16758,7 @@ append_space_for_newline (struct it *it, int default_face_p)
 	  saved_pos = it->position;
 
 	  it->what = IT_CHARACTER;
-	  bzero (&it->position, sizeof it->position);
+	  memset (&it->position, 0, sizeof it->position);
 	  it->object = make_number (0);
 	  it->c = ' ';
 	  it->len = 1;
@@ -16883,7 +16878,7 @@ extend_face_to_end_of_line (struct it *it)
 		(((it->ascent + it->descent)
 		  * FONT_BASE (font)) / FONT_HEIGHT (font));
 	      saved_pos = it->position;
-	      bzero (&it->position, sizeof it->position);
+	      memset (&it->position, 0, sizeof it->position);
 	      saved_avoid_cursor = it->avoid_cursor_p;
 	      it->avoid_cursor_p = 1;
 	      saved_face_id = it->face_id;
@@ -16916,7 +16911,7 @@ extend_face_to_end_of_line (struct it *it)
       saved_pos = it->position;
 
       it->what = IT_CHARACTER;
-      bzero (&it->position, sizeof it->position);
+      memset (&it->position, 0, sizeof it->position);
       it->object = make_number (0);
       it->c = ' ';
       it->len = 1;
@@ -19259,7 +19254,7 @@ decode_mode_spec_coding (Lisp_Object coding_system, register char *buf, int eol_
 	  eol_str = invalid_eol_type;
 	  eol_str_len = sizeof (invalid_eol_type) - 1;
 	}
-      bcopy (eol_str, buf, eol_str_len);
+      memcpy (buf, eol_str, eol_str_len);
       buf += eol_str_len;
     }
 
@@ -20397,7 +20392,7 @@ init_glyph_string (struct glyph_string *s,
 		   XChar2b *char2b, struct window *w, struct glyph_row *row,
 		   enum glyph_row_area area, int start, enum draw_glyphs_face hl)
 {
-  bzero (s, sizeof *s);
+  memset (s, 0, sizeof *s);
   s->w = w;
   s->f = XFRAME (w->frame);
 #ifdef HAVE_NTGUI

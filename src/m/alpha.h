@@ -53,14 +53,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define DATA_START    0x140000000
 #endif
 
-#if (defined (__NetBSD__) || defined (__OpenBSD__))
-#define HAVE_TEXT_START
-#endif
-
 #else  /* not __ELF__ */
 
 /* Describe layout of the address space in an executing process.  */
-#define TEXT_START    0x120000000
 #define DATA_START    0x140000000
 
 #endif /* __ELF__ */

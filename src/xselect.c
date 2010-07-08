@@ -191,7 +191,7 @@ x_queue_event (struct input_event *event)
      This only happens for large requests which uses the incremental protocol.  */
   for (queue_tmp = selection_queue; queue_tmp; queue_tmp = queue_tmp->next)
     {
-      if (!bcmp (&queue_tmp->event, event, sizeof (*event)))
+      if (!memcmp (&queue_tmp->event, event, sizeof (*event)))
 	{
 	  TRACE1 ("DECLINE DUP SELECTION EVENT %08lx", (unsigned long)queue_tmp);
 	  x_decline_selection_request (event);
@@ -1534,7 +1534,7 @@ x_get_window_property (display, window, property, data_ret, bytes_ret,
           elements."
          This applies even if long is more than 32 bits, the X library
          converts from 32 bit elements received from the X server to long
-         and passes the long array to us.  Thus, for that case bcopy can not
+         and passes the long array to us.  Thus, for that case memcpy can not
          be used.  We convert to a 32 bit type here, because so much code
          assume on that.
 
@@ -1556,7 +1556,7 @@ x_get_window_property (display, window, property, data_ret, bytes_ret,
       else
         {
           *actual_size_ret *= *actual_format_ret / 8;
-          bcopy (tmp_data, (*data_ret) + offset, *actual_size_ret);
+          memcpy ((*data_ret) + offset, tmp_data, *actual_size_ret);
           offset += *actual_size_ret;
         }
 
@@ -1658,7 +1658,7 @@ receive_incremental_selection (display, window, property, target_type,
 	  *data_ret = (unsigned char *) xrealloc (*data_ret, *size_bytes_ret);
 	}
 
-      bcopy (tmp_data, (*data_ret) + offset, tmp_size_bytes);
+      memcpy ((*data_ret) + offset, tmp_data, tmp_size_bytes);
       offset += tmp_size_bytes;
 
       /* Use xfree, not XFree, because x_get_window_property

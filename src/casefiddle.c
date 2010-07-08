@@ -128,7 +128,7 @@ casify_object (enum case_action flag, Lisp_Object obj)
 	      unsigned char *old_dst = dst;
 	      o_size += o_size;	/* Probably overkill, but extremely rare.  */
 	      SAFE_ALLOCA (dst, void *, o_size);
-	      bcopy (old_dst, dst, o - old_dst);
+	      memcpy (dst, old_dst, o - old_dst);
 	      o = dst + (o - old_dst);
 	    }
 	  c = STRING_CHAR_AND_LENGTH (SDATA (obj) + i_byte, len);

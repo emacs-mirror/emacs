@@ -233,7 +233,7 @@ Symbols are also allowed; their print names are used instead.  */)
 
   if (SCHARS (s1) != SCHARS (s2)
       || SBYTES (s1) != SBYTES (s2)
-      || bcmp (SDATA (s1), SDATA (s2), SBYTES (s1)))
+      || memcmp (SDATA (s1), SDATA (s2), SBYTES (s1)))
     return Qnil;
   return Qt;
 }
@@ -469,8 +469,8 @@ with the original.  */)
 	   / BOOL_VECTOR_BITS_PER_CHAR);
 
       val = Fmake_bool_vector (Flength (arg), Qnil);
-      bcopy (XBOOL_VECTOR (arg)->data, XBOOL_VECTOR (val)->data,
-	     size_in_chars);
+      memcpy (XBOOL_VECTOR (val)->data, XBOOL_VECTOR (arg)->data,
+	      size_in_chars);
       return val;
     }
 
@@ -637,8 +637,7 @@ concat (int nargs, Lisp_Object *args, enum Lisp_Type target_type, int last_speci
 	{
 	  int thislen_byte = SBYTES (this);
 
-	  bcopy (SDATA (this), SDATA (val) + toindex_byte,
-		 SBYTES (this));
+	  memcpy (SDATA (val) + toindex_byte, SDATA (this), SBYTES (this));
 	  if (! NULL_INTERVAL_P (STRING_INTERVALS (this)))
 	    {
 	      textprops[num_textprops].argnum = argnum;
@@ -953,7 +952,7 @@ string_to_multibyte (Lisp_Object string)
     return make_multibyte_string (SDATA (string), nbytes, nbytes);
 
   SAFE_ALLOCA (buf, unsigned char *, nbytes);
-  bcopy (SDATA (string), buf, SBYTES (string));
+  memcpy (buf, SDATA (string), SBYTES (string));
   str_to_multibyte (buf, nbytes, SBYTES (string));
 
   ret = make_multibyte_string (buf, SCHARS (string), nbytes);
@@ -1039,7 +1038,7 @@ If STRING is multibyte and contains a character of charset
       int bytes = SBYTES (string);
       unsigned char *str = (unsigned char *) xmalloc (bytes);
 
-      bcopy (SDATA (string), str, bytes);
+      memcpy (str, SDATA (string), bytes);
       bytes = str_as_unibyte (str, bytes);
       string = make_unibyte_string (str, bytes);
       xfree (str);
@@ -1076,8 +1075,7 @@ If you're not sure, whether to use `string-as-multibyte' or
 			      SBYTES (string),
 			      &nchars, &nbytes);
       new_string = make_uninit_multibyte_string (nchars, nbytes);
-      bcopy (SDATA (string), SDATA (new_string),
-	     SBYTES (string));
+      memcpy (SDATA (new_string), SDATA (string), SBYTES (string));
       if (nbytes != SBYTES (string))
 	str_as_multibyte (SDATA (new_string), nbytes,
 			  SBYTES (string), NULL);
@@ -2170,8 +2168,8 @@ internal_equal (register Lisp_Object o1, register Lisp_Object o2, int depth, int
 
 	    if (XBOOL_VECTOR (o1)->size != XBOOL_VECTOR (o2)->size)
 	      return 0;
-	    if (bcmp (XBOOL_VECTOR (o1)->data, XBOOL_VECTOR (o2)->data,
-		      size_in_chars))
+	    if (memcmp (XBOOL_VECTOR (o1)->data, XBOOL_VECTOR (o2)->data,
+			size_in_chars))
 	      return 0;
 	    return 1;
 	  }
@@ -2205,8 +2203,7 @@ internal_equal (register Lisp_Object o1, register Lisp_Object o2, int depth, int
 	return 0;
       if (SBYTES (o1) != SBYTES (o2))
 	return 0;
-      if (bcmp (SDATA (o1), SDATA (o2),
-		SBYTES (o1)))
+      if (memcmp (SDATA (o1), SDATA (o2), SBYTES (o1)))
 	return 0;
       if (props && !compare_string_intervals (o1, o2))
 	return 0;
@@ -2304,7 +2301,7 @@ This makes STRING unibyte and may change its length.  */)
   int len;
   CHECK_STRING (string);
   len = SBYTES (string);
-  bzero (SDATA (string), len);
+  memset (SDATA (string), 0, len);
   STRING_SET_CHARS (string, len);
   STRING_SET_UNIBYTE (string);
   return Qnil;
@@ -3709,8 +3706,7 @@ larger_vector (Lisp_Object vec, int new_size, Lisp_Object init)
   xassert (new_size >= old_size);
 
   v = allocate_vector (new_size);
-  bcopy (XVECTOR (vec)->contents, v->contents,
-	 old_size * sizeof *v->contents);
+  memcpy (v->contents, XVECTOR (vec)->contents, old_size * sizeof *v->contents);
   for (i = old_size; i < new_size; ++i)
     v->contents[i] = init;
   XSETVECTOR (vec, v);
@@ -3947,7 +3943,7 @@ copy_hash_table (struct Lisp_Hash_Table *h1)
 
   h2 = allocate_hash_table ();
   next = h2->vec_next;
-  bcopy (h1, h2, sizeof *h2);
+  memcpy (h2, h1, sizeof *h2);
   h2->vec_next = next;
   h2->key_and_value = Fcopy_sequence (h1->key_and_value);
   h2->hash = Fcopy_sequence (h1->hash);
@@ -4553,7 +4549,7 @@ usage: (make-hash-table &rest KEYWORD-ARGS)  */)
   /* The vector `used' is used to keep track of arguments that
      have been consumed.  */
   used = (char *) alloca (nargs * sizeof *used);
-  bzero (used, nargs * sizeof *used);
+  memset (used, 0, nargs * sizeof *used);
 
   /* See if there's a `:test TEST' among the arguments.  */
   i = get_key_arg (QCtest, nargs, args, used);

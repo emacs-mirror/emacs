@@ -1422,7 +1422,7 @@ skip_chars (int forwardp, Lisp_Object string, Lisp_Object lim, int handle_iso_cl
 	       && (XINT (lim) - PT != CHAR_TO_BYTE (XINT (lim)) - PT_BYTE));
   string_multibyte = SBYTES (string) > SCHARS (string);
 
-  bzero (fastmap, sizeof fastmap);
+  memset (fastmap, 0, sizeof fastmap);
 
   str = SDATA (string);
   size_byte = SBYTES (string);
@@ -1471,7 +1471,7 @@ skip_chars (int forwardp, Lisp_Object string, Lisp_Object lim, int handle_iso_cl
 		  || *class_end != ':' || class_end[1] != ']')
 		goto not_a_class_name;
 
-	      bcopy (class_beg, class_name, class_end - class_beg);
+	      memcpy (class_name, class_beg, class_end - class_beg);
 	      class_name[class_end - class_beg] = 0;
 
 	      cc = re_wctype (class_name);
@@ -1532,8 +1532,8 @@ skip_chars (int forwardp, Lisp_Object string, Lisp_Object lim, int handle_iso_cl
 	  unsigned char fastmap2[0400];
 	  int range_start_byte, range_start_char;
 
-	  bcopy (fastmap2 + 0200, fastmap + 0200, 0200);
-	  bzero (fastmap + 0200, 0200);
+	  memcpy (fastmap + 0200, fastmap2 + 0200, 0200);
+	  memset (fastmap + 0200, 0, 0200);
 	  /* We are sure that this loop stops.  */
 	  for (i = 0200; ! fastmap2[i]; i++);
 	  c = BYTE8_TO_CHAR (i);
@@ -1593,7 +1593,7 @@ skip_chars (int forwardp, Lisp_Object string, Lisp_Object lim, int handle_iso_cl
 		  || *class_end != ':' || class_end[1] != ']')
 		goto not_a_class_name_multibyte;
 
-	      bcopy (class_beg, class_name, class_end - class_beg);
+	      memcpy (class_name, class_beg, class_end - class_beg);
 	      class_name[class_end - class_beg] = 0;
 
 	      cc = re_wctype (class_name);
@@ -1678,7 +1678,7 @@ skip_chars (int forwardp, Lisp_Object string, Lisp_Object lim, int handle_iso_cl
 
       if (! multibyte && n_char_ranges > 0)
 	{
-	  bzero (fastmap + 0200, 0200);
+	  memset (fastmap + 0200, 0, 0200);
 	  for (i = 0; i < n_char_ranges; i += 2)
 	    {
 	      int c1 = char_ranges[i];
@@ -1907,7 +1907,7 @@ skip_syntaxes (int forwardp, Lisp_Object string, Lisp_Object lim)
   multibyte = (!NILP (current_buffer->enable_multibyte_characters)
 	       && (XINT (lim) - PT != CHAR_TO_BYTE (XINT (lim)) - PT_BYTE));
 
-  bzero (fastmap, sizeof fastmap);
+  memset (fastmap, 0, sizeof fastmap);
 
   if (SBYTES (string) > SCHARS (string))
     /* As this is very rare case (syntax spec is ASCII only), don't
