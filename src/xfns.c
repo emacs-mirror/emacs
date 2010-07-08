@@ -3060,8 +3060,7 @@ DEFUN ("x-wm-set-size-hint", Fx_wm_set_size_hint, Sx_wm_set_size_hint,
        0, 1, 0,
        doc: /* Send the size hints for frame FRAME to the window manager.
 If FRAME is nil, use the selected frame.  */)
-     (frame)
-     Lisp_Object frame;
+  (Lisp_Object frame)
 {
   struct frame *f;
   if (NILP (frame))
@@ -3116,8 +3115,7 @@ then `default-minibuffer-frame' must be a frame whose minibuffer can
 be shared by the new frame.
 
 This function is an internal primitive--use `make-frame' instead.  */)
-     (parms)
-     Lisp_Object parms;
+  (Lisp_Object parms)
 {
   struct frame *f;
   Lisp_Object frame, tem;
@@ -3561,8 +3559,7 @@ x_get_focus_frame (struct frame *frame)
 DEFUN ("x-focus-frame", Fx_focus_frame, Sx_focus_frame, 1, 1, 0,
        doc: /* Set the input focus to FRAME.
 FRAME nil means use the selected frame.  */)
-     (frame)
-     Lisp_Object frame;
+  (Lisp_Object frame)
 {
   struct frame *f = check_x_frame (frame);
   Display *dpy = FRAME_X_DISPLAY (f);
@@ -3581,8 +3578,7 @@ FRAME nil means use the selected frame.  */)
 
 DEFUN ("xw-color-defined-p", Fxw_color_defined_p, Sxw_color_defined_p, 1, 2, 0,
        doc: /* Internal function called by `color-defined-p', which see.  */)
-     (color, frame)
-     Lisp_Object color, frame;
+  (Lisp_Object color, Lisp_Object frame)
 {
   XColor foo;
   FRAME_PTR f = check_x_frame (frame);
@@ -3597,8 +3593,7 @@ DEFUN ("xw-color-defined-p", Fxw_color_defined_p, Sxw_color_defined_p, 1, 2, 0,
 
 DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
        doc: /* Internal function called by `color-values', which see.  */)
-     (color, frame)
-     Lisp_Object color, frame;
+  (Lisp_Object color, Lisp_Object frame)
 {
   XColor foo;
   FRAME_PTR f = check_x_frame (frame);
@@ -3615,8 +3610,7 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
 
 DEFUN ("xw-display-color-p", Fxw_display_color_p, Sxw_display_color_p, 0, 1, 0,
        doc: /* Internal function called by `display-color-p', which see.  */)
-     (terminal)
-     Lisp_Object terminal;
+  (Lisp_Object terminal)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
 
@@ -3643,8 +3637,7 @@ Note that color displays do support shades of gray.
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-     (terminal)
-     Lisp_Object terminal;
+  (Lisp_Object terminal)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
 
@@ -3672,8 +3665,7 @@ DEFUN ("x-display-pixel-width", Fx_display_pixel_width, Sx_display_pixel_width,
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-     (terminal)
-     Lisp_Object terminal;
+  (Lisp_Object terminal)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
 
@@ -3686,8 +3678,7 @@ DEFUN ("x-display-pixel-height", Fx_display_pixel_height,
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-     (terminal)
-     Lisp_Object terminal;
+  (Lisp_Object terminal)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
 
@@ -3700,8 +3691,7 @@ DEFUN ("x-display-planes", Fx_display_planes, Sx_display_planes,
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-     (terminal)
-     Lisp_Object terminal;
+  (Lisp_Object terminal)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
 
@@ -3714,8 +3704,7 @@ DEFUN ("x-display-color-cells", Fx_display_color_cells, Sx_display_color_cells,
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-     (terminal)
-     Lisp_Object terminal;
+  (Lisp_Object terminal)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
 
@@ -3739,8 +3728,7 @@ DEFUN ("x-server-max-request-size", Fx_server_max_request_size,
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-     (terminal)
-     Lisp_Object terminal;
+  (Lisp_Object terminal)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
 
@@ -3754,8 +3742,7 @@ that operating systems cannot be developed and distributed noncommercially.)
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-     (terminal)
-     Lisp_Object terminal;
+  (Lisp_Object terminal)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
   char *vendor = ServerVendor (dpyinfo->display);
@@ -3773,8 +3760,7 @@ number.  See also the function `x-server-vendor'.
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-     (terminal)
-     Lisp_Object terminal;
+  (Lisp_Object terminal)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
   Display *dpy = dpyinfo->display;
@@ -3789,8 +3775,7 @@ DEFUN ("x-display-screens", Fx_display_screens, Sx_display_screens, 0, 1, 0,
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-     (terminal)
-     Lisp_Object terminal;
+  (Lisp_Object terminal)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
 
@@ -3802,8 +3787,7 @@ DEFUN ("x-display-mm-height", Fx_display_mm_height, Sx_display_mm_height, 0, 1, 
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-     (terminal)
-     Lisp_Object terminal;
+  (Lisp_Object terminal)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
 
@@ -3815,8 +3799,7 @@ DEFUN ("x-display-mm-width", Fx_display_mm_width, Sx_display_mm_width, 0, 1, 0,
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-     (terminal)
-     Lisp_Object terminal;
+  (Lisp_Object terminal)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
 
@@ -3830,8 +3813,7 @@ The value may be `always', `when-mapped', or `not-useful'.
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-     (terminal)
-     Lisp_Object terminal;
+  (Lisp_Object terminal)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
   Lisp_Object result;
@@ -3867,8 +3849,7 @@ The value is one of the symbols `static-gray', `gray-scale',
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-     (terminal)
-     Lisp_Object terminal;
+  (Lisp_Object terminal)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
   Lisp_Object result;
@@ -3907,8 +3888,7 @@ DEFUN ("x-display-save-under", Fx_display_save_under,
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal object, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-     (terminal)
-     Lisp_Object terminal;
+  (Lisp_Object terminal)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
 
@@ -4120,8 +4100,7 @@ DISPLAY is the name of the display to connect to.
 Optional second arg XRM-STRING is a string of resources in xrdb format.
 If the optional third arg MUST-SUCCEED is non-nil,
 terminate Emacs if we can't open the connection.  */)
-     (display, xrm_string, must_succeed)
-     Lisp_Object display, xrm_string, must_succeed;
+  (Lisp_Object display, Lisp_Object xrm_string, Lisp_Object must_succeed)
 {
   unsigned char *xrm_option;
   struct x_display_info *dpyinfo;
@@ -4172,8 +4151,7 @@ DEFUN ("x-close-connection", Fx_close_connection,
 For TERMINAL, specify a terminal object, a frame or a display name (a
 string).  If TERMINAL is nil, that stands for the selected frame's
 terminal.  */)
-     (terminal)
-     Lisp_Object terminal;
+  (Lisp_Object terminal)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
 
@@ -4187,7 +4165,7 @@ terminal.  */)
 
 DEFUN ("x-display-list", Fx_display_list, Sx_display_list, 0, 0, 0,
        doc: /* Return the list of display names that Emacs has connections to.  */)
-     ()
+  (void)
 {
   Lisp_Object tail, result;
 
@@ -4207,8 +4185,7 @@ easier.
 The optional second argument TERMINAL specifies which display to act on.
 TERMINAL should be a terminal object, a frame or a display name (a string).
 If TERMINAL is omitted or nil, that stands for the selected frame's display.  */)
-     (on, terminal)
-    Lisp_Object terminal, on;
+  (Lisp_Object on, Lisp_Object terminal)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
 
@@ -4251,8 +4228,7 @@ If OUTER_P is non-nil, the property is changed for the outer X window of
 FRAME.  Default is to change on the edit X window.
 
 Value is VALUE.  */)
-     (prop, value, frame, type, format, outer_p)
-     Lisp_Object prop, value, frame, type, format, outer_p;
+  (Lisp_Object prop, Lisp_Object value, Lisp_Object frame, Lisp_Object type, Lisp_Object format, Lisp_Object outer_p)
 {
   struct frame *f = check_x_frame (frame);
   Atom prop_atom;
@@ -4330,8 +4306,7 @@ DEFUN ("x-delete-window-property", Fx_delete_window_property,
        Sx_delete_window_property, 1, 2, 0,
        doc: /* Remove window property PROP from X window of FRAME.
 FRAME nil or omitted means use the selected frame.  Value is PROP.  */)
-     (prop, frame)
-     Lisp_Object prop, frame;
+  (Lisp_Object prop, Lisp_Object frame)
 {
   struct frame *f = check_x_frame (frame);
   Atom prop_atom;
@@ -4362,8 +4337,7 @@ If VECTOR_RET_P is non-nil, don't return a string but a vector of values.
 
 Value is nil if FRAME hasn't a property with name PROP or if PROP has
 no value of TYPE.  */)
-     (prop, frame, type, source, delete_p, vector_ret_p)
-     Lisp_Object prop, frame, type, source, delete_p, vector_ret_p;
+  (Lisp_Object prop, Lisp_Object frame, Lisp_Object type, Lisp_Object source, Lisp_Object delete_p, Lisp_Object vector_ret_p)
 {
   struct frame *f = check_x_frame (frame);
   Atom prop_atom;
@@ -5024,8 +4998,7 @@ DY added (default is -10).
 
 A tooltip's maximum size is specified by `x-max-tooltip-size'.
 Text larger than the specified size is clipped.  */)
-     (string, frame, parms, timeout, dx, dy)
-     Lisp_Object string, frame, parms, timeout, dx, dy;
+  (Lisp_Object string, Lisp_Object frame, Lisp_Object parms, Lisp_Object timeout, Lisp_Object dx, Lisp_Object dy)
 {
   struct frame *f;
   struct window *w;
@@ -5216,7 +5189,7 @@ Text larger than the specified size is clipped.  */)
 DEFUN ("x-hide-tip", Fx_hide_tip, Sx_hide_tip, 0, 0, 0,
        doc: /* Hide the current tooltip window, if there is any.
 Value is t if tooltip was open, nil otherwise.  */)
-     ()
+  (void)
 {
   int count;
   Lisp_Object deleted, frame, timer;
@@ -5277,7 +5250,7 @@ DEFUN ("x-uses-old-gtk-dialog", Fx_uses_old_gtk_dialog,
        Sx_uses_old_gtk_dialog,
        0, 0, 0,
        doc: /* Return t if the old Gtk+ file selection dialog is used.  */)
-     ()
+  (void)
 {
 #ifdef USE_GTK
   extern int use_dialog_box;
@@ -5344,8 +5317,7 @@ DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 5, 0,
 Use a file selection dialog.  Select DEFAULT-FILENAME in the dialog's file
 selection box, if specified.  If MUSTMATCH is non-nil, the returned file
 or directory must exist.  ONLY-DIR-P is ignored."  */)
-  (prompt, dir, default_filename, mustmatch, only_dir_p)
-     Lisp_Object prompt, dir, default_filename, mustmatch, only_dir_p;
+  (Lisp_Object prompt, Lisp_Object dir, Lisp_Object default_filename, Lisp_Object mustmatch, Lisp_Object only_dir_p)
 {
   int result;
   struct frame *f = SELECTED_FRAME ();
@@ -5516,8 +5488,7 @@ Use a file selection dialog.  Select DEFAULT-FILENAME in the dialog's file
 selection box, if specified.  If MUSTMATCH is non-nil, the returned file
 or directory must exist.  If ONLY-DIR-P is non-nil, the user can only select
 directories.  */)
-  (prompt, dir, default_filename, mustmatch, only_dir_p)
-     Lisp_Object prompt, dir, default_filename, mustmatch, only_dir_p;
+  (Lisp_Object prompt, Lisp_Object dir, Lisp_Object default_filename, Lisp_Object mustmatch, Lisp_Object only_dir_p)
 {
   FRAME_PTR f = SELECTED_FRAME ();
   char *fn;
@@ -5578,8 +5549,7 @@ DEFUN ("x-select-font", Fx_select_font, Sx_select_font, 0, 2, 0,
 Return a GTK-style font string corresponding to the selection.
 
 If FRAME is omitted or nil, it defaults to the selected frame. */)
-  (frame, ignored)
-     Lisp_Object frame, ignored;
+  (Lisp_Object frame, Lisp_Object ignored)
 {
   FRAME_PTR f = check_x_frame (frame);
   char *name;
@@ -5667,8 +5637,7 @@ FRAME nil means use the selected frame.
 Value is t if we know that both keys are present, and are mapped to the
 usual X keysyms.  Value is `lambda' if we cannot determine if both keys are
 present and mapped to the usual X keysyms.  */)
-     (frame)
-     Lisp_Object frame;
+  (Lisp_Object frame)
 {
 #ifdef HAVE_XKBGETKEYBOARD
   XkbDescPtr kb;

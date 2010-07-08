@@ -681,8 +681,7 @@ setup_windows_coding_system (Lisp_Object coding_system,
 DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data,
        Sw32_set_clipboard_data, 1, 2, 0,
        doc: /* This sets the clipboard data to the given text.  */)
-    (string, ignored)
-    Lisp_Object string, ignored;
+  (Lisp_Object string, Lisp_Object ignored)
 {
   BOOL ok = TRUE;
   int nbytes;
@@ -802,8 +801,7 @@ DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data,
 DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data,
        Sw32_get_clipboard_data, 0, 1, 0,
        doc: /* This gets the clipboard data in text format.  */)
-     (ignored)
-     Lisp_Object ignored;
+  (Lisp_Object ignored)
 {
   HGLOBAL htext;
   Lisp_Object ret = Qnil;
@@ -1027,8 +1025,7 @@ the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
 \(Those are literal upper-case symbol names, since that's what X expects.)
 For convenience, the symbol nil is the same as `PRIMARY',
 and t is the same as `SECONDARY'.  */)
-  (selection)
-     Lisp_Object selection;
+  (Lisp_Object selection)
 {
   CHECK_SYMBOL (selection);
 

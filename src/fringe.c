@@ -1276,8 +1276,7 @@ DEFUN ("destroy-fringe-bitmap", Fdestroy_fringe_bitmap, Sdestroy_fringe_bitmap,
        1, 1, 0,
        doc: /* Destroy fringe bitmap BITMAP.
 If BITMAP overrides a standard fringe bitmap, the original bitmap is restored.  */)
-  (bitmap)
-     Lisp_Object bitmap;
+  (Lisp_Object bitmap)
 {
   int n;
 
@@ -1388,8 +1387,7 @@ is used; the default is to center the bitmap.  Fifth arg may also be a
 list (ALIGN PERIODIC) where PERIODIC non-nil specifies that the bitmap
 should be repeated.
 If BITMAP already exists, the existing definition is replaced.  */)
-  (bitmap, bits, height, width, align)
-     Lisp_Object bitmap, bits, height, width, align;
+  (Lisp_Object bitmap, Lisp_Object bits, Lisp_Object height, Lisp_Object width, Lisp_Object align)
 {
   int n, h, i, j;
   unsigned short *b;
@@ -1520,8 +1518,7 @@ DEFUN ("set-fringe-bitmap-face", Fset_fringe_bitmap_face, Sset_fringe_bitmap_fac
        1, 2, 0,
        doc: /* Set face for fringe bitmap BITMAP to FACE.
 If FACE is nil, reset face to default fringe face.  */)
-  (bitmap, face)
-     Lisp_Object bitmap, face;
+  (Lisp_Object bitmap, Lisp_Object face)
 {
   int n;
   int face_id;
@@ -1553,8 +1550,7 @@ is the symbol for the bitmap in the left fringe (or nil if no bitmap),
 RIGHT is similar for the right fringe, and OV is non-nil if there is an
 overlay arrow in the left fringe.
 Return nil if POS is not visible in WINDOW.  */)
-  (pos, window)
-     Lisp_Object pos, window;
+  (Lisp_Object pos, Lisp_Object window)
 {
   struct window *w;
   struct glyph_row *row;

@@ -1758,8 +1758,7 @@ where
 
 If GLYPH is nil, the remaining elements of the glyph-string vector
 should be ignored.  */)
-     (from, to, font_object, string)
-     Lisp_Object font_object, from, to, string;
+  (Lisp_Object from, Lisp_Object to, Lisp_Object font_object, Lisp_Object string)
 {
   Lisp_Object gstring, header;
   EMACS_INT frompos, topos;
@@ -1804,8 +1803,7 @@ DEFUN ("compose-region-internal", Fcompose_region_internal,
 Compose text in the region between START and END.
 Optional 3rd and 4th arguments are COMPONENTS and MODIFICATION-FUNC
 for the composition.  See `compose-region' for more details.  */)
-     (start, end, components, modification_func)
-     Lisp_Object start, end, components, modification_func;
+  (Lisp_Object start, Lisp_Object end, Lisp_Object components, Lisp_Object modification_func)
 {
   validate_region (&start, &end);
   if (!NILP (components)
@@ -1825,8 +1823,7 @@ DEFUN ("compose-string-internal", Fcompose_string_internal,
 Compose text between indices START and END of STRING.
 Optional 4th and 5th arguments are COMPONENTS and MODIFICATION-FUNC
 for the composition.  See `compose-string' for more details.  */)
-     (string, start, end, components, modification_func)
-     Lisp_Object string, start, end, components, modification_func;
+  (Lisp_Object string, Lisp_Object start, Lisp_Object end, Lisp_Object components, Lisp_Object modification_func)
 {
   CHECK_STRING (string);
   CHECK_NUMBER (start);
@@ -1847,8 +1844,7 @@ DEFUN ("find-composition-internal", Ffind_composition_internal,
 
 Return information about composition at or nearest to position POS.
 See `find-composition' for more details.  */)
-     (pos, limit, string, detail_p)
-     Lisp_Object pos, limit, string, detail_p;
+  (Lisp_Object pos, Lisp_Object limit, Lisp_Object string, Lisp_Object detail_p)
 {
   Lisp_Object prop, tail, gstring;
   EMACS_INT start, end, from, to;

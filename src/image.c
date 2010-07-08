@@ -926,8 +926,7 @@ PIXELS non-nil means return the size in pixels, otherwise return the
 size in canonical character units.
 FRAME is the frame on which the image will be displayed.  FRAME nil
 or omitted means use the selected frame.  */)
-     (spec, pixels, frame)
-     Lisp_Object spec, pixels, frame;
+  (Lisp_Object spec, Lisp_Object pixels, Lisp_Object frame)
 {
   Lisp_Object size;
 
@@ -957,8 +956,7 @@ DEFUN ("image-mask-p", Fimage_mask_p, Simage_mask_p, 1, 2, 0,
        doc: /* Return t if image SPEC has a mask bitmap.
 FRAME is the frame on which the image will be displayed.  FRAME nil
 or omitted means use the selected frame.  */)
-     (spec, frame)
-     Lisp_Object spec, frame;
+  (Lisp_Object spec, Lisp_Object frame)
 {
   Lisp_Object mask;
 
@@ -981,8 +979,7 @@ DEFUN ("image-metadata", Fimage_metadata, Simage_metadata, 1, 2, 0,
        doc: /* Return metadata for image SPEC.
 FRAME is the frame on which the image will be displayed.  FRAME nil
 or omitted means use the selected frame.  */)
-     (spec, frame)
-     Lisp_Object spec, frame;
+  (Lisp_Object spec, Lisp_Object frame)
 {
   Lisp_Object ext;
 
@@ -1610,8 +1607,7 @@ FILTER nil or a frame means clear all images in the selected frame.
 FILTER t means clear the image caches of all frames.
 Anything else, means only clear those images which refer to FILTER,
 which is then usually a filename.  */)
-     (filter)
-     Lisp_Object filter;
+  (Lisp_Object filter)
 {
   if (!(EQ (filter, Qnil) || FRAMEP (filter)))
     clear_image_caches (filter);
@@ -1631,8 +1627,7 @@ current contents of that file.
 
 FRAME nil or omitted means use the selected frame.
 FRAME t means refresh the image on all frames.  */)
-     (spec, frame)
-     Lisp_Object spec, frame;
+  (Lisp_Object spec, Lisp_Object frame)
 {
   if (!valid_image_p (spec))
     error ("Invalid image specification");
@@ -8049,16 +8044,14 @@ x_kill_gs_process (Pixmap pixmap, struct frame *f)
 
 DEFUN ("imagep", Fimagep, Simagep, 1, 1, 0,
        doc: /* Value is non-nil if SPEC is a valid image specification.  */)
-  (spec)
-     Lisp_Object spec;
+  (Lisp_Object spec)
 {
   return valid_image_p (spec) ? Qt : Qnil;
 }
 
 
 DEFUN ("lookup-image", Flookup_image, Slookup_image, 1, 1, 0, "")
-  (spec)
-     Lisp_Object spec;
+  (Lisp_Object spec)
 {
   int id = -1;
 
@@ -8093,8 +8086,7 @@ Return non-nil if TYPE is a supported image type.
 Image types pbm and xbm are prebuilt; other types are loaded here.
 Libraries to load are specified in alist LIBRARIES (usually, the value
 of `image-library-alist', which see).  */)
-  (type, libraries)
-  Lisp_Object type, libraries;
+  (Lisp_Object type, Lisp_Object libraries)
 {
   Lisp_Object tested;
 

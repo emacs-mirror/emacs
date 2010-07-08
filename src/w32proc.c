@@ -1723,8 +1723,7 @@ also loaded immediately if not already loaded.  If winsock is loaded,
 the winsock local hostname is returned (since this may be different from
 the value of `system-name' and should supplant it), otherwise t is
 returned to indicate winsock support is present.  */)
-  (load_now)
-     Lisp_Object load_now;
+  (Lisp_Object load_now)
 {
   int have_winsock;
 
@@ -1755,7 +1754,7 @@ DEFUN ("w32-unload-winsock", Fw32_unload_winsock, Sw32_unload_winsock,
 This is provided to allow dial-up socket connections to be disconnected
 when no longer needed.  Returns nil without unloading winsock if any
 socket connections still exist.  */)
-  ()
+  (void)
 {
   return term_winsock () ? Qt : Qnil;
 }
@@ -1770,8 +1769,7 @@ DEFUN ("w32-short-file-name", Fw32_short_file_name, Sw32_short_file_name, 1, 1, 
        doc: /* Return the short file name version (8.3) of the full path of FILENAME.
 If FILENAME does not exist, return nil.
 All path elements in FILENAME are converted to their short names.  */)
-     (filename)
-     Lisp_Object filename;
+  (Lisp_Object filename)
 {
   char shortname[MAX_PATH];
 
@@ -1795,8 +1793,7 @@ DEFUN ("w32-long-file-name", Fw32_long_file_name, Sw32_long_file_name,
        doc: /* Return the long file name version of the full path of FILENAME.
 If FILENAME does not exist, return nil.
 All path elements in FILENAME are converted to their long names.  */)
-  (filename)
-     Lisp_Object filename;
+  (Lisp_Object filename)
 {
   char longname[ MAX_PATH ];
   int drive_only = 0;
@@ -1833,8 +1830,7 @@ PRIORITY should be one of the symbols high, normal, or low;
 any other symbol will be interpreted as normal.
 
 If successful, the return value is t, otherwise nil.  */)
-  (process, priority)
-     Lisp_Object process, priority;
+  (Lisp_Object process, Lisp_Object priority)
 {
   HANDLE proc_handle = GetCurrentProcess ();
   DWORD  priority_class = NORMAL_PRIORITY_CLASS;
@@ -1956,8 +1952,7 @@ is a number, it is interpreted as an LCTYPE constant and the corresponding
 locale information is returned.
 
 If LCID (a 16-bit number) is not a valid locale, the result is nil.  */)
-     (lcid, longform)
-     Lisp_Object lcid, longform;
+  (Lisp_Object lcid, Lisp_Object longform)
 {
   int got_abbrev;
   int got_full;
@@ -2003,7 +1998,7 @@ DEFUN ("w32-get-current-locale-id", Fw32_get_current_locale_id,
        doc: /* Return Windows locale id for current locale setting.
 This is a numerical value; use `w32-get-locale-info' to convert to a
 human-readable form.  */)
-     ()
+  (void)
 {
   return make_number (GetThreadLocale ());
 }
@@ -2043,7 +2038,7 @@ DEFUN ("w32-get-valid-locale-ids", Fw32_get_valid_locale_ids,
        doc: /* Return list of all valid Windows locale ids.
 Each id is a numerical value; use `w32-get-locale-info' to convert to a
 human-readable form.  */)
-     ()
+  (void)
 {
   Vw32_valid_locale_ids = Qnil;
 
@@ -2060,8 +2055,7 @@ By default, the system default locale setting is returned; if the optional
 parameter USERP is non-nil, the user default locale setting is returned.
 This is a numerical value; use `w32-get-locale-info' to convert to a
 human-readable form.  */)
-     (userp)
-     Lisp_Object userp;
+  (Lisp_Object userp)
 {
   if (NILP (userp))
     return make_number (GetSystemDefaultLCID ());
@@ -2072,8 +2066,7 @@ human-readable form.  */)
 DEFUN ("w32-set-current-locale", Fw32_set_current_locale, Sw32_set_current_locale, 1, 1, 0,
        doc: /* Make Windows locale LCID be the current locale setting for Emacs.
 If successful, the new locale id is returned, otherwise nil.  */)
-     (lcid)
-     Lisp_Object lcid;
+  (Lisp_Object lcid)
 {
   CHECK_NUMBER (lcid);
 
@@ -2107,7 +2100,7 @@ enum_codepage_fn (LPTSTR codepageNum)
 DEFUN ("w32-get-valid-codepages", Fw32_get_valid_codepages,
        Sw32_get_valid_codepages, 0, 0, 0,
        doc: /* Return list of all valid Windows codepages.  */)
-     ()
+  (void)
 {
   Vw32_valid_codepages = Qnil;
 
@@ -2121,7 +2114,7 @@ DEFUN ("w32-get-valid-codepages", Fw32_get_valid_codepages,
 DEFUN ("w32-get-console-codepage", Fw32_get_console_codepage,
        Sw32_get_console_codepage, 0, 0, 0,
        doc: /* Return current Windows codepage for console input.  */)
-     ()
+  (void)
 {
   return make_number (GetConsoleCP ());
 }
@@ -2132,8 +2125,7 @@ DEFUN ("w32-set-console-codepage", Fw32_set_console_codepage,
        doc: /* Make Windows codepage CP be the current codepage setting for Emacs.
 The codepage setting affects keyboard input and display in tty mode.
 If successful, the new CP is returned, otherwise nil.  */)
-     (cp)
-     Lisp_Object cp;
+  (Lisp_Object cp)
 {
   CHECK_NUMBER (cp);
 
@@ -2150,7 +2142,7 @@ If successful, the new CP is returned, otherwise nil.  */)
 DEFUN ("w32-get-console-output-codepage", Fw32_get_console_output_codepage,
        Sw32_get_console_output_codepage, 0, 0, 0,
        doc: /* Return current Windows codepage for console output.  */)
-     ()
+  (void)
 {
   return make_number (GetConsoleOutputCP ());
 }
@@ -2161,8 +2153,7 @@ DEFUN ("w32-set-console-output-codepage", Fw32_set_console_output_codepage,
        doc: /* Make Windows codepage CP be the current codepage setting for Emacs.
 The codepage setting affects keyboard input and display in tty mode.
 If successful, the new CP is returned, otherwise nil.  */)
-     (cp)
-     Lisp_Object cp;
+  (Lisp_Object cp)
 {
   CHECK_NUMBER (cp);
 
@@ -2180,8 +2171,7 @@ DEFUN ("w32-get-codepage-charset", Fw32_get_codepage_charset,
        Sw32_get_codepage_charset, 1, 1, 0,
        doc: /* Return charset of codepage CP.
 Returns nil if the codepage is not valid.  */)
-     (cp)
-     Lisp_Object cp;
+  (Lisp_Object cp)
 {
   CHARSETINFO info;
 
@@ -2201,7 +2191,7 @@ DEFUN ("w32-get-valid-keyboard-layouts", Fw32_get_valid_keyboard_layouts,
        Sw32_get_valid_keyboard_layouts, 0, 0, 0,
        doc: /* Return list of Windows keyboard languages and layouts.
 The return value is a list of pairs of language id and layout id.  */)
-     ()
+  (void)
 {
   int num_layouts = GetKeyboardLayoutList (0, NULL);
   HKL * layouts = (HKL *) alloca (num_layouts * sizeof (HKL));
@@ -2227,7 +2217,7 @@ DEFUN ("w32-get-keyboard-layout", Fw32_get_keyboard_layout,
        Sw32_get_keyboard_layout, 0, 0, 0,
        doc: /* Return current Windows keyboard language and layout.
 The return value is the cons of the language id and the layout id.  */)
-     ()
+  (void)
 {
   DWORD kl = (DWORD) GetKeyboardLayout (dwWindowsThreadId);
 
@@ -2241,8 +2231,7 @@ DEFUN ("w32-set-keyboard-layout", Fw32_set_keyboard_layout,
        doc: /* Make LAYOUT be the current keyboard layout for Emacs.
 The keyboard layout setting affects interpretation of keyboard input.
 If successful, the new layout id is returned, otherwise nil.  */)
-     (layout)
-     Lisp_Object layout;
+  (Lisp_Object layout)
 {
   DWORD kl;
 

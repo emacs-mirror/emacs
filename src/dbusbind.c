@@ -821,8 +821,7 @@ xd_remove_watch (DBusWatch *watch, void *data)
 DEFUN ("dbus-init-bus", Fdbus_init_bus, Sdbus_init_bus, 1, 1, 0,
        doc: /* Initialize connection to D-Bus BUS.
 This is an internal function, it shall not be used outside dbus.el.  */)
-     (bus)
-     Lisp_Object bus;
+  (Lisp_Object bus)
 {
   DBusConnection *connection;
 
@@ -847,8 +846,7 @@ This is an internal function, it shall not be used outside dbus.el.  */)
 DEFUN ("dbus-get-unique-name", Fdbus_get_unique_name, Sdbus_get_unique_name,
        1, 1, 0,
        doc: /* Return the unique name of Emacs registered at D-Bus BUS.  */)
-     (bus)
-     Lisp_Object bus;
+  (Lisp_Object bus)
 {
   DBusConnection *connection;
   const char *name;
@@ -936,9 +934,7 @@ object is returned instead of a list containing this single Lisp object.
   => "i686"
 
 usage: (dbus-call-method BUS SERVICE PATH INTERFACE METHOD &optional :timeout TIMEOUT &rest ARGS)  */)
-     (nargs, args)
-     int nargs;
-     register Lisp_Object *args;
+  (int nargs, register Lisp_Object *args)
 {
   Lisp_Object bus, service, path, interface, method;
   Lisp_Object result;
@@ -1120,9 +1116,7 @@ Example:
   -| i686
 
 usage: (dbus-call-method-asynchronously BUS SERVICE PATH INTERFACE METHOD HANDLER &optional :timeout TIMEOUT &rest ARGS)  */)
-     (nargs, args)
-     int nargs;
-     register Lisp_Object *args;
+  (int nargs, register Lisp_Object *args)
 {
   Lisp_Object bus, service, path, interface, method, handler;
   Lisp_Object result;
@@ -1250,9 +1244,7 @@ DEFUN ("dbus-method-return-internal", Fdbus_method_return_internal,
 This is an internal function, it shall not be used outside dbus.el.
 
 usage: (dbus-method-return-internal BUS SERIAL SERVICE &rest ARGS)  */)
-     (nargs, args)
-     int nargs;
-     register Lisp_Object *args;
+  (int nargs, register Lisp_Object *args)
 {
   Lisp_Object bus, serial, service;
   struct gcpro gcpro1, gcpro2, gcpro3;
@@ -1344,9 +1336,7 @@ DEFUN ("dbus-method-error-internal", Fdbus_method_error_internal,
 This is an internal function, it shall not be used outside dbus.el.
 
 usage: (dbus-method-error-internal BUS SERIAL SERVICE &rest ARGS)  */)
-     (nargs, args)
-     int nargs;
-     register Lisp_Object *args;
+  (int nargs, register Lisp_Object *args)
 {
   Lisp_Object bus, serial, service;
   struct gcpro gcpro1, gcpro2, gcpro3;
@@ -1461,9 +1451,7 @@ Example:
   "org.gnu.Emacs.FileManager" "FileModified" "/home/albinus/.emacs")
 
 usage: (dbus-send-signal BUS SERVICE PATH INTERFACE SIGNAL &rest ARGS)  */)
-     (nargs, args)
-     int nargs;
-     register Lisp_Object *args;
+  (int nargs, register Lisp_Object *args)
 {
   Lisp_Object bus, service, path, interface, signal;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
@@ -1803,9 +1791,7 @@ INTERFACE, SIGNAL and HANDLER must not be nil.  Example:
 `dbus-unregister-object' for removing the registration.
 
 usage: (dbus-register-signal BUS SERVICE PATH INTERFACE SIGNAL HANDLER &rest ARGS) */)
-     (nargs, args)
-     int nargs;
-     register Lisp_Object *args;
+  (int nargs, register Lisp_Object *args)
 {
   Lisp_Object bus, service, path, interface, signal, handler;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
@@ -1927,8 +1913,7 @@ interface offered by SERVICE.  It must provide METHOD.  HANDLER is a
 Lisp function to be called when a method call is received.  It must
 accept the input arguments of METHOD.  The return value of HANDLER is
 used for composing the returning D-Bus message.  */)
-     (bus, service, path, interface, method, handler)
-     Lisp_Object bus, service, path, interface, method, handler;
+  (Lisp_Object bus, Lisp_Object service, Lisp_Object path, Lisp_Object interface, Lisp_Object method, Lisp_Object handler)
 {
   Lisp_Object key, key1, value;
   DBusConnection *connection;

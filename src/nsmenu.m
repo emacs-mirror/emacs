@@ -1752,7 +1752,7 @@ void process_dialog (id window, Lisp_Object list)
 
 DEFUN ("ns-reset-menu", Fns_reset_menu, Sns_reset_menu, 0, 0, 0,
        doc: /* Cause the NS menu to be re-calculated.  */)
-     ()
+     (void)
 {
   set_frame_menubar (SELECTED_FRAME (), 1, 0);
   return Qnil;
@@ -1782,15 +1782,14 @@ otherwise it is "Question".
 If the user gets rid of the dialog box without making a valid choice,
 for instance using the window manager, then this produces a quit and
 `x-popup-dialog' does not return.  */)
-     (position, contents, header)
-     Lisp_Object position, contents, header;
+     (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
 {
   return ns_popup_dialog (position, contents, header);
 }
 
 DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_p, 0, 0, 0,
        doc: /* Return t if a menu or popup dialog is active.  */)
-     ()
+     (void)
 {
   return popup_activated () ? Qt : Qnil;
 }

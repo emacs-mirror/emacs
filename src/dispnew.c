@@ -413,7 +413,7 @@ add_frame_display_history (f, paused_p)
 DEFUN ("dump-redisplay-history", Fdump_redisplay_history,
        Sdump_redisplay_history, 0, 0, "",
        doc: /* Dump redisplay history to stderr.  */)
-     ()
+  (void)
 {
   int i;
 
@@ -3244,8 +3244,7 @@ window_to_frame_hpos (w, hpos)
 
 DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
        doc: /* Clear frame FRAME and output again what is supposed to appear on it.  */)
-     (frame)
-     Lisp_Object frame;
+  (Lisp_Object frame)
 {
   struct frame *f;
 
@@ -3292,7 +3291,7 @@ redraw_frame (struct frame *f)
 
 DEFUN ("redraw-display", Fredraw_display, Sredraw_display, 0, 0, "",
        doc: /* Clear and redisplay all visible frames.  */)
-     ()
+  (void)
 {
   Lisp_Object tail, frame;
 
@@ -5855,8 +5854,7 @@ DEFUN ("open-termscript", Fopen_termscript, Sopen_termscript,
        1, 1, "FOpen termscript file: ",
        doc: /* Start writing all terminal output to FILE as well as the terminal.
 FILE = nil means just close any termscript file currently open.  */)
-     (file)
-     Lisp_Object file;
+  (Lisp_Object file)
 {
   struct tty_display_info *tty;
 
@@ -5894,9 +5892,7 @@ Optional parameter TERMINAL specifies the tty terminal device to use.
 It may be a terminal object, a frame, or nil for the terminal used by
 the currently selected frame.  In batch mode, STRING is sent to stdout
 when TERMINAL is nil.  */)
-  (string, terminal)
-     Lisp_Object string;
-     Lisp_Object terminal;
+  (Lisp_Object string, Lisp_Object terminal)
 {
   struct terminal *t = get_terminal (terminal, 1);
   FILE *out;
@@ -5937,8 +5933,7 @@ DEFUN ("ding", Fding, Sding, 0, 1, 0,
        doc: /* Beep, or flash the screen.
 Also, unless an argument is given,
 terminate any keyboard macro currently executing.  */)
-     (arg)
-  Lisp_Object arg;
+  (Lisp_Object arg)
 {
   if (!NILP (arg))
     {
@@ -5977,8 +5972,7 @@ fraction of a second.  Optional second arg MILLISECONDS specifies an
 additional wait period, in milliseconds; this may be useful if your
 Emacs was built without floating point support.
 \(Not all operating systems support waiting for a fraction of a second.)  */)
-     (seconds, milliseconds)
-     Lisp_Object seconds, milliseconds;
+  (Lisp_Object seconds, Lisp_Object milliseconds)
 {
   int sec, usec;
 
@@ -6082,8 +6076,7 @@ DEFUN ("redisplay", Fredisplay, Sredisplay, 0, 1, 0,
 If optional arg FORCE is non-nil or `redisplay-dont-pause' is non-nil,
 perform a full redisplay even if input is available.
 Return t if redisplay was performed, nil otherwise.  */)
-     (force)
-  Lisp_Object force;
+  (Lisp_Object force)
 {
   int count;
 
@@ -6127,8 +6120,7 @@ the current state.
 
 If VARIABLE is nil, an internal variable is used.  Users should not
 pass nil for VARIABLE.  */)
-     (variable)
-     Lisp_Object variable;
+  (Lisp_Object variable)
 {
   Lisp_Object state, tail, frame, buf;
   Lisp_Object *vecp, *end;
@@ -6454,8 +6446,7 @@ DEFUN ("internal-show-cursor", Finternal_show_cursor,
 WINDOW nil means use the selected window.  SHOW non-nil means
 show a cursor in WINDOW in the next redisplay.  SHOW nil means
 don't show a cursor.  */)
-     (window, show)
-     Lisp_Object window, show;
+  (Lisp_Object window, Lisp_Object show)
 {
   /* Don't change cursor state while redisplaying.  This could confuse
      output routines.  */
@@ -6477,8 +6468,7 @@ DEFUN ("internal-show-cursor-p", Finternal_show_cursor_p,
        Sinternal_show_cursor_p, 0, 1, 0,
        doc: /* Value is non-nil if next redisplay will display a cursor in WINDOW.
 WINDOW nil or omitted means report on the selected window.  */)
-     (window)
-     Lisp_Object window;
+  (Lisp_Object window)
 {
   struct window *w;
 
@@ -6494,7 +6484,7 @@ WINDOW nil or omitted means report on the selected window.  */)
 DEFUN ("last-nonminibuffer-frame", Flast_nonminibuf_frame,
        Slast_nonminibuf_frame, 0, 0, 0,
        doc: /* Value is last nonminibuffer frame. */)
-     ()
+  (void)
 {
   Lisp_Object frame = Qnil;
 

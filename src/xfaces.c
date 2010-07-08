@@ -626,7 +626,7 @@ unregister_colors (pixels, n)
 
 DEFUN ("dump-colors", Fdump_colors, Sdump_colors, 0, 0, 0,
        doc: /* Dump currently allocated colors to stderr.  */)
-     ()
+  (void)
 {
   int i, n;
 
@@ -951,8 +951,7 @@ clear_face_cache (int clear_fonts_p)
 DEFUN ("clear-face-cache", Fclear_face_cache, Sclear_face_cache, 0, 1, 0,
        doc: /* Clear face caches on all frames.
 Optional THOROUGHLY non-nil means try to free unused fonts, too.  */)
-     (thoroughly)
-     Lisp_Object thoroughly;
+  (Lisp_Object thoroughly)
 {
   clear_face_cache (!NILP (thoroughly));
   ++face_change_count;
@@ -974,8 +973,7 @@ A bitmap specification is either a string, a file name, or a list
 HEIGHT is its height, and DATA is a string containing the bits of
 the pixmap.  Bits are stored row by row, each row occupies
 \(WIDTH + 7)/8 bytes.  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   int pixmap_p = 0;
 
@@ -1327,8 +1325,7 @@ DEFUN ("color-gray-p", Fcolor_gray_p, Scolor_gray_p, 1, 2, 0,
        doc: /* Return non-nil if COLOR is a shade of gray (or white or black).
 FRAME specifies the frame and thus the display for interpreting COLOR.
 If FRAME is nil or omitted, use the selected frame.  */)
-     (color, frame)
-     Lisp_Object color, frame;
+  (Lisp_Object color, Lisp_Object frame)
 {
   struct frame *f;
 
@@ -1349,8 +1346,7 @@ BACKGROUND-P non-nil means COLOR is used as a background.
 Otherwise, this function tells whether it can be used as a foreground.
 If FRAME is nil or omitted, use the selected frame.
 COLOR must be a valid color name.  */)
-     (color, frame, background_p)
-     Lisp_Object frame, color, background_p;
+  (Lisp_Object color, Lisp_Object frame, Lisp_Object background_p)
 {
   struct frame *f;
 
@@ -1687,8 +1683,7 @@ FULL is the full name of the font, and REGISTRY-AND-ENCODING is a string
 giving the registry and encoding of the font.
 The result list is sorted according to the current setting of
 the face font sort order.  */)
-     (family, frame)
-     Lisp_Object family, frame;
+  (Lisp_Object family, Lisp_Object frame)
 {
   Lisp_Object font_spec, list, *drivers, vec;
   int i, nfonts, ndrivers;
@@ -1785,8 +1780,7 @@ fonts to match.  The first MAXIMUM fonts are reported.
 The optional fifth argument WIDTH, if specified, is a number of columns
 occupied by a character of a font.  In that case, return only fonts
 the WIDTH times as wide as FACE on FRAME.  */)
-     (pattern, face, frame, maximum, width)
-    Lisp_Object pattern, face, frame, maximum, width;
+  (Lisp_Object pattern, Lisp_Object face, Lisp_Object frame, Lisp_Object maximum, Lisp_Object width)
 {
   struct frame *f;
   int size, avgwidth;
@@ -2717,8 +2711,7 @@ If FACE was not known as a face before, create a new one.
 If optional argument FRAME is specified, make a frame-local face
 for that frame.  Otherwise operate on the global face definition.
 Value is a vector of face attributes.  */)
-     (face, frame)
-     Lisp_Object face, frame;
+  (Lisp_Object face, Lisp_Object frame)
 {
   Lisp_Object global_lface, lface;
   struct frame *f;
@@ -2806,8 +2799,7 @@ FACE should be a symbol or string.
 If optional second argument FRAME is non-nil, check for the
 existence of a frame-local face with name FACE on that frame.
 Otherwise check for the existence of a global face.  */)
-     (face, frame)
-     Lisp_Object face, frame;
+  (Lisp_Object face, Lisp_Object frame)
 {
   Lisp_Object lface;
 
@@ -2835,8 +2827,7 @@ definition of TO on NEW-FRAME.  If NEW-FRAME is nil,
 FRAME controls where the data is copied to.
 
 The value is TO.  */)
-     (from, to, frame, new_frame)
-     Lisp_Object from, to, frame, new_frame;
+  (Lisp_Object from, Lisp_Object to, Lisp_Object frame, Lisp_Object new_frame)
 {
   Lisp_Object lface, copy;
 
@@ -2887,8 +2878,7 @@ FRAME nil means change the face of the selected frame.
 FRAME t means change the default for new frames.
 FRAME 0 means change the face on all frames, and change the default
   for new frames.  */)
-     (face, attr, value, frame)
-     Lisp_Object face, attr, value, frame;
+  (Lisp_Object face, Lisp_Object attr, Lisp_Object value, Lisp_Object frame)
 {
   Lisp_Object lface;
   Lisp_Object old_value = Qnil;
@@ -3514,8 +3504,7 @@ set_font_frame_param (Lisp_Object frame, Lisp_Object lface)
 
 DEFUN ("internal-face-x-get-resource", Finternal_face_x_get_resource,
        Sinternal_face_x_get_resource, 3, 3, 0, doc: /* */)
-     (resource, class, frame)
-     Lisp_Object resource, class, frame;
+  (Lisp_Object resource, Lisp_Object class, Lisp_Object frame)
 {
   Lisp_Object value = Qnil;
   CHECK_STRING (resource);
@@ -3560,8 +3549,7 @@ DEFUN ("internal-set-lisp-face-attribute-from-resource",
        Finternal_set_lisp_face_attribute_from_resource,
        Sinternal_set_lisp_face_attribute_from_resource,
        3, 4, 0, doc: /* */)
-     (face, attr, value, frame)
-     Lisp_Object face, attr, value, frame;
+  (Lisp_Object face, Lisp_Object attr, Lisp_Object value, Lisp_Object frame)
 {
   CHECK_SYMBOL (face);
   CHECK_SYMBOL (attr);
@@ -3722,8 +3710,7 @@ A relative value is one that doesn't entirely override whatever is
 inherited from another face.  For most possible attributes,
 the only relative value that users see is `unspecified'.
 However, for :height, floating point values are also relative.  */)
-     (attribute, value)
-     Lisp_Object attribute, value;
+  (Lisp_Object attribute, Lisp_Object value)
 {
   if (EQ (value, Qunspecified) || (EQ (value, Qignore_defface)))
     return Qt;
@@ -3738,8 +3725,7 @@ DEFUN ("merge-face-attribute", Fmerge_face_attribute, Smerge_face_attribute,
        doc: /* Return face ATTRIBUTE VALUE1 merged with VALUE2.
 If VALUE1 or VALUE2 are absolute (see `face-attribute-relative-p'), then
 the result will be absolute, otherwise it will be relative.  */)
-     (attribute, value1, value2)
-     Lisp_Object attribute, value1, value2;
+  (Lisp_Object attribute, Lisp_Object value1, Lisp_Object value2)
 {
   if (EQ (value1, Qunspecified) || EQ (value1, Qignore_defface))
     return value2;
@@ -3759,8 +3745,7 @@ face attribute name, signal an error.
 If the optional argument FRAME is given, report on face SYMBOL in that
 frame.  If FRAME is t, report on the defaults for face SYMBOL (for new
 frames).  If FRAME is omitted or nil, use the selected frame.  */)
-     (symbol, keyword, frame)
-     Lisp_Object symbol, keyword, frame;
+  (Lisp_Object symbol, Lisp_Object keyword, Lisp_Object frame)
 {
   Lisp_Object lface, value = Qnil;
 
@@ -3827,8 +3812,7 @@ DEFUN ("internal-lisp-face-attribute-values",
        Sinternal_lisp_face_attribute_values, 1, 1, 0,
        doc: /* Return a list of valid discrete values for face attribute ATTR.
 Value is nil if ATTR doesn't have a discrete set of valid values.  */)
-     (attr)
-     Lisp_Object attr;
+  (Lisp_Object attr)
 {
   Lisp_Object result = Qnil;
 
@@ -3851,8 +3835,7 @@ DEFUN ("internal-merge-in-global-face", Finternal_merge_in_global_face,
        Sinternal_merge_in_global_face, 2, 2, 0,
        doc: /* Add attributes from frame-default definition of FACE to FACE on FRAME.
 Default face attributes override any local face attributes.  */)
-     (face, frame)
-     Lisp_Object face, frame;
+  (Lisp_Object face, Lisp_Object frame)
 {
   int i;
   Lisp_Object global_lface, local_lface, *gvec, *lvec;
@@ -3930,8 +3913,7 @@ If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame.  And, in this case,
 if the optional third argument CHARACTER is given,
 return the font name used for CHARACTER.  */)
-     (face, frame, character)
-     Lisp_Object face, frame, character;
+  (Lisp_Object face, Lisp_Object frame, Lisp_Object character)
 {
   if (EQ (frame, Qt))
     {
@@ -4031,8 +4013,7 @@ DEFUN ("internal-lisp-face-equal-p", Finternal_lisp_face_equal_p,
 If the optional argument FRAME is given, report on FACE1 and FACE2 in that frame.
 If FRAME is t, report on the defaults for FACE1 and FACE2 (for new frames).
 If FRAME is omitted or nil, use the selected frame.  */)
-     (face1, face2, frame)
-     Lisp_Object face1, face2, frame;
+  (Lisp_Object face1, Lisp_Object face2, Lisp_Object frame)
 {
   int equal_p;
   struct frame *f;
@@ -4061,8 +4042,7 @@ DEFUN ("internal-lisp-face-empty-p", Finternal_lisp_face_empty_p,
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame.  */)
-     (face, frame)
-     Lisp_Object face, frame;
+  (Lisp_Object face, Lisp_Object frame)
 {
   struct frame *f;
   Lisp_Object lface;
@@ -4090,8 +4070,7 @@ DEFUN ("frame-face-alist", Fframe_face_alist, Sframe_face_alist,
        0, 1, 0,
        doc: /* Return an alist of frame-local faces defined on FRAME.
 For internal use only.  */)
-     (frame)
-     Lisp_Object frame;
+  (Lisp_Object frame)
 {
   struct frame *f = frame_or_selected_frame (frame, 0);
   return f->face_alist;
@@ -4281,8 +4260,7 @@ DEFUN ("color-distance", Fcolor_distance, Scolor_distance, 2, 3, 0,
 COLOR1 and COLOR2 may be either strings containing the color name,
 or lists of the form (RED GREEN BLUE).
 If FRAME is unspecified or nil, the current frame is used.  */)
-     (color1, color2, frame)
-     Lisp_Object color1, color2, frame;
+  (Lisp_Object color1, Lisp_Object color2, Lisp_Object frame)
 {
   struct frame *f;
   XColor cdef1, cdef2;
@@ -4870,8 +4848,7 @@ lookup_derived_face (struct frame *f, Lisp_Object symbol, int face_id, int signa
 DEFUN ("face-attributes-as-vector", Fface_attributes_as_vector,
        Sface_attributes_as_vector, 1, 1, 0,
        doc: /* Return a vector of face attributes corresponding to PLIST.  */)
-     (plist)
-     Lisp_Object plist;
+  (Lisp_Object plist)
 {
   Lisp_Object lface;
   lface = Fmake_vector (make_number (LFACE_VECTOR_SIZE),
@@ -5188,8 +5165,7 @@ any display that can display bold, and a `:foreground \"yellow\"' as long
 as it can display a yellowish color, but `:slant italic' will _not_ be
 satisfied by the tty display code's automatic substitution of a `dim'
 face for italic.  */)
-  (attributes, display)
-     Lisp_Object attributes, display;
+  (Lisp_Object attributes, Lisp_Object display)
 {
   int supports = 0, i;
   Lisp_Object frame;
@@ -5266,8 +5242,7 @@ first in ORDER are matched first, e.g. if `:height' appears before
 `:weight' in ORDER, font selection first tries to find a font with
 a suitable height, and then tries to match the font weight.
 Value is ORDER.  */)
-     (order)
-     Lisp_Object order;
+  (Lisp_Object order)
 {
   Lisp_Object list;
   int i;
@@ -5325,8 +5300,7 @@ DEFUN ("internal-set-alternative-font-family-alist",
 ALIST is an alist of (FAMILY ALTERNATIVE1 ALTERNATIVE2 ...) entries.
 Each ALTERNATIVE is tried in order if no fonts of font family FAMILY can
 be found.  Value is ALIST.  */)
-     (alist)
-     Lisp_Object alist;
+  (Lisp_Object alist)
 {
   Lisp_Object entry, tail, tail2;
 
@@ -5355,8 +5329,7 @@ DEFUN ("internal-set-alternative-font-registry-alist",
 ALIST is an alist of (REGISTRY ALTERNATIVE1 ALTERNATIVE2 ...) entries.
 Each ALTERNATIVE is tried in order if no fonts of font registry REGISTRY can
 be found.  Value is ALIST.  */)
-     (alist)
-     Lisp_Object alist;
+  (Lisp_Object alist)
 {
   Lisp_Object entry, tail, tail2;
 
@@ -6040,8 +6013,7 @@ This affects bold faces on TTYs whose foreground is the default background
 color of the display and whose background is the default foreground color.
 For such faces, the bold face attribute is ignored if this variable
 is non-nil.  */)
-     (suppress)
-     Lisp_Object suppress;
+  (Lisp_Object suppress)
 {
   tty_suppress_bold_inverse_default_colors_p = !NILP (suppress);
   ++face_change_count;
@@ -6446,8 +6418,7 @@ DEFUN ("x-load-color-file", Fx_load_color_file,
 The file should define one named RGB color per line like so:
   R G B   name
 where R,G,B are numbers between 0 and 255 and name is an arbitrary string.  */)
-    (filename)
-    Lisp_Object filename;
+  (Lisp_Object filename)
 {
   FILE *fp;
   Lisp_Object cmap = Qnil;
@@ -6529,8 +6500,7 @@ dump_realized_face (face)
 
 
 DEFUN ("dump-face", Fdump_face, Sdump_face, 0, 1, 0, doc: /* */)
-     (n)
-     Lisp_Object n;
+  (Lisp_Object n)
 {
   if (NILP (n))
     {
@@ -6564,7 +6534,7 @@ DEFUN ("dump-face", Fdump_face, Sdump_face, 0, 1, 0, doc: /* */)
 
 DEFUN ("show-face-resources", Fshow_face_resources, Sshow_face_resources,
        0, 0, 0, doc: /* */)
-     ()
+  (void)
 {
   fprintf (stderr, "number of colors = %d\n", ncolors_allocated);
   fprintf (stderr, "number of pixmaps = %d\n", npixmaps_allocated);

@@ -260,8 +260,7 @@ otherwise it is "Question".
 If the user gets rid of the dialog box without making a valid choice,
 for instance using the window manager, then this produces a quit and
 `x-popup-dialog' does not return.  */)
-     (position, contents, header)
-     Lisp_Object position, contents, header;
+  (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
 {
   FRAME_PTR f = NULL;
   Lisp_Object window;
@@ -518,8 +517,7 @@ arrow keys, select a menu entry with the return key or cancel with the
 escape key.  If FRAME has no menu bar this function does nothing.
 
 If FRAME is nil or not given, use the selected frame.  */)
-     (frame)
-     Lisp_Object frame;
+  (Lisp_Object frame)
 {
   XEvent ev;
   FRAME_PTR f = check_x_frame (frame);
@@ -597,8 +595,7 @@ arrow keys, select a menu entry with the return key or cancel with the
 escape key.  If FRAME has no menu bar this function does nothing.
 
 If FRAME is nil or not given, use the selected frame.  */)
-     (frame)
-     Lisp_Object frame;
+  (Lisp_Object frame)
 {
   GtkWidget *menubar;
   FRAME_PTR f;
@@ -2626,7 +2623,7 @@ popup_activated (void)
 
 DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_p, 0, 0, 0,
        doc: /* Return t if a menu or popup dialog is active.  */)
-     ()
+  (void)
 {
 #ifdef HAVE_MENUS
   return (popup_activated ()) ? Qt : Qnil;

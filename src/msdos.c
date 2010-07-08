@@ -195,8 +195,7 @@ DEFUN ("msdos-set-mouse-buttons", Fmsdos_set_mouse_buttons, Smsdos_set_mouse_but
 This is useful with mice that report the number of buttons inconsistently,
 e.g., if the number of buttons is reported as 3, but Emacs only sees 2 of
 them.  This happens with wheeled mice on Windows 9X, for example.  */)
-     (nbuttons)
-     Lisp_Object nbuttons;
+  (Lisp_Object nbuttons)
 {
   int n;
 
@@ -2045,8 +2044,7 @@ IT_set_terminal_window (struct frame *f, int foo)
 DEFUN ("msdos-remember-default-colors", Fmsdos_remember_default_colors,
        Smsdos_remember_default_colors, 1, 1, 0,
        doc: /* Remember the screen colors of the current frame.  */)
-     (frame)
-     Lisp_Object frame;
+  (Lisp_Object frame)
 {
   struct frame *f;
 
@@ -2920,7 +2918,7 @@ DEFUN ("recent-doskeys", Frecent_doskeys, Srecent_doskeys, 0, 0, 0,
        doc: /* Return vector of last 100 keyboard input values seen in dos_rawgetc.
 Each input key receives two values in this vector: first the ASCII code,
 and then the scan code.  */)
-     ()
+  (void)
 {
   Lisp_Object val, *keys = XVECTOR (recent_doskeys)->contents;
 
@@ -3954,7 +3952,7 @@ crlf_to_lf (int n, unsigned char *buf)
 DEFUN ("msdos-long-file-names", Fmsdos_long_file_names, Smsdos_long_file_names,
        0, 0, 0,
        doc: /* Return non-nil if long file names are supported on MS-DOS.  */)
-     ()
+  (void)
 {
   return (_USE_LFN ? Qt : Qnil);
 }
@@ -3988,8 +3986,7 @@ DEFUN ("msdos-downcase-filename", Fmsdos_downcase_filename, Smsdos_downcase_file
 When long filenames are supported, doesn't change FILENAME.
 If FILENAME is not a string, returns nil.
 The argument object is never altered--the value is a copy.  */)
-     (filename)
-     Lisp_Object filename;
+  (Lisp_Object filename)
 {
   Lisp_Object tem;
 

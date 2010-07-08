@@ -205,16 +205,14 @@ extern Lisp_Object Qtty;
 
 DEFUN ("windowp", Fwindowp, Swindowp, 1, 1, 0,
        doc: /* Return t if OBJECT is a window.  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   return WINDOWP (object) ? Qt : Qnil;
 }
 
 DEFUN ("window-live-p", Fwindow_live_p, Swindow_live_p, 1, 1, 0,
        doc: /* Return t if OBJECT is a window which is currently visible.  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   return WINDOW_LIVE_P (object) ? Qt : Qnil;
 }
@@ -274,7 +272,7 @@ make_window (void)
 
 DEFUN ("selected-window", Fselected_window, Sselected_window, 0, 0, 0,
        doc: /* Return the window that the cursor now appears in and commands apply to.  */)
-     ()
+  (void)
 {
   return selected_window;
 }
@@ -283,8 +281,7 @@ DEFUN ("minibuffer-window", Fminibuffer_window, Sminibuffer_window, 0, 1, 0,
        doc: /* Return the window used now for minibuffers.
 If the optional argument FRAME is specified, return the minibuffer window
 used by that frame.  */)
-     (frame)
-    Lisp_Object frame;
+  (Lisp_Object frame)
 {
   if (NILP (frame))
     frame = selected_frame;
@@ -295,8 +292,7 @@ used by that frame.  */)
 DEFUN ("window-minibuffer-p", Fwindow_minibuffer_p, Swindow_minibuffer_p, 0, 1, 0,
        doc: /* Return non-nil if WINDOW is a minibuffer window.
 WINDOW defaults to the selected window.  */)
-     (window)
-     Lisp_Object window;
+  (Lisp_Object window)
 {
   struct window *w = decode_window (window);
   return MINI_WINDOW_P (w) ? Qt : Qnil;
@@ -320,8 +316,7 @@ of the window.  The remaining elements are omitted if the character after
 POS is fully visible; otherwise, RTOP and RBOT are the number of pixels
 off-window at the top and bottom of the row, ROWH is the height of the
 display row, and VPOS is the row number (0-based) containing POS.  */)
-     (pos, window, partially)
-     Lisp_Object pos, window, partially;
+  (Lisp_Object pos, Lisp_Object window, Lisp_Object partially)
 {
   register struct window *w;
   register int posint;
@@ -389,8 +384,7 @@ of the (first) text line, YPOS is negative.
 
 Return nil if window display is not up-to-date.  In that case, use
 `pos-visible-in-window-p' to obtain the information.  */)
-     (line, window)
-     Lisp_Object line, window;
+  (Lisp_Object line, Lisp_Object window)
 {
   register struct window *w;
   register struct buffer *b;
@@ -505,8 +499,7 @@ decode_any_window (register Lisp_Object window)
 DEFUN ("window-buffer", Fwindow_buffer, Swindow_buffer, 0, 1, 0,
        doc: /* Return the buffer that WINDOW is displaying.
 WINDOW defaults to the selected window.  */)
-     (window)
-     Lisp_Object window;
+  (Lisp_Object window)
 {
   return decode_window (window)->buffer;
 }
@@ -516,8 +509,7 @@ DEFUN ("window-height", Fwindow_height, Swindow_height, 0, 1, 0,
 WINDOW defaults to the selected window.
 
 The return value includes WINDOW's mode line and header line, if any.  */)
-     (window)
-     Lisp_Object window;
+  (Lisp_Object window)
 {
   return decode_any_window (window)->total_lines;
 }
@@ -529,8 +521,7 @@ WINDOW defaults to the selected window.
 Note: The return value is the number of columns available for text in
 WINDOW.  If you want to find out how many columns WINDOW takes up, use
 (let ((edges (window-edges))) (- (nth 2 edges) (nth 0 edges))).  */)
-     (window)
-     Lisp_Object window;
+  (Lisp_Object window)
 {
   return make_number (window_box_text_cols (decode_any_window (window)));
 }
@@ -538,8 +529,7 @@ WINDOW.  If you want to find out how many columns WINDOW takes up, use
 DEFUN ("window-full-width-p", Fwindow_full_width_p, Swindow_full_width_p, 0, 1, 0,
        doc: /* Return t if WINDOW is as wide as its frame.
 WINDOW defaults to the selected window.  */)
-     (window)
-     Lisp_Object window;
+  (Lisp_Object window)
 {
   return WINDOW_FULL_WIDTH_P (decode_any_window (window)) ? Qt : Qnil;
 }
@@ -547,8 +537,7 @@ WINDOW defaults to the selected window.  */)
 DEFUN ("window-hscroll", Fwindow_hscroll, Swindow_hscroll, 0, 1, 0,
        doc: /* Return the number of columns by which WINDOW is scrolled from left margin.
 WINDOW defaults to the selected window.  */)
-     (window)
-     Lisp_Object window;
+  (Lisp_Object window)
 {
   return decode_window (window)->hscroll;
 }
@@ -559,8 +548,7 @@ Return NCOL.  NCOL should be zero or positive.
 
 Note that if `automatic-hscrolling' is non-nil, you cannot scroll the
 window so that the location of point moves off-window.  */)
-     (window, ncol)
-     Lisp_Object window, ncol;
+  (Lisp_Object window, Lisp_Object ncol)
 {
   struct window *w = decode_window (window);
   int hscroll;
@@ -581,8 +569,7 @@ DEFUN ("window-redisplay-end-trigger", Fwindow_redisplay_end_trigger,
        doc: /* Return WINDOW's redisplay end trigger value.
 WINDOW defaults to the selected window.
 See `set-window-redisplay-end-trigger' for more information.  */)
-     (window)
-     Lisp_Object window;
+  (Lisp_Object window)
 {
   return decode_window (window)->redisplay_end_trigger;
 }
@@ -595,8 +582,7 @@ If it is a buffer position, then if redisplay in WINDOW reaches a position
 beyond VALUE, the functions in `redisplay-end-trigger-functions' are called
 with two arguments: WINDOW, and the end trigger value.
 Afterwards the end-trigger value is reset to nil.  */)
-     (window, value)
-     register Lisp_Object window, value;
+  (register Lisp_Object window, Lisp_Object value)
 {
   register struct window *w;
 
@@ -616,8 +602,7 @@ BOTTOM is one more than the bottommost row occupied by WINDOW.
 The edges include the space used by WINDOW's scroll bar, display
 margins, fringes, header line, and/or mode line.  For the edges of
 just the text area, use `window-inside-edges'.  */)
-     (window)
-     Lisp_Object window;
+  (Lisp_Object window)
 {
   register struct window *w = decode_any_window (window);
 
@@ -638,8 +623,7 @@ BOTTOM is one more than the bottommost y position occupied by WINDOW.
 The pixel edges include the space used by WINDOW's scroll bar, display
 margins, fringes, header line, and/or mode line.  For the pixel edges
 of just the text area, use `window-inside-pixel-edges'.  */)
-     (window)
-     Lisp_Object window;
+  (Lisp_Object window)
 {
   register struct window *w = decode_any_window (window);
 
@@ -678,8 +662,7 @@ BOTTOM is one more than the bottommost y position occupied by WINDOW.
 The pixel edges include the space used by WINDOW's scroll bar, display
 margins, fringes, header line, and/or mode line.  For the pixel edges
 of just the text area, use `window-inside-absolute-pixel-edges'.  */)
-     (window)
-     Lisp_Object window;
+  (Lisp_Object window)
 {
   register struct window *w = decode_any_window (window);
   int add_x, add_y;
@@ -702,8 +685,7 @@ RIGHT is one more than the rightmost column of WINDOW's text area.
 BOTTOM is one more than the bottommost row of WINDOW's text area.
 The inside edges do not include the space used by the WINDOW's scroll
 bar, display margins, fringes, header line, and/or mode line.  */)
-     (window)
-     Lisp_Object window;
+  (Lisp_Object window)
 {
   register struct window *w = decode_any_window (window);
 
@@ -728,8 +710,7 @@ RIGHT is one more than the rightmost x position of WINDOW's text area.
 BOTTOM is one more than the bottommost y position of WINDOW's text area.
 The inside edges do not include the space used by WINDOW's scroll bar,
 display margins, fringes, header line, and/or mode line.  */)
-     (window)
-     Lisp_Object window;
+  (Lisp_Object window)
 {
   register struct window *w = decode_any_window (window);
 
@@ -756,8 +737,7 @@ RIGHT is one more than the rightmost x position of WINDOW's text area.
 BOTTOM is one more than the bottommost y position of WINDOW's text area.
 The inside edges do not include the space used by WINDOW's scroll bar,
 display margins, fringes, header line, and/or mode line.  */)
-     (window)
-     Lisp_Object window;
+  (Lisp_Object window)
 {
   register struct window *w = decode_any_window (window);
   int add_x, add_y;
@@ -1002,8 +982,7 @@ If they are on the border between WINDOW and its right sibling,
   `vertical-line' is returned.
 If they are in the windows's left or right marginal areas, `left-margin'\n\
   or `right-margin' is returned.  */)
-     (coordinates, window)
-     register Lisp_Object coordinates, window;
+  (register Lisp_Object coordinates, Lisp_Object window)
 {
   struct window *w;
   struct frame *f;
@@ -1155,8 +1134,7 @@ DEFUN ("window-at", Fwindow_at, Swindow_at, 2, 3, 0,
 If omitted, FRAME defaults to the currently selected frame.
 The top left corner of the frame is considered to be row 0,
 column 0.  */)
-     (x, y, frame)
-     Lisp_Object x, y, frame;
+  (Lisp_Object x, Lisp_Object y, Lisp_Object frame)
 {
   struct frame *f;
 
@@ -1189,8 +1167,7 @@ is also currently selected, the value returned is the same as (point).
 It would be more strictly correct to return the `top-level' value
 of point, outside of any save-excursion forms.
 But that is hard to define.  */)
-     (window)
-     Lisp_Object window;
+  (Lisp_Object window)
 {
   register struct window *w = decode_window (window);
 
@@ -1204,8 +1181,7 @@ DEFUN ("window-start", Fwindow_start, Swindow_start, 0, 1, 0,
        doc: /* Return position at which display currently starts in WINDOW.
 WINDOW defaults to the selected window.
 This is updated by redisplay or by calling `set-window-start'.  */)
-     (window)
-     Lisp_Object window;
+  (Lisp_Object window)
 {
   return Fmarker_position (decode_window (window)->start);
 }
@@ -1231,8 +1207,7 @@ Return nil if there is no recorded value.  \(This can happen if the
 last redisplay of WINDOW was preempted, and did not finish.)
 If UPDATE is non-nil, compute the up-to-date position
 if it isn't already recorded.  */)
-     (window, update)
-     Lisp_Object window, update;
+  (Lisp_Object window, Lisp_Object update)
 {
   Lisp_Object value;
   struct window *w = decode_window (window);
@@ -1300,8 +1275,7 @@ if it isn't already recorded.  */)
 DEFUN ("set-window-point", Fset_window_point, Sset_window_point, 2, 2, 0,
        doc: /* Make point value in WINDOW be at position POS in WINDOW's buffer.
 Return POS.  */)
-     (window, pos)
-     Lisp_Object window, pos;
+  (Lisp_Object window, Lisp_Object pos)
 {
   register struct window *w = decode_window (window);
 
@@ -1325,8 +1299,7 @@ DEFUN ("set-window-start", Fset_window_start, Sset_window_start, 2, 3, 0,
 WINDOW defaults to the selected window.  Return POS.
 Optional third arg NOFORCE non-nil inhibits next redisplay from
 overriding motion of point in order to display at this exact start.  */)
-     (window, pos, noforce)
-     Lisp_Object window, pos, noforce;
+  (Lisp_Object window, Lisp_Object pos, Lisp_Object noforce)
 {
   register struct window *w = decode_window (window);
 
@@ -1364,8 +1337,7 @@ from displaying another buffer in it.  `get-lru-window' and
 Functions like `set-window-buffer' may change the buffer displayed by a
 window, unless that window is "strongly" dedicated to its buffer, that
 is the value returned by `window-dedicated-p' is t.  */)
-     (window)
-     Lisp_Object window;
+  (Lisp_Object window)
 {
   return decode_window (window)->dedicated;
 }
@@ -1389,8 +1361,7 @@ its buffer.  Functions like `set-window-buffer' may change the buffer
 displayed by a window, unless that window is strongly dedicated to its
 buffer.  If and when `set-window-buffer' displays another buffer in a
 window, it also makes sure that the window is not marked as dedicated.  */)
-     (window, flag)
-     Lisp_Object window, flag;
+  (Lisp_Object window, Lisp_Object flag)
 {
   register struct window *w = decode_window (window);
 
@@ -1404,8 +1375,7 @@ DEFUN ("window-parameters", Fwindow_parameters, Swindow_parameters,
        doc: /* Return the parameters of WINDOW and their values.
 WINDOW defaults to the selected window.  The return value is a list of
 elements of the form (PARAMETER . VALUE). */)
-     (window)
-     Lisp_Object window;
+  (Lisp_Object window)
 {
   return Fcopy_alist (decode_window (window)->window_parameters);
 }
@@ -1414,8 +1384,7 @@ DEFUN ("window-parameter", Fwindow_parameter, Swindow_parameter,
        2, 2, 0,
        doc:  /* Return WINDOW's value for PARAMETER.
 WINDOW defaults to the selected window.  */)
-     (window, parameter)
-     Lisp_Object window, parameter;
+  (Lisp_Object window, Lisp_Object parameter)
 {
   Lisp_Object result;
 
@@ -1427,8 +1396,7 @@ DEFUN ("set-window-parameter", Fset_window_parameter,
        Sset_window_parameter, 3, 3, 0,
        doc: /* Set WINDOW's value of PARAMETER to VALUE.
 WINDOW defaults to the selected window.  Return VALUE.  */)
-     (window, parameter, value)
-     Lisp_Object window, parameter, value;
+  (Lisp_Object window, Lisp_Object parameter, Lisp_Object value)
 {
   register struct window *w = decode_window (window);
   Lisp_Object old_alist_elt;
@@ -1446,8 +1414,7 @@ DEFUN ("window-display-table", Fwindow_display_table, Swindow_display_table,
        0, 1, 0,
        doc: /* Return the display-table that WINDOW is using.
 WINDOW defaults to the selected window.  */)
-     (window)
-     Lisp_Object window;
+  (Lisp_Object window)
 {
   return decode_window (window)->display_table;
 }
@@ -1479,8 +1446,7 @@ window_display_table (struct window *w)
 
 DEFUN ("set-window-display-table", Fset_window_display_table, Sset_window_display_table, 2, 2, 0,
        doc: /* Set WINDOW's display-table to TABLE.  */)
-     (window, table)
-     register Lisp_Object window, table;
+  (register Lisp_Object window, Lisp_Object table)
 {
   register struct window *w;
 
@@ -1596,8 +1562,7 @@ DEFUN ("delete-window", Fdelete_window, Sdelete_window, 0, 1, "",
        doc: /* Remove WINDOW from its frame.
 WINDOW defaults to the selected window.  Return nil.
 Signal an error when WINDOW is the only window on its frame.  */)
-     (window)
-     register Lisp_Object window;
+  (register Lisp_Object window)
 {
   struct frame *f;
   if (NILP (window))
@@ -2094,8 +2059,7 @@ If you use consistent values for MINIBUF and ALL-FRAMES, you can use
 `next-window' to iterate through the entire cycle of acceptable
 windows, eventually ending up back at the window you started with.
 `previous-window' traverses the same cycle, in the reverse order.  */)
-     (window, minibuf, all_frames)
-     Lisp_Object window, minibuf, all_frames;
+  (Lisp_Object window, Lisp_Object minibuf, Lisp_Object all_frames)
 {
   return next_window (window, minibuf, all_frames, 1);
 }
@@ -2112,8 +2076,7 @@ use `previous-window' to iterate through the entire cycle of
 acceptable windows, eventually ending up back at the window you
 started with.  `next-window' traverses the same cycle, in the
 reverse order.  */)
-     (window, minibuf, all_frames)
-     Lisp_Object window, minibuf, all_frames;
+  (Lisp_Object window, Lisp_Object minibuf, Lisp_Object all_frames)
 {
   return next_window (window, minibuf, all_frames, 0);
 }
@@ -2132,8 +2095,7 @@ This function uses `next-window' for finding the window to select.
 The argument ALL-FRAMES has the same meaning as in `next-window',
 but the MINIBUF argument of `next-window' is always effectively
 nil.  */)
-     (count, all_frames)
-     Lisp_Object count, all_frames;
+  (Lisp_Object count, Lisp_Object all_frames)
 {
   Lisp_Object window;
   int i;
@@ -2159,8 +2121,7 @@ MINIBUF t means include the minibuffer window, even if it isn't active.
 MINIBUF nil or omitted means include the minibuffer window only
 if it's active.
 MINIBUF neither nil nor t means never include the minibuffer window.  */)
-     (frame, minibuf, window)
-     Lisp_Object frame, minibuf, window;
+  (Lisp_Object frame, Lisp_Object minibuf, Lisp_Object window)
 {
   if (NILP (window))
     window = FRAMEP (frame) ? XFRAME (frame)->selected_window : selected_window;
@@ -2472,8 +2433,7 @@ If FRAME is 0, search all visible and iconified frames.
 If FRAME is t, search all frames.
 If FRAME is nil, search only the selected frame.
 If FRAME is a frame, search only that frame.  */)
-  (frame, dedicated)
-     Lisp_Object frame, dedicated;
+  (Lisp_Object frame, Lisp_Object dedicated)
 {
   register Lisp_Object w;
   /* First try for a window that is full-width */
@@ -2498,8 +2458,7 @@ If FRAME is 0, search all visible and iconified frames.
 If FRAME is t, search all frames.
 If FRAME is nil, search only the selected frame.
 If FRAME is a frame, search only that frame.  */)
-    (frame, dedicated)
-     Lisp_Object frame, dedicated;
+  (Lisp_Object frame, Lisp_Object dedicated)
 {
   return window_loop (GET_LARGEST_WINDOW, dedicated, 0,
 		      frame);
@@ -2514,8 +2473,7 @@ If optional argument FRAME is 0, search all visible and iconified frames.
 If FRAME is t, search all frames.
 If FRAME is nil, search only the selected frame.
 If FRAME is a frame, search only that frame.  */)
-     (buffer_or_name, frame)
-     Lisp_Object buffer_or_name, frame;
+  (Lisp_Object buffer_or_name, Lisp_Object frame)
 {
   Lisp_Object buffer;
 
@@ -2539,8 +2497,7 @@ previously visible in WINDOW in the same place on the frame.  Doing this
 depends on the value of (window-start WINDOW), so if calling this
 function in a program gives strange scrolling, make sure the
 window-start value is reasonable when this function is called.  */)
-     (window)
-     Lisp_Object window;
+  (Lisp_Object window)
 {
   struct window *w;
   int startpos;
@@ -2607,8 +2564,7 @@ If FRAME is t, search only the selected frame.
 If FRAME is a frame, search only that frame.
 When a window showing BUFFER-OR-NAME is dedicated and the only window of
 its frame, that frame is deleted when there are other frames left.  */)
-     (buffer_or_name, frame)
-     Lisp_Object buffer_or_name, frame;
+  (Lisp_Object buffer_or_name, Lisp_Object frame)
 {
   Lisp_Object buffer;
 
@@ -2643,8 +2599,7 @@ When a window showing BUFFER-OR-NAME is dedicated that window is
 deleted.  If that window is the only window on its frame, that frame is
 deleted too when there are other frames left.  If there are no other
 frames left, some other buffer is displayed in that window.  */)
-     (buffer_or_name)
-     Lisp_Object buffer_or_name;
+  (Lisp_Object buffer_or_name)
 {
   Lisp_Object buffer;
 
@@ -3570,8 +3525,7 @@ already display BUFFER-OR-NAME.
 
 This function runs `window-scroll-functions' before running
 `window-configuration-change-hook'.  */)
-     (window, buffer_or_name, keep_margins)
-     register Lisp_Object window, buffer_or_name, keep_margins;
+  (register Lisp_Object window, Lisp_Object buffer_or_name, Lisp_Object keep_margins)
 {
   register Lisp_Object tem, buffer;
   register struct window *w = decode_window (window);
@@ -3614,8 +3568,7 @@ make this window the most recently selected one.
 
 Note that the main editor command loop selects the buffer of the
 selected window before each command.  */)
-     (window, norecord)
-     register Lisp_Object window, norecord;
+  (register Lisp_Object window, Lisp_Object norecord)
 {
   register struct window *w;
   register struct window *ow;
@@ -3715,8 +3668,7 @@ DEFUN ("force-window-update", Fforce_window_update, Sforce_window_update,
 If optional arg OBJECT is a window, force redisplay of that window only.
 If OBJECT is a buffer or buffer name, force redisplay of all windows
 displaying that buffer.  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   if (NILP (object))
     {
@@ -3857,8 +3809,7 @@ The upper or leftmost window is the original one, and remains selected
 if it was selected before.
 
 See Info node `(elisp)Splitting Windows' for more details and examples.  */)
-     (window, size, horizontal)
-     Lisp_Object window, size, horizontal;
+  (Lisp_Object window, Lisp_Object size, Lisp_Object horizontal)
 {
   register Lisp_Object new;
   register struct window *o, *p;
@@ -3997,8 +3948,7 @@ window wider by SIZE columns.  If SIZE is negative, shrink the window by
 
 This function can delete windows if they get too small.  The size of
 fixed size windows is not altered by this function.  */)
-     (size, horizontal)
-     Lisp_Object size, horizontal;
+  (Lisp_Object size, Lisp_Object horizontal)
 {
   CHECK_NUMBER (size);
   enlarge_window (selected_window, XINT (size), !NILP (horizontal));
@@ -4017,8 +3967,7 @@ window by -SIZE lines or columns.  Return nil.
 
 This function can delete windows if they get too small.  The size of
 fixed size windows is not altered by this function. */)
-     (size, horizontal)
-     Lisp_Object size, horizontal;
+  (Lisp_Object size, Lisp_Object horizontal)
 {
   CHECK_NUMBER (size);
   enlarge_window (selected_window, -XINT (size), !NILP (horizontal));
@@ -4470,8 +4419,7 @@ Otherwise, adjust the height, moving the bottom edge.
 Following siblings of the selected window are resized to fulfill
 the size request.  If they become too small in the process, they
 are not deleted; instead, we signal an error.  */)
-  (window, delta, horizontal)
-  Lisp_Object window, delta, horizontal;
+  (Lisp_Object window, Lisp_Object delta, Lisp_Object horizontal)
 {
   CHECK_NUMBER (delta);
   if (NILP (window))
@@ -5366,8 +5314,7 @@ A near full screen is `next-screen-context-lines' less than a full screen.
 Negative ARG means scroll downward.
 If ARG is the atom `-', scroll downward by nearly full screen.
 When calling from a program, supply as argument a number, nil, or `-'.  */)
-     (arg)
-     Lisp_Object arg;
+  (Lisp_Object arg)
 {
   scroll_command (arg, 1);
   return Qnil;
@@ -5380,8 +5327,7 @@ A near full screen is `next-screen-context-lines' less than a full screen.
 Negative ARG means scroll upward.
 If ARG is the atom `-', scroll upward by nearly full screen.
 When calling from a program, supply as argument a number, nil, or `-'.  */)
-     (arg)
-     Lisp_Object arg;
+  (Lisp_Object arg)
 {
   scroll_command (arg, -1);
   return Qnil;
@@ -5394,7 +5340,7 @@ showing that buffer is used.
 If in the minibuffer, `minibuffer-scroll-window' if non-nil
 specifies the window.  This takes precedence over
 `other-window-scroll-buffer'.  */)
-     ()
+  (void)
 {
   Lisp_Object window;
 
@@ -5444,8 +5390,7 @@ showing that buffer, popping the buffer up if necessary.
 If in the minibuffer, `minibuffer-scroll-window' if non-nil
 specifies the window to scroll.  This takes precedence over
 `other-window-scroll-buffer'.  */)
-     (arg)
-     Lisp_Object arg;
+  (Lisp_Object arg)
 {
   Lisp_Object window;
   struct window *w;
@@ -5488,8 +5433,7 @@ If SET-MINIMUM is non-nil, the new scroll amount becomes the
 lower bound for automatic scrolling, i.e. automatic scrolling
 will not scroll a window to a column less than the value returned
 by this function.  This happens in an interactive call.  */)
-     (arg, set_minimum)
-     register Lisp_Object arg, set_minimum;
+  (register Lisp_Object arg, Lisp_Object set_minimum)
 {
   Lisp_Object result;
   int hscroll;
@@ -5518,8 +5462,7 @@ If SET-MINIMUM is non-nil, the new scroll amount becomes the
 lower bound for automatic scrolling, i.e. automatic scrolling
 will not scroll a window to a column less than the value returned
 by this function.  This happens in an interactive call.  */)
-     (arg, set_minimum)
-     register Lisp_Object arg, set_minimum;
+  (register Lisp_Object arg, Lisp_Object set_minimum)
 {
   Lisp_Object result;
   int hscroll;
@@ -5542,7 +5485,7 @@ by this function.  This happens in an interactive call.  */)
 DEFUN ("minibuffer-selected-window", Fminibuffer_selected_window, Sminibuffer_selected_window, 0, 0, 0,
        doc: /* Return the window which was selected when entering the minibuffer.
 Returns nil, if selected window is not a minibuffer window.  */)
-     ()
+  (void)
 {
   if (minibuf_level > 0
       && MINI_WINDOW_P (XWINDOW (selected_window))
@@ -5624,8 +5567,7 @@ then only tty frame are redrawn.
 
 Just C-u as prefix means put point in the center of the window
 and redisplay normally--don't erase and redraw the frame.  */)
-     (arg)
-     register Lisp_Object arg;
+  (register Lisp_Object arg)
 {
   struct window *w = XWINDOW (selected_window);
   struct buffer *buf = XBUFFER (w->buffer);
@@ -5809,8 +5751,7 @@ WINDOW defaults to the selected window.
 
 The return value does not include the mode line, any header line, nor
 any partial-height lines in the text display area.  */)
-     (window)
-     Lisp_Object window;
+  (Lisp_Object window)
 {
   struct window *w = decode_window (window);
   int pixel_height = window_box_height (w);
@@ -5826,8 +5767,7 @@ DEFUN ("move-to-window-line", Fmove_to_window_line, Smove_to_window_line,
 With no argument, position point at center of window.
 An argument specifies vertical position within the window;
 zero means top of window, negative means relative to bottom of window.  */)
-     (arg)
-     Lisp_Object arg;
+  (Lisp_Object arg)
 {
   struct window *w = XWINDOW (selected_window);
   int lines, start;
@@ -5940,16 +5880,14 @@ struct saved_window
 
 DEFUN ("window-configuration-p", Fwindow_configuration_p, Swindow_configuration_p, 1, 1, 0,
        doc: /* Return t if OBJECT is a window-configuration object.  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   return WINDOW_CONFIGURATIONP (object) ? Qt : Qnil;
 }
 
 DEFUN ("window-configuration-frame", Fwindow_configuration_frame, Swindow_configuration_frame, 1, 1, 0,
        doc: /* Return the frame that CONFIG, a window-configuration object, is about.  */)
-     (config)
-     Lisp_Object config;
+  (Lisp_Object config)
 {
   register struct save_window_data *data;
   struct Lisp_Vector *saved_windows;
@@ -5969,8 +5907,7 @@ by `current-window-configuration' (which see).
 If CONFIGURATION was made from a frame that is now deleted,
 only frame-independent values can be restored.  In this case,
 the return value is nil.  Otherwise the value is t.  */)
-     (configuration)
-     Lisp_Object configuration;
+  (Lisp_Object configuration)
 {
   register struct save_window_data *data;
   struct Lisp_Vector *saved_windows;
@@ -6476,8 +6413,7 @@ point and mark.  An exception is made for point in the current buffer:
 its value is -not- saved.
 This also records the currently selected frame, and FRAME's focus
 redirection (see `redirect-frame-focus').  */)
-     (frame)
-     Lisp_Object frame;
+  (Lisp_Object frame)
 {
   register Lisp_Object tem;
   register int n_windows;
@@ -6525,8 +6461,7 @@ Also restore the choice of selected window.
 Also restore which buffer is current.
 Does not restore the value of point in current buffer.
 usage: (save-window-excursion BODY...)  */)
-     (args)
-     Lisp_Object args;
+  (Lisp_Object args)
 {
   register Lisp_Object val;
   register int count = SPECPDL_INDEX ();
@@ -6597,8 +6532,7 @@ EDGES is a list \(LEFT TOP RIGHT BOTTOM) as returned by `window-edges'.
 
 If FRAME is nil or omitted, return information on the currently
 selected frame.  */)
-     (frame)
-     Lisp_Object frame;
+  (Lisp_Object frame)
 {
   FRAME_PTR f;
 
@@ -6627,8 +6561,7 @@ Second arg LEFT-WIDTH specifies the number of character cells to
 reserve for the left marginal area.  Optional third arg RIGHT-WIDTH
 does the same for the right marginal area.  A nil width parameter
 means no margin.  */)
-     (window, left_width, right_width)
-     Lisp_Object window, left_width, right_width;
+  (Lisp_Object window, Lisp_Object left_width, Lisp_Object right_width)
 {
   struct window *w = decode_window (window);
 
@@ -6672,8 +6605,7 @@ If WINDOW is omitted or nil, use the currently selected window.
 Value is a cons of the form (LEFT-WIDTH . RIGHT-WIDTH).
 If a marginal area does not exist, its width will be returned
 as nil.  */)
-     (window)
-     Lisp_Object window;
+  (Lisp_Object window)
 {
   struct window *w = decode_window (window);
   return Fcons (w->left_margin_cols, w->right_margin_cols);
@@ -6698,8 +6630,7 @@ the command `set-fringe-style'.
 If optional fourth arg OUTSIDE-MARGINS is non-nil, draw the fringes
 outside of the display margins.  By default, fringes are drawn between
 display marginal areas and the text area.  */)
-     (window, left_width, right_width, outside_margins)
-     Lisp_Object window, left_width, right_width, outside_margins;
+  (Lisp_Object window, Lisp_Object left_width, Lisp_Object right_width, Lisp_Object outside_margins)
 {
   struct window *w = decode_window (window);
 
@@ -6736,8 +6667,7 @@ DEFUN ("window-fringes", Fwindow_fringes, Swindow_fringes,
        doc: /* Get width of fringes of window WINDOW.
 If WINDOW is omitted or nil, use the currently selected window.
 Value is a list of the form (LEFT-WIDTH RIGHT-WIDTH OUTSIDE-MARGINS).  */)
-     (window)
-     Lisp_Object window;
+  (Lisp_Object window)
 {
   struct window *w = decode_window (window);
 
@@ -6764,8 +6694,7 @@ bar: left, right, or nil.
 If WIDTH is nil, use the frame's scroll-bar width.
 If VERTICAL-TYPE is t, use the frame's scroll-bar type.
 Fourth parameter HORIZONTAL-TYPE is currently unused.  */)
-     (window, width, vertical_type, horizontal_type)
-     Lisp_Object window, width, vertical_type, horizontal_type;
+  (Lisp_Object window, Lisp_Object width, Lisp_Object vertical_type, Lisp_Object horizontal_type)
 {
   struct window *w = decode_window (window);
 
@@ -6809,8 +6738,7 @@ If WINDOW is omitted or nil, use the currently selected window.
 Value is a list of the form (WIDTH COLS VERTICAL-TYPE HORIZONTAL-TYPE).
 If WIDTH is nil or TYPE is t, the window is using the frame's corresponding
 value.  */)
-     (window)
-     Lisp_Object window;
+  (Lisp_Object window)
 {
   struct window *w = decode_window (window);
   return Fcons (make_number ((WINDOW_CONFIG_SCROLL_BAR_WIDTH (w)
@@ -6832,8 +6760,7 @@ DEFUN ("window-vscroll", Fwindow_vscroll, Swindow_vscroll, 0, 2, 0,
 Use the selected window if WINDOW is nil or omitted.
 Normally, value is a multiple of the canonical character height of WINDOW;
 optional second arg PIXELS-P means value is measured in pixels.  */)
-  (window, pixels_p)
-     Lisp_Object window, pixels_p;
+  (Lisp_Object window, Lisp_Object pixels_p)
 {
   Lisp_Object result;
   struct frame *f;
@@ -6866,8 +6793,7 @@ If PIXELS-P is nil, VSCROLL may have to be rounded so that it
 corresponds to an integral number of pixels.  The return value is the
 result of this rounding.
 If PIXELS-P is non-nil, the return value is VSCROLL.  */)
-  (window, vscroll, pixels_p)
-     Lisp_Object window, vscroll, pixels_p;
+  (Lisp_Object window, Lisp_Object vscroll, Lisp_Object pixels_p)
 {
   struct window *w;
   struct frame *f;
@@ -7101,8 +7027,7 @@ DEFUN ("compare-window-configurations", Fcompare_window_configurations,
        doc: /* Compare two window configurations as regards the structure of windows.
 This function ignores details such as the values of point and mark
 and scrolling positions.  */)
-     (x, y)
-     Lisp_Object x, y;
+  (Lisp_Object x, Lisp_Object y)
 {
   if (compare_window_configurations (x, y, 1))
     return Qt;
