@@ -1,3 +1,7 @@
+2010-07-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* sed1v2.inp: Remove reference to prefix-args.
+
 2010-07-07  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* sed2v2.inp (HAVE_MEMCPY, HAVE_MEMSET): Edit to 1.

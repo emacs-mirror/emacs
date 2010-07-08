@@ -1,5 +1,13 @@
 2010-07-08  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	Remove prefix-args.c
+	* prefix-args.c: Remove file.
+	* autodeps.mk (ALLOBJS): Remove reference to prefix-args.
+	* Makefile.in (temacs${EXEEXT}): Remove references to
+	PRE_EDIT_LDFLAGS and POST_EDIT_LDFLAGS.
+	(mostlyclean): Remove reference to prefix-args.
+	(prefix-args): Remove.
+
 	Simplify cstart_of_data, start_of_code and related code.
 	* mem-limits.h: Remove !emacs and _LIBC conditional code.
 	(start_of_data): Merge into start_of_data function.

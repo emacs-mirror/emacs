@@ -3360,8 +3360,6 @@ case "$opsys" in
 esac
 
 
-PRE_EDIT_LDFLAGS=
-POST_EDIT_LDFLAGS=
 if test "x$ORDINARY_LINK" = "xyes"; then
 
   LINKER="\$(CC)"
@@ -3380,17 +3378,7 @@ elif test "x$GCC" = "xyes" && test "x$LINKER" = "x"; then
   ## searching for libraries in its internal directories, so we have to
   ## ask GCC explicitly where to find libgcc.a (LIB_GCC below).
   LINKER="\$(CC) -nostdlib"
-  ## GCC passes any argument prefixed with -Xlinker directly to the linker.
-  ## See prefix-args.c for an explanation of why we do not do this with the
-  ## shell''s ``for'' construct.  Note that sane people do not have '.' in
-  ## their paths, so we must use ./prefix-args.
-  ## TODO either make prefix-args check ORDINARY_LINK internally,
-  ## or remove it altogether (bug#6184), removing the need for this hack.
-  PRE_EDIT_LDFLAGS='`./prefix-args -Xlinker'
-  POST_EDIT_LDFLAGS='`'
 fi
-AC_SUBST(PRE_EDIT_LDFLAGS)
-AC_SUBST(POST_EDIT_LDFLAGS)
 
 test "x$LINKER" = "x" && LINKER=ld
 ## FIXME? What setting of EDIT_LDFLAGS should this have?
