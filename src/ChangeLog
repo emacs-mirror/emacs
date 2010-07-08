@@ -1,3 +1,9 @@
+2010-07-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (set_frame_menubar, create_and_show_popup_menu)
+	(create_and_show_dialog): Don't call apply_systemfont_to_(menu|dialog)
+	unless USE_LUCID.
+
 2010-07-08  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* xdisp.c (store_mode_line_noprop_char): Remove K&R alternative declaration.

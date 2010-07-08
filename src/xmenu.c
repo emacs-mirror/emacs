@@ -1282,7 +1282,9 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 
       /* Make menu pop down on C-g.  */
       XtOverrideTranslations (menubar_widget, override);
+#ifdef USE_LUCID
       apply_systemfont_to_menu (menubar_widget);
+#endif
     }
 
   {
@@ -1614,7 +1616,9 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click, timestamp)
                            popup_deactivate_callback,
                            menu_highlight_callback);
 
+#ifdef USE_LUCID
   apply_systemfont_to_menu (menu);
+#endif
 
   dummy.type = ButtonPress;
   dummy.serial = 0;
@@ -2016,7 +2020,7 @@ create_and_show_dialog (f, first_wv)
     abort();
 
   dialog_id = widget_id_tick++;
-#ifdef HAVE_XFT
+#ifdef USE_LUCID
   apply_systemfont_to_dialog (f->output_data.x->widget);
 #endif
   lw_create_widget (first_wv->name, "dialog", dialog_id, first_wv,
