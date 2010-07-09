@@ -2267,7 +2267,7 @@ Fcombine_after_change_execute_1 (Lisp_Object val)
 DEFUN ("combine-after-change-execute", Fcombine_after_change_execute,
        Scombine_after_change_execute, 0, 0, 0,
        doc: /* This function is for use internally in `combine-after-change-calls'.  */)
-     ()
+  (void)
 {
   int count = SPECPDL_INDEX ();
   EMACS_INT beg, end, change;

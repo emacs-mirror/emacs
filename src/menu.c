@@ -1064,8 +1064,7 @@ keyboard input, then this normally results in a quit and
 `x-popup-menu' does not return.  But if POSITION is a mouse button
 event (indicating that the user invoked the menu with the mouse) then
 no quit occurs and `x-popup-menu' returns nil.  */)
-  (position, menu)
-     Lisp_Object position, menu;
+  (Lisp_Object position, Lisp_Object menu)
 {
   Lisp_Object keymap, tem;
   int xpos = 0, ypos = 0;

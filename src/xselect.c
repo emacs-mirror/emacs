@@ -2094,8 +2094,7 @@ TYPE is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
 \(Those are literal upper-case symbol names, since that's what X expects.)
 VALUE is typically a string, or a cons of two markers, but may be
 anything that the functions on `selection-converter-alist' know about.  */)
-     (selection_name, selection_value)
-     Lisp_Object selection_name, selection_value;
+  (Lisp_Object selection_name, Lisp_Object selection_value)
 {
   check_x ();
   CHECK_SYMBOL (selection_name);
@@ -2117,8 +2116,7 @@ SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
 TYPE is the type of data desired, typically `STRING'.
 TIME_STAMP is the time to use in the XConvertSelection call for foreign
 selections.  If omitted, defaults to the time for the last event.  */)
-  (selection_symbol, target_type, time_stamp)
-     Lisp_Object selection_symbol, target_type, time_stamp;
+  (Lisp_Object selection_symbol, Lisp_Object target_type, Lisp_Object time_stamp)
 {
   Lisp_Object val = Qnil;
   struct gcpro gcpro1, gcpro2;
@@ -2163,9 +2161,7 @@ DEFUN ("x-disown-selection-internal", Fx_disown_selection_internal,
        Sx_disown_selection_internal, 1, 2, 0,
        doc: /* If we own the selection SELECTION, disown it.
 Disowning it means there is no such selection.  */)
-     (selection, time)
-     Lisp_Object selection;
-     Lisp_Object time;
+  (Lisp_Object selection, Lisp_Object time)
 {
   Time timestamp;
   Atom selection_atom;
@@ -2239,8 +2235,7 @@ the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
 \(Those are literal upper-case symbol names, since that's what X expects.)
 For convenience, the symbol nil is the same as `PRIMARY',
 and t is the same as `SECONDARY'.  */)
-     (selection)
-     Lisp_Object selection;
+  (Lisp_Object selection)
 {
   check_x ();
   CHECK_SYMBOL (selection);
@@ -2260,8 +2255,7 @@ the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
 \(Those are literal upper-case symbol names, since that's what X expects.)
 For convenience, the symbol nil is the same as `PRIMARY',
 and t is the same as `SECONDARY'.  */)
-     (selection)
-     Lisp_Object selection;
+  (Lisp_Object selection)
 {
   Window owner;
   Atom atom;
@@ -2323,8 +2317,7 @@ initialize_cut_buffers (Display *display, Window window)
 DEFUN ("x-get-cut-buffer-internal", Fx_get_cut_buffer_internal,
        Sx_get_cut_buffer_internal, 1, 1, 0,
        doc: /* Returns the value of the named cut buffer (typically CUT_BUFFER0).  */)
-     (buffer)
-     Lisp_Object buffer;
+  (Lisp_Object buffer)
 {
   Window window;
   Atom buffer_atom;
@@ -2374,8 +2367,7 @@ DEFUN ("x-get-cut-buffer-internal", Fx_get_cut_buffer_internal,
 DEFUN ("x-store-cut-buffer-internal", Fx_store_cut_buffer_internal,
        Sx_store_cut_buffer_internal, 2, 2, 0,
        doc: /* Sets the value of the named cut buffer (typically CUT_BUFFER0).  */)
-     (buffer, string)
-     Lisp_Object buffer, string;
+  (Lisp_Object buffer, Lisp_Object string)
 {
   Window window;
   Atom buffer_atom;
@@ -2440,8 +2432,7 @@ DEFUN ("x-rotate-cut-buffers-internal", Fx_rotate_cut_buffers_internal,
        Sx_rotate_cut_buffers_internal, 1, 1, 0,
        doc: /* Rotate the values of the cut buffers by N steps.
 Positive N means shift the values forward, negative means backward.  */)
-     (n)
-     Lisp_Object n;
+  (Lisp_Object n)
 {
   Window window;
   Atom props[8];
@@ -2624,8 +2615,7 @@ the cdr is the lower 16 bits of a 32 bit value.
 Use the display for FRAME or the current frame if FRAME is not given or nil.
 
 If the value is 0 or the atom is not known, return the empty string.  */)
-  (value, frame)
-     Lisp_Object value, frame;
+  (Lisp_Object value, Lisp_Object frame)
 {
   struct frame *f = check_x_frame (frame);
   char *name = 0;
@@ -2665,8 +2655,7 @@ DEFUN ("x-register-dnd-atom", Fx_register_dnd_atom,
        doc: /* Request that dnd events are made for ClientMessages with ATOM.
 ATOM can be a symbol or a string.  The ATOM is interned on the display that
 FRAME is on.  If FRAME is nil, the selected frame is used.  */)
-    (atom, frame)
-    Lisp_Object atom, frame;
+  (Lisp_Object atom, Lisp_Object frame)
 {
   Atom x_atom;
   struct frame *f = check_x_frame (frame);
@@ -2783,8 +2772,7 @@ the Atom is sent.  If a value is a cons, it is converted to a 32 bit number
 with the high 16 bits from the car and the lower 16 bit from the cdr.
 If more values than fits into the event is given, the excessive values
 are ignored.  */)
-     (display, dest, from, message_type, format, values)
-     Lisp_Object display, dest, from, message_type, format, values;
+  (Lisp_Object display, Lisp_Object dest, Lisp_Object from, Lisp_Object message_type, Lisp_Object format, Lisp_Object values)
 {
   struct x_display_info *dpyinfo = check_x_display_info (display);
   Window wdest;

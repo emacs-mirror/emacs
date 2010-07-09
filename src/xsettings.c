@@ -703,7 +703,7 @@ DEFUN ("font-get-system-normal-font", Ffont_get_system_normal_font,
        Sfont_get_system_normal_font,
        0, 0, 0,
        doc: /* Get the system default application font. */)
-  ()
+  (void)
 {
   return current_font
     ? make_string (current_font, strlen (current_font))
@@ -713,7 +713,7 @@ DEFUN ("font-get-system-normal-font", Ffont_get_system_normal_font,
 DEFUN ("font-get-system-font", Ffont_get_system_font, Sfont_get_system_font,
        0, 0, 0,
        doc: /* Get the system default fixed width font. */)
-  ()
+  (void)
 {
   return current_mono_font
     ? make_string (current_mono_font, strlen (current_mono_font))
@@ -725,7 +725,7 @@ DEFUN ("tool-bar-get-system-style", Ftool_bar_get_system_style, Stool_bar_get_sy
        doc: /* Get the system tool bar style.
 If no system tool bar style is known, return `tool-bar-style' if set to a
 known style.  Otherwise return image.  */)
-  ()
+  (void)
 {
   if (EQ (Vtool_bar_style, Qimage)
       || EQ (Vtool_bar_style, Qtext)

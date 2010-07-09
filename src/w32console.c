@@ -393,8 +393,7 @@ SOUND is 'asterisk, 'exclamation, 'hand, 'question, 'ok, or 'silent
 to use the corresponding system sound for the bell.  The 'silent sound
 prevents Emacs from making any sound at all.
 SOUND is nil to use the normal beep.  */)
-     (sound)
-     Lisp_Object sound;
+  (Lisp_Object sound)
 {
   CHECK_SYMBOL (sound);
 
@@ -748,9 +747,7 @@ initialize_w32_display (struct terminal *term)
 
 DEFUN ("set-screen-color", Fset_screen_color, Sset_screen_color, 2, 2, 0,
        doc: /* Set screen colors.  */)
-    (foreground, background)
-    Lisp_Object foreground;
-    Lisp_Object background;
+  (Lisp_Object foreground, Lisp_Object background)
 {
   char_attr_normal = XFASTINT (foreground) + (XFASTINT (background) << 4);
 
@@ -760,8 +757,7 @@ DEFUN ("set-screen-color", Fset_screen_color, Sset_screen_color, 2, 2, 0,
 
 DEFUN ("set-cursor-size", Fset_cursor_size, Sset_cursor_size, 1, 1, 0,
        doc: /* Set cursor size.  */)
-    (size)
-    Lisp_Object size;
+  (Lisp_Object size)
 {
   CONSOLE_CURSOR_INFO cci;
   cci.dwSize = XFASTINT (size);

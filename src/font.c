@@ -3925,8 +3925,7 @@ Return nil otherwise.
 Optional 2nd argument EXTRA-TYPE, if non-nil, specifies to check
 which kind of font it is.  It must be one of `font-spec', `font-entity',
 `font-object'.  */)
-     (object, extra_type)
-     Lisp_Object object, extra_type;
+  (Lisp_Object object, Lisp_Object extra_type)
 {
   if (NILP (extra_type))
     return (FONTP (object) ? Qt : Qnil);
@@ -4004,9 +4003,7 @@ be an OpenType font, and whose GPOS table of `thai' script's default
 language system must contain `mark' feature.
 
 usage: (font-spec ARGS...)  */)
-     (nargs, args)
-     int nargs;
-     Lisp_Object *args;
+  (int nargs, Lisp_Object *args)
 {
   Lisp_Object spec = font_make_spec ();
   int i;
@@ -4047,8 +4044,7 @@ usage: (font-spec ARGS...)  */)
 
 DEFUN ("copy-font-spec", Fcopy_font_spec, Scopy_font_spec, 1, 1, 0,
        doc: /* Return a copy of FONT as a font-spec.  */)
-     (font)
-     Lisp_Object font;
+  (Lisp_Object font)
 {
   Lisp_Object new_spec, tail, prev, extra;
   int i;
@@ -4076,8 +4072,7 @@ DEFUN ("merge-font-spec", Fmerge_font_spec, Smerge_font_spec, 2, 2, 0,
        doc: /* Merge font-specs FROM and TO, and return a new font-spec.
 Every specified properties in FROM override the corresponding
 properties in TO.  */)
-     (from, to)
-     Lisp_Object from, to;
+  (Lisp_Object from, Lisp_Object to)
 {
   Lisp_Object extra, tail;
   int i;
@@ -4119,8 +4114,7 @@ representing the OpenType features supported by the font by this form:
   ((SCRIPT (LANGSYS FEATURE ...) ...) ...)
 SCRIPT, LANGSYS, and FEATURE are all symbols representing OpenType
 Layout tags.  */)
-     (font, key)
-     Lisp_Object font, key;
+  (Lisp_Object font, Lisp_Object key)
 {
   int idx;
   Lisp_Object val;
@@ -4172,8 +4166,7 @@ may be omitted from the list if they are not specified by FONT.
 
 The optional argument FRAME specifies the frame that the face attributes
 are to be displayed on.  If omitted, the selected frame is used.  */)
-     (font, frame)
-     Lisp_Object font, frame;
+  (Lisp_Object font, Lisp_Object frame)
 {
   struct frame *f;
   Lisp_Object plist[10];
@@ -4255,8 +4248,7 @@ allowed in `font-spec'.
 
 If FONT is a font-entity or a font-object, KEY must not be the one
 accepted by `font-spec'.  */)
-     (font, prop, val)
-     Lisp_Object font, prop, val;
+  (Lisp_Object font, Lisp_Object prop, Lisp_Object val)
 {
   int idx;
 
@@ -4287,8 +4279,7 @@ Optional 3rd argument NUM, if non-nil, limits the number of returned fonts.
 Optional 4th argument PREFER, if non-nil, is a font-spec to
 control the order of the returned list.  Fonts are sorted by
 how close they are to PREFER.  */)
-     (font_spec, frame, num, prefer)
-     Lisp_Object font_spec, frame, num, prefer;
+  (Lisp_Object font_spec, Lisp_Object frame, Lisp_Object num, Lisp_Object prefer)
 {
   Lisp_Object vec, list;
   int n = 0;
@@ -4337,8 +4328,7 @@ how close they are to PREFER.  */)
 DEFUN ("font-family-list", Ffont_family_list, Sfont_family_list, 0, 1, 0,
        doc: /* List available font families on the current frame.
 Optional argument FRAME, if non-nil, specifies the target frame.  */)
-     (frame)
-     Lisp_Object frame;
+  (Lisp_Object frame)
 {
   FRAME_PTR f;
   struct font_driver_list *driver_list;
@@ -4367,8 +4357,7 @@ Optional argument FRAME, if non-nil, specifies the target frame.  */)
 DEFUN ("find-font", Ffind_font, Sfind_font, 1, 2, 0,
        doc: /* Return a font-entity matching with FONT-SPEC on the current frame.
 Optional 2nd argument FRAME, if non-nil, specifies the target frame.  */)
-     (font_spec, frame)
-     Lisp_Object font_spec, frame;
+  (Lisp_Object font_spec, Lisp_Object frame)
 {
   Lisp_Object val = Flist_fonts (font_spec, frame, make_number (1), Qnil);
 
@@ -4383,8 +4372,7 @@ FONT is a font-spec, font-entity, or font-object.
 If the name is too long for XLFD (maximum 255 chars), return nil.
 If the 2nd optional arg FOLD-WILDCARDS is non-nil,
 the consecutive wildcards are folded to one.  */)
-     (font, fold_wildcards)
-     Lisp_Object font, fold_wildcards;
+  (Lisp_Object font, Lisp_Object fold_wildcards)
 {
   char name[256];
   int pixel_size = 0;
@@ -4424,7 +4412,7 @@ the consecutive wildcards are folded to one.  */)
 
 DEFUN ("clear-font-cache", Fclear_font_cache, Sclear_font_cache, 0, 0, 0,
        doc: /* Clear font cache.  */)
-     ()
+  (void)
 {
   Lisp_Object list, frame;
 
@@ -4485,8 +4473,7 @@ header of the glyph-string.
 
 If the shaping was successful, the value is GSTRING itself or a newly
 created glyph-string.  Otherwise, the value is nil.  */)
-     (gstring)
-     Lisp_Object gstring;
+  (Lisp_Object gstring)
 {
   struct font *font;
   Lisp_Object font_object, n, glyph;
@@ -4563,8 +4550,7 @@ where
   VARIATION-SELECTOR is a chracter code of variation selection
     (#xFE00..#xFE0F or #xE0100..#xE01EF)
   GLYPH-ID is a glyph code of the corresponding variation glyph.  */)
-     (font_object, character)
-     Lisp_Object font_object, character;
+  (Lisp_Object font_object, Lisp_Object character)
 {
   unsigned variations[256];
   struct font *font;
@@ -4632,8 +4618,7 @@ produced in GSTRING-OUT, and the value is nil.
 
 See the documentation of `font-make-gstring' for the format of
 glyph-string.  */)
-     (otf_features, gstring_in, from, to, gstring_out, index)
-     Lisp_Object otf_features, gstring_in, from, to, gstring_out, index;
+  (Lisp_Object otf_features, Lisp_Object gstring_in, Lisp_Object from, Lisp_Object to, Lisp_Object gstring_out, Lisp_Object index)
 {
   Lisp_Object font_object = LGSTRING_FONT (gstring_in);
   Lisp_Object val;
@@ -4683,8 +4668,7 @@ The value is a list of cons cells of the format (GLYPH-ID . CHARACTER),
 where GLYPH-ID is a glyph index of the font, and CHARACTER is a
 character code corresponding to the glyph or nil if there's no
 corresponding character.  */)
-     (font_object, character, otf_features)
-     Lisp_Object font_object, character, otf_features;
+  (Lisp_Object font_object, Lisp_Object character, Lisp_Object otf_features)
 {
   struct font *font;
   Lisp_Object gstring_in, gstring_out, g;
@@ -4725,10 +4709,7 @@ corresponding character.  */)
 
 DEFUN ("open-font", Fopen_font, Sopen_font, 1, 3, 0,
        doc: /* Open FONT-ENTITY.  */)
-     (font_entity, size, frame)
-     Lisp_Object font_entity;
-     Lisp_Object size;
-     Lisp_Object frame;
+  (Lisp_Object font_entity, Lisp_Object size, Lisp_Object frame)
 {
   int isize;
 
@@ -4754,8 +4735,7 @@ DEFUN ("open-font", Fopen_font, Sopen_font, 1, 3, 0,
 
 DEFUN ("close-font", Fclose_font, Sclose_font, 1, 2, 0,
        doc: /* Close FONT-OBJECT.  */)
-     (font_object, frame)
-     Lisp_Object font_object, frame;
+  (Lisp_Object font_object, Lisp_Object frame)
 {
   CHECK_FONT_OBJECT (font_object);
   if (NILP (frame))
@@ -4806,8 +4786,7 @@ representing the default langsys.
 FEATURE is a symbol representing OpenType feature tag.
 
 If the font is not OpenType font, CAPABILITY is nil.  */)
-     (font_object)
-     Lisp_Object font_object;
+  (Lisp_Object font_object)
 {
   struct font *font;
   Lisp_Object val;
@@ -4847,8 +4826,8 @@ where
   ADJUSTMENT is always nil.
 If FONT-OBJECT doesn't have a glyph for a character,
 the corresponding element is nil.  */)
-     (font_object, from, to, object)
-     Lisp_Object font_object, from, to, object;
+  (Lisp_Object font_object, Lisp_Object from, Lisp_Object to,
+   Lisp_Object object)
 {
   struct font *font;
   int i, len, c;
@@ -4949,8 +4928,7 @@ the corresponding element is nil.  */)
 DEFUN ("font-match-p", Ffont_match_p, Sfont_match_p, 2, 2, 0,
        doc: /* Return t if and only if font-spec SPEC matches with FONT.
 FONT is a font-spec, font-entity, or font-object. */)
-     (spec, font)
-     Lisp_Object spec, font;
+  (Lisp_Object spec, Lisp_Object font)
 {
   CHECK_FONT_SPEC (spec);
   CHECK_FONT (font);
@@ -4962,8 +4940,7 @@ DEFUN ("font-at", Ffont_at, Sfont_at, 1, 3, 0,
        doc: /* Return a font-object for displaying a character at POSITION.
 Optional second arg WINDOW, if non-nil, is a window displaying
 the current buffer.  It defaults to the currently selected window.  */)
-     (position, window, string)
-     Lisp_Object position, window, string;
+  (Lisp_Object position, Lisp_Object window, Lisp_Object string)
 {
   struct window *w;
   EMACS_INT pos;
@@ -4996,8 +4973,7 @@ DEFUN ("draw-string", Fdraw_string, Sdraw_string, 2, 2, 0,
        doc: /*  Draw STRING by FONT-OBJECT on the top left corner of the current frame.
 The value is a number of glyphs drawn.
 Type C-l to recover what previously shown.  */)
-     (font_object, string)
-     Lisp_Object font_object, string;
+  (Lisp_Object font_object, Lisp_Object string)
 {
   Lisp_Object frame = selected_frame;
   FRAME_PTR f = XFRAME (frame);
@@ -5051,8 +5027,7 @@ where
   RELATIVE-COMPOSE and DEFAULT-ASCENT are the numbers controlling
     how to compose characters.
 If the named font is not yet loaded, return nil.  */)
-     (name, frame)
-     Lisp_Object name, frame;
+  (Lisp_Object name, Lisp_Object frame)
 {
   FRAME_PTR f;
   struct font *font;

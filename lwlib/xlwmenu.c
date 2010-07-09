@@ -187,9 +187,9 @@ xlwMenuResources[] =
 
 static Boolean XlwMenuSetValues(Widget current, Widget request, Widget new,
                                 ArgList args, Cardinal *num_args);
-static void XlwMenuRealize(Widget w, Mask *valueMask, XSetWindowAttributes *attributes);
+static void XlwMenuRealize(Widget, Mask *, XSetWindowAttributes *);
 static void XlwMenuResize(Widget w);
-static void XlwMenuInitialize(Widget request, Widget mw, ArgList args, Cardinal *num_args);
+static void XlwMenuInitialize(Widget, Widget, ArgList, Cardinal *);
 static void XlwMenuRedisplay(Widget w, XEvent *ev, Region region);
 static void XlwMenuDestroy(Widget w);
 static void XlwMenuClassInitialize(void);
@@ -473,15 +473,13 @@ resource_widget_value (XlwMenuWidget mw, widget_value *val)
 
 /* Returns the sizes of an item */
 static void
-size_menu_item (mw, val, horizontal_p, label_width, rest_width, button_width,
-		height)
-     XlwMenuWidget mw;
-     widget_value* val;
-     int horizontal_p;
-     int* label_width;
-     int* rest_width;
-     int* button_width;
-     int* height;
+size_menu_item (XlwMenuWidget mw,
+                widget_value* val,
+                int horizontal_p,
+                int* label_width,
+                int* rest_width,
+                int* button_width,
+                int* height)
 {
   enum menu_separator separator;
 
@@ -525,12 +523,12 @@ size_menu_item (mw, val, horizontal_p, label_width, rest_width, button_width,
 static void
 size_menu (XlwMenuWidget mw, int level)
 {
-  unsigned int  label_width = 0;
+  int           label_width = 0;
   int		rest_width = 0;
   int		button_width = 0;
   int		max_rest_width = 0;
   int		max_button_width = 0;
-  unsigned int  height = 0;
+  int           height = 0;
   int		horizontal_p = mw->menu.horizontal && (level == 0);
   widget_value*	val;
   window_state*	ws;
@@ -589,7 +587,13 @@ size_menu (XlwMenuWidget mw, int level)
 /* Display code */
 
 static void
-draw_arrow (XlwMenuWidget mw, Window window, GC gc, int x, int y, int width, int down_p)
+draw_arrow (XlwMenuWidget mw,
+            Window window,
+            GC gc,
+            int x,
+            int y,
+            int width,
+            int down_p)
 {
   Display *dpy = XtDisplay (mw);
   GC top_gc = mw->menu.shadow_top_gc;
@@ -646,7 +650,14 @@ draw_arrow (XlwMenuWidget mw, Window window, GC gc, int x, int y, int width, int
 
 
 static void
-draw_shadow_rectangle (XlwMenuWidget mw, Window window, int x, int y, int width, int height, int erase_p, int down_p)
+draw_shadow_rectangle (XlwMenuWidget mw,
+                       Window window,
+                       int x,
+                       int y,
+                       int width,
+                       int height,
+                       int erase_p,
+                       int down_p)
 {
   Display *dpy = XtDisplay (mw);
   GC top_gc = !erase_p ? mw->menu.shadow_top_gc : mw->menu.background_gc;
@@ -702,7 +713,14 @@ draw_shadow_rectangle (XlwMenuWidget mw, Window window, int x, int y, int width,
 
 
 static void
-draw_shadow_rhombus (XlwMenuWidget mw, Window window, int x, int y, int width, int height, int erase_p, int down_p)
+draw_shadow_rhombus (XlwMenuWidget mw,
+                     Window window,
+                     int x,
+                     int y,
+                     int width,
+                     int height,
+                     int erase_p,
+                     int down_p)
 {
   Display *dpy = XtDisplay (mw);
   GC top_gc = !erase_p ? mw->menu.shadow_top_gc : mw->menu.background_gc;
@@ -796,7 +814,12 @@ draw_radio (XlwMenuWidget mw, Window window, int x, int y, int selected_p)
    separator to draw.  TYPE is the separator type.  */
 
 static void
-draw_separator (XlwMenuWidget mw, Window window, int x, int y, int width, enum menu_separator type)
+draw_separator (XlwMenuWidget mw,
+                Window window,
+                int x,
+                int y,
+                int width,
+                enum menu_separator type)
 {
   Display *dpy = XtDisplay (mw);
   XGCValues xgcv;
@@ -946,15 +969,13 @@ separator_height (enum menu_separator separator)
    the menu item was.  */
 
 static void
-display_menu_item (mw, val, ws, where, highlighted_p, horizontal_p,
-		   just_compute_p)
-     XlwMenuWidget mw;
-     widget_value* val;
-     window_state* ws;
-     XPoint* where;
-     Boolean highlighted_p;
-     Boolean horizontal_p;
-     Boolean just_compute_p;
+display_menu_item (XlwMenuWidget mw,
+                   widget_value* val,
+                   window_state* ws,
+                   XPoint* where,
+                   Boolean highlighted_p,
+                   Boolean horizontal_p,
+                   Boolean just_compute_p)
 {
   GC deco_gc;
   GC text_gc;
@@ -1137,7 +1158,12 @@ display_menu_item (mw, val, ws, where, highlighted_p, horizontal_p,
 }
 
 static void
-display_menu (XlwMenuWidget mw, int level, Boolean just_compute_p, XPoint *highlighted_pos, XPoint *hit, widget_value **hit_return)
+display_menu (XlwMenuWidget mw,
+              int level,
+              Boolean just_compute_p,
+              XPoint *highlighted_pos,
+              XPoint *hit,
+              widget_value **hit_return)
 {
   widget_value*	val;
   widget_value* following_item;
@@ -1345,7 +1371,10 @@ xlwmenu_window_p (Widget w, Window window)
 
 /* Make the window fit in the screen */
 static void
-fit_to_screen (XlwMenuWidget mw, window_state *ws, window_state *previous_ws, Boolean horizontal_p)
+fit_to_screen (XlwMenuWidget mw,
+               window_state *ws,
+               window_state *previous_ws,
+               Boolean horizontal_p)
 {
   unsigned int screen_width = WidthOfScreen (XtScreen (mw));
   unsigned int screen_height = HeightOfScreen (XtScreen (mw));
@@ -1519,7 +1548,10 @@ remap_menubar (XlwMenuWidget mw)
 }
 
 static Boolean
-motion_event_is_in_menu (XlwMenuWidget mw, XMotionEvent *ev, int level, XPoint *relative_pos)
+motion_event_is_in_menu (XlwMenuWidget mw,
+                         XMotionEvent *ev,
+                         int level,
+                         XPoint *relative_pos)
 {
   window_state* ws = &mw->menu.windows [level];
   int shadow = level == 0 ? 0 : mw->menu.shadow_thickness;
@@ -1532,7 +1564,10 @@ motion_event_is_in_menu (XlwMenuWidget mw, XMotionEvent *ev, int level, XPoint *
 }
 
 static Boolean
-map_event_to_widget_value (XlwMenuWidget mw, XMotionEvent *ev, widget_value **val, int *level)
+map_event_to_widget_value (XlwMenuWidget mw,
+                           XMotionEvent *ev,
+                           widget_value **val,
+                           int *level)
 {
   int 		i;
   XPoint	relative_pos;

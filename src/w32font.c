@@ -2329,8 +2329,7 @@ Return fontconfig style font string corresponding to the selection.
 If FRAME is omitted or nil, it defaults to the selected frame.
 If EXCLUDE-PROPORTIONAL is non-nil, exclude proportional fonts
 in the font selection dialog. */)
-  (frame, exclude_proportional)
-     Lisp_Object frame, exclude_proportional;
+  (Lisp_Object frame, Lisp_Object exclude_proportional)
 {
   FRAME_PTR f = check_x_frame (frame);
   CHOOSEFONT cf;

@@ -58,8 +58,7 @@ typedef struct _widget_info
   struct _widget_info*		next;
 } widget_info;
 
-typedef Widget
-(*widget_creation_function) ();
+typedef Widget (*widget_creation_function) (widget_instance *instance);
 
 typedef struct _widget_creation_entry
 {

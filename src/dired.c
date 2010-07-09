@@ -366,8 +366,7 @@ If MATCH is non-nil, mention only file names that match the regexp MATCH.
 If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
  Otherwise, the list returned is sorted with `string-lessp'.
  NOSORT is useful if you plan to sort the result yourself.  */)
-     (directory, full, match, nosort)
-     Lisp_Object directory, full, match, nosort;
+  (Lisp_Object directory, Lisp_Object full, Lisp_Object match, Lisp_Object nosort)
 {
   Lisp_Object handler;
   directory = Fexpand_file_name (directory, Qnil);
@@ -395,8 +394,7 @@ ID-FORMAT specifies the preferred format of attributes uid and gid, see
 `file-attributes' for further documentation.
 On MS-Windows, performance depends on `w32-get-true-file-attributes',
 which see.  */)
-     (directory, full, match, nosort, id_format)
-     Lisp_Object directory, full, match, nosort, id_format;
+  (Lisp_Object directory, Lisp_Object full, Lisp_Object match, Lisp_Object nosort, Lisp_Object id_format)
 {
   Lisp_Object handler;
   directory = Fexpand_file_name (directory, Qnil);
@@ -427,8 +425,7 @@ completion (in absolute form) and ignore it if PREDICATE returns nil.
 
 This function ignores some of the possible completions as
 determined by the variable `completion-ignored-extensions', which see.  */)
-     (file, directory, predicate)
-     Lisp_Object file, directory, predicate;
+  (Lisp_Object file, Lisp_Object directory, Lisp_Object predicate)
 {
   Lisp_Object handler;
 
@@ -451,8 +448,7 @@ DEFUN ("file-name-all-completions", Ffile_name_all_completions,
        Sfile_name_all_completions, 2, 2, 0,
        doc: /* Return a list of all completions of file name FILE in directory DIRECTORY.
 These are all file names in directory DIRECTORY which begin with FILE.  */)
-     (file, directory)
-     Lisp_Object file, directory;
+  (Lisp_Object file, Lisp_Object directory)
 {
   Lisp_Object handler;
 
@@ -959,8 +955,7 @@ which see.
 
 On some FAT-based filesystems, only the date of last access is recorded,
 so last access time will always be midnight of that day.  */)
-     (filename, id_format)
-     Lisp_Object filename, id_format;
+  (Lisp_Object filename, Lisp_Object id_format)
 {
   Lisp_Object values[12];
   Lisp_Object encoded;
@@ -1082,8 +1077,7 @@ so last access time will always be midnight of that day.  */)
 DEFUN ("file-attributes-lessp", Ffile_attributes_lessp, Sfile_attributes_lessp, 2, 2, 0,
        doc: /* Return t if first arg file attributes list is less than second.
 Comparison is in lexicographic order and case is significant.  */)
-     (f1, f2)
-     Lisp_Object f1, f2;
+  (Lisp_Object f1, Lisp_Object f2)
 {
   return Fstring_lessp (Fcar (f1), Fcar (f2));
 }

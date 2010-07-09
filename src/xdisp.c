@@ -10524,8 +10524,7 @@ tool_bar_lines_needed (struct frame *f, int *n_rows)
 DEFUN ("tool-bar-lines-needed", Ftool_bar_lines_needed, Stool_bar_lines_needed,
        0, 1, 0,
        doc: /* Return the number of lines occupied by the tool bar of FRAME.  */)
-     (frame)
-     Lisp_Object frame;
+  (Lisp_Object frame)
 {
   struct frame *f;
   struct window *w;
@@ -16370,8 +16369,7 @@ DEFUN ("dump-glyph-matrix", Fdump_glyph_matrix,
 Shows contents of glyph row structures.  With non-nil
 parameter GLYPHS, dump glyphs as well.  If GLYPHS is 1 show
 glyphs in short form, otherwise show glyphs in long form.  */)
-     (glyphs)
-     Lisp_Object glyphs;
+  (Lisp_Object glyphs)
 {
   struct window *w = XWINDOW (selected_window);
   struct buffer *buffer = XBUFFER (w->buffer);
@@ -16389,7 +16387,7 @@ glyphs in short form, otherwise show glyphs in long form.  */)
 
 DEFUN ("dump-frame-glyph-matrix", Fdump_frame_glyph_matrix,
        Sdump_frame_glyph_matrix, 0, 0, "", doc: /* */)
-     ()
+  (void)
 {
   struct frame *f = XFRAME (selected_frame);
   dump_glyph_matrix (f->current_matrix, 1);
@@ -16402,8 +16400,7 @@ DEFUN ("dump-glyph-row", Fdump_glyph_row, Sdump_glyph_row, 1, 2, "",
 GLYPH 0 means don't dump glyphs.
 GLYPH 1 means dump glyphs in short form.
 GLYPH > 1 or omitted means dump glyphs in long form.  */)
-     (row, glyphs)
-     Lisp_Object row, glyphs;
+  (Lisp_Object row, Lisp_Object glyphs)
 {
   struct glyph_matrix *matrix;
   int vpos;
@@ -16424,8 +16421,7 @@ DEFUN ("dump-tool-bar-row", Fdump_tool_bar_row, Sdump_tool_bar_row, 1, 2, "",
 GLYPH 0 means don't dump glyphs.
 GLYPH 1 means dump glyphs in short form.
 GLYPH > 1 or omitted means dump glyphs in long form.  */)
-     (row, glyphs)
-     Lisp_Object row, glyphs;
+  (Lisp_Object row, Lisp_Object glyphs)
 {
   struct frame *sf = SELECTED_FRAME ();
   struct glyph_matrix *m = XWINDOW (sf->tool_bar_window)->current_matrix;
@@ -16443,8 +16439,7 @@ GLYPH > 1 or omitted means dump glyphs in long form.  */)
 DEFUN ("trace-redisplay", Ftrace_redisplay, Strace_redisplay, 0, 1, "P",
        doc: /* Toggle tracing of redisplay.
 With ARG, turn tracing on if and only if ARG is positive.  */)
-     (arg)
-     Lisp_Object arg;
+  (Lisp_Object arg)
 {
   if (NILP (arg))
     trace_redisplay_p = !trace_redisplay_p;
@@ -16461,9 +16456,7 @@ With ARG, turn tracing on if and only if ARG is positive.  */)
 DEFUN ("trace-to-stderr", Ftrace_to_stderr, Strace_to_stderr, 1, MANY, "",
        doc: /* Like `format', but print result to stderr.
 usage: (trace-to-stderr STRING &rest OBJECTS)  */)
-     (nargs, args)
-     int nargs;
-     Lisp_Object *args;
+  (int nargs, Lisp_Object *args)
 {
   Lisp_Object s = Fformat (nargs, args);
   fprintf (stderr, "%s", SDATA (s));
@@ -17982,8 +17975,7 @@ and the reading direction is generally left to right.  In right-to-left
 paragraphs, text begins at the right margin and is read from right to left.
 
 See also `bidi-paragraph-direction'.  */)
-     (buffer)
-     Lisp_Object buffer;
+  (Lisp_Object buffer)
 {
   struct buffer *buf;
   struct buffer *old;
@@ -18947,8 +18939,7 @@ If FACE is an integer, the value string has no text properties.
 Optional third and fourth args WINDOW and BUFFER specify the window
 and buffer to use as the context for the formatting (defaults
 are the selected window and the window's buffer).  */)
-     (format, face, window, buffer)
-     Lisp_Object format, face, window, buffer;
+  (Lisp_Object format, Lisp_Object face, Lisp_Object window, Lisp_Object buffer)
 {
   struct it it;
   int len;
@@ -20068,8 +20059,7 @@ is checked; or it can be some other value, which is then presumed to be the
 value of the `invisible' property of the text of interest.
 The non-nil value returned can be t for truly invisible text or something
 else if the text is replaced by an ellipsis.  */)
-     (pos_or_prop)
-     Lisp_Object pos_or_prop;
+  (Lisp_Object pos_or_prop)
 {
   Lisp_Object prop
     = (NATNUMP (pos_or_prop) || MARKERP (pos_or_prop)
@@ -24230,9 +24220,7 @@ and the radius of the circle; r may be a float or integer.
 A polygon is a cons (poly . [x0 y0 x1 y1 ...]) where each pair in the
 vector describes one corner in the polygon.
 Returns the alist element for the first matching AREA in MAP.  */)
-     (map, x, y)
-     Lisp_Object map;
-     Lisp_Object x, y;
+  (Lisp_Object map, Lisp_Object x, Lisp_Object y)
 {
   if (NILP (map))
     return Qnil;

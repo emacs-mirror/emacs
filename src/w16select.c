@@ -453,8 +453,7 @@ static char system_error_msg[] =
 
 DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_data, 1, 2, 0,
        doc: /* This sets the clipboard data to the given text.  */)
-     (string, frame)
-     Lisp_Object string, frame;
+  (Lisp_Object string, Lisp_Object frame)
 {
   unsigned ok = 1, put_status = 0;
   int nbytes, charset_info, no_crlf_conversion;
@@ -563,8 +562,7 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
 
 DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_data, 0, 1, 0,
        doc: /* This gets the clipboard data in text format.  */)
-     (frame)
-     Lisp_Object frame;
+  (Lisp_Object frame)
 {
   unsigned data_size, truelen;
   unsigned char *htext = NULL;
@@ -658,8 +656,7 @@ the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
 \(Those are literal upper-case symbol names, since that's what X expects.)
 For convenience, the symbol nil is the same as `PRIMARY',
 and t is the same as `SECONDARY'.  */)
-     (selection)
-     Lisp_Object selection;
+  (Lisp_Object selection)
 {
   CHECK_SYMBOL (selection);
 

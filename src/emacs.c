@@ -585,7 +585,7 @@ init_cmdargs (int argc, char **argv, int skip_args)
 DEFUN ("invocation-name", Finvocation_name, Sinvocation_name, 0, 0, 0,
        doc: /* Return the program name that was used to run Emacs.
 Any directory names are omitted.  */)
-     ()
+  (void)
 {
   return Fcopy_sequence (Vinvocation_name);
 }
@@ -593,7 +593,7 @@ Any directory names are omitted.  */)
 DEFUN ("invocation-directory", Finvocation_directory, Sinvocation_directory,
        0, 0, 0,
        doc: /* Return the directory name in which the Emacs executable was located.  */)
-     ()
+  (void)
 {
   return Fcopy_sequence (Vinvocation_directory);
 }
@@ -2074,8 +2074,7 @@ If ARG is a string, stuff it as keyboard input.
 The value of `kill-emacs-hook', if not void,
 is a list of functions (of no args),
 all of which are called before Emacs is actually killed.  */)
-     (arg)
-     Lisp_Object arg;
+  (Lisp_Object arg)
 {
   struct gcpro gcpro1;
 
@@ -2205,8 +2204,7 @@ Take symbols from SYMFILE (presumably the file you executed to run Emacs).
 This is used in the file `loadup.el' when building Emacs.
 
 You must run Emacs in batch mode in order to dump it.  */)
-     (filename, symfile)
-     Lisp_Object filename, symfile;
+  (Lisp_Object filename, Lisp_Object symfile)
 {
   extern char my_edata[];
   Lisp_Object tem;
@@ -2409,7 +2407,7 @@ decode_env_path (evarname, defalt)
 DEFUN ("daemonp", Fdaemonp, Sdaemonp, 0, 0, 0,
        doc: /* Return non-nil if the current emacs process is a daemon.
 If the daemon was given a name argument, return that name. */)
-  ()
+  (void)
 {
   if (IS_DAEMON)
     if (daemon_name)
@@ -2424,7 +2422,7 @@ DEFUN ("daemon-initialized", Fdaemon_initialized, Sdaemon_initialized, 0, 0, 0,
        doc: /* Mark the Emacs daemon as being initialized.
 This finishes the daemonization process by doing the other half of detaching
 from the parent process and its tty file descriptors.  */)
-  ()
+  (void)
 {
   int nfd;
 
