@@ -4830,6 +4830,39 @@ CFLAGS="$SAVE_CFLAGS"
 unset has_option
 unset SAVE_CFLAGS
 
+### Use -Wold-style-definition if the compiler supports it
+# This can be removed when conversion to standard C is finished.
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether gcc understands -Wold-style-definition" >&5
+$as_echo_n "checking whether gcc understands -Wold-style-definition... " >&6; }
+SAVE_CFLAGS="$CFLAGS"
+CFLAGS="$CFLAGS -Wold-style-definition"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  has_option=yes
+else
+  has_option=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+if test $has_option = yes; then
+   C_WARNINGS_SWITCH="-Wold-style-definition $C_WARNINGS_SWITCH"
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $has_option" >&5
+$as_echo "$has_option" >&6; }
+CFLAGS="$SAVE_CFLAGS"
+unset has_option
+unset SAVE_CFLAGS
+
+
 #### Some other nice autoconf tests.
 
 ac_ext=c
