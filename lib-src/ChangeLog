@@ -1,3 +1,7 @@
+2010-07-09  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* make-docfile.c (write_c_args): Restructure scanning loop.
+
 2010-07-09  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* make-docfile.c (write_c_args): Deal with type names in DEFUN
