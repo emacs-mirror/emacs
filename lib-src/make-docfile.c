@@ -450,9 +450,24 @@ write_c_args (FILE *out, char *func, char *buf, int minargs, int maxargs)
 
   for (p = buf; *p; p++)
     {
-      char c = *p;
+      char c;
       int ident_start = 0;
 
+      /* FIXME: this must be made a bit more robust*/
+      
+      /* Skip "register Lisp_Object", this can be removed when we get
+	 rid of "register" for DEFUNs. */
+      if (strncmp ("register Lisp_Object", p, 20) == 0)
+	p += 20;
+
+      if (strncmp ("Lisp_Object", p, 11) == 0)
+	p += 11;
+
+      if (strncmp ("void", p, 4) == 0)
+	p += 4;
+
+      c  = *p;
+      
       /* Notice when we start printing a new identifier.  */
       if ((('A' <= c && c <= 'Z')
 	   || ('a' <= c && c <= 'z')
