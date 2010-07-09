@@ -714,9 +714,11 @@ xd_retrieve_arg (unsigned int dtype, DBusMessageIter *iter)
 }
 
 /* Initialize D-Bus connection.  BUS is a Lisp symbol, either :system
-   or :session.  It tells which D-Bus to be initialized.  */
+   or :session.  It tells which D-Bus to be initialized.  RAISE_ERROR
+   can be TRUE or FALSE, it controls whether an error is signalled in
+   case the connection cannot be initialized.  */
 static DBusConnection *
-xd_initialize (Lisp_Object bus)
+xd_initialize (Lisp_Object bus, int raise_error)
 {
   DBusConnection *connection;
   DBusError derror;
@@ -724,12 +726,18 @@ xd_initialize (Lisp_Object bus)
   /* Parameter check.  */
   CHECK_SYMBOL (bus);
   if (!(EQ (bus, QCdbus_system_bus) || EQ (bus, QCdbus_session_bus)))
-    XD_SIGNAL2 (build_string ("Wrong bus name"), bus);
+    if (raise_error == TRUE)
+      XD_SIGNAL2 (build_string ("Wrong bus name"), bus);
+    else
+      return NULL;
 
   /* We do not want to have an autolaunch for the session bus.  */
   if (EQ (bus, QCdbus_session_bus)
       && getenv ("DBUS_SESSION_BUS_ADDRESS") == NULL)
-    XD_SIGNAL2 (build_string ("No connection to bus"), bus);
+    if (raise_error == TRUE)
+      XD_SIGNAL2 (build_string ("No connection to bus"), bus);
+    else
+      return NULL;
 
   /* Open a connection to the bus.  */
   dbus_error_init (&derror);
@@ -740,9 +748,12 @@ xd_initialize (Lisp_Object bus)
     connection = dbus_bus_get (DBUS_BUS_SESSION, &derror);
 
   if (dbus_error_is_set (&derror))
-    XD_ERROR (derror);
+    if (raise_error == TRUE)
+      XD_ERROR (derror);
+    else
+      connection = NULL;
 
-  if (connection == NULL)
+  if ((connection == NULL) && (raise_error == TRUE))
     XD_SIGNAL2 (build_string ("No connection to bus"), bus);
 
   /* Cleanup.  */
@@ -829,7 +840,7 @@ This is an internal function, it shall not be used outside dbus.el.  */)
   CHECK_SYMBOL (bus);
 
   /* Open a connection to the bus.  */
-  connection = xd_initialize (bus);
+  connection = xd_initialize (bus, TRUE);
 
   /* Add the watch functions.  We pass also the bus as data, in order
      to distinguish between the busses in xd_remove_watch.  */
@@ -855,7 +866,7 @@ DEFUN ("dbus-get-unique-name", Fdbus_get_unique_name, Sdbus_get_unique_name,
   CHECK_SYMBOL (bus);
 
   /* Open a connection to the bus.  */
-  connection = xd_initialize (bus);
+  connection = xd_initialize (bus, TRUE);
 
   /* Request the name.  */
   name = dbus_bus_get_unique_name (connection);
@@ -970,7 +981,7 @@ usage: (dbus-call-method BUS SERVICE PATH INTERFACE METHOD &optional :timeout TI
 		    SDATA (method));
 
   /* Open a connection to the bus.  */
-  connection = xd_initialize (bus);
+  connection = xd_initialize (bus, TRUE);
 
   /* Create the message.  */
   dmessage = dbus_message_new_method_call (SDATA (service),
@@ -1153,7 +1164,7 @@ usage: (dbus-call-method-asynchronously BUS SERVICE PATH INTERFACE METHOD HANDLE
 		    SDATA (method));
 
   /* Open a connection to the bus.  */
-  connection = xd_initialize (bus);
+  connection = xd_initialize (bus, TRUE);
 
   /* Create the message.  */
   dmessage = dbus_message_new_method_call (SDATA (service),
@@ -1268,7 +1279,7 @@ usage: (dbus-method-return-internal BUS SERIAL SERVICE &rest ARGS)  */)
   XD_DEBUG_MESSAGE ("%lu %s ", (unsigned long) XUINT (serial), SDATA (service));
 
   /* Open a connection to the bus.  */
-  connection = xd_initialize (bus);
+  connection = xd_initialize (bus, TRUE);
 
   /* Create the message.  */
   dmessage = dbus_message_new (DBUS_MESSAGE_TYPE_METHOD_RETURN);
@@ -1360,7 +1371,7 @@ usage: (dbus-method-error-internal BUS SERIAL SERVICE &rest ARGS)  */)
   XD_DEBUG_MESSAGE ("%lu %s ", (unsigned long) XUINT (serial), SDATA (service));
 
   /* Open a connection to the bus.  */
-  connection = xd_initialize (bus);
+  connection = xd_initialize (bus, TRUE);
 
   /* Create the message.  */
   dmessage = dbus_message_new (DBUS_MESSAGE_TYPE_ERROR);
@@ -1483,7 +1494,7 @@ usage: (dbus-send-signal BUS SERVICE PATH INTERFACE SIGNAL &rest ARGS)  */)
 		    SDATA (signal));
 
   /* Open a connection to the bus.  */
-  connection = xd_initialize (bus);
+  connection = xd_initialize (bus, TRUE);
 
   /* Create the message.  */
   dmessage = dbus_message_new_signal (SDATA (path),
@@ -1548,7 +1559,8 @@ xd_get_dispatch_status (Lisp_Object bus)
   DBusConnection *connection;
 
   /* Open a connection to the bus.  */
-  connection = xd_initialize (bus);
+  connection = xd_initialize (bus, FALSE);
+  if (connection == NULL) return FALSE;
 
   /* Non blocking read of the next available message.  */
   dbus_connection_read_write (connection, 0);
@@ -1592,7 +1604,7 @@ xd_read_message (Lisp_Object bus)
   const char *uname, *path, *interface, *member;
 
   /* Open a connection to the bus.  */
-  connection = xd_initialize (bus);
+  connection = xd_initialize (bus, TRUE);
 
   /* Non blocking read of the next available message.  */
   dbus_connection_read_write (connection, 0);
@@ -1842,7 +1854,7 @@ usage: (dbus-register-signal BUS SERVICE PATH INTERFACE SIGNAL HANDLER &rest ARG
   if (NILP (uname) || (SBYTES (uname) > 0))
     {
       /* Open a connection to the bus.  */
-      connection = xd_initialize (bus);
+      connection = xd_initialize (bus, TRUE);
 
       /* Create a rule to receive related signals.  */
       sprintf (rule,
@@ -1932,7 +1944,7 @@ used for composing the returning D-Bus message.  */)
      a segmentation fault.  */
 
   /* Open a connection to the bus.  */
-  connection = xd_initialize (bus);
+  connection = xd_initialize (bus, TRUE);
 
   /* Request the known name from the bus.  We can ignore the result,
      it is set to -1 if there is an error - kind of redundancy.  */
