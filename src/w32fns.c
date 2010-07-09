@@ -475,8 +475,7 @@ DEFUN ("w32-define-rgb-color", Fw32_define_rgb_color,
 This adds or updates a named color to `w32-color-map', making it
 available for use.  The original entry's RGB ref is returned, or nil
 if the entry is new.  */)
-    (red, green, blue, name)
-    Lisp_Object red, green, blue, name;
+  (Lisp_Object red, Lisp_Object green, Lisp_Object blue, Lisp_Object name)
 {
   Lisp_Object rgb;
   Lisp_Object oldrgb = Qnil;
@@ -762,7 +761,7 @@ colormap_t w32_color_map[] =
 
 DEFUN ("w32-default-color-map", Fw32_default_color_map, Sw32_default_color_map,
        0, 0, 0, doc: /* Return the default color map.  */)
-     ()
+  (void)
 {
   int i;
   colormap_t *pc = w32_color_map;
@@ -4191,8 +4190,7 @@ then `default-minibuffer-frame' must be a frame whose minibuffer can
 be shared by the new frame.
 
 This function is an internal primitive--use `make-frame' instead.  */)
-  (parameters)
-     Lisp_Object parameters;
+  (Lisp_Object parameters)
 {
   struct frame *f;
   Lisp_Object frame, tem;
@@ -4520,8 +4518,7 @@ x_get_focus_frame (struct frame *frame)
 
 DEFUN ("x-focus-frame", Fx_focus_frame, Sx_focus_frame, 1, 1, 0,
        doc: /* Give FRAME input focus, raising to foreground if necessary.  */)
-  (frame)
-     Lisp_Object frame;
+  (Lisp_Object frame)
 {
   x_focus_on_frame (check_x_frame (frame));
   return Qnil;
@@ -4530,8 +4527,7 @@ DEFUN ("x-focus-frame", Fx_focus_frame, Sx_focus_frame, 1, 1, 0,
 
 DEFUN ("xw-color-defined-p", Fxw_color_defined_p, Sxw_color_defined_p, 1, 2, 0,
        doc: /* Internal function called by `color-defined-p', which see.  */)
-  (color, frame)
-     Lisp_Object color, frame;
+  (Lisp_Object color, Lisp_Object frame)
 {
   XColor foo;
   FRAME_PTR f = check_x_frame (frame);
@@ -4546,8 +4542,7 @@ DEFUN ("xw-color-defined-p", Fxw_color_defined_p, Sxw_color_defined_p, 1, 2, 0,
 
 DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
        doc: /* Internal function called by `color-values', which see.  */)
-  (color, frame)
-     Lisp_Object color, frame;
+  (Lisp_Object color, Lisp_Object frame)
 {
   XColor foo;
   FRAME_PTR f = check_x_frame (frame);
@@ -4567,8 +4562,7 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
 
 DEFUN ("xw-display-color-p", Fxw_display_color_p, Sxw_display_color_p, 0, 1, 0,
        doc: /* Internal function called by `display-color-p', which see.  */)
-  (display)
-     Lisp_Object display;
+  (Lisp_Object display)
 {
   struct w32_display_info *dpyinfo = check_x_display_info (display);
 
@@ -4585,8 +4579,7 @@ Note that color displays do support shades of gray.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-  (display)
-     Lisp_Object display;
+  (Lisp_Object display)
 {
   struct w32_display_info *dpyinfo = check_x_display_info (display);
 
@@ -4602,8 +4595,7 @@ DEFUN ("x-display-pixel-width", Fx_display_pixel_width,
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-  (display)
-     Lisp_Object display;
+  (Lisp_Object display)
 {
   struct w32_display_info *dpyinfo = check_x_display_info (display);
 
@@ -4616,8 +4608,7 @@ DEFUN ("x-display-pixel-height", Fx_display_pixel_height,
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-  (display)
-     Lisp_Object display;
+  (Lisp_Object display)
 {
   struct w32_display_info *dpyinfo = check_x_display_info (display);
 
@@ -4630,8 +4621,7 @@ DEFUN ("x-display-planes", Fx_display_planes, Sx_display_planes,
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-  (display)
-     Lisp_Object display;
+  (Lisp_Object display)
 {
   struct w32_display_info *dpyinfo = check_x_display_info (display);
 
@@ -4644,8 +4634,7 @@ DEFUN ("x-display-color-cells", Fx_display_color_cells, Sx_display_color_cells,
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-  (display)
-     Lisp_Object display;
+  (Lisp_Object display)
 {
   struct w32_display_info *dpyinfo = check_x_display_info (display);
   HDC hdc;
@@ -4674,8 +4663,7 @@ DEFUN ("x-server-max-request-size", Fx_server_max_request_size,
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-  (display)
-     Lisp_Object display;
+  (Lisp_Object display)
 {
   struct w32_display_info *dpyinfo = check_x_display_info (display);
 
@@ -4687,8 +4675,7 @@ DEFUN ("x-server-vendor", Fx_server_vendor, Sx_server_vendor, 0, 1, 0,
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-  (display)
-     Lisp_Object display;
+  (Lisp_Object display)
 {
   return build_string ("Microsoft Corp.");
 }
@@ -4702,8 +4689,7 @@ release number.  See also the function `x-server-vendor'.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-  (display)
-     Lisp_Object display;
+  (Lisp_Object display)
 {
   return Fcons (make_number (w32_major_version),
 		Fcons (make_number (w32_minor_version),
@@ -4715,8 +4701,7 @@ DEFUN ("x-display-screens", Fx_display_screens, Sx_display_screens, 0, 1, 0,
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-  (display)
-     Lisp_Object display;
+  (Lisp_Object display)
 {
   return make_number (1);
 }
@@ -4727,8 +4712,7 @@ DEFUN ("x-display-mm-height", Fx_display_mm_height,
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-  (display)
-     Lisp_Object display;
+  (Lisp_Object display)
 {
   struct w32_display_info *dpyinfo = check_x_display_info (display);
   HDC hdc;
@@ -4748,8 +4732,7 @@ DEFUN ("x-display-mm-width", Fx_display_mm_width, Sx_display_mm_width, 0, 1, 0,
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-  (display)
-     Lisp_Object display;
+  (Lisp_Object display)
 {
   struct w32_display_info *dpyinfo = check_x_display_info (display);
 
@@ -4772,8 +4755,7 @@ The value may be `always', `when-mapped', or `not-useful'.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-  (display)
-     Lisp_Object display;
+  (Lisp_Object display)
 {
   return intern ("not-useful");
 }
@@ -4787,8 +4769,7 @@ The value is one of the symbols `static-gray', `gray-scale',
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-	(display)
-     Lisp_Object display;
+  (Lisp_Object display)
 {
   struct w32_display_info *dpyinfo = check_x_display_info (display);
   Lisp_Object result = Qnil;
@@ -4811,8 +4792,7 @@ DEFUN ("x-display-save-under", Fx_display_save_under,
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-  (display)
-     Lisp_Object display;
+  (Lisp_Object display)
 {
   return Qnil;
 }
@@ -4891,8 +4871,7 @@ DISPLAY is the name of the display to connect to.
 Optional second arg XRM-STRING is a string of resources in xrdb format.
 If the optional third arg MUST-SUCCEED is non-nil,
 terminate Emacs if we can't open the connection.  */)
-  (display, xrm_string, must_succeed)
-     Lisp_Object display, xrm_string, must_succeed;
+  (Lisp_Object display, Lisp_Object xrm_string, Lisp_Object must_succeed)
 {
   unsigned char *xrm_option;
   struct w32_display_info *dpyinfo;
@@ -4980,8 +4959,7 @@ DEFUN ("x-close-connection", Fx_close_connection,
        doc: /* Close the connection to DISPLAY's server.
 For DISPLAY, specify either a frame or a display name (a string).
 If DISPLAY is nil, that stands for the selected frame's display.  */)
-  (display)
-  Lisp_Object display;
+  (Lisp_Object display)
 {
   struct w32_display_info *dpyinfo = check_x_display_info (display);
   int i;
@@ -5000,7 +4978,7 @@ If DISPLAY is nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-list", Fx_display_list, Sx_display_list, 0, 0, 0,
        doc: /* Return the list of display names that Emacs has connections to.  */)
-  ()
+  (void)
 {
   Lisp_Object tail, result;
 
@@ -5013,8 +4991,7 @@ DEFUN ("x-display-list", Fx_display_list, Sx_display_list, 0, 0, 0,
 
 DEFUN ("x-synchronize", Fx_synchronize, Sx_synchronize, 1, 2, 0,
        doc: /* This is a noop on W32 systems.  */)
-     (on, display)
-     Lisp_Object display, on;
+  (Lisp_Object on, Lisp_Object display)
 {
   return Qnil;
 }
@@ -5043,8 +5020,7 @@ If OUTER_P is non-nil, the property is changed for the outer X window of
 FRAME.  Default is to change on the edit X window.
 
 Value is VALUE.  */)
-     (prop, value, frame, type, format, outer_p)
-     Lisp_Object prop, value, frame, type, format, outer_p;
+  (Lisp_Object prop, Lisp_Object value, Lisp_Object frame, Lisp_Object type, Lisp_Object format, Lisp_Object outer_p)
 {
 #if 0 /* TODO : port window properties to W32 */
   struct frame *f = check_x_frame (frame);
@@ -5073,8 +5049,7 @@ DEFUN ("x-delete-window-property", Fx_delete_window_property,
        Sx_delete_window_property, 1, 2, 0,
        doc: /* Remove window property PROP from X window of FRAME.
 FRAME nil or omitted means use the selected frame.  Value is PROP.  */)
-  (prop, frame)
-     Lisp_Object prop, frame;
+  (Lisp_Object prop, Lisp_Object frame)
 {
 #if 0 /* TODO : port window properties to W32 */
 
@@ -5101,8 +5076,7 @@ DEFUN ("x-window-property", Fx_window_property, Sx_window_property,
 If FRAME is nil or omitted, use the selected frame.  Value is nil
 if FRAME hasn't a property with name PROP or if PROP has no string
 value.  */)
-  (prop, frame)
-     Lisp_Object prop, frame;
+  (Lisp_Object prop, Lisp_Object frame)
 {
 #if 0 /* TODO : port window properties to W32 */
 
@@ -5670,8 +5644,7 @@ DY added (default is -10).
 
 A tooltip's maximum size is specified by `x-max-tooltip-size'.
 Text larger than the specified size is clipped.  */)
-  (string, frame, parms, timeout, dx, dy)
-     Lisp_Object string, frame, parms, timeout, dx, dy;
+  (Lisp_Object string, Lisp_Object frame, Lisp_Object parms, Lisp_Object timeout, Lisp_Object dx, Lisp_Object dy)
 {
   struct frame *f;
   struct window *w;
@@ -5900,7 +5873,7 @@ Text larger than the specified size is clipped.  */)
 DEFUN ("x-hide-tip", Fx_hide_tip, Sx_hide_tip, 0, 0, 0,
        doc: /* Hide the current tooltip window, if there is any.
 Value is t if tooltip was open, nil otherwise.  */)
-  ()
+  (void)
 {
   int count;
   Lisp_Object deleted, frame, timer;
@@ -5996,8 +5969,7 @@ Use a file selection dialog.
 Select DEFAULT-FILENAME in the dialog's file selection box, if
 specified.  Ensure that file exists if MUSTMATCH is non-nil.
 If ONLY-DIR-P is non-nil, the user can only select directories.  */)
-  (prompt, dir, default_filename, mustmatch, only_dir_p)
-     Lisp_Object prompt, dir, default_filename, mustmatch, only_dir_p;
+  (Lisp_Object prompt, Lisp_Object dir, Lisp_Object default_filename, Lisp_Object mustmatch, Lisp_Object only_dir_p)
 {
   struct frame *f = SELECTED_FRAME ();
   Lisp_Object file = Qnil;
@@ -6125,8 +6097,7 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
 DEFUN ("system-move-file-to-trash", Fsystem_move_file_to_trash,
        Ssystem_move_file_to_trash, 1, 1, 0,
        doc: /* Move file or directory named FILENAME to the recycle bin.  */)
-     (filename)
-     Lisp_Object filename;
+  (Lisp_Object filename)
 {
   Lisp_Object handler;
   Lisp_Object encoded_file;
@@ -6188,8 +6159,7 @@ to activate the menubar for keyboard access.  #xf140 activates the
 screen saver if defined.
 
 If optional parameter FRAME is not specified, use selected frame.  */)
-  (command, frame)
-     Lisp_Object command, frame;
+  (Lisp_Object command, Lisp_Object frame)
 {
   FRAME_PTR f = check_x_frame (frame);
 
@@ -6242,8 +6212,7 @@ an integer representing a ShowWindow flag:
   1 - start normally
   3 - start maximized
   6 - start minimized  */)
-  (operation, document, parameters, show_flag)
-     Lisp_Object operation, document, parameters, show_flag;
+  (Lisp_Object operation, Lisp_Object document, Lisp_Object parameters, Lisp_Object show_flag)
 {
   Lisp_Object current_dir;
   char *errstr;
@@ -6380,8 +6349,7 @@ modifier is interpreted as Alt if `w32-alt-is-meta' is t, and hyper
 is always interpreted as the Windows modifier keys.
 
 The return value is the hotkey-id if registered, otherwise nil.  */)
-  (key)
-     Lisp_Object key;
+  (Lisp_Object key)
 {
   key = w32_parse_hot_key (key);
 
@@ -6413,8 +6381,7 @@ The return value is the hotkey-id if registered, otherwise nil.  */)
 DEFUN ("w32-unregister-hot-key", Fw32_unregister_hot_key,
        Sw32_unregister_hot_key, 1, 1, 0,
        doc: /* Unregister KEY as a hot-key combination.  */)
-  (key)
-     Lisp_Object key;
+  (Lisp_Object key)
 {
   Lisp_Object item;
 
@@ -6446,7 +6413,7 @@ DEFUN ("w32-unregister-hot-key", Fw32_unregister_hot_key,
 DEFUN ("w32-registered-hot-keys", Fw32_registered_hot_keys,
        Sw32_registered_hot_keys, 0, 0, 0,
        doc: /* Return list of registered hot-key IDs.  */)
-  ()
+  (void)
 {
   return Fdelq (Qnil, Fcopy_sequence (w32_grabbed_keys));
 }
@@ -6455,8 +6422,7 @@ DEFUN ("w32-reconstruct-hot-key", Fw32_reconstruct_hot_key,
        Sw32_reconstruct_hot_key, 1, 1, 0,
        doc: /* Convert hot-key ID to a lisp key combination.
 usage: (w32-reconstruct-hot-key ID)  */)
-  (hotkeyid)
-     Lisp_Object hotkeyid;
+  (Lisp_Object hotkeyid)
 {
   int vk_code, w32_modifiers;
   Lisp_Object key;
@@ -6490,8 +6456,7 @@ DEFUN ("w32-toggle-lock-key", Fw32_toggle_lock_key,
 KEY can be `capslock', `kp-numlock', or `scroll'.
 If the optional parameter NEW-STATE is a number, then the state of KEY
 is set to off if the low bit of NEW-STATE is zero, otherwise on.  */)
-  (key, new_state)
-     Lisp_Object key, new_state;
+  (Lisp_Object key, Lisp_Object new_state)
 {
   int vk_code;
 
@@ -6527,8 +6492,7 @@ DEFUN ("w32-window-exists-p", Fw32_window_exists_p, Sw32_window_exists_p,
        doc: /* Return non-nil if a window exists with the specified CLASS and NAME.
 
 This is a direct interface to the Windows API FindWindow function.  */)
-  (class, name)
-     Lisp_Object class, name;
+  (Lisp_Object class, Lisp_Object name)
 {
   HWND hnd;
 
@@ -6557,7 +6521,7 @@ The following %-sequences are provided:
 %m Remaining time (to charge or discharge) in minutes
 %h Remaining time (to charge or discharge) in hours
 %t Remaining time (to charge or discharge) in the form `h:min'  */)
-  ()
+  (void)
 {
   Lisp_Object status = Qnil;
 
@@ -6661,8 +6625,7 @@ Value is a list of floats (TOTAL FREE AVAIL), where TOTAL is the total
 storage of the file system, FREE is the free storage, and AVAIL is the
 storage available to a non-superuser.  All 3 numbers are in bytes.
 If the underlying system call fails, value is nil.  */)
-  (filename)
-  Lisp_Object filename;
+  (Lisp_Object filename)
 {
   Lisp_Object encoded, value;
 
@@ -6754,7 +6717,7 @@ If the underlying system call fails, value is nil.  */)
 
 DEFUN ("default-printer-name", Fdefault_printer_name, Sdefault_printer_name,
        0, 0, 0, doc: /* Return the name of Windows default printer device.  */)
-     ()
+  (void)
 {
   static char pname_buf[256];
   int err;

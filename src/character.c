@@ -288,15 +288,14 @@ multibyte_char_to_unibyte_safe (int c)
 
 DEFUN ("characterp", Fcharacterp, Scharacterp, 1, 2, 0,
        doc: /* Return non-nil if OBJECT is a character.  */)
-     (object, ignore)
-     Lisp_Object object, ignore;
+  (Lisp_Object object, Lisp_Object ignore)
 {
   return (CHARACTERP (object) ? Qt : Qnil);
 }
 
 DEFUN ("max-char", Fmax_char, Smax_char, 0, 0, 0,
        doc: /* Return the character of the maximum code.  */)
-     ()
+  (void)
 {
   return make_number (MAX_CHAR);
 }
@@ -304,8 +303,7 @@ DEFUN ("max-char", Fmax_char, Smax_char, 0, 0, 0,
 DEFUN ("unibyte-char-to-multibyte", Funibyte_char_to_multibyte,
        Sunibyte_char_to_multibyte, 1, 1, 0,
        doc: /* Convert the byte CH to multibyte character.  */)
-     (ch)
-     Lisp_Object ch;
+  (Lisp_Object ch)
 {
   int c;
 
@@ -321,8 +319,7 @@ DEFUN ("multibyte-char-to-unibyte", Fmultibyte_char_to_unibyte,
        Smultibyte_char_to_unibyte, 1, 1, 0,
        doc: /* Convert the multibyte character CH to a byte.
 If the multibyte character does not represent a byte, return -1.  */)
-     (ch)
-     Lisp_Object ch;
+  (Lisp_Object ch)
 {
   int cm;
 
@@ -343,8 +340,7 @@ DEFUN ("char-bytes", Fchar_bytes, Schar_bytes, 1, 1, 0,
        doc: /* Return 1 regardless of the argument CHAR.
 This is now an obsolete function.  We keep it just for backward compatibility.
 usage: (char-bytes CHAR)  */)
-     (ch)
-     Lisp_Object ch;
+  (Lisp_Object ch)
 {
   CHECK_CHARACTER (ch);
   return make_number (1);
@@ -355,8 +351,7 @@ DEFUN ("char-width", Fchar_width, Schar_width, 1, 1, 0,
 The width is measured by how many columns it occupies on the screen.
 Tab is taken to occupy `tab-width' columns.
 usage: (char-width CHAR)  */)
-     (ch)
-       Lisp_Object ch;
+  (Lisp_Object ch)
 {
   Lisp_Object disp;
   int c, width;
@@ -527,8 +522,7 @@ only the base leading-code is considered; the validity of
 the following bytes is not checked.  Tabs in STRING are always
 taken to occupy `tab-width' columns.
 usage: (string-width STRING)  */)
-     (str)
-     Lisp_Object str;
+  (Lisp_Object str)
 {
   Lisp_Object val;
 
@@ -541,8 +535,7 @@ DEFUN ("char-direction", Fchar_direction, Schar_direction, 1, 1, 0,
        doc: /* Return the direction of CHAR.
 The returned value is 0 for left-to-right and 1 for right-to-left.
 usage: (char-direction CHAR)  */)
-     (ch)
-     Lisp_Object ch;
+  (Lisp_Object ch)
 {
   int c;
 
@@ -922,9 +915,7 @@ DEFUN ("string", Fstring, Sstring, 0, MANY, 0,
        doc: /*
 Concatenate all the argument characters and make the result a string.
 usage: (string &rest CHARACTERS)  */)
-     (n, args)
-     int n;
-     Lisp_Object *args;
+  (int n, Lisp_Object *args)
 {
   int i, c;
   unsigned char *buf, *p;
@@ -949,9 +940,7 @@ usage: (string &rest CHARACTERS)  */)
 DEFUN ("unibyte-string", Funibyte_string, Sunibyte_string, 0, MANY, 0,
        doc: /* Concatenate all the argument bytes and make the result a unibyte string.
 usage: (unibyte-string &rest BYTES)  */)
-     (n, args)
-     int n;
-     Lisp_Object *args;
+  (int n, Lisp_Object *args)
 {
   int i, c;
   unsigned char *buf, *p;
@@ -981,8 +970,7 @@ DEFUN ("char-resolve-modifiers", Fchar_resolve_modifiers,
 The value is a character with modifiers resolved into the character
 code.  Unresolved modifiers are kept in the value.
 usage: (char-resolve-modifiers CHAR)  */)
-     (character)
-     Lisp_Object character;
+  (Lisp_Object character)
 {
   int c;
 
@@ -1001,8 +989,7 @@ non-nil, is an index of a target character in the string.
 
 If the current buffer (or STRING) is multibyte, and the target
 character is not ASCII nor 8-bit character, an error is signalled.  */)
-     (position, string)
-     Lisp_Object position, string;
+  (Lisp_Object position, Lisp_Object string)
 {
   int c;
   EMACS_INT pos;

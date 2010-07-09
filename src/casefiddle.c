@@ -153,8 +153,7 @@ DEFUN ("upcase", Fupcase, Supcase, 1, 1, 0,
 The argument may be a character or string.  The result has the same type.
 The argument object is not altered--the value is a copy.
 See also `capitalize', `downcase' and `upcase-initials'.  */)
-     (obj)
-     Lisp_Object obj;
+  (Lisp_Object obj)
 {
   return casify_object (CASE_UP, obj);
 }
@@ -163,8 +162,7 @@ DEFUN ("downcase", Fdowncase, Sdowncase, 1, 1, 0,
        doc: /* Convert argument to lower case and return that.
 The argument may be a character or string.  The result has the same type.
 The argument object is not altered--the value is a copy.  */)
-     (obj)
-     Lisp_Object obj;
+  (Lisp_Object obj)
 {
   return casify_object (CASE_DOWN, obj);
 }
@@ -175,8 +173,7 @@ This means that each word's first character is upper case
 and the rest is lower case.
 The argument may be a character or string.  The result has the same type.
 The argument object is not altered--the value is a copy.  */)
-     (obj)
-     Lisp_Object obj;
+  (Lisp_Object obj)
 {
   return casify_object (CASE_CAPITALIZE, obj);
 }
@@ -188,8 +185,7 @@ DEFUN ("upcase-initials", Fupcase_initials, Supcase_initials, 1, 1, 0,
 Do not change the other letters of each word.
 The argument may be a character or string.  The result has the same type.
 The argument object is not altered--the value is a copy.  */)
-     (obj)
-     Lisp_Object obj;
+  (Lisp_Object obj)
 {
   return casify_object (CASE_CAPITALIZE_UP, obj);
 }
@@ -306,8 +302,7 @@ These arguments specify the starting and ending character numbers of
 the region to operate on.  When used as a command, the text between
 point and the mark is operated on.
 See also `capitalize-region'.  */)
-     (beg, end)
-     Lisp_Object beg, end;
+  (Lisp_Object beg, Lisp_Object end)
 {
   casify_region (CASE_UP, beg, end);
   return Qnil;
@@ -318,8 +313,7 @@ DEFUN ("downcase-region", Fdowncase_region, Sdowncase_region, 2, 2, "r",
 These arguments specify the starting and ending character numbers of
 the region to operate on.  When used as a command, the text between
 point and the mark is operated on.  */)
-     (beg, end)
-     Lisp_Object beg, end;
+  (Lisp_Object beg, Lisp_Object end)
 {
   casify_region (CASE_DOWN, beg, end);
   return Qnil;
@@ -331,8 +325,7 @@ Capitalized form means each word's first character is upper case
 and the rest of it is lower case.
 In programs, give two arguments, the starting and ending
 character positions to operate on.  */)
-     (beg, end)
-     Lisp_Object beg, end;
+  (Lisp_Object beg, Lisp_Object end)
 {
   casify_region (CASE_CAPITALIZE, beg, end);
   return Qnil;
@@ -346,8 +339,7 @@ DEFUN ("upcase-initials-region", Fupcase_initials_region,
 Subsequent letters of each word are not changed.
 In programs, give two arguments, the starting and ending
 character positions to operate on.  */)
-     (beg, end)
-     Lisp_Object beg, end;
+  (Lisp_Object beg, Lisp_Object end)
 {
   casify_region (CASE_CAPITALIZE_UP, beg, end);
   return Qnil;
@@ -376,8 +368,7 @@ DEFUN ("upcase-word", Fupcase_word, Supcase_word, 1, 1, "p",
        doc: /* Convert following word (or ARG words) to upper case, moving over.
 With negative argument, convert previous words but do not move.
 See also `capitalize-word'.  */)
-     (arg)
-     Lisp_Object arg;
+  (Lisp_Object arg)
 {
   Lisp_Object beg, end;
   EMACS_INT newpoint;
@@ -391,8 +382,7 @@ See also `capitalize-word'.  */)
 DEFUN ("downcase-word", Fdowncase_word, Sdowncase_word, 1, 1, "p",
        doc: /* Convert following word (or ARG words) to lower case, moving over.
 With negative argument, convert previous words but do not move.  */)
-     (arg)
-     Lisp_Object arg;
+  (Lisp_Object arg)
 {
   Lisp_Object beg, end;
   EMACS_INT newpoint;
@@ -408,8 +398,7 @@ DEFUN ("capitalize-word", Fcapitalize_word, Scapitalize_word, 1, 1, "p",
 This gives the word(s) a first character in upper case
 and the rest lower case.
 With negative argument, capitalize previous words but do not move.  */)
-     (arg)
-     Lisp_Object arg;
+  (Lisp_Object arg)
 {
   Lisp_Object beg, end;
   EMACS_INT newpoint;

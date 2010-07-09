@@ -1353,8 +1353,7 @@ DEFUN ("play-sound-internal", Fplay_sound_internal, Splay_sound_internal, 1, 1, 
        doc: /* Play sound SOUND.
 
 Internal use only, use `play-sound' instead.  */)
-     (sound)
-     Lisp_Object sound;
+  (Lisp_Object sound)
 {
   Lisp_Object attrs[SOUND_ATTR_SENTINEL];
   int count = SPECPDL_INDEX ();

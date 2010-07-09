@@ -64,8 +64,7 @@ Non-nil arg (prefix arg) means append to last macro defined;
 this begins by re-executing that macro as if you typed it again.
 If optional second arg, NO-EXEC, is non-nil, do not re-execute last
 macro before appending to it. */)
-     (append, no_exec)
-     Lisp_Object append, no_exec;
+  (Lisp_Object append, Lisp_Object no_exec)
 {
   if (!NILP (current_kboard->defining_kbd_macro))
     error ("Already defining kbd macro");
@@ -163,8 +162,7 @@ An argument of zero means repeat until error.
 
 In Lisp, optional second arg LOOPFUNC may be a function that is called prior to
 each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
-     (repeat, loopfunc)
-     Lisp_Object repeat, loopfunc;
+  (Lisp_Object repeat, Lisp_Object loopfunc)
 {
   if (NILP (current_kboard->defining_kbd_macro))
     error ("Not defining kbd macro");
@@ -230,7 +228,7 @@ finalize_kbd_macro_chars (void)
 DEFUN ("cancel-kbd-macro-events", Fcancel_kbd_macro_events,
        Scancel_kbd_macro_events, 0, 0, 0,
        doc: /* Cancel the events added to a keyboard macro for this command.  */)
-     ()
+  (void)
 {
   current_kboard->kbd_macro_ptr = current_kboard->kbd_macro_end;
   return Qnil;
@@ -239,8 +237,7 @@ DEFUN ("cancel-kbd-macro-events", Fcancel_kbd_macro_events,
 DEFUN ("store-kbd-macro-event", Fstore_kbd_macro_event,
        Sstore_kbd_macro_event, 1, 1, 0,
        doc: /* Store EVENT into the keyboard macro being defined.  */)
-     (event)
-     Lisp_Object event;
+  (Lisp_Object event)
 {
   store_kbd_macro_char (event);
   return Qnil;
@@ -257,8 +254,7 @@ defining others, use \\[name-last-kbd-macro].
 
 In Lisp, optional second arg LOOPFUNC may be a function that is called prior to
 each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
-     (prefix, loopfunc)
-     Lisp_Object prefix, loopfunc;
+  (Lisp_Object prefix, Lisp_Object loopfunc)
 {
   /* Don't interfere with recognition of the previous command
      from before this macro started.  */
@@ -303,8 +299,7 @@ COUNT is a repeat count, or nil for once, or 0 for infinite loop.
 
 Optional third arg LOOPFUNC may be a function that is called prior to
 each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
-     (macro, count, loopfunc)
-     Lisp_Object macro, count, loopfunc;
+  (Lisp_Object macro, Lisp_Object count, Lisp_Object loopfunc)
 {
   Lisp_Object final;
   Lisp_Object tem;

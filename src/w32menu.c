@@ -156,8 +156,7 @@ on the left of the dialog box and all following items on the right.
 
 If HEADER is non-nil, the frame title for the box is "Information",
 otherwise it is "Question". */)
-  (position, contents, header)
-     Lisp_Object position, contents, header;
+  (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
 {
   FRAME_PTR f = NULL;
   Lisp_Object window;
@@ -1688,7 +1687,7 @@ w32_free_menu_strings (HWND hwnd)
 
 DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_p, 0, 0, 0,
        doc: /* Return t if a menu or popup dialog is active on selected frame.  */)
-     ()
+  (void)
 {
 #ifdef HAVE_MENUS
   FRAME_PTR f;

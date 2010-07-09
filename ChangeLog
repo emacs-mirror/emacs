@@ -1,5 +1,9 @@
 2010-07-08  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* configure.in: Use -Wold-style-definition if available.
+	This helps with the transition to standard C code, it can be
+	removed when done.
+
 	* configure.in (PRE_EDIT_LDFLAGS, POST_EDIT_LDFLAGS): Remove.
 
 	* configure.in (UNEXEC_OBJ): Add comment about values for MSDOS

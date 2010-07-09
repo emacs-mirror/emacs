@@ -519,8 +519,7 @@ from `emacs-session-save'  If the return value is non-nil the session manager
 is told to abort the window system shutdown.
 
 Do not call this function yourself. */)
-     (event)
-     Lisp_Object event;
+  (Lisp_Object event)
 {
   /* Check doing_interact so that we don't do anything if someone called
      this at the wrong time. */

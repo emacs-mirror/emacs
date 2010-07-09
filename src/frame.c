@@ -213,8 +213,7 @@ Value is t for a termcap frame (a character-only terminal),
 `ns' for an Emacs frame on a GNUstep or Macintosh Cocoa display,
 `pc' for a direct-write MS-DOS frame.
 See also `frame-live-p'.  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   if (!FRAMEP (object))
     return Qnil;
@@ -244,8 +243,7 @@ Value is nil if OBJECT is not a live frame.  If object is a live
 frame, the return value indicates what sort of terminal device it is
 displayed on.  See the documentation of `framep' for possible
 return values.  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   return ((FRAMEP (object)
 	   && FRAME_LIVE_P (XFRAME (object)))
@@ -259,8 +257,7 @@ The value is a symbol---for instance, 'x' for X windows.
 The value is nil if Emacs is using a text-only terminal.
 
 FRAME defaults to the currently selected frame.  */)
-  (frame)
-     Lisp_Object frame;
+  (Lisp_Object frame)
 {
   Lisp_Object type;
   if (NILP (frame))
@@ -658,8 +655,7 @@ and the `tty-type' parameter specifies the terminal type.  Example:
 
 Note that changing the size of one terminal frame automatically
 affects all frames on the same terminal device.  */)
-     (parms)
-     Lisp_Object parms;
+  (Lisp_Object parms)
 {
   struct frame *f;
   struct terminal *t = NULL;
@@ -886,8 +882,7 @@ the window system's input focus.  On a text-only terminal, the
 next redisplay will display FRAME.
 
 This function returns FRAME, or nil if FRAME has been deleted.  */)
-     (frame, norecord)
-     Lisp_Object frame, norecord;
+  (Lisp_Object frame, Lisp_Object norecord)
 {
   return do_switch_frame (frame, 1, 0, norecord);
 }
@@ -902,8 +897,7 @@ This function selects the selected window of the frame of EVENT.
 
 If EVENT is frame object, handle it as if it were a switch-frame event
 to that frame.  */)
-     (event)
-     Lisp_Object event;
+  (Lisp_Object event)
 {
   /* Preserve prefix arg that the command loop just cleared.  */
   current_kboard->Vprefix_arg = Vcurrent_prefix_arg;
@@ -913,15 +907,14 @@ to that frame.  */)
 
 DEFUN ("selected-frame", Fselected_frame, Sselected_frame, 0, 0, 0,
        doc: /* Return the frame that is now selected.  */)
-     ()
+  (void)
 {
   return selected_frame;
 }
 
 DEFUN ("window-frame", Fwindow_frame, Swindow_frame, 1, 1, 0,
        doc: /* Return the frame object that window WINDOW is on.  */)
-     (window)
-     Lisp_Object window;
+  (Lisp_Object window)
 {
   CHECK_LIVE_WINDOW (window);
   return XWINDOW (window)->frame;
@@ -930,8 +923,7 @@ DEFUN ("window-frame", Fwindow_frame, Swindow_frame, 1, 1, 0,
 DEFUN ("frame-first-window", Fframe_first_window, Sframe_first_window, 0, 1, 0,
        doc: /* Returns the topmost, leftmost window of FRAME.
 If omitted, FRAME defaults to the currently selected frame.  */)
-     (frame)
-     Lisp_Object frame;
+  (Lisp_Object frame)
 {
   Lisp_Object w;
 
@@ -957,7 +949,7 @@ If omitted, FRAME defaults to the currently selected frame.  */)
 DEFUN ("active-minibuffer-window", Factive_minibuffer_window,
        Sactive_minibuffer_window, 0, 0, 0,
        doc: /* Return the currently active minibuffer window, or nil if none.  */)
-     ()
+  (void)
 {
   return minibuf_level ? minibuf_window : Qnil;
 }
@@ -965,8 +957,7 @@ DEFUN ("active-minibuffer-window", Factive_minibuffer_window,
 DEFUN ("frame-root-window", Fframe_root_window, Sframe_root_window, 0, 1, 0,
        doc: /* Returns the root-window of FRAME.
 If omitted, FRAME defaults to the currently selected frame.  */)
-     (frame)
-     Lisp_Object frame;
+  (Lisp_Object frame)
 {
   Lisp_Object window;
 
@@ -985,8 +976,7 @@ DEFUN ("frame-selected-window", Fframe_selected_window,
        Sframe_selected_window, 0, 1, 0,
        doc: /* Return the selected window of FRAME.
 FRAME defaults to the currently selected frame.  */)
-     (frame)
-     Lisp_Object frame;
+  (Lisp_Object frame)
 {
   Lisp_Object window;
 
@@ -1009,8 +999,7 @@ selected frame, this makes WINDOW the selected window.
 Optional argument NORECORD non-nil means to neither change the
 order of recently selected windows nor the buffer list.
 Return WINDOW.  */)
-     (frame, window, norecord)
-     Lisp_Object frame, window, norecord;
+  (Lisp_Object frame, Lisp_Object window, Lisp_Object norecord)
 {
   if (NILP (frame))
     frame = selected_frame;
@@ -1031,7 +1020,7 @@ Return WINDOW.  */)
 DEFUN ("frame-list", Fframe_list, Sframe_list,
        0, 0, 0,
        doc: /* Return a list of all live frames.  */)
-     ()
+  (void)
 {
   Lisp_Object frames;
   frames = Fcopy_sequence (Vframe_list);
@@ -1212,8 +1201,7 @@ and any frame now using that window as the minibuffer.
 If MINIFRAME is `visible', include all visible frames.
 If MINIFRAME is 0, include all visible and iconified frames.
 Otherwise, include all frames.  */)
-     (frame, miniframe)
-     Lisp_Object frame, miniframe;
+  (Lisp_Object frame, Lisp_Object miniframe)
 {
   if (NILP (frame))
     frame = selected_frame;
@@ -1233,8 +1221,7 @@ and any frame now using that window as the minibuffer.
 If MINIFRAME is `visible', include all visible frames.
 If MINIFRAME is 0, include all visible and iconified frames.
 Otherwise, include all frames.  */)
-     (frame, miniframe)
-     Lisp_Object frame, miniframe;
+  (Lisp_Object frame, Lisp_Object miniframe)
 {
   if (NILP (frame))
     frame = selected_frame;
@@ -1631,8 +1618,7 @@ but if the second optional argument FORCE is non-nil, you may do so.
 This function runs `delete-frame-functions' before actually
 deleting the frame, unless the frame is a tooltip.
 The functions are run with one argument, the frame to be deleted.  */)
-     (frame, force)
-     Lisp_Object frame, force;
+  (Lisp_Object frame, Lisp_Object force)
 {
   return delete_frame (frame, !NILP (force) ? Qt : Qnil);
 }
@@ -1651,7 +1637,7 @@ and nil for X and Y.
 If `mouse-position-function' is non-nil, `mouse-position' calls it,
 passing the normal return value to that function as an argument,
 and returns whatever that function returns.  */)
-     ()
+  (void)
 {
   FRAME_PTR f;
   Lisp_Object lispy_dummy;
@@ -1697,7 +1683,7 @@ the vertical offset.
 If Emacs is running on a mouseless terminal or hasn't been programmed
 to read the mouse position, it returns the selected frame for FRAME
 and nil for X and Y.  */)
-     ()
+  (void)
 {
   FRAME_PTR f;
   Lisp_Object lispy_dummy;
@@ -1734,8 +1720,7 @@ This function is a no-op for an X frame that is not visible.
 If you have just created a frame, you must wait for it to become visible
 before calling this function on it, like this.
   (while (not (frame-visible-p frame)) (sleep-for .5))  */)
-  (frame, x, y)
-     Lisp_Object frame, x, y;
+  (Lisp_Object frame, Lisp_Object x, Lisp_Object y)
 {
   CHECK_LIVE_FRAME (frame);
   CHECK_NUMBER (x);
@@ -1776,8 +1761,7 @@ Note, this is a no-op for an X frame that is not visible.
 If you have just created a frame, you must wait for it to become visible
 before calling this function on it, like this.
   (while (not (frame-visible-p frame)) (sleep-for .5))  */)
-  (frame, x, y)
-     Lisp_Object frame, x, y;
+  (Lisp_Object frame, Lisp_Object x, Lisp_Object y)
 {
   CHECK_LIVE_FRAME (frame);
   CHECK_NUMBER (x);
@@ -1814,8 +1798,7 @@ DEFUN ("make-frame-visible", Fmake_frame_visible, Smake_frame_visible,
        0, 1, "",
        doc: /* Make the frame FRAME visible (assuming it is an X window).
 If omitted, FRAME defaults to the currently selected frame.  */)
-     (frame)
-     Lisp_Object frame;
+  (Lisp_Object frame)
 {
   if (NILP (frame))
     frame = selected_frame;
@@ -1874,8 +1857,7 @@ but if the second optional argument FORCE is non-nil, you may do so.
 This function has no effect on text-only terminal frames.  Such frames
 are always considered visible, whether or not they are currently being
 displayed in the terminal.  */)
-  (frame, force)
-     Lisp_Object frame, force;
+  (Lisp_Object frame, Lisp_Object force)
 {
   if (NILP (frame))
     frame = selected_frame;
@@ -1916,8 +1898,7 @@ DEFUN ("iconify-frame", Ficonify_frame, Siconify_frame,
        0, 1, "",
        doc: /* Make the frame FRAME into an icon.
 If omitted, FRAME defaults to the currently selected frame.  */)
-  (frame)
-     Lisp_Object frame;
+  (Lisp_Object frame)
 {
   if (NILP (frame))
     frame = selected_frame;
@@ -1962,8 +1943,7 @@ usually not displayed at all, even in a window system's \"taskbar\".
 If FRAME is a text-only terminal frame, this always returns t.
 Such frames are always considered visible, whether or not they are
 currently being displayed on the terminal.  */)
-     (frame)
-     Lisp_Object frame;
+  (Lisp_Object frame)
 {
   CHECK_LIVE_FRAME (frame);
 
@@ -1979,7 +1959,7 @@ currently being displayed on the terminal.  */)
 DEFUN ("visible-frame-list", Fvisible_frame_list, Svisible_frame_list,
        0, 0, 0,
        doc: /* Return a list of all frames now \"visible\" (being updated).  */)
-  ()
+  (void)
 {
   Lisp_Object tail, frame;
   struct frame *f;
@@ -2005,8 +1985,7 @@ If FRAME is invisible or iconified, make it visible.
 If you don't specify a frame, the selected frame is used.
 If Emacs is displaying on an ordinary terminal or some other device which
 doesn't support multiple overlapping frames, this function selects FRAME.  */)
-     (frame)
-     Lisp_Object frame;
+  (Lisp_Object frame)
 {
   struct frame *f;
   if (NILP (frame))
@@ -2035,8 +2014,7 @@ DEFUN ("lower-frame", Flower_frame, Slower_frame, 0, 1, "",
 If you don't specify a frame, the selected frame is used.
 If Emacs is displaying on an ordinary terminal or some other device which
 doesn't support multiple overlapping frames, this function does nothing.  */)
-     (frame)
-     Lisp_Object frame;
+  (Lisp_Object frame)
 {
   struct frame *f;
 
@@ -2079,8 +2057,7 @@ differently from a frame whose focus is redirected to nil; the former
 is affected by `select-frame', while the latter is not.
 
 The redirection lasts until `redirect-frame-focus' is called to change it.  */)
-     (frame, focus_frame)
-     Lisp_Object frame, focus_frame;
+  (Lisp_Object frame, Lisp_Object focus_frame)
 {
   struct frame *f;
 
@@ -2107,8 +2084,7 @@ DEFUN ("frame-focus", Fframe_focus, Sframe_focus, 1, 1, 0,
        doc: /* Return the frame to which FRAME's keystrokes are currently being sent.
 This returns nil if FRAME's focus is not redirected.
 See `redirect-frame-focus'.  */)
-     (frame)
-     Lisp_Object frame;
+  (Lisp_Object frame)
 {
   CHECK_LIVE_FRAME (frame);
 
@@ -2329,8 +2305,7 @@ DEFUN ("frame-parameters", Fframe_parameters, Sframe_parameters, 0, 1, 0,
 It is a list of elements of the form (PARM . VALUE), where PARM is a symbol.
 The meaningful PARMs depend on the kind of frame.
 If FRAME is omitted, return information on the currently selected frame.  */)
-     (frame)
-     Lisp_Object frame;
+  (Lisp_Object frame)
 {
   Lisp_Object alist;
   FRAME_PTR f;
@@ -2427,8 +2402,7 @@ If FRAME is omitted, return information on the currently selected frame.  */)
 DEFUN ("frame-parameter", Fframe_parameter, Sframe_parameter, 2, 2, 0,
        doc: /* Return FRAME's value for parameter PARAMETER.
 If FRAME is nil, describe the currently selected frame.  */)
-     (frame, parameter)
-     Lisp_Object frame, parameter;
+  (Lisp_Object frame, Lisp_Object parameter)
 {
   struct frame *f;
   Lisp_Object value;
@@ -2518,8 +2492,7 @@ as a frame-local binding for the variable FOO, if you have
 enabled such bindings for that variable with `make-variable-frame-local'.
 Note that this functionality is obsolete as of Emacs 22.2, and its
 use is not recommended.  Explicitly check for a frame-parameter instead.  */)
-     (frame, alist)
-     Lisp_Object frame, alist;
+  (Lisp_Object frame, Lisp_Object alist)
 {
   FRAME_PTR f;
   register Lisp_Object tail, prop, val;
@@ -2584,8 +2557,7 @@ DEFUN ("frame-char-height", Fframe_char_height, Sframe_char_height,
        doc: /* Height in pixels of a line in the font in frame FRAME.
 If FRAME is omitted, the selected frame is used.
 For a terminal frame, the value is always 1.  */)
-  (frame)
-     Lisp_Object frame;
+  (Lisp_Object frame)
 {
   struct frame *f;
 
@@ -2609,8 +2581,7 @@ DEFUN ("frame-char-width", Fframe_char_width, Sframe_char_width,
 If FRAME is omitted, the selected frame is used.
 On a graphical screen, the width is the standard width of the default font.
 For a terminal screen, the value is always 1.  */)
-     (frame)
-     Lisp_Object frame;
+  (Lisp_Object frame)
 {
   struct frame *f;
 
@@ -2646,8 +2617,7 @@ and menu bar.
 For a text-only terminal, it includes the menu bar.  In this case, the
 result is really in characters rather than pixels (i.e., is identical
 to `frame-height'). */)
-     (frame)
-     Lisp_Object frame;
+  (Lisp_Object frame)
 {
   struct frame *f;
 
@@ -2669,8 +2639,7 @@ DEFUN ("frame-pixel-width", Fframe_pixel_width,
        doc: /* Return FRAME's width in pixels.
 For a terminal frame, the result really gives the width in characters.
 If FRAME is omitted, the selected frame is used.  */)
-     (frame)
-     Lisp_Object frame;
+  (Lisp_Object frame)
 {
   struct frame *f;
 
@@ -2691,8 +2660,7 @@ DEFUN ("set-frame-height", Fset_frame_height, Sset_frame_height, 2, 3, 0,
        doc: /* Specify that the frame FRAME has LINES lines.
 Optional third arg non-nil means that redisplay should use LINES lines
 but that the idea of the actual height of the frame should not be changed.  */)
-     (frame, lines, pretend)
-     Lisp_Object frame, lines, pretend;
+  (Lisp_Object frame, Lisp_Object lines, Lisp_Object pretend)
 {
   register struct frame *f;
 
@@ -2720,8 +2688,7 @@ DEFUN ("set-frame-width", Fset_frame_width, Sset_frame_width, 2, 3, 0,
        doc: /* Specify that the frame FRAME has COLS columns.
 Optional third arg non-nil means that redisplay should use COLS columns
 but that the idea of the actual width of the frame should not be changed.  */)
-     (frame, cols, pretend)
-     Lisp_Object frame, cols, pretend;
+  (Lisp_Object frame, Lisp_Object cols, Lisp_Object pretend)
 {
   register struct frame *f;
   CHECK_NUMBER (cols);
@@ -2746,8 +2713,7 @@ but that the idea of the actual width of the frame should not be changed.  */)
 
 DEFUN ("set-frame-size", Fset_frame_size, Sset_frame_size, 3, 3, 0,
        doc: /* Sets size of FRAME to COLS by ROWS, measured in characters.  */)
-     (frame, cols, rows)
-     Lisp_Object frame, cols, rows;
+  (Lisp_Object frame, Lisp_Object cols, Lisp_Object rows)
 {
   register struct frame *f;
 
@@ -2779,8 +2745,7 @@ DEFUN ("set-frame-position", Fset_frame_position,
 This is actually the position of the upper left corner of the frame.
 Negative values for XOFFSET or YOFFSET are interpreted relative to
 the rightmost or bottommost possible position (that stays within the screen).  */)
-     (frame, xoffset, yoffset)
-     Lisp_Object frame, xoffset, yoffset;
+  (Lisp_Object frame, Lisp_Object xoffset, Lisp_Object yoffset)
 {
   register struct frame *f;
 
@@ -3833,8 +3798,7 @@ The optional arguments COMPONENT and SUBCLASS add to the key and the
 class, respectively.  You must specify both of them or neither.
 If you specify them, the key is `INSTANCE.COMPONENT.ATTRIBUTE'
 and the class is `Emacs.CLASS.SUBCLASS'.  */)
-     (attribute, class, component, subclass)
-     Lisp_Object attribute, class, component, subclass;
+  (Lisp_Object attribute, Lisp_Object class, Lisp_Object component, Lisp_Object subclass)
 {
 #ifdef HAVE_X_WINDOWS
   check_x ();
@@ -4047,8 +4011,7 @@ For X, the value of `left' or `top' may be an integer,
 or a list (+ N) meaning N pixels relative to top/left corner,
 or a list (- N) meaning -N pixels relative to bottom/right corner.
 On Nextstep, this just calls `ns-parse-geometry'.  */)
-     (string)
-     Lisp_Object string;
+  (Lisp_Object string)
 {
 #ifdef HAVE_NS
   call1 (Qns_parse_geometry, string);

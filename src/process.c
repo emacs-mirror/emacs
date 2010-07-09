@@ -680,16 +680,14 @@ setup_process_coding_systems (Lisp_Object process)
 
 DEFUN ("processp", Fprocessp, Sprocessp, 1, 1, 0,
        doc: /* Return t if OBJECT is a process.  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   return PROCESSP (object) ? Qt : Qnil;
 }
 
 DEFUN ("get-process", Fget_process, Sget_process, 1, 1, 0,
        doc: /* Return the process named NAME, or nil if there is none.  */)
-     (name)
-     register Lisp_Object name;
+  (register Lisp_Object name)
 {
   if (PROCESSP (name))
     return name;
@@ -700,8 +698,7 @@ DEFUN ("get-process", Fget_process, Sget_process, 1, 1, 0,
 DEFUN ("get-buffer-process", Fget_buffer_process, Sget_buffer_process, 1, 1, 0,
        doc: /* Return the (or a) process associated with BUFFER.
 BUFFER may be a buffer or the name of one.  */)
-     (buffer)
-     register Lisp_Object buffer;
+  (register Lisp_Object buffer)
 {
   register Lisp_Object buf, tail, proc;
 
@@ -770,8 +767,7 @@ DEFUN ("delete-process", Fdelete_process, Sdelete_process, 1, 1, 0,
        doc: /* Delete PROCESS: kill it and forget about it immediately.
 PROCESS may be a process, a buffer, the name of a process or buffer, or
 nil, indicating the current buffer's process.  */)
-     (process)
-     register Lisp_Object process;
+  (register Lisp_Object process)
 {
   register struct Lisp_Process *p;
 
@@ -838,8 +834,7 @@ failed -- when a non-blocking connection has failed.
 nil -- if arg is a process name and no such process exists.
 PROCESS may be a process, a buffer, the name of a process, or
 nil, indicating the current buffer's process.  */)
-     (process)
-     register Lisp_Object process;
+  (register Lisp_Object process)
 {
   register struct Lisp_Process *p;
   register Lisp_Object status;
@@ -874,8 +869,7 @@ DEFUN ("process-exit-status", Fprocess_exit_status, Sprocess_exit_status,
        1, 1, 0,
        doc: /* Return the exit status of PROCESS or the signal number that killed it.
 If PROCESS has not yet exited or died, return 0.  */)
-     (process)
-     register Lisp_Object process;
+  (register Lisp_Object process)
 {
   CHECK_PROCESS (process);
   if (XPROCESS (process)->raw_status_new)
@@ -889,8 +883,7 @@ DEFUN ("process-id", Fprocess_id, Sprocess_id, 1, 1, 0,
        doc: /* Return the process id of PROCESS.
 This is the pid of the external process which PROCESS uses or talks to.
 For a network connection, this value is nil.  */)
-     (process)
-     register Lisp_Object process;
+  (register Lisp_Object process)
 {
   /* Assignment to EMACS_INT stops GCC whining about limited range of
      data type.  */
@@ -905,8 +898,7 @@ DEFUN ("process-name", Fprocess_name, Sprocess_name, 1, 1, 0,
        doc: /* Return the name of PROCESS, as a string.
 This is the name of the program invoked in PROCESS,
 possibly modified to make it unique among process names.  */)
-     (process)
-     register Lisp_Object process;
+  (register Lisp_Object process)
 {
   CHECK_PROCESS (process);
   return XPROCESS (process)->name;
@@ -918,8 +910,7 @@ This is a list of strings, the first string being the program executed
 and the rest of the strings being the arguments given to it.
 For a network or serial process, this is nil (process is running) or t
 \(process is stopped).  */)
-     (process)
-     register Lisp_Object process;
+  (register Lisp_Object process)
 {
   CHECK_PROCESS (process);
   return XPROCESS (process)->command;
@@ -929,8 +920,7 @@ DEFUN ("process-tty-name", Fprocess_tty_name, Sprocess_tty_name, 1, 1, 0,
        doc: /* Return the name of the terminal PROCESS uses, or nil if none.
 This is the terminal that the process itself reads and writes on,
 not the name of the pty that Emacs uses to talk with that terminal.  */)
-     (process)
-     register Lisp_Object process;
+  (register Lisp_Object process)
 {
   CHECK_PROCESS (process);
   return XPROCESS (process)->tty_name;
@@ -939,8 +929,7 @@ not the name of the pty that Emacs uses to talk with that terminal.  */)
 DEFUN ("set-process-buffer", Fset_process_buffer, Sset_process_buffer,
        2, 2, 0,
        doc: /* Set buffer associated with PROCESS to BUFFER (a buffer, or nil).  */)
-     (process, buffer)
-     register Lisp_Object process, buffer;
+  (register Lisp_Object process, Lisp_Object buffer)
 {
   struct Lisp_Process *p;
 
@@ -959,8 +948,7 @@ DEFUN ("process-buffer", Fprocess_buffer, Sprocess_buffer,
        1, 1, 0,
        doc: /* Return the buffer PROCESS is associated with.
 Output from PROCESS is inserted in this buffer unless PROCESS has a filter.  */)
-     (process)
-     register Lisp_Object process;
+  (register Lisp_Object process)
 {
   CHECK_PROCESS (process);
   return XPROCESS (process)->buffer;
@@ -969,8 +957,7 @@ Output from PROCESS is inserted in this buffer unless PROCESS has a filter.  */)
 DEFUN ("process-mark", Fprocess_mark, Sprocess_mark,
        1, 1, 0,
        doc: /* Return the marker for the end of the last output from PROCESS.  */)
-     (process)
-     register Lisp_Object process;
+  (register Lisp_Object process)
 {
   CHECK_PROCESS (process);
   return XPROCESS (process)->mark;
@@ -992,8 +979,7 @@ The string argument is normally a multibyte string, except:
 - if `default-enable-multibyte-characters' is nil, it is a unibyte
   string (the result of converting the decoded input multibyte
   string to unibyte with `string-make-unibyte').  */)
-     (process, filter)
-     register Lisp_Object process, filter;
+  (register Lisp_Object process, Lisp_Object filter)
 {
   struct Lisp_Process *p;
 
@@ -1035,8 +1021,7 @@ DEFUN ("process-filter", Fprocess_filter, Sprocess_filter,
        1, 1, 0,
        doc: /* Returns the filter function of PROCESS; nil if none.
 See `set-process-filter' for more info on filter functions.  */)
-     (process)
-     register Lisp_Object process;
+  (register Lisp_Object process)
 {
   CHECK_PROCESS (process);
   return XPROCESS (process)->filter;
@@ -1047,8 +1032,7 @@ DEFUN ("set-process-sentinel", Fset_process_sentinel, Sset_process_sentinel,
        doc: /* Give PROCESS the sentinel SENTINEL; nil for none.
 The sentinel is called as a function when the process changes state.
 It gets two arguments: the process, and a string describing the change.  */)
-     (process, sentinel)
-     register Lisp_Object process, sentinel;
+  (register Lisp_Object process, Lisp_Object sentinel)
 {
   struct Lisp_Process *p;
 
@@ -1065,8 +1049,7 @@ DEFUN ("process-sentinel", Fprocess_sentinel, Sprocess_sentinel,
        1, 1, 0,
        doc: /* Return the sentinel of PROCESS; nil if none.
 See `set-process-sentinel' for more info on sentinels.  */)
-     (process)
-     register Lisp_Object process;
+  (register Lisp_Object process)
 {
   CHECK_PROCESS (process);
   return XPROCESS (process)->sentinel;
@@ -1075,8 +1058,7 @@ See `set-process-sentinel' for more info on sentinels.  */)
 DEFUN ("set-process-window-size", Fset_process_window_size,
        Sset_process_window_size, 3, 3, 0,
        doc: /* Tell PROCESS that it has logical window size HEIGHT and WIDTH.  */)
-     (process, height, width)
-     register Lisp_Object process, height, width;
+  (register Lisp_Object process, Lisp_Object height, Lisp_Object width)
 {
   CHECK_PROCESS (process);
   CHECK_NATNUM (height);
@@ -1107,8 +1089,7 @@ is more appropriate for saving the process buffer.
 Binding the variable `inherit-process-coding-system' to non-nil before
 starting the process is an alternative way of setting the inherit flag
 for the process which will run.  */)
-     (process, flag)
-     register Lisp_Object process, flag;
+  (register Lisp_Object process, Lisp_Object flag)
 {
   CHECK_PROCESS (process);
   XPROCESS (process)->inherit_coding_system_flag = !NILP (flag);
@@ -1122,8 +1103,7 @@ DEFUN ("process-inherit-coding-system-flag",
 If this flag is t, `buffer-file-coding-system' of the buffer
 associated with PROCESS will inherit the coding system used to decode
 the process output.  */)
-     (process)
-     register Lisp_Object process;
+  (register Lisp_Object process)
 {
   CHECK_PROCESS (process);
   return XPROCESS (process)->inherit_coding_system_flag ? Qt : Qnil;
@@ -1135,8 +1115,7 @@ DEFUN ("set-process-query-on-exit-flag",
        doc: /* Specify if query is needed for PROCESS when Emacs is exited.
 If the second argument FLAG is non-nil, Emacs will query the user before
 exiting or killing a buffer if PROCESS is running.  */)
-     (process, flag)
-     register Lisp_Object process, flag;
+  (register Lisp_Object process, Lisp_Object flag)
 {
   CHECK_PROCESS (process);
   XPROCESS (process)->kill_without_query = NILP (flag);
@@ -1147,8 +1126,7 @@ DEFUN ("process-query-on-exit-flag",
        Fprocess_query_on_exit_flag, Sprocess_query_on_exit_flag,
        1, 1, 0,
        doc: /* Return the current value of query-on-exit flag for PROCESS.  */)
-     (process)
-     register Lisp_Object process;
+  (register Lisp_Object process)
 {
   CHECK_PROCESS (process);
   return (XPROCESS (process)->kill_without_query ? Qnil : Qt);
@@ -1168,8 +1146,7 @@ connection.  If KEY is t, the complete contact information for the
 connection is returned, else the specific value for the keyword KEY is
 returned.  See `make-network-process' or `make-serial-process' for a
 list of keywords.  */)
-     (process, key)
-     register Lisp_Object process, key;
+  (register Lisp_Object process, Lisp_Object key)
 {
   Lisp_Object contact;
 
@@ -1197,8 +1174,7 @@ list of keywords.  */)
 DEFUN ("process-plist", Fprocess_plist, Sprocess_plist,
        1, 1, 0,
        doc: /* Return the plist of PROCESS.  */)
-     (process)
-     register Lisp_Object process;
+  (register Lisp_Object process)
 {
   CHECK_PROCESS (process);
   return XPROCESS (process)->plist;
@@ -1207,8 +1183,7 @@ DEFUN ("process-plist", Fprocess_plist, Sprocess_plist,
 DEFUN ("set-process-plist", Fset_process_plist, Sset_process_plist,
        2, 2, 0,
        doc: /* Replace the plist of PROCESS with PLIST.  Returns PLIST.  */)
-     (process, plist)
-     register Lisp_Object process, plist;
+  (register Lisp_Object process, Lisp_Object plist)
 {
   CHECK_PROCESS (process);
   CHECK_LIST (plist);
@@ -1223,8 +1198,7 @@ DEFUN ("process-connection", Fprocess_connection, Sprocess_connection, 1, 1, 0,
        doc: /* Return the connection type of PROCESS.
 The value is nil for a pipe, t or `pty' for a pty, or `stream' for
 a socket connection.  */)
-     (process)
-     Lisp_Object process;
+  (Lisp_Object process)
 {
   return XPROCESS (process)->type;
 }
@@ -1235,8 +1209,7 @@ DEFUN ("process-type", Fprocess_type, Sprocess_type, 1, 1, 0,
 The value is either the symbol `real', `network', or `serial'.
 PROCESS may be a process, a buffer, the name of a process or buffer, or
 nil, indicating the current buffer's process.  */)
-     (process)
-     Lisp_Object process;
+  (Lisp_Object process)
 {
   Lisp_Object proc;
   proc = get_process (process);
@@ -1252,8 +1225,7 @@ An 8 or 9 element vector represents an IPv6 address (with port number).
 If optional second argument OMIT-PORT is non-nil, don't include a port
 number in the string, even when present in ADDRESS.
 Returns nil if format of ADDRESS is invalid.  */)
-     (address, omit_port)
-     Lisp_Object address, omit_port;
+  (Lisp_Object address, Lisp_Object omit_port)
 {
   if (NILP (address))
     return Qnil;
@@ -1555,8 +1527,7 @@ If optional argument QUERY-ONLY is non-nil, only processes with
 the query-on-exit flag set will be listed.
 Any process listed as exited or signaled is actually eliminated
 after the listing is made.  */)
-     (query_only)
-     Lisp_Object query_only;
+  (Lisp_Object query_only)
 {
   internal_with_output_to_temp_buffer ("*Process List*",
 				       list_processes_1, query_only);
@@ -1565,7 +1536,7 @@ after the listing is made.  */)
 
 DEFUN ("process-list", Fprocess_list, Sprocess_list, 0, 0, 0,
        doc: /* Return a list of all processes.  */)
-     ()
+  (void)
 {
   return Fmapcar (Qcdr, Vprocess_alist);
 }
@@ -1593,9 +1564,7 @@ the command through a shell and redirect one of them using the shell
 syntax.
 
 usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
-     (nargs, args)
-     int nargs;
-     register Lisp_Object *args;
+  (int nargs, register Lisp_Object *args)
 {
   Lisp_Object buffer, name, program, proc, current_dir, tem;
   register unsigned char **new_argv;
@@ -2504,8 +2473,7 @@ conv_lisp_to_sockaddr (int family, Lisp_Object address, struct sockaddr *sa, int
 DEFUN ("process-datagram-address", Fprocess_datagram_address, Sprocess_datagram_address,
        1, 1, 0,
        doc: /* Get the current datagram address associated with PROCESS.  */)
-       (process)
-       Lisp_Object process;
+  (Lisp_Object process)
 {
   int channel;
 
@@ -2523,8 +2491,7 @@ DEFUN ("set-process-datagram-address", Fset_process_datagram_address, Sset_proce
        2, 2, 0,
        doc: /* Set the datagram address for PROCESS to ADDRESS.
 Returns nil upon error setting address, ADDRESS otherwise.  */)
-       (process, address)
-       Lisp_Object process, address;
+  (Lisp_Object process, Lisp_Object address)
 {
   int channel;
   int family, len;
@@ -2685,9 +2652,7 @@ DEFUN ("set-network-process-option",
 See `make-network-process' for a list of options and values.
 If optional fourth arg NO-ERROR is non-nil, don't signal an error if
 OPTION is not a supported option, return nil instead; otherwise return t.  */)
-     (process, option, value, no_error)
-     Lisp_Object process, option, value;
-     Lisp_Object no_error;
+  (Lisp_Object process, Lisp_Object option, Lisp_Object value, Lisp_Object no_error)
 {
   int s;
   struct Lisp_Process *p;
@@ -2774,9 +2739,7 @@ Examples:
 \(serial-process-configure :port "\\\\.\\COM13" :bytesize 7)
 
 usage: (serial-process-configure &rest ARGS)  */)
-     (nargs, args)
-     int nargs;
-     Lisp_Object *args;
+  (int nargs, Lisp_Object *args)
 {
   struct Lisp_Process *p;
   Lisp_Object contact = Qnil;
@@ -2893,9 +2856,7 @@ Examples:
 \(make-serial-process :port "/dev/tty.BlueConsole-SPP-1" :speed nil)
 
 usage:  (make-serial-process &rest ARGS)  */)
-     (nargs, args)
-     int nargs;
-     Lisp_Object *args;
+  (int nargs, Lisp_Object *args)
 {
   int fd = -1;
   Lisp_Object proc, contact, port;
@@ -3174,9 +3135,7 @@ The original argument list, modified with the actual connection
 information, is available via the `process-contact' function.
 
 usage: (make-network-process &rest ARGS)  */)
-     (nargs, args)
-     int nargs;
-     Lisp_Object *args;
+  (int nargs, Lisp_Object *args)
 {
   Lisp_Object proc;
   Lisp_Object contact;
@@ -3890,7 +3849,7 @@ DEFUN ("network-interface-list", Fnetwork_interface_list, Snetwork_interface_lis
 Each element is a cons, the car of which is a string containing the
 interface name, and the cdr is the network address in internal
 format; see the description of ADDRESS in `make-network-process'.  */)
-     ()
+  (void)
 {
   struct ifconf ifconf;
   struct ifreq *ifreqs = NULL;
@@ -4025,8 +3984,7 @@ The return value is a list (ADDR BCAST NETMASK HWADDR FLAGS),
 where ADDR is the layer 3 address, BCAST is the layer 3 broadcast address,
 NETMASK is the layer 3 network mask, HWADDR is the layer 2 addres, and
 FLAGS is the current flags of the interface.  */)
-     (ifname)
-     Lisp_Object ifname;
+  (Lisp_Object ifname)
 {
   struct ifreq rq;
   Lisp_Object res = Qnil;
@@ -4234,8 +4192,7 @@ If optional fourth arg JUST-THIS-ONE is non-nil, only accept output
 from PROCESS, suspending reading output from other processes.
 If JUST-THIS-ONE is an integer, don't run any timers either.
 Return non-nil if we received any output before the timeout expired.  */)
-     (process, seconds, millisec, just_this_one)
-     register Lisp_Object process, seconds, millisec, just_this_one;
+  (register Lisp_Object process, Lisp_Object seconds, Lisp_Object millisec, Lisp_Object just_this_one)
 {
   int secs, usecs = 0;
 
@@ -5576,7 +5533,7 @@ DEFUN ("waiting-for-user-input-p", Fwaiting_for_user_input_p, Swaiting_for_user_
        0, 0, 0,
        doc: /* Returns non-nil if Emacs is waiting for input from the user.
 This is intended for use by asynchronous process output filters and sentinels.  */)
-     ()
+  (void)
 {
   return (waiting_for_user_input_p ? Qt : Qnil);
 }
@@ -5851,8 +5808,7 @@ Called from program, takes three arguments, PROCESS, START and END.
 If the region is more than 500 characters long,
 it is sent in several bunches.  This may happen even for shorter regions.
 Output from processes can arrive in between bunches.  */)
-     (process, start, end)
-     Lisp_Object process, start, end;
+  (Lisp_Object process, Lisp_Object start, Lisp_Object end)
 {
   Lisp_Object proc;
   int start1, end1;
@@ -5879,8 +5835,7 @@ nil, indicating the current buffer's process.
 If STRING is more than 500 characters long,
 it is sent in several bunches.  This may happen even for shorter strings.
 Output from processes can arrive in between bunches.  */)
-     (process, string)
-     Lisp_Object process, string;
+  (Lisp_Object process, Lisp_Object string)
 {
   Lisp_Object proc;
   CHECK_STRING (string);
@@ -5921,8 +5876,7 @@ DEFUN ("process-running-child-p", Fprocess_running_child_p,
        doc: /* Return t if PROCESS has given the terminal to a child.
 If the operating system does not make it possible to find out,
 return t unconditionally.  */)
-     (process)
-     Lisp_Object process;
+  (Lisp_Object process)
 {
   /* Initialize in case ioctl doesn't exist or gives an error,
      in a way that will cause returning t.  */
@@ -6183,8 +6137,7 @@ rather than the shell.
 
 If CURRENT-GROUP is `lambda', and if the shell owns the terminal,
 don't send the signal.  */)
-     (process, current_group)
-     Lisp_Object process, current_group;
+  (Lisp_Object process, Lisp_Object current_group)
 {
   process_send_signal (process, SIGINT, current_group, 0);
   return process;
@@ -6193,8 +6146,7 @@ don't send the signal.  */)
 DEFUN ("kill-process", Fkill_process, Skill_process, 0, 2, 0,
        doc: /* Kill process PROCESS.  May be process or name of one.
 See function `interrupt-process' for more details on usage.  */)
-     (process, current_group)
-     Lisp_Object process, current_group;
+  (Lisp_Object process, Lisp_Object current_group)
 {
   process_send_signal (process, SIGKILL, current_group, 0);
   return process;
@@ -6203,8 +6155,7 @@ See function `interrupt-process' for more details on usage.  */)
 DEFUN ("quit-process", Fquit_process, Squit_process, 0, 2, 0,
        doc: /* Send QUIT signal to process PROCESS.  May be process or name of one.
 See function `interrupt-process' for more details on usage.  */)
-     (process, current_group)
-     Lisp_Object process, current_group;
+  (Lisp_Object process, Lisp_Object current_group)
 {
   process_send_signal (process, SIGQUIT, current_group, 0);
   return process;
@@ -6215,8 +6166,7 @@ DEFUN ("stop-process", Fstop_process, Sstop_process, 0, 2, 0,
 See function `interrupt-process' for more details on usage.
 If PROCESS is a network or serial process, inhibit handling of incoming
 traffic.  */)
-     (process, current_group)
-     Lisp_Object process, current_group;
+  (Lisp_Object process, Lisp_Object current_group)
 {
 #ifdef HAVE_SOCKETS
   if (PROCESSP (process) && (NETCONN_P (process) || SERIALCONN_P (process)))
@@ -6247,8 +6197,7 @@ DEFUN ("continue-process", Fcontinue_process, Scontinue_process, 0, 2, 0,
 See function `interrupt-process' for more details on usage.
 If PROCESS is a network or serial process, resume handling of incoming
 traffic.  */)
-     (process, current_group)
-     Lisp_Object process, current_group;
+  (Lisp_Object process, Lisp_Object current_group)
 {
 #ifdef HAVE_SOCKETS
   if (PROCESSP (process) && (NETCONN_P (process) || SERIALCONN_P (process)))
@@ -6289,8 +6238,7 @@ PROCESS may also be a number specifying the process id of the
 process to signal; in this case, the process need not be a child of
 this Emacs.
 SIGCODE may be an integer, or a symbol whose name is a signal name.  */)
-     (process, sigcode)
-     Lisp_Object process, sigcode;
+  (Lisp_Object process, Lisp_Object sigcode)
 {
   pid_t pid;
 
@@ -6457,8 +6405,7 @@ through a pipe (as opposed to a pty), then you cannot send any more
 text to PROCESS after you call this function.
 If PROCESS is a serial process, wait until all output written to the
 process has been transmitted to the serial port.  */)
-     (process)
-     Lisp_Object process;
+  (Lisp_Object process)
 {
   Lisp_Object proc;
   struct coding_system *coding;
@@ -6947,8 +6894,7 @@ DEFUN ("set-process-coding-system", Fset_process_coding_system,
        doc: /* Set coding systems of PROCESS to DECODING and ENCODING.
 DECODING will be used to decode subprocess output and ENCODING to
 encode subprocess input.  */)
-     (process, decoding, encoding)
-     register Lisp_Object process, decoding, encoding;
+  (register Lisp_Object process, Lisp_Object decoding, Lisp_Object encoding)
 {
   register struct Lisp_Process *p;
 
@@ -6971,8 +6917,7 @@ encode subprocess input.  */)
 DEFUN ("process-coding-system",
        Fprocess_coding_system, Sprocess_coding_system, 1, 1, 0,
        doc: /* Return a cons of coding systems for decoding and encoding of PROCESS.  */)
-     (process)
-     register Lisp_Object process;
+  (register Lisp_Object process)
 {
   CHECK_PROCESS (process);
   return Fcons (XPROCESS (process)->decode_coding_system,
@@ -6986,8 +6931,7 @@ If FLAG is non-nil, the filter is given multibyte strings.
 If FLAG is nil, the filter is given unibyte strings.  In this case,
 all character code conversion except for end-of-line conversion is
 suppressed.  */)
-     (process, flag)
-     Lisp_Object process, flag;
+  (Lisp_Object process, Lisp_Object flag)
 {
   register struct Lisp_Process *p;
 
@@ -7003,8 +6947,7 @@ suppressed.  */)
 DEFUN ("process-filter-multibyte-p", Fprocess_filter_multibyte_p,
        Sprocess_filter_multibyte_p, 1, 1, 0,
        doc: /* Return t if a multibyte string is given to PROCESS's filter.*/)
-     (process)
-     Lisp_Object process;
+  (Lisp_Object process)
 {
   register struct Lisp_Process *p;
   struct coding_system *coding;
@@ -7126,7 +7069,7 @@ DEFUN ("list-system-processes", Flist_system_processes, Slist_system_processes,
 If this functionality is unsupported, return nil.
 
 See `process-attributes' for getting attributes of a process given its ID.  */)
-    ()
+  (void)
 {
   return list_system_processes ();
 }
@@ -7182,9 +7125,7 @@ integer or floating point values.
  pmem    -- percents of total physical memory used by process's resident set
               (floating-point number)
  args    -- command line which invoked the process (string).  */)
-    (pid)
-
-    Lisp_Object pid;
+  ( Lisp_Object pid)
 {
   return system_process_attributes (pid);
 }
@@ -7600,6 +7541,9 @@ Lisp_Object Qminflt, Qmajflt, Qcminflt, Qcmajflt, Qutime, Qstime, Qcstime;
 Lisp_Object Qcutime, Qpri, Qnice, Qthcount, Qstart, Qvsize, Qrss, Qargs;
 Lisp_Object Quser, Qgroup, Qetime, Qpcpu, Qpmem, Qtime, Qctime;
 
+/* Non-zero if keyboard input is on hold, zero otherwise.  */
+static int kbd_is_on_hold;
+
 /* As described above, except assuming that there are no subprocesses:
 
    Wait for timeout to elapse and/or keyboard input to be available.
@@ -7830,8 +7774,7 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
    make-docfile does not pay attention to #if, for good reason!  */
 DEFUN ("get-buffer-process", Fget_buffer_process, Sget_buffer_process, 1, 1, 0,
        0)
-     (name)
-     register Lisp_Object name;
+  (register Lisp_Object name)
 {
   return Qnil;
 }
@@ -7842,8 +7785,7 @@ DEFUN ("process-inherit-coding-system-flag",
        Fprocess_inherit_coding_system_flag, Sprocess_inherit_coding_system_flag,
        1, 1, 0,
        0)
-     (process)
-     register Lisp_Object process;
+  (register Lisp_Object process)
 {
   /* Ignore the argument and return the value of
      inherit-process-coding-system.  */
@@ -7860,13 +7802,38 @@ kill_buffer_processes (buffer)
 {
 }
 
+
+/* Stop reading input from keyboard sources.  */
+
+void
+hold_keyboard_input (void)
+{
+  kbd_is_on_hold = 1;
+}
+
+/* Resume reading input from keyboard sources.  */
+
+void
+unhold_keyboard_input (void)
+{
+  kbd_is_on_hold = 0;
+}
+
+/* Return non-zero if keyboard input is on hold, zero otherwise.  */
+
+int
+kbd_on_hold_p (void)
+{
+  return kbd_is_on_hold;
+}
+
 DEFUN ("list-system-processes", Flist_system_processes, Slist_system_processes,
        0, 0, 0,
        doc: /* Return a list of numerical process IDs of all running processes.
 If this functionality is unsupported, return nil.
 
 See `process-attributes' for getting attributes of a process given its ID.  */)
-    ()
+  (void)
 {
   return list_system_processes ();
 }
@@ -7922,9 +7889,7 @@ integer or floating point values.
  pmem    -- percents of total physical memory used by process's resident set
               (floating-point number)
  args    -- command line which invoked the process (string).   */)
-    (pid)
-
-    Lisp_Object pid;
+  ( Lisp_Object pid)
 {
   return system_process_attributes (pid);
 }

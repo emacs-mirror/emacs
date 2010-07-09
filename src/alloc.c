@@ -2250,8 +2250,7 @@ DEFUN ("make-string", Fmake_string, Smake_string, 2, 2, 0,
        doc: /* Return a newly created string of length LENGTH, with INIT in each element.
 LENGTH must be an integer.
 INIT must be an integer that represents a character.  */)
-     (length, init)
-     Lisp_Object length, init;
+  (Lisp_Object length, Lisp_Object init)
 {
   register Lisp_Object val;
   register unsigned char *p, *end;
@@ -2294,8 +2293,7 @@ INIT must be an integer that represents a character.  */)
 DEFUN ("make-bool-vector", Fmake_bool_vector, Smake_bool_vector, 2, 2, 0,
        doc: /* Return a new bool-vector of length LENGTH, using INIT for each element.
 LENGTH must be a number.  INIT matters only in whether it is t or nil.  */)
-     (length, init)
-     Lisp_Object length, init;
+  (Lisp_Object length, Lisp_Object init)
 {
   register Lisp_Object val;
   struct Lisp_Bool_Vector *p;
@@ -2687,8 +2685,7 @@ free_cons (struct Lisp_Cons *ptr)
 
 DEFUN ("cons", Fcons, Scons, 2, 2, 0,
        doc: /* Create a new cons, give it CAR and CDR as components, and return it.  */)
-     (car, cdr)
-     Lisp_Object car, cdr;
+  (Lisp_Object car, Lisp_Object cdr)
 {
   register Lisp_Object val;
 
@@ -2783,9 +2780,7 @@ DEFUN ("list", Flist, Slist, 0, MANY, 0,
        doc: /* Return a newly created list with specified arguments as elements.
 Any number of arguments, even zero arguments, are allowed.
 usage: (list &rest OBJECTS)  */)
-     (nargs, args)
-     int nargs;
-     register Lisp_Object *args;
+  (int nargs, register Lisp_Object *args)
 {
   register Lisp_Object val;
   val = Qnil;
@@ -2801,8 +2796,7 @@ usage: (list &rest OBJECTS)  */)
 
 DEFUN ("make-list", Fmake_list, Smake_list, 2, 2, 0,
        doc: /* Return a newly created list of length LENGTH, with each element being INIT.  */)
-     (length, init)
-     register Lisp_Object length, init;
+  (register Lisp_Object length, Lisp_Object init)
 {
   register Lisp_Object val;
   register int size;
@@ -2979,8 +2973,7 @@ allocate_process (void)
 DEFUN ("make-vector", Fmake_vector, Smake_vector, 2, 2, 0,
        doc: /* Return a newly created vector of length LENGTH, with each element being INIT.
 See also the function `vector'.  */)
-     (length, init)
-     register Lisp_Object length, init;
+  (register Lisp_Object length, Lisp_Object init)
 {
   Lisp_Object vector;
   register EMACS_INT sizei;
@@ -3003,9 +2996,7 @@ DEFUN ("vector", Fvector, Svector, 0, MANY, 0,
        doc: /* Return a newly created vector with specified arguments as elements.
 Any number of arguments, even zero arguments, are allowed.
 usage: (vector &rest OBJECTS)  */)
-     (nargs, args)
-     register int nargs;
-     Lisp_Object *args;
+  (register int nargs, Lisp_Object *args)
 {
   register Lisp_Object len, val;
   register int index;
@@ -3027,9 +3018,7 @@ stack size, (optional) doc string, and (optional) interactive spec.
 The first four arguments are required; at most six have any
 significance.
 usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INTERACTIVE-SPEC &rest ELEMENTS)  */)
-     (nargs, args)
-     register int nargs;
-     Lisp_Object *args;
+  (register int nargs, Lisp_Object *args)
 {
   register Lisp_Object len, val;
   register int index;
@@ -3111,8 +3100,7 @@ init_symbol (void)
 DEFUN ("make-symbol", Fmake_symbol, Smake_symbol, 1, 1, 0,
        doc: /* Return a newly allocated uninterned symbol whose name is NAME.
 Its value and function definition are void, and its property list is nil.  */)
-     (name)
-     Lisp_Object name;
+  (Lisp_Object name)
 {
   register Lisp_Object val;
   register struct Lisp_Symbol *p;
@@ -3273,7 +3261,7 @@ make_save_value (void *pointer, int integer)
 
 DEFUN ("make-marker", Fmake_marker, Smake_marker, 0, 0, 0,
        doc: /* Return a newly allocated marker which does not point at any place.  */)
-     ()
+  (void)
 {
   register Lisp_Object val;
   register struct Lisp_Marker *p;
@@ -4002,7 +3990,7 @@ static double avg_live;
 
 DEFUN ("gc-status", Fgc_status, Sgc_status, 0, 0, "",
        doc: /* Show information about live and zombie objects.  */)
-     ()
+  (void)
 {
   Lisp_Object args[8], zombie_list = Qnil;
   int i;
@@ -4796,8 +4784,7 @@ DEFUN ("purecopy", Fpurecopy, Spurecopy, 1, 1, 0,
        doc: /* Make a copy of object OBJ in pure storage.
 Recursively copies contents of vectors and cons cells.
 Does not copy symbols.  Copies strings without text properties.  */)
-     (obj)
-     register Lisp_Object obj;
+  (register Lisp_Object obj)
 {
   if (NILP (Vpurify_flag))
     return obj;
@@ -4898,7 +4885,7 @@ Garbage collection happens automatically if you cons more than
   (USED-STRINGS . FREE-STRINGS))
 However, if there was overflow in pure space, `garbage-collect'
 returns nil, because real GC can't be done.  */)
-     ()
+  (void)
 {
   register struct specbinding *bind;
   struct catchtag *catch;
@@ -6115,7 +6102,7 @@ DEFUN ("memory-limit", Fmemory_limit, Smemory_limit, 0, 0, 0,
        doc: /* Return the address of the last byte Emacs has allocated, divided by 1024.
 This may be helpful in debugging Emacs's memory usage.
 We divide the value by 1024 to make sure it fits in a Lisp integer.  */)
-     ()
+  (void)
 {
   Lisp_Object end;
 
@@ -6137,7 +6124,7 @@ objects consed.
 MISCS include overlays, markers, and some internal types.
 Frames, windows, buffers, and subprocesses count as vectors
   (but the contents of a buffer's text do not count here).  */)
-     ()
+  (void)
 {
   Lisp_Object consed[8];
 

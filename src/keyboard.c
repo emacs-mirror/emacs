@@ -975,7 +975,7 @@ To get out of the recursive edit, a command can do `(throw 'exit nil)';
 that tells this function to return.
 Alternatively, `(throw 'exit t)' makes this function signal an error.
 This function is called by the editor initialization to begin editing.  */)
-     ()
+  (void)
 {
   int count = SPECPDL_INDEX ();
   Lisp_Object buffer;
@@ -1366,7 +1366,7 @@ top_level_1 (Lisp_Object ignore)
 DEFUN ("top-level", Ftop_level, Stop_level, 0, 0, "",
        doc: /* Exit all recursive editing levels.
 This also exits all active minibuffers.  */)
-     ()
+  (void)
 {
 #ifdef HAVE_WINDOW_SYSTEM
   if (display_hourglass_p)
@@ -1383,7 +1383,7 @@ This also exits all active minibuffers.  */)
 
 DEFUN ("exit-recursive-edit", Fexit_recursive_edit, Sexit_recursive_edit, 0, 0, "",
        doc: /* Exit from the innermost recursive edit or minibuffer.  */)
-     ()
+  (void)
 {
   if (command_loop_level > 0 || minibuf_level > 0)
     Fthrow (Qexit, Qnil);
@@ -1394,7 +1394,7 @@ DEFUN ("exit-recursive-edit", Fexit_recursive_edit, Sexit_recursive_edit, 0, 0, 
 
 DEFUN ("abort-recursive-edit", Fabort_recursive_edit, Sabort_recursive_edit, 0, 0, "",
        doc: /* Abort the command that requested this recursive edit or minibuffer input.  */)
-     ()
+  (void)
 {
   if (command_loop_level > 0 || minibuf_level > 0)
     Fthrow (Qexit, Qt);
@@ -1435,8 +1435,7 @@ Within a `track-mouse' form, mouse motion generates input events that
 you can read with `read-event'.
 Normally, mouse motion is ignored.
 usage: (track-mouse BODY...)  */)
-     (args)
-     Lisp_Object args;
+  (Lisp_Object args)
 {
   int count = SPECPDL_INDEX ();
   Lisp_Object val;
@@ -4612,7 +4611,7 @@ The value when Emacs is not idle is nil.
 
 The microsecond count is zero on systems that do not provide
 resolution finer than a second.  */)
-  ()
+  (void)
 {
   if (! EMACS_TIME_NEG_P (timer_idleness_start_time))
     {
@@ -6429,8 +6428,7 @@ parse_modifiers (Lisp_Object symbol)
 DEFUN ("internal-event-symbol-parse-modifiers", Fevent_symbol_parse_modifiers,
        Sevent_symbol_parse_modifiers, 1, 1, 0,
        doc: /* Parse the event symbol.  For internal use.  */)
-     (symbol)
-     Lisp_Object symbol;
+  (Lisp_Object symbol)
 {
   /* Fill the cache if needed.  */
   parse_modifiers (symbol);
@@ -6659,8 +6657,7 @@ and zero or more modifier names (control, meta, hyper, super, shift, alt,
 drag, down, double or triple).  The base must be last.
 The return value is an event type (a character or symbol) which
 has the same base event type and all the specified modifiers.  */)
-     (event_desc)
-     Lisp_Object event_desc;
+  (Lisp_Object event_desc)
 {
   Lisp_Object base;
   int modifiers = 0;
@@ -10127,10 +10124,7 @@ The optional fifth argument COMMAND-LOOP, if non-nil, means
 that this key sequence is being read by something that will
 read commands one after another.  It should be nil if the caller
 will read just one key sequence.  */)
-  (prompt, continue_echo, dont_downcase_last, can_return_switch_frame,
-   command_loop)
-     Lisp_Object prompt, continue_echo, dont_downcase_last;
-     Lisp_Object can_return_switch_frame, command_loop;
+  (Lisp_Object prompt, Lisp_Object continue_echo, Lisp_Object dont_downcase_last, Lisp_Object can_return_switch_frame, Lisp_Object command_loop)
 {
   Lisp_Object keybuf[30];
   register int i;
@@ -10187,10 +10181,7 @@ will read just one key sequence.  */)
 DEFUN ("read-key-sequence-vector", Fread_key_sequence_vector,
        Sread_key_sequence_vector, 1, 5, 0,
        doc: /* Like `read-key-sequence' but always return a vector.  */)
-     (prompt, continue_echo, dont_downcase_last, can_return_switch_frame,
-      command_loop)
-     Lisp_Object prompt, continue_echo, dont_downcase_last;
-     Lisp_Object can_return_switch_frame, command_loop;
+  (Lisp_Object prompt, Lisp_Object continue_echo, Lisp_Object dont_downcase_last, Lisp_Object can_return_switch_frame, Lisp_Object command_loop)
 {
   Lisp_Object keybuf[30];
   register int i;
@@ -10250,8 +10241,7 @@ The argument KEYS specifies the value to use instead of (this-command-keys)
 when reading the arguments; if it is nil, (this-command-keys) is used.
 The argument SPECIAL, if non-nil, means that this command is executing
 a special event, so ignore the prefix argument and don't clear it.  */)
-     (cmd, record_flag, keys, special)
-     Lisp_Object cmd, record_flag, keys, special;
+  (Lisp_Object cmd, Lisp_Object record_flag, Lisp_Object keys, Lisp_Object special)
 {
   register Lisp_Object final;
   register Lisp_Object tem;
@@ -10340,8 +10330,7 @@ the numeric argument to this command.
 
 Noninteractively, the argument PREFIXARG is the prefix argument to
 give to the command you invoke, if it asks for an argument.  */)
-     (prefixarg)
-     Lisp_Object prefixarg;
+  (Lisp_Object prefixarg)
 {
   Lisp_Object function;
   char buf[40];
@@ -10571,7 +10560,7 @@ DEFUN ("input-pending-p", Finput_pending_p, Sinput_pending_p, 0, 0, 0,
        doc: /* Return t if command input is currently available with no wait.
 Actually, the value is nil only if we can be sure that no input is available;
 if there is a doubt, the value is t.  */)
-     ()
+  (void)
 {
   if (!NILP (Vunread_command_events) || unread_command_char != -1
       || !NILP (Vunread_post_input_method_events)
@@ -10586,7 +10575,7 @@ if there is a doubt, the value is t.  */)
 
 DEFUN ("recent-keys", Frecent_keys, Srecent_keys, 0, 0, 0,
        doc: /* Return vector of last 300 events, not counting those from keyboard macros.  */)
-     ()
+  (void)
 {
   Lisp_Object *keys = XVECTOR (recent_keys)->contents;
   Lisp_Object val;
@@ -10611,7 +10600,7 @@ the last key sequence that has been read.
 The value is a string or a vector.
 
 See also `this-command-keys-vector'.  */)
-     ()
+  (void)
 {
   return make_event_array (this_command_key_count,
 			   XVECTOR (this_command_keys)->contents);
@@ -10623,7 +10612,7 @@ However, if the command has called `read-key-sequence', it returns
 the last key sequence that has been read.
 
 See also `this-command-keys'.  */)
-     ()
+  (void)
 {
   return Fvector (this_command_key_count,
 		  XVECTOR (this_command_keys)->contents);
@@ -10637,7 +10626,7 @@ the command loop or by `read-key-sequence'.
 Unlike `this-command-keys', this function's value
 does not include prefix arguments.
 The value is always a vector.  */)
-     ()
+  (void)
 {
   return Fvector (this_command_key_count
 		  - this_single_command_key_start,
@@ -10653,7 +10642,7 @@ the command loop or by `read-key-sequence'.
 Unlike `this-single-command-keys', this function's value
 shows the events before all translations (except for input methods).
 The value is always a vector.  */)
-     ()
+  (void)
 {
   return Fvector (raw_keybuf_count,
 		  (XVECTOR (raw_keybuf)->contents));
@@ -10671,7 +10660,7 @@ both in the value of (this-command-keys) and in echoing.
 To achieve this, `universal-argument-other-key' calls
 `reset-this-command-lengths', which discards the record of reading
 these events the first time.  */)
-     ()
+  (void)
 {
   this_command_key_count = before_command_key_count;
   if (this_command_key_count < this_single_command_key_start)
@@ -10691,8 +10680,7 @@ DEFUN ("clear-this-command-keys", Fclear_this_command_keys,
        doc: /* Clear out the vector that `this-command-keys' returns.
 Also clear the record of the last 100 events, unless optional arg
 KEEP-RECORD is non-nil.  */)
-     (keep_record)
-     Lisp_Object keep_record;
+  (Lisp_Object keep_record)
 {
   int i;
 
@@ -10711,7 +10699,7 @@ KEEP-RECORD is non-nil.  */)
 
 DEFUN ("recursion-depth", Frecursion_depth, Srecursion_depth, 0, 0, 0,
        doc: /* Return the current depth in recursive edits.  */)
-     ()
+  (void)
 {
   Lisp_Object temp;
   XSETFASTINT (temp, command_loop_level + minibuf_level);
@@ -10722,8 +10710,7 @@ DEFUN ("open-dribble-file", Fopen_dribble_file, Sopen_dribble_file, 1, 1,
        "FOpen dribble file: ",
        doc: /* Start writing all keyboard characters to a dribble file called FILE.
 If FILE is nil, close any open dribble file.  */)
-     (file)
-     Lisp_Object file;
+  (Lisp_Object file)
 {
   if (dribble)
     {
@@ -10745,7 +10732,7 @@ If FILE is nil, close any open dribble file.  */)
 DEFUN ("discard-input", Fdiscard_input, Sdiscard_input, 0, 0, 0,
        doc: /* Discard the contents of the terminal input buffer.
 Also end any kbd macro being defined.  */)
-     ()
+  (void)
 {
   if (!NILP (current_kboard->defining_kbd_macro))
     {
@@ -10780,8 +10767,7 @@ After resumption run the normal hook `suspend-resume-hook'.
 
 Some operating systems cannot stop the Emacs process and resume it later.
 On such systems, Emacs starts a subshell instead of suspending.  */)
-     (stuffstring)
-     Lisp_Object stuffstring;
+  (Lisp_Object stuffstring)
 {
   int count = SPECPDL_INDEX ();
   int old_height, old_width;
@@ -11101,8 +11087,7 @@ If INTERRUPT is non-nil, Emacs will use input interrupts;
 otherwise Emacs uses CBREAK mode.
 
 See also `current-input-mode'.  */)
-     (interrupt)
-     Lisp_Object interrupt;
+  (Lisp_Object interrupt)
 {
   int new_interrupt_input;
 #ifdef SIGIO
@@ -11152,8 +11137,7 @@ This setting only has an effect on tty terminals and only when
 Emacs reads input in CBREAK mode; see `set-input-interrupt-mode'.
 
 See also `current-input-mode'.  */)
-       (flow, terminal)
-       Lisp_Object flow, terminal;
+  (Lisp_Object flow, Lisp_Object terminal)
 {
   struct terminal *t = get_terminal (terminal, 1);
   struct tty_display_info *tty;
@@ -11195,8 +11179,7 @@ It may be a terminal object, a frame, or nil for the terminal used by
 the currently selected frame.
 
 See also `current-input-mode'.  */)
-       (meta, terminal)
-       Lisp_Object meta, terminal;
+  (Lisp_Object meta, Lisp_Object terminal)
 {
   struct terminal *t = get_terminal (terminal, 1);
   struct tty_display_info *tty;
@@ -11237,8 +11220,7 @@ This function only has an effect on the controlling tty of the Emacs
 process.
 
 See also `current-input-mode'.  */)
-       (quit)
-       Lisp_Object quit;
+  (Lisp_Object quit)
 {
   struct terminal *t = get_named_tty ("/dev/tty");
   struct tty_display_info *tty;
@@ -11275,8 +11257,7 @@ Third arg META t means accept 8-bit input (for a Meta key).
  Otherwise, accept 8-bit input and don't use the top bit for Meta.
 Optional fourth arg QUIT if non-nil specifies character to use for quitting.
 See also `current-input-mode'.  */)
-     (interrupt, flow, meta, quit)
-     Lisp_Object interrupt, flow, meta, quit;
+  (Lisp_Object interrupt, Lisp_Object flow, Lisp_Object meta, Lisp_Object quit)
 {
   Fset_input_interrupt_mode (interrupt);
   Fset_output_flow_control (flow, Qnil);
@@ -11300,7 +11281,7 @@ The value is a list of the form (INTERRUPT FLOW META QUIT), where
   QUIT is the character Emacs currently uses to quit.
 The elements of this list correspond to the arguments of
 `set-input-mode'.  */)
-     ()
+  (void)
 {
   Lisp_Object val[4];
   struct frame *sf = XFRAME (selected_frame);
@@ -11334,8 +11315,7 @@ The return value is similar to a mouse click position:
    (WINDOW AREA-OR-POS (X . Y) TIMESTAMP OBJECT POS (COL . ROW)
     IMAGE (DX . DY) (WIDTH . HEIGHT))
 The `posn-' functions access elements of such lists.  */)
-  (x, y, frame_or_window, whole)
-     Lisp_Object x, y, frame_or_window, whole;
+  (Lisp_Object x, Lisp_Object y, Lisp_Object frame_or_window, Lisp_Object whole)
 {
   CHECK_NATNUM (x);
   CHECK_NATNUM (y);
@@ -11375,8 +11355,7 @@ to the given buffer position:
    (WINDOW AREA-OR-POS (X . Y) TIMESTAMP OBJECT POS (COL . ROW)
     IMAGE (DX . DY) (WIDTH . HEIGHT))
 The `posn-' functions access elements of such lists.  */)
-  (pos, window)
-     Lisp_Object pos, window;
+  (Lisp_Object pos, Lisp_Object window)
 {
   Lisp_Object tem;
 

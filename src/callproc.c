@@ -215,9 +215,7 @@ and returns a numeric exit status or a signal description string.
 If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.
 
 usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
-     (nargs, args)
-     int nargs;
-     register Lisp_Object *args;
+  (int nargs, register Lisp_Object *args)
 {
   Lisp_Object infile, buffer, current_dir, path;
   int display_p;
@@ -877,9 +875,7 @@ and returns a numeric exit status or a signal description string.
 If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.
 
 usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &rest ARGS)  */)
-     (nargs, args)
-     int nargs;
-     register Lisp_Object *args;
+  (int nargs, register Lisp_Object *args)
 {
   struct gcpro gcpro1;
   Lisp_Object filename_string;
@@ -1383,8 +1379,7 @@ This function searches `process-environment' for VARIABLE.
 If optional parameter ENV is a list, then search this list instead of
 `process-environment', and return t when encountering a negative entry
 \(an entry for a variable with no value).  */)
-     (variable, env)
-     Lisp_Object variable, env;
+  (Lisp_Object variable, Lisp_Object env)
 {
   char *value;
   int valuelen;

@@ -1,3 +1,8 @@
+2010-07-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* make-docfile.c (write_c_args): Deal with type names in DEFUN
+	arguments.
+
 2010-07-08  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* update-game-score.c (P_): Remove macro.

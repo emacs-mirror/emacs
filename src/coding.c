@@ -8091,8 +8091,7 @@ DEFUN ("coding-system-p", Fcoding_system_p, Scoding_system_p, 1, 1, 0,
        doc: /* Return t if OBJECT is nil or a coding-system.
 See the documentation of `define-coding-system' for information
 about coding-system objects.  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   if (NILP (object)
       || CODING_SYSTEM_ID (object) >= 0)
@@ -8106,8 +8105,7 @@ about coding-system objects.  */)
 DEFUN ("read-non-nil-coding-system", Fread_non_nil_coding_system,
        Sread_non_nil_coding_system, 1, 1, 0,
        doc: /* Read a coding system from the minibuffer, prompting with string PROMPT.  */)
-     (prompt)
-     Lisp_Object prompt;
+  (Lisp_Object prompt)
 {
   Lisp_Object val;
   do
@@ -8124,8 +8122,7 @@ DEFUN ("read-coding-system", Fread_coding_system, Sread_coding_system, 1, 2, 0,
 If the user enters null input, return second argument DEFAULT-CODING-SYSTEM.
 Ignores case when completing coding systems (all Emacs coding systems
 are lower-case).  */)
-     (prompt, default_coding_system)
-     Lisp_Object prompt, default_coding_system;
+  (Lisp_Object prompt, Lisp_Object default_coding_system)
 {
   Lisp_Object val;
   int count = SPECPDL_INDEX ();
@@ -8146,8 +8143,7 @@ DEFUN ("check-coding-system", Fcheck_coding_system, Scheck_coding_system,
 If valid, return CODING-SYSTEM, else signal a `coding-system-error' error.
 It is valid if it is nil or a symbol defined as a coding system by the
 function `define-coding-system'.  */)
-  (coding_system)
-     Lisp_Object coding_system;
+  (Lisp_Object coding_system)
 {
   Lisp_Object define_form;
 
@@ -8499,8 +8495,7 @@ format.
 
 If optional argument HIGHEST is non-nil, return the coding system of
 highest priority.  */)
-     (start, end, highest)
-     Lisp_Object start, end, highest;
+  (Lisp_Object start, Lisp_Object end, Lisp_Object highest)
 {
   int from, to;
   int from_byte, to_byte;
@@ -8538,8 +8533,7 @@ format.
 
 If optional argument HIGHEST is non-nil, return the coding system of
 highest priority.  */)
-     (string, highest)
-     Lisp_Object string, highest;
+  (Lisp_Object string, Lisp_Object highest)
 {
   CHECK_STRING (string);
 
@@ -8581,8 +8575,7 @@ DEFUN ("find-coding-systems-region-internal",
        Ffind_coding_systems_region_internal,
        Sfind_coding_systems_region_internal, 2, 3, 0,
        doc: /* Internal use only.  */)
-     (start, end, exclude)
-     Lisp_Object start, end, exclude;
+  (Lisp_Object start, Lisp_Object end, Lisp_Object exclude)
 {
   Lisp_Object coding_attrs_list, safe_codings;
   EMACS_INT start_byte, end_byte;
@@ -8715,8 +8708,7 @@ list of positions.
 If optional 5th argument STRING is non-nil, it is a string to search
 for un-encodable characters.  In that case, START and END are indexes
 to the string.  */)
-     (start, end, coding_system, count, string)
-     Lisp_Object start, end, coding_system, count, string;
+  (Lisp_Object start, Lisp_Object end, Lisp_Object coding_system, Lisp_Object count, Lisp_Object string)
 {
   int n;
   struct coding_system coding;
@@ -8831,8 +8823,7 @@ buffer positions.  END is ignored.
 
 If the current buffer (or START if it is a string) is unibyte, the value
 is nil.  */)
-     (start, end, coding_system_list)
-     Lisp_Object start, end, coding_system_list;
+  (Lisp_Object start, Lisp_Object end, Lisp_Object coding_system_list)
 {
   Lisp_Object list;
   EMACS_INT start_byte, end_byte;
@@ -8998,8 +8989,7 @@ If DESTINATION is t, the decoded text is returned.
 This function sets `last-coding-system-used' to the precise coding system
 used (which may be different from CODING-SYSTEM if CODING-SYSTEM is
 not fully specified.)  */)
-     (start, end, coding_system, destination)
-     Lisp_Object start, end, coding_system, destination;
+  (Lisp_Object start, Lisp_Object end, Lisp_Object coding_system, Lisp_Object destination)
 {
   return code_convert_region (start, end, coding_system, destination, 0, 0);
 }
@@ -9021,8 +9011,7 @@ If DESTINATION is t, the encoded text is returned.
 This function sets `last-coding-system-used' to the precise coding system
 used (which may be different from CODING-SYSTEM if CODING-SYSTEM is
 not fully specified.)  */)
-  (start, end, coding_system, destination)
-     Lisp_Object start, end, coding_system, destination;
+  (Lisp_Object start, Lisp_Object end, Lisp_Object coding_system, Lisp_Object destination)
 {
   return code_convert_region (start, end, coding_system, destination, 1, 0);
 }
@@ -9099,8 +9088,7 @@ case, the return value is the length of the decoded text.
 This function sets `last-coding-system-used' to the precise coding system
 used (which may be different from CODING-SYSTEM if CODING-SYSTEM is
 not fully specified.)  */)
-  (string, coding_system, nocopy, buffer)
-     Lisp_Object string, coding_system, nocopy, buffer;
+  (Lisp_Object string, Lisp_Object coding_system, Lisp_Object nocopy, Lisp_Object buffer)
 {
   return code_convert_string (string, coding_system, buffer,
 			      0, ! NILP (nocopy), 0);
@@ -9120,8 +9108,7 @@ case, the return value is the length of the encoded text.
 This function sets `last-coding-system-used' to the precise coding system
 used (which may be different from CODING-SYSTEM if CODING-SYSTEM is
 not fully specified.)  */)
-     (string, coding_system, nocopy, buffer)
-     Lisp_Object string, coding_system, nocopy, buffer;
+  (Lisp_Object string, Lisp_Object coding_system, Lisp_Object nocopy, Lisp_Object buffer)
 {
   return code_convert_string (string, coding_system, buffer,
 			      1, ! NILP (nocopy), 1);
@@ -9131,8 +9118,7 @@ not fully specified.)  */)
 DEFUN ("decode-sjis-char", Fdecode_sjis_char, Sdecode_sjis_char, 1, 1, 0,
        doc: /* Decode a Japanese character which has CODE in shift_jis encoding.
 Return the corresponding character.  */)
-     (code)
-     Lisp_Object code;
+  (Lisp_Object code)
 {
   Lisp_Object spec, attrs, val;
   struct charset *charset_roman, *charset_kanji, *charset_kana, *charset;
@@ -9179,8 +9165,7 @@ Return the corresponding character.  */)
 DEFUN ("encode-sjis-char", Fencode_sjis_char, Sencode_sjis_char, 1, 1, 0,
        doc: /* Encode a Japanese character CH to shift_jis encoding.
 Return the corresponding code in SJIS.  */)
-     (ch)
-    Lisp_Object ch;
+  (Lisp_Object ch)
 {
   Lisp_Object spec, attrs, charset_list;
   int c;
@@ -9208,8 +9193,7 @@ Return the corresponding code in SJIS.  */)
 DEFUN ("decode-big5-char", Fdecode_big5_char, Sdecode_big5_char, 1, 1, 0,
        doc: /* Decode a Big5 character which has CODE in BIG5 coding system.
 Return the corresponding character.  */)
-     (code)
-     Lisp_Object code;
+  (Lisp_Object code)
 {
   Lisp_Object spec, attrs, val;
   struct charset *charset_roman, *charset_big5, *charset;
@@ -9247,8 +9231,7 @@ Return the corresponding character.  */)
 DEFUN ("encode-big5-char", Fencode_big5_char, Sencode_big5_char, 1, 1, 0,
        doc: /* Encode the Big5 character CH to BIG5 coding system.
 Return the corresponding character code in Big5.  */)
-     (ch)
-     Lisp_Object ch;
+  (Lisp_Object ch)
 {
   Lisp_Object spec, attrs, charset_list;
   struct charset *charset;
@@ -9275,9 +9258,7 @@ Return the corresponding character code in Big5.  */)
 DEFUN ("set-terminal-coding-system-internal", Fset_terminal_coding_system_internal,
        Sset_terminal_coding_system_internal, 1, 2, 0,
        doc: /* Internal use only.  */)
-     (coding_system, terminal)
-     Lisp_Object coding_system;
-     Lisp_Object terminal;
+  (Lisp_Object coding_system, Lisp_Object terminal)
 {
   struct coding_system *terminal_coding = TERMINAL_TERMINAL_CODING (get_terminal (terminal, 1));
   CHECK_SYMBOL (coding_system);
@@ -9295,8 +9276,7 @@ DEFUN ("set-safe-terminal-coding-system-internal",
        Fset_safe_terminal_coding_system_internal,
        Sset_safe_terminal_coding_system_internal, 1, 1, 0,
        doc: /* Internal use only.  */)
-     (coding_system)
-     Lisp_Object coding_system;
+  (Lisp_Object coding_system)
 {
   CHECK_SYMBOL (coding_system);
   setup_coding_system (Fcheck_coding_system (coding_system),
@@ -9313,8 +9293,7 @@ DEFUN ("terminal-coding-system", Fterminal_coding_system,
        doc: /* Return coding system specified for terminal output on the given terminal.
 TERMINAL may be a terminal object, a frame, or nil for the selected
 frame's terminal device.  */)
-     (terminal)
-     Lisp_Object terminal;
+  (Lisp_Object terminal)
 {
   struct coding_system *terminal_coding
     = TERMINAL_TERMINAL_CODING (get_terminal (terminal, 1));
@@ -9327,9 +9306,7 @@ frame's terminal device.  */)
 DEFUN ("set-keyboard-coding-system-internal", Fset_keyboard_coding_system_internal,
        Sset_keyboard_coding_system_internal, 1, 2, 0,
        doc: /* Internal use only.  */)
-     (coding_system, terminal)
-     Lisp_Object coding_system;
-     Lisp_Object terminal;
+  (Lisp_Object coding_system, Lisp_Object terminal)
 {
   struct terminal *t = get_terminal (terminal, 1);
   CHECK_SYMBOL (coding_system);
@@ -9347,8 +9324,7 @@ DEFUN ("set-keyboard-coding-system-internal", Fset_keyboard_coding_system_intern
 DEFUN ("keyboard-coding-system",
        Fkeyboard_coding_system, Skeyboard_coding_system, 0, 1, 0,
        doc: /* Return coding system specified for decoding keyboard input.  */)
-     (terminal)
-     Lisp_Object terminal;
+  (Lisp_Object terminal)
 {
   return CODING_ID_NAME (TERMINAL_KEYBOARD_CODING
 			 (get_terminal (terminal, 1))->id);
@@ -9396,9 +9372,7 @@ function to call for FILENAME, that function should examine the
 contents of BUFFER instead of reading the file.
 
 usage: (find-operation-coding-system OPERATION ARGUMENTS...)  */)
-     (nargs, args)
-     int nargs;
-     Lisp_Object *args;
+  (int nargs, Lisp_Object *args)
 {
   Lisp_Object operation, target_idx, target, val;
   register Lisp_Object chain;
@@ -9474,9 +9448,7 @@ If multiple coding systems belong to the same category,
 all but the first one are ignored.
 
 usage: (set-coding-system-priority &rest coding-systems)  */)
-     (nargs, args)
-     int nargs;
-     Lisp_Object *args;
+  (int nargs, Lisp_Object *args)
 {
   int i, j;
   int changed[coding_category_max];
@@ -9536,8 +9508,7 @@ The list contains a subset of coding systems; i.e. coding systems
 assigned to each coding category (see `coding-category-list').
 
 HIGHESTP non-nil means just return the highest priority one.  */)
-     (highestp)
-     Lisp_Object highestp;
+  (Lisp_Object highestp)
 {
   int i;
   Lisp_Object val;
@@ -9583,9 +9554,7 @@ DEFUN ("define-coding-system-internal", Fdefine_coding_system_internal,
        Sdefine_coding_system_internal, coding_arg_max, MANY, 0,
        doc: /* For internal use only.
 usage: (define-coding-system-internal ...)  */)
-     (nargs, args)
-     int nargs;
-     Lisp_Object *args;
+  (int nargs, Lisp_Object *args)
 {
   Lisp_Object name;
   Lisp_Object spec_vec;		/* [ ATTRS ALIASE EOL_TYPE ] */
@@ -10114,8 +10083,7 @@ usage: (define-coding-system-internal ...)  */)
 DEFUN ("coding-system-put", Fcoding_system_put, Scoding_system_put,
        3, 3, 0,
        doc: /* Change value in CODING-SYSTEM's property list PROP to VAL.  */)
-     (coding_system, prop, val)
-     Lisp_Object coding_system, prop, val;
+  (Lisp_Object coding_system, Lisp_Object prop, Lisp_Object val)
 {
   Lisp_Object spec, attrs;
 
@@ -10171,8 +10139,7 @@ DEFUN ("coding-system-put", Fcoding_system_put, Scoding_system_put,
 DEFUN ("define-coding-system-alias", Fdefine_coding_system_alias,
        Sdefine_coding_system_alias, 2, 2, 0,
        doc: /* Define ALIAS as an alias for CODING-SYSTEM.  */)
-     (alias, coding_system)
-     Lisp_Object alias, coding_system;
+  (Lisp_Object alias, Lisp_Object coding_system)
 {
   Lisp_Object spec, aliases, eol_type, val;
 
@@ -10212,8 +10179,7 @@ DEFUN ("coding-system-base", Fcoding_system_base, Scoding_system_base,
        1, 1, 0,
        doc: /* Return the base of CODING-SYSTEM.
 Any alias or subsidiary coding system is not a base coding system.  */)
-     (coding_system)
-     Lisp_Object coding_system;
+  (Lisp_Object coding_system)
 {
   Lisp_Object spec, attrs;
 
@@ -10227,8 +10193,7 @@ Any alias or subsidiary coding system is not a base coding system.  */)
 DEFUN ("coding-system-plist", Fcoding_system_plist, Scoding_system_plist,
        1, 1, 0,
        doc: "Return the property list of CODING-SYSTEM.")
-     (coding_system)
-     Lisp_Object coding_system;
+  (Lisp_Object coding_system)
 {
   Lisp_Object spec, attrs;
 
@@ -10243,8 +10208,7 @@ DEFUN ("coding-system-plist", Fcoding_system_plist, Scoding_system_plist,
 DEFUN ("coding-system-aliases", Fcoding_system_aliases, Scoding_system_aliases,
        1, 1, 0,
        doc: /* Return the list of aliases of CODING-SYSTEM.  */)
-     (coding_system)
-     Lisp_Object coding_system;
+  (Lisp_Object coding_system)
 {
   Lisp_Object spec;
 
@@ -10265,8 +10229,7 @@ and CR respectively.
 A vector value indicates that a format of end-of-line should be
 detected automatically.  Nth element of the vector is the subsidiary
 coding system whose eol-type is N.  */)
-     (coding_system)
-     Lisp_Object coding_system;
+  (Lisp_Object coding_system)
 {
   Lisp_Object spec, eol_type;
   int n;

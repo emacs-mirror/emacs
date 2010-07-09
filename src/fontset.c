@@ -1186,8 +1186,7 @@ The value is nil if there is no matching fontset.
 PATTERN can contain `*' or `?' as a wildcard
 just as X font name matching algorithm allows.
 If REGEXPP is non-nil, PATTERN is a regular expression.  */)
-     (pattern, regexpp)
-     Lisp_Object pattern, regexpp;
+  (Lisp_Object pattern, Lisp_Object regexpp)
 {
   Lisp_Object fontset;
   int id;
@@ -1435,8 +1434,7 @@ Optional 5th argument ADD, if non-nil, specifies how to add FONT-SPEC
 to the font specifications for TARGET previously set.  If it is
 `prepend', FONT-SPEC is prepended.  If it is `append', FONT-SPEC is
 appended.  By default, FONT-SPEC overrides the previous settings.  */)
-     (name, target, font_spec, frame, add)
-     Lisp_Object name, target, font_spec, frame, add;
+  (Lisp_Object name, Lisp_Object target, Lisp_Object font_spec, Lisp_Object frame, Lisp_Object add)
 {
   Lisp_Object fontset;
   Lisp_Object font_def, registry, family;
@@ -1645,8 +1643,7 @@ char-table `char-script-table'.
 
 FONT-SPEC is a vector, a cons, or a string.  See the documentation of
 `set-fontset-font' for the meaning.  */)
-  (name, fontlist)
-     Lisp_Object name, fontlist;
+  (Lisp_Object name, Lisp_Object fontlist)
 {
   Lisp_Object fontset;
   int id;
@@ -1821,8 +1818,7 @@ update_auto_fontset_alist (Lisp_Object font_object, Lisp_Object fontset)
 
 DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 2, 0,
        doc: /* For internal use only.  */)
-     (position, ch)
-     Lisp_Object position, ch;
+  (Lisp_Object position, Lisp_Object ch)
 {
   EMACS_INT pos, pos_byte, dummy;
   int face_id;
@@ -1912,8 +1908,7 @@ The char-table has one extra slot.  If FONTSET is not the default
 fontset, the value the extra slot is a char-table containing the
 information about the derived fonts from the default fontset.  The
 format is the same as above.  */)
-     (fontset, frame)
-     Lisp_Object fontset, frame;
+  (Lisp_Object fontset, Lisp_Object frame)
 {
   FRAME_PTR f;
   Lisp_Object *realized[2], fontsets[2], tables[2];
@@ -2048,8 +2043,7 @@ fontset.
 
 If the 2nd optional arg ALL is non-nil, return a list of all font name
 patterns.  */)
-  (name, ch, all)
-     Lisp_Object name, ch, all;
+  (Lisp_Object name, Lisp_Object ch, Lisp_Object all)
 {
   int c;
   Lisp_Object fontset, elt, list, repertory, val;
@@ -2109,7 +2103,7 @@ patterns.  */)
 
 DEFUN ("fontset-list", Ffontset_list, Sfontset_list, 0, 0, 0,
        doc: /* Return a list of all defined fontset names.  */)
-     ()
+  (void)
 {
   Lisp_Object fontset, list;
   int i;
@@ -2166,7 +2160,7 @@ dump_fontset (fontset)
 
 DEFUN ("fontset-list-all", Ffontset_list_all, Sfontset_list_all, 0, 0, 0,
        doc: /* Return a brief summary of all fontsets for debug use.  */)
-     ()
+  (void)
 {
   Lisp_Object val;
   int i;

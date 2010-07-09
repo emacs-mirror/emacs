@@ -1,3 +1,91 @@
+2010-07-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (xd_initialize): Add new argument RAISE_ERROR, which
+	allows to suppress errors when polling in Emacs' main loop.
+	(Fdbus_init_bus, Fdbus_get_unique_name, Fdbus_call_method)
+	(Fdbus_call_method_asynchronously, Fdbus_method_return_internal)
+	(Fdbus_method_error_internal, Fdbus_send_signal)
+	(xd_get_dispatch_status, xd_read_message, Fdbus_register_signal)
+	(Fdbus_register_method): Use it.  (Bug#6579)
+
+2010-07-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* alloc.c: Convert DEFUNs to standard C.
+	* buffer.c:
+	* bytecode.c:
+	* callint.c:
+	* callproc.c:
+	* casefiddle.c:
+	* casetab.c:
+	* category.c:
+	* character.c:
+	* charset.c:
+	* chartab.c:
+	* cmds.c:
+	* coding.c:
+	* composite.c:
+	* data.c:
+	* dbusbind.c:
+	* dired.c:
+	* dispnew.c:
+	* doc.c:
+	* dosfns.c:
+	* editfns.c:
+	* emacs.c:
+	* eval.c:
+	* fileio.c:
+	* filelock.c:
+	* floatfns.c:
+	* fns.c:
+	* font.c:
+	* fontset.c:
+	* frame.c:
+	* fringe.c:
+	* image.c:
+	* indent.c:
+	* insdel.c:
+	* keyboard.c:
+	* keymap.c:
+	* lread.c:
+	* macros.c:
+	* marker.c:
+	* menu.c:
+	* minibuf.c:
+	* msdos.c:
+	* nsfns.m:
+	* nsmenu.m:
+	* nsselect.m:
+	* print.c:
+	* process.c:
+	* search.c:
+	* sound.c:
+	* syntax.c:
+	* term.c:
+	* terminal.c:
+	* textprop.c:
+	* undo.c:
+	* w16select.c:
+	* w32console.c:
+	* w32fns.c:
+	* w32font.c:
+	* w32menu.c:
+	* w32proc.c:
+	* w32select.c:
+	* window.c:
+	* xdisp.c:
+	* xfaces.c:
+	* xfns.c:
+	* xmenu.c:
+	* xselect.c:
+	* xsettings.c:
+	* xsmfns.c: Likewise.
+
+
+2010-07-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* process.c (kbd_is_on_hold, hold_keyboard_input)
+	(unhold_keyboard_input, kbd_on_hold_p) [!subprocesses]: Define.
+
 2010-07-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xmenu.c (set_frame_menubar, create_and_show_popup_menu)
