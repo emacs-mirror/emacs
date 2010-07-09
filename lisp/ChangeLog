@@ -1,3 +1,68 @@
+2012-09-14  Stephen Berman  <stephen.berman@gmx.net>
+
+	* calendar/todos.el Remove lots of commented out code; add various
+	comments; further code rearrangement.
+	(todos-insert-item-here-ask-date-time)
+	(todos-insert-item-ask-date-time)
+	(todos-insert-item-ask-dayname-time)
+	(todos-insert-item-for-diary)
+	(todos-insert-item-for-diary-ask-date-time)
+	(todos-make-categories-alist, todos-categories-alist): Remove.
+	(todos-categories-list): Comment out.
+	(todos-make-categories-list): New function replacing
+	todos-make-categories-alist, using category plists to get item
+	counts and taking archive into account.
+	(todos-current-todos-file): New variable.
+	(todos-mode-map): Update key bindings.
+	(todos-save): Add as comment code to make sure todos-categories
+	sexp is current on saving.
+	(todos-quit): Call todos-show on quitting Todos archive buffer.
+	(todos-show): If todos-current-todos-file is not set to Todos
+	file, set it as a new file; set todos-categories from
+	todos-make-categories-alist.
+	(todos-display-categories): Use a different display format for
+	archive file; put point initially on the first button.
+	(todos-toggle-view-done-items): Check the category's `done'
+	property to determine if there are done items.
+	(todos-view-archive): Set todos-current-todos-file to the archive
+	file; jump from the Todos file to the same category in the
+	archive, if it exists, else jump to the first category; use
+	message instead of error.
+	(todos-add-category): Intern a special symbol for the new category
+	and set its property list to holds counts of the numbers of todo,
+	done and archived items in the category; assign the new category
+	the current highest category number.
+	(todos-rename-category): Don't use todos-categories-alist.
+	(todos-delete-category): Check the category's `todo' and `done'
+	properties to determine if it is empty; ensure that the end of the
+	last category is found; after deleting the category, empty its
+	plist and unintern its special symbol.
+	(todos-insert-item-here): Fix argument list of todos-insert-item.
+	(todos-delete-item, todos-raise-item, todos-lower-item):
+	Use message instead of error.
+	(todos-move-item): If the category to be moved to does not exist,
+	add it as a new category.
+	(todos-item-done, todos-reset-separator):
+	Use todos-category-select instead of todos-show.
+	(todos-archive-done-items): Make buffer writeable; conditionalize
+	search for end of category; save after adding to archive in case
+	the file is new, so it can be found.
+	(todos-category-select): Wrap search in if instead of or+and;
+	don't hide done items in an archive.
+	(todos-set-item-priority): Check the category's `todo'
+	property to determine if there are not done todo items.
+	(todos-jump-to-category-noninteractively): Just switch to buffer
+	visiting todos-current-todos-file, since this can be either a
+	Todos file or an archive.
+	(todos-item-counts): Use category's plist instead of an alist.
+	(todos-longest-category-name-length): Argument is now a list of
+	category names, not an alist, so just test each element, not each
+	element's the car.
+	(todos-padded-string): Use todos-categories instead of
+	todos-categories-alist.
+	(todos-insert-category-name): Use category plist to get item
+	counts; take archived items into account.
+
 2012-09-13  Stephen Berman  <stephen.berman@gmx.net>
 
 	* calendar/todos.el: Numerous spelling and comment fixes, doc

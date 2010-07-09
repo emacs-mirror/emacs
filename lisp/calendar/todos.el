@@ -481,6 +481,9 @@ Automatically generated when `todos-save-top-priorities' is non-nil."
 ;; ---------------------------------------------------------------------------
 ;;; Mode setup
 
+(defvar todos-current-todos-file nil
+  "")
+
 (defvar todos-categories nil
   "TODO categories.")
 
@@ -496,12 +499,14 @@ Automatically generated when `todos-save-top-priorities' is non-nil."
     (define-key map "S" 'todos-search)
     ;; display commands
     (define-key map "C" 'todos-display-categories)
+    ;; (define-key map "" 'todos-display-categories-alphabetically)
     (define-key map "h" 'todos-highlight-item)
     (define-key map "N" 'todos-toggle-item-numbering)
     ;; (define-key map "" 'todos-toggle-display-date-time)
     (define-key map "P" 'todos-print)
     (define-key map "q" 'todos-quit)
     (define-key map "s" 'todos-save)
+    (define-key map "V" 'todos-view-archive)
     (define-key map "v" 'todos-toggle-view-done-items)
     (define-key map "Y" 'todos-diary-items)
     ;; (define-key map "S" 'todos-save-top-priorities)
@@ -514,7 +519,6 @@ Automatically generated when `todos-save-top-priorities' is non-nil."
     (define-key map "e" 'todos-edit-item)
     (define-key map "E" 'todos-edit-multiline)
     ;; (define-key map "" 'todos-change-date)
-    ;; (define-key map "f" 'todos-file-item)
     (define-key map "ii" 'todos-insert-item)
     (define-key map "ih" 'todos-insert-item-here)
     (define-key map "ia" 'todos-insert-item-ask-date-time)
@@ -684,19 +688,27 @@ Automatically generated when `todos-save-top-priorities' is non-nil."
 (defun todos-save ()
   "Save the TODO list."
   (interactive)
-  (save-excursion
-    (save-restriction
-      (save-buffer)))
-  ;; (if todos-save-top-priorities-too (todos-save-top-priorities)))
-  )
+  (let (buffer-read-only)
+    (save-excursion
+      (save-restriction
+	;; (widen)
+	;; (goto-char (point-min))
+	;; (unless (looking-at (concat "^" (regexp-quote todos-category-beg)))
+	;;   (kill-line))
+	;; (prin1 todos-categories (current-buffer))
+	(save-buffer)))
+    ;; (if todos-save-top-priorities-too (todos-save-top-priorities)))
+    ))
 
 (defun todos-quit ()
   "Done with TODO list for now."
   (interactive)
   (widen)
   (todos-save)
-  (message "")
-  (bury-buffer))
+  ;; (message "")
+  (if (eq major-mode 'todos-archive-mode)
+      (todos-show)
+    (bury-buffer)))
 
 ;; ---------------------------------------------------------------------------
 ;;; Commands
@@ -722,14 +734,14 @@ Automatically generated when `todos-save-top-priorities' is non-nil."
 	(find-file todos-file-do)
       (todos-initial-setup))
     (unless (eq major-mode 'todos-mode) (todos-mode))
-    (unless todos-categories-alist
-      (setq todos-categories-alist (todos-make-categories-alist)))
+    (unless (string= todos-current-todos-file todos-file-do)
+      (setq todos-current-todos-file todos-file-do)
+      (setq todos-category-number 0)
+      (setq todos-categories nil))
     (unless todos-categories
-      (setq todos-categories (mapcar 'car todos-categories-alist)))
+      (setq todos-categories (todos-make-categories-list)))
     (save-excursion
-      (todos-category-select)
-      ;; (todos-show-paren-hack)
-      )))
+      (todos-category-select))))
 
 (defun todos-display-categories (&optional alpha)
   "Display a numbered list of the Todos category names.
@@ -755,9 +767,15 @@ the category in Todos mode."
 	(insert "Press a button to display the corresponding category.\n\n")
 	;; FIXME: abstract format from here and todos-insert-category-name
 	(insert (make-string 4 32) (todos-padded-string "Category")
-		(make-string 7 32) "Todos   Done\n\n")
+		(if (string= todos-current-todos-file todos-archive-file)
+		    (concat (make-string 6 32)
+			    (format "%s" "Archived"))
+		  (concat (make-string 7 32)
+			  (format "%-7s%-7s%s" "Todo" "Done" "Archived")))
+		"\n\n")
 	(save-excursion
 	  (mapc '(lambda (cat) (todos-insert-category-name cat alpha)) categories)))
+      (goto-char (next-single-char-property-change (point) 'button))
       (todos-categories-mode))))
 
 (defun todos-display-categories-alphabetically ()
@@ -775,25 +793,41 @@ the category in Todos mode."
   (interactive)
   (save-excursion
     (goto-char (point-min))
-    (let ((todos-show-with-done
-	   (if (re-search-forward (concat "\n\\(\\[" (regexp-quote todos-done-string)
-				   "\\)") nil t)
-	       nil
-	     t)))
-      (todos-category-select))))
+    (let* ((todos-show-with-done
+	    (if (re-search-forward (concat "\n\\(\\["
+					   (regexp-quote todos-done-string)
+					   "\\)") nil t)
+		nil
+	      t))
+	   (cat (todos-current-category))
+	   (catsym (intern-soft (concat "todos-" cat))))
+      (todos-category-select)
+      (when (zerop (get catsym 'done))
+	(message "There are no done items in this category.")))))
 
 (defun todos-view-archive (&optional cat)
   ""
   (interactive)
   (if (file-exists-p todos-archive-file)
-      (progn
+      (progn ;let ((todos-show-with-done t))
 	(find-file todos-archive-file)
+	(todos-archive-mode)
+	(unless (string= todos-current-todos-file todos-archive-file)
+	  (setq todos-current-todos-file todos-archive-file)
+	  (setq todos-categories nil))
+	(unless todos-categories
+	  (setq todos-categories (todos-make-categories-list)))
 	(if cat
-	    (if (member cat (todos-categories-list (current-buffer)))
-		(todos-jump-to-category-noninteractively cat)
-	      (error "No archived items from this category"))
+	    (if (member cat (todos-categories))
+		(progn
+		  (setq todos-category-number
+			(- (length todos-categories)
+			   (length (member cat todos-categories))))
+		  (todos-jump-to-category-noninteractively cat))
+	      (message "No archived items from this category"))
+	  (setq todos-category-number 0)
 	  (todos-category-select)))
-    (error "There is currently no Todos archive")))
+    (message "There is currently no Todos archive")))
 
 ;; FIXME: slow
 (defun todos-diary-items ()
@@ -806,7 +840,6 @@ the category in Todos mode."
 	(widen)
 	(copy-to-buffer bufname (point-min) (point-max))))
     (with-current-buffer bufname
-      ;; (todos-mode)
       (goto-char (point-min))
       (while (not (eobp))
 	(setq opoint (point))
@@ -866,12 +899,10 @@ the category in Todos mode."
 				     "\\( " diary-time-regexp "\\)?\\]? ")
 					; FIXME: this space in header? ^
 			     nil t)
+	  ;; FIXME: wrong match data if search fails
 	  (setq ov (make-overlay (match-beginning 0) (match-end 0) nil t))
 	  (overlay-put ov 'display "")
-	  (forward-line)))
-      ;; FIXME: need this?
-      ;; (todos-update-numbered-prefix)
-      )))
+	  (forward-line))))))
       
 ;;;###autoload
 (defun todos-top-priorities (&optional nof-priorities category-pr-page show-done)
@@ -972,7 +1003,6 @@ With non-nil SHOW-DONE, include done items in the listing."
               (- (length todos-categories)
                  (length (member category todos-categories)))
             (todos-add-category category)))
-    ;; (todos-show)))
     (todos-category-select)))
 
 ;; FIXME ? todos-{backward,forward}-item skip over empty line between done and
@@ -1013,7 +1043,7 @@ With non-nil SHOW-DONE, include done items in the listing."
       (forward-line))
     (if found
 	(progn
-	  (setq found (match-beginning 0))
+	  (setq found (match-beginning 0)) ;FIXME: ok if looking-at returns nil?
 	  (todos-item-start)
 	  (when (looking-at (concat "^\\[" (regexp-quote todos-done-string)))
 	    (setq in-done t))
@@ -1035,7 +1065,8 @@ With non-nil SHOW-DONE, include done items in the listing."
   "Add new category CAT to the TODO list."
   (interactive)
   (let ((buffer-read-only)
-	(buf (find-file-noselect todos-file-do t)))
+	(buf (find-file-noselect todos-file-do t))
+	catsym)
     (unless (zerop (buffer-size buf))
       (and (null todos-categories)
 	   (error "Error in %s: File is non-empty but contains no category"
@@ -1045,9 +1076,11 @@ With non-nil SHOW-DONE, include done items in the listing."
       (setq cat (todos-check-category-name cat))
       ;; initialize a newly created Todo buffer for Todo mode
       (unless (file-exists-p todos-file-do) (todos-mode))
-      (push cat todos-categories)
-      (push (list cat (cons 0 0)) todos-categories-alist)
+      (setq catsym (intern (concat "todos-" cat)))
+      (setplist catsym (list 'todo 0 'done 0 'archived 0))
+      (nconc todos-categories (list cat)) ;FIXME: is this TRTD?
       (widen)
+      ;; FIXME: make this (point-max)
       (goto-char (point-min))
       ;; make sure file does not begin with empty lines (shouldn't, but may be
       ;; added by mistake), otherwise new categories will contain them, so
@@ -1056,8 +1089,9 @@ With non-nil SHOW-DONE, include done items in the listing."
       (insert todos-category-beg cat "\n")
       (if (interactive-p)
 	  ;; properly display the newly added category
-	  (progn (setq todos-category-number 0) (todos-show))
-	0))))
+	  (progn (setq todos-category-number (1- (length todos-categories)))
+		 (todos-category-select))
+	(1- (length todos-categories))))))
 
 (defun todos-rename-category ()
   "Rename current Todos category."
@@ -1069,7 +1103,6 @@ With non-nil SHOW-DONE, include done items in the listing."
     (setq new (todos-check-category-name new))
     (aset vec todos-category-number new)
     (setq todos-categories (append vec nil))
-    (setcar (assoc cat todos-categories-alist) new)
     (save-excursion
       (widen)
       (re-search-backward (concat (regexp-quote todos-category-beg) "\\("
@@ -1085,28 +1118,31 @@ With ARG non-nil delete the category unconditionally,
 i.e. including all existing entries."
   (interactive "P")
   (let* ((cat (todos-current-category))
-	 (not-done (car (todos-item-counts cat)))
-	 (done (cdr (todos-item-counts cat)))
+	 (catsym (intern-soft (concat "todos-" cat)))
+	 (todo (get catsym 'todo))
+	 (done (get catsym 'done))
 	 beg end)
     (if (and (null arg)
-	     (or (> not-done 0) (> done 0)))
+	     (or (> todo 0) (> done 0)))
 	(message "To delete a non-empty category, type C-u D.")
       (when (y-or-n-p (concat "Permanently remove category \"" cat
 			      "\"" (and arg " and all its entries") "? "))
 	(let ((buffer-read-only))
 	  (widen)
 	  (setq beg (re-search-backward (concat "^" (regexp-quote todos-category-beg)
-						cat "\n") nil t)
-		end (progn
-		      (re-search-forward (concat "\n\\("
-						 (regexp-quote todos-category-beg)
-						 ".*\n\\)") nil t)
-		      (match-beginning 1)))
+						cat "\n") nil t))
+	  (setq end (if (re-search-forward (concat "\n\\("
+						   (regexp-quote todos-category-beg)
+						   ".*\n\\)") nil t)
+			(match-beginning 1)
+		      (point-max)))
 	  (remove-overlays beg end)
 	  (kill-region beg end)
 	  (setq todos-categories (delete cat todos-categories))
-	  (setq todos-categories-alist
-		(delete (assoc cat todos-categories-alist) todos-categories-alist))
+	  (setplist catsym nil)
+	  (unintern catsym)
+	  (setq todos-category-number
+		(mod todos-category-number (length todos-categories)))
 	  (todos-category-select)
 	  (message "Deleted category %s" cat))))))
 
@@ -1180,7 +1216,7 @@ there."
   (interactive "P")
   (unless (or (todos-done-item-p)
 	      (save-excursion (forward-line -1) (todos-done-item-p)))
-    (if (not (derived-mode-p 'todos-mode)) (todos-show))
+    (when (not (derived-mode-p 'todos-mode)) (todos-show))
     (let* ((buffer-read-only)
 	   (date-string (cond
 			 ((eq date-type 'ask-date)
@@ -1192,7 +1228,7 @@ there."
 			  (with-current-buffer "*Calendar*"
 			    (calendar-date-string (calendar-cursor-to-date t) t t)))
 			 (t (calendar-date-string (calendar-current-date) t t))))
-	   (time-string (cond ((eq time 'omit) nil)
+	   (time-string (cond ((eq time 'omit) nil) ;FIXME: delete
 			      ((eq time 'ask-time)
 			       (todos-read-time))
 			      (todos-always-add-time-string
@@ -1208,88 +1244,55 @@ there."
 		      "\\(\n\\)[^[:blank:]]"
 		      (concat "\n" (make-string todos-indent-to-here 32)) new-item
 		      nil nil 1))
-      ;; (if here
-      ;; 	  (todos-insert-with-overlays new-item)
-      ;; 	(todos-add-item-non-interactively new-item cat))
       (unless here (todos-set-item-priority new-item cat))
       (todos-insert-with-overlays new-item)
       (todos-item-counts cat 'insert))))
 
 ;; FIXME: make insertion options customizable per category
-;; date-type: d n (c) - time - diary - here
-;; idd            inn            itt  iyy ih
-;; idtt  idyy idh intt  inyy inh ityy iyh 
-;; idtyy idyh     intyy inyh     ityh 
-;; idtyh          intyh 
-;; idth	          inth  
 
-;; todos-insert-item
-;; todos-insert-item-ask-date
-;; todos-insert-item-ask-date-time
-;; todos-insert-item-ask-dayname
-;; todos-insert-item-ask-dayname-time
-;; todos-insert-item-ask-time
-;; todos-insert-item-for-diary
-;; todos-insert-item-for-diary-ask-date
-;; todos-insert-item-for-diary-ask-date-time
-;; todos-insert-item-for-diary-ask-dayname
-;; todos-insert-item-for-diary-ask-dayname-time
-;; todos-insert-item-for-diary-ask-time
-;; todos-insert-item-here
-;; todos-insert-item-here-ask-date
-;; todos-insert-item-here-ask-date-time
-;; todos-insert-item-here-ask-dayname
-;; todos-insert-item-here-ask-dayname-time
-;; todos-insert-item-here-ask-time
-;; todos-insert-item-here-ask-time-diary
-;; todos-insert-item-here-for-diary
-;; todos-insert-item-here-for-diary-ask-date-time
-;; todos-insert-item-here-for-diary-ask-time
-;; todos-insert-item-here-for-diary-ask-dayname-time
+;; current date ~ current day ~ ask date ~ ask day
+;; current time ~ ask time ~ no time
+;; for diary ~ not for diary
+;; here ~ ask priority
+
+;; date-type: d n (c) - time - diary - here
+
+;; ii     todos-insert-item
+;; idd    todos-insert-item-ask-date
+;; idtt   todos-insert-item-ask-date-time
+;; idtyy  todos-insert-item-ask-date-time-for-diary
+;; idtyh  todos-insert-item-ask-date-time-for-diary-here
+;; idth   todos-insert-item-ask-date-time-here
+;; idyy   todos-insert-item-ask-date-for-diary
+;; idyh   todos-insert-item-ask-date-for-diary-here
+;; idh    todos-insert-item-ask-date-here
+;; inn    todos-insert-item-ask-dayname
+;; intt   todos-insert-item-ask-dayname-time
+;; intyy  todos-insert-item-ask-dayname-time-for-diary
+;; intyh  todos-insert-item-ask-dayname-time-for-diary-here
+;; inth   todos-insert-item-ask-dayname-time-here
+;; inyy   todos-insert-item-ask-dayname-for-diary
+;; inyh   todos-insert-item-ask-dayname-for-diary-here
+;; inh    todos-insert-item-ask-dayname-here
+;; itt    todos-insert-item-time
+;; ityy   todos-insert-item-time-for-diary
+;; ityh   todos-insert-item-time-for-diary-here
+;; ith    todos-insert-item-time-here
+;; iyy    todos-insert-item-for-diary
+;; iyh    todos-insert-item-for-diary-here
+;; ih     todos-insert-item-here
 
 (defun todos-insert-item-here ()
   ""
   (interactive)
-  (todos-insert-item nil nil nil t))
-
-(defun todos-insert-item-here-ask-date-time ()
-  ""
-  (interactive)
-  (todos-insert-item nil 'ask-date 'ask-time t))
-
-;; (defun todos-insert-item-no-time ()
-;;   ""
-;;   (interactive)
-;;   (todos-insert-item nil nil 'omit t))
-
-(defun todos-insert-item-ask-date-time (&optional arg)
-  ""
-  (interactive "P")
-  (todos-insert-item arg 'ask-date 'ask-time))
-
-(defun todos-insert-item-ask-dayname-time (&optional arg)
-  ""
-  (interactive)
-  (todos-insert-item arg 'ask-dayname 'ask-time))
-
-(defun todos-insert-item-for-diary (&optional arg)
-  ""
-  (interactive "P")
-  (let ((todos-include-in-diary t))
-    (todos-insert-item arg)))
-
-(defun todos-insert-item-for-diary-ask-date-time (&optional arg)
-  ""
-  (interactive "P")
-  (let ((todos-include-in-diary t))
-    (todos-insert-item arg 'ask-dayname 'ask-time)))
+  (todos-insert-item nil nil nil nil t))
 
 ;; FIXME: autoload when key-binding is defined in calendar.el
 (defun todos-insert-item-from-calendar ()
   ""
   (interactive)
   (pop-to-buffer (file-name-nondirectory todos-file-do))
-  (todos-show)
+  (todos-show)				;FIXME: todos-category-select ? 
   (todos-insert-item t 'calendar))
 
 ;; FIXME: calendar is loaded before todos
@@ -1312,12 +1315,8 @@ there."
 		     (< (point-min) (point-max)))
 	    (todos-backward-item))
 	  (todos-item-counts (todos-current-category) 'delete)
-	  ;; FIXME: is todos-prefix-overlays part of if-sexp, and is it needed
-	  ;; at all?
-	  ;; (if todos-number-prefix
-	  ;;     (todos-update-numbered-prefix)
-	  (todos-prefix-overlays)));)
-    (error "No TODO list entry to delete")))
+	  (todos-prefix-overlays)))
+    (message "No TODO list entry to delete"))) ;FIXME: better message
 
 (defun todos-edit-item ()
   "Edit current TODO list entry."
@@ -1382,23 +1381,14 @@ there."
 	    (todos-remove-item)
 	    (todos-backward-item)
 	    (todos-insert-with-overlays item))
-	(error "No TODO list entry to raise")))))
+	(message "No TODO list entry to raise"))))) ;FIXME: better message
 
 (defun todos-lower-item ()
   "Lower priority of current entry."
   (interactive)
   (unless (or (todos-done-item-p)
 	      (looking-at "^$"))	; between done and not done items
-    (let* ((buffer-read-only)
-	   ;; (end (save-excursion (todos-forward-item) (point)))
-	   ;; (done (save-excursion
-	   ;; 	   (if (re-search-forward (concat "\n\n\\\["
-	   ;; 					  (regexp-quote todos-done-string))
-	   ;; 				  nil t)
-	   ;; 	       (match-beginning 0)
-	   ;; 	     (point-max))))
-	   )
-      ;; (if (> (count-lines (point) done) 1)
+    (let* ((buffer-read-only))
       (if (save-excursion
 	    ;; can only lower non-final unfinished item
 	    (todos-forward-item)
@@ -1410,7 +1400,7 @@ there."
 	    (todos-forward-item)
 	    (when (todos-done-item-p) (forward-line -1))
 	    (todos-insert-with-overlays item))
-	(error "No TODO list entry to lower"))))) ;FIXME: better message
+	(message "No TODO list entry to lower"))))) ;FIXME: better message
 
 (defun todos-move-item ()
   "Move the current todo item to another, interactively named, category.
@@ -1429,12 +1419,10 @@ it is created and the item becomes the first entry in that category."
 	  (orig-mrk (progn (todos-item-start) (point-marker)))
 	  moved)
       (todos-remove-item)
-      ;; numbered prefix isn't cached (see todos-remove-item) so have to update
-      ;; (if todos-number-prefix (todos-update-numbered-prefix))
       (unwind-protect
 	  (progn
-	    ;; (todos-add-item-non-interactively item newcat)
-	    (todos-set-item-priority item newcat)
+	    (unless (member newcat todos-categories) (todos-add-category newcat))
+	    (todos-set-item-priority item newcat)	
 	    (todos-insert-with-overlays item)
 	    (setq moved t)
 	    (todos-item-counts oldcat 'delete)
@@ -1444,8 +1432,6 @@ it is created and the item becomes the first entry in that category."
 	  (goto-char orig-mrk)
 	  (todos-insert-with-overlays item)
 	  (setq todos-category-number oldnum)
-	  ;; (todos-item-counts oldcat 'move-failed)
-	  ;; (todos-item-counts newcat 'move-failed)
 	  (todos-category-select)
 	  ;; FIXME: does this work?
 	  (goto-char opoint))
@@ -1484,19 +1470,22 @@ it is created and the item becomes the first entry in that category."
 	  (newline))
 	(todos-insert-with-overlays done-item)))
     (todos-item-counts (todos-current-category) 'done)
-    (todos-show)))
+    (todos-category-select)))
 
 (defun todos-archive-done-items ()
   "Archive the done items in the current category."
   (interactive)
   (let ((archive (find-file-noselect todos-archive-file t))
 	(cat (todos-current-category))
+	(buffer-read-only)
 	beg end)
     (save-excursion
       (save-restriction
 	(widen)
-	(re-search-forward (concat "^" (regexp-quote todos-category-beg)) nil t)
-	(setq end (or (match-beginning 0) (point-max)))
+	(setq end (if (re-search-forward
+		       (concat "^" (regexp-quote todos-category-beg)) nil t)
+		      (match-beginning 0)
+		    (point-max)))
 	(re-search-backward (concat "^" (regexp-quote todos-category-beg)
 				    (regexp-quote cat))
 			    nil t)
@@ -1512,7 +1501,8 @@ it is created and the item becomes the first entry in that category."
 				   nil t)
 		(forward-char)
 	      (insert todos-category-beg cat "\n"))
-	    (insert done))
+	    (insert done)
+	    (save-buffer))
 	  (delete-region beg end)
 	  (remove-overlays beg end)
 	  (kill-line -1)
@@ -1532,10 +1522,8 @@ it is created and the item becomes the first entry in that category."
 	   (item (buffer-substring start (todos-item-end)))
 	   undone)
       (todos-remove-item)
-      ;; (if todos-number-prefix (todos-update-numbered-prefix))
       (unwind-protect
 	  (progn
-	    ;; (todos-add-item-non-interactively item cat)
 	    (todos-set-item-priority item cat)
 	    (todos-insert-with-overlays item)
 	    (setq undone t)
@@ -1544,7 +1532,6 @@ it is created and the item becomes the first entry in that category."
 	  (widen)
 	  (goto-char orig-mrk)
 	  (todos-insert-with-overlays done-item)
-	  ;; (todos-item-counts cat 'done)
 	  (let ((todos-show-with-done t))
 	    (todos-category-select)
 	    (goto-char opoint)))
@@ -1679,7 +1666,6 @@ Number of entries for each category is given by `todos-print-priorities'."
   (make-local-variable 'word-wrap)
   (setq word-wrap t)
   (make-local-variable 'wrap-prefix)
-  ;; (setq wrap-prefix (make-string (+ 5 (length todos-prefix)) 32))
   (setq wrap-prefix (make-string todos-indent-to-here 32))
   (unless (member '(continuation) fringe-indicator-alist)
     (push '(continuation) fringe-indicator-alist)))
@@ -1687,53 +1673,6 @@ Number of entries for each category is given by `todos-print-priorities'."
 (defun todos-indent ()
   ""
   (indent-to todos-indent-to-here todos-indent-to-here))
-
-(defun todos-reset-prefix (symbol value)
-  "Set SYMBOL's value to VALUE, and ."	; FIXME
-  (let ((oldvalue (symbol-value symbol)))
-    (custom-set-default symbol value)
-    (when (not (equal value oldvalue))
-      (save-window-excursion
-	(todos-show)
-	(save-excursion
-	  (widen)
-	  (goto-char (point-min))
-	  (while (not (eobp))
-	    (remove-overlays (point) (point)); 'before-string prefix)
-	    (forward-line)))
-	;; activate the prefix setting (save-restriction does not help)
-	;; (todos-show)
-	(todos-category-select)
-	))))
-
-;; FIXME: ??? with todos-lower-item leaves overlay of lower item if this is
-;; the third or greater item number -- but not in edebug
-;; (defun todos-update-numbered-prefix ()
-;;   "Update consecutive item numbering in the current category."
-;;   (save-excursion
-;;     (goto-char (point-min))
-;;     (while (not (eobp))
-;;       (let ((ov (car (overlays-in (point) (point))))
-;; 	     val)
-;; 	(when ov
-;; 	  (setq val (overlay-get ov 'before-string))
-;; 	  (remove-overlays (point) (point) 'before-string val)))
-;;       (todos-forward-item))
-;;     (todos-show)))
-
-;; (defun todos-update-numbered-prefix ()
-;;   "Update consecutive item numbering in the current category."
-;;   (save-excursion
-;;     (goto-char (point-min))
-;;     (while (not (eobp))
-;;       (remove-overlays (point) (point))
-;;       (todos-forward-item))
-;;     ;; FIXME: is todos-prefix-overlays enough?
-;;     (todos-show)))
-
-;; (defvar todos-item-start-overlays nil "")
-
-;; (defvar todos-done-overlays nil "")
 
 (defun todos-prefix-overlays ()
   ""
@@ -1750,31 +1689,16 @@ Number of entries for each category is given by `todos-print-priorities'."
 	    (when todos-number-prefix
 	      (setq num (1+ num))
 	      ;; reset number for done items
-	      (when ;; (or
-		   ;; ;; FIXME: really need this?
-		   ;; (looking-at (concat "\n\\[" (regexp-quote todos-done-string)))
+	      (when
+		  ;; FIXME: really need this?
 		  ;; if last not done item is multiline, then
 		  ;; todos-done-string-match skips empty line, so have
 		  ;; to look back.
 		  (and (looking-at (concat "^\\[" (regexp-quote todos-done-string)))
-		       (looking-back "\n\n"));)
-		  (setq num 1))
+		       (looking-back "\n\n"))
+		(setq num 1))
 	      (setq prefix (propertize (concat (number-to-string num) " ")
 				       'face 'todos-prefix-string)))
-	    ;; (let ((ovs (overlays-in (point) (point))))
-	    ;;   (or (and (setq ov-pref (car ovs))
-	    ;; 	       ;; when done-separator overlay is in front of prefix overlay
-	    ;; 	       (if (and (> (length ovs) 1)
-	    ;; 			(not (equal (overlay-get ov-pref 'before-string)
-	    ;; 				    prefix)))
-	    ;; 	       	   (setq ov-pref (cadr ovs))
-	    ;; 		 t)
-	    ;; 	       (equal (overlay-get ov-pref 'before-string) prefix))
-	    ;; 	  ;; non-numerical prefix
-	    ;; 	  (and (setq ov-pref (pop todos-item-start-overlays))
-	    ;; 	       (move-overlay ov-pref (point) (point)))
-	    ;; 	  (and (setq ov-pref (make-overlay (point) (point)))
-	    ;; 	       (overlay-put ov-pref 'before-string prefix))))
 	    (let* ((ovs (overlays-in (point) (point)))
 		   (ov-pref (car ovs))
 		   (val (when ov-pref (overlay-get ov-pref 'before-string))))
@@ -1782,17 +1706,32 @@ Number of entries for each category is given by `todos-print-priorities'."
 			 (not (equal val prefix)))
 		(setq ov-pref (cadr ovs)))
 	      (when (not (equal val prefix))
-		;; (delete-overlay ov-pref)
-		(remove-overlays (point) (point)); 'before-string val)
+		;; (delete-overlay ov-pref) ; why doesn't this work ???
+		(remove-overlays (point) (point)); 'before-string val) ; or this ???
 		(setq ov-pref (make-overlay (point) (point)))
 		(overlay-put ov-pref 'before-string prefix))))
 	(forward-line))))))
+
+(defun todos-reset-prefix (symbol value)
+  "Set SYMBOL's value to VALUE, and ."	; FIXME
+  (let ((oldvalue (symbol-value symbol)))
+    (custom-set-default symbol value)
+    (when (not (equal value oldvalue))
+      (save-window-excursion
+	(todos-show)
+	(save-excursion
+	  (widen)
+	  (goto-char (point-min))
+	  (while (not (eobp))
+	    (remove-overlays (point) (point)); 'before-string prefix)
+	    (forward-line)))
+	;; activate the prefix setting (save-restriction does not help)
+	(todos-category-select)))))
 
 (defun todos-reset-separator (symbol value)
   "Set SYMBOL's value to VALUE, and ."	; FIXME
   (let ((oldvalue (symbol-value symbol)))
     (custom-set-default symbol value)
-    ;; (setq todos-done-overlays nil)
     (when (not (equal value oldvalue))
       (save-window-excursion
 	(todos-show)
@@ -1802,7 +1741,7 @@ Number of entries for each category is given by `todos-print-priorities'."
 				   nil t)
 	    (remove-overlays (point) (point))))
 	;; activate the prefix setting (save-restriction does not help)
-	(todos-show)))))
+	(todos-category-select)))))
 
 ;; FIXME: should be defsubst?
 (defun todos-category-number (cat)
@@ -1823,75 +1762,50 @@ Number of entries for each category is given by `todos-print-priorities'."
      (concat "^" (regexp-quote (concat todos-category-beg name))
              "$"))
     (let ((begin (1+ (line-end-position)))
-	  (end (or (and (re-search-forward (concat "^" todos-category-beg) nil t)
-			(match-beginning 0))
-		   (point-max))))
+	  (end (if (re-search-forward (concat "^" todos-category-beg) nil t)
+		   (match-beginning 0)
+		 (point-max))))
       (narrow-to-region begin end)
       (goto-char (point-min))))
   (todos-prefix-overlays)
-  ;; display or hide done items as per todos-show-with-done
-  (save-excursion
-    (when (re-search-forward (concat "\n\\(\\[" (regexp-quote todos-done-string)
-				     "\\)") nil t)
-      (let (done end done-sep prefix ov-pref ov-done)
-	(setq done (match-beginning 1)
-	      end  (match-beginning 0))
-	(if todos-show-with-done
-	    (progn
-	      (setq done-sep todos-done-separator)
-	      (unless (string-match "^[[:space:]]*$" todos-done-separator)
-		(setq done-sep (propertize (concat todos-done-separator "\n")
-					   'face 'todos-done-sep))
-		(setq prefix (propertize
-			      (concat (if todos-number-prefix "1" todos-prefix) " ")
-			      'face 'todos-prefix-string))
-		;; FIXME? Just deleting done-sep overlay results in bad
-		;; display (except when stepping though in edebug)
-		(remove-overlays done done)
-		;; must make separator overlay after making prefix overlay to get
-		;; the order separator before prefix
-		(setq ov-pref (make-overlay done done)
-		      ov-done (make-overlay done done))
-		(overlay-put ov-pref 'before-string prefix)
-		(overlay-put ov-done 'before-string done-sep)))
-	  (narrow-to-region (point-min) end))))))
-
-;; FIXME: why autoload?
-;;;###autoload
-;; (defun todos-add-item-non-interactively (item category)
-;;   "Insert item ITEM into category CATEGORY and set its priority."
-;;   (todos-category-number category)
-;;   (todos-show)			; now at point-min
-;;   (unless (or (eq (point-min) (point-max)) ; no unfinished items
-;; 	      (when (re-search-forward (concat "^\\["
-;; 					       (regexp-quote todos-done-string))
-;; 				       nil t)
-;; 		(forward-line -1)
-;; 		(bobp))) ; there are done items but no unfinished items
-;;     (let* ((maxnum (1+ (car (todos-item-counts category))))
-;; 	   priority candidate prompt)
-;;       (while (null priority)
-;; 	(setq candidate
-;; 	      (string-to-number (read-from-minibuffer
-;; 				 (concat prompt
-;; 					 (format "Set item priority (1-%d): "
-;; 						 maxnum)))))
-;; 	(setq prompt
-;; 	      (when (or (< candidate 1) (> candidate maxnum))
-;; 		(format "Priority must be an integer between 1 and %d.\n" maxnum)))
-;; 	(unless prompt (setq priority candidate)))
-;;       (goto-char (point-min))
-;;       (unless (= priority 1) (todos-forward-item (1- priority)))))
-;;   (todos-insert-with-overlays item))
+  (unless (eq major-mode 'todos-archive-mode)
+    ;; display or hide done items as per todos-show-with-done
+    (save-excursion
+      (when (re-search-forward (concat "\n\\(\\[" (regexp-quote todos-done-string)
+				       "\\)") nil t)
+	(let (done end done-sep prefix ov-pref ov-done)
+	  (setq done (match-beginning 1)
+		end  (match-beginning 0))
+	  (if todos-show-with-done
+	      (progn
+		(setq done-sep todos-done-separator)
+		(unless (string-match "^[[:space:]]*$" todos-done-separator)
+		  (setq done-sep (propertize (concat todos-done-separator "\n")
+					     'face 'todos-done-sep))
+		  (setq prefix (propertize (concat (if todos-number-prefix
+						       "1"
+						     todos-prefix) " ")
+					   'face 'todos-prefix-string))
+		  ;; FIXME? Just deleting done-sep overlay results in bad
+		  ;; display (except when stepping though in edebug)
+		  (remove-overlays done done)
+		  ;; must make separator overlay after making prefix overlay to get
+		  ;; the order separator before prefix
+		  (setq ov-pref (make-overlay done done)
+			ov-done (make-overlay done done))
+		  (overlay-put ov-pref 'before-string prefix)
+		  (overlay-put ov-done 'before-string done-sep)))
+	    (narrow-to-region (point-min) end)))))))
 
 (defun todos-set-item-priority (item cat)
   "Set the priority of unfinished item ITEM in category CAT."
   (todos-category-number cat)
   (todos-category-select)
-  (let* ((not-done (car (todos-item-counts cat)))
-	 (maxnum (1+ not-done))
+  (let* ((catsym (intern-soft (concat "todos-" cat)))
+	 (todo (get catsym 'todo))
+	 (maxnum (1+ todo))
 	 priority candidate prompt)
-    (unless (zerop not-done)
+    (unless (zerop todo)
       (while (null priority)
 	(setq candidate
 	      (string-to-number (read-from-minibuffer
@@ -1907,13 +1821,14 @@ Number of entries for each category is given by `todos-print-priorities'."
 
 (defun todos-jump-to-category-noninteractively (cat)
   ""
-  (let ((bufname (buffer-name)))
-    (cond ((string= bufname todos-categories-buffer)
-	   (switch-to-buffer (file-name-nondirectory todos-file-do)))
-	  ((string= bufname todos-archived-categories-buffer)
-	   ;; FIXME: is pop-to-buffer better for this case?
-	   (switch-to-buffer (file-name-nondirectory todos-archive-file))))
-    (kill-buffer bufname))
+  ;; (let ((bufname (buffer-name)))
+  ;;   (cond ((string= bufname todos-categories-buffer)
+  ;; 	   (switch-to-buffer (file-name-nondirectory todos-file-do)))
+  ;; 	  ((string= bufname todos-archived-categories-buffer)
+  ;; 	   ;; FIXME: is pop-to-buffer better for this case?
+  ;; 	   (switch-to-buffer (file-name-nondirectory todos-archive-file))))
+  ;;   (kill-buffer bufname))
+  (switch-to-buffer (file-name-nondirectory todos-current-todos-file))
   (widen)
   (goto-char (point-min))
   (todos-category-number cat)
@@ -1924,9 +1839,7 @@ Number of entries for each category is given by `todos-print-priorities'."
   (todos-item-start)
   (insert item "\n")
   (todos-backward-item)
-  ;; (if todos-number-prefix
-  ;;     (todos-update-numbered-prefix)
-    (todos-prefix-overlays));)
+  (todos-prefix-overlays))
 
 (defun todos-item-string-start ()
   "Return the start of this TODO list entry as a string."
@@ -1966,10 +1879,6 @@ Number of entries for each category is given by `todos-print-priorities'."
 	 (end (progn (todos-item-end) (1+ (point))))
 	 (ov-start (car (overlays-in beg beg))))
     (when ov-start
-      ;; ;; don't cache numbers, since they can be popped out of order in
-      ;; ;; todos-prefix-overlays
-      ;; (unless todos-number-prefix
-      ;; 	(push ov-start todos-item-start-overlays))
       (delete-overlay ov-start))
     (delete-region beg end)))
 
@@ -1983,65 +1892,79 @@ Number of entries for each category is given by `todos-print-priorities'."
     (todos-item-start)
     (looking-at (concat "^\\[" (regexp-quote todos-done-string)))))
 
-
-(defvar todos-categories-alist nil
-  "Variable for storing the result of todos-make-categories-alist.")
-(defun todos-make-categories-alist ()
-  "Return an alist of categories and some of their properties.
-The properties are at least the numbers of the unfinished and
-done items in the category."
-  (let (todos-categories-alist)
+(defun todos-make-categories-list ()
+  "Return a list of Todos categories and set their property lists.
+The properties are at least the category number and the numbers
+of todo items, done items and archived items in the category."
+  (let (catlist)
     (save-excursion
       (save-restriction
 	(widen)
 	(goto-char (point-min))
-	(let ((not-done 0)
-	      (done 0)
-	      category beg end)
+	(let ((num 0)
+	      cat catsym archive-check)
 	  (while (not (eobp))
 	    (cond ((looking-at (concat (regexp-quote todos-category-beg)
 				       "\\(.*\\)\n"))
-		   (setq not-done 0 done 0)
-		   (push (list (match-string-no-properties 1) (cons not-done done))
-			 todos-categories-alist))
+		   (setq cat (match-string-no-properties 1))
+		   (setq num (1+ num))
+		   (setq archive-check nil)
+		   ;; FIXME: ok to intern in global obarray?
+		   (setq catsym (intern (concat "todos-" cat)))
+		   (setplist catsym (list 'catnum num 'todo 0 'done 0 'archived 0))
+		   (push cat catlist))
 		  ((looking-at (concat "^\\[" (regexp-quote todos-done-string)))
-		   (setq done (1+ done))
-		   (setcdr (cadr (car todos-categories-alist)) done))
+		   (put catsym 'done (1+ (get catsym 'done))))
 		  ((looking-at (concat "^\\[?" todos-date-pattern))
-		   (setq not-done (1+ not-done))
-		   (setcar (cadr (car todos-categories-alist)) not-done)))
+		   (put catsym 'todo (1+ (get catsym 'todo)))))
+	    (unless (or archive-check
+			(string= (buffer-file-name)
+				 (expand-file-name todos-archive-file)))
+	      (let ((archive (find-file-noselect todos-archive-file)))
+		(with-current-buffer archive
+		  (goto-char (point-min))
+		  (when (re-search-forward
+			 (concat (regexp-quote todos-category-beg) cat)
+			 (point-max) t)
+		    (forward-line)
+		    (while (not (or (looking-at
+				     (concat (regexp-quote todos-category-beg)
+					     "\\(.*\\)\n"))
+				    (eobp)))
+		      (when (looking-at
+			     (concat "^\\[" (regexp-quote todos-done-string)))
+			(put catsym 'archived (1+ (get catsym 'archived))))
+		      (forward-line)))))
+	      (setq archive-check t))
 	    (forward-line)))))
-    todos-categories-alist))
+    catlist))
 
 (defun todos-item-counts (cat &optional how)
   ""
-  (let* ((counts (cadr (assoc cat todos-categories-alist)))
-	 (not-done (car counts))
-	 (done (cdr counts)))
+  (let ((catsym (intern-soft (concat "todos-" cat))))
+    ;; FIXME: need this?
+    ;; (when catsym
     (cond ((eq how 'insert)
-	   (setcar counts (1+ not-done)))
+	   (put catsym 'todo (1+ (get catsym 'todo))))
 	  ((eq how 'delete)
 	   (if (todos-done-item-p)	;FIXME: fails if last done item was deleted
-	       (setcdr counts (1- done))
-	     (setcar counts (1- not-done))))
-	  ;; ((eq how 'move-failed)
-	  ;;  (setcar counts not-done))
+	       (put catsym 'done (1- (get catsym 'done)))
+	     (put catsym 'todo (1- (get catsym 'todo)))))
 	  ((eq how 'done)
-	   (setcar counts (1- not-done))
-	   (setcdr counts (1+ done)))
+	   (put catsym 'todo (1- (get catsym 'todo)))
+	   (put catsym 'done (1+ (get catsym 'done))))
 	  ((eq how 'undo)
-	   (setcar counts (1+ not-done))
-	   (setcdr counts (1- done)))
+	   (put catsym 'todo (1+ (get catsym 'todo)))
+	   (put catsym 'done (1- (get catsym 'done))))
 	  ((eq how 'archive)
-	   (setcdr counts 0))
-	  (t
-	   (cons not-done done)))))
+	   (put catsym 'archived (+ (get catsym 'done) (get catsym 'archived)))
+	   (put catsym 'done 0)))))
 
 (defun todos-longest-category-name-length (categories)
   ""
   (let ((longest 0))
     (dolist (c categories longest)
-      (setq longest (max longest (length (car c)))))))
+      (setq longest (max longest (length c))))))
 
 (defun todos-string-count-lines (string)
   "Return the number of lines STRING spans."
@@ -2052,7 +1975,7 @@ done items in the category."
   (> (todos-string-count-lines string) 1))
 
 (defun todos-read-category ()
-  "Return an existing category name, with tab completion."
+  "Return a category name (existing names with tab completion)."
   ;; allow SPC to insert spaces, for adding new category names with
   ;; todos-move-item
   (let ((map minibuffer-local-completion-map))
@@ -2076,7 +1999,8 @@ done items in the category."
     (while (and (cond ((string= "" cat)
 		       (setq prompt "Enter a non-empty category name: "))
 		      ((string-match "\\`\\s-+\\'" cat)
-		       (setq prompt "Enter a category name that is not only white space: "))
+		       (setq prompt
+			     "Enter a category name that is not only white space: "))
 		      ((member cat todos-categories)
 		       (setq prompt "Enter a non-existing category name: ")))
 		(setq cat (read-from-minibuffer prompt)))))
@@ -2120,28 +2044,28 @@ done items in the category."
   (let (valid answer)
     (while (not valid)
       (setq answer (read-from-minibuffer
-		    "Enter a clock time: "))
+		    "Enter a clock time (or return for none): "))
       (when (or (string= "" answer)
 		(string-match diary-time-regexp answer))
 	(setq valid t)))
     answer))
 
-(defun todos-categories-list (buf)
-  "Return a list of the Todo mode categories in buffer BUF."
-  (let (categories)
-    (with-current-buffer buf
-      (save-excursion
-	(save-restriction
-	  (widen)
-	  (goto-char (point-max))
-	  (while (re-search-backward (concat "^" (regexp-quote todos-category-beg)
-					     "\\(.*\\)\n") nil t)
-	    (push (match-string-no-properties 1) categories)))))
-    categories))
+;; (defun todos-categories-list (buf)
+;;   "Return a list of the Todo mode categories in buffer BUF."
+;;   (let (categories)
+;;     (with-current-buffer buf
+;;       (save-excursion
+;; 	(save-restriction
+;; 	  (widen)
+;; 	  (goto-char (point-max))
+;; 	  (while (re-search-backward (concat "^" (regexp-quote todos-category-beg)
+;; 					     "\\(.*\\)\n") nil t)
+;; 	    (push (match-string-no-properties 1) categories)))))
+;;     categories))
 
 (defun todos-padded-string (str)
   ""
-  (let* ((len (todos-longest-category-name-length todos-categories-alist))
+  (let* ((len (todos-longest-category-name-length todos-categories))
 	 (strlen (length str))
 	 (strlen-odd (eq (logand strlen 1) 1)) ; oddp from cl.el
 	 (padding (/ (- len strlen) 2)))
@@ -2150,9 +2074,8 @@ done items in the category."
 
 (defun todos-insert-category-name (cat &optional nonum)
   ""
-  (let* ((buf (get-buffer (file-name-nondirectory todos-file-do)))
-	 (cat-alist todos-categories-alist)
-	 (counts (todos-item-counts cat)))
+  (let ((catsym (intern-soft (concat "todos-" cat)))
+	(archive (string= todos-current-todos-file todos-archive-file)))
     ;; num is declared in caller
     (setq num (1+ num))
     (if nonum
@@ -2163,11 +2086,17 @@ done items in the category."
 		   'action
 		   `(lambda (button)
 		      (todos-jump-to-category-noninteractively ,cat)))
-    (insert (make-string 8 32)
-	    (format "%2d" (car counts))
-	    (make-string 5 32)
-	    (format "%2d" (cdr counts)))
-    (newline)))
+    (insert (concat (make-string 8 32)
+		    (unless archive
+		      (concat
+		       (format "%2d" (get catsym 'todo))
+		       (make-string 5 32)))
+		    (format "%2d" (get catsym 'done))
+		    (unless archive
+		      (concat
+		       (make-string 5 32)
+		       (format "%2d" (get catsym 'archived))))
+		    "\n"))))
 
 (defun todos-initial-setup ()
   "Set up things to work properly in TODO mode."
@@ -2177,5 +2106,26 @@ done items in the category."
   (todos-add-category "Todos"))
 
 (provide 'todos)
+
+;;; UI
+;; - display
+;;   - show todos in cat
+;;   - show done in cat
+;;   - show catlist
+;;   - show top priorities in all cats
+;;   - show archived
+;; - navigation
+;;   - 
+;; - editing
+;;
+;;; Internals
+;; - cat props: name, number, todos, done, archived
+;; - item props: priority, date-time, status?
+;; - file format
+;;   - cat begin
+;;   - todo items 0...n
+;;   - empty line
+;;   - done-separator
+;;   - done item 0...n
 
 ;;; todos.el ends here
