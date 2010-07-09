@@ -1285,6 +1285,9 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
     }
 
   {
+    if (f->output_data.x->menubar_widget)
+      XtRealizeWidget (f->output_data.x->menubar_widget);
+
     int menubar_size
       = (f->output_data.x->menubar_widget
 	 ? (f->output_data.x->menubar_widget->core.height
@@ -1385,7 +1388,7 @@ free_frame_menubar (f)
 	    XtVaSetValues (f->output_data.x->widget, XtNx, x0, XtNy, y0, NULL);
 	}
 #endif
-
+      x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
       UNBLOCK_INPUT;
     }
 }

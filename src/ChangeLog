@@ -1,3 +1,12 @@
+2010-07-09  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (set_frame_menubar): Must realize menubar_widget to get the
+	correct size for Motif.
+	(free_frame_menubar): Call x_set_window_size to update frame size.
+
+	* xfns.c (x_window): Set borderWidth to 0 for pane and
+	EmacsFrame.  Frame size calculation is wrong otherwise.
+
 2010-07-09  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (xd_initialize): Add new argument RAISE_ERROR, which
