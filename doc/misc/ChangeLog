@@ -1,3 +1,11 @@
+2010-07-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Top): Introduce Index.  Emphasize "nil" whereever
+	forgotten.
+	(Type Conversion): Precise conversion of natural numbers.
+	(Errors and Events): Add "debugging" to concept index.  Add variable
+	`dbus-debug'.
+
 2010-07-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbus.texi (Receiving Method Calls): Add optional argument
