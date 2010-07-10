@@ -435,13 +435,14 @@ Emacs.pane.menubar.faceName:  Courier-12
 To specify a font, use fontconfig font names as values to the @code{faceName}
 resource.
 
-If Emacs is not built with the Xft library, Lucid menus and dialogs can only 
-display old style fonts.  If Emacs is built with Xft and you prefer the old 
-fonts, you have to specify @samp{none} to @code{faceName}:
+If Emacs is not built with the Xft library, Lucid menus and dialogs
+can only display old style fonts.  If Emacs is built with Xft and you
+prefer the old fonts, you have to specify @samp{none} to
+@code{faceName}:
 
 @example
-Emacs.pane.menubar.faceName:	none
-Emacs.pane.dialog.faceName:	none
+Emacs.pane.menubar.faceName:    none
+Emacs.pane.dialog.faceName:     none
 @end example
 
 @noindent
@@ -472,7 +473,7 @@ Resources for @emph{non-menubar} toolkit pop-up menus have
 the font @samp{8x16} for the pop-up menu items, write this:
 
 @example
-Emacs.menu*.font:	8x16
+Emacs.menu*.font:       8x16
 @end example
 
 @noindent

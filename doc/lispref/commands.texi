@@ -1,7 +1,8 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001, 2002,
-@c   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+@c   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/commands
 @node Command Loop, Keymaps, Minibuffers, Top
@@ -21,7 +22,7 @@ are done, and the subroutines that allow Lisp programs to do them.
 * Distinguish Interactive::     Making a command distinguish interactive calls.
 * Command Loop Info::   Variables set by the command loop for you to examine.
 * Adjusting Point::     Adjustment of point after a command.
-* Input Events::	What input looks like when you read it.
+* Input Events::        What input looks like when you read it.
 * Reading Input::       How to read input events from the keyboard or mouse.
 * Special Events::      Events processed immediately and individually.
 * Waiting::             Waiting for user input or elapsed time.
@@ -52,16 +53,19 @@ function.  If the key is @kbd{M-x}, then it reads the name of another
 command, which it then calls.  This is done by the command
 @code{execute-extended-command} (@pxref{Interactive Call}).
 
-  To execute a command requires first reading the arguments for it.
-This is done by calling @code{command-execute} (@pxref{Interactive
-Call}).  For commands written in Lisp, the @code{interactive}
-specification says how to read the arguments.  This may use the prefix
-argument (@pxref{Prefix Command Arguments}) or may read with prompting
-in the minibuffer (@pxref{Minibuffers}).  For example, the command
-@code{find-file} has an @code{interactive} specification which says to
-read a file name using the minibuffer.  The command's function body does
-not use the minibuffer; if you call this command from Lisp code as a
-function, you must supply the file name string as an ordinary Lisp
+  Prior to executing the command, Emacs runs @code{undo-boundary} to
+create an undo boundary.  @xref{Maintaining Undo}.
+
+  To execute a command, Emacs first reads its arguments by calling
+@code{command-execute} (@pxref{Interactive Call}).  For commands
+written in Lisp, the @code{interactive} specification says how to read
+the arguments.  This may use the prefix argument (@pxref{Prefix
+Command Arguments}) or may read with prompting in the minibuffer
+(@pxref{Minibuffers}).  For example, the command @code{find-file} has
+an @code{interactive} specification which says to read a file name
+using the minibuffer.  The function body of @code{find-file} does not
+use the minibuffer, so if you call @code{find-file} as a function from
+Lisp code, you must supply the file name string as an ordinary Lisp
 function argument.
 
   If the command is a string or vector (i.e., a keyboard macro) then
@@ -968,23 +972,23 @@ the current Emacs session.  If a symbol has not yet been so used,
 @end defun
 
 @menu
-* Keyboard Events::		Ordinary characters--keys with symbols on them.
-* Function Keys::		Function keys--keys with names, not symbols.
+* Keyboard Events::             Ordinary characters--keys with symbols on them.
+* Function Keys::               Function keys--keys with names, not symbols.
 * Mouse Events::                Overview of mouse events.
-* Click Events::		Pushing and releasing a mouse button.
-* Drag Events::			Moving the mouse before releasing the button.
-* Button-Down Events::		A button was pushed and not yet released.
+* Click Events::                Pushing and releasing a mouse button.
+* Drag Events::                 Moving the mouse before releasing the button.
+* Button-Down Events::          A button was pushed and not yet released.
 * Repeat Events::               Double and triple click (or drag, or down).
-* Motion Events::		Just moving the mouse, not pushing a button.
-* Focus Events::		Moving the mouse between frames.
+* Motion Events::               Just moving the mouse, not pushing a button.
+* Focus Events::                Moving the mouse between frames.
 * Misc Events::                 Other events the system can generate.
-* Event Examples::		Examples of the lists for mouse events.
-* Classifying Events::		Finding the modifier keys in an event symbol.
-				Event types.
-* Accessing Mouse::		Functions to extract info from mouse events.
-* Accessing Scroll::		Functions to get info from scroll bar events.
+* Event Examples::              Examples of the lists for mouse events.
+* Classifying Events::          Finding the modifier keys in an event symbol.
+                                Event types.
+* Accessing Mouse::             Functions to extract info from mouse events.
+* Accessing Scroll::            Functions to get info from scroll bar events.
 * Strings of Events::           Special considerations for putting
-				  keyboard character events in a string.
+                                  keyboard character events in a string.
 @end menu
 
 @node Keyboard Events
@@ -2158,12 +2162,12 @@ debugging terminal input.
   For higher-level input facilities, see @ref{Minibuffers}.
 
 @menu
-* Key Sequence Input::		How to read one key sequence.
-* Reading One Event::		How to read just one event.
+* Key Sequence Input::          How to read one key sequence.
+* Reading One Event::           How to read just one event.
 * Event Mod::                   How Emacs modifies events as they are read.
 * Invoking the Input Method::   How reading an event uses the input method.
-* Quoted Character Input::	Asking the user to specify a character.
-* Event Input Misc::    	How to reread or throw away input events.
+* Quoted Character Input::      Asking the user to specify a character.
+* Event Input Misc::            How to reread or throw away input events.
 @end menu
 
 @node Key Sequence Input
@@ -2889,9 +2893,9 @@ normal quitting is permitted after the first character of input.
     (while (not done)
       (let ((inhibit-quit first)
             @dots{})
-	(and prompt (message "%s-" prompt))
-	(setq char (read-event))
-	(if inhibit-quit (setq quit-flag nil)))
+        (and prompt (message "%s-" prompt))
+        (setq char (read-event))
+        (if inhibit-quit (setq quit-flag nil)))
       @r{@dots{}set the variable @code{code}@dots{}})
     code))
 @end example

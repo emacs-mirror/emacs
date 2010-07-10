@@ -59,24 +59,24 @@ The first three sections below should tell you enough about Edebug to
 start using it.
 
 @menu
-* Using Edebug::		Introduction to use of Edebug.
-* Instrumenting::		You must instrument your code
-				  in order to debug it with Edebug.
+* Using Edebug::                Introduction to use of Edebug.
+* Instrumenting::               You must instrument your code
+                                  in order to debug it with Edebug.
 * Modes: Edebug Execution Modes. Execution modes, stopping more or less often.
-* Jumping::			Commands to jump to a specified place.
-* Misc: Edebug Misc.		Miscellaneous commands.
+* Jumping::                     Commands to jump to a specified place.
+* Misc: Edebug Misc.            Miscellaneous commands.
 * Breaks::                      Setting breakpoints to make the program stop.
-* Trapping Errors::		Trapping errors with Edebug.
-* Views: Edebug Views.		Views inside and outside of Edebug.
-* Eval: Edebug Eval.		Evaluating expressions within Edebug.
-* Eval List::			Expressions whose values are displayed
-				  each time you enter Edebug.
-* Printing in Edebug::		Customization of printing.
-* Trace Buffer::		How to produce trace output in a buffer.
-* Coverage Testing::		How to test evaluation coverage.
-* The Outside Context::		Data that Edebug saves and restores.
-* Edebug and Macros::	        Specifying how to handle macro calls.
-* Options: Edebug Options.	Option variables for customizing Edebug.
+* Trapping Errors::             Trapping errors with Edebug.
+* Views: Edebug Views.          Views inside and outside of Edebug.
+* Eval: Edebug Eval.            Evaluating expressions within Edebug.
+* Eval List::                   Expressions whose values are displayed
+                                  each time you enter Edebug.
+* Printing in Edebug::          Customization of printing.
+* Trace Buffer::                How to produce trace output in a buffer.
+* Coverage Testing::            How to test evaluation coverage.
+* The Outside Context::         Data that Edebug saves and restores.
+* Edebug and Macros::           Specifying how to handle macro calls.
+* Options: Edebug Options.      Option variables for customizing Edebug.
 @end menu
 
 @node Using Edebug
@@ -429,8 +429,8 @@ breakpoints, the global break condition, and source breakpoints.
 
 @menu
 * Breakpoints::                 Breakpoints at stop points.
-* Global Break Condition::	Breaking on an event.
-* Source Breakpoints::  	Embedding breakpoints in source code.
+* Global Break Condition::      Breaking on an event.
+* Source Breakpoints::          Embedding breakpoints in source code.
 @end menu
 
 @node Breakpoints
@@ -940,9 +940,9 @@ explains precisely what context Edebug restores, and how Edebug fails to
 be completely transparent.
 
 @menu
-* Checking Whether to Stop::	When Edebug decides what to do.
-* Edebug Display Update::	When Edebug updates the display.
-* Edebug Recursive Edit::	When Edebug stops execution.
+* Checking Whether to Stop::    When Edebug decides what to do.
+* Edebug Display Update::       When Edebug updates the display.
+* Edebug Recursive Edit::       When Edebug stops execution.
 @end menu
 
 @node Checking Whether to Stop
@@ -1074,9 +1074,9 @@ extra care is needed.  This subsection explains the details.
 
 @menu
 * Instrumenting Macro Calls::   The basic problem.
-* Specification List::		How to specify complex patterns of evaluation.
-* Backtracking::		What Edebug does when matching fails.
-* Specification Examples::	To help understand specifications.
+* Specification List::          How to specify complex patterns of evaluation.
+* Backtracking::                What Edebug does when matching fails.
+* Specification Examples::      To help understand specifications.
 @end menu
 
 @node Instrumenting Macro Calls

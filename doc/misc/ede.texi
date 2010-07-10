@@ -5,8 +5,8 @@
 @copying
 This file describes EDE, the Emacs Development Environment.
 
-Copyright @copyright{} 1998, 1999, 2000, 2001, 2004, 2005, 2008, 2009, 2010
-Free Software Foundation, Inc.
+Copyright @copyright{} 1998, 1999, 2000, 2001, 2004, 2005, 2008, 2009,
+2010  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -24,7 +24,7 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* ede: (ede).       Project management for Emacs
+* ede: (ede).                   Project management for Emacs.
 @end direntry
 
 @titlepage
@@ -404,8 +404,8 @@ lookup for @semantic{}, improving code completion performance.
 @menu
 * ede-cpp-root::        This project marks the root of a C/C++ code project.
 * ede-simple subclassing:: Create your own simple project.
-* ede-emacs::		A project for working with Emacs.
-* ede-linux::		A project for working with Linux kernels.
+* ede-emacs::           A project for working with Emacs.
+* ede-linux::           A project for working with Linux kernels.
 * Custom Locate::       Customizing how to locate files in a simple project
 @end menu
 
@@ -525,14 +525,14 @@ Return nil if there isn't one."
   )
 
 (add-to-list 'ede-project-class-files
-	     (ede-project-autoload "cpp-root"
-	      :name "CPP ROOT"
-	      :file 'ede-cpp-root
-	      :proj-file 'MY-FILE-FOR-DIR
+             (ede-project-autoload "cpp-root"
+              :name "CPP ROOT"
+              :file 'ede-cpp-root
+              :proj-file 'MY-FILE-FOR-DIR
               :proj-root 'MY-ROOT-FCN
-	      :load-type 'MY-LOAD
-	      :class-sym 'ede-cpp-root)
-	     t)
+              :load-type 'MY-LOAD
+              :class-sym 'ede-cpp-root)
+             t)
 @end example
 
 This example only creates an auto-loader, and does not create a new kind
@@ -751,9 +751,9 @@ Here is an example for an instantiation of an Emacs Lisp source code object:
 @example
 (defvar ede-source-emacs
   (ede-sourcecode "ede-emacs-source"
-		  :name "Emacs Lisp"
-		  :sourcepattern "\\.el$"
-		  :garbagepattern '("*.elc"))
+                  :name "Emacs Lisp"
+                  :sourcepattern "\\.el$"
+                  :garbagepattern '("*.elc"))
   "Emacs Lisp source code definition.")
 @end example
 

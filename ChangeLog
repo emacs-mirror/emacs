@@ -55,6 +55,10 @@
 
 	* config.bat: Remove white space around "+" in COPY commands.
 
+2010-06-23  Glenn Morris  <rgm@gnu.org>
+
+	* info/dir: Start descriptions in column 32, per Texinfo convention.
+
 2010-06-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* INSTALL: Update font information (Bug#6389).

@@ -1,6 +1,7 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Text, Programs, Indentation, Top
 @chapter Commands for Human Languages
@@ -57,17 +58,17 @@ for editing such pictures.
 @inforef{Top,, autotype}.
 
 @menu
-* Words::	        Moving over and killing words.
-* Sentences::	        Moving over and killing sentences.
-* Paragraphs::	        Moving over paragraphs.
-* Pages::	        Moving over pages.
-* Filling::	        Filling or justifying text.
-* Case::	        Changing the case of text.
-* Text Mode::	        The major modes for editing text files.
+* Words::               Moving over and killing words.
+* Sentences::           Moving over and killing sentences.
+* Paragraphs::          Moving over paragraphs.
+* Pages::               Moving over pages.
+* Filling::             Filling or justifying text.
+* Case::                Changing the case of text.
+* Text Mode::           The major modes for editing text files.
 * Outline Mode::        Editing outlines.
-* TeX Mode::	        Editing input to the formatter TeX.
+* TeX Mode::            Editing input to the formatter TeX.
 * HTML Mode::           Editing HTML and SGML files.
-* Nroff Mode::	        Editing input to the formatter nroff.
+* Nroff Mode::          Editing input to the formatter nroff.
 * Formatted Text::      Editing formatted text directly in WYSIWYG fashion.
 * Text Based Tables::   Editing text-based tables in WYSIWYG fashion.
 @end menu
@@ -402,13 +403,12 @@ a style of filling for each portion of the text (@pxref{Formatted
 Text}).
 
 @menu
-* Auto Fill::	        Auto Fill mode breaks long lines automatically.
-* Fill Commands::       Commands to refill paragraphs and center lines.
-* Fill Prefix::	        Filling paragraphs that are indented
-                          or in a comment, etc.
-* Adaptive Fill::       How Emacs can determine the fill prefix automatically.
-* Refill::              Keeping paragraphs filled.
-* Longlines::           Editing text with very long lines.
+* Auto Fill::      Auto Fill mode breaks long lines automatically.
+* Fill Commands::  Commands to refill paragraphs and center lines.
+* Fill Prefix::    Filling paragraphs that are indented or in a comment, etc.
+* Adaptive Fill::  How Emacs can determine the fill prefix automatically.
+* Refill::         Keeping paragraphs filled.
+* Longlines::      Editing text with very long lines.
 @end menu
 
 @node Auto Fill
@@ -978,8 +978,8 @@ major mode's special commands.  (The variable
 the hook @code{outline-mode-hook} (@pxref{Hooks}).
 
 @menu
-* Format: Outline Format.	   What the text of an outline looks like.
-* Motion: Outline Motion.	   Special commands for moving through
+* Format: Outline Format.          What the text of an outline looks like.
+* Motion: Outline Motion.          Special commands for moving through
                                      outlines.
 * Visibility: Outline Visibility.  Commands to control what is visible.
 * Views: Outline Views.            Outlines and multiple views.

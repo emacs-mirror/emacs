@@ -57,8 +57,8 @@ supports it in developing GNU and promoting software freedom.''
 @c Entries for @command{install-info} to use
 @dircategory @value{emacsname}
 @direntry
-* TRAMP: (tramp).                Transparent Remote Access, Multiple Protocol
-                                 @value{emacsname} remote file access via rsh and rcp.
+* TRAMP: (tramp).               Transparent Remote Access, Multiple Protocol
+                                @value{emacsname} remote file access via rsh and rcp.
 @end direntry
 
 @titlepage
