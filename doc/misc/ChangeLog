@@ -1,3 +1,8 @@
+2010-07-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Inline methods): Remove "kludgy" phrase.
+	(Filename Syntax): Describe port numbers.
+
 2010-07-09  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbus.texi (Top): Introduce Index.  Emphasize "nil" whereever
