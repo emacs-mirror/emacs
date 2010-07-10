@@ -1,3 +1,7 @@
+2010-07-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (use-region-p): Doc fix (Bug#6607).
+
 2010-07-07  Christoph Scholtes  <cschol2112@gmail.com>
 
 	* progmodes/python.el (python-font-lock-keywords): Add Python 2.7
