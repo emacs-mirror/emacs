@@ -6625,6 +6625,7 @@ static int
 next_element_from_image (struct it *it)
 {
   it->what = IT_IMAGE;
+  it->ignore_overlay_strings_at_pos_p = 0;
   return 1;
 }
 

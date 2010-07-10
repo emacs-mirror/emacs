@@ -28,7 +28,7 @@ compiler, you need to know how to examine the compiler's input buffer.
 
 @menu
 * Debugger::            How the Emacs Lisp debugger is implemented.
-* Edebug::		A source-level Emacs Lisp debugger.
+* Edebug::              A source-level Emacs Lisp debugger.
 * Syntax Errors::       How to find syntax errors.
 * Test Coverage::       Ensuring you have tested all branches in your code.
 * Compilation Errors::  How to find errors that show up in byte compilation.
@@ -58,7 +58,7 @@ debugger recursively.  @xref{Recursive Editing}.
 
 @menu
 * Error Debugging::       Entering the debugger when an error happens.
-* Infinite Loops::	  Stopping and debugging a program that doesn't exit.
+* Infinite Loops::        Stopping and debugging a program that doesn't exit.
 * Function Debugging::    Entering it when a certain function is called.
 * Explicit Debug::        Entering it at a certain point in the program.
 * Using Debugger::        What the debugger does; what you see while in it.

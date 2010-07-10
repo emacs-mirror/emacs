@@ -22,8 +22,8 @@ windows.
 * Buffers and Windows::     Each window displays the contents of a buffer.
 * Displaying Buffers::      Higher-level functions for displaying a buffer
                               and choosing a window for it.
-* Choosing Window::	    How to choose a window for displaying a buffer.
-* Dedicated Windows::	    How to avoid displaying another buffer in
+* Choosing Window::         How to choose a window for displaying a buffer.
+* Dedicated Windows::       How to avoid displaying another buffer in
                               a specific window.
 * Window Point::            Each window has its own location of point.
 * Window Start and End::    Buffer positions indicating which text is

@@ -1,7 +1,7 @@
 @c This file is included by semantic.texi
 
-@c Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2007, 2009, 2010
-@c Free Software Foundation, Inc.
+@c Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2007, 2009,
+@c   2010  Free Software Foundation, Inc.
 
 @c Permission is granted to copy, distribute and/or modify this
 @c document under the terms of the GNU Free Documentation License,
@@ -328,8 +328,8 @@ for a given major mode, like this:
 
 @example
 (setq-mode-local c-mode
-		 semanticdb-find-default-throttle
-		 '(project unloaded system recursive))
+                 semanticdb-find-default-throttle
+                 '(project unloaded system recursive))
 @end example
 
 @defvar semanticdb-find-default-throttle

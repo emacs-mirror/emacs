@@ -27,7 +27,8 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* Message: (message).   Mail and news composition mode that goes with Gnus.
+* Message: (message).           Mail and news composition mode that
+                                  goes with Gnus.
 @end direntry
 @iftex
 @finalout

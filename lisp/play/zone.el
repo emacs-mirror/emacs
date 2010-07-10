@@ -478,8 +478,10 @@ If the element is a function or a list of a function and a number,
          (wait 0.15)
          newpos fall-p)
     (while (when (save-excursion
-                   (forward-line 1)
-                   (and (= col (current-column))
+                   (and (zerop (forward-line 1))
+                        (progn
+                          (forward-char col)
+                          (= col (current-column)))
                         (setq newpos (point))
                         (string= spaces (buffer-substring-no-properties
                                          newpos (+ newpos cw-ceil)))

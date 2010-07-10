@@ -26,7 +26,7 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* PCL-CVS: (pcl-cvs).	Emacs front-end to CVS.
+* PCL-CVS: (pcl-cvs).           Emacs front-end to CVS.
 @end direntry
 
 @c The titlepage section does not appear in the Info file.

@@ -806,7 +806,7 @@
 	(url-http-parse-headers): Use it.
 	(url-http-handle-authentication): Use subst-char-in-string.
 
-2005-11-16  Juergen Hoetzel  <emacs@hoetzel.info>  (tiny change)
+2005-11-16  Jürgen Hötzel  <emacs@hoetzel.info>  (tiny change)
 
 	* url-handlers.el (url-insert-file-contents): Use the charset info
 	provided by the HTTP server, if any.

@@ -47,9 +47,9 @@ byte compilation.
 * Compilation Functions::       Byte compilation functions.
 * Docs and Compilation::        Dynamic loading of documentation strings.
 * Dynamic Loading::             Dynamic loading of individual functions.
-* Eval During Compile::  	Code to be evaluated when you compile.
+* Eval During Compile::         Code to be evaluated when you compile.
 * Compiler Errors::             Handling compiler error messages.
-* Byte-Code Objects::		The data type used for byte-compiled functions.
+* Byte-Code Objects::           The data type used for byte-compiled functions.
 * Disassembly::                 Disassembling byte-code; how to read byte-code.
 @end menu
 

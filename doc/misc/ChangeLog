@@ -16,6 +16,31 @@
 	* dbus.texi (Receiving Method Calls): Add optional argument
 	EMITS-SIGNAL to `dbus-register-property'.
 
+2010-06-27  Alex Schroeder  <alex@gnu.org>
+
+	* nxml-mode.texi (Commands for locating a schema): Fix typo.
+
+2010-06-24  Glenn Morris  <rgm@gnu.org>
+
+	* ada-mode.texi, auth.texi, autotype.texi, calc.texi, cc-mode.texi:
+	* dired-x.texi, ebrowse.texi, ede.texi, edt.texi, eieio.texi:
+	* emacs-mime.texi, epa.texi, erc.texi, eshell.texi, eudc.texi:
+	* flymake.texi, gnus.texi, info.texi, mairix-el.texi, message.texi:
+	* newsticker.texi, org.texi, pgg.texi, rcirc.texi, reftex.texi:
+	* remember.texi, sasl.texi, semantic.texi, ses.texi, smtpmail.texi:
+	* speedbar.texi, tramp.texi, url.texi, viper.texi, widget.texi:
+	* woman.texi: Start direntry descriptions in column 32, per Texinfo
+	convention.   Make them end with a period.
+
+2010-06-23  Glenn Morris  <rgm@gnu.org>
+
+	* autotype.texi, cl.texi, dired-x.texi, ebrowse.texi, ede.texi:
+	* eieio.texi, epa.texi, faq.texi, flymake.texi, forms.texi:
+	* gnus-faq.texi, idlwave.texi, mh-e.texi, nxml-mode.texi, org.texi:
+	* pcl-cvs.texi, pgg.texi, reftex.texi, sasl.texi, sc.texi,
+	* sem-user.texi, semantic.texi, sieve.texi, smtpmail.texi,
+	* speedbar.texi, vip.texi, viper.texi, widget.texi: Untabify.
+
 2010-06-10  Glenn Morris  <rgm@gnu.org>
 
 	* idlwave.texi (Load-Path Shadows):
@@ -6468,10 +6493,6 @@
 	* Makefile.in (../info/cc-mode, cc-mode.dvi): New targets.
 	(INFO_TARGETS): Add ../info/cc-mode.
 	(DVI_TARGETS): Add cc-mode.dvi.
-
-1996-05-25  Karl Heuer  <kwzh@gnu.ai.mit.edu>
-
-	* Version 19.31 released.
 
 1995-11-24  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
