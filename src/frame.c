@@ -326,6 +326,8 @@ make_frame (int mini_p)
   f->n_tool_bar_items = 0;
   f->left_fringe_width = f->right_fringe_width = 0;
   f->fringe_cols = 0;
+  f->menu_bar_lines = 0;
+  f->tool_bar_lines = 0;
   f->scroll_bar_actual_width = 0;
   f->border_width = 0;
   f->internal_border_width = 0;
@@ -550,6 +552,7 @@ make_initial_frame (void)
 
   FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
   FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none;
+  FRAME_MENU_BAR_LINES(f) = NILP (Vmenu_bar_mode) ? 0 : 1;
 
 #ifdef CANNOT_DUMP
   if (!noninteractive)
@@ -600,6 +603,7 @@ make_terminal_frame (struct terminal *terminal)
 
   FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
   FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none;
+  FRAME_MENU_BAR_LINES(f) = NILP (Vmenu_bar_mode) ? 0 : 1;
 
   /* Set the top frame to the newly created frame. */
   if (FRAMEP (FRAME_TTY (f)->top_frame)

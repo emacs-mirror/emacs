@@ -1,3 +1,12 @@
+2010-07-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.c (make_frame): Initialize menu_bar_lines and
+	tool_bar_lines members.
+	(make_initial_frame, make_terminal_frame): Initialize
+	menu_bar_lines using value of menu-bar-mode.
+
+	* msdos.c (IT_set_frame_parameters): Don't set menu-bar-lines.
+
 2010-07-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* process.c: Reshuffle #include's.  Condition some of the global
