@@ -2450,6 +2450,7 @@ x_window (f, window_prompting, minibuffer_only)
   XtSetArg (al[ac], XtNvisual, FRAME_X_VISUAL (f)); ac++;
   XtSetArg (al[ac], XtNdepth, FRAME_X_DISPLAY_INFO (f)->n_planes); ac++;
   XtSetArg (al[ac], XtNcolormap, FRAME_X_COLORMAP (f)); ac++;
+  XtSetArg (al[ac], XtNborderWidth, 0); ac++;
   XtSetValues (pane_widget, al, ac);
   f->output_data.x->column_widget = pane_widget;
 
@@ -2465,6 +2466,7 @@ x_window (f, window_prompting, minibuffer_only)
   XtSetArg (al[ac], XtNvisual, FRAME_X_VISUAL (f)); ac++;
   XtSetArg (al[ac], XtNdepth, FRAME_X_DISPLAY_INFO (f)->n_planes); ac++;
   XtSetArg (al[ac], XtNcolormap, FRAME_X_COLORMAP (f)); ac++;
+  XtSetArg (al[ac], XtNborderWidth, 0); ac++;
   frame_widget = XtCreateWidget (f->namebuf, emacsFrameClass, pane_widget,
 				 al, ac);
 

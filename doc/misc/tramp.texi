@@ -629,11 +629,11 @@ Two other variants, @option{ssh1_old} and @option{ssh2_old}, use the
 @command{ssh1} and @command{ssh2} commands explicitly.  If you don't
 know what these are, you do not need these options.
 
-All the methods based on @command{ssh} have an additional kludgy
-feature: you can specify a host name which looks like @file{host#42}
-(the real host name, then a hash sign, then a port number).  This
-means to connect to the given host but to also pass @code{-p 42} as
-arguments to the @command{ssh} command.
+All the methods based on @command{ssh} have an additional feature: you
+can specify a host name which looks like @file{host#42} (the real host
+name, then a hash sign, then a port number).  This means to connect to
+the given host but to also pass @code{-p 42} as arguments to the
+@command{ssh} command.
 
 
 @item @option{telnet}
@@ -2309,6 +2309,11 @@ So, to connect to the machine @code{melancholia} as @code{daniel},
 using the @option{ssh} method to transfer files, and edit
 @file{.emacs} in my home directory I would specify the filename
 @file{@trampfn{ssh, daniel, melancholia, .emacs}}.
+
+Finally, for some methods it is possible to specify a different port
+number than the default one, given by the method.  This is specified
+by adding @file{#<port>} to the host name, like in @file{@trampfn{ssh,
+daniel, melancholia#42, .emacs}}.
 
 
 @node Alternative Syntax
