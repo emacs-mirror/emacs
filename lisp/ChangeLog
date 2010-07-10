@@ -1,3 +1,13 @@
+2010-07-10  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (calendar-week-end-day): New function.
+	* calendar/cal-tex.el (cal-tex-cursor-month): Remove unused vars.
+	Respect calendar-week-start-day.  (Bug#6606)
+	(cal-tex-insert-day-names, cal-tex-insert-blank-days)
+	(cal-tex-insert-blank-days-at-end): Respect calendar-week-start-day.
+	(cal-tex-first-blank-p, cal-tex-last-blank-p): Simplify, and
+	respect calendar-week-start-day.
+
 2010-07-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (use-region-p): Doc fix (Bug#6607).
