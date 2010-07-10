@@ -3630,9 +3630,8 @@ This is used by commands that act specially on the region under
 Transient Mark mode.
 
 The return value is t if Transient Mark mode is enabled and the
-mark is active; furthermore, if `use-empty-active-region' is
-non-nil, the region must not be empty.  Otherwise, the return
-value is nil.
+mark is active; furthermore, if `use-empty-active-region' is nil,
+the region must not be empty.  Otherwise, the return value is nil.
 
 For some commands, it may be appropriate to ignore the value of
 `use-empty-active-region'; in that case, use `region-active-p'."
