@@ -1,3 +1,14 @@
+2010-07-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* process.c: Reshuffle #include's.  Condition some of the global
+	and static variables on `subprocesses'.
+	(hold_keyboard_input, unhold_keyboard_input, kbd_on_hold_p):
+	Leave only one implementation.
+	(Fget_buffer_process, Fprocess_inherit_coding_system_flag)
+	(kill_buffer_processes, Flist_system_processes)
+	(Fprocess_attributes, init_process, syms_of_process): Unify the
+	implementations for with subprocesses and without them.
+
 2010-07-09  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xmenu.c (set_frame_menubar): Must realize menubar_widget to get the
