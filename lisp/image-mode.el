@@ -543,8 +543,8 @@ the image file and `image-mode' showing the image as an image."
 ;    (define-key map  [(control ?+)] 'image-scale-in)
 ;    (define-key map  [(control ?-)] 'image-scale-out)
 ;    (define-key map  [(control ?=)] 'image-scale-none)
-;;    (define-key map "c f h" 'image-scale-fit-height)    
-;;    (define-key map "c ]" 'image-rotate-right)            
+;;    (define-key map "c f h" 'image-scale-fit-height)
+;;    (define-key map "c ]" 'image-rotate-right)
     map)
   "Minor mode keymap for transforming the view of images Image mode.")
 
@@ -553,23 +553,16 @@ the image file and `image-mode' showing the image as an image."
   nil "image-transform"
   image-transform-minor-mode-map)
 
-;;these are supposed to be buffer local
-;(defvar image-transform-height 100);;nil should mean 100%
-;;the interface could rather be:
-(defvar image-transform-resize
-  nil
-  "values: fit-height  number=scale nil=scale100% TODO fit-width fit-page"
-  )
+(defvar image-transform-resize   nil
+  "The image resize operation. See the command
+  `image-transform-set-scale' for more information." )
 
-;;TODO 0 90 180 270 degrees are the only reasonable angles here
-;;otherwise combining with rescaling will get very awkward
 (defvar image-transform-rotation 0.0)
 
-;;then it would be nice with a bunch of globals like:
-;; image-transform-always-resize values: 'fit-height nil=100% number=scale TODO  'fit-width 'fit-page
-;; image-transform-always-rotate value: angle
 
 (defun image-transform-properties (display)
+  "Calculate the display properties for transformations; scaling
+and rotation. "
   (let*
       ((size (image-size display t))
        (height
@@ -588,28 +581,39 @@ the image file and `image-mode' showing the image as an image."
       ,@(if width (list :width width))
       ,@(if (not (equal 0.0 image-transform-rotation))
             (list :rotation image-transform-rotation))
+      ;;TODO fit-to-* should consider the rotation angle
       )))
 
 (defun image-transform-set-scale (scale)
+  "SCALE sets the scaling for images. "
   (interactive "nscale:")
   (image-transform-set-resize (float scale)))
 
 (defun image-transform-fit-to-height ()
+  "Fit image height to window height. "
   (interactive)
   (image-transform-set-resize 'fit-height))
 
 (defun image-transform-fit-to-width ()
+  "Fit image width to window width. "
   (interactive)
   (image-transform-set-resize 'fit-width))
 
 (defun image-transform-set-resize (resize)
+  "Set the resize mode for images. The RESIZE value can be the
+symbol fit-height which fits the image to the window height. The
+symbol fit-width fits the image to the window width.  A number
+indicates a scaling factor. nil indicates scale to 100%. "
   (setq image-transform-resize resize)
   (if (eq 'image-mode major-mode) (image-toggle-display-image)))
 
 (defun image-transform-set-rotation (rotation)
+  "Set the image ROTATION angle. "
   (interactive "nrotation:")
+  ;;TODO 0 90 180 270 degrees are the only reasonable angles here
+  ;;otherwise combining with rescaling will get very awkward
   (setq image-transform-rotation (float rotation))
-  (image-toggle-display-image))
+  (if (eq major-mode 'image-mode) (image-toggle-display-image)))
 
 (provide 'image-mode)
 
