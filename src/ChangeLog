@@ -1,5 +1,7 @@
 2010-07-11  Andreas Schwab  <schwab@linux-m68k.org>
 
+	* callproc.c (relocate_fd): Use F_DUPFD if defined.
+
 	* alloc.c (pending_malloc_warning, malloc_warning): Add const.
 	* callproc.c (relocate_fd, getenv_internal_1, getenv_internal)
 	(egetenv): Likewise.

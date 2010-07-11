@@ -1288,7 +1288,16 @@ relocate_fd (int fd, int minfd)
     return fd;
   else
     {
-      int new = dup (fd);
+      int new;
+#ifdef F_DUPFD
+      new = fcntl (fd, F_DUPFD, minfd);
+#else
+      new = dup (fd);
+      if (new != -1)
+	/* Note that we hold the original FD open while we recurse,
+	   to guarantee we'll get a new FD if we need it.  */
+	new = relocate_fd (new, minfd);
+#endif
       if (new == -1)
 	{
 	  const char *message1 = "Error while setting up child: ";
@@ -1299,9 +1308,6 @@ relocate_fd (int fd, int minfd)
 	  emacs_write (2, message2, strlen (message2));
 	  _exit (1);
 	}
-      /* Note that we hold the original FD open while we recurse,
-	 to guarantee we'll get a new FD if we need it.  */
-      new = relocate_fd (new, minfd);
       emacs_close (fd);
       return new;
     }
