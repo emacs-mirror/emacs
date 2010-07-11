@@ -1,3 +1,7 @@
+2010-07-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfaces.c (Vface_remapping_alist): Doc fix (Bug#6091).
+
 2010-07-11  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* callint.c (Fcall_interactively): Use strchr, strrchr instead of

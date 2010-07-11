@@ -6791,10 +6791,10 @@ Each element is of the form:
    (FACE REPLACEMENT...),
 
 which causes display of the face FACE to use REPLACEMENT... instead.
-REPLACEMENT... is interpreted the same way the value of a `face' text
-property is: it may be (1) A face name, (2) A list of face names, (3) A
-property-list of face attribute/value pairs, or (4) A list of face names
-intermixed with lists containing face attribute/value pairs.
+REPLACEMENT... is interpreted the same way as the value of a `face'
+text property: it may be (1) A face name, (2) A list of face names,
+(3) A property-list of face attribute/value pairs, or (4) A list of
+face names or lists containing face attribute/value pairs.
 
 Multiple entries in REPLACEMENT... are merged together to form the final
 result, with faces or attributes earlier in the list taking precedence
@@ -6818,7 +6818,11 @@ face definitions.  For instance, the mode my-mode could define a face
 `my-mode-default', and then in the mode setup function, do:
 
    (set (make-local-variable 'face-remapping-alist)
-        '((default my-mode-default)))).  */);
+        '((default my-mode-default)))).
+
+Because Emacs normally only redraws screen areas when the underlying
+buffer contents change, you may need to call `redraw-display' after
+changing this variable for it to take effect.  */);
   Vface_remapping_alist = Qnil;
 
   DEFVAR_LISP ("face-font-rescale-alist", &Vface_font_rescale_alist,
