@@ -21,6 +21,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef EMACS_LISP_H
 #define EMACS_LISP_H
 
+#include <stdarg.h>
+
 /* Use the configure flag --enable-checking[=LIST] to enable various
    types of run time checks for Lisp objects.  */
 
@@ -2648,8 +2650,8 @@ extern void restore_message (void);
 extern Lisp_Object current_message (void);
 extern void set_message (const char *s, Lisp_Object, int, int);
 extern void clear_message (int, int);
-extern void message (/* char *, ... */);
-extern void message_nolog (/* char *, ... */);
+extern void message (char *, ...);
+extern void message_nolog (char *, ...);
 extern void message1 (char *);
 extern void message1_nolog (char *);
 extern void message2 (const char *, int, int);
@@ -2798,7 +2800,7 @@ extern void float_to_string (unsigned char *, double);
 extern void syms_of_print (void);
 
 /* Defined in doprnt.c */
-extern int doprnt (char *, int, char *, char *, int, char **);
+extern int doprnt (char *, int, char *, char *, va_list);
 
 /* Defined in lread.c */
 extern Lisp_Object Qvariable_documentation, Qstandard_input;
@@ -2910,7 +2912,7 @@ extern Lisp_Object internal_condition_case_n (Lisp_Object (*) (int, Lisp_Object 
 extern void specbind (Lisp_Object, Lisp_Object);
 extern void record_unwind_protect (Lisp_Object (*) (Lisp_Object), Lisp_Object);
 extern Lisp_Object unbind_to (int, Lisp_Object);
-extern void error (/* char *, ... */) NO_RETURN;
+extern void error (char *, ...) NO_RETURN;
 extern void do_autoload (Lisp_Object, Lisp_Object);
 extern Lisp_Object un_autoload (Lisp_Object);
 EXFUN (Ffetch_bytecode, 1);

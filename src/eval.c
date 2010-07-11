@@ -2003,9 +2003,7 @@ find_handler_clause (Lisp_Object handlers, Lisp_Object conditions,
 
 /* VARARGS 1 */
 void
-error (m, a1, a2, a3)
-     char *m;
-     char *a1, *a2, *a3;
+error (char *m, ...)
 {
   char buf[200];
   int size = 200;
@@ -2015,15 +2013,18 @@ error (m, a1, a2, a3)
   int allocated = 0;
   Lisp_Object string;
 
-  args[0] = a1;
-  args[1] = a2;
-  args[2] = a3;
-
   mlen = strlen (m);
 
   while (1)
     {
-      int used = doprnt (buffer, size, m, m + mlen, 3, args);
+      va_list ap;
+      int used;
+
+      /* A va_list can't be reused if we have to go around the loop
+	 again; we need to "reinitialize" it each time.  */
+      va_start(ap, m);
+      used = doprnt (buffer, size, m, m + mlen, ap);
+      va_end(ap);
       if (used < size)
 	break;
       size *= 2;

@@ -1,3 +1,15 @@
+2010-07-11  Ken Raeburn  <raeburn@raeburn.org>
+
+	* doprnt.c (doprnt): Take a va_list argument instead of count and
+	pointer.
+	* eval.c (error): Change to a standard-C variadic function.
+	* xdisp.c (vmessage): Renamed from message, made static, and
+	changed to take a va_list argument.
+	(message): New variadic wrapper.
+	(message_nolog): Now a variadic function, calling vmessage.
+	* lisp.h: Include stdarg.h for va_list.
+	(doprnt, error, message, message_nolog): Decls updated.
+
 2010-07-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* process.c (syms_of_process) <delete-exited-processes>: Define

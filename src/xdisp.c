@@ -8494,9 +8494,8 @@ message_with_string (char *m, Lisp_Object string, int log)
 /* Dump an informative message to the minibuf.  If M is 0, clear out
    any existing message, and let the mini-buffer text show through.  */
 
-/* VARARGS 1 */
-void
-message (char *m, EMACS_INT a1, EMACS_INT a2, EMACS_INT a3)
+static void
+vmessage (char *m, va_list ap)
 {
   if (noninteractive)
     {
@@ -8505,7 +8504,7 @@ message (char *m, EMACS_INT a1, EMACS_INT a2, EMACS_INT a3)
 	  if (noninteractive_need_newline)
 	    putc ('\n', stderr);
 	  noninteractive_need_newline = 0;
-	  fprintf (stderr, m, a1, a2, a3);
+	  vfprintf (stderr, m, ap);
 	  if (cursor_in_echo_area == 0)
 	    fprintf (stderr, "\n");
 	  fflush (stderr);
@@ -8533,13 +8532,9 @@ message (char *m, EMACS_INT a1, EMACS_INT a2, EMACS_INT a3)
 	  if (m)
 	    {
 	      int len;
-	      char *a[3];
-	      a[0] = (char *) a1;
-	      a[1] = (char *) a2;
-	      a[2] = (char *) a3;
 
 	      len = doprnt (FRAME_MESSAGE_BUF (f),
-			    FRAME_MESSAGE_BUF_SIZE (f), m, (char *)0, 3, a);
+			    FRAME_MESSAGE_BUF_SIZE (f), m, (char *)0, ap);
 
 	      message2 (FRAME_MESSAGE_BUF (f), len, 0);
 	    }
@@ -8553,17 +8548,29 @@ message (char *m, EMACS_INT a1, EMACS_INT a2, EMACS_INT a3)
     }
 }
 
+void
+message (char *m, ...)
+{
+  va_list ap;
+  va_start (ap, m);
+  vmessage (m, ap);
+  va_end (ap);
+}
+
 
 /* The non-logging version of message.  */
 
 void
-message_nolog (char *m, EMACS_INT a1, EMACS_INT a2, EMACS_INT a3)
+message_nolog (char *m, ...)
 {
   Lisp_Object old_log_max;
+  va_list ap;
+  va_start (ap, m);
   old_log_max = Vmessage_log_max;
   Vmessage_log_max = Qnil;
-  message (m, a1, a2, a3);
+  vmessage (m, ap);
   Vmessage_log_max = old_log_max;
+  va_end (ap);
 }
 
 
