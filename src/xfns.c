@@ -4005,7 +4005,7 @@ select_visual (struct x_display_info *dpyinfo)
       XVisualInfo vinfo;
 
       strcpy (s, SDATA (value));
-      dash = index (s, '-');
+      dash = strchr (s, '-');
       if (dash)
 	{
 	  dpyinfo->n_planes = atoi (dash + 1);

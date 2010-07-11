@@ -1,3 +1,8 @@
+2010-07-11  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* sed2v2.inp (HAVE_INDEX, HAVE_RINDEX): Don't edit.
+	(HAVE_STRCHR, HAVE_STRRCHR): Edit to 1.
+
 2010-07-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* sed1v2.inp (stamp-oldxmenu): Don't edit out in `temacs:' target,

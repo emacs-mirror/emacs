@@ -1065,8 +1065,8 @@ static Lisp_Object Vcached_fontset_data;
 static Lisp_Object
 fontset_pattern_regexp (Lisp_Object pattern)
 {
-  if (!index ((char *) SDATA (pattern), '*')
-      && !index ((char *) SDATA (pattern), '?'))
+  if (!strchr ((char *) SDATA (pattern), '*')
+      && !strchr ((char *) SDATA (pattern), '?'))
     /* PATTERN does not contain any wild cards.  */
     return Qnil;
 

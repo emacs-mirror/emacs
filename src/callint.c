@@ -29,10 +29,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "window.h"
 #include "keymap.h"
 
-#ifdef HAVE_INDEX
-extern char *index (const char *, int);
-#endif
-
 extern Lisp_Object Qcursor_in_echo_area;
 extern Lisp_Object Qfile_directory_p;
 extern Lisp_Object Qonly;
@@ -469,7 +465,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	j += 2;
       else
 	j++;
-      tem = (unsigned char *) index (tem, '\n');
+      tem = (unsigned char *) strchr (tem, '\n');
       if (tem)
 	++tem;
       else
@@ -500,11 +496,11 @@ invoke it.  If KEYS is omitted or nil, the return value of
     {
       strncpy (prompt1, tem + 1, sizeof prompt1 - 1);
       prompt1[sizeof prompt1 - 1] = 0;
-      tem1 = (char *) index (prompt1, '\n');
+      tem1 = strchr (prompt1, '\n');
       if (tem1) *tem1 = 0;
 
       visargs[0] = build_string (prompt1);
-      if (index (prompt1, '%'))
+      if (strchr (prompt1, '%'))
 	callint_message = Fformat (i, visargs);
       else
 	callint_message = visargs[0];
@@ -809,7 +805,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
       if (NILP (visargs[i]) && STRINGP (args[i]))
 	visargs[i] = args[i];
 
-      tem = (unsigned char *) index (tem, '\n');
+      tem = (unsigned char *) strchr (tem, '\n');
       if (tem) tem++;
       else tem = (unsigned char *) "";
     }

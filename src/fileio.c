@@ -1455,7 +1455,7 @@ See also the function `substitute-in-file-name'.")
 	/* Get past ~ to user */
 	unsigned char *user = nm + 1;
 	/* Find end of name. */
-	unsigned char *ptr = (unsigned char *) index (user, '/');
+	unsigned char *ptr = (unsigned char *) strchr (user, '/');
 	int len = ptr ? ptr - user : strlen (user);
 	/* Copy the user name into temp storage. */
 	o = (unsigned char *) alloca (len + 1);
@@ -2729,7 +2729,7 @@ points to a nonexistent file.  */)
   while (valsize >= bufsize);
 
   val = make_string (buf, valsize);
-  if (buf[0] == '/' && index (buf, ':'))
+  if (buf[0] == '/' && strchr (buf, ':'))
     val = concat2 (build_string ("/:"), val);
   xfree (buf);
   val = DECODE_FILE (val);

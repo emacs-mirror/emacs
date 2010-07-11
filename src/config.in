@@ -288,9 +288,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if netdb.h declares h_errno. */
 #undef HAVE_H_ERRNO
 
-/* Define to 1 if you have the `index' function. */
-#undef HAVE_INDEX
-
 /* Define to 1 if you have inet sockets. */
 #undef HAVE_INET_SOCKETS
 
@@ -537,9 +534,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if res_init is available. */
 #undef HAVE_RES_INIT
 
-/* Define to 1 if you have the `rindex' function. */
-#undef HAVE_RINDEX
-
 /* Define to 1 if you have the `rint' function. */
 #undef HAVE_RINT
 
@@ -597,6 +591,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <stdlib.h> header file. */
 #undef HAVE_STDLIB_H
 
+/* Define to 1 if you have the `strchr' function. */
+#undef HAVE_STRCHR
+
 /* Define to 1 if you have the `strerror' function. */
 #undef HAVE_STRERROR
 
@@ -608,6 +605,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
+
+/* Define to 1 if you have the `strrchr' function. */
+#undef HAVE_STRRCHR
 
 /* Define to 1 if you have the `strsignal' function. */
 #undef HAVE_STRSIGNAL
@@ -1152,6 +1152,14 @@ void *alloca (size_t);
 
 #ifndef HAVE_SIZE_T
 typedef unsigned size_t;
+#endif
+
+#ifndef HAVE_STRCHR
+#define strchr(a, b) index (a, b)
+#endif
+
+#ifndef HAVE_STRRCHR
+#define strrchr(a, b) rindex (a, b)
 #endif
 
 #if defined __GNUC__ && (__GNUC__ > 2 \

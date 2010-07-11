@@ -1,3 +1,9 @@
+2010-07-11  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in: Don't check for index and rindex, check for strchr
+	and strrchr.  Define strchr and strrchr as index and rindex,
+	resp., in src/config.h if not available.
+
 2010-07-08  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in: Use -Wold-style-definition if available.

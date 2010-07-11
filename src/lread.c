@@ -2725,7 +2725,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 
 	    ok = (next_next_char <= 040
 		  || (next_next_char < 0200
-		      && (index ("\"';([#?", next_next_char)
+		      && (strchr ("\"';([#?", next_next_char)
 			  || (!first_in_list && next_next_char == '`')
 			  || (new_backquote_flag && next_next_char == ','))));
 	  }
@@ -2733,7 +2733,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	  {
 	    ok = (next_char <= 040
 		  || (next_char < 0200
-		      && (index ("\"';()[]#?", next_char)
+		      && (strchr ("\"';()[]#?", next_char)
 			  || (!first_in_list && next_char == '`')
 			  || (new_backquote_flag && next_char == ','))));
 	  }
@@ -2878,7 +2878,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 
 	if (next_char <= 040
 	    || (next_char < 0200
-		&& (index ("\"';([#?", next_char)
+		&& (strchr ("\"';([#?", next_char)
 		    || (!first_in_list && next_char == '`')
 		    || (new_backquote_flag && next_char == ','))))
 	  {
@@ -2905,7 +2905,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	  while (c > 040
 		 && c != 0x8a0 /* NBSP */
 		 && (c >= 0200
-		     || (!index ("\"';()[]#", c)
+		     || (!strchr ("\"';()[]#", c)
 			 && !(!first_in_list && c == '`')
 			 && !(new_backquote_flag && c == ','))))
 	    {

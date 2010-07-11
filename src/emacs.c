@@ -90,10 +90,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 const char emacs_copyright[] = "Copyright (C) 2010 Free Software Foundation, Inc.";
 const char emacs_version[] = "24.0.50";
 
-#ifdef HAVE_INDEX
-extern char *index (const char *, int);
-#endif
-
 /* Make these values available in GDB, which doesn't see macros.  */
 
 #ifdef USE_LSB_TAG
@@ -662,7 +658,7 @@ argmatch (char **argv, int argc, char *sstr, char *lstr, int minlen, char **valp
 	*skipptr += 1;
       return 1;
     }
-  arglen = (valptr != NULL && (p = index (arg, '=')) != NULL
+  arglen = (valptr != NULL && (p = strchr (arg, '=')) != NULL
 	    ? p - arg : strlen (arg));
   if (lstr == 0 || arglen < minlen || strncmp (arg, lstr, arglen) != 0)
     return 0;
@@ -1974,7 +1970,7 @@ sort_args (int argc, char **argv)
 	    {
 	      match = -1;
 	      thislen = strlen (argv[from]);
-	      equals = index (argv[from], '=');
+	      equals = strchr (argv[from], '=');
 	      if (equals != 0)
 		thislen = equals - argv[from];
 
@@ -2369,7 +2365,7 @@ decode_env_path (const char *evarname, const char *defalt)
   lpath = Qnil;
   while (1)
     {
-      p = index (path, SEPCHAR);
+      p = strchr (path, SEPCHAR);
       if (!p)
 	p = path + strlen (path);
       element = (p - path ? make_string (path, p - path)

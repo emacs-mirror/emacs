@@ -1,5 +1,21 @@
 2010-07-11  Andreas Schwab  <schwab@linux-m68k.org>
 
+	* callint.c (Fcall_interactively): Use strchr, strrchr instead of
+	index, rindex.
+	* doc.c (get_doc_string, Fsnarf_documentation): Likewise.
+	* editfns.c (Fuser_full_name, Fformat): Likewise.
+	* emacs.c (argmatch, sort_args, decode_env_path): Likewise.
+	* fileio.c (Ffile_symlink_p): Likewise.
+	* filelock.c (current_lock_owner): Likewise.
+	* font.c (font_parse_name, font_parse_family_registry): Likewise.
+	* fontset.c (fontset_pattern_regexp): Likewise.
+	* lread.c (read1): Likewise.
+	* sysdep.c (init_system_name): Likewise.
+	* xfns.c (select_visual): Likewise.
+	* s/hpux10-20.h (index, rindex): Don't define.
+	* s/ms-w32.h (index): Likewise.
+	* s/usg5-4.h: Likewise.
+
 	* callproc.c (relocate_fd): Use F_DUPFD if defined.
 
 	* alloc.c (pending_malloc_warning, malloc_warning): Add const.
