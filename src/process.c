@@ -21,15 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <signal.h>
-
-/* This file is split into two parts by the following preprocessor
-   conditional.  The 'then' clause contains all of the support for
-   asynchronous subprocesses.  The 'else' clause contains stub
-   versions of some of the asynchronous subprocess routines that are
-   often called elsewhere in Emacs, so we don't have to #ifdef the
-   sections that call them.  */
-
-
 #include <stdio.h>
 #include <errno.h>
 #include <setjmp.h>
