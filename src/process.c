@@ -310,6 +310,9 @@ Lisp_Object QCname, QCtype;
 
 static int kbd_is_on_hold;
 
+/* Nonzero means delete a process right away if it exits.  */
+static int delete_exited_processes;
+
 #ifdef subprocesses
 
 /* Mask of bits indicating the descriptors that we wait for input on.  */
@@ -351,9 +354,6 @@ static int max_keyboard_desc;
 
 /* The largest descriptor currently in use for gpm mouse input.  */
 static int max_gpm_desc;
-
-/* Nonzero means delete a process right away if it exits.  */
-static int delete_exited_processes;
 
 /* Indexed by descriptor, gives the process (if any) for that descriptor */
 Lisp_Object chan_process[MAXDESC];
@@ -7667,13 +7667,13 @@ syms_of_process (void)
   Qargs = intern_c_string ("args");
   staticpro (&Qargs);
 
-#ifdef subprocesses
   DEFVAR_BOOL ("delete-exited-processes", &delete_exited_processes,
 	       doc: /* *Non-nil means delete processes immediately when they exit.
 A value of nil means don't delete them until `list-processes' is run.  */);
 
   delete_exited_processes = 1;
 
+#ifdef subprocesses
   DEFVAR_LISP ("process-connection-type", &Vprocess_connection_type,
 	       doc: /* Control type of device used to communicate with subprocesses.
 Values are nil to use a pipe, or t or `pty' to use a pty.
