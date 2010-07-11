@@ -1,5 +1,7 @@
 2010-07-11  Andreas Schwab  <schwab@linux-m68k.org>
 
+	* blockinput.h: Remove obsolete comment.
+
 	* lisp.h: Include <stddef.h>.
 	(OFFSETOF): Don't define.
 	(VECSIZE): Use offsetof instead of OFFSETOF.
