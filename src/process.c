@@ -2263,7 +2263,7 @@ conv_sockaddr_to_lisp (struct sockaddr *sa, int len)
   /* Workaround for a bug in getsockname on BSD: Names bound to
      sockets in the UNIX domain are inaccessible; getsockname returns
      a zero length name.  */
-  if (len < OFFSETOF (struct sockaddr, sa_family) + sizeof (sa->sa_family))
+  if (len < offsetof (struct sockaddr, sa_family) + sizeof (sa->sa_family))
     return empty_unibyte_string;
 
   switch (sa->sa_family)
@@ -2303,7 +2303,7 @@ conv_sockaddr_to_lisp (struct sockaddr *sa, int len)
       }
 #endif
     default:
-      len -= OFFSETOF (struct sockaddr, sa_family) + sizeof (sa->sa_family);
+      len -= offsetof (struct sockaddr, sa_family) + sizeof (sa->sa_family);
       address = Fcons (make_number (sa->sa_family),
 		       Fmake_vector (make_number (len), Qnil));
       p = XVECTOR (XCDR (address));

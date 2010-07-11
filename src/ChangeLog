@@ -1,5 +1,13 @@
 2010-07-11  Andreas Schwab  <schwab@linux-m68k.org>
 
+	* lisp.h: Include <stddef.h>.
+	(OFFSETOF): Don't define.
+	(VECSIZE): Use offsetof instead of OFFSETOF.
+	(PSEUDOVECSIZE): Likewise.
+	* process.c (conv_sockaddr_to_lisp): Likewise.
+	* alloc.c: Don't include <stddef.h>.
+	* buffer.h (PER_BUFFER_VAR_OFFSET): Use offsetof.
+
 	* process.c: Remove obsolete comment.
 
 2010-07-11  Chong Yidong  <cyd@stupidchicken.com>

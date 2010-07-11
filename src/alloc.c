@@ -23,10 +23,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <limits.h>		/* For CHAR_BIT.  */
 #include <setjmp.h>
 
-#ifdef STDC_HEADERS
-#include <stddef.h>		/* For offsetof, used by PSEUDOVECSIZE. */
-#endif
-
 #ifdef ALLOC_DEBUG
 #undef INLINE
 #endif

@@ -22,6 +22,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define EMACS_LISP_H
 
 #include <stdarg.h>
+#include <stddef.h>
 
 /* Use the configure flag --enable-checking[=LIST] to enable various
    types of run time checks for Lisp objects.  */
@@ -784,13 +785,6 @@ struct Lisp_String
     unsigned char *data;
   };
 
-#ifdef offsetof
-#define OFFSETOF(type,field) offsetof(type,field)
-#else
-#define OFFSETOF(type,field) \
-  ((int)((char*)&((type*)0)->field - (char*)0))
-#endif
-
 struct Lisp_Vector
   {
     EMACS_UINT size;
@@ -801,7 +795,7 @@ struct Lisp_Vector
 /* If a struct is made to look like a vector, this macro returns the length
    of the shortest vector that would hold that struct.  */
 #define VECSIZE(type) ((sizeof (type)					  \
-			- OFFSETOF (struct Lisp_Vector, contents[0])      \
+			- offsetof (struct Lisp_Vector, contents[0])      \
                         + sizeof(Lisp_Object) - 1) /* round up */	  \
 		       / sizeof (Lisp_Object))
 
@@ -809,7 +803,7 @@ struct Lisp_Vector
    at the end and we need to compute the number of Lisp_Object fields (the
    ones that the GC needs to trace).  */
 #define PSEUDOVECSIZE(type, nonlispfield) \
-  ((OFFSETOF(type, nonlispfield) - OFFSETOF(struct Lisp_Vector, contents[0])) \
+  ((offsetof(type, nonlispfield) - offsetof(struct Lisp_Vector, contents[0])) \
    / sizeof (Lisp_Object))
 
 /* A char-table is a kind of vectorlike, with contents are like a
