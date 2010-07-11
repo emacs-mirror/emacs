@@ -4701,13 +4701,6 @@ abort (void)
 }
 #endif
 
-/* The following variables are required so that cus-start.el won't
-   complain about unbound variables.  */
-#ifndef subprocesses
-/* Nonzero means delete a process right away if it exits (process.c).  */
-static int delete_exited_processes;
-#endif
-
 void
 syms_of_msdos (void)
 {
@@ -4725,12 +4718,6 @@ syms_of_msdos (void)
 This variable is used only by MS-DOS terminals.  */);
   Vdos_unsupported_char_glyph = make_number ('\177');
 
-#endif
-#ifndef subprocesses
-  DEFVAR_BOOL ("delete-exited-processes", &delete_exited_processes,
-	       doc: /* *Non-nil means delete processes immediately when they exit.
-A value of nil means don't delete them until `list-processes' is run.  */);
-  delete_exited_processes = 0;
 #endif
 
   defsubr (&Srecent_doskeys);

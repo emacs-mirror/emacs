@@ -1,3 +1,12 @@
+2010-07-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* process.c (syms_of_process) <delete-exited-processes>: Define
+	even if !subprocesses.
+	(delete_exited_processes): Ditto.
+
+	* msdos.c (syms_of_msdos) <delete-exited-processes>: Remove DEFVAR.
+	(delete_exited_processes): Don't define.
+
 2010-07-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frame.c (make_frame): Initialize menu_bar_lines and
