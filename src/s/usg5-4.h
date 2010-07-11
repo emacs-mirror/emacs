@@ -50,14 +50,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define _setjmp setjmp
 #define _longjmp longjmp
 
-/* On USG systems these have different names.  */
-#ifndef HAVE_INDEX
-#define index strchr
-#endif /* ! defined (HAVE_INDEX) */
-#ifndef HAVE_RINDEX
-#define rindex strrchr
-#endif /* ! defined (HAVE_RINDEX) */
-
 /* The docs for system V/386 suggest v.3 has sigpause, so let's try it.  */
 #define HAVE_SYSV_SIGPAUSE
 

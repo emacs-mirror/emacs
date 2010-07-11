@@ -371,14 +371,8 @@ Symbols are also allowed; their print names are used instead.  */)
   return i1 < SCHARS (s2) ? Qt : Qnil;
 }
 
-#if __GNUC__
-/* "gcc -O3" enables automatic function inlining, which optimizes out
-   the arguments for the invocations of this function, whereas it
-   expects these values on the stack.  */
-static Lisp_Object concat (int nargs, Lisp_Object *args, enum Lisp_Type target_type, int last_special) __attribute__((noinline));
-#else  /* !__GNUC__ */
-static Lisp_Object concat (int nargs, Lisp_Object *args, enum Lisp_Type target_type, int last_special);
-#endif
+static Lisp_Object concat (int nargs, Lisp_Object *args,
+			   enum Lisp_Type target_type, int last_special);
 
 /* ARGSUSED */
 Lisp_Object

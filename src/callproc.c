@@ -1288,27 +1288,34 @@ relocate_fd (int fd, int minfd)
     return fd;
   else
     {
-      int new = dup (fd);
+      int new;
+#ifdef F_DUPFD
+      new = fcntl (fd, F_DUPFD, minfd);
+#else
+      new = dup (fd);
+      if (new != -1)
+	/* Note that we hold the original FD open while we recurse,
+	   to guarantee we'll get a new FD if we need it.  */
+	new = relocate_fd (new, minfd);
+#endif
       if (new == -1)
 	{
-	  char *message1 = "Error while setting up child: ";
-	  char *errmessage = strerror (errno);
-	  char *message2 = "\n";
+	  const char *message1 = "Error while setting up child: ";
+	  const char *errmessage = strerror (errno);
+	  const char *message2 = "\n";
 	  emacs_write (2, message1, strlen (message1));
 	  emacs_write (2, errmessage, strlen (errmessage));
 	  emacs_write (2, message2, strlen (message2));
 	  _exit (1);
 	}
-      /* Note that we hold the original FD open while we recurse,
-	 to guarantee we'll get a new FD if we need it.  */
-      new = relocate_fd (new, minfd);
       emacs_close (fd);
       return new;
     }
 }
 
 static int
-getenv_internal_1 (char *var, int varlen, char **value, int *valuelen, Lisp_Object env)
+getenv_internal_1 (const char *var, int varlen, char **value, int *valuelen,
+		   Lisp_Object env)
 {
   for (; CONSP (env); env = XCDR (env))
     {
@@ -1342,7 +1349,8 @@ getenv_internal_1 (char *var, int varlen, char **value, int *valuelen, Lisp_Obje
 }
 
 static int
-getenv_internal (char *var, int varlen, char **value, int *valuelen, Lisp_Object frame)
+getenv_internal (const char *var, int varlen, char **value, int *valuelen,
+		 Lisp_Object frame)
 {
   /* Try to find VAR in Vprocess_environment first.  */
   if (getenv_internal_1 (var, varlen, value, valuelen,
@@ -1403,7 +1411,7 @@ If optional parameter ENV is a list, then search this list instead of
 /* A version of getenv that consults the Lisp environment lists,
    easily callable from C.  */
 char *
-egetenv (char *var)
+egetenv (const char *var)
 {
   char *value;
   int valuelen;

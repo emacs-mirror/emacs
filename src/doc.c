@@ -45,10 +45,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keymap.h"
 #include "buildobj.h"
 
-#ifdef HAVE_INDEX
-extern char *index (const char *, int);
-#endif
-
 Lisp_Object Vdoc_file_name;
 
 Lisp_Object Qfunction_documentation;
@@ -218,9 +214,9 @@ get_doc_string (Lisp_Object filepos, int unibyte, int definition)
       if (!nread)
 	break;
       if (p == get_doc_string_buffer)
-	p1 = (char *) index (p + offset, '\037');
+	p1 = strchr (p + offset, '\037');
       else
-	p1 = (char *) index (p, '\037');
+	p1 = strchr (p, '\037');
       if (p1)
 	{
 	  *p1 = 0;
@@ -633,7 +629,7 @@ the same file name is found in the `doc-directory'.  */)
       /* p points to ^_Ffunctionname\n or ^_Vvarname\n.  */
       if (p != end)
 	{
-	  end = (char *) index (p, '\n');
+	  end = strchr (p, '\n');
 
           /* See if this is a file name, and if it is a file in build-files.  */
           if (p[1] == 'S' && end - p > 4 && end[-2] == '.'

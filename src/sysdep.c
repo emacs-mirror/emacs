@@ -1555,7 +1555,7 @@ init_system_name (void)
 #ifndef CANNOT_DUMP
   if (initialized)
 #endif /* not CANNOT_DUMP */
-    if (! index (hostname, '.'))
+    if (! strchr (hostname, '.'))
       {
 	int count;
 #ifdef HAVE_GETADDRINFO
@@ -1584,7 +1584,7 @@ init_system_name (void)
             while (it)
               {
                 char *fqdn = it->ai_canonname;
-                if (fqdn && index (fqdn, '.')
+                if (fqdn && strchr (fqdn, '.')
                     && strcmp (fqdn, "localhost.localdomain") != 0)
                   break;
                 it = it->ai_next;
@@ -1620,13 +1620,13 @@ init_system_name (void)
 	  {
 	    char *fqdn = (char *) hp->h_name;
 
-	    if (!index (fqdn, '.'))
+	    if (!strchr (fqdn, '.'))
 	      {
 		/* We still don't have a fully qualified domain name.
 		   Try to find one in the list of alternate names */
 		char **alias = hp->h_aliases;
 		while (*alias
-		       && (!index (*alias, '.')
+		       && (!strchr (*alias, '.')
 			   || !strcmp (*alias, "localhost.localdomain")))
 		  alias++;
 		if (*alias)

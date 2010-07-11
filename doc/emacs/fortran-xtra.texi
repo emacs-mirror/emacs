@@ -1,5 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+@c Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @c
 @c This file is included either in emacs-xtra.texi (when producing the
@@ -57,12 +58,12 @@ command runs the hook @code{fortran-mode-hook}.
 @end ifnottex
 
 @menu
-* Motion: Fortran Motion.	 Moving point by statements or subprograms.
-* Indent: Fortran Indent.	 Indentation commands for Fortran.
-* Comments: Fortran Comments.	 Inserting and aligning comments.
-* Autofill: Fortran Autofill.	 Auto fill support for Fortran.
-* Columns: Fortran Columns.	 Measuring columns for valid Fortran.
-* Abbrev: Fortran Abbrev.	 Built-in abbrevs for Fortran keywords.
+* Motion: Fortran Motion.        Moving point by statements or subprograms.
+* Indent: Fortran Indent.        Indentation commands for Fortran.
+* Comments: Fortran Comments.    Inserting and aligning comments.
+* Autofill: Fortran Autofill.    Auto fill support for Fortran.
+* Columns: Fortran Columns.      Measuring columns for valid Fortran.
+* Abbrev: Fortran Abbrev.        Built-in abbrevs for Fortran keywords.
 @end menu
 
 @node Fortran Motion

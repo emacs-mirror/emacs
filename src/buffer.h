@@ -954,7 +954,7 @@ extern int last_per_buffer_idx;
    from the start of a buffer structure.  */
 
 #define PER_BUFFER_VAR_OFFSET(VAR) \
-  ((char *) &((struct buffer *)0)->VAR - (char *) ((struct buffer *)0))
+  offsetof (struct buffer, VAR)
 
 /* Return the index of buffer-local variable VAR.  Each per-buffer
    variable has an index > 0 associated with it, except when it always

@@ -17,15 +17,15 @@ suggest you first run the Emacs learn-by-doing tutorial, by typing
 
 * Inserting Text::      Inserting text by simply typing it.
 * Moving Point::        Moving the cursor to the place where you want to
-			  change something.
-* Erasing::	        Deleting and killing text.
-* Basic Undo::	        Undoing recent changes in the text.
+                          change something.
+* Erasing::             Deleting and killing text.
+* Basic Undo::          Undoing recent changes in the text.
 * Files: Basic Files.   Visiting, creating, and saving files.
 * Help: Basic Help.     Asking what a character does.
-* Blank Lines::	        Making and deleting blank lines.
+* Blank Lines::         Making and deleting blank lines.
 * Continuation Lines::  How Emacs displays lines too wide for the screen.
 * Position Info::       What page, line, row, or column is point on?
-* Arguments::	        Numeric arguments for repeating a command N times.
+* Arguments::           Numeric arguments for repeating a command N times.
 * Repeating::           Repeating the previous command quickly.
 @end menu
 

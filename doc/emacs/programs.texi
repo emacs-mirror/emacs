@@ -34,7 +34,7 @@ Highlight program syntax (@pxref{Font Lock}).
                           of a program.
 * Program Indent::      Adjusting indentation to show the nesting.
 * Parentheses::         Commands that operate on parentheses.
-* Comments::	        Inserting, killing, and aligning comments.
+* Comments::            Inserting, killing, and aligning comments.
 * Documentation::       Getting documentation of functions you plan to call.
 * Hideshow::            Displaying blocks selectively.
 * Symbol Completion::   Completion on symbol names of your program or language.
@@ -354,11 +354,11 @@ single line, a specified number of lines, or all of the lines inside a
 single parenthetical grouping.
 
 @menu
-* Basic Indent::	Indenting a single line.
+* Basic Indent::        Indenting a single line.
 * Multi-line Indent::   Commands to reindent many lines at once.
-* Lisp Indent::		Specifying how each Lisp function should be indented.
-* C Indent::		Extra features for indenting C and related modes.
-* Custom C Indent::	Controlling indentation style for C and related modes.
+* Lisp Indent::         Specifying how each Lisp function should be indented.
+* C Indent::            Extra features for indenting C and related modes.
+* Custom C Indent::     Controlling indentation style for C and related modes.
 @end menu
 
 @cindex pretty-printer
@@ -652,7 +652,7 @@ parentheses and unbalanced string quotes in the buffer.
 * Expressions::         Expressions with balanced parentheses.
 * Moving by Parens::    Commands for moving up, down and across
                           in the structure of parentheses.
-* Matching::	        Insertion of a close-delimiter flashes matching open.
+* Matching::            Insertion of a close-delimiter flashes matching open.
 @end menu
 
 @node Expressions

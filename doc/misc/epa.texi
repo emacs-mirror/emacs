@@ -33,7 +33,7 @@ license to the document, as described in section 6 of the license.
 
 @dircategory Emacs
 @direntry
-* EasyPG Assistant: (epa).   An Emacs user interface to GNU Privacy Guard.
+* EasyPG Assistant: (epa).      An Emacs user interface to GNU Privacy Guard.
 @end direntry
 
 @titlepage
@@ -142,15 +142,15 @@ about the key you selected.
 @example
  u Daiki Ueno <ueno@@unixuser.org>
  u A5B6B2D4B15813FE 1024bits DSA
-	Created: 2001-10-09
-	Expires: 2007-09-04
-	Capabilities: sign certify
-	Fingerprint: 8003 7CD0 0F1A 9400 03CA  50AA A5B6 B2D4 B158 13FE
+        Created: 2001-10-09
+        Expires: 2007-09-04
+        Capabilities: sign certify
+        Fingerprint: 8003 7CD0 0F1A 9400 03CA  50AA A5B6 B2D4 B158 13FE
  u 4447461B2A9BEA2D 2048bits ELGAMAL_E
-	Created: 2001-10-09
-	Expires: 2007-09-04
-	Capabilities: encrypt
-	Fingerprint: 9003 D76B 73B7 4A8A E588  10AF 4447 461B 2A9B EA2D
+        Created: 2001-10-09
+        Expires: 2007-09-04
+        Capabilities: encrypt
+        Fingerprint: 9003 D76B 73B7 4A8A E588  10AF 4447 461B 2A9B EA2D
 @end example
 
 @noindent

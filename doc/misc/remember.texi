@@ -27,7 +27,7 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* Remember: (remember). Simple information manager for Emacs
+* Remember: (remember).         Simple information manager for Emacs.
 @end direntry
 
 @titlepage

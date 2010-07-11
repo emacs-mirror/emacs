@@ -1,3 +1,18 @@
+2010-07-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse.el (mouse-drag-track): Handle select-active-regions
+	(Bug#6612).
+
+2010-07-11  Magnus Henoch  <magnus.henoch@gmail.com>
+
+	* net/tramp-gvfs.el (tramp-gvfs-handle-copy-file): Do not pass
+	empty argument to gvfs-copy.
+
+2010-07-10  Aleksei Gusev  <aleksei.gusev@gmail.com>  (tiny change)
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist): Add
+	regexps for cucumber and ruby.
+
 2010-07-08  Daiki Ueno  <ueno@unixuser.org>
 
 	* epa-file.el (epa-file-error, epa-file--find-file-not-found-function)
@@ -16,6 +31,12 @@
 	and handle errors if needed with better messages (Bug#6539).
 	(ispell-complete-word): Use ispell-complete-word-dict or
 	ispell-alternate-dictionary.
+
+2010-07-07  Christoph Scholtes  <cschol2112@gmail.com>
+
+	* progmodes/python.el (python-font-lock-keywords): Add Python 2.7
+	builtins (BufferError, BytesWarning, WindowsError; callables
+	bin, bytearray, bytes, format, memoryview, next, print; __package__).
 
 2010-07-07  Glenn Morris  <rgm@gnu.org>
 
@@ -207,6 +228,75 @@
 
 2010-06-21  Karl Fogel  <kfogel@red-bean.com>
 
+	* play/zone.el (zone-fall-through-ws): Fix next-line ->
+	forward-line fallout.
+
+2010-07-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse.el (mouse-appearance-menu): Add docstring.
+
+	* help.el (describe-key): Print up-event using key-description.
+
+2010-07-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/zeroconf.el (zeroconf-resolve-service)
+	(zeroconf-service-resolver-handler): Use
+	`dbus-byte-array-to-string'.
+	(zeroconf-publish-service): Use `dbus-string-to-byte-array'.
+
+2010-07-03  Jan Moringen  <jan.moringen@uni-bielefeld.de>
+
+	* net/zeroconf.el (zeroconf-service-remove-hook): New defun.
+
+2010-06-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Avoid displaying files with a nil state in vc-dir.
+	* vc-dir.el (vc-dir-update): Obey the noinsert argument in all
+	cases that cause insertion.
+	(vc-dir-resynch-file): Tell vc-dir-update to avoid inserting files
+	with a nil state.
+
+2010-06-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xml.el (xml-parse-region): Avoid infloop (Bug#5281).
+
+2010-06-29  Leo  <sdl.web@gmail.com>
+
+	* emacs-lisp/rx.el (rx): Doc fix.  (Bug#6537)
+
+2010-06-27  Oleksandr Gavenko  <gavenkoa@gmail.com>  (tiny change)
+
+	* generic-x.el (bat-generic-mode): Fix regexp for command line
+	switches (Bug#5719).
+
+2010-06-27  Masatake YAMATO  <yamato@redhat.com>
+
+	* htmlfontify.el (hfy-face-attr-for-class): Use append instead
+	of nconc to avoid pure storage error (Bug#6239).
+
+2010-06-27  Christoph  <cschol2112@googlemail.com>  (tiny change)
+
+	* bookmark.el (bookmark-bmenu-2-window, bookmark-bmenu-other-window)
+	(bookmark-bmenu-other-window-with-mouse): Remove unnecessary
+	bindings of bookmark-automatically-show-annotations (Bug#6515).
+
+2010-06-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* arc-mode.el (archive-zip-extract): Don't quote the file name on
+	MS-Windows and MS-DOS.  (Bug#6467, Bug#6144)
+
+2010-06-24  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
+
+	* comint.el (make-comint, make-comint-in-buffer): Mention return
+	value in the docstrings.  (Bug#6498)
+
+2010-06-24  Yoni Rabkin  <yoni@rabkins.net>
+
+	* bs.el (bs-mode-font-lock-keywords): Remove "by" from Dired pattern,
+	since it is not present when using some non-default switches.
+
+2010-06-23  Karl Fogel  <kfogel@red-bean.com>
+
 	* simple.el (compose-mail): Fix doc string to refer to
 	`compose-mail-user-agent-warnings', instead of to the
 	nonexistent `compose-mail-check-user-agent'.
@@ -320,6 +410,66 @@
 
 	* emacs-lisp/package.el: New file.
 
+2010-06-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Fix vc-annotate for renamed files when using Git.
+	* vc-git.el (vc-git-find-revision): Deal with empty results from
+	ls-files.  Doe not pass the object as a file name to cat-file, it
+	is not a file name.
+	(vc-git-annotate-command): Pass the file name using -- to avoid
+	ambiguity with the revision.
+	(vc-git-previous-revision): Pass a relative file name.
+
+2010-06-22  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/js.el (js-mode-map): Use standard capitalization and
+	ellipses for menu entries.
+
+	* wid-edit.el (widget-complete): Doc fix.
+
+2010-06-22  Jürgen Hötzel  <juergen@hoetzel.info>  (tiny change)
+
+	* wid-edit.el (widget-complete): Fix typo in 2009-12-02 change.
+
+2010-06-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Fix annotating other revisions for renamed files in vc-annotate.
+	* vc-annotate.el (vc-annotate): Add an optional argument for the
+	VC backend.  Use it when non-nil.
+	(vc-annotate-warp-revision): Pass the VC backend to vc-annotate.  (Bug#6487)
+
+	Fix vc-annotate-show-changeset-diff-revision-at-line for git.
+	* vc-annotate.el (vc-annotate-show-diff-revision-at-line-internal):
+	Do not pass the file name to the 'previous-revision call when we
+	don't want a file diff.  (Bug#6489)
+
+2010-06-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Fix finding revisions for renamed files in vc-annotate.
+	* vc.el (vc-find-revision): Add an optional argument for
+	the VC backend.  Use it when non-nil.
+	* vc-annotate.el (vc-annotate-find-revision-at-line): Pass the VC
+	backend to vc-find-revision.  (Bug#6487)
+
+2010-06-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Fix reading file names in Git annotate buffers.
+	* vc-git.el (vc-git-annotate-extract-revision-at-line): Remove
+	trailing whitespace.  Suggested by Eric Hanchrow.  (Bug#6481)
+
+2010-06-20  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-mode.el (c-before-hack-hook): When the mode is set
+	in file local variables, set it first.
+
+2010-06-19  Glenn Morris  <rgm@gnu.org>
+
+	* descr-text.el (describe-char-unicode-data): Insert separating
+	space when needed.  (Bug#6422)
+
+	* progmodes/idlwave.el (idlwave-action-and-binding):
+	Fix typo in 2009-12-03 change.  (Bug#6450)
+
 2010-06-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/macroexp.el (macroexpand-all-1): Put back special
@@ -334,6 +484,8 @@
 
 	* facemenu.el (list-colors-display): Call `pop-to-buffer' before
 	`list-colors-print'.  (Bug#6332)
+
+	* subr.el (read-quoted-char): Fix up last change (bug#6290).
 
 2010-06-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 

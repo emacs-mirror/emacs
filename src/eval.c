@@ -1,7 +1,7 @@
 /* Evaluator for GNU Emacs Lisp interpreter.
    Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-                 Free Software Foundation, Inc.
+		 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+		 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -172,14 +172,6 @@ extern Lisp_Object Qfunction;
 
 static Lisp_Object funcall_lambda (Lisp_Object, int, Lisp_Object*);
 static void unwind_to_catch (struct catchtag *, Lisp_Object) NO_RETURN;
-
-#if __GNUC__
-/* "gcc -O3" enables automatic function inlining, which optimizes out
-   the arguments for the invocations of these functions, whereas they
-   expect these values on the stack.  */
-Lisp_Object apply1 (Lisp_Object fn, Lisp_Object arg) __attribute__((noinline));
-Lisp_Object call2 (Lisp_Object fn, Lisp_Object arg1, Lisp_Object arg2) __attribute__((noinline));
-#endif
 
 void
 init_eval_once (void)
@@ -435,7 +427,7 @@ usage: (prog1 FIRST BODY...)  */)
   do
     {
       if (!(argnum++))
-        val = Feval (Fcar (args_left));
+	val = Feval (Fcar (args_left));
       else
 	Feval (Fcar (args_left));
       args_left = Fcdr (args_left);
@@ -470,7 +462,7 @@ usage: (prog2 FORM1 FORM2 BODY...)  */)
   do
     {
       if (!(argnum++))
-        val = Feval (Fcar (args_left));
+	val = Feval (Fcar (args_left));
       else
 	Feval (Fcar (args_left));
       args_left = Fcdr (args_left);
@@ -944,30 +936,30 @@ chain of symbols.  */)
   /* If indirect and there's an alias loop, don't check anything else.  */
   if (XSYMBOL (variable)->redirect == SYMBOL_VARALIAS
       && NILP (internal_condition_case_1 (lisp_indirect_variable, variable,
-                                          Qt, user_variable_p_eh)))
+					  Qt, user_variable_p_eh)))
     return Qnil;
 
   while (1)
     {
       documentation = Fget (variable, Qvariable_documentation);
       if (INTEGERP (documentation) && XINT (documentation) < 0)
-        return Qt;
+	return Qt;
       if (STRINGP (documentation)
-          && ((unsigned char) SREF (documentation, 0) == '*'))
-        return Qt;
+	  && ((unsigned char) SREF (documentation, 0) == '*'))
+	return Qt;
       /* If it is (STRING . INTEGER), a negative integer means a user variable.  */
       if (CONSP (documentation)
-          && STRINGP (XCAR (documentation))
-          && INTEGERP (XCDR (documentation))
-          && XINT (XCDR (documentation)) < 0)
-        return Qt;
+	  && STRINGP (XCAR (documentation))
+	  && INTEGERP (XCDR (documentation))
+	  && XINT (XCDR (documentation)) < 0)
+	return Qt;
       /* Customizable?  See `custom-variable-p'.  */
       if ((!NILP (Fget (variable, intern ("standard-value"))))
-          || (!NILP (Fget (variable, intern ("custom-autoload")))))
-        return Qt;
+	  || (!NILP (Fget (variable, intern ("custom-autoload")))))
+	return Qt;
 
       if (!(XSYMBOL (variable)->redirect == SYMBOL_VARALIAS))
-        return Qnil;
+	return Qnil;
 
       /* An indirect variable?  Let's follow the chain.  */
       XSETSYMBOL (variable, SYMBOL_ALIAS (XSYMBOL (variable)));
@@ -1254,7 +1246,7 @@ unwind_to_catch (struct catchtag *catch, Lisp_Object value)
       last_time = catchlist == catch;
 
       /* Unwind the specpdl stack, and then restore the proper set of
-         handlers.  */
+	 handlers.  */
       unbind_to (catchlist->pdlcount, Qnil);
       handlerlist = catchlist->handlerlist;
       catchlist = catchlist->next;
@@ -1265,8 +1257,8 @@ unwind_to_catch (struct catchtag *catch, Lisp_Object value)
   /* If x_catch_errors was done, turn it off now.
      (First we give unbind_to a chance to do that.)  */
 #if 0 /* This would disable x_catch_errors after x_connection_closed.
-       * The catch must remain in effect during that delicate
-       * state. --lorentey  */
+	 The catch must remain in effect during that delicate
+	 state. --lorentey  */
   x_fully_uncatch_errors ();
 #endif
 #endif
@@ -1342,13 +1334,13 @@ instead of a single condition name.  Then it handles all of them.
 When a handler handles an error, control returns to the `condition-case'
 and it executes the handler's BODY...
 with VAR bound to (ERROR-SYMBOL . SIGNAL-DATA) from the error.
-(If VAR is nil, the handler can't access that information.)
+\(If VAR is nil, the handler can't access that information.)
 Then the value of the last BODY form is returned from the `condition-case'
 expression.
 
 See also the function `signal' for more info.
 usage: (condition-case VAR BODYFORM &rest HANDLERS)  */)
-(Lisp_Object args)
+  (Lisp_Object args)
 {
   register Lisp_Object bodyform, handlers;
   volatile Lisp_Object var;
@@ -1397,7 +1389,7 @@ internal_lisp_condition_case (volatile Lisp_Object var, Lisp_Object bodyform,
   if (_setjmp (c.jmp))
     {
       if (!NILP (h.var))
-        specbind (h.var, c.val);
+	specbind (h.var, c.val);
       val = Fprogn (Fcdr (h.chosen_clause));
 
       /* Note that this just undoes the binding of h.var; whoever
@@ -1619,7 +1611,7 @@ internal_condition_case_n (Lisp_Object (*bfun) (int, Lisp_Object*),
 
 
 static Lisp_Object find_handler_clause (Lisp_Object, Lisp_Object,
-                                        Lisp_Object, Lisp_Object);
+					Lisp_Object, Lisp_Object);
 
 DEFUN ("signal", Fsignal, Ssignal, 2, 2, 0,
        doc: /* Signal an error.  Args are ERROR-SYMBOL and associated DATA.
@@ -1783,7 +1775,7 @@ xsignal3 (Lisp_Object error_symbol, Lisp_Object arg1, Lisp_Object arg2, Lisp_Obj
    If ARG is not a genuine list, make it a one-element list.  */
 
 void
-signal_error (char *s, Lisp_Object arg)
+signal_error (const char *s, Lisp_Object arg)
 {
   Lisp_Object tortoise, hare;
 
@@ -2003,9 +1995,7 @@ find_handler_clause (Lisp_Object handlers, Lisp_Object conditions,
 
 /* VARARGS 1 */
 void
-error (m, a1, a2, a3)
-     char *m;
-     char *a1, *a2, *a3;
+error (const char *m, ...)
 {
   char buf[200];
   int size = 200;
@@ -2015,15 +2005,18 @@ error (m, a1, a2, a3)
   int allocated = 0;
   Lisp_Object string;
 
-  args[0] = a1;
-  args[1] = a2;
-  args[2] = a3;
-
   mlen = strlen (m);
 
   while (1)
     {
-      int used = doprnt (buffer, size, m, m + mlen, 3, args);
+      va_list ap;
+      int used;
+
+      /* A va_list can't be reused if we have to go around the loop
+	 again; we need to "reinitialize" it each time.  */
+      va_start(ap, m);
+      used = doprnt (buffer, size, m, m + mlen, ap);
+      va_end(ap);
       if (used < size)
 	break;
       size *= 2;
@@ -2515,7 +2508,7 @@ usage: (apply FUNCTION &rest ARGUMENTS)  */)
 
 enum run_hooks_condition {to_completion, until_success, until_failure};
 static Lisp_Object run_hook_with_args (int, Lisp_Object *,
-                                       enum run_hooks_condition);
+				       enum run_hooks_condition);
 
 DEFUN ("run-hooks", Frun_hooks, Srun_hooks, 0, MANY, 0,
        doc: /* Run each hook in HOOKS.
@@ -3253,18 +3246,17 @@ specbind (Lisp_Object symbol, Lisp_Object value)
     case SYMBOL_VARALIAS:
       sym = indirect_variable (sym); XSETSYMBOL (symbol, sym); goto start;
     case SYMBOL_PLAINVAL:
-	{ /* The most common case is that of a non-constant symbol with a
-	     trivial value.  Make that as fast as we can.  */
-	  specpdl_ptr->symbol = symbol;
-	  specpdl_ptr->old_value = SYMBOL_VAL (sym);
-	  specpdl_ptr->func = NULL;
-	  ++specpdl_ptr;
-	  if (!sym->constant)
-	    SET_SYMBOL_VAL (sym, value);
-	  else
-	    set_internal (symbol, value, Qnil, 1);
-	  break;
-	}
+      /* The most common case is that of a non-constant symbol with a
+	 trivial value.  Make that as fast as we can.  */
+      specpdl_ptr->symbol = symbol;
+      specpdl_ptr->old_value = SYMBOL_VAL (sym);
+      specpdl_ptr->func = NULL;
+      ++specpdl_ptr;
+      if (!sym->constant)
+	SET_SYMBOL_VAL (sym, value);
+      else
+	set_internal (symbol, value, Qnil, 1);
+      break;
     case SYMBOL_LOCALIZED:
       if (SYMBOL_BLV (sym)->frame_local)
 	error ("Frame-local vars cannot be let-bound");
@@ -3374,7 +3366,7 @@ unbind_to (int count, Lisp_Object value)
 	 bound a variable that had a buffer-local or frame-local
 	 binding.  WHERE nil means that the variable had the default
 	 value when it was bound.  CURRENT-BUFFER is the buffer that
-         was current when the variable was bound.  */
+	 was current when the variable was bound.  */
       else if (CONSP (this_binding.symbol))
 	{
 	  Lisp_Object symbol, where;

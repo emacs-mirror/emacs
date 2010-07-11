@@ -13,11 +13,11 @@ commands and variables allow you to specify which part of the text you
 want to see, and how to display it.
 
 @menu
-* Scrolling::	           Commands to move text up and down in a window.
+* Scrolling::              Commands to move text up and down in a window.
 * Auto Scrolling::         Redisplay scrolls text automatically when needed.
 * Horizontal Scrolling::   Moving text left and right in a window.
 * Follow Mode::            Follow mode lets two windows scroll as one.
-* Faces::	           How to change the display style using faces.
+* Faces::                  How to change the display style using faces.
 * Standard Faces::         Emacs' predefined faces.
 * Temporary Face Changes:: Commands to temporarily modify the default text face
 * Font Lock::              Minor mode for syntactic highlighting using faces.

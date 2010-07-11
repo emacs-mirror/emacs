@@ -205,6 +205,7 @@ extern Lisp_Object Vsystem_name;
 /* The below are defined in frame.c.  */
 
 extern Lisp_Object Vmenu_bar_mode, Vtool_bar_mode;
+extern Lisp_Object Qtooltip;
 
 #if GLYPH_DEBUG
 int image_cache_refcount, dpyinfo_refcount;
@@ -2450,6 +2451,7 @@ x_window (f, window_prompting, minibuffer_only)
   XtSetArg (al[ac], XtNvisual, FRAME_X_VISUAL (f)); ac++;
   XtSetArg (al[ac], XtNdepth, FRAME_X_DISPLAY_INFO (f)->n_planes); ac++;
   XtSetArg (al[ac], XtNcolormap, FRAME_X_COLORMAP (f)); ac++;
+  XtSetArg (al[ac], XtNborderWidth, 0); ac++;
   XtSetValues (pane_widget, al, ac);
   f->output_data.x->column_widget = pane_widget;
 
@@ -2465,6 +2467,7 @@ x_window (f, window_prompting, minibuffer_only)
   XtSetArg (al[ac], XtNvisual, FRAME_X_VISUAL (f)); ac++;
   XtSetArg (al[ac], XtNdepth, FRAME_X_DISPLAY_INFO (f)->n_planes); ac++;
   XtSetArg (al[ac], XtNcolormap, FRAME_X_COLORMAP (f)); ac++;
+  XtSetArg (al[ac], XtNborderWidth, 0); ac++;
   frame_widget = XtCreateWidget (f->namebuf, emacsFrameClass, pane_widget,
 				 al, ac);
 
@@ -4002,7 +4005,7 @@ select_visual (struct x_display_info *dpyinfo)
       XVisualInfo vinfo;
 
       strcpy (s, SDATA (value));
-      dash = index (s, '-');
+      dash = strchr (s, '-');
       if (dash)
 	{
 	  dpyinfo->n_planes = atoi (dash + 1);
@@ -4845,9 +4848,8 @@ x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms, Lisp_Obje
   change_frame_size (f, height, width, 1, 0, 0);
 
   /* Add `tooltip' frame parameter's default value. */
-  if (NILP (Fframe_parameter (frame, intern ("tooltip"))))
-    Fmodify_frame_parameters (frame, Fcons (Fcons (intern ("tooltip"), Qt),
-					    Qnil));
+  if (NILP (Fframe_parameter (frame, Qtooltip)))
+    Fmodify_frame_parameters (frame, Fcons (Fcons (Qtooltip, Qt), Qnil));
 
   /* FIXME - can this be done in a similar way to normal frames?
      http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg00641.html */

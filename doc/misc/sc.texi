@@ -7,7 +7,7 @@
 @finalout
 @end iftex
 
-@c @setchapternewpage odd		% For book style double sided manual.
+@c @setchapternewpage odd               % For book style double sided manual.
 @comment %**end of header (This is for running Texinfo on a region.)
 
 @copying
@@ -35,8 +35,8 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* SC: (sc).		Supercite lets you cite parts of messages you're
-			  replying to, in flexible ways.
+* SC: (sc).                     Supercite lets you cite parts of messages
+                                  you're replying to, in flexible ways.
 @end direntry
 
 @titlepage
@@ -1795,23 +1795,23 @@ interface was formally proposed by Martin Neitzel on Fri, 23 Jun 89, in
 a mail message to the Supercite mailing list:
 
 @example
-	Martin> Each news/mail-reader should provide a form of
-	Martin> mail-yank-original that
+        Martin> Each news/mail-reader should provide a form of
+        Martin> mail-yank-original that
 
-	Martin> 1: inserts the original message incl. header into the
-	Martin>    reply buffer; no indentation/prefixing is done, the header
-	Martin>    tends to be a "full blown" version rather than to be
-	Martin>    stripped down.
+        Martin> 1: inserts the original message incl. header into the
+        Martin>    reply buffer; no indentation/prefixing is done, the header
+        Martin>    tends to be a "full blown" version rather than to be
+        Martin>    stripped down.
 
-	Martin> 2: `point' is at the start of the header, `mark' at the
-	Martin>    end of the message body.
+        Martin> 2: `point' is at the start of the header, `mark' at the
+        Martin>    end of the message body.
 
-	Martin> 3: (run-hooks 'mail-yank-hooks)
+        Martin> 3: (run-hooks 'mail-yank-hooks)
 
-	Martin> [Supercite] should be run as such a hook and merely
-	Martin> rewrite the message.  This way it isn't anymore
-	Martin> [Supercite]'s job to gather the original from obscure
-	Martin> sources. [@dots{}]
+        Martin> [Supercite] should be run as such a hook and merely
+        Martin> rewrite the message.  This way it isn't anymore
+        Martin> [Supercite]'s job to gather the original from obscure
+        Martin> sources. [@dots{}]
 @end example
 
 @vindex mail-citation-hook

@@ -336,6 +336,23 @@ The attributes of SERVICE can be retrieved via the functions
       (puthash type l-hook zeroconf-service-removed-hooks-hash)))
    (t (error "EVENT must be either `:new' or `:removed'"))))
 
+(defun zeroconf-service-remove-hook (type event function)
+  "Remove FUNCTION from the hook of service type TYPE.
+
+EVENT must be either :new or :removed and has to match the event
+type used when registering FUNCTION."
+  (let* ((table (cond
+		 ((equal event :new)
+		  zeroconf-service-added-hooks-hash)
+		 ((equal event :removed)
+		  zeroconf-service-removed-hooks-hash)
+		 (t (error "EVENT must be either `:new' or `:removed'"))))
+	 (l-hook (gethash type table nil)))
+    (remove-hook 'l-hook function)
+    (if l-hook
+	(puthash type l-hook table)
+      (remhash type table))))
+
 (defun zeroconf-get-host ()
   "Returns the local host name as string."
   (dbus-call-method
@@ -407,7 +424,7 @@ TYPE. The resulting list has the format
 	      (elt (nth 9 result))) ;; TXT.
 	 ;; The TXT field has the signature "aay".  Transform to "as".
 	 (while elt
-	   (setcar elt (apply 'string (car elt)))
+	   (setcar elt (dbus-byte-array-to-string (car elt)))
 	   (setq elt (cdr elt)))
 
 	 (when nil ;; We discard it, no use so far.
@@ -599,7 +616,7 @@ DOMAIN is nil, the local domain is used."
   ;; The "TXT" field has the signature "aay".  Transform to "as".
   (let ((elt (nth 9 val)))
     (while elt
-      (setcar elt (apply 'string (car elt)))
+      (setcar elt (dbus-byte-array-to-string (car elt)))
       (setq elt (cdr elt))))
   (when zeroconf-debug
     (message "zeroconf-service-resolver-handler: %s %S"
@@ -641,11 +658,7 @@ For the description of arguments, see `zeroconf-resolved-services-hash'."
 
     ;; The TXT field has the signature "as".  Transform to "aay".
     (dolist (elt txt)
-      (let (args)
-	(add-to-list
-	 'result
-	 (dolist (elt1 (string-to-list elt) (append '(:array) args))
-	   (setq args (append args (list :byte elt1)))))))
+      (add-to-list 'result (dbus-string-to-byte-array elt)))
 
     ;; Add the service.
     (dbus-call-method

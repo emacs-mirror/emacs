@@ -23,10 +23,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <limits.h>		/* For CHAR_BIT.  */
 #include <setjmp.h>
 
-#ifdef STDC_HEADERS
-#include <stddef.h>		/* For offsetof, used by PSEUDOVECSIZE. */
-#endif
-
 #ifdef ALLOC_DEBUG
 #undef INLINE
 #endif
@@ -298,7 +294,7 @@ static EMACS_INT pure_bytes_used_non_lisp;
 /* If nonzero, this is a warning delivered by malloc and not yet
    displayed.  */
 
-char *pending_malloc_warning;
+const char *pending_malloc_warning;
 
 /* Pre-computed signal argument for use when memory is exhausted.  */
 
@@ -514,7 +510,7 @@ static POINTER_TYPE *pure_alloc (size_t, int);
 /* Function malloc calls this if it finds we are near exhausting storage.  */
 
 void
-malloc_warning (char *str)
+malloc_warning (const char *str)
 {
   pending_malloc_warning = str;
 }
@@ -3030,7 +3026,7 @@ usage: (make-byte-code ARGLIST BYTE-CODE CONSTANTS DEPTH &optional DOCSTRING INT
   else
     val = Fmake_vector (len, Qnil);
 
-  if (STRINGP (args[1]) && STRING_MULTIBYTE (args[1]))
+  if (nargs > 1 && STRINGP (args[1]) && STRING_MULTIBYTE (args[1]))
     /* BYTECODE-STRING must have been produced by Emacs 20.2 or the
        earlier because they produced a raw 8-bit string for byte-code
        and now such a byte-code string is loaded as multibyte while

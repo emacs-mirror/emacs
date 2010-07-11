@@ -1815,7 +1815,7 @@ font_unparse_gtkname (Lisp_Object font, struct frame *f, char *name, int nbytes)
 static int
 font_parse_name (char *name, Lisp_Object font)
 {
-  if (name[0] == '-' || index (name, '*') || index (name, '?'))
+  if (name[0] == '-' || strchr (name, '*') || strchr (name, '?'))
     return font_parse_xlfd (name, font);
   return font_parse_fcname (name, font);
 }
@@ -1837,7 +1837,7 @@ font_parse_family_registry (Lisp_Object family, Lisp_Object registry, Lisp_Objec
       CHECK_STRING (family);
       len = SBYTES (family);
       p0 = (char *) SDATA (family);
-      p1 = index (p0, '-');
+      p1 = strchr (p0, '-');
       if (p1)
 	{
 	  if ((*p0 != '*' && p1 - p0 > 0)
@@ -1856,7 +1856,7 @@ font_parse_family_registry (Lisp_Object family, Lisp_Object registry, Lisp_Objec
       CHECK_STRING (registry);
       len = SBYTES (registry);
       p0 = (char *) SDATA (registry);
-      p1 = index (p0, '-');
+      p1 = strchr (p0, '-');
       if (! p1)
 	{
 	  if (SDATA (registry)[len - 1] == '*')

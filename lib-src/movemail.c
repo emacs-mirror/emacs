@@ -146,12 +146,6 @@ static char *mail_spool_name ();
 #ifndef HAVE_STRERROR
 char *strerror (int);
 #endif
-#ifdef HAVE_INDEX
-extern char *index (const char *, int);
-#endif
-#ifdef HAVE_RINDEX
-extern char *rindex (const char *, int);
-#endif
 
 static void fatal (char *s1, char *s2, char *s3);
 static void error (char *s1, char *s2, char *s3);
@@ -564,7 +558,7 @@ mail_spool_name (inname)
   char *indir, *fname;
   int status;
 
-  if (! (fname = rindex (inname, '/')))
+  if (! (fname = strrchr (inname, '/')))
     return NULL;
 
   fname++;
@@ -714,7 +708,7 @@ popmail (char *mailbox, char *outfile, int preserve, char *password, int reverse
   char *user, *hostname;
 
   user = mailbox;
-  if ((hostname = index(mailbox, ':')))
+  if ((hostname = strchr (mailbox, ':')))
     *hostname++ = '\0';
 
   server = pop_open (hostname, user, password, POP_NO_GETPASS);

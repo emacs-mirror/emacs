@@ -1,7 +1,8 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/loading
 @node Loading, Byte Compilation, Customization, Top
@@ -43,9 +44,9 @@ containing Lisp code.
 * Repeated Loading::        Precautions about loading a file twice.
 * Named Features::          Loading a library if it isn't already loaded.
 * Where Defined::           Finding which file defined a certain symbol.
-* Unloading::		    How to "unload" a library that was loaded.
-* Hooks for Loading::	    Providing code to be run when
-			      particular libraries are loaded.
+* Unloading::               How to "unload" a library that was loaded.
+* Hooks for Loading::       Providing code to be run when
+                              particular libraries are loaded.
 @end menu
 
 @node How Programs Do Loading

@@ -42,7 +42,7 @@ static enum warnlevel warnlevel;
 
 /* Function to call to issue a warning;
    0 means don't issue them.  */
-static void (*warn_function) (char *);
+static void (*warn_function) (const char *);
 
 /* Start of data space; can be changed by calling malloc_init.  */
 static POINTER data_space_start;
@@ -289,7 +289,7 @@ start_of_data (void)
    WARNFUN specifies the function to call to issue a warning.  */
 
 void
-memory_warnings (POINTER start, void (*warnfun) (char *))
+memory_warnings (POINTER start, void (*warnfun) (const char *))
 {
   extern void (* __after_morecore_hook) (void);     /* From gmalloc.c */
 

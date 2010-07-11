@@ -518,8 +518,7 @@ If all args return nil, return nil.
 @end group
 @group
 usage: (or CONDITIONS ...)  */)
-  (args)
-     Lisp_Object args;
+  (Lisp_Object args)
 @{
   register Lisp_Object val = Qnil;
   struct gcpro gcpro1;
@@ -618,15 +617,15 @@ All the usual rules for documentation strings in Lisp code
 too.
 @end table
 
-  After the call to the @code{DEFUN} macro, you must write the argument
-name list that every C function must have, followed by ordinary C
-declarations for the arguments.  For a function with a fixed maximum
-number of arguments, declare a C argument for each Lisp argument, and
-give them all type @code{Lisp_Object}.  When a Lisp function has no
-upper limit on the number of arguments, its implementation in C actually
-receives exactly two arguments: the first is the number of Lisp
-arguments, and the second is the address of a block containing their
-values.  They have types @code{int} and @w{@code{Lisp_Object *}}.
+  After the call to the @code{DEFUN} macro, you must write the
+argument list that every C function must have, including the types for
+the arguments.  For a function with a fixed maximum number of
+arguments, declare a C argument for each Lisp argument, and give them
+all type @code{Lisp_Object}.  When a Lisp function has no upper limit
+on the number of arguments, its implementation in C actually receives
+exactly two arguments: the first is the number of Lisp arguments, and
+the second is the address of a block containing their values.  They
+have types @code{int} and @w{@code{Lisp_Object *}}.
 
 @cindex @code{GCPRO} and @code{UNGCPRO}
 @cindex protect C variables from garbage collection
@@ -761,22 +760,22 @@ If they are on the border between WINDOW and its right sibling,\n\
 @group
   switch (coordinates_in_window (XWINDOW (window), &x, &y))
     @{
-    case 0:			/* NOT in window at all. */
+    case 0:                     /* NOT in window at all. */
       return Qnil;
 @end group
 
 @group
-    case 1:			/* In text part of window. */
+    case 1:                     /* In text part of window. */
       return Fcons (make_number (x), make_number (y));
 @end group
 
 @group
-    case 2:			/* In mode line of window. */
+    case 2:                     /* In mode line of window. */
       return Qmode_line;
 @end group
 
 @group
-    case 3:			/* On right border of window.  */
+    case 3:                     /* On right border of window.  */
       return Qvertical_line;
 @end group
 

@@ -26,9 +26,9 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* VIPER: (viper).       The newest Emacs VI-emulation mode.
-                          (also, A VI Plan for Emacs Rescue
-                           or the VI PERil.)
+* VIPER: (viper).               The newest Emacs VI-emulation mode.
+                                  (also, A VI Plan for Emacs Rescue
+                                  or the VI PERil.)
 @end direntry
 
 @finalout
@@ -3004,14 +3004,14 @@ reference created by @* @samp{maart@@cs.vu.nl} and others.  It can be
 found on the Vi archives.  This reference has been adapted for Viper.@refill
 
 @menu
-* Groundwork::			Textual Conventions and Viper basics
-* Text Handling::		Moving, Editing, Undoing.
-* Display::			Scrolling.
-* File and Buffer Handling::	Editing, Writing and Quitting.
-* Mapping::			Mapping Keys, Keyboard Macros
-* Shell Commands::		Accessing Shell Commands, Processing Text
-* Options::			Ex options, the @kbd{:set} commands
-* Emacs Related Commands::	Meta Keys, Windows
+* Groundwork::                  Textual Conventions and Viper basics
+* Text Handling::               Moving, Editing, Undoing.
+* Display::                     Scrolling.
+* File and Buffer Handling::    Editing, Writing and Quitting.
+* Mapping::                     Mapping Keys, Keyboard Macros
+* Shell Commands::              Accessing Shell Commands, Processing Text
+* Options::                     Ex options, the @kbd{:set} commands
+* Emacs Related Commands::      Meta Keys, Windows
 * Mouse-bound Commands::        Search and insertion of text
 @end menu
 
@@ -3230,15 +3230,15 @@ inserts them automatically in front of the Ex command.
 @section Text Handling
 
 @menu
-* Move Commands::		Moving, Searching
-* Marking::		        Textmarkers in Viper and the Emacs Mark.
-* Appending Text::		Text insertion, Shifting, Putting
-* Editing in Insert State::	Autoindent, Quoting etc.
-* Deleting Text::		Deleting
-* Changing Text::		Changing, Replacement, Joining
-* Search and Replace::		Searches, Query Replace, Pattern Commands
-* Yanking::			Yanking, Viewing Registers
-* Undoing::			Multiple Undo, Backups
+* Move Commands::               Moving, Searching
+* Marking::                     Textmarkers in Viper and the Emacs Mark.
+* Appending Text::              Text insertion, Shifting, Putting
+* Editing in Insert State::     Autoindent, Quoting etc.
+* Deleting Text::               Deleting
+* Changing Text::               Changing, Replacement, Joining
+* Search and Replace::          Searches, Query Replace, Pattern Commands
+* Yanking::                     Yanking, Viewing Registers
+* Undoing::                     Multiple Undo, Backups
 @end menu
 
 @node Move Commands,Marking,,Text Handling
