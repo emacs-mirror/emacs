@@ -956,9 +956,12 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
 	  (if (eq transient-mark-mode 'lambda)
 	      '(only)
 	    (cons 'only transient-mark-mode)))
-    (let ((range (mouse-start-end start-point start-point click-count)))
+    (let ((range (mouse-start-end start-point start-point click-count))
+	  ;; Prevent `push-mark' from clobbering the primary selection
+	  ;; if the user clicks without dragging.
+	  (select-active-regions nil))
       (goto-char (nth 0 range))
-      (push-mark nil nil t)
+      (push-mark nil t t)
       (goto-char (nth 1 range)))
 
     ;; Track the mouse until we get a non-movement event.
@@ -1012,6 +1015,7 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
 						   mouse-set-region))))))
 	(if (and (/= (mark) (point))
 		 (not do-multi-click))
+
 	    ;; If point has moved, finish the drag.
 	    (let* (last-command this-command)
 	      ;; Copy the region so that `select-active-regions' can
@@ -1019,12 +1023,20 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
 	      (and mouse-drag-copy-region
 		   do-mouse-drag-region-post-process
 		   (let (deactivate-mark)
-		     (copy-region-as-kill (mark) (point)))))
+		     (copy-region-as-kill (mark) (point))))
+	      ;; For `select-active-regions' non-nil, ensure that
+	      ;; further alterations of the region (e.g. via
+	      ;; shift-selection) continue to update PRIMARY.
+	      (and select-active-regions
+		   (display-selections-p)
+		   (x-set-selection 'PRIMARY (current-buffer))))
+
 	  ;; If point hasn't moved, run the binding of the
 	  ;; terminating up-event.
 	  (if do-multi-click
 	      (goto-char start-point)
-	    (deactivate-mark))
+	    (let (select-active-regions)
+	      (deactivate-mark)))
 	  (when (and (functionp fun)
 		     (= start-hscroll (window-hscroll start-window))
 		     ;; Don't run the up-event handler if the window

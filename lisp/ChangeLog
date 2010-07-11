@@ -1,3 +1,8 @@
+2010-07-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse.el (mouse-drag-track): Handle select-active-regions
+	(Bug#6612).
+
 2010-07-11  Magnus Henoch  <magnus.henoch@gmail.com>
 
 	* net/tramp-gvfs.el (tramp-gvfs-handle-copy-file): Do not pass
