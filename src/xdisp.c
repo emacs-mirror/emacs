@@ -8413,7 +8413,7 @@ message3_nolog (Lisp_Object m, int nbytes, int multibyte)
    that was alloca'd.  */
 
 void
-message1 (char *m)
+message1 (const char *m)
 {
   message2 (m, (m ? strlen (m) : 0), 0);
 }
@@ -8422,7 +8422,7 @@ message1 (char *m)
 /* The non-logging counterpart of message1.  */
 
 void
-message1_nolog (char *m)
+message1_nolog (const char *m)
 {
   message2_nolog (m, (m ? strlen (m) : 0), 0);
 }
@@ -8431,7 +8431,7 @@ message1_nolog (char *m)
    which gets replaced with STRING.  */
 
 void
-message_with_string (char *m, Lisp_Object string, int log)
+message_with_string (const char *m, Lisp_Object string, int log)
 {
   CHECK_STRING (string);
 
@@ -8495,7 +8495,7 @@ message_with_string (char *m, Lisp_Object string, int log)
    any existing message, and let the mini-buffer text show through.  */
 
 static void
-vmessage (char *m, va_list ap)
+vmessage (const char *m, va_list ap)
 {
   if (noninteractive)
     {
@@ -8549,7 +8549,7 @@ vmessage (char *m, va_list ap)
 }
 
 void
-message (char *m, ...)
+message (const char *m, ...)
 {
   va_list ap;
   va_start (ap, m);
@@ -8561,7 +8561,7 @@ message (char *m, ...)
 /* The non-logging version of message.  */
 
 void
-message_nolog (char *m, ...)
+message_nolog (const char *m, ...)
 {
   Lisp_Object old_log_max;
   va_list ap;

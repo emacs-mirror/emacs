@@ -2045,7 +2045,7 @@ static char set_time_zone_rule_tz2[] = "TZ=GMT+1";
    responsibility to free.  */
 
 void
-set_time_zone_rule (char *tzstring)
+set_time_zone_rule (const char *tzstring)
 {
   int envptrs;
   char **from, **to, **newenv;
@@ -4111,7 +4111,7 @@ usage: (format STRING &rest OBJECTS)  */)
 }
 
 Lisp_Object
-format2 (char *string1, Lisp_Object arg0, Lisp_Object arg1)
+format2 (const char *string1, Lisp_Object arg0, Lisp_Object arg1)
 {
   Lisp_Object args[3];
   args[0] = build_string (string1);

@@ -1628,7 +1628,7 @@ replace_range (EMACS_INT from, EMACS_INT to, Lisp_Object new,
 void
 replace_range_2 (EMACS_INT from, EMACS_INT from_byte,
 		 EMACS_INT to, EMACS_INT to_byte,
-		 char *ins, EMACS_INT inschars, EMACS_INT insbytes,
+		 const char *ins, EMACS_INT inschars, EMACS_INT insbytes,
 		 int markers)
 {
   EMACS_INT nbytes_del, nchars_del;

@@ -468,7 +468,6 @@ extern void clear_waiting_for_input (void);
 extern void swallow_events (int);
 extern int help_char_p (Lisp_Object);
 extern void quit_throw_to_read_char (void) NO_RETURN;
-extern void cmd_error_internal (Lisp_Object, char *);
 extern int lucid_event_type_list_p (Lisp_Object);
 extern void kbd_buffer_store_event (struct input_event *);
 extern void kbd_buffer_store_event_hold (struct input_event *,

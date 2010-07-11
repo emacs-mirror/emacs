@@ -1238,7 +1238,7 @@ cmd_error (Lisp_Object data)
    string.  */
 
 void
-cmd_error_internal (Lisp_Object data, char *context)
+cmd_error_internal (Lisp_Object data, const char *context)
 {
   struct frame *sf = SELECTED_FRAME ();
 

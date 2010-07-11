@@ -540,7 +540,7 @@ PRINTCHARFUN defaults to the value of `standard-output' (which see).  */)
    Do not use this on the contents of a Lisp string.  */
 
 void
-write_string (char *data, int size)
+write_string (const char *data, int size)
 {
   PRINTDECLARE;
   Lisp_Object printcharfun;
@@ -557,7 +557,7 @@ write_string (char *data, int size)
    Do not use this on the contents of a Lisp string.  */
 
 void
-write_string_1 (char *data, int size, Lisp_Object printcharfun)
+write_string_1 (const char *data, int size, Lisp_Object printcharfun)
 {
   PRINTDECLARE;
 
@@ -1007,7 +1007,8 @@ error message is constructed.  */)
    CALLER is the Lisp function inside which the error was signaled.  */
 
 void
-print_error_message (Lisp_Object data, Lisp_Object stream, char *context, Lisp_Object caller)
+print_error_message (Lisp_Object data, Lisp_Object stream, const char *context,
+		     Lisp_Object caller)
 {
   Lisp_Object errname, errmsg, file_error, tail;
   struct gcpro gcpro1;

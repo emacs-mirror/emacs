@@ -1775,7 +1775,7 @@ xsignal3 (Lisp_Object error_symbol, Lisp_Object arg1, Lisp_Object arg2, Lisp_Obj
    If ARG is not a genuine list, make it a one-element list.  */
 
 void
-signal_error (char *s, Lisp_Object arg)
+signal_error (const char *s, Lisp_Object arg)
 {
   Lisp_Object tortoise, hare;
 
@@ -1995,7 +1995,7 @@ find_handler_clause (Lisp_Object handlers, Lisp_Object conditions,
 
 /* VARARGS 1 */
 void
-error (char *m, ...)
+error (const char *m, ...)
 {
   char buf[200];
   int size = 200;

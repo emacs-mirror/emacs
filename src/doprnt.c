@@ -59,9 +59,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    Integers are passed as C integers.  */
 
 int
-doprnt (char *buffer, register int bufsize, char *format, char *format_end, va_list ap)
+doprnt (char *buffer, register int bufsize, const char *format,
+	const char *format_end, va_list ap)
 {
-  register char *fmt = format;	/* Pointer into format string */
+  const char *fmt = format;	/* Pointer into format string */
   register char *bufptr = buffer; /* Pointer into output buffer.. */
 
   /* Use this for sprintf unless we need something really big.  */

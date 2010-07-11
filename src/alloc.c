@@ -298,7 +298,7 @@ static EMACS_INT pure_bytes_used_non_lisp;
 /* If nonzero, this is a warning delivered by malloc and not yet
    displayed.  */
 
-char *pending_malloc_warning;
+const char *pending_malloc_warning;
 
 /* Pre-computed signal argument for use when memory is exhausted.  */
 
@@ -514,7 +514,7 @@ static POINTER_TYPE *pure_alloc (size_t, int);
 /* Function malloc calls this if it finds we are near exhausting storage.  */
 
 void
-malloc_warning (char *str)
+malloc_warning (const char *str)
 {
   pending_malloc_warning = str;
 }

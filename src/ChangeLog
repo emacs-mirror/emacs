@@ -1,5 +1,24 @@
 2010-07-11  Andreas Schwab  <schwab@linux-m68k.org>
 
+	* alloc.c (pending_malloc_warning, malloc_warning): Add const.
+	* callproc.c (relocate_fd, getenv_internal_1, getenv_internal)
+	(egetenv): Likewise.
+	* doprnt.c (doprnt): Likewise.
+	* editfns.c (set_time_zone_rule, format2): Likewise.
+	* emacs.c (decode_env_path): Likewise.
+	* eval.c (signal_error, error): Likewise.
+	* insdel.c (replace_range_2): Likewise.
+	* keyboard.c (cmd_error_internal): Likewise.
+	* lread.c (isfloat_string, make_symbol, dir_warning): Likewise.
+	* print.c (write_string, write_string_1, print_error_message):
+	Likewise.
+	* vm-limit.c (warn_function, memory_warnings): Likewise.
+	* xdisp.c (message1, message1_nolog, message_with_string)
+	(vmessage, message, message_nolog): Likewise.
+	* emacs.c: Remove duplicate declaration.
+	* keyboard.h: Likewise.
+	* lisp.h: Update prototypes.
+
 	* eval.c: Fix indentation problem.
 
 	* keyboard.c: Include "process.h"
