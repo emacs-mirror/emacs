@@ -172,14 +172,6 @@ extern Lisp_Object Qfunction;
 
 static Lisp_Object funcall_lambda (Lisp_Object, int, Lisp_Object*);
 static void unwind_to_catch (struct catchtag *, Lisp_Object) NO_RETURN;
-
-#if __GNUC__
-/* "gcc -O3" enables automatic function inlining, which optimizes out
-   the arguments for the invocations of these functions, whereas they
-   expect these values on the stack.  */
-Lisp_Object apply1 (Lisp_Object fn, Lisp_Object arg) __attribute__((noinline));
-Lisp_Object call2 (Lisp_Object fn, Lisp_Object arg1, Lisp_Object arg2) __attribute__((noinline));
-#endif
 
 void
 init_eval_once (void)

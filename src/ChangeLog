@@ -1,3 +1,8 @@
+2010-07-11  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* eval.c: Remove obsolete noinline declaration.
+	* fns.c: Likewise.
+
 2010-07-11  Ken Raeburn  <raeburn@raeburn.org>
 
 	* doprnt.c (doprnt): Take a va_list argument instead of count and
