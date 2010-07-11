@@ -42,6 +42,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "puresize.h"
 #include "systime.h"
 #include "atimer.h"
+#include "process.h"
 #include <errno.h>
 
 #ifdef HAVE_GTK_AND_PTHREAD

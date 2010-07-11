@@ -1,5 +1,7 @@
 2010-07-11  Andreas Schwab  <schwab@linux-m68k.org>
 
+	* keyboard.c: Include "process.h"
+
 	* eval.c: Remove obsolete noinline declaration.
 	* fns.c: Likewise.
 
