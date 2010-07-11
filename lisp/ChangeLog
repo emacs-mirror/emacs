@@ -1,3 +1,8 @@
+2010-07-11  Magnus Henoch  <magnus.henoch@gmail.com>
+
+	* net/tramp-gvfs.el (tramp-gvfs-handle-copy-file): Do not pass
+	empty argument to gvfs-copy.
+
 2010-07-10  Aleksei Gusev  <aleksei.gusev@gmail.com>  (tiny change)
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist): Add
