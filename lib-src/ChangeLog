@@ -1,3 +1,8 @@
+2010-07-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (lisp2): Change hebrew.el to hebrew.elc (see
+	revno 100789).
+
 2010-07-11  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* emacsclient.c (set_local_socket): Use strchr, strrchr instead of

@@ -247,7 +247,7 @@ lisp2 = \
 	$(lispsource)language/slovak.el \
 	$(lispsource)language/romanian.el \
 	$(lispsource)language/greek.el \
-	$(lispsource)language/hebrew.el \
+	$(lispsource)language/hebrew.elc \
 	$(lispsource)language/japanese.el \
 	$(lispsource)language/korean.el \
 	$(lispsource)language/lao.el \
