@@ -640,13 +640,9 @@ calculate_direct_scrolling (FRAME_PTR frame,
    the cost matrix for this approach is constructed. */
 
 static void
-do_direct_scrolling (frame, current_matrix, cost_matrix,
-                     window_size, unchanged_at_top)
-     struct frame *frame;
-     struct glyph_matrix *current_matrix;
-     struct matrix_elt *cost_matrix;
-     int window_size;
-     int unchanged_at_top;
+do_direct_scrolling (struct frame *frame, struct glyph_matrix *current_matrix,
+		     struct matrix_elt *cost_matrix, int window_size,
+		     int unchanged_at_top)
 {
   struct matrix_elt *p;
   int i, j;
@@ -796,15 +792,9 @@ do_direct_scrolling (frame, current_matrix, cost_matrix,
 
 
 void
-scrolling_1 (frame, window_size, unchanged_at_top, unchanged_at_bottom,
-	     draw_cost, old_draw_cost, old_hash, new_hash, free_at_end)
-     FRAME_PTR frame;
-     int window_size, unchanged_at_top, unchanged_at_bottom;
-     int *draw_cost;
-     int *old_draw_cost;
-     int *old_hash;
-     int *new_hash;
-     int free_at_end;
+scrolling_1 (FRAME_PTR frame, int window_size, int unchanged_at_top,
+	     int unchanged_at_bottom, int *draw_cost, int *old_draw_cost,
+	     int *old_hash, int *new_hash, int free_at_end)
 {
   struct matrix_elt *matrix;
   matrix = ((struct matrix_elt *)

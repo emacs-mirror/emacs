@@ -1776,12 +1776,8 @@ check_matrix_invariants (w)
 #define CHANGED_LEAF_MATRIX	(1 << 1)
 
 static struct dim
-allocate_matrices_for_frame_redisplay (window, x, y, dim_only_p,
-				       window_change_flags)
-     Lisp_Object window;
-     int x, y;
-     int dim_only_p;
-     int *window_change_flags;
+allocate_matrices_for_frame_redisplay (Lisp_Object window, int x, int y,
+				       int dim_only_p, int *window_change_flags)
 {
   struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
   int x0 = x, y0 = y;
@@ -2915,12 +2911,8 @@ mirror_make_current (struct window *w, int frame_row)
    This function is called from do_scrolling and do_direct_scrolling.  */
 
 void
-mirrored_line_dance (matrix, unchanged_at_top, nlines, copy_from,
-		     retained_p)
-     struct glyph_matrix *matrix;
-     int unchanged_at_top, nlines;
-     int *copy_from;
-     char *retained_p;
+mirrored_line_dance (struct glyph_matrix *matrix, int unchanged_at_top, int nlines,
+		     int *copy_from, char *retained_p)
 {
   /* A copy of original rows.  */
   struct glyph_row *old_rows;

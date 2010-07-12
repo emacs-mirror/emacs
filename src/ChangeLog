@@ -1,3 +1,18 @@
+2010-07-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Convert more function definitions to standard C.
+	* xdisp.c (window_box_edges, handle_single_display_spec)
+	(display_string): Convert definition to standard C.
+	* scroll.c (do_direct_scrolling, scrolling_1):
+	* dispnew.c (allocate_matrices_for_frame_redisplay)
+	(mirrored_line_dance):
+	* coding.c (code_convert_string):
+	* charset.c (map_charset_chars):
+	* ccl.c (Fccl_program_p, Fccl_execute, Fccl_execute_on_string)
+	(Fregister_ccl_program, Fregister_code_conversion_map):
+	* keyboard.c (kbd_buffer_nr_stored): Likewise.
+	(head_table): Make static and const.
+
 2010-07-12  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* Makefile.in (C_WARNINGS_SWITCH, PROFILING_CFLAGS)
