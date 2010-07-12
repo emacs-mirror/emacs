@@ -6952,12 +6952,10 @@ extern int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
    Return true if we received input from any process.  */
 
 int
-wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
-			     wait_for_cell, wait_proc, just_wait_proc)
-     int time_limit, microsecs, read_kbd, do_display;
-     Lisp_Object wait_for_cell;
-     struct Lisp_Process *wait_proc;
-     int just_wait_proc;
+wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
+			     int do_display,
+			     Lisp_Object wait_for_cell,
+			     struct Lisp_Process *wait_proc, int just_wait_proc)
 {
   register int nfds;
   EMACS_TIME end_time, timeout;

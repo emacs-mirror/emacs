@@ -5,6 +5,8 @@
 	subprocesses is not defined.
 	(close_process_descs): Move to the part shared by non-subprocesses
 	systems.
+	(wait_reading_process_output) [!subprocesses]: Convert arg list to
+	ANSI C.
 
 2010-07-12  Andreas Schwab  <schwab@linux-m68k.org>
 
