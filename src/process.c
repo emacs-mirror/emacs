@@ -4120,7 +4120,7 @@ deactivate_process (Lisp_Object proc)
 void
 close_process_descs (void)
 {
-#ifndef WINDOWSNT
+#ifndef DOS_NT
   int i;
   for (i = 0; i < MAXDESC; i++)
     {

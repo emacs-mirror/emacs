@@ -1,6 +1,6 @@
 2010-07-12  Dan Nicolaescu  <dann@ics.uci.edu>
 
-
+	* buffer.c (Fset_buffer_multibyte): Remove subprocesses conditional.
 	* process.c (close_process_descs): Use DOS_NT instead of WINDOWSNT.
 
 	* emacs.c (__do_global_ctors, __do_global_ctors_aux)
