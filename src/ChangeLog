@@ -1,3 +1,16 @@
+2010-07-12  Kenichi Handa  <handa@m17n.org>
+
+	* font.h (enum font_property_index): New member FONT_ENTITY_INDEX.
+
+	* font.c (font_open_entity): Record ENTITY in FONT_OBJECT's slot
+	of FONT_ENTITY_INDEX.
+	(Ffont_get): If KEY is :otf and the font-object doesn't have the
+	property, get the property value dynamically.
+	(Ffont_put): Accept font-entity and font-object too.
+	(Ffont_get_glyhphs): Renamed from Fget_font_glyphs.  Arguments and
+	return value changed.
+	(syms_of_font): Adjusted for the above change.
+
 2010-07-08  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* alloc.c: Convert DEFUNs to standard C.
