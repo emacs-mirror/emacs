@@ -1,3 +1,8 @@
+2010-07-12  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* dbusbind.c (xd_initialize): Don't compare boolean with a
+	constant.
+
 2010-07-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* process.c (setup_process_coding_systems): Move to the part
