@@ -192,8 +192,7 @@ static char *float_error_fn_name;
 /* Extract a Lisp number as a `double', or signal an error.  */
 
 double
-extract_float (num)
-     Lisp_Object num;
+extract_float (Lisp_Object num)
 {
   CHECK_NUMBER_OR_FLOAT (num);
 
@@ -985,8 +984,7 @@ float_error (signo)
 
 #ifdef HAVE_MATHERR
 int
-matherr (x)
-     struct exception *x;
+matherr (struct exception *x)
 {
   Lisp_Object args;
   if (! in_float)
@@ -1014,7 +1012,7 @@ matherr (x)
 #endif /* HAVE_MATHERR */
 
 void
-init_floatfns ()
+init_floatfns (void)
 {
 #ifdef FLOAT_CATCH_SIGILL
   signal (SIGILL, float_error);
@@ -1023,7 +1021,7 @@ init_floatfns ()
 }
 
 void
-syms_of_floatfns ()
+syms_of_floatfns (void)
 {
   defsubr (&Sacos);
   defsubr (&Sasin);

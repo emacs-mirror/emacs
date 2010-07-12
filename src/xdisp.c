@@ -13082,13 +13082,9 @@ enum
 };
 
 static int
-try_scrolling (window, just_this_one_p, scroll_conservatively,
-	       scroll_step, temp_scroll_step, last_line_misfit)
-     Lisp_Object window;
-     int just_this_one_p;
-     EMACS_INT scroll_conservatively, scroll_step;
-     int temp_scroll_step;
-     int last_line_misfit;
+try_scrolling (Lisp_Object window, int just_this_one_p,
+	       EMACS_INT scroll_conservatively, EMACS_INT scroll_step,
+	       int temp_scroll_step, int last_line_misfit)
 {
   struct window *w = XWINDOW (window);
   struct frame *f = XFRAME (w->frame);

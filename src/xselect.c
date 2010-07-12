@@ -1453,18 +1453,10 @@ x_get_foreign_selection (Lisp_Object selection_symbol, Lisp_Object target_type, 
 /* Use xfree, not XFree, to free the data obtained with this function.  */
 
 static void
-x_get_window_property (display, window, property, data_ret, bytes_ret,
-		       actual_type_ret, actual_format_ret, actual_size_ret,
-		       delete_p)
-     Display *display;
-     Window window;
-     Atom property;
-     unsigned char **data_ret;
-     int *bytes_ret;
-     Atom *actual_type_ret;
-     int *actual_format_ret;
-     unsigned long *actual_size_ret;
-     int delete_p;
+x_get_window_property (Display *display, Window window, Atom property,
+		       unsigned char **data_ret, int *bytes_ret,
+		       Atom *actual_type_ret, int *actual_format_ret,
+		       unsigned long *actual_size_ret, int delete_p)
 {
   int total_size;
   unsigned long bytes_remaining;
@@ -1572,19 +1564,12 @@ x_get_window_property (display, window, property, data_ret, bytes_ret,
 /* Use xfree, not XFree, to free the data obtained with this function.  */
 
 static void
-receive_incremental_selection (display, window, property, target_type,
-			       min_size_bytes, data_ret, size_bytes_ret,
-			       type_ret, format_ret, size_ret)
-     Display *display;
-     Window window;
-     Atom property;
-     Lisp_Object target_type; /* for error messages only */
-     unsigned int min_size_bytes;
-     unsigned char **data_ret;
-     int *size_bytes_ret;
-     Atom *type_ret;
-     unsigned long *size_ret;
-     int *format_ret;
+receive_incremental_selection (Display *display, Window window, Atom property,
+			       Lisp_Object target_type,
+			       unsigned int min_size_bytes,
+			       unsigned char **data_ret, int *size_bytes_ret,
+			       Atom *type_ret, int *format_ret,
+			       unsigned long *size_ret)
 {
   int offset = 0;
   struct prop_location *wait_object;
@@ -1673,13 +1658,10 @@ receive_incremental_selection (display, window, property, target_type,
    TARGET_TYPE and SELECTION_ATOM are used in error message if this fails.  */
 
 static Lisp_Object
-x_get_window_property_as_lisp_data (display, window, property, target_type,
-				    selection_atom)
-     Display *display;
-     Window window;
-     Atom property;
-     Lisp_Object target_type;	/* for error messages only */
-     Atom selection_atom;	/* for error messages only */
+x_get_window_property_as_lisp_data (Display *display, Window window,
+				    Atom property,
+				    Lisp_Object target_type,
+				    Atom selection_atom)
 {
   Atom actual_type;
   int actual_format;
@@ -1869,16 +1851,10 @@ selection_data_to_lisp_data (Display *display, unsigned char *data, int size, At
 /* Use xfree, not XFree, to free the data obtained with this function.  */
 
 static void
-lisp_data_to_selection_data (display, obj,
-			     data_ret, type_ret, size_ret,
-			     format_ret, nofree_ret)
-     Display *display;
-     Lisp_Object obj;
-     unsigned char **data_ret;
-     Atom *type_ret;
-     unsigned int *size_ret;
-     int *format_ret;
-     int *nofree_ret;
+lisp_data_to_selection_data (Display *display, Lisp_Object obj,
+			     unsigned char **data_ret, Atom *type_ret,
+			     unsigned int *size_ret,
+			     int *format_ret, int *nofree_ret)
 {
   Lisp_Object type = Qnil;
   struct x_display_info *dpyinfo = x_display_info_for_display (display);

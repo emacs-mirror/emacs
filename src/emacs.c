@@ -425,7 +425,7 @@ memory_warning_signal (sig)
 #if ! defined (DOS_NT) && ! defined (NO_ABORT)
 
 void
-abort ()
+abort (void)
 {
   kill (getpid (), SIGABRT);
   /* This shouldn't be executed, but it prevents a warning.  */
@@ -2101,9 +2101,7 @@ all of which are called before Emacs is actually killed.  */)
    and Fkill_emacs.  */
 
 void
-shut_down_emacs (sig, no_x, stuff)
-     int sig, no_x;
-     Lisp_Object stuff;
+shut_down_emacs (int sig, int no_x, Lisp_Object stuff)
 {
   /* Prevent running of hooks from now on.  */
   Vrun_hooks = Qnil;
@@ -2285,7 +2283,7 @@ You must run Emacs in batch mode in order to dump it.  */)
 #if HAVE_SETLOCALE
 /* Recover from setlocale (LC_ALL, "").  */
 void
-fixup_locale ()
+fixup_locale (void)
 {
   /* The Emacs Lisp reader needs LC_NUMERIC to be "C",
      so that numbers are read and printed properly for Emacs Lisp.  */
@@ -2308,7 +2306,7 @@ synchronize_locale (int category, Lisp_Object *plocale, Lisp_Object desired_loca
 
 /* Set system time locale to match Vsystem_time_locale, if possible.  */
 void
-synchronize_system_time_locale ()
+synchronize_system_time_locale (void)
 {
   synchronize_locale (LC_TIME, &Vprevious_system_time_locale,
 		      Vsystem_time_locale);
@@ -2317,7 +2315,7 @@ synchronize_system_time_locale ()
 /* Set system messages locale to match Vsystem_messages_locale, if
    possible.  */
 void
-synchronize_system_messages_locale ()
+synchronize_system_messages_locale (void)
 {
 #ifdef LC_MESSAGES
   synchronize_locale (LC_MESSAGES, &Vprevious_system_messages_locale,
@@ -2443,7 +2441,7 @@ from the parent process and its tty file descriptors.  */)
 }
 
 void
-syms_of_emacs ()
+syms_of_emacs (void)
 {
   Qfile_name_handler_alist = intern_c_string ("file-name-handler-alist");
   staticpro (&Qfile_name_handler_alist);

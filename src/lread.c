@@ -661,10 +661,8 @@ static void substitute_in_interval (INTERVAL, Lisp_Object);
    return Qnil if no input arrives within that time.  */
 
 Lisp_Object
-read_filtered_event (no_switch_frame, ascii_required, error_nonascii,
-		     input_method, seconds)
-     int no_switch_frame, ascii_required, error_nonascii, input_method;
-     Lisp_Object seconds;
+read_filtered_event (int no_switch_frame, int ascii_required,
+		     int error_nonascii, int input_method, Lisp_Object seconds)
 {
   Lisp_Object val, delayed_switch_frame;
   EMACS_TIME end_time;

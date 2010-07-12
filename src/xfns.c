@@ -1762,14 +1762,10 @@ x_set_scroll_bar_default_width (struct frame *f)
    named NAME.  If that is not found either, use the value DEFLT.  */
 
 static Lisp_Object
-x_default_scroll_bar_color_parameter (f, alist, prop, xprop, xclass,
-				      foreground_p)
-     struct frame *f;
-     Lisp_Object alist;
-     Lisp_Object prop;
-     char *xprop;
-     char *xclass;
-     int foreground_p;
+x_default_scroll_bar_color_parameter (struct frame *f,
+				      Lisp_Object alist, Lisp_Object prop,
+				      char *xprop, char *xclass,
+				      int foreground_p)
 {
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   Lisp_Object tem;

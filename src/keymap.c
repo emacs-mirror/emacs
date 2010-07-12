@@ -3140,15 +3140,9 @@ You type        Translation\n\
    don't omit it; instead, mention it but say it is shadowed.  */
 
 void
-describe_map_tree (startmap, partial, shadow, prefix, title, nomenu, transl,
-		   always_title, mention_shadow)
-     Lisp_Object startmap, shadow, prefix;
-     int partial;
-     char *title;
-     int nomenu;
-     int transl;
-     int always_title;
-     int mention_shadow;
+describe_map_tree (Lisp_Object startmap, int partial, Lisp_Object shadow,
+		   Lisp_Object prefix, char *title, int nomenu, int transl,
+		   int always_title, int mention_shadow)
 {
   Lisp_Object maps, orig_maps, seen, sub_shadows;
   struct gcpro gcpro1, gcpro2, gcpro3;
@@ -3355,16 +3349,10 @@ describe_map_compare (const void *aa, const void *bb)
    PARTIAL, SHADOW, NOMENU are as in `describe_map_tree' above.  */
 
 static void
-describe_map (map, prefix, elt_describer, partial, shadow,
-	      seen, nomenu, mention_shadow)
-     register Lisp_Object map;
-     Lisp_Object prefix;
-     void (*elt_describer) (Lisp_Object, Lisp_Object);
-     int partial;
-     Lisp_Object shadow;
-     Lisp_Object *seen;
-     int nomenu;
-     int mention_shadow;
+describe_map (Lisp_Object map, Lisp_Object prefix,
+	      void (*elt_describer) (Lisp_Object, Lisp_Object),
+	      int partial, Lisp_Object shadow,
+	      Lisp_Object *seen, int nomenu, int mention_shadow)
 {
   Lisp_Object tail, definition, event;
   Lisp_Object tem;
@@ -3603,20 +3591,11 @@ DESCRIBER is the output function used; nil means use `princ'.  */)
    ARGS is simply passed as the second argument to ELT_DESCRIBER.  */
 
 static void
-describe_vector (vector, prefix, args, elt_describer,
-		 partial, shadow, entire_map,
-		 indices, char_table_depth, keymap_p,
-		 mention_shadow)
-     register Lisp_Object vector;
-     Lisp_Object prefix, args;
-     void (*elt_describer) (Lisp_Object, Lisp_Object);
-     int partial;
-     Lisp_Object shadow;
-     Lisp_Object entire_map;
-     int *indices;
-     int char_table_depth;
-     int keymap_p;
-     int mention_shadow;
+describe_vector (Lisp_Object vector, Lisp_Object prefix, Lisp_Object args,
+		 void (*elt_describer) (Lisp_Object, Lisp_Object),
+		 int partial, Lisp_Object shadow, Lisp_Object entire_map,
+		 int *indices, int char_table_depth, int keymap_p,
+		 int mention_shadow)
 {
   Lisp_Object definition;
   Lisp_Object tem2;

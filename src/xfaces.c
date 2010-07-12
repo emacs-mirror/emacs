@@ -6074,15 +6074,10 @@ compute_char_face (struct frame *f, int ch, Lisp_Object prop)
    The face returned is suitable for displaying ASCII characters.  */
 
 int
-face_at_buffer_position (w, pos, region_beg, region_end,
-			 endptr, limit, mouse, base_face_id)
-     struct window *w;
-     EMACS_INT pos;
-     EMACS_INT region_beg, region_end;
-     EMACS_INT *endptr;
-     EMACS_INT limit;
-     int mouse;
-     int base_face_id;
+face_at_buffer_position (struct window *w, EMACS_INT pos,
+			 EMACS_INT region_beg, EMACS_INT region_end,
+			 EMACS_INT *endptr, EMACS_INT limit,
+			 int mouse, int base_face_id)
 {
   struct frame *f = XFRAME (w->frame);
   Lisp_Object attrs[LFACE_VECTOR_SIZE];
@@ -6182,15 +6177,10 @@ face_at_buffer_position (w, pos, region_beg, region_end,
    simply disregards the `face' properties of all overlays.  */
 
 int
-face_for_overlay_string (w, pos, region_beg, region_end,
-			 endptr, limit, mouse, overlay)
-     struct window *w;
-     EMACS_INT pos;
-     EMACS_INT region_beg, region_end;
-     EMACS_INT *endptr;
-     EMACS_INT limit;
-     int mouse;
-     Lisp_Object overlay;
+face_for_overlay_string (struct window *w, EMACS_INT pos,
+			 EMACS_INT region_beg, EMACS_INT region_end,
+			 EMACS_INT *endptr, EMACS_INT limit,
+			 int mouse, Lisp_Object overlay)
 {
   struct frame *f = XFRAME (w->frame);
   Lisp_Object attrs[LFACE_VECTOR_SIZE];
@@ -6275,15 +6265,11 @@ face_for_overlay_string (w, pos, region_beg, region_end,
    for displaying ASCII characters.  */
 
 int
-face_at_string_position (w, string, pos, bufpos, region_beg,
-			 region_end, endptr, base_face_id, mouse_p)
-     struct window *w;
-     Lisp_Object string;
-     EMACS_INT pos, bufpos;
-     EMACS_INT region_beg, region_end;
-     EMACS_INT *endptr;
-     enum face_id base_face_id;
-     int mouse_p;
+face_at_string_position (struct window *w, Lisp_Object string,
+			 EMACS_INT pos, EMACS_INT bufpos,
+			 EMACS_INT region_beg, EMACS_INT region_end,
+			 EMACS_INT *endptr, enum face_id base_face_id,
+			 int mouse_p)
 {
   Lisp_Object prop, position, end, limit;
   struct frame *f = XFRAME (WINDOW_FRAME (w));

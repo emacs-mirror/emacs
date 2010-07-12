@@ -992,15 +992,11 @@ ins_del_costs (FRAME_PTR frame,
  */
 
 void
-do_line_insertion_deletion_costs (frame,
-				  ins_line_string, multi_ins_string,
-				  del_line_string, multi_del_string,
-				  setup_string, cleanup_string, coefficient)
-     FRAME_PTR frame;
-     char *ins_line_string, *multi_ins_string;
-     char *del_line_string, *multi_del_string;
-     char *setup_string, *cleanup_string;
-     int coefficient;
+do_line_insertion_deletion_costs (FRAME_PTR frame,
+				  char *ins_line_string, char *multi_ins_string,
+				  char *del_line_string, char *multi_del_string,
+				  char *setup_string, char *cleanup_string,
+				  int coefficient)
 {
   if (FRAME_INSERT_COST (frame) != 0)
     {

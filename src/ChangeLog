@@ -1,3 +1,33 @@
+2010-07-12  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* editfns.c (transpose_markers): Convert old-style definition.
+	* emacs.c (abort, shut_down_emacs, fixup_locale)
+	(synchronize_system_time_locale)
+	(synchronize_system_messages_locale, syms_of_emacs): Likewise.
+	* floatfns.c (extract_float, matherr, init_floatfns)
+	(syms_of_floatfns): Likewise.
+	* fns.c (make_hash_table): Likewise.
+	* ftfont.c (ftfont_get_otf, ftfont_otf_features)
+	(ftfont_otf_capability, ftfont_get_glyph_id, ftfont_get_metrics)
+	(ftfont_drive_otf, ftfont_shape_by_flt, ftfont_shape)
+	(ftfont_variation_glyphs): Likewise.
+	* gtkutil.c (xg_create_widget, xg_modify_menubar_widgets): Likewise.
+	* keymap.c (describe_map_tree, describe_map, describe_vector): Likewise.
+	* lread.c (read_filtered_event): Likewise.
+	* minibuf.c (read_minibuf_noninteractive, read_minibuf): Likewise.
+	* process.c (wait_reading_process_output): Likewise.
+	* scroll.c (do_line_insertion_deletion_costs): Likewise.
+	* search.c (search_buffer, boyer_moore): Likewise.
+	* syntax.c (scan_sexps_forward): Likewise.
+	* xdisp.c (try_scrolling): Likewise.
+	* xfaces.c (face_at_buffer_position, face_for_overlay_string)
+	(face_at_string_position): Likewise.
+	* xfns.c (x_default_scroll_bar_color_parameter): Likewise.
+	* xselect.c (x_get_window_property, receive_incremental_selection)
+	(x_get_window_property_as_lisp_data, lisp_data_to_selection_data):
+	Likewise.
+	* xterm.c (x_draw_relief_rect, x_draw_box_rect): Likewise.
+
 2010-07-12  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* callproc.c (child_setup): Remove subprocesses conditional.
