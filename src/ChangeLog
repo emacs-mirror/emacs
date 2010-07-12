@@ -1,5 +1,8 @@
 2010-07-12  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* callproc.c (child_setup): Remove subprocesses conditional.
+	Remove code dealing with SET_EMACS_PRIORITY, unused.
+
 	* buffer.c (Fset_buffer_multibyte): Remove subprocesses conditional.
 	* process.c (close_process_descs): Use DOS_NT instead of WINDOWSNT.
 
