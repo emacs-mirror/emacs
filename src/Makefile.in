@@ -426,7 +426,7 @@ lisp= \
 	${lispsource}language/slovak.el \
 	${lispsource}language/romanian.el \
 	${lispsource}language/greek.el \
-	${lispsource}language/hebrew.el \
+	${lispsource}language/hebrew.elc \
 	${lispsource}language/japanese.el \
 	${lispsource}language/korean.el \
 	${lispsource}language/lao.el \
@@ -517,7 +517,7 @@ shortlisp= \
 	../lisp/language/slovak.el \
 	../lisp/language/romanian.el \
 	../lisp/language/greek.el \
-	../lisp/language/hebrew.el \
+	../lisp/language/hebrew.elc \
 	../lisp/language/japanese.el \
 	../lisp/language/korean.el \
 	../lisp/language/lao.el \
