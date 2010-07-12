@@ -724,6 +724,7 @@ RANLIB
 INSTALL_DATA
 INSTALL_SCRIPT
 INSTALL_PROGRAM
+C_WARNINGS_SWITCH
 EGREP
 GREP
 CPP
@@ -742,6 +743,8 @@ build_os
 build_vendor
 build_cpu
 build
+PROFILING_LDFLAGS
+PROFILING_CFLAGS
 MAINT
 GZIP_INFO
 target_alias
@@ -3013,6 +3016,8 @@ else
    PROFILING_LDFLAGS=
 fi
 
+
+
 # Check whether --enable-autodepend was given.
 if test "${enable_autodepend+set}" = set; then :
   enableval=$enable_autodepend; ac_enable_autodepend="${enableval}"
@@ -4313,14 +4318,6 @@ then
   CC="$NON_GNU_CC"
 fi
 
-if test x$GCC = xyes; then
-  C_OPTIMIZE_SWITCH=-O2
-  test "x$GCC_TEST_OPTIONS" != x && CC="$CC $GCC_TEST_OPTIONS"
-else
-  C_OPTIMIZE_SWITCH=-O
-  test "x$NON_GCC_TEST_OPTIONS" != x && CC="$CC $NON_GCC_TEST_OPTIONS"
-fi
-
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -4873,6 +4870,7 @@ $as_echo "$has_option" >&6; }
 CFLAGS="$SAVE_CFLAGS"
 unset has_option
 unset SAVE_CFLAGS
+
 
 
 #### Some other nice autoconf tests.
@@ -5485,32 +5483,10 @@ fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 
-LDFLAGS="${LDFLAGS} ${PROFILING_LDFLAGS}"
-
 
 # The value of CPP is a quoted variable reference, so we need to do this
 # to get its actual value...
 CPP=`eval "echo $CPP"`
-
-
-### First figure out CFLAGS (which we use for running the compiler here)
-### and REAL_CFLAGS (which we use for real compilation).
-### The two are the same except when using GCC where we might use
-### extra warning and profiling flags.
-
-### If the CFLAGS env var is specified, we use that value
-### instead of the default.
-
-if test "x$SPECIFIED_CFLAGS" = x; then
-  CFLAGS="-g $C_OPTIMIZE_SWITCH"
-  if test x$GCC = xyes; then
-    REAL_CFLAGS="$CFLAGS $C_WARNINGS_SWITCH $PROFILING_CFLAGS"
-  else
-    REAL_CFLAGS="$CFLAGS"
-  fi
-else
-  REAL_CFLAGS="$CFLAGS"
-fi
 
 
 CANNOT_DUMP=no
@@ -7417,7 +7393,7 @@ tmp_CPPFLAGS="$CPPFLAGS"
 tmp_CFLAGS="$CFLAGS"
 CPPFLAGS="$CPPFLAGS -x objective-c"
 CFLAGS="$CFLAGS -x objective-c"
-TEMACS_LDFLAGS2="\${LDFLAGS}"
+TEMACS_LDFLAGS2="\${LDFLAGS} \${PROFILING_LDFLAGS}"
 if test "${with_ns}" != no; then
   if test "${opsys}" = darwin; then
      NS_IMPL_COCOA=yes
@@ -7441,7 +7417,6 @@ if test "${with_ns}" != no; then
        GNUSTEP_LOCAL_LIBRARIES="-L${GNUSTEP_LOCAL_LIBRARIES}"
      CPPFLAGS="$CPPFLAGS -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
      CFLAGS="$CFLAGS -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
-     REAL_CFLAGS="$REAL_CFLAGS -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
      LDFLAGS="$LDFLAGS -L${GNUSTEP_SYSTEM_LIBRARIES} ${GNUSTEP_LOCAL_LIBRARIES}"
      LIB_STANDARD=
      START_FILES=
@@ -8075,6 +8050,7 @@ esac
 # used for the tests that follow.  We set them back to REAL_CFLAGS and
 # REAL_CPPFLAGS later on.
 
+REAL_CFLAGS="$CFLAGS"
 REAL_CPPFLAGS="$CPPFLAGS"
 
 if test "${HAVE_X11}" = "yes"; then

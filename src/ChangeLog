@@ -1,3 +1,10 @@
+2010-07-12  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.in (C_WARNINGS_SWITCH, PROFILING_CFLAGS)
+	(PROFILING_LDFLAGS): Set from substitution.
+	(ALL_CFLAGS): Add C_WARNINGS_SWITCH and PROFILING_CFLAGS, put
+	CFLAGS last.
+
 2010-07-12  Kenichi Handa  <handa@m17n.org>
 
 	* Makefile.in (lisp): Change hebrew.el to hebrew.elc.
