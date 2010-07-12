@@ -100,6 +100,7 @@ Lisp_Object Qgeometry;  /* Not used */
 Lisp_Object Qheight, Qwidth;
 Lisp_Object Qleft, Qright;
 Lisp_Object Qicon_left, Qicon_top, Qicon_type, Qicon_name;
+Lisp_Object Qtooltip;
 Lisp_Object Qinternal_border_width;
 Lisp_Object Qmouse_color;
 Lisp_Object Qminibuffer;
@@ -326,6 +327,8 @@ make_frame (int mini_p)
   f->n_tool_bar_items = 0;
   f->left_fringe_width = f->right_fringe_width = 0;
   f->fringe_cols = 0;
+  f->menu_bar_lines = 0;
+  f->tool_bar_lines = 0;
   f->scroll_bar_actual_width = 0;
   f->border_width = 0;
   f->internal_border_width = 0;
@@ -550,6 +553,7 @@ make_initial_frame (void)
 
   FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
   FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none;
+  FRAME_MENU_BAR_LINES(f) = NILP (Vmenu_bar_mode) ? 0 : 1;
 
 #ifdef CANNOT_DUMP
   if (!noninteractive)
@@ -600,6 +604,7 @@ make_terminal_frame (struct terminal *terminal)
 
   FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
   FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none;
+  FRAME_MENU_BAR_LINES(f) = NILP (Vmenu_bar_mode) ? 0 : 1;
 
   /* Set the top frame to the newly created frame. */
   if (FRAMEP (FRAME_TTY (f)->top_frame)
@@ -1298,7 +1303,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
   struct frame *sf = SELECTED_FRAME ();
   struct kboard *kb;
 
-  int minibuffer_selected;
+  int minibuffer_selected, tooltip_frame;
 
   if (EQ (frame, Qnil))
     {
@@ -1350,13 +1355,15 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
 	}
     }
 
+  tooltip_frame = !NILP (Fframe_parameter (frame, intern ("tooltip")));
+
   /* Run `delete-frame-functions' unless FORCE is `noelisp' or
      frame is a tooltip.  FORCE is set to `noelisp' when handling
      a disconnect from the terminal, so we don't dare call Lisp
      code.  */
-  if (NILP (Vrun_hooks) || !NILP (Fframe_parameter (frame, intern ("tooltip"))))
+  if (NILP (Vrun_hooks) || tooltip_frame)
     ;
-  if (EQ (force, Qnoelisp))
+  else if (EQ (force, Qnoelisp))
     pending_funcalls
       = Fcons (list3 (Qrun_hook_with_args, Qdelete_frame_functions, frame),
 	       pending_funcalls);
@@ -1602,7 +1609,8 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
     }
 
   /* Cause frame titles to update--necessary if we now have just one frame.  */
-  update_mode_lines = 1;
+  if (!tooltip_frame)
+    update_mode_lines = 1;
 
   return Qnil;
 }
@@ -4320,6 +4328,8 @@ syms_of_frame (void)
   staticpro (&Qicon_left);
   Qicon_top = intern_c_string ("icon-top");
   staticpro (&Qicon_top);
+  Qtooltip = intern_c_string ("tooltip");
+  staticpro (&Qtooltip);
   Qleft = intern_c_string ("left");
   staticpro (&Qleft);
   Qright = intern_c_string ("right");

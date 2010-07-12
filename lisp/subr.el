@@ -1874,12 +1874,11 @@ any other non-digit terminates the character code and is then used as input."))
       ;; Note: `read-char' does it using the `ascii-character' property.
       ;; We should try and use read-key instead.
       (let ((translation (lookup-key local-function-key-map (vector char))))
-	(if (arrayp translation)
-	    (setq translated (aref translation 0))))
-      (setq translated
-	    (if (integerp char)
-		(char-resolve-modifiers char)
-	      char))
+	(setq translated (if (arrayp translation)
+			     (aref translation 0)
+			   char)))
+      (if (integerp translated)
+	  (setq translated (char-resolve-modifiers translated)))
       (cond ((null translated))
 	    ((not (integerp translated))
 	     (setq unread-command-events (list char)

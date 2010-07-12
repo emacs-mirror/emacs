@@ -1,6 +1,7 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Building, Maintaining, Programs, Top
 @chapter Compiling and Testing Programs
@@ -20,14 +21,14 @@ in the larger process of compiling and testing programs.
                           for use in the compilation buffer.
 * Grep Searching::      Searching with grep.
 * Flymake::             Finding syntax errors on the fly.
-* Debuggers::	        Running symbolic debuggers for non-Lisp programs.
+* Debuggers::           Running symbolic debuggers for non-Lisp programs.
 * Executing Lisp::      Various modes for editing Lisp programs,
                           with different facilities for running
                           the Lisp programs.
 * Libraries: Lisp Libraries.      Creating Lisp programs to run in Emacs.
 * Eval: Lisp Eval.      Executing a single Lisp expression in Emacs.
 * Interaction: Lisp Interaction.  Executing Lisp in an Emacs buffer.
-* External Lisp::         Communicating through Emacs with a separate Lisp.
+* External Lisp::       Communicating through Emacs with a separate Lisp.
 @end menu
 
 @node Compilation
@@ -471,10 +472,10 @@ Lisp programs.  @xref{Debugging,, The Lisp Debugger, elisp, the Emacs
 Lisp Reference Manual}, for information on the Emacs Lisp debugger.
 
 @menu
-* Starting GUD::	How to start a debugger subprocess.
-* Debugger Operation::	Connection between the debugger and source buffers.
-* Commands of GUD::	Key bindings for common commands.
-* GUD Customization::	Defining your own commands for GUD.
+* Starting GUD::        How to start a debugger subprocess.
+* Debugger Operation::  Connection between the debugger and source buffers.
+* Commands of GUD::     Key bindings for common commands.
+* GUD Customization::   Defining your own commands for GUD.
 * GDB Graphical Interface::  An enhanced mode that uses GDB features to
                         implement a graphical debugging environment through
                         Emacs.

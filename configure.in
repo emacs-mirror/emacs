@@ -2635,7 +2635,7 @@ rename closedir mkdir rmdir sysinfo getrusage get_current_dir_name \
 random lrand48 logb frexp fmod rint cbrt ftime setsid \
 strerror fpathconf select mktime euidaccess getpagesize tzset setlocale \
 utimes getrlimit setrlimit setpgid getcwd getwd shutdown getaddrinfo \
-__fpending mblen mbrlen mbsinit strsignal setitimer ualarm index rindex \
+__fpending mblen mbrlen mbsinit strsignal setitimer ualarm strchr strrchr \
 sendto recvfrom getsockopt setsockopt getsockname getpeername \
 gai_strerror mkstemp getline getdelim mremap memmove fsync sync \
 memset memcmp difftime memcpy mempcpy mblen mbrlen posix_memalign \
@@ -3599,6 +3599,14 @@ void *alloca (size_t);
 
 #ifndef HAVE_SIZE_T
 typedef unsigned size_t;
+#endif
+
+#ifndef HAVE_STRCHR
+#define strchr(a, b) index (a, b)
+#endif
+
+#ifndef HAVE_STRRCHR
+#define strrchr(a, b) rindex (a, b)
 #endif
 
 #if defined __GNUC__ && (__GNUC__ > 2 \

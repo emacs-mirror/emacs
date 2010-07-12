@@ -1234,8 +1234,10 @@ set_local_socket (void)
     char *server_name = "server";
     char *tmpdir;
 
-    if (socket_name && !index (socket_name, '/') && !index (socket_name, '\\'))
-      { /* socket_name is a file name component.  */
+    if (socket_name && !strchr (socket_name, '/')
+	&& !strchr (socket_name, '\\'))
+      {
+	/* socket_name is a file name component.  */
  	server_name = socket_name;
  	socket_name = NULL;
  	default_sock = 1;	/* Try both UIDs.  */

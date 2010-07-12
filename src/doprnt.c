@@ -59,10 +59,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    Integers are passed as C integers.  */
 
 int
-doprnt (char *buffer, register int bufsize, char *format, char *format_end, int nargs, char **args)
+doprnt (char *buffer, register int bufsize, const char *format,
+	const char *format_end, va_list ap)
 {
-  int cnt = 0;			/* Number of arg to gobble next */
-  register char *fmt = format;	/* Pointer into format string */
+  const char *fmt = format;	/* Pointer into format string */
   register char *bufptr = buffer; /* Pointer into output buffer.. */
 
   /* Use this for sprintf unless we need something really big.  */
@@ -161,8 +161,6 @@ doprnt (char *buffer, register int bufsize, char *format, char *format_end, int 
 	    case 'd':
 	    case 'o':
 	    case 'x':
-	      if (cnt == nargs)
-		error ("Not enough arguments for format string");
 	      if (sizeof (int) == sizeof (EMACS_INT))
 		;
 	      else if (sizeof (long) == sizeof (EMACS_INT))
@@ -173,7 +171,7 @@ doprnt (char *buffer, register int bufsize, char *format, char *format_end, int 
 		string++;
 	      else
 		abort ();
-	      sprintf (sprintf_buffer, fmtcpy, args[cnt++]);
+	      sprintf (sprintf_buffer, fmtcpy, va_arg(ap, char *));
 	      /* Now copy into final output, truncating as nec.  */
 	      string = (unsigned char *) sprintf_buffer;
 	      goto doit;
@@ -182,12 +180,8 @@ doprnt (char *buffer, register int bufsize, char *format, char *format_end, int 
 	    case 'e':
 	    case 'g':
 	      {
-		union { double d; char *half[2]; } u;
-		if (cnt + 1 == nargs)
-		  error ("Not enough arguments for format string");
-		u.half[0] = args[cnt++];
-		u.half[1] = args[cnt++];
-		sprintf (sprintf_buffer, fmtcpy, u.d);
+		double d = va_arg(ap, double);
+		sprintf (sprintf_buffer, fmtcpy, d);
 		/* Now copy into final output, truncating as nec.  */
 		string = (unsigned char *) sprintf_buffer;
 		goto doit;
@@ -196,11 +190,9 @@ doprnt (char *buffer, register int bufsize, char *format, char *format_end, int 
 	    case 'S':
 	      string[-1] = 's';
 	    case 's':
-	      if (cnt == nargs)
-		error ("Not enough arguments for format string");
 	      if (fmtcpy[1] != 's')
 		minlen = atoi (&fmtcpy[1]);
-	      string = (unsigned char *) args[cnt++];
+	      string = va_arg(ap, unsigned char *);
 	      tem = strlen (string);
 	      width = strwidth (string, tem);
 	      goto doit1;
@@ -250,16 +242,21 @@ doprnt (char *buffer, register int bufsize, char *format, char *format_end, int 
 	      continue;
 
 	    case 'c':
-	      if (cnt == nargs)
-		error ("Not enough arguments for format string");
-	      tem = CHAR_STRING ((int) (EMACS_INT) args[cnt], charbuf);
-	      string = charbuf;
-	      cnt++;
-	      string[tem] = 0;
-	      width = strwidth (string, tem);
-	      if (fmtcpy[1] != 'c')
-		minlen = atoi (&fmtcpy[1]);
-	      goto doit1;
+	      {
+		/* Sometimes for %c we pass a char, which would widen
+		   to int.  Sometimes we pass XFASTINT() or XINT()
+		   values, which would be EMACS_INT.  Let's hope that
+		   both are passed the same way, otherwise we'll need
+		   to rewrite callers.  */
+		EMACS_INT chr = va_arg(ap, EMACS_INT);
+		tem = CHAR_STRING ((int) chr, charbuf);
+		string = charbuf;
+		string[tem] = 0;
+		width = strwidth (string, tem);
+		if (fmtcpy[1] != 'c')
+		  minlen = atoi (&fmtcpy[1]);
+		goto doit1;
+	      }
 
 	    case '%':
 	      fmt--;    /* Drop thru and this % will be treated as normal */

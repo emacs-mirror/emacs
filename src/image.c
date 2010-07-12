@@ -1053,6 +1053,10 @@ free_image (struct frame *f, struct image *img)
       /* Free resources, then free IMG.  */
       img->type->free (f, img);
       xfree (img);
+
+      /* As display glyphs may still be referring to the image ID, we
+	 must garbage the frame (Bug#6426).  */
+      SET_FRAME_GARBAGED (f);
     }
 }
 

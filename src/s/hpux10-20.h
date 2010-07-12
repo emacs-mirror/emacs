@@ -146,9 +146,5 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* No underscore please.  */
 #define LDAV_SYMBOL "avenrun"
 
-/* On USG systems these have different names.  */
-#define index strchr
-#define rindex strrchr
-
 /* arch-tag: 8d8dcbf1-ca9b-48a1-94be-b750de18a5c6
    (do not change this comment) */

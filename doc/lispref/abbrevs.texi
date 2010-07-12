@@ -376,10 +376,10 @@ definitions of @code{local-abbrev-table} and @code{text-mode-abbrev-table}.
       (funcall expand))))
 
 (add-hook 'foo-mode-hook
-	  #'(lambda ()
-	      (add-hook 'abbrev-expand-functions
-			'foo-mode-abbrev-expand-function
-			nil t)))
+          #'(lambda ()
+              (add-hook 'abbrev-expand-functions
+                        'foo-mode-abbrev-expand-function
+                        nil t)))
 @end smallexample
 
 @node Standard Abbrev Tables, Abbrev Properties, Abbrev Expansion, Abbrevs

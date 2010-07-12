@@ -2316,28 +2316,28 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	      /* This is repetitive but fast and simple. */
 	      params[param_count] = QCsize;
 	      params[param_count+1] = Fplist_get (tmp, Qsize);
-	      if (!NILP (params[param_count+1]))
-		param_count+=2;
+	      if (!NILP (params[param_count + 1]))
+		param_count += 2;
 
 	      params[param_count] = QCtest;
 	      params[param_count+1] = Fplist_get (tmp, Qtest);
-	      if (!NILP (params[param_count+1]))
-		param_count+=2;
+	      if (!NILP (params[param_count + 1]))
+		param_count += 2;
 
 	      params[param_count] = QCweakness;
 	      params[param_count+1] = Fplist_get (tmp, Qweakness);
-	      if (!NILP (params[param_count+1]))
-		param_count+=2;
+	      if (!NILP (params[param_count + 1]))
+		param_count += 2;
 
 	      params[param_count] = QCrehash_size;
 	      params[param_count+1] = Fplist_get (tmp, Qrehash_size);
-	      if (!NILP (params[param_count+1]))
-		param_count+=2;
+	      if (!NILP (params[param_count + 1]))
+		param_count += 2;
 
 	      params[param_count] = QCrehash_threshold;
 	      params[param_count+1] = Fplist_get (tmp, Qrehash_threshold);
-	      if (!NILP (params[param_count+1]))
-		param_count+=2;
+	      if (!NILP (params[param_count + 1]))
+		param_count += 2;
 
 	      /* This is the hashtable data. */
 	      data = Fplist_get (tmp, Qdata);
@@ -2358,6 +2358,8 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 
 	      return ht;
 	    }
+	  UNREAD (c);
+	  invalid_syntax ("#", 1);
 	}
       if (c == '^')
 	{
@@ -2723,7 +2725,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 
 	    ok = (next_next_char <= 040
 		  || (next_next_char < 0200
-		      && (index ("\"';([#?", next_next_char)
+		      && (strchr ("\"';([#?", next_next_char)
 			  || (!first_in_list && next_next_char == '`')
 			  || (new_backquote_flag && next_next_char == ','))));
 	  }
@@ -2731,7 +2733,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	  {
 	    ok = (next_char <= 040
 		  || (next_char < 0200
-		      && (index ("\"';()[]#?", next_char)
+		      && (strchr ("\"';()[]#?", next_char)
 			  || (!first_in_list && next_char == '`')
 			  || (new_backquote_flag && next_char == ','))));
 	  }
@@ -2876,7 +2878,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 
 	if (next_char <= 040
 	    || (next_char < 0200
-		&& (index ("\"';([#?", next_char)
+		&& (strchr ("\"';([#?", next_char)
 		    || (!first_in_list && next_char == '`')
 		    || (new_backquote_flag && next_char == ','))))
 	  {
@@ -2903,7 +2905,7 @@ read1 (register Lisp_Object readcharfun, int *pch, int first_in_list)
 	  while (c > 040
 		 && c != 0x8a0 /* NBSP */
 		 && (c >= 0200
-		     || (!index ("\"';()[]#", c)
+		     || (!strchr ("\"';()[]#", c)
 			 && !(!first_in_list && c == '`')
 			 && !(new_backquote_flag && c == ','))))
 	    {
@@ -3188,11 +3190,10 @@ substitute_in_interval (INTERVAL interval, Lisp_Object arg)
 #define EXP_INT 16
 
 int
-isfloat_string (register char *cp, int ignore_trailing)
+isfloat_string (const char *cp, int ignore_trailing)
 {
-  register int state;
-
-  char *start = cp;
+  int state;
+  const char *start = cp;
 
   state = 0;
   if (*cp == '+' || *cp == '-')
@@ -3243,7 +3244,8 @@ isfloat_string (register char *cp, int ignore_trailing)
     }
 
   return ((ignore_trailing
-           || (*cp == 0) || (*cp == ' ') || (*cp == '\t') || (*cp == '\n') || (*cp == '\r') || (*cp == '\f'))
+	   || *cp == 0 || *cp == ' ' || *cp == '\t' || *cp == '\n'
+	   || *cp == '\r' || *cp == '\f')
 	  && (state == (LEAD_INT|DOT_CHAR|TRAIL_INT)
 	      || state == (DOT_CHAR|TRAIL_INT)
 	      || state == (LEAD_INT|E_CHAR|EXP_INT)
@@ -3586,13 +3588,13 @@ intern_c_string (const char *str)
 /* Create an uninterned symbol with name STR.  */
 
 Lisp_Object
-make_symbol (char *str)
+make_symbol (const char *str)
 {
   int len = strlen (str);
 
-  return Fmake_symbol ((!NILP (Vpurify_flag)
-			? make_pure_string (str, len, len, 0)
-			: make_string (str, len)));
+  return Fmake_symbol (!NILP (Vpurify_flag)
+		       ? make_pure_string (str, len, len, 0)
+		       : make_string (str, len));
 }
 
 DEFUN ("intern", Fintern, Sintern, 1, 2, 0,
@@ -4168,7 +4170,7 @@ init_lread (void)
    does not exist.  Print it on stderr and put it in *Messages*.  */
 
 void
-dir_warning (char *format, Lisp_Object dirname)
+dir_warning (const char *format, Lisp_Object dirname)
 {
   char *buffer
     = (char *) alloca (SCHARS (dirname) + strlen (format) + 5);

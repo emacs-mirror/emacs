@@ -551,11 +551,14 @@ is no information where to trace the message.")
 	 (tramp-message v 4 "`copy-file' failed, trying `gvfs-copy'")
 	 (unless
 	     (zerop
-	      (tramp-gvfs-send-command
-	       v "gvfs-copy"
-	       (if (or keep-date preserve-uid-gid) "--preserve" "")
-	       (tramp-gvfs-url-file-name filename)
-	       (tramp-gvfs-url-file-name newname)))
+	      (let ((args
+		     (append (if (or keep-date preserve-uid-gid)
+				 (list "--preserve")
+			       nil)
+			     (list
+			      (tramp-gvfs-url-file-name filename)
+			      (tramp-gvfs-url-file-name newname)))))
+		(apply 'tramp-gvfs-send-command v "gvfs-copy" args)))
 	   ;; Propagate the error.
 	   (tramp-error v (car err) "%s" (cdr err)))))))
 

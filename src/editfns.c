@@ -109,10 +109,6 @@ static Lisp_Object subst_char_in_region_unwind (Lisp_Object);
 static Lisp_Object subst_char_in_region_unwind_1 (Lisp_Object);
 static void transpose_markers (int, int, int, int, int, int, int, int);
 
-#ifdef HAVE_INDEX
-extern char *index (const char *, int);
-#endif
-
 Lisp_Object Vbuffer_access_fontify_functions;
 Lisp_Object Qbuffer_access_fontify_functions;
 Lisp_Object Vbuffer_access_fontified_property;
@@ -1369,12 +1365,12 @@ name, or nil if there is no such user.  */)
 
   p = (unsigned char *) USER_FULL_NAME;
   /* Chop off everything after the first comma. */
-  q = (unsigned char *) index (p, ',');
+  q = (unsigned char *) strchr (p, ',');
   full = make_string (p, q ? q - p : strlen (p));
 
 #ifdef AMPERSAND_FULL_NAME
   p = SDATA (full);
-  q = (unsigned char *) index (p, '&');
+  q = (unsigned char *) strchr (p, '&');
   /* Substitute the login name for the &, upcasing the first character.  */
   if (q)
     {
@@ -2045,7 +2041,7 @@ static char set_time_zone_rule_tz2[] = "TZ=GMT+1";
    responsibility to free.  */
 
 void
-set_time_zone_rule (char *tzstring)
+set_time_zone_rule (const char *tzstring)
 {
   int envptrs;
   char **from, **to, **newenv;
@@ -3813,7 +3809,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	  discarded[format - format_start] = 1;
 	  format++;
 
-	  while (index ("-+0# ", *format))
+	  while (strchr ("-+0# ", *format))
 	    {
 	      if (*format == '-')
 		{
@@ -4111,7 +4107,7 @@ usage: (format STRING &rest OBJECTS)  */)
 }
 
 Lisp_Object
-format2 (char *string1, Lisp_Object arg0, Lisp_Object arg1)
+format2 (const char *string1, Lisp_Object arg0, Lisp_Object arg1)
 {
   Lisp_Object args[3];
   args[0] = build_string (string1);

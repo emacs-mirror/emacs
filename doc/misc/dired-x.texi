@@ -3,7 +3,7 @@
 @c dired-x.texi --- Sebastian Kremer's Extra DIRED hacked up for GNU Emacs
 @c
 @c Author: Sebastian Kremer <sk@thp.uni-koeln.de>
-@c	Lawrence R. Dodd <dodd@roebling.poly.edu>
+@c      Lawrence R. Dodd <dodd@roebling.poly.edu>
 @c [Dodd's address no longer valid.]
 
 @comment %**start of header (This is for running Texinfo on a region.)
@@ -14,7 +14,7 @@
 @iftex
 @finalout
 @end iftex
-@c @setchapternewpage odd		% For book style double sided manual.
+@c @setchapternewpage odd               % For book style double sided manual.
 @comment %**end of header (This is for running Texinfo on a region.)
 
 @copying
@@ -37,7 +37,7 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* Dired-X: (dired-x).   Dired Extra Features.
+* Dired-X: (dired-x).           Dired Extra Features.
 @end direntry
 
 @c      @smallbook

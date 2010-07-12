@@ -46,7 +46,8 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* RefTeX: (reftex).	Emacs support for LaTeX cross-references and citations.
+* RefTeX: (reftex).             Emacs support for LaTeX cross-references
+                                  and citations.
 @end direntry
 
 @finalout
@@ -3281,7 +3282,7 @@ the style @file{multind.el} contains
 (TeX-add-style-hook "multind"
   (lambda ()
     (and (fboundp 'reftex-add-index-macros)
-	 (reftex-add-index-macros '(multind)))))
+         (reftex-add-index-macros '(multind)))))
 @end lisp
 
 If you have your own package @file{myindex} which defines the

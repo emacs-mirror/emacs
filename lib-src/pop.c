@@ -465,7 +465,7 @@ pop_list (popserver server, int message, int **IDs, int **sizes)
 	  return (-1);
 	}
       (*IDs)[0] = atoi (&fromserver[4]);
-      fromserver = index (&fromserver[4], ' ');
+      fromserver = strchr (&fromserver[4], ' ');
       if (! fromserver)
 	{
 	  strcpy (pop_error,
@@ -496,7 +496,7 @@ pop_list (popserver server, int message, int **IDs, int **sizes)
 	      return (-1);
 	    }
 	  (*IDs)[i] = atoi (fromserver);
-	  fromserver = index (fromserver, ' ');
+	  fromserver = strchr (fromserver, ' ');
 	  if (! fromserver)
 	    {
 	      strcpy (pop_error,

@@ -29,7 +29,7 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* eieio: (eieio).       Objects for Emacs
+* eieio: (eieio).               Objects for Emacs.
 @end direntry
 
 @titlepage
@@ -295,8 +295,8 @@ This option is here to support programs written with older versions of
 
 @menu
 * Inheritance::         How to specify parents classes
-* Slot Options::	How to specify features of a slot.
-* Class Options::	How to specify features for this class.
+* Slot Options::        How to specify features of a slot.
+* Class Options::       How to specify features for this class.
 @end menu
 
 @node Inheritance

@@ -11,6 +11,130 @@
 	return value changed.
 	(syms_of_font): Adjusted for the above change.
 
+2010-07-11  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* blockinput.h: Remove obsolete comment.
+
+	* lisp.h: Include <stddef.h>.
+	(OFFSETOF): Don't define.
+	(VECSIZE): Use offsetof instead of OFFSETOF.
+	(PSEUDOVECSIZE): Likewise.
+	* process.c (conv_sockaddr_to_lisp): Likewise.
+	* alloc.c: Don't include <stddef.h>.
+	* buffer.h (PER_BUFFER_VAR_OFFSET): Use offsetof.
+
+	* process.c: Remove obsolete comment.
+
+2010-07-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfaces.c (Vface_remapping_alist): Doc fix (Bug#6091).
+
+2010-07-11  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* callint.c (Fcall_interactively): Use strchr, strrchr instead of
+	index, rindex.
+	* doc.c (get_doc_string, Fsnarf_documentation): Likewise.
+	* editfns.c (Fuser_full_name, Fformat): Likewise.
+	* emacs.c (argmatch, sort_args, decode_env_path): Likewise.
+	* fileio.c (Ffile_symlink_p): Likewise.
+	* filelock.c (current_lock_owner): Likewise.
+	* font.c (font_parse_name, font_parse_family_registry): Likewise.
+	* fontset.c (fontset_pattern_regexp): Likewise.
+	* lread.c (read1): Likewise.
+	* sysdep.c (init_system_name): Likewise.
+	* xfns.c (select_visual): Likewise.
+	* s/hpux10-20.h (index, rindex): Don't define.
+	* s/ms-w32.h (index): Likewise.
+	* s/usg5-4.h: Likewise.
+
+	* callproc.c (relocate_fd): Use F_DUPFD if defined.
+
+	* alloc.c (pending_malloc_warning, malloc_warning): Add const.
+	* callproc.c (relocate_fd, getenv_internal_1, getenv_internal)
+	(egetenv): Likewise.
+	* doprnt.c (doprnt): Likewise.
+	* editfns.c (set_time_zone_rule, format2): Likewise.
+	* emacs.c (decode_env_path): Likewise.
+	* eval.c (signal_error, error): Likewise.
+	* insdel.c (replace_range_2): Likewise.
+	* keyboard.c (cmd_error_internal): Likewise.
+	* lread.c (isfloat_string, make_symbol, dir_warning): Likewise.
+	* print.c (write_string, write_string_1, print_error_message):
+	Likewise.
+	* vm-limit.c (warn_function, memory_warnings): Likewise.
+	* xdisp.c (message1, message1_nolog, message_with_string)
+	(vmessage, message, message_nolog): Likewise.
+	* emacs.c: Remove duplicate declaration.
+	* keyboard.h: Likewise.
+	* lisp.h: Update prototypes.
+
+	* eval.c: Fix indentation problem.
+
+	* keyboard.c: Include "process.h"
+
+	* eval.c: Remove obsolete noinline declaration.
+	* fns.c: Likewise.
+
+2010-07-11  Ken Raeburn  <raeburn@raeburn.org>
+
+	* doprnt.c (doprnt): Take a va_list argument instead of count and
+	pointer.
+	* eval.c (error): Change to a standard-C variadic function.
+	* xdisp.c (vmessage): Renamed from message, made static, and
+	changed to take a va_list argument.
+	(message): New variadic wrapper.
+	(message_nolog): Now a variadic function, calling vmessage.
+	* lisp.h: Include stdarg.h for va_list.
+	(doprnt, error, message, message_nolog): Decls updated.
+
+2010-07-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* process.c (syms_of_process) <delete-exited-processes>: Define
+	even if !subprocesses.
+	(delete_exited_processes): Ditto.
+
+	* msdos.c (syms_of_msdos) <delete-exited-processes>: Remove DEFVAR.
+	(delete_exited_processes): Don't define.
+
+2010-07-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.c (make_frame): Initialize menu_bar_lines and
+	tool_bar_lines members.
+	(make_initial_frame, make_terminal_frame): Initialize
+	menu_bar_lines using value of menu-bar-mode.
+
+	* msdos.c (IT_set_frame_parameters): Don't set menu-bar-lines.
+
+2010-07-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* process.c: Reshuffle #include's.  Condition some of the global
+	and static variables on `subprocesses'.
+	(hold_keyboard_input, unhold_keyboard_input, kbd_on_hold_p):
+	Leave only one implementation.
+	(Fget_buffer_process, Fprocess_inherit_coding_system_flag)
+	(kill_buffer_processes, Flist_system_processes)
+	(Fprocess_attributes, init_process, syms_of_process): Unify the
+	implementations for with subprocesses and without them.
+
+2010-07-09  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (set_frame_menubar): Must realize menubar_widget to get the
+	correct size for Motif.
+	(free_frame_menubar): Call x_set_window_size to update frame size.
+
+	* xfns.c (x_window): Set borderWidth to 0 for pane and
+	EmacsFrame.  Frame size calculation is wrong otherwise.
+
+2010-07-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (xd_initialize): Add new argument RAISE_ERROR, which
+	allows to suppress errors when polling in Emacs' main loop.
+	(Fdbus_init_bus, Fdbus_get_unique_name, Fdbus_call_method)
+	(Fdbus_call_method_asynchronously, Fdbus_method_return_internal)
+	(Fdbus_method_error_internal, Fdbus_send_signal)
+	(xd_get_dispatch_status, xd_read_message, Fdbus_register_signal)
+	(Fdbus_register_method): Use it.  (Bug#6579)
+
 2010-07-08  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* alloc.c: Convert DEFUNs to standard C.
@@ -785,7 +909,55 @@
 	Improve documentation.  Return font regardless of use_system_font.
 	(syms_of_xsettings): Improve documentation for font-use-system-font.
 
-2009-06-17  Naohiro Aota  <naota@elisp.net>  (tiny change)
+2010-07-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfaces.c (realize_face): Garbage the frame if a face is removed
+	(Bug#6593).
+
+2010-07-05  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* keyboard.c: Remove duplicate <setjmp.h>.
+	(read_key_sequence): Remove volatile qualifiers.
+
+2010-07-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispextern.h (FRINGE_HEIGHT_BITS): New define.
+	(struct glyph_row): New members left_fringe_offset and
+	right_fringe_offset.
+
+	* xterm.c (x_draw_fringe_bitmap): Don't clip bottom aligned bitmap
+	specially.
+	* w32term.c (w32_draw_fringe_bitmap): Likewise.
+	* nsterm.m (ns_draw_fringe_bitmap): Likewise.
+
+	* fringe.c (draw_fringe_bitmap_1): Don't clip bitmap here.
+	Take account of	bitmap offset.
+	(draw_window_fringes): Take account of window vscroll.
+	(update_window_fringes): Likewise.  Extend top-aligned top indicator
+	or bottom-aligned bottom indicator to adjacent rows if it doesn't fit
+	in one row.  Don't set redraw_fringe_bitmaps_p outside row comparison.
+	Set left_fringe_offset and right_fringe_offset (Bug#5634, Bug#6325).
+
+2010-07-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32fns.c (Qtooltip): Declare.
+	Suggested by Andy Moreton <andrewjmoreton@gmail.com>.
+
+2010-07-03  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (x_activate_menubar): Send Press/Release for Gtk+ to avoid
+	grab on just Press (Bug#6499).
+
+2010-07-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.c (Qtooltip): New var.
+	(delete_frame): Use it.  Fix faulty if statement.  Don't update
+	mode line for tooltip frames.  Suggested by Martin Rudalics.
+
+	* xfns.c (x_create_tip_frame):
+	* w32fns.c (x_create_tip_frame): Use it.
+
+2010-06-17  Naohiro Aota  <naota@elisp.net>  (tiny change)
 
 	* xftfont.c (xftfont_open): Check font width one by one also when
 	spacing is dual.
@@ -963,6 +1135,30 @@
 	* editfns.c (Fbyte_to_string): Pacify compiler.
 
 	* m/ibms390x.h: Rather than duplicating ibms390.h, just include it.
+
+2010-06-26  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* alloc.c (Fmake_byte_code): Don't access undefined argument
+	(Bug#6517).
+
+2010-06-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (next_element_from_image): Ensure that after-strings are
+	read the next time we hit handle_stop (Bug#1336).
+
+2010-06-23  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* lread.c (read1): Signal error if #s is not followed by paren.
+
+2010-06-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (free_image): Mark frame as garbaged (Bug#6426).
+
+	* keymap.c (Fdefine_key): Doc fix (Bug#6460).
+
+2010-06-15  Glenn Morris  <rgm@gnu.org>
+
+	* editfns.c (Fbyte_to_string): Pacify compiler.
 
 2010-06-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 

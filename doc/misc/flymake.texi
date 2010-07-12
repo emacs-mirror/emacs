@@ -11,8 +11,8 @@
 This manual is for GNU Flymake (version @value{VERSION}, @value{UPDATED}),
 which is a universal on-the-fly syntax checker for GNU Emacs.
 
-Copyright @copyright{} 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software
-Foundation, Inc.
+Copyright @copyright{} 2004, 2005, 2006, 2007, 2008, 2009, 2010
+Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -30,7 +30,7 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* Flymake: (flymake). A universal on-the-fly syntax checker.
+* Flymake: (flymake).           A universal on-the-fly syntax checker.
 @end direntry
 
 @titlepage
@@ -409,7 +409,7 @@ First, we write the @code{init-function}:
 (defun flymake-perl-init ()
   (let* ((temp-file (flymake-init-create-temp-buffer-copy
                      'flymake-create-temp-inplace))
-	 (local-file (file-relative-name
+         (local-file (file-relative-name
                       temp-file
                       (file-name-directory buffer-file-name))))
     (list "perl" (list "-wc " local-file))))

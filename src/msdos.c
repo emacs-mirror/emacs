@@ -2074,10 +2074,6 @@ IT_set_frame_parameters (struct frame *f, Lisp_Object alist)
   unsigned long orig_fg, orig_bg;
   Lisp_Object frame_bg, frame_fg;
   struct tty_display_info *tty = FRAME_TTY (f);
-  extern Lisp_Object Qmenu_bar_lines;
-  extern Lisp_Object Vmenu_bar_mode;
-  int menu_bar_lines_defined =
-    !NILP (Fassq (Qmenu_bar_lines, Vdefault_frame_alist));
 
   /* If we are creating a new frame, begin with the original screen colors
      used for the initial frame.  */
@@ -2116,8 +2112,6 @@ IT_set_frame_parameters (struct frame *f, Lisp_Object alist)
 
       if (EQ (prop, Qreverse))
 	reverse = EQ (val, Qt);
-      else if (!menu_bar_lines_defined && EQ (prop, Qmenu_bar_lines))
-	menu_bar_lines_defined = 1;
     }
 
   if (tty->termscript && reverse)
@@ -2215,18 +2209,6 @@ IT_set_frame_parameters (struct frame *f, Lisp_Object alist)
 		     SBYTES (val), SDATA (val));
 	}
       store_frame_param (f, prop, val);
-    }
-
-  /* If menu-bar-lines is neither in the frame parameters nor in
-     default-frame-alist, set it according to menu-bar-mode.  */
-  if (!menu_bar_lines_defined)
-    {
-      store_frame_param (f, Qmenu_bar_lines,
-			 NILP (Vmenu_bar_mode)
-			 ? make_number (0) : make_number (1));
-      if (tty->termscript)
-	fprintf (tty->termscript, "<MENU BAR LINES DEFAULTED: %d\n",
-		 !NILP (Vmenu_bar_mode));
     }
 
   /* If they specified "reverse", but not the colors, we need to swap
@@ -4719,13 +4701,6 @@ abort (void)
 }
 #endif
 
-/* The following variables are required so that cus-start.el won't
-   complain about unbound variables.  */
-#ifndef subprocesses
-/* Nonzero means delete a process right away if it exits (process.c).  */
-static int delete_exited_processes;
-#endif
-
 void
 syms_of_msdos (void)
 {
@@ -4743,12 +4718,6 @@ syms_of_msdos (void)
 This variable is used only by MS-DOS terminals.  */);
   Vdos_unsupported_char_glyph = make_number ('\177');
 
-#endif
-#ifndef subprocesses
-  DEFVAR_BOOL ("delete-exited-processes", &delete_exited_processes,
-	       doc: /* *Non-nil means delete processes immediately when they exit.
-A value of nil means don't delete them until `list-processes' is run.  */);
-  delete_exited_processes = 0;
 #endif
 
   defsubr (&Srecent_doskeys);

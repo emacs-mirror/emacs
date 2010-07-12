@@ -42,7 +42,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "puresize.h"
 #include "systime.h"
 #include "atimer.h"
-#include <setjmp.h>
+#include "process.h"
 #include <errno.h>
 
 #ifdef HAVE_GTK_AND_PTHREAD
@@ -1238,7 +1238,7 @@ cmd_error (Lisp_Object data)
    string.  */
 
 void
-cmd_error_internal (Lisp_Object data, char *context)
+cmd_error_internal (Lisp_Object data, const char *context)
 {
   struct frame *sf = SELECTED_FRAME ();
 
@@ -9000,48 +9000,48 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
 		   int dont_downcase_last, int can_return_switch_frame,
 		   int fix_current_buffer)
 {
-  volatile Lisp_Object from_string;
-  volatile int count = SPECPDL_INDEX ();
+  Lisp_Object from_string;
+  int count = SPECPDL_INDEX ();
 
   /* How many keys there are in the current key sequence.  */
-  volatile int t;
+  int t;
 
   /* The length of the echo buffer when we started reading, and
      the length of this_command_keys when we started reading.  */
-  volatile int echo_start;
-  volatile int keys_start;
+  int echo_start;
+  int keys_start;
 
   /* The number of keymaps we're scanning right now, and the number of
      keymaps we have allocated space for.  */
-  volatile int nmaps;
-  volatile int nmaps_allocated = 0;
+  int nmaps;
+  int nmaps_allocated = 0;
 
   /* defs[0..nmaps-1] are the definitions of KEYBUF[0..t-1] in
      the current keymaps.  */
-  Lisp_Object *volatile defs = NULL;
+  Lisp_Object *defs = NULL;
 
   /* submaps[0..nmaps-1] are the prefix definitions of KEYBUF[0..t-1]
      in the current keymaps, or nil where it is not a prefix.  */
-  Lisp_Object *volatile submaps = NULL;
+  Lisp_Object *submaps = NULL;
 
   /* The local map to start out with at start of key sequence.  */
-  volatile Lisp_Object orig_local_map;
+  Lisp_Object orig_local_map;
 
   /* The map from the `keymap' property to start out with at start of
      key sequence.  */
-  volatile Lisp_Object orig_keymap;
+  Lisp_Object orig_keymap;
 
   /* 1 if we have already considered switching to the local-map property
      of the place where a mouse click occurred.  */
-  volatile int localized_local_map = 0;
+  int localized_local_map = 0;
 
   /* The index in submaps[] of the first keymap that has a binding for
      this key sequence.  In other words, the lowest i such that
      submaps[i] is non-nil.  */
-  volatile int first_binding;
+  int first_binding;
   /* Index of the first key that has no binding.
      It is useless to try fkey.start larger than that.  */
-  volatile int first_unbound;
+  int first_unbound;
 
   /* If t < mock_input, then KEYBUF[t] should be read as the next
      input key.
@@ -9056,7 +9056,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
      restart_sequence; the loop will read keys from keybuf up until
      mock_input, thus rebuilding the state; and then it will resume
      reading characters from the keyboard.  */
-  volatile int mock_input = 0;
+  int mock_input = 0;
 
   /* If the sequence is unbound in submaps[], then
      keybuf[fkey.start..fkey.end-1] is a prefix in Vfunction_key_map,
@@ -9066,28 +9066,28 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
      should hold off until t reaches them.  We do this when we've just
      recognized a function key, to avoid searching for the function
      key's again in Vfunction_key_map.  */
-  volatile keyremap fkey;
+  keyremap fkey;
 
   /* Likewise, for key_translation_map and input-decode-map.  */
-  volatile keyremap keytran, indec;
+  keyremap keytran, indec;
 
   /* Non-zero if we are trying to map a key by changing an upper-case
      letter to lower case, or a shifted function key to an unshifted
      one. */
-  volatile int shift_translated = 0;
+  int shift_translated = 0;
 
   /* If we receive a `switch-frame' or `select-window' event in the middle of
      a key sequence, we put it off for later.
      While we're reading, we keep the event here.  */
-  volatile Lisp_Object delayed_switch_frame;
+  Lisp_Object delayed_switch_frame;
 
   /* See the comment below... */
 #if defined (GOBBLE_FIRST_EVENT)
   Lisp_Object first_event;
 #endif
 
-  volatile Lisp_Object original_uppercase;
-  volatile int original_uppercase_position = -1;
+  Lisp_Object original_uppercase;
+  int original_uppercase_position = -1;
 
   /* Gets around Microsoft compiler limitations.  */
   int dummyflag = 0;
@@ -9095,7 +9095,7 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
   struct buffer *starting_buffer;
 
   /* List of events for which a fake prefix key has been generated.  */
-  volatile Lisp_Object fake_prefixed_keys = Qnil;
+  Lisp_Object fake_prefixed_keys = Qnil;
 
 #if defined (GOBBLE_FIRST_EVENT)
   int junk;
@@ -9252,13 +9252,13 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
          (say, a mouse click on the mode line which is being treated
          as [mode-line (mouse-...)], then we backtrack to this point
          of keybuf.  */
-      volatile int last_real_key_start;
+      int last_real_key_start;
 
       /* These variables are analogous to echo_start and keys_start;
 	 while those allow us to restart the entire key sequence,
 	 echo_local_start and keys_local_start allow us to throw away
 	 just one key.  */
-      volatile int echo_local_start, keys_local_start, local_first_binding;
+      int echo_local_start, keys_local_start, local_first_binding;
 
       eassert (indec.end == t || (indec.end > t && indec.end <= mock_input));
       eassert (indec.start <= indec.end);

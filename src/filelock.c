@@ -413,9 +413,6 @@ within_one_second (time_t a, time_t b)
 static int
 current_lock_owner (lock_info_type *owner, char *lfname)
 {
-#ifndef index
-  extern char *rindex (const char *, int), *index (const char *, int);
-#endif
   int len, ret;
   int local_owner = 0;
   char *at, *dot, *colon;
@@ -457,8 +454,8 @@ current_lock_owner (lock_info_type *owner, char *lfname)
 
   /* Parse USER@HOST.PID:BOOT_TIME.  If can't parse, return -1.  */
   /* The USER is everything before the last @.  */
-  at = rindex (lfinfo, '@');
-  dot = rindex (lfinfo, '.');
+  at = strrchr (lfinfo, '@');
+  dot = strrchr (lfinfo, '.');
   if (!at || !dot)
     {
       xfree (lfinfo);
