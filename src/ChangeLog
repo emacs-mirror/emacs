@@ -1,5 +1,17 @@
 2010-07-12  Dan Nicolaescu  <dann@ics.uci.edu>
 
+
+	* process.c (close_process_descs): Use DOS_NT instead of WINDOWSNT.
+
+	* emacs.c (__do_global_ctors, __do_global_ctors_aux)
+	(__do_global_dtors, __main): Use void in definition.
+	(main): Remove code dealing with SET_EMACS_PRIORITY, unused.
+	Remove SYMS_MACHINE code, unused.  Remove SYMS_SYSTEM, inline
+	the only users from ...
+	* s/ms-w32.h (SYMS_SYSTEM): ... here and ...
+	* s/msdos.h (SYMS_SYSTEM): ... here.  Remove.
+	(HAVE_VOLATILE): Remove, unused.
+
 	Convert more function definitions to standard C.
 	* xdisp.c (window_box_edges, handle_single_display_spec)
 	(display_string): Convert definition to standard C.
