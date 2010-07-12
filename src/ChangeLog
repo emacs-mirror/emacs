@@ -1,5 +1,8 @@
 2010-07-12  Kenichi Handa  <handa@m17n.org>
 
+	* Makefile.in (lisp): Change hebrew.el to hebrew.elc.
+	(shortlisp): Likewise.
+
 	* font.h (enum font_property_index): New member FONT_ENTITY_INDEX.
 
 	* font.c (font_open_entity): Record ENTITY in FONT_OBJECT's slot
