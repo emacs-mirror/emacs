@@ -1,5 +1,12 @@
 2010-07-12  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* xterm.c (x_scroll_bar_set_handle, x_scroll_bar_expose)
+	(_scroll_bar_note_movement): Convert definitions to standard C.
+	* xmenu.c (menu_help_callback, pop_down_menu, xmenu_show):
+	* xfns.c (hack_wm_protocols, x_window, x_window): Likewise.
+
+2010-07-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
 	* xterm.c (x_frame_of_widget, x_alloc_nearest_color_for_widget)
 	(x_alloc_lighter_color_for_widget, cvt_string_to_pixel)
 	(cvt_pixel_dtor, x_window_to_menu_bar, xt_action_hook)

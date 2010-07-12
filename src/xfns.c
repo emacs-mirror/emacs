@@ -2676,9 +2676,7 @@ x_window (FRAME_PTR f)
 /* Create and set up the X window for frame F.  */
 
 void
-x_window (f)
-     struct frame *f;
-
+x_window (struct frame *f)
 {
   XClassHint class_hints;
   XSetWindowAttributes attributes;

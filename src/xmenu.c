@@ -2228,9 +2228,7 @@ static struct frame *menu_help_frame;
    keyboard events.  */
 
 static void
-menu_help_callback (help_string, pane, item)
-     char *help_string;
-     int pane, item;
+menu_help_callback (char *help_string, int pane, int item)
 {
   extern Lisp_Object Qmenu_item;
   Lisp_Object *first_item;
@@ -2255,8 +2253,7 @@ menu_help_callback (help_string, pane, item)
 }
 
 static Lisp_Object
-pop_down_menu (arg)
-     Lisp_Object arg;
+pop_down_menu (Lisp_Object arg)
 {
   struct Lisp_Save_Value *p1 = XSAVE_VALUE (Fcar (arg));
   struct Lisp_Save_Value *p2 = XSAVE_VALUE (Fcdr (arg));
@@ -2291,14 +2288,7 @@ pop_down_menu (arg)
 
 
 Lisp_Object
-xmenu_show (f, x, y, for_click, keymaps, title, error, timestamp)
-     FRAME_PTR f;
-     int x, y;
-     int for_click;
-     int keymaps;
-     Lisp_Object title;
-     char **error;
-     EMACS_UINT timestamp;
+xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps, Lisp_Object title, char **error, unsigned int timestamp)
 {
   Window root;
   XMenu *menu;

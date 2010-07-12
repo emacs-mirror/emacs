@@ -4849,10 +4849,7 @@ x_scroll_bar_create (struct window *w, int top, int left, int width, int height)
    to move to the very end of the buffer.  */
 
 static void
-x_scroll_bar_set_handle (bar, start, end, rebuild)
-     struct scroll_bar *bar;
-     int start, end;
-     int rebuild;
+x_scroll_bar_set_handle (struct scroll_bar *bar, int start, int end, int rebuild)
 {
   int dragging = ! NILP (bar->dragging);
   Window w = bar->x_window;
@@ -5294,9 +5291,7 @@ XTjudge_scroll_bars (FRAME_PTR f)
    mark bits.  */
 
 static void
-x_scroll_bar_expose (bar, event)
-     struct scroll_bar *bar;
-     XEvent *event;
+x_scroll_bar_expose (struct scroll_bar *bar, XEvent *event)
 {
   Window w = bar->x_window;
   FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
@@ -5396,9 +5391,7 @@ x_scroll_bar_handle_click (struct scroll_bar *bar, XEvent *event, struct input_e
    mark bits.  */
 
 static void
-x_scroll_bar_note_movement (bar, event)
-     struct scroll_bar *bar;
-     XEvent *event;
+x_scroll_bar_note_movement (struct scroll_bar *bar, XEvent *event)
 {
   FRAME_PTR f = XFRAME (XWINDOW (bar->window)->frame);
 
