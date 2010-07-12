@@ -1,3 +1,29 @@
+2010-07-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xterm.c (x_frame_of_widget, x_alloc_nearest_color_for_widget)
+	(x_alloc_lighter_color_for_widget, cvt_string_to_pixel)
+	(cvt_pixel_dtor, x_window_to_menu_bar, xt_action_hook)
+	(xaw_jump_callback, xaw_scroll_callback)
+	(x_create_toolkit_scroll_bar, x_set_toolkit_scroll_bar_thumb)
+	(x_wm_set_size_hint, x_activate_timeout_atimer): Convert
+	definitions to standard C.
+	* xmenu.c (menubar_id_to_frame, popup_get_selection)
+	(popup_activate_callback, popup_deactivate_callback)
+	(menu_highlight_callback, menubar_selection_callback)
+	(apply_systemfont_to_dialog, apply_systemfont_to_menu)
+	(free_frame_menubar, popup_selection_callback, as)
+	(create_and_show_popup_menu, dialog_selection_callback)
+	(create_and_show_dialog):
+	* xfns.c (hack_wm_protocols, x_window):
+	* xfaces.c (x_update_menu_appearance):
+	* widget.c (get_default_char_pixel_size, pixel_to_char_size)
+	(char_to_pixel_size, round_size_to_char, get_wm_shell)
+	(set_frame_size, update_wm_hints, setup_frame_gcs)
+	(update_various_frame_slots, update_from_various_frame_slots)
+	(EmacsFrameInitialize, EmacsFrameRealize, EmacsFrameResize)
+	(EmacsFrameSetValues, EmacsFrameQueryGeometry)
+	(EmacsFrameSetCharSize, widget_store_internal_border): Likewise.
+
 2010-07-12  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* dbusbind.c (xd_initialize): Don't compare boolean with a

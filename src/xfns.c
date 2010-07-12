@@ -1816,9 +1816,7 @@ x_default_scroll_bar_color_parameter (struct frame *f,
    for example, but Xt doesn't).  */
 
 static void
-hack_wm_protocols (f, widget)
-     FRAME_PTR f;
-     Widget widget;
+hack_wm_protocols (FRAME_PTR f, Widget widget)
 {
   Display *dpy = XtDisplay (widget);
   Window w = XtWindow (widget);
@@ -2392,10 +2390,7 @@ xic_set_xfontset (struct frame *f, char *base_fontname)
 /* Create and set up the X widget for frame F.  */
 
 static void
-x_window (f, window_prompting, minibuffer_only)
-     struct frame *f;
-     long window_prompting;
-     int minibuffer_only;
+x_window (struct frame *f, long window_prompting, int minibuffer_only)
 {
   XClassHint class_hints;
   XSetWindowAttributes attributes;

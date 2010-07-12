@@ -165,8 +165,7 @@ int pending_menu_activation;
 /* Return the frame whose ->output_data.x->id equals ID, or 0 if none.  */
 
 static struct frame *
-menubar_id_to_frame (id)
-     LWLIB_ID id;
+menubar_id_to_frame (LWLIB_ID id)
 {
   Lisp_Object tail, frame;
   FRAME_PTR f;
@@ -456,11 +455,7 @@ x_menu_wait_for_event (void *data)
    with BLOCK_INPUT, UNBLOCK_INPUT wrappers.  */
 
 static void
-popup_get_selection (initial_event, dpyinfo, id, do_timers)
-     XEvent *initial_event;
-     struct x_display_info *dpyinfo;
-     LWLIB_ID id;
-     int do_timers;
+popup_get_selection (XEvent *initial_event, struct x_display_info *dpyinfo, LWLIB_ID id, int do_timers)
 {
   XEvent event;
 
@@ -705,10 +700,7 @@ x_activate_menubar (FRAME_PTR f)
 
 #ifndef USE_GTK
 static void
-popup_activate_callback (widget, id, client_data)
-     Widget widget;
-     LWLIB_ID id;
-     XtPointer client_data;
+popup_activate_callback (Widget widget, LWLIB_ID id, XtPointer client_data)
 {
   popup_activated_flag = 1;
 #ifdef USE_X_TOOLKIT
@@ -728,10 +720,7 @@ popup_deactivate_callback (GtkWidget *widget, gpointer client_data)
 }
 #else
 static void
-popup_deactivate_callback (widget, id, client_data)
-     Widget widget;
-     LWLIB_ID id;
-     XtPointer client_data;
+popup_deactivate_callback (Widget widget, LWLIB_ID id, XtPointer client_data)
 {
   popup_activated_flag = 0;
 }
@@ -799,10 +788,7 @@ menu_highlight_callback (GtkWidget *widget, gpointer call_data)
 }
 #else
 void
-menu_highlight_callback (widget, id, call_data)
-     Widget widget;
-     LWLIB_ID id;
-     void *call_data;
+menu_highlight_callback (Widget widget, LWLIB_ID id, void *call_data)
 {
   struct frame *f;
   Lisp_Object help;
@@ -873,10 +859,7 @@ menubar_selection_callback (GtkWidget *widget, gpointer client_data)
    Figure out what the user chose
    and put the appropriate events into the keyboard buffer.  */
 static void
-menubar_selection_callback (widget, id, client_data)
-     Widget widget;
-     LWLIB_ID id;
-     XtPointer client_data;
+menubar_selection_callback (Widget widget, LWLIB_ID id, XtPointer client_data)
 {
   FRAME_PTR f;
 
@@ -942,8 +925,7 @@ update_frame_menubar (FRAME_PTR f)
 
 #ifdef USE_LUCID
 static void
-apply_systemfont_to_dialog (w)
-     Widget w;
+apply_systemfont_to_dialog (Widget w)
 {
   const char *fn = xsettings_get_system_normal_font ();
   if (fn) 
@@ -955,8 +937,7 @@ apply_systemfont_to_dialog (w)
 }
 
 static void
-apply_systemfont_to_menu (w)
-     Widget w;
+apply_systemfont_to_menu (Widget w)
 {
   const char *fn = xsettings_get_system_normal_font ();
   int defflt;
@@ -1352,8 +1333,7 @@ initialize_frame_menubar (FRAME_PTR f)
 
 #ifndef USE_GTK
 void
-free_frame_menubar (f)
-     FRAME_PTR f;
+free_frame_menubar (FRAME_PTR f)
 {
   Widget menubar_widget;
 
@@ -1569,10 +1549,7 @@ create_and_show_popup_menu (FRAME_PTR f, widget_value *first_wv, int x, int y, i
 LWLIB_ID widget_id_tick;
 
 static void
-popup_selection_callback (widget, id, client_data)
-     Widget widget;
-     LWLIB_ID id;
-     XtPointer client_data;
+popup_selection_callback (Widget widget, LWLIB_ID id, XtPointer client_data)
 {
   menu_item_selection = (Lisp_Object *) client_data;
 }
@@ -1581,8 +1558,7 @@ popup_selection_callback (widget, id, client_data)
    as a Lisp object as (HIGHPART . LOWPART).  */
 
 static Lisp_Object
-pop_down_menu (arg)
-     Lisp_Object arg;
+pop_down_menu (Lisp_Object arg)
 {
   LWLIB_ID id = (XINT (XCAR (arg)) << 4 * sizeof (LWLIB_ID)
                  | XINT (XCDR (arg)));
@@ -1599,13 +1575,7 @@ pop_down_menu (arg)
    menu pops down.
    menu_item_selection will be set to the selection.  */
 static void
-create_and_show_popup_menu (f, first_wv, x, y, for_click, timestamp)
-     FRAME_PTR f;
-     widget_value *first_wv;
-     int x;
-     int y;
-     int for_click;
-     EMACS_UINT timestamp;
+create_and_show_popup_menu (FRAME_PTR f, widget_value *first_wv, int x, int y, int for_click, unsigned int timestamp)
 {
   int i;
   Arg av[2];
@@ -1997,10 +1967,7 @@ create_and_show_dialog (FRAME_PTR f, widget_value *first_wv)
 
 #else /* not USE_GTK */
 static void
-dialog_selection_callback (widget, id, client_data)
-     Widget widget;
-     LWLIB_ID id;
-     XtPointer client_data;
+dialog_selection_callback (Widget widget, LWLIB_ID id, XtPointer client_data)
 {
   /* The EMACS_INT cast avoids a warning.  There's no problem
      as long as pointers have enough bits to hold small integers.  */
@@ -2018,9 +1985,7 @@ dialog_selection_callback (widget, id, client_data)
    dialog pops down.
    menu_item_selection will be set to the selection.  */
 static void
-create_and_show_dialog (f, first_wv)
-     FRAME_PTR f;
-     widget_value *first_wv;
+create_and_show_dialog (FRAME_PTR f, widget_value *first_wv)
 {
   LWLIB_ID dialog_id;
 

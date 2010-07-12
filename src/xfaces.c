@@ -3599,8 +3599,7 @@ DEFUN ("internal-set-lisp-face-attribute-from-resource",
 /* Make menus on frame F appear as specified by the `menu' face.  */
 
 static void
-x_update_menu_appearance (f)
-     struct frame *f;
+x_update_menu_appearance (struct frame *f)
 {
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   XrmDatabase rdb;
