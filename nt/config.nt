@@ -349,13 +349,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define my_strftime nstrftime   /* for strftime.c */
 
-/* Non-ANSI C compilers usually don't have volatile.  */
-#ifndef HAVE_VOLATILE
-#ifndef __STDC__
-#define volatile
-#endif
-#endif
-
 #ifndef WINDOWSNT
 /* Some of the files of Emacs which are intended for use with other
    programs assume that if you have a config.h file, you must declare
