@@ -1311,11 +1311,8 @@ window_box (struct window *w, int area, int *box_x, int *box_y,
    box.  */
 
 INLINE void
-window_box_edges (w, area, top_left_x, top_left_y,
-		  bottom_right_x, bottom_right_y)
-     struct window *w;
-     int area;
-     int *top_left_x, *top_left_y, *bottom_right_x, *bottom_right_y;
+window_box_edges (struct window *w, int area, int *top_left_x, int *top_left_y,
+		   int *bottom_right_x, int *bottom_right_y)
 {
   window_box (w, area, top_left_x, top_left_y, bottom_right_x,
 	      bottom_right_y);
@@ -4078,14 +4075,9 @@ display_prop_end (struct it *it, Lisp_Object object, struct text_pos start_pos)
    of buffer or string text.  */
 
 static int
-handle_single_display_spec (it, spec, object, overlay, position,
-			    display_replaced_before_p)
-     struct it *it;
-     Lisp_Object spec;
-     Lisp_Object object;
-     Lisp_Object overlay;
-     struct text_pos *position;
-     int display_replaced_before_p;
+handle_single_display_spec (struct it *it, Lisp_Object spec, Lisp_Object object,
+			    Lisp_Object overlay, struct text_pos *position,
+			    int display_replaced_before_p)
 {
   Lisp_Object form;
   Lisp_Object location, value;
@@ -13090,13 +13082,9 @@ enum
 };
 
 static int
-try_scrolling (window, just_this_one_p, scroll_conservatively,
-	       scroll_step, temp_scroll_step, last_line_misfit)
-     Lisp_Object window;
-     int just_this_one_p;
-     EMACS_INT scroll_conservatively, scroll_step;
-     int temp_scroll_step;
-     int last_line_misfit;
+try_scrolling (Lisp_Object window, int just_this_one_p,
+	       EMACS_INT scroll_conservatively, EMACS_INT scroll_step,
+	       int temp_scroll_step, int last_line_misfit)
 {
   struct window *w = XWINDOW (window);
   struct frame *f = XFRAME (w->frame);
@@ -19831,16 +19819,9 @@ display_count_lines (int start, int start_byte, int limit_byte, int count,
    Value is the number of columns displayed.  */
 
 static int
-display_string (string, lisp_string, face_string, face_string_pos,
-		start, it, field_width, precision, max_x, multibyte)
-     unsigned char *string;
-     Lisp_Object lisp_string;
-     Lisp_Object face_string;
-     EMACS_INT face_string_pos;
-     EMACS_INT start;
-     struct it *it;
-     int field_width, precision, max_x;
-     int multibyte;
+display_string (unsigned char *string, Lisp_Object lisp_string, Lisp_Object face_string,
+		EMACS_INT face_string_pos, EMACS_INT start, struct it *it,
+		int field_width, int precision, int max_x, int multibyte)
 {
   int hpos_at_start = it->hpos;
   int saved_face_id = it->face_id;

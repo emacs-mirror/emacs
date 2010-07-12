@@ -1,3 +1,18 @@
+2010-07-12  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* language/tai-viet.el ("TaiViet"): Try to fix re-encoding
+	bugs. (Bug#5806)
+
+	* language/tv-util.el (tai-viet-re): Remove format.
+
+2010-07-12  Kenichi Handa  <handa@m17n.org>
+
+	* language/hebrew.el: Remove no-byte-compile declaration.  Change
+	coding: tag to utf-8.  Register hebrew-shape-gstring in
+	composition-function-table for 3-character looking back.
+	(hebrew-font-get-precomposed): New function.
+	(hebrew-shape-gstring): Utilize precomposed glyphs if available.
+
 2010-07-11  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mouse.el (mouse-drag-track): Handle select-active-regions

@@ -278,19 +278,12 @@ string_to_object (Lisp_Object val, Lisp_Object defalt)
    from read_minibuf to do the job if noninteractive.  */
 
 static Lisp_Object
-read_minibuf_noninteractive (map, initial, prompt, backup_n, expflag,
-			     histvar, histpos, defalt, allow_props,
-			     inherit_input_method)
-     Lisp_Object map;
-     Lisp_Object initial;
-     Lisp_Object prompt;
-     Lisp_Object backup_n;
-     int expflag;
-     Lisp_Object histvar;
-     Lisp_Object histpos;
-     Lisp_Object defalt;
-     int allow_props;
-     int inherit_input_method;
+read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
+			     Lisp_Object prompt, Lisp_Object backup_n,
+			     int expflag,
+			     Lisp_Object histvar, Lisp_Object histpos,
+			     Lisp_Object defalt,
+			     int allow_props, int inherit_input_method)
 {
   int size, len;
   char *line, *s;
@@ -434,18 +427,10 @@ If the current buffer is not a minibuffer, return its entire contents.  */)
    current input method.  */
 
 static Lisp_Object
-read_minibuf (map, initial, prompt, backup_n, expflag,
-	      histvar, histpos, defalt, allow_props, inherit_input_method)
-     Lisp_Object map;
-     Lisp_Object initial;
-     Lisp_Object prompt;
-     Lisp_Object backup_n;
-     int expflag;
-     Lisp_Object histvar;
-     Lisp_Object histpos;
-     Lisp_Object defalt;
-     int allow_props;
-     int inherit_input_method;
+read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
+	      Lisp_Object backup_n, int expflag,
+	      Lisp_Object histvar, Lisp_Object histpos, Lisp_Object defalt,
+	      int allow_props, int inherit_input_method)
 {
   Lisp_Object val;
   int count = SPECPDL_INDEX ();

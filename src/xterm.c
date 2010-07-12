@@ -1367,8 +1367,7 @@ static void cvt_pixel_dtor (XtAppContext, XrmValue *, XtPointer,
    cannot be determined.  */
 
 static struct frame *
-x_frame_of_widget (widget)
-     Widget widget;
+x_frame_of_widget (Widget widget)
 {
   struct x_display_info *dpyinfo;
   Lisp_Object tail;
@@ -1404,10 +1403,7 @@ x_frame_of_widget (widget)
    if successful.  This is called from lwlib.  */
 
 int
-x_alloc_nearest_color_for_widget (widget, cmap, color)
-     Widget widget;
-     Colormap cmap;
-     XColor *color;
+x_alloc_nearest_color_for_widget (Widget widget, Colormap cmap, XColor *color)
 {
   struct frame *f = x_frame_of_widget (widget);
   return x_alloc_nearest_color (f, cmap, color);
@@ -1422,13 +1418,8 @@ x_alloc_nearest_color_for_widget (widget, cmap, color)
    Value is non-zero if successful.  */
 
 int
-x_alloc_lighter_color_for_widget (widget, display, cmap, pixel, factor, delta)
-     Widget widget;
-     Display *display;
-     Colormap cmap;
-     unsigned long *pixel;
-     double factor;
-     int delta;
+x_alloc_lighter_color_for_widget (Widget widget, Display *display, Colormap cmap,
+				  unsigned long *pixel, double factor, int delta)
 {
   struct frame *f = x_frame_of_widget (widget);
   return x_alloc_lighter_color (f, display, cmap, pixel, factor, delta);
@@ -1471,12 +1462,9 @@ static Pixel cvt_string_to_pixel_value;
    Value is True if successful, False otherwise.  */
 
 static Boolean
-cvt_string_to_pixel (dpy, args, nargs, from, to, closure_ret)
-     Display *dpy;
-     XrmValue *args;
-     Cardinal *nargs;
-     XrmValue *from, *to;
-     XtPointer *closure_ret;
+cvt_string_to_pixel (Display *dpy, XrmValue *args, Cardinal *nargs,
+		     XrmValue *from, XrmValue *to,
+		     XtPointer *closure_ret)
 {
   Screen *screen;
   Colormap cmap;
@@ -1560,12 +1548,8 @@ cvt_string_to_pixel (dpy, args, nargs, from, to, closure_ret)
    ARGS and NARGS are like for cvt_string_to_pixel.  */
 
 static void
-cvt_pixel_dtor (app, to, closure, args, nargs)
-    XtAppContext app;
-    XrmValuePtr to;
-    XtPointer closure;
-    XrmValuePtr args;
-    Cardinal *nargs;
+cvt_pixel_dtor (XtAppContext app, XrmValuePtr to, XtPointer closure, XrmValuePtr args,
+		Cardinal *nargs)
 {
   if (*nargs != 2)
     {
@@ -1967,12 +1951,10 @@ x_setup_relief_colors (struct glyph_string *s)
    when drawing.  */
 
 static void
-x_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
-		    raised_p, top_p, bot_p, left_p, right_p, clip_rect)
-     struct frame *f;
-     int left_x, top_y, right_x, bottom_y, width;
-     int top_p, bot_p, left_p, right_p, raised_p;
-     XRectangle *clip_rect;
+x_draw_relief_rect (struct frame *f,
+		    int left_x, int top_y, int right_x, int bottom_y, int width,
+		    int raised_p, int top_p, int bot_p, int left_p, int right_p,
+		    XRectangle *clip_rect)
 {
   Display *dpy = FRAME_X_DISPLAY (f);
   Window window = FRAME_X_WINDOW (f);
@@ -2030,11 +2012,9 @@ x_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
    rectangle to use when drawing.  */
 
 static void
-x_draw_box_rect (s, left_x, top_y, right_x, bottom_y, width,
-		 left_p, right_p, clip_rect)
-     struct glyph_string *s;
-     int left_x, top_y, right_x, bottom_y, width, left_p, right_p;
-     XRectangle *clip_rect;
+x_draw_box_rect (struct glyph_string *s,
+		 int left_x, int top_y, int right_x, int bottom_y, int width,
+		 int left_p, int right_p, XRectangle *clip_rect)
 {
   XGCValues xgcv;
 
@@ -3957,8 +3937,7 @@ x_window_to_scroll_bar (Display *display, Window window_id)
    if WINDOW is not part of a menu bar.  */
 
 static Widget
-x_window_to_menu_bar (window)
-     Window window;
+x_window_to_menu_bar (Window window)
 {
   Lisp_Object tail;
 
@@ -4025,14 +4004,8 @@ static Boolean xaw3d_pick_top;
    a `end-scroll' SCROLL_BAR_CLICK_EVENT' event if so.  */
 
 static void
-xt_action_hook (widget, client_data, action_name, event, params,
-		num_params)
-     Widget widget;
-     XtPointer client_data;
-     String action_name;
-     XEvent *event;
-     String *params;
-     Cardinal *num_params;
+xt_action_hook (Widget widget, XtPointer client_data, String action_name,
+		XEvent *event, String *params, Cardinal *num_params)
 {
   int scroll_bar_p;
   char *end_action;
@@ -4345,9 +4318,7 @@ xg_end_scroll_callback (GtkWidget *widget,
    the thumb is.  */
 
 static void
-xaw_jump_callback (widget, client_data, call_data)
-     Widget widget;
-     XtPointer client_data, call_data;
+xaw_jump_callback (Widget widget, XtPointer client_data, XtPointer call_data)
 {
   struct scroll_bar *bar = (struct scroll_bar *) client_data;
   float top = *(float *) call_data;
@@ -4389,9 +4360,7 @@ xaw_jump_callback (widget, client_data, call_data)
    Values < height of scroll bar mean line-wise movement.  */
 
 static void
-xaw_scroll_callback (widget, client_data, call_data)
-     Widget widget;
-     XtPointer client_data, call_data;
+xaw_scroll_callback (Widget widget, XtPointer client_data, XtPointer call_data)
 {
   struct scroll_bar *bar = (struct scroll_bar *) client_data;
   /* The position really is stored cast to a pointer.  */
@@ -4443,9 +4412,7 @@ x_create_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
 #else /* not USE_GTK */
 
 static void
-x_create_toolkit_scroll_bar (f, bar)
-     struct frame *f;
-     struct scroll_bar *bar;
+x_create_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
 {
   Window xwindow;
   Widget widget;
@@ -4652,9 +4619,8 @@ x_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar, int portion, int positio
 
 #else /* not USE_GTK */
 static void
-x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
-     struct scroll_bar *bar;
-     int portion, position, whole;
+x_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar, int portion, int position,
+				int whole)
 {
   struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
   Widget widget = SCROLL_BAR_X_WIDGET (FRAME_X_DISPLAY (f), bar);
@@ -4883,10 +4849,7 @@ x_scroll_bar_create (struct window *w, int top, int left, int width, int height)
    to move to the very end of the buffer.  */
 
 static void
-x_scroll_bar_set_handle (bar, start, end, rebuild)
-     struct scroll_bar *bar;
-     int start, end;
-     int rebuild;
+x_scroll_bar_set_handle (struct scroll_bar *bar, int start, int end, int rebuild)
 {
   int dragging = ! NILP (bar->dragging);
   Window w = bar->x_window;
@@ -5328,9 +5291,7 @@ XTjudge_scroll_bars (FRAME_PTR f)
    mark bits.  */
 
 static void
-x_scroll_bar_expose (bar, event)
-     struct scroll_bar *bar;
-     XEvent *event;
+x_scroll_bar_expose (struct scroll_bar *bar, XEvent *event)
 {
   Window w = bar->x_window;
   FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
@@ -5430,9 +5391,7 @@ x_scroll_bar_handle_click (struct scroll_bar *bar, XEvent *event, struct input_e
    mark bits.  */
 
 static void
-x_scroll_bar_note_movement (bar, event)
-     struct scroll_bar *bar;
-     XEvent *event;
+x_scroll_bar_note_movement (struct scroll_bar *bar, XEvent *event)
 {
   FRAME_PTR f = XFRAME (XWINDOW (bar->window)->frame);
 
@@ -9440,10 +9399,7 @@ x_destroy_window (struct frame *f)
 
 #ifndef USE_GTK
 void
-x_wm_set_size_hint (f, flags, user_position)
-     struct frame *f;
-     long flags;
-     int user_position;
+x_wm_set_size_hint (struct frame *f, long flags, int user_position)
 {
   XSizeHints size_hints;
   Window window = FRAME_OUTER_WINDOW (f);
@@ -10406,7 +10362,7 @@ x_process_timeouts (timer)
    processed, these widgets don't behave normally.  */
 
 void
-x_activate_timeout_atimer ()
+x_activate_timeout_atimer (void)
 {
   BLOCK_INPUT;
   if (!x_timeout_atimer_activated_flag)

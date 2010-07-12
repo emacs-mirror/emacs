@@ -730,12 +730,8 @@ map_charset_for_dump (void (*c_function) (Lisp_Object, Lisp_Object), Lisp_Object
 }
 
 void
-map_charset_chars (c_function, function, arg,
-		   charset, from, to)
-     void (*c_function) (Lisp_Object, Lisp_Object);
-     Lisp_Object function, arg;
-     struct charset *charset;
-     unsigned from, to;
+map_charset_chars (void (*c_function)(Lisp_Object, Lisp_Object), Lisp_Object function,
+		   Lisp_Object arg, struct charset *charset, unsigned from, unsigned to)
 {
   Lisp_Object range;
   int partial;

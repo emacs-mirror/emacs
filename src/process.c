@@ -642,38 +642,6 @@ remove_process (register Lisp_Object proc)
   deactivate_process (proc);
 }
 
-/* Setup coding systems of PROCESS.  */
-
-void
-setup_process_coding_systems (Lisp_Object process)
-{
-  struct Lisp_Process *p = XPROCESS (process);
-  int inch = p->infd;
-  int outch = p->outfd;
-  Lisp_Object coding_system;
-
-  if (inch < 0 || outch < 0)
-    return;
-
-  if (!proc_decode_coding_system[inch])
-    proc_decode_coding_system[inch]
-      = (struct coding_system *) xmalloc (sizeof (struct coding_system));
-  coding_system = p->decode_coding_system;
-  if (! NILP (p->filter))
-    ;
-  else if (BUFFERP (p->buffer))
-    {
-      if (NILP (XBUFFER (p->buffer)->enable_multibyte_characters))
-	coding_system = raw_text_coding_system (coding_system);
-    }
-  setup_coding_system (coding_system, proc_decode_coding_system[inch]);
-
-  if (!proc_encode_coding_system[outch])
-    proc_encode_coding_system[outch]
-      = (struct coding_system *) xmalloc (sizeof (struct coding_system));
-  setup_coding_system (p->encode_coding_system,
-		       proc_encode_coding_system[outch]);
-}
 
 DEFUN ("processp", Fprocessp, Sprocessp, 1, 1, 0,
        doc: /* Return t if OBJECT is a process.  */)
@@ -4113,31 +4081,6 @@ deactivate_process (Lisp_Object proc)
     }
 }
 
-/* Close all descriptors currently in use for communication
-   with subprocess.  This is used in a newly-forked subprocess
-   to get rid of irrelevant descriptors.  */
-
-void
-close_process_descs (void)
-{
-#ifndef WINDOWSNT
-  int i;
-  for (i = 0; i < MAXDESC; i++)
-    {
-      Lisp_Object process;
-      process = chan_process[i];
-      if (!NILP (process))
-	{
-	  int in  = XPROCESS (process)->infd;
-	  int out = XPROCESS (process)->outfd;
-	  if (in >= 0)
-	    emacs_close (in);
-	  if (out >= 0 && in != out)
-	    emacs_close (out);
-	}
-    }
-#endif
-}
 
 DEFUN ("accept-process-output", Faccept_process_output, Saccept_process_output,
        0, 4, 0,
@@ -4492,12 +4435,10 @@ select_wrapper (int n, fd_set *rfd, fd_set *wfd, fd_set *xfd, struct timeval *tm
    Otherwise, return true if we received input from any process.  */
 
 int
-wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
-			     wait_for_cell, wait_proc, just_wait_proc)
-     int time_limit, microsecs, read_kbd, do_display;
-     Lisp_Object wait_for_cell;
-     struct Lisp_Process *wait_proc;
-     int just_wait_proc;
+wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
+			     int do_display,
+			     Lisp_Object wait_for_cell,
+			     struct Lisp_Process *wait_proc, int just_wait_proc)
 {
   register int channel, nfds;
   SELECT_TYPE Available;
@@ -7011,12 +6952,10 @@ extern int sys_select (int, SELECT_TYPE *, SELECT_TYPE *, SELECT_TYPE *,
    Return true if we received input from any process.  */
 
 int
-wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
-			     wait_for_cell, wait_proc, just_wait_proc)
-     int time_limit, microsecs, read_kbd, do_display;
-     Lisp_Object wait_for_cell;
-     struct Lisp_Process *wait_proc;
-     int just_wait_proc;
+wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
+			     int do_display,
+			     Lisp_Object wait_for_cell,
+			     struct Lisp_Process *wait_proc, int just_wait_proc)
 {
   register int nfds;
   EMACS_TIME end_time, timeout;
@@ -7207,6 +7146,67 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 
 /* The following functions are needed even if async subprocesses are
    not supported.  Some of them are no-op stubs in that case.  */
+
+/* Setup coding systems of PROCESS.  */
+
+void
+setup_process_coding_systems (Lisp_Object process)
+{
+#ifdef subprocesses
+  struct Lisp_Process *p = XPROCESS (process);
+  int inch = p->infd;
+  int outch = p->outfd;
+  Lisp_Object coding_system;
+
+  if (inch < 0 || outch < 0)
+    return;
+
+  if (!proc_decode_coding_system[inch])
+    proc_decode_coding_system[inch]
+      = (struct coding_system *) xmalloc (sizeof (struct coding_system));
+  coding_system = p->decode_coding_system;
+  if (! NILP (p->filter))
+    ;
+  else if (BUFFERP (p->buffer))
+    {
+      if (NILP (XBUFFER (p->buffer)->enable_multibyte_characters))
+	coding_system = raw_text_coding_system (coding_system);
+    }
+  setup_coding_system (coding_system, proc_decode_coding_system[inch]);
+
+  if (!proc_encode_coding_system[outch])
+    proc_encode_coding_system[outch]
+      = (struct coding_system *) xmalloc (sizeof (struct coding_system));
+  setup_coding_system (p->encode_coding_system,
+		       proc_encode_coding_system[outch]);
+#endif
+}
+
+/* Close all descriptors currently in use for communication
+   with subprocess.  This is used in a newly-forked subprocess
+   to get rid of irrelevant descriptors.  */
+
+void
+close_process_descs (void)
+{
+#ifndef DOS_NT
+  int i;
+  for (i = 0; i < MAXDESC; i++)
+    {
+      Lisp_Object process;
+      process = chan_process[i];
+      if (!NILP (process))
+	{
+	  int in  = XPROCESS (process)->infd;
+	  int out = XPROCESS (process)->outfd;
+	  if (in >= 0)
+	    emacs_close (in);
+	  if (out >= 0 && in != out)
+	    emacs_close (out);
+	}
+    }
+#endif
+}
 
 DEFUN ("get-buffer-process", Fget_buffer_process, Sget_buffer_process, 1, 1, 0,
        doc: /* Return the (or a) process associated with BUFFER.

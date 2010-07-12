@@ -38,13 +38,7 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
    It sets the Lisp variable system-type.  */
 #define SYSTEM_TYPE "ms-dos"
 
-#define SYMS_SYSTEM syms_of_dosfns();syms_of_msdos();syms_of_win16select()
-
 #define SYSV_SYSTEM_DIR
-
-/* Define this is the compiler understands `volatile'.  */
-#define HAVE_VOLATILE
-
 
 /* subprocesses should be defined if you want to have code for
    asynchronous subprocesses (as used in M-x compile and M-x shell).

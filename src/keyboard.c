@@ -3593,7 +3593,7 @@ event_to_kboard (struct input_event *event)
 /* Return the number of slots occupied in kbd_buffer.  */
 
 static int
-kbd_buffer_nr_stored ()
+kbd_buffer_nr_stored (void)
 {
   return kbd_fetch_ptr == kbd_store_ptr
     ? 0
@@ -11536,7 +11536,7 @@ struct event_head {
   Lisp_Object *kind;
 };
 
-struct event_head head_table[] = {
+static const struct event_head head_table[] = {
   {&Qmouse_movement,      "mouse-movement",      &Qmouse_movement},
   {&Qscroll_bar_movement, "scroll-bar-movement", &Qmouse_movement},
   {&Qswitch_frame,        "switch-frame",        &Qswitch_frame},
@@ -11721,7 +11721,7 @@ syms_of_keyboard (void)
   last_point_position_window = Qnil;
 
   {
-    struct event_head *p;
+    const struct event_head *p;
 
     for (p = head_table;
 	 p < head_table + (sizeof (head_table) / sizeof (head_table[0]));
