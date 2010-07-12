@@ -1,3 +1,11 @@
+2010-07-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* process.c (setup_process_coding_systems): Move to the part
+	shared by non-subprocesses systems, and make its body empty when
+	subprocesses is not defined.
+	(close_process_descs): Move to the part shared by non-subprocesses
+	systems.
+
 2010-07-12  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* callproc.c (child_setup): Remove subprocesses conditional.
