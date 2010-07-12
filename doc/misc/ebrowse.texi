@@ -29,7 +29,7 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* Ebrowse: (ebrowse).   A C++ class browser for Emacs.
+* Ebrowse: (ebrowse).           A C++ class browser for Emacs.
 @end direntry
 
 @titlepage
@@ -55,14 +55,14 @@ Ebrowse.
 @end ifnottex
 
 @menu
-* Overview::			What is it and how does it work?
-* Generating browser files::	How to process C++ source files
-* Loading a Tree::		How to start browsing
-* Tree Buffers::		Traversing class hierarchies
-* Member Buffers::		Looking at member information
-* Tags-like Functions::		Finding members from source files
+* Overview::                    What is it and how does it work?
+* Generating browser files::    How to process C++ source files
+* Loading a Tree::              How to start browsing
+* Tree Buffers::                Traversing class hierarchies
+* Member Buffers::              Looking at member information
+* Tags-like Functions::         Finding members from source files
 * GNU Free Documentation License:: The license for this documentation.
-* Concept Index::		An entry for each concept defined
+* Concept Index::               An entry for each concept defined
 @end menu
 
 
@@ -215,10 +215,10 @@ When invoked with option @samp{--help}, @command{ebrowse} prints a list of
 available command line options.@refill
 
 @menu
-* Input files::		Specifying which files to parse
-* Output file::		Changing the output file name
-* Structs and unions::	Omitting @code{struct}s and @code{union}s
-* Matching::		Setting regular expression lengths
+* Input files::         Specifying which files to parse
+* Output file::         Changing the output file name
+* Structs and unions::  Omitting @code{struct}s and @code{union}s
+* Matching::            Setting regular expression lengths
 * Verbosity::           Getting feedback for lengthy operations
 @end menu
 
@@ -454,17 +454,17 @@ Tree-specific commands are bound to simple keystrokes, similar to
 buffers.
 
 @menu
-* Source Display::		Viewing and finding a class declaration
-* Member Display::		Showing members, switching to member buffers
-* Go to Class::			Finding a class
-* Quitting::			Discarding and burying the tree buffer
-* File Name Display::		Showing file names in the tree
-* Expanding and Collapsing::	Expanding and collapsing branches
-* Tree Indentation::		Changing the tree indentation
-* Killing Classes::		Removing class from the tree
-* Saving a Tree::		Saving a modified tree
-* Statistics::			Displaying class tree statistics
-* Marking Classes::		Marking and unmarking classes
+* Source Display::              Viewing and finding a class declaration
+* Member Display::              Showing members, switching to member buffers
+* Go to Class::                 Finding a class
+* Quitting::                    Discarding and burying the tree buffer
+* File Name Display::           Showing file names in the tree
+* Expanding and Collapsing::    Expanding and collapsing branches
+* Tree Indentation::            Changing the tree indentation
+* Killing Classes::             Removing class from the tree
+* Saving a Tree::               Saving a modified tree
+* Statistics::                  Displaying class tree statistics
+* Marking Classes::             Marking and unmarking classes
 @end menu
 
 
@@ -625,15 +625,13 @@ given by a prefix argument.
 Here is an example of a tree buffer with file names displayed.
 
 @example
-|  Collection		(unknown)
-|    IndexedCollection	(indexedcltn.h)
-|      Array		(array.h)
-|        FixedArray	(fixedarray.h)
-|    Set		(set.h)
-|    Dictionary		(dict.h)
+|  Collection           (unknown)
+|    IndexedCollection  (indexedcltn.h)
+|      Array            (array.h)
+|        FixedArray     (fixedarray.h)
+|    Set                (set.h)
+|    Dictionary         (dict.h)
 @end example
-
-
 
 
 @node Expanding and Collapsing, Tree Indentation, File Name Display, Tree Buffers
@@ -818,20 +816,20 @@ like in tree buffers, menus are provided for certain areas in the
 buffer: members, classes, and the buffer itself.
 
 @menu
-* Switching Member Lists::	Choosing which members to display
-* Finding/Viewing::		Modifying source code
-* Inherited Members::		Display of Inherited Members
-* Searching Members::		Finding members in member buffer
-* Switching to Tree::		Going back to the tree buffer
-* Filters::			Selective member display
-* Attributes::			Display of @code{virtual} etc.
-* Long and Short Display::	Comprehensive and verbose display
-* Regexp Display::		Showing matching regular expressions
-* Switching Classes::		Displaying another class
-* Killing/Burying::		Getting rid of the member buffer
-* Column Width::		Display style
-* Redisplay::			Redrawing the member list
-* Getting Help::		How to get help for key bindings
+* Switching Member Lists::      Choosing which members to display
+* Finding/Viewing::             Modifying source code
+* Inherited Members::           Display of Inherited Members
+* Searching Members::           Finding members in member buffer
+* Switching to Tree::           Going back to the tree buffer
+* Filters::                     Selective member display
+* Attributes::                  Display of @code{virtual} etc.
+* Long and Short Display::      Comprehensive and verbose display
+* Regexp Display::              Showing matching regular expressions
+* Switching Classes::           Displaying another class
+* Killing/Burying::             Getting rid of the member buffer
+* Column Width::                Display style
+* Redisplay::                   Redrawing the member list
+* Getting Help::                How to get help for key bindings
 @end menu
 
 
@@ -1234,7 +1232,7 @@ This key is bound to @code{describe-mode}.
 
 
 @comment **************************************************************
-@comment ***		    TAGS LIKE FUNCTIONS
+@comment ***                TAGS LIKE FUNCTIONS
 @comment **************************************************************
 
 @node Tags-like Functions, GNU Free Documentation License, Member Buffers, Top
@@ -1245,14 +1243,14 @@ Ebrowse provides tags functions similar to those of the standard
 Emacs Tags facility, but better suited to the needs of C++ programmers.
 
 @menu
-* Finding and Viewing::	Going to a member declaration/definition
-* Position Stack::	Moving to previous locations
-* Search & Replace::    Searching and replacing over class tree files
-* Members in Files::    Listing all members in a given file
-* Apropos::             Listing members matching a regular expression
-* Symbol Completion::   Completing names while editing
+* Finding and Viewing::   Going to a member declaration/definition
+* Position Stack::        Moving to previous locations
+* Search & Replace::      Searching and replacing over class tree files
+* Members in Files::      Listing all members in a given file
+* Apropos::               Listing members matching a regular expression
+* Symbol Completion::     Completing names while editing
 * Member Buffer Display:: Quickly display a member buffer for some
-                        identifier
+                            identifier
 @end menu
 
 

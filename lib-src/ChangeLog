@@ -1,3 +1,24 @@
+2010-07-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (lisp2): Change hebrew.el to hebrew.elc (see
+	revno 100789).
+
+2010-07-11  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* emacsclient.c (set_local_socket): Use strchr, strrchr instead of
+	index, rindex.
+	* movemail.c (mail_spool_name, popmail): Likewise.
+	* pop.c (pop_list): Likewise.
+
+2010-07-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (obj): Add menu.o, bidi.o, w32uniscrobe.o,
+	and unexw32.o.  (Bug#6603)
+
+2010-07-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in ($(DESTDIR)${archlibdir}): Convert spaces to TABs.
+
 2010-07-09  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* make-docfile.c (write_c_args): Restructure scanning loop.

@@ -24,7 +24,7 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* Mairix: (mairix-el).  Emacs interface to the Mairix mail indexer.
+* Mairix: (mairix-el).          Emacs interface to the Mairix mail indexer.
 @end direntry
 
 @titlepage

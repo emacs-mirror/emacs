@@ -753,24 +753,9 @@ x_draw_fringe_bitmap (struct window *w, struct glyph_row *row, struct draw_fring
   Window window = FRAME_X_WINDOW (f);
   GC gc = f->output_data.x->normal_gc;
   struct face *face = p->face;
-  int rowY;
 
   /* Must clip because of partially visible lines.  */
-  rowY = WINDOW_TO_FRAME_PIXEL_Y (w, row->y);
-  if (p->y < rowY)
-    {
-      /* Adjust position of "bottom aligned" bitmap on partially
-	 visible last row.  */
-      int oldY = row->y;
-      int oldVH = row->visible_height;
-      row->visible_height = p->h;
-      row->y -= rowY - p->y;
-      x_clip_to_row (w, row, -1, gc);
-      row->y = oldY;
-      row->visible_height = oldVH;
-    }
-  else
-    x_clip_to_row (w, row, -1, gc);
+  x_clip_to_row (w, row, -1, gc);
 
   if (!p->overlay_p)
     {

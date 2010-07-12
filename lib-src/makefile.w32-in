@@ -143,11 +143,11 @@ $(BLD)/ctags.$(O): ctags.c
 #
 obj =   dosfns.o msdos.o \
 	xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o fringe.o image.o \
-	fontset.o \
+	fontset.o menu.o \
 	w32.o w32console.o w32fns.o w32heap.o w32inevt.o \
 	w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o \
-	font.o w32font.o \
-	dispnew.o frame.o scroll.o xdisp.o window.o \
+	font.o w32font.o w32uniscribe.o \
+	dispnew.o frame.o scroll.o xdisp.o window.o bidi.o \
 	charset.o coding.o category.o ccl.o character.o chartab.o \
 	cm.o term.o terminal.o xfaces.o \
 	emacs.o keyboard.o macros.o keymap.o sysdep.o \
@@ -157,7 +157,7 @@ obj =   dosfns.o msdos.o \
 	alloc.o data.o doc.o editfns.o callint.o \
 	eval.o floatfns.o fns.o print.o lread.o \
 	syntax.o bytecode.o \
-	process.o callproc.o \
+	process.o callproc.o unexw32.o \
 	region-cache.o sound.o atimer.o \
 	doprnt.o strftime.o intervals.o textprop.o composite.o md5.o
 
@@ -247,7 +247,7 @@ lisp2 = \
 	$(lispsource)language/slovak.el \
 	$(lispsource)language/romanian.el \
 	$(lispsource)language/greek.el \
-	$(lispsource)language/hebrew.el \
+	$(lispsource)language/hebrew.elc \
 	$(lispsource)language/japanese.el \
 	$(lispsource)language/korean.el \
 	$(lispsource)language/lao.el \

@@ -8,8 +8,8 @@
 @copying
 This file documents the Emacs Sieve package, for server-side mail filtering.
 
-Copyright @copyright{} 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-Free Software Foundation, Inc.
+Copyright @copyright{} 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+2009, 2010  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -227,7 +227,7 @@ the @code{fileinto} command.
 require "fileinto";
 
 if address "sender" "owner-w3-beta@@xemacs.org" @{
-	fileinto "INBOX.w3-beta";
+        fileinto "INBOX.w3-beta";
 @}
 @end example
 
@@ -238,7 +238,7 @@ required.
 
 @example
 if header :contains "Delivered-To" "auc-tex@@sunsite.dk" @{
-	fileinto "INBOX.auc-tex";
+        fileinto "INBOX.auc-tex";
 @}
 @end example
 
@@ -249,7 +249,7 @@ has been required.
 
 @example
 if address ["to", "cc"] "kerberos@@mit.edu" @{
-	fileinto "INBOX.kerberos";
+        fileinto "INBOX.kerberos";
 @}
 @end example
 

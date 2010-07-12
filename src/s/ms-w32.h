@@ -274,8 +274,6 @@ typedef int pid_t;
 #define pclose    _pclose
 #define umask	  _umask
 #define utimbuf	  _utimbuf
-#define index     strchr
-#define rindex    strrchr
 #define strdup    _strdup
 #define strupr    _strupr
 #define strnicmp  _strnicmp

@@ -90,12 +90,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 const char emacs_copyright[] = "Copyright (C) 2010 Free Software Foundation, Inc.";
 const char emacs_version[] = "24.0.50";
 
-extern void malloc_warning (char *);
-extern void set_time_zone_rule (char *);
-#ifdef HAVE_INDEX
-extern char *index (const char *, int);
-#endif
-
 /* Make these values available in GDB, which doesn't see macros.  */
 
 #ifdef USE_LSB_TAG
@@ -664,7 +658,7 @@ argmatch (char **argv, int argc, char *sstr, char *lstr, int minlen, char **valp
 	*skipptr += 1;
       return 1;
     }
-  arglen = (valptr != NULL && (p = index (arg, '=')) != NULL
+  arglen = (valptr != NULL && (p = strchr (arg, '=')) != NULL
 	    ? p - arg : strlen (arg));
   if (lstr == 0 || arglen < minlen || strncmp (arg, lstr, arglen) != 0)
     return 0;
@@ -1976,7 +1970,7 @@ sort_args (int argc, char **argv)
 	    {
 	      match = -1;
 	      thislen = strlen (argv[from]);
-	      equals = index (argv[from], '=');
+	      equals = strchr (argv[from], '=');
 	      if (equals != 0)
 		thislen = equals - argv[from];
 
@@ -2344,17 +2338,16 @@ synchronize_system_messages_locale ()
 #endif
 
 Lisp_Object
-decode_env_path (evarname, defalt)
-     char *evarname, *defalt;
+decode_env_path (const char *evarname, const char *defalt)
 {
-  register char *path, *p;
+  const char *path, *p;
   Lisp_Object lpath, element, tem;
 
   /* It's okay to use getenv here, because this function is only used
      to initialize variables when Emacs starts up, and isn't called
      after that.  */
   if (evarname != 0)
-    path = (char *) getenv (evarname);
+    path = getenv (evarname);
   else
     path = 0;
   if (!path)
@@ -2363,18 +2356,18 @@ decode_env_path (evarname, defalt)
   /* Ensure values from the environment use the proper directory separator.  */
   if (path)
     {
-      p = alloca (strlen (path) + 1);
-      strcpy (p, path);
-      path = p;
-
-      dostounix_filename (path);
+      char *path_copy = alloca (strlen (path) + 1);
+      strcpy (path_copy, path);
+      dostounix_filename (path_copy);
+      path = path_copy;
     }
 #endif
   lpath = Qnil;
   while (1)
     {
-      p = index (path, SEPCHAR);
-      if (!p) p = path + strlen (path);
+      p = strchr (path, SEPCHAR);
+      if (!p)
+	p = path + strlen (path);
       element = (p - path ? make_string (path, p - path)
 		 : build_string ("."));
 

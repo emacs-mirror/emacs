@@ -110,7 +110,7 @@ forms.
 * Symbol Forms::            Symbols evaluate as variables.
 * Classifying Lists::       How to distinguish various sorts of list forms.
 * Function Indirection::    When a symbol appears as the car of a list,
-			      we find the real function via the symbol.
+                              we find the real function via the symbol.
 * Function Forms::          Forms that call functions.
 * Macro Forms::             Forms that call macros.
 * Special Forms::           "Special forms" are idiosyncratic primitives,

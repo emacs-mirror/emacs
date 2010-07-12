@@ -4,7 +4,7 @@
 ;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
-;; Keywords: keyboard emulation convenience cua
+;; Keywords: keyboard emulations convenience cua
 
 ;; This file is part of GNU Emacs.
 
