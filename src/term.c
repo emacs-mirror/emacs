@@ -101,6 +101,10 @@ static void clear_tty_hooks (struct terminal *terminal);
 static void set_tty_hooks (struct terminal *terminal);
 static void dissociate_if_controlling_tty (int fd);
 static void delete_tty (struct terminal *);
+static void maybe_fatal (int must_succeed, struct terminal *terminal,
+			 const char *str1, const char *str2, ...) NO_RETURN;
+static void vfatal (const char *str, va_list ap) NO_RETURN;
+
 
 #define OUTPUT(tty, a)                                          \
   emacs_tputs ((tty), a,                                        \
@@ -3375,8 +3379,6 @@ dissociate_if_controlling_tty (int fd)
 #endif	/* !DOS_NT */
 }
 
-static void maybe_fatal();
-
 /* Create a termcap display on the tty device with the given name and
    type.
 
@@ -3748,7 +3750,7 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
 
   if (FrameRows (tty) < 3 || FrameCols (tty) < 3)
     maybe_fatal (must_succeed, terminal,
-                 "Screen size %dx%d is too small"
+                 "Screen size %dx%d is too small",
                  "Screen size %dx%d is too small",
                  FrameCols (tty), FrameRows (tty));
 
@@ -3924,24 +3926,39 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
   return terminal;
 }
 
+
+static void
+vfatal (const char *str, va_list ap)
+{
+  fprintf (stderr, "emacs: ");
+  vfprintf (stderr, str, ap);
+  if (!(strlen (str) > 0 && str[strlen (str) - 1] == '\n'))
+    fprintf (stderr, "\n");
+  va_end (ap);
+  fflush (stderr);
+  exit (1);
+}
+
+
 /* Auxiliary error-handling function for init_tty.
    Delete TERMINAL, then call error or fatal with str1 or str2,
    respectively, according to MUST_SUCCEED.  */
 
 static void
-maybe_fatal (must_succeed, terminal, str1, str2, arg1, arg2)
-     int must_succeed;
-     struct terminal *terminal;
-     char *str1, *str2, *arg1, *arg2;
+maybe_fatal (int must_succeed, struct terminal *terminal,
+	     const char *str1, const char *str2, ...)
 {
+  va_list ap;
+  va_start (ap, str2);
   if (terminal)
     delete_tty (terminal);
 
   if (must_succeed)
-    fatal (str2, arg1, arg2);
+    vfatal (str2, ap);
   else
-    error (str1, arg1, arg2);
+    verror (str1, ap);
 
+  va_end (ap);
   abort ();
 }
 
@@ -3950,13 +3967,8 @@ fatal (const char *str, ...)
 {
   va_list ap;
   va_start (ap, str);
-  fprintf (stderr, "emacs: ");
-  vfprintf (stderr, str, ap);
-  if (!(strlen (str) > 0 && str[strlen (str) - 1] == '\n'))
-    fprintf (stderr, "\n");
+  vfatal (str, ap);
   va_end (ap);
-  fflush (stderr);
-  exit (1);
 }
 
 
