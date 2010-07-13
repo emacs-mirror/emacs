@@ -1,5 +1,12 @@
 2010-07-13  Karl Fogel  <kfogel@red-bean.com>
 
+	* bookmark.el (bookmark-show-annotation): Use `when' instead of `if'.
+	This is also from Thierry Volpiatto's patch in bug #6444.  However,
+	because it was extraneous to the functional change in that patch,
+	and causes a re-indendation, I am committing it separately.
+
+2010-07-13  Karl Fogel  <kfogel@red-bean.com>
+
 	* bookmark.el (bookmark-show-annotation): Ensure annotations show,
 	e.g. in Info bookmarks, by using `switch-to-buffer-other-window'.
 	Patch by Thierry Volpiatto (Bug#6444).
