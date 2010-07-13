@@ -612,12 +612,6 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     {
       if (fd[0] >= 0)
 	emacs_close (fd[0]);
-#ifndef subprocesses
-      /* If Emacs has been built with asynchronous subprocess support,
-	 we don't need to do this, I think because it will then have
-	 the facilities for handling SIGCHLD.  */
-      wait_without_blocking ();
-#endif /* subprocesses */
       return Qnil;
     }
 
@@ -811,8 +805,10 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	     make_number (total_read));
   }
 
+#ifndef MSDOS
   /* Wait for it to terminate, unless it already has.  */
   wait_for_termination (pid);
+#endif
 
   immediate_quit = 0;
 

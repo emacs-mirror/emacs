@@ -304,6 +304,10 @@ static int kbd_is_on_hold;
 /* Nonzero means delete a process right away if it exits.  */
 static int delete_exited_processes;
 
+/* Nonzero means don't run process sentinels.  This is used
+   when exiting.  */
+int inhibit_sentinels;
+
 #ifdef subprocesses
 
 /* Mask of bits indicating the descriptors that we wait for input on.  */
@@ -380,10 +384,6 @@ struct sockaddr_and_len {
 
 /* Maximum number of bytes to send to a pty without an eof.  */
 static int pty_max_bytes;
-
-/* Nonzero means don't run process sentinels.  This is used
-   when exiting.  */
-int inhibit_sentinels;
 
 #ifdef HAVE_PTYS
 #ifdef HAVE_PTY_H
@@ -5433,15 +5433,6 @@ read_process_output (Lisp_Object proc, register int channel)
   unbind_to (count, Qnil);
   return nbytes;
 }
-
-DEFUN ("waiting-for-user-input-p", Fwaiting_for_user_input_p, Swaiting_for_user_input_p,
-       0, 0, 0,
-       doc: /* Returns non-nil if Emacs is waiting for input from the user.
-This is intended for use by asynchronous process output filters and sentinels.  */)
-  (void)
-{
-  return (waiting_for_user_input_p ? Qt : Qnil);
-}
 
 /* Sending data to subprocess */
 
@@ -7277,6 +7268,19 @@ kill_buffer_processes (Lisp_Object buffer)
 #else  /* subprocesses */
   /* Since we have no subprocesses, this does nothing.  */
 #endif /* subprocesses */
+}
+
+DEFUN ("waiting-for-user-input-p", Fwaiting_for_user_input_p, Swaiting_for_user_input_p,
+       0, 0, 0,
+       doc: /* Returns non-nil if Emacs is waiting for input from the user.
+This is intended for use by asynchronous process output filters and sentinels.  */)
+  (void)
+{
+#ifdef subprocesses
+  return (waiting_for_user_input_p ? Qt : Qnil);
+#else
+  return Qnil;
+#endif
 }
 
 /* Stop reading input from keyboard sources.  */
