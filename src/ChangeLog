@@ -1,3 +1,8 @@
+2010-07-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* process.c (add_keyboard_wait_descriptor) [!subprocesses]: Ifdef
+	away the entire body of the function.
+
 2010-07-13  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Remove subprocesses #ifdefs from term.c.

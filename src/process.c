@@ -7122,10 +7122,12 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 void
 add_keyboard_wait_descriptor (int desc)
 {
+#ifdef subprocesses
   FD_SET (desc, &input_wait_mask);
   FD_SET (desc, &non_process_wait_mask);
   if (desc > max_keyboard_desc)
     max_keyboard_desc = desc;
+#endif
 }
 
 /* From now on, do not expect DESC to give keyboard input.  */
