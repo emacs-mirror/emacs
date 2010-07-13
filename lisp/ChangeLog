@@ -1,3 +1,10 @@
+2010-07-12  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* language/tai-viet.el ("TaiViet"): Try to fix re-encoding
+	bugs. (Bug#5806)
+
+	* language/tv-util.el (tai-viet-re): Remove format.
+
 2010-07-12  Kenichi Handa  <handa@m17n.org>
 
 	* language/hebrew.el: Remove no-byte-compile declaration.  Change

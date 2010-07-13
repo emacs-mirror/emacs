@@ -714,9 +714,9 @@ xd_retrieve_arg (unsigned int dtype, DBusMessageIter *iter)
 }
 
 /* Initialize D-Bus connection.  BUS is a Lisp symbol, either :system
-   or :session.  It tells which D-Bus to be initialized.  RAISE_ERROR
-   can be TRUE or FALSE, it controls whether an error is signalled in
-   case the connection cannot be initialized.  */
+   or :session.  It tells which D-Bus to initialize.  If RAISE_ERROR
+   is non-zero signal an error when the connection cannot be
+   initialized.  */
 static DBusConnection *
 xd_initialize (Lisp_Object bus, int raise_error)
 {
@@ -726,7 +726,7 @@ xd_initialize (Lisp_Object bus, int raise_error)
   /* Parameter check.  */
   CHECK_SYMBOL (bus);
   if (!(EQ (bus, QCdbus_system_bus) || EQ (bus, QCdbus_session_bus)))
-    if (raise_error == TRUE)
+    if (raise_error)
       XD_SIGNAL2 (build_string ("Wrong bus name"), bus);
     else
       return NULL;
@@ -734,7 +734,7 @@ xd_initialize (Lisp_Object bus, int raise_error)
   /* We do not want to have an autolaunch for the session bus.  */
   if (EQ (bus, QCdbus_session_bus)
       && getenv ("DBUS_SESSION_BUS_ADDRESS") == NULL)
-    if (raise_error == TRUE)
+    if (raise_error)
       XD_SIGNAL2 (build_string ("No connection to bus"), bus);
     else
       return NULL;
@@ -748,12 +748,12 @@ xd_initialize (Lisp_Object bus, int raise_error)
     connection = dbus_bus_get (DBUS_BUS_SESSION, &derror);
 
   if (dbus_error_is_set (&derror))
-    if (raise_error == TRUE)
+    if (raise_error)
       XD_ERROR (derror);
     else
       connection = NULL;
 
-  if ((connection == NULL) && (raise_error == TRUE))
+  if (connection == NULL && raise_error)
     XD_SIGNAL2 (build_string ("No connection to bus"), bus);
 
   /* Cleanup.  */

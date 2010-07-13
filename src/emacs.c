@@ -425,7 +425,7 @@ memory_warning_signal (sig)
 #if ! defined (DOS_NT) && ! defined (NO_ABORT)
 
 void
-abort ()
+abort (void)
 {
   kill (getpid (), SIGABRT);
   /* This shouldn't be executed, but it prevents a warning.  */
@@ -606,11 +606,11 @@ static char dump_tz[] = "UtC0";
    (We don't have any real constructors or destructors.)  */
 #ifdef __GNUC__
 #ifndef GCC_CTORS_IN_LIBC
-void __do_global_ctors ()
+void __do_global_ctors (void)
 {}
-void __do_global_ctors_aux ()
+void __do_global_ctors_aux (void)
 {}
-void __do_global_dtors ()
+void __do_global_dtors (void)
 {}
 /* GNU/Linux has a bug in its library; avoid an error.  */
 #ifndef GNU_LINUX
@@ -618,7 +618,7 @@ char * __CTOR_LIST__[2] = { (char *) (-1), 0 };
 #endif
 char * __DTOR_LIST__[2] = { (char *) (-1), 0 };
 #endif /* GCC_CTORS_IN_LIBC */
-void __main ()
+void __main (void)
 {}
 #endif /* __GNUC__ */
 #endif /* ORDINARY_LINK */
@@ -956,12 +956,6 @@ main (int argc, char **argv)
       setmode (fileno (stdout), O_BINARY);
     }
 #endif /* MSDOS */
-
-#ifdef SET_EMACS_PRIORITY
-  if (emacs_priority)
-    nice (emacs_priority);
-  setuid (getuid ());
-#endif /* SET_EMACS_PRIORITY */
 
   /* Skip initial setlocale if LC_ALL is "C", as it's not needed in that case.
      The build procedure uses this while dumping, to ensure that the
@@ -1646,6 +1640,9 @@ main (int argc, char **argv)
 
 #ifdef MSDOS
       syms_of_xmenu ();
+      syms_of_dosfns();
+      syms_of_msdos();
+      syms_of_win16select();
 #endif	/* MSDOS */
 
 #ifdef HAVE_NS
@@ -1660,13 +1657,9 @@ main (int argc, char **argv)
       syms_of_dbusbind ();
 #endif /* HAVE_DBUS */
 
-#ifdef SYMS_SYSTEM
-      SYMS_SYSTEM;
-#endif
-
-#ifdef SYMS_MACHINE
-      SYMS_MACHINE;
-#endif
+#ifdef WINDOWSNT
+      syms_of_ntterm ();
+#endif /* WINDOWSNT */
 
       keys_of_casefiddle ();
       keys_of_cmds ();
@@ -2108,9 +2101,7 @@ all of which are called before Emacs is actually killed.  */)
    and Fkill_emacs.  */
 
 void
-shut_down_emacs (sig, no_x, stuff)
-     int sig, no_x;
-     Lisp_Object stuff;
+shut_down_emacs (int sig, int no_x, Lisp_Object stuff)
 {
   /* Prevent running of hooks from now on.  */
   Vrun_hooks = Qnil;
@@ -2292,7 +2283,7 @@ You must run Emacs in batch mode in order to dump it.  */)
 #if HAVE_SETLOCALE
 /* Recover from setlocale (LC_ALL, "").  */
 void
-fixup_locale ()
+fixup_locale (void)
 {
   /* The Emacs Lisp reader needs LC_NUMERIC to be "C",
      so that numbers are read and printed properly for Emacs Lisp.  */
@@ -2315,7 +2306,7 @@ synchronize_locale (int category, Lisp_Object *plocale, Lisp_Object desired_loca
 
 /* Set system time locale to match Vsystem_time_locale, if possible.  */
 void
-synchronize_system_time_locale ()
+synchronize_system_time_locale (void)
 {
   synchronize_locale (LC_TIME, &Vprevious_system_time_locale,
 		      Vsystem_time_locale);
@@ -2324,7 +2315,7 @@ synchronize_system_time_locale ()
 /* Set system messages locale to match Vsystem_messages_locale, if
    possible.  */
 void
-synchronize_system_messages_locale ()
+synchronize_system_messages_locale (void)
 {
 #ifdef LC_MESSAGES
   synchronize_locale (LC_MESSAGES, &Vprevious_system_messages_locale,
@@ -2450,7 +2441,7 @@ from the parent process and its tty file descriptors.  */)
 }
 
 void
-syms_of_emacs ()
+syms_of_emacs (void)
 {
   Qfile_name_handler_alist = intern_c_string ("file-name-handler-alist");
   staticpro (&Qfile_name_handler_alist);

@@ -1,3 +1,136 @@
+2010-07-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove subprocesses #ifdefs from term.c.
+	* process.c (add_keyboard_wait_descriptor)
+	(delete_keyboard_wait_descriptor): Move to common section, do
+	nothing when subprocesses is not defined.
+	* term.c (Fsuspend_tty, Fresume_tty, init_tty): Remove subprocesses #ifdefs.
+
+	Convert maybe_fatal to standard C.
+	* lisp.h (verror): Declare.
+	* eval.c (verror): New function containing the code from ...
+	(error): ... this.  Call verror.
+	* term.c (vfatal): New function containing the code from ...
+	(fatal): ... this.  Call vfatal.
+	(maybe_fatal): Convert to standard C, use variable number of
+	arguments.  Declare as non-return.
+	(init_tty): Fix maybe_fatal call.
+
+2010-07-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xterm.c (x_scroll_bar_set_handle, x_scroll_bar_expose)
+	(_scroll_bar_note_movement): Convert definitions to standard C.
+	* xmenu.c (menu_help_callback, pop_down_menu, xmenu_show):
+	* xfns.c (hack_wm_protocols, x_window, x_window): Likewise.
+
+2010-07-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xterm.c (x_frame_of_widget, x_alloc_nearest_color_for_widget)
+	(x_alloc_lighter_color_for_widget, cvt_string_to_pixel)
+	(cvt_pixel_dtor, x_window_to_menu_bar, xt_action_hook)
+	(xaw_jump_callback, xaw_scroll_callback)
+	(x_create_toolkit_scroll_bar, x_set_toolkit_scroll_bar_thumb)
+	(x_wm_set_size_hint, x_activate_timeout_atimer): Convert
+	definitions to standard C.
+	* xmenu.c (menubar_id_to_frame, popup_get_selection)
+	(popup_activate_callback, popup_deactivate_callback)
+	(menu_highlight_callback, menubar_selection_callback)
+	(apply_systemfont_to_dialog, apply_systemfont_to_menu)
+	(free_frame_menubar, popup_selection_callback, as)
+	(create_and_show_popup_menu, dialog_selection_callback)
+	(create_and_show_dialog):
+	* xfns.c (hack_wm_protocols, x_window):
+	* xfaces.c (x_update_menu_appearance):
+	* widget.c (get_default_char_pixel_size, pixel_to_char_size)
+	(char_to_pixel_size, round_size_to_char, get_wm_shell)
+	(set_frame_size, update_wm_hints, setup_frame_gcs)
+	(update_various_frame_slots, update_from_various_frame_slots)
+	(EmacsFrameInitialize, EmacsFrameRealize, EmacsFrameResize)
+	(EmacsFrameSetValues, EmacsFrameQueryGeometry)
+	(EmacsFrameSetCharSize, widget_store_internal_border): Likewise.
+
+2010-07-12  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* dbusbind.c (xd_initialize): Don't compare boolean with a
+	constant.
+
+2010-07-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* process.c (setup_process_coding_systems): Move to the part
+	shared by non-subprocesses systems, and make its body empty when
+	subprocesses is not defined.
+	(close_process_descs): Move to the part shared by non-subprocesses
+	systems.
+	(wait_reading_process_output) [!subprocesses]: Convert arg list to
+	ANSI C.
+
+2010-07-12  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* editfns.c (transpose_markers): Convert old-style definition.
+	* emacs.c (abort, shut_down_emacs, fixup_locale)
+	(synchronize_system_time_locale)
+	(synchronize_system_messages_locale, syms_of_emacs): Likewise.
+	* floatfns.c (extract_float, matherr, init_floatfns)
+	(syms_of_floatfns): Likewise.
+	* fns.c (make_hash_table): Likewise.
+	* ftfont.c (ftfont_get_otf, ftfont_otf_features)
+	(ftfont_otf_capability, ftfont_get_glyph_id, ftfont_get_metrics)
+	(ftfont_drive_otf, ftfont_shape_by_flt, ftfont_shape)
+	(ftfont_variation_glyphs): Likewise.
+	* gtkutil.c (xg_create_widget, xg_modify_menubar_widgets): Likewise.
+	* keymap.c (describe_map_tree, describe_map, describe_vector): Likewise.
+	* lread.c (read_filtered_event): Likewise.
+	* minibuf.c (read_minibuf_noninteractive, read_minibuf): Likewise.
+	* process.c (wait_reading_process_output): Likewise.
+	* scroll.c (do_line_insertion_deletion_costs): Likewise.
+	* search.c (search_buffer, boyer_moore): Likewise.
+	* syntax.c (scan_sexps_forward): Likewise.
+	* xdisp.c (try_scrolling): Likewise.
+	* xfaces.c (face_at_buffer_position, face_for_overlay_string)
+	(face_at_string_position): Likewise.
+	* xfns.c (x_default_scroll_bar_color_parameter): Likewise.
+	* xselect.c (x_get_window_property, receive_incremental_selection)
+	(x_get_window_property_as_lisp_data, lisp_data_to_selection_data):
+	Likewise.
+	* xterm.c (x_draw_relief_rect, x_draw_box_rect): Likewise.
+
+2010-07-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* callproc.c (child_setup): Remove subprocesses conditional.
+	Remove code dealing with SET_EMACS_PRIORITY, unused.
+
+	* buffer.c (Fset_buffer_multibyte): Remove subprocesses conditional.
+	* process.c (close_process_descs): Use DOS_NT instead of WINDOWSNT.
+
+	* emacs.c (__do_global_ctors, __do_global_ctors_aux)
+	(__do_global_dtors, __main): Use void in definition.
+	(main): Remove code dealing with SET_EMACS_PRIORITY, unused.
+	Remove SYMS_MACHINE code, unused.  Remove SYMS_SYSTEM, inline
+	the only users from ...
+	* s/ms-w32.h (SYMS_SYSTEM): ... here and ...
+	* s/msdos.h (SYMS_SYSTEM): ... here.  Remove.
+	(HAVE_VOLATILE): Remove, unused.
+
+	Convert more function definitions to standard C.
+	* xdisp.c (window_box_edges, handle_single_display_spec)
+	(display_string): Convert definition to standard C.
+	* scroll.c (do_direct_scrolling, scrolling_1):
+	* dispnew.c (allocate_matrices_for_frame_redisplay)
+	(mirrored_line_dance):
+	* coding.c (code_convert_string):
+	* charset.c (map_charset_chars):
+	* ccl.c (Fccl_program_p, Fccl_execute, Fccl_execute_on_string)
+	(Fregister_ccl_program, Fregister_code_conversion_map):
+	* keyboard.c (kbd_buffer_nr_stored): Likewise.
+	(head_table): Make static and const.
+
+2010-07-12  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.in (C_WARNINGS_SWITCH, PROFILING_CFLAGS)
+	(PROFILING_LDFLAGS): Set from substitution.
+	(ALL_CFLAGS): Add C_WARNINGS_SWITCH and PROFILING_CFLAGS, put
+	CFLAGS last.
+
 2010-07-12  Kenichi Handa  <handa@m17n.org>
 
 	* Makefile.in (lisp): Change hebrew.el to hebrew.elc.

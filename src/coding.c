@@ -9017,10 +9017,8 @@ not fully specified.)  */)
 }
 
 Lisp_Object
-code_convert_string (string, coding_system, dst_object,
-		     encodep, nocopy, norecord)
-     Lisp_Object string, coding_system, dst_object;
-     int encodep, nocopy, norecord;
+code_convert_string (Lisp_Object string, Lisp_Object coding_system,
+		     Lisp_Object dst_object, int encodep, int nocopy, int norecord)
 {
   struct coding_system coding;
   EMACS_INT chars, bytes;

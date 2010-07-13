@@ -457,8 +457,7 @@ ftfont_get_fc_charset (Lisp_Object entity)
 
 #ifdef HAVE_LIBOTF
 static OTF *
-ftfont_get_otf (ftfont_info)
-     struct ftfont_info *ftfont_info;
+ftfont_get_otf (struct ftfont_info *ftfont_info)
 {
   OTF *otf;
 
@@ -1475,8 +1474,7 @@ ftfont_anchor_point (struct font *font, unsigned int code, int index, int *x, in
 #ifdef HAVE_LIBOTF
 
 static Lisp_Object
-ftfont_otf_features (gsub_gpos)
-     OTF_GSUB_GPOS *gsub_gpos;
+ftfont_otf_features (OTF_GSUB_GPOS *gsub_gpos)
 {
   Lisp_Object scripts, langsyses, features, sym;
   int i, j, k, l;
@@ -1520,8 +1518,7 @@ ftfont_otf_features (gsub_gpos)
 
 
 static Lisp_Object
-ftfont_otf_capability (font)
-     struct font *font;
+ftfont_otf_capability (struct font *font)
 {
   struct ftfont_info *ftfont_info = (struct ftfont_info *) font;
   OTF *otf = ftfont_get_otf (ftfont_info);
@@ -1559,10 +1556,8 @@ struct MFLTFontFT
 };
 
 static int
-ftfont_get_glyph_id (font, gstring, from, to)
-     MFLTFont *font;
-     MFLTGlyphString *gstring;
-     int from, to;
+ftfont_get_glyph_id (MFLTFont *font, MFLTGlyphString *gstring,
+		     int from, int to)
 {
   struct MFLTFontFT *flt_font_ft = (struct MFLTFontFT *) font;
   FT_Face ft_face = flt_font_ft->ft_face;
@@ -1586,10 +1581,8 @@ ftfont_get_glyph_id (font, gstring, from, to)
 #define ROUND(x)    (((x)+32) & -64)
 
 static int
-ftfont_get_metrics (font, gstring, from, to)
-     MFLTFont *font;
-     MFLTGlyphString *gstring;
-     int from, to;
+ftfont_get_metrics (MFLTFont *font, MFLTGlyphString *gstring,
+		    int from, int to)
 {
   struct MFLTFontFT *flt_font_ft = (struct MFLTFontFT *) font;
   FT_Face ft_face = flt_font_ft->ft_face;
@@ -2086,13 +2079,9 @@ ftfont_try_otf (MFLTFont *font, MFLTOtfSpec *spec,
 #else  /* not M17N_FLT_USE_NEW_FEATURE */
 
 static int
-ftfont_drive_otf (font, spec, in, from, to, out, adjustment)
-     MFLTFont *font;
-     MFLTOtfSpec *spec;
-     MFLTGlyphString *in;
-     int from, to;
-     MFLTGlyphString *out;
-     MFLTGlyphAdjustment *adjustment;
+ftfont_drive_otf (MFLTFont *font, MFLTOtfSpec *spec, MFLTGlyphString *in,
+		  int from, int to,
+		  MFLTGlyphString *out, MFLTGlyphAdjustment *adjustment)
 {
   struct MFLTFontFT *flt_font_ft = (struct MFLTFontFT *) font;
   FT_Face ft_face = flt_font_ft->ft_face;
@@ -2347,12 +2336,8 @@ static int m17n_flt_initialized;
 extern Lisp_Object QCfamily;
 
 static Lisp_Object
-ftfont_shape_by_flt (lgstring, font, ft_face, otf, matrix)
-     Lisp_Object lgstring;
-     struct font *font;
-     FT_Face ft_face;
-     OTF *otf;
-     FT_Matrix *matrix;
+ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,
+		     FT_Face ft_face, OTF *otf, FT_Matrix *matrix)
 {
   EMACS_UINT len = LGSTRING_GLYPH_LEN (lgstring);
   EMACS_UINT i;
@@ -2518,8 +2503,7 @@ ftfont_shape_by_flt (lgstring, font, ft_face, otf, matrix)
 }
 
 Lisp_Object
-ftfont_shape (lgstring)
-     Lisp_Object lgstring;
+ftfont_shape (Lisp_Object lgstring)
 {
   struct font *font;
   struct ftfont_info *ftfont_info;
@@ -2539,10 +2523,7 @@ ftfont_shape (lgstring)
 #ifdef HAVE_OTF_GET_VARIATION_GLYPHS
 
 static int
-ftfont_variation_glyphs (font, c, variations)
-     struct font *font;
-     int c;
-     unsigned variations[256];
+ftfont_variation_glyphs (struct font *font, int c, unsigned variations[256])
 {
   struct ftfont_info *ftfont_info = (struct ftfont_info *) font;
   OTF *otf = ftfont_get_otf (ftfont_info);

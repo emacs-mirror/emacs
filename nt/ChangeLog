@@ -1,3 +1,7 @@
+2010-07-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* config.nt (volatile): Remove definition.
+
 2010-07-07  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* config.nt (HAVE_BCOPY, HAVE_BCMP): Remove undefs.

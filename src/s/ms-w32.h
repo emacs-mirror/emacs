@@ -40,7 +40,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* SYSTEM_TYPE should indicate the kind of system you are using.
    It sets the Lisp variable system-type.  */
 #define SYSTEM_TYPE "windows-nt"
-#define SYMS_SYSTEM syms_of_ntterm ()
 
 #define NO_MATHERR 1
 

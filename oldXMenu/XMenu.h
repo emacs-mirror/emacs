@@ -16,6 +16,7 @@
 #ifndef _XMenu_h_
 #define _XMenu_h_
 
+#include <stdlib.h>
 #include <X11/Xutil.h>
 #include "X10.h"
 

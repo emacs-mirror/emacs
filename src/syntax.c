@@ -2861,14 +2861,10 @@ This includes chars with "quote" or "prefix" syntax (' or p).  */)
    after the beginning of a string, or after the end of a string.  */
 
 static void
-scan_sexps_forward (stateptr, from, from_byte, end, targetdepth,
-		    stopbefore, oldstate, commentstop)
-     struct lisp_parse_state *stateptr;
-     register EMACS_INT from;
-     EMACS_INT from_byte, end;
-     int targetdepth, stopbefore;
-     Lisp_Object oldstate;
-     int commentstop;
+scan_sexps_forward (struct lisp_parse_state *stateptr,
+		    EMACS_INT from, EMACS_INT from_byte, EMACS_INT end,
+		    int targetdepth, int stopbefore,
+		    Lisp_Object oldstate, int commentstop)
 {
   struct lisp_parse_state state;
 

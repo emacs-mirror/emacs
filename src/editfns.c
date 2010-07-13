@@ -4169,10 +4169,9 @@ Case is ignored if `case-fold-search' is non-nil in the current buffer.  */)
    It's the caller's job to ensure that START1 <= END1 <= START2 <= END2.  */
 
 static void
-transpose_markers (start1, end1, start2, end2,
-		   start1_byte, end1_byte, start2_byte, end2_byte)
-     register int start1, end1, start2, end2;
-     register int start1_byte, end1_byte, start2_byte, end2_byte;
+transpose_markers (int start1, int end1, int start2, int end2,
+		   int start1_byte, int end1_byte,
+		   int start2_byte, int end2_byte)
 {
   register int amt1, amt1_byte, amt2, amt2_byte, diff, diff_byte, mpos;
   register struct Lisp_Marker *marker;

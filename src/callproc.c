@@ -1054,19 +1054,9 @@ child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, L
 
   int pid = getpid ();
 
-#ifdef SET_EMACS_PRIORITY
-  {
-    extern EMACS_INT emacs_priority;
-
-    if (emacs_priority < 0)
-      nice (- emacs_priority);
-  }
-#endif
-
-#ifdef subprocesses
   /* Close Emacs's descriptors that this process should not have.  */
   close_process_descs ();
-#endif
+
   /* DOS_NT isn't in a vfork, so if we are in the middle of load-file,
      we will lose if we call close_load_descs here.  */
 #ifndef DOS_NT
