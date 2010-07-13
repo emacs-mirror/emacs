@@ -1741,7 +1741,7 @@ if an annotation exists."
             ;; (insert (concat "Annotation for bookmark '" bookmark "':\n\n"))
             (insert annotation)
             (goto-char (point-min))
-            (pop-to-buffer old-buf))))))
+            (switch-to-buffer-other-window old-buf))))))
 
 
 (defun bookmark-show-all-annotations ()
