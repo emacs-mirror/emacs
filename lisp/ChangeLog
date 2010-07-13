@@ -1,3 +1,7 @@
+2010-07-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.el (make-frame): Fix typo in 2010-06-30 change (Bug#6625).
+
 2010-07-13  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
 	* term/ns-win.el: Bind M-~ to 'ns-prev-frame (due to Matthew
