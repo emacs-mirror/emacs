@@ -1,3 +1,13 @@
+2010-07-13  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* term/ns-win.el: Bind M-~ to 'ns-prev-frame (due to Matthew
+	Dempsky; bug#5084).  Remove incorrect binding for S-tab.
+	(ns-alternatives-map): Change S-tab binding to backtab
+	(bug#6616).
+
+	* simple.el (normal-erase-is-backspace-setup-frame): Set mode on
+	under ns.
+
 2010-07-12  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* language/tai-viet.el ("TaiViet"): Try to fix re-encoding
