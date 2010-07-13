@@ -2431,10 +2431,7 @@ A suspended tty may be resumed by calling `resume-tty' on it.  */)
         }
 
       reset_sys_modes (t->display_info.tty);
-
-#ifdef subprocesses
       delete_keyboard_wait_descriptor (fileno (f));
-#endif
 
 #ifndef MSDOS
       fclose (f);
@@ -2502,9 +2499,7 @@ frame's terminal). */)
       t->display_info.tty->input = t->display_info.tty->output;
 #endif
 
-#ifdef subprocesses
       add_keyboard_wait_descriptor (fd);
-#endif
 
       if (FRAMEP (t->display_info.tty->top_frame))
 	{
@@ -3523,9 +3518,7 @@ init_tty (char *name, char *terminal_type, int must_succeed)
   terminal->name = xstrdup (name);
   tty->type = xstrdup (terminal_type);
 
-#ifdef subprocesses
   add_keyboard_wait_descriptor (0);
-#endif
 
   Wcm_clear (tty);
 
@@ -4017,9 +4010,7 @@ delete_tty (struct terminal *terminal)
 
   if (tty->input)
     {
-#ifdef subprocesses
       delete_keyboard_wait_descriptor (fileno (tty->input));
-#endif
       if (tty->input != stdin)
         fclose (tty->input);
     }

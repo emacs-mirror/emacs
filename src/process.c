@@ -6844,17 +6844,6 @@ DEFUN ("process-filter-multibyte-p", Fprocess_filter_multibyte_p,
 
 
 
-/* Add DESC to the set of keyboard input descriptors.  */
-
-void
-add_keyboard_wait_descriptor (int desc)
-{
-  FD_SET (desc, &input_wait_mask);
-  FD_SET (desc, &non_process_wait_mask);
-  if (desc > max_keyboard_desc)
-    max_keyboard_desc = desc;
-}
-
 static int add_gpm_wait_descriptor_called_flag;
 
 void
@@ -6867,25 +6856,6 @@ add_gpm_wait_descriptor (int desc)
   FD_SET (desc, &gpm_wait_mask);
   if (desc > max_gpm_desc)
     max_gpm_desc = desc;
-}
-
-/* From now on, do not expect DESC to give keyboard input.  */
-
-void
-delete_keyboard_wait_descriptor (int desc)
-{
-  int fd;
-  int lim = max_keyboard_desc;
-
-  FD_CLR (desc, &input_wait_mask);
-  FD_CLR (desc, &non_process_wait_mask);
-
-  if (desc == max_keyboard_desc)
-    for (fd = 0; fd < lim; fd++)
-      if (FD_ISSET (fd, &input_wait_mask)
-	  && !FD_ISSET (fd, &non_keyboard_wait_mask)
-	  && !FD_ISSET (fd, &gpm_wait_mask))
-	max_keyboard_desc = fd;
 }
 
 void
@@ -7146,6 +7116,38 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 
 /* The following functions are needed even if async subprocesses are
    not supported.  Some of them are no-op stubs in that case.  */
+
+/* Add DESC to the set of keyboard input descriptors.  */
+
+void
+add_keyboard_wait_descriptor (int desc)
+{
+  FD_SET (desc, &input_wait_mask);
+  FD_SET (desc, &non_process_wait_mask);
+  if (desc > max_keyboard_desc)
+    max_keyboard_desc = desc;
+}
+
+/* From now on, do not expect DESC to give keyboard input.  */
+
+void
+delete_keyboard_wait_descriptor (int desc)
+{
+#ifdef subprocesses
+  int fd;
+  int lim = max_keyboard_desc;
+
+  FD_CLR (desc, &input_wait_mask);
+  FD_CLR (desc, &non_process_wait_mask);
+
+  if (desc == max_keyboard_desc)
+    for (fd = 0; fd < lim; fd++)
+      if (FD_ISSET (fd, &input_wait_mask)
+	  && !FD_ISSET (fd, &non_keyboard_wait_mask)
+	  && !FD_ISSET (fd, &gpm_wait_mask))
+	max_keyboard_desc = fd;
+#endif /* subprocesses */
+}
 
 /* Setup coding systems of PROCESS.  */
 
