@@ -1,3 +1,51 @@
+2010-07-13  Eli Zaretskii  <eliz@gnu.org>
+
+	Remove subprocesses #ifdefs.
+	* process.c <inhibit_sentinels>: Move to the common part.
+	(Fwaiting_for_user_input_p): Move to the common part; return nil
+	if async subprocesses aren't supported.
+	* sysdep.c (wait_for_termination) [!MSDOS]: Don't compile on
+	MS-DOS.  Remove "#ifdef subprocesses".
+	(sys_subshell, sys_select): Remove "#ifdef subprocesses".
+	(gettimeofday): Remove "#ifdef subprocesses".
+	(wait_without_blocking): Remove function.
+	(flush_pending_output, child_setup_tty): Don't compile on MS-DOS.
+	Remove "#ifdef subprocesses".
+	(child_setup_tty): Use WINDOWSNT instead of DOS_NT, since not
+	compiled on MS-DOS.
+	* callproc.c (Fcall_process) [!MSDOS]: Don't call
+	wait_for_termination on MS-DOS.
+	* emacs.c (shut_down_emacs): Remove "#ifndef subprocesses" from
+	initialization of inhibit_sentinels.
+	* keyboard.c (record_asynch_buffer_change): Remove "#ifdef
+	subprocesses" conditional.
+	* callproc.c (Fcall_process) [!subprocesses]: Don't call
+	wait_for_termination, since `buffer' cannot be an integer when
+	async subprocesses are not supported
+	* xdisp.c (decode_mode_spec): Use `MSDOS' instead of `subprocesses'
+	for ifdefing away the call to Fprocess_status.
+
+	* process.c (add_keyboard_wait_descriptor) [!subprocesses]: Ifdef
+	away the entire body of the function.
+
+2010-07-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove subprocesses #ifdefs from term.c.
+	* process.c (add_keyboard_wait_descriptor)
+	(delete_keyboard_wait_descriptor): Move to common section, do
+	nothing when subprocesses is not defined.
+	* term.c (Fsuspend_tty, Fresume_tty, init_tty): Remove subprocesses #ifdefs.
+
+	Convert maybe_fatal to standard C.
+	* lisp.h (verror): Declare.
+	* eval.c (verror): New function containing the code from ...
+	(error): ... this.  Call verror.
+	* term.c (vfatal): New function containing the code from ...
+	(fatal): ... this.  Call vfatal.
+	(maybe_fatal): Convert to standard C, use variable number of
+	arguments.  Declare as non-return.
+	(init_tty): Fix maybe_fatal call.
+
 2010-07-12  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* xterm.c (x_scroll_bar_set_handle, x_scroll_bar_expose)

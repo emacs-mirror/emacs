@@ -10183,11 +10183,9 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
   xsettings_initialize (dpyinfo);
 
-#ifdef subprocesses
   /* This is only needed for distinguishing keyboard and process input.  */
   if (connection != 0)
     add_keyboard_wait_descriptor (connection);
-#endif
 
 #ifdef F_SETOWN
   fcntl (connection, F_SETOWN, getpid ());

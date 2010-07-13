@@ -2908,6 +2908,7 @@ extern void specbind (Lisp_Object, Lisp_Object);
 extern void record_unwind_protect (Lisp_Object (*) (Lisp_Object), Lisp_Object);
 extern Lisp_Object unbind_to (int, Lisp_Object);
 extern void error (const char *, ...) NO_RETURN;
+extern void verror (const char *, va_list) NO_RETURN;
 extern void do_autoload (Lisp_Object, Lisp_Object);
 extern Lisp_Object un_autoload (Lisp_Object);
 EXFUN (Ffetch_bytecode, 1);
