@@ -6901,18 +6901,15 @@ record_asynch_buffer_change (void)
   event.frame_or_window = Qnil;
   event.arg = Qnil;
 
-#ifdef subprocesses
   /* We don't need a buffer-switch event unless Emacs is waiting for input.
      The purpose of the event is to make read_key_sequence look up the
      keymaps again.  If we aren't in read_key_sequence, we don't need one,
-     and the event could cause trouble by messing up (input-pending-p).  */
+     and the event could cause trouble by messing up (input-pending-p).
+     Note: Fwaiting_for_user_input_p always returns nil when async
+     subprocesses aren't supported.  */
   tem = Fwaiting_for_user_input_p ();
   if (NILP (tem))
     return;
-#else
-  /* We never need these events if we have no asynchronous subprocesses.  */
-  return;
-#endif
 
   /* Make sure no interrupt happens while storing the event.  */
 #ifdef SIGIO
