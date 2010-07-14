@@ -2990,6 +2990,38 @@ free_frame_menubar (f)
     }
 }
 
+int
+xg_event_is_for_menubar (FRAME_PTR f, XEvent *event)
+{
+  struct x_output *x = f->output_data.x;
+
+  if (! x->menubar_widget) return 0;
+
+  if (! (event->xbutton.x >= 0
+         && event->xbutton.x < FRAME_PIXEL_WIDTH (f)
+         && event->xbutton.y >= 0
+         && event->xbutton.y < f->output_data.x->menubar_height
+         && event->xbutton.same_screen))
+    return 0;
+
+  GList *list = gtk_container_get_children (GTK_CONTAINER (x->menubar_widget));
+  if (! list) return 0;
+  GList *iter;
+  GdkRectangle rec;
+  rec.x = event->xbutton.x;
+  rec.y = event->xbutton.y;
+  rec.width = 1;
+  rec.height = 1;
+  for (iter = list ; iter; iter = g_list_next (iter))
+    {
+      GtkWidget *w = GTK_WIDGET (iter->data);
+      if (GTK_WIDGET_MAPPED (w) && gtk_widget_intersect (w, &rec, NULL))
+        break;
+    }
+  g_list_free (list);
+  return iter == 0 ? 0 : 1;
+}
+
 
 
 /***********************************************************************

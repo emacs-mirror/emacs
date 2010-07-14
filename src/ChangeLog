@@ -1,3 +1,20 @@
+2010-07-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.h (x_menubar_window_to_frame): Second parameter is XEvent*.
+
+	* xterm.c (handle_one_xevent): Pass event to x_menubar_window_to_frame.
+
+	* xmenu.c (x_activate_menubar): Revert previous fix for Bug#6499,
+	i.e. don't put back ButtonRelease (Bug#6608).
+
+	* xfns.c (x_menubar_window_to_frame): Take XEvent as second parameter
+	instead of Window.  Call xg_event_is_for_menubar when
+	USE_GTK (Bug#6499).
+
+	* gtkutil.h (xg_event_is_for_menubar): Declare.
+
+	* gtkutil.c (xg_event_is_for_menubar): New function (Bug#6499).
+
 2010-07-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c (x_set_foreground_color): Fix setting the cursor color

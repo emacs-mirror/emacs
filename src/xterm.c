@@ -6951,7 +6951,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 	  f->mouse_moved = 0;
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
-        f = x_menubar_window_to_frame (dpyinfo, event.xbutton.window);
+        f = x_menubar_window_to_frame (dpyinfo, &event);
         /* For a down-event in the menu bar,
            don't pass it to Xt right now.
            Instead, save it away
