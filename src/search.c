@@ -1110,18 +1110,9 @@ while (0)
 static struct re_registers search_regs_1;
 
 static EMACS_INT
-search_buffer (string, pos, pos_byte, lim, lim_byte, n,
-	       RE, trt, inverse_trt, posix)
-     Lisp_Object string;
-     EMACS_INT pos;
-     EMACS_INT pos_byte;
-     EMACS_INT lim;
-     EMACS_INT lim_byte;
-     int n;
-     int RE;
-     Lisp_Object trt;
-     Lisp_Object inverse_trt;
-     int posix;
+search_buffer (Lisp_Object string, EMACS_INT pos, EMACS_INT pos_byte,
+	       EMACS_INT lim, EMACS_INT lim_byte, int n,
+	       int RE, Lisp_Object trt, Lisp_Object inverse_trt, int posix)
 {
   int len = SCHARS (string);
   int len_byte = SBYTES (string);
@@ -1668,16 +1659,10 @@ simple_search (int n, unsigned char *pat, int len, int len_byte, Lisp_Object trt
    If that criterion is not satisfied, do not call this function.  */
 
 static EMACS_INT
-boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
-	     pos, pos_byte, lim, lim_byte, char_base)
-     int n;
-     unsigned char *base_pat;
-     int len, len_byte;
-     Lisp_Object trt;
-     Lisp_Object inverse_trt;
-     EMACS_INT pos, pos_byte;
-     EMACS_INT lim, lim_byte;
-     int char_base;
+boyer_moore (int n, unsigned char *base_pat, int len, int len_byte,
+	     Lisp_Object trt, Lisp_Object inverse_trt,
+	     EMACS_INT pos, EMACS_INT pos_byte,
+	     EMACS_INT lim, EMACS_INT lim_byte, int char_base)
 {
   int direction = ((n > 0) ? 1 : -1);
   register int dirlen;

@@ -3757,10 +3757,9 @@ hashfn_user_defined (struct Lisp_Hash_Table *h, Lisp_Object key)
    one of the symbols `key', `value', `key-or-value', or `key-and-value'.  */
 
 Lisp_Object
-make_hash_table (test, size, rehash_size, rehash_threshold, weak,
-		 user_test, user_hash)
-     Lisp_Object test, size, rehash_size, rehash_threshold, weak;
-     Lisp_Object user_test, user_hash;
+make_hash_table (Lisp_Object test, Lisp_Object size, Lisp_Object rehash_size,
+		 Lisp_Object rehash_threshold, Lisp_Object weak,
+		 Lisp_Object user_test, Lisp_Object user_hash)
 {
   struct Lisp_Hash_Table *h;
   Lisp_Object table;

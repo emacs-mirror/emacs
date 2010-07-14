@@ -1,3 +1,37 @@
+2010-07-13  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el (bookmark-show-annotation): Use `when' instead of `if'.
+	This is also from Thierry Volpiatto's patch in bug #6444.  However,
+	because it was extraneous to the functional change in that patch,
+	and causes a re-indendation, I am committing it separately.
+
+2010-07-13  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el (bookmark-show-annotation): Ensure annotations show,
+	e.g. in Info bookmarks, by using `switch-to-buffer-other-window'.
+	Patch by Thierry Volpiatto (Bug#6444).
+
+2010-07-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.el (make-frame): Fix typo in 2010-06-30 change (Bug#6625).
+
+2010-07-13  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* term/ns-win.el: Bind M-~ to 'ns-prev-frame (due to Matthew
+	Dempsky; bug#5084).  Remove incorrect binding for S-tab.
+	(ns-alternatives-map): Change S-tab binding to backtab
+	(bug#6616).
+
+	* simple.el (normal-erase-is-backspace-setup-frame): Set mode on
+	under ns.
+
+2010-07-12  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* language/tai-viet.el ("TaiViet"): Try to fix re-encoding
+	bugs. (Bug#5806)
+
+	* language/tv-util.el (tai-viet-re): Remove format.
+
 2010-07-12  Kenichi Handa  <handa@m17n.org>
 
 	* language/hebrew.el: Remove no-byte-compile declaration.  Change

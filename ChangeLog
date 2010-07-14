@@ -1,3 +1,10 @@
+2010-07-12  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in (C_WARNINGS_SWITCH, PROFILING_CFLAGS)
+	(PROFILING_LDFLAGS): Substitute, don't add them to CFLAGS/LDFLAGS.
+	(C_OPTIMIZE_SWITCH): Remove.
+	(TEMACS_LDFLAGS2): Add ${PROFILING_LDFLAGS}.
+
 2010-07-11  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* configure.in: Don't check for index and rindex, check for strchr

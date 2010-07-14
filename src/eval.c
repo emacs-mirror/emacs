@@ -1991,11 +1991,10 @@ find_handler_clause (Lisp_Object handlers, Lisp_Object conditions,
   return Qnil;
 }
 
-/* dump an error message; called like printf */
 
-/* VARARGS 1 */
+/* dump an error message; called like vprintf */
 void
-error (const char *m, ...)
+verror (const char *m, va_list ap)
 {
   char buf[200];
   int size = 200;
@@ -2009,14 +2008,8 @@ error (const char *m, ...)
 
   while (1)
     {
-      va_list ap;
       int used;
-
-      /* A va_list can't be reused if we have to go around the loop
-	 again; we need to "reinitialize" it each time.  */
-      va_start(ap, m);
       used = doprnt (buffer, size, m, m + mlen, ap);
-      va_end(ap);
       if (used < size)
 	break;
       size *= 2;
@@ -2034,6 +2027,19 @@ error (const char *m, ...)
     xfree (buffer);
 
   xsignal1 (Qerror, string);
+}
+
+
+/* dump an error message; called like printf */
+
+/* VARARGS 1 */
+void
+error (const char *m, ...)
+{
+  va_list ap;
+  va_start (ap, m);
+  verror (m, ap);
+  va_end (ap);
 }
 
 DEFUN ("commandp", Fcommandp, Scommandp, 1, 2, 0,

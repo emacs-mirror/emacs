@@ -3593,7 +3593,7 @@ event_to_kboard (struct input_event *event)
 /* Return the number of slots occupied in kbd_buffer.  */
 
 static int
-kbd_buffer_nr_stored ()
+kbd_buffer_nr_stored (void)
 {
   return kbd_fetch_ptr == kbd_store_ptr
     ? 0
@@ -6901,18 +6901,15 @@ record_asynch_buffer_change (void)
   event.frame_or_window = Qnil;
   event.arg = Qnil;
 
-#ifdef subprocesses
   /* We don't need a buffer-switch event unless Emacs is waiting for input.
      The purpose of the event is to make read_key_sequence look up the
      keymaps again.  If we aren't in read_key_sequence, we don't need one,
-     and the event could cause trouble by messing up (input-pending-p).  */
+     and the event could cause trouble by messing up (input-pending-p).
+     Note: Fwaiting_for_user_input_p always returns nil when async
+     subprocesses aren't supported.  */
   tem = Fwaiting_for_user_input_p ();
   if (NILP (tem))
     return;
-#else
-  /* We never need these events if we have no asynchronous subprocesses.  */
-  return;
-#endif
 
   /* Make sure no interrupt happens while storing the event.  */
 #ifdef SIGIO
@@ -11536,7 +11533,7 @@ struct event_head {
   Lisp_Object *kind;
 };
 
-struct event_head head_table[] = {
+static const struct event_head head_table[] = {
   {&Qmouse_movement,      "mouse-movement",      &Qmouse_movement},
   {&Qscroll_bar_movement, "scroll-bar-movement", &Qmouse_movement},
   {&Qswitch_frame,        "switch-frame",        &Qswitch_frame},
@@ -11721,7 +11718,7 @@ syms_of_keyboard (void)
   last_point_position_window = Qnil;
 
   {
-    struct event_head *p;
+    const struct event_head *p;
 
     for (p = head_table;
 	 p < head_table + (sizeof (head_table) / sizeof (head_table[0]));

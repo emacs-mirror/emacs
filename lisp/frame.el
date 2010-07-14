@@ -736,11 +736,11 @@ the new frame according to its own rules."
       (error "Don't know how to create a frame on window system %s" w))
     ;; Add parameters from `window-system-default-frame-alist'.
     (dolist (p (cdr (assq w window-system-default-frame-alist)))
-      (unless (memq (car p) params)
+      (unless (assq (car p) params)
 	(push p params)))
     ;; Add parameters from `default-frame-alist'.
     (dolist (p default-frame-alist)
-      (unless (memq (car p) params)
+      (unless (assq (car p) params)
 	(push p params)))
     ;; Now make the frame.
     (run-hooks 'before-make-frame-hook)

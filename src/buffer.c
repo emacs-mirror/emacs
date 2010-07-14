@@ -2540,7 +2540,6 @@ current buffer is cleared.  */)
   if (!modified_p && !NILP (Fbuffer_modified_p (Qnil)))
     Fset_buffer_modified_p (Qnil);
 
-#ifdef subprocesses
   /* Update coding systems of this buffer's process (if any).  */
   {
     Lisp_Object process;
@@ -2549,7 +2548,6 @@ current buffer is cleared.  */)
     if (PROCESSP (process))
       setup_process_coding_systems (process);
   }
-#endif	/* subprocesses */
 
   return flag;
 }

@@ -612,12 +612,6 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     {
       if (fd[0] >= 0)
 	emacs_close (fd[0]);
-#ifndef subprocesses
-      /* If Emacs has been built with asynchronous subprocess support,
-	 we don't need to do this, I think because it will then have
-	 the facilities for handling SIGCHLD.  */
-      wait_without_blocking ();
-#endif /* subprocesses */
       return Qnil;
     }
 
@@ -811,8 +805,10 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	     make_number (total_read));
   }
 
+#ifndef MSDOS
   /* Wait for it to terminate, unless it already has.  */
   wait_for_termination (pid);
+#endif
 
   immediate_quit = 0;
 
@@ -1054,19 +1050,9 @@ child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, L
 
   int pid = getpid ();
 
-#ifdef SET_EMACS_PRIORITY
-  {
-    extern EMACS_INT emacs_priority;
-
-    if (emacs_priority < 0)
-      nice (- emacs_priority);
-  }
-#endif
-
-#ifdef subprocesses
   /* Close Emacs's descriptors that this process should not have.  */
   close_process_descs ();
-#endif
+
   /* DOS_NT isn't in a vfork, so if we are in the middle of load-file,
      we will lose if we call close_load_descs here.  */
 #ifndef DOS_NT

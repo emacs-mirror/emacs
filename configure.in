@@ -327,6 +327,8 @@ else
    PROFILING_CFLAGS=
    PROFILING_LDFLAGS=
 fi
+AC_SUBST(PROFILING_CFLAGS)
+AC_SUBST(PROFILING_LDFLAGS)
 
 AC_ARG_ENABLE(autodepend,
 [AS_HELP_STRING([--enable-autodepend],
@@ -720,14 +722,6 @@ then
   CC="$NON_GNU_CC"
 fi
 
-if test x$GCC = xyes; then
-  C_OPTIMIZE_SWITCH=-O2
-  test "x$GCC_TEST_OPTIONS" != x && CC="$CC $GCC_TEST_OPTIONS"
-else
-  C_OPTIMIZE_SWITCH=-O
-  test "x$NON_GCC_TEST_OPTIONS" != x && CC="$CC $NON_GCC_TEST_OPTIONS"
-fi
-
 dnl checks for Unix variants
 AC_USE_SYSTEM_EXTENSIONS
 
@@ -770,6 +764,7 @@ AC_MSG_RESULT($has_option)
 CFLAGS="$SAVE_CFLAGS"
 unset has_option
 unset SAVE_CFLAGS
+AC_SUBST(C_WARNINGS_SWITCH)
 
 
 #### Some other nice autoconf tests.
@@ -861,33 +856,10 @@ AC_LINK_IFELSE([main(){return 0;}],
   LDFLAGS=$late_LDFLAGS
   [AC_MSG_RESULT(no)])
 
-LDFLAGS="${LDFLAGS} ${PROFILING_LDFLAGS}"
-
 
 # The value of CPP is a quoted variable reference, so we need to do this
 # to get its actual value...
 CPP=`eval "echo $CPP"`
-
-
-### First figure out CFLAGS (which we use for running the compiler here)
-### and REAL_CFLAGS (which we use for real compilation).
-### The two are the same except when using GCC where we might use
-### extra warning and profiling flags.
-
-### If the CFLAGS env var is specified, we use that value
-### instead of the default.
-
-dnl Note AC_PROG_CC sets CFLAGS to -g -O2 for gcc anyway.
-if test "x$SPECIFIED_CFLAGS" = x; then
-  CFLAGS="-g $C_OPTIMIZE_SWITCH"
-  if test x$GCC = xyes; then
-    REAL_CFLAGS="$CFLAGS $C_WARNINGS_SWITCH $PROFILING_CFLAGS"
-  else
-    REAL_CFLAGS="$CFLAGS"
-  fi
-else
-  REAL_CFLAGS="$CFLAGS"
-fi
 
 
 dnl Not used by any currently supported platform.
@@ -1497,7 +1469,7 @@ tmp_CPPFLAGS="$CPPFLAGS"
 tmp_CFLAGS="$CFLAGS"
 CPPFLAGS="$CPPFLAGS -x objective-c"
 CFLAGS="$CFLAGS -x objective-c"
-TEMACS_LDFLAGS2="\${LDFLAGS}"
+TEMACS_LDFLAGS2="\${LDFLAGS} \${PROFILING_LDFLAGS}"
 dnl I don't think it's especially important, but src/Makefile.in
 dnl (now the only user of ns_appdir) used to go to the trouble of adding a
 dnl trailing "/" to it, so now we do it here.
@@ -1526,7 +1498,6 @@ if test "${with_ns}" != no; then
        GNUSTEP_LOCAL_LIBRARIES="-L${GNUSTEP_LOCAL_LIBRARIES}"
      CPPFLAGS="$CPPFLAGS -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
      CFLAGS="$CFLAGS -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
-     REAL_CFLAGS="$REAL_CFLAGS -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
      LDFLAGS="$LDFLAGS -L${GNUSTEP_SYSTEM_LIBRARIES} ${GNUSTEP_LOCAL_LIBRARIES}"
      LIB_STANDARD=
      START_FILES=
@@ -1732,6 +1703,7 @@ esac
 # used for the tests that follow.  We set them back to REAL_CFLAGS and
 # REAL_CPPFLAGS later on.
 
+REAL_CFLAGS="$CFLAGS"
 REAL_CPPFLAGS="$CPPFLAGS"
 
 if test "${HAVE_X11}" = "yes"; then

@@ -2175,15 +2175,9 @@ create_menus (widget_value *data,
    Returns the widget created.  */
 
 GtkWidget *
-xg_create_widget (type, name, f, val,
-                  select_cb, deactivate_cb, highlight_cb)
-     char *type;
-     char *name;
-     FRAME_PTR f;
-     widget_value *val;
-     GCallback select_cb;
-     GCallback deactivate_cb;
-     GCallback highlight_cb;
+xg_create_widget (char *type, char *name, FRAME_PTR f, widget_value *val,
+                  GCallback select_cb, GCallback deactivate_cb,
+		  GCallback highlight_cb)
 {
   GtkWidget *w = 0;
   int menu_bar_p = strcmp (type, "menubar") == 0;
@@ -2743,15 +2737,10 @@ xg_update_submenu (GtkWidget *submenu,
    HIGHLIGHT_CB is the callback to call when entering/leaving menu items.  */
 
 void
-xg_modify_menubar_widgets (menubar, f, val, deep_p,
-                           select_cb, deactivate_cb, highlight_cb)
-     GtkWidget *menubar;
-     FRAME_PTR f;
-     widget_value *val;
-     int deep_p;
-     GCallback select_cb;
-     GCallback deactivate_cb;
-     GCallback highlight_cb;
+xg_modify_menubar_widgets (GtkWidget *menubar, FRAME_PTR f, widget_value *val,
+			   int deep_p,
+                           GCallback select_cb, GCallback deactivate_cb,
+			   GCallback highlight_cb)
 {
   xg_menu_cb_data *cl_data;
   GList *list = gtk_container_get_children (GTK_CONTAINER (menubar));
