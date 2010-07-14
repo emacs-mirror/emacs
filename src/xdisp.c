@@ -271,7 +271,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) \
     || defined(HAVE_NS) || defined (USE_GTK)
 extern void set_frame_menubar (struct frame *f, int, int);
-extern int pending_menu_activation;
 #endif
 
 extern int interrupt_input;
@@ -9866,12 +9865,6 @@ prepare_menu_bars (void)
       update_tool_bar (sf, 1);
 #endif
     }
-
-  /* Motif needs this.  See comment in xmenu.c.  Turn it off when
-     pending_menu_activation is not defined.  */
-#ifdef USE_X_TOOLKIT
-  pending_menu_activation = 0;
-#endif
 }
 
 

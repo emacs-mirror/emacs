@@ -1,3 +1,23 @@
+2010-07-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (xm_scroll_callback, x_process_timeouts): K&R => prototype.
+	(SET_SAVED_KEY_EVENT): Remove (not used).
+	(SET_SAVED_MENU_EVENT): Rename to SET_SAVED_BUTTON_EVENT and
+	remove size parameter.
+	(handle_one_xevent): Check popup_activated () for menu for Xt also.
+	Remove #ifdef USE_GTK around finish = X_EVENT_DROP.
+	Remove #ifdef USE_MOTIF code that did SET_SAVED_BUTTON_EVENT for
+	ButtonRelease.
+
+	* xdisp.c (pending_menu_activation): Remove extern declaration.
+	(prepare_menu_bars): Remove setting of pending_menu_activation.
+
+	* xmenu.c (pending_menu_activation): Remove.
+	(x_activate_menubar): Set popup_activated_flag for Xt also. Remove
+	setting of pending_menu_activation.
+	(set_frame_menubar): Remove check of pending_menu_activation.
+	Declare menubar_size before code.  Correct spelling in comment.
+
 2010-07-14  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_open_entity): Cancel previous change.
