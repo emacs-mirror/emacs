@@ -3666,7 +3666,7 @@ a mistake; see the documentation of `set-mark'."
       (marker-position (mark-marker))
     (signal 'mark-inactive nil)))
 
-(defcustom select-active-regions nil
+(defcustom select-active-regions t
   "If non-nil, an active region automatically becomes the window selection."
   :type 'boolean
   :group 'killing
@@ -3687,6 +3687,7 @@ This function also runs `deactivate-mark-hook'."
 	 mark-active
 	 (display-selections-p)
 	 (x-selection-owner-p 'PRIMARY)
+	 (not (eq (region-beginning) (region-end)))
 	 (x-set-selection 'PRIMARY (buffer-substring-no-properties
 				    (region-beginning) (region-end))))
     (if (and (null force)
@@ -3819,6 +3820,8 @@ Display `Mark set' unless the optional second arg NOMSG is non-nil."
 	(push-mark nil nomsg t)
       (setq mark-active t)
       (run-hooks 'activate-mark-hook)
+      (and select-active-regions (display-selections-p)
+	   (x-set-selection 'PRIMARY (current-buffer)))
       (unless nomsg
 	(message "Mark activated")))))
 

@@ -1,3 +1,54 @@
+2010-07-14  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el (bookmark-load-hook): Fix doc string as suggested
+	by Drew Adams (Bug#5504).
+
+2010-07-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* term/x-win.el (x-select-enable-clipboard): Default to t.
+	(x-initialize-window-system): Don't overwrite Paste menu item.
+
+	* simple.el (select-active-regions): Default to t.
+	(push-mark-command): Don't overwrite primary with empty string.
+
+	* mouse.el: Bind mouse-2 to mouse-yank-primary.
+	(mouse-drag-copy-region): Default to nil.
+
+	* menu-bar.el (menu-bar-enable-clipboard): Don't overwrite
+	Cut/Copy/Paste menu bar items.
+
+2010-07-13  Thierry Volpiatto <thierry.volpiatto@gmail.com>
+
+	Allow C-w when setting a bookmark in a Gnus Article buffer (Bug#5975).
+	Patch applied by Karl Fogel.
+
+	* bookmark.el (bookmark-set): Don't set `bookmark-yank-point'
+	and `bookmark-current-buffer' if they have been already set in
+	another buffer (e.g gnus-art).
+
+2010-07-13  Karl Fogel  <kfogel@red-bean.com>
+            Thierry Volpiatto <thierry.volpiatto@gmail.com>
+
+	Preparation for setting bookmarks in Gnus article buffers (Bug#5975).
+
+	* bookmark.el (bookmark-make-record-default): Allow unneeded
+	information to be omitted from the record.
+
+	Adjust declarations and calls:
+
+	* info.el (bookmark-make-record-default): Adjust declaration.
+	(Info-bookmark-make-record): Adjust call.
+
+	* woman.el (bookmark-make-record-default): Adjust declaration.
+	(woman-bookmark-make-record): Adjust call.
+
+	* man.el (bookmark-make-record-default): Adjust declaration.
+	(Man-bookmark-make-record): Adjust call.
+
+	* image-mode.el (bookmark-make-record-default): Adjust declaration.
+
+	* doc-view.el (bookmark-make-record-default): Adjust declaration.
+
 2010-07-13  Karl Fogel  <kfogel@red-bean.com>
 
 	* bookmark.el (bookmark-show-annotation): Use `when' instead of `if'.
@@ -5,11 +56,11 @@
 	because it was extraneous to the functional change in that patch,
 	and causes a re-indendation, I am committing it separately.
 
-2010-07-13  Karl Fogel  <kfogel@red-bean.com>
+2010-07-13  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
 	* bookmark.el (bookmark-show-annotation): Ensure annotations show,
 	e.g. in Info bookmarks, by using `switch-to-buffer-other-window'.
-	Patch by Thierry Volpiatto (Bug#6444).
+	Patch applied by Karl Fogel (Bug#6444).
 
 2010-07-13  Chong Yidong  <cyd@stupidchicken.com>
 

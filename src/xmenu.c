@@ -151,14 +151,6 @@ extern widget_value *xmalloc_widget_value (void);
 extern widget_value *digest_single_submenu (int, int, int);
 #endif
 
-/* This is set nonzero after the user activates the menu bar, and set
-   to zero again after the menu bars are redisplayed by prepare_menu_bar.
-   While it is nonzero, all calls to set_frame_menubar go deep.
-
-   I don't understand why this is needed, but it does seem to be
-   needed on Motif, according to Marcus Daniels <marcus@sysc.pdx.edu>.  */
-
-int pending_menu_activation;
 
 #ifdef USE_X_TOOLKIT
 
@@ -670,6 +662,7 @@ x_activate_menubar (FRAME_PTR f)
 
   set_frame_menubar (f, 0, 1);
   BLOCK_INPUT;
+  popup_activated_flag = 1;
 #ifdef USE_GTK
   /* If we click outside any menu item, the menu bar still grabs.
      So we send Press and the Release.  If outside, grab is released.
@@ -681,15 +674,10 @@ x_activate_menubar (FRAME_PTR f)
   f->output_data.x->saved_menu_event->type = ButtonPress;
   XPutBackEvent (f->output_data.x->display_info->display,
                  f->output_data.x->saved_menu_event);
-  popup_activated_flag = 1;
 #else
   XtDispatchEvent (f->output_data.x->saved_menu_event);
 #endif
   UNBLOCK_INPUT;
-#ifdef USE_MOTIF
-  if (f->output_data.x->saved_menu_event->type == ButtonRelease)
-    pending_menu_activation = 1;
-#endif
 
   /* Ignore this if we get it a second time.  */
   f->output_data.x->saved_menu_event->type = 0;
@@ -991,8 +979,6 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 
   if (! menubar_widget)
     deep_p = 1;
-  else if (pending_menu_activation && !deep_p)
-    deep_p = 1;
   /* Make the first call for any given frame always go deep.  */
   else if (!f->output_data.x->saved_menu_event && !deep_p)
     {
@@ -1274,10 +1260,11 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
     }
 
   {
+    int menubar_size;
     if (f->output_data.x->menubar_widget)
       XtRealizeWidget (f->output_data.x->menubar_widget);
 
-    int menubar_size
+    menubar_size
       = (f->output_data.x->menubar_widget
 	 ? (f->output_data.x->menubar_widget->core.height
 	    + f->output_data.x->menubar_widget->core.border_width)
@@ -1286,7 +1273,7 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 #if 1 /* Experimentally, we now get the right results
 	 for -geometry -0-0 without this.  24 Aug 96, rms.
          Maybe so, but the menu bar size is missing the pixels so the
-         WM size hints are off by theses pixel.  Jan D, oct 2009.  */
+         WM size hints are off by these pixels.  Jan D, oct 2009.  */
 #ifdef USE_LUCID
     if (FRAME_EXTERNAL_MENU_BAR (f))
       {
