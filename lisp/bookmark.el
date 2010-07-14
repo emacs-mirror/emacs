@@ -1733,15 +1733,15 @@ last full line, move to the last full line.  The return value is undefined."
   "Display the annotation for bookmark named BOOKMARK in a buffer,
 if an annotation exists."
   (let ((annotation (bookmark-get-annotation bookmark)))
-    (if (and annotation (not (string-equal annotation "")))
-        (save-excursion
-          (let ((old-buf (current-buffer)))
-            (pop-to-buffer (get-buffer-create "*Bookmark Annotation*") t)
-            (delete-region (point-min) (point-max))
-            ;; (insert (concat "Annotation for bookmark '" bookmark "':\n\n"))
-            (insert annotation)
-            (goto-char (point-min))
-            (pop-to-buffer old-buf))))))
+    (when (and annotation (not (string-equal annotation "")))
+      (save-excursion
+        (let ((old-buf (current-buffer)))
+          (pop-to-buffer (get-buffer-create "*Bookmark Annotation*") t)
+          (delete-region (point-min) (point-max))
+          ;; (insert (concat "Annotation for bookmark '" bookmark "':\n\n"))
+          (insert annotation)
+          (goto-char (point-min))
+          (switch-to-buffer-other-window old-buf))))))
 
 
 (defun bookmark-show-all-annotations ()

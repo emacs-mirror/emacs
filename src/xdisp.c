@@ -19597,7 +19597,7 @@ decode_mode_spec (struct window *w, register int c, int field_width,
       obj = Fget_buffer_process (Fcurrent_buffer ());
       if (NILP (obj))
 	return "no process";
-#ifdef subprocesses
+#ifndef MSDOS
       obj = Fsymbol_name (Fprocess_status (obj));
 #endif
       break;

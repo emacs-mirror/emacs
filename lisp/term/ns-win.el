@@ -186,14 +186,11 @@ The properties returned may include `top', `left', `height', and `width'."
 
 ;;;; Keyboard mapping.
 
-;; These tell read-char how to convert these special chars to ASCII.
-(put 'S-tab 'ascii-character (logior 16 ?\t))
-
 (defvar ns-alternatives-map
   (let ((map (make-sparse-keymap)))
     ;; Map certain keypad keys into ASCII characters
     ;; that people usually expect.
-    (define-key map [S-tab] [25])
+    (define-key map [S-tab] [backtab])
     (define-key map [M-backspace] [?\M-\d])
     (define-key map [M-delete] [?\M-\d])
     (define-key map [M-tab] [?\M-\t])
@@ -208,6 +205,7 @@ The properties returned may include `top', `left', `height', and `width'."
 (define-key global-map [?\s-,] 'customize)
 (define-key global-map [?\s-'] 'next-multiframe-window)
 (define-key global-map [?\s-`] 'other-frame)
+(define-key global-map [?\s-~] 'ns-prev-frame)
 (define-key global-map [?\s--] 'center-line)
 (define-key global-map [?\s-:] 'ispell)
 (define-key global-map [?\s-\;] 'ispell-next)

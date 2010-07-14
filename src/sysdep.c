@@ -355,16 +355,6 @@ set_exclusive_use (int fd)
   /* Ok to do nothing if this feature does not exist */
 }
 
-#ifndef subprocesses
-
-void
-wait_without_blocking (void)
-{
-  croak ("wait_without_blocking");
-  synch_process_alive = 0;
-}
-
-#endif /* not subprocesses */
 
 int wait_debugging;   /* Set nonzero to make following function work under dbx
 			 (at least for bsd).  */
@@ -373,6 +363,7 @@ SIGTYPE
 wait_for_termination_signal (void)
 {}
 
+#ifndef MSDOS
 /* Wait for subprocess with process id `pid' to terminate and
    make sure it will get eliminated (not remain forever as a zombie) */
 
@@ -381,7 +372,6 @@ wait_for_termination (int pid)
 {
   while (1)
     {
-#ifdef subprocesses
 #if defined (BSD_SYSTEM) || defined (HPUX)
       /* Note that kill returns -1 even if the process is just a zombie now.
 	 But inevitably a SIGCHLD interrupt should be generated
@@ -417,13 +407,8 @@ wait_for_termination (int pid)
       sigsuspend (&empty_mask);
 #endif /* not WINDOWSNT */
 #endif /* not BSD_SYSTEM, and not HPUX version >= 6 */
-#else /* not subprocesses */
-      break;
-#endif /* not subprocesses */
     }
 }
-
-#ifdef subprocesses
 
 /*
  *	flush any pending output
@@ -459,7 +444,7 @@ flush_pending_output (int channel)
 void
 child_setup_tty (int out)
 {
-#ifndef DOS_NT
+#ifndef WINDOWSNT
   struct emacs_tty s;
 
   EMACS_GET_TTY (out, &s);
@@ -543,10 +528,10 @@ child_setup_tty (int out)
 
   EMACS_SET_TTY (out, &s, 0);
 
-#endif /* not DOS_NT */
+#endif /* not WINDOWSNT */
 }
+#endif	/* MSDOS */
 
-#endif /* subprocesses */
 
 /* Record a signal code and the handler for it.  */
 struct save_signal
@@ -650,9 +635,7 @@ sys_subshell (void)
       if (str)
 	chdir ((char *) str);
 
-#ifdef subprocesses
       close_process_descs ();	/* Close Emacs's pipes/ptys */
-#endif
 
 #ifdef SET_EMACS_PRIORITY
       {
@@ -1699,11 +1682,7 @@ sys_select (int nfds,
   int timeoutval;
   int *local_timeout;
   extern int proc_buffered_char[];
-#ifndef subprocesses
-  int process_tick = 0, update_tick = 0;
-#else
   extern int process_tick, update_tick;
-#endif
   unsigned char buf;
 
 #if defined (HAVE_SELECT) && defined (HAVE_X_WINDOWS)
@@ -2433,7 +2412,6 @@ dup2 (int oldd, int newd)
  *	Only needed when subprocesses are defined.
  */
 
-#ifdef subprocesses
 #ifndef HAVE_GETTIMEOFDAY
 #ifdef HAVE_TIMEVAL
 
@@ -2451,8 +2429,7 @@ gettimeofday (struct timeval *tp, struct timezone *tzp)
 }
 
 #endif
-#endif
-#endif /* subprocess && !HAVE_GETTIMEOFDAY && HAVE_TIMEVAL */
+#endif /* !HAVE_GETTIMEOFDAY && HAVE_TIMEVAL */
 
 /*
  *	This function will go away as soon as all the stubs fixed. (fnf)

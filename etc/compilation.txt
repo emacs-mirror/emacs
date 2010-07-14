@@ -93,6 +93,55 @@ symbol: comma
 "foo.adb", line 2(11): warning: file name does not match ...
 "src/swapping.c", line 30.34: 1506-342 (W) "/*" detected in comment.
 
+* Cucumber
+
+symbol: cucumber
+
+Feature: This is an example for backtrace.
+
+  Scenario: undefined step  # features/cucumber.feature:3
+    Given this is undefined # features/cucumber.feature:4
+
+  Scenario: assertion false (Test::Unit)    # features/cucumber.feature:6
+    Given this will generate 'assert false' # features/step_definitions/default_steps.rb:1
+      <false> is not true. (Test::Unit::AssertionFailedError)
+      /home/gusev/.rvm/rubies/ruby-1.8.7-p249/lib/ruby/1.8/test/unit/assertions.rb:48:in `assert_block'
+      /home/gusev/.rvm/rubies/ruby-1.8.7-p249/lib/ruby/1.8/test/unit/assertions.rb:500:in `_wrap_assertion'
+      /home/gusev/.rvm/rubies/ruby-1.8.7-p249/lib/ruby/1.8/test/unit/assertions.rb:46:in `assert_block'
+      /home/gusev/.rvm/rubies/ruby-1.8.7-p249/lib/ruby/1.8/test/unit/assertions.rb:63:in `assert'
+      /home/gusev/.rvm/rubies/ruby-1.8.7-p249/lib/ruby/1.8/test/unit/assertions.rb:495:in `_wrap_assertion'
+      /home/gusev/.rvm/rubies/ruby-1.8.7-p249/lib/ruby/1.8/test/unit/assertions.rb:61:in `assert'
+      ./features/step_definitions/default_steps.rb:2:in `/^this will generate 'assert false'$/'
+      features/cucumber.feature:7:in `Given this will generate 'assert false''
+
+  Scenario: assertion false (RSpec)           # features/cucumber.feature:9
+    Given this will generate 'should be_true' # features/step_definitions/default_steps.rb:5
+      expected true to be false (Spec::Expectations::ExpectationNotMetError)
+      ./features/step_definitions/default_steps.rb:6:in `/^this will generate 'should be_true'$/'
+      features/cucumber.feature:10:in `Given this will generate 'should be_true''
+
+  Scenario: backtrace in step definition # features/cucumber.feature:12
+    Given this will generate backtrace   # features/step_definitions/default_steps.rb:9
+       (RuntimeError)
+      ./features/step_definitions/default_steps.rb:10:in `/^this will generate backtrace$/'
+      features/cucumber.feature:13:in `Given this will generate backtrace'
+
+  Scenario: deeep backtrace in step definition # features/cucumber.feature:15
+    Given this will generate deep backtrace    # features/step_definitions/default_steps.rb:13
+       (RuntimeError)
+      ./features/step_definitions/default_steps.rb:18:in `deep'
+      ./features/step_definitions/default_steps.rb:14:in `/^this will generate deep backtrace$/'
+      features/cucumber.feature:16:in `Given this will generate deep backtrace'
+
+Failing Scenarios:
+cucumber features/cucumber.feature:6 # Scenario: assertion false (Test::Unit)
+cucumber features/cucumber.feature:9 # Scenario: assertion false (RSpec)
+cucumber features/cucumber.feature:12 # Scenario: backtrace in step definition
+cucumber features/cucumber.feature:15 # Scenario: deeep backtrace in step definition
+
+5 scenarios (4 failed, 1 undefined)
+5 steps (4 failed, 1 undefined)
+0m0.007s
 
 * EDG C/C++
 
@@ -318,6 +367,51 @@ symbol: php
 Parse error: parse error, unexpected $ in main.php on line 59
 Fatal error: Call to undefined function: mysql_pconnect() in db.inc on line 66
 
+* Ruby
+
+symbol: ruby
+
+plain-exception.rb:7:in `fun': unhandled exception
+	from plain-exception.rb:3:in `proxy'
+	from plain-exception.rb:12
+
+* Ruby (Test::Unit)
+
+symbol: ruby-Test::Unit
+
+Loaded suite examples/test-unit
+Started
+FFFE
+Finished in 0.023173 seconds.
+
+  1) Failure:
+test_a_deep_assert(BacktracesTest)
+    [examples/test-unit.rb:28:in `here_is_a_deep_assert'
+     examples/test-unit.rb:19:in `test_a_deep_assert']:
+<false> is not true.
+
+  2) Failure:
+test_assert(BacktracesTest) [examples/test-unit.rb:5]:
+<false> is not true.
+
+  3) Failure:
+test_assert_raise(BacktracesTest) [examples/test-unit.rb:9]:
+Exception raised:
+Class: <RuntimeError>
+Message: <"">
+---Backtrace---
+examples/test-unit.rb:10:in `test_assert_raise'
+examples/test-unit.rb:9:in `test_assert_raise'
+---------------
+
+  4) Error:
+test_backtrace(BacktracesTest):
+NoMethodError: undefined method `not_exists' for nil:NilClass
+    examples/test-unit.rb:24:in `some_function_call_from_nil'
+    examples/test-unit.rb:15:in `test_backtrace'
+
+4 tests, 3 assertions, 3 failures, 1 errors
+
 * RXP
 
 symbol: rxp
@@ -375,11 +469,11 @@ bloofle defined( /users/wolfgang/foo.c(4) ), but never used
 
 * GCOV (test coverage program)
 
-symbol: gcov-file gcov-bb-file gcov-never-called-line gcov-called-line 
+symbol: gcov-file gcov-bb-file gcov-never-called-line gcov-called-line
 
         -:    0:Source:foo.c
         -:    0:Object:foo.bb
-        -:    1:/* $ gcc -fprofile-arcs -ftest-coverage foo.c 
+        -:    1:/* $ gcc -fprofile-arcs -ftest-coverage foo.c
         -:    2:   $ ./a.out
         -:    3:   $ gcov foo.c
         -:    4:   LANG=C gcov foo.c
@@ -393,10 +487,10 @@ symbol: gcov-file gcov-bb-file gcov-never-called-line gcov-called-line
         1:   12:    r = 1;
     #####:   13:  else if (argc == 2)
     #####:   14:    r = 2;
-        -:   15:  else 
+        -:   15:  else
     #####:   16:    r = 0;
         1:   17:  return r;
-        -:   18:} 
+        -:   18:}
 
 
 * Podchecker error messages, per Pod::Checker
