@@ -1353,7 +1353,10 @@ x_set_foreground_color (f, arg, oldval)
   if (FRAME_W32_WINDOW (f) != 0)
     {
       if (x->cursor_pixel == old_fg)
-	x->cursor_pixel = fg;
+	{
+	  x->cursor_pixel = fg;
+	  x->cursor_gc->background = fg;
+	}
 
       update_face_from_frame_parameter (f, Qforeground_color, arg);
       if (FRAME_VISIBLE_P (f))
