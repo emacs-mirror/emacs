@@ -173,6 +173,20 @@ should use delete-char with a negative argument instead.
 
 *** The option `mouse-region-delete-keys' has been deleted.
 
+** Selection changes.
+
+The way Emacs interacts with the clipboard and primary selection, by
+default, is now similar to other X applications.  In particular, kill
+and yank use the clipboard, in addition to the primary selection.
+
+*** `select-active-regions' now defaults to t.
+
+*** `x-select-enable-clipboard' now defaults to t.
+
+*** `mouse-drag-copy-region' now defaults to nil.
+
+*** `mouse-2' is now bound to `mouse-yank-primary'.
+
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
 

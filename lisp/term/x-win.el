@@ -1219,13 +1219,9 @@ This is the actual text stored in the X cut buffer.")
   "Max number of characters to put in the cut buffer.
 It is said that overlarge strings are slow to put into the cut buffer.")
 
-(defcustom x-select-enable-clipboard nil
+(defcustom x-select-enable-clipboard t
   "Non-nil means cutting and pasting uses the clipboard.
-This is in addition to, but in preference to, the primary selection.
-
-On MS-Windows, this is non-nil by default, since Windows does not
-support other types of selections.  \(The primary selection that is
-set by Emacs is not accessible to other programs on Windows.\)"
+This is in addition to, but in preference to, the primary selection."
   :type 'boolean
   :group 'killing)
 
@@ -1560,12 +1556,12 @@ The value nil is the same as this list:
   ;; Enable CLIPBOARD copy/paste through menu bar commands.
   (menu-bar-enable-clipboard)
 
-  ;; Override Paste so it looks at CLIPBOARD first.
-  (define-key menu-bar-edit-menu [paste]
-    (append '(menu-item "Paste" x-clipboard-yank
-			:enable (not buffer-read-only)
-			:help "Paste (yank) text most recently cut/copied")
-	    nil))
+  ;; ;; Override Paste so it looks at CLIPBOARD first.
+  ;; (define-key menu-bar-edit-menu [paste]
+  ;;   (append '(menu-item "Paste" x-clipboard-yank
+  ;; 			:enable (not buffer-read-only)
+  ;; 			:help "Paste (yank) text most recently cut/copied")
+  ;; 	    nil))
 
   (setq x-initialized t))
 

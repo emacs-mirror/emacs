@@ -1,3 +1,17 @@
+2010-07-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* term/x-win.el (x-select-enable-clipboard): Default to t.
+	(x-initialize-window-system): Don't overwrite Paste menu item.
+
+	* simple.el (select-active-regions): Default to t.
+	(push-mark-command): Don't overwrite primary with empty string.
+
+	* mouse.el: Bind mouse-2 to mouse-yank-primary.
+	(mouse-drag-copy-region): Default to nil.
+
+	* menu-bar.el (menu-bar-enable-clipboard): Don't overwrite
+	Cut/Copy/Paste menu bar items.
+
 2010-07-13  Thierry Volpiatto <thierry.volpiatto@gmail.com>
 
 	Allow C-w when setting a bookmark in a Gnus Article buffer (Bug#5975).
