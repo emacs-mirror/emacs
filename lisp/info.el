@@ -4901,7 +4901,8 @@ BUFFER is the buffer speedbar is requesting buttons for."
 	     '(Info-mode . Info-restore-desktop-buffer))
 
 ;;;; Bookmark support
-(declare-function bookmark-make-record-default "bookmark" (&optional pos-only))
+(declare-function bookmark-make-record-default
+                  "bookmark" (&optional no-file no-context posn))
 (declare-function bookmark-prop-get "bookmark" (bookmark prop))
 (declare-function bookmark-default-handler "bookmark" (bmk))
 (declare-function bookmark-get-bookmark-record "bookmark" (bmk))
@@ -4910,7 +4911,7 @@ BUFFER is the buffer speedbar is requesting buttons for."
   "This implements the `bookmark-make-record-function' type (which see)
 for Info nodes."
   `(,Info-current-node
-    ,@(bookmark-make-record-default 'point-only)
+    ,@(bookmark-make-record-default 'no-file)
     (filename . ,Info-current-file)
     (info-node . ,Info-current-node)
     (handler . Info-bookmark-jump)))

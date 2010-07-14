@@ -1,4 +1,27 @@
 2010-07-13  Karl Fogel  <kfogel@red-bean.com>
+            Thierry Volpiatto <thierry.volpiatto@gmail.com>
+
+	Preparation for setting bookmarks in Gnus article buffers (Bug#5975).
+
+	* bookmark.el (bookmark-make-record-default): Allow unneeded
+	information to be omitted from the record.
+
+	Adjust declarations and calls:
+
+	* info.el (bookmark-make-record-default): Adjust declaration.
+	(Info-bookmark-make-record): Adjust call.
+
+	* woman.el (bookmark-make-record-default): Adjust declaration.
+	(woman-bookmark-make-record): Adjust call.
+
+	* man.el (bookmark-make-record-default): Adjust declaration.
+	(Man-bookmark-make-record): Adjust call.
+
+	* image-mode.el (bookmark-make-record-default): Adjust declaration.
+
+	* doc-view.el (bookmark-make-record-default): Adjust declaration.
+
+2010-07-13  Karl Fogel  <kfogel@red-bean.com>
 
 	* bookmark.el (bookmark-show-annotation): Use `when' instead of `if'.
 	This is also from Thierry Volpiatto's patch in bug #6444.  However,

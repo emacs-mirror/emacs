@@ -4521,7 +4521,8 @@ logging the message."
   nil)					; for woman-file-readable-p etc.
 
 ;;; Bookmark Woman support.
-(declare-function bookmark-make-record-default "bookmark" (&optional pos-only))
+(declare-function bookmark-make-record-default
+                  "bookmark" (&optional no-file no-context posn))
 (declare-function bookmark-prop-get "bookmark" (bookmark prop))
 (declare-function bookmark-default-handler "bookmark" (bmk))
 (declare-function bookmark-get-bookmark-record "bookmark" (bmk))
@@ -4532,7 +4533,7 @@ logging the message."
 (defun woman-bookmark-make-record ()
   "Make a bookmark entry for a Woman buffer."
   `(,(Man-default-bookmark-title)
-    ,@(bookmark-make-record-default 'point-only)
+    ,@(bookmark-make-record-default 'no-file)
     (location . ,(concat "woman " woman-last-file-name))
     ;; Use the same form as man's bookmarks, as much as possible.
     (man-args . ,woman-last-file-name)

@@ -12621,7 +12621,8 @@ If ALL is a number, fetch this number of articles."
     (gnus-summary-position-point)))
 
 ;;; Bookmark support for Gnus.
-(declare-function bookmark-make-record-default "bookmark" (&optional pos-only))
+(declare-function bookmark-make-record-default
+                  "bookmark" (&optional no-file no-context posn))
 (declare-function bookmark-prop-get "bookmark" (bookmark prop))
 (declare-function bookmark-default-handler "bookmark" (bmk))
 (declare-function bookmark-get-bookmark-record "bookmark" (bmk))
