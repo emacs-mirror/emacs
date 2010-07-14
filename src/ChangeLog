@@ -1,3 +1,8 @@
+2010-07-14  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_open_entity): Cancel previous change.
+	(Ffont_get): Don't check FONT_ENTITY_INDEX of a font-object.
+
 2010-07-13  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Remove subprocesses #ifdefs from term.c.

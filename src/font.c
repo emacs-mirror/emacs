@@ -3005,7 +3005,6 @@ font_open_entity (FRAME_PTR f, Lisp_Object entity, int pixel_size)
     return Qnil;
   ASET (entity, FONT_OBJLIST_INDEX,
 	Fcons (font_object, AREF (entity, FONT_OBJLIST_INDEX)));
-  ASET (font_object, FONT_ENTITY_INDEX, entity);
   num_fonts++;
 
   font = XFONT_OBJECT (font_object);
@@ -4131,20 +4130,12 @@ Layout tags.  */)
   if (NILP (val) && EQ (key, QCotf) && FONT_OBJECT_P (font))
     {
       struct font *fontp = XFONT_OBJECT (font);
-      Lisp_Object entity = AREF (font, FONT_ENTITY_INDEX);
 
-      val = Fassq (key, AREF (entity, FONT_EXTRA_INDEX));
-      if (NILP (val))
-	{
-	  if (fontp->driver->otf_capability)
-	    val = fontp->driver->otf_capability (fontp);
-	  else
-	    val = Fcons (Qnil, Qnil);
-	  font_put_extra (font, QCotf, val);
-	  font_put_extra (entity, QCotf, val);
-	}
+      if (fontp->driver->otf_capability)
+	val = fontp->driver->otf_capability (fontp);
       else
-	val = Fcdr (val);
+	val = Fcons (Qnil, Qnil);
+      font_put_extra (font, QCotf, val);
     }
   else
     val = Fcdr (val);
