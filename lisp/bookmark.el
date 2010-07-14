@@ -783,27 +783,34 @@ Use \\[bookmark-delete] to remove bookmarks (you give it a name and
 it removes only the first instance of a bookmark with that name from
 the list of bookmarks.)"
   (interactive (list nil current-prefix-arg))
-  (let* ((record (bookmark-make-record))
-         (default (car record)))
+  (unwind-protect
+       (let* ((record (bookmark-make-record))
+              (default (car record)))
 
-    (bookmark-maybe-load-default-file)
+         (bookmark-maybe-load-default-file)
+         ;; Don't set `bookmark-yank-point' and `bookmark-current-buffer'
+         ;; if they have been already set in another buffer. (e.g gnus-art).
+         (unless (and bookmark-yank-point
+                      bookmark-current-buffer)
+           (setq bookmark-yank-point (point))
+           (setq bookmark-current-buffer (current-buffer)))
 
-    (setq bookmark-yank-point (point))
-    (setq bookmark-current-buffer (current-buffer))
+         (let ((str
+                (or name
+                    (read-from-minibuffer
+                     (format "Set bookmark (%s): " default)
+                     nil
+                     bookmark-minibuffer-read-name-map
+                     nil nil default))))
+           (and (string-equal str "") (setq str default))
+           (bookmark-store str (cdr record) no-overwrite)
 
-    (let ((str
-           (or name
-               (read-from-minibuffer
-                (format "Set bookmark (%s): " default)
-                nil
-                bookmark-minibuffer-read-name-map
-                nil nil default))))
-      (and (string-equal str "") (setq str default))
-      (bookmark-store str (cdr record) no-overwrite)
+           ;; Ask for an annotation buffer for this bookmark
+           (when bookmark-use-annotations
+             (bookmark-edit-annotation str))))
+    (setq bookmark-yank-point nil)
+    (setq bookmark-current-buffer nil)))
 
-      ;; Ask for an annotation buffer for this bookmark
-      (when bookmark-use-annotations
-        (bookmark-edit-annotation str)))))
 
 (defun bookmark-kill-line (&optional newline-too)
   "Kill from point to end of line.

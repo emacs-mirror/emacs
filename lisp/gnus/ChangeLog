@@ -1,3 +1,11 @@
+2010-07-13  Thierry Volpiatto <thierry.volpiatto@gmail.com>
+
+	Allow C-w when setting a bookmark in a Gnus Article buffer (Bug#5975).
+	Patch applied by Karl Fogel.
+
+	* gnus-sum.el (gnus-summary-bookmark-make-record): Set
+	`bookmark-yank-point' and `bookmark-current-buffer' to allow C-w.
+
 2010-07-13  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
 	Allow bookmarks to be set from Gnus Article buffers (Bug #5975).

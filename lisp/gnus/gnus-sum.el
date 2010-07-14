@@ -12631,10 +12631,12 @@ If ALL is a number, fetch this number of articles."
   "Make a bookmark entry for a Gnus summary buffer."
   (let (pos buf)
     (unless (and (derived-mode-p 'gnus-summary-mode) gnus-article-current)
-      (save-restriction ; FIXME is it necessary to widen?
+      (save-restriction              ; FIXME is it necessary to widen?
         (widen) (setq pos (point))) ; Set position in gnus-article buffer.
       (setq buf "art") ; We are recording bookmark from article buffer.
-      (gnus-article-show-summary)) ; Go back in summary buffer.
+      (setq bookmark-yank-point (point))
+      (setq bookmark-current-buffer (current-buffer))
+      (gnus-article-show-summary))      ; Go back in summary buffer.
     ;; We are now recording bookmark from summary buffer.
     (unless buf (setq buf "sum"))
     (let* ((subject (elt (gnus-summary-article-header) 1))
