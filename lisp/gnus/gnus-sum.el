@@ -12629,18 +12629,24 @@ If ALL is a number, fetch this number of articles."
 
 (defun gnus-summary-bookmark-make-record ()
   "Make a bookmark entry for a Gnus summary buffer."
-  (unless (and (derived-mode-p 'gnus-summary-mode) gnus-article-current)
-    (error "Please retry from the Gnus summary buffer")) ;[1]
-  (let* ((subject (elt (gnus-summary-article-header) 1))
-         (grp     (car gnus-article-current))
-         (art     (cdr gnus-article-current))
-         (head    (gnus-summary-article-header art))
-         (id      (mail-header-id head)))
-    `(,subject
-      ,@(bookmark-make-record-default 'point-only)
-      (location . ,(format "Gnus %s:%d:%s" grp art id))
-      (group . ,grp) (article . ,art)
-      (message-id . ,id) (handler . gnus-summary-bookmark-jump))))
+  (let (pos buf)
+    (unless (and (derived-mode-p 'gnus-summary-mode) gnus-article-current)
+      (save-restriction ; FIXME is it necessary to widen?
+        (widen) (setq pos (point))) ; Set position in gnus-article buffer.
+      (setq buf "art") ; We are recording bookmark from article buffer.
+      (gnus-article-show-summary)) ; Go back in summary buffer.
+    ;; We are now recording bookmark from summary buffer.
+    (unless buf (setq buf "sum"))
+    (let* ((subject (elt (gnus-summary-article-header) 1))
+           (grp     (car gnus-article-current))
+           (art     (cdr gnus-article-current))
+           (head    (gnus-summary-article-header art))
+           (id      (mail-header-id head)))
+      `(,subject
+        ,@(bookmark-make-record-default 'no-file 'no-context pos)
+        (location . ,(format "Gnus-%s %s:%d:%s" buf grp art id))
+        (group . ,grp) (article . ,art)
+        (message-id . ,id) (handler . gnus-summary-bookmark-jump)))))
 
 ;;;###autoload
 (defun gnus-summary-bookmark-jump (bookmark)
@@ -12648,10 +12654,18 @@ If ALL is a number, fetch this number of articles."
 BOOKMARK is a bookmark name or a bookmark record."
   (let ((group    (bookmark-prop-get bookmark 'group))
         (article  (bookmark-prop-get bookmark 'article))
-        (id       (bookmark-prop-get bookmark 'message-id)))
+        (id       (bookmark-prop-get bookmark 'message-id))
+        (buf      (car (split-string (bookmark-prop-get bookmark 'location)))))
     (gnus-fetch-group group (list article))
     (gnus-summary-insert-cached-articles)
     (gnus-summary-goto-article id nil 'force)
+    ;; FIXME we have to wait article buffer is ready (only large buffer)
+    ;; Is there a better solution to know that?
+    ;; If we don't wait `bookmark-default-handler' will have no chance
+    ;; to set position. However there is no error, just wrong pos.
+    (sit-for 1)
+    (when (string= buf "Gnus-art")
+      (other-window 1))
     (bookmark-default-handler
      `(""
        (buffer . ,(current-buffer))

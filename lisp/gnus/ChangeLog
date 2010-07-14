@@ -1,3 +1,16 @@
+2010-07-13  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	Allow bookmarks to be set from Gnus Article buffers (Bug #5975).
+	Patch applied (with minor tweaks) by Karl Fogel.  Note this leaves
+	C-w still not working correctly from Article buffers; Thierry's
+	patch to fix that will be applied after this.
+
+	* gnus-art.el (bookmark-make-record-function): New local variable.
+
+	* gnus-sum.el (gnus-summary-bookmark-make-record): Allow setting
+	from article buffer.
+	(gnus-summary-bookmark-jump): Maybe jump to article buffer.
+
 2010-07-13  Karl Fogel  <kfogel@red-bean.com>
 
 	* gnus/gnus-sum.el (bookmark-make-record-default): Adjust
