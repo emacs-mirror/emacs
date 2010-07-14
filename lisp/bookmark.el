@@ -2196,7 +2196,7 @@ strings returned are not."
 
 ;; Load Hook
 (defvar bookmark-load-hook nil
-  "Hook run at the end of loading bookmark.")
+  "Hook run at the end of loading library `bookmark.el'.")
 
 ;; Exit Hook, called from kill-emacs-hook
 (defvar bookmark-exit-hook nil

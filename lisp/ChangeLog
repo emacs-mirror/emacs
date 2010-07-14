@@ -1,3 +1,8 @@
+2010-07-14  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el (bookmark-load-hook): Fix doc string as suggested
+	by Drew Adams (Bug#5504).
+
 2010-07-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* term/x-win.el (x-select-enable-clipboard): Default to t.
