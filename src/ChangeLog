@@ -8,6 +8,8 @@
 	Remove #ifdef USE_GTK around finish = X_EVENT_DROP.
 	Remove #ifdef USE_MOTIF code that did SET_SAVED_BUTTON_EVENT for
 	ButtonRelease.
+	(x_set_window_size_1): scroll_bar_actual_width is always
+	SCROLL_BAR_COLS * COLUMN_WIDTH for the purpose of frame sizing.
 
 	* xdisp.c (pending_menu_activation): Remove extern declaration.
 	(prepare_menu_bars): Remove setting of pending_menu_activation.
