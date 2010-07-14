@@ -3687,6 +3687,8 @@ Display `Mark set' unless the optional second arg NOMSG is non-nil."
 	(push-mark nil nomsg t)
       (setq mark-active t)
       (run-hooks 'activate-mark-hook)
+      (and select-active-regions (display-selections-p)
+	   (x-set-selection 'PRIMARY (current-buffer)))
       (unless nomsg
 	(message "Mark activated")))))
 

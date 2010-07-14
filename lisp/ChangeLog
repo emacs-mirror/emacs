@@ -1,3 +1,8 @@
+2010-07-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (push-mark-command): Set the selection if
+	select-active-regions is non-nil.
+
 2010-07-10  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/calendar.el (calendar-week-end-day): New function.
