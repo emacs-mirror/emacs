@@ -8606,9 +8606,7 @@ x_set_window_size_1 (struct frame *f, int change_gravity, int cols, int rows)
   f->scroll_bar_actual_width
     = (!FRAME_HAS_VERTICAL_SCROLL_BARS (f)
        ? 0
-       : FRAME_CONFIG_SCROLL_BAR_WIDTH (f) > 0
-       ? FRAME_CONFIG_SCROLL_BAR_WIDTH (f)
-       : (FRAME_CONFIG_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f)));
+       : FRAME_CONFIG_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f));
 
   compute_fringe_widths (f, 0);
 
