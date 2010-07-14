@@ -1,3 +1,8 @@
+2010-07-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xt-mouse.el (xterm-mouse-event-read): Fix for characters > 127
+	now that unicode is used (Bug#6594).
+
 2010-07-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (push-mark-command): Set the selection if
