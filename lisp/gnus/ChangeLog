@@ -1,4 +1,9 @@
-2010-07-13  Thierry Volpiatto <thierry.volpiatto@gmail.com>
+2010-07-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-bookmark-make-record): Make it work for
+	Emacs 23 as well.
+
+2010-07-13  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
 	Allow C-w when setting a bookmark in a Gnus Article buffer (Bug#5975).
 	Patch applied by Karl Fogel.
@@ -15,14 +20,14 @@
 
 	* gnus-art.el (bookmark-make-record-function): New local variable.
 
-	* gnus-sum.el (gnus-summary-bookmark-make-record): Allow setting
-	from article buffer.
+	* gnus-sum.el (gnus-summary-bookmark-make-record): Allow setting from
+	article buffer.
 	(gnus-summary-bookmark-jump): Maybe jump to article buffer.
 
 2010-07-13  Karl Fogel  <kfogel@red-bean.com>
 
-	* gnus/gnus-sum.el (bookmark-make-record-default): Adjust
-	declaration, based on changes in bookmark.el.
+	* gnus-sum.el (bookmark-make-record-default): Adjust declaration, based
+	on changes in bookmark.el.
 
 2010-06-22  Mark A. Hershberger  <mah@everybody.org>
 
