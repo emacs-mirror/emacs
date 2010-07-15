@@ -1,3 +1,10 @@
+2010-07-15  Simon South  <ssouth@member.fsf.org>
+
+	* progmodes/delphi.el (delphi-token-at): Give newlines precedence
+	over literal tokens when parsing so newlines aren't "absorbed" by
+	single-line comments.  Corrects the indentation of case blocks
+	that have a comment on the first line.
+
 2010-07-14  Karl Fogel  <kfogel@red-bean.com>
 
 	* bookmark.el (bookmark-load-hook): Fix doc string as suggested

@@ -628,7 +628,9 @@ routine.")
 (defun delphi-token-at (p)
   ;; Returns the token from parsing text at point p.
   (when (and (<= (point-min) p) (<= p (point-max)))
-     (cond ((delphi-literal-token-at p))
+     (cond ((delphi-char-token-at p ?\n 'newline))
+
+           ((delphi-literal-token-at p))
 
            ((delphi-space-token-at p))
 
@@ -638,7 +640,6 @@ routine.")
            ((delphi-char-token-at p ?\) 'close-group))
            ((delphi-char-token-at p ?\[ 'open-group))
            ((delphi-char-token-at p ?\] 'close-group))
-           ((delphi-char-token-at p ?\n 'newline))
            ((delphi-char-token-at p ?\; 'semicolon))
            ((delphi-char-token-at p ?. 'dot))
            ((delphi-char-token-at p ?, 'comma))
