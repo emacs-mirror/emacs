@@ -1,3 +1,8 @@
+2010-07-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* fringe.c (update_window_fringes): Restore mistakenly reverted
+	code from revno 99854.1.6 merged in revno 99950.
+
 2010-07-14  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (xm_scroll_callback, x_process_timeouts): K&R => prototype.
