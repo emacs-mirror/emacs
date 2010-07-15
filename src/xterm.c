@@ -7503,7 +7503,7 @@ x_clear_errors (Display *dpy)
 /* Close off all unclosed x_catch_errors calls.  */
 
 void
-x_fully_uncatch_errors ()
+x_fully_uncatch_errors (void)
 {
   while (x_error_message)
     x_uncatch_errors ();
@@ -7520,7 +7520,7 @@ x_catching_errors (void)
 
 #if 0
 static unsigned int x_wire_count;
-x_trace_wire ()
+x_trace_wire (void)
 {
   fprintf (stderr, "Lib call: %d\n", ++x_wire_count);
 }
@@ -9560,9 +9560,7 @@ x_wm_set_icon_position (struct frame *f, int icon_x, int icon_y)
    font table.  */
 
 static void
-x_check_font (f, font)
-     struct frame *f;
-     struct font *font;
+x_check_font (struct frame *f, struct font *font)
 {
   Lisp_Object frame;
 
