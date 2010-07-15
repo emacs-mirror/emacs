@@ -1,4 +1,4 @@
-2010-07-15  Simon South  <ssouth@localhost.localdomain>
+2010-07-15  Simon South  <ssouth@member.fsf.org>
 
 	* progmodes/delphi.el (delphi-previous-indent-of): Indent case
 	blocks within record declarations (i.e. variant parts) correctly.
