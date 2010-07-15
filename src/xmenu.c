@@ -1562,7 +1562,8 @@ pop_down_menu (Lisp_Object arg)
    menu pops down.
    menu_item_selection will be set to the selection.  */
 static void
-create_and_show_popup_menu (FRAME_PTR f, widget_value *first_wv, int x, int y, int for_click, unsigned int timestamp)
+create_and_show_popup_menu (FRAME_PTR f, widget_value *first_wv,
+			    int x, int y, int for_click, EMACS_UINT timestamp)
 {
   int i;
   Arg av[2];
@@ -2275,7 +2276,8 @@ pop_down_menu (Lisp_Object arg)
 
 
 Lisp_Object
-xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps, Lisp_Object title, char **error, unsigned int timestamp)
+xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
+	    Lisp_Object title, char **error, EMACS_UINT timestamp)
 {
   Window root;
   XMenu *menu;
