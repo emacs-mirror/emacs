@@ -4683,7 +4683,12 @@ Lisp error raised when PROGRAM is nil is trapped also, returning 1."
   (let* ((asynchronous (string-match "[ \t]*&[ \t]*\\'" command))
 	 ;; We cannot use `shell-file-name' and `shell-command-switch',
 	 ;; they are variables of the local host.
-	 (args (list "/bin/sh" "-c" (substring command 0 asynchronous)))
+	 (args (list
+		(tramp-get-method-parameter
+		 (tramp-file-name-method
+		  (tramp-dissect-file-name default-directory))
+		 'tramp-remote-sh)
+		"-c" (substring command 0 asynchronous)))
 	 current-buffer-p
 	 (output-buffer
 	  (cond
@@ -6619,12 +6624,10 @@ file exists and nonzero exit status otherwise."
 
 	 (t (tramp-message
 	     vec 5 "Remote `%s' groks tilde expansion, good"
-	     (tramp-get-method-parameter
-	      (tramp-file-name-method vec) 'tramp-remote-sh))
-	    (tramp-set-connection-property
-	     vec "remote-shell"
-	     (tramp-get-method-parameter
-	      (tramp-file-name-method vec) 'tramp-remote-sh))))))))
+	     (tramp-set-connection-property
+	      vec "remote-shell"
+	      (tramp-get-method-parameter
+	       (tramp-file-name-method vec) 'tramp-remote-sh)))))))))
 
 ;; ------------------------------------------------------------
 ;; -- Functions for establishing connection --
@@ -8316,10 +8319,13 @@ necessary only.  This function will be used in file name completion."
 	     ;; Check parameters.  On busybox, "ls" output coloring is
 	     ;; enabled by default sometimes.  So we try to disable it
 	     ;; when possible.  $LS_COLORING is not supported there.
+	     ;; Some "ls" versions are sensible wrt the order of
+	     ;; arguments, they fail when "-al" is after the
+	     ;; "--color=never" argument (for example on FreeBSD).
 	     (when (zerop (tramp-send-command-and-check
 			   vec (format "%s -lnd /" result)))
 	       (when (zerop (tramp-send-command-and-check
-			     vec (format "%s --color=never /" result)))
+			     vec (format "%s --color=never -al /" result)))
 		 (setq result (concat result " --color=never")))
 	       (throw 'ls-found result))
 	     (setq dl (cdr dl))))))

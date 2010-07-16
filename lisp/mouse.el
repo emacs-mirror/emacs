@@ -41,7 +41,7 @@
   :type 'boolean
   :group 'mouse)
 
-(defcustom mouse-drag-copy-region t
+(defcustom mouse-drag-copy-region nil
   "If non-nil, mouse drag copies region to kill-ring."
   :type 'boolean
   :version "22.1"
@@ -2443,7 +2443,7 @@ choose a font."
 (global-set-key [left-fringe mouse-1]	'mouse-set-point)
 (global-set-key [right-fringe mouse-1]	'mouse-set-point)
 
-(global-set-key [mouse-2]	'mouse-yank-at-click)
+(global-set-key [mouse-2]	'mouse-yank-primary)
 ;; Allow yanking also when the corresponding cursor is "in the fringe".
 (global-set-key [right-fringe mouse-2] 'mouse-yank-at-click)
 (global-set-key [left-fringe mouse-2] 'mouse-yank-at-click)
