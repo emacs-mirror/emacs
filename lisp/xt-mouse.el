@@ -122,8 +122,8 @@
 ;; read xterm sequences above ascii 127 (#x7f)
 (defun xterm-mouse-event-read ()
   (let ((c (read-char)))
-    (if (< c 0)
-        (+ c #x8000000 128)
+    (if (> c #x3FFF80)
+        (+ 128 (- c #x3FFF80))
       c)))
 
 (defun xterm-mouse-truncate-wrap (f)
