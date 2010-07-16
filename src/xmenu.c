@@ -1355,15 +1355,15 @@ free_frame_menubar (FRAME_PTR f)
       lw_destroy_all_widgets ((LWLIB_ID) f->output_data.x->id);
       f->output_data.x->menubar_widget = NULL;
 
-#ifdef USE_MOTIF
       if (f->output_data.x->widget)
 	{
+#ifdef USE_MOTIF
 	  XtVaGetValues (f->output_data.x->widget, XtNx, &x1, XtNy, &y1, NULL);
 	  if (x1 == 0 && y1 == 0)
 	    XtVaSetValues (f->output_data.x->widget, XtNx, x0, XtNy, y0, NULL);
-	}
 #endif
-      x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
+          x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
+	}
       UNBLOCK_INPUT;
     }
 }
