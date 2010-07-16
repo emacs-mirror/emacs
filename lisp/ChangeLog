@@ -1,3 +1,10 @@
+2010-07-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-shell-command): Don't use hard-wired
+	"/bin/sh" but `tramp-remote-sh' from `tramp-methods'.
+	(tramp-find-shell): Simplify setting connection property.
+	(tramp-get-ls-command): Make test for "--color=never" stronger.
+
 2010-07-15  Simon South  <ssouth@member.fsf.org>
 
 	* progmodes/delphi.el (delphi-previous-indent-of): Indent case
