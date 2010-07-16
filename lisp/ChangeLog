@@ -1,3 +1,10 @@
+2010-07-16  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* vc.el (vc-coding-system-inherit-eol): New defvar.
+	(vc-coding-system-for-diff): Use it to decide whether to inherit
+	from the file the EOL format for reading the diffs of that file.
+	(Bug#4451)
+
 2010-07-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmailmm.el (rmail-mime-save): Make the temp buffer
