@@ -1,3 +1,8 @@
+2010-07-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmailmm.el (rmail-mime-save): Make the temp buffer
+	unibyte, so compressed attachments are not compressed again.
+
 2010-07-14  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xt-mouse.el (xterm-mouse-event-read): Fix for characters > 127
