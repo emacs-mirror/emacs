@@ -1,3 +1,8 @@
+2010-07-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-get-ls-command-with-dired): Make test for
+	"--dired" stronger.
+
 2010-07-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* term/x-win.el (x-select-enable-primary): Change default to nil.
