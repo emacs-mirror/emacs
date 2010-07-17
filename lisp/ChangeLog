@@ -1,3 +1,12 @@
+2010-07-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (select-active-region): New function.
+	(push-mark-command, set-mark, activate-mark)
+	(handle-shift-selection): Use it.
+	(deactivate-mark): Don't check for size of region.
+
+	* mouse.el (mouse-drag-track): Use select-active-region.
+
 2010-07-17  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-get-ls-command-with-dired): Make test for

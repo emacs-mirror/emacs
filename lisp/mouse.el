@@ -1027,9 +1027,7 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
 	      ;; For `select-active-regions' non-nil, ensure that
 	      ;; further alterations of the region (e.g. via
 	      ;; shift-selection) continue to update PRIMARY.
-	      (and select-active-regions
-		   (display-selections-p)
-		   (x-set-selection 'PRIMARY (current-buffer))))
+	      (select-active-region))
 
 	  ;; If point hasn't moved, run the binding of the
 	  ;; terminating up-event.
