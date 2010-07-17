@@ -2898,7 +2898,7 @@ xg_event_is_for_menubar (FRAME_PTR f, XEvent *event)
   for (iter = list ; iter; iter = g_list_next (iter))
     {
       GtkWidget *w = GTK_WIDGET (iter->data);
-      if (GTK_WIDGET_MAPPED (w) && gtk_widget_intersect (w, &rec, NULL))
+      if (gtk_widget_get_mapped (w) && gtk_widget_intersect (w, &rec, NULL))
         break;
     }
   g_list_free (list);

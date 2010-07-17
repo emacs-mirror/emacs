@@ -2,6 +2,7 @@
 
 	* gtkutil.c (xg_event_is_for_menubar): Also check that event window
 	is related to the menu bar (Bug#6499).
+	(xg_frame_resized): GTK_IS_MAPPED => gtk_widget_get_mapped, for Gtk 3.0
 
 2010-07-16  Jan Djärv  <jan.h.d@swipnet.se>
 
