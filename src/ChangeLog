@@ -1,4 +1,4 @@
-2010-07-14  Jan Djärv  <jan.h.d@swipnet.se>
+2010-07-16  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.h (x_menubar_window_to_frame): Second parameter is XEvent*.
 
@@ -15,7 +15,7 @@
 
 	* gtkutil.c (xg_event_is_for_menubar): New function (Bug#6499).
 
-2010-07-14  Eli Zaretskii  <eliz@gnu.org>
+2010-07-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c (x_set_foreground_color): Fix setting the cursor color
 	when it's the same as the old foreground.  (Bug#6609)
@@ -55,8 +55,8 @@
 	(prepare_menu_bars): Remove setting of pending_menu_activation.
 
 	* xmenu.c (pending_menu_activation): Remove.
-	(x_activate_menubar): Set popup_activated_flag for Xt also. Remove
-	setting of pending_menu_activation.
+	(x_activate_menubar): Set popup_activated_flag for Xt also.
+	Remove setting of pending_menu_activation.
 	(set_frame_menubar): Remove check of pending_menu_activation.
 	Declare menubar_size before code.  Correct spelling in comment.
 
@@ -1164,7 +1164,7 @@
 	* nsterm.m (ns_draw_fringe_bitmap): Likewise.
 
 	* fringe.c (draw_fringe_bitmap_1): Don't clip bitmap here.
-	Take account of	bitmap offset.
+	Take account of bitmap offset.
 	(draw_window_fringes): Take account of window vscroll.
 	(update_window_fringes): Likewise.  Extend top-aligned top indicator
 	or bottom-aligned bottom indicator to adjacent rows if it doesn't fit
