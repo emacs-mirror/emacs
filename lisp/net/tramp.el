@@ -1037,6 +1037,7 @@ The default value is to use the same value as `tramp-rsh-end-of-line'."
 ;; Solaris: /usr/xpg4/bin:/usr/ccs/bin:/usr/bin:/opt/SUNWspro/bin
 ;; GNU/Linux (Debian, Suse): /bin:/usr/bin
 ;; FreeBSD: /usr/bin:/bin:/usr/sbin:/sbin: - beware trailing ":"!
+;; IRIX64: /usr/bin
 (defcustom tramp-remote-path
   '(tramp-default-remote-path "/usr/sbin" "/usr/local/bin"
     "/local/bin" "/local/freeware/bin" "/local/gnu/bin"
@@ -8335,8 +8336,11 @@ necessary only.  This function will be used in file name completion."
   (save-match-data
     (with-connection-property vec "ls-dired"
       (tramp-message vec 5 "Checking, whether `ls --dired' works")
+      ;; Some "ls" versions are sensible wrt the order of arguments,
+      ;; they fail when "-al" is after the "--dired" argument (for
+      ;; example on FreeBSD).
       (zerop (tramp-send-command-and-check
-	      vec (format "%s --dired /" (tramp-get-ls-command vec)))))))
+	      vec (format "%s --dired -al /" (tramp-get-ls-command vec)))))))
 
 (defun tramp-get-test-command (vec)
   (with-connection-property vec "test"
@@ -8936,7 +8940,6 @@ Only works for Bourne-like shells."
 ;;   without built-in uuencode/uudecode.
 ;; * Let `shell-dynamic-complete-*' and `comint-dynamic-complete' work
 ;;   on remote hosts.
-;; * Use secrets.el for password handling.
 ;; * Load ~/.emacs_SHELLNAME on the remote host for `shell'.
 
 ;; Functions for file-name-handler-alist:

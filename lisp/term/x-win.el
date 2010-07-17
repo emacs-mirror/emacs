@@ -1223,12 +1223,14 @@ It is said that overlarge strings are slow to put into the cut buffer.")
   "Non-nil means cutting and pasting uses the clipboard.
 This is in addition to, but in preference to, the primary selection."
   :type 'boolean
-  :group 'killing)
+  :group 'killing
+  :version "24.1")
 
-(defcustom x-select-enable-primary t
+(defcustom x-select-enable-primary nil
   "Non-nil means cutting and pasting uses the primary selection."
   :type 'boolean
-  :group 'killing)
+  :group 'killing
+  :version "24.1")
 
 (defun x-select-text (text &optional push)
   "Select TEXT, a string, according to the window system.

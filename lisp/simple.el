@@ -3670,7 +3670,7 @@ a mistake; see the documentation of `set-mark'."
   "If non-nil, an active region automatically becomes the window selection."
   :type 'boolean
   :group 'killing
-  :version "23.1")
+  :version "24.1")
 
 (declare-function x-selection-owner-p "xselect.c" (&optional selection))
 
@@ -3761,10 +3761,9 @@ point otherwise."
 This is used by commands that act specially on the region under
 Transient Mark mode.
 
-The return value is t provided Transient Mark mode is enabled and
-the mark is active; and, when `use-empty-active-region' is
-non-nil, provided the region is empty.  Otherwise, the return
-value is nil.
+The return value is t if Transient Mark mode is enabled and the
+mark is active; furthermore, if `use-empty-active-region' is nil,
+the region must not be empty.  Otherwise, the return value is nil.
 
 For some commands, it may be appropriate to ignore the value of
 `use-empty-active-region'; in that case, use `region-active-p'."
