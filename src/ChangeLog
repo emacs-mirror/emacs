@@ -1,3 +1,8 @@
+2010-07-17  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_event_is_for_menubar): Also check that event window
+	is related to the menu bar (Bug#6499).
+
 2010-07-14  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.h (x_menubar_window_to_frame): Second parameter is XEvent*.
