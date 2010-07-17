@@ -183,6 +183,8 @@ and yank use the clipboard, in addition to the primary selection.
 
 *** `x-select-enable-clipboard' now defaults to t.
 
+*** `x-select-enable-primary' now defaults to nil.
+
 *** `mouse-drag-copy-region' now defaults to nil.
 
 *** `mouse-2' is now bound to `mouse-yank-primary'.

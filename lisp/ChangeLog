@@ -1,3 +1,11 @@
+2010-07-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* term/x-win.el (x-select-enable-primary): Change default to nil.
+	(x-select-enable-clipboard): Add :version keyword.
+
+	* mouse.el (mouse-drag-copy-region):
+	* simple.el (select-active-regions): Likewise.
+
 2010-07-16  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* vc.el (vc-coding-system-inherit-eol): New defvar.

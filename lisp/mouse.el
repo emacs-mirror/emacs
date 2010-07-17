@@ -44,7 +44,7 @@
 (defcustom mouse-drag-copy-region nil
   "If non-nil, mouse drag copies region to kill-ring."
   :type 'boolean
-  :version "22.1"
+  :version "24.1"
   :group 'mouse)
 
 (defcustom mouse-1-click-follows-link 450

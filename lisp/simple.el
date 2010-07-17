@@ -3670,7 +3670,7 @@ a mistake; see the documentation of `set-mark'."
   "If non-nil, an active region automatically becomes the window selection."
   :type 'boolean
   :group 'killing
-  :version "23.1")
+  :version "24.1")
 
 (declare-function x-selection-owner-p "xselect.c" (&optional selection))
 
