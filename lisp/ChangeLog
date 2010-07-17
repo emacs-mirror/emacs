@@ -1,3 +1,8 @@
+2010-07-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired.el (dired-buffers-for-dir): Handle list values of
+	dired-directory (Bug#6636).
+
 2010-07-16  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* vc.el (vc-coding-system-inherit-eol): New defvar.
