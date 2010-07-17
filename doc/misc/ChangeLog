@@ -1,3 +1,10 @@
+2010-07-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Inline methods): Remove remark about doubled "-t"
+	argument.
+	(Frequently Asked Questions): Recommend "sshx" and "scpx" for
+	echoing shells.
+
 2010-07-10  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Inline methods): Remove "kludgy" phrase.
