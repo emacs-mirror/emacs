@@ -1,3 +1,7 @@
+2010-07-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.c (make_initial_frame): Use set_menu_bar_lines (Bug#6660).
+
 2010-07-17  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_event_is_for_menubar): Also check that event window
