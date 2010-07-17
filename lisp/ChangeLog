@@ -1,3 +1,9 @@
+2010-07-17  Shyam Karanatt  <shyam@swathanthran.in>  (tiny change)
+
+	* image-mode.el (image-display-size): New function.
+	(image-forward-hscroll, image-next-line, image-eol, image-eob)
+	(image-mode-fit-frame): Use it (Bug#6639).
+
 2010-07-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* dired.el (dired-buffers-for-dir): Handle list values of

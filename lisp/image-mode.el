@@ -128,6 +128,28 @@ A winprops object has the shape (WINDOW . ALIST)."
 
 (declare-function image-size "image.c" (spec &optional pixels frame))
 
+(defun image-display-size (spec &optional pixels frame)
+  "Wrapper around `image-size', to handle slice display properties.
+If SPEC is an image display property, call `image-size' with the
+given arguments.
+If SPEC is a list of properties containing `image' and `slice'
+properties, calculate the display size from the slice property.
+If SPEC contains `image' but not `slice', call `image-size' with
+the specified image."
+  (if (eq (car spec) 'image)
+      (image-size spec pixels frame)
+    (let ((image (assoc 'image spec))
+	  (slice (assoc 'slice spec)))
+      (cond ((and image slice)
+	     (if pixels
+		 (cons (nth 3 slice) (nth 4 slice))
+	       (cons (/ (float (nth 3 slice)) (frame-char-width frame))
+		     (/ (float (nth 4 slice)) (frame-char-height frame)))))
+	    (image
+	     (image-size image pixels frame))
+	    (t
+	     (error "Invalid image specification: %s" spec))))))
+
 (defun image-forward-hscroll (&optional n)
   "Scroll image in current window to the left by N character widths.
 Stop if the right edge of the image is reached."
@@ -139,7 +161,7 @@ Stop if the right edge of the image is reached."
 	 (let* ((image (image-get-display-property))
 		(edges (window-inside-edges))
 		(win-width (- (nth 2 edges) (nth 0 edges)))
-		(img-width (ceiling (car (image-size image)))))
+		(img-width (ceiling (car (image-display-size image)))))
 	   (image-set-window-hscroll (min (max 0 (- img-width win-width))
 					  (+ n (window-hscroll))))))))
 
@@ -160,7 +182,7 @@ Stop if the bottom edge of the image is reached."
 	 (let* ((image (image-get-display-property))
 		(edges (window-inside-edges))
 		(win-height (- (nth 3 edges) (nth 1 edges)))
-		(img-height (ceiling (cdr (image-size image)))))
+		(img-height (ceiling (cdr (image-display-size image)))))
 	   (image-set-window-vscroll (min (max 0 (- img-height win-height))
 					  (+ n (window-vscroll))))))))
 
@@ -233,7 +255,7 @@ stopping if the top or bottom edge of the image is reached."
   (let* ((image (image-get-display-property))
 	 (edges (window-inside-edges))
 	 (win-width (- (nth 2 edges) (nth 0 edges)))
-	 (img-width (ceiling (car (image-size image)))))
+	 (img-width (ceiling (car (image-display-size image)))))
     (image-set-window-hscroll (max 0 (- img-width win-width)))))
 
 (defun image-bob ()
@@ -248,9 +270,9 @@ stopping if the top or bottom edge of the image is reached."
   (let* ((image (image-get-display-property))
 	 (edges (window-inside-edges))
 	 (win-width (- (nth 2 edges) (nth 0 edges)))
-	 (img-width (ceiling (car (image-size image))))
+	 (img-width (ceiling (car (image-display-size image))))
 	 (win-height (- (nth 3 edges) (nth 1 edges)))
-	 (img-height (ceiling (cdr (image-size image)))))
+	 (img-height (ceiling (cdr (image-display-size image)))))
     (image-set-window-hscroll (max 0 (- img-width win-width)))
     (image-set-window-vscroll (max 0 (- img-height win-height)))))
 
@@ -264,7 +286,7 @@ This function assumes the current frame has only one window."
   (interactive)
   (let* ((saved (frame-parameter nil 'image-mode-saved-size))
          (display (image-get-display-property))
-         (size (image-size display)))
+         (size (image-display-size display)))
     (if (and saved
              (eq (caar saved) (frame-width))
              (eq (cdar saved) (frame-height)))
