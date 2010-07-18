@@ -1,3 +1,11 @@
+2010-07-18  Alan Mackenzie  <acm@muc.de>
+
+	Enhance `c-file-style' in file/directory local variables.
+	* cc-mode.el (c-count-cfss): New function.
+	(c-before-hack-hook): Call `c-set-style' differently according to
+	whether c-file-style was set in file or directory local
+	variables.
+
 2010-07-18  Michael R. Mauger  <mmaug@yahoo.com>
 
 	* progmodes/sql.el: Version 2.2.
