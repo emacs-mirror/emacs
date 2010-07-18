@@ -1,3 +1,7 @@
+2010-07-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/keyboard.$(O)): Update dependencies.
+
 2010-07-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frame.c (make_initial_frame): Use set_menu_bar_lines (Bug#6660).
