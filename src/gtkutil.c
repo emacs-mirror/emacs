@@ -2860,6 +2860,13 @@ int
 xg_event_is_for_menubar (FRAME_PTR f, XEvent *event)
 {
   struct x_output *x = f->output_data.x;
+  GList *iter;
+  GdkRectangle rec;
+  GList *list;
+  GdkDisplay *gdpy;
+  GdkWindow *gw;
+  GdkEvent gevent;
+  GtkWidget *gwdesc;
 
   if (! x->menubar_widget) return 0;
 
@@ -2870,18 +2877,28 @@ xg_event_is_for_menubar (FRAME_PTR f, XEvent *event)
          && event->xbutton.same_screen))
     return 0;
 
-  GList *list = gtk_container_get_children (GTK_CONTAINER (x->menubar_widget));
+  gdpy = gdk_x11_lookup_xdisplay (FRAME_X_DISPLAY (f));
+  gw = gdk_xid_table_lookup_for_display (gdpy, event->xbutton.window);
+  if (! gw) return 0;
+  gevent.any.window = gw;
+  gwdesc = gtk_get_event_widget (&gevent);
+  if (! gwdesc) return 0;
+  if (! GTK_IS_MENU_BAR (gwdesc)
+      && ! GTK_IS_MENU_ITEM (gwdesc)
+      && ! gtk_widget_is_ancestor (x->menubar_widget, gwdesc))
+    return 0;
+
+  list = gtk_container_get_children (GTK_CONTAINER (x->menubar_widget));
   if (! list) return 0;
-  GList *iter;
-  GdkRectangle rec;
   rec.x = event->xbutton.x;
   rec.y = event->xbutton.y;
   rec.width = 1;
   rec.height = 1;
+
   for (iter = list ; iter; iter = g_list_next (iter))
     {
       GtkWidget *w = GTK_WIDGET (iter->data);
-      if (GTK_WIDGET_MAPPED (w) && gtk_widget_intersect (w, &rec, NULL))
+      if (gtk_widget_get_mapped (w) && gtk_widget_intersect (w, &rec, NULL))
         break;
     }
   g_list_free (list);
