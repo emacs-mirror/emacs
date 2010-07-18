@@ -1,3 +1,9 @@
+2010-07-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* configure.bat: New option --enable-checking.
+	* gmake.defs, nmake.defs (CHECKING_CFLAGS): New define.
+	(CFLAGS): Include it.
+
 2010-07-12  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* config.nt (volatile): Remove definition.
