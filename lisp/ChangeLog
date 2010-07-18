@@ -1,3 +1,34 @@
+2010-07-18  Michael R. Mauger  <mmaug@yahoo.com>
+
+	* progmodes/sql.el: Version 2.2.
+	(sql-product, sql-user, sql-database, sql-server, sql-port): Use
+	defcustom :safe keyword rather than putting safe-local-variable
+	property.
+	(sql-password): Use defcustom :risky keyword rather than putting
+	risky-local-variable property.
+	(sql-oracle-login-params, sql-sqlite-login-params)
+	(sql-solid-login-params, sql-sybase-login-params)
+	(sql-informix-login-params, sql-ingres-login-params)
+	(sql-ms-login-params, sql-postgres-login-params)
+	(sql-interbase-login-params, sql-db2-login-params)
+	(sql-linter-login-params): Add `port' option
+	(sql-get-product-feature): Added NO-INDIRECT parameter.
+	(sql-comint-oracle, sql-comint-sybase)
+	(sql-comint-informix, sql-comint-sqlite, sql-comint-mysql)
+	(sql-comint-solid, sql-comint-ingres, sql-comint-ms)
+	(sql-comint-postgres, sql-comint-interbase, sql-comint-db2)
+	(sql-comint-linter): Renamed sql-connect-* functions to
+	sql-comint-*.
+	(sql-product-alist, sql-mode-menu): Renamed as above and
+	:sqli-connect-func to :sqli-comint-func.
+	(sql-connection): New variable
+	(sql-interactive-mode): Set it.
+	(sql-connection-alist): New variable.
+	(sql-connect): New function.
+	(sql--alt-buffer-part, sql--alt-if-not-empty)
+	(sql-make-alternate-buffer-name): Improved alternative buffer
+	name.
+
 2010-07-17  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
 	* image-mode.el (image-bookmark-make-record): Do not set context
