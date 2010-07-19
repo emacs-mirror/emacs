@@ -402,6 +402,9 @@ displayed with a "spinning bar".
 
 * Changes in Emacs 24.1 on non-free operating systems
 
+** New configure.bat option --enable-checking builds emacs with extra
+runtime checks.
+
 
 ----------------------------------------------------------------------
 This file is part of GNU Emacs.
