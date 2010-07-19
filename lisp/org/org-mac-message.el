@@ -5,7 +5,7 @@
 ;; Author: John Wiegley <johnw@gnu.org>
 ;;         Christopher Suckling <suckling at gmail dot com>
 
-;; Version: 6.35i
+;; Version: 7.01
 ;; Keywords: outlines, hypermedia, calendar, wp
 
 ;; This file is part of GNU Emacs.
@@ -39,7 +39,7 @@
 ;; messages selected in Mail.app.
 
 ;; (org-mac-message-insert-flagged) searches within an org-mode buffer
-;; for a specific heading, creating it if it doesn't exist. Any
+;; for a specific heading, creating it if it doesn't exist.  Any
 ;; message:// links within the first level of the heading are deleted
 ;; and replaced with links to flagged messages.
 
@@ -53,7 +53,7 @@
   :group 'org-link)
 
 (defcustom org-mac-mail-account "customize"
-  "The Mail.app account in which to search for flagged messages"
+  "The Mail.app account in which to search for flagged messages."
   :group 'org-mac-flagged-mail
   :type 'string)
 
@@ -81,7 +81,7 @@ This will use the command `open' with the message URL."
 		 "open" (concat "message://<" (substring message-id 2) ">")))
 
 (defun as-get-selected-mail ()
-  "AppleScript to create links to selected messages in Mail.app"
+  "AppleScript to create links to selected messages in Mail.app."
   (do-applescript
    (concat
     "tell application \"Mail\"\n"
@@ -97,7 +97,7 @@ This will use the command `open' with the message URL."
     "end tell")))
 
 (defun as-get-flagged-mail ()
-  "AppleScript to create links to flagged messages in Mail.app"
+  "AppleScript to create links to flagged messages in Mail.app."
   (do-applescript
    (concat
     ;; Is Growl installed?
@@ -179,7 +179,7 @@ The Org-syntax text will be pushed to the kill ring, and also returned."
 
 (defun org-mac-message-insert-selected ()
   "Insert a link to the messages currently selected in Mail.app.
-This will use applescript to get the message-id and the subject of the
+This will use AppleScript to get the message-id and the subject of the
 active mail in Mail.app and make a link out of it."
   (interactive)
   (insert (org-mac-message-get-links "s")))

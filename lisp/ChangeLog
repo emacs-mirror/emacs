@@ -1,3 +1,94 @@
+2010-07-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* time.el (display-time-world-mode): Define with `define-derived-mode'.
+	Set `show-trailing-whitespace' to nil.
+	(display-time-world-display): Simplify.
+
+2010-07-18  Alan Mackenzie  <acm@muc.de>
+
+	Enhance `c-file-style' in file/directory local variables.
+	* cc-mode.el (c-count-cfss): New function.
+	(c-before-hack-hook): Call `c-set-style' differently according to
+	whether c-file-style was set in file or directory local
+	variables.
+
+2010-07-18  Michael R. Mauger  <mmaug@yahoo.com>
+
+	* progmodes/sql.el: Version 2.2.
+	(sql-product, sql-user, sql-database, sql-server, sql-port): Use
+	defcustom :safe keyword rather than putting safe-local-variable
+	property.
+	(sql-password): Use defcustom :risky keyword rather than putting
+	risky-local-variable property.
+	(sql-oracle-login-params, sql-sqlite-login-params)
+	(sql-solid-login-params, sql-sybase-login-params)
+	(sql-informix-login-params, sql-ingres-login-params)
+	(sql-ms-login-params, sql-postgres-login-params)
+	(sql-interbase-login-params, sql-db2-login-params)
+	(sql-linter-login-params): Add `port' option
+	(sql-get-product-feature): Added NO-INDIRECT parameter.
+	(sql-comint-oracle, sql-comint-sybase)
+	(sql-comint-informix, sql-comint-sqlite, sql-comint-mysql)
+	(sql-comint-solid, sql-comint-ingres, sql-comint-ms)
+	(sql-comint-postgres, sql-comint-interbase, sql-comint-db2)
+	(sql-comint-linter): Renamed sql-connect-* functions to
+	sql-comint-*.
+	(sql-product-alist, sql-mode-menu): Renamed as above and
+	:sqli-connect-func to :sqli-comint-func.
+	(sql-connection): New variable
+	(sql-interactive-mode): Set it.
+	(sql-connection-alist): New variable.
+	(sql-connect): New function.
+	(sql--alt-buffer-part, sql--alt-if-not-empty)
+	(sql-make-alternate-buffer-name): Improved alternative buffer
+	name.
+
+2010-07-17  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* image-mode.el (image-bookmark-make-record): Do not set context
+	in an image (Bug#6650).
+
+2010-07-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (select-active-region): New function.
+	(push-mark-command, set-mark, activate-mark)
+	(handle-shift-selection): Use it.
+	(deactivate-mark): Don't check for size of region.
+
+	* mouse.el (mouse-drag-track): Use select-active-region.
+
+2010-07-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-get-ls-command-with-dired): Make test for
+	"--dired" stronger.
+
+2010-07-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* term/x-win.el (x-select-enable-primary): Change default to nil.
+	(x-select-enable-clipboard): Add :version keyword.
+
+	* mouse.el (mouse-drag-copy-region):
+	* simple.el (select-active-regions): Likewise.
+
+2010-07-16  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* vc.el (vc-coding-system-inherit-eol): New defvar.
+	(vc-coding-system-for-diff): Use it to decide whether to inherit
+	from the file the EOL format for reading the diffs of that file.
+	(Bug#4451)
+
+2010-07-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmailmm.el (rmail-mime-save): Make the temp buffer
+	unibyte, so compressed attachments are not compressed again.
+
+2010-07-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-shell-command): Don't use hard-wired
+	"/bin/sh" but `tramp-remote-sh' from `tramp-methods'.
+	(tramp-find-shell): Simplify setting connection property.
+	(tramp-get-ls-command): Make test for "--color=never" stronger.
+
 2010-07-15  Simon South  <ssouth@member.fsf.org>
 
 	* progmodes/delphi.el (delphi-previous-indent-of): Indent case
@@ -14,6 +105,11 @@
 
 	* bookmark.el (bookmark-load-hook): Fix doc string as suggested
 	by Drew Adams (Bug#5504).
+
+2010-07-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xt-mouse.el (xterm-mouse-event-read): Fix for characters > 127
+	now that unicode is used (Bug#6594).
 
 2010-07-14  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -112,6 +208,20 @@
 
 	* net/tramp-gvfs.el (tramp-gvfs-handle-copy-file): Do not pass
 	empty argument to gvfs-copy.
+
+2010-07-10  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (calendar-week-end-day): New function.
+	* calendar/cal-tex.el (cal-tex-cursor-month): Remove unused vars.
+	Respect calendar-week-start-day.  (Bug#6606)
+	(cal-tex-insert-day-names, cal-tex-insert-blank-days)
+	(cal-tex-insert-blank-days-at-end): Respect calendar-week-start-day.
+	(cal-tex-first-blank-p, cal-tex-last-blank-p): Simplify, and
+	respect calendar-week-start-day.
+
+2010-07-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (use-region-p): Doc fix (Bug#6607).
 
 2010-07-10  Aleksei Gusev  <aleksei.gusev@gmail.com>  (tiny change)
 

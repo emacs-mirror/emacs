@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.35i
+;; Version: 7.01
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -54,14 +54,15 @@
   :group 'org)
 
 (defcustom org-remember-store-without-prompt t
-  "Non-nil means `C-c C-c' stores remember note without further prompts.
+  "Non-nil means \\<org-remember-mode-map>\\[org-remember-finalize] \
+stores the remember note without further prompts.
 It then uses the file and headline specified by the template or (if the
 template does not specify them) by the variables `org-default-notes-file'
 and `org-remember-default-headline'.  To force prompting anyway, use
-`C-u C-c C-c' to file the note.
+\\[universal-argument] \\[org-remember-finalize] to file the note.
 
-When this variable is nil, `C-c C-c' gives you the prompts, and
-`C-u C-c C-c' triggers the fasttrack."
+When this variable is nil, \\[org-remember-finalize] gives you the prompts, and
+\\[universal-argument] \\[org-remember-finalize] triggers the fasttrack."
   :group 'org-remember
   :type 'boolean)
 
@@ -94,10 +95,10 @@ You can set this on a per-template basis with the variable
 (defcustom org-remember-templates nil
   "Templates for the creation of remember buffers.
 When nil, just let remember make the buffer.
-When non-nil, this is a list of 5-element lists.  In each entry, the first
-element is the name of the template, which should be a single short word.
-The second element is a character, a unique key to select this template.
-The third element is the template.
+When non-nil, this is a list of (up to) 6-element lists.  In each entry,
+the first element is the name of the template, which should be a single
+short word.  The second element is a character, a unique key to select
+this template.  The third element is the template.
 
 The fourth element is optional and can specify a destination file for
 remember items created with this template.  The default file is given
@@ -114,41 +115,44 @@ An optional sixth element specifies the contexts in which the template
 will be offered to the user.  This element can be a list of major modes
 or a function, and the template will only be offered if `org-remember'
 is called from a mode in the list, or if the function returns t.
-Templates that specify t or nil for the context will be always be added
+Templates that specify t or nil for the context will always be added
 to the list of selectable templates.
 
 The template specifies the structure of the remember buffer.  It should have
 a first line starting with a star, to act as the org-mode headline.
 Furthermore, the following %-escapes will be replaced with content:
 
-  %^{prompt}  Prompt the user for a string and replace this sequence with it.
-              A default value and a completion table ca be specified like this:
+  %^{PROMPT}  prompt the user for a string and replace this sequence with it.
+              A default value and a completion table can be specified like this:
               %^{prompt|default|completion2|completion3|...}
+              The arrow keys access a prompt-specific history.
+  %a          annotation, normally the link created with `org-store-link'
+  %A          like %a, but prompt for the description part
+  %i          initial content, copied from the active region.  If %i is
+              indented, the entire inserted text will be indented as well.
   %t          time stamp, date only
   %T          time stamp with date and time
   %u, %U      like the above, but inactive time stamps
   %^t         like %t, but prompt for date.  Similarly %^T, %^u, %^U.
-              You may define a prompt like %^{Please specify birthday
+              You may define a prompt like %^{Please specify birthday}t
   %n          user name (taken from `user-full-name')
-  %a          annotation, normally the link created with org-store-link
-  %i          initial content, copied from the active region.  If %i is
-              indented, the entire inserted text will be indented as well.
   %c          current kill ring head
   %x          content of the X clipboard
-  %^C         Interactive selection of which kill or clip to use
-  %^L         Like %^C, but insert as link
-  %k          title of currently clocked task
-  %K          link to currently clocked task
-  %^g         prompt for tags, with completion on tags in target file
-  %^G         prompt for tags, with completion all tags in all agenda files
-  %^{prop}p   Prompt the user for a value for property `prop'
   %:keyword   specific information for certain link types, see below
-  %[pathname] insert the contents of the file given by `pathname'
-  %(sexp)     evaluate elisp `(sexp)' and replace with the result
-  %!          Store this note immediately after filling the template
-  %&          Visit note immediately after storing it
-
-  %?          After completing the template, position cursor here.
+  %^C         interactive selection of which kill or clip to use
+  %^L         like %^C, but insert as link
+  %k          title of the currently clocked task
+  %K          link to the currently clocked task
+  %^g         prompt for tags, completing tags in the target file
+  %^G         prompt for tags, completing all tags in all agenda files
+  %^{PROP}p   Prompt the user for a value for property PROP
+  %[PATHNAME] insert the contents of the file given by PATHNAME
+  %(SEXP)     evaluate elisp `(SEXP)' and replace with the result
+  %!          store this note immediately after completing the template\
+              \\<org-remember-mode-map>
+              (skipping the \\[org-remember-finalize] that normally triggers storing)
+  %&          jump to target location immediately after storing note
+  %?          after completing the template, position cursor here.
 
 Apart from these general escapes, you can access information specific to the
 link type that is created.  For example, calling `remember' in emails or gnus
@@ -211,7 +215,7 @@ The remember buffer is still current when this hook runs."
   :type 'hook)
 
 (defvar org-remember-mode-map (make-sparse-keymap)
-  "Keymap for org-remember-mode, a minor mode.
+  "Keymap for `org-remember-mode', a minor mode.
 Use this map to set additional keybindings for when Org-mode is used
 for a Remember buffer.")
 (defvar org-remember-mode-hook nil
@@ -229,7 +233,7 @@ for a Remember buffer.")
 This only applies if the clock is running in the remember buffer.  If the
 clock is not stopped, it continues to run in the storage location.
 Instead of nil or t, this may also be the symbol `query' to prompt the
-user each time a remember buffer with a running clock is filed away.  "
+user each time a remember buffer with a running clock is filed away."
   :group 'org-remember
   :type '(choice
 	  (const :tag "Never" nil)
@@ -265,7 +269,7 @@ Set this to nil if you find that you don't need the warning.
 
 If you cancel remember calls frequently and know when they
 contain useful information (because you know that you made an
-error or emacs crashed, for example) nil is more useful.  In the
+error or Emacs crashed, for example) nil is more useful.  In the
 opposite case, the default, t, is more useful."
   :group 'org-remember
   :type 'boolean)
@@ -387,12 +391,6 @@ RET at beg-of-buf -> Append to file as level 2 headline
 			   (error "Customize templates"))
 			 char0))))))
       (cddr (assoc char templates)))))
-
-(defun org-get-x-clipboard (value)
-  "Get the value of the x clipboard, compatible with XEmacs, and GNU Emacs 21."
-  (if (eq window-system 'x)
-      (let ((x (org-get-x-clipboard-compat value)))
-	(if x (org-no-properties x)))))
 
 ;;;###autoload
 (defun org-remember-apply-template (&optional use-char skip-interactive)
@@ -727,9 +725,11 @@ from that hook."
 If there is an active region, make sure remember uses it as initial content
 of the remember buffer.
 
-When called interactively with a `C-u' prefix argument GOTO, don't remember
+When called interactively with a \\[universal-argument] \
+prefix argument GOTO, don't remember
 anything, just go to the file/headline where the selected template usually
-stores its notes.  With a double prefix arg `C-u C-u', go to the last
+stores its notes.  With a double prefix argument \
+\\[universal-argument] \\[universal-argument], go to the last
 note stored by remember.
 
 Lisp programs can set ORG-FORCE-REMEMBER-TEMPLATE-CHAR to a character
@@ -801,21 +801,24 @@ The user is queried for the template."
 When the template has specified a file and a headline, the entry is filed
 there, or in the location defined by `org-default-notes-file' and
 `org-remember-default-headline'.
-
+\\<org-remember-mode-map>
 If no defaults have been defined, or if the current prefix argument
-is 1 (so you must use `C-1 C-c C-c' to exit remember), an interactive
+is 1 (using C-1 \\[org-remember-finalize] to exit remember), an interactive
 process is used to select the target location.
 
-When the prefix is 0 (i.e. when remember is exited with `C-0 C-c C-c'),
+When the prefix is 0 (i.e. when remember is exited with \
+C-0 \\[org-remember-finalize]),
 the entry is filed to the same location as the previous note.
 
-When the prefix is 2 (i.e. when remember is exited with `C-2 C-c C-c'),
+When the prefix is 2 (i.e. when remember is exited with \
+C-2 \\[org-remember-finalize]),
 the entry is filed as a subentry of the entry where the clock is
 currently running.
 
-When `C-u' has been used as prefix argument, the note is stored and emacs
-moves point to the new location of the note, so that editing can be
-continued there (similar to inserting \"%&\" into the template).
+When \\[universal-argument] has been used as prefix argument, the
+note is stored and Emacs moves point to the new location of the
+note, so that editing can be continued there (similar to
+inserting \"%&\" into the template).
 
 Before storing the note, the function ensures that the text has an
 org-mode-style headline, i.e. a first line that starts with

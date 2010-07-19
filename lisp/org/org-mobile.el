@@ -4,7 +4,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.35i
+;; Version: 7.01
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -33,6 +33,8 @@
 
 (require 'org)
 (require 'org-agenda)
+;;; Code:
+
 (eval-when-compile (require 'cl))
 
 (defgroup org-mobile nil
@@ -66,18 +68,19 @@ org-agenda-text-search-extra-files
   :type 'directory)
 
 (defcustom org-mobile-use-encryption nil
-  "Non-nil means keep only encrypted files on the webdav server.
+  "Non-nil means keep only encrypted files on the WebDAV server.
 Encryption uses AES-256, with a password given in
 `org-mobile-encryption-password'.
 When nil, plain files are kept on the server.
 Turning on encryption requires to set the same password in the MobileOrg
-application."
+application.  Before turning this on, check of MobileOrg does already
+support it - at the time of this writing it did not yet."
   :group 'org-mobile
   :type 'boolean)
 
 (defcustom org-mobile-encryption-tempfile "~/orgtmpcrypt"
   "File that is being used as a temporary file for encryption.
-This must be local file on your local machine (not on the webdav server).
+This must be local file on your local machine (not on the WebDAV server).
 You might want to put this file into a directory where only you have access."
   :group 'org-mobile
   :type 'directory)
@@ -87,7 +90,7 @@ You might want to put this file into a directory where only you have access."
 This is a single password which is used for AES-256 encryption.  The same
 password must also be set in the MobileOrg application.  All Org files,
 including mobileorg.org will be encrypted using this password.
-Note that, whe Org runs the encryption commands, the password could
+Note that, when Org runs the encryption commands, the password could
 be visible on your system with the `ps' command.  So this method is only
 intended to keep the files secure on the server, not on your own machine."
   :group 'org-mobile
@@ -349,15 +352,18 @@ agenda view showing the flagged items."
 		(file-name-directory org-mobile-inbox-for-pull)))
     (error
      "Variable `org-mobile-inbox-for-pull' must point to a file in an existing directory"))
+  (unless (and org-mobile-checksum-binary
+	       (string-match "\\S-" org-mobile-checksum-binary))
+    (error "No executable found to compute checksums"))
   (when org-mobile-use-encryption
     (unless (string-match "\\S-" org-mobile-encryption-password)
       (error
        "To use encryption, you must set `org-mobile-encryption-password'"))
     (unless (file-writable-p org-mobile-encryption-tempfile)
-      (error "Cannot write to entryption tempfile %s"
+      (error "Cannot write to encryption tempfile %s"
 	     org-mobile-encryption-tempfile))
     (unless (executable-find "openssl")
-      (error "openssl is needed to encrypt files."))))
+      (error "openssl is needed to encrypt files"))))
 
 (defun org-mobile-create-index-file ()
   "Write the index file in the WebDAV directory."
@@ -898,42 +904,6 @@ FIXME: Hmmm, not sure if we can make his work against the
 auto-correction feature.  Needs a bit more thinking.  So this function
 is currently a noop.")
 
-
-(defun org-find-olp (path)
-  "Return  a marker pointing to the entry at outline path OLP.
-If anything goes wrong, the return value will instead an error message,
-as a string."
-  (let* ((file (pop path))
-	 (buffer (find-file-noselect file))
-	 (level 1)
-	 (lmin 1)
-	 (lmax 1)
-	 limit re end found pos heading cnt)
-    (unless buffer (error "File not found :%s" file))
-    (with-current-buffer buffer
-      (save-excursion
-	(save-restriction
-	  (widen)
-	  (setq limit (point-max))
-	  (goto-char (point-min))
-	  (while (setq heading (pop path))
-	    (setq re (format org-complex-heading-regexp-format
-			     (regexp-quote heading)))
-	    (setq cnt 0 pos (point))
-	    (while (re-search-forward re end t)
-	      (setq level (- (match-end 1) (match-beginning 1)))
-	      (if (and (>= level lmin) (<= level lmax))
-		  (setq found (match-beginning 0) cnt (1+ cnt))))
-	    (when (= cnt 0) (error "Heading not found on level %d: %s"
-				   lmax heading))
-	    (when (> cnt 1) (error "Heading not unique on level %d: %s"
-				   lmax heading))
-	    (goto-char found)
-	    (setq lmin (1+ level) lmax (+ lmin (if org-odd-levels-only 1 0)))
-	    (setq end (save-excursion (org-end-of-subtree t t))))
-	  (when (org-on-heading-p)
-	    (move-marker (make-marker) (point))))))))
-
 (defun org-mobile-locate-entry (link)
   (if (string-match "\\`id:\\(.*\\)$" link)
       (org-id-find (match-string 1 link) 'marker)
@@ -1032,7 +1002,6 @@ be returned that indicates what went wrong."
 					(point))))
 	t)
        (t (error "Body was changed in MobileOrg and on the computer")))))))
-
 
 (defun org-mobile-tags-same-p (list1 list2)
   "Are the two tag lists the same?"

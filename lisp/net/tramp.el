@@ -1037,6 +1037,7 @@ The default value is to use the same value as `tramp-rsh-end-of-line'."
 ;; Solaris: /usr/xpg4/bin:/usr/ccs/bin:/usr/bin:/opt/SUNWspro/bin
 ;; GNU/Linux (Debian, Suse): /bin:/usr/bin
 ;; FreeBSD: /usr/bin:/bin:/usr/sbin:/sbin: - beware trailing ":"!
+;; IRIX64: /usr/bin
 (defcustom tramp-remote-path
   '(tramp-default-remote-path "/usr/sbin" "/usr/local/bin"
     "/local/bin" "/local/freeware/bin" "/local/gnu/bin"
@@ -4683,7 +4684,12 @@ Lisp error raised when PROGRAM is nil is trapped also, returning 1."
   (let* ((asynchronous (string-match "[ \t]*&[ \t]*\\'" command))
 	 ;; We cannot use `shell-file-name' and `shell-command-switch',
 	 ;; they are variables of the local host.
-	 (args (list "/bin/sh" "-c" (substring command 0 asynchronous)))
+	 (args (list
+		(tramp-get-method-parameter
+		 (tramp-file-name-method
+		  (tramp-dissect-file-name default-directory))
+		 'tramp-remote-sh)
+		"-c" (substring command 0 asynchronous)))
 	 current-buffer-p
 	 (output-buffer
 	  (cond
@@ -6619,12 +6625,10 @@ file exists and nonzero exit status otherwise."
 
 	 (t (tramp-message
 	     vec 5 "Remote `%s' groks tilde expansion, good"
-	     (tramp-get-method-parameter
-	      (tramp-file-name-method vec) 'tramp-remote-sh))
-	    (tramp-set-connection-property
-	     vec "remote-shell"
-	     (tramp-get-method-parameter
-	      (tramp-file-name-method vec) 'tramp-remote-sh))))))))
+	     (tramp-set-connection-property
+	      vec "remote-shell"
+	      (tramp-get-method-parameter
+	       (tramp-file-name-method vec) 'tramp-remote-sh)))))))))
 
 ;; ------------------------------------------------------------
 ;; -- Functions for establishing connection --
@@ -8316,10 +8320,13 @@ necessary only.  This function will be used in file name completion."
 	     ;; Check parameters.  On busybox, "ls" output coloring is
 	     ;; enabled by default sometimes.  So we try to disable it
 	     ;; when possible.  $LS_COLORING is not supported there.
+	     ;; Some "ls" versions are sensible wrt the order of
+	     ;; arguments, they fail when "-al" is after the
+	     ;; "--color=never" argument (for example on FreeBSD).
 	     (when (zerop (tramp-send-command-and-check
 			   vec (format "%s -lnd /" result)))
 	       (when (zerop (tramp-send-command-and-check
-			     vec (format "%s --color=never /" result)))
+			     vec (format "%s --color=never -al /" result)))
 		 (setq result (concat result " --color=never")))
 	       (throw 'ls-found result))
 	     (setq dl (cdr dl))))))
@@ -8329,8 +8336,11 @@ necessary only.  This function will be used in file name completion."
   (save-match-data
     (with-connection-property vec "ls-dired"
       (tramp-message vec 5 "Checking, whether `ls --dired' works")
+      ;; Some "ls" versions are sensible wrt the order of arguments,
+      ;; they fail when "-al" is after the "--dired" argument (for
+      ;; example on FreeBSD).
       (zerop (tramp-send-command-and-check
-	      vec (format "%s --dired /" (tramp-get-ls-command vec)))))))
+	      vec (format "%s --dired -al /" (tramp-get-ls-command vec)))))))
 
 (defun tramp-get-test-command (vec)
   (with-connection-property vec "test"
@@ -8930,7 +8940,6 @@ Only works for Bourne-like shells."
 ;;   without built-in uuencode/uudecode.
 ;; * Let `shell-dynamic-complete-*' and `comint-dynamic-complete' work
 ;;   on remote hosts.
-;; * Use secrets.el for password handling.
 ;; * Load ~/.emacs_SHELLNAME on the remote host for `shell'.
 
 ;; Functions for file-name-handler-alist:

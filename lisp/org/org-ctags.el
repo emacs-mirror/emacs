@@ -3,10 +3,10 @@
 ;; Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: Paul Sexton <eeeickythump@gmail.com>
-;; Version: 1.0
+;; Version: 7.01
 
 ;; Keywords: org, wp
-;; Version: 6.35i
+;; Version: 7.01
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -134,7 +134,10 @@
 ;;       (message "-- rebuilding tags tables...")
 ;;       (mapc 'org-create-tags tags-table-list))
 
+;;; Code:
+
 (eval-when-compile (require 'cl))
+
 (require 'org)
 
 (defgroup org-ctags nil
@@ -146,8 +149,8 @@
   "Activate ctags support in org mode?")
 
 (defvar org-ctags-tag-regexp "/<<([^>]+)>>/\\1/d,definition/"
-  "Regexp expression used by ctags external program, that matches
-tag destinations in org-mode files.
+  "Regexp expression used by ctags external program.
+The regexp matches tag destinations in org-mode files.
 Format is: /REGEXP/TAGNAME/FLAGS,TAGTYPE/
 See the ctags documentation for more information.")
 
@@ -164,8 +167,7 @@ See the ctags documentation for more information.")
   '(org-ctags-find-tag
     org-ctags-ask-rebuild-tags-file-then-find-tag
     org-ctags-ask-append-topic)
-  "List of functions to be prepended to ORG-OPEN-LINK-FUNCTIONS when
-ORG-CTAGS is active."
+  "List of functions to be prepended to ORG-OPEN-LINK-FUNCTIONS when ORG-CTAGS is active."
   :group 'org-ctags
   :type 'hook
   :options '(org-ctags-find-tag
@@ -179,8 +181,8 @@ ORG-CTAGS is active."
 
 
 (defvar org-ctags-tag-list nil
-  "List of all tags in the active TAGS file. Created as a local
-variable in each buffer.")
+  "List of all tags in the active TAGS file.
+Created as a local variable in each buffer.")
 
 (defcustom org-ctags-new-topic-template
   "* <<%t>>\n\n\n\n\n\n"
@@ -218,12 +220,12 @@ The following patterns are replaced in the string:
     (add-hook 'org-open-link-functions fn t)))
 
 
-;;; General utility functions. ===============================================
+;;; General utility functions.  ===============================================
 ;; These work outside org-ctags mode.
 
 (defun org-ctags-get-filename-for-tag (tag)
-  "TAG is a string. Search the active TAGS file for a matching tag,
-and if found, return a list containing the filename, line number, and
+  "TAG is a string.  Search the active TAGS file for a matching tag.
+If the tag is found, return a list containing the filename, line number, and
 buffer position where the tag is found."
   (interactive "sTag: ")
   (unless tags-file-name
@@ -279,8 +281,8 @@ Return the list."
 
 
 (defun org-ctags-open-file (name &optional title)
-  "Visit or create a file called `NAME.org', and insert a new topic titled
-NAME (or TITLE if supplied)."
+  "Visit or create a file called `NAME.org', and insert a new topic.
+The new topic will be titled NAME (or TITLE if supplied)."
   (interactive "sFile name: ")
   (let ((filename (substitute-in-file-name (expand-file-name name))))
     (condition-case v
@@ -349,7 +351,7 @@ If there is no plausible default, return nil."
 
 (defun org-ctags-find-tag (name)
   "This function is intended to be used in ORG-OPEN-LINK-FUNCTIONS.
-Look for a tag called `NAME' in the current TAGS table. If it is found,
+Look for a tag called `NAME' in the current TAGS table.  If it is found,
 visit the file and location where the tag is found."
   (interactive "sTag: ")
   (let ((old-buf (current-buffer))
@@ -368,11 +370,11 @@ visit the file and location where the tag is found."
 
 (defun org-ctags-visit-buffer-or-file (name &optional create)
   "This function is intended to be used in ORG-OPEN-LINK-FUNCTIONS.
-Visit buffer named `NAME.org'. If there is no such buffer, visit the file
-with the same name if it exists. If the file does not exist, then behaviour
+Visit buffer named `NAME.org'.  If there is no such buffer, visit the file
+with the same name if it exists.  If the file does not exist, then behavior
 depends on the value of CREATE.
 
-If CREATE is nil (default), then return nil. Do not create a new file.
+If CREATE is nil (default), then return nil.  Do not create a new file.
 If CREATE is t, create the new file and visit it.
 If CREATE is the symbol `ask', then ask the user if they wish to create
 the new file."
@@ -453,7 +455,7 @@ Wrapper for org-ctags-rebuild-tags-file-then-find-tag."
   (if (and (buffer-file-name)
              (y-or-n-p
               (format
-               "Tag `%s' not found. Rebuild table `%s/TAGS' and look again?"
+               "Tag `%s' not found.  Rebuild table `%s/TAGS' and look again?"
                name
                (file-name-directory (buffer-file-name)))))
     (org-ctags-rebuild-tags-file-then-find-tag name)
@@ -463,7 +465,7 @@ Wrapper for org-ctags-rebuild-tags-file-then-find-tag."
 (defun org-ctags-fail-silently (name)
   "This function is intended to be used in ORG-OPEN-LINK-FUNCTIONS.
 Put as the last function in the list if you want to prevent org's default
-behaviour of free text search."
+behavior of free text search."
   t)
 
 
@@ -471,14 +473,14 @@ behaviour of free text search."
 
 
 (defun org-ctags-create-tags (&optional directory-name)
-  "(Re)create tags file in the directory of the active buffer,
-containing tag definitions for all the files in the directory and its
-subdirectories which are recognised by ctags. This will include
-files ending in `.org' as well as most other source files (.C,
-.H, .EL, .LISP, etc).  All the resulting tags end up in one file,
-called TAGS, located in the directory.  This function
-may take several seconds to finish if the directory or its
-subdirectories contain large numbers of taggable files."
+  "(Re)create tags file in the directory of the active buffer.
+The file will contain tag definitions for all the files in the
+directory and its subdirectories which are recognized by ctags.
+This will include files ending in `.org' as well as most other
+source files (.C, .H, .EL, .LISP, etc).  All the resulting tags
+end up in one file, called TAGS, located in the directory.  This
+function may take several seconds to finish if the directory or
+its subdirectories contain large numbers of taggable files."
   (interactive)
   (assert (buffer-file-name))
   (let ((dir-name (or directory-name
@@ -509,8 +511,8 @@ subdirectories contain large numbers of taggable files."
   "History of tags visited by org-ctags-find-tag-interactive.")
 
 (defun org-ctags-find-tag-interactive ()
-  "Prompt for the name of a tag, with autocompletion, then visit
-the named tag. Uses ido-mode if available.
+  "Prompt for the name of a tag, with autocompletion, then visit the named tag.
+Uses `ido-mode' if available.
 If the user enters a string that does not match an existing tag, create
 a new topic."
   (interactive)

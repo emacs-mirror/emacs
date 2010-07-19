@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.35i
+;; Version: 7.01
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -35,6 +35,9 @@
 
 (declare-function org-agenda-redo "org-agenda" ())
 (declare-function org-agenda-do-context-action "org-agenda" ())
+
+(when (featurep 'xemacs)
+  (error "Do not load this file into XEmacs, use 'org-colview-xemacs.el'."))
 
 ;;; Column View
 
@@ -146,8 +149,8 @@ This is the compiled version of the format.")
 
 (defun org-columns-new-overlay (beg end &optional string face)
   "Create a new column overlay and add it to the list."
-  (let ((ov (org-make-overlay beg end)))
-    (org-overlay-put ov 'face (or face 'secondary-selection))
+  (let ((ov (make-overlay beg end)))
+    (overlay-put ov 'face (or face 'secondary-selection))
     (org-overlay-display ov string face)
     (push ov org-columns-overlays)
     ov))
@@ -220,12 +223,12 @@ This is the compiled version of the format.")
       (org-unmodified
        (setq ov (org-columns-new-overlay
 		 beg (setq beg (1+ beg)) string (if dateline face1 face)))
-       (org-overlay-put ov 'keymap org-columns-map)
-       (org-overlay-put ov 'org-columns-key property)
-       (org-overlay-put ov 'org-columns-value (cdr ass))
-       (org-overlay-put ov 'org-columns-value-modified modval)
-       (org-overlay-put ov 'org-columns-pom pom)
-       (org-overlay-put ov 'org-columns-format f))
+       (overlay-put ov 'keymap org-columns-map)
+       (overlay-put ov 'org-columns-key property)
+       (overlay-put ov 'org-columns-value (cdr ass))
+       (overlay-put ov 'org-columns-value-modified modval)
+       (overlay-put ov 'org-columns-pom pom)
+       (overlay-put ov 'org-columns-format f))
       (if (or (not (char-after beg))
 	      (equal (char-after beg) ?\n))
 	  (let ((inhibit-read-only t))
@@ -235,12 +238,12 @@ This is the compiled version of the format.")
       ;; Make the rest of the line disappear.
       (org-unmodified
        (setq ov (org-columns-new-overlay beg (point-at-eol)))
-       (org-overlay-put ov 'invisible t)
-       (org-overlay-put ov 'keymap org-columns-map)
-       (org-overlay-put ov 'intangible t)
+       (overlay-put ov 'invisible t)
+       (overlay-put ov 'keymap org-columns-map)
+       (overlay-put ov 'intangible t)
        (push ov org-columns-overlays)
-       (setq ov (org-make-overlay (1- (point-at-eol)) (1+ (point-at-eol))))
-       (org-overlay-put ov 'keymap org-columns-map)
+       (setq ov (make-overlay (1- (point-at-eol)) (1+ (point-at-eol))))
+       (overlay-put ov 'keymap org-columns-map)
        (push ov org-columns-overlays)
        (let ((inhibit-read-only t))
 	 (put-text-property (max (point-min) (1- (point-at-bol)))
@@ -298,7 +301,7 @@ for the duration of the command.")
     (org-add-hook 'post-command-hook 'org-columns-hscoll-title nil 'local)))
 
 (defun org-columns-hscoll-title ()
-  "Set the header-line-format so that it scrolls along with the table."
+  "Set the `header-line-format' so that it scrolls along with the table."
   (sit-for .0001) ; need to force a redisplay to update window-hscroll
   (when (not (= (window-hscroll) org-columns-previous-hscroll))
     (setq header-line-format
@@ -323,7 +326,7 @@ for the duration of the command.")
       (move-marker org-columns-begin-marker nil)
       (move-marker org-columns-top-level-marker nil)
       (org-unmodified
-       (mapc 'org-delete-overlay org-columns-overlays)
+       (mapc 'delete-overlay org-columns-overlays)
        (setq org-columns-overlays nil)
        (let ((inhibit-read-only t))
 	 (remove-text-properties (point-min) (point-max) '(read-only t))))
@@ -495,7 +498,7 @@ Where possible, use the standard interface for changing this line."
 	      (progn
 		(setq org-columns-overlays
 		      (org-delete-all line-overlays org-columns-overlays))
-		(mapc 'org-delete-overlay line-overlays)
+		(mapc 'delete-overlay line-overlays)
 		(org-columns-eval eval))
 	    (org-columns-display-here)))
 	(org-move-to-column col)
@@ -624,7 +627,7 @@ an integer, select that value."
 	    (progn
 	      (setq org-columns-overlays
 		    (org-delete-all line-overlays org-columns-overlays))
-	      (mapc 'org-delete-overlay line-overlays)
+	      (mapc 'delete-overlay line-overlays)
 	      (org-columns-eval '(org-entry-put pom key nval)))
 	  (org-columns-display-here)))
       (org-move-to-column col)
@@ -746,17 +749,17 @@ around it."
      (lambda (x) (- org-columns-time x))))
   "Operator <-> format,function,calc  map.
 Used to compile/uncompile columns format and completing read in
-interactive function org-columns-new.
+interactive function `org-columns-new'.
 
 operator    string used in #+COLUMNS definition describing the
 	    summary type
 format      symbol describing summary type selected interactively in
-	    org-columns-new and internally in
-	    org-columns-number-to-string and
-	    org-columns-string-to-number
+	    `org-columns-new' and internally in
+	    `org-columns-number-to-string' and
+	    `org-columns-string-to-number'
 function    called with a list of values as argument to calculate
 	    the summary value
-calc        function called on every element before summarizing. This is
+calc        function called on every element before summarizing.  This is
 	    optional and should only be specified if needed")
 
 (defun org-columns-new (&optional prop title width op fmt fun &rest rest)
@@ -918,15 +921,15 @@ Don't set this, this is meant for dynamic scoping.")
   (let (fmt val pos)
     (save-excursion
       (mapc (lambda (ov)
-	      (when (equal (org-overlay-get ov 'org-columns-key) property)
-		(setq pos (org-overlay-start ov))
+	      (when (equal (overlay-get ov 'org-columns-key) property)
+		(setq pos (overlay-start ov))
 		(goto-char pos)
 		(when (setq val (cdr (assoc property
 					    (get-text-property
 					     (point-at-bol) 'org-summaries))))
-		  (setq fmt (org-overlay-get ov 'org-columns-format))
-		  (org-overlay-put ov 'org-columns-value val)
-		  (org-overlay-put ov 'display (format fmt val)))))
+		  (setq fmt (overlay-get ov 'org-columns-format))
+		  (overlay-put ov 'org-columns-value val)
+		  (overlay-put ov 'display (format fmt val)))))
 	    org-columns-overlays))))
 
 (defun org-columns-compute (property)
@@ -1109,8 +1112,7 @@ operator     the operator if any
 format       the output format for computed results, derived from operator
 printf       a printf format for computed values
 fun          the lisp function to compute summary values, derived from operator
-calc         function to get values from base elements
-"
+calc         function to get values from base elements"
   (let ((start 0) width prop title op op-match f printf fun calc)
     (setq org-columns-current-fmt-compiled nil)
     (while (string-match
@@ -1479,7 +1481,7 @@ This will add overlays to the date lines, to show the summary for each day."
 		  (org-columns-compute (car fm)))))))))))
 
 (defun org-format-time-period (interval)
-  "Convert time in fractional days to days/hours/minutes/seconds"
+  "Convert time in fractional days to days/hours/minutes/seconds."
   (if (numberp interval)
     (let* ((days (floor interval))
 	   (frac-hours (* 24 (- interval days)))

@@ -44,7 +44,7 @@
 (defcustom mouse-drag-copy-region nil
   "If non-nil, mouse drag copies region to kill-ring."
   :type 'boolean
-  :version "22.1"
+  :version "24.1"
   :group 'mouse)
 
 (defcustom mouse-1-click-follows-link 450
@@ -1027,9 +1027,7 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
 	      ;; For `select-active-regions' non-nil, ensure that
 	      ;; further alterations of the region (e.g. via
 	      ;; shift-selection) continue to update PRIMARY.
-	      (and select-active-regions
-		   (display-selections-p)
-		   (x-set-selection 'PRIMARY (current-buffer))))
+	      (select-active-region))
 
 	  ;; If point hasn't moved, run the binding of the
 	  ;; terminating up-event.

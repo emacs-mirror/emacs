@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.35i
+;; Version: 7.01
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -26,7 +26,10 @@
 ;;
 ;;; Commentary:
 
+;;; Code:
+
 (require 'org-exp)
+
 (eval-when-compile
   (require 'cl))
 
@@ -541,7 +544,7 @@ publishing directory."
       (current-buffer))))
 
 (defun org-export-ascii-preprocess (parameters)
-  "Do extra work for ASCII export"
+  "Do extra work for ASCII export."
   ;;
   ;; Realign tables to get rid of narrowing
   (when org-export-ascii-table-widen-columns
@@ -550,9 +553,8 @@ publishing directory."
       (org-ascii-replace-entities)
       (goto-char (point-min))
       (org-table-map-tables
-       (lambda ()
-	 (org-if-unprotected
-	  (org-table-align))))))
+       (lambda () (org-if-unprotected (org-table-align)))
+       'quietly)))
   ;; Put quotes around verbatim text
   (goto-char (point-min))
   (while (re-search-forward org-verbatim-re nil t)
@@ -566,7 +568,12 @@ publishing directory."
   (goto-char (point-min))
   (while (re-search-forward  "<<<?\\([^<>]*\\)>>>?\\([ \t]*\\)" nil t)
     (org-if-unprotected-at (match-beginning 1)
-      (replace-match "\\1\\2"))))
+      (replace-match "\\1\\2")))
+  ;; Remove list start counters
+  (goto-char (point-min))
+  (while (re-search-forward  "\\[@start:[0-9]+\\] ?" nil t)
+    (org-if-unprotected
+     (replace-match ""))))
 
 (defun org-html-expand-for-ascii (line)
   "Handle quoted HTML for ASCII export."

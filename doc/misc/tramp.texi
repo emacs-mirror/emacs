@@ -693,8 +693,6 @@ This is also useful for Windows users where @command{ssh}, when
 invoked from an @value{emacsname} buffer, tells them that it is not
 allocating a pseudo tty.  When this happens, the login shell is wont
 to not print any shell prompt, which confuses @value{tramp} mightily.
-For reasons unknown, some Windows ports for @command{ssh} require the
-doubled @samp{-t} option.
 
 This supports the @samp{-p} argument.
 
@@ -2803,7 +2801,7 @@ increase this level only temporarily, hunting bugs.
 @item
 @value{tramp} does not connect to the remote host
 
-When @value{tramp} does not connect to the remote host, there are two
+When @value{tramp} does not connect to the remote host, there are three
 reasons heading the bug mailing list:
 
 @itemize @minus
@@ -2836,6 +2834,17 @@ the following command:
 @example
 [ $TERM = "dumb" ] && unsetopt zle && PS1='$ '
 @end example
+
+@item
+Echoed characters after login
+
+When the remote machine opens an echoing shell, there might be control
+characters in the welcome message.  @value{tramp} tries to suppress
+such echoes via the @code{stty -echo} command, but sometimes this
+command is not reached, because the echoed output has confused
+@value{tramp} already.  In such situations it might be helpful to use
+the @option{sshx} or @option{scpx} methods, which allocate a pseudo tty.
+@xref{Inline methods}.
 
 @item
 @value{tramp} doesn't transfer strings with more than 500 characters
