@@ -2,10 +2,10 @@
 
 ;; Copyright (C) 2009, 2010  Free Software Foundation, Inc.
 
-;; Author: Jan Böcker <jan.boecker at jboecker dot de>
+;; Author: Jan BÃ¶cker <jan.boecker at jboecker dot de>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.35i
+;; Version: 7.01
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -62,7 +62,7 @@
       )))
 
 (defun org-docview-store-link ()
-  "Store a link to a docview buffer"
+  "Store a link to a docview buffer."
   (when (eq major-mode 'doc-view-mode)
     ;; This buffer is in doc-view-mode
     (let* ((path buffer-file-name)
@@ -75,11 +75,16 @@
        :description path))))
 
 (defun org-docview-complete-link ()
-  "Use the existing file name completion for file: links to get the file name,
-   then ask the user for the page number and append it."
+  "Use the existing file name completion for file.
+Links to get the file name, then ask the user for the page number
+and append it."
   (concat (replace-regexp-in-string "^file:" "docview:" (org-file-complete-link))
 	  "::"
 	  (read-from-minibuffer "Page:" "1")))
 
 
 (provide 'org-docview)
+
+;; arch-tag: dd147a78-cce1-481b-b40a-15869417debe
+
+;;; org-docview.el ends here
