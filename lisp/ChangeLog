@@ -1,3 +1,9 @@
+2010-07-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* time.el (display-time-world-mode): Define with `define-derived-mode'.
+	Set `show-trailing-whitespace' to nil.
+	(display-time-world-display): Simplify.
+
 2010-07-18  Alan Mackenzie  <acm@muc.de>
 
 	Enhance `c-file-style' in file/directory local variables.

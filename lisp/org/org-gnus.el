@@ -7,7 +7,7 @@
 ;;         Tassilo Horn <tassilo at member dot fsf dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.35i
+;; Version: 7.01
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -48,7 +48,7 @@
   (defvaralias 'org-usenet-links-prefer-google 'org-gnus-prefer-web-links))
 
 (defcustom org-gnus-prefer-web-links nil
-  "Non-nil means `org-store-link' will create web links to Google groups.
+  "If non-nil, `org-store-link' creates web links to Google groups or Gmane.
 When nil, Gnus will be used for such links.
 Using a prefix arg to the command \\[org-store-link] (`org-store-link')
 negates this setting for the duration of the command."
@@ -120,22 +120,26 @@ If `org-store-link' was called with a prefix arg the meaning of
 
    ((memq major-mode '(gnus-summary-mode gnus-article-mode))
     (let* ((group gnus-newsgroup-name)
-   	   (header (with-current-buffer gnus-summary-buffer
+	   (header (with-current-buffer gnus-summary-buffer
 		     (gnus-summary-article-header)))
 	   (from (mail-header-from header))
 	   (message-id (org-remove-angle-brackets (mail-header-id header)))
 	   (date (mail-header-date header))
-	   (subject (mail-header-subject header))
-           (to (cdr (assq 'To (mail-header-extra header))))
-           newsgroups x-no-archive desc link)
+	   (subject (copy-sequence (mail-header-subject header)))
+	   (to (cdr (assq 'To (mail-header-extra header))))
+	   newsgroups x-no-archive desc link)
+      ;; Remove text properties of subject string to avoid Emacs bug
+      ;; #3506
+      (set-text-properties 0 (length subject) nil subject)
+
       ;; Fetching an article is an expensive operation; newsgroup and
       ;; x-no-archive are only needed for web links.
       (when (org-xor current-prefix-arg org-gnus-prefer-web-links)
-        ;; Make sure the original article buffer is up-to-date
-        (save-window-excursion (gnus-summary-select-article))
-        (setq to (or to (gnus-fetch-original-field "To"))
-              newsgroups (gnus-fetch-original-field "Newsgroups")
-              x-no-archive (gnus-fetch-original-field "x-no-archive")))
+	;; Make sure the original article buffer is up-to-date
+	(save-window-excursion (gnus-summary-select-article))
+	(setq to (or to (gnus-fetch-original-field "To"))
+	      newsgroups (gnus-fetch-original-field "Newsgroups")
+	      x-no-archive (gnus-fetch-original-field "x-no-archive")))
       (org-store-link-props :type "gnus" :from from :subject subject
 			    :message-id message-id :group group :to to)
       (setq desc (org-email-link-description)

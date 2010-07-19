@@ -7,7 +7,7 @@
 ;;         Thomas Baumann <thomas dot baumann at ch dot tum dot de>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.35i
+;; Version: 7.01
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -207,7 +207,7 @@ date year)."
 (defun org-bbdb-export (path desc format)
   "Create the export version of a BBDB link specified by PATH or DESC.
 If exporting to either HTML or LaTeX FORMAT the link will be
-italicised, in all other cases it is left unchanged."
+italicized, in all other cases it is left unchanged."
   (cond
    ((eq format 'html) (format "<i>%s</i>" (or desc path)))
    ((eq format 'latex) (format "\\textit{%s}" (or desc path)))

@@ -1,3 +1,24 @@
+2010-07-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* org.texi: Fix typo in previous change (revno:100847).
+
+2010-07-19  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi: Add macros to get plain quotes in PDF output.
+	List additional contributors.
+	(Capture): New section, replaces the section about remember.
+	(Working With Source Code): New chapter, focused on documenting Org
+	Babel.
+	(Code evaluation security): New section.
+	(MobileOrg): Document DropBox support.
+	(TaskJuggler export): Document taskjuggler and Gantt chart support.
+	(Special symbols): Show how to display UTF8 characters for entities.
+	(Global TODO list): Clarify the use of the "M" key and the differences
+	to the "m" key.
+	(RSS Feeds): Mention Atom feeds as well.
+	(Setting tags): Remove paragraph about
+	`org-complete-tags-always-offer-all-agenda-tags'.
+
 2010-07-17  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Inline methods): Remove remark about doubled "-t"

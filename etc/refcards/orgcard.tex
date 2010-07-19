@@ -1,5 +1,5 @@
 % Reference Card for Org Mode
-\def\orgversionnumber{6.35i}
+\def\orgversionnumber{7.01}
 \def\versionyear{2010}          % latest update
 \def\year{2010}                 % latest copyright year
 
@@ -329,7 +329,7 @@ are preserved on all copies.
 \section{Filtering and Sparse Trees}
 
 \key{construct a sparse tree by various criteria}{C-c /}
-\key{view TODO's in sparse tree}{C-c C-v}
+\key{view TODO's in sparse tree}{C-c / t/T}
 \key{global TODO list in agenda mode}{C-c a t$^1$}
 \key{time sorted view of current org file}{C-c a L}
 
@@ -442,36 +442,53 @@ formula, \kbd{:=} a field formula.
 \key{find next link}{C-c C-x C-n}
 \key{find previous link}{C-c C-x C-p}
 \key{edit code snippet of file at point}{C-c '}
+\key{toggle inline display of linked images}{C-c C-x C-v}
 
-{\bf Internal Links}
+% {\bf Internal Links}
 
-\key{\kbd{<<My Target>>}}{\rm target}
-\key{\kbd{<<<My Target>>>}}{\rm radio target$^2$}
-\key{\kbd{[[*this text]]}}{\rm find headline}
-\metax{\kbd{[[this text]]}}{\rm find target or text in buffer}
-\metax{\kbd{[[this text][description]]}}{\rm optional link text}
+% \key{\kbd{<<My Target>>}}{\rm target}
+% \key{\kbd{<<<My Target>>>}}{\rm radio target$^2$}
+% \key{\kbd{[[*this text]]}}{\rm find headline}
+% \metax{\kbd{[[this text]]}}{\rm find target or text in buffer}
+% \metax{\kbd{[[this text][description]]}}{\rm optional link text}
 
-{\bf External Links}
+% {\bf External Links}
 
-\key{\kbd{file:/home/dominik/img/mars.jpg}}{\rm file, absolute}
-\key{\kbd{file:papers/last.pdf}}{\rm file, relative}
-\key{\kbd{file:projects.org::*that text}}{\rm find headline}
-\key{\kbd{file:projects.org::find me}}{\rm find trgt/string}
-%\key{\kbd{file:projects.org::/regexp/}}{\rm regexp search}
-\key{\kbd{http://www.astro.uva.nl/~dominik}}{\rm on the web}
-\key{\kbd{mailto:adent@galaxy.net}}{\rm Email address}
-\key{\kbd{news:comp.emacs}}{\rm Usenet group}
-\key{\kbd{bbdb:Richard Stallman}}{\rm BBDB person}
-\key{\kbd{gnus:group}}{\rm GNUS group}
-\key{\kbd{gnus:group\#id}}{\rm GNUS message}
-\key{\kbd{vm|wl|mhe|rmail:folder}}{\rm Mail folder}
-\key{\kbd{vm|wl|mhe|rmail:folder\#id}}{\rm Mail message}
-\key{\kbd{info:emacs:Regexps}}{\rm Info file:node}
-\key{\kbd{shell:ls *.org}}{\rm shell command}
-\key{\kbd{elisp:(calendar)}}{\rm elisp form}
-\metax{\kbd{[[external link][description]]}}{\rm optional link text}
-%\key{\kbd{vm://myself@some.where.org/folder\#id}}{\rm VM remote}
+% \key{\kbd{file:/home/dominik/img/mars.jpg}}{\rm file, absolute}
+% \key{\kbd{file:papers/last.pdf}}{\rm file, relative}
+% \key{\kbd{file:projects.org::*that text}}{\rm find headline}
+% \key{\kbd{file:projects.org::find me}}{\rm find trgt/string}
+% %\key{\kbd{file:projects.org::/regexp/}}{\rm regexp search}
+% \key{\kbd{http://www.astro.uva.nl/~dominik}}{\rm on the web}
+% \key{\kbd{mailto:adent@galaxy.net}}{\rm Email address}
+% \key{\kbd{news:comp.emacs}}{\rm Usenet group}
+% \key{\kbd{bbdb:Richard Stallman}}{\rm BBDB person}
+% \key{\kbd{gnus:group}}{\rm GNUS group}
+% \key{\kbd{gnus:group\#id}}{\rm GNUS message}
+% \key{\kbd{vm|wl|mhe|rmail:folder}}{\rm Mail folder}
+% \key{\kbd{vm|wl|mhe|rmail:folder\#id}}{\rm Mail message}
+% \key{\kbd{info:emacs:Regexps}}{\rm Info file:node}
+% \key{\kbd{shell:ls *.org}}{\rm shell command}
+% \key{\kbd{elisp:(calendar)}}{\rm elisp form}
+% \metax{\kbd{[[external link][description]]}}{\rm optional link text}
+% %\key{\kbd{vm://myself@some.where.org/folder\#id}}{\rm VM remote}
 
+\section{Working with Code (Babel)}
+
+\key{execute code block at point}{C-c C-c}
+\key{open results of code block at point}{C-c C-o}
+\key{view expanded body of code block at point}{C-c C-v v}
+\key{go to named code block}{C-c C-v g}
+\key{go to named result}{C-c C-v r}
+\key{go to the next code block}{C-c C-v n}
+\key{go to the previous code block}{C-c C-v p}
+\key{execute all code blocks in current buffer}{C-c C-v b}
+\key{execute all code blocks in current subtree}{C-c C-v s}
+\key{tangle code blocks in current file}{C-c C-v t}
+\key{tangle code blocks in supplied file}{C-c C-v f}
+\key{ingest all code blocks in supplied file into the Library of Babel}{C-c C-v l}
+\key{switch to the session of the current code block}{C-c C-v z}
+\key{view sha1 hash of the current code block}{C-c C-v a}
 
 % \section{Remember-mode Integration}
 
@@ -690,6 +707,7 @@ some other place.
 \key{export visible part only}{C-c C-e v}
 \key{insert template of export options}{C-c C-e t}
 \key{toggle fixed width for entry or region}{C-c :}
+\key{toggle pretty display of scripts, entities}{C-c C-x {\tt\char`\\}}
 
 %{\bf HTML formatting}
 
@@ -730,10 +748,8 @@ some other place.
 
 {\bf Comments: Text not being exported}
 
-Text before the first headline is not considered part of the document
-and is therefore never exported.
-Lines starting with \kbd{\#} are comments and are not exported.
-Subtrees whose header starts with COMMENT are never exported.
+Lines starting with \kbd{\#} and subtrees starting with COMMENT are
+never exported.
 
 \key{toggle COMMENT keyword on entry}{C-c ;}
 
@@ -749,8 +765,8 @@ your own key as shown under INSTALLATION.
 $^2$ After changing a \kbd{\#+KEYWORD} or \kbd{<<<target>>>} line,
 press \kbd{C-c C-c} with the cursor still in the line to update.
 
-$^3$ Keybinding affected by {\tt org-support-shift-select} and {\tt
-  org-replace-disputed-keys}.
+$^3$ Keybinding affected by {\tt org-support-shift-select} and
+ {\tt org-replace-disputed-keys}.
 
 \copyrightnotice
 
