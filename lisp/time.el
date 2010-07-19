@@ -87,7 +87,7 @@ The value can be one of:
 
 ;;;###autoload
 (defcustom display-time-day-and-date nil "\
-*Non-nil means \\[display-time] should display day and date as well as time."
+Non-nil means \\[display-time] should display day and date as well as time."
   :type 'boolean
   :group 'display-time)
 
@@ -182,7 +182,7 @@ LABEL is a string to display as the label of that TIMEZONE's time."
   :version "23.1")
 
 (defcustom display-time-world-buffer-name "*wclock*"
-  "Name of the wclock buffer."
+  "Name of the world clock buffer."
   :group 'display-time
   :type 'string
   :version "23.1")
@@ -203,7 +203,7 @@ LABEL is a string to display as the label of that TIMEZONE's time."
   (let ((map (make-sparse-keymap)))
     (define-key map "q" 'kill-this-buffer)
     map)
-  "Keymap of Display Time World mode")
+  "Keymap of Display Time World mode.")
 
 ;;;###autoload
 (defun display-time ()

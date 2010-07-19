@@ -1,3 +1,9 @@
+2010-07-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* time.el (display-time-day-and-date): Remove spurious * in docstring.
+	(display-time-world-buffer-name, display-time-world-mode-map):
+	Fix typos in docstrings.
+
 2010-07-17  Shyam Karanatt  <shyam@swathanthran.in>  (tiny change)
 
 	* image-mode.el (image-display-size): New function.
