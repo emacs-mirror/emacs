@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.35i
+;; Version: 7.01
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -26,12 +26,12 @@
 ;;
 ;;; Commentary:
 
-;; This file implements the support for Sebastian Rose's Javascript
+;; This file implements the support for Sebastian Rose's JavaScript
 ;; org-info.js to display an org-mode file exported to HTML in an
 ;; Info-like way, or using folding similar to the outline structure
 ;; org org-mode itself.
 
-;; Documentation for using this module is in the Org manual. The script
+;; Documentation for using this module is in the Org manual.  The script
 ;; itself is documented by Sebastian Rose in a file distributed with
 ;; the script.  FIXME: Accurate pointers!
 
@@ -87,7 +87,7 @@ line in the buffer.  See also the variable `org-infojs-options'."
 (defcustom org-infojs-options
   (mapcar (lambda (x) (cons (car x) (nth 2 x)))
 	  org-infojs-opts-table)
-  "Options settings for the INFOJS Javascript.
+  "Options settings for the INFOJS JavaScript.
 Each of the options must have an entry in `org-export-html/infojs-opts-table'.
 The value can either be a string that will be passed to the script, or
 a property.  This property is then assumed to be a property that is defined

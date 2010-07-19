@@ -8,7 +8,7 @@
 ;;         Dan Davison <davison at stats dot ox dot ac dot uk>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.35i
+;; Version: 7.01
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -63,7 +63,7 @@ there are kept outside the narrowed region."
   "The default coderef format.
 This format string will be used to search for coderef labels in literal
 examples (EXAMPLE and SRC blocks).  The format can be overwritten in
-an individual literal example with the -f option, like
+an individual literal example with the -l option, like
 
 #+BEGIN_SRC pascal +n -r -l \"((%s))\"
 ...
@@ -87,10 +87,11 @@ These are the regions where each line starts with a colon."
 	  (function :tag "Other (specify)")))
 
 (defcustom org-src-preserve-indentation nil
-  "If non-nil, leading whitespace characters in source code
-blocks are preserved on export, and when switching between the
-org buffer and the language mode edit buffer. If this variable
-is nil then, after editing with \\[org-edit-src-code], the
+  "If non-nil preserve leading whitespace characters on export.
+If non-nil leading whitespace characters in source code blocks
+are preserved on export, and when switching between the org
+buffer and the language mode edit buffer.  If this variable is nil
+then, after editing with \\[org-edit-src-code], the
 minimum (across-lines) number of leading whitespace characters
 are removed from all lines, and the code block is uniformly
 indented according to the value of `org-edit-src-content-indentation'."
@@ -101,7 +102,7 @@ indented according to the value of `org-edit-src-content-indentation'."
   "Indentation for the content of a source code block.
 This should be the number of spaces added to the indentation of the #+begin
 line in order to compute the indentation of the block content after
-editing it with \\[org-edit-src-code]. Has no effect if
+editing it with \\[org-edit-src-code].  Has no effect if
 `org-src-preserve-indentation' is non-nil."
   :group 'org-edit-structure
   :type 'integer)
@@ -146,7 +147,7 @@ but which mess up the display of a snippet in Org exported files.")
 
 (defcustom org-src-lang-modes
   '(("ocaml" . tuareg) ("elisp" . emacs-lisp) ("ditaa" . artist)
-    ("asymptote" . asy) ("dot" . fundamental))
+    ("asymptote" . asy) ("dot" . fundamental) ("sqlite" . sql))
   "Alist mapping languages to their major mode.
 The key is the language name, the value is the string that should
 be inserted as the name of the major mode.  For many languages this is
@@ -166,6 +167,7 @@ For example, there is no ocaml-mode in Emacs, but the mode to use is
 (define-key org-src-mode-map "\C-c'" 'org-edit-src-exit)
 (defvar org-edit-src-force-single-line nil)
 (defvar org-edit-src-from-org-mode nil)
+(defvar org-edit-src-allow-write-back-p t)
 (defvar org-edit-src-picture nil)
 (defvar org-edit-src-beg-marker nil)
 (defvar org-edit-src-end-marker nil)
@@ -187,7 +189,7 @@ This minor mode is turned on in two situations:
 There is a mode hook, and keybindings for `org-edit-src-exit' and
 `org-edit-src-save'")
 
-(defun org-edit-src-code (&optional context)
+(defun org-edit-src-code (&optional context code edit-buffer-name)
   "Edit the source code example at point.
 The example is copied to a separate buffer, and that buffer is switched
 to the correct language mode.  When done, exit with \\[org-edit-src-exit].
@@ -200,19 +202,22 @@ the edited version. Optional argument CONTEXT is used by
   (let ((line (org-current-line))
 	(col (current-column))
 	(case-fold-search t)
-	(msg (substitute-command-keys
-	      "Edit, then exit with C-c ' (C-c and single quote)"))
 	(info (org-edit-src-find-region-and-lang))
 	(org-mode-p (eq major-mode 'org-mode))
 	(beg (make-marker))
 	(end (make-marker))
 	(preserve-indentation org-src-preserve-indentation)
-	block-nindent total-nindent ovl lang lang-f single lfmt code begline buffer)
+	(allow-write-back-p (null code))
+	block-nindent total-nindent ovl lang lang-f single lfmt begline buffer msg)
     (if (not info)
 	nil
       (setq beg (move-marker beg (nth 0 info))
 	    end (move-marker end (nth 1 info))
-	    code (buffer-substring-no-properties beg end)
+	    msg (if allow-write-back-p
+		    (substitute-command-keys
+		     "Edit, then exit with C-c ' (C-c and single quote)")
+		  "Exit with C-c ' (C-c and single quote)")
+	    code (or code (buffer-substring-no-properties beg end))
 	    lang (or (cdr (assoc (nth 2 info) org-src-lang-modes))
                      (nth 2 info))
 	    lang (if (symbolp lang) (symbol-name lang) lang)
@@ -238,20 +243,21 @@ the edited version. Optional argument CONTEXT is used by
 	(when buffer
 	  (with-current-buffer buffer
 	    (if (boundp 'org-edit-src-overlay)
-		(org-delete-overlay org-edit-src-overlay)))
+		(delete-overlay org-edit-src-overlay)))
 	  (kill-buffer buffer))
 	(setq buffer (generate-new-buffer
-		      (org-src-construct-edit-buffer-name (buffer-name) lang)))
-	(setq ovl (org-make-overlay beg end))
-	(org-overlay-put ovl 'edit-buffer buffer)
-	(org-overlay-put ovl 'help-echo "Click with mouse-1 to switch to buffer editing this segment")
-	(org-overlay-put ovl 'face 'secondary-selection)
-	(org-overlay-put ovl
-			 'keymap
-			 (let ((map (make-sparse-keymap)))
-			   (define-key map [mouse-1] 'org-edit-src-continue)
-			   map))
-	(org-overlay-put ovl :read-only "Leave me alone")
+		      (or edit-buffer-name
+			  (org-src-construct-edit-buffer-name (buffer-name) lang))))
+	(setq ovl (make-overlay beg end))
+	(overlay-put ovl 'edit-buffer buffer)
+	(overlay-put ovl 'help-echo "Click with mouse-1 to switch to buffer editing this segment")
+	(overlay-put ovl 'face 'secondary-selection)
+	(overlay-put ovl
+		     'keymap
+		     (let ((map (make-sparse-keymap)))
+		       (define-key map [mouse-1] 'org-edit-src-continue)
+		       map))
+	(overlay-put ovl :read-only "Leave me alone")
 	(org-src-switch-to-buffer buffer 'edit)
 	(if (eq single 'macro-definition)
 	    (setq code (replace-regexp-in-string "\\\\n" "\n" code t t)))
@@ -264,6 +270,7 @@ the edited version. Optional argument CONTEXT is used by
 	  (funcall lang-f))
 	(set (make-local-variable 'org-edit-src-force-single-line) single)
 	(set (make-local-variable 'org-edit-src-from-org-mode) org-mode-p)
+	(set (make-local-variable 'org-edit-src-allow-write-back-p) allow-write-back-p)
 	(set (make-local-variable 'org-src-preserve-indentation) preserve-indentation)
 	(when lfmt
 	  (set (make-local-variable 'org-coderef-label-format) lfmt))
@@ -320,7 +327,7 @@ the edited version. Optional argument CONTEXT is used by
      (switch-to-buffer buffer))))
 
 (defun org-src-construct-edit-buffer-name (org-buffer-name lang)
-  "Construct the buffer name for a source editing buffer"
+  "Construct the buffer name for a source editing buffer."
   (concat "*Org Src " org-buffer-name "[ " lang " ]*"))
 
 (defun org-edit-src-find-buffer (beg end)
@@ -381,22 +388,22 @@ the fragment in the Org-mode buffer."
 	(when buffer
 	  (with-current-buffer buffer
 	    (if (boundp 'org-edit-src-overlay)
-		(org-delete-overlay org-edit-src-overlay)))
+		(delete-overlay org-edit-src-overlay)))
 	  (kill-buffer buffer))
 	(setq buffer (generate-new-buffer
 		      (org-src-construct-edit-buffer-name
 		       (buffer-name) "Fixed Width")))
-	(setq ovl (org-make-overlay beg end))
-	(org-overlay-put ovl 'face 'secondary-selection)
-	(org-overlay-put ovl 'edit-buffer buffer)
-	(org-overlay-put ovl 'help-echo "Click with mouse-1 to switch to buffer editing this segment")
-	(org-overlay-put ovl 'face 'secondary-selection)
-	(org-overlay-put ovl
+	(setq ovl (make-overlay beg end))
+	(overlay-put ovl 'face 'secondary-selection)
+	(overlay-put ovl 'edit-buffer buffer)
+	(overlay-put ovl 'help-echo "Click with mouse-1 to switch to buffer editing this segment")
+	(overlay-put ovl 'face 'secondary-selection)
+	(overlay-put ovl
 			 'keymap
 			 (let ((map (make-sparse-keymap)))
 			   (define-key map [mouse-1] 'org-edit-src-continue)
 			   map))
-	(org-overlay-put ovl :read-only "Leave me alone")
+	(overlay-put ovl :read-only "Leave me alone")
 	(switch-to-buffer buffer)
 	(insert code)
 	(remove-text-properties (point-min) (point-max)
@@ -406,7 +413,7 @@ the fragment in the Org-mode buffer."
 	 ((eq org-edit-fixed-width-region-mode 'artist-mode)
 	  (fundamental-mode)
 	  (artist-mode 1))
-       (t (funcall org-edit-fixed-width-region-mode)))
+	 (t (funcall org-edit-fixed-width-region-mode)))
 	(set (make-local-variable 'org-edit-src-force-single-line) nil)
 	(set (make-local-variable 'org-edit-src-from-org-mode) org-mode-p)
 	(set (make-local-variable 'org-edit-src-picture) t)
@@ -459,15 +466,6 @@ the language, a switch telling if the content should be in a single line."
 	(pos (point))
 	re1 re2 single beg end lang lfmt match-re1 ind entry)
     (catch 'exit
-      (when (org-at-table.el-p)
-	(re-search-backward "^[\t]*[^ \t|\\+]" nil t)
-	(setq beg (1+ (point-at-eol)))
-	(goto-char beg)
-	(or (re-search-forward "^[\t]*[^ \t|\\+]" nil t)
-	    (progn (goto-char (point-max)) (newline)))
-	(setq end (point-at-bol))
-	(setq ind (org-edit-src-get-indentation beg))
-	(throw 'exit (list beg end 'table.el nil nil ind)))
       (while (setq entry (pop re-list))
 	(setq re1 (car entry) re2 (nth 1 entry) lang (nth 2 entry)
 	      single (nth 3 entry))
@@ -498,7 +496,16 @@ the language, a switch telling if the content should be in a single line."
 			(throw 'exit
 			       (list (match-end 0) end
 				     (org-edit-src-get-lang lang)
-				     single lfmt ind))))))))))))
+				     single lfmt ind)))))))))
+      (when (org-at-table.el-p)
+	(re-search-backward "^[\t]*[^ \t|\\+]" nil t)
+	(setq beg (1+ (point-at-eol)))
+	(goto-char beg)
+	(or (re-search-forward "^[\t]*[^ \t|\\+]" nil t)
+	    (progn (goto-char (point-max)) (newline)))
+	(setq end (point-at-bol))
+	(setq ind (org-edit-src-get-indentation beg))
+	(throw 'exit (list beg end 'table.el nil nil ind))))))
 
 (defun org-edit-src-get-lang (lang)
   "Extract the src language."
@@ -521,7 +528,7 @@ the language, a switch telling if the content should be in a single line."
 	(match-string 1 s))))
 
 (defun org-edit-src-get-indentation (pos)
-  "Count leading whitespace characters on line"
+  "Count leading whitespace characters on line."
   (save-match-data
     (goto-char pos)
     (org-get-indentation)))
@@ -529,8 +536,8 @@ the language, a switch telling if the content should be in a single line."
 (defun org-edit-src-exit (&optional context)
   "Exit special edit and protect problematic lines."
   (interactive)
-  (unless org-edit-src-from-org-mode
-    (error "This is not a sub-editing buffer, something is wrong..."))
+  (unless (org-bound-and-true-p org-edit-src-from-org-mode)
+    (error "This is not a sub-editing buffer, something is wrong"))
   (widen)
   (let* ((beg org-edit-src-beg-marker)
 	 (end org-edit-src-end-marker)
@@ -541,61 +548,65 @@ the language, a switch telling if the content should be in a single line."
 	 (total-nindent (+ (or org-edit-src-block-indentation 0)
 			   org-edit-src-content-indentation))
 	 (preserve-indentation org-src-preserve-indentation)
+	 (allow-write-back-p (org-bound-and-true-p org-edit-src-allow-write-back-p))
 	 (delta 0) code line col indent)
-    (unless preserve-indentation (untabify (point-min) (point-max)))
-    (save-excursion
-      (goto-char (point-min))
-      (if (looking-at "[ \t\n]*\n") (replace-match ""))
-      (unless macro
-	(if (re-search-forward "\n[ \t\n]*\\'" nil t) (replace-match ""))))
+    (when allow-write-back-p
+      (unless preserve-indentation (untabify (point-min) (point-max)))
+      (save-excursion
+	(goto-char (point-min))
+	(if (looking-at "[ \t\n]*\n") (replace-match ""))
+	(unless macro
+	  (if (re-search-forward "\n[ \t\n]*\\'" nil t) (replace-match "")))))
     (setq line (if (org-bound-and-true-p org-edit-src-force-single-line)
 		   1
 		 (org-current-line))
 	  col (current-column))
-    (when single
-      (goto-char (point-min))
-      (if (re-search-forward "\\s-+\\'" nil t) (replace-match ""))
-      (goto-char (point-min))
-      (let ((cnt 0))
-	(while (re-search-forward "\n" nil t)
-	  (setq cnt (1+ cnt))
-	  (replace-match (if macro "\\n" " ") t t))
-	(when (and macro (> cnt 0))
-	  (goto-char (point-max)) (insert "\\n")))
-      (goto-char (point-min))
-      (if (looking-at "\\s-*") (replace-match " ")))
-    (when (org-bound-and-true-p org-edit-src-from-org-mode)
-      (goto-char (point-min))
-      (while (re-search-forward
-	      (if (org-mode-p) "^\\(.\\)" "^\\([*]\\|[ \t]*#\\+\\)") nil t)
-	(if (eq (org-current-line) line) (setq delta (1+ delta)))
-	(replace-match ",\\1")))
-    (when (org-bound-and-true-p org-edit-src-picture)
-      (setq preserve-indentation nil)
-      (untabify (point-min) (point-max))
-      (goto-char (point-min))
-      (while (re-search-forward "^" nil t)
-	(replace-match ": ")))
-    (unless (or single preserve-indentation (= total-nindent 0))
-      (setq indent (make-string total-nindent ?\ ))
-      (goto-char (point-min))
-      (while (re-search-forward "^" nil t)
-	(replace-match indent)))
-    (if (org-bound-and-true-p org-edit-src-picture)
-	(setq total-nindent (+ total-nindent 2)))
-    (setq code (buffer-string))
-    (set-buffer-modified-p nil)
+    (when allow-write-back-p
+      (when single
+	(goto-char (point-min))
+	(if (re-search-forward "\\s-+\\'" nil t) (replace-match ""))
+	(goto-char (point-min))
+	(let ((cnt 0))
+	  (while (re-search-forward "\n" nil t)
+	    (setq cnt (1+ cnt))
+	    (replace-match (if macro "\\n" " ") t t))
+	  (when (and macro (> cnt 0))
+	    (goto-char (point-max)) (insert "\\n")))
+	(goto-char (point-min))
+	(if (looking-at "\\s-*") (replace-match " ")))
+      (when (org-bound-and-true-p org-edit-src-from-org-mode)
+	(goto-char (point-min))
+	(while (re-search-forward
+		(if (org-mode-p) "^\\(.\\)" "^\\([*]\\|[ \t]*#\\+\\)") nil t)
+	  (if (eq (org-current-line) line) (setq delta (1+ delta)))
+	  (replace-match ",\\1")))
+      (when (org-bound-and-true-p org-edit-src-picture)
+	(setq preserve-indentation nil)
+	(untabify (point-min) (point-max))
+	(goto-char (point-min))
+	(while (re-search-forward "^" nil t)
+	  (replace-match ": ")))
+      (unless (or single preserve-indentation (= total-nindent 0))
+	(setq indent (make-string total-nindent ?\ ))
+	(goto-char (point-min))
+	(while (re-search-forward "^" nil t)
+	  (replace-match indent)))
+      (if (org-bound-and-true-p org-edit-src-picture)
+	  (setq total-nindent (+ total-nindent 2)))
+      (setq code (buffer-string))
+      (set-buffer-modified-p nil))
     (org-src-switch-to-buffer (marker-buffer beg) (or context 'exit))
     (kill-buffer buffer)
     (goto-char beg)
-    (delete-region beg end)
-    (insert code)
-    (goto-char beg)
-    (if single (just-one-space))
+    (when allow-write-back-p
+      (delete-region beg end)
+      (insert code)
+      (goto-char beg)
+      (if single (just-one-space)))
     (if (memq t (mapcar (lambda (overlay)
-			  (eq (org-overlay-get overlay 'invisible)
+			  (eq (overlay-get overlay 'invisible)
 			      'org-hide-block))
-			(org-overlays-at (point))))
+			(overlays-at (point))))
 	;; Block is hidden; put point at start of block
 	(beginning-of-line 0)
       ;; Block is visible, put point where it was in the code buffer
@@ -625,15 +636,21 @@ the language, a switch telling if the content should be in a single line."
     (message (or msg ""))))
 
 (defun org-src-mode-configure-edit-buffer ()
-  (when org-edit-src-from-org-mode
-    (setq buffer-offer-save t)
-    (setq buffer-file-name
-	  (concat (buffer-file-name (marker-buffer org-edit-src-beg-marker))
-		  "[" (buffer-name) "]"))
-    (set (if (featurep 'xemacs) 'write-contents-hooks 'write-contents-functions)
-	 '(org-edit-src-save))
+  (when (org-bound-and-true-p org-edit-src-from-org-mode)
     (org-add-hook 'kill-buffer-hook
-		  '(lambda () (org-delete-overlay org-edit-src-overlay)) nil 'local)))
+		  '(lambda () (delete-overlay org-edit-src-overlay)) nil 'local)
+    (if (org-bound-and-true-p org-edit-src-allow-write-back-p)
+	(progn
+	  (setq buffer-offer-save t)
+	  (setq buffer-file-name
+		(concat (buffer-file-name (marker-buffer org-edit-src-beg-marker))
+			"[" (buffer-name) "]"))
+	  (if (featurep 'xemacs)
+	      (progn
+		(make-variable-buffer-local 'write-contents-hooks) ; needed only for 21.4
+		(setq write-contents-hooks '(org-edit-src-save)))
+	    (setq write-contents-functions '(org-edit-src-save))))
+      (setq buffer-read-only t))))
 
 (org-add-hook 'org-src-mode-hook 'org-src-mode-configure-edit-buffer)
 
