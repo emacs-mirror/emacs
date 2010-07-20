@@ -1,3 +1,10 @@
+2010-07-20  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-perl-file-attributes)
+	(tramp-perl-directory-files-and-attributes): Don't pass "$3".
+	(tramp-maybe-open-connection): Use `async-args' and `gw-args' in
+	front of `login-args'.
+
 2010-07-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* time.el (display-time-world-mode): Define with `define-derived-mode'.
