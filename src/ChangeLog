@@ -1,3 +1,11 @@
+2010-07-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Feval, Ffuncall): Use the new names.
+
+	* lisp.h (struct Lisp_Subr): Rename `am' to aMANY and add aUNEVALLED.
+	(DEFUN): Add braces around the union initialisation and use ## to
+	specify the right union alternative and avoid a cast.
+
 2010-07-18  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in ($(BLD)/keyboard.$(O)): Update dependencies.

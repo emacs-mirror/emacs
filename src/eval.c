@@ -2299,7 +2299,7 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
       if (XSUBR (fun)->max_args == UNEVALLED)
 	{
 	  backtrace.evalargs = 0;
-	  val = (XSUBR (fun)->function.a1) (args_left);
+	  val = (XSUBR (fun)->function.aUNEVALLED) (args_left);
 	  goto done;
 	}
 
@@ -2325,7 +2325,7 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
 	  backtrace.args = vals;
 	  backtrace.nargs = XINT (numargs);
 
-	  val = (XSUBR (fun)->function.am) (XINT (numargs), vals);
+	  val = (XSUBR (fun)->function.aMANY) (XINT (numargs), vals);
 	  UNGCPRO;
 	  goto done;
 	}
@@ -2968,7 +2968,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 
       if (XSUBR (fun)->max_args == MANY)
 	{
-	  val = (XSUBR (fun)->function.am) (numargs, args + 1);
+	  val = (XSUBR (fun)->function.aMANY) (numargs, args + 1);
 	  goto done;
 	}
 
