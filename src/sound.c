@@ -522,8 +522,7 @@ be2hl (u_int32_t value)
    to host byte-order.  */
 
 static u_int16_t
-be2hs (value)
-     u_int16_t value;
+be2hs (u_int16_t value)
 {
 #ifndef WORDS_BIG_ENDIAN
   unsigned char *p = (unsigned char *) &value;
@@ -1209,7 +1208,8 @@ alsa_write (struct sound_device *sd, const char *buffer, int nbytes)
 }
 
 static void
-snd_error_quiet (const char *file, int line, const char *function, int err, const char *fmt)
+snd_error_quiet (const char *file, int line, const char *function, int err,
+		 const char *fmt)
 {
 }
 
@@ -1266,9 +1266,7 @@ alsa_init (struct sound_device *sd)
   }
 
 static int
-do_play_sound (psz_file, ui_volume)
-     const char *psz_file;
-     unsigned long ui_volume;
+do_play_sound (const char *psz_file, unsigned long ui_volume)
 {
   int i_result = 0;
   MCIERROR mci_error = 0;

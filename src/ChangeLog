@@ -1,3 +1,16 @@
+2010-07-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* alloc.c (emacs_blocked_free, emacs_blocked_malloc)
+	(emacs_blocked_realloc, uninterrupt_malloc):
+	* fringe.c (w32_reset_fringes):
+	* image.c (convert_mono_to_color_image, lookup_rgb_color)
+	(init_color_table, XPutPixel, jpeg_resync_to_restart_wrapper):
+	* sound.c (be2hs, do_play_sound):
+	* vm-limit.c (get_lim_data, ret_lim_data):
+	* w32term.c (x_free_frame_resources):
+	* xfaces.c (x_create_gc, x_free_gc):
+	Convert definitions to standard C.
+
 2010-07-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c (Feval, Ffuncall): Use the new names.

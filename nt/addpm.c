@@ -83,8 +83,7 @@ env_vars[] =
 };
 
 BOOL
-add_registry (path)
-     char *path;
+add_registry (char *path)
 {
   HKEY hrootkey = NULL;
   int i;
@@ -175,9 +174,7 @@ add_registry (path)
 }
 
 int
-main (argc, argv)
-     int argc;
-     char *argv[];
+main (int argc, char *argv[])
 {
   char start_folder[MAX_PATH + 1];
   int shortcuts_created = 0;
@@ -315,10 +312,10 @@ main (argc, argv)
 		  if (SUCCEEDED (IPersistFile_Save (lnk, unicode_path, TRUE)))
 		    shortcuts_created = 1;
 		  IPersistFile_Release (lnk);
-		  
+
 		}
 	    }
-	}      
+	}
     }
 
   if (com_available)
