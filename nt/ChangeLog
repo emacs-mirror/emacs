@@ -1,3 +1,7 @@
+2010-07-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gmake.defs (CHECKING_CFLAGS) [ENABLECHECKS]: Add -fno-crossjumping.
+
 2010-07-18  Juanma Barranquero  <lekktu@gmail.com>
 
 	* configure.bat: New option --enable-checking.
