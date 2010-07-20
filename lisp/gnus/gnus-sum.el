@@ -12646,7 +12646,7 @@ If ALL is a number, fetch this number of articles."
            (id      (mail-header-id head)))
       `(,subject
 	,@(condition-case nil
-	      (bookmark-make-record-default 'no-file 'no-context (point))
+	      (bookmark-make-record-default 'no-file 'no-context pos)
 	    (wrong-number-of-arguments
 	     (bookmark-make-record-default 'point-only)))
         (location . ,(format "Gnus-%s %s:%d:%s" buf grp art id))

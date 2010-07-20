@@ -1,3 +1,8 @@
+2010-07-20  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-bookmark-make-record): Bookmark position in
+	the article buffer, not the summary buffer.
+
 2010-07-15  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-sum.el (gnus-summary-bookmark-make-record): Make it work for
