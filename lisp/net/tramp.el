@@ -1787,7 +1787,7 @@ printf(
     $stat[2],
     $stat[1] >> 16 & 0xffff,
     $stat[1] & 0xffff
-);' \"$1\" \"$2\" \"$3\" 2>/dev/null"
+);' \"$1\" \"$2\" 2>/dev/null"
   "Perl script to produce output suitable for use with `file-attributes'
 on the remote file system.
 Escape sequence %s is replaced with name of Perl binary.
@@ -1840,7 +1840,7 @@ for($i = 0; $i < $n; $i++)
         $stat[0] >> 16 & 0xffff,
         $stat[0] & 0xffff);
 }
-printf(\")\\n\");' \"$1\" \"$2\" \"$3\" 2>/dev/null"
+printf(\")\\n\");' \"$1\" \"$2\" 2>/dev/null"
   "Perl script implementing `directory-files-attributes' as Lisp `read'able
 output.
 Escape sequence %s is replaced with name of Perl binary.
@@ -7533,11 +7533,11 @@ connection if a previous connection has died for some reason."
 
 		;; Add arguments for asynchrononous processes.
 		(when (and process-name async-args)
-		  (setq login-args (append login-args async-args)))
+		  (setq login-args (append async-args login-args)))
 
 		;; Add gateway arguments if necessary.
 		(when (and gw gw-args)
-		  (setq login-args (append login-args gw-args)))
+		  (setq login-args (append gw-args login-args)))
 
 		;; Check for port number.  Until now, there's no need
 		;; for handling like method, user, host.
@@ -8858,7 +8858,6 @@ Only works for Bourne-like shells."
 ;;   by the files in that directory.  Add this here.
 ;; * Avoid screen blanking when hitting `g' in dired.  (Eli Tziperman)
 ;; * Make ffap.el grok Tramp filenames.  (Eli Tziperman)
-;; * Case-insensitive filename completion.  (Norbert Goevert.)
 ;; * Don't use globbing for directories with many files, as this is
 ;;   likely to produce long command lines, and some shells choke on
 ;;   long command lines.

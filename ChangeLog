@@ -44,7 +44,8 @@
 	Fix CFLAGS for non-GCC compilers.
 	* configure.in (CFLAGS): Always use -g like it was done before the
 	2010-03-30 change.
-	(REAL_CFLAGS): Use CFLAGS for non-GCC to get optimization flags.  (Bug#6538)
+	(REAL_CFLAGS): Use CFLAGS for non-GCC to get optimization flags.
+	(Bug#6538)
 
 2010-06-30  Glenn Morris  <rgm@gnu.org>
 
@@ -82,8 +83,7 @@
 
 2010-06-12  Glenn Morris  <rgm@gnu.org>
 
-	* Makefile.in (install-arch-indep): Delete any old info .gz files
-	first.
+	* Makefile.in (install-arch-indep): Delete any old info .gz files first.
 
 2010-06-11  Glenn Morris  <rgm@gnu.org>
 
@@ -509,7 +509,7 @@
 	* configure.in: Remove support for old UNIX System V systems and
 	for Unixware on non-x86 machines.
 
-	* configure.in:	Remove support for Solaris on PPC and for old versions.
+	* configure.in: Remove support for Solaris on PPC and for old versions.
 
 	* configure.in: Remove non-working lynxos port.
 

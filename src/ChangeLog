@@ -10,7 +10,7 @@
 
 	* gtkutil.c (xg_event_is_for_menubar): Also check that event window
 	is related to the menu bar (Bug#6499).
-	(xg_frame_resized): GTK_IS_MAPPED => gtk_widget_get_mapped, for Gtk 3.0
+	(xg_frame_resized): GTK_IS_MAPPED => gtk_widget_get_mapped, for Gtk 3.0.
 
 2010-07-16  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -115,7 +115,8 @@
 	* process.c (add_keyboard_wait_descriptor)
 	(delete_keyboard_wait_descriptor): Move to common section, do
 	nothing when subprocesses is not defined.
-	* term.c (Fsuspend_tty, Fresume_tty, init_tty): Remove subprocesses #ifdefs.
+	* term.c (Fsuspend_tty, Fresume_tty, init_tty):
+	Remove subprocesses #ifdefs.
 
 	Convert maybe_fatal to standard C.
 	* lisp.h (verror): Declare.
@@ -162,8 +163,7 @@
 
 2010-07-12  Andreas Schwab  <schwab@linux-m68k.org>
 
-	* dbusbind.c (xd_initialize): Don't compare boolean with a
-	constant.
+	* dbusbind.c (xd_initialize): Don't compare boolean with a constant.
 
 2010-07-12  Eli Zaretskii  <eliz@gnu.org>
 
@@ -454,7 +454,6 @@
 	* xsettings.c:
 	* xsmfns.c: Likewise.
 
-
 2010-07-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* process.c (kbd_is_on_hold, hold_keyboard_input)
@@ -468,7 +467,8 @@
 
 2010-07-08  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* xdisp.c (store_mode_line_noprop_char): Remove K&R alternative declaration.
+	* xdisp.c (store_mode_line_noprop_char): Remove K&R alternative
+	declaration.
 
 	Clean up include guards.
 	* tparam.c: Remove include guards for config.h, string.h and code
@@ -691,8 +691,8 @@
 2010-07-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* process.c (kbd_is_on_hold): New variable.
-	(hold_keyboard_input, unhold_keyboard_input, kbd_on_hold_p): New
-	functions.
+	(hold_keyboard_input, unhold_keyboard_input, kbd_on_hold_p):
+	New functions.
 	(wait_reading_process_output): If kbd_on_hold_p returns non-zero,
 	select on empty input mask.
 	(init_process): Initialize kbd_is_on_hold to 0.
@@ -716,8 +716,8 @@
 	* dosfns.c:
 	* w16select.c: Convert function definitions to ANSI C.
 
-	* msdos.h (ctrl_break_func, install_ctrl_break_check): Remove
-	unused prototypes.
+	* msdos.h (ctrl_break_func, install_ctrl_break_check):
+	Remove unused prototypes.
 
 2010-07-07  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -1128,16 +1128,16 @@
 	* nsfns.m (compute_tip_xy): Do not convert coordinates from frame
 	parameters, they are already absolute.
 
-	* nsterm.m (x_set_window_size, initFrameFromEmacs): Renamed
-	FRAME_NS_TOOLBAR_HEIGHT to FRAME_TOOLBAR_HEIGHT.
+	* nsterm.m (x_set_window_size, initFrameFromEmacs):
+	Rename FRAME_NS_TOOLBAR_HEIGHT to FRAME_TOOLBAR_HEIGHT.
 
-	* nsterm.h (FRAME_NS_TOOLBAR_HEIGHT): Rename to FRAME_TOOLBAR_HEIGH
+	* nsterm.h (FRAME_NS_TOOLBAR_HEIGHT): Rename to FRAME_TOOLBAR_HEIGHT.
 
-	* nsmenu.m (update_frame_tool_bar, free_frame_tool_bar): Update
-	FRAME_TOOLBAR_HEIGHT.
+	* nsmenu.m (update_frame_tool_bar, free_frame_tool_bar):
+	Update FRAME_TOOLBAR_HEIGHT.
 
-	* nsmenu.m (free_frame_tool_bar, update_frame_tool_bar): Add
-	BLOCK/UNBLOCK_INPUT so asserts don't trigger.
+	* nsmenu.m (free_frame_tool_bar, update_frame_tool_bar):
+	Add BLOCK/UNBLOCK_INPUT so asserts don't trigger.
 
 2010-06-30  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -1326,7 +1326,7 @@
 	* xfns.c (x_default_font_parameter): Try to open font from system
 	before using it (bug#6478).  Rename got_from_gconf to got_from_system.
 
-2010-06-22  Keith Packard <keithp@keithp.com> (tiny change)
+2010-06-22  Keith Packard  <keithp@keithp.com>  (tiny change)
 
 	* font.c (font_parse_fcname): Allow . for sizes like 7.5 (bug#6437).
 
@@ -1498,8 +1498,8 @@
 
 2010-06-03  Andreas Schwab  <schwab@linux-m68k.org>
 
-	* process.c (conv_lisp_to_sockaddr): Fix conversion of IPv4
-	address.  (Bug#6346)
+	* process.c (conv_lisp_to_sockaddr): Fix conversion of IPv4 address.
+	(Bug#6346)
 
 2010-06-03  Juanma Barranquero  <lekktu@gmail.com>
 

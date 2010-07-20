@@ -25,8 +25,7 @@
 
 2010-06-19  Chong Yidong  <cyd@stupidchicken.com>
 
-	* errors.texi (Standard Errors): Remove unnecessary markup
-	(Bug#6461).
+	* errors.texi (Standard Errors): Remove unnecessary markup (Bug#6461).
 
 2010-06-02  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -45,8 +44,7 @@
 
 2010-05-22  Chong Yidong  <cyd@stupidchicken.com>
 
-	* display.texi (Image Cache): Update documentation about image
-	caching.
+	* display.texi (Image Cache): Update documentation about image caching.
 
 2010-05-08  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
 

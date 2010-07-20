@@ -1,3 +1,10 @@
+2010-07-20  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-perl-file-attributes)
+	(tramp-perl-directory-files-and-attributes): Don't pass "$3".
+	(tramp-maybe-open-connection): Use `async-args' and `gw-args' in
+	front of `login-args'.
+
 2010-07-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* time.el (display-time-world-mode): Define with `define-derived-mode'.
@@ -7,7 +14,7 @@
 2010-07-18  Alan Mackenzie  <acm@muc.de>
 
 	Enhance `c-file-style' in file/directory local variables.
-	* cc-mode.el (c-count-cfss): New function.
+	* progmodes/cc-mode.el (c-count-cfss): New function.
 	(c-before-hack-hook): Call `c-set-style' differently according to
 	whether c-file-style was set in file or directory local
 	variables.
@@ -40,8 +47,7 @@
 	(sql-connection-alist): New variable.
 	(sql-connect): New function.
 	(sql--alt-buffer-part, sql--alt-if-not-empty)
-	(sql-make-alternate-buffer-name): Improved alternative buffer
-	name.
+	(sql-make-alternate-buffer-name): Improved alternative buffer name.
 
 2010-07-17  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
@@ -72,7 +78,7 @@
 
 2010-07-16  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* vc.el (vc-coding-system-inherit-eol): New defvar.
+	* vc/vc.el (vc-coding-system-inherit-eol): New defvar.
 	(vc-coding-system-for-diff): Use it to decide whether to inherit
 	from the file the EOL format for reading the diffs of that file.
 	(Bug#4451)
@@ -125,7 +131,7 @@
 	* menu-bar.el (menu-bar-enable-clipboard): Don't overwrite
 	Cut/Copy/Paste menu bar items.
 
-2010-07-13  Thierry Volpiatto <thierry.volpiatto@gmail.com>
+2010-07-13  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
 	Allow C-w when setting a bookmark in a Gnus Article buffer (Bug#5975).
 	Patch applied by Karl Fogel.
@@ -135,7 +141,7 @@
 	another buffer (e.g gnus-art).
 
 2010-07-13  Karl Fogel  <kfogel@red-bean.com>
-            Thierry Volpiatto <thierry.volpiatto@gmail.com>
+            Thierry Volpiatto  <thierry.volpiatto@gmail.com>
 
 	Preparation for setting bookmarks in Gnus article buffers (Bug#5975).
 
@@ -237,7 +243,8 @@
 
 2010-07-07  Agustín Martín  <agustin.martin@hispalinux.es>
 
-	* ispell.el (ispell-alternate-dictionary): Use file-readable-p.
+	* textmodes/ispell.el (ispell-alternate-dictionary):
+	Use file-readable-p.
 	Return nil if no word-list is found at default locations.
 	(ispell-complete-word-dict): Default to nil.
 	(ispell-command-loop): Use 'word-list' when using lookup-words.
@@ -378,7 +385,7 @@
 	* bindings.el (global-map): Bind delete and DEL, the former to
 	delete-forward-char.
 
-2010-01-16  Lennart Borgman  <lennart.borgman@gmail.com>
+2010-06-27  Lennart Borgman  <lennart.borgman@gmail.com>
 
 	* progmodes/ruby-mode.el (ruby-mode-map): Don't bind TAB.
 	(ruby-mode): Bind indent-line-function (Bug#5119).
@@ -406,11 +413,11 @@
 
 2010-06-25  Agustín Martín  <agustin.martin@hispalinux.es>
 
-	* flyspell.el (flyspell-check-previous-highlighted-word): Make
-	sure `flyspell-word' re-checks word after function run (Bug#6504).
+	* textmodes/flyspell.el (flyspell-check-previous-highlighted-word):
+	Make sure `flyspell-word' re-checks word after function run (Bug#6504).
 
-	* ispell.el (ispell-init-process): Make sure ispell and default
-	directories are expanded. (Bug#6143).
+	* textmodes/ispell.el (ispell-init-process): Make sure ispell and
+	default directories are expanded. (Bug#6143).
 
 2010-06-24  Juri Linkov  <juri@jurta.org>
 
@@ -466,7 +473,7 @@
 2010-06-30  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Avoid displaying files with a nil state in vc-dir.
-	* vc-dir.el (vc-dir-update): Obey the noinsert argument in all
+	* vc/vc-dir.el (vc-dir-update): Obey the noinsert argument in all
 	cases that cause insertion.
 	(vc-dir-resynch-file): Tell vc-dir-update to avoid inserting files
 	with a nil state.
@@ -587,8 +594,8 @@
 
 2010-06-17  Agustín Martín  <agustin.martin@hispalinux.es>
 
-	* ispell.el (ispell-aspell-find-dictionary): Fix regexp for
-	languages like Portuguese with pt_{BR,PT} and no plain pt.
+	* textmodes/ispell.el (ispell-aspell-find-dictionary): Fix regexp
+	for languages like Portuguese with pt_{BR,PT} and no plain pt.
 
 2010-06-17  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -651,7 +658,8 @@
 	Fix annotating other revisions for renamed files in vc-annotate.
 	* vc-annotate.el (vc-annotate): Add an optional argument for the
 	VC backend.  Use it when non-nil.
-	(vc-annotate-warp-revision): Pass the VC backend to vc-annotate.  (Bug#6487)
+	(vc-annotate-warp-revision): Pass the VC backend to vc-annotate.
+	(Bug#6487)
 
 	Fix vc-annotate-show-changeset-diff-revision-at-line for git.
 	* vc-annotate.el (vc-annotate-show-diff-revision-at-line-internal):
@@ -744,7 +752,7 @@
 
 2010-06-16  Agustín Martín  <agustin.martin@hispalinux.es>
 
-	* ispell.el (ispell-dictionary-base-alist): Fix
+	* textmodes/ispell.el (ispell-dictionary-base-alist): Fix
 	portuguese casechars/not-casechars for missing 'çÇ'.
 	Suggested by Rolando Pereira (bug#6434).
 
@@ -1072,8 +1080,7 @@
 
 2010-06-03  Chong Yidong  <cyd@stupidchicken.com>
 
-	* net/rcirc.el (rcirc-nickname<, rcirc-sort-nicknames-join): Doc
-	fix.
+	* net/rcirc.el (rcirc-nickname<, rcirc-sort-nicknames-join): Doc fix.
 
 2010-06-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -1452,7 +1459,7 @@
 	* net/rcirc.el (rcirc-server-alist): Add :pass.
 	(rcirc): When prompting for connection parameters, also prompt for
 	username and password.
-	(rcirc-connect): Take a PASS argument.	If PASS is non-nil, send
+	(rcirc-connect): Take a PASS argument.  If PASS is non-nil, send
 	value to server when connecting.
 
 2010-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -1834,8 +1841,8 @@
 
 2010-05-13  Agustín Martín  <agustin.martin@hispalinux.es>
 
-	* ispell.el (ispell-init-process): Do not kill ispell process
-	everytime when spellchecking from the minibuffer (bug#6143).
+	* textmodes/ispell.el (ispell-init-process): Do not kill ispell
+	process everytime when spellchecking from the minibuffer (bug#6143).
 
 2010-05-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -2496,8 +2503,8 @@
 
 2010-04-27  Agustín Martín  <agustin.martin@hispalinux.es>
 
-	* ispell.el (ispell-init-process): Fix personal dictionary condition
-	in default directory check.
+	* textmodes/ispell.el (ispell-init-process): Fix personal dictionary
+	condition in default directory check.
 	(ispell-init-process,ispell-kill-ispell,kill-buffer-hook):
 	Kill ispell process when killing its associated buffer.
 

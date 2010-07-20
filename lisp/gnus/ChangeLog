@@ -1,3 +1,8 @@
+2010-07-20  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-bookmark-make-record): Bookmark position in
+	the article buffer, not the summary buffer.
+
 2010-07-15  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-sum.el (gnus-summary-bookmark-make-record): Make it work for
@@ -105,7 +110,7 @@
 2010-05-12  Andreas Seltenreich  <seltenreich@gmx.de>
 
 	* gnus-sum.el (gnus-summary-read-group-1): Don't jump to next group
-	when catching the `C-g'.  Reported by: "Leo"
+	when catching the `C-g'.  Reported by "Leo".
 
 2010-05-12  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -239,7 +244,7 @@
 
 	* mml.el (mml-generate-mime-1,mml-compute-boundary-1): Update 'mml
 	handles on recursive mml-to-mime translation and check them for
-	boundary delimiter collisions.  Reported by: Greg Troxel.
+	boundary delimiter collisions.  Reported by Greg Troxel.
 
 2010-04-27  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -387,7 +392,7 @@
 	(nnimap-retrieve-groups, nnimap-verify-uidvalidity)
 	(nnimap-update-unseen): Significantly improved speed of Gnus startup
 	with many imap folders.  This is done by caching the group status from
-	the imap server persistently in a group parameter `imap-status'. (This
+	the imap server persistently in a group parameter `imap-status'.  (This
 	was cached before too if `nnimap-retrieve-groups-asynchronous' was set,
 	but not persistently, so every Gnus startup was still very slow.)
 
@@ -512,7 +517,7 @@
 
 	* nneething.el (mailcap): Require mailcap.
 
-	* nnheader.el: (declare-function): Add compatibility stub.
+	* nnheader.el (declare-function): Add compatibility stub.
 	(message-remove-header): Declare rather than autoload.
 	(nnheader-replace-header): Require message.
 

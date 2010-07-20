@@ -1,9 +1,12 @@
+2010-07-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Mention --enable-checking is now supported on Windows.
+
 2010-07-19  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* refcards/orgcard.tex: Remove the key for the TODO sparse tree
 	and add the new key.  Document new keys for image and entity
 	display.  Document the Org Babel keys.
-	
 
 2010-06-19  Ken Brown  <kbrown@cornell.edu>
 
