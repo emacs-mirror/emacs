@@ -1836,7 +1836,7 @@ w32_init_fringe (struct redisplay_interface *rif)
 }
 
 void
-w32_reset_fringes ()
+w32_reset_fringes (void)
 {
   /* Destroy row bitmaps.  */
   int bt;

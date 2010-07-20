@@ -726,10 +726,7 @@ x_free_gc (struct frame *f, GC gc)
 /* W32 emulation of GCs */
 
 static INLINE GC
-x_create_gc (f, mask, xgcv)
-     struct frame *f;
-     unsigned long mask;
-     XGCValues *xgcv;
+x_create_gc (struct frame *f, unsigned long mask, XGCValues *xgcv)
 {
   GC gc;
   BLOCK_INPUT;
@@ -743,9 +740,7 @@ x_create_gc (f, mask, xgcv)
 /* Free GC which was used on frame F.  */
 
 static INLINE void
-x_free_gc (f, gc)
-     struct frame *f;
-     GC gc;
+x_free_gc (struct frame *f, GC gc)
 {
   IF_DEBUG (xassert (--ngcs >= 0));
   xfree (gc);

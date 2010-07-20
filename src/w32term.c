@@ -5694,8 +5694,7 @@ x_iconify_frame (struct frame *f)
 /* Free X resources of frame F.  */
 
 void
-x_free_frame_resources (f)
-     struct frame *f;
+x_free_frame_resources (struct frame *f)
 {
   struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
 

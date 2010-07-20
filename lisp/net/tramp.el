@@ -1787,7 +1787,7 @@ printf(
     $stat[2],
     $stat[1] >> 16 & 0xffff,
     $stat[1] & 0xffff
-);' \"$1\" \"$2\" \"$3\" 2>/dev/null"
+);' \"$1\" \"$2\" 2>/dev/null"
   "Perl script to produce output suitable for use with `file-attributes'
 on the remote file system.
 Escape sequence %s is replaced with name of Perl binary.
@@ -1840,7 +1840,7 @@ for($i = 0; $i < $n; $i++)
         $stat[0] >> 16 & 0xffff,
         $stat[0] & 0xffff);
 }
-printf(\")\\n\");' \"$1\" \"$2\" \"$3\" 2>/dev/null"
+printf(\")\\n\");' \"$1\" \"$2\" 2>/dev/null"
   "Perl script implementing `directory-files-attributes' as Lisp `read'able
 output.
 Escape sequence %s is replaced with name of Perl binary.
@@ -5565,12 +5565,23 @@ Falls back to normal file name handler if no Tramp file name handler exists."
 	    (if foreign
 		(condition-case err
 		    (apply foreign operation args)
+
+		  ;; Trace that somebody has interrupted the
+		  ;; operation.
+		  (quit
+		   (let (tramp-message-show-message)
+		     (tramp-message
+		      v 1 "Interrupt received in operation %s"
+		      (append (list operation) args)))
+		   ;; Propagate the quit signal.
+		   (signal (car err) (cdr err)))
+
+		  ;; When we are in completion mode, some failed
+		  ;; operations shall return at least a default value
+		  ;; in order to give the user a chance to correct the
+		  ;; file name in the minibuffer.
 		  (error
 		   (cond
-		    ;; When we are in completion mode, some failed
-		    ;; operations shall return at least a default
-		    ;; value in order to give the user a chance to
-		    ;; correct the file name in the minibuffer.
 		    ((and completion (zerop (length localname))
 			  (memq operation '(file-exists-p file-directory-p)))
 		     t)
@@ -5580,6 +5591,7 @@ Falls back to normal file name handler if no Tramp file name handler exists."
 		     filename)
 		    ;; Propagate the error.
 		    (t (signal (car err) (cdr err))))))
+
 	      ;; Nothing to do for us.
 	      (tramp-run-real-handler operation args)))))
 
@@ -7033,6 +7045,12 @@ process to set up.  VEC specifies the connection."
   ;; Disable unexpected output.
   (tramp-send-command vec "mesg n; biff n" t)
 
+  ;; IRIX64 bash expands "!" even when in single quotes.  This
+  ;; destroys our shell functions, we must disable it.  See
+  ;; <http://stackoverflow.com/questions/3291692/irix-bash-shell-expands-expression-in-single-quotes-yet-shouldnt>.
+  (when (string-match "^IRIX64" (tramp-get-connection-property vec "uname" ""))
+    (tramp-send-command vec "set +H" t))
+
   ;; Set the environment.
   (tramp-message vec 5 "Setting default environment")
 
@@ -7048,7 +7066,7 @@ process to set up.  VEC specifies the connection."
       (setq env (cdr env)))
     (when unset
       (tramp-send-command
-       vec (format "unset %s" (mapconcat 'identity unset " "))))) t)
+       vec (format "unset %s" (mapconcat 'identity unset " ")) t))))
 
 ;; CCC: We should either implement a Perl version of base64 encoding
 ;; and decoding.  Then we just use that in the last item.  The other
@@ -7533,11 +7551,11 @@ connection if a previous connection has died for some reason."
 
 		;; Add arguments for asynchrononous processes.
 		(when (and process-name async-args)
-		  (setq login-args (append login-args async-args)))
+		  (setq login-args (append async-args login-args)))
 
 		;; Add gateway arguments if necessary.
 		(when (and gw gw-args)
-		  (setq login-args (append login-args gw-args)))
+		  (setq login-args (append gw-args login-args)))
 
 		;; Check for port number.  Until now, there's no need
 		;; for handling like method, user, host.
@@ -8858,7 +8876,6 @@ Only works for Bourne-like shells."
 ;;   by the files in that directory.  Add this here.
 ;; * Avoid screen blanking when hitting `g' in dired.  (Eli Tziperman)
 ;; * Make ffap.el grok Tramp filenames.  (Eli Tziperman)
-;; * Case-insensitive filename completion.  (Norbert Goevert.)
 ;; * Don't use globbing for directories with many files, as this is
 ;;   likely to produce long command lines, and some shells choke on
 ;;   long command lines.
