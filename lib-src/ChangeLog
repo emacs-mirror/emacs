@@ -20,7 +20,7 @@
 
 2010-07-11  Eli Zaretskii  <eliz@gnu.org>
 
-	* makefile.w32-in (obj): Add menu.o, bidi.o, w32uniscrobe.o,
+	* makefile.w32-in (obj): Add menu.o, bidi.o, w32uniscribe.o,
 	and unexw32.o.  (Bug#6603)
 
 2010-07-10  Eli Zaretskii  <eliz@gnu.org>
@@ -272,8 +272,7 @@
 
 2010-01-29  Kester Habermann  <kester@linuxtag.org>  (tiny change)
 
-	* etags.c (Fortran_functions): Handle recursive keyword
-	(Bug#5484).
+	* etags.c (Fortran_functions): Handle recursive keyword (Bug#5484).
 
 2010-01-11  Glenn Morris  <rgm@gnu.org>
 
