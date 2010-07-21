@@ -296,6 +296,17 @@ either "dev" or "prd".  The "dev" connection would connect to the
 SQLite database without prompting; the "prd" connection would prompt
 for the users password and then connect to the Oracle database.
 
+**** Added SQL->Start... submenu when connections are defined.
+When connections have been defined, There is a submenu available that
+allows the user to select one to start a SQLi session.  The "Start
+SQLi Session" item moves to the "Start..." submenu when cnnections
+have been defined.
+
+**** Added "Save Connection" menu item in SQLi buffers.
+When a SQLi session is not started by a connection then
+`sql-save-connection' will gather the login params specified for the
+session and save them as a new connection.
+
 *** Added option `sql-send-terminator'.
 When set makes sure that each command sent with `sql-send-*' commands
 are properly terminated and submitted to the SQL processor.
