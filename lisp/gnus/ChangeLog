@@ -1,3 +1,8 @@
+2010-07-21  Daiki Ueno  <ueno@unixuser.org>
+
+	* mml.el (mml-parse-1): Collect "certfile" attributes in "<#secure>"
+	tag (Bug#6654).
+
 2010-07-20  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-sum.el (gnus-summary-bookmark-make-record): Bookmark position in
