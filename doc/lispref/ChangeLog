@@ -1,3 +1,7 @@
+2010-07-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* text.texi (Special Properties): Fix typo.
+
 2010-06-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* text.texi (Undo): Clarify command loop behavior (Bug#2433).

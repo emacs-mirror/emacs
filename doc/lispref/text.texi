@@ -3035,7 +3035,7 @@ The @code{font-lock-face} property is equivalent to the @code{face}
 property when Font Lock mode is enabled.  When Font Lock mode is disabled,
 @code{font-lock-face} has no effect.
 
-The @code{font-lock-mode} property is useful for special modes that
+The @code{font-lock-face} property is useful for special modes that
 implement their own highlighting.  @xref{Precalculated Fontification}.
 
 @item mouse-face
