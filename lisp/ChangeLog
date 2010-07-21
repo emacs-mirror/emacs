@@ -1,3 +1,9 @@
+2010-07-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-get-ls-command)
+	(tramp-get-ls-command-with-dired): Run tests on "/dev/null"
+	instead of "/".
+
 2010-07-20  Michael R. Mauger  <mmaug@yahoo.com>
 
 	* progmodes/sql.el: Version 2.3.

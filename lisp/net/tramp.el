@@ -8344,7 +8344,8 @@ necessary only.  This function will be used in file name completion."
 	     (when (zerop (tramp-send-command-and-check
 			   vec (format "%s -lnd /" result)))
 	       (when (zerop (tramp-send-command-and-check
-			     vec (format "%s --color=never -al /" result)))
+			     vec (format
+				  "%s --color=never -al /dev/null" result)))
 		 (setq result (concat result " --color=never")))
 	       (throw 'ls-found result))
 	     (setq dl (cdr dl))))))
@@ -8358,7 +8359,8 @@ necessary only.  This function will be used in file name completion."
       ;; they fail when "-al" is after the "--dired" argument (for
       ;; example on FreeBSD).
       (zerop (tramp-send-command-and-check
-	      vec (format "%s --dired -al /" (tramp-get-ls-command vec)))))))
+	      vec (format "%s --dired -al /dev/null"
+			  (tramp-get-ls-command vec)))))))
 
 (defun tramp-get-test-command (vec)
   (with-connection-property vec "test"
