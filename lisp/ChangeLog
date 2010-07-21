@@ -1,3 +1,25 @@
+2010-07-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-get-ls-command)
+	(tramp-get-ls-command-with-dired): Run tests on "/dev/null"
+	instead of "/".
+
+2010-07-20  Michael R. Mauger  <mmaug@yahoo.com>
+
+	* progmodes/sql.el: Version 2.3.
+	(sql-connection-alist): Changed keys from symbols to strings;
+	enhanced the widget definition.
+	(sql-mode-menu): Added submenu to select connections.
+	(sql-interactive-mode-menu): Added "Save Connection" item.
+	(sql-add-product): Fixed menu item.
+	(sql-get-product-feature): Improved error handling.
+	(sql--alt-buffer-part, sql--alt-if-not-empty): Removed.
+	(sql-make-alternate-buffer-name): Simplified.
+	(sql-product-interactive): Handle missing product.
+	(sql-connect): Support string keys, minor improvements.
+	(sql-save-connection): New function.
+	(sql-connection-menu-filter): New function.
+
 2010-07-20  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-file-name-handler): Trace 'quit.

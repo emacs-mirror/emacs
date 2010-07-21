@@ -5,7 +5,7 @@
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Michael Mauger <mmaug@yahoo.com>
-;; Version: 2.2
+;; Version: 2.3
 ;; Keywords: comm languages processes
 ;; URL: http://savannah.gnu.org/cgi-bin/viewcvs/emacs/emacs/lisp/progmodes/sql.el
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?SqlMode
@@ -188,7 +188,7 @@
 ;;           (sql-comint product params)))
 ;;
 ;;     (sql-set-product-feature 'xyz
-;;                              :sqli-connect-func 'my-sql-comint-xyz)
+;;                              :sqli-comint-func 'my-sql-comint-xyz)
 
 ;; 6) Define a convienence function to invoke the SQL interpreter.
 
@@ -236,9 +236,8 @@
 (eval-when-compile
   (require 'regexp-opt))
 (require 'custom)
-(require 'assoc)
 (eval-when-compile ;; needed in Emacs 19, 20
-  (setq max-specpdl-size 2000))
+  (setq max-specpdl-size (max max-specpdl-size 2000)))
 
 (defvar font-lock-keyword-face)
 (defvar font-lock-set-defaults)
@@ -539,7 +538,7 @@ are:
 If a SQL-VARIABLE is part of the connection, it will not be
 prompted for during login."
 
-  :type `(alist :key-type (symbol :tag "Connection")
+  :type `(alist :key-type (string :tag "Connection")
                 :value-type
                 (set
                  (group (const :tag "Product"  sql-product)
@@ -554,7 +553,11 @@ prompted for during login."
                  (group (const :tag "Password" sql-password) string)
                  (group (const :tag "Server"   sql-server)   string)
                  (group (const :tag "Database" sql-database) string)
-                 (group (const :tag "Port"     sql-port)     integer)))
+                 (group (const :tag "Port"     sql-port)     integer)
+                 (repeat :inline t
+                         (list :tab "Other"
+                               (symbol :tag " Variable Symbol")
+                               (sexp   :tag "Value Expression")))))
   :version "24.1"
   :group 'SQL)
 
@@ -1115,8 +1118,17 @@ Based on `comint-mode-map'.")
 				       (get-buffer-process sql-buffer))]
    ["Send String" sql-send-string (and (buffer-live-p sql-buffer)
 				       (get-buffer-process sql-buffer))]
-   ["--" nil nil]
-   ["Start SQLi session" sql-product-interactive (sql-get-product-feature sql-product :sqli-comint-func)]
+   "--"
+   ["Start SQLi session" sql-product-interactive
+    :visible (not sql-connection-alist)
+    :enable (sql-get-product-feature sql-product :sqli-comint-func)]
+   ("Start..."
+    :visible sql-connection-alist
+    :filter sql-connection-menu-filter
+    "--"
+    ["New SQLi Session" sql-product-interactive (sql-get-product-feature sql-product :sqli-comint-func)])
+   ["--"
+    :visible sql-connection-alist]
    ["Show SQLi buffer" sql-show-sqli-buffer t]
    ["Set SQLi buffer" sql-set-sqli-buffer t]
    ["Pop to SQLi buffer after send"
@@ -1144,7 +1156,8 @@ Based on `comint-mode-map'.")
  sql-interactive-mode-menu sql-interactive-mode-map
  "Menu for `sql-interactive-mode'."
  '("SQL"
-   ["Rename Buffer" sql-rename-buffer t]))
+   ["Rename Buffer" sql-rename-buffer t]
+   ["Save Connection" sql-save-connection (not sql-connection)]))
 
 ;; Abbreviations -- if you want more of them, define them in your
 ;; ~/.emacs file.  Abbrevs have to be enabled in your ~/.emacs, too.
@@ -2028,7 +2041,7 @@ configuration."
 			;; Each product is represented by a radio
 			;; button with it's display name.
 			`[,display
-			  (lambda () (interactive) (sql-set-product ',product))
+			  (sql-set-product ',product)
 			 :style radio
 			 :selected (eq sql-product ',product)]
 			;; Maintain the product list in
@@ -2103,7 +2116,8 @@ See `sql-product-alist' for a list of products and supported features."
                (symbolp v))
               (symbol-value v)
             v))
-      (message "`%s' is not a known product; use `sql-add-product' to add it first." product))))
+      (message "`%s' is not a known product; use `sql-add-product' to add it first." product)
+      nil)))
 
 (defun sql-product-font-lock (keywords-only imenu)
   "Configure font-lock and imenu with product-specific settings.
@@ -2480,13 +2494,6 @@ variable `sql-buffer'.  See `sql-help' on how to create such a buffer."
 	(message "Buffer %s has no process." (buffer-name sql-buffer))
       (message "Current SQLi buffer is %s." (buffer-name sql-buffer)))))
 
-(defun sql--alt-buffer-part (delim part)
-  (unless (string= "" part)
-    (list delim part)))
-
-(defun sql--alt-if-not-empty (s)
-  (if (string= "" s) nil s))
-
 (defun sql-make-alternate-buffer-name ()
   "Return a string that can be used to rename a SQLi buffer.
 
@@ -2502,40 +2509,44 @@ parameter.
 If all else fails, the alternate name would be the user and
 server/database name."
 
-  (or
-   ;; If started by sql-connect, use that
-   (sql--alt-if-not-empty
-    (when sql-connection (symbol-name sql-connection)))
+  (let ((name ""))
 
-   ;; based on :sqli-login setting
-   (sql--alt-if-not-empty
-    (apply 'concat
-           (cdr
-            (apply 'append nil
-                   (mapcar
-                    (lambda (v)
-                      (cond
-                       ((eq v 'user)     (sql--alt-buffer-part "/" sql-user))
-                       ((eq v 'server)   (sql--alt-buffer-part "@" sql-server))
-                       ((eq v 'database) (sql--alt-buffer-part "@" sql-database))
-                       ((eq v 'port)     (sql--alt-buffer-part ":" sql-port))
+    ;; Try using the :sqli-login setting
+    (when (string= "" (or name ""))
+      (setq name
+            (apply 'concat
+                   (apply 'append nil
+                          (mapcar
+                           (lambda (v)
+                             (cond
+                              ((eq v 'user)     (list "/" sql-user))
+                              ((eq v 'server)   (list "." sql-server))
+                              ((eq v 'database) (list "@" sql-database))
+                              ((eq v 'port)     (list ":" sql-port))
 
-                       ((eq v 'password) nil)
-                       (t                nil)))
-                    (sql-get-product-feature sql-product :sqli-login))))))
+                              ((eq v 'password) nil)
+                              (t                nil)))
+                           (sql-get-product-feature sql-product :sqli-login))))))
 
-   ;; Default: username/server format
-   (sql--alt-if-not-empty
-    (concat (if (string= "" sql-user)
-                (if (string= "" (user-login-name))
-                    ()
-                  (concat (user-login-name) "/"))
-              (concat sql-user "/"))
-            (if (string= "" sql-database)
-                (if (string= "" sql-server)
-                    (system-name)
-                  sql-server)
-              sql-database)))))
+    ;; Default: username/server format
+    (when (string= "" (or name ""))
+      (setq name
+            (concat " "
+                    (if (string= "" sql-user)
+                        (if (string= "" (user-login-name))
+                            ()
+                          (concat (user-login-name) "/"))
+                      (concat sql-user "/"))
+                    (if (string= "" sql-database)
+                        (if (string= "" sql-server)
+                            (system-name)
+                          sql-server)
+                      sql-database))))
+
+    ;; Return the final string; prefixed by the connection name
+    (if sql-connection
+        (format "<%s>%s" sql-connection (or name ""))
+      (substring (or name " ") 1))))
 
 (defun sql-rename-buffer ()
   "Rename a SQLi buffer."
@@ -2959,55 +2970,58 @@ If buffer exists and a process is running, just switch to buffer `*SQL*'.
                                            sql-product-alist)
                                    nil 'require-match
                                    (or (and sql-product (symbol-name sql-product)) "ansi"))))
-         ((symbolp product) product)    ; Product specified
+         ((and product                  ; Product specified
+               (symbolp product)) product)
          (t sql-product)))              ; Default to sql-product
 
-  (when (sql-get-product-feature product :sqli-comint-func)
-    (if (and sql-buffer
-             (buffer-live-p sql-buffer)
-	     (comint-check-proc sql-buffer))
-	(pop-to-buffer sql-buffer)
+  (if product
+      (when (sql-get-product-feature product :sqli-comint-func)
+        (if (and sql-buffer
+                 (buffer-live-p sql-buffer)
+                 (comint-check-proc sql-buffer))
+            (pop-to-buffer sql-buffer)
 
-      ;; Is the current buffer in sql-mode and
-      ;; there is a buffer local setting of sql-buffer
-      (let* ((start-buffer
-	      (and (derived-mode-p 'sql-mode)
-		   (current-buffer)))
-	     (start-sql-buffer
-	      (and start-buffer
-		   (let (found)
-		     (dolist (var (buffer-local-variables))
-		       (and (consp var)
-			    (eq (car var) 'sql-buffer)
-			    (buffer-live-p (cdr var))
-			    (get-buffer-process (cdr var))
-			    (setq found (cdr var))))
-		     found)))
-	     new-sqli-buffer)
+          ;; Is the current buffer in sql-mode and
+          ;; there is a buffer local setting of sql-buffer
+          (let* ((start-buffer
+                  (and (derived-mode-p 'sql-mode)
+                       (current-buffer)))
+                 (start-sql-buffer
+                  (and start-buffer
+                       (let (found)
+                         (dolist (var (buffer-local-variables))
+                           (and (consp var)
+                                (eq (car var) 'sql-buffer)
+                                (buffer-live-p (cdr var))
+                                (get-buffer-process (cdr var))
+                                (setq found (cdr var))))
+                         found)))
+                 new-sqli-buffer)
 
-	;; Get credentials.
-	(apply 'sql-get-login (sql-get-product-feature product :sqli-login))
+            ;; Get credentials.
+            (apply 'sql-get-login (sql-get-product-feature product :sqli-login))
 
-	;; Connect to database.
-	(message "Login...")
-	(funcall (sql-get-product-feature product :sqli-comint-func)
-                 product
-                 (sql-get-product-feature product :sqli-options))
+            ;; Connect to database.
+            (message "Login...")
+            (funcall (sql-get-product-feature product :sqli-comint-func)
+                     product
+                     (sql-get-product-feature product :sqli-options))
 
-	;; Set SQLi mode.
-	(setq sql-interactive-product product
-	      new-sqli-buffer (current-buffer)
-	      sql-buffer new-sqli-buffer)
-	(sql-interactive-mode)
+            ;; Set SQLi mode.
+            (setq sql-interactive-product product
+                  new-sqli-buffer (current-buffer)
+                  sql-buffer new-sqli-buffer)
+            (sql-interactive-mode)
 
-	;; Set `sql-buffer' in the start buffer
-	(when (and start-buffer (not start-sql-buffer))
-	  (with-current-buffer start-buffer
-	    (setq sql-buffer new-sqli-buffer)))
+            ;; Set `sql-buffer' in the start buffer
+            (when (and start-buffer (not start-sql-buffer))
+              (with-current-buffer start-buffer
+                (setq sql-buffer new-sqli-buffer)))
 
-	;; All done.
-	(message "Login...done")
-	(pop-to-buffer sql-buffer)))))
+            ;; All done.
+            (message "Login...done")
+            (pop-to-buffer sql-buffer))))
+    (message "No default SQL product defined.  Set `sql-product'.")))
 
 (defun sql-comint (product params)
   "Set up a comint buffer to run the SQL processor.
@@ -3032,11 +3046,11 @@ is specified in the connection settings."
   (interactive
    (if sql-connection-alist
        (list
-        (intern
-         (completing-read "Connection: "
-                          (mapcar (lambda (c) (symbol-name (car c)))
-                                  sql-connection-alist)
-                          nil t)))
+        (let ((completion-ignore-case t))
+          (completing-read "Connection: "
+                           (mapcar (lambda (c) (car c))
+                                   sql-connection-alist)
+                           nil t nil nil '(()))))
      nil))
 
   ;; Are there connections defined
@@ -3044,12 +3058,12 @@ is specified in the connection settings."
       ;; Was one selected
       (when connection
         ;; Get connection settings
-        (let ((connect-set  (aget sql-connection-alist connection)))
+        (let ((connect-set  (assoc connection sql-connection-alist)))
           ;; Settings are defined
           (if connect-set
               ;; Set the desired parameters
               (eval `(let*
-                         (,@connect-set
+                         (,@(cdr connect-set)
                           ;; :sqli-login params variable
                           (param-var    (sql-get-product-feature sql-product
                                                                  :sqli-login nil t))
@@ -3066,14 +3080,14 @@ is specified in the connection settings."
                                             ((eq (car v) 'sql-database) 'database)
                                             ((eq (car v) 'sql-port)     'port)
                                             (t                          (car v))))
-                                         connect-set))
+                                         (cdr connect-set)))
                           ;; the remaining params (w/o the connection params)
-                          (rem-params   (apply 'append nil
-                                               (mapcar
-                                                (lambda (l)
-                                                  (unless (member l set-params)
-                                                    (list l)))
-                                                login-params)))
+                          (rem-params   (delq nil
+                                              (mapcar
+                                               (lambda (l)
+                                                 (unless (member l set-params)
+                                                   l))
+                                               login-params)))
                           ;; Remember the connection
                           (sql-connection connection))
 
@@ -3081,10 +3095,65 @@ is specified in the connection settings."
                        ;; interactive session
                        (eval `(let ((,param-var ',rem-params))
                                 (sql-product-interactive sql-product)))))
-            (message "SQL Connection \"%s\" does not exist" connection)
+            (message "SQL Connection <%s> does not exist" connection)
             nil)))
     (message "No SQL Connections defined")
     nil))
+
+(defun sql-save-connection (name)
+  "Captures the connection information of the current SQLi session.
+
+The information is appended to `sql-connection-alist' and
+optionally is saved to the user's init file."
+
+  (interactive "sNew connection name: ")
+
+  (if sql-connection
+      (message "This session was started by a connection; it's already been saved.")
+
+    (let ((login (sql-get-product-feature sql-product :sqli-login))
+          (alist sql-connection-alist)
+          connect)
+
+      ;; Remove the existing connection if the user says so
+      (when (and (assoc name alist)
+                 (yes-or-no-p (format "Replace connection definition <%s>? " name)))
+        (setq alist (assq-delete-all name alist)))
+
+      ;; Add the new connection if it doesn't exist
+      (if (assoc name alist)
+          (message "Connection <%s> already exists" name)
+        (setq connect
+              (append (list name)
+                      (delq nil
+                            (mapcar
+                             (lambda (param)
+                               (cond
+                                ((eq param 'product)  `(sql-product  (quote ,sql-product)))
+                                ((eq param 'user)     `(sql-user     ,sql-user))
+                                ((eq param 'database) `(sql-database ,sql-database))
+                                ((eq param 'server)   `(sql-server   ,sql-server))
+                                ((eq param 'port)     `(sql-port     ,sql-port))))
+                             (append (list 'product) login)))))
+
+        (setq alist (append alist (list connect)))
+
+        ;; confirm whether we want to save the connections
+        (if (yes-or-no-p "Save the connections for future sessions? ")
+            (customize-save-variable 'sql-connection-alist alist)
+          (customize-set-variable 'sql-connection-alist alist))))))
+
+(defun sql-connection-menu-filter (tail)
+  "Generates menu entries for using each connection."
+  (append
+   (mapcar
+    (lambda (conn)
+      (vector
+       (format "Connection <%s>" (car conn))
+       (list 'sql-connect (car conn))
+       t))
+    sql-connection-alist)
+   tail))
 
 ;;;###autoload
 (defun sql-oracle ()
