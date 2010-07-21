@@ -1,3 +1,7 @@
+2010-07-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* buffer.c (syms_of_buffer) <fringe-indicator-alist>: Doc fix.
+
 2010-07-17  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_event_is_for_menubar): Also check that event window
