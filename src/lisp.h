@@ -971,7 +971,8 @@ struct Lisp_Subr
       Lisp_Object (*a6) (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object);
       Lisp_Object (*a7) (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object);
       Lisp_Object (*a8) (Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object);
-      Lisp_Object (*am) (int, Lisp_Object *);
+      Lisp_Object (*aUNEVALLED) (Lisp_Object args);
+      Lisp_Object (*aMANY) (int, Lisp_Object *);
     } function;
     short min_args, max_args;
     const char *symbol_name;
@@ -1775,7 +1776,8 @@ typedef struct {
   Lisp_Object fnname DEFUN_ARGS_ ## maxargs ;				\
   DECL_ALIGN (struct Lisp_Subr, sname) =				\
     { PVEC_SUBR | (sizeof (struct Lisp_Subr) / sizeof (EMACS_INT)),	\
-      (Lisp_Object(*)(void)) fnname, minargs, maxargs, lname, intspec, 0}; \
+      { .a ## maxargs = fnname },				\
+      minargs, maxargs, lname, intspec, 0};				\
   Lisp_Object fnname
 
 /* Note that the weird token-substitution semantics of ANSI C makes

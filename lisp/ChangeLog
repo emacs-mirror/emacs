@@ -1,3 +1,45 @@
+2010-07-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dired.el (dired-no-confirm): Document value t and fix defcustom to
+	accept it (bug#6597).  Suggested by Drew Adams <drew.adams@oracle.com>.
+
+2010-07-22  Teemu Likonen  <tlikonen@iki.fi>  (tiny change)
+
+	* dired.el (dired-mode-map): Use command remapping (bug#6632).
+
+2010-07-22  Lawrence Mitchell  <wence@gmx.li>
+
+	* term/vt100.el (vt100-wide-mode): Fix :init-value keyword (bug#6620).
+
+2010-07-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-get-ls-command)
+	(tramp-get-ls-command-with-dired): Run tests on "/dev/null"
+	instead of "/".
+
+2010-07-20  Michael R. Mauger  <mmaug@yahoo.com>
+
+	* progmodes/sql.el: Version 2.3.
+	(sql-connection-alist): Changed keys from symbols to strings;
+	enhanced the widget definition.
+	(sql-mode-menu): Added submenu to select connections.
+	(sql-interactive-mode-menu): Added "Save Connection" item.
+	(sql-add-product): Fixed menu item.
+	(sql-get-product-feature): Improved error handling.
+	(sql--alt-buffer-part, sql--alt-if-not-empty): Removed.
+	(sql-make-alternate-buffer-name): Simplified.
+	(sql-product-interactive): Handle missing product.
+	(sql-connect): Support string keys, minor improvements.
+	(sql-save-connection): New function.
+	(sql-connection-menu-filter): New function.
+
+2010-07-20  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-file-name-handler): Trace 'quit.
+	(tramp-open-connection-setup-interactive-shell): Apply
+	workaround for IRIX64 bug.  Move argument of last
+	`tramp-send-command' where it belongs to.
+
 2010-07-20  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-perl-file-attributes)

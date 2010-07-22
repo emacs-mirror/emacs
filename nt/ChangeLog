@@ -1,3 +1,20 @@
+2010-07-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* INSTALL: Add note about backslashes in Windows paths.
+	Fix typos.  Simplify references to Windows versions.
+
+2010-07-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* addpm.c (add_registry, main):
+	* cmdproxy.c (get_env_size):
+	* ddeclient.c (main):
+	* runemacs.c (set_user_model_id):
+	Convert definitions to standard C.
+
+2010-07-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gmake.defs (CHECKING_CFLAGS) [ENABLECHECKS]: Add -fno-crossjumping.
+
 2010-07-18  Juanma Barranquero  <lekktu@gmail.com>
 
 	* configure.bat: New option --enable-checking.

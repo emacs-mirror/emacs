@@ -228,7 +228,10 @@ part.  This is for the internal use, you should never modify the value.")
 	(let* (secure-mode
 	       (taginfo (mml-read-tag))
 	       (keyfile (cdr (assq 'keyfile taginfo)))
-	       (certfile (cdr (assq 'certfile taginfo)))
+	       (certfiles (delq nil (mapcar (lambda (tag)
+					      (if (eq (car-safe tag) 'certfile)
+						  (cdr tag)))
+					    taginfo)))
 	       (recipients (cdr (assq 'recipients taginfo)))
 	       (sender (cdr (assq 'sender taginfo)))
 	       (location (cdr (assq 'tag-location taginfo)))
@@ -254,8 +257,10 @@ part.  This is for the internal use, you should never modify the value.")
 				 ,@tags
 				 ,(if keyfile "keyfile")
 				 ,keyfile
-				 ,(if certfile "certfile")
-				 ,certfile
+				 ,@(apply #'append
+					  (mapcar (lambda (certfile)
+						    (list "certfile" certfile))
+						  certfiles))
 				 ,(if recipients "recipients")
 				 ,recipients
 				 ,(if sender "sender")

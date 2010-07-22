@@ -69,7 +69,7 @@ get_lim_data (void)
 #ifdef USG
 
 static void
-get_lim_data ()
+get_lim_data (void)
 {
   extern long ulimit ();
 
@@ -93,7 +93,7 @@ get_lim_data ()
 #ifdef WINDOWSNT
 
 static void
-get_lim_data ()
+get_lim_data (void)
 {
   extern unsigned long reserved_heap_size;
   lim_data = reserved_heap_size;
@@ -104,7 +104,7 @@ get_lim_data ()
 
 #ifdef MSDOS
 void
-get_lim_data ()
+get_lim_data (void)
 {
   _go32_dpmi_meminfo info;
   unsigned long lim1, lim2;
@@ -135,14 +135,14 @@ get_lim_data ()
 }
 
 unsigned long
-ret_lim_data ()
+ret_lim_data (void)
 {
   get_lim_data ();
   return lim_data;
 }
 #else /* not MSDOS */
 static void
-get_lim_data ()
+get_lim_data (void)
 {
   lim_data = vlimit (LIM_DATA, -1);
 }
@@ -151,7 +151,7 @@ get_lim_data ()
 #else /* BSD4_2 */
 
 static void
-get_lim_data ()
+get_lim_data (void)
 {
   struct rlimit XXrlimit;
 

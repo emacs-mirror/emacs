@@ -5565,12 +5565,23 @@ Falls back to normal file name handler if no Tramp file name handler exists."
 	    (if foreign
 		(condition-case err
 		    (apply foreign operation args)
+
+		  ;; Trace that somebody has interrupted the
+		  ;; operation.
+		  (quit
+		   (let (tramp-message-show-message)
+		     (tramp-message
+		      v 1 "Interrupt received in operation %s"
+		      (append (list operation) args)))
+		   ;; Propagate the quit signal.
+		   (signal (car err) (cdr err)))
+
+		  ;; When we are in completion mode, some failed
+		  ;; operations shall return at least a default value
+		  ;; in order to give the user a chance to correct the
+		  ;; file name in the minibuffer.
 		  (error
 		   (cond
-		    ;; When we are in completion mode, some failed
-		    ;; operations shall return at least a default
-		    ;; value in order to give the user a chance to
-		    ;; correct the file name in the minibuffer.
 		    ((and completion (zerop (length localname))
 			  (memq operation '(file-exists-p file-directory-p)))
 		     t)
@@ -5580,6 +5591,7 @@ Falls back to normal file name handler if no Tramp file name handler exists."
 		     filename)
 		    ;; Propagate the error.
 		    (t (signal (car err) (cdr err))))))
+
 	      ;; Nothing to do for us.
 	      (tramp-run-real-handler operation args)))))
 
@@ -7033,6 +7045,12 @@ process to set up.  VEC specifies the connection."
   ;; Disable unexpected output.
   (tramp-send-command vec "mesg n; biff n" t)
 
+  ;; IRIX64 bash expands "!" even when in single quotes.  This
+  ;; destroys our shell functions, we must disable it.  See
+  ;; <http://stackoverflow.com/questions/3291692/irix-bash-shell-expands-expression-in-single-quotes-yet-shouldnt>.
+  (when (string-match "^IRIX64" (tramp-get-connection-property vec "uname" ""))
+    (tramp-send-command vec "set +H" t))
+
   ;; Set the environment.
   (tramp-message vec 5 "Setting default environment")
 
@@ -7048,7 +7066,7 @@ process to set up.  VEC specifies the connection."
       (setq env (cdr env)))
     (when unset
       (tramp-send-command
-       vec (format "unset %s" (mapconcat 'identity unset " "))))) t)
+       vec (format "unset %s" (mapconcat 'identity unset " ")) t))))
 
 ;; CCC: We should either implement a Perl version of base64 encoding
 ;; and decoding.  Then we just use that in the last item.  The other
@@ -8326,7 +8344,8 @@ necessary only.  This function will be used in file name completion."
 	     (when (zerop (tramp-send-command-and-check
 			   vec (format "%s -lnd /" result)))
 	       (when (zerop (tramp-send-command-and-check
-			     vec (format "%s --color=never -al /" result)))
+			     vec (format
+				  "%s --color=never -al /dev/null" result)))
 		 (setq result (concat result " --color=never")))
 	       (throw 'ls-found result))
 	     (setq dl (cdr dl))))))
@@ -8340,7 +8359,8 @@ necessary only.  This function will be used in file name completion."
       ;; they fail when "-al" is after the "--dired" argument (for
       ;; example on FreeBSD).
       (zerop (tramp-send-command-and-check
-	      vec (format "%s --dired -al /" (tramp-get-ls-command vec)))))))
+	      vec (format "%s --dired -al /dev/null"
+			  (tramp-get-ls-command vec)))))))
 
 (defun tramp-get-test-command (vec)
   (with-connection-property vec "test"
