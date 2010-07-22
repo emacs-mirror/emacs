@@ -1,3 +1,7 @@
+2010-07-22  Teemu Likonen  <tlikonen@iki.fi>  (tiny change)
+
+	* dired.el (dired-mode-map): Use command remapping (bug#6632).
+
 2010-07-22  Lawrence Mitchell  <wence@gmx.li>
 
 	* term/vt100.el (vt100-wide-mode): Fix :init-value keyword (bug#6620).

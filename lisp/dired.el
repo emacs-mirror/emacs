@@ -1380,10 +1380,8 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map ">" 'dired-next-dirline)
     (define-key map "^" 'dired-up-directory)
     (define-key map " "  'dired-next-line)
-    (define-key map "\C-n" 'dired-next-line)
-    (define-key map "\C-p" 'dired-previous-line)
-    (define-key map [down] 'dired-next-line)
-    (define-key map [up] 'dired-previous-line)
+    (define-key map [remap next-line] 'dired-next-line)
+    (define-key map [remap previous-line] 'dired-previous-line)
     ;; hiding
     (define-key map "$" 'dired-hide-subdir)
     (define-key map "\M-$" 'dired-hide-all)
@@ -1393,7 +1391,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map (kbd "M-s f C-s")   'dired-isearch-filenames)
     (define-key map (kbd "M-s f M-C-s") 'dired-isearch-filenames-regexp)
     ;; misc
-    (define-key map "\C-x\C-q" 'dired-toggle-read-only)
+    (define-key map [remap toggle-read-only] 'dired-toggle-read-only)
     (define-key map "?" 'dired-summary)
     (define-key map "\177" 'dired-unmark-backward)
     (define-key map [remap undo] 'dired-undo)
