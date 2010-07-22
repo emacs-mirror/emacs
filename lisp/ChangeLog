@@ -1,3 +1,7 @@
+2010-07-22  Lawrence Mitchell  <wence@gmx.li>
+
+	* term/vt100.el (vt100-wide-mode): Fix :init-value keyword (bug#6620).
+
 2010-07-21  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-get-ls-command)
