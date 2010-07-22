@@ -1380,10 +1380,8 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map ">" 'dired-next-dirline)
     (define-key map "^" 'dired-up-directory)
     (define-key map " "  'dired-next-line)
-    (define-key map "\C-n" 'dired-next-line)
-    (define-key map "\C-p" 'dired-previous-line)
-    (define-key map [down] 'dired-next-line)
-    (define-key map [up] 'dired-previous-line)
+    (define-key map [remap next-line] 'dired-next-line)
+    (define-key map [remap previous-line] 'dired-previous-line)
     ;; hiding
     (define-key map "$" 'dired-hide-subdir)
     (define-key map "\M-$" 'dired-hide-all)
@@ -1393,7 +1391,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map (kbd "M-s f C-s")   'dired-isearch-filenames)
     (define-key map (kbd "M-s f M-C-s") 'dired-isearch-filenames-regexp)
     ;; misc
-    (define-key map "\C-x\C-q" 'dired-toggle-read-only)
+    (define-key map [remap toggle-read-only] 'dired-toggle-read-only)
     (define-key map "?" 'dired-summary)
     (define-key map "\177" 'dired-unmark-backward)
     (define-key map [remap undo] 'dired-undo)
@@ -2765,17 +2763,19 @@ name, or the marker and a count of marked files."
     (fit-window-to-buffer (get-buffer-window buf) nil 1)))
 
 (defcustom dired-no-confirm nil
-  "A list of symbols for commands Dired should not confirm.
+  "A list of symbols for commands Dired should not confirm, or t.
 Command symbols are `byte-compile', `chgrp', `chmod', `chown', `compress',
 `copy', `delete', `hardlink', `load', `move', `print', `shell', `symlink',
-`touch' and `uncompress'."
+`touch' and `uncompress'.
+If t, confirmation is never needed."
   :group 'dired
-  :type '(set (const byte-compile) (const chgrp)
-	      (const chmod) (const chown) (const compress)
-	      (const copy) (const delete) (const hardlink)
-	      (const load) (const move) (const print)
-	      (const shell) (const symlink) (const touch)
-	      (const uncompress)))
+  :type '(choice (const :tag "Confirmation never needed" t)
+		 (set (const byte-compile) (const chgrp)
+		      (const chmod) (const chown) (const compress)
+		      (const copy) (const delete) (const hardlink)
+		      (const load) (const move) (const print)
+		      (const shell) (const symlink) (const touch)
+		      (const uncompress))))
 
 (defun dired-mark-pop-up (bufname op-symbol files function &rest args)
   "Return FUNCTION's result on ARGS after showing which files are marked.

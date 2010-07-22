@@ -1,3 +1,16 @@
+2010-07-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dired.el (dired-no-confirm): Document value t and fix defcustom to
+	accept it (bug#6597).  Suggested by Drew Adams <drew.adams@oracle.com>.
+
+2010-07-22  Teemu Likonen  <tlikonen@iki.fi>  (tiny change)
+
+	* dired.el (dired-mode-map): Use command remapping (bug#6632).
+
+2010-07-22  Lawrence Mitchell  <wence@gmx.li>
+
+	* term/vt100.el (vt100-wide-mode): Fix :init-value keyword (bug#6620).
+
 2010-07-21  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-get-ls-command)
