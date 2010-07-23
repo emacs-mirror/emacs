@@ -1,3 +1,23 @@
+2010-07-22  Michael R. Mauger  <mmaug@yahoo.com>
+
+	* progmodes/sql.el: Version 2.4.  Improved Login prompting.
+	(sql-login-params): New widget definition.
+	(sql-oracle-login-params, sql-mysql-login-params)
+	(sql-solid-login-params, sql-sybase-login-params)
+	(sql-informix-login-params, sql-ingres-login-params)
+	(sql-ms-login-params, sql-postgres-login-params)
+	(sql-interbase-login-params, sql-db2-login-params)
+	(sql-linter-login-params): Use it.
+	(sql-sqlite-login-params): Use it; Define "database" parameter as
+	a file name.
+	(sql-sqlite-program): Change to "sqlite3"
+	(sql-comint-sqlite): Make sure database name is complete.
+	(sql-for-each-login): New function.
+	(sql-connect, sql-save-connection): Use it.
+	(sql-get-login-ext): New function.
+	(sql-get-login): Use it.
+	(sql-make-alternate-buffer-name): Handle :file parameters.
+
 2010-07-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* dired.el (dired-no-confirm): Document value t and fix defcustom to
