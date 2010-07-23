@@ -439,8 +439,6 @@ void x_explicitly_set_name (struct frame *, Lisp_Object, Lisp_Object);
 void x_set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
 void x_set_title (struct frame *, Lisp_Object, Lisp_Object);
 void x_set_tool_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
-static void x_edge_detection (struct frame *, struct image *, Lisp_Object,
-                              Lisp_Object);
 
 
 

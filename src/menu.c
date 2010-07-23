@@ -133,12 +133,14 @@ discard_menu_items (void)
   xassert (NILP (menu_items_inuse));
 }
 
+#ifdef HAVE_NS
 static Lisp_Object
 cleanup_popup_menu (Lisp_Object arg)
 {
   discard_menu_items ();
   return Qnil;
 }
+#endif
 
 /* This undoes save_menu_items, and it is called by the specpdl unwind
    mechanism.  */

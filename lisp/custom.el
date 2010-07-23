@@ -143,7 +143,9 @@ set to nil, as the value is no longer rogue."
   (when (get symbol 'force-value)
     (put symbol 'force-value nil))
   (when doc
-    (put symbol 'variable-documentation doc))
+    (if (keywordp doc)
+	(error "Doc string is missing")
+      (put symbol 'variable-documentation doc)))
   (let ((initialize 'custom-initialize-reset)
 	(requests nil))
     (unless (memq :group args)

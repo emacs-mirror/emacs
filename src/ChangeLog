@@ -1,3 +1,15 @@
+2010-07-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* menu.c (cleanup_popup_menu): Set inside "#ifdef HAVE_NS";
+	it is called only from NS code.
+
+	* w32term.c (my_set_focus): #ifdef away; it is called only from
+	"#ifdef 0" code.
+
+	* w32fns.c (x_edge_detection):
+	* xfaces.c (may_use_scalable_font_p):
+	Remove obsolete static declarations.
+
 2010-07-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* alloc.c (emacs_blocked_free, emacs_blocked_malloc)

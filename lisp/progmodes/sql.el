@@ -5,7 +5,7 @@
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Michael Mauger <mmaug@yahoo.com>
-;; Version: 2.3
+;; Version: 2.4
 ;; Keywords: comm languages processes
 ;; URL: http://savannah.gnu.org/cgi-bin/viewcvs/emacs/emacs/lisp/progmodes/sql.el
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?SqlMode
@@ -152,12 +152,7 @@
 
 ;;     (defcustom my-sql-xyz-login-params '(user password server database)
 ;;       "Login parameters to needed to connect to XyzDB."
-;;       :type '(repeat (choice
-;;                        (const user)
-;;                        (const password)
-;;                        (const server)
-;;                        (const database)
-;;                        (const port)))
+;;       :type 'sql-login-params
 ;;       :group 'SQL)
 ;;
 ;;     (sql-set-product-feature 'xyz
@@ -286,6 +281,38 @@ Customizing your password will store it in your ~/.emacs file."
   :type 'number
   :group 'SQL
   :safe 'numberp)
+
+;; Login parameter type
+
+(define-widget 'sql-login-params 'lazy
+  "Widget definition of the login parameters list"
+  :tag "Login Parameters"
+  :type '(repeat (choice
+                  (const user)
+                  (const password)
+                  (choice :tag "server"
+                          (const server)
+                          (list :tag "file"
+                                (const :format "" server)
+                                (const :format "" :file)
+                                regexp)
+                          (list :tag "completion"
+                                (const :format "" server)
+                                (const :format "" :completion)
+                                (restricted-sexp
+                                 :match-alternatives (listp symbolp))))
+                  (choice :tag "database"
+                          (const database)
+                          (list :tag "file"
+                                (const :format "" database)
+                                (const :format "" :file)
+                                regexp)
+                          (list :tag "completion"
+                                (const :format "" database)
+                                (const :format "" :completion)
+                                (restricted-sexp
+                                 :match-alternatives (listp symbolp))))
+                  (const port))))
 
 ;; SQL Product support
 
@@ -728,12 +755,7 @@ You will find the file in your Orant\\bin directory."
 
 (defcustom sql-oracle-login-params '(user password database)
   "List of login parameters needed to connect to Oracle."
-  :type '(repeat (choice
-		  (const user)
-		  (const password)
-		  (const server)
-		  (const database)
-                  (const port)))
+  :type 'sql-login-params
   :version "24.1"
   :group 'SQL)
 
@@ -754,7 +776,7 @@ to be safe:
 
 ;; Customization for SQLite
 
-(defcustom sql-sqlite-program "sqlite"
+(defcustom sql-sqlite-program "sqlite3"
   "Command to start SQLite.
 
 Starts `sql-interactive-mode' after doing some setup."
@@ -767,14 +789,9 @@ Starts `sql-interactive-mode' after doing some setup."
   :version "20.8"
   :group 'SQL)
 
-(defcustom sql-sqlite-login-params '(database)
+(defcustom sql-sqlite-login-params '((database :file ".*\\.db"))
   "List of login parameters needed to connect to SQLite."
-  :type '(repeat (choice
-		  (const user)
-		  (const password)
-		  (const server)
-		  (const database)
-                  (const port)))
+  :type 'sql-login-params
   :version "24.1"
   :group 'SQL)
 
@@ -797,12 +814,7 @@ on Windows: \"-C\" \"-t\" \"-f\" \"-n\"."
 
 (defcustom sql-mysql-login-params '(user password database server)
   "List of login parameters needed to connect to MySql."
-  :type '(repeat (choice
-		  (const user)
-		  (const password)
-		  (const server)
-		  (const database)
-                  (const port)))
+  :type 'sql-login-params
   :version "24.1"
   :group 'SQL)
 
@@ -817,12 +829,7 @@ Starts `sql-interactive-mode' after doing some setup."
 
 (defcustom sql-solid-login-params '(user password server)
   "List of login parameters needed to connect to Solid."
-  :type '(repeat (choice
-		  (const user)
-		  (const password)
-		  (const server)
-		  (const database)
-                  (const port)))
+  :type 'sql-login-params
   :version "24.1"
   :group 'SQL)
 
@@ -844,12 +851,7 @@ Some versions of isql might require the -n option in order to work."
 
 (defcustom sql-sybase-login-params '(server user password database)
   "List of login parameters needed to connect to Sybase."
-  :type '(repeat (choice
-		  (const user)
-		  (const password)
-		  (const server)
-		  (const database)
-                  (const port)))
+  :type 'sql-login-params
   :version "24.1"
   :group 'SQL)
 
@@ -864,12 +866,7 @@ Starts `sql-interactive-mode' after doing some setup."
 
 (defcustom sql-informix-login-params '(database)
   "List of login parameters needed to connect to Informix."
-  :type '(repeat (choice
-		  (const user)
-		  (const password)
-		  (const server)
-		  (const database)
-                  (const port)))
+  :type 'sql-login-params
   :version "24.1"
   :group 'SQL)
 
@@ -884,12 +881,7 @@ Starts `sql-interactive-mode' after doing some setup."
 
 (defcustom sql-ingres-login-params '(database)
   "List of login parameters needed to connect to Ingres."
-  :type '(repeat (choice
-		  (const user)
-		  (const password)
-		  (const server)
-		  (const database)
-                  (const port)))
+  :type 'sql-login-params
   :version "24.1"
   :group 'SQL)
 
@@ -911,12 +903,7 @@ Starts `sql-interactive-mode' after doing some setup."
 
 (defcustom sql-ms-login-params '(user password server database)
   "List of login parameters needed to connect to Microsoft."
-  :type '(repeat (choice
-		  (const user)
-		  (const password)
-		  (const server)
-		  (const database)
-                  (const port)))
+  :type 'sql-login-params
   :version "24.1"
   :group 'SQL)
 
@@ -943,12 +930,7 @@ add your name with a \"-U\" prefix (such as \"-Umark\") to the list."
 
 (defcustom sql-postgres-login-params '(user database server)
   "List of login parameters needed to connect to Postgres."
-  :type '(repeat (choice
-		  (const user)
-		  (const password)
-		  (const server)
-		  (const database)
-                  (const port)))
+  :type 'sql-login-params
   :version "24.1"
   :group 'SQL)
 
@@ -969,12 +951,7 @@ Starts `sql-interactive-mode' after doing some setup."
 
 (defcustom sql-interbase-login-params '(user password database)
   "List of login parameters needed to connect to Interbase."
-  :type '(repeat (choice
-		  (const user)
-		  (const password)
-		  (const server)
-		  (const database)
-                  (const port)))
+  :type 'sql-login-params
   :version "24.1"
   :group 'SQL)
 
@@ -995,12 +972,7 @@ Starts `sql-interactive-mode' after doing some setup."
 
 (defcustom sql-db2-login-params nil
   "List of login parameters needed to connect to DB2."
-  :type '(repeat (choice
-		  (const user)
-		  (const password)
-		  (const server)
-		  (const database)
-                  (const port)))
+  :type 'sql-login-params
   :version "24.1"
   :group 'SQL)
 
@@ -1021,12 +993,7 @@ Starts `sql-interactive-mode' after doing some setup."
 
 (defcustom sql-linter-login-params '(user password database server)
   "Login parameters to needed to connect to Linter."
-  :type '(repeat (choice
-		  (const user)
-		  (const password)
-		  (const server)
-		  (const database)
-                  (const port)))
+  :type 'sql-login-params
   :version "24.1"
   :group 'SQL)
 
@@ -2204,6 +2171,19 @@ adds a fontification pattern to fontify identifiers ending in
 	       (append old-val keywords)
 	     (append keywords old-val))))))
 
+(defun sql-for-each-login (login-params body)
+  "Iterates through login parameters and returns a list of results."
+
+  (delq nil
+        (mapcar
+         (lambda (param)
+           (let ((token (or (and (listp param) (car param)) param))
+                 (type  (or (and (listp param) (nth 1 param)) nil))
+                 (arg   (or (and (listp param) (nth 2 param)) nil)))
+
+             (funcall body token type arg)))
+         login-params)))
+
 
 
 ;;; Functions to switch highlighting
@@ -2365,6 +2345,38 @@ appended to the SQLi buffer without disturbing your SQL buffer."
   "Read a password using PROMPT.  Optional DEFAULT is password to start with."
   (read-passwd prompt nil default))
 
+(defun sql-get-login-ext (prompt last-value history-var type arg)
+  "Prompt user with extended login parameters.
+
+If TYPE is nil, then the user is simply prompted for a string
+value.
+
+If TYPE is `:file', then the user is prompted for a file
+name that must match the regexp pattern specified in the ARG
+argument.
+
+If TYPE is `:completion', then the user is prompted for a string
+specified by ARG.  (ARG is used as the PREDICATE argument to
+`completing-read'.)"
+  (cond
+   ((eq type nil)
+    (read-from-minibuffer prompt last-value nil nil history-var))
+
+   ((eq type :file)
+    (let ((use-dialog-box nil))
+      (expand-file-name
+       (read-file-name prompt
+                       (file-name-directory last-value) nil t
+                       (file-name-nondirectory last-value)
+                       (if arg
+                           `(lambda (f)
+                              (string-match (concat "\\<" ,arg "\\>")
+                                            (file-name-nondirectory f)))
+                         nil)))))
+
+   ((eq type :completion)
+    (completing-read prompt arg nil t last-value history-var))))
+
 (defun sql-get-login (&rest what)
   "Get username, password and database from the user.
 
@@ -2382,33 +2394,48 @@ symbol `password', for the server if it contains the symbol
 `database'.  The members of WHAT are processed in the order in
 which they are provided.
 
+The tokens for `database' and `server' may also be lists to
+control or limit the values that can be supplied.  These can be
+of the form:
+
+  \(database :file \".+\\\\.EXT\")
+  \(database :completion FUNCTION)
+
+The `server' token supports the same forms.
+
 In order to ask the user for username, password and database, call the
 function like this: (sql-get-login 'user 'password 'database)."
   (interactive)
-  (while what
-    (cond
-     ((eq (car what) 'user)		; user
-      (setq sql-user
-	    (read-from-minibuffer "User: " sql-user nil nil
-				  'sql-user-history)))
-     ((eq (car what) 'password)		; password
-      (setq sql-password
-	    (sql-read-passwd "Password: " sql-password)))
+    (mapcar
+     (lambda (w)
+       (let ((token (or (and (listp w) (car w)) w))
+             (type  (or (and (listp w) (nth 1 w)) nil))
+             (arg   (or (and (listp w) (nth 2 w)) nil)))
 
-     ((eq (car what) 'server)		; server
-      (setq sql-server
-	    (read-from-minibuffer "Server: " sql-server nil nil
-				  'sql-server-history)))
-     ((eq (car what) 'port)		; port
-      (setq sql-port
-	    (read-from-minibuffer "Port: " sql-port nil nil
-				  'sql-port-history)))
-     ((eq (car what) 'database)		; database
-      (setq sql-database
-	    (read-from-minibuffer "Database: " sql-database nil nil
-				  'sql-database-history))))
+         (cond
+          ((eq token 'user)		; user
+           (setq sql-user
+                 (read-from-minibuffer "User: " sql-user nil nil
+                                       'sql-user-history)))
 
-    (setq what (cdr what))))
+          ((eq token 'password)		; password
+           (setq sql-password
+                 (sql-read-passwd "Password: " sql-password)))
+
+          ((eq token 'server)		; server
+           (setq sql-server
+                 (sql-get-login-ext "Server: " sql-server
+                                    'sql-server-history type arg)))
+
+          ((eq token 'database)		; database
+           (setq sql-database
+                 (sql-get-login-ext "Database: " sql-database
+                                    'sql-database-history type arg)))
+
+          ((eq token 'port)		; port
+           (setq sql-port
+                 (read-number "Port: " sql-port))))))
+       what))
 
 (defun sql-find-sqli-buffer ()
   "Returns the current default SQLi buffer or nil.
@@ -2511,42 +2538,49 @@ server/database name."
 
   (let ((name ""))
 
-    ;; Try using the :sqli-login setting
-    (when (string= "" (or name ""))
-      (setq name
-            (apply 'concat
-                   (apply 'append nil
-                          (mapcar
-                           (lambda (v)
-                             (cond
-                              ((eq v 'user)     (list "/" sql-user))
-                              ((eq v 'server)   (list "." sql-server))
-                              ((eq v 'database) (list "@" sql-database))
-                              ((eq v 'port)     (list ":" sql-port))
+    ;; Build a name using the :sqli-login setting
+    (setq name
+          (apply 'concat
+                 (apply 'append nil
+                        (sql-for-each-login
+                         (sql-get-product-feature sql-product :sqli-login)
+                         (lambda (token type arg)
+                           (cond
+                            ((eq token 'user)     (list "/" sql-user))
+                            ((eq token 'port)     (list ":" sql-port))
+                            ((eq token 'server)
+                             (list "." (if (eq type :file)
+                                           (file-name-nondirectory sql-server)
+                                         sql-server)))
+                            ((eq token 'database)
+                             (list "@" (if (eq type :file)
+                                           (file-name-nondirectory sql-database)
+                                         sql-database)))
 
-                              ((eq v 'password) nil)
-                              (t                nil)))
-                           (sql-get-product-feature sql-product :sqli-login))))))
+                            ((eq token 'password) nil)
+                            (t                    nil)))))))
 
-    ;; Default: username/server format
-    (when (string= "" (or name ""))
-      (setq name
-            (concat " "
-                    (if (string= "" sql-user)
-                        (if (string= "" (user-login-name))
-                            ()
-                          (concat (user-login-name) "/"))
-                      (concat sql-user "/"))
-                    (if (string= "" sql-database)
-                        (if (string= "" sql-server)
-                            (system-name)
-                          sql-server)
-                      sql-database))))
 
-    ;; Return the final string; prefixed by the connection name
+    ;; If there's a connection, use it and the name thus far
     (if sql-connection
         (format "<%s>%s" sql-connection (or name ""))
-      (substring (or name " ") 1))))
+
+      ;; If there is no name, try to create something meaningful
+      (if (string= "" (or name ""))
+          (concat
+           (if (string= "" sql-user)
+               (if (string= "" (user-login-name))
+                   ()
+                 (concat (user-login-name) "/"))
+             (concat sql-user "/"))
+           (if (string= "" sql-database)
+               (if (string= "" sql-server)
+               (system-name)
+               sql-server)
+             sql-database))
+
+        ;; We've got a name, go with it (without the first punctuation char)
+        (substring name 1)))))
 
 (defun sql-rename-buffer ()
   "Rename a SQLi buffer."
@@ -2950,6 +2984,133 @@ Sentinels will always get the two parameters PROCESS and EVENT."
 
 
 
+;;; Connection handling
+
+;;;###autoload
+(defun sql-connect (connection)
+  "Connect to an interactive session using CONNECTION settings.
+
+See `sql-connection-alist' to see how to define connections and
+their settings.
+
+The user will not be prompted for any login parameters if a value
+is specified in the connection settings."
+
+  ;; Prompt for the connection from those defined in the alist
+  (interactive
+   (if sql-connection-alist
+       (list
+        (let ((completion-ignore-case t))
+          (completing-read "Connection: "
+                           (mapcar (lambda (c) (car c))
+                                   sql-connection-alist)
+                           nil t nil nil '(()))))
+     nil))
+
+  ;; Are there connections defined
+  (if sql-connection-alist
+      ;; Was one selected
+      (when connection
+        ;; Get connection settings
+        (let ((connect-set  (assoc connection sql-connection-alist)))
+          ;; Settings are defined
+          (if connect-set
+              ;; Set the desired parameters
+              (eval `(let*
+                         (,@(cdr connect-set)
+                          ;; :sqli-login params variable
+                          (param-var    (sql-get-product-feature sql-product
+                                                                 :sqli-login nil t))
+                          ;; :sqli-login params value
+                          (login-params (sql-get-product-feature sql-product
+                                                                 :sqli-login))
+                          ;; which params are in the connection
+                          (set-params   (mapcar
+                                         (lambda (v)
+                                           (cond
+                                            ((eq (car v) 'sql-user)     'user)
+                                            ((eq (car v) 'sql-password) 'password)
+                                            ((eq (car v) 'sql-server)   'server)
+                                            ((eq (car v) 'sql-database) 'database)
+                                            ((eq (car v) 'sql-port)     'port)
+                                            (t                          (car v))))
+                                         (cdr connect-set)))
+                          ;; the remaining params (w/o the connection params)
+                          (rem-params   (sql-for-each-login
+                                         login-params
+                                         (lambda (token type arg)
+                                           (unless (member token set-params)
+                                                    (if (or type arg)
+                                                        (list token type arg)
+                                                      token)))))
+                          ;; Remember the connection
+                          (sql-connection connection))
+
+                       ;; Set the remaining parameters and start the
+                       ;; interactive session
+                       (eval `(let ((,param-var ',rem-params))
+                                (sql-product-interactive sql-product)))))
+            (message "SQL Connection <%s> does not exist" connection)
+            nil)))
+    (message "No SQL Connections defined")
+    nil))
+
+(defun sql-save-connection (name)
+  "Captures the connection information of the current SQLi session.
+
+The information is appended to `sql-connection-alist' and
+optionally is saved to the user's init file."
+
+  (interactive "sNew connection name: ")
+
+  (if sql-connection
+      (message "This session was started by a connection; it's already been saved.")
+
+    (let ((login (sql-get-product-feature sql-product :sqli-login))
+          (alist sql-connection-alist)
+          connect)
+
+      ;; Remove the existing connection if the user says so
+      (when (and (assoc name alist)
+                 (yes-or-no-p (format "Replace connection definition <%s>? " name)))
+        (setq alist (assq-delete-all name alist)))
+
+      ;; Add the new connection if it doesn't exist
+      (if (assoc name alist)
+          (message "Connection <%s> already exists" name)
+        (setq connect
+              (append (list name)
+                      (sql-for-each-login
+                       `(product ,@login)
+                       (lambda (token type arg)
+                         (cond
+                          ((eq token 'product)  `(sql-product  ',sql-product))
+                          ((eq token 'user)     `(sql-user     ,sql-user))
+                          ((eq token 'database) `(sql-database ,sql-database))
+                          ((eq token 'server)   `(sql-server   ,sql-server))
+                          ((eq token 'port)     `(sql-port     ,sql-port)))))))
+
+        (setq alist (append alist (list connect)))
+
+        ;; confirm whether we want to save the connections
+        (if (yes-or-no-p "Save the connections for future sessions? ")
+            (customize-save-variable 'sql-connection-alist alist)
+          (customize-set-variable 'sql-connection-alist alist))))))
+
+(defun sql-connection-menu-filter (tail)
+  "Generates menu entries for using each connection."
+  (append
+   (mapcar
+    (lambda (conn)
+      (vector
+       (format "Connection <%s>" (car conn))
+       (list 'sql-connect (car conn))
+       t))
+    sql-connection-alist)
+   tail))
+
+
+
 ;;; Entry functions for different SQL interpreters.
 
 ;;;###autoload
@@ -3031,129 +3192,6 @@ passed as command line arguments."
   (let ((program (sql-get-product-feature product :sqli-program)))
     (set-buffer
      (apply 'make-comint "SQL" program nil params))))
-
-;;;###autoload
-(defun sql-connect (connection)
-  "Connect to an interactive session using CONNECTION settings.
-
-See `sql-connection-alist' to see how to define connections and
-their settings.
-
-The user will not be prompted for any login parameters if a value
-is specified in the connection settings."
-
-  ;; Prompt for the connection from those defined in the alist
-  (interactive
-   (if sql-connection-alist
-       (list
-        (let ((completion-ignore-case t))
-          (completing-read "Connection: "
-                           (mapcar (lambda (c) (car c))
-                                   sql-connection-alist)
-                           nil t nil nil '(()))))
-     nil))
-
-  ;; Are there connections defined
-  (if sql-connection-alist
-      ;; Was one selected
-      (when connection
-        ;; Get connection settings
-        (let ((connect-set  (assoc connection sql-connection-alist)))
-          ;; Settings are defined
-          (if connect-set
-              ;; Set the desired parameters
-              (eval `(let*
-                         (,@(cdr connect-set)
-                          ;; :sqli-login params variable
-                          (param-var    (sql-get-product-feature sql-product
-                                                                 :sqli-login nil t))
-                          ;; :sqli-login params value
-                          (login-params (sql-get-product-feature sql-product
-                                                                 :sqli-login))
-                          ;; which params are in the connection
-                          (set-params   (mapcar
-                                         (lambda (v)
-                                           (cond
-                                            ((eq (car v) 'sql-user)     'user)
-                                            ((eq (car v) 'sql-password) 'password)
-                                            ((eq (car v) 'sql-server)   'server)
-                                            ((eq (car v) 'sql-database) 'database)
-                                            ((eq (car v) 'sql-port)     'port)
-                                            (t                          (car v))))
-                                         (cdr connect-set)))
-                          ;; the remaining params (w/o the connection params)
-                          (rem-params   (delq nil
-                                              (mapcar
-                                               (lambda (l)
-                                                 (unless (member l set-params)
-                                                   l))
-                                               login-params)))
-                          ;; Remember the connection
-                          (sql-connection connection))
-
-                       ;; Set the remaining parameters and start the
-                       ;; interactive session
-                       (eval `(let ((,param-var ',rem-params))
-                                (sql-product-interactive sql-product)))))
-            (message "SQL Connection <%s> does not exist" connection)
-            nil)))
-    (message "No SQL Connections defined")
-    nil))
-
-(defun sql-save-connection (name)
-  "Captures the connection information of the current SQLi session.
-
-The information is appended to `sql-connection-alist' and
-optionally is saved to the user's init file."
-
-  (interactive "sNew connection name: ")
-
-  (if sql-connection
-      (message "This session was started by a connection; it's already been saved.")
-
-    (let ((login (sql-get-product-feature sql-product :sqli-login))
-          (alist sql-connection-alist)
-          connect)
-
-      ;; Remove the existing connection if the user says so
-      (when (and (assoc name alist)
-                 (yes-or-no-p (format "Replace connection definition <%s>? " name)))
-        (setq alist (assq-delete-all name alist)))
-
-      ;; Add the new connection if it doesn't exist
-      (if (assoc name alist)
-          (message "Connection <%s> already exists" name)
-        (setq connect
-              (append (list name)
-                      (delq nil
-                            (mapcar
-                             (lambda (param)
-                               (cond
-                                ((eq param 'product)  `(sql-product  (quote ,sql-product)))
-                                ((eq param 'user)     `(sql-user     ,sql-user))
-                                ((eq param 'database) `(sql-database ,sql-database))
-                                ((eq param 'server)   `(sql-server   ,sql-server))
-                                ((eq param 'port)     `(sql-port     ,sql-port))))
-                             (append (list 'product) login)))))
-
-        (setq alist (append alist (list connect)))
-
-        ;; confirm whether we want to save the connections
-        (if (yes-or-no-p "Save the connections for future sessions? ")
-            (customize-save-variable 'sql-connection-alist alist)
-          (customize-set-variable 'sql-connection-alist alist))))))
-
-(defun sql-connection-menu-filter (tail)
-  "Generates menu entries for using each connection."
-  (append
-   (mapcar
-    (lambda (conn)
-      (vector
-       (format "Connection <%s>" (car conn))
-       (list 'sql-connect (car conn))
-       t))
-    sql-connection-alist)
-   tail))
 
 ;;;###autoload
 (defun sql-oracle ()
@@ -3318,7 +3356,8 @@ The default comes from `process-coding-system-alist' and
   ;; make-comint.
   (let ((params))
     (if (not (string= "" sql-database))
-	(setq params (append (list sql-database) params)))
+	(setq params (append (list (expand-file-name sql-database))
+                             params)))
     (setq params (append options params))
     (sql-comint product params)))
 

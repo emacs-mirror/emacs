@@ -269,6 +269,22 @@ Each supported product has a custom variable `sql-*-login-params'
 which is a list of the parameters to be prompted for before a
 connection is established.
 
+By default, the value of the parameter is simply prompted for.  For
+`server' and `database', they can be specified in a list as shown
+below:
+
+  (server :file ARG)
+  (database :file ARG)
+  (server :completion ARG)
+  (database :completion ARG)
+
+The ARG when :file is specified is a regexp that will match valid file
+names (without the directory portion).  Generally these strings will
+be of the form ".+\.SUF" where SUF is the desired file suffix.
+
+When :completion is specified, the ARG corresponds to the PREDICATE
+argument to the `completing-read' function.
+
 *** Added `sql-connection-alist' to record login parameter values.
 An alist for recording different username, database and server
 values.  If there are multiple databases that you connect to the
