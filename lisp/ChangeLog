@@ -1,3 +1,17 @@
+2010-07-23  Lukas Huonker  <l.huonker@gmail.com>
+
+	* play/tetris.el (tetris-tty-colors, tetris-x-colors, tetris-blank):
+	Remove leading nil element, adjust values.
+	(tetris-shapes, tetris-shape-scores):
+	Change representation of shapes and remove some redundancy.
+	(tetris-get-shape-cell, tetris-shape-width, tetris-draw-next-shape)
+	(tetris-draw-shape, tetris-erase-shape, tetris-test-shape):
+	Adjust for working with new representation of shapes.
+	(tetris-shape-rotations): New function.
+	(tetris-move-bottom, tetris-move-left, tetris-move-right)
+	(tetris-rotate-prev, tetris-rotate-next):
+	Adjust for working with the new version of tetris-test-shape.
+
 2010-07-23  Markus Triska  <markus.triska@gmx.at>
 
 	* progmodes/ps-mode.el: Use comint (bug#5954).
