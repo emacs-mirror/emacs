@@ -1,3 +1,14 @@
+2010-07-23  Markus Triska  <markus.triska@gmx.at>
+
+	* progmodes/ps-mode.el: Use comint (bug#5954).
+	(ps-run-mode-map): Adapt for comint-mode; omit "\r", [return]..
+	(ps-mode-other-newline): Simplify.
+	(ps-run-mode): Derive from comint-mode instead of
+	fundamental-mode, yielding input history etc.
+	(ps-run-start, ps-run-quit, ps-run-clear, ps-run-region)
+	(ps-run-send-string): Adapt for comint-mode.
+	(ps-run-newline): Remove now unneeded function.
+
 2010-07-23  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-methods): Move hostname to the end in all
