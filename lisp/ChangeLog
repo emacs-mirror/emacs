@@ -1,5 +1,10 @@
 2010-07-23  Michael Albinus  <michael.albinus@gmx.de>
 
+	* net/tramp.el (tramp-methods): Move hostname to the end in all
+	plink `tramp-login-args'.
+
+2010-07-23  Michael Albinus  <michael.albinus@gmx.de>
+
 	* net/tramp.el (tramp-open-shell): New defun.
 	(tramp-find-shell, tramp-open-connection-setup-interactive-shell):
 	Use it.
