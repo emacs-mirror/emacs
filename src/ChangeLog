@@ -1,5 +1,8 @@
 2010-07-23  Juanma Barranquero  <lekktu@gmail.com>
 
+	* w32term.c (my_set_focus): #ifdef away; it is called only from
+	"#ifdef 0" code.
+
 	* w32fns.c (x_edge_detection):
 	* xfaces.c (may_use_scalable_font_p):
 	Remove obsolete static declarations.

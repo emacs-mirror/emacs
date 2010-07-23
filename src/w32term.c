@@ -3366,12 +3366,14 @@ my_set_window_pos (HWND hwnd, HWND hwndAfter,
 #endif
 }
 
+#if 0
 static void
 my_set_focus (struct frame * f, HWND hwnd)
 {
   SendMessage (FRAME_W32_WINDOW (f), WM_EMACS_SETFOCUS,
 	       (WPARAM) hwnd, 0);
 }
+#endif
 
 static void
 my_set_foreground_window (HWND hwnd)
