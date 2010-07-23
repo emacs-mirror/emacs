@@ -1,3 +1,7 @@
+2010-07-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* make-docfile.c (write_c_args): Correctly handle prefixes of "defalt".
+
 2010-07-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacsclient.c (get_current_dir_name, w32_get_resource)
