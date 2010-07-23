@@ -1,3 +1,8 @@
+2010-07-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* custom.el (custom-declare-variable): Give a clearer error message
+	when the docstring is missing (bug#6476).
+
 2010-07-22  Michael R. Mauger  <mmaug@yahoo.com>
 
 	* progmodes/sql.el: Version 2.4.  Improved Login prompting.
