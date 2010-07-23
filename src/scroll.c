@@ -58,14 +58,14 @@ struct matrix_elt
     unsigned char writecount;
   };
 
-static void do_direct_scrolling P_ ((struct frame *,
-                                     struct glyph_matrix *,
-				     struct matrix_elt *,
-				     int, int));
-static void do_scrolling P_ ((struct frame *,
-                              struct glyph_matrix *,
-			      struct matrix_elt *,
-			      int, int));
+static void do_direct_scrolling (struct frame *,
+                                 struct glyph_matrix *,
+                                 struct matrix_elt *,
+                                 int, int);
+static void do_scrolling (struct frame *,
+                          struct glyph_matrix *,
+                          struct matrix_elt *,
+                          int, int);
 
 
 /* Determine, in matrix[i,j], the cost of updating the first j old
@@ -86,17 +86,12 @@ static void do_scrolling P_ ((struct frame *,
    new contents appears.  */
 
 static void
-calculate_scrolling (frame, matrix, window_size, lines_below,
-		     draw_cost, old_hash, new_hash,
-		     free_at_end)
-     FRAME_PTR frame;
-     /* matrix is of size window_size + 1 on each side.  */
-     struct matrix_elt *matrix;
-     int window_size, lines_below;
-     int *draw_cost;
-     int *old_hash;
-     int *new_hash;
-     int free_at_end;
+calculate_scrolling (FRAME_PTR frame,
+		     /* matrix is of size window_size + 1 on each side.  */
+		     struct matrix_elt *matrix,
+		     int window_size, int lines_below,
+		     int *draw_cost, int *old_hash, int *new_hash,
+		     int free_at_end)
 {
   register int i, j;
   int frame_lines = FRAME_LINES (frame);
@@ -244,12 +239,7 @@ calculate_scrolling (frame, matrix, window_size, lines_below,
    of lines.  */
 
 static void
-do_scrolling (frame, current_matrix, matrix, window_size, unchanged_at_top)
-     struct frame *frame;
-     struct glyph_matrix *current_matrix;
-     struct matrix_elt *matrix;
-     int window_size;
-     int unchanged_at_top;
+do_scrolling (struct frame *frame, struct glyph_matrix *current_matrix, struct matrix_elt *matrix, int window_size, int unchanged_at_top)
 {
   struct matrix_elt *p;
   int i, j, k;
@@ -268,7 +258,7 @@ do_scrolling (frame, current_matrix, matrix, window_size, unchanged_at_top)
   int *copy_from = (int *) alloca (window_size * sizeof (int));
 
   /* Zero means line is empty.  */
-  bzero (retained_p, window_size * sizeof (char));
+  memset (retained_p, 0, window_size * sizeof (char));
   for (k = 0; k < window_size; ++k)
     copy_from[k] = -1;
 
@@ -429,18 +419,13 @@ do_scrolling (frame, current_matrix, matrix, window_size, unchanged_at_top)
    is the equivalent of draw_cost for the old line contents */
 
 static void
-calculate_direct_scrolling (frame, matrix, window_size, lines_below,
-			    draw_cost, old_draw_cost, old_hash, new_hash,
-			    free_at_end)
-     FRAME_PTR frame;
-     /* matrix is of size window_size + 1 on each side.  */
-     struct matrix_elt *matrix;
-     int window_size, lines_below;
-     int *draw_cost;
-     int *old_draw_cost;
-     int *old_hash;
-     int *new_hash;
-     int free_at_end;
+calculate_direct_scrolling (FRAME_PTR frame,
+			    /* matrix is of size window_size + 1 on each side.  */
+			    struct matrix_elt *matrix,
+			    int window_size, int lines_below,
+			    int *draw_cost, int *old_draw_cost,
+			    int *old_hash, int *new_hash,
+			    int free_at_end)
 {
   register int i, j;
   int frame_lines = FRAME_LINES (frame);
@@ -655,13 +640,9 @@ calculate_direct_scrolling (frame, matrix, window_size, lines_below,
    the cost matrix for this approach is constructed. */
 
 static void
-do_direct_scrolling (frame, current_matrix, cost_matrix,
-                     window_size, unchanged_at_top)
-     struct frame *frame;
-     struct glyph_matrix *current_matrix;
-     struct matrix_elt *cost_matrix;
-     int window_size;
-     int unchanged_at_top;
+do_direct_scrolling (struct frame *frame, struct glyph_matrix *current_matrix,
+		     struct matrix_elt *cost_matrix, int window_size,
+		     int unchanged_at_top)
 {
   struct matrix_elt *p;
   int i, j;
@@ -692,7 +673,7 @@ do_direct_scrolling (frame, current_matrix, cost_matrix,
      old matrix.  Lines not retained are empty.  */
   char *retained_p = (char *) alloca (window_size * sizeof (char));
 
-  bzero (retained_p, window_size * sizeof (char));
+  memset (retained_p, 0, window_size * sizeof (char));
 
   /* Perform some sanity checks when GLYPH_DEBUG is on.  */
   CHECK_MATRIX (current_matrix);
@@ -811,15 +792,9 @@ do_direct_scrolling (frame, current_matrix, cost_matrix,
 
 
 void
-scrolling_1 (frame, window_size, unchanged_at_top, unchanged_at_bottom,
-	     draw_cost, old_draw_cost, old_hash, new_hash, free_at_end)
-     FRAME_PTR frame;
-     int window_size, unchanged_at_top, unchanged_at_bottom;
-     int *draw_cost;
-     int *old_draw_cost;
-     int *old_hash;
-     int *new_hash;
-     int free_at_end;
+scrolling_1 (FRAME_PTR frame, int window_size, int unchanged_at_top,
+	     int unchanged_at_bottom, int *draw_cost, int *old_draw_cost,
+	     int *old_hash, int *new_hash, int free_at_end)
 {
   struct matrix_elt *matrix;
   matrix = ((struct matrix_elt *)
@@ -854,9 +829,7 @@ scrolling_1 (frame, window_size, unchanged_at_top, unchanged_at_bottom,
    such a line will have little weight.  */
 
 int
-scrolling_max_lines_saved (start, end, oldhash, newhash, cost)
-     int start, end;
-     int *oldhash, *newhash, *cost;
+scrolling_max_lines_saved (int start, int end, int *oldhash, int *newhash, int *cost)
 {
   struct { int hash; int count; } lines[01000];
   register int i, h;
@@ -872,7 +845,7 @@ scrolling_max_lines_saved (start, end, oldhash, newhash, cost)
   avg_length /= end - start;
   threshold = avg_length / 4;
 
-  bzero (lines, sizeof lines);
+  memset (lines, 0, sizeof lines);
 
   /* Put new lines' hash codes in hash table.  Ignore lines shorter
      than the threshold.  Thus, if the lines that are in common are
@@ -909,9 +882,7 @@ scrolling_max_lines_saved (start, end, oldhash, newhash, cost)
    to scroll_frame_lines to perform this scrolling.  */
 
 int
-scroll_cost (frame, from, to, amount)
-     FRAME_PTR frame;
-     int from, to, amount;
+scroll_cost (FRAME_PTR frame, int from, int to, int amount)
 {
   /* Compute how many lines, at bottom of frame,
      will not be involved in actual motion.  */
@@ -948,11 +919,7 @@ scroll_cost (frame, from, to, amount)
    overhead and multiply factor values */
 
 static void
-line_ins_del (frame, ov1, pf1, ovn, pfn, ov, mf)
-     FRAME_PTR frame;
-     int ov1, ovn;
-     int pf1, pfn;
-     register int *ov, *mf;
+line_ins_del (FRAME_PTR frame, int ov1, int pf1, int ovn, int pfn, register int *ov, register int *mf)
 {
   register int i;
   register int frame_lines = FRAME_LINES (frame);
@@ -969,15 +936,11 @@ line_ins_del (frame, ov1, pf1, ovn, pfn, ov, mf)
 }
 
 static void
-ins_del_costs (frame,
-	       one_line_string, multi_string,
-	       setup_string, cleanup_string,
-	       costvec, ncostvec, coefficient)
-     FRAME_PTR frame;
-     char *one_line_string, *multi_string;
-     char *setup_string, *cleanup_string;
-     int *costvec, *ncostvec;
-     int coefficient;
+ins_del_costs (FRAME_PTR frame,
+	       char *one_line_string, char *multi_string,
+	       char *setup_string, char *cleanup_string,
+	       int *costvec, int *ncostvec,
+	       int coefficient)
 {
   if (multi_string)
     line_ins_del (frame,
@@ -1029,15 +992,11 @@ ins_del_costs (frame,
  */
 
 void
-do_line_insertion_deletion_costs (frame,
-				  ins_line_string, multi_ins_string,
-				  del_line_string, multi_del_string,
-				  setup_string, cleanup_string, coefficient)
-     FRAME_PTR frame;
-     char *ins_line_string, *multi_ins_string;
-     char *del_line_string, *multi_del_string;
-     char *setup_string, *cleanup_string;
-     int coefficient;
+do_line_insertion_deletion_costs (FRAME_PTR frame,
+				  char *ins_line_string, char *multi_ins_string,
+				  char *del_line_string, char *multi_del_string,
+				  char *setup_string, char *cleanup_string,
+				  int coefficient)
 {
   if (FRAME_INSERT_COST (frame) != 0)
     {

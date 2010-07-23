@@ -1181,7 +1181,7 @@ inside the overlay or outside, and likewise for the end of the overlay.
 @menu
 * Managing Overlays::   Creating and moving overlays.
 * Overlay Properties::  How to read and set properties.
-			What properties do to the screen display.
+                          What properties do to the screen display.
 * Finding Overlays::    Searching for overlays.
 @end menu
 

@@ -1,3 +1,1384 @@
+2010-07-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* menu.c (cleanup_popup_menu): Set inside "#ifdef HAVE_NS";
+	it is called only from NS code.
+
+	* w32term.c (my_set_focus): #ifdef away; it is called only from
+	"#ifdef 0" code.
+
+	* w32fns.c (x_edge_detection):
+	* xfaces.c (may_use_scalable_font_p):
+	Remove obsolete static declarations.
+
+2010-07-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* alloc.c (emacs_blocked_free, emacs_blocked_malloc)
+	(emacs_blocked_realloc, uninterrupt_malloc):
+	* fringe.c (w32_reset_fringes):
+	* image.c (convert_mono_to_color_image, lookup_rgb_color)
+	(init_color_table, XPutPixel, jpeg_resync_to_restart_wrapper):
+	* sound.c (be2hs, do_play_sound):
+	* vm-limit.c (get_lim_data, ret_lim_data):
+	* w32term.c (x_free_frame_resources):
+	* xfaces.c (x_create_gc, x_free_gc):
+	Convert definitions to standard C.
+
+2010-07-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Feval, Ffuncall): Use the new names.
+
+	* lisp.h (struct Lisp_Subr): Rename `am' to aMANY and add aUNEVALLED.
+	(DEFUN): Add braces around the union initialisation and use ## to
+	specify the right union alternative and avoid a cast.
+
+2010-07-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/keyboard.$(O)): Update dependencies.
+
+2010-07-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.c (make_initial_frame): Use set_menu_bar_lines (Bug#6660).
+
+2010-07-17  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_event_is_for_menubar): Also check that event window
+	is related to the menu bar (Bug#6499).
+	(xg_frame_resized): GTK_IS_MAPPED => gtk_widget_get_mapped, for Gtk 3.0.
+
+2010-07-16  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.h (x_menubar_window_to_frame): Second parameter is XEvent*.
+
+	* xterm.c (handle_one_xevent): Pass event to x_menubar_window_to_frame.
+
+	* xmenu.c (x_activate_menubar): Revert previous fix for Bug#6499,
+	i.e. don't put back ButtonRelease (Bug#6608).
+
+	* xfns.c (x_menubar_window_to_frame): Take XEvent as second parameter
+	instead of Window.  Call xg_event_is_for_menubar when
+	USE_GTK (Bug#6499).
+
+	* gtkutil.h (xg_event_is_for_menubar): Declare.
+
+	* gtkutil.c (xg_event_is_for_menubar): New function (Bug#6499).
+
+2010-07-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (x_set_foreground_color): Fix setting the cursor color
+	when it's the same as the old foreground.  (Bug#6609)
+
+2010-07-16  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (free_frame_menubar): Only call x_set_window_size if
+	widget is non-null (Bug#6645).
+
+2010-07-15  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* xterm.c (x_fully_uncatch_errors, x_trace_wire, x_check_font):
+	Convert old-style definition.
+
+	* xmenu.c (create_and_show_popup_menu, xmenu_show): Fix type of
+	timestamp argument.
+
+2010-07-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* fringe.c (update_window_fringes): Restore mistakenly reverted
+	code from revno 99854.1.6 merged in revno 99950.
+
+2010-07-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (xm_scroll_callback, x_process_timeouts): K&R => prototype.
+	(SET_SAVED_KEY_EVENT): Remove (not used).
+	(SET_SAVED_MENU_EVENT): Rename to SET_SAVED_BUTTON_EVENT and
+	remove size parameter.
+	(handle_one_xevent): Check popup_activated () for menu for Xt also.
+	Remove #ifdef USE_GTK around finish = X_EVENT_DROP.
+	Remove #ifdef USE_MOTIF code that did SET_SAVED_BUTTON_EVENT for
+	ButtonRelease.
+	(x_set_window_size_1): scroll_bar_actual_width is always
+	SCROLL_BAR_COLS * COLUMN_WIDTH for the purpose of frame sizing.
+
+	* xdisp.c (pending_menu_activation): Remove extern declaration.
+	(prepare_menu_bars): Remove setting of pending_menu_activation.
+
+	* xmenu.c (pending_menu_activation): Remove.
+	(x_activate_menubar): Set popup_activated_flag for Xt also.
+	Remove setting of pending_menu_activation.
+	(set_frame_menubar): Remove check of pending_menu_activation.
+	Declare menubar_size before code.  Correct spelling in comment.
+
+2010-07-14  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (font_open_entity): Cancel previous change.
+	(Ffont_get): Don't check FONT_ENTITY_INDEX of a font-object.
+
+2010-07-13  Eli Zaretskii  <eliz@gnu.org>
+
+	Remove subprocesses #ifdefs.
+	* process.c <inhibit_sentinels>: Move to the common part.
+	(Fwaiting_for_user_input_p): Move to the common part; return nil
+	if async subprocesses aren't supported.
+	* sysdep.c (wait_for_termination) [!MSDOS]: Don't compile on
+	MS-DOS.  Remove "#ifdef subprocesses".
+	(sys_subshell, sys_select): Remove "#ifdef subprocesses".
+	(gettimeofday): Remove "#ifdef subprocesses".
+	(wait_without_blocking): Remove function.
+	(flush_pending_output, child_setup_tty): Don't compile on MS-DOS.
+	Remove "#ifdef subprocesses".
+	(child_setup_tty): Use WINDOWSNT instead of DOS_NT, since not
+	compiled on MS-DOS.
+	* callproc.c (Fcall_process) [!MSDOS]: Don't call
+	wait_for_termination on MS-DOS.
+	* emacs.c (shut_down_emacs): Remove "#ifndef subprocesses" from
+	initialization of inhibit_sentinels.
+	* keyboard.c (record_asynch_buffer_change): Remove "#ifdef
+	subprocesses" conditional.
+	* callproc.c (Fcall_process) [!subprocesses]: Don't call
+	wait_for_termination, since `buffer' cannot be an integer when
+	async subprocesses are not supported
+	* xdisp.c (decode_mode_spec): Use `MSDOS' instead of `subprocesses'
+	for ifdefing away the call to Fprocess_status.
+
+	* process.c (add_keyboard_wait_descriptor) [!subprocesses]: Ifdef
+	away the entire body of the function.
+
+2010-07-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove subprocesses #ifdefs from term.c.
+	* process.c (add_keyboard_wait_descriptor)
+	(delete_keyboard_wait_descriptor): Move to common section, do
+	nothing when subprocesses is not defined.
+	* term.c (Fsuspend_tty, Fresume_tty, init_tty):
+	Remove subprocesses #ifdefs.
+
+	Convert maybe_fatal to standard C.
+	* lisp.h (verror): Declare.
+	* eval.c (verror): New function containing the code from ...
+	(error): ... this.  Call verror.
+	* term.c (vfatal): New function containing the code from ...
+	(fatal): ... this.  Call vfatal.
+	(maybe_fatal): Convert to standard C, use variable number of
+	arguments.  Declare as non-return.
+	(init_tty): Fix maybe_fatal call.
+
+2010-07-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xterm.c (x_scroll_bar_set_handle, x_scroll_bar_expose)
+	(_scroll_bar_note_movement): Convert definitions to standard C.
+	* xmenu.c (menu_help_callback, pop_down_menu, xmenu_show):
+	* xfns.c (hack_wm_protocols, x_window, x_window): Likewise.
+
+2010-07-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xterm.c (x_frame_of_widget, x_alloc_nearest_color_for_widget)
+	(x_alloc_lighter_color_for_widget, cvt_string_to_pixel)
+	(cvt_pixel_dtor, x_window_to_menu_bar, xt_action_hook)
+	(xaw_jump_callback, xaw_scroll_callback)
+	(x_create_toolkit_scroll_bar, x_set_toolkit_scroll_bar_thumb)
+	(x_wm_set_size_hint, x_activate_timeout_atimer): Convert
+	definitions to standard C.
+	* xmenu.c (menubar_id_to_frame, popup_get_selection)
+	(popup_activate_callback, popup_deactivate_callback)
+	(menu_highlight_callback, menubar_selection_callback)
+	(apply_systemfont_to_dialog, apply_systemfont_to_menu)
+	(free_frame_menubar, popup_selection_callback, as)
+	(create_and_show_popup_menu, dialog_selection_callback)
+	(create_and_show_dialog):
+	* xfns.c (hack_wm_protocols, x_window):
+	* xfaces.c (x_update_menu_appearance):
+	* widget.c (get_default_char_pixel_size, pixel_to_char_size)
+	(char_to_pixel_size, round_size_to_char, get_wm_shell)
+	(set_frame_size, update_wm_hints, setup_frame_gcs)
+	(update_various_frame_slots, update_from_various_frame_slots)
+	(EmacsFrameInitialize, EmacsFrameRealize, EmacsFrameResize)
+	(EmacsFrameSetValues, EmacsFrameQueryGeometry)
+	(EmacsFrameSetCharSize, widget_store_internal_border): Likewise.
+
+2010-07-12  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* dbusbind.c (xd_initialize): Don't compare boolean with a constant.
+
+2010-07-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* process.c (setup_process_coding_systems): Move to the part
+	shared by non-subprocesses systems, and make its body empty when
+	subprocesses is not defined.
+	(close_process_descs): Move to the part shared by non-subprocesses
+	systems.
+	(wait_reading_process_output) [!subprocesses]: Convert arg list to
+	ANSI C.
+
+2010-07-12  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* editfns.c (transpose_markers): Convert old-style definition.
+	* emacs.c (abort, shut_down_emacs, fixup_locale)
+	(synchronize_system_time_locale)
+	(synchronize_system_messages_locale, syms_of_emacs): Likewise.
+	* floatfns.c (extract_float, matherr, init_floatfns)
+	(syms_of_floatfns): Likewise.
+	* fns.c (make_hash_table): Likewise.
+	* ftfont.c (ftfont_get_otf, ftfont_otf_features)
+	(ftfont_otf_capability, ftfont_get_glyph_id, ftfont_get_metrics)
+	(ftfont_drive_otf, ftfont_shape_by_flt, ftfont_shape)
+	(ftfont_variation_glyphs): Likewise.
+	* gtkutil.c (xg_create_widget, xg_modify_menubar_widgets): Likewise.
+	* keymap.c (describe_map_tree, describe_map, describe_vector): Likewise.
+	* lread.c (read_filtered_event): Likewise.
+	* minibuf.c (read_minibuf_noninteractive, read_minibuf): Likewise.
+	* process.c (wait_reading_process_output): Likewise.
+	* scroll.c (do_line_insertion_deletion_costs): Likewise.
+	* search.c (search_buffer, boyer_moore): Likewise.
+	* syntax.c (scan_sexps_forward): Likewise.
+	* xdisp.c (try_scrolling): Likewise.
+	* xfaces.c (face_at_buffer_position, face_for_overlay_string)
+	(face_at_string_position): Likewise.
+	* xfns.c (x_default_scroll_bar_color_parameter): Likewise.
+	* xselect.c (x_get_window_property, receive_incremental_selection)
+	(x_get_window_property_as_lisp_data, lisp_data_to_selection_data):
+	Likewise.
+	* xterm.c (x_draw_relief_rect, x_draw_box_rect): Likewise.
+
+2010-07-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* callproc.c (child_setup): Remove subprocesses conditional.
+	Remove code dealing with SET_EMACS_PRIORITY, unused.
+
+	* buffer.c (Fset_buffer_multibyte): Remove subprocesses conditional.
+	* process.c (close_process_descs): Use DOS_NT instead of WINDOWSNT.
+
+	* emacs.c (__do_global_ctors, __do_global_ctors_aux)
+	(__do_global_dtors, __main): Use void in definition.
+	(main): Remove code dealing with SET_EMACS_PRIORITY, unused.
+	Remove SYMS_MACHINE code, unused.  Remove SYMS_SYSTEM, inline
+	the only users from ...
+	* s/ms-w32.h (SYMS_SYSTEM): ... here and ...
+	* s/msdos.h (SYMS_SYSTEM): ... here.  Remove.
+	(HAVE_VOLATILE): Remove, unused.
+
+	Convert more function definitions to standard C.
+	* xdisp.c (window_box_edges, handle_single_display_spec)
+	(display_string): Convert definition to standard C.
+	* scroll.c (do_direct_scrolling, scrolling_1):
+	* dispnew.c (allocate_matrices_for_frame_redisplay)
+	(mirrored_line_dance):
+	* coding.c (code_convert_string):
+	* charset.c (map_charset_chars):
+	* ccl.c (Fccl_program_p, Fccl_execute, Fccl_execute_on_string)
+	(Fregister_ccl_program, Fregister_code_conversion_map):
+	* keyboard.c (kbd_buffer_nr_stored): Likewise.
+	(head_table): Make static and const.
+
+2010-07-12  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.in (C_WARNINGS_SWITCH, PROFILING_CFLAGS)
+	(PROFILING_LDFLAGS): Set from substitution.
+	(ALL_CFLAGS): Add C_WARNINGS_SWITCH and PROFILING_CFLAGS, put
+	CFLAGS last.
+
+2010-07-12  Kenichi Handa  <handa@m17n.org>
+
+	* Makefile.in (lisp): Change hebrew.el to hebrew.elc.
+	(shortlisp): Likewise.
+
+	* font.h (enum font_property_index): New member FONT_ENTITY_INDEX.
+
+	* font.c (font_open_entity): Record ENTITY in FONT_OBJECT's slot
+	of FONT_ENTITY_INDEX.
+	(Ffont_get): If KEY is :otf and the font-object doesn't have the
+	property, get the property value dynamically.
+	(Ffont_put): Accept font-entity and font-object too.
+	(Ffont_get_glyhphs): Renamed from Fget_font_glyphs.  Arguments and
+	return value changed.
+	(syms_of_font): Adjusted for the above change.
+
+2010-07-11  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* blockinput.h: Remove obsolete comment.
+
+	* lisp.h: Include <stddef.h>.
+	(OFFSETOF): Don't define.
+	(VECSIZE): Use offsetof instead of OFFSETOF.
+	(PSEUDOVECSIZE): Likewise.
+	* process.c (conv_sockaddr_to_lisp): Likewise.
+	* alloc.c: Don't include <stddef.h>.
+	* buffer.h (PER_BUFFER_VAR_OFFSET): Use offsetof.
+
+	* process.c: Remove obsolete comment.
+
+2010-07-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfaces.c (Vface_remapping_alist): Doc fix (Bug#6091).
+
+2010-07-11  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* callint.c (Fcall_interactively): Use strchr, strrchr instead of
+	index, rindex.
+	* doc.c (get_doc_string, Fsnarf_documentation): Likewise.
+	* editfns.c (Fuser_full_name, Fformat): Likewise.
+	* emacs.c (argmatch, sort_args, decode_env_path): Likewise.
+	* fileio.c (Ffile_symlink_p): Likewise.
+	* filelock.c (current_lock_owner): Likewise.
+	* font.c (font_parse_name, font_parse_family_registry): Likewise.
+	* fontset.c (fontset_pattern_regexp): Likewise.
+	* lread.c (read1): Likewise.
+	* sysdep.c (init_system_name): Likewise.
+	* xfns.c (select_visual): Likewise.
+	* s/hpux10-20.h (index, rindex): Don't define.
+	* s/ms-w32.h (index): Likewise.
+	* s/usg5-4.h: Likewise.
+
+	* callproc.c (relocate_fd): Use F_DUPFD if defined.
+
+	* alloc.c (pending_malloc_warning, malloc_warning): Add const.
+	* callproc.c (relocate_fd, getenv_internal_1, getenv_internal)
+	(egetenv): Likewise.
+	* doprnt.c (doprnt): Likewise.
+	* editfns.c (set_time_zone_rule, format2): Likewise.
+	* emacs.c (decode_env_path): Likewise.
+	* eval.c (signal_error, error): Likewise.
+	* insdel.c (replace_range_2): Likewise.
+	* keyboard.c (cmd_error_internal): Likewise.
+	* lread.c (isfloat_string, make_symbol, dir_warning): Likewise.
+	* print.c (write_string, write_string_1, print_error_message):
+	Likewise.
+	* vm-limit.c (warn_function, memory_warnings): Likewise.
+	* xdisp.c (message1, message1_nolog, message_with_string)
+	(vmessage, message, message_nolog): Likewise.
+	* emacs.c: Remove duplicate declaration.
+	* keyboard.h: Likewise.
+	* lisp.h: Update prototypes.
+
+	* eval.c: Fix indentation problem.
+
+	* keyboard.c: Include "process.h"
+
+	* eval.c: Remove obsolete noinline declaration.
+	* fns.c: Likewise.
+
+2010-07-11  Ken Raeburn  <raeburn@raeburn.org>
+
+	* doprnt.c (doprnt): Take a va_list argument instead of count and
+	pointer.
+	* eval.c (error): Change to a standard-C variadic function.
+	* xdisp.c (vmessage): Renamed from message, made static, and
+	changed to take a va_list argument.
+	(message): New variadic wrapper.
+	(message_nolog): Now a variadic function, calling vmessage.
+	* lisp.h: Include stdarg.h for va_list.
+	(doprnt, error, message, message_nolog): Decls updated.
+
+2010-07-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* process.c (syms_of_process) <delete-exited-processes>: Define
+	even if !subprocesses.
+	(delete_exited_processes): Ditto.
+
+	* msdos.c (syms_of_msdos) <delete-exited-processes>: Remove DEFVAR.
+	(delete_exited_processes): Don't define.
+
+2010-07-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.c (make_frame): Initialize menu_bar_lines and
+	tool_bar_lines members.
+	(make_initial_frame, make_terminal_frame): Initialize
+	menu_bar_lines using value of menu-bar-mode.
+
+	* msdos.c (IT_set_frame_parameters): Don't set menu-bar-lines.
+
+2010-07-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* process.c: Reshuffle #include's.  Condition some of the global
+	and static variables on `subprocesses'.
+	(hold_keyboard_input, unhold_keyboard_input, kbd_on_hold_p):
+	Leave only one implementation.
+	(Fget_buffer_process, Fprocess_inherit_coding_system_flag)
+	(kill_buffer_processes, Flist_system_processes)
+	(Fprocess_attributes, init_process, syms_of_process): Unify the
+	implementations for with subprocesses and without them.
+
+2010-07-09  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (set_frame_menubar): Must realize menubar_widget to get the
+	correct size for Motif.
+	(free_frame_menubar): Call x_set_window_size to update frame size.
+
+	* xfns.c (x_window): Set borderWidth to 0 for pane and
+	EmacsFrame.  Frame size calculation is wrong otherwise.
+
+2010-07-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (xd_initialize): Add new argument RAISE_ERROR, which
+	allows to suppress errors when polling in Emacs' main loop.
+	(Fdbus_init_bus, Fdbus_get_unique_name, Fdbus_call_method)
+	(Fdbus_call_method_asynchronously, Fdbus_method_return_internal)
+	(Fdbus_method_error_internal, Fdbus_send_signal)
+	(xd_get_dispatch_status, xd_read_message, Fdbus_register_signal)
+	(Fdbus_register_method): Use it.  (Bug#6579)
+
+2010-07-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* alloc.c: Convert DEFUNs to standard C.
+	* buffer.c:
+	* bytecode.c:
+	* callint.c:
+	* callproc.c:
+	* casefiddle.c:
+	* casetab.c:
+	* category.c:
+	* character.c:
+	* charset.c:
+	* chartab.c:
+	* cmds.c:
+	* coding.c:
+	* composite.c:
+	* data.c:
+	* dbusbind.c:
+	* dired.c:
+	* dispnew.c:
+	* doc.c:
+	* dosfns.c:
+	* editfns.c:
+	* emacs.c:
+	* eval.c:
+	* fileio.c:
+	* filelock.c:
+	* floatfns.c:
+	* fns.c:
+	* font.c:
+	* fontset.c:
+	* frame.c:
+	* fringe.c:
+	* image.c:
+	* indent.c:
+	* insdel.c:
+	* keyboard.c:
+	* keymap.c:
+	* lread.c:
+	* macros.c:
+	* marker.c:
+	* menu.c:
+	* minibuf.c:
+	* msdos.c:
+	* nsfns.m:
+	* nsmenu.m:
+	* nsselect.m:
+	* print.c:
+	* process.c:
+	* search.c:
+	* sound.c:
+	* syntax.c:
+	* term.c:
+	* terminal.c:
+	* textprop.c:
+	* undo.c:
+	* w16select.c:
+	* w32console.c:
+	* w32fns.c:
+	* w32font.c:
+	* w32menu.c:
+	* w32proc.c:
+	* w32select.c:
+	* window.c:
+	* xdisp.c:
+	* xfaces.c:
+	* xfns.c:
+	* xmenu.c:
+	* xselect.c:
+	* xsettings.c:
+	* xsmfns.c: Likewise.
+
+2010-07-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* process.c (kbd_is_on_hold, hold_keyboard_input)
+	(unhold_keyboard_input, kbd_on_hold_p) [!subprocesses]: Define.
+
+2010-07-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (set_frame_menubar, create_and_show_popup_menu)
+	(create_and_show_dialog): Don't call apply_systemfont_to_(menu|dialog)
+	unless USE_LUCID.
+
+2010-07-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xdisp.c (store_mode_line_noprop_char): Remove K&R alternative
+	declaration.
+
+	Clean up include guards.
+	* tparam.c: Remove include guards for config.h, string.h and code
+	that assumes #ifndef emacs.
+	* termcap.c:
+	* unexalpha.c:
+	* sysdep.c:
+	* filemode.c:
+	* filelock.c:
+	* bidi.c: Likewise.
+
+	Remove prefix-args.c
+	* prefix-args.c: Remove file.
+	* autodeps.mk (ALLOBJS): Remove reference to prefix-args.
+	* Makefile.in (temacs${EXEEXT}): Remove references to
+	PRE_EDIT_LDFLAGS and POST_EDIT_LDFLAGS.
+	(mostlyclean): Remove reference to prefix-args.
+	(prefix-args): Remove.
+
+	Simplify cstart_of_data, start_of_code and related code.
+	* mem-limits.h: Remove !emacs and _LIBC conditional code.
+	(start_of_data): Merge into start_of_data function.
+	* sysdep.c (start_of_text): Remove.  Move simplified versions of
+	it in the only users: unexaix.c and unexec.c.
+	(read_input_waiting): Remove local declaration of quit_char.
+	(start, etext): Remove declarations.
+	(start_of_data): Merge with the version in mem-limits.h and move
+	to vm-limits.c.
+	* vm-limit.c (start_of_data): Merged and simplified version of the
+	code formerly in mem-limits.h and sysdep.c.
+	* unexec.c (start): New declaration, moved from sysdep.c.
+	(start_of_text): Simplified version of the code formerly in sysdep.c.
+	* unexaix.c (start_of_text): Simplified version of the code
+	formerly in sysdep.c.
+	* m/alpha.h (HAVE_TEXT_START): Remove.
+	(TEXT_START): Move ...
+	* unexalpha.c (TEXT_START): ... here.
+	* s/hpux10-20.h (TEXT_START): Remove.
+	* s/darwin.h (TEXT_START):
+	* m/mips.h (TEXT_START):
+	* m/macppc.h (HAVE_TEXT_START):
+	* m/m68k.h (TEXT_START):
+	* m/iris4d.h (TEXT_START):
+	* m/intel386.h (TEXT_START):
+	* m/ibmrs6000.h (TEXT_START):
+	* m/ia64.h (HAVE_TEXT_START):
+	* s/msdos.h (TEXT_START): Likewise.
+
+2010-07-07  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* alloc.c (overrun_check_malloc, overrun_check_realloc)
+	(overrun_check_free, xstrdup, allocate_string)
+	(allocate_string_data, compact_small_strings, Fmake_string)
+	(make_unibyte_string, make_multibyte_string)
+	(make_string_from_bytes, make_specified_string, make_float)
+	(Fcons, allocate_terminal, allocate_frame, make_pure_string)
+	(Fgarbage_collect): Replace bcopy, safe_bcopy, bzero, bcmp by
+	memcpy, memmove, memset, memcmp.
+	* atimer.c (start_atimer, set_alarm): Likewise.
+	* buffer.c (clone_per_buffer_values, report_overlay_modification)
+	(mmap_realloc, init_buffer_once): Likewise.
+	* callint.c (Fcall_interactively): Likewise.
+	* callproc.c (Fcall_process, Fcall_process_region, child_setup)
+	(getenv_internal_1): Likewise.
+	* casefiddle.c (casify_object): Likewise.
+	* ccl.c (ccl_driver): Likewise.
+	* character.c (str_as_multibyte, str_to_multibyte): Likewise.
+	* charset.c (load_charset_map_from_file)
+	(load_charset_map_from_file, load_charset_map_from_vector)
+	(Fdefine_charset_internal): Likewise.
+	* cm.c (Wcm_clear): Likewise.
+	* coding.c (decode_eol, decode_coding_object)
+	(Fset_coding_system_priority, make_subsidiaries): Likewise.
+	* data.c (Faset): Likewise.
+	* dired.c (directory_files_internal, file_name_completion_stat):
+	Likewise.
+	* dispnew.c (new_glyph_matrix, adjust_glyph_matrix)
+	(clear_glyph_row, copy_row_except_pointers)
+	(copy_glyph_row_contents, new_glyph_pool, realloc_glyph_pool)
+	(save_current_matrix, restore_current_matrix)
+	(build_frame_matrix_from_leaf_window, mirrored_line_dance)
+	(mirror_line_dance, scrolling_window): Likewise.
+	* doc.c (Fsnarf_documentation, Fsubstitute_command_keys):
+	Likewise.
+	* doprnt.c (doprnt): Likewise.
+	* editfns.c (Fuser_full_name, make_buffer_string_both)
+	(Fmessage_box, Fformat, Ftranspose_regions): Likewise.
+	* emacs.c (sort_args): Likewise.
+	* eval.c (Fapply, Ffuncall): Likewise.
+	* fileio.c (Ffile_name_directory, make_temp_name)
+	(Fexpand_file_name, search_embedded_absfilename)
+	(Fsubstitute_in_file_name, Ffile_symlink_p, Finsert_file_contents)
+	(auto_save_error): Likewise.
+	* fns.c (Fstring_equal, Fcopy_sequence, concat)
+	(string_to_multibyte, Fstring_as_unibyte, Fstring_as_multibyte)
+	(internal_equal, Fclear_string, larger_vector, copy_hash_table)
+	(Fmake_hash_table): Likewise.
+	* fringe.c (Fdefine_fringe_bitmap): Likewise.
+	* ftfont.c (ftfont_text_extents): Likewise.
+	* getloadavg.c (getloadavg): Likewise.
+	* image.c (define_image_type, make_image, make_image_cache)
+	(x_create_x_image_and_pixmap, xbm_image_p)
+	(w32_create_pixmap_from_bitmap_data, xbm_load, xpm_lookup_color)
+	(xpm_image_p, x_create_bitmap_from_xpm_data, xpm_load)
+	(init_color_table, x_build_heuristic_mask, pbm_image_p, pbm_load)
+	(png_image_p, png_read_from_memory, png_load, jpeg_image_p)
+	(tiff_image_p, tiff_read_from_memory, gif_image_p)
+	(gif_read_from_memory, gif_load, svg_image_p, gs_image_p):
+	Likewise.
+	* indent.c (scan_for_column, compute_motion): Likewise.
+	* insdel.c (gap_left, gap_right, make_gap_smaller, copy_text)
+	(insert_1_both, insert_from_gap, replace_range_2): Likewise.
+	* intervals.c (reproduce_tree, reproduce_tree_obj): Likewise.
+	* keyboard.c (echo_char, save_getcjmp, restore_getcjmp)
+	(kbd_buffer_store_event_hold, apply_modifiers_uncached)
+	(store_user_signal_events, menu_bar_items, tool_bar_items)
+	(process_tool_bar_item, append_tool_bar_item)
+	(read_char_minibuf_menu_prompt, read_key_sequence)
+	(Fread_key_sequence, Fread_key_sequence_vector, Frecent_keys):
+	Likewise.
+	* keymap.c (current_minor_maps, Fdescribe_buffer_bindings):
+	Likewise.
+	* lisp.h (STRING_COPYIN): Likewise.
+	* lread.c (Fload, read1, oblookup): Likewise.
+	* msdos.c (Frecent_doskeys): Likewise.
+	* nsfns.m (Fx_create_frame): Likewise.
+	* nsfont.m (nsfont_open, nsfont_text_extents, ns_glyph_metrics):
+	Likewise.
+	* nsimage.m (EmacsImage-initFromSkipXBM:width:height:)
+	(EmacsImage-initForXPMWithDepth:width:height:flip:length:):
+	Likewise.
+	* nsmenu.m (ns_update_menubar): Likewise.
+	* nsterm.m (ns_draw_fringe_bitmap, ns_term_init): Likewise.
+	* print.c (print_unwind, printchar, strout, print_string)
+	(print_error_message): Likewise.
+	* process.c (conv_lisp_to_sockaddr, set_socket_option)
+	(Fmake_network_process, Fnetwork_interface_list)
+	(Fnetwork_interface_info, read_process_output, Fprocess_send_eof)
+	(init_process): Likewise.
+	* ralloc.c (resize_bloc, r_alloc_sbrk, r_alloc_init): Likewise.
+	* regex.c (init_syntax_once, regex_compile, re_compile_fastmap):
+	Likewise.
+	* scroll.c (do_scrolling, do_direct_scrolling)
+	(scrolling_max_lines_saved): Likewise.
+	* search.c (search_buffer, wordify, Freplace_match): Likewise.
+	* sound.c (wav_init, au_init, Fplay_sound_internal): Likewise.
+	* syntax.c (skip_chars, skip_syntaxes): Likewise.
+	* sysdep.c (child_setup_tty, sys_subshell, emacs_get_tty)
+	(emacs_set_tty): Likewise.
+	* term.c (encode_terminal_code, calculate_costs)
+	(produce_special_glyphs, create_tty_output, init_tty, delete_tty):
+	Likewise.
+	* termcap.c (tgetst1, gobble_line): Likewise.
+	* termhooks.h (EVENT_INIT): Likewise.
+	* tparam.c (tparam1): Likewise.
+	* unexalpha.c (unexec): Likewise.
+	* unexec.c (write_segment): Likewise.
+	* unexmacosx.c (unexec_write_zero): Likewise.
+	* w32fns.c (w32_wnd_proc, Fx_create_frame, x_create_tip_frame)
+	(Fx_file_dialog, Fsystem_move_file_to_trash): Likewise.
+	* w32font.c (w32font_list_family, w32font_text_extents)
+	(w32font_list_internal, w32font_match_internal)
+	(w32font_open_internal, compute_metrics, Fx_select_font):
+	Likewise.
+	* w32menu.c (set_frame_menubar, add_menu_item)
+	(w32_menu_display_help, w32_free_submenu_strings): Likewise.
+	* w32term.c (XCreateGC, w32_initialize_display_info): Likewise.
+	* w32uniscribe.c (uniscribe_list_family): Likewise.
+	* w32xfns.c (get_next_msg, post_msg, prepend_msg): Likewise.
+	* window.c (make_window, replace_window, set_window_buffer)
+	(Fsplit_window): Likewise.
+	* xdisp.c (init_iterator, RECORD_OVERLAY_STRING, reseat_to_string)
+	(add_to_log, message3, x_consider_frame_title)
+	(append_space_for_newline, extend_face_to_end_of_line)
+	(decode_mode_spec_coding, init_glyph_string): Likewise.
+	* xfaces.c (x_create_gc, get_lface_attributes_no_remap)
+	(Finternal_copy_lisp_face, Finternal_merge_in_global_face)
+	(face_attr_equal_p, make_realized_face, make_face_cache)
+	(free_realized_faces, lookup_named_face, smaller_face)
+	(face_with_height, lookup_derived_face)
+	(x_supports_face_attributes_p, Finternal_set_font_selection_order)
+	(Finternal_set_font_selection_order, realize_default_face)
+	(compute_char_face, face_at_buffer_position)
+	(face_for_overlay_string, face_at_string_position, merge_faces):
+	Likewise.
+	* xfns.c (xic_create_fontsetname, Fx_create_frame)
+	(Fx_window_property, x_create_tip_frame)
+	(Fx_backspace_delete_keys_p): Likewise.
+	* xfont.c (xfont_list, xfont_match, xfont_list_family)
+	(xfont_text_extents): Likewise.
+	* xmenu.c (set_frame_menubar, xmenu_show): Likewise.
+	* xrdb.c (magic_file_p, x_get_resource): Likewise.
+	* xselect.c (x_queue_event, x_get_window_property)
+	(receive_incremental_selection): Likewise.
+	* xsmfns.c (x_session_check_input): Likewise.
+	* xterm.c (x_send_scroll_bar_event, SET_SAVED_MENU_EVENT)
+	(handle_one_xevent, x_check_errors, xim_initialize, x_term_init):
+	Likewise.
+	* character.h (BCOPY_SHORT): Removed.
+	* config.in: Regenerate.
+	* dispnew.c (safe_bcopy): Only define as dummy if PROFILING.
+	* emacs.c (main) [PROFILING]: Don't declare
+	dump_opcode_frequencies.
+	* lisp.h (safe_bcopy): Remove declaration.
+	(memset) [!HAVE_MEMSET]: Declare.
+	(memcpy) [!HAVE_MEMCPY]: Likewise.
+	(memmove) [!HAVE_MEMMOVE]: Likewise.
+	(memcmp) [!HAVE_MEMCMP]: Likewise.
+	* s/ms-w32.h (bzero, bcopy, bcmp, GAP_USE_BCOPY)
+	(BCOPY_UPWARD_SAFE, BCOPY_DOWNWARD_SAFE, HAVE_BCOPY, HAVE_BCMP):
+	Don't define.
+	(HAVE_MEMCMP, HAVE_MEMCPY, HAVE_MEMMOVE, HAVE_MEMSET): Define.
+	* s/msdos.h (GAP_USE_BCOPY, BCOPY_UPWARD_SAFE)
+	(BCOPY_DOWNWARD_SAFE): Don't define.
+	* sysdep.c (memset) [!HAVE_MEMSET]: Define.
+	(memcpy) [!HAVE_MEMCPY]: Define.
+	(memmove) [!HAVE_MEMMOVE]: Define.
+	(memcmp) [!HAVE_MEMCMP]: Define.
+
+2010-07-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* process.c (kbd_is_on_hold): New variable.
+	(hold_keyboard_input, unhold_keyboard_input, kbd_on_hold_p):
+	New functions.
+	(wait_reading_process_output): If kbd_on_hold_p returns non-zero,
+	select on empty input mask.
+	(init_process): Initialize kbd_is_on_hold to 0.
+
+	* process.h (hold_keyboard_input, unhold_keyboard_input)
+	(kbd_on_hold_p): Declare.
+
+	* keyboard.c (input_available_signal): Declare.
+	(kbd_buffer_nr_stored): New function.
+	(kbd_buffer_store_event_hold): If kbd_buffer_nr_stored returns
+	more than KBD_BUFFER_SIZE/2, stop reding input (Bug#6571).
+	(kbd_buffer_get_event): If input is suspended and kbd_buffer_nr_stored
+	returns less than KBD_BUFFER_SIZE/4, resume reding input (Bug#6571).
+	(tty_read_avail_input): If input is on hold, return.
+	Don't read more that free slots in kbd_buffer (Bug#6571).
+
+2010-07-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.h:
+	* msdos.c:
+	* dosfns.c:
+	* w16select.c: Convert function definitions to ANSI C.
+
+	* msdos.h (ctrl_break_func, install_ctrl_break_check):
+	Remove unused prototypes.
+
+2010-07-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* coding.c, sysdep.c: Convert some more functions to standard C.
+
+2010-07-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* coding.c (decode_coding_gap, encode_coding_gap, decode_coding_object)
+	(encode_coding_object): Use SPECPDL_INDEX.
+	(syms_of_coding): Use DOS_NT.
+
+2010-07-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* intervals.h (interval): Use EMACS_UINT instead of unsigned EMACS_INT.
+
+	Make the function member of Lisp_Subr use standard C prototypes.
+	* lisp.h (struct Lisp_Subr): Use a union for the function member.
+	(DECL_ALIGN): Add a cast for the function.
+	* eval.c (Feval, Ffuncall): Use the proper type for each type
+	function call.
+
+2010-07-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* fringe.c (draw_fringe_bitmap_1): Use lookup_named_face to get
+	fringe face id, so face-remapping-alist works (Bug#6091).
+
+2010-07-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32.c, w32console.c, w32fns.c, w32font.c, w32heap.c, w32inevt.c
+	* w32menu.c, w32proc.c, w32reg.c, w32select.c, w32term.c
+	* w32uniscribe.c, w32xfns.c: Convert function definitions to standard C.
+
+2010-07-06  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* xterm.c (x_get_keysym_name): Change type of parameter to int.
+	* lisp.h: Declare x_get_keysym_name.
+	* keyboard.c (modify_event_symbol): Don't declare
+	x_get_keysym_name here.
+
+2010-07-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* ecrt0.c: Revert conversion to standard C.
+
+2010-07-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vm-limit.c (memory_warnings):
+	* keyboard.c (modify_event_symbol):
+	* floatfns.c (rounding_driver, ceiling2, floor2, truncate2)
+	(round2, emacs_rint):
+	* process.c (send_process, old_sigpipe): Convert function
+	definitions and declarations to standard C.
+
+2010-07-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* buffer.c, cm.c, eval.c, keyboard.c, process.c, term.c, vm-limit.c,
+	* xdisp.c: Convert function definitions to standard C.
+
+	* cm.c (cmputc): Arg C is now int, not char.
+	* process.c (Fmake_network_process): Cast sockaddr_in* to sockaddr*.
+
+2010-07-05  James Cloos  <cloos@jhcloos.com>
+
+	* xterm.h (Xatom_net_wm_name, Xatom_net_wm_icon_name): New.
+
+	* xterm.c (x_term_init): Intern the _NET_WM_NAME and
+	_NET_WM_ICON_NAME atoms.
+
+	* xfns.c (x_set_name_internal): Set the EWMH _NET_WM_NAME
+	and _NET_WM_ICON_NAME properties, too, matching what is
+	done in the Gtk+ case.
+
+2010-07-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (XTring_bell, XTset_terminal_window): Fix wrong prototype.
+
+	* xsmfns.c (SSDATA): New macro.
+	(smc_save_yourself_CB, x_session_initialize): Use SSDATA for strings
+	passed to strlen/strcpy/strcat.
+	(create_client_leader_window): Surround with #ifndef USE_GTK.  Cast
+	7:th arg to XChangeProperty to (unsigned char *)
+
+	* xsettings.c (something_changedCB, parse_settings)
+	(apply_xft_settings): Reformat prototype.
+	(something_changedCB, init_gconf): Remove unused variable i.
+	(read_settings): Remove unused variable long_len.
+
+	* gtkutil.c (xg_get_pixbuf_from_pix_and_mask)
+	(xg_get_image_for_pixmap, create_dialog)
+	(xg_get_file_with_selection, xg_get_file_name, update_cl_data)
+	(menuitem_highlight_callback, make_menu_item)
+	(xg_create_one_menuitem, create_menus, xg_update_menu_item)
+	(xg_create_scroll_bar, xg_update_scrollbar_pos)
+	(xg_set_toolkit_scroll_bar_thumb, xg_tool_bar_button_cb)
+	(xg_tool_bar_proxy_help_callback, xg_tool_bar_detach_callback)
+	(xg_tool_bar_attach_callback, xg_tool_bar_help_callback)
+	(xg_tool_bar_item_expose_callback): Reformat prototype.
+	(xg_update_menubar): GList *group => GSList *group.
+	(xg_modify_menubar_widgets): Initialize witem to 0, check witem != 0
+	before use.
+	(update_frame_tool_bar): 4:th param to xg_get_image_for_pixmap changed
+	to GTK_IMAGE (wimage).
+
+2010-07-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* atimer.c: Use "" instead of <> for local includes for
+	consistency with the rest of the code.
+
+	* xsmfns.c (smc_save_yourself_CB, smc_error_handler):
+	* xrdb.c (get_system_name):
+	* window.c (shrink_windows):
+	* syntax.c (forw_comment):
+	* scroll.c (calculate_scrolling, calculate_direct_scrolling)
+	(ins_del_costs):
+	* mem-limits.h (start_of_data):
+	* lread.c (readevalloop):
+	* gtkutil.c (xg_dialog_response_cb, xg_get_file_with_chooser)
+	(xg_get_file_with_selection, xg_update_menubar, xg_update_submenu):
+	* frame.c (x_get_focus_frame):
+	* floatfns.c (fmod_float):
+	* fileio.c (choose_write_coding_system):
+	* emacs.c (fatal_error_signal, init_cmdargs, argmatch)
+	(malloc_initialize_hook, sort_args, synchronize_locale):
+	* doprnt.c (doprnt):
+	* dired.c (compile_pattern):
+	* data.c (fmod_float):
+	* chartab.c (map_sub_char_table, map_sub_char_table_for_charset)
+	(map_char_table_for_charset):
+	* charset.c (define_charset_internal):
+	* alloc.c (Fgarbage_collect): Convert declarations or definitions
+	to standard C.
+
+2010-07-04  Tetsurou Okazaki  <okazaki@be.to>  (tiny change)
+            Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c (read1): Fix up last change to not mess up `c'.
+
+2010-07-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* strftime.c: Revert conversion to standard C (revno:100708).
+
+2010-07-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	Fix prototypes.
+
+	* atimer.c (start_atimer): Use EMACS_TIME, not struct timeval.
+	* dired.c (file_name_completion_stat): Use DIRENTRY, not struct dirent.
+	* fileio.c (read_non_regular, read_non_regular_quit): Add Lisp_Object
+	arg, as required by internal_condition_case_1.
+	* print.c (strout): Use const char* for arg PTR.
+	* regex.c (bcmp_translate): Use RE_TRANSLATE_TYPE, not Lisp_Object.
+	(analyse_first): Fix "const const".
+	* sysdep.c (set_file_times): Use EMACS_TIME, not struct timeval.
+	* unexelf.c (round_up, find_section): Use ElfW macro for arguments.
+	* xgselect.c (xg_select): Use SELECT_TYPE, EMACS_TIME.
+
+2010-07-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* alloc.c: Convert function definitions to standard C.
+	* atimer.c:
+	* bidi.c:
+	* bytecode.c:
+	* callint.c:
+	* callproc.c:
+	* casefiddle.c:
+	* casetab.c:
+	* category.c:
+	* ccl.c:
+	* character.c:
+	* charset.c:
+	* chartab.c:
+	* cmds.c:
+	* coding.c:
+	* composite.c:
+	* data.c:
+	* dbusbind.c:
+	* dired.c:
+	* dispnew.c:
+	* doc.c:
+	* doprnt.c:
+	* ecrt0.c:
+	* editfns.c:
+	* fileio.c:
+	* filelock.c:
+	* filemode.c:
+	* fns.c:
+	* font.c:
+	* fontset.c:
+	* frame.c:
+	* fringe.c:
+	* ftfont.c:
+	* ftxfont.c:
+	* gtkutil.c:
+	* indent.c:
+	* insdel.c:
+	* intervals.c:
+	* keymap.c:
+	* lread.c:
+	* macros.c:
+	* marker.c:
+	* md5.c:
+	* menu.c:
+	* minibuf.c:
+	* prefix-args.c:
+	* print.c:
+	* ralloc.c:
+	* regex.c:
+	* region-cache.c:
+	* scroll.c:
+	* search.c:
+	* sound.c:
+	* strftime.c:
+	* syntax.c:
+	* sysdep.c:
+	* termcap.c:
+	* terminal.c:
+	* terminfo.c:
+	* textprop.c:
+	* tparam.c:
+	* undo.c:
+	* unexelf.c:
+	* window.c:
+	* xfaces.c:
+	* xfns.c:
+	* xfont.c:
+	* xftfont.c:
+	* xgselect.c:
+	* xmenu.c:
+	* xrdb.c:
+	* xselect.c:
+	* xsettings.c:
+	* xsmfns.c:
+	* xterm.c: Likewise.
+
+2010-07-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdos.c (IT_set_frame_parameters): Fix setting of colors in
+	frames other than the initial one.  Fix reversal of colors when
+	`reverse' is specified in the frame parameters.  Call
+	update_face_from_frame_parameter instead of
+	internal-set-lisp-face-attribute.  Initialize screen colors from
+	initial_screen_colors[] when f->default_face_done_p is zero,
+	instead of depending on being called with default-frame-alist as
+	the alist argument.
+
+	* xfaces.c (update_face_from_frame_parameter): Move out of
+	HAVE_WINDOW_SYSTEM portion.  Condition window-system only parts
+	with HAVE_WINDOW_SYSTEM.
+
+	* msdos.c (IT_set_frame_parameters): Set menu-bar-lines according
+	to menu-bar-mode, if not set in the frame parameters or in
+	default-frame-alist.
+
+	* w32console.c (sys_tputs): Adjust argument list to prototype in
+	term.c.
+
+2010-07-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* lisp.h (memory_warnings): Fix prototype.
+
+	* cm.h (evalcost): Fix prototype.
+
+	* cm.c (evalcost): Fix arg type.
+
+2010-07-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.c (term_clear_mouse_face, Fidentity):
+	* syssignal.h (signal_handler_t):
+	* lisp.h (memory_warnings):
+	* coding.h (preferred_coding_system):
+	* cm.h (evalcost):
+	* blockinput.h (reinvoke_input_signal): Convert to standard C prototypes.
+
+2010-07-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* dosfns.h (msdos_stdcolor_idx, msdos_stdcolor_name): Remove P_
+	from prototypes.
+
+	* msdos.h (load_pixmap): Don't define away.
+
+2010-07-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* lisp.h:
+	* atimer.h: Remove define for P_.
+
+	* alloc.c: Remove __P and P_ from .c and .m files.
+	* atimer.c:
+	* buffer.c:
+	* callint.c:
+	* category.c:
+	* charset.c:
+	* chartab.c:
+	* cm.c:
+	* coding.c:
+	* composite.c:
+	* data.c:
+	* dired.c:
+	* dispnew.c:
+	* doc.c:
+	* editfns.c:
+	* emacs.c:
+	* eval.c:
+	* fileio.c:
+	* filelock.c:
+	* fns.c:
+	* font.c:
+	* fontset.c:
+	* frame.c:
+	* ftfont.c:
+	* ftxfont.c:
+	* gmalloc.c:
+	* gtkutil.c:
+	* image.c:
+	* indent.c:
+	* intervals.c:
+	* keyboard.c:
+	* keymap.c:
+	* lread.c:
+	* marker.c:
+	* menu.c:
+	* minibuf.c:
+	* print.c:
+	* process.c:
+	* scroll.c:
+	* search.c:
+	* sound.c:
+	* strftime.c:
+	* syntax.c:
+	* sysdep.c:
+	* term.c:
+	* terminal.c:
+	* textprop.c:
+	* unexalpha.c:
+	* w32console.c:
+	* w32fns.c:
+	* w32font.c:
+	* w32menu.c:
+	* w32term.c:
+	* w32uniscribe.c:
+	* window.c:
+	* xdisp.c:
+	* xfaces.c:
+	* xfns.c:
+	* xfont.c:
+	* xftfont.c:
+	* xmenu.c:
+	* xselect.c:
+	* xterm.c: Likewise.
+
+	Remove P_ and __P macros.
+	* atimer.h: Remove P_ and __P macros.
+	* buffer.h:
+	* category.h:
+	* ccl.h:
+	* character.h:
+	* charset.h:
+	* cm.h:
+	* coding.h:
+	* composite.h:
+	* dispextern.h:
+	* disptab.h:
+	* dosfns.h:
+	* font.h:
+	* fontset.h:
+	* frame.h:
+	* gtkutil.h:
+	* indent.h:
+	* intervals.h:
+	* keyboard.h:
+	* keymap.h:
+	* lisp.h:
+	* macros.h:
+	* md5.h:
+	* menu.h:
+	* msdos.h:
+	* nsterm.h:
+	* puresize.h:
+	* region-cache.h:
+	* syntax.h:
+	* syssignal.h:
+	* systime.h:
+	* termhooks.h:
+	* w32font.h:
+	* w32term.h:
+	* widget.h:
+	* window.h:
+	* xgselect.h:
+	* xsettings.h:
+	* xterm.h: Likewise.
+
+2010-07-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* lisp.h: Document that USE_LISP_UNION_TYPE is now enabled using autoconf.
+
+	Cleanup old code.
+	* dired.c (BSD4_3): Remove all uses, redundant with BSD4_2.
+	* syssignal.h: Remove code for Lynx, not supported anymore.
+	* vm-limit.c: Remove unused code the depends on emacs not being
+	defined and NO_LIM_DATA being defined.
+	* mem-limits.h: Remove dead code.
+
+2010-07-01  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* window.c (Fwindow_absolute_pixel_edges): Doc fix.
+
+	* window.c (calc_absolute_offset, Fwindow_absolute_pixel_edges)
+	(Fwindow_inside_absolute_pixel_edges): New functions (bug#5721).
+
+	* nsfns.m (compute_tip_xy): Do not convert coordinates from frame
+	parameters, they are already absolute.
+
+	* nsterm.m (x_set_window_size, initFrameFromEmacs):
+	Rename FRAME_NS_TOOLBAR_HEIGHT to FRAME_TOOLBAR_HEIGHT.
+
+	* nsterm.h (FRAME_NS_TOOLBAR_HEIGHT): Rename to FRAME_TOOLBAR_HEIGHT.
+
+	* nsmenu.m (update_frame_tool_bar, free_frame_tool_bar):
+	Update FRAME_TOOLBAR_HEIGHT.
+
+	* nsmenu.m (free_frame_tool_bar, update_frame_tool_bar):
+	Add BLOCK/UNBLOCK_INPUT so asserts don't trigger.
+
+2010-06-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.c (get_future_frame_param, Fmake_terminal_frame): Don't
+	check default-frame-alist.
+
+2010-06-30  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* process.c (create_process): Avoid using invalid file descriptors.
+
+	* callproc.c (child_setup): Avoid closing a file descriptor twice.
+
+2010-06-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsettings.c (Ffont_get_system_normal_font, Ffont_get_system_font):
+	Improve documentation.  Return font regardless of use_system_font.
+	(syms_of_xsettings): Improve documentation for font-use-system-font.
+
+2010-07-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfaces.c (realize_face): Garbage the frame if a face is removed
+	(Bug#6593).
+
+2010-07-05  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* keyboard.c: Remove duplicate <setjmp.h>.
+	(read_key_sequence): Remove volatile qualifiers.
+
+2010-07-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispextern.h (FRINGE_HEIGHT_BITS): New define.
+	(struct glyph_row): New members left_fringe_offset and
+	right_fringe_offset.
+
+	* xterm.c (x_draw_fringe_bitmap): Don't clip bottom aligned bitmap
+	specially.
+	* w32term.c (w32_draw_fringe_bitmap): Likewise.
+	* nsterm.m (ns_draw_fringe_bitmap): Likewise.
+
+	* fringe.c (draw_fringe_bitmap_1): Don't clip bitmap here.
+	Take account of bitmap offset.
+	(draw_window_fringes): Take account of window vscroll.
+	(update_window_fringes): Likewise.  Extend top-aligned top indicator
+	or bottom-aligned bottom indicator to adjacent rows if it doesn't fit
+	in one row.  Don't set redraw_fringe_bitmaps_p outside row comparison.
+	Set left_fringe_offset and right_fringe_offset (Bug#5634, Bug#6325).
+
+2010-07-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32fns.c (Qtooltip): Declare.
+	Suggested by Andy Moreton <andrewjmoreton@gmail.com>.
+
+2010-07-03  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (x_activate_menubar): Send Press/Release for Gtk+ to avoid
+	grab on just Press (Bug#6499).
+
+2010-07-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.c (Qtooltip): New var.
+	(delete_frame): Use it.  Fix faulty if statement.  Don't update
+	mode line for tooltip frames.  Suggested by Martin Rudalics.
+
+	* xfns.c (x_create_tip_frame):
+	* w32fns.c (x_create_tip_frame): Use it.
+
+2010-06-17  Naohiro Aota  <naota@elisp.net>  (tiny change)
+
+	* xftfont.c (xftfont_open): Check font width one by one also when
+	spacing is dual.
+
+	* ftfont.c (ftfont_open): Ditto.
+
+2010-06-30  Glenn Morris  <rgm@gnu.org>
+
+	* s/sol2-6.h (INHIBIT_X11R6_XIM): Remove, handled by configure now.
+
+	* Makefile.in (CANNOT_DUMP): Update for configure name change.
+
+	* s/freebsd.h (USE_MMAP_FOR_BUFFERS):
+	* s/irix6-5.h (USE_MMAP_FOR_BUFFERS):
+	* s/darwin.h (SYSTEM_MALLOC):
+	* s/sol2-10.h (SYSTEM_MALLOC): Move to configure.
+
+2010-06-29  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m: extern declare Vmenu_bar_mode, Vtool_bar_mode.
+	(ns_get_screen): Don't assign integer to f.
+	(Fx_display_color_cells): Declarations before statements.
+
+2010-06-28  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (x_default_font_parameter): Remove got_from_system
+	(Bug#6526).
+
+	* xterm.h (gtk_widget_get_window, gtk_widget_get_mapped)
+	(gtk_adjustment_get_page_size, gtk_adjustment_get_upper): New
+	defines based on what configure finds.
+
+	* xterm.c (XTflash): Use gtk_widget_get_window.
+	(xg_scroll_callback): Use gtk_adjustment_get_upper and
+	gtk_adjustment_get_page_size.
+	(handle_one_xevent): Use gtk_widget_get_mapped.
+	(x_term_init): Remove HAVE_GTK_MULTIDISPLAY and associated error
+	messages.
+
+	* xmenu.c (create_and_show_popup_menu): Call gtk_widget_get_mapped.
+
+	* gtkutil.h: Replace HAVE_GTK_FILE_BOTH with
+	HAVE_GTK_FILE_SELECTION_NEW.
+
+	* gtkutil.c (xg_display_open, xg_display_close): Remove
+	HAVE_GTK_MULTIDISPLAY, it is always defined.
+	(xg_display_open): Return type is void.
+	(gtk_widget_set_has_window)
+	(gtk_dialog_get_action_area, gtk_dialog_get_content_area)
+	(gtk_widget_get_sensitive, gtk_adjustment_set_page_size)
+	(gtk_adjustment_set_page_increment)
+	(gtk_adjustment_get_step_increment): #define these if not found
+	by configure.
+	(remove_submenu): New define based on Gtk+ version.
+	(xg_set_cursor, xg_frame_resized, xg_event_is_for_scrollbar): Use
+	gtk_widget_get_window.
+	(xg_frame_resized, xg_update_frame_menubar): Use gtk_widget_get_mapped.
+	(xg_create_frame_widgets): Use gtk_widget_set_has_window.
+	(create_dialog): Use gtk_dialog_get_action_area and
+	gtk_dialog_get_content_area.
+	(xg_uses_old_file_dialog, xg_get_file_name): Remove HAVE_GTK_FILE_BOTH
+	and HAVE_GTK_FILE_CHOOSER_DIALOG_NEW.  File chooser is always
+	available, so checking for HAVE_GTK_FILE_SELECTION_NEW is enough.
+	(xg_update_menubar, xg_update_submenu, xg_show_toolbar_item): Use
+	g_object_ref and g_object_unref.
+	(xg_update_menu_item, xg_tool_bar_menu_proxy): Use
+	gtk_widget_get_sensitive.
+	(xg_update_submenu): Use remove_submenu.
+	(xg_update_scrollbar_pos): Don't use GtkFixedChild, use child
+	properties instead to get old x and y position.
+	(xg_set_toolkit_scroll_bar_thumb): Use gtk_adjustment_get_page_size,
+	gtk_adjustment_get_step_increment, gtk_adjustment_set_page_size,
+	gtk_adjustment_set_step_increment and gtk_adjustment_set_page_increment.
+	(xg_get_tool_bar_widgets): New function.
+	(xg_tool_bar_menu_proxy, xg_show_toolbar_item)
+	(update_frame_tool_bar): Call xg_get_tool_bar_widgets.
+	(toolbar_set_orientation): New #define based on if configure
+	finds gtk_orientable_set_orientation.
+	(xg_create_tool_bar): Call toolbar_set_orientation.
+	(xg_make_tool_item, xg_show_toolbar_item): Call gtk_box_pack_start
+	instead of gtk_box_pack_start_defaults.
+
+2010-06-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cmds.c (Fdelete_backward_char): Move into Lisp.
+
+2010-06-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/freebsd.h (BSD4_2): Remove redundant definition.
+	bsd-common.h defines it already.
+
+2010-06-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfns.c (Fx_create_frame): Don't consult X resouces when setting
+	menu-bar-lines and tool-bar-lines.  Use menu-bar-mode and
+	tool-bar-mode, which are now set using these X resources at
+	startup, to determine the defaults (Bug#2249).
+
+	* w32fns.c (Fx_create_frame):
+	* nsfns.m (Fx_create_frame): Likewise.
+
+	* frame.c (Vmenu_bar_mode, Vtool_bar_mode): New vars.
+
+2010-06-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gtkutil.c (xg_update_scrollbar_pos):
+	Avoid C99 mid-block variable declaration.
+
+2010-06-22  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_scroll_bar_create): Remove call to xg_show_scroll_bar.
+
+	* gtkutil.h (xg_show_scroll_bar): Remove.
+
+	* gtkutil.c (xg_update_scrollbar_pos): Show/hide scroll bar as needed
+	if height is less than scroll bar min size.
+	(xg_show_scroll_bar): Remove, show moved to xg_update_scrollbar_pos.
+
+	* xfns.c (x_default_font_parameter): Try to open font from system
+	before using it (bug#6478).  Rename got_from_gconf to got_from_system.
+
+2010-06-22  Keith Packard  <keithp@keithp.com>  (tiny change)
+
+	* font.c (font_parse_fcname): Allow . for sizes like 7.5 (bug#6437).
+
+2010-06-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (try_scrolling): When scroll-conservatively is set to
+	most-positive-fixnum, be extra accurate when scrolling window
+	start, to avoid missing the cursor line.
+
+2010-06-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (try_scrolling): Compute the limit for searching point
+	in forward scroll from scroll_max, instead of an arbitrary limit
+	of 10 screen lines.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2010-06/msg00766.html
+	and
+	http://lists.gnu.org/archive/html/emacs-devel/2010-06/msg00773.html
+	for details.
+
 2010-06-16  Glenn Morris  <rgm@gnu.org>
 
 	* editfns.c (Fbyte_to_string): Pacify compiler.
@@ -34,6 +1415,30 @@
 	* editfns.c (Fbyte_to_string): Pacify compiler.
 
 	* m/ibms390x.h: Rather than duplicating ibms390.h, just include it.
+
+2010-06-26  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* alloc.c (Fmake_byte_code): Don't access undefined argument
+	(Bug#6517).
+
+2010-06-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (next_element_from_image): Ensure that after-strings are
+	read the next time we hit handle_stop (Bug#1336).
+
+2010-06-23  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* lread.c (read1): Signal error if #s is not followed by paren.
+
+2010-06-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (free_image): Mark frame as garbaged (Bug#6426).
+
+	* keymap.c (Fdefine_key): Doc fix (Bug#6460).
+
+2010-06-15  Glenn Morris  <rgm@gnu.org>
+
+	* editfns.c (Fbyte_to_string): Pacify compiler.
 
 2010-06-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -126,8 +1531,8 @@
 
 2010-06-03  Andreas Schwab  <schwab@linux-m68k.org>
 
-	* process.c (conv_lisp_to_sockaddr): Fix conversion of IPv4
-	address.  (Bug#6346)
+	* process.c (conv_lisp_to_sockaddr): Fix conversion of IPv4 address.
+	(Bug#6346)
 
 2010-06-03  Juanma Barranquero  <lekktu@gmail.com>
 

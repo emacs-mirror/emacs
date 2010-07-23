@@ -38,7 +38,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
    would necessitate including windows.h in the files that used it.
    This is much easier.  */
 void
-sleep(unsigned long seconds)
+sleep (unsigned long seconds)
 {
   Sleep (seconds * 1000);
 }
@@ -56,7 +56,7 @@ static HANDLE getppid_parent;
 static int    getppid_ppid;
 
 int
-getppid(void)
+getppid (void)
 {
   char *ppid;
   DWORD result;
@@ -64,7 +64,7 @@ getppid(void)
   ppid = getenv ("EM_PARENT_PROCESS_ID");
   if (!ppid)
     {
-      printf("no pid.\n");
+      printf ("no pid.\n");
       return 0;
     }
   else
@@ -74,11 +74,11 @@ getppid(void)
 
   if (!getppid_parent)
     {
-      getppid_parent = OpenProcess (SYNCHRONIZE, FALSE, atoi(ppid));
+      getppid_parent = OpenProcess (SYNCHRONIZE, FALSE, atoi (ppid));
       if (!getppid_parent)
 	{
 	  printf ("Failed to open handle to parent process: %d\n",
-		 GetLastError());
+		 GetLastError ());
 	  exit (1);
 	}
     }
@@ -94,13 +94,13 @@ getppid(void)
       return 1;
     case WAIT_FAILED:
     default:
-      printf ("Checking parent status failed: %d\n", GetLastError());
+      printf ("Checking parent status failed: %d\n", GetLastError ());
       exit (1);
     }
 }
 
 char *
-getlogin ()
+getlogin (void)
 {
   static char user_name[256];
   DWORD  length = sizeof (user_name);
@@ -120,19 +120,19 @@ cuserid (char * s)
 }
 
 unsigned
-getuid ()
+getuid (void)
 {
   return 0;
 }
 
 unsigned
-getgid ()
+getgid (void)
 {
   return 0;
 }
 
 unsigned
-getegid ()
+getegid (void)
 {
   return 0;
 }
@@ -219,7 +219,7 @@ sys_ctime (const time_t *t)
 }
 
 FILE *
-sys_fopen(const char * path, const char * mode)
+sys_fopen (const char * path, const char * mode)
 {
   return fopen (path, mode);
 }

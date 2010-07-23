@@ -965,6 +965,7 @@ $(BLD)/keyboard.$(O) : \
 	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h \
 	$(SRC)/macros.h \
+	$(SRC)/process.h \
 	$(SRC)/puresize.h \
 	$(SRC)/syntax.h \
 	$(SRC)/syssignal.h \

@@ -26,6 +26,7 @@ Boston, MA 02110-1301, USA.  */
 
 #include <stdio.h>
 #include <setjmp.h>
+#include <ctype.h>
 
 #include "../src/lisp.h"
 
@@ -70,81 +71,18 @@ struct widget_xft_data
 
 #endif
 
-static void xaw_generic_callback (/*Widget, XtPointer, XtPointer*/);
+static void xaw_generic_callback (Widget widget,
+                                  XtPointer closure,
+                                  XtPointer call_data);
 
 
 Boolean
-lw_xaw_widget_p (widget)
-     Widget widget;
+lw_xaw_widget_p (Widget widget)
 {
   return (XtIsSubclass (widget, scrollbarWidgetClass) ||
 	  XtIsSubclass (widget, dialogWidgetClass));
 }
 
-#if 0
-static void
-xaw_update_scrollbar (instance, widget, val)
-     widget_instance *instance;
-     Widget widget;
-     widget_value *val;
-{
-  if (val->scrollbar_data)
-    {
-      scrollbar_values *data = val->scrollbar_data;
-      Dimension height, width;
-      Dimension pos_x, pos_y;
-      int widget_shown, widget_topOfThumb;
-      float new_shown, new_topOfThumb;
-
-      XtVaGetValues (widget,
-		     XtNheight, &height,
-		     XtNwidth, &width,
-		     XtNx, &pos_x,
-		     XtNy, &pos_y,
-		     XtNtopOfThumb, &widget_topOfThumb,
-		     XtNshown, &widget_shown,
-		     NULL);
-
-      /*
-       * First size and position the scrollbar widget.
-       * We need to position it to second-guess the Paned widget's notion
-       * of what should happen when the WMShell gets resized.
-       */
-      if (height != data->scrollbar_height || pos_y != data->scrollbar_pos)
-	{
-	  XtConfigureWidget (widget, pos_x, data->scrollbar_pos,
-			     width, data->scrollbar_height, 0);
-
-	  XtVaSetValues (widget,
-			 XtNlength, data->scrollbar_height,
-			 XtNthickness, width,
-			 NULL);
-	}
-
-      /*
-       * Now the size the scrollbar's slider.
-       */
-      new_shown = (float) data->slider_size /
-	(float) (data->maximum - data->minimum);
-
-      new_topOfThumb = (float) (data->slider_position - data->minimum) /
-	(float) (data->maximum - data->minimum);
-
-      if (new_shown > 1.0)
-	new_shown = 1.0;
-      if (new_shown < 0)
-	new_shown = 0;
-
-      if (new_topOfThumb > 1.0)
-	new_topOfThumb = 1.0;
-      if (new_topOfThumb < 0)
-	new_topOfThumb = 0;
-
-      if (new_shown != widget_shown || new_topOfThumb != widget_topOfThumb)
-	XawScrollbarSetThumb (widget, new_topOfThumb, new_shown);
-    }
-}
-#endif
 
 #ifdef HAVE_XFT
 static void
@@ -152,7 +90,6 @@ fill_xft_data (struct widget_xft_data *data, Widget widget, XftFont *font)
 {
   Pixel bg, fg;
   XColor colors[2];
-  int screen = XScreenNumberOfScreen (XtScreen (widget));
 
   data->widget = widget;
   data->xft_font = font;
@@ -253,7 +190,9 @@ draw_text (struct widget_xft_data *data, char *lbl, int inverse)
       char *cp = strchr (bp, '\n');
       XftDrawStringUtf8 (data->xft_draw,
                          inverse ? &data->xft_bg : &data->xft_fg,
-                         data->xft_font, x, y, bp, cp ? cp - bp : strlen (bp));
+                         data->xft_font, x, y,
+                         (FcChar8 *) bp,
+                         cp ? cp - bp : strlen (bp));
       bp = cp ? cp + 1 : NULL;
       /* 1.2 gives reasonable line spacing.  */
       y += data->xft_font->height * 1.2;
@@ -265,7 +204,6 @@ draw_text (struct widget_xft_data *data, char *lbl, int inverse)
 static void
 set_text (struct widget_xft_data *data, Widget toplevel, char *lbl, int margin)
 {
-  int screen = XScreenNumberOfScreen (XtScreen (data->widget));
   int width, height;
 
   width = get_text_width_and_height (data->widget, lbl, data->xft_font,
@@ -294,7 +232,7 @@ find_xft_data (Widget widget)
       inst = lw_get_widget_instance (parent);
       parent = XtParent (parent);
     }
-  if (!inst || !inst->xft_data || !inst->xft_data[0].xft_font) return;
+  if (!inst || !inst->xft_data || !inst->xft_data[0].xft_font) return 0;
 
   for (nr = 0; data == NULL && nr < inst->nr_xft_data; ++nr) 
     {
@@ -325,9 +263,9 @@ command_press (Widget widget,
 
 static void
 command_reset (Widget widget,
-                 XEvent* event,
-                 String *params,
-                 Cardinal *num_params)
+               XEvent* event,
+               String *params,
+               Cardinal *num_params)
 {
   struct widget_xft_data *data = find_xft_data (widget);
   if (data) 
@@ -348,23 +286,11 @@ command_reset (Widget widget,
 #endif
 
 void
-#ifdef PROTOTYPES
-xaw_update_one_widget (widget_instance *instance, Widget widget,
-		       widget_value *val, Boolean deep_p)
-#else
-xaw_update_one_widget (instance, widget, val, deep_p)
-     widget_instance *instance;
-     Widget widget;
-     widget_value *val;
-     Boolean deep_p;
-#endif
+xaw_update_one_widget (widget_instance *instance,
+                       Widget widget,
+		       widget_value *val,
+                       Boolean deep_p)
 {
-#if 0
-  if (XtIsSubclass (widget, scrollbarWidgetClass))
-    {
-      xaw_update_scrollbar (instance, widget, val);
-    }
-#endif
   if (XtIsSubclass (widget, dialogWidgetClass))
     {
 
@@ -427,10 +353,9 @@ xaw_update_one_widget (instance, widget, val, deep_p)
 }
 
 void
-xaw_update_one_value (instance, widget, val)
-     widget_instance *instance;
-     Widget widget;
-     widget_value *val;
+xaw_update_one_value (widget_instance *instance,
+                      Widget widget,
+                      widget_value *val)
 {
   /* This function is not used by the scrollbars and those are the only
      Athena widget implemented at the moment so do nothing. */
@@ -438,8 +363,7 @@ xaw_update_one_value (instance, widget, val)
 }
 
 void
-xaw_destroy_instance (instance)
-     widget_instance *instance;
+xaw_destroy_instance (widget_instance *instance)
 {
 #ifdef HAVE_XFT
   if (instance->xft_data) 
@@ -471,22 +395,14 @@ xaw_destroy_instance (instance)
 }
 
 void
-xaw_popup_menu (widget, event)
-     Widget widget;
-     XEvent *event;
+xaw_popup_menu (Widget widget, XEvent *event)
 {
   /* An Athena menubar has not been implemented. */
   return;
 }
 
 void
-#ifdef PROTOTYPES
 xaw_pop_instance (widget_instance *instance, Boolean up)
-#else
-xaw_pop_instance (instance, up)
-     widget_instance *instance;
-     Boolean up;
-#endif
 {
   Widget widget = instance->widget;
 
@@ -557,7 +473,10 @@ static char overrideTrans[] =
 /* Dialogs pop down on any key press */
 static char dialogOverride[] =
        "<KeyPress>Escape:	lwlib_delete_dialog()";
-static void wm_delete_window();
+static void wm_delete_window (Widget w,
+                              XEvent *event,
+                              String *params,
+                              Cardinal *num_params);
 static XtActionsRec xaw_actions [] = {
   {"lwlib_delete_dialog", wm_delete_window}
 };
@@ -576,19 +495,17 @@ char buttonTrans[] =
 #endif
 
 static Widget
-make_dialog (name, parent, pop_up_p, shell_title, icon_name, text_input_slot,
-             radio_box, list, left_buttons, right_buttons, instance)
-     char* name;
-     Widget parent;
-     Boolean pop_up_p;
-     char* shell_title;
-     char* icon_name;
-     Boolean text_input_slot;
-     Boolean radio_box;
-     Boolean list;
-     int left_buttons;
-     int right_buttons;
-     widget_instance *instance;
+make_dialog (char* name,
+             Widget parent,
+             Boolean pop_up_p,
+             char* shell_title,
+             char* icon_name,
+             Boolean text_input_slot,
+             Boolean radio_box,
+             Boolean list,
+             int left_buttons,
+             int right_buttons,
+             widget_instance *instance)
 {
   Arg av [20];
   int ac = 0;
@@ -748,8 +665,7 @@ make_dialog (name, parent, pop_up_p, shell_title, icon_name, text_input_slot,
 }
 
 Widget
-xaw_create_dialog (instance)
-     widget_instance* instance;
+xaw_create_dialog (widget_instance *instance)
 {
   char *name = instance->info->type;
   Widget parent = instance->parent;
@@ -813,10 +729,7 @@ xaw_create_dialog (instance)
 
 
 static void
-xaw_generic_callback (widget, closure, call_data)
-     Widget widget;
-     XtPointer closure;
-     XtPointer call_data;
+xaw_generic_callback (Widget widget, XtPointer closure, XtPointer call_data)
 {
   widget_instance *instance = (widget_instance *) closure;
   Widget instance_widget;
@@ -836,10 +749,6 @@ xaw_generic_callback (widget, closure, call_data)
 
   id = instance->info->id;
 
-#if 0
-  user_data = NULL;
-  XtVaGetValues (widget, XtNuserData, &user_data, NULL);
-#else
   /* Damn!  Athena doesn't give us a way to hang our own data on the
      buttons, so we have to go find it...  I guess this assumes that
      all instances of a button have the same call data. */
@@ -855,23 +764,22 @@ xaw_generic_callback (widget, closure, call_data)
     if (! val) abort ();
     user_data = val->call_data;
   }
-#endif
 
   if (instance->info->selection_cb)
     instance->info->selection_cb (widget, id, user_data);
 }
 
 static void
-wm_delete_window (w, closure, call_data)
-     Widget w;
-     XtPointer closure;
-     XtPointer call_data;
+wm_delete_window (Widget w,
+                  XEvent *event,
+                  String *params,
+                  Cardinal *num_params)
 {
   LWLIB_ID id;
   Cardinal nkids;
   int i;
   Widget *kids = 0;
-  Widget widget, shell;
+  Widget widget = 0, shell;
 
   if (XtIsSubclass (w, dialogWidgetClass))
     shell = XtParent (w);
@@ -890,6 +798,8 @@ wm_delete_window (w, closure, call_data)
       if (XtIsSubclass (widget, dialogWidgetClass))
 	break;
     }
+  if (! widget) return;
+
   id = lw_get_widget_id (widget);
   if (! id) abort ();
 
@@ -904,111 +814,9 @@ wm_delete_window (w, closure, call_data)
 }
 
 
-/* Scrollbars */
-
-#if 0
-static void
-xaw_scrollbar_scroll (widget, closure, call_data)
-     Widget widget;
-     XtPointer closure;
-     XtPointer call_data;
-{
-  widget_instance *instance = (widget_instance *) closure;
-  LWLIB_ID id;
-  scroll_event event_data;
-
-  if (!instance || widget->core.being_destroyed)
-    return;
-
-  id = instance->info->id;
-  event_data.slider_value = 0;
-  event_data.time = 0;
-
-  if ((int) call_data > 0)
-    event_data.action = SCROLLBAR_PAGE_DOWN;
-  else
-    event_data.action = SCROLLBAR_PAGE_UP;
-
-  if (instance->info->pre_activate_cb)
-    instance->info->pre_activate_cb (widget, id, (XtPointer) &event_data);
-}
-#endif
-
-#if 0
-static void
-xaw_scrollbar_jump (widget, closure, call_data)
-     Widget widget;
-     XtPointer closure;
-     XtPointer call_data;
-{
-  widget_instance *instance = (widget_instance *) closure;
-  LWLIB_ID id;
-  scroll_event event_data;
-  scrollbar_values *val =
-    (scrollbar_values *) instance->info->val->scrollbar_data;
-  float percent;
-
-  if (!instance || widget->core.being_destroyed)
-    return;
-
-  id = instance->info->id;
-
-  percent = * (float *) call_data;
-  event_data.slider_value =
-    (int) (percent * (float) (val->maximum - val->minimum)) + val->minimum;
-
-  event_data.time = 0;
-  event_data.action = SCROLLBAR_DRAG;
-
-  if (instance->info->pre_activate_cb)
-    instance->info->pre_activate_cb (widget, id, (XtPointer) &event_data);
-}
-#endif
 
 static Widget
-xaw_create_scrollbar (instance)
-     widget_instance *instance;
-{
-#if 0
-  Arg av[20];
-  int ac = 0;
-  Dimension width;
-  Widget scrollbar;
-
-  XtVaGetValues (instance->parent, XtNwidth, &width, NULL);
-
-  XtSetArg (av[ac], XtNshowGrip, 0); ac++;
-  XtSetArg (av[ac], XtNresizeToPreferred, 1); ac++;
-  XtSetArg (av[ac], XtNallowResize, True); ac++;
-  XtSetArg (av[ac], XtNskipAdjust, True); ac++;
-  XtSetArg (av[ac], XtNwidth, width); ac++;
-  XtSetArg (av[ac], XtNmappedWhenManaged, True); ac++;
-
-  scrollbar =
-    XtCreateWidget (instance->info->name, scrollbarWidgetClass,
-		    instance->parent, av, ac);
-
-  /* We have to force the border width to be 0 otherwise the
-     geometry manager likes to start looping for awhile... */
-  XtVaSetValues (scrollbar, XtNborderWidth, 0, NULL);
-
-  XtRemoveAllCallbacks (scrollbar, "jumpProc");
-  XtRemoveAllCallbacks (scrollbar, "scrollProc");
-
-  XtAddCallback (scrollbar, "jumpProc", xaw_scrollbar_jump,
-		 (XtPointer) instance);
-  XtAddCallback (scrollbar, "scrollProc", xaw_scrollbar_scroll,
-		 (XtPointer) instance);
-
-  return scrollbar;
-#else
-  return NULL;
-#endif
-}
-
-static Widget
-xaw_create_main (instance)
-     widget_instance *instance;
+xaw_create_main (widget_instance *instance)
 {
   Arg al[1];
   int ac;
@@ -1023,7 +831,6 @@ xaw_create_main (instance)
 widget_creation_entry
 xaw_creation_table [] =
 {
-  {"scrollbar",			xaw_create_scrollbar},
   {"main",			xaw_create_main},
   {NULL, NULL}
 };

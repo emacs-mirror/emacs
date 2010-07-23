@@ -40,7 +40,7 @@ static char time_string[30];
 /* Reset the stopwatch to zero.  */
 
 void
-reset_watch ()
+reset_watch (void)
 {
   EMACS_GET_TIME (TV1);
   watch_not_started = 0;
@@ -51,7 +51,7 @@ reset_watch ()
    If reset_watch was not called yet, exit.  */
 
 char *
-get_time ()
+get_time (void)
 {
   if (watch_not_started)
     exit (EXIT_FAILURE);  /* call reset_watch first ! */
@@ -79,7 +79,7 @@ gettimeofday (tp, tzp)
 #endif
 
 int
-main ()
+main (void)
 {
   int c;
   while ((c = getchar ()) != EOF)

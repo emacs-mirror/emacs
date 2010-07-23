@@ -122,13 +122,13 @@ struct region_cache {
    preserve that information, instead of throwing it away.  */
 #define PRESERVE_THRESHOLD (500)
 
-static void revalidate_region_cache ();
+static void revalidate_region_cache (struct buffer *buf, struct region_cache *c);
 
 
 /* Interface: Allocating, initializing, and disposing of region caches.  */
 
 struct region_cache *
-new_region_cache ()
+new_region_cache (void)
 {
   struct region_cache *c
     = (struct region_cache *) xmalloc (sizeof (struct region_cache));
@@ -156,8 +156,7 @@ new_region_cache ()
 }
 
 void
-free_region_cache (c)
-     struct region_cache *c;
+free_region_cache (struct region_cache *c)
 {
   xfree (c->boundaries);
   xfree (c);
@@ -174,9 +173,7 @@ free_region_cache (c)
    entries.  It would be nice if it took advantage of locality of
    reference, too, by searching entries near the last entry found.  */
 static int
-find_cache_boundary (c, pos)
-     struct region_cache *c;
-     int pos;
+find_cache_boundary (struct region_cache *c, int pos)
 {
   int low = 0, high = c->cache_len;
 
@@ -210,10 +207,7 @@ find_cache_boundary (c, pos)
 /* Move the gap of cache C to index POS, and make sure it has space
    for at least MIN_SIZE boundaries.  */
 static void
-move_cache_gap (c, pos, min_size)
-     struct region_cache *c;
-     int pos;
-     int min_size;
+move_cache_gap (struct region_cache *c, int pos, int min_size)
 {
   /* Copy these out of the cache and into registers.  */
   int gap_start = c->gap_start;
@@ -298,10 +292,7 @@ move_cache_gap (c, pos, min_size)
 /* Insert a new boundary in cache C; it will have cache index INDEX,
    and have the specified POS and VALUE.  */
 static void
-insert_cache_boundary (c, index, pos, value)
-     struct region_cache *c;
-     int index;
-     int pos, value;
+insert_cache_boundary (struct region_cache *c, int index, int pos, int value)
 {
   /* index must be a valid cache index.  */
   if (index < 0 || index > c->cache_len)
@@ -337,9 +328,7 @@ insert_cache_boundary (c, index, pos, value)
 /* Delete the i'th entry from cache C if START <= i < END.  */
 
 static void
-delete_cache_boundaries (c, start, end)
-     struct region_cache *c;
-     int start, end;
+delete_cache_boundaries (struct region_cache *c, int start, int end)
 {
   int len = end - start;
 
@@ -391,10 +380,7 @@ delete_cache_boundaries (c, start, end)
 
 /* Set the value in cache C for the region START..END to VALUE.  */
 static void
-set_cache_region (c, start, end, value)
-     struct region_cache *c;
-     int start, end;
-     int value;
+set_cache_region (struct region_cache *c, int start, int end, int value)
 {
   if (start > end)
     abort ();
@@ -495,10 +481,7 @@ set_cache_region (c, start, end, value)
    buffer positions in the presence of insertions and deletions; the
    args to pass are the same before and after such an operation.)  */
 void
-invalidate_region_cache (buf, c, head, tail)
-     struct buffer *buf;
-     struct region_cache *c;
-     int head, tail;
+invalidate_region_cache (struct buffer *buf, struct region_cache *c, int head, int tail)
 {
   /* Let chead = c->beg_unchanged, and
          ctail = c->end_unchanged.
@@ -576,9 +559,7 @@ invalidate_region_cache (buf, c, head, tail)
    the cache, and causes cache gap motion.  */
 
 static void
-revalidate_region_cache (buf, c)
-     struct buffer *buf;
-     struct region_cache *c;
+revalidate_region_cache (struct buffer *buf, struct region_cache *c)
 {
   /* The boundaries now in the cache are expressed relative to the
      buffer_beg and buffer_end values stored in the cache.  Now,
@@ -706,10 +687,7 @@ revalidate_region_cache (buf, c)
    buffer positions) is "known," for the purposes of CACHE (e.g. "has
    no newlines", in the case of the line cache).  */
 void
-know_region_cache (buf, c, start, end)
-     struct buffer *buf;
-     struct region_cache *c;
-     int start, end;
+know_region_cache (struct buffer *buf, struct region_cache *c, int start, int end)
 {
   revalidate_region_cache (buf, c);
 
@@ -723,11 +701,7 @@ know_region_cache (buf, c, start, end)
    the purposes of CACHE.  If NEXT is non-zero, set *NEXT to the nearest
    position after POS where the knownness changes.  */
 int
-region_cache_forward (buf, c, pos, next)
-     struct buffer *buf;
-     struct region_cache *c;
-     int pos;
-     int *next;
+region_cache_forward (struct buffer *buf, struct region_cache *c, int pos, int *next)
 {
   revalidate_region_cache (buf, c);
 
@@ -762,11 +736,7 @@ region_cache_forward (buf, c, pos, next)
 /* Return true if the text immediately before POS in BUF is known, for
    the purposes of CACHE.  If NEXT is non-zero, set *NEXT to the nearest
    position before POS where the knownness changes.  */
-int region_cache_backward (buf, c, pos, next)
-     struct buffer *buf;
-     struct region_cache *c;
-     int pos;
-     int *next;
+int region_cache_backward (struct buffer *buf, struct region_cache *c, int pos, int *next)
 {
   revalidate_region_cache (buf, c);
 
@@ -804,8 +774,7 @@ int region_cache_backward (buf, c, pos, next)
 /* Debugging: pretty-print a cache to the standard error output.  */
 
 void
-pp_cache (c)
-     struct region_cache *c;
+pp_cache (struct region_cache *c)
 {
   int i;
   int beg_u = c->buffer_beg + c->beg_unchanged;

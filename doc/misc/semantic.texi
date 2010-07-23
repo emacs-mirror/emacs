@@ -43,7 +43,7 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* Semantic: (semantic).      Source code parser library and utilities.
+* Semantic: (semantic).         Source code parser library and utilities.
 @end direntry
 
 @titlepage
@@ -224,8 +224,8 @@ grammar developers; it is useful mostly for the hackers who would like
 to learn more about how @semantic{} works.
 
 @menu
-* Parser code ::	  Code used for the parsers
-* Tag handling ::	  Code used for manipulating tags
+* Parser code ::          Code used for the parsers
+* Tag handling ::         Code used for manipulating tags
 * Semanticdb Internals :: Code used in the semantic database
 * Analyzer Internals ::   Code used in the code analyzer
 * Tools ::                Code used in user tools

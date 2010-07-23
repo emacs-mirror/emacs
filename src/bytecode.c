@@ -281,7 +281,7 @@ struct byte_stack *byte_stack_list;
 /* Mark objects on byte_stack_list.  Called during GC.  */
 
 void
-mark_byte_stack ()
+mark_byte_stack (void)
 {
   struct byte_stack *stack;
   Lisp_Object *obj;
@@ -310,7 +310,7 @@ mark_byte_stack ()
    counters.  Called when GC has completed.  */
 
 void
-unmark_byte_stack ()
+unmark_byte_stack (void)
 {
   struct byte_stack *stack;
 
@@ -418,9 +418,7 @@ according to which any remaining arguments are pushed on the stack
 before executing BYTESTR.
 
 usage: (byte-code BYTESTR VECTOR MAXDEP &optional ARGS-TEMPLATE &rest ARGS) */)
-     (nargs, args)
-     int nargs;
-     Lisp_Object *args;
+     (int nargs, Lisp_Object *args)
 {
   Lisp_Object args_tmpl = nargs >= 4 ? args[3] : Qnil;
   int pnargs = nargs >= 4 ? nargs - 4 : 0;
@@ -437,10 +435,8 @@ usage: (byte-code BYTESTR VECTOR MAXDEP &optional ARGS-TEMPLATE &rest ARGS) */)
    executing BYTESTR.  */
 
 Lisp_Object
-exec_byte_code (bytestr, vector, maxdepth, args_template, nargs, args)
-     Lisp_Object bytestr, vector, maxdepth, args_template;
-     int nargs;
-     Lisp_Object *args;
+exec_byte_code (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth,
+		Lisp_Object args_template, int nargs, Lisp_Object *args)
 {
   int count = SPECPDL_INDEX ();
 #ifdef BYTE_CODE_METER
@@ -1794,7 +1790,7 @@ exec_byte_code (bytestr, vector, maxdepth, args_template, nargs, args)
 }
 
 void
-syms_of_bytecode ()
+syms_of_bytecode (void)
 {
   Qbytecode = intern_c_string ("byte-code");
   staticpro (&Qbytecode);

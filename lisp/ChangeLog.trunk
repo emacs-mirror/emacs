@@ -1,3 +1,641 @@
+2010-07-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* custom.el (custom-declare-variable): Give a clearer error message
+	when the docstring is missing (bug#6476).
+
+2010-07-22  Michael R. Mauger  <mmaug@yahoo.com>
+
+	* progmodes/sql.el: Version 2.4.  Improved Login prompting.
+	(sql-login-params): New widget definition.
+	(sql-oracle-login-params, sql-mysql-login-params)
+	(sql-solid-login-params, sql-sybase-login-params)
+	(sql-informix-login-params, sql-ingres-login-params)
+	(sql-ms-login-params, sql-postgres-login-params)
+	(sql-interbase-login-params, sql-db2-login-params)
+	(sql-linter-login-params): Use it.
+	(sql-sqlite-login-params): Use it; Define "database" parameter as
+	a file name.
+	(sql-sqlite-program): Change to "sqlite3"
+	(sql-comint-sqlite): Make sure database name is complete.
+	(sql-for-each-login): New function.
+	(sql-connect, sql-save-connection): Use it.
+	(sql-get-login-ext): New function.
+	(sql-get-login): Use it.
+	(sql-make-alternate-buffer-name): Handle :file parameters.
+
+2010-07-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dired.el (dired-no-confirm): Document value t and fix defcustom to
+	accept it (bug#6597).  Suggested by Drew Adams <drew.adams@oracle.com>.
+
+2010-07-22  Teemu Likonen  <tlikonen@iki.fi>  (tiny change)
+
+	* dired.el (dired-mode-map): Use command remapping (bug#6632).
+
+2010-07-22  Lawrence Mitchell  <wence@gmx.li>
+
+	* term/vt100.el (vt100-wide-mode): Fix :init-value keyword (bug#6620).
+
+2010-07-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-get-ls-command)
+	(tramp-get-ls-command-with-dired): Run tests on "/dev/null"
+	instead of "/".
+
+2010-07-20  Michael R. Mauger  <mmaug@yahoo.com>
+
+	* progmodes/sql.el: Version 2.3.
+	(sql-connection-alist): Changed keys from symbols to strings;
+	enhanced the widget definition.
+	(sql-mode-menu): Added submenu to select connections.
+	(sql-interactive-mode-menu): Added "Save Connection" item.
+	(sql-add-product): Fixed menu item.
+	(sql-get-product-feature): Improved error handling.
+	(sql--alt-buffer-part, sql--alt-if-not-empty): Removed.
+	(sql-make-alternate-buffer-name): Simplified.
+	(sql-product-interactive): Handle missing product.
+	(sql-connect): Support string keys, minor improvements.
+	(sql-save-connection): New function.
+	(sql-connection-menu-filter): New function.
+
+2010-07-20  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-file-name-handler): Trace 'quit.
+	(tramp-open-connection-setup-interactive-shell): Apply
+	workaround for IRIX64 bug.  Move argument of last
+	`tramp-send-command' where it belongs to.
+
+2010-07-20  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-perl-file-attributes)
+	(tramp-perl-directory-files-and-attributes): Don't pass "$3".
+	(tramp-maybe-open-connection): Use `async-args' and `gw-args' in
+	front of `login-args'.
+
+2010-07-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* time.el (display-time-world-mode): Define with `define-derived-mode'.
+	Set `show-trailing-whitespace' to nil.
+	(display-time-world-display): Simplify.
+
+2010-07-18  Alan Mackenzie  <acm@muc.de>
+
+	Enhance `c-file-style' in file/directory local variables.
+	* progmodes/cc-mode.el (c-count-cfss): New function.
+	(c-before-hack-hook): Call `c-set-style' differently according to
+	whether c-file-style was set in file or directory local
+	variables.
+
+2010-07-18  Michael R. Mauger  <mmaug@yahoo.com>
+
+	* progmodes/sql.el: Version 2.2.
+	(sql-product, sql-user, sql-database, sql-server, sql-port): Use
+	defcustom :safe keyword rather than putting safe-local-variable
+	property.
+	(sql-password): Use defcustom :risky keyword rather than putting
+	risky-local-variable property.
+	(sql-oracle-login-params, sql-sqlite-login-params)
+	(sql-solid-login-params, sql-sybase-login-params)
+	(sql-informix-login-params, sql-ingres-login-params)
+	(sql-ms-login-params, sql-postgres-login-params)
+	(sql-interbase-login-params, sql-db2-login-params)
+	(sql-linter-login-params): Add `port' option
+	(sql-get-product-feature): Added NO-INDIRECT parameter.
+	(sql-comint-oracle, sql-comint-sybase)
+	(sql-comint-informix, sql-comint-sqlite, sql-comint-mysql)
+	(sql-comint-solid, sql-comint-ingres, sql-comint-ms)
+	(sql-comint-postgres, sql-comint-interbase, sql-comint-db2)
+	(sql-comint-linter): Renamed sql-connect-* functions to
+	sql-comint-*.
+	(sql-product-alist, sql-mode-menu): Renamed as above and
+	:sqli-connect-func to :sqli-comint-func.
+	(sql-connection): New variable
+	(sql-interactive-mode): Set it.
+	(sql-connection-alist): New variable.
+	(sql-connect): New function.
+	(sql--alt-buffer-part, sql--alt-if-not-empty)
+	(sql-make-alternate-buffer-name): Improved alternative buffer name.
+
+2010-07-17  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* image-mode.el (image-bookmark-make-record): Do not set context
+	in an image (Bug#6650).
+
+2010-07-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (select-active-region): New function.
+	(push-mark-command, set-mark, activate-mark)
+	(handle-shift-selection): Use it.
+	(deactivate-mark): Don't check for size of region.
+
+	* mouse.el (mouse-drag-track): Use select-active-region.
+
+2010-07-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-get-ls-command-with-dired): Make test for
+	"--dired" stronger.
+
+2010-07-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* term/x-win.el (x-select-enable-primary): Change default to nil.
+	(x-select-enable-clipboard): Add :version keyword.
+
+	* mouse.el (mouse-drag-copy-region):
+	* simple.el (select-active-regions): Likewise.
+
+2010-07-16  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* vc/vc.el (vc-coding-system-inherit-eol): New defvar.
+	(vc-coding-system-for-diff): Use it to decide whether to inherit
+	from the file the EOL format for reading the diffs of that file.
+	(Bug#4451)
+
+2010-07-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmailmm.el (rmail-mime-save): Make the temp buffer
+	unibyte, so compressed attachments are not compressed again.
+
+2010-07-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-shell-command): Don't use hard-wired
+	"/bin/sh" but `tramp-remote-sh' from `tramp-methods'.
+	(tramp-find-shell): Simplify setting connection property.
+	(tramp-get-ls-command): Make test for "--color=never" stronger.
+
+2010-07-15  Simon South  <ssouth@member.fsf.org>
+
+	* progmodes/delphi.el (delphi-previous-indent-of): Indent case
+	blocks within record declarations (i.e. variant parts) correctly.
+
+2010-07-15  Simon South  <ssouth@member.fsf.org>
+
+	* progmodes/delphi.el (delphi-token-at): Give newlines precedence
+	over literal tokens when parsing so newlines aren't "absorbed" by
+	single-line comments.  Corrects the indentation of case blocks
+	that have a comment on the first line.
+
+2010-07-14  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el (bookmark-load-hook): Fix doc string as suggested
+	by Drew Adams (Bug#5504).
+
+2010-07-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xt-mouse.el (xterm-mouse-event-read): Fix for characters > 127
+	now that Unicode is used (Bug#6594).
+
+2010-07-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* term/x-win.el (x-select-enable-clipboard): Default to t.
+	(x-initialize-window-system): Don't overwrite Paste menu item.
+
+	* simple.el (select-active-regions): Default to t.
+	(push-mark-command): Don't overwrite primary with empty string.
+
+	* mouse.el: Bind mouse-2 to mouse-yank-primary.
+	(mouse-drag-copy-region): Default to nil.
+
+	* menu-bar.el (menu-bar-enable-clipboard): Don't overwrite
+	Cut/Copy/Paste menu bar items.
+
+2010-07-13  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	Allow C-w when setting a bookmark in a Gnus Article buffer (Bug#5975).
+	Patch applied by Karl Fogel.
+
+	* bookmark.el (bookmark-set): Don't set `bookmark-yank-point'
+	and `bookmark-current-buffer' if they have been already set in
+	another buffer (e.g gnus-art).
+
+2010-07-13  Karl Fogel  <kfogel@red-bean.com>
+            Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	Preparation for setting bookmarks in Gnus article buffers (Bug#5975).
+
+	* bookmark.el (bookmark-make-record-default): Allow unneeded
+	information to be omitted from the record.
+
+	Adjust declarations and calls:
+
+	* info.el (bookmark-make-record-default): Adjust declaration.
+	(Info-bookmark-make-record): Adjust call.
+
+	* woman.el (bookmark-make-record-default): Adjust declaration.
+	(woman-bookmark-make-record): Adjust call.
+
+	* man.el (bookmark-make-record-default): Adjust declaration.
+	(Man-bookmark-make-record): Adjust call.
+
+	* image-mode.el (bookmark-make-record-default): Adjust declaration.
+
+	* doc-view.el (bookmark-make-record-default): Adjust declaration.
+
+2010-07-13  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el (bookmark-show-annotation): Use `when' instead of `if'.
+	This is also from Thierry Volpiatto's patch in bug #6444.  However,
+	because it was extraneous to the functional change in that patch,
+	and causes a re-indendation, I am committing it separately.
+
+2010-07-13  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	* bookmark.el (bookmark-show-annotation): Ensure annotations show,
+	e.g. in Info bookmarks, by using `switch-to-buffer-other-window'.
+	Patch applied by Karl Fogel (Bug#6444).
+
+2010-07-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.el (make-frame): Fix typo in 2010-06-30 change (Bug#6625).
+
+2010-07-13  Adrian Robert  <Adrian.B.Robert@gmail.com>
+
+	* term/ns-win.el: Bind M-~ to 'ns-prev-frame (due to Matthew
+	Dempsky; bug#5084).  Remove incorrect binding for S-tab.
+	(ns-alternatives-map): Change S-tab binding to backtab
+	(bug#6616).
+
+	* simple.el (normal-erase-is-backspace-setup-frame): Set mode on
+	under ns.
+
+2010-07-12  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* language/tai-viet.el ("TaiViet"): Try to fix re-encoding bugs.
+	(Bug#5806)
+
+	* language/tv-util.el (tai-viet-re): Remove format.
+
+2010-07-12  Kenichi Handa  <handa@m17n.org>
+
+	* language/hebrew.el: Remove no-byte-compile declaration.
+	Change coding: tag to utf-8.  Register hebrew-shape-gstring in
+	composition-function-table for 3-character looking back.
+	(hebrew-font-get-precomposed): New function.
+	(hebrew-shape-gstring): Utilize precomposed glyphs if available.
+
+2010-07-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse.el (mouse-drag-track): Handle select-active-regions
+	(Bug#6612).
+
+2010-07-11  Magnus Henoch  <magnus.henoch@gmail.com>
+
+	* net/tramp-gvfs.el (tramp-gvfs-handle-copy-file): Do not pass
+	empty argument to gvfs-copy.
+
+2010-07-10  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (calendar-week-end-day): New function.
+	* calendar/cal-tex.el (cal-tex-cursor-month): Remove unused vars.
+	Respect calendar-week-start-day.  (Bug#6606)
+	(cal-tex-insert-day-names, cal-tex-insert-blank-days)
+	(cal-tex-insert-blank-days-at-end): Respect calendar-week-start-day.
+	(cal-tex-first-blank-p, cal-tex-last-blank-p): Simplify, and
+	respect calendar-week-start-day.
+
+2010-07-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (use-region-p): Doc fix (Bug#6607).
+
+2010-07-10  Aleksei Gusev  <aleksei.gusev@gmail.com>  (tiny change)
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist): Add
+	regexps for cucumber and ruby.
+
+2010-07-08  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa-file.el (epa-file-error, epa-file--find-file-not-found-function)
+	(epa-file-insert-file-contents): Hack to prevent
+	find-file from opening empty buffer when decryptin failed
+	(bug#6568).
+
+2010-07-07  Agustín Martín  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-alternate-dictionary):
+	Use file-readable-p.
+	Return nil if no word-list is found at default locations.
+	(ispell-complete-word-dict): Default to nil.
+	(ispell-command-loop): Use 'word-list' when using lookup-words.
+	(lookup-words): Use ispell-complete-word-dict or
+	ispell-alternate-dictionary.  Check for word-list availability
+	and handle errors if needed with better messages (Bug#6539).
+	(ispell-complete-word): Use ispell-complete-word-dict or
+	ispell-alternate-dictionary.
+
+2010-07-07  Christoph Scholtes  <cschol2112@gmail.com>
+
+	* progmodes/python.el (python-font-lock-keywords): Add Python 2.7
+	builtins (BufferError, BytesWarning, WindowsError; callables
+	bin, bytearray, bytes, format, memoryview, next, print; __package__).
+
+2010-07-07  Glenn Morris  <rgm@gnu.org>
+
+	* play/zone.el (top-level): Do not require timer, tabify, or cl.
+	(zone-shift-left): Ignore intangibility, and any errors from
+	forward-char.
+	(zone-shift-right): Remove no-op end-of-line.  Ignore intangibility.
+	(zone-pgm-putz-with-case): Use upcase-region rather than inserting,
+	deleting, and copying text properties.
+	(zone-line-specs, zone-pgm-stress): Check forward-line exit status.
+	(zone-pgm-rotate): Handle odd buffers like that of gomoku, where getting
+	to point-max is hard.
+	(zone-fret, zone-fill-out-screen): Replace cl's do with dotimes.
+	(zone-fill-out-screen): Ignore intangibility.
+
+2010-07-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* menu-bar.el (menu-bar-mode):
+	* tool-bar.el (tool-bar-mode): Replace default-frame-alist element
+	if it has been set.
+
+	* mouse.el (mouse-drag-track): Call mouse-start-end to handle
+	word/line selection (Bug#6565).
+
+2010-07-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* net/dbus.el (dbus-send-signal): Declare function.
+
+2010-07-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el: Implement signal "PropertiesChanged" (from D-Bus 1.3.1).
+	(dbus-register-property): New optional argument EMITS-SIGNAL.
+	(dbus-property-handler): Send signal "PropertiesChanged" if requested.
+
+2010-07-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse.el (mouse-drag-overlay): Variable deleted.
+	(mouse-move-drag-overlay, mouse-show-mark): Functions deleted.
+	(mouse--remap-link-click-p): New function.
+	(mouse-drag-track): Handle dragging by using temporary Transient
+	Mark mode, instead of a special overlay.
+	(mouse-kill-ring-save, mouse-save-then-kill): Don't call
+	mouse-show-mark.
+
+	* mouse-sel.el (mouse-sel-selection-alist): mouse-drag-overlay
+	deleted.
+
+2010-07-02  Juri Linkov  <juri@jurta.org>
+
+	* autoinsert.el (auto-insert-alist): Fix readability
+	by using dotted pair notation for lambda.
+
+2010-07-02  Juri Linkov  <juri@jurta.org>
+
+	* faces.el (read-face-name): Rename arg `string-describing-default'
+	to `default'.  Doc fix.  Display the default value in quotes
+	in the prompt.  With empty input, return the `default' arg,
+	unless the default value is a string (in which case return nil).
+	(describe-face): Replace the string `default' arg of `read-face-name'
+	with the symbol `default'.
+
+2010-07-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emulation/viper-cmd.el (viper-delete-backward-char)
+	(viper-del-backward-char-in-insert)
+	(viper-del-backward-char-in-replace, viper-change)
+	(viper-backward-indent): Replace delete-backward-char with
+	delete-char (Bug#6552).
+
+2010-07-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ruler-mode.el (ruler--save-header-line-format): Fix typos.
+
+2010-06-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.el (make-frame): Add default-frame-alist to the PARAMETERS
+	argument passed to frame-creation-function (Bug#5378).
+
+	* faces.el (x-handle-named-frame-geometry)
+	(x-handle-reverse-video, x-create-frame-with-faces)
+	(face-set-after-frame-default, tty-create-frame-with-faces): Don't
+	separately consult default-frame-alist.  It is now passed as the
+	PARAMETER argument.
+
+2010-06-30  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* startup.el (command-line): Don't call tool-bar-setup in a
+	tty-only build.
+
+2010-06-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ruler-mode.el (ruler--save-header-line-format): New fun.
+	(ruler-mode): Use it as a setter function, so as not to overwrite
+	ruler-mode-header-line-format-old if Ruler mode is on (Bug#5370).
+
+2010-06-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* vc/vc.el (vc-deduce-backend): New fun.  Handle diff buffers.
+	(vc-root-diff, vc-print-root-log, vc-log-incoming)
+	(vc-log-outgoing): Use it.
+	(vc-diff-internal): Set diff-vc-backend.
+
+	* vc/diff-mode.el (diff-vc-backend): New var.
+
+2010-06-28  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* dynamic-setting.el (font-setting-change-default-font): Remove
+	call to message.
+
+2010-06-28  Kenichi Handa  <handa@m17n.org>
+
+	* international/quail.el (quail-insert-kbd-layout): Fix the
+	showing of untranslated characters.
+
+2010-06-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (delete-active-region): New option.
+	(delete-backward-char): Implement in Lisp.
+	(delete-forward-char): New command.
+
+	* mouse.el (mouse-region-delete-keys): Deleted.
+	(mouse-show-mark): Simplify.
+
+	* bindings.el (global-map): Bind delete and DEL, the former to
+	delete-forward-char.
+
+2010-06-27  Lennart Borgman  <lennart.borgman@gmail.com>
+
+	* progmodes/ruby-mode.el (ruby-mode-map): Don't bind TAB.
+	(ruby-mode): Bind indent-line-function (Bug#5119).
+
+2010-06-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (command-line): Recognize "0" X resource value.
+
+2010-06-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (command-line): Use X resources to set the value of
+	menu-bar-mode and tool-bar-mode, before calling frame-initialize.
+
+	* menu-bar.el (menu-bar-mode):
+	* tool-bar.el (tool-bar-mode): Don't change default-frame-alist.
+	Set init-value to t.
+
+	* frame.el (frame-notice-user-settings): Don't change
+	default-frame-alist based on menu-bar-mode and tool-bar-mode, or
+	vice versa (Bug#2249).
+
+2010-06-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32-fns.el (w32-convert-standard-filename): Doc fix.
+
+2010-06-25  Agustín Martín  <agustin.martin@hispalinux.es>
+
+	* textmodes/flyspell.el (flyspell-check-previous-highlighted-word):
+	Make sure `flyspell-word' re-checks word after function run (Bug#6504).
+
+	* textmodes/ispell.el (ispell-init-process): Make sure ispell and
+	default directories are expanded (Bug#6143).
+
+2010-06-24  Juri Linkov  <juri@jurta.org>
+
+	* minibuffer.el (completions-format): Change default from nil to
+	`horizontal'.  Remove `nil' value from :type.  Doc fix.  (Bug#6459)
+
+2010-06-24  Juri Linkov  <juri@jurta.org>
+
+	* vc/vc.el (vc-diff-internal): Set `revert-buffer-function'
+	buffer-locally to lambda that re-runs the vc diff command.
+	(Bug#6447)
+
+2010-06-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* kmacro.el (kmacro-call-macro): Don't issue hint message if the
+	echo area is in use (Bug#3412).
+
+2010-06-22  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/texinfmt.el (texinfo-format-region)
+	(texinfo-raise-lower-sections, texinfo-format-separate-node)
+	(texinfo-itemize-item, texinfo-multitable-item, texinfo-alias)
+	(texinfo-format-option, texinfo-noindent):
+	Use line-beginning-position and line-end-position.
+
+	* calc/calc-aent.el, calc/calc-ext.el, calc/calc-lang.el:
+	* calc/calc-store.el, calc/calc-units.el, calc/calc.el:
+	* calc/calccomp.el: Add explicit utf-8 coding cookies to files with
+	utf-8 characters.
+
+2010-06-21  Karl Fogel  <kfogel@red-bean.com>
+
+	* play/zone.el (zone-fall-through-ws): Fix next-line ->
+	forward-line fallout.
+
+2010-07-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse.el (mouse-appearance-menu): Add docstring.
+
+	* help.el (describe-key): Print up-event using key-description.
+
+2010-07-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/zeroconf.el (zeroconf-resolve-service)
+	(zeroconf-service-resolver-handler): Use
+	`dbus-byte-array-to-string'.
+	(zeroconf-publish-service): Use `dbus-string-to-byte-array'.
+
+2010-07-03  Jan Moringen  <jan.moringen@uni-bielefeld.de>
+
+	* net/zeroconf.el (zeroconf-service-remove-hook): New defun.
+
+2010-06-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Avoid displaying files with a nil state in vc-dir.
+	* vc/vc-dir.el (vc-dir-update): Obey the noinsert argument in all
+	cases that cause insertion.
+	(vc-dir-resynch-file): Tell vc-dir-update to avoid inserting files
+	with a nil state.
+
+2010-06-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xml.el (xml-parse-region): Avoid infloop (Bug#5281).
+
+2010-06-29  Leo  <sdl.web@gmail.com>
+
+	* emacs-lisp/rx.el (rx): Doc fix.  (Bug#6537)
+
+2010-06-27  Oleksandr Gavenko  <gavenkoa@gmail.com>  (tiny change)
+
+	* generic-x.el (bat-generic-mode): Fix regexp for command line
+	switches (Bug#5719).
+
+2010-06-27  Masatake YAMATO  <yamato@redhat.com>
+
+	* htmlfontify.el (hfy-face-attr-for-class): Use append instead
+	of nconc to avoid pure storage error (Bug#6239).
+
+2010-06-27  Christoph  <cschol2112@googlemail.com>  (tiny change)
+
+	* bookmark.el (bookmark-bmenu-2-window, bookmark-bmenu-other-window)
+	(bookmark-bmenu-other-window-with-mouse): Remove unnecessary
+	bindings of bookmark-automatically-show-annotations (Bug#6515).
+
+2010-06-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* arc-mode.el (archive-zip-extract): Don't quote the file name on
+	MS-Windows and MS-DOS.  (Bug#6467, Bug#6144)
+
+2010-06-24  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
+
+	* comint.el (make-comint, make-comint-in-buffer): Mention return
+	value in the docstrings.  (Bug#6498)
+
+2010-06-24  Yoni Rabkin  <yoni@rabkins.net>
+
+	* bs.el (bs-mode-font-lock-keywords): Remove "by" from Dired pattern,
+	since it is not present when using some non-default switches.
+
+2010-06-23  Karl Fogel  <kfogel@red-bean.com>
+
+	* simple.el (compose-mail): Fix doc string to refer to
+	`compose-mail-user-agent-warnings', instead of to the
+	nonexistent `compose-mail-check-user-agent'.
+
+2010-06-21  Alan Mackenzie  <bug-cc-mode@gnu.org>
+
+	Fix an indentation bug:
+
+	* progmodes/cc-mode.el (c-common-init): Initialise c-new-BEG/END.
+	(c-neutralize-syntax-in-and-mark-CPP): c-new-BEG/END: Take account
+	of existing values.
+
+	* progmodes/cc-engine.el (c-clear-<-pair-props-if-match-after)
+	(c-clear->-pair-props-if-match-before): now return t when they've
+	cleared properties, nil otherwise.
+	(c-before-change-check-<>-operators): Set c-new-beg/end correctly
+	by taking account of the existing value.
+
+	* progmodes/cc-defs.el
+	(c-clear-char-property-with-value-function): Fix this to clear the
+	property rather than overwriting it with nil.
+
+2010-06-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package-print-package): Add link to
+	package description via describe-package.
+	(describe-package-1): List package requirements.  Add button to
+	perform installation.
+	(package-menu-describe-package): New command.
+
+	* help-mode.el (help-package): New button type.
+
+2010-06-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el: Move package-list-packages binding to
+	menu-bar.el.
+	(describe-package, describe-package-1, package--dir): New funs.
+	(package-activate-1): Use package--dir.
+
+	* emacs-lisp/package-x.el (gnus-article-buffer): Require package.
+
+	* help-mode.el (help-package-def): New button type.
+
+	* menu-bar.el: Move package-list-packages binding here from
+	package.el.
+
+2010-06-19  Gustav Hållberg  <gustav@gmail.com>  (tiny change)
+
+	* descr-text.el (describe-char): Avoid trailing whitespace.  (Bug#6423)
+
 2010-06-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/edebug.el (edebug-read-list):
@@ -23,8 +661,8 @@
 
 2010-06-17  Agustín Martín  <agustin.martin@hispalinux.es>
 
-	* ispell.el (ispell-aspell-find-dictionary): Fix regexp for
-	languages like Portuguese with pt_{BR,PT} and no plain pt.
+	* textmodes/ispell.el (ispell-aspell-find-dictionary): Fix regexp
+	for languages like Portuguese with pt_{BR,PT} and no plain pt.
 
 2010-06-17  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -61,6 +699,67 @@
 
 	* emacs-lisp/package.el: New file.
 
+2010-06-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Fix vc-annotate for renamed files when using Git.
+	* vc-git.el (vc-git-find-revision): Deal with empty results from
+	ls-files.  Doe not pass the object as a file name to cat-file, it
+	is not a file name.
+	(vc-git-annotate-command): Pass the file name using -- to avoid
+	ambiguity with the revision.
+	(vc-git-previous-revision): Pass a relative file name.
+
+2010-06-22  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/js.el (js-mode-map): Use standard capitalization and
+	ellipses for menu entries.
+
+	* wid-edit.el (widget-complete): Doc fix.
+
+2010-06-22  Jürgen Hötzel  <juergen@hoetzel.info>  (tiny change)
+
+	* wid-edit.el (widget-complete): Fix typo in 2009-12-02 change.
+
+2010-06-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Fix annotating other revisions for renamed files in vc-annotate.
+	* vc-annotate.el (vc-annotate): Add an optional argument for the
+	VC backend.  Use it when non-nil.
+	(vc-annotate-warp-revision): Pass the VC backend to vc-annotate.
+	(Bug#6487)
+
+	Fix vc-annotate-show-changeset-diff-revision-at-line for git.
+	* vc-annotate.el (vc-annotate-show-diff-revision-at-line-internal):
+	Do not pass the file name to the 'previous-revision call when we
+	don't want a file diff.  (Bug#6489)
+
+2010-06-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Fix finding revisions for renamed files in vc-annotate.
+	* vc.el (vc-find-revision): Add an optional argument for
+	the VC backend.  Use it when non-nil.
+	* vc-annotate.el (vc-annotate-find-revision-at-line): Pass the VC
+	backend to vc-find-revision.  (Bug#6487)
+
+2010-06-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Fix reading file names in Git annotate buffers.
+	* vc-git.el (vc-git-annotate-extract-revision-at-line): Remove
+	trailing whitespace.  Suggested by Eric Hanchrow.  (Bug#6481)
+
+2010-06-20  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-mode.el (c-before-hack-hook): When the mode is set
+	in file local variables, set it first.
+
+2010-06-19  Glenn Morris  <rgm@gnu.org>
+
+	* descr-text.el (describe-char-unicode-data): Insert separating
+	space when needed.  (Bug#6422)
+
+	* progmodes/idlwave.el (idlwave-action-and-binding):
+	Fix typo in 2009-12-03 change.  (Bug#6450)
+
 2010-06-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/macroexp.el (macroexpand-all-1): Put back special
@@ -68,13 +767,15 @@
 
 2010-06-16  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc/calc-poly.el: (math-accum-factors):  Make sure that
+	* calc/calc-poly.el (math-accum-factors): Make sure that
 	constants aren't distributed after they are factored out.
 
 2010-06-16  Juri Linkov  <juri@jurta.org>
 
 	* facemenu.el (list-colors-display): Call `pop-to-buffer' before
 	`list-colors-print'.  (Bug#6332)
+
+	* subr.el (read-quoted-char): Fix up last change (bug#6290).
 
 2010-06-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -118,7 +819,7 @@
 
 2010-06-16  Agustín Martín  <agustin.martin@hispalinux.es>
 
-	* ispell.el (ispell-dictionary-base-alist): Fix
+	* textmodes/ispell.el (ispell-dictionary-base-alist): Fix
 	portuguese casechars/not-casechars for missing 'çÇ'.
 	Suggested by Rolando Pereira (bug#6434).
 
@@ -446,8 +1147,7 @@
 
 2010-06-03  Chong Yidong  <cyd@stupidchicken.com>
 
-	* net/rcirc.el (rcirc-nickname<, rcirc-sort-nicknames-join): Doc
-	fix.
+	* net/rcirc.el (rcirc-nickname<, rcirc-sort-nicknames-join): Doc fix.
 
 2010-06-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -821,12 +1521,12 @@
 	(rcirc-user-name-history): Add variable.
 
 2010-05-25  Ryan Yeske  <rcyeske@gmail.com>
-	    Jonathan Rockway  <jon@jrock.us>
+            Jonathan Rockway  <jon@jrock.us>
 
 	* net/rcirc.el (rcirc-server-alist): Add :pass.
 	(rcirc): When prompting for connection parameters, also prompt for
 	username and password.
-	(rcirc-connect): Take a PASS argument.	If PASS is non-nil, send
+	(rcirc-connect): Take a PASS argument.  If PASS is non-nil, send
 	value to server when connecting.
 
 2010-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -1208,8 +1908,8 @@
 
 2010-05-13  Agustín Martín  <agustin.martin@hispalinux.es>
 
-	* ispell.el (ispell-init-process): Do not kill ispell process
-	everytime when spellchecking from the minibuffer (bug#6143).
+	* textmodes/ispell.el (ispell-init-process): Do not kill ispell
+	process everytime when spellchecking from the minibuffer (bug#6143).
 
 2010-05-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -1870,8 +2570,8 @@
 
 2010-04-27  Agustín Martín  <agustin.martin@hispalinux.es>
 
-	* ispell.el (ispell-init-process): Fix personal dictionary condition
-	in default directory check.
+	* textmodes/ispell.el (ispell-init-process): Fix personal dictionary
+	condition in default directory check.
 	(ispell-init-process,ispell-kill-ispell,kill-buffer-hook):
 	Kill ispell process when killing its associated buffer.
 
@@ -3904,7 +4604,7 @@
 2010-02-03  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/ange-ftp.el (ange-ftp-insert-directory): Parse directory
-	also in case of (and (not full) (not wildcard)). This is needed,
+	also in case of (and (not full) (not wildcard)).  This is needed
 	when dired is called with a list of files, which are not in
 	`default-directory'.  (Bug#5478)
 
@@ -10393,7 +11093,7 @@
 
 	* textmodes/fill.el: Convert to utf-8 encoding.
 	(fill-french-nobreak-p): Remove redundant » and « inherited from our
-	pre-unicode days.
+	pre-Unicode days.
 
 	* add-log.el (change-log-fill-forward-paragraph): New function.
 	(change-log-mode): Use it so fill-region DTRT.

@@ -58,9 +58,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 */
 
 static char *
-w32_get_rdb_resource (rdb, resource)
-     char *rdb;
-     char *resource;
+w32_get_rdb_resource (char *rdb, char *resource)
 {
   char *value = rdb;
   int len = strlen (resource);
@@ -78,9 +76,7 @@ w32_get_rdb_resource (rdb, resource)
 }
 
 static LPBYTE
-w32_get_string_resource (name, class, dwexptype)
-     char *name, *class;
-     DWORD dwexptype;
+w32_get_string_resource (char *name, char *class, DWORD dwexptype)
 {
   LPBYTE lpvalue = NULL;
   HKEY hrootkey = NULL;
@@ -147,9 +143,7 @@ w32_get_string_resource (name, class, dwexptype)
    database RDB. */
 
 char *
-x_get_string_resource (rdb, name, class)
-     XrmDatabase rdb;
-     char *name, *class;
+x_get_string_resource (XrmDatabase rdb, char *name, char *class)
 {
   if (rdb)
     {

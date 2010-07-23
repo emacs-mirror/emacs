@@ -534,17 +534,17 @@ extern int charset_ksc5601;
 
 extern int charset_unibyte;
 
-extern struct charset *char_charset P_ ((int, Lisp_Object, unsigned *));
-extern Lisp_Object charset_attributes P_ ((int));
+extern struct charset *char_charset (int, Lisp_Object, unsigned *);
+extern Lisp_Object charset_attributes (int);
 
-extern int maybe_unify_char P_ ((int, Lisp_Object));
-extern int decode_char P_ ((struct charset *, unsigned));
-extern unsigned encode_char P_ ((struct charset *, int));
-extern int string_xstring_p P_ ((Lisp_Object));
+extern int maybe_unify_char (int, Lisp_Object);
+extern int decode_char (struct charset *, unsigned);
+extern unsigned encode_char (struct charset *, int);
+extern int string_xstring_p (Lisp_Object);
 
-extern void map_charset_chars P_ ((void (*) (Lisp_Object, Lisp_Object),
-				   Lisp_Object, Lisp_Object,
-				   struct charset *, unsigned, unsigned));
+extern void map_charset_chars (void (*) (Lisp_Object, Lisp_Object),
+                               Lisp_Object, Lisp_Object,
+                               struct charset *, unsigned, unsigned);
 
 EXFUN (Funify_charset, 3);
 

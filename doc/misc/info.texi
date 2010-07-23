@@ -40,7 +40,7 @@ license to the document, as described in section 6 of the license.
 
 @dircategory Texinfo documentation system
 @direntry
-* Info: (info).         How to use the documentation browsing system.
+* Info: (info).                 How to use the documentation browsing system.
 @end direntry
 
 @titlepage

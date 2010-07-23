@@ -219,8 +219,8 @@ ns_update_menubar (struct frame *f, int deep_p, EmacsMenu *submenu)
 
       /* Save the frame's previous menu bar contents data */
       if (previous_menu_items_used)
-	bcopy (XVECTOR (f->menu_bar_vector)->contents, previous_items,
-	       previous_menu_items_used * sizeof (Lisp_Object));
+	memcpy (previous_items, XVECTOR (f->menu_bar_vector)->contents,
+		previous_menu_items_used * sizeof (Lisp_Object));
 
       /* parse stage 1: extract from lisp */
       save_menu_items ();
@@ -999,7 +999,10 @@ free_frame_tool_bar (FRAME_PTR f)
     Under NS we just hide the toolbar until it might be needed again.
    -------------------------------------------------------------------------- */
 {
+  BLOCK_INPUT;
   [[FRAME_NS_VIEW (f) toolbar] setVisible: NO];
+  FRAME_TOOLBAR_HEIGHT (f) = 0;
+  UNBLOCK_INPUT;
 }
 
 void
@@ -1009,8 +1012,11 @@ update_frame_tool_bar (FRAME_PTR f)
    -------------------------------------------------------------------------- */
 {
   int i;
-  EmacsToolbar *toolbar = [FRAME_NS_VIEW (f) toolbar];
+  EmacsView *view = FRAME_NS_VIEW (f);
+  NSWindow *window = [view window];
+  EmacsToolbar *toolbar = [view toolbar];
 
+  BLOCK_INPUT;
   [toolbar clearActive];
 
   /* update EmacsToolbar as in GtkUtils, build items list */
@@ -1094,6 +1100,10 @@ update_frame_tool_bar (FRAME_PTR f)
       [newDict release];
     }
 
+  FRAME_TOOLBAR_HEIGHT (f) =
+    NSHeight ([window frameRectForContentRect: NSMakeRect (0, 0, 0, 0)])
+    - FRAME_NS_TITLEBAR_HEIGHT (f);
+  UNBLOCK_INPUT;
 }
 
 
@@ -1742,7 +1752,7 @@ void process_dialog (id window, Lisp_Object list)
 
 DEFUN ("ns-reset-menu", Fns_reset_menu, Sns_reset_menu, 0, 0, 0,
        doc: /* Cause the NS menu to be re-calculated.  */)
-     ()
+     (void)
 {
   set_frame_menubar (SELECTED_FRAME (), 1, 0);
   return Qnil;
@@ -1772,15 +1782,14 @@ otherwise it is "Question".
 If the user gets rid of the dialog box without making a valid choice,
 for instance using the window manager, then this produces a quit and
 `x-popup-dialog' does not return.  */)
-     (position, contents, header)
-     Lisp_Object position, contents, header;
+     (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
 {
   return ns_popup_dialog (position, contents, header);
 }
 
 DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_p, 0, 0, 0,
        doc: /* Return t if a menu or popup dialog is active.  */)
-     ()
+     (void)
 {
   return popup_activated () ? Qt : Qnil;
 }

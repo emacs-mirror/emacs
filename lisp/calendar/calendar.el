@@ -2226,6 +2226,10 @@ DATE is a list of the form (month day year).  A negative year is
 interpreted as BC; -1 being 1 BC, and so on."
   (mod (calendar-absolute-from-gregorian date) 7))
 
+(defun calendar-week-end-day ()
+  "Return the index (0 for Sunday, etc.) of the last day of the week."
+  (mod (+ calendar-week-start-day 6) 7))
+
 (defun calendar-unmark ()
   "Delete all diary/holiday marks/highlighting from the calendar."
   (interactive)

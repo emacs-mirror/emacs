@@ -1,7 +1,7 @@
 ;;; calc-store.el --- value storage functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -197,8 +197,8 @@
                     (minibuffer-completion-predicate
                      (lambda (x) (boundp (intern (concat "var-" x)))))
                     (minibuffer-completion-confirm t))
-                (read-from-minibuffer 
-                 prompt nil calc-var-name-map nil 
+                (read-from-minibuffer
+                 prompt nil calc-var-name-map nil
                  'calc-read-var-name-history)))))
     (setq calc-aborted-prefix "")
     (and (not (equal var "var-"))
@@ -676,6 +676,10 @@
    (calc-binary-op "sub" 'calcFunc-subscr arg)))
 
 (provide 'calc-store)
+
+;; Local variables:
+;; coding: utf-8
+;; End:
 
 ;; arch-tag: 2fbfec82-a521-42ca-bcd8-4f254ae6313e
 ;;; calc-store.el ends here

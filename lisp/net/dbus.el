@@ -39,6 +39,7 @@
 (declare-function dbus-method-error-internal "dbusbind.c")
 (declare-function dbus-register-signal "dbusbind.c")
 (declare-function dbus-register-method "dbusbind.c")
+(declare-function dbus-send-signal "dbusbind.c")
 (defvar dbus-debug)
 (defvar dbus-registered-objects-table)
 
@@ -869,7 +870,7 @@ name of the property, and its value.  If there are no properties,
 	(add-to-list 'result (cons (car dict) (caadr dict)) 'append)))))
 
 (defun dbus-register-property
-  (bus service path interface property access value)
+  (bus service path interface property access value &optional emits-signal)
   "Register property PROPERTY on the D-Bus BUS.
 
 BUS is either the symbol `:system' or the symbol `:session'.
@@ -892,7 +893,9 @@ can be changed by `dbus-set-property'.
 
 The interface \"org.freedesktop.DBus.Properties\" is added to
 PATH, including a default handler for the \"Get\", \"GetAll\" and
-\"Set\" methods of this interface."
+\"Set\" methods of this interface.  When EMITS-SIGNAL is non-nil,
+the signal \"PropertiesChanged\" is sent when the property is
+changed by `dbus-set-property'."
   (unless (member access '(:read :readwrite))
     (signal 'dbus-error (list "Access type invalid" access)))
 
@@ -911,10 +914,23 @@ PATH, including a default handler for the \"Get\", \"GetAll\" and
   (dbus-register-method
    bus service path dbus-interface-properties "Set" 'dbus-property-handler)
 
+  ;; Send the PropertiesChanged signal.
+  (when emits-signal
+    (dbus-send-signal
+     bus service path dbus-interface-properties "PropertiesChanged"
+     (list (list :dict-entry property (list :variant value)))
+     '(:array)))
+
   ;; Create a hash table entry.  We use nil for the unique name,
   ;; because the property might be accessed from anybody.
   (let ((key (list bus interface property))
-	(val (list (list nil service path (cons access value)))))
+	(val
+	 (list
+	  (list
+	   nil service path
+	   (cons
+	    (if emits-signal (list access :emits-signal) (list access))
+	    value)))))
     (puthash key val dbus-registered-objects-table)
 
     ;; Return the object.
@@ -924,6 +940,7 @@ PATH, including a default handler for the \"Get\", \"GetAll\" and
   "Default handler for the \"org.freedesktop.DBus.Properties\" interface.
 It will be registered for all objects created by `dbus-register-object'."
   (let ((bus (dbus-event-bus-name last-input-event))
+	(service (dbus-event-service-name last-input-event))
 	(path (dbus-event-path-name last-input-event))
 	(method (dbus-event-member-name last-input-event))
 	(interface (car args))
@@ -931,25 +948,40 @@ It will be registered for all objects created by `dbus-register-object'."
     (cond
      ;; "Get" returns a variant.
      ((string-equal method "Get")
-      (let ((val (gethash (list bus interface property)
-			  dbus-registered-objects-table)))
-	(when (string-equal path (nth 2 (car val)))
-	  (list (list :variant (cdar (last (car val))))))))
+      (let ((entry (gethash (list bus interface property)
+			    dbus-registered-objects-table)))
+	(when (string-equal path (nth 2 (car entry)))
+	  (list (list :variant (cdar (last (car entry))))))))
 
      ;; "Set" expects a variant.
      ((string-equal method "Set")
-      (let ((val (gethash (list bus interface property)
-			  dbus-registered-objects-table)))
-	(unless (consp (car (last (car val))))
+      (let* ((value (caar (cddr args)))
+	     (entry (gethash (list bus interface property)
+			     dbus-registered-objects-table))
+	     ;; The value of the hash table is a list; in case of
+	     ;; properties it contains just one element (UNAME SERVICE
+	     ;; PATH OBJECT).  OBJECT is a cons cell of a list, which
+	     ;; contains a list of annotations (like :read,
+	     ;; :read-write, :emits-signal), and the value of the
+	     ;; property.
+	     (object (car (last (car entry)))))
+	(unless (consp object)
 	  (signal 'dbus-error
 		  (list "Property not registered at path" property path)))
-	(unless (equal (caar (last (car val))) :readwrite)
+	(unless (member :readwrite (car object))
 	  (signal 'dbus-error
 		  (list "Property not writable at path" property path)))
 	(puthash (list bus interface property)
-		 (list (append (butlast (car val))
-			       (list (cons :readwrite (caar (cddr args))))))
+		 (list (append (butlast (car entry))
+			       (list (cons (car object) value))))
 		 dbus-registered-objects-table)
+	;; Send the "PropertiesChanged" signal.
+	(when (member :emits-signal (car object))
+	  (dbus-send-signal
+	   bus service path dbus-interface-properties "PropertiesChanged"
+	   (list (list :dict-entry property (list :variant value)))
+	   '(:array)))
+	;; Return empty reply.
 	:ignore))
 
      ;; "GetAll" returns "a{sv}".

@@ -1037,6 +1037,7 @@ The default value is to use the same value as `tramp-rsh-end-of-line'."
 ;; Solaris: /usr/xpg4/bin:/usr/ccs/bin:/usr/bin:/opt/SUNWspro/bin
 ;; GNU/Linux (Debian, Suse): /bin:/usr/bin
 ;; FreeBSD: /usr/bin:/bin:/usr/sbin:/sbin: - beware trailing ":"!
+;; IRIX64: /usr/bin
 (defcustom tramp-remote-path
   '(tramp-default-remote-path "/usr/sbin" "/usr/local/bin"
     "/local/bin" "/local/freeware/bin" "/local/gnu/bin"
@@ -1786,7 +1787,7 @@ printf(
     $stat[2],
     $stat[1] >> 16 & 0xffff,
     $stat[1] & 0xffff
-);' \"$1\" \"$2\" \"$3\" 2>/dev/null"
+);' \"$1\" \"$2\" 2>/dev/null"
   "Perl script to produce output suitable for use with `file-attributes'
 on the remote file system.
 Escape sequence %s is replaced with name of Perl binary.
@@ -1839,7 +1840,7 @@ for($i = 0; $i < $n; $i++)
         $stat[0] >> 16 & 0xffff,
         $stat[0] & 0xffff);
 }
-printf(\")\\n\");' \"$1\" \"$2\" \"$3\" 2>/dev/null"
+printf(\")\\n\");' \"$1\" \"$2\" 2>/dev/null"
   "Perl script implementing `directory-files-attributes' as Lisp `read'able
 output.
 Escape sequence %s is replaced with name of Perl binary.
@@ -4683,7 +4684,12 @@ Lisp error raised when PROGRAM is nil is trapped also, returning 1."
   (let* ((asynchronous (string-match "[ \t]*&[ \t]*\\'" command))
 	 ;; We cannot use `shell-file-name' and `shell-command-switch',
 	 ;; they are variables of the local host.
-	 (args (list "/bin/sh" "-c" (substring command 0 asynchronous)))
+	 (args (list
+		(tramp-get-method-parameter
+		 (tramp-file-name-method
+		  (tramp-dissect-file-name default-directory))
+		 'tramp-remote-sh)
+		"-c" (substring command 0 asynchronous)))
 	 current-buffer-p
 	 (output-buffer
 	  (cond
@@ -5559,12 +5565,23 @@ Falls back to normal file name handler if no Tramp file name handler exists."
 	    (if foreign
 		(condition-case err
 		    (apply foreign operation args)
+
+		  ;; Trace that somebody has interrupted the
+		  ;; operation.
+		  (quit
+		   (let (tramp-message-show-message)
+		     (tramp-message
+		      v 1 "Interrupt received in operation %s"
+		      (append (list operation) args)))
+		   ;; Propagate the quit signal.
+		   (signal (car err) (cdr err)))
+
+		  ;; When we are in completion mode, some failed
+		  ;; operations shall return at least a default value
+		  ;; in order to give the user a chance to correct the
+		  ;; file name in the minibuffer.
 		  (error
 		   (cond
-		    ;; When we are in completion mode, some failed
-		    ;; operations shall return at least a default
-		    ;; value in order to give the user a chance to
-		    ;; correct the file name in the minibuffer.
 		    ((and completion (zerop (length localname))
 			  (memq operation '(file-exists-p file-directory-p)))
 		     t)
@@ -5574,6 +5591,7 @@ Falls back to normal file name handler if no Tramp file name handler exists."
 		     filename)
 		    ;; Propagate the error.
 		    (t (signal (car err) (cdr err))))))
+
 	      ;; Nothing to do for us.
 	      (tramp-run-real-handler operation args)))))
 
@@ -6619,12 +6637,10 @@ file exists and nonzero exit status otherwise."
 
 	 (t (tramp-message
 	     vec 5 "Remote `%s' groks tilde expansion, good"
-	     (tramp-get-method-parameter
-	      (tramp-file-name-method vec) 'tramp-remote-sh))
-	    (tramp-set-connection-property
-	     vec "remote-shell"
-	     (tramp-get-method-parameter
-	      (tramp-file-name-method vec) 'tramp-remote-sh))))))))
+	     (tramp-set-connection-property
+	      vec "remote-shell"
+	      (tramp-get-method-parameter
+	       (tramp-file-name-method vec) 'tramp-remote-sh)))))))))
 
 ;; ------------------------------------------------------------
 ;; -- Functions for establishing connection --
@@ -7029,6 +7045,12 @@ process to set up.  VEC specifies the connection."
   ;; Disable unexpected output.
   (tramp-send-command vec "mesg n; biff n" t)
 
+  ;; IRIX64 bash expands "!" even when in single quotes.  This
+  ;; destroys our shell functions, we must disable it.  See
+  ;; <http://stackoverflow.com/questions/3291692/irix-bash-shell-expands-expression-in-single-quotes-yet-shouldnt>.
+  (when (string-match "^IRIX64" (tramp-get-connection-property vec "uname" ""))
+    (tramp-send-command vec "set +H" t))
+
   ;; Set the environment.
   (tramp-message vec 5 "Setting default environment")
 
@@ -7044,7 +7066,7 @@ process to set up.  VEC specifies the connection."
       (setq env (cdr env)))
     (when unset
       (tramp-send-command
-       vec (format "unset %s" (mapconcat 'identity unset " "))))) t)
+       vec (format "unset %s" (mapconcat 'identity unset " ")) t))))
 
 ;; CCC: We should either implement a Perl version of base64 encoding
 ;; and decoding.  Then we just use that in the last item.  The other
@@ -7529,11 +7551,11 @@ connection if a previous connection has died for some reason."
 
 		;; Add arguments for asynchrononous processes.
 		(when (and process-name async-args)
-		  (setq login-args (append login-args async-args)))
+		  (setq login-args (append async-args login-args)))
 
 		;; Add gateway arguments if necessary.
 		(when (and gw gw-args)
-		  (setq login-args (append login-args gw-args)))
+		  (setq login-args (append gw-args login-args)))
 
 		;; Check for port number.  Until now, there's no need
 		;; for handling like method, user, host.
@@ -8316,10 +8338,14 @@ necessary only.  This function will be used in file name completion."
 	     ;; Check parameters.  On busybox, "ls" output coloring is
 	     ;; enabled by default sometimes.  So we try to disable it
 	     ;; when possible.  $LS_COLORING is not supported there.
+	     ;; Some "ls" versions are sensible wrt the order of
+	     ;; arguments, they fail when "-al" is after the
+	     ;; "--color=never" argument (for example on FreeBSD).
 	     (when (zerop (tramp-send-command-and-check
 			   vec (format "%s -lnd /" result)))
 	       (when (zerop (tramp-send-command-and-check
-			     vec (format "%s --color=never /" result)))
+			     vec (format
+				  "%s --color=never -al /dev/null" result)))
 		 (setq result (concat result " --color=never")))
 	       (throw 'ls-found result))
 	     (setq dl (cdr dl))))))
@@ -8329,8 +8355,12 @@ necessary only.  This function will be used in file name completion."
   (save-match-data
     (with-connection-property vec "ls-dired"
       (tramp-message vec 5 "Checking, whether `ls --dired' works")
+      ;; Some "ls" versions are sensible wrt the order of arguments,
+      ;; they fail when "-al" is after the "--dired" argument (for
+      ;; example on FreeBSD).
       (zerop (tramp-send-command-and-check
-	      vec (format "%s --dired /" (tramp-get-ls-command vec)))))))
+	      vec (format "%s --dired -al /dev/null"
+			  (tramp-get-ls-command vec)))))))
 
 (defun tramp-get-test-command (vec)
   (with-connection-property vec "test"
@@ -8848,7 +8878,6 @@ Only works for Bourne-like shells."
 ;;   by the files in that directory.  Add this here.
 ;; * Avoid screen blanking when hitting `g' in dired.  (Eli Tziperman)
 ;; * Make ffap.el grok Tramp filenames.  (Eli Tziperman)
-;; * Case-insensitive filename completion.  (Norbert Goevert.)
 ;; * Don't use globbing for directories with many files, as this is
 ;;   likely to produce long command lines, and some shells choke on
 ;;   long command lines.
@@ -8930,7 +8959,6 @@ Only works for Bourne-like shells."
 ;;   without built-in uuencode/uudecode.
 ;; * Let `shell-dynamic-complete-*' and `comint-dynamic-complete' work
 ;;   on remote hosts.
-;; * Use secrets.el for password handling.
 ;; * Load ~/.emacs_SHELLNAME on the remote host for `shell'.
 
 ;; Functions for file-name-handler-alist:

@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.35i
+;; Version: 7.01
 
 ;; This file is part of GNU Emacs.
 
@@ -33,7 +33,7 @@
 ;; and properties.  However, these nodes are treated specially by the
 ;; visibility cycling and export commands.
 ;;
-;; Visibility cycling exempts these nodes from cycling. So whenever their
+;; Visibility cycling exempts these nodes from cycling.  So whenever their
 ;; parent is opened, so are these tasks.  This will only work with
 ;; `org-cycle', so if you are also using other commands to show/hide
 ;; entries, you will occasionally find these tasks to behave like
@@ -74,8 +74,7 @@
 ;;
 ;; C-c C-x t      Insert a new inline task with END line
 
-
-;;; Code
+;;; Code:
 
 (require 'org)
 
@@ -105,12 +104,28 @@ When nil, they will not be exported."
 (defvar org-complex-heading-regexp)
 (defvar org-property-end-re)
 
-(defun org-inlinetask-insert-task ()
-  "Insert an inline task."
-  (interactive)
+(defcustom org-inlinetask-defaut-state nil
+  "Non-nil means make inline tasks have a TODO keyword initially.
+This should be the state `org-inlinetask-insert-task' should use by
+default, or nil of no state should be assigned."
+  :group 'org-inlinetask
+  :type '(choice
+	  (const :tag "No state" nil)
+	  (string :tag "Specific state")))
+
+(defun org-inlinetask-insert-task (&optional no-state)
+  "Insert an inline task.
+If prefix arg NO-STATE is set, ignore `org-inlinetask-defaut-state'."
+  (interactive "P")
   (or (bolp) (newline))
-  (insert (make-string org-inlinetask-min-level ?*) " \n"
-	  (make-string org-inlinetask-min-level ?*) " END\n")
+  (let ((indent org-inlinetask-min-level))
+    (if org-odd-levels-only
+        (setq indent (- (* 2 indent) 1)))
+    (insert (make-string indent ?*)
+            (if (or no-state (not org-inlinetask-defaut-state))
+		" \n"
+	      (concat " " org-inlinetask-defaut-state " \n"))
+            (make-string indent ?*) " END\n"))
   (end-of-line -1))
 (define-key org-mode-map "\C-c\C-xt" 'org-inlinetask-insert-task)
 

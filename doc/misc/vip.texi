@@ -3,8 +3,8 @@
 @settitle VIP
 
 @copying
-Copyright @copyright{} 1987, 2001, 2002, 2003, 2004,
-2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+Copyright @copyright{} 1987, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+2008, 2009, 2010 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -38,7 +38,7 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* VIP: (vip).		An older VI-emulation for Emacs.
+* VIP: (vip).                   An older VI-emulation for Emacs.
 @end direntry
 
 @ifnottex
@@ -65,10 +65,10 @@ Comments and bug reports are welcome.  Please send messages to
 @end ifnottex
 
 @menu
-* Survey::		A survey of VIP.
-* Vi Commands::		Details of Vi commands.
-* Ex Commands::		Details of Ex commands.
-* Customization::	How to customize VIP.
+* Survey::              A survey of VIP.
+* Vi Commands::         Details of Vi commands.
+* Ex Commands::         Details of Ex commands.
+* Customization::       How to customize VIP.
 * GNU Free Documentation License:: The license for this documentation.
 
 @end menu
@@ -99,10 +99,10 @@ In this chapter we describe basics of VIP with emphasis on the features not
 found in Vi and on how to use VIP under GNU Emacs.
 
 @menu
-* Basic Concepts::	Basic concepts in Emacs.
-* Loading VIP::		How to load VIP automatically.
-* Modes in VIP::	VIP has three modes, which are orthogonal to modes
-			in Emacs.
+* Basic Concepts::      Basic concepts in Emacs.
+* Loading VIP::         How to load VIP automatically.
+* Modes in VIP::        VIP has three modes, which are orthogonal to modes
+                          in Emacs.
 * Differences from Vi:: Differences of VIP from Vi is explained.
 @end menu
 
@@ -253,10 +253,10 @@ emacs mode             vi mode                 insert mode
 @end ifinfo
 
 @menu
-* Emacs Mode::		This is the mode you should know better.
-* Vi Mode::		Vi commands are executed in this mode.
-* Insert Mode::		You can enter text, and also can do editing if you
-			know enough Emacs commands.
+* Emacs Mode::          This is the mode you should know better.
+* Vi Mode::             Vi commands are executed in this mode.
+* Insert Mode::         You can enter text, and also can do editing if you
+                          know enough Emacs commands.
 @end menu
 
 @node Emacs Mode, Vi Mode, Modes in VIP, Modes in VIP
@@ -306,23 +306,23 @@ Thus typing @kbd{C-z x} in insert mode will have the same effect as typing
 The major differences from Vi are explained below.
 
 @menu
-* Undoing::		You can undo more in VIP.
-* Changing::		Commands for changing the text.
-* Searching::		Search commands.
-* z Command::		You can now use zH, zM and zL as well as z- etc.
-* Counts::		Some Vi commands which do not accept a count now
-			accept one.
-* Marking::		You can now mark the current point, beginning of
-			the buffer etc.
-* Region Commands::	You can now give a region as an argument for delete
-			commands etc.
-* New Commands::	Some new commands not available in Vi are added.
-* New Bindings::	Bindings of some keys are changed for the
-			convenience of editing under Emacs.
-* Window Commands::	Commands for moving among windows etc.
-* Buffer Commands::	Commands for selecting buffers etc.
-* File Commands::	Commands for visiting files etc.
-* Misc Commands::	Other useful commands.
+* Undoing::             You can undo more in VIP.
+* Changing::            Commands for changing the text.
+* Searching::           Search commands.
+* z Command::           You can now use zH, zM and zL as well as z- etc.
+* Counts::              Some Vi commands which do not accept a count now
+                        accept one.
+* Marking::             You can now mark the current point, beginning of
+                        the buffer etc.
+* Region Commands::     You can now give a region as an argument for delete
+                        commands etc.
+* New Commands::        Some new commands not available in Vi are added.
+* New Bindings::        Bindings of some keys are changed for the
+                        convenience of editing under Emacs.
+* Window Commands::     Commands for moving among windows etc.
+* Buffer Commands::     Commands for selecting buffers etc.
+* File Commands::       Commands for visiting files etc.
+* Misc Commands::       Other useful commands.
 @end menu
 
 @node Undoing, Changing, Differences from Vi, Differences from Vi
@@ -693,17 +693,17 @@ VIP.  Except for the last section which discusses insert mode, all the
 commands described in this chapter are to be used in vi mode.
 
 @menu
-* Numeric Arguments::	Many commands accept numeric arguments
-* Important Keys::	Some very important keys.
-* Buffers and Windows::	Commands for handling buffers and windows.
-* Files::		Commands for handling files.
-* Viewing the Buffer::	How you can view the current buffer.
-* Mark Commands::	Marking positions in a buffer.
-* Motion Commands::	Commands for moving point.
-* Searching and Replacing::	Commands for searching and replacing.
-* Modifying Commands::	Commands for modifying the buffer.
-* Other Vi Commands::	Miscellaneous Commands.
-* Commands in Insert Mode::	Commands for entering insert mode.
+* Numeric Arguments::        Many commands accept numeric arguments
+* Important Keys::           Some very important keys.
+* Buffers and Windows::      Commands for handling buffers and windows.
+* Files::                    Commands for handling files.
+* Viewing the Buffer::       How you can view the current buffer.
+* Mark Commands::            Marking positions in a buffer.
+* Motion Commands::          Commands for moving point.
+* Searching and Replacing::  Commands for searching and replacing.
+* Modifying Commands::       Commands for modifying the buffer.
+* Other Vi Commands::        Miscellaneous Commands.
+* Commands in Insert Mode::  Commands for entering insert mode.
 @end menu
 
 @node Numeric Arguments, Important Keys, Vi Commands, Vi Commands
@@ -1265,7 +1265,7 @@ vanilla, this command replaces every occurrence of @var{string} with
 @var{newstring}.  If the mode is regular expression, @var{string} is
 treated as a regular expression and every string matching the regular
 expression is replaced with @var{newstring} (@code{vip-replace-string}).
-@item Q	@var{string} RET @var{newstring}
+@item Q @var{string} RET @var{newstring}
 @kindex 121 @kbd{Q} (@code{vip-query-replace})
 Same as @kbd{R} except that you will be asked form confirmation before each
 replacement
@@ -1311,10 +1311,10 @@ the region}), and then the enlarged region will be affected by the modifying
 command.
 
 @menu
-* Delete Commands::	Commands for deleting text.
-* Yank Commands::	Commands for yanking text in Vi's sense.
-* Put Back Commands::	Commands for putting back deleted/yanked text.
-* Change Commands::	Commands for changing text.
+* Delete Commands::     Commands for deleting text.
+* Yank Commands::       Commands for yanking text in Vi's sense.
+* Put Back Commands::   Commands for putting back deleted/yanked text.
+* Change Commands::     Commands for changing text.
 * Repeating and Undoing Modifications::
 @end menu
 @node Delete Commands, Yank Commands, Modifying Commands, Modifying Commands
@@ -1713,7 +1713,7 @@ Several Ex commands can be entered in a line by separating them by a pipe
 character @samp{|}.
 
 @menu
-* Ex Command Reference::	Explain all the Ex commands available in VIP.
+* Ex Command Reference::        Explain all the Ex commands available in VIP.
 @end menu
 @node Ex Command Reference, Customization, Ex Commands, Ex Commands
 @section Ex Command Reference
@@ -1869,8 +1869,8 @@ will also be loaded when VIP is loaded.  This file is thus useful for
 customizing VIP.
 
 @menu
-* Customizing Constants::	How to change values of constants.
-* Customizing Key Bindings::	How to change key bindings.
+* Customizing Constants::       How to change values of constants.
+* Customizing Key Bindings::    How to change key bindings.
 @end menu
 
 @node Customizing Constants, Customizing Key Bindings, Customization, Customization

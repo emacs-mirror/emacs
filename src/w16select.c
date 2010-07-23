@@ -109,7 +109,7 @@ static size_t clipboard_storage_size;
 
 /* Return the WinOldAp support version, or 0x1700 if not supported.  */
 unsigned
-identify_winoldap_version ()
+identify_winoldap_version (void)
 {
   __dpmi_regs regs;
 
@@ -124,7 +124,7 @@ identify_winoldap_version ()
 
 /* Open the clipboard, return non-zero if successfull.  */
 unsigned
-open_clipboard ()
+open_clipboard (void)
 {
   __dpmi_regs regs;
 
@@ -147,7 +147,7 @@ open_clipboard ()
 
 /* Empty clipboard, return non-zero if successfull.  */
 unsigned
-empty_clipboard ()
+empty_clipboard (void)
 {
   __dpmi_regs regs;
 
@@ -162,8 +162,7 @@ empty_clipboard ()
 /* Ensure we have a buffer in low memory with enough memory for data
    of size WANT_SIZE.  Return the linear address of the buffer.  */
 static unsigned long
-alloc_xfer_buf (want_size)
-     unsigned want_size;
+alloc_xfer_buf (unsigned want_size)
 {
   __dpmi_regs regs;
 
@@ -200,7 +199,7 @@ alloc_xfer_buf (want_size)
    The clipboard buffer tends to be large in size, because for small
    clipboard data sizes we use the DJGPP transfer buffer.  */
 static void
-free_xfer_buf ()
+free_xfer_buf (void)
 {
   /* If the size is 0, we used DJGPP transfer buffer, so don't free.  */
   if (clipboard_xfer_buf_info.size)
@@ -218,11 +217,7 @@ free_xfer_buf ()
 
 /* Copy data into the clipboard, return zero if successfull.  */
 unsigned
-set_clipboard_data (Format, Data, Size, Raw)
-     unsigned Format;
-     void *Data;
-     unsigned Size;
-     int Raw;
+set_clipboard_data (unsigned Format, void *Data, unsigned Size, int Raw)
 {
   __dpmi_regs regs;
   unsigned truelen;
@@ -321,8 +316,7 @@ set_clipboard_data (Format, Data, Size, Raw)
 
 /* Return the size of the clipboard data of format FORMAT.  */
 unsigned
-get_clipboard_data_size (Format)
-     unsigned Format;
+get_clipboard_data_size (unsigned Format)
 {
   __dpmi_regs regs;
 
@@ -342,11 +336,7 @@ get_clipboard_data_size (Format)
    Warning: this doesn't check whether DATA has enough space to hold
    SIZE bytes.  */
 unsigned
-get_clipboard_data (Format, Data, Size, Raw)
-     unsigned Format;
-     void *Data;
-     unsigned Size;
-     int Raw;
+get_clipboard_data (unsigned Format, void *Data, unsigned Size, int Raw)
 {
   __dpmi_regs regs;
   unsigned long xbuf_addr;
@@ -425,7 +415,7 @@ get_clipboard_data (Format, Data, Size, Raw)
 
 /* Close clipboard, return non-zero if successfull.  */
 unsigned
-close_clipboard ()
+close_clipboard (void)
 {
   __dpmi_regs regs;
 
@@ -439,8 +429,7 @@ close_clipboard ()
 
 /* Compact clipboard data so that at least SIZE bytes is available.  */
 unsigned
-clipboard_compact (Size)
-     unsigned Size;
+clipboard_compact (unsigned Size)
 {
   __dpmi_regs regs;
 
@@ -464,8 +453,7 @@ static char system_error_msg[] =
 
 DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_data, 1, 2, 0,
        doc: /* This sets the clipboard data to the given text.  */)
-     (string, frame)
-     Lisp_Object string, frame;
+  (Lisp_Object string, Lisp_Object frame)
 {
   unsigned ok = 1, put_status = 0;
   int nbytes, charset_info, no_crlf_conversion;
@@ -574,8 +562,7 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
 
 DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_data, 0, 1, 0,
        doc: /* This gets the clipboard data in text format.  */)
-     (frame)
-     Lisp_Object frame;
+  (Lisp_Object frame)
 {
   unsigned data_size, truelen;
   unsigned char *htext = NULL;
@@ -669,8 +656,7 @@ the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
 \(Those are literal upper-case symbol names, since that's what X expects.)
 For convenience, the symbol nil is the same as `PRIMARY',
 and t is the same as `SECONDARY'.  */)
-     (selection)
-     Lisp_Object selection;
+  (Lisp_Object selection)
 {
   CHECK_SYMBOL (selection);
 
@@ -705,7 +691,7 @@ and t is the same as `SECONDARY'.  */)
 }
 
 void
-syms_of_win16select ()
+syms_of_win16select (void)
 {
   defsubr (&Sw16_set_clipboard_data);
   defsubr (&Sw16_get_clipboard_data);

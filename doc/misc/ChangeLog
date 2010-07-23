@@ -1,3 +1,74 @@
+2010-07-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* org.texi: Fix typo in previous change (revno:100847).
+
+2010-07-19  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* org.texi: Add macros to get plain quotes in PDF output.
+	List additional contributors.
+	(Capture): New section, replaces the section about remember.
+	(Working With Source Code): New chapter, focused on documenting Org
+	Babel.
+	(Code evaluation security): New section.
+	(MobileOrg): Document DropBox support.
+	(TaskJuggler export): Document taskjuggler and Gantt chart support.
+	(Special symbols): Show how to display UTF8 characters for entities.
+	(Global TODO list): Clarify the use of the "M" key and the differences
+	to the "m" key.
+	(RSS Feeds): Mention Atom feeds as well.
+	(Setting tags): Remove paragraph about
+	`org-complete-tags-always-offer-all-agenda-tags'.
+
+2010-07-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Inline methods): Remove remark about doubled "-t"
+	argument.
+	(Frequently Asked Questions): Recommend "sshx" and "scpx" for
+	echoing shells.
+
+2010-07-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Inline methods): Remove "kludgy" phrase.
+	(Filename Syntax): Describe port numbers.
+
+2010-07-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Top): Introduce Index.  Emphasize "nil" whereever
+	forgotten.
+	(Type Conversion): Precise conversion of natural numbers.
+	(Errors and Events): Add "debugging" to concept index.  Add variable
+	`dbus-debug'.
+
+2010-07-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Receiving Method Calls): Add optional argument
+	EMITS-SIGNAL to `dbus-register-property'.
+
+2010-06-27  Alex Schroeder  <alex@gnu.org>
+
+	* nxml-mode.texi (Commands for locating a schema): Fix typo.
+
+2010-06-24  Glenn Morris  <rgm@gnu.org>
+
+	* ada-mode.texi, auth.texi, autotype.texi, calc.texi, cc-mode.texi:
+	* dired-x.texi, ebrowse.texi, ede.texi, edt.texi, eieio.texi:
+	* emacs-mime.texi, epa.texi, erc.texi, eshell.texi, eudc.texi:
+	* flymake.texi, gnus.texi, info.texi, mairix-el.texi, message.texi:
+	* newsticker.texi, org.texi, pgg.texi, rcirc.texi, reftex.texi:
+	* remember.texi, sasl.texi, semantic.texi, ses.texi, smtpmail.texi:
+	* speedbar.texi, tramp.texi, url.texi, viper.texi, widget.texi:
+	* woman.texi: Start direntry descriptions in column 32, per Texinfo
+	convention.   Make them end with a period.
+
+2010-06-23  Glenn Morris  <rgm@gnu.org>
+
+	* autotype.texi, cl.texi, dired-x.texi, ebrowse.texi, ede.texi:
+	* eieio.texi, epa.texi, faq.texi, flymake.texi, forms.texi:
+	* gnus-faq.texi, idlwave.texi, mh-e.texi, nxml-mode.texi, org.texi:
+	* pcl-cvs.texi, pgg.texi, reftex.texi, sasl.texi, sc.texi,
+	* sem-user.texi, semantic.texi, sieve.texi, smtpmail.texi,
+	* speedbar.texi, vip.texi, viper.texi, widget.texi: Untabify.
+
 2010-06-10  Glenn Morris  <rgm@gnu.org>
 
 	* idlwave.texi (Load-Path Shadows):
@@ -38,7 +109,7 @@
 
 	* Version 23.2 released.
 
-2010-05-01  Daniel E. Doherty <ddoherty03@gmail.com> (tiny change)
+2010-05-01  Daniel E. Doherty  <ddoherty03@gmail.com>  (tiny change)
 
 	* calc.texi (Tutorial): Use "^{\prime}" to indicate primes.
 
@@ -187,7 +258,7 @@
 2010-01-17  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Frequently Asked Questions): Add GNU Emacs 23 and
-	SXEmacs	22 to the supported systems.  New item for hung ssh sessions.
+	SXEmacs 22 to the supported systems.  New item for hung ssh sessions.
 
 2010-01-17  Glenn Morris  <rgm@gnu.org>
 
@@ -6450,10 +6521,6 @@
 	* Makefile.in (../info/cc-mode, cc-mode.dvi): New targets.
 	(INFO_TARGETS): Add ../info/cc-mode.
 	(DVI_TARGETS): Add cc-mode.dvi.
-
-1996-05-25  Karl Heuer  <kwzh@gnu.ai.mit.edu>
-
-	* Version 19.31 released.
 
 1995-11-24  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 

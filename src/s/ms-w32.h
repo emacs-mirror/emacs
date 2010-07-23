@@ -40,7 +40,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* SYSTEM_TYPE should indicate the kind of system you are using.
    It sets the Lisp variable system-type.  */
 #define SYSTEM_TYPE "windows-nt"
-#define SYMS_SYSTEM syms_of_ntterm ()
 
 #define NO_MATHERR 1
 
@@ -62,15 +61,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* And the select implementation does 1-byte read-ahead waiting
    for received packets, so datagrams are broken too.  */
 #define BROKEN_DATAGRAM_SOCKETS 1
-
-#define bzero(b, l) memset(b, 0, l)
-#define bcopy(s, d, l) memmove(d, s, l)
-#define bcmp(a, b, l) memcmp(a, b, l)
-
-/* bcopy (aka memmove aka memcpy at least on x86) under MSVC is quite safe.  */
-#define GAP_USE_BCOPY 1
-#define BCOPY_UPWARD_SAFE 1
-#define BCOPY_DOWNWARD_SAFE 1
 
 /* If your system uses COFF (Common Object File Format) then define the
    preprocessor symbol "COFF".  */
@@ -153,8 +143,10 @@ struct sigaction {
 #define HAVE_RANDOM 1
 #undef  HAVE_SYSINFO
 #undef  HAVE_LRAND48
-#define HAVE_BCOPY 1
-#define HAVE_BCMP 1
+#define HAVE_MEMCMP 1
+#define HAVE_MEMCPY 1
+#define HAVE_MEMMOVE 1
+#define HAVE_MEMSET 1
 #define HAVE_LOGB 1
 #define HAVE_FREXP 1
 #define HAVE_FMOD 1
@@ -281,8 +273,6 @@ typedef int pid_t;
 #define pclose    _pclose
 #define umask	  _umask
 #define utimbuf	  _utimbuf
-#define index     strchr
-#define rindex    strrchr
 #define strdup    _strdup
 #define strupr    _strupr
 #define strnicmp  _strnicmp

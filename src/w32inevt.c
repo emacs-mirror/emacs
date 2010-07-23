@@ -582,8 +582,8 @@ w32_console_mouse_position (FRAME_PTR *f,
   *part = 0;
   SELECTED_FRAME ()->mouse_moved = 0;
 
-  XSETINT(*x, movement_pos.X);
-  XSETINT(*y, movement_pos.Y);
+  XSETINT (*x, movement_pos.X);
+  XSETINT (*y, movement_pos.Y);
   *time = movement_time;
 
   UNBLOCK_INPUT;
@@ -684,7 +684,7 @@ resize_event (WINDOW_BUFFER_SIZE_RECORD *event)
 }
 
 static void
-maybe_generate_resize_event ()
+maybe_generate_resize_event (void)
 {
   CONSOLE_SCREEN_BUFFER_INFO info;
   FRAME_PTR f = get_frame ();

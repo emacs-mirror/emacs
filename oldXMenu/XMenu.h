@@ -16,6 +16,7 @@
 #ifndef _XMenu_h_
 #define _XMenu_h_
 
+#include <stdlib.h>
 #include <X11/Xutil.h>
 #include "X10.h"
 
@@ -234,31 +235,33 @@ typedef struct _xmenu {
     Pixmap inact_pixmap;	/* Menu inactive pixmap. */
 } XMenu;
 
+typedef void (*Wait_func)(void*);
+
 /*
  * XMenu library routine declarations.
  */
-XMenu *XMenuCreate();
-int XMenuAddPane();
-int XMenuAddSelection();
-int XMenuInsertPane();
-int XMenuInsertSelection();
-int XMenuFindPane();
-int XMenuFindSelection();
-int XMenuChangePane();
-int XMenuChangeSelection();
-int XMenuSetPane();
-int XMenuSetSelection();
-int XMenuRecompute();
-int XMenuEventHandler();	/* No value actually returned. */
-int XMenuLocate();
-int XMenuSetFreeze();		/* No value actually returned. */
-void XMenuActivateSetWaitFunction();
-int XMenuActivate();
-char *XMenuPost();
-int XMenuDeletePane();
-int XMenuDeleteSelection();
-int XMenuDestroy();		/* No value actually returned. */
-char *XMenuError();
+XMenu *XMenuCreate(Display *display, Window parent, register char *def_env);
+int XMenuAddPane(Display *display, register XMenu *menu, register char *label, int active);
+int XMenuAddSelection(Display *display, register XMenu *menu, register int p_num, char *data, char *label, int active, char *help);
+int XMenuInsertPane(register XMenu *menu, register int p_num, char *label, int active);
+int XMenuInsertSelection(register XMenu *menu, register int p_num, register int s_num, char *data, char *label, int active);
+int XMenuFindPane(register XMenu *menu, register char *label);
+int XMenuFindSelection(register XMenu *menu, int p_num, register char *label);
+int XMenuChangePane(register XMenu *menu, register int p_num, char *label);
+int XMenuChangeSelection(Display *display, register XMenu *menu, register int p_num, register int s_num, char *data, int data_sw, char *label, int label_sw);
+int XMenuSetPane(register XMenu *menu, register int p_num, register int active);
+int XMenuSetSelection(register XMenu *menu, register int p_num, register int s_num, int active);
+int XMenuRecompute(Display *display, register XMenu *menu);
+int XMenuEventHandler(int (*handler) (XEvent *));	/* No value actually returned. */
+int XMenuLocate(register Display *display, register XMenu *menu, int p_num, int s_num, int x_pos, int y_pos, int *ul_x, int *ul_y, int *width, int *height);
+int XMenuSetFreeze(register XMenu *menu, register int freeze);		/* No value actually returned. */
+void XMenuActivateSetWaitFunction(Wait_func func, void *data);
+int XMenuActivate(Display *display, XMenu *menu, int *p_num, int *s_num, int x_pos, int y_pos, unsigned int event_mask, char **data, void (*help_callback) (char *, int, int));
+char *XMenuPost(register Display *display, register XMenu *menu, register int *p_num, register int *s_num, register int x_pos, register int y_pos, int event_mask);
+int XMenuDeletePane(register Display *display, register XMenu *menu, register int p_num);
+int XMenuDeleteSelection(register Display *display, register XMenu *menu, register int p_num, register int s_num);
+int XMenuDestroy(Display *display, register XMenu *menu);		/* No value actually returned. */
+char *XMenuError(void);
 
 #endif
 /* Don't add after this point. */

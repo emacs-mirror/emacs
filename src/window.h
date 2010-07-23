@@ -785,25 +785,25 @@ EXFUN (Fwindow_vscroll, 2);
 EXFUN (Fset_window_margins, 3);
 EXFUN (Fwindow_live_p, 1);
 EXFUN (Fset_window_point, 2);
-extern Lisp_Object make_window P_ ((void));
-extern void delete_window P_ ((Lisp_Object));
-extern Lisp_Object window_from_coordinates P_ ((struct frame *, int, int,
-						enum window_part *,
-						int *, int*, int));
+extern Lisp_Object make_window (void);
+extern void delete_window (Lisp_Object);
+extern Lisp_Object window_from_coordinates (struct frame *, int, int,
+                                            enum window_part *,
+                                            int *, int*, int);
 EXFUN (Fwindow_dedicated_p, 1);
-extern int window_height P_ ((Lisp_Object));
-extern int window_width P_ ((Lisp_Object));
+extern int window_height (Lisp_Object);
+extern int window_width (Lisp_Object);
 EXFUN (Fwindow_full_width_p, 1);
-extern void set_window_height P_ ((Lisp_Object, int, int));
-extern void set_window_width P_ ((Lisp_Object, int, int));
-extern void change_window_heights P_ ((Lisp_Object, int));
-extern void delete_all_subwindows P_ ((struct window *));
-extern void freeze_window_starts P_ ((struct frame *, int));
-extern void foreach_window P_ ((struct frame *,
-				int (* fn) (struct window *, void *),
-				void *));
-extern void grow_mini_window P_ ((struct window *, int));
-extern void shrink_mini_window P_ ((struct window *));
+extern void set_window_height (Lisp_Object, int, int);
+extern void set_window_width (Lisp_Object, int, int);
+extern void change_window_heights (Lisp_Object, int);
+extern void delete_all_subwindows (struct window *);
+extern void freeze_window_starts (struct frame *, int);
+extern void foreach_window (struct frame *,
+                            int (* fn) (struct window *, void *),
+                            void *);
+extern void grow_mini_window (struct window *, int);
+extern void shrink_mini_window (struct window *);
 
 void run_window_configuration_change_hook (struct frame *f);
 
@@ -811,8 +811,8 @@ void run_window_configuration_change_hook (struct frame *f);
    means it's allowed to run hooks.  See make_frame for a case where
    it's not allowed.  */
 
-void set_window_buffer P_ ((Lisp_Object window, Lisp_Object buffer,
-			    int run_hooks_p, int keep_margins_p));
+void set_window_buffer (Lisp_Object window, Lisp_Object buffer,
+                        int run_hooks_p, int keep_margins_p);
 
 /* Prompt to display in front of the minibuffer contents.  */
 
@@ -862,13 +862,13 @@ extern int buffer_shared;
 /* If *ROWS or *COLS are too small a size for FRAME, set them to the
    minimum allowable size.  */
 
-extern void check_frame_size P_ ((struct frame *frame, int *rows, int *cols));
+extern void check_frame_size (struct frame *frame, int *rows, int *cols);
 
 /* Return a pointer to the glyph W's physical cursor is on.  Value is
    null if W's current matrix is invalid, so that no meaningfull glyph
    can be returned.  */
 
-struct glyph *get_phys_cursor_glyph P_ ((struct window *w));
+struct glyph *get_phys_cursor_glyph (struct window *w);
 
 /* Value is non-zero if WINDOW is a live window.  */
 
@@ -891,24 +891,24 @@ EXFUN (Fsave_window_excursion, UNEVALLED);
 EXFUN (Fsplit_window, 3);
 EXFUN (Fset_window_configuration, 1);
 EXFUN (Fcurrent_window_configuration, 1);
-extern int compare_window_configurations P_ ((Lisp_Object, Lisp_Object, int));
+extern int compare_window_configurations (Lisp_Object, Lisp_Object, int);
 EXFUN (Fcoordinates_in_window_p, 2);
 EXFUN (Fwindow_at, 3);
 EXFUN (Fpos_visible_in_window_p, 3);
-extern void mark_window_cursors_off P_ ((struct window *));
-extern int window_internal_height P_ ((struct window *));
-extern int window_internal_width P_ ((struct window *));
+extern void mark_window_cursors_off (struct window *);
+extern int window_internal_height (struct window *);
+extern int window_internal_width (struct window *);
 EXFUN (Frecenter, 1);
 EXFUN (Fscroll_other_window, 1);
 EXFUN (Fset_window_start, 3);
-extern void temp_output_buffer_show P_ ((Lisp_Object));
-extern void replace_buffer_in_all_windows P_ ((Lisp_Object));
-extern void init_window_once P_ ((void));
-extern void init_window P_ ((void));
-extern void syms_of_window P_ ((void));
-extern void keys_of_window P_ ((void));
+extern void temp_output_buffer_show (Lisp_Object);
+extern void replace_buffer_in_all_windows (Lisp_Object);
+extern void init_window_once (void);
+extern void init_window (void);
+extern void syms_of_window (void);
+extern void keys_of_window (void);
 
-extern int window_box_text_cols P_ ((struct window *w));
+extern int window_box_text_cols (struct window *w);
 
 #endif /* not WINDOW_H_INCLUDED */
 

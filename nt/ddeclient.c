@@ -35,9 +35,7 @@ DdeCallback (UINT uType, UINT uFmt, HCONV hconv,
 		              CF_TEXT, XTYP_EXECUTE, 30000, NULL)
 
 int
-main (argc, argv)
-     int argc;
-     char *argv[];
+main (int argc, char *argv[])
 {
   DWORD idDde = 0;
   HCONV HConversation;

@@ -526,17 +526,6 @@
   "Make CUT, PASTE and COPY (keys and menu bar items) use the clipboard.
 Do the same for the keys of the same name."
   (interactive)
-  ;; We can't use constant list structure here because it becomes pure,
-  ;; and because it gets modified with cache data.
-  (define-key menu-bar-edit-menu [paste]
-    (cons "Paste" (cons "Paste text from clipboard" 'clipboard-yank)))
-  (define-key menu-bar-edit-menu [copy]
-    (cons "Copy" (cons "Copy text in region to the clipboard"
-		       'clipboard-kill-ring-save)))
-  (define-key menu-bar-edit-menu [cut]
-    (cons "Cut" (cons "Delete text in region and copy it to the clipboard"
-		      'clipboard-kill-region)))
-
   ;; These are Sun server keysyms for the Cut, Copy and Paste keys
   ;; (also for XFree86 on Sun keyboard):
   (define-key global-map [f20] 'clipboard-kill-region)
@@ -702,6 +691,10 @@ by \"Save Options\" in Custom buffers.")
     ;; Save if we changed anything.
     (when need-save
       (custom-save-all))))
+
+(define-key menu-bar-options-menu [package]
+  '(menu-item "Manage Emacs Packages" package-list-packages
+	      :help "Install or uninstall additional Emacs packages"))
 
 (define-key menu-bar-options-menu [save]
   `(menu-item ,(purecopy "Save Options") menu-bar-options-save
@@ -1920,36 +1913,33 @@ Buffers menu is regenerated."
     `(menu-item ,(purecopy "Previous History Item") previous-history-element
 		:help ,(purecopy "Put previous minibuffer history element in the minibuffer"))))
 
-;;;###autoload
-;; This comment is taken from tool-bar.el near
-;; (put 'tool-bar-mode ...)
-;; We want to pretend the menu bar by standard is on, as this will make
-;; customize consider disabling the menu bar a customization, and save
-;; that.  We could do this for real by setting :init-value below, but
-;; that would overwrite disabling the tool bar from X resources.
-(put 'menu-bar-mode 'standard-value '(t))
-
 (define-minor-mode menu-bar-mode
   "Toggle display of a menu bar on each frame.
 This command applies to all frames that exist and frames to be
 created in the future.
 With a numeric argument, if the argument is positive,
 turn on menu bars; otherwise, turn off menu bars."
-  :init-value nil
+  :init-value t
   :global t
   :group 'frames
 
-  ;; Make menu-bar-mode and default-frame-alist consistent.
-  (modify-all-frames-parameters (list (cons 'menu-bar-lines
-					    (if menu-bar-mode 1 0))))
-
+  ;; Turn the menu-bars on all frames on or off.
+  (let ((val (if menu-bar-mode 1 0)))
+    (dolist (frame (frame-list))
+      (set-frame-parameter frame 'menu-bar-lines val))
+    ;; If the user has given `default-frame-alist' a `menu-bar-lines'
+    ;; parameter, replace it.
+    (if (assq 'menu-bar-lines default-frame-alist)
+	(setq default-frame-alist
+	      (cons (cons 'menu-bar-lines val)
+		    (assq-delete-all 'menu-bar-lines
+				     default-frame-alist)))))
   ;; Make the message appear when Emacs is idle.  We can not call message
   ;; directly.  The minor-mode message "Menu-bar mode disabled" comes
   ;; after this function returns, overwriting any message we do here.
   (when (and (called-interactively-p 'interactive) (not menu-bar-mode))
     (run-with-idle-timer 0 nil 'message
-			 "Menu-bar mode disabled.  Use M-x menu-bar-mode to make the menu bar appear."))
-  menu-bar-mode)
+			 "Menu-bar mode disabled.  Use M-x menu-bar-mode to make the menu bar appear.")))
 
 (defun toggle-menu-bar-mode-from-frame (&optional arg)
   "Toggle menu bar on or off, based on the status of the current frame.

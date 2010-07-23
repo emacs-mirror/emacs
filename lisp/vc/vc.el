@@ -913,6 +913,16 @@ Within directories, only files already under version control are noticed."
     (nreverse flattened)))
 
 (defvar vc-dir-backend)
+(defvar log-view-vc-backend)
+(defvar diff-vc-backend)
+
+(defun vc-deduce-backend ()
+  (cond ((derived-mode-p 'vc-dir-mode)   vc-dir-backend)
+	((derived-mode-p 'log-view-mode) log-view-vc-backend)
+	((derived-mode-p 'diff-mode)     diff-vc-backend)
+	((derived-mode-p 'dired-mode)
+	 (vc-responsible-backend default-directory))
+	(vc-mode (vc-backend buffer-file-name))))
 
 (declare-function vc-dir-current-file "vc-dir" ())
 (declare-function vc-dir-deduce-fileset "vc-dir" (&optional state-model-only-files))
@@ -1427,6 +1437,16 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
 ;;          (vc-call-backend ',(vc-backend f)
 ;;                           'diff (list ',f) ',rev1 ',rev2))))))
 
+(defvar vc-coding-system-inherit-eol t
+  "When non-nil, inherit the EOL format for reading Diff output from the file.
+
+Used in `vc-coding-system-for-diff' to determine the EOL format to use
+for reading Diff output for a file.  If non-nil, the EOL format is
+inherited from the file itself.
+Set this variable to nil if your Diff tool might use a different
+EOL.  Then Emacs will auto-detect the EOL format in Diff output, which
+gives better results.") ;; Cf. bug#4451.
+
 (defun vc-coding-system-for-diff (file)
   "Return the coding system for reading diff output for FILE."
   (or coding-system-for-read
@@ -1434,7 +1454,12 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
       ;; use the buffer's coding system
       (let ((buf (find-buffer-visiting file)))
         (when buf (with-current-buffer buf
-		    buffer-file-coding-system)))
+		    (if vc-coding-system-inherit-eol
+			buffer-file-coding-system
+		      ;; Don't inherit the EOL part of the coding-system,
+		      ;; because some Diff tools may choose to use
+		      ;; a different one.  bug#4451.
+		      (coding-system-base buffer-file-coding-system)))))
       ;; otherwise, try to find one based on the file name
       (car (find-operation-coding-system 'insert-file-contents file))
       ;; and a final fallback
@@ -1547,6 +1572,10 @@ returns t if the buffer had changes, nil otherwise."
           (message "%s" (cdr messages))
           nil)
       (diff-mode)
+      (set (make-local-variable 'diff-vc-backend) (car vc-fileset))
+      (set (make-local-variable 'revert-buffer-function)
+	   `(lambda (ignore-auto noconfirm)
+	      (vc-diff-internal ,async ',vc-fileset ,rev1 ,rev2 ,verbose)))
       ;; Make the *vc-diff* buffer read only, the diff-mode key
       ;; bindings are nicer for read only buffers. pcl-cvs does the
       ;; same thing.
@@ -1653,10 +1682,7 @@ saving the buffer."
       ;; that's not what we want here, we want the diff for the VC root dir.
       (call-interactively 'vc-version-diff)
     (when buffer-file-name (vc-buffer-sync not-urgent))
-    (let ((backend
-	   (cond ((derived-mode-p 'vc-dir-mode)  vc-dir-backend)
-		 ((derived-mode-p 'dired-mode) (vc-responsible-backend default-directory))
-		 (vc-mode (vc-backend buffer-file-name))))
+    (let ((backend (vc-deduce-backend))
 	  rootdir working-revision)
       (unless backend
 	(error "Buffer is not version controlled"))
@@ -1689,8 +1715,9 @@ If `F.~REV~' already exists, use it instead of checking it out again."
 		    rev)))
     (switch-to-buffer-other-window (vc-find-revision file revision))))
 
-(defun vc-find-revision (file revision)
-  "Read REVISION of FILE into a buffer and return the buffer."
+(defun vc-find-revision (file revision &optional backend)
+  "Read REVISION of FILE into a buffer and return the buffer.
+Use BACKEND as the VC backend if specified."
   (let ((automatic-backup (vc-version-backup-file-name file revision))
 	(filebuf (or (get-file-buffer file) (current-buffer)))
         (filename (vc-version-backup-file-name file revision 'manual)))
@@ -1708,7 +1735,9 @@ If `F.~REV~' already exists, use it instead of checking it out again."
 		      ;; Change buffer to get local value of
 		      ;; vc-checkout-switches.
 		      (with-current-buffer filebuf
-			(vc-call find-revision file revision outbuf))))
+			(if backend
+			    (vc-call-backend backend 'find-revision file revision outbuf)
+			  (vc-call find-revision file revision outbuf)))))
 		  (setq failed nil))
 	      (when (and failed (file-exists-p filename))
 		(delete-file filename))))
@@ -1953,7 +1982,6 @@ If it contains `directory' then if the fileset contains a directory show a short
 If it contains `file' then show short logs for files.
 Not all VC backends support short logs!")
 
-(defvar log-view-vc-backend)
 (defvar log-view-vc-fileset)
 
 (defun vc-print-log-setup-buttons (working-revision is-start-revision limit pl-return)
@@ -2102,10 +2130,7 @@ When called interactively with a prefix argument, prompt for LIMIT."
        (list lim)))
     (t
      (list (when (> vc-log-show-limit 0) vc-log-show-limit)))))
-  (let ((backend
-	 (cond ((derived-mode-p 'vc-dir-mode)  vc-dir-backend)
-	       ((derived-mode-p 'dired-mode) (vc-responsible-backend default-directory))
-	       (vc-mode (vc-backend buffer-file-name))))
+  (let ((backend (vc-deduce-backend))
 	rootdir working-revision)
     (unless backend
       (error "Buffer is not version controlled"))
@@ -2117,10 +2142,7 @@ When called interactively with a prefix argument, prompt for LIMIT."
 (defun vc-log-incoming (&optional remote-location)
   "Show a log of changes that will be received with a pull operation from REMOTE-LOCATION."
   (interactive "sRemote location (empty for default): ")
-  (let ((backend
-	 (cond ((derived-mode-p 'vc-dir-mode)  vc-dir-backend)
-	       ((derived-mode-p 'dired-mode) (vc-responsible-backend default-directory))
-	       (vc-mode (vc-backend buffer-file-name))))
+  (let ((backend (vc-deduce-backend))
 	rootdir working-revision)
     (unless backend
       (error "Buffer is not version controlled"))
@@ -2130,10 +2152,7 @@ When called interactively with a prefix argument, prompt for LIMIT."
 (defun vc-log-outgoing (&optional remote-location)
   "Show a log of changes that will be sent with a push operation to REMOTE-LOCATION."
   (interactive "sRemote location (empty for default): ")
-  (let ((backend
-	 (cond ((derived-mode-p 'vc-dir-mode)  vc-dir-backend)
-	       ((derived-mode-p 'dired-mode) (vc-responsible-backend default-directory))
-	       (vc-mode (vc-backend buffer-file-name))))
+  (let ((backend (vc-deduce-backend))
 	rootdir working-revision)
     (unless backend
       (error "Buffer is not version controlled"))

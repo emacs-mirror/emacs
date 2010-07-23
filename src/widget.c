@@ -76,14 +76,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define DEFAULT_FACE_FONT "-*-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-*"
 
 
-static void EmacsFrameInitialize (/*Widget, Widget, ArgList, Cardinal * */);
-static void EmacsFrameDestroy (/* Widget */);
-static void EmacsFrameRealize (/* Widget, XtValueMask*, XSetWindowAttributes* */);
-void EmacsFrameResize (/* Widget widget */);
-static Boolean EmacsFrameSetValues (/* Widget, Widget, Widget,
-				     ArgList, Cardinal * */);
-static XtGeometryResult EmacsFrameQueryGeometry (/* Widget, XtWidgetGeometry*,
-						  XtWidgetGeometry* */);
+static void EmacsFrameInitialize (Widget request, Widget new, ArgList dum1, Cardinal *dum2);
+static void EmacsFrameDestroy (Widget widget);
+static void EmacsFrameRealize (Widget widget, XtValueMask *mask, XSetWindowAttributes *attrs);
+void EmacsFrameResize (Widget widget);
+static Boolean EmacsFrameSetValues (Widget cur_widget, Widget req_widget, Widget new_widget, ArgList dum1, Cardinal *dum2);
+static XtGeometryResult EmacsFrameQueryGeometry (Widget widget, XtWidgetGeometry *request, XtWidgetGeometry *result);
 
 
 #undef XtOffset
@@ -180,10 +178,7 @@ EmacsFrameClassRec emacsFrameClassRec = {
 WidgetClass emacsFrameClass = (WidgetClass) &emacsFrameClassRec;
 
 static void
-get_default_char_pixel_size (ew, pixel_width, pixel_height)
-     EmacsFrame ew;
-     int* pixel_width;
-     int* pixel_height;
+get_default_char_pixel_size (EmacsFrame ew, int *pixel_width, int *pixel_height)
 {
   struct frame* f = ew->emacs_frame.frame;
   *pixel_width = FRAME_COLUMN_WIDTH (f);
@@ -191,12 +186,7 @@ get_default_char_pixel_size (ew, pixel_width, pixel_height)
 }
 
 static void
-pixel_to_char_size (ew, pixel_width, pixel_height, char_width, char_height)
-     EmacsFrame ew;
-     Dimension pixel_width;
-     Dimension pixel_height;
-     int* char_width;
-     int* char_height;
+pixel_to_char_size (EmacsFrame ew, Dimension pixel_width, Dimension pixel_height, int *char_width, int *char_height)
 {
   struct frame* f = ew->emacs_frame.frame;
   *char_width = FRAME_PIXEL_WIDTH_TO_TEXT_COLS (f, (int) pixel_width);
@@ -204,12 +194,7 @@ pixel_to_char_size (ew, pixel_width, pixel_height, char_width, char_height)
 }
 
 static void
-char_to_pixel_size (ew, char_width, char_height, pixel_width, pixel_height)
-     EmacsFrame ew;
-     int char_width;
-     int char_height;
-     Dimension* pixel_width;
-     Dimension* pixel_height;
+char_to_pixel_size (EmacsFrame ew, int char_width, int char_height, Dimension *pixel_width, Dimension *pixel_height)
 {
   struct frame* f = ew->emacs_frame.frame;
   *pixel_width = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, char_width);
@@ -217,12 +202,7 @@ char_to_pixel_size (ew, char_width, char_height, pixel_width, pixel_height)
 }
 
 static void
-round_size_to_char (ew, in_width, in_height, out_width, out_height)
-     EmacsFrame ew;
-     Dimension in_width;
-     Dimension in_height;
-     Dimension* out_width;
-     Dimension* out_height;
+round_size_to_char (EmacsFrame ew, Dimension in_width, Dimension in_height, Dimension *out_width, Dimension *out_height)
 {
   int char_width;
   int char_height;
@@ -231,8 +211,7 @@ round_size_to_char (ew, in_width, in_height, out_width, out_height)
 }
 
 static Widget
-get_wm_shell (w)
-     Widget w;
+get_wm_shell (Widget w)
 {
   Widget wmshell;
 
@@ -269,8 +248,7 @@ static Boolean first_frame_p = True;
 #endif
 
 static void
-set_frame_size (ew)
-     EmacsFrame ew;
+set_frame_size (EmacsFrame ew)
 {
   /* The widget hierarchy is
 
@@ -491,8 +469,7 @@ set_frame_size (ew)
 int update_hints_inhibit;
 
 static void
-update_wm_hints (ew)
-     EmacsFrame ew;
+update_wm_hints (EmacsFrame ew)
 {
   Widget wmshell = get_wm_shell ((Widget)ew);
   int cw;
@@ -570,8 +547,7 @@ static char setup_frame_cursor_bits[] =
 };
 
 static void
-setup_frame_gcs (ew)
-     EmacsFrame ew;
+setup_frame_gcs (EmacsFrame ew)
 {
   XGCValues gc_values;
   struct frame* s = ew->emacs_frame.frame;
@@ -649,8 +625,7 @@ setup_frame_gcs (ew)
 }
 
 static void
-update_various_frame_slots (ew)
-     EmacsFrame ew;
+update_various_frame_slots (EmacsFrame ew)
 {
   struct frame *f = ew->emacs_frame.frame;
   struct x_output *x = f->output_data.x;
@@ -661,8 +636,7 @@ update_various_frame_slots (ew)
 }
 
 static void
-update_from_various_frame_slots (ew)
-     EmacsFrame ew;
+update_from_various_frame_slots (EmacsFrame ew)
 {
   struct frame *f = ew->emacs_frame.frame;
   struct x_output *x = f->output_data.x;
@@ -677,11 +651,7 @@ update_from_various_frame_slots (ew)
 }
 
 static void
-EmacsFrameInitialize (request, new, dum1, dum2)
-     Widget request;
-     Widget new;
-     ArgList dum1;
-     Cardinal *dum2;
+EmacsFrameInitialize (Widget request, Widget new, ArgList dum1, Cardinal *dum2)
 {
   EmacsFrame ew = (EmacsFrame)new;
 
@@ -698,10 +668,7 @@ EmacsFrameInitialize (request, new, dum1, dum2)
 
 
 static void
-EmacsFrameRealize (widget, mask, attrs)
-     Widget widget;
-     XtValueMask *mask;
-     XSetWindowAttributes *attrs;
+EmacsFrameRealize (Widget widget, XtValueMask *mask, XSetWindowAttributes *attrs)
 {
   EmacsFrame ew = (EmacsFrame)widget;
 
@@ -717,11 +684,10 @@ EmacsFrameRealize (widget, mask, attrs)
   update_wm_hints (ew);
 }
 
-extern void free_frame_faces (/* struct frame * */);
+extern void free_frame_faces (struct frame *);
 
 static void
-EmacsFrameDestroy (widget)
-     Widget widget;
+EmacsFrameDestroy (Widget widget)
 {
   EmacsFrame ew = (EmacsFrame) widget;
   struct frame* s = ew->emacs_frame.frame;
@@ -739,8 +705,7 @@ EmacsFrameDestroy (widget)
 }
 
 void
-EmacsFrameResize (widget)
-     Widget widget;
+EmacsFrameResize (Widget widget)
 {
   EmacsFrame ew = (EmacsFrame)widget;
   struct frame *f = ew->emacs_frame.frame;
@@ -756,12 +721,7 @@ EmacsFrameResize (widget)
 }
 
 static Boolean
-EmacsFrameSetValues (cur_widget, req_widget, new_widget, dum1, dum2)
-     Widget cur_widget;
-     Widget req_widget;
-     Widget new_widget;
-     ArgList dum1;
-     Cardinal *dum2;
+EmacsFrameSetValues (Widget cur_widget, Widget req_widget, Widget new_widget, ArgList dum1, Cardinal *dum2)
 {
   EmacsFrame cur = (EmacsFrame)cur_widget;
   EmacsFrame new = (EmacsFrame)new_widget;
@@ -834,10 +794,7 @@ EmacsFrameSetValues (cur_widget, req_widget, new_widget, dum1, dum2)
 }
 
 static XtGeometryResult
-EmacsFrameQueryGeometry (widget, request, result)
-     Widget widget;
-     XtWidgetGeometry* request;
-     XtWidgetGeometry* result;
+EmacsFrameQueryGeometry (Widget widget, XtWidgetGeometry *request, XtWidgetGeometry *result)
 {
   EmacsFrame ew = (EmacsFrame)widget;
 
@@ -867,10 +824,7 @@ EmacsFrameQueryGeometry (widget, request, result)
 
 /* Special entrypoints */
 void
-EmacsFrameSetCharSize (widget, columns, rows)
-     Widget widget;
-     int columns;
-     int rows;
+EmacsFrameSetCharSize (Widget widget, int columns, int rows)
 {
   EmacsFrame ew = (EmacsFrame) widget;
   struct frame *f = ew->emacs_frame.frame;
@@ -880,8 +834,7 @@ EmacsFrameSetCharSize (widget, columns, rows)
 
 
 void
-widget_store_internal_border (widget)
-     Widget widget;
+widget_store_internal_border (Widget widget)
 {
   EmacsFrame ew = (EmacsFrame) widget;
   FRAME_PTR f = ew->emacs_frame.frame;

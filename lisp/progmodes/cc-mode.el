@@ -640,6 +640,8 @@ compatible with old code; callers should always specify it."
   ;; Starting a mode is a sort of "change".  So call the change functions...
   (save-restriction
     (widen)
+    (setq c-new-BEG (point-min))
+    (setq c-new-END (point-max))
     (save-excursion
       (if c-get-state-before-change-functions
 	  (mapc (lambda (fn)
@@ -660,6 +662,17 @@ compatible with old code; callers should always specify it."
       (and (cdr rfn)
 	   (setq require-final-newline mode-require-final-newline)))))
 
+(defun c-count-cfss (lv-alist)
+  ;; LV-ALIST is an alist like `file-local-variables-alist'.  Count how many
+  ;; elements with the key `c-file-style' there are in it.
+  (let ((elt-ptr lv-alist) elt (cownt 0))
+    (while elt-ptr
+      (setq elt (car elt-ptr)
+	    elt-ptr (cdr elt-ptr))
+      (when (eq (car elt) 'c-file-style)
+	(setq cownt (1+ cownt))))
+    cownt))
+							  
 (defun c-before-hack-hook ()
   "Set the CC Mode style and \"offsets\" when in the buffer's local variables.
 They are set only when, respectively, the pseudo variables
@@ -667,11 +680,24 @@ They are set only when, respectively, the pseudo variables
 
 This function is called from the hook `before-hack-local-variables-hook'."
   (when c-buffer-is-cc-mode
-    (let ((stile (cdr (assq 'c-file-style file-local-variables-alist)))
+    (let ((mode-cons (assq 'mode file-local-variables-alist))
+	  (stile (cdr (assq 'c-file-style file-local-variables-alist)))
 	  (offsets (cdr (assq 'c-file-offsets file-local-variables-alist))))
+      (when mode-cons
+	(hack-one-local-variable (car mode-cons) (cdr mode-cons))
+	(setq file-local-variables-alist
+	      (delq mode-cons file-local-variables-alist)))
       (when stile
 	(or (stringp stile) (error "c-file-style is not a string"))
-	(c-set-style stile))
+	(if (boundp 'dir-local-variables-alist)
+	    ;; Determine whether `c-file-style' was set in the file's local
+	    ;; variables or in a .dir-locals.el (a directory setting).
+	    (let ((cfs-in-file-and-dir-count
+		   (c-count-cfss file-local-variables-alist))
+		  (cfs-in-dir-count (c-count-cfss dir-local-variables-alist)))
+	      (c-set-style stile
+			   (= cfs-in-file-and-dir-count cfs-in-dir-count)))
+	  (c-set-style stile)))
       (when offsets
 	(mapc
 	 (lambda (langentry)
@@ -886,17 +912,19 @@ Note that the style variables are always made local to the buffer."
     ;; inside a string, comment, or macro.
     (goto-char c-old-BOM)	  ; already set to old start of macro or begg.
     (setq c-new-BEG
-	  (if (setq limits (c-state-literal-at (point)))
-	      (cdr limits)	    ; go forward out of any string or comment.
-	    (point)))
+	  (min c-new-BEG
+	       (if (setq limits (c-state-literal-at (point)))
+		   (cdr limits)	    ; go forward out of any string or comment.
+		 (point))))
 
     (goto-char endd)
     (if (setq limits (c-state-literal-at (point)))
 	(goto-char (car limits)))  ; go backward out of any string or comment.
     (if (c-beginning-of-macro)
 	(c-end-of-macro))
-    (setq c-new-END (max (+ (- c-old-EOM old-len) (- endd begg))
-		   (point)))
+    (setq c-new-END (max c-new-END
+			 (+ (- c-old-EOM old-len) (- endd begg))
+			 (point)))
 
     ;; Clear all old relevant properties.
     (c-clear-char-property-with-value c-new-BEG c-new-END 'syntax-table '(1))

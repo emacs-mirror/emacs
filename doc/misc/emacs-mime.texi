@@ -31,7 +31,7 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* Emacs MIME: (emacs-mime).   Emacs MIME de/composition library.
+* Emacs MIME: (emacs-mime).     Emacs MIME de/composition library.
 @end direntry
 @iftex
 @finalout

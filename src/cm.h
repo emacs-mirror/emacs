@@ -158,17 +158,17 @@ extern char PC;			/* Pad character */
 #define losecursor(tty)	 (curX(tty) = -1, curY(tty) = -1)
 
 extern int cost;
-extern int evalcost ();
+extern int evalcost (int c);
 
 #define emacs_tputs(tty, str, affcnt, putc) (current_tty = (tty), tputs (str, affcnt, putc))
 
 extern struct tty_display_info *current_tty;
-extern void cmcheckmagic P_ ((struct tty_display_info *));
-extern int cmputc P_ ((int));
-extern void cmcostinit P_ ((struct tty_display_info *));
-extern void cmgoto P_ ((struct tty_display_info *, int, int));
-extern void Wcm_clear P_ ((struct tty_display_info *));
-extern int Wcm_init P_ ((struct tty_display_info *));
+extern void cmcheckmagic (struct tty_display_info *);
+extern int cmputc (int);
+extern void cmcostinit (struct tty_display_info *);
+extern void cmgoto (struct tty_display_info *, int, int);
+extern void Wcm_clear (struct tty_display_info *);
+extern int Wcm_init (struct tty_display_info *);
 
 /* arch-tag: acc1535a-7136-49d6-b22d-9bc85702251b
    (do not change this comment) */

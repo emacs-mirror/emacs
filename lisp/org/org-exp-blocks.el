@@ -4,7 +4,7 @@
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Eric Schulte
-;; Version: 6.35i
+;; Version: 7.01
 
 ;; This file is part of GNU Emacs.
 ;;
@@ -68,6 +68,8 @@
 ;; `org-export-blocks-add-block' to add your block type to
 ;; `org-export-blocks'.
 
+;;; Code:
+
 (eval-when-compile
   (require 'cl))
 (require 'org)
@@ -93,10 +95,10 @@
   '((comment org-export-blocks-format-comment t)
     (ditaa org-export-blocks-format-ditaa nil)
     (dot org-export-blocks-format-dot nil))
-  "Use this a-list to associate block types with block exporting
-functions.  The type of a block is determined by the text
-immediately following the '#+BEGIN_' portion of the block header.
-Each block export function should accept three argumets..."
+  "Use this alist to associate block types with block exporting functions.
+The type of a block is determined by the text immediately
+following the '#+BEGIN_' portion of the block header.  Each block
+export function should accept three arguments."
   :group 'org-export-general
   :type '(repeat
 	  (list
@@ -106,14 +108,14 @@ Each block export function should accept three argumets..."
   :set 'org-export-blocks-set)
 
 (defun org-export-blocks-add-block (block-spec)
-  "Add a new block type to `org-export-blocks'.  BLOCK-SPEC
-should be a three element list the first element of which should
-indicate the name of the block, the second element should be the
-formatting function called by `org-export-blocks-preprocess' and
-the third element a flag indicating whether these types of blocks
-should be fontified in org-mode buffers (see
-`org-protecting-blocks').  For example the BLOCK-SPEC for ditaa
-blocks is as follows...
+  "Add a new block type to `org-export-blocks'.
+BLOCK-SPEC should be a three element list the first element of
+which should indicate the name of the block, the second element
+should be the formatting function called by
+`org-export-blocks-preprocess' and the third element a flag
+indicating whether these types of blocks should be fontified in
+org-mode buffers (see `org-protecting-blocks').  For example the
+BLOCK-SPEC for ditaa blocks is as follows.
 
   (ditaa org-export-blocks-format-ditaa nil)"
   (unless (member block-spec org-export-blocks)
@@ -122,25 +124,28 @@ blocks is as follows...
 
 (defcustom org-export-interblocks
   '()
-  "Use this a-list to associate block types with block exporting
-functions.  The type of a block is determined by the text
-immediately following the '#+BEGIN_' portion of the block header.
-Each block export function should accept three argumets..."
+  "Use this a-list to associate block types with block exporting functions.
+The type of a block is determined by the text immediately
+following the '#+BEGIN_' portion of the block header.  Each block
+export function should accept three arguments."
   :group 'org-export-general
   :type 'alist)
 
 (defcustom org-export-blocks-witheld
   '(hidden)
-  "List of block types (see `org-export-blocks') which should not
-be exported."
+  "List of block types (see `org-export-blocks') which should not be exported."
   :group 'org-export-general
   :type 'list)
 
-(defvar org-export-blocks-postblock-hooks nil "")
+(defcustom org-export-blocks-postblock-hook nil
+  "Run after blocks have been processed with `org-export-blocks-preprocess'."
+  :group 'org-export-general
+  :type 'hook)
 
 (defun org-export-blocks-html-quote (body &optional open close)
-  "Protext BODY from org html export.  The optional OPEN and
-CLOSE tags will be inserted around BODY."
+  "Protect BODY from org html export.
+The optional OPEN and CLOSE tags will be inserted around BODY."
+
   (concat
    "\n#+BEGIN_HTML\n"
    (or open "")
@@ -149,8 +154,8 @@ CLOSE tags will be inserted around BODY."
    "#+END_HTML\n"))
 
 (defun org-export-blocks-latex-quote (body &optional open close)
-  "Protext BODY from org latex export.  The optional OPEN and
-CLOSE tags will be inserted around BODY."
+  "Protect BODY from org latex export.
+The optional OPEN and CLOSE tags will be inserted around BODY."
   (concat
    "\n#+BEGIN_LaTeX\n"
    (or open "")
@@ -159,10 +164,9 @@ CLOSE tags will be inserted around BODY."
    "#+END_LaTeX\n"))
 
 (defun org-export-blocks-preprocess ()
-  "Export all blocks according to the `org-export-blocks' block
-exportation alist.  Does not export block types specified in
-specified in BLOCKS which default to the value of
-`org-export-blocks-witheld'."
+  "Export all blocks according to the `org-export-blocks' block export alist.
+Does not export block types specified in specified in BLOCKS
+which defaults to the value of `org-export-blocks-witheld'."
   (interactive)
   (save-window-excursion
     (let ((case-fold-search t)
@@ -174,7 +178,7 @@ specified in BLOCKS which default to the value of
 	(goto-char (point-min))
 	(setq start (point))
 	(while (re-search-forward
-		"^\\([ \t]*\\)#\\+begin_\\(\\S-+\\)[ \t]*\\(.*\\)?[\r\n]\\([^\000]*?\\)[\r\n][ \t]*#\\+end_\\S-+.*" nil t)
+		"^\\([ \t]*\\)#\\+begin_\\(\\S-+\\)[ \t]*\\(.*\\)?[\r\n]\\([^\000]*?\\)[\r\n][ \t]*#\\+end_\\S-+.*[\r\n]?" nil t)
           (setq indentation (length (match-string 1)))
 	  (setq type (intern (downcase (match-string 2))))
 	  (setq headers (save-match-data (org-split-string (match-string 3) "[ \t]+")))
@@ -194,7 +198,8 @@ specified in BLOCKS which default to the value of
                   (indent-code-rigidly
                    (match-beginning 0) (match-end 0) indentation)))))
 	  (setq start (match-end 0)))
-	(interblock start (point-max))))))
+	(interblock start (point-max))
+	(run-hooks 'org-export-blocks-postblock-hook)))))
 
 (add-hook 'org-export-preprocess-hook 'org-export-blocks-preprocess)
 
@@ -212,7 +217,7 @@ specified in BLOCKS which default to the value of
 			       (expand-file-name
 				"../contrib"
 				(file-name-directory (or load-file-name buffer-file-name)))))))
-  "Path to the ditaa jar executable")
+  "Path to the ditaa jar executable.")
 
 (defun org-export-blocks-format-ditaa (body &rest headers)
   "Pass block BODY to the ditaa utility creating an image.
@@ -222,13 +227,15 @@ passed to the ditaa utility as command line arguments."
   (message "ditaa-formatting...")
   (let* ((args (if (cdr headers) (mapconcat 'identity (cdr headers) " ")))
          (data-file (make-temp-file "org-ditaa"))
-         (hash (sha1 (prin1-to-string (list body args))))
-         (raw-out-file (if headers (car headers)))
-         (out-file-parts (if (string-match "\\(.+\\)\\.\\([^\\.]+\\)$" raw-out-file)
-                             (cons (match-string 1 raw-out-file)
-                                   (match-string 2 raw-out-file))
-                           (cons raw-out-file "png")))
-         (out-file (concat (car out-file-parts) "_" hash "." (cdr out-file-parts))))
+	 (hash (progn
+		 (set-text-properties 0 (length body) nil body)
+		 (sha1 (prin1-to-string (list body args)))))
+	 (raw-out-file (if headers (car headers)))
+	 (out-file-parts (if (string-match "\\(.+\\)\\.\\([^\\.]+\\)$" raw-out-file)
+			     (cons (match-string 1 raw-out-file)
+				   (match-string 2 raw-out-file))
+			   (cons raw-out-file "png")))
+	 (out-file (concat (car out-file-parts) "_" hash "." (cdr out-file-parts))))
     (unless (file-exists-p org-ditaa-jar-path)
       (error (format "Could not find ditaa.jar at %s" org-ditaa-jar-path)))
     (setq body (if (string-match "^\\([^:\\|:[^ ]\\)" body)
@@ -282,13 +289,15 @@ digraph data_relationships {
   (message "dot-formatting...")
   (let* ((args (if (cdr headers) (mapconcat 'identity (cdr headers) " ")))
          (data-file (make-temp-file "org-ditaa"))
-         (hash (sha1 (prin1-to-string (list body args))))
-         (raw-out-file (if headers (car headers)))
-         (out-file-parts (if (string-match "\\(.+\\)\\.\\([^\\.]+\\)$" raw-out-file)
-                             (cons (match-string 1 raw-out-file)
-                                   (match-string 2 raw-out-file))
-                           (cons raw-out-file "png")))
-         (out-file (concat (car out-file-parts) "_" hash "." (cdr out-file-parts))))
+	 (hash (progn
+		 (set-text-properties 0 (length body) nil body)
+		 (sha1 (prin1-to-string (list body args)))))
+	 (raw-out-file (if headers (car headers)))
+	 (out-file-parts (if (string-match "\\(.+\\)\\.\\([^\\.]+\\)$" raw-out-file)
+			     (cons (match-string 1 raw-out-file)
+				   (match-string 2 raw-out-file))
+			   (cons raw-out-file "png")))
+	 (out-file (concat (car out-file-parts) "_" hash "." (cdr out-file-parts))))
     (cond
      ((or htmlp latexp docbookp)
       (unless (file-exists-p out-file)

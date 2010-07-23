@@ -39,12 +39,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 static Lisp_Object Qftx;
 
 /* Prototypes for helper function.  */
-static GC *ftxfont_get_gcs P_ ((FRAME_PTR, unsigned long, unsigned long));
-static int ftxfont_draw_bitmap P_ ((FRAME_PTR, GC, GC *, struct font *,
-				    unsigned, int, int, XPoint *, int, int *,
-				    int));
-static void ftxfont_draw_backgrond P_ ((FRAME_PTR, struct font *, GC,
-					int, int, int));
+static GC *ftxfont_get_gcs (FRAME_PTR, unsigned long, unsigned long);
+static int ftxfont_draw_bitmap (FRAME_PTR, GC, GC *, struct font *,
+                                unsigned, int, int, XPoint *, int, int *,
+                                int);
+static void ftxfont_draw_backgrond (FRAME_PTR, struct font *, GC,
+                                    int, int, int);
 
 struct ftxfont_frame_data
 {
@@ -61,9 +61,7 @@ struct ftxfont_frame_data
 /* Return an array of 6 GCs for antialiasing.  */
 
 static GC *
-ftxfont_get_gcs (f, foreground, background)
-     FRAME_PTR f;
-     unsigned long foreground, background;
+ftxfont_get_gcs (FRAME_PTR f, long unsigned int foreground, long unsigned int background)
 {
   XColor color;
   XGCValues xgcv;
@@ -140,15 +138,7 @@ ftxfont_get_gcs (f, foreground, background)
 }
 
 static int
-ftxfont_draw_bitmap (f, gc_fore, gcs, font, code, x, y, p, size, n, flush)
-     FRAME_PTR f;
-     GC gc_fore, *gcs;
-     struct font *font;
-     unsigned code;
-     int x, y;
-     XPoint *p;
-     int size, *n;
-     int flush;
+ftxfont_draw_bitmap (FRAME_PTR f, GC gc_fore, GC *gcs, struct font *font, unsigned int code, int x, int y, XPoint *p, int size, int *n, int flush)
 {
   struct font_bitmap bitmap;
   unsigned char *b;
@@ -224,11 +214,7 @@ ftxfont_draw_bitmap (f, gc_fore, gcs, font, code, x, y, p, size, n, flush)
 }
 
 static void
-ftxfont_draw_backgrond (f, font, gc, x, y, width)
-     FRAME_PTR f;
-     struct font *font;
-     GC gc;
-     int x, y, width;
+ftxfont_draw_backgrond (FRAME_PTR f, struct font *font, GC gc, int x, int y, int width)
 {
   XGCValues xgcv;
 
@@ -241,18 +227,16 @@ ftxfont_draw_backgrond (f, font, gc, x, y, width)
 }
 
 /* Prototypes for font-driver methods.  */
-static Lisp_Object ftxfont_list P_ ((Lisp_Object, Lisp_Object));
-static Lisp_Object ftxfont_match P_ ((Lisp_Object, Lisp_Object));
-static Lisp_Object ftxfont_open P_ ((FRAME_PTR, Lisp_Object, int));
-static void ftxfont_close P_ ((FRAME_PTR, struct font *));
-static int ftxfont_draw P_ ((struct glyph_string *, int, int, int, int, int));
+static Lisp_Object ftxfont_list (Lisp_Object, Lisp_Object);
+static Lisp_Object ftxfont_match (Lisp_Object, Lisp_Object);
+static Lisp_Object ftxfont_open (FRAME_PTR, Lisp_Object, int);
+static void ftxfont_close (FRAME_PTR, struct font *);
+static int ftxfont_draw (struct glyph_string *, int, int, int, int, int);
 
 struct font_driver ftxfont_driver;
 
 static Lisp_Object
-ftxfont_list (frame, spec)
-     Lisp_Object frame;
-     Lisp_Object spec;
+ftxfont_list (Lisp_Object frame, Lisp_Object spec)
 {
   Lisp_Object list = ftfont_driver.list (frame, spec), tail;
   
@@ -262,9 +246,7 @@ ftxfont_list (frame, spec)
 }
 
 static Lisp_Object
-ftxfont_match (frame, spec)
-     Lisp_Object frame;
-     Lisp_Object spec;
+ftxfont_match (Lisp_Object frame, Lisp_Object spec)
 {
   Lisp_Object entity = ftfont_driver.match (frame, spec);
 
@@ -274,10 +256,7 @@ ftxfont_match (frame, spec)
 }
 
 static Lisp_Object
-ftxfont_open (f, entity, pixel_size)
-     FRAME_PTR f;
-     Lisp_Object entity;
-     int pixel_size;
+ftxfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
 {
   Lisp_Object font_object;
   struct font *font;
@@ -291,17 +270,13 @@ ftxfont_open (f, entity, pixel_size)
 }
 
 static void
-ftxfont_close (f, font)
-     FRAME_PTR f;
-     struct font *font;
+ftxfont_close (FRAME_PTR f, struct font *font)
 {
   ftfont_driver.close (f, font);
 }
 
 static int
-ftxfont_draw (s, from, to, x, y, with_background)
-     struct glyph_string *s;
-     int from, to, x, y, with_background;
+ftxfont_draw (struct glyph_string *s, int from, int to, int x, int y, int with_background)
 {
   FRAME_PTR f = s->f;
   struct face *face = s->face;
@@ -372,8 +347,7 @@ ftxfont_draw (s, from, to, x, y, with_background)
 }
 
 static int
-ftxfont_end_for_frame (f)
-     FRAME_PTR f;
+ftxfont_end_for_frame (FRAME_PTR f)
 {
   struct ftxfont_frame_data *data = font_get_frame_data (f, &ftxfont_driver);
   
@@ -396,7 +370,7 @@ ftxfont_end_for_frame (f)
 
 
 void
-syms_of_ftxfont ()
+syms_of_ftxfont (void)
 {
   DEFSYM (Qftx, "ftx");
 

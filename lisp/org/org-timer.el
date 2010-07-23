@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.35i
+;; Version: 7.01
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -27,6 +27,8 @@
 
 ;; This file contains the relative timer code for Org-mode
 
+;;; Code:
+
 (require 'org)
 
 (declare-function org-show-notification "org-clock" (parameters))
@@ -47,6 +49,12 @@ This format must contain one instance of \"%s\" which will be replaced by
 the value of the relative timer."
   :group 'org-time
   :type 'string)
+
+(defcustom org-timer-default-timer 0
+  "The default timer when a timer is set.
+When 0, the user is prompted for a value."
+  :group 'org-time
+  :type 'number)
 
 (defvar org-timer-start-hook nil
   "Hook run after relative timer is started.")
@@ -96,7 +104,7 @@ the region 0:00:00."
 	  (setq delta (org-timer-hms-to-secs (org-timer-fix-incomplete s)))))
 	(setq org-timer-start-time
 	      (seconds-to-time
-	       (- (org-float-time) (org-timer-hms-to-secs s)))))
+	       (- (org-float-time) delta))))
       (org-timer-set-mode-line 'on)
       (message "Timer start time set to %s, current value is %s"
 	       (format-time-string "%T" org-timer-start-time)
@@ -104,7 +112,8 @@ the region 0:00:00."
       (run-hooks 'org-timer-start-hook))))
 
 (defun org-timer-pause-or-continue (&optional stop)
-  "Pause or continue the relative timer.  With prefix arg, stop it entirely."
+  "Pause or continue the relative timer.
+With prefix arg STOP, stop it entirely."
   (interactive "P")
   (cond
    (stop (org-timer-stop))
@@ -139,8 +148,9 @@ the region 0:00:00."
 (defun org-timer (&optional restart)
   "Insert a H:MM:SS string from the timer into the buffer.
 The first time this command is used, the timer is started.  When used with
-a `C-u' prefix, force restarting the timer.
-When used with a double prefix arg `C-u C-u', change all the timer string
+a \\[universal-argument] prefix, force restarting the timer.
+When used with a double prefix argument \
+\\[universal-argument] \\universal-argument], change all the timer string
 in the region by a fixed amount.  This can be used to recalibrate a timer
 that was not started at the correct moment."
   (interactive "P")
@@ -299,12 +309,37 @@ VALUE can be `on', `off', or `pause'."
       (message "%d minute(s) %d seconds left before next time out"
 	       rmins rsecs))))
 
+(defun bzg-test (&optional test)
+  (interactive "P")
+  test)
+
 ;;;###autoload
-(defun org-timer-set-timer (minutes)
-  "Set a timer."
-  (interactive "sTime out in (min)? ")
-  (if (not (string-match "[0-9]+" minutes))
-      (org-timer-show-remaining-time)
+(defun org-timer-set-timer (&optional opt)
+  "Prompt for a duration and set a timer.
+
+If `org-timer-default-timer' is not zero, suggest this value as
+the default duration for the timer.  If a timer is already set,
+prompt the use if she wants to replace it.
+
+Called with a numeric prefix argument, use this numeric value as
+the duration of the timer.
+
+Called with a `C-u' prefix arguments, use `org-timer-default-timer'
+without prompting the user for a duration.
+
+With two `C-u' prefix arguments, use `org-timer-default-timer'
+without prompting the user for a duration and automatically
+replace any running timer."
+  (interactive "P")
+  (let ((minutes (or (and (numberp opt) (number-to-string opt))
+		     (and (listp opt) (not (null opt))
+			  (number-to-string org-timer-default-timer))
+		     (read-from-minibuffer
+		      "How many minutes left? "
+		      (if (not (eq org-timer-default-timer 0))
+			  (number-to-string org-timer-default-timer))))))
+    (if (not (string-match "[0-9]+" minutes))
+	(org-timer-show-remaining-time)
     (let* ((mins (string-to-number (match-string 0 minutes)))
 	   (secs (* mins 60))
 	   (hl (cond
@@ -323,15 +358,21 @@ VALUE can be `on', `off', or `pause'."
 		 (org-get-heading))
 		(t (error "Not in an Org buffer"))))
 	   timer-set)
-      (if org-timer-current-timer
-	  (error "You cannot run several timers at the same time")
-	(setq org-timer-current-timer
-	      (run-with-timer
-	       secs nil `(lambda ()
-			   (setq org-timer-current-timer nil)
-			   (org-notify ,(format "%s: time out" hl) t)
-			   (run-hooks 'org-timer-done-hook))))
-	(run-hooks 'org-timer-set-hook)))))
+      (if (or (and org-timer-current-timer
+		   (or (equal opt '(16))
+		       (y-or-n-p "Replace current timer? ")))
+	      (not org-timer-current-timer))
+	  (progn
+	    (when org-timer-current-timer
+	      (cancel-timer org-timer-current-timer))
+	    (setq org-timer-current-timer
+		  (run-with-timer
+		   secs nil `(lambda ()
+			       (setq org-timer-current-timer nil)
+			       (org-notify ,(format "%s: time out" hl) t)
+			       (run-hooks 'org-timer-done-hook))))
+	    (run-hooks 'org-timer-set-hook))
+	(message "No timer set"))))))
 
 (provide 'org-timer)
 

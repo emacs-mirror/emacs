@@ -4,7 +4,7 @@
 
 ;; Emacs Lisp Archive Entry
 ;; Filename: org-crypt.el
-;; Version: 6.35i
+;; Version: 7.01
 ;; Keywords: org-mode
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Maintainer: Peter Jones <pjones@pmade.com>
@@ -45,6 +45,7 @@
 ;;    decrypt it.  This makes it possible to leave secure notes that
 ;;    only the intended recipient can read in a shared-org-mode-files
 ;;    scenario.
+;;    If the key is not set, org-crypt will default to symmetric encryption.
 ;;
 ;; 3. To later decrypt an entry, use `org-decrypt-entries' or
 ;;    `org-decrypt-entry'.  It might be useful to bind this to a key,
@@ -66,6 +67,8 @@
 
 (require 'org)
 
+;;; Code:
+
 (declare-function epg-decrypt-string "epg" (context cipher))
 (declare-function epg-list-keys "epg" (context &optional name mode))
 (declare-function epg-make-context "epg"
@@ -80,24 +83,25 @@
   :tag "Org Crypt" :group 'org)
 
 (defcustom org-crypt-tag-matcher "crypt"
-  "The tag matcher used to find headings whose contents should be
-encrypted.  See the \"Match syntax\" section of the org manual
-for more details."
+  "The tag matcher used to find headings whose contents should be encrypted.
+
+See the \"Match syntax\" section of the org manual for more details."
   :type 'string :group 'org-crypt)
 
 (defcustom org-crypt-key nil
-  "The default key to use when encrypting the contents of a
-heading.  This can also be overridden in the CRYPTKEY property."
+  "The default key to use when encrypting the contents of a heading.
+
+This setting can also be overridden in the CRYPTKEY property."
   :type 'string :group 'org-crypt)
 
 (defun org-crypt-key-for-heading ()
-  "Returns the encryption key for the current heading."
+  "Return the encryption key for the current heading."
   (save-excursion
     (org-back-to-heading t)
     (or (org-entry-get nil "CRYPTKEY" 'selective)
         org-crypt-key
         (and (boundp 'epa-file-encrypt-to) epa-file-encrypt-to)
-        (error "No crypt key set"))))
+        (message "No crypt key set, using symmetric encryption."))))
 
 (defun org-encrypt-entry ()
   "Encrypt the content of the current headline."
@@ -105,52 +109,54 @@ heading.  This can also be overridden in the CRYPTKEY property."
   (require 'epg)
   (save-excursion
     (org-back-to-heading t)
-    (forward-line)
-    (when (not (looking-at "-----BEGIN PGP MESSAGE-----"))
-      (let ((folded (org-invisible-p))
-	    (epg-context (epg-make-context nil t t))
-	    (crypt-key (org-crypt-key-for-heading))
-	    (beg (point))
-	    end encrypted-text)
-	(org-end-of-subtree t t)
-	(org-back-over-empty-lines)
-        (setq end (point)
-              encrypted-text
-              (epg-encrypt-string
-               epg-context
-               (buffer-substring-no-properties beg end)
-               (epg-list-keys epg-context crypt-key)))
-        (delete-region beg end)
-        (insert encrypted-text)
-	(when folded
-	  (save-excursion
-	    (org-back-to-heading t)
-	    (hide-subtree)))
-        nil))))
+    (let ((start-heading (point)))
+      (forward-line)
+      (when (not (looking-at "-----BEGIN PGP MESSAGE-----"))
+        (let ((folded (org-invisible-p))
+              (epg-context (epg-make-context nil t t))
+              (crypt-key (org-crypt-key-for-heading))
+              (beg (point))
+              end encrypted-text)
+          (goto-char start-heading)
+          (org-end-of-subtree t t)
+          (org-back-over-empty-lines)
+          (setq end (point)
+                encrypted-text
+                (epg-encrypt-string
+                 epg-context
+                 (buffer-substring-no-properties beg end)
+                 (epg-list-keys epg-context crypt-key)))
+          (delete-region beg end)
+          (insert encrypted-text)
+          (when folded
+            (goto-char start-heading)
+            (hide-subtree))
+          nil)))))
 
 (defun org-decrypt-entry ()
   "Decrypt the content of the current headline."
   (interactive)
   (require 'epg)
-  (save-excursion
-    (org-back-to-heading t)
-    (forward-line)
-    (when (looking-at "-----BEGIN PGP MESSAGE-----")
-      (let* ((beg (point))
-             (end (save-excursion
-                    (search-forward "-----END PGP MESSAGE-----")
-                    (forward-line)
-                    (point)))
-             (epg-context (epg-make-context nil t t))
-             (decrypted-text
-	      (decode-coding-string
-	       (epg-decrypt-string
-		epg-context
-		(buffer-substring-no-properties beg end))
-	       'utf-8)))
-        (delete-region beg end)
-        (insert decrypted-text)
-        nil))))
+  (unless (org-before-first-heading-p)
+    (save-excursion
+      (org-back-to-heading t)
+      (forward-line)
+      (when (looking-at "-----BEGIN PGP MESSAGE-----")
+	(let* ((beg (point))
+	       (end (save-excursion
+		      (search-forward "-----END PGP MESSAGE-----")
+		      (forward-line)
+		      (point)))
+	       (epg-context (epg-make-context nil t t))
+	       (decrypted-text
+		(decode-coding-string
+		 (epg-decrypt-string
+		  epg-context
+		  (buffer-substring-no-properties beg end))
+		 'utf-8)))
+	  (delete-region beg end)
+	  (insert decrypted-text)
+	  nil)))))
 
 (defun org-encrypt-entries ()
   "Encrypt all top-level entries in the current buffer."
@@ -167,8 +173,7 @@ heading.  This can also be overridden in the CRYPTKEY property."
    (cdr (org-make-tags-matcher org-crypt-tag-matcher))))
 
 (defun org-crypt-use-before-save-magic ()
-  "Adds a hook that will automatically encrypt entries before a
-file is saved to disk."
+  "Add a hook to automatically encrypt entries before a file is saved to disk."
   (add-hook
    'org-mode-hook
    (lambda () (add-hook 'before-save-hook 'org-encrypt-entries nil t))))

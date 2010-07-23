@@ -628,7 +628,9 @@ routine.")
 (defun delphi-token-at (p)
   ;; Returns the token from parsing text at point p.
   (when (and (<= (point-min) p) (<= p (point-max)))
-     (cond ((delphi-literal-token-at p))
+     (cond ((delphi-char-token-at p ?\n 'newline))
+
+           ((delphi-literal-token-at p))
 
            ((delphi-space-token-at p))
 
@@ -638,7 +640,6 @@ routine.")
            ((delphi-char-token-at p ?\) 'close-group))
            ((delphi-char-token-at p ?\[ 'open-group))
            ((delphi-char-token-at p ?\] 'close-group))
-           ((delphi-char-token-at p ?\n 'newline))
            ((delphi-char-token-at p ?\; 'semicolon))
            ((delphi-char-token-at p ?. 'dot))
            ((delphi-char-token-at p ?, 'comma))
@@ -888,7 +889,24 @@ non-delphi buffer. Set to nil in a delphi buffer.  To override, just do:
           (setq token (delphi-block-start token)))
 
          ;; Regular block start found.
-         ((delphi-is token-kind delphi-block-statements) (throw 'done token))
+         ((delphi-is token-kind delphi-block-statements)
+          (throw 'done
+                 ;; As a special case, when a "case" block appears
+                 ;; within a record declaration (to denote a variant
+                 ;; part), the record declaration should be considered
+                 ;; the enclosing block.
+                 (if (eq 'case token-kind)
+                     (let ((enclosing-token
+                            (delphi-block-start token
+                                                'stop-on-class)))
+                       (if
+                           (eq 'record
+                               (delphi-token-kind enclosing-token))
+                           (if stop-on-class
+                               enclosing-token
+                             (delphi-previous-token enclosing-token))
+                         token))
+                   token)))
 
          ;; A class/record start also begins a block.
          ((delphi-composite-type-start token last-token)
@@ -1058,6 +1076,7 @@ non-delphi buffer. Set to nil in a delphi buffer.  To override, just do:
         (token-kind nil)
         (from-kind (delphi-token-kind from-token))
         (last-colon nil)
+        (last-of nil)
         (last-token nil))
     (catch 'done
       (while token
@@ -1101,9 +1120,17 @@ non-delphi buffer. Set to nil in a delphi buffer.  To override, just do:
          ;; Ignore whitespace.
          ((delphi-is token-kind delphi-whitespace))
 
-         ;; Remember any ':' we encounter, since that affects how we indent to
-         ;; a case statement.
-         ((eq 'colon token-kind) (setq last-colon token))
+         ;; Remember any "of" we encounter, since that affects how we
+         ;; indent to a case statement within a record declaration
+         ;; (i.e. a variant part).
+         ((eq 'of token-kind)
+          (setq last-of token))
+
+         ;; Remember any ':' we encounter (until we reach an "of"),
+         ;; since that affects how we indent to case statements in
+         ;; general.
+         ((eq 'colon token-kind)
+          (unless last-of (setq last-colon token)))
 
          ;; A case statement delimits a previous statement. We indent labels
          ;; specially.

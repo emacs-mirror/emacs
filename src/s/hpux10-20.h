@@ -131,7 +131,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define DATA_SEG_BITS 0x40000000
 
 #define DATA_START    0x40000000
-#define TEXT_START    0x00000000
 
 /* Data type of load average, as read out of kmem.  */
 #define LOAD_AVE_TYPE double
@@ -146,10 +145,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* No underscore please.  */
 #define LDAV_SYMBOL "avenrun"
-
-/* On USG systems these have different names.  */
-#define index strchr
-#define rindex strrchr
 
 /* arch-tag: 8d8dcbf1-ca9b-48a1-94be-b750de18a5c6
    (do not change this comment) */

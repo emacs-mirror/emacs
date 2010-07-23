@@ -23,7 +23,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <dpmi.h>
 
 int dos_ttraw (struct tty_display_info *);
-int dos_ttcooked ();
+int dos_ttcooked (void);
 int dos_get_saved_screen (char **, int *, int *);
 int dos_set_keyboard (int, int);
 void dos_set_window_size (int *, int *);
@@ -32,15 +32,13 @@ int getdefdir (int, char*);
 void unixtodos_filename (char *);
 void dostounix_filename (char *);
 char *rootrelativepath (char *);
-void init_environment ();
-void internal_terminal_init ();
-void ctrl_break_func (_go32_dpmi_registers *);
-void install_ctrl_break_check ();
+void init_environment (int, char **, int);
+void internal_terminal_init (void);
 
 extern int have_mouse;
-void mouse_init ();
-void mouse_on ();
-void mouse_off ();
+void mouse_init (void);
+void mouse_on (void);
+void mouse_off (void);
 void mouse_moveto (int, int);
 
 #ifndef HAVE_X_WINDOWS
@@ -70,13 +68,12 @@ struct window;
 
 /* Defined in xfns.c; emulated on msdos.c */
 
-extern void x_set_menu_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
-extern int x_pixel_width P_ ((struct frame *));
-extern int x_pixel_height P_ ((struct frame *));
+extern void x_set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
+extern int x_pixel_width (struct frame *);
+extern int x_pixel_height (struct frame *);
 
 #define XFreeGC (void)
 #define x_destroy_bitmap(p1,p2)
-#define load_pixmap(p1,p2,p3,p4) (0)
 #define XGetGeometry(p1,p2,p3,p4,p5,p6,p7,p8,p9)
 #define DisplayWidth(p1,p2) (SELECTED_FRAME()->text_cols)
 #define DisplayHeight(p1,p2) (SELECTED_FRAME()->text_lines)

@@ -1138,15 +1138,15 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
     /* NOTE: previously this would generate wrong result if toolbar not
              yet displayed and fixing toolbar_height=32 helped, but
              now (200903) seems no longer needed */
-    FRAME_NS_TOOLBAR_HEIGHT (f) =
+    FRAME_TOOLBAR_HEIGHT (f) =
       NSHeight ([window frameRectForContentRect: NSMakeRect (0, 0, 0, 0)])
         - FRAME_NS_TITLEBAR_HEIGHT (f);
   else
-    FRAME_NS_TOOLBAR_HEIGHT (f) = 0;
+    FRAME_TOOLBAR_HEIGHT (f) = 0;
 
   wr.size.width = pixelwidth + f->border_width;
   wr.size.height = pixelheight + FRAME_NS_TITLEBAR_HEIGHT (f) 
-                  + FRAME_NS_TOOLBAR_HEIGHT (f);
+                  + FRAME_TOOLBAR_HEIGHT (f);
 
   /* constrain to screen if we can */
   if (screen)
@@ -2163,11 +2163,11 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
     {
       EmacsImage **newBimgs
 	= xmalloc (max_used_fringe_bitmap * sizeof (EmacsImage *));
-      bzero (newBimgs, max_used_fringe_bitmap * sizeof (EmacsImage *));
+      memset (newBimgs, 0, max_used_fringe_bitmap * sizeof (EmacsImage *));
 
       if (nBimgs)
         {
-          bcopy (bimgs, newBimgs, nBimgs * sizeof (EmacsImage *));
+          memcpy (newBimgs, bimgs, nBimgs * sizeof (EmacsImage *));
           xfree (bimgs);
         }
 
@@ -2177,20 +2177,7 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 
   /* Must clip because of partially visible lines.  */
   rowY = WINDOW_TO_FRAME_PIXEL_Y (w, row->y);
-  if (p->y < rowY)
-    {
-      /* Adjust position of "bottom aligned" bitmap on partially
-	 visible last row.  */
-      int oldY = row->y;
-      int oldVH = row->visible_height;
-      row->visible_height = p->h;
-      row->y -= rowY - p->y;
-      ns_clip_to_row (w, row, -1, NO);
-      row->y = oldY;
-      row->visible_height = oldVH;
-    }
-  else
-    ns_clip_to_row (w, row, -1, YES);
+  ns_clip_to_row (w, row, -1, YES);
 
   if (p->bx >= 0 && !p->overlay_p)
     {
@@ -3707,7 +3694,7 @@ ns_term_init (Lisp_Object display_name)
                                              name: nil object: nil]; */
 
   dpyinfo = (struct ns_display_info *)xmalloc (sizeof (struct ns_display_info));
-  bzero (dpyinfo, sizeof (struct ns_display_info));
+  memset (dpyinfo, 0, sizeof (struct ns_display_info));
 
   ns_initialize_display_info (dpyinfo);
   terminal = ns_create_terminal (dpyinfo);
@@ -4894,16 +4881,16 @@ ns_term_shutdown (int sig)
   rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (emacsframe, frameSize.height
 #ifdef NS_IMPL_GNUSTEP
       - FRAME_NS_TITLEBAR_HEIGHT (emacsframe) + 3
-        - FRAME_NS_TOOLBAR_HEIGHT (emacsframe));
+        - FRAME_TOOLBAR_HEIGHT (emacsframe));
 #else
       - FRAME_NS_TITLEBAR_HEIGHT (emacsframe)
-        - FRAME_NS_TOOLBAR_HEIGHT (emacsframe));
+        - FRAME_TOOLBAR_HEIGHT (emacsframe));
 #endif
   if (rows < MINHEIGHT)
     rows = MINHEIGHT;
   frameSize.height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (emacsframe, rows)
                        + FRAME_NS_TITLEBAR_HEIGHT (emacsframe)
-                       + FRAME_NS_TOOLBAR_HEIGHT (emacsframe);
+                       + FRAME_TOOLBAR_HEIGHT (emacsframe);
 #ifdef NS_IMPL_COCOA
   {
     /* this sets window title to have size in it; the wm does this under GS */
@@ -5114,7 +5101,7 @@ ns_term_shutdown (int sig)
   [toggleButton setTarget: self];
   [toggleButton setAction: @selector (toggleToolbar: )];
 #endif
-  FRAME_NS_TOOLBAR_HEIGHT (f) = 0;
+  FRAME_TOOLBAR_HEIGHT (f) = 0;
 
   tem = f->icon_name;
   if (!NILP (tem))

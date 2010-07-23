@@ -1,3 +1,57 @@
+2010-07-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1v2.inp (C_WARNINGS_SWITCH, PROFILING_CFLAGS, PROFILING_LDFLAGS):
+	Edit to empty.
+
+	* sed3v2.inp(C_WARNINGS_SWITCH, PROFILING_CFLAGS, PROFILING_LDFLAGS):
+	Edit to empty.
+
+2010-07-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed2v2.inp (HAVE_STRCHR, HAVE_STRRCHR): Don't edit, already
+	defined on <sys/config.h>.
+
+2010-07-11  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* sed2v2.inp (HAVE_INDEX, HAVE_RINDEX): Don't edit.
+	(HAVE_STRCHR, HAVE_STRRCHR): Edit to 1.
+
+2010-07-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1v2.inp (stamp-oldxmenu): Don't edit out in `temacs:' target,
+	which doesn't exist.
+
+	* sed2v2.inp (HAVE_MEMCPY): Don't edit, defined on <sys/config.h>.
+
+2010-07-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* sed1v2.inp: Remove reference to prefix-args.
+
+2010-07-07  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* sed2v2.inp (HAVE_MEMCPY, HAVE_MEMSET): Edit to 1.
+	(HAVE_BZERO): Don't edit.
+
+2010-07-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1v2.inp (LIB_GCC): Edit to empty.
+	Return back to ../src after compiling each .el file.
+
+2010-06-30  Glenn Morris  <rgm@gnu.org>
+
+	* sed1v2.inp (CANNOT_DUMP): Update for configure name change.
+
+2010-06-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* mainmake.v2 (version): Use emacs_version[] in src/emacs.c
+	instead of lisp/version.el (see revno 100306).
+
+	* sed1v2.inp (MKDEPDIR): Edit to empty.
+	Delete lines in rules that invoke $(MKDEPDIR).
+	Fix editing rules that begin with "cd ../lisp".
+	Edit out sh if-then-else-fi constructs that test ${CANNOT_DUMP}.
+	Edit out "|| exit ;\" constructs in emacs${EXEEXT} rule.
+
 2010-06-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* sed1v2.inp (UNEXEC_OBJ): Use UNEXEC_OBJ instead of unexec.
