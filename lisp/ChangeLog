@@ -1,5 +1,11 @@
 2010-07-23  Michael Albinus  <michael.albinus@gmx.de>
 
+	* net/tramp.el (tramp-open-shell): New defun.
+	(tramp-find-shell, tramp-open-connection-setup-interactive-shell):
+	Use it.
+
+2010-07-23  Michael Albinus  <michael.albinus@gmx.de>
+
 	* net/tramp.el (tramp-file-name-regexp-unified)
 	(tramp-completion-file-name-regexp-unified): On W32 systems, do
 	not regard the volume letter as remote filename.  (Bug#5447)
