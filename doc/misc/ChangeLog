@@ -1,3 +1,7 @@
+2010-07-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nxml-mode.texi (Limitations): Remove obsolete discussion (Bug#6708).
+
 2010-06-27  Alex Schroeder  <alex@gnu.org>
 
 	* nxml-mode.texi (Commands for locating a schema): Fix typo.
