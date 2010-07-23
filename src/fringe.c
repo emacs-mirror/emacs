@@ -1196,7 +1196,8 @@ update_window_fringes (struct window *w, int keep_current_p)
 	  if (bot_ind_max_y >= 0)
 	    left_offset = bot_ind_max_y - (row->y + row->visible_height);
 	}
-      else if (MATRIX_ROW_CONTINUATION_LINE_P (row))
+      else if ((!row->reversed_p && MATRIX_ROW_CONTINUATION_LINE_P (row))
+	       || (row->reversed_p && row->continued_p))
 	left = LEFT_FRINGE (4, Qcontinuation, 0);
       else if (row->indicate_empty_line_p && EQ (empty_pos, Qleft))
 	left = LEFT_FRINGE (5, Qempty_line, 0);
@@ -1240,7 +1241,8 @@ update_window_fringes (struct window *w, int keep_current_p)
 	  if (bot_ind_max_y >= 0)
 	    right_offset = bot_ind_max_y - (row->y + row->visible_height);
 	}
-      else if (row->continued_p)
+      else if ((!row->reversed_p && row->continued_p)
+	       || (row->reversed_p && MATRIX_ROW_CONTINUATION_LINE_P (row)))
 	right = RIGHT_FRINGE (4, Qcontinuation, 0);
       else if (row->indicate_top_line_p && EQ (arrow_top, Qright))
 	{
@@ -1834,7 +1836,7 @@ w32_init_fringe (struct redisplay_interface *rif)
 }
 
 void
-w32_reset_fringes ()
+w32_reset_fringes (void)
 {
   /* Destroy row bitmaps.  */
   int bt;

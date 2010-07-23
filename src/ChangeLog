@@ -1,3 +1,100 @@
+2010-07-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* alloc.c (emacs_blocked_free, emacs_blocked_malloc)
+	(emacs_blocked_realloc, uninterrupt_malloc):
+	* fringe.c (w32_reset_fringes):
+	* image.c (convert_mono_to_color_image, lookup_rgb_color)
+	(init_color_table, XPutPixel, jpeg_resync_to_restart_wrapper):
+	* sound.c (be2hs, do_play_sound):
+	* vm-limit.c (get_lim_data, ret_lim_data):
+	* w32term.c (x_free_frame_resources):
+	* xfaces.c (x_create_gc, x_free_gc):
+	Convert definitions to standard C.
+
+2010-07-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Feval, Ffuncall): Use the new names.
+
+	* lisp.h (struct Lisp_Subr): Rename `am' to aMANY and add aUNEVALLED.
+	(DEFUN): Add braces around the union initialisation and use ## to
+	specify the right union alternative and avoid a cast.
+
+2010-07-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/keyboard.$(O)): Update dependencies.
+
+2010-07-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.c (make_initial_frame): Use set_menu_bar_lines (Bug#6660).
+
+2010-07-17  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_event_is_for_menubar): Also check that event window
+	is related to the menu bar (Bug#6499).
+	(xg_frame_resized): GTK_IS_MAPPED => gtk_widget_get_mapped, for Gtk 3.0.
+
+2010-07-16  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.h (x_menubar_window_to_frame): Second parameter is XEvent*.
+
+	* xterm.c (handle_one_xevent): Pass event to x_menubar_window_to_frame.
+
+	* xmenu.c (x_activate_menubar): Revert previous fix for Bug#6499,
+	i.e. don't put back ButtonRelease (Bug#6608).
+
+	* xfns.c (x_menubar_window_to_frame): Take XEvent as second parameter
+	instead of Window.  Call xg_event_is_for_menubar when
+	USE_GTK (Bug#6499).
+
+	* gtkutil.h (xg_event_is_for_menubar): Declare.
+
+	* gtkutil.c (xg_event_is_for_menubar): New function (Bug#6499).
+
+2010-07-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (x_set_foreground_color): Fix setting the cursor color
+	when it's the same as the old foreground.  (Bug#6609)
+
+2010-07-16  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (free_frame_menubar): Only call x_set_window_size if
+	widget is non-null (Bug#6645).
+
+2010-07-15  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* xterm.c (x_fully_uncatch_errors, x_trace_wire, x_check_font):
+	Convert old-style definition.
+
+	* xmenu.c (create_and_show_popup_menu, xmenu_show): Fix type of
+	timestamp argument.
+
+2010-07-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* fringe.c (update_window_fringes): Restore mistakenly reverted
+	code from revno 99854.1.6 merged in revno 99950.
+
+2010-07-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (xm_scroll_callback, x_process_timeouts): K&R => prototype.
+	(SET_SAVED_KEY_EVENT): Remove (not used).
+	(SET_SAVED_MENU_EVENT): Rename to SET_SAVED_BUTTON_EVENT and
+	remove size parameter.
+	(handle_one_xevent): Check popup_activated () for menu for Xt also.
+	Remove #ifdef USE_GTK around finish = X_EVENT_DROP.
+	Remove #ifdef USE_MOTIF code that did SET_SAVED_BUTTON_EVENT for
+	ButtonRelease.
+	(x_set_window_size_1): scroll_bar_actual_width is always
+	SCROLL_BAR_COLS * COLUMN_WIDTH for the purpose of frame sizing.
+
+	* xdisp.c (pending_menu_activation): Remove extern declaration.
+	(prepare_menu_bars): Remove setting of pending_menu_activation.
+
+	* xmenu.c (pending_menu_activation): Remove.
+	(x_activate_menubar): Set popup_activated_flag for Xt also.
+	Remove setting of pending_menu_activation.
+	(set_frame_menubar): Remove check of pending_menu_activation.
+	Declare menubar_size before code.  Correct spelling in comment.
+
 2010-07-14  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_open_entity): Cancel previous change.
@@ -39,7 +136,8 @@
 	* process.c (add_keyboard_wait_descriptor)
 	(delete_keyboard_wait_descriptor): Move to common section, do
 	nothing when subprocesses is not defined.
-	* term.c (Fsuspend_tty, Fresume_tty, init_tty): Remove subprocesses #ifdefs.
+	* term.c (Fsuspend_tty, Fresume_tty, init_tty):
+	Remove subprocesses #ifdefs.
 
 	Convert maybe_fatal to standard C.
 	* lisp.h (verror): Declare.
@@ -86,8 +184,7 @@
 
 2010-07-12  Andreas Schwab  <schwab@linux-m68k.org>
 
-	* dbusbind.c (xd_initialize): Don't compare boolean with a
-	constant.
+	* dbusbind.c (xd_initialize): Don't compare boolean with a constant.
 
 2010-07-12  Eli Zaretskii  <eliz@gnu.org>
 
@@ -378,7 +475,6 @@
 	* xsettings.c:
 	* xsmfns.c: Likewise.
 
-
 2010-07-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* process.c (kbd_is_on_hold, hold_keyboard_input)
@@ -392,7 +488,8 @@
 
 2010-07-08  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* xdisp.c (store_mode_line_noprop_char): Remove K&R alternative declaration.
+	* xdisp.c (store_mode_line_noprop_char): Remove K&R alternative
+	declaration.
 
 	Clean up include guards.
 	* tparam.c: Remove include guards for config.h, string.h and code
@@ -615,8 +712,8 @@
 2010-07-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* process.c (kbd_is_on_hold): New variable.
-	(hold_keyboard_input, unhold_keyboard_input, kbd_on_hold_p): New
-	functions.
+	(hold_keyboard_input, unhold_keyboard_input, kbd_on_hold_p):
+	New functions.
 	(wait_reading_process_output): If kbd_on_hold_p returns non-zero,
 	select on empty input mask.
 	(init_process): Initialize kbd_is_on_hold to 0.
@@ -640,8 +737,8 @@
 	* dosfns.c:
 	* w16select.c: Convert function definitions to ANSI C.
 
-	* msdos.h (ctrl_break_func, install_ctrl_break_check): Remove
-	unused prototypes.
+	* msdos.h (ctrl_break_func, install_ctrl_break_check):
+	Remove unused prototypes.
 
 2010-07-07  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -1052,16 +1149,16 @@
 	* nsfns.m (compute_tip_xy): Do not convert coordinates from frame
 	parameters, they are already absolute.
 
-	* nsterm.m (x_set_window_size, initFrameFromEmacs): Renamed
-	FRAME_NS_TOOLBAR_HEIGHT to FRAME_TOOLBAR_HEIGHT.
+	* nsterm.m (x_set_window_size, initFrameFromEmacs):
+	Rename FRAME_NS_TOOLBAR_HEIGHT to FRAME_TOOLBAR_HEIGHT.
 
-	* nsterm.h (FRAME_NS_TOOLBAR_HEIGHT): Rename to FRAME_TOOLBAR_HEIGH
+	* nsterm.h (FRAME_NS_TOOLBAR_HEIGHT): Rename to FRAME_TOOLBAR_HEIGHT.
 
-	* nsmenu.m (update_frame_tool_bar, free_frame_tool_bar): Update
-	FRAME_TOOLBAR_HEIGHT.
+	* nsmenu.m (update_frame_tool_bar, free_frame_tool_bar):
+	Update FRAME_TOOLBAR_HEIGHT.
 
-	* nsmenu.m (free_frame_tool_bar, update_frame_tool_bar): Add
-	BLOCK/UNBLOCK_INPUT so asserts don't trigger.
+	* nsmenu.m (free_frame_tool_bar, update_frame_tool_bar):
+	Add BLOCK/UNBLOCK_INPUT so asserts don't trigger.
 
 2010-06-30  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -1102,7 +1199,7 @@
 	* nsterm.m (ns_draw_fringe_bitmap): Likewise.
 
 	* fringe.c (draw_fringe_bitmap_1): Don't clip bitmap here.
-	Take account of	bitmap offset.
+	Take account of bitmap offset.
 	(draw_window_fringes): Take account of window vscroll.
 	(update_window_fringes): Likewise.  Extend top-aligned top indicator
 	or bottom-aligned bottom indicator to adjacent rows if it doesn't fit
@@ -1250,7 +1347,7 @@
 	* xfns.c (x_default_font_parameter): Try to open font from system
 	before using it (bug#6478).  Rename got_from_gconf to got_from_system.
 
-2010-06-22  Keith Packard <keithp@keithp.com> (tiny change)
+2010-06-22  Keith Packard  <keithp@keithp.com>  (tiny change)
 
 	* font.c (font_parse_fcname): Allow . for sizes like 7.5 (bug#6437).
 
@@ -1422,8 +1519,8 @@
 
 2010-06-03  Andreas Schwab  <schwab@linux-m68k.org>
 
-	* process.c (conv_lisp_to_sockaddr): Fix conversion of IPv4
-	address.  (Bug#6346)
+	* process.c (conv_lisp_to_sockaddr): Fix conversion of IPv4 address.
+	(Bug#6346)
 
 2010-06-03  Juanma Barranquero  <lekktu@gmail.com>
 

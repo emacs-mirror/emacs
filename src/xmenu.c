@@ -151,14 +151,6 @@ extern widget_value *xmalloc_widget_value (void);
 extern widget_value *digest_single_submenu (int, int, int);
 #endif
 
-/* This is set nonzero after the user activates the menu bar, and set
-   to zero again after the menu bars are redisplayed by prepare_menu_bar.
-   While it is nonzero, all calls to set_frame_menubar go deep.
-
-   I don't understand why this is needed, but it does seem to be
-   needed on Motif, according to Marcus Daniels <marcus@sysc.pdx.edu>.  */
-
-int pending_menu_activation;
 
 #ifdef USE_X_TOOLKIT
 
@@ -670,26 +662,14 @@ x_activate_menubar (FRAME_PTR f)
 
   set_frame_menubar (f, 0, 1);
   BLOCK_INPUT;
-#ifdef USE_GTK
-  /* If we click outside any menu item, the menu bar still grabs.
-     So we send Press and the Release.  If outside, grab is released.
-     If on a menu item, it is popped up normally.
-     PutBack is like a stack, so we put back in reverse order.  */
-  f->output_data.x->saved_menu_event->type = ButtonRelease;
-  XPutBackEvent (f->output_data.x->display_info->display,
-                 f->output_data.x->saved_menu_event);
-  f->output_data.x->saved_menu_event->type = ButtonPress;
-  XPutBackEvent (f->output_data.x->display_info->display,
-                 f->output_data.x->saved_menu_event);
   popup_activated_flag = 1;
+#ifdef USE_GTK
+  XPutBackEvent (f->output_data.x->display_info->display,
+                 f->output_data.x->saved_menu_event);
 #else
   XtDispatchEvent (f->output_data.x->saved_menu_event);
 #endif
   UNBLOCK_INPUT;
-#ifdef USE_MOTIF
-  if (f->output_data.x->saved_menu_event->type == ButtonRelease)
-    pending_menu_activation = 1;
-#endif
 
   /* Ignore this if we get it a second time.  */
   f->output_data.x->saved_menu_event->type = 0;
@@ -991,8 +971,6 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 
   if (! menubar_widget)
     deep_p = 1;
-  else if (pending_menu_activation && !deep_p)
-    deep_p = 1;
   /* Make the first call for any given frame always go deep.  */
   else if (!f->output_data.x->saved_menu_event && !deep_p)
     {
@@ -1274,10 +1252,11 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
     }
 
   {
+    int menubar_size;
     if (f->output_data.x->menubar_widget)
       XtRealizeWidget (f->output_data.x->menubar_widget);
 
-    int menubar_size
+    menubar_size
       = (f->output_data.x->menubar_widget
 	 ? (f->output_data.x->menubar_widget->core.height
 	    + f->output_data.x->menubar_widget->core.border_width)
@@ -1286,7 +1265,7 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 #if 1 /* Experimentally, we now get the right results
 	 for -geometry -0-0 without this.  24 Aug 96, rms.
          Maybe so, but the menu bar size is missing the pixels so the
-         WM size hints are off by theses pixel.  Jan D, oct 2009.  */
+         WM size hints are off by these pixels.  Jan D, oct 2009.  */
 #ifdef USE_LUCID
     if (FRAME_EXTERNAL_MENU_BAR (f))
       {
@@ -1368,15 +1347,15 @@ free_frame_menubar (FRAME_PTR f)
       lw_destroy_all_widgets ((LWLIB_ID) f->output_data.x->id);
       f->output_data.x->menubar_widget = NULL;
 
-#ifdef USE_MOTIF
       if (f->output_data.x->widget)
 	{
+#ifdef USE_MOTIF
 	  XtVaGetValues (f->output_data.x->widget, XtNx, &x1, XtNy, &y1, NULL);
 	  if (x1 == 0 && y1 == 0)
 	    XtVaSetValues (f->output_data.x->widget, XtNx, x0, XtNy, y0, NULL);
-	}
 #endif
-      x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
+          x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
+	}
       UNBLOCK_INPUT;
     }
 }
@@ -1575,7 +1554,8 @@ pop_down_menu (Lisp_Object arg)
    menu pops down.
    menu_item_selection will be set to the selection.  */
 static void
-create_and_show_popup_menu (FRAME_PTR f, widget_value *first_wv, int x, int y, int for_click, unsigned int timestamp)
+create_and_show_popup_menu (FRAME_PTR f, widget_value *first_wv,
+			    int x, int y, int for_click, EMACS_UINT timestamp)
 {
   int i;
   Arg av[2];
@@ -2288,7 +2268,8 @@ pop_down_menu (Lisp_Object arg)
 
 
 Lisp_Object
-xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps, Lisp_Object title, char **error, unsigned int timestamp)
+xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
+	    Lisp_Object title, char **error, EMACS_UINT timestamp)
 {
   Window root;
   XMenu *menu;

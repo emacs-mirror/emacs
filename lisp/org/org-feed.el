@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.35i
+;; Version: 7.01
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -45,7 +45,7 @@
 ;;  With this setup, the command `M-x org-feed-update-all' will
 ;;  collect new entries in the feed at the given URL and create
 ;;  entries as subheadings under the "ReQall Entries" heading in the
-;;  file "~/org-feeds.org".  Each feed should normally have its own
+;;  file "~/org/feeds.org".  Each feed should normally have its own
 ;;  heading - however see the `:drawer' parameter.
 ;;
 ;;  Besides these standard elements that need to be specified for each
@@ -83,8 +83,8 @@
 ;;
 ;;       #+DRAWERS: PROPERTIES LOGBOOK FEEDSTATUS
 ;;
-;;  Acknowledgements
-;;  ----------------
+;;  Acknowledgments
+;;  ---------------
 ;;
 ;;  org-feed.el is based on ideas by Brad Bozarth who implemented a
 ;;  similar mechanism using shell and awk scripts.
@@ -99,6 +99,7 @@
 (declare-function xml-get-children "xml" (node child-name))
 (declare-function xml-get-attribute "xml" (node attribute))
 (declare-function xml-get-attribute-or-nil "xml" (node attribute))
+(defvar xml-entity-alist)
 
 (defgroup org-feed  nil
   "Options concerning RSS feeds as inputs for Org files."
@@ -165,10 +166,11 @@ Here are the keyword-value pair allows in `org-feed-alist'.
      When the handler is called, point will be at the feed headline.
 
 :parse-feed function
-     This function gets passed a buffer, and should return a list of entries,
-     each being a property list containing the `:guid' and `:item-full-text'
-     keys.  The default is `org-feed-parse-rss-feed'; `org-feed-parse-atom-feed'
-     is an alternative.
+     This function gets passed a buffer, and should return a list
+     of entries, each being a property list containing the
+     `:guid' and `:item-full-text' keys.  The default is
+     `org-feed-parse-rss-feed'; `org-feed-parse-atom-feed' is an
+     alternative.
 
 :parse-entry function
      This function gets passed an entry as returned by the parse-feed
@@ -199,12 +201,12 @@ Here are the keyword-value pair allows in `org-feed-alist'.
 		    (list :inline t :tag "Changed items"
 			  (const :changed-handler)
 			  (symbol :tag "Handler Function"))
-                    (list :inline t :tag "Parse Feed"
-                          (const :parse-feed)
-                          (symbol :tag "Parse Feed Function"))
-                    (list :inline t :tag "Parse Entry"
-                          (const :parse-entry)
-                          (symbol :tag "Parse Entry Function"))
+		    (list :inline t :tag "Parse Feed"
+			  (const :parse-feed)
+			  (symbol :tag "Parse Feed Function"))
+		    (list :inline t :tag "Parse Entry"
+			  (const :parse-entry)
+			  (symbol :tag "Parse Entry Function"))
 		    )))))
 
 (defcustom org-feed-drawer "FEEDSTATUS"
@@ -267,6 +269,17 @@ have been saved."
 (defvar org-feed-buffer "*Org feed*"
   "The buffer used to retrieve a feed.")
 
+(defun org-feed-unescape (s)
+  "Unescape protected entities in S."
+  (require 'xml)
+  (let ((re (concat "&\\("
+		    (mapconcat 'car xml-entity-alist "\\|")
+		    "\\);")))
+    (while (string-match re s)
+      (setq s (replace-match
+	       (cdr (assoc (match-string 1 s) xml-entity-alist)) nil nil s)))
+    s))
+
 ;;;###autoload
 (defun org-feed-update-all ()
   "Get inbox items from all feeds in `org-feed-alist'."
@@ -302,10 +315,10 @@ it can be a list structured like an entry in `org-feed-alist'."
 			org-feed-default-template))
 	  (drawer (or (nth 1 (memq :drawer feed))
 		      org-feed-drawer))
-          (parse-feed (or (nth 1 (memq :parse-feed feed))
-                          'org-feed-parse-rss-feed))
-          (parse-entry (or (nth 1 (memq :parse-entry feed))
-                           'org-feed-parse-rss-entry))
+	  (parse-feed (or (nth 1 (memq :parse-feed feed))
+			  'org-feed-parse-rss-feed))
+	  (parse-entry (or (nth 1 (memq :parse-entry feed))
+			   'org-feed-parse-rss-entry))
 	  feed-buffer inbox-pos new-formatted
 	  entries old-status status new changed guid-alist e guid olds)
       (setq feed-buffer (org-feed-get-feed url))
@@ -321,10 +334,11 @@ it can be a list structured like an entry in `org-feed-alist'."
 	  (setq old-status (org-feed-read-previous-status inbox-pos drawer))
 	  ;; Add the "handled" status to the appropriate entries
 	  (setq entries (mapcar (lambda (e)
-				  (setq e (plist-put e :handled
-						     (nth 1 (assoc
-							     (plist-get e :guid)
-							     old-status)))))
+				  (setq e
+					(plist-put e :handled
+						   (nth 1 (assoc
+							   (plist-get e :guid)
+							   old-status)))))
 				entries))
 	  ;; Find out which entries are new and which are changed
 	  (dolist (e entries)
@@ -579,11 +593,12 @@ Assumes headers are indeed present!"
   "Parse BUFFER for RSS feed entries.
 Returns a list of entries, with each entry a property list,
 containing the properties `:guid' and `:item-full-text'."
-  (let (entries beg end item guid entry)
+  (let ((case-fold-search t)
+	entries beg end item guid entry)
     (with-current-buffer buffer
       (widen)
       (goto-char (point-min))
-      (while (re-search-forward "<item>" nil t)
+      (while (re-search-forward "<item\\>.*?>" nil t)
 	(setq beg (point)
 	      end (and (re-search-forward "</item>" nil t)
 		       (match-beginning 0)))
@@ -605,7 +620,7 @@ containing the properties `:guid' and `:item-full-text'."
 			      nil t)
       (setq entry (plist-put entry
 			     (intern (concat ":" (match-string 1)))
-			     (match-string 2))))
+			     (org-feed-unescape (match-string 2)))))
     (goto-char (point-min))
     (unless (re-search-forward "isPermaLink[ \t]*=[ \t]*\"false\"" nil t)
       (setq entry (plist-put entry :guid-permalink t))))
@@ -618,14 +633,15 @@ containing the properties `:guid' and `:item-full-text'.
 
 The `:item-full-text' property actually contains the sexp
 formatted as a string, not the original XML data."
+  (require 'xml)
   (with-current-buffer buffer
     (widen)
     (let ((feed (car (xml-parse-region (point-min) (point-max)))))
       (mapcar
        (lambda (entry)
-         (list
-          :guid (car (xml-node-children (car (xml-get-children entry 'id))))
-          :item-full-text (prin1-to-string entry)))
+	 (list
+	  :guid (car (xml-node-children (car (xml-get-children entry 'id))))
+	  :item-full-text (prin1-to-string entry)))
        (xml-get-children feed 'entry)))))
 
 (defun org-feed-parse-atom-entry (entry)
@@ -633,28 +649,36 @@ formatted as a string, not the original XML data."
   (let ((xml (car (read-from-string (plist-get entry :item-full-text)))))
     ;; Get first <link href='foo'/>.
     (setq entry (plist-put entry :link
-                           (xml-get-attribute
-                            (car (xml-get-children xml 'link))
-                            'href)))
+			   (xml-get-attribute
+			    (car (xml-get-children xml 'link))
+			    'href)))
     ;; Add <title/> as :title.
     (setq entry (plist-put entry :title
-                           (car (xml-node-children
-                                 (car (xml-get-children xml 'title))))))
+			   (org-feed-unescape
+			    (car (xml-node-children
+				  (car (xml-get-children xml 'title)))))))
     (let* ((content (car (xml-get-children xml 'content)))
-           (type (xml-get-attribute-or-nil content 'type)))
+	   (type (xml-get-attribute-or-nil content 'type)))
       (when content
-        (cond
-         ((string= type "text")
-          ;; We like plain text.
-          (setq entry (plist-put entry :description (car (xml-node-children content)))))
-         ((string= type "html")
-          ;; TODO: convert HTML to Org markup.
-          (setq entry (plist-put entry :description (car (xml-node-children content)))))
-         ((string= type "xhtml")
-          ;; TODO: convert XHTML to Org markup.
-          (setq entry (plist-put entry :description (prin1-to-string (xml-node-children content)))))
-         (t
-          (setq entry (plist-put entry :description (format "Unknown '%s' content." type)))))))
+	(cond
+	 ((string= type "text")
+	  ;; We like plain text.
+	  (setq entry (plist-put entry :description
+				 (org-feed-unescape
+				  (car (xml-node-children content))))))
+	 ((string= type "html")
+	  ;; TODO: convert HTML to Org markup.
+	  (setq entry (plist-put entry :description
+				 (org-feed-unescape
+				  (car (xml-node-children content))))))
+	 ((string= type "xhtml")
+	  ;; TODO: convert XHTML to Org markup.
+	  (setq entry (plist-put entry :description
+				 (prin1-to-string
+				  (xml-node-children content)))))
+	 (t
+	  (setq entry (plist-put entry :description
+				 (format "Unknown '%s' content." type)))))))
     entry))
 
 (provide 'org-feed)

@@ -553,7 +553,9 @@ make_initial_frame (void)
 
   FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
   FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none;
-  FRAME_MENU_BAR_LINES(f) = NILP (Vmenu_bar_mode) ? 0 : 1;
+
+  /* The default value of menu-bar-mode is t.  */
+  set_menu_bar_lines (f, make_number (1), Qnil);
 
 #ifdef CANNOT_DUMP
   if (!noninteractive)

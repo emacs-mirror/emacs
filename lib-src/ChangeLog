@@ -1,3 +1,12 @@
+2010-07-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (get_current_dir_name, w32_get_resource)
+	(w32_getenv, w32_set_user_model_id, w32_window_app, w32_execvp)
+	(close_winsock, initialize_sockets, w32_find_emacs_process)
+	(w32_give_focus):
+	* ntlib.c (getlogin, getuid, getgid, getegid):
+	Convert definitions to standard C.
+
 2010-07-12  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* Makefile.in (C_WARNINGS_SWITCH, PROFILING_CFLAGS)
@@ -20,7 +29,7 @@
 
 2010-07-11  Eli Zaretskii  <eliz@gnu.org>
 
-	* makefile.w32-in (obj): Add menu.o, bidi.o, w32uniscrobe.o,
+	* makefile.w32-in (obj): Add menu.o, bidi.o, w32uniscribe.o,
 	and unexw32.o.  (Bug#6603)
 
 2010-07-10  Eli Zaretskii  <eliz@gnu.org>
@@ -272,8 +281,7 @@
 
 2010-01-29  Kester Habermann  <kester@linuxtag.org>  (tiny change)
 
-	* etags.c (Fortran_functions): Handle recursive keyword
-	(Bug#5484).
+	* etags.c (Fortran_functions): Handle recursive keyword (Bug#5484).
 
 2010-01-11  Glenn Morris  <rgm@gnu.org>
 

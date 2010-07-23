@@ -1037,7 +1037,7 @@ into Meta.  This is because of the great importance of Meta in Emacs.
 
 This happens sometimes when using Metacity.  Resizing Emacs or ALT-Tab:bing
 makes the system unresponsive to the mouse or the keyboard.  Killing Emacs
-or shifting out from X11 and back again usually cures it (i.e. Ctrl-Alt-F1 
+or shifting out from X11 and back again usually cures it (i.e. Ctrl-Alt-F1
 and then Alt-F7).  A bug for it is here:
 https://bugs.launchpad.net/ubuntu/+source/metacity/+bug/231034.
 Note that a permanent fix seems to be to disable "assistive technologies".
@@ -1514,7 +1514,7 @@ One way to cure this is to disable flow control on the local host
 (the one running rlogin, not the one running rlogind) using the
 stty command, before starting the rlogin process.  On many systems,
 "stty start u stop u" will do this.  On some systems, use
-"stty -ixon" instead. 
+"stty -ixon" instead.
 
 Some versions of tcsh will prevent even this from working.  One way
 around this is to start another shell before starting rlogin, and
@@ -2432,6 +2432,20 @@ several workarounds for this problem:
 	1. Use Free MinGW tools to compile, which do not have this problem.
 	2. Install the latest Windows SDK.
 	3. Replace emacs.ico with an older or edited icon.
+
+*** Building the MS-Windows port complains about unknown escape sequences.
+
+Errors and warnings can look like this:
+
+ w32.c:1959:27: error: \x used with no following hex digits
+ w32.c:1959:27: warning: unknown escape sequence '\i'
+
+This happens when paths using backslashes are passed to the compiler or
+linker (via -I and possibly other compiler flags); when these paths are
+included in source code, the backslashes are interpreted as escape sequences.
+See http://lists.gnu.org/archive/html/emacs-devel/2010-07/msg00995.html
+
+The fix is to use forward slashes in all paths passed to the compiler.
 
 ** Linking
 

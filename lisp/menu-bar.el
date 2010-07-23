@@ -526,17 +526,6 @@
   "Make CUT, PASTE and COPY (keys and menu bar items) use the clipboard.
 Do the same for the keys of the same name."
   (interactive)
-  ;; We can't use constant list structure here because it becomes pure,
-  ;; and because it gets modified with cache data.
-  (define-key menu-bar-edit-menu [paste]
-    (cons "Paste" (cons "Paste text from clipboard" 'clipboard-yank)))
-  (define-key menu-bar-edit-menu [copy]
-    (cons "Copy" (cons "Copy text in region to the clipboard"
-		       'clipboard-kill-ring-save)))
-  (define-key menu-bar-edit-menu [cut]
-    (cons "Cut" (cons "Delete text in region and copy it to the clipboard"
-		      'clipboard-kill-region)))
-
   ;; These are Sun server keysyms for the Cut, Copy and Paste keys
   ;; (also for XFree86 on Sun keyboard):
   (define-key global-map [f20] 'clipboard-kill-region)

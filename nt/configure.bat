@@ -80,6 +80,7 @@ rem   Default settings.
 set prefix=
 set nodebug=N
 set noopt=N
+set enablechecking=N
 set profile=N
 set nocygwin=N
 set COMPILER=
@@ -100,6 +101,7 @@ if "%1" == "--with-gcc" goto withgcc
 if "%1" == "--with-msvc" goto withmsvc
 if "%1" == "--no-debug" goto nodebug
 if "%1" == "--no-opt" goto noopt
+if "%1" == "--enable-checking" goto enablechecking
 if "%1" == "--profile" goto profile
 if "%1" == "--no-cygwin" goto nocygwin
 if "%1" == "--cflags" goto usercflags
@@ -119,6 +121,7 @@ echo.   --with-gcc              use GCC to compile Emacs
 echo.   --with-msvc             use MSVC to compile Emacs
 echo.   --no-debug              exclude debug info from executables
 echo.   --no-opt                disable optimization
+echo.   --enable-checking       enable checks and assertions
 echo.   --profile               enable profiling
 echo.   --no-cygwin             use -mno-cygwin option with GCC
 echo.   --cflags FLAG           pass FLAG to compiler
@@ -154,6 +157,11 @@ goto again
 rem ----------------------------------------------------------------------
 :noopt
 set noopt=Y
+shift
+goto again
+rem ----------------------------------------------------------------------
+:enablechecking
+set enablechecking=Y
 shift
 goto again
 rem ----------------------------------------------------------------------
@@ -529,6 +537,7 @@ if not "(%mf%)" == "()" echo MCPU_FLAG=%mf%>>config.settings
 if not "(%dbginfo%)" == "()" echo DEBUG_INFO=%dbginfo%>>config.settings
 if (%nodebug%) == (Y) echo NODEBUG=1 >>config.settings
 if (%noopt%) == (Y) echo NOOPT=1 >>config.settings
+if (%enablechecking%) == (Y) echo ENABLECHECKS=1 >>config.settings
 if (%profile%) == (Y) echo PROFILE=1 >>config.settings
 if (%nocygwin%) == (Y) echo NOCYGWIN=1 >>config.settings
 if not "(%prefix%)" == "()" echo INSTALL_DIR=%prefix%>>config.settings
@@ -660,6 +669,7 @@ set $foo$=
 set prefix=
 set nodebug=
 set noopt=
+set enablechecking=
 set profile=
 set nocygwin=
 set COMPILER=

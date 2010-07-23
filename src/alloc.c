@@ -1161,9 +1161,7 @@ static void (*old_free_hook) (void*, const void*);
 /* This function is used as the hook for free to call.  */
 
 static void
-emacs_blocked_free (ptr, ptr2)
-     void *ptr;
-     const void *ptr2;
+emacs_blocked_free (void *ptr, const void *ptr2)
 {
   BLOCK_INPUT_ALLOC;
 
@@ -1211,9 +1209,7 @@ emacs_blocked_free (ptr, ptr2)
 /* This function is the malloc hook that Emacs uses.  */
 
 static void *
-emacs_blocked_malloc (size, ptr)
-     size_t size;
-     const void *ptr;
+emacs_blocked_malloc (size_t size, const void *ptr)
 {
   void *value;
 
@@ -1260,10 +1256,7 @@ emacs_blocked_malloc (size, ptr)
 /* This function is the realloc hook that Emacs uses.  */
 
 static void *
-emacs_blocked_realloc (ptr, size, ptr2)
-     void *ptr;
-     size_t size;
-     const void *ptr2;
+emacs_blocked_realloc (void *ptr, size_t size, const void *ptr2)
 {
   void *value;
 
@@ -1337,7 +1330,7 @@ reset_malloc_hooks ()
 /* Called from main to set up malloc to use our hooks.  */
 
 void
-uninterrupt_malloc ()
+uninterrupt_malloc (void)
 {
 #ifdef HAVE_GTK_AND_PTHREAD
 #ifdef DOUG_LEA_MALLOC

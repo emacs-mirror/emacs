@@ -4159,9 +4159,7 @@ x_scroll_bar_to_input_event (XEvent *event, struct input_event *ievent)
    CALL_DATA is a pointer to a XmScrollBarCallbackStruct.  */
 
 static void
-xm_scroll_callback (widget, client_data, call_data)
-     Widget widget;
-     XtPointer client_data, call_data;
+xm_scroll_callback (Widget widget, XtPointer client_data, XtPointer call_data)
 {
   struct scroll_bar *bar = (struct scroll_bar *) client_data;
   XmScrollBarCallbackStruct *cs = (XmScrollBarCallbackStruct *) call_data;
@@ -5546,21 +5544,17 @@ struct x_display_info *XTread_socket_fake_io_error;
 
 static struct x_display_info *next_noop_dpyinfo;
 
-#define SET_SAVED_MENU_EVENT(size)					\
+#define SET_SAVED_BUTTON_EVENT                                          \
      do									\
        {								\
 	 if (f->output_data.x->saved_menu_event == 0)			\
            f->output_data.x->saved_menu_event				\
 	     = (XEvent *) xmalloc (sizeof (XEvent));			\
-         memcpy (f->output_data.x->saved_menu_event, &event, size);	\
+         *f->output_data.x->saved_menu_event = event;                   \
 	 inev.ie.kind = MENU_BAR_ACTIVATE_EVENT;			\
 	 XSETFRAME (inev.ie.frame_or_window, f);			\
        }								\
      while (0)
-
-#define SET_SAVED_BUTTON_EVENT SET_SAVED_MENU_EVENT (sizeof (XButtonEvent))
-#define SET_SAVED_KEY_EVENT    SET_SAVED_MENU_EVENT (sizeof (XKeyEvent))
-
 
 enum
 {
@@ -6749,20 +6743,18 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventp, int *finish, 
 	  f->mouse_moved = 0;
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
-        f = x_menubar_window_to_frame (dpyinfo, event.xbutton.window);
+        f = x_menubar_window_to_frame (dpyinfo, &event);
         /* For a down-event in the menu bar,
            don't pass it to Xt right now.
            Instead, save it away
            and we will pass it to Xt from kbd_buffer_get_event.
            That way, we can run some Lisp code first.  */
-        if (
+        if (! popup_activated ()
 #ifdef USE_GTK
-            ! popup_activated ()
             /* Gtk+ menus only react to the first three buttons. */
             && event.xbutton.button < 3
-            &&
 #endif
-            f && event.type == ButtonPress
+            && f && event.type == ButtonPress
             /* Verify the event is really within the menu bar
                and not just sent to it due to grabbing.  */
             && event.xbutton.x >= 0
@@ -6773,30 +6765,13 @@ handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventp, int *finish, 
           {
             SET_SAVED_BUTTON_EVENT;
             XSETFRAME (last_mouse_press_frame, f);
-#ifdef USE_GTK
             *finish = X_EVENT_DROP;
-#endif
           }
         else if (event.type == ButtonPress)
           {
             last_mouse_press_frame = Qnil;
             goto OTHER;
           }
-
-#ifdef USE_MOTIF /* This should do not harm for Lucid,
-		    but I am trying to be cautious.  */
-        else if (event.type == ButtonRelease)
-          {
-            if (!NILP (last_mouse_press_frame))
-              {
-                f = XFRAME (last_mouse_press_frame);
-                if (f->output_data.x)
-                  SET_SAVED_BUTTON_EVENT;
-              }
-            else
-              goto OTHER;
-          }
-#endif /* USE_MOTIF */
         else
           goto OTHER;
 #endif /* USE_X_TOOLKIT || USE_GTK */
@@ -7528,7 +7503,7 @@ x_clear_errors (Display *dpy)
 /* Close off all unclosed x_catch_errors calls.  */
 
 void
-x_fully_uncatch_errors ()
+x_fully_uncatch_errors (void)
 {
   while (x_error_message)
     x_uncatch_errors ();
@@ -7545,7 +7520,7 @@ x_catching_errors (void)
 
 #if 0
 static unsigned int x_wire_count;
-x_trace_wire ()
+x_trace_wire (void)
 {
   fprintf (stderr, "Lib call: %d\n", ++x_wire_count);
 }
@@ -8631,9 +8606,7 @@ x_set_window_size_1 (struct frame *f, int change_gravity, int cols, int rows)
   f->scroll_bar_actual_width
     = (!FRAME_HAS_VERTICAL_SCROLL_BARS (f)
        ? 0
-       : FRAME_CONFIG_SCROLL_BAR_WIDTH (f) > 0
-       ? FRAME_CONFIG_SCROLL_BAR_WIDTH (f)
-       : (FRAME_CONFIG_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f)));
+       : FRAME_CONFIG_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f));
 
   compute_fringe_widths (f, 0);
 
@@ -9587,9 +9560,7 @@ x_wm_set_icon_position (struct frame *f, int icon_x, int icon_y)
    font table.  */
 
 static void
-x_check_font (f, font)
-     struct frame *f;
-     struct font *font;
+x_check_font (struct frame *f, struct font *font)
 {
   Lisp_Object frame;
 
@@ -10336,8 +10307,7 @@ x_delete_display (struct x_display_info *dpyinfo)
    that slows us down.  */
 
 static void
-x_process_timeouts (timer)
-     struct atimer *timer;
+x_process_timeouts (struct atimer *timer)
 {
   BLOCK_INPUT;
   x_timeout_atimer_activated_flag = 0;

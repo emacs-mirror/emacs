@@ -516,15 +516,15 @@ the image file and `image-mode' showing the image as an image."
 
 
 ;;; Support for bookmark.el
-(declare-function bookmark-make-record-default "bookmark"
-                  (&optional point-only))
+(declare-function bookmark-make-record-default
+                  "bookmark" (&optional no-file no-context posn))
 (declare-function bookmark-prop-get "bookmark" (bookmark prop))
 (declare-function bookmark-default-handler "bookmark" (bmk))
 
 (defun image-bookmark-make-record ()
-  (nconc (bookmark-make-record-default)
-         `((image-type . ,image-type)
-           (handler    . image-bookmark-jump))))
+  `(,@(bookmark-make-record-default nil 'no-context 0)
+      (image-type . ,image-type)
+      (handler    . image-bookmark-jump)))
 
 ;;;###autoload
 (defun image-bookmark-jump (bmk)

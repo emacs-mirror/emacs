@@ -1349,8 +1349,8 @@ See the command `doc-view-mode' for more information on this mode."
 
 ;;;; Bookmark integration
 
-(declare-function bookmark-make-record-default "bookmark"
-                  (&optional point-only))
+(declare-function bookmark-make-record-default
+                  "bookmark" (&optional no-file no-context posn))
 (declare-function bookmark-prop-get "bookmark" (bookmark prop))
 (declare-function bookmark-default-handler "bookmark" (bmk))
 

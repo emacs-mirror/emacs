@@ -2560,10 +2560,8 @@ w32_create_pixmap_from_bitmap_data (int width, int height, char *data)
 }
 
 static void
-convert_mono_to_color_image (f, img, foreground, background)
-     struct frame *f;
-     struct image *img;
-     COLORREF foreground, background;
+convert_mono_to_color_image (struct frame *f, struct image *img,
+			     COLORREF foreground, COLORREF background)
 {
   HDC hdc, old_img_dc, new_img_dc;
   HGDIOBJ old_prev, new_prev;
@@ -4357,9 +4355,7 @@ colors_in_color_table (int *n)
 #else /* COLOR_TABLE_SUPPORT */
 
 static unsigned long
-lookup_rgb_color (f, r, g, b)
-     struct frame *f;
-     int r, g, b;
+lookup_rgb_color (struct frame *f, int r, int g, int b)
 {
   unsigned long pixel;
 
@@ -4374,7 +4370,7 @@ lookup_rgb_color (f, r, g, b)
 }
 
 static void
-init_color_table ()
+init_color_table (void)
 {
 }
 #endif /* COLOR_TABLE_SUPPORT */
@@ -4492,10 +4488,7 @@ x_to_xcolors (struct frame *f, struct image *img, int rgb_p)
    stored in ximg->data.  */
 
 static void
-XPutPixel (ximg, x, y, color)
-     XImagePtr  ximg;
-     int x, y;
-     COLORREF color;
+XPutPixel (XImagePtr ximg, int x, int y, COLORREF color)
 {
   int width = ximg->info.bmiHeader.biWidth;
   int height = ximg->info.bmiHeader.biHeight;
@@ -6071,9 +6064,7 @@ init_jpeg_functions (Lisp_Object libraries)
 /* Wrapper since we can't directly assign the function pointer
    to another function pointer that was declared more completely easily.  */
 static boolean
-jpeg_resync_to_restart_wrapper (cinfo, desired)
-     j_decompress_ptr cinfo;
-     int desired;
+jpeg_resync_to_restart_wrapper (j_decompress_ptr cinfo, int desired)
 {
   return fn_jpeg_resync_to_restart (cinfo, desired);
 }
