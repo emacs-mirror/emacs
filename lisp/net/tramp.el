@@ -1444,10 +1444,14 @@ See also `tramp-file-name-regexp'.")
 
 ;;;###autoload
 (defconst tramp-file-name-regexp-unified
-  "\\`/\\([^[/:]+\\|[^/]+]\\):"
+  (if (memq system-type '(cygwin windows-nt))
+      "\\`/\\([^[/:]\\{2,\\}\\|[^/]\\{2,\\}]\\):"
+    "\\`/\\([^[/:]+\\|[^/]+]\\):")
   "Value for `tramp-file-name-regexp' for unified remoting.
 Emacs (not XEmacs) uses a unified filename syntax for Ange-FTP and
-Tramp.  See `tramp-file-name-structure' for more explanations.")
+Tramp.  See `tramp-file-name-structure' for more explanations.
+
+On W32 systems, the volume letter must be ignored.")
 
 ;;;###autoload
 (defconst tramp-file-name-regexp-separate
@@ -1494,10 +1498,14 @@ volume letter, which will be removed by `tramp-drop-volume-letter'.")
 
 ;;;###autoload
 (defconst tramp-completion-file-name-regexp-unified
-  (concat tramp-root-regexp "[^/]*\\'")
+  (if (memq system-type '(cygwin windows-nt))
+      (concat tramp-root-regexp "[^/]\\{2,\\}\\'")
+    (concat tramp-root-regexp "[^/]*\\'"))
   "Value for `tramp-completion-file-name-regexp' for unified remoting.
 GNU Emacs uses a unified filename syntax for Tramp and Ange-FTP.
-See `tramp-file-name-structure' for more explanations.")
+See `tramp-file-name-structure' for more explanations.
+
+On W32 systems, the volume letter must be ignored.")
 
 ;;;###autoload
 (defconst tramp-completion-file-name-regexp-separate
@@ -8953,7 +8961,6 @@ Only works for Bourne-like shells."
 ;;   expects English?  Or just to set LC_MESSAGES to "C" if Tramp
 ;;   expects only English messages?  (Juri Linkov)
 ;; * Make shadowfile.el grok Tramp filenames.  (Bug#4526, Bug#4846)
-;; * Do not handle files with drive letter as remote.  (Bug#5447)
 ;; * Load Tramp subpackages only when needed.  (Bug#1529, Bug#5448, Bug#5705)
 ;; * Try telnet+curl as new method.  It might be useful for busybox,
 ;;   without built-in uuencode/uudecode.

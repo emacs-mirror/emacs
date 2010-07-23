@@ -1,3 +1,9 @@
+2010-07-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-file-name-regexp-unified)
+	(tramp-completion-file-name-regexp-unified): On W32 systems, do
+	not regard the volume letter as remote filename.  (Bug#5447)
+
 2010-07-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* custom.el (custom-declare-variable): Give a clearer error message
