@@ -3292,10 +3292,10 @@ funcall_funvec (fun, nargs, args)
       funcall_args[0] = curry_params[0];
 
       /* Then the arguments in the appropriate order.  */
-      bcopy (curried_args, funcall_args + curried_args_offs,
-	     num_curried_args * sizeof (Lisp_Object));
-      bcopy (args, funcall_args + user_args_offs,
-	     nargs * sizeof (Lisp_Object));
+      memcpy (funcall_args + curried_args_offs, curried_args,
+	      num_curried_args * sizeof (Lisp_Object));
+      memcpy (funcall_args + user_args_offs, args,
+	      nargs * sizeof (Lisp_Object));
 
       return Ffuncall (num_funcall_args, funcall_args);
     }

@@ -1,3 +1,7 @@
+2010-07-23  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* eval.c (funcall_funvec): Replace bcopy by memcpy.
+
 2010-06-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c (Fspecial_variable_p): Rename from `specialp'.
