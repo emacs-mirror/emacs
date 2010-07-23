@@ -1,5 +1,12 @@
 2010-07-23  Juanma Barranquero  <lekktu@gmail.com>
 
+	* alloc.c (free_float):
+	* font.c [ENABLE_CHECKING] (font_match_xlfd, font_check_xlfd_parse):
+	* frame.c (delete_frame_handler):
+	* ralloc.c (reorder_bloc):
+	* w32menu.c (menubar_id_to_frame, add_left_right_boundary):
+	Remove unused static functions.
+
 	* menu.c (cleanup_popup_menu): Set inside "#ifdef HAVE_NS";
 	it is called only from NS code.
 
