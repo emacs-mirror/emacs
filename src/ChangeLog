@@ -1,3 +1,9 @@
+2010-07-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32fns.c (x_edge_detection):
+	* xfaces.c (may_use_scalable_font_p):
+	Remove obsolete static declarations.
+
 2010-07-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* alloc.c (emacs_blocked_free, emacs_blocked_malloc)
