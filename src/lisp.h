@@ -3399,16 +3399,16 @@ extern int emacs_close (int);
 extern int emacs_read (int, char *, unsigned int);
 extern int emacs_write (int, const char *, unsigned int);
 #ifndef HAVE_MEMSET
-extern void *memset P_ ((void *, int, size_t));
+extern void *memset (void *, int, size_t);
 #endif
 #ifndef HAVE_MEMCPY
-extern void *memcpy P_ ((void *, void *, size_t));
+extern void *memcpy (void *, void *, size_t);
 #endif
 #ifndef HAVE_MEMMOVE
-extern void *memmove P_ ((void *, void *, size_t));
+extern void *memmove (void *, void *, size_t);
 #endif
 #ifndef HAVE_MEMCMP
-extern int memcmp P_ ((void *, void *, size_t));
+extern int memcmp (void *, void *, size_t);
 #endif
 
 /* Defined in filelock.c */
