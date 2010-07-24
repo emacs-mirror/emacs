@@ -1,3 +1,16 @@
+2010-07-24  Christoph Scholtes  <cschol2112@gmail.com>
+
+	New make target for Windows platform: make dist (bug#6602)
+
+	* INSTALL: Document new dist target and add section about
+	creating binary distributions.
+	* README.W32: Relocate from admin/nt/ directory.
+	* configure.bat: New parameter `--distfiles'.
+	* makefile.w32-in: Add version number, new target `dist'.
+	Add new target `install-shortcuts'.
+	* zipdist.bat: New file; create zipped binary distribution,
+	replaces admin/nt/makedist.bat.
+
 2010-07-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* INSTALL: Add note about backslashes in Windows paths.
