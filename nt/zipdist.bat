@@ -42,7 +42,7 @@ rem Build and verify full distribution
 7z a -bd -tZIP -mx=9 -x!.bzrignore -x!.gitignore -xr!emacs.mdp -xr!*.pdb -xr!*.opt -xr!*~ -xr!CVS -xr!.arch-inventory emacs-%EMACS_VER%-bin-i386.zip %TMP_DIST_DIR%
 7z t emacs-%EMACS_VER%-bin-i386.zip
 rem Build and verify binary only distribution
-7z a -bd -tZIP -mx=9 emacs-%EMACS_VER%-barebin-i386.zip %TMP_DIST_DIR%/README.W32 %TMP_DIST_DIR%/bin %TMP_DIST_DIR%/etc/DOC-X %TMP_DIST_DIR%/COPYING
+7z a -bd -tZIP -mx=9 -x!.bzrignore -x!.gitignore -xr!emacs.mdp -xr!*.pdb -xr!*.opt -xr!*~ -xr!CVS -xr!.arch-inventory emacs-%EMACS_VER%-barebin-i386.zip %TMP_DIST_DIR%/README.W32 %TMP_DIST_DIR%/bin %TMP_DIST_DIR%/etc/DOC-X %TMP_DIST_DIR%/COPYING
 7z t emacs-%EMACS_VER%-barebin-i386.zip
 goto EXIT
 

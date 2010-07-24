@@ -1,5 +1,11 @@
 2010-07-24  Christoph Scholtes  <cschol2112@gmail.com>
 
+	* makefile.w32-in: Use temporary directory to create distribution
+	zip files in `dist' target.
+	* zipdist.bat: Simplify code using temporary directory.
+
+2010-07-24  Christoph Scholtes  <cschol2112@gmail.com>
+
 	New make target for Windows platform: make dist (bug#6602)
 
 	* INSTALL: Document new dist target and add section about
