@@ -1,3 +1,7 @@
+2010-07-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* ecrt0.c, unexalpha.c: Remove files, unused.
+
 2010-07-24  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* cmds.c (internal_self_insert): Make static.
