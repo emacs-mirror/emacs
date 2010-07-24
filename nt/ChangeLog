@@ -1,7 +1,8 @@
 2010-07-24  Christoph Scholtes  <cschol2112@gmail.com>
 
-	* makefile.w32-in: Use temporary directory to create distribution
-	zip files in `dist' target.
+	* makefile.w32-in: Copy README.W32 to installation directory
+	during `make install'.  Use temporary directory to create
+	distribution zip files in `dist' target.
 	* zipdist.bat: Simplify code using temporary directory.
 
 2010-07-24  Christoph Scholtes  <cschol2112@gmail.com>
