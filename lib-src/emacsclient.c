@@ -158,6 +158,8 @@ char *server_file = NULL;
 int emacs_pid = 0;
 
 void print_help_and_exit (void) NO_RETURN;
+void fail (void) NO_RETURN;
+
 
 struct option longopts[] =
 {

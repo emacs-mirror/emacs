@@ -60,6 +60,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 extern char *optarg;
 extern int optind, opterr;
 
+int usage (int err) NO_RETURN;
+
 #define MAX_ATTEMPTS 5
 #define MAX_SCORES 200
 #define MAX_DATA_LEN 1024
