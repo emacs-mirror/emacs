@@ -786,25 +786,6 @@ DEFUN ("w32-default-color-map", Fw32_default_color_map, Sw32_default_color_map,
 }
 
 static Lisp_Object
-w32_to_x_color (Lisp_Object rgb)
-{
-  Lisp_Object color;
-
-  CHECK_NUMBER (rgb);
-
-  BLOCK_INPUT;
-
-  color = Frassq (rgb, Vw32_color_map);
-
-  UNBLOCK_INPUT;
-
-  if (!NILP (color))
-    return (Fcar (color));
-  else
-    return Qnil;
-}
-
-static Lisp_Object
 w32_color_map_lookup (char *colorname)
 {
   Lisp_Object tail, ret = Qnil;
