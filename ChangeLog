@@ -1,3 +1,7 @@
+2010-07-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* .bzrignore, .gitignore: Ignore README.W32 on the root directory.
+
 2010-07-24  Ken Brown  <kbrown@cornell.edu>  (tiny change)
 
 	* configure.in (START_FILES) [cygwin]: Set to pre-crt0.o (Bug#6715).
