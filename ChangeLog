@@ -8377,7 +8377,7 @@
 	(EMACSROOT): New variable, giving the directory under which all of
 	Emacs's libraries should be installed.  Changed rest of file to
 	use it.
-	(LIBDIR): Now denotes only architecture-dependent dir - relevant cha
+	(LIBDIR): Now denotes only architecture-dependent dir.
 	(DATADIR): New variable, denoting architecture-independent dir.
 	(LOCKDIR): New variable, for completeness.
 	(SUBDIR): No more etc, new lib-src.

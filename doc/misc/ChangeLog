@@ -4777,7 +4777,7 @@
 
 	* org.texi (FAQ): Document `org-table-tab-jumps-over-hlines'.
 	(Agenda): Document commands `org-cycle-agenda-files' and
-	`org-agenda-file-to-front'
+	`org-agenda-file-to-front'.
 	(Built-in table editor): Document `org-table-sort-lines'.
 	(HTML formatting): Export of hand-formatted lists.
 
@@ -6366,7 +6366,7 @@
 
 2000-12-14  Dave Love  <fx@gnu.org>
 
-	* Makefile.in (mostlyclean): Remove gnustmp.*
+	* Makefile.in (mostlyclean): Remove gnustmp.*.
 	(gnus.dvi): Change rule to remove @latex stuff.
 
 2000-10-19  Eric M. Ludlam  <zappo@ultranet.com>

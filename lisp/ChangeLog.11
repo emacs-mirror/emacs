@@ -84,7 +84,7 @@
 
 2004-12-30  Andreas Leue  <al@sphenon.de>
 
-	* textmodes/artist.el (artist-version): 1.2.6
+	* textmodes/artist.el (artist-version): 1.2.6.
 	(artist-prev-next-op-alist): New variable.
 	(artist-select-next-op-in-list): New function.
 	(artist-select-prev-op-in-list): New function.
@@ -380,7 +380,7 @@
 	(calculator-radix-grouping-digits)
 	(calculator-radix-grouping-separator):
 	New defcustoms for the new radix grouping mode functionality.
-	(calculator-mode-hook): Now used in electric mode too,
+	(calculator-mode-hook): Now used in electric mode too.
 	(calculator): Call it.
 	(calculator-mode-map): Some new keys.
 	(calculator-message): New function.  Some new calls.
@@ -2239,7 +2239,7 @@
 	(math-so-far, math-integ-expr, math-expr-parts, calc-low)
 	(calc-high, math-solve-var, math-solve-full, math-solve-vars)
 	(math-try-solve-sign, math-solve-b, math-solve-system-vv)
-	(math-solve-res): New variables
+	(math-solve-res): New variables.
 	(math-derivative, calcFunc-deriv, calcFunc-tderiv)
 	(math-integral, math-replace-integral-parts)
 	(math-integrate-by-parts, calc-dump-integral-cache)
@@ -4692,7 +4692,7 @@
 	mark mode (to include the current match to region boundaries).
 	Push the search string to `query-replace-from-history-variable'.
 	Add prompt "Query replace regexp" for isearch-regexp.
-	Add region beginning/end as last arguments of `perform-replace.'
+	Add region beginning/end as last arguments of `perform-replace'.
 	(isearch-query-replace-regexp): Replace code by the call to
 	`isearch-query-replace' with arg `t'.
 
@@ -9809,7 +9809,7 @@
 
 	(compile): Additional argument for interactive compiles like TeX.
 
-	* progmodes/grep.el (kill-grep): Move here from compile.el
+	* progmodes/grep.el (kill-grep): Move here from compile.el.
 	(grep-error, grep-hit-face, grep-error-face)
 	(grep-mode-font-lock-keywords): New variables.
 	(grep-regexp-alist): Simplify regexp and add `binary' case.
@@ -10944,12 +10944,12 @@
 	(rsf-bbdb-auto-delete-spam-entries): Rename from
 	rmail-bbdb-auto-delete-spam-bbdb-entries.  The cc: field is
 	scanned together with the recipients field for spam testing; Don't
-	delete spam message if rmail-delete-after-output is non-nil;
+	delete spam message if rmail-delete-after-output is non-nil.
 	(rsf-check-field): New function, extracted from code in
 	rmail-spam-filter to ease addition of header fields like
-	content-type:;
+	content-type:.
 	(message-content-type): New variable.  The content-type: field was
-	added also in defcustom of rsf-definitions-alist;
+	added also in defcustom of rsf-definitions-alist.
 	(rmail-spam-filter): Replace repeated test code for header fields
 	by calls to check-field; change the call to
 	rmail-output-to-rmail-file such that rmail-current-message stays
@@ -11474,7 +11474,7 @@
 2003-12-29  Stuart Herring  <herring@lanl.gov>  (tiny change)
 
 	* comint.el (comint-watch-for-password-prompt): Pass `string' as
-	arg to send-invisible
+	arg to send-invisible.
 	(send-invisible): Doc fix.  The argument is now a prompt, not the
 	string to send.
 	(comint-read-noecho): Doc fix.
@@ -12951,7 +12951,7 @@
 	Ensure that recentf correctly updates the menu bar.
 	* recentf.el (recentf-menu-path,recentf-menu-before): Doc fix.
 	(recentf-menu-bar): New function.
-	(recentf-clear-data): Use it
+	(recentf-clear-data): Use it.
 	(recentf-update-menu): Likewise.  Use easy-menu-add-item instead
 	of easy-menu-change.
 
@@ -13500,7 +13500,7 @@
 	(reftex-toc-split-windows-fraction): New option.
 	(reftex-recenter-toc-when-idle): Search *toc* window on all
 	visible frames.
-	(reftex-toc): Additional parameter REUSE
+	(reftex-toc): Additional parameter REUSE.
 	(reftex-toc-recenter): Remember current frame.  Call `reftex-toc'
 	with REUSE argument.
 	(reftex-recenter-toc-when-idle): Reset `current-prefix-arg' for
@@ -14153,7 +14153,7 @@
 	erroneously in previous version.
 	(bibtex-string-files): Docstring reflects new parsing scheme.
 	(bibtex-autokey-transcriptions): Merge some rewrite entries, fix
-	docstring, add # as one of the chars to crush
+	docstring, add # as one of the chars to crush.
 	(bibtex-autokey-prefix-string, bibtex-autokey-names)
 	(bibtex-autokey-names-stretch, bibtex-autokey-additional-names)
 	(bibtex-autokey-name-change-strings)
@@ -14229,7 +14229,7 @@
 	preamble entries.
 	(bibtex-fill-field-bounds): New function.
 	(bibtex-fill-field): New command.  Bound to fill-paragraph-function.
-	(bibtex-fill-entry): Use bibtex-fill-field-bounds
+	(bibtex-fill-entry): Use bibtex-fill-field-bounds.
 	(bibtex-String): Use bibtex-strings.  Always obey
 	bibtex-sort-ignore-string-entries.
 

@@ -2746,7 +2746,7 @@
 	(struct xsettings): Add font and tb_style, set xft stuff inside #ifdef
 	HAVE_XFT.
 	(something_changedCB): store_font_changed_event is now
-	store_config_changed_event
+	store_config_changed_event.
 	(parse_settings): Rename from parse_xft_settings.  Read
 	non-xft xsettings outside #ifdef HAVE_XFT.
 	(read_settings): Renamed from read_xft_settings.
@@ -4495,7 +4495,7 @@
 	(scroll_end_callback): Remove.
 	(xg_create_scroll_bar): Add parameter end_callback, bind it to
 	button-release-event.  Replace value-changed event with change-value,
-	bug #5177,
+	bug #5177.
 	(xg_event_is_for_scrollbar): Only return true if button is less than 4,
 	bug #5177.
 
@@ -4516,7 +4516,7 @@
 
 2009-12-12  Eli Zaretskii  <eliz@gnu.org>
 
-	* dispextern.h (struct text_pos): Use EMACS_INT;
+	* dispextern.h (struct text_pos): Use EMACS_INT.
 	(struct glyph): Use EMACS_INT for charpos.
 	(struct it): Use EMACS_INT for stop_charpos, end_charpos,
 	region_beg_charpos, region_end_charpos,
@@ -12082,8 +12082,8 @@
 2008-07-15  Chris Hall  <chris@web.workinglinux.com>  (tiny change)
             YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	(make_initial_frame): Call init_frame_faces(f) in CANNOT_DUMP case --
-	fix crash due to different init order.
+	* frame.c (make_initial_frame): Call init_frame_faces(f) in
+	CANNOT_DUMP case -- fix crash due to different init order.
 
 2008-07-15  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
@@ -12280,7 +12280,7 @@
 	* m/macppc.h:
 	* m/alpha.h: Use GNU_LINUX instead of LINUX.  Reorganize conditionals.
 
-	* m/ibms390x.h (XINT, XUINT): Don't define, same as the default
+	* m/ibms390x.h (XINT, XUINT): Don't define, same as the default.
 	(SPECIAL_EMACS_INT):
 	* m/ia64.h (SPECIAL_EMACS_INT):
 	* m/amdx86-64.h (SPECIAL_EMACS_INT):

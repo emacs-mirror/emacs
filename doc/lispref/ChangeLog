@@ -6015,7 +6015,7 @@
 2005-02-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* frames.texi (Color Names): Add pointer to the X docs about RGB
-	color specifications.  Improve indexing
+	color specifications.  Improve indexing.
 	(Text Terminal Colors): Replace the description of RGB values by
 	an xref to "Color Names".
 
@@ -7778,7 +7778,7 @@
 	* minibuf.texi (Reading File Names): read-file-name has new
 	arg PREDICATE.  New function read-directory-name.
 
-	* macros.texi (Defining Macros): Give definition of `declare'
+	* macros.texi (Defining Macros): Give definition of `declare'.
 	(Indenting Macros): New node.
 
 	* frames.texi (Parameter Access): Add modify-all-frames-parameters.
@@ -7882,7 +7882,7 @@
 	* numbers.texi (Integer Basics): Add most-positive-fixnum,
 	most-negative-fixnum.
 
-	* compile.texi (Byte Compilation): Explain no-byte-compile
+	* compile.texi (Byte Compilation): Explain no-byte-compile.
 	(Compiler Errors): New node.
 
 	* os.texi (User Identification): user-uid, user-real-uid
