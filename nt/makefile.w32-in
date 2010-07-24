@@ -25,7 +25,7 @@
 
 VERSION		= 24.0.50
 
-TMP_DIST_DIR    = emacs-$(VERSION)
+TMP_DIST_DIR 	= emacs-$(VERSION)
 
 TRES		= $(BLD)/emacs.res
 CLIENTRES	= $(BLD)/emacsclient.res
