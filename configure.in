@@ -1060,7 +1060,7 @@ START_FILES=
 case $opsys in
   cygwin )
     LIB_MATH=
-    START_FILES='ecrt0.o'
+    START_FILES='pre-crt0.o'
     ;;
   darwin )
     ## Adding -lm confuses the dynamic linker, so omit it.

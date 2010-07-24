@@ -504,8 +504,8 @@
 
 2006-06-02  Bill Wohler  <wohler@newt.com>
 
-	(mh-folder-exists-p): Change test from an empty buffer, to one
-	that contains the actual folder, since GNU mailutils' folder
+	* mh-search.el (mh-folder-exists-p): Change test from an empty buffer,
+	to one that contains the actual folder, since GNU mailutils' folder
 	command displays output if the folder doesn't exist (closes SF
 	#1499712).
 
@@ -1415,7 +1415,7 @@
 	(mh-get-field): Delete ancient alias.
 
 	* mh-xface.el (mh-face-foreground-compat): Move to mh-compat.el
-	and rename to mh-face-foreground
+	and rename to mh-face-foreground.
 	(mh-face-background-compat): Move to mh-compat.el
 	and rename to mh-face-background.
 	(mh-face-display-function): Use the new names.
@@ -1732,7 +1732,7 @@
 	(mh-identity-make-menu-no-autoload): New alias for
 	mh-identity-make-menu which can be called from mh-e.el.
 	(mh-identity-list-set): Move to mh-e.el.
-	(mh-identity-add-menu): New function
+	(mh-identity-add-menu): New function.
 	(mh-insert-identity): Add optional argument maybe-insert so that
 	local variable mh-identity-local does not have to be visible.
 
@@ -1891,7 +1891,7 @@
 	(mh-find-path-run, mh-find-path): Move here from deprecated file
 	mh-init.el.
 	(mh-help-messages): Now an alist of modes to an alist of messages.
-	(mh-set-help): New function used to set mh-help-messages
+	(mh-set-help): New function used to set mh-help-messages.
 	(mh-help): Adjust for new format of mh-help-messages.  Add
 	help-messages argument.
 	(mh-prefix-help): Refactor to use mh-help.
@@ -2460,7 +2460,7 @@
 	(mh-scan-good-msg-regexp, mh-scan-deleted-msg-regexp)
 	(mh-scan-refiled-msg-regexp, mh-scan-cur-msg-number-regexp)
 	(mh-scan-date-regexp, mh-scan-rcpt-regexp, mh-scan-body-regexp)
-	(mh-scan-subject-regexp): Sync docstrings with manual
+	(mh-scan-subject-regexp): Sync docstrings with manual.
 	(mh-scan-format-regexp): Rename to
 	mh-scan-sent-to-me-sender-regexp.  Drop date parenthesized
 	expression.  Make expression more like the others (anchored at the
@@ -2760,7 +2760,7 @@
 	(mh-mime-save-parts-default-directory, mh-print-background-flag)
 	(mh-show-maximum-size, mh-show-use-goto-addr-flag)
 	(mh-show-use-xface-flag, mh-store-default-directory)
-	(mh-summary-height, mh-delete-msg-hook
+	(mh-summary-height, mh-delete-msg-hook)
 	(mh-show-hook, mh-show-mode-hook): Sync docstrings with manual.
 
 	* mh-e.el (mh-scan-format-mh, mh-scan-good-msg-regexp)

@@ -1420,7 +1420,7 @@
 	Added default constants.
 	(simula-emacs-features): New constant to hold information
 	on which flavor if emacs is running (from cc-mode.el).
-	(simula-mode-menu): Menu definition for Lucid Emacs
+	(simula-mode-menu): Menu definition for Lucid Emacs.
 	(simula-mode-map): Bound new command simula-indent-exp to C-M-q
 	and added lots of commands to [menu-bar].
 	(simula-popup-menu): New function for Lucid menus.
@@ -1577,7 +1577,7 @@
 	(gomoku-winning-qtuple-beg, gomoku-winning-qtuple-end)
 	(gomoku-winning-qtuple-dx, gomoku-winning-qtuple-dy): Pseudo variables
 	only used for non-functional argument passing deleted.
-	(gomoku-cross-winning-qtuple): Accordingly deleted function and
+	(gomoku-cross-winning-qtuple): Accordingly deleted function.
 	(gomoku-check-filled-qtuple): Accordingly adapted.
 	(gomoku-cross-qtuple): Don't be confused by tabs.
 	(gomoku-move-down, gomoku-move-up): Simplified because point is always
@@ -2455,7 +2455,7 @@
 
 	* ediff-init.el (ediff-hide-face): New function.
 	(ediff-collect-diffs-metajob): Fixed.
-	(ediff-check-for-cl-seq): Function deleted
+	(ediff-check-for-cl-seq): Function deleted.
 	(ediff-abbreviate-file-name): Now a defun.
 	(ediff-has-face-support-p): New function.  Ediff now supports
 	faces whenever possible.
@@ -2475,7 +2475,7 @@
 	(run-ediff-from-cvs-buffer): New function.  Moved all
 	version-control-related stuff to a new file, ediff-vers.el.
 
-	* ediff-util.el (ediff-save-buffer-in-file): New function
+	* ediff-util.el (ediff-save-buffer-in-file): New function.
 	(ediff-visible-region): No longer narrows the merge buffer.
 	(ediff-status-info): Now tells if we are focusing on regions where
 	both buffers differ from the ancestor.
@@ -5884,7 +5884,7 @@
 
 	* ediff-meta.el: New file.
 	* ediff-hook.el: New file.
-	* ediff.el: Moved menubar definitions to a new file, ediff-hook.el
+	* ediff.el: Moved menubar definitions to a new file, ediff-hook.el.
 	(ediff-files, ediff-merge-files): Better file-name defaults.
 	(ediff-split-string): New function.
 	(ediff-exec-process): Now handles diff args separated by space.
@@ -6855,11 +6855,11 @@
 
 1995-08-15  Daniel Pfeiffer  <Daniel.Pfeiffer@Informatik.START.dbp.de>
 
-	* skeleton.el (skeleton-pair-insert-maybe): Plain insert in Ovwrt mode
+	* skeleton.el (skeleton-pair-insert-maybe): Plain insert in Ovwrt mode.
 	(skeleton-insert): If skeleton doesn't fit in window, put beginning
 	at top before going to _ point.
 	(skeleton-internal-list): Rewritten so that resume: sections pertain
-	only to inferior skeletons and make str available there
+	only to inferior skeletons and make str available there.
 	(skeleton-read): Don't quit and remove partial skeleton when empty
 	string entered for outer iterator.  Added implicit argument `input'.
 	(define-skeleton, skeleton-insert, skeleton-internal-list): Use `x
@@ -7301,7 +7301,7 @@
 1995-07-22  Daniel Pfeiffer  <Daniel.Pfeiffer@Informatik.START.dbp.de>
 
 	* apropos.el: Add latest changes of old library and some more.
-	(apropos): Only show unbound symbols when do-all
+	(apropos): Only show unbound symbols when do-all.
 	(apropos-documentation-check-elc-file): New copied function.
 	(apropos-command): Also use `apropos-do-all' when called as function.
 	(apropos-print-doc): Renamed from `apropos-print-documentation', i
@@ -7632,7 +7632,7 @@
 	(apropos-use-faces, apropos-local-map): New variables.
 	(apropos-command): New name for `command-apropos' no longer in help.el.
 	(apropos-value): New command.
-	(apropos-documentation): New name for `super-apropos'
+	(apropos-documentation): New name for `super-apropos'.
 	(apropos-follow, apropos-mouse-follow): New commands for hypertext.
 	(apropos-describe-plist): New function.
 
@@ -7644,8 +7644,8 @@
 
 	* skeleton.el: Partly rewritten and extended.
 	(skeleton-filter, skeleton-untabify, skeleton-further-elements)
-	(skeleton-abbrev-cleanup): New variables
-	(skeleton-proxy, skeleton-abbrev-cleanup): New functions
+	(skeleton-abbrev-cleanup): New variables.
+	(skeleton-proxy, skeleton-abbrev-cleanup): New functions.
 	(skeleton-insert): Sublanguage element < must now be handled via
 	`skeleton-further-elements' (used only in sh-script and ada).  Lisp
 	expressions can be quoted to ignore the return value.
@@ -7798,7 +7798,7 @@
 
 1995-06-29  David M. Smith  <D.M.Smith@lancaster.ac.uk>
 
-	* ielm.el (ielm-font-lock-keywords): New variable
+	* ielm.el (ielm-font-lock-keywords): New variable.
 	(inferior-emacs-lisp-mode): Use it for font-lock support
 
 1995-06-29  Bryan O'Sullivan  <bos@Eng.Sun.COM>

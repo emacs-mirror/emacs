@@ -1,3 +1,7 @@
+2010-07-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* make-docfile.c (write_c_args): Correctly handle prefixes of "defalt".
+
 2010-07-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacsclient.c (get_current_dir_name, w32_get_resource)
@@ -775,7 +779,7 @@
 
 2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
-	* makefile.w32-in (obj): Sync with src/Makefile.in
+	* makefile.w32-in (obj): Sync with src/Makefile.in.
 	(TOOLTIP_SUPPORT, WINDOW_SUPPORT): New definitions.
 	(WINNT_SUPPORT): Add term/w32-win.elc.
 	(lisp1, lisp2): Sync with lisp in src/Makefile.in.
@@ -2471,7 +2475,7 @@
 
 	* makefile.w32-in (WINNT_SUPPORT, MOUSE_SUPPORT, lisp): Revert to
 	using .elc files.
-	(lisp): Sync with list in src/Makefile.in
+	(lisp): Sync with list in src/Makefile.in.
 	(VMS_SUPPORT, MSDOS_SUPPORT): Define, so DOC files can be shared.
 
 2002-02-10  Paul Eggert  <eggert@twinsun.com>
@@ -6313,7 +6317,7 @@
 	(TOKEN): Member linestart removed.
 	(linepos, prev_linepos, lb1): Deleted.
 	(main): Call initbuffer on lbs array instead of lb1.
-	(init): Removed the initialisation of the logical _gd array;
+	(init): Removed the initialisation of the logical _gd array.
 	(find_entries): A .sa suffix means assembler file.
 	(C_create_stab): "auto", "void", "extern", "static" are st_C_typespec.
 	All C state machines rewritten.
@@ -7177,7 +7181,7 @@
 	* etags.c: Changes for VMS.
 	Always define ETAGS on VMS.
 	Define macros GOOD and BAD for success and failure exit codes.
-	(begtk, intk): Allow `$' in identifiers
+	(begtk, intk): Allow `$' in identifiers.
 	(main): Don't support -B, -F or -u on VMS.
 	Alternate loop for scanning filename arguments.
 	(system): Delete definition of this function.

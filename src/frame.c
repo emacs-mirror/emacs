@@ -1280,14 +1280,6 @@ other_visible_frames (FRAME_PTR f)
   return 1;
 }
 
-/* Error handler for `delete-frame-functions'. */
-static Lisp_Object
-delete_frame_handler (Lisp_Object arg)
-{
-  add_to_log ("Error during `delete-frame': %s", arg, Qnil);
-  return Qnil;
-}
-
 extern Lisp_Object Qrun_hook_with_args;
 
 /* Delete FRAME.  When FORCE equals Qnoelisp, delete FRAME
@@ -1299,7 +1291,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
      /* If we use `register' here, gcc-4.0.2 on amd64 using
 	-DUSE_LISP_UNION_TYPE complains further down that we're getting the
 	address of `force'.  Go figure.  */
-                              
+
 {
   struct frame *f;
   struct frame *sf = SELECTED_FRAME ();

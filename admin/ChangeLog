@@ -432,7 +432,7 @@
 
 	* charsets/mapconv: Handle UNICODE2.
 
-	* charsets/Makefile (CJK): Include CP932-2BYTE.map
+	* charsets/Makefile (CJK): Include CP932-2BYTE.map.
 	(CP932-2BYTE.map): New target.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
@@ -752,7 +752,7 @@
 
 2004-08-28  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* FOR-RELEASE (Indications): Remove entry about GTK and geometry,
+	* FOR-RELEASE (Indications): Remove entry about GTK and geometry
 	(now behaves as well as other ports).
 
 2004-06-28  Jan Djärv  <jan.h.d@swipnet.se>

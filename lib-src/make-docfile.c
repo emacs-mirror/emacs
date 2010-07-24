@@ -488,7 +488,7 @@ write_c_args (FILE *out, char *func, char *buf, int minargs, int maxargs)
 
 	  /* In C code, `default' is a reserved word, so we spell it
 	     `defalt'; unmangle that here.  */
-	  if (strncmp (ident_start, "defalt", ident_length) == 0)
+	  if (ident_length == 6 && strncmp (ident_start, "defalt", 6) == 0)
 	    fprintf (out, "DEFAULT");
 	  else
 	    while (ident_length-- > 0)

@@ -1189,7 +1189,7 @@
 
 2001-03-31  Kenichi Handa  <handa@etl.go.jp>
 
-	* Makefile.in (TIT-GB): Delete quail/PY.elc and quail/ZIRANMA.elc
+	* Makefile.in (TIT-GB): Delete quail/PY.elc and quail/ZIRANMA.elc.
 	(NON-TIT-BIG5): Delete ${srcdir}/quail/quick-b5.elc
 	${srcdir}/quail/tsang-b5.elc.
 	(CHINESE-NON-TIT): Delete ${NON-TIT-CNS}.

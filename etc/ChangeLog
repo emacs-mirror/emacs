@@ -4941,7 +4941,7 @@
 	* etags.c: Changes for VMS.
 	Always define ETAGS on VMS.
 	Define macros GOOD and BAD for success and failure exit codes.
-	(begtk, intk): Allow `$' in identifiers
+	(begtk, intk): Allow `$' in identifiers.
 	(main): Don't support -B, -F or -u on VMS.
 	Alternate loop for scanning filename arguments.
 	(system): Delete definition of this function.

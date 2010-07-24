@@ -173,7 +173,7 @@
 	(FONTCONFIG_CFLAGS, FONTCONFIG_LIBS, FREETYPE_CFLAGS, FREETYPE_LIBS)
 	(LIBOTF_CFLAGS, LIBOTF_LIBS, M17N_FLT_CFLAGS, M17N_FLT_LIBS)
 	(GNU_OBJC_CFLAGS, GNUSTEP_SYSTEM_LIBRARIES, LIBRESOLV, LIBGPM):
-	Edit to empty,
+	Edit to empty.
 	(LIB_MATH): Edit to -lm.
 	(UNEXEC_OBJ): Edit to unexec.o.
 
@@ -908,7 +908,7 @@
 1994-10-17  Morten Welinder  <terra@mole.gnu.ai.mit.edu>
 
 	* sed1.inp: Handle "\t#"-style comments.
-	(obj): Don't add any files -- now done in src/makefile.in.in
+	(obj): Don't add any files -- now done in src/makefile.in.in.
 	(temacs): Don't depend on prefix-args.
 	(DOC): Reflect makefile changes regarding two-batch run.
 

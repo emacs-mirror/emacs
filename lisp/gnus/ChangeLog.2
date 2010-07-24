@@ -694,11 +694,11 @@
 	(gnus-agent-regenerate): Uses new gnus-agent-covered-methods
 	function as gnus-agent-covered-methods variable no longer provides
 	methods.
-	(gnus-agent-covered-methods): New function
+	(gnus-agent-covered-methods): New function.
 	(gnus-agent-expire-group, gnus-agent-expire): Final message will,
 	if gnus-verbose is greater than 4, report statistics of NOV
 	entries and files deleted as well as total bytes recovered.
-	(gnus-agent-expire-done-message): New function
+	(gnus-agent-expire-done-message): New function.
 	(gnus-agent-unread-articles): Bug fix.  No longer drops last
 	unread article onto read list.
 	(gnus-agent-regenerate-group): Changed prompt to use typical
@@ -900,7 +900,7 @@
 
 	* spam.el
 	(spam-log-processing-to-registry): Improved message and comments.
-	(spam-log-unregistration-needed-p): New function
+	(spam-log-unregistration-needed-p): New function.
 	(spam-ifile-register-spam-routine)
 	(spam-ifile-register-ham-routine, spam-stat-register-spam-routine)
 	(spam-stat-register-ham-routine)
@@ -1120,7 +1120,7 @@
 
 	* message.el (message-mode-field-menu): Added
 	message-generate-unsubscribed-mail-followup-to.
-	(message-forward-subject-fwd): Avoid double "Fwd: "
+	(message-forward-subject-fwd): Avoid double "Fwd: ".
 	(message-change-subject): Added comment.
 
 2003-10-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
@@ -2084,7 +2084,7 @@
 	(spam-spamoracle-learn-ham, spam-spamoracle-learn-spam): New functions.
 
 	* gnus.el (gnus-group-spam-exit-processor-spamoracle)
-	(gnus-group-ham-exit-processor-spamoracle): New variables for SpamOracle
+	(gnus-group-ham-exit-processor-spamoracle): New variables for SpamOracle.
 	(spam-process, ham-process): Added spamoracle spam/ham processors.
 
 2003-06-08  Jesper Harder  <harder@ifa.au.dk>
@@ -2781,7 +2781,7 @@
 	* gnus-registry.el (gnus-registry-split-fancy-with-parent): Added
 	diagnostic message.
 	(gnus-registry-grep-in-list): Don't run when word is nil.
-	(gnus-registry-fetch-message-id-fast): New function
+	(gnus-registry-fetch-message-id-fast): New function.
 	(gnus-registry-delete-group, gnus-registry-add-group): Make sure
 	the id and group are not nil.
 	(gnus-registry-register-message-ids): New function.
@@ -3561,7 +3561,7 @@
 	`message-valid-fqdn-regexp' for initialization.
 	(gnus-button-handle-info-url): Renamed and extended version of
 	`gnus-button-handle-info'.
-	(gnus-button-message-level): Renamed from `gnus-button-mail-level'
+	(gnus-button-message-level): Renamed from `gnus-button-mail-level'.
 	(gnus-button-handle-symbol, gnus-button-handle-library)
 	(gnus-button-handle-info-keystrokes): New functions.
 	(gnus-button-browse-level): New variable.
@@ -6296,8 +6296,8 @@
 
 2003-01-02  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* gnus-art.el (gnus-button-url-regexp,
-	(gnus-button-mid-or-mail-regexp, gnus-button-alist,
+	* gnus-art.el (gnus-button-url-regexp)
+	(gnus-button-mid-or-mail-regexp, gnus-button-alist)
 	(gnus-header-button-alist): Regexps are case insensitive here.
 
 2003-01-02  Simon Josefsson  <jas@extundo.com>
@@ -7195,7 +7195,7 @@
 
 2002-10-31  Alex Schroeder  <alex@emacswiki.org>
 
-	* spam-stat.el (spam-stat-process-directory): Add dir to message
+	* spam-stat.el (spam-stat-process-directory): Add dir to message.
 	(spam-stat-reduce-size): No longer remove words
 	with values close to 0.5, because the default value is 0.2.
 
@@ -12403,7 +12403,7 @@
 	Support "Importance:" header in Message.
 
 	* message.el (message-mode-map): Bind C-c C-p to
-	`message-insert-or-toggle-importance'
+	`message-insert-or-toggle-importance'.
 	(message-mode-menu): Add message-insert-importance-{high,low}.
 	(message-insert-importance-high, message-insert-importance-low)
 	(message-insert-or-toggle-importance): New functions.
@@ -12871,7 +12871,7 @@
 
 2001-10-21  Simon Josefsson  <jas@extundo.com>
 
-	* nnimap.el (nnimap): Defgroup
+	* nnimap.el (nnimap): Defgroup.
 	(nnimap-strict-function, nnimap-strict-function-match): New
 	widget, from Per Abrahamsen  <abraham@dina.kvl.dk>.
 	(nnimap-split-crosspost, nnimap-split-inbox)
@@ -16689,7 +16689,7 @@
 	* gnus-cus.el (gnus-group-customize): Use it.
 
 	* gnus.el (gnus-define-group-parameter): New macro.
-	(auto-expire): Use it
+	(auto-expire): Use it.
 	(total-expire): Use it.
 	* gnus-art.el (banner): Use it.
 

@@ -519,35 +519,6 @@ relocate_blocs (bloc_ptr bloc, heap_ptr heap, POINTER address)
 
   return 1;
 }
-
-/* Reorder the bloc BLOC to go before bloc BEFORE in the doubly linked list.
-   This is necessary if we put the memory of space of BLOC
-   before that of BEFORE.  */
-
-static void
-reorder_bloc (bloc_ptr bloc, bloc_ptr before)
-{
-  bloc_ptr prev, next;
-
-  /* Splice BLOC out from where it is.  */
-  prev = bloc->prev;
-  next = bloc->next;
-
-  if (prev)
-    prev->next = next;
-  if (next)
-    next->prev = prev;
-
-  /* Splice it in before BEFORE.  */
-  prev = before->prev;
-
-  if (prev)
-    prev->next = bloc;
-  bloc->prev = prev;
-
-  before->prev = bloc;
-  bloc->next = before;
-}
 
 /* Update the records of which heaps contain which blocs, starting
    with heap HEAP and bloc BLOC.  */
