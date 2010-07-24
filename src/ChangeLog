@@ -1,3 +1,8 @@
+2010-07-24  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* cmds.c (internal_self_insert): Make static.
+	* lisp.h (internal_self_insert): Remove declaration.
+
 2010-07-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* alloc.c (free_float):

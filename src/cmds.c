@@ -45,6 +45,8 @@ Lisp_Object Vself_insert_face_command;
 
 extern Lisp_Object Qface;
 extern Lisp_Object Vtranslation_table_for_input;
+
+static int internal_self_insert (int, int);
 
 DEFUN ("forward-point", Fforward_point, Sforward_point, 1, 1, 0,
        doc: /* Return buffer position N characters after (before if N negative) point.  */)
@@ -347,7 +349,7 @@ After insertion, the value of `auto-fill-function' is called if the
 
 static Lisp_Object Qexpand_abbrev;
 
-int
+static int
 internal_self_insert (int c, int noautofill)
 {
   int hairy = 0;

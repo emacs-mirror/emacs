@@ -2393,7 +2393,6 @@ extern void swap_in_global_binding (struct Lisp_Symbol *);
 EXFUN (Fend_of_line, 1);
 EXFUN (Fforward_char, 1);
 EXFUN (Fforward_line, 1);
-extern int internal_self_insert (int, int);
 extern void syms_of_cmds (void);
 extern void keys_of_cmds (void);
 
