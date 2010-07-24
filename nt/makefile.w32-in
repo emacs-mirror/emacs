@@ -25,6 +25,8 @@
 
 VERSION		= 24.0.50
 
+TMP_DIST_DIR    = emacs-$(VERSION)
+
 TRES		= $(BLD)/emacs.res
 CLIENTRES	= $(BLD)/emacsclient.res
 
@@ -208,6 +210,7 @@ install-bin: all $(INSTALL_DIR)/bin install-other-dirs-$(MAKETYPE)
 	- $(CP) $(BLD)/ddeclient.exe $(INSTALL_DIR)/bin
 	- $(CP) $(BLD)/cmdproxy.exe $(INSTALL_DIR)/bin
 	- $(CP) $(BLD)/runemacs.exe $(INSTALL_DIR)/bin
+	- $(CP) README.W32 $(INSTALL_DIR)
 	- $(DEL) ../same-dir.tst
 	- $(DEL) $(INSTALL_DIR)/same-dir.tst
 	echo SameDirTest > "$(INSTALL_DIR)/same-dir.tst"
@@ -246,10 +249,22 @@ install-other-dirs-gmake:
 install-shortcuts:
 	"$(INSTALL_DIR)/bin/addpm" -q
 
-dist: install-bin 
-	$(CP) $(DIST_FILES) $(INSTALL_DIR)/bin
-	$(CP) README.W32 $(INSTALL_DIR)
-	$(COMSPEC)$(ComSpec) /c $(ARGQUOTE)zipdist.bat $(INSTALL_DIR) $(VERSION)$(ARGQUOTE)
+dist: install-bin
+	mkdir $(TMP_DIST_DIR)
+	$(CP) $(INSTALL_DIR)/BUGS $(TMP_DIST_DIR)
+	$(CP) $(INSTALL_DIR)/COPYING $(TMP_DIST_DIR)
+	$(CP) $(INSTALL_DIR)/README $(TMP_DIST_DIR)
+	$(CP) $(INSTALL_DIR)/README.W32 $(TMP_DIST_DIR)
+	$(CP) $(INSTALL_DIR)/INSTALL $(TMP_DIST_DIR)
+	$(CP_DIR) $(INSTALL_DIR)/bin $(TMP_DIST_DIR)
+	$(CP_DIR) $(INSTALL_DIR)/etc $(TMP_DIST_DIR)
+	$(CP_DIR) $(INSTALL_DIR)/info $(TMP_DIST_DIR)
+	$(CP_DIR) $(INSTALL_DIR)/lisp $(TMP_DIST_DIR)
+	$(CP_DIR) $(INSTALL_DIR)/leim $(TMP_DIST_DIR)
+	$(CP_DIR) $(INSTALL_DIR)/site-lisp $(TMP_DIST_DIR)
+	$(CP_DIR) $(DIST_FILES) $(TMP_DIST_DIR)/bin
+	$(COMSPEC)$(ComSpec) /c $(ARGQUOTE)zipdist.bat $(VERSION)$(ARGQUOTE)
+	$(DEL_TREE) $(TMP_DIST_DIR)
 
 force-info:
 # Note that doc/emacs/makefile knows how to
