@@ -1,3 +1,28 @@
+2010-07-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* callproc.c (relocate_fd): Set inside #ifndef WINDOWSNT.
+	* dired.c (opendir, readdir): Fix prototypes.
+	* editfns.c (w32_get_internal_run_time): Fix prototypes.
+	* keyboard.c (input_available_signal): Declare inside #ifdef SIGIO.
+	* ndir.h (opendir, readdir, seekdir, closedir): Fix prototypes.
+	(telldir): Remove declaration.
+	* ralloc.c (real_morecore, __morecore): Fix prototypes.
+	* sound.c (alsa_sound_perror): Declare inside #ifdef HAVE_ALSA.
+	* syssignal.h (strsignal): Fix prototype.
+	* term.c (tparam): Fix prototype.
+	(term_get_fkeys_address, term_get_fkeys_kboard, term_get_fkeys_1)
+	(term_get_fkeys): Set inside "#ifndef DOS_NT".
+	* vm-limit.c (check_memory_limits): Fix prototypes of real_morecore
+	and __morecore.
+	* w32gui.h (XParseGeometry): Fix prototype.
+	* w32heap.h (get_data_start, get_data_end, init_heap): Fix prototypes.
+	* w32term.c (my_set_focus): Declare inside #if 0.
+	* w32term.h (x_window_to_frame, x_display_info_for_name, w32_term_init)
+	(w32_fill_rect, w32_clear_window, init_crit, delete_crit, signal_quit)
+	(drain_message_queue, get_next_msg, post_msg, parse_button)
+	(ClipboardSequence_Proc): Fix prototypes.
+	(wait_for_sync): Remove declaration.
+
 2010-07-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32fns.c (w32_to_x_color): Remove, unused.

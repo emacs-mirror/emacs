@@ -268,7 +268,9 @@ static void x_draw_bar_cursor (struct window *, struct glyph_row *, int,
 static void w32_clip_to_row (struct window *, struct glyph_row *, int, HDC);
 static BOOL my_show_window (struct frame *, HWND, int);
 static void my_set_window_pos (HWND, HWND, int, int, int, int, UINT);
+#if 0
 static void my_set_focus (struct frame *, HWND);
+#endif
 static void my_set_foreground_window (HWND);
 static void my_destroy_window (struct frame *, HWND);
 

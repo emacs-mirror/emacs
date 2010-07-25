@@ -82,10 +82,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 char *getenv (const char *), *getwd (char *);
-char *(getcwd) ();
+char *(getcwd) (char *, int);
 
 #ifdef WINDOWSNT
-char *w32_getenv ();
+char *w32_getenv (char *);
 #define egetenv(VAR) w32_getenv(VAR)
 #else
 #define egetenv(VAR) getenv(VAR)
@@ -402,7 +402,7 @@ w32_set_user_model_id (void)
   /* On Windows 7 and later, we need to set the user model ID
      to associate emacsclient launched files with Emacs frames
      in the UI.  */
-  shell = LoadLibrary("shell32.dll");
+  shell = LoadLibrary ("shell32.dll");
   if (shell)
     {
       set_user_model
@@ -432,7 +432,7 @@ w32_window_app (void)
          nonconsole apps.  Testing for the console title seems to work. */
       window_app = (GetConsoleTitleA (szTitle, MAX_PATH) == 0);
       if (window_app)
-        InitCommonControls();
+        InitCommonControls ();
     }
 
   return window_app;
@@ -483,7 +483,7 @@ ttyname (int fd)
 void
 message (int is_error, char *message, ...)
 {
-  char msg [2048];
+  char msg[2048];
   va_list args;
 
   va_start (args, message);
@@ -1470,7 +1470,7 @@ start_daemon_and_retry_set_socket (void)
       pid_t w;
       w = waitpid (dpid, &status, WUNTRACED | WCONTINUED);
 
-      if ((w == -1) || !WIFEXITED (status) || WEXITSTATUS(status))
+      if ((w == -1) || !WIFEXITED (status) || WEXITSTATUS (status))
 	{
 	  message (TRUE, "Error: Could not start the Emacs daemon\n");
 	  exit (EXIT_FAILURE);

@@ -79,7 +79,7 @@ static void r_alloc_init (void);
 /* Declarations for working with the malloc, ralloc, and system breaks.  */
 
 /* Function to set the real break value.  */
-POINTER (*real_morecore) ();
+POINTER (*real_morecore) (long int);
 
 /* The break value, as seen by malloc.  */
 static POINTER virtual_break_value;
@@ -111,7 +111,7 @@ static int extra_bytes;
    from the system.  */
 
 #ifndef SYSTEM_MALLOC
-extern POINTER (*__morecore) ();
+extern POINTER (*__morecore) (long int);
 #endif
 
 

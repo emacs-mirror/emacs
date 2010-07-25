@@ -1,3 +1,8 @@
+2010-07-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (getcwd, w32_getenv):
+	* ntlib.h (getlogin, getuid, getegid, getgid): Fix prototypes.
+
 2010-07-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* update-game-score.c (usage):  Add NO_RETURN specifier.

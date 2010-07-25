@@ -1,3 +1,7 @@
+2010-07-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* runemacs.c (set_user_model_id): Fix prototype.
+
 2010-07-24  Christoph Scholtes  <cschol2112@gmail.com>
 
 	New make target for Windows platform: make dist (bug#6602)

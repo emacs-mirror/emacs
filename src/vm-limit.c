@@ -173,9 +173,9 @@ static void
 check_memory_limits (void)
 {
 #ifdef REL_ALLOC
-  extern POINTER (*real_morecore) ();
+  extern POINTER (*real_morecore) (SIZE);
 #endif
-  extern POINTER (*__morecore) ();
+  extern POINTER (*__morecore) (SIZE);
 
   register POINTER cp;
   unsigned long five_percent;
