@@ -436,7 +436,7 @@ DEFUN ("dump-redisplay-history", Fdump_redisplay_history,
 #endif /* GLYPH_DEBUG == 0 */
 
 
-#ifdef PROFILING
+#if defined PROFILING && !HAVE___EXECUTABLE_START
 /* FIXME: only used to find text start for profiling.  */
 
 void

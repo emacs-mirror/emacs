@@ -387,7 +387,7 @@
 	based on frame name and icon_name fields.
 	(x_set_icon_name): New function.
 	(x_icon): Call x_text_icon.
-	(x_set_name): Look at icon_name field when setting the icon name,
+	(x_set_name): Look at icon_name field when setting the icon name.
 	(x_frame_parms): Add icon-name.
 	(syms_of_xfns): Set up Qicon_name.
 
@@ -903,7 +903,7 @@
 
 1995-05-04  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
-	* s/freebsd.h: (GETPGRP_NO_ARG): Defined
+	* s/freebsd.h (GETPGRP_NO_ARG): Define.
 	(HAVE_GETPAGESIZE): Definition deleted.
 
 	* data.c (store_symval_forwarding): Error if value out of range
@@ -1308,7 +1308,7 @@
 
 	* ntinevt.c (do_mouse_event): Use XSETFASTINT.
 	(SET_FRAME): Undefined.
-	(select): Renamed to sys_select to correspond to routine in sysdep.c
+	(select): Renamed to sys_select to correspond to routine in sysdep.c.
 	(sys_select): Support struct timeval.
 	(key_event): Support German keyboard.
 	Replace SET_FRAME with XSETFRAME.
@@ -4217,7 +4217,7 @@
 
 	* process.c: Handle multiple keyboard input descriptors.
 	(non_keyboard_wait_mask): New variable.
-	(Fset_process_filter): Update non_keyboard_wait_mask
+	(Fset_process_filter): Update non_keyboard_wait_mask.
 	(create_process, Fopen_network_stream, deactivate_process):
 	(init_process, sigchld_handler): Likewise.
 	(wait_reading_process_input): Maybe use non_keyboard_wait_mask.
@@ -4456,7 +4456,7 @@
 
 	* xfns.c: Use FRAME_X_DISPLAY instead of x_current_display
 	and XDISPLAY.
-	(x_in_use): New variable,
+	(x_in_use): New variable.
 	(check_x, using_x_p): Test x_in_use.
 	(Fx_open_connection): Set x_in_use.
 	(check_x_frame): New function.
@@ -5953,7 +5953,7 @@
 1994-09-03  Kaveh R. Ghazi  (ghazi@noc.rutgers.edu)
 
 	* m/delta88k.h [__GNUC__] (HAVE_ALLOCA): Defined.
-	[__GNUC__] (C_ALLOCA): Add #undef
+	[__GNUC__] (C_ALLOCA): Add #undef.
 	(LIB_X11_LIB): Add #undef.
 	(HAVE_TERMIOS): Defined.
 	(HAVE_TERMIO): Add #undef.

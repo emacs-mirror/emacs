@@ -406,9 +406,9 @@ static void analyse_regex (char *);
 static void free_regexps (void);
 static void regex_tag_multiline (void);
 static void error (const char *, const char *);
-static void suggest_asking_for_help (void);
-void fatal (char *, char *);
-static void pfatal (char *);
+static void suggest_asking_for_help (void) NO_RETURN;
+void fatal (char *, char *) NO_RETURN;
+static void pfatal (char *) NO_RETURN;
 static void add_node (node *, node **);
 
 static void init (void);

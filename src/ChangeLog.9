@@ -1126,7 +1126,7 @@
 
 	* xterm.c (note_mouse_highlight) <help-echo>: When looking for
 	help-echo for a string which doesn't have help-echo itself, use
-	get-char-property to obtain the help-echo from the string's buffer
+	get-char-property to obtain the help-echo from the string's buffer.
 	(note_mouse_highlight) <mouse-face>: When on a string that doesn't
 	have mouse-face, look ``under'' the string for mouse-face from an
 	overlay.
@@ -3119,7 +3119,7 @@
 	* w32fns.c (Fx_show_tip): Fix calls to make_number.
 	(x_set_font): If font hasn't changed, avoid recomputing
 	faces and other things.
-	(x_set_tool_bar_lines): Do nothing if frame is minibuffer-only,
+	(x_set_tool_bar_lines): Do nothing if frame is minibuffer-only.
 	(Fx_create_frame): Add the tool bar height to the frame height.
 	(x_create_tip_frame): Prevent changing the tooltip's
 	background color by specifying a color for the default font
@@ -4887,7 +4887,7 @@
 
 	* md5.c: Delay include of md5.h until after namespace cleaning.
 
-	* makefile.w32-in (fns.o): Depend on md5.h
+	* makefile.w32-in (fns.o): Depend on md5.h.
 	(md5.o): New target.
 	(sunfns.o): Remove.
 
@@ -7254,7 +7254,7 @@
 
 	* charset.h (MAKE_CHAR): Be sure to set MSB of C1 to 0.
 
-	* charset.c: Include composite.h
+	* charset.c: Include composite.h.
 	(lisp_string_width): New function.
 	(Fstring_width): Call lisp_string_width instead of strwidth.
 
@@ -7333,7 +7333,7 @@
 
 	* s/ms-w32.h (ORDINARY_LINK): New define.
 
-	* w32.c (_ANONYMOUS_UNION) [__GNUC__]: New define
+	* w32.c (_ANONYMOUS_UNION) [__GNUC__]: New define.
 	(_ANONYMOUS_STRUCT) [__GNUC__]: New define.
 
 	* makefile.w32-in (clean): Don't delete config.h and epaths.h.
@@ -8409,7 +8409,7 @@
 	(encode_coding_iso2022): New local variable safe_chars.  Check
 	unsafe chars.
 	(setup_coding_system): Delete the code to initialize
-	coding->safe_charses
+	coding->safe_charses.
 	(intersection, find_safe_codings): New functions.
 	(Ffind_coding_systems_region_internal): New function.
 	(syms_of_coding): Defsubr it.  Initialize Qsafe_chars,
@@ -8729,7 +8729,7 @@
 	* w32term.c (help_echo_object, help_echo_pos): New variables.
 	(note_mode_line_highlight): Store additional information about the
 	help-echo in help_echo_object and help_echo_pos.  Check both
-	`local-map' and `keymap' properties for changing the cursor
+	`local-map' and `keymap' properties for changing the cursor.
 	(note_mouse_highlight): Store additional information about the
 	help-echo in help_echo_object and help_echo_pos.
 	(note_tool_bar_highlight): Set help_echo_object to nil and
@@ -8797,7 +8797,7 @@
 	* xterm.c (help_echo_object, help_echo_pos): New variables.
 	(note_mode_line_highlight): Store additional information about the
 	help-echo in help_echo_object and help_echo_pos.  Check both
-	`local-map' and `keymap' properties for changing the cursor
+	`local-map' and `keymap' properties for changing the cursor.
 	(note_mouse_highlight): Store additional information about the
 	help-echo in help_echo_object and help_echo_pos.
 	(note_tool_bar_highlight): Set help_echo_object to nil and
@@ -11979,7 +11979,7 @@
 	(detect_coding_utf_8): New function.
 	(UTF_16_INVALID_P, UTF_16_HIGH_SURROGATE_P
 	UTF_16_LOW_SURROGATE_P): New macros.
-	(detect_coding_utf_16): New function
+	(detect_coding_utf_16): New function.
 	(detect_coding_mask): When priorities are specified, skip any
 	categories that have `nil' coding-system.  Fix bug of returning
 	wrong mask when PRIORITIES is specified and detect_coding_XXX()
@@ -12222,7 +12222,7 @@
 
 	* makefile.nt: Add atimer.h to dependencies.
 	* w32.c (init_environment): Set Vw32_num_mouse_buttons here.
-	* w32console.c: Only disable window system features for dispextern.h
+	* w32console.c: Only disable window system features for dispextern.h.
 	(initialize_w32_display): Build a display info for the console.
 	* w32faces.c (tty_defined_color): Apply xfaces.c change from 02-17.
 	* w32fns.c (w32_wnd_proc) [WM_LBUTTON_DOWN, WM_RBUTTON_DOWN,
@@ -12825,7 +12825,7 @@
 	(FRAME_XIM): Removed.
 
 	* xfns.c (supported_styles): New variable.
-	(DEFAULT_STYLE, DEFAULT_FONT): New macros
+	(DEFAULT_STYLE, DEFAULT_FONT): New macros.
 	(xic_create_xfontset, best_style, xic_create_frame)
 	(xic_destroy_frame, xic_set_preeditarea, xic_set_statusarea)
 	(xic_set_xfontset): New functions.
@@ -13156,7 +13156,7 @@
 	(GC_STRING_BYTES, GC_STRING_CHARS): New macros.
 	(DONT_COPY_FLAG): Removed.
 	(SBLOCK_SIZE, LARGE_STRING_BYTES): New macros.
-	(struct sdata, struct sblock): New
+	(struct sdata, struct sblock): New.
 	(struct string_block): Rewritten.
 	(STRINGS_IN_STRING_BLOCK): New macro.
 	(oldest_sblock, current_sblock, total_strings, total_free_strings)

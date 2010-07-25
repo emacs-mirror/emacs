@@ -66,8 +66,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifndef MSDOS
 #define DIRENTRY struct direct
 
-extern DIR *opendir ();
-extern struct direct *readdir ();
+extern DIR *opendir (char *);
+extern struct direct *readdir (DIR *);
 
 #endif /* not MSDOS */
 #endif /* not SYSV_SYSTEM_DIR */

@@ -1,3 +1,8 @@
+2010-07-24  Christoph Scholtes  <cschol2112@gmail.com>
+
+	* NEWS: Document new --distfiles configure.bat option and
+	`dist' make target on Windows.
+
 2010-07-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* PROBLEMS: Add note about use of backslashes in Windows paths.
@@ -4941,7 +4946,7 @@
 	* etags.c: Changes for VMS.
 	Always define ETAGS on VMS.
 	Define macros GOOD and BAD for success and failure exit codes.
-	(begtk, intk): Allow `$' in identifiers
+	(begtk, intk): Allow `$' in identifiers.
 	(main): Don't support -B, -F or -u on VMS.
 	Alternate loop for scanning filename arguments.
 	(system): Delete definition of this function.

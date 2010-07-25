@@ -70,6 +70,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 int scan_file (char *filename);
 int scan_lisp_file (char *filename, char *mode);
 int scan_c_file (char *filename, char *mode);
+void fatal (char *s1, char *s2) NO_RETURN;
 
 #ifdef MSDOS
 /* s/msdos.h defines this as sys_chdir, but we're not linking with the
@@ -488,7 +489,7 @@ write_c_args (FILE *out, char *func, char *buf, int minargs, int maxargs)
 
 	  /* In C code, `default' is a reserved word, so we spell it
 	     `defalt'; unmangle that here.  */
-	  if (strncmp (ident_start, "defalt", ident_length) == 0)
+	  if (ident_length == 6 && strncmp (ident_start, "defalt", 6) == 0)
 	    fprintf (out, "DEFAULT");
 	  else
 	    while (ident_length-- > 0)

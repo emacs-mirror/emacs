@@ -242,8 +242,8 @@
 	(cperl-find-pods-heres): Could access `font-lock-comment-face' in -nw.
 	No -nw-compile time warnings now.
 	(cperl-find-tags): TAGS file had too short substring-to-search.
-	Be less verbose in non-interactive mode
-	(imenu-example--create-perl-index): Set index-marker after name
+	Be less verbose in non-interactive mode.
+	(imenu-example--create-perl-index): Set index-marker after name.
 	(cperl-outline-regexp): New variable.
 	(cperl-outline-level): Made compatible with `cperl-outline-regexp'.
 	(cperl-mode): Made use `cperl-outline-regexp'.
@@ -479,7 +479,7 @@
 	(help-setup-xref, help-xref-following, help-make-xrefs)
 	(help-xref-button, help-insert-xref-button, help-xref-interned)
 	(help-xref-go-back, help-go-back, help-do-xref, help-follow)
-	(help-xref-on-pp): Functions moved into `help-mode.el'
+	(help-xref-on-pp): Functions moved into `help-mode.el'.
 	(help-mode-map, help-xref-stack, help-xref-stack-item)
 	(help-highlight-p, help-highlight-face, help-back-label)
 	(help-xref-symbol-regexp, help-xref-mule-regexp)
@@ -1188,7 +1188,7 @@
 2001-09-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* textmodes/ispell.el (ispell-dictionary-alist-4): Add "german"
-	and "german8", for the new German orthography dictionaries,
+	and "german8", for the new German orthography dictionaries.
 	(ispell-dictionary-alist-5, ispell-dictionary-alist-6): Rearrange
 	the entries, to keep the line length balanced for loaddefs.el.
 
@@ -2072,7 +2072,7 @@
 
 	* ediff-init.el (ediff-with-syntax-table): New macro, uses
 	with-syntax-table.
-	(ediff-coding-system-for-read): From ediff-diff.el
+	(ediff-coding-system-for-read): From ediff-diff.el.
 	(ediff-coding-system-for-write): New variable.
 	(ediff-highest-priority): Fixed the bug having to do with disappearing
 	overlays.
@@ -6812,7 +6812,7 @@
 	to nil.
 
 	* tooltip.el (tooltip-frame-parameters): Remove colors.
-	(tooltip): New face
+	(tooltip): New face.
 	(tooltip-set-param): New function.
 	(tooltip-show): Set up color frame parameters from face `tooltip'.
 	Display the tooltip text in face `tooltip'.
@@ -8804,7 +8804,7 @@
 
 2000-11-12  Dave Love  <fx@gnu.org>
 
-	* mail/feedmail.el: Fix header,
+	* mail/feedmail.el: Fix header.
 	(feedmail) <defgroup>: Add :link.
 
 	* view.el: Use local-map property, not keymap on mode-line string.
@@ -10715,7 +10715,7 @@
 	* iswitchb.el (iswitchb-mode): Add :require.
 
 	* info.el (Info-goto-node, Info-menu): Doc fix.
-	(Info-mode-menu): Bind beginning-of-buffer, Info-edit
+	(Info-mode-menu): Bind beginning-of-buffer, Info-edit.
 	(info-tool-bar-map): New variable.
 	(Info-mode): Use it.
 	(Info-edit-map): Define all in defvar.
@@ -11010,7 +11010,7 @@
 
 	* net/net-utils.el (nslookup-font-lock-keywords)
 	(ftp-font-lock-keywords, smbclient-font-lock-keywords):
-	Only set if window-system is non-nil
+	Only set if window-system is non-nil.
 	(net-utils-run-program): Returns buffer.
 	(network-connection-reconnect): Added this function.
 
@@ -11025,13 +11025,13 @@
 	(generic-mode-alist): Renamed to generic-mode-list.
 	(generic-find-file-regexp): Default changed to "^#".
 	(generic-read-type): Uses completing read on generic-mode-list.
-	(generic-mode-sanity-check): removed this function.
-	(generic-add-to-auto-mode): Removed this function
+	(generic-mode-sanity-check): Removed this function.
+	(generic-add-to-auto-mode): Removed this function.
 	(generic-mode-internal): Bind mode-specific definitions
 	into function instead of putting them in alist.
 	(generic-mode-set-comments): Reworked extensively.
-	(generic-mode-find-file-hook): Simplified regexp searching
-	(generic-make-keywords-list): Omit extra pair of parens
+	(generic-mode-find-file-hook): Simplified regexp searching.
+	(generic-make-keywords-list): Omit extra pair of parens.
 
 	* find-lisp.el (find-lisp-find-files-internal):
 	Make sure directory name ends with "/".
@@ -11040,7 +11040,7 @@
 	Regexp now allows leading whitespace.
 	(rc-generic-mode): Added eval-when-compile
 	around generic-make-keywords-list.
-	Deleted duplicate regexp
+	Deleted duplicate regexp.
 	(rul-generic-mode): Added eval-when-compile
 	around generic-make-keywords-list.
 	(etc-fstab-generic-mode): New generic mode.
@@ -11356,7 +11356,7 @@
 	(comint-insert-clicked-input): Be more careful to find the overlay.
 	Use this-command-keys rather than hardcoding mouse-2.
 
-	* font-lock.el: Replace confusing (,@ with ,
+	* font-lock.el: Replace confusing (,@ with ,.
 	(tex-font-lock-keywords-1, tex-font-lock-keywords-2):
 	Don't use regexp-opt-depth.  Spice up the regexp for args.
 	Don't distinguish between cmds that can take an opt arg or not.
@@ -11885,7 +11885,7 @@
 	New functions, used instead of non-`strokes-' versions..
 	(strokes-mouse-event-p): Rewritten.
 	(strokes-event-closest-point): Avoid event-point.
-	(strokes-get-grid-position): Avoid cdadr, caadr
+	(strokes-get-grid-position): Avoid cdadr, caadr.
 	(strokes-read-stroke, strokes-read-complex-stroke): Avoid levents
 	functions.
 	(strokes-help): Use with-output-to-temp-buffer.
@@ -14110,14 +14110,14 @@
 	* locate.el (locate): Cleaned up locate command's interactive prompting
 	Thanks to François_Pinard <pinard@iro.umontreal.ca> for suggestions.
 
-	* filecache.el (file-cache-case-fold-search): New variable
-	(file-cache-assoc-function): New variable
+	* filecache.el (file-cache-case-fold-search): New variable.
+	(file-cache-assoc-function): New variable.
 	(file-cache-minibuffer-complete): Use file-cache-assoc-function.
-	Use file-cache-case-fold-search variable
-	(file-cache-add-file): Use file-cache-assoc-function
-	(file-cache-delete-file): likewise
-	(file-cache-directory-name): likewise
-	(file-cache-debug-read-from-minibuffer): likewise
+	Use file-cache-case-fold-search variable.
+	(file-cache-add-file): Use file-cache-assoc-function.
+	(file-cache-delete-file): Likewise.
+	(file-cache-directory-name): Likewise.
+	(file-cache-debug-read-from-minibuffer): Likewise.
 
 2000-08-28  Gerd Moellmann  <gerd@gnu.org>
 
@@ -14191,12 +14191,12 @@
 
 	* international/ja-dic-cnv.el: Renamed from skkdic-cnv.el.
 	Provide ja-dic-cnv instead of skkdic-cnv.
-	(ja-dic-filename): Renamed from skkdic-filename.  Referers changed
+	(ja-dic-filename): Renamed from skkdic-filename.  Referers changed.
 	(iso-2022-7bit-short): Add safe-charsets property.
 	(skkdic-convert-postfix): Search Japanese chou-on character in
 	addition to Hiragana character.
 	(skkdic-convert-prefix, skkdic-collect-okuri-nasi): Likewise.
-	(skkdic-convert): Change file names from skkdic.el to ja-dic.el
+	(skkdic-convert): Change file names from skkdic.el to ja-dic.el.
 	(batch-skkdic-convert): Likewise.
 
 	* international/ja-dic-utl.el: Renamed from skkdic-utl.el.
@@ -14389,12 +14389,12 @@
 	(ispell-dictionary-alist-4): Fixed regexp in francais-tex
 	dictionary, added italiano dictionary.
 	(ispell-skip-region-alist): Removed regexp thrashing when `-' is a
-	word character
+	word character.
 	(ispell-tex-skip-alists): Added psfig support.
 	(ispell-skip-html): Renamed from ispell-skip-sgml.
 	(ispell-begin-skip-region-regexp, ispell-skip-region)
 	(ispell-minor-check): Improved html skipping support to skip across
-	code, and recognize `&' commands without proper `;' syntax;
+	code, and recognize `&' commands without proper `;' syntax.
 	(ispell-process-line): Fix alignment error when manually
 	correcting spelling.
 	(ispell): Fix comment string.
@@ -14515,7 +14515,7 @@
 	(goto-address-url-face, goto-address-url-mouse-face)
 	(goto-address-mail-face, goto-address-mail-mouse-face): Doc fix.
 	(goto-address-url-regexp): Use thing-at-point-url-regexp.
-	(goto-address-fontify, goto-address-at-mouse): Simplify,
+	(goto-address-fontify, goto-address-at-mouse): Simplify.
 	(goto-address-at-point): browse-url-url-at-point,
 	goto-address-find-address-at-point can return nil.
 	(goto-address-find-address-at-point): Return nil on failure.
@@ -15501,23 +15501,23 @@
 	ada-xref.el before ada-prj.el, so that the Project menu is created
 	when ada-prj tries to add to it.
 	(ada-activate-keys-for-case): Suppress the characters that are not
-	part of the Ada syntax. Better compatibility with else-mode
+	part of the Ada syntax. Better compatibility with else-mode.
 	(ada-adjust-case-interactive): When auto-casing is not active,
 	correctly insert newlines (used to insert only ^M).  Prevent the
 	syntax table from being changed in case of an error
 	(or '_' becomes part of a word and some commands are confused).
 	Do nothing if ada-auto-case is nil.
-	(ada-after-keyword-p): Ignore keywords that are also attributes
-	(ada-batch-reformat): Update usage comment
-	(ada-call-from-contextual-menu): New function
+	(ada-after-keyword-p): Ignore keywords that are also attributes.
+	(ada-batch-reformat): Update usage comment.
+	(ada-call-from-contextual-menu): New function.
 	(ada-case-read-exceptions): Reinitialize the casing exception list
 	first to nil first, so that the casing exception file can be
 	shared.
 	(ada-check-defun-name): Handles "configure" keyword for gnatdist
 	files.
 	(ada-compile-goto-error): Fix regexp used to detect a file:line
-	anywhere in the error message
-	(ada-contextual-menu-last-point): New variable
+	anywhere in the error message.
+	(ada-contextual-menu-last-point): New variable.
 	(ada-create-keymap): If the variable delete-key-deletes-forward is
 	t on XEmacs, it means that DEL should delete one character
 	forward.
@@ -15544,21 +15544,21 @@
 	are not in fact seeing "end if".  Ignore "when" statements except
 	when initial keyword was "begin".  Fix handling of nested
 	procedures.  Add a recursive call to this function to skip over
-	other 'end' statmts.  Fix indentation for "when .. => begin"
+	other 'end' statmts.  Fix indentation for "when .. => begin".
 	(ada-in-open-paren-p): Fix indentation for complex boolean
 	expressions, where 'and then', 'or else' and parenthesis
 	statements are mixed up.
 	(ada-in-paramlist-p): Skip comments while searching for the
 	beginning Fix handling of operator declarations.
-	(ada-indent-align-comments): New variable
+	(ada-indent-align-comments): New variable.
 	(ada-indent-current): Change the syntax table only in the
 	protected section, so that we are sure it is restored correctly.
 	(ada-indent-on-previous-lines): Use ada-use-indent and
-	ada-with-indent Correctly indent "select ... then"
+	ada-with-indent.  Correctly indent "select ... then".
 	(ada-indent-region): Slight speedup.
 	(ada-indent-renames): New variable.
 	(ada-last-which-function-subprog, ada-last-which-function-line):
-	New variables
+	New variables.
 	(ada-looking-at-semi-private): Correctly indent the 'private'
 	keyword when it is the first word in a package declaration.
 	(ada-loose-case-word): Stop searching if at the end of the buffer.
@@ -15568,8 +15568,8 @@
 	(ada-mode): Add support for abbrev-mode, outline-mode and
 	which-func-mode Override the old find-file.el entry in
 	ff-special-constructs since it is using the obsolete
-	ada-spec-suffix variable
-	(ada-no-auto-case): New function
+	ada-spec-suffix variable.
+	(ada-no-auto-case): New function.
 	(ada-scan-paramlist): When parsing the argument type, accept
 	spaces (as in "X 'Class", generated by Rational Rose).
 	(ada-other-file-name): No longer loads the other file.
@@ -15578,41 +15578,41 @@
 	(ada-search-ignore-complex-boolean): New function.
 	(ada-uncomment-region): Emacs21 already knows how to delete
 	comments not starting in the first column.
-	(ada-use-indent): New variable
+	(ada-use-indent): New variable.
 	(ada-which-function): New function.
-	(ada-with-indent): New variable
-	(ada-xemacs): evaluate it at compile time too, so that ada-mode.el
+	(ada-with-indent): New variable.
+	(ada-xemacs): Evaluate it at compile time too, so that ada-mode.el
 	can be batch-compiled from the command line.
 
 	* ada-xref.el: Got rid of all byte-compiler warnings on Emacs.
 	Add to the menu when the file is loaded, not in ada-mode-hook.
 	Add -toolbar to the default ddd command Switches moved from
 	ada-prj-default-comp-cmd and ada-prj-default-make-cmd to
-	ada-prj-default-comp-opt
-	(ada-add-ada-menu): Remove the map and name parameters Add the Ada
-	Reference Manual to the menu
-	(ada-check-current): rewritten as a call to ada-compile-current
+	ada-prj-default-comp-opt.
+	(ada-add-ada-menu): Remove the map and name parameters.  Add the Ada
+	Reference Manual to the menu.
+	(ada-check-current): Rewritten as a call to ada-compile-current.
 	(ada-compile): Removed.
 	(ada-compile-application, ada-compile-current, ada-check-current):
 	Set the compilation-search-path so that compile.el automatically
 	finds the sources in src_dir.  Automatic scrolling of the
 	compilation buffer.  C-uC-cC-c asks for confirmation before
-	compiling
-	(ada-compile-current): New parameter, prj-field
+	compiling.
+	(ada-compile-current): New parameter, prj-field.
 	(ada-complete-identifier): Load the .ali file before doing
-	processing
+	processing.
 	(ada-find-ali-file-in-dir): prepend build_dir to obj_dir to
 	conform to gnatmake's behavior.
-	(ada-find-file-in-dir): New function
-	(ada-find-references): Set the environment variables for gnatfind
+	(ada-find-file-in-dir): New function.
+	(ada-find-references): Set the environment variables for gnatfind.
 	(ada-find-src-file-in-dir): New function.
-	(ada-first-non-nil): Removed
+	(ada-first-non-nil): Removed.
 	(ada-gdb-application): Add support for jdb, the java debugger.
 	(ada-get-ada-file-name): Load the original-file first if not done
 	yet.
 	(ada-get-all-references): Handles the new ali syntax (parent types
 	are found between <>).
-	(ada-initialize-runtime-library): New function
+	(ada-initialize-runtime-library): New function.
 	(ada-mode-hook): Always load a project file when a file is opened,
 	so that the casing exceptions are correctly read.
 	(ada-operator-re): Add all missing operators ("abs", "rem", "**").
@@ -15623,36 +15623,36 @@
 	src_dir to initialize ada-search-directories and
 	compilation-search-path,...  Add the standard runtime library to
 	the search path for find-file.
-	(ada-prj-default-debugger): Was missing an opening '{'
+	(ada-prj-default-debugger): Was missing an opening '{'.
 	(ada-prj-default-bind-opt, ada-prj-default-link-opt): New
 	variables.
-	(ada-prj-default-gnatmake-opt): New variable
+	(ada-prj-default-gnatmake-opt): New variable.
 	(ada-prj-find-prj-file): Handles non-file buffers For non-Ada
 	buffers, the project file is the default one Save the windows
 	configuration before displaying the menu.
-	(ada-prj-src-dir, ada-prj-obj-dir, ada-prj-comp-opt,...): Removed
+	(ada-prj-src-dir, ada-prj-obj-dir, ada-prj-comp-opt,...): Removed.
 	(ada-read-identifier): Fix xrefs on operators (for "mod", "and",
 	...)  regexp-quote identifiers names to support operators +,
 	-,... in regexps.
 	(ada-remote): New function.
 	(ada-run-application): Erase the output buffer before starting the
 	run Support remote execution of the application.  Use
-	call-process, or the arguments are incorrectly parsed
+	call-process, or the arguments are incorrectly parsed.
 	(ada-set-default-project-file): Reread the content of the active
 	project file, not the one from the current buffer When a project
 	file is set as the default project, all directories are
 	automatically associated with it.
-	(ada-set-environment): New function
-	(ada-treat-cmd-string): New special variable ${current}
+	(ada-set-environment): New function.
+	(ada-treat-cmd-string): New special variable ${current}.
 	(ada-treat-cmd-string): Revised.  The substitution is now done for
-	any ${...} substring
+	any ${...} substring.
 	(ada-xref-current): If no body was found, compiles the spec
 	instead.  Setup ADA_{SOURCE,OBJECTS}_PATH before running the
 	compiler to get rid of command line length limitations.
-	(ada-xref-get-project-field): New function
-	(ada-xref-project-files): New variable
+	(ada-xref-get-project-field): New function.
+	(ada-xref-project-files): New variable.
 	(ada-xref-runtime-library-specs-path)
-	(ada-xref-runtime-library-ali-path): New variables
+	(ada-xref-runtime-library-ali-path): New variables.
 	(ada-xref-set-default-prj-values): Default run command now does a
 	cd to the build directory.  New field: main_unit Provide a default
 	file name even if the current buffer has no prj file.
@@ -15661,10 +15661,10 @@
 	Rewritten to show a tabbed-dialog.
 	(ada-prj-add-ada-menu): Remove the map and name parameters.
 	(ada-prj-display-page, ada-prj-field, ada-prj-initialize-values):
-	New function
-	(ada-prj-load-directory, ada-prj-subdirs-of): New functions
-	(ada-prj-load-from-file): New function
-	(ada-prj-save): Always save fields that depend on the current buffer
+	New function.
+	(ada-prj-load-directory, ada-prj-subdirs-of): New functions.
+	(ada-prj-load-from-file): New function.
+	(ada-prj-save): Always save fields that depend on the current buffer.
 	(ada-prj-show-value): New function
 
 	* ada-stmt.el (ada-stmt-add-to-ada-menu): Hide the menu if not in
@@ -16918,7 +16918,7 @@
 	(cyrillic-koi8-r-encode-table): Define it as a translation table
 	made from the reverse map of above.
 	(ccl-decode-koi8): Use translate-character.
-	(ccl-encode-koi8, ccl-encode-koi8-font): Likewize
+	(ccl-encode-koi8, ccl-encode-koi8-font): Likewise.
 	(cyrillic-alternativnyj-nonascii-translation-table): Define it as
 	a translation table made from cyrillic-alternativnyj-decode-table.
 	(cyrillic-alternativnyj-encode-table): Define it as a translation
@@ -17470,14 +17470,14 @@
 
 	* speedbar.el (speedbar-easymenu-definition-base): Image toggle fix.
 	(speedbar-insert-button): Invisible text property fix.
-	(speedbar-directory-plus): Renamed from speedbar-directory-+
-	(speedbar-directory-minus): Renamed from speedbar-directory--
-	(speedbar-page-plus): Renamed from speedbar-file-+
-	(speedbar-page-minus): Renamed from speedbar-file--
-	(speedbar-page): Renamed from speedbar-file-
-	(speedbar-tag): Renamed from speedbar-tag-
-	(speedbar-tag-plus): Renamed from speedbar-tag-+
-	(speedbar-tag-minus): Renamed from speedbar-tag--
+	(speedbar-directory-plus): Renamed from speedbar-directory-+.
+	(speedbar-directory-minus): Renamed from speedbar-directory--.
+	(speedbar-page-plus): Renamed from speedbar-file-+.
+	(speedbar-page-minus): Renamed from speedbar-file--.
+	(speedbar-page): Renamed from speedbar-file-.
+	(speedbar-tag): Renamed from speedbar-tag-.
+	(speedbar-tag-plus): Renamed from speedbar-tag-+.
+	(speedbar-tag-minus): Renamed from speedbar-tag--.
 	(speedbar-expand-image-button-alist): Use above renames.
 
 	* sb-dir-plus.xpm: Renamed from sb-dir+.xpm
@@ -17861,7 +17861,7 @@
 	(speedbar-visiting-tag-hook): Set new defaults.  Added options.
 	(speedbar-reconfigure-keymaps-hook): New variable.
 	(speedbar-frame-parameters): Updated documentation.
-	(speedbar-use-imenu-flag): Updated custom tag
+	(speedbar-use-imenu-flag): Updated custom tag.
 	(speedbar-dynamic-tags-function-list): New variable.
 	(speedbar-tag-hierarchy-method): Updated doc & custom.
 	(speedbar-indentation-width, speedbar-indentation-width) New
@@ -17877,7 +17877,7 @@
 	`force-mode-line-update'.
 	(speedbar-mode, speedbar-quick-mouse, speedbar-click)
 	(speedbar-double-click): Use `speedbar-mouse-set-point' instead of
-	`mouse-set-point'
+	`mouse-set-point'.
 	(speedbar-reconfigure-keymaps): Run configure keymap hooks.
 	(speedbar-item-info-tag-helper): Revamped to handle a wider range
 	of arbitrary text, and new helper functions.
@@ -17893,11 +17893,11 @@
 	(speedbar-apply-one-tag-hierarchy-method): Deleted (and replaced).
 	(speedbar-sort-tag-hierarchy, speedbar-prefix-group-tag-hierarchy)
 	(speedbar-trim-words-tag-hierarchy)
-	(speedbar-simple-group-tag-hierarchy): New functions
+	(speedbar-simple-group-tag-hierarchy): New functions.
 	(speedbar-create-tag-hierarchy): Update doc, use new tag hooks.
 	(speedbar-insert-imenu-list, speedbar-insert-etags-list): New
 	functions.
-	(speedbar-mouse-set-point): New function
+	(speedbar-mouse-set-point): New function.
 	(speedbar-power-click): Updated documentation.
 	(speedbar-line-token, speedbar-goto-this-file): Handle more types
 	of tag prefix text.
@@ -17916,7 +17916,7 @@
 	"Revert Buffer" menu items.
 	(speedbar-buffer-buttons-engine): Be smarter when creating a
 	filename tag (for expansion purposes.).
-	(speedbar-highlight-one-tag-line,
+	(speedbar-highlight-one-tag-line)
 	(speedbar-unhighlight-one-tag-line, speedbar-recenter-to-top)
 	(speedbar-recenter): New functions.
 	(defimage-speedbar): Image loading abstraction.
@@ -18748,13 +18748,13 @@
 2000-03-30  Peter Breton  <pbreton@ne.mediaone.net>
 
 	* net/net-utils.el:
-	(network-connection-host, network-connection-service): New variables
-	(network-connection-mode): New mode, derived from comint-mode
+	(network-connection-host, network-connection-service): New variables.
+	(network-connection-mode): New mode, derived from comint-mode.
 	(network-connection-mode-setup): New function, saves host and
 	service information in local variables.
 
 	* lisp/locate.el:
-	(locate-word-at-point): Added this function
+	(locate-word-at-point): Added this function.
 	(locate): Default to using locate-word-at-point as input
 	Run dired-mode-hook
 
@@ -20347,7 +20347,7 @@
 	* simple.el (eval-expression): Don't bind debug-on-error if
 	eval-expression-debug-on-error is nil.  Detect changed
 	debug-on-error, and propagate new value to global binding, if
-	eval-expression-debug-on-error is non-nil,
+	eval-expression-debug-on-error is non-nil.
 	(eval-expression-debug-on-error): Change doc string.
 
 2000-01-11  Richard M. Stallman  <rms@gnu.org>

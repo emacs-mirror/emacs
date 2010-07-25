@@ -599,8 +599,8 @@ detected as prompt when being sent on echoing hosts, therefore.")
 	     (tramp-copy-keep-date       nil)
 	     (tramp-password-end-of-line nil))
     ("plink" (tramp-login-program        "plink")
-	     (tramp-login-args           (("%h") ("-l" "%u") ("-P" "%p")
-					  ("-ssh")))
+	     (tramp-login-args           (("-l" "%u") ("-P" "%p")
+					  ("-ssh") ("%h")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         nil)
 	     (tramp-copy-args            nil)
@@ -609,8 +609,8 @@ detected as prompt when being sent on echoing hosts, therefore.")
 	     (tramp-default-port         22))
     ("plink1"
 	     (tramp-login-program        "plink")
-	     (tramp-login-args           (("%h") ("-l" "%u") ("-P" "%p")
-					  ("-1" "-ssh")))
+	     (tramp-login-args           (("-l" "%u") ("-P" "%p")
+					  ("-1" "-ssh") ("%h")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         nil)
 	     (tramp-copy-args            nil)
@@ -633,8 +633,8 @@ detected as prompt when being sent on echoing hosts, therefore.")
 	     (tramp-copy-keep-date       nil)
 	     (tramp-password-end-of-line nil))
     ("pscp"  (tramp-login-program        "plink")
-	     (tramp-login-args           (("%h") ("-l" "%u") ("-P" "%p")
-					  ("-ssh")))
+	     (tramp-login-args           (("-l" "%u") ("-P" "%p")
+					  ("-ssh") ("%h")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         "pscp")
 	     (tramp-copy-args            (("-P" "%p") ("-scp") ("-p" "%k")))
@@ -642,8 +642,8 @@ detected as prompt when being sent on echoing hosts, therefore.")
 	     (tramp-password-end-of-line "xy") ;see docstring for "xy"
 	     (tramp-default-port         22))
     ("psftp" (tramp-login-program        "plink")
-	     (tramp-login-args           (("%h") ("-l" "%u") ("-P" "%p")
-					  ("-ssh")))
+	     (tramp-login-args           (("-l" "%u") ("-P" "%p")
+					  ("-ssh") ("%h")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         "pscp")
 	     (tramp-copy-args            (("-P" "%p") ("-sftp") ("-p" "%k")))
@@ -1444,10 +1444,14 @@ See also `tramp-file-name-regexp'.")
 
 ;;;###autoload
 (defconst tramp-file-name-regexp-unified
-  "\\`/\\([^[/:]+\\|[^/]+]\\):"
+  (if (memq system-type '(cygwin windows-nt))
+      "\\`/\\([^[/:]\\{2,\\}\\|[^/]\\{2,\\}]\\):"
+    "\\`/\\([^[/:]+\\|[^/]+]\\):")
   "Value for `tramp-file-name-regexp' for unified remoting.
 Emacs (not XEmacs) uses a unified filename syntax for Ange-FTP and
-Tramp.  See `tramp-file-name-structure' for more explanations.")
+Tramp.  See `tramp-file-name-structure' for more explanations.
+
+On W32 systems, the volume letter must be ignored.")
 
 ;;;###autoload
 (defconst tramp-file-name-regexp-separate
@@ -1494,10 +1498,14 @@ volume letter, which will be removed by `tramp-drop-volume-letter'.")
 
 ;;;###autoload
 (defconst tramp-completion-file-name-regexp-unified
-  (concat tramp-root-regexp "[^/]*\\'")
+  (if (memq system-type '(cygwin windows-nt))
+      (concat tramp-root-regexp "[^/]\\{2,\\}\\'")
+    (concat tramp-root-regexp "[^/]*\\'"))
   "Value for `tramp-completion-file-name-regexp' for unified remoting.
 GNU Emacs uses a unified filename syntax for Tramp and Ange-FTP.
-See `tramp-file-name-structure' for more explanations.")
+See `tramp-file-name-structure' for more explanations.
+
+On W32 systems, the volume letter must be ignored.")
 
 ;;;###autoload
 (defconst tramp-completion-file-name-regexp-separate
@@ -6590,7 +6598,29 @@ file exists and nonzero exit status otherwise."
        vec 'file-error "Couldn't find command to check if file exists"))
     result))
 
-;; CCC test ksh or bash found for tilde expansion?
+(defun tramp-open-shell (vec shell)
+  "Opens shell SHELL."
+  (with-progress-reporter vec 5 (format "Opening remote shell `%s'" shell)
+    ;; Find arguments for this shell.
+    (let ((tramp-end-of-output tramp-initial-end-of-output)
+	  (alist tramp-sh-extra-args)
+	  item extra-args)
+      (while (and alist (null extra-args))
+	(setq item (pop alist))
+	(when (string-match (car item) shell)
+	  (setq extra-args (cdr item))))
+      (when extra-args (setq shell (concat shell " " extra-args)))
+      (tramp-send-command
+       vec (format "exec env ENV='' PROMPT_COMMAND='' PS1=%s PS2='' PS3='' %s"
+		   (shell-quote-argument tramp-end-of-output) shell)
+       t))
+    ;; Setting prompts.
+    (tramp-send-command
+     vec (format "PS1=%s" (shell-quote-argument tramp-end-of-output)) t)
+    (tramp-send-command vec "PS2=''" t)
+    (tramp-send-command vec "PS3=''" t)
+    (tramp-send-command vec "PROMPT_COMMAND=''" t)))
+
 (defun tramp-find-shell (vec)
   "Opens a shell on the remote host which groks tilde expansion."
   (unless (tramp-get-connection-property vec "remote-shell" nil)
@@ -6611,29 +6641,9 @@ file exists and nonzero exit status otherwise."
 	    (tramp-error
 	     vec 'file-error
 	     "Couldn't find a shell which groks tilde expansion"))
-	  ;; Find arguments for this shell.
-	  (let ((alist tramp-sh-extra-args)
-		item extra-args)
-	    (while (and alist (null extra-args))
-	      (setq item (pop alist))
-	      (when (string-match (car item) shell)
-		(setq extra-args (cdr item))))
-	    (when extra-args (setq shell (concat shell " " extra-args))))
 	  (tramp-message
 	   vec 5 "Starting remote shell `%s' for tilde expansion" shell)
-	  (let ((tramp-end-of-output tramp-initial-end-of-output))
-	    (tramp-send-command
-	     vec
-	     (format "PROMPT_COMMAND='' PS1=%s PS2='' PS3='' exec %s"
-		     (shell-quote-argument tramp-end-of-output) shell)
-	     t))
-	  ;; Setting prompts.
-	  (with-progress-reporter vec 5 (format "Setting remote shell prompt")
-	    (tramp-send-command
-	     vec (format "PS1=%s" (shell-quote-argument tramp-end-of-output)) t)
-	    (tramp-send-command vec "PS2=''" t)
-	    (tramp-send-command vec "PS3=''" t)
-	    (tramp-send-command vec "PROMPT_COMMAND=''" t)))
+	  (tramp-open-shell vec shell))
 
 	 (t (tramp-message
 	     vec 5 "Remote `%s' groks tilde expansion, good"
@@ -6914,14 +6924,9 @@ process to set up.  VEC specifies the connection."
     ;; way, we avoid the startup file clobbering $PS1.  $PROMP_COMMAND
     ;; is another way to set the prompt in /bin/bash, it must be
     ;; discarded as well.
-    (tramp-send-command
+    (tramp-open-shell
      vec
-     (format
-      "exec env ENV='' PROMPT_COMMAND='' PS1=%s PS2='' PS3='' %s"
-      (shell-quote-argument tramp-end-of-output)
-      (tramp-get-method-parameter
-       (tramp-file-name-method vec) 'tramp-remote-sh))
-     t)
+     (tramp-get-method-parameter (tramp-file-name-method vec) 'tramp-remote-sh))
 
     ;; Disable echo.
     (tramp-message vec 5 "Setting up remote shell environment")
@@ -7037,7 +7042,7 @@ process to set up.  VEC specifies the connection."
   ;; "echo $?"  part if the "test" part has an error.  In particular,
   ;; the OpenSolaris /bin/sh is a problem.  There are also other
   ;; problems with /bin/sh of OpenSolaris, like redirection of stderr
-  ;; in in function declarations, or changing HISTFILE in place.
+  ;; in function declarations, or changing HISTFILE in place.
   ;; Therefore, OpenSolaris' /bin/sh is replaced by bash, when
   ;; detected.
   (tramp-find-shell vec)
@@ -8882,7 +8887,6 @@ Only works for Bourne-like shells."
 ;;   likely to produce long command lines, and some shells choke on
 ;;   long command lines.
 ;; * How to deal with MULE in `insert-file-contents' and `write-region'?
-;; * Test remote ksh or bash for tilde expansion in `tramp-find-shell'?
 ;; * abbreviate-file-name
 ;; * Better error checking.  At least whenever we see something
 ;;   strange when doing zerop, we should kill the process and start
@@ -8953,7 +8957,6 @@ Only works for Bourne-like shells."
 ;;   expects English?  Or just to set LC_MESSAGES to "C" if Tramp
 ;;   expects only English messages?  (Juri Linkov)
 ;; * Make shadowfile.el grok Tramp filenames.  (Bug#4526, Bug#4846)
-;; * Do not handle files with drive letter as remote.  (Bug#5447)
 ;; * Load Tramp subpackages only when needed.  (Bug#1529, Bug#5448, Bug#5705)
 ;; * Try telnet+curl as new method.  It might be useful for busybox,
 ;;   without built-in uuencode/uudecode.

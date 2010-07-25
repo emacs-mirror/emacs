@@ -8625,7 +8625,7 @@
 
 2008-07-31  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-mode.el (c-before-hack-hook): New function
+	* progmodes/cc-mode.el (c-before-hack-hook): New function.
 	(Top Level): Install c-before-hack-hook on
 	before-hack-local-variables-hook, rather than
 	c-postprocess-file-styles on hack-local-variables-hook.

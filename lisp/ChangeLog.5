@@ -193,8 +193,8 @@
 	ispell-menu-map, ispell-menu-lucid, and ispell-menu-map-needed
 	so users can more easily modify and upgrade entries.
 	(ispell-dictionary-alist): Once more a single variable.
-	(ispell-required-version): Documentation changes
-	(ispell-skip-sgml): Documentation changes
+	(ispell-required-version): Documentation changes.
+	(ispell-skip-sgml): Documentation changes.
 	(ispell-command-loop): `mode-line-format' now shows misspelled word.
 	(ispell-message-text-end): Can now process postscript version 1.
 	(ispell-message-start-skip): New variable for block skips, set up for
@@ -584,7 +584,7 @@
 	19.28 and earlier and XEmacs 19.11 and earlier.
 	* ediff.el (ediff-patch-buffer): Now handles buffers that don't
 	visit any file.
-	(ediff-windows): Renamed to ediff-windows-wordwise, added
+	(ediff-windows): Renamed to ediff-windows-wordwise.
 	(ediff-windows-linewise): New function.
 	Changed ediff-small/large-regions to ediff-regions-wordwise/linewise.
 
@@ -783,7 +783,7 @@
 
 	* mail-extr.el (mail-extr-all-letters-but-separators):
 	Reinstate \377, the bug in search.c is apparently gone.
-	(mail-extr-first-letters): Add 8-bit characters
+	(mail-extr-first-letters): Add 8-bit characters.
 	(mail-extr-last-letters): Ditto.
 
 	* simple.el (indent-for-comment): Move to beginning of line only
@@ -889,7 +889,7 @@
 	(ada-end-stmt-re): Add "separate" body parts, "else", and
 	"package <Id> is".
 	(ada-subprogram-start-re): Add "entry", "protected" and
-	"package body"
+	"package body".
 	(ada-indent-function): Handle "elsif" the same way as "if", added
 	"separate" for no indent.
 	(ada-get-indent-type): If "type ... is .." is followed by code on
@@ -1328,7 +1328,7 @@
 	ones the numbers of subexpressions to refer to.
 	(vc-cvs-status): New per-file property, only used in the CVS case.
 	(vc-cvs-status): New function.
-	(vc-log-info): Adapted to new version of vc-parse-buffer
+	(vc-log-info): Adapted to new version of vc-parse-buffer.
 	(vc-fetch-properties): Adapted to new version of vc-parse-buffer.
 	Better search regexp for CVS latest version.
 	(vc-log-info): Search for branch version only in the RCS case,
@@ -1800,7 +1800,7 @@
 	(vc-consult-rcs-headers): New function.
 	(vc-branch-version): New per-file property, refers
 	to the RCS version selected by `rcs -b'.
-	(vc-workfile-version): New function.  Also new per-file property
+	(vc-workfile-version): New function.  Also new per-file property.
 	(vc-consult-headers): New parameter variable.
 	(vc-mistrust-permissions): Default set to `nil'.
 	(vc-locking-user): Property is now cached.  The other functions
@@ -2145,7 +2145,7 @@
 1995-04-03  David Kågedal  <davidk@lysator.liu.se>
 
 	* tempo.el (tempo-insert):
-	Added the P tag and modified the s tag accordingly
+	Added the P tag and modified the s tag accordingly.
 	(tempo-insert-named): Checks for valid name, insert mark otherwise.
 
 	* tempo.el (tempo-dolist): Changed (cadr ...) to (car (cdr ...)).
@@ -2457,7 +2457,7 @@
 	(enriched-delq-1, enriched-make-list-uniq)
 	(enriched-make-relatively-unique, enriched-common-tail)
 	(enriched-reorder, enriched-insert-annotations)
-	(enriched-loc-annotations, enriched-annotate-change
+	(enriched-loc-annotations, enriched-annotate-change)
 	(enriched-encode-unknown): Move to format.el.  Names changed.
 
 	(enriched-display-table): Copy standard table if there is one,
@@ -3365,7 +3365,7 @@
 	(ispell-command-loop): Properly adjust screen with different settings
 	of ispell-choices-win-default-height.
 	(check-ispell-version): Use fundamental-mode as default-major-mode.
-	(ispell-change-dictionary): Remove unnecessary process kills
+	(ispell-change-dictionary): Remove unnecessary process kills.
 	(ispell-region): Fold sgml support in with tib checking.
 	(ispell-message): Skips checking of forwarded messages.
 
@@ -3526,7 +3526,7 @@
 
 1995-02-02  Richard Stallman  <rms@pogo.gnu.ai.mit.edu>
 
-	* c-mode.el (c-mode-map): No binding for c-fill-paragraph
+	* c-mode.el (c-mode-map): No binding for c-fill-paragraph.
 	(c-fill-paragraph): Return t.
 	(c-mode): Put c-fill-paragraph in fill-paragraph-function.
 
@@ -3770,7 +3770,7 @@
 	* tempo.el (tempo-insert-template): Quoted transient-mark-mode
 	Expansion around region now puts point at the first mark.
 
-	* tempo.el (tempo-region-start, tempo-region-stop): New variables
+	* tempo.el (tempo-region-start, tempo-region-stop): New variables.
 	(tempo-insert-template, tempo-insert): Don't affect the
 	mark.  Check for Transient Mark mode.
 
@@ -3965,7 +3965,7 @@
 	Keybinding for bold-italic changed from M-g o to M-g l; M-g o is
 	now "other".
 	(facemenu-justification-menu, facemenu-indentation-menu):
-	New submenus, moved from enriched.el
+	New submenus, moved from enriched.el.
 	(list-colors-display, facemenu-color-equal): New functions.
 	(facemenu-menu): Added "Display Faces" item.
 	(facemenu-new-faces-at-end): New variable.
@@ -4554,18 +4554,18 @@
 	reference keys before they are used.
 	(bibtex-generate-autokey, bibtex-clean-entry): New function to
 	generate an autokey if necessary.
-	(bibtex-autokey-names, bibtex-autokey-name-change-strings,
-	bibtex-autokey-name-length, bibtex-autokey-name-separator,
-	bibtex-autokey-year-length, bibtex-autokey-titlewords,
-	bibtex-autokey-title-terminators,
-	bibtex-autokey-titlewords-stretch,
-	bibtex-autokey-titleword-first-ignore,
-	bibtex-autokey-titleword-abbrevs,
-	bibtex-autokey-titleword-change-strings,
-	bibtex-autokey-titleword-length,
-	bibtex-autokey-titleword-separator,
-	bibtex-autokey-name-year-separator,
-	bibtex-autokey-year-title-separator): New variables related to
+	(bibtex-autokey-names, bibtex-autokey-name-change-strings)
+	(bibtex-autokey-name-length, bibtex-autokey-name-separator)
+	(bibtex-autokey-year-length, bibtex-autokey-titlewords)
+	(bibtex-autokey-title-terminators)
+	(bibtex-autokey-titlewords-stretch)
+	(bibtex-autokey-titleword-first-ignore)
+	(bibtex-autokey-titleword-abbrevs)
+	(bibtex-autokey-titleword-change-strings)
+	(bibtex-autokey-titleword-length)
+	(bibtex-autokey-titleword-separator)
+	(bibtex-autokey-name-year-separator)
+	(bibtex-autokey-year-title-separator): New variables related to
 	bibtex-generate-autokey.
 	(bibtex-find-entry-location): Optional second parameter maybedup
 	to tell it that entering a duplicate entry isn't to report by an
@@ -4591,14 +4591,14 @@
 	(validate-bibtex-buffer): Completely rewritten to validate, if
 	buffer is syntactically correct.
 	(find-bibtex-duplicates): Moved into validate-bibtex-buffer.
-	(ispell-abstract, bibtex-ispell-abstract, ispell-bibtex-entry,
-	bibtex-ispell-entry, beginning-of-bibtex-entry,
-	bibtex-beginning-of-entry, end-of-bibtex-entry,
-	bibtex-end-of-entry, hide-bibtex-entry-bodies,
-	bibtex-hide-entry-bodies, narrow-to-bibtex-entry,
-	bibtex-narrow-to-entry, sort-bibtex-entries, bibtex-sort-entries,
-	validate-bibtex-buffer, bibtex-validate-buffer,
-	find-bibtex-entry-location, bibtex-find-entry-location): All
+	(ispell-abstract, bibtex-ispell-abstract, ispell-bibtex-entry)
+	(bibtex-ispell-entry, beginning-of-bibtex-entry)
+	(bibtex-beginning-of-entry, end-of-bibtex-entry)
+	(bibtex-end-of-entry, hide-bibtex-entry-bodies)
+	(bibtex-hide-entry-bodies, narrow-to-bibtex-entry)
+	(bibtex-narrow-to-entry, sort-bibtex-entries, bibtex-sort-entries)
+	(validate-bibtex-buffer, bibtex-validate-buffer)
+	(find-bibtex-entry-location, bibtex-find-entry-location): All
 	interactive functions are renamed, so that any interface function
 	begins with "bibtex-".  Mapping:
 	ispell-abstract            --> bibtex-ispell-abstract
@@ -4610,8 +4610,8 @@
 	sort-bibtex-entries        --> bibtex-sort-entries
 	validate-bibtex-buffer     --> bibtex-validate-buffer
 	find-bibtex-entry-location --> bibtex-find-entry-location
-	(bibtex-maintain-sorted-entries,
-	bibtex-sort-ignore-string-entries): Default is now t.
+	(bibtex-maintain-sorted-entries)
+	(bibtex-sort-ignore-string-entries): Default is now t.
 	(bibtex-complete-string): String list is built from additional
 	string list bibtex-predefined-string and current strings in file.
 	(string-equalp): Deleted and substituted by string-equal.
@@ -4633,8 +4633,8 @@
 	(bibtex-current-entry-label, put-string-on-kill-ring): Deleted
 	(AUCTeX provides all the functionality needed for citation
 	completion).
-	(bibtex-enclosing-reference, bibtex-pop-previous, bibtex-pop-next,
-	bibtex-clean-entry): Hacked for speed (bibtex-pop-previous and
+	(bibtex-enclosing-reference, bibtex-pop-previous, bibtex-pop-next)
+	(bibtex-clean-entry): Hacked for speed (bibtex-pop-previous and
 	bibtex-pop-next were to slow for larger BibTeX files).
 	(bibtex-pop-previous, bibtex-pop-next): Delimiters from previous
 	or next entry are changed to actual delimiters if necessary.
@@ -4657,7 +4657,7 @@
 	bibtex-pop-next didn't work, probably due to a bug in
 	re-search-forward).
 	(several functions): Added support for {} as field delimiters
-	(better than '"' for accented characters.
+	(better than '"' for accented characters).
 	(bibtex-clean-entry): If optional field crossref is empty or
 	missing, former optional fields (if bibtex-include-OPTcrossref was
 	t) are necessary again.  bibtex-clean-entry complains if they are
@@ -4825,8 +4825,8 @@
 1994-12-09  Ken Stevens  <stevensk@afit.af.mil>
 
 	* ispell.el: Added ispell-offset for version consistency.
-	(ispell-dictionary-alist): Updated dictionaries & better match defaults
-	(ispell-alternate-dictionary): Added /usr/shar path
+	(ispell-dictionary-alist): Updated dictionaries & better match defaults.
+	(ispell-alternate-dictionary): Added /usr/shar path.
 	(ispell-menu-map-needed): Redo changes that made this incompatible
 	with earlier versions of Emacs19.
 	(ispell-required-version): Changed to assure version 3.1.12 accessed.
@@ -6112,7 +6112,7 @@
 1994-10-07  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
 	* mouse.el (mouse-major-mode-menu): New function, on C-mouse-3.
-	(mouse-major-mode-menu-1): New function
+	(mouse-major-mode-menu-1): New function.
 	(mouse-set-font): Move it to C-mouse-2.
 
 	* font-lock.el (font-lock-defaults-alist): Delete most modes--all
@@ -6534,7 +6534,7 @@
 
 	* cc-mode.el (c-progress-info, c-progress-init)
 	(c-progress-update, c-progress-fini):
-	New vars/defuns for better long indentation progress reporting
+	New vars/defuns for better long indentation progress reporting.
 	(c-indent-exp, c-indent-region): Use them.
 
 	* cc-mode.el (c-guess-basic-syntax):
@@ -6542,7 +6542,7 @@
 	find proper relpos of an arglist-cont.
 
 	* cc-mode.el (c-offset-alist-default):
-	statement-case-open default offset is zero
+	statement-case-open default offset is zero.
 	(c-skip-case-statement-forward): New function.
 	(c-guess-basic-syntax): CASE 15: use c-skip-case-statement-forward in
 	proper places to find the real relpos of statement's inside switch
@@ -8795,9 +8795,9 @@
 	`gnus-uu-asynchronous' variable set.
 	(gnus-uu-ctl-map): Removed the keystrokes `C-c C-v C-h' and
 	`C-c C-v h' from the keymap.
-	(gnus-uu-decode-and-view-all-articles,
-	(gnus-uu-decode-and-view-all-unread-articles,
-	(gnus-uu-decode-and-save-all-unread-articles,
+	(gnus-uu-decode-and-view-all-articles)
+	(gnus-uu-decode-and-view-all-unread-articles)
+	(gnus-uu-decode-and-save-all-unread-articles)
 	(gnus-uu-decode-and-save-all-articles): Accept prefix arg for # files.
 	(gnus-uu-uustrip-article-as): Waits for uudecode to finish before
 	further treatment of the resulting files.

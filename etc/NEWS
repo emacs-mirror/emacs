@@ -432,6 +432,12 @@ displayed with a "spinning bar".
 ** New configure.bat option --enable-checking builds emacs with extra
 runtime checks.
 
+** New configure.bat option --distfiles to specify files to be
+   included in binary distribution
+
+** New make target `dist' to create binary disttribution for Windows
+   platform
+
 
 ----------------------------------------------------------------------
 This file is part of GNU Emacs.

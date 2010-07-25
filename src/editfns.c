@@ -90,7 +90,7 @@ extern size_t emacs_strftimeu (char *, size_t, const char *,
                                const struct tm *, int);
 
 #ifdef WINDOWSNT
-extern Lisp_Object w32_get_internal_run_time ();
+extern Lisp_Object w32_get_internal_run_time (void);
 #endif
 
 static int tm_diff (struct tm *, struct tm *);

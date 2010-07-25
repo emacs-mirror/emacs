@@ -1375,20 +1375,20 @@
 
 	* org.el (org-appearance): Change Customize group variable name
 	from org-font-lock to org-appearance, and change tag from "Org
-	Font Lock" to "Org Appearance"
-	(org-odd-levels-only): Change Customize group variable name
-	(org-level-color-stars-only): Change Customize group variable name
-	(org-hide-leading-stars): Change Customize group variable name
-	(org-hidden-keywords): Change Customize group variable name
-	(org-fontify-done-headline): Change Customize group variable name
-	(org-fontify-emphasized-text): Change Customize group variable name
-	(org-fontify-whole-heading-line): Change Customize group variable name
+	Font Lock" to "Org Appearance".
+	(org-odd-levels-only): Change Customize group variable name.
+	(org-level-color-stars-only): Change Customize group variable name.
+	(org-hide-leading-stars): Change Customize group variable name.
+	(org-hidden-keywords): Change Customize group variable name.
+	(org-fontify-done-headline): Change Customize group variable name.
+	(org-fontify-emphasized-text): Change Customize group variable name.
+	(org-fontify-whole-heading-line): Change Customize group variable name.
 	(org-highlight-latex-fragments-and-specials): Change Customize
-	group variable name
-	(org-hide-emphasis-markers): Change Customize group variable name
-	(org-emphasis-alist): Change Customize group variable name
+	group variable name.
+	(org-hide-emphasis-markers): Change Customize group variable name.
+	(org-emphasis-alist): Change Customize group variable name.
 	(org-emphasis-regexp-components): Change Customize group variable
-	name
+	name.
 	(org-modules): Remove mention of org-R.
 
 	* org-faces.el (org-faces): Change Customize group variable name.
@@ -1420,8 +1420,8 @@
 	(org-fontify-meta-lines-and-blocks): Changes to font-lock code
 	implementing new faces and hiding behaviour.
 
-	* org-faces.el (org-document-title): New face for #+TITLE lines
-	(org-document-info): New face for #+DATE, #+AUTHOR, #+EMAIL lines
+	* org-faces.el (org-document-title): New face for #+TITLE lines.
+	(org-document-info): New face for #+DATE, #+AUTHOR, #+EMAIL lines.
 	(org-document-info-keyword): New face for #+DATE, #+AUTHOR, #+EMAIL
 	keywords.
 
@@ -3096,12 +3096,12 @@
 	point.
 	(org-columns-compile-map): There is now an extra position in each
 	entry specifying the function to use to calculate the displayed
-	value for the non-calculated properties in the column,
+	value for the non-calculated properties in the column.
 	(org-columns-compute-all): Set `org-columns-time' to the current
 	time so time difference calculations will work.
 	(org-columns-compute): Handle column operators where the values
 	used are calculated from the underlying property.
-	(org-columns-number-to-string): Handle the 'age' column format
+	(org-columns-number-to-string): Handle the 'age' column format.
 	(org-columns-string-to-number): Correct the function name (was
 	org-column...).  Add support for the 'age' column format.
 	(org-columns-compile-format): Support the additional parameter in
@@ -3348,7 +3348,7 @@
 	currently active clock if the user has exceeded the time returned
 	by `org-user-idle-seconds', based on the value of
 	`org-clock-idle-time'.
-	(org-clock-in): If, after resolving clocks,
+	(org-clock-in): If, after resolving clocks, (???)
 	(org-clock-out): Cancel the `org-clock-idle-timer' on clock out.
 
 	* org-clock.el (org-clock-resolve-clock): New function that
@@ -4157,7 +4157,7 @@
 	* org-exp.el (org-export-format-source-code-or-example): Translate
 	language.
 
-	* org-src.el (org-src-lang-modes): New variable
+	* org-src.el (org-src-lang-modes): New variable.
 	(org-edit-src-code): Translate language.
 
 	* org-exp.el (org-export-format-source-code-or-example): Deal wit
@@ -4285,7 +4285,7 @@
 	the markup is src or example.
 
 	* org-agenda.el (org-agenda-skip-scheduled-if-deadline-is-shown):
-	New option
+	New option.
 	(org-agenda-get-day-entries): Remember deadline results and pass
 	them on into the function getting the scheduling information.
 	(org-agenda-get-scheduled): Accept deadline results as parameters
@@ -4296,7 +4296,7 @@
 	convert current line to headline.
 
 	* org-clock.el (org-clock-save-markers-for-cut-and-paste): Also
-	cheeeeeck the hd marker
+	cheeeeeck the hd marker.
 	(org-clock-in): Also set the hd marker.
 	(org-clock-out): Also set the hd marker.
 	(org-clock-cancel): Reset markers.
@@ -4518,9 +4518,9 @@
 2009-08-06  Bastien Guerry  <bzg@altern.org>
 
 	* org.el (org-make-link-regexps): Don't exclude parentheses from
-	`org-plain-link-re'
+	`org-plain-link-re'.
 	(org-cycle-internal-local): When locally cycling, switch directly
-	from CHILDREN to FOLDED if there is no subtree
+	from CHILDREN to FOLDED if there is no subtree.
 	(org-cycle): Update the docstring to document the new behavior of
 	`org-cycle-internal-local'.
 
@@ -5111,7 +5111,7 @@
 	(org-set-font-lock-defaults): Call the new fontification
 	function.
 
-	* org-faces.el (org-meta-line): New face
+	* org-faces.el (org-meta-line): New face.
 	(org-block): New face.
 
 2009-08-06  Carsten Dominik  <carsten.dominik@gmail.com>
@@ -5341,7 +5341,7 @@
 2009-08-06  Carsten Dominik  <carsten.dominik@gmail.com>
 
 	* org-exp.el (org-export, org-export-visible): Support ASCII
-	export to buffer
+	export to buffer.
 	(org-export-normalize-links): Do not protect the description if it
 	is explicitly given.
 
@@ -5696,7 +5696,7 @@
 
 	* org-mouse.el: XEmacs compatibility fixes.
 
-	* org.el (org-modules): Add org-inlinetasks.el
+	* org.el (org-modules): Add org-inlinetasks.el.
 	(org-cycle): Implement limiting level on cycling.
 	(org-move-subtree-down): Fix bug with swapping subtrees at end of
 	buffer.
@@ -5788,7 +5788,7 @@
 	(org-mouse-context-menu): Use `org-mouse-todo-menu'.
 
 	* org-table.el (org-table-beginning-of-field)
-	(org-table-end-of-field): New commands
+	(org-table-end-of-field): New commands.
 	(org-table-previous-field, org-table-beginning-of-field): Better
 	error messages.
 	(orgtbl-setup): Include `M-a' and `M-e'.
@@ -5954,7 +5954,7 @@
 	(org-export-plist-vars): Add entries for :keywords and
 	:description.
 	(org-infile-export-plist): Parse for new keywords.
-	(org-get-current-options): Add new keywords
+	(org-get-current-options): Add new keywords.
 	(org-export-as-html): Publish description and keywords.
 
 	* org-agenda.el (org-agenda-add-entry-text-descriptive-links): New
@@ -7770,7 +7770,7 @@
 	immediately after the scheduling keywords.
 
 	* org-clock.el (org-clock-in-switch-to-state): Allow this to be a
-	function
+	function.
 	(org-clock-in): If `org-clock-in-switch-to-state' is a function,
 	call it with the current todo state to get the state to switch to
 	when clocking in.
@@ -7973,7 +7973,7 @@
 	line.
 
 	* org.el (org-get-refile-targets): Replace links with their
-	descriptions
+	descriptions.
 	(org-imenu-get-tree): Replace links with their descriptions.
 
 	* org-remember.el (org-remember-apply-template): Add a new
@@ -8017,7 +8017,7 @@
 	(org-quote-chars): Remove.
 	(org-export-latex-keywords-maybe): Use `replace-regexp-in-string'.
 	(org-export-latex-list-beginning-re): Rename to
-	`org-list-beginning-re'
+	`org-list-beginning-re'.
 	(org-list-item-begin): Rename to `org-list-item-beginning'.
 
 2008-10-12  Eric Schulte  <schulte.eric@gmail.com>
@@ -8352,7 +8352,7 @@
 	(org-map-entries): Make sure org-agenda-archives-mode is nil.
 	(org-agenda-files): Functionality of second arg changed.
 
-	* org-agenda.el (org-agenda-archives-mode): New variable
+	* org-agenda.el (org-agenda-archives-mode): New variable.
 	(org-write-agenda, org-prepare-agenda, org-agenda-list)
 	(org-search-view, org-todo-list, org-tags-view)
 	(org-agenda-list-stuck-projects): Call `org-agenda-files' with
