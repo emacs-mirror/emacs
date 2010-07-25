@@ -1,5 +1,10 @@
 2010-07-25  Ken Brown  <kbrown@cornell.edu>
 
+	* vm-limit.c (check_memory_limits): Fix previous change;
+	accidentally reverted an earlier change.
+
+2010-07-25  Ken Brown  <kbrown@cornell.edu>
+
 	* mem-limits.h (BSD4_2) [cygwin]: Don't define here; instead...
 	* vm-limit.c: ...add 'defined (CYGWIN)' here (Bug#6715).
 
