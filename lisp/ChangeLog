@@ -353,7 +353,7 @@
 
 	* epa-file.el (epa-file-error, epa-file--find-file-not-found-function)
 	(epa-file-insert-file-contents): Hack to prevent
-	find-file from opening empty buffer when decryptin failed
+	find-file from opening empty buffer when decryption failed
 	(bug#6568).
 
 2010-07-07  Agustín Martín  <agustin.martin@hispalinux.es>
