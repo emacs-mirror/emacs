@@ -1,3 +1,13 @@
+2010-07-25  Christoph Scholtes  <cschol2112@gmail.com>
+
+	Build binary distros on Windows using emacs-VERSION as root dir name.
+
+	* makefile.w32-in: Copy README.W32 to installation directory
+	during `make install'.  Remove README.W32 with `distclean' (in
+	case Emacs was installed in place).  Use temporary directory to
+	create distribution zip files in `dist' target.
+	* zipdist.bat: Simplify code using temporary directory.
+
 2010-07-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* runemacs.c (set_user_model_id): Fix prototype.

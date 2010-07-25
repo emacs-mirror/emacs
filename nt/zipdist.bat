@@ -20,25 +20,10 @@ rem You should have received a copy of the GNU General Public License
 rem along with GNU Emacs.  If not, see http://www.gnu.org/licenses/.
 
 SETLOCAL
-rem arg 1: full path to Emacs root directory
-set ARG_PATH="%~f1"
-rem Path separator cannot be parsed correctly, substitute
-set ARG_PATH=%ARG_PATH:\=;%
+rem arg 1: Emacs version number
+set EMACS_VER=%1
 
-rem arg 2: Emacs version number
-set EMACS_VER=%2
-
-rem Parse out last directory from passed in full path (arg 1)
-for /f "tokens=* delims=;" %%G in (%ARG_PATH%) do call :PARSE_PATH %%G
-goto :EXIT
-
-:PARSE_PATH
-if "%1"=="" (
-  goto :ZIP_CHECK
-)
-set ROOT_DIR=%1
-SHIFT
-goto :PARSE_PATH
+set TMP_DIST_DIR=emacs-%EMACS_VER%
 
 rem Check, if 7zip is installed and available on path
 :ZIP_CHECK
@@ -53,14 +38,12 @@ goto EXIT
 
 rem Build distributions
 :ZIP_DIST
-pushd ..\..
 rem Build and verify full distribution
-7z a -bd -tZIP -mx=9 -x!.bzrignore -x!.gitignore -xr!emacs.mdp -xr!*.pdb -xr!*.opt -xr!*~ -xr!CVS -xr!.arch-inventory emacs-%EMACS_VER%-bin-i386.zip %ROOT_DIR%/BUGS %ROOT_DIR%/COPYING %ROOT_DIR%/README %ROOT_DIR%/README.W32 %ROOT_DIR%/INSTALL %ROOT_DIR%/bin %ROOT_DIR%/etc %ROOT_DIR%/info %ROOT_DIR%/lisp %ROOT_DIR%/leim %ROOT_DIR%/site-lisp
+7z a -bd -tZIP -mx=9 -x!.bzrignore -x!.gitignore -xr!emacs.mdp -xr!*.pdb -xr!*.opt -xr!*~ -xr!CVS -xr!.arch-inventory emacs-%EMACS_VER%-bin-i386.zip %TMP_DIST_DIR%
 7z t emacs-%EMACS_VER%-bin-i386.zip
 rem Build and verify binary only distribution
-7z a -bd -tZIP -mx=9 emacs-%EMACS_VER%-barebin-i386.zip %ROOT_DIR%/README.W32 %ROOT_DIR%/bin %ROOT_DIR%/etc/DOC-X %ROOT_DIR%/COPYING
+7z a -bd -tZIP -mx=9 -x!.bzrignore -x!.gitignore -xr!emacs.mdp -xr!*.pdb -xr!*.opt -xr!*~ -xr!CVS -xr!.arch-inventory emacs-%EMACS_VER%-barebin-i386.zip %TMP_DIST_DIR%/README.W32 %TMP_DIST_DIR%/bin %TMP_DIST_DIR%/etc/DOC-X %TMP_DIST_DIR%/COPYING
 7z t emacs-%EMACS_VER%-barebin-i386.zip
-popd
 goto EXIT
 
 :EXIT
