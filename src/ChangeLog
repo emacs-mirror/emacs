@@ -1,3 +1,7 @@
+2010-07-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* terminfo.c (tparam): Fix prototype of tparm.
+
 2010-07-25  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* emacs.c (main) [PROFILING]: Use __executable_start if defined to
