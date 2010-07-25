@@ -82,7 +82,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 char *getenv (const char *), *getwd (char *);
-char *(getcwd) (char *, int);
+#ifdef HAVE_GETCWD
+char *(getcwd) (char *, size_t);
+#endif
 
 #ifdef WINDOWSNT
 char *w32_getenv (char *);

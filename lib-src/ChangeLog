@@ -1,5 +1,12 @@
 2010-07-25  Juanma Barranquero  <lekktu@gmail.com>
 
+	* emacsclient.c (getcwd): Fix previous change: make getcwd
+	conditional on HAVE_GETCWD and declare with the correct POSIX
+	profile (for some reason MinGW headers define its 2nd arg as int,
+	not size_t; but getcwd is not used on Windows nonetheless).
+
+2010-07-25  Juanma Barranquero  <lekktu@gmail.com>
+
 	* emacsclient.c (getcwd, w32_getenv):
 	* ntlib.h (getlogin, getuid, getegid, getgid): Fix prototypes.
 
