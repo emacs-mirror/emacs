@@ -351,6 +351,7 @@ top-distclean:
 	- $(DEL) stamp_BLD
 	- $(DEL) ../etc/DOC ../etc/DOC-X
 	- $(DEL) config.log Makefile
+	- $(DEL) ../README.W32
 
 distclean: distclean-other-dirs-$(MAKETYPE) top-distclean
 
