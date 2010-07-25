@@ -1,3 +1,7 @@
+2010-07-25  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in: Check for __executable_start.
+
 2010-07-24  Ken Brown  <kbrown@cornell.edu>
 
 	* configure.in (LINKER, LIB_GCC): Remove cygwin special cases (Bug#6715)

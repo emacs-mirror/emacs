@@ -2611,7 +2611,7 @@ __fpending mblen mbrlen mbsinit strsignal setitimer ualarm strchr strrchr \
 sendto recvfrom getsockopt setsockopt getsockname getpeername \
 gai_strerror mkstemp getline getdelim mremap memmove fsync sync \
 memset memcmp difftime memcpy mempcpy mblen mbrlen posix_memalign \
-cfmakeraw cfsetspeed isnan copysign)
+cfmakeraw cfsetspeed isnan copysign __executable_start)
 
 AC_CHECK_HEADERS(sys/un.h)
 

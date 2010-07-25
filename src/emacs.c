@@ -1747,9 +1747,18 @@ main (int argc, char **argv)
 #else
       extern char etext;
 #endif
+#ifdef HAVE___EXECUTABLE_START
+      /* This symbol is defined by GNU ld to the start of the text
+	 segment.  */
+      extern char __executable_start[];
+#else
       extern void safe_bcopy ();
+#endif
 
       atexit (_mcleanup);
+#ifdef HAVE___EXECUTABLE_START
+      monstartup (__executable_start, &etext);
+#else
       /* This uses safe_bcopy because that function comes first in the
 	 Emacs executable.  It might be better to use something that
 	 gives the start of the text segment, but start_of_text is not
@@ -1757,6 +1766,7 @@ main (int argc, char **argv)
       /* FIXME: Does not work on architectures with function
 	 descriptors.  */
       monstartup (safe_bcopy, &etext);
+#endif
     }
   else
     moncontrol (0);

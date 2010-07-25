@@ -801,6 +801,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you want to use the X window system. */
 #undef HAVE_X_WINDOWS
 
+/* Define to 1 if you have the `__executable_start' function. */
+#undef HAVE___EXECUTABLE_START
+
 /* Define to 1 if you have the `__fpending' function. */
 #undef HAVE___FPENDING
 

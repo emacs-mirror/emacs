@@ -1,5 +1,10 @@
 2010-07-25  Andreas Schwab  <schwab@linux-m68k.org>
 
+	* emacs.c (main) [PROFILING]: Use __executable_start if defined to
+	find start of text segment.
+	* dispnew.c (safe_bcopy): Don't define if HAVE___EXECUTABLE_START
+	is defined.
+
 	* callproc.c (set_initial_environment): Avoid unbalanced braces.
 
 2010-07-25  Ken Brown  <kbrown@cornell.edu>
