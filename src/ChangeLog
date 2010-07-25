@@ -1,3 +1,7 @@
+2010-07-25  Christoph Scholtes  <cschol2112@gmail.com>
+
+	* minibuf.c (Fread_buffer): Doc fix (bug#6528).
+
 2010-07-22  Christoph Scholtes  <cschol2112@gmail.com>
 
 	* window.c (Fwindow_height): Doc fix (bug#6518).

@@ -1184,7 +1184,7 @@ Optional second arg DEF is value to return if user enters an empty line.
  If DEF is a list of default values, return its first element.
 Optional third arg REQUIRE-MATCH determines whether non-existing
  buffer names are allowed.  It has the same meaning as the
- REQUIRE-MATCH argument of `confirm-after-completion'.
+ REQUIRE-MATCH argument of `completing-read'.
 The argument PROMPT should be a string ending with a colon and a space.
 If `read-buffer-completion-ignore-case' is non-nil, completion ignores
 case while reading the buffer name.
