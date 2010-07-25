@@ -3,7 +3,7 @@
 ;; Copyright (C) 2010 Eric M. Ludlam
 ;;
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
-;; X-RCS: $Id: cit-externaldb.el,v 1.2 2010-06-13 13:54:59 zappo Exp $
+;; X-RCS: $Id: cit-externaldb.el,v 1.3 2010-07-25 13:50:15 zappo Exp $
 ;;
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -47,7 +47,7 @@
   '( (global ;; 0 tool name (used by symref)
       cedet-global ;; 1 library support for tool
       cedet-gnu-global-version-check ;; 2 version check
-      cedet-gnu-global-gtags-call ;; 3 create a db
+      cedet-gnu-global-create/update-database ;; 3 create a db
       ede-locate-global ;; 4 ede locate tool name
       semanticdb-global ;; 5 database src file
       semanticdb-enable-gnu-global-in-buffer ;; 6 enable db in a buffer
@@ -57,7 +57,7 @@
      (idutils ;; 0 tool name (used by symref)
       cedet-idutils ;; 1 library support for tool
       cedet-idutils-version-check ;; 2 version check
-      cedet-idutils-mkid-call ;; 3 create a db
+      cedet-idutils-create/update-database ;; 3 create a db
       ede-locate-idutils ;; 4 ede locate tool name
       nil ;; 5 database src file
       nil ;; 6 enable db in a buffer
@@ -67,7 +67,7 @@
      (cscope ;; 0 tool name (used by symref)
       cedet-cscope ;; 1 library support for tool
       cedet-cscope-version-check ;; 2 version check
-      cedet-cscope-create ;; 3 create a db
+      cedet-cscope-create/update-database ;; 3 create a db
       ede-locate-cscope ;; 4 ede locate tool name
       nil ;; 5 database src file
       nil ;; 6 enable db in a buffer
@@ -112,7 +112,7 @@
     ;; 1) Create
     ;; We are at the root of the created CIT project.  Lets create a
     ;; database.
-    (funcall createfcn nil)
+    (funcall createfcn default-directory)
 
     ;; 2) force ede's find file to use gnu global
     (require 'ede-locate)
