@@ -1,3 +1,9 @@
+2010-07-25  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa-file.el (epa-file-insert-file-contents): Check if LOCAL-FILE
+	exists before passing an error to find-file-not-found-functions
+	(bug#6723).
+
 2010-07-23  Lukas Huonker  <l.huonker@gmail.com>
 
 	* play/tetris.el (tetris-tty-colors, tetris-x-colors, tetris-blank):

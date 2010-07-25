@@ -139,15 +139,16 @@ way."
 	    (error
 	     (if (setq entry (assoc file epa-file-passphrase-alist))
 		 (setcdr entry nil))
-	     ;; Hack to prevent find-file from opening empty buffer
-	     ;; when decryption failed (bug#6568).  See the place
-	     ;; where `find-file-not-found-functions' are called in
-	     ;; `find-file-noselect-1'.
-	     (make-local-variable 'epa-file-error)
-	     (setq epa-file-error error)
-	     (add-hook 'find-file-not-found-functions
-		       'epa-file--find-file-not-found-function
-		       nil t)
+	     (when (file-exists-p local-file)
+	       ;; Hack to prevent find-file from opening empty buffer
+	       ;; when decryption failed (bug#6568).  See the place
+	       ;; where `find-file-not-found-functions' are called in
+	       ;; `find-file-noselect-1'.
+	       (make-local-variable 'epa-file-error)
+	       (setq epa-file-error error)
+	       (add-hook 'find-file-not-found-functions
+			 'epa-file--find-file-not-found-function
+			 nil t))
 	     (signal 'file-error
 		     (cons "Opening input file" (cdr error)))))
 	  (make-local-variable 'epa-file-encrypt-to)
