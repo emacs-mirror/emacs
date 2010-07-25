@@ -147,10 +147,10 @@ static char *mail_spool_name ();
 char *strerror (int);
 #endif
 
-static void fatal (char *s1, char *s2, char *s3);
+static void fatal (char *s1, char *s2, char *s3) NO_RETURN;
 static void error (char *s1, char *s2, char *s3);
-static void pfatal_with_name (char *name);
-static void pfatal_and_delete (char *name);
+static void pfatal_with_name (char *name) NO_RETURN;
+static void pfatal_and_delete (char *name) NO_RETURN;
 static char *concat (char *s1, char *s2, char *s3);
 static long *xmalloc (unsigned int size);
 #ifdef MAIL_USE_POP

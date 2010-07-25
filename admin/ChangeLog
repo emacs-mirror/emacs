@@ -1,3 +1,10 @@
+2010-07-24  Christoph Scholtes  <cschol2112@gmail.com>
+
+	* admin.el: Write version number to nt/makefile.w32-in.
+	* nt/makedist.bat: Remove; replaced with `zipdist.bat'
+	in the nt/ directory.
+	* nt/README.W32: Relocate to nt/ directory.
+
 2010-07-11  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* CPP-DEFINES (HAVE_INDEX, HAVE_RINDEX): Remove.

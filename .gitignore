@@ -1,6 +1,7 @@
 autom4te.cache
 makefile
 *~
+/README.W32
 
 /bin/
 /site-lisp/
