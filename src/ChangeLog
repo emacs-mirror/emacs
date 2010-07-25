@@ -1,3 +1,8 @@
+2010-07-25  Ken Brown  <kbrown@cornell.edu>
+
+	* mem-limits.h (BSD4_2) [cygwin]: Don't define here; instead...
+	* vm-limit.c: ...add 'defined (CYGWIN)' here (Bug#6715).
+
 2010-07-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* callproc.c (relocate_fd): Set inside #ifndef WINDOWSNT.

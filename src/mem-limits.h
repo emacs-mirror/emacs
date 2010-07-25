@@ -34,10 +34,6 @@ extern int etext;
 # endif
 #endif
 
-#ifdef CYGWIN
-#define BSD4_2
-#endif
-
 #ifdef BSD4_2
 #include <sys/time.h>
 #include <sys/resource.h>
