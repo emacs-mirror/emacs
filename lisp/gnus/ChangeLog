@@ -1,3 +1,8 @@
+2010-07-24  David Engster  <dengste@eml.cc>
+
+	* mml-smime.el (mml-smime-epg-verify): Also accept the older
+	x-pkcs7-signature MIME type as signature (RFC 2311, C.1).
+
 2010-07-21  Daiki Ueno  <ueno@unixuser.org>
 
 	* mml.el (mml-parse-1): Collect "certfile" attributes in "<#secure>"
