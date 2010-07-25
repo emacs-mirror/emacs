@@ -1,3 +1,7 @@
+2010-07-25  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* callproc.c (set_initial_environment): Avoid unbalanced braces.
+
 2010-07-25  Ken Brown  <kbrown@cornell.edu>
 
 	* vm-limit.c (check_memory_limits): Fix previous change;

@@ -1530,13 +1530,12 @@ void
 set_initial_environment (void)
 {
   register char **envp;
-#ifndef CANNOT_DUMP
-  if (initialized)
-    {
+#ifdef CANNOT_DUMP
+  Vprocess_environment = Qnil;
 #else
-    {
-      Vprocess_environment = Qnil;
+  if (initialized)
 #endif
+    {
       for (envp = environ; *envp; envp++)
 	Vprocess_environment = Fcons (build_string (*envp),
 				      Vprocess_environment);
