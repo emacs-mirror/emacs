@@ -1,3 +1,8 @@
+2010-07-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* lisp.h (Ftop_level, Fexit_recursive_edit)
+	(Fabort_recursive_edit): Mark as NO_RETURN.
+
 2010-07-26  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (Ffont_shape_gstring): Terminate GSTRING by nil if the
