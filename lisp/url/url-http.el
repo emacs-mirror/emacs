@@ -437,8 +437,9 @@ should be shown to the user."
 	(class nil)
 	(success nil)
 	;; The filename part of a URL could be in remote file syntax,
-	;; see Bug#6717 for an example.  We disable Tramp, therefore.
-	(tramp-mode nil))
+	;; see Bug#6717 for an example.  We disable file name
+	;; handlers, therefore.
+	(file-name-handler-alist nil))
     (setq class (/ url-http-response-status 100))
     (url-http-debug "Parsed HTTP headers: class=%d status=%d" class url-http-response-status)
     (url-http-handle-cookies)
