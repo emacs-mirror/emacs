@@ -1276,7 +1276,6 @@ Return t if the file exists and loads successfully.  */)
 
 static Lisp_Object
 load_unwind (Lisp_Object arg)  /* used as unwind-protect function in load */
-                     
 {
   FILE *stream = (FILE *) XSAVE_VALUE (arg)->pointer;
   if (stream != NULL)
@@ -1567,9 +1566,8 @@ build_load_history (Lisp_Object filename, int entire)
 			   Vload_history);
 }
 
-Lisp_Object
+static Lisp_Object
 unreadpure (Lisp_Object junk) /* Used as unwind-protect function in readevalloop */
-                      
 {
   read_pure = 0;
   return Qnil;
@@ -3818,7 +3816,7 @@ map_obarray (Lisp_Object obarray, void (*fn) (Lisp_Object, Lisp_Object), Lisp_Ob
     }
 }
 
-void
+static void
 mapatoms_1 (Lisp_Object sym, Lisp_Object function)
 {
   call1 (function, sym);
