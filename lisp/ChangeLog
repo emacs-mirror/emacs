@@ -1,3 +1,9 @@
+2010-07-26  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa-mail.el (epa-mail-mode-map): Add alternative key bindings
+	which consist of control chars only.  Suggested by Richard
+	Stallman.
+
 2010-07-25  Daiki Ueno  <ueno@unixuser.org>
 
 	* epa-file.el (epa-file-insert-file-contents): Check if LOCAL-FILE
