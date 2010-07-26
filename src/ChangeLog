@@ -6,7 +6,7 @@
 2010-07-26  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (Ffont_shape_gstring): Terminate GSTRING by nil if the
-	number of glyphs gets smaller than the original length.
+	number of glyphs gets smaller than the original length.  (Bug#6621)
 
 2010-07-26  Juanma Barranquero  <lekktu@gmail.com>
 
