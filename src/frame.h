@@ -1089,6 +1089,7 @@ extern Lisp_Object x_new_font (struct frame *, Lisp_Object, int);
 
 /* These are in frame.c  */
 
+extern Lisp_Object Qtty_color_mode;
 extern Lisp_Object Vx_resource_name;
 extern Lisp_Object Vx_resource_class;
 

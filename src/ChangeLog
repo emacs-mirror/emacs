@@ -1,5 +1,7 @@
 2010-07-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* frame.h (Qtty_color_mode): Add declaration.
+
 	* lisp.h (Ftop_level, Fexit_recursive_edit)
 	(Fabort_recursive_edit): Mark as NO_RETURN.
 
