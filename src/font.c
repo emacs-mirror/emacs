@@ -4492,6 +4492,8 @@ created glyph-string.  Otherwise, the value is nil.  */)
     }
   if (i == 3 || XINT (n) == 0)
     return Qnil;
+  if (XINT (n) < LGSTRING_GLYPH_LEN (gstring))
+    LGSTRING_SET_GLYPH (gstring, XINT (n), Qnil);
 
   glyph = LGSTRING_GLYPH (gstring, 0);
   from = LGLYPH_FROM (glyph);
