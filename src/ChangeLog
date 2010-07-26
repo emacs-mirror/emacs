@@ -1,3 +1,19 @@
+2010-07-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* keyboard.c (Ftop_level, Fexit_recursive_edit)
+	(Fabort_recursive_edit): Remove return statements in NO_RETURN
+	functions.
+
+	* frame.h (Qtty_color_mode): Add declaration.
+
+	* lisp.h (Ftop_level, Fexit_recursive_edit)
+	(Fabort_recursive_edit): Mark as NO_RETURN.
+
+2010-07-26  Kenichi Handa  <handa@m17n.org>
+
+	* font.c (Ffont_shape_gstring): Terminate GSTRING by nil if the
+	number of glyphs gets smaller than the original length.  (Bug#6621)
+
 2010-07-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* lread.c (unreadpure, mapatoms_1): Make static.

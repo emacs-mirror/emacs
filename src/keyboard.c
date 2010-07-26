@@ -1380,7 +1380,7 @@ This also exits all active minibuffers.  */)
   while (INPUT_BLOCKED_P)
     UNBLOCK_INPUT;
 
-  return Fthrow (Qtop_level, Qnil);
+  Fthrow (Qtop_level, Qnil);
 }
 
 DEFUN ("exit-recursive-edit", Fexit_recursive_edit, Sexit_recursive_edit, 0, 0, "",
@@ -1391,7 +1391,6 @@ DEFUN ("exit-recursive-edit", Fexit_recursive_edit, Sexit_recursive_edit, 0, 0, 
     Fthrow (Qexit, Qnil);
 
   error ("No recursive edit is in progress");
-  return Qnil;
 }
 
 DEFUN ("abort-recursive-edit", Fabort_recursive_edit, Sabort_recursive_edit, 0, 0, "",
@@ -1402,7 +1401,6 @@ DEFUN ("abort-recursive-edit", Fabort_recursive_edit, Sabort_recursive_edit, 0, 
     Fthrow (Qexit, Qt);
 
   error ("No recursive edit is in progress");
-  return Qnil;
 }
 
 #if defined (HAVE_MOUSE) || defined (HAVE_GPM)

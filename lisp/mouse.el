@@ -1282,7 +1282,7 @@ regardless of where you click."
   (or mouse-yank-at-point (mouse-set-point click))
   (let ((primary (x-get-selection 'PRIMARY)))
     (if primary
-        (insert (x-get-selection 'PRIMARY))
+        (insert primary)
       (error "No primary selection"))))
 
 (defun mouse-kill-ring-save (click)
@@ -1577,7 +1577,7 @@ regardless of where you click."
   (or mouse-yank-at-point (mouse-set-point click))
   (let ((secondary (x-get-selection 'SECONDARY)))
     (if secondary
-        (insert (x-get-selection 'SECONDARY))
+        (insert secondary)
       (error "No secondary selection"))))
 
 (defun mouse-kill-secondary ()
