@@ -1,3 +1,8 @@
+2010-07-26  Sam Steingold  <sds@gnu.org>
+
+	* mouse.el (mouse-yank-primary, mouse-yank-secondary):
+	Do not call `x-get-selection' the second time, reuse the value.
+
 2010-07-26  Daiki Ueno  <ueno@unixuser.org>
 
 	* epa-mail.el (epa-mail-mode-map): Add alternative key bindings
