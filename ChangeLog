@@ -1,3 +1,19 @@
+2010-07-25  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in: Check for __executable_start.
+
+2010-07-24  Ken Brown  <kbrown@cornell.edu>
+
+	* configure.in (LINKER, LIB_GCC): Remove cygwin special cases (Bug#6715)
+
+2010-07-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* .bzrignore, .gitignore: Ignore README.W32 on the root directory.
+
+2010-07-24  Ken Brown  <kbrown@cornell.edu>  (tiny change)
+
+	* configure.in (START_FILES) [cygwin]: Set to pre-crt0.o (Bug#6715).
+
 2010-07-12  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* configure.in (C_WARNINGS_SWITCH, PROFILING_CFLAGS)
@@ -8373,7 +8389,7 @@
 	(EMACSROOT): New variable, giving the directory under which all of
 	Emacs's libraries should be installed.  Changed rest of file to
 	use it.
-	(LIBDIR): Now denotes only architecture-dependent dir - relevant cha
+	(LIBDIR): Now denotes only architecture-dependent dir.
 	(DATADIR): New variable, denoting architecture-independent dir.
 	(LOCKDIR): New variable, for completeness.
 	(SUBDIR): No more etc, new lib-src.

@@ -984,7 +984,9 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
   RETURN_UNGCPRO (unbind_to (count, Fcall_process (nargs, args)));
 }
 
+#ifndef WINDOWSNT
 static int relocate_fd (int fd, int minfd);
+#endif
 
 static char **
 add_env (char **env, char **new_env, char *string)
@@ -1113,7 +1115,7 @@ child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, L
     char **p, **q;
     register int new_length;
     Lisp_Object display = Qnil;
-    
+
     new_length = 0;
 
     for (tem = Vprocess_environment;
@@ -1149,7 +1151,7 @@ child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, L
        but with corrected value.  */
     if (egetenv ("PWD"))
       *new_env++ = pwd_var;
- 
+
     if (STRINGP (display))
       {
 	int vlen = strlen ("DISPLAY=") + strlen (SDATA (display)) + 1;
@@ -1179,7 +1181,7 @@ child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, L
       }
   }
 
-  
+
 #ifdef WINDOWSNT
   prepare_standard_handles (in, out, err, handles);
   set_process_dir (SDATA (current_dir));
@@ -1265,6 +1267,7 @@ child_setup (int in, int out, int err, register char **new_argv, int set_pgrp, L
 #endif /* not MSDOS */
 }
 
+#ifndef WINDOWSNT
 /* Move the file descriptor FD so that its number is not less than MINFD.
    If the file descriptor is moved at all, the original is freed.  */
 static int
@@ -1298,6 +1301,7 @@ relocate_fd (int fd, int minfd)
       return new;
     }
 }
+#endif /* not WINDOWSNT */
 
 static int
 getenv_internal_1 (const char *var, int varlen, char **value, int *valuelen,
@@ -1526,13 +1530,12 @@ void
 set_initial_environment (void)
 {
   register char **envp;
-#ifndef CANNOT_DUMP
-  if (initialized)
-    {
+#ifdef CANNOT_DUMP
+  Vprocess_environment = Qnil;
 #else
-    {
-      Vprocess_environment = Qnil;
+  if (initialized)
 #endif
+    {
       for (envp = environ; *envp; envp++)
 	Vprocess_environment = Fcons (build_string (*envp),
 				      Vprocess_environment);

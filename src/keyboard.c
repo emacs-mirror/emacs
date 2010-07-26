@@ -635,7 +635,9 @@ static Lisp_Object apply_modifiers (int, Lisp_Object);
 static void clear_event (struct input_event *);
 static Lisp_Object restore_kboard_configuration (Lisp_Object);
 static SIGTYPE interrupt_signal (int signalnum);
+#ifdef SIGIO
 static SIGTYPE input_available_signal (int signo);
+#endif
 static void handle_interrupt (void);
 static void timer_start_idle (void);
 static void timer_stop_idle (void);
@@ -3895,7 +3897,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 {
   register int c;
   Lisp_Object obj;
-  
+
   if (kbd_on_hold_p () && kbd_buffer_nr_stored () < KBD_BUFFER_SIZE/4)
     {
       /* Start reading input again, we have processed enough so we can

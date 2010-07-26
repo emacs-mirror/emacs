@@ -513,7 +513,6 @@ struct named_merge_point;
 static void map_tty_color (struct frame *, struct face *,
                            enum lface_attribute_index, int *);
 static Lisp_Object resolve_face_name (Lisp_Object, int);
-static int may_use_scalable_font_p (const char *);
 static void set_font_frame_param (Lisp_Object, Lisp_Object);
 static int get_lface_attributes (struct frame *, Lisp_Object, Lisp_Object *,
                                  int, struct named_merge_point *);

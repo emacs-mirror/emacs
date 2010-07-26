@@ -137,8 +137,8 @@
 	* Activate.c: Add calls to GrabKeyboard to remove strange
 	interactions with window managers that steal keypresses.
 	Call ungrab_all instead of XtUngrabPointer.
-	(XMenuActivate): Add call to XGrabKeyboard
-	(XMenuActivate): Add call to XUngrabKeyboard
+	(XMenuActivate): Add call to XGrabKeyboard.
+	(XMenuActivate): Add call to XUngrabKeyboard.
 
 2001-10-20  Gerd Moellmann  <gerd@gnu.org>
 

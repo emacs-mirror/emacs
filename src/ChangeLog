@@ -3,6 +3,94 @@
 	* font.c (Ffont_shape_gstring): Terminate GSTRING by nil if the
 	number of glyphs gets smaller than the original length.
 
+2010-07-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* lread.c (unreadpure, mapatoms_1): Make static.
+
+2010-07-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* terminfo.c (tparam): Fix prototype of tparm.
+
+2010-07-25  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* emacs.c (main) [PROFILING]: Use __executable_start if defined to
+	find start of text segment.
+	* dispnew.c (safe_bcopy): Don't define if HAVE___EXECUTABLE_START
+	is defined.
+
+	* callproc.c (set_initial_environment): Avoid unbalanced braces.
+
+2010-07-25  Ken Brown  <kbrown@cornell.edu>
+
+	* vm-limit.c (check_memory_limits): Fix previous change;
+	accidentally reverted an earlier change.
+
+2010-07-25  Ken Brown  <kbrown@cornell.edu>
+
+	* mem-limits.h (BSD4_2) [cygwin]: Don't define here; instead...
+	* vm-limit.c: ...add 'defined (CYGWIN)' here (Bug#6715).
+
+2010-07-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* callproc.c (relocate_fd): Set inside #ifndef WINDOWSNT.
+	* dired.c (opendir, readdir): Fix prototypes.
+	* editfns.c (w32_get_internal_run_time): Fix prototypes.
+	* keyboard.c (input_available_signal): Declare inside #ifdef SIGIO.
+	* ndir.h (opendir, readdir, seekdir, closedir): Fix prototypes.
+	(telldir): Remove declaration.
+	* ralloc.c (real_morecore, __morecore): Fix prototypes.
+	* sound.c (alsa_sound_perror): Declare inside #ifdef HAVE_ALSA.
+	* syssignal.h (strsignal): Fix prototype.
+	* term.c (tparam): Fix prototype.
+	(term_get_fkeys_address, term_get_fkeys_kboard, term_get_fkeys_1)
+	(term_get_fkeys): Set inside "#ifndef DOS_NT".
+	* vm-limit.c (check_memory_limits): Fix prototypes of real_morecore
+	and __morecore.
+	* w32gui.h (XParseGeometry): Fix prototype.
+	* w32heap.h (get_data_start, get_data_end, init_heap): Fix prototypes.
+	* w32term.c (my_set_focus): Declare inside #if 0.
+	* w32term.h (x_window_to_frame, x_display_info_for_name, w32_term_init)
+	(w32_fill_rect, w32_clear_window, init_crit, delete_crit, signal_quit)
+	(drain_message_queue, get_next_msg, post_msg, parse_button)
+	(ClipboardSequence_Proc): Fix prototypes.
+	(wait_for_sync): Remove declaration.
+
+2010-07-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32fns.c (w32_to_x_color): Remove, unused.
+
+2010-07-24  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* lisp.h: Remove leftover P_.
+
+2010-07-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* ecrt0.c, unexalpha.c: Remove files, unused.
+
+2010-07-24  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* cmds.c (internal_self_insert): Make static.
+	* lisp.h (internal_self_insert): Remove declaration.
+
+2010-07-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* alloc.c (free_float):
+	* font.c [ENABLE_CHECKING] (font_match_xlfd, font_check_xlfd_parse):
+	* frame.c (delete_frame_handler):
+	* ralloc.c (reorder_bloc):
+	* w32menu.c (menubar_id_to_frame, add_left_right_boundary):
+	Remove unused static functions.
+
+	* menu.c (cleanup_popup_menu): Set inside "#ifdef HAVE_NS";
+	it is called only from NS code.
+
+	* w32term.c (my_set_focus): #ifdef away; it is called only from
+	"#ifdef 0" code.
+
+	* w32fns.c (x_edge_detection):
+	* xfaces.c (may_use_scalable_font_p):
+	Remove obsolete static declarations.
+
 2010-07-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* alloc.c (emacs_blocked_free, emacs_blocked_malloc)
@@ -2732,7 +2820,7 @@
 	(struct xsettings): Add font and tb_style, set xft stuff inside #ifdef
 	HAVE_XFT.
 	(something_changedCB): store_font_changed_event is now
-	store_config_changed_event
+	store_config_changed_event.
 	(parse_settings): Rename from parse_xft_settings.  Read
 	non-xft xsettings outside #ifdef HAVE_XFT.
 	(read_settings): Renamed from read_xft_settings.
@@ -4481,7 +4569,7 @@
 	(scroll_end_callback): Remove.
 	(xg_create_scroll_bar): Add parameter end_callback, bind it to
 	button-release-event.  Replace value-changed event with change-value,
-	bug #5177,
+	bug #5177.
 	(xg_event_is_for_scrollbar): Only return true if button is less than 4,
 	bug #5177.
 
@@ -4502,7 +4590,7 @@
 
 2009-12-12  Eli Zaretskii  <eliz@gnu.org>
 
-	* dispextern.h (struct text_pos): Use EMACS_INT;
+	* dispextern.h (struct text_pos): Use EMACS_INT.
 	(struct glyph): Use EMACS_INT for charpos.
 	(struct it): Use EMACS_INT for stop_charpos, end_charpos,
 	region_beg_charpos, region_end_charpos,
@@ -12068,8 +12156,8 @@
 2008-07-15  Chris Hall  <chris@web.workinglinux.com>  (tiny change)
             YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	(make_initial_frame): Call init_frame_faces(f) in CANNOT_DUMP case --
-	fix crash due to different init order.
+	* frame.c (make_initial_frame): Call init_frame_faces(f) in
+	CANNOT_DUMP case -- fix crash due to different init order.
 
 2008-07-15  Adrian Robert  <Adrian.B.Robert@gmail.com>
 
@@ -12266,7 +12354,7 @@
 	* m/macppc.h:
 	* m/alpha.h: Use GNU_LINUX instead of LINUX.  Reorganize conditionals.
 
-	* m/ibms390x.h (XINT, XUINT): Don't define, same as the default
+	* m/ibms390x.h (XINT, XUINT): Don't define, same as the default.
 	(SPECIAL_EMACS_INT):
 	* m/ia64.h (SPECIAL_EMACS_INT):
 	* m/amdx86-64.h (SPECIAL_EMACS_INT):

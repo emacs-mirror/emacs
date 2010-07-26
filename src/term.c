@@ -183,7 +183,7 @@ static int no_controlling_tty;
 
 static int system_uses_terminfo;
 
-char *tparam ();
+char *tparam (char *, char *, int, int, ...);
 
 extern char *tgetstr (char *, char **);
 
@@ -1363,6 +1363,7 @@ static struct fkey_table keys[] =
   {"!3", "S-undo"}       /*shifted undo key*/
   };
 
+#ifndef DOS_NT
 static char **term_get_fkeys_address;
 static KBOARD *term_get_fkeys_kboard;
 static Lisp_Object term_get_fkeys_1 (void);
@@ -1500,6 +1501,7 @@ term_get_fkeys_1 (void)
 
   return Qnil;
 }
+#endif /* not DOS_NT */
 
 
 /***********************************************************************

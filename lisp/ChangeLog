@@ -1,3 +1,51 @@
+2010-07-25  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa-file.el (epa-file-insert-file-contents): Check if LOCAL-FILE
+	exists before passing an error to find-file-not-found-functions
+	(bug#6723).
+
+2010-07-23  Lukas Huonker  <l.huonker@gmail.com>
+
+	* play/tetris.el (tetris-tty-colors, tetris-x-colors, tetris-blank):
+	Remove leading nil element, adjust values.
+	(tetris-shapes, tetris-shape-scores):
+	Change representation of shapes and remove some redundancy.
+	(tetris-get-shape-cell, tetris-shape-width, tetris-draw-next-shape)
+	(tetris-draw-shape, tetris-erase-shape, tetris-test-shape):
+	Adjust for working with new representation of shapes.
+	(tetris-shape-rotations): New function.
+	(tetris-move-bottom, tetris-move-left, tetris-move-right)
+	(tetris-rotate-prev, tetris-rotate-next):
+	Adjust for working with the new version of tetris-test-shape.
+
+2010-07-23  Markus Triska  <markus.triska@gmx.at>
+
+	* progmodes/ps-mode.el: Use comint (bug#5954).
+	(ps-run-mode-map): Adapt for comint-mode; omit "\r", [return]..
+	(ps-mode-other-newline): Simplify.
+	(ps-run-mode): Derive from comint-mode instead of
+	fundamental-mode, yielding input history etc.
+	(ps-run-start, ps-run-quit, ps-run-clear, ps-run-region)
+	(ps-run-send-string): Adapt for comint-mode.
+	(ps-run-newline): Remove now unneeded function.
+
+2010-07-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-methods): Move hostname to the end in all
+	plink `tramp-login-args'.
+
+2010-07-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-open-shell): New defun.
+	(tramp-find-shell, tramp-open-connection-setup-interactive-shell):
+	Use it.
+
+2010-07-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-file-name-regexp-unified)
+	(tramp-completion-file-name-regexp-unified): On W32 systems, do
+	not regard the volume letter as remote filename.  (Bug#5447)
+
 2010-07-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* custom.el (custom-declare-variable): Give a clearer error message
@@ -15,7 +63,7 @@
 	(sql-linter-login-params): Use it.
 	(sql-sqlite-login-params): Use it; Define "database" parameter as
 	a file name.
-	(sql-sqlite-program): Change to "sqlite3"
+	(sql-sqlite-program): Change to "sqlite3".
 	(sql-comint-sqlite): Make sure database name is complete.
 	(sql-for-each-login): New function.
 	(sql-connect, sql-save-connection): Use it.
@@ -99,7 +147,7 @@
 	(sql-informix-login-params, sql-ingres-login-params)
 	(sql-ms-login-params, sql-postgres-login-params)
 	(sql-interbase-login-params, sql-db2-login-params)
-	(sql-linter-login-params): Add `port' option
+	(sql-linter-login-params): Add `port' option.
 	(sql-get-product-feature): Added NO-INDIRECT parameter.
 	(sql-comint-oracle, sql-comint-sybase)
 	(sql-comint-informix, sql-comint-sqlite, sql-comint-mysql)
@@ -109,7 +157,7 @@
 	sql-comint-*.
 	(sql-product-alist, sql-mode-menu): Renamed as above and
 	:sqli-connect-func to :sqli-comint-func.
-	(sql-connection): New variable
+	(sql-connection): New variable.
 	(sql-interactive-mode): Set it.
 	(sql-connection-alist): New variable.
 	(sql-connect): New function.
@@ -305,7 +353,7 @@
 
 	* epa-file.el (epa-file-error, epa-file--find-file-not-found-function)
 	(epa-file-insert-file-contents): Hack to prevent
-	find-file from opening empty buffer when decryptin failed
+	find-file from opening empty buffer when decryption failed
 	(bug#6568).
 
 2010-07-07  Agustín Martín  <agustin.martin@hispalinux.es>
@@ -3250,7 +3298,7 @@
 	(verilog-pretty-declarations): Support lineup of declarations in
 	port lists.
 	(verilog-skip-backward-comments, verilog-skip-forward-comment-p):
-	fix bug for /* / comments
+	fix bug for /* / comments.
 	(verilog-backward-syntactic-ws, verilog-forward-syntactic-ws):
 	Speed up and simplfy as this is never called with a bound.
 	(verilog-pretty-declarations): Enhance to line up declarations
@@ -5359,7 +5407,7 @@
 
 2010-01-02  Karl Fogel  <kfogel@red-bean.com>
 
-	* bookmark.el (bookmark-bmenu-any-marks): New function
+	* bookmark.el (bookmark-bmenu-any-marks): New function.
 	(bookmark-bmenu-save): Clear buffer modification if no marks.
 
 2010-01-02  Karl Fogel  <kfogel@red-bean.com>

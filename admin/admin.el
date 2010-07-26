@@ -95,6 +95,9 @@ Root must be the root of an Emacs source tree."
   (set-version-in-file root "lib-src/makefile.w32-in" version
 		       (rx (and "VERSION" (0+ space) "=" (0+ space)
 				(submatch (1+ (in "0-9."))))))
+  (set-version-in-file root "nt/makefile.w32-in" version
+		       (rx (and "VERSION" (0+ space) "=" (0+ space)
+				(submatch (1+ (in "0-9."))))))
   ;; nt/emacs.rc also contains the version number, but in an awkward
   ;; format. It must contain four components, separated by commas, and
   ;; in two places those commas are followed by space, in two other

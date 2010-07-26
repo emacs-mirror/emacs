@@ -2393,7 +2393,6 @@ extern void swap_in_global_binding (struct Lisp_Symbol *);
 EXFUN (Fend_of_line, 1);
 EXFUN (Fforward_char, 1);
 EXFUN (Fforward_line, 1);
-extern int internal_self_insert (int, int);
 extern void syms_of_cmds (void);
 extern void keys_of_cmds (void);
 
@@ -3400,16 +3399,16 @@ extern int emacs_close (int);
 extern int emacs_read (int, char *, unsigned int);
 extern int emacs_write (int, const char *, unsigned int);
 #ifndef HAVE_MEMSET
-extern void *memset P_ ((void *, int, size_t));
+extern void *memset (void *, int, size_t);
 #endif
 #ifndef HAVE_MEMCPY
-extern void *memcpy P_ ((void *, void *, size_t));
+extern void *memcpy (void *, void *, size_t);
 #endif
 #ifndef HAVE_MEMMOVE
-extern void *memmove P_ ((void *, void *, size_t));
+extern void *memmove (void *, void *, size_t);
 #endif
 #ifndef HAVE_MEMCMP
-extern int memcmp P_ ((void *, void *, size_t));
+extern int memcmp (void *, void *, size_t);
 #endif
 
 /* Defined in filelock.c */

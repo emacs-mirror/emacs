@@ -520,10 +520,14 @@ Content-Disposition: attachment; filename=smime.p7m
 					   ctl 'protocol)
 					  "application/pkcs7-signature")
 				  t)))
-		(null (setq signature (mm-find-part-by-type
-				       (cdr handle)
-				       "application/pkcs7-signature"
-				       nil t))))
+		(null (setq signature (or (mm-find-part-by-type
+					   (cdr handle)
+					   "application/pkcs7-signature"
+					   nil t)
+					  (mm-find-part-by-type
+					   (cdr handle)
+					   "application/x-pkcs7-signature"
+					   nil t)))))
 	(mm-set-handle-multipart-parameter
 	 mm-security-handle 'gnus-info "Corrupted")
 	(throw 'error handle))

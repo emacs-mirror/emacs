@@ -115,7 +115,9 @@ enum sound_attr
   SOUND_ATTR_SENTINEL
 };
 
+#ifdef HAVE_ALSA
 static void alsa_sound_perror (char *, int) NO_RETURN;
+#endif
 static void sound_perror (char *) NO_RETURN;
 static void sound_warning (char *);
 static int parse_sound (Lisp_Object, Lisp_Object *);

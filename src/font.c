@@ -980,39 +980,6 @@ font_expand_wildcards (Lisp_Object *field, int n)
 }
 
 
-#ifdef ENABLE_CHECKING
-/* Match a 14-field XLFD pattern against a full XLFD font name.  */
-static int
-font_match_xlfd (char *pattern, char *name)
-{
-  while (*pattern && *name)
-    {
-      if (*pattern == *name)
-	pattern++;
-      else if (*pattern == '*')
-	if (*name == pattern[1])
-	  pattern += 2;
-	else
-	  ;
-      else
-	return 0;
-      name++;
-    }
-  return 1;
-}
-
-/* Make sure the font object matches the XLFD font name.  */
-static int
-font_check_xlfd_parse (Lisp_Object font, char *name)
-{
-  char name_check[256];
-  font_unparse_xlfd (font, 0, name_check, 255);
-  return font_match_xlfd (name_check, name);
-}
-
-#endif
-
-
 /* Parse NAME (null terminated) as XLFD and store information in FONT
    (font-spec or font-entity).  Size property of FONT is set as
    follows:

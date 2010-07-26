@@ -439,8 +439,6 @@ void x_explicitly_set_name (struct frame *, Lisp_Object, Lisp_Object);
 void x_set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
 void x_set_title (struct frame *, Lisp_Object, Lisp_Object);
 void x_set_tool_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
-static void x_edge_detection (struct frame *, struct image *, Lisp_Object,
-                              Lisp_Object);
 
 
 
@@ -785,25 +783,6 @@ DEFUN ("w32-default-color-map", Fw32_default_color_map, Sw32_default_color_map,
   UNBLOCK_INPUT;
 
   return (cmap);
-}
-
-static Lisp_Object
-w32_to_x_color (Lisp_Object rgb)
-{
-  Lisp_Object color;
-
-  CHECK_NUMBER (rgb);
-
-  BLOCK_INPUT;
-
-  color = Frassq (rgb, Vw32_color_map);
-
-  UNBLOCK_INPUT;
-
-  if (!NILP (color))
-    return (Fcar (color));
-  else
-    return Qnil;
 }
 
 static Lisp_Object

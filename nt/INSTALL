@@ -406,6 +406,9 @@
   Removes the installed files in the bin subdirectory in addition to
   the files removed by make cleanall.
 
+  make dist
+  Builds Emacs from the available sources and pre-compiled lisp files.
+  Packages Emacs binaries as full distribution and barebin distribution.
 
   The following targets are intended only for use with the Bazaar sources.
 
@@ -427,6 +430,32 @@
   maintainer-clean, it is necessary to run configure.bat and make
   bootstrap to rebuild.  Occasionally it may be necessary to run this
   target after an update.
+
+* Creating binary distributions
+
+  Binary distributions (full and barebin distributions) can be
+  automatically built and packaged from source tarballs or a bzr
+  checkout.
+
+  When building Emacs binary distributions, the --distfiles argument
+  to configure.bat specifies files to be included in the bin directory
+  of the binary distributions. This is intended for libraries that are
+  not built as part of Emacs, e.g. image libraries.
+
+  For example, specifying
+
+	--distfiles D:\distfiles\libXpm.dll
+
+  results in libXpm.dll being copied from D:\distfiles to the
+  bin directory before packaging starts.
+
+  Multiple files can be specified using multiple --distfiles arguments:
+
+	--distfiles D:\distfiles\libXpm.dll --distfiles C:\jpeglib\jpeg.dll
+
+  For packaging the binary distributions, the 'dist' make target uses
+  7-Zip (http://www.7-zip.org), which must be installed and available
+  on the Windows Path.
 
 
 * Trouble-shooting

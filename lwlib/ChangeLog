@@ -381,7 +381,7 @@
 
 	* xlwmenu.c (xlwMenuResources) [HAVE_X_I18N]: Use a fontset for the
 	`font' resource.
-	(string_width) [HAVE_X_I18N]: Use XmbTextExtents;
+	(string_width) [HAVE_X_I18N]: Use XmbTextExtents.
 	(MENU_FONT_HEIGHT, MENU_FONT_ASCENT): New macros.
 	(arrow_width, toggle_button_width, size_menu_item, draw_arrow)
 	(draw_toggle, draw_radio, display_menu_item): Use them.

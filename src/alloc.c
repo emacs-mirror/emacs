@@ -2538,16 +2538,6 @@ init_float (void)
 }
 
 
-/* Explicitly free a float cell by putting it on the free-list.  */
-
-static void
-free_float (struct Lisp_Float *ptr)
-{
-  ptr->u.chain = float_free_list;
-  float_free_list = ptr;
-}
-
-
 /* Return a new float object with value FLOAT_VALUE.  */
 
 Lisp_Object

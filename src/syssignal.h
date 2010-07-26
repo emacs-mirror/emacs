@@ -160,7 +160,7 @@ sigset_t sys_sigsetmask (sigset_t new_mask);
 
 #ifndef HAVE_STRSIGNAL
 /* strsignal is in sysdep.c */
-char *strsignal ();
+char *strsignal (int);
 #endif
 
 #ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
