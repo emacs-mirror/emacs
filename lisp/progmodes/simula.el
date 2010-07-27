@@ -330,7 +330,7 @@ for SIMULA mode to function correctly."
   (popup-menu (cons (concat mode-name " Mode Commands") simula-mode-menu)))
 
 ;;;###autoload
-(define-derived-mode simula-mode nil "Simula"
+(define-derived-mode simula-mode prog-mode "Simula"
   "Major mode for editing SIMULA code.
 \\{simula-mode-map}
 Variables controlling indentation style:

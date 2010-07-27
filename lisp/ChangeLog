@@ -1,3 +1,10 @@
+2010-07-27  Tom Tromey  <tromey@redhat.com>
+
+	* progmodes/js.el (js-mode):
+	* progmodes/make-mode.el (makefile-mode):
+	* progmodes/simula.el (simula-mode):
+	* progmodes/tcl.el (tcl-mode): Derive from prog-mode.
+
 2010-07-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* help-fns.el (find-lisp-object-file-name): Doc fix (bug#6494).

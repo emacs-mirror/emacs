@@ -768,7 +768,7 @@ The function must satisfy this calling convention:
 ;;; ------------------------------------------------------------
 
 ;;;###autoload
-(define-derived-mode makefile-mode nil "Makefile"
+(define-derived-mode makefile-mode prog-mode "Makefile"
   "Major mode for editing standard Makefiles.
 
 If you are editing a file for a different make, try one of the
