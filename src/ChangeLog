@@ -1,3 +1,8 @@
+2010-07-27  Ken Brown  <kbrown@cornell.edu>
+
+	* dired.c (DIRENTRY_NONEMPTY) [cygwin]: Use d_ino instead of
+	the MSDOS definition.
+
 2010-07-25  Christoph Scholtes  <cschol2112@gmail.com>
 
 	* minibuf.c (Fread_buffer): Doc fix (bug#6528).
