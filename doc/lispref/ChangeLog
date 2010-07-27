@@ -1,3 +1,8 @@
+2010-07-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* modes.texi (Defining Minor Modes): Use C-delete in examples,
+	instead of "\C-\^?" (bug#6334).
+
 2010-07-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* text.texi (Special Properties): Fix typo.
