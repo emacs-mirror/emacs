@@ -1,6 +1,84 @@
 2010-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* process.c: Move definitions earlier to minimize #ifdefs.
+
+	* xterm.h (x_get_customization_string, x_load_resources)
+	(x_get_resource, x_text_icon, x_text_icon, x_check_errors)
+	(x_check_errors, x_property_data_to_lisp, defined_color)
+	(xic_set_xfontset, x_defined_color): Use const.
+
+	* xterm.c (xlwmenu_window_p, xlwmenu_redisplay): Remove declarations.
+	(x_text_icon, x_check_errors, x_connection_closed): Use const.
+
+	* xselect.c (selection_data_to_lisp_data)
+	(x_property_data_to_lisp):
+	* xrdb.c (x_get_string_resource, file_p)
+	(x_get_customization_string, magic_file_p, search_magic_path)
+	(get_system_app, get_user_app, x_load_resources, x_get_resource)
+	(x_get_string_resource): Use const.
+
+	* xfns.c: Include xlwmenu.h when USE_LUCID.
+	(x_defined_color, xic_set_xfontset): Use const.
+	(Fx_hide_tip): Remove local extern declaration.
+
+	* xfaces.c (Qmouse_face): Remove declaration.
+	(face_color_gray_p, tty_defined_color, defined_color)
+	(face_color_gray_p, face_color_supported_p). Add const.
+
+	* xdisp.c (do_mouse_tracking): Remove declaration.
+	(add_to_log): Use const.
+
+	* minibuf.c (Qmouse_face): Remove declaration.
+
+	* msdos.c (IT_note_mouse_highlight): Remove local extern declaration.
+
+	* keyboard.h (do_mouse_tracking): Add declaration.
+
+	* image.c (QCwidth, QCheight, QCforeground, QCbackground, QCfile)
+	(QCdata, QCtype, Qcenter): Remove declarations.
+
+	* frame.c (x_get_resource_string, x_get_string_resource)
+	(x_get_arg, x_frame_get_arg, x_frame_get_and_record_arg)
+	(x_default_parameter): Use const.
+
+	* font.c (Qnormal, QCtype, QCfamily, QCweight, QCslant, QCwidth)
+	(QCheight, QCsize, QCname): Remove declarations.
+
+	* emacs.c (main): Remove local extern declaration.
+
+	* editfns.c (region_limit, syms_of_editfns): Remove local extern
+	declarations.
+
+	* dispnew.c: Remove duplicate #include <unistd.h>.
+	(update_window, update_frame_1, init_display): Remove local extern
+	declarations.
+
+	* dispextern.h (add_to_log): Remove declaration.
+	(x_get_arg, x_frame_get_arg, x_frame_get_and_record_arg)
+	(x_frame_get_and_record_arg, x_default_parameter): Add const.
+
+	* dired.c (scmp): Add const.
+	(directory_files_internal): Remove local extern declaration.
+
+	* data.c (Finteractive_form): Use const.
+
+	* composite.c (syms_of_composite): Remove local extern declarations.
+
+	* charset.c (add_to_log): Remove declaration.
+
+	* character.c (strwidth, parse_str_to_multibyte): Add const.
+
+	* character.h (strwidth, parse_str_to_multibyte): Likewise.
+
+	* buffer.c (Fset_buffer_multibyte): Remove local extern declaration.
+
 	* lisp.h (Fkill_emacs): Mark as NO_RETURN.
+	(Lisp_Subr): Make doc and intspec constant.
+	(QCsize, Qspace, Qcenter, QCalign_to, QCdata, QCfile, QCtype)
+	(Qlocal, Qapply, Qnormal, QCfamily, QCweight, QCslant, QCwidth)
+	(QCheight, QCsize, QCname, QCwidth, QCforeground)
+	(QCbackground, add_to_log, stack_base, Vmark_even_if_inactive)
+	(display_arg): Add declarations.
 
 2010-07-27  Christoph Scholtes  <cschol2112@gmail.com>
 
