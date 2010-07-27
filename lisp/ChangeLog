@@ -1,3 +1,9 @@
+2010-07-27  Aaron S. Hawley  <ashawley@burlingtontelecom.net>
+
+	* emacs-lisp/re-builder.el (reb-re-syntax, reb-lisp-mode)
+	(reb-lisp-syntax-p, reb-change-syntax, reb-cook-regexp):
+	Remove references to package `lisp-re' (bug#4369).
+
 2010-07-27  Tom Tromey  <tromey@redhat.com>
 
 	* progmodes/js.el (js-mode):
