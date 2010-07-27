@@ -170,7 +170,7 @@ want to force an empty list of arguments, use t."
                      (?? . unregistered)
                      ;; This is what vc-svn-parse-status does.
                      (?~ . edited)))
-	(re (if remote "^\\(.\\)...... \\([ *]\\) +\\(?:[-0-9]+\\)?   \\(.*\\)$"
+	(re (if remote "^\\(.\\)......? \\([ *]\\) +\\(?:[-0-9]+\\)?   \\(.*\\)$"
 	      ;; Subexp 2 is a dummy in this case, so the numbers match.
 	      "^\\(.\\)....\\(.\\) \\(.*\\)$"))
        result)

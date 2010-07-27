@@ -11,9 +11,9 @@ programs.
 
 @menu
 * Version Control::     Using version control systems.
-* Change Log::	        Maintaining a change history for your program.
-* Tags::	        Go directly to any function in your program in one
-			  command.  Tags remembers which file it is in.
+* Change Log::          Maintaining a change history for your program.
+* Tags::                Go directly to any function in your program in one
+                          command.  Tags remembers which file it is in.
 * EDE::                 An integrated development environment for Emacs.
 @ifnottex
 * Emerge::              A convenient way of merging two versions of a program.
@@ -1570,13 +1570,13 @@ within that file where the function is defined.
 @xref{Top,, Ebrowse, ebrowse, Ebrowse User's Manual}.
 
 @menu
-* Tag Syntax::		Tag syntax for various types of code and text files.
-* Create Tags Table::	Creating a tags table with @code{etags}.
+* Tag Syntax::          Tag syntax for various types of code and text files.
+* Create Tags Table::   Creating a tags table with @code{etags}.
 * Etags Regexps::       Create arbitrary tags using regular expressions.
-* Select Tags Table::	How to visit a tags table.
-* Find Tag::		Commands to find the definition of a specific tag.
-* Tags Search::		Using a tags table for searching and replacing.
-* List Tags::		Listing and finding tags defined in a file.
+* Select Tags Table::   How to visit a tags table.
+* Find Tag::            Commands to find the definition of a specific tag.
+* Tags Search::         Using a tags table for searching and replacing.
+* List Tags::           Listing and finding tags defined in a file.
 @end menu
 
 @node Tag Syntax

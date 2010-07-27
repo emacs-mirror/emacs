@@ -6429,6 +6429,7 @@ next_element_from_image (it)
      struct it *it;
 {
   it->what = IT_IMAGE;
+  it->ignore_overlay_strings_at_pos_p = 0;
   return 1;
 }
 
@@ -13936,8 +13937,16 @@ redisplay_window (window, just_this_one_p)
         (*FRAME_TERMINAL (f)->redeem_scroll_bar_hook) (w);
     }
 
-  /* Restore current_buffer and value of point in it.  */
-  TEMP_SET_PT_BOTH (CHARPOS (opoint), BYTEPOS (opoint));
+  /* Restore current_buffer and value of point in it.  The window
+     update may have changed the buffer, so first make sure `opoint'
+     is still valid (Bug#6177).  */
+  if (CHARPOS (opoint) < BEGV)
+    TEMP_SET_PT_BOTH (BEGV, BEGV_BYTE);
+  else if (CHARPOS (opoint) > ZV)
+    TEMP_SET_PT_BOTH (Z, Z_BYTE);
+  else
+    TEMP_SET_PT_BOTH (CHARPOS (opoint), BYTEPOS (opoint));
+
   set_buffer_internal_1 (old);
   /* Avoid an abort in TEMP_SET_PT_BOTH if the buffer has become
      shorter.  This can be caused by log truncation in *Messages*. */

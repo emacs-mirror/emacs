@@ -1,3 +1,20 @@
+2010-07-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	* url-http (url-http-parse-headers): Disable file name handlers at
+	all (not only Tramp).  (Bug#6717)
+
+2010-07-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* url-http (url-http-parse-headers): Disable Tramp.  (Bug#6717)
+
+2010-06-12  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
+
+	* url-vars.el (url-privacy-level): Fix doc typo.  (Bug#6406)
+
+2010-05-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-util.el (url-unhex-string): Don't accidentally decode as latin-1.
+
 2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 23.2 released.
@@ -759,7 +776,7 @@
 	(url-http-parse-headers): Use it.
 	(url-http-handle-authentication): Use subst-char-in-string.
 
-2005-11-16  Juergen Hoetzel  <emacs@hoetzel.info>  (tiny change)
+2005-11-16  Jürgen Hötzel  <emacs@hoetzel.info>  (tiny change)
 
 	* url-handlers.el (url-insert-file-contents): Use the charset info
 	provided by the HTTP server, if any.

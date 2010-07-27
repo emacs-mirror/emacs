@@ -128,7 +128,7 @@ email    -- the email address
 os       -- the operating system info
 lastloc  -- the last location
 agent    -- do not send the User-Agent string
-cookie   -- never accept HTTP cookies
+cookies  -- never accept HTTP cookies
 
 Samples:
 

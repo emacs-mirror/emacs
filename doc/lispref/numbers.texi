@@ -21,10 +21,10 @@ exact; they have a fixed, limited amount of precision.
 
 @menu
 * Integer Basics::            Representation and range of integers.
-* Float Basics::	      Representation and range of floating point.
+* Float Basics::              Representation and range of floating point.
 * Predicates on Numbers::     Testing for numbers.
 * Comparison of Numbers::     Equality and inequality predicates.
-* Numeric Conversions::	      Converting float to integer and vice versa.
+* Numeric Conversions::       Converting float to integer and vice versa.
 * Arithmetic Operations::     How to add, subtract, multiply and divide.
 * Rounding Operations::       Explicitly rounding floating point numbers.
 * Bitwise Operations::        Logical and, or, not, shifting.

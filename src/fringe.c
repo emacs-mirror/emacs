@@ -561,23 +561,26 @@ draw_fringe_bitmap_1 (w, row, left_p, overlay, which)
   struct fringe_bitmap *fb;
   int period;
   int face_id = DEFAULT_FACE_ID;
+  int offset, header_line_height;
 
-  p.cursor_p = 0;
   p.overlay_p = (overlay & 1) == 1;
   p.cursor_p = (overlay & 2) == 2;
 
   if (which != NO_FRINGE_BITMAP)
     {
+      offset = 0;
     }
   else if (left_p)
     {
       which = row->left_fringe_bitmap;
       face_id = row->left_fringe_face_id;
+      offset = row->left_fringe_offset;
     }
   else
     {
       which = row->right_fringe_bitmap;
       face_id = row->right_fringe_face_id;
+      offset = row->right_fringe_offset;
     }
 
   if (face_id == DEFAULT_FACE_ID)
@@ -598,7 +601,7 @@ draw_fringe_bitmap_1 (w, row, left_p, overlay, which)
   period = fb->period;
 
   /* Convert row to frame coordinates.  */
-  p.y = WINDOW_TO_FRAME_PIXEL_Y (w, row->y);
+  p.y = WINDOW_TO_FRAME_PIXEL_Y (w, row->y) + offset;
 
   p.which = which;
   p.bits = fb->bits;
@@ -607,9 +610,19 @@ draw_fringe_bitmap_1 (w, row, left_p, overlay, which)
   p.h = fb->height;
   p.dh = (period > 0 ? (p.y % period) : 0);
   p.h -= p.dh;
-  /* Clip bitmap if too high.  */
-  if (p.h > row->height)
-    p.h = row->height;
+
+  /* Adjust y to the offset in the row to start drawing the bitmap.  */
+  switch (fb->align)
+    {
+    case ALIGN_BITMAP_CENTER:
+      p.y += (row->height - p.h) / 2;
+      break;
+    case ALIGN_BITMAP_BOTTOM:
+      p.y += (row->visible_height - p.h);
+      break;
+    case ALIGN_BITMAP_TOP:
+      break;
+    }
 
   p.face = FACE_FROM_ID (f, face_id);
 
@@ -625,6 +638,9 @@ draw_fringe_bitmap_1 (w, row, left_p, overlay, which)
   /* Clear left fringe if no bitmap to draw or if bitmap doesn't fill
      the fringe.  */
   p.bx = -1;
+  header_line_height = WINDOW_HEADER_LINE_HEIGHT (w);
+  p.by = WINDOW_TO_FRAME_PIXEL_Y (w, max (header_line_height, row->y));
+  p.ny = row->visible_height;
   if (left_p)
     {
       int wd = WINDOW_LEFT_FRINGE_WIDTH (w);
@@ -635,7 +651,7 @@ draw_fringe_bitmap_1 (w, row, left_p, overlay, which)
 	p.wd = wd;
       p.x = x - p.wd - (wd - p.wd) / 2;
 
-      if (p.wd < wd || row->height > p.h)
+      if (p.wd < wd || p.y > p.by || p.y + p.h < p.by + p.ny)
 	{
 	  /* If W has a vertical border to its left, don't draw over it.  */
 	  wd -= ((!WINDOW_LEFTMOST_P (w)
@@ -657,33 +673,11 @@ draw_fringe_bitmap_1 (w, row, left_p, overlay, which)
       p.x = x + (wd - p.wd) / 2;
       /* Clear right fringe if no bitmap to draw of if bitmap doesn't fill
 	 the fringe.  */
-      if (p.wd < wd || row->height > p.h)
+      if (p.wd < wd || p.y > p.by || p.y + p.h < p.by + p.ny)
 	{
 	  p.bx = x;
 	  p.nx = wd;
 	}
-    }
-
-  if (p.bx >= 0)
-    {
-      int header_line_height = WINDOW_HEADER_LINE_HEIGHT (w);
-
-      p.by = WINDOW_TO_FRAME_PIXEL_Y (w, max (header_line_height, row->y));
-      p.ny = row->visible_height;
-    }
-
-  /* Adjust y to the offset in the row to start drawing the bitmap.  */
-  switch (fb->align)
-    {
-    case ALIGN_BITMAP_CENTER:
-      p.y += (row->height - p.h) / 2;
-      break;
-    case ALIGN_BITMAP_BOTTOM:
-      p.h = fb->height;
-      p.y += (row->visible_height - p.h);
-      break;
-    case ALIGN_BITMAP_TOP:
-      break;
     }
 
   FRAME_RIF (f)->draw_fringe_bitmap (w, row, &p);
@@ -730,7 +724,7 @@ get_logical_fringe_bitmap (w, bitmap, right_p, partial_p)
      Elements are:
 	BITMAP		-- use for all
 	(L R)		-- use for left right (whether partial or not)
-	(L R PL PR)	-- use for left rigth partial-left partial-right
+	(L R PL PR)	-- use for left right partial-left partial-right
 	If any value in local binding is not present or t, use global value.
 
      If partial, lookup partial bitmap in default value if not found here.
@@ -911,7 +905,7 @@ draw_window_fringes (w, no_fringe)
   struct glyph_row *row;
   int yb = window_text_bottom_y (w);
   int nrows = w->current_matrix->nrows;
-  int y = 0, rn;
+  int y, rn;
   int updated = 0;
 
   if (w->pseudo_window_p)
@@ -923,7 +917,7 @@ draw_window_fringes (w, no_fringe)
 	  || WINDOW_RIGHT_FRINGE_WIDTH (w) == 0))
     updated++;
 
-  for (y = 0, rn = 0, row = w->current_matrix->rows;
+  for (y = w->vscroll, rn = 0, row = w->current_matrix->rows;
        y < yb && rn < nrows;
        y += row->height, ++row, ++rn)
     {
@@ -959,6 +953,9 @@ update_window_fringes (w, keep_current_p)
   Lisp_Object ind = Qnil;
 #define MAX_BITMAP_CACHE (8*4)
   int bitmap_cache[MAX_BITMAP_CACHE];
+  int top_ind_rn, bot_ind_rn;
+  int top_ind_min_y, bot_ind_max_y;
+  int top_row_ends_at_zv_p, bot_row_ends_at_zv_p;
 
   if (w->pseudo_window_p)
     return 0;
@@ -987,11 +984,10 @@ update_window_fringes (w, keep_current_p)
 	boundary_top = boundary_bot = Qleft;
     }
 
+  top_ind_rn = bot_ind_rn = -1;
   if (!NILP (ind))
     {
-      int done_top = 0, done_bot = 0;
-
-      for (y = 0, rn = 0;
+      for (y = w->vscroll, rn = 0;
 	   y < yb && rn < nrows;
 	   y += row->height, ++rn)
 	{
@@ -1012,31 +1008,25 @@ update_window_fringes (w, keep_current_p)
 
 	  if (!row->mode_line_p)
 	    {
-	      if (!done_top)
+	      if (top_ind_rn < 0 && row->visible_height > 0)
 		{
 		  if (MATRIX_ROW_START_CHARPOS (row) <= BUF_BEGV (XBUFFER (w->buffer))
 		      && !MATRIX_ROW_PARTIALLY_VISIBLE_AT_TOP_P (w, row))
 		    row->indicate_bob_p = !NILP (boundary_top);
 		  else
 		    row->indicate_top_line_p = !NILP (arrow_top);
-		  done_top = 1;
+		  top_ind_rn = rn;
 		}
 
-	      if (!done_bot)
+	      if (bot_ind_rn < 0)
 		{
 		  if (MATRIX_ROW_END_CHARPOS (row) >= BUF_ZV (XBUFFER (w->buffer))
 		      && !MATRIX_ROW_PARTIALLY_VISIBLE_AT_BOTTOM_P (w, row))
-		    row->indicate_eob_p = !NILP (boundary_bot), done_bot = 1;
+		    row->indicate_eob_p = !NILP (boundary_bot), bot_ind_rn = rn;
 		  else if (y + row->height >= yb)
-		    row->indicate_bottom_line_p = !NILP (arrow_bot), done_bot = 1;
+		    row->indicate_bottom_line_p = !NILP (arrow_bot), bot_ind_rn = rn;
 		}
 	    }
-
-	  if (indicate_bob_p != row->indicate_bob_p
-	      || indicate_top_line_p != row->indicate_top_line_p
-	      || indicate_eob_p != row->indicate_eob_p
-	      || indicate_bottom_line_p != row->indicate_bottom_line_p)
-	    row->redraw_fringe_bitmaps_p = 1;
 	}
     }
 
@@ -1060,12 +1050,139 @@ update_window_fringes (w, keep_current_p)
       get_logical_fringe_bitmap (w, which, 1, partial_p)))
 
 
-  for (y = 0, rn = 0;
+  /* Extend top-aligned top indicator (or bottom-aligned bottom
+     indicator) to adjacent rows if it doesn't fit in one row.  */
+  top_ind_min_y = bot_ind_max_y = -1;
+  if (top_ind_rn >= 0)
+    {
+      int bn = NO_FRINGE_BITMAP;
+
+      row = w->desired_matrix->rows + top_ind_rn;
+      if (!row->enabled_p)
+	row = w->current_matrix->rows + top_ind_rn;
+
+      top_row_ends_at_zv_p = row->ends_at_zv_p;
+      if (row->indicate_bob_p)
+	{
+	  if (EQ (boundary_top, Qleft))
+	    bn = ((row->indicate_eob_p && EQ (boundary_bot, Qleft))
+		  ? LEFT_FRINGE (1, Qtop_bottom, row->ends_at_zv_p)
+		  : LEFT_FRINGE (2, Qtop, 0));
+	  else
+	    bn = ((row->indicate_eob_p && EQ (boundary_bot, Qright))
+		  ? RIGHT_FRINGE (1, Qtop_bottom, row->ends_at_zv_p)
+		  : RIGHT_FRINGE (2, Qtop, 0));
+	}
+      else if (row->indicate_top_line_p)
+	{
+	  if (EQ (arrow_top, Qleft))
+	    bn = LEFT_FRINGE (6, Qup, 0);
+	  else
+	    bn = RIGHT_FRINGE (6, Qup, 0);
+	}
+
+      if (bn != NO_FRINGE_BITMAP)
+	{
+	  struct fringe_bitmap *fb;
+
+	  fb = fringe_bitmaps[bn];
+	  if (fb == NULL)
+	    fb = &standard_bitmaps[bn < MAX_STANDARD_FRINGE_BITMAPS
+				   ? bn : UNDEF_FRINGE_BITMAP];
+	  if (fb->align == ALIGN_BITMAP_TOP && fb->period == 0)
+	    {
+	      struct glyph_row *row1;
+	      int top_ind_max_y;
+
+	      top_ind_min_y = WINDOW_HEADER_LINE_HEIGHT (w);
+	      top_ind_max_y = top_ind_min_y + fb->height;
+	      if (top_ind_max_y > yb)
+		top_ind_max_y = yb;
+
+	      for (y = row->y + row->height, rn = top_ind_rn + 1;
+		   y < top_ind_max_y && rn < nrows;
+		   y += row1->height, rn++)
+		{
+		  if (bot_ind_rn >= 0 && rn >= bot_ind_rn)
+		    break;
+
+		  row1 = w->desired_matrix->rows + rn;
+		  if (!row1->enabled_p)
+		    row1 = w->current_matrix->rows + rn;
+
+		  row1->indicate_bob_p = row->indicate_bob_p;
+		  row1->indicate_top_line_p = row->indicate_top_line_p;
+		}
+	    }
+	}
+    }
+  if (bot_ind_rn >= 0)
+    {
+      int bn = NO_FRINGE_BITMAP;
+
+      row = w->desired_matrix->rows + bot_ind_rn;
+      if (!row->enabled_p)
+	row = w->current_matrix->rows + bot_ind_rn;
+
+      bot_row_ends_at_zv_p = row->ends_at_zv_p;
+      if (row->indicate_eob_p)
+	{
+	  if (EQ (boundary_bot, Qleft))
+	    bn = LEFT_FRINGE (3, Qbottom, row->ends_at_zv_p);
+	  else
+	    bn = RIGHT_FRINGE (3, Qbottom, row->ends_at_zv_p);
+	}
+      else if (row->indicate_bottom_line_p)
+	{
+	  if (EQ (arrow_bot, Qleft))
+	    bn = LEFT_FRINGE (7, Qdown, 0);
+	  else
+	    bn = RIGHT_FRINGE (7, Qdown, 0);
+	}
+
+      if (bn != NO_FRINGE_BITMAP)
+	{
+	  struct fringe_bitmap *fb;
+
+	  fb = fringe_bitmaps[bn];
+	  if (fb == NULL)
+	    fb = &standard_bitmaps[bn < MAX_STANDARD_FRINGE_BITMAPS
+				   ? bn : UNDEF_FRINGE_BITMAP];
+	  if (fb->align == ALIGN_BITMAP_BOTTOM && fb->period == 0)
+	    {
+	      struct glyph_row *row1;
+	      int bot_ind_min_y;
+
+	      bot_ind_max_y = row->y + row->visible_height;
+	      bot_ind_min_y = bot_ind_max_y - fb->height;
+	      if (bot_ind_min_y < WINDOW_HEADER_LINE_HEIGHT (w))
+		bot_ind_min_y = WINDOW_HEADER_LINE_HEIGHT (w);
+
+	      for (y = row->y, rn = bot_ind_rn - 1;
+		   y >= bot_ind_min_y && rn >= 0;
+		   y -= row1->height, rn--)
+		{
+		  if (top_ind_rn >= 0 && rn <= top_ind_rn)
+		    break;
+
+		  row1 = w->desired_matrix->rows + rn;
+		  if (!row1->enabled_p)
+		    row1 = w->current_matrix->rows + rn;
+
+		  row1->indicate_eob_p = row->indicate_eob_p;
+		  row1->indicate_bottom_line_p = row->indicate_bottom_line_p;
+		}
+	    }
+	}
+    }
+
+  for (y = w->vscroll, rn = 0;
        y < yb && rn < nrows;
        y += row->height, rn++)
     {
       int left, right;
       unsigned left_face_id, right_face_id;
+      int left_offset, right_offset;
 
       row = w->desired_matrix->rows + rn;
       cur = w->current_matrix->rows + rn;
@@ -1073,6 +1190,7 @@ update_window_fringes (w, keep_current_p)
 	row = cur;
 
       left_face_id = right_face_id = DEFAULT_FACE_ID;
+      left_offset = right_offset = 0;
 
       /* Decide which bitmap to draw in the left fringe.  */
       if (WINDOW_LEFT_FRINGE_WIDTH (w) == 0)
@@ -1085,19 +1203,35 @@ update_window_fringes (w, keep_current_p)
       else if (row->truncated_on_left_p)
 	left = LEFT_FRINGE(0, Qtruncation, 0);
       else if (row->indicate_bob_p && EQ (boundary_top, Qleft))
-	left = ((row->indicate_eob_p && EQ (boundary_bot, Qleft))
-		? LEFT_FRINGE (1, Qtop_bottom, row->ends_at_zv_p)
-		: LEFT_FRINGE (2, Qtop, 0));
+	{
+	  left = ((row->indicate_eob_p && EQ (boundary_bot, Qleft))
+		  ? LEFT_FRINGE (1, Qtop_bottom, top_row_ends_at_zv_p)
+		  : LEFT_FRINGE (2, Qtop, 0));
+	  if (top_ind_min_y >= 0)
+	    left_offset = top_ind_min_y - row->y;
+	}
       else if (row->indicate_eob_p && EQ (boundary_bot, Qleft))
-	left = LEFT_FRINGE (3, Qbottom, row->ends_at_zv_p);
+	{
+	  left = LEFT_FRINGE (3, Qbottom, bot_row_ends_at_zv_p);
+	  if (bot_ind_max_y >= 0)
+	    left_offset = bot_ind_max_y - (row->y + row->visible_height);
+	}
       else if (MATRIX_ROW_CONTINUATION_LINE_P (row))
 	left = LEFT_FRINGE (4, Qcontinuation, 0);
       else if (row->indicate_empty_line_p && EQ (empty_pos, Qleft))
 	left = LEFT_FRINGE (5, Qempty_line, 0);
       else if (row->indicate_top_line_p && EQ (arrow_top, Qleft))
-	left = LEFT_FRINGE (6, Qup, 0);
+	{
+	  left = LEFT_FRINGE (6, Qup, 0);
+	  if (top_ind_min_y >= 0)
+	    left_offset = top_ind_min_y - row->y;
+	}
       else if (row->indicate_bottom_line_p && EQ (arrow_bot, Qleft))
-	left = LEFT_FRINGE (7, Qdown, 0);
+	{
+	  left = LEFT_FRINGE (7, Qdown, 0);
+	  if (bot_ind_max_y >= 0)
+	    left_offset = bot_ind_max_y - (row->y + row->visible_height);
+	}
       else
 	left = NO_FRINGE_BITMAP;
 
@@ -1112,17 +1246,33 @@ update_window_fringes (w, keep_current_p)
       else if (row->truncated_on_right_p)
 	right = RIGHT_FRINGE (0, Qtruncation, 0);
       else if (row->indicate_bob_p && EQ (boundary_top, Qright))
-	right = ((row->indicate_eob_p && EQ (boundary_bot, Qright))
-		 ? RIGHT_FRINGE (1, Qtop_bottom, row->ends_at_zv_p)
-		 : RIGHT_FRINGE (2, Qtop, 0));
+	{
+	  right = ((row->indicate_eob_p && EQ (boundary_bot, Qright))
+		   ? RIGHT_FRINGE (1, Qtop_bottom, top_row_ends_at_zv_p)
+		   : RIGHT_FRINGE (2, Qtop, 0));
+	  if (top_ind_min_y >= 0)
+	    right_offset = top_ind_min_y - row->y;
+	}
       else if (row->indicate_eob_p && EQ (boundary_bot, Qright))
-	right = RIGHT_FRINGE (3, Qbottom, row->ends_at_zv_p);
+	{
+	  right = RIGHT_FRINGE (3, Qbottom, bot_row_ends_at_zv_p);
+	  if (bot_ind_max_y >= 0)
+	    right_offset = bot_ind_max_y - (row->y + row->visible_height);
+	}
       else if (row->continued_p)
 	right = RIGHT_FRINGE (4, Qcontinuation, 0);
       else if (row->indicate_top_line_p && EQ (arrow_top, Qright))
-	right = RIGHT_FRINGE (6, Qup, 0);
+	{
+	  right = RIGHT_FRINGE (6, Qup, 0);
+	  if (top_ind_min_y >= 0)
+	    right_offset = top_ind_min_y - row->y;
+	}
       else if (row->indicate_bottom_line_p && EQ (arrow_bot, Qright))
-	right = RIGHT_FRINGE (7, Qdown, 0);
+	{
+	  right = RIGHT_FRINGE (7, Qdown, 0);
+	  if (bot_ind_max_y >= 0)
+	    right_offset = bot_ind_max_y - (row->y + row->visible_height);
+	}
       else if (row->indicate_empty_line_p && EQ (empty_pos, Qright))
 	right = RIGHT_FRINGE (5, Qempty_line, 0);
       else
@@ -1135,6 +1285,8 @@ update_window_fringes (w, keep_current_p)
 	  || right != cur->right_fringe_bitmap
 	  || left_face_id != cur->left_fringe_face_id
 	  || right_face_id != cur->right_fringe_face_id
+	  || left_offset != cur->left_fringe_offset
+	  || right_offset != cur->right_fringe_offset
 	  || cur->redraw_fringe_bitmaps_p)
 	{
 	  redraw_p = row->redraw_fringe_bitmaps_p = 1;
@@ -1145,6 +1297,8 @@ update_window_fringes (w, keep_current_p)
 	      cur->right_fringe_bitmap = right;
 	      cur->left_fringe_face_id = left_face_id;
 	      cur->right_fringe_face_id = right_face_id;
+	      cur->left_fringe_offset = left_offset;
+	      cur->right_fringe_offset = right_offset;
 	    }
 	}
 
@@ -1161,9 +1315,8 @@ update_window_fringes (w, keep_current_p)
       row->right_fringe_bitmap = right;
       row->left_fringe_face_id = left_face_id;
       row->right_fringe_face_id = right_face_id;
-
-      if (rn > 0 && row->redraw_fringe_bitmaps_p)
-	row[-1].redraw_fringe_bitmaps_p = cur[-1].redraw_fringe_bitmaps_p = 1;
+      row->left_fringe_offset = left_offset;
+      row->right_fringe_offset = right_offset;
     }
 
   return redraw_p && !keep_current_p;

@@ -322,10 +322,10 @@ forbidden in URL encoding."
 		   tmp (substring str 0 start)
 		   (cond
 		    (allow-newlines
-		     (char-to-string code))
+		     (byte-to-string code))
 		    ((or (= code ?\n) (= code ?\r))
 		     " ")
-		    (t (char-to-string code))))
+		    (t (byte-to-string code))))
 	      str (substring str (match-end 0)))))
     (setq tmp (concat tmp str))
     tmp))

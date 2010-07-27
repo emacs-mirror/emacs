@@ -357,6 +357,7 @@ If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
     ;; Insert directory entries in the right places.
     (let ((entry (car entries))
 	  (node (ewoc-nth vc-ewoc 0))
+	  (to-remove nil)
 	  (dotname (file-relative-name default-directory)))
       ;; Insert . if it is not present.
       (unless node
@@ -383,30 +384,38 @@ If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
 	       ((string-lessp nodefile entryfile)
 		(setq node (ewoc-next vc-ewoc node)))
 	       ((string-equal nodefile entryfile)
-		(setf (vc-dir-fileinfo->state (ewoc-data node)) (nth 1 entry))
-		(setf (vc-dir-fileinfo->extra (ewoc-data node)) (nth 2 entry))
-		(setf (vc-dir-fileinfo->needs-update (ewoc-data node)) nil)
-		(ewoc-invalidate vc-ewoc node)
+		(if (nth 1 entry)
+		    (progn
+		      (setf (vc-dir-fileinfo->state (ewoc-data node)) (nth 1 entry))
+		      (setf (vc-dir-fileinfo->extra (ewoc-data node)) (nth 2 entry))
+		      (setf (vc-dir-fileinfo->needs-update (ewoc-data node)) nil)
+		      (ewoc-invalidate vc-ewoc node))
+		  ;; If the state is nil, the file does not exist
+		  ;; anymore, so remember the entry so we can remove
+		  ;; it after we are done inserting all ENTRIES.
+		  (push node to-remove))
 		(setq entries (cdr entries))
 		(setq entry (car entries))
 		(setq node (ewoc-next vc-ewoc node)))
 	       (t
-		(ewoc-enter-before vc-ewoc node
-				   (apply 'vc-dir-create-fileinfo entry))
+		(unless noinsert
+		  (ewoc-enter-before vc-ewoc node
+				     (apply 'vc-dir-create-fileinfo entry)))
 		(setq entries (cdr entries))
 		(setq entry (car entries))))))
 	   (t
-	    ;; We might need to insert a directory node if the
-	    ;; previous node was in a different directory.
-	    (let* ((rd (file-relative-name entrydir))
-		   (prev-node (ewoc-prev vc-ewoc node))
-		   (prev-dir (vc-dir-node-directory prev-node)))
-	      (unless (string-equal entrydir prev-dir)
-		(ewoc-enter-before
-		 vc-ewoc node (vc-dir-create-fileinfo rd nil nil nil entrydir))))
-	    ;; Now insert the node itself.
-	    (ewoc-enter-before vc-ewoc node
-			       (apply 'vc-dir-create-fileinfo entry))
+	    (unless noinsert
+	      ;; We might need to insert a directory node if the
+	      ;; previous node was in a different directory.
+	      (let* ((rd (file-relative-name entrydir))
+		     (prev-node (ewoc-prev vc-ewoc node))
+		     (prev-dir (vc-dir-node-directory prev-node)))
+		(unless (string-equal entrydir prev-dir)
+		  (ewoc-enter-before
+		   vc-ewoc node (vc-dir-create-fileinfo rd nil nil nil entrydir))))
+	      ;; Now insert the node itself.
+	      (ewoc-enter-before vc-ewoc node
+				 (apply 'vc-dir-create-fileinfo entry)))
 	    (setq entries (cdr entries) entry (car entries))))))
       ;; We're past the last node, all remaining entries go to the end.
       (unless (or node noinsert)
@@ -422,7 +431,10 @@ If NOINSERT, ignore elements on ENTRIES which are not in the ewoc."
 		   vc-ewoc (vc-dir-create-fileinfo rd nil nil nil entrydir))))
 	      ;; Now insert the node itself.
 	      (ewoc-enter-last vc-ewoc
-			       (apply 'vc-dir-create-fileinfo entry)))))))))
+			       (apply 'vc-dir-create-fileinfo entry))))))
+      (when to-remove
+	(let ((inhibit-read-only t))
+	  (apply 'ewoc-delete vc-ewoc (nreverse to-remove)))))))
 
 (defun vc-dir-busy ()
   (and (buffer-live-p vc-dir-process-buffer)
@@ -878,10 +890,12 @@ If it is a file, return the corresponding cons for the file itself."
 		      (vc-dir-resync-directory-files file)
 		      (ewoc-set-hf vc-ewoc
 				   (vc-dir-headers vc-dir-backend default-directory) ""))
-                  (let ((state (vc-dir-recompute-file-state file ddir)))
+                  (let* ((complete-state (vc-dir-recompute-file-state file ddir))
+			 (state (cadr complete-state)))
                     (vc-dir-update
-                     (list state)
-                     status-buf (eq (cadr state) 'up-to-date))))))))))
+                     (list complete-state)
+                     status-buf (or (not state)
+				    (eq state 'up-to-date)))))))))))
     ;; Remove out-of-date entries from vc-dir-buffers.
     (dolist (b drop) (setq vc-dir-buffers (delq b vc-dir-buffers)))))
 

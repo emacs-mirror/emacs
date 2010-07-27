@@ -1342,7 +1342,7 @@ or like this, using @code{add-to-list} (@pxref{List Variables}):
   Global minor modes distributed with Emacs should if possible support
 enabling and disabling via Custom (@pxref{Customization}).  To do this,
 the first step is to define the mode variable with @code{defcustom}, and
-specify @code{:type boolean}.
+specify @code{:type 'boolean}.
 
   If just setting the variable is not sufficient to enable the mode, you
 should also specify a @code{:set} method which enables the mode by
@@ -1494,7 +1494,7 @@ See the command \\[hungry-electric-delete]."
  ;; The indicator for the mode line.
  " Hungry"
  ;; The minor mode bindings.
- '(("\C-\^?" . hungry-electric-delete))
+ '(([C-delete] . hungry-electric-delete))
  :group 'hunger)
 @end smallexample
 
@@ -1526,8 +1526,8 @@ See the command \\[hungry-electric-delete]."
  :lighter " Hungry"
  ;; The minor mode bindings.
  :keymap
- '(("\C-\^?" . hungry-electric-delete)
-   ("\C-\M-\^?"
+ '(([C-delete] . hungry-electric-delete)
+   ([C-M-delete]
     . (lambda ()
         (interactive)
         (hungry-electric-delete t))))

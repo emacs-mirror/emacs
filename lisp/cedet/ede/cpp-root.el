@@ -467,7 +467,7 @@ This is for project include paths and spp source files."
   "Set variables local to PROJECT in BUFFER.
 Also set up the lexical preprocessor map."
   (call-next-method)
-  (when (and (featurep 'semantic/c) (featurep 'semantic/lex-spp))
+  (when (and (featurep 'semantic/bovine/c) (featurep 'semantic/lex-spp))
     (setq semantic-lex-spp-project-macro-symbol-obarray
 	  (semantic-lex-make-spp-table (oref project spp-table)))
     ))

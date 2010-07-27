@@ -32,7 +32,7 @@ license to the document, as described in section 6 of the license.
 
 @dircategory Emacs
 @direntry
-* SASL: (sasl).   The Emacs SASL library.
+* SASL: (sasl).                 The Emacs SASL library.
 @end direntry
 
 
@@ -148,7 +148,7 @@ of authentication functions.
 
 @example
 (defconst sasl-anonymous-steps
-  '(identity				;no initial response
+  '(identity                            ;no initial response
     sasl-anonymous-response))
 
 (put 'sasl-anonymous 'sasl-mechanism
@@ -232,7 +232,7 @@ authentication protocol exchange.  For example,
 @example
 (process-send-string
  process
- (if (sasl-step-data step)		;initial response
+ (if (sasl-step-data step)              ;initial response
      (format "AUTH %s %s\r\n" name (base64-encode-string (sasl-step-data step) t))
    (format "AUTH %s\r\n" name)))
 @end example

@@ -10,8 +10,8 @@
 @c  @cindex autotypist
 
 @copying
-Copyright @copyright{} 1994, 1995, 1999, 2001, 2002, 2003, 2004,
-2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright @copyright{} 1994, 1995, 1999, 2001, 2002, 2003, 2004, 2005,
+2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -29,8 +29,8 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* Autotype: (autotype). Convenient features for text that you enter frequently
-                          in Emacs.
+* Autotype: (autotype).         Convenient features for text that you
+                                  enter frequently in Emacs.
 @end direntry
 
 @titlepage
@@ -92,7 +92,7 @@ completions and expansions of text at point.
                              after point.
 * Autoinserting::          Filling up empty files as soon as you visit them.
 * Copyrights::             Inserting and updating copyrights.
-* Executables::	           Turning interpreter scripts into executables.
+* Executables::            Turning interpreter scripts into executables.
 * Timestamps::             Updating dates and times in modified files.
 * QuickURL::               Inserting URLs based on text at point.
 * Tempo::                  Flexible template insertion.
@@ -201,7 +201,7 @@ the output from @kbd{M-x list-abbrevs} to make it look like this:
 
 @example
 (c-mode-abbrev-table)
-"if"	       0    ""	       c-if
+"if"           0    ""         c-if
 @end example
 
 @noindent

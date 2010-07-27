@@ -17789,7 +17789,7 @@ Incidentally, @code{load-library} is an interactive interface to the
 This is an interface to the function `load'."
   (interactive
    (list (completing-read "Load library: "
-			  (apply-partially 'locate-file-completion-table
+                          (apply-partially 'locate-file-completion-table
                                            load-path
                                            (get-load-suffixes)))))
   (load library))

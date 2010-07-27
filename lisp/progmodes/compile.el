@@ -47,7 +47,7 @@
 ;; using the same *compilation* buffer. this necessitates re-parsing markers.
 
 ;;   FILE-STRUCTURE is a list of
-;;   ((FILENAME . DIRECTORY) FORMATS (LINE LOC ...) ...)
+;;   ((FILENAME DIRECTORY) FORMATS (LINE LOC ...) ...)
 
 ;; FILENAME is a string parsed from an error message.  DIRECTORY is a string
 ;; obtained by following directory change messages.  DIRECTORY will be nil for

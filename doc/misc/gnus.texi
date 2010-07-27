@@ -322,7 +322,7 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* Gnus: (gnus).         The newsreader Gnus.
+* Gnus: (gnus).                 The newsreader Gnus.
 @end direntry
 @iftex
 @finalout

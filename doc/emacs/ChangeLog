@@ -1,3 +1,19 @@
+2010-06-23  Glenn Morris  <rgm@gnu.org>
+
+	* abbrevs.texi, basic.texi, buffers.texi, building.texi, calendar.texi:
+	* custom.texi, dired.texi, display.texi, emacs.texi, emerge-xtra.texi:
+	* files.texi, fortran-xtra.texi, frames.texi, help.texi, killing.texi:
+	* maintaining.texi, mark.texi, mini.texi, misc.texi, msdog.texi:
+	* mule.texi, programs.texi, rmail.texi, screen.texi, search.texi:
+	* sending.texi, text.texi, trouble.texi, vc1-xtra.texi, xresources.texi:
+	Untabify Texinfo files.
+
+2010-06-10  Glenn Morris  <rgm@gnu.org>
+
+	* basic.texi (Inserting Text): Minor clarification.  (Bug#6374)
+
+	* basic.texi (Inserting Text): Fix typo.
+
 2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 23.2 released.

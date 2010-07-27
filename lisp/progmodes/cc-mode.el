@@ -662,8 +662,13 @@ They are set only when, respectively, the pseudo variables
 
 This function is called from the hook `before-hack-local-variables-hook'."
   (when c-buffer-is-cc-mode
-    (let ((stile (cdr (assq 'c-file-style file-local-variables-alist)))
+    (let ((mode-cons (assq 'mode file-local-variables-alist))
+	  (stile (cdr (assq 'c-file-style file-local-variables-alist)))
 	  (offsets (cdr (assq 'c-file-offsets file-local-variables-alist))))
+      (when mode-cons
+	(hack-one-local-variable (car mode-cons) (cdr mode-cons))
+	(setq file-local-variables-alist
+	      (delq mode-cons file-local-variables-alist)))
       (when stile
 	(or (stringp stile) (error "c-file-style is not a string"))
 	(c-set-style stile))

@@ -1,3 +1,15 @@
+2010-06-19  Ken Brown  <kbrown@cornell.edu>
+
+	* PROBLEMS: Update Cygwin GCC information.  (Bug#6458)
+
+2010-06-12  Glenn Morris  <rgm@gnu.org>
+
+	* tutorials/TUTORIAL.bg, tutorials/TUTORIAL.es: Fix typos.
+
+2010-05-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* NEWS: Add sections for Emacs-23.3.
+
 2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 23.2 released.
@@ -26,8 +38,7 @@
 
 2010-03-15  Francesc Rocher  <rocher@member.fsf.org>
 
-	* MORE.STUFF: Remove CEDET entry, now distributed as part of
-	Emacs.
+	* MORE.STUFF: Remove CEDET entry, now distributed as part of Emacs.
 
 2010-03-06  Glenn Morris  <rgm@gnu.org>
 

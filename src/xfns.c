@@ -205,6 +205,8 @@ extern Lisp_Object Vwindow_system_version;
 
 /* The below are defined in frame.c.  */
 
+extern Lisp_Object Qtooltip;
+
 #if GLYPH_DEBUG
 int image_cache_refcount, dpyinfo_refcount;
 #endif
@@ -402,10 +404,11 @@ x_any_window_to_frame (dpyinfo, wdesc)
 /* Likewise, but consider only the menu bar widget.  */
 
 struct frame *
-x_menubar_window_to_frame (dpyinfo, wdesc)
+x_menubar_window_to_frame (dpyinfo, event)
      struct x_display_info *dpyinfo;
-     int wdesc;
+     XEvent *event;
 {
+  Window wdesc = event->xany.window;
   Lisp_Object tail, frame;
   struct frame *f;
   struct x_output *x;
@@ -421,21 +424,11 @@ x_menubar_window_to_frame (dpyinfo, wdesc)
       if (!FRAME_X_P (f) || FRAME_X_DISPLAY_INFO (f) != dpyinfo)
 	continue;
       x = f->output_data.x;
-      /* Match if the window is this frame's menubar.  */
 #ifdef USE_GTK
-      if (x->menubar_widget)
-        {
-          GtkWidget *gwdesc = xg_win_to_widget (dpyinfo->display, wdesc);
-
-	  /* This gives false positives, but the rectangle check in xterm.c
-	     where this is called takes care of that.  */
-          if (gwdesc != 0
-              && (gwdesc == x->menubar_widget
-                  || gtk_widget_is_ancestor (x->menubar_widget, gwdesc)
-		  || gtk_widget_is_ancestor (gwdesc, x->menubar_widget)))
-            return f;
-        }
+      if (x->menubar_widget && xg_event_is_for_menubar (f, event))
+        return f;
 #else
+      /* Match if the window is this frame's menubar.  */
       if (x->menubar_widget
 	  && lw_window_is_in_menubar (wdesc, x->menubar_widget))
 	return f;
@@ -4914,9 +4907,8 @@ x_create_tip_frame (dpyinfo, parms, text)
   change_frame_size (f, height, width, 1, 0, 0);
 
   /* Add `tooltip' frame parameter's default value. */
-  if (NILP (Fframe_parameter (frame, intern ("tooltip"))))
-    Fmodify_frame_parameters (frame, Fcons (Fcons (intern ("tooltip"), Qt),
-					    Qnil));
+  if (NILP (Fframe_parameter (frame, Qtooltip)))
+    Fmodify_frame_parameters (frame, Fcons (Fcons (Qtooltip, Qt), Qnil));
 
   /* FIXME - can this be done in a similar way to normal frames?
      http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg00641.html */

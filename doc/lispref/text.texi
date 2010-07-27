@@ -1,7 +1,8 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/text
 @node Text, Non-ASCII Characters, Markers, Top
@@ -42,7 +43,7 @@ the character after point.
 * The Kill Ring::    Where removed text sometimes is saved for later use.
 * Undo::             Undoing changes to the text of a buffer.
 * Maintaining Undo:: How to enable and disable undo information.
-			How to control how much information is kept.
+                        How to control how much information is kept.
 * Filling::          Functions for explicit filling.
 * Margins::          How to specify margins for filling commands.
 * Adaptive Fill::    Adaptive Fill mode chooses a fill prefix from context.
@@ -821,7 +822,7 @@ would be difficult to change the terminology now.
 * Kill Functions::         Functions that kill text.
 * Yanking::                How yanking is done.
 * Yank Commands::          Commands that access the kill ring.
-* Low-Level Kill Ring::	   Functions and variables for kill ring access.
+* Low-Level Kill Ring::    Functions and variables for kill ring access.
 * Internals of Kill Ring:: Variables that hold kill ring data.
 @end menu
 
@@ -1298,13 +1299,16 @@ This function places a boundary element in the undo list.  The undo
 command stops at such a boundary, and successive undo commands undo
 to earlier and earlier boundaries.  This function returns @code{nil}.
 
-The editor command loop automatically creates an undo boundary before
-each key sequence is executed.  Thus, each undo normally undoes the
-effects of one command.  Self-inserting input characters are an
-exception.  The command loop makes a boundary for the first such
-character; the next 19 consecutive self-inserting input characters do
-not make boundaries, and then the 20th does, and so on as long as
-self-inserting characters continue.
+The editor command loop automatically calls @code{undo-boundary} just
+before executing each key sequence, so that each undo normally undoes
+the effects of one command.  As an exception, the command
+@code{self-insert-command}, which produces self-inserting input
+characters (@pxref{Commands for Insertion}), may remove the boundary
+inserted by the command loop: a boundary is accepted for the first
+such character, the next 19 consecutive self-inserting input
+characters do not have boundaries, and then the 20th does; and so on
+as long as the self-inserting characters continue.  Hence, sequences
+of consecutive character insertions can be undone as a group.
 
 All buffer modifications add a boundary whenever the previous undoable
 change was made in some other buffer.  This is to ensure that
@@ -2593,9 +2597,9 @@ along with the characters; this includes such diverse functions as
 
 @menu
 * Examining Properties::   Looking at the properties of one character.
-* Changing Properties::	   Setting the properties of a range of text.
-* Property Search::	   Searching for where a property changes value.
-* Special Properties::	   Particular properties with special meanings.
+* Changing Properties::    Setting the properties of a range of text.
+* Property Search::        Searching for where a property changes value.
+* Special Properties::     Particular properties with special meanings.
 * Format Properties::      Properties for representing formatting of text.
 * Sticky Properties::      How inserted text gets properties from
                              neighboring text.
@@ -2605,8 +2609,8 @@ along with the characters; this includes such diverse functions as
                              do something when you click on them.
 * Fields::                 The @code{field} property defines
                              fields within the buffer.
-* Not Intervals::	   Why text properties do not use
-			     Lisp-visible text intervals.
+* Not Intervals::          Why text properties do not use
+                             Lisp-visible text intervals.
 @end menu
 
 @node Examining Properties
@@ -3031,7 +3035,7 @@ The @code{font-lock-face} property is equivalent to the @code{face}
 property when Font Lock mode is enabled.  When Font Lock mode is disabled,
 @code{font-lock-face} has no effect.
 
-The @code{font-lock-mode} property is useful for special modes that
+The @code{font-lock-face} property is useful for special modes that
 implement their own highlighting.  @xref{Precalculated Fontification}.
 
 @item mouse-face

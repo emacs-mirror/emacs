@@ -4,7 +4,7 @@
 @settitle WoMan: Browse Unix Manual Pages ``W.O. (without) Man''
 @c FIXME
 @c Manual last updated:
-@set UPDATED Time-stamp: <Sat 16-Jan-2010 19:18:43 gm on grasmoor>
+@set UPDATED Time-stamp: <Thu 24-Jun-2010 00:06:54 gm on grasmoor>
 @c Software version:
 @set VERSION 0.54 (beta)
 @afourpaper
@@ -37,7 +37,7 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* WoMan: (woman).       Browse UN*X Manual Pages "W.O. (without) Man".
+* WoMan: (woman).               Browse UN*X Manual Pages "W.O. (without) Man".
 @end direntry
 
 @finalout

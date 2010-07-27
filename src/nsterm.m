@@ -2177,20 +2177,7 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 
   /* Must clip because of partially visible lines.  */
   rowY = WINDOW_TO_FRAME_PIXEL_Y (w, row->y);
-  if (p->y < rowY)
-    {
-      /* Adjust position of "bottom aligned" bitmap on partially
-	 visible last row.  */
-      int oldY = row->y;
-      int oldVH = row->visible_height;
-      row->visible_height = p->h;
-      row->y -= rowY - p->y;
-      ns_clip_to_row (w, row, -1, NO);
-      row->y = oldY;
-      row->visible_height = oldVH;
-    }
-  else
-    ns_clip_to_row (w, row, -1, YES);
+  ns_clip_to_row (w, row, -1, YES);
 
   if (p->bx >= 0 && !p->overlay_p)
     {

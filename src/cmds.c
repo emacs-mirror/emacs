@@ -270,7 +270,9 @@ DEFUN ("delete-backward-char", Fdelete_backward_char, Sdelete_backward_char,
        doc: /* Delete the previous N characters (following if N is negative).
 Optional second arg KILLFLAG non-nil means kill instead (save in kill ring).
 Interactively, N is the prefix arg, and KILLFLAG is set if
-N was explicitly specified.  */)
+N was explicitly specified.
+This is meant for interactive use only; from Lisp, better use `delete-char'
+with a negated argument.  */)
      (n, killflag)
      Lisp_Object n, killflag;
 {

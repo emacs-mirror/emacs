@@ -41,7 +41,7 @@ distribution.]
 
 @dircategory Emacs
 @direntry
-* Emacs FAQ: (efaq).	Frequently Asked Questions about Emacs.
+* Emacs FAQ: (efaq).            Frequently Asked Questions about Emacs.
 @end direntry
 
 @c The @titlepage stuff only appears in the printed version

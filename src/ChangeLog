@@ -1,4 +1,183 @@
-2010-05-11  Karel Klic  <kklic@redhat.com>  (tiny change)
+2010-07-25  Christoph Scholtes  <cschol2112@gmail.com>
+
+	* minibuf.c (Fread_buffer): Doc fix (bug#6528).
+
+2010-07-22  Christoph Scholtes  <cschol2112@gmail.com>
+
+	* window.c (Fwindow_height): Doc fix (bug#6518).
+
+2010-07-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* buffer.c (syms_of_buffer) <fringe-indicator-alist>: Doc fix.
+
+2010-07-17  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_event_is_for_menubar): Also check that event window
+	is related to the menu bar (Bug#6499).
+
+2010-07-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.h (x_menubar_window_to_frame): Second parameter is XEvent*.
+
+	* xterm.c (handle_one_xevent): Pass event to x_menubar_window_to_frame.
+
+	* xmenu.c (x_activate_menubar): Revert previous fix for Bug#6499,
+	i.e. don't put back ButtonRelease (Bug#6608).
+
+	* xfns.c (x_menubar_window_to_frame): Take XEvent as second parameter
+	instead of Window.  Call xg_event_is_for_menubar when
+	USE_GTK (Bug#6499).
+
+	* gtkutil.h (xg_event_is_for_menubar): Declare.
+
+	* gtkutil.c (xg_event_is_for_menubar): New function (Bug#6499).
+
+2010-07-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (x_set_foreground_color): Fix setting the cursor color
+	when it's the same as the old foreground.  (Bug#6609)
+
+2010-07-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfaces.c (realize_face): Garbage the frame if a face is removed
+	(Bug#6593).
+
+2010-07-05  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* keyboard.c: Remove duplicate <setjmp.h>.
+	(read_key_sequence): Remove volatile qualifiers.
+
+2010-07-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispextern.h (FRINGE_HEIGHT_BITS): New define.
+	(struct glyph_row): New members left_fringe_offset and
+	right_fringe_offset.
+
+	* xterm.c (x_draw_fringe_bitmap): Don't clip bottom aligned bitmap
+	specially.
+	* w32term.c (w32_draw_fringe_bitmap): Likewise.
+	* nsterm.m (ns_draw_fringe_bitmap): Likewise.
+
+	* fringe.c (draw_fringe_bitmap_1): Don't clip bitmap here.
+	Take account of	bitmap offset.
+	(draw_window_fringes): Take account of window vscroll.
+	(update_window_fringes): Likewise.  Extend top-aligned top indicator
+	or bottom-aligned bottom indicator to adjacent rows if it doesn't fit
+	in one row.  Don't set redraw_fringe_bitmaps_p outside row comparison.
+	Set left_fringe_offset and right_fringe_offset (Bug#5634, Bug#6325).
+
+2010-07-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32fns.c (Qtooltip): Declare.
+	Suggested by Andy Moreton <andrewjmoreton@gmail.com>.
+
+2010-07-03  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xmenu.c (x_activate_menubar): Send Press/Release for Gtk+ to avoid
+	grab on just Press (Bug#6499).
+
+2010-07-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frame.c (Qtooltip): New var.
+	(delete_frame): Use it.  Fix faulty if statement.  Don't update
+	mode line for tooltip frames.  Suggested by Martin Rudalics.
+
+	* xfns.c (x_create_tip_frame):
+	* w32fns.c (x_create_tip_frame): Use it.
+
+2010-06-30  Naohiro Aota  <naota@elisp.net>  (tiny change)
+
+	* xftfont.c (xftfont_open): Check font width one by one also when
+	spacing is dual.
+
+	* ftfont.c (ftfont_open): Ditto.
+
+2010-06-26  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* alloc.c (Fmake_byte_code): Don't access undefined argument
+	(Bug#6517).
+
+2010-06-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (next_element_from_image): Ensure that after-strings are
+	read the next time we hit handle_stop (Bug#1336).
+
+2010-06-23  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* lread.c (read1): Signal error if #s is not followed by paren.
+
+2010-06-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (free_image): Mark frame as garbaged (Bug#6426).
+
+	* keymap.c (Fdefine_key): Doc fix (Bug#6460).
+
+2010-06-15  Glenn Morris  <rgm@gnu.org>
+
+	* editfns.c (Fbyte_to_string): Pacify compiler.
+
+2010-06-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dbusbind.c (xd_append_arg): Don't "make-unibyte" the string.
+	Check `object's type before accessing its guts.
+
+2010-06-08  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* minibuf.c (Fall_completions): Add more checks.
+
+2010-06-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuf.c (Fall_completions): Check COLLECTION's size (bug#6378).
+
+2010-06-03  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* process.c (conv_lisp_to_sockaddr): Fix conversion of IPv4
+	address.  (Bug#6346)
+
+2010-06-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ccl.c (Fccl_program_p): Fix typo in docstring.
+
+2010-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (Fwhere_is_internal): Fix handling of remapping (in thread
+	of bug#6305).
+
+2010-05-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (redisplay_window): After redisplay, check if point is
+	still valid before setting it (Bug#6177).
+
+2010-05-20  enami tsugutomo  <tsugutomo.enami@jp.sony.com>
+
+	* s/netbsd.h: If terminfo is found, use it in preference to
+	termcap.  (Bug#6190)  [Backport from trunk]
+
+2010-05-20  Kevin Ryde  <user42@zip.com.au>
+
+	* keyboard.c (Vlast_command, Vkeyboard_translate_table)
+	(Voverriding_terminal_local_map, Vsystem_key_alist)
+	(Vlocal_function_key_map): Fix manual link in docstring (Bug#6224).
+
+2010-05-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* editfns.c (Fbyte_to_string): New function.
+
+2010-05-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* character.c (Fstring, Funibyte_string): Use SAFE_ALLOCA to
+	prevent stack overflow if number of arguments is too large
+	(Bug#6214).
+
+2010-05-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(BLD)/w32fns.$(O)): Depend on $(SRC)/w32.h.
+
+	* w32fns.c: Include w32.h.
+	(Fw32_shell_execute): Decode the error message before passing it
+	to `error'.  (Bug#6126)
+
+2010-05-11  Karel Klic  <kklic@redhat.com>
 
 	* ftfont.c: Fix incorrect parentheses of #if condition for
 	definining M17N_FLT_USE_NEW_FEATURE.
@@ -209,7 +388,7 @@
 	(xg_toggle_notify_cb, xg_set_toolkit_scroll_bar_thumb)
 	(xg_create_tool_bar): Remove unused variables.
 	(x_wm_set_size_hint): Move declarations before statements.
-	(xg_create_frame_widgets): Remove variable grav,
+	(xg_create_frame_widgets): Remove variable grav.
 
 2010-02-21  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -327,7 +506,7 @@
 
 	* xfns.c (Fx_create_frame): Remove window size matching code from
 	2010-01-15.
-	(x_get_current_desktop, x_get_desktop_workarea): Remove
+	(x_get_current_desktop, x_get_desktop_workarea): Remove.
 
 2010-01-27  Jason Rumney  <jasonr@gnu.org>
 
@@ -1164,7 +1343,7 @@
 	fontconfig settings like hinting.
 	(font_load_for_lface): If spec had a name in it, store it in entity.
 
-	* emacs.c (main): Call syms_of_xsettings
+	* emacs.c (main): Call syms_of_xsettings.
 
 	* config.in: HAVE_GCONF is new.
 
@@ -6749,7 +6928,7 @@
 	(composition_adjust_point, Fcomposition_get_gstring): New functions.
 	(syms_of_composite): Initialize gstring_hash_table, gstrint_work,
 	and gstring_work_headers.  DEFVAR_LISP composition-function-table.
-	Defsubr compostion_get_gstring.
+	Defsubr composition_get_gstring.
 
 	* dispextern.h (struct glyph): New union u.cmp.  Delete the member
 	cmp_id.

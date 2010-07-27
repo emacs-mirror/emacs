@@ -1,7 +1,8 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/os
 @node System Interface, Antinews, Display, Top
@@ -20,14 +21,14 @@ terminal and the screen.
 * Getting Out::         How exiting works (permanent or temporary).
 * System Environment::  Distinguish the name and kind of system.
 * User Identification:: Finding the name and user id of the user.
-* Time of Day::		Getting the current time.
+* Time of Day::         Getting the current time.
 * Time Conversion::     Converting a time from numeric form to 
                           calendrical data and vice versa.
 * Time Parsing::        Converting a time from numeric form to text
                           and vice versa.
 * Processor Run Time::  Getting the run time used by Emacs.
 * Time Calculations::   Adding, subtracting, comparing times, etc.
-* Timers::		Setting a timer to call a function at a certain time.
+* Timers::              Setting a timer to call a function at a certain time.
 * Idle Timers::         Setting a timer to call a function when Emacs has
                           been idle for a certain length of time.
 * Terminal Input::      Accessing and recording terminal input.
@@ -1818,8 +1819,8 @@ manipulating terminal input.  See @ref{Display}, for related
 functions.
 
 @menu
-* Input Modes::		Options for how input is processed.
-* Recording Input::	Saving histories of recent or all input events.
+* Input Modes::         Options for how input is processed.
+* Recording Input::     Saving histories of recent or all input events.
 @end menu
 
 @node Input Modes

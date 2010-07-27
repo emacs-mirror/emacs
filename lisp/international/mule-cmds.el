@@ -2902,9 +2902,9 @@ on encoding."
 	       (#xFB00 . #xFFFD)))
 	    (upper-ranges
 	     '((#x10000 . #x134FF)
-	       ;; (#x13500 . #x1CFFF) unsed
+	       ;; (#x13500 . #x1CFFF) unused
 	       (#x1D000 . #x1FFFF)
-	       ;; (#x20000 . #xDFFFF) CJK Ideograph Extension A, B, etc, unsed
+	       ;; (#x20000 . #xDFFFF) CJK Ideograph Extension A, B, etc, unused
 	       (#xE0000 . #xE01FF)))
 	    (gc-cons-threshold 10000000)
 	    c end name names)

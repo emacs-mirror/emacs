@@ -774,24 +774,9 @@ x_draw_fringe_bitmap (w, row, p)
   Window window = FRAME_X_WINDOW (f);
   GC gc = f->output_data.x->normal_gc;
   struct face *face = p->face;
-  int rowY;
 
   /* Must clip because of partially visible lines.  */
-  rowY = WINDOW_TO_FRAME_PIXEL_Y (w, row->y);
-  if (p->y < rowY)
-    {
-      /* Adjust position of "bottom aligned" bitmap on partially
-	 visible last row.  */
-      int oldY = row->y;
-      int oldVH = row->visible_height;
-      row->visible_height = p->h;
-      row->y -= rowY - p->y;
-      x_clip_to_row (w, row, -1, gc);
-      row->y = oldY;
-      row->visible_height = oldVH;
-    }
-  else
-    x_clip_to_row (w, row, -1, gc);
+  x_clip_to_row (w, row, -1, gc);
 
   if (!p->overlay_p)
     {
@@ -6966,7 +6951,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 	  f->mouse_moved = 0;
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
-        f = x_menubar_window_to_frame (dpyinfo, event.xbutton.window);
+        f = x_menubar_window_to_frame (dpyinfo, &event);
         /* For a down-event in the menu bar,
            don't pass it to Xt right now.
            Instead, save it away

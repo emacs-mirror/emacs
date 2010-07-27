@@ -24,8 +24,8 @@
 This is version @value{VERSION}@value{EDITION} of @cite{The MH-E
 Manual}, last updated @value{UPDATED}.
 
-Copyright @copyright{} 1995, 2001, 2002, 2003, 2005, 2006, 2007, 2008, 2009, 2010
-Free Software Foundation, Inc.
+Copyright @copyright{} 1995, 2001, 2002, 2003, 2005, 2006, 2007, 2008,
+  2009, 2010  Free Software Foundation, Inc.
 
 @c This dual license has been agreed upon by the FSF.
 
@@ -58,7 +58,7 @@ Public License.''
 @c Info Directory Entry
 @dircategory Emacs
 @direntry
-* MH-E: (mh-e).		Emacs interface to the MH mail system.
+* MH-E: (mh-e).                 Emacs interface to the MH mail system.
 @end direntry
 
 @c Title Page
@@ -7767,7 +7767,7 @@ will need to run @samp{sa-learn --rebuild} periodically. This can be
 done by adding the following to your @file{crontab}:
 
 @smallexample
-0 * * * *	sa-learn --rebuild > /dev/null 2>&1
+0 * * * *       sa-learn --rebuild > /dev/null 2>&1
 @end smallexample
 
 @subheading Bogofilter

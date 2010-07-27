@@ -1,3 +1,351 @@
+2010-07-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help-fns.el (find-lisp-object-file-name): Doc fix (bug#6494).
+
+2010-07-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* cedet/semantic/db-file.el (object-write): Fix typo in docstring.
+
+2010-07-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* time.el (display-time-day-and-date): Remove spurious * in docstring.
+	(display-time-world-buffer-name, display-time-world-mode-map):
+	Fix typos in docstrings.
+
+2010-07-17  Shyam Karanatt  <shyam@swathanthran.in>  (tiny change)
+
+	* image-mode.el (image-display-size): New function.
+	(image-forward-hscroll, image-next-line, image-eol, image-eob)
+	(image-mode-fit-frame): Use it (Bug#6639).
+
+2010-07-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired.el (dired-buffers-for-dir): Handle list values of
+	dired-directory (Bug#6636).
+
+2010-07-16  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* vc.el (vc-coding-system-inherit-eol): New defvar.
+	(vc-coding-system-for-diff): Use it to decide whether to inherit
+	from the file the EOL format for reading the diffs of that file.
+	(Bug#4451)
+
+2010-07-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmailmm.el (rmail-mime-save): Make the temp buffer
+	unibyte, so compressed attachments are not compressed again.
+
+2010-07-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xt-mouse.el (xterm-mouse-event-read): Fix for characters > 127
+	now that unicode is used (Bug#6594).
+
+2010-07-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (push-mark-command): Set the selection if
+	select-active-regions is non-nil.
+
+2010-07-10  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (calendar-week-end-day): New function.
+	* calendar/cal-tex.el (cal-tex-cursor-month): Remove unused vars.
+	Respect calendar-week-start-day.  (Bug#6606)
+	(cal-tex-insert-day-names, cal-tex-insert-blank-days)
+	(cal-tex-insert-blank-days-at-end): Respect calendar-week-start-day.
+	(cal-tex-first-blank-p, cal-tex-last-blank-p): Simplify, and
+	respect calendar-week-start-day.
+
+2010-07-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (use-region-p): Doc fix (Bug#6607).
+
+2010-07-07  Christoph Scholtes  <cschol2112@gmail.com>
+
+	* progmodes/python.el (python-font-lock-keywords): Add Python 2.7
+	builtins (BufferError, BytesWarning, WindowsError; callables
+	bin, bytearray, bytes, format, memoryview, next, print; __package__).
+
+2010-07-07  Glenn Morris  <rgm@gnu.org>
+
+	* play/zone.el (zone-fall-through-ws): Fix next-line ->
+	forward-line fallout.
+
+2010-07-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse.el (mouse-appearance-menu): Add docstring.
+
+	* help.el (describe-key): Print up-event using key-description.
+
+2010-07-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/zeroconf.el (zeroconf-resolve-service)
+	(zeroconf-service-resolver-handler): Use
+	`dbus-byte-array-to-string'.
+	(zeroconf-publish-service): Use `dbus-string-to-byte-array'.
+
+2010-07-03  Jan Moringen  <jan.moringen@uni-bielefeld.de>
+
+	* net/zeroconf.el (zeroconf-service-remove-hook): New defun.
+
+2010-06-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Avoid displaying files with a nil state in vc-dir.
+	* vc-dir.el (vc-dir-update): Obey the noinsert argument in all
+	cases that cause insertion.
+	(vc-dir-resynch-file): Tell vc-dir-update to avoid inserting files
+	with a nil state.
+
+2010-06-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xml.el (xml-parse-region): Avoid infloop (Bug#5281).
+
+2010-06-29  Leo  <sdl.web@gmail.com>
+
+	* emacs-lisp/rx.el (rx): Doc fix.  (Bug#6537)
+
+2010-06-27  Oleksandr Gavenko  <gavenkoa@gmail.com>  (tiny change)
+
+	* generic-x.el (bat-generic-mode): Fix regexp for command line
+	switches (Bug#5719).
+
+2010-06-27  Masatake YAMATO  <yamato@redhat.com>
+
+	* htmlfontify.el (hfy-face-attr-for-class): Use append instead
+	of nconc to avoid pure storage error (Bug#6239).
+
+2010-06-27  Christoph  <cschol2112@googlemail.com>  (tiny change)
+
+	* bookmark.el (bookmark-bmenu-2-window, bookmark-bmenu-other-window)
+	(bookmark-bmenu-other-window-with-mouse): Remove unnecessary
+	bindings of bookmark-automatically-show-annotations (Bug#6515).
+
+2010-06-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* arc-mode.el (archive-zip-extract): Don't quote the file name on
+	MS-Windows and MS-DOS.  (Bug#6467, Bug#6144)
+
+2010-06-24  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
+
+	* comint.el (make-comint, make-comint-in-buffer): Mention return
+	value in the docstrings.  (Bug#6498)
+
+2010-06-24  Yoni Rabkin  <yoni@rabkins.net>
+
+	* bs.el (bs-mode-font-lock-keywords): Remove "by" from Dired pattern,
+	since it is not present when using some non-default switches.
+
+2010-06-23  Karl Fogel  <kfogel@red-bean.com>
+
+	* simple.el (compose-mail): Fix doc string to refer to
+	`compose-mail-user-agent-warnings', instead of to the
+	nonexistent `compose-mail-check-user-agent'.
+
+2010-06-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Fix vc-annotate for renamed files when using Git.
+	* vc-git.el (vc-git-find-revision): Deal with empty results from
+	ls-files.  Doe not pass the object as a file name to cat-file, it
+	is not a file name.
+	(vc-git-annotate-command): Pass the file name using -- to avoid
+	ambiguity with the revision.
+	(vc-git-previous-revision): Pass a relative file name.
+
+2010-06-22  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/js.el (js-mode-map): Use standard capitalization and
+	ellipses for menu entries.
+
+	* wid-edit.el (widget-complete): Doc fix.
+
+2010-06-22  Jürgen Hötzel  <juergen@hoetzel.info>  (tiny change)
+
+	* wid-edit.el (widget-complete): Fix typo in 2009-12-02 change.
+
+2010-06-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Fix annotating other revisions for renamed files in vc-annotate.
+	* vc-annotate.el (vc-annotate): Add an optional argument for the
+	VC backend.  Use it when non-nil.
+	(vc-annotate-warp-revision): Pass the VC backend to vc-annotate.  (Bug#6487)
+
+	Fix vc-annotate-show-changeset-diff-revision-at-line for git.
+	* vc-annotate.el (vc-annotate-show-diff-revision-at-line-internal):
+	Do not pass the file name to the 'previous-revision call when we
+	don't want a file diff.  (Bug#6489)
+
+2010-06-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Fix finding revisions for renamed files in vc-annotate.
+	* vc.el (vc-find-revision): Add an optional argument for
+	the VC backend.  Use it when non-nil.
+	* vc-annotate.el (vc-annotate-find-revision-at-line): Pass the VC
+	backend to vc-find-revision.  (Bug#6487)
+
+2010-06-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Fix reading file names in Git annotate buffers.
+	* vc-git.el (vc-git-annotate-extract-revision-at-line): Remove
+	trailing whitespace.  Suggested by Eric Hanchrow.  (Bug#6481)
+
+2010-06-20  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-mode.el (c-before-hack-hook): When the mode is set
+	in file local variables, set it first.
+
+2010-06-19  Glenn Morris  <rgm@gnu.org>
+
+	* descr-text.el (describe-char-unicode-data): Insert separating
+	space when needed.  (Bug#6422)
+
+	* progmodes/idlwave.el (idlwave-action-and-binding):
+	Fix typo in 2009-12-03 change.  (Bug#6450)
+
+2010-06-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (read-quoted-char): Fix up last change (bug#6290).
+
+2010-06-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock-major-mode): Rename from
+	font-lock-mode-major-mode to distinguish it from
+	global-font-lock-mode's own font-lock-mode-major-mode (bug#6135).
+	(font-lock-set-defaults):
+	* font-core.el (font-lock-default-function): Adjust users.
+	(font-lock-mode): Don't set it at all.
+
+2010-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-annotate.el (vc-annotate): Use vc-read-revision.
+
+2010-06-15  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/appt.el (appt-time-msg-list): Doc fix.
+	(appt-check): Let-bind appt-warn-time.
+	(appt-add): Make the 3rd argument optional.
+	Simplify argument names.  Doc fix.  Check for integer WARNTIME.
+	Only add WARNTIME to the output list if non-nil.
+
+2010-06-15  Ivan Kanis  <apple@kanis.eu>
+
+	* calendar/appt.el (appt-check): Let the 3rd element of
+	appt-time-msg-list specify the warning time.
+	(appt-add): Add new argument with the warning time.  (Bug#5176)
+
+2010-06-12  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>  (tiny change)
+
+	* vc-svn.el (vc-svn-after-dir-status): Fix regexp for Subversions
+	older than version 1.6.  (Bug#6361)
+
+2010-06-12  Helmut Eller  <eller.helmut@gmail.com>
+
+	* emacs-lisp/cl-macs.el (destructuring-bind): Bind `bind-enquote',
+	used by cl-do-arglist.  (Bug#6408)
+
+2010-06-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/advice.el (ad-compile-function):
+	Define warning-suppress-types before we let-bind it (bug#6275).
+
+	* vc-dispatcher.el: Rename mode-line-hook to vc-mode-line-hook;
+	declare it, make it buffer-local and permanent-local (bug#6324).
+	(vc-resynch-window): Adjust name.
+	* vc-hooks.el (vc-find-file-hook): Adjust name.
+
+2010-06-07  Jonathan Rockway  <jon@jrock.us>
+
+	* net/rcirc.el: Add support for password authentication.
+	(rcirc-server-alist): Add :password keyword.
+	(rcirc): Ask for a password, or get it from the server's alist.
+	(rcirc-connect): Add password argument.  Pass it to server.
+
+2010-06-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* net/dbus.el (dbus-register-method): Declare function.
+	(dbus-handle-event, dbus-property-handler): Fix typos in docstrings.
+	(dbus-introspect): Doc fix.
+	(dbus-event-bus-name, dbus-introspect-get-interface)
+	(dbus-introspect-get-argument): Reflow docstrings.
+
+2010-06-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* term/common-win.el (x-colors): Add "dark green" and "dark
+	turquoise" (Bug#6332).
+
+2010-06-03  Eric Ludlam  <zappo@gnu.org>
+
+	* cedet/semantic/lex-spp.el
+	(semantic-lex-spp-table-write-slot-value): Instead of erroring on
+	invalid values during save, just save a nil (Bug#6324).
+
+2010-06-03  Glenn Morris  <rgm@gnu.org>
+
+	* desktop.el (desktop-clear-preserve-buffers):
+	Add "*Warnings*" buffer.  (Bug#6336)
+
+2010-06-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-dir.el (vc-dir-update): Remove entries with a nil state (bug#5539).
+
+2010-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-bzr.el (vc-bzr-revision-completion-table): Apply
+	`file-directory-p' to the filename part rather than to the whole text.
+
+2010-05-31  Jonathan Marchand  <jonathlela@gmail.com>  (tiny change)
+
+	* cedet/ede/cpp-root.el (ede-set-project-variables): Fix feature name
+	(bug#6231).
+
+2010-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* man.el (Man-completion-table): Let the user type "-k " (bug#6319).
+
+2010-05-31  Drew Adams  <drew.adams@oracle.com>
+
+	* files.el (directory-files-no-dot-files-regexp): Doc fix (bug#6298).
+
+2010-05-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (momentary-string-display): Just use read-event to read
+	the exit event (Bug#6238).
+
+2010-05-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ansi-color.el: Delete unused escape sequences (Bug#6085).
+	(ansi-color-drop-regexp): New constant.
+	(ansi-color-apply, ansi-color-filter-region)
+	(ansi-color-apply-on-region): Delete unrecognized control sequences.
+	(ansi-color-apply): Build string list before calling concat.
+
+2010-05-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/verilog-mode.el (verilog-type-font-keywords):
+	Use font-lock-constant-face, not obsolete font-lock-reference-face.
+
+2010-05-27  Masatake YAMATO  <yamato@redhat.com>
+
+	* htmlfontify.el (hfy-face-resolve-face): New function.
+	(hfy-face-to-style): Use it (Bug#6279).
+
+2010-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* epa.el (epa--select-keys): Don't explicitly delete the window since
+	that can fail (e.g. sole window in frame).  Use dedication instead.
+
+2010-05-19  Uday S Reddy  <u.s.reddy@cs.bham.ac.uk>  (tiny change)
+
+	* textmodes/fill.el (fill-region): Don't fill past the end (bug#6201).
+
+2010-05-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (read-quoted-char): Resolve modifiers after key
+	remapping (bug#6212).
+
+2010-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tmm.el (tmm-prompt): Don't try to precompute bindings.
+	(tmm-get-keymap): Compute shortcuts (bug#6171).
+
 2010-05-10  Glenn Morris  <rgm@gnu.org>
 
 	* desktop.el (desktop-save-buffer-p): Don't mistakenly include
@@ -22,7 +370,7 @@
 	* composite.el (compose-region, reference-point-alist): Fix typos
 	in the doc strings.
 
-2010-04-28  Alexander Klimov <alserkli@inbox.ru> (tiny change)
+2010-04-28  Alexander Klimov  <alserkli@inbox.ru>  (tiny change)
 
 	* calc/calc-graph.el (calc-graph-plot): Use the proper form for
 	gnuplot's "set" command.
@@ -344,7 +692,7 @@
 
 	* files.el (auto-mode-alist): Accept more verilog file patterns.
 
-2010-03-09  Miles Bader  <miles@gnu.org>>
+2010-03-09  Miles Bader  <miles@gnu.org>
 
 	* vc-git.el (vc-git-print-log): Use "tformat:" for shortlog,
 	instead of "format:"; this ensures that the output is

@@ -1791,9 +1791,13 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
       (archive-*-extract archive name archive-zip-extract)
     (archive-extract-by-stdout
      archive
-     ;; unzip expands wildcards in NAME, so we need to quote it.
+     ;; unzip expands wildcards in NAME, so we need to quote it.  But
+     ;; not on DOS/Windows, since that fails extraction on those
+     ;; systems, and file names with wildcards in zip archives don't
+     ;; work there anyway.
      ;; FIXME: Does pkunzip need similar treatment?
-     (if (equal (car archive-zip-extract) "unzip")
+     (if (and (not (memq system-type '(windows-nt ms-dos)))
+	      (equal (car archive-zip-extract) "unzip"))
 	 (shell-quote-argument name)
        name)
      archive-zip-extract)))
