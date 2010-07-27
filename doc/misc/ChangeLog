@@ -1,3 +1,7 @@
+2010-07-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nxml-mode.texi (Limitations): Remove obsolete discussion (Bug#6708).
+
 2010-07-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* org.texi: Fix typo in previous change (revno:100847).

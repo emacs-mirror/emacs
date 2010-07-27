@@ -1,3 +1,12 @@
+2010-07-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* url-http (url-http-parse-headers): Disable file name handlers at
+	all (not only Tramp).  (Bug#6717)
+
+2010-07-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* url-http (url-http-parse-headers): Disable Tramp.  (Bug#6717)
+
 2010-07-01  Mark A. Hershberger  <mah@everybody.org>
 
 	* url-http.el (url-http-create-request): Add a CRLF on the end so

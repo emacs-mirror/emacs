@@ -1,3 +1,13 @@
+2010-07-27  Christoph Scholtes  <cschol2112@gmail.com>
+
+	* minibuf.c (Fread_buffer): Doc fix (bug#6528).
+
+	* window.c (Fwindow_height): Doc fix (bug#6518).
+
+2010-07-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* buffer.c (syms_of_buffer) <fringe-indicator-alist>: Doc fix.
+
 2010-07-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* keyboard.c (Ftop_level, Fexit_recursive_edit)

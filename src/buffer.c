@@ -5899,14 +5899,14 @@ fringe indicator.
 
 INDICATOR specifies the logical indicator type which is one of the
 following symbols: `truncation' , `continuation', `overlay-arrow',
-`top', `bottom', `up', `down', `one-line', `empty-line', or `unknown'.
+`top', `bottom', `top-bottom', `up', `down', empty-line', or `unknown'.
 
-BITMAPS is list of symbols (LEFT RIGHT [LEFT1 RIGHT1]) which specifies
+BITMAPS is a list of symbols (LEFT RIGHT [LEFT1 RIGHT1]) which specifies
 the actual bitmap shown in the left or right fringe for the logical
 indicator.  LEFT and RIGHT are the bitmaps shown in the left and/or
 right fringe for the specific indicator.  The LEFT1 or RIGHT1 bitmaps
-are used only for the `bottom' and `one-line' indicators when the last
-\(only) line in has no final newline.  BITMAPS may also be a single
+are used only for the `bottom' and `top-bottom' indicators when the
+last (only) line has no final newline.  BITMAPS may also be a single
 symbol which is used in both left and right fringes.  */);
 
   DEFVAR_PER_BUFFER ("fringe-cursor-alist",

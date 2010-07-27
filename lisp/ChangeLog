@@ -1,3 +1,24 @@
+2010-07-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help-fns.el (find-lisp-object-file-name): Doc fix (bug#6494).
+
+	* cedet/semantic/db-file.el (object-write): Fix typo in docstring.
+
+	* time.el (display-time-day-and-date): Remove spurious * in docstring.
+	(display-time-world-buffer-name, display-time-world-mode-map):
+	Fix typos in docstrings.
+
+2010-07-27  Shyam Karanatt  <shyam@swathanthran.in>  (tiny change)
+
+	* image-mode.el (image-display-size): New function.
+	(image-forward-hscroll, image-next-line, image-eol, image-eob)
+	(image-mode-fit-frame): Use it (Bug#6639).
+
+2010-07-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired.el (dired-buffers-for-dir): Handle list values of
+	dired-directory (Bug#6636).
+
 2010-07-26  Sam Steingold  <sds@gnu.org>
 
 	* mouse.el (mouse-yank-primary, mouse-yank-secondary):
