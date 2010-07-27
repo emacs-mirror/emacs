@@ -750,7 +750,7 @@ Value, if non-nil, is a list \(interactive SPEC).  */)
 
   if (SUBRP (fun))
     {
-      char *spec = XSUBR (fun)->intspec;
+      const char *spec = XSUBR (fun)->intspec;
       if (spec)
 	return list2 (Qinteractive,
 		      (*spec != '(') ? build_string (spec) :

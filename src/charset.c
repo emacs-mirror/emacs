@@ -491,8 +491,6 @@ extern Lisp_Object Qfile_name_handler_alist;
    Note that this function uses `openp' to open MAPFILE but ignores
    `file-name-handler-alist' to avoid running any Lisp code.  */
 
-extern void add_to_log (char *, Lisp_Object, Lisp_Object);
-
 static void
 load_charset_map_from_file (struct charset *charset, Lisp_Object mapfile, int control_flag)
 {

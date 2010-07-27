@@ -89,7 +89,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <X11/Xaw/Paned.h>
 #endif /* HAVE_XAW3D */
 #endif /* USE_LUCID */
-#include "../lwlib/lwlib.h"
 #else /* not USE_X_TOOLKIT */
 #ifndef USE_GTK
 #include "../oldXMenu/XMenu.h"

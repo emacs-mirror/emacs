@@ -127,12 +127,6 @@ static const struct table_entry width_table[] =
   { 200, { "ultra-expanded", "ultraexpanded", "wide" }}
 };
 
-extern Lisp_Object Qnormal;
-
-/* Symbols representing keys of normal font properties.  */
-extern Lisp_Object QCtype, QCfamily, QCweight, QCslant, QCwidth;
-extern Lisp_Object QCheight, QCsize, QCname;
-
 Lisp_Object QCfoundry, QCadstyle, QCregistry;
 /* Symbols representing keys of font extra info.  */
 Lisp_Object QCspacing, QCdpi, QCscalable, QCotf, QClang, QCscript, QCavgwidth;

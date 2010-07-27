@@ -406,6 +406,8 @@ extern widget_value *digest_single_submenu (int, int, int);
 #define POSN_INBUFFER_P(posn) (NILP (POSN_STRING (posn)))
 #define POSN_BUFFER_POSN(posn) (Fnth (make_number (5), (posn)))
 
+extern Lisp_Object do_mouse_tracking;
+
 /* Some of the event heads.  */
 extern Lisp_Object Qswitch_frame;
 

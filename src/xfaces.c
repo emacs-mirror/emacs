@@ -411,7 +411,6 @@ Lisp_Object Qforeground_color, Qbackground_color;
 /* The symbols `face' and `mouse-face' used as text properties.  */
 
 Lisp_Object Qface;
-extern Lisp_Object Qmouse_face;
 
 /* Property for basic faces which other faces cannot inherit.  */
 
@@ -520,7 +519,7 @@ static int load_pixmap (struct frame *, Lisp_Object, unsigned *, unsigned *);
 static struct frame *frame_or_selected_frame (Lisp_Object, int);
 static void load_face_colors (struct frame *, struct face *, Lisp_Object *);
 static void free_face_colors (struct frame *, struct face *);
-static int face_color_gray_p (struct frame *, char *);
+static int face_color_gray_p (struct frame *, const char *);
 static struct face *realize_face (struct face_cache *, Lisp_Object *,
                                   int);
 static struct face *realize_non_ascii_face (struct frame *, Lisp_Object,
@@ -1171,7 +1170,8 @@ tty_lookup_color (struct frame *f, Lisp_Object color, XColor *tty_color, XColor 
 /* A version of defined_color for non-X frames.  */
 
 int
-tty_defined_color (struct frame *f, char *color_name, XColor *color_def, int alloc)
+tty_defined_color (struct frame *f, const char *color_name,
+		   XColor *color_def, int alloc)
 {
   int status = 1;
 
@@ -1206,7 +1206,7 @@ tty_defined_color (struct frame *f, char *color_name, XColor *color_def, int all
    This does the right thing for any type of frame.  */
 
 int
-defined_color (struct frame *f, char *color_name, XColor *color_def, int alloc)
+defined_color (struct frame *f, const char *color_name, XColor *color_def, int alloc)
 {
   if (!FRAME_WINDOW_P (f))
     return tty_defined_color (f, color_name, color_def, alloc);
@@ -1266,7 +1266,7 @@ tty_color_name (struct frame *f, int idx)
    The criterion implemented here is not a terribly sophisticated one.  */
 
 static int
-face_color_gray_p (struct frame *f, char *color_name)
+face_color_gray_p (struct frame *f, const char *color_name)
 {
   XColor color;
   int gray_p;
@@ -1293,7 +1293,7 @@ face_color_gray_p (struct frame *f, char *color_name)
    color.  */
 
 static int
-face_color_supported_p (struct frame *f, char *color_name, int background_p)
+face_color_supported_p (struct frame *f, const char *color_name, int background_p)
 {
   Lisp_Object frame;
   XColor not_used;

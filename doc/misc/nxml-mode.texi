@@ -851,11 +851,6 @@ elements. Other usage of DTDs is ignored.
 @item
 The restrictions on RELAX NG schemas in section 7 of the RELAX NG
 specification are not enforced.
-@item
-Unicode support has problems. This stems mostly from the fact that
-the XML (and RELAX NG) character model is based squarely on Unicode,
-whereas the Emacs character model is not.  Emacs 22 is slated to have
-full Unicode support, which should improve the situation here.
 @end itemize
 
 @bye

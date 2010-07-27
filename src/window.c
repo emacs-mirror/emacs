@@ -508,7 +508,10 @@ DEFUN ("window-height", Fwindow_height, Swindow_height, 0, 1, 0,
        doc: /* Return the number of lines in WINDOW.
 WINDOW defaults to the selected window.
 
-The return value includes WINDOW's mode line and header line, if any.  */)
+The return value includes WINDOW's mode line and header line, if any.
+
+Note: The function does not take into account the value of `line-spacing'
+when calculating the number of lines in WINDOW.  */)
   (Lisp_Object window)
 {
   return decode_any_window (window)->total_lines;

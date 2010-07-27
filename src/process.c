@@ -121,6 +121,25 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "xgselect.h"
 #endif /* defined (USE_GTK) || defined (HAVE_GCONF) */
 
+extern int timers_run;
+
+Lisp_Object Qeuid, Qegid, Qcomm, Qstate, Qppid, Qpgrp, Qsess, Qttname, Qtpgid;
+Lisp_Object Qminflt, Qmajflt, Qcminflt, Qcmajflt, Qutime, Qstime, Qcstime;
+Lisp_Object Qcutime, Qpri, Qnice, Qthcount, Qstart, Qvsize, Qrss, Qargs;
+Lisp_Object Quser, Qgroup, Qetime, Qpcpu, Qpmem, Qtime, Qctime;
+Lisp_Object QCname, QCtype;
+
+/* Non-zero if keyboard input is on hold, zero otherwise.  */
+
+static int kbd_is_on_hold;
+
+/* Nonzero means delete a process right away if it exits.  */
+static int delete_exited_processes;
+
+/* Nonzero means don't run process sentinels.  This is used
+   when exiting.  */
+int inhibit_sentinels;
+
 #ifdef subprocesses
 
 Lisp_Object Qprocessp;
@@ -286,29 +305,6 @@ static void create_pty (Lisp_Object);
 
 static Lisp_Object get_process (register Lisp_Object name);
 static void exec_sentinel (Lisp_Object proc, Lisp_Object reason);
-
-#endif	/* subprocesses */
-
-extern int timers_run;
-
-Lisp_Object Qeuid, Qegid, Qcomm, Qstate, Qppid, Qpgrp, Qsess, Qttname, Qtpgid;
-Lisp_Object Qminflt, Qmajflt, Qcminflt, Qcmajflt, Qutime, Qstime, Qcstime;
-Lisp_Object Qcutime, Qpri, Qnice, Qthcount, Qstart, Qvsize, Qrss, Qargs;
-Lisp_Object Quser, Qgroup, Qetime, Qpcpu, Qpmem, Qtime, Qctime;
-Lisp_Object QCname, QCtype;
-
-/* Non-zero if keyboard input is on hold, zero otherwise.  */
-
-static int kbd_is_on_hold;
-
-/* Nonzero means delete a process right away if it exits.  */
-static int delete_exited_processes;
-
-/* Nonzero means don't run process sentinels.  This is used
-   when exiting.  */
-int inhibit_sentinels;
-
-#ifdef subprocesses
 
 /* Mask of bits indicating the descriptors that we wait for input on.  */
 

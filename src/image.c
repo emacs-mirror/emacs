@@ -578,9 +578,6 @@ Lisp_Object Qxbm;
 
 /* Keywords.  */
 
-extern Lisp_Object QCwidth, QCheight, QCforeground, QCbackground, QCfile;
-extern Lisp_Object QCdata, QCtype;
-extern Lisp_Object Qcenter;
 Lisp_Object QCascent, QCmargin, QCrelief, Qcount, Qextension_data;
 Lisp_Object QCconversion, QCcolor_symbols, QCheuristic_mask;
 Lisp_Object QCindex, QCmatrix, QCcolor_adjustment, QCmask;

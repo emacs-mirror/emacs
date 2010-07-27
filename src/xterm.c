@@ -104,8 +104,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #ifdef USE_LUCID
-extern int xlwmenu_window_p (Widget w, Window window);
-extern void xlwmenu_redisplay (Widget);
+#include "../lwlib/xlwmenu.h"
 #endif
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
@@ -332,7 +331,8 @@ Lisp_Object Qx_gtk_map_stock;
 
 extern Lisp_Object Vinhibit_redisplay;
 
-extern XrmDatabase x_load_resources (Display *, char *, char *, char *);
+extern XrmDatabase x_load_resources (Display *, const char *, const char *,
+				     const char *);
 extern int x_bitmap_mask (FRAME_PTR, int);
 
 static int x_alloc_nearest_color_1 (Display *, Colormap, XColor *);
@@ -379,7 +379,7 @@ static int handle_one_xevent (struct x_display_info *, XEvent *,
                               int *, struct input_event *);
 /* Don't declare this NO_RETURN because we want no
    interference with debugging failing X calls.  */
-static SIGTYPE x_connection_closed (Display *, char *);
+static SIGTYPE x_connection_closed (Display *, const char *);
 
 
 /* Flush display of frame F, or of all frames if F is null.  */
@@ -7359,7 +7359,7 @@ x_bitmap_icon (struct frame *f, Lisp_Object file)
    Use ICON_NAME as the text.  */
 
 int
-x_text_icon (struct frame *f, char *icon_name)
+x_text_icon (struct frame *f, const char *icon_name)
 {
   if (FRAME_X_WINDOW (f) == 0)
     return 1;
@@ -7422,7 +7422,7 @@ x_error_catcher (Display *display, XErrorEvent *error)
 
    Calling x_uncatch_errors resumes the normal error handling.  */
 
-void x_check_errors (Display *dpy, char *format);
+void x_check_errors (Display *dpy, const char *format);
 
 void
 x_catch_errors (Display *dpy)
@@ -7464,7 +7464,7 @@ x_uncatch_errors (void)
    sprintf (a buffer, FORMAT, the x error message text) as the text.  */
 
 void
-x_check_errors (Display *dpy, char *format)
+x_check_errors (Display *dpy, const char *format)
 {
   /* Make sure to catch any errors incurred so far.  */
   XSync (dpy, False);
@@ -7568,7 +7568,7 @@ x_fatal_error_signal (void)
    the text of an error message that lead to the connection loss.  */
 
 static SIGTYPE
-x_connection_closed (Display *dpy, char *error_message)
+x_connection_closed (Display *dpy, const char *error_message)
 {
   struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
   Lisp_Object frame, tail;

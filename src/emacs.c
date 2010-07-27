@@ -757,7 +757,6 @@ main (int argc, char **argv)
   char *ch_to_dir;
 
 #if GC_MARK_STACK
-  extern Lisp_Object *stack_base;
   stack_base = &dummy;
 #endif
 
@@ -2094,8 +2093,6 @@ all of which are called before Emacs is actually killed.  */)
     unlink (SDATA (Vauto_save_list_file_name));
 
   exit (INTEGERP (arg) ? XINT (arg) : EXIT_SUCCESS);
-  /* NOTREACHED */
-  return Qnil;
 }
 
 
