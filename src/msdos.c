@@ -1330,7 +1330,6 @@ IT_note_mouse_highlight (struct frame *f, int x, int y)
 
       /* Check for mouse-face and help-echo.  */
       {
-	extern Lisp_Object Qmouse_face;
 	Lisp_Object mouse_face, overlay, position, *overlay_vec;
 	int noverlays, obegv, ozv;
 	struct buffer *obuf;

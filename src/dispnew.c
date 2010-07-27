@@ -66,12 +66,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "systime.h"
 #include <errno.h>
 
-/* To get the prototype for `sleep'.  */
-
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-
 /* Get number of chars of output now in the buffer of a stdio stream.
    This ought to be built in in stdio, but it isn't.  Some s- files
    override this because their stdio internals differ.  */
@@ -3664,8 +3658,6 @@ update_window (struct window *w, int force_p)
 #if !PERIODIC_PREEMPTION_CHECKING
   int preempt_count = baud_rate / 2400 + 1;
 #endif
-  extern int input_pending;
-  extern Lisp_Object do_mouse_tracking;
   struct redisplay_interface *rif = FRAME_RIF (XFRAME (WINDOW_FRAME (w)));
 #if GLYPH_DEBUG
   /* Check that W's frame doesn't have glyph matrices.  */
@@ -4710,7 +4702,6 @@ update_frame_1 (struct frame *f, int force_p, int inhibit_id_p)
   int i;
   int pause;
   int preempt_count = baud_rate / 2400 + 1;
-  extern int input_pending;
 
   xassert (current_matrix && desired_matrix);
 
@@ -6234,10 +6225,6 @@ void
 init_display (void)
 {
   char *terminal_type;
-
-#ifdef HAVE_X_WINDOWS
-  extern int display_arg;
-#endif
 
   /* Construct the space glyph.  */
   space_glyph.type = CHAR_GLYPH;

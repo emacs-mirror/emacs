@@ -430,7 +430,7 @@ c_string_width (const unsigned char *str, int len, int precision, int *nchars, i
    occupies on the screen.  */
 
 int
-strwidth (unsigned char *str, int len)
+strwidth (const unsigned char *str, int len)
 {
   return c_string_width (str, len, -1, NULL, NULL);
 }
@@ -710,9 +710,9 @@ str_as_multibyte (unsigned char *str, int len, int nbytes, int *nchars)
    `str_to_multibyte'.  */
 
 int
-parse_str_to_multibyte (unsigned char *str, int len)
+parse_str_to_multibyte (const unsigned char *str, int len)
 {
-  unsigned char *endp = str + len;
+  const unsigned char *endp = str + len;
   int bytes;
 
   for (bytes = 0; str < endp; str++)

@@ -320,7 +320,6 @@ The return value is POSITION.  */)
 static Lisp_Object
 region_limit (int beginningp)
 {
-  extern Lisp_Object Vmark_even_if_inactive; /* Defined in callint.c. */
   Lisp_Object m;
 
   if (!NILP (Vtransient_mark_mode)
@@ -4554,7 +4553,6 @@ of the buffer being accessed.  */);
 
   {
     Lisp_Object obuf;
-    extern Lisp_Object Vprin1_to_string_buffer;
     obuf = Fcurrent_buffer ();
     /* Do this here, because init_buffer_once is too early--it won't work.  */
     Fset_buffer (Vprin1_to_string_buffer);

@@ -145,8 +145,6 @@ Lisp_Object Qread_expression_history;
 
 extern Lisp_Object Voverriding_local_map;
 
-extern Lisp_Object Qmouse_face;
-
 extern Lisp_Object Qfield;
 
 /* Put minibuf on currently selected frame's minibuffer.

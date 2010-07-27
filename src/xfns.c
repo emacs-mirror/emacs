@@ -101,6 +101,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <Xm/FileSB.h>
 #endif
 
+#ifdef USE_LUCID
+#include "../lwlib/xlwmenu.h"
+#endif
+
 #if !defined(NO_EDITRES)
 #define HACK_EDITRES
 extern void _XEditResCheckMessages ();
@@ -650,7 +654,8 @@ gamma_correct (struct frame *f, XColor *color)
    no color could be allocated.  */
 
 int
-x_defined_color (struct frame *f, char *color_name, XColor *color, int alloc_p)
+x_defined_color (struct frame *f, const char *color_name,
+		 XColor *color, int alloc_p)
 {
   int success_p;
   Display *dpy = FRAME_X_DISPLAY (f);
@@ -2353,7 +2358,7 @@ xic_set_statusarea (struct frame *f)
    BASE_FONTNAME.  Called when a new Emacs fontset is chosen.  */
 
 void
-xic_set_xfontset (struct frame *f, char *base_fontname)
+xic_set_xfontset (struct frame *f, const char *base_fontname)
 {
   XVaNestedList attr;
   XFontSet xfs;
@@ -5205,7 +5210,6 @@ Value is t if tooltip was open, nil otherwise.  */)
       {
 	struct frame *f = SELECTED_FRAME ();
 	Widget w = f->output_data.x->menubar_widget;
-        extern void xlwmenu_redisplay (Widget);
 
 	if (!DoesSaveUnders (FRAME_X_DISPLAY_INFO (f)->screen)
 	    && w != NULL)

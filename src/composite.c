@@ -1939,7 +1939,6 @@ syms_of_composite (void)
   /* Make a hash table for static composition.  */
   {
     Lisp_Object args[6];
-    extern Lisp_Object QCsize;
 
     args[0] = QCtest;
     args[1] = Qequal;
@@ -1959,8 +1958,6 @@ syms_of_composite (void)
   /* Make a hash table for glyph-string.  */
   {
     Lisp_Object args[6];
-    extern Lisp_Object QCsize;
-
     args[0] = QCtest;
     args[1] = Qequal;
     args[2] = QCweakness;

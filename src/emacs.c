@@ -757,7 +757,6 @@ main (int argc, char **argv)
   char *ch_to_dir;
 
 #if GC_MARK_STACK
-  extern Lisp_Object *stack_base;
   stack_base = &dummy;
 #endif
 

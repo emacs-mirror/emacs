@@ -115,7 +115,7 @@ Lisp_Object Qfile_name_all_completions;
 Lisp_Object Qfile_attributes;
 Lisp_Object Qfile_attributes_lessp;
 
-static int scmp (unsigned char *, unsigned char *, int);
+static int scmp (const unsigned char *, const unsigned char *, int);
 
 #ifdef WINDOWSNT
 Lisp_Object
@@ -206,7 +206,6 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full, Lisp_Object m
 #ifdef WINDOWSNT
   if (attrs)
     {
-      extern Lisp_Object Qlocal;
       extern int is_slow_fs (const char *);
 
       /* Do this only once to avoid doing it (in w32.c:stat) for each
@@ -813,7 +812,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
    else number of chars that match at the beginning.  */
 
 static int
-scmp (register unsigned char *s1, register unsigned char *s2, int len)
+scmp (const unsigned char *s1, const unsigned char *s2, int len)
 {
   register int l = len;
 

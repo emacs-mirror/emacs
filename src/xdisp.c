@@ -276,8 +276,6 @@ extern void set_frame_menubar (struct frame *f, int, int);
 extern int interrupt_input;
 extern int command_loop_level;
 
-extern Lisp_Object do_mouse_tracking;
-
 extern int minibuffer_auto_raise;
 extern Lisp_Object Vminibuffer_list;
 
@@ -7966,7 +7964,7 @@ in_display_vector_p (struct it *it)
    to *Messages*.  */
 
 void
-add_to_log (char *format, Lisp_Object arg1, Lisp_Object arg2)
+add_to_log (const char *format, Lisp_Object arg1, Lisp_Object arg2)
 {
   Lisp_Object args[3];
   Lisp_Object msg, fmt;

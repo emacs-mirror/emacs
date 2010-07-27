@@ -76,7 +76,8 @@ static void receive_incremental_selection (Display *, Window, Atom,
 static Lisp_Object x_get_window_property_as_lisp_data (Display *,
                                                        Window, Atom,
                                                        Lisp_Object, Atom);
-static Lisp_Object selection_data_to_lisp_data (Display *, unsigned char *,
+static Lisp_Object selection_data_to_lisp_data (Display *,
+						const unsigned char *,
                                                 int, Atom, int);
 static void lisp_data_to_selection_data (Display *, Lisp_Object,
                                          unsigned char **, Atom *,
@@ -1758,7 +1759,8 @@ x_get_window_property_as_lisp_data (Display *display, Window window,
 
 
 static Lisp_Object
-selection_data_to_lisp_data (Display *display, unsigned char *data, int size, Atom type, int format)
+selection_data_to_lisp_data (Display *display, const unsigned char *data,
+			     int size, Atom type, int format)
 {
   struct x_display_info *dpyinfo = x_display_info_for_display (display);
 
@@ -2540,7 +2542,8 @@ x_fill_property_data (Display *dpy, Lisp_Object data, void *ret, int format)
    Also see comment for selection_data_to_lisp_data above.  */
 
 Lisp_Object
-x_property_data_to_lisp (struct frame *f, unsigned char *data, Atom type, int format, long unsigned int size)
+x_property_data_to_lisp (struct frame *f, const unsigned char *data,
+			 Atom type, int format, long unsigned int size)
 {
   return selection_data_to_lisp_data (FRAME_X_DISPLAY (f),
                                       data, size*format/8, type, format);

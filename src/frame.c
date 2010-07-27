@@ -3721,7 +3721,7 @@ validate_x_resource_name (void)
 }
 
 
-extern char *x_get_string_resource (XrmDatabase, char *, char *);
+extern char *x_get_string_resource (XrmDatabase, const char *, const char *);
 extern Display_Info *check_x_display_info (Lisp_Object);
 
 
@@ -3823,7 +3823,7 @@ display_x_get_resource (Display_Info *dpyinfo, Lisp_Object attribute, Lisp_Objec
 /* Used when C code wants a resource value.  */
 /* Called from oldXMenu/Create.c.  */
 char *
-x_get_resource_string (char *attribute, char *class)
+x_get_resource_string (const char *attribute, const char *class)
 {
   char *name_key;
   char *class_key;
@@ -3856,7 +3856,8 @@ x_get_resource_string (char *attribute, char *class)
    and don't let it get stored in any Lisp-visible variables!  */
 
 Lisp_Object
-x_get_arg (Display_Info *dpyinfo, Lisp_Object alist, Lisp_Object param, char *attribute, char *class, enum resource_types type)
+x_get_arg (Display_Info *dpyinfo, Lisp_Object alist, Lisp_Object param,
+	   const char *attribute, const char *class, enum resource_types type)
 {
   register Lisp_Object tem;
 
@@ -3954,7 +3955,9 @@ x_get_arg (Display_Info *dpyinfo, Lisp_Object alist, Lisp_Object param, char *at
 }
 
 Lisp_Object
-x_frame_get_arg (struct frame *f, Lisp_Object alist, Lisp_Object param, char *attribute, char *class, enum resource_types type)
+x_frame_get_arg (struct frame *f, Lisp_Object alist, Lisp_Object param,
+		 const char *attribute, const char *class,
+		 enum resource_types type)
 {
   return x_get_arg (FRAME_X_DISPLAY_INFO (f),
 		    alist, param, attribute, class, type);
@@ -3963,7 +3966,10 @@ x_frame_get_arg (struct frame *f, Lisp_Object alist, Lisp_Object param, char *at
 /* Like x_frame_get_arg, but also record the value in f->param_alist.  */
 
 Lisp_Object
-x_frame_get_and_record_arg (struct frame *f, Lisp_Object alist, Lisp_Object param, char *attribute, char *class, enum resource_types type)
+x_frame_get_and_record_arg (struct frame *f, Lisp_Object alist,
+			    Lisp_Object param,
+			    const char *attribute, const char *class,
+			    enum resource_types type)
 {
   Lisp_Object value;
 
@@ -3983,7 +3989,9 @@ x_frame_get_and_record_arg (struct frame *f, Lisp_Object alist, Lisp_Object para
    If that is not found either, use the value DEFLT.  */
 
 Lisp_Object
-x_default_parameter (struct frame *f, Lisp_Object alist, Lisp_Object prop, Lisp_Object deflt, char *xprop, char *xclass, enum resource_types type)
+x_default_parameter (struct frame *f, Lisp_Object alist, Lisp_Object prop,
+		     Lisp_Object deflt, const char *xprop, const char *xclass,
+		     enum resource_types type)
 {
   Lisp_Object tem;
 
