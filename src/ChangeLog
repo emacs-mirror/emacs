@@ -1,5 +1,7 @@
 2010-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* xmenu.c: Do not included lwlib.h, not needed.
+
 	* m/iris4d.h (XUINT, XSET): Remove, not needed.
 
 	* process.c: Move definitions earlier to minimize #ifdefs.
