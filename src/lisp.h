@@ -976,8 +976,8 @@ struct Lisp_Subr
     } function;
     short min_args, max_args;
     const char *symbol_name;
-    char *intspec;
-    char *doc;
+    const char *intspec;
+    const char *doc;
   };
 
 
@@ -2454,7 +2454,7 @@ extern Lisp_Object larger_vector (Lisp_Object, int, Lisp_Object);
 extern void sweep_weak_hash_tables (void);
 extern Lisp_Object Qstring_lessp;
 extern Lisp_Object Vfeatures;
-extern Lisp_Object QCtest, QCweakness, Qequal, Qeq;
+extern Lisp_Object QCsize, QCtest, QCweakness, Qequal, Qeq;
 unsigned sxhash (Lisp_Object, int);
 Lisp_Object make_hash_table (Lisp_Object, Lisp_Object, Lisp_Object,
                              Lisp_Object, Lisp_Object, Lisp_Object,
@@ -2632,9 +2632,12 @@ extern Lisp_Object Qinhibit_redisplay, Qdisplay;
 extern Lisp_Object Qinhibit_eval_during_redisplay;
 extern Lisp_Object Qmessage_truncate_lines;
 extern Lisp_Object Qimage, Qtext, Qboth, Qboth_horiz;
+extern Lisp_Object Qspace, Qcenter, QCalign_to;
 extern Lisp_Object Vmessage_log_max;
+extern Lisp_Object QCdata, QCfile;
 extern int message_enable_multibyte;
 extern Lisp_Object echo_area_buffer[2];
+extern void add_to_log (const char *, Lisp_Object, Lisp_Object);
 extern void check_message_stack (void);
 extern void setup_echo_area_for_printing (int);
 extern int push_message (void);
@@ -2689,6 +2692,7 @@ extern int survives_gc_p (Lisp_Object);
 extern void mark_object (Lisp_Object);
 extern Lisp_Object Vpurify_flag;
 extern Lisp_Object Vmemory_full;
+extern Lisp_Object *stack_base;
 EXFUN (Fcons, 2);
 EXFUN (list1, 1);
 EXFUN (list2, 2);
@@ -3120,6 +3124,7 @@ extern void syms_of_minibuf (void);
 
 extern Lisp_Object Qminus, Qplus, Vcurrent_prefix_arg;
 extern Lisp_Object Vcommand_history;
+extern Lisp_Object Vmark_even_if_inactive;
 extern Lisp_Object Qcall_interactively, Qmouse_leave_buffer_hook;
 EXFUN (Fcall_interactively, 3);
 EXFUN (Fprefix_numeric_value, 1);
@@ -3240,12 +3245,15 @@ extern void frames_bury_buffer (Lisp_Object);
 extern void syms_of_frame (void);
 
 /* Defined in emacs.c */
+#if defined(HAVE_X_WINDOWS) || defined(HAVE_NS)
+extern int display_arg;
+#endif
 extern Lisp_Object decode_env_path (const char *, const char *);
 extern Lisp_Object Vinvocation_name, Vinvocation_directory;
 extern Lisp_Object Vbefore_init_time, Vafter_init_time;
 extern Lisp_Object Vinstallation_directory;
 extern Lisp_Object empty_unibyte_string, empty_multibyte_string;
-EXFUN (Fkill_emacs, 1);
+EXFUN (Fkill_emacs, 1) NO_RETURN;
 #if HAVE_SETLOCALE
 void fixup_locale (void);
 void synchronize_system_messages_locale (void);
@@ -3274,6 +3282,7 @@ extern int inhibit_window_system;
 extern int running_asynch_code;
 
 /* Defined in process.c */
+extern Lisp_Object QCtype, Qlocal;
 EXFUN (Fget_process, 1);
 EXFUN (Fget_buffer_process, 1);
 EXFUN (Fprocessp, 1);
@@ -3333,6 +3342,7 @@ extern void init_macros (void);
 extern void syms_of_macros (void);
 
 /* Defined in undo.c */
+extern Lisp_Object Qapply;
 extern Lisp_Object Qinhibit_read_only;
 EXFUN (Fundo_boundary, 0);
 extern void truncate_undo_list (struct buffer *);
@@ -3468,6 +3478,9 @@ EXFUN (Fx_focus_frame, 1);
 #endif
 
 /* Defined in xfaces.c */
+extern Lisp_Object Qnormal;
+extern Lisp_Object QCfamily, QCweight, QCslant, QCwidth;
+extern Lisp_Object QCheight, QCsize, QCname, QCwidth, QCforeground, QCbackground;
 EXFUN (Fclear_face_cache, 1);
 EXFUN (Fx_load_color_file, 1);
 extern void syms_of_xfaces (void);

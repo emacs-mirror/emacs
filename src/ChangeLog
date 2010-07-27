@@ -1,3 +1,7 @@
+2010-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* lisp.h (Fkill_emacs): Mark as NO_RETURN.
+
 2010-07-27  Christoph Scholtes  <cschol2112@gmail.com>
 
 	* minibuf.c (Fread_buffer): Doc fix (bug#6528).
