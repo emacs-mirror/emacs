@@ -1,3 +1,8 @@
+2010-07-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuf.c (syms_of_minibuf) <read-buffer-function>:
+	Doc fix (bug#5625).
+
 2010-07-27  Ken Brown  <kbrown@cornell.edu>
 
 	* dired.c (DIRENTRY_NONEMPTY) [cygwin]: Use d_ino instead of

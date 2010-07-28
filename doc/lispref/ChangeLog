@@ -1,3 +1,8 @@
+2010-07-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuf.texi (High-Level Completion): Document args of
+	`read-buffer-function' (bug#5625).
+
 2010-07-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* modes.texi (Defining Minor Modes): Use C-delete in examples,
