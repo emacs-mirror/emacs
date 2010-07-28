@@ -1,3 +1,7 @@
+2010-07-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Traces and Profiles): Describe verbose level 9.
+
 2010-07-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* nxml-mode.texi (Limitations): Remove obsolete discussion (Bug#6708).

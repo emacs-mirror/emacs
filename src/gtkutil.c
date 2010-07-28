@@ -3703,8 +3703,7 @@ xg_create_tool_bar (FRAME_PTR f)
   gtk_widget_set_name (x->toolbar_widget, "emacs-toolbar");
 
   gtk_toolbar_set_style (GTK_TOOLBAR (x->toolbar_widget), GTK_TOOLBAR_ICONS);
-  toolbar_set_orientation (x->toolbar_widget,
-                               GTK_ORIENTATION_HORIZONTAL);
+  toolbar_set_orientation (x->toolbar_widget, GTK_ORIENTATION_HORIZONTAL);
 }
 
 
@@ -3749,15 +3748,23 @@ xg_make_tool_item (FRAME_PTR f,
                    int i)
 {
   GtkToolItem *ti = gtk_tool_item_new ();
-  GtkWidget *vb = EQ (Vtool_bar_style, Qboth_horiz)
+  Lisp_Object style = Ftool_bar_get_system_style ();
+  int both_horiz = EQ (style, Qboth_horiz);
+  int text_image = EQ (style, Qtext_image_horiz);
+  
+  GtkWidget *vb = both_horiz || text_image
     ? gtk_hbox_new (FALSE, 0) : gtk_vbox_new (FALSE, 0);
   GtkWidget *wb = gtk_button_new ();
   GtkWidget *weventbox = gtk_event_box_new ();
 
-  if (wimage)
+  if (wimage && ! text_image)
     gtk_box_pack_start (GTK_BOX (vb), wimage, TRUE, TRUE, 0);
 
   gtk_box_pack_start (GTK_BOX (vb), gtk_label_new (label), TRUE, TRUE, 0);
+
+  if (wimage && text_image)
+    gtk_box_pack_start (GTK_BOX (vb), wimage, TRUE, TRUE, 0);
+
   gtk_button_set_focus_on_click (GTK_BUTTON (wb), FALSE);
   gtk_button_set_relief (GTK_BUTTON (wb), GTK_RELIEF_NONE);
   gtk_container_add (GTK_CONTAINER (wb), vb);
@@ -3819,11 +3826,12 @@ static void
 xg_show_toolbar_item (GtkToolItem *ti)
 {
   Lisp_Object style = Ftool_bar_get_system_style ();
+  int both_horiz = EQ (style, Qboth_horiz);
+  int text_image = EQ (style, Qtext_image_horiz);
 
-  int show_label = EQ (style, Qboth)
-    || EQ (style, Qboth_horiz) || EQ (style, Qtext);
+  int horiz = both_horiz || text_image;
+  int show_label = ! EQ (style, Qimage);
   int show_image = ! EQ (style, Qtext);
-  int horiz = EQ (style, Qboth_horiz);
 
   GtkWidget *weventbox = gtk_bin_get_child (GTK_BIN (ti));
   GtkWidget *wbutton = gtk_bin_get_child (GTK_BIN (weventbox));
@@ -3836,15 +3844,21 @@ xg_show_toolbar_item (GtkToolItem *ti)
     new_box = gtk_hbox_new (FALSE, 0);
   else if (GTK_IS_HBOX (vb) && !horiz && show_label && show_image)
     new_box = gtk_vbox_new (FALSE, 0);
-  if (new_box)
+
+  if (!new_box && horiz)
+      gtk_box_reorder_child (GTK_BOX (vb), wlbl, text_image ? 0 : 1);
+  else if (new_box)
     {
       g_object_ref (G_OBJECT (wimage));
       g_object_ref (G_OBJECT (wlbl));
       gtk_container_remove (GTK_CONTAINER (vb), wimage);
       gtk_container_remove (GTK_CONTAINER (vb), wlbl);
       gtk_widget_destroy (GTK_WIDGET (vb));
-      gtk_box_pack_start (GTK_BOX (new_box), wimage, TRUE, TRUE, 0);
+      if (! text_image)
+        gtk_box_pack_start (GTK_BOX (new_box), wimage, TRUE, TRUE, 0);
       gtk_box_pack_start (GTK_BOX (new_box), wlbl, TRUE, TRUE, 0);
+      if (text_image)
+        gtk_box_pack_start (GTK_BOX (new_box), wimage, TRUE, TRUE, 0);
       gtk_container_add (GTK_CONTAINER (wbutton), new_box);
       g_object_unref (G_OBJECT (wimage));
       g_object_unref (G_OBJECT (wlbl));

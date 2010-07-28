@@ -730,7 +730,8 @@ known style.  Otherwise return image.  */)
   if (EQ (Vtool_bar_style, Qimage)
       || EQ (Vtool_bar_style, Qtext)
       || EQ (Vtool_bar_style, Qboth)
-      || EQ (Vtool_bar_style, Qboth_horiz))
+      || EQ (Vtool_bar_style, Qboth_horiz)
+      || EQ (Vtool_bar_style, Qtext_image_horiz))
     return Vtool_bar_style;
   if (!NILP (current_tool_bar_style))
     return current_tool_bar_style;

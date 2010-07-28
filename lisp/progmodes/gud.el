@@ -145,7 +145,7 @@ Used to grey out relevant toolbar icons.")
            (gud-call "suspend"))
           ((eq gud-minor-mode 'gdbmi)
            (gud-call (gdb-gud-context-command "-exec-interrupt")))
-          (t 
+          (t
            (comint-interrupt-subjob)))))
 
 (easy-mmode-defmap gud-menu-map
@@ -2513,7 +2513,7 @@ comint mode, which see."
 	(setq w (cdr w)))
       (if w
  	  (setcar w
- 		  (if (file-remote-p default-directory)
+ 		  (if (file-remote-p file)
 		      ;; Tramp has already been loaded if we are here.
 		      (setq file (tramp-file-name-localname
 				  (tramp-dissect-file-name file)))

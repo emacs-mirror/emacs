@@ -456,7 +456,7 @@ Lisp_Object QCmap, QCpointer;
 Lisp_Object Qrect, Qcircle, Qpoly;
 
 /* Tool bar styles */
-Lisp_Object Qtext, Qboth, Qboth_horiz;
+Lisp_Object Qtext, Qboth, Qboth_horiz, Qtext_image_horiz;
 
 /* Non-zero means print newline to stdout before next mini-buffer
    message.  */
@@ -25636,6 +25636,8 @@ syms_of_xdisp (void)
   staticpro (&Qboth);
   Qboth_horiz = intern_c_string ("both-horiz");
   staticpro (&Qboth_horiz);
+  Qtext_image_horiz = intern_c_string ("text-image-horiz");
+  staticpro (&Qtext_image_horiz);
   QCmap = intern_c_string (":map");
   staticpro (&QCmap);
   QCpointer = intern_c_string (":pointer");
@@ -25979,11 +25981,12 @@ vertical margin.  */);
   DEFVAR_LISP ("tool-bar-style", &Vtool_bar_style,
     doc: /* *Tool bar style to use.
 It can be one of
- image      - show images only
- text       - show text only
- both       - show both, text under image
- both-horiz - show text to the right of the image
- any other  - use system default or image if no system default.  */);
+ image            - show images only
+ text             - show text only
+ both             - show both, text below image
+ both-horiz       - show text to the right of the image
+ text-image-horiz - show text to the left of the image
+ any other        - use system default or image if no system default.  */);
   Vtool_bar_style = Qnil;
 
   DEFVAR_INT ("tool-bar-max-label-size", &tool_bar_max_label_size,

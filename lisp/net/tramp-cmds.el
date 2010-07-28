@@ -225,7 +225,7 @@ Before reproducing the bug, you might apply
 This allows to investigate from a clean environment.  Another
 useful thing to do is to put
 
-  (setq tramp-verbose 8)
+  (setq tramp-verbose 9)
 
 in the ~/.emacs file and to repeat the bug.  Then, include the
 contents of the *tramp/foo* buffer and the *debug tramp/foo*
