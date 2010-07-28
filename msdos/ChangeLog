@@ -1,3 +1,37 @@
+2010-07-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1v2.inp (C_WARNINGS_SWITCH, PROFILING_CFLAGS, PROFILING_LDFLAGS):
+	Edit to empty.
+
+	* sed3v2.inp(C_WARNINGS_SWITCH, PROFILING_CFLAGS, PROFILING_LDFLAGS):
+	Edit to empty.
+
+2010-07-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed2v2.inp (HAVE_STRCHR, HAVE_STRRCHR): Don't edit, already
+	defined on <sys/config.h>.
+
+2010-07-11  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* sed2v2.inp (HAVE_INDEX, HAVE_RINDEX): Don't edit.
+	(HAVE_STRCHR, HAVE_STRRCHR): Edit to 1.
+
+2010-07-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1v2.inp (stamp-oldxmenu): Don't edit out in `temacs:' target,
+	which doesn't exist.
+
+	* sed2v2.inp (HAVE_MEMCPY): Don't edit, defined on <sys/config.h>.
+
+2010-07-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* sed1v2.inp: Remove reference to prefix-args.
+
+2010-07-07  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* sed2v2.inp (HAVE_MEMCPY, HAVE_MEMSET): Edit to 1.
+	(HAVE_BZERO): Don't edit.
+
 2010-07-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* sed1v2.inp (LIB_GCC): Edit to empty.
@@ -139,7 +173,7 @@
 	(FONTCONFIG_CFLAGS, FONTCONFIG_LIBS, FREETYPE_CFLAGS, FREETYPE_LIBS)
 	(LIBOTF_CFLAGS, LIBOTF_LIBS, M17N_FLT_CFLAGS, M17N_FLT_LIBS)
 	(GNU_OBJC_CFLAGS, GNUSTEP_SYSTEM_LIBRARIES, LIBRESOLV, LIBGPM):
-	Edit to empty,
+	Edit to empty.
 	(LIB_MATH): Edit to -lm.
 	(UNEXEC_OBJ): Edit to unexec.o.
 
@@ -874,7 +908,7 @@
 1994-10-17  Morten Welinder  <terra@mole.gnu.ai.mit.edu>
 
 	* sed1.inp: Handle "\t#"-style comments.
-	(obj): Don't add any files -- now done in src/makefile.in.in
+	(obj): Don't add any files -- now done in src/makefile.in.in.
 	(temacs): Don't depend on prefix-args.
 	(DOC): Reflect makefile changes regarding two-batch run.
 

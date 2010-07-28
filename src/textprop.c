@@ -85,8 +85,7 @@ static void text_read_only (Lisp_Object) NO_RETURN;
    to capture that error in GDB by putting a breakpoint on it.  */
 
 static void
-text_read_only (propval)
-     Lisp_Object propval;
+text_read_only (Lisp_Object propval)
 {
   if (STRINGP (propval))
     xsignal1 (Qtext_read_only, propval);
@@ -123,9 +122,7 @@ text_read_only (propval)
 #define hard 1
 
 INTERVAL
-validate_interval_range (object, begin, end, force)
-     Lisp_Object object, *begin, *end;
-     int force;
+validate_interval_range (Lisp_Object object, Lisp_Object *begin, Lisp_Object *end, int force)
 {
   register INTERVAL i;
   int searchpos;
@@ -191,8 +188,7 @@ validate_interval_range (object, begin, end, force)
    is even numbered and thus suitable as a plist.  */
 
 static Lisp_Object
-validate_plist (list)
-     Lisp_Object list;
+validate_plist (Lisp_Object list)
 {
   if (NILP (list))
     return Qnil;
@@ -218,9 +214,7 @@ validate_plist (list)
    with the same values, of list PLIST.  */
 
 static int
-interval_has_all_properties (plist, i)
-     Lisp_Object plist;
-     INTERVAL i;
+interval_has_all_properties (Lisp_Object plist, INTERVAL i)
 {
   register Lisp_Object tail1, tail2, sym1;
   register int found;
@@ -256,9 +250,7 @@ interval_has_all_properties (plist, i)
    properties of PLIST, regardless of their values.  */
 
 static INLINE int
-interval_has_some_properties (plist, i)
-     Lisp_Object plist;
-     INTERVAL i;
+interval_has_some_properties (Lisp_Object plist, INTERVAL i)
 {
   register Lisp_Object tail1, tail2, sym;
 
@@ -280,9 +272,7 @@ interval_has_some_properties (plist, i)
    property names in LIST, regardless of their values.  */
 
 static INLINE int
-interval_has_some_properties_list (list, i)
-     Lisp_Object list;
-     INTERVAL i;
+interval_has_some_properties_list (Lisp_Object list, INTERVAL i)
 {
   register Lisp_Object tail1, tail2, sym;
 
@@ -305,8 +295,7 @@ interval_has_some_properties_list (list, i)
 /* Return the value of PROP in property-list PLIST, or Qunbound if it
    has none.  */
 static Lisp_Object
-property_value (plist, prop)
-     Lisp_Object plist, prop;
+property_value (Lisp_Object plist, Lisp_Object prop)
 {
   Lisp_Object value;
 
@@ -324,9 +313,7 @@ property_value (plist, prop)
    OBJECT is the string or buffer that INTERVAL belongs to.  */
 
 static void
-set_properties (properties, interval, object)
-     Lisp_Object properties, object;
-     INTERVAL interval;
+set_properties (Lisp_Object properties, INTERVAL interval, Lisp_Object object)
 {
   Lisp_Object sym, value;
 
@@ -372,10 +359,7 @@ set_properties (properties, interval, object)
    are actually added to I's plist) */
 
 static int
-add_properties (plist, i, object)
-     Lisp_Object plist;
-     INTERVAL i;
-     Lisp_Object object;
+add_properties (Lisp_Object plist, INTERVAL i, Lisp_Object object)
 {
   Lisp_Object tail1, tail2, sym1, val1;
   register int changed = 0;
@@ -451,10 +435,7 @@ add_properties (plist, i, object)
    OBJECT is the string or buffer containing I.  */
 
 static int
-remove_properties (plist, list, i, object)
-     Lisp_Object plist, list;
-     INTERVAL i;
-     Lisp_Object object;
+remove_properties (Lisp_Object plist, Lisp_Object list, INTERVAL i, Lisp_Object object)
 {
   register Lisp_Object tail1, tail2, sym, current_plist;
   register int changed = 0;
@@ -535,9 +516,7 @@ erase_properties (i)
    POSITION is BEG-based.  */
 
 INTERVAL
-interval_of (position, object)
-     int position;
-     Lisp_Object object;
+interval_of (int position, Lisp_Object object)
 {
   register INTERVAL i;
   int beg, end;
@@ -579,8 +558,7 @@ If the optional second argument OBJECT is a buffer (or nil, which means
 the current buffer), POSITION is a buffer position (integer or marker).
 If OBJECT is a string, POSITION is a 0-based index into it.
 If POSITION is at the end of OBJECT, the value is nil.  */)
-     (position, object)
-     Lisp_Object position, object;
+  (Lisp_Object position, Lisp_Object object)
 {
   register INTERVAL i;
 
@@ -604,9 +582,7 @@ DEFUN ("get-text-property", Fget_text_property, Sget_text_property, 2, 3, 0,
        doc: /* Return the value of POSITION's property PROP, in OBJECT.
 OBJECT is optional and defaults to the current buffer.
 If POSITION is at the end of OBJECT, the value is nil.  */)
-     (position, prop, object)
-     Lisp_Object position, object;
-     Lisp_Object prop;
+  (Lisp_Object position, Lisp_Object prop, Lisp_Object object)
 {
   return textget (Ftext_properties_at (position, object), prop);
 }
@@ -623,10 +599,7 @@ If POSITION is at the end of OBJECT, the value is nil.  */)
    window-specific overlays are considered only if they are associated
    with OBJECT. */
 Lisp_Object
-get_char_property_and_overlay (position, prop, object, overlay)
-     Lisp_Object position, object;
-     register Lisp_Object prop;
-     Lisp_Object *overlay;
+get_char_property_and_overlay (Lisp_Object position, register Lisp_Object prop, Lisp_Object object, Lisp_Object *overlay)
 {
   struct window *w = 0;
 
@@ -689,9 +662,7 @@ If OBJECT is a buffer, then overlay properties are considered as well as
 text properties.
 If OBJECT is a window, then that window's buffer is used, but window-specific
 overlays are considered only if they are associated with OBJECT.  */)
-     (position, prop, object)
-     Lisp_Object position, object;
-     register Lisp_Object prop;
+  (Lisp_Object position, Lisp_Object prop, Lisp_Object object)
 {
   return get_char_property_and_overlay (position, prop, object, 0);
 }
@@ -710,9 +681,7 @@ value is always nil, since strings do not have overlays.  If OBJECT is
 a window, then that window's buffer is used, but window-specific
 overlays are considered only if they are associated with OBJECT.  If
 POSITION is at the end of OBJECT, both car and cdr are nil.  */)
-     (position, prop, object)
-     Lisp_Object position, object;
-     register Lisp_Object prop;
+  (Lisp_Object position, Lisp_Object prop, Lisp_Object object)
 {
   Lisp_Object overlay;
   Lisp_Object val
@@ -732,8 +701,7 @@ If none is found up to (point-max), the function returns (point-max).
 If the optional second argument LIMIT is non-nil, don't search
 past position LIMIT; return LIMIT if nothing is found before LIMIT.
 LIMIT is a no-op if it is greater than (point-max).  */)
-     (position, limit)
-     Lisp_Object position, limit;
+  (Lisp_Object position, Lisp_Object limit)
 {
   Lisp_Object temp;
 
@@ -758,8 +726,7 @@ If none is found since (point-min), the function returns (point-min).
 If the optional second argument LIMIT is non-nil, don't search
 past position LIMIT; return LIMIT if nothing is found before LIMIT.
 LIMIT is a no-op if it is less than (point-min).  */)
-     (position, limit)
-     Lisp_Object position, limit;
+  (Lisp_Object position, Lisp_Object limit)
 {
   Lisp_Object temp;
 
@@ -791,8 +758,7 @@ If the property is constant all the way to the end of OBJECT, return the
 last valid position in OBJECT.
 If the optional fourth argument LIMIT is non-nil, don't search
 past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
-     (position, prop, object, limit)
-     Lisp_Object prop, position, object, limit;
+  (Lisp_Object position, Lisp_Object prop, Lisp_Object object, Lisp_Object limit)
 {
   if (STRINGP (object))
     {
@@ -876,8 +842,7 @@ If the property is constant all the way to the start of OBJECT, return the
 first valid position in OBJECT.
 If the optional fourth argument LIMIT is non-nil, don't search
 back past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
-     (position, prop, object, limit)
-     Lisp_Object prop, position, object, limit;
+  (Lisp_Object position, Lisp_Object prop, Lisp_Object object, Lisp_Object limit)
 {
   if (STRINGP (object))
     {
@@ -965,8 +930,7 @@ If the value is non-nil, it is a position greater than POSITION, never equal.
 
 If the optional third argument LIMIT is non-nil, don't search
 past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
-     (position, object, limit)
-     Lisp_Object position, object, limit;
+  (Lisp_Object position, Lisp_Object object, Lisp_Object limit)
 {
   register INTERVAL i, next;
 
@@ -1020,8 +984,7 @@ past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
 /* Return 1 if there's a change in some property between BEG and END.  */
 
 int
-property_change_between_p (beg, end)
-     int beg, end;
+property_change_between_p (int beg, int end)
 {
   register INTERVAL i, next;
   Lisp_Object object, pos;
@@ -1063,8 +1026,7 @@ If the value is non-nil, it is a position greater than POSITION, never equal.
 
 If the optional fourth argument LIMIT is non-nil, don't search
 past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
-     (position, prop, object, limit)
-     Lisp_Object position, prop, object, limit;
+  (Lisp_Object position, Lisp_Object prop, Lisp_Object object, Lisp_Object limit)
 {
   register INTERVAL i, next;
   register Lisp_Object here_val;
@@ -1111,8 +1073,7 @@ If the value is non-nil, it is a position less than POSITION, never equal.
 
 If the optional third argument LIMIT is non-nil, don't search
 back past position LIMIT; return LIMIT if nothing is found until LIMIT.  */)
-     (position, object, limit)
-     Lisp_Object position, object, limit;
+  (Lisp_Object position, Lisp_Object object, Lisp_Object limit)
 {
   register INTERVAL i, previous;
 
@@ -1160,8 +1121,7 @@ If the value is non-nil, it is a position less than POSITION, never equal.
 
 If the optional fourth argument LIMIT is non-nil, don't search
 back past position LIMIT; return LIMIT if nothing is found until LIMIT.  */)
-     (position, prop, object, limit)
-     Lisp_Object position, prop, object, limit;
+  (Lisp_Object position, Lisp_Object prop, Lisp_Object object, Lisp_Object limit)
 {
   register INTERVAL i, previous;
   register Lisp_Object here_val;
@@ -1210,8 +1170,7 @@ OBJECT is a buffer (or nil, which means the current buffer),
 START and END are buffer positions (integers or markers).
 If OBJECT is a string, START and END are 0-based indices into it.
 Return t if any property value actually changed, nil otherwise.  */)
-     (start, end, properties, object)
-     Lisp_Object start, end, properties, object;
+  (Lisp_Object start, Lisp_Object end, Lisp_Object properties, Lisp_Object object)
 {
   register INTERVAL i, unchanged;
   register int s, len, modified = 0;
@@ -1318,8 +1277,7 @@ specify the property to add.
 If the optional fifth argument OBJECT is a buffer (or nil, which means
 the current buffer), START and END are buffer positions (integers or
 markers).  If OBJECT is a string, START and END are 0-based indices into it.  */)
-     (start, end, property, value, object)
-     Lisp_Object start, end, property, value, object;
+  (Lisp_Object start, Lisp_Object end, Lisp_Object property, Lisp_Object value, Lisp_Object object)
 {
   Fadd_text_properties (start, end,
 			Fcons (property, Fcons (value, Qnil)),
@@ -1336,8 +1294,7 @@ the current buffer), START and END are buffer positions (integers or
 markers).  If OBJECT is a string, START and END are 0-based indices into it.
 If PROPERTIES is nil, the effect is to remove all properties from
 the designated part of OBJECT.  */)
-     (start, end, properties, object)
-     Lisp_Object start, end, properties, object;
+  (Lisp_Object start, Lisp_Object end, Lisp_Object properties, Lisp_Object object)
 {
   return set_text_properties (start, end, properties, object, Qt);
 }
@@ -1353,8 +1310,7 @@ the designated part of OBJECT.  */)
    otherwise.  */
 
 Lisp_Object
-set_text_properties (start, end, properties, object, coherent_change_p)
-     Lisp_Object start, end, properties, object, coherent_change_p;
+set_text_properties (Lisp_Object start, Lisp_Object end, Lisp_Object properties, Lisp_Object object, Lisp_Object coherent_change_p)
 {
   register INTERVAL i;
   Lisp_Object ostart, oend;
@@ -1418,9 +1374,7 @@ set_text_properties (start, end, properties, object, coherent_change_p)
    START and END can be in any order.  */
 
 void
-set_text_properties_1 (start, end, properties, buffer, i)
-     Lisp_Object start, end, properties, buffer;
-     INTERVAL i;
+set_text_properties_1 (Lisp_Object start, Lisp_Object end, Lisp_Object properties, Lisp_Object buffer, INTERVAL i)
 {
   register INTERVAL prev_changed = NULL_INTERVAL;
   register int s, len;
@@ -1509,8 +1463,7 @@ markers).  If OBJECT is a string, START and END are 0-based indices into it.
 Return t if any property was actually removed, nil otherwise.
 
 Use `set-text-properties' if you want to remove all text properties.  */)
-     (start, end, properties, object)
-     Lisp_Object start, end, properties, object;
+  (Lisp_Object start, Lisp_Object end, Lisp_Object properties, Lisp_Object object)
 {
   register INTERVAL i, unchanged;
   register int s, len, modified = 0;
@@ -1595,8 +1548,7 @@ If the optional fourth argument OBJECT is a buffer (or nil, which means
 the current buffer), START and END are buffer positions (integers or
 markers).  If OBJECT is a string, START and END are 0-based indices into it.
 Return t if any property was actually removed, nil otherwise.  */)
-     (start, end, list_of_properties, object)
-     Lisp_Object start, end, list_of_properties, object;
+  (Lisp_Object start, Lisp_Object end, Lisp_Object list_of_properties, Lisp_Object object)
 {
   register INTERVAL i, unchanged;
   register int s, len, modified = 0;
@@ -1703,8 +1655,7 @@ is `eq' to VALUE.  Otherwise return nil.
 If the optional fifth argument OBJECT is a buffer (or nil, which means
 the current buffer), START and END are buffer positions (integers or
 markers).  If OBJECT is a string, START and END are 0-based indices into it.  */)
-     (start, end, property, value, object)
-     Lisp_Object start, end, property, value, object;
+  (Lisp_Object start, Lisp_Object end, Lisp_Object property, Lisp_Object value, Lisp_Object object)
 {
   register INTERVAL i;
   register int e, pos;
@@ -1740,8 +1691,7 @@ is not `eq' to VALUE.  Otherwise, return nil.
 If the optional fifth argument OBJECT is a buffer (or nil, which means
 the current buffer), START and END are buffer positions (integers or
 markers).  If OBJECT is a string, START and END are 0-based indices into it.  */)
-     (start, end, property, value, object)
-     Lisp_Object start, end, property, value, object;
+  (Lisp_Object start, Lisp_Object end, Lisp_Object property, Lisp_Object value, Lisp_Object object)
 {
   register INTERVAL i;
   register int s, e;
@@ -1777,8 +1727,7 @@ markers).  If OBJECT is a string, START and END are 0-based indices into it.  */
    BUFFER can be either a buffer or nil (meaning current buffer).  */
 
 int
-text_property_stickiness (prop, pos, buffer)
-     Lisp_Object prop, pos, buffer;
+text_property_stickiness (Lisp_Object prop, Lisp_Object pos, Lisp_Object buffer)
 {
   Lisp_Object prev_pos, front_sticky;
   int is_rear_sticky = 1, is_front_sticky = 0; /* defaults */
@@ -1851,8 +1800,7 @@ text_property_stickiness (prop, pos, buffer)
 /* Note this can GC when DEST is a buffer.  */
 
 Lisp_Object
-copy_text_properties (start, end, src, pos, dest, prop)
-       Lisp_Object start, end, src, pos, dest, prop;
+copy_text_properties (Lisp_Object start, Lisp_Object end, Lisp_Object src, Lisp_Object pos, Lisp_Object dest, Lisp_Object prop)
 {
   INTERVAL i;
   Lisp_Object res;
@@ -1944,8 +1892,7 @@ copy_text_properties (start, end, src, pos, dest, prop)
    doesn't contain text properties between START and END.  */
 
 Lisp_Object
-text_property_list (object, start, end, prop)
-     Lisp_Object object, start, end, prop;
+text_property_list (Lisp_Object object, Lisp_Object start, Lisp_Object end, Lisp_Object prop)
 {
   struct interval *i;
   Lisp_Object result;
@@ -2002,8 +1949,7 @@ text_property_list (object, start, end, prop)
    non-zero if OBJECT was modified.  */
 
 int
-add_text_properties_from_list (object, list, delta)
-     Lisp_Object object, list, delta;
+add_text_properties_from_list (Lisp_Object object, Lisp_Object list, Lisp_Object delta)
 {
   struct gcpro gcpro1, gcpro2;
   int modified_p = 0;
@@ -2036,8 +1982,7 @@ add_text_properties_from_list (object, list, delta)
    end-points to NEW_END.  */
 
 Lisp_Object
-extend_property_ranges (list, new_end)
-     Lisp_Object list, new_end;
+extend_property_ranges (Lisp_Object list, Lisp_Object new_end)
 {
   Lisp_Object prev = Qnil, head = list;
   int max = XINT (new_end);
@@ -2072,8 +2017,7 @@ extend_property_ranges (list, new_end)
 /* Call the modification hook functions in LIST, each with START and END.  */
 
 static void
-call_mod_hooks (list, start, end)
-     Lisp_Object list, start, end;
+call_mod_hooks (Lisp_Object list, Lisp_Object start, Lisp_Object end)
 {
   struct gcpro gcpro1;
   GCPRO1 (list);
@@ -2094,9 +2038,7 @@ call_mod_hooks (list, start, end)
    those hooks in order, with START and END - 1 as arguments.  */
 
 void
-verify_interval_modification (buf, start, end)
-     struct buffer *buf;
-     int start, end;
+verify_interval_modification (struct buffer *buf, int start, int end)
 {
   register INTERVAL intervals = BUF_INTERVALS (buf);
   register INTERVAL i;
@@ -2274,8 +2216,7 @@ verify_interval_modification (buf, start, end)
    so it can indicate the range of inserted text.  */
 
 void
-report_interval_modification (start, end)
-     Lisp_Object start, end;
+report_interval_modification (Lisp_Object start, Lisp_Object end)
 {
   if (! NILP (interval_insert_behind_hooks))
     call_mod_hooks (interval_insert_behind_hooks, start, end);
@@ -2286,7 +2227,7 @@ report_interval_modification (start, end)
 }
 
 void
-syms_of_textprop ()
+syms_of_textprop (void)
 {
   DEFVAR_LISP ("default-text-properties", &Vdefault_text_properties,
 	       doc: /* Property-list used as default values.

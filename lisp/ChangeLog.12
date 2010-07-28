@@ -943,7 +943,7 @@
 2007-03-20  Richard Stallman  <rms@gnu.org>
 
 	* textmodes/ispell.el (ispell-call-process): New function.
-	Defends against bad `default-directory.'
+	Defends against bad `default-directory'.
 	(ispell-check-version, ispell-find-aspell-dictionaries)
 	(ispell-get-aspell-config-value, lookup-words): Call it.
 	(ispell-call-process-region): New function.
@@ -1606,7 +1606,7 @@
 	(org-set-frame-title, org-show-reference)
 	(org-unhighlight-once, org-verify-change-for-undo): New functions.
 	(org-show-variable): Remove command.
-	(org-add-log-maybe): New arguments STATE, FINDPOS
+	(org-add-log-maybe): New arguments STATE, FINDPOS.
 	(org-table-sort-lines): Rewrite from scratch.
 	(org-link-search): New argument AVOID-POS.
 	(org-print-icalendar-entries): Remove argument CATEGORY.
@@ -2938,7 +2938,7 @@
 
 2006-12-30  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* scroll-bar.el (previous-scroll-bar-mode): New variable
+	* scroll-bar.el (previous-scroll-bar-mode): New variable.
 	(set-scroll-bar-mode): Set previous-scroll-bar-mode.
 	(scroll-bar-mode): Use previous-scroll-bar-mode if set.
 
@@ -5438,7 +5438,7 @@
 	(cperl-to-comment-or-eol): Do not call `cperl-update-syntaxification'
 			recursively.
 		Bound `next-single-property-change' via `point-max'.
-	(cperl-unwind-to-safe): Bound likewise
+	(cperl-unwind-to-safe): Bound likewise.
 	(cperl-font-lock-fontify-region-function): Likewise.
 	(cperl-find-pods-heres): Mark as recursive for `cperl-to-comment-or-eol'
 		Initialization of `cperl-font-lock-multiline-start' could be
@@ -5480,7 +5480,7 @@
 	(cperl-calculate-indent): `char-after' could be nil...
 	(cperl-find-pods-heres): REx can start after "[" too.
 		Highlight (??{}) in RExen too.
-	(cperl-maybe-white-and-comment-rex): New constant
+	(cperl-maybe-white-and-comment-rex): New constant.
 	(cperl-white-and-comment-rex): Likewise.
 		XXXX Not very efficient, but hard to make
 		better while keeping 1 group.
@@ -5526,7 +5526,7 @@
 		Syntax-mark a {}-part of (?{}) as "comment"
 			(it was the ()-part)
 		Better logic to distinguish what is what in REx
-	(cperl-tips-faces): Document REx highlighting
+	(cperl-tips-faces): Document REx highlighting.
 	(cperl-praise): Mention REx syntax highlight etc.
 
 	After 5.17:
@@ -5566,7 +5566,7 @@
 	(cperl-indent-comment-at-column-0): New customization variable.
 	(cperl-comment-indent): Indentation after $#a would increase by 1.
 	(cperl-mode): Make `defun-prompt-regexp' grok BEGIN/END etc.
-	(cperl-find-pods-heres): Mark CODE of s///e as `syntax-type' `multiline'
+	(cperl-find-pods-heres): Mark CODE of s///e as `syntax-type' `multiline'.
 	(cperl-at-end-of-expr): Would fail if @BAR=12 follows after ";".
 	(cperl-init-faces): If `cperl-highlight-variables-indiscriminately'
 			highlight $ in $foo too (UNTESTED).
@@ -5579,7 +5579,7 @@
 	(cperl-style-alist): Likewise.
 	(cperl-fix-line-spacing): Support `cperl-merge-trailing-else' being nil,
 		and `cperl-extra-newline-before-brace' etc
-		being t
+		being t.
 	(cperl-indent-exp): Plans B and C to find continuation blocks even
 		if `cperl-extra-newline-before-brace' is t.
 
@@ -7296,7 +7296,7 @@
 	(gdb-stack-position): New variable.
 	(gdb-starting, gdb-exited): Reset gdb-stack-position to nil.
 	(gdb-frames-mode): Set gdb-stack-position to nil.
-	Add to overlay-arrow-variable-list
+	Add to overlay-arrow-variable-list.
 	(gdb-reset): Delete gdb-stack-position from above list.
 
 2006-08-14  Jan Djärv  <jan.h.d@swipnet.se>
@@ -7459,7 +7459,7 @@
 	* avoid.el (mouse-avoidance-animating-pointer): New var.
 	(mouse-avoidance-nudge-mouse): Use it.
 	(mouse-avoidance-banish): Rename from mouse-avoidance-banish-hook.
-	(mouse-avoidance-exile): Rename from mouse-avoidance-exile-hook
+	(mouse-avoidance-exile): Rename from mouse-avoidance-exile-hook.
 	(mouse-avoidance-fancy): Rename from mouse-avoidance-fancy-hook.
 	Don't activate if currently animating.  All callers changed.
 
@@ -8723,7 +8723,7 @@
 	* progmodes/gdb-ui.el (gdb-same-frame): New option.
 	(gud-old-arrow, gdb-frame-begin, gdb-printing): New variables.
 	(gdb-init-1): Initialise them.
-	(gdb-starting): Reset gdb-printing
+	(gdb-starting): Reset gdb-printing.
 	(gdb-starting): Save value of gud-overlay-arrow-position.
 	(gdb-frame-begin): Set gdb-frame-begin, gdb-printing.
 	(gdb-stopped): Don't look for source if calling procedure e.g "p a ()".
@@ -9460,7 +9460,7 @@
 	links to BibTeX database entries..
 	(org-get-current-options, org-set-regexps-and-options):
 	Implement logging as a startup option.
-	(org-store-link): Make sure context string is never empty
+	(org-store-link): Make sure context string is never empty.
 	(org-insert-link): Use relative path when possible.
 	(org-at-item-checklet-p): New function.
 	(org-shifttab, org-shiftmetaleft, org-shiftmetaright)
@@ -10197,7 +10197,7 @@
 	(gdb-init-1, gdb-post-prompt): ...and references to it.
 	(gdb-frame-handler): Strip directory name from filename if present.
 
-	* progmodes/gud.el (gdb-force-update): Delete defvar
+	* progmodes/gud.el (gdb-force-update): Delete defvar.
 	(gud-speedbar-buttons): ...and references to it.  Use window-start
 	to try to keep position in watch expression.
 
@@ -10246,7 +10246,7 @@
 
 	* diff-mode.el (diff-mode-shared-map): Don't bind M-W, M-U, M-C,
 	M-r, M-R, M-A, M-SPC or M-DEL.
-	(diff-mode-map): diff-refine-hunk now on C-c C-w
+	(diff-mode-map): diff-refine-hunk now on C-c C-w.
 	(diff-mode-map): Bind C-c C-e, C-c C-n, C-c C-r, C-c C-u.
 
 	* help-mode.el (help-mode): view-exit-action calls delete-window
@@ -10862,7 +10862,7 @@
 	(org-edit-agenda-file-list, org-store-new-agenda-file-list)
 	(org-read-agenda-file-list): New functions.
 	(org-table-edit-field)
-	(org-table-create-or-convert-from-region): New commands
+	(org-table-create-or-convert-from-region): New commands.
 	(org-table-toggle-vline-visibility): Command removed.
 	(org-table-convert-region): Made a command.
 	(orgtbl-delete-backward-char, orgtbl-delete-char): Remove commands.
@@ -10881,7 +10881,7 @@
 	Optional argument unrestricted means ignore any restrictions.
 	(org-install-agenda-files-menu): Find a buffer in Org-mode before
 	trying to modify the menu.  Use generalized access to
-	`org-agenda-files.'
+	`org-agenda-files'.
 	(org-agenda-list, org-todo-list, org-cycle-agenda-files)
 	(org-agenda-file-to-front, org-remove-file, org-diary)
 	(org-tags-view, org-export-icalendar-all-agenda-files)
@@ -13666,7 +13666,7 @@
 	(thumbs-resize-image): Rename from thumbs-resize-image-interactive.
 	Use increment argument to enlarge/shrink.  Preserve point.
 	(thumbs-shrink-image): Rename from thumbs-resize-image-size-down.
-	(thumbs-enlarge-image): Rename from thumbs-resize-image-size-up
+	(thumbs-enlarge-image): Rename from thumbs-resize-image-size-up.
 	(thumbs-show-thumbs-list): Set thumbs-buffer to current-buffer.
 	(thumbs-mark, thumbs-unmark): Preserve point.
 	(thumbs-modify-image): Keep old temp files and use to modify.
@@ -16160,7 +16160,7 @@
 	(c-after-statement-terminator-p): Adapt for virtual semicolons;
 	check more rigorously for "end of macro".
 	(c-back-over-illiterals, c-forward-over-illiterals): Adapt for
-	virtual semicolons;
+	virtual semicolons.
 	(c-beginning-of-statement): Adapt for virtual semicolons; Separate
 	out the code for forward movement into ...
 	(c-end-of-statement): Now contains the code for forward movement,
@@ -19706,7 +19706,7 @@
 	(allout-mode): Use key-binding substitution in the docstring.
 	(allout-kill-line): Spell-out kill ring data structure mutation
 	instead of using byte-compiler-complaint-provoking `pop'.
-	(allout-insert-listified): Use `insert' rather than `insert-string'
+	(allout-insert-listified): Use `insert' rather than `insert-string'.
 	(allout-toggle-current-subtree-encryption): Update docstring, adjust
 	to new gpp-based encryption, use new `allout-encrypted-topic-p'.
 	(allout-encrypt-string): Totally revamped vis new underlying
@@ -20757,13 +20757,13 @@
 	* progmodes/gdb-ui.el (gdb-info-breakpoints-custom):
 	Put `font-lock-function-name-face'.
 	(gdb-info-frames-custom): Put `font-lock-function-name-face'
-	and `font-lock-variable-name-face'
+	and `font-lock-variable-name-face'.
 	(gdb-registers-font-lock-keywords): New font lock keywords definition.
 	(gdb-registers-mode): Use `gdb-registers-font-lock-keywords'.
 	(gdb-memory-font-lock-keywords): New font lock keywords definition.
 	(gdb-memory-mode): Use `gdb-memory-font-lock-keywords'.
 	(gdb-local-font-lock-keywords): New font lock keywords definition.
-	(gdb-locals-mode): Use `gdb-local-font-lock-keywords'
+	(gdb-locals-mode): Use `gdb-local-font-lock-keywords'.
 	(gdb-threads-font-lock-keywords): New font lock keywords definition.
 	(gdb-threads-mode): Use `gdb-threads-font-lock-keywords'.
 
@@ -29352,7 +29352,7 @@
 	* loadhist.el (unload-feature): Update for new format of load-history.
 	Simplify the code.
 
-	* mail/rmail.el (rmail-ignored-headers): Ignore more headers
+	* mail/rmail.el (rmail-ignored-headers): Ignore more headers.
 	(rmail-font-lock-keywords): Don't fontify the text of a citation.
 
 	* mail/sendmail.el (mail-font-lock-keywords):
@@ -29421,7 +29421,7 @@
 	(org-evaluate-time-range): Insert at point instead of directly
 	after time range.
 	(org-first-headline-recenter, org-subtree-end-visible-p)
-	(org-optimize-window-after-visibility-change): New functions
+	(org-optimize-window-after-visibility-change): New functions.
 	(org-agenda-post-command-hook): Don't allow point at end of line,
 	to make sure it always hits the text properties.
 	(org-agenda-next-date-line, org-agenda-previous-date-line):
@@ -29603,13 +29603,13 @@
 
 2005-04-11  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* dired.el (dired-mode): Use dnd-* instead of x-dnd-*
+	* dired.el (dired-mode): Use dnd-* instead of x-dnd-*.
 	(dired-dnd-handle-local-file): Call dnd-get-local-file-name.
 	(dired-dnd-handle-file): Call dnd-get-local-file-uri.
 
 	* cus-edit.el (dnd): New group.
 
-	* term/w32-win.el (dnd): Require dnd
+	* term/w32-win.el (dnd): Require dnd.
 	(w32-drag-n-drop): Call dnd-handle-one-url.
 
 	* x-dnd.el: Require dnd.
@@ -31918,7 +31918,7 @@
 
 	* progmodes/gdb-ui.el (gdb-var-update-handler)
 	(gdb-speedbar-timer-fn): Ensure speedbar updates with new values
-	for watch expressions,
+	for watch expressions.
 	(gdb-var-create-handler): Don't set speedbar-update-flag.
 	(gdb-post-prompt): Simplify test for speedbar.
 
@@ -32781,14 +32781,14 @@
 2005-01-15  James R. Van Zandt  <jrvz@comcast.net>  (tiny change)
 
 	* progmodes/sh-script.el: Code copied from make-mode.el
-	with small changes,
+	with small changes.
 	(sh-mode-map): Bind C-c C-\.
 	(sh-backslash-column, sh-backslash-align): New variables.
 	(sh-backslash-region, sh-append-backslash): New functions.
 
 2005-01-15  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
 
-	* mail/rmail.el: Updated to work with movemail from GNU Mailutils
+	* mail/rmail.el: Updated to work with movemail from GNU Mailutils.
 	(rmail-pop-password, rmail-pop-password-required): Move to
 	rmail-obsolete group.
 	(rmail-set-pop-password): Rename to rmail-set-remote-password.
@@ -32892,7 +32892,7 @@
 
 	* textmodes/reftex-vars.el (reftex-cite-format-builtin):
 	Add optional arguments to most cite commands.
-	(reftex-cite-cleanup-optional-args): New option
+	(reftex-cite-cleanup-optional-args): New option.
 	(reftex-cite-prompt-optional-args): New option.
 	(reftex-trust-label-prefix): New option.
 

@@ -21,11 +21,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <signal.h>
 #include <stdio.h>
 #include <setjmp.h>
-#include <lisp.h>
-#include <syssignal.h>
-#include <systime.h>
-#include <blockinput.h>
-#include <atimer.h>
+#include "lisp.h"
+#include "syssignal.h"
+#include "systime.h"
+#include "blockinput.h"
+#include "atimer.h"
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -68,7 +68,7 @@ static void set_alarm (void);
 static void schedule_atimer (struct atimer *);
 static struct atimer *append_atimer_lists (struct atimer *,
                                            struct atimer *);
-SIGTYPE alarm_signal_handler ();
+SIGTYPE alarm_signal_handler (int signo);
 
 
 /* Start a new atimer of type TYPE.  TIME specifies when the timer is
@@ -90,11 +90,8 @@ SIGTYPE alarm_signal_handler ();
    to cancel_atimer; don't free it yourself.  */
 
 struct atimer *
-start_atimer (type, time, fn, client_data)
-     enum atimer_type type;
-     EMACS_TIME time;
-     atimer_callback fn;
-     void *client_data;
+start_atimer (enum atimer_type type, EMACS_TIME time, atimer_callback fn,
+	      void *client_data)
 {
   struct atimer *t;
 
@@ -119,7 +116,7 @@ start_atimer (type, time, fn, client_data)
     t = (struct atimer *) xmalloc (sizeof *t);
 
   /* Fill the atimer structure.  */
-  bzero (t, sizeof *t);
+  memset (t, 0, sizeof *t);
   t->type = type;
   t->fn = fn;
   t->client_data = client_data;
@@ -159,8 +156,7 @@ start_atimer (type, time, fn, client_data)
 /* Cancel and free atimer TIMER.  */
 
 void
-cancel_atimer (timer)
-     struct atimer *timer;
+cancel_atimer (struct atimer *timer)
 {
   int i;
 
@@ -199,8 +195,7 @@ cancel_atimer (timer)
    result list.  */
 
 static struct atimer *
-append_atimer_lists (list1, list2)
-     struct atimer *list1, *list2;
+append_atimer_lists (struct atimer *list1, struct atimer *list2)
 {
   if (list1 == NULL)
     return list2;
@@ -221,8 +216,7 @@ append_atimer_lists (list1, list2)
 /* Stop all timers except timer T.  T null means stop all timers.  */
 
 void
-stop_other_atimers (t)
-     struct atimer *t;
+stop_other_atimers (struct atimer *t)
 {
   BLOCK_ATIMERS;
 
@@ -257,7 +251,7 @@ stop_other_atimers (t)
    stop_other_atimers.  */
 
 void
-run_all_atimers ()
+run_all_atimers (void)
 {
   if (stopped_atimers)
     {
@@ -283,8 +277,7 @@ run_all_atimers ()
 /* A version of run_all_timers suitable for a record_unwind_protect.  */
 
 Lisp_Object
-unwind_stop_other_atimers (dummy)
-     Lisp_Object dummy;
+unwind_stop_other_atimers (Lisp_Object dummy)
 {
   run_all_atimers ();
   return Qnil;
@@ -294,7 +287,7 @@ unwind_stop_other_atimers (dummy)
 /* Arrange for a SIGALRM to arrive when the next timer is ripe.  */
 
 static void
-set_alarm ()
+set_alarm (void)
 {
   if (atimers)
     {
@@ -315,7 +308,7 @@ set_alarm ()
 	  EMACS_SET_USECS (time, 1000);
 	}
 
-      bzero (&it, sizeof it);
+      memset (&it, 0, sizeof it);
       it.it_value = time;
       setitimer (ITIMER_REAL, &it, 0);
 #else /* not HAVE_SETITIMER */
@@ -330,8 +323,7 @@ set_alarm ()
    already.  */
 
 static void
-schedule_atimer (t)
-     struct atimer *t;
+schedule_atimer (struct atimer *t)
 {
   struct atimer *a = atimers, *prev = NULL;
 
@@ -349,7 +341,7 @@ schedule_atimer (t)
 }
 
 static void
-run_timers ()
+run_timers (void)
 {
   EMACS_TIME now;
 
@@ -401,8 +393,7 @@ run_timers ()
    SIGALRM.  */
 
 SIGTYPE
-alarm_signal_handler (signo)
-     int signo;
+alarm_signal_handler (int signo)
 {
 #ifndef SYNC_INPUT
   SIGNAL_THREAD_CHECK (signo);
@@ -420,7 +411,7 @@ alarm_signal_handler (signo)
 /* Call alarm_signal_handler for pending timers.  */
 
 void
-do_pending_atimers ()
+do_pending_atimers (void)
 {
   if (pending_atimers)
     {
@@ -435,8 +426,7 @@ do_pending_atimers ()
    some systems like HPUX (see process.c).  */
 
 void
-turn_on_atimers (on)
-     int on;
+turn_on_atimers (int on)
 {
   if (on)
     {
@@ -449,7 +439,7 @@ turn_on_atimers (on)
 
 
 void
-init_atimer ()
+init_atimer (void)
 {
   free_atimers = stopped_atimers = atimers = NULL;
   pending_atimers = 0;

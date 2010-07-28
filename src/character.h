@@ -605,13 +605,13 @@ extern int translate_char (Lisp_Object, int c);
 extern int char_printable_p (int c);
 extern void parse_str_as_multibyte (const unsigned char *, int, int *,
                                     int *);
-extern int parse_str_to_multibyte (unsigned char *, int);
+extern int parse_str_to_multibyte (const unsigned char *, int);
 extern int str_as_multibyte (unsigned char *, int, int, int *);
 extern int str_to_multibyte (unsigned char *, int, int);
 extern int str_as_unibyte (unsigned char *, int);
 extern EMACS_INT str_to_unibyte (const unsigned char *, unsigned char *,
                                  EMACS_INT, int);
-extern int strwidth (unsigned char *, int);
+extern int strwidth (const unsigned char *, int);
 extern int c_string_width (const unsigned char *, int, int, int *, int *);
 extern int lisp_string_width (Lisp_Object, int, int *, int *);
 
@@ -635,18 +635,6 @@ extern Lisp_Object Vauto_fill_chars;
 
 extern Lisp_Object Vchar_script_table;
 extern Lisp_Object Vscript_representative_chars;
-
-/* Copy LEN bytes from FROM to TO.  This macro should be used only
-   when a caller knows that LEN is short and the obvious copy loop is
-   faster than calling bcopy which has some overhead.  Copying a
-   multibyte sequence of a character is the typical case.  */
-
-#define BCOPY_SHORT(from, to, len)		\
-  do {						\
-    int i = len;				\
-    unsigned char *from_p = from, *to_p = to;	\
-    while (i--) *to_p++ = *from_p++;		\
-  } while (0)
 
 #define DEFSYM(sym, name)	\
   do { (sym) = intern_c_string ((name)); staticpro (&(sym)); } while (0)

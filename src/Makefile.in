@@ -63,6 +63,13 @@ OTHER_FILES = @OTHER_FILES@
 
 CRT_DIR=@CRT_DIR@
 
+## Flags to pass for profiling builds
+PROFILING_CFLAGS = @PROFILING_CFLAGS@
+PROFILING_LDFLAGS = @PROFILING_LDFLAGS@
+
+## Flags to pass to the compiler to enable build warnings
+C_WARNINGS_SWITCH = @C_WARNINGS_SWITCH@
+
 ## Machine-specific CFLAGS.
 C_SWITCH_MACHINE=@C_SWITCH_MACHINE@
 ## System-specific CFLAGS.
@@ -107,7 +114,7 @@ LD_SWITCH_SYSTEM_TEMACS=@LD_SWITCH_SYSTEM_TEMACS@
 ## Flags to pass to ld only for temacs.
 TEMACS_LDFLAGS = $(LD_SWITCH_SYSTEM) $(LD_SWITCH_SYSTEM_TEMACS)
 
-## $LDFLAGS, or empty if NS_IMPL_GNUSTEP (for some reason).
+## $LDFLAGS $PROFILING_LDFLAGS, or empty if NS_IMPL_GNUSTEP (for some reason).
 TEMACS_LDFLAGS2 = @TEMACS_LDFLAGS2@
 
 ## Some systems define this to request special libraries.
@@ -309,8 +316,9 @@ MKDEPDIR=@MKDEPDIR@
 ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I${srcdir} \
   ${C_SWITCH_MACHINE} ${C_SWITCH_SYSTEM} ${C_SWITCH_X_SITE} \
   ${C_SWITCH_X_SYSTEM} ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${DBUS_CFLAGS} \
-  ${GCONF_CFLAGS} ${CFLAGS} ${FREETYPE_CFLAGS} ${FONTCONFIG_CFLAGS} \
-  ${LIBOTF_CFLAGS} ${M17N_FLT_CFLAGS} ${DEPFLAGS}
+  ${GCONF_CFLAGS} ${FREETYPE_CFLAGS} ${FONTCONFIG_CFLAGS} \
+  ${LIBOTF_CFLAGS} ${M17N_FLT_CFLAGS} ${DEPFLAGS} ${PROFILING_CFLAGS} \
+  ${C_WARNINGS_SWITCH} ${CFLAGS}
 ALL_OBJC_CFLAGS=$(ALL_CFLAGS) $(GNU_OBJC_CFLAGS)
 
 .SUFFIXES: .m
@@ -426,7 +434,7 @@ lisp= \
 	${lispsource}language/slovak.el \
 	${lispsource}language/romanian.el \
 	${lispsource}language/greek.el \
-	${lispsource}language/hebrew.el \
+	${lispsource}language/hebrew.elc \
 	${lispsource}language/japanese.el \
 	${lispsource}language/korean.el \
 	${lispsource}language/lao.el \
@@ -517,7 +525,7 @@ shortlisp= \
 	../lisp/language/slovak.el \
 	../lisp/language/romanian.el \
 	../lisp/language/greek.el \
-	../lisp/language/hebrew.el \
+	../lisp/language/hebrew.elc \
 	../lisp/language/japanese.el \
 	../lisp/language/korean.el \
 	../lisp/language/lao.el \
@@ -628,19 +636,9 @@ buildobj.h: Makefile
 	echo "#define BUILDOBJ \"${obj} ${otherobj} " "\"" > buildobj.h
 
 
-## We cannot define variables for PRE_EDIT and POST_EDIT.
-## If !ORDINARY_LINK && !LINKER && GCC, they add a
-## `./prefix-args -Xlinker ... ` wrapper, otherwise they are empty.
-## One alternative to this approach would be to always call prefix-args, 
-## and have it DTRT in all cases, by testing the above defines.
-temacs${EXEEXT}: $(START_FILES) stamp-oldxmenu ${obj} ${otherobj} prefix-args${EXEEXT}
-	$(LD) @PRE_EDIT_LDFLAGS@ ${TEMACS_LDFLAGS} @POST_EDIT_LDFLAGS@ \
-	  ${TEMACS_LDFLAGS2} \
+temacs${EXEEXT}: $(START_FILES) stamp-oldxmenu ${obj} ${otherobj}
+	$(LD) ${TEMACS_LDFLAGS} ${TEMACS_LDFLAGS2} \
 	  -o temacs ${START_FILES} ${obj} ${otherobj} ${LIBES}
-
-prefix-args${EXEEXT}: prefix-args.o $(config_h)
-	$(CC) $(LDFLAGS) prefix-args.o -o prefix-args
-
 
 ## The following oldxmenu-related rules are only (possibly) used if
 ## HAVE_X11 && !USE_GTK, but there is no harm in always defining them
@@ -688,7 +686,7 @@ doc.o: buildobj.h
 
 
 mostlyclean:
-	rm -f temacs${EXEEXT} prefix-args${EXEEXT} core *.core \#* *.o libXMenu11.a liblw.a
+	rm -f temacs${EXEEXT} core *.core \#* *.o libXMenu11.a liblw.a
 	rm -f ../etc/DOC
 	rm -f bootstrap-emacs${EXEEXT} emacs-${version}${EXEEXT}
 	rm -f buildobj.h

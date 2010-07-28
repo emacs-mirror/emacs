@@ -43,7 +43,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <string.h>
 #include <malloc.h>
 
-static void set_user_model_id ();
+static void set_user_model_id (void);
 
 int WINAPI
 WinMain (HINSTANCE hSelf, HINSTANCE hPrev, LPSTR cmdline, int nShow)
@@ -174,7 +174,8 @@ error:
   return 1;
 }
 
-void set_user_model_id ()
+void
+set_user_model_id (void)
 {
   HMODULE shell;
   HRESULT (WINAPI * set_user_model) (wchar_t * id);

@@ -17,10 +17,10 @@
 #include "XMenuInt.h"
 
 int
-XMenuChangePane(menu, p_num, label)
-    register XMenu *menu;	/* Menu object to be modified. */
-    register int p_num;		/* Pane number to be modified. */
-    char *label;		/* Selection label. */
+XMenuChangePane(register XMenu *menu, register int p_num, char *label)
+                         	/* Menu object to be modified. */
+                       		/* Pane number to be modified. */
+                		/* Selection label. */
 {
     register XMPane *p_ptr;	/* XMPane pointer. */
 

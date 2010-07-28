@@ -180,9 +180,7 @@ Lisp_Object composition_temp;
    If the composition is invalid, return -1.  */
 
 int
-get_composition_id (charpos, bytepos, nchars, prop, string)
-     int charpos, bytepos, nchars;
-     Lisp_Object prop, string;
+get_composition_id (int charpos, int bytepos, int nchars, Lisp_Object prop, Lisp_Object string)
 {
   Lisp_Object id, length, components, key, *key_contents;
   int glyph_len;
@@ -429,10 +427,7 @@ get_composition_id (charpos, bytepos, nchars, prop, string)
    This doesn't check the validity of composition.  */
 
 int
-find_composition (pos, limit, start, end, prop, object)
-     int pos, limit;
-     EMACS_INT *start, *end;
-     Lisp_Object *prop, object;
+find_composition (int pos, int limit, EMACS_INT *start, EMACS_INT *end, Lisp_Object *prop, Lisp_Object object)
 {
   Lisp_Object val;
 
@@ -470,9 +465,7 @@ find_composition (pos, limit, start, end, prop, object)
    FROM and TO with property PROP.  */
 
 static void
-run_composition_function (from, to, prop)
-     int from, to;
-     Lisp_Object prop;
+run_composition_function (int from, int to, Lisp_Object prop)
 {
   Lisp_Object func;
   EMACS_INT start, end;
@@ -504,9 +497,7 @@ run_composition_function (from, to, prop)
    change is deletion, FROM == TO.  Otherwise, FROM < TO.  */
 
 void
-update_compositions (from, to, check_mask)
-     EMACS_INT from, to;
-     int check_mask;
+update_compositions (EMACS_INT from, EMACS_INT to, int check_mask)
 {
   Lisp_Object prop;
   EMACS_INT start, end;
@@ -612,8 +603,7 @@ update_compositions (from, to, check_mask)
    top-level copies of them so that none of them are `eq'.  */
 
 void
-make_composition_value_copy (list)
-     Lisp_Object list;
+make_composition_value_copy (Lisp_Object list)
 {
   Lisp_Object plist, val;
 
@@ -638,9 +628,7 @@ make_composition_value_copy (list)
    indices START and END in STRING.  */
 
 void
-compose_text (start, end, components, modification_func, string)
-     int start, end;
-     Lisp_Object components, modification_func, string;
+compose_text (int start, int end, Lisp_Object components, Lisp_Object modification_func, Lisp_Object string)
 {
   Lisp_Object prop;
 
@@ -667,8 +655,7 @@ static Lisp_Object gstring_hash_table;
 static Lisp_Object gstring_lookup_cache (Lisp_Object);
 
 static Lisp_Object
-gstring_lookup_cache (header)
-     Lisp_Object header;
+gstring_lookup_cache (Lisp_Object header)
 {
   struct Lisp_Hash_Table *h = XHASH_TABLE (gstring_hash_table);
   int i = hash_lookup (h, header, NULL);
@@ -677,9 +664,7 @@ gstring_lookup_cache (header)
 }
 
 Lisp_Object
-composition_gstring_put_cache (gstring, len)
-     Lisp_Object gstring;
-     int len;
+composition_gstring_put_cache (Lisp_Object gstring, int len)
 {
   struct Lisp_Hash_Table *h = XHASH_TABLE (gstring_hash_table);
   unsigned hash;
@@ -707,8 +692,7 @@ composition_gstring_put_cache (gstring, len)
 }
 
 Lisp_Object
-composition_gstring_from_id (id)
-     int id;
+composition_gstring_from_id (int id)
 {
   struct Lisp_Hash_Table *h = XHASH_TABLE (gstring_hash_table);
 
@@ -720,8 +704,7 @@ static Lisp_Object fill_gstring_header (Lisp_Object, Lisp_Object,
                                         Lisp_Object);
 
 int
-composition_gstring_p (gstring)
-     Lisp_Object gstring;
+composition_gstring_p (Lisp_Object gstring)
 {
   Lisp_Object header;
   int i;
@@ -752,10 +735,7 @@ composition_gstring_p (gstring)
 }
 
 int
-composition_gstring_width (gstring, from, to, metrics)
-     Lisp_Object gstring;
-     int from, to;
-     struct font_metrics *metrics;
+composition_gstring_width (Lisp_Object gstring, int from, int to, struct font_metrics *metrics)
 {
   Lisp_Object *glyph;
   int width = 0;
@@ -811,8 +791,7 @@ static Lisp_Object gstring_work;
 static Lisp_Object gstring_work_headers;
 
 static Lisp_Object
-fill_gstring_header (header, start, end, font_object, string)
-     Lisp_Object header, start, end, font_object, string;
+fill_gstring_header (Lisp_Object header, Lisp_Object start, Lisp_Object end, Lisp_Object font_object, Lisp_Object string)
 {
   EMACS_INT from, to, from_byte;
   EMACS_INT len, i;
@@ -872,8 +851,7 @@ fill_gstring_header (header, start, end, font_object, string)
 extern void font_fill_lglyph_metrics (Lisp_Object, Lisp_Object);
 
 static void
-fill_gstring_body (gstring)
-     Lisp_Object gstring;
+fill_gstring_body (Lisp_Object gstring)
 {
   Lisp_Object font_object = LGSTRING_FONT (gstring);
   Lisp_Object header = AREF (gstring, 0);
@@ -923,12 +901,7 @@ fill_gstring_body (gstring)
    object.  Otherwise return nil.  */
 
 static Lisp_Object
-autocmp_chars (rule, charpos, bytepos, limit, win, face, string)
-     Lisp_Object rule;
-     EMACS_INT charpos, bytepos, limit;
-     struct window *win;
-     struct face *face;
-     Lisp_Object string;
+autocmp_chars (Lisp_Object rule, EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT limit, struct window *win, struct face *face, Lisp_Object string)
 {
   int count = SPECPDL_INDEX ();
   FRAME_PTR f = XFRAME (win->frame);
@@ -1020,10 +993,7 @@ static int _work_char;
    composition.  */
 
 void
-composition_compute_stop_pos (cmp_it, charpos, bytepos, endpos, string)
-     struct composition_it *cmp_it;
-     EMACS_INT charpos, bytepos, endpos;
-     Lisp_Object string;
+composition_compute_stop_pos (struct composition_it *cmp_it, EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT endpos, Lisp_Object string)
 {
   EMACS_INT start, end, c;
   Lisp_Object prop, val;
@@ -1253,12 +1223,7 @@ composition_compute_stop_pos (cmp_it, charpos, bytepos, endpos, string)
    CMP_IT->stop_pos, and return 0.  */
 
 int
-composition_reseat_it (cmp_it, charpos, bytepos, endpos, w, face, string)
-     struct composition_it *cmp_it;
-     EMACS_INT charpos, bytepos, endpos;
-     struct window *w;
-     struct face *face;
-     Lisp_Object string;
+composition_reseat_it (struct composition_it *cmp_it, EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT endpos, struct window *w, struct face *face, Lisp_Object string)
 {
   if (endpos <= charpos)
     {
@@ -1417,10 +1382,7 @@ composition_reseat_it (cmp_it, charpos, bytepos, endpos, w, face, string)
    the cluster, or -1 if the composition is somehow broken.  */
 
 int
-composition_update_it (cmp_it, charpos, bytepos, string)
-     struct composition_it *cmp_it;
-     EMACS_INT charpos, bytepos;
-     Lisp_Object string;
+composition_update_it (struct composition_it *cmp_it, EMACS_INT charpos, EMACS_INT bytepos, Lisp_Object string)
 {
   int i, c;
 
@@ -1543,9 +1505,7 @@ struct position_record
    the composition, and return 1.  Otherwise, return 0.  */
 
 static int
-find_automatic_composition (pos, limit, start, end, gstring, string)
-     EMACS_INT pos, limit, *start, *end;
-     Lisp_Object *gstring, string;
+find_automatic_composition (EMACS_INT pos, EMACS_INT limit, EMACS_INT *start, EMACS_INT *end, Lisp_Object *gstring, Lisp_Object string)
 {
   EMACS_INT head, tail, stop;
   /* Limit to check a composition after POS.  */
@@ -1716,8 +1676,7 @@ find_automatic_composition (pos, limit, start, end, gstring, string)
    to NEW_PT.  */
 
 int
-composition_adjust_point (last_pt, new_pt)
-     EMACS_INT last_pt, new_pt;
+composition_adjust_point (EMACS_INT last_pt, EMACS_INT new_pt)
 {
   EMACS_INT charpos, bytepos, startpos, beg, end, pos;
   Lisp_Object val;
@@ -1799,8 +1758,7 @@ where
 
 If GLYPH is nil, the remaining elements of the glyph-string vector
 should be ignored.  */)
-     (from, to, font_object, string)
-     Lisp_Object font_object, from, to, string;
+  (Lisp_Object from, Lisp_Object to, Lisp_Object font_object, Lisp_Object string)
 {
   Lisp_Object gstring, header;
   EMACS_INT frompos, topos;
@@ -1845,8 +1803,7 @@ DEFUN ("compose-region-internal", Fcompose_region_internal,
 Compose text in the region between START and END.
 Optional 3rd and 4th arguments are COMPONENTS and MODIFICATION-FUNC
 for the composition.  See `compose-region' for more details.  */)
-     (start, end, components, modification_func)
-     Lisp_Object start, end, components, modification_func;
+  (Lisp_Object start, Lisp_Object end, Lisp_Object components, Lisp_Object modification_func)
 {
   validate_region (&start, &end);
   if (!NILP (components)
@@ -1866,8 +1823,7 @@ DEFUN ("compose-string-internal", Fcompose_string_internal,
 Compose text between indices START and END of STRING.
 Optional 4th and 5th arguments are COMPONENTS and MODIFICATION-FUNC
 for the composition.  See `compose-string' for more details.  */)
-     (string, start, end, components, modification_func)
-     Lisp_Object string, start, end, components, modification_func;
+  (Lisp_Object string, Lisp_Object start, Lisp_Object end, Lisp_Object components, Lisp_Object modification_func)
 {
   CHECK_STRING (string);
   CHECK_NUMBER (start);
@@ -1888,8 +1844,7 @@ DEFUN ("find-composition-internal", Ffind_composition_internal,
 
 Return information about composition at or nearest to position POS.
 See `find-composition' for more details.  */)
-     (pos, limit, string, detail_p)
-     Lisp_Object pos, limit, string, detail_p;
+  (Lisp_Object pos, Lisp_Object limit, Lisp_Object string, Lisp_Object detail_p)
 {
   Lisp_Object prop, tail, gstring;
   EMACS_INT start, end, from, to;
@@ -1974,7 +1929,7 @@ See `find-composition' for more details.  */)
 
 
 void
-syms_of_composite ()
+syms_of_composite (void)
 {
   int i;
 
@@ -1984,7 +1939,6 @@ syms_of_composite ()
   /* Make a hash table for static composition.  */
   {
     Lisp_Object args[6];
-    extern Lisp_Object QCsize;
 
     args[0] = QCtest;
     args[1] = Qequal;
@@ -2004,8 +1958,6 @@ syms_of_composite ()
   /* Make a hash table for glyph-string.  */
   {
     Lisp_Object args[6];
-    extern Lisp_Object QCsize;
-
     args[0] = QCtest;
     args[1] = Qequal;
     args[2] = QCweakness;

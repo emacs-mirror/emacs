@@ -62,8 +62,7 @@ Lisp_Object _temp_category_set;
 static Lisp_Object hash_get_category_set (Lisp_Object, Lisp_Object);
 
 static Lisp_Object
-hash_get_category_set (table, category_set)
-     Lisp_Object table, category_set;
+hash_get_category_set (Lisp_Object table, Lisp_Object category_set)
 {
   Lisp_Object val;
   struct Lisp_Hash_Table *h;
@@ -90,8 +89,7 @@ DEFUN ("make-category-set", Fmake_category_set, Smake_category_set, 1, 1, 0,
 CATEGORIES is a string of category mnemonics.
 The value is a bool-vector which has t at the indices corresponding to
 those categories.  */)
-     (categories)
-     Lisp_Object categories;
+  (Lisp_Object categories)
 {
   Lisp_Object val;
   int len;
@@ -117,7 +115,7 @@ those categories.  */)
 
 /* Category staff.  */
 
-Lisp_Object check_category_table ();
+Lisp_Object check_category_table (Lisp_Object table);
 
 DEFUN ("define-category", Fdefine_category, Sdefine_category, 2, 3, 0,
        doc: /* Define CATEGORY as a category which is described by DOCSTRING.
@@ -127,8 +125,7 @@ should be a terse text (preferably less than 16 characters),
 and the rest lines should be the full description.
 The category is defined only in category table TABLE, which defaults to
 the current buffer's category table.  */)
-     (category, docstring, table)
-     Lisp_Object category, docstring, table;
+  (Lisp_Object category, Lisp_Object docstring, Lisp_Object table)
 {
   CHECK_CATEGORY (category);
   CHECK_STRING (docstring);
@@ -147,8 +144,7 @@ DEFUN ("category-docstring", Fcategory_docstring, Scategory_docstring, 1, 2, 0,
        doc: /* Return the documentation string of CATEGORY, as defined in TABLE.
 TABLE should be a category table and defaults to the current buffer's
 category table.  */)
-     (category, table)
-     Lisp_Object category, table;
+  (Lisp_Object category, Lisp_Object table)
 {
   CHECK_CATEGORY (category);
   table = check_category_table (table);
@@ -162,8 +158,7 @@ DEFUN ("get-unused-category", Fget_unused_category, Sget_unused_category,
 If no category remains available, return nil.
 The optional argument TABLE specifies which category table to modify;
 it defaults to the current buffer's category table.  */)
-     (table)
-     Lisp_Object table;
+  (Lisp_Object table)
 {
   int i;
 
@@ -181,8 +176,7 @@ it defaults to the current buffer's category table.  */)
 
 DEFUN ("category-table-p", Fcategory_table_p, Scategory_table_p, 1, 1, 0,
        doc: /* Return t if ARG is a category table.  */)
-     (arg)
-     Lisp_Object arg;
+  (Lisp_Object arg)
 {
   if (CHAR_TABLE_P (arg)
       && EQ (XCHAR_TABLE (arg)->purpose, Qcategory_table))
@@ -196,8 +190,7 @@ DEFUN ("category-table-p", Fcategory_table_p, Scategory_table_p, 1, 1, 0,
    wrong-type-argument.  */
 
 Lisp_Object
-check_category_table (table)
-     Lisp_Object table;
+check_category_table (Lisp_Object table)
 {
   if (NILP (table))
     return current_buffer->category_table;
@@ -208,7 +201,7 @@ check_category_table (table)
 DEFUN ("category-table", Fcategory_table, Scategory_table, 0, 0, 0,
        doc: /* Return the current category table.
 This is the one specified by the current buffer.  */)
-     ()
+  (void)
 {
   return current_buffer->category_table;
 }
@@ -217,15 +210,14 @@ DEFUN ("standard-category-table", Fstandard_category_table,
    Sstandard_category_table, 0, 0, 0,
        doc: /* Return the standard category table.
 This is the one used for new buffers.  */)
-     ()
+  (void)
 {
   return Vstandard_category_table;
 }
 
 
 static void
-copy_category_entry (table, c, val)
-     Lisp_Object table, c, val;
+copy_category_entry (Lisp_Object table, Lisp_Object c, Lisp_Object val)
 {
   val = Fcopy_sequence (val);
   if (CONSP (c))
@@ -240,8 +232,7 @@ copy_category_entry (table, c, val)
    binding TABLE to a sub char table.  */
 
 Lisp_Object
-copy_category_table (table)
-     Lisp_Object table;
+copy_category_table (Lisp_Object table)
 {
   table = copy_char_table (table);
 
@@ -259,8 +250,7 @@ DEFUN ("copy-category-table", Fcopy_category_table, Scopy_category_table,
        0, 1, 0,
        doc: /* Construct a new category table and return it.
 It is a copy of the TABLE, which defaults to the standard category table.  */)
-     (table)
-     Lisp_Object table;
+  (Lisp_Object table)
 {
   if (!NILP (table))
     check_category_table (table);
@@ -273,7 +263,7 @@ It is a copy of the TABLE, which defaults to the standard category table.  */)
 DEFUN ("make-category-table", Fmake_category_table, Smake_category_table,
        0, 0, 0,
        doc: /* Construct a new and empty category table and return it.  */)
-     ()
+  (void)
 {
   Lisp_Object val;
   int i;
@@ -290,8 +280,7 @@ DEFUN ("make-category-table", Fmake_category_table, Smake_category_table,
 DEFUN ("set-category-table", Fset_category_table, Sset_category_table, 1, 1, 0,
        doc: /* Specify TABLE as the category table for the current buffer.
 Return TABLE.  */)
-     (table)
-     Lisp_Object table;
+  (Lisp_Object table)
 {
   int idx;
   table = check_category_table (table);
@@ -304,8 +293,7 @@ Return TABLE.  */)
 
 
 Lisp_Object
-char_category_set (c)
-     int c;
+char_category_set (int c)
 {
   return CHAR_TABLE_REF (current_buffer->category_table, c);
 }
@@ -313,8 +301,7 @@ char_category_set (c)
 DEFUN ("char-category-set", Fchar_category_set, Schar_category_set, 1, 1, 0,
        doc: /* Return the category set of CHAR.
 usage: (char-category-set CHAR)  */)
-     (ch)
-     Lisp_Object ch;
+  (Lisp_Object ch)
 {
   CHECK_NUMBER (ch);
   return CATEGORY_SET (XFASTINT (ch));
@@ -326,8 +313,7 @@ DEFUN ("category-set-mnemonics", Fcategory_set_mnemonics,
 CATEGORY-SET is a bool-vector, and the categories \"in\" it are those
 that are indexes where t occurs in the bool-vector.
 The return value is a string containing those same categories.  */)
-     (category_set)
-     Lisp_Object category_set;
+  (Lisp_Object category_set)
 {
   int i, j;
   char str[96];
@@ -344,8 +330,7 @@ The return value is a string containing those same categories.  */)
 }
 
 void
-set_category_set (category_set, category, val)
-     Lisp_Object category_set, category, val;
+set_category_set (Lisp_Object category_set, Lisp_Object category, Lisp_Object val)
 {
   do {
     int idx = XINT (category) / 8;
@@ -367,8 +352,7 @@ CHARACTER can be either a single character or a cons representing the
 lower and upper ends of an inclusive character range to modify.
 If optional fourth argument RESET is non-nil,
 then delete CATEGORY from the category set instead of adding it.  */)
-     (character, category, table, reset)
-     Lisp_Object character, category, table, reset;
+  (Lisp_Object character, Lisp_Object category, Lisp_Object table, Lisp_Object reset)
 {
   Lisp_Object set_value;	/* Actual value to be set in category sets.  */
   Lisp_Object category_set;
@@ -420,8 +404,7 @@ then delete CATEGORY from the category set instead of adding it.  */)
    directly.  */
 
 int
-word_boundary_p (c1, c2)
-     int c1, c2;
+word_boundary_p (int c1, int c2)
 {
   Lisp_Object category_set1, category_set2;
   Lisp_Object tail;
@@ -466,7 +449,7 @@ word_boundary_p (c1, c2)
 
 
 void
-init_category_once ()
+init_category_once (void)
 {
   /* This has to be done here, before we call Fmake_char_table.  */
   Qcategory_table = intern_c_string ("category-table");
@@ -489,7 +472,7 @@ init_category_once ()
 }
 
 void
-syms_of_category ()
+syms_of_category (void)
 {
   Qcategoryp = intern_c_string ("categoryp");
   staticpro (&Qcategoryp);

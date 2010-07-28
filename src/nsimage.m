@@ -315,9 +315,9 @@ static EmacsImage *ImageList = nil;
 
   [self addRepresentation: bmRep];
 
-  bzero (planes[0], w*h);
-  bzero (planes[1], w*h);
-  bzero (planes[2], w*h);
+  memset (planes[0], 0, w*h);
+  memset (planes[1], 0, w*h);
+  memset (planes[2], 0, w*h);
   [self setXBMColor: [NSColor blackColor]];
   return self;
 }
@@ -379,7 +379,7 @@ static EmacsImage *ImageList = nil;
 
   [bmRep getBitmapDataPlanes: pixmapData];
   for (i =0; i<4; i++)
-    bzero (pixmapData[i], width*height);
+    memset (pixmapData[i], 0, width*height);
   [self addRepresentation: bmRep];
   return self;
 }

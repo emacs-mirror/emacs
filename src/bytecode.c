@@ -272,7 +272,7 @@ struct byte_stack *byte_stack_list;
 /* Mark objects on byte_stack_list.  Called during GC.  */
 
 void
-mark_byte_stack ()
+mark_byte_stack (void)
 {
   struct byte_stack *stack;
   Lisp_Object *obj;
@@ -301,7 +301,7 @@ mark_byte_stack ()
    counters.  Called when GC has completed.  */
 
 void
-unmark_byte_stack ()
+unmark_byte_stack (void)
 {
   struct byte_stack *stack;
 
@@ -403,8 +403,7 @@ The first argument, BYTESTR, is a string of byte code;
 the second, VECTOR, a vector of constants;
 the third, MAXDEPTH, the maximum stack depth used in this function.
 If the third argument is incorrect, Emacs may crash.  */)
-     (bytestr, vector, maxdepth)
-     Lisp_Object bytestr, vector, maxdepth;
+  (Lisp_Object bytestr, Lisp_Object vector, Lisp_Object maxdepth)
 {
   int count = SPECPDL_INDEX ();
 #ifdef BYTE_CODE_METER
@@ -1678,7 +1677,7 @@ If the third argument is incorrect, Emacs may crash.  */)
 }
 
 void
-syms_of_bytecode ()
+syms_of_bytecode (void)
 {
   Qbytecode = intern_c_string ("byte-code");
   staticpro (&Qbytecode);

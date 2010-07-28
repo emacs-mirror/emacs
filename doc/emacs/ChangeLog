@@ -1,3 +1,13 @@
+2010-06-23  Glenn Morris  <rgm@gnu.org>
+
+	* abbrevs.texi, basic.texi, buffers.texi, building.texi, calendar.texi:
+	* custom.texi, dired.texi, display.texi, emacs.texi, emerge-xtra.texi:
+	* files.texi, fortran-xtra.texi, frames.texi, help.texi, killing.texi:
+	* maintaining.texi, mark.texi, mini.texi, misc.texi, msdog.texi:
+	* mule.texi, programs.texi, rmail.texi, screen.texi, search.texi:
+	* sending.texi, text.texi, trouble.texi, vc1-xtra.texi, xresources.texi:
+	Untabify Texinfo files.
+
 2010-06-10  Glenn Morris  <rgm@gnu.org>
 
 	* basic.texi (Inserting Text): Minor clarification.  (Bug#6374)
@@ -596,7 +606,7 @@
 
 2009-06-23  Miles Bader  <miles@gnu.org>
 
-	* display.texi (Scrolling): Document `recenter-redisplay'
+	* display.texi (Scrolling): Document `recenter-redisplay'.
 	(Temporary Face Changes): Document `text-scale-set'.
 
 2009-06-21  Chong Yidong  <cyd@stupidchicken.com>
@@ -5694,7 +5704,7 @@
 2005-03-05  Juri Linkov  <juri@jurta.org>
 
 	* cmdargs.texi (Emacs Invocation): Add cindex
-	"invocation (command line arguments)"
+	"invocation (command line arguments)".
 	(Misc X): Add -nbc, --no-blinking-cursor.
 
 2005-03-04  Ulf Jasper  <ulf.jasper@web.de>

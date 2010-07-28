@@ -1,3 +1,62 @@
+2010-07-25  Christoph Scholtes  <cschol2112@gmail.com>
+
+	Build binary distros on Windows using emacs-VERSION as root dir name.
+
+	* makefile.w32-in: Copy README.W32 to installation directory
+	during `make install'.  Remove README.W32 with `distclean' (in
+	case Emacs was installed in place).  Use temporary directory to
+	create distribution zip files in `dist' target.
+	* zipdist.bat: Simplify code using temporary directory.
+
+2010-07-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* runemacs.c (set_user_model_id): Fix prototype.
+
+2010-07-24  Christoph Scholtes  <cschol2112@gmail.com>
+
+	New make target for Windows platform: make dist (bug#6602)
+
+	* INSTALL: Document new dist target and add section about
+	creating binary distributions.
+	* README.W32: Relocate from admin/nt/ directory.
+	* configure.bat: New parameter `--distfiles'.
+	* makefile.w32-in: Add version number, new target `dist'.
+	Add new target `install-shortcuts'.
+	* zipdist.bat: New file; create zipped binary distribution,
+	replaces admin/nt/makedist.bat.
+
+2010-07-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* INSTALL: Add note about backslashes in Windows paths.
+	Fix typos.  Simplify references to Windows versions.
+
+2010-07-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* addpm.c (add_registry, main):
+	* cmdproxy.c (get_env_size):
+	* ddeclient.c (main):
+	* runemacs.c (set_user_model_id):
+	Convert definitions to standard C.
+
+2010-07-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gmake.defs (CHECKING_CFLAGS) [ENABLECHECKS]: Add -fno-crossjumping.
+
+2010-07-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* configure.bat: New option --enable-checking.
+	* gmake.defs, nmake.defs (CHECKING_CFLAGS): New define.
+	(CFLAGS): Include it.
+
+2010-07-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* config.nt (volatile): Remove definition.
+
+2010-07-07  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* config.nt (HAVE_BCOPY, HAVE_BCMP): Remove undefs.
+	(HAVE_MEMCPY, HAVE_MEMMOVE, HAVE_MEMSET, HAVE_MEMCMP): Add undefs.
+
 2010-07-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* config.nt (__P): Remove.

@@ -41,7 +41,7 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* IDLWAVE: (idlwave).	Major mode and shell for IDL files.
+* IDLWAVE: (idlwave).           Major mode and shell for IDL files.
 @end direntry
 
 @titlepage

@@ -40,6 +40,9 @@ s/\.h\.in/.h-in/
 /^C_SWITCH_SYSTEM *=/s/@C_SWITCH_SYSTEM@//
 /^C_SWITCH_X_SYSTEM *=/s/@C_SWITCH_X_SYSTEM@//
 /^C_SWITCH_X_SITE *=/s/@C_SWITCH_X_SITE@//
+/^C_WARNINGS_SWITCH *=/s/@C_WARNINGS_SWITCH@//
+/^PROFILING_CFLAGS *=/s/@PROFILING_CFLAGS@//
+/^PROFILING_LDFLAGS *=/s/@PROFILING_LDFLAGS@//
 #/^LD_SWITCH_X_SITE *=/s/@LD_SWITCH_X_SITE@//
 /^LD_SWITCH_SYSTEM_TEMACS *=/s/@LD_SWITCH_SYSTEM_TEMACS@//
 /^LD_SWITCH_X_SITE_AUX *=/s/@LD_SWITCH_X_SITE_AUX@//
@@ -128,8 +131,6 @@ s/\.h\.in/.h-in/
 /^[ 	]*$/d
 /^	if test -f/,/^	fi$/c\
 	command.com /c if exist .gdbinit rm -f _gdbinit
-/^temacs:/s/prefix-args//
-/^temacs:/s/stamp-oldxmenu//
 /^	if test "\${CANNOT_DUMP}" =/,/^	else /d
 /^	fi/d
 /^	LC_ALL=C \$(RUN_TEMACS)/i\

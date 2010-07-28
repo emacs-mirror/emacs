@@ -24,18 +24,18 @@ Reference Manual}.
 @end ifnottex
 
 @menu
-* Minor Modes::		Each minor mode is a feature you can turn on
-			  independently of any others.
+* Minor Modes::         Each minor mode is a feature you can turn on
+                          independently of any others.
 * Easy Customization::  Convenient way to browse and change settings.
-* Variables::		Many Emacs commands examine Emacs variables
-			  to decide what to do; by setting variables,
-			  you can control their functioning.
-* Key Bindings::	The keymaps say what command each key runs.
-			  By changing them, you can "redefine keys".
-* Syntax::		The syntax table controls how words and
-			  expressions are parsed.
-* Init File::		How to write common customizations in the
-			  @file{.emacs} file.
+* Variables::           Many Emacs commands examine Emacs variables
+                          to decide what to do; by setting variables,
+                          you can control their functioning.
+* Key Bindings::        The keymaps say what command each key runs.
+                          By changing them, you can "redefine keys".
+* Syntax::              The syntax table controls how words and
+                          expressions are parsed.
+* Init File::           How to write common customizations in the
+                          @file{.emacs} file.
 @end menu
 
 @node Minor Modes
@@ -794,10 +794,10 @@ check the variable's documentation string to see kind of value it
 expects (@pxref{Examining}).
 
 @menu
-* Examining::	        Examining or setting one variable's value.
-* Hooks::	        Hook variables let you specify programs for parts
-		          of Emacs to run on particular occasions.
-* Locals::	        Per-buffer values of variables.
+* Examining::           Examining or setting one variable's value.
+* Hooks::               Hook variables let you specify programs for parts
+                          of Emacs to run on particular occasions.
+* Locals::              Per-buffer values of variables.
 * File Variables::      How files can specify variable values.
 * Directory Variables:: How variable values can be specified by directory.
 @end menu
@@ -943,12 +943,12 @@ lambda expression.
 @end group
 @group
     (c-cleanup-list . (scope-operator
-		       empty-defun-braces
-		       defun-close-semi))
+                       empty-defun-braces
+                       defun-close-semi))
 @end group
 @group
     (c-offsets-alist . ((arglist-close . c-lineup-arglist)
-			(substatement-open . 0)))))
+                        (substatement-open . 0)))))
 @end group
 
 @group
@@ -2175,10 +2175,10 @@ Manual}.
 @end ifnottex
 
 @menu
-* Init Syntax::	        Syntax of constants in Emacs Lisp.
+* Init Syntax::         Syntax of constants in Emacs Lisp.
 * Init Examples::       How to do some things with an init file.
 * Terminal Init::       Each terminal type can have an init file.
-* Find Init::	        How Emacs finds the init file.
+* Find Init::           How Emacs finds the init file.
 * Init Non-ASCII::      Using non-@acronym{ASCII} characters in an init file.
 @end menu
 

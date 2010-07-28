@@ -57,8 +57,8 @@ supports it in developing GNU and promoting software freedom.''
 @c Entries for @command{install-info} to use
 @dircategory @value{emacsname}
 @direntry
-* TRAMP: (tramp).                Transparent Remote Access, Multiple Protocol
-                                 @value{emacsname} remote file access via rsh and rcp.
+* TRAMP: (tramp).               Transparent Remote Access, Multiple Protocol
+                                @value{emacsname} remote file access via rsh and rcp.
 @end direntry
 
 @titlepage
@@ -629,11 +629,11 @@ Two other variants, @option{ssh1_old} and @option{ssh2_old}, use the
 @command{ssh1} and @command{ssh2} commands explicitly.  If you don't
 know what these are, you do not need these options.
 
-All the methods based on @command{ssh} have an additional kludgy
-feature: you can specify a host name which looks like @file{host#42}
-(the real host name, then a hash sign, then a port number).  This
-means to connect to the given host but to also pass @code{-p 42} as
-arguments to the @command{ssh} command.
+All the methods based on @command{ssh} have an additional feature: you
+can specify a host name which looks like @file{host#42} (the real host
+name, then a hash sign, then a port number).  This means to connect to
+the given host but to also pass @code{-p 42} as arguments to the
+@command{ssh} command.
 
 
 @item @option{telnet}
@@ -693,8 +693,6 @@ This is also useful for Windows users where @command{ssh}, when
 invoked from an @value{emacsname} buffer, tells them that it is not
 allocating a pseudo tty.  When this happens, the login shell is wont
 to not print any shell prompt, which confuses @value{tramp} mightily.
-For reasons unknown, some Windows ports for @command{ssh} require the
-doubled @samp{-t} option.
 
 This supports the @samp{-p} argument.
 
@@ -2310,6 +2308,11 @@ using the @option{ssh} method to transfer files, and edit
 @file{.emacs} in my home directory I would specify the filename
 @file{@trampfn{ssh, daniel, melancholia, .emacs}}.
 
+Finally, for some methods it is possible to specify a different port
+number than the default one, given by the method.  This is specified
+by adding @file{#<port>} to the host name, like in @file{@trampfn{ssh,
+daniel, melancholia#42, .emacs}}.
+
 
 @node Alternative Syntax
 @section URL-like filename syntax
@@ -2798,7 +2801,7 @@ increase this level only temporarily, hunting bugs.
 @item
 @value{tramp} does not connect to the remote host
 
-When @value{tramp} does not connect to the remote host, there are two
+When @value{tramp} does not connect to the remote host, there are three
 reasons heading the bug mailing list:
 
 @itemize @minus
@@ -2831,6 +2834,17 @@ the following command:
 @example
 [ $TERM = "dumb" ] && unsetopt zle && PS1='$ '
 @end example
+
+@item
+Echoed characters after login
+
+When the remote machine opens an echoing shell, there might be control
+characters in the welcome message.  @value{tramp} tries to suppress
+such echoes via the @code{stty -echo} command, but sometimes this
+command is not reached, because the echoed output has confused
+@value{tramp} already.  In such situations it might be helpful to use
+the @option{sshx} or @option{scpx} methods, which allocate a pseudo tty.
+@xref{Inline methods}.
 
 @item
 @value{tramp} doesn't transfer strings with more than 500 characters

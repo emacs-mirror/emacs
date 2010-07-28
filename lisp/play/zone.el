@@ -1,7 +1,7 @@
 ;;; zone.el --- idle display hacks
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Victor Zandy <zandy@cs.wisc.edu>
 ;; Maintainer: Thien-Thi Nguyen <ttn@gnu.org>
@@ -39,10 +39,6 @@
 ;;         Luigi Panzeri, John Paul Wallington.
 
 ;;; Code:
-
-(require 'timer)
-(require 'tabify)
-(eval-when-compile (require 'cl))
 
 (defvar zone-timer nil
   "The timer we use to decide when to zone out, or nil if none.")
@@ -210,19 +206,20 @@ If the element is a function or a list of a function and a number,
     (insert s)))
 
 (defun zone-shift-left ()
-  (let (s)
+  (let ((inhibit-point-motion-hooks t)
+        s)
     (while (not (eobp))
       (unless (eolp)
         (setq s (buffer-substring (point) (1+ (point))))
         (delete-char 1)
         (end-of-line)
         (insert s))
-      (forward-char 1))))
+      (ignore-errors (forward-char 1)))))
 
 (defun zone-shift-right ()
   (goto-char (point-max))
-  (end-of-line)
-  (let (s)
+  (let ((inhibit-point-motion-hooks t)
+        s)
     (while (not (bobp))
       (unless (bolp)
         (setq s (buffer-substring (1- (point)) (point)))
@@ -348,15 +345,8 @@ If the element is a function or a list of a function and a number,
     (let ((np (+ 2 (random 5)))
           (pm (point-max)))
       (while (< np pm)
-        (goto-char np)
-        (let ((prec (preceding-char))
-              (props (text-properties-at (1- (point)))))
-          (insert (if (zerop (random 2))
-                      (upcase prec)
-                    (downcase prec)))
-          (set-text-properties (1- (point)) (point) props))
-        (backward-char 2)
-        (delete-char 1)
+        (funcall (if (zerop (random 2)) 'upcase-region
+                   'downcase-region) (1- np) np)
         (setq np (+ np (1+ (random 5))))))
     (goto-char (point-min))
     (sit-for 0 2)))
@@ -365,13 +355,14 @@ If the element is a function or a list of a function and a number,
 ;;;; rotating
 
 (defun zone-line-specs ()
-  (let (ret)
+  (let ((ok t)
+        ret)
     (save-excursion
       (goto-char (window-start))
-      (while (< (point) (window-end))
+      (while (and ok (< (point) (window-end)))
         (when (looking-at "[\t ]*\\([^\n]+\\)")
           (setq ret (cons (cons (match-beginning 1) (match-end 1)) ret)))
-        (forward-line 1)))
+        (setq ok (zerop (forward-line 1)))))
     ret))
 
 (defun zone-pgm-rotate (&optional random-style)
@@ -404,6 +395,7 @@ If the element is a function or a list of a function and a number,
             (setq cut 1 paste 2)
           (setq cut 2 paste 1))
         (goto-char (aref ent cut))
+        (setq aamt (min aamt (- (point-max) (point))))
         (setq txt (buffer-substring (point) (+ (point) aamt)))
         (delete-char aamt)
         (goto-char (aref ent paste))
@@ -447,19 +439,19 @@ If the element is a function or a list of a function and a number,
          (hmm (cond
                ((string-match "[a-z]" c-string) (upcase c-string))
                ((string-match "[A-Z]" c-string) (downcase c-string))
-               (t (propertize " " 'display `(space :width ,cw-ceil))))))
-    (do ((i 0 (1+ i))
-         (wait 0.5 (* wait 0.8)))
-        ((= i 20))
+               (t (propertize " " 'display `(space :width ,cw-ceil)))))
+         (wait 0.5))
+    (dotimes (i 20)
       (goto-char pos)
       (delete-char 1)
       (insert (if (= 0 (% i 2)) hmm c-string))
-      (zone-park/sit-for wbeg wait))
+      (zone-park/sit-for wbeg (setq wait (* wait 0.8))))
     (delete-char -1) (insert c-string)))
 
 (defun zone-fill-out-screen (width height)
   (let ((start (window-start))
-	(line (make-string width 32)))
+	(line (make-string width 32))
+	(inhibit-point-motion-hooks t))
     (goto-char start)
     ;; fill out rectangular ws block
     (while (progn (end-of-line)
@@ -473,8 +465,7 @@ If the element is a function or a list of a function and a number,
     (let ((nl (- height (count-lines (point-min) (point)))))
       (when (> nl 0)
 	(setq line (concat line "\n"))
-	(do ((i 0 (1+ i)))
-	    ((= i nl))
+        (dotimes (i nl)
 	  (insert line))))
     (goto-char start)
     (recenter 0)
@@ -487,8 +478,10 @@ If the element is a function or a list of a function and a number,
          (wait 0.15)
          newpos fall-p)
     (while (when (save-excursion
-                   (forward-line 1)
-                   (and (= col (current-column))
+                   (and (zerop (forward-line 1))
+                        (progn
+                          (forward-char col)
+                          (= col (current-column)))
                         (setq newpos (point))
                         (string= spaces (buffer-substring-no-properties
                                          newpos (+ newpos cw-ceil)))
@@ -587,11 +580,12 @@ If the element is a function or a list of a function and a number,
 
 (defun zone-pgm-stress ()
   (goto-char (point-min))
-  (let (lines)
-    (while (< (point) (point-max))
+  (let ((ok t)
+        lines)
+    (while (and ok (< (point) (point-max)))
       (let ((p (point)))
-        (forward-line 1)
-        (setq lines (cons (buffer-substring p (point)) lines))))
+        (setq ok (zerop (forward-line 1))
+              lines (cons (buffer-substring p (point)) lines))))
     (sit-for 5)
     (zone-hiding-modeline
      (let ((msg "Zoning... (zone-pgm-stress)"))
@@ -671,7 +665,8 @@ If nil, `zone-pgm-random-life' chooses a value from 0-3 (inclusive).")
       (setq c (point))
       (move-to-column 9)
       (setq col (cons (buffer-substring (point) c) col))
-      (end-of-line 0)
+;      (let ((inhibit-point-motion-hooks t))
+        (end-of-line 0);)
       (forward-char -10))
     (let ((life-patterns (vector
                           (if (and col (search-forward "@" max t))

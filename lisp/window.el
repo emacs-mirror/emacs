@@ -615,7 +615,10 @@ WINDOW can be any window and defaults to the selected one.  The
 return value includes WINDOW's mode line and header line, if any.
 If WINDOW is internal the return value is the sum of the total
 number of lines of WINDOW's child windows if these are vertically
-combined and the height of WINDOW's first child otherwise."
+combined and the height of WINDOW's first child otherwise.
+
+Note: This function does not take into account the value of
+`line-spacing' when calculating the number of lines in WINDOW."
   (window-total-size window))
 
 ;; Eventually we should make `window-height' obsolete.

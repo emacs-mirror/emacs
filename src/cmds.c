@@ -45,11 +45,12 @@ Lisp_Object Vself_insert_face_command;
 
 extern Lisp_Object Qface;
 extern Lisp_Object Vtranslation_table_for_input;
+
+static int internal_self_insert (int, int);
 
 DEFUN ("forward-point", Fforward_point, Sforward_point, 1, 1, 0,
        doc: /* Return buffer position N characters after (before if N negative) point.  */)
-     (n)
-     Lisp_Object n;
+  (Lisp_Object n)
 {
   CHECK_NUMBER (n);
 
@@ -63,8 +64,7 @@ On reaching end or beginning of buffer, stop and signal error.
 Depending on the bidirectional context, the movement may be to the
 right or to the left on the screen.  This is in contrast with
 \\[right-char], which see.  */)
-     (n)
-     Lisp_Object n;
+  (Lisp_Object n)
 {
   if (NILP (n))
     XSETFASTINT (n, 1);
@@ -103,8 +103,7 @@ On attempt to pass beginning or end of buffer, stop and signal error.
 Depending on the bidirectional context, the movement may be to the
 right or to the left on the screen.  This is in contrast with
 \\[left-char], which see.  */)
-     (n)
-     Lisp_Object n;
+  (Lisp_Object n)
 {
   if (NILP (n))
     XSETFASTINT (n, 1);
@@ -123,8 +122,7 @@ Returns the count of lines left to move.  If moving forward,
 that is N - number of lines moved; if backward, N + number moved.
 With positive N, a non-empty line at the end counts as one line
 successfully moved (for the return value).  */)
-     (n)
-     Lisp_Object n;
+  (Lisp_Object n)
 {
   int opoint = PT, opoint_byte = PT_BYTE;
   int pos, pos_byte;
@@ -173,8 +171,7 @@ does not move.  To ignore field boundaries bind
 `inhibit-field-text-motion' to t, or use the `forward-line' function
 instead.  For instance, `(forward-line 0)' does the same thing as
 `(beginning-of-line)', except that it ignores field boundaries.  */)
-     (n)
-     Lisp_Object n;
+  (Lisp_Object n)
 {
   if (NILP (n))
     XSETFASTINT (n, 1);
@@ -197,8 +194,7 @@ point to a different line than the original, unconstrained result.  If
 N is nil or 1, and a rear-sticky field ends at point, the point does
 not move.  To ignore field boundaries bind `inhibit-field-text-motion'
 to t.  */)
-     (n)
-     Lisp_Object n;
+  (Lisp_Object n)
 {
   int newpos;
 
@@ -243,8 +239,7 @@ Interactively, N is the prefix arg, and KILLFLAG is set if
 N was explicitly specified.
 
 The command `delete-forward' is preferable for interactive use.  */)
-     (n, killflag)
-     Lisp_Object n, killflag;
+  (Lisp_Object n, Lisp_Object killflag)
 {
   int pos;
 
@@ -286,8 +281,7 @@ Before insertion, `expand-abbrev' is executed if the inserted character does
 not have word syntax and the previous character in the buffer does.
 After insertion, the value of `auto-fill-function' is called if the
 `auto-fill-chars' table has a non-nil value for the inserted character.  */)
-     (n)
-     Lisp_Object n;
+  (Lisp_Object n)
 {
   int remove_boundary = 1;
   CHECK_NUMBER (n);
@@ -355,10 +349,8 @@ After insertion, the value of `auto-fill-function' is called if the
 
 static Lisp_Object Qexpand_abbrev;
 
-int
-internal_self_insert (c, noautofill)
-     int c;
-     int noautofill;
+static int
+internal_self_insert (int c, int noautofill)
 {
   int hairy = 0;
   Lisp_Object tem;
@@ -546,7 +538,7 @@ internal_self_insert (c, noautofill)
 /* module initialization */
 
 void
-syms_of_cmds ()
+syms_of_cmds (void)
 {
   Qkill_backward_chars = intern_c_string ("kill-backward-chars");
   staticpro (&Qkill_backward_chars);
@@ -587,7 +579,7 @@ More precisely, a char with closeparen syntax is self-inserted.  */);
 }
 
 void
-keys_of_cmds ()
+keys_of_cmds (void)
 {
   int n;
 

@@ -30,14 +30,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef sleep
 #undef sleep
 #endif
-void sleep(unsigned long seconds);
+void sleep (unsigned long seconds);
 char *getwd (char *dir);
-int getppid(void);
-char * getlogin ();
+int getppid (void);
+char * getlogin (void);
 char * cuserid (char * s);
-unsigned getuid ();
-unsigned getegid ();
-unsigned getgid ();
+unsigned getuid (void);
+unsigned getegid (void);
+unsigned getgid (void);
 int setuid (unsigned uid);
 int setegid (unsigned gid);
 char * getpass (const char * prompt);

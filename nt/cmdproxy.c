@@ -407,7 +407,7 @@ spawn (char * progname, char * cmdline, char * dir, int * retcode)
 
 /* Return size of current environment block.  */
 int
-get_env_size ()
+get_env_size (void)
 {
   char * start = GetEnvironmentStrings ();
   char * tmp = start;

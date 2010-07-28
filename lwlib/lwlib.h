@@ -156,7 +156,7 @@ widget_value* lw_get_all_values (LWLIB_ID id);
 Boolean lw_get_some_values (LWLIB_ID id, widget_value* val);
 void lw_pop_up_all_widgets (LWLIB_ID id);
 void lw_pop_down_all_widgets (LWLIB_ID id);
-widget_value *malloc_widget_value ();
+widget_value *malloc_widget_value (void);
 void free_widget_value (widget_value *);
 void lw_popup_menu (Widget, XEvent *);
 
@@ -188,8 +188,6 @@ void lw_set_main_areas (Widget parent,
 
 int lw_separator_p (char *label, enum menu_separator *type,
                     int motif_p);
-
-void lwlib_bcopy (char*, char*, int);
 
 #endif /* LWLIB_H */
 

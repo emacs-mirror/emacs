@@ -67,8 +67,7 @@ int undo_inhibit_record_point;
    undo record that will be added just after this command terminates.  */
 
 static void
-record_point (pt)
-     int pt;
+record_point (int pt)
 {
   int at_boundary;
 
@@ -130,8 +129,7 @@ record_point (pt)
    because we don't need to record the contents.)  */
 
 void
-record_insert (beg, length)
-     int beg, length;
+record_insert (int beg, int length)
 {
   Lisp_Object lbeg, lend;
 
@@ -166,9 +164,7 @@ record_insert (beg, length)
    of the characters in STRING, at location BEG.  */
 
 void
-record_delete (beg, string)
-     int beg;
-     Lisp_Object string;
+record_delete (int beg, Lisp_Object string)
 {
   Lisp_Object sbeg;
 
@@ -196,9 +192,7 @@ record_delete (beg, string)
    won't be inverted automatically by undoing the buffer modification.  */
 
 void
-record_marker_adjustment (marker, adjustment)
-     Lisp_Object marker;
-     int adjustment;
+record_marker_adjustment (Lisp_Object marker, int adjustment)
 {
   if (EQ (current_buffer->undo_list, Qt))
     return;
@@ -221,8 +215,7 @@ record_marker_adjustment (marker, adjustment)
    The replacement must not change the number of characters.  */
 
 void
-record_change (beg, length)
-     int beg, length;
+record_change (int beg, int length)
 {
   record_delete (beg, make_buffer_string (beg, beg + length, 1));
   record_insert (beg, length);
@@ -233,7 +226,7 @@ record_change (beg, length)
    we can tell whether it is obsolete because the file was saved again.  */
 
 void
-record_first_change ()
+record_first_change (void)
 {
   Lisp_Object high, low;
   struct buffer *base_buffer = current_buffer;
@@ -257,9 +250,7 @@ record_first_change ()
    for LENGTH characters starting at position BEG in BUFFER.  */
 
 void
-record_property_change (beg, length, prop, value, buffer)
-     int beg, length;
-     Lisp_Object prop, value, buffer;
+record_property_change (int beg, int length, Lisp_Object prop, Lisp_Object value, Lisp_Object buffer)
 {
   Lisp_Object lbeg, lend, entry;
   struct buffer *obuf = current_buffer, *buf = XBUFFER (buffer);
@@ -297,7 +288,7 @@ DEFUN ("undo-boundary", Fundo_boundary, Sundo_boundary, 0, 0, 0,
        doc: /* Mark a boundary between units of undo.
 An undo command will stop at this point,
 but another undo command will undo to the previous boundary.  */)
-     ()
+  (void)
 {
   Lisp_Object tem;
   if (EQ (current_buffer->undo_list, Qt))
@@ -328,8 +319,7 @@ but another undo command will undo to the previous boundary.  */)
    In some cases this works by calling undo-outer-limit-function.  */
 
 void
-truncate_undo_list (b)
-     struct buffer *b;
+truncate_undo_list (struct buffer *b)
 {
   Lisp_Object list;
   Lisp_Object prev, next, last_boundary;
@@ -465,8 +455,7 @@ truncate_undo_list (b)
 DEFUN ("primitive-undo", Fprimitive_undo, Sprimitive_undo, 2, 2, 0,
        doc: /* Undo N records from the front of the list LIST.
 Return what remains of the list.  */)
-     (n, list)
-     Lisp_Object n, list;
+  (Lisp_Object n, Lisp_Object list)
 {
   struct gcpro gcpro1, gcpro2;
   Lisp_Object next;
@@ -665,7 +654,7 @@ Return what remains of the list.  */)
 }
 
 void
-syms_of_undo ()
+syms_of_undo (void)
 {
   Qinhibit_read_only = intern_c_string ("inhibit-read-only");
   staticpro (&Qinhibit_read_only);

@@ -145,8 +145,6 @@ Lisp_Object Qread_expression_history;
 
 extern Lisp_Object Voverriding_local_map;
 
-extern Lisp_Object Qmouse_face;
-
 extern Lisp_Object Qfield;
 
 /* Put minibuf on currently selected frame's minibuffer.
@@ -154,7 +152,7 @@ extern Lisp_Object Qfield;
    or when a minibuffer exits.  */
 
 void
-choose_minibuf_frame ()
+choose_minibuf_frame (void)
 {
   if (FRAMEP (selected_frame)
       && FRAME_LIVE_P (XFRAME (selected_frame))
@@ -193,8 +191,7 @@ choose_minibuf_frame ()
 }
 
 Lisp_Object
-choose_minibuf_frame_1 (ignore)
-     Lisp_Object ignore;
+choose_minibuf_frame_1 (Lisp_Object ignore)
 {
   choose_minibuf_frame ();
   return Qnil;
@@ -213,8 +210,7 @@ DEFUN ("set-minibuffer-window", Fset_minibuffer_window,
        doc: /* Specify which minibuffer window to use for the minibuffer.
 This affects where the minibuffer is displayed if you put text in it
 without invoking the usual minibuffer commands.  */)
-     (window)
-     Lisp_Object window;
+  (Lisp_Object window)
 {
   CHECK_WINDOW (window);
   if (! MINI_WINDOW_P (XWINDOW (window)))
@@ -247,8 +243,7 @@ static Lisp_Object string_to_object (Lisp_Object, Lisp_Object);
    string, and DEFALT is a string, read from DEFALT instead of VAL.  */
 
 static Lisp_Object
-string_to_object (val, defalt)
-     Lisp_Object val, defalt;
+string_to_object (Lisp_Object val, Lisp_Object defalt)
 {
   struct gcpro gcpro1, gcpro2;
   Lisp_Object expr_and_pos;
@@ -289,19 +284,12 @@ string_to_object (val, defalt)
    from read_minibuf to do the job if noninteractive.  */
 
 static Lisp_Object
-read_minibuf_noninteractive (map, initial, prompt, backup_n, expflag,
-			     histvar, histpos, defalt, allow_props,
-			     inherit_input_method)
-     Lisp_Object map;
-     Lisp_Object initial;
-     Lisp_Object prompt;
-     Lisp_Object backup_n;
-     int expflag;
-     Lisp_Object histvar;
-     Lisp_Object histpos;
-     Lisp_Object defalt;
-     int allow_props;
-     int inherit_input_method;
+read_minibuf_noninteractive (Lisp_Object map, Lisp_Object initial,
+			     Lisp_Object prompt, Lisp_Object backup_n,
+			     int expflag,
+			     Lisp_Object histvar, Lisp_Object histpos,
+			     Lisp_Object defalt,
+			     int allow_props, int inherit_input_method)
 {
   int size, len;
   char *line, *s;
@@ -350,8 +338,7 @@ DEFUN ("minibufferp", Fminibufferp,
        doc: /* Return t if BUFFER is a minibuffer.
 No argument or nil as argument means use current buffer as BUFFER.
 BUFFER can be a buffer or a buffer name.  */)
-     (buffer)
-     Lisp_Object buffer;
+  (Lisp_Object buffer)
 {
   Lisp_Object tem;
 
@@ -370,7 +357,7 @@ DEFUN ("minibuffer-prompt-end", Fminibuffer_prompt_end,
        Sminibuffer_prompt_end, 0, 0, 0,
        doc: /* Return the buffer position of the end of the minibuffer prompt.
 Return (point-min) if current buffer is not a minibuffer.  */)
-     ()
+  (void)
 {
   /* This function is written to be most efficient when there's a prompt.  */
   Lisp_Object beg, end, tem;
@@ -392,7 +379,7 @@ DEFUN ("minibuffer-contents", Fminibuffer_contents,
        Sminibuffer_contents, 0, 0, 0,
        doc: /* Return the user input in a minibuffer as a string.
 If the current buffer is not a minibuffer, return its entire contents.  */)
-     ()
+  (void)
 {
   int prompt_end = XINT (Fminibuffer_prompt_end ());
   return make_buffer_string (prompt_end, ZV, 1);
@@ -402,7 +389,7 @@ DEFUN ("minibuffer-contents-no-properties", Fminibuffer_contents_no_properties,
        Sminibuffer_contents_no_properties, 0, 0, 0,
        doc: /* Return the user input in a minibuffer as a string, without text-properties.
 If the current buffer is not a minibuffer, return its entire contents.  */)
-     ()
+  (void)
 {
   int prompt_end = XINT (Fminibuffer_prompt_end ());
   return make_buffer_string (prompt_end, ZV, 0);
@@ -413,7 +400,7 @@ DEFUN ("minibuffer-completion-contents", Fminibuffer_completion_contents,
        doc: /* Return the user input in a minibuffer before point as a string.
 That is what completion commands operate on.
 If the current buffer is not a minibuffer, return its entire contents.  */)
-     ()
+  (void)
 {
   int prompt_end = XINT (Fminibuffer_prompt_end ());
   if (PT < prompt_end)
@@ -446,18 +433,10 @@ If the current buffer is not a minibuffer, return its entire contents.  */)
    current input method.  */
 
 static Lisp_Object
-read_minibuf (map, initial, prompt, backup_n, expflag,
-	      histvar, histpos, defalt, allow_props, inherit_input_method)
-     Lisp_Object map;
-     Lisp_Object initial;
-     Lisp_Object prompt;
-     Lisp_Object backup_n;
-     int expflag;
-     Lisp_Object histvar;
-     Lisp_Object histpos;
-     Lisp_Object defalt;
-     int allow_props;
-     int inherit_input_method;
+read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
+	      Lisp_Object backup_n, int expflag,
+	      Lisp_Object histvar, Lisp_Object histpos, Lisp_Object defalt,
+	      int allow_props, int inherit_input_method)
 {
   Lisp_Object val;
   int count = SPECPDL_INDEX ();
@@ -847,12 +826,11 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
  used for nonrecursive minibuffer invocations */
 
 Lisp_Object
-get_minibuffer (depth)
-     int depth;
+get_minibuffer (int depth)
 {
   Lisp_Object tail, num, buf;
   char name[24];
-  extern Lisp_Object nconc2 ();
+  extern Lisp_Object nconc2 (Lisp_Object, Lisp_Object);
 
   XSETFASTINT (num, depth);
   tail = Fnthcdr (num, Vminibuffer_list);
@@ -892,8 +870,7 @@ get_minibuffer (depth)
 }
 
 static Lisp_Object
-run_exit_minibuf_hook (data)
-     Lisp_Object data;
+run_exit_minibuf_hook (Lisp_Object data)
 {
   if (!NILP (Vminibuffer_exit_hook) && !EQ (Vminibuffer_exit_hook, Qunbound)
       && !NILP (Vrun_hooks))
@@ -906,8 +883,7 @@ run_exit_minibuf_hook (data)
    not, and it restores the current window, buffer, etc. */
 
 static Lisp_Object
-read_minibuf_unwind (data)
-     Lisp_Object data;
+read_minibuf_unwind (Lisp_Object data)
 {
   Lisp_Object old_deactivate_mark;
   Lisp_Object window;
@@ -1009,9 +985,7 @@ POSITION in the minibuffer.  Any integer value less than or equal to
 one puts point at the beginning of the string.  *Note* that this
 behavior differs from the way such arguments are used in `completing-read'
 and some related functions, which use zero-indexing for POSITION.  */)
-   (prompt, initial_contents, keymap, read, hist, default_value, inherit_input_method)
-     Lisp_Object prompt, initial_contents, keymap, read, hist, default_value;
-     Lisp_Object inherit_input_method;
+  (Lisp_Object prompt, Lisp_Object initial_contents, Lisp_Object keymap, Lisp_Object read, Lisp_Object hist, Lisp_Object default_value, Lisp_Object inherit_input_method)
 {
   Lisp_Object histvar, histpos, val;
   struct gcpro gcpro1;
@@ -1053,8 +1027,7 @@ Prompt with PROMPT.  If non-nil, optional second arg INITIAL-CONTENTS
 is a string to insert in the minibuffer before reading.
 \(INITIAL-CONTENTS can also be a cons of a string and an integer.
 Such arguments are used as in `read-from-minibuffer'.)  */)
-     (prompt, initial_contents)
-     Lisp_Object prompt, initial_contents;
+  (Lisp_Object prompt, Lisp_Object initial_contents)
 {
   CHECK_STRING (prompt);
   return read_minibuf (Vminibuffer_local_map, initial_contents,
@@ -1068,8 +1041,7 @@ Prompt with PROMPT.  If non-nil, optional second arg INITIAL-CONTENTS
 is a string to insert in the minibuffer before reading.
 \(INITIAL-CONTENTS can also be a cons of a string and an integer.
 Such arguments are used as in `read-from-minibuffer'.)  */)
-     (prompt, initial_contents)
-     Lisp_Object prompt, initial_contents;
+  (Lisp_Object prompt, Lisp_Object initial_contents)
 {
   return Feval (read_minibuf (Vread_expression_map, initial_contents,
 			      prompt, Qnil, 1, Qread_expression_history,
@@ -1093,9 +1065,7 @@ Fourth arg DEFAULT-VALUE is the default value or the list of default values.
  empty string.
 Fifth arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits
  the current input method and the setting of `enable-multibyte-characters'.  */)
-     (prompt, initial_input, history, default_value, inherit_input_method)
-     Lisp_Object prompt, initial_input, history, default_value;
-     Lisp_Object inherit_input_method;
+  (Lisp_Object prompt, Lisp_Object initial_input, Lisp_Object history, Lisp_Object default_value, Lisp_Object inherit_input_method)
 {
   Lisp_Object val;
   val = Fread_from_minibuffer (prompt, initial_input, Qnil,
@@ -1116,8 +1086,7 @@ Such values are treated as in `read-from-minibuffer', but are normally
 not useful in this function.)
 Third arg INHERIT-INPUT-METHOD, if non-nil, means the minibuffer inherits
 the current input method and the setting of`enable-multibyte-characters'.  */)
-     (prompt, initial, inherit_input_method)
-     Lisp_Object prompt, initial, inherit_input_method;
+  (Lisp_Object prompt, Lisp_Object initial, Lisp_Object inherit_input_method)
 {
   CHECK_STRING (prompt);
   return read_minibuf (Vminibuffer_local_ns_map, initial, prompt, Qnil,
@@ -1129,8 +1098,7 @@ DEFUN ("read-command", Fread_command, Sread_command, 1, 2, 0,
        doc: /* Read the name of a command and return as a symbol.
 Prompt with PROMPT.  By default, return DEFAULT-VALUE or its first element
 if it is a list.  */)
-     (prompt, default_value)
-     Lisp_Object prompt, default_value;
+  (Lisp_Object prompt, Lisp_Object default_value)
 {
   Lisp_Object name, default_string;
 
@@ -1152,8 +1120,7 @@ if it is a list.  */)
 DEFUN ("read-function", Fread_function, Sread_function, 1, 1, 0,
        doc: /* One arg PROMPT, a string.  Read the name of a function and return as a symbol.
 Prompt with PROMPT.  */)
-     (prompt)
-     Lisp_Object prompt;
+  (Lisp_Object prompt)
 {
   return Fintern (Fcompleting_read (prompt, Vobarray, Qfboundp, Qt, Qnil, Qnil, Qnil, Qnil),
 		  Qnil);
@@ -1165,8 +1132,7 @@ DEFUN ("read-variable", Fread_variable, Sread_variable, 1, 2, 0,
 Prompt with PROMPT.  By default, return DEFAULT-VALUE or its first element
 if it is a list.
 A user variable is one for which `user-variable-p' returns non-nil.  */)
-     (prompt, default_value)
-     Lisp_Object prompt, default_value;
+  (Lisp_Object prompt, Lisp_Object default_value)
 {
   Lisp_Object name, default_string;
 
@@ -1192,14 +1158,13 @@ Optional second arg DEF is value to return if user enters an empty line.
  If DEF is a list of default values, return its first element.
 Optional third arg REQUIRE-MATCH determines whether non-existing
  buffer names are allowed.  It has the same meaning as the
- REQUIRE-MATCH argument of `confirm-after-completion'.
+ REQUIRE-MATCH argument of `completing-read'.
 The argument PROMPT should be a string ending with a colon and a space.
 If `read-buffer-completion-ignore-case' is non-nil, completion ignores
 case while reading the buffer name.
 If `read-buffer-function' is non-nil, this works by calling it as a
 function, instead of the usual behavior.  */)
-     (prompt, def, require_match)
-     Lisp_Object prompt, def, require_match;
+  (Lisp_Object prompt, Lisp_Object def, Lisp_Object require_match)
 {
   Lisp_Object args[4], result;
   unsigned char *s;
@@ -1257,8 +1222,7 @@ function, instead of the usual behavior.  */)
 }
 
 static Lisp_Object
-minibuf_conform_representation (string, basis)
-     Lisp_Object string, basis;
+minibuf_conform_representation (Lisp_Object string, Lisp_Object basis)
 {
   if (STRING_MULTIBYTE (string) == STRING_MULTIBYTE (basis))
     return string;
@@ -1300,8 +1264,7 @@ or the symbol from the obarray.  If COLLECTION is a hash-table,
 predicate is called with two arguments: the key and the value.
 Additionally to this predicate, `completion-regexp-list'
 is used to further constrain the set of candidates.  */)
-     (string, collection, predicate)
-     Lisp_Object string, collection, predicate;
+  (Lisp_Object string, Lisp_Object collection, Lisp_Object predicate)
 {
   Lisp_Object bestmatch, tail, elt, eltstring;
   /* Size in bytes of BESTMATCH.  */
@@ -1572,8 +1535,7 @@ is used to further constrain the set of candidates.
 An obsolete optional fourth argument HIDE-SPACES is still accepted for
 backward compatibility.  If non-nil, strings in COLLECTION that start
 with a space are ignored unless STRING itself starts with a space.  */)
-     (string, collection, predicate, hide_spaces)
-     Lisp_Object string, collection, predicate, hide_spaces;
+  (Lisp_Object string, Lisp_Object collection, Lisp_Object predicate, Lisp_Object hide_spaces)
 {
   Lisp_Object tail, elt, eltstring;
   Lisp_Object allmatches;
@@ -1782,9 +1744,7 @@ If INHERIT-INPUT-METHOD is non-nil, the minibuffer inherits
 
 Completion ignores case if the ambient value of
   `completion-ignore-case' is non-nil.  */)
-     (prompt, collection, predicate, require_match, initial_input, hist, def, inherit_input_method)
-     Lisp_Object prompt, collection, predicate, require_match, initial_input;
-     Lisp_Object hist, def, inherit_input_method;
+  (Lisp_Object prompt, Lisp_Object collection, Lisp_Object predicate, Lisp_Object require_match, Lisp_Object initial_input, Lisp_Object hist, Lisp_Object def, Lisp_Object inherit_input_method)
 {
   Lisp_Object val, histvar, histpos, position;
   Lisp_Object init;
@@ -1851,7 +1811,7 @@ Completion ignores case if the ambient value of
   RETURN_UNGCPRO (unbind_to (count, val));
 }
 
-Lisp_Object Fassoc_string ();
+Lisp_Object Fassoc_string (register Lisp_Object key, Lisp_Object list, Lisp_Object case_fold);
 
 /* Test whether TXT is an exact completion.  */
 DEFUN ("test-completion", Ftest_completion, Stest_completion, 2, 3, 0,
@@ -1859,8 +1819,7 @@ DEFUN ("test-completion", Ftest_completion, Stest_completion, 2, 3, 0,
 Takes the same arguments as `all-completions' and `try-completion'.
 If COLLECTION is a function, it is called with three arguments:
 the values STRING, PREDICATE and `lambda'.  */)
-       (string, collection, predicate)
-     Lisp_Object string, collection, predicate;
+  (Lisp_Object string, Lisp_Object collection, Lisp_Object predicate)
 {
   Lisp_Object regexps, tail, tem = Qnil;
   int i = 0;
@@ -1978,8 +1937,7 @@ If the argument FLAG is nil, invoke `try-completion', if it's t, invoke
 
 The arguments STRING and PREDICATE are as in `try-completion',
 `all-completions', and `test-completion'. */)
-     (string, predicate, flag)
-     Lisp_Object string, predicate, flag;
+  (Lisp_Object string, Lisp_Object predicate, Lisp_Object flag)
 {
   if (NILP (flag))
     return Ftry_completion (string, Vbuffer_alist, predicate);
@@ -2023,9 +1981,7 @@ is ignored.
 
 Unlike `assoc', KEY can also match an entry in LIST consisting of a
 single string, rather than a cons cell whose car is a string.  */)
-       (key, list, case_fold)
-     register Lisp_Object key;
-     Lisp_Object list, case_fold;
+  (register Lisp_Object key, Lisp_Object list, Lisp_Object case_fold)
 {
   register Lisp_Object tail;
 
@@ -2054,7 +2010,7 @@ single string, rather than a cons cell whose car is a string.  */)
 
 DEFUN ("minibuffer-depth", Fminibuffer_depth, Sminibuffer_depth, 0, 0, 0,
        doc: /* Return current depth of activations of minibuffer, a nonnegative integer.  */)
-     ()
+  (void)
 {
   return make_number (minibuf_level);
 }
@@ -2062,21 +2018,21 @@ DEFUN ("minibuffer-depth", Fminibuffer_depth, Sminibuffer_depth, 0, 0, 0,
 DEFUN ("minibuffer-prompt", Fminibuffer_prompt, Sminibuffer_prompt, 0, 0, 0,
        doc: /* Return the prompt string of the currently-active minibuffer.
 If no minibuffer is active, return nil.  */)
-     ()
+  (void)
 {
   return Fcopy_sequence (minibuf_prompt);
 }
 
 
 void
-init_minibuf_once ()
+init_minibuf_once (void)
 {
   Vminibuffer_list = Qnil;
   staticpro (&Vminibuffer_list);
 }
 
 void
-syms_of_minibuf ()
+syms_of_minibuf (void)
 {
   minibuf_level = 0;
   minibuf_prompt = Qnil;

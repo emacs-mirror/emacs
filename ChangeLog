@@ -1,3 +1,52 @@
+2010-07-25  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in: Check for __executable_start.
+
+2010-07-24  Ken Brown  <kbrown@cornell.edu>
+
+	* configure.in (LINKER, LIB_GCC): Remove cygwin special cases (Bug#6715)
+
+2010-07-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* .bzrignore, .gitignore: Ignore README.W32 on the root directory.
+
+2010-07-24  Ken Brown  <kbrown@cornell.edu>  (tiny change)
+
+	* configure.in (START_FILES) [cygwin]: Set to pre-crt0.o (Bug#6715).
+
+2010-07-12  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in (C_WARNINGS_SWITCH, PROFILING_CFLAGS)
+	(PROFILING_LDFLAGS): Substitute, don't add them to CFLAGS/LDFLAGS.
+	(C_OPTIMIZE_SWITCH): Remove.
+	(TEMACS_LDFLAGS2): Add ${PROFILING_LDFLAGS}.
+
+2010-07-11  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in: Don't check for index and rindex, check for strchr
+	and strrchr.  Define strchr and strrchr as index and rindex,
+	resp., in src/config.h if not available.
+
+2010-07-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in: Use -Wold-style-definition if available.
+	This helps with the transition to standard C code, it can be
+	removed when done.
+
+	* configure.in (PRE_EDIT_LDFLAGS, POST_EDIT_LDFLAGS): Remove.
+
+	* configure.in (UNEXEC_OBJ): Add comment about values for MSDOS
+	and MSWindows.
+
+2010-07-07  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in: Don't check for bcopy, bcmp, bzero.  Don't include
+	<strings.h> and don't define bcopy, bzero, BCMP in config.h.
+
+2010-07-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (getenv): Remove K&R declaration.
+
 2010-07-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in: Remove define __P.
@@ -11,7 +60,8 @@
 	Fix CFLAGS for non-GCC compilers.
 	* configure.in (CFLAGS): Always use -g like it was done before the
 	2010-03-30 change.
-	(REAL_CFLAGS): Use CFLAGS for non-GCC to get optimization flags.  (Bug#6538)
+	(REAL_CFLAGS): Use CFLAGS for non-GCC to get optimization flags.
+	(Bug#6538)
 
 2010-06-30  Glenn Morris  <rgm@gnu.org>
 
@@ -35,6 +85,10 @@
 
 	* config.bat: Remove white space around "+" in COPY commands.
 
+2010-06-23  Glenn Morris  <rgm@gnu.org>
+
+	* info/dir: Start descriptions in column 32, per Texinfo convention.
+
 2010-06-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* INSTALL: Update font information (Bug#6389).
@@ -45,8 +99,7 @@
 
 2010-06-12  Glenn Morris  <rgm@gnu.org>
 
-	* Makefile.in (install-arch-indep): Delete any old info .gz files
-	first.
+	* Makefile.in (install-arch-indep): Delete any old info .gz files first.
 
 2010-06-11  Glenn Morris  <rgm@gnu.org>
 
@@ -472,7 +525,7 @@
 	* configure.in: Remove support for old UNIX System V systems and
 	for Unixware on non-x86 machines.
 
-	* configure.in:	Remove support for Solaris on PPC and for old versions.
+	* configure.in: Remove support for Solaris on PPC and for old versions.
 
 	* configure.in: Remove non-working lynxos port.
 
@@ -8336,7 +8389,7 @@
 	(EMACSROOT): New variable, giving the directory under which all of
 	Emacs's libraries should be installed.  Changed rest of file to
 	use it.
-	(LIBDIR): Now denotes only architecture-dependent dir - relevant cha
+	(LIBDIR): Now denotes only architecture-dependent dir.
 	(DATADIR): New variable, denoting architecture-independent dir.
 	(LOCKDIR): New variable, for completeness.
 	(SUBDIR): No more etc, new lib-src.

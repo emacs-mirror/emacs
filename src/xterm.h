@@ -370,6 +370,9 @@ struct x_display_info
   /* XSettings atoms and windows.  */
   Atom Xatom_xsettings_sel, Xatom_xsettings_prop, Xatom_xsettings_mgr;
   Window xsettings_window;
+
+  /* Frame name and icon name */
+  Atom Xatom_net_wm_name, Xatom_net_wm_icon_name;
 };
 
 #ifdef HAVE_X_I18N
@@ -378,12 +381,15 @@ extern int use_xim;
 #endif
 
 /* This checks to make sure we have a display.  */
+
 extern void check_x (void);
 
 extern struct frame *x_window_to_frame (struct x_display_info *, int);
 
 extern struct frame *x_any_window_to_frame (struct x_display_info *, int);
-extern struct frame *x_menubar_window_to_frame (struct x_display_info *, int);
+extern struct frame *x_menubar_window_to_frame (struct x_display_info *,
+						XEvent *);
+
 extern struct frame *x_top_window_to_frame (struct x_display_info *, int);
 
 #if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
@@ -930,15 +936,16 @@ extern void x_free_gcs (struct frame *);
 
 /* From xrdb.c.  */
 
-char *x_get_customization_string (XrmDatabase, char *, char *);
-XrmDatabase x_load_resources (Display *, char *, char *, char *);
-int x_get_resource (XrmDatabase, char *, char *,
+char *x_get_customization_string (XrmDatabase, const char *, const char *);
+XrmDatabase x_load_resources (Display *, const char *, const char *,
+			      const char *);
+int x_get_resource (XrmDatabase, const char *, const char *,
                     XrmRepresentation, XrmValue *);
 void x_delete_display (struct x_display_info *);
 void x_make_frame_visible (struct frame *);
 void x_iconify_frame (struct frame *);
 void x_wm_set_size_hint (struct frame *, long, int);
-int x_text_icon (struct frame *, char *);
+int x_text_icon (struct frame *, const char *);
 int x_bitmap_icon (struct frame *, Lisp_Object);
 void x_set_window_size (struct frame *, int, int, int);
 void x_wm_set_window_state (struct frame *, int);
@@ -948,10 +955,10 @@ int x_alloc_nearest_color (struct frame *, Colormap, XColor *);
 
 extern void cancel_mouse_face (struct frame *);
 extern void x_scroll_bar_clear (struct frame *);
-extern int x_text_icon (struct frame *, char *);
+extern int x_text_icon (struct frame *, const char *);
 extern int x_bitmap_icon (struct frame *, Lisp_Object);
 extern void x_catch_errors (Display *);
-extern void x_check_errors (Display *, char *);
+extern void x_check_errors (Display *, const char *);
 extern int x_had_errors_p (Display *);
 extern int x_catching_errors (void);
 extern void x_uncatch_errors (void);
@@ -1012,7 +1019,7 @@ extern void x_fill_property_data (Display *,
                                   void *,
                                   int);
 extern Lisp_Object x_property_data_to_lisp (struct frame *,
-                                            unsigned char *,
+                                            const unsigned char *,
                                             Atom,
                                             int,
                                             unsigned long);
@@ -1027,7 +1034,7 @@ extern int xg_set_icon_from_xpm_data (struct frame *, char**);
 #endif /* USE_GTK */
 
 extern void x_real_positions (struct frame *, int *, int *);
-extern int defined_color (struct frame *, char *, XColor *, int);
+extern int defined_color (struct frame *, const char *, XColor *, int);
 extern void x_set_border_pixel (struct frame *, int);
 extern void x_set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
 extern void x_implicitly_set_name (struct frame *, Lisp_Object, Lisp_Object);
@@ -1036,14 +1043,14 @@ extern void create_frame_xic (struct frame *);
 extern void destroy_frame_xic (struct frame *);
 extern void xic_set_preeditarea (struct window *, int, int);
 extern void xic_set_statusarea (struct frame *);
-extern void xic_set_xfontset (struct frame *, char *);
+extern void xic_set_xfontset (struct frame *, const char *);
 extern int x_pixel_width (struct frame *);
 extern int x_pixel_height (struct frame *);
 extern int x_char_width (struct frame *);
 extern int x_char_height (struct frame *);
 extern int x_screen_planes (struct frame *);
 extern void x_sync (struct frame *);
-extern int x_defined_color (struct frame *, char *, XColor *, int);
+extern int x_defined_color (struct frame *, const char *, XColor *, int);
 #ifdef HAVE_X_I18N
 extern void free_frame_xic (struct frame *);
 #endif

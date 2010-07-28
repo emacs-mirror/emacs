@@ -222,7 +222,7 @@ sbrk (unsigned long increment)
    was allocated by something else; GNU malloc detects when there is a
    jump in the sbrk values, and starts a new heap block.  */
 void
-init_heap ()
+init_heap (void)
 {
   PIMAGE_DOS_HEADER dos_header;
   PIMAGE_NT_HEADERS nt_header;

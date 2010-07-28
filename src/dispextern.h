@@ -105,6 +105,8 @@ enum window_part
 /* Number of bits allocated to store fringe bitmap numbers.  */
 #define FRINGE_ID_BITS  16
 
+/* Number of bits allocated to store fringe bitmap height.  */
+#define FRINGE_HEIGHT_BITS 8
 
 
 /***********************************************************************
@@ -799,6 +801,12 @@ struct glyph_row
 
   /* Face of the right fringe glyph.  */
   unsigned right_fringe_face_id : FACE_ID_BITS;
+
+  /* Vertical offset of the left fringe bitmap.  */
+  signed left_fringe_offset : FRINGE_HEIGHT_BITS;
+
+  /* Vertical offset of the right fringe bitmap.  */
+  signed right_fringe_offset : FRINGE_HEIGHT_BITS;
 
   /* 1 means that we must draw the bitmaps of this row.  */
   unsigned redraw_fringe_bitmaps_p : 1;
@@ -2943,7 +2951,6 @@ extern Lisp_Object Qtool_bar;
 extern Lisp_Object Vshow_trailing_whitespace;
 extern int mode_line_in_non_selected_windows;
 extern int redisplaying_p;
-extern void add_to_log (char *, Lisp_Object, Lisp_Object);
 extern int help_echo_showing_p;
 extern int current_mode_line_height, current_header_line_height;
 extern Lisp_Object help_echo_string, help_echo_window;
@@ -3314,18 +3321,18 @@ enum resource_types
 };
 
 extern Lisp_Object x_get_arg (Display_Info *, Lisp_Object,
-                              Lisp_Object, char *, char *class,
+                              Lisp_Object, const char *, const char *class,
                               enum resource_types);
 extern Lisp_Object x_frame_get_arg (struct frame *, Lisp_Object,
-                                    Lisp_Object, char *, char *,
+                                    Lisp_Object, const char *, const char *,
                                     enum resource_types);
-extern Lisp_Object x_frame_get_and_record_arg (
-                                               struct frame *, Lisp_Object,
-                                               Lisp_Object, char *, char *,
+extern Lisp_Object x_frame_get_and_record_arg (struct frame *, Lisp_Object,
+                                               Lisp_Object,
+					       const char *, const char *,
                                                enum resource_types);
 extern Lisp_Object x_default_parameter (struct frame *, Lisp_Object,
                                         Lisp_Object, Lisp_Object,
-                                        char *, char *,
+                                        const char *, const char *,
                                         enum resource_types);
 
 #endif /* HAVE_WINDOW_SYSTEM */

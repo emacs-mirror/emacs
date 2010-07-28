@@ -42,7 +42,7 @@ lib-src/Makefile by hand in order to use the associated features.
 This is only useful if your crt*.o files are in a non-standard location.
 
 ---
-** Emacs can be compiled against Gtk+ 3.0 if you pass --with-x-toolkit=gtk3 
+** Emacs can be compiled against Gtk+ 3.0 if you pass --with-x-toolkit=gtk3
 to configure.  Note that other libraries used by Emacs, RSVG and GConf,
 also depend on Gtk+.  You can disable them with --without-rsvg and
 --without-gconf.
@@ -173,6 +173,22 @@ should use delete-char with a negative argument instead.
 
 *** The option `mouse-region-delete-keys' has been deleted.
 
+** Selection changes.
+
+The way Emacs interacts with the clipboard and primary selection, by
+default, is now similar to other X applications.  In particular, kill
+and yank use the clipboard, in addition to the primary selection.
+
+*** `select-active-regions' now defaults to t.
+
+*** `x-select-enable-clipboard' now defaults to t.
+
+*** `x-select-enable-primary' now defaults to nil.
+
+*** `mouse-drag-copy-region' now defaults to nil.
+
+*** `mouse-2' is now bound to `mouse-yank-primary'.
+
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
 
@@ -240,9 +256,9 @@ For example, adding "(diff-mode . ((mode . whitespace)))" to your
 
 ** SQL Mode enhancements.
 
-*** Several variables have been marked as safe local variables.
-The variables `sql-product', `sql-user', `sql-server', and
-`sql-database' can now be safely used as local variables.
+*** Several variables have been marked as safe local variables.  The
+variables `sql-product', `sql-user', `sql-server', `sql-database' and
+`sql-port' can now be safely used as local variables.
 
 *** Added ability to login with a port on MySQL.
 The custom variable `sql-port' can be specified for connection to
@@ -253,15 +269,69 @@ Each supported product has a custom variable `sql-*-login-params'
 which is a list of the parameters to be prompted for before a
 connection is established.
 
+By default, the value of the parameter is simply prompted for.  For
+`server' and `database', they can be specified in a list as shown
+below:
+
+  (server :file ARG)
+  (database :file ARG)
+  (server :completion ARG)
+  (database :completion ARG)
+
+The ARG when :file is specified is a regexp that will match valid file
+names (without the directory portion).  Generally these strings will
+be of the form ".+\.SUF" where SUF is the desired file suffix.
+
+When :completion is specified, the ARG corresponds to the PREDICATE
+argument to the `completing-read' function.
+
+*** Added `sql-connection-alist' to record login parameter values.
+An alist for recording different username, database and server
+values.  If there are multiple databases that you connect to the
+parameters needed can be stored in this alist.
+
+For example, the following might be set in the user's init.el:
+
+  (setq sql-connection-alist
+        '((dev (sql-product 'sqlite)
+               (sql-database "/home/mmaug/dev.db"))
+          (prd (sql-product 'oracle)
+               (sql-user "mmaug")
+               (sql-database "iprd2a"))))
+
+This defines two connections named "dev" and "prd".
+
+*** Added `sql-connect' to use predefined connections.
+Sets the login parameters based on the values in the
+`sql-connection-alist' and start a SQL interactive session.  Any
+values specified in the connection will not be prompted for.
+
+In the example above, if the user were to invoke M-x sql-connect, they
+would be prompted for the connection.  The user can respond with
+either "dev" or "prd".  The "dev" connection would connect to the
+SQLite database without prompting; the "prd" connection would prompt
+for the users password and then connect to the Oracle database.
+
+**** Added SQL->Start... submenu when connections are defined.
+When connections have been defined, There is a submenu available that
+allows the user to select one to start a SQLi session.  The "Start
+SQLi Session" item moves to the "Start..." submenu when cnnections
+have been defined.
+
+**** Added "Save Connection" menu item in SQLi buffers.
+When a SQLi session is not started by a connection then
+`sql-save-connection' will gather the login params specified for the
+session and save them as a new connection.
+
 *** Added option `sql-send-terminator'.
 When set makes sure that each command sent with `sql-send-*' commands
 are properly terminated and submitted to the SQL processor.
 
 *** Added option `sql-oracle-scan-on'.
 When set commands sent to Oracle's SQL*Plus are scanned for strings
-starting with an ampersand and the user is asked for replacement
-text.  In general, the SQL*Plus option SCAN should be set OFF under
-SQL interactive mode.
+starting with an ampersand and the user is asked for replacement text.
+In general, the SQL*Plus option SCAN should always be set OFF under
+SQL interactive mode and this option used in its place.
 
 *** SQL interactive mode will replace tabs with spaces.
 This prevents the comand interpretter for MySQL and Postgres from
@@ -358,6 +428,15 @@ displayed with a "spinning bar".
 
 
 * Changes in Emacs 24.1 on non-free operating systems
+
+** New configure.bat option --enable-checking builds emacs with extra
+runtime checks.
+
+** New configure.bat option --distfiles to specify files to be
+   included in binary distribution
+
+** New make target `dist' to create binary disttribution for Windows
+   platform
 
 
 ----------------------------------------------------------------------

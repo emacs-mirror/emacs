@@ -187,7 +187,7 @@ and the buffer showing possible completions will contain
 
 @example
 Possible completions are:
-xml:lang			   xmlns
+xml:lang                           xmlns
 @end example
 
 @noindent
@@ -520,7 +520,7 @@ enough.
 
 If you want to use a schema that has not yet been added to the
 schema locating files, you can use the command @kbd{C-c C-s C-f}
-to manually select the file contaiing the schema for the document in
+to manually select the file containing the schema for the document in
 current buffer.  Emacs will read the file-name of the schema from the
 minibuffer. After reading the file-name, Emacs will ask whether you
 wish to add a rule to a schema locating file that persistently
@@ -851,11 +851,6 @@ elements. Other usage of DTDs is ignored.
 @item
 The restrictions on RELAX NG schemas in section 7 of the RELAX NG
 specification are not enforced.
-@item
-Unicode support has problems. This stems mostly from the fact that
-the XML (and RELAX NG) character model is based squarely on Unicode,
-whereas the Emacs character model is not.  Emacs 22 is slated to have
-full Unicode support, which should improve the situation here.
 @end itemize
 
 @bye

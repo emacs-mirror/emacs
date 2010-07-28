@@ -1,7 +1,16 @@
+2010-07-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* url-http (url-http-parse-headers): Disable file name handlers at
+	all (not only Tramp).  (Bug#6717)
+
+2010-07-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* url-http (url-http-parse-headers): Disable Tramp.  (Bug#6717)
+
 2010-07-01  Mark A. Hershberger  <mah@everybody.org>
 
 	* url-http.el (url-http-create-request): Add a CRLF on the end so
-	that POSTs with content to https urls work. See
+	that POSTs with content to https urls work.  See
 	<https://bugs.launchpad.net/mediawiki-el/+bug/540759>
 
 2010-06-22  Mark A. Hershberger  <mah@everybody.org>
@@ -220,7 +229,7 @@
 2008-03-09  Magnus Henoch  <mange@freemail.hu>
 
 	* url-http.el (url-http-chunked-encoding-after-change-function):
-	Remove superfluous CRLF at end of file.  (bug #42)
+	Remove superfluous CRLF at end of file.  (Bug #42)
 
 2008-03-02  Andreas Schwab  <schwab@suse.de>
 
@@ -806,7 +815,7 @@
 	(url-http-parse-headers): Use it.
 	(url-http-handle-authentication): Use subst-char-in-string.
 
-2005-11-16  Juergen Hoetzel  <emacs@hoetzel.info>  (tiny change)
+2005-11-16  Jürgen Hötzel  <emacs@hoetzel.info>  (tiny change)
 
 	* url-handlers.el (url-insert-file-contents): Use the charset info
 	provided by the HTTP server, if any.

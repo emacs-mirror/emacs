@@ -41,10 +41,10 @@
   :type 'boolean
   :group 'mouse)
 
-(defcustom mouse-drag-copy-region t
+(defcustom mouse-drag-copy-region nil
   "If non-nil, mouse drag copies region to kill-ring."
   :type 'boolean
-  :version "22.1"
+  :version "24.1"
   :group 'mouse)
 
 (defcustom mouse-1-click-follows-link 450
@@ -936,25 +936,33 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
                        ;; treatment, in case we click on a link inside an
                        ;; intangible text.
                        (mouse-on-link-p start-posn)))
+	 (click-count (1- (event-click-count start-event)))
 	 ;; Suppress automatic hscrolling, because that is a nuisance
 	 ;; when setting point near the right fringe (but see below).
 	 (automatic-hscrolling-saved automatic-hscrolling)
 	 (automatic-hscrolling nil)
 	 event end end-point)
 
-    (setq mouse-selection-click-count (1- (event-click-count start-event)))
+    (setq mouse-selection-click-count click-count)
     ;; In case the down click is in the middle of some intangible text,
     ;; use the end of that text, and put it in START-POINT.
     (if (< (point) start-point)
 	(goto-char start-point))
     (setq start-point (point))
 
-    ;; Activate the mark.
+    ;; Activate the region, using `mouse-start-end' to determine where
+    ;; to put point and mark (e.g., double-click will select a word).
     (setq transient-mark-mode
 	  (if (eq transient-mark-mode 'lambda)
 	      '(only)
 	    (cons 'only transient-mark-mode)))
-    (push-mark nil nil t)
+    (let ((range (mouse-start-end start-point start-point click-count))
+	  ;; Prevent `push-mark' from clobbering the primary selection
+	  ;; if the user clicks without dragging.
+	  (select-active-regions nil))
+      (goto-char (nth 0 range))
+      (push-mark nil t t)
+      (goto-char (nth 1 range)))
 
     ;; Track the mouse until we get a non-movement event.
     (track-mouse
@@ -1007,6 +1015,7 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
 						   mouse-set-region))))))
 	(if (and (/= (mark) (point))
 		 (not do-multi-click))
+
 	    ;; If point has moved, finish the drag.
 	    (let* (last-command this-command)
 	      ;; Copy the region so that `select-active-regions' can
@@ -1014,11 +1023,18 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
 	      (and mouse-drag-copy-region
 		   do-mouse-drag-region-post-process
 		   (let (deactivate-mark)
-		     (copy-region-as-kill (mark) (point)))))
+		     (copy-region-as-kill (mark) (point))))
+	      ;; For `select-active-regions' non-nil, ensure that
+	      ;; further alterations of the region (e.g. via
+	      ;; shift-selection) continue to update PRIMARY.
+	      (select-active-region))
+
 	  ;; If point hasn't moved, run the binding of the
 	  ;; terminating up-event.
-	  (if do-multi-click (goto-char start-point))
-	  (deactivate-mark)
+	  (if do-multi-click
+	      (goto-char start-point)
+	    (let (select-active-regions)
+	      (deactivate-mark)))
 	  (when (and (functionp fun)
 		     (= start-hscroll (window-hscroll start-window))
 		     ;; Don't run the up-event handler if the window
@@ -1266,7 +1282,7 @@ regardless of where you click."
   (or mouse-yank-at-point (mouse-set-point click))
   (let ((primary (x-get-selection 'PRIMARY)))
     (if primary
-        (insert (x-get-selection 'PRIMARY))
+        (insert primary)
       (error "No primary selection"))))
 
 (defun mouse-kill-ring-save (click)
@@ -1561,7 +1577,7 @@ regardless of where you click."
   (or mouse-yank-at-point (mouse-set-point click))
   (let ((secondary (x-get-selection 'SECONDARY)))
     (if secondary
-        (insert (x-get-selection 'SECONDARY))
+        (insert secondary)
       (error "No secondary selection"))))
 
 (defun mouse-kill-secondary ()
@@ -2351,6 +2367,7 @@ choose a font."
 (declare-function font-face-attributes "font.c" (font &optional frame))
 
 (defun mouse-appearance-menu (event)
+  "Show a menu for changing the default face in the current buffer."
   (interactive "@e")
   (require 'face-remap)
   (when (display-multi-font-p)
@@ -2424,7 +2441,7 @@ choose a font."
 (global-set-key [left-fringe mouse-1]	'mouse-set-point)
 (global-set-key [right-fringe mouse-1]	'mouse-set-point)
 
-(global-set-key [mouse-2]	'mouse-yank-at-click)
+(global-set-key [mouse-2]	'mouse-yank-primary)
 ;; Allow yanking also when the corresponding cursor is "in the fringe".
 (global-set-key [right-fringe mouse-2] 'mouse-yank-at-click)
 (global-set-key [left-fringe mouse-2] 'mouse-yank-at-click)

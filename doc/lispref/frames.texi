@@ -100,9 +100,9 @@ is the same as for @code{framep} above.
 * Pointer Shape::               Specifying the shape of the mouse pointer.
 * Window System Selections::    Transferring text to and from other X clients.
 * Drag and Drop::               Internals of Drag-and-Drop implementation.
-* Color Names::	                Getting the definitions of color names.
+* Color Names::                 Getting the definitions of color names.
 * Text Terminal Colors::        Defining colors for text-only terminals.
-* Resources::		        Getting resource values from the server.
+* Resources::                   Getting resource values from the server.
 * Display Feature Testing::     Determining the features of a terminal.
 @end menu
 
@@ -341,7 +341,7 @@ variables.  @xref{Frame-Local Variables}.
 
 @menu
 * Parameter Access::       How to change a frame's parameters.
-* Initial Parameters::	   Specifying frame parameters when you make a frame.
+* Initial Parameters::     Specifying frame parameters when you make a frame.
 * Window Frame Parameters:: List of frame parameters for window systems.
 * Size and Position::      Changing the size and position of a frame.
 * Geometry::               Parsing geometry specifications.

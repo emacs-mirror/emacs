@@ -104,8 +104,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #ifdef USE_LUCID
-extern int xlwmenu_window_p (Widget w, Window window);
-extern void xlwmenu_redisplay (Widget);
+#include "../lwlib/xlwmenu.h"
 #endif
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
@@ -332,7 +331,8 @@ Lisp_Object Qx_gtk_map_stock;
 
 extern Lisp_Object Vinhibit_redisplay;
 
-extern XrmDatabase x_load_resources (Display *, char *, char *, char *);
+extern XrmDatabase x_load_resources (Display *, const char *, const char *,
+				     const char *);
 extern int x_bitmap_mask (FRAME_PTR, int);
 
 static int x_alloc_nearest_color_1 (Display *, Colormap, XColor *);
@@ -379,14 +379,13 @@ static int handle_one_xevent (struct x_display_info *, XEvent *,
                               int *, struct input_event *);
 /* Don't declare this NO_RETURN because we want no
    interference with debugging failing X calls.  */
-static SIGTYPE x_connection_closed (Display *, char *);
+static SIGTYPE x_connection_closed (Display *, const char *);
 
 
 /* Flush display of frame F, or of all frames if F is null.  */
 
 static void
-x_flush (f)
-     struct frame *f;
+x_flush (struct frame *f)
 {
   /* Don't call XFlush when it is not safe to redisplay; the X
      connection may be broken.  */
@@ -455,8 +454,7 @@ record_event (locus, type)
 /* Return the struct x_display_info corresponding to DPY.  */
 
 struct x_display_info *
-x_display_info_for_display (dpy)
-     Display *dpy;
+x_display_info_for_display (Display *dpy)
 {
   struct x_display_info *dpyinfo;
 
@@ -471,8 +469,7 @@ x_display_info_for_display (dpy)
 #define OPACITY "_NET_WM_WINDOW_OPACITY"
 
 void
-x_set_frame_alpha (f)
-     struct frame *f;
+x_set_frame_alpha (struct frame *f)
 {
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   Display *dpy = FRAME_X_DISPLAY (f);
@@ -484,7 +481,7 @@ x_set_frame_alpha (f)
   if (FRAME_X_DISPLAY_INFO (f)->root_window != FRAME_X_OUTPUT (f)->parent_desc)
     /* Since the WM decoration lies under the FRAME_OUTER_WINDOW,
        we must treat the former instead of the latter. */
-    win = FRAME_X_OUTPUT(f)->parent_desc;
+    win = FRAME_X_OUTPUT (f)->parent_desc;
 
   if (dpyinfo->x_highlight_frame == f)
     alpha = f->alpha[0];
@@ -513,10 +510,10 @@ x_set_frame_alpha (f)
     unsigned long n, left;
 
     x_catch_errors (dpy);
-    rc = XGetWindowProperty(dpy, win, XInternAtom(dpy, OPACITY, False),
-			    0L, 1L, False, XA_CARDINAL,
-			    &actual, &format, &n, &left,
-			    &data);
+    rc = XGetWindowProperty (dpy, win, XInternAtom(dpy, OPACITY, False),
+			     0L, 1L, False, XA_CARDINAL,
+			     &actual, &format, &n, &left,
+			     &data);
 
     if (rc == Success && actual != None)
       if (*(unsigned long *)data == opac)
@@ -538,15 +535,13 @@ x_set_frame_alpha (f)
 }
 
 int
-x_display_pixel_height (dpyinfo)
-     struct x_display_info *dpyinfo;
+x_display_pixel_height (struct x_display_info *dpyinfo)
 {
   return HeightOfScreen (dpyinfo->screen);
 }
 
 int
-x_display_pixel_width (dpyinfo)
-     struct x_display_info *dpyinfo;
+x_display_pixel_width (struct x_display_info *dpyinfo)
 {
   return WidthOfScreen (dpyinfo->screen);
 }
@@ -563,8 +558,7 @@ x_display_pixel_width (dpyinfo)
    because all interesting stuff is done on a window basis.  */
 
 static void
-x_update_begin (f)
-     struct frame *f;
+x_update_begin (struct frame *f)
 {
   /* Nothing to do.  */
 }
@@ -575,8 +569,7 @@ x_update_begin (f)
    position of W.  */
 
 static void
-x_update_window_begin (w)
-     struct window *w;
+x_update_window_begin (struct window *w)
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   struct x_display_info *display_info = FRAME_X_DISPLAY_INFO (f);
@@ -604,9 +597,7 @@ x_update_window_begin (w)
 /* Draw a vertical window border from (x,y0) to (x,y1)  */
 
 static void
-x_draw_vertical_window_border (w, x, y0, y1)
-     struct window *w;
-     int x, y0, y1;
+x_draw_vertical_window_border (struct window *w, int x, int y0, int y1)
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   struct face *face;
@@ -634,9 +625,7 @@ x_draw_vertical_window_border (w, x, y0, y1)
    here.  */
 
 static void
-x_update_window_end (w, cursor_on_p, mouse_face_overwritten_p)
-     struct window *w;
-     int cursor_on_p, mouse_face_overwritten_p;
+x_update_window_end (struct window *w, int cursor_on_p, int mouse_face_overwritten_p)
 {
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (XFRAME (w->frame));
 
@@ -672,8 +661,7 @@ x_update_window_end (w, cursor_on_p, mouse_face_overwritten_p)
    update_end.  */
 
 static void
-x_update_end (f)
-     struct frame *f;
+x_update_end (struct frame *f)
 {
   /* Mouse highlight may be displayed again.  */
   FRAME_X_DISPLAY_INFO (f)->mouse_face_defer = 0;
@@ -691,8 +679,7 @@ x_update_end (f)
    updated_window is not available here.  */
 
 static void
-XTframe_up_to_date (f)
-     struct frame *f;
+XTframe_up_to_date (struct frame *f)
 {
   if (FRAME_X_P (f))
     {
@@ -721,8 +708,7 @@ XTframe_up_to_date (f)
    between bitmaps to be drawn between current row and DESIRED_ROW.  */
 
 static void
-x_after_update_window_line (desired_row)
-     struct glyph_row *desired_row;
+x_after_update_window_line (struct glyph_row *desired_row)
 {
   struct window *w = updated_window;
   struct frame *f;
@@ -760,34 +746,16 @@ x_after_update_window_line (desired_row)
 }
 
 static void
-x_draw_fringe_bitmap (w, row, p)
-     struct window *w;
-     struct glyph_row *row;
-     struct draw_fringe_bitmap_params *p;
+x_draw_fringe_bitmap (struct window *w, struct glyph_row *row, struct draw_fringe_bitmap_params *p)
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   Display *display = FRAME_X_DISPLAY (f);
   Window window = FRAME_X_WINDOW (f);
   GC gc = f->output_data.x->normal_gc;
   struct face *face = p->face;
-  int rowY;
 
   /* Must clip because of partially visible lines.  */
-  rowY = WINDOW_TO_FRAME_PIXEL_Y (w, row->y);
-  if (p->y < rowY)
-    {
-      /* Adjust position of "bottom aligned" bitmap on partially
-	 visible last row.  */
-      int oldY = row->y;
-      int oldVH = row->visible_height;
-      row->visible_height = p->h;
-      row->y -= rowY - p->y;
-      x_clip_to_row (w, row, -1, gc);
-      row->y = oldY;
-      row->visible_height = oldVH;
-    }
-  else
-    x_clip_to_row (w, row, -1, gc);
+  x_clip_to_row (w, row, -1, gc);
 
   if (!p->overlay_p)
     {
@@ -969,8 +937,7 @@ static void x_check_font (struct frame *, struct font *);
    face.  */
 
 static void
-x_set_cursor_gc (s)
-     struct glyph_string *s;
+x_set_cursor_gc (struct glyph_string *s)
 {
   if (s->font == FRAME_FONT (s->f)
       && s->face->background == FRAME_BACKGROUND_PIXEL (s->f)
@@ -1021,8 +988,7 @@ x_set_cursor_gc (s)
 /* Set up S->gc of glyph string S for drawing text in mouse face.  */
 
 static void
-x_set_mouse_face_gc (s)
-     struct glyph_string *s;
+x_set_mouse_face_gc (struct glyph_string *s)
 {
   int face_id;
   struct face *face;
@@ -1073,8 +1039,7 @@ x_set_mouse_face_gc (s)
    matrix was built, so there isn't much to do, here.  */
 
 static INLINE void
-x_set_mode_line_face_gc (s)
-     struct glyph_string *s;
+x_set_mode_line_face_gc (struct glyph_string *s)
 {
   s->gc = s->face->gc;
 }
@@ -1085,8 +1050,7 @@ x_set_mode_line_face_gc (s)
    pattern.  */
 
 static INLINE void
-x_set_glyph_string_gc (s)
-     struct glyph_string *s;
+x_set_glyph_string_gc (struct glyph_string *s)
 {
   PREPARE_FACE_FOR_DISPLAY (s->f, s->face);
 
@@ -1131,8 +1095,7 @@ x_set_glyph_string_gc (s)
    line or menu if we don't have X toolkit support.  */
 
 static INLINE void
-x_set_glyph_string_clipping (s)
-     struct glyph_string *s;
+x_set_glyph_string_clipping (struct glyph_string *s)
 {
   XRectangle *r = s->clip;
   int n = get_glyph_string_clip_rects (s, r, 2);
@@ -1148,8 +1111,7 @@ x_set_glyph_string_clipping (s)
    the area of SRC.  */
 
 static void
-x_set_glyph_string_clipping_exactly (src, dst)
-     struct glyph_string *src, *dst;
+x_set_glyph_string_clipping_exactly (struct glyph_string *src, struct glyph_string *dst)
 {
   XRectangle r;
 
@@ -1167,8 +1129,7 @@ x_set_glyph_string_clipping_exactly (src, dst)
    Compute left and right overhang of glyph string S.  */
 
 static void
-x_compute_glyph_string_overhangs (s)
-     struct glyph_string *s;
+x_compute_glyph_string_overhangs (struct glyph_string *s)
 {
   if (s->cmp == NULL
       && (s->first_glyph->type == CHAR_GLYPH
@@ -1207,9 +1168,7 @@ x_compute_glyph_string_overhangs (s)
 /* Fill rectangle X, Y, W, H with background color of glyph string S.  */
 
 static INLINE void
-x_clear_glyph_string_rect (s, x, y, w, h)
-     struct glyph_string *s;
-     int x, y, w, h;
+x_clear_glyph_string_rect (struct glyph_string *s, int x, int y, int w, int h)
 {
   XGCValues xgcv;
   XGetGCValues (s->display, s->gc, GCForeground | GCBackground, &xgcv);
@@ -1226,9 +1185,7 @@ x_clear_glyph_string_rect (s, x, y, w, h)
    contains the first component of a composition.  */
 
 static void
-x_draw_glyph_string_background (s, force_p)
-     struct glyph_string *s;
-     int force_p;
+x_draw_glyph_string_background (struct glyph_string *s, int force_p)
 {
   /* Nothing to do if background has already been drawn or if it
      shouldn't be drawn in the first place.  */
@@ -1264,8 +1221,7 @@ x_draw_glyph_string_background (s, force_p)
 /* Draw the foreground of glyph string S.  */
 
 static void
-x_draw_glyph_string_foreground (s)
-     struct glyph_string *s;
+x_draw_glyph_string_foreground (struct glyph_string *s)
 {
   int i, x;
 
@@ -1313,8 +1269,7 @@ x_draw_glyph_string_foreground (s)
 /* Draw the foreground of composite glyph string S.  */
 
 static void
-x_draw_composite_glyph_string_foreground (s)
-     struct glyph_string *s;
+x_draw_composite_glyph_string_foreground (struct glyph_string *s)
 {
   int i, j, x;
   struct font *font = s->font;
@@ -1412,8 +1367,7 @@ static void cvt_pixel_dtor (XtAppContext, XrmValue *, XtPointer,
    cannot be determined.  */
 
 static struct frame *
-x_frame_of_widget (widget)
-     Widget widget;
+x_frame_of_widget (Widget widget)
 {
   struct x_display_info *dpyinfo;
   Lisp_Object tail;
@@ -1449,10 +1403,7 @@ x_frame_of_widget (widget)
    if successful.  This is called from lwlib.  */
 
 int
-x_alloc_nearest_color_for_widget (widget, cmap, color)
-     Widget widget;
-     Colormap cmap;
-     XColor *color;
+x_alloc_nearest_color_for_widget (Widget widget, Colormap cmap, XColor *color)
 {
   struct frame *f = x_frame_of_widget (widget);
   return x_alloc_nearest_color (f, cmap, color);
@@ -1467,13 +1418,8 @@ x_alloc_nearest_color_for_widget (widget, cmap, color)
    Value is non-zero if successful.  */
 
 int
-x_alloc_lighter_color_for_widget (widget, display, cmap, pixel, factor, delta)
-     Widget widget;
-     Display *display;
-     Colormap cmap;
-     unsigned long *pixel;
-     double factor;
-     int delta;
+x_alloc_lighter_color_for_widget (Widget widget, Display *display, Colormap cmap,
+				  unsigned long *pixel, double factor, int delta)
 {
   struct frame *f = x_frame_of_widget (widget);
   return x_alloc_lighter_color (f, display, cmap, pixel, factor, delta);
@@ -1516,12 +1462,9 @@ static Pixel cvt_string_to_pixel_value;
    Value is True if successful, False otherwise.  */
 
 static Boolean
-cvt_string_to_pixel (dpy, args, nargs, from, to, closure_ret)
-     Display *dpy;
-     XrmValue *args;
-     Cardinal *nargs;
-     XrmValue *from, *to;
-     XtPointer *closure_ret;
+cvt_string_to_pixel (Display *dpy, XrmValue *args, Cardinal *nargs,
+		     XrmValue *from, XrmValue *to,
+		     XtPointer *closure_ret)
 {
   Screen *screen;
   Colormap cmap;
@@ -1605,12 +1548,8 @@ cvt_string_to_pixel (dpy, args, nargs, from, to, closure_ret)
    ARGS and NARGS are like for cvt_string_to_pixel.  */
 
 static void
-cvt_pixel_dtor (app, to, closure, args, nargs)
-    XtAppContext app;
-    XrmValuePtr to;
-    XtPointer closure;
-    XrmValuePtr args;
-    Cardinal *nargs;
+cvt_pixel_dtor (XtAppContext app, XrmValuePtr to, XtPointer closure, XrmValuePtr args,
+		Cardinal *nargs)
 {
   if (*nargs != 2)
     {
@@ -1639,9 +1578,7 @@ cvt_pixel_dtor (app, to, closure, args, nargs)
    say a 24-bit TrueColor map.  */
 
 static const XColor *
-x_color_cells (dpy, ncells)
-     Display *dpy;
-     int *ncells;
+x_color_cells (Display *dpy, int *ncells)
 {
   struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
 
@@ -1672,10 +1609,7 @@ x_color_cells (dpy, ncells)
    colors in COLORS.  Use cached information, if available.  */
 
 void
-x_query_colors (f, colors, ncolors)
-     struct frame *f;
-     XColor *colors;
-     int ncolors;
+x_query_colors (struct frame *f, XColor *colors, int ncolors)
 {
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
 
@@ -1699,9 +1633,7 @@ x_query_colors (f, colors, ncolors)
    COLOR.  Use cached information, if available.  */
 
 void
-x_query_color (f, color)
-     struct frame *f;
-     XColor *color;
+x_query_color (struct frame *f, XColor *color)
 {
   x_query_colors (f, color, 1);
 }
@@ -1713,10 +1645,7 @@ x_query_color (f, color)
    allocated.  */
 
 static int
-x_alloc_nearest_color_1 (dpy, cmap, color)
-     Display *dpy;
-     Colormap cmap;
-     XColor *color;
+x_alloc_nearest_color_1 (Display *dpy, Colormap cmap, XColor *color)
 {
   int rc;
 
@@ -1786,10 +1715,7 @@ x_alloc_nearest_color_1 (dpy, cmap, color)
    allocated.  */
 
 int
-x_alloc_nearest_color (f, cmap, color)
-     struct frame *f;
-     Colormap cmap;
-     XColor *color;
+x_alloc_nearest_color (struct frame *f, Colormap cmap, XColor *color)
 {
   gamma_correct (f, color);
   return x_alloc_nearest_color_1 (FRAME_X_DISPLAY (f), cmap, color);
@@ -1801,9 +1727,7 @@ x_alloc_nearest_color (f, cmap, color)
    get color reference counts right.  */
 
 unsigned long
-x_copy_color (f, pixel)
-     struct frame *f;
-     unsigned long pixel;
+x_copy_color (struct frame *f, long unsigned int pixel)
 {
   XColor color;
 
@@ -1824,10 +1748,7 @@ x_copy_color (f, pixel)
    get color reference counts right.  */
 
 unsigned long
-x_copy_dpy_color (dpy, cmap, pixel)
-     Display *dpy;
-     Colormap cmap;
-     unsigned long pixel;
+x_copy_dpy_color (Display *dpy, Colormap cmap, long unsigned int pixel)
 {
   XColor color;
 
@@ -1865,13 +1786,7 @@ x_copy_dpy_color (dpy, cmap, pixel)
    Value is non-zero if successful.  */
 
 static int
-x_alloc_lighter_color (f, display, cmap, pixel, factor, delta)
-     struct frame *f;
-     Display *display;
-     Colormap cmap;
-     unsigned long *pixel;
-     double factor;
-     int delta;
+x_alloc_lighter_color (struct frame *f, Display *display, Colormap cmap, long unsigned int *pixel, double factor, int delta)
 {
   XColor color, new;
   long bright;
@@ -1947,12 +1862,7 @@ x_alloc_lighter_color (f, display, cmap, pixel, factor, delta)
    be allocated, use DEFAULT_PIXEL, instead.  */
 
 static void
-x_setup_relief_color (f, relief, factor, delta, default_pixel)
-     struct frame *f;
-     struct relief *relief;
-     double factor;
-     int delta;
-     unsigned long default_pixel;
+x_setup_relief_color (struct frame *f, struct relief *relief, double factor, int delta, long unsigned int default_pixel)
 {
   XGCValues xgcv;
   struct x_output *di = f->output_data.x;
@@ -2000,8 +1910,7 @@ x_setup_relief_color (f, relief, factor, delta, default_pixel)
 /* Set up colors for the relief lines around glyph string S.  */
 
 static void
-x_setup_relief_colors (s)
-     struct glyph_string *s;
+x_setup_relief_colors (struct glyph_string *s)
 {
   struct x_output *di = s->f->output_data.x;
   unsigned long color;
@@ -2042,12 +1951,10 @@ x_setup_relief_colors (s)
    when drawing.  */
 
 static void
-x_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
-		    raised_p, top_p, bot_p, left_p, right_p, clip_rect)
-     struct frame *f;
-     int left_x, top_y, right_x, bottom_y, width;
-     int top_p, bot_p, left_p, right_p, raised_p;
-     XRectangle *clip_rect;
+x_draw_relief_rect (struct frame *f,
+		    int left_x, int top_y, int right_x, int bottom_y, int width,
+		    int raised_p, int top_p, int bot_p, int left_p, int right_p,
+		    XRectangle *clip_rect)
 {
   Display *dpy = FRAME_X_DISPLAY (f);
   Window window = FRAME_X_WINDOW (f);
@@ -2105,11 +2012,9 @@ x_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
    rectangle to use when drawing.  */
 
 static void
-x_draw_box_rect (s, left_x, top_y, right_x, bottom_y, width,
-		 left_p, right_p, clip_rect)
-     struct glyph_string *s;
-     int left_x, top_y, right_x, bottom_y, width, left_p, right_p;
-     XRectangle *clip_rect;
+x_draw_box_rect (struct glyph_string *s,
+		 int left_x, int top_y, int right_x, int bottom_y, int width,
+		 int left_p, int right_p, XRectangle *clip_rect)
 {
   XGCValues xgcv;
 
@@ -2143,8 +2048,7 @@ x_draw_box_rect (s, left_x, top_y, right_x, bottom_y, width,
 /* Draw a box around glyph string S.  */
 
 static void
-x_draw_glyph_string_box (s)
-     struct glyph_string *s;
+x_draw_glyph_string_box (struct glyph_string *s)
 {
   int width, left_x, right_x, top_y, bottom_y, last_x, raised_p;
   int left_p, right_p;
@@ -2195,8 +2099,7 @@ x_draw_glyph_string_box (s)
 /* Draw foreground of image glyph string S.  */
 
 static void
-x_draw_image_foreground (s)
-     struct glyph_string *s;
+x_draw_image_foreground (struct glyph_string *s)
 {
   int x = s->x;
   int y = s->ybase - image_ascent (s->img, s->face, &s->slice);
@@ -2286,8 +2189,7 @@ x_draw_image_foreground (s)
 /* Draw a relief around the image glyph string S.  */
 
 static void
-x_draw_image_relief (s)
-     struct glyph_string *s;
+x_draw_image_relief (struct glyph_string *s)
 {
   int x0, y0, x1, y1, thick, raised_p, extra;
   XRectangle r;
@@ -2322,7 +2224,7 @@ x_draw_image_relief (s)
 
   extra = s->face->id == TOOL_BAR_FACE_ID
     ? XINT (Vtool_bar_button_margin) : 0;
-  
+
   x0 = x - thick - extra;
   y0 = y - thick - extra;
   x1 = x + s->slice.width + thick - 1 + extra;
@@ -2342,9 +2244,7 @@ x_draw_image_relief (s)
 /* Draw the foreground of image glyph string S to PIXMAP.  */
 
 static void
-x_draw_image_foreground_1 (s, pixmap)
-     struct glyph_string *s;
-     Pixmap pixmap;
+x_draw_image_foreground_1 (struct glyph_string *s, Pixmap pixmap)
 {
   int x = 0;
   int y = s->ybase - s->y - image_ascent (s->img, s->face, &s->slice);
@@ -2420,9 +2320,7 @@ x_draw_image_foreground_1 (s, pixmap)
    give the rectangle to draw.  */
 
 static void
-x_draw_glyph_string_bg_rect (s, x, y, w, h)
-     struct glyph_string *s;
-     int x, y, w, h;
+x_draw_glyph_string_bg_rect (struct glyph_string *s, int x, int y, int w, int h)
 {
   if (s->stippled_p)
     {
@@ -2451,8 +2349,7 @@ x_draw_glyph_string_bg_rect (s, x, y, w, h)
  */
 
 static void
-x_draw_image_glyph_string (s)
-     struct glyph_string *s;
+x_draw_image_glyph_string (struct glyph_string *s)
 {
   int box_line_hwidth = eabs (s->face->box_line_width);
   int box_line_vwidth = max (s->face->box_line_width, 0);
@@ -2556,8 +2453,7 @@ x_draw_image_glyph_string (s)
 /* Draw stretch glyph string S.  */
 
 static void
-x_draw_stretch_glyph_string (s)
-     struct glyph_string *s;
+x_draw_stretch_glyph_string (struct glyph_string *s)
 {
   xassert (s->first_glyph->type == STRETCH_GLYPH);
 
@@ -2640,8 +2536,7 @@ x_draw_stretch_glyph_string (s)
 /* Draw glyph string S.  */
 
 static void
-x_draw_glyph_string (s)
-     struct glyph_string *s;
+x_draw_glyph_string (struct glyph_string *s)
 {
   int relief_drawn_p = 0;
 
@@ -2895,9 +2790,7 @@ x_draw_glyph_string (s)
 /* Shift display to make room for inserted glyphs.   */
 
 void
-x_shift_glyphs_for_insert (f, x, y, width, height, shift_by)
-     struct frame *f;
-     int x, y, width, height, shift_by;
+x_shift_glyphs_for_insert (struct frame *f, int x, int y, int width, int height, int shift_by)
 {
   XCopyArea (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f), FRAME_X_WINDOW (f),
 	     f->output_data.x->normal_gc,
@@ -2909,9 +2802,7 @@ x_shift_glyphs_for_insert (f, x, y, width, height, shift_by)
    for X frames.  */
 
 static void
-x_delete_glyphs (f, n)
-     struct frame *f;
-     register int n;
+x_delete_glyphs (struct frame *f, register int n)
 {
   abort ();
 }
@@ -2921,12 +2812,7 @@ x_delete_glyphs (f, n)
    If they are <= 0, this is probably an error.  */
 
 void
-x_clear_area (dpy, window, x, y, width, height, exposures)
-     Display *dpy;
-     Window window;
-     int x, y;
-     int width, height;
-     int exposures;
+x_clear_area (Display *dpy, Window window, int x, int y, int width, int height, int exposures)
 {
   xassert (width > 0 && height > 0);
   XClearArea (dpy, window, x, y, width, height, exposures);
@@ -2958,7 +2844,7 @@ x_clear_frame (struct frame *f)
      redisplay, do it here.  */
   gtk_widget_queue_draw (FRAME_GTK_WIDGET (f));
 #endif
-  
+
   XFlush (FRAME_X_DISPLAY (f));
 
   UNBLOCK_INPUT;
@@ -2978,8 +2864,7 @@ x_clear_frame (struct frame *f)
    *RESULT.  Return 1 if the difference is negative, otherwise 0.  */
 
 static int
-timeval_subtract (result, x, y)
-     struct timeval *result, x, y;
+timeval_subtract (struct timeval *result, struct timeval x, struct timeval y)
 {
   /* Perform the carry for the later subtraction by updating y.  This
      is safer because on some systems the tv_sec member is unsigned.  */
@@ -3008,8 +2893,7 @@ timeval_subtract (result, x, y)
 }
 
 void
-XTflash (f)
-     struct frame *f;
+XTflash (struct frame *f)
 {
   BLOCK_INPUT;
 
@@ -3164,12 +3048,10 @@ XTflash (f)
 
 
 static void
-XTtoggle_invisible_pointer (f, invisible)
-     FRAME_PTR f;
-     int invisible;
+XTtoggle_invisible_pointer (FRAME_PTR f, int invisible)
 {
   BLOCK_INPUT;
-  if (invisible) 
+  if (invisible)
     {
       if (FRAME_X_DISPLAY_INFO (f)->invisible_cursor != 0)
         XDefineCursor (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
@@ -3186,10 +3068,8 @@ XTtoggle_invisible_pointer (f, invisible)
 /* Make audible bell.  */
 
 void
-XTring_bell ()
+XTring_bell (struct frame *f)
 {
-  struct frame *f = SELECTED_FRAME ();
-
   if (FRAME_X_DISPLAY (f))
     {
 #if defined (HAVE_TIMEVAL) && defined (HAVE_SELECT)
@@ -3213,8 +3093,7 @@ XTring_bell ()
    that is bounded by calls to x_update_begin and x_update_end.  */
 
 static void
-XTset_terminal_window (n)
-     register int n;
+XTset_terminal_window (struct frame *f, int n)
 {
   /* This function intentionally left blank.  */
 }
@@ -3229,9 +3108,7 @@ XTset_terminal_window (n)
    lines or deleting -N lines at vertical position VPOS.  */
 
 static void
-x_ins_del_lines (f, vpos, n)
-     struct frame *f;
-     int vpos, n;
+x_ins_del_lines (struct frame *f, int vpos, int n)
 {
   abort ();
 }
@@ -3240,9 +3117,7 @@ x_ins_del_lines (f, vpos, n)
 /* Scroll part of the display as described by RUN.  */
 
 static void
-x_scroll_run (w, run)
-     struct window *w;
-     struct run *run;
+x_scroll_run (struct window *w, struct run *run)
 {
   struct frame *f = XFRAME (w->frame);
   int x, y, width, height, from_y, to_y, bottom_y;
@@ -3299,8 +3174,7 @@ x_scroll_run (w, run)
 
 
 static void
-frame_highlight (f)
-     struct frame *f;
+frame_highlight (struct frame *f)
 {
   /* We used to only do this if Vx_no_window_manager was non-nil, but
      the ICCCM (section 4.1.6) says that the window's border pixmap
@@ -3315,8 +3189,7 @@ frame_highlight (f)
 }
 
 static void
-frame_unhighlight (f)
-     struct frame *f;
+frame_unhighlight (struct frame *f)
 {
   /* We used to only do this if Vx_no_window_manager was non-nil, but
      the ICCCM (section 4.1.6) says that the window's border pixmap
@@ -3337,9 +3210,7 @@ frame_unhighlight (f)
    Lisp code can tell when the switch took place by examining the events.  */
 
 static void
-x_new_focus_frame (dpyinfo, frame)
-     struct x_display_info *dpyinfo;
-     struct frame *frame;
+x_new_focus_frame (struct x_display_info *dpyinfo, struct frame *frame)
 {
   struct frame *old_focus = dpyinfo->x_focus_frame;
 
@@ -3366,12 +3237,7 @@ x_new_focus_frame (dpyinfo, frame)
    a FOCUS_IN_EVENT into *BUFP.  */
 
 static void
-x_focus_changed (type, state, dpyinfo, frame, bufp)
-     int type;
-     int state;
-     struct x_display_info *dpyinfo;
-     struct frame *frame;
-     struct input_event *bufp;
+x_focus_changed (int type, int state, struct x_display_info *dpyinfo, struct frame *frame, struct input_event *bufp)
 {
   if (type == FocusIn)
     {
@@ -3423,10 +3289,7 @@ x_focus_changed (type, state, dpyinfo, frame, bufp)
    Returns FOCUS_IN_EVENT event in *BUFP. */
 
 static void
-x_detect_focus_change (dpyinfo, event, bufp)
-     struct x_display_info *dpyinfo;
-     XEvent *event;
-     struct input_event *bufp;
+x_detect_focus_change (struct x_display_info *dpyinfo, XEvent *event, struct input_event *bufp)
 {
   struct frame *frame;
 
@@ -3475,8 +3338,7 @@ x_detect_focus_change (dpyinfo, event, bufp)
 /* Handle an event saying the mouse has moved out of an Emacs frame.  */
 
 void
-x_mouse_leave (dpyinfo)
-     struct x_display_info *dpyinfo;
+x_mouse_leave (struct x_display_info *dpyinfo)
 {
   x_new_focus_frame (dpyinfo, dpyinfo->x_focus_event_frame);
 }
@@ -3490,15 +3352,13 @@ x_mouse_leave (dpyinfo)
    the appropriate X display info.  */
 
 static void
-XTframe_rehighlight (frame)
-     struct frame *frame;
+XTframe_rehighlight (struct frame *frame)
 {
   x_frame_rehighlight (FRAME_X_DISPLAY_INFO (frame));
 }
 
 static void
-x_frame_rehighlight (dpyinfo)
-     struct x_display_info *dpyinfo;
+x_frame_rehighlight (struct x_display_info *dpyinfo)
 {
   struct frame *old_highlight = dpyinfo->x_highlight_frame;
 
@@ -3532,8 +3392,7 @@ x_frame_rehighlight (dpyinfo)
 
 /* Initialize mode_switch_bit and modifier_meaning.  */
 static void
-x_find_modifier_meanings (dpyinfo)
-     struct x_display_info *dpyinfo;
+x_find_modifier_meanings (struct x_display_info *dpyinfo)
 {
   int min_code, max_code;
   KeySym *syms;
@@ -3644,9 +3503,7 @@ x_find_modifier_meanings (dpyinfo)
    Emacs uses.  */
 
 unsigned int
-x_x_to_emacs_modifiers (dpyinfo, state)
-     struct x_display_info *dpyinfo;
-     unsigned int state;
+x_x_to_emacs_modifiers (struct x_display_info *dpyinfo, unsigned int state)
 {
   EMACS_UINT mod_meta = meta_modifier;
   EMACS_UINT mod_alt  = alt_modifier;
@@ -3673,9 +3530,7 @@ x_x_to_emacs_modifiers (dpyinfo, state)
 }
 
 static unsigned int
-x_emacs_to_x_modifiers (dpyinfo, state)
-     struct x_display_info *dpyinfo;
-     unsigned int state;
+x_emacs_to_x_modifiers (struct x_display_info *dpyinfo, unsigned int state)
 {
   EMACS_UINT mod_meta = meta_modifier;
   EMACS_UINT mod_alt  = alt_modifier;
@@ -3705,8 +3560,7 @@ x_emacs_to_x_modifiers (dpyinfo, state)
 /* Convert a keysym to its name.  */
 
 char *
-x_get_keysym_name (keysym)
-     KeySym keysym;
+x_get_keysym_name (int keysym)
 {
   char *value;
 
@@ -3727,10 +3581,7 @@ x_get_keysym_name (keysym)
    the mouse.  */
 
 static Lisp_Object
-construct_mouse_click (result, event, f)
-     struct input_event *result;
-     XButtonEvent *event;
-     struct frame *f;
+construct_mouse_click (struct input_event *result, XButtonEvent *event, struct frame *f)
 {
   /* Make the event type NO_EVENT; we'll change that when we decide
      otherwise.  */
@@ -3763,9 +3614,7 @@ static XMotionEvent last_mouse_motion_event;
 static Lisp_Object last_mouse_motion_frame;
 
 static int
-note_mouse_movement (frame, event)
-     FRAME_PTR frame;
-     XMotionEvent *event;
+note_mouse_movement (FRAME_PTR frame, XMotionEvent *event)
 {
   last_mouse_movement_time = event->time;
   last_mouse_motion_event = *event;
@@ -3809,7 +3658,7 @@ note_mouse_movement (frame, event)
  ************************************************************************/
 
 static void
-redo_mouse_highlight ()
+redo_mouse_highlight (void)
 {
   if (!NILP (last_mouse_motion_frame)
       && FRAME_LIVE_P (XFRAME (last_mouse_motion_frame)))
@@ -3841,13 +3690,7 @@ redo_mouse_highlight ()
    movement.  */
 
 static void
-XTmouse_position (fp, insist, bar_window, part, x, y, time)
-     FRAME_PTR *fp;
-     int insist;
-     Lisp_Object *bar_window;
-     enum scroll_bar_part *part;
-     Lisp_Object *x, *y;
-     unsigned long *time;
+XTmouse_position (FRAME_PTR *fp, int insist, Lisp_Object *bar_window, enum scroll_bar_part *part, Lisp_Object *x, Lisp_Object *y, long unsigned int *time)
 {
   FRAME_PTR f1;
 
@@ -4049,9 +3892,7 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
    bits.  */
 
 static struct scroll_bar *
-x_window_to_scroll_bar (display, window_id)
-     Display *display;
-     Window window_id;
+x_window_to_scroll_bar (Display *display, Window window_id)
 {
   Lisp_Object tail;
 
@@ -4096,8 +3937,7 @@ x_window_to_scroll_bar (display, window_id)
    if WINDOW is not part of a menu bar.  */
 
 static Widget
-x_window_to_menu_bar (window)
-     Window window;
+x_window_to_menu_bar (Window window)
 {
   Lisp_Object tail;
 
@@ -4164,14 +4004,8 @@ static Boolean xaw3d_pick_top;
    a `end-scroll' SCROLL_BAR_CLICK_EVENT' event if so.  */
 
 static void
-xt_action_hook (widget, client_data, action_name, event, params,
-		num_params)
-     Widget widget;
-     XtPointer client_data;
-     String action_name;
-     XEvent *event;
-     String *params;
-     Cardinal *num_params;
+xt_action_hook (Widget widget, XtPointer client_data, String action_name,
+		XEvent *event, String *params, Cardinal *num_params)
 {
   int scroll_bar_p;
   char *end_action;
@@ -4222,9 +4056,7 @@ static int scroll_bar_windows_size;
    amount to scroll of a whole of WHOLE.  */
 
 static void
-x_send_scroll_bar_event (window, part, portion, whole)
-     Lisp_Object window;
-     int part, portion, whole;
+x_send_scroll_bar_event (Lisp_Object window, int part, int portion, int whole)
 {
   XEvent event;
   XClientMessageEvent *ev = (XClientMessageEvent *) &event;
@@ -4257,7 +4089,7 @@ x_send_scroll_bar_event (window, part, portion, whole)
 
       scroll_bar_windows = (struct window **) xrealloc (scroll_bar_windows,
 							nbytes);
-      bzero (&scroll_bar_windows[i], nbytes - old_nbytes);
+      memset (&scroll_bar_windows[i], 0, nbytes - old_nbytes);
       scroll_bar_windows_size = new_size;
     }
 
@@ -4286,9 +4118,7 @@ x_send_scroll_bar_event (window, part, portion, whole)
    in *IEVENT.  */
 
 static void
-x_scroll_bar_to_input_event (event, ievent)
-     XEvent *event;
-     struct input_event *ievent;
+x_scroll_bar_to_input_event (XEvent *event, struct input_event *ievent)
 {
   XClientMessageEvent *ev = (XClientMessageEvent *) event;
   Lisp_Object window;
@@ -4329,9 +4159,7 @@ x_scroll_bar_to_input_event (event, ievent)
    CALL_DATA is a pointer to a XmScrollBarCallbackStruct.  */
 
 static void
-xm_scroll_callback (widget, client_data, call_data)
-     Widget widget;
-     XtPointer client_data, call_data;
+xm_scroll_callback (Widget widget, XtPointer client_data, XtPointer call_data)
 {
   struct scroll_bar *bar = (struct scroll_bar *) client_data;
   XmScrollBarCallbackStruct *cs = (XmScrollBarCallbackStruct *) call_data;
@@ -4488,9 +4316,7 @@ xg_end_scroll_callback (GtkWidget *widget,
    the thumb is.  */
 
 static void
-xaw_jump_callback (widget, client_data, call_data)
-     Widget widget;
-     XtPointer client_data, call_data;
+xaw_jump_callback (Widget widget, XtPointer client_data, XtPointer call_data)
 {
   struct scroll_bar *bar = (struct scroll_bar *) client_data;
   float top = *(float *) call_data;
@@ -4532,9 +4358,7 @@ xaw_jump_callback (widget, client_data, call_data)
    Values < height of scroll bar mean line-wise movement.  */
 
 static void
-xaw_scroll_callback (widget, client_data, call_data)
-     Widget widget;
-     XtPointer client_data, call_data;
+xaw_scroll_callback (Widget widget, XtPointer client_data, XtPointer call_data)
 {
   struct scroll_bar *bar = (struct scroll_bar *) client_data;
   /* The position really is stored cast to a pointer.  */
@@ -4572,9 +4396,7 @@ xaw_scroll_callback (widget, client_data, call_data)
 
 #ifdef USE_GTK
 static void
-x_create_toolkit_scroll_bar (f, bar)
-     struct frame *f;
-     struct scroll_bar *bar;
+x_create_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
 {
   char *scroll_bar_name = SCROLL_BAR_NAME;
 
@@ -4588,9 +4410,7 @@ x_create_toolkit_scroll_bar (f, bar)
 #else /* not USE_GTK */
 
 static void
-x_create_toolkit_scroll_bar (f, bar)
-     struct frame *f;
-     struct scroll_bar *bar;
+x_create_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
 {
   Window xwindow;
   Widget widget;
@@ -4683,7 +4503,7 @@ x_create_toolkit_scroll_bar (f, bar)
   if (f->output_data.x->scroll_bar_top_shadow_pixel == -1)
     {
       pixel = f->output_data.x->scroll_bar_background_pixel;
-      if (pixel != -1) 
+      if (pixel != -1)
         {
           if (!x_alloc_lighter_color (f, FRAME_X_DISPLAY (f),
                                       FRAME_X_COLORMAP (f),
@@ -4695,7 +4515,7 @@ x_create_toolkit_scroll_bar (f, bar)
   if (f->output_data.x->scroll_bar_bottom_shadow_pixel == -1)
     {
       pixel = f->output_data.x->scroll_bar_background_pixel;
-      if (pixel != -1) 
+      if (pixel != -1)
         {
           if (!x_alloc_lighter_color (f, FRAME_X_DISPLAY (f),
                                       FRAME_X_COLORMAP (f),
@@ -4790,18 +4610,15 @@ x_create_toolkit_scroll_bar (f, bar)
 
 #ifdef USE_GTK
 static void
-x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
-     struct scroll_bar *bar;
-     int portion, position, whole;
+x_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar, int portion, int position, int whole)
 {
   xg_set_toolkit_scroll_bar_thumb (bar, portion, position, whole);
 }
 
 #else /* not USE_GTK */
 static void
-x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
-     struct scroll_bar *bar;
-     int portion, position, whole;
+x_set_toolkit_scroll_bar_thumb (struct scroll_bar *bar, int portion, int position,
+				int whole)
 {
   struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
   Widget widget = SCROLL_BAR_X_WIDGET (FRAME_X_DISPLAY (f), bar);
@@ -4916,9 +4733,7 @@ x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
    scroll bar. */
 
 static struct scroll_bar *
-x_scroll_bar_create (w, top, left, width, height)
-     struct window *w;
-     int top, left, width, height;
+x_scroll_bar_create (struct window *w, int top, int left, int width, int height)
 {
   struct frame *f = XFRAME (w->frame);
   struct scroll_bar *bar
@@ -5032,10 +4847,7 @@ x_scroll_bar_create (w, top, left, width, height)
    to move to the very end of the buffer.  */
 
 static void
-x_scroll_bar_set_handle (bar, start, end, rebuild)
-     struct scroll_bar *bar;
-     int start, end;
-     int rebuild;
+x_scroll_bar_set_handle (struct scroll_bar *bar, int start, int end, int rebuild)
 {
   int dragging = ! NILP (bar->dragging);
   Window w = bar->x_window;
@@ -5133,8 +4945,7 @@ x_scroll_bar_set_handle (bar, start, end, rebuild)
    nil.  */
 
 static void
-x_scroll_bar_remove (bar)
-     struct scroll_bar *bar;
+x_scroll_bar_remove (struct scroll_bar *bar)
 {
   struct frame *f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
   BLOCK_INPUT;
@@ -5162,9 +4973,7 @@ x_scroll_bar_remove (bar)
    create one.  */
 
 static void
-XTset_vertical_scroll_bar (w, portion, whole, position)
-     struct window *w;
-     int portion, whole, position;
+XTset_vertical_scroll_bar (struct window *w, int portion, int whole, int position)
 {
   struct frame *f = XFRAME (w->frame);
   struct scroll_bar *bar;
@@ -5381,8 +5190,7 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
    `*redeem_scroll_bar_hook' is applied to its window before the judgment.  */
 
 static void
-XTcondemn_scroll_bars (frame)
-     FRAME_PTR frame;
+XTcondemn_scroll_bars (FRAME_PTR frame)
 {
   /* Transfer all the scroll bars to FRAME_CONDEMNED_SCROLL_BARS.  */
   while (! NILP (FRAME_SCROLL_BARS (frame)))
@@ -5403,8 +5211,7 @@ XTcondemn_scroll_bars (frame)
    Note that WINDOW isn't necessarily condemned at all.  */
 
 static void
-XTredeem_scroll_bar (window)
-     struct window *window;
+XTredeem_scroll_bar (struct window *window)
 {
   struct scroll_bar *bar;
   struct frame *f;
@@ -5449,8 +5256,7 @@ XTredeem_scroll_bar (window)
    last call to `*condemn_scroll_bars_hook'.  */
 
 static void
-XTjudge_scroll_bars (f)
-     FRAME_PTR f;
+XTjudge_scroll_bars (FRAME_PTR f)
 {
   Lisp_Object bar, next;
 
@@ -5483,9 +5289,7 @@ XTjudge_scroll_bars (f)
    mark bits.  */
 
 static void
-x_scroll_bar_expose (bar, event)
-     struct scroll_bar *bar;
-     XEvent *event;
+x_scroll_bar_expose (struct scroll_bar *bar, XEvent *event)
 {
   Window w = bar->x_window;
   FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
@@ -5527,10 +5331,7 @@ x_scroll_bar_expose (bar, event)
 
 
 static void
-x_scroll_bar_handle_click (bar, event, emacs_event)
-     struct scroll_bar *bar;
-     XEvent *event;
-     struct input_event *emacs_event;
+x_scroll_bar_handle_click (struct scroll_bar *bar, XEvent *event, struct input_event *emacs_event)
 {
   if (! WINDOWP (bar->window))
     abort ();
@@ -5588,9 +5389,7 @@ x_scroll_bar_handle_click (bar, event, emacs_event)
    mark bits.  */
 
 static void
-x_scroll_bar_note_movement (bar, event)
-     struct scroll_bar *bar;
-     XEvent *event;
+x_scroll_bar_note_movement (struct scroll_bar *bar, XEvent *event)
 {
   FRAME_PTR f = XFRAME (XWINDOW (bar->window)->frame);
 
@@ -5620,12 +5419,7 @@ x_scroll_bar_note_movement (bar, event)
    on the scroll bar.  */
 
 static void
-x_scroll_bar_report_motion (fp, bar_window, part, x, y, time)
-     FRAME_PTR *fp;
-     Lisp_Object *bar_window;
-     enum scroll_bar_part *part;
-     Lisp_Object *x, *y;
-     unsigned long *time;
+x_scroll_bar_report_motion (FRAME_PTR *fp, Lisp_Object *bar_window, enum scroll_bar_part *part, Lisp_Object *x, Lisp_Object *y, long unsigned int *time)
 {
   struct scroll_bar *bar = XSCROLL_BAR (last_mouse_scroll_bar);
   Window w = bar->x_window;
@@ -5697,8 +5491,7 @@ x_scroll_bar_report_motion (fp, bar_window, part, x, y, time)
    redraw them.  */
 
 void
-x_scroll_bar_clear (f)
-     FRAME_PTR f;
+x_scroll_bar_clear (FRAME_PTR f)
 {
 #ifndef USE_TOOLKIT_SCROLL_BARS
   Lisp_Object bar;
@@ -5751,21 +5544,17 @@ struct x_display_info *XTread_socket_fake_io_error;
 
 static struct x_display_info *next_noop_dpyinfo;
 
-#define SET_SAVED_MENU_EVENT(size)					\
+#define SET_SAVED_BUTTON_EVENT                                          \
      do									\
        {								\
 	 if (f->output_data.x->saved_menu_event == 0)			\
            f->output_data.x->saved_menu_event				\
 	     = (XEvent *) xmalloc (sizeof (XEvent));			\
-         bcopy (&event, f->output_data.x->saved_menu_event, size);	\
+         *f->output_data.x->saved_menu_event = event;                   \
 	 inev.ie.kind = MENU_BAR_ACTIVATE_EVENT;			\
 	 XSETFRAME (inev.ie.frame_or_window, f);			\
        }								\
      while (0)
-
-#define SET_SAVED_BUTTON_EVENT SET_SAVED_MENU_EVENT (sizeof (XButtonEvent))
-#define SET_SAVED_KEY_EVENT    SET_SAVED_MENU_EVENT (sizeof (XKeyEvent))
-
 
 enum
 {
@@ -5784,9 +5573,7 @@ enum
 
 #ifdef HAVE_X_I18N
 static int
-x_filter_event (dpyinfo, event)
-     struct x_display_info *dpyinfo;
-     XEvent *event;
+x_filter_event (struct x_display_info *dpyinfo, XEvent *event)
 {
   /* XFilterEvent returns non-zero if the input method has
    consumed the event.  We pass the frame's X window to
@@ -5809,10 +5596,7 @@ static struct input_event *current_hold_quit;
    It is invoked before the XEvent is translated to a GdkEvent,
    so we have a chance to act on the event before GTK. */
 static GdkFilterReturn
-event_handler_gdk (gxev, ev, data)
-     GdkXEvent *gxev;
-     GdkEvent *ev;
-     gpointer data;
+event_handler_gdk (GdkXEvent *gxev, GdkEvent *ev, gpointer data)
 {
   XEvent *xev = (XEvent *) gxev;
 
@@ -5865,11 +5649,7 @@ event_handler_gdk (gxev, ev, data)
    We return the number of characters stored into the buffer. */
 
 static int
-handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
-     struct x_display_info *dpyinfo;
-     XEvent *eventp;
-     int *finish;
-     struct input_event *hold_quit;
+handle_one_xevent (struct x_display_info *dpyinfo, XEvent *eventp, int *finish, struct input_event *hold_quit)
 {
   union {
     struct input_event ie;
@@ -5887,10 +5667,10 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
   EVENT_INIT (inev.ie);
   inev.ie.kind = NO_EVENT;
   inev.ie.arg = Qnil;
-  
+
   if (pending_event_wait.eventtype == event.type)
     pending_event_wait.eventtype = 0; /* Indicates we got it.  */
-  
+
   switch (event.type)
     {
     case ClientMessage:
@@ -6403,7 +6183,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
              this enables ComposeCharacter to work whether or
              not it is combined with Meta.  */
           if (modifiers & dpyinfo->meta_mod_mask)
-            bzero (&compose_status, sizeof (compose_status));
+            memset (&compose_status, 0, sizeof (compose_status));
 
 #ifdef HAVE_X_I18N
           if (FRAME_XIC (f))
@@ -6451,7 +6231,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
           if (compose_status.chars_matched > 0 && nbytes == 0)
             break;
 
-          bzero (&compose_status, sizeof (compose_status));
+          memset (&compose_status, 0, sizeof (compose_status));
           orig_keysym = keysym;
 
  	  /* Common for all keysym input events.  */
@@ -6810,7 +6590,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
                             event.xconfigure.height);
           f = 0;
         }
-#endif  
+#endif
       if (f)
         {
 #ifndef USE_X_TOOLKIT
@@ -6865,7 +6645,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
            by the rest of Emacs, we put it here.  */
         int tool_bar_p = 0;
 
-        bzero (&compose_status, sizeof (compose_status));
+        memset (&compose_status, 0, sizeof (compose_status));
 	last_mouse_glyph_frame = 0;
         last_user_time = event.xbutton.time;
 
@@ -6963,20 +6743,18 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 	  f->mouse_moved = 0;
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
-        f = x_menubar_window_to_frame (dpyinfo, event.xbutton.window);
+        f = x_menubar_window_to_frame (dpyinfo, &event);
         /* For a down-event in the menu bar,
            don't pass it to Xt right now.
            Instead, save it away
            and we will pass it to Xt from kbd_buffer_get_event.
            That way, we can run some Lisp code first.  */
-        if (
+        if (! popup_activated ()
 #ifdef USE_GTK
-            ! popup_activated ()
             /* Gtk+ menus only react to the first three buttons. */
             && event.xbutton.button < 3
-            &&
 #endif
-            f && event.type == ButtonPress
+            && f && event.type == ButtonPress
             /* Verify the event is really within the menu bar
                and not just sent to it due to grabbing.  */
             && event.xbutton.x >= 0
@@ -6987,30 +6765,13 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
           {
             SET_SAVED_BUTTON_EVENT;
             XSETFRAME (last_mouse_press_frame, f);
-#ifdef USE_GTK
             *finish = X_EVENT_DROP;
-#endif
           }
         else if (event.type == ButtonPress)
           {
             last_mouse_press_frame = Qnil;
             goto OTHER;
           }
-
-#ifdef USE_MOTIF /* This should do not harm for Lucid,
-		    but I am trying to be cautious.  */
-        else if (event.type == ButtonRelease)
-          {
-            if (!NILP (last_mouse_press_frame))
-              {
-                f = XFRAME (last_mouse_press_frame);
-                if (f->output_data.x)
-                  SET_SAVED_BUTTON_EVENT;
-              }
-            else
-              goto OTHER;
-          }
-#endif /* USE_MOTIF */
         else
           goto OTHER;
 #endif /* USE_X_TOOLKIT || USE_GTK */
@@ -7096,9 +6857,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 
    Returns the value handle_one_xevent sets in the finish argument.  */
 int
-x_dispatch_event (event, display)
-     XEvent *event;
-     Display *display;
+x_dispatch_event (XEvent *event, Display *display)
 {
   struct x_display_info *dpyinfo;
   int finish = X_EVENT_NORMAL;
@@ -7124,10 +6883,7 @@ x_dispatch_event (event, display)
    EXPECTED is nonzero if the caller knows input is available.  */
 
 static int
-XTread_socket (terminal, expected, hold_quit)
-     struct terminal *terminal;
-     int expected;
-     struct input_event *hold_quit;
+XTread_socket (struct terminal *terminal, int expected, struct input_event *hold_quit)
 {
   int count = 0;
   XEvent event;
@@ -7278,11 +7034,7 @@ XTread_socket (terminal, expected, hold_quit)
    mode lines must be clipped to the whole window.  */
 
 static void
-x_clip_to_row (w, row, area, gc)
-     struct window *w;
-     struct glyph_row *row;
-     int area;
-     GC gc;
+x_clip_to_row (struct window *w, struct glyph_row *row, int area, GC gc)
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   XRectangle clip_rect;
@@ -7303,9 +7055,7 @@ x_clip_to_row (w, row, area, gc)
 /* Draw a hollow box cursor on window W in glyph row ROW.  */
 
 static void
-x_draw_hollow_cursor (w, row)
-     struct window *w;
-     struct glyph_row *row;
+x_draw_hollow_cursor (struct window *w, struct glyph_row *row)
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
@@ -7350,11 +7100,7 @@ x_draw_hollow_cursor (w, row)
    --gerd.  */
 
 static void
-x_draw_bar_cursor (w, row, width, kind)
-     struct window *w;
-     struct glyph_row *row;
-     int width;
-     enum text_cursor_kinds kind;
+x_draw_bar_cursor (struct window *w, struct glyph_row *row, int width, enum text_cursor_kinds kind)
 {
   struct frame *f = XFRAME (w->frame);
   struct glyph *cursor_glyph;
@@ -7445,9 +7191,7 @@ x_draw_bar_cursor (w, row, width, kind)
 /* RIF: Define cursor CURSOR on frame F.  */
 
 static void
-x_define_frame_cursor (f, cursor)
-     struct frame *f;
-     Cursor cursor;
+x_define_frame_cursor (struct frame *f, Cursor cursor)
 {
   if (!f->pointer_invisible
       && f->output_data.x->current_cursor != cursor)
@@ -7459,9 +7203,7 @@ x_define_frame_cursor (f, cursor)
 /* RIF: Clear area on frame F.  */
 
 static void
-x_clear_frame_area (f, x, y, width, height)
-     struct frame *f;
-     int x, y, width, height;
+x_clear_frame_area (struct frame *f, int x, int y, int width, int height)
 {
   x_clear_area (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 		x, y, width, height, False);
@@ -7476,12 +7218,7 @@ x_clear_frame_area (f, x, y, width, height)
 /* RIF: Draw cursor on window W.  */
 
 static void
-x_draw_window_cursor (w, glyph_row, x, y, cursor_type, cursor_width, on_p, active_p)
-     struct window *w;
-     struct glyph_row *glyph_row;
-     int x, y;
-     int cursor_type, cursor_width;
-     int on_p, active_p;
+x_draw_window_cursor (struct window *w, struct glyph_row *glyph_row, int x, int y, int cursor_type, int cursor_width, int on_p, int active_p)
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
 
@@ -7545,9 +7282,7 @@ x_draw_window_cursor (w, glyph_row, x, y, cursor_type, cursor_width, on_p, activ
 /* Make the x-window of frame F use the gnu icon bitmap.  */
 
 int
-x_bitmap_icon (f, file)
-     struct frame *f;
-     Lisp_Object file;
+x_bitmap_icon (struct frame *f, Lisp_Object file)
 {
   int bitmap_id;
 
@@ -7624,9 +7359,7 @@ x_bitmap_icon (f, file)
    Use ICON_NAME as the text.  */
 
 int
-x_text_icon (f, icon_name)
-     struct frame *f;
-     char *icon_name;
+x_text_icon (struct frame *f, const char *icon_name)
 {
   if (FRAME_X_WINDOW (f) == 0)
     return 1;
@@ -7669,9 +7402,7 @@ static struct x_error_message_stack *x_error_message;
    x_catch_errors is in effect.  */
 
 static void
-x_error_catcher (display, error)
-     Display *display;
-     XErrorEvent *error;
+x_error_catcher (Display *display, XErrorEvent *error)
 {
   XGetErrorText (display, error->error_code,
 		 x_error_message->string,
@@ -7691,11 +7422,10 @@ x_error_catcher (display, error)
 
    Calling x_uncatch_errors resumes the normal error handling.  */
 
-void x_check_errors ();
+void x_check_errors (Display *dpy, const char *format);
 
 void
-x_catch_errors (dpy)
-     Display *dpy;
+x_catch_errors (Display *dpy)
 {
   struct x_error_message_stack *data = xmalloc (sizeof (*data));
 
@@ -7712,7 +7442,7 @@ x_catch_errors (dpy)
    DPY should be the display that was passed to x_catch_errors.  */
 
 void
-x_uncatch_errors ()
+x_uncatch_errors (void)
 {
   struct x_error_message_stack *tmp;
 
@@ -7734,9 +7464,7 @@ x_uncatch_errors ()
    sprintf (a buffer, FORMAT, the x error message text) as the text.  */
 
 void
-x_check_errors (dpy, format)
-     Display *dpy;
-     char *format;
+x_check_errors (Display *dpy, const char *format)
 {
   /* Make sure to catch any errors incurred so far.  */
   XSync (dpy, False);
@@ -7744,7 +7472,7 @@ x_check_errors (dpy, format)
   if (x_error_message->string[0])
     {
       char string[X_ERROR_MESSAGE_SIZE];
-      bcopy (x_error_message->string, string, X_ERROR_MESSAGE_SIZE);
+      memcpy (string, x_error_message->string, X_ERROR_MESSAGE_SIZE);
       x_uncatch_errors ();
       error (format, string);
     }
@@ -7754,8 +7482,7 @@ x_check_errors (dpy, format)
    since we did x_catch_errors on DPY.  */
 
 int
-x_had_errors_p (dpy)
-     Display *dpy;
+x_had_errors_p (Display *dpy)
 {
   /* Make sure to catch any errors incurred so far.  */
   XSync (dpy, False);
@@ -7766,8 +7493,7 @@ x_had_errors_p (dpy)
 /* Forget about any errors we have had, since we did x_catch_errors on DPY.  */
 
 void
-x_clear_errors (dpy)
-     Display *dpy;
+x_clear_errors (Display *dpy)
 {
   x_error_message->string[0] = 0;
 }
@@ -7777,7 +7503,7 @@ x_clear_errors (dpy)
 /* Close off all unclosed x_catch_errors calls.  */
 
 void
-x_fully_uncatch_errors ()
+x_fully_uncatch_errors (void)
 {
   while (x_error_message)
     x_uncatch_errors ();
@@ -7787,14 +7513,14 @@ x_fully_uncatch_errors ()
 /* Nonzero if x_catch_errors has been done and not yet canceled.  */
 
 int
-x_catching_errors ()
+x_catching_errors (void)
 {
   return x_error_message != 0;
 }
 
 #if 0
 static unsigned int x_wire_count;
-x_trace_wire ()
+x_trace_wire (void)
 {
   fprintf (stderr, "Lib call: %d\n", ++x_wire_count);
 }
@@ -7808,8 +7534,8 @@ x_trace_wire ()
    which will do the appropriate cleanup for us.  */
 
 static SIGTYPE
-x_connection_signal (signalnum)	/* If we don't have an argument, */
-     int signalnum;		/* some compilers complain in signal calls.  */
+x_connection_signal (int signalnum)	/* If we don't have an argument, */
+                   		/* some compilers complain in signal calls.  */
 {
 #ifdef USG
   /* USG systems forget handlers when they are used;
@@ -7832,7 +7558,7 @@ static char *error_msg;
    instead of dumping core when XtCloseDisplay fails.  */
 
 static void
-x_fatal_error_signal ()
+x_fatal_error_signal (void)
 {
   fprintf (stderr, "%s\n", error_msg);
   exit (70);
@@ -7842,9 +7568,7 @@ x_fatal_error_signal ()
    the text of an error message that lead to the connection loss.  */
 
 static SIGTYPE
-x_connection_closed (dpy, error_message)
-     Display *dpy;
-     char *error_message;
+x_connection_closed (Display *dpy, const char *error_message)
 {
   struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
   Lisp_Object frame, tail;
@@ -7986,9 +7710,7 @@ static void x_error_quitter (Display *, XErrorEvent *);
    It calls x_error_quitter or x_error_catcher.  */
 
 static int
-x_error_handler (display, error)
-     Display *display;
-     XErrorEvent *error;
+x_error_handler (Display *display, XErrorEvent *error)
 {
   if (x_error_message)
     x_error_catcher (display, error);
@@ -8019,9 +7741,7 @@ x_error_handler (display, error)
    after x_error_handler prevents inlining into the former.  */
 
 static void NO_INLINE
-x_error_quitter (display, error)
-     Display *display;
-     XErrorEvent *error;
+x_error_quitter (Display *display, XErrorEvent *error)
 {
   char buf[256], buf1[356];
 
@@ -8046,8 +7766,7 @@ x_error_quitter (display, error)
    If that was the only one, it prints an error message and kills Emacs.  */
 
 static int
-x_io_error_quitter (display)
-     Display *display;
+x_io_error_quitter (Display *display)
 {
   char buf[256];
 
@@ -8064,10 +7783,7 @@ x_io_error_quitter (display)
    FONT-OBJECT.  */
 
 Lisp_Object
-x_new_font (f, font_object, fontset)
-     struct frame *f;
-     Lisp_Object font_object;
-     int fontset;
+x_new_font (struct frame *f, Lisp_Object font_object, int fontset)
 {
   struct font *font = XFONT_OBJECT (font_object);
 
@@ -8136,10 +7852,7 @@ x_new_font (f, font_object, fontset)
    pointer to the x_display_info structure corresponding to XIM.  */
 
 static void
-xim_destroy_callback (xim, client_data, call_data)
-     XIM xim;
-     XPointer client_data;
-     XPointer call_data;
+xim_destroy_callback (XIM xim, XPointer client_data, XPointer call_data)
 {
   struct x_display_info *dpyinfo = (struct x_display_info *) client_data;
   Lisp_Object frame, tail;
@@ -8174,9 +7887,7 @@ extern char *XSetIMValues (XIM, ...);
    RESOURCE_NAME is the resource name Emacs uses.  */
 
 static void
-xim_open_dpy (dpyinfo, resource_name)
-     struct x_display_info *dpyinfo;
-     char *resource_name;
+xim_open_dpy (struct x_display_info *dpyinfo, char *resource_name)
 {
   XIM xim;
 
@@ -8220,10 +7931,7 @@ xim_open_dpy (dpyinfo, resource_name)
    when the callback was registered.  */
 
 static void
-xim_instantiate_callback (display, client_data, call_data)
-     Display *display;
-     XPointer client_data;
-     XPointer call_data;
+xim_instantiate_callback (Display *display, XPointer client_data, XPointer call_data)
 {
   struct xim_inst_t *xim_inst = (struct xim_inst_t *) client_data;
   struct x_display_info *dpyinfo = xim_inst->dpyinfo;
@@ -8273,9 +7981,7 @@ xim_instantiate_callback (display, client_data, call_data)
    in the XIM instantiate callback function.  */
 
 static void
-xim_initialize (dpyinfo, resource_name)
-     struct x_display_info *dpyinfo;
-     char *resource_name;
+xim_initialize (struct x_display_info *dpyinfo, char *resource_name)
 {
   dpyinfo->xim = NULL;
 #ifdef HAVE_XIM
@@ -8290,7 +7996,7 @@ xim_initialize (dpyinfo, resource_name)
       xim_inst->dpyinfo = dpyinfo;
       len = strlen (resource_name);
       xim_inst->resource_name = (char *) xmalloc (len + 1);
-      bcopy (resource_name, xim_inst->resource_name, len + 1);
+      memcpy (xim_inst->resource_name, resource_name, len + 1);
       XRegisterIMInstantiateCallback (dpyinfo->display, dpyinfo->xrdb,
 				      resource_name, EMACS_CLASS,
 				      xim_instantiate_callback,
@@ -8309,8 +8015,7 @@ xim_initialize (dpyinfo, resource_name)
 /* Close the connection to the XIM server on display DPYINFO. */
 
 static void
-xim_close_dpy (dpyinfo)
-     struct x_display_info *dpyinfo;
+xim_close_dpy (struct x_display_info *dpyinfo)
 {
 #ifdef HAVE_XIM
   if (use_xim)
@@ -8339,8 +8044,7 @@ xim_close_dpy (dpyinfo)
    from its current recorded position values and gravity.  */
 
 void
-x_calc_absolute_position (f)
-     struct frame *f;
+x_calc_absolute_position (struct frame *f)
 {
   int flags = f->size_hint_flags;
 
@@ -8392,10 +8096,7 @@ x_calc_absolute_position (f)
    which means, do adjust for borders but don't change the gravity.  */
 
 void
-x_set_offset (f, xoff, yoff, change_gravity)
-     struct frame *f;
-     register int xoff, yoff;
-     int change_gravity;
+x_set_offset (struct frame *f, register int xoff, register int yoff, int change_gravity)
 {
   int modified_top, modified_left;
 
@@ -8464,9 +8165,7 @@ x_set_offset (f, xoff, yoff, change_gravity)
    http://freedesktop.org/wiki/Specifications/wm-spec.  */
 
 static int
-wm_supports (f, atomname)
-     struct frame *f;
-     const char *atomname;
+wm_supports (struct frame *f, const char *atomname)
 {
   Atom actual_type;
   unsigned long actual_size, bytes_remaining;
@@ -8555,11 +8254,7 @@ wm_supports (f, atomname)
 }
 
 static void
-set_wm_state (frame, add, what, what2)
-     Lisp_Object frame;
-     int add;
-     const char *what;
-     const char *what2;
+set_wm_state (Lisp_Object frame, int add, const char *what, const char *what2)
 {
   const char *atom = "_NET_WM_STATE";
   Fx_send_client_event (frame, make_number (0), frame,
@@ -8577,9 +8272,7 @@ set_wm_state (frame, add, what, what2)
 }
 
 void
-x_set_sticky (f, new_value, old_value)
-     struct frame *f;
-     Lisp_Object new_value, old_value;
+x_set_sticky (struct frame *f, Lisp_Object new_value, Lisp_Object old_value)
 {
   Lisp_Object frame;
 
@@ -8591,8 +8284,7 @@ x_set_sticky (f, new_value, old_value)
 /* Do fullscreen as specified in extended window manager hints */
 
 static int
-do_ewmh_fullscreen (f)
-     struct frame *f;
+do_ewmh_fullscreen (struct frame *f)
 {
   int have_net_atom = wm_supports (f, "_NET_WM_STATE");
 
@@ -8613,7 +8305,7 @@ do_ewmh_fullscreen (f)
       set_wm_state (frame, 0, fs, NULL);
       set_wm_state (frame, 0, fh, NULL);
       set_wm_state (frame, 0, fw, NULL);
-      
+
       /* If there are _NET_ atoms we assume we have extended window manager
          hints.  */
       switch (f->want_fullscreen)
@@ -8640,8 +8332,7 @@ do_ewmh_fullscreen (f)
 }
 
 static void
-XTfullscreen_hook (f)
-     FRAME_PTR f;
+XTfullscreen_hook (FRAME_PTR f)
 {
   if (f->async_visible)
     {
@@ -8654,9 +8345,7 @@ XTfullscreen_hook (f)
 
 
 static void
-x_handle_net_wm_state (f, event)
-     struct frame *f;
-     XPropertyEvent *event;
+x_handle_net_wm_state (struct frame *f, XPropertyEvent *event)
 {
   Atom actual_type;
   unsigned long actual_size, bytes_remaining;
@@ -8689,7 +8378,7 @@ x_handle_net_wm_state (f, event)
   for (i = 0; i < actual_size; ++i)
     {
       Atom a = ((Atom*)tmp_data)[i];
-      if (a == dpyinfo->Xatom_net_wm_state_maximized_horz) 
+      if (a == dpyinfo->Xatom_net_wm_state_maximized_horz)
         {
           if (value == FULLSCREEN_HEIGHT)
             value = FULLSCREEN_MAXIMIZED;
@@ -8710,7 +8399,7 @@ x_handle_net_wm_state (f, event)
     }
 
   lval = Qnil;
-  switch (value) 
+  switch (value)
     {
     case FULLSCREEN_WIDTH:
       lval = Qfullwidth;
@@ -8725,7 +8414,7 @@ x_handle_net_wm_state (f, event)
       lval = Qmaximized;
       break;
     }
-      
+
   store_frame_param (f, Qfullscreen, lval);
   store_frame_param (f, Qsticky, sticky ? Qt : Qnil);
 
@@ -8736,8 +8425,7 @@ x_handle_net_wm_state (f, event)
 /* Check if we need to resize the frame due to a fullscreen request.
    If so needed, resize the frame. */
 static void
-x_check_fullscreen (f)
-     struct frame *f;
+x_check_fullscreen (struct frame *f)
 {
   if (do_ewmh_fullscreen (f))
     return;
@@ -8764,7 +8452,7 @@ x_check_fullscreen (f)
         case FULLSCREEN_HEIGHT:
           height = x_display_pixel_height (dpyinfo);
         }
-      
+
       if (FRAME_COLS (f) != width || FRAME_LINES (f) != height)
         {
           change_frame_size (f, height, width, 0, 1, 0);
@@ -8783,10 +8471,7 @@ x_check_fullscreen (f)
    compensate by moving the window right and down by the proper amount.  */
 
 static void
-x_check_expected_move (f, expected_left, expected_top)
-     struct frame *f;
-     int expected_left;
-     int expected_top;
+x_check_expected_move (struct frame *f, int expected_left, int expected_top)
 {
   int current_left = 0, current_top = 0;
 
@@ -8831,9 +8516,7 @@ x_check_expected_move (f, expected_left, expected_top)
    of an exact comparison.  */
 
 static void
-x_sync_with_move (f, left, top, fuzzy)
-    struct frame *f;
-    int left, top, fuzzy;
+x_sync_with_move (struct frame *f, int left, int top, int fuzzy)
 {
   int count = 0;
 
@@ -8870,9 +8553,7 @@ x_sync_with_move (f, left, top, fuzzy)
 
 /* Wait for an event on frame F matching EVENTTYPE.  */
 void
-x_wait_for_event (f, eventtype)
-     struct frame *f;
-     int eventtype;
+x_wait_for_event (struct frame *f, int eventtype)
 {
   int level = interrupt_input_blocked;
 
@@ -8899,7 +8580,7 @@ x_wait_for_event (f, eventtype)
 
       FD_ZERO (&fds);
       FD_SET (fd, &fds);
-      
+
       EMACS_GET_TIME (time_now);
       EMACS_SUB_TIME (tmo, tmo_at, time_now);
 
@@ -8917,10 +8598,7 @@ x_wait_for_event (f, eventtype)
    size changes.  Otherwise we leave the window gravity unchanged.  */
 
 static void
-x_set_window_size_1 (f, change_gravity, cols, rows)
-     struct frame *f;
-     int change_gravity;
-     int cols, rows;
+x_set_window_size_1 (struct frame *f, int change_gravity, int cols, int rows)
 {
   int pixelwidth, pixelheight;
 
@@ -8928,9 +8606,7 @@ x_set_window_size_1 (f, change_gravity, cols, rows)
   f->scroll_bar_actual_width
     = (!FRAME_HAS_VERTICAL_SCROLL_BARS (f)
        ? 0
-       : FRAME_CONFIG_SCROLL_BAR_WIDTH (f) > 0
-       ? FRAME_CONFIG_SCROLL_BAR_WIDTH (f)
-       : (FRAME_CONFIG_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f)));
+       : FRAME_CONFIG_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f));
 
   compute_fringe_widths (f, 0);
 
@@ -8985,17 +8661,14 @@ x_set_window_size_1 (f, change_gravity, cols, rows)
    Otherwise we leave the window gravity unchanged.  */
 
 void
-x_set_window_size (f, change_gravity, cols, rows)
-     struct frame *f;
-     int change_gravity;
-     int cols, rows;
+x_set_window_size (struct frame *f, int change_gravity, int cols, int rows)
 {
   BLOCK_INPUT;
 
   if (NILP (tip_frame) || XFRAME (tip_frame) != f)
     {
       int r, c;
-	  
+
       /* When the frame is maximized/fullscreen or running under for
          example Xmonad, x_set_window_size_1 will be a no-op.
          In that case, the right thing to do is extend rows/cols to
@@ -9044,9 +8717,7 @@ x_set_window_size (f, change_gravity, cols, rows)
 /* Mouse warping.  */
 
 void
-x_set_mouse_position (f, x, y)
-     struct frame *f;
-     int x, y;
+x_set_mouse_position (struct frame *f, int x, int y)
 {
   int pix_x, pix_y;
 
@@ -9069,9 +8740,7 @@ x_set_mouse_position (f, x, y)
 /* Move the mouse to position pixel PIX_X, PIX_Y relative to frame F.  */
 
 void
-x_set_mouse_pixel_position (f, pix_x, pix_y)
-     struct frame *f;
-     int pix_x, pix_y;
+x_set_mouse_pixel_position (struct frame *f, int pix_x, int pix_y)
 {
   BLOCK_INPUT;
 
@@ -9083,8 +8752,7 @@ x_set_mouse_pixel_position (f, pix_x, pix_y)
 /* focus shifting, raising and lowering.  */
 
 void
-x_focus_on_frame (f)
-     struct frame *f;
+x_focus_on_frame (struct frame *f)
 {
 #if 0
   /* I don't think that the ICCCM allows programs to do things like this
@@ -9096,8 +8764,7 @@ x_focus_on_frame (f)
 }
 
 void
-x_unfocus_frame (f)
-     struct frame *f;
+x_unfocus_frame (struct frame *f)
 {
 #if 0
   /* Look at the remarks in x_focus_on_frame.  */
@@ -9110,8 +8777,7 @@ x_unfocus_frame (f)
 /* Raise frame F.  */
 
 void
-x_raise_frame (f)
-     struct frame *f;
+x_raise_frame (struct frame *f)
 {
   BLOCK_INPUT;
   if (f->async_visible)
@@ -9124,8 +8790,7 @@ x_raise_frame (f)
 /* Lower frame F.  */
 
 void
-x_lower_frame (f)
-     struct frame *f;
+x_lower_frame (struct frame *f)
 {
   if (f->async_visible)
     {
@@ -9139,8 +8804,7 @@ x_lower_frame (f)
 /* Activate frame with Extended Window Manager Hints */
 
 void
-x_ewmh_activate_frame (f)
-     FRAME_PTR f;
+x_ewmh_activate_frame (FRAME_PTR f)
 {
   /* See Window Manager Specification/Extended Window Manager Hints at
      http://freedesktop.org/wiki/Specifications/wm-spec  */
@@ -9160,9 +8824,7 @@ x_ewmh_activate_frame (f)
 }
 
 static void
-XTframe_raise_lower (f, raise_flag)
-     FRAME_PTR f;
-     int raise_flag;
+XTframe_raise_lower (FRAME_PTR f, int raise_flag)
 {
   if (raise_flag)
     x_raise_frame (f);
@@ -9173,9 +8835,7 @@ XTframe_raise_lower (f, raise_flag)
 /* XEmbed implementation.  */
 
 void
-xembed_set_info (f, flags)
-     struct frame *f;
-     enum xembed_info flags;
+xembed_set_info (struct frame *f, enum xembed_info flags)
 {
   Atom atom;
   unsigned long data[2];
@@ -9190,13 +8850,7 @@ xembed_set_info (f, flags)
 }
 
 void
-xembed_send_message (f, time, message, detail, data1, data2)
-     struct frame *f;
-     Time time;
-     enum xembed_message message;
-     long detail;
-     long data1;
-     long data2;
+xembed_send_message (struct frame *f, Time time, enum xembed_message message, long int detail, long int data1, long int data2)
 {
   XEvent event;
 
@@ -9225,8 +8879,7 @@ xembed_send_message (f, time, message, detail, data1, data2)
    finishes with it.  */
 
 void
-x_make_frame_visible (f)
-     struct frame *f;
+x_make_frame_visible (struct frame *f)
 {
   Lisp_Object type;
   int original_top, original_left;
@@ -9389,8 +9042,7 @@ x_make_frame_visible (f)
 /* Make the frame visible (mapped and not iconified).  */
 
 void
-x_make_frame_invisible (f)
-     struct frame *f;
+x_make_frame_invisible (struct frame *f)
 {
   Window window;
 
@@ -9447,8 +9099,7 @@ x_make_frame_invisible (f)
 /* Change window state from mapped to iconified.  */
 
 void
-x_iconify_frame (f)
-     struct frame *f;
+x_iconify_frame (struct frame *f)
 {
   int result;
   Lisp_Object type;
@@ -9574,8 +9225,7 @@ x_iconify_frame (f)
 /* Free X resources of frame F.  */
 
 void
-x_free_frame_resources (f)
-     struct frame *f;
+x_free_frame_resources (struct frame *f)
 {
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   Lisp_Object bar;
@@ -9698,8 +9348,7 @@ x_free_frame_resources (f)
 /* Destroy the X window of frame F.  */
 
 void
-x_destroy_window (f)
-     struct frame *f;
+x_destroy_window (struct frame *f)
 {
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
 
@@ -9723,10 +9372,7 @@ x_destroy_window (f)
 
 #ifndef USE_GTK
 void
-x_wm_set_size_hint (f, flags, user_position)
-     struct frame *f;
-     long flags;
-     int user_position;
+x_wm_set_size_hint (struct frame *f, long flags, int user_position)
 {
   XSizeHints size_hints;
   Window window = FRAME_OUTER_WINDOW (f);
@@ -9826,9 +9472,7 @@ x_wm_set_size_hint (f, flags, user_position)
 /* Used for IconicState or NormalState */
 
 void
-x_wm_set_window_state (f, state)
-     struct frame *f;
-     int state;
+x_wm_set_window_state (struct frame *f, int state)
 {
 #ifdef USE_X_TOOLKIT
   Arg al[1];
@@ -9846,9 +9490,7 @@ x_wm_set_window_state (f, state)
 }
 
 void
-x_wm_set_icon_pixmap (f, pixmap_id)
-     struct frame *f;
-     int pixmap_id;
+x_wm_set_icon_pixmap (struct frame *f, int pixmap_id)
 {
   Pixmap icon_pixmap, icon_mask;
 
@@ -9896,9 +9538,7 @@ x_wm_set_icon_pixmap (f, pixmap_id)
 }
 
 void
-x_wm_set_icon_position (f, icon_x, icon_y)
-     struct frame *f;
-     int icon_x, icon_y;
+x_wm_set_icon_position (struct frame *f, int icon_x, int icon_y)
 {
   Window window = FRAME_OUTER_WINDOW (f);
 
@@ -9920,9 +9560,7 @@ x_wm_set_icon_position (f, icon_x, icon_y)
    font table.  */
 
 static void
-x_check_font (f, font)
-     struct frame *f;
-     struct font *font;
+x_check_font (struct frame *f, struct font *font)
 {
   Lisp_Object frame;
 
@@ -9971,8 +9609,7 @@ static int x_session_initialized;
 /* Test whether two display-name strings agree up to the dot that separates
    the screen number from the server number.  */
 static int
-same_x_server (name1, name2)
-     const char *name1, *name2;
+same_x_server (const char *name1, const char *name2)
 {
   int seen_colon = 0;
   const unsigned char *system_name = SDATA (Vsystem_name);
@@ -10019,10 +9656,7 @@ same_x_server (name1, name2)
    get to the first bit.  With MASK 0x7e0, *BITS is set to 6, and *OFFSET
    to 5.  */
 static void
-get_bits_and_offset (mask, bits, offset)
-     unsigned long mask;
-     int *bits;
-     int *offset;
+get_bits_and_offset (long unsigned int mask, int *bits, int *offset)
 {
   int nr = 0;
   int off = 0;
@@ -10047,8 +9681,7 @@ get_bits_and_offset (mask, bits, offset)
    But don't permanently open it, just test its availability.  */
 
 int
-x_display_ok (display)
-    const char *display;
+x_display_ok (const char *display)
 {
     int dpy_ok = 1;
     Display *dpy;
@@ -10063,26 +9696,19 @@ x_display_ok (display)
 
 #ifdef USE_GTK
 static void
-my_log_handler (log_domain, log_level, message, user_data)
-     const gchar *log_domain;
-     GLogLevelFlags log_level;
-     const gchar *message;
-     gpointer user_data;
+my_log_handler (const gchar *log_domain, GLogLevelFlags log_level, const gchar *message, gpointer user_data)
 {
   if (!strstr (message, "g_set_prgname"))
       fprintf (stderr, "%s-WARNING **: %s\n", log_domain, message);
 }
 #endif
-  
+
 /* Open a connection to X display DISPLAY_NAME, and return
    the structure that describes the open display.
    If we cannot contact the display, return null.  */
 
 struct x_display_info *
-x_term_init (display_name, xrm_option, resource_name)
-     Lisp_Object display_name;
-     char *xrm_option;
-     char *resource_name;
+x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 {
   int connection;
   Display *dpy;
@@ -10215,7 +9841,7 @@ x_term_init (display_name, xrm_option, resource_name)
   /* We have definitely succeeded.  Record the new connection.  */
 
   dpyinfo = (struct x_display_info *) xmalloc (sizeof (struct x_display_info));
-  bzero (dpyinfo, sizeof *dpyinfo);
+  memset (dpyinfo, 0, sizeof *dpyinfo);
 
   terminal = x_create_terminal (dpyinfo);
 
@@ -10493,7 +10119,11 @@ x_term_init (display_name, xrm_option, resource_name)
     = XInternAtom (dpyinfo->display, "_NET_WM_WINDOW_TYPE", False);
   dpyinfo->Xatom_net_window_type_tooltip
     = XInternAtom (dpyinfo->display, "_NET_WM_WINDOW_TYPE_TOOLTIP", False);
-  
+  dpyinfo->Xatom_net_wm_icon_name
+    = XInternAtom (dpyinfo->display, "_NET_WM_ICON_NAME", False);
+  dpyinfo->Xatom_net_wm_name
+    = XInternAtom (dpyinfo->display, "_NET_WM_NAME", False);
+
   dpyinfo->cut_buffers_initialized = 0;
 
   dpyinfo->x_dnd_atoms_size = 8;
@@ -10524,11 +10154,9 @@ x_term_init (display_name, xrm_option, resource_name)
 
   xsettings_initialize (dpyinfo);
 
-#ifdef subprocesses
   /* This is only needed for distinguishing keyboard and process input.  */
   if (connection != 0)
     add_keyboard_wait_descriptor (connection);
-#endif
 
 #ifdef F_SETOWN
   fcntl (connection, F_SETOWN, getpid ());
@@ -10610,8 +10238,7 @@ x_term_init (display_name, xrm_option, resource_name)
    and without sending any more commands to the X server.  */
 
 void
-x_delete_display (dpyinfo)
-     struct x_display_info *dpyinfo;
+x_delete_display (struct x_display_info *dpyinfo)
 {
   struct terminal *t;
 
@@ -10623,7 +10250,7 @@ x_delete_display (dpyinfo)
 #ifdef HAVE_X_SM
         /* Close X session management when we close its display.  */
         if (t->id == 1 && x_session_have_connection ())
-          x_session_close();
+          x_session_close ();
 #endif
         delete_terminal (t);
         break;
@@ -10680,8 +10307,7 @@ x_delete_display (dpyinfo)
    that slows us down.  */
 
 static void
-x_process_timeouts (timer)
-     struct atimer *timer;
+x_process_timeouts (struct atimer *timer)
 {
   BLOCK_INPUT;
   x_timeout_atimer_activated_flag = 0;
@@ -10704,7 +10330,7 @@ x_process_timeouts (timer)
    processed, these widgets don't behave normally.  */
 
 void
-x_activate_timeout_atimer ()
+x_activate_timeout_atimer (void)
 {
   BLOCK_INPUT;
   if (!x_timeout_atimer_activated_flag)
@@ -10880,7 +10506,7 @@ x_create_terminal (struct x_display_info *dpyinfo)
 }
 
 void
-x_initialize ()
+x_initialize (void)
 {
   baud_rate = 19200;
 
@@ -10938,7 +10564,7 @@ x_initialize ()
 
 
 void
-syms_of_xterm ()
+syms_of_xterm (void)
 {
   x_error_message = NULL;
 

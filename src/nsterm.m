@@ -2163,11 +2163,11 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
     {
       EmacsImage **newBimgs
 	= xmalloc (max_used_fringe_bitmap * sizeof (EmacsImage *));
-      bzero (newBimgs, max_used_fringe_bitmap * sizeof (EmacsImage *));
+      memset (newBimgs, 0, max_used_fringe_bitmap * sizeof (EmacsImage *));
 
       if (nBimgs)
         {
-          bcopy (bimgs, newBimgs, nBimgs * sizeof (EmacsImage *));
+          memcpy (newBimgs, bimgs, nBimgs * sizeof (EmacsImage *));
           xfree (bimgs);
         }
 
@@ -2177,20 +2177,7 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 
   /* Must clip because of partially visible lines.  */
   rowY = WINDOW_TO_FRAME_PIXEL_Y (w, row->y);
-  if (p->y < rowY)
-    {
-      /* Adjust position of "bottom aligned" bitmap on partially
-	 visible last row.  */
-      int oldY = row->y;
-      int oldVH = row->visible_height;
-      row->visible_height = p->h;
-      row->y -= rowY - p->y;
-      ns_clip_to_row (w, row, -1, NO);
-      row->y = oldY;
-      row->visible_height = oldVH;
-    }
-  else
-    ns_clip_to_row (w, row, -1, YES);
+  ns_clip_to_row (w, row, -1, YES);
 
   if (p->bx >= 0 && !p->overlay_p)
     {
@@ -3707,7 +3694,7 @@ ns_term_init (Lisp_Object display_name)
                                              name: nil object: nil]; */
 
   dpyinfo = (struct ns_display_info *)xmalloc (sizeof (struct ns_display_info));
-  bzero (dpyinfo, sizeof (struct ns_display_info));
+  memset (dpyinfo, 0, sizeof (struct ns_display_info));
 
   ns_initialize_display_info (dpyinfo);
   terminal = ns_create_terminal (dpyinfo);

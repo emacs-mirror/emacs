@@ -825,7 +825,7 @@
 	(MH-E-XEMACS-OBJ): New variable to hold XEmacs object files.
 	(clean): Moved XEmacs-specific code to clean-xemacs.
 	(xemacs): Added clean-xemacs prerequisite. Moved down to XEmacs
-	section of file. Add target to build mh-loaddefs.el in XEmacs
+	section of file. Add target to build mh-loaddefs.el in XEmacs.
 	(loaddefs-xemacs): New rule to build mh-loaddefs.el in XEmacs.
 	(clean-xemacs): New target to remove XEmacs-specific files.
 	(compile-xemacs): New. It allows for the '-no-autoloads' option
@@ -1156,8 +1156,8 @@
 	mh-loaddefs.el in XEmacs.
 	(XEMACS_LOADDEFS_COOKIE): Ditto.
 	(XEMACS_LOADDEFS_PKG_NAME): Ditto.
-	(xemacs): Add target to build mh-loaddefs.el in XEmacs
-	(clean-xemacs): Remove `mh-loaddefs.el*'
+	(xemacs): Add target to build mh-loaddefs.el in XEmacs.
+	(clean-xemacs): Remove `mh-loaddefs.el*'.
 	(loaddefs-xemacs): New rule to build mh-loaddefs.el in XEmacs.
 
 2003-11-02  Peter S Galbraith  <psg@debian.org>
@@ -1432,7 +1432,7 @@
 	(mh-mml-secure-message-signencrypt): Ditto.
 	(mh-mml-secure-message-sign): Ditto.
 
-	* mh-comp.el (mh-letter-menu, mh-letter-mode-help-messages,
+	* mh-comp.el (mh-letter-menu, mh-letter-mode-help-messages)
 	(mh-letter-mode-map): Update to use new functions.
 
 2003-09-26  Satyaki Das  <satyakid@stanford.edu>
@@ -1485,7 +1485,7 @@
 	(mh-alias-system-aliases): Moved here from mh-customize.el. By
 	definition, "system" definitions are not user-visible, and user
 	filenames are in the the Aliasfile: profile component, so this
-	variable really shouldn't be a defcustom
+	variable really shouldn't be a defcustom.
 	(mh-alias-tstamp, mh-alias-filenames, mh-alias-reload)
 	(mh-alias-add-alias, mh-alias-grab-from-field)
 	(mh-alias-add-address-under-point, mh-alias-apropos): Merge
@@ -3988,7 +3988,7 @@
 	fixes germaine to the change whereby we now check for MIME
 	directives before sending.
 
-	* mh-xemacs-toolbar.el: Fixed copyright. Added Change Log comment
+	* mh-xemacs-toolbar.el: Fixed copyright. Added Change Log comment.
 	(lm-verify fix). Added standard MH-E local variables. Removed
 	time-stamp stuff.
 
@@ -5807,8 +5807,8 @@
 	(mh-default-folder-prefix, mh-default-folder-must-exist-flag): In
 	docstring, refer to documentation for mh-prompt-for-refile-folder
 	and mh-folder-from-address.
-	(mh-highlight-citation-p, mh-compose-insertion,
-	(mh-insert-mail-followup-to-list, mh-index-program,
+	(mh-highlight-citation-p, mh-compose-insertion)
+	(mh-insert-mail-followup-to-list, mh-index-program)
 	(mh-identity-default): Fixed case of tags.
 
 	* mh-e.el (mh-folder-from-address): Use new variable
@@ -6310,7 +6310,7 @@
 	(mh-alias-insert-file): New function. Return the alias file to
 	write a new entry in.
 	(mh-alias-address-to-alias): New function. Return the ADDRESS
-	alias if defined, or nil."
+	alias if defined, or nil.
 	(mh-alias-from-has-no-alias-p): New function. Return t is From has
 	no current alias set.  Used as tool-bar button enable function.
 	(mh-alias-add-alias-to-file): New function. Add ALIAS for ADDRESS
@@ -6902,7 +6902,7 @@
 	(mh-alias-translate): New function.  Return translation for alias,
 	checking if in blind or passwd list.
 	(mh-alias-letter-expand-alias): Rewrite using
-	mail-abbrev-complete-alias from mailabbrev.el
+	mail-abbrev-complete-alias from mailabbrev.el.
 	(mh-alias-expand-alias-map): New variable.
 	(mh-alias-ali): New function. Return formatted string of
 	translated ALIAS from ali.
@@ -7084,7 +7084,7 @@
 	mh-thread-generate-scan-lines.
 
 	* mh-mime.el (font-lock): Font-lock required at compile time to
-	avoid warning about font-lock-maximum-size
+	avoid warning about font-lock-maximum-size.
 	(mh-display-smileys, mh-display-emphasis): Show graphical smileys
 	and emphasis only if message isn't too large.
 
@@ -7445,7 +7445,7 @@
 	This addresses part of SF #627015.
 
 	* mh-utils.el (mh-decode-quoted-printable-flag): Renamed from
-	mh-decode-quoted-printable
+	mh-decode-quoted-printable.
 	(mh-display-msg, mh-decode-quoted-printable-have-mimedecode):
 	Use it.
 	This addresses part of SF #627015.
@@ -7906,7 +7906,7 @@
 2002-10-28  Peter S Galbraith  <psg@debian.org>
 
 	* mh-e.el (mh-scan-subject-regexp): Add an expression to match an
-	optional bracketed number after "Re", such as in "Re[2]:"
+	optional bracketed number after "Re", such as in "Re[2]:".
 	(Patch by Satyaki; I checked it and applied).
 	(mh-folder-font-lock-subject): Adapt to new mh-scan-subject-regexp.
 	* mh-seq.el (mh-subject-to-sequence): Ditto.
@@ -8882,7 +8882,7 @@
 	(mh-pick-mode): Set local buffer variable mh-help-messages to
 	mh-pick-mode-help-messages.
 
-	* mh-index.el (mh-index-keymap): Added binding for mh-help
+	* mh-index.el (mh-index-keymap): Added binding for mh-help.
 	(mh-index-folder-mode-help-messages): New variable that contains
 	help messages for MH Index buffer.
 	(mh-index-folder-mode): Set local buffer variable mh-help-messages
@@ -9280,7 +9280,7 @@
 2002-09-17  Peter S Galbraith  <psg@debian.org>
 
 	* mh-mime.el (mh-store-mime-parts-default-directory): Renamed from
-	mh-store-mime-parts-directory
+	mh-store-mime-parts-directory.
 	(mh-store-mime-parts-directory): Renamed from
 	mh-store-mime-parts-directory-default.
 
@@ -9940,7 +9940,7 @@
 	compiler warnings.
 
 	* mh-e.el (compilation): Code rearrangement and extra autoloads to
-	remove compiler warnings
+	remove compiler warnings.
 	(mh-quit): Add call to mh-destroy-postponed-handles to remove
 	handles that are associated with external viewers. Also fixed a
 	bug that I accidentally introduced by adding an extra line when
@@ -10707,7 +10707,7 @@
 2001-11-29  Peter S Galbraith  <psg@debian.org>
 
 	* mh-e.el (mh-folder-font-lock-subject): New fontifier function
-	for subject lines in folder-mode
+	for subject lines in folder-mode.
 	(mh-scan-followup-regexp): Deleted obsolete regexp.  Use
 	mh-scan-subject-regexp instead.
 	(mh-folder-font-lock-keywords): Use mh-folder-font-lock-subject

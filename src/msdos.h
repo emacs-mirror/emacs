@@ -23,7 +23,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <dpmi.h>
 
 int dos_ttraw (struct tty_display_info *);
-int dos_ttcooked ();
+int dos_ttcooked (void);
 int dos_get_saved_screen (char **, int *, int *);
 int dos_set_keyboard (int, int);
 void dos_set_window_size (int *, int *);
@@ -32,15 +32,13 @@ int getdefdir (int, char*);
 void unixtodos_filename (char *);
 void dostounix_filename (char *);
 char *rootrelativepath (char *);
-void init_environment ();
-void internal_terminal_init ();
-void ctrl_break_func (_go32_dpmi_registers *);
-void install_ctrl_break_check ();
+void init_environment (int, char **, int);
+void internal_terminal_init (void);
 
 extern int have_mouse;
-void mouse_init ();
-void mouse_on ();
-void mouse_off ();
+void mouse_init (void);
+void mouse_on (void);
+void mouse_off (void);
 void mouse_moveto (int, int);
 
 #ifndef HAVE_X_WINDOWS

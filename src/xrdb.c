@@ -50,7 +50,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "lisp.h"
 
-extern char *getenv ();
+extern char *getenv (const char *);
 
 /* This does cause trouble on AIX.  I'm going to take the comment at
    face value.  */
@@ -64,11 +64,11 @@ extern short getuid ();		/* If this causes portability problems,
 extern struct passwd *getpwuid (uid_t);
 extern struct passwd *getpwnam (const char *);
 #else
-extern struct passwd *getpwuid ();
-extern struct passwd *getpwnam ();
+extern struct passwd *getpwuid (uid_t);
+extern struct passwd *getpwnam (const char *);
 #endif
 
-extern char *get_system_name ();
+extern char *get_system_name (void);
 
 /* Make sure not to #include anything after these definitions.  Let's
    not step on anyone's prototypes.  */
@@ -82,8 +82,9 @@ extern char *get_system_name ();
 #define free xfree
 #endif
 
-char *x_get_string_resource ();
-static int file_p ();
+char *x_get_string_resource (XrmDatabase rdb, const char *name,
+			     const char *class);
+static int file_p (const char *filename);
 
 
 /* X file search path processing.  */
@@ -98,9 +99,7 @@ char *x_customization_string;
    resource, for later use in search path decoding.  If we find no
    such resource, return zero.  */
 char *
-x_get_customization_string (db, name, class)
-     XrmDatabase db;
-     char *name, *class;
+x_get_customization_string (XrmDatabase db, const char *name, const char *class)
 {
   char *full_name
     = (char *) alloca (strlen (name) + sizeof ("customization") + 3);
@@ -155,10 +154,7 @@ x_get_customization_string (db, name, class)
    Return NULL otherwise.  */
 
 static char *
-magic_file_p (string, string_len, class, escaped_suffix, suffix)
-     char *string;
-     int string_len;
-     char *class, *escaped_suffix, *suffix;
+magic_file_p (const char *string, int string_len, const char *class, const char *escaped_suffix, const char *suffix)
 {
   char *lang = getenv ("LANG");
 
@@ -166,12 +162,12 @@ magic_file_p (string, string_len, class, escaped_suffix, suffix)
   char *path = (char *) malloc (path_size);
   int path_len = 0;
 
-  char *p = string;
+  const char *p = string;
 
   while (p < string + string_len)
     {
       /* The chunk we're about to stick on the end of result.  */
-      char *next = NULL;
+      const char *next = NULL;
       int next_len;
 
       if (*p == '%')
@@ -238,7 +234,7 @@ magic_file_p (string, string_len, class, escaped_suffix, suffix)
 	  path = (char *) realloc (path, path_size);
 	}
 
-      bcopy (next, path + path_len, next_len);
+      memcpy (path + path_len, next, next_len);
       path_len += next_len;
 
       p++;
@@ -264,7 +260,7 @@ magic_file_p (string, string_len, class, escaped_suffix, suffix)
 	  path = (char *) realloc (path, path_size);
 	}
 
-      bcopy (suffix, path + path_len, suffix_len);
+      memcpy (path + path_len, suffix, suffix_len);
       path_len += suffix_len;
     }
 
@@ -281,7 +277,7 @@ magic_file_p (string, string_len, class, escaped_suffix, suffix)
 
 
 static char *
-gethomedir ()
+gethomedir (void)
 {
   struct passwd *pw;
   char *ptr;
@@ -311,8 +307,7 @@ gethomedir ()
 
 
 static int
-file_p (filename)
-     char *filename;
+file_p (const char *filename)
 {
   struct stat status;
 
@@ -327,10 +322,9 @@ file_p (filename)
    the path name of the one we found otherwise.  */
 
 static char *
-search_magic_path (search_path, class, escaped_suffix, suffix)
-     char *search_path, *class, *escaped_suffix, *suffix;
+search_magic_path (const char *search_path, const char *class, const char *escaped_suffix, const char *suffix)
 {
-  register char *s, *p;
+  const char *s, *p;
 
   for (s = search_path; *s; s = p)
     {
@@ -339,7 +333,8 @@ search_magic_path (search_path, class, escaped_suffix, suffix)
 
       if (p > s)
 	{
-	  char *path = magic_file_p (s, p - s, class, escaped_suffix, suffix);
+	  char *path = magic_file_p (s, p - s, class, escaped_suffix,
+					   suffix);
 	  if (path)
 	    return path;
 	}
@@ -363,8 +358,7 @@ search_magic_path (search_path, class, escaped_suffix, suffix)
 /* Producing databases for individual sources.  */
 
 static XrmDatabase
-get_system_app (class)
-     char *class;
+get_system_app (const char *class)
 {
   XrmDatabase db = NULL;
   char *path;
@@ -384,16 +378,14 @@ get_system_app (class)
 
 
 static XrmDatabase
-get_fallback (display)
-     Display *display;
+get_fallback (Display *display)
 {
   return NULL;
 }
 
 
 static XrmDatabase
-get_user_app (class)
-     char *class;
+get_user_app (const char *class)
 {
   char *path;
   char *file = 0;
@@ -428,8 +420,7 @@ get_user_app (class)
 
 
 static XrmDatabase
-get_user_db (display)
-     Display *display;
+get_user_db (Display *display)
 {
   XrmDatabase db;
   char *xdefs;
@@ -470,7 +461,7 @@ get_user_db (display)
 }
 
 static XrmDatabase
-get_environ_db ()
+get_environ_db (void)
 {
   XrmDatabase db;
   char *p;
@@ -505,19 +496,18 @@ XrmRepresentation x_rm_string;	/* Quark representation */
 /* Load X resources based on the display and a possible -xrm option. */
 
 XrmDatabase
-x_load_resources (display, xrm_string, myname, myclass)
-     Display *display;
-     char *xrm_string, *myname, *myclass;
+x_load_resources (Display *display, const char *xrm_string,
+		  const char *myname, const char *myclass)
 {
   XrmDatabase user_database;
   XrmDatabase rdb;
   XrmDatabase db;
   char line[256];
 
-  char *helv = "-*-helvetica-medium-r-*--*-120-*-*-*-*-iso8859-1";
+  const char *helv = "-*-helvetica-medium-r-*--*-120-*-*-*-*-iso8859-1";
 
 #ifdef USE_MOTIF
-  char *courier = "-*-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1";
+  const char *courier = "-*-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1";
   extern Lisp_Object Vdouble_click_time;
 #endif
 
@@ -641,11 +631,7 @@ x_load_resources (display, xrm_string, myname, myclass)
    and of type TYPE from database RDB.  The value is returned in RET_VALUE. */
 
 int
-x_get_resource (rdb, name, class, expected_type, ret_value)
-     XrmDatabase rdb;
-     char *name, *class;
-     XrmRepresentation expected_type;
-     XrmValue *ret_value;
+x_get_resource (XrmDatabase rdb, const char *name, const char *class, XrmRepresentation expected_type, XrmValue *ret_value)
 {
   XrmValue value;
   XrmName namelist[100];
@@ -661,7 +647,7 @@ x_get_resource (rdb, name, class, expected_type, ret_value)
       if (type == x_rm_string)
 	ret_value->addr = (char *) value.addr;
       else
-	bcopy (value.addr, ret_value->addr, ret_value->size);
+	memcpy (ret_value->addr, value.addr, ret_value->size);
 
       return value.size;
     }
@@ -673,9 +659,7 @@ x_get_resource (rdb, name, class, expected_type, ret_value)
    database RDB. */
 
 char *
-x_get_string_resource (rdb, name, class)
-     XrmDatabase rdb;
-     char *name, *class;
+x_get_string_resource (XrmDatabase rdb, const char *name, const char *class)
 {
   XrmValue value;
 

@@ -39,8 +39,7 @@ static void byte_char_debug_check (struct buffer *, int, int);
 static int byte_debug_flag;
 
 void
-clear_charpos_cache (b)
-     struct buffer *b;
+clear_charpos_cache (struct buffer *b)
 {
   if (cached_buffer == b)
     cached_buffer = 0;
@@ -100,9 +99,7 @@ clear_charpos_cache (b)
 }
 
 static void
-byte_char_debug_check (b, charpos, bytepos)
-     struct buffer *b;
-     int charpos, bytepos;
+byte_char_debug_check (struct buffer *b, int charpos, int bytepos)
 {
   int nchars = 0;
 
@@ -122,16 +119,13 @@ byte_char_debug_check (b, charpos, bytepos)
 }
 
 int
-charpos_to_bytepos (charpos)
-     int charpos;
+charpos_to_bytepos (int charpos)
 {
   return buf_charpos_to_bytepos (current_buffer, charpos);
 }
 
 int
-buf_charpos_to_bytepos (b, charpos)
-     struct buffer *b;
-     int charpos;
+buf_charpos_to_bytepos (struct buffer *b, int charpos)
 {
   struct Lisp_Marker *tail;
   int best_above, best_above_byte;
@@ -254,8 +248,7 @@ buf_charpos_to_bytepos (b, charpos)
    in the simplest, most reliable way.  */
 
 int
-verify_bytepos (charpos)
-     int charpos;
+verify_bytepos (int charpos)
 {
   int below = 1;
   int below_byte = 1;
@@ -315,16 +308,13 @@ verify_bytepos (charpos)
 }
 
 int
-bytepos_to_charpos (bytepos)
-     int bytepos;
+bytepos_to_charpos (int bytepos)
 {
   return buf_bytepos_to_charpos (current_buffer, bytepos);
 }
 
 int
-buf_bytepos_to_charpos (b, bytepos)
-     struct buffer *b;
-     int bytepos;
+buf_bytepos_to_charpos (struct buffer *b, int bytepos)
 {
   struct Lisp_Marker *tail;
   int best_above, best_above_byte;
@@ -443,8 +433,7 @@ buf_bytepos_to_charpos (b, bytepos)
 DEFUN ("marker-buffer", Fmarker_buffer, Smarker_buffer, 1, 1, 0,
        doc: /* Return the buffer that MARKER points into, or nil if none.
 Returns nil if MARKER points into a dead buffer.  */)
-     (marker)
-     register Lisp_Object marker;
+  (register Lisp_Object marker)
 {
   register Lisp_Object buf;
   CHECK_MARKER (marker);
@@ -464,8 +453,7 @@ Returns nil if MARKER points into a dead buffer.  */)
 DEFUN ("marker-position", Fmarker_position, Smarker_position, 1, 1, 0,
        doc: /* Return the position MARKER points at, as a character number.
 Returns nil if MARKER points nowhere.  */)
-     (marker)
-     Lisp_Object marker;
+  (Lisp_Object marker)
 {
   CHECK_MARKER (marker);
   if (XMARKER (marker)->buffer)
@@ -480,8 +468,7 @@ BUFFER defaults to the current buffer.
 If POSITION is nil, makes marker point nowhere.
 Then it no longer slows down editing in any buffer.
 Returns MARKER.  */)
-     (marker, position, buffer)
-     Lisp_Object marker, position, buffer;
+  (Lisp_Object marker, Lisp_Object position, Lisp_Object buffer)
 {
   register int charno, bytepos;
   register struct buffer *b;
@@ -556,8 +543,7 @@ Returns MARKER.  */)
    be outside the visible part.  */
 
 Lisp_Object
-set_marker_restricted (marker, pos, buffer)
-     Lisp_Object marker, pos, buffer;
+set_marker_restricted (Lisp_Object marker, Lisp_Object pos, Lisp_Object buffer)
 {
   register int charno, bytepos;
   register struct buffer *b;
@@ -632,9 +618,7 @@ set_marker_restricted (marker, pos, buffer)
    character position and the corresponding byte position.  */
 
 Lisp_Object
-set_marker_both (marker, buffer, charpos, bytepos)
-     Lisp_Object marker, buffer;
-     int charpos, bytepos;
+set_marker_both (Lisp_Object marker, Lisp_Object buffer, int charpos, int bytepos)
 {
   register struct buffer *b;
   register struct Lisp_Marker *m;
@@ -682,9 +666,7 @@ set_marker_both (marker, buffer, charpos, bytepos)
    be outside the visible part.  */
 
 Lisp_Object
-set_marker_restricted_both (marker, buffer, charpos, bytepos)
-     Lisp_Object marker, buffer;
-     int charpos, bytepos;
+set_marker_restricted_both (Lisp_Object marker, Lisp_Object buffer, int charpos, int bytepos)
 {
   register struct buffer *b;
   register struct Lisp_Marker *m;
@@ -745,8 +727,7 @@ set_marker_restricted_both (marker, buffer, charpos, bytepos)
    including those in chain fields of markers.  */
 
 void
-unchain_marker (marker)
-     register struct Lisp_Marker *marker;
+unchain_marker (register struct Lisp_Marker *marker)
 {
   register struct Lisp_Marker *tail, *prev, *next;
   register struct buffer *b;
@@ -796,8 +777,7 @@ unchain_marker (marker)
 /* Return the char position of marker MARKER, as a C integer.  */
 
 int
-marker_position (marker)
-     Lisp_Object marker;
+marker_position (Lisp_Object marker)
 {
   register struct Lisp_Marker *m = XMARKER (marker);
   register struct buffer *buf = m->buffer;
@@ -811,8 +791,7 @@ marker_position (marker)
 /* Return the byte position of marker MARKER, as a C integer.  */
 
 int
-marker_byte_position (marker)
-     Lisp_Object marker;
+marker_byte_position (Lisp_Object marker)
 {
   register struct Lisp_Marker *m = XMARKER (marker);
   register struct buffer *buf = m->buffer;
@@ -833,8 +812,7 @@ If argument is a number, makes a new marker pointing
 at that position in the current buffer.
 The optional argument TYPE specifies the insertion type of the new marker;
 see `marker-insertion-type'.  */)
-     (marker, type)
-     register Lisp_Object marker, type;
+  (register Lisp_Object marker, Lisp_Object type)
 {
   register Lisp_Object new;
 
@@ -851,8 +829,7 @@ DEFUN ("marker-insertion-type", Fmarker_insertion_type,
        Smarker_insertion_type, 1, 1, 0,
        doc: /* Return insertion type of MARKER: t if it stays after inserted text.
 The value nil means the marker stays before text inserted there.  */)
-     (marker)
-     register Lisp_Object marker;
+  (register Lisp_Object marker)
 {
   CHECK_MARKER (marker);
   return XMARKER (marker)->insertion_type ? Qt : Qnil;
@@ -863,8 +840,7 @@ DEFUN ("set-marker-insertion-type", Fset_marker_insertion_type,
        doc: /* Set the insertion-type of MARKER to TYPE.
 If TYPE is t, it means the marker advances when you insert text at it.
 If TYPE is nil, it means the marker stays behind when you insert text at it.  */)
-     (marker, type)
-     Lisp_Object marker, type;
+  (Lisp_Object marker, Lisp_Object type)
 {
   CHECK_MARKER (marker);
 
@@ -875,8 +851,7 @@ If TYPE is nil, it means the marker stays behind when you insert text at it.  */
 DEFUN ("buffer-has-markers-at", Fbuffer_has_markers_at, Sbuffer_has_markers_at,
        1, 1, 0,
        doc: /* Return t if there are markers pointing at POSITION in the current buffer.  */)
-     (position)
-     Lisp_Object position;
+  (Lisp_Object position)
 {
   register struct Lisp_Marker *tail;
   register int charno;
@@ -898,8 +873,7 @@ DEFUN ("buffer-has-markers-at", Fbuffer_has_markers_at, Sbuffer_has_markers_at,
 /* For debugging -- count the markers in buffer BUF.  */
 
 int
-count_markers (buf)
-     struct buffer *buf;
+count_markers (struct buffer *buf)
 {
   int total = 0;
   struct Lisp_Marker *tail;
@@ -911,7 +885,7 @@ count_markers (buf)
 }
 
 void
-syms_of_marker ()
+syms_of_marker (void)
 {
   defsubr (&Smarker_position);
   defsubr (&Smarker_buffer);

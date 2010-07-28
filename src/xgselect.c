@@ -29,12 +29,8 @@ static GPollFD *gfds;
 static int gfds_size;
 
 int
-xg_select (max_fds, rfds, wfds, efds, timeout)
-     int max_fds;
-     SELECT_TYPE *rfds;
-     SELECT_TYPE *wfds;
-     SELECT_TYPE *efds;
-     EMACS_TIME *timeout;
+xg_select (int max_fds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
+	   EMACS_TIME *timeout)
 {
   SELECT_TYPE all_rfds, all_wfds;
   EMACS_TIME tmo, *tmop = timeout;
@@ -147,7 +143,7 @@ xg_select (max_fds, rfds, wfds, efds, timeout)
 #endif /* defined (USE_GTK) || defined (HAVE_GCONF) */
 
 void
-xgselect_initialize ()
+xgselect_initialize (void)
 {
 #if defined (USE_GTK) || defined (HAVE_GCONF)
   gfds_size = 128;

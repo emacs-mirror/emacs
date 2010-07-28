@@ -42,7 +42,7 @@ about more specialized features.
 * Lunar Phases::        Displaying phases of the moon.
 * Other Calendars::     Converting dates to other calendar systems.
 * Diary::               Displaying events from your diary.
-* Appointments::	Reminders when it's time to do something.
+* Appointments::        Reminders when it's time to do something.
 * Importing Diary::     Converting diary events to/from other formats.
 * Daylight Saving::     How to specify when daylight saving time is active.
 * Time Intervals::      Keeping track of time intervals.
@@ -674,11 +674,11 @@ Gregorian calendar did not exist.
 and from several other calendars.
 
 @menu
-* Calendar Systems::	   The calendars Emacs understands
-			     (aside from Gregorian).
-* To Other Calendar::	   Converting the selected date to various calendars.
-* From Other Calendar::	   Moving to a date specified in another calendar.
-* Mayan Calendar::	   Moving to a date specified in a Mayan calendar.
+* Calendar Systems::       The calendars Emacs understands
+                             (aside from Gregorian).
+* To Other Calendar::      Converting the selected date to various calendars.
+* From Other Calendar::    Moving to a date specified in another calendar.
+* Mayan Calendar::         Moving to a date specified in a Mayan calendar.
 @end menu
 
 @node Calendar Systems
@@ -1040,8 +1040,8 @@ entries.
 @menu
 * Displaying the Diary::   Viewing diary entries and associated calendar dates.
 * Format of Diary File::   Entering events in your diary.
-* Date Formats::	   Various ways you can specify dates.
-* Adding to Diary::	   Commands to create diary entries.
+* Date Formats::           Various ways you can specify dates.
+* Adding to Diary::        Commands to create diary entries.
 * Special Diary Entries::  Anniversaries, blocks of dates, cyclic entries, etc.
 @end menu
 

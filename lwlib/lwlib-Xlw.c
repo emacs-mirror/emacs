@@ -43,8 +43,7 @@ Boston, MA 02110-1301, USA.  */
    This is sometimes handy to have available.  */
 
 void
-x_print_complete_resource_name (widget)
-     Widget widget;
+x_print_complete_resource_name (Widget widget)
 {
   int i;
   String names[100];
@@ -72,10 +71,7 @@ x_print_complete_resource_name (widget)
    if there isn't any highlighted menu item.  */
 
 static void
-highlight_hook (w, client_data, call_data)
-     Widget w;
-     XtPointer client_data;
-     XtPointer call_data;
+highlight_hook (Widget w, XtPointer client_data, XtPointer call_data)
 {
   widget_instance *instance = (widget_instance *) client_data;
 
@@ -85,29 +81,20 @@ highlight_hook (w, client_data, call_data)
 }
 
 static void
-enter_hook (w, client_data, call_data)
-     Widget w;
-     XtPointer client_data;
-     XtPointer call_data;
+enter_hook (Widget w, XtPointer client_data, XtPointer call_data)
 {
   highlight_hook (w, client_data, call_data);
 }
 
 static void
-leave_hook (w, client_data, call_data)
-     Widget w;
-     XtPointer client_data;
-     XtPointer call_data;
+leave_hook (Widget w, XtPointer client_data, XtPointer call_data)
 {
   highlight_hook (w, client_data, NULL);
 }
 
 
 static void
-pre_hook (w, client_data, call_data)
-     Widget w;
-     XtPointer client_data;
-     XtPointer call_data;
+pre_hook (Widget w, XtPointer client_data, XtPointer call_data)
 {
   widget_instance* instance = (widget_instance*)client_data;
   widget_value* val;
@@ -122,10 +109,7 @@ pre_hook (w, client_data, call_data)
 }
 
 static void
-pick_hook (w, client_data, call_data)
-     Widget w;
-     XtPointer client_data;
-     XtPointer call_data;
+pick_hook (Widget w, XtPointer client_data, XtPointer call_data)
 {
   widget_instance* instance = (widget_instance*)client_data;
   widget_value* contents_val = (widget_value*)call_data;
@@ -150,8 +134,7 @@ pick_hook (w, client_data, call_data)
 /* creation functions */
 
 static Widget
-xlw_create_menubar (instance)
-     widget_instance* instance;
+xlw_create_menubar (widget_instance *instance)
 {
   Widget widget;
   Arg al[5];
@@ -178,8 +161,7 @@ xlw_create_menubar (instance)
 }
 
 static Widget
-xlw_create_popup_menu (instance)
-     widget_instance* instance;
+xlw_create_popup_menu (widget_instance *instance)
 {
   Widget popup_shell
     = XtCreatePopupShell (instance->info->name, overrideShellWidgetClass,
@@ -214,8 +196,7 @@ xlw_creation_table [] =
 };
 
 Boolean
-lw_lucid_widget_p (widget)
-     Widget widget;
+lw_lucid_widget_p (Widget widget)
 {
   WidgetClass the_class = XtClass (widget);
 
@@ -228,16 +209,8 @@ lw_lucid_widget_p (widget)
 }
 
 void
-#ifdef PROTOTYPES
 xlw_update_one_widget (widget_instance* instance, Widget widget,
 		       widget_value* val, Boolean deep_p)
-#else
-xlw_update_one_widget (instance, widget, val, deep_p)
-     widget_instance* instance;
-     Widget widget;
-     widget_value* val;
-     Boolean deep_p;
-#endif
 {
   Arg al[1];
 
@@ -249,29 +222,20 @@ xlw_update_one_widget (instance, widget, val, deep_p)
 }
 
 void
-xlw_update_one_value (instance, widget, val)
-     widget_instance* instance;
-     Widget widget;
-     widget_value* val;
+xlw_update_one_value (widget_instance *instance,
+                      Widget widget,
+                      widget_value *val)
 {
   return;
 }
 
 void
-#ifdef PROTOTYPES
 xlw_pop_instance (widget_instance* instance, Boolean up)
-#else
-xlw_pop_instance (instance, up)
-     widget_instance* instance;
-     Boolean up;
-#endif
 {
 }
 
 void
-xlw_popup_menu (widget, event)
-     Widget widget;
-     XEvent *event;
+xlw_popup_menu (Widget widget, XEvent *event)
 {
   XlwMenuWidget mw;
 
@@ -304,8 +268,7 @@ xlw_popup_menu (widget, event)
 
 /* Destruction of instances */
 void
-xlw_destroy_instance (instance)
-     widget_instance* instance;
+xlw_destroy_instance (widget_instance *instance)
 {
   if (instance->widget)
     XtDestroyWidget (instance->widget);

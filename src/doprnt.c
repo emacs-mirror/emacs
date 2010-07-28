@@ -48,8 +48,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    another macro.  */
 #include "character.h"
 
-static int doprnt1 ();
-
 /* Generate output from a format-spec FORMAT,
    terminated at position FORMAT_END.
    Output goes in BUFFER, which has room for BUFSIZE chars.
@@ -61,16 +59,10 @@ static int doprnt1 ();
    Integers are passed as C integers.  */
 
 int
-doprnt (buffer, bufsize, format, format_end, nargs, args)
-     char *buffer;
-     register int bufsize;
-     char *format;
-     char *format_end;
-     int nargs;
-     char **args;
+doprnt (char *buffer, register int bufsize, const char *format,
+	const char *format_end, va_list ap)
 {
-  int cnt = 0;			/* Number of arg to gobble next */
-  register char *fmt = format;	/* Pointer into format string */
+  const char *fmt = format;	/* Pointer into format string */
   register char *bufptr = buffer; /* Pointer into output buffer.. */
 
   /* Use this for sprintf unless we need something really big.  */
@@ -169,8 +161,6 @@ doprnt (buffer, bufsize, format, format_end, nargs, args)
 	    case 'd':
 	    case 'o':
 	    case 'x':
-	      if (cnt == nargs)
-		error ("Not enough arguments for format string");
 	      if (sizeof (int) == sizeof (EMACS_INT))
 		;
 	      else if (sizeof (long) == sizeof (EMACS_INT))
@@ -181,7 +171,7 @@ doprnt (buffer, bufsize, format, format_end, nargs, args)
 		string++;
 	      else
 		abort ();
-	      sprintf (sprintf_buffer, fmtcpy, args[cnt++]);
+	      sprintf (sprintf_buffer, fmtcpy, va_arg(ap, char *));
 	      /* Now copy into final output, truncating as nec.  */
 	      string = (unsigned char *) sprintf_buffer;
 	      goto doit;
@@ -190,12 +180,8 @@ doprnt (buffer, bufsize, format, format_end, nargs, args)
 	    case 'e':
 	    case 'g':
 	      {
-		union { double d; char *half[2]; } u;
-		if (cnt + 1 == nargs)
-		  error ("Not enough arguments for format string");
-		u.half[0] = args[cnt++];
-		u.half[1] = args[cnt++];
-		sprintf (sprintf_buffer, fmtcpy, u.d);
+		double d = va_arg(ap, double);
+		sprintf (sprintf_buffer, fmtcpy, d);
 		/* Now copy into final output, truncating as nec.  */
 		string = (unsigned char *) sprintf_buffer;
 		goto doit;
@@ -204,11 +190,9 @@ doprnt (buffer, bufsize, format, format_end, nargs, args)
 	    case 'S':
 	      string[-1] = 's';
 	    case 's':
-	      if (cnt == nargs)
-		error ("Not enough arguments for format string");
 	      if (fmtcpy[1] != 's')
 		minlen = atoi (&fmtcpy[1]);
-	      string = (unsigned char *) args[cnt++];
+	      string = va_arg(ap, unsigned char *);
 	      tem = strlen (string);
 	      width = strwidth (string, tem);
 	      goto doit1;
@@ -237,12 +221,12 @@ doprnt (buffer, bufsize, format, format_end, nargs, args)
 		  /* Truncate the string at character boundary.  */
 		  tem = bufsize;
 		  while (!CHAR_HEAD_P (string[tem - 1])) tem--;
-		  bcopy (string, bufptr, tem);
+		  memcpy (bufptr, string, tem);
 		  /* We must calculate WIDTH again.  */
 		  width = strwidth (bufptr, tem);
 		}
 	      else
-		bcopy (string, bufptr, tem);
+		memcpy (bufptr, string, tem);
 	      bufptr += tem;
 	      bufsize -= tem;
 	      if (minlen < 0)
@@ -258,16 +242,21 @@ doprnt (buffer, bufsize, format, format_end, nargs, args)
 	      continue;
 
 	    case 'c':
-	      if (cnt == nargs)
-		error ("Not enough arguments for format string");
-	      tem = CHAR_STRING ((int) (EMACS_INT) args[cnt], charbuf);
-	      string = charbuf;
-	      cnt++;
-	      string[tem] = 0;
-	      width = strwidth (string, tem);
-	      if (fmtcpy[1] != 'c')
-		minlen = atoi (&fmtcpy[1]);
-	      goto doit1;
+	      {
+		/* Sometimes for %c we pass a char, which would widen
+		   to int.  Sometimes we pass XFASTINT() or XINT()
+		   values, which would be EMACS_INT.  Let's hope that
+		   both are passed the same way, otherwise we'll need
+		   to rewrite callers.  */
+		EMACS_INT chr = va_arg(ap, EMACS_INT);
+		tem = CHAR_STRING ((int) chr, charbuf);
+		string = charbuf;
+		string[tem] = 0;
+		width = strwidth (string, tem);
+		if (fmtcpy[1] != 'c')
+		  minlen = atoi (&fmtcpy[1]);
+		goto doit1;
+	      }
 
 	    case '%':
 	      fmt--;    /* Drop thru and this % will be treated as normal */

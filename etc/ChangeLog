@@ -1,3 +1,26 @@
+2010-07-24  Christoph Scholtes  <cschol2112@gmail.com>
+
+	* NEWS: Document new --distfiles configure.bat option and
+	`dist' make target on Windows.
+
+2010-07-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* PROBLEMS: Add note about use of backslashes in Windows paths.
+
+2010-07-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Mention --enable-checking is now supported on Windows.
+
+2010-07-19  Carsten Dominik  <carsten.dominik@gmail.com>
+
+	* refcards/orgcard.tex: Remove the key for the TODO sparse tree
+	and add the new key.  Document new keys for image and entity
+	display.  Document the Org Babel keys.
+
+2010-06-19  Ken Brown  <kbrown@cornell.edu>
+
+	* PROBLEMS: Update Cygwin GCC information.  (Bug#6458)
+
 2010-06-12  Glenn Morris  <rgm@gnu.org>
 
 	* tutorials/TUTORIAL.bg, tutorials/TUTORIAL.es: Fix typos.
@@ -4923,7 +4946,7 @@
 	* etags.c: Changes for VMS.
 	Always define ETAGS on VMS.
 	Define macros GOOD and BAD for success and failure exit codes.
-	(begtk, intk): Allow `$' in identifiers
+	(begtk, intk): Allow `$' in identifiers.
 	(main): Don't support -B, -F or -u on VMS.
 	Alternate loop for scanning filename arguments.
 	(system): Delete definition of this function.

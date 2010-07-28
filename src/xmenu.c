@@ -89,7 +89,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <X11/Xaw/Paned.h>
 #endif /* HAVE_XAW3D */
 #endif /* USE_LUCID */
-#include "../lwlib/lwlib.h"
 #else /* not USE_X_TOOLKIT */
 #ifndef USE_GTK
 #include "../oldXMenu/XMenu.h"
@@ -151,22 +150,13 @@ extern widget_value *xmalloc_widget_value (void);
 extern widget_value *digest_single_submenu (int, int, int);
 #endif
 
-/* This is set nonzero after the user activates the menu bar, and set
-   to zero again after the menu bars are redisplayed by prepare_menu_bar.
-   While it is nonzero, all calls to set_frame_menubar go deep.
-
-   I don't understand why this is needed, but it does seem to be
-   needed on Motif, according to Marcus Daniels <marcus@sysc.pdx.edu>.  */
-
-int pending_menu_activation;
 
 #ifdef USE_X_TOOLKIT
 
 /* Return the frame whose ->output_data.x->id equals ID, or 0 if none.  */
 
 static struct frame *
-menubar_id_to_frame (id)
-     LWLIB_ID id;
+menubar_id_to_frame (LWLIB_ID id)
 {
   Lisp_Object tail, frame;
   FRAME_PTR f;
@@ -196,10 +186,7 @@ menubar_id_to_frame (id)
    the scroll bar or the edit window.  Fx_popup_menu needs to be
    sure it is the edit window.  */
 void
-mouse_position_for_popup (f, x, y)
-     FRAME_PTR f;
-     int *x;
-     int *y;
+mouse_position_for_popup (FRAME_PTR f, int *x, int *y)
 {
   Window root, dummy_window;
   int dummy;
@@ -263,8 +250,7 @@ otherwise it is "Question".
 If the user gets rid of the dialog box without making a valid choice,
 for instance using the window manager, then this produces a quit and
 `x-popup-dialog' does not return.  */)
-     (position, contents, header)
-     Lisp_Object position, contents, header;
+  (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
 {
   FRAME_PTR f = NULL;
   Lisp_Object window;
@@ -391,8 +377,7 @@ for instance using the window manager, then this produces a quit and
 /* Set menu_items_inuse so no other popup menu or dialog is created.  */
 
 void
-x_menu_set_in_use (in_use)
-     int in_use;
+x_menu_set_in_use (int in_use)
 {
   menu_items_inuse = in_use ? Qt : Qnil;
   popup_activated_flag = in_use;
@@ -461,11 +446,7 @@ x_menu_wait_for_event (void *data)
    with BLOCK_INPUT, UNBLOCK_INPUT wrappers.  */
 
 static void
-popup_get_selection (initial_event, dpyinfo, id, do_timers)
-     XEvent *initial_event;
-     struct x_display_info *dpyinfo;
-     LWLIB_ID id;
-     int do_timers;
+popup_get_selection (XEvent *initial_event, struct x_display_info *dpyinfo, LWLIB_ID id, int do_timers)
 {
   XEvent event;
 
@@ -522,8 +503,7 @@ arrow keys, select a menu entry with the return key or cancel with the
 escape key.  If FRAME has no menu bar this function does nothing.
 
 If FRAME is nil or not given, use the selected frame.  */)
-     (frame)
-     Lisp_Object frame;
+  (Lisp_Object frame)
 {
   XEvent ev;
   FRAME_PTR f = check_x_frame (frame);
@@ -601,8 +581,7 @@ arrow keys, select a menu entry with the return key or cancel with the
 escape key.  If FRAME has no menu bar this function does nothing.
 
 If FRAME is nil or not given, use the selected frame.  */)
-     (frame)
-     Lisp_Object frame;
+  (Lisp_Object frame)
 {
   GtkWidget *menubar;
   FRAME_PTR f;
@@ -638,9 +617,7 @@ If FRAME is nil or not given, use the selected frame.  */)
    Used for popup menus and dialogs. */
 
 static void
-popup_widget_loop (do_timers, widget)
-     int do_timers;
-     GtkWidget *widget;
+popup_widget_loop (int do_timers, GtkWidget *widget)
 {
   ++popup_activated_flag;
 
@@ -668,8 +645,7 @@ popup_widget_loop (do_timers, widget)
    execute Lisp code.  */
 
 void
-x_activate_menubar (f)
-     FRAME_PTR f;
+x_activate_menubar (FRAME_PTR f)
 {
   if (! FRAME_X_P (f))
     abort ();
@@ -685,18 +661,14 @@ x_activate_menubar (f)
 
   set_frame_menubar (f, 0, 1);
   BLOCK_INPUT;
+  popup_activated_flag = 1;
 #ifdef USE_GTK
   XPutBackEvent (f->output_data.x->display_info->display,
                  f->output_data.x->saved_menu_event);
-  popup_activated_flag = 1;
 #else
   XtDispatchEvent (f->output_data.x->saved_menu_event);
 #endif
   UNBLOCK_INPUT;
-#ifdef USE_MOTIF
-  if (f->output_data.x->saved_menu_event->type == ButtonRelease)
-    pending_menu_activation = 1;
-#endif
 
   /* Ignore this if we get it a second time.  */
   f->output_data.x->saved_menu_event->type = 0;
@@ -707,10 +679,7 @@ x_activate_menubar (f)
 
 #ifndef USE_GTK
 static void
-popup_activate_callback (widget, id, client_data)
-     Widget widget;
-     LWLIB_ID id;
-     XtPointer client_data;
+popup_activate_callback (Widget widget, LWLIB_ID id, XtPointer client_data)
 {
   popup_activated_flag = 1;
 #ifdef USE_X_TOOLKIT
@@ -724,18 +693,13 @@ popup_activate_callback (widget, id, client_data)
 
 #ifdef USE_GTK
 static void
-popup_deactivate_callback (widget, client_data)
-     GtkWidget *widget;
-     gpointer client_data;
+popup_deactivate_callback (GtkWidget *widget, gpointer client_data)
 {
   popup_activated_flag = 0;
 }
 #else
 static void
-popup_deactivate_callback (widget, id, client_data)
-     Widget widget;
-     LWLIB_ID id;
-     XtPointer client_data;
+popup_deactivate_callback (Widget widget, LWLIB_ID id, XtPointer client_data)
 {
   popup_activated_flag = 0;
 }
@@ -746,10 +710,7 @@ popup_deactivate_callback (widget, id, client_data)
    for that widget.
    F is the frame if known, or NULL if not known.  */
 static void
-show_help_event (f, widget, help)
-     FRAME_PTR f;
-     xt_or_gtk_widget widget;
-     Lisp_Object help;
+show_help_event (FRAME_PTR f, xt_or_gtk_widget widget, Lisp_Object help)
 {
   Lisp_Object frame;
 
@@ -787,9 +748,7 @@ show_help_event (f, widget, help)
 
 #ifdef USE_GTK
 void
-menu_highlight_callback (widget, call_data)
-     GtkWidget *widget;
-     gpointer call_data;
+menu_highlight_callback (GtkWidget *widget, gpointer call_data)
 {
   xg_menu_item_cb_data *cb_data;
   Lisp_Object help;
@@ -808,10 +767,7 @@ menu_highlight_callback (widget, call_data)
 }
 #else
 void
-menu_highlight_callback (widget, id, call_data)
-     Widget widget;
-     LWLIB_ID id;
-     void *call_data;
+menu_highlight_callback (Widget widget, LWLIB_ID id, void *call_data)
 {
   struct frame *f;
   Lisp_Object help;
@@ -839,9 +795,7 @@ static int xg_crazy_callback_abort;
    Figure out what the user chose
    and put the appropriate events into the keyboard buffer.  */
 static void
-menubar_selection_callback (widget, client_data)
-     GtkWidget *widget;
-     gpointer client_data;
+menubar_selection_callback (GtkWidget *widget, gpointer client_data)
 {
   xg_menu_item_cb_data *cb_data = (xg_menu_item_cb_data*) client_data;
 
@@ -884,10 +838,7 @@ menubar_selection_callback (widget, client_data)
    Figure out what the user chose
    and put the appropriate events into the keyboard buffer.  */
 static void
-menubar_selection_callback (widget, id, client_data)
-     Widget widget;
-     LWLIB_ID id;
-     XtPointer client_data;
+menubar_selection_callback (Widget widget, LWLIB_ID id, XtPointer client_data)
 {
   FRAME_PTR f;
 
@@ -903,8 +854,7 @@ menubar_selection_callback (widget, id, client_data)
    changed.  Value is non-zero if widgets were updated.  */
 
 static int
-update_frame_menubar (f)
-     FRAME_PTR f;
+update_frame_menubar (FRAME_PTR f)
 {
 #ifdef USE_GTK
   return xg_update_frame_menubar (f);
@@ -954,8 +904,7 @@ update_frame_menubar (f)
 
 #ifdef USE_LUCID
 static void
-apply_systemfont_to_dialog (w)
-     Widget w;
+apply_systemfont_to_dialog (Widget w)
 {
   const char *fn = xsettings_get_system_normal_font ();
   if (fn) 
@@ -967,8 +916,7 @@ apply_systemfont_to_dialog (w)
 }
 
 static void
-apply_systemfont_to_menu (w)
-     Widget w;
+apply_systemfont_to_menu (Widget w)
 {
   const char *fn = xsettings_get_system_normal_font ();
   int defflt;
@@ -995,10 +943,7 @@ apply_systemfont_to_menu (w)
    it is set the first time this is called, from initialize_frame_menubar.  */
 
 void
-set_frame_menubar (f, first_time, deep_p)
-     FRAME_PTR f;
-     int first_time;
-     int deep_p;
+set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 {
   xt_or_gtk_widget menubar_widget;
 #ifdef USE_X_TOOLKIT
@@ -1024,8 +969,6 @@ set_frame_menubar (f, first_time, deep_p)
 #endif
 
   if (! menubar_widget)
-    deep_p = 1;
-  else if (pending_menu_activation && !deep_p)
     deep_p = 1;
   /* Make the first call for any given frame always go deep.  */
   else if (!f->output_data.x->saved_menu_event && !deep_p)
@@ -1087,8 +1030,8 @@ set_frame_menubar (f, first_time, deep_p)
 
       /* Save the frame's previous menu bar contents data.  */
       if (previous_menu_items_used)
-	bcopy (XVECTOR (f->menu_bar_vector)->contents, previous_items,
-	       previous_menu_items_used * sizeof (Lisp_Object));
+	memcpy (previous_items, XVECTOR (f->menu_bar_vector)->contents,
+		previous_menu_items_used * sizeof (Lisp_Object));
 
       /* Fill in menu_items with the current menu bar contents.
 	 This can evaluate Lisp code.  */
@@ -1302,11 +1245,17 @@ set_frame_menubar (f, first_time, deep_p)
 
       /* Make menu pop down on C-g.  */
       XtOverrideTranslations (menubar_widget, override);
+#ifdef USE_LUCID
       apply_systemfont_to_menu (menubar_widget);
+#endif
     }
 
   {
-    int menubar_size
+    int menubar_size;
+    if (f->output_data.x->menubar_widget)
+      XtRealizeWidget (f->output_data.x->menubar_widget);
+
+    menubar_size
       = (f->output_data.x->menubar_widget
 	 ? (f->output_data.x->menubar_widget->core.height
 	    + f->output_data.x->menubar_widget->core.border_width)
@@ -1315,7 +1264,7 @@ set_frame_menubar (f, first_time, deep_p)
 #if 1 /* Experimentally, we now get the right results
 	 for -geometry -0-0 without this.  24 Aug 96, rms.
          Maybe so, but the menu bar size is missing the pixels so the
-         WM size hints are off by theses pixel.  Jan D, oct 2009.  */
+         WM size hints are off by these pixels.  Jan D, oct 2009.  */
 #ifdef USE_LUCID
     if (FRAME_EXTERNAL_MENU_BAR (f))
       {
@@ -1347,8 +1296,7 @@ set_frame_menubar (f, first_time, deep_p)
    is visible.  */
 
 void
-initialize_frame_menubar (f)
-     FRAME_PTR f;
+initialize_frame_menubar (FRAME_PTR f)
 {
   /* This function is called before the first chance to redisplay
      the frame.  It has to be, so the frame will have the right size.  */
@@ -1363,8 +1311,7 @@ initialize_frame_menubar (f)
 
 #ifndef USE_GTK
 void
-free_frame_menubar (f)
-     FRAME_PTR f;
+free_frame_menubar (FRAME_PTR f)
 {
   Widget menubar_widget;
 
@@ -1399,15 +1346,15 @@ free_frame_menubar (f)
       lw_destroy_all_widgets ((LWLIB_ID) f->output_data.x->id);
       f->output_data.x->menubar_widget = NULL;
 
-#ifdef USE_MOTIF
       if (f->output_data.x->widget)
 	{
+#ifdef USE_MOTIF
 	  XtVaGetValues (f->output_data.x->widget, XtNx, &x1, XtNy, &y1, NULL);
 	  if (x1 == 0 && y1 == 0)
 	    XtVaSetValues (f->output_data.x->widget, XtNx, x0, XtNy, y0, NULL);
-	}
 #endif
-
+          x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
+	}
       UNBLOCK_INPUT;
     }
 }
@@ -1458,12 +1405,7 @@ struct next_popup_x_y
 
    Here only X and Y are used.  */
 static void
-menu_position_func (menu, x, y, push_in, user_data)
-     GtkMenu *menu;
-     gint *x;
-     gint *y;
-     gboolean *push_in;
-     gpointer user_data;
+menu_position_func (GtkMenu *menu, gint *x, gint *y, gboolean *push_in, gpointer user_data)
 {
   struct next_popup_x_y* data = (struct next_popup_x_y*)user_data;
   GtkRequisition req;
@@ -1484,9 +1426,7 @@ menu_position_func (menu, x, y, push_in, user_data)
 }
 
 static void
-popup_selection_callback (widget, client_data)
-     GtkWidget *widget;
-     gpointer client_data;
+popup_selection_callback (GtkWidget *widget, gpointer client_data)
 {
   xg_menu_item_cb_data *cb_data = (xg_menu_item_cb_data*) client_data;
 
@@ -1495,8 +1435,7 @@ popup_selection_callback (widget, client_data)
 }
 
 static Lisp_Object
-pop_down_menu (arg)
-     Lisp_Object arg;
+pop_down_menu (Lisp_Object arg)
 {
   struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
 
@@ -1511,13 +1450,7 @@ pop_down_menu (arg)
    menu pops down.
    menu_item_selection will be set to the selection.  */
 static void
-create_and_show_popup_menu (f, first_wv, x, y, for_click, timestamp)
-     FRAME_PTR f;
-     widget_value *first_wv;
-     int x;
-     int y;
-     int for_click;
-     EMACS_UINT timestamp;
+create_and_show_popup_menu (FRAME_PTR f, widget_value *first_wv, int x, int y, int for_click, EMACS_UINT timestamp)
 {
   int i;
   GtkWidget *menu;
@@ -1594,10 +1527,7 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click, timestamp)
 LWLIB_ID widget_id_tick;
 
 static void
-popup_selection_callback (widget, id, client_data)
-     Widget widget;
-     LWLIB_ID id;
-     XtPointer client_data;
+popup_selection_callback (Widget widget, LWLIB_ID id, XtPointer client_data)
 {
   menu_item_selection = (Lisp_Object *) client_data;
 }
@@ -1606,8 +1536,7 @@ popup_selection_callback (widget, id, client_data)
    as a Lisp object as (HIGHPART . LOWPART).  */
 
 static Lisp_Object
-pop_down_menu (arg)
-     Lisp_Object arg;
+pop_down_menu (Lisp_Object arg)
 {
   LWLIB_ID id = (XINT (XCAR (arg)) << 4 * sizeof (LWLIB_ID)
                  | XINT (XCDR (arg)));
@@ -1624,13 +1553,8 @@ pop_down_menu (arg)
    menu pops down.
    menu_item_selection will be set to the selection.  */
 static void
-create_and_show_popup_menu (f, first_wv, x, y, for_click, timestamp)
-     FRAME_PTR f;
-     widget_value *first_wv;
-     int x;
-     int y;
-     int for_click;
-     EMACS_UINT timestamp;
+create_and_show_popup_menu (FRAME_PTR f, widget_value *first_wv,
+			    int x, int y, int for_click, EMACS_UINT timestamp)
 {
   int i;
   Arg av[2];
@@ -1649,7 +1573,9 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click, timestamp)
                            popup_deactivate_callback,
                            menu_highlight_callback);
 
+#ifdef USE_LUCID
   apply_systemfont_to_menu (menu);
+#endif
 
   dummy.type = ButtonPress;
   dummy.serial = 0;
@@ -1977,9 +1903,7 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 
 #ifdef USE_GTK
 static void
-dialog_selection_callback (widget, client_data)
-     GtkWidget *widget;
-     gpointer client_data;
+dialog_selection_callback (GtkWidget *widget, gpointer client_data)
 {
   /* The EMACS_INT cast avoids a warning.  There's no problem
      as long as pointers have enough bits to hold small integers.  */
@@ -1993,9 +1917,7 @@ dialog_selection_callback (widget, client_data)
    dialog pops down.
    menu_item_selection will be set to the selection.  */
 static void
-create_and_show_dialog (f, first_wv)
-     FRAME_PTR f;
-     widget_value *first_wv;
+create_and_show_dialog (FRAME_PTR f, widget_value *first_wv)
 {
   GtkWidget *menu;
 
@@ -2024,10 +1946,7 @@ create_and_show_dialog (f, first_wv)
 
 #else /* not USE_GTK */
 static void
-dialog_selection_callback (widget, id, client_data)
-     Widget widget;
-     LWLIB_ID id;
-     XtPointer client_data;
+dialog_selection_callback (Widget widget, LWLIB_ID id, XtPointer client_data)
 {
   /* The EMACS_INT cast avoids a warning.  There's no problem
      as long as pointers have enough bits to hold small integers.  */
@@ -2045,9 +1964,7 @@ dialog_selection_callback (widget, id, client_data)
    dialog pops down.
    menu_item_selection will be set to the selection.  */
 static void
-create_and_show_dialog (f, first_wv)
-     FRAME_PTR f;
-     widget_value *first_wv;
+create_and_show_dialog (FRAME_PTR f, widget_value *first_wv)
 {
   LWLIB_ID dialog_id;
 
@@ -2055,7 +1972,7 @@ create_and_show_dialog (f, first_wv)
     abort();
 
   dialog_id = widget_id_tick++;
-#ifdef HAVE_XFT
+#ifdef USE_LUCID
   apply_systemfont_to_dialog (f->output_data.x->widget);
 #endif
   lw_create_widget (first_wv->name, "dialog", dialog_id, first_wv,
@@ -2092,11 +2009,7 @@ static char * button_names [] = {
   "button6", "button7", "button8", "button9", "button10" };
 
 static Lisp_Object
-xdialog_show (f, keymaps, title, header, error_name)
-     FRAME_PTR f;
-     int keymaps;
-     Lisp_Object title, header;
-     char **error_name;
+xdialog_show (FRAME_PTR f, int keymaps, Lisp_Object title, Lisp_Object header, char **error_name)
 {
   int i, nb_buttons=0;
   char dialog_name[6];
@@ -2294,9 +2207,7 @@ static struct frame *menu_help_frame;
    keyboard events.  */
 
 static void
-menu_help_callback (help_string, pane, item)
-     char *help_string;
-     int pane, item;
+menu_help_callback (char *help_string, int pane, int item)
 {
   extern Lisp_Object Qmenu_item;
   Lisp_Object *first_item;
@@ -2321,8 +2232,7 @@ menu_help_callback (help_string, pane, item)
 }
 
 static Lisp_Object
-pop_down_menu (arg)
-     Lisp_Object arg;
+pop_down_menu (Lisp_Object arg)
 {
   struct Lisp_Save_Value *p1 = XSAVE_VALUE (Fcar (arg));
   struct Lisp_Save_Value *p2 = XSAVE_VALUE (Fcdr (arg));
@@ -2357,14 +2267,8 @@ pop_down_menu (arg)
 
 
 Lisp_Object
-xmenu_show (f, x, y, for_click, keymaps, title, error, timestamp)
-     FRAME_PTR f;
-     int x, y;
-     int for_click;
-     int keymaps;
-     Lisp_Object title;
-     char **error;
-     EMACS_UINT timestamp;
+xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
+	    Lisp_Object title, char **error, EMACS_UINT timestamp)
 {
   Window root;
   XMenu *menu;
@@ -2495,12 +2399,10 @@ xmenu_show (f, x, y, for_click, keymaps, title, error, timestamp)
 	      item_data
 		= (unsigned char *) alloca (maxwidth
 					    + SBYTES (descrip) + 1);
-	      bcopy (SDATA (item_name), item_data,
-		     SBYTES (item_name));
+	      memcpy (item_data, SDATA (item_name), SBYTES (item_name));
 	      for (j = SCHARS (item_name); j < maxwidth; j++)
 		item_data[j] = ' ';
-	      bcopy (SDATA (descrip), item_data + j,
-		     SBYTES (descrip));
+	      memcpy (item_data + j, SDATA (descrip), SBYTES (descrip));
 	      item_data[j + SBYTES (descrip)] = 0;
 	    }
 	  else
@@ -2658,7 +2560,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error, timestamp)
 /* Detect if a dialog or menu has been posted.  */
 
 int
-popup_activated ()
+popup_activated (void)
 {
   return popup_activated_flag;
 }
@@ -2667,7 +2569,7 @@ popup_activated ()
 
 DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_p, 0, 0, 0,
        doc: /* Return t if a menu or popup dialog is active.  */)
-     ()
+  (void)
 {
 #ifdef HAVE_MENUS
   return (popup_activated ()) ? Qt : Qnil;
@@ -2677,7 +2579,7 @@ DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_
 }
 
 void
-syms_of_xmenu ()
+syms_of_xmenu (void)
 {
   Qdebug_on_next_call = intern_c_string ("debug-on-next-call");
   staticpro (&Qdebug_on_next_call);

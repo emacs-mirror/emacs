@@ -28,8 +28,8 @@ struct interval
 {
   /* The first group of entries deal with the tree structure.  */
 
-  unsigned EMACS_INT total_length; /* Length of myself and both children.  */
-  unsigned EMACS_INT position;	/* Cache of interval's character position.  */
+  EMACS_UINT total_length;      /* Length of myself and both children.  */
+  EMACS_UINT position;	        /* Cache of interval's character position.  */
 				/* This field is usually updated
 				   simultaneously with an interval
 				   traversal, there is no guarantee

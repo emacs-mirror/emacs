@@ -100,7 +100,7 @@ typedef struct header_record *header;
 struct stream_record
 {
   FILE *handle;
-  int (*action)();
+  int (*action)(FILE *);
   struct stream_record *rest_streams;
 };
 typedef struct stream_record *stream_list;
@@ -146,6 +146,8 @@ static char *the_user;
 static line_list file_preface;
 static stream_list the_streams;
 static boolean no_problems = true;
+
+static void fatal (char *s1) NO_RETURN;
 
 extern FILE *popen (const char *, const char *);
 extern int fclose (FILE *), pclose (FILE *);
@@ -417,7 +419,7 @@ close_the_streams (void)
 }
 
 void
-add_a_stream (FILE *the_stream, int (*closing_action) (/* ??? */))
+add_a_stream (FILE *the_stream, int (*closing_action) (FILE *))
 {
   stream_list old = the_streams;
   the_streams = new_stream ();

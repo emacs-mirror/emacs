@@ -80,6 +80,7 @@ rem   Default settings.
 set prefix=
 set nodebug=N
 set noopt=N
+set enablechecking=N
 set profile=N
 set nocygwin=N
 set COMPILER=
@@ -89,6 +90,8 @@ set userldflags=
 set doldflags=
 set sep1=
 set sep2=
+set sep3=
+set distfiles=
 
 rem ----------------------------------------------------------------------
 rem   Handle arguments.
@@ -100,6 +103,7 @@ if "%1" == "--with-gcc" goto withgcc
 if "%1" == "--with-msvc" goto withmsvc
 if "%1" == "--no-debug" goto nodebug
 if "%1" == "--no-opt" goto noopt
+if "%1" == "--enable-checking" goto enablechecking
 if "%1" == "--profile" goto profile
 if "%1" == "--no-cygwin" goto nocygwin
 if "%1" == "--cflags" goto usercflags
@@ -110,6 +114,7 @@ if "%1" == "--without-gif" goto withoutgif
 if "%1" == "--without-tiff" goto withouttiff
 if "%1" == "--without-xpm" goto withoutxpm
 if "%1" == "--with-svg" goto withsvg
+if "%1" == "--distfiles" goto distfiles
 if "%1" == "" goto checkutils
 :usage
 echo Usage: configure [options]
@@ -119,6 +124,7 @@ echo.   --with-gcc              use GCC to compile Emacs
 echo.   --with-msvc             use MSVC to compile Emacs
 echo.   --no-debug              exclude debug info from executables
 echo.   --no-opt                disable optimization
+echo.   --enable-checking       enable checks and assertions
 echo.   --profile               enable profiling
 echo.   --no-cygwin             use -mno-cygwin option with GCC
 echo.   --cflags FLAG           pass FLAG to compiler
@@ -129,6 +135,7 @@ echo.   --without-gif           do not use GIF library even if it is installed
 echo.   --without-tiff          do not use TIFF library even if it is installed
 echo.   --without-xpm           do not use XPM library even if it is installed
 echo.   --with-svg              use the RSVG library (experimental)
+echo.   --distfiles             path to files for make dist, e.g. libXpm.dll
 goto end
 rem ----------------------------------------------------------------------
 :setprefix
@@ -154,6 +161,11 @@ goto again
 rem ----------------------------------------------------------------------
 :noopt
 set noopt=Y
+shift
+goto again
+rem ----------------------------------------------------------------------
+:enablechecking
+set enablechecking=Y
 shift
 goto again
 rem ----------------------------------------------------------------------
@@ -223,6 +235,16 @@ goto again
 :withsvg
 shift
 set svgsupport=Y
+goto again
+
+rem ----------------------------------------------------------------------
+
+:distfiles
+set HAVE_DISTFILES=1
+shift
+set distfiles=%distfiles%%sep3%%1
+set sep3= %nothing%
+shift
 goto again
 
 rem ----------------------------------------------------------------------
@@ -513,6 +535,35 @@ set HAVE_RSVG=1
 :svgDone
 rm -f junk.c junk.obj junk.err junk.out
 
+rem Any distfiles provided for building distribution? If no, we're done.
+if "(%HAVE_DISTFILES%)"=="()" goto :distFilesDone
+
+rem Any arguments to --distfiles specified? If no, we're done.
+if not "%distfiles%"=="" goto :checkDistFiles
+set distFilesOk=0
+echo No arguments specified for option --distfiles!
+goto distfilesDone
+
+:checkDistFiles
+echo Checking for distfiles...
+rem Check if all specified distfiles exist
+set fileNotFound=
+for %%d in (%distfiles%) do if not exist %%d set fileNotFound=%%d
+if not "%fileNotFound%"=="" goto distFilesNotFound
+
+set distFilesOK=1
+echo ...all distfiles found.
+goto :distFilesDone
+
+:distFilesNotFound
+set distFilesOk=0
+echo ...%fileNotFound% not found.
+set distfiles=
+goto :distfilesDone
+
+:distFilesDone
+set fileNotFound=
+
 rem ----------------------------------------------------------------------
 :genmakefiles
 echo Generating makefiles
@@ -529,9 +580,11 @@ if not "(%mf%)" == "()" echo MCPU_FLAG=%mf%>>config.settings
 if not "(%dbginfo%)" == "()" echo DEBUG_INFO=%dbginfo%>>config.settings
 if (%nodebug%) == (Y) echo NODEBUG=1 >>config.settings
 if (%noopt%) == (Y) echo NOOPT=1 >>config.settings
+if (%enablechecking%) == (Y) echo ENABLECHECKS=1 >>config.settings
 if (%profile%) == (Y) echo PROFILE=1 >>config.settings
 if (%nocygwin%) == (Y) echo NOCYGWIN=1 >>config.settings
 if not "(%prefix%)" == "()" echo INSTALL_DIR=%prefix%>>config.settings
+if not "(%distfiles%)" == "()" echo DIST_FILES=%distfiles%>>config.settings
 rem We go thru docflags because usercflags could be "-DFOO=bar" -something
 rem and the if command cannot cope with this
 for %%v in (%usercflags%) do if not (%%v)==() set docflags=Y
@@ -633,11 +686,18 @@ if (%tiffsupport%) == (N) goto checkgif
  echo   Install libtiff development files or use --without-tiff
 
 :checkgif
-if not "(%HAVE_GIF%)" == "()" goto donelibchecks
-if (%gifsupport%) == (N) goto donelibchecks
+if not "(%HAVE_GIF%)" == "()" goto checkdistfiles
+if (%gifsupport%) == (N) goto checkdistfiles
  set libsOK=0
  echo GIF support is missing.
  echo   Install giflib or libungif development files or use --without-gif
+
+:checkdistfiles
+if "(%HAVE_DISTFILES%)" == "()" goto donelibchecks
+if (%distFilesOk%) == (1) goto donelibchecks
+echo.
+echo Files specified with option --distfiles could not be found.
+echo   Fix these issues before running make dist
 
 :donelibchecks
 if (%libsOK%) == (1) goto success
@@ -660,6 +720,7 @@ set $foo$=
 set prefix=
 set nodebug=
 set noopt=
+set enablechecking=
 set profile=
 set nocygwin=
 set COMPILER=
@@ -670,6 +731,9 @@ set userldflags=
 set doldflags=
 set mingwflag=
 set mf=
+set distfiles=
+set HAVE_DISTFILES=
+set distFilesOk=
 
 goto skipArchTag
    arch-tag: 300d20a4-1675-4e75-b615-7ce1a8c5376c

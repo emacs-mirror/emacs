@@ -1,3 +1,49 @@
+2010-07-24  David Engster  <dengste@eml.cc>
+
+	* mml-smime.el (mml-smime-epg-verify): Also accept the older
+	x-pkcs7-signature MIME type as signature (RFC 2311, C.1).
+
+2010-07-21  Daiki Ueno  <ueno@unixuser.org>
+
+	* mml.el (mml-parse-1): Collect "certfile" attributes in "<#secure>"
+	tag (Bug#6654).
+
+2010-07-20  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-bookmark-make-record): Bookmark position in
+	the article buffer, not the summary buffer.
+
+2010-07-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-bookmark-make-record): Make it work for
+	Emacs 23 as well.
+
+2010-07-13  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	Allow C-w when setting a bookmark in a Gnus Article buffer (Bug#5975).
+	Patch applied by Karl Fogel.
+
+	* gnus-sum.el (gnus-summary-bookmark-make-record): Set
+	`bookmark-yank-point' and `bookmark-current-buffer' to allow C-w.
+
+2010-07-13  Thierry Volpiatto  <thierry.volpiatto@gmail.com>
+
+	Allow bookmarks to be set from Gnus Article buffers (Bug #5975).
+	Patch applied (with minor tweaks) by Karl Fogel.  Note this leaves
+	C-w still not working correctly from Article buffers; Thierry's
+	patch to fix that will be applied after this.
+
+	* gnus-art.el (bookmark-make-record-function): New local variable.
+
+	* gnus-sum.el (gnus-summary-bookmark-make-record): Allow setting from
+	article buffer.
+	(gnus-summary-bookmark-jump): Maybe jump to article buffer.
+
+2010-07-13  Karl Fogel  <kfogel@red-bean.com>
+
+	* gnus-sum.el (bookmark-make-record-default): Adjust declaration, based
+	on changes in bookmark.el.
+
 2010-06-22  Mark A. Hershberger  <mah@everybody.org>
 
 	* mm-url.el (mm-url-encode-multipart-form-data): New function to handle
@@ -74,7 +120,7 @@
 2010-05-12  Andreas Seltenreich  <seltenreich@gmx.de>
 
 	* gnus-sum.el (gnus-summary-read-group-1): Don't jump to next group
-	when catching the `C-g'.  Reported by: "Leo"
+	when catching the `C-g'.  Reported by "Leo".
 
 2010-05-12  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -208,7 +254,7 @@
 
 	* mml.el (mml-generate-mime-1,mml-compute-boundary-1): Update 'mml
 	handles on recursive mml-to-mime translation and check them for
-	boundary delimiter collisions.  Reported by: Greg Troxel.
+	boundary delimiter collisions.  Reported by Greg Troxel.
 
 2010-04-27  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -356,7 +402,7 @@
 	(nnimap-retrieve-groups, nnimap-verify-uidvalidity)
 	(nnimap-update-unseen): Significantly improved speed of Gnus startup
 	with many imap folders.  This is done by caching the group status from
-	the imap server persistently in a group parameter `imap-status'. (This
+	the imap server persistently in a group parameter `imap-status'.  (This
 	was cached before too if `nnimap-retrieve-groups-asynchronous' was set,
 	but not persistently, so every Gnus startup was still very slow.)
 
@@ -481,7 +527,7 @@
 
 	* nneething.el (mailcap): Require mailcap.
 
-	* nnheader.el: (declare-function): Add compatibility stub.
+	* nnheader.el (declare-function): Add compatibility stub.
 	(message-remove-header): Declare rather than autoload.
 	(nnheader-replace-header): Require message.
 
@@ -5064,7 +5110,7 @@
 
 2006-11-06  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* message.el (message-strip-subject-encoded-words): New function
+	* message.el (message-strip-subject-encoded-words): New function.
 	(message-simplify-subject-functions): New variable.
 	(message-simplify-subject): Use it.  Fix typo in doc string.
 	Support message-strip-subject-encoded-words.
@@ -5267,8 +5313,9 @@
 
 2006-09-20  Maxime Edouard Robert Froumentin  <max@lapin-bleu.net>
 
-	(gnus-insert-mime-button, gnus-insert-mime-security-button): Apply
-	gnus-article-button-face to MIME and security buttons.
+	* gnus-art.el (gnus-insert-mime-button)
+	(gnus-insert-mime-security-button):
+	Apply gnus-article-button-face to MIME and security buttons.
 
 2006-09-20  Reiner Steib  <Reiner.Steib@gmx.de>
 
@@ -5734,7 +5781,7 @@
 
 	* gnus-agent.el: Added gnus-agent-flush* to purge agent info.
 	(gnus-agent-read-agentview): Fixed handling of end-of-file error.
-	(gnus-agent-read-local): All symbols allocated in my-obarray
+	(gnus-agent-read-local): All symbols allocated in my-obarray.
 	(gnus-agent-set-local): Skip invalid entries (min and/or max is nil).
 	(gnus-agent-regenerate-group): Check numeric names to see if they are
 	messages or groups.
@@ -9397,7 +9444,7 @@
 	to get all the groups a message ID is in.
 
 	* spam-stat.el (spam-stat-split-fancy-spam-threshold)
-	(spam-stat-split-fancy): Change "threshhold" to "threshold"
+	(spam-stat-split-fancy): Change "threshhold" to "threshold".
 	(spam-stat-score-buffer-user-functions): Add :number custom type.
 
 2005-04-06  Katsumi Yamaoka  <yamaoka@jpl.org>
@@ -10381,21 +10428,21 @@
 
 2004-11-14  Magnus Henoch  <mange@freemail.hu>
 
-	* hashcash.el (hashcash-default-payment): Change default to 20
-	(hashcash-default-accept-payment): Change default to 20
-	(hashcash-process-alist): New variable
-	(hashcash-generate-payment-async): Add
-	(hashcash-already-paid-p): Add
-	(hashcash-insert-payment): Don't generate payments twice
-	(hashcash-insert-payment-async): Add
-	(hashcash-insert-payment-async-2): Add
-	(hashcash-cancel-async): Add
-	(hashcash-wait-async): Add
-	(hashcash-processes-running-p): Add
-	(hashcash-wait-or-cancel): Add
+	* hashcash.el (hashcash-default-payment): Change default to 20.
+	(hashcash-default-accept-payment): Change default to 20.
+	(hashcash-process-alist): New variable.
+	(hashcash-generate-payment-async): Add.
+	(hashcash-already-paid-p): Add.
+	(hashcash-insert-payment): Don't generate payments twice.
+	(hashcash-insert-payment-async): Add.
+	(hashcash-insert-payment-async-2): Add.
+	(hashcash-cancel-async): Add.
+	(hashcash-wait-async): Add.
+	(hashcash-processes-running-p): Add.
+	(hashcash-wait-or-cancel): Add.
 	(mail-add-payment): New optional argument.  Conditionally start
 	asynchronous calculation.
-	(mail-add-payment-async): Add
+	(mail-add-payment-async): Add.
 
 	* message.el (message-send-mail): Wait for asynchronous hashcash
 	results.  Don't clobber existing X-Hashcash headers.
@@ -10883,7 +10930,7 @@
 	(nnsoup-unpack-packets, nnsoup-make-active): Simplify.
 
 	* nnspool.el (nnspool-find-id): Use with-temp-buffer.
-	(nnspool-sift-nov-with-sed): Use last
+	(nnspool-sift-nov-with-sed): Use last.
 	(nnspool-retrieve-headers-with-nov): Use mapc.
 	(nnspool-request-newgroups): Use dolist.
 	(nnspool-request-group): Use last.
@@ -11584,7 +11631,7 @@
 	* gnus-registry.el (gnus-registry-split-fancy-with-parent): Try
 	to append in-reply-to: data to the references: header.
 
-	* netrc.el: Remove old encryption support, autoload gnus-encrypt.el
+	* netrc.el: Remove old encryption support, autoload gnus-encrypt.el.
 	(netrc-parse): Use gnus-encrypt.el functions.
 
 	* gnus-encrypt.el: Add new file for encryption support; currently
@@ -12081,7 +12128,7 @@
 
 2004-05-26  Adam Sjøgren  <asjo@koldfront.dk>  (tiny change)
 
-	(spam-ham-copy-or-move-routine): Don't declare `todo' twice.
+	* spam.el (spam-ham-copy-or-move-routine): Don't declare `todo' twice.
 
 2004-05-26  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -12796,7 +12843,7 @@
 
 	* gnus-group.el: Require gnus-sum and autoload functions to
 	resolve warnings when gnus-group.el compiled alone.
-	(gnus-group-line-format): Documented new %F
+	(gnus-group-line-format): Documented new %F.
 	(size of Fetched data) group line format; identifies disk space
 	used by agent and cache.
 	(gnus-group-line-format-alist): Defined new F format.
@@ -13573,8 +13620,8 @@
 	is "nndraft:queue".  Suggested by Gaute Strokkenes
 	<gs234@srcf.ucam.org>
 
-	* gnus-agent.el (agent-disable-undownloaded-faces): Removed
-	(agent-enable-undownloaded-faces): Added
+	* gnus-agent.el (agent-disable-undownloaded-faces): Removed.
+	(agent-enable-undownloaded-faces): Added.
 	(gnus-agent-cat-groups): Use eval-and-compile, not
 	eval-when-compile, to define gnus-agent-set-cat-groups as the setf
 	method of gnus-agent-cat-groups even when the buffer has been
@@ -13599,8 +13646,8 @@
 	active file (local makes it unnecessary).
 	(gnus-agent-regenerate-group): Fixed XEmacs compatibility.
 
-	* gnus-cus.el (agent-disable-undownloaded-faces): Removed
-	(agent-enable-undownloaded-faces): Added
+	* gnus-cus.el (agent-disable-undownloaded-faces): Removed.
+	(agent-enable-undownloaded-faces): Added.
 
 	* gnus-draft.el (gnus-draft-send): Bind gnus-agent-queue-mail to
 	disable it when sending to "nndraft:queue".
@@ -13734,7 +13781,7 @@
 
 2004-01-14  Kai Grossjohann  <kai@emptydomain.de>
 
-	(message-kill-to-signature): Change docstring.
+	* message.el (message-kill-to-signature): Change docstring.
 
 2004-01-14  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -14153,7 +14200,7 @@
 
 2004-01-05  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* gnus-art.el (gnus-treat-ansi-sequences,
+	* gnus-art.el (gnus-treat-ansi-sequences)
 	(article-treat-ansi-sequences): New variable and function.
 	Suggested by Dan Jacobson <jidanni@jidanni.org>.
 
@@ -14332,7 +14379,7 @@
 2004-01-04  Mario Lang  <lang@zid.tugraz.at>
 
 	* dns.el (dns-query-types): Fix typo.
-	(dns-query-types): New function
+	(dns-query-types): New function.
 	(dns-read-type): Add support for AAAA records, see RFC 3596.  Parse MX,
 	PTR and SOA replies, see RFC 1035.
 

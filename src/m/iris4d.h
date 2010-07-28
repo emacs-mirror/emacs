@@ -30,25 +30,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    This flag only matters if you use USE_LISP_UNION_TYPE.  */
 #define EXPLICIT_SIGN_EXTEND
 
-#define TEXT_START 0x400000
-
 /* DATA_SEG_BITS forces extra bits to be or'd in with any pointers which
    were stored in a Lisp_Object (as Emacs uses fewer than 32 bits for
    the value field of a LISP_OBJECT).  */
 #define DATA_START 0x10000000
 #define DATA_SEG_BITS	0x10000000
-
-
-#if _MIPS_SZLONG != 64
-/* fixme: should there be 64-bit definitions?  (The ones below aren't OK.)  */
-
-/* The standard definitions of these macros would work ok,
-   but these are faster because the constants are short.  */
-#define XUINT(a) (((unsigned)(a) << BITS_PER_INT-VALBITS) >> BITS_PER_INT-VALBITS)
-
-#define XSET(var, type, ptr) \
-   ((var) = ((int)(type) << VALBITS) + (((unsigned) (ptr) << BITS_PER_INT-VALBITS) >> BITS_PER_INT-VALBITS))
-#endif /* _LP64 */
 
 /* arch-tag: fff5e139-9ae0-465d-afec-837c41ea0aa6
    (do not change this comment) */

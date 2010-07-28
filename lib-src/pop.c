@@ -465,7 +465,7 @@ pop_list (popserver server, int message, int **IDs, int **sizes)
 	  return (-1);
 	}
       (*IDs)[0] = atoi (&fromserver[4]);
-      fromserver = index (&fromserver[4], ' ');
+      fromserver = strchr (&fromserver[4], ' ');
       if (! fromserver)
 	{
 	  strcpy (pop_error,
@@ -496,7 +496,7 @@ pop_list (popserver server, int message, int **IDs, int **sizes)
 	      return (-1);
 	    }
 	  (*IDs)[i] = atoi (fromserver);
-	  fromserver = index (fromserver, ' ');
+	  fromserver = strchr (fromserver, ' ');
 	  if (! fromserver)
 	    {
 	      strcpy (pop_error,
@@ -612,7 +612,7 @@ pop_retrieve (popserver server, int message, int markfrom, char **msg_buf)
 	    }
 	  ptr[cp++] = '>';
 	}
-      bcopy (fromserver, &ptr[cp], ret);
+      memcpy (&ptr[cp], fromserver, ret);
       cp += ret;
       ptr[cp++] = '\n';
     }
@@ -1020,7 +1020,7 @@ socket_connection (char *host, int flags)
   }
 #endif
 
-  bzero ((char *) &addr, sizeof (addr));
+  memset (&addr, 0, sizeof (addr));
   addr.sin_family = AF_INET;
 
   /** "kpop" service is  never used: look for 20060515 to see why **/
@@ -1096,8 +1096,7 @@ socket_connection (char *host, int flags)
           if (it->ai_addrlen == sizeof (addr))
             {
               struct sockaddr_in *in_a = (struct sockaddr_in *) it->ai_addr;
-              bcopy (&in_a->sin_addr, (char *) &addr.sin_addr,
-                     sizeof (addr.sin_addr));
+              memcpy (&addr.sin_addr, &in_a->sin_addr, sizeof (addr.sin_addr));
               if (! connect (sock, (struct sockaddr *) &addr, sizeof (addr)))
                 break;
             }
@@ -1125,8 +1124,7 @@ socket_connection (char *host, int flags)
 
   while (*hostent->h_addr_list)
     {
-      bcopy (*hostent->h_addr_list, (char *) &addr.sin_addr,
-	     hostent->h_length);
+      memcpy (&addr.sin_addr, *hostent->h_addr_list, hostent->h_length);
       if (! connect (sock, (struct sockaddr *) &addr, sizeof (addr)))
 	break;
       hostent->h_addr_list++;
@@ -1318,8 +1316,8 @@ pop_getline (popserver server, char **line)
 	}
       else
 	{
-	  bcopy (server->buffer + server->buffer_index,
-		 server->buffer, server->data);
+	  memmove (server->buffer, server->buffer + server->buffer_index,
+		   server->data);
 	  /* Record the fact that we've searched the data already in
              the buffer for a CRLF, so that when we search below, we
              don't have to search the same data twice.  There's a "-

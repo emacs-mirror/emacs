@@ -50,7 +50,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <math.h>
 
 #if !defined (atof)
-extern double atof ();
+extern double atof (const char *);
 #endif /* !atof */
 
 Lisp_Object Qnil, Qt, Qquote, Qlambda, Qsubr, Qunbound;
@@ -97,16 +97,14 @@ Lisp_Object Vmost_positive_fixnum, Vmost_negative_fixnum;
 
 
 void
-circular_list_error (list)
-     Lisp_Object list;
+circular_list_error (Lisp_Object list)
 {
   xsignal (Qcircular_list, list);
 }
 
 
 Lisp_Object
-wrong_type_argument (predicate, value)
-     register Lisp_Object predicate, value;
+wrong_type_argument (register Lisp_Object predicate, register Lisp_Object value)
 {
   /* If VALUE is not even a valid Lisp object, we'd want to abort here
      where we can get a backtrace showing where it came from.  We used
@@ -119,21 +117,19 @@ wrong_type_argument (predicate, value)
 }
 
 void
-pure_write_error ()
+pure_write_error (void)
 {
   error ("Attempt to modify read-only object");
 }
 
 void
-args_out_of_range (a1, a2)
-     Lisp_Object a1, a2;
+args_out_of_range (Lisp_Object a1, Lisp_Object a2)
 {
   xsignal2 (Qargs_out_of_range, a1, a2);
 }
 
 void
-args_out_of_range_3 (a1, a2, a3)
-     Lisp_Object a1, a2, a3;
+args_out_of_range_3 (Lisp_Object a1, Lisp_Object a2, Lisp_Object a3)
 {
   xsignal3 (Qargs_out_of_range, a1, a2, a3);
 }
@@ -146,8 +142,7 @@ int sign_extend_temp;
 /* On a few machines, XINT can only be done by calling this.  */
 
 int
-sign_extend_lisp_int (num)
-     EMACS_INT num;
+sign_extend_lisp_int (EMACS_INT num)
 {
   if (num & (((EMACS_INT) 1) << (VALBITS - 1)))
     return num | (((EMACS_INT) (-1)) << VALBITS);
@@ -159,8 +154,7 @@ sign_extend_lisp_int (num)
 
 DEFUN ("eq", Feq, Seq, 2, 2, 0,
        doc: /* Return t if the two args are the same Lisp object.  */)
-     (obj1, obj2)
-     Lisp_Object obj1, obj2;
+  (Lisp_Object obj1, Lisp_Object obj2)
 {
   if (EQ (obj1, obj2))
     return Qt;
@@ -169,8 +163,7 @@ DEFUN ("eq", Feq, Seq, 2, 2, 0,
 
 DEFUN ("null", Fnull, Snull, 1, 1, 0,
        doc: /* Return t if OBJECT is nil.  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   if (NILP (object))
     return Qt;
@@ -181,8 +174,7 @@ DEFUN ("type-of", Ftype_of, Stype_of, 1, 1, 0,
        doc: /* Return a symbol representing the type of OBJECT.
 The symbol returned names the object's basic type;
 for example, (type-of 1) returns `integer'.  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   switch (XTYPE (object))
     {
@@ -249,8 +241,7 @@ for example, (type-of 1) returns `integer'.  */)
 
 DEFUN ("consp", Fconsp, Sconsp, 1, 1, 0,
        doc: /* Return t if OBJECT is a cons cell.  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   if (CONSP (object))
     return Qt;
@@ -259,8 +250,7 @@ DEFUN ("consp", Fconsp, Sconsp, 1, 1, 0,
 
 DEFUN ("atom", Fatom, Satom, 1, 1, 0,
        doc: /* Return t if OBJECT is not a cons cell.  This includes nil.  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   if (CONSP (object))
     return Qnil;
@@ -270,8 +260,7 @@ DEFUN ("atom", Fatom, Satom, 1, 1, 0,
 DEFUN ("listp", Flistp, Slistp, 1, 1, 0,
        doc: /* Return t if OBJECT is a list, that is, a cons cell or nil.
 Otherwise, return nil.  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   if (CONSP (object) || NILP (object))
     return Qt;
@@ -280,8 +269,7 @@ Otherwise, return nil.  */)
 
 DEFUN ("nlistp", Fnlistp, Snlistp, 1, 1, 0,
        doc: /* Return t if OBJECT is not a list.  Lists include nil.  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   if (CONSP (object) || NILP (object))
     return Qnil;
@@ -290,8 +278,7 @@ DEFUN ("nlistp", Fnlistp, Snlistp, 1, 1, 0,
 
 DEFUN ("symbolp", Fsymbolp, Ssymbolp, 1, 1, 0,
        doc: /* Return t if OBJECT is a symbol.  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   if (SYMBOLP (object))
     return Qt;
@@ -304,8 +291,7 @@ DEFUN ("keywordp", Fkeywordp, Skeywordp, 1, 1, 0,
        doc: /* Return t if OBJECT is a keyword.
 This means that it is a symbol with a print name beginning with `:'
 interned in the initial obarray.  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   if (SYMBOLP (object)
       && SREF (SYMBOL_NAME (object), 0) == ':'
@@ -316,8 +302,7 @@ interned in the initial obarray.  */)
 
 DEFUN ("vectorp", Fvectorp, Svectorp, 1, 1, 0,
        doc: /* Return t if OBJECT is a vector.  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   if (VECTORP (object))
     return Qt;
@@ -326,8 +311,7 @@ DEFUN ("vectorp", Fvectorp, Svectorp, 1, 1, 0,
 
 DEFUN ("stringp", Fstringp, Sstringp, 1, 1, 0,
        doc: /* Return t if OBJECT is a string.  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   if (STRINGP (object))
     return Qt;
@@ -337,8 +321,7 @@ DEFUN ("stringp", Fstringp, Sstringp, 1, 1, 0,
 DEFUN ("multibyte-string-p", Fmultibyte_string_p, Smultibyte_string_p,
        1, 1, 0,
        doc: /* Return t if OBJECT is a multibyte string.  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   if (STRINGP (object) && STRING_MULTIBYTE (object))
     return Qt;
@@ -347,8 +330,7 @@ DEFUN ("multibyte-string-p", Fmultibyte_string_p, Smultibyte_string_p,
 
 DEFUN ("char-table-p", Fchar_table_p, Schar_table_p, 1, 1, 0,
        doc: /* Return t if OBJECT is a char-table.  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   if (CHAR_TABLE_P (object))
     return Qt;
@@ -358,8 +340,7 @@ DEFUN ("char-table-p", Fchar_table_p, Schar_table_p, 1, 1, 0,
 DEFUN ("vector-or-char-table-p", Fvector_or_char_table_p,
        Svector_or_char_table_p, 1, 1, 0,
        doc: /* Return t if OBJECT is a char-table or vector.  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   if (VECTORP (object) || CHAR_TABLE_P (object))
     return Qt;
@@ -368,8 +349,7 @@ DEFUN ("vector-or-char-table-p", Fvector_or_char_table_p,
 
 DEFUN ("bool-vector-p", Fbool_vector_p, Sbool_vector_p, 1, 1, 0,
        doc: /* Return t if OBJECT is a bool-vector.  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   if (BOOL_VECTOR_P (object))
     return Qt;
@@ -378,8 +358,7 @@ DEFUN ("bool-vector-p", Fbool_vector_p, Sbool_vector_p, 1, 1, 0,
 
 DEFUN ("arrayp", Farrayp, Sarrayp, 1, 1, 0,
        doc: /* Return t if OBJECT is an array (string or vector).  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   if (ARRAYP (object))
     return Qt;
@@ -388,8 +367,7 @@ DEFUN ("arrayp", Farrayp, Sarrayp, 1, 1, 0,
 
 DEFUN ("sequencep", Fsequencep, Ssequencep, 1, 1, 0,
        doc: /* Return t if OBJECT is a sequence (list or array).  */)
-     (object)
-     register Lisp_Object object;
+  (register Lisp_Object object)
 {
   if (CONSP (object) || NILP (object) || ARRAYP (object))
     return Qt;
@@ -398,8 +376,7 @@ DEFUN ("sequencep", Fsequencep, Ssequencep, 1, 1, 0,
 
 DEFUN ("bufferp", Fbufferp, Sbufferp, 1, 1, 0,
        doc: /* Return t if OBJECT is an editor buffer.  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   if (BUFFERP (object))
     return Qt;
@@ -408,8 +385,7 @@ DEFUN ("bufferp", Fbufferp, Sbufferp, 1, 1, 0,
 
 DEFUN ("markerp", Fmarkerp, Smarkerp, 1, 1, 0,
        doc: /* Return t if OBJECT is a marker (editor pointer).  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   if (MARKERP (object))
     return Qt;
@@ -418,8 +394,7 @@ DEFUN ("markerp", Fmarkerp, Smarkerp, 1, 1, 0,
 
 DEFUN ("subrp", Fsubrp, Ssubrp, 1, 1, 0,
        doc: /* Return t if OBJECT is a built-in function.  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   if (SUBRP (object))
     return Qt;
@@ -429,8 +404,7 @@ DEFUN ("subrp", Fsubrp, Ssubrp, 1, 1, 0,
 DEFUN ("byte-code-function-p", Fbyte_code_function_p, Sbyte_code_function_p,
        1, 1, 0,
        doc: /* Return t if OBJECT is a byte-compiled function object.  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   if (COMPILEDP (object))
     return Qt;
@@ -439,8 +413,7 @@ DEFUN ("byte-code-function-p", Fbyte_code_function_p, Sbyte_code_function_p,
 
 DEFUN ("char-or-string-p", Fchar_or_string_p, Schar_or_string_p, 1, 1, 0,
        doc: /* Return t if OBJECT is a character or a string.  */)
-     (object)
-     register Lisp_Object object;
+  (register Lisp_Object object)
 {
   if (CHARACTERP (object) || STRINGP (object))
     return Qt;
@@ -449,8 +422,7 @@ DEFUN ("char-or-string-p", Fchar_or_string_p, Schar_or_string_p, 1, 1, 0,
 
 DEFUN ("integerp", Fintegerp, Sintegerp, 1, 1, 0,
        doc: /* Return t if OBJECT is an integer.  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   if (INTEGERP (object))
     return Qt;
@@ -459,8 +431,7 @@ DEFUN ("integerp", Fintegerp, Sintegerp, 1, 1, 0,
 
 DEFUN ("integer-or-marker-p", Finteger_or_marker_p, Sinteger_or_marker_p, 1, 1, 0,
        doc: /* Return t if OBJECT is an integer or a marker (editor pointer).  */)
-     (object)
-     register Lisp_Object object;
+  (register Lisp_Object object)
 {
   if (MARKERP (object) || INTEGERP (object))
     return Qt;
@@ -469,8 +440,7 @@ DEFUN ("integer-or-marker-p", Finteger_or_marker_p, Sinteger_or_marker_p, 1, 1, 
 
 DEFUN ("natnump", Fnatnump, Snatnump, 1, 1, 0,
        doc: /* Return t if OBJECT is a nonnegative integer.  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   if (NATNUMP (object))
     return Qt;
@@ -479,8 +449,7 @@ DEFUN ("natnump", Fnatnump, Snatnump, 1, 1, 0,
 
 DEFUN ("numberp", Fnumberp, Snumberp, 1, 1, 0,
        doc: /* Return t if OBJECT is a number (floating point or integer).  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   if (NUMBERP (object))
     return Qt;
@@ -491,8 +460,7 @@ DEFUN ("numberp", Fnumberp, Snumberp, 1, 1, 0,
 DEFUN ("number-or-marker-p", Fnumber_or_marker_p,
        Snumber_or_marker_p, 1, 1, 0,
        doc: /* Return t if OBJECT is a number or a marker.  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   if (NUMBERP (object) || MARKERP (object))
     return Qt;
@@ -501,8 +469,7 @@ DEFUN ("number-or-marker-p", Fnumber_or_marker_p,
 
 DEFUN ("floatp", Ffloatp, Sfloatp, 1, 1, 0,
        doc: /* Return t if OBJECT is a floating point number.  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   if (FLOATP (object))
     return Qt;
@@ -518,16 +485,14 @@ Error if arg is not nil and not a cons cell.  See also `car-safe'.
 
 See Info node `(elisp)Cons Cells' for a discussion of related basic
 Lisp concepts such as car, cdr, cons cell and list.  */)
-     (list)
-     register Lisp_Object list;
+  (register Lisp_Object list)
 {
   return CAR (list);
 }
 
 DEFUN ("car-safe", Fcar_safe, Scar_safe, 1, 1, 0,
        doc: /* Return the car of OBJECT if it is a cons cell, or else nil.  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   return CAR_SAFE (object);
 }
@@ -538,24 +503,21 @@ Error if arg is not nil and not a cons cell.  See also `cdr-safe'.
 
 See Info node `(elisp)Cons Cells' for a discussion of related basic
 Lisp concepts such as cdr, car, cons cell and list.  */)
-     (list)
-     register Lisp_Object list;
+  (register Lisp_Object list)
 {
   return CDR (list);
 }
 
 DEFUN ("cdr-safe", Fcdr_safe, Scdr_safe, 1, 1, 0,
        doc: /* Return the cdr of OBJECT if it is a cons cell, or else nil.  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   return CDR_SAFE (object);
 }
 
 DEFUN ("setcar", Fsetcar, Ssetcar, 2, 2, 0,
        doc: /* Set the car of CELL to be NEWCAR.  Returns NEWCAR.  */)
-     (cell, newcar)
-     register Lisp_Object cell, newcar;
+  (register Lisp_Object cell, Lisp_Object newcar)
 {
   CHECK_CONS (cell);
   CHECK_IMPURE (cell);
@@ -565,8 +527,7 @@ DEFUN ("setcar", Fsetcar, Ssetcar, 2, 2, 0,
 
 DEFUN ("setcdr", Fsetcdr, Ssetcdr, 2, 2, 0,
        doc: /* Set the cdr of CELL to be NEWCDR.  Returns NEWCDR.  */)
-     (cell, newcdr)
-     register Lisp_Object cell, newcdr;
+  (register Lisp_Object cell, Lisp_Object newcdr)
 {
   CHECK_CONS (cell);
   CHECK_IMPURE (cell);
@@ -578,8 +539,7 @@ DEFUN ("setcdr", Fsetcdr, Ssetcdr, 2, 2, 0,
 
 DEFUN ("boundp", Fboundp, Sboundp, 1, 1, 0,
        doc: /* Return t if SYMBOL's value is not void.  */)
-     (symbol)
-     register Lisp_Object symbol;
+  (register Lisp_Object symbol)
 {
   Lisp_Object valcontents;
   struct Lisp_Symbol *sym;
@@ -617,8 +577,7 @@ DEFUN ("boundp", Fboundp, Sboundp, 1, 1, 0,
 
 DEFUN ("fboundp", Ffboundp, Sfboundp, 1, 1, 0,
        doc: /* Return t if SYMBOL's function definition is not void.  */)
-     (symbol)
-     register Lisp_Object symbol;
+  (register Lisp_Object symbol)
 {
   CHECK_SYMBOL (symbol);
   return (EQ (XSYMBOL (symbol)->function, Qunbound) ? Qnil : Qt);
@@ -627,8 +586,7 @@ DEFUN ("fboundp", Ffboundp, Sfboundp, 1, 1, 0,
 DEFUN ("makunbound", Fmakunbound, Smakunbound, 1, 1, 0,
        doc: /* Make SYMBOL's value be void.
 Return SYMBOL.  */)
-     (symbol)
-     register Lisp_Object symbol;
+  (register Lisp_Object symbol)
 {
   CHECK_SYMBOL (symbol);
   if (SYMBOL_CONSTANT_P (symbol))
@@ -640,8 +598,7 @@ Return SYMBOL.  */)
 DEFUN ("fmakunbound", Ffmakunbound, Sfmakunbound, 1, 1, 0,
        doc: /* Make SYMBOL's function definition be void.
 Return SYMBOL.  */)
-     (symbol)
-     register Lisp_Object symbol;
+  (register Lisp_Object symbol)
 {
   CHECK_SYMBOL (symbol);
   if (NILP (symbol) || EQ (symbol, Qt))
@@ -652,8 +609,7 @@ Return SYMBOL.  */)
 
 DEFUN ("symbol-function", Fsymbol_function, Ssymbol_function, 1, 1, 0,
        doc: /* Return SYMBOL's function definition.  Error if that is void.  */)
-     (symbol)
-     register Lisp_Object symbol;
+  (register Lisp_Object symbol)
 {
   CHECK_SYMBOL (symbol);
   if (!EQ (XSYMBOL (symbol)->function, Qunbound))
@@ -663,8 +619,7 @@ DEFUN ("symbol-function", Fsymbol_function, Ssymbol_function, 1, 1, 0,
 
 DEFUN ("symbol-plist", Fsymbol_plist, Ssymbol_plist, 1, 1, 0,
        doc: /* Return SYMBOL's property list.  */)
-     (symbol)
-     register Lisp_Object symbol;
+  (register Lisp_Object symbol)
 {
   CHECK_SYMBOL (symbol);
   return XSYMBOL (symbol)->plist;
@@ -672,8 +627,7 @@ DEFUN ("symbol-plist", Fsymbol_plist, Ssymbol_plist, 1, 1, 0,
 
 DEFUN ("symbol-name", Fsymbol_name, Ssymbol_name, 1, 1, 0,
        doc: /* Return SYMBOL's name, a string.  */)
-     (symbol)
-     register Lisp_Object symbol;
+  (register Lisp_Object symbol)
 {
   register Lisp_Object name;
 
@@ -684,8 +638,7 @@ DEFUN ("symbol-name", Fsymbol_name, Ssymbol_name, 1, 1, 0,
 
 DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
        doc: /* Set SYMBOL's function definition to DEFINITION, and return DEFINITION.  */)
-     (symbol, definition)
-     register Lisp_Object symbol, definition;
+  (register Lisp_Object symbol, Lisp_Object definition)
 {
   register Lisp_Object function;
 
@@ -719,8 +672,7 @@ Associates the function with the current load file, if any.
 The optional third argument DOCSTRING specifies the documentation string
 for SYMBOL; if it is omitted or nil, SYMBOL uses the documentation string
 determined by DEFINITION.  */)
-     (symbol, definition, docstring)
-     register Lisp_Object symbol, definition, docstring;
+  (register Lisp_Object symbol, Lisp_Object definition, Lisp_Object docstring)
 {
   CHECK_SYMBOL (symbol);
   if (CONSP (XSYMBOL (symbol)->function)
@@ -735,8 +687,7 @@ determined by DEFINITION.  */)
 
 DEFUN ("setplist", Fsetplist, Ssetplist, 2, 2, 0,
        doc: /* Set SYMBOL's property list to NEWPLIST, and return NEWPLIST.  */)
-     (symbol, newplist)
-     register Lisp_Object symbol, newplist;
+  (register Lisp_Object symbol, Lisp_Object newplist)
 {
   CHECK_SYMBOL (symbol);
   XSYMBOL (symbol)->plist = newplist;
@@ -749,8 +700,7 @@ SUBR must be a built-in function.
 The returned value is a pair (MIN . MAX).  MIN is the minimum number
 of args.  MAX is the maximum number or the symbol `many', for a
 function with `&rest' args, or `unevalled' for a special form.  */)
-     (subr)
-     Lisp_Object subr;
+  (Lisp_Object subr)
 {
   short minargs, maxargs;
   CHECK_SUBR (subr);
@@ -767,8 +717,7 @@ function with `&rest' args, or `unevalled' for a special form.  */)
 DEFUN ("subr-name", Fsubr_name, Ssubr_name, 1, 1, 0,
        doc: /* Return name of subroutine SUBR.
 SUBR must be a built-in function.  */)
-     (subr)
-     Lisp_Object subr;
+  (Lisp_Object subr)
 {
   const char *name;
   CHECK_SUBR (subr);
@@ -780,8 +729,7 @@ DEFUN ("interactive-form", Finteractive_form, Sinteractive_form, 1, 1, 0,
        doc: /* Return the interactive form of CMD or nil if none.
 If CMD is not a command, the return value is nil.
 Value, if non-nil, is a list \(interactive SPEC).  */)
-     (cmd)
-     Lisp_Object cmd;
+  (Lisp_Object cmd)
 {
   Lisp_Object fun = indirect_function (cmd); /* Check cycles.  */
 
@@ -802,7 +750,7 @@ Value, if non-nil, is a list \(interactive SPEC).  */)
 
   if (SUBRP (fun))
     {
-      char *spec = XSUBR (fun)->intspec;
+      const char *spec = XSUBR (fun)->intspec;
       if (spec)
 	return list2 (Qinteractive,
 		      (*spec != '(') ? build_string (spec) :
@@ -840,8 +788,7 @@ Value, if non-nil, is a list \(interactive SPEC).  */)
    indirections contains a loop.  */
 
 struct Lisp_Symbol *
-indirect_variable (symbol)
-     struct Lisp_Symbol *symbol;
+indirect_variable (struct Lisp_Symbol *symbol)
 {
   struct Lisp_Symbol *tortoise, *hare;
 
@@ -874,8 +821,7 @@ If OBJECT is a symbol, follow all variable indirections and return the final
 variable.  If OBJECT is not a symbol, just return it.
 Signal a cyclic-variable-indirection error if there is a loop in the
 variable chain of symbols.  */)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   if (SYMBOLP (object))
     XSETSYMBOL (object,  indirect_variable (XSYMBOL (object)));
@@ -892,8 +838,7 @@ variable chain of symbols.  */)
   ((blv)->forwarded ? do_symval_forwarding (BLV_FWD (blv)) : BLV_VALUE (blv))
 
 Lisp_Object
-do_symval_forwarding (valcontents)
-     register union Lisp_Fwd *valcontents;
+do_symval_forwarding (register union Lisp_Fwd *valcontents)
 {
   register Lisp_Object val;
   switch (XFWDTYPE (valcontents))
@@ -947,11 +892,7 @@ do_symval_forwarding (valcontents)
   } while (0)
 
 static void
-store_symval_forwarding (/* symbol, */ valcontents, newval, buf)
-     /* struct Lisp_Symbol *symbol; */
-     union Lisp_Fwd *valcontents;
-     register Lisp_Object newval;
-     struct buffer *buf;
+store_symval_forwarding (union Lisp_Fwd *valcontents, register Lisp_Object newval, struct buffer *buf)
 {
   switch (XFWDTYPE (valcontents))
     {
@@ -1032,8 +973,7 @@ store_symval_forwarding (/* symbol, */ valcontents, newval, buf)
    This makes it safe to alter the status of other bindings.  */
 
 void
-swap_in_global_binding (symbol)
-     struct Lisp_Symbol *symbol;
+swap_in_global_binding (struct Lisp_Symbol *symbol)
 {
   struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (symbol);
 
@@ -1059,9 +999,7 @@ swap_in_global_binding (symbol)
    This could be another forwarding pointer.  */
 
 static void
-swap_in_symval_forwarding (symbol, blv)
-     struct Lisp_Symbol *symbol;
-     struct Lisp_Buffer_Local_Value *blv;
+swap_in_symval_forwarding (struct Lisp_Symbol *symbol, struct Lisp_Buffer_Local_Value *blv)
 {
   register Lisp_Object tem1;
 
@@ -1111,8 +1049,7 @@ swap_in_symval_forwarding (symbol, blv)
    within this function.  Great care is required for this.  */
 
 Lisp_Object
-find_symbol_value (symbol)
-     Lisp_Object symbol;
+find_symbol_value (Lisp_Object symbol)
 {
   struct Lisp_Symbol *sym;
 
@@ -1139,8 +1076,7 @@ find_symbol_value (symbol)
 
 DEFUN ("symbol-value", Fsymbol_value, Ssymbol_value, 1, 1, 0,
        doc: /* Return SYMBOL's value.  Error if that is void.  */)
-     (symbol)
-     Lisp_Object symbol;
+  (Lisp_Object symbol)
 {
   Lisp_Object val;
 
@@ -1153,8 +1089,7 @@ DEFUN ("symbol-value", Fsymbol_value, Ssymbol_value, 1, 1, 0,
 
 DEFUN ("set", Fset, Sset, 2, 2, 0,
        doc: /* Set SYMBOL's value to NEWVAL, and return NEWVAL.  */)
-     (symbol, newval)
-     register Lisp_Object symbol, newval;
+  (register Lisp_Object symbol, Lisp_Object newval)
 {
   set_internal (symbol, newval, Qnil, 0);
   return newval;
@@ -1183,8 +1118,7 @@ let_shadows_buffer_binding_p (struct Lisp_Symbol *symbol)
 }
 
 static int
-let_shadows_global_binding_p (symbol)
-     Lisp_Object symbol;
+let_shadows_global_binding_p (Lisp_Object symbol)
 {
   struct specbinding *p;
 
@@ -1204,9 +1138,7 @@ let_shadows_global_binding_p (symbol)
    If BINDFLAG is nonzero, we don't do that.  */
 
 void
-set_internal (symbol, newval, where, bindflag)
-     register Lisp_Object symbol, newval, where;
-     int bindflag;
+set_internal (register Lisp_Object symbol, register Lisp_Object newval, register Lisp_Object where, int bindflag)
 {
   int voide = EQ (newval, Qunbound);
   struct Lisp_Symbol *sym;
@@ -1357,8 +1289,7 @@ set_internal (symbol, newval, where, bindflag)
    Return Qunbound if it is void.  */
 
 Lisp_Object
-default_value (symbol)
-     Lisp_Object symbol;
+default_value (Lisp_Object symbol)
 {
   struct Lisp_Symbol *sym;
 
@@ -1406,8 +1337,7 @@ DEFUN ("default-boundp", Fdefault_boundp, Sdefault_boundp, 1, 1, 0,
        doc: /* Return t if SYMBOL has a non-void default value.
 This is the value that is seen in buffers that do not have their own values
 for this variable.  */)
-     (symbol)
-     Lisp_Object symbol;
+  (Lisp_Object symbol)
 {
   register Lisp_Object value;
 
@@ -1420,8 +1350,7 @@ DEFUN ("default-value", Fdefault_value, Sdefault_value, 1, 1, 0,
 This is the value that is seen in buffers that do not have their own values
 for this variable.  The default value is meaningful for variables with
 local bindings in certain buffers.  */)
-     (symbol)
-     Lisp_Object symbol;
+  (Lisp_Object symbol)
 {
   register Lisp_Object value;
 
@@ -1436,8 +1365,7 @@ DEFUN ("set-default", Fset_default, Sset_default, 2, 2, 0,
        doc: /* Set SYMBOL's default value to VALUE.  SYMBOL and VALUE are evaluated.
 The default value is seen in buffers that do not have their own values
 for this variable.  */)
-     (symbol, value)
-     Lisp_Object symbol, value;
+  (Lisp_Object symbol, Lisp_Object value)
 {
   struct Lisp_Symbol *sym;
 
@@ -1516,8 +1444,7 @@ This sets each VAR's default value to the corresponding VALUE.
 The VALUE for the Nth VAR can refer to the new default values
 of previous VARs.
 usage: (setq-default [VAR VALUE]...)  */)
-     (args)
-     Lisp_Object args;
+  (Lisp_Object args)
 {
   register Lisp_Object args_left;
   register Lisp_Object val, symbol;
@@ -1591,8 +1518,7 @@ In most cases it is better to use `make-local-variable',
 which makes a variable local in just one buffer.
 
 The function `default-value' gets the default value and `set-default' sets it.  */)
-     (variable)
-     register Lisp_Object variable;
+  (register Lisp_Object variable)
 {
   struct Lisp_Symbol *sym;
   struct Lisp_Buffer_Local_Value *blv = NULL;
@@ -1669,8 +1595,7 @@ See also `make-variable-buffer-local'.
 
 Do not use `make-local-variable' to make a hook variable buffer-local.
 Instead, use `add-hook' and specify t for the LOCAL argument.  */)
-     (variable)
-     register Lisp_Object variable;
+  (register Lisp_Object variable)
 {
   register Lisp_Object tem;
   int forwarded;
@@ -1771,8 +1696,7 @@ DEFUN ("kill-local-variable", Fkill_local_variable, Skill_local_variable,
        1, 1, "vKill Local Variable: ",
        doc: /* Make VARIABLE no longer have a separate value in the current buffer.
 From now on the default value will apply in this buffer.  Return VARIABLE.  */)
-     (variable)
-     register Lisp_Object variable;
+  (register Lisp_Object variable)
 {
   register Lisp_Object tem;
   struct Lisp_Buffer_Local_Value *blv;
@@ -1860,8 +1784,7 @@ is to set the VARIABLE frame parameter of that frame.  See
 Note that since Emacs 23.1, variables cannot be both buffer-local and
 frame-local any more (buffer-local bindings used to take precedence over
 frame-local bindings).  */)
-     (variable)
-     register Lisp_Object variable;
+  (register Lisp_Object variable)
 {
   int forwarded;
   union Lisp_Val_Fwd valcontents;
@@ -1916,8 +1839,7 @@ DEFUN ("local-variable-p", Flocal_variable_p, Slocal_variable_p,
        1, 2, 0,
        doc: /* Non-nil if VARIABLE has a local binding in buffer BUFFER.
 BUFFER defaults to the current buffer.  */)
-     (variable, buffer)
-     register Lisp_Object variable, buffer;
+  (register Lisp_Object variable, Lisp_Object buffer)
 {
   register struct buffer *buf;
   struct Lisp_Symbol *sym;
@@ -1981,8 +1903,7 @@ while it does not have a `let'-style binding that was made in BUFFER,
 will produce a buffer local binding.  See Info node
 `(elisp)Creating Buffer-Local'.
 BUFFER defaults to the current buffer.  */)
-     (variable, buffer)
-     register Lisp_Object variable, buffer;
+  (register Lisp_Object variable, Lisp_Object buffer)
 {
   struct Lisp_Symbol *sym;
 
@@ -2015,8 +1936,7 @@ DEFUN ("variable-binding-locus", Fvariable_binding_locus, Svariable_binding_locu
 If the current binding is buffer-local, the value is the current buffer.
 If the current binding is frame-local, the value is the selected frame.
 If the current binding is global (the default), the value is nil.  */)
-     (variable)
-     register Lisp_Object variable;
+  (register Lisp_Object variable)
 {
   struct Lisp_Symbol *sym;
 
@@ -2066,9 +1986,7 @@ value, like `symbol-value'.
 
 TERMINAL may be a terminal object, a frame, or nil (meaning the
 selected frame's terminal device).  */)
-  (symbol, terminal)
-     Lisp_Object symbol;
-     Lisp_Object terminal;
+  (Lisp_Object symbol, Lisp_Object terminal)
 {
   Lisp_Object result;
   struct terminal *t = get_terminal (terminal, 1);
@@ -2085,10 +2003,7 @@ binding, like `set'.
 
 TERMINAL may be a terminal object, a frame, or nil (meaning the
 selected frame's terminal device).  */)
-  (symbol, terminal, value)
-     Lisp_Object symbol;
-     Lisp_Object terminal;
-     Lisp_Object value;
+  (Lisp_Object symbol, Lisp_Object terminal, Lisp_Object value)
 {
   Lisp_Object result;
   struct terminal *t = get_terminal (terminal, 1);
@@ -2109,8 +2024,7 @@ selected frame's terminal device).  */)
    This is like Findirect_function, except that it doesn't signal an
    error if the chain ends up unbound.  */
 Lisp_Object
-indirect_function (object)
-     register Lisp_Object object;
+indirect_function (register Lisp_Object object)
 {
   Lisp_Object tortoise, hare;
 
@@ -2142,9 +2056,7 @@ If the final symbol in the chain is unbound, signal a void-function error.
 Optional arg NOERROR non-nil means to return nil instead of signalling.
 Signal a cyclic-function-indirection error if there is a loop in the
 function chain of symbols.  */)
-     (object, noerror)
-     register Lisp_Object object;
-     Lisp_Object noerror;
+  (register Lisp_Object object, Lisp_Object noerror)
 {
   Lisp_Object result;
 
@@ -2168,9 +2080,7 @@ DEFUN ("aref", Faref, Saref, 2, 2, 0,
        doc: /* Return the element of ARRAY at index IDX.
 ARRAY may be a vector, a string, a char-table, a bool-vector,
 or a byte-code object.  IDX starts at 0.  */)
-     (array, idx)
-     register Lisp_Object array;
-     Lisp_Object idx;
+  (register Lisp_Object array, Lisp_Object idx)
 {
   register int idxval;
 
@@ -2224,9 +2134,7 @@ DEFUN ("aset", Faset, Saset, 3, 3, 0,
        doc: /* Store into the element of ARRAY at index IDX the value NEWELT.
 Return NEWELT.  ARRAY may be a vector, a string, a char-table or a
 bool-vector.  IDX starts at 0.  */)
-     (array, idx, newelt)
-     register Lisp_Object array;
-     Lisp_Object idx, newelt;
+  (register Lisp_Object array, Lisp_Object idx, Lisp_Object newelt)
 {
   register int idxval;
 
@@ -2284,13 +2192,13 @@ bool-vector.  IDX starts at 0.  */)
 	  USE_SAFE_ALLOCA;
 
 	  SAFE_ALLOCA (str, unsigned char *, nbytes);
-	  bcopy (SDATA (array), str, nbytes);
+	  memcpy (str, SDATA (array), nbytes);
 	  allocate_string_data (XSTRING (array), nchars,
 				nbytes + new_bytes - prev_bytes);
-	  bcopy (str, SDATA (array), idxval_byte);
+	  memcpy (SDATA (array), str, idxval_byte);
 	  p1 = SDATA (array) + idxval_byte;
-	  bcopy (str + idxval_byte + prev_bytes, p1 + new_bytes,
-		 nbytes - (idxval_byte + prev_bytes));
+	  memcpy (p1 + new_bytes, str + idxval_byte + prev_bytes,
+		  nbytes - (idxval_byte + prev_bytes));
 	  SAFE_FREE ();
 	  clear_string_char_byte_cache ();
 	}
@@ -2326,9 +2234,7 @@ bool-vector.  IDX starts at 0.  */)
 enum comparison { equal, notequal, less, grtr, less_or_equal, grtr_or_equal };
 
 Lisp_Object
-arithcompare (num1, num2, comparison)
-     Lisp_Object num1, num2;
-     enum comparison comparison;
+arithcompare (Lisp_Object num1, Lisp_Object num2, enum comparison comparison)
 {
   double f1 = 0, f2 = 0;
   int floatp = 0;
@@ -2382,24 +2288,21 @@ arithcompare (num1, num2, comparison)
 
 DEFUN ("=", Feqlsign, Seqlsign, 2, 2, 0,
        doc: /* Return t if two args, both numbers or markers, are equal.  */)
-     (num1, num2)
-     register Lisp_Object num1, num2;
+  (register Lisp_Object num1, Lisp_Object num2)
 {
   return arithcompare (num1, num2, equal);
 }
 
 DEFUN ("<", Flss, Slss, 2, 2, 0,
        doc: /* Return t if first arg is less than second arg.  Both must be numbers or markers.  */)
-     (num1, num2)
-     register Lisp_Object num1, num2;
+  (register Lisp_Object num1, Lisp_Object num2)
 {
   return arithcompare (num1, num2, less);
 }
 
 DEFUN (">", Fgtr, Sgtr, 2, 2, 0,
        doc: /* Return t if first arg is greater than second arg.  Both must be numbers or markers.  */)
-     (num1, num2)
-     register Lisp_Object num1, num2;
+  (register Lisp_Object num1, Lisp_Object num2)
 {
   return arithcompare (num1, num2, grtr);
 }
@@ -2407,8 +2310,7 @@ DEFUN (">", Fgtr, Sgtr, 2, 2, 0,
 DEFUN ("<=", Fleq, Sleq, 2, 2, 0,
        doc: /* Return t if first arg is less than or equal to second arg.
 Both must be numbers or markers.  */)
-     (num1, num2)
-     register Lisp_Object num1, num2;
+  (register Lisp_Object num1, Lisp_Object num2)
 {
   return arithcompare (num1, num2, less_or_equal);
 }
@@ -2416,24 +2318,21 @@ Both must be numbers or markers.  */)
 DEFUN (">=", Fgeq, Sgeq, 2, 2, 0,
        doc: /* Return t if first arg is greater than or equal to second arg.
 Both must be numbers or markers.  */)
-     (num1, num2)
-     register Lisp_Object num1, num2;
+  (register Lisp_Object num1, Lisp_Object num2)
 {
   return arithcompare (num1, num2, grtr_or_equal);
 }
 
 DEFUN ("/=", Fneq, Sneq, 2, 2, 0,
        doc: /* Return t if first arg is not equal to second arg.  Both must be numbers or markers.  */)
-     (num1, num2)
-     register Lisp_Object num1, num2;
+  (register Lisp_Object num1, Lisp_Object num2)
 {
   return arithcompare (num1, num2, notequal);
 }
 
 DEFUN ("zerop", Fzerop, Szerop, 1, 1, 0,
        doc: /* Return t if NUMBER is zero.  */)
-     (number)
-     register Lisp_Object number;
+  (register Lisp_Object number)
 {
   CHECK_NUMBER_OR_FLOAT (number);
 
@@ -2454,8 +2353,7 @@ DEFUN ("zerop", Fzerop, Szerop, 1, 1, 0,
    when the value fits in one.  */
 
 Lisp_Object
-long_to_cons (i)
-     unsigned long i;
+long_to_cons (long unsigned int i)
 {
   unsigned long top = i >> 16;
   unsigned int bot = i & 0xFFFF;
@@ -2467,8 +2365,7 @@ long_to_cons (i)
 }
 
 unsigned long
-cons_to_long (c)
-     Lisp_Object c;
+cons_to_long (Lisp_Object c)
 {
   Lisp_Object top, bot;
   if (INTEGERP (c))
@@ -2484,8 +2381,7 @@ DEFUN ("number-to-string", Fnumber_to_string, Snumber_to_string, 1, 1, 0,
        doc: /* Return the decimal representation of NUMBER as a string.
 Uses a minus sign if negative.
 NUMBER may be an integer or a floating point number.  */)
-     (number)
-     Lisp_Object number;
+  (Lisp_Object number)
 {
   char buffer[VALBITS];
 
@@ -2509,8 +2405,7 @@ NUMBER may be an integer or a floating point number.  */)
 }
 
 INLINE static int
-digit_to_number (character, base)
-     int character, base;
+digit_to_number (int character, int base)
 {
   int digit;
 
@@ -2537,8 +2432,7 @@ It ignores leading spaces and tabs, and all trailing chars.
 If BASE, interpret STRING as a number in that base.  If BASE isn't
 present, base 10 is used.  BASE must be between 2 and 16 (inclusive).
 If the base used is not 10, STRING is always parsed as integer.  */)
-     (string, base)
-     register Lisp_Object string, base;
+  (register Lisp_Object string, Lisp_Object base)
 {
   register unsigned char *p;
   register int b;
@@ -2607,13 +2501,10 @@ enum arithop
 
 static Lisp_Object float_arith_driver (double, int, enum arithop,
                                        int, Lisp_Object *);
-extern Lisp_Object fmod_float ();
+extern Lisp_Object fmod_float (Lisp_Object, Lisp_Object);
 
 Lisp_Object
-arith_driver (code, nargs, args)
-     enum arithop code;
-     int nargs;
-     register Lisp_Object *args;
+arith_driver (enum arithop code, int nargs, register Lisp_Object *args)
 {
   register Lisp_Object val;
   register int argnum;
@@ -2698,12 +2589,7 @@ arith_driver (code, nargs, args)
 #define isnan(x) ((x) != (x))
 
 static Lisp_Object
-float_arith_driver (accum, argnum, code, nargs, args)
-     double accum;
-     register int argnum;
-     enum arithop code;
-     int nargs;
-     register Lisp_Object *args;
+float_arith_driver (double accum, register int argnum, enum arithop code, int nargs, register Lisp_Object *args)
 {
   register Lisp_Object val;
   double next;
@@ -2765,9 +2651,7 @@ float_arith_driver (accum, argnum, code, nargs, args)
 DEFUN ("+", Fplus, Splus, 0, MANY, 0,
        doc: /* Return sum of any number of arguments, which are numbers or markers.
 usage: (+ &rest NUMBERS-OR-MARKERS)  */)
-     (nargs, args)
-     int nargs;
-     Lisp_Object *args;
+  (int nargs, Lisp_Object *args)
 {
   return arith_driver (Aadd, nargs, args);
 }
@@ -2777,9 +2661,7 @@ DEFUN ("-", Fminus, Sminus, 0, MANY, 0,
 With one arg, negates it.  With more than one arg,
 subtracts all but the first from the first.
 usage: (- &optional NUMBER-OR-MARKER &rest MORE-NUMBERS-OR-MARKERS)  */)
-     (nargs, args)
-     int nargs;
-     Lisp_Object *args;
+  (int nargs, Lisp_Object *args)
 {
   return arith_driver (Asub, nargs, args);
 }
@@ -2787,9 +2669,7 @@ usage: (- &optional NUMBER-OR-MARKER &rest MORE-NUMBERS-OR-MARKERS)  */)
 DEFUN ("*", Ftimes, Stimes, 0, MANY, 0,
        doc: /* Return product of any number of arguments, which are numbers or markers.
 usage: (* &rest NUMBERS-OR-MARKERS)  */)
-     (nargs, args)
-     int nargs;
-     Lisp_Object *args;
+  (int nargs, Lisp_Object *args)
 {
   return arith_driver (Amult, nargs, args);
 }
@@ -2798,9 +2678,7 @@ DEFUN ("/", Fquo, Squo, 2, MANY, 0,
        doc: /* Return first argument divided by all the remaining arguments.
 The arguments must be numbers or markers.
 usage: (/ DIVIDEND DIVISOR &rest DIVISORS)  */)
-     (nargs, args)
-     int nargs;
-     Lisp_Object *args;
+  (int nargs, Lisp_Object *args)
 {
   int argnum;
   for (argnum = 2; argnum < nargs; argnum++)
@@ -2812,8 +2690,7 @@ usage: (/ DIVIDEND DIVISOR &rest DIVISORS)  */)
 DEFUN ("%", Frem, Srem, 2, 2, 0,
        doc: /* Return remainder of X divided by Y.
 Both must be integers or markers.  */)
-     (x, y)
-     register Lisp_Object x, y;
+  (register Lisp_Object x, Lisp_Object y)
 {
   Lisp_Object val;
 
@@ -2854,8 +2731,7 @@ DEFUN ("mod", Fmod, Smod, 2, 2, 0,
        doc: /* Return X modulo Y.
 The result falls between zero (inclusive) and Y (exclusive).
 Both X and Y must be numbers or markers.  */)
-     (x, y)
-     register Lisp_Object x, y;
+  (register Lisp_Object x, Lisp_Object y)
 {
   Lisp_Object val;
   EMACS_INT i1, i2;
@@ -2886,9 +2762,7 @@ DEFUN ("max", Fmax, Smax, 1, MANY, 0,
        doc: /* Return largest of all the arguments (which must be numbers or markers).
 The value is always a number; markers are converted to numbers.
 usage: (max NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
-     (nargs, args)
-     int nargs;
-     Lisp_Object *args;
+  (int nargs, Lisp_Object *args)
 {
   return arith_driver (Amax, nargs, args);
 }
@@ -2897,9 +2771,7 @@ DEFUN ("min", Fmin, Smin, 1, MANY, 0,
        doc: /* Return smallest of all the arguments (which must be numbers or markers).
 The value is always a number; markers are converted to numbers.
 usage: (min NUMBER-OR-MARKER &rest NUMBERS-OR-MARKERS)  */)
-     (nargs, args)
-     int nargs;
-     Lisp_Object *args;
+  (int nargs, Lisp_Object *args)
 {
   return arith_driver (Amin, nargs, args);
 }
@@ -2908,9 +2780,7 @@ DEFUN ("logand", Flogand, Slogand, 0, MANY, 0,
        doc: /* Return bitwise-and of all the arguments.
 Arguments may be integers, or markers converted to integers.
 usage: (logand &rest INTS-OR-MARKERS)  */)
-     (nargs, args)
-     int nargs;
-     Lisp_Object *args;
+  (int nargs, Lisp_Object *args)
 {
   return arith_driver (Alogand, nargs, args);
 }
@@ -2919,9 +2789,7 @@ DEFUN ("logior", Flogior, Slogior, 0, MANY, 0,
        doc: /* Return bitwise-or of all the arguments.
 Arguments may be integers, or markers converted to integers.
 usage: (logior &rest INTS-OR-MARKERS)  */)
-     (nargs, args)
-     int nargs;
-     Lisp_Object *args;
+  (int nargs, Lisp_Object *args)
 {
   return arith_driver (Alogior, nargs, args);
 }
@@ -2930,9 +2798,7 @@ DEFUN ("logxor", Flogxor, Slogxor, 0, MANY, 0,
        doc: /* Return bitwise-exclusive-or of all the arguments.
 Arguments may be integers, or markers converted to integers.
 usage: (logxor &rest INTS-OR-MARKERS)  */)
-     (nargs, args)
-     int nargs;
-     Lisp_Object *args;
+  (int nargs, Lisp_Object *args)
 {
   return arith_driver (Alogxor, nargs, args);
 }
@@ -2941,8 +2807,7 @@ DEFUN ("ash", Fash, Sash, 2, 2, 0,
        doc: /* Return VALUE with its bits shifted left by COUNT.
 If COUNT is negative, shifting is actually to the right.
 In this case, the sign bit is duplicated.  */)
-     (value, count)
-     register Lisp_Object value, count;
+  (register Lisp_Object value, Lisp_Object count)
 {
   register Lisp_Object val;
 
@@ -2964,8 +2829,7 @@ DEFUN ("lsh", Flsh, Slsh, 2, 2, 0,
        doc: /* Return VALUE with its bits shifted left by COUNT.
 If COUNT is negative, shifting is actually to the right.
 In this case, zeros are shifted in on the left.  */)
-     (value, count)
-     register Lisp_Object value, count;
+  (register Lisp_Object value, Lisp_Object count)
 {
   register Lisp_Object val;
 
@@ -2986,8 +2850,7 @@ In this case, zeros are shifted in on the left.  */)
 DEFUN ("1+", Fadd1, Sadd1, 1, 1, 0,
        doc: /* Return NUMBER plus one.  NUMBER may be a number or a marker.
 Markers are converted to integers.  */)
-     (number)
-     register Lisp_Object number;
+  (register Lisp_Object number)
 {
   CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (number);
 
@@ -3001,8 +2864,7 @@ Markers are converted to integers.  */)
 DEFUN ("1-", Fsub1, Ssub1, 1, 1, 0,
        doc: /* Return NUMBER minus one.  NUMBER may be a number or a marker.
 Markers are converted to integers.  */)
-     (number)
-     register Lisp_Object number;
+  (register Lisp_Object number)
 {
   CHECK_NUMBER_OR_FLOAT_COERCE_MARKER (number);
 
@@ -3015,8 +2877,7 @@ Markers are converted to integers.  */)
 
 DEFUN ("lognot", Flognot, Slognot, 1, 1, 0,
        doc: /* Return the bitwise complement of NUMBER.  NUMBER must be an integer.  */)
-     (number)
-     register Lisp_Object number;
+  (register Lisp_Object number)
 {
   CHECK_NUMBER (number);
   XSETINT (number, ~XINT (number));
@@ -3027,7 +2888,7 @@ DEFUN ("byteorder", Fbyteorder, Sbyteorder, 0, 0, 0,
        doc: /* Return the byteorder for the machine.
 Returns 66 (ASCII uppercase B) for big endian machines or 108 (ASCII
 lowercase l) for small endian machines.  */)
-     ()
+  (void)
 {
   unsigned i = 0x04030201;
   int order = *(char *)&i == 1 ? 108 : 66;
@@ -3038,7 +2899,7 @@ lowercase l) for small endian machines.  */)
 
 
 void
-syms_of_data ()
+syms_of_data (void)
 {
   Lisp_Object error_tail, arith_tail;
 
@@ -3467,8 +3328,7 @@ syms_of_data ()
 }
 
 SIGTYPE
-arith_error (signo)
-     int signo;
+arith_error (int signo)
 {
   sigsetmask (SIGEMPTYMASK);
 
@@ -3477,7 +3337,7 @@ arith_error (signo)
 }
 
 void
-init_data ()
+init_data (void)
 {
   /* Don't do this if just dumping out.
      We don't want to call `signal' in this case

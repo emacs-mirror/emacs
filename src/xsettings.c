@@ -54,9 +54,7 @@ static GConfClient *gconf_client;
 
 
 static void
-store_config_changed_event (arg, display_name)
-     Lisp_Object arg;
-     Lisp_Object display_name;
+store_config_changed_event (Lisp_Object arg, Lisp_Object display_name)
 {
   struct input_event event;
   EVENT_INIT (event);
@@ -102,11 +100,10 @@ struct xsettings
    that is SYSTEM_MONO_FONT.  */
 
 static void
-something_changedCB (client, cnxn_id, entry, user_data)
-     GConfClient *client;
-     guint cnxn_id;
-     GConfEntry *entry;
-     gpointer user_data;
+something_changedCB (GConfClient *client,
+                     guint cnxn_id,
+                     GConfEntry *entry,
+                     gpointer user_data)
 {
   GConfValue *v = gconf_entry_get_value (entry);
   
@@ -114,7 +111,6 @@ something_changedCB (client, cnxn_id, entry, user_data)
   if (v->type == GCONF_VALUE_STRING)
     {
       const char *value = gconf_value_get_string (v);
-      int i;
       if (current_mono_font != NULL && strcmp (value, current_mono_font) == 0)
         return; /* No change. */
 
@@ -156,8 +152,7 @@ something_changedCB (client, cnxn_id, entry, user_data)
 /* Find the window that contains the XSETTINGS property values.  */
 
 static void
-get_prop_window (dpyinfo)
-     struct x_display_info *dpyinfo;
+get_prop_window (struct x_display_info *dpyinfo)
 {
   Display *dpy = dpyinfo->display;
 
@@ -229,10 +224,9 @@ get_prop_window (dpyinfo)
 */
 
 static int
-parse_settings (prop, bytes, settings)
-     unsigned char *prop;
-     unsigned long bytes;
-     struct xsettings *settings;
+parse_settings (unsigned char *prop,
+                long unsigned int bytes,
+                struct xsettings *settings)
 {
   Lisp_Object byteorder = Fbyteorder ();
   int my_bo = XFASTINT (byteorder) == 'B' ? MSBFirst : LSBFirst;
@@ -402,11 +396,8 @@ parse_settings (prop, bytes, settings)
 }
 
 static int
-read_settings (dpyinfo, settings)
-     struct x_display_info *dpyinfo;
-     struct xsettings *settings;
+read_settings (struct x_display_info *dpyinfo, struct xsettings *settings)
 {
-  long long_len;
   Atom act_type;
   int act_form;
   unsigned long nitems, bytes_after;
@@ -435,10 +426,9 @@ read_settings (dpyinfo, settings)
 
 
 static void
-apply_xft_settings (dpyinfo, send_event_p, settings)
-     struct x_display_info *dpyinfo;
-     int send_event_p;
-     struct xsettings *settings;
+apply_xft_settings (struct x_display_info *dpyinfo,
+                    int send_event_p,
+                    struct xsettings *settings)
 {
 #ifdef HAVE_XFT
   FcPattern *pat;
@@ -546,9 +536,7 @@ apply_xft_settings (dpyinfo, send_event_p, settings)
 }
 
 static void
-read_and_apply_settings (dpyinfo, send_event_p)
-     struct x_display_info *dpyinfo;
-     int send_event_p;
+read_and_apply_settings (struct x_display_info *dpyinfo, int send_event_p)
 {
   struct xsettings settings;
   Lisp_Object dpyname = XCAR (dpyinfo->name_list_element);
@@ -592,9 +580,7 @@ read_and_apply_settings (dpyinfo, send_event_p)
 }
 
 void
-xft_settings_event (dpyinfo, event)
-     struct x_display_info *dpyinfo;
-     XEvent *event;
+xft_settings_event (struct x_display_info *dpyinfo, XEvent *event)
 {
   int check_window_p = 0;
   int apply_settings = 0;
@@ -636,10 +622,9 @@ xft_settings_event (dpyinfo, event)
 
 
 static void
-init_gconf ()
+init_gconf (void)
 {
 #if defined (HAVE_GCONF) && defined (HAVE_XFT)
-  int i;
   char *s;
 
   g_type_init ();
@@ -669,8 +654,7 @@ init_gconf ()
 }
 
 static void
-init_xsettings (dpyinfo)
-     struct x_display_info *dpyinfo;
+init_xsettings (struct x_display_info *dpyinfo)
 {
   char sel[64];
   Display *dpy = dpyinfo->display;
@@ -696,8 +680,7 @@ init_xsettings (dpyinfo)
 }
 
 void
-xsettings_initialize (dpyinfo)
-     struct x_display_info *dpyinfo;
+xsettings_initialize (struct x_display_info *dpyinfo)
 {
   if (first_dpyinfo == NULL) first_dpyinfo = dpyinfo;
   init_gconf ();
@@ -705,13 +688,13 @@ xsettings_initialize (dpyinfo)
 }
 
 const char *
-xsettings_get_system_font ()
+xsettings_get_system_font (void)
 {
   return current_mono_font;
 }
 
 const char *
-xsettings_get_system_normal_font ()
+xsettings_get_system_normal_font (void)
 {
   return current_font;
 }
@@ -720,7 +703,7 @@ DEFUN ("font-get-system-normal-font", Ffont_get_system_normal_font,
        Sfont_get_system_normal_font,
        0, 0, 0,
        doc: /* Get the system default application font. */)
-  ()
+  (void)
 {
   return current_font
     ? make_string (current_font, strlen (current_font))
@@ -730,7 +713,7 @@ DEFUN ("font-get-system-normal-font", Ffont_get_system_normal_font,
 DEFUN ("font-get-system-font", Ffont_get_system_font, Sfont_get_system_font,
        0, 0, 0,
        doc: /* Get the system default fixed width font. */)
-  ()
+  (void)
 {
   return current_mono_font
     ? make_string (current_mono_font, strlen (current_mono_font))
@@ -742,7 +725,7 @@ DEFUN ("tool-bar-get-system-style", Ftool_bar_get_system_style, Stool_bar_get_sy
        doc: /* Get the system tool bar style.
 If no system tool bar style is known, return `tool-bar-style' if set to a
 known style.  Otherwise return image.  */)
-  ()
+  (void)
 {
   if (EQ (Vtool_bar_style, Qimage)
       || EQ (Vtool_bar_style, Qtext)
@@ -755,7 +738,7 @@ known style.  Otherwise return image.  */)
 }
 
 void
-syms_of_xsettings ()
+syms_of_xsettings (void)
 {
   current_mono_font = NULL;
   current_font = NULL;

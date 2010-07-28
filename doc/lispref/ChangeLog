@@ -1,3 +1,15 @@
+2010-07-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* modes.texi (Defining Minor Modes): Use C-delete in examples,
+	instead of "\C-\^?" (bug#6334).
+
+	* text.texi (Special Properties): Fix typo.
+
+2010-07-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* internals.texi (Writing Emacs Primitives): Adapt to ANSI C
+	calling sequences, which are now the standard.
+
 2010-06-26  Martin Rudalics  <rudalics@gmx.at>
 
 	* windows.texi: Adapt node references accordingly.  Add new
@@ -59,6 +71,29 @@
 	* buffers.texi: Adapt node references accordingly.
 
 	* positions.texi: Adapt node references accordingly.
+2010-06-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* text.texi (Undo): Clarify command loop behavior (Bug#2433).
+
+	* commands.texi (Command Overview): Mention undo-boundary call.
+
+2010-06-23  Glenn Morris  <rgm@gnu.org>
+
+	* abbrevs.texi, commands.texi, compile.texi, debugging.texi:
+	* display.texi, edebug.texi, elisp.texi, eval.texi, files.texi:
+	* frames.texi, functions.texi, internals.texi, keymaps.texi:
+	* loading.texi, minibuf.texi, numbers.texi, os.texi, processes.texi:
+	* searching.texi, sequences.texi, strings.texi, syntax.texi:
+	* text.texi, tips.texi, vol1.texi, vol2.texi, windows.texi:
+	Untabify Texinfo files.
+
+2010-06-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* modes.texi (Minor Mode Conventions): Fix typo (Bug#6477).
+
+2010-06-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* errors.texi (Standard Errors): Remove unnecessary markup (Bug#6461).
 
 2010-06-02  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -77,8 +112,7 @@
 
 2010-05-22  Chong Yidong  <cyd@stupidchicken.com>
 
-	* display.texi (Image Cache): Update documentation about image
-	caching.
+	* display.texi (Image Cache): Update documentation about image caching.
 
 2010-05-08  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
 
@@ -6049,7 +6083,7 @@
 2005-02-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* frames.texi (Color Names): Add pointer to the X docs about RGB
-	color specifications.  Improve indexing
+	color specifications.  Improve indexing.
 	(Text Terminal Colors): Replace the description of RGB values by
 	an xref to "Color Names".
 
@@ -7812,7 +7846,7 @@
 	* minibuf.texi (Reading File Names): read-file-name has new
 	arg PREDICATE.  New function read-directory-name.
 
-	* macros.texi (Defining Macros): Give definition of `declare'
+	* macros.texi (Defining Macros): Give definition of `declare'.
 	(Indenting Macros): New node.
 
 	* frames.texi (Parameter Access): Add modify-all-frames-parameters.
@@ -7916,7 +7950,7 @@
 	* numbers.texi (Integer Basics): Add most-positive-fixnum,
 	most-negative-fixnum.
 
-	* compile.texi (Byte Compilation): Explain no-byte-compile
+	* compile.texi (Byte Compilation): Explain no-byte-compile.
 	(Compiler Errors): New node.
 
 	* os.texi (User Identification): user-uid, user-real-uid

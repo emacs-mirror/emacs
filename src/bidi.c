@@ -49,16 +49,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    rule X9 and to its modifications decribed in the "Implementation
    Notes" section of UAX#9, under "Retaining Format Codes".  */
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
-
 #include <stdio.h>
-
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
-
 #include <setjmp.h>
 
 #include "lisp.h"
@@ -106,7 +99,7 @@ static Lisp_Object paragraph_start_re, paragraph_separate_re;
 static Lisp_Object Qparagraph_start, Qparagraph_separate;
 
 static void
-bidi_initialize ()
+bidi_initialize (void)
 {
 
 #include "biditype.h"

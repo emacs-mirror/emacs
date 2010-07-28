@@ -1,5 +1,5 @@
-		      Building and Installing Emacs
-		on Windows NT/2K/XP and Windows 95/98/ME
+		    Building and Installing Emacs on Windows
+                          (from 95 to 7 and beyond)
 
   Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
     Free Software Foundation, Inc.
@@ -158,7 +158,7 @@
         emacs source with text!=binary.
     [2] fails when needs to invoke shell commands; okay invoking gcc etc.
     [3] requires LC_MESSAGES support to build; cannot build with early
-        versions of cygwin.
+        versions of Cygwin.
     [4] may fail on Windows 9X and Windows ME; if so, install Bash.
     [5] fails when building leim due to the use of cygwin style paths.
         May work if building emacs without leim.
@@ -174,8 +174,8 @@
   like this, we recommend the use of the supported compilers mentioned
   in the previous paragraph.
 
-  You will also need a copy of the Posix cp, rm and mv programs.  These
-  and other useful Posix utilities can be obtained from one of several
+  You will also need a copy of the POSIX cp, rm and mv programs.  These
+  and other useful POSIX utilities can be obtained from one of several
   projects:
 
   * http://gnuwin32.sourceforge.net/              ( GnuWin32 )
@@ -183,13 +183,12 @@
   * http://www.cygwin.com/                        ( Cygwin   )
   * http://unxutils.sourceforge.net/              ( UnxUtils )
 
-  If you build Emacs on Windows 9X or ME, not on Windows 2K/XP or
-  Windows NT, we suggest to install the Cygwin port of Bash.  That is
-  because the native Windows shell COMMAND.COM is too limited; the
-  Emacs build procedure tries very hard to support even such limited
-  shells, but as none of the Windows developers of Emacs work on
-  Windows 9x, we cannot guarantee that it works without a more
-  powerful shell.
+  If you build Emacs on 16-bit versions of Windows (9X or ME), we
+  suggest to install the Cygwin port of Bash.  That is because the
+  native Windows shell COMMAND.COM is too limited; the Emacs build
+  procedure tries very hard to support even such limited shells, but
+  as none of the Windows developers of Emacs work on Windows 9X, we
+  cannot guarantee that it works without a more powerful shell.
 
   Additional instructions and help for building Emacs on Windows can be
   found at the Emacs Wiki:
@@ -224,7 +223,7 @@
 
   N.B.  It is normal to see a few error messages output while configure
   is running, when gcc support is being tested.  These cannot be
-  suppressed because of limitations in the Windows 9x command.com shell.
+  suppressed because of limitations in the Windows 9X command.com shell.
 
   You are encouraged to look at the file config.log which shows details
   for failed tests, after configure.bat finishes.  Any unexplained failure
@@ -248,6 +247,10 @@
   programs and compiler error messages that should explain what is
   wrong.  (Usually, any such failures happen because some headers are
   missing due to bad packaging of the image support libraries.)
+
+  Note that any file path passed to the compiler or linker must use
+  forward slashes; using backslashes will cause compiler warnings or
+  errors about unrecognized escape sequences.
 
   To use the external image support, the DLLs implementing the
   functionality must be found when Emacs first needs them, either on the
@@ -403,6 +406,9 @@
   Removes the installed files in the bin subdirectory in addition to
   the files removed by make cleanall.
 
+  make dist
+  Builds Emacs from the available sources and pre-compiled lisp files.
+  Packages Emacs binaries as full distribution and barebin distribution.
 
   The following targets are intended only for use with the Bazaar sources.
 
@@ -425,15 +431,41 @@
   bootstrap to rebuild.  Occasionally it may be necessary to run this
   target after an update.
 
+* Creating binary distributions
+
+  Binary distributions (full and barebin distributions) can be
+  automatically built and packaged from source tarballs or a bzr
+  checkout.
+
+  When building Emacs binary distributions, the --distfiles argument
+  to configure.bat specifies files to be included in the bin directory
+  of the binary distributions. This is intended for libraries that are
+  not built as part of Emacs, e.g. image libraries.
+
+  For example, specifying
+
+	--distfiles D:\distfiles\libXpm.dll
+
+  results in libXpm.dll being copied from D:\distfiles to the
+  bin directory before packaging starts.
+
+  Multiple files can be specified using multiple --distfiles arguments:
+
+	--distfiles D:\distfiles\libXpm.dll --distfiles C:\jpeglib\jpeg.dll
+
+  For packaging the binary distributions, the 'dist' make target uses
+  7-Zip (http://www.7-zip.org), which must be installed and available
+  on the Windows Path.
+
 
 * Trouble-shooting
 
   The main problems that are likely to be encountered when building
   Emacs stem from using an old version of GCC, or old MinGW or W32 API
-  headers.  Additionally, cygwin ports of GNU make may require the Emacs
+  headers.  Additionally, Cygwin ports of GNU make may require the Emacs
   source tree to be mounted with text!=binary, because the makefiles
   generated by configure.bat necessarily use DOS line endings.  Also,
-  cygwin ports of make must run in UNIX mode, either by specifying
+  Cygwin ports of make must run in UNIX mode, either by specifying
   --unix on the command line, or MAKE_MODE=UNIX in the environment.
 
   When configure runs, it attempts to detect when GCC itself, or the

@@ -3666,11 +3666,11 @@ a mistake; see the documentation of `set-mark'."
       (marker-position (mark-marker))
     (signal 'mark-inactive nil)))
 
-(defcustom select-active-regions nil
+(defcustom select-active-regions t
   "If non-nil, an active region automatically becomes the window selection."
   :type 'boolean
   :group 'killing
-  :version "23.1")
+  :version "24.1")
 
 (declare-function x-selection-owner-p "xselect.c" (&optional selection))
 
@@ -3707,9 +3707,13 @@ This function also runs `deactivate-mark-hook'."
     (setq mark-active t)
     (unless transient-mark-mode
       (setq transient-mark-mode 'lambda))
-    (when (and select-active-regions
-	       (display-selections-p))
-      (x-set-selection 'PRIMARY (current-buffer)))))
+    (select-active-region)))
+
+(defsubst select-active-region ()
+  "Set the PRIMARY X selection if `select-active-regions' is non-nil."
+  (and select-active-regions
+       (display-selections-p)
+       (x-set-selection 'PRIMARY (current-buffer))))
 
 (defun set-mark (pos)
   "Set this buffer's mark to POS.  Don't use this function!
@@ -3732,9 +3736,7 @@ store it in a Lisp variable.  Example:
       (progn
 	(setq mark-active t)
 	(run-hooks 'activate-mark-hook)
-	(when (and select-active-regions
-		   (display-selections-p))
-	  (x-set-selection 'PRIMARY (current-buffer)))
+	(select-active-region)
 	(set-marker (mark-marker) pos (current-buffer)))
     ;; Normally we never clear mark-active except in Transient Mark mode.
     ;; But when we actually clear out the mark value too, we must
@@ -3760,10 +3762,9 @@ point otherwise."
 This is used by commands that act specially on the region under
 Transient Mark mode.
 
-The return value is t provided Transient Mark mode is enabled and
-the mark is active; and, when `use-empty-active-region' is
-non-nil, provided the region is empty.  Otherwise, the return
-value is nil.
+The return value is t if Transient Mark mode is enabled and the
+mark is active; furthermore, if `use-empty-active-region' is nil,
+the region must not be empty.  Otherwise, the return value is nil.
 
 For some commands, it may be appropriate to ignore the value of
 `use-empty-active-region'; in that case, use `region-active-p'."
@@ -3819,6 +3820,7 @@ Display `Mark set' unless the optional second arg NOMSG is non-nil."
 	(push-mark nil nomsg t)
       (setq mark-active t)
       (run-hooks 'activate-mark-hook)
+      (select-active-region)
       (unless nomsg
 	(message "Mark activated")))))
 
@@ -4006,9 +4008,12 @@ Otherwise, if the region has been activated temporarily,
 deactivate it, and restore the variable `transient-mark-mode' to
 its earlier value."
   (cond ((and shift-select-mode this-command-keys-shift-translated)
-         (unless (and mark-active
-                      (eq (car-safe transient-mark-mode) 'only))
-           (setq transient-mark-mode
+         (if (and mark-active
+		  (eq (car-safe transient-mark-mode) 'only))
+	     ;; Another program may have grabbed the selection; make
+	     ;; sure we get it back now.
+	     (select-active-region)
+	   (setq transient-mark-mode
                  (cons 'only
                        (unless (eq transient-mark-mode 'lambda)
                          transient-mark-mode)))
@@ -6522,6 +6527,7 @@ call `normal-erase-is-backspace-mode' (which see) instead."
        (if (if (eq normal-erase-is-backspace 'maybe)
                (and (not noninteractive)
                     (or (memq system-type '(ms-dos windows-nt))
+			(memq window-system '(ns))
                         (and (memq window-system '(x))
                              (fboundp 'x-backspace-delete-keys-p)
                              (x-backspace-delete-keys-p))

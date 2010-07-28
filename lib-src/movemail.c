@@ -69,6 +69,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif
 #include "syswait.h"
 #ifdef MAIL_USE_POP
 #include "pop.h"
@@ -140,25 +143,23 @@ static char *mail_spool_name ();
 #endif
 #endif
 
+#ifndef HAVE_STRERROR
 char *strerror (int);
-#ifdef HAVE_INDEX
-extern char *index (const char *, int);
-#endif
-#ifdef HAVE_RINDEX
-extern char *rindex (const char *, int);
 #endif
 
-void fatal (char *s1, char *s2, char *s3);
-void error (char *s1, char *s2, char *s3);
-void pfatal_with_name (char *name);
-void pfatal_and_delete (char *name);
-char *concat (char *s1, char *s2, char *s3);
-long *xmalloc (unsigned int size);
-int popmail (char *mailbox, char *outfile, int preserve, char *password, int reverse_order);
-int pop_retr (popserver server, int msgno, FILE *arg);
-int mbx_write (char *line, int len, FILE *mbf);
-int mbx_delimit_begin (FILE *mbf);
-int mbx_delimit_end (FILE *mbf);
+static void fatal (char *s1, char *s2, char *s3) NO_RETURN;
+static void error (char *s1, char *s2, char *s3);
+static void pfatal_with_name (char *name) NO_RETURN;
+static void pfatal_and_delete (char *name) NO_RETURN;
+static char *concat (char *s1, char *s2, char *s3);
+static long *xmalloc (unsigned int size);
+#ifdef MAIL_USE_POP
+static int popmail (char *mailbox, char *outfile, int preserve, char *password, int reverse_order);
+static int pop_retr (popserver server, int msgno, FILE *arg);
+static int mbx_write (char *line, int len, FILE *mbf);
+static int mbx_delimit_begin (FILE *mbf);
+static int mbx_delimit_end (FILE *mbf);
+#endif
 
 /* Nonzero means this is name of a lock file to delete on fatal error.  */
 char *delete_lockname;
@@ -557,7 +558,7 @@ mail_spool_name (inname)
   char *indir, *fname;
   int status;
 
-  if (! (fname = rindex (inname, '/')))
+  if (! (fname = strrchr (inname, '/')))
     return NULL;
 
   fname++;
@@ -587,7 +588,7 @@ mail_spool_name (inname)
 
 /* Print error message and exit.  */
 
-void
+static void
 fatal (char *s1, char *s2, char *s3)
 {
   if (delete_lockname)
@@ -599,7 +600,7 @@ fatal (char *s1, char *s2, char *s3)
 /* Print error message.  `s1' is printf control string, `s2' and `s3'
    are args for it or null. */
 
-void
+static void
 error (char *s1, char *s2, char *s3)
 {
   fprintf (stderr, "movemail: ");
@@ -612,13 +613,13 @@ error (char *s1, char *s2, char *s3)
   fprintf (stderr, "\n");
 }
 
-void
+static void
 pfatal_with_name (char *name)
 {
   fatal ("%s for %s", strerror (errno), name);
 }
 
-void
+static void
 pfatal_and_delete (char *name)
 {
   char *s = strerror (errno);
@@ -628,7 +629,7 @@ pfatal_and_delete (char *name)
 
 /* Return a newly-allocated string whose contents concatenate those of s1, s2, s3.  */
 
-char *
+static char *
 concat (char *s1, char *s2, char *s3)
 {
   int len1 = strlen (s1), len2 = strlen (s2), len3 = strlen (s3);
@@ -644,7 +645,7 @@ concat (char *s1, char *s2, char *s3)
 
 /* Like malloc but get fatal error if memory is exhausted.  */
 
-long *
+static long *
 xmalloc (unsigned int size)
 {
   long *result = (long *) malloc (size);
@@ -694,7 +695,7 @@ char Errmsg[200];		/* POP errors, at least, can exceed
  * Return a value suitable for passing to `exit'.
  */
 
-int
+static int
 popmail (char *mailbox, char *outfile, int preserve, char *password, int reverse_order)
 {
   int nmsgs, nbytes;
@@ -707,7 +708,7 @@ popmail (char *mailbox, char *outfile, int preserve, char *password, int reverse
   char *user, *hostname;
 
   user = mailbox;
-  if ((hostname = index(mailbox, ':')))
+  if ((hostname = strchr (mailbox, ':')))
     *hostname++ = '\0';
 
   server = pop_open (hostname, user, password, POP_NO_GETPASS);
@@ -820,10 +821,9 @@ popmail (char *mailbox, char *outfile, int preserve, char *password, int reverse
   return EXIT_SUCCESS;
 }
 
-int
+static int
 pop_retr (popserver server, int msgno, FILE *arg)
 {
-  extern char *strerror (int);
   char *line;
   int ret;
 
@@ -868,7 +868,7 @@ pop_retr (popserver server, int msgno, FILE *arg)
 			 && (a[3] == 'm') \
 			 && (a[4] == ' '))
 
-int
+static int
 mbx_write (char *line, int len, FILE *mbf)
 {
 #ifdef MOVEMAIL_QUOTE_POP_FROM_LINES
@@ -892,7 +892,7 @@ mbx_write (char *line, int len, FILE *mbf)
   return (OK);
 }
 
-int
+static int
 mbx_delimit_begin (FILE *mbf)
 {
   time_t now;
@@ -909,7 +909,7 @@ mbx_delimit_begin (FILE *mbf)
   return (OK);
 }
 
-int
+static int
 mbx_delimit_end (FILE *mbf)
 {
   if (putc ('\n', mbf) == EOF)

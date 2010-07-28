@@ -5,6 +5,9 @@
 @c @setchapternewpage odd
 @c %**end of header
 
+@syncodeindex vr cp
+@syncodeindex fn cp
+
 @copying
 Copyright @copyright{} 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
@@ -51,6 +54,8 @@ another.  An overview of D-Bus can be found at
 * Receiving Method Calls::      Offering own methods.
 * Signals::                     Sending and receiving signals.
 * Errors and Events::           Errors and events.
+* Index::                       Index including concepts, functions, variables.
+
 * GNU Free Documentation License:: The license for this documentation.
 @end menu
 
@@ -418,7 +423,8 @@ Example:
 @result{} "/org/freedesktop/SystemToolsBackends/UsersConfig"
 @end lisp
 
-If @var{object} has no @var{attribute}, the function returns nil.
+If @var{object} has no @var{attribute}, the function returns
+@code{nil}.
 @end defun
 
 
@@ -669,7 +675,7 @@ A @var{property} value can be retrieved by the function
 @defun dbus-get-property bus service path interface property
 This function returns the value of @var{property} of @var{interface}.
 It will be checked at @var{bus}, @var{service}, @var{path}.  The
-result can be any valid D-Bus value, or nil if there is no
+result can be any valid D-Bus value, or @code{nil} if there is no
 @var{property}.  Example:
 
 @lisp
@@ -863,12 +869,12 @@ Lisp function call.  The following mapping to D-Bus types is
 applied, when the corresponding D-Bus message is created:
 
 @example
-@multitable {@code{t} and @code{nil}} {@expansion{}} {DBUS_TYPE_BOOLEAN}
+@multitable {negative integer} {@expansion{}} {DBUS_TYPE_BOOLEAN}
 @item Lisp type               @tab              @tab D-Bus type
 @item
 @item @code{t} and @code{nil} @tab @expansion{} @tab DBUS_TYPE_BOOLEAN
-@item number                  @tab @expansion{} @tab DBUS_TYPE_UINT32
-@item integer                 @tab @expansion{} @tab DBUS_TYPE_INT32
+@item natural number          @tab @expansion{} @tab DBUS_TYPE_UINT32
+@item negative integer        @tab @expansion{} @tab DBUS_TYPE_INT32
 @item float                   @tab @expansion{} @tab DBUS_TYPE_DOUBLE
 @item string                  @tab @expansion{} @tab DBUS_TYPE_STRING
 @item list                    @tab @expansion{} @tab DBUS_TYPE_ARRAY
@@ -889,19 +895,19 @@ types are represented by the type symbols @code{:byte},
 Example:
 
 @lisp
-(dbus-call-method @dots{} @var{NUMBER} @var{STRING})
+(dbus-call-method @dots{} @var{NAT-NUMBER} @var{STRING})
 @end lisp
 
 is equivalent to
 
 @lisp
-(dbus-call-method @dots{} :uint32 @var{NUMBER} :string @var{STRING})
+(dbus-call-method @dots{} :uint32 @var{NAT-NUMBER} :string @var{STRING})
 @end lisp
 
 but different to
 
 @lisp
-(dbus-call-method @dots{} :int32 @var{NUMBER} :signature @var{STRING})
+(dbus-call-method @dots{} :int32 @var{NAT-NUMBER} :signature @var{STRING})
 @end lisp
 
 The value for a byte D-Bus type can be any integer in the range 0
@@ -994,17 +1000,17 @@ Output parameters of D-Bus methods and signals are mapped to Lisp
 objects.
 
 @example
-@multitable {DBUS_TYPE_OBJECT_PATH} {@expansion{}} {@code{t} or @code{nil}}
+@multitable {DBUS_TYPE_OBJECT_PATH} {@expansion{}} {natural number or float}
 @item D-Bus type            @tab              @tab Lisp type
 @item
 @item DBUS_TYPE_BOOLEAN     @tab @expansion{} @tab @code{t} or @code{nil}
-@item DBUS_TYPE_BYTE        @tab @expansion{} @tab number
-@item DBUS_TYPE_UINT16      @tab @expansion{} @tab number
-@item DBUS_TYPE_INT16       @tab @expansion{} @tab number
-@item DBUS_TYPE_UINT32      @tab @expansion{} @tab number or float
-@item DBUS_TYPE_INT32       @tab @expansion{} @tab number or float
-@item DBUS_TYPE_UINT64      @tab @expansion{} @tab number or float
-@item DBUS_TYPE_INT64       @tab @expansion{} @tab number or float
+@item DBUS_TYPE_BYTE        @tab @expansion{} @tab natural number
+@item DBUS_TYPE_UINT16      @tab @expansion{} @tab natural number
+@item DBUS_TYPE_INT16       @tab @expansion{} @tab integer
+@item DBUS_TYPE_UINT32      @tab @expansion{} @tab natural number or float
+@item DBUS_TYPE_INT32       @tab @expansion{} @tab integer or float
+@item DBUS_TYPE_UINT64      @tab @expansion{} @tab natural number or float
+@item DBUS_TYPE_INT64       @tab @expansion{} @tab integer or float
 @item DBUS_TYPE_DOUBLE      @tab @expansion{} @tab float
 @item DBUS_TYPE_STRING      @tab @expansion{} @tab string
 @item DBUS_TYPE_OBJECT_PATH @tab @expansion{} @tab string
@@ -1030,7 +1036,7 @@ The signal @code{PropertyModified}, discussed as example in
 (@var{BOOL} stands here for either @code{nil} or @code{t}):
 
 @lisp
-(@var{NUMBER} ((@var{STRING} @var{BOOL} @var{BOOL}) (@var{STRING} @var{BOOL} @var{BOOL}) @dots{}))
+(@var{INTEGER} ((@var{STRING} @var{BOOL} @var{BOOL}) (@var{STRING} @var{BOOL} @var{BOOL}) @dots{}))
 @end lisp
 
 @defun dbus-byte-array-to-string byte-array
@@ -1359,7 +1365,7 @@ The test runs then
 @end example
 @end defun
 
-@defun dbus-register-property bus service path interface property access value
+@defun dbus-register-property bus service path interface property access value &optional emits-signal
 With this function, an application declares a @var{property} on the D-Bus
 @var{bus}.
 
@@ -1387,7 +1393,12 @@ only way to change their values.  Properties with access type
 
 The interface @samp{org.freedesktop.DBus.Properties} is added to
 @var{path}, including a default handler for the @samp{Get},
-@samp{GetAll} and @samp{Set} methods of this interface.  Example:
+@samp{GetAll} and @samp{Set} methods of this interface.  When
+@var{emits-signal} is non-@code{nil}, the signal
+@samp{PropertiesChanged} is sent when the property is changed by
+@code{dbus-set-property}.
+
+@noindent Example:
 
 @lisp
 (dbus-register-property
@@ -1399,7 +1410,7 @@ The interface @samp{org.freedesktop.DBus.Properties} is added to
 
 (dbus-register-property
   :session "org.freedesktop.TextEditor" "/org/freedesktop/TextEditor"
-  "org.freedesktop.TextEditor" "version" :readwrite emacs-version)
+  "org.freedesktop.TextEditor" "version" :readwrite emacs-version t)
 
 @result{} ((:session "org.freedesktop.TextEditor" "version")
     ("org.freedesktop.TextEditor" "/org/freedesktop/TextEditor"))
@@ -1570,8 +1581,15 @@ which objects the GNU/Linux @code{hal} daemon adds.
 
 @node Errors and Events
 @chapter Errors and events.
+@cindex debugging
 @cindex errors
 @cindex events
+
+The internal actions can be traced by running in a debug mode.
+
+@defvar dbus-debug
+If this variable is non-@code{nil}, D-Bus specific debug messages are raised.
+@end defvar
 
 Input parameters of @code{dbus-call-method},
 @code{dbus-call-method-non-blocking},
@@ -1587,8 +1605,7 @@ appended to the @code{dbus-error}.
 @defspec dbus-ignore-errors forms@dots{}
 This executes @var{forms} exactly like a @code{progn}, except that
 @code{dbus-error} errors are ignored during the @var{forms}.  These
-errors can be made visible when variable @code{dbus-debug} is set to
-@code{t}.
+errors can be made visible when @code{dbus-debug} is set to @code{t}.
 @end defspec
 
 Incoming D-Bus messages are handled as Emacs events, see @pxref{Misc
@@ -1636,12 +1653,12 @@ The result is either the symbol @code{:system} or the symbol @code{:session}.
 
 @defun dbus-event-message-type event
 Returns the message type of the corresponding D-Bus message.  The
-result is a number.
+result is a natural number.
 @end defun
 
 @defun dbus-event-serial-number event
 Returns the serial number of the corresponding D-Bus message.
-The result is a number.
+The result is a natural number.
 @end defun
 
 @defun dbus-event-service-name event
@@ -1689,6 +1706,12 @@ Example:
 Hook functions shall take into account, that there might be other
 D-Bus applications running.  Therefore, they shall check carefully,
 whether a given D-Bus error is related to them.
+
+
+@node Index
+@unnumbered Index
+
+@printindex cp
 
 
 @node GNU Free Documentation License

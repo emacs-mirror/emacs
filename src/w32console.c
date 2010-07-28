@@ -42,13 +42,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "w32inevt.h"
 
 /* from window.c */
-extern Lisp_Object Frecenter ();
+extern Lisp_Object Frecenter (Lisp_Object);
 
 /* from keyboard.c */
-extern int detect_input_pending ();
+extern int detect_input_pending (void);
 
 /* from sysdep.c */
-extern int read_input_pending ();
+extern int read_input_pending (void);
 
 static void w32con_move_cursor (struct frame *f, int row, int col);
 static void w32con_clear_to_end (struct frame *f);
@@ -68,7 +68,7 @@ static WORD w32_face_attributes (struct frame *f, int face_id);
 static COORD	cursor_coords;
 static HANDLE	prev_screen, cur_screen;
 static WORD	char_attr_normal;
-static DWORD   prev_console_mode;
+static DWORD	prev_console_mode;
 
 #ifndef USE_SEPARATE_SCREEN
 static CONSOLE_CURSOR_INFO prev_console_cursor;
@@ -268,7 +268,8 @@ scroll_line (struct frame *f, int dist, int direction)
 
 /* If start is zero insert blanks instead of a string at start ?. */
 static void
-w32con_insert_glyphs (struct frame *f, register struct glyph *start, register int len)
+w32con_insert_glyphs (struct frame *f, register struct glyph *start,
+		      register int len)
 {
   scroll_line (f, len, RIGHT);
 
@@ -286,7 +287,7 @@ w32con_insert_glyphs (struct frame *f, register struct glyph *start, register in
     }
 }
 
-extern unsigned char *encode_terminal_code (struct glyph *, int, 
+extern unsigned char *encode_terminal_code (struct glyph *, int,
                                             struct coding_system *);
 
 static void
@@ -392,8 +393,7 @@ SOUND is 'asterisk, 'exclamation, 'hand, 'question, 'ok, or 'silent
 to use the corresponding system sound for the bell.  The 'silent sound
 prevents Emacs from making any sound at all.
 SOUND is nil to use the normal beep.  */)
-     (sound)
-     Lisp_Object sound;
+  (Lisp_Object sound)
 {
   CHECK_SYMBOL (sound);
 
@@ -438,7 +438,7 @@ w32con_reset_terminal_modes (struct terminal *t)
   FillConsoleOutputCharacter (cur_screen, ' ', n, dest, &r);
   /* Now that the screen is clear, put the cursor at the top.  */
   SetConsoleCursorPosition (cur_screen, dest);
-  
+
 #ifdef USE_SEPARATE_SCREEN
   SetConsoleActiveScreenBuffer (prev_screen);
 #else
@@ -492,7 +492,7 @@ w32con_set_terminal_window (struct frame *f, int size)
  ***********************************************************************/
 
 void
-sys_tputs (char *str, int nlines, int (*outfun)(int))
+sys_tputs (char *str, int nlines, int (*outfun) (int))
 {
 }
 
@@ -511,13 +511,13 @@ struct tty_display_info *current_tty = NULL;
 int cost = 0;
 
 int
-evalcost (char c)
+evalcost (int c)
 {
   return c;
 }
 
 int
-cmputc (char c)
+cmputc (int c)
 {
   return c;
 }
@@ -551,9 +551,7 @@ Wcm_clear (struct tty_display_info *tty)
 /* Turn appearances of face FACE_ID on tty frame F on.  */
 
 static WORD
-w32_face_attributes (f, face_id)
-     struct frame *f;
-     int face_id;
+w32_face_attributes (struct frame *f, int face_id)
 {
   WORD char_attr;
   struct face *face = FACE_FROM_ID (f, face_id);
@@ -609,8 +607,6 @@ vga_stdcolor_name (int idx)
     return Qunspecified;	/* meaning the default */
 }
 
-typedef int (*term_hook) ();
-
 void
 initialize_w32_display (struct terminal *term)
 {
@@ -618,19 +614,19 @@ initialize_w32_display (struct terminal *term)
 
   term->rif = 0; /* No window based redisplay on the console.  */
   term->cursor_to_hook		= w32con_move_cursor;
-  term->raw_cursor_to_hook		= w32con_move_cursor;
-  term->clear_to_end_hook		= w32con_clear_to_end;
-  term->clear_frame_hook		= w32con_clear_frame;
+  term->raw_cursor_to_hook	= w32con_move_cursor;
+  term->clear_to_end_hook	= w32con_clear_to_end;
+  term->clear_frame_hook	= w32con_clear_frame;
   term->clear_end_of_line_hook	= w32con_clear_end_of_line;
-  term->ins_del_lines_hook		= w32con_ins_del_lines;
-  term->insert_glyphs_hook		= w32con_insert_glyphs;
-  term->write_glyphs_hook		= w32con_write_glyphs;
-  term->delete_glyphs_hook		= w32con_delete_glyphs;
+  term->ins_del_lines_hook	= w32con_ins_del_lines;
+  term->insert_glyphs_hook	= w32con_insert_glyphs;
+  term->write_glyphs_hook	= w32con_write_glyphs;
+  term->delete_glyphs_hook	= w32con_delete_glyphs;
   term->ring_bell_hook		= w32_sys_ring_bell;
-  term->reset_terminal_modes_hook	= w32con_reset_terminal_modes;
+  term->reset_terminal_modes_hook = w32con_reset_terminal_modes;
   term->set_terminal_modes_hook	= w32con_set_terminal_modes;
-  term->set_terminal_window_hook	= w32con_set_terminal_window;
-  term->update_begin_hook		= w32con_update_begin;
+  term->set_terminal_window_hook = w32con_set_terminal_window;
+  term->update_begin_hook	= w32con_update_begin;
   term->update_end_hook		= w32con_update_end;
 
   term->read_socket_hook = w32_console_read_socket;
@@ -674,8 +670,8 @@ initialize_w32_display (struct terminal *term)
 
   /* Respect setting of LINES and COLUMNS environment variables.  */
   {
-    char * lines = getenv("LINES");
-    char * columns = getenv("COLUMNS");
+    char * lines = getenv ("LINES");
+    char * columns = getenv ("COLUMNS");
 
     if (lines != NULL && columns != NULL)
       {
@@ -751,9 +747,7 @@ initialize_w32_display (struct terminal *term)
 
 DEFUN ("set-screen-color", Fset_screen_color, Sset_screen_color, 2, 2, 0,
        doc: /* Set screen colors.  */)
-    (foreground, background)
-    Lisp_Object foreground;
-    Lisp_Object background;
+  (Lisp_Object foreground, Lisp_Object background)
 {
   char_attr_normal = XFASTINT (foreground) + (XFASTINT (background) << 4);
 
@@ -763,8 +757,7 @@ DEFUN ("set-screen-color", Fset_screen_color, Sset_screen_color, 2, 2, 0,
 
 DEFUN ("set-cursor-size", Fset_cursor_size, Sset_cursor_size, 1, 1, 0,
        doc: /* Set cursor size.  */)
-    (size)
-    Lisp_Object size;
+  (Lisp_Object size)
 {
   CONSOLE_CURSOR_INFO cci;
   cci.dwSize = XFASTINT (size);
@@ -775,7 +768,7 @@ DEFUN ("set-cursor-size", Fset_cursor_size, Sset_cursor_size, 1, 1, 0,
 }
 
 void
-syms_of_ntterm ()
+syms_of_ntterm (void)
 {
   DEFVAR_BOOL ("w32-use-full-screen-buffer",
                &w32_use_full_screen_buffer,

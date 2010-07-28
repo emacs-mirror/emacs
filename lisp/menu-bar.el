@@ -526,17 +526,6 @@
   "Make CUT, PASTE and COPY (keys and menu bar items) use the clipboard.
 Do the same for the keys of the same name."
   (interactive)
-  ;; We can't use constant list structure here because it becomes pure,
-  ;; and because it gets modified with cache data.
-  (define-key menu-bar-edit-menu [paste]
-    (cons "Paste" (cons "Paste text from clipboard" 'clipboard-yank)))
-  (define-key menu-bar-edit-menu [copy]
-    (cons "Copy" (cons "Copy text in region to the clipboard"
-		       'clipboard-kill-ring-save)))
-  (define-key menu-bar-edit-menu [cut]
-    (cons "Cut" (cons "Delete text in region and copy it to the clipboard"
-		      'clipboard-kill-region)))
-
   ;; These are Sun server keysyms for the Cut, Copy and Paste keys
   ;; (also for XFree86 on Sun keyboard):
   (define-key global-map [f20] 'clipboard-kill-region)
@@ -1937,15 +1926,20 @@ turn on menu bars; otherwise, turn off menu bars."
   ;; Turn the menu-bars on all frames on or off.
   (let ((val (if menu-bar-mode 1 0)))
     (dolist (frame (frame-list))
-      (set-frame-parameter frame 'menu-bar-lines val)))
-
+      (set-frame-parameter frame 'menu-bar-lines val))
+    ;; If the user has given `default-frame-alist' a `menu-bar-lines'
+    ;; parameter, replace it.
+    (if (assq 'menu-bar-lines default-frame-alist)
+	(setq default-frame-alist
+	      (cons (cons 'menu-bar-lines val)
+		    (assq-delete-all 'menu-bar-lines
+				     default-frame-alist)))))
   ;; Make the message appear when Emacs is idle.  We can not call message
   ;; directly.  The minor-mode message "Menu-bar mode disabled" comes
   ;; after this function returns, overwriting any message we do here.
   (when (and (called-interactively-p 'interactive) (not menu-bar-mode))
     (run-with-idle-timer 0 nil 'message
-			 "Menu-bar mode disabled.  Use M-x menu-bar-mode to make the menu bar appear."))
-  menu-bar-mode)
+			 "Menu-bar mode disabled.  Use M-x menu-bar-mode to make the menu bar appear.")))
 
 (defun toggle-menu-bar-mode-from-frame (&optional arg)
   "Toggle menu bar on or off, based on the status of the current frame.

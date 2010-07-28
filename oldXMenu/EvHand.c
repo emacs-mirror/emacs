@@ -15,8 +15,7 @@
 
 #include "XMenuInt.h"
 
-XMenuEventHandler(handler)
-    int (*handler)();
+XMenuEventHandler(int (*handler) (XEvent*))
 {
     /*
      * Set the global event handler variable.

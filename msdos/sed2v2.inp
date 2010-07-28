@@ -38,6 +38,7 @@
 /^#undef HAVE_CBRT *$/s/^.*$/#define HAVE_CBRT 1/
 /^#undef HAVE_DIFFTIME *$/s/^.*$/#define HAVE_DIFFTIME 1/
 /^#undef HAVE_FPATHCONF *$/s/^.*$/#define HAVE_FPATHCONF 1/
+/^#undef HAVE_MEMSET *$/s/^.*$/#define HAVE_MEMSET 1/
 /^#undef HAVE_MEMCMP *$/s/^.*$/#define HAVE_MEMCMP 1/
 /^#undef HAVE_MEMMOVE *$/s/^.*$/#define HAVE_MEMMOVE 1/
 /^#undef HAVE_SETRLIMIT *$/s/^.*$/#define HAVE_SETRLIMIT 1/
@@ -45,9 +46,7 @@
 /^#undef HAVE_TM_GMTOFF *$/s/^.*$/#define HAVE_TM_GMTOFF 1/
 /^#undef HAVE_MBLEN *$/s/^.*$/#define HAVE_MBLEN 1/
 /^#undef HAVE_STRUCT_TIMEZONE *$/s/^.*$/#define HAVE_STRUCT_TIMEZONE 1/
-/^#undef HAVE_INDEX *$/s/^.*$/#define HAVE_INDEX 1/
 /^#undef HAVE_SIZE_T *$/s/^.*$/#define HAVE_SIZE_T 1/
-/^#undef HAVE_RINDEX *$/s/^.*$/#define HAVE_RINDEX 1/
 /^#undef HAVE_MKSTEMP *$/s/^.*$/#define HAVE_MKSTEMP 1/
 /^#undef HAVE_STRUCT_TM_TM_ZONE *$/s/^.*$/#define HAVE_STRUCT_TM_TM_ZONE 1/
 /^#undef HAVE_SYNC *$/s/^.*$/#define HAVE_SYNC 1/
@@ -83,14 +82,6 @@ s/^#undef POINTER_TYPE *$/#define POINTER_TYPE void/
 #define HAVE_STDINT_H 1\
 #else\
 #undef HAVE_STDINT_H\
-#endif
-# GCC 3.x has a built-in bzero, which conflicts with the define at
-# the end of config.in
-/^#undef HAVE_BZERO/c\
-#if __GNUC__ >= 3\
-#define HAVE_BZERO 1\
-#else\
-#undef HAVE_BZERO\
 #endif
 
 # Comment out any remaining undef directives, because some of them

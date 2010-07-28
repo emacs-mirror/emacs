@@ -87,7 +87,7 @@ The value can be one of:
 
 ;;;###autoload
 (defcustom display-time-day-and-date nil "\
-*Non-nil means \\[display-time] should display day and date as well as time."
+Non-nil means \\[display-time] should display day and date as well as time."
   :type 'boolean
   :group 'display-time)
 
@@ -182,7 +182,7 @@ LABEL is a string to display as the label of that TIMEZONE's time."
   :version "23.1")
 
 (defcustom display-time-world-buffer-name "*wclock*"
-  "Name of the wclock buffer."
+  "Name of the world clock buffer."
   :group 'display-time
   :type 'string
   :version "23.1")
@@ -203,7 +203,7 @@ LABEL is a string to display as the label of that TIMEZONE's time."
   (let ((map (make-sparse-keymap)))
     (define-key map "q" 'kill-this-buffer)
     map)
-  "Keymap of Display Time World mode")
+  "Keymap of Display Time World mode.")
 
 ;;;###autoload
 (defun display-time ()
@@ -490,15 +490,10 @@ This runs the normal hook `display-time-hook' after each update."
 		 'display-time-event-handler)))
 
 
-(defun display-time-world-mode ()
+(define-derived-mode display-time-world-mode nil "World clock"
   "Major mode for buffer that displays times in various time zones.
 See `display-time-world'."
-  (interactive)
-  (kill-all-local-variables)
-  (setq
-   major-mode 'display-time-world-mode
-   mode-name "World clock")
-  (use-local-map display-time-world-mode-map))
+  (setq show-trailing-whitespace nil))
 
 (defun display-time-world-display (alist)
   "Replace current buffer text with times in various zones, based on ALIST."
@@ -506,24 +501,22 @@ See `display-time-world'."
 	(buffer-undo-list t))
     (erase-buffer)
     (let ((max-width 0)
-	  (result ()))
+	  (result ())
+	  fmt)
       (unwind-protect
 	  (dolist (zone alist)
 	    (let* ((label (cadr zone))
 		   (width (string-width label)))
 	      (set-time-zone-rule (car zone))
-	      (setq result
-		    (append result
-			    (list
-			     label width
-			     (format-time-string display-time-world-time-format))))
+	      (push (cons label
+			  (format-time-string display-time-world-time-format))
+		    result)
 	      (when (> width max-width)
 		(setq max-width width))))
 	(set-time-zone-rule nil))
-      (while result
-	(insert (pop result)
-		(make-string (1+ (- max-width (pop result))) ?\s)
-		(pop result) "\n")))
+      (setq fmt (concat "%-" (int-to-string max-width) "s %s\n"))
+      (dolist (timedata (nreverse result))
+	(insert (format fmt (car timedata) (cdr timedata)))))
     (delete-char -1)))
 
 ;;;###autoload

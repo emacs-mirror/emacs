@@ -55,9 +55,7 @@ static XCharStruct *xfont_get_pcm (XFontStruct *, XChar2b *);
    is not contained in the font.  */
 
 static XCharStruct *
-xfont_get_pcm (xfont, char2b)
-     XFontStruct *xfont;
-     XChar2b *char2b;
+xfont_get_pcm (XFontStruct *xfont, XChar2b *char2b)
 {
   /* The result metric information.  */
   XCharStruct *pcm = NULL;
@@ -159,8 +157,7 @@ struct font_driver xfont_driver =
 extern Lisp_Object QCname;
 
 static Lisp_Object
-xfont_get_cache (f)
-     FRAME_PTR f;
+xfont_get_cache (FRAME_PTR f)
 {
   Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
 
@@ -497,8 +494,7 @@ xfont_list_pattern (Display *display, char *pattern,
 }
 
 static Lisp_Object
-xfont_list (frame, spec)
-     Lisp_Object frame, spec;
+xfont_list (Lisp_Object frame, Lisp_Object spec)
 {
   FRAME_PTR f = XFRAME (frame);
   Display *display = FRAME_X_DISPLAY_INFO (f)->display;
@@ -566,7 +562,7 @@ xfont_list (frame, spec)
       val = assq_no_quit (QCname, AREF (spec, FONT_EXTRA_INDEX));
       if (CONSP (val) && STRINGP (XCDR (val)) && SBYTES (XCDR (val)) < 512)
 	{
-	  bcopy (SDATA (XCDR (val)), name, SBYTES (XCDR (val)) + 1);
+	  memcpy (name, SDATA (XCDR (val)), SBYTES (XCDR (val)) + 1);
 	  if (xfont_encode_coding_xlfd (name) < 0)
 	    return Qnil;
 	  list = xfont_list_pattern (display, name, registry, script);
@@ -577,8 +573,7 @@ xfont_list (frame, spec)
 }
 
 static Lisp_Object
-xfont_match (frame, spec)
-     Lisp_Object frame, spec;
+xfont_match (Lisp_Object frame, Lisp_Object spec)
 {
   FRAME_PTR f = XFRAME (frame);
   Display *display = FRAME_X_DISPLAY_INFO (f)->display;
@@ -595,7 +590,7 @@ xfont_match (frame, spec)
 	return Qnil;
     }
   else if (SBYTES (XCDR (val)) < 512)
-    bcopy (SDATA (XCDR (val)), name, SBYTES (XCDR (val)) + 1);
+    memcpy (name, SDATA (XCDR (val)), SBYTES (XCDR (val)) + 1);
   else
     return Qnil;
   if (xfont_encode_coding_xlfd (name) < 0)
@@ -636,8 +631,7 @@ xfont_match (frame, spec)
 }
 
 static Lisp_Object
-xfont_list_family (frame)
-     Lisp_Object frame;
+xfont_list_family (Lisp_Object frame)
 {
   FRAME_PTR f = XFRAME (frame);
   Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
@@ -675,7 +669,7 @@ xfont_list_family (frame)
       if (! *p1 || p1 == p0)
 	continue;
       if (last_len == p1 - p0
-	  && bcmp (last_family, p0, last_len) == 0)
+	  && memcmp (last_family, p0, last_len) == 0)
 	continue;
       last_len = p1 - p0;
       last_family = p0;
@@ -696,10 +690,7 @@ xfont_list_family (frame)
 extern Lisp_Object QCavgwidth;
 
 static Lisp_Object
-xfont_open (f, entity, pixel_size)
-     FRAME_PTR f;
-     Lisp_Object entity;
-     int pixel_size;
+xfont_open (FRAME_PTR f, Lisp_Object entity, int pixel_size)
 {
   Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   Display *display = dpyinfo->display;
@@ -911,9 +902,7 @@ xfont_open (f, entity, pixel_size)
 }
 
 static void
-xfont_close (f, font)
-     FRAME_PTR f;
-     struct font *font;
+xfont_close (FRAME_PTR f, struct font *font)
 {
   BLOCK_INPUT;
   XFreeFont (FRAME_X_DISPLAY (f), ((struct xfont_info *) font)->xfont);
@@ -921,9 +910,7 @@ xfont_close (f, font)
 }
 
 static int
-xfont_prepare_face (f, face)
-     FRAME_PTR f;
-     struct face *face;
+xfont_prepare_face (FRAME_PTR f, struct face *face)
 {
   BLOCK_INPUT;
   XSetFont (FRAME_X_DISPLAY (f), face->gc,
@@ -934,9 +921,7 @@ xfont_prepare_face (f, face)
 }
 
 static int
-xfont_has_char (font, c)
-     Lisp_Object font;
-     int c;
+xfont_has_char (Lisp_Object font, int c)
 {
   Lisp_Object registry = AREF (font, FONT_REGISTRY_INDEX);
   struct charset *encoding;
@@ -965,9 +950,7 @@ xfont_has_char (font, c)
 }
 
 static unsigned
-xfont_encode_char (font, c)
-     struct font *font;
-     int c;
+xfont_encode_char (struct font *font, int c)
 {
   XFontStruct *xfont = ((struct xfont_info *) font)->xfont;
   struct charset *charset;
@@ -990,18 +973,14 @@ xfont_encode_char (font, c)
 }
 
 static int
-xfont_text_extents (font, code, nglyphs, metrics)
-     struct font *font;
-     unsigned *code;
-     int nglyphs;
-     struct font_metrics *metrics;
+xfont_text_extents (struct font *font, unsigned int *code, int nglyphs, struct font_metrics *metrics)
 {
   XFontStruct *xfont = ((struct xfont_info *) font)->xfont;
   int width = 0;
   int i, first, x;
 
   if (metrics)
-    bzero (metrics, sizeof (struct font_metrics));
+    memset (metrics, 0, sizeof (struct font_metrics));
   for (i = 0, x = 0, first = 1; i < nglyphs; i++)
     {
       XChar2b char2b;
@@ -1046,9 +1025,7 @@ xfont_text_extents (font, code, nglyphs, metrics)
 }
 
 static int
-xfont_draw (s, from, to, x, y, with_background)
-     struct glyph_string *s;
-     int from, to, x, y, with_background;
+xfont_draw (struct glyph_string *s, int from, int to, int x, int y, int with_background)
 {
   XFontStruct *xfont = ((struct xfont_info *) s->font)->xfont;
   int len = to - from;
@@ -1123,9 +1100,7 @@ xfont_draw (s, from, to, x, y, with_background)
 }
 
 static int
-xfont_check (f, font)
-     FRAME_PTR f;
-     struct font *font;
+xfont_check (FRAME_PTR f, struct font *font)
 {
   struct xfont_info *xfont = (struct xfont_info *) font;
 
@@ -1134,7 +1109,7 @@ xfont_check (f, font)
 
 
 void
-syms_of_xfont ()
+syms_of_xfont (void)
 {
   staticpro (&xfont_scripts_cache);
   { /* Here we rely on the fact that syms_of_xfont (via syms_of_font)

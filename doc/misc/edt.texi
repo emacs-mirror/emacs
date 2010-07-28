@@ -25,7 +25,7 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* EDT: (edt).   An Emacs emulation of the EDT editor.
+* EDT: (edt).                   An Emacs emulation of the EDT editor.
 @end direntry
 
 @titlepage

@@ -1357,7 +1357,7 @@
 
 2003-06-10  Rajesh Vaidheeswarran  <rv@gnu.org>
 
-	* whitespace.el (whitespace-version): Bump to 3.3
+	* whitespace.el (whitespace-version): Bump to 3.3.
 	(whitespace-cleanup): Respect user preference for silence
 
 	* whitespace.el: Remove :tag in commentary :link.  Remove empty
@@ -1645,7 +1645,7 @@
 	(bibtex-version): Remove support for bug reporting.
 	(bibtex-field-delimiters, bibtex-entry-delimiters)
 	(bibtex-sort-ignore-string-entries, bibtex-maintain-sorted-entries)
-	Replace make-variable-buffer-local by make-local-variable for
+	Replace make-variable-buffer-local by make-local-variable.
 	(bibtex-entry-format): New tag `required-fields'.
 	(bibtex-maintain-sorted-entries): New var.
 	(bibtex-sort-entry-class, bibtex-sort-entry-class-alist): New vars.
@@ -4069,9 +4069,9 @@
 	(ccl-encode-mule-utf-16-le-with-signature)
 	(ccl-encode-mule-utf-16-be-with-signature): New CCL programs.
 	(mule-utf-16-post-read-conversion): New function.
-	(mule-utf-16-le-with-signature, mule-utf-16-be-with-signature),
+	(mule-utf-16-le-with-signature, mule-utf-16-be-with-signature)
 	(mule-utf-16): New coding systems.
-	(utf-16-le-with-signature, utf-16-be-with-signature),
+	(utf-16-le-with-signature, utf-16-be-with-signature)
 	(utf-16): Aliases of the above coding systems.
 
 2003-04-08  Martin Stjernholm  <bug-cc-mode@gnu.org>
@@ -4109,7 +4109,7 @@
 	Other cleanups.
 	Command line option --no-desktop introduced.
 	(desktop-read): Record buffers in the desktop file in
-	the same order as that in the buffer list,
+	the same order as that in the buffer list.
 	(desktop-save): Put buffers in the order given in desktop file,
 	regardless of what handlers do.
 	(desktop-file-version): New variable.  Version number of desktop
@@ -7684,7 +7684,7 @@
 	* gdb-ui.el : Remove inappropriate key-bindings.
 	(gdb-info-breakpoints-custom, gdb-goto-bp-this-line):
 	Parse correctly when breakpoint has no line number.
-	(def-gdb-auto-update-handler, gdb-info-locals-handler),
+	(def-gdb-auto-update-handler, gdb-info-locals-handler)
 	(gdb-display-end): Avoid using insert-buffer.
 	(gdb-frames-select-by-mouse): Rename gdb-frames-mouse-select.
 
@@ -20177,10 +20177,10 @@
 
 2002-01-05  Andre Spiegel  <spiegel@gnu.org>
 
-	* vc.el (vc-branch-part): Return nil if there's no `.'
+	* vc.el (vc-branch-part): Return nil if there's no `.'.
 	(vc-default-previous-version): Renamed from vc-previous-version.
 	New args BACKEND and FILE.  Return nil for revision numbers
-	without a `.'
+	without a `.'.
 	(vc-version-diff): Call vc-BACKEND-previous-version.
 	(vc-steal-lock): Steal lock before composing mail, so that no mail
 	is sent when the stealing goes wrong.  And we'll actually see the
@@ -23253,11 +23253,11 @@
 	lambda expression.
 	(ps-mode-menu-main): Submenu with options on/off was replaced with
 	a toggle button.
-	(ps-mode, ps-run-mode): Define with `define-derived-mode'
+	(ps-mode, ps-run-mode): Define with `define-derived-mode'.
 	(ps-mode): Autoload cookie added on same line as comment.
 	(ps-mode-tabkey, ps-mode-backward-delete-char):
 	(ps-mode-r-balance): Replace `delete-horizontal-space' and
-	`indent-to' with `indent-line-to'
+	`indent-to' with `indent-line-to'.
 	(ps-mode-print-buffer, ps-mode-print-region): Use `funcall'
 	instead of `eval'.
 	(ps-mode-print-region): Use `with-temp-buffer'.
@@ -23464,7 +23464,7 @@
 	(vc-default-annotate-current-time): Added.
 
 	* vc-cvs.el (vc-cvs-annotate-difference): Removed to generic
-	version in vc.el, with
+	version in vc.el.
 	(vc-cvs-annotate-current-time): Added, as override of default.
 	(vc-cvs-annotate-time): Added.  Taken mostly from the (now removed)
 	`vc-cvs-annotate-difference'.

@@ -51,7 +51,7 @@ static void adjust_markers_for_replace (EMACS_INT, EMACS_INT, EMACS_INT,
 					EMACS_INT, EMACS_INT, EMACS_INT);
 static void adjust_point (EMACS_INT nchars, EMACS_INT nbytes);
 
-Lisp_Object Fcombine_after_change_execute ();
+Lisp_Object Fcombine_after_change_execute (void);
 
 /* Non-nil means don't call the after-change-functions right away,
    just record an element in combine_after_change_list.  */
@@ -85,7 +85,7 @@ static int check_markers_debug_flag;
   else
 
 void
-check_markers ()
+check_markers (void)
 {
   register struct Lisp_Marker *tail;
   int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
@@ -164,28 +164,9 @@ gap_left (EMACS_INT charpos, EMACS_INT bytepos, int newgap)
       /* Move at most 32000 chars before checking again for a quit.  */
       if (i > 32000)
 	i = 32000;
-#ifdef GAP_USE_BCOPY
-      if (i >= 128
-	  /* bcopy is safe if the two areas of memory do not overlap
-	     or on systems where bcopy is always safe for moving upward.  */
-	  && (BCOPY_UPWARD_SAFE
-	      || to - from >= 128))
-	{
-	  /* If overlap is not safe, avoid it by not moving too many
-	     characters at once.  */
-	  if (!BCOPY_UPWARD_SAFE && i > to - from)
-	    i = to - from;
-	  new_s1 -= i;
-	  from -= i, to -= i;
-	  bcopy (from, to, i);
-	}
-      else
-#endif
-	{
-	  new_s1 -= i;
-	  while (--i >= 0)
-	    *--to = *--from;
-	}
+      new_s1 -= i;
+      from -= i, to -= i;
+      memmove (to, from, i);
     }
 
   /* Adjust markers, and buffer data structure, to put the gap at BYTEPOS.
@@ -238,28 +219,9 @@ gap_right (EMACS_INT charpos, EMACS_INT bytepos)
       /* Move at most 32000 chars before checking again for a quit.  */
       if (i > 32000)
 	i = 32000;
-#ifdef GAP_USE_BCOPY
-      if (i >= 128
-	  /* bcopy is safe if the two areas of memory do not overlap
-	     or on systems where bcopy is always safe for moving downward.  */
-	  && (BCOPY_DOWNWARD_SAFE
-	      || from - to >= 128))
-	{
-	  /* If overlap is not safe, avoid it by not moving too many
-	     characters at once.  */
-	  if (!BCOPY_DOWNWARD_SAFE && i > from - to)
-	    i = from - to;
-	  new_s1 += i;
-	  bcopy (from, to, i);
-	  from += i, to += i;
-	}
-      else
-#endif
-	{
-	  new_s1 += i;
-	  while (--i >= 0)
-	    *to++ = *from++;
-	}
+      new_s1 += i;
+      memmove (to, from, i);
+      from += i, to += i;
     }
 
   adjust_markers_gap_motion (GPT_BYTE + GAP_SIZE, bytepos + GAP_SIZE,
@@ -585,7 +547,7 @@ make_gap_smaller (EMACS_INT nbytes_removed)
   /* Pretend that the last unwanted part of the gap is the entire gap,
      and that the first desired part of the gap is part of the buffer
      text.  */
-  bzero (GPT_ADDR, new_gap_size);
+  memset (GPT_ADDR, 0, new_gap_size);
   GPT += new_gap_size;
   GPT_BYTE += new_gap_size;
   Z += new_gap_size;
@@ -636,7 +598,7 @@ copy_text (const unsigned char *from_addr, unsigned char *to_addr,
 {
   if (from_multibyte == to_multibyte)
     {
-      bcopy (from_addr, to_addr, nbytes);
+      memcpy (to_addr, from_addr, nbytes);
       return nbytes;
     }
   else if (from_multibyte)
@@ -966,7 +928,7 @@ insert_1_both (const unsigned char *string,
   MODIFF++;
   CHARS_MODIFF = MODIFF;
 
-  bcopy (string, GPT_ADDR, nbytes);
+  memcpy (GPT_ADDR, string, nbytes);
 
   GAP_SIZE -= nbytes;
   GPT += nchars;
@@ -1007,7 +969,7 @@ insert_1_both (const unsigned char *string,
    copy them into the buffer.
 
    It does not work to use `insert' for this, because a GC could happen
-   before we bcopy the stuff into the buffer, and relocate the string
+   before we copy the stuff into the buffer, and relocate the string
    without insert noticing.  */
 
 void
@@ -1182,7 +1144,7 @@ insert_from_gap (EMACS_INT nchars, EMACS_INT nbytes)
    into the current buffer.
 
    It does not work to use `insert' for this, because a malloc could happen
-   and relocate BUF's text before the bcopy happens.  */
+   and relocate BUF's text before the copy happens.  */
 
 void
 insert_from_buffer (struct buffer *buf,
@@ -1666,7 +1628,7 @@ replace_range (EMACS_INT from, EMACS_INT to, Lisp_Object new,
 void
 replace_range_2 (EMACS_INT from, EMACS_INT from_byte,
 		 EMACS_INT to, EMACS_INT to_byte,
-		 char *ins, EMACS_INT inschars, EMACS_INT insbytes,
+		 const char *ins, EMACS_INT inschars, EMACS_INT insbytes,
 		 int markers)
 {
   EMACS_INT nbytes_del, nchars_del;
@@ -1712,7 +1674,7 @@ replace_range_2 (EMACS_INT from, EMACS_INT from_byte,
     make_gap (insbytes - GAP_SIZE);
 
   /* Copy the replacement text into the buffer.  */
-  bcopy (ins, GPT_ADDR, insbytes);
+  memcpy (GPT_ADDR, ins, insbytes);
 
 #ifdef BYTE_COMBINING_DEBUG
   /* We have copied text into the gap, but we have not marked
@@ -2132,8 +2094,7 @@ prepare_to_modify_buffer (EMACS_INT start, EMACS_INT end,
    NO-ERROR-FLAG is nil if there was an error,
    anything else meaning no error (so this function does nothing).  */
 Lisp_Object
-reset_var_on_error (val)
-     Lisp_Object val;
+reset_var_on_error (Lisp_Object val)
 {
   if (NILP (XCDR (val)))
     Fset (XCAR (val), Qnil);
@@ -2297,8 +2258,7 @@ signal_after_change (EMACS_INT charpos, EMACS_INT lendel, EMACS_INT lenins)
 }
 
 Lisp_Object
-Fcombine_after_change_execute_1 (val)
-     Lisp_Object val;
+Fcombine_after_change_execute_1 (Lisp_Object val)
 {
   Vcombine_after_change_calls = val;
   return val;
@@ -2307,7 +2267,7 @@ Fcombine_after_change_execute_1 (val)
 DEFUN ("combine-after-change-execute", Fcombine_after_change_execute,
        Scombine_after_change_execute, 0, 0, 0,
        doc: /* This function is for use internally in `combine-after-change-calls'.  */)
-     ()
+  (void)
 {
   int count = SPECPDL_INDEX ();
   EMACS_INT beg, end, change;
@@ -2390,7 +2350,7 @@ DEFUN ("combine-after-change-execute", Fcombine_after_change_execute,
 }
 
 void
-syms_of_insdel ()
+syms_of_insdel (void)
 {
   staticpro (&combine_after_change_list);
   staticpro (&combine_after_change_buffer);

@@ -1,6 +1,7 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001, 2002,
-@c   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+@c   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Search, Fixit, Display, Top
 @chapter Searching and Replacement
@@ -19,16 +20,16 @@ thing, but search for patterns instead of fixed strings.
 
 
 @menu
-* Incremental Search::		Search happens as you type the string.
-* Nonincremental Search::	Specify entire string and then search.
-* Word Search::			Search for sequence of words.
-* Regexp Search::		Search for match for a regexp.
-* Regexps::			Syntax of regular expressions.
-* Regexp Backslash::            Regular expression constructs starting with `\'.
-* Regexp Example::              A complex regular expression explained.
-* Search Case::			To ignore case while searching, or not.
-* Replace::			Search, and replace some or all matches.
-* Other Repeating Search::	Operating on all matches for some regexp.
+* Incremental Search::        Search happens as you type the string.
+* Nonincremental Search::     Specify entire string and then search.
+* Word Search::               Search for sequence of words.
+* Regexp Search::             Search for match for a regexp.
+* Regexps::                   Syntax of regular expressions.
+* Regexp Backslash::          Regular expression constructs starting with `\'.
+* Regexp Example::            A complex regular expression explained.
+* Search Case::               To ignore case while searching, or not.
+* Replace::                   Search, and replace some or all matches.
+* Other Repeating Search::    Operating on all matches for some regexp.
 @end menu
 
 @node Incremental Search
@@ -983,10 +984,10 @@ is possible to perform several replacements in parallel, using the
 command @code{expand-region-abbrevs} (@pxref{Expanding Abbrevs}).
 
 @menu
-* Unconditional Replace::	Replacing all matches for a string.
-* Regexp Replace::		Replacing all matches for a regexp.
-* Replacement and Case::	How replacements preserve case of letters.
-* Query Replace::		How to use querying.
+* Unconditional Replace::   Replacing all matches for a string.
+* Regexp Replace::          Replacing all matches for a regexp.
+* Replacement and Case::    How replacements preserve case of letters.
+* Query Replace::           How to use querying.
 @end menu
 
 @node Unconditional Replace, Regexp Replace, Replace, Replace

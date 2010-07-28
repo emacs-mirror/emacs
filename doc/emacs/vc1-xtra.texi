@@ -220,8 +220,8 @@ a symbolic name for a revision.
 stable version of the system that is ready for distribution to users.
 
 @menu
-* Making Revision Tags::		The tag facilities.
-* Revision Tag Caveats::		Things to be careful of when using tags.
+* Making Revision Tags::  The tag facilities.
+* Revision Tag Caveats::  Things to be careful of when using tags.
 @end menu
 
 @node Making Revision Tags

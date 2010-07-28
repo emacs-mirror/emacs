@@ -5,7 +5,7 @@
 ;; Author: Eric Schulte <schulte dot eric at gmail dot com>
 ;; Keywords: tables, plotting
 ;; Homepage: http://orgmode.org
-;; Version: 6.35i
+;; Version: 7.01
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -44,7 +44,7 @@
   '((:plot-type . 2d)
     (:with . lines)
     (:ind . 0))
-  "Default options to gnuplot used by `org-plot/gnuplot'")
+  "Default options to gnuplot used by `org-plot/gnuplot'.")
 
 (defvar org-plot-timestamp-fmt nil)
 
@@ -272,7 +272,7 @@ manner suitable for prepending to a user-specified script."
 ;; facade functions
 ;;;###autoload
 (defun org-plot/gnuplot (&optional params)
-  "Plot table using gnuplot. Gnuplot options can be specified with PARAMS.
+  "Plot table using gnuplot.  Gnuplot options can be specified with PARAMS.
 If not given options will be taken from the +PLOT
 line directly before or after the table."
   (interactive)

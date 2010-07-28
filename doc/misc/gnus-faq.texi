@@ -1,8 +1,8 @@
 @c \input texinfo @c -*-texinfo-*-
 @c Uncomment 1st line before texing this file alone.
 @c %**start of header
-@c Copyright (C) 1995, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-@c   2008, 2009, 2010 Free Software Foundation, Inc.
+@c Copyright (C) 1995, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+@c   2009, 2010 Free Software Foundation, Inc.
 @c
 @c Do not modify this file, it was generated from gnus-faq.xml, available from
 @c <URL:http://my.gnus.org/FAQ/>.
@@ -550,7 +550,7 @@ want something different, change the line above to something like this:
 @example
 (add-to-list 'gnus-secondary-select-methods
              '(nnspool ""
-		       (nnspool-directory "/usr/local/myspoolddir")))
+                       (nnspool-directory "/usr/local/myspoolddir")))
 @end example
 @noindent
 
@@ -635,8 +635,8 @@ mail, it's
 @example
 (eval-after-load "mail-source"
   '(add-to-list 'mail-sources
-		'(directory :path "/path/to/procmail-dir/"
-			    :suffix ".prcml")))
+                '(directory :path "/path/to/procmail-dir/"
+                            :suffix ".prcml")))
 @end example
 @noindent
 
@@ -691,10 +691,10 @@ about the server there.
 
 @example
 (add-to-list 'gnus-secondary-select-methods
-	     '(nnimap "Give the baby a name"
-		      (nnimap-address "imap.yourProvider.net")
-		      (nnimap-port 143)
-		      (nnimap-list-pattern "archive.*")))
+             '(nnimap "Give the baby a name"
+                      (nnimap-address "imap.yourProvider.net")
+                      (nnimap-port 143)
+                      (nnimap-list-pattern "archive.*")))
 @end example
 @noindent
 
@@ -874,7 +874,7 @@ say this in ~/.gnus.el:
 @example
 (setq gnus-visible-headers
       '("^From" "^Subject" "^Date" "^Newsgroups" "^Followup-To"
-	"^User-Agent" "^X-Newsreader" "^X-Mailer"))
+        "^User-Agent" "^X-Newsreader" "^X-Mailer"))
 @end example
 @noindent
 
@@ -1099,18 +1099,18 @@ buffer top-right, article buffer bottom-right:
 (gnus-add-configuration
  '(article
    (horizontal 1.0
-	       (vertical 25
-			 (group 1.0))
-	       (vertical 1.0
-			 (summary 0.25 point)
-			 (article 1.0)))))
+               (vertical 25
+                         (group 1.0))
+               (vertical 1.0
+                         (summary 0.25 point)
+                         (article 1.0)))))
 (gnus-add-configuration
  '(summary
    (horizontal 1.0
-	       (vertical 25
-			 (group 1.0))
-	       (vertical 1.0
-			 (summary 1.0 point)))))
+               (vertical 25
+                         (group 1.0))
+               (vertical 1.0
+                         (summary 1.0 point)))))
 @end example
 @noindent
 
@@ -1480,7 +1480,7 @@ You can store your mail addresses in a ~/.mailrc file using a simple
 alias syntax:
 
 @example
-alias al	"Al <al@@english-heritage.invalid>"
+alias al        "Al <al@@english-heritage.invalid>"
 @end example
 @noindent
 
@@ -1644,9 +1644,9 @@ the group to use.
 
 @example
 (setq gnus-message-archive-group
-	'((if (message-news-p)
-	      "nnml:Send-News"
-	    "nnml:Send-Mail")))
+        '((if (message-news-p)
+              "nnml:Send-News"
+            "nnml:Send-Mail")))
 @end example
 @noindent
 

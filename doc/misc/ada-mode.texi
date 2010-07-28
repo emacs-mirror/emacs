@@ -3,8 +3,8 @@
 @settitle Ada Mode
 
 @copying
-Copyright @copyright{} 1999, 2000, 2001, 2002, 2003, 2004,
-2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+Copyright @copyright{} 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -22,7 +22,7 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* Ada mode: (ada-mode). Emacs mode for editing and compiling Ada code.
+* Ada mode: (ada-mode).         Emacs mode for editing and compiling Ada code.
 @end direntry
 
 @titlepage

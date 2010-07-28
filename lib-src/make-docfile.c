@@ -70,6 +70,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 int scan_file (char *filename);
 int scan_lisp_file (char *filename, char *mode);
 int scan_c_file (char *filename, char *mode);
+void fatal (char *s1, char *s2) NO_RETURN;
 
 #ifdef MSDOS
 /* s/msdos.h defines this as sys_chdir, but we're not linking with the
@@ -440,8 +441,8 @@ write_c_args (FILE *out, char *func, char *buf, int minargs, int maxargs)
 {
   register char *p;
   int in_ident = 0;
-  int just_spaced = 0;
-  int need_space = 1;
+  char *ident_start;
+  int ident_length;
 
   fprintf (out, "(fn");
 
@@ -451,9 +452,8 @@ write_c_args (FILE *out, char *func, char *buf, int minargs, int maxargs)
   for (p = buf; *p; p++)
     {
       char c = *p;
-      int ident_start = 0;
 
-      /* Notice when we start printing a new identifier.  */
+      /* Notice when a new identifier starts.  */
       if ((('A' <= c && c <= 'Z')
 	   || ('a' <= c && c <= 'z')
 	   || ('0' <= c && c <= '9')
@@ -463,55 +463,50 @@ write_c_args (FILE *out, char *func, char *buf, int minargs, int maxargs)
 	  if (!in_ident)
 	    {
 	      in_ident = 1;
-	      ident_start = 1;
-
-	      if (need_space)
-		putc (' ', out);
-
-	      if (minargs == 0 && maxargs > 0)
-		fprintf (out, "&optional ");
-	      just_spaced = 1;
-
-	      minargs--;
-	      maxargs--;
+	      ident_start = p;
 	    }
 	  else
-	    in_ident = 0;
+	    {
+	      in_ident = 0;
+	      ident_length = p - ident_start;
+	    }
 	}
 
-      /* Print the C argument list as it would appear in lisp:
-	 print underscores as hyphens, and print commas and newlines
-	 as spaces.  Collapse adjacent spaces into one.  */
-      if (c == '_')
-	c = '-';
-      else if (c == ',' || c == '\n')
-	c = ' ';
-
-      /* In C code, `default' is a reserved word, so we spell it
-	 `defalt'; unmangle that here.  */
-      if (ident_start
-	  && strncmp (p, "defalt", 6) == 0
-	  && ! (('A' <= p[6] && p[6] <= 'Z')
-		|| ('a' <= p[6] && p[6] <= 'z')
-		|| ('0' <= p[6] && p[6] <= '9')
-		|| p[6] == '_'))
+      /* Found the end of an argument, write out the last seen
+	 identifier.  */
+      if (c == ',' || c == ')')
 	{
-	  fprintf (out, "DEFAULT");
-	  p += 5;
-	  in_ident = 0;
-	  just_spaced = 0;
-	}
-      else if (c != ' ' || !just_spaced)
-	{
-	  if (c >= 'a' && c <= 'z')
-	    /* Upcase the letter.  */
-	    c += 'A' - 'a';
-	  putc (c, out);
-	}
+	  if (strncmp (ident_start, "void", ident_length) == 0)
+	    continue;
 
-      just_spaced = c == ' ';
-      need_space = 0;
+	  putc (' ', out);
+
+	  if (minargs == 0 && maxargs > 0)
+	    fprintf (out, "&optional ");
+
+	  minargs--;
+	  maxargs--;
+
+	  /* In C code, `default' is a reserved word, so we spell it
+	     `defalt'; unmangle that here.  */
+	  if (ident_length == 6 && strncmp (ident_start, "defalt", 6) == 0)
+	    fprintf (out, "DEFAULT");
+	  else
+	    while (ident_length-- > 0)
+	      {
+		c = *ident_start++;
+		if (c >= 'a' && c <= 'z')
+		  /* Upcase the letter.  */
+		  c += 'A' - 'a';
+		else if (c == '_')
+		  /* Print underscore as hyphen.  */
+		  c = '-';
+		putc (c, out);
+	      }
+	}
     }
+
+  putc (')', out);
 }
 
 /* Read through a c file.  If a .o file is named,

@@ -1053,9 +1053,6 @@ CHAR
      like `and', but makes the match accessible with `match-end',
      `match-beginning', and `match-string'.
 
-`(group SEXP1 SEXP2 ...)'
-     another name for `submatch'.
-
 `(or SEXP1 SEXP2 ...)'
 `(| SEXP1 SEXP2 ...)'
      matches anything that matches SEXP1 or SEXP2, etc.  If all

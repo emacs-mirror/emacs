@@ -59,8 +59,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 HMENU current_popup_menu;
 
-void syms_of_w32menu ();
-void globals_of_w32menu ();
+void syms_of_w32menu (void);
+void globals_of_w32menu (void);
 
 typedef BOOL (WINAPI * GetMenuItemInfoA_Proc) (
     IN HMENU,
@@ -111,31 +111,6 @@ void w32_free_menu_strings (HWND);
 
 int pending_menu_activation;
 
-
-/* Return the frame whose ->output_data.w32->menubar_widget equals
-   ID, or 0 if none.  */
-
-static struct frame *
-menubar_id_to_frame (id)
-     HMENU id;
-{
-  Lisp_Object tail, frame;
-  FRAME_PTR f;
-
-  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
-    {
-      frame = XCAR (tail);
-      if (!FRAMEP (frame))
-        continue;
-      f = XFRAME (frame);
-      if (!FRAME_WINDOW_P (f))
-	continue;
-      if (f->output_data.w32->menubar_widget == id)
-	return f;
-    }
-  return 0;
-}
-
 #ifdef HAVE_MENUS
 
 DEFUN ("x-popup-dialog", Fx_popup_dialog, Sx_popup_dialog, 2, 3, 0,
@@ -157,8 +132,7 @@ on the left of the dialog box and all following items on the right.
 
 If HEADER is non-nil, the frame title for the box is "Information",
 otherwise it is "Question". */)
-  (position, contents, header)
-     Lisp_Object position, contents, header;
+  (Lisp_Object position, Lisp_Object contents, Lisp_Object header)
 {
   FRAME_PTR f = NULL;
   Lisp_Object window;
@@ -276,8 +250,7 @@ otherwise it is "Question". */)
    This way we can safely execute Lisp code.  */
 
 void
-x_activate_menubar (f)
-     FRAME_PTR f;
+x_activate_menubar (FRAME_PTR f)
 {
   set_frame_menubar (f, 0, 1);
 
@@ -386,10 +359,7 @@ menubar_selection_callback (FRAME_PTR f, void * client_data)
    it is set the first time this is called, from initialize_frame_menubar.  */
 
 void
-set_frame_menubar (f, first_time, deep_p)
-     FRAME_PTR f;
-     int first_time;
-     int deep_p;
+set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 {
   HMENU menubar_widget = f->output_data.w32->menubar_widget;
   Lisp_Object items;
@@ -455,8 +425,8 @@ set_frame_menubar (f, first_time, deep_p)
 
       /* Save the frame's previous menu bar contents data.  */
       if (previous_menu_items_used)
-	bcopy (XVECTOR (f->menu_bar_vector)->contents, previous_items,
-	       previous_menu_items_used * sizeof (Lisp_Object));
+	memcpy (previous_items, XVECTOR (f->menu_bar_vector)->contents,
+		previous_menu_items_used * sizeof (Lisp_Object));
 
       /* Fill in menu_items with the current menu bar contents.
 	 This can evaluate Lisp code.  */
@@ -648,8 +618,7 @@ set_frame_menubar (f, first_time, deep_p)
    is visible.  */
 
 void
-initialize_frame_menubar (f)
-     FRAME_PTR f;
+initialize_frame_menubar (FRAME_PTR f)
 {
   /* This function is called before the first chance to redisplay
      the frame.  It has to be, so the frame will have the right size.  */
@@ -661,8 +630,7 @@ initialize_frame_menubar (f)
    This is used when deleting a frame, and when turning off the menu bar.  */
 
 void
-free_frame_menubar (f)
-     FRAME_PTR f;
+free_frame_menubar (FRAME_PTR f)
 {
   BLOCK_INPUT;
 
@@ -1020,11 +988,9 @@ static char * button_names [] = {
   "button6", "button7", "button8", "button9", "button10" };
 
 static Lisp_Object
-w32_dialog_show (f, keymaps, title, header, error)
-     FRAME_PTR f;
-     int keymaps;
-     Lisp_Object title, header;
-     char **error;
+w32_dialog_show (FRAME_PTR f, int keymaps,
+		 Lisp_Object title, Lisp_Object header,
+		 char **error)
 {
   int i, nb_buttons=0;
   char dialog_name[6];
@@ -1127,7 +1093,7 @@ w32_dialog_show (f, keymaps, title, header, error)
     /*  Frame title: 'Q' = Question, 'I' = Information.
         Can also have 'E' = Error if, one day, we want
         a popup for errors. */
-    if (NILP(header))
+    if (NILP (header))
       dialog_name[0] = 'Q';
     else
       dialog_name[0] = 'I';
@@ -1213,8 +1179,8 @@ w32_dialog_show (f, keymaps, title, header, error)
    anywhere in Emacs that uses the other specific dialog choices that
    MessageBox provides.  */
 
-static int is_simple_dialog (contents)
-  Lisp_Object contents;
+static int
+is_simple_dialog (Lisp_Object contents)
 {
   Lisp_Object options = XCDR (contents);
   Lisp_Object name, yes, no, other;
@@ -1249,9 +1215,8 @@ static int is_simple_dialog (contents)
   return !(CONSP (options));
 }
 
-static Lisp_Object simple_dialog_show (f, contents, header)
-     FRAME_PTR f;
-     Lisp_Object contents, header;
+static Lisp_Object
+simple_dialog_show (FRAME_PTR f, Lisp_Object contents, Lisp_Object header)
 {
   int answer;
   UINT type;
@@ -1315,8 +1280,7 @@ static Lisp_Object simple_dialog_show (f, contents, header)
 
 /* Is this item a separator? */
 static int
-name_is_separator (name)
-     char *name;
+name_is_separator (char *name)
 {
   char *start = name;
 
@@ -1326,14 +1290,6 @@ name_is_separator (name)
      or "--deep-shadow".  We don't implement them yet, se we just treat
      them like normal separators.  */
   return (*name == '\0' || start + 2 == name);
-}
-
-
-/* Indicate boundary between left and right.  */
-static int
-add_left_right_boundary (HMENU menu)
-{
-  return AppendMenu (menu, MF_MENUBARBREAK, 0, NULL);
 }
 
 /* UTF8: 0xxxxxxx, 110xxxxx 10xxxxxx, 1110xxxx, 10xxxxxx, 10xxxxxx */
@@ -1533,7 +1489,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
       if (set_menu_item_info)
 	{
 	  MENUITEMINFO info;
-	  bzero (&info, sizeof (info));
+	  memset (&info, 0, sizeof (info));
 	  info.cbSize = sizeof (info);
 	  info.fMask = MIIM_DATA;
 
@@ -1616,7 +1572,7 @@ w32_menu_display_help (HWND owner, HMENU menu, UINT item, UINT flags)
 	{
 	  MENUITEMINFO info;
 
-	  bzero (&info, sizeof (info));
+	  memset (&info, 0, sizeof (info));
 	  info.cbSize = sizeof (info);
 	  info.fMask = MIIM_DATA;
 	  get_menu_item_info (menu, item, FALSE, &info);
@@ -1647,14 +1603,13 @@ w32_menu_display_help (HWND owner, HMENU menu, UINT item, UINT flags)
 
 /* Free memory used by owner-drawn strings.  */
 static void
-w32_free_submenu_strings (menu)
-     HMENU menu;
+w32_free_submenu_strings (HMENU menu)
 {
   int i, num = GetMenuItemCount (menu);
   for (i = 0; i < num; i++)
     {
       MENUITEMINFO info;
-      bzero (&info, sizeof (info));
+      memset (&info, 0, sizeof (info));
       info.cbSize = sizeof (info);
       info.fMask = MIIM_DATA | MIIM_TYPE | MIIM_SUBMENU;
 
@@ -1676,8 +1631,7 @@ w32_free_submenu_strings (menu)
 }
 
 void
-w32_free_menu_strings (hwnd)
-     HWND hwnd;
+w32_free_menu_strings (HWND hwnd)
 {
   HMENU menu = current_popup_menu;
 
@@ -1701,7 +1655,7 @@ w32_free_menu_strings (hwnd)
 
 DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_p, 0, 0, 0,
        doc: /* Return t if a menu or popup dialog is active on selected frame.  */)
-     ()
+  (void)
 {
 #ifdef HAVE_MENUS
   FRAME_PTR f;
@@ -1712,7 +1666,8 @@ DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_
 #endif /* HAVE_MENUS */
 }
 
-void syms_of_w32menu ()
+void
+syms_of_w32menu (void)
 {
   globals_of_w32menu ();
 
@@ -1734,7 +1689,8 @@ void syms_of_w32menu ()
 	variable initialized is 0 and directly from main when initialized
 	is non zero.
  */
-void globals_of_w32menu ()
+void
+globals_of_w32menu (void)
 {
 	/* See if Get/SetMenuItemInfo functions are available.  */
   HMODULE user32 = GetModuleHandle ("user32.dll");

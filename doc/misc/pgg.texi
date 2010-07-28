@@ -8,8 +8,8 @@
 This file describes PGG @value{VERSION}, an Emacs interface to various
 PGP implementations.
 
-Copyright @copyright{} 2001, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-Free Software Foundation, Inc.
+Copyright @copyright{} 2001, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+2010  Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -27,7 +27,7 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* PGG: (pgg).   Emacs interface to various PGP implementations.
+* PGG: (pgg).                   Emacs interface to various PGP implementations.
 @end direntry
 
 @titlepage
@@ -133,7 +133,7 @@ list autoload setting for desired functions as follows.
 * User Commands::               
 * Selecting an implementation::  
 * Caching passphrase::          
-* Default user identity::	
+* Default user identity::       
 @end menu
 
 @node User Commands
@@ -376,7 +376,7 @@ variable @code{pgg-scheme-gpg-instance} and will be reused from now on.
 (defun pgg-make-scheme-gpg ()
   (or pgg-scheme-gpg-instance
       (setq pgg-scheme-gpg-instance
-	    (luna-make-entity 'pgg-scheme-gpg))))
+            (luna-make-entity 'pgg-scheme-gpg))))
 @end lisp
 
 The name of the function must follow the

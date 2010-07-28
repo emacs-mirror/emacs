@@ -327,6 +327,8 @@ else
    PROFILING_CFLAGS=
    PROFILING_LDFLAGS=
 fi
+AC_SUBST(PROFILING_CFLAGS)
+AC_SUBST(PROFILING_LDFLAGS)
 
 AC_ARG_ENABLE(autodepend,
 [AS_HELP_STRING([--enable-autodepend],
@@ -720,14 +722,6 @@ then
   CC="$NON_GNU_CC"
 fi
 
-if test x$GCC = xyes; then
-  C_OPTIMIZE_SWITCH=-O2
-  test "x$GCC_TEST_OPTIONS" != x && CC="$CC $GCC_TEST_OPTIONS"
-else
-  C_OPTIMIZE_SWITCH=-O
-  test "x$NON_GCC_TEST_OPTIONS" != x && CC="$CC $NON_GCC_TEST_OPTIONS"
-fi
-
 dnl checks for Unix variants
 AC_USE_SYSTEM_EXTENSIONS
 
@@ -756,6 +750,22 @@ AC_MSG_RESULT($has_option)
 CFLAGS="$SAVE_CFLAGS"
 unset has_option
 unset SAVE_CFLAGS
+
+### Use -Wold-style-definition if the compiler supports it
+# This can be removed when conversion to standard C is finished.
+AC_MSG_CHECKING([whether gcc understands -Wold-style-definition])
+SAVE_CFLAGS="$CFLAGS"
+CFLAGS="$CFLAGS -Wold-style-definition"
+AC_TRY_COMPILE([], [], has_option=yes, has_option=no,)
+if test $has_option = yes; then
+   C_WARNINGS_SWITCH="-Wold-style-definition $C_WARNINGS_SWITCH"
+fi
+AC_MSG_RESULT($has_option)
+CFLAGS="$SAVE_CFLAGS"
+unset has_option
+unset SAVE_CFLAGS
+AC_SUBST(C_WARNINGS_SWITCH)
+
 
 #### Some other nice autoconf tests.
 
@@ -846,33 +856,10 @@ AC_LINK_IFELSE([main(){return 0;}],
   LDFLAGS=$late_LDFLAGS
   [AC_MSG_RESULT(no)])
 
-LDFLAGS="${LDFLAGS} ${PROFILING_LDFLAGS}"
-
 
 # The value of CPP is a quoted variable reference, so we need to do this
 # to get its actual value...
 CPP=`eval "echo $CPP"`
-
-
-### First figure out CFLAGS (which we use for running the compiler here)
-### and REAL_CFLAGS (which we use for real compilation).
-### The two are the same except when using GCC where we might use
-### extra warning and profiling flags.
-
-### If the CFLAGS env var is specified, we use that value
-### instead of the default.
-
-dnl Note AC_PROG_CC sets CFLAGS to -g -O2 for gcc anyway.
-if test "x$SPECIFIED_CFLAGS" = x; then
-  CFLAGS="-g $C_OPTIMIZE_SWITCH"
-  if test x$GCC = xyes; then
-    REAL_CFLAGS="$CFLAGS $C_WARNINGS_SWITCH $PROFILING_CFLAGS"
-  else
-    REAL_CFLAGS="$CFLAGS"
-  fi
-else
-  REAL_CFLAGS="$CFLAGS"
-fi
 
 
 dnl Not used by any currently supported platform.
@@ -890,6 +877,8 @@ AC_SUBST(CANNOT_DUMP)
 
 UNEXEC_OBJ=unexelf.o
 case "$opsys" in
+  # MSDOS uses unexec.o
+  # MSWindows uses unexw32.o
   aix4-2)
    UNEXEC_OBJ=unexaix.o
    ;;
@@ -1071,7 +1060,7 @@ START_FILES=
 case $opsys in
   cygwin )
     LIB_MATH=
-    START_FILES='ecrt0.o'
+    START_FILES='pre-crt0.o'
     ;;
   darwin )
     ## Adding -lm confuses the dynamic linker, so omit it.
@@ -1480,7 +1469,7 @@ tmp_CPPFLAGS="$CPPFLAGS"
 tmp_CFLAGS="$CFLAGS"
 CPPFLAGS="$CPPFLAGS -x objective-c"
 CFLAGS="$CFLAGS -x objective-c"
-TEMACS_LDFLAGS2="\${LDFLAGS}"
+TEMACS_LDFLAGS2="\${LDFLAGS} \${PROFILING_LDFLAGS}"
 dnl I don't think it's especially important, but src/Makefile.in
 dnl (now the only user of ns_appdir) used to go to the trouble of adding a
 dnl trailing "/" to it, so now we do it here.
@@ -1509,7 +1498,6 @@ if test "${with_ns}" != no; then
        GNUSTEP_LOCAL_LIBRARIES="-L${GNUSTEP_LOCAL_LIBRARIES}"
      CPPFLAGS="$CPPFLAGS -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
      CFLAGS="$CFLAGS -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
-     REAL_CFLAGS="$REAL_CFLAGS -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
      LDFLAGS="$LDFLAGS -L${GNUSTEP_SYSTEM_LIBRARIES} ${GNUSTEP_LOCAL_LIBRARIES}"
      LIB_STANDARD=
      START_FILES=
@@ -1715,6 +1703,7 @@ esac
 # used for the tests that follow.  We set them back to REAL_CFLAGS and
 # REAL_CPPFLAGS later on.
 
+REAL_CFLAGS="$CFLAGS"
 REAL_CPPFLAGS="$CPPFLAGS"
 
 if test "${HAVE_X11}" = "yes"; then
@@ -2615,14 +2604,14 @@ AC_SUBST(BLESSMAIL_TARGET)
 
 AC_CHECK_FUNCS(gethostname getdomainname dup2 \
 rename closedir mkdir rmdir sysinfo getrusage get_current_dir_name \
-random lrand48 bcopy bcmp logb frexp fmod rint cbrt ftime setsid \
+random lrand48 logb frexp fmod rint cbrt ftime setsid \
 strerror fpathconf select mktime euidaccess getpagesize tzset setlocale \
 utimes getrlimit setrlimit setpgid getcwd getwd shutdown getaddrinfo \
-__fpending mblen mbrlen mbsinit strsignal setitimer ualarm index rindex \
+__fpending mblen mbrlen mbsinit strsignal setitimer ualarm strchr strrchr \
 sendto recvfrom getsockopt setsockopt getsockname getpeername \
-gai_strerror mkstemp getline getdelim mremap memmove fsync sync bzero \
+gai_strerror mkstemp getline getdelim mremap memmove fsync sync \
 memset memcmp difftime memcpy mempcpy mblen mbrlen posix_memalign \
-cfmakeraw cfsetspeed isnan copysign)
+cfmakeraw cfsetspeed isnan copysign __executable_start)
 
 AC_CHECK_HEADERS(sys/un.h)
 
@@ -3337,9 +3326,7 @@ LINKER=
 ORDINARY_LINK=
 case "$opsys" in
   ## gnu: GNU needs its own crt0.
-  aix4-2|darwin|gnu|usg5-4|irix6-5|sol2*|unixware) ORDINARY_LINK=yes ;;
-
-  cygwin) LINKER="\$(CC)" ;;
+  aix4-2|cygwin|darwin|gnu|usg5-4|irix6-5|sol2*|unixware) ORDINARY_LINK=yes ;;
 
   ## On post 1.3 releases of NetBSD, gcc -nostdlib also clears the
   ## library search parth, i.e. it won't search /usr/lib for libc and
@@ -3358,8 +3345,6 @@ case "$opsys" in
 esac
 
 
-PRE_EDIT_LDFLAGS=
-POST_EDIT_LDFLAGS=
 if test "x$ORDINARY_LINK" = "xyes"; then
 
   LINKER="\$(CC)"
@@ -3378,17 +3363,7 @@ elif test "x$GCC" = "xyes" && test "x$LINKER" = "x"; then
   ## searching for libraries in its internal directories, so we have to
   ## ask GCC explicitly where to find libgcc.a (LIB_GCC below).
   LINKER="\$(CC) -nostdlib"
-  ## GCC passes any argument prefixed with -Xlinker directly to the linker.
-  ## See prefix-args.c for an explanation of why we do not do this with the
-  ## shell''s ``for'' construct.  Note that sane people do not have '.' in
-  ## their paths, so we must use ./prefix-args.
-  ## TODO either make prefix-args check ORDINARY_LINK internally,
-  ## or remove it altogether (bug#6184), removing the need for this hack.
-  PRE_EDIT_LDFLAGS='`./prefix-args -Xlinker'
-  POST_EDIT_LDFLAGS='`'
 fi
-AC_SUBST(PRE_EDIT_LDFLAGS)
-AC_SUBST(POST_EDIT_LDFLAGS)
 
 test "x$LINKER" = "x" && LINKER=ld
 ## FIXME? What setting of EDIT_LDFLAGS should this have?
@@ -3404,8 +3379,7 @@ LIB_GCC=
 if test "x$GCC" = "xyes" && test "x$ORDINARY_LINK" != "xyes"; then
 
   case "$opsys" in
-    ## cygwin: don't link against static libgcc.
-    cygwin|freebsd|netbsd|openbsd) LIB_GCC= ;;
+    freebsd|netbsd|openbsd) LIB_GCC= ;;
 
     gnu-*)
       ## armin76@gentoo.org reported that the lgcc_s flag is necessary to
@@ -3540,11 +3514,6 @@ SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
 
 #define my_strftime nstrftime	/* for strftime.c */
 
-/* Some of the files of Emacs which are intended for use with other
-   programs assume that if you have a config.h file, you must declare
-   the type of getenv.  */
-extern char *getenv ();
-
 /* These default definitions are good for almost all machines.
    The exceptions override them in m/MACHINE.h.  */
 
@@ -3579,10 +3548,6 @@ extern char *getenv ();
 #include <string.h>
 #endif
 
-#ifdef HAVE_STRINGS_H
-#include <strings.h>  /* May be needed for bcopy & al.  */
-#endif
-
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
@@ -3605,6 +3570,14 @@ void *alloca (size_t);
 typedef unsigned size_t;
 #endif
 
+#ifndef HAVE_STRCHR
+#define strchr(a, b) index (a, b)
+#endif
+
+#ifndef HAVE_STRRCHR
+#define strrchr(a, b) rindex (a, b)
+#endif
+
 #if defined __GNUC__ && (__GNUC__ > 2 \
                          || (__GNUC__ == 2 && __GNUC_MINOR__ >= 5))
 #define NO_RETURN	__attribute__ ((__noreturn__))
@@ -3622,16 +3595,6 @@ typedef unsigned size_t;
 #  ifndef GC_LISP_OBJECT_ALIGNMENT
 #    define GC_LISP_OBJECT_ALIGNMENT (__alignof__ (Lisp_Object))
 #  endif
-#endif
-
-#ifndef HAVE_BCOPY
-#define bcopy(a,b,s) memcpy (b,a,s)
-#endif
-#ifndef HAVE_BZERO
-#define bzero(a,s) memset (a,0,s)
-#endif
-#ifndef HAVE_BCMP
-#define BCMP memcmp
 #endif
 
 #endif /* EMACS_CONFIG_H */

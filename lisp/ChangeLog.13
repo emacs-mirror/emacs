@@ -1498,7 +1498,7 @@
 	(ps-header-footer-string): Delete function.
 	(ps-encode-header-string-function): New variable.
 	(ps-generate-header-line): Call ps-encode-header-string-function.
-	(ps-basic-plot-string-function): New variable
+	(ps-basic-plot-string-function): New variable.
 	(ps-begin-job): Set ps-basic-plot-string-function and
 	ps-encode-header-string-function.  For setting up headers and
 	footers, don't use caches such as ps-rh-cache.  Don't call
@@ -1588,7 +1588,7 @@
 
 	* international/mule.el (ctext-non-standard-encodings-alist):
 	Rename from non-standard-icccm-encodings-alist.
-	(ctext-non-standard-encodings-regexp): New variable
+	(ctext-non-standard-encodings-regexp): New variable.
 	(ctext-post-read-conversion): Full rewrite.
 	(ctext-non-standard-designations-alist): Rename from
 	non-standard-designations-alist.
@@ -8209,7 +8209,7 @@
 	(allout-end-of-line): Preserve mark activation status when jumping.
 	(allout-open-topic): Account for opening after a child that
 	contains a hidden trailing newline.  Preserve match data.
-	Run allout-structure-added-hook
+	Run allout-structure-added-hook.
 	(allout-encrypt-decrypted): Preserve match data.
 	(allout-toggle-current-subtree-exposure): Add new interactive
 	function for toggle subtree exposure - suggested by tassilo.
@@ -9880,7 +9880,7 @@
 	(org-find-base-buffer-visiting): Catch the case that there is no
 	buffer visiting the file.
 	(org-property-or-variable-value): New function.
-	(org-todo): Use `org-property-or-variable-value'
+	(org-todo): Use `org-property-or-variable-value'.
 	(org-agenda-compact-blocks): New option.
 	(org-prepare-agenda, org-agenda-list): Use `org-agenda-compact-blocks'.
 	(org-agenda-schedule, org-agenda-deadline):
@@ -10227,7 +10227,7 @@
 
 	* progmodes/cperl-mode.el: Merge upstream 5.23.
 	(cperl-where-am-i): Remove function.
-	(cperl-backward-to-noncomment): Don't go too far when skipping POD/HEREs
+	(cperl-backward-to-noncomment): Don't go too far when skipping POD/HEREs.
 	(cperl-sniff-for-indent): De-invert [string] and [comment].
 	When looking for label, skip s:m:y:tr.
 	(cperl-indent-line): Likewise.
