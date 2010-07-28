@@ -1,3 +1,7 @@
+2010-07-28  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* cus-start.el (tool-bar-style): Add text-image-horiz.
+
 2010-07-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	* progmodes/gud.el (gud-common-init): Check for remoteness of
