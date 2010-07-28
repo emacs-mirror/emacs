@@ -1,5 +1,10 @@
 2010-07-28  Michael Albinus  <michael.albinus@gmx.de>
 
+	* progmodes/gud.el (gud-common-init): Check for remoteness of
+	`file', and not of `default-directory'.
+
+2010-07-28  Michael Albinus  <michael.albinus@gmx.de>
+
 	* net/tramp.el (tramp-methods): Move hostname to the end in all
 	ssh `tramp-login-args'.
 	(tramp-verbose): Describe verbose level 9.
