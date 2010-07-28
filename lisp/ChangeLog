@@ -1,3 +1,17 @@
+2010-07-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-methods): Move hostname to the end in all
+	ssh `tramp-login-args'.
+	(tramp-verbose): Describe verbose level 9.
+	(tramp-open-shell): Check for tty if `tramp-verbose' >= 9.
+	(tramp-open-connection-setup-interactive-shell): Trace stty
+	settings if `tramp-verbose' >= 9.
+	(tramp-handle-start-file-process): Implement tty setting.
+	(Bug#4604, Bug#6360)
+
+	* net/tramp-cmds.el (tramp-bug): Recommend setting of
+	`tramp-verbose' to 9.
+
 2010-07-27  Aaron S. Hawley  <ashawley@burlingtontelecom.net>
 
 	* emacs-lisp/re-builder.el (reb-re-syntax, reb-lisp-mode)
