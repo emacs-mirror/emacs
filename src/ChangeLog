@@ -1,3 +1,12 @@
+2010-07-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Rename s/usg5-4.h -> s/usg5-4-common.h.
+	* s/usg5-4.h: Rename file to ...
+	* s/usg5-4-common.h: ... this for consistency with what we do for BSD.
+	* s/unixware.h:
+	* s/sol2-6.h:
+	* s/irix6-5.h: Update includes accordingly.
+
 2010-07-29  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (x_set_tool_bar_position): Remove debug fprintf.
