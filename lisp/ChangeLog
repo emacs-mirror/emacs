@@ -1,3 +1,13 @@
+2010-07-29  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* menu-bar.el (menu-bar-showhide-tool-bar-menu-customize-enable-left)
+	(menu-bar-showhide-tool-bar-menu-customize-disable)
+	(menu-bar-showhide-tool-bar-menu-customize-enable-right)
+	(menu-bar-showhide-tool-bar-menu-customize-enable-top)
+	(menu-bar-showhide-tool-bar-menu-customize-enable-bottom): New functions
+	(menu-bar-showhide-tool-bar-menu): If tool bar is moveable,
+	make a menu for Options => toolbar that can move it.
+
 2010-07-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/package-x.el (package--make-rss-entry):

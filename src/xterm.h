@@ -433,9 +433,15 @@ struct x_output
      if the menubar is turned off.  */
   int menubar_height;
 
-  /* Height of tool bar widget, in pixels.
-     Zero if not using an external tool bar.  */
-  int toolbar_height;
+  /* Height of tool bar widget, in pixels.  top_height is used if tool bar
+     at top, bottom_height if tool bar is at the bottom.
+     Zero if not using an external tool bar or if tool bar is vertical.  */
+  int toolbar_top_height, toolbar_bottom_height;
+
+  /* Width of tool bar widget, in pixels.  left_width is used if tool bar
+     at left, right_width if tool bar is at the right.
+     Zero if not using an external tool bar or if tool bar is horizontal.  */
+  int toolbar_left_width, toolbar_right_width;
 
   /* The tiled border used when the mouse is out of the frame.  */
   Pixmap border_tile;
@@ -480,6 +486,8 @@ struct x_output
   GtkWidget *edit_widget;
   /* The widget used for laying out widgets vertically.  */
   GtkWidget *vbox_widget;
+  /* The widget used for laying out widgets horizontally.  */
+  GtkWidget *hbox_widget;
   /* The menubar in this frame.  */
   GtkWidget *menubar_widget;
   /* The tool bar in this frame  */
@@ -488,6 +496,8 @@ struct x_output
   GtkWidget *handlebox_widget;
   /* Non-zero if the tool bar is detached.  */
   int toolbar_detached;
+  /* Non-zero if tool bar is packed into the hbox widget (i.e. vertical).  */
+  int toolbar_in_hbox;
 
   /* The last size hints set.  */
   GdkGeometry size_hints;
@@ -700,7 +710,15 @@ enum
 #define FRAME_FONT(f) ((f)->output_data.x->font)
 #define FRAME_FONTSET(f) ((f)->output_data.x->fontset)
 #define FRAME_MENUBAR_HEIGHT(f) ((f)->output_data.x->menubar_height)
-#define FRAME_TOOLBAR_HEIGHT(f) ((f)->output_data.x->toolbar_height)
+#define FRAME_TOOLBAR_TOP_HEIGHT(f) ((f)->output_data.x->toolbar_top_height)
+#define FRAME_TOOLBAR_BOTTOM_HEIGHT(f) \
+  ((f)->output_data.x->toolbar_bottom_height)
+#define FRAME_TOOLBAR_HEIGHT(f) \
+  (FRAME_TOOLBAR_TOP_HEIGHT (f) + FRAME_TOOLBAR_BOTTOM_HEIGHT (f))
+#define FRAME_TOOLBAR_LEFT_WIDTH(f) ((f)->output_data.x->toolbar_left_width)
+#define FRAME_TOOLBAR_RIGHT_WIDTH(f) ((f)->output_data.x->toolbar_right_width)
+#define FRAME_TOOLBAR_WIDTH(f) \
+  (FRAME_TOOLBAR_LEFT_WIDTH (f) + FRAME_TOOLBAR_RIGHT_WIDTH (f))
 #define FRAME_BASELINE_OFFSET(f) ((f)->output_data.x->baseline_offset)
 
 /* This gives the x_display_info structure for the display F is on.  */
