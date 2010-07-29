@@ -685,7 +685,7 @@ It will move point to somewhere in the headers."
 (defun package-download-single (name version desc requires)
   "Download and install a single-file package."
   (let ((buffer (url-retrieve-synchronously
-		 (concat (package-archive-id name)
+		 (concat (package-archive-url name)
 			 (symbol-name name) "-" version ".el"))))
     (with-current-buffer buffer
       (package-handle-response)
@@ -698,7 +698,7 @@ It will move point to somewhere in the headers."
 (defun package-download-tar (name version)
   "Download and install a tar package."
   (let ((tar-buffer (url-retrieve-synchronously
-		     (concat (package-archive-id name)
+		     (concat (package-archive-url name)
 			     (symbol-name name) "-" version ".tar"))))
     (with-current-buffer tar-buffer
       (package-handle-response)
@@ -856,7 +856,7 @@ Also, add the originating archive to the end of the package vector."
 (defun package-install (name)
   "Install the package named NAME.
 Interactively, prompt for the package name.
-The package is found on one of the archives in `package-archive-base'."
+The package is found on one of the archives in `package-archives'."
   (interactive
    (list (intern (completing-read "Install package: "
 				  (mapcar (lambda (elt)
@@ -1030,7 +1030,7 @@ The file can either be a tar file or an Emacs Lisp file."
 		     ;; FIXME: query user?
 		     'always))
 
-(defun package-archive-id (name)
+(defun package-archive-url (name)
   "Return the archive containing the package NAME."
   (let ((desc (cdr (assq (intern-soft name) package-archive-contents))))
     (cdr (assoc (aref desc (- (length desc) 1)) package-archives))))
@@ -1350,7 +1350,7 @@ For larger packages, shows the README file."
   (interactive)
   (let* ((pkg-name (package-menu-get-package))
 	 (buffer (url-retrieve-synchronously
-		  (concat (package-archive-id pkg-name)
+		  (concat (package-archive-url pkg-name)
 			  pkg-name
 			  "-readme.txt")))
 	 start-point ok)
