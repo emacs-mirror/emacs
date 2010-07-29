@@ -200,7 +200,7 @@ choose_minibuf_frame_1 (Lisp_Object ignore)
 DEFUN ("active-minibuffer-window", Factive_minibuffer_window,
        Sactive_minibuffer_window, 0, 0, 0,
        doc: /* Return the currently active minibuffer window, or nil if none.  */)
-     ()
+     (void)
 {
   return minibuf_level ? minibuf_window : Qnil;
 }
