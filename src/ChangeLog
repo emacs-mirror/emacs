@@ -1,3 +1,19 @@
+2010-07-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* unexec.c (make_hdr): Remove references to NO_REMAP, COFF,
+	SEGMENT_MASK, SECTION_ALIGNMENT, ADJUST_EXEC_HEADER.
+	* s/usg5-4.h (COFF):
+	* s/template.h:
+	* s/msdos.h (COFF, NO_REMAP):
+	* s/ms-w32.h (NO_REMAP):
+	* s/hpux10-20.h (NO_REMAP):
+	* m/sparc.h (SEGMENT_MASK):
+	* m/m68k.h (NO_REMAP):
+	* m/intel386.h (SEGMENT_MASK):
+	* m/arm.h (NO_REMAP):
+	* m/alpha.h (COFF):
+	* m/template.h: Remove references to unused defines.
+
 2010-07-28  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xsettings.c (Ftool_bar_get_system_style): Also check for

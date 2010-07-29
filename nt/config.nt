@@ -308,12 +308,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef config_machfile
 #include "m/intel386.h"
 
-/* If no remapping takes place, static variables cannot be dumped as
-   pure, so don't worry about the `static' keyword. */
-#ifdef NO_REMAP
-#undef static
-#endif
-
 /* Define `subprocesses' should be defined if you want to
    have code for asynchronous subprocesses
    (as used in M-x compile and M-x shell).
