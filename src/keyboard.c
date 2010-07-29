@@ -246,9 +246,6 @@ Lisp_Object Vminibuffer_message_timeout;
    ASCII character.  */
 int quit_char;
 
-extern Lisp_Object current_global_map;
-extern int minibuf_level;
-
 /* If non-nil, this is a map that overrides all other local maps.  */
 Lisp_Object Voverriding_local_map;
 
@@ -497,7 +494,6 @@ Lisp_Object Qevent_symbol_elements;
 Lisp_Object Qmenu_enable;
 Lisp_Object QCenable, QCvisible, QChelp, QCfilter, QCkeys, QCkey_sequence;
 Lisp_Object QCbutton, QCtoggle, QCradio, QClabel;
-extern Lisp_Object Qmenu_item;
 
 /* An event header symbol HEAD may have a property named
    Qevent_symbol_element_mask, which is of the form (BASE MODIFIERS);
@@ -525,8 +521,6 @@ Lisp_Object recursive_edit_unwind (Lisp_Object buffer), command_loop (void);
 Lisp_Object Fthis_command_keys (void);
 Lisp_Object Qextended_command_history;
 EMACS_TIME timer_check (int do_it_now);
-
-extern Lisp_Object Vhistory_length, Vtranslation_table_for_input;
 
 static void record_menu_key (Lisp_Object c);
 static int echo_length (void);
@@ -1836,14 +1830,11 @@ command_loop_1 (void)
     }
 }
 
-extern Lisp_Object Qcomposition, Qdisplay;
-
 /* Adjust point to a boundary of a region that has such a property
    that should be treated intangible.  For the moment, we check
    `composition', `display' and `invisible' properties.
    LAST_PT is the last position of point.  */
 
-extern Lisp_Object Qafter_string, Qbefore_string;
 extern Lisp_Object get_pos_property (Lisp_Object, Lisp_Object, Lisp_Object);
 
 static void
@@ -8116,7 +8107,6 @@ static void
 process_tool_bar_item (Lisp_Object key, Lisp_Object def, Lisp_Object data, void *args)
 {
   int i;
-  extern Lisp_Object Qundefined;
   struct gcpro gcpro1, gcpro2;
 
   /* Protect KEY and DEF from GC because parse_tool_bar_item may call

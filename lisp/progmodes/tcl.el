@@ -545,7 +545,7 @@ Uses variables `tcl-proc-regexp' and `tcl-keyword-list'."
 ;;
 
 ;;;###autoload
-(define-derived-mode tcl-mode nil "Tcl"
+(define-derived-mode tcl-mode prog-mode "Tcl"
   "Major mode for editing Tcl code.
 Expression and list commands understand all Tcl brackets.
 Tab indents for Tcl code.

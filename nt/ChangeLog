@@ -1,3 +1,7 @@
+2010-07-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* config.nt: Remove code referring to NO_REMAP, unused.
+
 2010-07-25  Christoph Scholtes  <cschol2112@gmail.com>
 
 	Build binary distros on Windows using emacs-VERSION as root dir name.

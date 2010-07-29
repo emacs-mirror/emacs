@@ -1,3 +1,69 @@
+2010-07-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package-load-list, package-archives)
+	(package-archive-contents, package-user-dir)
+	(package-directory-list, package--builtins, package-alist)
+	(package-activated-list, package-obsolete-alist): Mark as risky.
+
+2010-07-28  Phil Hagelberg  <phil@evri.com>
+
+	Add support for non-default package repositories.
+	* emacs-lisp/package.el (package-archive-base): Var deleted.
+	(package-archives): New variable.
+	(package-archive-contents): Doc fix.
+	(package-load-descriptor): Do nothing if descriptor file is
+	missing.
+	(package--write-file-no-coding): New function.
+	(package-unpack-single): Use it.
+	(package-archive-id): New function.
+	(package-download-single, package-download-tar)
+	(package-menu-view-commentary): Use it.
+	(package-installed-p): Make second argument optional.
+	(package-read-all-archive-contents): New function.
+	(package-initialize): Use it.
+	(package-read-archive-contents): Add ARCHIVE argument.
+	(package--add-to-archive-contents): New function.
+	(package-install): Don't call package-read-archive-contents.
+	(package--download-one-archive): Store archive file in a
+	subdirectory of package-user-dir.
+	(package-menu-execute): Remove spurious line movement.
+
+2010-07-28  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* cus-start.el (tool-bar-style): Add text-image-horiz.
+
+2010-07-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* progmodes/gud.el (gud-common-init): Check for remoteness of
+	`file', and not of `default-directory'.
+
+2010-07-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-methods): Move hostname to the end in all
+	ssh `tramp-login-args'.
+	(tramp-verbose): Describe verbose level 9.
+	(tramp-open-shell): Check for tty if `tramp-verbose' >= 9.
+	(tramp-open-connection-setup-interactive-shell): Trace stty
+	settings if `tramp-verbose' >= 9.
+	(tramp-handle-start-file-process): Implement tty setting.
+	(Bug#4604, Bug#6360)
+
+	* net/tramp-cmds.el (tramp-bug): Recommend setting of
+	`tramp-verbose' to 9.
+
+2010-07-27  Aaron S. Hawley  <ashawley@burlingtontelecom.net>
+
+	* emacs-lisp/re-builder.el (reb-re-syntax, reb-lisp-mode)
+	(reb-lisp-syntax-p, reb-change-syntax, reb-cook-regexp):
+	Remove references to package `lisp-re' (bug#4369).
+
+2010-07-27  Tom Tromey  <tromey@redhat.com>
+
+	* progmodes/js.el (js-mode):
+	* progmodes/make-mode.el (makefile-mode):
+	* progmodes/simula.el (simula-mode):
+	* progmodes/tcl.el (tcl-mode): Derive from prog-mode.
+
 2010-07-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* help-fns.el (find-lisp-object-file-name): Doc fix (bug#6494).

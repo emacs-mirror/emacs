@@ -3501,6 +3501,7 @@ The verbosity levels are
 @*@indent @w{ 6}  sent and received strings
 @*@indent @w{ 7}  file caching
 @*@indent @w{ 8}  connection properties
+@*@indent @w{ 9}  test commands
 @*@indent @w{10}  traces (huge)
 
 When @code{tramp-verbose} is greater than or equal to 4, the messages

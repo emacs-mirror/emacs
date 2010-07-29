@@ -43,9 +43,6 @@ Lisp_Object Vself_insert_face;
 /* This is the command that set up Vself_insert_face.  */
 Lisp_Object Vself_insert_face_command;
 
-extern Lisp_Object Qface;
-extern Lisp_Object Vtranslation_table_for_input;
-
 static int internal_self_insert (int, int);
 
 DEFUN ("forward-point", Fforward_point, Sforward_point, 1, 1, 0,

@@ -3666,8 +3666,6 @@ x_update_menu_appearance (struct frame *f)
 	  if (! NILP (xlfd))
 	    {
 #if defined HAVE_X_I18N
-	      extern char *xic_create_fontsetname
-                (char *base_fontname, Bool motif);
 	      char *fontsetname = xic_create_fontsetname (SDATA (xlfd), motif);
 #else
 	      char *fontsetname = (char *) SDATA (xlfd);

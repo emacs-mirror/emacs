@@ -48,8 +48,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
  *
  * Specifying zero for data_start means the boundary between text and data
  * should not be the same as when the program was loaded.
- * If NO_REMAP is defined, the argument data_start is ignored and the
- * segment boundaries are never changed.
  *
  * Bss_start indicates how much of the data segment is to be saved in the
  * a.out file and restored when the program is executed.  It gives the lowest
@@ -68,56 +66,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Modified to support SysVr3 shared libraries by James Van Artsdalen
  * of Dell Computer Corporation.  james@bigtex.cactus.org.
  */
-
-/* There are several compilation parameters affecting unexec:
-
-* COFF
-
-Define this if your system uses COFF for executables.
-
-* NO_REMAP
-
-Define this if you do not want to try to save Emacs's pure data areas
-as part of the text segment.
-
-Saving them as text is good because it allows users to share more.
-
-However, on machines that locate the text area far from the data area,
-the boundary cannot feasibly be moved.  Such machines require
-NO_REMAP.
-
-Also, remapping can cause trouble with the built-in startup routine
-/lib/crt0.o, which defines `environ' as an initialized variable.
-Dumping `environ' as pure does not work!  So, to use remapping,
-you must write a startup routine for your machine in Emacs's crt0.c.
-If NO_REMAP is defined, Emacs uses the system's crt0.o.
-
-* SECTION_ALIGNMENT
-
-Some machines that use COFF executables require that each section
-start on a certain boundary *in the COFF file*.  Such machines should
-define SECTION_ALIGNMENT to a mask of the low-order bits that must be
-zero on such a boundary.  This mask is used to control padding between
-segments in the COFF file.
-
-If SECTION_ALIGNMENT is not defined, the segments are written
-consecutively with no attempt at alignment.  This is right for
-unmodified system V.
-
-* SEGMENT_MASK
-
-Some machines require that the beginnings and ends of segments
-*in core* be on certain boundaries.  For most machines, a page
-boundary is sufficient.  That is the default.  When a larger
-boundary is needed, define SEGMENT_MASK to a mask of
-the bits that must be zero on such a boundary.
-
-* ADJUST_EXEC_HEADER
-
-This macro can be used to generate statements to adjust or
-initialize nonstandard fields in the file header
-
-*/
 
 #ifndef emacs
 #define PERROR(arg) perror (arg); return -1
@@ -264,19 +212,9 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
   pagemask = getpagesize () - 1;
 
   /* Adjust text/data boundary. */
-#ifdef NO_REMAP
   data_start = (int) start_of_data ();
-#else /* not NO_REMAP */
-  if (!data_start)
-    data_start = (int) start_of_data ();
-#endif /* not NO_REMAP */
   data_start = ADDR_CORRECT (data_start);
-
-#ifdef SEGMENT_MASK
-  data_start = data_start & ~SEGMENT_MASK; /* (Down) to segment boundary. */
-#else
   data_start = data_start & ~pagemask; /* (Down) to page boundary. */
-#endif
 
   bss_end = ADDR_CORRECT (sbrk (0)) + pagemask;
   bss_end &= ~ pagemask;
@@ -374,42 +312,20 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
      to correspond to what we want to dump.  */
 
   f_hdr.f_flags |= (F_RELFLG | F_EXEC);
-#ifndef NO_REMAP
   f_ohdr.text_start = (long) start_of_text ();
   f_ohdr.tsize = data_start - f_ohdr.text_start;
   f_ohdr.data_start = data_start;
-#endif /* NO_REMAP */
   f_ohdr.dsize = bss_start - f_ohdr.data_start;
   f_ohdr.bsize = bss_end - bss_start;
-  /* On some machines, the old values are right.
-     ??? Maybe on all machines with NO_REMAP.  */
   f_thdr.s_size = f_ohdr.tsize;
   f_thdr.s_scnptr = sizeof (f_hdr) + sizeof (f_ohdr);
   f_thdr.s_scnptr += (f_hdr.f_nscns) * (sizeof (f_thdr));
   lnnoptr = f_thdr.s_lnnoptr;
-#ifdef SECTION_ALIGNMENT
-  /* Some systems require special alignment
-     of the sections in the file itself.  */
-  f_thdr.s_scnptr
-    = (f_thdr.s_scnptr + SECTION_ALIGNMENT) & ~SECTION_ALIGNMENT;
-#endif /* SECTION_ALIGNMENT */
   text_scnptr = f_thdr.s_scnptr;
   f_dhdr.s_paddr = f_ohdr.data_start;
   f_dhdr.s_vaddr = f_ohdr.data_start;
   f_dhdr.s_size = f_ohdr.dsize;
   f_dhdr.s_scnptr = f_thdr.s_scnptr + f_thdr.s_size;
-#ifdef SECTION_ALIGNMENT
-  /* Some systems require special alignment
-     of the sections in the file itself.  */
-  f_dhdr.s_scnptr
-    = (f_dhdr.s_scnptr + SECTION_ALIGNMENT) & ~SECTION_ALIGNMENT;
-#endif /* SECTION_ALIGNMENT */
-#ifdef DATA_SECTION_ALIGNMENT
-  /* Some systems require special alignment
-     of the data section only.  */
-  f_dhdr.s_scnptr
-    = (f_dhdr.s_scnptr + DATA_SECTION_ALIGNMENT) & ~DATA_SECTION_ALIGNMENT;
-#endif /* DATA_SECTION_ALIGNMENT */
   data_scnptr = f_dhdr.s_scnptr;
   f_bhdr.s_paddr = f_ohdr.data_start + f_ohdr.dsize;
   f_bhdr.s_vaddr = f_ohdr.data_start + f_ohdr.dsize;
@@ -426,10 +342,6 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
     {
       f_thdr.s_lnnoptr += bias;
     }
-
-#ifdef ADJUST_EXEC_HEADER
-  ADJUST_EXEC_HEADER;
-#endif /* ADJUST_EXEC_HEADER */
 
   if (write (new, &f_hdr, sizeof (f_hdr)) != sizeof (f_hdr))
     {

@@ -62,10 +62,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    for received packets, so datagrams are broken too.  */
 #define BROKEN_DATAGRAM_SOCKETS 1
 
-/* If your system uses COFF (Common Object File Format) then define the
-   preprocessor symbol "COFF".  */
-#define COFF 1
-
 #define MAIL_USE_POP 1
 #define MAIL_USE_SYSTEM_LOCK 1
 

@@ -823,6 +823,7 @@ typedef struct frame *FRAME_PTR;
 
 extern Lisp_Object Qframep, Qframe_live_p;
 extern Lisp_Object Qtty, Qtty_type;
+extern Lisp_Object Qtty_color_mode;
 extern Lisp_Object Qterminal, Qterminal_live_p;
 extern Lisp_Object Qnoelisp;
 
@@ -1063,7 +1064,6 @@ extern Lisp_Object Qalpha;
 extern Lisp_Object Qleft_fringe, Qright_fringe;
 extern Lisp_Object Qheight, Qwidth;
 extern Lisp_Object Qminibuffer, Qmodeline;
-extern Lisp_Object Qonly;
 extern Lisp_Object Qx, Qw32, Qmac, Qpc, Qns;
 extern Lisp_Object Qvisible;
 extern Lisp_Object Qdisplay_type;
@@ -1089,7 +1089,6 @@ extern Lisp_Object x_new_font (struct frame *, Lisp_Object, int);
 
 /* These are in frame.c  */
 
-extern Lisp_Object Qtty_color_mode;
 extern Lisp_Object Vx_resource_name;
 extern Lisp_Object Vx_resource_class;
 

@@ -8130,8 +8130,6 @@ of `image-library-alist', which see).  */)
 void
 syms_of_image (void)
 {
-  extern Lisp_Object Qrisky_local_variable;   /* Syms_of_xdisp has already run.  */
-
   /* Initialize this only once, since that's what we do with Vimage_types
      and they are supposed to be in sync.  Initializing here gives correct
      operation on GNU/Linux of calling dump-emacs after loading some images.  */

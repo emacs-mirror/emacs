@@ -5030,7 +5030,6 @@ count_match (struct glyph *str1, struct glyph *end1, struct glyph *str2, struct 
 
 /* Char insertion/deletion cost vector, from term.c */
 
-extern int *char_ins_del_vector;
 #define char_ins_del_cost(f) (&char_ins_del_vector[FRAME_TOTAL_COLS((f))])
 
 

@@ -3579,7 +3579,6 @@ validate_x_resource_name (void)
   if (STRINGP (Vx_resource_name))
     {
       unsigned char *p = SDATA (Vx_resource_name);
-      int i;
 
       len = SBYTES (Vx_resource_name);
 

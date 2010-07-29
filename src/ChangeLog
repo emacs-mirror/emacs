@@ -1,4 +1,126 @@
+2010-07-29  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* vm-limit.c (POINTER): Add typedef for it.
+	(start_of_data): Change return type from POINTER to char *.
+
+	* frame.h (Qtty_color_mode): Move declaration out of ifdef
+	HAVE_WINDOW_SYSTEM.
+
+2010-07-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vm-limit.c: Do not include sys/resource.h, mem-limits.h does it.
+	Remove reference to __osf__, unused.
+
+	* mem-limits.h: Remove duplicated includes.
+	(NULL): Remove definition, unused.
+	(POINTER): Remove definition.
+	(start_of_data): Use char* in prototype, as the function
+	definition does.
+
+	Remove extern declarations from .c files, and them to .h files.
+	* keyboard.h (Qhelp_echo, waiting_for_input)
+	(input_available_clear_time, ignore_mouse_drag_p)
+	(Vdouble_click_time, real_this_command, Vthis_original_command):
+	* keymap.h (Qremap, Qmenu_item, Voverriding_local_map)
+	(Voverriding_local_map_menu_flag):
+	* lisp.h (Qinteractive_form, use_file_dialog)
+	(Qcursor_in_echo_area, QCascent, QCmargin, QCrelief, Qcount)
+	(Qextension_data, QCconversion, QCcolor_symbols, QCheuristic_mask)
+	(QCindex, QCmatrix, QCcolor_adjustment, QCmask)
+	(Qrisky_local_variable, map_char_table_for_charset, Vprint_level)
+	(Qfunction, debug_on_next_call, Qfield)
+	(Vinhibit_field_text_motion, Vuser_login_name, lisp_time_argument)
+	(Qpriority, Qwindow, Qevaporate, Qbefore_string, Qafter_string)
+	(Qfile_directory_p, Qinsert_file_contents)
+	(Qcompletion_ignore_case, Qcompletion_ignore_case)
+	(Vcompletion_regexp_list, Vhistory_length, completion_ignore_case)
+	(history_delete_duplicates, minibuffer_auto_raise, Qonly)
+	(Qfile_name_handler_alist, Qfront_sticky, Qrear_nonsticky)
+	(Qminibuffer_prompt)
+	(Vtemporary_file_directory,char_ins_del_vector, Qface):
+	* xterm.h (gray_bitmap_width, gray_bitmap_height)
+	(gray_bitmap_bits, xic_create_fontsetname):
+	* coding.h (Vtranslation_table_for_input): Add extern declarations.
+
+	* xsmfns.c (Vuser_login_name):
+	* xrdb.c (Vdouble_click_time):
+	* xfaces.c (xic_create_fontsetname):
+	* w32select.c (waiting_for_input):
+	* print.c (minibuffer_auto_raise):
+	* msdos.c (Qhelp_echo):
+	* macros.c (real_this_command):
+	* keymap.c (Voverriding_local_map):
+	* xterm.c (poll_for_input_1, gray_bitmap_width)
+	(gray_bitmap_height, gray_bitmap_bits;
+	* xmenu.c ( Voverriding_local_map)
+	(Voverriding_local_map_menu_flag; Qmenu_item; use_dialog_box)
+	(use_file_dialog, Xt_app_con):
+	* xdisp.c (minibuffer_auto_raise, Voverriding_local_map)
+	(Voverriding_local_map_menu_flag, Qmenu_item, Qface, Qinvisible)
+	(Qwidth, Qinvisible, Qwindow, Qpriority, Qtool_bar_lines)
+	(Qtool_bar_lines, ignore_mouse_drag_p):
+	* minibuf.c (Voverriding_local_map, Qfield, Qfront_sticky)
+	(Qrear_nonsticky, nconc2):
+	* keyboard.c (current_global_map, minibuf_level, Qmenu_item)
+	(Vhistory_length, Vtranslation_table_for_input, Qcomposition)
+	(Qdisplay, Qafter_string, Qbefore_string, Qundefined):
+	* fileio.c (use_dialog_box, use_file_dialog, Vuser_login_name)
+	(minibuf_level, minibuffer_auto_raise, lisp_time_argument):
+	* eval.c (Qinteractive_form, Qrisky_local_variable, Qfunction)
+	(gc_in_progress):
+	* doc.c (Voverriding_local_map, Qremap):
+	* dired.c (completion_ignore_case, Qcompletion_ignore_case)
+	(Vcompletion_regexp_list):
+	* coding.c (Qmac, Qinsert_file_contents, Qwrite_region)
+	(Qcompletion_ignore_case):
+	* callint.c (Qcursor_in_echo_area, Qfile_directory_p, Qonly)
+	(Vhistory_length, Vthis_original_command, real_this_command)
+	(Qface, Qminibuffer_prompt, history_delete_duplicates):
+	* image.c (Qrisky_local_variable):
+	* fontset.c (QCname):
+	* fns.c (minibuffer_auto_raise, QCname):
+	* dispnew.c (char_ins_del_cost):
+	* composite.c (font_fill_lglyph_metrics):
+	* cmds.c (Qface, Vtranslation_table_for_input):
+	* charset.c (map_char_table_for_charset, Qfile_name_handler_alist):
+	* ccl.c (charset_unicode):
+	* callproc.c (Vtemporary_file_directory):
+	* buffer.c (emacs_strerror): Remove extern declarations.
+
+	* data.c (Qwindow): Make non-static, used from other files too.
+	* frame.c (validate_x_resource_name): Remove shadow definition for i.
+
+	* unexec.c (make_hdr): Remove references to NO_REMAP, COFF,
+	SEGMENT_MASK, SECTION_ALIGNMENT, ADJUST_EXEC_HEADER.
+	* s/usg5-4.h (COFF):
+	* s/template.h:
+	* s/msdos.h (COFF, NO_REMAP):
+	* s/ms-w32.h (NO_REMAP):
+	* s/hpux10-20.h (NO_REMAP):
+	* m/sparc.h (SEGMENT_MASK):
+	* m/m68k.h (NO_REMAP):
+	* m/intel386.h (SEGMENT_MASK):
+	* m/arm.h (NO_REMAP):
+	* m/alpha.h (COFF):
+	* m/template.h: Remove references to unused defines.
+
+2010-07-28  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xsettings.c (Ftool_bar_get_system_style): Also check for
+	Qtext_image_horiz.
+
+	* xdisp.c (Qtext_image_horiz): Define.
+	(syms_of_xdisp): Initialize Qtext_image_horiz.  Add text-image-horiz
+	to documentation of tool-bar-style.
+
+	* lisp.h (Qtext_image_horiz): Declare.
+
+	* gtkutil.c (xg_make_tool_item, xg_show_toolbar_item): Handle tool bar
+	style text_image_horiz.
+
 2010-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacs.c (Fkill_emacs): Remove return statement.
 
 	* term.c (Qspace, QCalign_to, QCwidth): Remove declarations.
 	(encode_terminal_code, produce_composite_glyph): Remove unused variables.

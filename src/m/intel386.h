@@ -32,8 +32,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* libc-linux/sysdeps/linux/i386/ulimit.c says that due to shared library, */
 /* we cannot get the maximum address for brk */
 #define ULIMIT_BREAK_VALUE (32*1024*1024)
-
-#define SEGMENT_MASK ((SEGMENT_SIZE)-1)
 #endif
 
 /* arch-tag: 746338f0-cb7b-4f49-a98c-cb50817cf2ec

@@ -56,8 +56,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* On USG systems signal handlers return void.  */
 #define SIGTYPE void
 
-#undef COFF
-
 /* Get FIONREAD from <sys/filio.h>.  Get <sys/ttold.h> to get struct tchars.
    But get <termio.h> first to make sure ttold.h doesn't interfere.
    And don't try to use SIGIO yet.  */

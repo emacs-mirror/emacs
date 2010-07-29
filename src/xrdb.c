@@ -508,7 +508,6 @@ x_load_resources (Display *display, const char *xrm_string,
 
 #ifdef USE_MOTIF
   const char *courier = "-*-courier-medium-r-*-*-*-120-*-*-*-*-iso8859-1";
-  extern Lisp_Object Vdouble_click_time;
 #endif
 
   x_rm_string = XrmStringToQuark (XrmStringType);

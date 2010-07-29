@@ -1905,12 +1905,12 @@ static XIMStyle supported_xim_styles[] =
 
 /* Create an X fontset on frame F with base font name BASE_FONTNAME.  */
 
-char xic_defaut_fontset[] = "-*-*-*-r-normal--14-*-*-*-*-*-*-*";
+const char xic_defaut_fontset[] = "-*-*-*-r-normal--14-*-*-*-*-*-*-*";
 
 /* Create an Xt fontset spec from the name of a base font.
    If `motif' is True use the Motif syntax.  */
 char *
-xic_create_fontsetname (char *base_fontname, int motif)
+xic_create_fontsetname (const char *base_fontname, int motif)
 {
   const char *sep = motif ? ";" : ",";
   char *fontsetname;
@@ -1930,7 +1930,7 @@ xic_create_fontsetname (char *base_fontname, int motif)
 	 - the base font.
 	 - the base font where the charset spec is replaced by -*-*.
 	 - the same but with the family also replaced with -*-*-.  */
-      char *p = base_fontname;
+      const char *p = base_fontname;
       int i;
 
       for (i = 0; *p; p++)
@@ -1949,13 +1949,13 @@ xic_create_fontsetname (char *base_fontname, int motif)
       else
 	{
 	  int len;
-	  char *p1 = NULL, *p2 = NULL, *p3 = NULL;
+	  const char *p1 = NULL, *p2 = NULL, *p3 = NULL;
 	  char *font_allcs = NULL;
 	  char *font_allfamilies = NULL;
 	  char *font_all = NULL;
-	  char *allcs = "*-*-*-*-*-*-*";
-	  char *allfamilies = "-*-*-";
-	  char *all = "*-*-*-*-";
+	  const char *allcs = "*-*-*-*-*-*-*";
+	  const char *allfamilies = "-*-*-";
+	  const char *all = "*-*-*-*-";
 	  char *base;
 
 	  for (i = 0, p = base_fontname; i < 8; p++)
@@ -2084,7 +2084,7 @@ xic_create_xfontset (struct frame *f)
       char **missing_list;
       int missing_count;
       char *def_string;
-      char *xlfd_format = "-*-*-medium-r-normal--%d-*-*-*-*-*";
+      const char *xlfd_format = "-*-*-medium-r-normal--%d-*-*-*-*-*";
 
       sprintf (buf, xlfd_format, pixel_size);
       missing_list = NULL;
@@ -5243,9 +5243,6 @@ DEFUN ("x-uses-old-gtk-dialog", Fx_uses_old_gtk_dialog,
   (void)
 {
 #ifdef USE_GTK
-  extern int use_dialog_box;
-  extern int use_file_dialog;
-
   if (use_dialog_box
       && use_file_dialog
       && have_menus_p ()
@@ -5316,7 +5313,6 @@ or directory must exist.  ONLY-DIR-P is ignored."  */)
   Widget dialog, text, help;
   Arg al[10];
   int ac = 0;
-  extern XtAppContext Xt_app_con;
   XmString dir_xmstring, pattern_xmstring;
   int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;

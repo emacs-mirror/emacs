@@ -82,7 +82,8 @@ Lisp_Object Qnumberp, Qnumber_or_marker_p;
 
 Lisp_Object Qinteger;
 static Lisp_Object Qsymbol, Qstring, Qcons, Qmarker, Qoverlay;
-static Lisp_Object Qfloat, Qwindow_configuration, Qwindow;
+Lisp_Object Qwindow;
+static Lisp_Object Qfloat, Qwindow_configuration;
 Lisp_Object Qprocess;
 static Lisp_Object Qcompiled_function, Qbuffer, Qframe, Qvector;
 static Lisp_Object Qchar_table, Qbool_vector, Qhash_table;

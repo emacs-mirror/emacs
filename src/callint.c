@@ -29,21 +29,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "window.h"
 #include "keymap.h"
 
-extern Lisp_Object Qcursor_in_echo_area;
-extern Lisp_Object Qfile_directory_p;
-extern Lisp_Object Qonly;
-
 Lisp_Object Vcurrent_prefix_arg, Qminus, Qplus;
 Lisp_Object Qcall_interactively;
 Lisp_Object Vcommand_history;
 
-extern Lisp_Object Vhistory_length;
-extern Lisp_Object Vthis_original_command, real_this_command;
-extern int history_delete_duplicates;
-
 Lisp_Object Vcommand_debug_status, Qcommand_debug_status;
 Lisp_Object Qenable_recursive_minibuffers;
-extern Lisp_Object Qface, Qminibuffer_prompt;
 
 /* Non-nil means treat the mark as active
    even if mark_active is 0.  */

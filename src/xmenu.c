@@ -113,9 +113,6 @@ extern Lisp_Object Qmenu_bar;
 
 extern Lisp_Object QCtoggle, QCradio;
 
-extern Lisp_Object Voverriding_local_map;
-extern Lisp_Object Voverriding_local_map_menu_flag;
-
 extern Lisp_Object Qoverriding_local_map, Qoverriding_terminal_local_map;
 
 extern Lisp_Object Qmenu_bar_update_hook;
@@ -2209,7 +2206,6 @@ static struct frame *menu_help_frame;
 static void
 menu_help_callback (char *help_string, int pane, int item)
 {
-  extern Lisp_Object Qmenu_item;
   Lisp_Object *first_item;
   Lisp_Object pane_name;
   Lisp_Object menu_object;

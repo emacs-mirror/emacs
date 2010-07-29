@@ -47,12 +47,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    numerically.  */
 #define VIRT_ADDR_VARIES
 
-/* Define NO_REMAP if memory segmentation makes it not work well
-   to change the boundary between the text section and data section
-   when Emacs is dumped.  If you define this, the preloaded Lisp
-   code will not be sharable; but that's better than failing completely.  */
-#define NO_REMAP
-
 /* After adding support for a new machine, modify the large case
    statement in configure.in to recognize reasonable
    configuration names, and add a description of the system to

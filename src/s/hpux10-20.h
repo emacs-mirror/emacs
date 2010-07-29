@@ -113,12 +113,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    on HP-UX.  (You get duplicate symbol errors on linking). */
 #undef _FILE_OFFSET_BITS
 
-/* Define NO_REMAP if memory segmentation makes it not work well
-   to change the boundary between the text section and data section
-   when Emacs is dumped.  If you define this, the preloaded Lisp
-   code will not be sharable; but that's better than failing completely.  */
-#define NO_REMAP
-
 /* Define VIRT_ADDR_VARIES if the virtual addresses of
    pure and impure space as loaded can vary, and even their
    relative order cannot be relied on.

@@ -143,9 +143,6 @@ Lisp_Object Qcase_fold_search;
 
 Lisp_Object Qread_expression_history;
 
-extern Lisp_Object Voverriding_local_map;
-
-extern Lisp_Object Qfield;
 
 /* Put minibuf on currently selected frame's minibuffer.
    We do this whenever the user starts a new minibuffer
@@ -449,9 +446,6 @@ read_minibuf (Lisp_Object map, Lisp_Object initial, Lisp_Object prompt,
 
   Lisp_Object empty_minibuf;
   Lisp_Object dummy, frame;
-
-  extern Lisp_Object Qfront_sticky;
-  extern Lisp_Object Qrear_nonsticky;
 
   specbind (Qminibuffer_default, defalt);
 
@@ -830,7 +824,6 @@ get_minibuffer (int depth)
 {
   Lisp_Object tail, num, buf;
   char name[24];
-  extern Lisp_Object nconc2 (Lisp_Object, Lisp_Object);
 
   XSETFASTINT (num, depth);
   tail = Fnthcdr (num, Vminibuffer_list);

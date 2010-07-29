@@ -34,24 +34,9 @@ extern int etext;
 # endif
 #endif
 
-#ifdef BSD4_2
-#include <sys/time.h>
-#include <sys/resource.h>
-#endif /* BSD4_2 */
-
-/* The important properties of this type are that 1) it's a pointer, and
-   2) arithmetic on it should work as if the size of the object pointed
-   to has a size of 1.  */
-typedef POINTER_TYPE *POINTER;
-
 typedef unsigned long SIZE;
 
-#ifdef NULL
-#undef NULL
-#endif
-#define NULL ((POINTER) 0)
-
-extern POINTER start_of_data (void);
+extern char *start_of_data (void);
 #if defined USE_LSB_TAG
 #define EXCEEDS_LISP_PTR(ptr) 0
 #elif defined DATA_SEG_BITS
