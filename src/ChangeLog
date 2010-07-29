@@ -5,7 +5,7 @@
 
 	* xdisp.c (Qtext_image_horiz): Define.
 	(syms_of_xdisp): Initialize Qtext_image_horiz.  Add text-image-horiz
-	to ducumentation of tool-bar-style.
+	to documentation of tool-bar-style.
 
 	* lisp.h (Qtext_image_horiz): Declare.
 
