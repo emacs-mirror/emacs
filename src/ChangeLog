@@ -1,3 +1,10 @@
+2010-07-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Make lisp_time_argument declaration work on all systems.
+	* lisp.h (lisp_time_argument): Move declaration ...
+	* systime.h (lisp_time_argument): ... here
+	* editfns.c (lisp_time_argument): Remove declaration.  (Bug#6751)
+
 2010-07-29  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* vm-limit.c (POINTER): Add typedef for it.
