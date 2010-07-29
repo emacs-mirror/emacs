@@ -1,10 +1,10 @@
-2010-07-27  Chad Brown  <yandros@mit.edu>
+2010-07-29  Chad Brown  <yandros@mit.edu>
 
-	Replace tests for SYSV_SYSTEM_DIR with HAVE_DIRENT_H, set via autoconf
-	* dired.c, sysdep.c: test HAVE_DIRENT_H instead of SYSV_SYSTEM_DIR
-
+	Replace tests for SYSV_SYSTEM_DIR with HAVE_DIRENT_H, set via autoconf.
+	* dired.c, sysdep.c: Test HAVE_DIRENT_H instead of SYSV_SYSTEM_DIR.
+	* config.in: Undef HAVE_DIRENT_H.
 	* s/aix4-2.h, s/bsd-common.h, s/cygwin.h, s/gnu-linux.h,
-	  s/msdos.h, s/usg5-4.h: don't define SYSV_SYSTEM_DIR
+	* s/msdos.h, s/usg5-4.h: Don't define SYSV_SYSTEM_DIR.
 
 2010-07-29  Dan Nicolaescu  <dann@ics.uci.edu>
 

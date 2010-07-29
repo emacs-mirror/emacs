@@ -1,6 +1,6 @@
-2010-07-27  Chad Brown  <yandros@mit.edu>
+2010-07-29  Chad Brown  <yandros@mit.edu>
 
-	* sed2v2.inp (HAVE_DIRENT_H): Edit to 1
+	* sed2v2.inp (HAVE_DIRENT_H): Edit to 1.
 
 2010-07-12  Eli Zaretskii  <eliz@gnu.org>
 
