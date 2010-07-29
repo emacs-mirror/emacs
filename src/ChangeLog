@@ -1,5 +1,8 @@
 2010-07-29  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vm-limit.c: Do not include sys/resource.h, mem-limits.h does it.
+	Remove reference to __osf__, unused.
+
 	* mem-limits.h: Remove duplicated includes.
 	(NULL): Remove definition, unused.
 	(POINTER): Remove definition.

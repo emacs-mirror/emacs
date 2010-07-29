@@ -25,10 +25,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "mem-limits.h"
 
-#ifdef HAVE_GETRLIMIT
-#include <sys/resource.h>
-#endif
-
 /*
   Level number of warnings already issued.
   0 -- no warnings issued.
@@ -100,7 +96,7 @@ get_lim_data (void)
 }
 
 #else
-#if !defined (BSD4_2) && !defined (__osf__) && !defined (CYGWIN)
+#if !defined (BSD4_2) && !defined (CYGWIN)
 
 #ifdef MSDOS
 void
@@ -148,7 +144,7 @@ get_lim_data (void)
 }
 #endif /* not MSDOS */
 
-#else /* BSD4_2 */
+#else /* BSD4_2 || CYGWIN */
 
 static void
 get_lim_data (void)
