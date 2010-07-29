@@ -1270,6 +1270,12 @@ Customize @code{tool-bar-style} to select style.  The default style is
 the same as for the desktop in the Gnome case.  If no default is found,
 the tool bar uses just images.
 
+@cindex Tool Bar position
+  You can also control the placement of the tool bar for the GTK+ tool bar
+with the frame parameter @code{tool-bar-position}.
+For a detailed description of frame parameters and customization,
+see @ref{Frame Parameters,,, elisp, The Emacs Lisp Reference Manual}.
+
 @node Dialog Boxes
 @section Using Dialog Boxes
 @cindex dialog boxes
