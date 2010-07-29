@@ -1,3 +1,7 @@
+2010-07-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in: Remove reference to usg5-4, unused.
+
 2010-07-25  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* configure.in: Check for __executable_start.
