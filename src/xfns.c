@@ -726,7 +726,6 @@ x_set_tool_bar_position (struct frame *f,
   if (EQ (new_value, old_value)) return;
 
 #ifdef USE_GTK
-  fprintf (stderr, "Pos: %s\n", SDATA (SYMBOL_NAME (new_value)));
   if (xg_change_toolbar_position (f, new_value)) 
     f->tool_bar_position = new_value;
 #endif

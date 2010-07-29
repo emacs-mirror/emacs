@@ -1,5 +1,7 @@
 2010-07-29  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* xfns.c (x_set_tool_bar_position): Remove debug fprintf.
+
 	* xterm.h (struct x_output): Add toolbar_top_height,
 	toolbar_bottom_height, toolbar_left_width, toolbar_right_width.  Remove
 	toolbar_height.
