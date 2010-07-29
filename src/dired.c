@@ -102,9 +102,6 @@ extern void filemodestring (struct stat *, char *);
 #define lstat stat
 #endif
 
-extern int completion_ignore_case;
-extern Lisp_Object Qcompletion_ignore_case;
-extern Lisp_Object Vcompletion_regexp_list;
 extern Lisp_Object Vw32_get_true_file_attributes;
 
 Lisp_Object Vcompletion_ignored_extensions;

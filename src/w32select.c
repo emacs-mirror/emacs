@@ -398,7 +398,6 @@ run_protected (Lisp_Object (*code) (Lisp_Object), Lisp_Object arg)
      with global variables and calling strange looking functions.  Is
      this really the right way to run Lisp callbacks?  */
 
-  extern int waiting_for_input;
   int owfi;
 
   BLOCK_INPUT;

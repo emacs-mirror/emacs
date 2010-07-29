@@ -166,8 +166,6 @@ Lisp_Object Vprint_number_table;
 
 extern int noninteractive_need_newline;
 
-extern int minibuffer_auto_raise;
-
 void print_interval (INTERVAL interval, Lisp_Object printcharfun);
 
 /* GDB resets this to zero on W32 to disable OutputDebugString calls.  */

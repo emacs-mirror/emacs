@@ -22,6 +22,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define KEYMAPP(m) (!NILP (get_keymap (m, 0, 0)))
 extern Lisp_Object Qkeymap, Qmenu_bar;
+extern Lisp_Object Qremap;
+extern Lisp_Object Qmenu_item;
+extern Lisp_Object Voverriding_local_map;
+extern Lisp_Object Voverriding_local_map_menu_flag;
 extern Lisp_Object current_global_map;
 EXFUN (Fmake_sparse_keymap, 1);
 EXFUN (Fkeymap_prompt, 1);

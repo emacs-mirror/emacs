@@ -933,6 +933,8 @@ struct frame *check_x_frame (Lisp_Object);
 EXFUN (Fx_display_color_p, 1);
 EXFUN (Fx_display_grayscale_p, 1);
 extern void x_free_gcs (struct frame *);
+extern int gray_bitmap_width, gray_bitmap_height;
+extern char *gray_bitmap_bits;
 
 /* From xrdb.c.  */
 
@@ -1053,6 +1055,7 @@ extern void x_sync (struct frame *);
 extern int x_defined_color (struct frame *, const char *, XColor *, int);
 #ifdef HAVE_X_I18N
 extern void free_frame_xic (struct frame *);
+extern char * xic_create_fontsetname (const char *base_fontname, int motif);
 #endif
 extern void x_set_tool_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
 

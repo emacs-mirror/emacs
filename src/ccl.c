@@ -72,8 +72,6 @@ Lisp_Object Vtranslation_hash_table_vector;
 #define GET_HASH_TABLE(id) \
   (XHASH_TABLE (XCDR(XVECTOR(Vtranslation_hash_table_vector)->contents[(id)])))
 
-extern int charset_unicode;
-
 /* CCL (Code Conversion Language) is a simple language which has
    operations on one input buffer, one output buffer, and 7 registers.
    The syntax of CCL is described in `ccl.el'.  Emacs Lisp function

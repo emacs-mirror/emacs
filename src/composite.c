@@ -848,8 +848,6 @@ fill_gstring_header (Lisp_Object header, Lisp_Object start, Lisp_Object end, Lis
   return header;
 }
 
-extern void font_fill_lglyph_metrics (Lisp_Object, Lisp_Object);
-
 static void
 fill_gstring_body (Lisp_Object gstring)
 {

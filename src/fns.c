@@ -61,7 +61,6 @@ int use_dialog_box;
    questions asked by mouse commands.  */
 int use_file_dialog;
 
-extern int minibuffer_auto_raise;
 extern Lisp_Object minibuf_window;
 extern Lisp_Object Vlocale_coding_system;
 extern int load_in_progress;

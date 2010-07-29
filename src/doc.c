@@ -52,10 +52,6 @@ Lisp_Object Qfunction_documentation;
 /* A list of files used to build this Emacs binary.  */
 static Lisp_Object Vbuild_files;
 
-extern Lisp_Object Voverriding_local_map;
-
-extern Lisp_Object Qremap;
-
 /* Buffer used for reading from documentation file.  */
 static char *get_doc_string_buffer;
 static int get_doc_string_buffer_size;

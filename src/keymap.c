@@ -108,8 +108,6 @@ static Lisp_Object command_remapping_vector;
    character.  */
 extern Lisp_Object meta_prefix_char;
 
-extern Lisp_Object Voverriding_local_map;
-
 /* Hash table used to cache a reverse-map to speed up calls to where-is.  */
 static Lisp_Object where_is_cache;
 /* Which keymaps are reverse-stored in the cache.  */
