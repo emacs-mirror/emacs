@@ -442,7 +442,7 @@ write_c_args (FILE *out, char *func, char *buf, int minargs, int maxargs)
   register char *p;
   int in_ident = 0;
   char *ident_start;
-  int ident_length;
+  int ident_length = 0;
 
   fprintf (out, "(fn");
 
@@ -476,6 +476,12 @@ write_c_args (FILE *out, char *func, char *buf, int minargs, int maxargs)
 	 identifier.  */
       if (c == ',' || c == ')')
 	{
+	  if (ident_length == 0)
+	    {
+	      error ("empty arg list for `%s' should be (void), not ()", func);
+	      continue;
+	    }
+
 	  if (strncmp (ident_start, "void", ident_length) == 0)
 	    continue;
 

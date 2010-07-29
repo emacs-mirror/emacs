@@ -1,3 +1,7 @@
+2010-07-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* make-docfile.c (write_c_args): Warn for old-style empty arglist ().
+
 2010-07-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacsclient.c (getcwd): Fix previous change: make getcwd
