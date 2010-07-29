@@ -1,5 +1,11 @@
 2010-07-29  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* mem-limits.h: Remove duplicated includes.
+	(NULL): Remove definition, unused.
+	(POINTER): Remove definition.
+	(start_of_data): Use char* in prototype, as the function
+	definition does.
+
 	Remove extern declarations from .c files, and them to .h files.
 	* keyboard.h (Qhelp_echo, waiting_for_input)
 	(input_available_clear_time, ignore_mouse_drag_p)
