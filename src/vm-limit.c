@@ -33,8 +33,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
   3 -- 95% warning issued; keep warning frequently.
 */
 enum warnlevel { not_warned, warned_75, warned_85, warned_95 };
-
 static enum warnlevel warnlevel;
+
+typedef POINTER_TYPE *POINTER;
 
 /* Function to call to issue a warning;
    0 means don't issue them.  */
@@ -256,7 +257,7 @@ check_memory_limits (void)
  *
  */
 
-POINTER
+char *
 start_of_data (void)
 {
 #ifdef BSD_SYSTEM

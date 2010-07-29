@@ -1,3 +1,11 @@
+2010-07-29  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* vm-limit.c (POINTER): Add typedef for it.
+	(start_of_data): Change return type from POINTER to char *.
+
+	* frame.h (Qtty_color_mode): Move declaration out of ifdef
+	HAVE_WINDOW_SYSTEM.
+
 2010-07-29  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vm-limit.c: Do not include sys/resource.h, mem-limits.h does it.
