@@ -1,3 +1,7 @@
+2010-07-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xlwmenu.c (abort_gracefully): Mark as NO_RETURN.
+
 2010-07-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* xlwmenu.h (xlwmenu_window_p, xlwmenu_redisplay): Add declarations.

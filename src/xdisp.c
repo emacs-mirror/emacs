@@ -276,15 +276,11 @@ extern void set_frame_menubar (struct frame *f, int, int);
 extern int interrupt_input;
 extern int command_loop_level;
 
-extern int minibuffer_auto_raise;
 extern Lisp_Object Vminibuffer_list;
 
 extern Lisp_Object Qface;
 extern Lisp_Object Qmode_line, Qmode_line_inactive, Qheader_line;
 
-extern Lisp_Object Voverriding_local_map;
-extern Lisp_Object Voverriding_local_map_menu_flag;
-extern Lisp_Object Qmenu_item;
 extern Lisp_Object Qwhen;
 extern Lisp_Object Qhelp_echo;
 extern Lisp_Object Qbefore_string, Qafter_string;
@@ -379,7 +375,6 @@ int inhibit_eval_during_redisplay;
 /* Names of text properties relevant for redisplay.  */
 
 Lisp_Object Qdisplay;
-extern Lisp_Object Qface, Qinvisible, Qwidth;
 
 /* Symbols used in text property values.  */
 
@@ -3689,7 +3684,6 @@ handle_invisible_prop (struct it *it)
 
   if (STRINGP (it->string))
     {
-      extern Lisp_Object Qinvisible;
       Lisp_Object prop, end_charpos, limit, charpos;
 
       /* Get the value of the invisible text property at the
@@ -4873,7 +4867,6 @@ compare_overlay_entries (const void *e1, const void *e2)
 static void
 load_overlay_strings (struct it *it, int charpos)
 {
-  extern Lisp_Object Qwindow, Qpriority;
   Lisp_Object overlay, window, str, invisible;
   struct Lisp_Overlay *ov;
   int start, end;
@@ -10585,7 +10578,6 @@ redisplay_tool_bar (struct frame *f)
       if ((nlines = tool_bar_lines_needed (f, &f->n_tool_bar_rows),
 	   nlines != WINDOW_TOTAL_LINES (w)))
 	{
-	  extern Lisp_Object Qtool_bar_lines;
 	  Lisp_Object frame;
 	  int old_height = WINDOW_TOTAL_LINES (w);
 
@@ -10677,7 +10669,6 @@ redisplay_tool_bar (struct frame *f)
 	 frame parameter.  */
       if (change_height_p)
 	{
-	  extern Lisp_Object Qtool_bar_lines;
 	  Lisp_Object frame;
 	  int old_height = WINDOW_TOTAL_LINES (w);
 	  int nrows;
@@ -14485,7 +14476,6 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 
           if (redisplay_tool_bar_p && redisplay_tool_bar (f))
 	    {
-	      extern int ignore_mouse_drag_p;
 	      ignore_mouse_drag_p = 1;
 	    }
         }

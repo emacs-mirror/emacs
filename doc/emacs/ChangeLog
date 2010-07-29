@@ -1,3 +1,7 @@
+2010-07-29  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* frames.texi (Tool Bars): Add doc for tool-bar-position.
+
 2010-06-23  Glenn Morris  <rgm@gnu.org>
 
 	* abbrevs.texi, basic.texi, buffers.texi, building.texi, calendar.texi:

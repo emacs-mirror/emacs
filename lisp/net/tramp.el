@@ -4538,14 +4538,12 @@ beginning of local filename are not substituted."
 	  (with-current-buffer (tramp-get-connection-buffer v)
 	    (clear-visited-file-modtime)
 	    (narrow-to-region (point-max) (point-max)))
-	  (if (stringp program)
-	      ;; Send the command.  `tramp-send-command' opens a new
-	      ;; connection.
+	  (if command
+	      ;; Send the command.
 	      (tramp-send-command v command nil t) ; nooutput
-	    ;; Check, whether a pty is associated, and set it as
-	    ;; process property.
-	    (condition-case nil
-		(tramp-send-command-and-read v "echo \\\"`tty`\\\"")
+	    ;; Check, whether a pty is associated.
+	    (tramp-maybe-open-connection v)
+	    (unless (process-get (tramp-get-connection-process v) 'remote-tty)
 	      (tramp-error
 	       v 'file-error "pty association is not supported for `%s'" name)))
 	  ;; Set query flag for this process.
@@ -6631,10 +6629,7 @@ file exists and nonzero exit status otherwise."
      vec (format "PS1=%s" (shell-quote-argument tramp-end-of-output)) t)
     (tramp-send-command vec "PS2=''" t)
     (tramp-send-command vec "PS3=''" t)
-    (tramp-send-command vec "PROMPT_COMMAND=''" t)
-    ;; Dump tty in the traces.
-    (when (>= tramp-verbose 9)
-      (tramp-send-command vec "tty" t))))
+    (tramp-send-command vec "PROMPT_COMMAND=''" t)))
 
 (defun tramp-find-shell (vec)
   "Opens a shell on the remote host which groks tilde expansion."
@@ -7070,6 +7065,11 @@ process to set up.  VEC specifies the connection."
   ;; <http://stackoverflow.com/questions/3291692/irix-bash-shell-expands-expression-in-single-quotes-yet-shouldnt>.
   (when (string-match "^IRIX64" (tramp-get-connection-property vec "uname" ""))
     (tramp-send-command vec "set +H" t))
+
+  ;; Set `remote-tty' process property.
+  (ignore-errors
+    (let ((tty (tramp-send-command-and-read vec "echo \\\"`tty`\\\"")))
+      (unless (zerop (length tty)) (process-put proc 'remote-tty tty))))
 
   ;; Set the environment.
   (tramp-message vec 5 "Setting default environment")

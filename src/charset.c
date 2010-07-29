@@ -127,13 +127,6 @@ int inhibit_load_charset_map;
 
 Lisp_Object Vcurrent_iso639_language;
 
-/* Defined in chartab.c */
-extern void
-map_char_table_for_charset (void (*c_function) (Lisp_Object, Lisp_Object),
-                            Lisp_Object function, Lisp_Object table,
-                            Lisp_Object arg, struct charset *charset,
-                            unsigned from, unsigned to);
-
 #define CODE_POINT_TO_INDEX(charset, code)				\
   ((charset)->code_linear_p						\
    ? (code) - (charset)->min_code					\
@@ -471,8 +464,6 @@ read_hex (FILE *fp, int *eof)
     ungetc (c, fp);
   return n;
 }
-
-extern Lisp_Object Qfile_name_handler_alist;
 
 /* Return a mapping vector for CHARSET loaded from MAPFILE.
    Each line of MAPFILE has this form

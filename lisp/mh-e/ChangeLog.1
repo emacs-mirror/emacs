@@ -333,9 +333,9 @@
 	Synced with manual.
 	(mh-junk-program): Use double-quotes on non-symbols.
 
-	* mh-pick.el: (mh-search-folder): Synced docstrings with manual.
+	* mh-pick.el (mh-search-folder): Synced docstrings with manual.
 
-	* mh-index.el: (mh-index-search, mh-pick-execute-search)
+	* mh-index.el (mh-index-search, mh-pick-execute-search)
 	(mh-grep-execute-search, mh-mairix-execute-search)
 	(mh-swish-execute-search, mh-swish++-execute-search)
 	(mh-namazu-execute-search): Synced docstrings with manual. Note
@@ -659,13 +659,13 @@
 
 	* mh-mime.el (mh-display-with-external-viewer): Checkdoc fixes.
 
-	* mh-identity.el: (mh-identity-attribution-verb-end): Stripped
+	* mh-identity.el (mh-identity-attribution-verb-end): Stripped
 	trailing space; checkdoc fixes.
 
 	* mh-e.el (mh-restore-desktop-buffer): Checkdoc fixes.
 
-	* mh-customize.el: (mh-inc-spool-list,
-	mh-compose-forward-as-mime-flag, defcustom): Stripped trailing
+	* mh-customize.el (mh-inc-spool-list)
+	(mh-compose-forward-as-mime-flag, defcustom): Stripped trailing
 	space; checkdoc fixes.
 
 	* mh-comp.el (mh-reply): Stripped trailing space.
@@ -794,7 +794,7 @@
 
 	Merged in 7.4.4 changes, described below.
 
-	* mh-e.el (Version, mh-version):  Set to 7.4.4+cvs.
+	* mh-e.el (Version, mh-version): Set to 7.4.4+cvs.
 
 2004-07-10  Bill Wohler  <wohler@newt.com>
 
@@ -1214,7 +1214,7 @@
 	* mh-loaddefs.el: Regenerated.
 
 	* mh-index.el (mh-indexer-choices): Remove option for the non-free
-	glimpse indexer	(closes SF #831276).
+	glimpse indexer (closes SF #831276).
 	(mh-glimpse-binary, mh-glimpse-directory)
 	(mh-glimpse-execute-search, mh-glimpse-next-result): Functions
 	and variables to implement glimpse support are removed.
@@ -1819,7 +1819,7 @@
 
 2003-08-19  Bill Wohler  <wohler@newt.com>
 
-	* mh-seq.el: (mh-edit-pick-expr): Renamed from mh-read-pick-regexp
+	* mh-seq.el (mh-edit-pick-expr): Renamed from mh-read-pick-regexp
 	since the new name is more indicative of what the function does.
 	Prompt now says "Pick expression" instead of "Pick regexp".
 	(mh-narrow-to-subject): Rewrote function to behave like other
@@ -1980,7 +1980,7 @@
 	* mh-comp.el (mh-send-letter): Go to the top of the draft so that
 	the user can see which header fields have been inserted. I think
 	this is more important than leaving point alone or going to the
-	end to see the signature since Mail-Followup-To	or Bcc or cc could
+	end to see the signature since Mail-Followup-To or Bcc or cc could
 	have some deleterious effects.
 
 	* mh-customize.el (mh-auto-fields-prompt-flag): New variable.
@@ -2197,7 +2197,7 @@
 	* mh-comp.el (mh-extract-rejected-mail, mh-letter-mode-message):
 	Ditto.
 
-	* mh-e.el (mh-refile-a-msg):  Ditto.
+	* mh-e.el (mh-refile-a-msg): Ditto.
 
 	* mh-funcs.el (mh-undo-folder): Ditto.
 
@@ -2509,7 +2509,7 @@
 
 2003-07-28  Peter S Galbraith  <psg@debian.org>
 
-	* mh-comp.el (mh-insert-letter):  Remove `mh-visible-headers'
+	* mh-comp.el (mh-insert-letter): Remove `mh-visible-headers'
 	operation.
 
 	* mh-mime.el (mh-mm-inline-message): Same.
@@ -2697,7 +2697,7 @@
 
 2003-06-24  Bill Wohler  <wohler@newt.com>
 
-	* mh-e.el (Version, mh-version):  Set to 7.4.1+cvs.
+	* mh-e.el (Version, mh-version): Set to 7.4.1+cvs.
 
 2003-06-25  Bill Wohler  <wohler@newt.com>
 
@@ -2719,7 +2719,7 @@
 
 2003-06-24  Bill Wohler  <wohler@newt.com>
 
-	* mh-e.el (Version, mh-version):  Set to 7.4+cvs.
+	* mh-e.el (Version, mh-version): Set to 7.4+cvs.
 
 2003-06-24  Bill Wohler  <wohler@newt.com>
 
@@ -2763,7 +2763,7 @@
 	replacement text.
 	(mh-index-parse-search-regexp): Preserve case of search terms.
 	This is needed to take advantage of the acronym indexing in
-	swish++	(closes SF #755718).
+	swish++ (closes SF #755718).
 
 2003-06-13  Satyaki Das  <satyakid@stanford.edu>
 
@@ -4106,7 +4106,7 @@
 
 2003-04-06  Bill Wohler  <wohler@newt.com>
 
-	* mh-comp.el (mh-forward):  Updated docstrings to indicate that a
+	* mh-comp.el (mh-forward): Updated docstrings to indicate that a
 	list of messages is acceptable as well.
 
 	* mh-e.el (mh-delete-msg, mh-delete-msg-no-motion, mh-refile-msg)
@@ -4198,7 +4198,7 @@
 
 2003-04-04  Peter S Galbraith  <psg@debian.org>
 
-	* mh-e.el (mh-folder-from-address):  Minor Fix.  Wrong ending of
+	* mh-e.el (mh-folder-from-address): Minor Fix.  Wrong ending of
 	`when' block.
 
 2003-04-04  Satyaki Das  <satyaki@theforce.stanford.edu>
@@ -5383,7 +5383,7 @@
 
 	* import-emacs: MH-E now has its own directory in Emacs.
 
-	* mh-e.el: (mh-version): Set to 7.2+cvs.
+	* mh-e.el (mh-version): Set to 7.2+cvs.
 
 2003-02-03  Bill Wohler  <wohler@newt.com>
 
@@ -6883,7 +6883,7 @@
 	* mh-e.el (mh-add-cur-notation): New function to mark the
 	current message with the mh-note-cur character.
 	(mh-get-new-mail): Use mh-add-cur-notation to undo the work of
-	mh-remove-cur-notation if there was no new mail	(closes SF #647681).
+	mh-remove-cur-notation if there was no new mail (closes SF #647681).
 
 	* mh-e.el (mh-set-cmd-note): Do not update the default mh-cmd-note
 	value (closes SF #643701).
@@ -7247,7 +7247,7 @@
 
 2002-11-13  Mark D. Baushke  <mdb@gnu.org>
 
-	* mh-identity.el (mh-insert-identity):  A value of either nil or
+	* mh-identity.el (mh-insert-identity): A value of either nil or
 	"" should cause the field to be removed.
 	(mh-identity-list): Update the docstring.
 
@@ -7911,7 +7911,7 @@
 	(mh-folder-font-lock-subject): Adapt to new mh-scan-subject-regexp.
 	* mh-seq.el (mh-subject-to-sequence): Ditto.
 
-	* mh-e.el (mh-folder-sequence-menu):  Remove "Toggle Subject
+	* mh-e.el (mh-folder-sequence-menu): Remove "Toggle Subject
 	Thread" from menu.   mh-toggle-threads is in the Folder menu.
 
 	* mh-e.el (mh-folder-sequence-menu): Minor menu text edits.
@@ -8250,7 +8250,7 @@
 	(mh-thread-generate-scan-lines): Renamed dupl-p as dupl-flag.
 	This addresses part of SF #627015.
 
-	* mh-index.el (mh-index-advance):  Renamed backward-p
+	* mh-index.el (mh-index-advance): Renamed backward-p
 	local variable as backward-flag.
 	(mh-index-next-button): Renamed backward-p
 	argument as backward-flag.
@@ -9217,7 +9217,7 @@
 	decide how many buttons to use for replying.
 
 	* mh-mime.el (mh-file-mime-type-substitutions)
-	(mh-file-mime-type-substitute):  Fix typos and doc strings.
+	(mh-file-mime-type-substitute): Fix typos and doc strings.
 
 2002-09-30  Peter S Galbraith  <psg@debian.org>
 
@@ -9321,7 +9321,7 @@
 2002-08-19  Peter S Galbraith  <psg@debian.org>
 
 	* reply-to.xpm, reply-to.pbm, reply-from.xpm, reply-from.pbm,
-	* reply-all.xpm, reply-all.pbm:  New icons for various reply methods.
+	* reply-all.xpm, reply-all.pbm: New icons for various reply methods.
 	* mh-e.el (mh-folder-tool-bar-map): Split reply button into three
 	that won't prompt for "from", "to" and "all".
 	* mh-comp.el (mh-reply): Put variable reply-to in the interactive
@@ -9760,13 +9760,13 @@
 	to `mh-mml-to-mime' in `mh-send-letter'.
 	(mh-mml-secure-message-sign-pgpmime): New function.
 	Front end to mml-secure-message-sign-pgpmime.
-	(mh-mml-secure-message-encrypt-pgpmime):  New function.
+	(mh-mml-secure-message-encrypt-pgpmime): New function.
 	Front end to mml-secure-message-encrypt-pgpmime.
 
 	* mh-comp.el (mh-send-letter): automatic call to `mh-mml-to-mime'
 	if mh-mml-compose-insert-p is set.
 	(mh-letter-mode-map): Add keys for new mh-mime functions above.
-	* mh-comp.el:  Added autoloads for new mh-mime functions above.
+	* mh-comp.el: Added autoloads for new mh-mime functions above.
 
 2002-06-17  Peter S Galbraith  <psg@debian.org>
 
@@ -10501,7 +10501,7 @@
 	* mh-comp.el: Require mh-e and easymenu, moved autoloads to top of
 	file.
 
-	* Makefile: (EMACS): New constant to hold emacs calling sequence.
+	* Makefile (EMACS): New constant to hold emacs calling sequence.
 	(install): Renamed to install-emacs.
 	(compile): New target to compile all files.
 	(dist): Make dependent on compile.
@@ -10738,7 +10738,7 @@
 
 2001-11-29  Jeffrey C Honig  <jch@honig.net>
 
-	* mh-utils.el: (mh-find-progs): Change mh-find-progs to rely on
+	* mh-utils.el (mh-find-progs): Change mh-find-progs to rely on
 	the existence of mhparam.  The location of mhparam is used to find
 	`mh-progs'.  It uses the libdir and etcdir to find the
 	`mh-lib-progs' and `mh-lib' directories.  If etcdir doesn't return
@@ -10795,7 +10795,7 @@
 	set mh-page-to-next-msg-p to t. The second time the end of page is
 	hit, go to the next message.
 
-	* mh-utils.el: (mh-show-msg): Initialize mh-page-to-next-msg-p to
+	* mh-utils.el (mh-show-msg): Initialize mh-page-to-next-msg-p to
 	nil.
 
 2001-11-27  Bill Wohler  <wohler@newt.com>
@@ -11004,8 +11004,8 @@
 2001-11-20  Peter S Galbraith  <psg@debian.org>
 
 	* mh-comp.el (mh-letter-mode): Make font-lock-defaults a local variable
-	* mh-e.el (mh-folder-mode):  Same.
-	* mh-utils.el (mh-show-mode):  Same.
+	* mh-e.el (mh-folder-mode): Same.
+	* mh-utils.el (mh-show-mode): Same.
 
 	* mh-e.el (mh-scan-msg-num-regexp): Delete variable and replace
 	with mh-good-msg-regexp.
@@ -11279,7 +11279,7 @@
 	* mh-e.el (mh-refile-msg): Mark messages in region for refiling if
 	mark is active and in transient-mark-mode.
 	* mh-e.el (mh-undo): Undo message marks for refile or deletion if
-	region if mark is active and in	transient-mark-mode.
+	region if mark is active and in transient-mark-mode.
 
 2001-11-06  Peter S Galbraith  <psg@debian.org>
 

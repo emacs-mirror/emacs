@@ -1204,7 +1204,7 @@ AC_CHECK_HEADERS(sys/select.h sys/timeb.h sys/time.h unistd.h utime.h \
   linux/version.h sys/systeminfo.h termios.h limits.h string.h stdlib.h \
   stdio_ext.h fcntl.h strings.h coff.h pty.h sys/mman.h \
   sys/param.h sys/vlimit.h sys/resource.h locale.h sys/_mbstate_t.h \
-  sys/utsname.h pwd.h utmp.h)
+  sys/utsname.h pwd.h utmp.h dirent.h)
 
 AC_MSG_CHECKING(if personality LINUX32 can be set)
 AC_TRY_COMPILE([#include <sys/personality.h>], [personality (PER_LINUX32)],
@@ -3326,7 +3326,7 @@ LINKER=
 ORDINARY_LINK=
 case "$opsys" in
   ## gnu: GNU needs its own crt0.
-  aix4-2|cygwin|darwin|gnu|usg5-4|irix6-5|sol2*|unixware) ORDINARY_LINK=yes ;;
+  aix4-2|cygwin|darwin|gnu|irix6-5|sol2*|unixware) ORDINARY_LINK=yes ;;
 
   ## On post 1.3 releases of NetBSD, gcc -nostdlib also clears the
   ## library search parth, i.e. it won't search /usr/lib for libc and

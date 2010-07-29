@@ -1191,7 +1191,6 @@ IT_note_mode_line_highlight (struct window *w, int x, int mode_line_p)
 
   if (row->enabled_p)
     {
-      extern Lisp_Object Qhelp_echo;
       struct glyph *glyph, *end;
       Lisp_Object help, map;
 

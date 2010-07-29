@@ -181,6 +181,7 @@ extern int xg_event_is_for_scrollbar (FRAME_PTR f, XEvent *event);
 
 extern void update_frame_tool_bar (FRAME_PTR f);
 extern void free_frame_tool_bar (FRAME_PTR f);
+extern int xg_change_toolbar_position (FRAME_PTR f, Lisp_Object pos);
 
 extern void xg_frame_resized (FRAME_PTR f,
                               int pixelwidth,

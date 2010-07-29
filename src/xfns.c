@@ -715,6 +715,22 @@ x_set_wait_for_wm (struct frame *f, Lisp_Object new_value, Lisp_Object old_value
   f->output_data.x->wait_for_wm = !NILP (new_value);
 }
 
+static void
+x_set_tool_bar_position (struct frame *f,
+                         Lisp_Object new_value,
+                         Lisp_Object old_value)
+{
+  if (! EQ (new_value, Qleft) && ! EQ (new_value, Qright)
+      && ! EQ (new_value, Qbottom) && ! EQ (new_value, Qtop))
+    return;
+  if (EQ (new_value, old_value)) return;
+
+#ifdef USE_GTK
+  if (xg_change_toolbar_position (f, new_value)) 
+    f->tool_bar_position = new_value;
+#endif
+}
+
 #ifdef USE_GTK
 
 /* Set icon from FILE for frame F.  By using GTK functions the icon
@@ -1901,12 +1917,12 @@ static XIMStyle supported_xim_styles[] =
 
 /* Create an X fontset on frame F with base font name BASE_FONTNAME.  */
 
-char xic_defaut_fontset[] = "-*-*-*-r-normal--14-*-*-*-*-*-*-*";
+const char xic_defaut_fontset[] = "-*-*-*-r-normal--14-*-*-*-*-*-*-*";
 
 /* Create an Xt fontset spec from the name of a base font.
    If `motif' is True use the Motif syntax.  */
 char *
-xic_create_fontsetname (char *base_fontname, int motif)
+xic_create_fontsetname (const char *base_fontname, int motif)
 {
   const char *sep = motif ? ";" : ",";
   char *fontsetname;
@@ -1926,7 +1942,7 @@ xic_create_fontsetname (char *base_fontname, int motif)
 	 - the base font.
 	 - the base font where the charset spec is replaced by -*-*.
 	 - the same but with the family also replaced with -*-*-.  */
-      char *p = base_fontname;
+      const char *p = base_fontname;
       int i;
 
       for (i = 0; *p; p++)
@@ -1945,13 +1961,13 @@ xic_create_fontsetname (char *base_fontname, int motif)
       else
 	{
 	  int len;
-	  char *p1 = NULL, *p2 = NULL, *p3 = NULL;
+	  const char *p1 = NULL, *p2 = NULL, *p3 = NULL;
 	  char *font_allcs = NULL;
 	  char *font_allfamilies = NULL;
 	  char *font_all = NULL;
-	  char *allcs = "*-*-*-*-*-*-*";
-	  char *allfamilies = "-*-*-";
-	  char *all = "*-*-*-*-";
+	  const char *allcs = "*-*-*-*-*-*-*";
+	  const char *allfamilies = "-*-*-";
+	  const char *all = "*-*-*-*-";
 	  char *base;
 
 	  for (i = 0, p = base_fontname; i < 8; p++)
@@ -2080,7 +2096,7 @@ xic_create_xfontset (struct frame *f)
       char **missing_list;
       int missing_count;
       char *def_string;
-      char *xlfd_format = "-*-*-medium-r-normal--%d-*-*-*-*-*";
+      const char *xlfd_format = "-*-*-medium-r-normal--%d-*-*-*-*-*";
 
       sprintf (buf, xlfd_format, pixel_size);
       missing_list = NULL;
@@ -2344,7 +2360,7 @@ xic_set_statusarea (struct frame *f)
   area.x = FRAME_PIXEL_WIDTH (f) - area.width - FRAME_INTERNAL_BORDER_WIDTH (f);
   area.y = (FRAME_PIXEL_HEIGHT (f) - area.height
 	    - FRAME_MENUBAR_HEIGHT (f)
-	    - FRAME_TOOLBAR_HEIGHT (f)
+	    - FRAME_TOOLBAR_TOP_HEIGHT (f)
             - FRAME_INTERNAL_BORDER_WIDTH (f));
   XFree (needed);
 
@@ -5239,9 +5255,6 @@ DEFUN ("x-uses-old-gtk-dialog", Fx_uses_old_gtk_dialog,
   (void)
 {
 #ifdef USE_GTK
-  extern int use_dialog_box;
-  extern int use_file_dialog;
-
   if (use_dialog_box
       && use_file_dialog
       && have_menus_p ()
@@ -5312,7 +5325,6 @@ or directory must exist.  ONLY-DIR-P is ignored."  */)
   Widget dialog, text, help;
   Arg al[10];
   int ac = 0;
-  extern XtAppContext Xt_app_con;
   XmString dir_xmstring, pattern_xmstring;
   int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
@@ -5751,6 +5763,7 @@ frame_parm_handler x_frame_parm_handlers[] =
   x_set_font_backend,
   x_set_alpha,
   x_set_sticky,
+  x_set_tool_bar_position,
 };
 
 void
@@ -5901,6 +5914,7 @@ the tool bar buttons.  */);
      accepts --with-x-toolkit=gtk.  */
   Fprovide (intern_c_string ("x-toolkit"), Qnil);
   Fprovide (intern_c_string ("gtk"), Qnil);
+  Fprovide (intern_c_string ("move-toolbar"), Qnil);
 
   DEFVAR_LISP ("gtk-version-string", &Vgtk_version_string,
                doc: /* Version info for GTK+.  */);

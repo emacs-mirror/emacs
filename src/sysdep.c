@@ -2447,7 +2447,7 @@ croak (char *badfunc)
 
 /* Directory routines for systems that don't have them. */
 
-#ifdef SYSV_SYSTEM_DIR
+#ifdef HAVE_DIRENT_H
 
 #include <dirent.h>
 
@@ -2464,7 +2464,7 @@ closedir (DIR *dirp /* stream from opendir */)
   return rtnval;
 }
 #endif /* not HAVE_CLOSEDIR */
-#endif /* SYSV_SYSTEM_DIR */
+#endif /* HAVE_DIRENT_H */
 
 
 int

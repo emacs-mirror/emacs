@@ -422,12 +422,25 @@ extern Lisp_Object Qevent_kind, Qevent_symbol_elements;
 extern Lisp_Object Qfunction_key, Qmouse_click, Qmouse_movement;
 extern Lisp_Object Qscroll_bar_movement;
 
+extern Lisp_Object Qhelp_echo;
+
 /* Getting the kind of an event head.  */
 #define EVENT_HEAD_KIND(event_head) \
   (Fget ((event_head), Qevent_kind))
 
 /* Symbols to use for non-text mouse positions.  */
 extern Lisp_Object Qmode_line, Qvertical_line, Qheader_line;
+
+/* True while doing kbd input.  */
+extern int waiting_for_input;
+
+/* Address (if not 0) of EMACS_TIME to zero out if a SIGIO interrupt
+   happens.  */
+extern EMACS_TIME *input_available_clear_time;
+
+extern int ignore_mouse_drag_p;
+
+extern Lisp_Object Vdouble_click_time;
 
 /* Forward declaration for prototypes.  */
 struct input_event;
@@ -444,6 +457,13 @@ extern Lisp_Object Vfunction_key_map;
 
 /* Keymap of key translations that can override keymaps.  */
 extern Lisp_Object Vkey_translation_map;
+
+/* This is like Vthis_command, except that commands never set it.  */
+extern Lisp_Object real_this_command;
+
+/* If the lookup of the command returns a binding, the original
+   command is stored in this-original-command.  It is nil otherwise.  */
+extern Lisp_Object Vthis_original_command;
 
 extern int parse_menu_item (Lisp_Object, int);
 

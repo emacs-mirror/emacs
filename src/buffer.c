@@ -174,8 +174,6 @@ static struct Lisp_Overlay * copy_overlays (struct buffer *, struct Lisp_Overlay
 static void modify_overlay (struct buffer *, EMACS_INT, EMACS_INT);
 static Lisp_Object buffer_lisp_local_variables (struct buffer *);
 
-extern char * emacs_strerror (int);
-
 /* For debugging; temporary.  See set_buffer_internal.  */
 /* Lisp_Object Qlisp_mode, Vcheck_symbol; */
 

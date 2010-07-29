@@ -102,8 +102,6 @@ Lisp_Object Vconfigure_info_directory, Vshared_game_score_directory;
 /* Pattern used by call-process-region to make temp files.  */
 static Lisp_Object Vtemp_file_name_pattern;
 
-extern Lisp_Object Vtemporary_file_directory;
-
 Lisp_Object Vshell_file_name;
 
 Lisp_Object Vprocess_environment, Vinitial_environment;

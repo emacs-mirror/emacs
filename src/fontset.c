@@ -1457,7 +1457,6 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
   else if (STRINGP (font_spec))
     {
       Lisp_Object args[2];
-      extern Lisp_Object QCname;
 
       fontname = font_spec;
       args[0] = QCname;

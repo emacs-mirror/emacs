@@ -64,12 +64,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    termio and struct termios are mutually incompatible.  */
 #define NO_TERMIO
 
-#if defined (GNU_LINUX) || defined (__NetBSD__) || defined (__OpenBSD__)
-# ifndef __ELF__
-#  define COFF
-# endif /* notdef __ELF__ */
-#endif
-
 /* Many Alpha implementations (e.g. gas 2.8) can't handle DBL_MIN:
    they generate code that uses a signaling NaN instead of DBL_MIN.
    Define DBL_MIN_REPLACEMENT to be the next value larger than DBL_MIN:
