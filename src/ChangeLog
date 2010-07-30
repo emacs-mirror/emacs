@@ -1,3 +1,9 @@
+2010-07-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* fns.c (Fsubstring_no_properties, Fnthcdr, Ffeaturep)
+	(Fhash_table_size): Fix typos in docstrings.
+	(Fmake_hash_table): Doc fix.
+
 2010-07-28  Juanma Barranquero  <lekktu@gmail.com>
 
 	* minibuf.c (syms_of_minibuf) <read-buffer-function>:
