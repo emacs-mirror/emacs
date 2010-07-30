@@ -1,3 +1,8 @@
+2010-07-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* buffer.c (Qwindow): Do not define, already defined in data.c.
+	(syms_of_buffer): Do not intern and staticpro Qwindow.  (Bug#6760)
+
 2010-07-29  Chad Brown  <yandros@mit.edu>
 
 	Replace tests for SYSV_SYSTEM_DIR with HAVE_DIRENT_H, set via autoconf.
