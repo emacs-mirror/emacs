@@ -1,3 +1,8 @@
+2010-07-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* align.el (align-default-spacing): Doc fix.
+	(align-region-heuristic, align-regexp): Fix typos in docstrings.
+
 2010-07-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* help-fns.el (find-lisp-object-file-name): Doc fix (bug#6494).
