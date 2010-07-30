@@ -1,3 +1,8 @@
+2010-07-30  Leo  <sdl.web@gmail.com>
+
+	* eshell/esh-io.el (eshell-get-target): Better detection of
+	read-only file (Bug#6762).
+
 2010-07-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* align.el (align-default-spacing): Doc fix.
