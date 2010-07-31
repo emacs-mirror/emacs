@@ -1,3 +1,10 @@
+2010-07-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse.el (mouse-save-then-kill): Doc fix.  Deactivate mark
+	before killing to preserve the primary selection (Bug#6701).
+
+	* term/x-win.el (x-select-text): Doc fix.
+
 2010-07-31  Alan Mackenzie  <acm@muc.de>
 	Enhanced Java Mode to handle Java 5.0 (Tiger) and Java 6
 	(Mustang).  Contributed by Nathaniel Flath.  The following

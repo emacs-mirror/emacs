@@ -392,7 +392,7 @@ x_own_selection (Lisp_Object selection_name, Lisp_Object selection_value)
   selecting_window = FRAME_X_WINDOW (sf);
   display = FRAME_X_DISPLAY (sf);
   dpyinfo = FRAME_X_DISPLAY_INFO (sf);
-  
+
   CHECK_SYMBOL (selection_name);
   selection_atom = symbol_to_x_atom (dpyinfo, display, selection_name);
 
@@ -410,10 +410,8 @@ x_own_selection (Lisp_Object selection_name, Lisp_Object selection_value)
     Lisp_Object prev_value;
 
     selection_time = long_to_cons ((unsigned long) time);
-    selection_data = Fcons (selection_name,
-			    Fcons (selection_value,
-				   Fcons (selection_time,
-					  Fcons (selected_frame, Qnil))));
+    selection_data = list4 (selection_name, selection_value,
+			    selection_time, selected_frame);
     prev_value = assq_no_quit (selection_name, Vselection_alist);
 
     Vselection_alist = Fcons (selection_data, Vselection_alist);
@@ -1015,7 +1013,7 @@ x_handle_selection_clear (struct input_event *event)
 	  }
       }
   UNBLOCK_INPUT;
-  
+
   selection_symbol = x_atom_to_symbol (display, selection);
 
   local_selection_data = assq_no_quit (selection_symbol, Vselection_alist);
@@ -2416,7 +2414,7 @@ Positive N means shift the values forward, negative means backward.  */)
   Atom props[8];
   Display *display;
   struct frame *sf = SELECTED_FRAME ();
-  
+
   check_x ();
 
   if (! FRAME_X_P (sf))

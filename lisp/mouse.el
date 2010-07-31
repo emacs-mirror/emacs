@@ -1336,16 +1336,23 @@ This does not delete the region; it acts like \\[kill-ring-save]."
   (undo-boundary))
 
 (defun mouse-save-then-kill (click)
-  "Save text to point in kill ring; the second time, kill the text.
-If the text between point and the mouse is the same as what's
-at the front of the kill ring, this deletes the text.
-Otherwise, it adds the text to the kill ring, like \\[kill-ring-save],
-which prepares for a second click to delete the text.
+  "Set the region according to CLICK; the second time, kill the region.
+Assuming this command is bound to a mouse button, CLICK is the
+corresponding input event.
 
-If you have selected words or lines, this command extends the
-selection through the word or line clicked on.  If you do this
-again in a different position, it extends the selection again.
-If you do this twice in the same position, the selection is killed."
+If the region is already active, adjust it.  Normally, this
+happens by moving either point or mark, whichever is closer, to
+the position of CLICK.  But if you have selected words or lines,
+the region is adjusted by moving point or mark to the word or
+line boundary closest to CLICK.
+
+If the region is inactive, activate it temporarily; set mark at
+the original point, and move click to the position of CLICK.
+
+However, if this command is being called a second time (i.e. the
+value of `last-command' is `mouse-save-then-kill'), kill the
+region instead.  If the text in the region is the same as the
+text in the front of the kill ring, just delete it."
   (interactive "e")
   (let ((before-scroll
 	 (with-current-buffer (window-buffer (posn-window (event-start click)))
@@ -1357,44 +1364,50 @@ If you do this twice in the same position, the selection is killed."
 	  (this-command this-command))
       (if (and (with-current-buffer
                    (window-buffer (posn-window (event-start click)))
-		 (and (mark t) (> (mod mouse-selection-click-count 3) 0)
+		 (and (mark t)
+		      (> (mod mouse-selection-click-count 3) 0)
 		      ;; Don't be fooled by a recent click in some other buffer.
 		      (eq mouse-selection-click-count-buffer
 			  (current-buffer)))))
-	  (if (not (and (eq last-command 'mouse-save-then-kill)
-			(equal click-posn
-			       (car (cdr-safe (cdr-safe mouse-save-then-kill-posn))))))
-	      ;; Find both ends of the object selected by this click.
-	      (let* ((range
-		      (mouse-start-end click-posn click-posn
-				       mouse-selection-click-count)))
-		;; Move whichever end is closer to the click.
-		;; That's what xterm does, and it seems reasonable.
-		(if (< (abs (- click-posn (mark t)))
-		       (abs (- click-posn (point))))
-		    (set-mark (car range))
-		  (goto-char (nth 1 range)))
-		;; We have already put the old region in the kill ring.
-		;; Replace it with the extended region.
-		;; (It would be annoying to make a separate entry.)
-		(kill-new (buffer-substring (point) (mark t)) t)
-		(mouse-set-region-1)
-		;; Arrange for a repeated mouse-3 to kill this region.
-		(setq mouse-save-then-kill-posn
-		      (list (car kill-ring) (point) click-posn)))
-	    ;; If we click this button again without moving it,
-	    ;; that time kill.
-	    (mouse-save-then-kill-delete-region (mark) (point))
-	    (setq mouse-selection-click-count 0)
-	    (setq mouse-save-then-kill-posn nil))
+	  (if (and (eq last-command 'mouse-save-then-kill)
+		   (equal click-posn (nth 2 mouse-save-then-kill-posn)))
+	      ;; If we click this button again without moving it, kill.
+	      (progn
+		;; Call `deactivate-mark' to save the primary selection.
+		(deactivate-mark)
+		(mouse-save-then-kill-delete-region (mark) (point))
+		(setq mouse-selection-click-count 0)
+		(setq mouse-save-then-kill-posn nil))
+	    ;; Find both ends of the object selected by this click.
+	    (let* ((range
+		    (mouse-start-end click-posn click-posn
+				     mouse-selection-click-count)))
+	      ;; Move whichever end is closer to the click.
+	      ;; That's what xterm does, and it seems reasonable.
+	      (if (< (abs (- click-posn (mark t)))
+		     (abs (- click-posn (point))))
+		  (set-mark (car range))
+		(goto-char (nth 1 range)))
+	      ;; We have already put the old region in the kill ring.
+	      ;; Replace it with the extended region.
+	      ;; (It would be annoying to make a separate entry.)
+	      (kill-new (buffer-substring (point) (mark t)) t)
+	      (mouse-set-region-1)
+	      ;; Arrange for a repeated mouse-3 to kill this region.
+	      (setq mouse-save-then-kill-posn
+		    (list (car kill-ring) (point) click-posn))))
+
 	(if (and (eq last-command 'mouse-save-then-kill)
 		 mouse-save-then-kill-posn
 		 (eq (car mouse-save-then-kill-posn) (car kill-ring))
-		 (equal (cdr mouse-save-then-kill-posn) (list (point) click-posn)))
+		 (equal (cdr mouse-save-then-kill-posn)
+			(list (point) click-posn)))
 	    ;; If this is the second time we've called
 	    ;; mouse-save-then-kill, delete the text from the buffer.
 	    (progn
-	      (mouse-save-then-kill-delete-region (point) (mark))
+	      ;; Call `deactivate-mark' to save the primary selection.
+	      (deactivate-mark)
+	      (mouse-save-then-kill-delete-region (point) (mark t))
 	      ;; After we kill, another click counts as "the first time".
 	      (setq mouse-save-then-kill-posn nil))
 	  ;; This is not a repetition.
