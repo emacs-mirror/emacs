@@ -675,6 +675,11 @@ The number of lines to use for the tool bar.  A value of @code{nil}
 means don't display a tool bar.  (GTK and Nextstep allow at most one
 tool bar line; they treat larger values as 1.)
 
+@item tool-bar-position
+The position of the tool bar.  Currently only for the GTK tool bar.
+Value can be one of @code{top}, @code{bottom} @code{left}, @code{right}.
+The default is  @code{top}.
+
 @item line-spacing
 Additional space to leave below each text line, in pixels (a positive
 integer).  @xref{Line Height}, for more information.

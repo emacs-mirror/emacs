@@ -715,6 +715,22 @@ x_set_wait_for_wm (struct frame *f, Lisp_Object new_value, Lisp_Object old_value
   f->output_data.x->wait_for_wm = !NILP (new_value);
 }
 
+static void
+x_set_tool_bar_position (struct frame *f,
+                         Lisp_Object new_value,
+                         Lisp_Object old_value)
+{
+  if (! EQ (new_value, Qleft) && ! EQ (new_value, Qright)
+      && ! EQ (new_value, Qbottom) && ! EQ (new_value, Qtop))
+    return;
+  if (EQ (new_value, old_value)) return;
+
+#ifdef USE_GTK
+  if (xg_change_toolbar_position (f, new_value)) 
+    f->tool_bar_position = new_value;
+#endif
+}
+
 #ifdef USE_GTK
 
 /* Set icon from FILE for frame F.  By using GTK functions the icon
@@ -2348,7 +2364,7 @@ xic_set_statusarea (struct frame *f)
   area.x = FRAME_PIXEL_WIDTH (f) - area.width - FRAME_INTERNAL_BORDER_WIDTH (f);
   area.y = (FRAME_PIXEL_HEIGHT (f) - area.height
 	    - FRAME_MENUBAR_HEIGHT (f)
-	    - FRAME_TOOLBAR_HEIGHT (f)
+	    - FRAME_TOOLBAR_TOP_HEIGHT (f)
             - FRAME_INTERNAL_BORDER_WIDTH (f));
   XFree (needed);
 
@@ -5751,6 +5767,7 @@ frame_parm_handler x_frame_parm_handlers[] =
   x_set_font_backend,
   x_set_alpha,
   x_set_sticky,
+  x_set_tool_bar_position,
 };
 
 void
@@ -5901,6 +5918,7 @@ the tool bar buttons.  */);
      accepts --with-x-toolkit=gtk.  */
   Fprovide (intern_c_string ("x-toolkit"), Qnil);
   Fprovide (intern_c_string ("gtk"), Qnil);
+  Fprovide (intern_c_string ("move-toolbar"), Qnil);
 
   DEFVAR_LISP ("gtk-version-string", &Vgtk_version_string,
                doc: /* Version info for GTK+.  */);

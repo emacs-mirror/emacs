@@ -1,3 +1,8 @@
+2010-07-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* buffer.c (Qwindow): Do not define, already defined in data.c.
+	(syms_of_buffer): Do not intern and staticpro Qwindow.  (Bug#6760)
+
 2010-07-29  Martin Rudalics  <rudalics@gmx.at>
 
 	* buffer.c (Fbuffer_list): Rewrite doc-string, reformat.
@@ -31,6 +36,89 @@
 	(make_window): Initialize missing and new Lisp slots.
 	(syms_of_window): Add Qreplace_buffer_in_windows and
 	Qrecord_window_buffer.
+
+2010-07-29  Chad Brown  <yandros@mit.edu>
+
+	Replace tests for SYSV_SYSTEM_DIR with HAVE_DIRENT_H, set via autoconf.
+	* dired.c, sysdep.c: Test HAVE_DIRENT_H instead of SYSV_SYSTEM_DIR.
+	* config.in: Undef HAVE_DIRENT_H.
+	* s/aix4-2.h, s/bsd-common.h, s/cygwin.h, s/gnu-linux.h,
+	* s/msdos.h, s/usg5-4.h: Don't define SYSV_SYSTEM_DIR.
+
+2010-07-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Rename s/usg5-4.h -> s/usg5-4-common.h.
+	* s/usg5-4.h: Rename file to ...
+	* s/usg5-4-common.h: ... this for consistency with what we do for BSD.
+	* s/unixware.h:
+	* s/sol2-6.h:
+	* s/irix6-5.h: Update includes accordingly.
+
+2010-07-29  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (x_set_tool_bar_position): Remove debug fprintf.
+
+	* xterm.h (struct x_output): Add toolbar_top_height,
+	toolbar_bottom_height, toolbar_left_width, toolbar_right_width.  Remove
+	toolbar_height.
+	if USE_GTK: Add hbox_widget and toolbar_in_hbox.
+	(FRAME_TOOLBAR_TOP_HEIGHT, FRAME_TOOLBAR_BOTTOM_HEIGHT)
+	(FRAME_TOOLBAR_LEFT_WIDTH, FRAME_TOOLBAR_RIGHT_WIDTH): New macros.
+	(FRAME_TOOLBAR_HEIGHT): Is now TOP_HEIGHT + BOTTOM_HEIGHT.
+
+	* xterm.c (x_set_window_size_1): Add FRAME_TOOLBAR_WIDTH to pixelwidth.
+
+	* xfns.c (x_set_tool_bar_position): New function.
+	(xic_set_statusarea): Use FRAME_TOOLBAR_TOP_HEIGHT.
+	(x_frame_parm_handlers): Add x_set_tool_bar_position.
+	(syms_of_xfns): if USE_GTK, provide move-toolbar.
+
+	* window.c (calc_absolute_offset): Check for FRAME_TOOLBAR_TOP_HEIGHT
+	and FRAME_TOOLBAR_LEFT_WIDTH.
+
+	* gtkutil.h (xg_change_toolbar_position): Declare.
+
+	* gtkutil.c (FRAME_TOTAL_PIXEL_WIDTH): New macro.
+	(xg_frame_set_char_size): Add FRAME_TOOLBAR_WIDTH to pixelwidth.
+	(xg_height_or_width_changed): Use FRAME_TOTAL_PIXEL_WIDTH.
+	(xg_create_frame_widgets): Create a hobox for placing widgets
+	vertically.  Use gtk_box_pack_start.
+	(xg_height_or_width_changed): Renamed from xg_height_changed.
+	(x_wm_set_size_hint): Add FRAME_TOOLBAR_WIDTH to base_width.
+	(xg_update_frame_menubar, free_frame_menubar): Change to
+	xg_height_or_width_changed.
+	(xg_tool_bar_detach_callback): Update left/right/top/bottom tool bar
+	size correctly.  Remove hardcoded 4, instead use handlebox size -
+	toolbar size.
+	(xg_tool_bar_attach_callback): Update left/right/top/bottom tool bar
+	size correctly.  Use handlebox size + toolbar size as additional
+	size.
+	(xg_pack_tool_bar): POS is a new parameter.
+	Set orientation of tool bar based on pos.
+	Only make handlebox_widget if NULL.
+	Check if tool bar goes to vbox or hbox depending on pos.
+	(xg_update_tool_bar_sizes): New function.
+	(update_frame_tool_bar): Remove old_req, new_req. Do not get tool bar
+	height, call xg_update_tool_bar_sizes instead.
+	(free_frame_tool_bar): Remove from hbox or vbox depending on
+	toolbar_in_hbox,  Set all FRAME_TOOLBAR_*_(WIDTH|HEIGHT) to zero.
+	(xg_change_toolbar_position): New function.
+
+	* frame.h (struct frame): Add tool_bar_position.
+	(Qbottom): Declare.
+
+	* frame.c (Qtool_bar_position): New variable.
+	(make_frame): Set tool_bar_position to Qtop.
+	(frame_parms): Add tool-bar-position.
+	(x_report_frame_params): Store tool_bar_position.
+	(x_set_fringe_width): Reset wm size hint after fringe changes.
+
+2010-07-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Make lisp_time_argument declaration work on all systems.
+	* lisp.h (lisp_time_argument): Move declaration ...
+	* systime.h (lisp_time_argument): ... here
+	* editfns.c (lisp_time_argument): Remove declaration.  (Bug#6751)
 
 2010-07-29  Jan Djärv  <jan.h.d@swipnet.se>
 

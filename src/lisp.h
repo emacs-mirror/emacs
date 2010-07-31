@@ -2995,7 +2995,6 @@ EXFUN (Ffield_beginning, 3);
 EXFUN (Ffield_end, 3);
 EXFUN (Ffield_string_no_properties, 1);
 extern void set_time_zone_rule (const char *);
-extern int lisp_time_argument (Lisp_Object, time_t *, int *);
 
 /* Defined in buffer.c */
 extern int mouse_face_overlay_overlaps (Lisp_Object);

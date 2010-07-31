@@ -150,6 +150,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `difftime' function. */
 #undef HAVE_DIFFTIME
 
+/* Define to 1 if you have the <dirent.h> header file. */
+#undef HAVE_DIRENT_H
+
 /* Define to 1 if you have the `dup2' function. */
 #undef HAVE_DUP2
 

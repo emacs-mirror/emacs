@@ -795,7 +795,10 @@ detailed description of this mode.
   (gdb-input
    ;; Needs GDB 6.4 onwards
    (list (concat "-inferior-tty-set "
-		 (process-tty-name (get-process "gdb-inferior")))
+		 (or
+		  ;; The process can run on a remote host.
+		  (process-get (get-process "gdb-inferior") 'remote-tty)
+		  (process-tty-name (get-process "gdb-inferior"))))
 	 'ignore))
   (if (eq window-system 'w32)
       (gdb-input (list "-gdb-set new-console off" 'ignore)))

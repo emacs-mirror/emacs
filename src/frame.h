@@ -191,6 +191,10 @@ struct frame
   /* Desired and current tool-bar items.  */
   Lisp_Object tool_bar_items;
 
+  /* Where tool bar is, can be left, right, top or bottom.  The native
+     tool bar only supports top.  */
+  Lisp_Object tool_bar_position;
+
   /* Desired and current contents displayed in tool_bar_window.  */
   Lisp_Object desired_tool_bar_string, current_tool_bar_string;
 
@@ -1071,7 +1075,7 @@ extern Lisp_Object Qbackground_mode;
 
 extern Lisp_Object Qx_resource_name;
 
-extern Lisp_Object Qleft, Qright, Qtop, Qbox;
+extern Lisp_Object Qleft, Qright, Qtop, Qbox, Qbottom;
 extern Lisp_Object Qdisplay;
 
 #ifdef HAVE_WINDOW_SYSTEM

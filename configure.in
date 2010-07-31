@@ -1204,7 +1204,7 @@ AC_CHECK_HEADERS(sys/select.h sys/timeb.h sys/time.h unistd.h utime.h \
   linux/version.h sys/systeminfo.h termios.h limits.h string.h stdlib.h \
   stdio_ext.h fcntl.h strings.h coff.h pty.h sys/mman.h \
   sys/param.h sys/vlimit.h sys/resource.h locale.h sys/_mbstate_t.h \
-  sys/utsname.h pwd.h utmp.h)
+  sys/utsname.h pwd.h utmp.h dirent.h)
 
 AC_MSG_CHECKING(if personality LINUX32 can be set)
 AC_TRY_COMPILE([#include <sys/personality.h>], [personality (PER_LINUX32)],

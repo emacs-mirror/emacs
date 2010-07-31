@@ -48,29 +48,22 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    Since applying strlen to the name always works, we'll just do that.  */
 #define NAMLEN(p) strlen (p->d_name)
 
-#ifdef SYSV_SYSTEM_DIR
+#ifdef HAVE_DIRENT_H
 
 #include <dirent.h>
 #define DIRENTRY struct dirent
 
-#else /* not SYSV_SYSTEM_DIR */
+#else /* not HAVE_DIRENT_H */
 
-#ifdef MSDOS
-#include <dirent.h>
-#else
 #include <sys/dir.h>
-#endif
-
 #include <sys/stat.h>
 
-#ifndef MSDOS
 #define DIRENTRY struct direct
 
 extern DIR *opendir (char *);
 extern struct direct *readdir (DIR *);
 
-#endif /* not MSDOS */
-#endif /* not SYSV_SYSTEM_DIR */
+#endif /* HAVE_DIRENT_H */
 
 /* Some versions of Cygwin don't have d_ino in `struct dirent'.  */
 #if defined(MSDOS) || defined(__CYGWIN__)

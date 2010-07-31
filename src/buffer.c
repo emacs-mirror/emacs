@@ -162,7 +162,7 @@ Lisp_Object Qget_file_buffer;
 
 Lisp_Object Qoverlayp;
 
-Lisp_Object Qpriority, Qwindow, Qevaporate, Qbefore_string, Qafter_string;
+Lisp_Object Qpriority, Qevaporate, Qbefore_string, Qafter_string;
 
 Lisp_Object Qmodification_hooks;
 Lisp_Object Qinsert_in_front_hooks;
@@ -5210,8 +5210,6 @@ syms_of_buffer (void)
   staticpro (&Qget_file_buffer);
   Qpriority = intern_c_string ("priority");
   staticpro (&Qpriority);
-  Qwindow = intern_c_string ("window");
-  staticpro (&Qwindow);
   Qbefore_string = intern_c_string ("before-string");
   staticpro (&Qbefore_string);
   Qafter_string = intern_c_string ("after-string");

@@ -1,3 +1,8 @@
+2010-07-30  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnmail.el (nnmail-get-new-mail-1): Encode group names possibly
+	containing non-ASCII characters in active file for nnml back end.
+
 2010-07-24  David Engster  <dengste@eml.cc>
 
 	* mml-smime.el (mml-smime-epg-verify): Also accept the older

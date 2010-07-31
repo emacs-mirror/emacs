@@ -99,6 +99,11 @@ Use `set-scroll-bar-mode' to change this.
 Customize `tool-bar-style' to choose style.  On a Gnome desktop, the default
 is taken from the desktop settings.
 
+** GTK tool bars can be placed on the left/right or top/bottom of the frame.
+The frame-parameter tool-bar-position controls this.  It takes the values
+top, left, tight or bottom.  The Options => Show/Hide menu has entries
+for this.
+
 ** Lucid menus and dialogs can display antialiased fonts if Emacs is built
 with Xft.
 

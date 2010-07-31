@@ -47,11 +47,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define HAVE_SOCKETS if system supports 4.2-compatible sockets.  */
 #define HAVE_SOCKETS
 
-
-/* Define SYSV_SYSTEM_DIR to use the V.3 getdents/readir library
-   functions.  Almost, but not quite the same as the 4.2 functions.  */
-#define SYSV_SYSTEM_DIR
-
 /* The file containing the kernel's symbol table is called /unix.  */
 #define KERNEL_FILE "/unix"
 

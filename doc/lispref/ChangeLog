@@ -5,6 +5,15 @@
 	switch-to-prev-buffer and switch-to-next-buffer and their impact
 	on replace-buffer-in-windows.
 
+2010-07-29  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* frames.texi (Layout Parameters): Add doc for tool-bar-position.
+
+2010-07-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* processes.texi (Process Information): Explain process property
+	`remote-tty'.
+
 2010-07-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* modes.texi (Defining Minor Modes): Use C-delete in examples,

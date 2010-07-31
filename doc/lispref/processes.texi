@@ -868,7 +868,9 @@ terminated, the value is 0.
 This function returns the terminal name that @var{process} is using for
 its communication with Emacs---or @code{nil} if it is using pipes
 instead of a terminal (see @code{process-connection-type} in
-@ref{Asynchronous Processes}).
+@ref{Asynchronous Processes}).  If @var{process} represents a program
+running on a remote host, the terminal name used by that program on
+the remote host is provided as process property @code{remote-tty}.
 @end defun
 
 @defun process-coding-system process

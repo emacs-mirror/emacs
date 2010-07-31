@@ -119,7 +119,7 @@ Lisp_Object Qparent_id;
 Lisp_Object Qtitle, Qname;
 Lisp_Object Qexplicit_name;
 Lisp_Object Qunsplittable;
-Lisp_Object Qmenu_bar_lines, Qtool_bar_lines;
+Lisp_Object Qmenu_bar_lines, Qtool_bar_lines, Qtool_bar_position;
 Lisp_Object Vmenu_bar_mode, Vtool_bar_mode;
 Lisp_Object Qleft_fringe, Qright_fringe;
 Lisp_Object Qbuffer_predicate, Qbuffer_list, Qburied_buffer_list;
@@ -318,6 +318,7 @@ make_frame (int mini_p)
   f->menu_bar_window = Qnil;
   f->tool_bar_window = Qnil;
   f->tool_bar_items = Qnil;
+  f->tool_bar_position = Qtop;
   f->desired_tool_bar_string = f->current_tool_bar_string = Qnil;
   f->n_tool_bar_items = 0;
   f->left_fringe_width = f->right_fringe_width = 0;
@@ -2725,6 +2726,7 @@ static struct frame_parm_table frame_parms[] =
   {"font-backend",		&Qfont_backend},
   {"alpha",			&Qalpha},
   {"sticky",			&Qsticky},
+  {"tool-bar-position",		&Qtool_bar_position},
 };
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -3118,6 +3120,7 @@ x_report_frame_params (struct frame *f, Lisp_Object *alistptr)
     XSETFASTINT (tem, FRAME_X_OUTPUT (f)->parent_desc);
   store_in_alist (alistptr, Qexplicit_name, (f->explicit_name ? Qt : Qnil));
   store_in_alist (alistptr, Qparent_id, tem);
+  store_in_alist (alistptr, Qtool_bar_position, f->tool_bar_position);
 }
 
 
@@ -3350,6 +3353,11 @@ void
 x_set_fringe_width (struct frame *f, Lisp_Object new_value, Lisp_Object old_value)
 {
   compute_fringe_widths (f, 1);
+#ifdef HAVE_X_WINDOWS
+  /* Must adjust this so window managers report correct number of columns.  */
+  if (FRAME_X_WINDOW (f) != 0)
+    x_wm_set_size_hint (f, 0, 0);
+#endif
 }
 
 void

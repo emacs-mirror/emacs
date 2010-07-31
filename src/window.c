@@ -751,13 +751,18 @@ calc_absolute_offset(struct window *w, int *add_x, int *add_y)
 #ifdef FRAME_MENUBAR_HEIGHT
   *add_y += FRAME_MENUBAR_HEIGHT (f);
 #endif
-#ifdef FRAME_TOOLBAR_HEIGHT
+#ifdef FRAME_TOOLBAR_TOP_HEIGHT
+  *add_y += FRAME_TOOLBAR_TOP_HEIGHT (f);
+#elif FRAME_TOOLBAR_HEIGHT
   *add_y += FRAME_TOOLBAR_HEIGHT (f);
 #endif
 #ifdef FRAME_NS_TITLEBAR_HEIGHT
   *add_y += FRAME_NS_TITLEBAR_HEIGHT (f);
 #endif
   *add_x = f->left_pos;
+#ifdef FRAME_TOOLBAR_LEFT_WIDTH
+  *add_x += FRAME_TOOLBAR_LEFT_WIDTH (f);
+#endif
 }
 
 DEFUN ("window-absolute-pixel-edges", Fwindow_absolute_pixel_edges,

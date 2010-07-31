@@ -97,7 +97,6 @@ static int tm_diff (struct tm *, struct tm *);
 static void find_field (Lisp_Object, Lisp_Object, Lisp_Object, int *, Lisp_Object, int *);
 static void update_buffer_properties (int, int);
 static Lisp_Object region_limit (int);
-int lisp_time_argument (Lisp_Object, time_t *, int *);
 static size_t emacs_memftimeu (char *, size_t, const char *,
                                size_t, const struct tm *, int);
 static void general_insert_function (void (*) (const unsigned char *, EMACS_INT),

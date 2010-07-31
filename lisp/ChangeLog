@@ -35,6 +35,39 @@
 	(switch-to-buffer): In doc-string warning suggest using
 	with-current-buffer instead of set-buffer.
 
+2010-07-29  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* menu-bar.el (menu-bar-showhide-tool-bar-menu-customize-enable-left)
+	(menu-bar-showhide-tool-bar-menu-customize-disable)
+	(menu-bar-showhide-tool-bar-menu-customize-enable-right)
+	(menu-bar-showhide-tool-bar-menu-customize-enable-top)
+	(menu-bar-showhide-tool-bar-menu-customize-enable-bottom): New functions
+	(menu-bar-showhide-tool-bar-menu): If tool bar is moveable,
+	make a menu for Options => toolbar that can move it.
+
+2010-07-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package-x.el (package--make-rss-entry):
+	(package-maint-add-news-item, package--update-news)
+	(package-upload-buffer-internal): New arg ARCHIVE-URL.
+
+	* emacs-lisp/package.el (package-archive-url): Rename from
+	package-archive-id.
+	(package-install): Doc fix.
+	(package-download-single, package-download-tar, package-install)
+	(package-menu-view-commentary): Callers changed.
+
+2010-07-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-start-file-process): Check only for
+	`remote-tty' process property.
+	(tramp-open-shell): Don't check for tty.
+	(tramp-open-connection-setup-interactive-shell): Set `remote-tty'
+	process property.
+
+	* progmodes/gdb-mi.el (gdb-init-1): Check also for tty on a remote
+	host.
+
 2010-07-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/package.el (package-load-list, package-archives)

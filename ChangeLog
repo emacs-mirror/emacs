@@ -1,3 +1,7 @@
+2010-07-29  Chad Brown  <yandros@mit.edu>
+
+	* configure.in: Check for dirent.h.
+
 2010-07-29  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in: Remove reference to usg5-4, unused.

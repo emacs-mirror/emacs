@@ -147,6 +147,9 @@ extern void set_waiting_for_input (EMACS_TIME *);
 #ifdef GCPRO1
 /* defined in dired.c */
 extern Lisp_Object make_time (time_t);
+
+/* defined in editfns.c*/
+extern int lisp_time_argument (Lisp_Object, time_t *, int *);
 #endif
 
 /* Compare times T1 and T2.  Value is 0 if T1 and T2 are the same.
