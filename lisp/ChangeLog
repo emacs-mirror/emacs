@@ -1,3 +1,29 @@
+2010-07-31  Alan Mackenzie  <acm@muc.de>
+	Enhanced Java Mode to handle Java 5.0 (Tiger) and Java 6
+	(Mustang).  Contributed by Nathaniel Flath.  The following
+	functions were modified or created:
+
+	* progmodes/cc-vars.el (c-offsets-alist, c-inside-block-syms)
+	(objc-font-lock-extra-types):
+
+	* progmodes/cc-mode.el (c-basic-common-init):
+
+	* progmodes/cc-langs.el (c-make-mode-syntax-table)
+	(c++-make-template-syntax-table)
+	(c-identifier-syntax-modifications, c-symbol-start, c-operators)
+	(c-<-op-cont-regexp, c->-op-cont-regexp, c-class-decl-kwds)
+	(c-brace-list-decl-kwds, c-modifier-kwds, c-prefix-spec-kwds-re)
+	(c-type-list-kwds, c-decl-prefix-re, c-opt-type-suffix-key):
+
+
+	* progmodes/cc-fonts.el (c-make-inverse-face)
+	(c-basic-matchers-after):
+
+	* progmodes/cc-engine.el (c-forward-keyword-clause)
+	(c-forward-<>-arglist, c-forward-<>-arglist-recur)
+	(c-forward-name, c-forward-type, c-forward-decl-or-cast-1)
+	(c-guess-continued-construct, c-guess-basic-syntax):
+
 2010-07-31  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* faces.el (face-all-attributes): Improved documentation (Bug#6767).
