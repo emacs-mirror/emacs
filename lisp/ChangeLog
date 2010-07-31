@@ -1,3 +1,10 @@
+2010-07-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (bidi-paragraph-direction): Define safe local values.
+
+	* language/hebrew.el ("Hebrew"): Add TUTORIAL.he to
+	language-info-alist.  Remove outdated FIXME in a comment.
+
 2010-07-31  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-cmds.el (c-mask-paragraph): Fix bug #6688:
