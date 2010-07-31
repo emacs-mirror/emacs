@@ -202,6 +202,8 @@ since you visited or saved it last.  If the file has changed, Emacs offers
 to reread it.
 
 @vindex large-file-warning-threshold
+@cindex file, warning when size is large
+@cindex size of file, warning when visiting
 @cindex maximum buffer size exceeded, error message
   If you try to visit a file larger than
 @code{large-file-warning-threshold} (the default is 10000000, which is
