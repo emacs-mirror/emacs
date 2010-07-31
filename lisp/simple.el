@@ -52,60 +52,6 @@ wait this many seconds after Emacs becomes idle before doing an update."
 (defgroup paren-matching nil
   "Highlight (un)matching of parens and expressions."
   :group 'matching)
-
-(defun get-next-valid-buffer (list &optional buffer visible-ok frame)
-  "Search LIST for a valid buffer to display in FRAME.
-Return nil when all buffers in LIST are undesirable for display,
-otherwise return the first suitable buffer in LIST.
-
-Buffers not visible in windows are preferred to visible buffers,
-unless VISIBLE-OK is non-nil.
-If the optional argument FRAME is nil, it defaults to the selected frame.
-If BUFFER is non-nil, ignore occurrences of that buffer in LIST."
-  ;; This logic is more or less copied from other-buffer.
-  (setq frame (or frame (selected-frame)))
-  (let ((pred (frame-parameter frame 'buffer-predicate))
-	found buf)
-    (while (and (not found) list)
-      (setq buf (car list))
-      (if (and (not (eq buffer buf))
-	       (buffer-live-p buf)
-	       (or (null pred) (funcall pred buf))
-	       (not (eq (aref (buffer-name buf) 0) ?\s))
-	       (or visible-ok (null (get-buffer-window buf 'visible))))
-	  (setq found buf)
-	(setq list (cdr list))))
-    (car list)))
-
-(defun last-buffer (&optional buffer visible-ok frame)
-  "Return the last buffer in FRAME's buffer list.
-If BUFFER is the last buffer, return the preceding buffer instead.
-Buffers not visible in windows are preferred to visible buffers,
-unless optional argument VISIBLE-OK is non-nil.
-Optional third argument FRAME nil or omitted means use the
-selected frame's buffer list.
-If no such buffer exists, return the buffer `*scratch*', creating
-it if necessary."
-  (setq frame (or frame (selected-frame)))
-  (or (get-next-valid-buffer (nreverse (buffer-list frame))
- 			     buffer visible-ok frame)
-      (get-buffer "*scratch*")
-      (let ((scratch (get-buffer-create "*scratch*")))
-	(set-buffer-major-mode scratch)
-	scratch)))
-
-(defun next-buffer ()
-  "Switch to the next buffer in cyclic order."
-  (interactive)
-  (let ((buffer (current-buffer)))
-    (switch-to-buffer (other-buffer buffer t))
-    (bury-buffer buffer)))
-
-(defun previous-buffer ()
-  "Switch to the previous buffer in cyclic order."
-  (interactive)
-  (switch-to-buffer (last-buffer (current-buffer) t)))
-
 
 ;;; next-error support framework
 

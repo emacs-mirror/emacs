@@ -196,9 +196,9 @@ Value is nil if OBJECT is not a buffer or if it has been killed.  */)
 
 DEFUN ("buffer-list", Fbuffer_list, Sbuffer_list, 0, 1, 0,
        doc: /* Return a list of all existing live buffers.
-If the optional arg FRAME is a frame, we return the buffer list
-in the proper order for that frame: the buffers in FRAME's `buffer-list'
-frame parameter come first, followed by the rest of the buffers.  */)
+If the optional arg FRAME is a frame, we return the buffer list in the
+proper order for that frame: the buffers show in FRAME come first,
+followed by the rest of the buffers.  */)
   (Lisp_Object frame)
 {
   Lisp_Object general;
@@ -210,9 +210,9 @@ frame parameter come first, followed by the rest of the buffers.  */)
       Lisp_Object args[3];
 
       CHECK_FRAME (frame);
-
       framelist = Fcopy_sequence (XFRAME (frame)->buffer_list);
-      prevlist = Fnreverse (Fcopy_sequence (XFRAME (frame)->buried_buffer_list));
+      prevlist = Fnreverse (Fcopy_sequence
+			    (XFRAME (frame)->buried_buffer_list));
 
       /* Remove from GENERAL any buffer that duplicates one in
          FRAMELIST or PREVLIST.  */
@@ -234,8 +234,8 @@ frame parameter come first, followed by the rest of the buffers.  */)
       args[2] = prevlist;
       return Fnconc (3, args);
     }
-
-  return general;
+  else
+    return general;
 }
 
 /* Like Fassoc, but use Fstring_equal to compare
@@ -1251,77 +1251,79 @@ This does not change the name of the visited file (if any).  */)
 
 DEFUN ("other-buffer", Fother_buffer, Sother_buffer, 0, 3, 0,
        doc: /* Return most recently selected buffer other than BUFFER.
-Buffers not visible in windows are preferred to visible buffers,
-unless optional second argument VISIBLE-OK is non-nil.
-If the optional third argument FRAME is non-nil, use that frame's
-buffer list instead of the selected frame's buffer list.
-If no other buffer exists, the buffer `*scratch*' is returned.
-If BUFFER is omitted or nil, some interesting buffer is returned.  */)
+Buffers not visible in windows are preferred to visible buffers, unless
+optional second argument VISIBLE-OK is non-nil.  Ignore the argument
+BUFFER unless it denotes a live buffer.  If the optional third argument
+FRAME is non-nil, use that frame's buffer list instead of the selected
+frame's buffer list.
+
+The buffer is found by scanning the selected or specified frame's buffer
+list first, followed by the list of all buffers.  If no other buffer
+exists, return the buffer `*scratch*' (creating it if necessary).  */)
   (register Lisp_Object buffer, Lisp_Object visible_ok, Lisp_Object frame)
 {
   Lisp_Object Fset_buffer_major_mode (Lisp_Object buffer);
-  register Lisp_Object tail, buf, notsogood, tem, pred, add_ons;
-  notsogood = Qnil;
+  Lisp_Object tail, buf, pred;
+  Lisp_Object notsogood = Qnil;
 
   if (NILP (frame))
     frame = selected_frame;
 
   CHECK_FRAME (frame);
 
-  tail = Vbuffer_alist;
   pred = frame_buffer_predicate (frame);
-
-  /* Consider buffers that have been seen in the selected frame
-     before other buffers.  */
-
-  tem = frame_buffer_list (frame);
-  add_ons = Qnil;
-  while (CONSP (tem))
+  /* Consider buffers that have been seen in the frame first.  */
+  tail = XFRAME (frame)->buffer_list;
+  for (; CONSP (tail); tail = XCDR (tail))
     {
-      if (BUFFERP (XCAR (tem)))
-	add_ons = Fcons (Fcons (Qnil, XCAR (tem)), add_ons);
-      tem = XCDR (tem);
+      buf = XCAR (tail);
+      if (BUFFERP (buf) && !EQ (buf, buffer)
+	  && !NILP (XBUFFER (buf)->name)
+	  && (SREF (XBUFFER (buf)->name, 0) != ' ')
+	  /* If the frame has a buffer_predicate, disregard buffers that
+	     don't fit the predicate.  */
+	  && (NILP (pred) || !NILP (call1 (pred, buf))))
+	{
+	  if (!NILP (visible_ok)
+	      || NILP (Fget_buffer_window (buf, Qvisible)))
+	    return buf;
+	  else if (NILP (notsogood))
+	    notsogood = buf;
+	}
     }
-  tail = nconc2 (Fnreverse (add_ons), tail);
 
+  /* Consider alist of all buffers next.  */
+  tail = Vbuffer_alist;
   for (; CONSP (tail); tail = XCDR (tail))
     {
       buf = Fcdr (XCAR (tail));
-      if (EQ (buf, buffer))
-	continue;
-      if (NILP (buf))
-	continue;
-      if (NILP (XBUFFER (buf)->name))
-	continue;
-      if (SREF (XBUFFER (buf)->name, 0) == ' ')
-	continue;
-      /* If the selected frame has a buffer_predicate,
-	 disregard buffers that don't fit the predicate.  */
-      if (!NILP (pred))
+      if (BUFFERP (buf) && !EQ (buf, buffer)
+	  && !NILP (XBUFFER (buf)->name)
+	  && (SREF (XBUFFER (buf)->name, 0) != ' ')
+	  /* If the frame has a buffer_predicate, disregard buffers that
+	     don't fit the predicate.  */
+	  && (NILP (pred) || !NILP (call1 (pred, buf))))
 	{
-	  tem = call1 (pred, buf);
-	  if (NILP (tem))
-	    continue;
+	  if (!NILP (visible_ok)
+	      || NILP (Fget_buffer_window (buf, Qvisible)))
+	    return buf;
+	  else if (NILP (notsogood))
+	    notsogood = buf;
 	}
-
-      if (NILP (visible_ok))
-	tem = Fget_buffer_window (buf, Qvisible);
-      else
-	tem = Qnil;
-      if (NILP (tem))
-	return buf;
-      if (NILP (notsogood))
-	notsogood = buf;
     }
+
   if (!NILP (notsogood))
     return notsogood;
-  buf = Fget_buffer (build_string ("*scratch*"));
-  if (NILP (buf))
+  else
     {
-      buf = Fget_buffer_create (build_string ("*scratch*"));
-      Fset_buffer_major_mode (buf);
+      buf = Fget_buffer (build_string ("*scratch*"));
+      if (NILP (buf))
+	{
+	  buf = Fget_buffer_create (build_string ("*scratch*"));
+	  Fset_buffer_major_mode (buf);
+	}
+      return buf;
     }
-  return buf;
 }
 
 DEFUN ("buffer-enable-undo", Fbuffer_enable_undo, Sbuffer_enable_undo,
@@ -1497,9 +1499,10 @@ with SIGHUP.  */)
 
   tem = Vinhibit_quit;
   Vinhibit_quit = Qt;
-  replace_buffer_in_all_windows (buffer);
+  replace_buffer_in_windows (buffer);
   Vbuffer_alist = Fdelq (Frassq (buffer, Vbuffer_alist), Vbuffer_alist);
   frames_discard_buffer (buffer);
+  replace_buffer_in_windows_safely (buffer);
   Vinhibit_quit = tem;
 
   /* Delete any auto-save file, if we saved it in this session.
@@ -1576,80 +1579,41 @@ with SIGHUP.  */)
   return Qt;
 }
 
-/* Move the assoc for buffer BUF to the front of buffer-alist.  Since
-   we do this each time BUF is selected visibly, the more recently
-   selected buffers are always closer to the front of the list.  This
-   means that other_buffer is more likely to choose a relevant buffer.  */
+/* Move association for BUFFER to the front of buffer (a)lists.  Since
+   we do this each time BUFFER is selected visibly, the more recently
+   selected buffers are always closer to the front of those lists.  This
+   means that other_buffer is more likely to choose a relevant buffer.
+
+   Note that this moves BUFFER to the front of the buffer lists of the
+   selected frame even if BUFFER is not shown there.  If BUFFER is not
+   shown in the selected frame, consider the present behavior a feature.
+   `select-window' gets this right since it shows BUFFER in the selected
+   window when calling us.  */
 
 void
-record_buffer (Lisp_Object buf)
+record_buffer (Lisp_Object buffer)
 {
-  register Lisp_Object link, prev;
-  Lisp_Object frame;
-  frame = selected_frame;
+  Lisp_Object aelt, link, tem;
+  register struct frame *f = XFRAME (selected_frame);
+  register struct window *w = XWINDOW (FRAME_SELECTED_WINDOW (f));
 
-  prev = Qnil;
-  for (link = Vbuffer_alist; CONSP (link); link = XCDR (link))
-    {
-      if (EQ (XCDR (XCAR (link)), buf))
-	break;
-      prev = link;
-    }
+  CHECK_BUFFER (buffer);
 
-  /* Effectively do Vbuffer_alist = Fdelq (link, Vbuffer_alist);
-     we cannot use Fdelq itself here because it allows quitting.  */
-
-  if (NILP (prev))
-    Vbuffer_alist = XCDR (Vbuffer_alist);
-  else
-    XSETCDR (prev, XCDR (XCDR (prev)));
-
+  /* Update Vbuffer_alist (we know that it has an entry for BUFFER).
+     Don't allow quitting since this might leave the buffer list in an
+     inconsistent state.  */
+  tem = Vinhibit_quit;
+  Vinhibit_quit = Qt;
+  aelt = Frassq (buffer, Vbuffer_alist);
+  link = Fmemq (aelt, Vbuffer_alist);
+  Vbuffer_alist = Fdelq (aelt, Vbuffer_alist);
   XSETCDR (link, Vbuffer_alist);
   Vbuffer_alist = link;
+  Vinhibit_quit = tem;
 
-  /* Effectively do a delq on buried_buffer_list.  */
-
-  prev = Qnil;
-  for (link = XFRAME (frame)->buried_buffer_list; CONSP (link);
-       link = XCDR (link))
-    {
-      if (EQ (XCAR (link), buf))
-        {
-          if (NILP (prev))
-            XFRAME (frame)->buried_buffer_list = XCDR (link);
-          else
-            XSETCDR (prev, XCDR (XCDR (prev)));
-          break;
-        }
-      prev = link;
-    }
-
-  /* Now move this buffer to the front of frame_buffer_list also.  */
-
-  prev = Qnil;
-  for (link = frame_buffer_list (frame); CONSP (link);
-       link = XCDR (link))
-    {
-      if (EQ (XCAR (link), buf))
-	break;
-      prev = link;
-    }
-
-  /* Effectively do delq.  */
-
-  if (CONSP (link))
-    {
-      if (NILP (prev))
-	set_frame_buffer_list (frame,
-			       XCDR (frame_buffer_list (frame)));
-      else
-	XSETCDR (prev, XCDR (XCDR (prev)));
-
-      XSETCDR (link, frame_buffer_list (frame));
-      set_frame_buffer_list (frame, link);
-    }
-  else
-    set_frame_buffer_list (frame, Fcons (buf, frame_buffer_list (frame)));
+  /* Update buffer list of selected frame.  */
+  f->buffer_list = Fcons (buffer, Fdelq (buffer, f->buffer_list));
+  f->buried_buffer_list = Fdelq (buffer, f->buried_buffer_list);
 }
 
 DEFUN ("record-buffer", Frecord_buffer, Srecord_buffer, 1, 1, 0,
@@ -1664,29 +1628,33 @@ DEFUN ("record-buffer", Frecord_buffer, Srecord_buffer, 1, 1, 0,
 }
 
   /* Move BUFFER to the end of the buffer (a)lists.  Do nothing if the
-     buffer is killed.  For the selected frame and window buffer lists
-     this moves BUFFER there even if it was never shown in that window
-     or that frame.  If this happens we have a feature
-     (`unrecord-buffer' should be called only when BUFFER is shown in
-     the selected window).  */
+     buffer is killed.  For the selected frame's buffer list this moves
+     BUFFER to its end even if it was never shown in that frame.  If
+     this happens we have a feature, hence `unrecord-buffer' should be
+     called only when BUFFER was shown in the selected frame.  */
 
 DEFUN ("unrecord-buffer", Funrecord_buffer, Sunrecord_buffer, 1, 1, 0,
        doc: /* Move BUFFER to the end of the buffer list.  */)
   (Lisp_Object buffer)
 {
-  Lisp_Object aelt, link;
+  Lisp_Object aelt, link, tem;
   register struct frame *f = XFRAME (selected_frame);
 
   CHECK_BUFFER (buffer);
 
-  /* Update Vbuffer_alist (we know that it has an entry for BUFFER).  */
+  /* Update Vbuffer_alist (we know that it has an entry for BUFFER).
+     Don't allow quitting since this might leave the buffer list in an
+     inconsistent state.  */
+  tem = Vinhibit_quit;
+  Vinhibit_quit = Qt;
   aelt = Frassq (buffer, Vbuffer_alist);
   link = Fmemq (aelt, Vbuffer_alist);
   Vbuffer_alist = Fdelq (aelt, Vbuffer_alist);
   XSETCDR (link, Qnil);
   Vbuffer_alist = nconc2 (Vbuffer_alist, link);
+  Vinhibit_quit = tem;
 
-  /* Update buffer list of selected frame.  */
+  /* Update buffer lists of selected frame.  */
   f->buffer_list = Fdelq (buffer, f->buffer_list);
   f->buried_buffer_list = Fcons (buffer, Fdelq (buffer, f->buried_buffer_list));
 }

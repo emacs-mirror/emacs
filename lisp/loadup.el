@@ -100,6 +100,7 @@
 (load "env")
 (load "format")
 (load "bindings")
+(load "window")  ; Needed here for `replace-buffer-in-windows'.
 (setq load-source-file-function 'load-with-code-conversion)
 (load "files")
 
@@ -161,7 +162,6 @@
 (load "language/cham")
 
 (load "indent")
-(load "window")
 (load "frame")
 (load "term/tty-colors")
 (load "font-core")

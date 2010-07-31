@@ -1,3 +1,10 @@
+2010-07-31  Martin Rudalics  <rudalics@gmx.at>
+
+	* windows.texi (Buffers and Windows): Describe lists of previous
+	and next buffers for windows.  Describe new commands
+	switch-to-prev-buffer and switch-to-next-buffer and their impact
+	on replace-buffer-in-windows.
+
 2010-07-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* modes.texi (Defining Minor Modes): Use C-delete in examples,

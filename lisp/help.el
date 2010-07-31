@@ -953,6 +953,53 @@ is currently activated with completion."
 	  (setq minor-modes (cdr minor-modes)))))
     result))
 
+;;; Automatic resizing of temporary buffers.
+
+(defcustom temp-buffer-max-height (lambda (buffer) (/ (- (frame-height) 2) 2))
+  "Maximum height of a window displaying a temporary buffer.
+This is effective only when Temp Buffer Resize mode is enabled.
+The value is the maximum height (in lines) which
+`resize-temp-buffer-window' will give to a window displaying a
+temporary buffer.  It can also be a function to be called to
+choose the height for such a buffer.  It gets one argumemt, the
+buffer, and should return a positive integer.  At the time the
+function is called, the window to be resized is selected."
+  :type '(choice integer function)
+  :group 'help
+  :version "20.4")
+
+(define-minor-mode temp-buffer-resize-mode
+  "Toggle mode which makes windows smaller for temporary buffers.
+With prefix argument ARG, turn the resizing of windows displaying
+temporary buffers on if ARG is positive or off otherwise.
+
+This mode makes a window the right height for its contents, but
+never more than `temp-buffer-max-height' nor less than
+`window-min-height'.
+
+This mode is used by `help', `apropos' and `completion' buffers,
+and some others."
+  :global t :group 'help
+  (if temp-buffer-resize-mode
+      ;; `help-make-xrefs' may add a `back' button and thus increase the
+      ;; text size, so `resize-temp-buffer-window' must be run *after* it.
+      (add-hook 'temp-buffer-show-hook 'resize-temp-buffer-window 'append)
+    (remove-hook 'temp-buffer-show-hook 'resize-temp-buffer-window)))
+
+(defun resize-temp-buffer-window ()
+  "Resize the selected window to fit its contents.
+Will not make it higher than `temp-buffer-max-height' nor smaller
+than `window-min-height'.  Do nothing if the selected window is
+not vertically combined or some of its contents are scrolled out
+of view."
+  (when (and (pos-visible-in-window-p (point-min))
+	     (window-iso-combined-p))
+    (fit-window-to-buffer
+     nil
+     (if (functionp temp-buffer-max-height)
+	 (funcall temp-buffer-max-height (window-buffer))
+       temp-buffer-max-height))))
+
 ;;; help windows
 (defcustom help-window-select 'other
     "Non-nil means select help window for viewing.

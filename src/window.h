@@ -262,6 +262,13 @@ struct window
     /* Non-nil means window must not be recombined.  */
     Lisp_Object inhibit_recombine;
 
+    /* Alist of <buffer, window-start, window-point> triples listing
+       buffers previously shown in this window.  */
+    Lisp_Object prev_buffers;
+
+    /* List of buffers re-shown in this window.  */
+    Lisp_Object next_buffers;
+
     /* An alist with parameteres.  */
     Lisp_Object window_parameters;
 
@@ -940,7 +947,7 @@ EXFUN (Frecenter, 1);
 EXFUN (Fscroll_other_window, 1);
 EXFUN (Fset_window_start, 3);
 extern void temp_output_buffer_show (Lisp_Object);
-extern void replace_buffer_in_all_windows (Lisp_Object);
+extern void replace_buffer_in_windows_safely (Lisp_Object);
 extern void init_window_once (void);
 extern void init_window (void);
 extern void syms_of_window (void);

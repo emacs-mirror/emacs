@@ -1,3 +1,40 @@
+2010-07-30  Martin Rudalics  <rudalics@gmx.at>
+
+	* help.el (temp-buffer-max-height, temp-buffer-resize-mode)
+	(resize-temp-buffer-window): Move back from window.el to avoid
+	calling define-minor-mode in window.el and choke in bootstrap.
+
+2010-07-29  Martin Rudalics  <rudalics@gmx.at>
+
+	* loadup.el (top-level): Load window before files for the sake
+	of replace-buffer-in-windows.
+
+	* simple.el (get-next-valid-buffer, last-buffer, next-buffer)
+	(previous-buffer): Move to window.el.
+
+	* bindings.el (unbury-buffer): Move to window.el.
+
+	* window.el (display-buffer): Move group definition to front of
+	display buffer section.
+	(record-window-buffer, unrecord-window-buffer)
+	(set-window-buffer-start-and-point, switch-to-prev-buffer)
+	(switch-to-next-buffer): New functions.
+	(get-next-valid-buffer, last-buffer): Move here from simple.el.
+	(next-buffer): Move here from simple.el.  Call
+	switch-to-next-buffer.
+	(previous-buffer): Move here from simple.el.  Call
+	switch-to-prev-buffer.
+	(bury-buffer, quit-restore-window): Switch to previous buffer
+	when window cannot be deleted.
+	(unbury-buffer): Move here from bindings.el.
+	(delete-windows-on): Switch to previous buffer if window cannot
+	be deleted.  Unrecord buffer argument in all live windows.
+	(replace-buffer-in-windows): Move here from window.c.  Switch to
+	previous buffer if window cannot be deleted.  Unrecord argument
+	buffer in all live windows.
+	(switch-to-buffer): In doc-string warning suggest using
+	with-current-buffer instead of set-buffer.
+
 2010-07-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/package.el (package-load-list, package-archives)

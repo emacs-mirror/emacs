@@ -451,11 +451,6 @@ Major modes that edit things other than ordinary files may change this
 (put 'mode-line-buffer-identification 'risky-local-variable t)
 (make-variable-buffer-local 'mode-line-buffer-identification)
 
-(defun unbury-buffer () "\
-Switch to the last buffer in the buffer list."
-  (interactive)
-  (switch-to-buffer (last-buffer)))
-
 (defun mode-line-unbury-buffer (event) "\
 Call `unbury-buffer' in this window."
   (interactive "e")

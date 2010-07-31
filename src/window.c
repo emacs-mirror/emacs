@@ -54,7 +54,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 Lisp_Object Qwindowp, Qwindow_live_p, Qwindow_configuration_p;
 Lisp_Object Qwindow_deletable_p, Qdelete_window, Qdisplay_buffer;
-Lisp_Object Qget_mru_window;
+Lisp_Object Qreplace_buffer_in_windows, Qget_mru_window;
+Lisp_Object Qrecord_window_buffer;
 Lisp_Object Qresize_root_window, Qresize_root_window_vertically;
 Lisp_Object Qscroll_up, Qscroll_down, Qscroll_command;
 Lisp_Object Qset, Qabove, Qbelow, Qnest, Qgroup, Qresize;
@@ -1649,6 +1650,53 @@ window, it also makes sure that the window is no more dedicated.  */)
   return w->dedicated;
 }
 
+DEFUN ("window-prev-buffers", Fwindow_prev_buffers, Swindow_prev_buffers,
+       0, 1, 0,
+       doc:  /* Return buffers previously shown in WINDOW.
+WINDOW must be a live window and defaults to the selected one.
+
+The return value is either nil or a list of <buffer, window-start,
+window-point> triples where buffer was previously shown in WINDOW.  */)
+  (Lisp_Object window)
+{
+  return decode_window (window)->prev_buffers;
+}
+
+DEFUN ("set-window-prev-buffers", Fset_window_prev_buffers,
+       Sset_window_prev_buffers, 2, 2, 0,
+       doc: /* Set WINDOW's previous buffers to PREV-BUFFERS.
+WINDOW must be a live window and defaults to the selected one.  Return
+PREV-BUFFERS.
+
+PREV-BUFFERS should be either nil or a list of <buffer, window-start,
+window-point> triples where buffer was previously shown in WINDOW.  */)
+     (Lisp_Object window, Lisp_Object prev_buffers)
+{
+  return decode_any_window (window)->prev_buffers = prev_buffers;
+}
+
+DEFUN ("window-next-buffers", Fwindow_next_buffers, Swindow_next_buffers,
+       0, 1, 0,
+       doc:  /* Return list of buffers recently re-shown in WINDOW.
+WINDOW must be a live window and defaults to the selected one.  */)
+     (Lisp_Object window)
+{
+  return decode_window (window)->next_buffers;
+}
+
+DEFUN ("set-window-next-buffers", Fset_window_next_buffers,
+       Sset_window_next_buffers, 2, 2, 0,
+       doc: /* Set WINDOW's next buffers to NEXT-BUFFERS.
+WINDOW must be a live window and defaults to the selected one.  Return
+NEXT-BUFFERS.
+
+NEXT-BUFFERS should be either nil or a list of buffers that have been
+recently re-shown in WINDOW.  */)
+     (Lisp_Object window, Lisp_Object next_buffers)
+{
+  return decode_any_window (window)->next_buffers = next_buffers;
+}
+
 DEFUN ("window-parameters", Fwindow_parameters, Swindow_parameters,
        0, 1, 0,
        doc: /* Return the parameters of WINDOW and their values.
@@ -2340,35 +2388,16 @@ enum window_loop
 {
   WINDOW_LOOP_UNUSED,
   GET_BUFFER_WINDOW,		/* Arg is buffer */
-  UNSHOW_BUFFER,		/* Arg is buffer */
+  REPLACE_BUFFER_IN_WINDOWS_SAFELY, /* Arg is buffer */
   REDISPLAY_BUFFER_WINDOWS,	/* Arg is buffer */
   CHECK_ALL_WINDOWS
 };
-
-/* Make WINDOW show another buffer.  */
-static Lisp_Object
-window_show_other_buffer (Lisp_Object window)
-{
-  struct window *w = XWINDOW (window);
-
-  /* Undedicate WINDOW.  */
-  w->dedicated = Qnil;
-  /* Make WINDOW show the buffer returned by Fother_buffer.  */
-  Fset_window_buffer
-    (window, Fother_buffer (w->buffer, Qnil, w->frame), Qnil);
-  /* If WINDOW is the selected window, make its buffer current.  But do
-     so only if the window shows the current buffer (Bug#6454).  */
-  if (EQ (window, selected_window)
-      && XBUFFER (w->buffer) == current_buffer)
-    Fset_buffer (w->buffer);
-
-  return Qnil;
-}
 
 static Lisp_Object
 window_loop (enum window_loop type, Lisp_Object obj, int mini, Lisp_Object frames)
 {
   Lisp_Object window, windows, best_window, frame_arg;
+  int frame_best_window_flag = 0;
   struct frame *f;
   struct gcpro gcpro1;
 
@@ -2418,69 +2447,51 @@ window_loop (enum window_loop type, Lisp_Object obj, int mini, Lisp_Object frame
 	 is visible, since Fwindow_list skips non-visible frames if
 	 that is desired, under the control of frame_arg.  */
       if (!MINI_WINDOW_P (w)
-	  /* For UNSHOW_BUFFER, we must always consider all windows.  */
-	  || type == UNSHOW_BUFFER
+	  /* For REPLACE_BUFFER_IN_WINDOWS_SAFELY, we must always
+	     consider all windows.  */
+	  || type == REPLACE_BUFFER_IN_WINDOWS_SAFELY
 	  || (mini && minibuf_level > 0))
 	switch (type)
 	  {
 	  case GET_BUFFER_WINDOW:
 	    if (EQ (w->buffer, obj)
-		/* Don't find any minibuffer window
-		   except the one that is currently in use.  */
+		/* Don't find any minibuffer window except the one that
+		   is currently in use.  */
 		&& (MINI_WINDOW_P (w) ? EQ (window, minibuf_window) : 1))
 	      {
-		if (NILP (best_window))
-		  best_window = window;
-		else if (EQ (window, selected_window))
+		if (EQ (window, selected_window))
 		  /* Preferably return the selected window.  */
 		  RETURN_UNGCPRO (window);
-		else if (EQ (XWINDOW (window)->frame, selected_frame))
-		  /* Prefer windows on the current frame.  */
+		else if (EQ (XWINDOW (window)->frame, selected_frame)
+			 && !frame_best_window_flag)
+		  /* Prefer windows on the current frame (but don't
+		     choose another one if we have one already).  */
+		  {
+		    best_window = window;
+		    frame_best_window_flag = 1;
+		  }
+		else if (NILP (best_window))
 		  best_window = window;
 	      }
 	    break;
 
-	  case UNSHOW_BUFFER:
+	  case REPLACE_BUFFER_IN_WINDOWS_SAFELY:
+	    /* We could simply check whether the buffer shown by window
+	       is live, and show another buffer in case it isn't.  */
 	    if (EQ (w->buffer, obj))
 	      {
-		struct frame *f = XFRAME (w->frame);
-
-		/* If this window is dedicated, and in a frame of its own,
-		   kill the frame.  */
-		if (EQ (window, FRAME_ROOT_WINDOW (f))
-		    && !NILP (w->dedicated)
-		    && other_visible_frames (f))
-		  {
-		    /* Skip the other windows on this frame.
-		       There might be one, the minibuffer!  */
-		    while (CONSP (XCDR (windows))
-			   && EQ (XWINDOW (XCAR (windows))->frame,
-				  XWINDOW (XCAR (XCDR (windows)))->frame))
-		      windows = XCDR (windows);
-
-		    /* Now we can safely delete the frame.  */
-		    delete_frame (w->frame, Qnil);
-		    if (WINDOW_LIVE_P (window))
-		      /* If the window is still alive, deleting the
-			 frame failed, so show another buffer in it.  */
-		      window_show_other_buffer (window);
-		  }
-		else if (!NILP (w->dedicated) && !NILP (w->parent))
-		  {
-		    Lisp_Object window;
-		    XSETWINDOW (window, w);
-		    /* If this window is dedicated and not the only window
-		       in its frame, then kill it.  */
-		    delete_deletable_window (window);
-
-		    if (WINDOW_LIVE_P (window))
-		      /* If the window is still alive, deleting the
-			 window failed, so show another buffer in
-			 it.  */
-		      window_show_other_buffer (window);
-		  }
-		else
-		  window_show_other_buffer (window);
+		/* Undedicate WINDOW.  */
+		w->dedicated = Qnil;
+		/* Make WINDOW show the buffer returned by Fother_buffer
+		   but don't run any hooks.  */
+		set_window_buffer
+		  (window, Fother_buffer (w->buffer, Qnil, w->frame), 0, 0);
+		/* If WINDOW is the selected window, make its buffer
+		   current.  But do so only if the window shows the
+		   current buffer (Bug#6454).  */
+		if (EQ (window, selected_window)
+		    && XBUFFER (w->buffer) == current_buffer)
+		  Fset_buffer (w->buffer);
 	      }
 	    break;
 
@@ -2790,39 +2801,18 @@ window-start value is reasonable when this function is called.  */)
 }
 
 
-DEFUN ("replace-buffer-in-windows", Freplace_buffer_in_windows,
-       Sreplace_buffer_in_windows,
-       0, 1, "bReplace buffer in windows: ",
-       doc: /* Replace BUFFER-OR-NAME with some other buffer in all windows showing it.
-BUFFER-OR-NAME may be a buffer or the name of an existing buffer and
-defaults to the current buffer.
-
-When a window showing BUFFER-OR-NAME is dedicated that window is
-deleted.  If that window is the only window on its frame, that frame is
-deleted too when there are other frames left.  If there are no other
-frames left, some other buffer is displayed in that window.  */)
-  (Lisp_Object buffer_or_name)
+void
+replace_buffer_in_windows (Lisp_Object buffer)
 {
-  Lisp_Object buffer;
-
-  if (NILP (buffer_or_name))
-    buffer = Fcurrent_buffer ();
-  else
-    {
-      buffer = Fget_buffer (buffer_or_name);
-      CHECK_BUFFER (buffer);
-    }
-
-  window_loop (UNSHOW_BUFFER, buffer, 0, Qt);
-
-  return Qnil;
+  call1 (Qreplace_buffer_in_windows, buffer);
 }
 
-/* Replace BUFFER with some other buffer in all windows
-   of all frames, even those on other keyboards.  */
+
+/* Safely replace BUFFER with some other buffer in all windows of all
+   frames, even those on other keyboards.  */
 
 void
-replace_buffer_in_all_windows (Lisp_Object buffer)
+replace_buffer_in_windows_safely (Lisp_Object buffer)
 {
   Lisp_Object tail, frame;
 
@@ -2830,7 +2820,7 @@ replace_buffer_in_all_windows (Lisp_Object buffer)
      considers frames on the current keyboard.  So loop manually over
      frames, and handle each one.  */
   FOR_EACH_FRAME (tail, frame)
-    window_loop (UNSHOW_BUFFER, buffer, 1, frame);
+    window_loop (REPLACE_BUFFER_IN_WINDOWS_SAFELY, buffer, 1, frame);
 }
 
 /* If *ROWS or *COLS are too small a size for FRAME, set them to the
@@ -3113,10 +3103,18 @@ This function runs `window-scroll-functions' before running
     /* w->buffer is t when the window is first being set up.  */
     {
       if (!EQ (tem, buffer))
-	if (EQ (w->dedicated, Qt))
-	  error ("Window is dedicated to `%s'", SDATA (XBUFFER (tem)->name));
-	else
-	  w->dedicated = Qnil;
+	{
+	  if (EQ (w->dedicated, Qt))
+	    /* WINDOW is strongly dedicated to its buffer, signal an
+	       error.  */
+	    error ("Window is dedicated to `%s'", SDATA (XBUFFER (tem)->name));
+	  else
+	    /* WINDOW is weakly dedicated to its buffer, reset
+	       dedicatedness.  */
+	    w->dedicated = Qnil;
+
+	  call1 (Qrecord_window_buffer, window);
+	}
 
       unshow_buffer (w);
     }
@@ -3313,6 +3311,8 @@ make_window (void)
   w->start_at_line_beg = w->display_table = w->dedicated = Qnil;
   w->base_line_number = w->base_line_pos = w->region_showing = Qnil;
   w->column_number_displayed = w->redisplay_end_trigger = Qnil;
+  w->inhibit_recombine = w->window_parameters = Qnil;
+  w->prev_buffers = w->next_buffers = Qnil;
   /* Initialize non-Lisp data.  */
   w->desired_matrix = w->current_matrix = 0;
   w->nrows_scale_factor = w->ncols_scale_factor = 1;
@@ -6469,6 +6469,12 @@ syms_of_window (void)
   Qdisplay_buffer = intern_c_string ("display-buffer");
   staticpro (&Qdisplay_buffer);
 
+  Qreplace_buffer_in_windows = intern_c_string ("replace-buffer-in-windows");
+  staticpro (&Qreplace_buffer_in_windows);
+
+  Qrecord_window_buffer = intern_c_string ("record-window-buffer");
+  staticpro (&Qrecord_window_buffer);
+
   Qget_mru_window = intern_c_string ("get-mru-window");
   staticpro (&Qget_mru_window);
 
@@ -6635,7 +6641,6 @@ small or of fixed size.  */);
   defsubr (&Sprevious_window);
   defsubr (&Sget_buffer_window);
   defsubr (&Sdelete_other_windows_internal);
-  defsubr (&Sreplace_buffer_in_windows);
   defsubr (&Sdelete_window_internal);
   defsubr (&Sresize_mini_window_internal);
   defsubr (&Sset_window_buffer);
@@ -6669,6 +6674,10 @@ small or of fixed size.  */);
   defsubr (&Scompare_window_configurations);
   defsubr (&Swindow_list);
   defsubr (&Swindow_list_1);
+  defsubr (&Swindow_prev_buffers);
+  defsubr (&Sset_window_prev_buffers);
+  defsubr (&Swindow_next_buffers);
+  defsubr (&Sset_window_next_buffers);
   defsubr (&Swindow_parameters);
   defsubr (&Swindow_parameter);
   defsubr (&Sset_window_parameter);

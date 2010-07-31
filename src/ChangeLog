@@ -1,3 +1,37 @@
+2010-07-29  Martin Rudalics  <rudalics@gmx.at>
+
+	* buffer.c (Fbuffer_list): Rewrite doc-string, reformat.
+	(Fother_buffer): Rewrite doc-string, restructure.
+	(Fkill_buffer): Call replace_buffer_in_windows and
+	replace_buffer_in_windows_safely.
+	(record_buffer): Inhibit quitting and rewrite using quittable
+	functions.
+	(Funrecord_buffer): Inhibit quitting around buffer list
+	manipulations.
+
+	* window.h (struct window): Add new members prev_buffers and
+	next_buffers.
+	(replace_buffer_in_all_windows): Remove extern.
+	(replace_buffer_in_windows_safely): Add extern.
+
+	* window.c (Fwindow_prev_buffers, Fset_window_prev_buffers)
+	(Fwindow_next_buffers, Fset_window_next_buffers): New functions.
+	(windw_loop): Replace UNSHOW_BUFFER by
+	REPLACE_BUFFER_IN_WINDOWS_SAFELY.
+	(window_show_other_buffer): Remove.
+	(window_loop): Replace UNSHOW_BUFFER case by
+	REPLACE_BUFFER_IN_WINDOWS_SAFELY - the real work is done in
+	replace-buffer-in-windows which is in window.el.
+	(Freplace_buffer_in_windows): Move to window.el.
+	(replace_buffer_in_all_windows): Remove.
+	(replace_buffer_in_windows, replace_buffer_in_windows_safely):
+	New functions.
+	(Fset_window_buffer): Restructure and call
+	Qrecord_window_buffer.
+	(make_window): Initialize missing and new Lisp slots.
+	(syms_of_window): Add Qreplace_buffer_in_windows and
+	Qrecord_window_buffer.
+
 2010-07-29  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* vm-limit.c (POINTER): Add typedef for it.
