@@ -1,3 +1,7 @@
+2010-07-31  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* faces.el (face-all-attributes): Improved documentation (Bug#6767).
+
 2010-07-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* files.el (bidi-paragraph-direction): Define safe local values.
