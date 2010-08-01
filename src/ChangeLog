@@ -21316,7 +21316,7 @@
 	* charset.c (charset_ordered_list_tick): New variable.
 	(Fdefine_charset_internal): Increment charset_ordered_list_tick.
 	(Funify_charset): New optional arg DEUNIFY.  If it is non-nil,
-	deunify intead of unify a charset.
+	deunify instead of unify a charset.
 	(string_xstring_p): Add `const' to local variables.
 	(find_charsets_in_text): Add `const' to arguments and local variables.
 	(encode_char): Adjust for the change of Funify_charset.  Fix
