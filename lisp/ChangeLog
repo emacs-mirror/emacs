@@ -1,3 +1,7 @@
+2010-08-01  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* cus-start.el (x-gtk-use-system-tooltips): New variable.
+
 2010-08-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/package.el (package--list-packages): Fix column

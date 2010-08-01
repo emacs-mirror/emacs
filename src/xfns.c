@@ -161,6 +161,10 @@ int x_gtk_file_dialog_help_text;
 
 int x_gtk_whole_detached_tool_bar;
 
+/* If non-zero, use Gtk+ tooltips.  */
+
+static int x_gtk_use_system_tooltips;
+
 /* The background and shape of the mouse pointer, and shape when not
    over text or in the modeline.  */
 
@@ -4610,7 +4614,9 @@ unwind_create_tip_frame (Lisp_Object frame)
    when this happens.  */
 
 static Lisp_Object
-x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms, Lisp_Object text)
+x_create_tip_frame (struct x_display_info *dpyinfo,
+                    Lisp_Object parms,
+                    Lisp_Object text)
 {
   struct frame *f;
   Lisp_Object frame, tem;
@@ -5037,6 +5043,27 @@ Text larger than the specified size is clipped.  */)
   else
     CHECK_NUMBER (dy);
 
+#ifdef USE_GTK
+  if (x_gtk_use_system_tooltips)
+    {
+      int ok; 
+
+      /* Hide a previous tip, if any.  */
+      Fx_hide_tip ();
+
+      BLOCK_INPUT;
+      if ((ok = xg_prepare_tooltip (f, string, &width, &height)) != 0)
+        {
+	  compute_tip_xy (f, parms, dx, dy, width, height, &root_x, &root_y);
+          xg_show_tooltip (f, root_x, root_y);
+          /* This is used in Fx_hide_tip.  */
+          XSETFRAME (tip_frame, f);
+        }
+      UNBLOCK_INPUT;
+      if (ok) goto start_timer;
+    }
+#endif /* USE_GTK */
+
   if (NILP (last_show_tip_args))
     last_show_tip_args = Fmake_vector (make_number (3), Qnil);
 
@@ -5197,6 +5224,7 @@ Value is t if tooltip was open, nil otherwise.  */)
   int count;
   Lisp_Object deleted, frame, timer;
   struct gcpro gcpro1, gcpro2;
+  struct frame *f;
 
   /* Return quickly if nothing to do.  */
   if (NILP (tip_timer) && NILP (tip_frame))
@@ -5214,6 +5242,14 @@ Value is t if tooltip was open, nil otherwise.  */)
   if (!NILP (timer))
     call1 (Qcancel_timer, timer);
 
+#ifdef USE_GTK
+  /* When using system tooltip, tip_frame is the Emacs frame on which
+     the tip is shown.  */
+  f = XFRAME (frame);
+  if (xg_hide_tooltip (f))
+    frame = Qnil;
+#endif
+
   if (FRAMEP (frame))
     {
       delete_frame (frame, Qnil);
@@ -5224,8 +5260,9 @@ Value is t if tooltip was open, nil otherwise.  */)
 	 redisplay procedure is not called when a tip frame over menu
 	 items is unmapped.  Redisplay the menu manually...  */
       {
-	struct frame *f = SELECTED_FRAME ();
-	Widget w = f->output_data.x->menubar_widget;
+        Widget w;
+	f = SELECTED_FRAME ();
+	w = f->output_data.x->menubar_widget;
 
 	if (!DoesSaveUnders (FRAME_X_DISPLAY_INFO (f)->screen)
 	    && w != NULL)
@@ -5893,6 +5930,12 @@ to turn the additional text off.  */);
 The default is to just show an arrow and pressing on that arrow shows
 the tool bar buttons.  */);
   x_gtk_whole_detached_tool_bar = 0;
+
+  DEFVAR_BOOL ("x-gtk-use-system-tooltips", &x_gtk_use_system_tooltips,
+    doc: /* *If non-nil with a Gtk+ built Emacs, the Gtk+ toolip is used.
+Otherwise use Emacs own tooltip implementation.
+When using Gtk+ tooltips, the tooltip face is not used.  */);
+  x_gtk_use_system_tooltips = 1;
 
   Fprovide (intern_c_string ("x"), Qnil);
 

@@ -104,6 +104,9 @@ The frame-parameter tool-bar-position controls this.  It takes the values
 top, left, tight or bottom.  The Options => Show/Hide menu has entries
 for this.
 
+** Emacs uses GTK tooltips by default if built with GTK.  You can turn that
+off by customizing x-gtk-use-system-tooltips.
+
 ** Lucid menus and dialogs can display antialiased fonts if Emacs is built
 with Xft.
 
