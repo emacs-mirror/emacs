@@ -1,3 +1,7 @@
+2010-08-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (Fdefine_key, Flookup_key): Say what event is invalid.
+
 2010-07-31  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xselect.c (x_own_selection): Use list4.

@@ -1226,7 +1226,7 @@ binding KEY to DEF is added at the front of KEYMAP.  */)
 	  && (!CONSP (c)
 	      /* If C is a range, it must be a leaf.  */
 	      || (INTEGERP (XCAR (c)) && idx != length)))
-	error ("Key sequence contains invalid event");
+	message_with_string ("Key sequence contains invalid event %s", c, 1);
 
       if (idx == length)
 	RETURN_UNGCPRO (store_in_keymap (keymap, c, def));
@@ -1340,7 +1340,7 @@ recognize the default bindings, just as `read-key-sequence' does.  */)
       /* Allow string since binding for `menu-bar-select-buffer'
 	 includes the buffer name in the key sequence.  */
       if (!INTEGERP (c) && !SYMBOLP (c) && !CONSP (c) && !STRINGP (c))
-	error ("Key sequence contains invalid event");
+	message_with_string ("Key sequence contains invalid event %s", c, 1);
 
       cmd = access_keymap (keymap, c, t_ok, 0, 1);
       if (idx == length)
