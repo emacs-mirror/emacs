@@ -508,6 +508,161 @@ get_utf8_string (char *str)
 
 
 /***********************************************************************
+                              Tooltips
+ ***********************************************************************/
+/* Gtk+ calls this callback when the parent of our tooltip dummy changes.
+   We use that to pop down the tooltip.  This happens if Gtk+ for some
+   reason wants to change or hide the tooltip.  */
+
+static void
+hierarchy_ch_cb (GtkWidget *widget,
+                 GtkWidget *previous_toplevel,
+                 gpointer   user_data)
+{
+  FRAME_PTR f = (FRAME_PTR) user_data;
+  struct x_output *x = f->output_data.x;
+  GtkWidget *top = gtk_widget_get_toplevel (x->ttip_lbl);
+  
+  if (! top || ! GTK_IS_WINDOW (top))
+      gtk_widget_hide (previous_toplevel);
+}
+
+/* Callback called when Gtk+ thinks a tooltip should be displayed.
+   We use it to get the tooltip window and the tooltip widget so
+   we can manipulate the ourselves.
+
+   Return FALSE ensures that the tooltip is not shown.  */
+
+static gboolean
+qttip_cb (GtkWidget  *widget,
+          gint        xpos,
+          gint        ypos,
+          gboolean    keyboard_mode,
+          GtkTooltip *tooltip,
+          gpointer    user_data)
+{
+  FRAME_PTR f = (FRAME_PTR) user_data;
+  struct x_output *x = f->output_data.x;
+  if (x->ttip_widget == NULL) 
+    {
+      g_object_set (G_OBJECT (widget), "has-tooltip", FALSE, NULL);
+      x->ttip_widget = tooltip;
+      g_object_ref (G_OBJECT (tooltip));
+      x->ttip_lbl = gtk_label_new ("");
+      g_object_ref (G_OBJECT (x->ttip_lbl));
+      gtk_tooltip_set_custom (tooltip, x->ttip_lbl);
+      x->ttip_window = GTK_WINDOW (gtk_widget_get_toplevel (x->ttip_lbl));
+      /* Realize so we can safely get screen later on.  */
+      gtk_widget_realize (GTK_WIDGET (x->ttip_window));
+      gtk_widget_realize (x->ttip_lbl);
+
+      g_signal_connect (x->ttip_lbl, "hierarchy-changed",
+                        G_CALLBACK (hierarchy_ch_cb), f);
+    }
+  return FALSE;
+}
+
+/* Prepare a tooltip to be shown, i.e. calculate WIDTH and HEIGHT.
+   Return zero if no system tooltip available, non-zero otherwise.  */
+
+int
+xg_prepare_tooltip (FRAME_PTR f,
+                    Lisp_Object string,
+                    int *width,
+                    int *height)
+{
+  struct x_output *x = f->output_data.x;
+  GtkWidget *widget;
+  GdkWindow *gwin;
+  GdkScreen *screen;
+  GtkSettings *settings;
+  gboolean tt_enabled = TRUE;
+  GtkRequisition req;
+  Lisp_Object encoded_string;
+
+  if (!x->ttip_lbl) return 0;
+
+  BLOCK_INPUT;
+  encoded_string = ENCODE_UTF_8 (string);
+  widget = GTK_WIDGET (x->ttip_lbl);
+  gwin = gtk_widget_get_window (GTK_WIDGET (x->ttip_window));
+  screen = gdk_drawable_get_screen (gwin);
+  settings = gtk_settings_get_for_screen (screen);
+  g_object_get (settings, "gtk-enable-tooltips", &tt_enabled, NULL);
+  if (tt_enabled) 
+    {
+      g_object_set (settings, "gtk-enable-tooltips", FALSE, NULL);
+      /* Record that we disabled it so it can be enabled again.  */
+      g_object_set_data (G_OBJECT (x->ttip_window), "restore-tt",
+                         (gpointer)f);
+    }
+    
+  /* Prevent Gtk+ from hiding tooltip on mouse move and such.  */
+  g_object_set_data (G_OBJECT
+                     (gtk_widget_get_display (GTK_WIDGET (x->ttip_window))),
+                     "gdk-display-current-tooltip", NULL);
+
+  /* Put out dummy widget in so we can get callbacks for unrealize and
+     hierarchy-changed.  */
+  gtk_tooltip_set_custom (x->ttip_widget, widget);
+
+  gtk_tooltip_set_text (x->ttip_widget, SDATA (encoded_string));
+  gtk_widget_size_request (GTK_WIDGET (x->ttip_window), &req);
+  if (width) *width = req.width;
+  if (height) *height = req.height;
+  
+  UNBLOCK_INPUT;
+
+  return 1;
+}
+
+/* Show the tooltip at ROOT_X and ROOT_Y.
+   xg_prepare_tooltip must have been called before this function.  */
+
+void
+xg_show_tooltip (FRAME_PTR f, int root_x, int root_y)
+{
+  struct x_output *x = f->output_data.x;
+  if (x->ttip_window)
+    {
+      BLOCK_INPUT;
+      gtk_window_move (x->ttip_window, root_x, root_y);
+      gtk_widget_show_all (GTK_WIDGET (x->ttip_window));
+      UNBLOCK_INPUT;
+    }
+}
+
+/* Hide tooltip if shown.  Do nothing if not shown.
+   Return non-zero if tip was hidden, non-ero if not (i.e. not using
+   system tooltips).  */
+
+int
+xg_hide_tooltip (FRAME_PTR f)
+{
+  int ret = 0;
+  if (f->output_data.x->ttip_window)
+    {
+      GtkWindow *win = f->output_data.x->ttip_window;
+      BLOCK_INPUT;
+      gtk_widget_hide (GTK_WIDGET (win));
+
+      if (g_object_get_data (G_OBJECT (win), "restore-tt"))
+        {
+          GdkWindow *gwin = gtk_widget_get_window (GTK_WIDGET (win));
+          GdkScreen *screen = gdk_drawable_get_screen (gwin);
+          GtkSettings *settings = gtk_settings_get_for_screen (screen);
+          g_object_set (settings, "gtk-enable-tooltips", TRUE, NULL);
+        }
+      UNBLOCK_INPUT;
+
+      ret = 1;
+    }
+
+  return ret;
+}
+
+
+/***********************************************************************
     General functions for creating widgets, resizing, events, e.t.c.
  ***********************************************************************/
 
@@ -847,15 +1002,32 @@ xg_create_frame_widgets (FRAME_PTR f)
   style->bg_pixmap_name[GTK_STATE_NORMAL] = g_strdup ("<none>");
   gtk_widget_modify_style (wfixed, style);
 
-  /* GTK does not set any border, and they look bad with GTK.  */
-  /* That they look bad is no excuse for imposing this here.  --Stef
-     It should be done by providing the proper default in Fx_create_Frame.
-  f->border_width = 0;
-  f->internal_border_width = 0; */
+  /* Steal a tool tip window we can move ourselves.  */
+  f->output_data.x->ttip_widget = 0;
+  f->output_data.x->ttip_lbl = 0;
+  f->output_data.x->ttip_window = 0;
+  gtk_widget_set_tooltip_text (wtop, "Dummy text");  
+  g_signal_connect (wtop, "query-tooltip", G_CALLBACK (qttip_cb), f);
 
   UNBLOCK_INPUT;
 
   return 1;
+}
+
+void
+xg_free_frame_widgets (FRAME_PTR f)
+{
+  if (FRAME_GTK_OUTER_WIDGET (f))
+    {
+      struct x_output *x = f->output_data.x;
+      gtk_widget_destroy (FRAME_GTK_OUTER_WIDGET (f));
+      FRAME_X_WINDOW (f) = 0; /* Set to avoid XDestroyWindow in xterm.c */
+      FRAME_GTK_OUTER_WIDGET (f) = 0;
+      if (x->ttip_lbl)
+        gtk_widget_destroy (x->ttip_lbl);
+      if (x->ttip_widget)
+        g_object_unref (G_OBJECT (x->ttip_widget));
+    }
 }
 
 /* Set the normal size hints for the window manager, for frame F.

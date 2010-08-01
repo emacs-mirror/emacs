@@ -1,3 +1,41 @@
+2010-08-01  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.h (struct x_output): Add ttip_widget, ttip_window and
+	ttip_lbl.
+
+	* xterm.c (x_clear_frame): Check FRAME_GTK_WIDGET (f) before
+	calling gtk_widget_queue_draw.
+	(x_free_frame_resources): Call xg_free_frame_widgets.
+
+	* xfns.c (x_gtk_use_system_tooltips): New variable.
+	(Fx_show_tip): If USE_GTK and x_gtk_use_system_tooltips, call
+	new gtkutil tooltip functions to show the tooltip.
+	(Fx_hide_tip): Call xg_hide_tooltip.
+	(syms_of_xfns): Defvar x-gtk-use-system-tooltips.
+
+	* gtkutil.h (xg_free_frame_widgets, xg_prepare_tooltip)
+	(xg_show_tooltip, xg_hide_tooltip): Declare.
+
+	* gtkutil.c (hierarchy_ch_cb, qttip_cb, xg_prepare_tooltip)
+	(xg_show_tooltip, xg_hide_tooltip, xg_free_frame_widgets): New
+	functions.
+	(xg_create_frame_widgets): Set ttip_* to 0.  Set a dummy tooltip
+	text so qttip_cb is called.  Connect query-tooltip to qttip_cb.
+	Remove code that is commented out.
+
+2010-08-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (Fdefine_key, Flookup_key): Say what event is invalid.
+
+2010-07-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xselect.c (x_own_selection): Use list4.
+
+2010-07-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* buffer.c (Qwindow): Do not define, already defined in data.c.
+	(syms_of_buffer): Do not intern and staticpro Qwindow.  (Bug#6760)
+
 2010-07-29  Chad Brown  <yandros@mit.edu>
 
 	Replace tests for SYSV_SYSTEM_DIR with HAVE_DIRENT_H, set via autoconf.
@@ -21303,7 +21341,7 @@
 	* charset.c (charset_ordered_list_tick): New variable.
 	(Fdefine_charset_internal): Increment charset_ordered_list_tick.
 	(Funify_charset): New optional arg DEUNIFY.  If it is non-nil,
-	deunify intead of unify a charset.
+	deunify instead of unify a charset.
 	(string_xstring_p): Add `const' to local variables.
 	(find_charsets_in_text): Add `const' to arguments and local variables.
 	(encode_char): Adjust for the change of Funify_charset.  Fix

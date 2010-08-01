@@ -502,6 +502,10 @@ struct x_output
   /* The last size hints set.  */
   GdkGeometry size_hints;
   long hint_flags;
+
+  GtkTooltip *ttip_widget;
+  GtkWidget *ttip_lbl;
+  GtkWindow *ttip_window;
 #endif
 
   /* If >=0, a bitmap index.  The indicated bitmap is used for the

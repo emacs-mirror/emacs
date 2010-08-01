@@ -1,3 +1,12 @@
+2010-08-01  Alan Mackenzie  <acm@muc.de>
+
+	Enhance the manual for the latest Java Mode.
+
+	* cc-mode.texi (Syntactic Symbols): New symbols annotation-top-cont and
+	annotation-var-cont.
+	(Java Symbols): Page renamed from Anonymous Class Symbol.  Document the
+	two new symbols.
+
 2010-07-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Traces and Profiles): Describe verbose level 9.

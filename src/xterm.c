@@ -2842,7 +2842,8 @@ x_clear_frame (struct frame *f)
 #if defined (USE_GTK) && defined (USE_TOOLKIT_SCROLL_BARS)
   /* Make sure scroll bars are redrawn.  As they aren't redrawn by
      redisplay, do it here.  */
-  gtk_widget_queue_draw (FRAME_GTK_WIDGET (f));
+  if (FRAME_GTK_WIDGET (f))
+    gtk_widget_queue_draw (FRAME_GTK_WIDGET (f));
 #endif
 
   XFlush (FRAME_X_DISPLAY (f));
@@ -9278,14 +9279,7 @@ x_free_frame_resources (struct frame *f)
 #else  /* !USE_X_TOOLKIT */
 
 #ifdef USE_GTK
-      /* In the GTK version, tooltips are normal X
-         frames.  We must check and free both types. */
-      if (FRAME_GTK_OUTER_WIDGET (f))
-        {
-          gtk_widget_destroy (FRAME_GTK_OUTER_WIDGET (f));
-          FRAME_X_WINDOW (f) = 0; /* Set to avoid XDestroyWindow below */
-          FRAME_GTK_OUTER_WIDGET (f) = 0;
-        }
+      xg_free_frame_widgets (f);
 #endif /* USE_GTK */
 
       if (FRAME_X_WINDOW (f))

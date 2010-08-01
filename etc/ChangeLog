@@ -1,3 +1,9 @@
+2010-07-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* tutorials/TUTORIAL.he: New file.
+
+	* tutorials/TUTORIAL.translators: Add TUTORIAL.he.
+
 2010-07-24  Christoph Scholtes  <cschol2112@gmail.com>
 
 	* NEWS: Document new --distfiles configure.bat option and
