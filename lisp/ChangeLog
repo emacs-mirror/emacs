@@ -1,3 +1,13 @@
+2010-08-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package--list-packages): Fix column
+	alignment.
+	(package--builtins): Tweak descriptions.
+	(package-print-package): Upcase descriptions if necessary.  Show
+	all built-in packages in font-lock-builtin-face.
+	(package-list-packages-internal): Omit "emacs" package.  Show
+	status of built-in packages as "built-in".
+
 2010-07-31  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mouse.el (mouse-save-then-kill): Doc fix.  Deactivate mark

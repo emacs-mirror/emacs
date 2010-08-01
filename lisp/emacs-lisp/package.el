@@ -292,15 +292,15 @@ contrast, `package-user-dir' contains packages for personal use."
 	 (if (>= emacs-major-version 22)
 	     ;; FIXME: emacs 22 includes tramp, rcirc, maybe
 	     ;; other things...
-	     '((erc . [(5 2) nil "An Emacs Internet Relay Chat client"])
+	     '((erc . [(5 2) nil "Internet Relay Chat client"])
 	       ;; The external URL is version 1.15, so make sure the
 	       ;; built-in one looks newer.
 	       (url . [(1 16) nil "URL handling libary"])))
 	 (if (>= emacs-major-version 23)
 	     '(;; Strangely, nxml-version is missing in Emacs 23.
 	       ;; We pick the merge date as the version.
-	       (nxml . [(20071123) nil "Major mode for editing XML documents."])
-	       (bubbles . [(0 5) nil "Puzzle game for Emacs."])))))
+	       (nxml . [(20071123) nil "Major mode for XML documents"])
+	       (bubbles . [(0 5) nil "A puzzle game"])))))
   "Alist of all built-in packages.
 Maps the package name to a vector [VERSION REQS DOCSTRING].")
 (put 'package--builtins 'risky-local-variable t)
@@ -357,16 +357,6 @@ FUN can be <, <=, =, >, >=, or /=."
 	(funcall fun 0 (package--version-first-nonzero v2))
       ;; Both null.
       (funcall fun 0 0))))
-
-(defun package--test-version-compare ()
-  "Test suite for `package-version-compare'."
-  (unless (and (package-version-compare '(0) '(0) '=)
-	       (not (package-version-compare '(1) '(0) '=))
-	       (package-version-compare '(1 0 1) '(1) '>=)
-	       (package-version-compare '(1 0 1) '(1) '>)
-	       (not (package-version-compare '(0 9 1) '(1 0 2) '>=)))
-    (error "Failed"))
-  t)
 
 (defun package-strip-version (dirname)
   "Strip the version from a combined package name and version.
@@ -1422,7 +1412,7 @@ Emacs."
 
 (defun package-print-package (package version key desc)
   (let ((face
-	 (cond ((eq package 'emacs) 'font-lock-builtin-face)
+	 (cond ((string= key "built-in") 'font-lock-builtin-face)
 	       ((string= key "available") 'default)
 	       ((string= key "held") 'font-lock-constant-face)
 	       ((string= key "disabled") 'font-lock-warning-face)
@@ -1444,7 +1434,9 @@ Emacs."
     ;; FIXME: this 'when' is bogus...
     (when desc
       (indent-to 43 1)
-      (insert (propertize desc 'font-lock-face face)))
+      (let ((opoint (point)))
+	(insert (propertize desc 'font-lock-face face))
+	(upcase-region opoint (min (point) (1+ opoint)))))
     (insert "\n")))
 
 (defun package-list-maybe-add (package version status description result)
@@ -1462,22 +1454,31 @@ Emacs."
     (setq buffer-read-only nil)
     (erase-buffer)
     (let ((info-list)
-	  name desc hold)
+	  name desc hold
+	  builtin)
       ;; List installed packages
       (dolist (elt package-alist)
+	;; Ignore the Emacs package.
 	(setq name (car elt)
 	      desc (cdr elt)
 	      hold (assq name package-load-list))
-	(setq info-list
-	      (package-list-maybe-add name (package-desc-vers desc)
-				      ;; FIXME: it turns out to be
-				      ;; tricky to see if this package
-				      ;; is presently activated.
-				      (if (stringp (cadr hold))
-					  "held"
-					"installed")
-				      (package-desc-doc desc)
-				      info-list)))
+	(unless (eq name 'emacs)
+	  (setq info-list
+		(package-list-maybe-add
+		 name (package-desc-vers desc)
+		 ;; FIXME: it turns out to be tricky to see if this
+		 ;; package is presently activated.
+		 (cond ((stringp (cadr hold))
+			"held")
+		       ((and (setq builtin (assq name package--builtins))
+			     (package-version-compare
+			      (package-desc-vers (cdr builtin))
+			      (package-desc-vers desc)
+			      '=))
+			"built-in")
+		       (t "installed"))
+		 (package-desc-doc desc)
+		 info-list))))
       ;; List available packages
       (dolist (elt package-archive-contents)
 	(setq name (car elt)
@@ -1574,8 +1575,8 @@ Helper function that does all the work for the user-facing functions."
 	   '((0 . "")
 	     (2 . "Package")
 	     (20 . "Version")
-	     (30 . "Status")
-	     (41 . "Description"))
+	     (32 . "Status")
+	     (43 . "Description"))
 	   ""))
 
     ;; It's okay to use pop-to-buffer here.  The package menu buffer
