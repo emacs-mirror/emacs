@@ -1,3 +1,8 @@
+2010-08-01  MON KEY  <monkey@sandpframing.com>  (tiny change)
+
+	* emacs-lisp/syntax.el (syntax-ppss-toplevel-pos):
+	Fix typo in docstring (bug#6747).
+
 2010-07-30  Leo  <sdl.web@gmail.com>
 
 	* eshell/esh-io.el (eshell-get-target): Better detection of
