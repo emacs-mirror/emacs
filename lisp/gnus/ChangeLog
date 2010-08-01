@@ -1,3 +1,10 @@
+2010-08-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnmail.el (nnmail-get-new-mail-1): Revert.
+
+	* nnml.el (nnml-active-number): Make sure names of newly created groups
+	in nnml-group-alist are encoded.
+
 2010-07-30  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* nnmail.el (nnmail-get-new-mail-1): Encode group names possibly

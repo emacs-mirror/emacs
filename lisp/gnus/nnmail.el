@@ -1844,20 +1844,9 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
       (if (zerop total)
 	  (nnheader-message 4 "%s: Reading incoming mail (no new mail)...done"
 			    method (car source))
-	(let ((group-alist (nnmail-get-value "%s-group-alist" method))
-	      (active-file (nnmail-get-value "%s-active-file" method))
-	      encoded)
-	  ;; Encode group names possibly containing non-ASCII characters.
-	  (cond ((eq method 'nnml)
-		 (nnmail-save-active
-		  (dolist (elem group-alist (nreverse encoded))
-		    (push (cons (nnml-encoded-group-name (car elem)
-							 gnus-command-method)
-				(cdr elem))
-			  encoded))
-		  active-file))
-		(t
-		 (nnmail-save-active group-alist active-file))))
+	(nnmail-save-active
+	 (nnmail-get-value "%s-group-alist" method)
+	 (nnmail-get-value "%s-active-file" method))
 	(when exit-func
 	  (funcall exit-func))
 	(run-hooks 'nnmail-read-incoming-hook)
