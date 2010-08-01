@@ -1,3 +1,8 @@
+2010-08-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mouse.el (mouse-fixup-help-message): Match "mouse-2" only at the
+	beginning of the string.  Use `string-match-p'.  (Bug#6765)
+
 2010-08-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* cus-start.el (x-gtk-use-system-tooltips): New variable.
