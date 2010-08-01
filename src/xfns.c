@@ -1025,7 +1025,7 @@ x_set_mouse_color (f, arg, oldval)
 
   if (FRAME_X_DISPLAY_INFO (f)->invisible_cursor == 0)
     FRAME_X_DISPLAY_INFO (f)->invisible_cursor = make_invisible_cursor (f);
-  
+
   if (cursor != x->text_cursor
       && x->text_cursor != 0)
     XFreeCursor (dpy, x->text_cursor);
@@ -3072,7 +3072,7 @@ x_default_font_parameter (f, parms)
       if (system_font) font_param = make_string (system_font,
                                                  strlen (system_font));
     }
-  
+
   font = !NILP (font_param) ? font_param
     : x_get_arg (dpyinfo, parms, Qfont, "font", "Font", RES_TYPE_STRING);
 
@@ -5646,7 +5646,7 @@ If FRAME is omitted or nil, it defaults to the selected frame. */)
   font_param = Ffont_get (font, intern (":name"));
   if (STRINGP (font_param))
     default_name = xstrdup (SDATA (font_param));
-  else 
+  else
     {
       font_param = Fframe_parameter (frame, Qfont_param);
       if (STRINGP (font_param))
@@ -5657,7 +5657,7 @@ If FRAME is omitted or nil, it defaults to the selected frame. */)
     default_name = xstrdup (x_last_font_name);
 
   /* Convert fontconfig names to Gtk names, i.e. remove - before number */
-  if (default_name) 
+  if (default_name)
     {
       char *p = strrchr (default_name, '-');
       if (p)
@@ -5918,8 +5918,8 @@ or when you set the mouse color.  */);
   Vx_cursor_fore_pixel = Qnil;
 
   DEFVAR_LISP ("x-max-tooltip-size", &Vx_max_tooltip_size,
-    doc: /* Maximum size for tooltips.  Value is a pair (COLUMNS . ROWS).
-Text larger than this is clipped.  */);
+    doc: /* Maximum size for tooltips.
+Value is a pair (COLUMNS . ROWS).  Text larger than this is clipped.  */);
   Vx_max_tooltip_size = Fcons (make_number (80), make_number (40));
 
   DEFVAR_LISP ("x-no-window-manager", &Vx_no_window_manager,
