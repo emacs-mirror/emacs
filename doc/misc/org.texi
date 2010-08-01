@@ -1437,7 +1437,7 @@ LaTeX}).  Here are the valid references:
 @table @code
 @item [1]
 A plain numeric footnote marker.  Compatible with @file{footnote.el}, but not
-recommended because somthing like @samp{[1]} could easily be part of a code
+recommended because something like @samp{[1]} could easily be part of a code
 snippet.
 @item [fn:name]
 A named footnote reference, where @code{name} is a unique label word, or, for
@@ -9165,7 +9165,7 @@ and @code{style} attributes for a link:
 Org-mode tables are exported to HTML using the table tag defined in
 @code{org-export-html-table-tag}.  The default setting makes tables without
 cell borders and frame.  If you would like to change this for individual
-tables, place somthing like the following before the table:
+tables, place something like the following before the table:
 
 @cindex #+CAPTION
 @cindex #+ATTR_HTML

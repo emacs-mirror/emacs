@@ -1,3 +1,7 @@
+2010-08-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* org.texi (Footnotes, Tables in HTML export): Fix typos.
+
 2010-07-23  Chong Yidong  <cyd@stupidchicken.com>
 
 	* nxml-mode.texi (Limitations): Remove obsolete discussion (Bug#6708).
