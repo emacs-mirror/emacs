@@ -514,6 +514,8 @@ get_utf8_string (char *str)
    We use that to pop down the tooltip.  This happens if Gtk+ for some
    reason wants to change or hide the tooltip.  */
 
+#ifdef USE_GTK_TOOLTIP
+
 static void
 hierarchy_ch_cb (GtkWidget *widget,
                  GtkWidget *previous_toplevel,
@@ -562,15 +564,20 @@ qttip_cb (GtkWidget  *widget,
   return FALSE;
 }
 
+#endif /* USE_GTK_TOOLTIP */
+
 /* Prepare a tooltip to be shown, i.e. calculate WIDTH and HEIGHT.
    Return zero if no system tooltip available, non-zero otherwise.  */
 
 int
 xg_prepare_tooltip (FRAME_PTR f,
-                    Lisp_Object string,
-                    int *width,
+                      Lisp_Object string,
+                      int *width,
                     int *height)
 {
+#ifndef USE_GTK_TOOLTIP
+  return 0;
+#else
   struct x_output *x = f->output_data.x;
   GtkWidget *widget;
   GdkWindow *gwin;
@@ -614,6 +621,7 @@ xg_prepare_tooltip (FRAME_PTR f,
   UNBLOCK_INPUT;
 
   return 1;
+#endif /* USE_GTK_TOOLTIP */
 }
 
 /* Show the tooltip at ROOT_X and ROOT_Y.
@@ -622,6 +630,7 @@ xg_prepare_tooltip (FRAME_PTR f,
 void
 xg_show_tooltip (FRAME_PTR f, int root_x, int root_y)
 {
+#ifdef USE_GTK_TOOLTIP
   struct x_output *x = f->output_data.x;
   if (x->ttip_window)
     {
@@ -630,6 +639,7 @@ xg_show_tooltip (FRAME_PTR f, int root_x, int root_y)
       gtk_widget_show_all (GTK_WIDGET (x->ttip_window));
       UNBLOCK_INPUT;
     }
+#endif
 }
 
 /* Hide tooltip if shown.  Do nothing if not shown.
@@ -640,6 +650,7 @@ int
 xg_hide_tooltip (FRAME_PTR f)
 {
   int ret = 0;
+#ifdef USE_GTK_TOOLTIP
   if (f->output_data.x->ttip_window)
     {
       GtkWindow *win = f->output_data.x->ttip_window;
@@ -657,7 +668,7 @@ xg_hide_tooltip (FRAME_PTR f)
 
       ret = 1;
     }
-
+#endif
   return ret;
 }
 
@@ -1002,12 +1013,14 @@ xg_create_frame_widgets (FRAME_PTR f)
   style->bg_pixmap_name[GTK_STATE_NORMAL] = g_strdup ("<none>");
   gtk_widget_modify_style (wfixed, style);
 
+#ifdef USE_GTK_TOOLTIP
   /* Steal a tool tip window we can move ourselves.  */
   f->output_data.x->ttip_widget = 0;
   f->output_data.x->ttip_lbl = 0;
   f->output_data.x->ttip_window = 0;
   gtk_widget_set_tooltip_text (wtop, "Dummy text");  
   g_signal_connect (wtop, "query-tooltip", G_CALLBACK (qttip_cb), f);
+#endif
 
   UNBLOCK_INPUT;
 
@@ -1023,10 +1036,12 @@ xg_free_frame_widgets (FRAME_PTR f)
       gtk_widget_destroy (FRAME_GTK_OUTER_WIDGET (f));
       FRAME_X_WINDOW (f) = 0; /* Set to avoid XDestroyWindow in xterm.c */
       FRAME_GTK_OUTER_WIDGET (f) = 0;
+#ifdef USE_GTK_TOOLTIP
       if (x->ttip_lbl)
         gtk_widget_destroy (x->ttip_lbl);
       if (x->ttip_widget)
         g_object_unref (G_OBJECT (x->ttip_widget));
+#endif
     }
 }
 
