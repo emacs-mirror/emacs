@@ -1,5 +1,8 @@
 2010-08-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/fill.el (justify-current-line): Don't add 1 to nspaces
+	when justifying.  It seems useless and harmful for ncols=1 (bug#6738).
+
 	* emacs-lisp/timer.el (timer-event-handler): Protect against timers
 	that change current buffer.
 
