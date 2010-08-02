@@ -1,3 +1,8 @@
+2010-08-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* sysdep.c (child_setup_tty): Enable ICANON in lflags and set VEOF
+	to Control-D (Bug#6771).
+
 2010-08-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* editfns.c (Fregion_beginning, Fregion_end): Doc fixes (bug#6493).
