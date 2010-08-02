@@ -1,3 +1,7 @@
+2010-08-02  Christoph  <cschol2112@googlemail.com>
+
+	* control.texi (Handling Errors) <error-message-string>: Fix arg name.
+
 2010-07-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* modes.texi (Defining Minor Modes): Use C-backspace, not C-delete.
