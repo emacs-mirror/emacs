@@ -511,7 +511,16 @@ child_setup_tty (int out)
      process.c:send_process, and instead we disable ICANON by default,
      so if a subsprocess sets up ICANON, it's his problem (or the Elisp
      package that talks to it) to deal with lines that are too long.  */
-  s.main.c_lflag &= ~ICANON;	/* Disable line editing and eof processing */
+  /* There is no more "send eof to flush" going on (which is wrong and
+     unportable in itself), and disabling ICANON breaks a lot of stuff
+     and shows literal ^D in many cases.  The correct way to handle too
+     much output is to buffer what could not be written and then write it
+     again when select returns ok for writing.  This has it own set of
+     problems. Write is now asynchronous, is that a problem?
+     How much do we buffer, and what do we do when that limit is reached?  */
+
+  s.main.c_lflag |= ICANON;	/* Enable line editing and eof processing */
+  s.main.c_cc[VEOF] = 'D'&037;	/* Control-D */
   s.main.c_cc[VMIN] = 1;
   s.main.c_cc[VTIME] = 0;
 

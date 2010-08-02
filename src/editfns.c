@@ -336,14 +336,14 @@ region_limit (int beginningp)
 }
 
 DEFUN ("region-beginning", Fregion_beginning, Sregion_beginning, 0, 0, 0,
-       doc: /* Return position of beginning of region, as an integer.  */)
+       doc: /* Return the integer value of point or mark, whichever is smaller.  */)
   (void)
 {
   return region_limit (1);
 }
 
 DEFUN ("region-end", Fregion_end, Sregion_end, 0, 0, 0,
-       doc: /* Return position of end of region, as an integer.  */)
+       doc: /* Return the integer value of point or mark, whichever is larger.  */)
   (void)
 {
   return region_limit (0);

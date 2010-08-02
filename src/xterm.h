@@ -51,6 +51,10 @@ typedef GtkWidget *xt_or_gtk_widget;
 #define XSync(d, b) do { gdk_window_process_all_updates (); \
                          XSync (d, b);  } while (0)
 
+/* The GtkTooltip API came in 2.12, but gtk-enable-tooltips in 2.14. */
+#if GTK_MAJOR_VERSION > 2 || GTK_MINOR_VERSION > 13
+#define USE_GTK_TOOLTIP
+#endif
 
 #endif /* USE_GTK */
 
@@ -503,10 +507,13 @@ struct x_output
   GdkGeometry size_hints;
   long hint_flags;
 
+#ifdef USE_GTK_TOOLTIP
   GtkTooltip *ttip_widget;
   GtkWidget *ttip_lbl;
   GtkWindow *ttip_window;
-#endif
+#endif /* USE_GTK_TOOLTIP */
+
+#endif /* USE_GTK */
 
   /* If >=0, a bitmap index.  The indicated bitmap is used for the
      icon. */
