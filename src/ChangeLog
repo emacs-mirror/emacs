@@ -1,3 +1,8 @@
+2010-08-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* editfns.c (Fregion_beginning, Fregion_end): Doc fixes (bug#6493).
+	Wording by Drew Adams <drew.adams@oracle.com>.
+
 2010-08-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.h (struct x_output): Add ttip_widget, ttip_window and
