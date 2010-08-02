@@ -1,3 +1,7 @@
+2010-08-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bindings.el (complete-symbol): Run completion-at-point as a fallback.
+
 2010-08-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* term.el (term-delimiter-argument-list): Reflow docstring.

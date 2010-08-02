@@ -688,6 +688,7 @@ language you are using."
 	      (fboundp 'semantic-active-p)
 	      (semantic-active-p))
 	 (semantic-ia-complete-symbol))
+        (completion-at-point-functions (completion-at-point))
 	(t
 	 (error "%s"
 		(substitute-command-keys
