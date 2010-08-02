@@ -4532,8 +4532,11 @@ x_create_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
       || f->output_data.x->scroll_bar_bottom_shadow_pixel == -1)
     /* We tried to allocate a color for the top/bottom shadow, and
        failed, so tell Xaw3d to use dithering instead.   */
+    /* But only if we have a small colormap.  Xaw3d can allocate nice
+       colors itself.  */
     {
-      XtSetArg (av[ac], XtNbeNiceToColormap, True);
+      XtSetArg (av[ac], XtNbeNiceToColormap,
+                DefaultDepthOfScreen (FRAME_X_SCREEN (f)) < 16);
       ++ac;
     }
   else
