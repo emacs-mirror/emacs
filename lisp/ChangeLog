@@ -1,3 +1,8 @@
+2010-08-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/timer.el (timer-event-handler): Protect against timers
+	that change current buffer.
+
 2010-08-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* mouse.el (mouse-fixup-help-message): Match "mouse-2" only at the
@@ -9,13 +14,12 @@
 
 2010-08-01  Chong Yidong  <cyd@stupidchicken.com>
 
-	* emacs-lisp/package.el (package--list-packages): Fix column
-	alignment.
+	* emacs-lisp/package.el (package--list-packages): Fix column alignment.
 	(package--builtins): Tweak descriptions.
-	(package-print-package): Upcase descriptions if necessary.  Show
-	all built-in packages in font-lock-builtin-face.
-	(package-list-packages-internal): Omit "emacs" package.  Show
-	status of built-in packages as "built-in".
+	(package-print-package): Upcase descriptions if necessary.
+	Show all built-in packages in font-lock-builtin-face.
+	(package-list-packages-internal): Omit "emacs" package.
+	Show status of built-in packages as "built-in".
 
 2010-07-31  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -24,27 +28,22 @@
 
 	* term/x-win.el (x-select-text): Doc fix.
 
-2010-07-31  Alan Mackenzie  <acm@muc.de>
-	Enhanced Java Mode to handle Java 5.0 (Tiger) and Java 6
-	(Mustang).  Contributed by Nathaniel Flath.  The following
-	functions were modified or created:
+2010-07-31  Nathaniel Flath  <flat0103@gmail.com>
+
+	Enhance Java Mode to handle Java 5.0 (Tiger) and Java 6 (Mustang).
+	The following functions were modified or created:
 
 	* progmodes/cc-vars.el (c-offsets-alist, c-inside-block-syms)
 	(objc-font-lock-extra-types):
-
 	* progmodes/cc-mode.el (c-basic-common-init):
-
 	* progmodes/cc-langs.el (c-make-mode-syntax-table)
 	(c++-make-template-syntax-table)
 	(c-identifier-syntax-modifications, c-symbol-start, c-operators)
 	(c-<-op-cont-regexp, c->-op-cont-regexp, c-class-decl-kwds)
 	(c-brace-list-decl-kwds, c-modifier-kwds, c-prefix-spec-kwds-re)
 	(c-type-list-kwds, c-decl-prefix-re, c-opt-type-suffix-key):
-
-
 	* progmodes/cc-fonts.el (c-make-inverse-face)
 	(c-basic-matchers-after):
-
 	* progmodes/cc-engine.el (c-forward-keyword-clause)
 	(c-forward-<>-arglist, c-forward-<>-arglist-recur)
 	(c-forward-name, c-forward-type, c-forward-decl-or-cast-1)
@@ -52,7 +51,7 @@
 
 2010-07-31  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* faces.el (face-all-attributes): Improved documentation (Bug#6767).
+	* faces.el (face-all-attributes): Improve documentation (Bug#6767).
 
 2010-07-31  Eli Zaretskii  <eliz@gnu.org>
 
@@ -71,8 +70,8 @@
 	* menu-bar.el (menu-bar-showhide-tool-bar-menu-customize-enable-left)
 	(menu-bar-showhide-tool-bar-menu-customize-disable)
 	(menu-bar-showhide-tool-bar-menu-customize-enable-right)
-	(menu-bar-showhide-tool-bar-menu-customize-enable-top)
-	(menu-bar-showhide-tool-bar-menu-customize-enable-bottom): New functions
+	(menu-bar-showhide-tool-bar-menu-customize-enable-bottom)
+	(menu-bar-showhide-tool-bar-menu-customize-enable-top): New functions
 	(menu-bar-showhide-tool-bar-menu): If tool bar is moveable,
 	make a menu for Options => toolbar that can move it.
 
@@ -112,8 +111,7 @@
 	* emacs-lisp/package.el (package-archive-base): Var deleted.
 	(package-archives): New variable.
 	(package-archive-contents): Doc fix.
-	(package-load-descriptor): Do nothing if descriptor file is
-	missing.
+	(package-load-descriptor): Do nothing if descriptor file is missing.
 	(package--write-file-no-coding): New function.
 	(package-unpack-single): Use it.
 	(package-archive-id): New function.
@@ -194,8 +192,7 @@
 2010-07-26  Daiki Ueno  <ueno@unixuser.org>
 
 	* epa-mail.el (epa-mail-mode-map): Add alternative key bindings
-	which consist of control chars only.  Suggested by Richard
-	Stallman.
+	which consist of control chars only.  Suggested by Richard Stallman.
 
 2010-07-25  Daiki Ueno  <ueno@unixuser.org>
 
