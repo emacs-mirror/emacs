@@ -1,3 +1,7 @@
+2010-08-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bindings.el (function-key-map): Add a S-tab => backtab fallback.
+
 2010-08-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* dabbrev.el (dabbrev-completion): Fix typo in docstring.

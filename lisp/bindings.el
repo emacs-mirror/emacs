@@ -1035,6 +1035,9 @@ or \\[semantic-mode]")))))
 ;; so we can't distinguish those two keys, but usually we consider C-SPC
 ;; (rather than C-@) as the "canonical" binding.
 (define-key function-key-map [?\C-@] [?\C-\s])
+;; Many keyboards don't have a `backtab' key, so by convention the user
+;; can use S-tab instead to access that binding.
+(define-key function-key-map [S-tab] [backtab])
 
 (define-key global-map [mouse-movement] 'ignore)
 
