@@ -1,5 +1,17 @@
 2010-08-02  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* gtkutil.c (hierarchy_ch_cb, qttip_cb): Do not define unless
+	USE_GTK_TOOLTIP.
+	(xg_prepare_tooltip): Return 0 unless USE_GTK_TOOLTIP
+	(xg_show_tooltip, xg_hide_tooltip): Do nothing unless
+	USE_GTK_TOOLTIP.
+	(xg_create_frame_widgets): Surrond tooltip-related code with ifdef
+	USE_GTK_TOOLTIP.
+	(xg_free_frame_widgets): Don't delete ttip_* unless USE_GTK_TOOLTIP.
+
+	* xterm.h (USE_GTK_TOOLTIP): New define.
+	(struct x_output): Put ttip_* inside ifdef USE_GTK_TOOLTIP.
+
 	* sysdep.c (child_setup_tty): Enable ICANON in lflags and set VEOF
 	to Control-D (Bug#6771).
 
