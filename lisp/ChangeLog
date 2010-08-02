@@ -1,3 +1,10 @@
+2010-08-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* term.el (term-delimiter-argument-list): Reflow docstring.
+	(term-read-input-ring, term-write-input-ring, term-send-input)
+	(term-bol, term-erase-in-display, serial-supported-or-barf):
+	Fix typos in docstrings.
+
 2010-08-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* bindings.el (function-key-map): Add a S-tab => backtab fallback.
