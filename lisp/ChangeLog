@@ -1,3 +1,7 @@
+2010-08-03  Leo  <sdl.web@gmail.com>
+
+	* server.el (server-start): Simplify loop.
+
 2010-08-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* frame.el (screen-height, screen-width, set-screen-width)

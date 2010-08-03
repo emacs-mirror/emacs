@@ -138,7 +138,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef HAVE_STDLIB_H
 #undef HAVE_PWD_H
 #undef STDC_HEADERS
-#undef TIME_WITH_SYS_TIME
 
 #undef HAVE_LIBDNET
 #undef HAVE_LIBPTHREADS
