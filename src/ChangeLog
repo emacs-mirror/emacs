@@ -1,6 +1,7 @@
 2010-08-03  Johan Bockgård  <bojohan@gnu.org>
 
 	* data.c (Flocal_variable_p): Handle variable aliases correctly.
+	(Bug#6744)
 
 2010-08-02  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -9,9 +10,8 @@
 
 	* gtkutil.c (hierarchy_ch_cb, qttip_cb): Do not define unless
 	USE_GTK_TOOLTIP.
-	(xg_prepare_tooltip): Return 0 unless USE_GTK_TOOLTIP
-	(xg_show_tooltip, xg_hide_tooltip): Do nothing unless
-	USE_GTK_TOOLTIP.
+	(xg_prepare_tooltip): Return 0 unless USE_GTK_TOOLTIP.
+	(xg_show_tooltip, xg_hide_tooltip): Do nothing unless USE_GTK_TOOLTIP.
 	(xg_create_frame_widgets): Surround tooltip-related code with ifdef
 	USE_GTK_TOOLTIP.
 	(xg_free_frame_widgets): Don't delete ttip_* unless USE_GTK_TOOLTIP.
@@ -46,8 +46,8 @@
 	(xg_show_tooltip, xg_hide_tooltip): Declare.
 
 	* gtkutil.c (hierarchy_ch_cb, qttip_cb, xg_prepare_tooltip)
-	(xg_show_tooltip, xg_hide_tooltip, xg_free_frame_widgets): New
-	functions.
+	(xg_show_tooltip, xg_hide_tooltip, xg_free_frame_widgets):
+	New functions.
 	(xg_create_frame_widgets): Set ttip_* to 0.  Set a dummy tooltip
 	text so qttip_cb is called.  Connect query-tooltip to qttip_cb.
 	Remove code that is commented out.
@@ -87,9 +87,9 @@
 	* xfns.c (x_set_tool_bar_position): Remove debug fprintf.
 
 	* xterm.h (struct x_output): Add toolbar_top_height,
-	toolbar_bottom_height, toolbar_left_width, toolbar_right_width.  Remove
-	toolbar_height.
-	if USE_GTK: Add hbox_widget and toolbar_in_hbox.
+	toolbar_bottom_height, toolbar_left_width, toolbar_right_width.
+	Remove toolbar_height.
+	If USE_GTK: Add hbox_widget and toolbar_in_hbox.
 	(FRAME_TOOLBAR_TOP_HEIGHT, FRAME_TOOLBAR_BOTTOM_HEIGHT)
 	(FRAME_TOOLBAR_LEFT_WIDTH, FRAME_TOOLBAR_RIGHT_WIDTH): New macros.
 	(FRAME_TOOLBAR_HEIGHT): Is now TOP_HEIGHT + BOTTOM_HEIGHT.
@@ -99,7 +99,7 @@
 	* xfns.c (x_set_tool_bar_position): New function.
 	(xic_set_statusarea): Use FRAME_TOOLBAR_TOP_HEIGHT.
 	(x_frame_parm_handlers): Add x_set_tool_bar_position.
-	(syms_of_xfns): if USE_GTK, provide move-toolbar.
+	(syms_of_xfns): If USE_GTK, provide move-toolbar.
 
 	* window.c (calc_absolute_offset): Check for FRAME_TOOLBAR_TOP_HEIGHT
 	and FRAME_TOOLBAR_LEFT_WIDTH.
@@ -119,8 +119,7 @@
 	size correctly.  Remove hardcoded 4, instead use handlebox size -
 	toolbar size.
 	(xg_tool_bar_attach_callback): Update left/right/top/bottom tool bar
-	size correctly.  Use handlebox size + toolbar size as additional
-	size.
+	size correctly.  Use handlebox size + toolbar size as additional size.
 	(xg_pack_tool_bar): POS is a new parameter.
 	Set orientation of tool bar based on pos.
 	Only make handlebox_widget if NULL.
