@@ -1,3 +1,8 @@
+2010-08-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-start): When using TCP sockets, force IPv4
+	and use a literal 127.0.0.1 for localhost.  (Related to bug#6781.)
+
 2010-08-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* bindings.el (complete-symbol): Run completion-at-point as a fallback.
