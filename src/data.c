@@ -1866,6 +1866,7 @@ BUFFER defaults to the current buffer.  */)
 	Lisp_Object tail, elt, tmp;
 	struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (sym);
 	XSETBUFFER (tmp, buf);
+	XSETSYMBOL (variable, sym); /* Update in case of aliasing.  */
 
 	for (tail = buf->local_var_alist; CONSP (tail); tail = XCDR (tail))
 	  {
