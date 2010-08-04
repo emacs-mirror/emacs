@@ -722,6 +722,12 @@ then
   CC="$NON_GNU_CC"
 fi
 
+if test x$GCC = xyes; then
+  test "x$GCC_TEST_OPTIONS" != x && CC="$CC $GCC_TEST_OPTIONS"
+else
+  test "x$NON_GCC_TEST_OPTIONS" != x && CC="$CC $NON_GCC_TEST_OPTIONS"
+fi
+
 dnl checks for Unix variants
 AC_USE_SYSTEM_EXTENSIONS
 
