@@ -1,3 +1,7 @@
+2010-08-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (exchange-dot-and-mark): Mark obsolete, finally.
+
 2010-08-03  Juanma Barranquero  <lekktu@gmail.com>
 
 	* progmodes/which-func.el (which-func-format): Split help-echo text
