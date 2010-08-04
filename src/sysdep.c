@@ -503,26 +503,29 @@ child_setup_tty (int out)
   s.main.c_cflag = (s.main.c_cflag & ~CBAUD) | B9600; /* baud rate sanity */
 #endif /* AIX */
 
-  /* We used to enable ICANON (and set VEOF to 04), but this leads to
-     problems where process.c wants to send EOFs every once in a while
-     to force the output, which leads to weird effects when the
+  /* We originally enabled ICANON (and set VEOF to 04), and then had
+     proces.c send additional EOF chars to flush the output when faced
+     with long lines, but this leads to weird effects when the
      subprocess has disabled ICANON and ends up seeing those spurious
      extra EOFs.  So we don't send EOFs any more in
-     process.c:send_process, and instead we disable ICANON by default,
-     so if a subsprocess sets up ICANON, it's his problem (or the Elisp
-     package that talks to it) to deal with lines that are too long.  */
-  /* There is no more "send eof to flush" going on (which is wrong and
-     unportable in itself), and disabling ICANON breaks a lot of stuff
-     and shows literal ^D in many cases.  The correct way to handle too
-     much output is to buffer what could not be written and then write it
-     again when select returns ok for writing.  This has it own set of
-     problems. Write is now asynchronous, is that a problem?
-     How much do we buffer, and what do we do when that limit is reached?  */
+     process.c:send_process.  First we tried to disable ICANON by
+     default, so if a subsprocess sets up ICANON, it's his problem (or
+     the Elisp package that talks to it) to deal with lines that are
+     too long.  But this disables some features, such as the ability
+     to send EOF signals.  So we re-enabled ICANON but there is no
+     more "send eof to flush" going on (which is wrong and unportable
+     in itself).  The correct way to handle too much output is to
+     buffer what could not be written and then write it again when
+     select returns ok for writing.  This has it own set of
+     problems.  Write is now asynchronous, is that a problem?  How much
+     do we buffer, and what do we do when that limit is reached?  */
 
   s.main.c_lflag |= ICANON;	/* Enable line editing and eof processing */
   s.main.c_cc[VEOF] = 'D'&037;	/* Control-D */
+#ifdef 0	    /* These settins only apply to non-ICANON mode. */
   s.main.c_cc[VMIN] = 1;
   s.main.c_cc[VTIME] = 0;
+#endif
 
 #else /* not HAVE_TERMIO */
 
