@@ -1,3 +1,8 @@
+2010-08-04  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in: Restore accidentally removed use of
+	GCC_TEST_OPTIONS/NON_GCC_TEST_OPTIONS.
+
 2010-07-29  Chad Brown  <yandros@mit.edu>
 
 	* configure.in: Check for dirent.h.

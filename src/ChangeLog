@@ -1,3 +1,7 @@
+2010-08-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* sysdep.c (child_setup_tty): Comment-out left-over non-ICANON code.
+
 2010-08-03  Johan Bockgård  <bojohan@gnu.org>
 
 	* data.c (Flocal_variable_p): Handle variable aliases correctly.
