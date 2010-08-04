@@ -1408,7 +1408,9 @@ This function is provided for backward compatibility."
   '(("big5-0" big5 2 big5)
     ("ISO8859-14" iso-8859-14 1 latin-iso8859-14)
     ("ISO8859-15" iso-8859-15 1 latin-iso8859-15)
-    ("gbk-0" gbk 2 chinese-gbk)))
+    ("gbk-0" gbk 2 chinese-gbk)
+    ("koi8-r" koi8-r 1 koi8-r)
+    ("microsoft-cp1251" windows-1251 1 windows-1251)))
   "Alist of non-standard encoding names vs the corresponding usages in CTEXT.
 
 It controls how extended segments of a compound text are handled
@@ -1497,6 +1499,20 @@ Each element must be one of the names listed in the variable
       (goto-char (point-min))
       (- (point-max) (point)))))
 
+(defvar ctext-standard-encodings
+  '(ascii latin-jisx0201 katakana-jisx0201
+	  latin-iso8859-1 latin-iso8859-2 latin-iso8859-3 latin-iso8859-4
+	  greek-iso8859-7 arabic-iso8859-6 hebrew-iso8859-8 cyrillic-iso8859-5
+	  latin-iso8859-9
+	  chinese-gb2312 japanese-jisx0208 korean-ksc5601)
+  "List of approved standard encodings (i.e. charsets) of X's Compound Text.
+Coding-system `compound-text-with-extensions' encodes a character
+belonging to any of those charsets using the normal ISO2022
+designation sequence unless the current language environment or
+the variable `ctext-non-standard-encodings' decide to use an extended
+segment of CTEXT for that character.  See also the documentation
+of `ctext-non-standard-encodings-alist'.")
+
 ;; Return an alist of CHARSET vs CTEXT-USAGE-INFO generated from
 ;; `ctext-non-standard-encodings' and a list specified by the key
 ;; `ctext-non-standard-encodings' for the currrent language
@@ -1508,77 +1524,74 @@ Each element must be one of the names listed in the variable
 ;; is encoded using UTF-8 encoding extention.
 
 (defun ctext-non-standard-encodings-table ()
-  (let (table)
-    ;; Setup charsets specified by the key
-    ;; `ctext-non-standard-encodings' for the current language
-    ;; environment and in `ctext-non-standard-encodings'.
-    (dolist (encoding (append
-			(get-language-info current-language-environment
-					   'ctext-non-standard-encodings)
-			ctext-non-standard-encodings))
-      (let* ((slot (assoc encoding ctext-non-standard-encodings-alist))
+  (let* ((table (append ctext-non-standard-encodings
+			(copy-sequence
+			 (get-language-info current-language-environment
+					    'ctext-non-standard-encodings))))
+	 (tail table)
+	 elt)
+    (while tail
+      (setq elt (car tail))
+      (let* ((slot (assoc elt ctext-non-standard-encodings-alist))
 	     (charset (nth 3 slot)))
 	(if (charsetp charset)
-	    (push (cons charset slot) table)
-	  (dolist (cs charset)
-	    (push (cons cs slot) table)))))
-
-    ;; Next prepend charsets for ISO2022 designation sequence.
-    (dolist (charset charset-list)
-      (let ((final (plist-get (charset-plist charset) :iso-final-char)))
-	(if (and (integerp final)
-		 (>= final #x40) (<= final #x7e)
-		 ;; Exclude ascii and chinese-cns11643-X.
-		 (not (eq charset 'ascii))
-		 (not (string-match "cns11643" (symbol-name charset))))
-	    (push (cons charset nil) table))))
-
-    ;; Returned reversed list so that the charsets specified by the
-    ;; key `ctext-non-standard-encodings' for the current language
-    ;; have the highest priority.
-    (nreverse table)))
+	    (setcar tail (cons charset slot))
+	  (setcar tail (cons (car charset) slot))
+	  (dolist (cs (cdr charset))
+	    (setcdr tail
+		    (cons (cons (car cs) slot) (cdr tail)))
+	    (setq tail (cdr tail))))
+	(setq tail (cdr tail))))
+    table))
 
 (defun ctext-pre-write-conversion (from to)
   "Encode characters between FROM and TO as Compound Text w/Extended Segments.
 
-If FROM is a string, or if the current buffer is not the one set up for us
-by `encode-coding-string', generate a new temp buffer, insert the text,
-and convert it in the temporary buffer.  Otherwise, convert in-place."
+If FROM is a string, generate a new temp buffer, insert the text,
+and convert it in the temporary buffer.  Otherwise, convert
+in-place."
   (save-match-data
     ;; Setup a working buffer if necessary.
     (when (stringp from)
       (set-buffer (generate-new-buffer " *temp"))
       (set-buffer-multibyte (multibyte-string-p from))
-      (insert from))
-
-    ;; Now we can encode the whole buffer.
-    (let ((encoding-table (ctext-non-standard-encodings-table))
-	  last-coding-system-used
-	  last-pos last-encoding-info
-	  encoding-info end-pos ch)
-      (goto-char (setq last-pos (point-min)))
-      (setq end-pos (point-marker))
-      (while (re-search-forward "[^\000-\177]+" nil t)
-	;; Found a sequence of non-ASCII characters.
-	(setq last-pos (match-beginning 0)
-	      ch (char-after last-pos)
-	      last-encoding-info (catch 'tag
-				   (dolist (elt encoding-table)
-				     (if (encode-char ch (car elt))
-					 (throw 'tag (cdr elt))))
-				   'utf-8))
-	(set-marker end-pos (match-end 0))
-	(goto-char (1+ last-pos))
-	(catch 'tag
-	  (while t
-	    (setq encoding-info
-		  (if (< (point) end-pos)
-		      (catch 'tag
-			(setq ch (following-char))
-			(dolist (elt encoding-table)
-			  (if (encode-char ch (car elt))
-			      (throw 'tag (cdr elt))))
-			'utf-8)))
+      (insert from)
+      (setq from 1 to (point-max)))
+    (save-restriction
+      (narrow-to-region from to)
+      (let ((encoding-table (ctext-non-standard-encodings-table))
+	    (charset-list ctext-standard-encodings)
+	    last-coding-system-used
+	    last-pos last-encoding-info
+	    encoding-info end-pos ch charset)
+	(dolist (elt encoding-table)
+	  (push (car elt) charset-list))
+	(goto-char (setq last-pos from))
+	(setq end-pos (point-marker))
+	(while (re-search-forward "[^\000-\177]+" nil t)
+	  ;; Found a sequence of non-ASCII characters.
+	  (setq last-pos (match-beginning 0)
+		ch (char-after last-pos)
+		charset (char-charset ch charset-list)
+		last-encoding-info
+		(if charset
+		    (or (cdr (assq charset encoding-table))
+			charset)
+		  'utf-8))
+	  (set-marker end-pos (match-end 0))
+	  (goto-char (1+ last-pos))
+	  (while (marker-position end-pos)
+	    (if (< (point) end-pos)
+		(progn
+		  (setq charset (char-charset (following-char) charset-list)
+			encoding-info
+			(if charset
+			    (or (cdr (assq charset encoding-table))
+				charset)
+			  'utf-8))
+		  (forward-char 1))
+	      (setq encoding-info nil)
+	      (set-marker end-pos nil))
 	    (unless (eq last-encoding-info encoding-info)
 	      (cond ((consp last-encoding-info)
 		     ;; Encode the previous range using an extended
@@ -1609,14 +1622,12 @@ and convert it in the temporary buffer.  Otherwise, convert in-place."
 		     (save-excursion
 		       (goto-char last-pos)
 		       (insert "\e%G"))
-		     (insert "\e%@")))
+		     (insert "\e%@"))
+		    (t
+		     (put-text-property last-pos (point) 'charset charset)))
 	      (setq last-pos (point)
-		    last-encoding-info encoding-info))
-	    (if (< (point) end-pos)
-		(forward-char 1)
-	      (throw 'tag nil)))))
-      (set-marker end-pos nil)
-      (goto-char (point-min))))
+		    last-encoding-info encoding-info))))
+	(goto-char (point-min)))))
   ;; Must return nil, as build_annotations_2 expects that.
   nil)
 

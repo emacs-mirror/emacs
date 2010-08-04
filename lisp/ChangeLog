@@ -1,3 +1,20 @@
+2010-08-04  Kenichi Handa  <handa@m17n.org>
+
+	* language/cyrillic.el: Don't add "microsoft-cp1251" to
+	ctext-non-standard-encodings-alist here.
+
+	* international/mule.el (ctext-non-standard-encodings-alist): Add
+	"koi8-r" and "microsoft-cp1251".
+	(ctext-standard-encodings): New variable.
+	(ctext-non-standard-encodings-table): List only elements for
+	non-standard encodings.
+	(ctext-pre-write-conversion): Adjusted for the above change.
+	Check ctext-standard-encodings.
+
+	* international/mule-conf.el (compound-text): Doc fix.
+	(ctext-no-compositions): Doc fix.
+	(compound-text-with-extensions): Doc fix.
+
 2010-07-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* help-fns.el (find-lisp-object-file-name): Doc fix (bug#6494).
