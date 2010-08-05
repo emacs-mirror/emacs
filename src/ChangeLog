@@ -1,3 +1,10 @@
+2010-08-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Fix emacs -Q -f server-start & emacsclient -t on GNU/Linux.
+	* term.c (dissociate_if_controlling_tty): Use USG5 instead of
+	USG.  This is equivalent to defined (USG) && !defined (BSD_PGRPS),
+	which is what was there before BSD_PGRPS was removed.
+
 2010-08-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* deps.mk (unexcoff.o): Rename unexec.[co] => unexcoff.[co].
