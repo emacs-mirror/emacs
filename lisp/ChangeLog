@@ -1,3 +1,9 @@
+2010-08-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emulation/pc-select.el (pc-selection-mode-hook)
+	(copy-region-as-kill-nomark, beginning-of-buffer-mark)
+	(pc-selection-mode): Fix typos in docstrings.
+
 2010-08-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (exchange-dot-and-mark): Mark obsolete, finally.
