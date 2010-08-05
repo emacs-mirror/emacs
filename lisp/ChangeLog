@@ -1,3 +1,11 @@
+2010-08-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs-lisp/find-gc.el (find-gc-source-files): Rename
+	unexec.c => unexcoff.c.
+
+	* emacs-lisp/authors.el (authors-fixed-entries): Rename
+	unexec.c => unexcoff.c.
+
 2010-08-05  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-handle-dired-uncache): Flush directory

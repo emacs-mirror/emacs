@@ -1,3 +1,9 @@
+2010-08-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* deps.mk (unexcoff.o): Rename unexec.[co] => unexcoff.[co].
+
+	* unexcoff.c: Renamed from unexec.c.
+
 2010-08-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* sysdep.c (child_setup_tty): Comment-out left-over non-ICANON code.
