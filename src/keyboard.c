@@ -465,8 +465,6 @@ Lisp_Object Qmake_frame_visible;
 Lisp_Object Qselect_window;
 Lisp_Object Qhelp_echo;
 
-extern Lisp_Object Qremap;
-
 #if defined (HAVE_MOUSE) || defined (HAVE_GPM)
 Lisp_Object Qmouse_fixup_help_message;
 #endif
@@ -513,9 +511,6 @@ Lisp_Object Qmode_line;
 Lisp_Object Qvertical_line;
 Lisp_Object Qvertical_scroll_bar;
 Lisp_Object Qmenu_bar;
-extern Lisp_Object Qleft_margin, Qright_margin;
-extern Lisp_Object Qleft_fringe, Qright_fringe;
-extern Lisp_Object QCmap;
 
 Lisp_Object recursive_edit_unwind (Lisp_Object buffer), command_loop (void);
 Lisp_Object Fthis_command_keys (void);
@@ -535,8 +530,6 @@ Lisp_Object Vtimer_idle_list;
 
 /* Incremented whenever a timer is run.  */
 int timers_run;
-
-extern Lisp_Object Vprint_level, Vprint_length;
 
 /* Address (if not 0) of EMACS_TIME to zero out if a SIGIO interrupt
    happens.  */
@@ -644,7 +637,6 @@ static int store_user_signal_events (void);
    to support it.  */
 static int cannot_suspend;
 
-extern Lisp_Object Qidentity, Qonly;
 
 /* Install the string STR as the beginning of the string of echoing,
    so that it serves as a prompt for the next character.
@@ -1834,8 +1826,6 @@ command_loop_1 (void)
    that should be treated intangible.  For the moment, we check
    `composition', `display' and `invisible' properties.
    LAST_PT is the last position of point.  */
-
-extern Lisp_Object get_pos_property (Lisp_Object, Lisp_Object, Lisp_Object);
 
 static void
 adjust_point_for_property (int last_pt, int modified)
@@ -4362,8 +4352,6 @@ struct input_event last_timer_event;
    a context where Elisp could not be safely run (e.g. redisplay, signal,
    ...).  Each element has the form (FUN . ARGS).  */
 Lisp_Object pending_funcalls;
-
-extern Lisp_Object Qapply;
 
 /* Check whether a timer has fired.  To prevent larger problems we simply
    disregard elements that are not proper timers.  Do not make a circular
@@ -8007,9 +7995,8 @@ static Lisp_Object tool_bar_item_properties;
 
 static int ntool_bar_items;
 
-/* The symbols `tool-bar', `:image' and `:rtl'.  */
+/* The symbols `:image' and `:rtl'.  */
 
-extern Lisp_Object Qtool_bar;
 Lisp_Object QCimage;
 Lisp_Object Qrtl;
 
@@ -10233,7 +10220,6 @@ a special event, so ignore the prefix argument and don't clear it.  */)
   register Lisp_Object final;
   register Lisp_Object tem;
   Lisp_Object prefixarg;
-  extern int debug_on_next_call;
 
   debug_on_next_call = 0;
 

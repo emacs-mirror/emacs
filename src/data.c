@@ -665,8 +665,6 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
   return definition;
 }
 
-extern Lisp_Object Qfunction_documentation;
-
 DEFUN ("defalias", Fdefalias, Sdefalias, 2, 3, 0,
        doc: /* Set SYMBOL's function definition to DEFINITION, and return DEFINITION.
 Associates the function with the current load file, if any.
@@ -2503,8 +2501,6 @@ enum arithop
 
 static Lisp_Object float_arith_driver (double, int, enum arithop,
                                        int, Lisp_Object *);
-extern Lisp_Object fmod_float (Lisp_Object, Lisp_Object);
-
 Lisp_Object
 arith_driver (enum arithop code, int nargs, register Lisp_Object *args)
 {

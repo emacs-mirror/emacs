@@ -202,19 +202,6 @@ Lisp_Object Qundefined_color;
 Lisp_Object Qcompound_text, Qcancel_timer;
 Lisp_Object Qfont_param;
 
-/* In dispnew.c */
-
-extern Lisp_Object Vwindow_system_version;
-
-/* In editfns.c */
-
-extern Lisp_Object Vsystem_name;
-
-/* The below are defined in frame.c.  */
-
-extern Lisp_Object Vmenu_bar_mode, Vtool_bar_mode;
-extern Lisp_Object Qtooltip;
-
 #if GLYPH_DEBUG
 int image_cache_refcount, dpyinfo_refcount;
 #endif

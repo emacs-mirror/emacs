@@ -1,5 +1,34 @@
 2010-08-05  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	Remove extern declarations in .c files, .h files have them.
+	* data.c:
+	* dired.c:
+	* editfns.c:
+	* filelock.c:
+	* fns.c:
+	* font.c:
+	* fontset.c:
+	* frame.c:
+	* fringe.c:
+	* ftfont.c:
+	* gtkutil.c:
+	* indent.c:
+	* keyboard.c:
+	* keymap.c:
+	* lread.c:
+	* menu.c:
+	* print.c:
+	* search.c:
+	* sound.c:
+	* window.c:
+	* xdisp.c:
+	* xfaces.c:
+	* xfns.c:
+	* xfont.c:
+	* xftfont.c:
+	* xmenu.c:
+	* xterm.c: Remove declarations.
+
 	Cleanup syssignal.h.
 	* syssignal.h (sighold, sigrelse, RETSIGTYPE): Remove, unused.
 	(main_thread): Move down to remove #ifdef.

@@ -293,23 +293,6 @@ static int input_signal_count;
 
 static int x_noop_count;
 
-/* Initial values of argv and argc.  */
-
-extern char **initial_argv;
-extern int initial_argc;
-
-extern Lisp_Object Vcommand_line_args, Vsystem_name;
-
-/* Tells if a window manager is present or not.  */
-
-extern Lisp_Object Vx_no_window_manager;
-
-extern Lisp_Object Qeql;
-
-/* A mask of extra modifier bits to put into every keyboard char.  */
-
-extern EMACS_INT extra_keyboard_modifiers;
-
 /* The keysyms to use for the various modifiers.  */
 
 Lisp_Object Vx_alt_keysym, Vx_hyper_keysym, Vx_meta_keysym, Vx_super_keysym;
@@ -328,8 +311,6 @@ Lisp_Object Qx_gtk_map_stock;
 #endif
 
 /* Used in x_flush.  */
-
-extern Lisp_Object Vinhibit_redisplay;
 
 extern XrmDatabase x_load_resources (Display *, const char *, const char *,
 				     const char *);

@@ -198,13 +198,6 @@ set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 
 Lisp_Object Vframe_list;
 
-extern Lisp_Object Vminibuffer_list;
-extern Lisp_Object get_minibuffer (int);
-extern Lisp_Object Fhandle_switch_frame (Lisp_Object event);
-extern Lisp_Object Fredirect_frame_focus (Lisp_Object frame, Lisp_Object focus_frame);
-extern Lisp_Object x_get_focus_frame (struct frame *frame);
-extern Lisp_Object QCname, Qfont_param;
-
 
 DEFUN ("framep", Fframep, Sframep, 1, 1, 0,
        doc: /* Return non-nil if OBJECT is a frame.
@@ -1280,8 +1273,6 @@ other_visible_frames (FRAME_PTR f)
     }
   return 1;
 }
-
-extern Lisp_Object Qrun_hook_with_args;
 
 /* Delete FRAME.  When FORCE equals Qnoelisp, delete FRAME
   unconditionally.  x_connection_closed and delete_terminal use
@@ -2821,9 +2812,6 @@ static struct frame_parm_table frame_parms[] =
 };
 
 #ifdef HAVE_WINDOW_SYSTEM
-
-extern Lisp_Object Qbox;
-extern Lisp_Object Qtop;
 
 /* Calculate fullscreen size.  Return in *TOP_POS and *LEFT_POS the
    wanted positions of the WM window (not Emacs window).

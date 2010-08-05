@@ -57,8 +57,6 @@ Lisp_Object Qdisplay_buffer;
 Lisp_Object Qscroll_up, Qscroll_down, Qscroll_command;
 Lisp_Object Qwindow_size_fixed;
 
-extern Lisp_Object Qleft_margin, Qright_margin;
-
 static int displayed_window_lines (struct window *);
 static struct window *decode_window (Lisp_Object);
 static int count_windows (struct window *);
@@ -191,16 +189,11 @@ static int window_scroll_preserve_vpos;
 static int inhibit_frame_unsplittable;
 #endif /* 0 */
 
-extern EMACS_INT scroll_margin;
-
-extern Lisp_Object Qwindow_scroll_functions, Vwindow_scroll_functions;
-
 /* If non-nil, then the `recenter' command with a nil argument
    the entire frame to be redrawn; the special value `tty' causes the
    frame to be redrawn only if it is a tty frame.  */
 
 static Lisp_Object Vrecenter_redisplay;
-extern Lisp_Object Qtty;
 
 
 DEFUN ("windowp", Fwindowp, Swindowp, 1, 1, 0,

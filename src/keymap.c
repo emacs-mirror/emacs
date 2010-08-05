@@ -103,11 +103,6 @@ static Lisp_Object exclude_keys;
 /* Pre-allocated 2-element vector for Fcommand_remapping to use.  */
 static Lisp_Object command_remapping_vector;
 
-/* A char with the CHAR_META bit set in a vector or the 0200 bit set
-   in a string key sequence is equivalent to prefixing with this
-   character.  */
-extern Lisp_Object meta_prefix_char;
-
 /* Hash table used to cache a reverse-map to speed up calls to where-is.  */
 static Lisp_Object where_is_cache;
 /* Which keymaps are reverse-stored in the cache.  */

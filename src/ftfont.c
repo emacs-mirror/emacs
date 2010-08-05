@@ -144,8 +144,6 @@ static struct
     { NULL }
   };
 
-extern Lisp_Object Qc, Qm, Qp, Qd;
-
 /* Dirty hack for handing ADSTYLE property.
 
    Fontconfig (actually the underlying FreeType) gives such ADSTYLE
@@ -547,8 +545,6 @@ struct font_driver ftfont_driver =
 
     ftfont_filter_properties, /* filter_properties */
   };
-
-extern Lisp_Object QCname;
 
 static Lisp_Object
 ftfont_get_cache (FRAME_PTR f)
@@ -2332,8 +2328,6 @@ ftfont_drive_otf (MFLTFont *font, MFLTOtfSpec *spec, MFLTGlyphString *in,
 static MFLTGlyphString gstring;
 
 static int m17n_flt_initialized;
-
-extern Lisp_Object QCfamily;
 
 static Lisp_Object
 ftfont_shape_by_flt (Lisp_Object lgstring, struct font *font,

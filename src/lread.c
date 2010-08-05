@@ -75,7 +75,6 @@ Lisp_Object Qtest, Qsize;
 Lisp_Object Qweakness;
 Lisp_Object Qrehash_size;
 Lisp_Object Qrehash_threshold;
-extern Lisp_Object QCtest, QCsize, QCrehash_size, QCrehash_threshold, QCweakness;
 
 Lisp_Object Qread_char, Qget_file_char, Qstandard_input, Qcurrent_load_list;
 Lisp_Object Qvariable_documentation, Vvalues, Vstandard_input, Vafter_load_alist;
@@ -90,9 +89,6 @@ Lisp_Object Qfile_truename, Qdo_after_load_evaluation; /* ACM 2006/5/16 */
 static Lisp_Object Qget_emacs_mule_file_char;
 
 static Lisp_Object Qload_force_doc_strings;
-
-extern Lisp_Object Qevent_symbol_element_mask;
-extern Lisp_Object Qfile_exists_p;
 
 /* non-zero if inside `load' */
 int load_in_progress;

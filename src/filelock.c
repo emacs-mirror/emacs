@@ -117,8 +117,6 @@ Lisp_Object Vtemporary_file_directory;
 static time_t boot_time;
 static int boot_time_initialized;
 
-extern Lisp_Object Vshell_file_name;
-
 #ifdef BOOT_TIME
 static void get_boot_time_1 (char *, int);
 #endif

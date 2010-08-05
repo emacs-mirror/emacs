@@ -3380,9 +3380,6 @@ usage: (message-box FORMAT-STRING &rest ARGS)  */)
       return val;
     }
 }
-#ifdef HAVE_MENUS
-extern Lisp_Object last_nonmenu_event;
-#endif
 
 DEFUN ("message-or-box", Fmessage_or_box, Smessage_or_box, 1, MANY, 0,
        doc: /* Display a message in a dialog box or in the echo area.

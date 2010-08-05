@@ -99,7 +99,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Symbols.  */
 
-extern Lisp_Object QCfile, QCdata;
 Lisp_Object QCvolume, QCdevice;
 Lisp_Object Qsound;
 Lisp_Object Qplay_sound_functions;

@@ -171,10 +171,6 @@ xftfont_match (Lisp_Object frame, Lisp_Object spec)
   return entity;
 }
 
-extern Lisp_Object ftfont_font_format (FcPattern *, Lisp_Object);
-extern FcCharSet *ftfont_get_fc_charset (Lisp_Object);
-extern Lisp_Object QCantialias;
-
 static FcChar8 ascii_printable[95];
 
 static void
@@ -551,8 +547,6 @@ xftfont_done_face (FRAME_PTR f, struct face *face)
       face->extra = NULL;
     }
 }
-
-extern Lisp_Object Qja, Qko;
 
 static int
 xftfont_has_char (Lisp_Object font, int c)
