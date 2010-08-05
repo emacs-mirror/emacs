@@ -1119,7 +1119,6 @@ per_line_cost (char *str)
   return cost;
 }
 
-#ifndef old
 /* char_ins_del_cost[n] is cost of inserting N characters.
    char_ins_del_cost[-n] is cost of deleting N characters.
    The length of this vector is based on max_frame_cols.  */
@@ -1127,7 +1126,6 @@ per_line_cost (char *str)
 int *char_ins_del_vector;
 
 #define char_ins_del_cost(f) (&char_ins_del_vector[FRAME_COLS ((f))])
-#endif
 
 /* ARGSUSED */
 static void
@@ -1504,15 +1502,6 @@ term_get_fkeys_1 (void)
 /***********************************************************************
 		       Character Display Information
  ***********************************************************************/
-
-/* Avoid name clash with functions defined in xterm.c */
-#ifdef static
-#define append_glyph append_glyph_term
-#define produce_stretch_glyph produce_stretch_glyph_term
-#define append_composite_glyph append_composite_glyph_term
-#define produce_composite_glyph produce_composite_glyph_term
-#endif
-
 static void append_glyph (struct it *);
 static void produce_stretch_glyph (struct it *);
 static void append_composite_glyph (struct it *);
