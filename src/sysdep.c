@@ -522,7 +522,7 @@ child_setup_tty (int out)
 
   s.main.c_lflag |= ICANON;	/* Enable line editing and eof processing */
   s.main.c_cc[VEOF] = 'D'&037;	/* Control-D */
-#ifdef 0	    /* These settins only apply to non-ICANON mode. */
+#if 0	    /* These settings only apply to non-ICANON mode. */
   s.main.c_cc[VMIN] = 1;
   s.main.c_cc[VTIME] = 0;
 #endif
