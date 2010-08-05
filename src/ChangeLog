@@ -1,5 +1,11 @@
 2010-08-05  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	Cleanup syssignal.h.
+	* syssignal.h (sighold, sigrelse, RETSIGTYPE): Remove, unused.
+	(main_thread): Move down to remove #ifdef.
+	(SIGMASKTYPE, SIGEMPTYMASK, SIGFULLMASK, sigmask, sigunblock):
+	Remove conditional definition following unconditional ones.
+
 	* lisp.h: Remove HAVE_SHM code, unused.
 	(QCmap, QCrehash_size, QCrehash_threshold, QCsize, QCtest)
 	(QCweakness, Qabove_handle, Qbackquote, Qbar, Qbelow_handle)
