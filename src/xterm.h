@@ -1168,6 +1168,7 @@ enum xembed_accelerator
 
 /* Defined in xterm.c */
 
+extern Lisp_Object Qx_gtk_map_stock;
 extern void xembed_set_info (struct frame *f, enum xembed_info flags);
 extern void xembed_send_message (struct frame *f, Time time,
                                  enum xembed_message message,

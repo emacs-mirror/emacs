@@ -24,6 +24,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 extern Lisp_Object Qkeymap, Qmenu_bar;
 extern Lisp_Object Qremap;
 extern Lisp_Object Qmenu_item;
+extern Lisp_Object meta_prefix_char;
 extern Lisp_Object Voverriding_local_map;
 extern Lisp_Object Voverriding_local_map_menu_flag;
 extern Lisp_Object current_global_map;

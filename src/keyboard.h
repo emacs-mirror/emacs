@@ -366,8 +366,6 @@ typedef struct _widget_value
   struct _widget_value*	next;
 } widget_value;
 
-extern widget_value *xmalloc_widget_value (void);
-extern widget_value *digest_single_submenu (int, int, int);
 #endif /* HAVE_NS || HAVE_NTGUI */
 
 
@@ -464,6 +462,28 @@ extern Lisp_Object real_this_command;
 /* If the lookup of the command returns a binding, the original
    command is stored in this-original-command.  It is nil otherwise.  */
 extern Lisp_Object Vthis_original_command;
+
+/* Non-nil disable property on a command means
+   do not execute it; call disabled-command-function's value instead.  */
+extern Lisp_Object QCbutton, QCtoggle, QCradio, QClabel;
+
+/* A mask of extra modifier bits to put into every keyboard char.  */
+extern EMACS_INT extra_keyboard_modifiers;
+
+/* If non-nil, this implements the current input method.  */
+extern Lisp_Object Vinput_method_function;
+extern Lisp_Object Qinput_method_function;
+
+/* An event header symbol HEAD may have a property named
+   Qevent_symbol_element_mask, which is of the form (BASE MODIFIERS);
+   BASE is the base, unmodified version of HEAD, and MODIFIERS is the
+   mask of modifiers applied to it.  If present, this is used to help
+   speed up parse_modifiers.  */
+extern Lisp_Object Qevent_symbol_element_mask;
+
+/* The timestamp of the last input event we received from the X server.
+   X Windows wants this for selection ownership.  */
+extern unsigned long last_event_timestamp;
 
 extern int parse_menu_item (Lisp_Object, int);
 
