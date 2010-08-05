@@ -1,3 +1,7 @@
+2010-08-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* MAINTAINERS: Rename src/unexec.c => src/unexcoff.c.
+
 2010-07-24  Christoph Scholtes  <cschol2112@gmail.com>
 
 	* admin.el: Write version number to nt/makefile.w32-in.

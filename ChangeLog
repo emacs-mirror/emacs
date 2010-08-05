@@ -1,3 +1,7 @@
+2010-08-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.in (UNEXEC_OBJ): Rename unexec.o => unexcoff.o.
+
 2010-08-04  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* configure.in: Restore accidentally removed use of

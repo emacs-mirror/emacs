@@ -5509,7 +5509,7 @@ esac
 
 UNEXEC_OBJ=unexelf.o
 case "$opsys" in
-  # MSDOS uses unexec.o
+  # MSDOS uses unexcoff.o
   # MSWindows uses unexw32.o
   aix4-2)
    UNEXEC_OBJ=unexaix.o

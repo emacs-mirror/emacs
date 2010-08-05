@@ -18,12 +18,19 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 /*
- * unexec.c - Convert a running program into an a.out file.
+ * unexcoff.c - Convert a running program into an a.out or COFF file.
+ *
+ * ==================================================================
+ * Note: This file is currently used only by the MSDOS (a.k.a. DJGPP)
+ * build of Emacs.  If you are not interested in the MSDOS build, you
+ * are looking at the wrong version of unexec!
+ * ==================================================================
  *
  * Author:	Spencer W. Thomas
  * 		Computer Science Dept.
  * 		University of Utah
  * Date:	Tue Mar  2 1982
+ * Originally under the name unexec.c.
  * Modified heavily since then.
  *
  * Synopsis:

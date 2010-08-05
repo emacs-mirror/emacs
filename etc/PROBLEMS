@@ -2740,7 +2740,7 @@ build Emacs in a directory on a local disk.
 Two causes have been seen for such problems.
 
 1) On a system where getpagesize is not a system call, it is defined
-as a macro.  If the definition (in both unexec.c and malloc.c) is wrong,
+as a macro.  If the definition (in both unex*.c and malloc.c) is wrong,
 it can cause problems like this.  You might be able to find the correct
 value in the man page for a.out (5).
 
