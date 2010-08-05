@@ -4234,7 +4234,7 @@ This is like `dired-recursive-delete-directory' for Tramp files."
   ;; DIR-P is valid for XEmacs only.
   (with-parsed-tramp-file-name
       (if (or dir-p (file-directory-p dir)) dir (file-name-directory dir)) nil
-    (tramp-flush-file-property v localname)))
+    (tramp-flush-directory-property v localname)))
 
 ;; Pacify byte-compiler.  The function is needed on XEmacs only.  I'm
 ;; not sure at all that this is the right way to do it, but let's hope
@@ -4503,6 +4503,14 @@ beginning of local filename are not substituted."
   (with-parsed-tramp-file-name default-directory nil
     (tramp-find-executable v command (tramp-get-remote-path v) t)))
 
+(defun tramp-process-sentinel (proc event)
+  "Flush file caches."
+  (unless (memq (process-status proc) '(run open))
+    (with-current-buffer (process-buffer proc)
+      (with-parsed-tramp-file-name default-directory nil
+	(tramp-message v 5 "Sentinel called: `%s' `%s'" proc event)
+        (tramp-flush-directory-property v "")))))
+
 ;; We use BUFFER also as connection buffer during setup. Because of
 ;; this, its original contents must be saved, and restored once
 ;; connection has been setup.
@@ -4546,11 +4554,12 @@ beginning of local filename are not substituted."
 	    (unless (process-get (tramp-get-connection-process v) 'remote-tty)
 	      (tramp-error
 	       v 'file-error "pty association is not supported for `%s'" name)))
-	  ;; Set query flag for this process.
-	  (tramp-set-process-query-on-exit-flag
-	   (tramp-get-connection-process v) t)
-	  ;; Return process.
-	  (tramp-get-connection-process v))
+	  (let ((p (tramp-get-connection-process v)))
+	    ;; Set sentinel and query flag for this process.
+	    (set-process-sentinel p 'tramp-process-sentinel)
+	    (tramp-set-process-query-on-exit-flag p t)
+	    ;; Return process.
+	    p))
       ;; Save exit.
       (with-current-buffer (tramp-get-connection-buffer v)
 	(if (string-match tramp-temp-buffer-name (buffer-name))

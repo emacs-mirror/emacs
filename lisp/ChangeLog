@@ -1,3 +1,11 @@
+2010-08-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-dired-uncache): Flush directory
+	cache, not only file cache.
+	(tramp-process-sentinel): New defun.
+	(tramp-handle-start-file-process): Use it, in order to invalidate
+	file caches.
+
 2010-08-03  Leo  <sdl.web@gmail.com>
 
 	* server.el (server-start): Simplify loop.
