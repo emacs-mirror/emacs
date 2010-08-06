@@ -68,6 +68,10 @@ extern sigset_t sys_sigmask ();
 #undef signal
 #define signal(SIG,ACT)      sys_signal(SIG,ACT)
 
+/* Whether this is what all systems want or not, this is what
+   appears to be assumed in the source, for example data.c:arith_error.  */
+typedef RETSIGTYPE (*signal_handler_t) (int);
+
 signal_handler_t sys_signal (int signal_number, signal_handler_t action);
 sigset_t sys_sigblock   (sigset_t new_mask);
 sigset_t sys_sigunblock (sigset_t new_mask);
