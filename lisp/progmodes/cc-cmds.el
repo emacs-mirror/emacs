@@ -4001,6 +4001,14 @@ command to conveniently insert and align the necessary backslashes."
 				       (goto-char ender-start)
 				       (current-column)))
 		       (point-rel (- ender-start here))
+		       (sentence-ends-comment
+			(save-excursion
+			  (goto-char ender-start)
+			  (and (search-backward-regexp
+				(c-sentence-end) (c-point 'bol) t)
+			       (goto-char (match-end 0))
+			  (looking-at "[ \t]*")
+			  (= (match-end 0) ender-start))))
 		       spaces)
 
 		  (save-excursion
@@ -4043,7 +4051,9 @@ command to conveniently insert and align the necessary backslashes."
 			      (setq spaces
 				    (max
 				     (min spaces
-					  (if sentence-end-double-space 2 1))
+					  (if (and sentence-ends-comment
+						   sentence-end-double-space)
+					      2 1))
 				     1)))
 			  ;; Insert the filler first to keep marks right.
 			  (insert-char ?x spaces t)
@@ -4253,8 +4263,11 @@ Optional prefix ARG means justify paragraph as well."
   (let ((fill-paragraph-function
 	 ;; Avoid infinite recursion.
 	 (if (not (eq fill-paragraph-function 'c-fill-paragraph))
-	     fill-paragraph-function)))
-    (c-mask-paragraph t nil 'fill-paragraph arg))
+	     fill-paragraph-function))
+	(start-point (point-marker)))
+    (c-mask-paragraph
+     t nil (lambda () (fill-region-as-paragraph (point-min) (point-max) arg)))
+    (goto-char start-point))
   ;; Always return t.  This has the effect that if filling isn't done
   ;; above, it isn't done at all, and it's therefore effectively
   ;; disabled in normal code.

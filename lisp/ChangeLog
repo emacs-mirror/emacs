@@ -1,3 +1,9 @@
+2010-08-06  Alan Mackenzie  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-cmds.el (c-mask-paragraph, c-fill-paragraph): Fix
+	for the case that a C style comment has its delimiters alone on
+	their respective lines.
+
 2010-08-06  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-handle-start-file-process ): Set connection
