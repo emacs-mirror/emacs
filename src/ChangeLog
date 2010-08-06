@@ -15,8 +15,7 @@
 
 	* menu.h (xmalloc_widget_value, digest_single_submenu): Declare.
 
-	* dired.c (compile_pattern):
-	* syssignal.h (signal_handler_t): Restore declarations.
+	* dired.c (compile_pattern): Restore declaration.
 
 2010-08-05  Dan Nicolaescu  <dann@ics.uci.edu>
 
