@@ -34,6 +34,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #if HAVE_TERMIOS_H
 #include <termios.h>		/* For TIOCNOTTY. */
 #endif
+#ifdef HAVE_SYS_IOCTL_H
+#include <sys/ioctl.h>
+#endif
 
 #include <signal.h>
 #include <stdarg.h>

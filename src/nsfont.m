@@ -223,7 +223,7 @@ ns_descriptor_to_entity (NSFontDescriptor *desc, Lisp_Object extra, char *style)
 
 /* Default font entity. */
 static Lisp_Object
-ns_fallback_entity ()
+ns_fallback_entity (void)
 {
   return ns_descriptor_to_entity ([[NSFont userFixedPitchFontOfSize: 0]
       fontDescriptor], Qnil, NULL);
@@ -1510,7 +1510,7 @@ ns_dump_glyphstring (struct glyph_string *s)
 
 
 void
-syms_of_nsfont ()
+syms_of_nsfont (void)
 {
   nsfont_driver.type = Qns;
   register_font_driver (&nsfont_driver, NULL);

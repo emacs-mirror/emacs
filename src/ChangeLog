@@ -1,3 +1,66 @@
+2010-08-06  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfaces.c (x_create_gc, x_free_gc): Convert to ANSI C prototypes.
+
+	* window.c: Include menu.h.
+
+	* unexmacosx.c (print_region_list, print_regions)
+	(build_region_list, find_emacs_zone_regions)
+	(unexec_regions_merge, read_load_commands, dump_it)
+	(unexec_init_emacs_zone): Convert to ANSI C prototypes.
+
+	* term.c: Check HAVE_SYS_IOCTL_H.
+
+	* sysdep.c: Check HAVE_TERM_H
+
+	* process.c: Check HAVE_UTIL_H. Include nsterm.h if HAVE_NS.
+
+	* nsterm.m (ns_init_paths, ns_alloc_autorelease_pool)
+	(ns_ring_bell, ns_defined_color, hide_hourglass)
+	(x_display_pixel_height, x_display_pixel_width, syms_of_nsterm):
+	Convert to ANSI C prototypes.
+	(x_set_window_size, ns_draw_fringe_bitmap, judge): Move declarations
+	before code.
+
+	* nsterm.h : Include sysselect.h.
+	(x_sync, x_get_focus_frame, x_set_mouse_position)
+	(x_set_mouse_pixel_position, x_make_frame_visible)
+	(x_make_frame_invisible, x_iconify_frame, x_char_width, x_char_height)
+	(x_pixel_width, x_pixel_height, x_set_frame_alpha, x_set_tool_bar_lines)
+	(x_activate_menubar, free_frame_menubar, ns_init_paths, ns_select)
+	(syms_of_nsterm, syms_of_nsfns, syms_of_nsmenu, syms_of_nsselect):
+	Declare
+
+	* nsmenu.m (popup_activated, name_is_separator)
+	(syms_of_nsmenu): Convert to ANSI C prototypes.
+	(runMenuAt): Prototypes and move declarations before code.
+
+	* nsimage.m (ns_load_image): Move NSTRACE after declarations.
+
+	* nsfont.m (ns_fallback_entity, syms_of_nsfont): Convert to ANSI C
+	prototypes.
+
+	* nsfns.m (have_menus_p, ns_display_info_for_name)
+	(x_set_cursor_type, ns_appkit_version_str)
+	(ns_appkit_version_int, ns_do_applescript)
+	(x_set_scroll_bar_default_width, x_sync, compute_tip_xy)
+	(syms_of_nsfns): Convert to ANSI C prototypes.
+
+	* menu.h (x_set_menu_bar_line): Declare.
+	(free_menubar_widget_value_tree et.al): Add HAVE_NS for these functions.
+
+	* lisp.h (fmod_float): Declare.
+
+	* image.c (xpm_scan, xpm_make_color_table_v)
+	(xpm_put_color_table_v, xpm_get_color_table_v)
+	(xpm_make_color_table_h, xpm_put_color_table_h)
+	(xpm_get_color_table_h, xpm_str_to_color_key, xpm_load_image)
+	(xpm_load): Convert to ANSI C prototypes.
+
+	* emacs.c: Include nsterm.h if HAVE_NS.
+
+	* bidi.c (bidi_dump_cached_states): Fix fprintf warning.
+
 2010-08-06  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* process.c: Remove HAVE_SOCKETS #ifdefs inside #ifdef

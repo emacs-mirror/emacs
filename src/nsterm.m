@@ -296,7 +296,7 @@ append2 (Lisp_Object list, Lisp_Object item)
 
 
 void
-ns_init_paths ()
+ns_init_paths (void)
 /* --------------------------------------------------------------------------
    Used to allow emacs to find its resources under Emacs.app
    Called from emacs.c at startup.
@@ -479,7 +479,7 @@ ns_retain_object (void *obj)
 
 
 void *
-ns_alloc_autorelease_pool ()
+ns_alloc_autorelease_pool (void)
 /* --------------------------------------------------------------------------
      Allocate a pool for temporary objects (callable from C)
    -------------------------------------------------------------------------- */
@@ -790,7 +790,7 @@ ns_clip_to_row (struct window *w, struct glyph_row *row, int area, BOOL gc)
 
 
 static void
-ns_ring_bell ()
+ns_ring_bell (struct frame *f)
 /* --------------------------------------------------------------------------
      "Beep" routine
    -------------------------------------------------------------------------- */
@@ -1186,12 +1186,14 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
      difference between the real width and Emacs' imagined one.  For
      right-hand bars, don't worry about it since the extra is never used.
      (Obviously doesn't work for vertically split windows tho..) */
-  NSPoint origin = FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT (f)
-    ? NSMakePoint (FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f)
-                  - NS_SCROLL_BAR_WIDTH (f), 0)
-    : NSMakePoint (0, 0);
-  [view setFrame: NSMakeRect (0, 0, pixelwidth, pixelheight)];
-  [view setBoundsOrigin: origin];
+  {
+    NSPoint origin = FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT (f)
+      ? NSMakePoint (FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f)
+                     - NS_SCROLL_BAR_WIDTH (f), 0)
+      : NSMakePoint (0, 0);
+    [view setFrame: NSMakeRect (0, 0, pixelwidth, pixelheight)];
+    [view setBoundsOrigin: origin];
+  }
 
   change_frame_size (f, rows, cols, 0, 1, 0); /* pretend, delay, safe */
   FRAME_PIXEL_WIDTH (f) = pixelwidth;
@@ -1507,7 +1509,10 @@ ns_query_color(void *col, XColor *color_def, int setPixel)
 
 
 int
-ns_defined_color (struct frame *f, char *name, XColor *color_def, int alloc,
+ns_defined_color (struct frame *f,
+                  const char *name,
+                  XColor *color_def,
+                  int alloc,
                   char makeIndex)
 /* --------------------------------------------------------------------------
          Return 1 if named color found, and set color_def rgb accordingly.
@@ -2184,9 +2189,8 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
       int yAdjust = rowY - FRAME_INTERNAL_BORDER_WIDTH (f) < 5 ?
         -FRAME_INTERNAL_BORDER_WIDTH (f) : 0;
       int yIncr = FRAME_PIXEL_HEIGHT (f) - (p->by+yAdjust + p->ny) < 5 ?
-        FRAME_INTERNAL_BORDER_WIDTH (f) : 0;
-      if (yAdjust)
-        yIncr += FRAME_INTERNAL_BORDER_WIDTH (f);
+        FRAME_INTERNAL_BORDER_WIDTH (f) : 0
+        + (yAdjust ? FRAME_INTERNAL_BORDER_WIDTH (f) : 0);
       NSRect r = NSMakeRect (p->bx+xAdjust, p->by+yAdjust, p->nx, p->ny+yIncr);
       NSRectClip (r);
       [ns_lookup_indexed_color(face->background, f) set];
@@ -2375,7 +2379,7 @@ show_hourglass (struct atimer *timer)
 
 
 void
-hide_hourglass ()
+hide_hourglass (void)
 {
   if (!hourglass_shown_p)
     return;
@@ -3406,16 +3410,14 @@ x_wm_set_icon_position (struct frame *f, int icon_x, int icon_y)
    ========================================================================== */
 
 int
-x_display_pixel_height (dpyinfo)
-     struct ns_display_info *dpyinfo;
+x_display_pixel_height (struct ns_display_info *dpyinfo)
 {
   NSScreen *screen = [NSScreen mainScreen];
   return [screen frame].size.height;
 }
 
 int
-x_display_pixel_width (dpyinfo)
-     struct ns_display_info *dpyinfo;
+x_display_pixel_width (struct ns_display_info *dpyinfo)
 {
   NSScreen *screen = [NSScreen mainScreen];
   return [screen frame].size.width;
@@ -5743,9 +5745,10 @@ ns_term_shutdown (int sig)
   NSTRACE (judge);
   if (condemned)
     {
+      EmacsView *view;
       BLOCK_INPUT;
       /* ensure other scrollbar updates after deletion */
-      EmacsView *view = (EmacsView *)FRAME_NS_VIEW (frame);
+      view = (EmacsView *)FRAME_NS_VIEW (frame);
       if (view != nil)
         view->scrollbarsNeedingUpdate++;
       [self removeFromSuperview];
@@ -6122,7 +6125,7 @@ ns_xlfd_to_fontname (const char *xlfd)
 
 
 void
-syms_of_nsterm ()
+syms_of_nsterm (void)
 {
   NSTRACE (syms_of_nsterm);
 

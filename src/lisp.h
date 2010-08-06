@@ -2548,6 +2548,7 @@ EXFUN (Ffloat, 1);
 EXFUN (Ftruncate, 2);
 extern void init_floatfns (void);
 extern void syms_of_floatfns (void);
+extern Lisp_Object fmod_float (Lisp_Object x, Lisp_Object y);
 
 /* Defined in fringe.c */
 extern void syms_of_fringe (void);

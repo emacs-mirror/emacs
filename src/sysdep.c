@@ -33,6 +33,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+#ifdef HAVE_TERM_H
+#include <term.h>
+#endif
 
 #include "lisp.h"
 /* Including stdlib.h isn't necessarily enough to get srandom

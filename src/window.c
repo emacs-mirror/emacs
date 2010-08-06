@@ -37,6 +37,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "blockinput.h"
 #include "intervals.h"
 #include "termhooks.h"		/* For FRAME_TERMINAL.  */
+#include "menu.h"
 
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"

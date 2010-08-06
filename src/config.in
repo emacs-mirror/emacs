@@ -731,6 +731,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
+/* Define to 1 if you have the <util.h> header file. */
+#undef HAVE_UTIL_H
+
 /* Define to 1 if you have the `utimes' function. */
 #undef HAVE_UTIMES
 

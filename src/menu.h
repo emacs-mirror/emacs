@@ -21,13 +21,18 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 extern Lisp_Object Vmenu_updating_frame;
 
+extern void x_set_menu_bar_lines (struct frame *f,
+                                  Lisp_Object value,
+                                  Lisp_Object oldval);
+
 extern void init_menu_items (void);
 extern void finish_menu_items (void);
 extern void discard_menu_items (void);
 extern void save_menu_items (void);
 extern int parse_single_submenu (Lisp_Object, Lisp_Object, Lisp_Object);
 extern void list_of_panes (Lisp_Object);
-#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NTGUI)
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK) || defined (HAVE_NTGUI) \
+  || defined (HAVE_NS)
 extern void free_menubar_widget_value_tree (widget_value *);
 extern void update_submenu_strings (widget_value *);
 extern void find_and_call_menu_selection (FRAME_PTR, int,

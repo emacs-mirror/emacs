@@ -63,6 +63,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keyboard.h"
 #include "keymap.h"
 
+#ifdef HAVE_NS
+#include "nsterm.h"
+#endif
+
 #ifdef HAVE_SETLOCALE
 #include <locale.h>
 #endif

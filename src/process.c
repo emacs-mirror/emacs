@@ -89,6 +89,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <resolv.h>
 #endif
 
+#ifdef HAVE_UTIL_H
+#include <util.h>
+#endif
+
 #endif	/* subprocesses */
 
 #include "lisp.h"
@@ -116,7 +120,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #if defined (USE_GTK) || defined (HAVE_GCONF)
 #include "xgselect.h"
 #endif /* defined (USE_GTK) || defined (HAVE_GCONF) */
-
+#ifdef HAVE_NS
+#include "nsterm.h"
+#endif
 extern int timers_run;
 
 Lisp_Object Qeuid, Qegid, Qcomm, Qstate, Qppid, Qpgrp, Qsess, Qttname, Qtpgid;
