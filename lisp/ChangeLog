@@ -1,4 +1,12 @@
-2010-08-06  Jürgen Hötzel  <juergen@archlinux.org>
+2010-08-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-start-file-process ): Set connection
+	property "vec".
+	(tramp-process-sentinel): Use it for flushing the cache.  We
+	cannot do it via the process buffer, the buffer could be deleted
+	already when running the sentinel.
+
+2010-08-06  Jürgen Hötzel  <juergen@archlinux.org>  (tiny change)
 
 	* comint.el (comint-mode): Make directory tracking functions
 	functional on remote files.  (Bug#6764)
