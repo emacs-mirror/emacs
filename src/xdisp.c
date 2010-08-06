@@ -17381,8 +17381,8 @@ display_line (struct it *it)
 	  row->ends_at_zv_p = 1;
 	  /* A row that displays right-to-left text must always have
 	     its last face extended all the way to the end of line,
-	     even if this row ends in ZV, because we still write to th
-	     screen left to right.  */
+	     even if this row ends in ZV, because we still write to
+	     the screen left to right.  */
 	  if (row->reversed_p)
 	    extend_face_to_end_of_line (it);
 	  break;
