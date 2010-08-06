@@ -122,11 +122,6 @@ static int popup_activated_flag;
 
 static int next_menubar_widget_id;
 
-#if defined (USE_X_TOOLKIT) || defined (USE_GTK)
-extern widget_value *xmalloc_widget_value (void);
-extern widget_value *digest_single_submenu (int, int, int);
-#endif
-
 
 #ifdef USE_X_TOOLKIT
 

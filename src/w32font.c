@@ -72,7 +72,7 @@ static Lisp_Object Qstandard, Qsubpixel, Qnatural;
 static Lisp_Object Qzh;
 
 /* scripts */
-static Lisp_Object Qlatin, Qgreek, Qcoptic, Qcyrillic, Qarmenian, Qhebrew;
+static Lisp_Object Qgreek, Qcoptic, Qcyrillic, Qarmenian, Qhebrew;
 static Lisp_Object Qarabic, Qsyriac, Qnko, Qthaana, Qdevanagari, Qbengali;
 static Lisp_Object Qgurmukhi, Qgujarati, Qoriya, Qtamil, Qtelugu;
 static Lisp_Object Qkannada, Qmalayalam, Qsinhala, Qthai, Qlao;
