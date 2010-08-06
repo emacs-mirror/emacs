@@ -258,6 +258,9 @@ is just left as is in the message, so it is not lost.
 **** vc-bzr handles Author:, Date: and Fixes:
 **** vc-mtn handles Author: and Date:
 
+*** Pressing g in a *vc-diff* buffer reruns vc-diff, so it will
+produce an up to date diff.
+
 ** Directory local variables can apply to file-less buffers.
 For example, adding "(diff-mode . ((mode . whitespace)))" to your
 .dir-locals.el file, will turn on `whitespace-mode' for *vc-diff* buffers.
