@@ -239,13 +239,6 @@ Support for Russian using koi8-r and the russian-computer input method.")
 	   (documentation . "Support for Tajik using KOI8-T."))
  '("Cyrillic"))
 
-(let ((elt `("microsoft-cp1251" windows-1251 1
-	     ,(get 'encode-windows-1251 'translation-table)))
-      (slot (assoc "microsoft-cp1251" ctext-non-standard-encodings-alist)))
-  (if slot
-      (setcdr slot (cdr elt))
-    (push elt ctext-non-standard-encodings-alist)))
-
 (set-language-info-alist
  "Bulgarian" `((coding-system windows-1251)
 	       (coding-priority windows-1251)
