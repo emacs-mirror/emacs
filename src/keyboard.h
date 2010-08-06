@@ -485,6 +485,8 @@ extern Lisp_Object Qevent_symbol_element_mask;
    X Windows wants this for selection ownership.  */
 extern unsigned long last_event_timestamp;
 
+extern int quit_char;
+
 extern int parse_menu_item (Lisp_Object, int);
 
 extern void echo_now (void);
