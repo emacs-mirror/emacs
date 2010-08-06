@@ -1,5 +1,7 @@
 2010-08-06  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* frame.c (frame_params): Make const.
+
 	* lisp.h (fatal_error_signal, emacs_root_dir): Add declaration.
 
 	* emacs.c (emacs_copyright, emacs_version): Make static.
