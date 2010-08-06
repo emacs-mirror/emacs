@@ -1,3 +1,11 @@
+2010-08-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacsclient.c: Move socket related #includes together with the
+	rest of the #includes.  Move a WINDOWSNT includes closer together.
+	(HAVE_CONFIG_H): Remove.
+	(NO_RETURN): Remove, defined in config.h.
+	(main): Convert definition to standard C.
+
 2010-07-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* make-docfile.c (write_c_args): Warn for old-style empty arglist ().

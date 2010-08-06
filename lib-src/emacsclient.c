@@ -18,9 +18,7 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #ifdef WINDOWSNT
 
@@ -32,6 +30,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 # include <stdlib.h>
 # include <windows.h>
 # include <commctrl.h>
+# include <io.h>
+# include <winsock2.h>
 
 # define NO_SOCKETS_IN_FILE_SYSTEM
 
@@ -45,8 +45,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 # ifdef HAVE_INET_SOCKETS
 #  include <netinet/in.h>
+#  ifdef HAVE_SOCKETS
+#    include <sys/types.h>
+#    include <sys/socket.h>
+#    include <sys/un.h>
+#  endif /* HAVE_SOCKETS */
 # endif
-
 # include <arpa/inet.h>
 
 # define INVALID_SOCKET -1
@@ -67,18 +71,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 #include "getopt.h"
 #ifdef HAVE_UNISTD_H
-#include <unistd.h>
+# include <unistd.h>
 #endif
 
-#ifdef WINDOWSNT
-# include <io.h>
-#else /* not WINDOWSNT */
-# include <pwd.h>
-#endif /* not WINDOWSNT */
+#include <pwd.h>
 #include <sys/stat.h>
-
 #include <signal.h>
 #include <errno.h>
+
 
 
 char *getenv (const char *), *getwd (char *);
@@ -112,10 +112,6 @@ char *w32_getenv (char *);
 
 #ifndef TRUE
 #define TRUE 1
-#endif
-
-#ifndef NO_RETURN
-#define NO_RETURN
 #endif
 
 /* Additional space when allocating buffers for filenames, etc.  */
@@ -702,9 +698,7 @@ fail (void)
 #if !defined (HAVE_SOCKETS) || !defined (HAVE_INET_SOCKETS)
 
 int
-main (argc, argv)
-     int argc;
-     char **argv;
+main (int argc, char **argv)
 {
   main_argv = argv;
   progname = argv[0];
@@ -715,14 +709,6 @@ main (argc, argv)
 }
 
 #else /* HAVE_SOCKETS && HAVE_INET_SOCKETS */
-
-#ifdef WINDOWSNT
-# include <winsock2.h>
-#else
-# include <sys/types.h>
-# include <sys/socket.h>
-# include <sys/un.h>
-#endif
 
 #define AUTH_KEY_LENGTH      64
 #define SEND_BUFFER_SIZE   4096
