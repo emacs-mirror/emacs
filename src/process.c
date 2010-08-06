@@ -43,7 +43,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Only MS-DOS does not define `subprocesses'.  */
 #ifdef subprocesses
 
-#ifdef HAVE_SOCKETS	/* TCP connection support, if kernel can do it */
 #include <sys/socket.h>
 #include <netdb.h>
 #include <netinet/in.h>
@@ -59,7 +58,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/un.h>
 #endif
 #endif
-#endif /* HAVE_SOCKETS */
 
 #if defined(HAVE_SYS_IOCTL_H)
 #include <sys/ioctl.h>
@@ -73,14 +71,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 /* Can we use SIOCGIFCONF and/or SIOCGIFADDR */
-#ifdef HAVE_SOCKETS
 #if defined(HAVE_SYS_IOCTL_H) && defined(HAVE_NET_IF_H)
 /* sys/ioctl.h may have been included already */
 #ifndef SIOCGIFADDR
 #include <sys/ioctl.h>
 #endif
 #include <net/if.h>
-#endif
 #endif
 
 #ifdef HAVE_SYS_WAIT
@@ -169,17 +165,10 @@ extern Lisp_Object QCfamily;
 /* QCfilter is defined in keyboard.c.  */
 extern Lisp_Object QCfilter;
 
-#ifdef HAVE_SOCKETS
 #define NETCONN_P(p) (EQ (XPROCESS (p)->type, Qnetwork))
 #define NETCONN1_P(p) (EQ ((p)->type, Qnetwork))
 #define SERIALCONN_P(p) (EQ (XPROCESS (p)->type, Qserial))
 #define SERIALCONN1_P(p) (EQ ((p)->type, Qserial))
-#else
-#define NETCONN_P(p) 0
-#define NETCONN1_P(p) 0
-#define SERIALCONN_P(p) 0
-#define SERIALCONN1_P(p) 0
-#endif /* HAVE_SOCKETS */
 
 /* Define first descriptor number available for subprocesses.  */
 #define FIRST_PROC_DESC 3
@@ -225,7 +214,6 @@ int update_tick;
 #undef NON_BLOCKING_CONNECT
 #else
 #ifndef NON_BLOCKING_CONNECT
-#ifdef HAVE_SOCKETS
 #ifdef HAVE_SELECT
 #if defined (HAVE_GETPEERNAME) || defined (GNU_LINUX)
 #if defined (O_NONBLOCK) || defined (O_NDELAY)
@@ -235,7 +223,6 @@ int update_tick;
 #endif /* O_NONBLOCK || O_NDELAY */
 #endif /* HAVE_GETPEERNAME || GNU_LINUX */
 #endif /* HAVE_SELECT */
-#endif /* HAVE_SOCKETS */
 #endif /* NON_BLOCKING_CONNECT */
 #endif /* BROKEN_NON_BLOCKING_CONNECT */
 
@@ -248,13 +235,11 @@ int update_tick;
 #undef DATAGRAM_SOCKETS
 #else
 #ifndef DATAGRAM_SOCKETS
-#ifdef HAVE_SOCKETS
 #if defined (HAVE_SELECT) || defined (FIONREAD)
 #if defined (HAVE_SENDTO) && defined (HAVE_RECVFROM) && defined (EMSGSIZE)
 #define DATAGRAM_SOCKETS
 #endif /* HAVE_SENDTO && HAVE_RECVFROM && EMSGSIZE */
 #endif /* HAVE_SELECT || FIONREAD */
-#endif /* HAVE_SOCKETS */
 #endif /* DATAGRAM_SOCKETS */
 #endif /* BROKEN_DATAGRAM_SOCKETS */
 
@@ -1144,7 +1129,6 @@ nil, indicating the current buffer's process.  */)
   return XPROCESS (proc)->type;
 }
 
-#ifdef HAVE_SOCKETS
 DEFUN ("format-network-address", Fformat_network_address, Sformat_network_address,
        1, 2, 0,
        doc: /* Convert network ADDRESS from internal format to a string.
@@ -1218,7 +1202,6 @@ Returns nil if format of ADDRESS is invalid.  */)
 
   return Qnil;
 }
-#endif
 
 static Lisp_Object
 list_processes_1 (Lisp_Object query_only)
@@ -1723,25 +1706,6 @@ create_process_1 (struct atimer *timer)
 }
 
 
-#if 0  /* This doesn't work; see the note before sigchld_handler.  */
-#ifdef USG
-#ifdef SIGCHLD
-/* Mimic blocking of signals on system V, which doesn't really have it.  */
-
-/* Nonzero means we got a SIGCHLD when it was supposed to be blocked.  */
-int sigchld_deferred;
-
-SIGTYPE
-create_process_sigchld ()
-{
-  signal (SIGCHLD, create_process_sigchld);
-
-  sigchld_deferred = 1;
-}
-#endif
-#endif
-#endif
-
 void
 create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 {
@@ -2211,8 +2175,6 @@ create_pty (Lisp_Object process)
 }
 
 
-#ifdef HAVE_SOCKETS
-
 /* Convert an internal struct sockaddr to a lisp object (vector or string).
    The address family of sa is not included in the result.  */
 
@@ -2443,7 +2405,7 @@ Returns nil upon error setting address, ADDRESS otherwise.  */)
 static const struct socket_options {
   /* The name of this option.  Should be lowercase version of option
      name without SO_ prefix. */
-  char *name;
+  const char *name;
   /* Option level SOL_... */
   int optlevel;
   /* Option number SO_... */
@@ -3766,10 +3728,9 @@ usage: (make-network-process &rest ARGS)  */)
   UNGCPRO;
   return proc;
 }
-#endif	/* HAVE_SOCKETS */
 
 
-#if defined(HAVE_SOCKETS) && defined(HAVE_NET_IF_H) && defined(HAVE_SYS_IOCTL_H)
+#if defined(HAVE_NET_IF_H) && defined(HAVE_SYS_IOCTL_H)
 
 #ifdef SIOCGIFCONF
 DEFUN ("network-interface-list", Fnetwork_interface_list, Snetwork_interface_list, 0, 0, 0,
@@ -4012,7 +3973,7 @@ FLAGS is the current flags of the interface.  */)
   return any ? res : Qnil;
 }
 #endif
-#endif	/* HAVE_SOCKETS */
+#endif	/* defined(HAVE_NET_IF_H) && defined(HAVE_SYS_IOCTL_H) */
 
 /* Turn off input and output for process PROC.  */
 
@@ -6060,7 +6021,6 @@ If PROCESS is a network or serial process, inhibit handling of incoming
 traffic.  */)
   (Lisp_Object process, Lisp_Object current_group)
 {
-#ifdef HAVE_SOCKETS
   if (PROCESSP (process) && (NETCONN_P (process) || SERIALCONN_P (process)))
     {
       struct Lisp_Process *p;
@@ -6075,7 +6035,6 @@ traffic.  */)
       p->command = Qt;
       return process;
     }
-#endif
 #ifndef SIGTSTP
   error ("No SIGTSTP support");
 #else
@@ -6091,7 +6050,6 @@ If PROCESS is a network or serial process, resume handling of incoming
 traffic.  */)
   (Lisp_Object process, Lisp_Object current_group)
 {
-#ifdef HAVE_SOCKETS
   if (PROCESSP (process) && (NETCONN_P (process) || SERIALCONN_P (process)))
     {
       struct Lisp_Process *p;
@@ -6114,7 +6072,6 @@ traffic.  */)
       p->command = Qnil;
       return process;
     }
-#endif
 #ifdef SIGCONT
     process_send_signal (process, SIGCONT, current_group, 0);
 #else
@@ -7426,7 +7383,6 @@ init_process (void)
   memset (datagram_address, 0, sizeof datagram_address);
 #endif
 
-#ifdef HAVE_SOCKETS
  {
    Lisp_Object subfeatures = Qnil;
    const struct socket_options *sopt;
@@ -7462,7 +7418,6 @@ init_process (void)
 
    Fprovide (intern_c_string ("make-network-process"), subfeatures);
  }
-#endif /* HAVE_SOCKETS */
 
 #if defined (DARWIN_OS)
   /* PTYs are broken on Darwin < 6, but are sometimes useful for interactive
@@ -7721,19 +7676,17 @@ The variable takes effect when `start-process' is called.  */);
   defsubr (&Sserial_process_configure);
   defsubr (&Smake_serial_process);
 #endif /* HAVE_SERIAL  */
-#ifdef HAVE_SOCKETS
   defsubr (&Sset_network_process_option);
   defsubr (&Smake_network_process);
   defsubr (&Sformat_network_address);
-#endif /* HAVE_SOCKETS */
-#if defined(HAVE_SOCKETS) && defined(HAVE_NET_IF_H) && defined(HAVE_SYS_IOCTL_H)
+#if defined(HAVE_NET_IF_H) && defined(HAVE_SYS_IOCTL_H)
 #ifdef SIOCGIFCONF
   defsubr (&Snetwork_interface_list);
 #endif
 #if defined(SIOCGIFADDR) || defined(SIOCGIFHWADDR) || defined(SIOCGIFFLAGS)
   defsubr (&Snetwork_interface_info);
 #endif
-#endif /* HAVE_SOCKETS ... */
+#endif /* defined(HAVE_NET_IF_H) && defined(HAVE_SYS_IOCTL_H) */
 #ifdef DATAGRAM_SOCKETS
   defsubr (&Sprocess_datagram_address);
   defsubr (&Sset_process_datagram_address);

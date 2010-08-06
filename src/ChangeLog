@@ -1,3 +1,9 @@
+2010-08-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* process.c: Remove HAVE_SOCKETS #ifdefs inside #ifdef
+	subprocesses, only MSDOS does not define HAVE_SOCKETS.
+	(socket_options): Use const char* for name.
+
 2010-08-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	Fix changes in revnos 100982..100984 for Windows build.
@@ -9,8 +15,7 @@
 
 	* menu.h (xmalloc_widget_value, digest_single_submenu): Declare.
 
-	* dired.c (compile_pattern):
-	* syssignal.h (signal_handler_t): Restore declarations.
+	* dired.c (compile_pattern): Restore declaration.
 
 2010-08-05  Dan Nicolaescu  <dann@ics.uci.edu>
 
