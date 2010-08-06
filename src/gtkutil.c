@@ -4156,8 +4156,6 @@ xg_update_tool_bar_sizes (FRAME_PTR f)
 
 /* Update the tool bar for frame F.  Add new buttons and remove old.  */
 
-extern Lisp_Object Qx_gtk_map_stock;
-
 void
 update_frame_tool_bar (FRAME_PTR f)
 {

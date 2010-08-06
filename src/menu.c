@@ -61,12 +61,6 @@ extern HMENU current_popup_menu;
 #define HAVE_BOXES 1
 #endif
 
-/* The timestamp of the last input event Emacs received from the X server.  */
-/* Defined in keyboard.c.  */
-extern unsigned long last_event_timestamp;
-
-extern Lisp_Object QCtoggle, QCradio;
-
 Lisp_Object menu_items;
 
 /* If non-nil, means that the global vars defined here are already in use.

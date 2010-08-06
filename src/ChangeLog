@@ -1,4 +1,90 @@
+2010-08-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	Fix changes in revnos 100982..100984 for Windows build.
+
+	* xmenu.c [USE_X_TOOLKIT || USE_GTK]:
+	Don't declare xmalloc_widget_value and digest_single_submenu.
+
+	* w32font.c (Qlatin): Remove declaration.
+
+	* menu.h (xmalloc_widget_value, digest_single_submenu): Declare.
+
+	* dired.c (compile_pattern):
+	* syssignal.h (signal_handler_t): Restore declarations.
+
 2010-08-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove extern declarations in .c files, .h files have them.
+	* data.c:
+	* dired.c:
+	* editfns.c:
+	* filelock.c:
+	* fns.c:
+	* font.c:
+	* fontset.c:
+	* frame.c:
+	* fringe.c:
+	* ftfont.c:
+	* gtkutil.c:
+	* indent.c:
+	* keyboard.c:
+	* keymap.c:
+	* lread.c:
+	* menu.c:
+	* print.c:
+	* search.c:
+	* sound.c:
+	* window.c:
+	* xdisp.c:
+	* xfaces.c:
+	* xfns.c:
+	* xfont.c:
+	* xftfont.c:
+	* xmenu.c:
+	* xterm.c: Remove declarations.
+
+	Cleanup syssignal.h.
+	* syssignal.h (sighold, sigrelse, RETSIGTYPE): Remove, unused.
+	(main_thread): Move down to remove #ifdef.
+	(SIGMASKTYPE, SIGEMPTYMASK, SIGFULLMASK, sigmask, sigunblock):
+	Remove conditional definition following unconditional ones.
+
+	* lisp.h: Remove HAVE_SHM code, unused.
+	(QCmap, QCrehash_size, QCrehash_threshold, QCsize, QCtest)
+	(QCweakness, Qabove_handle, Qbackquote, Qbar, Qbelow_handle)
+	(Qborder, Qbottom, Qbox, Qcircular_list, Qcomma, Qcomma_at)
+	(Qcomma_dot, Qcursor, Qdefault, Qdown, Qend_scroll, Qeq, Qeql)
+	(Qequal, Qfile_exists_p, Qfont_param, Qfringe, Qfunction)
+	(Qfunction_documentation, Qhandle, Qhbar, Qheader_line, Qhollow)
+	(Qidentity, Qleft_margin, Qmenu, Qmenu_bar_update_hook)
+	(Qmode_line_inactive, Qmouse, Qoverriding_local_map)
+	(Qoverriding_terminal_local_map, Qratio, Qregion, Qright_margin)
+	(Qscroll_bar, Qtool_bar, Qtop, Qup, Qvertical_border, Qwhen)
+	(Qwindow_scroll_functions, Vafter_load_alist)
+	(Vauto_save_list_file_name, Vface_alternative_font_family_alist)
+	(Vface_alternative_font_registry_alist, Vface_font_rescale_alist)
+	(Vface_ignored_fonts, Vinhibit_redisplay, Vminibuffer_list)
+	(Vprint_length, Vprint_level, Vscalable_fonts_allowed)
+	(Vshell_file_name, Vsystem_name, Vwindow_scroll_functions)
+	(Vwindow_system_version, Vx_no_window_manager, initial_argc)
+	(initial_argv, last_nonmenu_event, load_in_progress)
+	(noninteractive_need_newline, scroll_margin): Add declarations.
+
+	* keyboard.h (xmalloc_widget_value, digest_single_submenu): Remove
+	declarations, menu.h has them.
+	(QCbutton, QCtoggle, QCradio, QClabel, extra_keyboard_modifiers)
+	(Vinput_method_function, Qinput_method_function)
+	(Qevent_symbol_element_mask, last_event_timestamp):
+	* dispextern.h (Voverflow_newline_into_fringe):
+	* font.h (QCantialias, Qp, syms_of_ftfont, syms_of_xfns)
+	(syms_of_ftxfont, syms_of_xftfont, syms_of_bdffont)
+	(syms_of_w32font, syms_of_nsfont):
+	* fontset.h (find_font_encoding, Qlatin):
+	* frame.h (Qtooltip, Qrun_hook_with_args, Vmenu_bar_mode)
+	(Vtool_bar_mode, set_frame_menubar):
+	* ftfont.h (ftfont_font_format, ftfont_get_fc_charset):
+	* xterm.h (Qx_gtk_map_stock):
+	* keymap.h (meta_prefix_char): Add declarations.
 
 	* term.c: Remove dead code.
 

@@ -32,6 +32,8 @@ extern void free_menubar_widget_value_tree (widget_value *);
 extern void update_submenu_strings (widget_value *);
 extern void find_and_call_menu_selection (FRAME_PTR, int,
                                           Lisp_Object, void *);
+extern widget_value *xmalloc_widget_value (void);
+extern widget_value *digest_single_submenu (int, int, int);
 #endif
 
 #ifdef HAVE_X_WINDOWS

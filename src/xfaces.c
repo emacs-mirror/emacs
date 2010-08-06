@@ -321,11 +321,6 @@ Lisp_Object QCreverse_video;
 Lisp_Object QCoverline, QCstrike_through, QCbox, QCinherit;
 Lisp_Object QCfontset;
 
-/* Keywords symbols used for font properties.  */
-extern Lisp_Object QCfoundry, QCadstyle, QCregistry;
-extern Lisp_Object QCspacing, QCsize, QCavgwidth;
-extern Lisp_Object Qp;
-
 /* Symbols used for attribute values.  */
 
 Lisp_Object Qnormal, Qbold, Qultra_light, Qextra_light, Qlight;
@@ -351,15 +346,12 @@ Lisp_Object Qframe_set_background_mode;
 Lisp_Object Qdefault, Qtool_bar, Qregion, Qfringe;
 Lisp_Object Qheader_line, Qscroll_bar, Qcursor, Qborder, Qmouse, Qmenu;
 Lisp_Object Qmode_line_inactive, Qvertical_border;
-extern Lisp_Object Qmode_line;
 
 /* The symbol `face-alias'.  A symbols having that property is an
    alias for another face.  Value of the property is the name of
    the aliased face.  */
 
 Lisp_Object Qface_alias;
-
-extern Lisp_Object Qcircular_list;
 
 /* Default stipple pattern used on monochrome displays.  This stipple
    pattern is used on monochrome displays instead of shades of gray

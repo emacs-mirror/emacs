@@ -469,7 +469,6 @@ current_column (void)
   return col;
 }
 
-extern Lisp_Object Qspace, QCwidth, QCalign_to;
 
 /* Check the presence of a display property and compute its width.
    If a property was found and its width was found as well, return

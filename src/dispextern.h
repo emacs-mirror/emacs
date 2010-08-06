@@ -3031,6 +3031,7 @@ extern int x_intersect_rectangles (XRectangle *, XRectangle *,
 
 /* Defined in fringe.c */
 
+extern Lisp_Object Voverflow_newline_into_fringe;
 int lookup_fringe_bitmap (Lisp_Object);
 void draw_fringe_bitmap (struct window *, struct glyph_row *, int);
 void draw_row_fringe_bitmaps (struct window *, struct glyph_row *);

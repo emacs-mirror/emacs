@@ -42,7 +42,6 @@ Lisp_Object Vstandard_output, Qstandard_output;
 Lisp_Object Qtemp_buffer_setup_hook;
 
 /* These are used to print like we read.  */
-extern Lisp_Object Qbackquote, Qcomma, Qcomma_at, Qcomma_dot, Qfunction;
 
 Lisp_Object Vfloat_output_format, Qfloat_output_format;
 
@@ -160,11 +159,6 @@ Lisp_Object Vprint_number_table;
    See the comment of the variable Vprint_number_table.  */
 #define PRINT_NUMBER_OBJECT(table,i) XVECTOR ((table))->contents[(i) * 2]
 #define PRINT_NUMBER_STATUS(table,i) XVECTOR ((table))->contents[(i) * 2 + 1]
-
-/* Nonzero means print newline to stdout before next minibuffer message.
-   Defined in xdisp.c */
-
-extern int noninteractive_need_newline;
 
 void print_interval (INTERVAL interval, Lisp_Object printcharfun);
 
@@ -1401,7 +1395,6 @@ print_preprocess_string (INTERVAL interval, Lisp_Object arg)
 /* A flag to control printing of `charset' text property.
    The default value is Qdefault. */
 Lisp_Object Vprint_charset_text_property;
-extern Lisp_Object Qdefault;
 
 static void print_check_string_charset_prop (INTERVAL interval, Lisp_Object string);
 

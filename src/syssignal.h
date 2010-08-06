@@ -26,10 +26,6 @@ extern void init_signals (void);
 #define FORWARD_SIGNAL_TO_MAIN_THREAD
 #endif
 
-#ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
-extern pthread_t main_thread;
-#endif
-
 /* Don't #include <signal.h>.  That header should always be #included
    before "config.h", because some configuration files (like s/hpux.h)
    indicate that SIGIO doesn't work by #undef-ing SIGIO.  If this file
@@ -69,8 +65,6 @@ extern sigset_t sys_sigmask ();
 #ifndef sigsetmask
 #define sigsetmask(SIG)  sys_sigsetmask (SIG)
 #endif
-#define sighold(SIG)     ONLY_USED_IN_BSD_4_1
-#define sigrelse(SIG)    ONLY_USED_IN_BSD_4_1
 #undef signal
 #define signal(SIG,ACT)      sys_signal(SIG,ACT)
 
@@ -84,27 +78,6 @@ sigset_t sys_sigunblock (sigset_t new_mask);
 sigset_t sys_sigsetmask (sigset_t new_mask);
 
 #define sys_sigdel(MASK,SIG) sigdelset (&MASK,SIG)
-
-#ifndef SIGMASKTYPE
-#define SIGMASKTYPE int
-#endif
-
-#ifndef SIGEMPTYMASK
-#define SIGEMPTYMASK (0)
-#endif
-
-#ifndef SIGFULLMASK
-#define SIGFULLMASK (0xffffffff)
-#endif
-
-#ifndef sigmask
-#define sigmask(no) (1L << ((no) - 1))
-#endif
-
-#ifndef sigunblock
-#define sigunblock(SIG) \
-{ SIGMASKTYPE omask = sigblock (SIGFULLMASK); sigsetmask (omask & ~SIG); }
-#endif
 
 #define sigfree() sigsetmask (SIGEMPTYMASK)
 
@@ -164,6 +137,7 @@ char *strsignal (int);
 #endif
 
 #ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
+extern pthread_t main_thread;
 #define SIGNAL_THREAD_CHECK(signo)                                      \
   do {                                                                  \
     if (!pthread_equal (pthread_self (), main_thread))			\

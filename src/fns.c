@@ -61,17 +61,11 @@ int use_dialog_box;
    questions asked by mouse commands.  */
 int use_file_dialog;
 
-extern Lisp_Object minibuf_window;
-extern Lisp_Object Vlocale_coding_system;
-extern int load_in_progress;
-
 Lisp_Object Qstring_lessp, Qprovide, Qrequire;
 Lisp_Object Qyes_or_no_p_history;
 Lisp_Object Qcursor_in_echo_area;
 Lisp_Object Qwidget_type;
 Lisp_Object Qcodeset, Qdays, Qmonths, Qpaper;
-
-extern Lisp_Object Qinput_method_function;
 
 static int internal_equal (Lisp_Object , Lisp_Object, int, int);
 
@@ -2706,7 +2700,6 @@ advisable.  */)
 }
 
 Lisp_Object Vfeatures, Qsubfeatures;
-extern Lisp_Object Vafter_load_alist;
 
 DEFUN ("featurep", Ffeaturep, Sfeaturep, 1, 2, 0,
        doc: /* Returns t if FEATURE is present in this Emacs.
