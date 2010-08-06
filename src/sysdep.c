@@ -33,9 +33,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
-#ifdef HAVE_TERM_H
-#include <term.h>
-#endif
 
 #include "lisp.h"
 /* Including stdlib.h isn't necessarily enough to get srandom
@@ -110,6 +107,12 @@ extern int quit_char;
 #include "dispextern.h"
 #include "process.h"
 #include "cm.h"  /* for reset_sys_modes */
+#ifdef HAVE_TERM_H
+/* Include this last.  If it is ncurses header file, it adds a lot of
+   defines that interfere with stuff in other headers.  Someone responsible
+   for ncurses messed up bigtime.  See bug#6812.  */
+#include <term.h>
+#endif
 
 /* For serial_configure and serial_open.  */
 extern Lisp_Object QCport, QCspeed, QCprocess;
