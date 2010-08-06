@@ -4865,6 +4865,38 @@ CFLAGS="$SAVE_CFLAGS"
 unset has_option
 unset SAVE_CFLAGS
 
+### Use -Wimplicit-function-declaration if the compiler supports it
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether gcc understands -Wimplicit-function-declaration" >&5
+$as_echo_n "checking whether gcc understands -Wimplicit-function-declaration... " >&6; }
+SAVE_CFLAGS="$CFLAGS"
+CFLAGS="$CFLAGS -Wimplicit-function-declaration"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  has_option=yes
+else
+  has_option=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+if test $has_option = yes; then
+   C_WARNINGS_SWITCH="-Wimplicit-function-declaration $C_WARNINGS_SWITCH"
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $has_option" >&5
+$as_echo "$has_option" >&6; }
+CFLAGS="$SAVE_CFLAGS"
+unset has_option
+unset SAVE_CFLAGS
+
+
 
 
 #### Some other nice autoconf tests.

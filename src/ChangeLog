@@ -1,5 +1,9 @@
 2010-08-06  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* xterm.h (x_get_focus_frame): Declare.
+
+	* keyboard.h (poll_for_input_1): Unconditionally declare.
+
 	* nsterm.h (x_set_menu_bar_lines): Declare.
 
 	* window.c: Don't include menu.h, it depends on lots of other .h-files.

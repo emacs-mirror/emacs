@@ -515,9 +515,7 @@ extern void kbd_buffer_store_event (struct input_event *);
 extern void kbd_buffer_store_event_hold (struct input_event *,
                                          struct input_event *);
 extern void kbd_buffer_unget_event (struct input_event *);
-#ifdef POLL_FOR_INPUT
 extern void poll_for_input_1 (void);
-#endif
 extern void show_help_echo (Lisp_Object, Lisp_Object, Lisp_Object,
                             Lisp_Object, int);
 extern void gen_help_event (Lisp_Object, Lisp_Object, Lisp_Object,
