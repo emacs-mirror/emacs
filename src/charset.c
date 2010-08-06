@@ -28,6 +28,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <ctype.h>
 #include <sys/types.h>
@@ -2139,23 +2140,22 @@ that case, find the charset from what supported by that coding system.  */)
     charset = CHAR_CHARSET (XINT (ch));
   else
     {
-      Lisp_Object charset_list;
-
       if (CONSP (restriction))
 	{
-	  for (charset_list = Qnil; CONSP (restriction);
-	       restriction = XCDR (restriction))
-	    {
-	      int id;
+	  int c = XFASTINT (ch);
 
-	      CHECK_CHARSET_GET_ID (XCAR (restriction), id);
-	      charset_list = Fcons (make_number (id), charset_list);
+	  for (; CONSP (restriction); restriction = XCDR (restriction))
+	    {
+	      struct charset *charset;
+
+	      CHECK_CHARSET_GET_CHARSET (XCAR (restriction), charset);
+	      if (ENCODE_CHAR (charset, c) != CHARSET_INVALID_CODE (charset))
+		return XCAR (restriction);
 	    }
-	  charset_list = Fnreverse (charset_list);
+	  return Qnil;
 	}
-      else
-	charset_list = coding_system_charset_list (restriction);
-      charset = char_charset (XINT (ch), charset_list, NULL);
+      restriction = coding_system_charset_list (restriction);
+      charset = char_charset (XINT (ch), restriction, NULL);
       if (! charset)
 	return Qnil;
     }
@@ -2312,6 +2312,69 @@ Return charset identification number of CHARSET.  */)
   return make_number (id);
 }
 
+struct charset_sort_data
+{
+  Lisp_Object charset;
+  int id;
+  int priority;
+};
+
+static int
+charset_compare (const void *d1, const void *d2)
+{
+  const struct charset_sort_data *data1 = d1, *data2 = d2;
+  return (data1->priority - data2->priority);
+}
+
+DEFUN ("sort-charsets", Fsort_charsets, Ssort_charsets, 1, 1, 0,
+       doc: /* Sort charset list CHARSETS by a priority of each charset.
+Return the sorted list.  CHARSETS is modified by side effects.
+See also `charset-priority-list' and `set-charset-priority'.  */)
+     (Lisp_Object charsets)
+{
+  Lisp_Object len = Flength (charsets);
+  int n = XFASTINT (len), i, j, done;
+  Lisp_Object tail, elt, attrs;
+  struct charset_sort_data *sort_data;
+  int id, min_id, max_id;
+  USE_SAFE_ALLOCA;
+
+  if (n == 0)
+    return Qnil;
+  SAFE_ALLOCA (sort_data, struct charset_sort_data *, sizeof (*sort_data) * n);
+  for (tail = charsets, i = 0; CONSP (tail); tail = XCDR (tail), i++)
+    {
+      elt = XCAR (tail);
+      CHECK_CHARSET_GET_ATTR (elt, attrs);
+      sort_data[i].charset = elt;
+      sort_data[i].id = id = XINT (CHARSET_ATTR_ID (attrs));
+      if (i == 0)
+	min_id = max_id = id;
+      else if (id < min_id)
+	min_id = id;
+      else if (id > max_id)
+	max_id = id;
+    }
+  for (done = 0, tail = Vcharset_ordered_list, i = 0;
+       done < n && CONSP (tail); tail = XCDR (tail), i++)
+    {
+      elt = XCAR (tail);
+      id = XFASTINT (elt);
+      if (id >= min_id && id <= max_id)
+	for (j = 0; j < n; j++)
+	  if (sort_data[j].id == id)
+	    {
+	      sort_data[j].priority = i;
+	      done++;
+	    }
+    }
+  qsort (sort_data, n, sizeof *sort_data, charset_compare);
+  for (i = 0, tail = charsets; CONSP (tail); tail = XCDR (tail), i++)
+    XSETCAR (tail, sort_data[i].charset);
+  SAFE_FREE ();
+  return charsets;
+}
+
 
 void
 init_charset ()
@@ -2414,6 +2477,7 @@ syms_of_charset ()
   defsubr (&Scharset_priority_list);
   defsubr (&Sset_charset_priority);
   defsubr (&Scharset_id_internal);
+  defsubr (&Ssort_charsets);
 
   DEFVAR_LISP ("charset-map-path", &Vcharset_map_path,
 	       doc: /* *List of directories to search for charset map files.  */);

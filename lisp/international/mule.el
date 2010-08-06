@@ -282,6 +282,7 @@ attribute."
 	(plist-put props :short-name (symbol-name name)))
     (or (plist-get props :long-name)
 	(plist-put props :long-name (plist-get props :short-name)))
+    (plist-put props :base name)
     ;; We can probably get a worthwhile amount in purespace.
     (setq props
 	  (mapcar (lambda (elt)
@@ -1535,11 +1536,13 @@ of `ctext-non-standard-encodings-alist'.")
       (let* ((slot (assoc elt ctext-non-standard-encodings-alist))
 	     (charset (nth 3 slot)))
 	(if (charsetp charset)
-	    (setcar tail (cons charset slot))
+	    (setcar tail
+		    (cons (plist-get (charset-plist charset) :base) slot))
 	  (setcar tail (cons (car charset) slot))
 	  (dolist (cs (cdr charset))
 	    (setcdr tail
-		    (cons (cons (car cs) slot) (cdr tail)))
+		    (cons (cons (plist-get (charset-plist (car cs)) :base) slot)
+			  (cdr tail)))
 	    (setq tail (cdr tail))))
 	(setq tail (cdr tail))))
     table))
@@ -1559,74 +1562,56 @@ in-place."
       (setq from 1 to (point-max)))
     (save-restriction
       (narrow-to-region from to)
+      (goto-char from)
       (let ((encoding-table (ctext-non-standard-encodings-table))
-	    (charset-list ctext-standard-encodings)
+	    (charset-list (sort-charsets
+			   (copy-sequence ctext-standard-encodings)))
+	    (end-pos (make-marker))
 	    last-coding-system-used
-	    last-pos last-encoding-info
-	    encoding-info end-pos ch charset)
+	    last-pos charset encoding-info)
 	(dolist (elt encoding-table)
 	  (push (car elt) charset-list))
-	(goto-char (setq last-pos from))
 	(setq end-pos (point-marker))
-	(while (re-search-forward "[^\000-\177]+" nil t)
+	(while (re-search-forward "[^\0-\177]+" nil t)
 	  ;; Found a sequence of non-ASCII characters.
-	  (setq last-pos (match-beginning 0)
-		ch (char-after last-pos)
-		charset (char-charset ch charset-list)
-		last-encoding-info
-		(if charset
-		    (or (cdr (assq charset encoding-table))
-			charset)
-		  'utf-8))
 	  (set-marker end-pos (match-end 0))
-	  (goto-char (1+ last-pos))
-	  (while (marker-position end-pos)
-	    (if (< (point) end-pos)
-		(progn
-		  (setq charset (char-charset (following-char) charset-list)
-			encoding-info
-			(if charset
-			    (or (cdr (assq charset encoding-table))
-				charset)
-			  'utf-8))
-		  (forward-char 1))
-	      (setq encoding-info nil)
-	      (set-marker end-pos nil))
-	    (unless (eq last-encoding-info encoding-info)
-	      (cond ((consp last-encoding-info)
-		     ;; Encode the previous range using an extended
-		     ;; segment.
-		     (let ((encoding-name (car last-encoding-info))
-			   (coding-system (nth 1 last-encoding-info))
-			   (noctets (nth 2 last-encoding-info))
-			   len)
-		       (encode-coding-region last-pos (point) coding-system)
-		       (setq len (+ (length encoding-name) 1
-				    (- (point) last-pos)))
-		       ;; According to the spec of CTEXT, it is not
-		       ;; necessary to produce this extra designation
-		       ;; sequence, but some buggy application
-		       ;; (e.g. crxvt-gb) requires it.
-		       (insert "\e(B")
-		       (save-excursion
-			 (goto-char last-pos)
-			 (insert (format "\e%%/%d" noctets))
-			 (insert-byte (+ (/ len 128) 128) 1)
-			 (insert-byte (+ (% len 128) 128) 1)
-			 (insert encoding-name)
-			 (insert 2))))
-		    ((eq last-encoding-info 'utf-8)
-		     ;; Encode the previous range using UTF-8 encoding
-		     ;; extention.
-		     (encode-coding-region last-pos (point) 'mule-utf-8)
-		     (save-excursion
-		       (goto-char last-pos)
-		       (insert "\e%G"))
-		     (insert "\e%@"))
-		    (t
-		     (put-text-property last-pos (point) 'charset charset)))
-	      (setq last-pos (point)
-		    last-encoding-info encoding-info))))
+	  (goto-char (match-beginning 0))
+	  (setq last-pos (point)
+		charset (char-charset (following-char) charset-list))
+	  (forward-char 1)
+	  (while (and (< (point) end-pos)
+		      (eq charset (char-charset (following-char) charset-list)))
+	    (forward-char 1))
+	  (if charset
+	      (if (setq encoding-info (cdr (assq charset encoding-table)))
+		  ;; Encode this range using an extended segment.
+		  (let ((encoding-name (car encoding-info))
+			(coding-system (nth 1 encoding-info))
+			(noctets (nth 2 encoding-info))
+			len)
+		    (encode-coding-region last-pos (point) coding-system)
+		    (setq len (+ (length encoding-name) 1
+				 (- (point) last-pos)))
+		    ;; According to the spec of CTEXT, it is not
+		    ;; necessary to produce this extra designation
+		    ;; sequence, but some buggy application
+		    ;; (e.g. crxvt-gb) requires it.
+		    (insert "\e(B")
+		    (save-excursion
+		      (goto-char last-pos)
+		      (insert (format "\e%%/%d" noctets))
+		      (insert-byte (+ (/ len 128) 128) 1)
+		      (insert-byte (+ (% len 128) 128) 1)
+		      (insert encoding-name)
+		      (insert 2)))
+		;; Encode this range as characters in CHARSET.
+		(put-text-property last-pos (point) 'charset charset))
+	    ;; Encode this range using UTF-8 encoding extention.
+	    (encode-coding-region last-pos (point) 'mule-utf-8)
+	    (save-excursion
+	      (goto-char last-pos)
+	      (insert "\e%G"))
+	    (insert "\e%@")))
 	(goto-char (point-min)))))
   ;; Must return nil, as build_annotations_2 expects that.
   nil)
