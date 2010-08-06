@@ -15,6 +15,48 @@
 	(ctext-no-compositions): Doc fix.
 	(compound-text-with-extensions): Doc fix.
 
+2010-08-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/which-func.el (which-func-format): Split help-echo text
+	into lines, like other mode-line tooltips.
+
+	* server.el (server-start): When using TCP sockets, force IPv4
+	and use a literal 127.0.0.1 for localhost.  (Related to bug#6781.)
+
+2010-08-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bindings.el (complete-symbol): Run completion-at-point as a fallback.
+
+2010-08-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* term.el (term-delimiter-argument-list): Reflow docstring.
+	(term-read-input-ring, term-write-input-ring, term-send-input)
+	(term-bol, term-erase-in-display, serial-supported-or-barf):
+	Fix typos in docstrings.
+
+2010-08-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bindings.el (function-key-map): Add a S-tab => backtab fallback.
+
+2010-08-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dabbrev.el (dabbrev-completion): Fix typo in docstring.
+
+2010-08-01  MON KEY  <monkey@sandpframing.com>  (tiny change)
+
+	* emacs-lisp/syntax.el (syntax-ppss-toplevel-pos):
+	Fix typo in docstring (bug#6747).
+
+2010-07-30  Leo  <sdl.web@gmail.com>
+
+	* eshell/esh-io.el (eshell-get-target): Better detection of
+	read-only file (Bug#6762).
+
+2010-07-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* align.el (align-default-spacing): Doc fix.
+	(align-region-heuristic, align-regexp): Fix typos in docstrings.
+
 2010-07-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* help-fns.el (find-lisp-object-file-name): Doc fix (bug#6494).

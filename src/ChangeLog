@@ -1,3 +1,24 @@
+2010-08-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32fns.c (syms_of_w32fns) <x-max-tooltip-size>: Fix typo in docstring.
+	* xfns.c (syms_of_xfns) <x-max-tooltip-size>: Reflow docstring.
+
+2010-07-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* fns.c (Fsubstring_no_properties, Fnthcdr, Ffeaturep)
+	(Fhash_table_size): Fix typos in docstrings.
+	(Fmake_hash_table): Doc fix.
+
+2010-07-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuf.c (syms_of_minibuf) <read-buffer-function>:
+	Doc fix (bug#5625).
+
+2010-07-27  Ken Brown  <kbrown@cornell.edu>
+
+	* dired.c (DIRENTRY_NONEMPTY) [cygwin]: Use d_ino instead of
+	the MSDOS definition.
+
 2010-07-25  Christoph Scholtes  <cschol2112@gmail.com>
 
 	* minibuf.c (Fread_buffer): Doc fix (bug#6528).

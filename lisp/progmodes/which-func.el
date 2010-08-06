@@ -145,7 +145,9 @@ Zero means compute the Imenu menu regardless of size."
 		 local-map ,which-func-keymap
 		 face which-func
 		 ;;mouse-face highlight	; currently not evaluated :-(
-		 help-echo "mouse-1: go to beginning, mouse-2: toggle rest visibility, mouse-3: go to end")
+		 help-echo "mouse-1: go to beginning\n\
+mouse-2: toggle rest visibility\n\
+mouse-3: go to end")
     "]")
   "Format for displaying the function in the mode line."
   :group 'which-func
