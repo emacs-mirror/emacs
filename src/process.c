@@ -6361,8 +6361,7 @@ sigchld_handler (int signo)
 {
   int old_errno = errno;
   Lisp_Object proc;
-  register struct Lisp_Process *p;
-  extern EMACS_TIME *input_available_clear_time;
+  struct Lisp_Process *p;
 
   SIGNAL_THREAD_CHECK (signo);
 

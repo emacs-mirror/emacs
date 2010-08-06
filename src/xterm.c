@@ -7628,7 +7628,6 @@ x_connection_closed (Display *dpy, const char *error_message)
       /* If DPYINFO is null, this means we didn't open the display
 	 in the first place, so don't try to close it.  */
       {
-        extern void (*fatal_error_signal_hook) (void);
 	fatal_error_signal_hook = x_fatal_error_signal;
 	XtCloseDisplay (dpy);
 	fatal_error_signal_hook = NULL;

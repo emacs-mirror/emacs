@@ -126,6 +126,9 @@ typedef struct ns_bitmap_record Bitmap_Record;
 
 Lisp_Object Vx_bitmap_file_path;
 
+/* The symbol `postscript' identifying images of this type.  */
+
+Lisp_Object Qpostscript;
 
 static void x_disable_image (struct frame *, struct image *);
 static void x_edge_detection (struct frame *, struct image *, Lisp_Object,
@@ -1756,8 +1759,6 @@ lookup_image (struct frame *f, Lisp_Object spec)
   /* If not found, create a new image and cache it.  */
   if (img == NULL)
     {
-      extern Lisp_Object Qpostscript;
-
       BLOCK_INPUT;
       img = make_image (spec, hash);
       cache_image (f, img);
@@ -7741,10 +7742,6 @@ svg_load_image (struct frame *f,         /* Pointer to emacs frame structure.  *
 #ifdef HAVE_X_WINDOWS
 #define HAVE_GHOSTSCRIPT 1
 #endif /* HAVE_X_WINDOWS */
-
-/* The symbol `postscript' identifying images of this type.  */
-
-Lisp_Object Qpostscript;
 
 #ifdef HAVE_GHOSTSCRIPT
 

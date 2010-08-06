@@ -291,7 +291,6 @@ file_for_image (Lisp_Object image)
 {
   Lisp_Object specified_file = Qnil;
   Lisp_Object tail;
-  extern Lisp_Object QCfile;
 
   for (tail = XCDR (image);
        NILP (specified_file) && CONSP (tail) && CONSP (XCDR (tail));

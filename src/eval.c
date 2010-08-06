@@ -1629,7 +1629,6 @@ See also the function `condition-case'.  */)
      That is a special case--don't do this in other situations.  */
   register struct handler *allhandlers = handlerlist;
   Lisp_Object conditions;
-  extern int waiting_for_input;
   Lisp_Object string;
   Lisp_Object real_error_symbol;
   struct backtrace *bp;
@@ -3432,7 +3431,6 @@ Output stream used is value of `standard-output'.  */)
   register int i;
   Lisp_Object tail;
   Lisp_Object tem;
-  extern Lisp_Object Vprint_level;
   struct gcpro gcpro1;
 
   XSETFASTINT (Vprint_level, 3);

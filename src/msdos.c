@@ -1453,7 +1453,6 @@ IT_note_mouse_highlight (struct frame *f, int x, int y)
 	/* Look for a `help-echo' property.  */
 	{
 	  Lisp_Object help;
-	  extern Lisp_Object Qhelp_echo;
 
 	  /* Check overlays first.  */
 	  help = Qnil;

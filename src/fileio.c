@@ -854,8 +854,6 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 
 	 To avoid this, we set default_directory to the root of the
 	 current drive.  */
-      extern char *emacs_root_dir (void);
-
       default_directory = build_string (emacs_root_dir ());
 #else
       default_directory = build_string ("/");

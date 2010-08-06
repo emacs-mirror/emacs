@@ -1,5 +1,15 @@
 2010-08-06  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	Remove extern declarations in .c files, .h files have them.
+	* xterm.c:
+	* xdisp.c:
+	* process.c:
+	* msdos.c:
+	* image.c:
+	* gtkutil.c:
+	* fileio.c:
+	* eval.c: Remove declarations.
+
 	* frame.c (frame_params): Make const.
 
 	* lisp.h (fatal_error_signal, emacs_root_dir): Add declaration.
