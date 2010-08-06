@@ -1,5 +1,11 @@
 2010-08-06  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* emacs.c (emacs_copyright, emacs_version): Make static.
+	(Vinitial_window_system, Vauto_save_list_file_name)
+	(Vinhibit_redisplay): Remove declarations.
+	(main): Remove HAVE_SHM code, unused.  Remove _I386 conditional
+	for AIX.
+
 	Use const for some arrays and functions.
 	* xterm.h (xg_set_icon_from_xpm_data):
 	* xfns.c (xg_set_icon_from_xpm_data):
