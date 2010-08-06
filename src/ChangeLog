@@ -23,9 +23,9 @@
 
 	* term.c: Check HAVE_SYS_IOCTL_H.
 
-	* sysdep.c: Check HAVE_TERM_H
+	* sysdep.c: Check HAVE_TERM_H.
 
-	* process.c: Check HAVE_UTIL_H. Include nsterm.h if HAVE_NS.
+	* process.c: Check HAVE_UTIL_H.  Include nsterm.h if HAVE_NS.
 
 	* nsterm.m (ns_init_paths, ns_alloc_autorelease_pool)
 	(ns_ring_bell, ns_defined_color, hide_hourglass)
@@ -41,7 +41,7 @@
 	(x_pixel_width, x_pixel_height, x_set_frame_alpha, x_set_tool_bar_lines)
 	(x_activate_menubar, free_frame_menubar, ns_init_paths, ns_select)
 	(syms_of_nsterm, syms_of_nsfns, syms_of_nsmenu, syms_of_nsselect):
-	Declare
+	Declare.
 
 	* nsmenu.m (popup_activated, name_is_separator)
 	(syms_of_nsmenu): Convert to ANSI C prototypes.
@@ -310,7 +310,7 @@
 	Only make handlebox_widget if NULL.
 	Check if tool bar goes to vbox or hbox depending on pos.
 	(xg_update_tool_bar_sizes): New function.
-	(update_frame_tool_bar): Remove old_req, new_req. Do not get tool bar
+	(update_frame_tool_bar): Remove old_req, new_req.  Do not get tool bar
 	height, call xg_update_tool_bar_sizes instead.
 	(free_frame_tool_bar): Remove from hbox or vbox depending on
 	toolbar_in_hbox,  Set all FRAME_TOOLBAR_*_(WIDTH|HEIGHT) to zero.
@@ -488,7 +488,7 @@
 
 	* xfaces.c (Qmouse_face): Remove declaration.
 	(face_color_gray_p, tty_defined_color, defined_color)
-	(face_color_gray_p, face_color_supported_p). Add const.
+	(face_color_gray_p, face_color_supported_p): Add const.
 
 	* xdisp.c (do_mouse_tracking): Remove declaration.
 	(add_to_log): Use const.
@@ -3890,8 +3890,8 @@
 	(syms_of_xsettings): Initialize current_font.
 	defsubr Sfont_get_system_normal_font.
 
-	* xsettings.h (Ffont_get_system_normal_font,
-	xsettings_get_system_normal_font): Declare.
+	* xsettings.h (Ffont_get_system_normal_font)
+	(xsettings_get_system_normal_font): Declare.
 
 	* xfns.c (extern xlwmenu_default_font): Remove.
 	(Fx_create_frame): Remove setting of xlwmenu_default_font, moved
@@ -5693,7 +5693,7 @@
 	(store_symval_forwarding): Take into account the fact that Ints can
 	now have more than one tag.
 	* buffer.c (syms_of_buffer): Use LISP_INT_TAG.
-	buffer_slot_type_mismatch):
+	(buffer_slot_type_mismatch):
 	* xfaces.c (face_attr_equal_p):
 	* print.c (print_object):
 	* alloc.c (mark_maybe_object, mark_object, survives_gc_p):
