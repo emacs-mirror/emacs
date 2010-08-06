@@ -96,8 +96,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <memory.h>
 #endif /* USG */
 
-extern int quit_char;
-
 #include "keyboard.h"
 #include "frame.h"
 #include "window.h"
@@ -113,11 +111,6 @@ extern int quit_char;
    for ncurses messed up bigtime.  See bug#6812.  */
 #include <term.h>
 #endif
-
-/* For serial_configure and serial_open.  */
-extern Lisp_Object QCport, QCspeed, QCprocess;
-extern Lisp_Object QCbytesize, QCstopbits, QCparity, Qodd, Qeven;
-extern Lisp_Object QCflowcontrol, Qhw, Qsw, QCsummary;
 
 #ifdef WINDOWSNT
 #include <direct.h>
