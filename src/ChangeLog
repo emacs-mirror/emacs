@@ -1,5 +1,7 @@
 2010-08-06  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* lisp.h (fatal_error_signal, emacs_root_dir): Add declaration.
+
 	* emacs.c (emacs_copyright, emacs_version): Make static.
 	(Vinitial_window_system, Vauto_save_list_file_name)
 	(Vinhibit_redisplay): Remove declarations.

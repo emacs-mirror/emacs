@@ -3300,6 +3300,7 @@ extern Lisp_Object Vbefore_init_time, Vafter_init_time;
 extern Lisp_Object Vinstallation_directory;
 extern Lisp_Object empty_unibyte_string, empty_multibyte_string;
 extern Lisp_Object Qfile_name_handler_alist;
+extern void (*fatal_error_signal_hook) (void);
 EXFUN (Fkill_emacs, 1) NO_RETURN;
 #if HAVE_SETLOCALE
 void fixup_locale (void);
@@ -3591,6 +3592,11 @@ int xd_pending_messages (void);
 void xd_read_queued_messages (void);
 void syms_of_dbusbind (void);
 #endif
+
+#ifdef DOS_NT
+/* Defined in msdos.c, w32.c */
+extern char *emacs_root_dir (void);
+#endif /* DOS_NT */
 
 /* Nonzero means Emacs has already been initialized.
    Used during startup to detect startup of dumped Emacs.  */
