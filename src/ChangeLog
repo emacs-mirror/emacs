@@ -1,3 +1,11 @@
+2010-08-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (realloc_glyph_pool): Zero out newly allocated glyphs.
+
+	* msdos.c (IT_display_cursor): Log cursor position on termscript.
+
+	* .gdbinit (pgx): Display the avoid_cursor_p flag.
+
 2010-08-06  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* process.c: Remove HAVE_SOCKETS #ifdefs inside #ifdef
