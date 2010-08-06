@@ -535,6 +535,9 @@ define pgx
   if ($g->overlaps_vertically_p)
     printf " OVL"
   end
+  if ($g->avoid_cursor_p)
+    printf " AVOID"
+  end
   if ($g->left_box_line_p)
     printf " ["
   end
