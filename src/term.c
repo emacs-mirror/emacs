@@ -1266,7 +1266,7 @@ struct fkey_table {
      other keys (as on the IBM PC keyboard) they get overridden.
   */
 
-static struct fkey_table keys[] =
+static const struct fkey_table keys[] =
 {
   {"kh", "home"},	/* termcap */
   {"kl", "left"},	/* termcap */
@@ -2906,7 +2906,6 @@ term_mouse_highlight (struct frame *f, int x, int y)
 	/* Look for a `help-echo' property.  */
 	{
 	  Lisp_Object help;
-	  extern Lisp_Object Qhelp_echo;
 
 	  /* Check overlays first.  */
 	  help = Qnil;

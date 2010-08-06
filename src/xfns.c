@@ -762,10 +762,10 @@ xg_set_icon (FRAME_PTR f, Lisp_Object file)
 }
 
 int
-xg_set_icon_from_xpm_data (FRAME_PTR f, char **data)
+xg_set_icon_from_xpm_data (FRAME_PTR f, const char **data)
 {
   int result = 0;
-  GdkPixbuf *pixbuf = gdk_pixbuf_new_from_xpm_data ((const char **) data);
+  GdkPixbuf *pixbuf = gdk_pixbuf_new_from_xpm_data (data);
 
   if (!pixbuf)
     return 0;

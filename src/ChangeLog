@@ -1,3 +1,16 @@
+2010-08-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Use const for some arrays and functions.
+	* xterm.h (xg_set_icon_from_xpm_data):
+	* xfns.c (xg_set_icon_from_xpm_data):
+	* term.c (fkeys):
+	* keyboard.c (lispy_accent_keys, lispy_function_keys)
+	(lispy_multimedia_keys, lispy_kana_keys, iso_lispy_function_keys)
+	(lispy_drag_n_drop_names, scroll_bar_parts, modify_event_symbol)
+	(frame.c frame_parms):
+	* emacs-icon.h (gnu_xpm_bits):
+	* callint.c (callint_argfuns): Use const.
+
 2010-08-06  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* sysdep.c: Move include term.h last of includes (Bug#6812).
