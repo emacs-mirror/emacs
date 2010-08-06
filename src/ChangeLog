@@ -1,5 +1,9 @@
 2010-08-06  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* nsterm.h (x_set_menu_bar_lines): Declare.
+
+	* window.c: Don't include menu.h, it depends on lots of other .h-files.
+
 	* xfaces.c (x_create_gc, x_free_gc): Convert to ANSI C prototypes.
 
 	* window.c: Include menu.h.

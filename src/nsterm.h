@@ -761,6 +761,7 @@ extern int x_char_height (struct frame *f);
 extern int x_pixel_width (struct frame *f);
 extern int x_pixel_height (struct frame *f);
 extern void x_set_frame_alpha (struct frame *f);
+extern void x_set_menu_bar_lines (struct frame *, Lisp_Object, Lisp_Object);
 extern void x_set_tool_bar_lines (struct frame *f,
                                   Lisp_Object value,
                                   Lisp_Object oldval);
