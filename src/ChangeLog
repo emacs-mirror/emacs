@@ -1,5 +1,7 @@
 2010-08-06  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* process.c: Simplify include logic.
+
 	* keyboard.h (quit_char): Add declaration.
 	* process.h (QCport, QCspeed, QCprocess, QCbytesize, QCstopbits)
 	(QCparity, Qodd, Qeven, QCflowcontrol, Qhw, Qsw, QCsummary): Add
@@ -10,7 +12,6 @@
 	Remove extern declarations in .c files, .h files have them.
 	* xterm.c:
 	* xdisp.c:
-	* process.c:
 	* msdos.c:
 	* image.c:
 	* gtkutil.c:
