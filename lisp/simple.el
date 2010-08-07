@@ -895,7 +895,7 @@ the end of the line."
 	(t (delete-char (- n) killflag))))
 
 (defun delete-forward-char (n &optional killflag)
-  "Delete the previous N characters (following if N is negative).
+  "Delete the following N characters (previous if N is negative).
 If Transient Mark mode is enabled, the mark is active, and N is 1,
 delete the text in the region and deactivate the mark instead.
 To disable this, set `delete-active-region' to nil.

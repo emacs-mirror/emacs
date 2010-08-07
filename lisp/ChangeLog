@@ -1,5 +1,7 @@
 2010-08-07  Eli Zaretskii  <eliz@gnu.org>
 
+	* simple.el (delete-forward-char): Doc fix.
+
 	* tutorial.el (help-with-tutorial): Hack safe file-local variables
 	after reading the tutorial.
 
