@@ -3686,7 +3686,8 @@ This function also runs `deactivate-mark-hook'."
 	    ((/= (region-beginning) (region-end))
 	     (x-set-selection 'PRIMARY
 			      (buffer-substring-no-properties
-			       (point) (mark))))))
+			       (region-beginning)
+			       (region-end))))))
     (if (and (null force)
 	     (or (eq transient-mark-mode 'lambda)
 		 (and (eq (car-safe transient-mark-mode) 'only)
