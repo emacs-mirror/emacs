@@ -1,5 +1,10 @@
 2010-08-07  Chong Yidong  <cyd@stupidchicken.com>
 
+	* keyboard.c (command_loop_1):
+	* insdel.c (prepare_to_modify_buffer): Don't call validate_region.
+
+2010-08-07  Chong Yidong  <cyd@stupidchicken.com>
+
 	* insdel.c (prepare_to_modify_buffer): Save active region text to
 	Vsaved_region_selection.
 

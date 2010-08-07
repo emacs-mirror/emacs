@@ -1797,11 +1797,14 @@ command_loop_1 (void)
 	    {
 	      /* Set window selection.  If `select-active-regions' is
 		 `lazy', only do it for temporarily active regions. */
-	      Lisp_Object beg = Fmarker_position (current_buffer->mark);
-	      Lisp_Object end = make_number (PT);
-	      validate_region (&beg, &end);
-	      call2 (Qx_set_selection, QPRIMARY,
-		     make_buffer_string (XINT (beg), XINT (end), 0));
+	      int beg = XINT (Fmarker_position (current_buffer->mark));
+	      int end = XINT (make_number (PT));
+	      if (beg < end)
+		call2 (Qx_set_selection, QPRIMARY,
+		       make_buffer_string (beg, end, 0));
+	      else if (beg > end)
+		call2 (Qx_set_selection, QPRIMARY,
+		       make_buffer_string (end, beg, 0));
 	    }
 
 	  if (!NILP (Vdeactivate_mark))

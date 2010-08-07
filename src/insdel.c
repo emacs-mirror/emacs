@@ -2055,13 +2055,12 @@ prepare_to_modify_buffer (EMACS_INT start, EMACS_INT end,
       && !NILP (Vtransient_mark_mode)
       && NILP (Vsaved_region_selection))
     {
-      Lisp_Object b = Fmarker_position (current_buffer->mark);
-      Lisp_Object e = make_number (PT);
-      if (NILP (Fequal (b, e)))
-	{
-	  validate_region (&b, &e);
-	  Vsaved_region_selection = make_buffer_string (XINT (b), XINT (e), 0);
-	}
+      int b = XINT (Fmarker_position (current_buffer->mark));
+      int e = XINT (make_number (PT));
+      if (b < e)
+	Vsaved_region_selection = make_buffer_string (b, e, 0);
+      else if (b > e)
+	Vsaved_region_selection = make_buffer_string (e, b, 0);
     }
 
   signal_before_change (start, end, preserve_ptr);
