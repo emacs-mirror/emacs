@@ -106,8 +106,6 @@ static char buffer_permanent_local_flags[MAX_PER_BUFFER_VARS];
 int last_per_buffer_idx;
 
 EXFUN (Fset_buffer, 1);
-void set_buffer_internal (struct buffer *b);
-void set_buffer_internal_1 (struct buffer *b);
 static void call_overlay_mod_hooks (Lisp_Object list, Lisp_Object overlay,
                                     int after, Lisp_Object arg1,
                                     Lisp_Object arg2, Lisp_Object arg3);

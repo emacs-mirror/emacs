@@ -2430,7 +2430,6 @@ struct it
 
 #define PRODUCE_GLYPHS(IT)                              \
   do {                                                  \
-    extern int inhibit_free_realized_faces;             \
     if ((IT)->glyph_row != NULL && (IT)->bidi_p)	\
       {							\
         if ((IT)->bidi_it.paragraph_dir == R2L)		\
@@ -3243,15 +3242,9 @@ void clear_glyph_row (struct glyph_row *);
 void prepare_desired_row (struct glyph_row *);
 int line_hash_code (struct glyph_row *);
 void set_window_update_flags (struct window *, int);
-void redraw_frame (struct frame *);
-void redraw_garbaged_frames (void);
-int scroll_cost (struct frame *, int, int, int);
-int update_frame (struct frame *, int, int);
 void update_single_window (struct window *, int);
-int scrolling (struct frame *);
 void do_pending_window_change (int);
 void change_frame_size (struct frame *, int, int, int, int, int);
-void bitch_at_user (void);
 void init_display (void);
 void syms_of_display (void);
 extern Lisp_Object Qredisplay_dont_pause;
