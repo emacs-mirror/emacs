@@ -1,3 +1,7 @@
+2010-08-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* tutorials/TUTORIAL.he: Don't use acronyms.
+
 2010-08-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* AUTHORS: Rename unexec.o => unexcoff.o.
