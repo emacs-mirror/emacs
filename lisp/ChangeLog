@@ -1,3 +1,10 @@
+2010-08-07  Michael R. Mauger  <mmaug@yahoo.com>
+
+	* progmodes/sql.el (sql-mode-sqlite-font-lock-keywords): Added
+	SQLite 3 keywords, functions and datatypes.
+	(sql-interactive-mode): Removed `comint-process-echoes' set to t
+	(Bug#6686).
+
 2010-08-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (select-active-regions): Move to keyboard.c.
