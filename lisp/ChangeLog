@@ -1,3 +1,18 @@
+2010-08-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (select-active-regions): Move to keyboard.c.
+	(deactivate-mark): Used saved-region-selection.
+	(select-active-region): Function removed.
+	(activate-mark, set-mark, push-mark-command)
+	(handle-shift-selection): Don't call it.
+	(keyboard-quit): Avoid adding the region to the window selection.
+
+	* mouse.el (mouse-drag-track): Remove hacks to deal with old
+	select-active-regions implementation.
+	(mouse-yank-at-click): Doc fix.
+
+	* cus-start.el: Add custom declaration for select-active-regions.
+
 2010-08-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* simple.el (delete-forward-char): Doc fix.

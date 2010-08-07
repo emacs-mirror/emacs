@@ -3666,29 +3666,27 @@ a mistake; see the documentation of `set-mark'."
       (marker-position (mark-marker))
     (signal 'mark-inactive nil)))
 
-(defcustom select-active-regions t
-  "If non-nil, an active region automatically becomes the window selection."
-  :type 'boolean
-  :group 'killing
-  :version "24.1")
-
 (declare-function x-selection-owner-p "xselect.c" (&optional selection))
 
-;; Many places set mark-active directly, and several of them failed to also
-;; run deactivate-mark-hook.  This shorthand should simplify.
 (defsubst deactivate-mark (&optional force)
   "Deactivate the mark by setting `mark-active' to nil.
 Unless FORCE is non-nil, this function does nothing if Transient
 Mark mode is disabled.
 This function also runs `deactivate-mark-hook'."
   (when (or transient-mark-mode force)
-    ;; Copy the latest region into the primary selection, if desired.
-    (and select-active-regions
-	 mark-active
-	 (display-selections-p)
-	 (x-selection-owner-p 'PRIMARY)
-	 (x-set-selection 'PRIMARY (buffer-substring-no-properties
-				    (region-beginning) (region-end))))
+    (when (and select-active-regions
+	       (region-active-p)
+	       (display-selections-p))
+      ;; The var `saved-region-selection', if non-nil, is the text in
+      ;; the region prior to the last command modifying the buffer.
+      ;; Set the selection to that, or to the current region.
+      (cond (saved-region-selection
+	     (x-set-selection 'PRIMARY saved-region-selection)
+	     (setq saved-region-selection nil))
+	    ((/= (region-beginning) (region-end))
+	     (x-set-selection 'PRIMARY
+			      (buffer-substring-no-properties
+			       (point) (mark))))))
     (if (and (null force)
 	     (or (eq transient-mark-mode 'lambda)
 		 (and (eq (car-safe transient-mark-mode) 'only)
@@ -3706,14 +3704,7 @@ This function also runs `deactivate-mark-hook'."
   (when (mark t)
     (setq mark-active t)
     (unless transient-mark-mode
-      (setq transient-mark-mode 'lambda))
-    (select-active-region)))
-
-(defsubst select-active-region ()
-  "Set the PRIMARY X selection if `select-active-regions' is non-nil."
-  (and select-active-regions
-       (display-selections-p)
-       (x-set-selection 'PRIMARY (current-buffer))))
+      (setq transient-mark-mode 'lambda))))
 
 (defun set-mark (pos)
   "Set this buffer's mark to POS.  Don't use this function!
@@ -3736,7 +3727,6 @@ store it in a Lisp variable.  Example:
       (progn
 	(setq mark-active t)
 	(run-hooks 'activate-mark-hook)
-	(select-active-region)
 	(set-marker (mark-marker) pos (current-buffer)))
     ;; Normally we never clear mark-active except in Transient Mark mode.
     ;; But when we actually clear out the mark value too, we must
@@ -3820,7 +3810,6 @@ Display `Mark set' unless the optional second arg NOMSG is non-nil."
 	(push-mark nil nomsg t)
       (setq mark-active t)
       (run-hooks 'activate-mark-hook)
-      (select-active-region)
       (unless nomsg
 	(message "Mark activated")))))
 
@@ -4008,11 +3997,8 @@ Otherwise, if the region has been activated temporarily,
 deactivate it, and restore the variable `transient-mark-mode' to
 its earlier value."
   (cond ((and shift-select-mode this-command-keys-shift-translated)
-         (if (and mark-active
-		  (eq (car-safe transient-mark-mode) 'only))
-	     ;; Another program may have grabbed the selection; make
-	     ;; sure we get it back now.
-	     (select-active-region)
+         (unless (and mark-active
+		      (eq (car-safe transient-mark-mode) 'only))
 	   (setq transient-mark-mode
                  (cons 'only
                        (unless (eq transient-mark-mode 'lambda)
@@ -5576,7 +5562,10 @@ it skips the contents of comments that end before point."
 During execution of Lisp code, this character causes a quit directly.
 At top-level, as an editor command, this simply beeps."
   (interactive)
-  (deactivate-mark)
+  ;; Avoid adding the region to the window selection.
+  (setq saved-region-selection nil)
+  (let (select-active-regions)
+    (deactivate-mark))
   (if (fboundp 'kmacro-keyboard-quit)
       (kmacro-keyboard-quit))
   (setq defining-kbd-macro nil)

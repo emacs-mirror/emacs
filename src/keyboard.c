@@ -361,6 +361,15 @@ Lisp_Object Vlast_event_frame;
    X Windows wants this for selection ownership.  */
 unsigned long last_event_timestamp;
 
+/* If non-nil, active regions automatically become the window selection.  */
+Lisp_Object Vselect_active_regions;
+
+/* The text in the active region prior to modifying the buffer.
+   Used by the `select-active-regions' feature.  */
+Lisp_Object Vsaved_region_selection;
+
+Lisp_Object Qx_set_selection, QPRIMARY, Qlazy;
+
 Lisp_Object Qself_insert_command;
 Lisp_Object Qforward_char;
 Lisp_Object Qbackward_char;
@@ -1781,11 +1790,26 @@ command_loop_1 (void)
 	    Vtransient_mark_mode = Qnil;
 	  else if (EQ (Vtransient_mark_mode, Qonly))
 	    Vtransient_mark_mode = Qidentity;
+	  else if (EQ (Vselect_active_regions, Qlazy)
+		   ? EQ (CAR_SAFE (Vtransient_mark_mode), Qonly)
+		   : (!NILP (Vselect_active_regions)
+		      && !NILP (Vtransient_mark_mode)))
+	    {
+	      /* Set window selection.  If `select-active-regions' is
+		 `lazy', only do it for temporarily active regions. */
+	      Lisp_Object beg = Fmarker_position (current_buffer->mark);
+	      Lisp_Object end = make_number (PT);
+	      validate_region (&beg, &end);
+	      call2 (Qx_set_selection, QPRIMARY,
+		     make_buffer_string (XINT (beg), XINT (end), 0));
+	    }
 
 	  if (!NILP (Vdeactivate_mark))
 	    call0 (Qdeactivate_mark);
 	  else if (current_buffer != prev_buffer || MODIFF != prev_modiff)
 	    call1 (Vrun_hooks, intern ("activate-mark-hook"));
+
+	  Vsaved_region_selection = Qnil;
 	}
 
     finalize:
@@ -11682,6 +11706,13 @@ syms_of_keyboard (void)
   Qinput_method_function = intern_c_string ("input-method-function");
   staticpro (&Qinput_method_function);
 
+  Qx_set_selection = intern_c_string ("x-set-selection");
+  staticpro (&Qx_set_selection);
+  QPRIMARY = intern_c_string ("PRIMARY");
+  staticpro (&QPRIMARY);
+  Qlazy = intern_c_string ("lazy");
+  staticpro (&Qlazy);
+
   Qinput_method_exit_on_first_char = intern_c_string ("input-method-exit-on-first-char");
   staticpro (&Qinput_method_exit_on_first_char);
   Qinput_method_use_echo_area = intern_c_string ("input-method-use-echo-area");
@@ -12288,6 +12319,28 @@ and the Lisp function within which the error was signaled.  */);
 Help functions bind this to allow help on disabled menu items
 and tool-bar buttons.  */);
   Venable_disabled_menus_and_buttons = Qnil;
+
+  DEFVAR_LISP ("select-active-regions",
+	       &Vselect_active_regions,
+	       doc: /* If non-nil, an active region automatically becomes the window selection.
+This takes effect only when Transient Mark mode is enabled.
+
+If the value is `lazy', Emacs only sets the window selection during
+`deactivate-mark'; unless the region is temporarily active
+(e.g. mouse-drags or shift-selection), in which case it sets the
+window selection after each command.
+
+For other non-nil value, Emacs sets the window selection after every
+command.  */);
+  Vselect_active_regions = Qlazy;
+
+  DEFVAR_LISP ("saved-region-selection",
+	       &Vsaved_region_selection,
+	       doc: /* Contents of active region prior to buffer modification.
+If `select-active-regions' is non-nil, Emacs sets this to the
+text in the region before modifying the buffer.  The next
+`deactivate-mark' call uses this to set the window selection.  */);
+  Vsaved_region_selection = Qnil;
 
   /* Create the initial keyboard. */
   initial_kboard = (KBOARD *) xmalloc (sizeof (KBOARD));

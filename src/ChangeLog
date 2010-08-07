@@ -1,3 +1,16 @@
+2010-08-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* insdel.c (prepare_to_modify_buffer): Save active region text to
+	Vsaved_region_selection.
+
+	* xselect.c (QPRIMARY): Move to keyboard.c.
+
+	* keyboard.c (Vselect_active_regions): Move from simple.el.
+	(Vsaved_region_selection, Qx_set_selection, QPRIMARY, Qlazy): New
+	vars.
+	(command_loop_1): Set window selection prior to deactivating the
+	mark.
+
 2010-08-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* alloc.c (lisp_malloc):

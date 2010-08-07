@@ -697,9 +697,6 @@ This should be bound to a mouse drag event."
 	(window-system)
 	(sit-for 1))
     (push-mark)
-    ;; If `select-active-regions' is non-nil, `set-mark' sets the
-    ;; primary selection to the buffer's region, overriding the role
-    ;; of `copy-region-as-kill'; that's why we did the copy first.
     (set-mark (point))
     (if (numberp end) (goto-char end))
     (mouse-set-region-1)))
@@ -905,10 +902,6 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
 `mouse-drag-region'."
   (mouse-minibuffer-check start-event)
   (setq mouse-selection-click-count-buffer (current-buffer))
-  ;; We must call deactivate-mark before repositioning point.
-  ;; Otherwise, for `select-active-regions' non-nil, we get the wrong
-  ;; selection if the user drags a region, clicks elsewhere to
-  ;; reposition point, then middle-clicks to paste the selection.
   (deactivate-mark)
   (let* ((original-window (selected-window))
          ;; We've recorded what we needed from the current buffer and
@@ -955,10 +948,7 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
 	  (if (eq transient-mark-mode 'lambda)
 	      '(only)
 	    (cons 'only transient-mark-mode)))
-    (let ((range (mouse-start-end start-point start-point click-count))
-	  ;; Prevent `push-mark' from clobbering the primary selection
-	  ;; if the user clicks without dragging.
-	  (select-active-regions nil))
+    (let ((range (mouse-start-end start-point start-point click-count)))
       (goto-char (nth 0 range))
       (push-mark nil t t)
       (goto-char (nth 1 range)))
@@ -1017,23 +1007,16 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
 
 	    ;; If point has moved, finish the drag.
 	    (let* (last-command this-command)
-	      ;; Copy the region so that `select-active-regions' can
-	      ;; override `copy-region-as-kill'.
 	      (and mouse-drag-copy-region
 		   do-mouse-drag-region-post-process
 		   (let (deactivate-mark)
-		     (copy-region-as-kill (mark) (point))))
-	      ;; For `select-active-regions' non-nil, ensure that
-	      ;; further alterations of the region (e.g. via
-	      ;; shift-selection) continue to update PRIMARY.
-	      (select-active-region))
+		     (copy-region-as-kill (mark) (point)))))
 
 	  ;; If point hasn't moved, run the binding of the
 	  ;; terminating up-event.
 	  (if do-multi-click
 	      (goto-char start-point)
-	    (let (select-active-regions)
-	      (deactivate-mark)))
+	    (deactivate-mark))
 	  (when (and (functionp fun)
 		     (= start-hscroll (window-hscroll start-window))
 		     ;; Don't run the up-event handler if the window
@@ -1251,9 +1234,7 @@ Also move point to one end of the text thus inserted (normally the end),
 and set mark at the beginning.
 Prefix arguments are interpreted as with \\[yank].
 If `mouse-yank-at-point' is non-nil, insert at point
-regardless of where you click.
-If `select-active-regions' is non-nil, the mark is deactivated
-before inserting the text."
+regardless of where you click."
   (interactive "e\nP")
   ;; Give temporary modes such as isearch a chance to turn off.
   (run-hooks 'mouse-leave-buffer-hook)

@@ -197,6 +197,11 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (help-char keyboard character)
 	     (help-event-list keyboard (repeat (sexp :format "%v")))
 	     (menu-prompting menu boolean)
+	     (select-active-regions killing
+				    (choice (const :tag "lazy" lazy)
+					    (const :tag "always" t)
+					    (const :tag "off" nil))
+				    "24.1")
 	     (suggest-key-bindings keyboard (choice (const :tag "off" nil)
 						    (integer :tag "time" 2)
 						    (other :tag "on")))
