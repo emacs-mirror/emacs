@@ -929,6 +929,9 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
                        ;; intangible text.
                        (mouse-on-link-p start-posn)))
 	 (click-count (1- (event-click-count start-event)))
+	 (remap-double-click (and on-link
+				  (eq mouse-1-click-follows-link 'double)
+				  (= click-count 1)))
 	 ;; Suppress automatic hscrolling, because that is a nuisance
 	 ;; when setting point near the right fringe (but see below).
 	 (automatic-hscrolling-saved automatic-hscrolling)
@@ -941,6 +944,8 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
     (if (< (point) start-point)
 	(goto-char start-point))
     (setq start-point (point))
+    (if remap-double-click
+	(setq click-count 0))
 
     ;; Activate the region, using `mouse-start-end' to determine where
     ;; to put point and mark (e.g., double-click will select a word).
