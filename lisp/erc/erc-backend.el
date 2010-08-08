@@ -574,6 +574,7 @@ Make sure you are in an ERC buffer when running this."
                       nil
                     (substring erc-server-filter-data
                                (match-end 0))))
+            (erc-log-irc-protocol line nil)
             (erc-parse-server-response process line)))))))
 
 (defsubst erc-server-reconnect-p (event)
