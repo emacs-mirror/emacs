@@ -11352,6 +11352,8 @@ overlay_arrow_at_row (struct it *it, struct glyph_row *row)
 	  && (MATRIX_ROW_START_CHARPOS (row) == marker_position (val)))
 	{
 	  if (FRAME_WINDOW_P (it->f)
+	      /* FIXME: if ROW->reversed_p is set, this should test
+		 the right fringe, not the left one.  */
 	      && WINDOW_LEFT_FRINGE_WIDTH (it->w) > 0)
 	    {
 #ifdef HAVE_WINDOW_SYSTEM
@@ -17798,6 +17800,26 @@ display_line (struct it *it)
       row->truncated_on_left_p = 1;
     }
 
+  /* Remember the position at which this line ends.
+
+     BIDI Note: any code that needs MATRIX_ROW_START/END_CHARPOS
+     cannot be before the call to find_row_edges below, since that is
+     where these positions are determined. */
+  row->end = it->current;
+  if (!it->bidi_p)
+    {
+      row->minpos = row->start.pos;
+      row->maxpos = row->end.pos;
+    }
+  else
+    {
+      /* ROW->minpos and ROW->maxpos must be the smallest and
+	 `1 + the largest' buffer positions in ROW.  But if ROW was
+	 bidi-reordered, these two positions can be anywhere in the
+	 row, so we must determine them now.  */
+      find_row_edges (it, row, min_pos, min_bpos, max_pos, max_bpos);
+    }
+
   /* If the start of this line is the overlay arrow-position, then
      mark this glyph row as the one containing the overlay arrow.
      This is clearly a mess with variable size fonts.  It would be
@@ -17842,22 +17864,6 @@ display_line (struct it *it)
 
   /* Compute pixel dimensions of this line.  */
   compute_line_metrics (it);
-
-  /* Remember the position at which this line ends.  */
-  row->end = it->current;
-  if (!it->bidi_p)
-    {
-      row->minpos = row->start.pos;
-      row->maxpos = row->end.pos;
-    }
-  else
-    {
-      /* ROW->minpos and ROW->maxpos must be the smallest and
-	 `1 + the largest' buffer positions in ROW.  But if ROW was
-	 bidi-reordered, these two positions can be anywhere in the
-	 row, so we must determine them now.  */
-      find_row_edges (it, row, min_pos, min_bpos, max_pos, max_bpos);
-    }
 
   /* Record whether this row ends inside an ellipsis.  */
   row->ends_in_ellipsis_p

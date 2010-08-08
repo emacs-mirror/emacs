@@ -113,7 +113,8 @@ right or to the left on the screen.  This is in contrast with
 
 DEFUN ("forward-line", Fforward_line, Sforward_line, 0, 1, "^p",
        doc: /* Move N lines forward (backward if N is negative).
-Precisely, if point is on line I, move to the start of line I + N.
+Precisely, if point is on line I, move to the start of line I + N
+\("start of line" in the logical order).
 If there isn't room, go as far as possible (no error).
 Returns the count of lines left to move.  If moving forward,
 that is N - number of lines moved; if backward, N + number moved.
@@ -157,7 +158,7 @@ successfully moved (for the return value).  */)
 }
 
 DEFUN ("beginning-of-line", Fbeginning_of_line, Sbeginning_of_line, 0, 1, "^p",
-       doc: /* Move point to beginning of current line.
+       doc: /* Move point to beginning of current line (in the logical order).
 With argument N not nil or 1, move forward N - 1 lines first.
 If point reaches the beginning or end of buffer, it stops there.
 
@@ -181,7 +182,7 @@ instead.  For instance, `(forward-line 0)' does the same thing as
 }
 
 DEFUN ("end-of-line", Fend_of_line, Send_of_line, 0, 1, "^p",
-       doc: /* Move point to end of current line.
+       doc: /* Move point to end of current line (in the logical order).
 With argument N not nil or 1, move forward N - 1 lines first.
 If point reaches the beginning or end of buffer, it stops there.
 To ignore intangibility, bind `inhibit-point-motion-hooks' to t.

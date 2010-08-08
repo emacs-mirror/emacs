@@ -1,3 +1,13 @@
+2010-08-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* cmds.c (Fforward_line, Fbeginning_of_line, Fend_of_line):
+	* editfns.c (Fline_beginning_position, Fline_end_position): State
+	in the doc strings that start and end of line are in the logical
+	order.
+
+	* xdisp.c (display_line): Move the handling of overlay arrow after
+	the call to find_row_edges.  (Bug#6699)
+
 2010-08-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keyboard.c (command_loop_1):
