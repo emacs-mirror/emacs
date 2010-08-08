@@ -1,5 +1,8 @@
 2010-08-08  Chong Yidong  <cyd@stupidchicken.com>
 
+	* tutorial.el (tutorial--default-keys): C-d is now bound to
+	delete-forward-char (Bug#6826).
+
 	* mouse.el (mouse-drag-track): Remove accidentally-removed check
 	for `double' value of mouse-1-click-follows-link (Bug#6807).
 

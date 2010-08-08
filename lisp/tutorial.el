@@ -252,7 +252,7 @@ LEFT and RIGHT are the elements to compare."
              ;; * INSERTING AND DELETING
              ;; C-u 8 * to insert ********.
              (delete-backward-char "\d")
-             (delete-char [?\C-d])
+             (delete-forward-char [?\C-d])
              (backward-kill-word [?\M-\d])
              (kill-word [?\M-d])
              (kill-line [?\C-k])
