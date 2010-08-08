@@ -805,6 +805,9 @@ DEFUN ("line-beginning-position",
 With argument N not nil or 1, move forward N - 1 lines first.
 If scan reaches end of buffer, return that position.
 
+The returned position is of the first character in the logical order,
+i.e. the one that has the smallest character position.
+
 This function constrains the returned position to the current field
 unless that would be on a different line than the original,
 unconstrained result.  If N is nil or 1, and a front-sticky field
@@ -842,6 +845,9 @@ DEFUN ("line-end-position", Fline_end_position, Sline_end_position, 0, 1, 0,
        doc: /* Return the character position of the last character on the current line.
 With argument N not nil or 1, move forward N - 1 lines first.
 If scan reaches end of buffer, return that position.
+
+The returned position is of the last character in the logical order,
+i.e. the character whose buffer position is the largest one.
 
 This function constrains the returned position to the current field
 unless that would be on a different line than the original,
