@@ -1,3 +1,8 @@
+2010-08-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (display_line): Move the handling of overlay arrow after
+	the call to find_row_edges.  (Bug#6699)
+
 2010-08-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keyboard.c (command_loop_1):
