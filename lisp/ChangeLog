@@ -1,3 +1,13 @@
+2010-08-08  Johan Bockgård  <bojohan@gnu.org>
+
+	* replace.el (replace-highlight): Bind isearch-forward and
+	isearch-error, ensuring that highlighting is updated if the user
+	switches the search direction (Bug#6808).
+
+	* isearch.el (isearch-lazy-highlight-forward): New var.
+	(isearch-lazy-highlight-new-loop, isearch-lazy-highlight-search):
+	(isearch-lazy-highlight-update): Use it.
+
 2010-08-06  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule.el (define-charset): Store NAME as :base

@@ -1893,7 +1893,9 @@ make, or the user didn't cancel the call."
       (let ((isearch-string string)
 	    (isearch-regexp regexp)
 	    (search-whitespace-regexp nil)
-	    (isearch-case-fold-search case-fold))
+	    (isearch-case-fold-search case-fold)
+	    (isearch-forward t)
+	    (isearch-error nil))
 	(isearch-lazy-highlight-new-loop range-beg range-end))))
 
 (defun replace-dehighlight ()
