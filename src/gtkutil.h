@@ -135,8 +135,8 @@ extern char *xg_get_file_name (FRAME_PTR f,
 
 extern char *xg_get_font_name (FRAME_PTR f, char *);
 
-extern GtkWidget *xg_create_widget (char *type,
-                                    char *name,
+extern GtkWidget *xg_create_widget (const char *type,
+                                    const char *name,
                                     FRAME_PTR f,
                                     widget_value *val,
                                     GCallback select_cb,
@@ -163,7 +163,7 @@ extern void xg_create_scroll_bar (FRAME_PTR f,
                                   struct scroll_bar *bar,
                                   GCallback scroll_callback,
                                   GCallback end_callback,
-                                  char *scroll_bar_name);
+                                  const char *scroll_bar_name);
 extern void xg_remove_scroll_bar (FRAME_PTR f, int scrollbar_id);
 
 extern void xg_update_scrollbar_pos (FRAME_PTR f,

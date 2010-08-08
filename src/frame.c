@@ -2770,11 +2770,11 @@ the rightmost or bottommost possible position (that stays within the screen).  *
    that is an index in this table.  */
 
 struct frame_parm_table {
-  char *name;
+  const char *name;
   Lisp_Object *variable;
 };
 
-static struct frame_parm_table frame_parms[] =
+static const struct frame_parm_table frame_parms[] =
 {
   {"auto-raise",		&Qauto_raise},
   {"auto-lower",		&Qauto_lower},

@@ -51,7 +51,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "nsterm.h"
 #endif
 
-
 Lisp_Object Qwindowp, Qwindow_live_p, Qwindow_configuration_p;
 Lisp_Object Qdisplay_buffer;
 Lisp_Object Qscroll_up, Qscroll_down, Qscroll_command;

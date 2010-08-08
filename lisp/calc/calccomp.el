@@ -1339,12 +1339,15 @@
 
 (defun math-comp-highlight-string (s)
   (setq s (copy-sequence s))
-  (let ((i (length s)))
-    (while (>= (setq i (1- i)) 0)
-      (or (memq (aref s i) '(32 ?\n))
-	  (aset s i (if calc-show-selections ?\. ?\#)))))
-  s)
-
+  (if calc-highlight-selections-with-faces
+      (if (not calc-show-selections)
+          (propertize s 'face 'calc-selected-face)
+        (propertize s 'face 'calc-nonselected-face))
+    (let ((i (length s)))
+      (while (>= (setq i (1- i)) 0)
+        (or (memq (aref s i) '(32 ?\n))
+            (aset s i (if calc-show-selections ?\. ?\#)))))
+    s))
 
 ;; The variable math-comp-sel-tag is local to calc-find-selected-part
 ;; in calc-sel.el, but is used by math-comp-sel-flat-term and

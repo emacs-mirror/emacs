@@ -64,19 +64,13 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #if !defined (O_NDELAY) && defined (HAVE_PTYS) && !defined(USG5)
 #include <fcntl.h>
 #endif /* HAVE_PTYS and no O_NDELAY */
+#if defined(HAVE_NET_IF_H)
+#include <net/if.h>
+#endif /* HAVE_NET_IF_H */
 #endif /* HAVE_SYS_IOCTL_H */
 
 #ifdef NEED_BSDTTY
 #include <bsdtty.h>
-#endif
-
-/* Can we use SIOCGIFCONF and/or SIOCGIFADDR */
-#if defined(HAVE_SYS_IOCTL_H) && defined(HAVE_NET_IF_H)
-/* sys/ioctl.h may have been included already */
-#ifndef SIOCGIFADDR
-#include <sys/ioctl.h>
-#endif
-#include <net/if.h>
 #endif
 
 #ifdef HAVE_SYS_WAIT
@@ -87,6 +81,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <netinet/in.h>
 #include <arpa/nameser.h>
 #include <resolv.h>
+#endif
+
+#ifdef HAVE_UTIL_H
+#include <util.h>
 #endif
 
 #endif	/* subprocesses */
@@ -116,7 +114,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #if defined (USE_GTK) || defined (HAVE_GCONF)
 #include "xgselect.h"
 #endif /* defined (USE_GTK) || defined (HAVE_GCONF) */
-
+#ifdef HAVE_NS
+#include "nsterm.h"
+#endif
 extern int timers_run;
 
 Lisp_Object Qeuid, Qegid, Qcomm, Qstate, Qppid, Qpgrp, Qsess, Qttname, Qtpgid;
@@ -6355,8 +6355,7 @@ sigchld_handler (int signo)
 {
   int old_errno = errno;
   Lisp_Object proc;
-  register struct Lisp_Process *p;
-  extern EMACS_TIME *input_available_clear_time;
+  struct Lisp_Process *p;
 
   SIGNAL_THREAD_CHECK (signo);
 

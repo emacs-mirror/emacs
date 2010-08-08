@@ -4506,10 +4506,10 @@ beginning of local filename are not substituted."
 (defun tramp-process-sentinel (proc event)
   "Flush file caches."
   (unless (memq (process-status proc) '(run open))
-    (with-current-buffer (process-buffer proc)
-      (with-parsed-tramp-file-name default-directory nil
-	(tramp-message v 5 "Sentinel called: `%s' `%s'" proc event)
-        (tramp-flush-directory-property v "")))))
+    (let ((vec (tramp-get-connection-property proc "vector" nil)))
+      (when vec
+	(tramp-message vec 5 "Sentinel called: `%s' `%s'" proc event)
+        (tramp-flush-directory-property vec "")))))
 
 ;; We use BUFFER also as connection buffer during setup. Because of
 ;; this, its original contents must be saved, and restored once
@@ -4556,6 +4556,7 @@ beginning of local filename are not substituted."
 	       v 'file-error "pty association is not supported for `%s'" name)))
 	  (let ((p (tramp-get-connection-process v)))
 	    ;; Set sentinel and query flag for this process.
+	    (tramp-set-connection-property p "vector" v)
 	    (set-process-sentinel p 'tramp-process-sentinel)
 	    (tramp-set-process-query-on-exit-flag p t)
 	    ;; Return process.

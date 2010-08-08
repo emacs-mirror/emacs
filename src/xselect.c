@@ -2916,7 +2916,7 @@ A value of 0 means wait as long as necessary.  This is initialized from the
 \"*selectionTimeout\" resource.  */);
   x_selection_timeout = 0;
 
-  QPRIMARY   = intern_c_string ("PRIMARY");	staticpro (&QPRIMARY);
+  /* QPRIMARY is defined in keyboard.c.  */
   QSECONDARY = intern_c_string ("SECONDARY");	staticpro (&QSECONDARY);
   QSTRING    = intern_c_string ("STRING");	staticpro (&QSTRING);
   QINTEGER   = intern_c_string ("INTEGER");	staticpro (&QINTEGER);

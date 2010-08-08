@@ -430,7 +430,7 @@ Lisp_Object QCmap, QCpointer;
 Lisp_Object Qrect, Qcircle, Qpoly;
 
 /* Tool bar styles */
-Lisp_Object Qtext, Qboth, Qboth_horiz, Qtext_image_horiz;
+Lisp_Object Qboth, Qboth_horiz, Qtext_image_horiz;
 
 /* Non-zero means print newline to stdout before next mini-buffer
    message.  */
@@ -992,12 +992,12 @@ static int display_line (struct it *);
 static int display_mode_lines (struct window *);
 static int display_mode_line (struct window *, enum face_id, Lisp_Object);
 static int display_mode_element (struct it *, int, int, int, Lisp_Object, Lisp_Object, int);
-static int store_mode_line_string (char *, Lisp_Object, int, int, int, Lisp_Object);
-static char *decode_mode_spec (struct window *, int, int, int,
-                               Lisp_Object *);
+static int store_mode_line_string (const char *, Lisp_Object, int, int, int, Lisp_Object);
+static const char *decode_mode_spec (struct window *, int, int, int,
+				     Lisp_Object *);
 static void display_menu_bar (struct window *);
 static int display_count_lines (int, int, int, int, int *);
-static int display_string (unsigned char *, Lisp_Object, Lisp_Object,
+static int display_string (const unsigned char *, Lisp_Object, Lisp_Object,
                            EMACS_INT, EMACS_INT, struct it *, int, int, int, int);
 static void compute_line_metrics (struct it *);
 static void run_redisplay_end_trigger_hook (struct it *);
@@ -1020,7 +1020,7 @@ static int next_element_from_stretch (struct it *);
 static void load_overlay_strings (struct it *, int);
 static int init_from_display_pos (struct it *, struct window *,
                                   struct display_pos *);
-static void reseat_to_string (struct it *, unsigned char *,
+static void reseat_to_string (struct it *, const unsigned char *,
                               Lisp_Object, int, int, int, int);
 static enum move_it_result
        move_it_in_display_line_to (struct it *, EMACS_INT, int,
@@ -1035,8 +1035,8 @@ static int forward_to_next_line_start (struct it *, int *);
 static struct text_pos string_pos_nchars_ahead (struct text_pos,
                                                 Lisp_Object, int);
 static struct text_pos string_pos (int, Lisp_Object);
-static struct text_pos c_string_pos (int, unsigned char *, int);
-static int number_of_chars (unsigned char *, int);
+static struct text_pos c_string_pos (int, const unsigned char *, int);
+static int number_of_chars (const unsigned char *, int);
 static void compute_stop_pos (struct it *);
 static void compute_string_pos (struct text_pos *, struct text_pos,
                                 Lisp_Object);
@@ -1548,7 +1548,7 @@ string_pos (int charpos, Lisp_Object string)
    means recognize multibyte characters.  */
 
 static struct text_pos
-c_string_pos (int charpos, unsigned char *s, int multibyte_p)
+c_string_pos (int charpos, const unsigned char *s, int multibyte_p)
 {
   struct text_pos pos;
 
@@ -1580,7 +1580,7 @@ c_string_pos (int charpos, unsigned char *s, int multibyte_p)
    non-zero means recognize multibyte characters.  */
 
 static int
-number_of_chars (unsigned char *s, int multibyte_p)
+number_of_chars (const unsigned char *s, int multibyte_p)
 {
   int nchars;
 
@@ -5581,7 +5581,7 @@ reseat_1 (struct it *it, struct text_pos pos, int set_stop_p)
    calling this function.  */
 
 static void
-reseat_to_string (struct it *it, unsigned char *s, Lisp_Object string,
+reseat_to_string (struct it *it, const unsigned char *s, Lisp_Object string,
 		  int charpos, int precision, int field_width, int multibyte)
 {
   /* No region in strings.  */
@@ -10195,7 +10195,6 @@ build_desired_tool_bar_string (struct frame *f)
       int enabled_p = !NILP (PROP (TOOL_BAR_ITEM_ENABLED_P));
       int selected_p = !NILP (PROP (TOOL_BAR_ITEM_SELECTED_P));
       int hmargin, vmargin, relief, idx, end;
-      extern Lisp_Object QCrelief, QCmargin, QCconversion;
 
       /* If image is a vector, choose the image according to the
 	 button state.  */
@@ -11353,6 +11352,8 @@ overlay_arrow_at_row (struct it *it, struct glyph_row *row)
 	  && (MATRIX_ROW_START_CHARPOS (row) == marker_position (val)))
 	{
 	  if (FRAME_WINDOW_P (it->f)
+	      /* FIXME: if ROW->reversed_p is set, this should test
+		 the right fringe, not the left one.  */
 	      && WINDOW_LEFT_FRINGE_WIDTH (it->w) > 0)
 	    {
 #ifdef HAVE_WINDOW_SYSTEM
@@ -17381,8 +17382,8 @@ display_line (struct it *it)
 	  row->ends_at_zv_p = 1;
 	  /* A row that displays right-to-left text must always have
 	     its last face extended all the way to the end of line,
-	     even if this row ends in ZV, because we still write to th
-	     screen left to right.  */
+	     even if this row ends in ZV, because we still write to
+	     the screen left to right.  */
 	  if (row->reversed_p)
 	    extend_face_to_end_of_line (it);
 	  break;
@@ -17799,6 +17800,26 @@ display_line (struct it *it)
       row->truncated_on_left_p = 1;
     }
 
+  /* Remember the position at which this line ends.
+
+     BIDI Note: any code that needs MATRIX_ROW_START/END_CHARPOS
+     cannot be before the call to find_row_edges below, since that is
+     where these positions are determined. */
+  row->end = it->current;
+  if (!it->bidi_p)
+    {
+      row->minpos = row->start.pos;
+      row->maxpos = row->end.pos;
+    }
+  else
+    {
+      /* ROW->minpos and ROW->maxpos must be the smallest and
+	 `1 + the largest' buffer positions in ROW.  But if ROW was
+	 bidi-reordered, these two positions can be anywhere in the
+	 row, so we must determine them now.  */
+      find_row_edges (it, row, min_pos, min_bpos, max_pos, max_bpos);
+    }
+
   /* If the start of this line is the overlay arrow-position, then
      mark this glyph row as the one containing the overlay arrow.
      This is clearly a mess with variable size fonts.  It would be
@@ -17843,22 +17864,6 @@ display_line (struct it *it)
 
   /* Compute pixel dimensions of this line.  */
   compute_line_metrics (it);
-
-  /* Remember the position at which this line ends.  */
-  row->end = it->current;
-  if (!it->bidi_p)
-    {
-      row->minpos = row->start.pos;
-      row->maxpos = row->end.pos;
-    }
-  else
-    {
-      /* ROW->minpos and ROW->maxpos must be the smallest and
-	 `1 + the largest' buffer positions in ROW.  But if ROW was
-	 bidi-reordered, these two positions can be anywhere in the
-	 row, so we must determine them now.  */
-      find_row_edges (it, row, min_pos, min_bpos, max_pos, max_bpos);
-    }
 
   /* Record whether this row ends inside an ellipsis.  */
   row->ends_in_ellipsis_p
@@ -18533,7 +18538,7 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
 		  {
 		    int multibyte;
 		    int bytepos, charpos;
-		    unsigned char *spec;
+		    const unsigned char *spec;
 		    Lisp_Object string;
 
 		    bytepos = percent_position;
@@ -18803,7 +18808,7 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
  */
 
 static int
-store_mode_line_string (char *string, Lisp_Object lisp_string, int copy_string,
+store_mode_line_string (const char *string, Lisp_Object lisp_string, int copy_string,
 			int field_width, int precision, Lisp_Object props)
 {
   int len;
@@ -19219,7 +19224,7 @@ decode_mode_spec_coding (Lisp_Object coding_system, register char *buf, int eol_
 
 static char lots_of_dashes[] = "--------------------------------------------------------------------------------------------------------------------------------------------";
 
-static char *
+static const char *
 decode_mode_spec (struct window *w, register int c, int field_width,
 		  int precision, Lisp_Object *string)
 {
@@ -19779,7 +19784,7 @@ display_count_lines (int start, int start_byte, int limit_byte, int count,
    Value is the number of columns displayed.  */
 
 static int
-display_string (unsigned char *string, Lisp_Object lisp_string, Lisp_Object face_string,
+display_string (const unsigned char *string, Lisp_Object lisp_string, Lisp_Object face_string,
 		EMACS_INT face_string_pos, EMACS_INT start, struct it *it,
 		int field_width, int precision, int max_x, int multibyte)
 {

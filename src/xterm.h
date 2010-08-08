@@ -1058,10 +1058,11 @@ extern Lisp_Object x_property_data_to_lisp (struct frame *,
 /* Defined in xfns.c */
 
 extern struct x_display_info * check_x_display_info (Lisp_Object frame);
+extern Lisp_Object x_get_focus_frame (struct frame *);
 
 #ifdef USE_GTK
 extern int xg_set_icon (struct frame *, Lisp_Object);
-extern int xg_set_icon_from_xpm_data (struct frame *, char**);
+extern int xg_set_icon_from_xpm_data (struct frame *, const char**);
 #endif /* USE_GTK */
 
 extern void x_real_positions (struct frame *, int *, int *);

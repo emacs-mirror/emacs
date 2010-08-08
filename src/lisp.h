@@ -2395,7 +2395,6 @@ EXFUN (Fcoding_system_p, 1);
 EXFUN (Fcoding_system_base, 1);
 EXFUN (Fcoding_system_eol_type, 1);
 EXFUN (Fcheck_coding_system, 1);
-EXFUN (Fcheck_coding_system, 1);
 EXFUN (Fread_coding_system, 2);
 EXFUN (Fread_non_nil_coding_system, 1);
 EXFUN (Ffind_operation_coding_system, MANY);
@@ -2548,6 +2547,7 @@ EXFUN (Ffloat, 1);
 EXFUN (Ftruncate, 2);
 extern void init_floatfns (void);
 extern void syms_of_floatfns (void);
+extern Lisp_Object fmod_float (Lisp_Object x, Lisp_Object y);
 
 /* Defined in fringe.c */
 extern void syms_of_fringe (void);
@@ -2821,7 +2821,6 @@ extern int doprnt (char *, int, const char *, const char *, va_list);
 /* Defined in lread.c */
 extern Lisp_Object Vafter_load_alist;
 extern Lisp_Object Qvariable_documentation, Qstandard_input;
-extern Lisp_Object Qfunction;
 extern Lisp_Object Qbackquote, Qcomma, Qcomma_at, Qcomma_dot, Qfunction;
 extern Lisp_Object Vobarray, initial_obarray, Vstandard_input;
 extern int load_in_progress;
@@ -3134,7 +3133,6 @@ extern void clear_regexp_cache (void);
 /* Defined in minibuf.c */
 
 extern Lisp_Object Qcompletion_ignore_case;
-extern Lisp_Object Qcompletion_ignore_case;
 extern Lisp_Object Vcompletion_regexp_list;
 extern Lisp_Object Vhistory_length;
 extern Lisp_Object Vminibuffer_list;
@@ -3299,6 +3297,7 @@ extern Lisp_Object Vbefore_init_time, Vafter_init_time;
 extern Lisp_Object Vinstallation_directory;
 extern Lisp_Object empty_unibyte_string, empty_multibyte_string;
 extern Lisp_Object Qfile_name_handler_alist;
+extern void (*fatal_error_signal_hook) (void);
 EXFUN (Fkill_emacs, 1) NO_RETURN;
 #if HAVE_SETLOCALE
 void fixup_locale (void);
@@ -3415,7 +3414,6 @@ EXFUN (Fnext_single_char_property_change, 4);
 EXFUN (Fprevious_single_property_change, 4);
 EXFUN (Fget_text_property, 3);
 EXFUN (Fput_text_property, 5);
-EXFUN (Fget_text_property, 3);
 EXFUN (Fprevious_char_property_change, 2);
 EXFUN (Fnext_char_property_change, 2);
 extern void report_interval_modification (Lisp_Object, Lisp_Object);
@@ -3538,8 +3536,8 @@ extern Lisp_Object Qheader_line, Qscroll_bar, Qcursor, Qborder, Qmouse, Qmenu;
 extern Lisp_Object Qmode_line_inactive, Qvertical_border;
 extern Lisp_Object Qface;
 extern Lisp_Object Qnormal;
-extern Lisp_Object QCfamily, QCweight, QCslant, QCwidth;
-extern Lisp_Object QCheight, QCsize, QCname, QCwidth, QCforeground, QCbackground;
+extern Lisp_Object QCfamily, QCweight, QCslant;
+extern Lisp_Object QCheight, QCname, QCwidth, QCforeground, QCbackground;
 extern Lisp_Object Vface_alternative_font_family_alist;
 extern Lisp_Object Vface_font_rescale_alist;
 extern Lisp_Object Vface_ignored_fonts;
@@ -3590,6 +3588,11 @@ int xd_pending_messages (void);
 void xd_read_queued_messages (void);
 void syms_of_dbusbind (void);
 #endif
+
+#ifdef DOS_NT
+/* Defined in msdos.c, w32.c */
+extern char *emacs_root_dir (void);
+#endif /* DOS_NT */
 
 /* Nonzero means Emacs has already been initialized.
    Used during startup to detect startup of dumped Emacs.  */

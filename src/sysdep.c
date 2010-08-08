@@ -96,8 +96,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <memory.h>
 #endif /* USG */
 
-extern int quit_char;
-
 #include "keyboard.h"
 #include "frame.h"
 #include "window.h"
@@ -107,11 +105,12 @@ extern int quit_char;
 #include "dispextern.h"
 #include "process.h"
 #include "cm.h"  /* for reset_sys_modes */
-
-/* For serial_configure and serial_open.  */
-extern Lisp_Object QCport, QCspeed, QCprocess;
-extern Lisp_Object QCbytesize, QCstopbits, QCparity, Qodd, Qeven;
-extern Lisp_Object QCflowcontrol, Qhw, Qsw, QCsummary;
+#ifdef HAVE_TERM_H
+/* Include this last.  If it is ncurses header file, it adds a lot of
+   defines that interfere with stuff in other headers.  Someone responsible
+   for ncurses messed up bigtime.  See bug#6812.  */
+#include <term.h>
+#endif
 
 #ifdef WINDOWSNT
 #include <direct.h>

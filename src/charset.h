@@ -517,8 +517,6 @@ extern int iso_charset_table[ISO_MAX_DIMENSION][ISO_MAX_CHARS][ISO_MAX_FINAL];
 #define EMACS_MULE_LEADING_CODE_PRIVATE_21	0x9C /* 2/2 */
 #define EMACS_MULE_LEADING_CODE_PRIVATE_22	0x9D /* 2/2 */
 
-extern struct charset *emacs_mule_charset[256];
-
 
 
 extern Lisp_Object Qcharsetp;

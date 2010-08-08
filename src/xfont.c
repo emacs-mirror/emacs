@@ -334,7 +334,7 @@ xfont_supported_scripts (Display *display, char *fontname, Lisp_Object props,
 }
 
 static Lisp_Object
-xfont_list_pattern (Display *display, char *pattern,
+xfont_list_pattern (Display *display, const char *pattern,
 		    Lisp_Object registry, Lisp_Object script)
 {
   Lisp_Object list = Qnil;

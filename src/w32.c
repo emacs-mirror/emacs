@@ -140,10 +140,6 @@ typedef struct _PROCESS_MEMORY_COUNTERS_EX {
 
 /* For serial_configure and serial_open.  */
 #include "process.h"
-/* From process.c  */
-extern Lisp_Object QCport, QCspeed, QCprocess;
-extern Lisp_Object QCbytesize, QCstopbits, QCparity, Qodd, Qeven;
-extern Lisp_Object QCflowcontrol, Qhw, Qsw, QCsummary;
 
 typedef HRESULT (WINAPI * ShGetFolderPath_fn)
   (IN HWND, IN int, IN HANDLE, IN DWORD, OUT char *);

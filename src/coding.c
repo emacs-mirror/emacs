@@ -3902,7 +3902,7 @@ decode_coding_iso_2022 (struct coding_system *coding)
 		  int size;
 
 		  ONE_MORE_BYTE (dim);
-		  if (dim < 0 || dim > 4)
+		  if (dim < '0' || dim > '4')
 		    goto invalid_code;
 		  ONE_MORE_BYTE (M);
 		  if (M < 128)
@@ -4097,8 +4097,8 @@ decode_coding_iso_2022 (struct coding_system *coding)
 #define ENCODE_DESIGNATION(charset, reg, coding)			\
   do {									\
     unsigned char final_char = CHARSET_ISO_FINAL (charset);		\
-    char *intermediate_char_94 = "()*+";				\
-    char *intermediate_char_96 = ",-./";				\
+    const char *intermediate_char_94 = "()*+";				\
+    const char *intermediate_char_96 = ",-./";				\
     int revision = -1;							\
     int c;								\
 									\

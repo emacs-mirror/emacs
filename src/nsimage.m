@@ -83,10 +83,10 @@ int
 ns_load_image (struct frame *f, struct image *img,
                Lisp_Object spec_file, Lisp_Object spec_data)
 {
-  NSTRACE (ns_load_image);
-
   EmacsImage *eImg;
   NSSize size;
+
+  NSTRACE (ns_load_image);
 
   if (NILP (spec_data))
     {

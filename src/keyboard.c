@@ -361,6 +361,15 @@ Lisp_Object Vlast_event_frame;
    X Windows wants this for selection ownership.  */
 unsigned long last_event_timestamp;
 
+/* If non-nil, active regions automatically become the window selection.  */
+Lisp_Object Vselect_active_regions;
+
+/* The text in the active region prior to modifying the buffer.
+   Used by the `select-active-regions' feature.  */
+Lisp_Object Vsaved_region_selection;
+
+Lisp_Object Qx_set_selection, QPRIMARY, Qlazy;
+
 Lisp_Object Qself_insert_command;
 Lisp_Object Qforward_char;
 Lisp_Object Qbackward_char;
@@ -613,7 +622,7 @@ static Lisp_Object make_lispy_movement (struct frame *, Lisp_Object,
                                         unsigned long);
 #endif
 static Lisp_Object modify_event_symbol (int, unsigned, Lisp_Object,
-                                        Lisp_Object, char **,
+                                        Lisp_Object, const char **,
                                         Lisp_Object *, unsigned);
 static Lisp_Object make_lispy_switch_frame (Lisp_Object);
 static void save_getcjmp (jmp_buf);
@@ -1781,11 +1790,29 @@ command_loop_1 (void)
 	    Vtransient_mark_mode = Qnil;
 	  else if (EQ (Vtransient_mark_mode, Qonly))
 	    Vtransient_mark_mode = Qidentity;
+	  else if (EQ (Vselect_active_regions, Qlazy)
+		   ? EQ (CAR_SAFE (Vtransient_mark_mode), Qonly)
+		   : (!NILP (Vselect_active_regions)
+		      && !NILP (Vtransient_mark_mode)))
+	    {
+	      /* Set window selection.  If `select-active-regions' is
+		 `lazy', only do it for temporarily active regions. */
+	      int beg = XINT (Fmarker_position (current_buffer->mark));
+	      int end = XINT (make_number (PT));
+	      if (beg < end)
+		call2 (Qx_set_selection, QPRIMARY,
+		       make_buffer_string (beg, end, 0));
+	      else if (beg > end)
+		call2 (Qx_set_selection, QPRIMARY,
+		       make_buffer_string (end, beg, 0));
+	    }
 
 	  if (!NILP (Vdeactivate_mark))
 	    call0 (Qdeactivate_mark);
 	  else if (current_buffer != prev_buffer || MODIFF != prev_modiff)
 	    call1 (Vrun_hooks, intern ("activate-mark-hook"));
+
+	  Vsaved_region_selection = Qnil;
 	}
 
     finalize:
@@ -4724,7 +4751,7 @@ static const int lispy_accent_codes[] =
 /* This is a list of Lisp names for special "accent" characters.
    It parallels lispy_accent_codes.  */
 
-static char *lispy_accent_keys[] =
+static const char *lispy_accent_keys[] =
 {
   "dead-circumflex",
   "dead-grave",
@@ -4751,7 +4778,7 @@ static char *lispy_accent_keys[] =
 #ifdef HAVE_NTGUI
 #define FUNCTION_KEY_OFFSET 0x0
 
-char *lispy_function_keys[] =
+char const *lispy_function_keys[] =
   {
     0,                /* 0                      */
 
@@ -4945,7 +4972,7 @@ char *lispy_function_keys[] =
 
 /* Some of these duplicate the "Media keys" on newer keyboards,
    but they are delivered to the application in a different way.  */
-static char *lispy_multimedia_keys[] =
+static const char *lispy_multimedia_keys[] =
   {
     0,
     "browser-back",
@@ -5009,7 +5036,7 @@ static char *lispy_multimedia_keys[] =
    the XK_kana_A case below.  */
 #if 0
 #ifdef XK_kana_A
-static char *lispy_kana_keys[] =
+static const char *lispy_kana_keys[] =
   {
     /* X Keysym value */
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	/* 0x400 .. 0x40f */
@@ -5048,7 +5075,7 @@ static char *lispy_kana_keys[] =
 
 /* You'll notice that this table is arranged to be conveniently
    indexed by X Windows keysym values.  */
-static char *lispy_function_keys[] =
+static const char *lispy_function_keys[] =
   {
     /* X Keysym value */
 
@@ -5134,7 +5161,7 @@ static char *lispy_function_keys[] =
 /* ISO 9995 Function and Modifier Keys; the first byte is 0xFE.  */
 #define ISO_FUNCTION_KEY_OFFSET 0xfe00
 
-static char *iso_lispy_function_keys[] =
+static const char *iso_lispy_function_keys[] =
   {
     0, 0, 0, 0, 0, 0, 0, 0,	/* 0xfe00 */
     0, 0, 0, 0, 0, 0, 0, 0,	/* 0xfe08 */
@@ -5157,14 +5184,14 @@ static char *iso_lispy_function_keys[] =
 
 Lisp_Object Vlispy_mouse_stem;
 
-static char *lispy_wheel_names[] =
+static const char *lispy_wheel_names[] =
 {
   "wheel-up", "wheel-down", "wheel-left", "wheel-right"
 };
 
 /* drag-n-drop events are generated when a set of selected files are
    dragged from another application and dropped onto an Emacs window.  */
-static char *lispy_drag_n_drop_names[] =
+static const char *lispy_drag_n_drop_names[] =
 {
   "drag-n-drop"
 };
@@ -5175,7 +5202,7 @@ Lisp_Object Qup, Qdown, Qbottom, Qend_scroll;
 Lisp_Object Qtop, Qratio;
 
 /* An array of scroll bar parts, indexed by an enum scroll_bar_part value.  */
-Lisp_Object *scroll_bar_parts[] = {
+const Lisp_Object *scroll_bar_parts[] = {
   &Qabove_handle, &Qhandle, &Qbelow_handle,
   &Qup, &Qdown, &Qtop, &Qbottom, &Qend_scroll, &Qratio
 };
@@ -6542,7 +6569,7 @@ reorder_modifiers (Lisp_Object symbol)
 
 static Lisp_Object
 modify_event_symbol (int symbol_num, unsigned int modifiers, Lisp_Object symbol_kind,
-		     Lisp_Object name_alist_or_stem, char **name_table,
+		     Lisp_Object name_alist_or_stem, const char **name_table,
 		     Lisp_Object *symbol_table, unsigned int table_size)
 {
   Lisp_Object value;
@@ -11682,6 +11709,13 @@ syms_of_keyboard (void)
   Qinput_method_function = intern_c_string ("input-method-function");
   staticpro (&Qinput_method_function);
 
+  Qx_set_selection = intern_c_string ("x-set-selection");
+  staticpro (&Qx_set_selection);
+  QPRIMARY = intern_c_string ("PRIMARY");
+  staticpro (&QPRIMARY);
+  Qlazy = intern_c_string ("lazy");
+  staticpro (&Qlazy);
+
   Qinput_method_exit_on_first_char = intern_c_string ("input-method-exit-on-first-char");
   staticpro (&Qinput_method_exit_on_first_char);
   Qinput_method_use_echo_area = intern_c_string ("input-method-use-echo-area");
@@ -12288,6 +12322,28 @@ and the Lisp function within which the error was signaled.  */);
 Help functions bind this to allow help on disabled menu items
 and tool-bar buttons.  */);
   Venable_disabled_menus_and_buttons = Qnil;
+
+  DEFVAR_LISP ("select-active-regions",
+	       &Vselect_active_regions,
+	       doc: /* If non-nil, an active region automatically becomes the window selection.
+This takes effect only when Transient Mark mode is enabled.
+
+If the value is `lazy', Emacs only sets the window selection during
+`deactivate-mark'; unless the region is temporarily active
+(e.g. mouse-drags or shift-selection), in which case it sets the
+window selection after each command.
+
+For other non-nil value, Emacs sets the window selection after every
+command.  */);
+  Vselect_active_regions = Qlazy;
+
+  DEFVAR_LISP ("saved-region-selection",
+	       &Vsaved_region_selection,
+	       doc: /* Contents of active region prior to buffer modification.
+If `select-active-regions' is non-nil, Emacs sets this to the
+text in the region before modifying the buffer.  The next
+`deactivate-mark' call uses this to set the window selection.  */);
+  Vsaved_region_selection = Qnil;
 
   /* Create the initial keyboard. */
   initial_kboard = (KBOARD *) xmalloc (sizeof (KBOARD));

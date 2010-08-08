@@ -742,10 +742,9 @@ x_free_gc (struct frame *f, GC gc)
 /* NS emulation of GCs */
 
 static INLINE GC
-x_create_gc (f, mask, xgcv)
-     struct frame *f;
-     unsigned long mask;
-     XGCValues *xgcv;
+x_create_gc (struct frame *f,
+             unsigned long mask,
+             XGCValues *xgcv)
 {
   GC gc = xmalloc (sizeof (*gc));
   if (gc)
@@ -754,9 +753,7 @@ x_create_gc (f, mask, xgcv)
 }
 
 static INLINE void
-x_free_gc (f, gc)
-     struct frame *f;
-     GC gc;
+x_free_gc (struct frame *f, GC gc)
 {
   xfree (gc);
 }

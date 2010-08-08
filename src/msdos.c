@@ -1453,7 +1453,6 @@ IT_note_mouse_highlight (struct frame *f, int x, int y)
 	/* Look for a `help-echo' property.  */
 	{
 	  Lisp_Object help;
-	  extern Lisp_Object Qhelp_echo;
 
 	  /* Check overlays first.  */
 	  help = Qnil;
@@ -1593,14 +1592,16 @@ IT_display_cursor (int on)
       ScreenSetCursor (current_pos_Y, current_pos_X);
       cursor_cleared = 0;
       if (tty->termscript)
-	fprintf (tty->termscript, "\nCURSOR ON");
+	fprintf (tty->termscript, "\nCURSOR ON (%dx%d)",
+		 current_pos_Y, current_pos_X);
     }
   else if (!on && !cursor_cleared)
     {
       ScreenSetCursor (-1, -1);
       cursor_cleared = 1;
       if (tty->termscript)
-	fprintf (tty->termscript, "\nCURSOR OFF");
+	fprintf (tty->termscript, "\nCURSOR OFF (%dx%d)",
+		 current_pos_Y, current_pos_X);
     }
 }
 

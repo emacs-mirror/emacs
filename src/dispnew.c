@@ -1528,7 +1528,11 @@ realloc_glyph_pool (struct glyph_pool *pool, struct dim matrix_dim)
       int size = needed * sizeof (struct glyph);
 
       if (pool->glyphs)
-	pool->glyphs = (struct glyph *) xrealloc (pool->glyphs, size);
+	{
+	  pool->glyphs = (struct glyph *) xrealloc (pool->glyphs, size);
+	  memset (pool->glyphs + pool->nglyphs, 0,
+		  size - pool->nglyphs * sizeof (struct glyph));
+	}
       else
 	{
 	  pool->glyphs = (struct glyph *) xmalloc (size);

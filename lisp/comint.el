@@ -674,6 +674,9 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (make-local-variable 'comint-process-echoes)
   (make-local-variable 'comint-file-name-chars)
   (make-local-variable 'comint-file-name-quote-list)
+  ;; dir tracking on remote files
+  (set (make-local-variable 'comint-file-name-prefix)
+       (or (file-remote-p default-directory) ""))
   (make-local-variable 'comint-accum-marker)
   (setq comint-accum-marker (make-marker))
   (make-local-variable 'font-lock-defaults)

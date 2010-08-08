@@ -51,6 +51,11 @@ also depend on Gtk+.  You can disable them with --without-rsvg and
 This is only useful for Emacs developers to debug certain types of bugs.
 These is not a new feature; only the configure flag is new.
 
+---
+** New translation of the Emacs Tutorial in Hebrew is available
+Type `C-u C-h t' to choose it in case your language setup doesn't
+automatically select it.
+
 
 * Startup Changes in Emacs 24.1
 
@@ -187,7 +192,10 @@ The way Emacs interacts with the clipboard and primary selection, by
 default, is now similar to other X applications.  In particular, kill
 and yank use the clipboard, in addition to the primary selection.
 
-*** `select-active-regions' now defaults to t.
+*** `select-active-regions' now defaults to `lazy'.
+This means that any active region made with shift-selection or mouse
+dragging, or acted on by Emacs (e.g. with M-w or C-w), is
+automatically added to the primary window selection.
 
 *** `x-select-enable-clipboard' now defaults to t.
 
@@ -257,6 +265,9 @@ is just left as is in the message, so it is not lost.
 **** vc-hg handles  Author: and Date:
 **** vc-bzr handles Author:, Date: and Fixes:
 **** vc-mtn handles Author: and Date:
+
+*** Pressing g in a *vc-diff* buffer reruns vc-diff, so it will
+produce an up to date diff.
 
 ** Directory local variables can apply to file-less buffers.
 For example, adding "(diff-mode . ((mode . whitespace)))" to your

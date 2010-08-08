@@ -1,3 +1,240 @@
+2010-08-08  Kenichi Handa  <handa@m17n.org>
+
+	* charset.c: Include <stdlib.h>
+	(struct charset_sort_data): New struct.
+	(charset_compare): New function.
+	(Fsort_charsets): New funciton.
+	(syms_of_charset): Declare Fsort_charsets as a Lisp function.
+
+	* coding.c (decode_coding_iso_2022): Fix checking of dimension
+	number in CTEXT extended segment.
+
+2010-08-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32fns.c (syms_of_w32fns) <x-max-tooltip-size>: Fix typo in docstring.
+	* xfns.c (syms_of_xfns) <x-max-tooltip-size>: Reflow docstring.
+
+2010-08-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* fns.c (Fsubstring_no_properties, Fnthcdr, Ffeaturep)
+	(Fhash_table_size): Fix typos in docstrings.
+	(Fmake_hash_table): Doc fix.
+
+2010-08-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuf.c (syms_of_minibuf) <read-buffer-function>:
+	Doc fix (bug#5625).
+
+2010-08-08  Ken Brown  <kbrown@cornell.edu>
+
+	* dired.c (DIRENTRY_NONEMPTY) [cygwin]: Use d_ino instead of
+	the MSDOS definition.
+
+2010-08-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Use const char* instead of char*.
+	* xterm.c (x_create_toolkit_scroll_bar):
+	* xfont.c (xfont_list_pattern):
+	* xfns.c (x_default_scroll_bar_color_parameter)
+	(xic_create_fontsetname, x_default_font_parameter)
+	(x_screen_planes):
+	* xdisp.c (c_string_pos, number_of_chars, reseat_to_string)
+	(store_mode_line_string, decode_mode_spec, display_string):
+	* menu.c (digest_single_submenu):
+	* keymap.h (initial_define_key, initial_define_lispy_key):
+	* keymap.c (initial_define_key, initial_define_lispy_key):
+	* image.c (image_error, image_keyword):
+	* gtkutil.h (xg_create_widget, xg_create_scroll_bar):
+	* gtkutil.c (xg_create_widget, xg_create_scroll_bar):
+	* ftfont.c (struct fc_charset_table, ftfont_spec_pattern)
+	(ftfont_list, ftfont_match):
+	* frame.c (frame_parm_table):
+	* font.h (font_intern_prop, font_parse_xlfd, font_parse_fcname)
+	(font_unparse_fcname, font_unparse_fcname, font_open_by_name)
+	(font_add_log, font_deferred_log):
+	* font.c (font_intern_prop, font_parse_xlfd, font_parse_fcname)
+	(font_unparse_fcname, font_unparse_fcname, font_open_by_name)
+	(font_add_log, font_deferred_log):
+	* emacs.c (argmatch):
+	* dispextern.h (struct it):
+	* coding.c (ENCODE_DESIGNATION):
+	* charset.c (define_charset_internal): Use const.
+
+	* s/freebsd.h (DECLARE_GETPWUID_WITH_UID_T): Remove, unused.
+
+	* xrdb.c: Remove include guard.  Remove
+	DECLARE_GETPWUID_WITH_UID_T conditional it had no effect.
+	Remove #if 0 code.  Replace malloc->xmalloc, free->xfree,
+	realloc->xrealloc instead of using #defines.
+
+2010-08-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* cmds.c (Fforward_line, Fbeginning_of_line, Fend_of_line):
+	* editfns.c (Fline_beginning_position, Fline_end_position): State
+	in the doc strings that start and end of line are in the logical
+	order.
+
+	* xdisp.c (display_line): Move the handling of overlay arrow after
+	the call to find_row_edges.  (Bug#6699)
+
+2010-08-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (command_loop_1):
+	* insdel.c (prepare_to_modify_buffer): Don't call validate_region.
+
+2010-08-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* insdel.c (prepare_to_modify_buffer): Save active region text to
+	Vsaved_region_selection.
+
+	* xselect.c (QPRIMARY): Move to keyboard.c.
+
+	* keyboard.c (Vselect_active_regions): Move from simple.el.
+	(Vsaved_region_selection, Qx_set_selection, QPRIMARY, Qlazy): New
+	vars.
+	(command_loop_1): Set window selection prior to deactivating the
+	mark.
+
+2010-08-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* alloc.c (lisp_malloc):
+	* buffer.c (set_buffer_internal, set_buffer_internal_1):
+	* charset.h (emacs_mule_charset):
+	* dispextern.h (inhibit_free_realized_faces, redraw_frame)
+	(redraw_garbaged_frames, scroll_cost, update_frame, scrolling)
+	(bitch_at_user):
+	* lisp.h (Fcheck_coding_system, Fget_text_property)
+	(Qfunction, Qcompletion_ignore_case, QCwidth, QCsize):
+	Remove duplicate declarations.
+
+2010-08-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* process.c: Simplify include logic.
+
+	* keyboard.h (quit_char): Add declaration.
+	* process.h (QCport, QCspeed, QCprocess, QCbytesize, QCstopbits)
+	(QCparity, Qodd, Qeven, QCflowcontrol, Qhw, Qsw, QCsummary): Add
+	declarations.
+	* sysdep.c:
+	* w32.c: Remove the above declarations.
+
+	Remove extern declarations in .c files, .h files have them.
+	* xterm.c:
+	* xdisp.c:
+	* msdos.c:
+	* image.c:
+	* gtkutil.c:
+	* fileio.c:
+	* eval.c: Remove declarations.
+
+	* frame.c (frame_params): Make const.
+
+	* lisp.h (fatal_error_signal, emacs_root_dir): Add declaration.
+
+	* emacs.c (emacs_copyright, emacs_version): Make static.
+	(Vinitial_window_system, Vauto_save_list_file_name)
+	(Vinhibit_redisplay): Remove declarations.
+	(main): Remove HAVE_SHM code, unused.  Remove _I386 conditional
+	for AIX.
+
+	Use const for some arrays and functions.
+	* xterm.h (xg_set_icon_from_xpm_data):
+	* xfns.c (xg_set_icon_from_xpm_data):
+	* term.c (fkeys):
+	* keyboard.c (lispy_accent_keys, lispy_function_keys)
+	(lispy_multimedia_keys, lispy_kana_keys, iso_lispy_function_keys)
+	(lispy_drag_n_drop_names, scroll_bar_parts, modify_event_symbol)
+	(frame.c frame_parms):
+	* emacs-icon.h (gnu_xpm_bits):
+	* callint.c (callint_argfuns): Use const.
+
+2010-08-06  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* sysdep.c: Move include term.h last of includes (Bug#6812).
+
+2010-08-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (realloc_glyph_pool): Zero out newly allocated glyphs.
+
+	* msdos.c (IT_display_cursor): Log cursor position on termscript.
+
+	* .gdbinit (pgx): Display the avoid_cursor_p flag.
+
+2010-08-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/xdisp.$(O)): Update dependencies.
+
+2010-08-06  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.h (x_get_focus_frame): Declare.
+
+	* keyboard.h (poll_for_input_1): Unconditionally declare.
+
+	* nsterm.h (x_set_menu_bar_lines): Declare.
+
+	* window.c: Don't include menu.h, it depends on lots of other .h-files.
+
+	* xfaces.c (x_create_gc, x_free_gc): Convert to ANSI C prototypes.
+
+	* window.c: Include menu.h.
+
+	* unexmacosx.c (print_region_list, print_regions)
+	(build_region_list, find_emacs_zone_regions)
+	(unexec_regions_merge, read_load_commands, dump_it)
+	(unexec_init_emacs_zone): Convert to ANSI C prototypes.
+
+	* term.c: Check HAVE_SYS_IOCTL_H.
+
+	* sysdep.c: Check HAVE_TERM_H.
+
+	* process.c: Check HAVE_UTIL_H.  Include nsterm.h if HAVE_NS.
+
+	* nsterm.m (ns_init_paths, ns_alloc_autorelease_pool)
+	(ns_ring_bell, ns_defined_color, hide_hourglass)
+	(x_display_pixel_height, x_display_pixel_width, syms_of_nsterm):
+	Convert to ANSI C prototypes.
+	(x_set_window_size, ns_draw_fringe_bitmap, judge): Move declarations
+	before code.
+
+	* nsterm.h : Include sysselect.h.
+	(x_sync, x_get_focus_frame, x_set_mouse_position)
+	(x_set_mouse_pixel_position, x_make_frame_visible)
+	(x_make_frame_invisible, x_iconify_frame, x_char_width, x_char_height)
+	(x_pixel_width, x_pixel_height, x_set_frame_alpha, x_set_tool_bar_lines)
+	(x_activate_menubar, free_frame_menubar, ns_init_paths, ns_select)
+	(syms_of_nsterm, syms_of_nsfns, syms_of_nsmenu, syms_of_nsselect):
+	Declare.
+
+	* nsmenu.m (popup_activated, name_is_separator)
+	(syms_of_nsmenu): Convert to ANSI C prototypes.
+	(runMenuAt): Prototypes and move declarations before code.
+
+	* nsimage.m (ns_load_image): Move NSTRACE after declarations.
+
+	* nsfont.m (ns_fallback_entity, syms_of_nsfont): Convert to ANSI C
+	prototypes.
+
+	* nsfns.m (have_menus_p, ns_display_info_for_name)
+	(x_set_cursor_type, ns_appkit_version_str)
+	(ns_appkit_version_int, ns_do_applescript)
+	(x_set_scroll_bar_default_width, x_sync, compute_tip_xy)
+	(syms_of_nsfns): Convert to ANSI C prototypes.
+
+	* menu.h (x_set_menu_bar_line): Declare.
+	(free_menubar_widget_value_tree et.al): Add HAVE_NS for these functions.
+
+	* lisp.h (fmod_float): Declare.
+
+	* image.c (xpm_scan, xpm_make_color_table_v)
+	(xpm_put_color_table_v, xpm_get_color_table_v)
+	(xpm_make_color_table_h, xpm_put_color_table_h)
+	(xpm_get_color_table_h, xpm_str_to_color_key, xpm_load_image)
+	(xpm_load): Convert to ANSI C prototypes.
+
+	* emacs.c: Include nsterm.h if HAVE_NS.
+
+	* bidi.c (bidi_dump_cached_states): Fix fprintf warning.
+
 2010-08-06  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* process.c: Remove HAVE_SOCKETS #ifdefs inside #ifdef
@@ -235,7 +472,7 @@
 	Only make handlebox_widget if NULL.
 	Check if tool bar goes to vbox or hbox depending on pos.
 	(xg_update_tool_bar_sizes): New function.
-	(update_frame_tool_bar): Remove old_req, new_req. Do not get tool bar
+	(update_frame_tool_bar): Remove old_req, new_req.  Do not get tool bar
 	height, call xg_update_tool_bar_sizes instead.
 	(free_frame_tool_bar): Remove from hbox or vbox depending on
 	toolbar_in_hbox,  Set all FRAME_TOOLBAR_*_(WIDTH|HEIGHT) to zero.
@@ -413,7 +650,7 @@
 
 	* xfaces.c (Qmouse_face): Remove declaration.
 	(face_color_gray_p, tty_defined_color, defined_color)
-	(face_color_gray_p, face_color_supported_p). Add const.
+	(face_color_gray_p, face_color_supported_p): Add const.
 
 	* xdisp.c (do_mouse_tracking): Remove declaration.
 	(add_to_log): Use const.
@@ -3815,8 +4052,8 @@
 	(syms_of_xsettings): Initialize current_font.
 	defsubr Sfont_get_system_normal_font.
 
-	* xsettings.h (Ffont_get_system_normal_font,
-	xsettings_get_system_normal_font): Declare.
+	* xsettings.h (Ffont_get_system_normal_font)
+	(xsettings_get_system_normal_font): Declare.
 
 	* xfns.c (extern xlwmenu_default_font): Remove.
 	(Fx_create_frame): Remove setting of xlwmenu_default_font, moved
@@ -5618,7 +5855,7 @@
 	(store_symval_forwarding): Take into account the fact that Ints can
 	now have more than one tag.
 	* buffer.c (syms_of_buffer): Use LISP_INT_TAG.
-	buffer_slot_type_mismatch):
+	(buffer_slot_type_mismatch):
 	* xfaces.c (face_attr_equal_p):
 	* print.c (print_object):
 	* alloc.c (mark_maybe_object, mark_object, survives_gc_p):

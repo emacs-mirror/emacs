@@ -63,6 +63,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "keyboard.h"
 #include "keymap.h"
 
+#ifdef HAVE_NS
+#include "nsterm.h"
+#endif
+
 #ifdef HAVE_SETLOCALE
 #include <locale.h>
 #endif
@@ -87,8 +91,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #endif
 
-const char emacs_copyright[] = "Copyright (C) 2010 Free Software Foundation, Inc.";
-const char emacs_version[] = "24.0.50";
+static const char emacs_copyright[] = "Copyright (C) 2010 Free Software Foundation, Inc.";
+static const char emacs_version[] = "24.0.50";
 
 /* Make these values available in GDB, which doesn't see macros.  */
 
@@ -212,15 +216,6 @@ static unsigned long heap_bss_diff;
 /* If the gap between BSS end and heap start is larger than this
    output a warning in dump-emacs.  */
 #define MAX_HEAP_BSS_DIFF (1024*1024)
-
-
-#ifdef HAVE_WINDOW_SYSTEM
-extern Lisp_Object Vinitial_window_system;
-#endif /* HAVE_WINDOW_SYSTEM */
-
-extern Lisp_Object Vauto_save_list_file_name;
-
-extern Lisp_Object Vinhibit_redisplay;
 
 /* Nonzero means running Emacs without interactive terminal.  */
 
@@ -634,7 +629,7 @@ void __main (void)
    enough information to do it right.  */
 
 static int
-argmatch (char **argv, int argc, char *sstr, char *lstr, int minlen, char **valptr, int *skipptr)
+argmatch (char **argv, int argc, const char *sstr, const char *lstr, int minlen, char **valptr, int *skipptr)
 {
   char *p = NULL;
   int arglen;
@@ -859,23 +854,6 @@ main (int argc, char **argv)
       perror ("execvp");
     }
 #endif /* HAVE_PERSONALITY_LINUX32 */
-
-
-/* Map in shared memory, if we are using that.  */
-#ifdef HAVE_SHM
-  if (argmatch (argv, argc, "-nl", "--no-shared-memory", 6, NULL, &skip_args))
-    {
-      map_in_data (0);
-      /* The shared memory was just restored, which clobbered this.  */
-      skip_args = 1;
-    }
-  else
-    {
-      map_in_data (1);
-      /* The shared memory was just restored, which clobbered this.  */
-      skip_args = 0;
-    }
-#endif
 
 #if defined (HAVE_SETRLIMIT) && defined (RLIMIT_STACK)
   /* Extend the stack space available.
@@ -1275,9 +1253,7 @@ main (int argc, char **argv)
 #ifdef AIX
 /* 20 is SIGCHLD, 21 is SIGTTIN, 22 is SIGTTOU.  */
       signal (SIGXCPU, fatal_error_signal);
-#ifndef _I386
       signal (SIGIOINT, fatal_error_signal);
-#endif
       signal (SIGGRANT, fatal_error_signal);
       signal (SIGRETRACT, fatal_error_signal);
       signal (SIGSOUND, fatal_error_signal);

@@ -126,6 +126,9 @@ typedef struct ns_bitmap_record Bitmap_Record;
 
 Lisp_Object Vx_bitmap_file_path;
 
+/* The symbol `postscript' identifying images of this type.  */
+
+Lisp_Object Qpostscript;
 
 static void x_disable_image (struct frame *, struct image *);
 static void x_edge_detection (struct frame *, struct image *, Lisp_Object,
@@ -595,7 +598,7 @@ Lisp_Object Vimage_cache_eviction_delay;
 
 static Lisp_Object define_image_type (struct image_type *type, int loaded);
 static struct image_type *lookup_image_type (Lisp_Object symbol);
-static void image_error (char *format, Lisp_Object, Lisp_Object);
+static void image_error (const char *format, Lisp_Object, Lisp_Object);
 static void x_laplace (struct frame *, struct image *);
 static void x_emboss (struct frame *, struct image *);
 static int x_build_heuristic_mask (struct frame *, struct image *,
@@ -696,7 +699,7 @@ valid_image_p (Lisp_Object object)
    therefore simply displays a message.  */
 
 static void
-image_error (char *format, Lisp_Object arg1, Lisp_Object arg2)
+image_error (const char *format, Lisp_Object arg1, Lisp_Object arg2)
 {
   add_to_log (format, arg1, arg2);
 }
@@ -728,7 +731,7 @@ enum image_value_type
 struct image_keyword
 {
   /* Name of keyword.  */
-  char *name;
+  const char *name;
 
   /* The type of value allowed.  */
   enum image_value_type type;
@@ -1756,8 +1759,6 @@ lookup_image (struct frame *f, Lisp_Object spec)
   /* If not found, create a new image and cache it.  */
   if (img == NULL)
     {
-      extern Lisp_Object Qpostscript;
-
       BLOCK_INPUT;
       img = make_image (spec, hash);
       cache_image (f, img);
@@ -3658,9 +3659,10 @@ enum xpm_token
    length of the corresponding token, respectively.  */
 
 static int
-xpm_scan (s, end, beg, len)
-     const unsigned char **s, *end, **beg;
-     int *len;
+xpm_scan (const unsigned char **s,
+          const unsigned char *end,
+          const unsigned char **beg,
+          int *len)
 {
   int c;
 
@@ -3724,9 +3726,13 @@ xpm_scan (s, end, beg, len)
    hash table is used.  */
 
 static Lisp_Object
-xpm_make_color_table_v (put_func, get_func)
-     void (**put_func) (Lisp_Object, const unsigned char *, int, Lisp_Object);
-     Lisp_Object (**get_func) (Lisp_Object, const unsigned char *, int);
+xpm_make_color_table_v (void (**put_func) (Lisp_Object,
+                                           const unsigned char *,
+                                           int,
+                                           Lisp_Object),
+                        Lisp_Object (**get_func) (Lisp_Object,
+                                                  const unsigned char *,
+                                                  int))
 {
   *put_func = xpm_put_color_table_v;
   *get_func = xpm_get_color_table_v;
@@ -3734,28 +3740,30 @@ xpm_make_color_table_v (put_func, get_func)
 }
 
 static void
-xpm_put_color_table_v (color_table, chars_start, chars_len, color)
-     Lisp_Object color_table;
-     const unsigned char *chars_start;
-     int chars_len;
-     Lisp_Object color;
+xpm_put_color_table_v (Lisp_Object color_table,
+                       const unsigned char *chars_start,
+                       int chars_len,
+                       Lisp_Object color)
 {
   XVECTOR (color_table)->contents[*chars_start] = color;
 }
 
 static Lisp_Object
-xpm_get_color_table_v (color_table, chars_start, chars_len)
-     Lisp_Object color_table;
-     const unsigned char *chars_start;
-     int chars_len;
+xpm_get_color_table_v (Lisp_Object color_table,
+                       const unsigned char *chars_start,
+                       int chars_len)
 {
   return XVECTOR (color_table)->contents[*chars_start];
 }
 
 static Lisp_Object
-xpm_make_color_table_h (put_func, get_func)
-     void (**put_func) (Lisp_Object, const unsigned char *, int, Lisp_Object);
-     Lisp_Object (**get_func) (Lisp_Object, const unsigned char *, int);
+xpm_make_color_table_h (void (**put_func) (Lisp_Object,
+                                           const unsigned char *,
+                                           int,
+                                           Lisp_Object),
+                        Lisp_Object (**get_func) (Lisp_Object,
+                                                  const unsigned char *,
+                                                  int))
 {
   *put_func = xpm_put_color_table_h;
   *get_func = xpm_get_color_table_h;
@@ -3766,11 +3774,10 @@ xpm_make_color_table_h (put_func, get_func)
 }
 
 static void
-xpm_put_color_table_h (color_table, chars_start, chars_len, color)
-     Lisp_Object color_table;
-     const unsigned char *chars_start;
-     int chars_len;
-     Lisp_Object color;
+xpm_put_color_table_h (Lisp_Object color_table,
+                       const unsigned char *chars_start,
+                       int chars_len,
+                       Lisp_Object color)
 {
   struct Lisp_Hash_Table *table = XHASH_TABLE (color_table);
   unsigned hash_code;
@@ -3781,10 +3788,9 @@ xpm_put_color_table_h (color_table, chars_start, chars_len, color)
 }
 
 static Lisp_Object
-xpm_get_color_table_h (color_table, chars_start, chars_len)
-     Lisp_Object color_table;
-     const unsigned char *chars_start;
-     int chars_len;
+xpm_get_color_table_h (Lisp_Object color_table,
+                       const unsigned char *chars_start,
+                       int chars_len)
 {
   struct Lisp_Hash_Table *table = XHASH_TABLE (color_table);
   int i = hash_lookup (table, make_unibyte_string (chars_start, chars_len),
@@ -3804,8 +3810,7 @@ enum xpm_color_key {
 static const char xpm_color_key_strings[][4] = {"s", "m", "g4", "g", "c"};
 
 static int
-xpm_str_to_color_key (s)
-     const char *s;
+xpm_str_to_color_key (const char *s)
 {
   int i;
 
@@ -3818,10 +3823,10 @@ xpm_str_to_color_key (s)
 }
 
 static int
-xpm_load_image (f, img, contents, end)
-     struct frame *f;
-     struct image *img;
-     const unsigned char *contents, *end;
+xpm_load_image (struct frame *f,
+                struct image *img,
+                const unsigned char *contents,
+                const unsigned char *end)
 {
   const unsigned char *s = contents, *beg, *str;
   unsigned char buffer[BUFSIZ];
@@ -4053,9 +4058,8 @@ xpm_load_image (f, img, contents, end)
 }
 
 static int
-xpm_load (f, img)
-     struct frame *f;
-     struct image *img;
+xpm_load (struct frame *f,
+          struct image *img)
 {
   int success_p = 0;
   Lisp_Object file_name;
@@ -7738,10 +7742,6 @@ svg_load_image (struct frame *f,         /* Pointer to emacs frame structure.  *
 #ifdef HAVE_X_WINDOWS
 #define HAVE_GHOSTSCRIPT 1
 #endif /* HAVE_X_WINDOWS */
-
-/* The symbol `postscript' identifying images of this type.  */
-
-Lisp_Object Qpostscript;
 
 #ifdef HAVE_GHOSTSCRIPT
 
