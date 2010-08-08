@@ -15,14 +15,11 @@
 
 2010-08-08  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule.el (define-charset): Store NAME as :base
-	property.
-	(ctext-non-standard-encodings-table): Pay attention to charset
-	aliases.
+	* international/mule.el (define-charset): Store NAME as :base property.
+	(ctext-non-standard-encodings-table): Pay attention to charset aliases.
 	(ctext-pre-write-conversion): Sort ctext-standard-encodings by the
 	current priority.  Force using the designation of the specific
-	charset by adding `charset' text property.  Improve the whole
-	algorithm.
+	charset by adding `charset' text property.  Improve the whole algorithm.
 
 2010-08-08  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -35,8 +32,8 @@
 	* language/cyrillic.el: Don't add "microsoft-cp1251" to
 	ctext-non-standard-encodings-alist here.
 
-	* international/mule.el (ctext-non-standard-encodings-alist): Add
-	"koi8-r" and "microsoft-cp1251".
+	* international/mule.el (ctext-non-standard-encodings-alist):
+	Add "koi8-r" and "microsoft-cp1251".
 	(ctext-standard-encodings): New variable.
 	(ctext-non-standard-encodings-table): List only elements for
 	non-standard encodings.
@@ -51,7 +48,7 @@
 
 	* simple.el (exchange-dot-and-mark): Mark obsolete, finally.
 
-2010-08-03  Juanma Barranquero  <lekktu@gmail.com>
+2010-08-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* progmodes/which-func.el (which-func-format): Split help-echo text
 	into lines, like other mode-line tooltips.
@@ -59,26 +56,26 @@
 	* server.el (server-start): When using TCP sockets, force IPv4
 	and use a literal 127.0.0.1 for localhost.  (Related to bug#6781.)
 
-2010-08-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+2010-08-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* bindings.el (complete-symbol): Run completion-at-point as a fallback.
 
-2010-08-02  Juanma Barranquero  <lekktu@gmail.com>
+2010-08-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* term.el (term-delimiter-argument-list): Reflow docstring.
 	(term-read-input-ring, term-write-input-ring, term-send-input)
 	(term-bol, term-erase-in-display, serial-supported-or-barf):
 	Fix typos in docstrings.
 
-2010-08-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+2010-08-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* bindings.el (function-key-map): Add a S-tab => backtab fallback.
 
-2010-08-01  Juanma Barranquero  <lekktu@gmail.com>
+2010-08-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* dabbrev.el (dabbrev-completion): Fix typo in docstring.
 
-2010-08-01  MON KEY  <monkey@sandpframing.com>  (tiny change)
+2010-08-08  MON KEY  <monkey@sandpframing.com>  (tiny change)
 
 	* emacs-lisp/syntax.el (syntax-ppss-toplevel-pos):
 	Fix typo in docstring (bug#6747).
@@ -119,9 +116,9 @@
 
 2010-08-07  Michael R. Mauger  <mmaug@yahoo.com>
 
-	* progmodes/sql.el (sql-mode-sqlite-font-lock-keywords): Added
-	SQLite 3 keywords, functions and datatypes.
-	(sql-interactive-mode): Removed `comint-process-echoes' set to t
+	* progmodes/sql.el (sql-mode-sqlite-font-lock-keywords):
+	Add SQLite 3 keywords, functions and datatypes.
+	(sql-interactive-mode): Remove `comint-process-echoes' set to t
 	(Bug#6686).
 
 2010-08-07  Chong Yidong  <cyd@stupidchicken.com>
@@ -154,7 +151,7 @@
 
 2010-08-06  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el (tramp-handle-start-file-process ): Set connection
+	* net/tramp.el (tramp-handle-start-file-process): Set connection
 	property "vec".
 	(tramp-process-sentinel): Use it for flushing the cache.  We
 	cannot do it via the process buffer, the buffer could be deleted

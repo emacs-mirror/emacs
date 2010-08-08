@@ -90,10 +90,8 @@
 	* xselect.c (QPRIMARY): Move to keyboard.c.
 
 	* keyboard.c (Vselect_active_regions): Move from simple.el.
-	(Vsaved_region_selection, Qx_set_selection, QPRIMARY, Qlazy): New
-	vars.
-	(command_loop_1): Set window selection prior to deactivating the
-	mark.
+	(Vsaved_region_selection, Qx_set_selection, QPRIMARY, Qlazy): New vars.
+	(command_loop_1): Set window selection prior to deactivating the mark.
 
 2010-08-07  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -113,8 +111,8 @@
 
 	* keyboard.h (quit_char): Add declaration.
 	* process.h (QCport, QCspeed, QCprocess, QCbytesize, QCstopbits)
-	(QCparity, Qodd, Qeven, QCflowcontrol, Qhw, Qsw, QCsummary): Add
-	declarations.
+	(QCparity, Qodd, Qeven, QCflowcontrol, Qhw, Qsw, QCsummary):
+	Add declarations.
 	* sysdep.c:
 	* w32.c: Remove the above declarations.
 
