@@ -2080,7 +2080,8 @@ syms_of_minibuf (void)
   staticpro (&Qread_expression_history);
 
   DEFVAR_LISP ("read-buffer-function", &Vread_buffer_function,
-	       doc: /* If this is non-nil, `read-buffer' does its work by calling this function.  */);
+	       doc: /* If this is non-nil, `read-buffer' does its work by calling this function.
+The function is called with the arguments passed to `read-buffer'.  */);
   Vread_buffer_function = Qnil;
 
   DEFVAR_BOOL ("read-buffer-completion-ignore-case",

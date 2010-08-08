@@ -3902,7 +3902,7 @@ decode_coding_iso_2022 (struct coding_system *coding)
 		  int size;
 
 		  ONE_MORE_BYTE (dim);
-		  if (dim < 0 || dim > 4)
+		  if (dim < '0' || dim > '4')
 		    goto invalid_code;
 		  ONE_MORE_BYTE (M);
 		  if (M < 128)

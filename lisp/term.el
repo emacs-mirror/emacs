@@ -502,8 +502,8 @@ This is a good thing to set in mode hooks.")
 (defvar term-delimiter-argument-list ()
   "List of characters to recognize as separate arguments in input.
 Strings comprising a character in this list will separate the arguments
-surrounding them, and also be regarded as arguments in their own right (unlike
-whitespace).  See `term-arguments'.
+surrounding them, and also be regarded as arguments in their own right
+\(unlike whitespace).  See `term-arguments'.
 Defaults to the empty list.
 
 For shells, a good value is (?\\| ?& ?< ?> ?\\( ?\\) ?\\;).
@@ -1516,7 +1516,7 @@ if [ $1 = .. ]; then shift; fi; exec \"$@\""
 ;; term-replace-by-expanded-history-before-point Workhorse function.
 
 (defun term-read-input-ring (&optional silent)
-  "Sets the buffer's `term-input-ring' from a history file.
+  "Set the buffer's `term-input-ring' from a history file.
 The name of the file is given by the variable `term-input-ring-file-name'.
 The history ring is of size `term-input-ring-size', regardless of file size.
 If `term-input-ring-file-name' is nil this function does nothing.
@@ -1564,7 +1564,7 @@ See also `term-input-ignoredups' and `term-write-input-ring'."
 		 term-input-ring-index nil)))))
 
 (defun term-write-input-ring ()
-  "Writes the buffer's `term-input-ring' to a history file.
+  "Write the buffer's `term-input-ring' to a history file.
 The name of the file is given by the variable `term-input-ring-file-name'.
 The original contents of the file are lost if `term-input-ring' is not empty.
 If `term-input-ring-file-name' is nil this function does nothing.
@@ -1996,12 +1996,12 @@ Argument 0 is the command name."
   "Send input to process.
 After the process output mark, sends all text from the process mark to
 point as input to the process.  Before the process output mark, calls value
-of variable term-get-old-input to retrieve old input, copies it to the
+of variable `term-get-old-input' to retrieve old input, copies it to the
 process mark, and sends it.  A terminal newline is also inserted into the
 buffer and sent to the process.  The list of function names contained in the
 value of `term-input-filter-functions' is called on the input before sending
 it.  The input is entered into the input history ring, if the value of variable
-term-input-filter returns non-nil when called on the input.
+`term-input-filter' returns non-nil when called on the input.
 
 Any history reference may be expanded depending on the value of the variable
 `term-input-autoexpand'.  The list of function names contained in the value
@@ -2137,7 +2137,7 @@ set the hook `term-input-sender'."
   (term-send-string proc "\n"))
 
 (defun term-bol (arg)
-  "Goes to the beginning of line, then skips past the prompt, if any.
+  "Go to the beginning of line, then skip past the prompt, if any.
 If a prefix argument is given (\\[universal-argument]), then no prompt skip
 -- go straight to column 0.
 
@@ -3760,7 +3760,7 @@ all pending output has been dealt with."))
       (goto-char saved-point))))
 
 (defun term-erase-in-display (kind)
-  "Erases (that is blanks out) part of the window.
+  "Erase (that is blank out) part of the window.
 If KIND is 0, erase from (point) to (point-max);
 if KIND is 1, erase from home to point; else erase from home to point-max."
   (term-handle-deferred-scroll)
@@ -4166,7 +4166,7 @@ Typing SPC flushes the help buffer."
 
 ;; I need a make-term that doesn't surround with *s -mm
 (defun term-ansi-make-term (name program &optional startfile &rest switches)
-"Make a term process NAME in a buffer, running PROGRAM.
+  "Make a term process NAME in a buffer, running PROGRAM.
 The name of the buffer is NAME.
 If there is already a running process in that buffer, it is not restarted.
 Optional third arg STARTFILE is the name of a file to send the contents of to
@@ -4267,7 +4267,7 @@ returns nil, which is recognized by `serial-process-configure'
 for special serial ports that cannot be configured.")
 
 (defun serial-supported-or-barf ()
-  "Signal an error if serial processes are not supported"
+  "Signal an error if serial processes are not supported."
   (unless (fboundp 'make-serial-process)
     (error "Serial processes are not supported on this system")))
 

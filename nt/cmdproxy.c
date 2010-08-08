@@ -35,6 +35,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdlib.h>  /* getenv */
 #include <string.h>  /* strlen */
 
+/* We don't want to include stdio.h because we are already duplicating
+   lots of it here */
+extern int _snprintf (char *buffer, size_t count, const char *format, ...);
 
 /*******  Mock C library routines  *********************************/
 
@@ -604,6 +607,7 @@ main (int argc, char ** argv)
     {
       char * p;
       int    extra_arg_space = 0;
+      int    maxlen, remlen;
       int    run_command_dot_com;
 
       progname = getenv ("COMSPEC");
@@ -635,21 +639,27 @@ main (int argc, char ** argv)
 	     case path contains spaces (fortunately it can't contain
 	     quotes, since they are illegal in path names).  */
 
-	  buf = p = alloca (strlen (progname) + extra_arg_space +
-			    strlen (cmdline) + 16);
+	  remlen = maxlen =
+	    strlen (progname) + extra_arg_space + strlen (cmdline) + 16;
+	  buf = p = alloca (maxlen + 1);
 
 	  /* Quote progname in case it contains spaces.  */
-	  p += wsprintf (p, "\"%s\"", progname);
+	  p += _snprintf (p, remlen, "\"%s\"", progname);
+	  remlen = maxlen - (p - buf);
 
 	  /* Include pass_through_args verbatim; these are just switches
              so should not need quoting.  */
 	  for (argv = pass_through_args; *argv != NULL; ++argv)
-	    p += wsprintf (p, " %s", *argv);
+	    {
+	      p += _snprintf (p, remlen, " %s", *argv);
+	      remlen = maxlen - (p - buf);
+	    }
 
 	  if (run_command_dot_com)
-	    wsprintf(p, " /e:%d /c %s", envsize, cmdline);
+	    _snprintf (p, remlen, " /e:%d /c %s", envsize, cmdline);
 	  else
-	    wsprintf(p, " /c %s", cmdline);
+	    _snprintf (p, remlen, " /c %s", cmdline);
+	  remlen = maxlen - (p - buf);
 	  cmdline = buf;
 	}
       else
@@ -669,19 +679,27 @@ main (int argc, char ** argv)
 	  else
 	    path[0] = '\0';
 
-	  cmdline = p = alloca (strlen (progname) + extra_arg_space +
-				strlen (path) + 13);
+	  remlen = maxlen =
+	    strlen (progname) + extra_arg_space + strlen (path) + 13;
+	  cmdline = p = alloca (maxlen + 1);
 
 	  /* Quote progname in case it contains spaces.  */
-	  p += wsprintf (p, "\"%s\" %s", progname, path);
+	  p += _snprintf (p, remlen, "\"%s\" %s", progname, path);
+	  remlen = maxlen - (p - cmdline);
 
 	  /* Include pass_through_args verbatim; these are just switches
              so should not need quoting.  */
 	  for (argv = pass_through_args; *argv != NULL; ++argv)
-	    p += wsprintf (p, " %s", *argv);
+	    {
+	      p += _snprintf (p, remlen, " %s", *argv);
+	      remlen = maxlen - (p - cmdline);
+	    }
 
 	  if (run_command_dot_com)
-	    wsprintf (p, " /e:%d", envsize);
+	    {
+	      _snprintf (p, remlen, " /e:%d", envsize);
+	      remlen = maxlen - (p - cmdline);
+	    }
 	}
     }
 

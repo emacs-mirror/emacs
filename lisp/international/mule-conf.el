@@ -1410,9 +1410,10 @@ is treated as a character."
   :flags '(ascii-at-eol ascii-at-cntl designation single-shift composition))
 
 (define-coding-system 'compound-text
-  "Compound text based generic encoding for decoding unknown messages.
-
-This coding system does not support extended segments of CTEXT."
+  "Compound text based generic encoding.
+This coding system is an extension of X's \"Compound Text Encoding\".
+It encodes many characters using the normal ISO-2022 designation sequences,
+but it doesn't support extended segments of CTEXT."
   :coding-type 'iso-2022
   :mnemonic ?x
   :charset-list 'iso-2022
@@ -1432,7 +1433,7 @@ This coding system does not support extended segments of CTEXT."
 ;; not have a mime-charset property, to prevent it from showing up
 ;; close to the beginning of coding systems ordered by priority.
 (define-coding-system 'ctext-no-compositions
- "Compound text based generic encoding for decoding unknown messages.
+ "Compound text based generic encoding.
 
 Like `compound-text', but does not produce escape sequences for compositions."
   :coding-type 'iso-2022
@@ -1445,8 +1446,9 @@ Like `compound-text', but does not produce escape sequences for compositions."
 (define-coding-system 'compound-text-with-extensions
  "Compound text encoding with ICCCM Extended Segment extensions.
 
-See the variable `ctext-non-standard-encodings-alist' for the
-detail about how extended segments are handled.
+See the variables `ctext-standard-encodings' and
+`ctext-non-standard-encodings-alist' for the detail about how
+extended segments are handled.
 
 This coding system should be used only for X selections.  It is inappropriate
 for decoding and encoding files, process I/O, etc."
