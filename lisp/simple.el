@@ -3941,7 +3941,8 @@ Does not set point.  Does nothing if mark ring is empty."
     (setq mark-ring (cdr mark-ring)))
   (deactivate-mark))
 
-(defalias 'exchange-dot-and-mark 'exchange-point-and-mark)
+(define-obsolete-function-alias
+  'exchange-dot-and-mark 'exchange-point-and-mark "23.3")
 (defun exchange-point-and-mark (&optional arg)
   "Put the mark where point is now, and point where the mark is now.
 This command works even when the mark is not active,

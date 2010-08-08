@@ -377,7 +377,7 @@ With a prefix argument ARG, it searches all buffers accepted by the
 function pointed out by `dabbrev-friend-buffer-function' to find the
 completions.
 
-If the prefix argument is 16 (which comes from \\[prefix-argument] \\[prefix-argument]),
+If the prefix argument is 16 (which comes from \\[universal-argument] \\[universal-argument]),
 then it searches *all* buffers."
   (interactive "*P")
   (dabbrev--reset-global-variables)

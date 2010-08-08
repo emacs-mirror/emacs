@@ -1,3 +1,7 @@
+2010-08-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* org.texi (Footnotes, Tables in HTML export): Fix typos.
+
 2010-08-08  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc.texi (Making Selections, Selecting Subformulas)
