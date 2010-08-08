@@ -22,11 +22,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Xt features made by Fred Pierresteguy.  */
 
 #include <config.h>
-
-/* On 4.3 these lose if they come after xterm.h.  */
-/* Putting these at the beginning seems to be standard for other .c files.  */
 #include <signal.h>
-
 #include <stdio.h>
 #include <setjmp.h>
 
@@ -105,11 +101,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef USE_LUCID
 #include "../lwlib/xlwmenu.h"
-#endif
-
-#if defined (USE_X_TOOLKIT) || defined (USE_GTK)
-
-extern void free_frame_menubar (struct frame *);
 #endif
 
 #ifdef USE_X_TOOLKIT
@@ -4380,7 +4371,7 @@ xaw_scroll_callback (Widget widget, XtPointer client_data, XtPointer call_data)
 static void
 x_create_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
 {
-  char *scroll_bar_name = SCROLL_BAR_NAME;
+  const char *scroll_bar_name = SCROLL_BAR_NAME;
 
   BLOCK_INPUT;
   xg_create_scroll_bar (f, bar, G_CALLBACK (xg_scroll_callback),

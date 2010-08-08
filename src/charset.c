@@ -1265,7 +1265,7 @@ usage: (define-charset-internal ...)  */)
 static int
 define_charset_internal (Lisp_Object name,
 			 int dimension,
-			 unsigned char *code_space,
+			 const unsigned char *code_space,
 			 unsigned min_code, unsigned max_code,
 			 int iso_final, int iso_revision, int emacs_mule_id,
 			 int ascii_compatible, int supplementary,

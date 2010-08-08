@@ -662,7 +662,7 @@ digest_single_submenu (int start, int end, int top_level_items)
 	{
 	  /* Create a new pane.  */
 	  Lisp_Object pane_name, prefix;
-	  char *pane_string;
+	  const char *pane_string;
 
 	  panes_seen++;
 

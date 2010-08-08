@@ -96,11 +96,11 @@ Lisp_Object ftfont_font_format (FcPattern *, Lisp_Object);
 static struct
 {
   /* registry name */
-  char *name;
+  const char *name;
   /* characters to distinguish the charset from the others */
   int uniquifier[6];
   /* additional constraint by language */
-  char *lang;
+  const char *lang;
   /* set on demand */
   FcCharSet *fc_charset;
 } fc_charset_table[] =
@@ -691,12 +691,8 @@ ftfont_get_open_type_spec (Lisp_Object otf_spec)
   return spec;
 }
 
-static FcPattern *ftfont_spec_pattern (Lisp_Object, char *,
-                                       struct OpenTypeSpec **,
-                                       char **langname);
-
 static FcPattern *
-ftfont_spec_pattern (Lisp_Object spec, char *otlayout, struct OpenTypeSpec **otspec, char **langname)
+ftfont_spec_pattern (Lisp_Object spec, char *otlayout, struct OpenTypeSpec **otspec, const char **langname)
 {
   Lisp_Object tmp, extra;
   FcPattern *pattern = NULL;
@@ -866,7 +862,7 @@ ftfont_list (Lisp_Object frame, Lisp_Object spec)
   char otlayout[15];		/* For "otlayout:XXXX" */
   struct OpenTypeSpec *otspec = NULL;
   int spacing = -1;
-  char *langname = NULL;
+  const char *langname = NULL;
 
   if (! fc_initialized)
     {
@@ -1057,7 +1053,7 @@ ftfont_match (Lisp_Object frame, Lisp_Object spec)
   FcResult result;
   char otlayout[15];		/* For "otlayout:XXXX" */
   struct OpenTypeSpec *otspec = NULL;
-  char *langname = NULL;
+  const char *langname = NULL;
 
   if (! fc_initialized)
     {
@@ -2630,7 +2626,7 @@ ftfont_filter_properties (Lisp_Object font, Lisp_Object alist)
 
         if (strcmp (ftfont_booleans[i], keystr) == 0)
           {
-            char *str = SYMBOLP (val) ? SDATA (SYMBOL_NAME (val)) : NULL;
+            const char *str = SYMBOLP (val) ? SDATA (SYMBOL_NAME (val)) : NULL;
             if (INTEGERP (val)) str = XINT (val) != 0 ? "true" : "false";
             if (str == NULL) str = "true";
 

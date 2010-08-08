@@ -2370,7 +2370,7 @@ create_menus (widget_value *data,
    Returns the widget created.  */
 
 GtkWidget *
-xg_create_widget (char *type, char *name, FRAME_PTR f, widget_value *val,
+xg_create_widget (const char *type, const char *name, FRAME_PTR f, widget_value *val,
                   GCallback select_cb, GCallback deactivate_cb,
 		  GCallback highlight_cb)
 {
@@ -3233,7 +3233,7 @@ xg_create_scroll_bar (FRAME_PTR f,
                       struct scroll_bar *bar,
                       GCallback scroll_callback,
                       GCallback end_callback,
-                      char *scroll_bar_name)
+                      const char *scroll_bar_name)
 {
   GtkWidget *wscroll;
   GtkWidget *webox;

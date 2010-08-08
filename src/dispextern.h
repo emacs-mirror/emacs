@@ -2050,7 +2050,7 @@ struct it
   /* C string to iterate over.  Non-null means get characters from
      this string, otherwise characters are read from current_buffer
      or it->string.  */
-  unsigned char *s;
+  const unsigned char *s;
 
   /* Number of characters in the string (s, or it->string) we iterate
      over.  */

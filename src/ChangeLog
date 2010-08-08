@@ -1,5 +1,33 @@
 2010-08-08  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	Use const char* instead of char*.
+	* xterm.c (x_create_toolkit_scroll_bar):
+	* xfont.c (xfont_list_pattern):
+	* xfns.c (x_default_scroll_bar_color_parameter)
+	(xic_create_fontsetname, x_default_font_parameter)
+	(x_screen_planes):
+	* xdisp.c (c_string_pos, number_of_chars, reseat_to_string)
+	(store_mode_line_string, decode_mode_spec, display_string):
+	* menu.c (digest_single_submenu):
+	* keymap.h (initial_define_key, initial_define_lispy_key):
+	* keymap.c (initial_define_key, initial_define_lispy_key):
+	* image.c (image_error, image_keyword):
+	* gtkutil.h (xg_create_widget, xg_create_scroll_bar):
+	* gtkutil.c (xg_create_widget, xg_create_scroll_bar):
+	* ftfont.c (struct fc_charset_table, ftfont_spec_pattern)
+	(ftfont_list, ftfont_match):
+	* frame.c (frame_parm_table):
+	* font.h (font_intern_prop, font_parse_xlfd, font_parse_fcname)
+	(font_unparse_fcname, font_unparse_fcname, font_open_by_name)
+	(font_add_log, font_deferred_log):
+	* font.c (font_intern_prop, font_parse_xlfd, font_parse_fcname)
+	(font_unparse_fcname, font_unparse_fcname, font_open_by_name)
+	(font_add_log, font_deferred_log):
+	* emacs.c (argmatch):
+	* dispextern.h (struct it):
+	* coding.c (ENCODE_DESIGNATION):
+	* charset.c (define_charset_internal): Use const.
+
 	* s/freebsd.h (DECLARE_GETPWUID_WITH_UID_T): Remove, unused.
 
 	* xrdb.c: Remove include guard.  Remove

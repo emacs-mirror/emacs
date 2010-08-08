@@ -174,13 +174,13 @@ in case you use it as a menu with `x-popup-menu'.  */)
    initial_define_key (control_x_map, Ctl('X'), "exchange-point-and-mark");  */
 
 void
-initial_define_key (Lisp_Object keymap, int key, char *defname)
+initial_define_key (Lisp_Object keymap, int key, const char *defname)
 {
   store_in_keymap (keymap, make_number (key), intern_c_string (defname));
 }
 
 void
-initial_define_lispy_key (Lisp_Object keymap, char *keyname, char *defname)
+initial_define_lispy_key (Lisp_Object keymap, const char *keyname, const char *defname)
 {
   store_in_keymap (keymap, intern_c_string (keyname), intern_c_string (defname));
 }

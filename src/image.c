@@ -598,7 +598,7 @@ Lisp_Object Vimage_cache_eviction_delay;
 
 static Lisp_Object define_image_type (struct image_type *type, int loaded);
 static struct image_type *lookup_image_type (Lisp_Object symbol);
-static void image_error (char *format, Lisp_Object, Lisp_Object);
+static void image_error (const char *format, Lisp_Object, Lisp_Object);
 static void x_laplace (struct frame *, struct image *);
 static void x_emboss (struct frame *, struct image *);
 static int x_build_heuristic_mask (struct frame *, struct image *,
@@ -699,7 +699,7 @@ valid_image_p (Lisp_Object object)
    therefore simply displays a message.  */
 
 static void
-image_error (char *format, Lisp_Object arg1, Lisp_Object arg2)
+image_error (const char *format, Lisp_Object arg1, Lisp_Object arg2)
 {
   add_to_log (format, arg1, arg2);
 }
@@ -731,7 +731,7 @@ enum image_value_type
 struct image_keyword
 {
   /* Name of keyword.  */
-  char *name;
+  const char *name;
 
   /* The type of value allowed.  */
   enum image_value_type type;

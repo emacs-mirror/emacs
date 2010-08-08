@@ -501,7 +501,7 @@ void x_set_scroll_bar_background (struct frame *, Lisp_Object,
 static Lisp_Object x_default_scroll_bar_color_parameter (struct frame *,
                                                          Lisp_Object,
                                                          Lisp_Object,
-                                                         char *, char *,
+                                                         const char *, const char *,
                                                          int);
 
 
@@ -1767,7 +1767,7 @@ x_set_scroll_bar_default_width (struct frame *f)
 static Lisp_Object
 x_default_scroll_bar_color_parameter (struct frame *f,
 				      Lisp_Object alist, Lisp_Object prop,
-				      char *xprop, char *xclass,
+				      const char *xprop, const char *xclass,
 				      int foreground_p)
 {
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
@@ -2138,7 +2138,7 @@ xic_create_xfontset (struct frame *f)
 	}
       if (! xfs)
 	{
-	  char *last_resort = "-*-*-*-r-normal--*-*-*-*-*-*";
+	  const char *last_resort = "-*-*-*-r-normal--*-*-*-*-*-*";
 
 	  missing_list = NULL;
 	  xfs = XCreateFontSet (FRAME_X_DISPLAY (f), last_resort,
@@ -3011,7 +3011,7 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
 
   if (! FONTP (font) && ! STRINGP (font))
     {
-      char *names[]
+      const char *names[]
 	= {
 #ifdef HAVE_XFT
 	    /* This will find the normal Xft font.  */
@@ -3740,7 +3740,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
   (Lisp_Object terminal)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
-  char *vendor = ServerVendor (dpyinfo->display);
+  const char *vendor = ServerVendor (dpyinfo->display);
 
   if (! vendor) vendor = "";
   return build_string (vendor);
@@ -3934,7 +3934,7 @@ x_screen_planes (register struct frame *f)
 
 static struct visual_class
 {
-  char *name;
+  const char *name;
   int class;
 }
 visual_classes[] =

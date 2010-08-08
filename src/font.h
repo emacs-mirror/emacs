@@ -783,10 +783,10 @@ extern void font_prepare_for_face (FRAME_PTR f, struct face *face);
 extern void font_done_for_face (FRAME_PTR f, struct face *face);
 
 extern Lisp_Object font_open_by_spec (FRAME_PTR f, Lisp_Object spec);
-extern Lisp_Object font_open_by_name (FRAME_PTR f, char *name);
+extern Lisp_Object font_open_by_name (FRAME_PTR f, const char *name);
 extern void font_close_object (FRAME_PTR f, Lisp_Object font_object);
 
-extern Lisp_Object font_intern_prop (char *str, int len, int force_symbol);
+extern Lisp_Object font_intern_prop (const char *str, int len, int force_symbol);
 extern void font_update_sort_order (int *order);
 
 extern void font_parse_family_registry (Lisp_Object family,
@@ -795,12 +795,12 @@ extern void font_parse_family_registry (Lisp_Object family,
 extern Lisp_Object font_spec_from_family_registry (Lisp_Object family,
                                                    Lisp_Object registry);
 
-extern int font_parse_xlfd (char *name, Lisp_Object font);
+extern int font_parse_xlfd (const char *name, Lisp_Object font);
 extern int font_unparse_xlfd (Lisp_Object font, int pixel_size,
                               char *name, int bytes);
-extern int font_parse_fcname (char *name, Lisp_Object font);
+extern int font_parse_fcname (const char *name, Lisp_Object font);
 extern int font_unparse_fcname (Lisp_Object font, int pixel_size,
-                                char *name, int bytes);
+                                const char *name, int bytes);
 extern int font_unparse_gtkname (Lisp_Object, struct frame *, char *, int);
 extern void register_font_driver (struct font_driver *driver, FRAME_PTR f);
 extern void free_font_driver_list (FRAME_PTR f);
@@ -856,8 +856,8 @@ extern void syms_of_nsfont (void);
 extern Lisp_Object QCfoundry, QCadstyle, QCregistry;
 
 extern Lisp_Object Vfont_log;
-extern void font_add_log (char *, Lisp_Object, Lisp_Object);
-extern void font_deferred_log (char *, Lisp_Object, Lisp_Object);
+extern void font_add_log (const char *, Lisp_Object, Lisp_Object);
+extern void font_deferred_log (const char *, Lisp_Object, Lisp_Object);
 
 #define FONT_ADD_LOG(ACTION, ARG, RESULT)	\
   do {						\

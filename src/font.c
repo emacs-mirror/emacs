@@ -232,7 +232,7 @@ static int num_font_drivers;
    STR.  */
 
 Lisp_Object
-font_intern_prop (char *str, int len, int force_symbol)
+font_intern_prop (const char *str, int len, int force_symbol)
 {
   int i;
   Lisp_Object tem;
@@ -981,7 +981,7 @@ font_expand_wildcards (Lisp_Object *field, int n)
    a fully specified XLFD.  */
 
 int
-font_parse_xlfd (char *name, Lisp_Object font)
+font_parse_xlfd (const char *name, Lisp_Object font)
 {
   int len = strlen (name);
   int i, j, n;
@@ -1306,7 +1306,7 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
    This function tries to guess which format it is.  */
 
 int
-font_parse_fcname (char *name, Lisp_Object font)
+font_parse_fcname (const char *name, Lisp_Object font)
 {
   char *p, *q;
   char *size_beg = NULL, *size_end = NULL;
@@ -1563,7 +1563,7 @@ font_parse_fcname (char *name, Lisp_Object font)
    FONT_SIZE_INDEX of FONT is 0, use PIXEL_SIZE instead.  */
 
 int
-font_unparse_fcname (Lisp_Object font, int pixel_size, char *name, int nbytes)
+font_unparse_fcname (Lisp_Object font, int pixel_size, const char *name, int nbytes)
 {
   Lisp_Object family, foundry;
   Lisp_Object tail, val;
@@ -1571,7 +1571,7 @@ font_unparse_fcname (Lisp_Object font, int pixel_size, char *name, int nbytes)
   int i, len = 1;
   char *p;
   Lisp_Object styles[3];
-  char *style_names[3] = { "weight", "slant", "width" };
+  const char *style_names[3] = { "weight", "slant", "width" };
   char work[256];
 
   family = AREF (font, FONT_FAMILY_INDEX);
@@ -3506,7 +3506,7 @@ font_open_by_spec (FRAME_PTR f, Lisp_Object spec)
    found, return Qnil.  */
 
 Lisp_Object
-font_open_by_name (FRAME_PTR f, char *name)
+font_open_by_name (FRAME_PTR f, const char *name)
 {
   Lisp_Object args[2];
   Lisp_Object spec, ret;
@@ -5060,7 +5060,7 @@ static Lisp_Object Vfont_log_deferred;
    opening), ARG is the argument for the action, and RESULT is the
    result of the action.  */
 void
-font_add_log (char *action, Lisp_Object arg, Lisp_Object result)
+font_add_log (const char *action, Lisp_Object arg, Lisp_Object result)
 {
   Lisp_Object tail, val;
   int i;
@@ -5146,7 +5146,7 @@ font_add_log (char *action, Lisp_Object arg, Lisp_Object result)
    as font_add_log.  */
 
 void
-font_deferred_log (char *action, Lisp_Object arg, Lisp_Object result)
+font_deferred_log (const char *action, Lisp_Object arg, Lisp_Object result)
 {
   if (EQ (Vfont_log, Qt))
     return;

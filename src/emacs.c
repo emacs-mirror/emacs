@@ -629,7 +629,7 @@ void __main (void)
    enough information to do it right.  */
 
 static int
-argmatch (char **argv, int argc, char *sstr, char *lstr, int minlen, char **valptr, int *skipptr)
+argmatch (char **argv, int argc, const char *sstr, const char *lstr, int minlen, char **valptr, int *skipptr)
 {
   char *p = NULL;
   int arglen;
