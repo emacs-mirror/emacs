@@ -1,3 +1,13 @@
+2010-08-08  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar/icalendar.el (icalendar-uid-format): Doc fix.
+	(icalendar--split-value): Fixed splitting regexp. (Bug#6766)
+	(icalendar--get-weekday-numbers): New
+	(icalendar--create-uid, icalendar-export-region)
+	(icalendar--parse-summary-and-rest): Code formatting.
+	(icalendar--convert-recurring-to-diary): Handle multiple byday
+	values in weekly rules. (Bug#6766)
+
 2010-08-08  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc.el (calc-trail-mode,calc-refresh): Use `face' property
