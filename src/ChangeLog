@@ -1,3 +1,10 @@
+2010-08-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xrdb.c: Remove include guard.  Remove
+	DECLARE_GETPWUID_WITH_UID_T conditional it had no effect.
+	Remove #if 0 code.  Replace malloc->xmalloc, free->xfree,
+	realloc->xrealloc instead of using #defines.
+
 2010-08-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* cmds.c (Fforward_line, Fbeginning_of_line, Fend_of_line):
