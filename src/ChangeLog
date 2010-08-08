@@ -1,5 +1,7 @@
 2010-08-08  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* s/freebsd.h (DECLARE_GETPWUID_WITH_UID_T): Remove, unused.
+
 	* xrdb.c: Remove include guard.  Remove
 	DECLARE_GETPWUID_WITH_UID_T conditional it had no effect.
 	Remove #if 0 code.  Replace malloc->xmalloc, free->xfree,
