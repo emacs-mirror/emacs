@@ -1,3 +1,17 @@
+2010-08-08  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (calc-trail-mode,calc-refresh): Use `face' property
+	to italicize headers.
+	(calc-highlight-selections-with-faces): New variable.
+	(calc-selected-face, calc-nonselected-face): New faces.
+
+	* calc/calccomp.el (math-comp-highlight-string): Use
+	`calc-highlight-selections-with-faces' to determine how to highlight
+	sub-formulas.
+
+	* calc/calc-sel.el (calc-show-selections): Change message to when
+	using faces to highlight selections.
+
 2010-08-07  Michael R. Mauger  <mmaug@yahoo.com>
 
 	* progmodes/sql.el (sql-mode-sqlite-font-lock-keywords): Added
