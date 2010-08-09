@@ -1,3 +1,7 @@
+2010-08-09  Kenichi Handa  <handa@m17n.org>
+
+	* quail/greek.el ("greek"): Add rules for Greek style quotes.
+
 2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 23.2 released.
