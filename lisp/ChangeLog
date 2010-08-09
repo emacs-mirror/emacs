@@ -1,6 +1,6 @@
 2010-08-09  Kenichi Handa  <handa@m17n.org>
 
-	* language/hebrew.el: Exclude U+05BD (Hebre MAQAF) from the
+	* language/hebrew.el: Exclude U+05BD (Hebrew MAQAF) from the
 	composable pattern.
 
 2010-08-08  Chong Yidong  <cyd@stupidchicken.com>
