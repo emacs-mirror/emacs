@@ -133,7 +133,7 @@ extern char *xg_get_file_name (FRAME_PTR f,
                                int mustmatch_p,
                                int only_dir_p);
 
-extern char *xg_get_font_name (FRAME_PTR f, char *);
+extern char *xg_get_font_name (FRAME_PTR f, const char *);
 
 extern GtkWidget *xg_create_widget (const char *type,
                                     const char *name,

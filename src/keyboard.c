@@ -8326,8 +8326,8 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
       /* Try to make one from caption and key.  */
       Lisp_Object key = PROP (TOOL_BAR_ITEM_KEY);
       Lisp_Object capt = PROP (TOOL_BAR_ITEM_CAPTION);
-      char *label = SYMBOLP (key) ? (char *) SDATA (SYMBOL_NAME (key)) : "";
-      char *caption = STRINGP (capt) ? (char *) SDATA (capt) : "";
+      const char *label = SYMBOLP (key) ? (char *) SDATA (SYMBOL_NAME (key)) : "";
+      const char *caption = STRINGP (capt) ? (char *) SDATA (capt) : "";
       char buf[64];
       EMACS_INT max_lbl = 2*tool_bar_max_label_size;
       Lisp_Object new_lbl;
@@ -11532,7 +11532,7 @@ init_keyboard (void)
    event header symbols and put properties on them.  */
 struct event_head {
   Lisp_Object *var;
-  char *name;
+  const char *name;
   Lisp_Object *kind;
 };
 

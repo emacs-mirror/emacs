@@ -699,7 +699,7 @@ font_put_extra (Lisp_Object font, Lisp_Object prop, Lisp_Object val)
 
 /* Font name parser and unparser */
 
-static int parse_matrix (char *);
+static int parse_matrix (const char *);
 static int font_expand_wildcards (Lisp_Object *, int);
 static int font_parse_name (char *, Lisp_Object);
 
@@ -758,7 +758,7 @@ enum xlfd_field_mask
    -1.  */
 
 static int
-parse_matrix (char *p)
+parse_matrix (const char *p)
 {
   double matrix[4];
   char *end;
@@ -981,7 +981,7 @@ font_expand_wildcards (Lisp_Object *field, int n)
    a fully specified XLFD.  */
 
 int
-font_parse_xlfd (const char *name, Lisp_Object font)
+font_parse_xlfd (char *name, Lisp_Object font)
 {
   int len = strlen (name);
   int i, j, n;
@@ -1306,7 +1306,7 @@ font_unparse_xlfd (Lisp_Object font, int pixel_size, char *name, int nbytes)
    This function tries to guess which format it is.  */
 
 int
-font_parse_fcname (const char *name, Lisp_Object font)
+font_parse_fcname (char *name, Lisp_Object font)
 {
   char *p, *q;
   char *size_beg = NULL, *size_end = NULL;
@@ -1563,7 +1563,7 @@ font_parse_fcname (const char *name, Lisp_Object font)
    FONT_SIZE_INDEX of FONT is 0, use PIXEL_SIZE instead.  */
 
 int
-font_unparse_fcname (Lisp_Object font, int pixel_size, const char *name, int nbytes)
+font_unparse_fcname (Lisp_Object font, int pixel_size, char *name, int nbytes)
 {
   Lisp_Object family, foundry;
   Lisp_Object tail, val;
@@ -3506,7 +3506,7 @@ font_open_by_spec (FRAME_PTR f, Lisp_Object spec)
    found, return Qnil.  */
 
 Lisp_Object
-font_open_by_name (FRAME_PTR f, const char *name)
+font_open_by_name (FRAME_PTR f, char *name)
 {
   Lisp_Object args[2];
   Lisp_Object spec, ret;

@@ -1494,7 +1494,7 @@ init_fringe_bitmap (int which, struct fringe_bitmap *fb, int once_p)
 				   | (swap_nibble[(b>>8) & 0xf] << 4)
 				   | (swap_nibble[(b>>12) & 0xf]));
 	      b >>= (16 - fb->width);
-#ifdef WORDS_BIG_ENDIAN
+#ifdef WORDS_BIGENDIAN
 	      b = ((b >> 8) | (b << 8));
 #endif
 	      *bits++ = b;

@@ -630,7 +630,7 @@ sys_subshell (void)
 
   if (pid == 0)
     {
-      char *sh = 0;
+      const char *sh = 0;
 
 #ifdef DOS_NT    /* MW, Aug 1993 */
       getwd (oldwd);

@@ -1404,16 +1404,16 @@ DEFUN ("system-name", Fsystem_name, Ssystem_name, 0, 0, 0,
 
 /* For the benefit of callers who don't want to include lisp.h */
 
-char *
+const char *
 get_system_name (void)
 {
   if (STRINGP (Vsystem_name))
-    return (char *) SDATA (Vsystem_name);
+    return (const char *) SDATA (Vsystem_name);
   else
     return "";
 }
 
-char *
+const char *
 get_operating_system_release (void)
 {
   if (STRINGP (Voperating_system_release))
@@ -1819,7 +1819,7 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
   else
     {
       char tzbuf[100];
-      char *tzstring;
+      const char *tzstring;
       char **oldenv = environ, **newenv;
 
       if (EQ (zone, Qt))
@@ -2001,7 +2001,7 @@ If TZ is nil, use implementation-defined default time zone information.
 If TZ is t, use Universal Time.  */)
   (Lisp_Object tz)
 {
-  char *tzstring;
+  const char *tzstring;
 
   /* When called for the first time, save the original TZ.  */
   if (!environbuf)

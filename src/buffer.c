@@ -5283,7 +5283,7 @@ init_buffer (void)
   } while (0)
 
 static void
-defvar_per_buffer (struct Lisp_Buffer_Objfwd *bo_fwd, char *namestring,
+defvar_per_buffer (struct Lisp_Buffer_Objfwd *bo_fwd, const char *namestring,
 		   Lisp_Object *address, Lisp_Object type, char *doc)
 {
   struct Lisp_Symbol *sym;

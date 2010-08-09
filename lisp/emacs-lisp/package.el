@@ -272,16 +272,12 @@ contrast, `package-user-dir' contains packages for personal use."
   :group 'package
   :version "24.1")
 
-(defun package-version-split (string)
-  "Split a package string into a version list."
-  (mapcar 'string-to-int (split-string string "[.]")))
-
 (defconst package--builtins-base
   ;; We use package-version split here to make sure to pick up the
   ;; minor version.
-  `((emacs . [,(package-version-split emacs-version) nil
+  `((emacs . [,(version-to-list emacs-version) nil
 	      "GNU Emacs"])
-    (package . [,(package-version-split package-el-version)
+    (package . [,(version-to-list package-el-version)
 		nil "Simple package system for GNU Emacs"]))
   "Packages which are always built-in.")
 
@@ -335,29 +331,6 @@ The second subexpression is the version string.")
   "Turn a list of version numbers into a version string."
   (mapconcat 'int-to-string l "."))
 
-(defun package--version-first-nonzero (l)
-  (while (and l (= (car l) 0))
-    (setq l (cdr l)))
-  (if l (car l) 0))
-
-(defun package-version-compare (v1 v2 fun)
-  "Compare two version lists according to FUN.
-FUN can be <, <=, =, >, >=, or /=."
-  (while (and v1 v2 (= (car v1) (car v2)))
-    (setq v1 (cdr v1)
-	  v2 (cdr v2)))
-  (if v1
-      (if v2
-	  ;; Both not null; we know the cars are not =.
-	  (funcall fun (car v1) (car v2))
-	;; V1 not null, V2 null.
-	(funcall fun (package--version-first-nonzero v1) 0))
-    (if v2
-	;; V1 null, V2 not null.
-	(funcall fun 0 (package--version-first-nonzero v2))
-      ;; Both null.
-      (funcall fun 0 0))))
-
 (defun package-strip-version (dirname)
   "Strip the version from a combined package name and version.
 E.g., if given \"quux-23.0\", will return \"quux\""
@@ -401,9 +374,8 @@ updates `package-alist' and `package-obsolete-alist'."
 		   ((eq force t)
 		    t)
 		   ((stringp force) ; held
-		    (package-version-compare (package-version-split version)
-					     (package-version-split force)
-					     '=))
+		    (version-list-= (version-to-list version)
+				    (version-to-list force)))
 		   (t
 		    (error "Invalid element in `package-load-list'")))
 	      (package-load-descriptor dir subdir))))))))
@@ -460,8 +432,7 @@ updates `package-alist' and `package-obsolete-alist'."
 (defun package--built-in (package version)
   "Return true if the package is built-in to Emacs."
   (let ((elt (assq package package--builtins)))
-    (and elt
-	 (package-version-compare (package-desc-vers (cdr elt)) version '=))))
+    (and elt (version-list-= (package-desc-vers (cdr elt)) version))))
 
 ;; FIXME: return a reason instead?
 (defun package-activate (package version)
@@ -479,7 +450,7 @@ Return nil if the package could not be activated."
 	   (req-list (package-desc-reqs (cdr pkg-desc)))
 	   ;; If the package was never activated, do it now.
 	   (keep-going (or (not (memq package package-activated-list))
-			   (package-version-compare this-version version '>))))
+			   (version-list-< version this-version))))
       (while (and req-list keep-going)
 	(let* ((req (car req-list))
 	       (req-name (car req))
@@ -493,7 +464,7 @@ Return nil if the package could not be activated."
 	;; can also get here if the requested package was already
 	;; activated.  Return non-nil in the latter case.
 	(and (memq package package-activated-list)
-	     (package-version-compare this-version version '>=))))))
+	     (version-list-<= version this-version))))))
 
 (defun package-mark-obsolete (package pkg-vec)
   "Put package on the obsolete list, if not already there."
@@ -523,21 +494,20 @@ REQUIREMENTS is a list of requirements on other packages.
 Each requirement is of the form (OTHER-PACKAGE \"VERSION\")."
   (let* ((name (intern name-str))
 	 (pkg-desc (assq name package-alist))
-	 (new-version (package-version-split version-string))
+	 (new-version (version-to-list version-string))
 	 (new-pkg-desc
 	  (cons name
 		(vector new-version
 			(mapcar
 			 (lambda (elt)
 			   (list (car elt)
-				 (package-version-split (car (cdr elt)))))
+				 (version-to-list (car (cdr elt)))))
 			 requirements)
 			docstring))))
     ;; Only redefine a package if the redefinition is newer.
     (if (or (not pkg-desc)
-	    (package-version-compare new-version
-				     (package-desc-vers (cdr pkg-desc))
-				     '>))
+	    (version-list-< (package-desc-vers (cdr pkg-desc))
+			    new-version))
 	(progn
 	  (when pkg-desc
 	    ;; Remove old package and declare it obsolete.
@@ -548,9 +518,8 @@ Each requirement is of the form (OTHER-PACKAGE \"VERSION\")."
       ;; You can have two packages with the same version, for instance
       ;; one in the system package directory and one in your private
       ;; directory.  We just let the first one win.
-      (unless (package-version-compare new-version
-				       (package-desc-vers (cdr pkg-desc))
-				       '=)
+      (unless (version-list-= new-version
+			      (package-desc-vers (cdr pkg-desc)))
 	;; The package is born obsolete.
 	(package-mark-obsolete (car new-pkg-desc) (cdr new-pkg-desc))))))
 
@@ -700,9 +669,8 @@ It will move point to somewhere in the headers."
 (defun package-installed-p (package &optional min-version)
   (let ((pkg-desc (assq package package-alist)))
     (and pkg-desc
-	 (package-version-compare min-version
-				  (package-desc-vers (cdr pkg-desc))
-				  '<=))))
+	 (version-list-<= min-version
+			  (package-desc-vers (cdr pkg-desc))))))
 
 (defun package-compute-transaction (result requirements)
   (dolist (elt requirements)
@@ -720,9 +688,7 @@ It will move point to somewhere in the headers."
 			  (symbol-name next-pkg)))
 		  ((null (stringp hold))
 		   (error "Invalid element in `package-load-list'"))
-		  ((package-version-compare next-version
-					    (package-version-split hold)
-					    '>)
+		  ((version-list-< (version-to-list hold) next-version)
 		   (error "Package '%s' held at version %s, \
 but version %s required"
 			  (symbol-name next-pkg) hold
@@ -730,9 +696,8 @@ but version %s required"
 	  (unless pkg-desc
 	    (error "Package '%s' is not available for installation"
 		   (symbol-name next-pkg)))
-	  (unless (package-version-compare (package-desc-vers (cdr pkg-desc))
-					   next-version
-					   '>=)
+	  (unless (version-list-<= next-version
+				   (package-desc-vers (cdr pkg-desc)))
 	    (error
 	     "Need package '%s' with version %s, but only %s is available"
 	     (symbol-name next-pkg) (package-version-join next-version)
@@ -788,11 +753,11 @@ Throw an error if the archive version is too new."
 	;; Version 1 of 'builtin-packages' is a list where the car is
 	;; a split emacs version and the cdr is an alist suitable for
 	;; package--builtins.
-	(let ((our-version (package-version-split emacs-version))
+	(let ((our-version (version-to-list emacs-version))
 	      (result package--builtins-base))
 	  (setq package--builtins
 		(dolist (elt builtins result)
-		  (if (package-version-compare our-version (car elt) '>=)
+		  (if (version-list-<= (car elt) our-version)
 		      (setq result (append (cdr elt) result)))))))))
 
 (defun package-read-archive-contents (archive)
@@ -818,8 +783,7 @@ Also, add the originating archive to the end of the package vector."
 			(vconcat (cdr package) (vector archive))))
          (existing-package (cdr (assq name package-archive-contents))))
     (when (or (not existing-package)
-              (package-version-compare version
-                                       (aref existing-package 0) '>))
+              (version-list-< (aref existing-package 0) version))
       (add-to-list 'package-archive-contents entry))))
 
 (defun package-download-transaction (transaction)
@@ -915,7 +879,7 @@ May narrow buffer or move point even on failure."
 		      (mapcar
 		       (lambda (elt)
 			 (list (car elt)
-			       (package-version-split (car (cdr elt)))))
+			       (version-to-list (car (cdr elt)))))
 		       requires))
 		(set-text-properties 0 (length file-name) nil file-name)
 		(set-text-properties 0 (length pkg-version) nil pkg-version)
@@ -964,7 +928,7 @@ The return result is a vector like `package-buffer-info'."
 	    (mapcar
 	     (lambda (elt)
 	       (list (car elt)
-		     (package-version-split (car (cdr elt)))))
+		     (version-to-list (car (cdr elt)))))
 	     requires))
       (vector pkg-name requires docstring version-string readme))))
 
@@ -1471,10 +1435,9 @@ Emacs."
 		 (cond ((stringp (cadr hold))
 			"held")
 		       ((and (setq builtin (assq name package--builtins))
-			     (package-version-compare
+			     (version-list-=
 			      (package-desc-vers (cdr builtin))
-			      (package-desc-vers desc)
-			      '=))
+			      (package-desc-vers desc)))
 			"built-in")
 		       (t "installed"))
 		 (package-desc-doc desc)
@@ -1486,7 +1449,7 @@ Emacs."
 	      hold (assq name package-load-list))
 	(unless (and hold (stringp (cadr hold))
 		     (package-installed-p
-		      name (package-version-split (cadr hold))))
+		      name (version-to-list (cadr hold))))
 	  (setq info-list
 		(package-list-maybe-add name
 					(package-desc-vers desc)

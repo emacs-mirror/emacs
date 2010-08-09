@@ -1,3 +1,67 @@
+2010-08-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* font.h (font_parse_xlfd, font_parse_fcname, font_unparse_fcname)
+	(font_parse_name): font_open_by_name):
+	* font.c (font_parse_xlfd, font_parse_fcname, font_unparse_fcname)
+	(font_parse_name): font_open_by_name): Remove const.
+
+2010-08-09  Andreas Schwab  <schwab@linux-m68k.org>
+
+	Use autoconf determined WORDS_BIGENDIAN instead of hardcoded
+	definition.
+
+	* m/alpha.h: Don't define/undef WORDS_BIG_ENDIAN.
+	* m/amdx86-64.h: Likewise.
+	* m/arm.h: Likewise.
+	* m/hp800.h: Likewise.
+	* m/ia64.h: Likewise.
+	* m/ibmrs6000.h: Likewise.
+	* m/ibms390.h: Likewise.
+	* m/intel386.h: Likewise.
+	* m/iris4d.h: Likewise.
+	* m/m68k.h: Likewise.
+	* m/macppc.h: Likewise.
+	* m/mips.h: Likewise.
+	* m/sh3.h: Likewise.
+	* m/sparc.h: Likewise.
+	* m/template.h: Likewise.
+	* m/vax.h: Likewise.
+	* m/xtensa.h: Likewise.
+	* fringe.c (init_fringe_bitmap): Test WORDS_BIGENDIAN instead of
+	WORDS_BIG_ENDIAN.
+	* lisp.h: Likewise.
+	* md5.c: Likewise.
+	* sound.c (le2hl, le2hs, be2hl, be2hs): Likewise.
+
+2010-08-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Use const char* instead of char*.
+	Reduce the number of warnings with -Wwrite-strings.
+	* xrdb.c (get_environ_db, get_system_name):
+	* unexelf.c (find_section):
+	* term.c (string_cost, string_cost_one_line, per_line_cost)
+	(get_named_tty, init_tty):
+	* sysdep.c (sys_subshell):
+	* sound.c (sound_perror, sound_warning, vox_open, vox_init)
+	(alsa_sound_perror, alsa_open, alsa_configure, alsa_init):
+	* search.c (Freplace_match):
+	* process.c (Fmake_network_process, send_process, init_process):
+	* lread.c (Fload, init_lread):
+	* keymap.c (Fdescribe_buffer_bindings, describe_map_tree):
+	* keyboard.c (parse_tool_bar_item, struct event_head):
+	* gtkutil.h (xg_get_font_name):
+	* gtkutil.c (get_dialog_title, create_dialog, xg_get_font_name)
+	(make_widget_for_menu_item, make_menu_item, create_menus)
+	(xg_make_tool_item):
+	* font.c (parse_matrix, font_parse_name):
+	* floatfns.c (rounding_driver, float_error_fn_name):
+	* filelock.c (get_boot_time_1, lock_file_1):
+	* fileio.c (barf_or_query_if_file_exists, check_writable):
+	* editfns.c (get_system_name, get_operating_system_release)
+	(Fencode_time, Fset_time_zone_rule):
+	* dispextern.h (string_cost, per_line_cost, get_named_tty, init_tty):
+	* buffer.c (defvar_per_buffer): Use const.
+
 2010-08-08  Kenichi Handa  <handa@m17n.org>
 
 	* charset.c: Include <stdlib.h>

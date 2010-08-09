@@ -35214,6 +35214,7 @@ and @code{calc-embedded-open-close-plain-alist}.
 @defvar calc-highlight-selections-with-faces
 @defvarx calc-selected-face
 @defvarx calc-nonselected-face
+See @ref{Displaying Selections}.@*
 The variable @code{calc-highlight-selections-with-faces} 
 determines how selected sub-formulas are distinguished.
 If @code{calc-highlight-selections-with-faces} is nil, then 
@@ -35224,7 +35225,7 @@ If @code{calc-highlight-selections-with-faces} is t,
 then a selected sub-formula is distinguished either by displaying the
 non-selected portion of the formula with @code{calc-nonselected-face} 
 or by displaying the selected sub-formula with
-@code{calc-nonselected-face}. (@pxref{Displaying Selections}.)
+@code{calc-nonselected-face}.
 @end defvar
 
 @defvar calc-multiplication-has-precedence

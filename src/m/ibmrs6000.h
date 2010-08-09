@@ -23,7 +23,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    An address of data cannot be stored correctly in a Lisp object;
    we always lose the high bits.  We must tell XPNTR to add them back.  */
 #define DATA_START 0x20000000
-#define WORDS_BIG_ENDIAN
 #define DATA_SEG_BITS 0x20000000
 
 #ifndef NLIST_STRUCT

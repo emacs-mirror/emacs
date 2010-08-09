@@ -1,3 +1,25 @@
+2010-08-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package-version-split)
+	(package--version-first-nonzero, package-version-compare):
+	Functions removed.
+	(package-directory-list, package-load-all-descriptors)
+	(package--built-in, package-activate, define-package)
+	(package-installed-p, package-compute-transaction)
+	(package-read-all-archive-contents)
+	(package--add-to-archive-contents, package-buffer-info)
+	(package-tar-file-info, package-list-packages-internal): Use
+	version-to-list and version-list-*.
+
+	* emacs-lisp/package-x.el (package-upload-buffer-internal): Use
+	version-to-list.
+	(package-upload-buffer-internal): Use version-list-<=.
+
+2010-08-09  Kenichi Handa  <handa@m17n.org>
+
+	* language/hebrew.el: Exclude U+05BD (Hebrew MAQAF) from the
+	composable pattern.
+
 2010-08-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* tutorial.el (tutorial--default-keys): C-d is now bound to
