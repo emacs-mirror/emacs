@@ -1279,7 +1279,9 @@ e.g.
  (";:i" ?,F@)
  (":;i" ?,F@)
  (";:y" ?,F`)
- (":;y" ?,F`))
+ (":;y" ?,F`)
+ (";<" "«")
+ (";>" "»"))
 
 (quail-define-package
  "greek-postfix" "GreekPost" ",FX" nil
