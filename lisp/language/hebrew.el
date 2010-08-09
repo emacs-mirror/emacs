@@ -237,8 +237,8 @@ Bidirectional editing is supported.")))
 	  (setq idx (1+ idx))))))
     gstring))
 
-(let ((pattern1 "[\u05D0-\u05F2][\u0591-\u05BF\u05C1-\u05C5\u05C7]+")
-      (pattern2 "[\u05D0-\u05F2]\u200D[\u0591-\u05BF\u05C1-\u05C5\u05C7]+"))
+(let ((pattern1 "[\u05D0-\u05F2][\u0591-\u05BD\u05BF\u05C1-\u05C5\u05C7]+")
+      (pattern2 "[\u05D0-\u05F2]\u200D[\u0591-\u05BD\u05BF\u05C1-\u05C5\u05C7]+"))
   (set-char-table-range
    composition-function-table '(#x591 . #x5C7)
    (list (vector pattern2 3 'hebrew-shape-gstring)
