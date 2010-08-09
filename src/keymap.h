@@ -43,7 +43,7 @@ extern Lisp_Object get_keyelt (Lisp_Object, int);
 extern Lisp_Object get_keymap (Lisp_Object, int, int);
 EXFUN (Fset_keymap_parent, 2);
 extern void describe_map_tree (Lisp_Object, int, Lisp_Object, Lisp_Object,
-                               char *, int, int, int, int);
+                               const char *, int, int, int, int);
 extern int current_minor_maps (Lisp_Object **, Lisp_Object **);
 extern void initial_define_key (Lisp_Object, int, const char *);
 extern void initial_define_lispy_key (Lisp_Object, const char *, const char *);

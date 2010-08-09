@@ -1087,7 +1087,7 @@ tty_ins_del_lines (struct frame *f, int vpos, int n)
    not counting any line-dependent padding.  */
 
 int
-string_cost (char *str)
+string_cost (const char *str)
 {
   cost = 0;
   if (str)
@@ -1099,7 +1099,7 @@ string_cost (char *str)
    counting any line-dependent padding at one line.  */
 
 static int
-string_cost_one_line (char *str)
+string_cost_one_line (const char *str)
 {
   cost = 0;
   if (str)
@@ -1111,7 +1111,7 @@ string_cost_one_line (char *str)
    in tenths of characters.  */
 
 int
-per_line_cost (char *str)
+per_line_cost (const char *str)
 {
   cost = 0;
   if (str)
@@ -2301,7 +2301,7 @@ get_tty_terminal (Lisp_Object terminal, int throw)
    Returns NULL if the named terminal device is not opened.  */
 
 struct terminal *
-get_named_tty (char *name)
+get_named_tty (const char *name)
 {
   struct terminal *t;
 
@@ -3372,7 +3372,7 @@ dissociate_if_controlling_tty (int fd)
    If MUST_SUCCEED is true, then all errors are fatal. */
 
 struct terminal *
-init_tty (char *name, char *terminal_type, int must_succeed)
+init_tty (const char *name, const char *terminal_type, int must_succeed)
 {
   char *area = NULL;
   char **address = &area;

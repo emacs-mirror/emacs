@@ -3275,18 +3275,18 @@ extern void tty_set_terminal_modes (struct terminal *);
 extern void tty_reset_terminal_modes (struct terminal *);
 extern void tty_turn_off_insert (struct tty_display_info *);
 extern void tty_turn_off_highlight (struct tty_display_info *);
-extern int string_cost (char *);
-extern int per_line_cost (char *);
+extern int string_cost (const char *);
+extern int per_line_cost (const char *);
 extern void calculate_costs (struct frame *);
 extern void produce_glyphs (struct it *);
 extern void produce_special_glyphs (struct it *, enum display_element_type);
 extern int tty_capable_p (struct tty_display_info *, unsigned, unsigned long, unsigned long);
 extern void set_tty_color_mode (struct tty_display_info *, struct frame *);
 extern struct terminal *get_tty_terminal (Lisp_Object, int);
-extern struct terminal *get_named_tty (char *);
+extern struct terminal *get_named_tty (const char *);
 EXFUN (Ftty_type, 1);
 extern void create_tty_output (struct frame *);
-extern struct terminal *init_tty (char *, char *, int);
+extern struct terminal *init_tty (const char *, const char *, int);
 
 
 /* Defined in scroll.c */

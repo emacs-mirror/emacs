@@ -115,10 +115,10 @@ enum sound_attr
 };
 
 #ifdef HAVE_ALSA
-static void alsa_sound_perror (char *, int) NO_RETURN;
+static void alsa_sound_perror (const char *, int) NO_RETURN;
 #endif
-static void sound_perror (char *) NO_RETURN;
-static void sound_warning (char *);
+static void sound_perror (const char *) NO_RETURN;
+static void sound_warning (const char *);
 static int parse_sound (Lisp_Object, Lisp_Object *);
 
 /* END: Common Definitions */
@@ -329,7 +329,7 @@ static int do_play_sound (const char *, unsigned long);
 /* Like perror, but signals an error.  */
 
 static void
-sound_perror (char *msg)
+sound_perror (const char *msg)
 {
   int saved_errno = errno;
 
@@ -347,7 +347,7 @@ sound_perror (char *msg)
 /* Display a warning message.  */
 
 static void
-sound_warning (char *msg)
+sound_warning (const char *msg)
 {
   message (msg);
 }
@@ -727,7 +727,7 @@ au_play (struct sound *s, struct sound_device *sd)
 static void
 vox_open (struct sound_device *sd)
 {
-  char *file;
+  const char *file;
 
   /* Open the sound device.  Default is /dev/dsp.  */
   if (sd->file)
@@ -872,7 +872,7 @@ vox_choose_format (struct sound_device *sd, struct sound *s)
 static int
 vox_init (struct sound_device *sd)
 {
-  char *file;
+  const char *file;
   int fd;
 
   /* Open the sound device.  Default is /dev/dsp.  */
@@ -915,7 +915,7 @@ vox_write (struct sound_device *sd, const char *buffer, int nbytes)
 /* This driver is available on GNU/Linux. */
 
 static void
-alsa_sound_perror (char *msg, int err)
+alsa_sound_perror (const char *msg, int err)
 {
   error ("%s: %s", msg, snd_strerror (err));
 }
@@ -934,7 +934,7 @@ struct alsa_params
 static void
 alsa_open (struct sound_device *sd)
 {
-  char *file;
+  const char *file;
   struct alsa_params *p;
   int err;
 
@@ -1056,7 +1056,7 @@ alsa_configure (struct sound_device *sd)
       int chn;
       snd_mixer_t *handle;
       snd_mixer_elem_t *e;
-      char *file = sd->file ? sd->file : DEFAULT_ALSA_SOUND_DEVICE;
+      const char *file = sd->file ? sd->file : DEFAULT_ALSA_SOUND_DEVICE;
 
       if (snd_mixer_open (&handle, 0) >= 0)
         {
@@ -1220,7 +1220,7 @@ snd_error_quiet (const char *file, int line, const char *function, int err,
 static int
 alsa_init (struct sound_device *sd)
 {
-  char *file;
+  const char *file;
   snd_pcm_t *handle;
   int err;
 

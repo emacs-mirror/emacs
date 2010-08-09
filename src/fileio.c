@@ -1823,7 +1823,7 @@ expand_and_dir_to_file (Lisp_Object filename, Lisp_Object defdir)
    If QUICK is nonzero, we ask for y or n, not yes or no.  */
 
 void
-barf_or_query_if_file_exists (Lisp_Object absname, unsigned char *querystring, int interactive, struct stat *statptr, int quick)
+barf_or_query_if_file_exists (Lisp_Object absname, const unsigned char *querystring, int interactive, struct stat *statptr, int quick)
 {
   register Lisp_Object tem, encoded_filename;
   struct stat statbuf;
@@ -2473,7 +2473,7 @@ check_executable (char *filename)
 /* Return nonzero if file FILENAME exists and can be written.  */
 
 static int
-check_writable (char *filename)
+check_writable (const char *filename)
 {
 #ifdef MSDOS
   struct stat st;

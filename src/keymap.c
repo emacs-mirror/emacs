@@ -2962,7 +2962,7 @@ The optional argument MENUS, if non-nil, says to mention menu bindings.
   register Lisp_Object start1;
   struct gcpro gcpro1;
 
-  char *alternate_heading
+  const char *alternate_heading
     = "\
 Keyboard translations:\n\n\
 You type        Translation\n\
@@ -3134,13 +3134,13 @@ You type        Translation\n\
 
 void
 describe_map_tree (Lisp_Object startmap, int partial, Lisp_Object shadow,
-		   Lisp_Object prefix, char *title, int nomenu, int transl,
+		   Lisp_Object prefix, const char *title, int nomenu, int transl,
 		   int always_title, int mention_shadow)
 {
   Lisp_Object maps, orig_maps, seen, sub_shadows;
   struct gcpro gcpro1, gcpro2, gcpro3;
   int something = 0;
-  char *key_heading
+  const char *key_heading
     = "\
 key             binding\n\
 ---             -------\n";

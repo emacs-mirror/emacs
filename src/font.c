@@ -699,9 +699,9 @@ font_put_extra (Lisp_Object font, Lisp_Object prop, Lisp_Object val)
 
 /* Font name parser and unparser */
 
-static int parse_matrix (char *);
+static int parse_matrix (const char *);
 static int font_expand_wildcards (Lisp_Object *, int);
-static int font_parse_name (char *, Lisp_Object);
+static int font_parse_name (const char *, Lisp_Object);
 
 /* An enumerator for each field of an XLFD font name.  */
 enum xlfd_field_index
@@ -758,7 +758,7 @@ enum xlfd_field_mask
    -1.  */
 
 static int
-parse_matrix (char *p)
+parse_matrix (const char *p)
 {
   double matrix[4];
   char *end;
@@ -1765,7 +1765,7 @@ font_unparse_gtkname (Lisp_Object font, struct frame *f, char *name, int nbytes)
    0.  Otherwise return -1.  */
 
 static int
-font_parse_name (char *name, Lisp_Object font)
+font_parse_name (const char *name, Lisp_Object font)
 {
   if (name[0] == '-' || strchr (name, '*') || strchr (name, '?'))
     return font_parse_xlfd (name, font);
