@@ -2603,7 +2603,7 @@
 
 	* message.el (message-use-idna): Use mm-coding-system-p.
 	(message-tokenize-header, message-make-organization)
-	(message-make-from):  Use with-temp-buffer.
+	(message-make-from): Use with-temp-buffer.
 	(message-set-work-buffer): Deleted.
 	(message-fill-paragraph): Use `if' not `and' for compiler warning.
 	(message-check-news-header-syntax): Remove useless lambda.
@@ -5643,7 +5643,7 @@
 
 2003-01-12  Raymond Scholz  <ray-2003@zonix.de>
 
-	* gnus-msg.el (gnus-confirm-mail-reply-to-news):  May be a
+	* gnus-msg.el (gnus-confirm-mail-reply-to-news): May be a
 	regexp or a function too.
 	(gnus-confirm-treat-mail-like-news): New variable.  Ask for
 	confirmation even if the original article is mail.
@@ -16855,7 +16855,7 @@
 
 	* gnus-msg.el (gnus-summary-mail-forward): ???
 
-	* message.el (message-forward):  Move mime-to-mml here.
+	* message.el (message-forward): Move mime-to-mml here.
 
 2000-12-20 02:00:00  ShengHuo ZHU  <zsh@cs.rochester.edu>
 
@@ -17157,7 +17157,7 @@
 
 	* nnheader.el: Wrap subst-char-in-string def in eval-and-compile.
 	Put some defvars in eval-when-compile.
-	(gnus-intersection, gnus-sorted-complement):  Autoload.
+	(gnus-intersection, gnus-sorted-complement): Autoload.
 
 	* imap.el (imap-point-at-eol): New, replacing gnus-point-at-eol.
 
@@ -17329,7 +17329,7 @@
 
 	* qp.el (mm-decode-coding-region, mm-encode-coding-region):
 	Autoload.
-	(quoted-printable-decode-region):  Rename arg which confused
+	(quoted-printable-decode-region): Rename arg which confused
 	charset with coding-system.  Don't use nonascii-insert-offset.
 	Coding-system encode the region initially.  Don't recognize `=='
 	as valid QP.  Coding-system decode the region finally.
@@ -17384,7 +17384,7 @@
 
 2000-09-29  Gerd Moellmann  <gerd@gnu.org>
 
-	* smiley-ems.el (smiley-update-cache):  Use `:ascent center'.
+	* smiley-ems.el (smiley-update-cache): Use `:ascent center'.
 
 2000-09-21  Dave Love  <fx@gnu.org>
 
@@ -18036,7 +18036,7 @@
 	* gnus-art.el (gnus-mime-display-part): Show MIME security button.
 	(gnus-insert-mime-security-button): New function.
 	* mm-decode.el (mm-possibly-verify-or-decrypt): Add security info.
-	* mml2015.el:  Add security info when verify or decrypt.
+	* mml2015.el: Add security info when verify or decrypt.
 	* mm-uu.el (mm-uu-pgp-signed-extract): Use multipart.
 	(mm-uu-pgp-encrypted-extract): Ditto.
 
@@ -18433,7 +18433,7 @@
 	(mm-dissect-multipart): Use it.
 	* mml2015.el (mml2015-fix-micalg): New function.
 	(mml2015-decrypt): Use new interface.
-	(mml2015-verify):  Use new interface.
+	(mml2015-verify): Use new interface.
 	(mml2015-setup): Make it bogus.
 
 2000-10-28 16:54:45  ShengHuo ZHU  <zsh@cs.rochester.edu>

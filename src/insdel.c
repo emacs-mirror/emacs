@@ -74,6 +74,8 @@ Lisp_Object combine_after_change_buffer;
 
 Lisp_Object Qinhibit_modification_hooks;
 
+extern Lisp_Object Vselect_active_regions, Vsaved_region_selection;
+
 
 /* Check all markers in the current buffer, looking for something invalid.  */
 
@@ -2046,6 +2048,20 @@ prepare_to_modify_buffer (EMACS_INT start, EMACS_INT end,
     call1 (intern ("ask-user-about-supersession-threat"),
 	   base_buffer->filename);
 #endif /* not CLASH_DETECTION */
+
+  /* If `select-active-regions' is non-nil, save the region text.  */
+  if (!NILP (Vselect_active_regions)
+      && !NILP (current_buffer->mark_active)
+      && !NILP (Vtransient_mark_mode)
+      && NILP (Vsaved_region_selection))
+    {
+      int b = XINT (Fmarker_position (current_buffer->mark));
+      int e = XINT (make_number (PT));
+      if (b < e)
+	Vsaved_region_selection = make_buffer_string (b, e, 0);
+      else if (b > e)
+	Vsaved_region_selection = make_buffer_string (e, b, 0);
+    }
 
   signal_before_change (start, end, preserve_ptr);
 

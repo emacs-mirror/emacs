@@ -1,3 +1,20 @@
+2010-08-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* rfc2047.el (rfc2047-encode): Use utf-8 as a last resort if
+	determining charset of text fails.
+
+2010-08-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnmail.el (nnmail-get-new-mail-1): Revert.
+
+	* nnml.el (nnml-active-number): Make sure names of newly created groups
+	in nnml-group-alist are encoded.
+
+2010-07-30  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnmail.el (nnmail-get-new-mail-1): Encode group names possibly
+	containing non-ASCII characters in active file for nnml back end.
+
 2010-07-24  David Engster  <dengste@eml.cc>
 
 	* mml-smime.el (mml-smime-epg-verify): Also accept the older

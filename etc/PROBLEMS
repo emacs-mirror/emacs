@@ -2344,6 +2344,14 @@ files are installed. Then use:
 As of Emacs 22.1, there have been stability problems with Cygwin
 builds of Emacs using GCC 3.  Cygwin users are advised to use GCC 4.
 
+*** Building Emacs 23.3 and later will fail under Cygwin 1.5.19
+
+This is a consequence of a change to src/dired.c on 2010-07-27.  The
+issue is that Cygwin 1.5.19 did not have d_ino in 'struct dirent'.
+See
+
+  http://lists.gnu.org/archive/html/emacs-devel/2010-07/msg01266.html
+
 *** Building the native MS-Windows port fails due to unresolved externals
 
 The linker error messages look like this:
@@ -2740,7 +2748,7 @@ build Emacs in a directory on a local disk.
 Two causes have been seen for such problems.
 
 1) On a system where getpagesize is not a system call, it is defined
-as a macro.  If the definition (in both unexec.c and malloc.c) is wrong,
+as a macro.  If the definition (in both unex*.c and malloc.c) is wrong,
 it can cause problems like this.  You might be able to find the correct
 value in the man page for a.out (5).
 

@@ -252,7 +252,7 @@ LEFT and RIGHT are the elements to compare."
              ;; * INSERTING AND DELETING
              ;; C-u 8 * to insert ********.
              (delete-backward-char "\d")
-             (delete-char [?\C-d])
+             (delete-forward-char [?\C-d])
              (backward-kill-word [?\M-\d])
              (kill-word [?\M-d])
              (kill-line [?\C-k])
@@ -829,6 +829,8 @@ Run the Viper tutorial? "))
         (if old-tut-file
             (progn
               (insert-file-contents (tutorial--saved-file))
+	      (let ((enable-local-variables :safe))
+		(hack-local-variables))
               (goto-char (point-min))
               (setq old-tut-point
                     (string-to-number
@@ -844,6 +846,8 @@ Run the Viper tutorial? "))
               (goto-char tutorial--point-before-chkeys)
               (setq tutorial--point-before-chkeys (point-marker)))
           (insert-file-contents (expand-file-name filename tutorial-directory))
+	  (let ((enable-local-variables :safe))
+	    (hack-local-variables))
           (forward-line)
           (setq tutorial--point-before-chkeys (point-marker)))
 

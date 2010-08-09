@@ -46,14 +46,13 @@
 (define-coding-system-alias 'iso-8859-8 'hebrew-iso-8bit)
 
 ;; These are for Explicit and Implicit directionality information, as
-;; defined in RFC 1556.  We don't yet support directional information
-;; in bidi languages, so these aliases are a lie, especially as far as
-;; iso-8859-8-e is concerned.  FIXME.
+;; defined in RFC 1556.
 (define-coding-system-alias 'iso-8859-8-e 'hebrew-iso-8bit)
 (define-coding-system-alias 'iso-8859-8-i 'hebrew-iso-8bit)
 
 (set-language-info-alist
- "Hebrew" '((charset iso-8859-8)
+ "Hebrew" '((tutorial . "TUTORIAL.he")
+	    (charset iso-8859-8)
 	    (coding-priority hebrew-iso-8bit)
 	    (coding-system hebrew-iso-8bit windows-1255 cp862)
 	    (nonascii-translation . iso-8859-8)

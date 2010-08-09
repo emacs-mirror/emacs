@@ -3268,7 +3268,7 @@ If one hasn't been set, or if it's stale, prompt for a new one."
 ;;; Main Function
 
 ;;;###autoload
-(define-derived-mode js-mode nil "js"
+(define-derived-mode js-mode prog-mode "js"
   "Major mode for editing JavaScript.
 
 Key bindings:

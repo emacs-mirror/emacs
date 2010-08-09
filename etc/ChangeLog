@@ -1,3 +1,24 @@
+2010-08-08  Ken Brown  <kbrown@cornell.edu>
+
+	* PROBLEMS: Mention problem with Cygwin 1.5.19.
+
+2010-08-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* NEWS: Mention the Hebrew translation.
+
+	* tutorials/TUTORIAL.he: Don't use acronyms.
+
+2010-08-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* AUTHORS: Rename unexec.o => unexcoff.o.
+	* PROBLEMS: Rename unexec.o => unexcoff.o.
+
+2010-07-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* tutorials/TUTORIAL.he: New file.
+
+	* tutorials/TUTORIAL.translators: Add TUTORIAL.he.
+
 2010-07-24  Christoph Scholtes  <cschol2112@gmail.com>
 
 	* NEWS: Document new --distfiles configure.bat option and

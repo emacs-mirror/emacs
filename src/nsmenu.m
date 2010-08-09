@@ -105,7 +105,7 @@ free_frame_menubar (struct frame *f)
 
 
 int
-popup_activated ()
+popup_activated (void)
 {
   return popup_activated_flag;
 }
@@ -509,8 +509,7 @@ set_frame_menubar (struct frame *f, int first_time, int deep_p)
 
 /* Utility (from macmenu.c): is this item a separator? */
 static int
-name_is_separator (name)
-     const char *name;
+name_is_separator ( const char *name)
 {
   const char *start = name;
 
@@ -737,19 +736,21 @@ name_is_separator (name)
                  keymaps: (int)keymaps
 {
   EmacsView *view = FRAME_NS_VIEW (f);
+  NSEvent *e, *event;
+  long retVal;
+
 /*   p = [view convertPoint:p fromView: nil]; */
   p.y = NSHeight ([view frame]) - p.y;
-  NSEvent *e = [[view window] currentEvent];
-  NSEvent *event = [NSEvent mouseEventWithType: NSRightMouseDown
-                                      location: p
-                                 modifierFlags: 0
-                                     timestamp: [e timestamp]
-                                  windowNumber: [[view window] windowNumber]
-                                       context: [e context]
-                                   eventNumber: 0/*[e eventNumber] */
-                                    clickCount: 1
-                                      pressure: 0];
-  long retVal;
+  e = [[view window] currentEvent];
+   event = [NSEvent mouseEventWithType: NSRightMouseDown
+                              location: p
+                         modifierFlags: 0
+                             timestamp: [e timestamp]
+                          windowNumber: [[view window] windowNumber]
+                               context: [e context]
+                           eventNumber: 0/*[e eventNumber] */
+                            clickCount: 1
+                              pressure: 0];
 
   context_menu_value = -1;
   [NSMenu popUpContextMenu: self withEvent: event forView: view];
@@ -1801,7 +1802,7 @@ DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_
    ========================================================================== */
 
 void
-syms_of_nsmenu ()
+syms_of_nsmenu (void)
 {
   defsubr (&Sx_popup_dialog);
   defsubr (&Sns_reset_menu);

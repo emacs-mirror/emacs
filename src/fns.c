@@ -61,18 +61,11 @@ int use_dialog_box;
    questions asked by mouse commands.  */
 int use_file_dialog;
 
-extern int minibuffer_auto_raise;
-extern Lisp_Object minibuf_window;
-extern Lisp_Object Vlocale_coding_system;
-extern int load_in_progress;
-
 Lisp_Object Qstring_lessp, Qprovide, Qrequire;
 Lisp_Object Qyes_or_no_p_history;
 Lisp_Object Qcursor_in_echo_area;
 Lisp_Object Qwidget_type;
 Lisp_Object Qcodeset, Qdays, Qmonths, Qpaper;
-
-extern Lisp_Object Qinput_method_function;
 
 static int internal_equal (Lisp_Object , Lisp_Object, int, int);
 
@@ -232,9 +225,8 @@ Symbols are also allowed; their print names are used instead.  */)
   return Qt;
 }
 
-DEFUN ("compare-strings", Fcompare_strings,
-       Scompare_strings, 6, 7, 0,
-doc: /* Compare the contents of two strings, converting to multibyte if needed.
+DEFUN ("compare-strings", Fcompare_strings, Scompare_strings, 6, 7, 0,
+       doc: /* Compare the contents of two strings, converting to multibyte if needed.
 In string STR1, skip the first START1 characters and stop at END1.
 In string STR2, skip the first START2 characters and stop at END2.
 END1 and END2 default to the full lengths of the respective strings.
@@ -1206,7 +1198,7 @@ value is a new vector that contains the elements between index FROM
 
 DEFUN ("substring-no-properties", Fsubstring_no_properties, Ssubstring_no_properties, 1, 3, 0,
        doc: /* Return a substring of STRING, without text properties.
-It starts at index FROM and ending before TO.
+It starts at index FROM and ends before TO.
 TO may be nil or omitted; then the substring runs to the end of STRING.
 If FROM is nil or omitted, the substring starts at the beginning of STRING.
 If FROM or TO is negative, it counts from the end.
@@ -1298,7 +1290,7 @@ substring_both (Lisp_Object string, int from, int from_byte, int to, int to_byte
 }
 
 DEFUN ("nthcdr", Fnthcdr, Snthcdr, 2, 2, 0,
-       doc: /* Take cdr N times on LIST, returns the result.  */)
+       doc: /* Take cdr N times on LIST, return the result.  */)
   (Lisp_Object n, Lisp_Object list)
 {
   register int i, num;
@@ -1335,7 +1327,7 @@ DEFUN ("elt", Felt, Selt, 2, 2, 0,
 }
 
 DEFUN ("member", Fmember, Smember, 2, 2, 0,
-doc: /* Return non-nil if ELT is an element of LIST.  Comparison done with `equal'.
+       doc: /* Return non-nil if ELT is an element of LIST.  Comparison done with `equal'.
 The value is actually the tail of LIST whose car is ELT.  */)
   (register Lisp_Object elt, Lisp_Object list)
 {
@@ -1353,7 +1345,7 @@ The value is actually the tail of LIST whose car is ELT.  */)
 }
 
 DEFUN ("memq", Fmemq, Smemq, 2, 2, 0,
-doc: /* Return non-nil if ELT is an element of LIST.  Comparison done with `eq'.
+       doc: /* Return non-nil if ELT is an element of LIST.  Comparison done with `eq'.
 The value is actually the tail of LIST whose car is ELT.  */)
   (register Lisp_Object elt, Lisp_Object list)
 {
@@ -1379,7 +1371,7 @@ The value is actually the tail of LIST whose car is ELT.  */)
 }
 
 DEFUN ("memql", Fmemql, Smemql, 2, 2, 0,
-doc: /* Return non-nil if ELT is an element of LIST.  Comparison done with `eql'.
+       doc: /* Return non-nil if ELT is an element of LIST.  Comparison done with `eql'.
 The value is actually the tail of LIST whose car is ELT.  */)
   (register Lisp_Object elt, Lisp_Object list)
 {
@@ -2707,10 +2699,9 @@ advisable.  */)
 }
 
 Lisp_Object Vfeatures, Qsubfeatures;
-extern Lisp_Object Vafter_load_alist;
 
 DEFUN ("featurep", Ffeaturep, Sfeaturep, 1, 2, 0,
-       doc: /* Returns t if FEATURE is present in this Emacs.
+       doc: /* Return t if FEATURE is present in this Emacs.
 
 Use this to conditionalize execution of lisp code based on the
 presence or absence of Emacs or environment extensions.
@@ -4433,8 +4424,8 @@ is a float, it must be > 1.0, and the new size is computed by
 multiplying the old size with that factor.  Default is 1.5.
 
 :rehash-threshold THRESHOLD -- THRESHOLD must a float > 0, and <= 1.0.
-Resize the hash table when ratio of the number of entries in the
-table.  Default is 0.8.
+Resize the hash table when the ratio (number of entries / table size)
+is greater or equal than THRESHOLD.  Default is 0.8.
 
 :weakness WEAK -- WEAK must be one of nil, t, `key', `value',
 `key-or-value', or `key-and-value'.  If WEAK is not nil, the table
@@ -4557,7 +4548,7 @@ DEFUN ("hash-table-rehash-threshold", Fhash_table_rehash_threshold,
 DEFUN ("hash-table-size", Fhash_table_size, Shash_table_size, 1, 1, 0,
        doc: /* Return the size of TABLE.
 The size can be used as an argument to `make-hash-table' to create
-a hash table than can hold as many elements of TABLE holds
+a hash table than can hold as many elements as TABLE holds
 without need for resizing.  */)
   (Lisp_Object table)
 {

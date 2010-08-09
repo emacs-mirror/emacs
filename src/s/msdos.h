@@ -38,16 +38,10 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
    It sets the Lisp variable system-type.  */
 #define SYSTEM_TYPE "ms-dos"
 
-#define SYSV_SYSTEM_DIR
-
 /* subprocesses should be defined if you want to have code for
    asynchronous subprocesses (as used in M-x compile and M-x shell).
    This is the only system that needs this.  */
 #undef subprocesses
-
-/* If your system uses COFF (Common Object File Format) then define the
-   preprocessor symbol "COFF".  */
-#define COFF
 
 /* Here, on a separate page, add any special hacks needed to make
    Emacs work on this system.  For example, you might define certain
@@ -130,8 +124,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
    registers relevant for conservative garbage collection in the jmp_buf.  */
 #define GC_SETJMP_WORKS 1
 #define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
-
-#define NO_REMAP
 
 /* arch-tag: d184f860-815d-4ff4-8187-d05c0f3c37d0
    (do not change this comment) */

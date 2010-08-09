@@ -239,6 +239,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "macros.h"
 #include "disptab.h"
 #include "termhooks.h"
+#include "termopts.h"
 #include "intervals.h"
 #include "coding.h"
 #include "process.h"
@@ -267,29 +268,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #define INFINITY 10000000
-
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) \
-    || defined(HAVE_NS) || defined (USE_GTK)
-extern void set_frame_menubar (struct frame *f, int, int);
-#endif
-
-extern int interrupt_input;
-extern int command_loop_level;
-
-extern Lisp_Object do_mouse_tracking;
-
-extern int minibuffer_auto_raise;
-extern Lisp_Object Vminibuffer_list;
-
-extern Lisp_Object Qface;
-extern Lisp_Object Qmode_line, Qmode_line_inactive, Qheader_line;
-
-extern Lisp_Object Voverriding_local_map;
-extern Lisp_Object Voverriding_local_map_menu_flag;
-extern Lisp_Object Qmenu_item;
-extern Lisp_Object Qwhen;
-extern Lisp_Object Qhelp_echo;
-extern Lisp_Object Qbefore_string, Qafter_string;
 
 Lisp_Object Qoverriding_local_map, Qoverriding_terminal_local_map;
 Lisp_Object Qwindow_scroll_functions, Vwindow_scroll_functions;
@@ -381,7 +359,6 @@ int inhibit_eval_during_redisplay;
 /* Names of text properties relevant for redisplay.  */
 
 Lisp_Object Qdisplay;
-extern Lisp_Object Qface, Qinvisible, Qwidth;
 
 /* Symbols used in text property values.  */
 
@@ -392,10 +369,6 @@ Lisp_Object Qslice;
 Lisp_Object Qcenter;
 Lisp_Object Qmargin, Qpointer;
 Lisp_Object Qline_height;
-extern Lisp_Object Qheight;
-extern Lisp_Object QCwidth, QCheight, QCascent;
-extern Lisp_Object Qscroll_bar;
-extern Lisp_Object Qcursor;
 
 /* Non-nil means highlight trailing whitespace.  */
 
@@ -406,7 +379,6 @@ Lisp_Object Vshow_trailing_whitespace;
 Lisp_Object Vnobreak_char_display;
 
 #ifdef HAVE_WINDOW_SYSTEM
-extern Lisp_Object Voverflow_newline_into_fringe;
 
 /* Test if overflow newline into fringe.  Called with iterator IT
    at or past right window margin, and with IT->current_x set.  */
@@ -458,7 +430,7 @@ Lisp_Object QCmap, QCpointer;
 Lisp_Object Qrect, Qcircle, Qpoly;
 
 /* Tool bar styles */
-Lisp_Object Qtext, Qboth, Qboth_horiz;
+Lisp_Object Qboth, Qboth_horiz, Qtext_image_horiz;
 
 /* Non-zero means print newline to stdout before next mini-buffer
    message.  */
@@ -1020,12 +992,12 @@ static int display_line (struct it *);
 static int display_mode_lines (struct window *);
 static int display_mode_line (struct window *, enum face_id, Lisp_Object);
 static int display_mode_element (struct it *, int, int, int, Lisp_Object, Lisp_Object, int);
-static int store_mode_line_string (char *, Lisp_Object, int, int, int, Lisp_Object);
-static char *decode_mode_spec (struct window *, int, int, int,
-                               Lisp_Object *);
+static int store_mode_line_string (const char *, Lisp_Object, int, int, int, Lisp_Object);
+static const char *decode_mode_spec (struct window *, int, int, int,
+				     Lisp_Object *);
 static void display_menu_bar (struct window *);
 static int display_count_lines (int, int, int, int, int *);
-static int display_string (unsigned char *, Lisp_Object, Lisp_Object,
+static int display_string (const unsigned char *, Lisp_Object, Lisp_Object,
                            EMACS_INT, EMACS_INT, struct it *, int, int, int, int);
 static void compute_line_metrics (struct it *);
 static void run_redisplay_end_trigger_hook (struct it *);
@@ -1048,7 +1020,7 @@ static int next_element_from_stretch (struct it *);
 static void load_overlay_strings (struct it *, int);
 static int init_from_display_pos (struct it *, struct window *,
                                   struct display_pos *);
-static void reseat_to_string (struct it *, unsigned char *,
+static void reseat_to_string (struct it *, const unsigned char *,
                               Lisp_Object, int, int, int, int);
 static enum move_it_result
        move_it_in_display_line_to (struct it *, EMACS_INT, int,
@@ -1063,8 +1035,8 @@ static int forward_to_next_line_start (struct it *, int *);
 static struct text_pos string_pos_nchars_ahead (struct text_pos,
                                                 Lisp_Object, int);
 static struct text_pos string_pos (int, Lisp_Object);
-static struct text_pos c_string_pos (int, unsigned char *, int);
-static int number_of_chars (unsigned char *, int);
+static struct text_pos c_string_pos (int, const unsigned char *, int);
+static int number_of_chars (const unsigned char *, int);
 static void compute_stop_pos (struct it *);
 static void compute_string_pos (struct text_pos *, struct text_pos,
                                 Lisp_Object);
@@ -1576,7 +1548,7 @@ string_pos (int charpos, Lisp_Object string)
    means recognize multibyte characters.  */
 
 static struct text_pos
-c_string_pos (int charpos, unsigned char *s, int multibyte_p)
+c_string_pos (int charpos, const unsigned char *s, int multibyte_p)
 {
   struct text_pos pos;
 
@@ -1608,7 +1580,7 @@ c_string_pos (int charpos, unsigned char *s, int multibyte_p)
    non-zero means recognize multibyte characters.  */
 
 static int
-number_of_chars (unsigned char *s, int multibyte_p)
+number_of_chars (const unsigned char *s, int multibyte_p)
 {
   int nchars;
 
@@ -3691,7 +3663,6 @@ handle_invisible_prop (struct it *it)
 
   if (STRINGP (it->string))
     {
-      extern Lisp_Object Qinvisible;
       Lisp_Object prop, end_charpos, limit, charpos;
 
       /* Get the value of the invisible text property at the
@@ -4875,7 +4846,6 @@ compare_overlay_entries (const void *e1, const void *e2)
 static void
 load_overlay_strings (struct it *it, int charpos)
 {
-  extern Lisp_Object Qwindow, Qpriority;
   Lisp_Object overlay, window, str, invisible;
   struct Lisp_Overlay *ov;
   int start, end;
@@ -5611,7 +5581,7 @@ reseat_1 (struct it *it, struct text_pos pos, int set_stop_p)
    calling this function.  */
 
 static void
-reseat_to_string (struct it *it, unsigned char *s, Lisp_Object string,
+reseat_to_string (struct it *it, const unsigned char *s, Lisp_Object string,
 		  int charpos, int precision, int field_width, int multibyte)
 {
   /* No region in strings.  */
@@ -7966,7 +7936,7 @@ in_display_vector_p (struct it *it)
    to *Messages*.  */
 
 void
-add_to_log (char *format, Lisp_Object arg1, Lisp_Object arg2)
+add_to_log (const char *format, Lisp_Object arg1, Lisp_Object arg2)
 {
   Lisp_Object args[3];
   Lisp_Object msg, fmt;
@@ -10225,7 +10195,6 @@ build_desired_tool_bar_string (struct frame *f)
       int enabled_p = !NILP (PROP (TOOL_BAR_ITEM_ENABLED_P));
       int selected_p = !NILP (PROP (TOOL_BAR_ITEM_SELECTED_P));
       int hmargin, vmargin, relief, idx, end;
-      extern Lisp_Object QCrelief, QCmargin, QCconversion;
 
       /* If image is a vector, choose the image according to the
 	 button state.  */
@@ -10587,7 +10556,6 @@ redisplay_tool_bar (struct frame *f)
       if ((nlines = tool_bar_lines_needed (f, &f->n_tool_bar_rows),
 	   nlines != WINDOW_TOTAL_LINES (w)))
 	{
-	  extern Lisp_Object Qtool_bar_lines;
 	  Lisp_Object frame;
 	  int old_height = WINDOW_TOTAL_LINES (w);
 
@@ -10679,7 +10647,6 @@ redisplay_tool_bar (struct frame *f)
 	 frame parameter.  */
       if (change_height_p)
 	{
-	  extern Lisp_Object Qtool_bar_lines;
 	  Lisp_Object frame;
 	  int old_height = WINDOW_TOTAL_LINES (w);
 	  int nrows;
@@ -11385,6 +11352,8 @@ overlay_arrow_at_row (struct it *it, struct glyph_row *row)
 	  && (MATRIX_ROW_START_CHARPOS (row) == marker_position (val)))
 	{
 	  if (FRAME_WINDOW_P (it->f)
+	      /* FIXME: if ROW->reversed_p is set, this should test
+		 the right fringe, not the left one.  */
 	      && WINDOW_LEFT_FRINGE_WIDTH (it->w) > 0)
 	    {
 #ifdef HAVE_WINDOW_SYSTEM
@@ -14487,7 +14456,6 @@ redisplay_window (Lisp_Object window, int just_this_one_p)
 
           if (redisplay_tool_bar_p && redisplay_tool_bar (f))
 	    {
-	      extern int ignore_mouse_drag_p;
 	      ignore_mouse_drag_p = 1;
 	    }
         }
@@ -17414,8 +17382,8 @@ display_line (struct it *it)
 	  row->ends_at_zv_p = 1;
 	  /* A row that displays right-to-left text must always have
 	     its last face extended all the way to the end of line,
-	     even if this row ends in ZV, because we still write to th
-	     screen left to right.  */
+	     even if this row ends in ZV, because we still write to
+	     the screen left to right.  */
 	  if (row->reversed_p)
 	    extend_face_to_end_of_line (it);
 	  break;
@@ -17832,6 +17800,26 @@ display_line (struct it *it)
       row->truncated_on_left_p = 1;
     }
 
+  /* Remember the position at which this line ends.
+
+     BIDI Note: any code that needs MATRIX_ROW_START/END_CHARPOS
+     cannot be before the call to find_row_edges below, since that is
+     where these positions are determined. */
+  row->end = it->current;
+  if (!it->bidi_p)
+    {
+      row->minpos = row->start.pos;
+      row->maxpos = row->end.pos;
+    }
+  else
+    {
+      /* ROW->minpos and ROW->maxpos must be the smallest and
+	 `1 + the largest' buffer positions in ROW.  But if ROW was
+	 bidi-reordered, these two positions can be anywhere in the
+	 row, so we must determine them now.  */
+      find_row_edges (it, row, min_pos, min_bpos, max_pos, max_bpos);
+    }
+
   /* If the start of this line is the overlay arrow-position, then
      mark this glyph row as the one containing the overlay arrow.
      This is clearly a mess with variable size fonts.  It would be
@@ -17876,22 +17864,6 @@ display_line (struct it *it)
 
   /* Compute pixel dimensions of this line.  */
   compute_line_metrics (it);
-
-  /* Remember the position at which this line ends.  */
-  row->end = it->current;
-  if (!it->bidi_p)
-    {
-      row->minpos = row->start.pos;
-      row->maxpos = row->end.pos;
-    }
-  else
-    {
-      /* ROW->minpos and ROW->maxpos must be the smallest and
-	 `1 + the largest' buffer positions in ROW.  But if ROW was
-	 bidi-reordered, these two positions can be anywhere in the
-	 row, so we must determine them now.  */
-      find_row_edges (it, row, min_pos, min_bpos, max_pos, max_bpos);
-    }
 
   /* Record whether this row ends inside an ellipsis.  */
   row->ends_in_ellipsis_p
@@ -18566,7 +18538,7 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
 		  {
 		    int multibyte;
 		    int bytepos, charpos;
-		    unsigned char *spec;
+		    const unsigned char *spec;
 		    Lisp_Object string;
 
 		    bytepos = percent_position;
@@ -18836,7 +18808,7 @@ display_mode_element (struct it *it, int depth, int field_width, int precision,
  */
 
 static int
-store_mode_line_string (char *string, Lisp_Object lisp_string, int copy_string,
+store_mode_line_string (const char *string, Lisp_Object lisp_string, int copy_string,
 			int field_width, int precision, Lisp_Object props)
 {
   int len;
@@ -19252,7 +19224,7 @@ decode_mode_spec_coding (Lisp_Object coding_system, register char *buf, int eol_
 
 static char lots_of_dashes[] = "--------------------------------------------------------------------------------------------------------------------------------------------";
 
-static char *
+static const char *
 decode_mode_spec (struct window *w, register int c, int field_width,
 		  int precision, Lisp_Object *string)
 {
@@ -19812,7 +19784,7 @@ display_count_lines (int start, int start_byte, int limit_byte, int count,
    Value is the number of columns displayed.  */
 
 static int
-display_string (unsigned char *string, Lisp_Object lisp_string, Lisp_Object face_string,
+display_string (const unsigned char *string, Lisp_Object lisp_string, Lisp_Object face_string,
 		EMACS_INT face_string_pos, EMACS_INT start, struct it *it,
 		int field_width, int precision, int max_x, int multibyte)
 {
@@ -25638,6 +25610,8 @@ syms_of_xdisp (void)
   staticpro (&Qboth);
   Qboth_horiz = intern_c_string ("both-horiz");
   staticpro (&Qboth_horiz);
+  Qtext_image_horiz = intern_c_string ("text-image-horiz");
+  staticpro (&Qtext_image_horiz);
   QCmap = intern_c_string (":map");
   staticpro (&QCmap);
   QCpointer = intern_c_string (":pointer");
@@ -25981,11 +25955,12 @@ vertical margin.  */);
   DEFVAR_LISP ("tool-bar-style", &Vtool_bar_style,
     doc: /* *Tool bar style to use.
 It can be one of
- image      - show images only
- text       - show text only
- both       - show both, text under image
- both-horiz - show text to the right of the image
- any other  - use system default or image if no system default.  */);
+ image            - show images only
+ text             - show text only
+ both             - show both, text below image
+ both-horiz       - show text to the right of the image
+ text-image-horiz - show text to the left of the image
+ any other        - use system default or image if no system default.  */);
   Vtool_bar_style = Qnil;
 
   DEFVAR_INT ("tool-bar-max-label-size", &tool_bar_max_label_size,

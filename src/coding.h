@@ -802,6 +802,9 @@ extern struct coding_system safe_terminal_coding;
 /* Default coding systems used for process I/O.  */
 extern Lisp_Object Vdefault_process_coding_system;
 
+/* Char table for translating Quail and self-inserting input.  */
+extern Lisp_Object Vtranslation_table_for_input;
+
 /* Function to call to force a user to force select a propert coding
    system.  */
 extern Lisp_Object Vselect_safe_coding_system_function;

@@ -96,8 +96,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <memory.h>
 #endif /* USG */
 
-extern int quit_char;
-
 #include "keyboard.h"
 #include "frame.h"
 #include "window.h"
@@ -107,11 +105,12 @@ extern int quit_char;
 #include "dispextern.h"
 #include "process.h"
 #include "cm.h"  /* for reset_sys_modes */
-
-/* For serial_configure and serial_open.  */
-extern Lisp_Object QCport, QCspeed, QCprocess;
-extern Lisp_Object QCbytesize, QCstopbits, QCparity, Qodd, Qeven;
-extern Lisp_Object QCflowcontrol, Qhw, Qsw, QCsummary;
+#ifdef HAVE_TERM_H
+/* Include this last.  If it is ncurses header file, it adds a lot of
+   defines that interfere with stuff in other headers.  Someone responsible
+   for ncurses messed up bigtime.  See bug#6812.  */
+#include <term.h>
+#endif
 
 #ifdef WINDOWSNT
 #include <direct.h>
@@ -503,17 +502,29 @@ child_setup_tty (int out)
   s.main.c_cflag = (s.main.c_cflag & ~CBAUD) | B9600; /* baud rate sanity */
 #endif /* AIX */
 
-  /* We used to enable ICANON (and set VEOF to 04), but this leads to
-     problems where process.c wants to send EOFs every once in a while
-     to force the output, which leads to weird effects when the
+  /* We originally enabled ICANON (and set VEOF to 04), and then had
+     proces.c send additional EOF chars to flush the output when faced
+     with long lines, but this leads to weird effects when the
      subprocess has disabled ICANON and ends up seeing those spurious
      extra EOFs.  So we don't send EOFs any more in
-     process.c:send_process, and instead we disable ICANON by default,
-     so if a subsprocess sets up ICANON, it's his problem (or the Elisp
-     package that talks to it) to deal with lines that are too long.  */
-  s.main.c_lflag &= ~ICANON;	/* Disable line editing and eof processing */
+     process.c:send_process.  First we tried to disable ICANON by
+     default, so if a subsprocess sets up ICANON, it's his problem (or
+     the Elisp package that talks to it) to deal with lines that are
+     too long.  But this disables some features, such as the ability
+     to send EOF signals.  So we re-enabled ICANON but there is no
+     more "send eof to flush" going on (which is wrong and unportable
+     in itself).  The correct way to handle too much output is to
+     buffer what could not be written and then write it again when
+     select returns ok for writing.  This has it own set of
+     problems.  Write is now asynchronous, is that a problem?  How much
+     do we buffer, and what do we do when that limit is reached?  */
+
+  s.main.c_lflag |= ICANON;	/* Enable line editing and eof processing */
+  s.main.c_cc[VEOF] = 'D'&037;	/* Control-D */
+#if 0	    /* These settings only apply to non-ICANON mode. */
   s.main.c_cc[VMIN] = 1;
   s.main.c_cc[VTIME] = 0;
+#endif
 
 #else /* not HAVE_TERMIO */
 
@@ -2447,7 +2458,7 @@ croak (char *badfunc)
 
 /* Directory routines for systems that don't have them. */
 
-#ifdef SYSV_SYSTEM_DIR
+#ifdef HAVE_DIRENT_H
 
 #include <dirent.h>
 
@@ -2464,7 +2475,7 @@ closedir (DIR *dirp /* stream from opendir */)
   return rtnval;
 }
 #endif /* not HAVE_CLOSEDIR */
-#endif /* SYSV_SYSTEM_DIR */
+#endif /* HAVE_DIRENT_H */
 
 
 int

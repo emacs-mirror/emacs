@@ -82,7 +82,8 @@ Lisp_Object Qnumberp, Qnumber_or_marker_p;
 
 Lisp_Object Qinteger;
 static Lisp_Object Qsymbol, Qstring, Qcons, Qmarker, Qoverlay;
-static Lisp_Object Qfloat, Qwindow_configuration, Qwindow;
+Lisp_Object Qwindow;
+static Lisp_Object Qfloat, Qwindow_configuration;
 Lisp_Object Qprocess;
 static Lisp_Object Qcompiled_function, Qbuffer, Qframe, Qvector;
 static Lisp_Object Qchar_table, Qbool_vector, Qhash_table;
@@ -664,8 +665,6 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
   return definition;
 }
 
-extern Lisp_Object Qfunction_documentation;
-
 DEFUN ("defalias", Fdefalias, Sdefalias, 2, 3, 0,
        doc: /* Set SYMBOL's function definition to DEFINITION, and return DEFINITION.
 Associates the function with the current load file, if any.
@@ -750,7 +749,7 @@ Value, if non-nil, is a list \(interactive SPEC).  */)
 
   if (SUBRP (fun))
     {
-      char *spec = XSUBR (fun)->intspec;
+      const char *spec = XSUBR (fun)->intspec;
       if (spec)
 	return list2 (Qinteractive,
 		      (*spec != '(') ? build_string (spec) :
@@ -1865,6 +1864,7 @@ BUFFER defaults to the current buffer.  */)
 	Lisp_Object tail, elt, tmp;
 	struct Lisp_Buffer_Local_Value *blv = SYMBOL_BLV (sym);
 	XSETBUFFER (tmp, buf);
+	XSETSYMBOL (variable, sym); /* Update in case of aliasing.  */
 
 	for (tail = buf->local_var_alist; CONSP (tail); tail = XCDR (tail))
 	  {
@@ -2501,8 +2501,6 @@ enum arithop
 
 static Lisp_Object float_arith_driver (double, int, enum arithop,
                                        int, Lisp_Object *);
-extern Lisp_Object fmod_float (Lisp_Object, Lisp_Object);
-
 Lisp_Object
 arith_driver (enum arithop code, int nargs, register Lisp_Object *args)
 {

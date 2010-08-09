@@ -309,6 +309,8 @@
        (setq n (1+ n))))
    (calc-clear-command-flag 'position-point)))
 
+(defvar calc-highlight-selections-with-faces)
+
 (defun calc-show-selections (arg)
   (interactive "P")
   (calc-wrapper
@@ -330,8 +332,12 @@
 		(setcar (nthcdr 2 calc-selection-cache-entry) nil)
 		(calc-change-current-selection sel)))))
    (message (if calc-show-selections
-		"Displaying only selected part of formulas"
-	      "Displaying all but selected part of formulas"))))
+                (if calc-highlight-selections-with-faces
+                    "De-emphasizing all but selected part of formulas"
+                  "Displaying only selected part of formulas")
+              (if calc-highlight-selections-with-faces
+                  "Emphasizing selected part of formulas"
+                "Displaying all but selected part of formulas")))))
 
 ;; The variables calc-final-point-line and calc-final-point-column
 ;; are declared in calc.el, and are used throughout.

@@ -1,3 +1,17 @@
+2010-08-08  Óscar Fuentes  <ofv@wanadoo.es>
+
+	* cmdproxy.c (main): Use _snprintf instead of wsprintf,
+	which has a 1024 char limit on Windows (bug#6647).
+
+2010-08-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* config.nt (TIME_WITH_SYS_TIME): Remove #undef, unused (bug#6754).
+	Suggested by Dan Nicolaescu <dann@ics.uci.edu>.
+
+2010-07-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* config.nt: Remove code referring to NO_REMAP, unused.
+
 2010-07-25  Christoph Scholtes  <cschol2112@gmail.com>
 
 	Build binary distros on Windows using emacs-VERSION as root dir name.

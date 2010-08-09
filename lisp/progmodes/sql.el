@@ -1961,7 +1961,51 @@ regular expressions are created during compilation by calling the
 function `regexp-opt'.  Therefore, take a look at the source before
 you define your own `sql-mode-mysql-font-lock-keywords'.")
 
-(defvar sql-mode-sqlite-font-lock-keywords nil
+(defvar sql-mode-sqlite-font-lock-keywords
+  (eval-when-compile
+    (list
+     ;; SQLite Keyword
+     (sql-font-lock-keywords-builder 'font-lock-keyword-face nil
+"abort" "action" "add" "after" "all" "alter" "analyze" "and" "as"
+"asc" "attach" "autoincrement" "before" "begin" "between" "by"
+"cascade" "case" "cast" "check" "collate" "column" "commit" "conflict"
+"constraint" "create" "cross" "current_date" "current_time"
+"current_timestamp" "database" "default" "deferrable" "deferred"
+"delete" "desc" "detach" "distinct" "drop" "each" "else" "end"
+"escape" "except" "exclusive" "exists" "explain" "fail" "for"
+"foreign" "from" "full" "glob" "group" "having" "if" "ignore"
+"immediate" "in" "index" "indexed" "initially" "inner" "insert"
+"instead" "intersect" "into" "is" "isnull" "join" "key" "left" "like"
+"limit" "match" "natural" "no" "not" "notnull" "null" "of" "offset"
+"on" "or" "order" "outer" "plan" "pragma" "primary" "query" "raise"
+"references" "regexp" "reindex" "release" "rename" "replace"
+"restrict" "right" "rollback" "row" "savepoint" "select" "set" "table"
+"temp" "temporary" "then" "to" "transaction" "trigger" "union"
+"unique" "update" "using" "vacuum" "values" "view" "virtual" "when"
+"where"
+)
+     ;; SQLite Data types
+     (sql-font-lock-keywords-builder 'font-lock-type-face nil
+"int" "integer" "tinyint" "smallint" "mediumint" "bigint" "unsigned"
+"big" "int2" "int8" "character" "varchar" "varying" "nchar" "native "
+"nvarchar" "text" "clob" "blob" "real" "double" "precision" "float"
+"numeric" "decimal" "boolean" "date" "datetime"
+)
+     ;; SQLite Functions
+     (sql-font-lock-keywords-builder 'font-lock-builtin-face nil
+;; Core functions
+"abs" "changes" "coalesce" "glob" "ifnull" "hex" "last_insert_rowid"
+"length" "like" "load_extension" "lower" "ltrim" "max" "min" "nullif"
+"quote" "random" "randomblob" "replace" "round" "rtrim" "soundex"
+"sqlite_compileoption_get" "sqlite_compileoption_used"
+"sqlite_source_id" "sqlite_version" "substr" "total_changes" "trim"
+"typeof" "upper" "zeroblob"
+;; Date/time functions
+"time" "julianday" "strftime"
+;; Aggregate functions
+"avg" "count" "group_concat" "max" "min" "sum" "total"
+)))
+
   "SQLite SQL keywords used by font-lock.
 
 This variable is used by `sql-mode' and `sql-interactive-mode'.  The
@@ -2951,7 +2995,6 @@ you entered, right above the output it created.
        (sql-get-product-feature sql-product :prompt-length))
   (make-local-variable 'sql-input-ring-separator)
   (make-local-variable 'sql-input-ring-file-name)
-  (setq comint-process-echoes t)
   ;; Run the mode hook (along with comint's hooks).
   (run-mode-hooks 'sql-interactive-mode-hook)
   ;; Set comint based on user overrides.

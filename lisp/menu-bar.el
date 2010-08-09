@@ -968,11 +968,95 @@ mail status in mode line"))
 	      :help ,(purecopy "Turn menu-bar on/off")
 	      :button (:toggle . (> (frame-parameter nil 'menu-bar-lines) 0))))
 
-(define-key menu-bar-showhide-menu [showhide-tool-bar]
-  `(menu-item ,(purecopy "Tool-bar") toggle-tool-bar-mode-from-frame
-	      :help ,(purecopy "Turn tool-bar on/off")
-	      :visible (display-graphic-p)
-	      :button (:toggle . (> (frame-parameter nil 'tool-bar-lines) 0))))
+(defun menu-bar-showhide-tool-bar-menu-customize-disable ()
+  "Do not display tool bars."
+  (interactive)
+  (customize-set-variable 'tool-bar-mode nil))
+(defun menu-bar-showhide-tool-bar-menu-customize-enable-left ()
+  "Display tool bars on the left side."
+  (interactive)
+  (customize-set-variable 'tool-bar-mode t)
+  (set-frame-parameter nil 'tool-bar-position 'left))
+
+(defun menu-bar-showhide-tool-bar-menu-customize-enable-right ()
+  "Display tool bars on the right side."
+  (interactive)
+  (customize-set-variable 'tool-bar-mode t)
+  (set-frame-parameter nil 'tool-bar-position 'right))
+(defun menu-bar-showhide-tool-bar-menu-customize-enable-top ()
+  "Display tool bars on the top side."
+  (interactive)
+  (customize-set-variable 'tool-bar-mode t)
+  (set-frame-parameter nil 'tool-bar-position 'top))
+(defun menu-bar-showhide-tool-bar-menu-customize-enable-bottom ()
+  "Display tool bars on the bottom side."
+  (interactive)
+  (customize-set-variable 'tool-bar-mode t)
+  (set-frame-parameter nil 'tool-bar-position 'bottom))
+
+(if (featurep 'move-toolbar)
+    (progn
+      (defvar menu-bar-showhide-tool-bar-menu (make-sparse-keymap "Tool-bar"))
+
+      (define-key menu-bar-showhide-tool-bar-menu [showhide-tool-bar-left]
+	`(menu-item ,(purecopy "On the left") 
+		    menu-bar-showhide-tool-bar-menu-customize-enable-left
+		    :help ,(purecopy "Tool-bar at the left side")
+		    :visible (display-graphic-p)
+		    :button 
+		    (:radio . (and tool-bar-mode 
+				   (eq (frame-parameter nil 'tool-bar-position)
+				       'left)))))
+
+      (define-key menu-bar-showhide-tool-bar-menu [showhide-tool-bar-right]
+	`(menu-item ,(purecopy "On the right") 
+		    menu-bar-showhide-tool-bar-menu-customize-enable-right
+		    :help ,(purecopy "Tool-bar at the right side")
+		    :visible (display-graphic-p)
+		    :button
+		    (:radio . (and tool-bar-mode 
+				   (eq (frame-parameter nil 'tool-bar-position)
+				       'right)))))
+
+      (define-key menu-bar-showhide-tool-bar-menu [showhide-tool-bar-bottom]
+	`(menu-item ,(purecopy "On the bottom") 
+		    menu-bar-showhide-tool-bar-menu-customize-enable-bottom
+		    :help ,(purecopy "Tool-bar at the bottom")
+		    :visible (display-graphic-p)
+		    :button
+		    (:radio . (and tool-bar-mode 
+				   (eq (frame-parameter nil 'tool-bar-position)
+				       'bottom)))))
+
+      (define-key menu-bar-showhide-tool-bar-menu [showhide-tool-bar-top]
+	`(menu-item ,(purecopy "On the top") 
+		    menu-bar-showhide-tool-bar-menu-customize-enable-top
+		    :help ,(purecopy "Tool-bar at the top")
+		    :visible (display-graphic-p)
+		    :button
+		    (:radio . (and tool-bar-mode 
+				   (eq (frame-parameter nil 'tool-bar-position)
+				       'top)))))
+
+      (define-key menu-bar-showhide-tool-bar-menu [showhide-tool-bar-none]
+	`(menu-item ,(purecopy "None") 
+		    menu-bar-showhide-tool-bar-menu-customize-disable
+		    :help ,(purecopy "Turn tool-bar off")
+		    :visible (display-graphic-p)
+		    :button (:radio . (eq tool-bar-mode nil))))
+
+      (define-key menu-bar-showhide-menu [showhide-tool-bar]
+	`(menu-item ,(purecopy "Tool-bar") ,menu-bar-showhide-tool-bar-menu
+		    :visible (display-graphic-p)))
+
+      )
+  ;; else not tool bar that can move.
+  (define-key menu-bar-showhide-menu [showhide-tool-bar]
+    `(menu-item ,(purecopy "Tool-bar") toggle-tool-bar-mode-from-frame
+		:help ,(purecopy "Turn tool-bar on/off")
+		:visible (display-graphic-p)
+		:button (:toggle . (> (frame-parameter nil 'tool-bar-lines) 0))))
+)
 
 (define-key menu-bar-options-menu [showhide]
   `(menu-item ,(purecopy "Show/Hide") ,menu-bar-showhide-menu))

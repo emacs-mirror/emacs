@@ -177,7 +177,6 @@ EXFUN (Fclear_face_cache, 1);
 
 /********** VARIABLES and FUNCTION PROTOTYPES **********/
 
-extern Lisp_Object Qfont;
 static Lisp_Object Qfontset;
 static Lisp_Object Qfontset_info;
 static Lisp_Object Qprepend, Qappend;
@@ -387,8 +386,6 @@ fontset_compare_rfontdef (const void *val1, const void *val2)
 
    If PREFERRED_FAMILY is not nil, that family has the higher priority
    if the encoding charsets or languages in font-specs are the same.  */
-
-extern Lisp_Object Fassoc_string (Lisp_Object, Lisp_Object, Lisp_Object);
 
 static void
 reorder_font_vector (Lisp_Object font_group, struct font *font)
@@ -1395,7 +1392,6 @@ set_fontset_font (Lisp_Object arg, Lisp_Object range)
   ASET (arg, 4, script_range_list);
 }
 
-extern Lisp_Object QCfamily, QCregistry;
 static void update_auto_fontset_alist (Lisp_Object, Lisp_Object);
 
 
@@ -1457,7 +1453,6 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
   else if (STRINGP (font_spec))
     {
       Lisp_Object args[2];
-      extern Lisp_Object QCname;
 
       fontname = font_spec;
       args[0] = QCname;

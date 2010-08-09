@@ -34,6 +34,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #if HAVE_TERMIOS_H
 #include <termios.h>		/* For TIOCNOTTY. */
 #endif
+#ifdef HAVE_SYS_IOCTL_H
+#include <sys/ioctl.h>
+#endif
 
 #include <signal.h>
 #include <stdarg.h>
@@ -131,8 +134,6 @@ static void vfatal (const char *str, va_list ap) NO_RETURN;
 static int visible_cursor;
 
 /* Display space properties */
-
-extern Lisp_Object Qspace, QCalign_to, QCwidth;
 
 /* Functions to call after suspending a tty. */
 Lisp_Object Vsuspend_tty_functions;
@@ -712,7 +713,7 @@ encode_terminal_code (struct glyph *src, int src_len, struct coding_system *codi
 	    }
 	  else
 	    {
-	      unsigned char *p = SDATA (string), *pend = p + SBYTES (string);
+	      unsigned char *p = SDATA (string);
 
 	      if (! STRING_MULTIBYTE (string))
 		string = string_to_multibyte (string);
@@ -1121,7 +1122,6 @@ per_line_cost (char *str)
   return cost;
 }
 
-#ifndef old
 /* char_ins_del_cost[n] is cost of inserting N characters.
    char_ins_del_cost[-n] is cost of deleting N characters.
    The length of this vector is based on max_frame_cols.  */
@@ -1129,7 +1129,6 @@ per_line_cost (char *str)
 int *char_ins_del_vector;
 
 #define char_ins_del_cost(f) (&char_ins_del_vector[FRAME_COLS ((f))])
-#endif
 
 /* ARGSUSED */
 static void
@@ -1267,7 +1266,7 @@ struct fkey_table {
      other keys (as on the IBM PC keyboard) they get overridden.
   */
 
-static struct fkey_table keys[] =
+static const struct fkey_table keys[] =
 {
   {"kh", "home"},	/* termcap */
   {"kl", "left"},	/* termcap */
@@ -1383,7 +1382,6 @@ term_get_fkeys (char **address, KBOARD *kboard)
      function key specification, rather than giving the user an error and
      refusing to run at all on such a terminal.  */
 
-  extern Lisp_Object Fidentity (Lisp_Object);
   term_get_fkeys_address = address;
   term_get_fkeys_kboard = kboard;
   internal_condition_case (term_get_fkeys_1, Qerror, Fidentity);
@@ -1507,15 +1505,6 @@ term_get_fkeys_1 (void)
 /***********************************************************************
 		       Character Display Information
  ***********************************************************************/
-
-/* Avoid name clash with functions defined in xterm.c */
-#ifdef static
-#define append_glyph append_glyph_term
-#define produce_stretch_glyph produce_stretch_glyph_term
-#define append_composite_glyph append_composite_glyph_term
-#define produce_composite_glyph produce_composite_glyph_term
-#endif
-
 static void append_glyph (struct it *);
 static void produce_stretch_glyph (struct it *);
 static void append_composite_glyph (struct it *);
@@ -1860,8 +1849,6 @@ append_composite_glyph (struct it *it)
 static void
 produce_composite_glyph (struct it *it)
 {
-  int c;
-
   if (it->cmp_it.ch < 0)
     {
       struct composition *cmp = composition_table[it->cmp_it.id];
@@ -2256,7 +2243,6 @@ set_tty_color_mode (struct tty_display_info *tty, struct frame *f)
   Lisp_Object tem, val;
   Lisp_Object color_mode;
   int mode;
-  extern Lisp_Object Qtty_color_mode;
   Lisp_Object tty_color_mode_alist
     = Fintern_soft (build_string ("tty-color-mode-alist"), Qnil);
 
@@ -2795,7 +2781,6 @@ term_mouse_highlight (struct frame *f, int x, int y)
 
       /* Check for mouse-face.  */
       {
-	extern Lisp_Object Qmouse_face;
 	Lisp_Object mouse_face, overlay, position, *overlay_vec;
 	int noverlays, obegv, ozv;
 	struct buffer *obuf;
@@ -2921,7 +2906,6 @@ term_mouse_highlight (struct frame *f, int x, int y)
 	/* Look for a `help-echo' property.  */
 	{
 	  Lisp_Object help;
-	  extern Lisp_Object Qhelp_echo;
 
 	  /* Check overlays first.  */
 	  help = Qnil;
@@ -3350,7 +3334,7 @@ dissociate_if_controlling_tty (int fd)
   EMACS_GET_TTY_PGRP (fd, &pgid); /* If tcgetpgrp succeeds, fd is the ctty. */
   if (pgid != -1)
     {
-#if defined (USG)
+#if defined (USG5)
       setpgrp ();
       no_controlling_tty = 1;
 #elif defined (CYGWIN)

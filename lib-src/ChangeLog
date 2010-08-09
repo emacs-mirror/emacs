@@ -1,3 +1,20 @@
+2010-08-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ebrowse.c (usage, version, mark_virtual):
+	Remove duplicate declarations.
+
+2010-08-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacsclient.c: Move socket related #includes together with the
+	rest of the #includes.  Move a WINDOWSNT includes closer together.
+	(HAVE_CONFIG_H): Remove.
+	(NO_RETURN): Remove, defined in config.h.
+	(main): Convert definition to standard C.
+
+2010-07-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* make-docfile.c (write_c_args): Warn for old-style empty arglist ().
+
 2010-07-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacsclient.c (getcwd): Fix previous change: make getcwd
@@ -12,7 +29,7 @@
 
 2010-07-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* update-game-score.c (usage):  Add NO_RETURN specifier.
+	* update-game-score.c (usage): Add NO_RETURN specifier.
 	* movemail.c (fatal, pfatal_with_name, pfatal_and_delete):
 	* make-docfile.c (fatal):
 	* hexl.c (usage):

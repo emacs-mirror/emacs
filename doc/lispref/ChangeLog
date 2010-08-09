@@ -1,3 +1,33 @@
+2010-08-08  Christoph  <cschol2112@googlemail.com>
+
+	* control.texi (Handling Errors) <error-message-string>: Fix arg name.
+
+2010-08-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* modes.texi (Defining Minor Modes): Use C-backspace, not C-delete.
+	Suggested by Štěpán Němec <stepnem@gmail.com>.
+
+2010-08-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuf.texi (High-Level Completion): Document args of
+	`read-buffer-function' (bug#5625).
+
+2010-07-29  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* frames.texi (Layout Parameters): Add doc for tool-bar-position.
+
+2010-07-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* processes.texi (Process Information): Explain process property
+	`remote-tty'.
+
+2010-07-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* modes.texi (Defining Minor Modes): Use C-delete in examples,
+	instead of "\C-\^?" (bug#6334).
+
+	* text.texi (Special Properties): Fix typo.
+
 2010-07-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* internals.texi (Writing Emacs Primitives): Adapt to ANSI C

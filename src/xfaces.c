@@ -321,11 +321,6 @@ Lisp_Object QCreverse_video;
 Lisp_Object QCoverline, QCstrike_through, QCbox, QCinherit;
 Lisp_Object QCfontset;
 
-/* Keywords symbols used for font properties.  */
-extern Lisp_Object QCfoundry, QCadstyle, QCregistry;
-extern Lisp_Object QCspacing, QCsize, QCavgwidth;
-extern Lisp_Object Qp;
-
 /* Symbols used for attribute values.  */
 
 Lisp_Object Qnormal, Qbold, Qultra_light, Qextra_light, Qlight;
@@ -351,15 +346,12 @@ Lisp_Object Qframe_set_background_mode;
 Lisp_Object Qdefault, Qtool_bar, Qregion, Qfringe;
 Lisp_Object Qheader_line, Qscroll_bar, Qcursor, Qborder, Qmouse, Qmenu;
 Lisp_Object Qmode_line_inactive, Qvertical_border;
-extern Lisp_Object Qmode_line;
 
 /* The symbol `face-alias'.  A symbols having that property is an
    alias for another face.  Value of the property is the name of
    the aliased face.  */
 
 Lisp_Object Qface_alias;
-
-extern Lisp_Object Qcircular_list;
 
 /* Default stipple pattern used on monochrome displays.  This stipple
    pattern is used on monochrome displays instead of shades of gray
@@ -411,7 +403,6 @@ Lisp_Object Qforeground_color, Qbackground_color;
 /* The symbols `face' and `mouse-face' used as text properties.  */
 
 Lisp_Object Qface;
-extern Lisp_Object Qmouse_face;
 
 /* Property for basic faces which other faces cannot inherit.  */
 
@@ -520,7 +511,7 @@ static int load_pixmap (struct frame *, Lisp_Object, unsigned *, unsigned *);
 static struct frame *frame_or_selected_frame (Lisp_Object, int);
 static void load_face_colors (struct frame *, struct face *, Lisp_Object *);
 static void free_face_colors (struct frame *, struct face *);
-static int face_color_gray_p (struct frame *, char *);
+static int face_color_gray_p (struct frame *, const char *);
 static struct face *realize_face (struct face_cache *, Lisp_Object *,
                                   int);
 static struct face *realize_non_ascii_face (struct frame *, Lisp_Object,
@@ -751,10 +742,9 @@ x_free_gc (struct frame *f, GC gc)
 /* NS emulation of GCs */
 
 static INLINE GC
-x_create_gc (f, mask, xgcv)
-     struct frame *f;
-     unsigned long mask;
-     XGCValues *xgcv;
+x_create_gc (struct frame *f,
+             unsigned long mask,
+             XGCValues *xgcv)
 {
   GC gc = xmalloc (sizeof (*gc));
   if (gc)
@@ -763,9 +753,7 @@ x_create_gc (f, mask, xgcv)
 }
 
 static INLINE void
-x_free_gc (f, gc)
-     struct frame *f;
-     GC gc;
+x_free_gc (struct frame *f, GC gc)
 {
   xfree (gc);
 }
@@ -1171,7 +1159,8 @@ tty_lookup_color (struct frame *f, Lisp_Object color, XColor *tty_color, XColor 
 /* A version of defined_color for non-X frames.  */
 
 int
-tty_defined_color (struct frame *f, char *color_name, XColor *color_def, int alloc)
+tty_defined_color (struct frame *f, const char *color_name,
+		   XColor *color_def, int alloc)
 {
   int status = 1;
 
@@ -1206,7 +1195,7 @@ tty_defined_color (struct frame *f, char *color_name, XColor *color_def, int all
    This does the right thing for any type of frame.  */
 
 int
-defined_color (struct frame *f, char *color_name, XColor *color_def, int alloc)
+defined_color (struct frame *f, const char *color_name, XColor *color_def, int alloc)
 {
   if (!FRAME_WINDOW_P (f))
     return tty_defined_color (f, color_name, color_def, alloc);
@@ -1266,7 +1255,7 @@ tty_color_name (struct frame *f, int idx)
    The criterion implemented here is not a terribly sophisticated one.  */
 
 static int
-face_color_gray_p (struct frame *f, char *color_name)
+face_color_gray_p (struct frame *f, const char *color_name)
 {
   XColor color;
   int gray_p;
@@ -1293,7 +1282,7 @@ face_color_gray_p (struct frame *f, char *color_name)
    color.  */
 
 static int
-face_color_supported_p (struct frame *f, char *color_name, int background_p)
+face_color_supported_p (struct frame *f, const char *color_name, int background_p)
 {
   Lisp_Object frame;
   XColor not_used;
@@ -3666,8 +3655,6 @@ x_update_menu_appearance (struct frame *f)
 	  if (! NILP (xlfd))
 	    {
 #if defined HAVE_X_I18N
-	      extern char *xic_create_fontsetname
-                (char *base_fontname, Bool motif);
 	      char *fontsetname = xic_create_fontsetname (SDATA (xlfd), motif);
 #else
 	      char *fontsetname = (char *) SDATA (xlfd);

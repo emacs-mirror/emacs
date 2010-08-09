@@ -81,6 +81,9 @@ typedef struct _XlwMenuClassRec *XlwMenuWidgetClass;
 
 extern WidgetClass xlwMenuWidgetClass;
 
+extern int xlwmenu_window_p (Widget w, Window window);
+extern void xlwmenu_redisplay (Widget);
+
 #endif /* _XlwMenu_h */
 
 /* arch-tag: 0c019735-d61b-4080-be85-4fdd6e50ae07

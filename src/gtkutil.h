@@ -135,8 +135,8 @@ extern char *xg_get_file_name (FRAME_PTR f,
 
 extern char *xg_get_font_name (FRAME_PTR f, char *);
 
-extern GtkWidget *xg_create_widget (char *type,
-                                    char *name,
+extern GtkWidget *xg_create_widget (const char *type,
+                                    const char *name,
                                     FRAME_PTR f,
                                     widget_value *val,
                                     GCallback select_cb,
@@ -163,7 +163,7 @@ extern void xg_create_scroll_bar (FRAME_PTR f,
                                   struct scroll_bar *bar,
                                   GCallback scroll_callback,
                                   GCallback end_callback,
-                                  char *scroll_bar_name);
+                                  const char *scroll_bar_name);
 extern void xg_remove_scroll_bar (FRAME_PTR f, int scrollbar_id);
 
 extern void xg_update_scrollbar_pos (FRAME_PTR f,
@@ -181,6 +181,7 @@ extern int xg_event_is_for_scrollbar (FRAME_PTR f, XEvent *event);
 
 extern void update_frame_tool_bar (FRAME_PTR f);
 extern void free_frame_tool_bar (FRAME_PTR f);
+extern int xg_change_toolbar_position (FRAME_PTR f, Lisp_Object pos);
 
 extern void xg_frame_resized (FRAME_PTR f,
                               int pixelwidth,
@@ -193,6 +194,7 @@ extern void xg_display_close (Display *dpy);
 extern GdkCursor * xg_create_default_cursor (Display *dpy);
 
 extern int xg_create_frame_widgets (FRAME_PTR f);
+extern void xg_free_frame_widgets (FRAME_PTR f);
 extern void x_wm_set_size_hint (FRAME_PTR f,
                                 long flags,
                                 int user_position);
@@ -201,6 +203,14 @@ extern void xg_set_background_color (FRAME_PTR f, unsigned long bg);
 extern void xg_set_frame_icon (FRAME_PTR f,
                                Pixmap icon_pixmap,
                                Pixmap icon_mask);
+
+extern int xg_prepare_tooltip (FRAME_PTR f,
+                               Lisp_Object string,
+                               int *width,
+                               int *height);
+extern void xg_show_tooltip (FRAME_PTR f, int root_x, int root_y);
+extern int xg_hide_tooltip (FRAME_PTR f);
+
 
 /* Mark all callback data that are Lisp_object:s during GC.  */
 extern void xg_mark_data (void);

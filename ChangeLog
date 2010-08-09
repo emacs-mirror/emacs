@@ -1,3 +1,25 @@
+2010-08-06  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in: Check for util.h.
+	Use -Wimplicit-function-declaration if compiler supports it.
+
+2010-08-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.in (UNEXEC_OBJ): Rename unexec.o => unexcoff.o.
+
+2010-08-04  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* configure.in: Restore accidentally removed use of
+	GCC_TEST_OPTIONS/NON_GCC_TEST_OPTIONS.
+
+2010-07-29  Chad Brown  <yandros@mit.edu>
+
+	* configure.in: Check for dirent.h.
+
+2010-07-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in: Remove reference to usg5-4, unused.
+
 2010-07-25  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* configure.in: Check for __executable_start.

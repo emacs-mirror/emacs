@@ -63,7 +63,6 @@ Lisp_Object Qand_rest, Qand_optional;
 Lisp_Object Qdebug_on_error;
 Lisp_Object Qdeclare;
 Lisp_Object Qdebug;
-extern Lisp_Object Qinteractive_form;
 
 /* This holds either the symbol `run-hooks' or nil.
    It is nil at an early stage of startup, and when Emacs
@@ -165,10 +164,6 @@ int handling_signal;
 /* Function to process declarations in defmacro forms.  */
 
 Lisp_Object Vmacro_declaration_function;
-
-extern Lisp_Object Qrisky_local_variable;
-
-extern Lisp_Object Qfunction;
 
 static Lisp_Object funcall_lambda (Lisp_Object, int, Lisp_Object*);
 static void unwind_to_catch (struct catchtag *, Lisp_Object) NO_RETURN;
@@ -1634,8 +1629,6 @@ See also the function `condition-case'.  */)
      That is a special case--don't do this in other situations.  */
   register struct handler *allhandlers = handlerlist;
   Lisp_Object conditions;
-  extern int gc_in_progress;
-  extern int waiting_for_input;
   Lisp_Object string;
   Lisp_Object real_error_symbol;
   struct backtrace *bp;
@@ -3438,7 +3431,6 @@ Output stream used is value of `standard-output'.  */)
   register int i;
   Lisp_Object tail;
   Lisp_Object tem;
-  extern Lisp_Object Vprint_level;
   struct gcpro gcpro1;
 
   XSETFASTINT (Vprint_level, 3);

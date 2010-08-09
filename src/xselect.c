@@ -76,7 +76,8 @@ static void receive_incremental_selection (Display *, Window, Atom,
 static Lisp_Object x_get_window_property_as_lisp_data (Display *,
                                                        Window, Atom,
                                                        Lisp_Object, Atom);
-static Lisp_Object selection_data_to_lisp_data (Display *, unsigned char *,
+static Lisp_Object selection_data_to_lisp_data (Display *,
+						const unsigned char *,
                                                 int, Atom, int);
 static void lisp_data_to_selection_data (Display *, Lisp_Object,
                                          unsigned char **, Atom *,
@@ -391,7 +392,7 @@ x_own_selection (Lisp_Object selection_name, Lisp_Object selection_value)
   selecting_window = FRAME_X_WINDOW (sf);
   display = FRAME_X_DISPLAY (sf);
   dpyinfo = FRAME_X_DISPLAY_INFO (sf);
-  
+
   CHECK_SYMBOL (selection_name);
   selection_atom = symbol_to_x_atom (dpyinfo, display, selection_name);
 
@@ -409,10 +410,8 @@ x_own_selection (Lisp_Object selection_name, Lisp_Object selection_value)
     Lisp_Object prev_value;
 
     selection_time = long_to_cons ((unsigned long) time);
-    selection_data = Fcons (selection_name,
-			    Fcons (selection_value,
-				   Fcons (selection_time,
-					  Fcons (selected_frame, Qnil))));
+    selection_data = list4 (selection_name, selection_value,
+			    selection_time, selected_frame);
     prev_value = assq_no_quit (selection_name, Vselection_alist);
 
     Vselection_alist = Fcons (selection_data, Vselection_alist);
@@ -1014,7 +1013,7 @@ x_handle_selection_clear (struct input_event *event)
 	  }
       }
   UNBLOCK_INPUT;
-  
+
   selection_symbol = x_atom_to_symbol (display, selection);
 
   local_selection_data = assq_no_quit (selection_symbol, Vselection_alist);
@@ -1758,7 +1757,8 @@ x_get_window_property_as_lisp_data (Display *display, Window window,
 
 
 static Lisp_Object
-selection_data_to_lisp_data (Display *display, unsigned char *data, int size, Atom type, int format)
+selection_data_to_lisp_data (Display *display, const unsigned char *data,
+			     int size, Atom type, int format)
 {
   struct x_display_info *dpyinfo = x_display_info_for_display (display);
 
@@ -2414,7 +2414,7 @@ Positive N means shift the values forward, negative means backward.  */)
   Atom props[8];
   Display *display;
   struct frame *sf = SELECTED_FRAME ();
-  
+
   check_x ();
 
   if (! FRAME_X_P (sf))
@@ -2540,7 +2540,8 @@ x_fill_property_data (Display *dpy, Lisp_Object data, void *ret, int format)
    Also see comment for selection_data_to_lisp_data above.  */
 
 Lisp_Object
-x_property_data_to_lisp (struct frame *f, unsigned char *data, Atom type, int format, long unsigned int size)
+x_property_data_to_lisp (struct frame *f, const unsigned char *data,
+			 Atom type, int format, long unsigned int size)
 {
   return selection_data_to_lisp_data (FRAME_X_DISPLAY (f),
                                       data, size*format/8, type, format);
@@ -2915,7 +2916,7 @@ A value of 0 means wait as long as necessary.  This is initialized from the
 \"*selectionTimeout\" resource.  */);
   x_selection_timeout = 0;
 
-  QPRIMARY   = intern_c_string ("PRIMARY");	staticpro (&QPRIMARY);
+  /* QPRIMARY is defined in keyboard.c.  */
   QSECONDARY = intern_c_string ("SECONDARY");	staticpro (&QSECONDARY);
   QSTRING    = intern_c_string ("STRING");	staticpro (&QSTRING);
   QINTEGER   = intern_c_string ("INTEGER");	staticpro (&QINTEGER);

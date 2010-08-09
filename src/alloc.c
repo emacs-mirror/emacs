@@ -448,7 +448,6 @@ static void *min_heap_address, *max_heap_address;
 static struct mem_node mem_z;
 #define MEM_NIL &mem_z
 
-static POINTER_TYPE *lisp_malloc (size_t, enum mem_type);
 static struct Lisp_Vector *allocate_vectorlike (EMACS_INT);
 static void lisp_free (POINTER_TYPE *);
 static void mark_stack (void);

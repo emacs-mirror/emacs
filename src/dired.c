@@ -48,32 +48,24 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    Since applying strlen to the name always works, we'll just do that.  */
 #define NAMLEN(p) strlen (p->d_name)
 
-#ifdef SYSV_SYSTEM_DIR
+#ifdef HAVE_DIRENT_H
 
 #include <dirent.h>
 #define DIRENTRY struct dirent
 
-#else /* not SYSV_SYSTEM_DIR */
+#else /* not HAVE_DIRENT_H */
 
-#ifdef MSDOS
-#include <dirent.h>
-#else
 #include <sys/dir.h>
-#endif
-
 #include <sys/stat.h>
 
-#ifndef MSDOS
 #define DIRENTRY struct direct
 
 extern DIR *opendir (char *);
 extern struct direct *readdir (DIR *);
 
-#endif /* not MSDOS */
-#endif /* not SYSV_SYSTEM_DIR */
+#endif /* HAVE_DIRENT_H */
 
-/* Some versions of Cygwin don't have d_ino in `struct dirent'.  */
-#if defined(MSDOS) || defined(__CYGWIN__)
+#ifdef MSDOS
 #define DIRENTRY_NONEMPTY(p) ((p)->d_name[0] != 0)
 #else
 #define DIRENTRY_NONEMPTY(p) ((p)->d_ino)
@@ -90,7 +82,9 @@ extern struct direct *readdir (DIR *);
 #include "blockinput.h"
 
 /* Returns a search buffer, with a fastmap allocated and ready to go.  */
-extern struct re_pattern_buffer *compile_pattern (Lisp_Object, struct re_registers *, Lisp_Object, int, int);
+extern struct re_pattern_buffer *compile_pattern (Lisp_Object,
+						  struct re_registers *,
+						  Lisp_Object, int, int);
 
 /* From filemode.c.  Can't go in Lisp.h because of `stat'.  */
 extern void filemodestring (struct stat *, char *);
@@ -102,9 +96,6 @@ extern void filemodestring (struct stat *, char *);
 #define lstat stat
 #endif
 
-extern int completion_ignore_case;
-extern Lisp_Object Qcompletion_ignore_case;
-extern Lisp_Object Vcompletion_regexp_list;
 extern Lisp_Object Vw32_get_true_file_attributes;
 
 Lisp_Object Vcompletion_ignored_extensions;
@@ -115,7 +106,7 @@ Lisp_Object Qfile_name_all_completions;
 Lisp_Object Qfile_attributes;
 Lisp_Object Qfile_attributes_lessp;
 
-static int scmp (unsigned char *, unsigned char *, int);
+static int scmp (const unsigned char *, const unsigned char *, int);
 
 #ifdef WINDOWSNT
 Lisp_Object
@@ -206,7 +197,6 @@ directory_files_internal (Lisp_Object directory, Lisp_Object full, Lisp_Object m
 #ifdef WINDOWSNT
   if (attrs)
     {
-      extern Lisp_Object Qlocal;
       extern int is_slow_fs (const char *);
 
       /* Do this only once to avoid doing it (in w32.c:stat) for each
@@ -813,7 +803,7 @@ file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int v
    else number of chars that match at the beginning.  */
 
 static int
-scmp (register unsigned char *s1, register unsigned char *s2, int len)
+scmp (const unsigned char *s1, const unsigned char *s2, int len)
 {
   register int l = len;
 

@@ -89,7 +89,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <X11/Xaw/Paned.h>
 #endif /* HAVE_XAW3D */
 #endif /* USE_LUCID */
-#include "../lwlib/lwlib.h"
 #else /* not USE_X_TOOLKIT */
 #ifndef USE_GTK
 #include "../oldXMenu/XMenu.h"
@@ -110,29 +109,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 Lisp_Object Qdebug_on_next_call;
 
-extern Lisp_Object Qmenu_bar;
-
-extern Lisp_Object QCtoggle, QCradio;
-
-extern Lisp_Object Voverriding_local_map;
-extern Lisp_Object Voverriding_local_map_menu_flag;
-
-extern Lisp_Object Qoverriding_local_map, Qoverriding_terminal_local_map;
-
-extern Lisp_Object Qmenu_bar_update_hook;
-
-#ifdef USE_X_TOOLKIT
-extern void set_frame_menubar (FRAME_PTR, int, int);
-extern XtAppContext Xt_app_con;
-
-static Lisp_Object xdialog_show (FRAME_PTR, int, Lisp_Object, Lisp_Object,
-                                 char **);
-static void popup_get_selection (XEvent *, struct x_display_info *,
-                                 LWLIB_ID, int);
-#endif /* USE_X_TOOLKIT */
-
-#ifdef USE_GTK
-extern void set_frame_menubar (FRAME_PTR, int, int);
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK)
 static Lisp_Object xdialog_show (FRAME_PTR, int, Lisp_Object, Lisp_Object,
                                  char **);
 #endif
@@ -144,12 +121,6 @@ static int update_frame_menubar (struct frame *);
 static int popup_activated_flag;
 
 static int next_menubar_widget_id;
-
-/* For NS and NTGUI, these prototypes are defined in keyboard.h.  */
-#if defined (USE_X_TOOLKIT) || defined (USE_GTK)
-extern widget_value *xmalloc_widget_value (void);
-extern widget_value *digest_single_submenu (int, int, int);
-#endif
 
 
 #ifdef USE_X_TOOLKIT
@@ -2210,7 +2181,6 @@ static struct frame *menu_help_frame;
 static void
 menu_help_callback (char *help_string, int pane, int item)
 {
-  extern Lisp_Object Qmenu_item;
   Lisp_Object *first_item;
   Lisp_Object pane_name;
   Lisp_Object menu_object;
