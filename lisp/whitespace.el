@@ -2297,7 +2297,7 @@ resultant list will be returned."
   ;; turn off font lock
   (when (whitespace-style-face-p)
     (font-lock-mode 0)
-    (remove-hook 'post-command-hook #'whitespace-post-command-hook)
+    (remove-hook 'post-command-hook #'whitespace-post-command-hook t)
     (when whitespace-font-lock
       (setq whitespace-font-lock nil
 	    font-lock-keywords   whitespace-font-lock-keywords))
