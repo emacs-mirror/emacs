@@ -610,7 +610,7 @@ round_up (ElfW(Addr) x, ElfW(Addr) y)
    if NOERROR is 0; we return -1 if NOERROR is nonzero.  */
 
 static int
-find_section (char *name, char *section_names, char *file_name,
+find_section (const char *name, char *section_names, char *file_name,
 	      ElfW(Ehdr) *old_file_h, ElfW(Shdr) *old_section_h, int noerror)
 {
   int idx;

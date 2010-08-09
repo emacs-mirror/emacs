@@ -1183,10 +1183,10 @@ xg_set_frame_icon (FRAME_PTR f, Pixmap icon_pixmap, Pixmap icon_mask)
 /* Return the dialog title to use for a dialog of type KEY.
    This is the encoding used by lwlib.  We use the same for GTK.  */
 
-static char *
+static const char *
 get_dialog_title (char key)
 {
-  char *title = "";
+  const char *title = "";
 
   switch (key) {
   case 'E': case 'e':
@@ -1243,7 +1243,7 @@ create_dialog (widget_value *wv,
                GCallback select_cb,
                GCallback deactivate_cb)
 {
-  char *title = get_dialog_title (wv->name[0]);
+  const char *title = get_dialog_title (wv->name[0]);
   int total_buttons = wv->name[1] - '0';
   int right_buttons = wv->name[4] - '0';
   int left_buttons;
@@ -1761,7 +1761,7 @@ xg_get_file_name (FRAME_PTR f,
    DEFAULT_NAME, if non-zero, is the default font name.  */
 
 char *
-xg_get_font_name (FRAME_PTR f, char *default_name)
+xg_get_font_name (FRAME_PTR f, const char *default_name)
 {
   GtkWidget *w;
   char *fontname = NULL;
@@ -1971,7 +1971,7 @@ menu_destroy_callback (GtkWidget *w, gpointer client_data)
    Returns the GtkHBox.  */
 
 static GtkWidget *
-make_widget_for_menu_item (char *utf8_label, char *utf8_key)
+make_widget_for_menu_item (const char *utf8_label, const char *utf8_key)
 {
   GtkWidget *wlbl;
   GtkWidget *wkey;
@@ -2009,8 +2009,8 @@ make_widget_for_menu_item (char *utf8_label, char *utf8_key)
    but the MacOS X version doesn't either, so I guess that is OK.  */
 
 static GtkWidget *
-make_menu_item (char *utf8_label,
-                char *utf8_key,
+make_menu_item (const char *utf8_label,
+                const char *utf8_key,
                 widget_value *item,
                 GSList **group)
 {
@@ -2238,7 +2238,7 @@ create_menus (widget_value *data,
               int add_tearoff_p,
               GtkWidget *topmenu,
               xg_menu_cb_data *cl_data,
-              char *name)
+              const char *name)
 {
   widget_value *item;
   GtkWidget *wmenu = topmenu;
@@ -3977,7 +3977,7 @@ static GtkToolItem *
 xg_make_tool_item (FRAME_PTR f,
                    GtkWidget *wimage,
                    GtkWidget **wbutton,
-                   char *label,
+                   const char *label,
                    int i)
 {
   GtkToolItem *ti = gtk_tool_item_new ();

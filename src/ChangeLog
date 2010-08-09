@@ -1,3 +1,32 @@
+2010-08-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Use const char* instead of char*.
+	Reduce the number of warnings with -Wwrite-strings.
+	* xrdb.c (get_environ_db, get_system_name):
+	* unexelf.c (find_section):
+	* term.c (string_cost, string_cost_one_line, per_line_cost)
+	(get_named_tty, init_tty):
+	* sysdep.c (sys_subshell):
+	* sound.c (sound_perror, sound_warning, vox_open, vox_init)
+	(alsa_sound_perror, alsa_open, alsa_configure, alsa_init):
+	* search.c (Freplace_match):
+	* process.c (Fmake_network_process, send_process, init_process):
+	* lread.c (Fload, init_lread):
+	* keymap.c (Fdescribe_buffer_bindings, describe_map_tree):
+	* keyboard.c (parse_tool_bar_item, struct event_head):
+	* gtkutil.h (xg_get_font_name):
+	* gtkutil.c (get_dialog_title, create_dialog, xg_get_font_name)
+	(make_widget_for_menu_item, make_menu_item, create_menus)
+	(xg_make_tool_item):
+	* font.c (parse_matrix, font_parse_name):
+	* floatfns.c (rounding_driver, float_error_fn_name):
+	* filelock.c (get_boot_time_1, lock_file_1):
+	* fileio.c (barf_or_query_if_file_exists, check_writable):
+	* editfns.c (get_system_name, get_operating_system_release)
+	(Fencode_time, Fset_time_zone_rule):
+	* dispextern.h (string_cost, per_line_cost, get_named_tty, init_tty):
+	* buffer.c (defvar_per_buffer): Use const.
+
 2010-08-08  Kenichi Handa  <handa@m17n.org>
 
 	* charset.c: Include <stdlib.h>

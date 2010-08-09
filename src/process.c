@@ -180,7 +180,7 @@ extern Lisp_Object QCfilter;
 #define SIGCHLD SIGCLD
 #endif /* SIGCLD */
 
-extern char *get_operating_system_release (void);
+extern const char *get_operating_system_release (void);
 
 /* Serial processes require termios or Windows.  */
 #if defined (HAVE_TERMIOS) || defined (WINDOWSNT)
@@ -3033,7 +3033,8 @@ usage: (make-network-process &rest ARGS)  */)
 #ifdef HAVE_GETADDRINFO
   struct addrinfo ai, *res, *lres;
   struct addrinfo hints;
-  char *portstring, portbuf[128];
+  const char *portstring;
+  char portbuf[128];
 #else /* HAVE_GETADDRINFO */
   struct _emacs_addrinfo
   {
@@ -5415,7 +5416,7 @@ send_process_trap (int ignore)
    This function can evaluate Lisp code and can garbage collect.  */
 
 static void
-send_process (volatile Lisp_Object proc, unsigned char *volatile buf,
+send_process (volatile Lisp_Object proc, const unsigned char *volatile buf,
 	      volatile int len, volatile Lisp_Object object)
 {
   /* Use volatile to protect variables from being clobbered by longjmp.  */
@@ -7423,7 +7424,7 @@ init_process (void)
      processes.  As such, we only change the default value.  */
  if (initialized)
   {
-    char *release = get_operating_system_release ();
+    const char *release = get_operating_system_release ();
     if (!release || !release[0] || (release[0] < MIN_PTY_KERNEL_VERSION
 				    && release[1] == '.')) {
       Vprocess_connection_type = Qnil;

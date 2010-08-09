@@ -984,7 +984,7 @@ Return t if the file exists and loads successfully.  */)
   int compiled = 0;
   Lisp_Object handler;
   int safe_p = 1;
-  char *fmode = "r";
+  const char *fmode = "r";
   Lisp_Object tmp[2];
   int version;
 
@@ -3971,7 +3971,7 @@ static Lisp_Object dump_path;
 void
 init_lread (void)
 {
-  char *normal;
+  const char *normal;
   int turn_off_warning = 0;
 
   /* Compute the default load-path.  */

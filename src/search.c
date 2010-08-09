@@ -2655,7 +2655,7 @@ since only regular expressions have distinguished subexpressions.  */)
       for (pos_byte = 0, pos = 0; pos_byte < length;)
 	{
 	  unsigned char str[MAX_MULTIBYTE_LENGTH];
-	  unsigned char *add_stuff = NULL;
+	  const unsigned char *add_stuff = NULL;
 	  int add_len = 0;
 	  int idx = -1;
 
