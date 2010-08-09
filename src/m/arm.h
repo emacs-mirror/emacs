@@ -18,9 +18,5 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-/* Define WORDS_BIG_ENDIAN if lowest-numbered byte in a word
-   is the most significant byte.  */
-#undef WORDS_BIG_ENDIAN
-
 /* arch-tag: 07856f0c-f0c8-4bd8-99af-0b7fa1e5ee42
    (do not change this comment) */

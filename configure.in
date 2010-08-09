@@ -1359,11 +1359,8 @@ AH_TEMPLATE(POINTER_TYPE,
 	    [Define as `void' if your compiler accepts `void *'; otherwise
 	     define as `char'.])dnl
 
-
-
-dnl This could be used for targets which can have both byte sexes.
-dnl We could presumably replace the hardwired WORDS_BIG_ENDIAN generally.
-dnl AC_C_BIGENDIAN
+dnl Check for endianess
+AC_C_BIGENDIAN
 
 dnl check for Make feature
 AC_PROG_MAKE_SET
