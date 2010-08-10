@@ -283,6 +283,14 @@ variables `sql-product', `sql-user', `sql-server', `sql-database' and
 The custom variable `sql-port' can be specified for connection to
 MySQL servers.
 
+*** Command continuation prompts in SQL interactive mode are suppressed.
+Multiple line commands in SQL interactive mode, generate command
+continuation prompts which needlessly confuse the output.  These
+prompts are now filtered out from the output.  This change impacts
+multiple line SQL statements entered with C-j between each line,
+statements yanked into the buffer and statements sent with
+`sql-send-*' functions.
+
 *** Custom variables control prompting for login parameters.
 Each supported product has a custom variable `sql-*-login-params'
 which is a list of the parameters to be prompted for before a
@@ -302,7 +310,8 @@ names (without the directory portion).  Generally these strings will
 be of the form ".+\.SUF" where SUF is the desired file suffix.
 
 When :completion is specified, the ARG corresponds to the PREDICATE
-argument to the `completing-read' function.
+argument to the `completing-read' function (a list of possible values
+or a function returning such a list).
 
 *** Added `sql-connection-alist' to record login parameter values.
 An alist for recording different username, database and server
