@@ -1,10 +1,14 @@
+2010-08-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/pcase.el: New file.
+
 2010-08-10  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-vc-registered-read-file-names): Read input
 	as here-document, otherwise the command could exceed maximum
 	length of command line.
-	(tramp-handle-vc-registered): Call script accordingly.  Reported
-	by Toru TSUNEYOSHI <t_tuneyosi@hotmail.com>.
+	(tramp-handle-vc-registered): Call script accordingly.
+	Reported by Toru TSUNEYOSHI <t_tuneyosi@hotmail.com>.
 
 2010-08-10  Kenichi Handa  <handa@m17n.org>
 
@@ -21,11 +25,11 @@
 	(package-installed-p, package-compute-transaction)
 	(package-read-all-archive-contents)
 	(package--add-to-archive-contents, package-buffer-info)
-	(package-tar-file-info, package-list-packages-internal): Use
-	version-to-list and version-list-*.
+	(package-tar-file-info, package-list-packages-internal):
+	Use version-to-list and version-list-*.
 
-	* emacs-lisp/package-x.el (package-upload-buffer-internal): Use
-	version-to-list.
+	* emacs-lisp/package-x.el (package-upload-buffer-internal):
+	Use version-to-list.
 	(package-upload-buffer-internal): Use version-list-<=.
 
 2010-08-09  Kenichi Handa  <handa@m17n.org>
