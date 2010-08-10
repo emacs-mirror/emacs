@@ -1,3 +1,8 @@
+2010-08-10  Kenichi Handa  <handa@m17n.org>
+
+	* language/hebrew.el: Exclude U+05C3 (Hebrew SOF PASUQ) from the
+	composable pattern.
+
 2010-08-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/package.el (package-version-split)

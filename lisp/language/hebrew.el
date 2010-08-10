@@ -237,16 +237,23 @@ Bidirectional editing is supported.")))
 	  (setq idx (1+ idx))))))
     gstring))
 
-(let ((pattern1 "[\u05D0-\u05F2][\u0591-\u05BD\u05BF\u05C1-\u05C5\u05C7]+")
-      (pattern2 "[\u05D0-\u05F2]\u200D[\u0591-\u05BD\u05BF\u05C1-\u05C5\u05C7]+"))
+(let* ((base "[\u05D0-\u05F2]")
+       (combining "[\u0591-\u05BD\u05BF\u05C1-\u05C2\u05C4-\u05C5\u05C7]+")
+       (pattern1 (concat base combining))
+       (pattern2 (concat base "\u200D" combining)))
   (set-char-table-range
    composition-function-table '(#x591 . #x5C7)
    (list (vector pattern2 3 'hebrew-shape-gstring)
 	 (vector pattern2 2 'hebrew-shape-gstring)
 	 (vector pattern1 1 'hebrew-shape-gstring)
 	 [nil 0 hebrew-shape-gstring]))
+  ;; Exclude non-combining characters.
+  (set-char-table-range
+   composition-function-table #x5BE nil)
   (set-char-table-range
    composition-function-table #x5C0 nil)
+  (set-char-table-range
+   composition-function-table #x5C3 nil)
   (set-char-table-range
    composition-function-table #x5C6 nil))
 
