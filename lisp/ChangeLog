@@ -1,3 +1,11 @@
+2010-08-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-vc-registered-read-file-names): Read input
+	as here-document, otherwise the command could exceed maximum
+	length of command line.
+	(tramp-handle-vc-registered): Call script accordingly.  Reported
+	by Toru TSUNEYOSHI <t_tuneyosi@hotmail.com>.
+
 2010-08-10  Kenichi Handa  <handa@m17n.org>
 
 	* language/hebrew.el: Exclude U+05C3 (Hebrew SOF PASUQ) from the

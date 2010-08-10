@@ -1983,13 +1983,13 @@ This string is passed to `format', so percent characters need to be doubled.")
 
 (defconst tramp-vc-registered-read-file-names
   "echo \"(\"
-for file in \"$@\"; do
-    if %s $file; then
+while read file; do
+    if %s \"$file\"; then
 	echo \"(\\\"$file\\\" \\\"file-exists-p\\\" t)\"
     else
 	echo \"(\\\"$file\\\" \\\"file-exists-p\\\" nil)\"
     fi
-    if %s $file; then
+    if %s \"$file\"; then
 	echo \"(\\\"$file\\\" \\\"file-readable-p\\\" t)\"
     else
 	echo \"(\\\"$file\\\" \\\"file-readable-p\\\" nil)\"
@@ -1998,7 +1998,9 @@ done
 echo \")\""
   "Script to check existence of VC related files.
 It must be send formatted with two strings; the tests for file
-existence, and file readability.")
+existence, and file readability.  Input shall be read via
+here-document, otherwise the command could exceed maximum length
+of command line.")
 
 (defconst tramp-file-mode-type-map
   '((0  . "-")  ; Normal file (SVID-v2 and XPG2)
@@ -5419,10 +5421,10 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 		 (tramp-send-command-and-read
 		  v
 		  (format
-		   "tramp_vc_registered_read_file_names %s"
+		   "tramp_vc_registered_read_file_names <<'EOF'\n%s\nEOF\n"
 		   (mapconcat 'tramp-shell-quote-argument
 			      tramp-vc-registered-file-names
-			      " "))))
+			      "\n"))))
 
 	      (tramp-set-file-property
 	       v (car elt) (cadr elt) (cadr (cdr elt))))))
@@ -8984,8 +8986,6 @@ Only works for Bourne-like shells."
 ;; * Load Tramp subpackages only when needed.  (Bug#1529, Bug#5448, Bug#5705)
 ;; * Try telnet+curl as new method.  It might be useful for busybox,
 ;;   without built-in uuencode/uudecode.
-;; * Let `shell-dynamic-complete-*' and `comint-dynamic-complete' work
-;;   on remote hosts.
 ;; * Load ~/.emacs_SHELLNAME on the remote host for `shell'.
 
 ;; Functions for file-name-handler-alist:
