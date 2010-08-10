@@ -481,7 +481,7 @@ sound_cleanup (Lisp_Object arg)
 static u_int32_t
 le2hl (u_int32_t value)
 {
-#ifdef WORDS_BIG_ENDIAN
+#ifdef WORDS_BIGENDIAN
   unsigned char *p = (unsigned char *) &value;
   value = p[0] + (p[1] << 8) + (p[2] << 16) + (p[3] << 24);
 #endif
@@ -495,7 +495,7 @@ le2hl (u_int32_t value)
 static u_int16_t
 le2hs (u_int16_t value)
 {
-#ifdef WORDS_BIG_ENDIAN
+#ifdef WORDS_BIGENDIAN
   unsigned char *p = (unsigned char *) &value;
   value = p[0] + (p[1] << 8);
 #endif
@@ -509,7 +509,7 @@ le2hs (u_int16_t value)
 static u_int32_t
 be2hl (u_int32_t value)
 {
-#ifndef WORDS_BIG_ENDIAN
+#ifndef WORDS_BIGENDIAN
   unsigned char *p = (unsigned char *) &value;
   value = p[3] + (p[2] << 8) + (p[1] << 16) + (p[0] << 24);
 #endif
@@ -525,7 +525,7 @@ be2hl (u_int32_t value)
 static u_int16_t
 be2hs (u_int16_t value)
 {
-#ifndef WORDS_BIG_ENDIAN
+#ifndef WORDS_BIGENDIAN
   unsigned char *p = (unsigned char *) &value;
   value = p[1] + (p[0] << 8);
 #endif

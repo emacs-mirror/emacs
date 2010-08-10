@@ -21,10 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define BITS_PER_LONG           64
 #define BITS_PER_EMACS_INT      64
 
-/* Define WORDS_BIG_ENDIAN if lowest-numbered byte in a word
-   is the most significant byte.  */
-#undef WORDS_BIG_ENDIAN
-
 /* Now define a symbol for the cpu type, if your compiler
    does not define it automatically:
    Ones defined so far include vax, m68000, ns16000, pyramid,

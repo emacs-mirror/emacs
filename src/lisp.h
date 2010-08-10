@@ -254,7 +254,7 @@ enum Lisp_Fwd_Type
 
 #ifdef USE_LISP_UNION_TYPE
 
-#ifndef WORDS_BIG_ENDIAN
+#ifndef WORDS_BIGENDIAN
 
 /* Definition of Lisp_Object for little-endian machines.  */
 
@@ -278,7 +278,7 @@ union Lisp_Object
   }
 Lisp_Object;
 
-#else /* If WORDS_BIG_ENDIAN */
+#else /* If WORDS_BIGENDIAN */
 
 typedef
 union Lisp_Object
@@ -300,7 +300,7 @@ union Lisp_Object
   }
 Lisp_Object;
 
-#endif /* WORDS_BIG_ENDIAN */
+#endif /* WORDS_BIGENDIAN */
 
 #ifdef __GNUC__
 static __inline__ Lisp_Object

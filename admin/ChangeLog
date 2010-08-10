@@ -1,3 +1,7 @@
+2010-08-09  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* CPP-DEFINES (WORDS_BIG_ENDIAN): Remove.
+
 2010-08-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* MAINTAINERS: Rename src/unexec.c => src/unexcoff.c.

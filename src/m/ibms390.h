@@ -19,10 +19,6 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
-/* Define WORDS_BIG_ENDIAN if lowest-numbered byte in a word
-   is the most significant byte.  */
-#define WORDS_BIG_ENDIAN
-
 /* Define EXPLICIT_SIGN_EXTEND if XINT must explicitly sign-extend
    the 24-bit bit field into an int.  In other words, if bit fields
    are always unsigned.
