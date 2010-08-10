@@ -1,3 +1,20 @@
+2010-08-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/pcase.el: New file.
+
+2010-08-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-vc-registered-read-file-names): Read input
+	as here-document, otherwise the command could exceed maximum
+	length of command line.
+	(tramp-handle-vc-registered): Call script accordingly.
+	Reported by Toru TSUNEYOSHI <t_tuneyosi@hotmail.com>.
+
+2010-08-10  Kenichi Handa  <handa@m17n.org>
+
+	* language/hebrew.el: Exclude U+05C3 (Hebrew SOF PASUQ) from the
+	composable pattern.
+
 2010-08-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/package.el (package-version-split)
@@ -8,11 +25,11 @@
 	(package-installed-p, package-compute-transaction)
 	(package-read-all-archive-contents)
 	(package--add-to-archive-contents, package-buffer-info)
-	(package-tar-file-info, package-list-packages-internal): Use
-	version-to-list and version-list-*.
+	(package-tar-file-info, package-list-packages-internal):
+	Use version-to-list and version-list-*.
 
-	* emacs-lisp/package-x.el (package-upload-buffer-internal): Use
-	version-to-list.
+	* emacs-lisp/package-x.el (package-upload-buffer-internal):
+	Use version-to-list.
 	(package-upload-buffer-internal): Use version-list-<=.
 
 2010-08-09  Kenichi Handa  <handa@m17n.org>
@@ -115,15 +132,19 @@
 	* align.el (align-default-spacing): Doc fix.
 	(align-region-heuristic, align-regexp): Fix typos in docstrings.
 
+2010-08-08  Stephen Peters <speters@itasoftware.com>
+
+	* calendar/icalendar.el
+	(icalendar--split-value): Fixed splitting regexp. (Bug#6766)
+	(icalendar--get-weekday-numbers): New
+	(icalendar--convert-recurring-to-diary): Handle multiple byday
+	values in weekly rules. (Bug#6766)
+
 2010-08-08  Ulf Jasper  <ulf.jasper@web.de>
 
 	* calendar/icalendar.el (icalendar-uid-format): Doc fix.
-	(icalendar--split-value): Fixed splitting regexp. (Bug#6766)
-	(icalendar--get-weekday-numbers): New
 	(icalendar--create-uid, icalendar-export-region)
 	(icalendar--parse-summary-and-rest): Code formatting.
-	(icalendar--convert-recurring-to-diary): Handle multiple byday
-	values in weekly rules. (Bug#6766)
 
 2010-08-08  Jay Belanger  <jay.p.belanger@gmail.com>
 

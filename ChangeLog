@@ -1,3 +1,7 @@
+2010-08-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (AC_PREREQ): Require autoconf 2.65.
+
 2010-08-09  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in (AC_PREREQ): Require autoconf 2.66 to stop version churn.
