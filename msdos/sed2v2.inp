@@ -57,6 +57,7 @@
 /^#undef PACKAGE_TARNAME/s/^.*$/#define PACKAGE_TARNAME ""/
 /^#undef PACKAGE_VERSION/s/^.*$/#define PACKAGE_VERSION ""/
 /^#undef SYS_SIGLIST_DECLARED/s/^.*$/#define SYS_SIGLIST_DECLARED 1/
+/^#undef HAVE_DIRENT_H/s/^.*$/#define HAVE_DIRENT_H 1/
 
 /^#undef GNU_MALLOC *$/s/^.*$/#define GNU_MALLOC 1/
 /^#undef REL_ALLOC *$/s/^.*$/#define REL_ALLOC 1/

@@ -303,7 +303,6 @@ Lisp_Object Vcoding_system_hash_table;
 
 Lisp_Object Qcoding_system, Qcoding_aliases, Qeol_type;
 Lisp_Object Qunix, Qdos;
-extern Lisp_Object Qmac;	/* frame.c */
 Lisp_Object Qbuffer_file_coding_system;
 Lisp_Object Qpost_read_conversion, Qpre_write_conversion;
 Lisp_Object Qdefault_char;
@@ -317,15 +316,12 @@ Lisp_Object QCdecode_translation_table, QCencode_translation_table;
 Lisp_Object QCpost_read_conversion, QCpre_write_conversion;
 Lisp_Object QCascii_compatible_p;
 
-extern Lisp_Object Qinsert_file_contents, Qwrite_region;
 Lisp_Object Qcall_process, Qcall_process_region;
 Lisp_Object Qstart_process, Qopen_network_stream;
 Lisp_Object Qtarget_idx;
 
 Lisp_Object Qinsufficient_source, Qinconsistent_eol, Qinvalid_source;
 Lisp_Object Qinterrupted, Qinsufficient_memory;
-
-extern Lisp_Object Qcompletion_ignore_case;
 
 /* If a symbol has this property, evaluate the value to define the
    symbol as a coding system.  */
@@ -3906,7 +3902,7 @@ decode_coding_iso_2022 (struct coding_system *coding)
 		  int size;
 
 		  ONE_MORE_BYTE (dim);
-		  if (dim < 0 || dim > 4)
+		  if (dim < '0' || dim > '4')
 		    goto invalid_code;
 		  ONE_MORE_BYTE (M);
 		  if (M < 128)
@@ -4101,8 +4097,8 @@ decode_coding_iso_2022 (struct coding_system *coding)
 #define ENCODE_DESIGNATION(charset, reg, coding)			\
   do {									\
     unsigned char final_char = CHARSET_ISO_FINAL (charset);		\
-    char *intermediate_char_94 = "()*+";				\
-    char *intermediate_char_96 = ",-./";				\
+    const char *intermediate_char_94 = "()*+";				\
+    const char *intermediate_char_96 = ",-./";				\
     int revision = -1;							\
     int c;								\
 									\

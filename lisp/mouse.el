@@ -697,9 +697,6 @@ This should be bound to a mouse drag event."
 	(window-system)
 	(sit-for 1))
     (push-mark)
-    ;; If `select-active-regions' is non-nil, `set-mark' sets the
-    ;; primary selection to the buffer's region, overriding the role
-    ;; of `copy-region-as-kill'; that's why we did the copy first.
     (set-mark (point))
     (if (numberp end) (goto-char end))
     (mouse-set-region-1)))
@@ -879,8 +876,7 @@ at the same position."
   (let (mp pos)
     (if (and mouse-1-click-follows-link
 	     (stringp msg)
-	     (save-match-data
-	       (string-match "^mouse-2" msg))
+	     (string-match-p "\\`mouse-2" msg)
 	     (setq mp (mouse-pixel-position))
 	     (consp (setq pos (cdr mp)))
 	     (car pos) (>= (car pos) 0)
@@ -906,10 +902,6 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
 `mouse-drag-region'."
   (mouse-minibuffer-check start-event)
   (setq mouse-selection-click-count-buffer (current-buffer))
-  ;; We must call deactivate-mark before repositioning point.
-  ;; Otherwise, for `select-active-regions' non-nil, we get the wrong
-  ;; selection if the user drags a region, clicks elsewhere to
-  ;; reposition point, then middle-clicks to paste the selection.
   (deactivate-mark)
   (let* ((original-window (selected-window))
          ;; We've recorded what we needed from the current buffer and
@@ -937,6 +929,9 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
                        ;; intangible text.
                        (mouse-on-link-p start-posn)))
 	 (click-count (1- (event-click-count start-event)))
+	 (remap-double-click (and on-link
+				  (eq mouse-1-click-follows-link 'double)
+				  (= click-count 1)))
 	 ;; Suppress automatic hscrolling, because that is a nuisance
 	 ;; when setting point near the right fringe (but see below).
 	 (automatic-hscrolling-saved automatic-hscrolling)
@@ -949,6 +944,8 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
     (if (< (point) start-point)
 	(goto-char start-point))
     (setq start-point (point))
+    (if remap-double-click
+	(setq click-count 0))
 
     ;; Activate the region, using `mouse-start-end' to determine where
     ;; to put point and mark (e.g., double-click will select a word).
@@ -956,10 +953,7 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
 	  (if (eq transient-mark-mode 'lambda)
 	      '(only)
 	    (cons 'only transient-mark-mode)))
-    (let ((range (mouse-start-end start-point start-point click-count))
-	  ;; Prevent `push-mark' from clobbering the primary selection
-	  ;; if the user clicks without dragging.
-	  (select-active-regions nil))
+    (let ((range (mouse-start-end start-point start-point click-count)))
       (goto-char (nth 0 range))
       (push-mark nil t t)
       (goto-char (nth 1 range)))
@@ -1018,23 +1012,16 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
 
 	    ;; If point has moved, finish the drag.
 	    (let* (last-command this-command)
-	      ;; Copy the region so that `select-active-regions' can
-	      ;; override `copy-region-as-kill'.
 	      (and mouse-drag-copy-region
 		   do-mouse-drag-region-post-process
 		   (let (deactivate-mark)
-		     (copy-region-as-kill (mark) (point))))
-	      ;; For `select-active-regions' non-nil, ensure that
-	      ;; further alterations of the region (e.g. via
-	      ;; shift-selection) continue to update PRIMARY.
-	      (select-active-region))
+		     (copy-region-as-kill (mark) (point)))))
 
 	  ;; If point hasn't moved, run the binding of the
 	  ;; terminating up-event.
 	  (if do-multi-click
 	      (goto-char start-point)
-	    (let (select-active-regions)
-	      (deactivate-mark)))
+	    (deactivate-mark))
 	  (when (and (functionp fun)
 		     (= start-hscroll (window-hscroll start-window))
 		     ;; Don't run the up-event handler if the window
@@ -1252,9 +1239,7 @@ Also move point to one end of the text thus inserted (normally the end),
 and set mark at the beginning.
 Prefix arguments are interpreted as with \\[yank].
 If `mouse-yank-at-point' is non-nil, insert at point
-regardless of where you click.
-If `select-active-regions' is non-nil, the mark is deactivated
-before inserting the text."
+regardless of where you click."
   (interactive "e\nP")
   ;; Give temporary modes such as isearch a chance to turn off.
   (run-hooks 'mouse-leave-buffer-hook)
@@ -1282,7 +1267,7 @@ regardless of where you click."
   (or mouse-yank-at-point (mouse-set-point click))
   (let ((primary (x-get-selection 'PRIMARY)))
     (if primary
-        (insert (x-get-selection 'PRIMARY))
+        (insert primary)
       (error "No primary selection"))))
 
 (defun mouse-kill-ring-save (click)
@@ -1336,16 +1321,23 @@ This does not delete the region; it acts like \\[kill-ring-save]."
   (undo-boundary))
 
 (defun mouse-save-then-kill (click)
-  "Save text to point in kill ring; the second time, kill the text.
-If the text between point and the mouse is the same as what's
-at the front of the kill ring, this deletes the text.
-Otherwise, it adds the text to the kill ring, like \\[kill-ring-save],
-which prepares for a second click to delete the text.
+  "Set the region according to CLICK; the second time, kill the region.
+Assuming this command is bound to a mouse button, CLICK is the
+corresponding input event.
 
-If you have selected words or lines, this command extends the
-selection through the word or line clicked on.  If you do this
-again in a different position, it extends the selection again.
-If you do this twice in the same position, the selection is killed."
+If the region is already active, adjust it.  Normally, this
+happens by moving either point or mark, whichever is closer, to
+the position of CLICK.  But if you have selected words or lines,
+the region is adjusted by moving point or mark to the word or
+line boundary closest to CLICK.
+
+If the region is inactive, activate it temporarily; set mark at
+the original point, and move click to the position of CLICK.
+
+However, if this command is being called a second time (i.e. the
+value of `last-command' is `mouse-save-then-kill'), kill the
+region instead.  If the text in the region is the same as the
+text in the front of the kill ring, just delete it."
   (interactive "e")
   (let ((before-scroll
 	 (with-current-buffer (window-buffer (posn-window (event-start click)))
@@ -1357,44 +1349,50 @@ If you do this twice in the same position, the selection is killed."
 	  (this-command this-command))
       (if (and (with-current-buffer
                    (window-buffer (posn-window (event-start click)))
-		 (and (mark t) (> (mod mouse-selection-click-count 3) 0)
+		 (and (mark t)
+		      (> (mod mouse-selection-click-count 3) 0)
 		      ;; Don't be fooled by a recent click in some other buffer.
 		      (eq mouse-selection-click-count-buffer
 			  (current-buffer)))))
-	  (if (not (and (eq last-command 'mouse-save-then-kill)
-			(equal click-posn
-			       (car (cdr-safe (cdr-safe mouse-save-then-kill-posn))))))
-	      ;; Find both ends of the object selected by this click.
-	      (let* ((range
-		      (mouse-start-end click-posn click-posn
-				       mouse-selection-click-count)))
-		;; Move whichever end is closer to the click.
-		;; That's what xterm does, and it seems reasonable.
-		(if (< (abs (- click-posn (mark t)))
-		       (abs (- click-posn (point))))
-		    (set-mark (car range))
-		  (goto-char (nth 1 range)))
-		;; We have already put the old region in the kill ring.
-		;; Replace it with the extended region.
-		;; (It would be annoying to make a separate entry.)
-		(kill-new (buffer-substring (point) (mark t)) t)
-		(mouse-set-region-1)
-		;; Arrange for a repeated mouse-3 to kill this region.
-		(setq mouse-save-then-kill-posn
-		      (list (car kill-ring) (point) click-posn)))
-	    ;; If we click this button again without moving it,
-	    ;; that time kill.
-	    (mouse-save-then-kill-delete-region (mark) (point))
-	    (setq mouse-selection-click-count 0)
-	    (setq mouse-save-then-kill-posn nil))
+	  (if (and (eq last-command 'mouse-save-then-kill)
+		   (equal click-posn (nth 2 mouse-save-then-kill-posn)))
+	      ;; If we click this button again without moving it, kill.
+	      (progn
+		;; Call `deactivate-mark' to save the primary selection.
+		(deactivate-mark)
+		(mouse-save-then-kill-delete-region (mark) (point))
+		(setq mouse-selection-click-count 0)
+		(setq mouse-save-then-kill-posn nil))
+	    ;; Find both ends of the object selected by this click.
+	    (let* ((range
+		    (mouse-start-end click-posn click-posn
+				     mouse-selection-click-count)))
+	      ;; Move whichever end is closer to the click.
+	      ;; That's what xterm does, and it seems reasonable.
+	      (if (< (abs (- click-posn (mark t)))
+		     (abs (- click-posn (point))))
+		  (set-mark (car range))
+		(goto-char (nth 1 range)))
+	      ;; We have already put the old region in the kill ring.
+	      ;; Replace it with the extended region.
+	      ;; (It would be annoying to make a separate entry.)
+	      (kill-new (buffer-substring (point) (mark t)) t)
+	      (mouse-set-region-1)
+	      ;; Arrange for a repeated mouse-3 to kill this region.
+	      (setq mouse-save-then-kill-posn
+		    (list (car kill-ring) (point) click-posn))))
+
 	(if (and (eq last-command 'mouse-save-then-kill)
 		 mouse-save-then-kill-posn
 		 (eq (car mouse-save-then-kill-posn) (car kill-ring))
-		 (equal (cdr mouse-save-then-kill-posn) (list (point) click-posn)))
+		 (equal (cdr mouse-save-then-kill-posn)
+			(list (point) click-posn)))
 	    ;; If this is the second time we've called
 	    ;; mouse-save-then-kill, delete the text from the buffer.
 	    (progn
-	      (mouse-save-then-kill-delete-region (point) (mark))
+	      ;; Call `deactivate-mark' to save the primary selection.
+	      (deactivate-mark)
+	      (mouse-save-then-kill-delete-region (point) (mark t))
 	      ;; After we kill, another click counts as "the first time".
 	      (setq mouse-save-then-kill-posn nil))
 	  ;; This is not a repetition.
@@ -1577,7 +1575,7 @@ regardless of where you click."
   (or mouse-yank-at-point (mouse-set-point click))
   (let ((secondary (x-get-selection 'SECONDARY)))
     (if secondary
-        (insert (x-get-selection 'SECONDARY))
+        (insert secondary)
       (error "No secondary selection"))))
 
 (defun mouse-kill-secondary ()

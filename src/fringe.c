@@ -32,10 +32,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef HAVE_WINDOW_SYSTEM
 
-extern Lisp_Object Qfringe;
-extern Lisp_Object Qtop, Qbottom, Qcenter;
-extern Lisp_Object Qup, Qdown, Qleft, Qright;
-
 /* Non-nil means that newline may flow into the right fringe.  */
 
 Lisp_Object Voverflow_newline_into_fringe;
@@ -83,10 +79,8 @@ Lisp_Object Vfringe_bitmaps;
    must specify physical bitmap symbols.
 */
 
-extern Lisp_Object Qunknown;
 Lisp_Object Qtruncation, Qcontinuation, Qoverlay_arrow;
 Lisp_Object Qempty_line, Qtop_bottom;
-extern Lisp_Object Qbar, Qhbar, Qbox, Qhollow;
 Lisp_Object Qhollow_small;
 
 enum fringe_bitmap_align
@@ -1500,7 +1494,7 @@ init_fringe_bitmap (int which, struct fringe_bitmap *fb, int once_p)
 				   | (swap_nibble[(b>>8) & 0xf] << 4)
 				   | (swap_nibble[(b>>12) & 0xf]));
 	      b >>= (16 - fb->width);
-#ifdef WORDS_BIG_ENDIAN
+#ifdef WORDS_BIGENDIAN
 	      b = ((b >> 8) | (b << 8));
 #endif
 	      *bits++ = b;

@@ -22,11 +22,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Xt features made by Fred Pierresteguy.  */
 
 #include <config.h>
-
-/* On 4.3 these lose if they come after xterm.h.  */
-/* Putting these at the beginning seems to be standard for other .c files.  */
 #include <signal.h>
-
 #include <stdio.h>
 #include <setjmp.h>
 
@@ -104,13 +100,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #ifdef USE_LUCID
-extern int xlwmenu_window_p (Widget w, Window window);
-extern void xlwmenu_redisplay (Widget);
-#endif
-
-#if defined (USE_X_TOOLKIT) || defined (USE_GTK)
-
-extern void free_frame_menubar (struct frame *);
+#include "../lwlib/xlwmenu.h"
 #endif
 
 #ifdef USE_X_TOOLKIT
@@ -294,23 +284,6 @@ static int input_signal_count;
 
 static int x_noop_count;
 
-/* Initial values of argv and argc.  */
-
-extern char **initial_argv;
-extern int initial_argc;
-
-extern Lisp_Object Vcommand_line_args, Vsystem_name;
-
-/* Tells if a window manager is present or not.  */
-
-extern Lisp_Object Vx_no_window_manager;
-
-extern Lisp_Object Qeql;
-
-/* A mask of extra modifier bits to put into every keyboard char.  */
-
-extern EMACS_INT extra_keyboard_modifiers;
-
 /* The keysyms to use for the various modifiers.  */
 
 Lisp_Object Vx_alt_keysym, Vx_hyper_keysym, Vx_meta_keysym, Vx_super_keysym;
@@ -330,9 +303,8 @@ Lisp_Object Qx_gtk_map_stock;
 
 /* Used in x_flush.  */
 
-extern Lisp_Object Vinhibit_redisplay;
-
-extern XrmDatabase x_load_resources (Display *, char *, char *, char *);
+extern XrmDatabase x_load_resources (Display *, const char *, const char *,
+				     const char *);
 extern int x_bitmap_mask (FRAME_PTR, int);
 
 static int x_alloc_nearest_color_1 (Display *, Colormap, XColor *);
@@ -379,7 +351,7 @@ static int handle_one_xevent (struct x_display_info *, XEvent *,
                               int *, struct input_event *);
 /* Don't declare this NO_RETURN because we want no
    interference with debugging failing X calls.  */
-static SIGTYPE x_connection_closed (Display *, char *);
+static SIGTYPE x_connection_closed (Display *, const char *);
 
 
 /* Flush display of frame F, or of all frames if F is null.  */
@@ -2842,7 +2814,8 @@ x_clear_frame (struct frame *f)
 #if defined (USE_GTK) && defined (USE_TOOLKIT_SCROLL_BARS)
   /* Make sure scroll bars are redrawn.  As they aren't redrawn by
      redisplay, do it here.  */
-  gtk_widget_queue_draw (FRAME_GTK_WIDGET (f));
+  if (FRAME_GTK_WIDGET (f))
+    gtk_widget_queue_draw (FRAME_GTK_WIDGET (f));
 #endif
 
   XFlush (FRAME_X_DISPLAY (f));
@@ -4398,7 +4371,7 @@ xaw_scroll_callback (Widget widget, XtPointer client_data, XtPointer call_data)
 static void
 x_create_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
 {
-  char *scroll_bar_name = SCROLL_BAR_NAME;
+  const char *scroll_bar_name = SCROLL_BAR_NAME;
 
   BLOCK_INPUT;
   xg_create_scroll_bar (f, bar, G_CALLBACK (xg_scroll_callback),
@@ -4531,8 +4504,11 @@ x_create_toolkit_scroll_bar (struct frame *f, struct scroll_bar *bar)
       || f->output_data.x->scroll_bar_bottom_shadow_pixel == -1)
     /* We tried to allocate a color for the top/bottom shadow, and
        failed, so tell Xaw3d to use dithering instead.   */
+    /* But only if we have a small colormap.  Xaw3d can allocate nice
+       colors itself.  */
     {
-      XtSetArg (av[ac], XtNbeNiceToColormap, True);
+      XtSetArg (av[ac], XtNbeNiceToColormap,
+                DefaultDepthOfScreen (FRAME_X_SCREEN (f)) < 16);
       ++ac;
     }
   else
@@ -7359,7 +7335,7 @@ x_bitmap_icon (struct frame *f, Lisp_Object file)
    Use ICON_NAME as the text.  */
 
 int
-x_text_icon (struct frame *f, char *icon_name)
+x_text_icon (struct frame *f, const char *icon_name)
 {
   if (FRAME_X_WINDOW (f) == 0)
     return 1;
@@ -7422,7 +7398,7 @@ x_error_catcher (Display *display, XErrorEvent *error)
 
    Calling x_uncatch_errors resumes the normal error handling.  */
 
-void x_check_errors (Display *dpy, char *format);
+void x_check_errors (Display *dpy, const char *format);
 
 void
 x_catch_errors (Display *dpy)
@@ -7464,7 +7440,7 @@ x_uncatch_errors (void)
    sprintf (a buffer, FORMAT, the x error message text) as the text.  */
 
 void
-x_check_errors (Display *dpy, char *format)
+x_check_errors (Display *dpy, const char *format)
 {
   /* Make sure to catch any errors incurred so far.  */
   XSync (dpy, False);
@@ -7568,7 +7544,7 @@ x_fatal_error_signal (void)
    the text of an error message that lead to the connection loss.  */
 
 static SIGTYPE
-x_connection_closed (Display *dpy, char *error_message)
+x_connection_closed (Display *dpy, const char *error_message)
 {
   struct x_display_info *dpyinfo = x_display_info_for_display (dpy);
   Lisp_Object frame, tail;
@@ -7643,7 +7619,6 @@ x_connection_closed (Display *dpy, char *error_message)
       /* If DPYINFO is null, this means we didn't open the display
 	 in the first place, so don't try to close it.  */
       {
-        extern void (*fatal_error_signal_hook) (void);
 	fatal_error_signal_hook = x_fatal_error_signal;
 	XtCloseDisplay (dpy);
 	fatal_error_signal_hook = NULL;
@@ -8610,7 +8585,8 @@ x_set_window_size_1 (struct frame *f, int change_gravity, int cols, int rows)
 
   compute_fringe_widths (f, 0);
 
-  pixelwidth = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, cols);
+  pixelwidth = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, cols)
+    + FRAME_TOOLBAR_WIDTH (f);
   pixelheight = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, rows)
     + FRAME_MENUBAR_HEIGHT (f) + FRAME_TOOLBAR_HEIGHT (f);
 
@@ -9010,7 +8986,6 @@ x_make_frame_visible (struct frame *f)
 	    /* It could be confusing if a real alarm arrives while
 	       processing the fake one.  Turn it off and let the
 	       handler reset it.  */
-            extern void poll_for_input_1 (void);
 	    int old_poll_suppress_count = poll_suppress_count;
 	    poll_suppress_count = 1;
 	    poll_for_input_1 ();
@@ -9278,14 +9253,7 @@ x_free_frame_resources (struct frame *f)
 #else  /* !USE_X_TOOLKIT */
 
 #ifdef USE_GTK
-      /* In the GTK version, tooltips are normal X
-         frames.  We must check and free both types. */
-      if (FRAME_GTK_OUTER_WIDGET (f))
-        {
-          gtk_widget_destroy (FRAME_GTK_OUTER_WIDGET (f));
-          FRAME_X_WINDOW (f) = 0; /* Set to avoid XDestroyWindow below */
-          FRAME_GTK_OUTER_WIDGET (f) = 0;
-        }
+      xg_free_frame_widgets (f);
 #endif /* USE_GTK */
 
       if (FRAME_X_WINDOW (f))
@@ -10139,8 +10107,6 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   dpyinfo->connection = connection;
 
   {
-    extern int gray_bitmap_width, gray_bitmap_height;
-    extern char *gray_bitmap_bits;
     dpyinfo->gray
       = XCreatePixmapFromBitmapData (dpyinfo->display, dpyinfo->root_window,
 				     gray_bitmap_bits,

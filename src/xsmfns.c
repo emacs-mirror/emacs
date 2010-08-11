@@ -45,10 +45,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Avoid "differ in sign" warnings */
 #define SSDATA(x)  ((char *) SDATA (x))
 
-/* The user login name.  */
-
-extern Lisp_Object Vuser_login_name;
-
 /* This is the event used when SAVE_SESSION_EVENT occurs.  */
 
 static struct input_event emacs_event;

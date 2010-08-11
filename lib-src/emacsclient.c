@@ -18,9 +18,7 @@ You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
 
 #ifdef WINDOWSNT
 
@@ -32,6 +30,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 # include <stdlib.h>
 # include <windows.h>
 # include <commctrl.h>
+# include <io.h>
+# include <winsock2.h>
 
 # define NO_SOCKETS_IN_FILE_SYSTEM
 
@@ -45,8 +45,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 # ifdef HAVE_INET_SOCKETS
 #  include <netinet/in.h>
+#  ifdef HAVE_SOCKETS
+#    include <sys/types.h>
+#    include <sys/socket.h>
+#    include <sys/un.h>
+#  endif /* HAVE_SOCKETS */
 # endif
-
 # include <arpa/inet.h>
 
 # define INVALID_SOCKET -1
@@ -67,25 +71,23 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <stdio.h>
 #include "getopt.h"
 #ifdef HAVE_UNISTD_H
-#include <unistd.h>
+# include <unistd.h>
 #endif
 
-#ifdef WINDOWSNT
-# include <io.h>
-#else /* not WINDOWSNT */
-# include <pwd.h>
-#endif /* not WINDOWSNT */
+#include <pwd.h>
 #include <sys/stat.h>
-
 #include <signal.h>
 #include <errno.h>
 
+
 
 char *getenv (const char *), *getwd (char *);
-char *(getcwd) ();
+#ifdef HAVE_GETCWD
+char *(getcwd) (char *, size_t);
+#endif
 
 #ifdef WINDOWSNT
-char *w32_getenv ();
+char *w32_getenv (char *);
 #define egetenv(VAR) w32_getenv(VAR)
 #else
 #define egetenv(VAR) getenv(VAR)
@@ -110,10 +112,6 @@ char *w32_getenv ();
 
 #ifndef TRUE
 #define TRUE 1
-#endif
-
-#ifndef NO_RETURN
-#define NO_RETURN
 #endif
 
 /* Additional space when allocating buffers for filenames, etc.  */
@@ -158,6 +156,8 @@ char *server_file = NULL;
 int emacs_pid = 0;
 
 void print_help_and_exit (void) NO_RETURN;
+void fail (void) NO_RETURN;
+
 
 struct option longopts[] =
 {
@@ -400,7 +400,7 @@ w32_set_user_model_id (void)
   /* On Windows 7 and later, we need to set the user model ID
      to associate emacsclient launched files with Emacs frames
      in the UI.  */
-  shell = LoadLibrary("shell32.dll");
+  shell = LoadLibrary ("shell32.dll");
   if (shell)
     {
       set_user_model
@@ -430,7 +430,7 @@ w32_window_app (void)
          nonconsole apps.  Testing for the console title seems to work. */
       window_app = (GetConsoleTitleA (szTitle, MAX_PATH) == 0);
       if (window_app)
-        InitCommonControls();
+        InitCommonControls ();
     }
 
   return window_app;
@@ -481,7 +481,7 @@ ttyname (int fd)
 void
 message (int is_error, char *message, ...)
 {
-  char msg [2048];
+  char msg[2048];
   va_list args;
 
   va_start (args, message);
@@ -698,9 +698,7 @@ fail (void)
 #if !defined (HAVE_SOCKETS) || !defined (HAVE_INET_SOCKETS)
 
 int
-main (argc, argv)
-     int argc;
-     char **argv;
+main (int argc, char **argv)
 {
   main_argv = argv;
   progname = argv[0];
@@ -711,14 +709,6 @@ main (argc, argv)
 }
 
 #else /* HAVE_SOCKETS && HAVE_INET_SOCKETS */
-
-#ifdef WINDOWSNT
-# include <winsock2.h>
-#else
-# include <sys/types.h>
-# include <sys/socket.h>
-# include <sys/un.h>
-#endif
 
 #define AUTH_KEY_LENGTH      64
 #define SEND_BUFFER_SIZE   4096
@@ -1468,7 +1458,7 @@ start_daemon_and_retry_set_socket (void)
       pid_t w;
       w = waitpid (dpid, &status, WUNTRACED | WCONTINUED);
 
-      if ((w == -1) || !WIFEXITED (status) || WEXITSTATUS(status))
+      if ((w == -1) || !WIFEXITED (status) || WEXITSTATUS (status))
 	{
 	  message (TRUE, "Error: Could not start the Emacs daemon\n");
 	  exit (EXIT_FAILURE);

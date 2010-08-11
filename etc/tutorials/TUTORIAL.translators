@@ -31,6 +31,10 @@ Maintainer: Rafael Sepúlveda <drs@gnulinux.org.mx>
 Author:     Éric Jacoboni <jaco@teaser.fr>
 Maintainer: Éric Jacoboni <jaco@teaser.fr>
 
+* TUTORIAL.he
+Author:     Eli Zaretskii <eliz@gnu.org>
+Maintainer: Eli Zaretskii <eliz@gnu.org>
+
 * TUTORIAL.it:
 Author:     Alfredo Finelli <alfredofnl@tiscali.it>
 	    Italian GNU Translation Group <tp@lists.linux.it>

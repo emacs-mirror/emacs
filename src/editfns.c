@@ -90,14 +90,13 @@ extern size_t emacs_strftimeu (char *, size_t, const char *,
                                const struct tm *, int);
 
 #ifdef WINDOWSNT
-extern Lisp_Object w32_get_internal_run_time ();
+extern Lisp_Object w32_get_internal_run_time (void);
 #endif
 
 static int tm_diff (struct tm *, struct tm *);
 static void find_field (Lisp_Object, Lisp_Object, Lisp_Object, int *, Lisp_Object, int *);
 static void update_buffer_properties (int, int);
 static Lisp_Object region_limit (int);
-int lisp_time_argument (Lisp_Object, time_t *, int *);
 static size_t emacs_memftimeu (char *, size_t, const char *,
                                size_t, const struct tm *, int);
 static void general_insert_function (void (*) (const unsigned char *, EMACS_INT),
@@ -320,7 +319,6 @@ The return value is POSITION.  */)
 static Lisp_Object
 region_limit (int beginningp)
 {
-  extern Lisp_Object Vmark_even_if_inactive; /* Defined in callint.c. */
   Lisp_Object m;
 
   if (!NILP (Vtransient_mark_mode)
@@ -338,14 +336,14 @@ region_limit (int beginningp)
 }
 
 DEFUN ("region-beginning", Fregion_beginning, Sregion_beginning, 0, 0, 0,
-       doc: /* Return position of beginning of region, as an integer.  */)
+       doc: /* Return the integer value of point or mark, whichever is smaller.  */)
   (void)
 {
   return region_limit (1);
 }
 
 DEFUN ("region-end", Fregion_end, Sregion_end, 0, 0, 0,
-       doc: /* Return position of end of region, as an integer.  */)
+       doc: /* Return the integer value of point or mark, whichever is larger.  */)
   (void)
 {
   return region_limit (0);
@@ -807,6 +805,9 @@ DEFUN ("line-beginning-position",
 With argument N not nil or 1, move forward N - 1 lines first.
 If scan reaches end of buffer, return that position.
 
+The returned position is of the first character in the logical order,
+i.e. the one that has the smallest character position.
+
 This function constrains the returned position to the current field
 unless that would be on a different line than the original,
 unconstrained result.  If N is nil or 1, and a front-sticky field
@@ -844,6 +845,9 @@ DEFUN ("line-end-position", Fline_end_position, Sline_end_position, 0, 1, 0,
        doc: /* Return the character position of the last character on the current line.
 With argument N not nil or 1, move forward N - 1 lines first.
 If scan reaches end of buffer, return that position.
+
+The returned position is of the last character in the logical order,
+i.e. the character whose buffer position is the largest one.
 
 This function constrains the returned position to the current field
 unless that would be on a different line than the original,
@@ -1400,16 +1404,16 @@ DEFUN ("system-name", Fsystem_name, Ssystem_name, 0, 0, 0,
 
 /* For the benefit of callers who don't want to include lisp.h */
 
-char *
+const char *
 get_system_name (void)
 {
   if (STRINGP (Vsystem_name))
-    return (char *) SDATA (Vsystem_name);
+    return (const char *) SDATA (Vsystem_name);
   else
     return "";
 }
 
-char *
+const char *
 get_operating_system_release (void)
 {
   if (STRINGP (Voperating_system_release))
@@ -1815,7 +1819,7 @@ usage: (encode-time SECOND MINUTE HOUR DAY MONTH YEAR &optional ZONE)  */)
   else
     {
       char tzbuf[100];
-      char *tzstring;
+      const char *tzstring;
       char **oldenv = environ, **newenv;
 
       if (EQ (zone, Qt))
@@ -1997,7 +2001,7 @@ If TZ is nil, use implementation-defined default time zone information.
 If TZ is t, use Universal Time.  */)
   (Lisp_Object tz)
 {
-  char *tzstring;
+  const char *tzstring;
 
   /* When called for the first time, save the original TZ.  */
   if (!environbuf)
@@ -3382,9 +3386,6 @@ usage: (message-box FORMAT-STRING &rest ARGS)  */)
       return val;
     }
 }
-#ifdef HAVE_MENUS
-extern Lisp_Object last_nonmenu_event;
-#endif
 
 DEFUN ("message-or-box", Fmessage_or_box, Smessage_or_box, 1, MANY, 0,
        doc: /* Display a message in a dialog box or in the echo area.
@@ -4554,7 +4555,6 @@ of the buffer being accessed.  */);
 
   {
     Lisp_Object obuf;
-    extern Lisp_Object Vprin1_to_string_buffer;
     obuf = Fcurrent_buffer ();
     /* Do this here, because init_buffer_once is too early--it won't work.  */
     Fset_buffer (Vprin1_to_string_buffer);

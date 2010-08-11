@@ -2225,31 +2225,33 @@ You can then feed the file name(s) to other commands with \\[yank]."
 ;; Keeping Dired buffers in sync with the filesystem and with each other
 
 (defun dired-buffers-for-dir (dir &optional file)
-;; Return a list of buffers that dired DIR (top level or in-situ subdir).
+;; Return a list of buffers for DIR (top level or in-situ subdir).
 ;; If FILE is non-nil, include only those whose wildcard pattern (if any)
 ;; matches FILE.
 ;; The list is in reverse order of buffer creation, most recent last.
 ;; As a side effect, killed dired buffers for DIR are removed from
 ;; dired-buffers.
   (setq dir (file-name-as-directory dir))
-  (let ((alist dired-buffers) result elt buf)
-    (while alist
-      (setq elt (car alist)
-	    buf (cdr elt))
-      (if (buffer-name buf)
-	  (if (dired-in-this-tree dir (car elt))
-	      (with-current-buffer buf
-		(and (assoc dir dired-subdir-alist)
-		     (or (null file)
-			 (let ((wildcards
-				(file-name-nondirectory dired-directory)))
-			   (or (= 0 (length wildcards))
-			       (string-match (dired-glob-regexp wildcards)
-					     file))))
-		     (setq result (cons buf result)))))
-	;; else buffer is killed - clean up:
+  (let (result buf)
+    (dolist (elt dired-buffers)
+      (setq buf (cdr elt))
+      (cond
+       ((null (buffer-name buf))
+	;; Buffer is killed - clean up:
 	(setq dired-buffers (delq elt dired-buffers)))
-      (setq alist (cdr alist)))
+       ((dired-in-this-tree dir (car elt))
+	(with-current-buffer buf
+	  (and (assoc dir dired-subdir-alist)
+	       (or (null file)
+		   (if (stringp dired-directory)
+		       (let ((wildcards (file-name-nondirectory
+					 dired-directory)))
+			 (or (= 0 (length wildcards))
+			     (string-match (dired-glob-regexp wildcards)
+					   file)))
+		     (member (expand-file-name file dir)
+			     (cdr dired-directory))))
+	       (setq result (cons buf result)))))))
     result))
 
 (defun dired-glob-regexp (pattern)

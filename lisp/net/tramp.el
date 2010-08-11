@@ -200,6 +200,7 @@ Any level x includes messages for all levels 1 .. x-1.  The levels are
  6  sent and received strings
  7  file caching
  8  connection properties
+ 9  test commands
 10  traces (huge)."
   :group 'tramp
   :type 'integer)
@@ -332,8 +333,8 @@ detected as prompt when being sent on echoing hosts, therefore.")
 	     (tramp-copy-recursive       t)
 	     (tramp-password-end-of-line nil))
     ("scp"   (tramp-login-program        "ssh")
-             (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p")
-					  ("-e" "none")))
+             (tramp-login-args           (("-l" "%u") ("-p" "%p")
+					  ("-e" "none") ("%h")))
 	     (tramp-async-args           (("-q")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         "scp")
@@ -348,8 +349,8 @@ detected as prompt when being sent on echoing hosts, therefore.")
 					  ("-o" "StrictHostKeyChecking=no")))
 	     (tramp-default-port         22))
     ("scp1"  (tramp-login-program        "ssh")
-             (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p")
-					  ("-1" "-e" "none")))
+             (tramp-login-args           (("-l" "%u") ("-p" "%p")
+					  ("-1") ("-e" "none") ("%h")))
 	     (tramp-async-args           (("-q")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         "scp")
@@ -364,8 +365,8 @@ detected as prompt when being sent on echoing hosts, therefore.")
 					  ("-o" "StrictHostKeyChecking=no")))
 	     (tramp-default-port         22))
     ("scp2"  (tramp-login-program        "ssh")
-             (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p")
-					  ("-2" "-e" "none")))
+             (tramp-login-args           (("-l" "%u") ("-p" "%p")
+					  ("-2") ("-e" "none") ("%h")))
 	     (tramp-async-args           (("-q")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         "scp")
@@ -400,8 +401,8 @@ detected as prompt when being sent on echoing hosts, therefore.")
 	     (tramp-copy-recursive       t)
 	     (tramp-password-end-of-line nil))
     ("sftp"  (tramp-login-program        "ssh")
-             (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p")
-					  ("-e" "none")))
+             (tramp-login-args           (("-l" "%u") ("-p" "%p")
+					  ("-e" "none") ("%h")))
 	     (tramp-async-args           (("-q")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         "sftp")
@@ -409,8 +410,8 @@ detected as prompt when being sent on echoing hosts, therefore.")
 	     (tramp-copy-keep-date       nil)
 	     (tramp-password-end-of-line nil))
     ("rsync" (tramp-login-program        "ssh")
-             (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p")
-					  ("-e" "none")))
+             (tramp-login-args           (("-l" "%u") ("-p" "%p")
+					  ("-e" "none") ("%h")))
 	     (tramp-async-args           (("-q")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         "rsync")
@@ -421,10 +422,10 @@ detected as prompt when being sent on echoing hosts, therefore.")
 	     (tramp-password-end-of-line nil))
     ("rsyncc"
              (tramp-login-program        "ssh")
-             (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p")
+             (tramp-login-args           (("-l" "%u") ("-p" "%p")
 					  ("-o" "ControlPath=%t.%%r@%%h:%%p")
 					  ("-o" "ControlMaster=yes")
-					  ("-e" "none")))
+					  ("-e" "none") ("%h")))
 	     (tramp-async-args           (("-q")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         "rsync")
@@ -453,8 +454,8 @@ detected as prompt when being sent on echoing hosts, therefore.")
 	     (tramp-copy-keep-date       nil)
 	     (tramp-password-end-of-line nil))
     ("ssh"   (tramp-login-program        "ssh")
-             (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p")
-					  ("-e" "none")))
+             (tramp-login-args           (("-l" "%u") ("-p" "%p")
+					  ("-e" "none") ("%h")))
 	     (tramp-async-args           (("-q")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         nil)
@@ -467,8 +468,8 @@ detected as prompt when being sent on echoing hosts, therefore.")
 					  ("-o" "StrictHostKeyChecking=no")))
 	     (tramp-default-port         22))
     ("ssh1"  (tramp-login-program        "ssh")
-             (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p")
-					  ("-1" "-e" "none")))
+             (tramp-login-args           (("-l" "%u") ("-p" "%p")
+					  ("-1") ("-e" "none") ("%h")))
 	     (tramp-async-args           (("-q")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         nil)
@@ -481,8 +482,8 @@ detected as prompt when being sent on echoing hosts, therefore.")
 					  ("-o" "StrictHostKeyChecking=no")))
 	     (tramp-default-port         22))
     ("ssh2"  (tramp-login-program        "ssh")
-             (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p")
-					  ("-2" "-e" "none")))
+             (tramp-login-args           (("-l" "%u") ("-p" "%p")
+					  ("-2") ("-e" "none") ("%h")))
 	     (tramp-async-args           (("-q")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         nil)
@@ -545,10 +546,10 @@ detected as prompt when being sent on echoing hosts, therefore.")
 	     (tramp-copy-keep-date       nil)
 	     (tramp-password-end-of-line nil))
     ("scpc"  (tramp-login-program        "ssh")
-             (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p")
+             (tramp-login-args           (("-l" "%u") ("-p" "%p")
 					  ("-o" "ControlPath=%t.%%r@%%h:%%p")
 					  ("-o" "ControlMaster=yes")
-					  ("-e" "none")))
+					  ("-e" "none") ("%h")))
 	     (tramp-async-args           (("-q")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         "scp")
@@ -563,8 +564,9 @@ detected as prompt when being sent on echoing hosts, therefore.")
 					  ("-o" "StrictHostKeyChecking=no")))
 	     (tramp-default-port         22))
     ("scpx"  (tramp-login-program        "ssh")
-             (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p")
-					  ("-e" "none" "-t" "-t" "/bin/sh")))
+             (tramp-login-args           (("-l" "%u") ("-p" "%p")
+					  ("-e" "none") ("-t" "-t")
+					  ("%h") ("/bin/sh")))
 	     (tramp-async-args           (("-q")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         "scp")
@@ -577,8 +579,9 @@ detected as prompt when being sent on echoing hosts, therefore.")
 					  ("-o" "StrictHostKeyChecking=no")))
 	     (tramp-default-port         22))
     ("sshx"  (tramp-login-program        "ssh")
-             (tramp-login-args           (("%h") ("-l" "%u") ("-p" "%p")
-					  ("-e" "none" "-t" "-t" "/bin/sh")))
+             (tramp-login-args           (("-l" "%u") ("-p" "%p")
+					  ("-e" "none") ("-t" "-t")
+					  ("%h") ("/bin/sh")))
 	     (tramp-async-args           (("-q")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         nil)
@@ -599,8 +602,8 @@ detected as prompt when being sent on echoing hosts, therefore.")
 	     (tramp-copy-keep-date       nil)
 	     (tramp-password-end-of-line nil))
     ("plink" (tramp-login-program        "plink")
-	     (tramp-login-args           (("%h") ("-l" "%u") ("-P" "%p")
-					  ("-ssh")))
+	     (tramp-login-args           (("-l" "%u") ("-P" "%p")
+					  ("-ssh") ("%h")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         nil)
 	     (tramp-copy-args            nil)
@@ -609,8 +612,8 @@ detected as prompt when being sent on echoing hosts, therefore.")
 	     (tramp-default-port         22))
     ("plink1"
 	     (tramp-login-program        "plink")
-	     (tramp-login-args           (("%h") ("-l" "%u") ("-P" "%p")
-					  ("-1" "-ssh")))
+	     (tramp-login-args           (("-l" "%u") ("-P" "%p")
+					  ("-1" "-ssh") ("%h")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         nil)
 	     (tramp-copy-args            nil)
@@ -633,8 +636,8 @@ detected as prompt when being sent on echoing hosts, therefore.")
 	     (tramp-copy-keep-date       nil)
 	     (tramp-password-end-of-line nil))
     ("pscp"  (tramp-login-program        "plink")
-	     (tramp-login-args           (("%h") ("-l" "%u") ("-P" "%p")
-					  ("-ssh")))
+	     (tramp-login-args           (("-l" "%u") ("-P" "%p")
+					  ("-ssh") ("%h")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         "pscp")
 	     (tramp-copy-args            (("-P" "%p") ("-scp") ("-p" "%k")))
@@ -642,8 +645,8 @@ detected as prompt when being sent on echoing hosts, therefore.")
 	     (tramp-password-end-of-line "xy") ;see docstring for "xy"
 	     (tramp-default-port         22))
     ("psftp" (tramp-login-program        "plink")
-	     (tramp-login-args           (("%h") ("-l" "%u") ("-P" "%p")
-					  ("-ssh")))
+	     (tramp-login-args           (("-l" "%u") ("-P" "%p")
+					  ("-ssh") ("%h")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         "pscp")
 	     (tramp-copy-args            (("-P" "%p") ("-sftp") ("-p" "%k")))
@@ -1444,10 +1447,14 @@ See also `tramp-file-name-regexp'.")
 
 ;;;###autoload
 (defconst tramp-file-name-regexp-unified
-  "\\`/\\([^[/:]+\\|[^/]+]\\):"
+  (if (memq system-type '(cygwin windows-nt))
+      "\\`/\\([^[/:]\\{2,\\}\\|[^/]\\{2,\\}]\\):"
+    "\\`/\\([^[/:]+\\|[^/]+]\\):")
   "Value for `tramp-file-name-regexp' for unified remoting.
 Emacs (not XEmacs) uses a unified filename syntax for Ange-FTP and
-Tramp.  See `tramp-file-name-structure' for more explanations.")
+Tramp.  See `tramp-file-name-structure' for more explanations.
+
+On W32 systems, the volume letter must be ignored.")
 
 ;;;###autoload
 (defconst tramp-file-name-regexp-separate
@@ -1494,10 +1501,14 @@ volume letter, which will be removed by `tramp-drop-volume-letter'.")
 
 ;;;###autoload
 (defconst tramp-completion-file-name-regexp-unified
-  (concat tramp-root-regexp "[^/]*\\'")
+  (if (memq system-type '(cygwin windows-nt))
+      (concat tramp-root-regexp "[^/]\\{2,\\}\\'")
+    (concat tramp-root-regexp "[^/]*\\'"))
   "Value for `tramp-completion-file-name-regexp' for unified remoting.
 GNU Emacs uses a unified filename syntax for Tramp and Ange-FTP.
-See `tramp-file-name-structure' for more explanations.")
+See `tramp-file-name-structure' for more explanations.
+
+On W32 systems, the volume letter must be ignored.")
 
 ;;;###autoload
 (defconst tramp-completion-file-name-regexp-separate
@@ -1972,13 +1983,13 @@ This string is passed to `format', so percent characters need to be doubled.")
 
 (defconst tramp-vc-registered-read-file-names
   "echo \"(\"
-for file in \"$@\"; do
-    if %s $file; then
+while read file; do
+    if %s \"$file\"; then
 	echo \"(\\\"$file\\\" \\\"file-exists-p\\\" t)\"
     else
 	echo \"(\\\"$file\\\" \\\"file-exists-p\\\" nil)\"
     fi
-    if %s $file; then
+    if %s \"$file\"; then
 	echo \"(\\\"$file\\\" \\\"file-readable-p\\\" t)\"
     else
 	echo \"(\\\"$file\\\" \\\"file-readable-p\\\" nil)\"
@@ -1987,7 +1998,9 @@ done
 echo \")\""
   "Script to check existence of VC related files.
 It must be send formatted with two strings; the tests for file
-existence, and file readability.")
+existence, and file readability.  Input shall be read via
+here-document, otherwise the command could exceed maximum length
+of command line.")
 
 (defconst tramp-file-mode-type-map
   '((0  . "-")  ; Normal file (SVID-v2 and XPG2)
@@ -4223,7 +4236,7 @@ This is like `dired-recursive-delete-directory' for Tramp files."
   ;; DIR-P is valid for XEmacs only.
   (with-parsed-tramp-file-name
       (if (or dir-p (file-directory-p dir)) dir (file-name-directory dir)) nil
-    (tramp-flush-file-property v localname)))
+    (tramp-flush-directory-property v localname)))
 
 ;; Pacify byte-compiler.  The function is needed on XEmacs only.  I'm
 ;; not sure at all that this is the right way to do it, but let's hope
@@ -4492,20 +4505,30 @@ beginning of local filename are not substituted."
   (with-parsed-tramp-file-name default-directory nil
     (tramp-find-executable v command (tramp-get-remote-path v) t)))
 
+(defun tramp-process-sentinel (proc event)
+  "Flush file caches."
+  (unless (memq (process-status proc) '(run open))
+    (let ((vec (tramp-get-connection-property proc "vector" nil)))
+      (when vec
+	(tramp-message vec 5 "Sentinel called: `%s' `%s'" proc event)
+        (tramp-flush-directory-property vec "")))))
+
 ;; We use BUFFER also as connection buffer during setup. Because of
 ;; this, its original contents must be saved, and restored once
 ;; connection has been setup.
 (defun tramp-handle-start-file-process (name buffer program &rest args)
   "Like `start-file-process' for Tramp files."
   (with-parsed-tramp-file-name default-directory nil
-    (unless (stringp program)
-      (tramp-error
-       v 'file-error "pty association is not supported for `%s'" name))
     (unwind-protect
-	(let ((command (format "cd %s; exec %s"
-			       (tramp-shell-quote-argument localname)
-			       (mapconcat 'tramp-shell-quote-argument
-					  (cons program args) " ")))
+	;; When PROGRAM is nil, we just provide a tty.
+	(let ((command
+	       (when (stringp program)
+		 (format "cd %s; exec %s"
+			 (tramp-shell-quote-argument localname)
+			 (mapconcat 'tramp-shell-quote-argument
+				    (cons program args) " "))))
+	      (tramp-process-connection-type
+	       (or (null program) tramp-process-connection-type))
 	      (name1 name)
 	      (i 0))
 	  (unless buffer
@@ -4525,14 +4548,21 @@ beginning of local filename are not substituted."
 	  (with-current-buffer (tramp-get-connection-buffer v)
 	    (clear-visited-file-modtime)
 	    (narrow-to-region (point-max) (point-max)))
-	  ;; Send the command.  `tramp-send-command' opens a new
-	  ;; connection.
-	  (tramp-send-command v command nil t) ; nooutput
-	  ;; Set query flag for this process.
-	  (tramp-set-process-query-on-exit-flag
-	   (tramp-get-connection-process v) t)
-	  ;; Return process.
-	  (tramp-get-connection-process v))
+	  (if command
+	      ;; Send the command.
+	      (tramp-send-command v command nil t) ; nooutput
+	    ;; Check, whether a pty is associated.
+	    (tramp-maybe-open-connection v)
+	    (unless (process-get (tramp-get-connection-process v) 'remote-tty)
+	      (tramp-error
+	       v 'file-error "pty association is not supported for `%s'" name)))
+	  (let ((p (tramp-get-connection-process v)))
+	    ;; Set sentinel and query flag for this process.
+	    (tramp-set-connection-property p "vector" v)
+	    (set-process-sentinel p 'tramp-process-sentinel)
+	    (tramp-set-process-query-on-exit-flag p t)
+	    ;; Return process.
+	    p))
       ;; Save exit.
       (with-current-buffer (tramp-get-connection-buffer v)
 	(if (string-match tramp-temp-buffer-name (buffer-name))
@@ -5391,10 +5421,10 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 		 (tramp-send-command-and-read
 		  v
 		  (format
-		   "tramp_vc_registered_read_file_names %s"
+		   "tramp_vc_registered_read_file_names <<'EOF'\n%s\nEOF\n"
 		   (mapconcat 'tramp-shell-quote-argument
 			      tramp-vc-registered-file-names
-			      " "))))
+			      "\n"))))
 
 	      (tramp-set-file-property
 	       v (car elt) (cadr elt) (cadr (cdr elt))))))
@@ -6590,7 +6620,29 @@ file exists and nonzero exit status otherwise."
        vec 'file-error "Couldn't find command to check if file exists"))
     result))
 
-;; CCC test ksh or bash found for tilde expansion?
+(defun tramp-open-shell (vec shell)
+  "Opens shell SHELL."
+  (with-progress-reporter vec 5 (format "Opening remote shell `%s'" shell)
+    ;; Find arguments for this shell.
+    (let ((tramp-end-of-output tramp-initial-end-of-output)
+	  (alist tramp-sh-extra-args)
+	  item extra-args)
+      (while (and alist (null extra-args))
+	(setq item (pop alist))
+	(when (string-match (car item) shell)
+	  (setq extra-args (cdr item))))
+      (when extra-args (setq shell (concat shell " " extra-args)))
+      (tramp-send-command
+       vec (format "exec env ENV='' PROMPT_COMMAND='' PS1=%s PS2='' PS3='' %s"
+		   (shell-quote-argument tramp-end-of-output) shell)
+       t))
+    ;; Setting prompts.
+    (tramp-send-command
+     vec (format "PS1=%s" (shell-quote-argument tramp-end-of-output)) t)
+    (tramp-send-command vec "PS2=''" t)
+    (tramp-send-command vec "PS3=''" t)
+    (tramp-send-command vec "PROMPT_COMMAND=''" t)))
+
 (defun tramp-find-shell (vec)
   "Opens a shell on the remote host which groks tilde expansion."
   (unless (tramp-get-connection-property vec "remote-shell" nil)
@@ -6611,29 +6663,9 @@ file exists and nonzero exit status otherwise."
 	    (tramp-error
 	     vec 'file-error
 	     "Couldn't find a shell which groks tilde expansion"))
-	  ;; Find arguments for this shell.
-	  (let ((alist tramp-sh-extra-args)
-		item extra-args)
-	    (while (and alist (null extra-args))
-	      (setq item (pop alist))
-	      (when (string-match (car item) shell)
-		(setq extra-args (cdr item))))
-	    (when extra-args (setq shell (concat shell " " extra-args))))
 	  (tramp-message
 	   vec 5 "Starting remote shell `%s' for tilde expansion" shell)
-	  (let ((tramp-end-of-output tramp-initial-end-of-output))
-	    (tramp-send-command
-	     vec
-	     (format "PROMPT_COMMAND='' PS1=%s PS2='' PS3='' exec %s"
-		     (shell-quote-argument tramp-end-of-output) shell)
-	     t))
-	  ;; Setting prompts.
-	  (with-progress-reporter vec 5 (format "Setting remote shell prompt")
-	    (tramp-send-command
-	     vec (format "PS1=%s" (shell-quote-argument tramp-end-of-output)) t)
-	    (tramp-send-command vec "PS2=''" t)
-	    (tramp-send-command vec "PS3=''" t)
-	    (tramp-send-command vec "PROMPT_COMMAND=''" t)))
+	  (tramp-open-shell vec shell))
 
 	 (t (tramp-message
 	     vec 5 "Remote `%s' groks tilde expansion, good"
@@ -6914,14 +6946,9 @@ process to set up.  VEC specifies the connection."
     ;; way, we avoid the startup file clobbering $PS1.  $PROMP_COMMAND
     ;; is another way to set the prompt in /bin/bash, it must be
     ;; discarded as well.
-    (tramp-send-command
+    (tramp-open-shell
      vec
-     (format
-      "exec env ENV='' PROMPT_COMMAND='' PS1=%s PS2='' PS3='' %s"
-      (shell-quote-argument tramp-end-of-output)
-      (tramp-get-method-parameter
-       (tramp-file-name-method vec) 'tramp-remote-sh))
-     t)
+     (tramp-get-method-parameter (tramp-file-name-method vec) 'tramp-remote-sh))
 
     ;; Disable echo.
     (tramp-message vec 5 "Setting up remote shell environment")
@@ -6979,7 +7006,7 @@ process to set up.  VEC specifies the connection."
 	;; stty, instead.
 	(tramp-send-command vec "stty -onlcr" t))))
   ;; Dump stty settings in the traces.
-  (when (>= tramp-verbose 10)
+  (when (>= tramp-verbose 9)
     (tramp-send-command vec "stty -a" t))
   (tramp-send-command vec "set +o vi +o emacs" t)
 
@@ -7037,7 +7064,7 @@ process to set up.  VEC specifies the connection."
   ;; "echo $?"  part if the "test" part has an error.  In particular,
   ;; the OpenSolaris /bin/sh is a problem.  There are also other
   ;; problems with /bin/sh of OpenSolaris, like redirection of stderr
-  ;; in in function declarations, or changing HISTFILE in place.
+  ;; in function declarations, or changing HISTFILE in place.
   ;; Therefore, OpenSolaris' /bin/sh is replaced by bash, when
   ;; detected.
   (tramp-find-shell vec)
@@ -7050,6 +7077,11 @@ process to set up.  VEC specifies the connection."
   ;; <http://stackoverflow.com/questions/3291692/irix-bash-shell-expands-expression-in-single-quotes-yet-shouldnt>.
   (when (string-match "^IRIX64" (tramp-get-connection-property vec "uname" ""))
     (tramp-send-command vec "set +H" t))
+
+  ;; Set `remote-tty' process property.
+  (ignore-errors
+    (let ((tty (tramp-send-command-and-read vec "echo \\\"`tty`\\\"")))
+      (unless (zerop (length tty)) (process-put proc 'remote-tty tty))))
 
   ;; Set the environment.
   (tramp-message vec 5 "Setting default environment")
@@ -8882,7 +8914,6 @@ Only works for Bourne-like shells."
 ;;   likely to produce long command lines, and some shells choke on
 ;;   long command lines.
 ;; * How to deal with MULE in `insert-file-contents' and `write-region'?
-;; * Test remote ksh or bash for tilde expansion in `tramp-find-shell'?
 ;; * abbreviate-file-name
 ;; * Better error checking.  At least whenever we see something
 ;;   strange when doing zerop, we should kill the process and start
@@ -8946,19 +8977,15 @@ Only works for Bourne-like shells."
 ;;   rsync).
 ;; * Keep a second connection open for out-of-band methods like scp or
 ;;   rsync.
-;; * Support ptys in `tramp-handle-start-file-process'.  (Bug#4604, Bug#6360)
 ;; * IMHO, it's a drawback that currently Tramp doesn't support
 ;;   Unicode in Dired file names by default.  Is it possible to
 ;;   improve Tramp to set LC_ALL to "C" only for commands where Tramp
 ;;   expects English?  Or just to set LC_MESSAGES to "C" if Tramp
 ;;   expects only English messages?  (Juri Linkov)
 ;; * Make shadowfile.el grok Tramp filenames.  (Bug#4526, Bug#4846)
-;; * Do not handle files with drive letter as remote.  (Bug#5447)
 ;; * Load Tramp subpackages only when needed.  (Bug#1529, Bug#5448, Bug#5705)
 ;; * Try telnet+curl as new method.  It might be useful for busybox,
 ;;   without built-in uuencode/uudecode.
-;; * Let `shell-dynamic-complete-*' and `comint-dynamic-complete' work
-;;   on remote hosts.
 ;; * Load ~/.emacs_SHELLNAME on the remote host for `shell'.
 
 ;; Functions for file-name-handler-alist:

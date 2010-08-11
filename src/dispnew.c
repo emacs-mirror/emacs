@@ -66,12 +66,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "systime.h"
 #include <errno.h>
 
-/* To get the prototype for `sleep'.  */
-
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif
-
 /* Get number of chars of output now in the buffer of a stdio stream.
    This ought to be built in in stdio, but it isn't.  Some s- files
    override this because their stdio internals differ.  */
@@ -436,7 +430,7 @@ DEFUN ("dump-redisplay-history", Fdump_redisplay_history,
 #endif /* GLYPH_DEBUG == 0 */
 
 
-#ifdef PROFILING
+#if defined PROFILING && !HAVE___EXECUTABLE_START
 /* FIXME: only used to find text start for profiling.  */
 
 void
@@ -1534,7 +1528,11 @@ realloc_glyph_pool (struct glyph_pool *pool, struct dim matrix_dim)
       int size = needed * sizeof (struct glyph);
 
       if (pool->glyphs)
-	pool->glyphs = (struct glyph *) xrealloc (pool->glyphs, size);
+	{
+	  pool->glyphs = (struct glyph *) xrealloc (pool->glyphs, size);
+	  memset (pool->glyphs + pool->nglyphs, 0,
+		  size - pool->nglyphs * sizeof (struct glyph));
+	}
       else
 	{
 	  pool->glyphs = (struct glyph *) xmalloc (size);
@@ -3664,8 +3662,6 @@ update_window (struct window *w, int force_p)
 #if !PERIODIC_PREEMPTION_CHECKING
   int preempt_count = baud_rate / 2400 + 1;
 #endif
-  extern int input_pending;
-  extern Lisp_Object do_mouse_tracking;
   struct redisplay_interface *rif = FRAME_RIF (XFRAME (WINDOW_FRAME (w)));
 #if GLYPH_DEBUG
   /* Check that W's frame doesn't have glyph matrices.  */
@@ -4710,7 +4706,6 @@ update_frame_1 (struct frame *f, int force_p, int inhibit_id_p)
   int i;
   int pause;
   int preempt_count = baud_rate / 2400 + 1;
-  extern int input_pending;
 
   xassert (current_matrix && desired_matrix);
 
@@ -5039,7 +5034,6 @@ count_match (struct glyph *str1, struct glyph *end1, struct glyph *str2, struct 
 
 /* Char insertion/deletion cost vector, from term.c */
 
-extern int *char_ins_del_vector;
 #define char_ins_del_cost(f) (&char_ins_del_vector[FRAME_TOTAL_COLS((f))])
 
 
@@ -6234,10 +6228,6 @@ void
 init_display (void)
 {
   char *terminal_type;
-
-#ifdef HAVE_X_WINDOWS
-  extern int display_arg;
-#endif
 
   /* Construct the space glyph.  */
   space_glyph.type = CHAR_GLYPH;

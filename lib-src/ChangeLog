@@ -1,3 +1,47 @@
+2010-08-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ebrowse.c (usage, version, mark_virtual):
+	Remove duplicate declarations.
+
+2010-08-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacsclient.c: Move socket related #includes together with the
+	rest of the #includes.  Move a WINDOWSNT includes closer together.
+	(HAVE_CONFIG_H): Remove.
+	(NO_RETURN): Remove, defined in config.h.
+	(main): Convert definition to standard C.
+
+2010-07-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* make-docfile.c (write_c_args): Warn for old-style empty arglist ().
+
+2010-07-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (getcwd): Fix previous change: make getcwd
+	conditional on HAVE_GETCWD and declare with the correct POSIX
+	profile (for some reason MinGW headers define its 2nd arg as int,
+	not size_t; but getcwd is not used on Windows nonetheless).
+
+2010-07-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (getcwd, w32_getenv):
+	* ntlib.h (getlogin, getuid, getegid, getgid): Fix prototypes.
+
+2010-07-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* update-game-score.c (usage): Add NO_RETURN specifier.
+	* movemail.c (fatal, pfatal_with_name, pfatal_and_delete):
+	* make-docfile.c (fatal):
+	* hexl.c (usage):
+	* fakemail.c (fatal):
+	* etags.c (fatal, suggest_asking_for_help, pfatal):
+	* emacsclient.c (fatal):
+	* b2m.c (fatal): Likewise.
+
+2010-07-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* make-docfile.c (write_c_args): Correctly handle prefixes of "defalt".
+
 2010-07-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacsclient.c (get_current_dir_name, w32_get_resource)
@@ -775,7 +819,7 @@
 
 2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
-	* makefile.w32-in (obj): Sync with src/Makefile.in
+	* makefile.w32-in (obj): Sync with src/Makefile.in.
 	(TOOLTIP_SUPPORT, WINDOW_SUPPORT): New definitions.
 	(WINNT_SUPPORT): Add term/w32-win.elc.
 	(lisp1, lisp2): Sync with lisp in src/Makefile.in.
@@ -2471,7 +2515,7 @@
 
 	* makefile.w32-in (WINNT_SUPPORT, MOUSE_SUPPORT, lisp): Revert to
 	using .elc files.
-	(lisp): Sync with list in src/Makefile.in
+	(lisp): Sync with list in src/Makefile.in.
 	(VMS_SUPPORT, MSDOS_SUPPORT): Define, so DOC files can be shared.
 
 2002-02-10  Paul Eggert  <eggert@twinsun.com>
@@ -6313,7 +6357,7 @@
 	(TOKEN): Member linestart removed.
 	(linepos, prev_linepos, lb1): Deleted.
 	(main): Call initbuffer on lbs array instead of lb1.
-	(init): Removed the initialisation of the logical _gd array;
+	(init): Removed the initialisation of the logical _gd array.
 	(find_entries): A .sa suffix means assembler file.
 	(C_create_stab): "auto", "void", "extern", "static" are st_C_typespec.
 	All C state machines rewritten.
@@ -7177,7 +7221,7 @@
 	* etags.c: Changes for VMS.
 	Always define ETAGS on VMS.
 	Define macros GOOD and BAD for success and failure exit codes.
-	(begtk, intk): Allow `$' in identifiers
+	(begtk, intk): Allow `$' in identifiers.
 	(main): Don't support -B, -F or -u on VMS.
 	Alternate loop for scanning filename arguments.
 	(system): Delete definition of this function.

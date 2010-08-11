@@ -1042,7 +1042,7 @@ and changed nndoc.el allout.el bytecomp.el gnus-sum.el gnus-util.el
 
 François-David Collin: changed message.el mm-decode.el
 
-Fred Fish: changed linux.h unexec.c
+Fred Fish: changed linux.h unexcoff.c
 
 Fred Oberhauser: changed nnmail.el
 
@@ -1273,7 +1273,7 @@ Inge Wallin: co-wrote avl-tree.el ewoc.el
 Inoue Seiichiro: changed xterm.c xfns.c xterm.h
 
 International Business Machines: changed emacs.c fileio.c process.c
-  sysdep.c unexec.c
+  sysdep.c unexcoff.c
 
 Irie Tetsuya: changed gnus.texi message.texi
 
@@ -1334,7 +1334,7 @@ James TD Smith: changed org.el org-colview.el org-clock.el
 
 James Troup: changed gnus-sum.el
 
-James Van Artsdalen: changed unexec.c usg5-4.h
+James Van Artsdalen: changed unexcoff.c usg5-4.h
 
 James Wright: changed em-unix.el
 
@@ -2176,7 +2176,7 @@ and changed tramp.texi dbusbind.c dbus.texi ange-ftp.el trampver.el
   simple.el vc.el configure.in dired.el and 50 other files
 
 Michael Ben-Gershon: changed acorn.h configure.in riscix1-1.h riscix1-2.h
-  unexec.c
+  unexcoff.c
 
 Michael D. Ernst: wrote reposition.el
 and changed dired-x.el uniquify.el ispell.el bibtex.el rmail.el dired.el
@@ -2200,7 +2200,7 @@ Michael I. Bushnell: changed rmail.el simple.el callproc.c gnu.h gnus.el
 
 Michael K. Johnson: changed configure.in emacs.c intel386.h linux.h
   mem-limits.h process.c sysdep.c syssignal.h systty.h template.h
-  unexec.c
+  unexcoff.c
 
 Michael Kifer: wrote ediff-diff.el ediff-help.el ediff-hook.el
   ediff-init.el ediff-merg.el ediff-mult.el ediff-ptch.el ediff-util.el
@@ -2259,7 +2259,7 @@ and changed gnus-score.el
 Microelectronics and Computer Technology Corporation: changed
   emacsclient.c etags.c lisp.h movemail.c rmail.el rmailedit.el
   rmailkwd.el rmailmsc.el rmailout.el rmailsum.el scribe.el server.el
-  sysdep.c unexec.c xmenu.c
+  sysdep.c unexcoff.c xmenu.c
 
 Mikael Djurfeldt: changed xdisp.c
 
@@ -2685,7 +2685,7 @@ and changed files.el keyboard.c simple.el xterm.c xdisp.c Makefile.in
 Richard Mlynarik: wrote cl-indent.el ebuff-menu.el ehelp.el rfc822.el
   terminal.el yow.el
 and changed files.el sysdep.c rmail.el info.el keyboard.c bytecomp.el
-  fileio.c simple.el process.c startup.el window.c editfns.c unexec.c
+  fileio.c simple.el process.c startup.el window.c editfns.c unexcoff.c
   xfns.c keymap.c minibuf.c sendmail.el buffer.c dispnew.c emacs.c
   subr.el and 129 other files
 
@@ -2921,7 +2921,7 @@ Slawomir Nowaczyk: changed emacs.py python.el TUTORIAL.pl flyspell.el
   ls-lisp.el w32proc.c
 
 Spencer Thomas: changed dabbrev.el emacsclient.c gnus.texi server.el
-  unexec.c
+  unexcoff.c
 
 Sriram Karra: changed message.el
 

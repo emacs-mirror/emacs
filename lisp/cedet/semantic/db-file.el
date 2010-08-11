@@ -277,7 +277,7 @@ to prevent overload.")
 
 (defmethod object-write ((obj semanticdb-table))
   "When writing a table, we have to make sure we deoverlay it first.
-Restore the overlays after writting.
+Restore the overlays after writing.
 Argument OBJ is the object to write."
   (when (semanticdb-live-p obj)
     (when (semanticdb-in-buffer-p obj)

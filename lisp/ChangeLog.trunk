@@ -1,3 +1,487 @@
+2010-08-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/pcase.el: New file.
+
+2010-08-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-vc-registered-read-file-names): Read input
+	as here-document, otherwise the command could exceed maximum
+	length of command line.
+	(tramp-handle-vc-registered): Call script accordingly.
+	Reported by Toru TSUNEYOSHI <t_tuneyosi@hotmail.com>.
+
+2010-08-10  Kenichi Handa  <handa@m17n.org>
+
+	* language/hebrew.el: Exclude U+05C3 (Hebrew SOF PASUQ) from the
+	composable pattern.
+
+2010-08-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package-version-split)
+	(package--version-first-nonzero, package-version-compare):
+	Functions removed.
+	(package-directory-list, package-load-all-descriptors)
+	(package--built-in, package-activate, define-package)
+	(package-installed-p, package-compute-transaction)
+	(package-read-all-archive-contents)
+	(package--add-to-archive-contents, package-buffer-info)
+	(package-tar-file-info, package-list-packages-internal):
+	Use version-to-list and version-list-*.
+
+	* emacs-lisp/package-x.el (package-upload-buffer-internal):
+	Use version-to-list.
+	(package-upload-buffer-internal): Use version-list-<=.
+
+2010-08-09  Kenichi Handa  <handa@m17n.org>
+
+	* language/hebrew.el: Exclude U+05BD (Hebrew MAQAF) from the
+	composable pattern.
+
+2010-08-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* tutorial.el (tutorial--default-keys): C-d is now bound to
+	delete-forward-char (Bug#6826).
+
+	* mouse.el (mouse-drag-track): Remove accidentally-removed check
+	for `double' value of mouse-1-click-follows-link (Bug#6807).
+
+2010-08-08  Johan Bockgård  <bojohan@gnu.org>
+
+	* replace.el (replace-highlight): Bind isearch-forward and
+	isearch-error, ensuring that highlighting is updated if the user
+	switches the search direction (Bug#6808).
+
+	* isearch.el (isearch-lazy-highlight-forward): New var.
+	(isearch-lazy-highlight-new-loop, isearch-lazy-highlight-search):
+	(isearch-lazy-highlight-update): Use it.
+
+2010-08-08  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (define-charset): Store NAME as :base property.
+	(ctext-non-standard-encodings-table): Pay attention to charset aliases.
+	(ctext-pre-write-conversion): Sort ctext-standard-encodings by the
+	current priority.  Force using the designation of the specific
+	charset by adding `charset' text property.  Improve the whole algorithm.
+
+2010-08-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emulation/pc-select.el (pc-selection-mode-hook)
+	(copy-region-as-kill-nomark, beginning-of-buffer-mark)
+	(pc-selection-mode): Fix typos in docstrings.
+
+2010-08-08  Kenichi Handa  <handa@m17n.org>
+
+	* language/cyrillic.el: Don't add "microsoft-cp1251" to
+	ctext-non-standard-encodings-alist here.
+
+	* international/mule.el (ctext-non-standard-encodings-alist):
+	Add "koi8-r" and "microsoft-cp1251".
+	(ctext-standard-encodings): New variable.
+	(ctext-non-standard-encodings-table): List only elements for
+	non-standard encodings.
+	(ctext-pre-write-conversion): Adjusted for the above change.
+	Check ctext-standard-encodings.
+
+	* international/mule-conf.el (compound-text): Doc fix.
+	(ctext-no-compositions): Doc fix.
+	(compound-text-with-extensions): Doc fix.
+
+2010-08-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (exchange-dot-and-mark): Mark obsolete, finally.
+
+2010-08-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/which-func.el (which-func-format): Split help-echo text
+	into lines, like other mode-line tooltips.
+
+	* server.el (server-start): When using TCP sockets, force IPv4
+	and use a literal 127.0.0.1 for localhost.  (Related to bug#6781.)
+
+2010-08-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bindings.el (complete-symbol): Run completion-at-point as a fallback.
+
+2010-08-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* term.el (term-delimiter-argument-list): Reflow docstring.
+	(term-read-input-ring, term-write-input-ring, term-send-input)
+	(term-bol, term-erase-in-display, serial-supported-or-barf):
+	Fix typos in docstrings.
+
+2010-08-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bindings.el (function-key-map): Add a S-tab => backtab fallback.
+
+2010-08-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dabbrev.el (dabbrev-completion): Fix typo in docstring.
+
+2010-08-08  MON KEY  <monkey@sandpframing.com>  (tiny change)
+
+	* emacs-lisp/syntax.el (syntax-ppss-toplevel-pos):
+	Fix typo in docstring (bug#6747).
+
+2010-08-08  Leo  <sdl.web@gmail.com>
+
+	* eshell/esh-io.el (eshell-get-target): Better detection of
+	read-only file (Bug#6762).
+
+2010-08-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* align.el (align-default-spacing): Doc fix.
+	(align-region-heuristic, align-regexp): Fix typos in docstrings.
+
+2010-08-08  Stephen Peters <speters@itasoftware.com>
+
+	* calendar/icalendar.el
+	(icalendar--split-value): Fixed splitting regexp. (Bug#6766)
+	(icalendar--get-weekday-numbers): New
+	(icalendar--convert-recurring-to-diary): Handle multiple byday
+	values in weekly rules. (Bug#6766)
+
+2010-08-08  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar/icalendar.el (icalendar-uid-format): Doc fix.
+	(icalendar--create-uid, icalendar-export-region)
+	(icalendar--parse-summary-and-rest): Code formatting.
+
+2010-08-08  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (calc-trail-mode,calc-refresh): Use `face' property
+	to italicize headers.
+	(calc-highlight-selections-with-faces): New variable.
+	(calc-selected-face, calc-nonselected-face): New faces.
+
+	* calc/calccomp.el (math-comp-highlight-string): Use
+	`calc-highlight-selections-with-faces' to determine how to highlight
+	sub-formulas.
+
+	* calc/calc-sel.el (calc-show-selections): Change message to when
+	using faces to highlight selections.
+
+2010-08-07  Michael R. Mauger  <mmaug@yahoo.com>
+
+	* progmodes/sql.el (sql-mode-sqlite-font-lock-keywords):
+	Add SQLite 3 keywords, functions and datatypes.
+	(sql-interactive-mode): Remove `comint-process-echoes' set to t
+	(Bug#6686).
+
+2010-08-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (select-active-regions): Move to keyboard.c.
+	(deactivate-mark): Used saved-region-selection.
+	(select-active-region): Function removed.
+	(activate-mark, set-mark, push-mark-command)
+	(handle-shift-selection): Don't call it.
+	(keyboard-quit): Avoid adding the region to the window selection.
+
+	* mouse.el (mouse-drag-track): Remove hacks to deal with old
+	select-active-regions implementation.
+	(mouse-yank-at-click): Doc fix.
+
+	* cus-start.el: Add custom declaration for select-active-regions.
+
+2010-08-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (delete-forward-char): Doc fix.
+
+	* tutorial.el (help-with-tutorial): Hack safe file-local variables
+	after reading the tutorial.
+
+2010-08-06  Alan Mackenzie  <bug-cc-mode@gnu.org>
+
+	* progmodes/cc-cmds.el (c-mask-paragraph, c-fill-paragraph): Fix
+	for the case that a C style comment has its delimiters alone on
+	their respective lines.
+
+2010-08-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-start-file-process): Set connection
+	property "vec".
+	(tramp-process-sentinel): Use it for flushing the cache.  We
+	cannot do it via the process buffer, the buffer could be deleted
+	already when running the sentinel.
+
+2010-08-06  Jürgen Hötzel  <juergen@archlinux.org>  (tiny change)
+
+	* comint.el (comint-mode): Make directory tracking functions
+	functional on remote files.  (Bug#6764)
+
+2010-08-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc/diff-mode.el (diff-mode-shared-map): Bind g to revert-buffer.
+
+2010-08-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs-lisp/find-gc.el (find-gc-source-files): Rename
+	unexec.c => unexcoff.c.
+
+	* emacs-lisp/authors.el (authors-fixed-entries): Rename
+	unexec.c => unexcoff.c.
+
+2010-08-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-dired-uncache): Flush directory
+	cache, not only file cache.
+	(tramp-process-sentinel): New defun.
+	(tramp-handle-start-file-process): Use it, in order to invalidate
+	file caches.
+
+2010-08-03  Leo  <sdl.web@gmail.com>
+
+	* server.el (server-start): Simplify loop.
+
+2010-08-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.el (screen-height, screen-width, set-screen-width)
+	(set-screen-height): Remove ancient compatibility aliases.
+
+	* textmodes/fill.el (justify-current-line): Don't add 1 to nspaces
+	when justifying.  It seems useless and harmful for ncols=1 (bug#6738).
+
+	* emacs-lisp/timer.el (timer-event-handler): Protect against timers
+	that change current buffer.
+
+2010-08-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mouse.el (mouse-fixup-help-message): Match "mouse-2" only at the
+	beginning of the string.  Use `string-match-p'.  (Bug#6765)
+
+2010-08-01  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* cus-start.el (x-gtk-use-system-tooltips): New variable.
+
+2010-08-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package--list-packages): Fix column alignment.
+	(package--builtins): Tweak descriptions.
+	(package-print-package): Upcase descriptions if necessary.
+	Show all built-in packages in font-lock-builtin-face.
+	(package-list-packages-internal): Omit "emacs" package.
+	Show status of built-in packages as "built-in".
+
+2010-07-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse.el (mouse-save-then-kill): Doc fix.  Deactivate mark
+	before killing to preserve the primary selection (Bug#6701).
+
+	* term/x-win.el (x-select-text): Doc fix.
+
+2010-07-31  Nathaniel Flath  <flat0103@gmail.com>
+
+	Enhance Java Mode to handle Java 5.0 (Tiger) and Java 6 (Mustang).
+	The following functions were modified or created:
+
+	* progmodes/cc-vars.el (c-offsets-alist, c-inside-block-syms)
+	(objc-font-lock-extra-types):
+	* progmodes/cc-mode.el (c-basic-common-init):
+	* progmodes/cc-langs.el (c-make-mode-syntax-table)
+	(c++-make-template-syntax-table)
+	(c-identifier-syntax-modifications, c-symbol-start, c-operators)
+	(c-<-op-cont-regexp, c->-op-cont-regexp, c-class-decl-kwds)
+	(c-brace-list-decl-kwds, c-modifier-kwds, c-prefix-spec-kwds-re)
+	(c-type-list-kwds, c-decl-prefix-re, c-opt-type-suffix-key):
+	* progmodes/cc-fonts.el (c-make-inverse-face)
+	(c-basic-matchers-after):
+	* progmodes/cc-engine.el (c-forward-keyword-clause)
+	(c-forward-<>-arglist, c-forward-<>-arglist-recur)
+	(c-forward-name, c-forward-type, c-forward-decl-or-cast-1)
+	(c-guess-continued-construct, c-guess-basic-syntax):
+
+2010-07-31  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* faces.el (face-all-attributes): Improve documentation (Bug#6767).
+
+2010-07-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.el (bidi-paragraph-direction): Define safe local values.
+
+	* language/hebrew.el ("Hebrew"): Add TUTORIAL.he to
+	language-info-alist.  Remove outdated FIXME in a comment.
+
+2010-07-31  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-cmds.el (c-mask-paragraph): Fix bug #6688:
+	Auto-fill broken in C/C++ modes.
+
+2010-07-29  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* menu-bar.el (menu-bar-showhide-tool-bar-menu-customize-enable-left)
+	(menu-bar-showhide-tool-bar-menu-customize-disable)
+	(menu-bar-showhide-tool-bar-menu-customize-enable-right)
+	(menu-bar-showhide-tool-bar-menu-customize-enable-bottom)
+	(menu-bar-showhide-tool-bar-menu-customize-enable-top): New functions
+	(menu-bar-showhide-tool-bar-menu): If tool bar is moveable,
+	make a menu for Options => toolbar that can move it.
+
+2010-07-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package-x.el (package--make-rss-entry):
+	(package-maint-add-news-item, package--update-news)
+	(package-upload-buffer-internal): New arg ARCHIVE-URL.
+
+	* emacs-lisp/package.el (package-archive-url): Rename from
+	package-archive-id.
+	(package-install): Doc fix.
+	(package-download-single, package-download-tar, package-install)
+	(package-menu-view-commentary): Callers changed.
+
+2010-07-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-start-file-process): Check only for
+	`remote-tty' process property.
+	(tramp-open-shell): Don't check for tty.
+	(tramp-open-connection-setup-interactive-shell): Set `remote-tty'
+	process property.
+
+	* progmodes/gdb-mi.el (gdb-init-1): Check also for tty on a remote
+	host.
+
+2010-07-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package-load-list, package-archives)
+	(package-archive-contents, package-user-dir)
+	(package-directory-list, package--builtins, package-alist)
+	(package-activated-list, package-obsolete-alist): Mark as risky.
+
+2010-07-28  Phil Hagelberg  <phil@evri.com>
+
+	Add support for non-default package repositories.
+	* emacs-lisp/package.el (package-archive-base): Var deleted.
+	(package-archives): New variable.
+	(package-archive-contents): Doc fix.
+	(package-load-descriptor): Do nothing if descriptor file is missing.
+	(package--write-file-no-coding): New function.
+	(package-unpack-single): Use it.
+	(package-archive-id): New function.
+	(package-download-single, package-download-tar)
+	(package-menu-view-commentary): Use it.
+	(package-installed-p): Make second argument optional.
+	(package-read-all-archive-contents): New function.
+	(package-initialize): Use it.
+	(package-read-archive-contents): Add ARCHIVE argument.
+	(package--add-to-archive-contents): New function.
+	(package-install): Don't call package-read-archive-contents.
+	(package--download-one-archive): Store archive file in a
+	subdirectory of package-user-dir.
+	(package-menu-execute): Remove spurious line movement.
+
+2010-07-28  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* cus-start.el (tool-bar-style): Add text-image-horiz.
+
+2010-07-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* progmodes/gud.el (gud-common-init): Check for remoteness of
+	`file', and not of `default-directory'.
+
+2010-07-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-methods): Move hostname to the end in all
+	ssh `tramp-login-args'.
+	(tramp-verbose): Describe verbose level 9.
+	(tramp-open-shell): Check for tty if `tramp-verbose' >= 9.
+	(tramp-open-connection-setup-interactive-shell): Trace stty
+	settings if `tramp-verbose' >= 9.
+	(tramp-handle-start-file-process): Implement tty setting.
+	(Bug#4604, Bug#6360)
+
+	* net/tramp-cmds.el (tramp-bug): Recommend setting of
+	`tramp-verbose' to 9.
+
+2010-07-27  Aaron S. Hawley  <ashawley@burlingtontelecom.net>
+
+	* emacs-lisp/re-builder.el (reb-re-syntax, reb-lisp-mode)
+	(reb-lisp-syntax-p, reb-change-syntax, reb-cook-regexp):
+	Remove references to package `lisp-re' (bug#4369).
+
+2010-07-27  Tom Tromey  <tromey@redhat.com>
+
+	* progmodes/js.el (js-mode):
+	* progmodes/make-mode.el (makefile-mode):
+	* progmodes/simula.el (simula-mode):
+	* progmodes/tcl.el (tcl-mode): Derive from prog-mode.
+
+2010-07-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help-fns.el (find-lisp-object-file-name): Doc fix (bug#6494).
+
+	* cedet/semantic/db-file.el (object-write): Fix typo in docstring.
+
+	* time.el (display-time-day-and-date): Remove spurious * in docstring.
+	(display-time-world-buffer-name, display-time-world-mode-map):
+	Fix typos in docstrings.
+
+2010-07-27  Shyam Karanatt  <shyam@swathanthran.in>  (tiny change)
+
+	* image-mode.el (image-display-size): New function.
+	(image-forward-hscroll, image-next-line, image-eol, image-eob)
+	(image-mode-fit-frame): Use it (Bug#6639).
+
+2010-07-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired.el (dired-buffers-for-dir): Handle list values of
+	dired-directory (Bug#6636).
+
+2010-07-26  Sam Steingold  <sds@gnu.org>
+
+	* mouse.el (mouse-yank-primary, mouse-yank-secondary):
+	Do not call `x-get-selection' the second time, reuse the value.
+
+2010-07-26  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa-mail.el (epa-mail-mode-map): Add alternative key bindings
+	which consist of control chars only.  Suggested by Richard Stallman.
+
+2010-07-25  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa-file.el (epa-file-insert-file-contents): Check if LOCAL-FILE
+	exists before passing an error to find-file-not-found-functions
+	(bug#6723).
+
+2010-07-23  Lukas Huonker  <l.huonker@gmail.com>
+
+	* play/tetris.el (tetris-tty-colors, tetris-x-colors, tetris-blank):
+	Remove leading nil element, adjust values.
+	(tetris-shapes, tetris-shape-scores):
+	Change representation of shapes and remove some redundancy.
+	(tetris-get-shape-cell, tetris-shape-width, tetris-draw-next-shape)
+	(tetris-draw-shape, tetris-erase-shape, tetris-test-shape):
+	Adjust for working with new representation of shapes.
+	(tetris-shape-rotations): New function.
+	(tetris-move-bottom, tetris-move-left, tetris-move-right)
+	(tetris-rotate-prev, tetris-rotate-next):
+	Adjust for working with the new version of tetris-test-shape.
+
+2010-07-23  Markus Triska  <markus.triska@gmx.at>
+
+	* progmodes/ps-mode.el: Use comint (bug#5954).
+	(ps-run-mode-map): Adapt for comint-mode; omit "\r", [return]..
+	(ps-mode-other-newline): Simplify.
+	(ps-run-mode): Derive from comint-mode instead of
+	fundamental-mode, yielding input history etc.
+	(ps-run-start, ps-run-quit, ps-run-clear, ps-run-region)
+	(ps-run-send-string): Adapt for comint-mode.
+	(ps-run-newline): Remove now unneeded function.
+
+2010-07-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-methods): Move hostname to the end in all
+	plink `tramp-login-args'.
+
+2010-07-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-open-shell): New defun.
+	(tramp-find-shell, tramp-open-connection-setup-interactive-shell):
+	Use it.
+
+2010-07-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-file-name-regexp-unified)
+	(tramp-completion-file-name-regexp-unified): On W32 systems, do
+	not regard the volume letter as remote filename.  (Bug#5447)
+
 2010-07-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* custom.el (custom-declare-variable): Give a clearer error message
@@ -15,7 +499,7 @@
 	(sql-linter-login-params): Use it.
 	(sql-sqlite-login-params): Use it; Define "database" parameter as
 	a file name.
-	(sql-sqlite-program): Change to "sqlite3"
+	(sql-sqlite-program): Change to "sqlite3".
 	(sql-comint-sqlite): Make sure database name is complete.
 	(sql-for-each-login): New function.
 	(sql-connect, sql-save-connection): Use it.
@@ -99,7 +583,7 @@
 	(sql-informix-login-params, sql-ingres-login-params)
 	(sql-ms-login-params, sql-postgres-login-params)
 	(sql-interbase-login-params, sql-db2-login-params)
-	(sql-linter-login-params): Add `port' option
+	(sql-linter-login-params): Add `port' option.
 	(sql-get-product-feature): Added NO-INDIRECT parameter.
 	(sql-comint-oracle, sql-comint-sybase)
 	(sql-comint-informix, sql-comint-sqlite, sql-comint-mysql)
@@ -109,7 +593,7 @@
 	sql-comint-*.
 	(sql-product-alist, sql-mode-menu): Renamed as above and
 	:sqli-connect-func to :sqli-comint-func.
-	(sql-connection): New variable
+	(sql-connection): New variable.
 	(sql-interactive-mode): Set it.
 	(sql-connection-alist): New variable.
 	(sql-connect): New function.
@@ -305,7 +789,7 @@
 
 	* epa-file.el (epa-file-error, epa-file--find-file-not-found-function)
 	(epa-file-insert-file-contents): Hack to prevent
-	find-file from opening empty buffer when decryptin failed
+	find-file from opening empty buffer when decryption failed
 	(bug#6568).
 
 2010-07-07  Agustín Martín  <agustin.martin@hispalinux.es>
@@ -3250,7 +3734,7 @@
 	(verilog-pretty-declarations): Support lineup of declarations in
 	port lists.
 	(verilog-skip-backward-comments, verilog-skip-forward-comment-p):
-	fix bug for /* / comments
+	fix bug for /* / comments.
 	(verilog-backward-syntactic-ws, verilog-forward-syntactic-ws):
 	Speed up and simplfy as this is never called with a bound.
 	(verilog-pretty-declarations): Enhance to line up declarations
@@ -5359,7 +5843,7 @@
 
 2010-01-02  Karl Fogel  <kfogel@red-bean.com>
 
-	* bookmark.el (bookmark-bmenu-any-marks): New function
+	* bookmark.el (bookmark-bmenu-any-marks): New function.
 	(bookmark-bmenu-save): Clear buffer modification if no marks.
 
 2010-01-02  Karl Fogel  <kfogel@red-bean.com>

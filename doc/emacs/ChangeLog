@@ -1,3 +1,12 @@
+2010-07-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.texi (Visiting): Add more index entries for
+	large-file-warning-threshold.
+
+2010-07-29  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* frames.texi (Tool Bars): Add doc for tool-bar-position.
+
 2010-06-23  Glenn Morris  <rgm@gnu.org>
 
 	* abbrevs.texi, basic.texi, buffers.texi, building.texi, calendar.texi:
@@ -606,7 +615,7 @@
 
 2009-06-23  Miles Bader  <miles@gnu.org>
 
-	* display.texi (Scrolling): Document `recenter-redisplay'
+	* display.texi (Scrolling): Document `recenter-redisplay'.
 	(Temporary Face Changes): Document `text-scale-set'.
 
 2009-06-21  Chong Yidong  <cyd@stupidchicken.com>
@@ -5704,7 +5713,7 @@
 2005-03-05  Juri Linkov  <juri@jurta.org>
 
 	* cmdargs.texi (Emacs Invocation): Add cindex
-	"invocation (command line arguments)"
+	"invocation (command line arguments)".
 	(Misc X): Add -nbc, --no-blinking-cursor.
 
 2005-03-04  Ulf Jasper  <ulf.jasper@web.de>

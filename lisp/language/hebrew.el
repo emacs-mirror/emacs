@@ -46,14 +46,13 @@
 (define-coding-system-alias 'iso-8859-8 'hebrew-iso-8bit)
 
 ;; These are for Explicit and Implicit directionality information, as
-;; defined in RFC 1556.  We don't yet support directional information
-;; in bidi languages, so these aliases are a lie, especially as far as
-;; iso-8859-8-e is concerned.  FIXME.
+;; defined in RFC 1556.
 (define-coding-system-alias 'iso-8859-8-e 'hebrew-iso-8bit)
 (define-coding-system-alias 'iso-8859-8-i 'hebrew-iso-8bit)
 
 (set-language-info-alist
- "Hebrew" '((charset iso-8859-8)
+ "Hebrew" '((tutorial . "TUTORIAL.he")
+	    (charset iso-8859-8)
 	    (coding-priority hebrew-iso-8bit)
 	    (coding-system hebrew-iso-8bit windows-1255 cp862)
 	    (nonascii-translation . iso-8859-8)
@@ -238,16 +237,23 @@ Bidirectional editing is supported.")))
 	  (setq idx (1+ idx))))))
     gstring))
 
-(let ((pattern1 "[\u05D0-\u05F2][\u0591-\u05BF\u05C1-\u05C5\u05C7]+")
-      (pattern2 "[\u05D0-\u05F2]\u200D[\u0591-\u05BF\u05C1-\u05C5\u05C7]+"))
+(let* ((base "[\u05D0-\u05F2]")
+       (combining "[\u0591-\u05BD\u05BF\u05C1-\u05C2\u05C4-\u05C5\u05C7]+")
+       (pattern1 (concat base combining))
+       (pattern2 (concat base "\u200D" combining)))
   (set-char-table-range
    composition-function-table '(#x591 . #x5C7)
    (list (vector pattern2 3 'hebrew-shape-gstring)
 	 (vector pattern2 2 'hebrew-shape-gstring)
 	 (vector pattern1 1 'hebrew-shape-gstring)
 	 [nil 0 hebrew-shape-gstring]))
+  ;; Exclude non-combining characters.
+  (set-char-table-range
+   composition-function-table #x5BE nil)
   (set-char-table-range
    composition-function-table #x5C0 nil)
+  (set-char-table-range
+   composition-function-table #x5C3 nil)
   (set-char-table-range
    composition-function-table #x5C6 nil))
 

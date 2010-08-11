@@ -1222,10 +1222,11 @@ Buffer name (default foo): @point{}
 @end defun
 
 @defopt read-buffer-function
-This variable specifies how to read buffer names.  For example, if you
-set this variable to @code{iswitchb-read-buffer}, all Emacs commands
-that call @code{read-buffer} to read a buffer name will actually use the
-@code{iswitchb} package to read it.
+This variable specifies how to read buffer names.  The function is
+called with the arguments passed to @code{read-buffer}.  For example,
+if you set this variable to @code{iswitchb-read-buffer}, all Emacs
+commands that call @code{read-buffer} to read a buffer name will
+actually use the @code{iswitchb} package to read it.
 @end defopt
 
 @defopt read-buffer-completion-ignore-case

@@ -44,7 +44,9 @@ extern int fontset_from_font (Lisp_Object);
 extern int fs_query_fontset (Lisp_Object, int);
 EXFUN (Fquery_fontset, 2);
 extern Lisp_Object list_fontsets (struct frame *, Lisp_Object, int);
+extern Lisp_Object find_font_encoding (Lisp_Object);
 
+extern Lisp_Object Qlatin;
 extern Lisp_Object Vuse_default_ascent;
 extern Lisp_Object Vignore_relative_composition;
 extern Lisp_Object Valternate_fontname_alist;

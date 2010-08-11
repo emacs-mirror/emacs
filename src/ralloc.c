@@ -79,7 +79,7 @@ static void r_alloc_init (void);
 /* Declarations for working with the malloc, ralloc, and system breaks.  */
 
 /* Function to set the real break value.  */
-POINTER (*real_morecore) ();
+POINTER (*real_morecore) (long int);
 
 /* The break value, as seen by malloc.  */
 static POINTER virtual_break_value;
@@ -111,7 +111,7 @@ static int extra_bytes;
    from the system.  */
 
 #ifndef SYSTEM_MALLOC
-extern POINTER (*__morecore) ();
+extern POINTER (*__morecore) (long int);
 #endif
 
 
@@ -518,35 +518,6 @@ relocate_blocs (bloc_ptr bloc, heap_ptr heap, POINTER address)
     }
 
   return 1;
-}
-
-/* Reorder the bloc BLOC to go before bloc BEFORE in the doubly linked list.
-   This is necessary if we put the memory of space of BLOC
-   before that of BEFORE.  */
-
-static void
-reorder_bloc (bloc_ptr bloc, bloc_ptr before)
-{
-  bloc_ptr prev, next;
-
-  /* Splice BLOC out from where it is.  */
-  prev = bloc->prev;
-  next = bloc->next;
-
-  if (prev)
-    prev->next = next;
-  if (next)
-    next->prev = prev;
-
-  /* Splice it in before BEFORE.  */
-  prev = before->prev;
-
-  if (prev)
-    prev->next = bloc;
-  bloc->prev = prev;
-
-  before->prev = bloc;
-  bloc->next = before;
 }
 
 /* Update the records of which heaps contain which blocs, starting

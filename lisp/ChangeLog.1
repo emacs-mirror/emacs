@@ -173,7 +173,7 @@
 
 1986-03-15  Bill Rozas  (jinx@prep)
 
-	* scheme.el: (scheme-zap-name) Uses expand-file-name to obtain an
+	* scheme.el (scheme-zap-name): Uses expand-file-name to obtain an
 	absolute pathname.
 
 1986-03-15  Richard M. Stallman  (rms@prep)
@@ -184,7 +184,7 @@
 
 1986-03-13  Bill Rozas  (jinx@prep)
 
-	* scheme.el: (scheme-zap-name) change it back to fromedit.zap
+	* scheme.el (scheme-zap-name): Change it back to fromedit.zap
 	since that is where scheme expects it and it is too much work to
 	change scheme right now.  This interface is obsolete anyway, but
 	some people (athena) still use it.
@@ -384,7 +384,7 @@
 	* info.el (Info-find-node):
 	Fix braino.
 	Also, allow abbreviations for node names.
-	Info-tagify:  insert tags in forward order so that
+	(Info-tagify): Insert tags in forward order so that
 	an abbrev finds the textually first possibility rather than the
 	last.
 
@@ -570,7 +570,7 @@
 
 1986-01-18  Richard M. Stallman  (rms@prep)
 
-	* doctor.el:  Fix typo "symtoms".
+	* doctor.el: Fix typo "symtoms".
 
 1986-01-10  Richard Mlynarik  (mly@prep)
 
@@ -660,7 +660,7 @@
 1985-12-27  Richard Mlynarik  (mly@prep)
 
 	* view.el:
-	Various:  Fix cases of "view" => "View" which were missed.  Damn.
+	Various: Fix cases of "view" => "View" which were missed.  Damn.
 
 1985-12-27  Richard M. Stallman  (rms@prep)
 
@@ -917,7 +917,7 @@
 	* files.el (normal-mode):
 	New command to choose major mode automatically.
 
-	* inc-vers.el:  Renamed from inc-version.el
+	* inc-vers.el: Renamed from inc-version.el
 	for file name length reasons.
 
 	* term/*.el: terminal-specific files found here now.
@@ -1020,8 +1020,6 @@
 	Use value of compilation-error-regexp from current buffer
 	in the *compilation* buffer, thus allowing buffers to have local
 	compilation-error-regexp variables.
-
-	(provide 'compile)
 
 1985-12-05  Richard M. Stallman  (rms@prep)
 
@@ -1139,7 +1137,7 @@
 
 1985-11-27  Richard Mlynarik  (mly@prep)
 
-	* rnews.el: (news-mode, news-set-mode-line):
+	* rnews.el (news-mode, news-set-mode-line):
 	Get rid of news-mode-group-string.
 
 	* rnews.el (news-unsubscribe-internal):
@@ -1495,7 +1493,7 @@
 
 	* mouseinit.el
 	Delete this file.  Put its contents in files
-	term-bg.el, term-bgnv.el, term-bgrv.el, term-bbn.el
+	term-bg.el, term-bgnv.el, term-bgrv.el, term-bbn.el.
 	(Perhaps there should be a subdirectory emacs/lisp/term/ ??)
 
 1985-10-23  Richard M. Stallman  (rms@prep)
@@ -1616,7 +1614,7 @@
 
 1985-10-17  Richard Mlynarik  (mly@mit-prep)
 
-	* rnews.el: (news-save-item-in-file)
+	* rnews.el (news-save-item-in-file):
 	Append to file, rather than overwriting.
 
 	* isearch.el
@@ -1915,7 +1913,7 @@
 
 	* texinfo.el:
 	Change syntax for @xref and @pxref to use braces.
-	Change syntax for @node to read entire line
+	Change syntax for @node to read entire line.
 	(new function texinfo-format-parse-line-args for that).
 	Change paragraph-separate, etc., so only directives without
 	braces separate paragraphs.  When formatting, discard all of the
@@ -2178,8 +2176,8 @@
 	"c-continued-statement-offset" as in the documentation and manual
 
 	* rmail.el (rmail-find):
-	Hack default of last search string, hack reverse search
-	(-ve prefix arg)
+	Hack default of last search string, hack reverse search.
+	(-ve prefix arg):
 	Make "-" be negative-argument
 
 1985-07-23  Richard Mlynarik  (mly@mit-prep)
@@ -2523,10 +2521,10 @@
 	No, this directory is added automatically to the path
 	used by call-process.  It should have worked before. - RMS
 
-	* loaddefs.el:  C-z -> C-c in documentation for mail.
+	* loaddefs.el: C-z -> C-c in documentation for mail.
 	autoload report-emacs-bug from emacsbug.el.
 
-	* emacsbug.el:  New file.  Reports bugs with version info.
+	* emacsbug.el: New file.  Reports bugs with version info.
 
 	* helper.el (Helper-describe-bindings):
 	Make it describe local bindings faster by binding global map to
@@ -2534,7 +2532,7 @@
 
 	* lisp-mode.el: First form of prog1 is distinguished.
 
-	* loaddefs.el: autoload functions from chistory.el and echistory.el.
+	* loaddefs.el: Autoload functions from chistory.el and echistory.el.
 
 	* chistory.el:
 	New file containing two alternatives to `repeat-complex-command'
@@ -2587,10 +2585,10 @@
 
 1985-06-11  K. Shane Hartman  (shane@mit-prep)
 
-	* ebuff-menu.el:  Make M-C-v scroll-other-window instead of
+	* ebuff-menu.el: Make M-C-v scroll-other-window instead of
 	scroll-down.  Make M-v scroll-down.
 
-	* ebuff-menu.el, echistory.el:	Made them use electric.
+	* ebuff-menu.el, echistory.el: Made them use electric.
 
 	* electric.el:
 	New module for packages that retain control until some event
@@ -2602,7 +2600,7 @@
 	Made it use helper.el.  Remove kill-ring-save stuff pending use of
 	new winning prin1-to-string for minibuffer hacking.
 
-	* view.el:  Made it use helper.el.
+	* view.el: Made it use helper.el.
 
 	* helper.el:
 	New module for packages which want to do help without giving up
@@ -2804,7 +2802,7 @@
 
 1985-06-01  K. Shane Hartman  (shane@mit-prep)
 
-	* loaddefs.el:  Update documentation for rmail.
+	* loaddefs.el: Update documentation for rmail.
 
 	* lisp-mode.el (calculate-lisp-indent):
 	Asked (fboundp 'lisp-indent-hook).  Right question is boundp.
@@ -2858,7 +2856,7 @@
 	Skip strings, comments, char constants.
 	Find symbols even if they have no letters in them.
 
-	* mlsupport.el:  Insert symbol-value call in use-local-map.
+	* mlsupport.el: Insert symbol-value call in use-local-map.
 	Handle key codes > 127 in local-bind-to-key.
 	Write ml-modify-syntax-entry.
 
@@ -3097,7 +3095,7 @@
 
 	* sendmail.el, loaddefs.el
 	added send-mail-function; initially sendmail-send-it
-	(also, mail-yank-ignored-headers had a typo)
+	(also, mail-yank-ignored-headers had a typo).
 
 	* rmail.el (rmail-get-new-mail, convert-to-babyl-format, ...)
 	* loaddefs.el:
@@ -3167,7 +3165,7 @@
 1985-05-16  K. Shane Hartman  (shane@mit-prep)
 
 	* dired.el: Put dired-rename-file, dired-copy file-on keys.  Make
-	them change buffer if appropriate.  Put	dired-mark-backup-files,
+	them change buffer if appropriate.  Put dired-mark-backup-files,
 	dired-mark-temp-files on keys.  Eliminate possibility of looping
 	at last line in dired-repeat-over-filenames.
 
@@ -3196,53 +3194,56 @@
 	replace loop so that replacing continues after moving back to
 	previous.
 
-	* add-log.el: add prefix arg to add-change-log-entry so will
+	* add-log.el: Add prefix arg to add-change-log-entry so will
 	prompt for information if desired.  If there is an entry for today,
 	make sure login-name is same before using it, else make new entry.
 	Use auto-fill-mode.
 
 1985-05-12  Richard M. Stallman  (rms@mit-prep)
 
-	* lisp-mode.el: defined lisp-mode-commands, lisp-mode-variables.
+	* lisp-mode.el: Defined lisp-mode-commands, lisp-mode-variables.
 	Added external-lisp-mode.
 	Made doc strings mention mode hook variables.
 
-	* shell.el: defined functions `lisp' and `inferior-lisp-mode'.
+	* shell.el: Defined functions `lisp' and `inferior-lisp-mode'.
 	Renamed shell-send-defun... to lisp-send-defun...
 	and made them use process "lisp", buffer *lisp*.
 
-	* text-mode.el: made indented-text-mode not call text-mode.
+	* text-mode.el: Made indented-text-mode not call text-mode.
 	Made doc strings mention mode hook variables.
 
 	* c-mode.el: Made doc strings mention mode hook variables.
 
-	* add-log.el
+	* add-log.el:
 	Change format used for change log entries.
 	Select indented-text-mode for the change log file.
 
 1985-05-12  K. Shane Hartman  (shane@mit-ajax)
-	simple.el: suppress matching close paren if preceded
+
+	* simple.el: Suppress matching close paren if preceded
 		by char syntax \.
-	mim-mode.el: flush private paren blinker in favor of default.
-	add-log.el: change mode-string to mode-name so reflected in
+	* mim-mode.el: Flush private paren blinker in favor of default.
+	* add-log.el: Change mode-string to mode-name so reflected in
 		mode-line.  change \\W to \\sW when looking for place to add.
 
 1985-05-12  Richard M. Stallman  (rms@mit-prep)
-	simple.el: modified open-line to insert newlines before
+
+	* simple.el: Modified open-line to insert newlines before
 		an existing one before dot.  This makes better redisplay.
-	dired.el: Installed Shane's changes that allow user to choose
+	* dired.el: Installed Shane's changes that allow user to choose
 		switches to use.
 
 1985-05-11  Richard M. Stallman  (rms@mit-prep)
-	rmail.el: if given file name as argument,
+
+	* rmail.el: If given file name as argument,
 		correctly displays one message of that file
 		but does not try to get new mail.
-	simple.el: Fix what-line bug: line # too high by 1 if not at bol.
+	* simple.el: Fix what-line bug: line # too high by 1 if not at bol.
 		Put in blink-matching-paren-distance,
 		and check for wrong kinds of parens matching.
-	time.el: Put in display-time-day-and-date flag,
+	* time.el: Put in display-time-day-and-date flag,
 		to display day and date in addition to the time.
-	startup.el: Call lisp-interaction-mode-hook if defined.
+	* startup.el: Call lisp-interaction-mode-hook if defined.
 		Set current buffer variables from defaults
 		in case user's init file has changed them.
 

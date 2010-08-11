@@ -1234,18 +1234,12 @@ This is in addition to, but in preference to, the primary selection."
 
 (defun x-select-text (text &optional push)
   "Select TEXT, a string, according to the window system.
-
-On X, put TEXT in the primary X selection.  For backward
-compatibility with older X applications, set the value of X cut
-buffer 0 as well, and if the optional argument PUSH is non-nil,
-rotate the cut buffers.  If `x-select-enable-clipboard' is
-non-nil, copy the text to the X clipboard as well.
-
-On Windows, make TEXT the current selection.  If
-`x-select-enable-clipboard' is non-nil, copy the text to the
-clipboard as well.  The argument PUSH is ignored.
-
-On Nextstep, put TEXT in the pasteboard; PUSH is ignored."
+If `x-select-enable-clipboard' is non-nil, copy TEXT to the
+clipboard.  If `x-select-enable-primary' is non-nil, put TEXT in
+the primary selection.  For backward compatibility with older X
+applications, this function also sets the value of X cut buffer
+0, and, if the optional argument PUSH is non-nil, rotates the cut
+buffers."
   ;; With multi-tty, this function may be called from a tty frame.
   (when (eq (framep (selected-frame)) 'x)
     ;; Don't send the cut buffer too much text.

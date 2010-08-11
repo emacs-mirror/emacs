@@ -786,25 +786,6 @@ DEFUN ("w32-default-color-map", Fw32_default_color_map, Sw32_default_color_map,
 }
 
 static Lisp_Object
-w32_to_x_color (Lisp_Object rgb)
-{
-  Lisp_Object color;
-
-  CHECK_NUMBER (rgb);
-
-  BLOCK_INPUT;
-
-  color = Frassq (rgb, Vw32_color_map);
-
-  UNBLOCK_INPUT;
-
-  if (!NILP (color))
-    return (Fcar (color));
-  else
-    return Qnil;
-}
-
-static Lisp_Object
 w32_color_map_lookup (char *colorname)
 {
   Lisp_Object tail, ret = Qnil;
@@ -7072,7 +7053,7 @@ or when you set the mouse color.  */);
 
   DEFVAR_LISP ("x-max-tooltip-size", &Vx_max_tooltip_size,
 	       doc: /* Maximum size for tooltips.
-Value is a pair (COLUMNS . ROWS). Text larger than this is clipped.  */);
+Value is a pair (COLUMNS . ROWS).  Text larger than this is clipped.  */);
   Vx_max_tooltip_size = Fcons (make_number (80), make_number (40));
 
   DEFVAR_LISP ("x-no-window-manager", &Vx_no_window_manager,

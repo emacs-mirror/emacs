@@ -18,10 +18,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-/* Define WORDS_BIG_ENDIAN if lowest-numbered byte in a word
-   is the most significant byte.  */
-#define WORDS_BIG_ENDIAN
-
 /* Now define a symbol for the cpu type, if your compiler
    does not define it automatically.
    Ones defined so far include m68k and many others */
@@ -46,12 +42,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    Otherwise Emacs assumes that text space precedes data space,
    numerically.  */
 #define VIRT_ADDR_VARIES
-
-/* Define NO_REMAP if memory segmentation makes it not work well
-   to change the boundary between the text section and data section
-   when Emacs is dumped.  If you define this, the preloaded Lisp
-   code will not be sharable; but that's better than failing completely.  */
-#define NO_REMAP
 
 /* After adding support for a new machine, modify the large case
    statement in configure.in to recognize reasonable

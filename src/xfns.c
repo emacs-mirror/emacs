@@ -101,6 +101,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <Xm/FileSB.h>
 #endif
 
+#ifdef USE_LUCID
+#include "../lwlib/xlwmenu.h"
+#endif
+
 #if !defined(NO_EDITRES)
 #define HACK_EDITRES
 extern void _XEditResCheckMessages ();
@@ -157,6 +161,10 @@ int x_gtk_file_dialog_help_text;
 
 int x_gtk_whole_detached_tool_bar;
 
+/* If non-zero, use Gtk+ tooltips.  */
+
+static int x_gtk_use_system_tooltips;
+
 /* The background and shape of the mouse pointer, and shape when not
    over text or in the modeline.  */
 
@@ -193,19 +201,6 @@ Lisp_Object Qsuppress_icon;
 Lisp_Object Qundefined_color;
 Lisp_Object Qcompound_text, Qcancel_timer;
 Lisp_Object Qfont_param;
-
-/* In dispnew.c */
-
-extern Lisp_Object Vwindow_system_version;
-
-/* In editfns.c */
-
-extern Lisp_Object Vsystem_name;
-
-/* The below are defined in frame.c.  */
-
-extern Lisp_Object Vmenu_bar_mode, Vtool_bar_mode;
-extern Lisp_Object Qtooltip;
 
 #if GLYPH_DEBUG
 int image_cache_refcount, dpyinfo_refcount;
@@ -506,7 +501,7 @@ void x_set_scroll_bar_background (struct frame *, Lisp_Object,
 static Lisp_Object x_default_scroll_bar_color_parameter (struct frame *,
                                                          Lisp_Object,
                                                          Lisp_Object,
-                                                         char *, char *,
+                                                         const char *, const char *,
                                                          int);
 
 
@@ -650,7 +645,8 @@ gamma_correct (struct frame *f, XColor *color)
    no color could be allocated.  */
 
 int
-x_defined_color (struct frame *f, char *color_name, XColor *color, int alloc_p)
+x_defined_color (struct frame *f, const char *color_name,
+		 XColor *color, int alloc_p)
 {
   int success_p;
   Display *dpy = FRAME_X_DISPLAY (f);
@@ -710,6 +706,22 @@ x_set_wait_for_wm (struct frame *f, Lisp_Object new_value, Lisp_Object old_value
   f->output_data.x->wait_for_wm = !NILP (new_value);
 }
 
+static void
+x_set_tool_bar_position (struct frame *f,
+                         Lisp_Object new_value,
+                         Lisp_Object old_value)
+{
+  if (! EQ (new_value, Qleft) && ! EQ (new_value, Qright)
+      && ! EQ (new_value, Qbottom) && ! EQ (new_value, Qtop))
+    return;
+  if (EQ (new_value, old_value)) return;
+
+#ifdef USE_GTK
+  if (xg_change_toolbar_position (f, new_value)) 
+    f->tool_bar_position = new_value;
+#endif
+}
+
 #ifdef USE_GTK
 
 /* Set icon from FILE for frame F.  By using GTK functions the icon
@@ -750,10 +762,10 @@ xg_set_icon (FRAME_PTR f, Lisp_Object file)
 }
 
 int
-xg_set_icon_from_xpm_data (FRAME_PTR f, char **data)
+xg_set_icon_from_xpm_data (FRAME_PTR f, const char **data)
 {
   int result = 0;
-  GdkPixbuf *pixbuf = gdk_pixbuf_new_from_xpm_data ((const char **) data);
+  GdkPixbuf *pixbuf = gdk_pixbuf_new_from_xpm_data (data);
 
   if (!pixbuf)
     return 0;
@@ -991,7 +1003,7 @@ x_set_mouse_color (struct frame *f, Lisp_Object arg, Lisp_Object oldval)
 
   if (FRAME_X_DISPLAY_INFO (f)->invisible_cursor == 0)
     FRAME_X_DISPLAY_INFO (f)->invisible_cursor = make_invisible_cursor (f);
-  
+
   if (cursor != x->text_cursor
       && x->text_cursor != 0)
     XFreeCursor (dpy, x->text_cursor);
@@ -1755,7 +1767,7 @@ x_set_scroll_bar_default_width (struct frame *f)
 static Lisp_Object
 x_default_scroll_bar_color_parameter (struct frame *f,
 				      Lisp_Object alist, Lisp_Object prop,
-				      char *xprop, char *xclass,
+				      const char *xprop, const char *xclass,
 				      int foreground_p)
 {
   struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
@@ -1896,12 +1908,12 @@ static XIMStyle supported_xim_styles[] =
 
 /* Create an X fontset on frame F with base font name BASE_FONTNAME.  */
 
-char xic_defaut_fontset[] = "-*-*-*-r-normal--14-*-*-*-*-*-*-*";
+const char xic_defaut_fontset[] = "-*-*-*-r-normal--14-*-*-*-*-*-*-*";
 
 /* Create an Xt fontset spec from the name of a base font.
    If `motif' is True use the Motif syntax.  */
 char *
-xic_create_fontsetname (char *base_fontname, int motif)
+xic_create_fontsetname (const char *base_fontname, int motif)
 {
   const char *sep = motif ? ";" : ",";
   char *fontsetname;
@@ -1921,7 +1933,7 @@ xic_create_fontsetname (char *base_fontname, int motif)
 	 - the base font.
 	 - the base font where the charset spec is replaced by -*-*.
 	 - the same but with the family also replaced with -*-*-.  */
-      char *p = base_fontname;
+      const char *p = base_fontname;
       int i;
 
       for (i = 0; *p; p++)
@@ -1940,13 +1952,13 @@ xic_create_fontsetname (char *base_fontname, int motif)
       else
 	{
 	  int len;
-	  char *p1 = NULL, *p2 = NULL, *p3 = NULL;
+	  const char *p1 = NULL, *p2 = NULL, *p3 = NULL;
 	  char *font_allcs = NULL;
 	  char *font_allfamilies = NULL;
 	  char *font_all = NULL;
-	  char *allcs = "*-*-*-*-*-*-*";
-	  char *allfamilies = "-*-*-";
-	  char *all = "*-*-*-*-";
+	  const char *allcs = "*-*-*-*-*-*-*";
+	  const char *allfamilies = "-*-*-";
+	  const char *all = "*-*-*-*-";
 	  char *base;
 
 	  for (i = 0, p = base_fontname; i < 8; p++)
@@ -2075,7 +2087,7 @@ xic_create_xfontset (struct frame *f)
       char **missing_list;
       int missing_count;
       char *def_string;
-      char *xlfd_format = "-*-*-medium-r-normal--%d-*-*-*-*-*";
+      const char *xlfd_format = "-*-*-medium-r-normal--%d-*-*-*-*-*";
 
       sprintf (buf, xlfd_format, pixel_size);
       missing_list = NULL;
@@ -2126,7 +2138,7 @@ xic_create_xfontset (struct frame *f)
 	}
       if (! xfs)
 	{
-	  char *last_resort = "-*-*-*-r-normal--*-*-*-*-*-*";
+	  const char *last_resort = "-*-*-*-r-normal--*-*-*-*-*-*";
 
 	  missing_list = NULL;
 	  xfs = XCreateFontSet (FRAME_X_DISPLAY (f), last_resort,
@@ -2339,7 +2351,7 @@ xic_set_statusarea (struct frame *f)
   area.x = FRAME_PIXEL_WIDTH (f) - area.width - FRAME_INTERNAL_BORDER_WIDTH (f);
   area.y = (FRAME_PIXEL_HEIGHT (f) - area.height
 	    - FRAME_MENUBAR_HEIGHT (f)
-	    - FRAME_TOOLBAR_HEIGHT (f)
+	    - FRAME_TOOLBAR_TOP_HEIGHT (f)
             - FRAME_INTERNAL_BORDER_WIDTH (f));
   XFree (needed);
 
@@ -2353,7 +2365,7 @@ xic_set_statusarea (struct frame *f)
    BASE_FONTNAME.  Called when a new Emacs fontset is chosen.  */
 
 void
-xic_set_xfontset (struct frame *f, char *base_fontname)
+xic_set_xfontset (struct frame *f, const char *base_fontname)
 {
   XVaNestedList attr;
   XFontSet xfs;
@@ -2999,7 +3011,7 @@ x_default_font_parameter (struct frame *f, Lisp_Object parms)
 
   if (! FONTP (font) && ! STRINGP (font))
     {
-      char *names[]
+      const char *names[]
 	= {
 #ifdef HAVE_XFT
 	    /* This will find the normal Xft font.  */
@@ -3728,7 +3740,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
   (Lisp_Object terminal)
 {
   struct x_display_info *dpyinfo = check_x_display_info (terminal);
-  char *vendor = ServerVendor (dpyinfo->display);
+  const char *vendor = ServerVendor (dpyinfo->display);
 
   if (! vendor) vendor = "";
   return build_string (vendor);
@@ -3922,7 +3934,7 @@ x_screen_planes (register struct frame *f)
 
 static struct visual_class
 {
-  char *name;
+  const char *name;
   int class;
 }
 visual_classes[] =
@@ -4589,7 +4601,9 @@ unwind_create_tip_frame (Lisp_Object frame)
    when this happens.  */
 
 static Lisp_Object
-x_create_tip_frame (struct x_display_info *dpyinfo, Lisp_Object parms, Lisp_Object text)
+x_create_tip_frame (struct x_display_info *dpyinfo,
+                    Lisp_Object parms,
+                    Lisp_Object text)
 {
   struct frame *f;
   Lisp_Object frame, tem;
@@ -5016,6 +5030,27 @@ Text larger than the specified size is clipped.  */)
   else
     CHECK_NUMBER (dy);
 
+#ifdef USE_GTK
+  if (x_gtk_use_system_tooltips)
+    {
+      int ok; 
+
+      /* Hide a previous tip, if any.  */
+      Fx_hide_tip ();
+
+      BLOCK_INPUT;
+      if ((ok = xg_prepare_tooltip (f, string, &width, &height)) != 0)
+        {
+	  compute_tip_xy (f, parms, dx, dy, width, height, &root_x, &root_y);
+          xg_show_tooltip (f, root_x, root_y);
+          /* This is used in Fx_hide_tip.  */
+          XSETFRAME (tip_frame, f);
+        }
+      UNBLOCK_INPUT;
+      if (ok) goto start_timer;
+    }
+#endif /* USE_GTK */
+
   if (NILP (last_show_tip_args))
     last_show_tip_args = Fmake_vector (make_number (3), Qnil);
 
@@ -5176,6 +5211,7 @@ Value is t if tooltip was open, nil otherwise.  */)
   int count;
   Lisp_Object deleted, frame, timer;
   struct gcpro gcpro1, gcpro2;
+  struct frame *f;
 
   /* Return quickly if nothing to do.  */
   if (NILP (tip_timer) && NILP (tip_frame))
@@ -5193,6 +5229,14 @@ Value is t if tooltip was open, nil otherwise.  */)
   if (!NILP (timer))
     call1 (Qcancel_timer, timer);
 
+#ifdef USE_GTK
+  /* When using system tooltip, tip_frame is the Emacs frame on which
+     the tip is shown.  */
+  f = XFRAME (frame);
+  if (xg_hide_tooltip (f))
+    frame = Qnil;
+#endif
+
   if (FRAMEP (frame))
     {
       delete_frame (frame, Qnil);
@@ -5203,9 +5247,9 @@ Value is t if tooltip was open, nil otherwise.  */)
 	 redisplay procedure is not called when a tip frame over menu
 	 items is unmapped.  Redisplay the menu manually...  */
       {
-	struct frame *f = SELECTED_FRAME ();
-	Widget w = f->output_data.x->menubar_widget;
-        extern void xlwmenu_redisplay (Widget);
+        Widget w;
+	f = SELECTED_FRAME ();
+	w = f->output_data.x->menubar_widget;
 
 	if (!DoesSaveUnders (FRAME_X_DISPLAY_INFO (f)->screen)
 	    && w != NULL)
@@ -5235,9 +5279,6 @@ DEFUN ("x-uses-old-gtk-dialog", Fx_uses_old_gtk_dialog,
   (void)
 {
 #ifdef USE_GTK
-  extern int use_dialog_box;
-  extern int use_file_dialog;
-
   if (use_dialog_box
       && use_file_dialog
       && have_menus_p ()
@@ -5308,7 +5349,6 @@ or directory must exist.  ONLY-DIR-P is ignored."  */)
   Widget dialog, text, help;
   Arg al[10];
   int ac = 0;
-  extern XtAppContext Xt_app_con;
   XmString dir_xmstring, pattern_xmstring;
   int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5, gcpro6;
@@ -5558,7 +5598,7 @@ If FRAME is omitted or nil, it defaults to the selected frame. */)
   font_param = Ffont_get (font, intern (":name"));
   if (STRINGP (font_param))
     default_name = xstrdup (SDATA (font_param));
-  else 
+  else
     {
       font_param = Fframe_parameter (frame, Qfont_param);
       if (STRINGP (font_param))
@@ -5569,7 +5609,7 @@ If FRAME is omitted or nil, it defaults to the selected frame. */)
     default_name = xstrdup (x_last_font_name);
 
   /* Convert fontconfig names to Gtk names, i.e. remove - before number */
-  if (default_name) 
+  if (default_name)
     {
       char *p = strrchr (default_name, '-');
       if (p)
@@ -5747,6 +5787,7 @@ frame_parm_handler x_frame_parm_handlers[] =
   x_set_font_backend,
   x_set_alpha,
   x_set_sticky,
+  x_set_tool_bar_position,
 };
 
 void
@@ -5829,8 +5870,8 @@ or when you set the mouse color.  */);
   Vx_cursor_fore_pixel = Qnil;
 
   DEFVAR_LISP ("x-max-tooltip-size", &Vx_max_tooltip_size,
-    doc: /* Maximum size for tooltips.  Value is a pair (COLUMNS . ROWS).
-Text larger than this is clipped.  */);
+    doc: /* Maximum size for tooltips.
+Value is a pair (COLUMNS . ROWS).  Text larger than this is clipped.  */);
   Vx_max_tooltip_size = Fcons (make_number (80), make_number (40));
 
   DEFVAR_LISP ("x-no-window-manager", &Vx_no_window_manager,
@@ -5877,6 +5918,12 @@ The default is to just show an arrow and pressing on that arrow shows
 the tool bar buttons.  */);
   x_gtk_whole_detached_tool_bar = 0;
 
+  DEFVAR_BOOL ("x-gtk-use-system-tooltips", &x_gtk_use_system_tooltips,
+    doc: /* *If non-nil with a Gtk+ built Emacs, the Gtk+ toolip is used.
+Otherwise use Emacs own tooltip implementation.
+When using Gtk+ tooltips, the tooltip face is not used.  */);
+  x_gtk_use_system_tooltips = 1;
+
   Fprovide (intern_c_string ("x"), Qnil);
 
 #ifdef USE_X_TOOLKIT
@@ -5897,6 +5944,7 @@ the tool bar buttons.  */);
      accepts --with-x-toolkit=gtk.  */
   Fprovide (intern_c_string ("x-toolkit"), Qnil);
   Fprovide (intern_c_string ("gtk"), Qnil);
+  Fprovide (intern_c_string ("move-toolbar"), Qnil);
 
   DEFVAR_LISP ("gtk-version-string", &Vgtk_version_string,
                doc: /* Version info for GTK+.  */);

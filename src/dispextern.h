@@ -2050,7 +2050,7 @@ struct it
   /* C string to iterate over.  Non-null means get characters from
      this string, otherwise characters are read from current_buffer
      or it->string.  */
-  unsigned char *s;
+  const unsigned char *s;
 
   /* Number of characters in the string (s, or it->string) we iterate
      over.  */
@@ -2430,7 +2430,6 @@ struct it
 
 #define PRODUCE_GLYPHS(IT)                              \
   do {                                                  \
-    extern int inhibit_free_realized_faces;             \
     if ((IT)->glyph_row != NULL && (IT)->bidi_p)	\
       {							\
         if ((IT)->bidi_it.paragraph_dir == R2L)		\
@@ -2951,7 +2950,6 @@ extern Lisp_Object Qtool_bar;
 extern Lisp_Object Vshow_trailing_whitespace;
 extern int mode_line_in_non_selected_windows;
 extern int redisplaying_p;
-extern void add_to_log (char *, Lisp_Object, Lisp_Object);
 extern int help_echo_showing_p;
 extern int current_mode_line_height, current_header_line_height;
 extern Lisp_Object help_echo_string, help_echo_window;
@@ -3032,6 +3030,7 @@ extern int x_intersect_rectangles (XRectangle *, XRectangle *,
 
 /* Defined in fringe.c */
 
+extern Lisp_Object Voverflow_newline_into_fringe;
 int lookup_fringe_bitmap (Lisp_Object);
 void draw_fringe_bitmap (struct window *, struct glyph_row *, int);
 void draw_row_fringe_bitmaps (struct window *, struct glyph_row *);
@@ -3243,15 +3242,9 @@ void clear_glyph_row (struct glyph_row *);
 void prepare_desired_row (struct glyph_row *);
 int line_hash_code (struct glyph_row *);
 void set_window_update_flags (struct window *, int);
-void redraw_frame (struct frame *);
-void redraw_garbaged_frames (void);
-int scroll_cost (struct frame *, int, int, int);
-int update_frame (struct frame *, int, int);
 void update_single_window (struct window *, int);
-int scrolling (struct frame *);
 void do_pending_window_change (int);
 void change_frame_size (struct frame *, int, int, int, int, int);
-void bitch_at_user (void);
 void init_display (void);
 void syms_of_display (void);
 extern Lisp_Object Qredisplay_dont_pause;
@@ -3282,18 +3275,18 @@ extern void tty_set_terminal_modes (struct terminal *);
 extern void tty_reset_terminal_modes (struct terminal *);
 extern void tty_turn_off_insert (struct tty_display_info *);
 extern void tty_turn_off_highlight (struct tty_display_info *);
-extern int string_cost (char *);
-extern int per_line_cost (char *);
+extern int string_cost (const char *);
+extern int per_line_cost (const char *);
 extern void calculate_costs (struct frame *);
 extern void produce_glyphs (struct it *);
 extern void produce_special_glyphs (struct it *, enum display_element_type);
 extern int tty_capable_p (struct tty_display_info *, unsigned, unsigned long, unsigned long);
 extern void set_tty_color_mode (struct tty_display_info *, struct frame *);
 extern struct terminal *get_tty_terminal (Lisp_Object, int);
-extern struct terminal *get_named_tty (char *);
+extern struct terminal *get_named_tty (const char *);
 EXFUN (Ftty_type, 1);
 extern void create_tty_output (struct frame *);
-extern struct terminal *init_tty (char *, char *, int);
+extern struct terminal *init_tty (const char *, const char *, int);
 
 
 /* Defined in scroll.c */
@@ -3322,18 +3315,18 @@ enum resource_types
 };
 
 extern Lisp_Object x_get_arg (Display_Info *, Lisp_Object,
-                              Lisp_Object, char *, char *class,
+                              Lisp_Object, const char *, const char *class,
                               enum resource_types);
 extern Lisp_Object x_frame_get_arg (struct frame *, Lisp_Object,
-                                    Lisp_Object, char *, char *,
+                                    Lisp_Object, const char *, const char *,
                                     enum resource_types);
-extern Lisp_Object x_frame_get_and_record_arg (
-                                               struct frame *, Lisp_Object,
-                                               Lisp_Object, char *, char *,
+extern Lisp_Object x_frame_get_and_record_arg (struct frame *, Lisp_Object,
+                                               Lisp_Object,
+					       const char *, const char *,
                                                enum resource_types);
 extern Lisp_Object x_default_parameter (struct frame *, Lisp_Object,
                                         Lisp_Object, Lisp_Object,
-                                        char *, char *,
+                                        const char *, const char *,
                                         enum resource_types);
 
 #endif /* HAVE_WINDOW_SYSTEM */

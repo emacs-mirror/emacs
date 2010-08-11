@@ -51,13 +51,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "nsterm.h"
 #endif
 
-
 Lisp_Object Qwindowp, Qwindow_live_p, Qwindow_configuration_p;
 Lisp_Object Qdisplay_buffer;
 Lisp_Object Qscroll_up, Qscroll_down, Qscroll_command;
 Lisp_Object Qwindow_size_fixed;
-
-extern Lisp_Object Qleft_margin, Qright_margin;
 
 static int displayed_window_lines (struct window *);
 static struct window *decode_window (Lisp_Object);
@@ -191,16 +188,11 @@ static int window_scroll_preserve_vpos;
 static int inhibit_frame_unsplittable;
 #endif /* 0 */
 
-extern EMACS_INT scroll_margin;
-
-extern Lisp_Object Qwindow_scroll_functions, Vwindow_scroll_functions;
-
 /* If non-nil, then the `recenter' command with a nil argument
    the entire frame to be redrawn; the special value `tty' causes the
    frame to be redrawn only if it is a tty frame.  */
 
 static Lisp_Object Vrecenter_redisplay;
-extern Lisp_Object Qtty;
 
 
 DEFUN ("windowp", Fwindowp, Swindowp, 1, 1, 0,
@@ -508,7 +500,10 @@ DEFUN ("window-height", Fwindow_height, Swindow_height, 0, 1, 0,
        doc: /* Return the number of lines in WINDOW.
 WINDOW defaults to the selected window.
 
-The return value includes WINDOW's mode line and header line, if any.  */)
+The return value includes WINDOW's mode line and header line, if any.
+
+Note: The function does not take into account the value of `line-spacing'
+when calculating the number of lines in WINDOW.  */)
   (Lisp_Object window)
 {
   return decode_any_window (window)->total_lines;
@@ -642,13 +637,18 @@ calc_absolute_offset(struct window *w, int *add_x, int *add_y)
 #ifdef FRAME_MENUBAR_HEIGHT
   *add_y += FRAME_MENUBAR_HEIGHT (f);
 #endif
-#ifdef FRAME_TOOLBAR_HEIGHT
+#ifdef FRAME_TOOLBAR_TOP_HEIGHT
+  *add_y += FRAME_TOOLBAR_TOP_HEIGHT (f);
+#elif FRAME_TOOLBAR_HEIGHT
   *add_y += FRAME_TOOLBAR_HEIGHT (f);
 #endif
 #ifdef FRAME_NS_TITLEBAR_HEIGHT
   *add_y += FRAME_NS_TITLEBAR_HEIGHT (f);
 #endif
   *add_x = f->left_pos;
+#ifdef FRAME_TOOLBAR_LEFT_WIDTH
+  *add_x += FRAME_TOOLBAR_LEFT_WIDTH (f);
+#endif
 }
 
 DEFUN ("window-absolute-pixel-edges", Fwindow_absolute_pixel_edges,

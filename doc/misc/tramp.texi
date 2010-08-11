@@ -3471,7 +3471,7 @@ it has seen so far.
 
 This is a performance degradation, because the lost file attributes
 must be recomputed, when needed again.  In cases the caller of
-@code{process-file} knows that there are file attribute changes, it
+@code{process-file} knows that there are no file attribute changes, it
 shall let-bind the variable @code{process-file-side-effects} to
 @code{nil}.  @value{tramp} wouldn't flush the file attributes cache then.
 
@@ -3479,6 +3479,25 @@ shall let-bind the variable @code{process-file-side-effects} to
 (let (process-file-side-effects)
   ...)
 @end lisp
+
+For asynchronous processes, @value{tramp} flushes the file attributes
+cache via a process sentinel.  If the caller of
+@code{start-file-process} knows that there are no file attribute
+changes, it shall set the process sentinel to @code{nil}.  In case the
+caller defines an own process sentinel, @value{tramp}'s process
+sentinel is overwritten.  The caller can still flush the file
+attributes cache in its process sentinel with this code:
+
+@lisp
+(unless (memq (process-status proc) '(run open))
+  (dired-uncache remote-directory))
+@end lisp
+
+@code{remote-directory} shall be the root directory, where file
+attribute changes can happen during the process lifetime.
+@value{tramp} traverses all subdirectories, starting at this
+directory.  Often, it is sufficient to use @code{default-directory} of
+the process buffer as root directory.
 @end ifset
 
 
@@ -3501,6 +3520,7 @@ The verbosity levels are
 @*@indent @w{ 6}  sent and received strings
 @*@indent @w{ 7}  file caching
 @*@indent @w{ 8}  connection properties
+@*@indent @w{ 9}  test commands
 @*@indent @w{10}  traces (huge)
 
 When @code{tramp-verbose} is greater than or equal to 4, the messages

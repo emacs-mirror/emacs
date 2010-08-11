@@ -56,12 +56,12 @@
     (setq string (replace-match "&quot;" t nil string)))
   string)
 
-(defun package--make-rss-entry (title text)
+(defun package--make-rss-entry (title text archive-url)
   (let ((date-string (format-time-string "%a, %d %B %Y %T %z")))
     (concat "<item>\n"
 	    "<title>" (package--encode title) "</title>\n"
 	    ;; FIXME: should have a link in the web page.
-	    "<link>" package-archive-base "news.html</link>\n"
+	    "<link>" archive-url "news.html</link>\n"
 	    "<description>" (package--encode text) "</description>\n"
 	    "<pubDate>" date-string "</pubDate>\n"
 	    "</item>\n")))
@@ -85,7 +85,7 @@
 	(unless old-buffer
 	  (kill-buffer (current-buffer)))))))
 
-(defun package-maint-add-news-item (title description)
+(defun package-maint-add-news-item (title description archive-url)
   "Add a news item to the ELPA web pages.
 TITLE is the title of the news item.
 DESCRIPTION is the text of the news item.
@@ -93,21 +93,28 @@ You need administrative access to ELPA to use this."
   (interactive "sTitle: \nsText: ")
   (package--update-file (concat package-archive-upload-base "elpa.rss")
 			"<description>"
-			(package--make-rss-entry title description))
+			(package--make-rss-entry title description archive-url))
   (package--update-file (concat package-archive-upload-base "news.html")
 			"New entries go here"
 			(package--make-html-entry title description)))
 
-(defun package--update-news (package version description)
+(defun package--update-news (package version description archive-url)
   "Update the ELPA web pages when a package is uploaded."
   (package-maint-add-news-item (concat package " version " version)
-			       description))
+			       description
+			       archive-url))
 
-(defun package-upload-buffer-internal (pkg-info extension)
+(defun package-upload-buffer-internal (pkg-info extension &optional archive-url)
   "Upload a package whose contents are in the current buffer.
 PKG-INFO is the package info, see `package-buffer-info'.
 EXTENSION is the file extension, a string.  It can be either
-\"el\" or \"tar\"."
+\"el\" or \"tar\".
+
+Optional arg ARCHIVE-URL is the URL of the destination archive.
+If nil, the \"gnu\" archive is used."
+  (unless archive-url
+    (or (setq archive-url (cdr (assoc "gnu" package-archives)))
+	(error "No destination URL")))
   (save-excursion
     (save-restriction
       (let* ((file-type (cond
@@ -122,12 +129,12 @@ EXTENSION is the file extension, a string.  It can be either
 		     (aref pkg-info 2)))
 	     (pkg-version (aref pkg-info 3))
 	     (commentary (aref pkg-info 4))
-	     (split-version (package-version-split pkg-version))
+	     (split-version (version-to-list pkg-version))
 	     (pkg-buffer (current-buffer))
 
 	     ;; Download latest archive-contents.
 	     (buffer (url-retrieve-synchronously
-		      (concat package-archive-base "archive-contents"))))
+		      (concat archive-url "archive-contents"))))
 
 	;; Parse archive-contents.
 	(set-buffer buffer)
@@ -143,9 +150,8 @@ EXTENSION is the file extension, a string.  It can be either
 	      (error "Unrecognized archive version %d" (car contents)))
 	  (let ((elt (assq pkg-name (cdr contents))))
 	    (if elt
-		(if (package-version-compare split-version
-					     (package-desc-vers (cdr elt))
-					     '<=)
+		(if (version-list-<= split-version
+				     (package-desc-vers (cdr elt)))
 		    (error "New package has smaller version: %s" pkg-version)
 		  (setcdr elt new-desc))
 	      (setq contents (cons (car contents)
@@ -178,7 +184,7 @@ EXTENSION is the file extension, a string.  It can be either
 
 	  ;; Write a news entry.
 	  (package--update-news (concat file-name "." extension)
-				pkg-version desc)
+				pkg-version desc archive-url)
 
 	  ;; special-case "package": write a second copy so that the
 	  ;; installer can easily find the latest version.

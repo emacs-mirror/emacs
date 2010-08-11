@@ -66,7 +66,6 @@ Lisp_Object Qcurry;
 Lisp_Object Qinternal_interpreter_environment, Qclosure;
 
 Lisp_Object Qdebug;
-extern Lisp_Object Qinteractive_form;
 
 /* This holds either the symbol `run-hooks' or nil.
    It is nil at an early stage of startup, and when Emacs
@@ -175,9 +174,6 @@ int handling_signal;
 /* Function to process declarations in defmacro forms.  */
 
 Lisp_Object Vmacro_declaration_function;
-
-extern Lisp_Object Qrisky_local_variable;
-extern Lisp_Object Qfunction;
 
 static Lisp_Object funcall_lambda (Lisp_Object, int, Lisp_Object *,
 				   Lisp_Object);
@@ -1707,8 +1703,6 @@ See also the function `condition-case'.  */)
      That is a special case--don't do this in other situations.  */
   register struct handler *allhandlers = handlerlist;
   Lisp_Object conditions;
-  extern int gc_in_progress;
-  extern int waiting_for_input;
   Lisp_Object string;
   Lisp_Object real_error_symbol;
   struct backtrace *bp;
@@ -3007,8 +3001,7 @@ call7 (Lisp_Object fn, Lisp_Object arg1, Lisp_Object arg2, Lisp_Object arg3,
 
 DEFUN ("functionp", Ffunctionp, Sfunctionp, 1, 1, 0,
        doc: /* Return non-nil if OBJECT is a type of object that can be called as a function.  */)
-     (object)
-     Lisp_Object object;
+     (Lisp_Object object)
 {
   if (SYMBOLP (object) && !NILP (Ffboundp (object)))
     {
@@ -3258,10 +3251,7 @@ apply_lambda (Lisp_Object fun, Lisp_Object args, int eval_flag,
    length NARGS).  */
 
 static Lisp_Object
-funcall_funvec (fun, nargs, args)
-     Lisp_Object fun;
-     int nargs;
-     Lisp_Object *args;
+funcall_funvec (Lisp_Object fun, int nargs, Lisp_Object *args)
 {
   int size = FUNVEC_SIZE (fun);
   Lisp_Object tag = (size > 0 ? AREF (fun, 0) : Qnil);
@@ -3662,8 +3652,7 @@ DEFUN ("special-variable-p", Fspecial_variable_p, Sspecial_variable_p, 1, 1, 0,
        doc: /* Return non-nil if SYMBOL's global binding has been declared special.
 A special variable is one that will be bound dynamically, even in a
 context where binding is lexical by default.  */)
-  (symbol)
-     Lisp_Object symbol;
+  (Lisp_Object symbol)
 {
    CHECK_SYMBOL (symbol);
    return XSYMBOL (symbol)->declared_special ? Qt : Qnil;
@@ -3683,9 +3672,7 @@ and:
   => ("The a" "The b" "The c")
 
 usage: (curry FUN &rest ARGS)  */)
-     (nargs, args)
-     register int nargs;
-     Lisp_Object *args;
+     (int nargs, Lisp_Object *args)
 {
   return make_funvec (Qcurry, 0, nargs, args);
 }
@@ -3721,7 +3708,6 @@ Output stream used is value of `standard-output'.  */)
   register int i;
   Lisp_Object tail;
   Lisp_Object tem;
-  extern Lisp_Object Vprint_level;
   struct gcpro gcpro1;
 
   XSETFASTINT (Vprint_level, 3);

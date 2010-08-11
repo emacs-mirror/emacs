@@ -321,7 +321,11 @@ This function is called, by name, directly by the C code."
 	  ;; We do this after rescheduling so that the handler function
 	  ;; can cancel its own timer successfully with cancel-timer.
 	  (condition-case nil
-	      (apply (timer--function timer) (timer--args timer))
+              ;; Timer functions should not change the current buffer.
+              ;; If they do, all kinds of nasty surprises can happen,
+              ;; and it can be hellish to track down their source.
+              (save-current-buffer
+                (apply (timer--function timer) (timer--args timer)))
 	    (error nil))
 	  (if retrigger
 	      (setf (timer--triggered timer) nil)))

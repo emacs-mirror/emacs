@@ -504,8 +504,6 @@ fast_string_match (Lisp_Object regexp, Lisp_Object string)
    This does not clobber the match data.
    We assume that STRING contains single-byte characters.  */
 
-extern Lisp_Object Vascii_downcase_table;
-
 int
 fast_c_string_match_ignore_case (Lisp_Object regexp, const char *string)
 {
@@ -2657,7 +2655,7 @@ since only regular expressions have distinguished subexpressions.  */)
       for (pos_byte = 0, pos = 0; pos_byte < length;)
 	{
 	  unsigned char str[MAX_MULTIBYTE_LENGTH];
-	  unsigned char *add_stuff = NULL;
+	  const unsigned char *add_stuff = NULL;
 	  int add_len = 0;
 	  int idx = -1;
 

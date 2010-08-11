@@ -722,6 +722,12 @@ then
   CC="$NON_GNU_CC"
 fi
 
+if test x$GCC = xyes; then
+  test "x$GCC_TEST_OPTIONS" != x && CC="$CC $GCC_TEST_OPTIONS"
+else
+  test "x$NON_GCC_TEST_OPTIONS" != x && CC="$CC $NON_GCC_TEST_OPTIONS"
+fi
+
 dnl checks for Unix variants
 AC_USE_SYSTEM_EXTENSIONS
 
@@ -764,6 +770,20 @@ AC_MSG_RESULT($has_option)
 CFLAGS="$SAVE_CFLAGS"
 unset has_option
 unset SAVE_CFLAGS
+
+### Use -Wimplicit-function-declaration if the compiler supports it
+AC_MSG_CHECKING([whether gcc understands -Wimplicit-function-declaration])
+SAVE_CFLAGS="$CFLAGS"
+CFLAGS="$CFLAGS -Wimplicit-function-declaration"
+AC_TRY_COMPILE([], [], has_option=yes, has_option=no,)
+if test $has_option = yes; then
+   C_WARNINGS_SWITCH="-Wimplicit-function-declaration $C_WARNINGS_SWITCH"
+fi
+AC_MSG_RESULT($has_option)
+CFLAGS="$SAVE_CFLAGS"
+unset has_option
+unset SAVE_CFLAGS
+
 AC_SUBST(C_WARNINGS_SWITCH)
 
 
@@ -877,7 +897,7 @@ AC_SUBST(CANNOT_DUMP)
 
 UNEXEC_OBJ=unexelf.o
 case "$opsys" in
-  # MSDOS uses unexec.o
+  # MSDOS uses unexcoff.o
   # MSWindows uses unexw32.o
   aix4-2)
    UNEXEC_OBJ=unexaix.o
@@ -1060,7 +1080,7 @@ START_FILES=
 case $opsys in
   cygwin )
     LIB_MATH=
-    START_FILES='ecrt0.o'
+    START_FILES='pre-crt0.o'
     ;;
   darwin )
     ## Adding -lm confuses the dynamic linker, so omit it.
@@ -1204,7 +1224,7 @@ AC_CHECK_HEADERS(sys/select.h sys/timeb.h sys/time.h unistd.h utime.h \
   linux/version.h sys/systeminfo.h termios.h limits.h string.h stdlib.h \
   stdio_ext.h fcntl.h strings.h coff.h pty.h sys/mman.h \
   sys/param.h sys/vlimit.h sys/resource.h locale.h sys/_mbstate_t.h \
-  sys/utsname.h pwd.h utmp.h)
+  sys/utsname.h pwd.h utmp.h dirent.h util.h)
 
 AC_MSG_CHECKING(if personality LINUX32 can be set)
 AC_TRY_COMPILE([#include <sys/personality.h>], [personality (PER_LINUX32)],
@@ -1339,11 +1359,8 @@ AH_TEMPLATE(POINTER_TYPE,
 	    [Define as `void' if your compiler accepts `void *'; otherwise
 	     define as `char'.])dnl
 
-
-
-dnl This could be used for targets which can have both byte sexes.
-dnl We could presumably replace the hardwired WORDS_BIG_ENDIAN generally.
-dnl AC_C_BIGENDIAN
+dnl Check for endianess
+AC_C_BIGENDIAN
 
 dnl check for Make feature
 AC_PROG_MAKE_SET
@@ -2611,7 +2628,7 @@ __fpending mblen mbrlen mbsinit strsignal setitimer ualarm strchr strrchr \
 sendto recvfrom getsockopt setsockopt getsockname getpeername \
 gai_strerror mkstemp getline getdelim mremap memmove fsync sync \
 memset memcmp difftime memcpy mempcpy mblen mbrlen posix_memalign \
-cfmakeraw cfsetspeed isnan copysign)
+cfmakeraw cfsetspeed isnan copysign __executable_start)
 
 AC_CHECK_HEADERS(sys/un.h)
 
@@ -3326,9 +3343,7 @@ LINKER=
 ORDINARY_LINK=
 case "$opsys" in
   ## gnu: GNU needs its own crt0.
-  aix4-2|darwin|gnu|usg5-4|irix6-5|sol2*|unixware) ORDINARY_LINK=yes ;;
-
-  cygwin) LINKER="\$(CC)" ;;
+  aix4-2|cygwin|darwin|gnu|hpux*|irix6-5|sol2*|unixware) ORDINARY_LINK=yes ;;
 
   ## On post 1.3 releases of NetBSD, gcc -nostdlib also clears the
   ## library search parth, i.e. it won't search /usr/lib for libc and
@@ -3353,7 +3368,7 @@ if test "x$ORDINARY_LINK" = "xyes"; then
   AC_DEFINE(ORDINARY_LINK, 1, [Define if the C compiler is the linker.])
 
 ## The system files defining neither ORDINARY_LINK nor LINKER are:
-## (bsd-common), freebsd, gnu-* not on macppc|ibms390x, hpux*.
+## freebsd, gnu-* not on macppc|ibms390x.
 elif test "x$GCC" = "xyes" && test "x$LINKER" = "x"; then
 
   ## Versions of GCC >= 2.0 put their library, libgcc.a, in obscure
@@ -3381,8 +3396,7 @@ LIB_GCC=
 if test "x$GCC" = "xyes" && test "x$ORDINARY_LINK" != "xyes"; then
 
   case "$opsys" in
-    ## cygwin: don't link against static libgcc.
-    cygwin|freebsd|netbsd|openbsd) LIB_GCC= ;;
+    freebsd|netbsd|openbsd) LIB_GCC= ;;
 
     gnu-*)
       ## armin76@gentoo.org reported that the lgcc_s flag is necessary to

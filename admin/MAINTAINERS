@@ -191,7 +191,7 @@ src/tparam.c
 src/undo.c
 src/unexaix.c
 src/unexalpha.c
-src/unexec.c
+src/unexcoff.c
 src/unexelf.c
 src/unexhp9k800.c
 src/unexw32.c

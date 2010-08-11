@@ -1,3 +1,40 @@
+2010-08-09  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Customizing Calc): Rearrange description of new
+	variables to match the presentation of other variables.
+
+2010-08-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* org.texi (Footnotes, Tables in HTML export): Fix typos.
+
+2010-08-08  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Making Selections, Selecting Subformulas)
+	(Customizing Calc): Mention how to use faces to emphasize selected
+	sub-formulas.
+
+2010-08-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (External packages): File attributes cache flushing
+	for asynchronous processes.
+
+2010-08-01  Alan Mackenzie  <acm@muc.de>
+
+	Enhance the manual for the latest Java Mode.
+
+	* cc-mode.texi (Syntactic Symbols): New symbols annotation-top-cont and
+	annotation-var-cont.
+	(Java Symbols): Page renamed from Anonymous Class Symbol.  Document the
+	two new symbols.
+
+2010-07-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Traces and Profiles): Describe verbose level 9.
+
+2010-07-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nxml-mode.texi (Limitations): Remove obsolete discussion (Bug#6708).
+
 2010-07-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* org.texi: Fix typo in previous change (revno:100847).
@@ -4777,7 +4814,7 @@
 
 	* org.texi (FAQ): Document `org-table-tab-jumps-over-hlines'.
 	(Agenda): Document commands `org-cycle-agenda-files' and
-	`org-agenda-file-to-front'
+	`org-agenda-file-to-front'.
 	(Built-in table editor): Document `org-table-sort-lines'.
 	(HTML formatting): Export of hand-formatted lists.
 
@@ -6366,7 +6403,7 @@
 
 2000-12-14  Dave Love  <fx@gnu.org>
 
-	* Makefile.in (mostlyclean): Remove gnustmp.*
+	* Makefile.in (mostlyclean): Remove gnustmp.*.
 	(gnus.dvi): Change rule to remove @latex stuff.
 
 2000-10-19  Eric M. Ludlam  <zappo@ultranet.com>

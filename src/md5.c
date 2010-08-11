@@ -1,7 +1,7 @@
 /* Functions to compute MD5 message digest of files or memory blocks.
    according to the definition of MD5 in RFC 1321 from April 1992.
    Copyright (C) 1995, 1996, 1997, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007  Free Software Foundation, Inc.
+                 2005, 2006, 2007, 2010  Free Software Foundation, Inc.
 
    This file is part of the GNU C Library.
 
@@ -40,7 +40,7 @@
 #ifdef _LIBC
 # include <endian.h>
 # if __BYTE_ORDER == __BIG_ENDIAN
-#  define WORDS_BIG_ENDIAN 1
+#  define WORDS_BIGENDIAN 1
 # endif
 /* We need to keep the namespace clean so define the MD5 function
    protected using leading __ .  */
@@ -55,7 +55,7 @@
 
 #include "md5.h"
 
-#ifdef WORDS_BIG_ENDIAN
+#ifdef WORDS_BIGENDIAN
 # define SWAP(n)							\
     (((n) << 24) | (((n) & 0xff00) << 8) | (((n) >> 8) & 0xff00) | ((n) >> 24))
 #else

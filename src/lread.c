@@ -75,7 +75,6 @@ Lisp_Object Qtest, Qsize;
 Lisp_Object Qweakness;
 Lisp_Object Qrehash_size;
 Lisp_Object Qrehash_threshold;
-extern Lisp_Object QCtest, QCsize, QCrehash_size, QCrehash_threshold, QCweakness;
 
 Lisp_Object Qread_char, Qget_file_char, Qstandard_input, Qcurrent_load_list;
 Lisp_Object Qvariable_documentation, Vvalues, Vstandard_input, Vafter_load_alist;
@@ -92,8 +91,6 @@ static Lisp_Object Qget_emacs_mule_file_char;
 
 static Lisp_Object Qload_force_doc_strings;
 
-extern Lisp_Object Qevent_symbol_element_mask;
-extern Lisp_Object Qfile_exists_p;
 extern Lisp_Object Qinternal_interpreter_environment;
 
 /* non-zero if inside `load' */
@@ -858,8 +855,7 @@ DEFUN ("get-file-char", Fget_file_char, Sget_file_char, 0, 0, 0,
    nothing is read.  */
 
 static int
-lisp_file_lexically_bound_p (readcharfun)
-     Lisp_Object readcharfun;
+lisp_file_lexically_bound_p (Lisp_Object readcharfun)
 {
   int ch = READCHAR;
   if (ch != ';')
@@ -1105,7 +1101,7 @@ Return t if the file exists and loads successfully.  */)
   int compiled = 0;
   Lisp_Object handler;
   int safe_p = 1;
-  char *fmode = "r";
+  const char *fmode = "r";
   Lisp_Object tmp[2];
   int version;
 
@@ -1405,7 +1401,6 @@ Return t if the file exists and loads successfully.  */)
 
 static Lisp_Object
 load_unwind (Lisp_Object arg)  /* used as unwind-protect function in load */
-                     
 {
   FILE *stream = (FILE *) XSAVE_VALUE (arg)->pointer;
   if (stream != NULL)
@@ -1696,9 +1691,8 @@ build_load_history (Lisp_Object filename, int entire)
 			   Vload_history);
 }
 
-Lisp_Object
+static Lisp_Object
 unreadpure (Lisp_Object junk) /* Used as unwind-protect function in readevalloop */
-                      
 {
   read_pure = 0;
   return Qnil;
@@ -3975,7 +3969,7 @@ map_obarray (Lisp_Object obarray, void (*fn) (Lisp_Object, Lisp_Object), Lisp_Ob
     }
 }
 
-void
+static void
 mapatoms_1 (Lisp_Object sym, Lisp_Object function)
 {
   call1 (function, sym);
@@ -4139,7 +4133,7 @@ static Lisp_Object dump_path;
 void
 init_lread (void)
 {
-  char *normal;
+  const char *normal;
   int turn_off_warning = 0;
 
   /* Compute the default load-path.  */

@@ -246,9 +246,6 @@ Lisp_Object Vminibuffer_message_timeout;
    ASCII character.  */
 int quit_char;
 
-extern Lisp_Object current_global_map;
-extern int minibuf_level;
-
 /* If non-nil, this is a map that overrides all other local maps.  */
 Lisp_Object Voverriding_local_map;
 
@@ -364,6 +361,15 @@ Lisp_Object Vlast_event_frame;
    X Windows wants this for selection ownership.  */
 unsigned long last_event_timestamp;
 
+/* If non-nil, active regions automatically become the window selection.  */
+Lisp_Object Vselect_active_regions;
+
+/* The text in the active region prior to modifying the buffer.
+   Used by the `select-active-regions' feature.  */
+Lisp_Object Vsaved_region_selection;
+
+Lisp_Object Qx_set_selection, QPRIMARY, Qlazy;
+
 Lisp_Object Qself_insert_command;
 Lisp_Object Qforward_char;
 Lisp_Object Qbackward_char;
@@ -468,8 +474,6 @@ Lisp_Object Qmake_frame_visible;
 Lisp_Object Qselect_window;
 Lisp_Object Qhelp_echo;
 
-extern Lisp_Object Qremap;
-
 #if defined (HAVE_MOUSE) || defined (HAVE_GPM)
 Lisp_Object Qmouse_fixup_help_message;
 #endif
@@ -497,7 +501,6 @@ Lisp_Object Qevent_symbol_elements;
 Lisp_Object Qmenu_enable;
 Lisp_Object QCenable, QCvisible, QChelp, QCfilter, QCkeys, QCkey_sequence;
 Lisp_Object QCbutton, QCtoggle, QCradio, QClabel;
-extern Lisp_Object Qmenu_item;
 
 /* An event header symbol HEAD may have a property named
    Qevent_symbol_element_mask, which is of the form (BASE MODIFIERS);
@@ -517,16 +520,11 @@ Lisp_Object Qmode_line;
 Lisp_Object Qvertical_line;
 Lisp_Object Qvertical_scroll_bar;
 Lisp_Object Qmenu_bar;
-extern Lisp_Object Qleft_margin, Qright_margin;
-extern Lisp_Object Qleft_fringe, Qright_fringe;
-extern Lisp_Object QCmap;
 
 Lisp_Object recursive_edit_unwind (Lisp_Object buffer), command_loop (void);
 Lisp_Object Fthis_command_keys (void);
 Lisp_Object Qextended_command_history;
 EMACS_TIME timer_check (int do_it_now);
-
-extern Lisp_Object Vhistory_length, Vtranslation_table_for_input;
 
 static void record_menu_key (Lisp_Object c);
 static int echo_length (void);
@@ -541,8 +539,6 @@ Lisp_Object Vtimer_idle_list;
 
 /* Incremented whenever a timer is run.  */
 int timers_run;
-
-extern Lisp_Object Vprint_level, Vprint_length;
 
 /* Address (if not 0) of EMACS_TIME to zero out if a SIGIO interrupt
    happens.  */
@@ -626,7 +622,7 @@ static Lisp_Object make_lispy_movement (struct frame *, Lisp_Object,
                                         unsigned long);
 #endif
 static Lisp_Object modify_event_symbol (int, unsigned, Lisp_Object,
-                                        Lisp_Object, char **,
+                                        Lisp_Object, const char **,
                                         Lisp_Object *, unsigned);
 static Lisp_Object make_lispy_switch_frame (Lisp_Object);
 static void save_getcjmp (jmp_buf);
@@ -635,7 +631,9 @@ static Lisp_Object apply_modifiers (int, Lisp_Object);
 static void clear_event (struct input_event *);
 static Lisp_Object restore_kboard_configuration (Lisp_Object);
 static SIGTYPE interrupt_signal (int signalnum);
+#ifdef SIGIO
 static SIGTYPE input_available_signal (int signo);
+#endif
 static void handle_interrupt (void);
 static void timer_start_idle (void);
 static void timer_stop_idle (void);
@@ -648,7 +646,6 @@ static int store_user_signal_events (void);
    to support it.  */
 static int cannot_suspend;
 
-extern Lisp_Object Qidentity, Qonly;
 
 /* Install the string STR as the beginning of the string of echoing,
    so that it serves as a prompt for the next character.
@@ -1378,7 +1375,7 @@ This also exits all active minibuffers.  */)
   while (INPUT_BLOCKED_P)
     UNBLOCK_INPUT;
 
-  return Fthrow (Qtop_level, Qnil);
+  Fthrow (Qtop_level, Qnil);
 }
 
 DEFUN ("exit-recursive-edit", Fexit_recursive_edit, Sexit_recursive_edit, 0, 0, "",
@@ -1389,7 +1386,6 @@ DEFUN ("exit-recursive-edit", Fexit_recursive_edit, Sexit_recursive_edit, 0, 0, 
     Fthrow (Qexit, Qnil);
 
   error ("No recursive edit is in progress");
-  return Qnil;
 }
 
 DEFUN ("abort-recursive-edit", Fabort_recursive_edit, Sabort_recursive_edit, 0, 0, "",
@@ -1400,7 +1396,6 @@ DEFUN ("abort-recursive-edit", Fabort_recursive_edit, Sabort_recursive_edit, 0, 
     Fthrow (Qexit, Qt);
 
   error ("No recursive edit is in progress");
-  return Qnil;
 }
 
 #if defined (HAVE_MOUSE) || defined (HAVE_GPM)
@@ -1795,11 +1790,29 @@ command_loop_1 (void)
 	    Vtransient_mark_mode = Qnil;
 	  else if (EQ (Vtransient_mark_mode, Qonly))
 	    Vtransient_mark_mode = Qidentity;
+	  else if (EQ (Vselect_active_regions, Qlazy)
+		   ? EQ (CAR_SAFE (Vtransient_mark_mode), Qonly)
+		   : (!NILP (Vselect_active_regions)
+		      && !NILP (Vtransient_mark_mode)))
+	    {
+	      /* Set window selection.  If `select-active-regions' is
+		 `lazy', only do it for temporarily active regions. */
+	      int beg = XINT (Fmarker_position (current_buffer->mark));
+	      int end = XINT (make_number (PT));
+	      if (beg < end)
+		call2 (Qx_set_selection, QPRIMARY,
+		       make_buffer_string (beg, end, 0));
+	      else if (beg > end)
+		call2 (Qx_set_selection, QPRIMARY,
+		       make_buffer_string (end, beg, 0));
+	    }
 
 	  if (!NILP (Vdeactivate_mark))
 	    call0 (Qdeactivate_mark);
 	  else if (current_buffer != prev_buffer || MODIFF != prev_modiff)
 	    call1 (Vrun_hooks, intern ("activate-mark-hook"));
+
+	  Vsaved_region_selection = Qnil;
 	}
 
     finalize:
@@ -1836,15 +1849,10 @@ command_loop_1 (void)
     }
 }
 
-extern Lisp_Object Qcomposition, Qdisplay;
-
 /* Adjust point to a boundary of a region that has such a property
    that should be treated intangible.  For the moment, we check
    `composition', `display' and `invisible' properties.
    LAST_PT is the last position of point.  */
-
-extern Lisp_Object Qafter_string, Qbefore_string;
-extern Lisp_Object get_pos_property (Lisp_Object, Lisp_Object, Lisp_Object);
 
 static void
 adjust_point_for_property (int last_pt, int modified)
@@ -3895,7 +3903,7 @@ kbd_buffer_get_event (KBOARD **kbp,
 {
   register int c;
   Lisp_Object obj;
-  
+
   if (kbd_on_hold_p () && kbd_buffer_nr_stored () < KBD_BUFFER_SIZE/4)
     {
       /* Start reading input again, we have processed enough so we can
@@ -4372,8 +4380,6 @@ struct input_event last_timer_event;
    ...).  Each element has the form (FUN . ARGS).  */
 Lisp_Object pending_funcalls;
 
-extern Lisp_Object Qapply;
-
 /* Check whether a timer has fired.  To prevent larger problems we simply
    disregard elements that are not proper timers.  Do not make a circular
    timer list for the time being.
@@ -4745,7 +4751,7 @@ static const int lispy_accent_codes[] =
 /* This is a list of Lisp names for special "accent" characters.
    It parallels lispy_accent_codes.  */
 
-static char *lispy_accent_keys[] =
+static const char *lispy_accent_keys[] =
 {
   "dead-circumflex",
   "dead-grave",
@@ -4772,7 +4778,7 @@ static char *lispy_accent_keys[] =
 #ifdef HAVE_NTGUI
 #define FUNCTION_KEY_OFFSET 0x0
 
-char *lispy_function_keys[] =
+char const *lispy_function_keys[] =
   {
     0,                /* 0                      */
 
@@ -4966,7 +4972,7 @@ char *lispy_function_keys[] =
 
 /* Some of these duplicate the "Media keys" on newer keyboards,
    but they are delivered to the application in a different way.  */
-static char *lispy_multimedia_keys[] =
+static const char *lispy_multimedia_keys[] =
   {
     0,
     "browser-back",
@@ -5030,7 +5036,7 @@ static char *lispy_multimedia_keys[] =
    the XK_kana_A case below.  */
 #if 0
 #ifdef XK_kana_A
-static char *lispy_kana_keys[] =
+static const char *lispy_kana_keys[] =
   {
     /* X Keysym value */
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,	/* 0x400 .. 0x40f */
@@ -5069,7 +5075,7 @@ static char *lispy_kana_keys[] =
 
 /* You'll notice that this table is arranged to be conveniently
    indexed by X Windows keysym values.  */
-static char *lispy_function_keys[] =
+static const char *lispy_function_keys[] =
   {
     /* X Keysym value */
 
@@ -5155,7 +5161,7 @@ static char *lispy_function_keys[] =
 /* ISO 9995 Function and Modifier Keys; the first byte is 0xFE.  */
 #define ISO_FUNCTION_KEY_OFFSET 0xfe00
 
-static char *iso_lispy_function_keys[] =
+static const char *iso_lispy_function_keys[] =
   {
     0, 0, 0, 0, 0, 0, 0, 0,	/* 0xfe00 */
     0, 0, 0, 0, 0, 0, 0, 0,	/* 0xfe08 */
@@ -5178,14 +5184,14 @@ static char *iso_lispy_function_keys[] =
 
 Lisp_Object Vlispy_mouse_stem;
 
-static char *lispy_wheel_names[] =
+static const char *lispy_wheel_names[] =
 {
   "wheel-up", "wheel-down", "wheel-left", "wheel-right"
 };
 
 /* drag-n-drop events are generated when a set of selected files are
    dragged from another application and dropped onto an Emacs window.  */
-static char *lispy_drag_n_drop_names[] =
+static const char *lispy_drag_n_drop_names[] =
 {
   "drag-n-drop"
 };
@@ -5196,7 +5202,7 @@ Lisp_Object Qup, Qdown, Qbottom, Qend_scroll;
 Lisp_Object Qtop, Qratio;
 
 /* An array of scroll bar parts, indexed by an enum scroll_bar_part value.  */
-Lisp_Object *scroll_bar_parts[] = {
+const Lisp_Object *scroll_bar_parts[] = {
   &Qabove_handle, &Qhandle, &Qbelow_handle,
   &Qup, &Qdown, &Qtop, &Qbottom, &Qend_scroll, &Qratio
 };
@@ -6563,7 +6569,7 @@ reorder_modifiers (Lisp_Object symbol)
 
 static Lisp_Object
 modify_event_symbol (int symbol_num, unsigned int modifiers, Lisp_Object symbol_kind,
-		     Lisp_Object name_alist_or_stem, char **name_table,
+		     Lisp_Object name_alist_or_stem, const char **name_table,
 		     Lisp_Object *symbol_table, unsigned int table_size)
 {
   Lisp_Object value;
@@ -8016,9 +8022,8 @@ static Lisp_Object tool_bar_item_properties;
 
 static int ntool_bar_items;
 
-/* The symbols `tool-bar', `:image' and `:rtl'.  */
+/* The symbols `:image' and `:rtl'.  */
 
-extern Lisp_Object Qtool_bar;
 Lisp_Object QCimage;
 Lisp_Object Qrtl;
 
@@ -8116,7 +8121,6 @@ static void
 process_tool_bar_item (Lisp_Object key, Lisp_Object def, Lisp_Object data, void *args)
 {
   int i;
-  extern Lisp_Object Qundefined;
   struct gcpro gcpro1, gcpro2;
 
   /* Protect KEY and DEF from GC because parse_tool_bar_item may call
@@ -8322,8 +8326,8 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
       /* Try to make one from caption and key.  */
       Lisp_Object key = PROP (TOOL_BAR_ITEM_KEY);
       Lisp_Object capt = PROP (TOOL_BAR_ITEM_CAPTION);
-      char *label = SYMBOLP (key) ? (char *) SDATA (SYMBOL_NAME (key)) : "";
-      char *caption = STRINGP (capt) ? (char *) SDATA (capt) : "";
+      const char *label = SYMBOLP (key) ? (char *) SDATA (SYMBOL_NAME (key)) : "";
+      const char *caption = STRINGP (capt) ? (char *) SDATA (capt) : "";
       char buf[64];
       EMACS_INT max_lbl = 2*tool_bar_max_label_size;
       Lisp_Object new_lbl;
@@ -10243,7 +10247,6 @@ a special event, so ignore the prefix argument and don't clear it.  */)
   register Lisp_Object final;
   register Lisp_Object tem;
   Lisp_Object prefixarg;
-  extern int debug_on_next_call;
 
   debug_on_next_call = 0;
 
@@ -11529,7 +11532,7 @@ init_keyboard (void)
    event header symbols and put properties on them.  */
 struct event_head {
   Lisp_Object *var;
-  char *name;
+  const char *name;
   Lisp_Object *kind;
 };
 
@@ -11705,6 +11708,13 @@ syms_of_keyboard (void)
 
   Qinput_method_function = intern_c_string ("input-method-function");
   staticpro (&Qinput_method_function);
+
+  Qx_set_selection = intern_c_string ("x-set-selection");
+  staticpro (&Qx_set_selection);
+  QPRIMARY = intern_c_string ("PRIMARY");
+  staticpro (&QPRIMARY);
+  Qlazy = intern_c_string ("lazy");
+  staticpro (&Qlazy);
 
   Qinput_method_exit_on_first_char = intern_c_string ("input-method-exit-on-first-char");
   staticpro (&Qinput_method_exit_on_first_char);
@@ -12312,6 +12322,28 @@ and the Lisp function within which the error was signaled.  */);
 Help functions bind this to allow help on disabled menu items
 and tool-bar buttons.  */);
   Venable_disabled_menus_and_buttons = Qnil;
+
+  DEFVAR_LISP ("select-active-regions",
+	       &Vselect_active_regions,
+	       doc: /* If non-nil, an active region automatically becomes the window selection.
+This takes effect only when Transient Mark mode is enabled.
+
+If the value is `lazy', Emacs only sets the window selection during
+`deactivate-mark'; unless the region is temporarily active
+(e.g. mouse-drags or shift-selection), in which case it sets the
+window selection after each command.
+
+For other non-nil value, Emacs sets the window selection after every
+command.  */);
+  Vselect_active_regions = Qlazy;
+
+  DEFVAR_LISP ("saved-region-selection",
+	       &Vsaved_region_selection,
+	       doc: /* Contents of active region prior to buffer modification.
+If `select-active-regions' is non-nil, Emacs sets this to the
+text in the region before modifying the buffer.  The next
+`deactivate-mark' call uses this to set the window selection.  */);
+  Vsaved_region_selection = Qnil;
 
   /* Create the initial keyboard. */
   initial_kboard = (KBOARD *) xmalloc (sizeof (KBOARD));

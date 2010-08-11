@@ -106,8 +106,6 @@ static char buffer_permanent_local_flags[MAX_PER_BUFFER_VARS];
 int last_per_buffer_idx;
 
 EXFUN (Fset_buffer, 1);
-void set_buffer_internal (struct buffer *b);
-void set_buffer_internal_1 (struct buffer *b);
 static void call_overlay_mod_hooks (Lisp_Object list, Lisp_Object overlay,
                                     int after, Lisp_Object arg1,
                                     Lisp_Object arg2, Lisp_Object arg3);
@@ -162,7 +160,7 @@ Lisp_Object Qget_file_buffer;
 
 Lisp_Object Qoverlayp;
 
-Lisp_Object Qpriority, Qwindow, Qevaporate, Qbefore_string, Qafter_string;
+Lisp_Object Qpriority, Qevaporate, Qbefore_string, Qafter_string;
 
 Lisp_Object Qmodification_hooks;
 Lisp_Object Qinsert_in_front_hooks;
@@ -173,8 +171,6 @@ static void free_buffer_text (struct buffer *b);
 static struct Lisp_Overlay * copy_overlays (struct buffer *, struct Lisp_Overlay *);
 static void modify_overlay (struct buffer *, EMACS_INT, EMACS_INT);
 static Lisp_Object buffer_lisp_local_variables (struct buffer *);
-
-extern char * emacs_strerror (int);
 
 /* For debugging; temporary.  See set_buffer_internal.  */
 /* Lisp_Object Qlisp_mode, Vcheck_symbol; */
@@ -2512,7 +2508,6 @@ current buffer is cleared.  */)
   if (!EQ (old_undo, Qt))
     {
       /* Represent all the above changes by a special undo entry.  */
-      extern Lisp_Object Qapply;
       current_buffer->undo_list = Fcons (list3 (Qapply,
 						intern ("set-buffer-multibyte"),
 						NILP (flag) ? Qt : Qnil),
@@ -5288,7 +5283,7 @@ init_buffer (void)
   } while (0)
 
 static void
-defvar_per_buffer (struct Lisp_Buffer_Objfwd *bo_fwd, char *namestring,
+defvar_per_buffer (struct Lisp_Buffer_Objfwd *bo_fwd, const char *namestring,
 		   Lisp_Object *address, Lisp_Object type, char *doc)
 {
   struct Lisp_Symbol *sym;
@@ -5349,8 +5344,6 @@ syms_of_buffer (void)
   staticpro (&Qget_file_buffer);
   Qpriority = intern_c_string ("priority");
   staticpro (&Qpriority);
-  Qwindow = intern_c_string ("window");
-  staticpro (&Qwindow);
   Qbefore_string = intern_c_string ("before-string");
   staticpro (&Qbefore_string);
   Qafter_string = intern_c_string ("after-string");
@@ -5900,14 +5893,14 @@ fringe indicator.
 
 INDICATOR specifies the logical indicator type which is one of the
 following symbols: `truncation' , `continuation', `overlay-arrow',
-`top', `bottom', `up', `down', `one-line', `empty-line', or `unknown'.
+`top', `bottom', `top-bottom', `up', `down', empty-line', or `unknown'.
 
-BITMAPS is list of symbols (LEFT RIGHT [LEFT1 RIGHT1]) which specifies
+BITMAPS is a list of symbols (LEFT RIGHT [LEFT1 RIGHT1]) which specifies
 the actual bitmap shown in the left or right fringe for the logical
 indicator.  LEFT and RIGHT are the bitmaps shown in the left and/or
 right fringe for the specific indicator.  The LEFT1 or RIGHT1 bitmaps
-are used only for the `bottom' and `one-line' indicators when the last
-\(only) line in has no final newline.  BITMAPS may also be a single
+are used only for the `bottom' and `top-bottom' indicators when the
+last (only) line has no final newline.  BITMAPS may also be a single
 symbol which is used in both left and right fringes.  */);
 
   DEFVAR_PER_BUFFER ("fringe-cursor-alist",

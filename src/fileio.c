@@ -104,8 +104,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #include "commands.h"
-extern int use_dialog_box;
-extern int use_file_dialog;
 
 #ifndef O_WRONLY
 #define O_WRONLY 1
@@ -214,15 +212,9 @@ Lisp_Object Qcopy_directory;
 /* Lisp function for recursively deleting directories.  */
 Lisp_Object Qdelete_directory;
 
-extern Lisp_Object Vuser_login_name;
-
 #ifdef WINDOWSNT
 extern Lisp_Object Vw32_get_true_file_attributes;
 #endif
-
-extern int minibuf_level;
-
-extern int minibuffer_auto_raise;
 
 /* These variables describe handlers that have "already" had a chance
    to handle the current operation.
@@ -862,8 +854,6 @@ filesystem tree, not (expand-file-name ".."  dirname).  */)
 
 	 To avoid this, we set default_directory to the root of the
 	 current drive.  */
-      extern char *emacs_root_dir (void);
-
       default_directory = build_string (emacs_root_dir ());
 #else
       default_directory = build_string ("/");
@@ -1833,7 +1823,7 @@ expand_and_dir_to_file (Lisp_Object filename, Lisp_Object defdir)
    If QUICK is nonzero, we ask for y or n, not yes or no.  */
 
 void
-barf_or_query_if_file_exists (Lisp_Object absname, unsigned char *querystring, int interactive, struct stat *statptr, int quick)
+barf_or_query_if_file_exists (Lisp_Object absname, const unsigned char *querystring, int interactive, struct stat *statptr, int quick)
 {
   register Lisp_Object tem, encoded_filename;
   struct stat statbuf;
@@ -2483,7 +2473,7 @@ check_executable (char *filename)
 /* Return nonzero if file FILENAME exists and can be written.  */
 
 static int
-check_writable (char *filename)
+check_writable (const char *filename)
 {
 #ifdef MSDOS
   struct stat st;
@@ -3049,7 +3039,6 @@ The value is an integer.  */)
   return value;
 }
 
-extern int lisp_time_argument (Lisp_Object, time_t *, int *);
 
 DEFUN ("set-file-times", Fset_file_times, Sset_file_times, 1, 2, 0,
        doc: /* Set times of file FILENAME to TIME.

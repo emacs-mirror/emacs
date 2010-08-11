@@ -605,13 +605,13 @@ extern int translate_char (Lisp_Object, int c);
 extern int char_printable_p (int c);
 extern void parse_str_as_multibyte (const unsigned char *, int, int *,
                                     int *);
-extern int parse_str_to_multibyte (unsigned char *, int);
+extern int parse_str_to_multibyte (const unsigned char *, int);
 extern int str_as_multibyte (unsigned char *, int, int, int *);
 extern int str_to_multibyte (unsigned char *, int, int);
 extern int str_as_unibyte (unsigned char *, int);
 extern EMACS_INT str_to_unibyte (const unsigned char *, unsigned char *,
                                  EMACS_INT, int);
-extern int strwidth (unsigned char *, int);
+extern int strwidth (const unsigned char *, int);
 extern int c_string_width (const unsigned char *, int, int, int *, int *);
 extern int lisp_string_width (Lisp_Object, int, int *, int *);
 

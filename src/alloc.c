@@ -448,7 +448,6 @@ static void *min_heap_address, *max_heap_address;
 static struct mem_node mem_z;
 #define MEM_NIL &mem_z
 
-static POINTER_TYPE *lisp_malloc (size_t, enum mem_type);
 static struct Lisp_Vector *allocate_vectorlike (EMACS_INT);
 static void lisp_free (POINTER_TYPE *);
 static void mark_stack (void);
@@ -1509,8 +1508,7 @@ mark_interval_tree (register INTERVAL tree)
    can't create number objects in macros.  */
 #ifndef make_number
 Lisp_Object
-make_number (n)
-     EMACS_INT n;
+make_number (EMACS_INT n)
 {
   Lisp_Object obj;
   obj.s.val = n;
@@ -2538,16 +2536,6 @@ init_float (void)
 }
 
 
-/* Explicitly free a float cell by putting it on the free-list.  */
-
-static void
-free_float (struct Lisp_Float *ptr)
-{
-  ptr->u.chain = float_free_list;
-  float_free_list = ptr;
-}
-
-
 /* Return a new float object with value FLOAT_VALUE.  */
 
 Lisp_Object
@@ -2992,10 +2980,8 @@ See also the function `vector'.  */)
    See the function `funvec' for more detail.  */
 
 Lisp_Object
-make_funvec (kind, num_nil_slots, num_params, params)
-     Lisp_Object kind;
-     int num_nil_slots, num_params;
-     Lisp_Object *params;
+make_funvec (Lisp_Object kind, int num_nil_slots, int num_params,
+	     Lisp_Object *params)
 {
   int param_index;
   Lisp_Object funvec;
@@ -3048,9 +3034,7 @@ implemented values of KIND, and their meaning, are:
               time of the call; see the `curry' function.
 
 usage: (funvec KIND &rest PARAMS)  */)
-     (nargs, args)
-     register int nargs;
-     Lisp_Object *args;
+     (int nargs, Lisp_Object *args)
 {
   return make_funvec (args[0], 0, nargs - 1, args + 1);
 }

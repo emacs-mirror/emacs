@@ -2784,6 +2784,9 @@ asking you for confirmation."
 	(truncate-lines          . booleanp)   ;; C source code
 	(bidi-display-reordering . booleanp))) ;; C source code
 
+(put 'bidi-paragraph-direction 'safe-local-variable
+     (lambda (v) (memq v '(nil right-to-left left-to-right))))
+
 (put 'c-set-style 'safe-local-eval-function t)
 
 (defvar file-local-variables-alist nil

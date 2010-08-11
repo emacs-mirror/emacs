@@ -119,7 +119,7 @@ Lisp_Object Qparent_id;
 Lisp_Object Qtitle, Qname;
 Lisp_Object Qexplicit_name;
 Lisp_Object Qunsplittable;
-Lisp_Object Qmenu_bar_lines, Qtool_bar_lines;
+Lisp_Object Qmenu_bar_lines, Qtool_bar_lines, Qtool_bar_position;
 Lisp_Object Vmenu_bar_mode, Vtool_bar_mode;
 Lisp_Object Qleft_fringe, Qright_fringe;
 Lisp_Object Qbuffer_predicate, Qbuffer_list, Qburied_buffer_list;
@@ -197,13 +197,6 @@ set_menu_bar_lines (struct frame *f, Lisp_Object value, Lisp_Object oldval)
 }
 
 Lisp_Object Vframe_list;
-
-extern Lisp_Object Vminibuffer_list;
-extern Lisp_Object get_minibuffer (int);
-extern Lisp_Object Fhandle_switch_frame (Lisp_Object event);
-extern Lisp_Object Fredirect_frame_focus (Lisp_Object frame, Lisp_Object focus_frame);
-extern Lisp_Object x_get_focus_frame (struct frame *frame);
-extern Lisp_Object QCname, Qfont_param;
 
 
 DEFUN ("framep", Fframep, Sframep, 1, 1, 0,
@@ -323,6 +316,7 @@ make_frame (int mini_p)
   f->menu_bar_window = Qnil;
   f->tool_bar_window = Qnil;
   f->tool_bar_items = Qnil;
+  f->tool_bar_position = Qtop;
   f->desired_tool_bar_string = f->current_tool_bar_string = Qnil;
   f->n_tool_bar_items = 0;
   f->left_fringe_width = f->right_fringe_width = 0;
@@ -1280,16 +1274,6 @@ other_visible_frames (FRAME_PTR f)
   return 1;
 }
 
-/* Error handler for `delete-frame-functions'. */
-static Lisp_Object
-delete_frame_handler (Lisp_Object arg)
-{
-  add_to_log ("Error during `delete-frame': %s", arg, Qnil);
-  return Qnil;
-}
-
-extern Lisp_Object Qrun_hook_with_args;
-
 /* Delete FRAME.  When FORCE equals Qnoelisp, delete FRAME
   unconditionally.  x_connection_closed and delete_terminal use
   this.  Any other value of FORCE implements the semantics
@@ -1299,7 +1283,7 @@ delete_frame (Lisp_Object frame, Lisp_Object force)
      /* If we use `register' here, gcc-4.0.2 on amd64 using
 	-DUSE_LISP_UNION_TYPE complains further down that we're getting the
 	address of `force'.  Go figure.  */
-                              
+
 {
   struct frame *f;
   struct frame *sf = SELECTED_FRAME ();
@@ -2786,11 +2770,11 @@ the rightmost or bottommost possible position (that stays within the screen).  *
    that is an index in this table.  */
 
 struct frame_parm_table {
-  char *name;
+  const char *name;
   Lisp_Object *variable;
 };
 
-static struct frame_parm_table frame_parms[] =
+static const struct frame_parm_table frame_parms[] =
 {
   {"auto-raise",		&Qauto_raise},
   {"auto-lower",		&Qauto_lower},
@@ -2824,12 +2808,10 @@ static struct frame_parm_table frame_parms[] =
   {"font-backend",		&Qfont_backend},
   {"alpha",			&Qalpha},
   {"sticky",			&Qsticky},
+  {"tool-bar-position",		&Qtool_bar_position},
 };
 
 #ifdef HAVE_WINDOW_SYSTEM
-
-extern Lisp_Object Qbox;
-extern Lisp_Object Qtop;
 
 /* Calculate fullscreen size.  Return in *TOP_POS and *LEFT_POS the
    wanted positions of the WM window (not Emacs window).
@@ -3217,6 +3199,7 @@ x_report_frame_params (struct frame *f, Lisp_Object *alistptr)
     XSETFASTINT (tem, FRAME_X_OUTPUT (f)->parent_desc);
   store_in_alist (alistptr, Qexplicit_name, (f->explicit_name ? Qt : Qnil));
   store_in_alist (alistptr, Qparent_id, tem);
+  store_in_alist (alistptr, Qtool_bar_position, f->tool_bar_position);
 }
 
 
@@ -3449,6 +3432,11 @@ void
 x_set_fringe_width (struct frame *f, Lisp_Object new_value, Lisp_Object old_value)
 {
   compute_fringe_widths (f, 1);
+#ifdef HAVE_X_WINDOWS
+  /* Must adjust this so window managers report correct number of columns.  */
+  if (FRAME_X_WINDOW (f) != 0)
+    x_wm_set_size_hint (f, 0, 0);
+#endif
 }
 
 void
@@ -3678,7 +3666,6 @@ validate_x_resource_name (void)
   if (STRINGP (Vx_resource_name))
     {
       unsigned char *p = SDATA (Vx_resource_name);
-      int i;
 
       len = SBYTES (Vx_resource_name);
 
@@ -3729,7 +3716,7 @@ validate_x_resource_name (void)
 }
 
 
-extern char *x_get_string_resource (XrmDatabase, char *, char *);
+extern char *x_get_string_resource (XrmDatabase, const char *, const char *);
 extern Display_Info *check_x_display_info (Lisp_Object);
 
 
@@ -3831,7 +3818,7 @@ display_x_get_resource (Display_Info *dpyinfo, Lisp_Object attribute, Lisp_Objec
 /* Used when C code wants a resource value.  */
 /* Called from oldXMenu/Create.c.  */
 char *
-x_get_resource_string (char *attribute, char *class)
+x_get_resource_string (const char *attribute, const char *class)
 {
   char *name_key;
   char *class_key;
@@ -3864,7 +3851,8 @@ x_get_resource_string (char *attribute, char *class)
    and don't let it get stored in any Lisp-visible variables!  */
 
 Lisp_Object
-x_get_arg (Display_Info *dpyinfo, Lisp_Object alist, Lisp_Object param, char *attribute, char *class, enum resource_types type)
+x_get_arg (Display_Info *dpyinfo, Lisp_Object alist, Lisp_Object param,
+	   const char *attribute, const char *class, enum resource_types type)
 {
   register Lisp_Object tem;
 
@@ -3962,7 +3950,9 @@ x_get_arg (Display_Info *dpyinfo, Lisp_Object alist, Lisp_Object param, char *at
 }
 
 Lisp_Object
-x_frame_get_arg (struct frame *f, Lisp_Object alist, Lisp_Object param, char *attribute, char *class, enum resource_types type)
+x_frame_get_arg (struct frame *f, Lisp_Object alist, Lisp_Object param,
+		 const char *attribute, const char *class,
+		 enum resource_types type)
 {
   return x_get_arg (FRAME_X_DISPLAY_INFO (f),
 		    alist, param, attribute, class, type);
@@ -3971,7 +3961,10 @@ x_frame_get_arg (struct frame *f, Lisp_Object alist, Lisp_Object param, char *at
 /* Like x_frame_get_arg, but also record the value in f->param_alist.  */
 
 Lisp_Object
-x_frame_get_and_record_arg (struct frame *f, Lisp_Object alist, Lisp_Object param, char *attribute, char *class, enum resource_types type)
+x_frame_get_and_record_arg (struct frame *f, Lisp_Object alist,
+			    Lisp_Object param,
+			    const char *attribute, const char *class,
+			    enum resource_types type)
 {
   Lisp_Object value;
 
@@ -3991,7 +3984,9 @@ x_frame_get_and_record_arg (struct frame *f, Lisp_Object alist, Lisp_Object para
    If that is not found either, use the value DEFLT.  */
 
 Lisp_Object
-x_default_parameter (struct frame *f, Lisp_Object alist, Lisp_Object prop, Lisp_Object deflt, char *xprop, char *xclass, enum resource_types type)
+x_default_parameter (struct frame *f, Lisp_Object alist, Lisp_Object prop,
+		     Lisp_Object deflt, const char *xprop, const char *xclass,
+		     enum resource_types type)
 {
   Lisp_Object tem;
 

@@ -111,30 +111,6 @@ void w32_free_menu_strings (HWND);
 
 int pending_menu_activation;
 
-
-/* Return the frame whose ->output_data.w32->menubar_widget equals
-   ID, or 0 if none.  */
-
-static struct frame *
-menubar_id_to_frame (HMENU id)
-{
-  Lisp_Object tail, frame;
-  FRAME_PTR f;
-
-  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
-    {
-      frame = XCAR (tail);
-      if (!FRAMEP (frame))
-        continue;
-      f = XFRAME (frame);
-      if (!FRAME_WINDOW_P (f))
-	continue;
-      if (f->output_data.w32->menubar_widget == id)
-	return f;
-    }
-  return 0;
-}
-
 #ifdef HAVE_MENUS
 
 DEFUN ("x-popup-dialog", Fx_popup_dialog, Sx_popup_dialog, 2, 3, 0,
@@ -1314,14 +1290,6 @@ name_is_separator (char *name)
      or "--deep-shadow".  We don't implement them yet, se we just treat
      them like normal separators.  */
   return (*name == '\0' || start + 2 == name);
-}
-
-
-/* Indicate boundary between left and right.  */
-static int
-add_left_right_boundary (HMENU menu)
-{
-  return AppendMenu (menu, MF_MENUBARBREAK, 0, NULL);
 }
 
 /* UTF8: 0xxxxxxx, 110xxxxx 10xxxxxx, 1110xxxx, 10xxxxxx, 10xxxxxx */
