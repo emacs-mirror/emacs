@@ -1,3 +1,21 @@
+2010-08-10  Michael R. Mauger  <mmaug@yahoo.com>
+
+	* progmodes/sql.el: Version 2.5
+	(sql-product-alist): Add :prompt-cont-regexp property for several
+	database products.
+	(sql-prompt-cont-regexp): New variable.
+	(sql-output-newline-count, sql-output-by-send): New
+	variables. Record number of newlines in input text.
+	(sql-send-string): Handle multiple filters and count newlines.
+	(sql-send-magic-terminator): Count terminator newline.
+	(sql-interactive-remove-continuation-prompt): Filters output to
+	remove continuation prompts; one for each newline.
+	(sql-interactive-mode): Set up new variables, prompt regexp and
+	output filter.
+	(sql-mode-sqlite-font-lock-keywords): Correct some keywords.
+	(sql-make-alternate-buffer-name): Correct buffer name in edge
+	cases.
+
 2010-08-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/pcase.el: New file.

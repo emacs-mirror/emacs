@@ -1,6 +1,6 @@
 ;;; pcase.el --- ML-style pattern-matching macro for Elisp
 
-;; Copyright (C) 2010  Stefan Monnier
+;; Copyright (C) 2010  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: 
@@ -483,7 +483,7 @@ and if not, defers to REST which is a list of branches of the form
                 (pcase-u1 matches code vars then-rest)
                 (pcase-u else-rest))))
    (t (error "Unkown QPattern %s" qpat))))
-     
+
 
 (provide 'pcase)
 ;;; pcase.el ends here

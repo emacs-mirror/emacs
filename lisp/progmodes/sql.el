@@ -5,7 +5,7 @@
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Michael Mauger <mmaug@yahoo.com>
-;; Version: 2.4
+;; Version: 2.5
 ;; Keywords: comm languages processes
 ;; URL: http://savannah.gnu.org/cgi-bin/viewcvs/emacs/emacs/lisp/progmodes/sql.el
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?SqlMode
@@ -336,6 +336,7 @@ Customizing your password will store it in your ~/.emacs file."
      :sqli-comint-func sql-comint-db2
      :prompt-regexp "^db2 => "
      :prompt-length 7
+     :prompt-cont-regexp "^db2 (cont\.) => "
      :input-filter sql-escape-newlines-filter)
 
     (informix
@@ -357,7 +358,8 @@ Customizing your password will store it in your ~/.emacs file."
      :sqli-login sql-ingres-login-params
      :sqli-comint-func sql-comint-ingres
      :prompt-regexp "^\* "
-     :prompt-length 2)
+     :prompt-length 2
+     :prompt-cont-regexp "^\* ")
 
     (interbase
      :name "Interbase"
@@ -401,6 +403,7 @@ Customizing your password will store it in your ~/.emacs file."
      :sqli-comint-func sql-comint-mysql
      :prompt-regexp "^mysql> "
      :prompt-length 6
+     :prompt-cont-regexp "^    -> "
      :input-filter sql-remove-tabs-filter)
 
     (oracle
@@ -412,6 +415,7 @@ Customizing your password will store it in your ~/.emacs file."
      :sqli-comint-func sql-comint-oracle
      :prompt-regexp "^SQL> "
      :prompt-length 5
+     :prompt-cont-regexp "^\\s-*\\d+> "
      :syntax-alist ((?$ . "w") (?# . "w"))
      :terminator ("\\(^/\\|;\\)" . "/")
      :input-filter sql-placeholders-filter)
@@ -424,8 +428,9 @@ Customizing your password will store it in your ~/.emacs file."
      :sqli-options sql-postgres-options
      :sqli-login sql-postgres-login-params
      :sqli-comint-func sql-comint-postgres
-     :prompt-regexp "^.*[#>] *"
+     :prompt-regexp "^.*=[#>] "
      :prompt-length 5
+     :prompt-cont-regexp "^.*-[#>] "
      :input-filter sql-remove-tabs-filter
      :terminator ("\\(^[\\]g\\|;\\)" . ";"))
 
@@ -448,7 +453,9 @@ Customizing your password will store it in your ~/.emacs file."
      :sqli-login sql-sqlite-login-params
      :sqli-comint-func sql-comint-sqlite
      :prompt-regexp "^sqlite> "
-     :prompt-length 8)
+     :prompt-length 8
+     :prompt-cont-regexp "^   ...> "
+     :terminator ";")
 
     (sybase
      :name "Sybase"
@@ -509,6 +516,10 @@ may be any one of the following:
 
  :prompt-length         length of the prompt on the line.
 
+ :prompt-cont-regexp    regular expression string that matches
+                        the continuation prompt issued by the
+                        product interpreter.
+
  :input-filter          function which can filter strings sent to
                         the command interpreter.  It is also used
                         by the `sql-send-string',
@@ -516,7 +527,8 @@ may be any one of the following:
                         and `sql-send-buffer' functions.  The
                         function is passed the string sent to the
                         command interpreter and must return the
-                        filtered string.
+                        filtered string.  May also be a list of
+                        such functions.
 
  :terminator            the terminator to be sent after a
                         `sql-send-string', `sql-send-region',
@@ -1033,6 +1045,9 @@ You can change `sql-prompt-regexp' on `sql-interactive-mode-hook'.")
   "Prompt used to set `left-margin' in `sql-interactive-mode'.
 
 You can change `sql-prompt-length' on `sql-interactive-mode-hook'.")
+
+(defvar sql-prompt-cont-regexp nil
+  "Prompt pattern of statement continuation prompts.")
 
 (defvar sql-alternate-buffer-name nil
   "Buffer-local string used to possibly rename the SQLi buffer.
@@ -1969,10 +1984,9 @@ you define your own `sql-mode-mysql-font-lock-keywords'.")
 "abort" "action" "add" "after" "all" "alter" "analyze" "and" "as"
 "asc" "attach" "autoincrement" "before" "begin" "between" "by"
 "cascade" "case" "cast" "check" "collate" "column" "commit" "conflict"
-"constraint" "create" "cross" "current_date" "current_time"
-"current_timestamp" "database" "default" "deferrable" "deferred"
-"delete" "desc" "detach" "distinct" "drop" "each" "else" "end"
-"escape" "except" "exclusive" "exists" "explain" "fail" "for"
+"constraint" "create" "cross" "database" "default" "deferrable"
+"deferred" "delete" "desc" "detach" "distinct" "drop" "each" "else"
+"end" "escape" "except" "exclusive" "exists" "explain" "fail" "for"
 "foreign" "from" "full" "glob" "group" "having" "if" "ignore"
 "immediate" "in" "index" "indexed" "initially" "inner" "insert"
 "instead" "intersect" "into" "is" "isnull" "join" "key" "left" "like"
@@ -1987,9 +2001,9 @@ you define your own `sql-mode-mysql-font-lock-keywords'.")
      ;; SQLite Data types
      (sql-font-lock-keywords-builder 'font-lock-type-face nil
 "int" "integer" "tinyint" "smallint" "mediumint" "bigint" "unsigned"
-"big" "int2" "int8" "character" "varchar" "varying" "nchar" "native "
+"big" "int2" "int8" "character" "varchar" "varying" "nchar" "native"
 "nvarchar" "text" "clob" "blob" "real" "double" "precision" "float"
-"numeric" "decimal" "boolean" "date" "datetime"
+"numeric" "number" "decimal" "boolean" "date" "datetime"
 )
      ;; SQLite Functions
      (sql-font-lock-keywords-builder 'font-lock-builtin-face nil
@@ -2002,6 +2016,7 @@ you define your own `sql-mode-mysql-font-lock-keywords'.")
 "typeof" "upper" "zeroblob"
 ;; Date/time functions
 "time" "julianday" "strftime"
+"current_date" "current_time" "current_timestamp"
 ;; Aggregate functions
 "avg" "count" "group_concat" "max" "min" "sum" "total"
 )))
@@ -2585,25 +2600,33 @@ server/database name."
     ;; Build a name using the :sqli-login setting
     (setq name
           (apply 'concat
-                 (apply 'append nil
-                        (sql-for-each-login
-                         (sql-get-product-feature sql-product :sqli-login)
-                         (lambda (token type arg)
-                           (cond
-                            ((eq token 'user)     (list "/" sql-user))
-                            ((eq token 'port)     (list ":" sql-port))
-                            ((eq token 'server)
-                             (list "." (if (eq type :file)
-                                           (file-name-nondirectory sql-server)
-                                         sql-server)))
-                            ((eq token 'database)
-                             (list "@" (if (eq type :file)
-                                           (file-name-nondirectory sql-database)
-                                         sql-database)))
+                 (cdr
+                  (apply 'append nil
+                         (sql-for-each-login
+                          (sql-get-product-feature sql-product :sqli-login)
+                          (lambda (token type arg)
+                            (cond
+                             ((eq token 'user)
+                              (unless (string= "" sql-user)
+                                (list "/" sql-user)))
+                             ((eq token 'port)
+                              (unless (= 0 sql-port)
+                                (list ":" sql-port)))
+                             ((eq token 'server)
+                              (unless (string= "" sql-server)
+                                (list "."
+                                      (if (eq type :file)
+                                          (file-name-nondirectory sql-server)
+                                        sql-server))))
+                             ((eq token 'database)
+                              (when (string= "" sql-database)
+                                (list "@"
+                                      (if (eq type :file)
+                                         (file-name-nondirectory sql-database)
+                                        sql-database))))
 
-                            ((eq token 'password) nil)
-                            (t                    nil)))))))
-
+                             ((eq token 'password) nil)
+                             (t                    nil))))))))
 
     ;; If there's a connection, use it and the name thus far
     (if sql-connection
@@ -2623,8 +2646,8 @@ server/database name."
                sql-server)
              sql-database))
 
-        ;; We've got a name, go with it (without the first punctuation char)
-        (substring name 1)))))
+        ;; Use the name we've got
+        name))))
 
 (defun sql-rename-buffer ()
   "Rename a SQLi buffer."
@@ -2702,14 +2725,73 @@ Every newline in STRING will be preceded with a space and a backslash."
 
 ;;; Input sender for SQLi buffers
 
+(defvar sql-output-newline-count 0
+  "Number of newlines in the input string.
+
+Allows the suppression of continuation prompts.")
+
+(defvar sql-output-by-send nil
+  "Non-nil if the command in the input was generated by `sql-send-string'.")
+
 (defun sql-input-sender (proc string)
   "Send STRING to PROC after applying filters."
 
   (let* ((product (with-current-buffer (process-buffer proc) sql-product))
 	 (filter  (sql-get-product-feature product :input-filter)))
 
+    ;; Apply filter(s)
+    (cond
+     ((not filter)
+      nil)
+     ((functionp filter)
+      (setq string (funcall filter string)))
+     ((listp filter)
+      (mapc (lambda (f) (setq string (funcall f string))) filter))
+     (t nil))
+
+    ;; Count how many newlines in the string
+    (setq sql-output-newline-count 0)
+    (mapc (lambda (ch)
+            (when (eq ch ?\n)
+              (setq sql-output-newline-count (1+ sql-output-newline-count))))
+          string)
+
     ;; Send the string
-    (comint-simple-send proc (if filter (funcall filter string) string))))
+    (comint-simple-send proc string)))
+
+;;; Strip out continuation prompts
+
+(defun sql-interactive-remove-continuation-prompt (oline)
+  "Strip out continuation prompts out of the OLINE.
+
+Added to the `comint-preoutput-filter-functions' hook in a SQL
+interactive buffer.  If `sql-outut-newline-count' is greater than
+zero, then an output line matching the continuation prompt is filtered
+out.  If the count is one, then the prompt is replaced with a newline
+to force the output from the query to appear on a new line."
+  (if (and sql-prompt-cont-regexp
+           sql-output-newline-count
+           (numberp sql-output-newline-count)
+           (>= sql-output-newline-count 1))
+      (progn
+        (while (and oline
+                    sql-output-newline-count
+                    (> sql-output-newline-count 0)
+                    (string-match sql-prompt-cont-regexp oline))
+
+          (setq oline
+                (replace-match (if (and
+                                    (= 1 sql-output-newline-count)
+                                    sql-output-by-send)
+                                   "\n" "")
+                               nil nil oline)
+                sql-output-newline-count
+                (1- sql-output-newline-count)))
+        (if (= sql-output-newline-count 0)
+            (setq sql-output-newline-count nil))
+        (setq sql-output-by-send nil))
+    (setq sql-output-newline-count nil))
+  oline)
 
 ;;; Sending the region to the SQLi buffer.
 
@@ -2717,26 +2799,20 @@ Every newline in STRING will be preceded with a space and a backslash."
   "Send the string STR to the SQL process."
   (interactive "sSQL Text: ")
 
-  (let (comint-input-sender-no-newline proc)
+  (let ((comint-input-sender-no-newline nil)
+        (s (replace-regexp-in-string "[[:space:]\n\r]+\\'" "" str)))
     (if (buffer-live-p sql-buffer)
 	(progn
 	  ;; Ignore the hoping around...
 	  (save-excursion
-	    ;; Get the process
-	    (setq proc (get-buffer-process sql-buffer))
-
 	    ;; Set product context
 	    (with-current-buffer sql-buffer
-	      ;; Send the string
-	      (sql-input-sender proc str)
-
-	      ;; Send a newline if there wasn't one on the end of the string
-	      (unless (string-equal "\n" (substring str (1- (length str))))
-		(comint-send-string proc "\n"))
+	      ;; Send the string (trim the trailing whitespace)
+	      (sql-input-sender (get-buffer-process sql-buffer) s)
 
 	      ;; Send a command terminator if we must
 	      (if sql-send-terminator
-		  (sql-send-magic-terminator sql-buffer str sql-send-terminator))
+		  (sql-send-magic-terminator sql-buffer s sql-send-terminator))
 
 	      (message "Sent string to buffer %s." (buffer-name sql-buffer))))
 
@@ -2771,7 +2847,7 @@ Every newline in STRING will be preceded with a space and a backslash."
 
 (defun sql-send-magic-terminator (buf str terminator)
   "Send TERMINATOR to buffer BUF if its not present in STR."
-  (let (pat term)
+  (let (comint-input-sender-no-newline pat term)
     ;; If flag is merely on(t), get product-specific terminator
     (if (eq terminator t)
 	(setq terminator (sql-get-product-feature sql-product :terminator)))
@@ -2792,8 +2868,13 @@ Every newline in STRING will be preceded with a space and a backslash."
 
     ;; Check to see if the pattern is present in the str already sent
     (unless (and pat term
-		 (string-match (concat pat "\n?\\'") str))
-      (comint-send-string buf (concat term "\n")))))
+		 (string-match (concat pat "\\'") str))
+      (comint-simple-send (get-buffer-process buf) term)
+      (setq sql-output-newline-count
+            (if sql-output-newline-count
+                (1+ sql-output-newline-count)
+              1)))
+    (setq sql-output-by-send t)))
 
 (defun sql-remove-tabs-filter (str)
   "Replace tab characters with spaces."
@@ -2993,12 +3074,22 @@ you entered, right above the output it created.
        (sql-get-product-feature sql-product :prompt-regexp))
   (set (make-local-variable 'sql-prompt-length)
        (sql-get-product-feature sql-product :prompt-length))
+  (set (make-local-variable 'sql-prompt-cont-regexp)
+       (sql-get-product-feature sql-product :prompt-cont-regexp))
+  (make-local-variable 'sql-output-newline-count)
+  (make-local-variable 'sql-output-by-send)
+  (add-hook 'comint-preoutput-filter-functions
+            'sql-interactive-remove-continuation-prompt nil t)
   (make-local-variable 'sql-input-ring-separator)
   (make-local-variable 'sql-input-ring-file-name)
   ;; Run the mode hook (along with comint's hooks).
   (run-mode-hooks 'sql-interactive-mode-hook)
   ;; Set comint based on user overrides.
-  (setq comint-prompt-regexp sql-prompt-regexp)
+  (setq comint-prompt-regexp
+        (if sql-prompt-cont-regexp
+            (concat "\\(" sql-prompt-regexp
+                    "\\|" sql-prompt-cont-regexp "\\)")
+          sql-prompt-regexp))
   (setq left-margin sql-prompt-length)
   ;; Install input sender
   (set (make-local-variable 'comint-input-sender) 'sql-input-sender)
