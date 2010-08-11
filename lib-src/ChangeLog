@@ -1,5 +1,10 @@
 2010-08-11  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* fakemail.c: Include stdlib.h for getenv. Remove declaration of
+	popen, fclose and pclose.
+	(my_name, fatal, error, put_line): Use const char*
+	(main): Remove extern getenv, mail_program_name is const char*.
+
 	* update-game-score.c (get_prefix, write_scores, main): Use const char*.
 
 	* sorted-doc.c (error, fatal, states): Use const char *.
