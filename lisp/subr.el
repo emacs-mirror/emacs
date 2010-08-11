@@ -219,6 +219,7 @@ Treated as a declaration when used at the right place in a
 (defmacro ignore-errors (&rest body)
   "Execute BODY; if an error occurs, return nil.
 Otherwise, return result of last form in BODY."
+  (declare (debug t) (indent 0))
   `(condition-case nil (progn ,@body) (error nil)))
 
 ;;;; Basic Lisp functions.

@@ -1,3 +1,7 @@
+2010-08-11  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* subr.el (ignore-errors): Add debug declaration.
+
 2010-08-09  Geoff Gole  <geoffgole@gmail.com>  (tiny change)
 
 	* whitespace.el (whitespace-color-off): Remove post-command-hook
