@@ -2,6 +2,7 @@
 
 	* xfns.c (x_defined_color): If USE_GTK, call xg_check_special_colors
 	first.
+	(Fx_hide_tip): Check FRAME_LIVE_P (f) before calling xg_hide_tooltip.
 
 	* gtkutil.h (xg_check_special_colors): Declare.
 

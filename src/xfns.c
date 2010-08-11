@@ -5237,7 +5237,7 @@ Value is t if tooltip was open, nil otherwise.  */)
   /* When using system tooltip, tip_frame is the Emacs frame on which
      the tip is shown.  */
   f = XFRAME (frame);
-  if (xg_hide_tooltip (f))
+  if (FRAME_LIVE_P (f) && xg_hide_tooltip (f))
     frame = Qnil;
 #endif
 
