@@ -114,10 +114,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 - initWithTitle: (NSString *)title frame: (struct frame *)f;
 - (void)setFrame: (struct frame *)f;
 - (void)menuNeedsUpdate: (NSMenu *)menu; /* (delegate method) */
-- (NSString *)parseKeyEquiv: (char *)key;
+- (NSString *)parseKeyEquiv: (const char *)key;
 - (NSMenuItem *)addItemWithWidgetValue: (void *)wvptr;
 - (void)fillWithWidgetValue: (void *)wvptr;
-- (EmacsMenu *)addSubmenuWithTitle: (char *)title forFrame: (struct frame *)f;
+- (EmacsMenu *)addSubmenuWithTitle: (const char *)title forFrame: (struct frame *)f;
 - (void) clear;
 - (Lisp_Object)runMenuAt: (NSPoint)p forFrame: (struct frame *)f
                  keymaps: (int)keymaps;
@@ -144,7 +144,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 - (void) clearActive;
 - (BOOL) changed;
 - (void) addDisplayItemWithImage: (EmacsImage *)img idx: (int)idx
-                        helpText: (char *)help
+                        helpText: (const char *)help
                          enabled: (BOOL)enabled;
 /* delegate methods */
 - (NSToolbarItem *)toolbar: (NSToolbar *)toolbar

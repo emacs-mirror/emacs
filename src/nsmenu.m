@@ -600,9 +600,9 @@ name_is_separator ( const char *name)
    NSMenuItem get ignored.  For now we try to display a super-single letter
    combo, and return the others as strings to be appended to the item title.
    (This is signaled by setting keyEquivModMask to 0 for now.) */
--(NSString *)parseKeyEquiv: (char *)key
+-(NSString *)parseKeyEquiv: (const char *)key
 {
-  char *tpos = key;
+  const char *tpos = key;
   keyEquivModMask = NSCommandKeyMask;
 
   if (!key || !strlen (key))
@@ -719,7 +719,7 @@ name_is_separator ( const char *name)
 
 
 /* adds an empty submenu and returns it */
-- (EmacsMenu *)addSubmenuWithTitle: (char *)title forFrame: (struct frame *)f
+- (EmacsMenu *)addSubmenuWithTitle: (const char *)title forFrame: (struct frame *)f
 {
   NSString *titleStr = [NSString stringWithUTF8String: title];
   NSMenuItem *item = [self addItemWithTitle: titleStr
@@ -836,7 +836,7 @@ ns_menu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 	{
 	  /* Create a new pane.  */
 	  Lisp_Object pane_name, prefix;
-	  char *pane_string;
+	  const char *pane_string;
 
 	  pane_name = AREF (menu_items, i + MENU_ITEMS_PANE_NAME);
 	  prefix = AREF (menu_items, i + MENU_ITEMS_PANE_PREFIX);
@@ -1033,7 +1033,7 @@ update_frame_tool_bar (FRAME_PTR f)
       struct image *img;
       Lisp_Object image;
       Lisp_Object helpObj;
-      char *helpText;
+      const char *helpText;
 
       /* If image is a vector, choose the image according to the
 	 button state.  */
@@ -1153,7 +1153,7 @@ update_frame_tool_bar (FRAME_PTR f)
 }
 
 - (void) addDisplayItemWithImage: (EmacsImage *)img idx: (int)idx
-                        helpText: (char *)help enabled: (BOOL)enabled
+                        helpText: (const char *)help enabled: (BOOL)enabled
 {
   /* 1) come up w/identifier */
   NSString *identifier

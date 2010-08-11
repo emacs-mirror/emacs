@@ -161,7 +161,9 @@ static NSFontDescriptor
 
 /* Converts NSFont descriptor to FONT_WEIGHT, FONT_SLANT, FONT_WIDTH, etc.. */
 static Lisp_Object
-ns_descriptor_to_entity (NSFontDescriptor *desc, Lisp_Object extra, char *style)
+ns_descriptor_to_entity (NSFontDescriptor *desc,
+                         Lisp_Object extra,
+                         const char *style)
 {
     Lisp_Object font_entity = font_make_entity ();
     /*   NSString *psName = [desc postscriptName]; */
