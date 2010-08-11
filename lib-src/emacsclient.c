@@ -134,7 +134,7 @@ int eval = 0;
 int current_frame = 1;
 
 /* The display on which Emacs should work.  --display.  */
-char *display = NULL;
+const char *display = NULL;
 
 /* The parent window ID, if we are opening a frame via XEmbed.  */
 char *parent_id = NULL;
@@ -150,7 +150,7 @@ const char *alternate_editor = NULL;
 char *socket_name = NULL;
 
 /* If non-NULL, the filename of the authentication file.  */
-char *server_file = NULL;
+const char *server_file = NULL;
 
 /* PID of the Emacs server process.  */
 int emacs_pid = 0;
@@ -479,7 +479,7 @@ ttyname (int fd)
 /* Display a normal or error message.
    On Windows, use a message box if compiled as a Windows app.  */
 void
-message (int is_error, char *message, ...)
+message (int is_error, const char *message, ...)
 {
   char msg[2048];
   va_list args;
@@ -724,7 +724,7 @@ HSOCKET emacs_socket = 0;
 /* On Windows, the socket library was historically separate from the standard
    C library, so errors are handled differently.  */
 void
-sock_err_message (char *function_name)
+sock_err_message (const char *function_name)
 {
 #ifdef WINDOWSNT
   char* msg = NULL;
@@ -748,7 +748,7 @@ sock_err_message (char *function_name)
    - the buffer is full (but this shouldn't happen)
    Otherwise, we just accumulate it.  */
 void
-send_to_emacs (HSOCKET s, char *data)
+send_to_emacs (HSOCKET s, const char *data)
 {
   while (data)
     {
@@ -787,10 +787,11 @@ send_to_emacs (HSOCKET s, char *data)
 
    Does not change the string.  Outputs the result to S.  */
 void
-quote_argument (HSOCKET s, char *str)
+quote_argument (HSOCKET s, const char *str)
 {
   char *copy = (char *) xmalloc (strlen (str) * 2 + 1);
-  char *p, *q;
+  const char *p;
+  char *q;
 
   p = str;
   q = copy;
@@ -1026,7 +1027,7 @@ set_tcp_socket (void)
 
 /* Returns 1 if PREFIX is a prefix of STRING. */
 static int
-strprefix (char *prefix, char *string)
+strprefix (const char *prefix, const char *string)
 {
   return !strncmp (prefix, string, strlen (prefix));
 }
@@ -1215,8 +1216,8 @@ set_local_socket (void)
     int sock_status = 0;
     int default_sock = !socket_name;
     int saved_errno = 0;
-    char *server_name = "server";
-    char *tmpdir;
+    const char *server_name = "server";
+    const char *tmpdir;
 
     if (socket_name && !strchr (socket_name, '/')
 	&& !strchr (socket_name, '\\'))
@@ -1479,11 +1480,13 @@ start_daemon_and_retry_set_socket (void)
     }
   else
     {
-      char *d_argv[] = {"emacs", "--daemon", 0 };
+      char emacs[] = "emacs";
+      char daemon[] = "--daemon";
+      char *d_argv[] = {emacs, daemon, 0 };
       if (socket_name != NULL)
 	{
 	  /* Pass  --daemon=socket_name as argument.  */
-	  char *deq = "--daemon=";
+	  const char *deq = "--daemon=";
 	  char *daemon_arg = alloca (strlen (deq)
 				     + strlen (socket_name) + 1);
 	  strcpy (daemon_arg, deq);

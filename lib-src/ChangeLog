@@ -1,3 +1,49 @@
+2010-08-11  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* update-game-score.c (get_prefix, write_scores, main): Use const char*.
+
+	* sorted-doc.c (error, fatal, states): Use const char *.
+
+	* pop.h (pop_multi_first): Use const char *.
+	(_ARGS): Remove.
+
+	* pop.c (pop_multi_first, socket_connection, sendline): Use conat char*.
+
+	* movemail.c (fatal, error, concat): Use const char *.
+
+	* make-docfile.c (error, fatal, scan_c_file, scan_lisp_file): Use
+	const char *.
+
+	* etags.c (compressor, language, Ada_suffix, Ada_help, Asm_suffixes)
+	(Asm_help, default_C_suffixes, default_C_help, Cplusplus_suffixes)
+	(Cplusplus_help, Cjava_suffixes, Cobol_suffixes, Cstar_suffixes)
+	(Erlang_suffixes, Erlang_help, Forth_suffixes, Forth_help)
+	(Fortran_suffixes, Fortran_help, HTML_suffixes,  HTML_help)
+	(Lisp_suffixes, Lisp_help, Lua_suffixes, Lua_help)
+	(Makefile_filenames, Makefile_help, Objc_suffixes, Objc_help)
+	(Pascal_suffixes, Pascal_help, Perl_suffixes, Perl_interpreters)
+	(Perl_help, PHP_suffixes, PHP_help, plain_C_suffixses, PS_suffixes)
+	(PS_help, Prolog_suffixes, Prolog_help, Python_suffixes, Python_help)
+	(Scheme_suffixes, Scheme_help, TeX_suffixes, TeX_help, Texinfo_suffixes)
+	(Texinfo_help, Yacc_suffixes, Yacc_help, auto_help, none_help)
+	(no_lang_help, print_language_names)
+	(get_language_from_interpreter, get_language_from_filename)
+	(init, make_tag, struct C_stab_entry, write_classname, TEX_defenv)
+	(TEX_decode_env, nocase_tail, savestr, savenstr, fatal, pfatal)
+	(concat): Use const char*.
+
+	* emacsclient.c (message, sock_err_message, send_to_emacs)
+	(quote_argument, set_local_socket)
+	(start_daemon_and_retry_set_socket): Use const char*.
+
+	* ebrowse.c (struct member): filename, def_filename is const.
+	(struct sym): filename, sfilename is const.
+	(struct kw): name is const.
+	(add_sym, yyerror, token_string, insert_keyword, main): Use const char*.
+
+	* b2m.c (concat, fatal): Use const char*.
+	(main): Don't assign labels a string literal.
+
 2010-08-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ebrowse.c (usage, version, mark_virtual):

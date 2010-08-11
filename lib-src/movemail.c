@@ -147,11 +147,11 @@ static char *mail_spool_name ();
 char *strerror (int);
 #endif
 
-static void fatal (char *s1, char *s2, char *s3) NO_RETURN;
-static void error (char *s1, char *s2, char *s3);
+static void fatal (const char *s1, const char *s2, const char *s3) NO_RETURN;
+static void error (const char *s1, const char *s2, const char *s3);
 static void pfatal_with_name (char *name) NO_RETURN;
 static void pfatal_and_delete (char *name) NO_RETURN;
-static char *concat (char *s1, char *s2, char *s3);
+static char *concat (const char *s1, const char *s2, const char *s3);
 static long *xmalloc (unsigned int size);
 #ifdef MAIL_USE_POP
 static int popmail (char *mailbox, char *outfile, int preserve, char *password, int reverse_order);
@@ -589,7 +589,7 @@ mail_spool_name (inname)
 /* Print error message and exit.  */
 
 static void
-fatal (char *s1, char *s2, char *s3)
+fatal (const char *s1, const char *s2, const char *s3)
 {
   if (delete_lockname)
     unlink (delete_lockname);
@@ -601,7 +601,7 @@ fatal (char *s1, char *s2, char *s3)
    are args for it or null. */
 
 static void
-error (char *s1, char *s2, char *s3)
+error (const char *s1, const char *s2, const char *s3)
 {
   fprintf (stderr, "movemail: ");
   if (s3)
@@ -630,7 +630,7 @@ pfatal_and_delete (char *name)
 /* Return a newly-allocated string whose contents concatenate those of s1, s2, s3.  */
 
 static char *
-concat (char *s1, char *s2, char *s3)
+concat (const char *s1, const char *s2, const char *s3)
 {
   int len1 = strlen (s1), len2 = strlen (s2), len3 = strlen (s3);
   char *result = (char *) xmalloc (len1 + len2 + len3 + 1);
