@@ -1,3 +1,7 @@
+2010-08-11  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* unexmacosx.c (unexec_error): Use const char *.
+
 2010-08-09  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* font.h (font_parse_xlfd, font_parse_fcname, font_unparse_fcname)
