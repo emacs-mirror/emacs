@@ -432,20 +432,22 @@ xg_list_remove (xg_list_node *list, xg_list_node *node)
 }
 
 /* Allocate and return a utf8 version of STR.  If STR is already
-   utf8 or NULL, just return STR.
-   If not, a new string is allocated and the caller must free the result
+   utf8 or NULL, just return a copy of STR.
+   A new string is allocated and the caller must free the result
    with g_free.  */
 
 static char *
-get_utf8_string (char *str)
+get_utf8_string (const char *str)
 {
-  char *utf8_str = str;
+  char *utf8_str;
 
   if (!str) return NULL;
 
   /* If not UTF-8, try current locale.  */
   if (!g_utf8_validate (str, -1, NULL))
     utf8_str = g_locale_to_utf8 (str, -1, 0, 0, 0);
+  else
+    return g_strdup (str);
 
   if (!utf8_str)
     {
@@ -1336,7 +1338,7 @@ create_dialog (widget_value *wv,
             }
         }
 
-     if (utf8_label && utf8_label != item->value)
+     if (utf8_label)
        g_free (utf8_label);
     }
 
@@ -2076,7 +2078,7 @@ static const char* separator_names[] = {
 };
 
 static int
-xg_separator_p (char *label)
+xg_separator_p (const char *label)
 {
   if (! label) return 0;
   else if (strlen (label) > 3
@@ -2174,8 +2176,8 @@ xg_create_one_menuitem (widget_value *item,
 
   w = make_menu_item (utf8_label, utf8_key, item, group);
 
-  if (utf8_label && utf8_label != item->name) g_free (utf8_label);
-  if (utf8_key && utf8_key != item->key) g_free (utf8_key);
+  if (utf8_label) g_free (utf8_label);
+  if (utf8_key) g_free (utf8_key);
 
   cb_data = xmalloc (sizeof (xg_menu_item_cb_data));
 
@@ -2311,7 +2313,7 @@ create_menus (widget_value *data,
           gtk_menu_set_title (GTK_MENU (wmenu), utf8_label);
           w = gtk_menu_item_new_with_label (utf8_label);
           gtk_widget_set_sensitive (w, FALSE);
-          if (utf8_label && utf8_label != item->name) g_free (utf8_label);
+          if (utf8_label) g_free (utf8_label);
         }
       else if (xg_separator_p (item->name))
         {
@@ -2432,7 +2434,7 @@ xg_get_menu_item_label (GtkMenuItem *witem)
 /* Return non-zero if the menu item WITEM has the text LABEL.  */
 
 static int
-xg_item_label_same_p (GtkMenuItem *witem, char *label)
+xg_item_label_same_p (GtkMenuItem *witem, const char *label)
 {
   int is_same = 0;
   char *utf8_label = get_utf8_string (label);
@@ -2443,7 +2445,7 @@ xg_item_label_same_p (GtkMenuItem *witem, char *label)
   else if (old_label && utf8_label)
     is_same = strcmp (utf8_label, old_label) == 0;
 
-  if (utf8_label && utf8_label != label) g_free (utf8_label);
+  if (utf8_label) g_free (utf8_label);
 
   return is_same;
 }
@@ -2590,6 +2592,7 @@ xg_update_menubar (GtkWidget *menubar,
             /* Set the title of the detached window.  */
             gtk_menu_set_title (GTK_MENU (submenu), utf8_label);
 
+          if (utf8_label) g_free (utf8_label);
           iter = g_list_next (iter);
           val = val->next;
           ++pos;
@@ -2729,8 +2732,8 @@ xg_update_menu_item (widget_value *val,
   if (! old_label || strcmp (utf8_label, old_label) != 0)
     gtk_label_set_text (wlbl, utf8_label);
 
-  if (utf8_key && utf8_key != val->key) g_free (utf8_key);
-  if (utf8_label && utf8_label != val->name) g_free (utf8_label);
+  if (utf8_key) g_free (utf8_key);
+  if (utf8_label) g_free (utf8_label);
 
   if (! val->enabled && gtk_widget_get_sensitive (w))
     gtk_widget_set_sensitive (w, FALSE);

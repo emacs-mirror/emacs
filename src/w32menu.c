@@ -662,7 +662,7 @@ free_frame_menubar (FRAME_PTR f)
 
 Lisp_Object
 w32_menu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
-	       Lisp_Object title, char **error)
+	       Lisp_Object title, const char **error)
 {
   int i;
   int menu_item_selection;

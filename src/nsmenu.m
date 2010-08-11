@@ -773,7 +773,7 @@ name_is_separator ( const char *name)
 
 Lisp_Object
 ns_menu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
-	      Lisp_Object title, char **error)
+	      Lisp_Object title, const char **error)
 {
   EmacsMenu *pmenu;
   NSPoint p;

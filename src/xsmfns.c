@@ -87,7 +87,7 @@ Lisp_Object Vx_session_previous_id;
 /* The option to start Emacs without the splash screen when
    restarting Emacs.  */
 
-#define NOSPLASH_OPT "--no-splash"
+static char NOSPLASH_OPT[] = "--no-splash";
 
 /* The option to make Emacs start in the given directory.  */
 
@@ -198,14 +198,14 @@ smc_save_yourself_CB (SmcConn smcConn,
   SmPropValue values[20];
   int val_idx = 0;
   int props_idx = 0;
-
+  int i;
   char *cwd = NULL;
   char *smid_opt, *chdir_opt = NULL;
 
   /* How to start a new instance of Emacs.  */
   props[props_idx] = &prop_ptr[props_idx];
-  props[props_idx]->name = SmCloneCommand;
-  props[props_idx]->type = SmLISTofARRAY8;
+  props[props_idx]->name = xstrdup (SmCloneCommand);
+  props[props_idx]->type = xstrdup (SmLISTofARRAY8);
   props[props_idx]->num_vals = 1;
   props[props_idx]->vals = &values[val_idx++];
   props[props_idx]->vals[0].length = strlen (emacs_program);
@@ -214,8 +214,8 @@ smc_save_yourself_CB (SmcConn smcConn,
 
   /* The name of the program.  */
   props[props_idx] = &prop_ptr[props_idx];
-  props[props_idx]->name = SmProgram;
-  props[props_idx]->type = SmARRAY8;
+  props[props_idx]->name = xstrdup (SmProgram);
+  props[props_idx]->type = xstrdup (SmARRAY8);
   props[props_idx]->num_vals = 1;
   props[props_idx]->vals = &values[val_idx++];
   props[props_idx]->vals[0].length = strlen (SSDATA (Vinvocation_name));
@@ -224,8 +224,8 @@ smc_save_yourself_CB (SmcConn smcConn,
 
   /* How to restart Emacs.  */
   props[props_idx] = &prop_ptr[props_idx];
-  props[props_idx]->name = SmRestartCommand;
-  props[props_idx]->type = SmLISTofARRAY8;
+  props[props_idx]->name = xstrdup (SmRestartCommand);
+  props[props_idx]->type = xstrdup (SmLISTofARRAY8);
   /* /path/to/emacs, --smid=xxx --no-splash --chdir=dir */
   props[props_idx]->num_vals = 4;
   props[props_idx]->vals = &values[val_idx];
@@ -258,8 +258,8 @@ smc_save_yourself_CB (SmcConn smcConn,
 
   /* User id.  */
   props[props_idx] = &prop_ptr[props_idx];
-  props[props_idx]->name = SmUserID;
-  props[props_idx]->type = SmARRAY8;
+  props[props_idx]->name = xstrdup (SmUserID);
+  props[props_idx]->type = xstrdup (SmARRAY8);
   props[props_idx]->num_vals = 1;
   props[props_idx]->vals = &values[val_idx++];
   props[props_idx]->vals[0].length = strlen (SSDATA (Vuser_login_name));
@@ -270,8 +270,8 @@ smc_save_yourself_CB (SmcConn smcConn,
   if (cwd)
     {
       props[props_idx] = &prop_ptr[props_idx];
-      props[props_idx]->name = SmCurrentDirectory;
-      props[props_idx]->type = SmARRAY8;
+      props[props_idx]->name = xstrdup (SmCurrentDirectory);
+      props[props_idx]->type = xstrdup (SmARRAY8);
       props[props_idx]->num_vals = 1;
       props[props_idx]->vals = &values[val_idx++];
       props[props_idx]->vals[0].length = strlen (cwd);
@@ -286,6 +286,11 @@ smc_save_yourself_CB (SmcConn smcConn,
   xfree (chdir_opt);
 
   free (cwd);
+  for (i = 0; i < props_idx; ++i)
+    {
+      xfree (props[i]->type);
+      xfree (props[i]->name);
+    }
 
   /* See if we maybe shall interact with the user.  */
   if (interactStyle != SmInteractStyleAny

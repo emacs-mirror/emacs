@@ -38,14 +38,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Key for data that menu items hold.  */
 #define XG_ITEM_DATA "emacs_menuitem"
 
-/* Button types in menus.  */
-enum button_type
-{
-  BUTTON_TYPE_NONE,
-  BUTTON_TYPE_TOGGLE,
-  BUTTON_TYPE_RADIO
-};
-
 /* This is a list node in a generic list implementation.  */
 typedef struct xg_list_node_
 {
@@ -82,48 +74,13 @@ typedef struct xg_menu_item_cb_data_
 } xg_menu_item_cb_data;
 
 
-/* Used to specify menus and dialogs.
-   This is an adaption from lwlib for Gtk so we can use more of the same
-   code as lwlib in xmenu.c.  */
-typedef struct _widget_value
-{
-  /* name of widget */
-  Lisp_Object   lname;
-  char		*name;
-  /* value (meaning depend on widget type) */
-  char		*value;
-  /* keyboard equivalent. no implications for XtTranslations */
-  Lisp_Object   lkey;
-  char		*key;
-  /* Help string or nil if none.
-     GC finds this string through the frame's menu_bar_vector
-     or through menu_items.  */
-  Lisp_Object	help;
-  /* true if enabled */
-  gint	        enabled;
-  /* true if selected */
-  gint	selected;
-  /* The type of a button.  */
-  enum button_type button_type;
-  /* Contents of the sub-widgets, also selected slot for checkbox */
-  struct _widget_value	*contents;
-  /* data passed to callback */
-  gpointer	call_data;
-  /* next one in the list */
-  struct _widget_value	*next;
-
-  /* we resource the widget_value structures; this points to the next
-     one on the free list if this one has been deallocated.
-   */
-  struct _widget_value *free_list;
-} widget_value;
-
 #ifdef HAVE_GTK_FILE_SELECTION_NEW
 extern int use_old_gtk_file_dialog;
 #endif
+struct _widget_value;
 
-extern widget_value *malloc_widget_value (void);
-extern void free_widget_value (widget_value *);
+extern struct _widget_value *malloc_widget_value (void);
+extern void free_widget_value (struct _widget_value *);
 
 extern int xg_uses_old_file_dialog (void);
 
@@ -138,14 +95,14 @@ extern char *xg_get_font_name (FRAME_PTR f, const char *);
 extern GtkWidget *xg_create_widget (const char *type,
                                     const char *name,
                                     FRAME_PTR f,
-                                    widget_value *val,
+                                    struct _widget_value *val,
                                     GCallback select_cb,
                                     GCallback deactivate_cb,
                                     GCallback hightlight_cb);
 
 extern void xg_modify_menubar_widgets (GtkWidget *menubar,
                                        FRAME_PTR f,
-                                       widget_value *val,
+                                       struct _widget_value *val,
                                        int deep_p,
                                        GCallback select_cb,
                                        GCallback deactivate_cb,

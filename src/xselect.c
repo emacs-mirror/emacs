@@ -2596,6 +2596,7 @@ If the value is 0 or the atom is not known, return the empty string.  */)
 {
   struct frame *f = check_x_frame (frame);
   char *name = 0;
+  char empty[] = "";
   Lisp_Object ret = Qnil;
   Display *dpy = FRAME_X_DISPLAY (f);
   Atom atom;
@@ -2612,7 +2613,7 @@ If the value is 0 or the atom is not known, return the empty string.  */)
 
   BLOCK_INPUT;
   x_catch_errors (dpy);
-  name = atom ? XGetAtomName (dpy, atom) : "";
+  name = atom ? XGetAtomName (dpy, atom) : empty;
   had_errors = x_had_errors_p (dpy);
   x_uncatch_errors ();
 

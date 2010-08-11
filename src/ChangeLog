@@ -1,5 +1,60 @@
 2010-08-11  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* xterm.c (emacs_class): New char[] for EMACS_CLASS.
+	(xim_open_dpy, xim_initialize, xim_close_dpy): Use emacs_class.
+	(x_term_init): Use char[] display_opt and name_opt instead of
+	string literal. file is const char*.
+
+	* xsmfns.c (NOSPLASH_OPT): Change to char[].
+	(smc_save_yourself_CB): Do xstrdup on all ->type and ->name for
+	props.  Free them at the end.
+
+	* xselect.c (Fx_get_atom_name): Use char empty[] instead of literal "".
+
+	* xrdb.c (get_system_app): Make path const and use char *p for non-const
+	char.
+
+	* xmenu.c (Fx_popup_dialog): error_name is const char*.
+	(xmenu_show): error parameter is const char **. pane_string is const
+	char *.
+	(button_names): Is const char *.
+	(xdialog_show): error_name and pane_string is const.
+
+	* process.h (synch_process_death): Is const char*.
+
+	* w32menu.c (w32_menu_show):
+	* nsmenu.m (ns_menu_show): error parameter is const char **.
+
+	* menu.h (w32_menu_show, ns_menu_show, xmenu_show): error parameter
+	is const char **.
+
+	* menu.c (Fx_popup_menu): error_name is const.
+
+	* keyboard.h (_widget_value): Add defined USE_GTK.  Replace Boolean
+	with unsigned char and XtPointer with void *.
+
+	* gtkutil.h: Replace widget_value with struct _widget_value.
+	(enum button_type, struct _widget_value): Remove and use the one from
+	keyboard.h.
+
+	* gtkutil.c (get_utf8_string): Always return an allocated string.
+	Parameter is const.
+	(create_dialog, xg_create_one_menuitem, create_menus)
+	(xg_item_label_same_p, xg_update_menu_item): Free result from
+	get_utf8_string.
+	(xg_separator_p, xg_item_label_same_p): label is const.
+
+	* font.h (font_open_by_name): Make name const.
+
+	* font.c (font_open_by_name): Make name const.
+
+	* floatfns.c (matherr): Use a const char* variable for x->name.
+
+	* emacs.c (main): Pass char[] to putenv instead of literal.
+
+	* callproc.c (synch_process_death): Make const.
+	(Fcall_process): Make signame const.
+
 	* nsterm.h (parseKeyEquiv, addSubmenuWithTitle)
 	(addDisplayItemWithImage): Use const char*.
 

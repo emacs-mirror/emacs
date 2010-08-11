@@ -115,7 +115,7 @@ Lisp_Object Qbuffer_file_type;
 int synch_process_alive;
 
 /* Nonzero => this is a string explaining death of synchronous subprocess.  */
-char *synch_process_death;
+const char *synch_process_death;
 
 /* Nonzero => this is the signal number that terminated the subprocess.  */
 int synch_process_termsig;
@@ -818,7 +818,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 
   if (synch_process_termsig)
     {
-      char *signame;
+      const char *signame;
 
       synchronize_system_messages_locale ();
       signame = strsignal (synch_process_termsig);
