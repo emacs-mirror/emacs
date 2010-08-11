@@ -96,6 +96,11 @@ Changes can be
 	  ((eq type 'font-render)
 	   (font-setting-change-default-font display-name nil))
 
+	  ;; This is a bit heavy, ideally we would just clear faces
+	  ;; on the affected display, and perhaps only the relevant
+	  ;; faces.  Oh well.
+	  ((eq type 'theme-name) (clear-face-cache))
+
 	  ((eq type 'tool-bar-style) (force-mode-line-update t)))))
 
 (define-key special-event-map [config-changed-event]

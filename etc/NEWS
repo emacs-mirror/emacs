@@ -109,6 +109,9 @@ The frame-parameter tool-bar-position controls this.  It takes the values
 top, left, tight or bottom.  The Options => Show/Hide menu has entries
 for this.
 
+** The colors for selected text (the region face) are taken from the GTK
+theme when Emacs is built with GTK.
+
 ** Emacs uses GTK tooltips by default if built with GTK.  You can turn that
 off by customizing x-gtk-use-system-tooltips.
 

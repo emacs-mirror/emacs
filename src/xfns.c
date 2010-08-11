@@ -648,12 +648,16 @@ int
 x_defined_color (struct frame *f, const char *color_name,
 		 XColor *color, int alloc_p)
 {
-  int success_p;
+  int success_p = 0;
   Display *dpy = FRAME_X_DISPLAY (f);
   Colormap cmap = FRAME_X_COLORMAP (f);
 
   BLOCK_INPUT;
-  success_p = XParseColor (dpy, cmap, color_name, color);
+#ifdef USE_GTK
+  success_p = xg_check_special_colors (f, color_name, color);
+#endif
+  if (!success_p)
+    success_p = XParseColor (dpy, cmap, color_name, color);
   if (success_p && alloc_p)
     success_p = x_alloc_nearest_color (f, cmap, color);
   UNBLOCK_INPUT;

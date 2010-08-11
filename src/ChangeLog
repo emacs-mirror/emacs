@@ -1,5 +1,14 @@
 2010-08-11  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* xfns.c (x_defined_color): If USE_GTK, call xg_check_special_colors
+	first.
+
+	* gtkutil.h (xg_check_special_colors): Declare.
+
+	* gtkutil.c (xg_check_special_colors, style_changed_cb): New functions.
+	(xg_create_frame_widgets): Connect theme name changes to
+	style_changed_cb.
+
 	* xterm.c (emacs_class): New char[] for EMACS_CLASS.
 	(xim_open_dpy, xim_initialize, xim_close_dpy): Use emacs_class.
 	(x_term_init): Use char[] display_opt and name_opt instead of
