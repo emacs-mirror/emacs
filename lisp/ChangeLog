@@ -1,5 +1,11 @@
 2010-08-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/octave-mod.el (octave-mode-syntax-table): Use the new "c"
+	comment style (bug#6834).
+	* progmodes/scheme.el (scheme-mode-syntax-table):
+	* emacs-lisp/lisp-mode.el (lisp-mode-syntax-table): Remove spurious
+	"b" flag in "' 14b" syntax.
+
 	* progmodes/octave-mod.el (octave-mode-map): Remove special bindings
 	for (un)commenting the region and performing completion.
 	(octave-mode-menu): Use standard commands for help and completion.

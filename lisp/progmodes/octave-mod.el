@@ -294,17 +294,16 @@ parenthetical grouping.")
     (modify-syntax-entry ?\" "\"" table)
     (modify-syntax-entry ?. "w"   table)
     (modify-syntax-entry ?_ "w"   table)
-    ;; FIXME: The "b" flag only applies to the second letter of the comstart
+    ;; The "b" flag only applies to the second letter of the comstart
     ;; and the first letter of the comend, i.e. the "4b" below is ineffective.
     ;; If we try to put `b' on the single-line comments, we get a similar
     ;; problem where the % and # chars appear as first chars of the 2-char
     ;; comend, so the multi-line ender is also turned into style-b.
-    ;; Really, we can't make it work without extending the syntax-tables, or
-    ;; via font-lock-syntactic-keywords.
+    ;; So we need the new "c" comment style.
     (modify-syntax-entry ?\% "< 13"  table)
     (modify-syntax-entry ?\# "< 13"  table)
-    (modify-syntax-entry ?\{ "(} 2b"  table)
-    (modify-syntax-entry ?\} "){ 4b"  table)
+    (modify-syntax-entry ?\{ "(} 2c"  table)
+    (modify-syntax-entry ?\} "){ 4c"  table)
     (modify-syntax-entry ?\n ">"  table)
     table)
   "Syntax table in use in `octave-mode' buffers.")

@@ -107,7 +107,7 @@
     ;; Special characters
     (modify-syntax-entry ?, "'   " st)
     (modify-syntax-entry ?@ "'   " st)
-    (modify-syntax-entry ?# "' 14b" st)
+    (modify-syntax-entry ?# "' 14" st)
     (modify-syntax-entry ?\\ "\\   " st)
     st))
 

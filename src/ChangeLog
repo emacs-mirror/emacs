@@ -1,3 +1,22 @@
+2010-08-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Introduce a new comment style "c" flag.
+	* syntax.c (SYNTAX_FLAGS_COMMENT_STYLEB)
+	(SYNTAX_FLAGS_COMMENT_STYLEC): New macros.
+	(SYNTAX_FLAGS_COMMENT_STYLE): Use them, add an argument.
+	(syntax_prefix_flag_p): New function.
+	(Fstring_to_syntax): Understand new "c" flag.
+	(Finternal_describe_syntax_value): Recognize new flag; use the
+	SYNTAX_FLAGS_* macros.
+	(scan_sexps_forward, Fparse_partial_sexp): Change representation of
+	comment style to accomodate the new styles.
+	(back_comment, forw_comment, Fforward_comment, scan_lists)
+	(scan_sexps_forward): Update code to obey the new comment style flag.
+
+	* syntax.h: Move SYNTAX_FLAGS_FOO() macros to syntax.c.
+
+	* casefiddle.c (casify_region): Use the new syntax_prefix_flag_p.
+
 2010-08-11  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (x_defined_color): If USE_GTK, call xg_check_special_colors
@@ -21,8 +40,8 @@
 
 	* xselect.c (Fx_get_atom_name): Use char empty[] instead of literal "".
 
-	* xrdb.c (get_system_app): Make path const and use char *p for non-const
-	char.
+	* xrdb.c (get_system_app): Make path const and use char *p for
+	non-const char.
 
 	* xmenu.c (Fx_popup_dialog): error_name is const char*.
 	(xmenu_show): error parameter is const char **. pane_string is const
@@ -80,9 +99,9 @@
 2010-08-09  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* font.h (font_parse_xlfd, font_parse_fcname, font_unparse_fcname)
-	(font_parse_name): font_open_by_name):
+	(font_parse_name, font_open_by_name):
 	* font.c (font_parse_xlfd, font_parse_fcname, font_unparse_fcname)
-	(font_parse_name): font_open_by_name): Remove const.
+	(font_parse_name, font_open_by_name): Remove const.
 
 2010-08-09  Andreas Schwab  <schwab@linux-m68k.org>
 
@@ -205,17 +224,17 @@
 
 	* s/freebsd.h (DECLARE_GETPWUID_WITH_UID_T): Remove, unused.
 
-	* xrdb.c: Remove include guard.  Remove
-	DECLARE_GETPWUID_WITH_UID_T conditional it had no effect.
+	* xrdb.c: Remove include guard.
+	Remove DECLARE_GETPWUID_WITH_UID_T conditional it had no effect.
 	Remove #if 0 code.  Replace malloc->xmalloc, free->xfree,
 	realloc->xrealloc instead of using #defines.
 
 2010-08-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* cmds.c (Fforward_line, Fbeginning_of_line, Fend_of_line):
-	* editfns.c (Fline_beginning_position, Fline_end_position): State
-	in the doc strings that start and end of line are in the logical
-	order.
+	* editfns.c (Fline_beginning_position, Fline_end_position):
+	State in the doc strings that start and end of line are in the
+	logical order.
 
 	* xdisp.c (display_line): Move the handling of overlay arrow after
 	the call to find_row_edges.  (Bug#6699)
