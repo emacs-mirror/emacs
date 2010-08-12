@@ -1,7 +1,24 @@
 2010-08-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* progmodes/octave-mod.el (octave-mode-map): Use comment-dwim (bug#6829).
-	(octave-mode): Set comment-add.
+	* progmodes/octave-mod.el (octave-mode-map): Remove special bindings
+	for (un)commenting the region and performing completion.
+	(octave-mode-menu): Use standard commands for help and completion.
+	(octave-mode-syntax-table): Support %{..%} comments (sort of).
+	(octave-mode): Use define-derived-mode.
+	Set completion-at-point-functions and don't set columns.
+	Don't disable adaptive-fill-regexp.
+	(octave-describe-major-mode, octave-comment-region)
+	(octave-uncomment-region, octave-comment-indent)
+	(octave-indent-for-comment): Remove.
+	(octave-indent-calculate): Rename from calculate-octave-indent.
+	(octave-indent-line): Update caller.
+	(octave-initialize-completions): No need to make an alist.
+	(octave-completion-at-point-function): New function.
+	(octave-complete-symbol): Use it.
+	(octave-insert-defun): Use define-skeleton.
+
+	* progmodes/octave-mod.el (octave-mode): Set comment-add.
+	(octave-mode-map): Use comment-dwim (bug#6829).
 
 2010-08-12  Antoine Levitt  <antoine.levitt@gmail.com>  (tiny change)
 
