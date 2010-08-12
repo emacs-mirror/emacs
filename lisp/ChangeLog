@@ -1,3 +1,8 @@
+2010-08-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/octave-mod.el (octave-mode-map): Use comment-dwim (bug#6829).
+	(octave-mode): Set comment-add.
+
 2010-08-12  Antoine Levitt  <antoine.levitt@gmail.com>  (tiny change)
 
 	* cus-edit.el (custom-save-variables, custom-save-faces): Fix up
