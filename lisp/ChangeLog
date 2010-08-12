@@ -11,7 +11,7 @@
 	(octave-uncomment-region, octave-comment-indent)
 	(octave-indent-for-comment): Remove.
 	(octave-indent-calculate): Rename from calculate-octave-indent.
-	(octave-indent-line): Update caller.
+	(octave-indent-line, octave-fill-paragraph): Update caller.
 	(octave-initialize-completions): No need to make an alist.
 	(octave-completion-at-point-function): New function.
 	(octave-complete-symbol): Use it.
