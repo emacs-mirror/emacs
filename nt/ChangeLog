@@ -1,3 +1,7 @@
+2010-08-12  Jason Rumney  <jasonr@gnu.org>
+
+	* addpm.c (add_registry): Set path for runemacs.exe to use.
+
 2010-08-08  Óscar Fuentes  <ofv@wanadoo.es>
 
 	* cmdproxy.c (main): Use _snprintf instead of wsprintf,
