@@ -1,3 +1,7 @@
+2010-08-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* cl.texi (Mapping over Sequences): Rename mapc => cl-mapc.
+
 2010-08-09  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc.texi (Customizing Calc): Rearrange description of new
