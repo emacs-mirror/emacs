@@ -1,4 +1,15 @@
+2010-07-30  Lawrence Mitchell  <wence@gmx.li>
+
+	Make saving and restoring of hidden threads work with overlays.
+	Patch applied by Ted Zlatanov.
+
+	* gnus-sum.el (gnus-hidden-threads-configuration)
+	(gnus-restore-hidden-threads-configuration): Update to deal with text
+	properties, rather than searching for a magic character.
+
 2010-08-12  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	New gnus-sync.el library for synchronization of marks.
 
 	* gnus-sync.el: New library for synchronization of marks.
 
