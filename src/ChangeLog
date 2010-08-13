@@ -1,5 +1,13 @@
 2010-08-13  Eli Zaretskii  <eliz@gnu.org>
 
+	* unexcoff.c: Remove the parts used when "emacs" is not defined.
+	(report_error, report_error_1): Ditto.
+	(write_segment): Remove "#if 0" unused code.
+	(make_hdr): Remove code that was "#ifndef NO_REMAP" before
+	NO_REMAP was removed (in revno 100928).
+	(start_of_text): Remove unused function (was used only if NO_REMAP
+	was NOT defined).
+
 	* msdos.c (IT_set_face): Fix format string to match argument
 	types.
 	(IT_write_glyphs, IT_note_mode_line_highlight)
