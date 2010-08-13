@@ -1280,9 +1280,9 @@ simple_dialog_show (FRAME_PTR f, Lisp_Object contents, Lisp_Object header)
 
 /* Is this item a separator? */
 static int
-name_is_separator (char *name)
+name_is_separator (const char *name)
 {
-  char *start = name;
+  const char *start = name;
 
   /* Check if name string consists of only dashes ('-').  */
   while (*name == '-') name++;
@@ -1360,7 +1360,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 	  strcat (out_string, wv->key);
 	}
       else
-	out_string = wv->name;
+	out_string = (char *)wv->name;
 
       /* Quote any special characters within the menu item's text and
 	 key binding.  */

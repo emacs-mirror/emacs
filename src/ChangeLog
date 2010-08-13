@@ -1,3 +1,8 @@
+2010-08-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32menu.c (add_menu_item, name_is_separator): Shut up compiler
+	warnings due to mixing of "char *" and "const char *".
+
 2010-08-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Introduce a new comment style "c" flag.
