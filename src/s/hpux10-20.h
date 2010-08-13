@@ -41,12 +41,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define FIRST_PTY_LETTER 'p'
 
-/*
- *	Define HAVE_TERMIO if the system provides sysV-style ioctls
- *	for terminal control.
- */
+#define HAVE_TERMIOS
+#define NO_TERMIO
 
-#define HAVE_TERMIO
+#define ORDINARY_LINK
 
 /*
  *	Define HAVE_PTYS if the system supports pty devices.
