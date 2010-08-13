@@ -1,5 +1,12 @@
 2010-08-12  Teodor Zlatanov  <tzz@lifelogs.com>
 
+	* gnus-sync.el: New library for synchronization of marks.
+
+	* gnus-util.el (gnus-grep-in-list): Moved from gnus-registry.el and
+	renamed from `gnus-registry-grep-in-list'.
+
+	* gnus-registry.el (gnus-registry-follow-group-p): Use `gnus-grep-in-list'.
+
 	* gnus-start.el (gnus-start-draft-setup): Make it interactive.
 
 2010-08-06  Katsumi Yamaoka  <yamaoka@jpl.org>
