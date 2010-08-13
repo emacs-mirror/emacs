@@ -1,5 +1,14 @@
 2010-08-12  Teodor Zlatanov  <tzz@lifelogs.com>
 
+	Optimizations for gnus-sync.el.
+
+	* gnus-sync.el: Add docs about gnus-sync-backend
+	possibilities.
+	(gnus-sync-save): Remove unnecessary message.
+	(gnus-sync-read): Optimize and show what groups were skipped.
+
+2010-08-12  Teodor Zlatanov  <tzz@lifelogs.com>
+
 	Minor bug fixes for gnus-sync.el.
 
 	* gnus-sync.el (gnus-sync-unload-hook, gnus-sync-install-hooks): Don't

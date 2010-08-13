@@ -27,6 +27,11 @@
 
 ;; Put this in your startup file (~/.gnus.el for instance)
 
+;; possibilities for gnus-sync-backend:
+;; Tramp over SSH: /ssh:user@host:/path/to/filename
+;; Tramp over IMAP: /imaps:user@yourhosthere.com:/INBOX.test/filename
+;; ...or any other file Tramp and Emacs can handle...
+
 ;; (setq gnus-sync-backend `("/remote:/path.gpg") ; will use Tramp+EPA if loaded
 ;;       gnus-sync-global-vars `(gnus-newsrc-last-checked-date)
 ;;       gnus-sync-newsrc-groups `("nntp" "nnrss")
@@ -85,7 +90,6 @@ synchronized, I believe).  Also see `gnus-variable-list'."
 (defun gnus-sync-save ()
 "Save the Gnus sync data to the backend."
   (interactive)
-  (gnus-message 6 "Saving the Gnus sync data")
   (cond
    ((stringp gnus-sync-backend)
     (gnus-message 7 "gnus-sync: saving to backend %s" gnus-sync-backend)
@@ -162,21 +166,31 @@ synchronized, I believe).  Also see `gnus-variable-list'."
                  (load gnus-sync-backend nil t)
                (error
                 (error "Error in %s: %s" gnus-sync-backend (cadr var)))))
-           (let ((valid-nodes
-                  (loop for node in gnus-sync-newsrc-loader
-                        if (gnus-gethash (car node) gnus-newsrc-hashtb)
-                        collect node)))
-             (dolist (node valid-nodes)
-               (loop for store in (cdr node)
-                     do (setf (nth (car store)
-                                   (assoc (car node) gnus-newsrc-alist))
+           (let ((valid-count 0)
+                 invalid-groups)
+             (dolist (node gnus-sync-newsrc-loader)
+               (if (gnus-gethash (car node) gnus-newsrc-hashtb)
+                   (progn
+                     (incf valid-count)
+                     (loop for store in (cdr node)
+                           do (setf (nth (car store)
+                                         (assoc (car node) gnus-newsrc-alist))
                               (cdr store))))
+                 (push (car node) invalid-groups)))
             (gnus-message
              7
              "gnus-sync: loaded %d groups (out of %d) from %s"
-             (length valid-nodes)
-             (length gnus-sync-newsrc-loader)
+             valid-count (length gnus-sync-newsrc-loader)
              gnus-sync-backend)
+            (when invalid-groups
+              (gnus-message
+               7
+               "gnus-sync: skipped %d groups (out of %d) from %s"
+               (length invalid-groups)
+               (length gnus-sync-newsrc-loader)
+               gnus-sync-backend)
+              (gnus-message 9 "gnus-sync: skipped groups: %s"
+                            (mapconcat 'identity invalid-groups ", ")))
            (setq gnus-sync-newsrc-loader nil)))
           (nil))
     ;; make the hashtable again because the newsrc-alist may have been modified
