@@ -1,5 +1,44 @@
 2010-08-13  Eli Zaretskii  <eliz@gnu.org>
 
+	* unexcoff.c: Remove the parts used when "emacs" is not defined.
+	(report_error, report_error_1): Ditto.
+	(write_segment): Remove "#if 0" unused code.
+	(make_hdr): Remove code that was "#ifndef NO_REMAP" before
+	NO_REMAP was removed (in revno 100928).
+	(start_of_text): Remove unused function (was used only if NO_REMAP
+	was NOT defined).
+
+	* msdos.c (IT_set_face): Fix format string to match argument
+	types.
+	(IT_write_glyphs, IT_note_mode_line_highlight)
+	(IT_set_frame_parameters): Remove unused variables.
+	(x_set_menu_bar_lines): Declare set_menu_bar_lines.
+	(IT_set_terminal_modes): Disambiguate expression in if clause.
+	(Fmsdos_remember_default_colors): Return Qnil.
+	(IT_set_frame_parameters): Add parens to disambiguate boolean
+	expression for logging the cursor type to termscript.
+	(keyboard_layout_list, keypad_translate_map)
+	(grey_key_translate_map): Add braces in inner initializers.
+	(dos_rawgetc): Add parens in condition for mouse-3 button-press.
+	(dos_rawgetc): Remove unused label.
+	(XMenuActivate): Add braces to remove ambiguous `else'.
+	(dos_ttraw): Always return a value.
+	(spawnve): Declare.
+	(run_msdos_command): Cast 3rd arg of spawnve to "char **".
+
+	* dosfns.h (x_set_title): Declare.
+
+	* w16select.c (Fw16_set_clipboard_data, Fw16_get_clipboard_data):
+	Remove unused variables.
+
+	* dosfns.c (Fint86, Fdos_memget, Fdos_memput): Remove unused
+	variables.
+	(init_dosfns): Declare get_lim_data.
+	(system_process_attributes): Declare Fget_internal_run_time.
+
+	* xmenu.c (xmenu_show) [!USE_X_TOOLKIT && !USE_GTK]: Fix argument
+	list to be consistent with menu.h.
+
 	* w32menu.c (add_menu_item, name_is_separator): Shut up compiler
 	warnings due to mixing of "char *" and "const char *".
 
