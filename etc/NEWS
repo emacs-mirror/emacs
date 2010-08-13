@@ -106,7 +106,7 @@ is taken from the desktop settings.
 
 ** GTK tool bars can be placed on the left/right or top/bottom of the frame.
 The frame-parameter tool-bar-position controls this.  It takes the values
-top, left, tight or bottom.  The Options => Show/Hide menu has entries
+top, left, right or bottom.  The Options => Show/Hide menu has entries
 for this.
 
 ** The colors for selected text (the region face) are taken from the GTK
