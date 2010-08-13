@@ -118,7 +118,8 @@ synchronized, I believe).  Also see `gnus-variable-list'."
                    (print-circle nil)
                    (print-escape-newlines t)
                    (variables (cons 'gnus-sync-newsrc-loader
-                                    gnus-sync-global-vars)))
+                                    gnus-sync-global-vars))
+                   variable)
               (while variables
                 (when (and (boundp (setq variable (pop variables)))
                            (symbol-value variable))
@@ -179,7 +180,7 @@ synchronized, I believe).  Also see `gnus-variable-list'."
            (setq gnus-sync-newsrc-loader nil)))
           (nil))
     ;; make the hashtable again because the newsrc-alist may have been modified
-    (when gnus-sync-newsrc-vars
+    (when gnus-sync-newsrc-offsets
       (gnus-message 9 "gnus-sync: remaking the newsrc hashtable")
       (gnus-make-hashtable-from-newsrc-alist))))
 

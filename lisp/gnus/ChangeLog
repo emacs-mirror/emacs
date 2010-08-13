@@ -1,3 +1,12 @@
+2010-08-12  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	Minor bug fixes for gnus-sync.el.
+
+	* gnus-sync.el (gnus-sync-save): Define `variable' so the compiler is
+	quiet.
+
+	* gnus-sync.el (gnus-sync-read): Use `gnus-sync-newsrc-offsets' (fix typo).
+
 2010-07-30  Lawrence Mitchell  <wence@gmx.li>
 
 	Make saving and restoring of hidden threads work with overlays.
