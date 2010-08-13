@@ -195,14 +195,14 @@ synchronized, I believe).  Also see `gnus-variable-list'."
 (defun gnus-sync-install-hooks ()
   "Install the sync hooks."
   (interactive)
-  (add-hook 'gnus-get-new-news-hook 'gnus-sync-read)
+  ;; (add-hook 'gnus-get-new-news-hook 'gnus-sync-read)
   (add-hook 'gnus-save-newsrc-hook 'gnus-sync-save)
-  (add-hook 'gnus-read-newsrc-el-hook 'gnus-sync-read))
+  (add-hook 'gnus-read-newsrc-el-hoo4a 'gnus-sync-read))
 
 (defun gnus-sync-unload-hook ()
   "Uninstall the sync hooks."
   (interactive)
-  (remove-hook 'gnus-get-new-news-hook 'gnus-sync-read)
+  ;; (remove-hook 'gnus-get-new-news-hook 'gnus-sync-read)
   (remove-hook 'gnus-save-newsrc-hook 'gnus-sync-save)
   (remove-hook 'gnus-read-newsrc-el-hook 'gnus-sync-read))
 

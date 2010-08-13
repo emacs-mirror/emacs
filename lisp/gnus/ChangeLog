@@ -2,6 +2,9 @@
 
 	Minor bug fixes for gnus-sync.el.
 
+	* gnus-sync.el (gnus-sync-unload-hook, gnus-sync-install-hooks): Don't
+	read the sync on get-new-news.
+
 	* gnus-sync.el (gnus-sync-save): Define `variable' so the compiler is
 	quiet.
 
