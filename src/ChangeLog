@@ -1,3 +1,8 @@
+2010-08-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* doc.c (Fsnarf_documentation): Initialize skip_file before
+	build-files test.
+
 2010-08-09  Peter O'Gorman <pogma@thewrittenword.com>  (tiny change)
 
 	* s/hpux10-20.h (HAVE_TERMIOS, NO_TERMIO, ORDINARY_LINK): New

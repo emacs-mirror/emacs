@@ -644,6 +644,7 @@ the same file name is found in the `doc-directory'.  */)
       if (p != end)
 	{
 	  end = (char *) index (p, '\n');
+          skip_file = 0;
 
           /* See if this is a file name, and if it is a file in build-files.  */
           if (p[1] == 'S' && end - p > 4 && end[-2] == '.'
