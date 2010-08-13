@@ -1,5 +1,8 @@
 2010-08-13  Eli Zaretskii  <eliz@gnu.org>
 
+	* xmenu.c (xmenu_show) [!USE_X_TOOLKIT && !USE_GTK]: Fix argument
+	list to be consistent with menu.h.
+
 	* w32menu.c (add_menu_item, name_is_separator): Shut up compiler
 	warnings due to mixing of "char *" and "const char *".
 

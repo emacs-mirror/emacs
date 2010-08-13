@@ -2243,7 +2243,7 @@ pop_down_menu (Lisp_Object arg)
 
 Lisp_Object
 xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
-	    Lisp_Object title, char **error, EMACS_UINT timestamp)
+	    Lisp_Object title, const char **error, EMACS_UINT timestamp)
 {
   Window root;
   XMenu *menu;
