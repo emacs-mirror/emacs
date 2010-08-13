@@ -1,3 +1,10 @@
+2010-08-13  Jason Rumney  <jasonr@gnu.org>
+
+	* w32menu.c (simple_dialog_show): Use unicode message box if available.
+	(MessageBoxW_Proc): New function typedef.
+	(unicode-message-box): New function pointer.
+	(globals_of_w32menu): Import it from user32.dll. (Bug#5629)
+
 2010-08-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* frame.h (Qtool_bar_position): Declare.
