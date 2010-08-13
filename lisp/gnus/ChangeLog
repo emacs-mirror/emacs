@@ -1,3 +1,7 @@
+2010-08-12  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-start.el (gnus-start-draft-setup): Make it interactive.
+
 2010-08-06  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* rfc2047.el (rfc2047-encode): Use utf-8 as a last resort if
