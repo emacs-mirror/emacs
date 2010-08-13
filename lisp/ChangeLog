@@ -1,3 +1,12 @@
+2010-08-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* menu-bar.el (menu-bar-set-tool-bar-position): New function.
+	(menu-bar-showhide-tool-bar-menu-customize-enable-left)
+	(menu-bar-showhide-tool-bar-menu-customize-enable-right)
+	(menu-bar-showhide-tool-bar-menu-customize-enable-top)
+	(menu-bar-showhide-tool-bar-menu-customize-enable-bottom): Call
+	menu-bar-set-tool-bar-position.
+
 2010-08-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/octave-mod.el (octave-mode-syntax-table): Use the new "c"

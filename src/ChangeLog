@@ -1,3 +1,10 @@
+2010-08-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* frame.h (Qtool_bar_position): Declare.
+
+	* xfns.c (Fx_create_frame): Call x_default_parameter for
+	Qtool_bar_position.
+
 2010-08-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* unexcoff.c: Remove the parts used when "emacs" is not defined.

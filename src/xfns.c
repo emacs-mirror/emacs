@@ -3392,6 +3392,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
 		       "waitForWM", "WaitForWM", RES_TYPE_BOOLEAN);
   x_default_parameter (f, parms, Qfullscreen, Qnil,
                        "fullscreen", "Fullscreen", RES_TYPE_SYMBOL);
+  x_default_parameter (f, parms, Qtool_bar_position,
+                       f->tool_bar_position, 0, 0, RES_TYPE_SYMBOL);
 
   /* Compute the size of the X window.  */
   window_prompting = x_figure_window_size (f, parms, 1);
