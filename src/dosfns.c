@@ -60,7 +60,6 @@ REGISTERS should be a vector produced by `make-register' and
   register int i;
   int no;
   union REGS inregs, outregs;
-  Lisp_Object val;
 
   CHECK_NUMBER (interrupt);
   no = (unsigned long) XINT (interrupt);
@@ -101,7 +100,6 @@ Return the updated VECTOR.  */)
   register int i;
   int offs, len;
   char *buf;
-  Lisp_Object val;
 
   CHECK_NUMBER (address);
   offs = (unsigned long) XINT (address);
@@ -125,7 +123,6 @@ DEFUN ("msdos-memput", Fdos_memput, Sdos_memput, 2, 2, 0,
   register int i;
   int offs, len;
   char *buf;
-  Lisp_Object val;
 
   CHECK_NUMBER (address);
   offs = (unsigned long) XINT (address);
@@ -286,6 +283,8 @@ init_dosfns (void)
   unsigned long xbuf = _go32_info_block.linear_address_of_transfer_buffer;
 
 #ifndef SYSTEM_MALLOC
+  extern void get_lim_data (void);
+
   get_lim_data (); /* why the hell isn't this called elsewhere? */
 #endif
 
@@ -558,6 +557,7 @@ system_process_attributes (Lisp_Object pid)
       int i;
       Lisp_Object cmd_str, decoded_cmd, tem;
       double pmem;
+      EXFUN (Fget_internal_run_time, 0);
 #ifndef SYSTEM_MALLOC
       extern unsigned long ret_lim_data ();
 #endif
