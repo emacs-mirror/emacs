@@ -1421,7 +1421,12 @@ e.g.
  ("i:;" ?,F@)
  ("i;:" ?,F@)
  ("y:;" ?,F`)
- ("y;:" ?,F`))
+ ("y;:" ?,F`)
+ ;; There two are asymmetric with ";<" and ";>" in "greek" input
+ ;; method.  But, as the other Latin postfix methdos adopt "<<" and
+ ;; ">>", it may be better to follow them.
+ ("<<" "«")
+ (">>" "»"))
 
 
 ;; arch-tag: 2a37e042-db1b-4ecf-b755-117775a3c150

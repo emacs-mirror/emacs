@@ -1,3 +1,8 @@
+2010-08-13  Kenichi Handa  <handa@m17n.org>
+
+	* quail/greek.el ("greek-postfix"): Add rules for Greek style
+	quotes.
+
 2010-08-09  Kenichi Handa  <handa@m17n.org>
 
 	* quail/greek.el ("greek"): Add rules for Greek style quotes.
