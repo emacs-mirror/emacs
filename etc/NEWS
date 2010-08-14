@@ -213,6 +213,14 @@ automatically added to the primary window selection.
 
 ** Archive Mode has basic support to browse 7z archives.
 
+** ERC changes
+
+*** New vars `erc-autojoin-timing' and `erc-autojoin-delay'.
+If the value of `erc-autojoin-timing' is 'ident, ERC autojoins after a
+successful NickServ identification, or after `erc-autojoin-delay'
+seconds.  The default value, 'ident, means to autojoin immediately
+after connecting.
+
 ** In ido-mode, C-v is no longer bound to ido-toggle-vc.
 The reason is that this interferes with cua-mode.
 

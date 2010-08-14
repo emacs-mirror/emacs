@@ -1,3 +1,10 @@
+2010-08-14  Vivek Dasmohapatra  <vivek@etla.org>
+
+	* erc-join.el (erc-autojoin-timing, erc-autojoin-delay): New vars.
+	(erc-autojoin-channels-delayed, erc-autojoin-after-ident): New
+	functions.
+	(erc-autojoin-channels): Allow autojoining after ident (Bug#5521).
+
 2010-08-08  Fran Litterio  <flitterio@gmail.com>
 
 	* erc-backend.el (erc-server-filter-function): Call
