@@ -1,3 +1,8 @@
+2010-08-14  Tom Tromey  <tromey@redhat.com>
+
+	* progmodes/etags.el (tags-file-name): Mark safe if stringp
+	(Bug#6733).
+
 2010-08-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* mouse.el (mouse-yank-primary): Fix mouse-2 on MS-Windows and
