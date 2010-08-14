@@ -4419,9 +4419,9 @@ keys.  Default is `eql'.  Predefined are the tests `eq', `eql', and
 Default is 65.
 
 :rehash-size REHASH-SIZE - Indicates how to expand the table when it
-fills up.  If REHASH-SIZE is an integer, add that many space.  If it
-is a float, it must be > 1.0, and the new size is computed by
-multiplying the old size with that factor.  Default is 1.5.
+fills up.  If REHASH-SIZE is an integer, increase the size by that
+amount.  If it is a float, it must be > 1.0, and the new size is the
+old size multiplied by that factor.  Default is 1.5.
 
 :rehash-threshold THRESHOLD -- THRESHOLD must a float > 0, and <= 1.0.
 Resize the hash table when the ratio (number of entries / table size)
