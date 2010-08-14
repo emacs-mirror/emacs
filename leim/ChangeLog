@@ -1,3 +1,8 @@
+2010-08-14  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* quail/greek.el ("greek", "greek-postfix"): Change string to
+	character.
+
 2010-08-13  Kenichi Handa  <handa@m17n.org>
 
 	* quail/greek.el ("greek-postfix"): Add rules for Greek style
