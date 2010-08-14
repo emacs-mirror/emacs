@@ -1,3 +1,8 @@
+2010-08-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* mouse.el (mouse-yank-primary): Fix mouse-2 on MS-Windows and
+	MS-DOS.  (Bug#6689)
+
 2010-08-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* menu-bar.el (menu-bar-set-tool-bar-position): New function.
