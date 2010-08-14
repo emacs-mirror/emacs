@@ -1,7 +1,6 @@
 ;;; gnus-sync.el --- synchronization facility for Gnus
 
-;;; Copyright (C) 2010
-;;; Free Software Foundation, Inc.
+;; Copyright (C) 2010  Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: news synchronization nntp nnrss
@@ -48,7 +47,7 @@
 
 (defgroup gnus-sync nil
   "The Gnus synchronization facility."
-  :version "23.1"
+  :version "24.1"
   :group 'gnus)
 
 (defcustom gnus-sync-newsrc-groups `("nntp" "nnrss")

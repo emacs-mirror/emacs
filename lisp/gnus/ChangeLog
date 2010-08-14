@@ -1,3 +1,7 @@
+2010-08-14  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-sync.el (gnus-sync): Fix defgroup version.
+
 2010-08-12  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	Optimizations for gnus-sync.el.
