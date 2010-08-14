@@ -4425,7 +4425,7 @@ old size multiplied by that factor.  Default is 1.5.
 
 :rehash-threshold THRESHOLD -- THRESHOLD must a float > 0, and <= 1.0.
 Resize the hash table when the ratio (number of entries / table size)
-is greater or equal than THRESHOLD.  Default is 0.8.
+is greater than or equal to THRESHOLD.  Default is 0.8.
 
 :weakness WEAK -- WEAK must be one of nil, t, `key', `value',
 `key-or-value', or `key-and-value'.  If WEAK is not nil, the table
