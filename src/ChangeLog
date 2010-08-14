@@ -1,3 +1,7 @@
+2010-08-14  Jason Rumney  <jasonr@gnu.org>
+
+	* keyboard.c (lispy_function_keys): Do not define VK_PACKET (bug#4836)
+
 2010-08-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* fns.c (Fmake_hash_table): Doc fix (Bug#6851).

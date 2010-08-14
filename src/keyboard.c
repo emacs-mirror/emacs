@@ -4941,9 +4941,9 @@ char const *lispy_function_keys[] =
     0,               /* VK_OEM_102        0xE2 */
     "ico-help",      /* VK_ICO_HELP       0xE3 */
     "ico-00",        /* VK_ICO_00         0xE4 */
-    0,               /* VK_PROCESSKEY     0xE5 */
+    0,               /* VK_PROCESSKEY     0xE5 - used by IME */
     "ico-clear",     /* VK_ICO_CLEAR      0xE6 */
-    "packet",        /* VK_PACKET         0xE7 */
+    0,               /* VK_PACKET         0xE7  - used to pass unicode chars */
     0,               /*                   0xE8 */
     "reset",         /* VK_OEM_RESET      0xE9 */
     "jump",          /* VK_OEM_JUMP       0xEA */
