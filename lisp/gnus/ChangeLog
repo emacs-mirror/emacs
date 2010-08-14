@@ -1,3 +1,9 @@
+2010-08-14  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	Typo fix "hoo4a" -> "hook".
+
+	* gnus-sync.el (gnus-sync-install-hooks): Typo fix.
+
 2010-08-14  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-sync.el (gnus-sync): Fix defgroup version.

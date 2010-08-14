@@ -95,20 +95,16 @@ synchronized, I believe).  Also see `gnus-variable-list'."
     ;; populate gnus-sync-newsrc-loader from all but the first dummy
     ;; entry in gnus-newsrc-alist whose group matches any of the
     ;; gnus-sync-newsrc-groups
-    (let* ((loader
-            (loop for entry in (cdr gnus-newsrc-alist)
-                  when (gnus-grep-in-list
-                        (car entry)     ;the group name
-                        gnus-sync-newsrc-groups)
-                  collect (cons (car entry)
-                                (mapcar (lambda (offset)
-                                          (cons offset (nth offset entry)))
-                                        gnus-sync-newsrc-offsets))))
-           (gnus-sync-newsrc-loader
-            (nunion loader
-                    (set-difference gnus-sync-newsrc-loader loader :key 'car)
-                    :key 'car)))
-
+    ;; TODO: keep the old contents for groups we don't have!
+    (let ((gnus-sync-newsrc-loader
+           (loop for entry in (cdr gnus-newsrc-alist)
+                 when (gnus-grep-in-list
+                       (car entry)     ;the group name
+                       gnus-sync-newsrc-groups)
+                 collect (cons (car entry)
+                               (mapcar (lambda (offset)
+                                         (cons offset (nth offset entry)))
+                                       gnus-sync-newsrc-offsets)))))
       (with-temp-file gnus-sync-backend
         (progn
           (let ((coding-system-for-write gnus-ding-file-coding-system)
@@ -216,7 +212,7 @@ synchronized, I believe).  Also see `gnus-variable-list'."
   (interactive)
   ;; (add-hook 'gnus-get-new-news-hook 'gnus-sync-read)
   (add-hook 'gnus-save-newsrc-hook 'gnus-sync-save)
-  (add-hook 'gnus-read-newsrc-el-hoo4a 'gnus-sync-read))
+  (add-hook 'gnus-read-newsrc-el-hook 'gnus-sync-read))
 
 (defun gnus-sync-unload-hook ()
   "Uninstall the sync hooks."
