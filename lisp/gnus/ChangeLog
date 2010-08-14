@@ -2,6 +2,14 @@
 
 	* gnus-sync.el (gnus-sync): Fix defgroup version.
 
+2010-08-13  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	Doc fixes and keep unknown groups.
+
+	* gnus-sync.el: Fix docs.
+	(gnus-sync-save): Keep unknown groups in `gnus-sync-newsrc-loader'.
+	(gnus-sync-read): Don't wipe `gnus-sync-newsrc-loader' after reading.
+
 2010-08-12  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	Optimizations for gnus-sync.el.

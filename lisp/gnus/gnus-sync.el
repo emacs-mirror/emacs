@@ -31,10 +31,10 @@
 ;; Tramp over IMAP: /imaps:user@yourhosthere.com:/INBOX.test/filename
 ;; ...or any other file Tramp and Emacs can handle...
 
-;; (setq gnus-sync-backend `("/remote:/path.gpg") ; will use Tramp+EPA if loaded
+;; (setq gnus-sync-backend "/remote:/path.gpg" ; will use Tramp+EPA if loaded
 ;;       gnus-sync-global-vars `(gnus-newsrc-last-checked-date)
 ;;       gnus-sync-newsrc-groups `("nntp" "nnrss")
-;;       gnus-sync-newsrc-vars `(read marks))
+;;       gnus-sync-newsrc-offsets `(2 3))
 
 ;; TODO:
 
@@ -95,15 +95,19 @@ synchronized, I believe).  Also see `gnus-variable-list'."
     ;; populate gnus-sync-newsrc-loader from all but the first dummy
     ;; entry in gnus-newsrc-alist whose group matches any of the
     ;; gnus-sync-newsrc-groups
-    (let ((gnus-sync-newsrc-loader
-           (loop for entry in (cdr gnus-newsrc-alist)
-                 when (gnus-grep-in-list
-                       (car entry)     ;the group name
-                       gnus-sync-newsrc-groups)
-                 collect (cons (car entry)
-                               (mapcar (lambda (offset)
-                                         (cons offset (nth offset entry)))
-                                       gnus-sync-newsrc-offsets)))))
+    (let* ((loader
+            (loop for entry in (cdr gnus-newsrc-alist)
+                  when (gnus-grep-in-list
+                        (car entry)     ;the group name
+                        gnus-sync-newsrc-groups)
+                  collect (cons (car entry)
+                                (mapcar (lambda (offset)
+                                          (cons offset (nth offset entry)))
+                                        gnus-sync-newsrc-offsets))))
+           (gnus-sync-newsrc-loader
+            (nunion gnus-sync-newsrc-loader
+                    (set-difference gnus-sync-newsrc-loader loader :key 'car)
+                    :key 'car)))
 
       (with-temp-file gnus-sync-backend
         (progn
@@ -189,8 +193,7 @@ synchronized, I believe).  Also see `gnus-variable-list'."
                (length gnus-sync-newsrc-loader)
                gnus-sync-backend)
               (gnus-message 9 "gnus-sync: skipped groups: %s"
-                            (mapconcat 'identity invalid-groups ", ")))
-           (setq gnus-sync-newsrc-loader nil)))
+                            (mapconcat 'identity invalid-groups ", ")))))
           (nil))
     ;; make the hashtable again because the newsrc-alist may have been modified
     (when gnus-sync-newsrc-offsets
