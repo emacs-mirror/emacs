@@ -1,3 +1,10 @@
+2010-08-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (Fcurrent_bidi_paragraph_direction): Fix paragraph
+	direction when point is inside a run of whitespace characters.
+
+	* bidi.c (bidi_at_paragraph_end): Remove obsolete comment.
+
 2010-08-14  Jason Rumney  <jasonr@gnu.org>
 
 	* keyboard.c (lispy_function_keys): Do not define VK_PACKET (bug#4836)

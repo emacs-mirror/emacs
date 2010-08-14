@@ -17962,16 +17962,22 @@ See also `bidi-paragraph-direction'.  */)
       struct bidi_it itb;
       EMACS_INT pos = BUF_PT (buf);
       EMACS_INT bytepos = BUF_PT_BYTE (buf);
+      int c;
 
       if (buf != current_buffer)
 	set_buffer_temp (buf);
-      /* Find previous non-empty line.  */
+      /* bidi_paragraph_init finds the base direction of the paragraph
+	 by searching forward from paragraph start.  We need the base
+	 direction of the current or _previous_ paragraph, so we need
+	 to make sure we are within that paragraph.  To that end, find
+	 the previous non-empty line.  */
       if (pos >= ZV && pos > BEGV)
 	{
 	  pos--;
 	  bytepos = CHAR_TO_BYTE (pos);
 	}
-      while (FETCH_BYTE (bytepos) == '\n')
+      while ((c = FETCH_BYTE (bytepos)) == '\n'
+	     || c == ' ' || c == '\t' || c == '\f')
 	{
 	  if (bytepos <= BEGV_BYTE)
 	    break;
@@ -17983,6 +17989,7 @@ See also `bidi-paragraph-direction'.  */)
       itb.charpos = pos;
       itb.bytepos = bytepos;
       itb.first_elt = 1;
+      itb.separator_limit = -1;
 
       bidi_paragraph_init (NEUTRAL_DIR, &itb);
       if (buf != current_buffer)
