@@ -1,3 +1,8 @@
+2010-08-14  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-header-line-format):
+	Fit it to the window, not the frame.
+
 2010-08-11  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* subr.el (ignore-errors): Add debug declaration.

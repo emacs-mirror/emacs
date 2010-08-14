@@ -383,7 +383,7 @@ The format of the header is specified by `diary-header-line-format'."
                      "Some text is hidden - press \"s\" in calendar \
 before edit/copy"
                    "Diary"))
-           ?\s (frame-width)))
+           ?\s (window-width)))
   "Format of the header line displayed by `diary-simple-display'.
 Only used if `diary-header-line-flag' is non-nil."
   :group 'diary
