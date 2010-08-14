@@ -1,3 +1,9 @@
+2010-08-14  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
+
+	* font-lock.el (lisp-font-lock-keywords-2): Add
+	combine-after-change-calls, condition-case-no-debug,
+	with-demoted-errors, and with-silent-modifications (Bug#6025).
+
 2010-08-14  Kevin Ryde  <user42@zip.com.au>
 
 	* emacs-lisp/copyright.el (copyright-update-year)
