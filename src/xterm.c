@@ -2435,17 +2435,34 @@ x_draw_stretch_glyph_string (struct glyph_string *s)
   if (s->hl == DRAW_CURSOR
       && !x_stretch_cursor_p)
     {
-      /* If `x-stretch-block-cursor' is nil, don't draw a block cursor
-	 as wide as the stretch glyph.  */
+      /* If `x-stretch-cursor' is nil, don't draw a block cursor as
+	 wide as the stretch glyph.  */
       int width, background_width = s->background_width;
-      int x = s->x, left_x = window_box_left_offset (s->w, TEXT_AREA);
+      int x = s->x;
 
-      if (x < left_x)
+      if (!s->row->reversed_p)
 	{
-	  background_width -= left_x - x;
-	  x = left_x;
+	  int left_x = window_box_left_offset (s->w, TEXT_AREA);
+
+	  if (x < left_x)
+	    {
+	      background_width -= left_x - x;
+	      x = left_x;
+	    }
+	}
+      else
+	{
+	  /* In R2L rows, draw the cursor on the right edge of the
+	     stretch glyph.  */
+	  int right_x = window_box_right_offset (s->w, TEXT_AREA);
+
+	  if (x + background_width > right_x)
+	    background_width -= x - right_x;
+	  x += background_width;
 	}
       width = min (FRAME_COLUMN_WIDTH (s->f), background_width);
+      if (s->row->reversed_p)
+	x -= width;
 
       /* Draw cursor.  */
       x_draw_glyph_string_bg_rect (s, x, s->y, width, s->height);
@@ -2458,7 +2475,10 @@ x_draw_stretch_glyph_string (struct glyph_string *s)
 	  XRectangle r;
 	  GC gc;
 
-	  x += width;
+	  if (!s->row->reversed_p)
+	    x += width;
+	  else
+	    x = s->x;
 	  if (s->row->mouse_face_p
 	      && cursor_in_mouse_face_p (s->w))
 	    {

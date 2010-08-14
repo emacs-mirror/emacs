@@ -1208,7 +1208,7 @@ window_box_left_offset (struct window *w, int area)
 
 
 /* Return the window-relative coordinate of the right edge of display
-   area AREA of window W.  AREA < 0 means return the left edge of the
+   area AREA of window W.  AREA < 0 means return the right edge of the
    whole window, to the left of the right fringe of W.  */
 
 INLINE int
@@ -1238,7 +1238,7 @@ window_box_left (struct window *w, int area)
 
 
 /* Return the frame-relative coordinate of the right edge of display
-   area AREA of window W.  AREA < 0 means return the left edge of the
+   area AREA of window W.  AREA < 0 means return the right edge of the
    whole window, to the left of the right fringe of W.  */
 
 INLINE int

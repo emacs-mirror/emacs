@@ -1,5 +1,12 @@
 2010-08-14  Eli Zaretskii  <eliz@gnu.org>
 
+	* xterm.c (x_draw_stretch_glyph_string):
+	* w32term.c (x_draw_stretch_glyph_string): In R2L rows, display
+	the cursor on the right edge of the stretch glyph.
+
+	* xdisp.c (window_box_right_offset, window_box_right): Fix
+	commentary.
+
 	* xdisp.c (Fcurrent_bidi_paragraph_direction): Fix paragraph
 	direction when point is inside a run of whitespace characters.
 
