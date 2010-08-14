@@ -2959,7 +2959,8 @@ If the buffer is read-only, Emacs will beep and refrain from deleting
 the text, but put the text in the kill ring anyway.  This means that
 you can use the killing commands to copy text from a read-only buffer.
 
-This is the primitive for programs to kill text (as opposed to deleting it).
+Lisp programs should use this function for killing text.
+ (To delete text, use `delete-region'.)
 Supply two arguments, character positions indicating the stretch of text
  to be killed.
 Any command that calls this function is a \"kill command\".

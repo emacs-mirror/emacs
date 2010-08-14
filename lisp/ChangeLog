@@ -1,3 +1,7 @@
+2010-08-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (kill-region): Doc fix (Bug#6787).
+
 2010-08-14  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/diary-lib.el (diary-header-line-format):
