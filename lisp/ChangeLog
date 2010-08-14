@@ -1,3 +1,8 @@
+2010-08-14  Kevin Ryde  <user42@zip.com.au>
+
+	* emacs-lisp/copyright.el (copyright-update-year)
+	(copyright-update): Use save-window-excursion (Bug#5394).
+
 2010-08-14  Tom Tromey  <tromey@redhat.com>
 
 	* progmodes/etags.el (tags-file-name): Mark safe if stringp
