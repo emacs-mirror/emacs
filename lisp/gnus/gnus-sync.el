@@ -105,7 +105,7 @@ synchronized, I believe).  Also see `gnus-variable-list'."
                                           (cons offset (nth offset entry)))
                                         gnus-sync-newsrc-offsets))))
            (gnus-sync-newsrc-loader
-            (nunion gnus-sync-newsrc-loader
+            (nunion loader
                     (set-difference gnus-sync-newsrc-loader loader :key 'car)
                     :key 'car)))
 
@@ -128,13 +128,16 @@ synchronized, I believe).  Also see `gnus-variable-list'."
                                     gnus-sync-global-vars))
                    variable)
               (while variables
-                (when (and (boundp (setq variable (pop variables)))
+                (if (and (boundp (setq variable (pop variables)))
                            (symbol-value variable))
-                  (princ "\n(setq ")
-                  (princ (symbol-name variable))
-                  (princ " '")
-                  (prin1 (symbol-value variable))
-                  (princ ")\n"))))
+                    (progn
+                      (princ "\n(setq ")
+                      (princ (symbol-name variable))
+                      (princ " '")
+                      (prin1 (symbol-value variable))
+                      (princ ")\n"))
+                  (princ "\n;;; skipping empty variable ")
+                  (princ (symbol-name variable)))))
             (gnus-message
              7
              "gnus-sync: stored variables %s and %d groups in %s"

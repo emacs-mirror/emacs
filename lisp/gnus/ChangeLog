@@ -4,7 +4,7 @@
 
 2010-08-13  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	Doc fixes and keep unknown groups.
+	Doc fixes and keep unknown groups (ammended for nunion bug fix).
 
 	* gnus-sync.el: Fix docs.
 	(gnus-sync-save): Keep unknown groups in `gnus-sync-newsrc-loader'.
