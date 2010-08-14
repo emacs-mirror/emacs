@@ -390,7 +390,7 @@ Only used if `diary-header-line-flag' is non-nil."
   :type 'sexp
   :initialize 'custom-initialize-default
   :set 'diary-set-header
-  :version "22.1")
+  :version "23.3")                      ; frame-width -> window-width
 
 ;; The first version of this also checked for diary-selective-display
 ;; in the non-fancy case. This was an attempt to distinguish between
