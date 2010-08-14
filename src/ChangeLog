@@ -1,3 +1,7 @@
+2010-08-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* doc.c (Fsnarf_documentation): Set skip_file only if p[1] is S.
+
 2010-08-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* doc.c (Fsnarf_documentation): Initialize skip_file before
