@@ -1,3 +1,7 @@
+2010-08-15  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* keyboard.c (parse_tool_bar_item): Avoid excessive use of strlen.
+
 2010-08-15  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* keyboard.c (parse_tool_bar_item): malloc buf.  Set TOOL_BAR_ITEM_LABEL

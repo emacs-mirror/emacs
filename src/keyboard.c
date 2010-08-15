@@ -8328,35 +8328,34 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
       Lisp_Object capt = PROP (TOOL_BAR_ITEM_CAPTION);
       const char *label = SYMBOLP (key) ? (char *) SDATA (SYMBOL_NAME (key)) : "";
       const char *caption = STRINGP (capt) ? (char *) SDATA (capt) : "";
-      EMACS_INT max_lbl = 2*tool_bar_max_label_size;
-      char *buf = (char *) xmalloc (max_lbl+1);
+      EMACS_INT max_lbl = 2 * tool_bar_max_label_size;
+      char *buf = (char *) xmalloc (max_lbl + 1);
       Lisp_Object new_lbl;
+      size_t caption_len = strlen (caption);
 
-      if (strlen (caption) < max_lbl && caption[0] != '\0')
+      if (caption_len <= max_lbl && caption[0] != '\0')
         {
           strcpy (buf, caption);
-          while (buf[0] != '\0' && buf[strlen (buf) -1] == '.')
-            buf[strlen (buf)-1] = '\0';
-          if (strlen (buf) <= max_lbl)
-            caption = buf;
+          while (caption_len > 0 && buf[caption_len - 1] == '.')
+            caption_len--;
+	  buf[caption_len] = '\0';
+	  label = caption = buf;
         }
-
-      if (strlen (caption) <= max_lbl)
-        label = caption;
 
       if (strlen (label) <= max_lbl && label[0] != '\0')
         {
           int i;
-          if (label != buf) strcpy (buf, label);
+          if (label != buf)
+	    strcpy (buf, label);
 
-          for (i = 0; i < strlen (buf); ++i)
-            {
-              if (buf[i] == '-') buf[i] = ' ';
-            }
+          for (i = 0; buf[i] != '\0'; ++i)
+	    if (buf[i] == '-')
+	      buf[i] = ' ';
           label = buf;
 
         }
-      else label = "";
+      else
+	label = "";
 
       new_lbl = Fupcase_initials (make_string (label, strlen (label)));
       if (SCHARS (new_lbl) <= tool_bar_max_label_size)
