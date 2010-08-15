@@ -8328,14 +8328,14 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
       Lisp_Object capt = PROP (TOOL_BAR_ITEM_CAPTION);
       const char *label = SYMBOLP (key) ? (char *) SDATA (SYMBOL_NAME (key)) : "";
       const char *caption = STRINGP (capt) ? (char *) SDATA (capt) : "";
-      char buf[64];
       EMACS_INT max_lbl = 2*tool_bar_max_label_size;
+      char *buf = (char *) xmalloc (max_lbl+1);
       Lisp_Object new_lbl;
 
       if (strlen (caption) < max_lbl && caption[0] != '\0')
         {
           strcpy (buf, caption);
-          while (buf[0] != '\0' &&  buf[strlen (buf) -1] == '.')
+          while (buf[0] != '\0' && buf[strlen (buf) -1] == '.')
             buf[strlen (buf)-1] = '\0';
           if (strlen (buf) <= max_lbl)
             caption = buf;
@@ -8361,6 +8361,9 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
       new_lbl = Fupcase_initials (make_string (label, strlen (label)));
       if (SCHARS (new_lbl) <= tool_bar_max_label_size)
         PROP (TOOL_BAR_ITEM_LABEL) = new_lbl;
+      else
+        PROP (TOOL_BAR_ITEM_LABEL) = make_string ("", 0);
+      free (buf);
     }
 
   /* If got a filter apply it on binding.  */
