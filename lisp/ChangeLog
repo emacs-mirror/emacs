@@ -1,3 +1,8 @@
+2010-08-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Give the Ruby rule a lower priority than Gnu (Bug#6778).
+
 2010-08-14  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
 
 	* font-lock.el (lisp-font-lock-keywords-2): Add
