@@ -456,7 +456,7 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
   (Lisp_Object string, Lisp_Object frame)
 {
   unsigned ok = 1, put_status = 0;
-  int nbytes, charset_info, no_crlf_conversion;
+  int nbytes, no_crlf_conversion;
   unsigned char *src, *dst = NULL;
 
   CHECK_STRING (string);
@@ -494,9 +494,7 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
     {
       /* We must encode contents of STRING according to what
 	 clipboard-coding-system specifies.  */
-      int bufsize;
       struct coding_system coding;
-      unsigned char *htext2;
       Lisp_Object coding_system =
 	NILP (Vnext_selection_coding_system) ?
 	Vselection_coding_system : Vnext_selection_coding_system;
@@ -567,7 +565,7 @@ DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_dat
   unsigned data_size, truelen;
   unsigned char *htext = NULL;
   Lisp_Object ret = Qnil;
-  int no_crlf_conversion, require_decoding = 0;
+  int require_decoding = 0;
 
   if (NILP (frame))
     frame = Fselected_frame ();
@@ -608,8 +606,6 @@ DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_dat
   }
   if (require_decoding)
     {
-      int bufsize;
-      unsigned char *buf;
       struct coding_system coding;
       Lisp_Object coding_system = Vnext_selection_coding_system;
 

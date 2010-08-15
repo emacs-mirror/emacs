@@ -1,9 +1,201 @@
+2010-08-15  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* keyboard.c (parse_tool_bar_item): Put in a bad label if :label
+	isn't a string.
+
+2010-08-15  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* keyboard.c (parse_tool_bar_item): Avoid excessive use of strlen.
+
+2010-08-15  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* keyboard.c (parse_tool_bar_item): malloc buf.  Set TOOL_BAR_ITEM_LABEL
+	to empty string if not set to new_lbl (Bug#6855).
+
+2010-08-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* xterm.c (x_draw_stretch_glyph_string):
+	* w32term.c (x_draw_stretch_glyph_string): In R2L rows, display
+	the cursor on the right edge of the stretch glyph.
+
+	* xdisp.c (window_box_right_offset, window_box_right): Fix
+	commentary.
+
+	* xdisp.c (Fcurrent_bidi_paragraph_direction): Fix paragraph
+	direction when point is inside a run of whitespace characters.
+
+	* bidi.c (bidi_at_paragraph_end): Remove obsolete comment.
+
+2010-08-14  Jason Rumney  <jasonr@gnu.org>
+
+	* keyboard.c (lispy_function_keys): Do not define VK_PACKET (bug#4836)
+
+2010-08-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* fns.c (Fmake_hash_table): Doc fix (Bug#6851).
+
+2010-08-13  Jason Rumney  <jasonr@gnu.org>
+
+	* w32menu.c (simple_dialog_show): Use unicode message box if available.
+	(MessageBoxW_Proc): New function typedef.
+	(unicode-message-box): New function pointer.
+	(globals_of_w32menu): Import it from user32.dll. (Bug#5629)
+
+2010-08-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* frame.h (Qtool_bar_position): Declare.
+
+	* xfns.c (Fx_create_frame): Call x_default_parameter for
+	Qtool_bar_position.
+
+2010-08-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* unexcoff.c: Remove the parts used when "emacs" is not defined.
+	(report_error, report_error_1): Ditto.
+	(write_segment): Remove "#if 0" unused code.
+	(make_hdr): Remove code that was "#ifndef NO_REMAP" before
+	NO_REMAP was removed (in revno 100928).
+	(start_of_text): Remove unused function (was used only if NO_REMAP
+	was NOT defined).
+
+	* msdos.c (IT_set_face): Fix format string to match argument
+	types.
+	(IT_write_glyphs, IT_note_mode_line_highlight)
+	(IT_set_frame_parameters): Remove unused variables.
+	(x_set_menu_bar_lines): Declare set_menu_bar_lines.
+	(IT_set_terminal_modes): Disambiguate expression in if clause.
+	(Fmsdos_remember_default_colors): Return Qnil.
+	(IT_set_frame_parameters): Add parens to disambiguate boolean
+	expression for logging the cursor type to termscript.
+	(keyboard_layout_list, keypad_translate_map)
+	(grey_key_translate_map): Add braces in inner initializers.
+	(dos_rawgetc): Add parens in condition for mouse-3 button-press.
+	(dos_rawgetc): Remove unused label.
+	(XMenuActivate): Add braces to remove ambiguous `else'.
+	(dos_ttraw): Always return a value.
+	(spawnve): Declare.
+	(run_msdos_command): Cast 3rd arg of spawnve to "char **".
+
+	* dosfns.h (x_set_title): Declare.
+
+	* w16select.c (Fw16_set_clipboard_data, Fw16_get_clipboard_data):
+	Remove unused variables.
+
+	* dosfns.c (Fint86, Fdos_memget, Fdos_memput): Remove unused
+	variables.
+	(init_dosfns): Declare get_lim_data.
+	(system_process_attributes): Declare Fget_internal_run_time.
+
+	* xmenu.c (xmenu_show) [!USE_X_TOOLKIT && !USE_GTK]: Fix argument
+	list to be consistent with menu.h.
+
+	* w32menu.c (add_menu_item, name_is_separator): Shut up compiler
+	warnings due to mixing of "char *" and "const char *".
+
+2010-08-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Introduce a new comment style "c" flag.
+	* syntax.c (SYNTAX_FLAGS_COMMENT_STYLEB)
+	(SYNTAX_FLAGS_COMMENT_STYLEC): New macros.
+	(SYNTAX_FLAGS_COMMENT_STYLE): Use them, add an argument.
+	(syntax_prefix_flag_p): New function.
+	(Fstring_to_syntax): Understand new "c" flag.
+	(Finternal_describe_syntax_value): Recognize new flag; use the
+	SYNTAX_FLAGS_* macros.
+	(scan_sexps_forward, Fparse_partial_sexp): Change representation of
+	comment style to accomodate the new styles.
+	(back_comment, forw_comment, Fforward_comment, scan_lists)
+	(scan_sexps_forward): Update code to obey the new comment style flag.
+
+	* syntax.h: Move SYNTAX_FLAGS_FOO() macros to syntax.c.
+
+	* casefiddle.c (casify_region): Use the new syntax_prefix_flag_p.
+
+2010-08-11  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (x_defined_color): If USE_GTK, call xg_check_special_colors
+	first.
+	(Fx_hide_tip): Check FRAME_LIVE_P (f) before calling xg_hide_tooltip.
+
+	* gtkutil.h (xg_check_special_colors): Declare.
+
+	* gtkutil.c (xg_check_special_colors, style_changed_cb): New functions.
+	(xg_create_frame_widgets): Connect theme name changes to
+	style_changed_cb.
+
+	* xterm.c (emacs_class): New char[] for EMACS_CLASS.
+	(xim_open_dpy, xim_initialize, xim_close_dpy): Use emacs_class.
+	(x_term_init): Use char[] display_opt and name_opt instead of
+	string literal. file is const char*.
+
+	* xsmfns.c (NOSPLASH_OPT): Change to char[].
+	(smc_save_yourself_CB): Do xstrdup on all ->type and ->name for
+	props.  Free them at the end.
+
+	* xselect.c (Fx_get_atom_name): Use char empty[] instead of literal "".
+
+	* xrdb.c (get_system_app): Make path const and use char *p for
+	non-const char.
+
+	* xmenu.c (Fx_popup_dialog): error_name is const char*.
+	(xmenu_show): error parameter is const char **. pane_string is const
+	char *.
+	(button_names): Is const char *.
+	(xdialog_show): error_name and pane_string is const.
+
+	* process.h (synch_process_death): Is const char*.
+
+	* w32menu.c (w32_menu_show):
+	* nsmenu.m (ns_menu_show): error parameter is const char **.
+
+	* menu.h (w32_menu_show, ns_menu_show, xmenu_show): error parameter
+	is const char **.
+
+	* menu.c (Fx_popup_menu): error_name is const.
+
+	* keyboard.h (_widget_value): Add defined USE_GTK.  Replace Boolean
+	with unsigned char and XtPointer with void *.
+
+	* gtkutil.h: Replace widget_value with struct _widget_value.
+	(enum button_type, struct _widget_value): Remove and use the one from
+	keyboard.h.
+
+	* gtkutil.c (get_utf8_string): Always return an allocated string.
+	Parameter is const.
+	(create_dialog, xg_create_one_menuitem, create_menus)
+	(xg_item_label_same_p, xg_update_menu_item): Free result from
+	get_utf8_string.
+	(xg_separator_p, xg_item_label_same_p): label is const.
+
+	* font.h (font_open_by_name): Make name const.
+
+	* font.c (font_open_by_name): Make name const.
+
+	* floatfns.c (matherr): Use a const char* variable for x->name.
+
+	* emacs.c (main): Pass char[] to putenv instead of literal.
+
+	* callproc.c (synch_process_death): Make const.
+	(Fcall_process): Make signame const.
+
+	* nsterm.h (parseKeyEquiv, addSubmenuWithTitle)
+	(addDisplayItemWithImage): Use const char*.
+
+	* nsmenu.m (parseKeyEquiv, addSubmenuWithTitle)
+	(addDisplayItemWithImage, update_frame_tool_bar): Use const char*.
+
+	* nsfont.m (ns_descriptor_to_entity): Use const char*.
+
+	* keyboard.h (_widget_value): name, value and key are const char*.
+
+	* unexmacosx.c (unexec_error): Use const char *.
+
 2010-08-09  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* font.h (font_parse_xlfd, font_parse_fcname, font_unparse_fcname)
-	(font_parse_name): font_open_by_name):
+	(font_parse_name, font_open_by_name):
 	* font.c (font_parse_xlfd, font_parse_fcname, font_unparse_fcname)
-	(font_parse_name): font_open_by_name): Remove const.
+	(font_parse_name, font_open_by_name): Remove const.
 
 2010-08-09  Andreas Schwab  <schwab@linux-m68k.org>
 
@@ -126,17 +318,17 @@
 
 	* s/freebsd.h (DECLARE_GETPWUID_WITH_UID_T): Remove, unused.
 
-	* xrdb.c: Remove include guard.  Remove
-	DECLARE_GETPWUID_WITH_UID_T conditional it had no effect.
+	* xrdb.c: Remove include guard.
+	Remove DECLARE_GETPWUID_WITH_UID_T conditional it had no effect.
 	Remove #if 0 code.  Replace malloc->xmalloc, free->xfree,
 	realloc->xrealloc instead of using #defines.
 
 2010-08-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* cmds.c (Fforward_line, Fbeginning_of_line, Fend_of_line):
-	* editfns.c (Fline_beginning_position, Fline_end_position): State
-	in the doc strings that start and end of line are in the logical
-	order.
+	* editfns.c (Fline_beginning_position, Fline_end_position):
+	State in the doc strings that start and end of line are in the
+	logical order.
 
 	* xdisp.c (display_line): Move the handling of overlay arrow after
 	the call to find_row_edges.  (Bug#6699)

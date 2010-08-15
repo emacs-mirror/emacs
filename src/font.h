@@ -783,7 +783,7 @@ extern void font_prepare_for_face (FRAME_PTR f, struct face *face);
 extern void font_done_for_face (FRAME_PTR f, struct face *face);
 
 extern Lisp_Object font_open_by_spec (FRAME_PTR f, Lisp_Object spec);
-extern Lisp_Object font_open_by_name (FRAME_PTR f, char *name);
+extern Lisp_Object font_open_by_name (FRAME_PTR f, const char *name);
 extern void font_close_object (FRAME_PTR f, Lisp_Object font_object);
 
 extern Lisp_Object font_intern_prop (const char *str, int len, int force_symbol);

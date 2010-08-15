@@ -65,7 +65,7 @@ struct docstr			/* Allocated thing for an entry. */
 /* Print error message.  `s1' is printf control string, `s2' is arg for it. */
 
 void
-error (char *s1, char *s2)
+error (const char *s1, const char *s2)
 {
   fprintf (stderr, "sorted-doc: ");
   fprintf (stderr, s1, s2);
@@ -75,7 +75,7 @@ error (char *s1, char *s2)
 /* Print error message and exit.  */
 
 void
-fatal (char *s1, char *s2)
+fatal (const char *s1, const char *s2)
 {
   error (s1, s2);
   exit (EXIT_FAILURE);
@@ -117,7 +117,7 @@ enum state
   WAITING, BEG_NAME, NAME_GET, BEG_DESC, DESC_GET
 };
 
-char *states[] =
+const char *states[] =
 {
   "WAITING", "BEG_NAME", "NAME_GET", "BEG_DESC", "DESC_GET"
 };

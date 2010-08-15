@@ -1265,10 +1265,17 @@ regardless of where you click."
     ;; the middle of an active region.
     (deactivate-mark))
   (or mouse-yank-at-point (mouse-set-point click))
-  (let ((primary (x-get-selection 'PRIMARY)))
+  (let ((primary
+	 (cond
+	  ((fboundp 'x-get-selection-value) ; MS-DOS and MS-Windows
+	   (or (x-get-selection-value)
+	       (x-get-selection 'PRIMARY)))
+	  ;; FIXME: What about xterm-mouse-mode etc.?
+	  (t
+	   (x-get-selection 'PRIMARY)))))
     (if primary
         (insert primary)
-      (error "No primary selection"))))
+      (error "No selection is available"))))
 
 (defun mouse-kill-ring-save (click)
   "Copy the region between point and the mouse click in the kill ring.

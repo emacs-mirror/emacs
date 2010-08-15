@@ -85,7 +85,7 @@
   (let ((table (copy-syntax-table emacs-lisp-mode-syntax-table)))
     (modify-syntax-entry ?\[ "_   " table)
     (modify-syntax-entry ?\] "_   " table)
-    (modify-syntax-entry ?# "' 14b" table)
+    (modify-syntax-entry ?# "' 14" table)
     (modify-syntax-entry ?| "\" 23bn" table)
     table)
   "Syntax table used in `lisp-mode'.")

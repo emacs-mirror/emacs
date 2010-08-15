@@ -1,3 +1,64 @@
+2010-08-14  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	Typo fix "hoo4a" -> "hook".
+
+	* gnus-sync.el (gnus-sync-install-hooks): Typo fix.
+
+2010-08-14  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-sync.el (gnus-sync): Fix defgroup version.
+
+2010-08-13  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	Doc fixes and keep unknown groups (ammended for nunion bug fix).
+
+	* gnus-sync.el: Fix docs.
+	(gnus-sync-save): Keep unknown groups in `gnus-sync-newsrc-loader'.
+	(gnus-sync-read): Don't wipe `gnus-sync-newsrc-loader' after reading.
+
+2010-08-12  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	Optimizations for gnus-sync.el.
+
+	* gnus-sync.el: Add docs about gnus-sync-backend
+	possibilities.
+	(gnus-sync-save): Remove unnecessary message.
+	(gnus-sync-read): Optimize and show what groups were skipped.
+
+2010-08-12  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	Minor bug fixes for gnus-sync.el.
+
+	* gnus-sync.el (gnus-sync-unload-hook, gnus-sync-install-hooks): Don't
+	read the sync on get-new-news.
+
+	* gnus-sync.el (gnus-sync-save): Define `variable' so the compiler is
+	quiet.
+
+	* gnus-sync.el (gnus-sync-read): Use `gnus-sync-newsrc-offsets' (fix typo).
+
+2010-07-30  Lawrence Mitchell  <wence@gmx.li>
+
+	Make saving and restoring of hidden threads work with overlays.
+	Patch applied by Ted Zlatanov.
+
+	* gnus-sum.el (gnus-hidden-threads-configuration)
+	(gnus-restore-hidden-threads-configuration): Update to deal with text
+	properties, rather than searching for a magic character.
+
+2010-08-12  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	New gnus-sync.el library for synchronization of marks.
+
+	* gnus-sync.el: New library for synchronization of marks.
+
+	* gnus-util.el (gnus-grep-in-list): Moved from gnus-registry.el and
+	renamed from `gnus-registry-grep-in-list'.
+
+	* gnus-registry.el (gnus-registry-follow-group-p): Use `gnus-grep-in-list'.
+
+	* gnus-start.el (gnus-start-draft-setup): Make it interactive.
+
 2010-08-06  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* rfc2047.el (rfc2047-encode): Use utf-8 as a last resort if

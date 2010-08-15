@@ -648,12 +648,16 @@ int
 x_defined_color (struct frame *f, const char *color_name,
 		 XColor *color, int alloc_p)
 {
-  int success_p;
+  int success_p = 0;
   Display *dpy = FRAME_X_DISPLAY (f);
   Colormap cmap = FRAME_X_COLORMAP (f);
 
   BLOCK_INPUT;
-  success_p = XParseColor (dpy, cmap, color_name, color);
+#ifdef USE_GTK
+  success_p = xg_check_special_colors (f, color_name, color);
+#endif
+  if (!success_p)
+    success_p = XParseColor (dpy, cmap, color_name, color);
   if (success_p && alloc_p)
     success_p = x_alloc_nearest_color (f, cmap, color);
   UNBLOCK_INPUT;
@@ -3388,6 +3392,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
 		       "waitForWM", "WaitForWM", RES_TYPE_BOOLEAN);
   x_default_parameter (f, parms, Qfullscreen, Qnil,
                        "fullscreen", "Fullscreen", RES_TYPE_SYMBOL);
+  x_default_parameter (f, parms, Qtool_bar_position,
+                       f->tool_bar_position, 0, 0, RES_TYPE_SYMBOL);
 
   /* Compute the size of the X window.  */
   window_prompting = x_figure_window_size (f, parms, 1);
@@ -5233,7 +5239,7 @@ Value is t if tooltip was open, nil otherwise.  */)
   /* When using system tooltip, tip_frame is the Emacs frame on which
      the tip is shown.  */
   f = XFRAME (frame);
-  if (xg_hide_tooltip (f))
+  if (FRAME_LIVE_P (f) && xg_hide_tooltip (f))
     frame = Qnil;
 #endif
 

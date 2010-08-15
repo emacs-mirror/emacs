@@ -968,6 +968,14 @@ mail status in mode line"))
 	      :help ,(purecopy "Turn menu-bar on/off")
 	      :button (:toggle . (> (frame-parameter nil 'menu-bar-lines) 0))))
 
+(defun menu-bar-set-tool-bar-position (position)
+  (customize-set-variable 'tool-bar-mode t)
+  (set-frame-parameter nil 'tool-bar-position position)
+  (customize-set-variable 'default-frame-alist
+			  (cons (cons 'tool-bar-position position)
+				(assq-delete-all 'tool-bar-position
+						 default-frame-alist))))
+
 (defun menu-bar-showhide-tool-bar-menu-customize-disable ()
   "Do not display tool bars."
   (interactive)
@@ -975,24 +983,20 @@ mail status in mode line"))
 (defun menu-bar-showhide-tool-bar-menu-customize-enable-left ()
   "Display tool bars on the left side."
   (interactive)
-  (customize-set-variable 'tool-bar-mode t)
-  (set-frame-parameter nil 'tool-bar-position 'left))
+  (menu-bar-set-tool-bar-position 'left))
 
 (defun menu-bar-showhide-tool-bar-menu-customize-enable-right ()
   "Display tool bars on the right side."
   (interactive)
-  (customize-set-variable 'tool-bar-mode t)
-  (set-frame-parameter nil 'tool-bar-position 'right))
+  (menu-bar-set-tool-bar-position 'right))
 (defun menu-bar-showhide-tool-bar-menu-customize-enable-top ()
   "Display tool bars on the top side."
   (interactive)
-  (customize-set-variable 'tool-bar-mode t)
-  (set-frame-parameter nil 'tool-bar-position 'top))
+  (menu-bar-set-tool-bar-position 'top))
 (defun menu-bar-showhide-tool-bar-menu-customize-enable-bottom ()
   "Display tool bars on the bottom side."
   (interactive)
-  (customize-set-variable 'tool-bar-mode t)
-  (set-frame-parameter nil 'tool-bar-position 'bottom))
+  (menu-bar-set-tool-bar-position 'bottom))
 
 (if (featurep 'move-toolbar)
     (progn

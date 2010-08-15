@@ -987,16 +987,18 @@ int
 matherr (struct exception *x)
 {
   Lisp_Object args;
+  const char *name = x->name;
+
   if (! in_float)
     /* Not called from emacs-lisp float routines; do the default thing. */
     return 0;
   if (!strcmp (x->name, "pow"))
-    x->name = "expt";
+    name = "expt";
 
   args
-    = Fcons (build_string (x->name),
+    = Fcons (build_string (name),
 	     Fcons (make_float (x->arg1),
-		    ((!strcmp (x->name, "log") || !strcmp (x->name, "pow"))
+		    ((!strcmp (name, "log") || !strcmp (name, "pow"))
 		     ? Fcons (make_float (x->arg2), Qnil)
 		     : Qnil)));
   switch (x->type)

@@ -839,8 +839,9 @@ main (int argc, char **argv)
           || strcmp (argv[argc-1], "bootstrap") == 0)
       && ! getenv ("EMACS_HEAP_EXEC"))
     {
+      static char heapexec[] = "EMACS_HEAP_EXEC=true";
       /* Set this so we only do this once.  */
-      putenv("EMACS_HEAP_EXEC=true");
+      putenv(heapexec);
 
       /* A flag to turn off address randomization which is introduced
          in linux kernel shipped with fedora core 4 */

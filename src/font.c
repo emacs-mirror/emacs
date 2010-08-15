@@ -3506,7 +3506,7 @@ font_open_by_spec (FRAME_PTR f, Lisp_Object spec)
    found, return Qnil.  */
 
 Lisp_Object
-font_open_by_name (FRAME_PTR f, char *name)
+font_open_by_name (FRAME_PTR f, const char *name)
 {
   Lisp_Object args[2];
   Lisp_Object spec, ret;

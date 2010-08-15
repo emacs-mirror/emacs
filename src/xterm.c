@@ -301,6 +301,9 @@ static Lisp_Object xg_default_icon_file;
 Lisp_Object Qx_gtk_map_stock;
 #endif
 
+/* Some functions take this as char *, not const char *.  */
+static char emacs_class[] = EMACS_CLASS;
+
 /* Used in x_flush.  */
 
 extern XrmDatabase x_load_resources (Display *, const char *, const char *,
@@ -2432,17 +2435,34 @@ x_draw_stretch_glyph_string (struct glyph_string *s)
   if (s->hl == DRAW_CURSOR
       && !x_stretch_cursor_p)
     {
-      /* If `x-stretch-block-cursor' is nil, don't draw a block cursor
-	 as wide as the stretch glyph.  */
+      /* If `x-stretch-cursor' is nil, don't draw a block cursor as
+	 wide as the stretch glyph.  */
       int width, background_width = s->background_width;
-      int x = s->x, left_x = window_box_left_offset (s->w, TEXT_AREA);
+      int x = s->x;
 
-      if (x < left_x)
+      if (!s->row->reversed_p)
 	{
-	  background_width -= left_x - x;
-	  x = left_x;
+	  int left_x = window_box_left_offset (s->w, TEXT_AREA);
+
+	  if (x < left_x)
+	    {
+	      background_width -= left_x - x;
+	      x = left_x;
+	    }
+	}
+      else
+	{
+	  /* In R2L rows, draw the cursor on the right edge of the
+	     stretch glyph.  */
+	  int right_x = window_box_right_offset (s->w, TEXT_AREA);
+
+	  if (x + background_width > right_x)
+	    background_width -= x - right_x;
+	  x += background_width;
 	}
       width = min (FRAME_COLUMN_WIDTH (s->f), background_width);
+      if (s->row->reversed_p)
+	x -= width;
 
       /* Draw cursor.  */
       x_draw_glyph_string_bg_rect (s, x, s->y, width, s->height);
@@ -2455,7 +2475,10 @@ x_draw_stretch_glyph_string (struct glyph_string *s)
 	  XRectangle r;
 	  GC gc;
 
-	  x += width;
+	  if (!s->row->reversed_p)
+	    x += width;
+	  else
+	    x = s->x;
 	  if (s->row->mouse_face_p
 	      && cursor_in_mouse_face_p (s->w))
 	    {
@@ -7872,7 +7895,7 @@ xim_open_dpy (struct x_display_info *dpyinfo, char *resource_name)
       if (dpyinfo->xim)
 	XCloseIM (dpyinfo->xim);
       xim = XOpenIM (dpyinfo->display, dpyinfo->xrdb, resource_name,
-		     EMACS_CLASS);
+		     emacs_class);
       dpyinfo->xim = xim;
 
       if (xim)
@@ -7973,7 +7996,7 @@ xim_initialize (struct x_display_info *dpyinfo, char *resource_name)
       xim_inst->resource_name = (char *) xmalloc (len + 1);
       memcpy (xim_inst->resource_name, resource_name, len + 1);
       XRegisterIMInstantiateCallback (dpyinfo->display, dpyinfo->xrdb,
-				      resource_name, EMACS_CLASS,
+				      resource_name, emacs_class,
 				      xim_instantiate_callback,
 				      /* This is XPointer in XFree86
 					 but (XPointer *) on Tru64, at
@@ -7998,7 +8021,7 @@ xim_close_dpy (struct x_display_info *dpyinfo)
 #ifdef HAVE_X11R6_XIM
       if (dpyinfo->display)
 	XUnregisterIMInstantiateCallback (dpyinfo->display, dpyinfo->xrdb,
-					  NULL, EMACS_CLASS,
+					  NULL, emacs_class,
 					  xim_instantiate_callback, NULL);
       xfree (dpyinfo->xim_callback_data->resource_name);
       xfree (dpyinfo->xim_callback_data);
@@ -9709,6 +9732,9 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
       }
     else
       {
+        static char display_opt[] = "--display";
+        static char name_opt[] = "--name";
+        
         for (argc = 0; argc < NUM_ARGV; ++argc)
           argv[argc] = 0;
 
@@ -9717,11 +9743,11 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
         if (! NILP (display_name))
           {
-            argv[argc++] = "--display";
+            argv[argc++] = display_opt;
             argv[argc++] = SDATA (display_name);
           }
 
-        argv[argc++] = "--name";
+        argv[argc++] = name_opt;
         argv[argc++] = resource_name;
 
         XSetLocaleModifiers ("");
@@ -9744,7 +9770,7 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
 
         /* Load our own gtkrc if it exists.  */
         {
-          char *file = "~/.emacs.d/gtkrc";
+          const char *file = "~/.emacs.d/gtkrc";
           Lisp_Object s, abs_file;
 
           s = make_string (file, strlen (file));

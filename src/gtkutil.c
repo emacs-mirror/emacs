@@ -432,20 +432,22 @@ xg_list_remove (xg_list_node *list, xg_list_node *node)
 }
 
 /* Allocate and return a utf8 version of STR.  If STR is already
-   utf8 or NULL, just return STR.
-   If not, a new string is allocated and the caller must free the result
+   utf8 or NULL, just return a copy of STR.
+   A new string is allocated and the caller must free the result
    with g_free.  */
 
 static char *
-get_utf8_string (char *str)
+get_utf8_string (const char *str)
 {
-  char *utf8_str = str;
+  char *utf8_str;
 
   if (!str) return NULL;
 
   /* If not UTF-8, try current locale.  */
   if (!g_utf8_validate (str, -1, NULL))
     utf8_str = g_locale_to_utf8 (str, -1, 0, 0, 0);
+  else
+    return g_strdup (str);
 
   if (!utf8_str)
     {
@@ -502,6 +504,41 @@ get_utf8_string (char *str)
         }
     }
   return utf8_str;
+}
+
+/* Check for special colors used in face spec for region face.
+   The colors are fetched from the Gtk+ theme.
+   Return 1 if color was found, 0 if not.  */
+
+int
+xg_check_special_colors (struct frame *f,
+                         const char *color_name,
+                         XColor *color)
+{
+  int success_p = 0;
+  if (FRAME_GTK_WIDGET (f))
+    {
+      if (strcmp ("gtk_selection_bg_color", color_name) == 0)
+        {
+          GtkStyle *gsty = gtk_widget_get_style (FRAME_GTK_WIDGET (f));
+          color->red = gsty->bg[GTK_STATE_SELECTED].red;
+          color->green = gsty->bg[GTK_STATE_SELECTED].green;
+          color->blue = gsty->bg[GTK_STATE_SELECTED].blue;
+          color->pixel = gsty->bg[GTK_STATE_SELECTED].pixel;
+          success_p = 1;
+        }
+      else if (strcmp ("gtk_selection_fg_color", color_name) == 0)
+        {
+          GtkStyle *gsty = gtk_widget_get_style (FRAME_GTK_WIDGET (f));
+          color->red = gsty->fg[GTK_STATE_SELECTED].red;
+          color->green = gsty->fg[GTK_STATE_SELECTED].green;
+          color->blue = gsty->fg[GTK_STATE_SELECTED].blue;
+          color->pixel = gsty->fg[GTK_STATE_SELECTED].pixel;
+          success_p = 1;
+        }
+    }
+
+  return success_p;
 }
 
 
@@ -896,6 +933,26 @@ xg_pix_to_gcolor (GtkWidget *w, long unsigned int pixel, GdkColor *c)
   gdk_colormap_query_color (map, pixel, c);
 }
 
+/* Callback called when the gtk theme changes.
+   We notify lisp code so it can fix faces used for region for example.  */
+
+static void
+style_changed_cb (GObject *go,
+                  GParamSpec *spec,
+                  gpointer user_data)
+{
+  struct input_event event;
+  GdkDisplay *gdpy = (GdkDisplay *) user_data;
+  const char *display_name = gdk_display_get_name (gdpy);
+
+  EVENT_INIT (event);
+  event.kind = CONFIG_CHANGED_EVENT;
+  event.frame_or_window = make_string (display_name, strlen (display_name));
+  /* Theme doesn't change often, so intern is called seldom.  */
+  event.arg = intern ("theme-name");
+  kbd_buffer_store_event (&event);
+}
+
 /* Create and set up the GTK widgets for frame F.
    Return 0 if creation failed, non-zero otherwise.  */
 
@@ -1020,6 +1077,22 @@ xg_create_frame_widgets (FRAME_PTR f)
   gtk_widget_set_tooltip_text (wtop, "Dummy text");  
   g_signal_connect (wtop, "query-tooltip", G_CALLBACK (qttip_cb), f);
 #endif
+
+  {
+    GdkScreen *screen = gtk_widget_get_screen (wtop);
+    GtkSettings *gs = gtk_settings_get_for_screen (screen);
+    /* Only connect this signal once per screen.  */
+    if (! g_signal_handler_find (G_OBJECT (gs),
+                                 G_SIGNAL_MATCH_FUNC,
+                                 0, 0, 0,
+                                 G_CALLBACK (style_changed_cb),
+                                 0))
+      {
+        g_signal_connect (G_OBJECT (gs), "notify::gtk-theme-name",
+                          G_CALLBACK (style_changed_cb),
+                          gdk_screen_get_display (screen));
+      }
+  }
 
   UNBLOCK_INPUT;
 
@@ -1336,7 +1409,7 @@ create_dialog (widget_value *wv,
             }
         }
 
-     if (utf8_label && utf8_label != item->value)
+     if (utf8_label)
        g_free (utf8_label);
     }
 
@@ -2076,7 +2149,7 @@ static const char* separator_names[] = {
 };
 
 static int
-xg_separator_p (char *label)
+xg_separator_p (const char *label)
 {
   if (! label) return 0;
   else if (strlen (label) > 3
@@ -2174,8 +2247,8 @@ xg_create_one_menuitem (widget_value *item,
 
   w = make_menu_item (utf8_label, utf8_key, item, group);
 
-  if (utf8_label && utf8_label != item->name) g_free (utf8_label);
-  if (utf8_key && utf8_key != item->key) g_free (utf8_key);
+  if (utf8_label) g_free (utf8_label);
+  if (utf8_key) g_free (utf8_key);
 
   cb_data = xmalloc (sizeof (xg_menu_item_cb_data));
 
@@ -2311,7 +2384,7 @@ create_menus (widget_value *data,
           gtk_menu_set_title (GTK_MENU (wmenu), utf8_label);
           w = gtk_menu_item_new_with_label (utf8_label);
           gtk_widget_set_sensitive (w, FALSE);
-          if (utf8_label && utf8_label != item->name) g_free (utf8_label);
+          if (utf8_label) g_free (utf8_label);
         }
       else if (xg_separator_p (item->name))
         {
@@ -2432,7 +2505,7 @@ xg_get_menu_item_label (GtkMenuItem *witem)
 /* Return non-zero if the menu item WITEM has the text LABEL.  */
 
 static int
-xg_item_label_same_p (GtkMenuItem *witem, char *label)
+xg_item_label_same_p (GtkMenuItem *witem, const char *label)
 {
   int is_same = 0;
   char *utf8_label = get_utf8_string (label);
@@ -2443,7 +2516,7 @@ xg_item_label_same_p (GtkMenuItem *witem, char *label)
   else if (old_label && utf8_label)
     is_same = strcmp (utf8_label, old_label) == 0;
 
-  if (utf8_label && utf8_label != label) g_free (utf8_label);
+  if (utf8_label) g_free (utf8_label);
 
   return is_same;
 }
@@ -2590,6 +2663,7 @@ xg_update_menubar (GtkWidget *menubar,
             /* Set the title of the detached window.  */
             gtk_menu_set_title (GTK_MENU (submenu), utf8_label);
 
+          if (utf8_label) g_free (utf8_label);
           iter = g_list_next (iter);
           val = val->next;
           ++pos;
@@ -2729,8 +2803,8 @@ xg_update_menu_item (widget_value *val,
   if (! old_label || strcmp (utf8_label, old_label) != 0)
     gtk_label_set_text (wlbl, utf8_label);
 
-  if (utf8_key && utf8_key != val->key) g_free (utf8_key);
-  if (utf8_label && utf8_label != val->name) g_free (utf8_label);
+  if (utf8_key) g_free (utf8_key);
+  if (utf8_label) g_free (utf8_label);
 
   if (! val->enabled && gtk_widget_get_sensitive (w))
     gtk_widget_set_sensitive (w, FALSE);

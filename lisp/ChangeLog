@@ -1,11 +1,87 @@
+2010-08-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Give the Ruby rule a lower priority than Gnu (Bug#6778).
+
+2010-08-14  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
+
+	* font-lock.el (lisp-font-lock-keywords-2): Add
+	combine-after-change-calls, condition-case-no-debug,
+	with-demoted-errors, and with-silent-modifications (Bug#6025).
+
+2010-08-14  Kevin Ryde  <user42@zip.com.au>
+
+	* emacs-lisp/copyright.el (copyright-update-year)
+	(copyright-update): Temporary switch-to-buffer to ensure the
+	buffer change being queried is visible (Bug#5394).
+
+2010-08-14  Tom Tromey  <tromey@redhat.com>
+
+	* progmodes/etags.el (tags-file-name): Mark safe if stringp
+	(Bug#6733).
+
+2010-08-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* mouse.el (mouse-yank-primary): Fix mouse-2 on MS-Windows and
+	MS-DOS.  (Bug#6689)
+
+2010-08-13  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* menu-bar.el (menu-bar-set-tool-bar-position): New function.
+	(menu-bar-showhide-tool-bar-menu-customize-enable-left)
+	(menu-bar-showhide-tool-bar-menu-customize-enable-right)
+	(menu-bar-showhide-tool-bar-menu-customize-enable-top)
+	(menu-bar-showhide-tool-bar-menu-customize-enable-bottom): Call
+	menu-bar-set-tool-bar-position.
+
+2010-08-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/octave-mod.el (octave-mode-syntax-table): Use the new "c"
+	comment style (bug#6834).
+	* progmodes/scheme.el (scheme-mode-syntax-table):
+	* emacs-lisp/lisp-mode.el (lisp-mode-syntax-table): Remove spurious
+	"b" flag in "' 14b" syntax.
+
+	* progmodes/octave-mod.el (octave-mode-map): Remove special bindings
+	for (un)commenting the region and performing completion.
+	(octave-mode-menu): Use standard commands for help and completion.
+	(octave-mode-syntax-table): Support %{..%} comments (sort of).
+	(octave-mode): Use define-derived-mode.
+	Set completion-at-point-functions and don't set columns.
+	Don't disable adaptive-fill-regexp.
+	(octave-describe-major-mode, octave-comment-region)
+	(octave-uncomment-region, octave-comment-indent)
+	(octave-indent-for-comment): Remove.
+	(octave-indent-calculate): Rename from calculate-octave-indent.
+	(octave-indent-line, octave-fill-paragraph): Update caller.
+	(octave-initialize-completions): No need to make an alist.
+	(octave-completion-at-point-function): New function.
+	(octave-complete-symbol): Use it.
+	(octave-insert-defun): Use define-skeleton.
+
+	* progmodes/octave-mod.el (octave-mode): Set comment-add.
+	(octave-mode-map): Use comment-dwim (bug#6829).
+
+2010-08-12  Antoine Levitt  <antoine.levitt@gmail.com>  (tiny change)
+
+	* cus-edit.el (custom-save-variables, custom-save-faces): Fix up
+	indentation of inserted comment.
+
+2010-08-11  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* faces.el (region): Add type gtk that uses gtk colors.
+
+	* dynamic-setting.el (dynamic-setting-handle-config-changed-event):
+	Handle theme-name change.
+
 2010-08-10  Michael R. Mauger  <mmaug@yahoo.com>
 
 	* progmodes/sql.el: Version 2.5
 	(sql-product-alist): Add :prompt-cont-regexp property for several
 	database products.
 	(sql-prompt-cont-regexp): New variable.
-	(sql-output-newline-count, sql-output-by-send): New
-	variables. Record number of newlines in input text.
+	(sql-output-newline-count, sql-output-by-send):
+	New variables.  Record number of newlines in input text.
 	(sql-send-string): Handle multiple filters and count newlines.
 	(sql-send-magic-terminator): Count terminator newline.
 	(sql-interactive-remove-continuation-prompt): Filters output to
@@ -13,8 +89,7 @@
 	(sql-interactive-mode): Set up new variables, prompt regexp and
 	output filter.
 	(sql-mode-sqlite-font-lock-keywords): Correct some keywords.
-	(sql-make-alternate-buffer-name): Correct buffer name in edge
-	cases.
+	(sql-make-alternate-buffer-name): Correct buffer name in edge cases.
 
 2010-08-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 

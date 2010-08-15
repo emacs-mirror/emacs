@@ -74,12 +74,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
  * of Dell Computer Corporation.  james@bigtex.cactus.org.
  */
 
-#ifndef emacs
-#define PERROR(arg) perror (arg); return -1
-#else
 #include <config.h>
 #define PERROR(file) report_error (file, new)
-#endif
 
 #ifndef CANNOT_DUMP  /* all rest of file!  */
 
@@ -132,7 +128,6 @@ struct aouthdr
 #endif
 
 
-extern char *start_of_text ();		/* Start of text */
 extern char *start_of_data ();		/* Start of initialized data */
 
 static long block_copy_start;		/* Old executable start point */
@@ -155,8 +150,6 @@ static int pagemask;
 
 #define ADDR_CORRECT(x) ((char *)(x) - (char*)0)
 
-#ifdef emacs
-
 #include <setjmp.h>
 #include "lisp.h"
 
@@ -169,7 +162,6 @@ report_error (file, fd)
     close (fd);
   report_file_error ("Cannot unexec", Fcons (build_string (file), Qnil));
 }
-#endif /* emacs */
 
 #define ERROR0(msg) report_error_1 (new, msg, 0, 0); return -1
 #define ERROR1(msg,x) report_error_1 (new, msg, x, 0); return -1
@@ -182,12 +174,7 @@ report_error_1 (fd, msg, a1, a2)
      int a1, a2;
 {
   close (fd);
-#ifdef emacs
   error (msg, a1, a2);
-#else
-  fprintf (stderr, msg, a1, a2);
-  fprintf (stderr, "\n");
-#endif
 }
 
 static int make_hdr ();
@@ -319,9 +306,6 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
      to correspond to what we want to dump.  */
 
   f_hdr.f_flags |= (F_RELFLG | F_EXEC);
-  f_ohdr.text_start = (long) start_of_text ();
-  f_ohdr.tsize = data_start - f_ohdr.text_start;
-  f_ohdr.data_start = data_start;
   f_ohdr.dsize = bss_start - f_ohdr.data_start;
   f_ohdr.bsize = bss_end - bss_start;
   f_thdr.s_size = f_ohdr.tsize;
@@ -417,16 +401,6 @@ write_segment (new, ptr, end)
 	    nwrite = pagesize;
 	  write (new, zeros, nwrite);
 	}
-#if 0 /* Now that we have can ask `write' to write more than a page,
-	 it is legit for write do less than the whole amount specified.  */
-      else if (nwrite != ret)
-	{
-	  sprintf (buf,
-		   "unexec write failure: addr 0x%x, fileno %d, size 0x%x, wrote 0x%x, errno %d",
-		   ptr, new, nwrite, ret, errno);
-	  PERROR (buf);
-	}
-#endif
       i += nwrite;
       ptr += nwrite;
     }
@@ -604,21 +578,6 @@ adjust_lnnoptrs (writedesc, readdesc, new_name)
   close (new);
 #endif
   return 0;
-}
-
-extern unsigned start __asm__ ("start");
-
-/*
- *	Return the address of the start of the text segment prior to
- *	doing an unexec.  After unexec the return value is undefined.
- *	See crt0.c for further explanation and _start.
- *
- */
-
-char *
-start_of_text (void)
-{
-  return ((char *) &start);
 }
 
 /* ****************************************************************

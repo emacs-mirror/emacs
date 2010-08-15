@@ -267,7 +267,7 @@ unexec_copy (off_t dest, off_t src, ssize_t count)
 /* Debugging and informational messages routines.  */
 
 static void
-unexec_error (char *format, ...)
+unexec_error (const char *format, ...)
 {
   va_list ap;
 

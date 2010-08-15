@@ -106,8 +106,11 @@ is taken from the desktop settings.
 
 ** GTK tool bars can be placed on the left/right or top/bottom of the frame.
 The frame-parameter tool-bar-position controls this.  It takes the values
-top, left, tight or bottom.  The Options => Show/Hide menu has entries
+top, left, right or bottom.  The Options => Show/Hide menu has entries
 for this.
+
+** The colors for selected text (the region face) are taken from the GTK
+theme when Emacs is built with GTK.
 
 ** Emacs uses GTK tooltips by default if built with GTK.  You can turn that
 off by customizing x-gtk-use-system-tooltips.
@@ -209,6 +212,14 @@ automatically added to the primary window selection.
 * Changes in Specialized Modes and Packages in Emacs 24.1
 
 ** Archive Mode has basic support to browse 7z archives.
+
+** ERC changes
+
+*** New vars `erc-autojoin-timing' and `erc-autojoin-delay'.
+If the value of `erc-autojoin-timing' is 'ident, ERC autojoins after a
+successful NickServ identification, or after `erc-autojoin-delay'
+seconds.  The default value, 'ident, means to autojoin immediately
+after connecting.
 
 ** In ido-mode, C-v is no longer bound to ido-toggle-vc.
 The reason is that this interferes with cua-mode.
@@ -421,6 +432,7 @@ has now been removed.
 
 * Lisp changes in Emacs 24.1
 
+** Syntax tables support a new "comment style c" additionally to style b.
 ** frame-local variables cannot be let-bound any more.
 ** prog-mode is a new major-mode meant to be the parent of programming mode.
 ** define-minor-mode accepts a new keyword :variable.

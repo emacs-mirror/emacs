@@ -3406,8 +3406,10 @@ marks of articles."
   (save-excursion
     (let (config)
       (goto-char (point-min))
-      (while (search-forward "\r" nil t)
-	(push (1- (point)) config))
+      (while (not (eobp))
+        (when (eq (get-char-property (point-at-eol) 'invisible) 'gnus-sum)
+          (push (save-excursion (forward-line 0) (point)) config))
+        (forward-line 1))
       config)))
 
 (defun gnus-restore-hidden-threads-configuration (config)
@@ -3415,10 +3417,8 @@ marks of articles."
   (save-excursion
     (let (point (inhibit-read-only t))
       (while (setq point (pop config))
-	(when (and (< point (point-max))
-		   (goto-char point)
-		   (eq (char-after) ?\n))
-	  (subst-char-in-region point (1+ point) ?\n ?\r))))))
+        (goto-char point)
+        (gnus-summary-hide-thread)))))
 
 ;; Various summary mode internalish functions.
 

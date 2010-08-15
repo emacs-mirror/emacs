@@ -158,13 +158,15 @@ When this is `function', only ask when called non-interactively."
     (unless (string= (buffer-substring (- (match-end 3) 2) (match-end 3))
 		     (substring copyright-current-year -2))
       (if (or noquery
-	      ;; Fixes some point-moving oddness (bug#2209).
-	      (save-excursion
-		(y-or-n-p (if replace
-			      (concat "Replace copyright year(s) by "
-				      copyright-current-year "? ")
-			    (concat "Add " copyright-current-year
-				    " to copyright? ")))))
+	      (save-window-excursion
+		(switch-to-buffer (current-buffer))
+		;; Fixes some point-moving oddness (bug#2209).
+		(save-excursion
+		  (y-or-n-p (if replace
+				(concat "Replace copyright year(s) by "
+					copyright-current-year "? ")
+			      (concat "Add " copyright-current-year
+				      " to copyright? "))))))
 	  (if replace
 	      (replace-match copyright-current-year t t nil 3)
 	    (let ((size (save-excursion (skip-chars-backward "0-9"))))
@@ -224,8 +226,10 @@ version \\([0-9]+\\), or (at"
                   (string-to-number copyright-current-gpl-version))
 	       (or noquery
                    (save-match-data
-                     (y-or-n-p (format "Replace GPL version by %s? "
-                                       copyright-current-gpl-version))))
+		     (save-window-excursion
+		       (switch-to-buffer (current-buffer))
+		       (y-or-n-p (format "Replace GPL version by %s? "
+					 copyright-current-gpl-version)))))
 	       (progn
 		 (if (match-end 2)
 		     ;; Esperanto bilingual comment in two-column.el

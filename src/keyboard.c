@@ -4941,9 +4941,9 @@ char const *lispy_function_keys[] =
     0,               /* VK_OEM_102        0xE2 */
     "ico-help",      /* VK_ICO_HELP       0xE3 */
     "ico-00",        /* VK_ICO_00         0xE4 */
-    0,               /* VK_PROCESSKEY     0xE5 */
+    0,               /* VK_PROCESSKEY     0xE5 - used by IME */
     "ico-clear",     /* VK_ICO_CLEAR      0xE6 */
-    "packet",        /* VK_PACKET         0xE7 */
+    0,               /* VK_PACKET         0xE7  - used to pass unicode chars */
     0,               /*                   0xE8 */
     "reset",         /* VK_OEM_RESET      0xE9 */
     "jump",          /* VK_OEM_JUMP       0xEA */
@@ -8285,12 +8285,15 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
 	    return 0;
 	}
       else if (EQ (key, QChelp))
-	/* `:help HELP-STRING'.  */
-	PROP (TOOL_BAR_ITEM_HELP) = value;
+        /* `:help HELP-STRING'.  */
+        PROP (TOOL_BAR_ITEM_HELP) = value;
       else if (EQ (key, QClabel))
         {
+          const char *bad_label = "!!?GARBLED ITEM?!!";
           /* `:label LABEL-STRING'.  */
-          PROP (TOOL_BAR_ITEM_LABEL) = value;
+          PROP (TOOL_BAR_ITEM_HELP) = STRINGP (value)
+            ? value
+            : make_string (bad_label, strlen (bad_label));
           have_label = 1;
         }
       else if (EQ (key, QCfilter))
@@ -8328,39 +8331,41 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
       Lisp_Object capt = PROP (TOOL_BAR_ITEM_CAPTION);
       const char *label = SYMBOLP (key) ? (char *) SDATA (SYMBOL_NAME (key)) : "";
       const char *caption = STRINGP (capt) ? (char *) SDATA (capt) : "";
-      char buf[64];
-      EMACS_INT max_lbl = 2*tool_bar_max_label_size;
+      EMACS_INT max_lbl = 2 * tool_bar_max_label_size;
+      char *buf = (char *) xmalloc (max_lbl + 1);
       Lisp_Object new_lbl;
+      size_t caption_len = strlen (caption);
 
-      if (strlen (caption) < max_lbl && caption[0] != '\0')
+      if (caption_len <= max_lbl && caption[0] != '\0')
         {
           strcpy (buf, caption);
-          while (buf[0] != '\0' &&  buf[strlen (buf) -1] == '.')
-            buf[strlen (buf)-1] = '\0';
-          if (strlen (buf) <= max_lbl)
-            caption = buf;
+          while (caption_len > 0 && buf[caption_len - 1] == '.')
+            caption_len--;
+	  buf[caption_len] = '\0';
+	  label = caption = buf;
         }
-
-      if (strlen (caption) <= max_lbl)
-        label = caption;
 
       if (strlen (label) <= max_lbl && label[0] != '\0')
         {
           int i;
-          if (label != buf) strcpy (buf, label);
+          if (label != buf)
+	    strcpy (buf, label);
 
-          for (i = 0; i < strlen (buf); ++i)
-            {
-              if (buf[i] == '-') buf[i] = ' ';
-            }
+          for (i = 0; buf[i] != '\0'; ++i)
+	    if (buf[i] == '-')
+	      buf[i] = ' ';
           label = buf;
 
         }
-      else label = "";
+      else
+	label = "";
 
       new_lbl = Fupcase_initials (make_string (label, strlen (label)));
       if (SCHARS (new_lbl) <= tool_bar_max_label_size)
         PROP (TOOL_BAR_ITEM_LABEL) = new_lbl;
+      else
+        PROP (TOOL_BAR_ITEM_LABEL) = make_string ("", 0);
+      free (buf);
     }
 
   /* If got a filter apply it on binding.  */

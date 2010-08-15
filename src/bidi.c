@@ -497,7 +497,6 @@ bidi_peek_at_next_level (struct bidi_it *bidi_it)
 static EMACS_INT
 bidi_at_paragraph_end (EMACS_INT charpos, EMACS_INT bytepos)
 {
-  /* FIXME: Why Fbuffer_local_value rather than just Fsymbol_value?  */
   Lisp_Object sep_re;
   Lisp_Object start_re;
   EMACS_INT val;

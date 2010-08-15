@@ -318,10 +318,7 @@ extern Lisp_Object unuse_menu_items (Lisp_Object dummy);
 #define ENCODE_MENU_STRING(str) (str)
 #endif
 
-#if defined (HAVE_NS) || defined (HAVE_NTGUI)
-
-typedef void * XtPointer;
-typedef unsigned char Boolean;
+#if defined (HAVE_NS) || defined (HAVE_NTGUI) || defined (USE_GTK)
 
 /* Definitions copied from lwlib.h */
 
@@ -338,32 +335,35 @@ typedef struct _widget_value
 {
   /* name of widget */
   Lisp_Object   lname;
-  char*		name;
+  const char*	name;
   /* value (meaning depend on widget type) */
-  char*		value;
+  const char*	value;
   /* keyboard equivalent. no implications for XtTranslations */
   Lisp_Object   lkey;
-  char*		key;
+  const char*	key;
   /* Help string or nil if none.
      GC finds this string through the frame's menu_bar_vector
      or through menu_items.  */
   Lisp_Object	help;
   /* true if enabled */
-  Boolean	enabled;
+  unsigned char	enabled;
   /* true if selected */
-  Boolean	selected;
+  unsigned char selected;
   /* The type of a button.  */
   enum button_type button_type;
 #if defined (HAVE_NTGUI)
   /* true if menu title */
-  Boolean       title;
+  unsigned char title;
 #endif
   /* Contents of the sub-widgets, also selected slot for checkbox */
   struct _widget_value*	contents;
   /* data passed to callback */
-  XtPointer	call_data;
+  void	*call_data;
   /* next one in the list */
   struct _widget_value*	next;
+#ifdef USE_GTK
+  struct _widget_value *free_list;
+#endif
 } widget_value;
 
 #endif /* HAVE_NS || HAVE_NTGUI */

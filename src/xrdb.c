@@ -334,16 +334,17 @@ static XrmDatabase
 get_system_app (const char *class)
 {
   XrmDatabase db = NULL;
-  char *path;
+  const char *path;
+  char *p;
 
   path = getenv ("XFILESEARCHPATH");
   if (! path) path = PATH_X_DEFAULTS;
 
-  path = search_magic_path (path, class, 0, 0);
-  if (path)
+  p = search_magic_path (path, class, 0, 0);
+  if (p)
     {
-      db = XrmGetFileDatabase (path);
-      xfree (path);
+      db = XrmGetFileDatabase (p);
+      xfree (p);
     }
 
   return db;
@@ -360,7 +361,7 @@ get_fallback (Display *display)
 static XrmDatabase
 get_user_app (const char *class)
 {
-  char *path;
+  const char *path;
   char *file = 0;
   char *free_it = 0;
 
