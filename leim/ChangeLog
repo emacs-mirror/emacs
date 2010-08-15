@@ -1,3 +1,7 @@
+2010-08-15  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* quail/georgian.el: Remove extra backslashes.
+
 2010-08-14  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* quail/arabic.el: Quote [ and ].
