@@ -1,3 +1,7 @@
+2010-08-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-start.el (gnus-start-draft-setup): Move doc string forward.
+
 2010-08-14  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	Typo fix "hoo4a" -> "hook".
