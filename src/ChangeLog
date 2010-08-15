@@ -1,3 +1,8 @@
+2010-08-15  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* keyboard.c (parse_tool_bar_item): Put in a bad label if :label
+	isn't a string.
+
 2010-08-15  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* keyboard.c (parse_tool_bar_item): Avoid excessive use of strlen.
