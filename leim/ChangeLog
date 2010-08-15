@@ -1,5 +1,7 @@
 2010-08-15  Andreas Schwab  <schwab@linux-m68k.org>
 
+	* quail/vntelex.el ("vietnamese-telex"): Doc fix.
+
 	* quail/georgian.el: Remove extra backslashes.
 
 2010-08-14  Andreas Schwab  <schwab@linux-m68k.org>
