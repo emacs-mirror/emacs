@@ -2,6 +2,7 @@
 
 	* nsselect.m: include keyboard.h for QPRIMARY, remove its
 	declaration (Bug#6863).
+	(syms_of_nsselect): Don't intern QPRIMARY.
 
 	* xselect.c: Remove declaration of QPRIMARY (Bug#6864).
 

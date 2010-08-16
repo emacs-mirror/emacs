@@ -543,7 +543,6 @@ nxatoms_of_nsselect (void)
 void
 syms_of_nsselect (void)
 {
-  QPRIMARY   = intern ("PRIMARY");	staticpro (&QPRIMARY);
   QSECONDARY = intern ("SECONDARY");	staticpro (&QSECONDARY);
   QTEXT      = intern ("TEXT"); 	staticpro (&QTEXT);
   QFILE_NAME = intern ("FILE_NAME"); 	staticpro (&QFILE_NAME);
