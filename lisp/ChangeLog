@@ -1,5 +1,12 @@
 2010-08-15  Chong Yidong  <cyd@stupidchicken.com>
 
+	* mouse.el (mouse--drag-set-mark-and-point): New function.
+	(mouse-drag-track): Use LOCATION arg to push-mark.  Use
+	mouse--drag-set-mark-and-point to take click-count into
+	consideration when updating point and mark (Bug#6840).
+
+2010-08-15  Chong Yidong  <cyd@stupidchicken.com>
+
 	* progmodes/compile.el (compilation-error-regexp-alist-alist):
 	Give the Ruby rule a lower priority than Gnu (Bug#6778).
 
