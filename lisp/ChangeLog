@@ -1,3 +1,11 @@
+2010-08-16  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
+
+	* net/rcirc.el (rcirc-log-process-buffers): New option.
+	(rcirc-print): Use it.
+	(rcirc-generate-log-filename): New function.
+	(rcirc-log-filename-function): Change default to
+	rcirc-generate-log-filename (Bug#6828).
+
 2010-08-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (deactivate-mark): If select-active-regions is `only',
