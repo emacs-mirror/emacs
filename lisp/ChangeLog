@@ -1,3 +1,10 @@
+2010-08-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (deactivate-mark): If select-active-regions is `only',
+	only set selection for temporarily active regions.
+
+	* cus-start.el: Change defcustom for select-active-regions.
+
 2010-08-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mouse.el (mouse--drag-set-mark-and-point): New function.

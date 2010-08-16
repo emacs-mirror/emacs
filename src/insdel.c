@@ -74,7 +74,7 @@ Lisp_Object combine_after_change_buffer;
 
 Lisp_Object Qinhibit_modification_hooks;
 
-extern Lisp_Object Vselect_active_regions, Vsaved_region_selection;
+extern Lisp_Object Vselect_active_regions, Vsaved_region_selection, Qonly;
 
 
 /* Check all markers in the current buffer, looking for something invalid.  */
@@ -2050,10 +2050,12 @@ prepare_to_modify_buffer (EMACS_INT start, EMACS_INT end,
 #endif /* not CLASH_DETECTION */
 
   /* If `select-active-regions' is non-nil, save the region text.  */
-  if (!NILP (Vselect_active_regions)
-      && !NILP (current_buffer->mark_active)
-      && !NILP (Vtransient_mark_mode)
-      && NILP (Vsaved_region_selection))
+  if (!NILP (current_buffer->mark_active)
+      && NILP (Vsaved_region_selection)
+      && (EQ (Vselect_active_regions, Qonly)
+	  ? EQ (CAR_SAFE (Vtransient_mark_mode), Qonly)
+	  : (!NILP (Vselect_active_regions)
+	     && !NILP (Vtransient_mark_mode))))
     {
       int b = XINT (Fmarker_position (current_buffer->mark));
       int e = XINT (make_number (PT));

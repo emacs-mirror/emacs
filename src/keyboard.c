@@ -368,7 +368,7 @@ Lisp_Object Vselect_active_regions;
    Used by the `select-active-regions' feature.  */
 Lisp_Object Vsaved_region_selection;
 
-Lisp_Object Qx_set_selection, QPRIMARY, Qlazy;
+Lisp_Object Qx_set_selection, QPRIMARY;
 
 Lisp_Object Qself_insert_command;
 Lisp_Object Qforward_char;
@@ -1790,27 +1790,34 @@ command_loop_1 (void)
 	    Vtransient_mark_mode = Qnil;
 	  else if (EQ (Vtransient_mark_mode, Qonly))
 	    Vtransient_mark_mode = Qidentity;
-	  else if (EQ (Vselect_active_regions, Qlazy)
-		   ? EQ (CAR_SAFE (Vtransient_mark_mode), Qonly)
-		   : (!NILP (Vselect_active_regions)
-		      && !NILP (Vtransient_mark_mode)))
-	    {
-	      /* Set window selection.  If `select-active-regions' is
-		 `lazy', only do it for temporarily active regions. */
-	      int beg = XINT (Fmarker_position (current_buffer->mark));
-	      int end = XINT (make_number (PT));
-	      if (beg < end)
-		call2 (Qx_set_selection, QPRIMARY,
-		       make_buffer_string (beg, end, 0));
-	      else if (beg > end)
-		call2 (Qx_set_selection, QPRIMARY,
-		       make_buffer_string (end, beg, 0));
-	    }
 
 	  if (!NILP (Vdeactivate_mark))
+	    /* If `select-active-regions' is non-nil, this call to
+	       `deactivate-mark' also sets the PRIMARY selection.  */
 	    call0 (Qdeactivate_mark);
-	  else if (current_buffer != prev_buffer || MODIFF != prev_modiff)
-	    call1 (Vrun_hooks, intern ("activate-mark-hook"));
+	  else
+	    {
+	      /* Even if not deactivating the mark, set PRIMARY if
+		 `select-active-regions' is non-nil.  */
+	      if (EQ (Vselect_active_regions, Qonly)
+		  ? EQ (CAR_SAFE (Vtransient_mark_mode), Qonly)
+		  : (!NILP (Vselect_active_regions)
+		     && !NILP (Vtransient_mark_mode)))
+		{
+		  int beg = XINT (Fmarker_position (current_buffer->mark));
+		  int end = XINT (make_number (PT));
+		  if (beg < end)
+		    call2 (Qx_set_selection, QPRIMARY,
+			   make_buffer_string (beg, end, 0));
+		  else if (beg > end)
+		    call2 (Qx_set_selection, QPRIMARY,
+			   make_buffer_string (end, beg, 0));
+		  /* Don't set empty selections.  */
+		}
+
+	      if (current_buffer != prev_buffer || MODIFF != prev_modiff)
+		call1 (Vrun_hooks, intern ("activate-mark-hook"));
+	    }
 
 	  Vsaved_region_selection = Qnil;
 	}
@@ -11718,8 +11725,6 @@ syms_of_keyboard (void)
   staticpro (&Qx_set_selection);
   QPRIMARY = intern_c_string ("PRIMARY");
   staticpro (&QPRIMARY);
-  Qlazy = intern_c_string ("lazy");
-  staticpro (&Qlazy);
 
   Qinput_method_exit_on_first_char = intern_c_string ("input-method-exit-on-first-char");
   staticpro (&Qinput_method_exit_on_first_char);
@@ -12331,16 +12336,11 @@ and tool-bar buttons.  */);
   DEFVAR_LISP ("select-active-regions",
 	       &Vselect_active_regions,
 	       doc: /* If non-nil, an active region automatically becomes the window selection.
-This takes effect only when Transient Mark mode is enabled.
+If the value is `only', only temporarily active regions (usually made
+by mouse-dragging or shift-selection) set the window selection.
 
-If the value is `lazy', Emacs only sets the window selection during
-`deactivate-mark'; unless the region is temporarily active
-(e.g. mouse-drags or shift-selection), in which case it sets the
-window selection after each command.
-
-For other non-nil value, Emacs sets the window selection after every
-command.  */);
-  Vselect_active_regions = Qlazy;
+This takes effect only when Transient Mark mode is enabled.  */);
+  Vselect_active_regions = Qt;
 
   DEFVAR_LISP ("saved-region-selection",
 	       &Vsaved_region_selection,

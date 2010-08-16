@@ -191,22 +191,25 @@ should use delete-char with a negative argument instead.
 
 ** Selection changes.
 
-The way Emacs interacts with the clipboard and primary selection, by
-default, is now similar to other X applications.  In particular, kill
-and yank use the clipboard, in addition to the primary selection.
+The default handling of clipboard and primary selections has been
+changed to conform with other X applications.
 
-*** `select-active-regions' now defaults to `lazy'.
-This means that any active region made with shift-selection or mouse
-dragging, or acted on by Emacs (e.g. with M-w or C-w), is
-automatically added to the primary window selection.
+*** `select-active-regions' now defaults to t, so active regions set
+the primary selection.
+
+It also accepts a new value, `lazy', which means to only set the
+primary selection for temporarily active regions (usually made by
+mouse-dragging or shift-selection).
+
+*** `mouse-2' is now bound to `mouse-yank-primary'.
 
 *** `x-select-enable-clipboard' now defaults to t.
+Thus, killing and yanking now use the clipboard (in addition to the
+kill ring).
 
 *** `x-select-enable-primary' now defaults to nil.
 
 *** `mouse-drag-copy-region' now defaults to nil.
-
-*** `mouse-2' is now bound to `mouse-yank-primary'.
 
 
 * Changes in Specialized Modes and Packages in Emacs 24.1

@@ -3674,7 +3674,9 @@ Unless FORCE is non-nil, this function does nothing if Transient
 Mark mode is disabled.
 This function also runs `deactivate-mark-hook'."
   (when (or transient-mark-mode force)
-    (when (and select-active-regions
+    (when (and (if (eq select-active-regions 'only)
+		   (eq (car-safe transient-mark-mode) 'only)
+		 select-active-regions)
 	       (region-active-p)
 	       (display-selections-p))
       ;; The var `saved-region-selection', if non-nil, is the text in
