@@ -1,3 +1,9 @@
+2010-08-16  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xselect.c: Remove declaration of QPRIMARY (Bug#6864).
+
+	* keyboard.h (QPRIMARY): Declare (Bug#6864).
+
 2010-08-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keyboard.c (command_loop_1): Avoid setting selection twice,

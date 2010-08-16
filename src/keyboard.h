@@ -440,6 +440,9 @@ extern int ignore_mouse_drag_p;
 
 extern Lisp_Object Vdouble_click_time;
 
+/* The primary selection.  */
+extern Lisp_Object QPRIMARY;
+
 /* Forward declaration for prototypes.  */
 struct input_event;
 
