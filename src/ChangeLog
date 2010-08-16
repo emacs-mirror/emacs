@@ -1,3 +1,24 @@
+2010-08-16  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsselect.m: include keyboard.h for QPRIMARY, remove its
+	declaration (Bug#6863).
+	(syms_of_nsselect): Don't intern QPRIMARY.
+
+	* xselect.c: Remove declaration of QPRIMARY (Bug#6864).
+
+	* keyboard.h (QPRIMARY): Declare (Bug#6864).
+
+2010-08-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (command_loop_1): Avoid setting selection twice,
+	since it's done in deactivate-mark as well.
+	(Vselect_active_regions): Change default to t.  Replace `lazy'
+	with non-default value `only', meaning only set PRIMARY for
+	temporarily active regions.
+
+	* insdel.c (prepare_to_modify_buffer): Handle `only' value of
+	select-active-regions.
+
 2010-08-15  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* keyboard.c (parse_tool_bar_item): Put in a bad label if :label

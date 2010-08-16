@@ -954,8 +954,7 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
 	      '(only)
 	    (cons 'only transient-mark-mode)))
     (let ((range (mouse-start-end start-point start-point click-count)))
-      (goto-char (nth 0 range))
-      (push-mark nil t t)
+      (push-mark (nth 0 range) t t)
       (goto-char (nth 1 range)))
 
     ;; Track the mouse until we get a non-movement event.
@@ -974,14 +973,8 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
 		end-point (posn-point end))
 	  (if (and (eq (posn-window end) start-window)
 		   (integer-or-marker-p end-point))
-	      ;; If moving in the original window, move point by going
-	      ;; to start first, so that if end is in intangible text,
-	      ;; point jumps away from start.  Don't do it if
-	      ;; start=end, or a single click would select a region if
-	      ;; it's on intangible text.
-	      (unless (= start-point end-point)
-		(goto-char start-point)
-		(goto-char end-point))
+	      (mouse--drag-set-mark-and-point start-point
+					      end-point click-count)
 	    (let ((mouse-row (cdr (cdr (mouse-position)))))
 	      (cond
 	       ((null mouse-row))
@@ -999,8 +992,9 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
 		 (eq (posn-window end) start-window)
 		 (integer-or-marker-p end-point)
 		 (/= start-point end-point))
-	(goto-char start-point)
-	(goto-char end-point))
+	(mouse--drag-set-mark-and-point start-point
+					end-point click-count))
+
       ;; Find its binding.
       (let* ((fun (key-binding (vector (car event))))
 	     (do-multi-click (and (> (event-click-count event) 0)
@@ -1050,6 +1044,21 @@ DO-MOUSE-DRAG-REGION-POST-PROCESS should only be used by
 		;; interpreted correctly.
 		(put 'mouse-2 'event-kind 'mouse-click)))
 	    (push event unread-command-events)))))))
+
+(defun mouse--drag-set-mark-and-point (start click click-count)
+  (let* ((range (mouse-start-end start click click-count))
+	 (beg (nth 0 range))
+	 (end (nth 1 range)))
+    (cond ((eq (mark) beg)
+	   (goto-char end))
+	  ((eq (mark) end)
+	   (goto-char beg))
+	  ((< click (mark))
+	   (set-mark end)
+	   (goto-char beg))
+	  (t
+	   (set-mark beg)
+	   (goto-char end)))))
 
 (defun mouse--remap-link-click-p (start-event end-event)
   (or (and (eq mouse-1-click-follows-link 'double)
@@ -1166,8 +1175,7 @@ If MODE is 2 then do the same for lines."
         ((= mode 2)
 	 (list (save-excursion
 		 (goto-char start)
-		 (beginning-of-line 1)
-		 (point))
+		 (line-beginning-position 1))
 	       (save-excursion
 		 (goto-char end)
 		 (forward-line 1)

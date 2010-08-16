@@ -33,10 +33,11 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 #include "lisp.h"
 #include "nsterm.h"
 #include "termhooks.h"
+#include "keyboard.h"
 
 #define CUT_BUFFER_SUPPORT
 
-Lisp_Object QPRIMARY, QSECONDARY, QTEXT, QFILE_NAME;
+Lisp_Object QSECONDARY, QTEXT, QFILE_NAME;
 
 static Lisp_Object Vns_sent_selection_hooks;
 static Lisp_Object Vns_lost_selection_hooks;
@@ -542,7 +543,6 @@ nxatoms_of_nsselect (void)
 void
 syms_of_nsselect (void)
 {
-  QPRIMARY   = intern ("PRIMARY");	staticpro (&QPRIMARY);
   QSECONDARY = intern ("SECONDARY");	staticpro (&QSECONDARY);
   QTEXT      = intern ("TEXT"); 	staticpro (&QTEXT);
   QFILE_NAME = intern ("FILE_NAME"); 	staticpro (&QFILE_NAME);
