@@ -1,5 +1,8 @@
 2010-08-16  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* nsselect.m: include keyboard.h for QPRIMARY, remove its
+	declaration (Bug#6863).
+
 	* xselect.c: Remove declaration of QPRIMARY (Bug#6864).
 
 	* keyboard.h (QPRIMARY): Declare (Bug#6864).
