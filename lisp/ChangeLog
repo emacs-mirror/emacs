@@ -1,3 +1,9 @@
+2010-08-17  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* net/browse-url.el (browse-url-default-browser): Add cond
+	for browse-url-xdg-open
+	(browse-url-can-use-xdg-open, browse-url-xdg-open): New functions
+
 2010-08-17  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/cc-engine.el (c-new-BEG, c-new-END)
