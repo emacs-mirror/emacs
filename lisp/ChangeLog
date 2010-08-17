@@ -1,5 +1,7 @@
 2010-08-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/lisp.el (up-list): Obey forward-sexp-function if set.
+
 	Font-lock '...' strings, plus various simplifications and fixes.
 	* progmodes/octave-mod.el (octave-font-lock-keywords): Use regexp-opt.
 	(octave-font-lock-close-quotes): New function.
