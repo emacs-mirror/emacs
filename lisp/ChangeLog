@@ -1,3 +1,12 @@
+2010-08-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-make-symbolic-link): Flush file
+	properties.
+	(tramp-handle-process-file): Call the program in a subshell, in
+	order to preserve working directory.
+	(tramp-action-password): Hide password prompt before next run.
+	(tramp-process-actions): Widen connection buffer for the trace.
+
 2010-08-16  Deniz Dogan  <deniz.a.m.dogan@gmail.com>
 
 	* net/rcirc.el (rcirc-log-process-buffers): New option.
