@@ -33,7 +33,7 @@
 (require 'ob-eval)
 (eval-when-compile (require 'cl))
 
-(declare-function orgtbl-to-tsv "ob-table" (table params))
+(declare-function orgtbl-to-tsv "org-table" (table params))
 (declare-function R "ext:essd-r" (&optional start-args))
 (declare-function inferior-ess-send-input "ext:ess-inf" ())
 
