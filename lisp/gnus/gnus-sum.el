@@ -12626,6 +12626,8 @@ If ALL is a number, fetch this number of articles."
 (declare-function bookmark-prop-get "bookmark" (bookmark prop))
 (declare-function bookmark-default-handler "bookmark" (bmk))
 (declare-function bookmark-get-bookmark-record "bookmark" (bmk))
+(defvar bookmark-yank-point)
+(defvar bookmark-current-bookmark)
 
 (defun gnus-summary-bookmark-make-record ()
   "Make a bookmark entry for a Gnus summary buffer."
