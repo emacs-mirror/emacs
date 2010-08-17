@@ -1,3 +1,8 @@
+2010-08-17  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* eval.c (Flet, Feval, Fapply, apply_lambda): Use SAFE_ALLOCA_LISP
+	instead of SAFE_ALLOCA.
+
 2010-08-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* eval.c (Flet, Feval, Fapply, apply_lambda): Use SAFE_ALLOCA

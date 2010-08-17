@@ -1034,7 +1034,7 @@ usage: (let VARLIST BODY...)  */)
 
   /* Make space to hold the values to give the bound variables */
   elt = Flength (varlist);
-  SAFE_ALLOCA (temps, Lisp_Object *, XFASTINT (elt) * sizeof (Lisp_Object));
+  SAFE_ALLOCA_LISP (temps, XFASTINT (elt));
 
   /* Compute the values and store them in `temps' */
 
@@ -2303,8 +2303,7 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
 	  register int argnum = 0;
 	  USE_SAFE_ALLOCA;
 
-	  SAFE_ALLOCA (vals, Lisp_Object *,
-		       XINT (numargs) * sizeof (Lisp_Object));
+	  SAFE_ALLOCA_LISP (vals, XINT (numargs));
 
 	  GCPRO3 (args_left, fun, fun);
 	  gcpro3.var = vals;
@@ -2476,8 +2475,7 @@ usage: (apply FUNCTION &rest ARGUMENTS)  */)
 	{
 	  /* Avoid making funcall cons up a yet another new vector of arguments
 	     by explicitly supplying nil's for optional values */
-	  SAFE_ALLOCA (funcall_args, Lisp_Object *,
-		       (1 + XSUBR (fun)->max_args) * sizeof (Lisp_Object));
+	  SAFE_ALLOCA_LISP (funcall_args, 1 + XSUBR (fun)->max_args);
 	  for (i = numargs; i < XSUBR (fun)->max_args;)
 	    funcall_args[++i] = Qnil;
 	  GCPRO1 (*funcall_args);
@@ -2489,8 +2487,7 @@ usage: (apply FUNCTION &rest ARGUMENTS)  */)
      function itself as well as its arguments.  */
   if (!funcall_args)
     {
-      SAFE_ALLOCA (funcall_args, Lisp_Object *,
-		   (1 + numargs) * sizeof (Lisp_Object));
+      SAFE_ALLOCA_LISP (funcall_args, 1 + numargs);
       GCPRO1 (*funcall_args);
       gcpro1.nvars = 1 + numargs;
     }
@@ -3121,8 +3118,7 @@ apply_lambda (fun, args, eval_flag)
   USE_SAFE_ALLOCA;
 
   numargs = Flength (args);
-  SAFE_ALLOCA (arg_vector, Lisp_Object *,
-	       XINT (numargs) * sizeof (Lisp_Object));
+  SAFE_ALLOCA_LISP (arg_vector, XINT (numargs));
   args_left = args;
 
   GCPRO3 (*arg_vector, args_left, fun);
