@@ -2552,7 +2552,7 @@ target of the symlink differ."
       (unless ln
 	(tramp-error
 	 l 'file-error
-	 "Making a symbolic link. ln(1) does not exist on the remote host."))
+	 "Making a symbolic link.  ln(1) does not exist on the remote host."))
 
       ;; Do the 'confirm if exists' thing.
       (when (file-exists-p linkname)
@@ -2572,6 +2572,9 @@ target of the symlink differ."
 	(setq filename
 	      (tramp-file-name-localname
 	       (tramp-dissect-file-name (expand-file-name filename)))))
+
+      (tramp-flush-file-property l (file-name-directory l-localname))
+      (tramp-flush-file-property l l-localname)
 
       ;; Right, they are on the same host, regardless of user, method, etc.
       ;; We now make the link on the remote machine. This will occur as the user
@@ -4638,7 +4641,9 @@ beginning of local filename are not substituted."
 	(setq outbuf (current-buffer))))
       (when stderr (setq command (format "%s 2>%s" command stderr)))
 
-      ;; Send the command.  It might not return in time, so we protect it.
+      ;; Send the command.  It might not return in time, so we protect
+      ;; it.  Call it in a subshell, in order to preserve working
+      ;; directory.
       (condition-case nil
 	  (unwind-protect
               (setq ret
@@ -4646,7 +4651,7 @@ beginning of local filename are not substituted."
                      v (format "\\cd %s; %s"
                                (tramp-shell-quote-argument localname)
                                command)
-		     nil t))
+		     t t))
 	    ;; We should show the output anyway.
 	    (when outbuf
 	      (with-current-buffer outbuf
@@ -6698,8 +6703,10 @@ file exists and nonzero exit status otherwise."
   "Query the user for a password."
   (with-current-buffer (process-buffer proc)
     (tramp-check-for-regexp proc tramp-password-prompt-regexp)
-    (tramp-message vec 3 "Sending %s" (match-string 1)))
-  (tramp-enter-password proc))
+    (tramp-message vec 3 "Sending %s" (match-string 1))
+    (tramp-enter-password proc)
+    ;; Hide password prompt.
+    (narrow-to-region (point-max) (point-max))))
 
 (defun tramp-action-succeed (proc vec)
   "Signal success in finding shell prompt."
@@ -6810,6 +6817,7 @@ The terminal type can be configured with `tramp-terminal-type'."
 		      (tramp-process-one-action proc vec actions))
 		  (tramp-process-one-action proc vec actions)))))
       (with-current-buffer (tramp-get-connection-buffer vec)
+	(widen)
 	(tramp-message vec 6 "\n%s" (buffer-string)))
       (unless (eq exit 'ok)
 	(tramp-clear-passwd vec)

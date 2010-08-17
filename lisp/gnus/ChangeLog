@@ -1,3 +1,13 @@
+2010-08-17  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-sync.el: Require gnus components whose functions are used.
+
+	* gnus-art.el (bookmark-make-record-function):
+	* gnus-sum.el (bookmark-yank-point, bookmark-current-bookmark):
+	Declare for compiler.
+
+	* mm-url.el (mml-compute-boundary): Autoload.
+
 2010-08-15  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-start.el (gnus-start-draft-setup): Move doc string forward.

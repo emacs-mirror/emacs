@@ -1,8 +1,8 @@
 ;;; cc-mode.el --- major mode for editing C and similar languages
 
 ;; Copyright (C) 1985, 1987, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+;;   2010  Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -616,6 +616,15 @@ that requires a literal mode spec at compile time."
     (font-lock-mode 0)
     (font-lock-mode 1)))
 
+;; Buffer local variables defining the region to be fontified by a font lock
+;; after-change function.  They are set in c-after-change to
+;; after-change-function's BEG and END, and may be modified by a
+;; `c-before-font-lock-function'.
+(defvar c-new-BEG 0)
+(make-variable-buffer-local 'c-new-BEG)
+(defvar c-new-END 0)
+(make-variable-buffer-local 'c-new-END)
+
 (defun c-common-init (&optional mode)
   "Common initialization for all CC Mode modes.
 In addition to the work done by `c-basic-common-init' and
@@ -810,15 +819,6 @@ Note that the style variables are always made local to the buffer."
 
 
 ;;; Change hooks, linking with Font Lock.
-
-;; Buffer local variables defining the region to be fontified by a font lock
-;; after-change function.  They are set in c-after-change to
-;; after-change-function's BEG and END, and may be modified by a
-;; `c-before-font-lock-function'.
-(defvar c-new-BEG 0)
-(make-variable-buffer-local 'c-new-BEG)
-(defvar c-new-END 0)
-(make-variable-buffer-local 'c-new-END)
 
 ;; Buffer local variables recording Beginning/End-of-Macro position before a
 ;; change, when a macro straddles, respectively, the BEG or END (or both) of

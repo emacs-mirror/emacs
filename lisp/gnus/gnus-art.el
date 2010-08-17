@@ -4414,6 +4414,8 @@ If variable `gnus-use-long-file-name' is non-nil, it is
 
     (gnus-run-hooks 'gnus-article-menu-hook)))
 
+(defvar bookmark-make-record-function)
+
 (defun gnus-article-mode ()
   "Major mode for displaying an article.
 

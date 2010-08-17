@@ -945,12 +945,12 @@ indentation to be kept as it was before narrowing."
 		   (delete-char n)
 		   (setq ,bindent (- ,bindent n)))))))))))
 
-;; Compute the number of extra comment starter characters
-;; (extra semicolons in Lisp mode, extra stars in C mode, etc.)
-;; If ARG is non-nil, just follow ARG.
-;; If the comment-starter is multi-char, just follow ARG.
-;; Otherwise obey comment-add, and double it if EXTRA is non-nil.
 (defun comment-add (arg)
+  "Compute the number of extra comment starter characters
+\(extra semicolons in Lisp mode, extra stars in C mode, etc.)
+If ARG is non-nil, just follow ARG.
+If the comment starter is multi-char, just follow ARG.
+Otherwise obey `comment-add'."
   (if (and (null arg) (= (string-match "[ \t]*\\'" comment-start) 1))
       (* comment-add 1)
     (1- (prefix-numeric-value arg))))

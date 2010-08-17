@@ -43,6 +43,8 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
+(require 'gnus)
+(require 'gnus-start)
 (require 'gnus-util)
 
 (defgroup gnus-sync nil

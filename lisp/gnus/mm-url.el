@@ -418,6 +418,8 @@ spaces.  Die Die Die."
 	     (mm-url-form-encode-xwfu (cdr data))))
    pairs "&"))
 
+(autoload 'mml-compute-boundary "mml")
+
 (defun mm-url-encode-multipart-form-data (pairs &optional boundary)
   "Return PAIRS encoded in multipart/form-data."
   ;; RFC1867
