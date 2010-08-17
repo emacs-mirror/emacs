@@ -1,5 +1,7 @@
 2010-08-17  Glenn Morris  <rgm@gnu.org>
 
+	* gnus-sync.el: Require gnus components whose functions are used.
+
 	* gnus-art.el (bookmark-make-record-function):
 	* gnus-sum.el (bookmark-yank-point, bookmark-current-bookmark):
 	Declare for compiler.
