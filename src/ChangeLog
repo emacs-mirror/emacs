@@ -1,3 +1,8 @@
+2010-08-17  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m (ns_frame_parm_handlers): Add a slot for the
+	x_set_tool_bar_position handler.
+
 2010-08-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c <w32_frame_parm_handlers>: Add a slot for the
