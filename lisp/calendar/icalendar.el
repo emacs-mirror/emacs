@@ -2092,6 +2092,7 @@ END-T is the event's end time in diary format."
 				  (format "(diary-cyclic %d %s) "
 					  (* interval 7)
 					  dtstart-conv))
+			      dtstart-conv
 			      (if count until-1-conv until-conv)
 			      ))
 		       (setq result

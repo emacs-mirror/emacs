@@ -1,3 +1,8 @@
+2010-08-17  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/icalendar.el (icalendar--convert-recurring-to-diary):
+	Fix format call.
+
 2010-08-17  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-handle-make-symbolic-link): Flush file
