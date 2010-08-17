@@ -1028,12 +1028,13 @@ usage: (let VARLIST BODY...)  */)
   int count = SPECPDL_INDEX ();
   register int argnum;
   struct gcpro gcpro1, gcpro2;
+  USE_SAFE_ALLOCA;
 
   varlist = Fcar (args);
 
   /* Make space to hold the values to give the bound variables */
   elt = Flength (varlist);
-  temps = (Lisp_Object *) alloca (XFASTINT (elt) * sizeof (Lisp_Object));
+  SAFE_ALLOCA (temps, Lisp_Object *, XFASTINT (elt) * sizeof (Lisp_Object));
 
   /* Compute the values and store them in `temps' */
 
@@ -1066,6 +1067,7 @@ usage: (let VARLIST BODY...)  */)
     }
 
   elt = Fprogn (Fcdr (args));
+  SAFE_FREE ();
   return unbind_to (count, elt);
 }
 
@@ -2299,8 +2301,10 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
 	  /* Pass a vector of evaluated arguments */
 	  Lisp_Object *vals;
 	  register int argnum = 0;
+	  USE_SAFE_ALLOCA;
 
-	  vals = (Lisp_Object *) alloca (XINT (numargs) * sizeof (Lisp_Object));
+	  SAFE_ALLOCA (vals, Lisp_Object *,
+		       XINT (numargs) * sizeof (Lisp_Object));
 
 	  GCPRO3 (args_left, fun, fun);
 	  gcpro3.var = vals;
@@ -2318,6 +2322,7 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
 
 	  val = (*XSUBR (fun)->function) (XINT (numargs), vals);
 	  UNGCPRO;
+	  SAFE_FREE ();
 	  goto done;
 	}
 
@@ -2430,8 +2435,9 @@ usage: (apply FUNCTION &rest ARGUMENTS)  */)
   register int i, numargs;
   register Lisp_Object spread_arg;
   register Lisp_Object *funcall_args;
-  Lisp_Object fun;
+  Lisp_Object fun, retval;
   struct gcpro gcpro1;
+  USE_SAFE_ALLOCA;
 
   fun = args [0];
   funcall_args = 0;
@@ -2470,8 +2476,8 @@ usage: (apply FUNCTION &rest ARGUMENTS)  */)
 	{
 	  /* Avoid making funcall cons up a yet another new vector of arguments
 	     by explicitly supplying nil's for optional values */
-	  funcall_args = (Lisp_Object *) alloca ((1 + XSUBR (fun)->max_args)
-						 * sizeof (Lisp_Object));
+	  SAFE_ALLOCA (funcall_args, Lisp_Object *,
+		       (1 + XSUBR (fun)->max_args) * sizeof (Lisp_Object));
 	  for (i = numargs; i < XSUBR (fun)->max_args;)
 	    funcall_args[++i] = Qnil;
 	  GCPRO1 (*funcall_args);
@@ -2483,8 +2489,8 @@ usage: (apply FUNCTION &rest ARGUMENTS)  */)
      function itself as well as its arguments.  */
   if (!funcall_args)
     {
-      funcall_args = (Lisp_Object *) alloca ((1 + numargs)
-					     * sizeof (Lisp_Object));
+      SAFE_ALLOCA (funcall_args, Lisp_Object *,
+		   (1 + numargs) * sizeof (Lisp_Object));
       GCPRO1 (*funcall_args);
       gcpro1.nvars = 1 + numargs;
     }
@@ -2500,7 +2506,11 @@ usage: (apply FUNCTION &rest ARGUMENTS)  */)
     }
 
   /* By convention, the caller needs to gcpro Ffuncall's args.  */
-  RETURN_UNGCPRO (Ffuncall (gcpro1.nvars, funcall_args));
+  retval = Ffuncall (gcpro1.nvars, funcall_args);
+  UNGCPRO;
+  SAFE_FREE ();
+
+  return retval;
 }
 
 /* Run hook variables in various ways.  */
@@ -3108,9 +3118,11 @@ apply_lambda (fun, args, eval_flag)
   struct gcpro gcpro1, gcpro2, gcpro3;
   register int i;
   register Lisp_Object tem;
+  USE_SAFE_ALLOCA;
 
   numargs = Flength (args);
-  arg_vector = (Lisp_Object *) alloca (XINT (numargs) * sizeof (Lisp_Object));
+  SAFE_ALLOCA (arg_vector, Lisp_Object *,
+	       XINT (numargs) * sizeof (Lisp_Object));
   args_left = args;
 
   GCPRO3 (*arg_vector, args_left, fun);
@@ -3139,6 +3151,7 @@ apply_lambda (fun, args, eval_flag)
     tem = call_debugger (Fcons (Qexit, Fcons (tem, Qnil)));
   /* Don't do it again when we return to eval.  */
   backtrace_list->debug_on_exit = 0;
+  SAFE_FREE ();
   return tem;
 }
 
