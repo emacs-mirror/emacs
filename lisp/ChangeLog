@@ -1,3 +1,26 @@
+2010-08-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Font-lock '...' strings, plus various simplifications and fixes.
+	* progmodes/octave-mod.el (octave-font-lock-keywords): Use regexp-opt.
+	(octave-font-lock-close-quotes): New function.
+	(octave-font-lock-syntactic-keywords): New var.
+	(octave-mode): Use it.  Set beginning-of-defun-function.
+	(octave-mode-map): Don't override the <foo>-defun commands.
+	(octave-mode-menu): Pass it directly to easy-menu-define;
+	remove (now generic) <foo>-defun commands; use info-lookup-symbol.
+	(octave-block-match-alist): Fix up last change so that
+	octave-close-block uses the more specific keyword.
+	(info-lookup-mode): Silence byte-compiler.
+	(octave-beginning-of-defun): Not interactive any more.
+	Optimize slightly.
+	(octave-end-of-defun, octave-mark-defun, octave-in-defun-p): Remove.
+	(octave-indent-defun, octave-send-defun): Use mark-defun instead.
+	(octave-completion-at-point-function): Make sure point is within
+	beg..end.
+	(octave-reindent-then-newline-and-indent):
+	Use reindent-then-newline-and-indent.
+	(octave-add-octave-menu): Remove.
+
 2010-08-17  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* mail/emacsbug.el (report-emacs-bug-insert-to-mailer)
@@ -34,8 +57,8 @@
 2010-08-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mouse.el (mouse--drag-set-mark-and-point): New function.
-	(mouse-drag-track): Use LOCATION arg to push-mark.  Use
-	mouse--drag-set-mark-and-point to take click-count into
+	(mouse-drag-track): Use LOCATION arg to push-mark.
+	Use mouse--drag-set-mark-and-point to take click-count into
 	consideration when updating point and mark (Bug#6840).
 
 2010-08-15  Chong Yidong  <cyd@stupidchicken.com>
@@ -45,8 +68,8 @@
 
 2010-08-14  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
 
-	* font-lock.el (lisp-font-lock-keywords-2): Add
-	combine-after-change-calls, condition-case-no-debug,
+	* font-lock.el (lisp-font-lock-keywords-2):
+	Add combine-after-change-calls, condition-case-no-debug,
 	with-demoted-errors, and with-silent-modifications (Bug#6025).
 
 2010-08-14  Kevin Ryde  <user42@zip.com.au>
@@ -71,8 +94,8 @@
 	(menu-bar-showhide-tool-bar-menu-customize-enable-left)
 	(menu-bar-showhide-tool-bar-menu-customize-enable-right)
 	(menu-bar-showhide-tool-bar-menu-customize-enable-top)
-	(menu-bar-showhide-tool-bar-menu-customize-enable-bottom): Call
-	menu-bar-set-tool-bar-position.
+	(menu-bar-showhide-tool-bar-menu-customize-enable-bottom):
+	Call menu-bar-set-tool-bar-position.
 
 2010-08-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
