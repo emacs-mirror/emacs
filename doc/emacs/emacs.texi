@@ -33,7 +33,7 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* Emacs: (emacs).	The extensible self-documenting text editor.
+* Emacs: (emacs).       The extensible self-documenting text editor.
 @end direntry
 
 @c in general, keep the following line commented out, unless doing a
@@ -134,13 +134,13 @@ and Sending Mail and Registers and Minibuffer.
 @end ignore
 
 @menu
-* Distrib::	        How to get the latest Emacs distribution.
-* Intro::	        An introduction to Emacs concepts.
+* Distrib::             How to get the latest Emacs distribution.
+* Intro::               An introduction to Emacs concepts.
 @c Note that in the printed manual, the glossary and indices come last.
-* Glossary::	        Terms used in this manual.
+* Glossary::            Terms used in this manual.
 
 Indexes (each index contains a large menu)
-* Key Index::	        An item for each standard Emacs key sequence.
+* Key Index::           An item for each standard Emacs key sequence.
 * Option Index::        An item for every command-line option.
 * Command Index::       An item for each command name.
 * Variable Index::      An item for each documented variable.
@@ -149,100 +149,100 @@ Indexes (each index contains a large menu)
 * Acknowledgments::     Major contributors to GNU Emacs.
 
 Important General Concepts
-* Screen::	        How to interpret what you see on the screen.
-* User Input::	        Kinds of input events (characters, buttons,
+* Screen::              How to interpret what you see on the screen.
+* User Input::          Kinds of input events (characters, buttons,
                           function keys).
-* Keys::	        Key sequences: what you type to request one
+* Keys::                Key sequences: what you type to request one
                           editing action.
-* Commands::	        Named functions run by key sequences to do editing.
+* Commands::            Named functions run by key sequences to do editing.
 * Entering Emacs::      Starting Emacs from the shell.
-* Exiting::	        Stopping or killing Emacs.
+* Exiting::             Stopping or killing Emacs.
 
 Fundamental Editing Commands
-* Basic::	        The most basic editing commands.
-* Minibuffer::	        Entering arguments that are prompted for.
-* M-x::		        Invoking commands by their names.
-* Help::	        Commands for asking Emacs about its commands.
+* Basic::               The most basic editing commands.
+* Minibuffer::          Entering arguments that are prompted for.
+* M-x::                 Invoking commands by their names.
+* Help::                Commands for asking Emacs about its commands.
 
 Important Text-Changing Commands
-* Mark::	        The mark: how to delimit a ``region'' of text.
-* Killing::	        Killing (cutting) text.
-* Yanking::	        Recovering killed text.  Moving text. (Pasting.)
+* Mark::                The mark: how to delimit a ``region'' of text.
+* Killing::             Killing (cutting) text.
+* Yanking::             Recovering killed text.  Moving text. (Pasting.)
 * Accumulating Text::   Other ways of copying text.
-* Rectangles::	        Operating on the text inside a rectangle on the screen.
+* Rectangles::          Operating on the text inside a rectangle on the screen.
 * CUA Bindings::        Using @kbd{C-x}, @kbd{C-c}, @kbd{C-v} for copy
                           and paste, with enhanced rectangle support.
-* Registers::	        Saving a text string or a location in the buffer.
-* Display::	        Controlling what text is displayed.
-* Search::	        Finding or replacing occurrences of a string.
-* Fixit::	        Commands especially useful for fixing typos.
-* Keyboard Macros::	A keyboard macro records a sequence of
-			  keystrokes to be replayed with a single command.
+* Registers::           Saving a text string or a location in the buffer.
+* Display::             Controlling what text is displayed.
+* Search::              Finding or replacing occurrences of a string.
+* Fixit::               Commands especially useful for fixing typos.
+* Keyboard Macros::     A keyboard macro records a sequence of
+                          keystrokes to be replayed with a single command.
 
 Major Structures of Emacs
-* Files::	        All about handling files.
-* Buffers::	        Multiple buffers; editing several files at once.
-* Windows::	        Viewing two pieces of text at once.
-* Frames::	        Running the same Emacs session in multiple X windows.
+* Files::               All about handling files.
+* Buffers::             Multiple buffers; editing several files at once.
+* Windows::             Viewing two pieces of text at once.
+* Frames::              Running the same Emacs session in multiple X windows.
 * International::       Using non-@acronym{ASCII} character sets.
 
 Advanced Features
-* Major Modes::	        Text mode vs. Lisp mode vs. C mode...
-* Indentation::	        Editing the white space at the beginnings of lines.
-* Text::	        Commands and modes for editing English.
-* Programs::	        Commands and modes for editing programs.
-* Building::	        Compiling, running and debugging programs.
+* Major Modes::         Text mode vs. Lisp mode vs. C mode...
+* Indentation::         Editing the white space at the beginnings of lines.
+* Text::                Commands and modes for editing English.
+* Programs::            Commands and modes for editing programs.
+* Building::            Compiling, running and debugging programs.
 * Maintaining::         Features for maintaining large programs.
-* Abbrevs::	        How to define text abbreviations to reduce
-			  the number of characters you must type.
+* Abbrevs::             How to define text abbreviations to reduce
+                          the number of characters you must type.
 @c AFAICS, the tex stuff generates its own index and does not use this one.
 @ifnottex
 * Picture Mode::        Editing pictures made up of characters using
                           the quarter-plane screen model.
 @end ifnottex
 * Sending Mail::        Sending mail in Emacs.
-* Rmail::	        Reading mail in Emacs.
-* Dired::	        You can ``edit'' a directory to manage files in it.
+* Rmail::               Reading mail in Emacs.
+* Dired::               You can ``edit'' a directory to manage files in it.
 * Calendar/Diary::      The calendar and diary facilities.
 * Document View::       Viewing PDF, PS and DVI files.
-* Gnus::	        How to read netnews with Emacs.
-* Shell::	        Executing shell commands from Emacs.
+* Gnus::                How to read netnews with Emacs.
+* Shell::               Executing shell commands from Emacs.
 * Emacs Server::        Using Emacs as an editing server for @code{mail}, etc.
-* Printing::	        Printing hardcopies of buffers or regions.
-* Sorting::	        Sorting lines, paragraphs or pages within Emacs.
-* Narrowing::	        Restricting display and editing to a portion
-		          of the buffer.
-* Two-Column::	        Splitting apart columns to edit them
-		          in side-by-side windows.
+* Printing::            Printing hardcopies of buffers or regions.
+* Sorting::             Sorting lines, paragraphs or pages within Emacs.
+* Narrowing::           Restricting display and editing to a portion
+                          of the buffer.
+* Two-Column::          Splitting apart columns to edit them
+                          in side-by-side windows.
 * Editing Binary Files::Using Hexl mode to edit binary files.
 * Saving Emacs Sessions:: Saving Emacs state from one session to the next.
 * Recursive Edit::      A command can allow you to do editing
-			  "within the command".  This is called a
-			  "recursive editing level".
-* Emulation::	        Emulating some other editors with Emacs.
+                          "within the command".  This is called a
+                          "recursive editing level".
+* Emulation::           Emulating some other editors with Emacs.
 * Hyperlinking::        Following links in buffers.
 * Dissociated Press::   Dissociating text for fun.
-* Amusements::	        Various games and hacks.
+* Amusements::          Various games and hacks.
 * Customization::       Modifying the behavior of Emacs.
 
 Recovery from Problems
-* Quitting::	        Quitting and aborting.
-* Lossage::	        What to do if Emacs is hung or malfunctioning.
-* Bugs::	        How and when to report a bug.
+* Quitting::            Quitting and aborting.
+* Lossage::             What to do if Emacs is hung or malfunctioning.
+* Bugs::                How and when to report a bug.
 * Contributing::        How to contribute improvements to Emacs.
-* Service::	        How to get help for your own Emacs needs.
+* Service::             How to get help for your own Emacs needs.
 
 Appendices
-* Copying::	        The GNU General Public License gives you permission
-			  to redistribute GNU Emacs on certain terms;
-			  it also explains that there is no warranty.
+* Copying::             The GNU General Public License gives you permission
+                          to redistribute GNU Emacs on certain terms;
+                          it also explains that there is no warranty.
 * GNU Free Documentation License:: The license for this documentation.
 * Emacs Invocation::    Hairy startup options.
 * X Resources::         X resources for customizing Emacs.
-* Antinews::	        Information about Emacs version 22.
+* Antinews::            Information about Emacs version 22.
 * Mac OS / GNUstep::    Using Emacs under Mac OS and GNUstep.
 * Microsoft Windows::   Using Emacs on Microsoft Windows and MS-DOS.
-* Manifesto::	        What's GNU?  Gnu's Not Unix!
+* Manifesto::           What's GNU?  Gnu's Not Unix!
 
 @c Do NOT modify the following 3 lines!  They must have this form to
 @c be correctly identified by `texinfo-multiple-files-update'.  In
@@ -258,9 +258,9 @@ already listed, mentioned here so you can get to them in one step:
 
 The Organization of the Screen
 
-* Point::	        The place in the text where editing commands operate.
+* Point::               The place in the text where editing commands operate.
 * Echo Area::           Short messages appear at the bottom of the screen.
-* Mode Line::	        Interpreting the mode line.
+* Mode Line::           Interpreting the mode line.
 * Menu Bar::            How to use the menu bar.
 
 Basic Editing Commands
@@ -268,23 +268,23 @@ Basic Editing Commands
 * Inserting Text::      Inserting text by simply typing it.
 * Moving Point::        Moving the cursor to the place where you want to
                         change something.
-* Erasing::	        Deleting and killing text.
-* Basic Undo::	        Undoing recent changes in the text.
+* Erasing::             Deleting and killing text.
+* Basic Undo::          Undoing recent changes in the text.
 * Basic Files::         Visiting, creating, and saving files.
 * Basic Help::          Asking what a character does.
-* Blank Lines::	        Making and deleting blank lines.
+* Blank Lines::         Making and deleting blank lines.
 * Continuation Lines::  How Emacs displays lines too wide for the screen.
 * Position Info::       What page, line, row, or column is point on?
-* Arguments::	        Numeric arguments for repeating a command N times.
+* Arguments::           Numeric arguments for repeating a command N times.
 * Repeating::           Repeating the previous command quickly.
 
 The Minibuffer
 
 * Minibuffer File::     Entering file names with the minibuffer.
 * Minibuffer Edit::     How to edit in the minibuffer.
-* Completion::		An abbreviation facility for minibuffer input.
-* Minibuffer History::	Reusing recent minibuffer arguments.
-* Repetition::		Re-executing commands that used the minibuffer.
+* Completion::          An abbreviation facility for minibuffer input.
+* Minibuffer History::  Reusing recent minibuffer arguments.
+* Repetition::          Re-executing commands that used the minibuffer.
 * Passwords::           Entering passwords in the echo area.
 
 Completion
@@ -296,59 +296,59 @@ Completion
 
 Help
 
-* Help Summary::	Brief list of all Help commands.
-* Key Help::		Asking what a key does in Emacs.
-* Name Help::		Asking about a command, variable or function name.
-* Apropos::		Asking what pertains to a given topic.
+* Help Summary::        Brief list of all Help commands.
+* Key Help::            Asking what a key does in Emacs.
+* Name Help::           Asking about a command, variable or function name.
+* Apropos::             Asking what pertains to a given topic.
 * Help Mode::           Special features of Help mode and Help buffers.
-* Library Keywords::	Finding Lisp libraries by keywords (topics).
+* Library Keywords::    Finding Lisp libraries by keywords (topics).
 * Language Help::       Help relating to international language support.
-* Misc Help::		Other help commands.
+* Misc Help::           Other help commands.
 * Help Files::          Commands to display pre-written help files.
 * Help Echo::           Help on active text and tooltips (`balloon help').
 
 The Mark and the Region
 
-* Setting Mark::	Commands to set the mark.
-* Marking Objects::	Commands to put region around textual units.
-* Using Region::	Summary of ways to operate on contents of the region.
-* Mark Ring::   	Previous mark positions saved so you can go back there.
+* Setting Mark::        Commands to set the mark.
+* Marking Objects::     Commands to put region around textual units.
+* Using Region::        Summary of ways to operate on contents of the region.
+* Mark Ring::           Previous mark positions saved so you can go back there.
 * Global Mark Ring::    Previous mark positions in various buffers.
 * Shift Selection::     Using shifted cursor motion keys.
-* Persistent Mark::	Keeping the mark active all the time.
+* Persistent Mark::     Keeping the mark active all the time.
 
 Killing and Moving Text
 
-* Deletion::		Commands for deleting small amounts of text and
-			  blank areas.
-* Killing by Lines::	How to kill entire lines of text at one time.
+* Deletion::            Commands for deleting small amounts of text and
+                          blank areas.
+* Killing by Lines::    How to kill entire lines of text at one time.
 * Other Kill Commands:: Commands to kill large regions of text and
-			  syntactic units such as words and sentences.
+                          syntactic units such as words and sentences.
 * Kill Options::        Options that affect killing.
 
 Yanking
 
-* Kill Ring::		Where killed text is stored.  Basic yanking.
-* Appending Kills::	Several kills in a row all yank together.
-* Earlier Kills::	Yanking something killed some time ago.
+* Kill Ring::           Where killed text is stored.  Basic yanking.
+* Appending Kills::     Several kills in a row all yank together.
+* Earlier Kills::       Yanking something killed some time ago.
 
 Registers
 
-* RegPos::      	Saving positions in registers.
-* RegText::     	Saving text in registers.
-* RegRect::     	Saving rectangles in registers.
+* RegPos::              Saving positions in registers.
+* RegText::             Saving text in registers.
+* RegRect::             Saving rectangles in registers.
 * RegConfig::           Saving window configurations in registers.
 * RegNumbers::          Numbers in registers.
-* RegFiles::    	File names in registers.
+* RegFiles::            File names in registers.
 * Bookmarks::           Bookmarks are like registers, but persistent.
 
 Controlling the Display
 
-* Scrolling::	           Commands to move text up and down in a window.
+* Scrolling::              Commands to move text up and down in a window.
 * Auto Scrolling::         Redisplay scrolls text automatically when needed.
 * Horizontal Scrolling::   Moving text left and right in a window.
 * Follow Mode::            Follow mode lets two windows scroll as one.
-* Faces::	           How to change the display style using faces.
+* Faces::                  How to change the display style using faces.
 * Standard Faces::         Emacs' predefined faces.
 * Temporary Face Changes:: Commands to temporarily modify the default text face
 * Font Lock::              Minor mode for syntactic highlighting using faces.
@@ -367,15 +367,15 @@ Controlling the Display
 
 Searching and Replacement
 
-* Incremental Search::	   Search happens as you type the string.
+* Incremental Search::     Search happens as you type the string.
 * Nonincremental Search::  Specify entire string and then search.
-* Word Search::		   Search for sequence of words.
-* Regexp Search::	   Search for match for a regexp.
-* Regexps::		   Syntax of regular expressions.
+* Word Search::            Search for sequence of words.
+* Regexp Search::          Search for match for a regexp.
+* Regexps::                Syntax of regular expressions.
 * Regexp Backslash::       Regular expression constructs starting with `\'.
 * Regexp Example::         A complex regular expression explained.
-* Search Case::		   To ignore case while searching, or not.
-* Replace::		   Search, and replace some or all matches.
+* Search Case::            To ignore case while searching, or not.
+* Replace::                Search, and replace some or all matches.
 * Other Repeating Search:: Operating on all matches for some regexp.
 
 Incremental Search
@@ -393,16 +393,16 @@ Incremental Search
 Replacement Commands
 
 * Unconditional Replace::  Replacing all matches for a string.
-* Regexp Replace::	   Replacing all matches for a regexp.
+* Regexp Replace::         Replacing all matches for a regexp.
 * Replacement and Case::   How replacements preserve case of letters.
-* Query Replace::	   How to use querying.
+* Query Replace::          How to use querying.
 
 Commands for Fixing Typos
 
 * Undo::                The Undo commands.
-* Transpose::	        Exchanging two characters, words, lines, lists...
+* Transpose::           Exchanging two characters, words, lines, lists...
 * Fixing Case::         Correcting case of last word entered.
-* Spelling::	        Apply spelling checker to a word, or a whole file.
+* Spelling::            Apply spelling checker to a word, or a whole file.
 
 Keyboard Macros
 
@@ -448,9 +448,9 @@ Saving Files
 
 Backup Files
 
-* Backup Names::	How backup files are named.
-* Backup Deletion::	Emacs deletes excess numbered backups.
-* Backup Copying::	Backups can be made by copying or renaming.
+* Backup Names::        How backup files are named.
+* Backup Deletion::     Emacs deletes excess numbered backups.
+* Backup Copying::      Backups can be made by copying or renaming.
 
 Auto Reverting Non-File Buffers
 
@@ -463,16 +463,16 @@ Auto-Saving: Protection Against Disasters
 * Auto Save Files::     The file where auto-saved changes are
                           actually made until you save the file.
 * Auto Save Control::   Controlling when and how often to auto-save.
-* Recover::	        Recovering text from auto-save files.
+* Recover::             Recovering text from auto-save files.
 
 Using Multiple Buffers
 
 * Select Buffer::       Creating a new buffer or reselecting an old one.
 * List Buffers::        Getting a list of buffers that exist.
-* Misc Buffer::	        Renaming; changing read-onlyness; copying text.
-* Kill Buffer::	        Killing buffers you no longer need.
+* Misc Buffer::         Renaming; changing read-onlyness; copying text.
+* Kill Buffer::         Killing buffers you no longer need.
 * Several Buffers::     How to go through the list of all buffers
-			  and operate variously on several of them.
+                          and operate variously on several of them.
 * Indirect Buffers::    An indirect buffer shares the text of another buffer.
 * Buffer Convenience::  Convenience and customization features for
                           buffer handling.
@@ -507,10 +507,10 @@ Frames and Graphical Displays
 * Multiple Displays::   How one Emacs job can talk to several displays.
 * Special Buffer Frames::  You can make certain buffers have their own frames.
 * Frame Parameters::    Changing the colors and other modes of frames.
-* Scroll Bars::	        How to enable and disable scroll bars; how to use them.
+* Scroll Bars::         How to enable and disable scroll bars; how to use them.
 * Wheeled Mice::        Using mouse wheels for scrolling.
 * Drag and Drop::       Using drag and drop to open files and insert text.
-* Menu Bars::	        Enabling and disabling the menu bar.
+* Menu Bars::           Enabling and disabling the menu bar.
 * Tool Bars::           Enabling and disabling the tool bar.
 * Dialog Boxes::        Controlling use of dialog boxes.
 * Tooltips::            Displaying information at the current mouse position.
@@ -559,31 +559,31 @@ Major Modes
 Indentation
 
 * Indentation Commands::  Various commands and techniques for indentation.
-* Tab Stops::		  You can set arbitrary "tab stops" and then
-			    indent to the next tab stop when you want to.
-* Just Spaces::		  You can request indentation using just spaces.
+* Tab Stops::             You can set arbitrary "tab stops" and then
+                            indent to the next tab stop when you want to.
+* Just Spaces::           You can request indentation using just spaces.
 
 Commands for Human Languages
 
-* Words::	        Moving over and killing words.
-* Sentences::	        Moving over and killing sentences.
-* Paragraphs::	        Moving over paragraphs.
-* Pages::	        Moving over pages.
-* Filling::	        Filling or justifying text.
-* Case::	        Changing the case of text.
-* Text Mode::	        The major modes for editing text files.
+* Words::               Moving over and killing words.
+* Sentences::           Moving over and killing sentences.
+* Paragraphs::          Moving over paragraphs.
+* Pages::               Moving over pages.
+* Filling::             Filling or justifying text.
+* Case::                Changing the case of text.
+* Text Mode::           The major modes for editing text files.
 * Outline Mode::        Editing outlines.
-* TeX Mode::	        Editing input to the formatter TeX.
+* TeX Mode::            Editing input to the formatter TeX.
 * HTML Mode::           Editing HTML and SGML files.
-* Nroff Mode::	        Editing input to the formatter nroff.
+* Nroff Mode::          Editing input to the formatter nroff.
 * Formatted Text::      Editing formatted text directly in WYSIWYG fashion.
 * Text Based Tables::   Editing text-based tables in WYSIWYG fashion.
 
 Filling Text
 
-* Auto Fill::	        Auto Fill mode breaks long lines automatically.
+* Auto Fill::           Auto Fill mode breaks long lines automatically.
 * Fill Commands::       Commands to refill paragraphs and center lines.
-* Fill Prefix::	        Filling paragraphs that are indented
+* Fill Prefix::         Filling paragraphs that are indented
                           or in a comment, etc.
 * Adaptive Fill::       How Emacs can determine the fill prefix automatically.
 * Refill::              Keeping paragraphs filled.
@@ -592,7 +592,7 @@ Filling Text
 Outline Mode
 
 * Outline Format::      What the text of an outline looks like.
-* Outline Motion::	Special commands for moving through
+* Outline Motion::      Special commands for moving through
                           outlines.
 * Outline Visibility::  Commands to control what is visible.
 * Outline Views::       Outlines and multiple views.
@@ -644,7 +644,7 @@ Editing Programs
                           of a program.
 * Program Indent::      Adjusting indentation to show the nesting.
 * Parentheses::         Commands that operate on parentheses.
-* Comments::	        Inserting, killing, and aligning comments.
+* Comments::            Inserting, killing, and aligning comments.
 * Documentation::       Getting documentation of functions you plan to call.
 * Hideshow::            Displaying blocks selectively.
 * Symbol Completion::   Completion on symbol names of your program or language.
@@ -666,18 +666,18 @@ Top-Level Definitions, or Defuns
 
 Indentation for Programs
 
-* Basic Indent::	Indenting a single line.
+* Basic Indent::        Indenting a single line.
 * Multi-line Indent::   Commands to reindent many lines at once.
-* Lisp Indent::		Specifying how each Lisp function should be indented.
-* C Indent::		Extra features for indenting C and related modes.
-* Custom C Indent::	Controlling indentation style for C and related modes.
+* Lisp Indent::         Specifying how each Lisp function should be indented.
+* C Indent::            Extra features for indenting C and related modes.
+* Custom C Indent::     Controlling indentation style for C and related modes.
 
 Commands for Editing with Parentheses
 
 * Expressions::         Expressions with balanced parentheses.
 * Moving by Parens::    Commands for moving up, down and across
                           in the structure of parentheses.
-* Matching::	        Insertion of a close-delimiter flashes matching open.
+* Matching::            Insertion of a close-delimiter flashes matching open.
 
 Manipulating Comments
 
@@ -702,12 +702,12 @@ C and Related Modes
 
 Fortran Mode
 
-* Fortran Motion::	Moving point by statements or subprograms.
-* Fortran Indent::	Indentation commands for Fortran.
-* Fortran Comments::	Inserting and aligning comments.
-* Fortran Autofill::	Auto fill support for Fortran.
-* Fortran Columns::	Measuring columns for valid Fortran.
-* Fortran Abbrev::	Built-in abbrevs for Fortran keywords.
+* Fortran Motion::      Moving point by statements or subprograms.
+* Fortran Indent::      Indentation commands for Fortran.
+* Fortran Comments::    Inserting and aligning comments.
+* Fortran Autofill::    Auto fill support for Fortran.
+* Fortran Columns::     Measuring columns for valid Fortran.
+* Fortran Abbrev::      Built-in abbrevs for Fortran keywords.
 
 Fortran Indentation
 
@@ -719,28 +719,28 @@ Fortran Indentation
 
 Compiling and Testing Programs
 
-* Compilation::		Compiling programs in languages other
-			  than Lisp (C, Pascal, etc.).
+* Compilation::         Compiling programs in languages other
+                          than Lisp (C, Pascal, etc.).
 * Compilation Mode::    The mode for visiting compiler errors.
 * Compilation Shell::   Customizing your shell properly
                           for use in the compilation buffer.
 * Grep Searching::      Searching with grep.
 * Flymake::             Finding syntax errors on the fly.
-* Debuggers::		Running symbolic debuggers for non-Lisp programs.
-* Executing Lisp::	Various modes for editing Lisp programs,
-			  with different facilities for running
-			  the Lisp programs.
+* Debuggers::           Running symbolic debuggers for non-Lisp programs.
+* Executing Lisp::      Various modes for editing Lisp programs,
+                          with different facilities for running
+                          the Lisp programs.
 * Lisp Libraries::      Creating Lisp programs to run in Emacs.
-* Lisp Eval::		Executing a single Lisp expression in Emacs.
+* Lisp Eval::           Executing a single Lisp expression in Emacs.
 * Lisp Interaction::    Executing Lisp in an Emacs buffer.
-* External Lisp::	Communicating through Emacs with a separate Lisp.
+* External Lisp::       Communicating through Emacs with a separate Lisp.
 
 Running Debuggers Under Emacs
 
-* Starting GUD::	How to start a debugger subprocess.
-* Debugger Operation::	Connection between the debugger and source buffers.
-* Commands of GUD::	Key bindings for common commands.
-* GUD Customization::	Defining your own commands for GUD.
+* Starting GUD::        How to start a debugger subprocess.
+* Debugger Operation::  Connection between the debugger and source buffers.
+* Commands of GUD::     Key bindings for common commands.
+* GUD Customization::   Defining your own commands for GUD.
 * GDB Graphical Interface::  An enhanced mode that uses GDB features to
                           implement a graphical debugging environment through
                           Emacs.
@@ -761,9 +761,9 @@ GDB Graphical Interface
 Maintaining Large Programs
 
 * Version Control::     Using version control systems.
-* Change Log::	        Maintaining a change history for your program.
-* Tags::	        Go directly to any function in your program in one
-			  command.  Tags remembers which file it is in.
+* Change Log::          Maintaining a change history for your program.
+* Tags::                Go directly to any function in your program in one
+                          command.  Tags remembers which file it is in.
 * EDE::                 An integrated development environment for Emacs.
 * Emerge::              A convenient way of merging two versions of a program.
 
@@ -844,25 +844,25 @@ Change Logs
 
 Tags Tables
 
-* Tag Syntax::		Tag syntax for various types of code and text files.
-* Create Tags Table::	Creating a tags table with @code{etags}.
+* Tag Syntax::          Tag syntax for various types of code and text files.
+* Create Tags Table::   Creating a tags table with @code{etags}.
 * Etags Regexps::       Create arbitrary tags using regular expressions.
-* Select Tags Table::	How to visit a tags table.
-* Find Tag::		Commands to find the definition of a specific tag.
-* Tags Search::		Using a tags table for searching and replacing.
-* List Tags::		Listing and finding tags defined in a file.
+* Select Tags Table::   How to visit a tags table.
+* Find Tag::            Commands to find the definition of a specific tag.
+* Tags Search::         Using a tags table for searching and replacing.
+* List Tags::           Listing and finding tags defined in a file.
 
 Merging Files with Emerge
 
-* Overview of Emerge::	How to start Emerge.  Basic concepts.
-* Submodes of Emerge::	Fast mode vs. Edit mode.
-			  Skip Prefers mode and Auto Advance mode.
-* State of Difference::	You do the merge by specifying state A or B
-			  for each difference.
-* Merge Commands::	Commands for selecting a difference,
-			  changing states of differences, etc.
-* Exiting Emerge::	What to do when you've finished the merge.
-* Combining in Emerge::	    How to keep both alternatives for a difference.
+* Overview of Emerge::  How to start Emerge.  Basic concepts.
+* Submodes of Emerge::  Fast mode vs. Edit mode.
+                          Skip Prefers mode and Auto Advance mode.
+* State of Difference:: You do the merge by specifying state A or B
+                          for each difference.
+* Merge Commands::      Commands for selecting a difference,
+                          changing states of differences, etc.
+* Exiting Emerge::      What to do when you've finished the merge.
+* Combining in Emerge::     How to keep both alternatives for a difference.
 * Fine Points of Emerge::   Miscellaneous issues.
 
 Abbrevs
@@ -887,10 +887,10 @@ Editing Pictures
 
 Sending Mail
 
-* Mail Format:: 	Format of the mail being composed.
+* Mail Format::         Format of the mail being composed.
 * Mail Headers::        Details of some standard mail header fields.
 * Mail Aliases::        Abbreviating and grouping mail addresses.
-* Mail Commands::   	Special commands for editing mail being composed.
+* Mail Commands::       Special commands for editing mail being composed.
 * Mail Signature::      Adding a signature to every message.
 * Mail Amusements::     Distracting the NSA; adding fortune messages.
 * Mail Methods::        Using alternative mail-composition methods.
@@ -928,28 +928,28 @@ Reading Mail with Rmail
 
 Summaries
 
-* Rmail Make Summary::	     Making various sorts of summaries.
-* Rmail Summary Edit::	     Manipulating messages from the summary.
+* Rmail Make Summary::       Making various sorts of summaries.
+* Rmail Summary Edit::       Manipulating messages from the summary.
 
 Dired, the Directory Editor
 
-* Dired Enter:: 	     How to invoke Dired.
+* Dired Enter::              How to invoke Dired.
 * Dired Navigation::         Special motion commands in the Dired buffer.
 * Dired Deletion::           Deleting files with Dired.
 * Flagging Many Files::      Flagging files based on their names.
 * Dired Visiting::           Other file operations through Dired.
-* Marks vs Flags::	     Flagging for deletion vs marking.
-* Operating on Files::	     How to copy, rename, print, compress, etc.
-			       either one file or several files.
+* Marks vs Flags::           Flagging for deletion vs marking.
+* Operating on Files::       How to copy, rename, print, compress, etc.
+                               either one file or several files.
 * Shell Commands in Dired::  Running a shell command on the marked files.
 * Transforming File Names::  Using patterns to rename multiple files.
-* Comparison in Dired::	     Running `diff' by way of Dired.
+* Comparison in Dired::      Running `diff' by way of Dired.
 * Subdirectories in Dired::  Adding subdirectories to the Dired buffer.
 * Subdir Switches::          Subdirectory switches in Dired.
-* Subdirectory Motion::	     Moving across subdirectories, and up and down.
+* Subdirectory Motion::      Moving across subdirectories, and up and down.
 * Hiding Subdirectories::    Making subdirectories visible or invisible.
 * Dired Updating::           Discarding lines for files of no interest.
-* Dired and Find::	     Using `find' to choose the files for Dired.
+* Dired and Find::           Using `find' to choose the files for Dired.
 * Wdired::                   Operating on files by editing the Dired buffer.
 * Image-Dired::              Viewing image thumbnails in Dired.
 * Misc Dired Features::      Various other features.
@@ -966,7 +966,7 @@ The Calendar and the Diary
 * Lunar Phases::        Displaying phases of the moon.
 * Other Calendars::     Converting dates to other calendar systems.
 * Diary::               Displaying events from your diary.
-* Appointments::	Reminders when it's time to do something.
+* Appointments::        Reminders when it's time to do something.
 * Importing Diary::     Converting diary events to/from other formats.
 * Daylight Saving::    How to specify when daylight saving time is active.
 * Time Intervals::      Keeping track of time intervals.
@@ -976,23 +976,23 @@ Movement in the Calendar
 
 * Calendar Unit Motion::      Moving by days, weeks, months, and years.
 * Move to Beginning or End::  Moving to start/end of weeks, months, and years.
-* Specified Dates::	      Moving to the current date or another
-				specific date.
+* Specified Dates::           Moving to the current date or another
+                                specific date.
 
 Conversion To and From Other Calendars
 
-* Calendar Systems::	   The calendars Emacs understands
-			     (aside from Gregorian).
-* To Other Calendar::	   Converting the selected date to various calendars.
-* From Other Calendar::	   Moving to a date specified in another calendar.
-* Mayan Calendar::	   Moving to a date specified in a Mayan calendar.
+* Calendar Systems::       The calendars Emacs understands
+                             (aside from Gregorian).
+* To Other Calendar::      Converting the selected date to various calendars.
+* From Other Calendar::    Moving to a date specified in another calendar.
+* Mayan Calendar::         Moving to a date specified in a Mayan calendar.
 
 The Diary
 
 * Displaying the Diary::   Viewing diary entries and associated calendar dates.
 * Format of Diary File::   Entering events in your diary.
-* Date Formats::	   Various ways you can specify dates.
-* Adding to Diary::	   Commands to create diary entries.
+* Date Formats::           Various ways you can specify dates.
+* Adding to Diary::        Commands to create diary entries.
 * Special Diary Entries::  Anniversaries, blocks of dates, cyclic entries, etc.
 
 Customizing the Calendar and Diary
@@ -1009,22 +1009,22 @@ Customizing the Calendar and Diary
 
 Document Viewing
 
-* Navigation::	Navigation inside DocView buffers.
-* Searching::	Searching inside documents.
-* Slicing::	Specifying which part of pages should be displayed.
-* Conversion::	Influencing and triggering conversion.
+* Navigation::  Navigation inside DocView buffers.
+* Searching::   Searching inside documents.
+* Slicing::     Specifying which part of pages should be displayed.
+* Conversion::  Influencing and triggering conversion.
 
 Gnus
 
-* Buffers of Gnus::	The group, summary, and article buffers.
-* Gnus Startup::	What you should know about starting Gnus.
-* Summary of Gnus::	A short description of the basic Gnus commands.
+* Buffers of Gnus::     The group, summary, and article buffers.
+* Gnus Startup::        What you should know about starting Gnus.
+* Summary of Gnus::     A short description of the basic Gnus commands.
 
 Running Shell Commands from Emacs
 
-* Single Shell::	How to run one shell command and return.
-* Interactive Shell::	Permanent shell taking input via Emacs.
-* Shell Mode::		Special Emacs commands used with permanent shell.
+* Single Shell::        How to run one shell command and return.
+* Interactive Shell::   Permanent shell taking input via Emacs.
+* Shell Mode::          Special Emacs commands used with permanent shell.
 * Shell Prompts::       Two ways to recognize shell prompts.
 * Shell History::       Repeating previous commands in a shell buffer.
 * Directory Tracking::  Keeping track when the subshell changes directory.
@@ -1032,7 +1032,7 @@ Running Shell Commands from Emacs
 * Terminal emulator::   An Emacs window as a terminal emulator.
 * Term Mode::           Special Emacs commands used in Term mode.
 * Paging in Term::      Paging in the terminal emulator.
-* Remote Host::		Connecting to another computer.
+* Remote Host::         Connecting to another computer.
 * Serial Terminal::     Connecting to a serial port.
 
 Shell Command History
@@ -1048,7 +1048,7 @@ Using Emacs as a Server
 
 Printing Hard Copies
 
-* PostScript::	         Printing buffers or regions as PostScript.
+* PostScript::           Printing buffers or regions as PostScript.
 * PostScript Variables:: Customizing the PostScript printing commands.
 * Printing Package::     An optional advanced printing interface.
 
@@ -1060,18 +1060,18 @@ Hyperlinking and Navigation Features
 
 Customization
 
-* Minor Modes::		Each minor mode is a feature you can turn on
-			  independently of any others.
+* Minor Modes::         Each minor mode is a feature you can turn on
+                          independently of any others.
 * Easy Customization::  Convenient way to browse and change settings.
-* Variables::		Many Emacs commands examine Emacs variables
-			  to decide what to do; by setting variables,
-			  you can control their functioning.
-* Key Bindings::	The keymaps say what command each key runs.
-			  By changing them, you can "redefine keys".
-* Syntax::		The syntax table controls how words and
-			  expressions are parsed.
-* Init File::		How to write common customizations in the
-			  @file{.emacs} file.
+* Variables::           Many Emacs commands examine Emacs variables
+                          to decide what to do; by setting variables,
+                          you can control their functioning.
+* Key Bindings::        The keymaps say what command each key runs.
+                          By changing them, you can "redefine keys".
+* Syntax::              The syntax table controls how words and
+                          expressions are parsed.
+* Init File::           How to write common customizations in the
+                          @file{.emacs} file.
 
 Easy Customization Interface
 
@@ -1087,10 +1087,10 @@ Easy Customization Interface
 
 Variables
 
-* Examining::	        Examining or setting one variable's value.
-* Hooks::	        Hook variables let you specify programs for parts
-		          of Emacs to run on particular occasions.
-* Locals::	        Per-buffer values of variables.
+* Examining::           Examining or setting one variable's value.
+* Hooks::               Hook variables let you specify programs for parts
+                          of Emacs to run on particular occasions.
+* Locals::              Per-buffer values of variables.
 * File Variables::      How files can specify variable values.
 * Directory Variables:: How variable values can be specified by directory.
 
@@ -1117,10 +1117,10 @@ Customizing Key Bindings
 
 The Init File, @file{~/.emacs}
 
-* Init Syntax::	        Syntax of constants in Emacs Lisp.
+* Init Syntax::         Syntax of constants in Emacs Lisp.
 * Init Examples::       How to do some things with an init file.
 * Terminal Init::       Each terminal type can have an init file.
-* Find Init::	        How Emacs finds the init file.
+* Find Init::           How Emacs finds the init file.
 * Init Non-ASCII::      Using non-@acronym{ASCII} characters in an init file.
 
 Dealing with Emacs Trouble
@@ -1138,31 +1138,31 @@ Dealing with Emacs Trouble
 Reporting Bugs
 
 * Bug Criteria::        Have you really found a bug?
-* Understanding Bug Reporting::	How to report a bug effectively.
-* Checklist::		Steps to follow for a good bug report.
-* Sending Patches::	How to send a patch for GNU Emacs.
+* Understanding Bug Reporting:: How to report a bug effectively.
+* Checklist::           Steps to follow for a good bug report.
+* Sending Patches::     How to send a patch for GNU Emacs.
 
 Command Line Arguments for Emacs Invocation
 
-* Action Arguments::	Arguments to visit files, load libraries,
-			  and call functions.
+* Action Arguments::    Arguments to visit files, load libraries,
+                          and call functions.
 * Initial Options::     Arguments that take effect while starting Emacs.
 * Command Example::     Examples of using command line arguments.
-* Resume Arguments::	Specifying arguments when you resume a running Emacs.
+* Resume Arguments::    Specifying arguments when you resume a running Emacs.
 * Environment::         Environment variables that Emacs uses.
 * Display X::           Changing the default display and using remote login.
-* Font X::	        Choosing a font for text, under X.
-* Colors::	        Choosing display colors.
+* Font X::              Choosing a font for text, under X.
+* Colors::              Choosing display colors.
 * Window Size X::       Start-up window size, under X.
-* Borders X::	        Internal and external borders, under X.
+* Borders X::           Internal and external borders, under X.
 * Title X::             Specifying the initial frame's title.
 * Icons X::             Choosing what sort of icon to use, under X.
 * Misc X::              Other display options.
 
 Environment Variables
 
-* General Variables::	Environment variables that all versions of Emacs use.
-* Misc Variables::	Certain system-specific variables.
+* General Variables::   Environment variables that all versions of Emacs use.
+* Misc Variables::      Certain system-specific variables.
 * MS-Windows Registry:: An alternative to the environment on MS-Windows.
 
 X Options and Resources

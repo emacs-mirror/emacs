@@ -1,7 +1,8 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1998, 1999, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+@c   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/keymaps
 @node Keymaps, Modes, Command Loop, Top
@@ -16,19 +17,19 @@ used to look up the next input event; this continues until a command
 is found.  The whole process is called @dfn{key lookup}.
 
 @menu
-* Key Sequences::        	Key sequences as Lisp objects.
+* Key Sequences::               Key sequences as Lisp objects.
 * Keymap Basics::               Basic concepts of keymaps.
-* Format of Keymaps::		What a keymap looks like as a Lisp object.
-* Creating Keymaps:: 		Functions to create and copy keymaps.
-* Inheritance and Keymaps::	How one keymap can inherit the bindings
-				   of another keymap.
+* Format of Keymaps::           What a keymap looks like as a Lisp object.
+* Creating Keymaps::            Functions to create and copy keymaps.
+* Inheritance and Keymaps::     How one keymap can inherit the bindings
+                                   of another keymap.
 * Prefix Keys::                 Defining a key with a keymap as its definition.
 * Active Keymaps::              How Emacs searches the active keymaps
                                    for a key binding.
 * Searching Keymaps::           A pseudo-Lisp summary of searching active maps.
 * Controlling Active Maps::     Each buffer has a local keymap
                                    to override the standard (global) bindings.
-				   A minor mode can also override them.
+                                   A minor mode can also override them.
 * Key Lookup::                  Finding a key's binding in one keymap.
 * Functions for Key Lookup::    How to request key lookup.
 * Changing Key Bindings::       Redefining a key in a keymap.
@@ -36,7 +37,7 @@ is found.  The whole process is called @dfn{key lookup}.
 * Translation Keymaps::         Keymaps for translating sequences of events.
 * Key Binding Commands::        Interactive interfaces for redefining keys.
 * Scanning Keymaps::            Looking through all keymaps, for printing help.
-* Menu Keymaps::		Defining a menu as a keymap.
+* Menu Keymaps::                Defining a menu as a keymap.
 @end menu
 
 @node Key Sequences
@@ -1959,11 +1960,11 @@ is active for the next input event, that activates the keyboard menu
 feature.
 
 @menu
-* Defining Menus::		How to make a keymap that defines a menu.
-* Mouse Menus::			How users actuate the menu with the mouse.
-* Keyboard Menus::		How users actuate the menu with the keyboard.
-* Menu Example::		Making a simple menu.
-* Menu Bar::			How to customize the menu bar.
+* Defining Menus::              How to make a keymap that defines a menu.
+* Mouse Menus::                 How users actuate the menu with the mouse.
+* Keyboard Menus::              How users actuate the menu with the keyboard.
+* Menu Example::                Making a simple menu.
+* Menu Bar::                    How to customize the menu bar.
 * Tool Bar::                    A tool bar is a row of images.
 * Modifying Menus::             How to add new items to a menu.
 @end menu
@@ -2413,10 +2414,10 @@ Next we define the menu items:
 @smallexample
 (define-key menu-bar-replace-menu [tags-repl-continue]
   '(menu-item "Continue Replace" tags-loop-continue
-	      :help "Continue last tags replace operation"))
+              :help "Continue last tags replace operation"))
 (define-key menu-bar-replace-menu [tags-repl]
   '(menu-item "Replace in tagged files" tags-query-replace
-	      :help "Interactively replace a regexp in all tagged files"))
+              :help "Interactively replace a regexp in all tagged files"))
 (define-key menu-bar-replace-menu [separator-replace-tags]
   '(menu-item "--"))
 ;; @r{@dots{}}
@@ -2656,8 +2657,8 @@ using an indirection through @code{tool-bar-map}.
 By default, the global map binds @code{[tool-bar]} as follows:
 @example
 (global-set-key [tool-bar]
-		'(menu-item "tool bar" ignore
-			    :filter (lambda (ignore) tool-bar-map)))
+                '(menu-item "tool bar" ignore
+                            :filter (lambda (ignore) tool-bar-map)))
 @end example
 @noindent
 Thus the tool bar map is derived dynamically from the value of variable

@@ -62,6 +62,8 @@ DdeCallback (UINT uType, UINT uFmt, HCONV hconv,
 #define REG_GTK "SOFTWARE\\GTK\\2.0"
 #define REG_APP_PATH \
   "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\emacs.exe"
+#define REG_RUNEMACS_PATH \
+  "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\runemacs.exe"
 
 static struct entry
 {
@@ -83,8 +85,7 @@ env_vars[] =
 };
 
 BOOL
-add_registry (path)
-     char *path;
+add_registry (char *path)
 {
   HKEY hrootkey = NULL;
   int i;
@@ -130,10 +131,25 @@ add_registry (path)
                   /* Make sure the emacs bin directory continues to be searched
                      first by including it as well.  */
                   char *dll_paths;
+		  HKEY runemacs_key = NULL;
                   len = strlen (path) + 5 + size;
                   dll_paths = (char *) alloca (size + strlen (path) + 1);
                   sprintf (dll_paths, "%s\\bin;%s", path, gtk_path);
                   RegSetValueEx (hrootkey, "Path", 0, REG_SZ, dll_paths, len);
+
+		  /* Set the same path for runemacs.exe, as the Explorer shell
+		     looks this up, so the above does not take effect when
+		     emacs.exe is spawned from runemacs.exe.  */
+		  if (RegCreateKeyEx (HKEY_LOCAL_MACHINE, REG_RUNEMACS_PATH,
+				      0, "", REG_OPTION_NON_VOLATILE,
+				      KEY_WRITE, NULL, &runemacs_key, NULL)
+		      == ERROR_SUCCESS)
+		    {
+		      RegSetValueEx (runemacs_key, "Path", 0, REG_SZ,
+				     dll_paths, len);
+
+		      RegCloseKey (runemacs_key);
+		    }
                 }
             }
           RegCloseKey (gtk_key);
@@ -175,9 +191,7 @@ add_registry (path)
 }
 
 int
-main (argc, argv)
-     int argc;
-     char *argv[];
+main (int argc, char *argv[])
 {
   char start_folder[MAX_PATH + 1];
   int shortcuts_created = 0;
@@ -315,10 +329,10 @@ main (argc, argv)
 		  if (SUCCEEDED (IPersistFile_Save (lnk, unicode_path, TRUE)))
 		    shortcuts_created = 1;
 		  IPersistFile_Release (lnk);
-		  
+
 		}
 	    }
-	}      
+	}
     }
 
   if (com_available)

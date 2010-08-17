@@ -98,22 +98,22 @@ Lisp_Object Vsearch_spaces_regexp;
    only.  */
 Lisp_Object Vinhibit_changing_match_data;
 
-static void set_search_regs P_ ((EMACS_INT, EMACS_INT));
-static void save_search_regs P_ ((void));
-static EMACS_INT simple_search P_ ((int, unsigned char *, int, int,
-				    Lisp_Object, EMACS_INT, EMACS_INT,
-				    EMACS_INT, EMACS_INT));
-static EMACS_INT boyer_moore P_ ((int, unsigned char *, int, int,
-				  Lisp_Object, Lisp_Object,
-				  EMACS_INT, EMACS_INT,
-				  EMACS_INT, EMACS_INT, int));
-static EMACS_INT search_buffer P_ ((Lisp_Object, EMACS_INT, EMACS_INT,
-				    EMACS_INT, EMACS_INT, int, int,
-				    Lisp_Object, Lisp_Object, int));
-static void matcher_overflow () NO_RETURN;
+static void set_search_regs (EMACS_INT, EMACS_INT);
+static void save_search_regs (void);
+static EMACS_INT simple_search (int, unsigned char *, int, int,
+                                Lisp_Object, EMACS_INT, EMACS_INT,
+                                EMACS_INT, EMACS_INT);
+static EMACS_INT boyer_moore (int, unsigned char *, int, int,
+                              Lisp_Object, Lisp_Object,
+                              EMACS_INT, EMACS_INT,
+                              EMACS_INT, EMACS_INT, int);
+static EMACS_INT search_buffer (Lisp_Object, EMACS_INT, EMACS_INT,
+                                EMACS_INT, EMACS_INT, int, int,
+                                Lisp_Object, Lisp_Object, int);
+static void matcher_overflow (void) NO_RETURN;
 
 static void
-matcher_overflow ()
+matcher_overflow (void)
 {
   error ("Stack overflow in regexp matcher");
 }
@@ -132,12 +132,7 @@ matcher_overflow ()
    The behavior also depends on Vsearch_spaces_regexp.  */
 
 static void
-compile_pattern_1 (cp, pattern, translate, regp, posix)
-     struct regexp_cache *cp;
-     Lisp_Object pattern;
-     Lisp_Object translate;
-     struct re_registers *regp;
-     int posix;
+compile_pattern_1 (struct regexp_cache *cp, Lisp_Object pattern, Lisp_Object translate, struct re_registers *regp, int posix)
 {
   char *val;
   reg_syntax_t old;
@@ -187,7 +182,7 @@ compile_pattern_1 (cp, pattern, translate, regp, posix)
    This is called from garbage collection.  */
 
 void
-shrink_regexp_cache ()
+shrink_regexp_cache (void)
 {
   struct regexp_cache *cp;
 
@@ -205,7 +200,7 @@ shrink_regexp_cache ()
    automagically manages the memory in each re_pattern_buffer struct,
    based on its `allocated' and `buffer' values.  */
 void
-clear_regexp_cache ()
+clear_regexp_cache (void)
 {
   int i;
 
@@ -229,11 +224,7 @@ clear_regexp_cache ()
    for this pattern.  0 means backtrack only enough to get a valid match.  */
 
 struct re_pattern_buffer *
-compile_pattern (pattern, regp, translate, posix, multibyte)
-     Lisp_Object pattern;
-     struct re_registers *regp;
-     Lisp_Object translate;
-     int posix, multibyte;
+compile_pattern (Lisp_Object pattern, struct re_registers *regp, Lisp_Object translate, int posix, int multibyte)
 {
   struct regexp_cache *cp, **cpp;
 
@@ -290,9 +281,7 @@ compile_pattern (pattern, regp, translate, posix, multibyte)
 
 
 static Lisp_Object
-looking_at_1 (string, posix)
-     Lisp_Object string;
-     int posix;
+looking_at_1 (Lisp_Object string, int posix)
 {
   Lisp_Object val;
   unsigned char *p1, *p2;
@@ -373,8 +362,7 @@ DEFUN ("looking-at", Flooking_at, Slooking_at, 1, 1, 0,
 This function modifies the match data that `match-beginning',
 `match-end' and `match-data' access; save and restore the match
 data if you want to preserve them.  */)
-     (regexp)
-     Lisp_Object regexp;
+  (Lisp_Object regexp)
 {
   return looking_at_1 (regexp, 0);
 }
@@ -385,16 +373,13 @@ Find the longest match, in accord with Posix regular expression rules.
 This function modifies the match data that `match-beginning',
 `match-end' and `match-data' access; save and restore the match
 data if you want to preserve them.  */)
-     (regexp)
-     Lisp_Object regexp;
+  (Lisp_Object regexp)
 {
   return looking_at_1 (regexp, 1);
 }
 
 static Lisp_Object
-string_match_1 (regexp, string, start, posix)
-     Lisp_Object regexp, string, start;
-     int posix;
+string_match_1 (Lisp_Object regexp, Lisp_Object string, Lisp_Object start, int posix)
 {
   int val;
   struct re_pattern_buffer *bufp;
@@ -474,8 +459,7 @@ matched by parenthesis constructs in the pattern.
 
 You can use the function `match-string' to extract the substrings
 matched by the parenthesis constructions in REGEXP. */)
-     (regexp, string, start)
-     Lisp_Object regexp, string, start;
+  (Lisp_Object regexp, Lisp_Object string, Lisp_Object start)
 {
   return string_match_1 (regexp, string, start, 0);
 }
@@ -488,8 +472,7 @@ If third arg START is non-nil, start search at that index in STRING.
 For index of first char beyond the match, do (match-end 0).
 `match-end' and `match-beginning' also give indices of substrings
 matched by parenthesis constructs in the pattern.  */)
-     (regexp, string, start)
-     Lisp_Object regexp, string, start;
+  (Lisp_Object regexp, Lisp_Object string, Lisp_Object start)
 {
   return string_match_1 (regexp, string, start, 1);
 }
@@ -499,8 +482,7 @@ matched by parenthesis constructs in the pattern.  */)
    This does not clobber the match data.  */
 
 int
-fast_string_match (regexp, string)
-     Lisp_Object regexp, string;
+fast_string_match (Lisp_Object regexp, Lisp_Object string)
 {
   int val;
   struct re_pattern_buffer *bufp;
@@ -522,12 +504,8 @@ fast_string_match (regexp, string)
    This does not clobber the match data.
    We assume that STRING contains single-byte characters.  */
 
-extern Lisp_Object Vascii_downcase_table;
-
 int
-fast_c_string_match_ignore_case (regexp, string)
-     Lisp_Object regexp;
-     const char *string;
+fast_c_string_match_ignore_case (Lisp_Object regexp, const char *string)
 {
   int val;
   struct re_pattern_buffer *bufp;
@@ -547,8 +525,7 @@ fast_c_string_match_ignore_case (regexp, string)
 /* Like fast_string_match but ignore case.  */
 
 int
-fast_string_match_ignore_case (regexp, string)
-     Lisp_Object regexp, string;
+fast_string_match_ignore_case (Lisp_Object regexp, Lisp_Object string)
 {
   int val;
   struct re_pattern_buffer *bufp;
@@ -572,10 +549,7 @@ fast_string_match_ignore_case (regexp, string)
    data.  */
 
 EMACS_INT
-fast_looking_at (regexp, pos, pos_byte, limit, limit_byte, string)
-     Lisp_Object regexp;
-     EMACS_INT pos, pos_byte, limit, limit_byte;
-     Lisp_Object string;
+fast_looking_at (Lisp_Object regexp, EMACS_INT pos, EMACS_INT pos_byte, EMACS_INT limit, EMACS_INT limit_byte, Lisp_Object string)
 {
   int multibyte;
   struct re_pattern_buffer *buf;
@@ -640,8 +614,7 @@ fast_looking_at (regexp, pos, pos_byte, limit, limit_byte, string)
    This is our cheezy way of associating an action with the change of
    state of a buffer-local variable.  */
 static void
-newline_cache_on_off (buf)
-     struct buffer *buf;
+newline_cache_on_off (struct buffer *buf)
 {
   if (NILP (buf->cache_long_line_scans))
     {
@@ -682,12 +655,7 @@ newline_cache_on_off (buf)
    except when inside redisplay.  */
 
 int
-scan_buffer (target, start, end, count, shortage, allow_quit)
-     register int target;
-     EMACS_INT start, end;
-     int count;
-     int *shortage;
-     int allow_quit;
+scan_buffer (register int target, EMACS_INT start, EMACS_INT end, int count, int *shortage, int allow_quit)
 {
   struct region_cache *newline_cache;
   int direction;
@@ -879,11 +847,7 @@ scan_buffer (target, start, end, count, shortage, allow_quit)
    except in special cases.  */
 
 int
-scan_newline (start, start_byte, limit, limit_byte, count, allow_quit)
-     EMACS_INT start, start_byte;
-     EMACS_INT limit, limit_byte;
-     register int count;
-     int allow_quit;
+scan_newline (EMACS_INT start, EMACS_INT start_byte, EMACS_INT limit, EMACS_INT limit_byte, register int count, int allow_quit)
 {
   int direction = ((count > 0) ? 1 : -1);
 
@@ -977,9 +941,7 @@ scan_newline (start, start_byte, limit, limit_byte, count, allow_quit)
 }
 
 int
-find_next_newline_no_quit (from, cnt)
-     EMACS_INT from;
-     int cnt;
+find_next_newline_no_quit (EMACS_INT from, int cnt)
 {
   return scan_buffer ('\n', from, 0, cnt, (int *) 0, 0);
 }
@@ -989,9 +951,7 @@ find_next_newline_no_quit (from, cnt)
    find_next_newline (...)-1, because you might hit TO.  */
 
 int
-find_before_next_newline (from, to, cnt)
-     EMACS_INT from, to;
-     int cnt;
+find_before_next_newline (EMACS_INT from, EMACS_INT to, int cnt)
 {
   int shortage;
   int pos = scan_buffer ('\n', from, to, cnt, &shortage, 1);
@@ -1005,11 +965,7 @@ find_before_next_newline (from, to, cnt)
 /* Subroutines of Lisp buffer search functions. */
 
 static Lisp_Object
-search_command (string, bound, noerror, count, direction, RE, posix)
-     Lisp_Object string, bound, noerror, count;
-     int direction;
-     int RE;
-     int posix;
+search_command (Lisp_Object string, Lisp_Object bound, Lisp_Object noerror, Lisp_Object count, int direction, int RE, int posix)
 {
   register int np;
   int lim, lim_byte;
@@ -1086,8 +1042,7 @@ search_command (string, bound, noerror, count, direction, RE, posix)
 /* Return 1 if REGEXP it matches just one constant string.  */
 
 static int
-trivial_regexp_p (regexp)
-     Lisp_Object regexp;
+trivial_regexp_p (Lisp_Object regexp)
 {
   int len = SBYTES (regexp);
   unsigned char *s = SDATA (regexp);
@@ -1153,18 +1108,9 @@ while (0)
 static struct re_registers search_regs_1;
 
 static EMACS_INT
-search_buffer (string, pos, pos_byte, lim, lim_byte, n,
-	       RE, trt, inverse_trt, posix)
-     Lisp_Object string;
-     EMACS_INT pos;
-     EMACS_INT pos_byte;
-     EMACS_INT lim;
-     EMACS_INT lim_byte;
-     int n;
-     int RE;
-     Lisp_Object trt;
-     Lisp_Object inverse_trt;
-     int posix;
+search_buffer (Lisp_Object string, EMACS_INT pos, EMACS_INT pos_byte,
+	       EMACS_INT lim, EMACS_INT lim_byte, int n,
+	       int RE, Lisp_Object trt, Lisp_Object inverse_trt, int posix)
 {
   int len = SCHARS (string);
   int len_byte = SBYTES (string);
@@ -1443,7 +1389,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 		}
 
 	      /* Store this character into the translated pattern.  */
-	      bcopy (str, pat, charlen);
+	      memcpy (pat, str, charlen);
 	      pat += charlen;
 	      base_pat += in_charlen;
 	      len_byte -= in_charlen;
@@ -1504,13 +1450,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
    boyer_moore cannot work.  */
 
 static EMACS_INT
-simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
-     int n;
-     unsigned char *pat;
-     int len, len_byte;
-     Lisp_Object trt;
-     EMACS_INT pos, pos_byte;
-     EMACS_INT lim, lim_byte;
+simple_search (int n, unsigned char *pat, int len, int len_byte, Lisp_Object trt, EMACS_INT pos, EMACS_INT pos_byte, EMACS_INT lim, EMACS_INT lim_byte)
 {
   int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
   int forward = n > 0;
@@ -1717,16 +1657,10 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
    If that criterion is not satisfied, do not call this function.  */
 
 static EMACS_INT
-boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
-	     pos, pos_byte, lim, lim_byte, char_base)
-     int n;
-     unsigned char *base_pat;
-     int len, len_byte;
-     Lisp_Object trt;
-     Lisp_Object inverse_trt;
-     EMACS_INT pos, pos_byte;
-     EMACS_INT lim, lim_byte;
-     int char_base;
+boyer_moore (int n, unsigned char *base_pat, int len, int len_byte,
+	     Lisp_Object trt, Lisp_Object inverse_trt,
+	     EMACS_INT pos, EMACS_INT pos_byte,
+	     EMACS_INT lim, EMACS_INT lim_byte, int char_base)
 {
   int direction = ((n > 0) ? 1 : -1);
   register int dirlen;
@@ -2127,8 +2061,7 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
    Also clear out the match data for registers 1 and up.  */
 
 static void
-set_search_regs (beg_byte, nbytes)
-     EMACS_INT beg_byte, nbytes;
+set_search_regs (EMACS_INT beg_byte, EMACS_INT nbytes)
 {
   int i;
 
@@ -2162,9 +2095,7 @@ set_search_regs (beg_byte, nbytes)
    need not match a word boundary unless it ends in whitespace.  */
 
 static Lisp_Object
-wordify (string, lax)
-     Lisp_Object string;
-     int lax;
+wordify (Lisp_Object string, int lax)
 {
   register unsigned char *p, *o;
   register int i, i_byte, len, punct_count = 0, word_count = 0;
@@ -2226,8 +2157,7 @@ wordify (string, lax)
 
       if (SYNTAX (c) == Sword)
 	{
-	  bcopy (SDATA (string) + i_byte_orig, o,
-		 i_byte - i_byte_orig);
+	  memcpy (o, SDATA (string) + i_byte_orig, i_byte - i_byte_orig);
 	  o += i_byte - i_byte_orig;
 	}
       else if (i > 0 && SYNTAX (prev_c) == Sword && --word_count)
@@ -2265,8 +2195,7 @@ Search case-sensitivity is determined by the value of the variable
 `case-fold-search', which see.
 
 See also the functions `match-beginning', `match-end' and `replace-match'.  */)
-     (string, bound, noerror, count)
-     Lisp_Object string, bound, noerror, count;
+  (Lisp_Object string, Lisp_Object bound, Lisp_Object noerror, Lisp_Object count)
 {
   return search_command (string, bound, noerror, count, -1, 0, 0);
 }
@@ -2285,8 +2214,7 @@ Search case-sensitivity is determined by the value of the variable
 `case-fold-search', which see.
 
 See also the functions `match-beginning', `match-end' and `replace-match'.  */)
-     (string, bound, noerror, count)
-     Lisp_Object string, bound, noerror, count;
+  (Lisp_Object string, Lisp_Object bound, Lisp_Object noerror, Lisp_Object count)
 {
   return search_command (string, bound, noerror, count, 1, 0, 0);
 }
@@ -2300,8 +2228,7 @@ The match found must not extend before that position.
 Optional third argument, if t, means if fail just return nil (no error).
   If not nil and not t, move to limit of search and return nil.
 Optional fourth argument is repeat count--search for successive occurrences.  */)
-     (string, bound, noerror, count)
-     Lisp_Object string, bound, noerror, count;
+  (Lisp_Object string, Lisp_Object bound, Lisp_Object noerror, Lisp_Object count)
 {
   return search_command (wordify (string, 0), bound, noerror, count, -1, 1, 0);
 }
@@ -2315,8 +2242,7 @@ The match found must not extend after that position.
 Optional third argument, if t, means if fail just return nil (no error).
   If not nil and not t, move to limit of search and return nil.
 Optional fourth argument is repeat count--search for successive occurrences.  */)
-     (string, bound, noerror, count)
-     Lisp_Object string, bound, noerror, count;
+  (Lisp_Object string, Lisp_Object bound, Lisp_Object noerror, Lisp_Object count)
 {
   return search_command (wordify (string, 0), bound, noerror, count, 1, 1, 0);
 }
@@ -2334,8 +2260,7 @@ The match found must not extend before that position.
 Optional third argument, if t, means if fail just return nil (no error).
   If not nil and not t, move to limit of search and return nil.
 Optional fourth argument is repeat count--search for successive occurrences.  */)
-     (string, bound, noerror, count)
-     Lisp_Object string, bound, noerror, count;
+  (Lisp_Object string, Lisp_Object bound, Lisp_Object noerror, Lisp_Object count)
 {
   return search_command (wordify (string, 1), bound, noerror, count, -1, 1, 0);
 }
@@ -2353,8 +2278,7 @@ The match found must not extend after that position.
 Optional third argument, if t, means if fail just return nil (no error).
   If not nil and not t, move to limit of search and return nil.
 Optional fourth argument is repeat count--search for successive occurrences.  */)
-     (string, bound, noerror, count)
-     Lisp_Object string, bound, noerror, count;
+  (Lisp_Object string, Lisp_Object bound, Lisp_Object noerror, Lisp_Object count)
 {
   return search_command (wordify (string, 1), bound, noerror, count, 1, 1, 0);
 }
@@ -2372,8 +2296,7 @@ Optional third argument, if t, means if fail just return nil (no error).
 Optional fourth argument is repeat count--search for successive occurrences.
 See also the functions `match-beginning', `match-end', `match-string',
 and `replace-match'.  */)
-     (regexp, bound, noerror, count)
-     Lisp_Object regexp, bound, noerror, count;
+  (Lisp_Object regexp, Lisp_Object bound, Lisp_Object noerror, Lisp_Object count)
 {
   return search_command (regexp, bound, noerror, count, -1, 1, 0);
 }
@@ -2389,8 +2312,7 @@ Optional third argument, if t, means if fail just return nil (no error).
 Optional fourth argument is repeat count--search for successive occurrences.
 See also the functions `match-beginning', `match-end', `match-string',
 and `replace-match'.  */)
-     (regexp, bound, noerror, count)
-     Lisp_Object regexp, bound, noerror, count;
+  (Lisp_Object regexp, Lisp_Object bound, Lisp_Object noerror, Lisp_Object count)
 {
   return search_command (regexp, bound, noerror, count, 1, 1, 0);
 }
@@ -2409,8 +2331,7 @@ Optional third argument, if t, means if fail just return nil (no error).
 Optional fourth argument is repeat count--search for successive occurrences.
 See also the functions `match-beginning', `match-end', `match-string',
 and `replace-match'.  */)
-     (regexp, bound, noerror, count)
-     Lisp_Object regexp, bound, noerror, count;
+  (Lisp_Object regexp, Lisp_Object bound, Lisp_Object noerror, Lisp_Object count)
 {
   return search_command (regexp, bound, noerror, count, -1, 1, 1);
 }
@@ -2427,8 +2348,7 @@ Optional third argument, if t, means if fail just return nil (no error).
 Optional fourth argument is repeat count--search for successive occurrences.
 See also the functions `match-beginning', `match-end', `match-string',
 and `replace-match'.  */)
-     (regexp, bound, noerror, count)
-     Lisp_Object regexp, bound, noerror, count;
+  (Lisp_Object regexp, Lisp_Object bound, Lisp_Object noerror, Lisp_Object count)
 {
   return search_command (regexp, bound, noerror, count, 1, 1, 1);
 }
@@ -2469,8 +2389,7 @@ This is, in a vague sense, the inverse of using `\\N' in NEWTEXT;
 NEWTEXT in place of subexp N.
 This is useful only after a regular expression search or match,
 since only regular expressions have distinguished subexpressions.  */)
-     (newtext, fixedcase, literal, string, subexp)
-     Lisp_Object newtext, fixedcase, literal, string, subexp;
+  (Lisp_Object newtext, Lisp_Object fixedcase, Lisp_Object literal, Lisp_Object string, Lisp_Object subexp)
 {
   enum { nochange, all_caps, cap_initial } case_action;
   register int pos, pos_byte;
@@ -2736,7 +2655,7 @@ since only regular expressions have distinguished subexpressions.  */)
       for (pos_byte = 0, pos = 0; pos_byte < length;)
 	{
 	  unsigned char str[MAX_MULTIBYTE_LENGTH];
-	  unsigned char *add_stuff = NULL;
+	  const unsigned char *add_stuff = NULL;
 	  int add_len = 0;
 	  int idx = -1;
 
@@ -2822,7 +2741,7 @@ since only regular expressions have distinguished subexpressions.  */)
 	  /* Now add to the end of SUBSTED.  */
 	  if (add_stuff)
 	    {
-	      bcopy (add_stuff, substed + substed_len, add_len);
+	      memcpy (substed + substed_len, add_stuff, add_len);
 	      substed_len += add_len;
 	    }
 	}
@@ -2886,9 +2805,7 @@ since only regular expressions have distinguished subexpressions.  */)
 }
 
 static Lisp_Object
-match_limit (num, beginningp)
-     Lisp_Object num;
-     int beginningp;
+match_limit (Lisp_Object num, int beginningp)
 {
   register int n;
 
@@ -2912,8 +2829,7 @@ SUBEXP, a number, specifies which parenthesized expression in the last
 Value is nil if SUBEXPth pair didn't match, or there were less than
   SUBEXP pairs.
 Zero means the entire text matched by the whole regexp or whole string.  */)
-     (subexp)
-     Lisp_Object subexp;
+  (Lisp_Object subexp)
 {
   return match_limit (subexp, 1);
 }
@@ -2925,8 +2841,7 @@ SUBEXP, a number, specifies which parenthesized expression in the last
 Value is nil if SUBEXPth pair didn't match, or there were less than
   SUBEXP pairs.
 Zero means the entire text matched by the whole regexp or whole string.  */)
-     (subexp)
-     Lisp_Object subexp;
+  (Lisp_Object subexp)
 {
   return match_limit (subexp, 0);
 }
@@ -2951,8 +2866,7 @@ If optional third arg RESEAT is non-nil, any previous markers on the
 REUSE list will be modified to point to nowhere.
 
 Return value is undefined if the last search failed.  */)
-  (integers, reuse, reseat)
-     Lisp_Object integers, reuse, reseat;
+  (Lisp_Object integers, Lisp_Object reuse, Lisp_Object reseat)
 {
   Lisp_Object tail, prev;
   Lisp_Object *data;
@@ -3052,8 +2966,7 @@ DEFUN ("set-match-data", Fset_match_data, Sset_match_data, 1, 2, 0,
 LIST should have been created by calling `match-data' previously.
 
 If optional arg RESEAT is non-nil, make markers on LIST point nowhere.  */)
-    (list, reseat)
-     register Lisp_Object list, reseat;
+  (register Lisp_Object list, Lisp_Object reseat)
 {
   register int i;
   register Lisp_Object marker;
@@ -3171,7 +3084,7 @@ static Lisp_Object saved_last_thing_searched;
 /* Called from Flooking_at, Fstring_match, search_buffer, Fstore_match_data
    if asynchronous code (filter or sentinel) is running. */
 static void
-save_search_regs ()
+save_search_regs (void)
 {
   if (!search_regs_saved)
     {
@@ -3190,7 +3103,7 @@ save_search_regs ()
 
 /* Called upon exit from filters and sentinels. */
 void
-restore_search_regs ()
+restore_search_regs (void)
 {
   if (search_regs_saved)
     {
@@ -3209,8 +3122,7 @@ restore_search_regs ()
 }
 
 static Lisp_Object
-unwind_set_match_data (list)
-     Lisp_Object list;
+unwind_set_match_data (Lisp_Object list)
 {
   /* It is NOT ALWAYS safe to free (evaporate) the markers immediately.  */
   return Fset_match_data (list, Qt);
@@ -3218,7 +3130,7 @@ unwind_set_match_data (list)
 
 /* Called to unwind protect the match data.  */
 void
-record_unwind_save_match_data ()
+record_unwind_save_match_data (void)
 {
   record_unwind_protect (unwind_set_match_data,
 			 Fmatch_data (Qnil, Qnil, Qnil));
@@ -3228,8 +3140,7 @@ record_unwind_save_match_data ()
 
 DEFUN ("regexp-quote", Fregexp_quote, Sregexp_quote, 1, 1, 0,
        doc: /* Return a regexp string which matches exactly STRING and nothing else.  */)
-     (string)
-     Lisp_Object string;
+  (Lisp_Object string)
 {
   register unsigned char *in, *out, *end;
   register unsigned char *temp;
@@ -3262,7 +3173,7 @@ DEFUN ("regexp-quote", Fregexp_quote, Sregexp_quote, 1, 1, 0,
 }
 
 void
-syms_of_search ()
+syms_of_search (void)
 {
   register int i;
 

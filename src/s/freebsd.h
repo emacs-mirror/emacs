@@ -25,13 +25,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Get most of the stuff from bsd-common */
 #include "bsd-common.h"
 
-/* For mem-limits.h. */
-#define BSD4_2
-
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_p - (FILE)->_bf._base)
 
 #define HAVE_GETLOADAVG 1
-#define DECLARE_GETPWUID_WITH_UID_T
 
 /* This silences a few compilation warnings.  */
 #undef BSD_SYSTEM
@@ -69,10 +65,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Use the GC_MAKE_GCPROS_NOOPS (see lisp.h) method for marking the stack.  */
 #define GC_MARK_STACK 	GC_MAKE_GCPROS_NOOPS
-
-/* Define USE_MMAP_FOR_BUFFERS to let Emacs use mmap(2) to allocate
-   buffer text.  This overrides REL_ALLOC.  */
-#define USE_MMAP_FOR_BUFFERS	1
 
 /* arch-tag: 426529ca-b7c4-448f-b10a-d4dcdc9c78eb
    (do not change this comment) */

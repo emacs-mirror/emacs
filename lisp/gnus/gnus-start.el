@@ -814,6 +814,7 @@ prompt the user for the name of an NNTP server to use."
 
 (defun gnus-start-draft-setup ()
   "Make sure the draft group exists."
+  (interactive)
   (gnus-request-create-group "drafts" '(nndraft ""))
   (unless (gnus-group-entry "nndraft:drafts")
     (let ((gnus-level-default-subscribed 1))

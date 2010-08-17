@@ -600,8 +600,6 @@ TOOLTIP_SUPPORT
 MOUSE_SUPPORT
 LIB_GCC
 LINKER
-POST_EDIT_LDFLAGS
-PRE_EDIT_LDFLAGS
 LD_SWITCH_SYSTEM_TEMACS
 POST_ALLOC_OBJ
 PRE_ALLOC_OBJ
@@ -720,7 +718,7 @@ C_SWITCH_SYSTEM
 UNEXEC_OBJ
 C_SWITCH_MACHINE
 LD_SWITCH_SYSTEM
-cannot_dump
+CANNOT_DUMP
 MAKEINFO
 GZIP_PROG
 INSTALL_INFO
@@ -728,6 +726,7 @@ RANLIB
 INSTALL_DATA
 INSTALL_SCRIPT
 INSTALL_PROGRAM
+C_WARNINGS_SWITCH
 EGREP
 GREP
 CPP
@@ -746,6 +745,8 @@ build_os
 build_vendor
 build_cpu
 build
+PROFILING_LDFLAGS
+PROFILING_CFLAGS
 MAINT
 GZIP_INFO
 target_alias
@@ -828,6 +829,7 @@ enable_asserts
 enable_maintainer_mode
 enable_locallisppath
 enable_checking
+enable_use_lisp_union_type
 enable_profiling
 enable_autodepend
 enable_largefile
@@ -1480,6 +1482,10 @@ Optional Features:
                           only specific categories of checks. Categories are:
                           all,yes,no. Flags are: stringbytes, stringoverrun,
                           stringfreelist, xmallocoverrun, conslist
+  --enable-use-lisp-union-type
+                          use a union for the Lisp_Object data type. This is
+                          only useful for development for catching certain
+                          types of bugs.
   --enable-profiling      build emacs with profiling support. This might not
                           work on all platforms
   --enable-autodepend     automatically generate dependencies to .h-files.
@@ -1500,8 +1506,8 @@ Optional Packages:
                           string giving default POP mail host
   --without-sound         don't compile with sound support
   --without-sync-input    process async input synchronously
-  --with-x-toolkit=KIT    use an X toolkit (KIT one of: yes or gtk, lucid or
-                          athena, motif, no)
+  --with-x-toolkit=KIT    use an X toolkit (KIT one of: yes or gtk, gtk3,
+                          lucid or athena, motif, no)
   --without-xpm           don't compile with XPM image support
   --without-jpeg          don't compile with JPEG image support
   --without-tiff          don't compile with TIFF image support
@@ -2666,10 +2672,11 @@ if test "${with_x_toolkit+set}" = set; then :
 	    a | at | ath | athe | athen | athena )	val=athena ;;
 	    m | mo | mot | moti | motif )	val=motif ;;
 	    g | gt | gtk  )	val=gtk ;;
+	    gtk3  )	val=gtk3 ;;
 	    * )
 as_fn_error "\`--with-x-toolkit=$withval' is invalid;
-this option's value should be \`yes', \`no', \`lucid', \`athena', \`motif' or \`gtk'.
-\`yes' and \`gtk' are synonyms. \`athena' and \`lucid' are synonyms." "$LINENO" 5
+this option's value should be \`yes', \`no', \`lucid', \`athena', \`motif', \`gtk' or
+\`gtk3'.  \`yes' and \`gtk' are synonyms. \`athena' and \`lucid' are synonyms." "$LINENO" 5
 	    ;;
 	  esac
 	  with_x_toolkit=$val
@@ -2990,6 +2997,17 @@ $as_echo "#define GC_CHECK_CONS_LIST 1" >>confdefs.h
 
 fi
 
+# Check whether --enable-use-lisp-union-type was given.
+if test "${enable_use_lisp_union_type+set}" = set; then :
+  enableval=$enable_use_lisp_union_type; if test "${enableval}" != "no"; then
+
+$as_echo "#define USE_LISP_UNION_TYPE 1" >>confdefs.h
+
+fi
+fi
+
+
+
 # Check whether --enable-profiling was given.
 if test "${enable_profiling+set}" = set; then :
   enableval=$enable_profiling; ac_enable_profiling="${enableval}"
@@ -3002,6 +3020,8 @@ else
    PROFILING_CFLAGS=
    PROFILING_LDFLAGS=
 fi
+
+
 
 # Check whether --enable-autodepend was given.
 if test "${enable_autodepend+set}" = set; then :
@@ -4298,14 +4318,10 @@ then
   CC="$NON_GNU_CC"
 fi
 
-if test x$GCC = xyes && test "x$GCC_TEST_OPTIONS" != x
-then
-  CC="$CC $GCC_TEST_OPTIONS"
-fi
-
-if test x$GCC = x && test "x$NON_GCC_TEST_OPTIONS" != x
-then
-  CC="$CC $NON_GCC_TEST_OPTIONS"
+if test x$GCC = xyes; then
+  test "x$GCC_TEST_OPTIONS" != x && CC="$CC $GCC_TEST_OPTIONS"
+else
+  test "x$NON_GCC_TEST_OPTIONS" != x && CC="$CC $NON_GCC_TEST_OPTIONS"
 fi
 
 ac_ext=c
@@ -4829,6 +4845,72 @@ $as_echo "$has_option" >&6; }
 CFLAGS="$SAVE_CFLAGS"
 unset has_option
 unset SAVE_CFLAGS
+
+### Use -Wold-style-definition if the compiler supports it
+# This can be removed when conversion to standard C is finished.
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether gcc understands -Wold-style-definition" >&5
+$as_echo_n "checking whether gcc understands -Wold-style-definition... " >&6; }
+SAVE_CFLAGS="$CFLAGS"
+CFLAGS="$CFLAGS -Wold-style-definition"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  has_option=yes
+else
+  has_option=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+if test $has_option = yes; then
+   C_WARNINGS_SWITCH="-Wold-style-definition $C_WARNINGS_SWITCH"
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $has_option" >&5
+$as_echo "$has_option" >&6; }
+CFLAGS="$SAVE_CFLAGS"
+unset has_option
+unset SAVE_CFLAGS
+
+### Use -Wimplicit-function-declaration if the compiler supports it
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether gcc understands -Wimplicit-function-declaration" >&5
+$as_echo_n "checking whether gcc understands -Wimplicit-function-declaration... " >&6; }
+SAVE_CFLAGS="$CFLAGS"
+CFLAGS="$CFLAGS -Wimplicit-function-declaration"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  has_option=yes
+else
+  has_option=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+if test $has_option = yes; then
+   C_WARNINGS_SWITCH="-Wimplicit-function-declaration $C_WARNINGS_SWITCH"
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $has_option" >&5
+$as_echo "$has_option" >&6; }
+CFLAGS="$SAVE_CFLAGS"
+unset has_option
+unset SAVE_CFLAGS
+
+
+
 
 #### Some other nice autoconf tests.
 
@@ -5440,107 +5522,28 @@ fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 
-#### Extract some information from the operating system and machine files.
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking the machine- and system-dependent files to find out
- - which libraries the lib-src programs will want, and
- - whether the GNU malloc routines are usable..." >&5
-$as_echo "$as_me: checking the machine- and system-dependent files to find out
- - which libraries the lib-src programs will want, and
- - whether the GNU malloc routines are usable..." >&6;}
-
-### First figure out CFLAGS (which we use for running the compiler here)
-### and REAL_CFLAGS (which we use for real compilation).
-### The two are the same except on a few systems, where they are made
-### different to work around various lossages.  For example,
-### GCC 2.5 on GNU/Linux needs them to be different because it treats -g
-### as implying static linking.
-
-### If the CFLAGS env var is specified, we use that value
-### instead of the default.
-
-### It's not important that this name contain the PID; you can't run
-### two configures in the same directory and have anything work
-### anyway.
-tempcname="conftest.c"
-
-echo '
-#include "'${srcdir}'/src/'${opsysfile}'"
-#include "'${srcdir}'/src/'${machfile}'"
-
-configure___ LIBX=-lX11
-
-#ifdef CANNOT_DUMP
-configure___ cannot_dump=yes
-#else
-configure___ cannot_dump=no
-#endif
-
-#ifdef SYSTEM_MALLOC
-configure___ system_malloc=yes
-#else
-configure___ system_malloc=no
-#endif
-
-#ifdef USE_MMAP_FOR_BUFFERS
-configure___ use_mmap_for_buffers=yes
-#else
-configure___ use_mmap_for_buffers=no
-#endif
-
-#ifndef C_OPTIMIZE_SWITCH
-#ifdef __GNUC__
-#define C_OPTIMIZE_SWITCH -O2
-#else
-#define C_OPTIMIZE_SWITCH -O
-#endif
-#endif
-
-#ifndef C_WARNINGS_SWITCH
-#define C_WARNINGS_SWITCH ${C_WARNINGS_SWITCH}
-#endif
-
-#ifdef THIS_IS_CONFIGURE
-
-/* Get the CFLAGS for tests in configure.  */
-#ifdef __GNUC__
-configure___ CFLAGS=-g C_OPTIMIZE_SWITCH '${SPECIFIED_CFLAGS}'
-#else
-configure___ CFLAGS='${SPECIFIED_CFLAGS}'
-#endif
-
-#else /* not THIS_IS_CONFIGURE */
-
-/* Get the CFLAGS for real compilation.  */
-#ifdef __GNUC__
-configure___ REAL_CFLAGS=-g C_OPTIMIZE_SWITCH C_WARNINGS_SWITCH ${PROFILING_CFLAGS} '${SPECIFIED_CFLAGS}'
-#else
-configure___ REAL_CFLAGS='${SPECIFIED_CFLAGS}'
-#endif
-
-#endif /* not THIS_IS_CONFIGURE */
-' > ${tempcname}
-
-LDFLAGS="${LDFLAGS} ${PROFILING_LDFLAGS}"
 
 # The value of CPP is a quoted variable reference, so we need to do this
 # to get its actual value...
 CPP=`eval "echo $CPP"`
-eval `${CPP} -Isrc ${tempcname} \
-       | sed -n -e 's/^configure___ \([^=]*=\)\(.*\)$/\1"\2"/p'`
-if test "x$SPECIFIED_CFLAGS" = x; then
-  eval `${CPP} -Isrc -DTHIS_IS_CONFIGURE ${tempcname} \
-	 | sed -n -e 's/^configure___ \([^=]*=\)\(.*\)$/\1"\2"/p'`
-else
-  REAL_CFLAGS="$CFLAGS"
-fi
-rm ${tempcname}
 
+
+CANNOT_DUMP=no
+case "$opsys" in
+  your-opsys-here)
+   CANNOT_DUMP=yes
+
+$as_echo "#define CANNOT_DUMP 1" >>confdefs.h
+
+  ;;
+esac
 
 
 
 UNEXEC_OBJ=unexelf.o
 case "$opsys" in
+  # MSDOS uses unexcoff.o
+  # MSWindows uses unexw32.o
   aix4-2)
    UNEXEC_OBJ=unexaix.o
    ;;
@@ -5921,7 +5924,7 @@ START_FILES=
 case $opsys in
   cygwin )
     LIB_MATH=
-    START_FILES='ecrt0.o'
+    START_FILES='pre-crt0.o'
     ;;
   darwin )
     ## Adding -lm confuses the dynamic linker, so omit it.
@@ -5968,7 +5971,7 @@ eval as_val=\$$as_ac_Header
   cat >>confdefs.h <<_ACEOF
 #define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
 _ACEOF
-
+ have_sound_header=yes
 fi
 
 done
@@ -6169,13 +6172,24 @@ $as_echo "#define HAVE_ALSA 1" >>confdefs.h
 
   fi
 
+        if test x$have_sound_header = xyes || test $HAVE_ALSA = yes; then
+     case "$opsys" in
+              gnu-linux|freebsd|netbsd)
+
+$as_echo "#define HAVE_SOUND 1" >>confdefs.h
+
+         ;;
+     esac
+  fi
+
+
 fi
 
 for ac_header in sys/select.h sys/timeb.h sys/time.h unistd.h utime.h \
   linux/version.h sys/systeminfo.h termios.h limits.h string.h stdlib.h \
   stdio_ext.h fcntl.h strings.h coff.h pty.h sys/mman.h \
   sys/param.h sys/vlimit.h sys/resource.h locale.h sys/_mbstate_t.h \
-  sys/utsname.h pwd.h utmp.h
+  sys/utsname.h pwd.h utmp.h dirent.h util.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
@@ -7015,7 +7029,229 @@ else
 
 fi
 
+ { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether byte ordering is bigendian" >&5
+$as_echo_n "checking whether byte ordering is bigendian... " >&6; }
+if test "${ac_cv_c_bigendian+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_cv_c_bigendian=unknown
+    # See if we're dealing with a universal compiler.
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#ifndef __APPLE_CC__
+	       not a universal capable compiler
+	     #endif
+	     typedef int dummy;
 
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+
+	# Check for potential -arch flags.  It is not universal unless
+	# there are at least two -arch flags with different values.
+	ac_arch=
+	ac_prev=
+	for ac_word in $CC $CFLAGS $CPPFLAGS $LDFLAGS; do
+	 if test -n "$ac_prev"; then
+	   case $ac_word in
+	     i?86 | x86_64 | ppc | ppc64)
+	       if test -z "$ac_arch" || test "$ac_arch" = "$ac_word"; then
+		 ac_arch=$ac_word
+	       else
+		 ac_cv_c_bigendian=universal
+		 break
+	       fi
+	       ;;
+	   esac
+	   ac_prev=
+	 elif test "x$ac_word" = "x-arch"; then
+	   ac_prev=arch
+	 fi
+       done
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+    if test $ac_cv_c_bigendian = unknown; then
+      # See if sys/param.h defines the BYTE_ORDER macro.
+      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <sys/types.h>
+	     #include <sys/param.h>
+
+int
+main ()
+{
+#if ! (defined BYTE_ORDER && defined BIG_ENDIAN \
+		     && defined LITTLE_ENDIAN && BYTE_ORDER && BIG_ENDIAN \
+		     && LITTLE_ENDIAN)
+	      bogus endian macros
+	     #endif
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  # It does; now see whether it defined to BIG_ENDIAN or not.
+	 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <sys/types.h>
+		#include <sys/param.h>
+
+int
+main ()
+{
+#if BYTE_ORDER != BIG_ENDIAN
+		 not big endian
+		#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  ac_cv_c_bigendian=yes
+else
+  ac_cv_c_bigendian=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+    fi
+    if test $ac_cv_c_bigendian = unknown; then
+      # See if <limits.h> defines _LITTLE_ENDIAN or _BIG_ENDIAN (e.g., Solaris).
+      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <limits.h>
+
+int
+main ()
+{
+#if ! (defined _LITTLE_ENDIAN || defined _BIG_ENDIAN)
+	      bogus endian macros
+	     #endif
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  # It does; now see whether it defined to _BIG_ENDIAN or not.
+	 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <limits.h>
+
+int
+main ()
+{
+#ifndef _BIG_ENDIAN
+		 not big endian
+		#endif
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  ac_cv_c_bigendian=yes
+else
+  ac_cv_c_bigendian=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+    fi
+    if test $ac_cv_c_bigendian = unknown; then
+      # Compile a test program.
+      if test "$cross_compiling" = yes; then :
+  # Try to guess by grepping values from an object file.
+	 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+short int ascii_mm[] =
+		  { 0x4249, 0x4765, 0x6E44, 0x6961, 0x6E53, 0x7953, 0 };
+		short int ascii_ii[] =
+		  { 0x694C, 0x5454, 0x656C, 0x6E45, 0x6944, 0x6E61, 0 };
+		int use_ascii (int i) {
+		  return ascii_mm[i] + ascii_ii[i];
+		}
+		short int ebcdic_ii[] =
+		  { 0x89D3, 0xE3E3, 0x8593, 0x95C5, 0x89C4, 0x9581, 0 };
+		short int ebcdic_mm[] =
+		  { 0xC2C9, 0xC785, 0x95C4, 0x8981, 0x95E2, 0xA8E2, 0 };
+		int use_ebcdic (int i) {
+		  return ebcdic_mm[i] + ebcdic_ii[i];
+		}
+		extern int foo;
+
+int
+main ()
+{
+return use_ascii (foo) == use_ebcdic (foo);
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  if grep BIGenDianSyS conftest.$ac_objext >/dev/null; then
+	      ac_cv_c_bigendian=yes
+	    fi
+	    if grep LiTTleEnDian conftest.$ac_objext >/dev/null ; then
+	      if test "$ac_cv_c_bigendian" = unknown; then
+		ac_cv_c_bigendian=no
+	      else
+		# finding both strings is unlikely to happen, but who knows?
+		ac_cv_c_bigendian=unknown
+	      fi
+	    fi
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+$ac_includes_default
+int
+main ()
+{
+
+	     /* Are we little or big endian?  From Harbison&Steele.  */
+	     union
+	     {
+	       long int l;
+	       char c[sizeof (long int)];
+	     } u;
+	     u.l = 1;
+	     return u.c[sizeof (long int) - 1] == 1;
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+  ac_cv_c_bigendian=no
+else
+  ac_cv_c_bigendian=yes
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+    fi
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_c_bigendian" >&5
+$as_echo "$ac_cv_c_bigendian" >&6; }
+ case $ac_cv_c_bigendian in #(
+   yes)
+     $as_echo "#define WORDS_BIGENDIAN 1" >>confdefs.h
+;; #(
+   no)
+      ;; #(
+   universal)
+
+$as_echo "#define AC_APPLE_UNIVERSAL_BUILD 1" >>confdefs.h
+
+     ;; #(
+   *)
+     as_fn_error "unknown endianness
+ presetting ac_cv_c_bigendian=no (or yes) will help" "$LINENO" 5 ;;
+ esac
 
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether ${MAKE-make} sets \$(MAKE)" >&5
@@ -7420,7 +7656,7 @@ tmp_CPPFLAGS="$CPPFLAGS"
 tmp_CFLAGS="$CFLAGS"
 CPPFLAGS="$CPPFLAGS -x objective-c"
 CFLAGS="$CFLAGS -x objective-c"
-TEMACS_LDFLAGS2="\${LDFLAGS}"
+TEMACS_LDFLAGS2="\${LDFLAGS} \${PROFILING_LDFLAGS}"
 if test "${with_ns}" != no; then
   if test "${opsys}" = darwin; then
      NS_IMPL_COCOA=yes
@@ -7444,7 +7680,6 @@ if test "${with_ns}" != no; then
        GNUSTEP_LOCAL_LIBRARIES="-L${GNUSTEP_LOCAL_LIBRARIES}"
      CPPFLAGS="$CPPFLAGS -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
      CFLAGS="$CFLAGS -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
-     REAL_CFLAGS="$REAL_CFLAGS -I${GNUSTEP_SYSTEM_HEADERS} ${GNUSTEP_LOCAL_HEADERS}"
      LDFLAGS="$LDFLAGS -L${GNUSTEP_SYSTEM_LIBRARIES} ${GNUSTEP_LOCAL_LIBRARIES}"
      LIB_STANDARD=
      START_FILES=
@@ -7515,6 +7750,8 @@ case "${window_system}" in
       motif ) USE_X_TOOLKIT=MOTIF ;;
       gtk ) with_gtk=yes
             USE_X_TOOLKIT=none ;;
+      gtk3 ) with_gtk3=yes
+             USE_X_TOOLKIT=none ;;
       no ) USE_X_TOOLKIT=none ;;
       * ) USE_X_TOOLKIT=maybe ;;
     esac
@@ -7633,7 +7870,17 @@ if test $emacs_cv_var___after_morecore_hook = no; then
   doug_lea_malloc=no
 fi
 
+
+system_malloc=no
+case "$opsys" in
+  ## darwin ld insists on the use of malloc routines in the System framework.
+  darwin|sol2-10) system_malloc=yes ;;
+esac
+
 if test "${system_malloc}" = "yes"; then
+
+$as_echo "#define SYSTEM_MALLOC 1" >>confdefs.h
+
   GNU_MALLOC=no
   GNU_MALLOC_reason="
     (The GNU allocators don't work with this system configuration.)"
@@ -7668,6 +7915,10 @@ if test x"${REL_ALLOC}" = x; then
   REL_ALLOC=${GNU_MALLOC}
 fi
 
+use_mmap_for_buffers=no
+case "$opsys" in
+  freebsd|irix6-5) use_mmap_for_buffers=yes ;;
+esac
 
 
 
@@ -7872,6 +8123,9 @@ fi
 rm -f conftest.mmap conftest.txt
 
 if test $use_mmap_for_buffers = yes; then
+
+$as_echo "#define USE_MMAP_FOR_BUFFERS 1" >>confdefs.h
+
   REL_ALLOC=no
 fi
 
@@ -8060,12 +8314,13 @@ esac
 # used for the tests that follow.  We set them back to REAL_CFLAGS and
 # REAL_CPPFLAGS later on.
 
+REAL_CFLAGS="$CFLAGS"
 REAL_CPPFLAGS="$CPPFLAGS"
 
 if test "${HAVE_X11}" = "yes"; then
   DEFS="$C_SWITCH_X_SITE $DEFS"
   LDFLAGS="$LDFLAGS $LD_SWITCH_X_SITE"
-  LIBS="$LIBX $LIBS"
+  LIBS="-lX11 $LIBS"
   CFLAGS="$C_SWITCH_X_SITE $CFLAGS"
   CPPFLAGS="$C_SWITCH_X_SITE $CPPFLAGS"
 
@@ -8227,6 +8482,18 @@ $as_echo "6 or newer" >&6; }
 
 $as_echo "#define HAVE_X11R6 1" >>confdefs.h
 
+
+$as_echo "#define HAVE_X_I18N 1" >>confdefs.h
+
+    ## inoue@ainet.or.jp says Solaris has a bug related to X11R6-style
+    ## XIM support.
+    case "$opsys" in
+      sol2-*) : ;;
+      *)
+$as_echo "#define HAVE_X11R6_XIM 1" >>confdefs.h
+
+         ;;
+    esac
   else
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: before 6" >&5
 $as_echo "before 6" >&6; }
@@ -8485,6 +8752,112 @@ fi
 
 
 HAVE_GTK=no
+if test "${with_gtk3}" = "yes"; then
+  GLIB_REQUIRED=2.6
+  GTK_REQUIRED=2.90
+  GTK_MODULES="gtk+-3.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
+
+
+  succeeded=no
+
+  # Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if test "${ac_cv_path_PKG_CONFIG+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $PKG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PKG_CONFIG="$PKG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_PKG_CONFIG" && ac_cv_path_PKG_CONFIG="no"
+  ;;
+esac
+fi
+PKG_CONFIG=$ac_cv_path_PKG_CONFIG
+if test -n "$PKG_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PKG_CONFIG" >&5
+$as_echo "$PKG_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+
+  if test "$PKG_CONFIG" = "no" ; then
+     pkg_check_gtk=no
+  else
+     PKG_CONFIG_MIN_VERSION=0.9.0
+     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $GTK_MODULES" >&5
+$as_echo_n "checking for $GTK_MODULES... " >&6; }
+
+        if $PKG_CONFIG --exists "$GTK_MODULES" 2>&5; then
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+            succeeded=yes
+
+            { $as_echo "$as_me:${as_lineno-$LINENO}: checking GTK_CFLAGS" >&5
+$as_echo_n "checking GTK_CFLAGS... " >&6; }
+            GTK_CFLAGS=`$PKG_CONFIG --cflags "$GTK_MODULES"|sed -e 's,///*,/,g'`
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GTK_CFLAGS" >&5
+$as_echo "$GTK_CFLAGS" >&6; }
+
+            { $as_echo "$as_me:${as_lineno-$LINENO}: checking GTK_LIBS" >&5
+$as_echo_n "checking GTK_LIBS... " >&6; }
+            GTK_LIBS=`$PKG_CONFIG --libs "$GTK_MODULES"|sed -e 's,///*,/,g'`
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GTK_LIBS" >&5
+$as_echo "$GTK_LIBS" >&6; }
+        else
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+            GTK_CFLAGS=""
+            GTK_LIBS=""
+            ## If we have a custom action on failure, don't print errors, but
+            ## do set a variable so people can do so.
+            GTK_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "$GTK_MODULES"`
+
+        fi
+
+
+
+     else
+        echo "*** Your version of pkg-config is too old. You need version $PKG_CONFIG_MIN_VERSION or newer."
+        echo "*** See http://www.freedesktop.org/software/pkgconfig"
+     fi
+  fi
+
+  if test $succeeded = yes; then
+     pkg_check_gtk=yes
+  else
+     pkg_check_gtk=no
+  fi
+
+  if test "$pkg_check_gtk" = "no" && test "$USE_X_TOOLKIT" != "maybe"; then
+     as_fn_error "$GTK_PKG_ERRORS" "$LINENO" 5
+  fi
+fi
+
+if test "$pkg_check_gtk" != "yes"; then
+  HAVE_GTK=no
 if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "maybe"; then
   GLIB_REQUIRED=2.6
   GTK_REQUIRED=2.6
@@ -8588,7 +8961,7 @@ $as_echo "no" >&6; }
      as_fn_error "$GTK_PKG_ERRORS" "$LINENO" 5
   fi
 fi
-
+fi
 
 GTK_OBJ=
 if test x"$pkg_check_gtk" = xyes; then
@@ -8646,24 +9019,6 @@ if test "${HAVE_GTK}" = "yes"; then
     with_toolkit_scroll_bars=yes
   fi
 
-      HAVE_GTK_MULTIDISPLAY=no
-  for ac_func in gdk_display_open
-do :
-  ac_fn_c_check_func "$LINENO" "gdk_display_open" "ac_cv_func_gdk_display_open"
-if test "x$ac_cv_func_gdk_display_open" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_GDK_DISPLAY_OPEN 1
-_ACEOF
- HAVE_GTK_MULTIDISPLAY=yes
-fi
-done
-
-  if test "${HAVE_GTK_MULTIDISPLAY}" = "yes"; then
-
-$as_echo "#define HAVE_GTK_MULTIDISPLAY 1" >>confdefs.h
-
-  fi
-
           HAVE_GTK_FILE_SELECTION=no
   ac_fn_c_check_decl "$LINENO" "GTK_TYPE_FILE_SELECTION" "ac_cv_have_decl_GTK_TYPE_FILE_SELECTION" "$ac_includes_default
 #include <gtk/gtk.h>
@@ -8682,49 +9037,13 @@ if test "x$ac_cv_func_gtk_file_selection_new" = x""yes; then :
   cat >>confdefs.h <<_ACEOF
 #define HAVE_GTK_FILE_SELECTION_NEW 1
 _ACEOF
- HAVE_GTK_FILE_SELECTION=yes
-else
-  HAVE_GTK_FILE_SELECTION=no
+
 fi
 done
 
   fi
 
-    HAVE_GTK_FILE_CHOOSER=no
-  ac_fn_c_check_decl "$LINENO" "GTK_TYPE_FILE_CHOOSER" "ac_cv_have_decl_GTK_TYPE_FILE_CHOOSER" "$ac_includes_default
-#include <gtk/gtk.h>
-"
-if test "x$ac_cv_have_decl_GTK_TYPE_FILE_CHOOSER" = x""yes; then :
-  HAVE_GTK_FILE_CHOOSER=yes
-else
-  HAVE_GTK_FILE_CHOOSER=no
-fi
-
-  if test "$HAVE_GTK_FILE_CHOOSER" = yes; then
-    for ac_func in gtk_file_chooser_dialog_new
-do :
-  ac_fn_c_check_func "$LINENO" "gtk_file_chooser_dialog_new" "ac_cv_func_gtk_file_chooser_dialog_new"
-if test "x$ac_cv_func_gtk_file_chooser_dialog_new" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_GTK_FILE_CHOOSER_DIALOG_NEW 1
-_ACEOF
- HAVE_GTK_FILE_CHOOSER=yes
-else
-  HAVE_GTK_FILE_CHOOSER=no
-fi
-done
-
-  fi
-
-  if test "$HAVE_GTK_FILE_SELECTION" = yes \
-     && test "$HAVE_GTK_FILE_CHOOSER" = yes;  then
-
-$as_echo "#define HAVE_GTK_FILE_BOTH 1" >>confdefs.h
-
-  fi
-
-      if test "$HAVE_GTK_FILE_CHOOSER" = yes; then
-    HAVE_GTK_AND_PTHREAD=no
+        HAVE_GTK_AND_PTHREAD=no
     for ac_header in pthread.h
 do :
   ac_fn_c_check_header_mongrel "$LINENO" "pthread.h" "ac_cv_header_pthread_h" "$ac_includes_default"
@@ -8788,7 +9107,24 @@ fi
 $as_echo "#define HAVE_GTK_AND_PTHREAD 1" >>confdefs.h
 
     fi
-  fi
+
+    for ac_func in gtk_widget_get_window gtk_widget_set_has_window \
+                 gtk_dialog_get_action_area gtk_widget_get_sensitive \
+                 gtk_widget_get_mapped gtk_adjustment_get_page_size \
+                 gtk_orientable_set_orientation
+do :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+eval as_val=\$$as_ac_var
+   if test "x$as_val" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+
 fi
 
 HAVE_DBUS=no
@@ -11249,14 +11585,14 @@ esac
 
 for ac_func in gethostname getdomainname dup2 \
 rename closedir mkdir rmdir sysinfo getrusage get_current_dir_name \
-random lrand48 bcopy bcmp logb frexp fmod rint cbrt ftime setsid \
+random lrand48 logb frexp fmod rint cbrt ftime setsid \
 strerror fpathconf select mktime euidaccess getpagesize tzset setlocale \
 utimes getrlimit setrlimit setpgid getcwd getwd shutdown getaddrinfo \
-__fpending mblen mbrlen mbsinit strsignal setitimer ualarm index rindex \
+__fpending mblen mbrlen mbsinit strsignal setitimer ualarm strchr strrchr \
 sendto recvfrom getsockopt setsockopt getsockname getpeername \
-gai_strerror mkstemp getline getdelim mremap memmove fsync sync bzero \
+gai_strerror mkstemp getline getdelim mremap memmove fsync sync \
 memset memcmp difftime memcpy mempcpy mblen mbrlen posix_memalign \
-cfmakeraw cfsetspeed isnan copysign
+cfmakeraw cfsetspeed isnan copysign __executable_start
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
@@ -14205,9 +14541,7 @@ LINKER=
 ORDINARY_LINK=
 case "$opsys" in
   ## gnu: GNU needs its own crt0.
-  aix4-2|darwin|gnu|usg5-4|irix6-5|sol2*|unixware) ORDINARY_LINK=yes ;;
-
-  cygwin) LINKER="\$(CC)" ;;
+  aix4-2|cygwin|darwin|gnu|hpux*|irix6-5|sol2*|unixware) ORDINARY_LINK=yes ;;
 
   ## On post 1.3 releases of NetBSD, gcc -nostdlib also clears the
   ## library search parth, i.e. it won't search /usr/lib for libc and
@@ -14226,8 +14560,6 @@ case "$opsys" in
 esac
 
 
-PRE_EDIT_LDFLAGS=
-POST_EDIT_LDFLAGS=
 if test "x$ORDINARY_LINK" = "xyes"; then
 
   LINKER="\$(CC)"
@@ -14236,7 +14568,7 @@ $as_echo "#define ORDINARY_LINK 1" >>confdefs.h
 
 
 ## The system files defining neither ORDINARY_LINK nor LINKER are:
-## (bsd-common), freebsd, gnu-* not on macppc|ibms390x, hpux*.
+## freebsd, gnu-* not on macppc|ibms390x.
 elif test "x$GCC" = "xyes" && test "x$LINKER" = "x"; then
 
   ## Versions of GCC >= 2.0 put their library, libgcc.a, in obscure
@@ -14248,17 +14580,7 @@ elif test "x$GCC" = "xyes" && test "x$LINKER" = "x"; then
   ## searching for libraries in its internal directories, so we have to
   ## ask GCC explicitly where to find libgcc.a (LIB_GCC below).
   LINKER="\$(CC) -nostdlib"
-  ## GCC passes any argument prefixed with -Xlinker directly to the linker.
-  ## See prefix-args.c for an explanation of why we do not do this with the
-  ## shell''s ``for'' construct.  Note that sane people do not have '.' in
-  ## their paths, so we must use ./prefix-args.
-  ## TODO either make prefix-args check ORDINARY_LINK internally,
-  ## or remove it altogether (bug#6184), removing the need for this hack.
-  PRE_EDIT_LDFLAGS='`./prefix-args -Xlinker'
-  POST_EDIT_LDFLAGS='`'
 fi
-
-
 
 test "x$LINKER" = "x" && LINKER=ld
 ## FIXME? What setting of EDIT_LDFLAGS should this have?
@@ -14274,8 +14596,7 @@ LIB_GCC=
 if test "x$GCC" = "xyes" && test "x$ORDINARY_LINK" != "xyes"; then
 
   case "$opsys" in
-    ## cygwin: don't link against static libgcc.
-    cygwin|freebsd|netbsd|openbsd) LIB_GCC= ;;
+    freebsd|netbsd|openbsd) LIB_GCC= ;;
 
     gnu-*)
       ## armin76@gentoo.org reported that the lgcc_s flag is necessary to
@@ -14509,6 +14830,7 @@ done
 LIBOBJS=$ac_libobjs
 
 LTLIBOBJS=$ac_ltlibobjs
+
 
 
 

@@ -111,7 +111,7 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* Calc: (calc).         Advanced desk calculator and mathematical tool.
+* Calc: (calc).                 Advanced desk calculator and mathematical tool.
 @end direntry
 
 @titlepage
@@ -21513,7 +21513,11 @@ to
 
 @noindent
 Every character not part of the sub-formula @samp{b} has been changed
-to a dot.  The @samp{*} next to the line number is to remind you that
+to a dot. (If the customizable variable
+@code{calc-highlight-selections-with-faces} is non-nil, then the characters
+not part of the sub-formula are de-emphasized by using a less
+noticeable face instead of using dots. @pxref{Displaying Selections}.)
+The @samp{*} next to the line number is to remind you that
 the formula has a portion of it selected.  (In this case, it's very
 obvious, but it might not always be.  If Embedded mode is enabled,
 the word @samp{Sel} also appears in the mode line because the stack
@@ -21726,6 +21730,9 @@ of the hierarchy simply by pointing to it with the cursor.
 @noindent
 @kindex j d
 @pindex calc-show-selections
+@vindex calc-highlight-selections-with-faces
+@vindex calc-selected-face
+@vindex calc-nonselected-face
 The @kbd{j d} (@code{calc-show-selections}) command controls how
 selected sub-formulas are displayed.  One of the alternatives is
 illustrated in the above examples; if we press @kbd{j d} we switch
@@ -21740,6 +21747,13 @@ by @samp{#} signs:
         . . . .                   2 x + 1
 @end group
 @end smallexample
+If the customizable variable
+@code{calc-highlight-selections-with-faces} is non-nil, then the
+non-selected portion of the formula will be de-emphasized by using a
+less noticeable face (@code{calc-nonselected-face}) instead of dots
+and the selected sub-formula will be highlighted by using a more
+noticeable face (@code{calc-selected-face}) instead of @samp{#}
+signs. (@pxref{Customizing Calc}.)
 
 @node Operating on Selections, Rearranging with Selections, Displaying Selections, Selecting Subformulas
 @subsection Operating on Selections
@@ -34911,7 +34925,7 @@ character of the prefix can simply be typed twice.
 
 Calc is controlled by many variables, most of which can be reset
 from within Calc.  Some variables are less involved with actual
-calculation, and can be set outside of Calc using Emacs's
+calculation and can be set outside of Calc using Emacs's
 customization facilities.  These variables are listed below.
 Typing @kbd{M-x customize-variable RET @var{variable-name} RET}
 will bring up a buffer in which the variable's value can be redefined.
@@ -35195,6 +35209,23 @@ It consists of a list of lists of the form
 Any major modes added to @code{calc-embedded-open-close-mode-alist}
 should also be added to @code{calc-embedded-announce-formula-alist}
 and @code{calc-embedded-open-close-plain-alist}.
+@end defvar
+
+@defvar calc-highlight-selections-with-faces
+@defvarx calc-selected-face
+@defvarx calc-nonselected-face
+See @ref{Displaying Selections}.@*
+The variable @code{calc-highlight-selections-with-faces} 
+determines how selected sub-formulas are distinguished.
+If @code{calc-highlight-selections-with-faces} is nil, then 
+a selected sub-formula is distinguished either by changing every
+character not part of the sub-formula with a dot or by changing every
+character in the sub-formula with a @samp{#} sign.  
+If @code{calc-highlight-selections-with-faces} is t,
+then a selected sub-formula is distinguished either by displaying the
+non-selected portion of the formula with @code{calc-nonselected-face} 
+or by displaying the selected sub-formula with
+@code{calc-nonselected-face}.
 @end defvar
 
 @defvar calc-multiplication-has-precedence

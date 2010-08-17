@@ -134,7 +134,7 @@ Assumes the caller has bound `macroexpand-all-environment'."
 		(maybe-cons fun
 			    (maybe-cons (macroexpand-all-forms (cadr form) 2)
 					nil
-					(cadr form))
+					(cdr form))
 			    form)
 	      form))
 	   ((memq fun '(let let*))
@@ -146,7 +146,7 @@ Assumes the caller has bound `macroexpand-all-environment'."
 	   ((eq fun 'quote)
 	    form)
 	   ((and (consp fun) (eq (car fun) 'lambda))
-	    ;; embedded lambda
+	    ;; Embedded lambda in function position.
 	    (maybe-cons (macroexpand-all-forms fun 2)
 			(macroexpand-all-forms (cdr form))
 			form))

@@ -319,7 +319,7 @@
 
 	* lisp.h (Ftop_level): Add prototype.
 
-	* xterm.c: (xlwmenu_window_p, xlwmenu_redisplay): Add prototypes.
+	* xterm.c (xlwmenu_window_p, xlwmenu_redisplay): Add prototypes.
 	(XTread_socket): Improve style of comments to follow other
 	comments.
 
@@ -1126,7 +1126,7 @@
 
 	* xterm.c (note_mouse_highlight) <help-echo>: When looking for
 	help-echo for a string which doesn't have help-echo itself, use
-	get-char-property to obtain the help-echo from the string's buffer
+	get-char-property to obtain the help-echo from the string's buffer.
 	(note_mouse_highlight) <mouse-face>: When on a string that doesn't
 	have mouse-face, look ``under'' the string for mouse-face from an
 	overlay.
@@ -1496,7 +1496,7 @@
 	* coding.c (setup_coding_system): Don't do any designation based
 	on reg_bits if charset is not yet defined.
 
-  	* lisp.h (XVECTOR): Verify correct object type before returning a
+	* lisp.h (XVECTOR): Verify correct object type before returning a
 	pointer, using eassert.
 
 2001-07-17  Gerd Moellmann  <gerd@gnu.org>
@@ -1752,7 +1752,7 @@
 	creating the directory might signal an error, and leaves
 	Emacs in a strange state.
 
-	* term.c: (tty_cursor_hidden): New variable.
+	* term.c (tty_cursor_hidden): New variable.
 	(update_begin): Don't call tty_hide_cursor.  Clean up.
 	(update_end, set_terminal_window, set_scroll_region): Clean up.
 	(ring_bell, reset_terminal_modes): Clean up.
@@ -3109,7 +3109,7 @@
 
 	* w32term.c (w32_encode_char): Treat eight bit graphic and control
 	characters the same as ASCII and latin-1.
-	(x_display_and_set_cursor): Check for the focus	frame's selected
+	(x_display_and_set_cursor): Check for the focus frame's selected
 	window instead of selected_window.
 	(x_after_update_window_line): Don't clear if frame's internal
 	border width is zero.
@@ -3119,7 +3119,7 @@
 	* w32fns.c (Fx_show_tip): Fix calls to make_number.
 	(x_set_font): If font hasn't changed, avoid recomputing
 	faces and other things.
-	(x_set_tool_bar_lines): Do nothing if frame is minibuffer-only,
+	(x_set_tool_bar_lines): Do nothing if frame is minibuffer-only.
 	(Fx_create_frame): Add the tool bar height to the frame height.
 	(x_create_tip_frame): Prevent changing the tooltip's
 	background color by specifying a color for the default font
@@ -3896,7 +3896,7 @@
 
 2001-01-07  Dave Love  <fx@gnu.org>
 
-	* keyboard.c (Fread_key_sequence_vector):  Avoid newline in
+	* keyboard.c (Fread_key_sequence_vector): Avoid newline in
 	arglist, for documentation's sake.
 
 2001-01-06  Andrew Innes  <andrewi@gnu.org>
@@ -4180,7 +4180,7 @@
 	what's displayed in the window.
 
 	* xdisp.c (try_window_reusing_current_matrix)
-	<new start <= old start>:  Disable rows in the current matrix
+	<new start <= old start>: Disable rows in the current matrix
 	which are below the window after scrolling.
 
 	* xdisp.c (move_it_by_lines): Don't do optimizations if NEED_Y_P
@@ -4887,7 +4887,7 @@
 
 	* md5.c: Delay include of md5.h until after namespace cleaning.
 
-	* makefile.w32-in (fns.o): Depend on md5.h
+	* makefile.w32-in (fns.o): Depend on md5.h.
 	(md5.o): New target.
 	(sunfns.o): Remove.
 
@@ -5004,7 +5004,7 @@
 	the metrics of BDF fonts.
 	(x_estimate_mode_line_height): If `mode-line' face
 	hasn't a font, use that of the frame, as drawing glyphs does.
-	(note_mouse_highlight): Change the cursor shape	on the vertical
+	(note_mouse_highlight): Change the cursor shape on the vertical
 	border between windows [not enabled].
 
 	* w32term.h (struct w32_output): Add member horizontal_drag_cursor.
@@ -5480,7 +5480,7 @@
 	* lisp.h (pos_visible_p): Change prototype.
 
 	* dispextern.h (CURRENT_MODE_LINE_HEIGHT)
-	(CURRENT_HEADER_LINE_HEIGHT):  Look at current_mode_line_height
+	(CURRENT_HEADER_LINE_HEIGHT): Look at current_mode_line_height
 	and current_header_line_height first.
 	(current_mode_line_height, current_header_line_height):
 	Declare extern.
@@ -6683,7 +6683,7 @@
 	(create_offscreen_bitmap): New function.
 	(w32_BDF_TextOut): Use it. Draw glyphs as DIBs.
 
-	* w32term.c (x_produce_glyphs):  If the distance from the current
+	* w32term.c (x_produce_glyphs): If the distance from the current
 	position to the next tab stop is less than a canonical character
 	width, use the tab stop after that.
 	(x_draw_glyphs): Handle case START and END are out of bounds more
@@ -7254,7 +7254,7 @@
 
 	* charset.h (MAKE_CHAR): Be sure to set MSB of C1 to 0.
 
-	* charset.c: Include composite.h
+	* charset.c: Include composite.h.
 	(lisp_string_width): New function.
 	(Fstring_width): Call lisp_string_width instead of strwidth.
 
@@ -7333,7 +7333,7 @@
 
 	* s/ms-w32.h (ORDINARY_LINK): New define.
 
-	* w32.c (_ANONYMOUS_UNION) [__GNUC__]: New define
+	* w32.c (_ANONYMOUS_UNION) [__GNUC__]: New define.
 	(_ANONYMOUS_STRUCT) [__GNUC__]: New define.
 
 	* makefile.w32-in (clean): Don't delete config.h and epaths.h.
@@ -7536,7 +7536,7 @@
 	CYCLE_CHECK arguments.
 	(merge_face_vector_with_property, Finternal_merge_in_global_face)
 	(lookup_named_face, lookup_derived_face, realize_named_face)
-	(face_at_string_position, face_at_buffer_position):  Supply
+	(face_at_string_position, face_at_buffer_position): Supply
 	new F and CYCLE_CHECK arguments to merge_face_vectors.
 	(merge_face_heights): New function.
 	(merge_face_vectors, merge_face_vector_with_property)
@@ -7826,7 +7826,7 @@
 	(x_compute_glyph_string_overhangs): Incomplete body removed, as
 	the X way of doing this will not work for W32.
 	(w32_intersect_rectangles): Removed. Use IntersectRect API call.
-	(x_draw_image_foreground):  Avoid drawing outside of the clip area
+	(x_draw_image_foreground): Avoid drawing outside of the clip area
 	when image doesn't have a mask.
 	(note_mouse_highlight): Process overlays in the right order of
 	priority. Set help_echo_window.
@@ -8409,7 +8409,7 @@
 	(encode_coding_iso2022): New local variable safe_chars.  Check
 	unsafe chars.
 	(setup_coding_system): Delete the code to initialize
-	coding->safe_charses
+	coding->safe_charses.
 	(intersection, find_safe_codings): New functions.
 	(Ffind_coding_systems_region_internal): New function.
 	(syms_of_coding): Defsubr it.  Initialize Qsafe_chars,
@@ -8729,7 +8729,7 @@
 	* w32term.c (help_echo_object, help_echo_pos): New variables.
 	(note_mode_line_highlight): Store additional information about the
 	help-echo in help_echo_object and help_echo_pos.  Check both
-	`local-map' and `keymap' properties for changing the cursor
+	`local-map' and `keymap' properties for changing the cursor.
 	(note_mouse_highlight): Store additional information about the
 	help-echo in help_echo_object and help_echo_pos.
 	(note_tool_bar_highlight): Set help_echo_object to nil and
@@ -8797,7 +8797,7 @@
 	* xterm.c (help_echo_object, help_echo_pos): New variables.
 	(note_mode_line_highlight): Store additional information about the
 	help-echo in help_echo_object and help_echo_pos.  Check both
-	`local-map' and `keymap' properties for changing the cursor
+	`local-map' and `keymap' properties for changing the cursor.
 	(note_mouse_highlight): Store additional information about the
 	help-echo in help_echo_object and help_echo_pos.
 	(note_tool_bar_highlight): Set help_echo_object to nil and
@@ -10156,7 +10156,7 @@
 	(encode_coding_string): Likewise.
 
 	* ccl.c (ccl_driver) <CCL_ReadMultibyteChar2>
-	<CCL_WriteMultibyteChar2>:  Handle charsets eight-bit-control and
+	<CCL_WriteMultibyteChar2>: Handle charsets eight-bit-control and
 	eight-bit-graphic correctly.
 
 2000-05-24  Kenichi HANDA  <handa@etl.go.jp>
@@ -11979,7 +11979,7 @@
 	(detect_coding_utf_8): New function.
 	(UTF_16_INVALID_P, UTF_16_HIGH_SURROGATE_P
 	UTF_16_LOW_SURROGATE_P): New macros.
-	(detect_coding_utf_16): New function
+	(detect_coding_utf_16): New function.
 	(detect_coding_mask): When priorities are specified, skip any
 	categories that have `nil' coding-system.  Fix bug of returning
 	wrong mask when PRIORITIES is specified and detect_coding_XXX()
@@ -12222,7 +12222,7 @@
 
 	* makefile.nt: Add atimer.h to dependencies.
 	* w32.c (init_environment): Set Vw32_num_mouse_buttons here.
-	* w32console.c: Only disable window system features for dispextern.h
+	* w32console.c: Only disable window system features for dispextern.h.
 	(initialize_w32_display): Build a display info for the console.
 	* w32faces.c (tty_defined_color): Apply xfaces.c change from 02-17.
 	* w32fns.c (w32_wnd_proc) [WM_LBUTTON_DOWN, WM_RBUTTON_DOWN,
@@ -12812,7 +12812,7 @@
 	(xim_destroy_callback, xim_open_dpy, xim_instantiate_callback)
 	(xim_initialize, xim_close)
 	[HAVE_X_I18N && HAVE_X11R6]: New functions.
-	(x_destroy_window) [HAVE_X_I18N]:  Call xic_destroy_frame.
+	(x_destroy_window) [HAVE_X_I18N]: Call xic_destroy_frame.
 	(x_term_init) [HAVE_X_I18N]: Call xim_initialize.
 	(x_delete_display) [HAVE_X_I18N]: Call xim_close.
 
@@ -12825,7 +12825,7 @@
 	(FRAME_XIM): Removed.
 
 	* xfns.c (supported_styles): New variable.
-	(DEFAULT_STYLE, DEFAULT_FONT): New macros
+	(DEFAULT_STYLE, DEFAULT_FONT): New macros.
 	(xic_create_xfontset, best_style, xic_create_frame)
 	(xic_destroy_frame, xic_set_preeditarea, xic_set_statusarea)
 	(xic_set_xfontset): New functions.
@@ -13029,7 +13029,7 @@
 
 2000-01-19  Dave Love  <fx@gnu.org>
 
-	* lread.c: (syms_of_lread) [user-init-file]: Doc change.
+	* lread.c (syms_of_lread) [user-init-file]: Doc change.
 
 2000-01-18  Kenichi Handa  <handa@etl.go.jp>
 
@@ -13156,7 +13156,7 @@
 	(GC_STRING_BYTES, GC_STRING_CHARS): New macros.
 	(DONT_COPY_FLAG): Removed.
 	(SBLOCK_SIZE, LARGE_STRING_BYTES): New macros.
-	(struct sdata, struct sblock): New
+	(struct sdata, struct sblock): New.
 	(struct string_block): Rewritten.
 	(STRINGS_IN_STRING_BLOCK): New macro.
 	(oldest_sblock, current_sblock, total_strings, total_free_strings)

@@ -1,3 +1,126 @@
+2010-07-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xlwmenu.c (abort_gracefully): Mark as NO_RETURN.
+
+2010-07-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xlwmenu.h (xlwmenu_window_p, xlwmenu_redisplay): Add declarations.
+
+2010-07-12  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.in (C_WARNINGS_SWITCH, PROFILING_CFLAGS): Set from
+	substitution.
+	(ALL_CFLAGS): Add ${C_WARNINGS_SWITCH} and ${PROFILING_CFLAGS}.
+
+2010-07-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xlwmenu.c (size_menu_item): Change from K&R to prototype.
+	Change label_width and height to int.
+	(draw_arrow, draw_shadow_rectangle, draw_shadow_rhombus)
+	(draw_separator, display_menu, fit_to_screen, motion_event_is_in_menu)
+	(map_event_to_widget_value): Reformat.
+	(display_menu_item): Change from K&R to prototype.
+
+	* lwlib.c (allocate_widget_info, lw_register_widget): Change from K&R
+	to prototype.
+	(lw_internal_update_other_instances, merge_widget_value): Reformat.
+
+	* lwlib-int.h (widget_creation_function): Fix prototype.
+
+	* lwlib-Xm.c (x_print_complete_resource_name)
+	(make_destroyed_instance, free_destroyed_instance, first_child)
+	(lw_motif_widget_p, resource_motif_string, destroy_all_children)
+	(xm_arm_callback, xm_update_label, xm_update_list)
+	(xm_update_pushbutton, xm_update_cascadebutton)
+	(xm_update_toggle, xm_update_radiobox, make_menu_in_widget)
+	(update_one_menu_entry, xm_update_menu, xm_update_text)
+	(xm_update_text_field, xm_update_one_widget)
+	(xm_update_one_value, activate_button, dialog_key_cb)
+	(make_dialog, mark_dead_instance_destroyed)
+	(find_matching_instance, recenter_widget, recycle_instance)
+	(xm_create_dialog, make_menubar, remove_grabs, make_popup_menu)
+	(make_main, xm_destroy_instance, xm_popup_menu)
+	(set_min_dialog_size, xm_pop_instance, do_call)
+	(xm_internal_update_other_instances, xm_generic_callback)
+	(xm_nosel_callback, xm_pull_down_callback, xm_pop_down_callback)
+	(xm_set_keyboard_focus, xm_set_main_areas, xm_manage_resizing): Change
+	from K&R to prototype.
+
+	* lwlib-Xlw.c (x_print_complete_resource_name): Change from K&R to
+	prototype.
+	(xlw_update_one_value): Reformat.
+
+	* lwlib-Xaw.c (xaw_generic_callback, command_reset)
+	(xaw_update_one_value): Reformat.
+	(xaw_update_one_widget): Reformat and remove dead code.
+	(xaw_scrollbar_scroll, xaw_scrollbar_jump, xaw_create_scrollbar)
+	(xaw_update_scrollbar): Remove (not used).
+	(make_dialog): Change from K&R to prototype. Remove dead code.
+	(xaw_creation_table): Remove scrollbar entry.
+
+2010-07-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* lwlib.c (allocate_widget_instance, get_widget_info)
+	(get_widget_instance, find_instance, set_one_value)
+	(update_one_widget_instance, update_all_widget_values)
+	(lw_modify_all_widgets, lw_get_widget, lw_make_widget)
+	(lw_create_widget, lw_pop_all_widgets, lw_show_busy)
+	(lw_refigure_widget, lw_allow_resizing): Remove alternative K&R
+	declarations.
+	* lwlib-Xlw.c (xlw_update_one_widget):
+	(xlw_pop_instance): Likewise.
+	* lwlib-Xaw.c (xaw_update_one_widget, xaw_pop_instance):
+	Likewise.
+	* lwlib-Xm.c (P_): Remove.
+
+2010-07-07  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* lwlib.c (lwlib_memset, lwlib_bcopy): Remove.
+	(malloc_widget_value, free_widget_info, allocate_widget_instance)
+	(lw_separator_p): Replace lwlib_memset, lwlib_bcopy, bzero, bcmp by
+	memset, memcpy, memcmp.
+	* lwlib-utils.c (XtApplyToWidgets): Likewise.
+	* xlwmenu.c (XlwMenuInitialize): Likewise.
+	* lwlib.h (lwlib_bcopy): Remove declaration.
+
+2010-07-05  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xlwmenu.c (XlwMenuSetValues, XlwMenuInitialize): Correct prototype.
+	(display_menu_item): Remove unused variable gi.
+	(make_windows_if_needed): Remove unused variable screen.
+	(XlwMenuRedisplay): Remove unused variable i.
+
+	* lwlib-Xaw.c: Include <ctype.h> for isdigit.
+	(fill_xft_data, set_text): Remove unused variable screen.
+	(draw_text): Cast bp to FcChar8*.
+	(find_xft_data): Return 0 if inst or xft_data is not set.
+	(wm_delete_window): Correct prototype.  Initialize widget to 0
+	and return if widget is still 0 after loop.
+
+2010-07-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* lwlib-Xaw.c: Convert function definitions to standard C.
+	* lwlib-Xlw.c:
+	* lwlib-utils.c:
+	* lwlib.c:
+	* lwlib.h:
+	* xlwmenu.c: Likewise.
+
+2010-07-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* lwlib-Xm.c: Remove __P and P_ from .c and .m files.
+	* lwlib-Xm.c:
+	* lwlib.c:
+	* xlwmenu.c: Likewise.
+
+	Remove P_ and __P macros.
+	* lwlib-Xaw.h: Remove P_ and __P macros.
+	* lwlib-Xlw.h:
+	* lwlib-Xm.h:
+	* lwlib-int.h:
+	* lwlib-utils.h:
+	* lwlib.h: Likewise.
+
 2010-05-15  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (mostlyclean): Remove references to non-existent files.
@@ -266,7 +389,7 @@
 
 	* xlwmenu.c (xlwMenuResources) [HAVE_X_I18N]: Use a fontset for the
 	`font' resource.
-	(string_width) [HAVE_X_I18N]: Use XmbTextExtents;
+	(string_width) [HAVE_X_I18N]: Use XmbTextExtents.
 	(MENU_FONT_HEIGHT, MENU_FONT_ASCENT): New macros.
 	(arrow_width, toggle_button_width, size_menu_item, draw_arrow)
 	(draw_toggle, draw_radio, display_menu_item): Use them.

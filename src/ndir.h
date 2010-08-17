@@ -32,11 +32,10 @@ typedef struct
 	char	dd_buf[DIRBLKSIZ];	/* directory block */
 	}	DIR;			/* stream data from opendir() */
 
-extern DIR		*opendir();
-extern struct direct	*readdir();
-extern long		telldir();
-extern void		seekdir();
-extern void		closedir();
+extern DIR		*opendir (char *);
+extern struct direct	*readdir (DIR *);
+extern void		seekdir (DIR *, long);
+extern void		closedir (DIR *);
 
 #define rewinddir( dirp )	seekdir( dirp, 0L )
 

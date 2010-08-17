@@ -315,8 +315,8 @@ use; you may override this using the second optional arg MODE."
 		  vc-annotate-display-mode))))
 
 ;;;###autoload
-(defun vc-annotate (file rev &optional display-mode buf move-point-to)
-  "Display the edit history of the current file using colors.
+(defun vc-annotate (file rev &optional display-mode buf move-point-to vc-bk)
+  "Display the edit history of the current FILE using colors.
 
 This command creates a buffer that shows, for each line of the current
 file, when it was last edited and by whom.  Additionally, colors are
@@ -326,7 +326,7 @@ default, the time scale stretches back one year into the past;
 everything that is older than that is shown in blue.
 
 With a prefix argument, this command asks two questions in the
-minibuffer.  First, you may enter a revision number; then the buffer
+minibuffer.  First, you may enter a revision number REV; then the buffer
 displays and annotates that revision instead of the working revision
 \(type RET in the minibuffer to leave that default unchanged).  Then,
 you are prompted for the time span in days which the color range
@@ -335,6 +335,8 @@ over the past 20 days are shown in red to blue, according to their
 age, and everything that is older than that is shown in blue.
 
 If MOVE-POINT-TO is given, move the point to that line.
+
+If VC-BK is given used that VC backend.
 
 Customization variables:
 
@@ -348,9 +350,9 @@ mode-specific menu.  `vc-annotate-color-map' and
      (list buffer-file-name
 	   (let ((def (vc-working-revision buffer-file-name)))
 	     (if (null current-prefix-arg) def
-	       (read-string
+	       (vc-read-revision
 		(format "Annotate from revision (default %s): " def)
-		nil nil def)))
+		(list buffer-file-name) nil def)))
 	   (if (null current-prefix-arg)
 	       vc-annotate-display-mode
 	     (float (string-to-number
@@ -376,7 +378,7 @@ mode-specific menu.  `vc-annotate-color-map' and
 		;; In case it had to be uniquified.
 		(setq temp-buffer-name (buffer-name))))
     (with-output-to-temp-buffer temp-buffer-name
-      (let ((backend (vc-backend file))
+      (let ((backend (or vc-bk (vc-backend file)))
 	    (coding-system-for-read buffer-file-coding-system))
         (vc-call-backend backend 'annotate-command file
                          (get-buffer temp-buffer-name) rev)
@@ -462,7 +464,7 @@ Return a cons (REV . FILENAME)."
       (if (not rev-at-line)
 	  (message "Cannot extract revision number from the current line")
 	(switch-to-buffer-other-window
-	 (vc-find-revision (cdr rev-at-line) (car rev-at-line)))))))
+	 (vc-find-revision (cdr rev-at-line) (car rev-at-line) vc-annotate-backend))))))
 
 (defun vc-annotate-revision-previous-to-line ()
   "Visit the annotation of the revision before the revision at line."
@@ -527,7 +529,7 @@ the file in question, search for the log entry required and move point ."
 	  (message "Cannot extract revision number from the current line")
 	(setq prev-rev
 	      (vc-call-backend vc-annotate-backend 'previous-revision
-                               fname rev))
+                               (if filediff fname nil) rev))
 	(if (not prev-rev)
 	    (message "Cannot diff from any revision prior to %s" rev)
 	  (save-window-excursion
@@ -597,7 +599,8 @@ describes a revision number, so warp to that revision."
 		     ;; place the point in the line.
 		     (min oldline (progn (goto-char (point-max))
                                          (forward-line -1)
-                                         (line-number-at-pos))))))))
+                                         (line-number-at-pos)))
+		     vc-annotate-backend)))))
 
 (defun vc-annotate-compcar (threshold a-list)
   "Test successive cons cells of A-LIST against THRESHOLD.

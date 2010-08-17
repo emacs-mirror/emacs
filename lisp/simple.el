@@ -844,6 +844,78 @@ Don't use this command in Lisp programs!
 	 (overlay-recenter (point))
 	 (recenter -3))))
 
+(defcustom delete-active-region t
+  "Whether single-char deletion commands delete an active region.
+This has an effect only if Transient Mark mode is enabled, and
+affects `delete-forward-char' and `delete-backward-char', though
+not `delete-char'.
+
+If the value is the symbol `kill', the active region is killed
+instead of deleted."
+  :type '(choice (const :tag "Delete active region" t)
+                 (const :tag "Kill active region" kill)
+                 (const :tag "Do ordinary deletion" nil))
+  :group 'editing
+  :version "24.1")
+
+(defun delete-backward-char (n &optional killflag)
+  "Delete the previous N characters (following if N is negative).
+If Transient Mark mode is enabled, the mark is active, and N is 1,
+delete the text in the region and deactivate the mark instead.
+To disable this, set `delete-active-region' to nil.
+
+Optional second arg KILLFLAG, if non-nil, means to kill (save in
+kill ring) instead of delete.  Interactively, N is the prefix
+arg, and KILLFLAG is set if N is explicitly specified.
+
+In Overwrite mode, single character backward deletion may replace
+tabs with spaces so as to back over columns, unless point is at
+the end of the line."
+  (interactive "p\nP")
+  (unless (integerp n)
+    (signal 'wrong-type-argument (list 'integerp n)))
+  (cond ((and (use-region-p)
+	      delete-active-region
+	      (= n 1))
+	 ;; If a region is active, kill or delete it.
+	 (if (eq delete-active-region 'kill)
+	     (kill-region (region-beginning) (region-end))
+	   (delete-region (region-beginning) (region-end))))
+	;; In Overwrite mode, maybe untabify while deleting
+	((null (or (null overwrite-mode)
+		   (<= n 0)
+		   (memq (char-before) '(?\t ?\n))
+		   (eobp)
+		   (eq (char-after) ?\n)))
+	 (let* ((ocol (current-column))
+		(val (delete-char (- n) killflag)))
+	   (save-excursion
+	     (insert-char ?\s (- ocol (current-column)) nil))))
+	;; Otherwise, do simple deletion.
+	(t (delete-char (- n) killflag))))
+
+(defun delete-forward-char (n &optional killflag)
+  "Delete the following N characters (previous if N is negative).
+If Transient Mark mode is enabled, the mark is active, and N is 1,
+delete the text in the region and deactivate the mark instead.
+To disable this, set `delete-active-region' to nil.
+
+Optional second arg KILLFLAG non-nil means to kill (save in kill
+ring) instead of delete.  Interactively, N is the prefix arg, and
+KILLFLAG is set if N was explicitly specified."
+  (interactive "p\nP")
+  (unless (integerp n)
+    (signal 'wrong-type-argument (list 'integerp n)))
+  (cond ((and (use-region-p)
+	      delete-active-region
+	      (= n 1))
+	 ;; If a region is active, kill or delete it.
+	 (if (eq delete-active-region 'kill)
+	     (kill-region (region-beginning) (region-end))
+	   (delete-region (region-beginning) (region-end))))
+	;; Otherwise, do simple deletion.
+	(t (delete-char n killflag))))
+
 (defun mark-whole-buffer ()
   "Put point at beginning and mark at end of buffer.
 You probably should not use this function in Lisp programs;
@@ -3594,29 +3666,30 @@ a mistake; see the documentation of `set-mark'."
       (marker-position (mark-marker))
     (signal 'mark-inactive nil)))
 
-(defcustom select-active-regions nil
-  "If non-nil, an active region automatically becomes the window selection."
-  :type 'boolean
-  :group 'killing
-  :version "23.1")
-
 (declare-function x-selection-owner-p "xselect.c" (&optional selection))
 
-;; Many places set mark-active directly, and several of them failed to also
-;; run deactivate-mark-hook.  This shorthand should simplify.
 (defsubst deactivate-mark (&optional force)
   "Deactivate the mark by setting `mark-active' to nil.
 Unless FORCE is non-nil, this function does nothing if Transient
 Mark mode is disabled.
 This function also runs `deactivate-mark-hook'."
   (when (or transient-mark-mode force)
-    ;; Copy the latest region into the primary selection, if desired.
-    (and select-active-regions
-	 mark-active
-	 (display-selections-p)
-	 (x-selection-owner-p 'PRIMARY)
-	 (x-set-selection 'PRIMARY (buffer-substring-no-properties
-				    (region-beginning) (region-end))))
+    (when (and (if (eq select-active-regions 'only)
+		   (eq (car-safe transient-mark-mode) 'only)
+		 select-active-regions)
+	       (region-active-p)
+	       (display-selections-p))
+      ;; The var `saved-region-selection', if non-nil, is the text in
+      ;; the region prior to the last command modifying the buffer.
+      ;; Set the selection to that, or to the current region.
+      (cond (saved-region-selection
+	     (x-set-selection 'PRIMARY saved-region-selection)
+	     (setq saved-region-selection nil))
+	    ((/= (region-beginning) (region-end))
+	     (x-set-selection 'PRIMARY
+			      (buffer-substring-no-properties
+			       (region-beginning)
+			       (region-end))))))
     (if (and (null force)
 	     (or (eq transient-mark-mode 'lambda)
 		 (and (eq (car-safe transient-mark-mode) 'only)
@@ -3634,10 +3707,7 @@ This function also runs `deactivate-mark-hook'."
   (when (mark t)
     (setq mark-active t)
     (unless transient-mark-mode
-      (setq transient-mark-mode 'lambda))
-    (when (and select-active-regions
-	       (display-selections-p))
-      (x-set-selection 'PRIMARY (current-buffer)))))
+      (setq transient-mark-mode 'lambda))))
 
 (defun set-mark (pos)
   "Set this buffer's mark to POS.  Don't use this function!
@@ -3660,9 +3730,6 @@ store it in a Lisp variable.  Example:
       (progn
 	(setq mark-active t)
 	(run-hooks 'activate-mark-hook)
-	(when (and select-active-regions
-		   (display-selections-p))
-	  (x-set-selection 'PRIMARY (current-buffer)))
 	(set-marker (mark-marker) pos (current-buffer)))
     ;; Normally we never clear mark-active except in Transient Mark mode.
     ;; But when we actually clear out the mark value too, we must
@@ -3688,10 +3755,9 @@ point otherwise."
 This is used by commands that act specially on the region under
 Transient Mark mode.
 
-The return value is t provided Transient Mark mode is enabled and
-the mark is active; and, when `use-empty-active-region' is
-non-nil, provided the region is empty.  Otherwise, the return
-value is nil.
+The return value is t if Transient Mark mode is enabled and the
+mark is active; furthermore, if `use-empty-active-region' is nil,
+the region must not be empty.  Otherwise, the return value is nil.
 
 For some commands, it may be appropriate to ignore the value of
 `use-empty-active-region'; in that case, use `region-active-p'."
@@ -3877,7 +3943,8 @@ Does not set point.  Does nothing if mark ring is empty."
     (setq mark-ring (cdr mark-ring)))
   (deactivate-mark))
 
-(defalias 'exchange-dot-and-mark 'exchange-point-and-mark)
+(define-obsolete-function-alias
+  'exchange-dot-and-mark 'exchange-point-and-mark "23.3")
 (defun exchange-point-and-mark (&optional arg)
   "Put the mark where point is now, and point where the mark is now.
 This command works even when the mark is not active,
@@ -3935,8 +4002,8 @@ deactivate it, and restore the variable `transient-mark-mode' to
 its earlier value."
   (cond ((and shift-select-mode this-command-keys-shift-translated)
          (unless (and mark-active
-                      (eq (car-safe transient-mark-mode) 'only))
-           (setq transient-mark-mode
+		      (eq (car-safe transient-mark-mode) 'only))
+	   (setq transient-mark-mode
                  (cons 'only
                        (unless (eq transient-mark-mode 'lambda)
                          transient-mark-mode)))
@@ -5499,7 +5566,10 @@ it skips the contents of comments that end before point."
 During execution of Lisp code, this character causes a quit directly.
 At top-level, as an editor command, this simply beeps."
   (interactive)
-  (deactivate-mark)
+  ;; Avoid adding the region to the window selection.
+  (setq saved-region-selection nil)
+  (let (select-active-regions)
+    (deactivate-mark))
   (if (fboundp 'kmacro-keyboard-quit)
       (kmacro-keyboard-quit))
   (setq defining-kbd-macro nil)
@@ -5698,7 +5768,7 @@ Each action has the form (FUNCTION . ARGS)."
 The default mail mode is now Message mode.
 You have the following Mail mode variable%s customized:
 \n  %s\n\nTo use Mail mode, set `mail-user-agent' to sendmail-user-agent.
-To disable this warning, set `compose-mail-check-user-agent' to nil."
+To disable this warning, set `compose-mail-user-agent-warnings' to nil."
 				    (if (> (length warn-vars) 1) "s" "")
 				    (mapconcat 'symbol-name
 					       warn-vars " "))))))
@@ -6450,6 +6520,7 @@ call `normal-erase-is-backspace-mode' (which see) instead."
        (if (if (eq normal-erase-is-backspace 'maybe)
                (and (not noninteractive)
                     (or (memq system-type '(ms-dos windows-nt))
+			(memq window-system '(ns))
                         (and (memq window-system '(x))
                              (fboundp 'x-backspace-delete-keys-p)
                              (x-backspace-delete-keys-p))

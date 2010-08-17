@@ -11,8 +11,6 @@
 #define NULL 0
 #endif
 
-extern int errno;
-
 /*
  * XCreateAssocTable - Create an XAssocTable.  The size argument should be
  * a power of two for efficiency reasons.  Some size suggestions: use 32
@@ -20,8 +18,8 @@ extern int errno;
  * buckets is 8.  If there is an error creating the XAssocTable, a NULL
  * pointer is returned.
  */
-XAssocTable *XCreateAssocTable(size)
-	register int size;		/* Desired size of the table. */
+XAssocTable *XCreateAssocTable(register int size)
+	                  		/* Desired size of the table. */
 {
 	register XAssocTable *table;	/* XAssocTable to be initialized. */
 	register XAssoc *buckets;	/* Pointer to the first bucket in */

@@ -99,7 +99,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Symbols.  */
 
-extern Lisp_Object QCfile, QCdata;
 Lisp_Object QCvolume, QCdevice;
 Lisp_Object Qsound;
 Lisp_Object Qplay_sound_functions;
@@ -115,10 +114,12 @@ enum sound_attr
   SOUND_ATTR_SENTINEL
 };
 
-static void alsa_sound_perror P_ ((char *, int)) NO_RETURN;
-static void sound_perror P_ ((char *)) NO_RETURN;
-static void sound_warning P_ ((char *));
-static int parse_sound P_ ((Lisp_Object, Lisp_Object *));
+#ifdef HAVE_ALSA
+static void alsa_sound_perror (const char *, int) NO_RETURN;
+#endif
+static void sound_perror (const char *) NO_RETURN;
+static void sound_warning (const char *);
+static int parse_sound (Lisp_Object, Lisp_Object *);
 
 /* END: Common Definitions */
 
@@ -225,25 +226,25 @@ struct sound_device
   int channels;
 
   /* Open device SD.  */
-  void (* open) P_ ((struct sound_device *sd));
+  void (* open) (struct sound_device *sd);
 
   /* Close device SD.  */
-  void (* close) P_ ((struct sound_device *sd));
+  void (* close) (struct sound_device *sd);
 
   /* Configure SD accoring to device-dependent parameters.  */
-  void (* configure) P_ ((struct sound_device *device));
+  void (* configure) (struct sound_device *device);
 
   /* Choose a device-dependent format for outputting sound S.  */
-  void (* choose_format) P_ ((struct sound_device *sd,
-			      struct sound *s));
+  void (* choose_format) (struct sound_device *sd,
+                          struct sound *s);
 
   /* Return a preferred data size in bytes to be sent to write (below)
      each time.  2048 is used if this is NULL.  */
-  int (* period_size) P_ ((struct sound_device *sd));
+  int (* period_size) (struct sound_device *sd);
 
   /* Write NYBTES bytes from BUFFER to device SD.  */
-  void (* write) P_ ((struct sound_device *sd, const char *buffer,
-		      int nbytes));
+  void (* write) (struct sound_device *sd, const char *buffer,
+                  int nbytes);
 
   /* A place for devices to store additional data.  */
   void *data;
@@ -279,7 +280,7 @@ struct sound
   Lisp_Object data;
 
   /* Play sound file S on device SD.  */
-  void (* play) P_ ((struct sound *s, struct sound_device *sd));
+  void (* play) (struct sound *s, struct sound_device *sd);
 };
 
 /* These are set during `play-sound-internal' so that sound_cleanup has
@@ -290,30 +291,30 @@ struct sound *current_sound;
 
 /* Function prototypes.  */
 
-static void vox_open P_ ((struct sound_device *));
-static void vox_configure P_ ((struct sound_device *));
-static void vox_close P_ ((struct sound_device *sd));
-static void vox_choose_format P_ ((struct sound_device *, struct sound *));
-static int vox_init P_ ((struct sound_device *));
-static void vox_write P_ ((struct sound_device *, const char *, int));
-static void find_sound_type P_ ((struct sound *));
-static u_int32_t le2hl P_ ((u_int32_t));
-static u_int16_t le2hs P_ ((u_int16_t));
-static u_int32_t be2hl P_ ((u_int32_t));
-static int wav_init P_ ((struct sound *));
-static void wav_play P_ ((struct sound *, struct sound_device *));
-static int au_init P_ ((struct sound *));
-static void au_play P_ ((struct sound *, struct sound_device *));
+static void vox_open (struct sound_device *);
+static void vox_configure (struct sound_device *);
+static void vox_close (struct sound_device *sd);
+static void vox_choose_format (struct sound_device *, struct sound *);
+static int vox_init (struct sound_device *);
+static void vox_write (struct sound_device *, const char *, int);
+static void find_sound_type (struct sound *);
+static u_int32_t le2hl (u_int32_t);
+static u_int16_t le2hs (u_int16_t);
+static u_int32_t be2hl (u_int32_t);
+static int wav_init (struct sound *);
+static void wav_play (struct sound *, struct sound_device *);
+static int au_init (struct sound *);
+static void au_play (struct sound *, struct sound_device *);
 
 #if 0 /* Currently not used.  */
-static u_int16_t be2hs P_ ((u_int16_t));
+static u_int16_t be2hs (u_int16_t);
 #endif
 
 /* END: Non Windows Definitions */
 #else /* WINDOWSNT */
 
 /* BEGIN: Windows Specific Definitions */
-static int do_play_sound P_ ((const char *, unsigned long));
+static int do_play_sound (const char *, unsigned long);
 /*
   END: Windows Specific Definitions */
 #endif /* WINDOWSNT */
@@ -328,8 +329,7 @@ static int do_play_sound P_ ((const char *, unsigned long));
 /* Like perror, but signals an error.  */
 
 static void
-sound_perror (msg)
-     char *msg;
+sound_perror (const char *msg)
 {
   int saved_errno = errno;
 
@@ -347,8 +347,7 @@ sound_perror (msg)
 /* Display a warning message.  */
 
 static void
-sound_warning (msg)
-     char *msg;
+sound_warning (const char *msg)
 {
   message (msg);
 }
@@ -381,9 +380,7 @@ sound_warning (msg)
    range [0, 1].  */
 
 static int
-parse_sound (sound, attrs)
-     Lisp_Object sound;
-     Lisp_Object *attrs;
+parse_sound (Lisp_Object sound, Lisp_Object *attrs)
 {
   /* SOUND must be a list starting with the symbol `sound'.  */
   if (!CONSP (sound) || !EQ (XCAR (sound), Qsound))
@@ -452,8 +449,7 @@ parse_sound (sound, attrs)
    S is the sound file structure to fill in.  */
 
 static void
-find_sound_type (s)
-     struct sound *s;
+find_sound_type (struct sound *s)
 {
   if (!wav_init (s) && !au_init (s))
     error ("Unknown sound format");
@@ -463,8 +459,7 @@ find_sound_type (s)
 /* Function installed by play-sound-internal with record_unwind_protect.  */
 
 static Lisp_Object
-sound_cleanup (arg)
-     Lisp_Object arg;
+sound_cleanup (Lisp_Object arg)
 {
   if (current_sound_device->close)
     current_sound_device->close (current_sound_device);
@@ -484,10 +479,9 @@ sound_cleanup (arg)
    to host byte-order.  */
 
 static u_int32_t
-le2hl (value)
-     u_int32_t value;
+le2hl (u_int32_t value)
 {
-#ifdef WORDS_BIG_ENDIAN
+#ifdef WORDS_BIGENDIAN
   unsigned char *p = (unsigned char *) &value;
   value = p[0] + (p[1] << 8) + (p[2] << 16) + (p[3] << 24);
 #endif
@@ -499,10 +493,9 @@ le2hl (value)
    to host byte-order.  */
 
 static u_int16_t
-le2hs (value)
-     u_int16_t value;
+le2hs (u_int16_t value)
 {
-#ifdef WORDS_BIG_ENDIAN
+#ifdef WORDS_BIGENDIAN
   unsigned char *p = (unsigned char *) &value;
   value = p[0] + (p[1] << 8);
 #endif
@@ -514,10 +507,9 @@ le2hs (value)
    to host byte-order.  */
 
 static u_int32_t
-be2hl (value)
-     u_int32_t value;
+be2hl (u_int32_t value)
 {
-#ifndef WORDS_BIG_ENDIAN
+#ifndef WORDS_BIGENDIAN
   unsigned char *p = (unsigned char *) &value;
   value = p[3] + (p[2] << 8) + (p[1] << 16) + (p[0] << 24);
 #endif
@@ -531,10 +523,9 @@ be2hl (value)
    to host byte-order.  */
 
 static u_int16_t
-be2hs (value)
-     u_int16_t value;
+be2hs (u_int16_t value)
 {
-#ifndef WORDS_BIG_ENDIAN
+#ifndef WORDS_BIGENDIAN
   unsigned char *p = (unsigned char *) &value;
   value = p[1] + (p[0] << 8);
 #endif
@@ -554,13 +545,12 @@ be2hs (value)
    Value is non-zero if the file is a WAV file.  */
 
 static int
-wav_init (s)
-     struct sound *s;
+wav_init (struct sound *s)
 {
   struct wav_header *header = (struct wav_header *) s->header;
 
   if (s->header_size < sizeof *header
-      || bcmp (s->header, "RIFF", 4) != 0)
+      || memcmp (s->header, "RIFF", 4) != 0)
     return 0;
 
   /* WAV files are in little-endian order.  Convert the header
@@ -590,9 +580,7 @@ wav_init (s)
 /* Play RIFF-WAVE audio file S on sound device SD.  */
 
 static void
-wav_play (s, sd)
-     struct sound *s;
-     struct sound_device *sd;
+wav_play (struct sound *s, struct sound_device *sd)
 {
   struct wav_header *header = (struct wav_header *) s->header;
 
@@ -665,13 +653,12 @@ enum au_encoding
    Value is non-zero if the file is an AU file.  */
 
 static int
-au_init (s)
-     struct sound *s;
+au_init (struct sound *s)
 {
   struct au_header *header = (struct au_header *) s->header;
 
   if (s->header_size < sizeof *header
-      || bcmp (s->header, ".snd", 4) != 0)
+      || memcmp (s->header, ".snd", 4) != 0)
     return 0;
 
   header->magic_number = be2hl (header->magic_number);
@@ -692,9 +679,7 @@ au_init (s)
 /* Play Sun audio file S on sound device SD.  */
 
 static void
-au_play (s, sd)
-     struct sound *s;
-     struct sound_device *sd;
+au_play (struct sound *s, struct sound_device *sd)
 {
   struct au_header *header = (struct au_header *) s->header;
 
@@ -740,10 +725,9 @@ au_play (s, sd)
    otherwise use a default device name.  */
 
 static void
-vox_open (sd)
-     struct sound_device *sd;
+vox_open (struct sound_device *sd)
 {
-  char *file;
+  const char *file;
 
   /* Open the sound device.  Default is /dev/dsp.  */
   if (sd->file)
@@ -760,8 +744,7 @@ vox_open (sd)
 /* Configure device SD from parameters in it.  */
 
 static void
-vox_configure (sd)
-     struct sound_device *sd;
+vox_configure (struct sound_device *sd)
 {
   int val;
 
@@ -814,8 +797,7 @@ vox_configure (sd)
 /* Close device SD if it is open.  */
 
 static void
-vox_close (sd)
-     struct sound_device *sd;
+vox_close (struct sound_device *sd)
 {
   if (sd->fd >= 0)
     {
@@ -845,9 +827,7 @@ vox_close (sd)
 /* Choose device-dependent format for device SD from sound file S.  */
 
 static void
-vox_choose_format (sd, s)
-     struct sound_device *sd;
-     struct sound *s;
+vox_choose_format (struct sound_device *sd, struct sound *s)
 {
   if (s->type == RIFF)
     {
@@ -890,10 +870,9 @@ vox_choose_format (sd, s)
    structure.  */
 
 static int
-vox_init (sd)
-     struct sound_device *sd;
+vox_init (struct sound_device *sd)
 {
-  char *file;
+  const char *file;
   int fd;
 
   /* Open the sound device.  Default is /dev/dsp.  */
@@ -921,10 +900,7 @@ vox_init (sd)
 /* Write NBYTES bytes from BUFFER to device SD.  */
 
 static void
-vox_write (sd, buffer, nbytes)
-     struct sound_device *sd;
-     const char *buffer;
-     int nbytes;
+vox_write (struct sound_device *sd, const char *buffer, int nbytes)
 {
   int nwritten = emacs_write (sd->fd, buffer, nbytes);
   if (nwritten < 0)
@@ -939,9 +915,7 @@ vox_write (sd, buffer, nbytes)
 /* This driver is available on GNU/Linux. */
 
 static void
-alsa_sound_perror (msg, err)
-     char *msg;
-     int err;
+alsa_sound_perror (const char *msg, int err)
 {
   error ("%s: %s", msg, snd_strerror (err));
 }
@@ -958,10 +932,9 @@ struct alsa_params
    otherwise use a default device name.  */
 
 static void
-alsa_open (sd)
-     struct sound_device *sd;
+alsa_open (struct sound_device *sd)
 {
-  char *file;
+  const char *file;
   struct alsa_params *p;
   int err;
 
@@ -986,8 +959,7 @@ alsa_open (sd)
 }
 
 static int
-alsa_period_size (sd)
-       struct sound_device *sd;
+alsa_period_size (struct sound_device *sd)
 {
   struct alsa_params *p = (struct alsa_params *) sd->data;
   int fact = snd_pcm_format_size (sd->format, 1) * sd->channels;
@@ -995,8 +967,7 @@ alsa_period_size (sd)
 }
 
 static void
-alsa_configure (sd)
-     struct sound_device *sd;
+alsa_configure (struct sound_device *sd)
 {
   int val, err, dir;
   unsigned uval;
@@ -1085,7 +1056,7 @@ alsa_configure (sd)
       int chn;
       snd_mixer_t *handle;
       snd_mixer_elem_t *e;
-      char *file = sd->file ? sd->file : DEFAULT_ALSA_SOUND_DEVICE;
+      const char *file = sd->file ? sd->file : DEFAULT_ALSA_SOUND_DEVICE;
 
       if (snd_mixer_open (&handle, 0) >= 0)
         {
@@ -1115,8 +1086,7 @@ alsa_configure (sd)
 /* Close device SD if it is open.  */
 
 static void
-alsa_close (sd)
-     struct sound_device *sd;
+alsa_close (struct sound_device *sd)
 {
   struct alsa_params *p = (struct alsa_params *) sd->data;
   if (p)
@@ -1137,9 +1107,7 @@ alsa_close (sd)
 /* Choose device-dependent format for device SD from sound file S.  */
 
 static void
-alsa_choose_format (sd, s)
-     struct sound_device *sd;
-     struct sound *s;
+alsa_choose_format (struct sound_device *sd, struct sound *s)
 {
   struct alsa_params *p = (struct alsa_params *) sd->data;
   if (s->type == RIFF)
@@ -1194,10 +1162,7 @@ alsa_choose_format (sd, s)
 /* Write NBYTES bytes from BUFFER to device SD.  */
 
 static void
-alsa_write (sd, buffer, nbytes)
-     struct sound_device *sd;
-     const char *buffer;
-     int nbytes;
+alsa_write (struct sound_device *sd, const char *buffer, int nbytes)
 {
   struct alsa_params *p = (struct alsa_params *) sd->data;
 
@@ -1244,12 +1209,8 @@ alsa_write (sd, buffer, nbytes)
 }
 
 static void
-snd_error_quiet (file, line, function, err, fmt)
-     const char *file;
-     int line;
-     const char *function;
-     int err;
-     const char *fmt;
+snd_error_quiet (const char *file, int line, const char *function, int err,
+		 const char *fmt)
 {
 }
 
@@ -1257,10 +1218,9 @@ snd_error_quiet (file, line, function, err, fmt)
    structure.  */
 
 static int
-alsa_init (sd)
-     struct sound_device *sd;
+alsa_init (struct sound_device *sd)
 {
-  char *file;
+  const char *file;
   snd_pcm_t *handle;
   int err;
 
@@ -1307,9 +1267,7 @@ alsa_init (sd)
   }
 
 static int
-do_play_sound (psz_file, ui_volume)
-     const char *psz_file;
-     unsigned long ui_volume;
+do_play_sound (const char *psz_file, unsigned long ui_volume)
 {
   int i_result = 0;
   MCIERROR mci_error = 0;
@@ -1394,8 +1352,7 @@ DEFUN ("play-sound-internal", Fplay_sound_internal, Splay_sound_internal, 1, 1, 
        doc: /* Play sound SOUND.
 
 Internal use only, use `play-sound' instead.  */)
-     (sound)
-     Lisp_Object sound;
+  (Lisp_Object sound)
 {
   Lisp_Object attrs[SOUND_ATTR_SENTINEL];
   int count = SPECPDL_INDEX ();
@@ -1421,9 +1378,9 @@ Internal use only, use `play-sound' instead.  */)
   file = Qnil;
   GCPRO2 (sound, file);
   current_sound_device = (struct sound_device *) xmalloc (sizeof (struct sound_device));
-  bzero (current_sound_device, sizeof (struct sound_device));
+  memset (current_sound_device, 0, sizeof (struct sound_device));
   current_sound = (struct sound *) xmalloc (sizeof (struct sound));
-  bzero (current_sound, sizeof (struct sound));
+  memset (current_sound, 0, sizeof (struct sound));
   record_unwind_protect (sound_cleanup, Qnil);
   current_sound->header = (char *) alloca (MAX_SOUND_HEADER_BYTES);
 
@@ -1446,7 +1403,8 @@ Internal use only, use `play-sound' instead.  */)
     {
       current_sound->data = attrs[SOUND_DATA];
       current_sound->header_size = min (MAX_SOUND_HEADER_BYTES, SBYTES (current_sound->data));
-      bcopy (SDATA (current_sound->data), current_sound->header, current_sound->header_size);
+      memcpy (current_sound->header, SDATA (current_sound->data),
+	      current_sound->header_size);
     }
 
   /* Find out the type of sound.  Give up if we can't tell.  */
@@ -1524,7 +1482,7 @@ Internal use only, use `play-sound' instead.  */)
  ***********************************************************************/
 
 void
-syms_of_sound ()
+syms_of_sound (void)
 {
   QCdevice = intern_c_string(":device");
   staticpro (&QCdevice);
@@ -1540,7 +1498,7 @@ syms_of_sound ()
 
 
 void
-init_sound ()
+init_sound (void)
 {
 }
 

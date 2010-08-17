@@ -33,12 +33,51 @@
 (defun icalendar-testsuite-run ()
   "Run icalendar test suite."
   (interactive)
+  (icalendar-testsuite--run-internal-tests)
   (icalendar-testsuite--run-function-tests)
   (icalendar-testsuite--run-import-tests)
   (icalendar-testsuite--run-export-tests)
   (icalendar-testsuite--run-cycle-tests)
   (icalendar-testsuite--run-real-world-tests)
   (message "All icalendar tests finished successfully."))
+
+;; ======================================================================
+;; internal
+;; ======================================================================
+(defun icalendar-testsuite--trim (string)
+  "Remove leading and trailing whitespace from STRING."
+  (replace-regexp-in-string "[ \t\n]+\\'" ""
+                            (replace-regexp-in-string "\\`[ \t\n]+" "" string)))
+
+(defun icalendar-testsuite--compare-strings (str1 str2)
+  "Compare strings STR1 and STR2.
+Return t if strings are equal, else return substring indicating first difference.
+FIXME: make this a little smarter."
+  (let* ((s1 (icalendar-testsuite--trim str1))
+         (s2 (icalendar-testsuite--trim str2))
+         (result (compare-strings s1 0 nil s2 0 nil))
+         (len (length str2)))
+    (if (numberp result)
+        (if (> result 0)
+            (concat "..." (substring str2 (- result 1)
+                                     (min len (+ (- result 1) 3))) "...")
+          (concat "..." (substring str2 (- (+ result 1))
+                                   (min len  (+ (- (+ result 1)) 3))) "..."))
+      t)))
+
+(defun icalendar-testsuite--run-internal-tests ()
+  "Run icalendar-testsuite internal tests."
+  (assert (equal t (icalendar-testsuite--compare-strings " abcde" "abcde ")))
+  (assert
+   (string= "...def..."
+            (icalendar-testsuite--compare-strings "abcxe" "abcdefghijklmn")))
+  (assert (string= "...xe..."
+                   (icalendar-testsuite--compare-strings "abcde" "abcxe")))
+  (assert (string= "...ddd..."
+           (icalendar-testsuite--compare-strings "abc" "abcdddddd")))
+  (assert (string= "......"
+                   (icalendar-testsuite--compare-strings "abcdefghij" "abc"))))
+  
 
 ;; ======================================================================
 ;; Test methods for functions
@@ -260,7 +299,7 @@ END:VEVENT
     (assert (string= "subject" (cadr result)))
   
     ;; with time
-    (setq result (icalendar--convert-ordinary-to-ical 
+    (setq result (icalendar--convert-ordinary-to-ical
                   "&?" "&2010 2 15 12:34-23:45 s"))
     (assert (= 2 (length result)))
     (assert (string=  (concat "\nDTSTART;VALUE=DATE-TIME:20100215T123400"
@@ -269,7 +308,7 @@ END:VEVENT
     (assert (string= "s" (cadr result)))
 
     ;; with time, again -- test bug#5549
-    (setq result (icalendar--convert-ordinary-to-ical 
+    (setq result (icalendar--convert-ordinary-to-ical
                   "x?" "x2010 2 15 0:34-1:45 s"))
     (assert (= 2 (length result)))
     (assert (string=  (concat "\nDTSTART;VALUE=DATE-TIME:20100215T003400"
@@ -312,7 +351,7 @@ END:VEVENT
   "Test method for `icalendar--convert-block-to-ical'."
   (let* ((calendar-date-style 'iso)
          result)
-    (setq result (icalendar--convert-block-to-ical 
+    (setq result (icalendar--convert-block-to-ical
                   "" "%%(diary-block 2004 7 19 2004 8 27) Sommerferien"))
     (assert (= 2 (length result)))
     (assert (string= (concat
@@ -325,7 +364,7 @@ END:VEVENT
   "Test method for `icalendar--convert-cyclic-to-ical'."
   (let* ((calendar-date-style 'iso)
          result)
-    (setq result (icalendar--convert-block-to-ical 
+    (setq result (icalendar--convert-block-to-ical
                   "" "%%(diary-block 2004 7 19 2004 8 27) Sommerferien"))
     (assert (= 2 (length result)))
     (assert (string= (concat
@@ -338,7 +377,7 @@ END:VEVENT
   "Test method for `icalendar--convert-anniversary-to-ical'."
   (let* ((calendar-date-style 'iso)
          result)
-    (setq result (icalendar--convert-anniversary-to-ical 
+    (setq result (icalendar--convert-anniversary-to-ical
                   "" "%%(diary-anniversary 1964 6 30) g"))
     (assert (= 2 (length result)))
     (assert (string= (concat
@@ -386,6 +425,7 @@ END:VEVENT
     ))
 
 (defun icalendar-testsuite--test-parse-vtimezone ()
+  "Test method for `icalendar--parse-vtimezone'."
   (let (vtimezone result)
     (setq vtimezone (icalendar-testsuite--get-ical-event "BEGIN:VTIMEZONE
 TZID:thename
@@ -406,7 +446,8 @@ END:VTIMEZONE
     (setq result (icalendar--parse-vtimezone vtimezone))
     (assert (string= "thename" (car result)))
     (message (cdr result))
-    (assert (string= "STD-02:00DST-03:00,M3.5.0/03:00:00,M10.5.0/04:00:00" (cdr result)))
+    (assert (string= "STD-02:00DST-03:00,M3.5.0/03:00:00,M10.5.0/04:00:00"
+                     (cdr result)))
     (setq vtimezone (icalendar-testsuite--get-ical-event "BEGIN:VTIMEZONE
 TZID:anothername
 BEGIN:STANDARD
@@ -457,7 +498,7 @@ and ISO style input data must use english month names."
         (icalendar-testsuite--do-test-export input-iso expected-output)))
     (when input-european
       (let ((calendar-month-name-array
-             ["Januar" "Februar" "März" "April" "Mai" "Juni" "Juli" "August"
+             ["Januar" "Februar" "MÃ¤rz" "April" "Mai" "Juni" "Juli" "August"
               "September" "Oktober" "November" "Dezember"])
             (calendar-day-name-array
              ["Sonntag" "Montag" "Dienstag" "Mittwoch" "Donnerstag" "Freitag"
@@ -511,12 +552,18 @@ END:VCALENDAR
 \\s-*$"
                                     nil t)))
         (error
-         "Export test failed! Input: `%s'\nFound:\n\n%s\n\nbut expected\n\n%s"
+         "Export test failed! Input: `%s'\nFound:\n\n%s\n\nbut expected\n\n%s\n%s"
          input
          (or (and (match-beginning 1)
-                  (buffer-substring-no-properties (match-beginning 1) (match-end 1)))
+                  (buffer-substring-no-properties (match-beginning 1)
+                                                  (match-end 1)))
              "<nil>")
-         (or expected-output "<nil>"))))
+         (or expected-output "<nil>")
+         (icalendar-testsuite--compare-strings   (or (and (match-beginning 1)
+                  (buffer-substring-no-properties (match-beginning 1)
+                                                  (match-end 1)))
+             "<nil>")
+         (or expected-output "<nil>")))))
     (kill-buffer (find-buffer-visiting temp-file))
     (delete-file temp-file)))
 
@@ -571,11 +618,13 @@ Argument EXPECTED-OUTPUT expected diary string."
     (icalendar-import-buffer temp-file t t)
     (save-excursion
       (find-file temp-file)
-      (let ((result (buffer-substring-no-properties (point-min) (point-max))))
-        (unless (string-match (concat "^\\s-*" expected-output "\\s-*$")
-                              result)
-          (error "Import test failed! Found `%s'\nbut expected `%s'" result
-                 expected-output)))
+      (let* ((result (buffer-substring-no-properties (point-min) (point-max)))
+             (difference
+              (icalendar-testsuite--compare-strings result
+                                                    expected-output)))
+        (if (stringp difference)
+          (error "Import test failed! Found\n`%s'\nbut expected\n`%s'\n%s'"
+                 result expected-output difference)))
       (kill-buffer (find-buffer-visiting temp-file))
       (delete-file temp-file))))
 
@@ -626,9 +675,12 @@ Argument INPUT icalendar event string."
       (when (re-search-forward "\nUID:.*\n" nil t)
         (replace-match "\n"))
       (let ((cycled (buffer-substring-no-properties (point-min) (point-max))))
-        (unless (string-equal org-input cycled)
-          (error "Import test failed! Found `%s'\nbut expected `%s'" cycled
-                 org-input))))
+        (let ((difference (icalendar-testsuite--compare-strings cycled
+                                                                org-input)))
+          (if (stringp difference)
+              (error "Import test failed! Found\n`%s'\nbut expected\n`%s'\n%s'"
+                     cycled org-input difference)))
+        ))
 
     ;; clean up -- Note this is done only if test is passed
     (kill-buffer (find-buffer-visiting temp-diary))
@@ -660,6 +712,7 @@ DTSTART;VALUE=DATE-TIME:20030919"
    "&9/19/2003 non-recurring allday")
 
   (icalendar-testsuite--test-import
+   ;; do not remove the trailing blank after "long"!
    "SUMMARY:long 
  summary
 DTSTART;VALUE=DATE:20030919"
@@ -678,9 +731,17 @@ DTSTART;VALUE=DATE:20040719
 DTEND;VALUE=DATE:20040828
 DTSTAMP:20031103T011641Z
 "
-   "&%%(and (diary-block 2004 7 19 2004 8 27)) Sommerferien"
-   "&%%(and (diary-block 19 7 2004 27 8 2004)) Sommerferien"
-   "&%%(and (diary-block 7 19 2004 8 27 2004)) Sommerferien")
+   "&%%(and (diary-block 2004 7 19 2004 8 27)) Sommerferien
+ Status: TENTATIVE
+ Class: PRIVATE
+"
+   "&%%(and (diary-block 19 7 2004 27 8 2004)) Sommerferien
+ Status: TENTATIVE
+ Class: PRIVATE
+"
+   "&%%(and (diary-block 7 19 2004 8 27 2004)) Sommerferien
+ Status: TENTATIVE
+ Class: PRIVATE")
 
   (icalendar-testsuite--test-import
    "UID
@@ -702,9 +763,15 @@ DTSTAMP
 LAST-MODIFIED
  :20041118T013640Z
 "
-   "&2004/11/23 14:00-14:30 folded summary"
-   "&23/11/2004 14:00-14:30 folded summary"
-   "&11/23/2004 14:00-14:30 folded summary")
+   "&2004/11/23 14:00-14:30 folded summary
+ Status: TENTATIVE
+ Class: PRIVATE"
+   "&23/11/2004 14:00-14:30 folded summary
+ Status: TENTATIVE
+ Class: PRIVATE"
+   "&11/23/2004 14:00-14:30 folded summary
+ Status: TENTATIVE
+ Class: PRIVATE")
   (icalendar-testsuite--test-import
    "UID
  :6161a312-3902-11d9-b512-f764153bb28b
@@ -723,9 +790,15 @@ DTEND
 DTSTAMP
  :20041118T013641Z
 "
-   "&2004/11/23 14:45-15:45 another example"
-   "&23/11/2004 14:45-15:45 another example"
-   "&11/23/2004 14:45-15:45 another example")
+   "&2004/11/23 14:45-15:45 another example
+ Status: TENTATIVE
+ Class: PRIVATE"
+   "&23/11/2004 14:45-15:45 another example
+ Status: TENTATIVE
+ Class: PRIVATE"
+   "&11/23/2004 14:45-15:45 another example
+ Status: TENTATIVE
+ Class: PRIVATE")
 
   (icalendar-testsuite--test-import
    "SUMMARY:rrule daily
@@ -890,10 +963,55 @@ CLASS:PUBLIC
 SEQUENCE:1
 CREATED:20041127T183329
 "
-   "&%%(and (diary-cyclic 1 2001 12 21) (diary-block 2001 12 21 2001 12 29))  Urlaub"
-   "&%%(and (diary-cyclic 1 21 12 2001) (diary-block 21 12 2001 29 12 2001))  Urlaub"
-   "&%%(and (diary-cyclic 1 12 21 2001) (diary-block 12 21 2001 12 29 2001))  Urlaub")
-  )
+   "&%%(and (diary-cyclic 1 2001 12 21) (diary-block 2001 12 21 2001 12 29))  Urlaub
+ Class: PUBLIC"
+   "&%%(and (diary-cyclic 1 21 12 2001) (diary-block 21 12 2001 29 12 2001))  Urlaub
+ Class: PUBLIC"
+   "&%%(and (diary-cyclic 1 12 21 2001) (diary-block 12 21 2001 12 29 2001))  Urlaub
+ Class: PUBLIC")
+
+  ;;bug#6766 -- multiple byday values in a weekly rrule
+  (icalendar-testsuite--test-import
+"CLASS:PUBLIC
+DTEND;TZID=America/New_York:20100421T120000
+DTSTAMP:20100525T141214Z
+DTSTART;TZID=America/New_York:20100421T113000
+RRULE:FREQ=WEEKLY;INTERVAL=1;BYDAY=MO,WE,TH,FR
+SEQUENCE:1
+STATUS:CONFIRMED
+SUMMARY:Scrum
+TRANSP:OPAQUE
+UID:8814e3f9-7482-408f-996c-3bfe486a1262
+END:VEVENT
+BEGIN:VEVENT
+CLASS:PUBLIC
+DTSTAMP:20100525T141214Z
+DTSTART;VALUE=DATE:20100422
+DTEND;VALUE=DATE:20100423
+RRULE:FREQ=WEEKLY;INTERVAL=1;BYDAY=TU,TH
+SEQUENCE:1
+SUMMARY:Tues + Thurs thinking
+TRANSP:OPAQUE
+UID:8814e3f9-7482-408f-996c-3bfe486a1263
+"
+"&%%(and (memq (calendar-day-of-week date) '(1 3 4 5)) (diary-cyclic 1 2010 4 21)) 11:30-12:00 Scrum
+ Status: CONFIRMED
+ Class: PUBLIC
+&%%(and (memq (calendar-day-of-week date) '(2 4)) (diary-cyclic 1 2010 4 22)) Tues + Thurs thinking
+ Class: PUBLIC"
+
+"&%%(and (memq (calendar-day-of-week date) '(1 3 4 5)) (diary-cyclic 1 21 4 2010)) 11:30-12:00 Scrum
+ Status: CONFIRMED
+ Class: PUBLIC
+&%%(and (memq (calendar-day-of-week date) '(2 4)) (diary-cyclic 1 22 4 2010)) Tues + Thurs thinking
+ Class: PUBLIC"
+
+"&%%(and (memq (calendar-day-of-week date) '(1 3 4 5)) (diary-cyclic 1 4 21 2010)) 11:30-12:00 Scrum
+ Status: CONFIRMED
+ Class: PUBLIC
+&%%(and (memq (calendar-day-of-week date) '(2 4)) (diary-cyclic 1 4 22 2010)) Tues + Thurs thinking
+ Class: PUBLIC")
+)
 
 ;; ======================================================================
 ;; Export tests
@@ -1104,11 +1222,13 @@ END:VCALENDAR"
    "&9/5/2003 10:30-15:30 On-Site Interview
  Desc: 10:30am - Blah
  Location: Cccc
- Organizer: MAILTO:aaaaaaa@aaaaaaa.com"
+ Organizer: MAILTO:aaaaaaa@aaaaaaa.com
+ Status: CONFIRMED"
    "&5/9/2003 10:30-15:30 On-Site Interview
  Desc: 10:30am - Blah
  Location: Cccc
- Organizer: MAILTO:aaaaaaa@aaaaaaa.com")
+ Organizer: MAILTO:aaaaaaa@aaaaaaa.com
+ Status: CONFIRMED")
 
   ;; 2003-06-18 a
   (icalendar-testsuite--test-import
@@ -1146,11 +1266,13 @@ END:VALARM"
    "&23/6/2003 11:00-12:00 Dress Rehearsal for XXXX-XXXX
  Desc: 753 Zeichen hier radiert
  Location: 555 or TN 555-5555 ID 5555 & NochWas (see below)
- Organizer: MAILTO:xxx@xxxxx.com"
+ Organizer: MAILTO:xxx@xxxxx.com
+ Status: CONFIRMED"
    "&6/23/2003 11:00-12:00 Dress Rehearsal for XXXX-XXXX
  Desc: 753 Zeichen hier radiert
  Location: 555 or TN 555-5555 ID 5555 & NochWas (see below)
- Organizer: MAILTO:xxx@xxxxx.com")
+ Organizer: MAILTO:xxx@xxxxx.com
+ Status: CONFIRMED")
 
   ;; 2003-06-18 b -- uses timezone
   (icalendar-testsuite--test-import
@@ -1188,7 +1310,7 @@ ORGANIZER;CN=\"ABCD,TECHTRAINING
 \(A-Americas,exgen1)\":MAILTO:bbb@bbbbb.com
 LOCATION:123 or TN 123-1234 ID abcd & SonstWo (see below)
 DTEND;TZID=\"Mountain Time (US & Canada)\":20030623T100000
-DESCRIPTION:Viele Zeichen standen hier früher
+DESCRIPTION:Viele Zeichen standen hier frÃ¼her
 SEQUENCE:0
 PRIORITY:5
 CLASS:
@@ -1211,12 +1333,12 @@ END:VEVENT
 END:VCALENDAR"
    nil
    "&23/6/2003 17:00-18:00 Updated: Dress Rehearsal for ABC01-15
- Desc: Viele Zeichen standen hier früher
+ Desc: Viele Zeichen standen hier frÃ¼her
  Location: 123 or TN 123-1234 ID abcd & SonstWo (see below)
  Organizer: MAILTO:bbb@bbbbb.com
  Status: CONFIRMED"
    "&6/23/2003 17:00-18:00 Updated: Dress Rehearsal for ABC01-15
- Desc: Viele Zeichen standen hier früher
+ Desc: Viele Zeichen standen hier frÃ¼her
  Location: 123 or TN 123-1234 ID abcd & SonstWo (see below)
  Organizer: MAILTO:bbb@bbbbb.com
  Status: CONFIRMED")
@@ -1661,9 +1783,13 @@ DTSTAMP
  :20050128T011209Z"
    nil
    "&%%(and (diary-block 6 2 2005 6 2 2005)) Waitangi Day
- Desc: abcdef"
+ Desc: abcdef
+ Status: CONFIRMED
+ Class: PRIVATE"
    "&%%(and (diary-block 2 6 2005 2 6 2005)) Waitangi Day
- Desc: abcdef")
+ Desc: abcdef
+ Status: CONFIRMED
+ Class: PRIVATE")
 
   ;; 2005-03-01 lt
   (icalendar-testsuite--test-import

@@ -28,6 +28,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <ctype.h>
 #include <sys/types.h>
@@ -126,13 +127,6 @@ Lisp_Object Vcharset_map_path;
 int inhibit_load_charset_map;
 
 Lisp_Object Vcurrent_iso639_language;
-
-/* Defined in chartab.c */
-extern void
-map_char_table_for_charset P_ ((void (*c_function) (Lisp_Object, Lisp_Object),
-				Lisp_Object function, Lisp_Object table,
-				Lisp_Object arg, struct charset *charset,
-				unsigned from, unsigned to));
 
 #define CODE_POINT_TO_INDEX(charset, code)				\
   ((charset)->code_linear_p						\
@@ -267,11 +261,7 @@ struct charset_map_entries
 */
 
 static void
-load_charset_map (charset, entries, n_entries, control_flag)
-  struct charset *charset;
-  struct charset_map_entries *entries;
-  int n_entries;
-  int control_flag;
+load_charset_map (struct charset *charset, struct charset_map_entries *entries, int n_entries, int control_flag)
 {
   Lisp_Object vec, table;
   unsigned max_code = CHARSET_MAX_CODE (charset);
@@ -440,9 +430,7 @@ load_charset_map (charset, entries, n_entries, control_flag)
    paying attention to comment charcter '#'.  */
 
 static INLINE unsigned
-read_hex (fp, eof)
-     FILE *fp;
-     int *eof;
+read_hex (FILE *fp, int *eof)
 {
   int c;
   unsigned n;
@@ -478,8 +466,6 @@ read_hex (fp, eof)
   return n;
 }
 
-extern Lisp_Object Qfile_name_handler_alist;
-
 /* Return a mapping vector for CHARSET loaded from MAPFILE.
    Each line of MAPFILE has this form
 	0xAAAA 0xCCCC
@@ -497,13 +483,8 @@ extern Lisp_Object Qfile_name_handler_alist;
    Note that this function uses `openp' to open MAPFILE but ignores
    `file-name-handler-alist' to avoid running any Lisp code.  */
 
-extern void add_to_log P_ ((char *, Lisp_Object, Lisp_Object));
-
 static void
-load_charset_map_from_file (charset, mapfile, control_flag)
-     struct charset *charset;
-     Lisp_Object mapfile;
-     int control_flag;
+load_charset_map_from_file (struct charset *charset, Lisp_Object mapfile, int control_flag)
 {
   unsigned min_code = CHARSET_MIN_CODE (charset);
   unsigned max_code = CHARSET_MAX_CODE (charset);
@@ -531,7 +512,7 @@ load_charset_map_from_file (charset, mapfile, control_flag)
   SAFE_ALLOCA (head, struct charset_map_entries *,
 	       sizeof (struct charset_map_entries));
   entries = head;
-  bzero (entries, sizeof (struct charset_map_entries));
+  memset (entries, 0, sizeof (struct charset_map_entries));
 
   n_entries = 0;
   eof = 0;
@@ -558,7 +539,7 @@ load_charset_map_from_file (charset, mapfile, control_flag)
 	  SAFE_ALLOCA (entries->next, struct charset_map_entries *,
 		       sizeof (struct charset_map_entries));
 	  entries = entries->next;
-	  bzero (entries, sizeof (struct charset_map_entries));
+	  memset (entries, 0, sizeof (struct charset_map_entries));
 	}
       idx = n_entries % 0x10000;
       entries->entry[idx].from = from;
@@ -573,10 +554,7 @@ load_charset_map_from_file (charset, mapfile, control_flag)
 }
 
 static void
-load_charset_map_from_vector (charset, vec, control_flag)
-     struct charset *charset;
-     Lisp_Object vec;
-     int control_flag;
+load_charset_map_from_vector (struct charset *charset, Lisp_Object vec, int control_flag)
 {
   unsigned min_code = CHARSET_MIN_CODE (charset);
   unsigned max_code = CHARSET_MAX_CODE (charset);
@@ -597,7 +575,7 @@ load_charset_map_from_vector (charset, vec, control_flag)
   SAFE_ALLOCA (head, struct charset_map_entries *,
 	       sizeof (struct charset_map_entries));
   entries = head;
-  bzero (entries, sizeof (struct charset_map_entries));
+  memset (entries, 0, sizeof (struct charset_map_entries));
 
   n_entries = 0;
   for (i = 0; i < len; i += 2)
@@ -634,7 +612,7 @@ load_charset_map_from_vector (charset, vec, control_flag)
 	  SAFE_ALLOCA (entries->next, struct charset_map_entries *,
 		       sizeof (struct charset_map_entries));
 	  entries = entries->next;
-	  bzero (entries, sizeof (struct charset_map_entries));
+	  memset (entries, 0, sizeof (struct charset_map_entries));
 	}
       idx = n_entries % 0x10000;
       entries->entry[idx].from = from;
@@ -652,9 +630,7 @@ load_charset_map_from_vector (charset, vec, control_flag)
    map it is (see the comment of load_charset_map for the detail).  */
 
 static void
-load_charset (charset, control_flag)
-     struct charset *charset;
-     int control_flag;
+load_charset (struct charset *charset, int control_flag)
 {
   Lisp_Object map;
 
@@ -677,22 +653,18 @@ load_charset (charset, control_flag)
 
 DEFUN ("charsetp", Fcharsetp, Scharsetp, 1, 1, 0,
        doc: /* Return non-nil if and only if OBJECT is a charset.*/)
-     (object)
-     Lisp_Object object;
+  (Lisp_Object object)
 {
   return (CHARSETP (object) ? Qt : Qnil);
 }
 
 
-void map_charset_for_dump P_ ((void (*c_function) (Lisp_Object, Lisp_Object),
-			       Lisp_Object function, Lisp_Object arg,
-			       unsigned from, unsigned to));
+void map_charset_for_dump (void (*c_function) (Lisp_Object, Lisp_Object),
+                           Lisp_Object function, Lisp_Object arg,
+                           unsigned from, unsigned to);
 
 void
-map_charset_for_dump (c_function, function, arg, from, to)
-     void (*c_function) (Lisp_Object, Lisp_Object);
-     Lisp_Object function, arg;
-     unsigned from, to;
+map_charset_for_dump (void (*c_function) (Lisp_Object, Lisp_Object), Lisp_Object function, Lisp_Object arg, unsigned int from, unsigned int to)
 {
   int from_idx = CODE_POINT_TO_INDEX (temp_charset_work->current, from);
   int to_idx = CODE_POINT_TO_INDEX (temp_charset_work->current, to);
@@ -748,12 +720,8 @@ map_charset_for_dump (c_function, function, arg, from, to)
 }
 
 void
-map_charset_chars (c_function, function, arg,
-		   charset, from, to)
-     void (*c_function) P_ ((Lisp_Object, Lisp_Object));
-     Lisp_Object function, arg;
-     struct charset *charset;
-     unsigned from, to;
+map_charset_chars (void (*c_function)(Lisp_Object, Lisp_Object), Lisp_Object function,
+		   Lisp_Object arg, struct charset *charset, unsigned from, unsigned to)
 {
   Lisp_Object range;
   int partial;
@@ -847,8 +815,7 @@ characters contained in CHARSET.
 
 The optional 4th and 5th arguments FROM-CODE and TO-CODE specify the
 range of code points (in CHARSET) of target characters.  */)
-     (function, charset, arg, from_code, to_code)
-       Lisp_Object function, charset, arg, from_code, to_code;
+  (Lisp_Object function, Lisp_Object charset, Lisp_Object arg, Lisp_Object from_code, Lisp_Object to_code)
 {
   struct charset *cs;
   unsigned from, to;
@@ -886,9 +853,7 @@ DEFUN ("define-charset-internal", Fdefine_charset_internal,
        Sdefine_charset_internal, charset_arg_max, MANY, 0,
        doc: /* For internal use only.
 usage: (define-charset-internal ...)  */)
-     (nargs, args)
-     int nargs;
-     Lisp_Object *args;
+  (int nargs, Lisp_Object *args)
 {
   /* Charset attr vector.  */
   Lisp_Object attrs;
@@ -952,7 +917,7 @@ usage: (define-charset-internal ...)  */)
   if (! charset.code_linear_p)
     {
       charset.code_space_mask = (unsigned char *) xmalloc (256);
-      bzero (charset.code_space_mask, 256);
+      memset (charset.code_space_mask, 0, 256);
       for (i = 0; i < 4; i++)
 	for (j = charset.code_space[i * 4]; j <= charset.code_space[i * 4 + 1];
 	     j++)
@@ -1075,7 +1040,7 @@ usage: (define-charset-internal ...)  */)
 
   charset.unified_p = 0;
 
-  bzero (charset.fast_map, sizeof (charset.fast_map));
+  memset (charset.fast_map, 0, sizeof (charset.fast_map));
 
   if (! NILP (args[charset_arg_code_offset]))
     {
@@ -1208,8 +1173,8 @@ usage: (define-charset-internal ...)  */)
 	  struct charset *new_table
 	    = (struct charset *) xmalloc (sizeof (struct charset)
 					  * (charset_table_size + 16));
-	  bcopy (charset_table, new_table,
-		 sizeof (struct charset) * charset_table_size);
+	  memcpy (new_table, charset_table,
+		  sizeof (struct charset) * charset_table_size);
 	  charset_table_size += 16;
 	  charset_table = new_table;
 	}
@@ -1299,17 +1264,13 @@ usage: (define-charset-internal ...)  */)
    charset.  */
 
 static int
-define_charset_internal (name, dimension, code_space, min_code, max_code,
-			 iso_final, iso_revision, emacs_mule_id,
-			 ascii_compatible, supplementary,
-			 code_offset)
-     Lisp_Object name;
-     int dimension;
-     unsigned char *code_space;
-     unsigned min_code, max_code;
-     int iso_final, iso_revision, emacs_mule_id;
-     int ascii_compatible, supplementary;
-     int code_offset;
+define_charset_internal (Lisp_Object name,
+			 int dimension,
+			 const unsigned char *code_space,
+			 unsigned min_code, unsigned max_code,
+			 int iso_final, int iso_revision, int emacs_mule_id,
+			 int ascii_compatible, int supplementary,
+			 int code_offset)
 {
   Lisp_Object args[charset_arg_max];
   Lisp_Object plist[14];
@@ -1363,8 +1324,7 @@ define_charset_internal (name, dimension, code_space, min_code, max_code,
 DEFUN ("define-charset-alias", Fdefine_charset_alias,
        Sdefine_charset_alias, 2, 2, 0,
        doc: /* Define ALIAS as an alias for charset CHARSET.  */)
-     (alias, charset)
-     Lisp_Object alias, charset;
+  (Lisp_Object alias, Lisp_Object charset)
 {
   Lisp_Object attr;
 
@@ -1377,8 +1337,7 @@ DEFUN ("define-charset-alias", Fdefine_charset_alias,
 
 DEFUN ("charset-plist", Fcharset_plist, Scharset_plist, 1, 1, 0,
        doc: /* Return the property list of CHARSET.  */)
-     (charset)
-     Lisp_Object charset;
+  (Lisp_Object charset)
 {
   Lisp_Object attrs;
 
@@ -1389,8 +1348,7 @@ DEFUN ("charset-plist", Fcharset_plist, Scharset_plist, 1, 1, 0,
 
 DEFUN ("set-charset-plist", Fset_charset_plist, Sset_charset_plist, 2, 2, 0,
        doc: /* Set CHARSET's property list to PLIST.  */)
-     (charset, plist)
-     Lisp_Object charset, plist;
+  (Lisp_Object charset, Lisp_Object plist)
 {
   Lisp_Object attrs;
 
@@ -1410,8 +1368,7 @@ the same meaning as the `:unify-map' attribute in the function
 `define-charset' (which see).
 
 Optional third argument DEUNIFY, if non-nil, means to de-unify CHARSET.  */)
-     (charset, unify_map, deunify)
-     Lisp_Object charset, unify_map, deunify;
+  (Lisp_Object charset, Lisp_Object unify_map, Lisp_Object deunify)
 {
   int id;
   struct charset *cs;
@@ -1466,8 +1423,7 @@ CHARS is the number of characters in a dimension: 94 or 96.
 This final char is for private use, thus the range is `0' (48) .. `?' (63).
 If there's no unused final char for the specified kind of charset,
 return nil.  */)
-     (dimension, chars)
-     Lisp_Object dimension, chars;
+  (Lisp_Object dimension, Lisp_Object chars)
 {
   int final_char;
 
@@ -1484,8 +1440,7 @@ return nil.  */)
 }
 
 static void
-check_iso_charset_parameter (dimension, chars, final_char)
-     Lisp_Object dimension, chars, final_char;
+check_iso_charset_parameter (Lisp_Object dimension, Lisp_Object chars, Lisp_Object final_char)
 {
   CHECK_NATNUM (dimension);
   CHECK_NATNUM (chars);
@@ -1507,8 +1462,7 @@ DEFUN ("declare-equiv-charset", Fdeclare_equiv_charset, Sdeclare_equiv_charset,
 On decoding by an ISO-2022 base coding system, when a charset
 specified by DIMENSION, CHARS, and FINAL-CHAR is designated, behave as
 if CHARSET is designated instead.  */)
-     (dimension, chars, final_char, charset)
-     Lisp_Object dimension, chars, final_char, charset;
+  (Lisp_Object dimension, Lisp_Object chars, Lisp_Object final_char, Lisp_Object charset)
 {
   int id;
   int chars_flag;
@@ -1535,8 +1489,7 @@ if CHARSET is designated instead.  */)
 */
 
 int
-string_xstring_p (string)
-     Lisp_Object string;
+string_xstring_p (Lisp_Object string)
 {
   const unsigned char *p = SDATA (string);
   const unsigned char *endp = p + SBYTES (string);
@@ -1563,11 +1516,7 @@ string_xstring_p (string)
    It may lookup a translation table TABLE if supplied.  */
 
 static void
-find_charsets_in_text (ptr, nchars, nbytes, charsets, table, multibyte)
-     const unsigned char *ptr;
-     EMACS_INT nchars, nbytes;
-     Lisp_Object charsets, table;
-     int multibyte;
+find_charsets_in_text (const unsigned char *ptr, EMACS_INT nchars, EMACS_INT nbytes, Lisp_Object charsets, Lisp_Object table, int multibyte)
 {
   const unsigned char *pend = ptr + nbytes;
 
@@ -1611,8 +1560,7 @@ Optional arg TABLE if non-nil is a translation table to look up.
 
 If the current buffer is unibyte, the returned list may contain
 only `ascii', `eight-bit-control', and `eight-bit-graphic'.  */)
-     (beg, end, table)
-     Lisp_Object beg, end, table;
+  (Lisp_Object beg, Lisp_Object end, Lisp_Object table)
 {
   Lisp_Object charsets;
   EMACS_INT from, from_byte, to, stop, stop_byte;
@@ -1663,8 +1611,7 @@ Optional arg TABLE if non-nil is a translation table to look up.
 
 If STR is unibyte, the returned list may contain
 only `ascii', `eight-bit-control', and `eight-bit-graphic'. */)
-     (str, table)
-     Lisp_Object str, table;
+  (Lisp_Object str, Lisp_Object table)
 {
   Lisp_Object charsets;
   int i;
@@ -1689,9 +1636,7 @@ only `ascii', `eight-bit-control', and `eight-bit-graphic'. */)
    value of Vchar_unify_table for C; i.e. it is nil, an integer, or a
    charset symbol.  */
 int
-maybe_unify_char (c, val)
-     int c;
-     Lisp_Object val;
+maybe_unify_char (int c, Lisp_Object val)
 {
   struct charset *charset;
 
@@ -1724,9 +1669,7 @@ maybe_unify_char (c, val)
    CHARSET.  */
 
 int
-decode_char (charset, code)
-     struct charset *charset;
-     unsigned code;
+decode_char (struct charset *charset, unsigned int code)
 {
   int c, char_index;
   enum charset_method method = CHARSET_METHOD (charset);
@@ -1805,9 +1748,7 @@ Lisp_Object charset_work;
    use CHARSET's strict_max_char instead of max_char.  */
 
 unsigned
-encode_char (charset, c)
-     struct charset *charset;
-     int c;
+encode_char (struct charset *charset, int c)
 {
   unsigned code;
   enum charset_method method = CHARSET_METHOD (charset);
@@ -1921,8 +1862,7 @@ CODE-POINT may be a cons (HIGHER-16-BIT-VALUE . LOWER-16-BIT-VALUE).
 
 Optional argument RESTRICTION specifies a way to map the pair of CCS
 and CODE-POINT to a character.  Currently not supported and just ignored.  */)
-  (charset, code_point, restriction)
-     Lisp_Object charset, code_point, restriction;
+  (Lisp_Object charset, Lisp_Object code_point, Lisp_Object restriction)
 {
   int c, id;
   unsigned code;
@@ -1952,8 +1892,7 @@ Return nil if CHARSET doesn't include CH.
 
 Optional argument RESTRICTION specifies a way to map CH to a
 code-point in CCS.  Currently not supported and just ignored.  */)
-     (ch, charset, restriction)
-     Lisp_Object ch, charset, restriction;
+  (Lisp_Object ch, Lisp_Object charset, Lisp_Object restriction)
 {
   int id;
   unsigned code;
@@ -1978,8 +1917,7 @@ DEFUN ("make-char", Fmake_char, Smake_char, 1, 5, 0,
 CODE1 through CODE4 are optional, but if you don't supply sufficient
 position codes, it is assumed that the minimum code in each dimension
 is specified.  */)
-     (charset, code1, code2, code3, code4)
-     Lisp_Object charset, code1, code2, code3, code4;
+  (Lisp_Object charset, Lisp_Object code1, Lisp_Object code2, Lisp_Object code3, Lisp_Object code4)
 {
   int id, dimension;
   struct charset *charsetp;
@@ -2057,10 +1995,7 @@ is specified.  */)
    Vcharset_ordered_list.  */
 
 struct charset *
-char_charset (c, charset_list, code_return)
-     int c;
-     Lisp_Object charset_list;
-     unsigned *code_return;
+char_charset (int c, Lisp_Object charset_list, unsigned int *code_return)
 {
   int maybe_null = 0;
 
@@ -2098,8 +2033,7 @@ DEFUN ("split-char", Fsplit_char, Ssplit_char, 1, 1, 0,
 The charset is decided by the current priority order of charsets.
 A position-code is a byte value of each dimension of the code-point of
 CH in the charset.  */)
-     (ch)
-     Lisp_Object ch;
+  (Lisp_Object ch)
 {
   struct charset *charset;
   int c, dimension;
@@ -2129,8 +2063,7 @@ DEFUN ("char-charset", Fchar_charset, Schar_charset, 1, 2, 0,
 If optional 2nd arg RESTRICTION is non-nil, it is a list of charsets
 from which to find the charset.  It may also be a coding system.  In
 that case, find the charset from what supported by that coding system.  */)
-     (ch, restriction)
-     Lisp_Object ch, restriction;
+  (Lisp_Object ch, Lisp_Object restriction)
 {
   struct charset *charset;
 
@@ -2139,23 +2072,22 @@ that case, find the charset from what supported by that coding system.  */)
     charset = CHAR_CHARSET (XINT (ch));
   else
     {
-      Lisp_Object charset_list;
-
       if (CONSP (restriction))
 	{
-	  for (charset_list = Qnil; CONSP (restriction);
-	       restriction = XCDR (restriction))
-	    {
-	      int id;
+	  int c = XFASTINT (ch);
 
-	      CHECK_CHARSET_GET_ID (XCAR (restriction), id);
-	      charset_list = Fcons (make_number (id), charset_list);
+	  for (; CONSP (restriction); restriction = XCDR (restriction))
+	    {
+	      struct charset *charset;
+
+	      CHECK_CHARSET_GET_CHARSET (XCAR (restriction), charset);
+	      if (ENCODE_CHAR (charset, c) != CHARSET_INVALID_CODE (charset))
+		return XCAR (restriction);
 	    }
-	  charset_list = Fnreverse (charset_list);
+	  return Qnil;
 	}
-      else
-	charset_list = coding_system_charset_list (restriction);
-      charset = char_charset (XINT (ch), charset_list, NULL);
+      restriction = coding_system_charset_list (restriction);
+      charset = char_charset (XINT (ch), restriction, NULL);
       if (! charset)
 	return Qnil;
     }
@@ -2168,8 +2100,7 @@ DEFUN ("charset-after", Fcharset_after, Scharset_after, 0, 1, 0,
 Return charset of a character in the current buffer at position POS.
 If POS is nil, it defauls to the current point.
 If POS is out of range, the value is nil.  */)
-     (pos)
-     Lisp_Object pos;
+  (Lisp_Object pos)
 {
   Lisp_Object ch;
   struct charset *charset;
@@ -2191,8 +2122,7 @@ by their DIMENSION, CHARS, and FINAL-CHAR,
 whereas Emacs distinguishes them by charset symbol.
 See the documentation of the function `charset-info' for the meanings of
 DIMENSION, CHARS, and FINAL-CHAR.  */)
-     (dimension, chars, final_char)
-     Lisp_Object dimension, chars, final_char;
+  (Lisp_Object dimension, Lisp_Object chars, Lisp_Object final_char)
 {
   int id;
   int chars_flag;
@@ -2211,7 +2141,7 @@ DEFUN ("clear-charset-maps", Fclear_charset_maps, Sclear_charset_maps,
 Internal use only.
 Clear temporary charset mapping tables.
 It should be called only from temacs invoked for dumping.  */)
-     ()
+  (void)
 {
   if (temp_charset_work)
     {
@@ -2229,8 +2159,7 @@ DEFUN ("charset-priority-list", Fcharset_priority_list,
        Scharset_priority_list, 0, 1, 0,
        doc: /* Return the list of charsets ordered by priority.
 HIGHESTP non-nil means just return the highest priority one.  */)
-     (highestp)
-     Lisp_Object highestp;
+  (Lisp_Object highestp)
 {
   Lisp_Object val = Qnil, list = Vcharset_ordered_list;
 
@@ -2249,9 +2178,7 @@ DEFUN ("set-charset-priority", Fset_charset_priority, Sset_charset_priority,
        1, MANY, 0,
        doc: /* Assign higher priority to the charsets given as arguments.
 usage: (set-charset-priority &rest charsets)  */)
-       (nargs, args)
-     int nargs;
-     Lisp_Object *args;
+  (int nargs, Lisp_Object *args)
 {
   Lisp_Object new_head, old_list, arglist[2];
   Lisp_Object list_2022, list_emacs_mule;
@@ -2303,8 +2230,7 @@ DEFUN ("charset-id-internal", Fcharset_id_internal, Scharset_id_internal,
        0, 1, 0,
        doc: /* Internal use only.
 Return charset identification number of CHARSET.  */)
-     (charset)
-     Lisp_Object charset;
+  (Lisp_Object charset)
 {
   int id;
 
@@ -2312,9 +2238,72 @@ Return charset identification number of CHARSET.  */)
   return make_number (id);
 }
 
+struct charset_sort_data
+{
+  Lisp_Object charset;
+  int id;
+  int priority;
+};
+
+static int
+charset_compare (const void *d1, const void *d2)
+{
+  const struct charset_sort_data *data1 = d1, *data2 = d2;
+  return (data1->priority - data2->priority);
+}
+
+DEFUN ("sort-charsets", Fsort_charsets, Ssort_charsets, 1, 1, 0,
+       doc: /* Sort charset list CHARSETS by a priority of each charset.
+Return the sorted list.  CHARSETS is modified by side effects.
+See also `charset-priority-list' and `set-charset-priority'.  */)
+     (Lisp_Object charsets)
+{
+  Lisp_Object len = Flength (charsets);
+  int n = XFASTINT (len), i, j, done;
+  Lisp_Object tail, elt, attrs;
+  struct charset_sort_data *sort_data;
+  int id, min_id, max_id;
+  USE_SAFE_ALLOCA;
+
+  if (n == 0)
+    return Qnil;
+  SAFE_ALLOCA (sort_data, struct charset_sort_data *, sizeof (*sort_data) * n);
+  for (tail = charsets, i = 0; CONSP (tail); tail = XCDR (tail), i++)
+    {
+      elt = XCAR (tail);
+      CHECK_CHARSET_GET_ATTR (elt, attrs);
+      sort_data[i].charset = elt;
+      sort_data[i].id = id = XINT (CHARSET_ATTR_ID (attrs));
+      if (i == 0)
+	min_id = max_id = id;
+      else if (id < min_id)
+	min_id = id;
+      else if (id > max_id)
+	max_id = id;
+    }
+  for (done = 0, tail = Vcharset_ordered_list, i = 0;
+       done < n && CONSP (tail); tail = XCDR (tail), i++)
+    {
+      elt = XCAR (tail);
+      id = XFASTINT (elt);
+      if (id >= min_id && id <= max_id)
+	for (j = 0; j < n; j++)
+	  if (sort_data[j].id == id)
+	    {
+	      sort_data[j].priority = i;
+	      done++;
+	    }
+    }
+  qsort (sort_data, n, sizeof *sort_data, charset_compare);
+  for (i = 0, tail = charsets; CONSP (tail); tail = XCDR (tail), i++)
+    XSETCAR (tail, sort_data[i].charset);
+  SAFE_FREE ();
+  return charsets;
+}
+
 
 void
-init_charset ()
+init_charset (void)
 {
   Lisp_Object tempdir;
   tempdir = Fexpand_file_name (build_string ("charsets"), Vdata_directory);
@@ -2332,7 +2321,7 @@ Please check your installation!\n",
 
 
 void
-init_charset_once ()
+init_charset_once (void)
 {
   int i, j, k;
 
@@ -2353,7 +2342,7 @@ init_charset_once ()
 #ifdef emacs
 
 void
-syms_of_charset ()
+syms_of_charset (void)
 {
   DEFSYM (Qcharsetp, "charsetp");
 
@@ -2414,6 +2403,7 @@ syms_of_charset ()
   defsubr (&Scharset_priority_list);
   defsubr (&Sset_charset_priority);
   defsubr (&Scharset_id_internal);
+  defsubr (&Ssort_charsets);
 
   DEFVAR_LISP ("charset-map-path", &Vcharset_map_path,
 	       doc: /* *List of directories to search for charset map files.  */);

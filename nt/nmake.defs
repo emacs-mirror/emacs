@@ -136,8 +136,15 @@ DEBUG_CFLAGS	= -DEMACSDEBUG
 !else
 DEBUG_CFLAGS	=
 !endif
+
+!ifdef ENABLECHECKS
+CHECKING_CFLAGS	= -DENABLE_CHECKING -DXASSERTS
+!else
+CHECKING_CFLAGS	=
+!endif
+
 CFLAGS          = -I. $(ARCH_CFLAGS) \
-		  $(DEBUG_CFLAGS) $(USER_CFLAGS) $(LOCAL_FLAGS)
+		  $(DEBUG_CFLAGS) $(CHECKING_CFLAGS) $(USER_CFLAGS) $(LOCAL_FLAGS)
 EMACS_EXTRA_C_FLAGS =
 
 SYS_LDFLAGS	= -nologo -release -incremental:no -version:3.10 -swaprun:cd -swaprun:net setargv.obj

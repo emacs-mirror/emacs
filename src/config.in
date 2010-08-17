@@ -27,8 +27,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define EMACS_CONFIG_H
 
 
+/* Define if building universal (internal helper macro) */
+#undef AC_APPLE_UNIVERSAL_BUILD
+
 /* Define to 1 if the mktime function is broken. */
 #undef BROKEN_MKTIME
+
+/* Define if Emacs cannot be dumped on your system. */
+#undef CANNOT_DUMP
 
 /* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
    systems. This function is required for `alloca.c' support on those systems.
@@ -99,15 +105,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if ALSA is available. */
 #undef HAVE_ALSA
 
-/* Define to 1 if you have the `bcmp' function. */
-#undef HAVE_BCMP
-
-/* Define to 1 if you have the `bcopy' function. */
-#undef HAVE_BCOPY
-
-/* Define to 1 if you have the `bzero' function. */
-#undef HAVE_BZERO
-
 /* Define to 1 if you have the `cbrt' function. */
 #undef HAVE_CBRT
 
@@ -156,6 +153,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `difftime' function. */
 #undef HAVE_DIFFTIME
 
+/* Define to 1 if you have the <dirent.h> header file. */
+#undef HAVE_DIRENT_H
+
 /* Define to 1 if you have the `dup2' function. */
 #undef HAVE_DUP2
 
@@ -194,9 +194,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if using GConf. */
 #undef HAVE_GCONF
-
-/* Define to 1 if you have the `gdk_display_open' function. */
-#undef HAVE_GDK_DISPLAY_OPEN
 
 /* Define to 1 if you have the `getaddrinfo' function. */
 #undef HAVE_GETADDRINFO
@@ -264,14 +261,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `grantpt' function. */
 #undef HAVE_GRANTPT
 
+/* Define to 1 if you have the `gtk_adjustment_get_page_size' function. */
+#undef HAVE_GTK_ADJUSTMENT_GET_PAGE_SIZE
+
 /* Define to 1 if you have GTK and pthread (-lpthread). */
 #undef HAVE_GTK_AND_PTHREAD
 
-/* Define to 1 if GTK has both file selection and chooser dialog. */
-#undef HAVE_GTK_FILE_BOTH
-
-/* Define to 1 if you have the `gtk_file_chooser_dialog_new' function. */
-#undef HAVE_GTK_FILE_CHOOSER_DIALOG_NEW
+/* Define to 1 if you have the `gtk_dialog_get_action_area' function. */
+#undef HAVE_GTK_DIALOG_GET_ACTION_AREA
 
 /* Define to 1 if you have the `gtk_file_selection_new' function. */
 #undef HAVE_GTK_FILE_SELECTION_NEW
@@ -279,17 +276,26 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `gtk_main' function. */
 #undef HAVE_GTK_MAIN
 
-/* Define to 1 if GTK can handle more than one display. */
-#undef HAVE_GTK_MULTIDISPLAY
+/* Define to 1 if you have the `gtk_orientable_set_orientation' function. */
+#undef HAVE_GTK_ORIENTABLE_SET_ORIENTATION
+
+/* Define to 1 if you have the `gtk_widget_get_mapped' function. */
+#undef HAVE_GTK_WIDGET_GET_MAPPED
+
+/* Define to 1 if you have the `gtk_widget_get_sensitive' function. */
+#undef HAVE_GTK_WIDGET_GET_SENSITIVE
+
+/* Define to 1 if you have the `gtk_widget_get_window' function. */
+#undef HAVE_GTK_WIDGET_GET_WINDOW
+
+/* Define to 1 if you have the `gtk_widget_set_has_window' function. */
+#undef HAVE_GTK_WIDGET_SET_HAS_WINDOW
 
 /* Define to 1 if netdb.h declares h_errno. */
 #undef HAVE_H_ERRNO
 
 /* Define to 1 if using imagemagick. */
 #undef HAVE_IMAGEMAGICK
-
-/* Define to 1 if you have the `index' function. */
-#undef HAVE_INDEX
 
 /* Define to 1 if you have inet sockets. */
 #undef HAVE_INET_SOCKETS
@@ -540,9 +546,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if res_init is available. */
 #undef HAVE_RES_INIT
 
-/* Define to 1 if you have the `rindex' function. */
-#undef HAVE_RINDEX
-
 /* Define to 1 if you have the `rint' function. */
 #undef HAVE_RINT
 
@@ -582,6 +585,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if the system has the type `size_t'. */
 #undef HAVE_SIZE_T
 
+/* Define to 1 if you have sound support. */
+#undef HAVE_SOUND
+
 /* Define to 1 if you have the <soundcard.h> header file. */
 #undef HAVE_SOUNDCARD_H
 
@@ -597,6 +603,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <stdlib.h> header file. */
 #undef HAVE_STDLIB_H
 
+/* Define to 1 if you have the `strchr' function. */
+#undef HAVE_STRCHR
+
 /* Define to 1 if you have the `strerror' function. */
 #undef HAVE_STRERROR
 
@@ -608,6 +617,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
+
+/* Define to 1 if you have the `strrchr' function. */
+#undef HAVE_STRRCHR
 
 /* Define to 1 if you have the `strsignal' function. */
 #undef HAVE_STRSIGNAL
@@ -728,6 +740,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
+/* Define to 1 if you have the <util.h> header file. */
+#undef HAVE_UTIL_H
+
 /* Define to 1 if you have the `utimes' function. */
 #undef HAVE_UTIMES
 
@@ -759,6 +774,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the X11R6 or newer version of Xlib. */
 #undef HAVE_X11R6
 
+/* Define if you have usable X11R6-style XIM support. */
+#undef HAVE_X11R6_XIM
+
 /* Define to 1 if you have the X11R6 or newer version of Xt. */
 #undef HAVE_X11XTR6
 
@@ -789,11 +807,17 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the `XSetWMProtocols' function. */
 #undef HAVE_XSETWMPROTOCOLS
 
+/* Define if you have usable i18n support. */
+#undef HAVE_X_I18N
+
 /* Define to 1 if you have the SM library (-lSM). */
 #undef HAVE_X_SM
 
 /* Define to 1 if you want to use the X window system. */
 #undef HAVE_X_WINDOWS
+
+/* Define to 1 if you have the `__executable_start' function. */
+#undef HAVE___EXECUTABLE_START
 
 /* Define to 1 if you have the `__fpending' function. */
 #undef HAVE___FPENDING
@@ -896,6 +920,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Process async input synchronously. */
 #undef SYNC_INPUT
 
+/* Define to use system malloc. */
+#undef SYSTEM_MALLOC
+
 /* Define to 1 if you use terminfo instead of termcap. */
 #undef TERMINFO
 
@@ -915,8 +942,14 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if using GTK. */
 #undef USE_GTK
 
+/* Define this to use a lisp union for the Lisp_Object data type. */
+#undef USE_LISP_UNION_TYPE
+
 /* Define to 1 if using the Lucid X toolkit. */
 #undef USE_LUCID
+
+/* Define to use mmap to allocate buffer text. */
+#undef USE_MMAP_FOR_BUFFERS
 
 /* Define to 1 if using the Motif X toolkit. */
 #undef USE_MOTIF
@@ -951,6 +984,18 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if using an X toolkit. */
 #undef USE_X_TOOLKIT
+
+/* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
+   significant byte first (like Motorola and SPARC, unlike Intel). */
+#if defined AC_APPLE_UNIVERSAL_BUILD
+# if defined __BIG_ENDIAN__
+#  define WORDS_BIGENDIAN 1
+# endif
+#else
+# ifndef WORDS_BIGENDIAN
+#  undef WORDS_BIGENDIAN
+# endif
+#endif
 
 /* Define this to check for malloc buffer overrun. */
 #undef XMALLOC_OVERRUN_CHECK
@@ -1024,25 +1069,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Turned on June 1996 supposing nobody will mind it.  */
 #define AMPERSAND_FULL_NAME
 
-/* Define HAVE_SOUND if we have sound support.  We know it works
-   and compiles only on the specified platforms.   For others,
-   it probably doesn't make sense to try.  */
-
-#if defined __FreeBSD__ || defined __NetBSD__ || defined __linux__
-#ifdef HAVE_MACHINE_SOUNDCARD_H
-#define HAVE_SOUND 1
-#endif
-#ifdef HAVE_SYS_SOUNDCARD_H
-#define HAVE_SOUND 1
-#endif
-#ifdef HAVE_SOUNDCARD_H
-#define HAVE_SOUND 1
-#endif
-#ifdef HAVE_ALSA
-#define HAVE_SOUND 1
-#endif
-#endif /* __FreeBSD__ || __NetBSD__ || __linux__  */
-
 /* If using GNU, then support inline function declarations.  */
 /* Don't try to switch on inline handling as detected by AC_C_INLINE
    generally, because even if non-gcc compilers accept `inline', they
@@ -1102,11 +1128,6 @@ SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
 
 #define my_strftime nstrftime	/* for strftime.c */
 
-/* Some of the files of Emacs which are intended for use with other
-   programs assume that if you have a config.h file, you must declare
-   the type of getenv.  */
-extern char *getenv ();
-
 /* These default definitions are good for almost all machines.
    The exceptions override them in m/MACHINE.h.  */
 
@@ -1133,25 +1154,12 @@ extern char *getenv ();
 #endif
 #endif
 
-/* Define if the compiler supports function prototypes.  It may do so
-   but not define __STDC__ (e.g. DEC C by default) or may define it as
-   zero.  */
+/* Define if the compiler supports function prototypes.  It may do so but
+   not define __STDC__ (e.g. DEC C by default) or may define it as zero.  */
 #undef PROTOTYPES
-/* For mktime.c:  */
-#ifndef __P
-# if defined PROTOTYPES
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif  /* GCC.  */
-#endif /* __P */
 
 #ifdef HAVE_STRING_H
 #include <string.h>
-#endif
-
-#ifdef HAVE_STRINGS_H
-#include <strings.h>  /* May be needed for bcopy & al.  */
 #endif
 
 #ifdef HAVE_STDLIB_H
@@ -1176,16 +1184,12 @@ void *alloca (size_t);
 typedef unsigned size_t;
 #endif
 
-/* Define HAVE_X_I18N if we have usable i18n support.  */
-
-#ifdef HAVE_X11R6
-#define HAVE_X_I18N
+#ifndef HAVE_STRCHR
+#define strchr(a, b) index (a, b)
 #endif
 
-/* Define HAVE_X11R6_XIM if we have usable X11R6-style XIM support.  */
-
-#if defined HAVE_X11R6 && !defined INHIBIT_X11R6_XIM
-#define HAVE_X11R6_XIM
+#ifndef HAVE_STRRCHR
+#define strrchr(a, b) rindex (a, b)
 #endif
 
 #if defined __GNUC__ && (__GNUC__ > 2 \
@@ -1205,16 +1209,6 @@ typedef unsigned size_t;
 #  ifndef GC_LISP_OBJECT_ALIGNMENT
 #    define GC_LISP_OBJECT_ALIGNMENT (__alignof__ (Lisp_Object))
 #  endif
-#endif
-
-#ifndef HAVE_BCOPY
-#define bcopy(a,b,s) memcpy (b,a,s)
-#endif
-#ifndef HAVE_BZERO
-#define bzero(a,s) memset (a,0,s)
-#endif
-#ifndef HAVE_BCMP
-#define BCMP memcmp
 #endif
 
 #endif /* EMACS_CONFIG_H */

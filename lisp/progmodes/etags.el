@@ -40,6 +40,7 @@ If you set this variable, do not also set `tags-table-list'.
 Use the `etags' program to make a tags table file.")
 ;; Make M-x set-variable tags-file-name like M-x visit-tags-table.
 ;;;###autoload (put 'tags-file-name 'variable-interactive (purecopy "fVisit tags table: "))
+;;;###autoload (put 'tags-file-name 'safe-local-variable 'stringp)
 
 (defgroup etags nil "Tags tables."
   :group 'tools)

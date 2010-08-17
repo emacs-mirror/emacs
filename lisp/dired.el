@@ -1380,10 +1380,8 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map ">" 'dired-next-dirline)
     (define-key map "^" 'dired-up-directory)
     (define-key map " "  'dired-next-line)
-    (define-key map "\C-n" 'dired-next-line)
-    (define-key map "\C-p" 'dired-previous-line)
-    (define-key map [down] 'dired-next-line)
-    (define-key map [up] 'dired-previous-line)
+    (define-key map [remap next-line] 'dired-next-line)
+    (define-key map [remap previous-line] 'dired-previous-line)
     ;; hiding
     (define-key map "$" 'dired-hide-subdir)
     (define-key map "\M-$" 'dired-hide-all)
@@ -1393,7 +1391,7 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
     (define-key map (kbd "M-s f C-s")   'dired-isearch-filenames)
     (define-key map (kbd "M-s f M-C-s") 'dired-isearch-filenames-regexp)
     ;; misc
-    (define-key map "\C-x\C-q" 'dired-toggle-read-only)
+    (define-key map [remap toggle-read-only] 'dired-toggle-read-only)
     (define-key map "?" 'dired-summary)
     (define-key map "\177" 'dired-unmark-backward)
     (define-key map [remap undo] 'dired-undo)
@@ -2227,31 +2225,33 @@ You can then feed the file name(s) to other commands with \\[yank]."
 ;; Keeping Dired buffers in sync with the filesystem and with each other
 
 (defun dired-buffers-for-dir (dir &optional file)
-;; Return a list of buffers that dired DIR (top level or in-situ subdir).
+;; Return a list of buffers for DIR (top level or in-situ subdir).
 ;; If FILE is non-nil, include only those whose wildcard pattern (if any)
 ;; matches FILE.
 ;; The list is in reverse order of buffer creation, most recent last.
 ;; As a side effect, killed dired buffers for DIR are removed from
 ;; dired-buffers.
   (setq dir (file-name-as-directory dir))
-  (let ((alist dired-buffers) result elt buf)
-    (while alist
-      (setq elt (car alist)
-	    buf (cdr elt))
-      (if (buffer-name buf)
-	  (if (dired-in-this-tree dir (car elt))
-	      (with-current-buffer buf
-		(and (assoc dir dired-subdir-alist)
-		     (or (null file)
-			 (let ((wildcards
-				(file-name-nondirectory dired-directory)))
-			   (or (= 0 (length wildcards))
-			       (string-match (dired-glob-regexp wildcards)
-					     file))))
-		     (setq result (cons buf result)))))
-	;; else buffer is killed - clean up:
+  (let (result buf)
+    (dolist (elt dired-buffers)
+      (setq buf (cdr elt))
+      (cond
+       ((null (buffer-name buf))
+	;; Buffer is killed - clean up:
 	(setq dired-buffers (delq elt dired-buffers)))
-      (setq alist (cdr alist)))
+       ((dired-in-this-tree dir (car elt))
+	(with-current-buffer buf
+	  (and (assoc dir dired-subdir-alist)
+	       (or (null file)
+		   (if (stringp dired-directory)
+		       (let ((wildcards (file-name-nondirectory
+					 dired-directory)))
+			 (or (= 0 (length wildcards))
+			     (string-match (dired-glob-regexp wildcards)
+					   file)))
+		     (member (expand-file-name file dir)
+			     (cdr dired-directory))))
+	       (setq result (cons buf result)))))))
     result))
 
 (defun dired-glob-regexp (pattern)
@@ -2765,17 +2765,19 @@ name, or the marker and a count of marked files."
     (fit-window-to-buffer (get-buffer-window buf) nil 1)))
 
 (defcustom dired-no-confirm nil
-  "A list of symbols for commands Dired should not confirm.
+  "A list of symbols for commands Dired should not confirm, or t.
 Command symbols are `byte-compile', `chgrp', `chmod', `chown', `compress',
 `copy', `delete', `hardlink', `load', `move', `print', `shell', `symlink',
-`touch' and `uncompress'."
+`touch' and `uncompress'.
+If t, confirmation is never needed."
   :group 'dired
-  :type '(set (const byte-compile) (const chgrp)
-	      (const chmod) (const chown) (const compress)
-	      (const copy) (const delete) (const hardlink)
-	      (const load) (const move) (const print)
-	      (const shell) (const symlink) (const touch)
-	      (const uncompress)))
+  :type '(choice (const :tag "Confirmation never needed" t)
+		 (set (const byte-compile) (const chgrp)
+		      (const chmod) (const chown) (const compress)
+		      (const copy) (const delete) (const hardlink)
+		      (const load) (const move) (const print)
+		      (const shell) (const symlink) (const touch)
+		      (const uncompress))))
 
 (defun dired-mark-pop-up (bufname op-symbol files function &rest args)
   "Return FUNCTION's result on ARGS after showing which files are marked.

@@ -1,7 +1,7 @@
 ;;; calc-lang.el --- calc language functions
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -335,7 +335,7 @@
 (add-to-list 'calc-lang-allow-underscores 'fortran)
 (add-to-list 'calc-lang-parens-are-subscripts 'fortran)
 
-;; The next few variables are local to math-read-exprs in calc-aent.el 
+;; The next few variables are local to math-read-exprs in calc-aent.el
 ;; and math-read-expr in calc-ext.el, but are set in functions they call.
 
 (defvar math-exp-token)
@@ -379,12 +379,12 @@
          ((= n 1)
           (message "TeX language mode with \\hbox{func}(\\hbox{var})"))
          ((> n 1)
-          (message 
+          (message
            "TeX language mode with \\hbox{func}(\\hbox{var}) and multiline matrices"))
          ((= n -1)
           (message "TeX language mode with \\func(\\hbox{var})"))
          ((< n -1)
-          (message 
+          (message
            "TeX language mode with \\func(\\hbox{var}) and multiline matrices")))))
 
 (defun calc-latex-language (n)
@@ -399,12 +399,12 @@
          ((= n 1)
           (message "LaTeX language mode with \\text{func}(\\text{var})"))
          ((> n 1)
-          (message 
+          (message
            "LaTeX language mode with \\text{func}(\\text{var}) and multiline matrices"))
          ((= n -1)
           (message "LaTeX language mode with \\func(\\text{var})"))
          ((< n -1)
-          (message 
+          (message
            "LaTeX language mode with \\func(\\text{var}) and multiline matrices")))))
 
 (put 'tex 'math-lang-name "TeX")
@@ -498,7 +498,7 @@
        (intv . math-compose-tex-intv)))
 
 (put 'tex 'math-variable-table
-  '( 
+  '(
     ;; The Greek letters
     ( \\alpha      . var-alpha )
     ( \\beta       . var-beta  )
@@ -630,7 +630,7 @@
 
 (defun math-compose-tex-matrix (a &optional ltx)
   (if (cdr a)
-      (cons (append (math-compose-vector (cdr (car a)) " & " 0) 
+      (cons (append (math-compose-vector (cdr (car a)) " & " 0)
                     (if ltx '(" \\\\ ") '(" \\cr ")))
             (math-compose-tex-matrix (cdr a) ltx))
     (list (math-compose-vector (cdr (car a)) " & " 0))))
@@ -722,7 +722,7 @@
            (setq left "{" right "}"))
           (t (setq left calc-function-open
                    right calc-function-close)))
-    (list 'horiz func 
+    (list 'horiz func
           left
           (math-compose-vector (cdr a) ", " 0)
           right)))
@@ -866,7 +866,7 @@
                      (and right
                           (setq math-exp-str (copy-sequence math-exp-str))
                           (aset math-exp-str right ?\]))))))))))
-        
+
 (defun math-latex-parse-frac (f val)
   (let (numer denom)
     (setq numer (car (math-read-expr-list)))
@@ -988,7 +988,7 @@
                  (cdr (math-transpose a)))
                 '("}")))))
 
-(put 'eqn 'math-var-formatter 
+(put 'eqn 'math-var-formatter
      (function
       (lambda (a prec)
         (let (v)
@@ -1011,7 +1011,7 @@
                         (intern (substring (symbol-name (nth 2 a)) 0 -1))))
                  prec)
               (symbol-name (nth 1 a))))))))
-      
+
 (defconst math-eqn-special-funcs
   '( calcFunc-log
      calcFunc-ln calcFunc-exp
@@ -1022,7 +1022,7 @@
      calcFunc-arcsin calcFunc-arccos calcFunc-arctan
      calcFunc-arcsinh calcFunc-arccosh calcFunc-arctanh))
 
-(put 'eqn 'math-func-formatter 
+(put 'eqn 'math-func-formatter
      (function
       (lambda (func a)
         (let (left right)
@@ -1035,8 +1035,8 @@
                      (not (math-tex-expr-is-flat (nth 1 a))))
                  (setq left "{left ( "
                        right " right )}"))
-                
-                ((and 
+
+                ((and
                   (memq (car a) math-eqn-special-funcs)
                   (= (length a) 2)
                   (or (Math-realp (nth 1 a))
@@ -1069,7 +1069,7 @@
      ("above" punc ",")))
 
 (put 'eqn 'math-lang-adjust-words
-     (function 
+     (function
       (lambda ()
         (let ((code (assoc math-expr-data math-eqn-ignore-words)))
           (cond ((null code))
@@ -1189,21 +1189,21 @@
        ( Gamma       . var-gamma)))
 
 (put 'yacas 'math-parse-table
-     '((("Deriv(" 0 ")" 0) 
+     '((("Deriv(" 0 ")" 0)
         calcFunc-deriv (var ArgB var-ArgB) (var ArgA var-ArgA))
-       (("D(" 0 ")" 0) 
+       (("D(" 0 ")" 0)
         calcFunc-deriv (var ArgB var-ArgB) (var ArgA var-ArgA))
-       (("Integrate(" 0 ")" 0) 
+       (("Integrate(" 0 ")" 0)
         calcFunc-integ (var ArgB var-ArgB)(var ArgA var-ArgA))
-       (("Integrate(" 0 "," 0 "," 0 ")" 0) 
-        calcFunc-integ (var ArgD var-ArgD) (var ArgA var-ArgA) 
+       (("Integrate(" 0 "," 0 "," 0 ")" 0)
+        calcFunc-integ (var ArgD var-ArgD) (var ArgA var-ArgA)
         (var ArgB var-ArgB) (var ArgC var-ArgC))
-       (("Subst(" 0 "," 0 ")" 0) 
-        calcFunc-subst (var ArgC var-ArgC) (var ArgA var-ArgA) 
+       (("Subst(" 0 "," 0 ")" 0)
+        calcFunc-subst (var ArgC var-ArgC) (var ArgA var-ArgA)
         (var ArgB var-ArgB))
-       (("Taylor(" 0 "," 0 "," 0 ")" 0) 
-        calcFunc-taylor (var ArgD var-ArgD) 
-        (calcFunc-eq (var ArgA var-ArgA) (var ArgB var-ArgB)) 
+       (("Taylor(" 0 "," 0 "," 0 ")" 0)
+        calcFunc-taylor (var ArgD var-ArgD)
+        (calcFunc-eq (var ArgA var-ArgA) (var ArgB var-ArgB))
         (var ArgC var-ArgC))))
 
 (put 'yacas 'math-oper-table
@@ -1356,7 +1356,7 @@
         (math-compose-expr (nth 2 a) -1)
         (if (not (nth 3 a))
             ")"
-          (concat 
+          (concat
            ","
            (math-compose-expr (nth 3 a) -1)
            ","
@@ -1393,7 +1393,7 @@
      '(("+"    +               100  100)
        ("-"    -               100  134)
        ("*"    *               120  120)
-       ("."    *               130  129)       
+       ("."    *               130  129)
        ("/"    /               120  120)
        ("u-"   neg              -1  180)
        ("u+"   ident            -1  180)
@@ -1494,9 +1494,9 @@
           (nth 3 args))))
 
 (put 'maxima 'math-parse-table
-     '((("if" 0 "then" 0 "else" 0) 
-        calcFunc-if 
-        (var ArgA var-ArgA) 
+     '((("if" 0 "then" 0 "else" 0)
+        calcFunc-if
+        (var ArgA var-ArgA)
         (var ArgB var-ArgB)
         (var ArgC var-ArgC))))
 
@@ -1572,7 +1572,7 @@
       (lambda (a)
         (list 'horiz
               "matrix("
-              (math-compose-vector (cdr a) 
+              (math-compose-vector (cdr a)
                                    (concat math-comp-comma " ")
                                    math-comp-vector-prec)
               ")"))))
@@ -1734,7 +1734,7 @@ order to Calc's."
           (nth 0 args))))
 
 (put 'giac 'math-parse-table
-     '((("set" 0) 
+     '((("set" 0)
         calcFunc-rdup
         (var ArgA var-ArgA))))
 
@@ -1748,7 +1748,7 @@ order to Calc's."
   "Compose the arguments to a Calc function in reverse order.
 This is used for various language modes which have functions in reverse
 order to Calc's."
-  (list 'horiz (nth 1 fn) 
+  (list 'horiz (nth 1 fn)
         "("
         (math-compose-expr (nth 2 a) 0)
         ","
@@ -1770,7 +1770,7 @@ order to Calc's."
           (list 'horiz
                 (math-compose-expr (nth 1 a) 1000)
                 "["
-                (math-compose-expr 
+                (math-compose-expr
                  (calc-normalize (list '- (nth 2 a) 1)) 0)
                 "]")))))
 
@@ -2001,7 +2001,7 @@ order to Calc's."
         (list 'horiz
               "matrix("
               math-comp-left-bracket
-              (math-compose-vector (cdr a) 
+              (math-compose-vector (cdr a)
                                    (concat math-comp-comma " ")
                                    math-comp-vector-prec)
               math-comp-right-bracket
@@ -2044,9 +2044,9 @@ order to Calc's."
 (defvar math-read-big-baseline)
 (defvar math-read-big-h2)
 
-;; The variables math-rb-h1, math-rb-h2, math-rb-v1 and math-rb-v2 
-;; are local to math-read-big-rec, but are used by math-read-big-char, 
-;; math-read-big-emptyp and math-read-big-balance which are called by 
+;; The variables math-rb-h1, math-rb-h2, math-rb-v1 and math-rb-v2
+;; are local to math-read-big-rec, but are used by math-read-big-char,
+;; math-read-big-emptyp and math-read-big-balance which are called by
 ;; math-read-big-rec.
 ;; math-rb-h2 is also local to math-read-big-bigp in calc-ext.el,
 ;; which calls math-read-big-balance.
@@ -2055,40 +2055,40 @@ order to Calc's."
 (defvar math-rb-v1)
 (defvar math-rb-v2)
 
-(defun math-read-big-rec (math-rb-h1 math-rb-v1 math-rb-h2 math-rb-v2 
+(defun math-read-big-rec (math-rb-h1 math-rb-v1 math-rb-h2 math-rb-v2
                                      &optional baseline prec short)
   (or prec (setq prec 0))
 
   ;; Clip whitespace above or below.
-  (while (and (< math-rb-v1 math-rb-v2) 
+  (while (and (< math-rb-v1 math-rb-v2)
               (math-read-big-emptyp math-rb-h1 math-rb-v1 math-rb-h2 (1+ math-rb-v1)))
     (setq math-rb-v1 (1+ math-rb-v1)))
-  (while (and (< math-rb-v1 math-rb-v2) 
+  (while (and (< math-rb-v1 math-rb-v2)
               (math-read-big-emptyp math-rb-h1 (1- math-rb-v2) math-rb-h2 math-rb-v2))
     (setq math-rb-v2 (1- math-rb-v2)))
 
   ;; If formula is a single line high, normal parser can handle it.
   (if (<= math-rb-v2 (1+ math-rb-v1))
       (if (or (<= math-rb-v2 math-rb-v1)
-	      (> math-rb-h1 (length (setq math-rb-v2 
+	      (> math-rb-h1 (length (setq math-rb-v2
                                           (nth math-rb-v1 math-read-big-lines)))))
 	  (math-read-big-error math-rb-h1 math-rb-v1)
 	(setq math-read-big-baseline math-rb-v1
 	      math-read-big-h2 math-rb-h2
 	      math-rb-v2 (nth math-rb-v1 math-read-big-lines)
-	      math-rb-h2 (math-read-expr 
-                          (substring math-rb-v2 math-rb-h1 
+	      math-rb-h2 (math-read-expr
+                          (substring math-rb-v2 math-rb-h1
                                      (min math-rb-h2 (length math-rb-v2)))))
 	(if (eq (car-safe math-rb-h2) 'error)
-	    (math-read-big-error (+ math-rb-h1 (nth 1 math-rb-h2)) 
+	    (math-read-big-error (+ math-rb-h1 (nth 1 math-rb-h2))
                                  math-rb-v1 (nth 2 math-rb-h2))
 	  math-rb-h2))
 
     ;; Clip whitespace at left or right.
-    (while (and (< math-rb-h1 math-rb-h2) 
+    (while (and (< math-rb-h1 math-rb-h2)
                 (math-read-big-emptyp math-rb-h1 math-rb-v1 (1+ math-rb-h1) math-rb-v2))
       (setq math-rb-h1 (1+ math-rb-h1)))
-    (while (and (< math-rb-h1 math-rb-h2) 
+    (while (and (< math-rb-h1 math-rb-h2)
                 (math-read-big-emptyp (1- math-rb-h2) math-rb-v1 math-rb-h2 math-rb-v2))
       (setq math-rb-h2 (1- math-rb-h2)))
 
@@ -2107,7 +2107,7 @@ order to Calc's."
 	     (/= (aref line math-rb-h1) ?\ )
 	     (if (and (= (aref line math-rb-h1) ?\-)
 		      ;; Make sure it's not a minus sign.
-		      (or (and (< (1+ math-rb-h1) len) 
+		      (or (and (< (1+ math-rb-h1) len)
                                (= (aref line (1+ math-rb-h1)) ?\-))
 			  (/= (math-read-big-char math-rb-h1 (1- v)) ?\ )
 			  (/= (math-read-big-char math-rb-h1 (1+ v)) ?\ )))
@@ -2166,7 +2166,7 @@ order to Calc's."
 	    ;; Binomial coefficient.
 	    ((and (= other-char ?\()
 		  (= (math-read-big-char (1+ math-rb-h1) v) ?\ )
-		  (= (string-match "( *)" (nth v math-read-big-lines) 
+		  (= (string-match "( *)" (nth v math-read-big-lines)
                                    math-rb-h1) math-rb-h1))
 	     (setq h (match-end 0))
 	     (math-read-big-emptyp math-rb-h1 math-rb-v1 (1+ math-rb-h1) v nil t)
@@ -2180,7 +2180,7 @@ order to Calc's."
 
 	    ;; Minus sign.
 	    ((= other-char ?\-)
-	     (setq p (list 'neg (math-read-big-rec (1+ math-rb-h1) math-rb-v1 
+	     (setq p (list 'neg (math-read-big-rec (1+ math-rb-h1) math-rb-v1
                                                    math-rb-h2 math-rb-v2 v 250 t))
 		   v math-read-big-baseline
 		   h math-read-big-h2))
@@ -2199,10 +2199,10 @@ order to Calc's."
 	       (if (= sep ?\])
 		   (math-read-big-error (1- h) v "Expected `)'"))
 	       (if (= sep ?\))
-		   (setq p (math-read-big-rec 
+		   (setq p (math-read-big-rec
                             (1+ math-rb-h1) math-rb-v1 (1- h) math-rb-v2 v))
 		 (setq hmid (math-read-big-balance h v "(")
-		       p (list p 
+		       p (list p
                                (math-read-big-rec h math-rb-v1 (1- hmid) math-rb-v2 v))
 		       h hmid)
 		 (cond ((= sep ?\.)
@@ -2347,7 +2347,7 @@ order to Calc's."
 	     (math-read-big-emptyp math-rb-h1 math-rb-v1 h v nil t)
 	     (math-read-big-emptyp math-rb-h1 (1+ v) h math-rb-v2 nil t)))
 
-      ;; Now left term is bounded by math-rb-h1, math-rb-v1, h, math-rb-v2; 
+      ;; Now left term is bounded by math-rb-h1, math-rb-v1, h, math-rb-v2;
       ;; baseline = v.
       (if baseline
 	  (or (= v baseline)
@@ -2389,12 +2389,12 @@ order to Calc's."
 	(cond ((eq (nth 3 widest) -1)
 	       (setq p (list (nth 1 widest) p)))
 	      ((equal (car widest) "?")
-	       (let ((y (math-read-big-rec h math-rb-v1 math-rb-h2 
+	       (let ((y (math-read-big-rec h math-rb-v1 math-rb-h2
                                            math-rb-v2 baseline nil t)))
 		 (or (= (math-read-big-char math-read-big-h2 baseline) ?\:)
 		     (math-read-big-error math-read-big-h2 baseline "Expected `:'"))
 		 (setq p (list (nth 1 widest) p y
-			       (math-read-big-rec 
+			       (math-read-big-rec
                                 (1+ math-read-big-h2) math-rb-v1 math-rb-h2 math-rb-v2
                                 baseline (nth 3 widest) t))
 		       h math-read-big-h2)))
@@ -2482,6 +2482,10 @@ order to Calc's."
     h))
 
 (provide 'calc-lang)
+
+;; Local variables:
+;; coding: utf-8
+;; End:
 
 ;; arch-tag: 483bfe15-f290-4fef-bb7d-ce65be687f2e
 ;;; calc-lang.el ends here

@@ -892,6 +892,7 @@ The order attempted is gnome-moz-remote, Mozilla, Firefox,
 Galeon, Konqueror, Netscape, Mosaic, Lynx in an xterm, and then W3."
   (apply
    (cond
+    ((browse-url-can-use-xdg-open) 'browse-url-xdg-open)
     ((executable-find browse-url-gnome-moz-program) 'browse-url-gnome-moz)
     ((executable-find browse-url-mozilla-program) 'browse-url-mozilla)
     ((executable-find browse-url-firefox-program) 'browse-url-firefox)
@@ -904,6 +905,41 @@ Galeon, Konqueror, Netscape, Mosaic, Lynx in an xterm, and then W3."
     (t
      (lambda (&rest ignore) (error "No usable browser found"))))
    url args))
+
+(defun browse-url-can-use-xdg-open ()
+  "Check if xdg-open can be used, i.e. we are on Gnome, KDE or xfce4."
+  (and (getenv "DISPLAY")
+       (executable-find "xdg-open")
+       ;; xdg-open may call gnome-open and that does not wait for its child
+       ;; to finish.  This child may then be killed when the parent dies.
+       ;; Use nohup to work around.
+       (executable-find "nohup")
+       (or (getenv "GNOME_DESKTOP_SESSION_ID")
+	   ;; GNOME_DESKTOP_SESSION_ID is deprecated, check on Dbus also.
+	   (condition-case nil
+	       (eq 0 (call-process
+		      "dbus-send" nil nil nil
+				  "--dest=org.gnome.SessionManager"
+				  "--print-reply"
+				  "/org/gnome/SessionManager"
+				  "org.gnome.SessionManager.CanShutdown"))
+	     (error nil))
+	   (equal (getenv "KDE_FULL_SESSION") "true")
+	   (condition-case nil
+	       (eq 0 (call-process
+		      "/bin/sh" nil nil nil
+		      "-c"
+		      "xprop -root _DT_SAVE_MODE|grep xfce4"))
+	     (error nil)))))
+
+
+;;;###autoload
+(defun browse-url-xdg-open (url &optional new-window)
+  (interactive (browse-url-interactive-arg "URL: "))
+  (call-process "/bin/sh" nil nil nil
+		"-c"
+		(concat "nohup xdg-open " url
+			">/dev/null 2>&1 </dev/null")))
 
 ;;;###autoload
 (defun browse-url-netscape (url &optional new-window)

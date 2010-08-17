@@ -140,15 +140,11 @@ typedef struct _PROCESS_MEMORY_COUNTERS_EX {
 
 /* For serial_configure and serial_open.  */
 #include "process.h"
-/* From process.c  */
-extern Lisp_Object QCport, QCspeed, QCprocess;
-extern Lisp_Object QCbytesize, QCstopbits, QCparity, Qodd, Qeven;
-extern Lisp_Object QCflowcontrol, Qhw, Qsw, QCsummary;
 
 typedef HRESULT (WINAPI * ShGetFolderPath_fn)
   (IN HWND, IN int, IN HANDLE, IN DWORD, OUT char *);
 
-void globals_of_w32 ();
+void globals_of_w32 (void);
 static DWORD get_rid (PSID);
 
 extern Lisp_Object Vw32_downcase_file_names;
@@ -308,15 +304,15 @@ typedef BOOL (WINAPI * GetSystemTimes_Proc) (
 
   /* ** A utility function ** */
 static BOOL
-is_windows_9x ()
+is_windows_9x (void)
 {
   static BOOL s_b_ret=0;
   OSVERSIONINFO os_ver;
   if (g_b_init_is_windows_9x == 0)
     {
       g_b_init_is_windows_9x = 1;
-      ZeroMemory(&os_ver, sizeof(OSVERSIONINFO));
-      os_ver.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+      ZeroMemory (&os_ver, sizeof (OSVERSIONINFO));
+      os_ver.dwOSVersionInfoSize = sizeof (OSVERSIONINFO);
       if (GetVersionEx (&os_ver))
         {
           s_b_ret = (os_ver.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS);
@@ -329,12 +325,12 @@ is_windows_9x ()
    Returns a list of three integers if the times are provided by the OS
    (NT derivatives), otherwise it returns the result of current-time. */
 Lisp_Object
-w32_get_internal_run_time ()
+w32_get_internal_run_time (void)
 {
   if (get_process_times_fn)
     {
       FILETIME create, exit, kernel, user;
-      HANDLE proc = GetCurrentProcess();
+      HANDLE proc = GetCurrentProcess ();
       if ((*get_process_times_fn) (proc, &create, &exit, &kernel, &user))
         {
           LARGE_INTEGER user_int, kernel_int, total;
@@ -753,7 +749,7 @@ void WINAPI get_native_system_info (
     lpSystemInfo->dwNumberOfProcessors = -1;
 }
 
-BOOL WINAPI get_system_times(
+BOOL WINAPI get_system_times (
     LPFILETIME lpIdleTime,
     LPFILETIME lpKernelTime,
     LPFILETIME lpUserTime)
@@ -1035,13 +1031,13 @@ static struct group dflt_group =
 };
 
 unsigned
-getuid ()
+getuid (void)
 {
   return dflt_passwd.pw_uid;
 }
 
 unsigned
-geteuid ()
+geteuid (void)
 {
   /* I could imagine arguing for checking to see whether the user is
      in the Administrators group and returning a UID of 0 for that
@@ -1050,13 +1046,13 @@ geteuid ()
 }
 
 unsigned
-getgid ()
+getgid (void)
 {
   return dflt_passwd.pw_gid;
 }
 
 unsigned
-getegid ()
+getegid (void)
 {
   return getgid ();
 }
@@ -1091,7 +1087,7 @@ getpwnam (char *name)
 }
 
 void
-init_user_info ()
+init_user_info (void)
 {
   /* Find the user's real name by opening the process token and
      looking up the name associated with the user-sid in that token.
@@ -1207,7 +1203,7 @@ init_user_info ()
 }
 
 int
-random ()
+random (void)
 {
   /* rand () on NT gives us 15 random bits...hack together 30 bits.  */
   return ((rand () << 15) | rand ());
@@ -1225,9 +1221,7 @@ srandom (int seed)
    case path name components to lower case.  */
 
 static void
-normalize_filename (fp, path_sep)
-     register char *fp;
-     char path_sep;
+normalize_filename (register char *fp, char path_sep)
 {
   char sep;
   char *elem;
@@ -1283,16 +1277,14 @@ normalize_filename (fp, path_sep)
 
 /* Destructively turn backslashes into slashes.  */
 void
-dostounix_filename (p)
-     register char *p;
+dostounix_filename (register char *p)
 {
   normalize_filename (p, '/');
 }
 
 /* Destructively turn slashes into backslashes.  */
 void
-unixtodos_filename (p)
-     register char *p;
+unixtodos_filename (register char *p)
 {
   normalize_filename (p, '\\');
 }
@@ -1301,9 +1293,7 @@ unixtodos_filename (p)
    (From msdos.c...probably should figure out a way to share it,
    although this code isn't going to ever change.)  */
 int
-crlf_to_lf (n, buf)
-     register int n;
-     register unsigned char *buf;
+crlf_to_lf (register int n, register unsigned char *buf)
 {
   unsigned char *np = buf;
   unsigned char *startp = buf;
@@ -1520,9 +1510,7 @@ alarm (int seconds)
 #define REG_ROOT "SOFTWARE\\GNU\\Emacs"
 
 LPBYTE
-w32_get_resource (key, lpdwtype)
-    char *key;
-    LPDWORD lpdwtype;
+w32_get_resource (char *key, LPDWORD lpdwtype)
 {
   LPBYTE lpvalue;
   HKEY hrootkey = NULL;
@@ -1642,7 +1630,7 @@ init_environment (char ** argv)
       {"LANG", NULL},
     };
 
-#define N_ENV_VARS sizeof(dflt_envvars)/sizeof(dflt_envvars[0])
+#define N_ENV_VARS sizeof (dflt_envvars)/sizeof (dflt_envvars[0])
 
     /* We need to copy dflt_envvars[] and work on the copy because we
        don't want the dumped Emacs to inherit the values of
@@ -1715,7 +1703,7 @@ init_environment (char ** argv)
 	  for (p = modname; *p; p++)
 	    if (*p == '\\') *p = '/';
 
-	  _snprintf (buf, sizeof(buf)-1, "emacs_dir=%s", modname);
+	  _snprintf (buf, sizeof (buf)-1, "emacs_dir=%s", modname);
 	  _putenv (strdup (buf));
 	}
       /* Handle running emacs from the build directory: src/oo-spd/i386/  */
@@ -1739,7 +1727,7 @@ init_environment (char ** argv)
 		  for (p = modname; *p; p++)
 		    if (*p == '\\') *p = '/';
 
-		  _snprintf (buf, sizeof(buf)-1, "emacs_dir=%s", modname);
+		  _snprintf (buf, sizeof (buf)-1, "emacs_dir=%s", modname);
 		  _putenv (strdup (buf));
 		}
 	    }
@@ -1767,12 +1755,12 @@ init_environment (char ** argv)
 		char buf1[SET_ENV_BUF_SIZE], buf2[SET_ENV_BUF_SIZE];
 
 		if (dwType == REG_EXPAND_SZ)
-		  ExpandEnvironmentStrings ((LPSTR) lpval, buf1, sizeof(buf1));
+		  ExpandEnvironmentStrings ((LPSTR) lpval, buf1, sizeof (buf1));
 		else if (dwType == REG_SZ)
 		  strcpy (buf1, lpval);
 		if (dwType == REG_EXPAND_SZ || dwType == REG_SZ)
 		  {
-		    _snprintf (buf2, sizeof(buf2)-1, "%s=%s", env_vars[i].name,
+		    _snprintf (buf2, sizeof (buf2)-1, "%s=%s", env_vars[i].name,
 			       buf1);
 		    _putenv (strdup (buf2));
 		  }
@@ -2115,7 +2103,7 @@ GetCachedVolumeInformation (char * root_dir)
      involve network access, and so is extremely quick).  */
 
   /* Map drive letter to UNC if remote. */
-  if ( isalpha( root_dir[0] ) && !fixed[ DRIVE_INDEX( root_dir[0] ) ] )
+  if (isalpha (root_dir[0]) && !fixed[DRIVE_INDEX (root_dir[0])])
     {
       char remote_name[ 256 ];
       char drive[3] = { root_dir[0], ':' };
@@ -2514,8 +2502,8 @@ open_unc_volume (const char *path)
   nr.lpComment = NULL;
   nr.lpProvider = NULL;
 
-  result = WNetOpenEnum(RESOURCE_GLOBALNET, RESOURCETYPE_DISK,
-			RESOURCEUSAGE_CONNECTABLE, &nr, &henum);
+  result = WNetOpenEnum (RESOURCE_GLOBALNET, RESOURCETYPE_DISK,
+			 RESOURCEUSAGE_CONNECTABLE, &nr, &henum);
 
   if (result == NO_ERROR)
     return henum;
@@ -2691,7 +2679,7 @@ sys_creat (const char * path, int mode)
 }
 
 FILE *
-sys_fopen(const char * path, const char * mode)
+sys_fopen (const char * path, const char * mode)
 {
   int fd;
   int oflag;
@@ -2778,7 +2766,7 @@ sys_link (const char * old, const char * new)
 
 	  data.wid.dwStreamId = BACKUP_LINK;
 	  data.wid.dwStreamAttributes = 0;
-	  data.wid.Size.LowPart = wlen * sizeof(WCHAR);
+	  data.wid.Size.LowPart = wlen * sizeof (WCHAR);
 	  data.wid.Size.HighPart = 0;
 	  data.wid.dwStreamNameSize = 0;
 
@@ -2980,7 +2968,7 @@ static int init = 0;
   } while (0)
 
 static void
-initialize_utc_base ()
+initialize_utc_base (void)
 {
   /* Determine the delta between 1-Jan-1601 and 1-Jan-1970. */
   SYSTEMTIME st;
@@ -3191,7 +3179,7 @@ get_name_and_id (PSECURITY_DESCRIPTOR psd, const char *fname,
   char name[UNLEN+1];
   DWORD name_len = sizeof (name);
   char domain[1024];
-  DWORD domain_len = sizeof(domain);
+  DWORD domain_len = sizeof (domain);
   char *mp = NULL;
   int use_dflt = 0;
   int result;
@@ -3666,7 +3654,7 @@ utime (const char *name, struct utimbuf *times)
 
 /* Helper wrapper functions.  */
 
-HANDLE WINAPI create_toolhelp32_snapshot(
+HANDLE WINAPI create_toolhelp32_snapshot (
     DWORD Flags,
     DWORD Ignored)
 {
@@ -3686,7 +3674,7 @@ HANDLE WINAPI create_toolhelp32_snapshot(
   return (s_pfn_Create_Toolhelp32_Snapshot (Flags, Ignored));
 }
 
-BOOL WINAPI process32_first(
+BOOL WINAPI process32_first (
     HANDLE hSnapshot,
     LPPROCESSENTRY32 lppe)
 {
@@ -3706,7 +3694,7 @@ BOOL WINAPI process32_first(
   return (s_pfn_Process32_First (hSnapshot, lppe));
 }
 
-BOOL WINAPI process32_next(
+BOOL WINAPI process32_next (
     HANDLE hSnapshot,
     LPPROCESSENTRY32 lppe)
 {
@@ -3904,7 +3892,7 @@ BOOL WINAPI global_memory_status_ex (
 }
 
 Lisp_Object
-list_system_processes ()
+list_system_processes (void)
 {
   struct gcpro gcpro1;
   Lisp_Object proclist = Qnil;
@@ -3995,8 +3983,7 @@ restore_privilege (TOKEN_PRIVILEGES *priv)
 }
 
 static Lisp_Object
-ltime (time_sec, time_usec)
-     long time_sec, time_usec;
+ltime (long time_sec, long time_usec)
 {
   return list3 (make_number ((time_sec >> 16) & 0xffff),
 		make_number (time_sec & 0xffff),
@@ -4006,18 +3993,17 @@ ltime (time_sec, time_usec)
 #define U64_TO_LISP_TIME(time) ltime ((time) / 1000000L, (time) % 1000000L)
 
 static int
-process_times (h_proc, ctime, etime, stime, utime, ttime, pcpu)
-     HANDLE h_proc;
-     Lisp_Object *ctime, *etime, *stime, *utime, *ttime;
-     double *pcpu;
+process_times (HANDLE h_proc, Lisp_Object *ctime, Lisp_Object *etime,
+	       Lisp_Object *stime, Lisp_Object *utime, Lisp_Object *ttime,
+	       double *pcpu)
 {
   FILETIME ft_creation, ft_exit, ft_kernel, ft_user, ft_current;
   ULONGLONG tem1, tem2, tem3, tem;
 
   if (!h_proc
       || !get_process_times_fn
-      || !(*get_process_times_fn)(h_proc, &ft_creation, &ft_exit,
-				  &ft_kernel, &ft_user))
+      || !(*get_process_times_fn) (h_proc, &ft_creation, &ft_exit,
+				   &ft_kernel, &ft_user))
     return 0;
 
   GetSystemTimeAsFileTime (&ft_current);
@@ -4059,8 +4045,7 @@ process_times (h_proc, ctime, etime, stime, utime, ttime, pcpu)
 }
 
 Lisp_Object
-system_process_attributes (pid)
-     Lisp_Object pid;
+system_process_attributes (Lisp_Object pid)
 {
   struct gcpro gcpro1, gcpro2, gcpro3;
   Lisp_Object attrs = Qnil;
@@ -4459,34 +4444,34 @@ init_winsock (int load_now)
       if ((pfn_##fn = (void *) GetProcAddress (winsock_lib, #fn)) == NULL) \
         goto fail;
 
-      LOAD_PROC( WSAStartup );
-      LOAD_PROC( WSASetLastError );
-      LOAD_PROC( WSAGetLastError );
-      LOAD_PROC( WSAEventSelect );
-      LOAD_PROC( WSACreateEvent );
-      LOAD_PROC( WSACloseEvent );
-      LOAD_PROC( socket );
-      LOAD_PROC( bind );
-      LOAD_PROC( connect );
-      LOAD_PROC( ioctlsocket );
-      LOAD_PROC( recv );
-      LOAD_PROC( send );
-      LOAD_PROC( closesocket );
-      LOAD_PROC( shutdown );
-      LOAD_PROC( htons );
-      LOAD_PROC( ntohs );
-      LOAD_PROC( inet_addr );
-      LOAD_PROC( gethostname );
-      LOAD_PROC( gethostbyname );
-      LOAD_PROC( getservbyname );
-      LOAD_PROC( getpeername );
-      LOAD_PROC( WSACleanup );
-      LOAD_PROC( setsockopt );
-      LOAD_PROC( listen );
-      LOAD_PROC( getsockname );
-      LOAD_PROC( accept );
-      LOAD_PROC( recvfrom );
-      LOAD_PROC( sendto );
+      LOAD_PROC (WSAStartup);
+      LOAD_PROC (WSASetLastError);
+      LOAD_PROC (WSAGetLastError);
+      LOAD_PROC (WSAEventSelect);
+      LOAD_PROC (WSACreateEvent);
+      LOAD_PROC (WSACloseEvent);
+      LOAD_PROC (socket);
+      LOAD_PROC (bind);
+      LOAD_PROC (connect);
+      LOAD_PROC (ioctlsocket);
+      LOAD_PROC (recv);
+      LOAD_PROC (send);
+      LOAD_PROC (closesocket);
+      LOAD_PROC (shutdown);
+      LOAD_PROC (htons);
+      LOAD_PROC (ntohs);
+      LOAD_PROC (inet_addr);
+      LOAD_PROC (gethostname);
+      LOAD_PROC (gethostbyname);
+      LOAD_PROC (getservbyname);
+      LOAD_PROC (getpeername);
+      LOAD_PROC (WSACleanup);
+      LOAD_PROC (setsockopt);
+      LOAD_PROC (listen);
+      LOAD_PROC (getsockname);
+      LOAD_PROC (accept);
+      LOAD_PROC (recvfrom);
+      LOAD_PROC (sendto);
 #undef LOAD_PROC
 
       /* specify version 1.1 of winsock */
@@ -4526,7 +4511,7 @@ int h_errno = 0;
    normal system codes where they overlap (non-overlapping definitions
    are already in <sys/socket.h> */
 static void
-set_errno ()
+set_errno (void)
 {
   if (winsock_lib == NULL)
     h_errno = EINVAL;
@@ -4548,7 +4533,7 @@ set_errno ()
 }
 
 static void
-check_errno ()
+check_errno (void)
 {
   if (h_errno == 0 && winsock_lib != NULL)
     pfn_WSASetLastError (0);
@@ -4631,7 +4616,7 @@ struct {
 };
 
 char *
-sys_strerror(int error_no)
+sys_strerror (int error_no)
 {
   int i;
   static char unknown_msg[40];
@@ -4643,7 +4628,7 @@ sys_strerror(int error_no)
     if (_wsa_errlist[i].errnum == error_no)
       return _wsa_errlist[i].msg;
 
-  sprintf(unknown_msg, "Unidentified error: %d", error_no);
+  sprintf (unknown_msg, "Unidentified error: %d", error_no);
   return unknown_msg;
 }
 
@@ -4662,7 +4647,7 @@ sys_strerror(int error_no)
 int socket_to_fd (SOCKET s);
 
 int
-sys_socket(int af, int type, int protocol)
+sys_socket (int af, int type, int protocol)
 {
   SOCKET s;
 
@@ -4865,7 +4850,7 @@ sys_gethostname (char * name, int namelen)
 }
 
 struct hostent *
-sys_gethostbyname(const char * name)
+sys_gethostbyname (const char * name)
 {
   struct hostent * host;
 
@@ -4883,7 +4868,7 @@ sys_gethostbyname(const char * name)
 }
 
 struct servent *
-sys_getservbyname(const char * name, const char * proto)
+sys_getservbyname (const char * name, const char * proto)
 {
   struct servent * serv;
 
@@ -5038,7 +5023,7 @@ sys_accept (int s, struct sockaddr * addr, int * addrlen)
 
 int
 sys_recvfrom (int s, char * buf, int len, int flags,
-	  struct sockaddr * from, int * fromlen)
+	      struct sockaddr * from, int * fromlen)
 {
   if (winsock_lib == NULL)
     {
@@ -5536,8 +5521,8 @@ sys_read (int fd, char * buffer, unsigned int count)
 		  int res = pfn_recv (SOCK_HANDLE (fd), buffer, count, 0);
 		  if (res == SOCKET_ERROR)
 		    {
-		      DebPrint(("sys_read.recv failed with error %d on socket %ld\n",
-				pfn_WSAGetLastError (), SOCK_HANDLE (fd)));
+		      DebPrint (("sys_read.recv failed with error %d on socket %ld\n",
+				 pfn_WSAGetLastError (), SOCK_HANDLE (fd)));
 		      set_errno ();
 		      return -1;
 		    }
@@ -5693,8 +5678,8 @@ sys_write (int fd, const void * buffer, unsigned int count)
 
       if (nchars == SOCKET_ERROR)
         {
-	  DebPrint(("sys_write.send failed with error %d on socket %ld\n",
-		    pfn_WSAGetLastError (), SOCK_HANDLE (fd)));
+	  DebPrint (("sys_write.send failed with error %d on socket %ld\n",
+		     pfn_WSAGetLastError (), SOCK_HANDLE (fd)));
 	  set_errno ();
 	}
     }
@@ -5733,7 +5718,7 @@ sys_write (int fd, const void * buffer, unsigned int count)
 }
 
 static void
-check_windows_init_file ()
+check_windows_init_file (void)
 {
   extern int noninteractive, inhibit_window_system;
 
@@ -5789,7 +5774,7 @@ check_windows_init_file ()
 }
 
 void
-term_ntproc ()
+term_ntproc (void)
 {
 #ifdef HAVE_SOCKETS
   /* shutdown the socket interface if necessary */
@@ -5800,7 +5785,7 @@ term_ntproc ()
 }
 
 void
-init_ntproc ()
+init_ntproc (void)
 {
 #ifdef HAVE_SOCKETS
   /* Initialise the socket interface now if available and requested by
@@ -5908,7 +5893,8 @@ init_ntproc ()
         shutdown_handler ensures that buffers' autosave files are
 	up to date when the user logs off, or the system shuts down.
 */
-BOOL WINAPI shutdown_handler(DWORD type)
+BOOL WINAPI
+shutdown_handler (DWORD type)
 {
   /* Ctrl-C and Ctrl-Break are already suppressed, so don't handle them.  */
   if (type == CTRL_CLOSE_EVENT        /* User closes console window.  */
@@ -5929,7 +5915,7 @@ BOOL WINAPI shutdown_handler(DWORD type)
 	initialized is non zero (see the function main in emacs.c).
 */
 void
-globals_of_w32 ()
+globals_of_w32 (void)
 {
   HMODULE kernel32 = GetModuleHandle ("kernel32.dll");
 
@@ -5967,14 +5953,15 @@ globals_of_w32 ()
      console apps. This actually applies to Emacs in both console and
      GUI modes, since we had to fool windows into thinking emacs is a
      console application to get console mode to work.  */
-  SetConsoleCtrlHandler(shutdown_handler, TRUE);
+  SetConsoleCtrlHandler (shutdown_handler, TRUE);
 
   /* "None" is the default group name on standalone workstations.  */
   strcpy (dflt_group_name, "None");
 }
 
 /* For make-serial-process  */
-int serial_open (char *port)
+int
+serial_open (char *port)
 {
   HANDLE hnd;
   child_process *cp;
@@ -6014,7 +6001,7 @@ int serial_open (char *port)
 /* For serial-process-configure  */
 void
 serial_configure (struct Lisp_Process *p,
-		      Lisp_Object contact)
+		  Lisp_Object contact)
 {
   Lisp_Object childp2 = Qnil;
   Lisp_Object tem = Qnil;

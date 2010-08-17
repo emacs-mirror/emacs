@@ -1,3 +1,48 @@
+2010-07-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* XMenu.h: Include <stdlib.h>.
+
+2010-07-12  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.in (C_WARNINGS_SWITCH, PROFILING_CFLAGS): Set from
+	substitution.
+	(ALL_CFLAGS): Add ${C_WARNINGS_SWITCH} and ${PROFILING_CFLAGS}.
+
+2010-07-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Activate.c: Convert function definitions to standard C.
+	* AddPane.c:
+	* AddSel.c:
+	* ChgPane.c:
+	* ChgSel.c:
+	* Create.c:
+	* DelPane.c:
+	* DelSel.c:
+	* Destroy.c:
+	* Error.c:
+	* EvHand.c:
+	* FindPane.c:
+	* FindSel.c:
+	* InsPane.c:
+	* InsSel.c:
+	* Internal.c:
+	* Locate.c:
+	* Post.c:
+	* Recomp.c:
+	* SetAEQ.c:
+	* SetFrz.c:
+	* SetPane.c:
+	* SetSel.c:
+	* X10.h:
+	* XCrAssoc.c:
+	* XDelAssoc.c:
+	* XDestAssoc.c:
+	* XLookAssoc.c:
+	* XMakeAssoc.c:
+	* XMenu.h:
+	* XMenuInt.h:
+	* insque.c: Likewise.
+
 2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 23.2 released.
@@ -92,8 +137,8 @@
 	* Activate.c: Add calls to GrabKeyboard to remove strange
 	interactions with window managers that steal keypresses.
 	Call ungrab_all instead of XtUngrabPointer.
-	(XMenuActivate): Add call to XGrabKeyboard
-	(XMenuActivate): Add call to XUngrabKeyboard
+	(XMenuActivate): Add call to XGrabKeyboard.
+	(XMenuActivate): Add call to XUngrabKeyboard.
 
 2001-10-20  Gerd Moellmann  <gerd@gnu.org>
 

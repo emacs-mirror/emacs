@@ -17,10 +17,7 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
    USA.  */
 
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
-
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -90,10 +87,10 @@
 #define S_ISNWK(m) (((m) & S_IFMT) == S_IFNWK)
 #endif
 
-void mode_string ();
-static char ftypelet ();
-static void rwx ();
-static void setst ();
+void mode_string (short unsigned int mode, char *str);
+static char ftypelet (long int bits);
+static void rwx (short unsigned int bits, char *chars);
+static void setst (short unsigned int bits, char *chars);
 
 /* filemodestring - fill in string STR with an ls-style ASCII
    representation of the st_mode field of file stats block STATP.
@@ -132,9 +129,7 @@ static void setst ();
 	'T' if the file is sticky but not executable.  */
 
 void
-filemodestring (statp, str)
-     struct stat *statp;
-     char *str;
+filemodestring (struct stat *statp, char *str)
 {
   mode_string (statp->st_mode, str);
 }
@@ -143,9 +138,7 @@ filemodestring (statp, str)
    is given as an argument.  */
 
 void
-mode_string (mode, str)
-     unsigned short mode;
-     char *str;
+mode_string (short unsigned int mode, char *str)
 {
   str[0] = ftypelet ((long) mode);
   rwx ((mode & 0700) << 0, &str[1]);
@@ -167,8 +160,7 @@ mode_string (mode, str)
    '?' for any other file type.  */
 
 static char
-ftypelet (bits)
-     long bits;
+ftypelet (long int bits)
 {
 #ifdef S_ISBLK
   if (S_ISBLK (bits))
@@ -207,9 +199,7 @@ ftypelet (bits)
    flags in CHARS accordingly.  */
 
 static void
-rwx (bits, chars)
-     unsigned short bits;
-     char *chars;
+rwx (short unsigned int bits, char *chars)
 {
   chars[0] = (bits & S_IRUSR) ? 'r' : '-';
   chars[1] = (bits & S_IWUSR) ? 'w' : '-';
@@ -220,9 +210,7 @@ rwx (bits, chars)
    according to the file mode BITS.  */
 
 static void
-setst (bits, chars)
-     unsigned short bits;
-     char *chars;
+setst (short unsigned int bits, char *chars)
 {
 #ifdef S_ISUID
   if (bits & S_ISUID)

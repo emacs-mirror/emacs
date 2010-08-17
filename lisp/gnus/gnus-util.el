@@ -1297,6 +1297,14 @@ Return the modified alist."
 	(setq alist (delq entry alist)))
       alist)))
 
+(defun gnus-grep-in-list (word list)
+  "Find if a WORD matches any regular expression in the given LIST."
+  (when (and word list)
+    (catch 'found
+      (dolist (r list)
+	(when (string-match r word)
+	  (throw 'found r))))))
+
 (defmacro gnus-pull (key alist &optional assoc-p)
   "Modify ALIST to be without KEY."
   (unless (symbolp alist)

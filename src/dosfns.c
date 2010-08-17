@@ -55,13 +55,11 @@ Return the updated REGISTER vector.
 INTERRUPT should be an integer in the range 0 to 255.
 REGISTERS should be a vector produced by `make-register' and
 `set-register-value'.  */)
-     (interrupt, registers)
-     Lisp_Object interrupt, registers;
+  (Lisp_Object interrupt, Lisp_Object registers)
 {
   register int i;
   int no;
   union REGS inregs, outregs;
-  Lisp_Object val;
 
   CHECK_NUMBER (interrupt);
   no = (unsigned long) XINT (interrupt);
@@ -97,13 +95,11 @@ REGISTERS should be a vector produced by `make-register' and
 DEFUN ("msdos-memget", Fdos_memget, Sdos_memget, 2, 2, 0,
        doc: /* Read DOS memory at offset ADDRESS into VECTOR.
 Return the updated VECTOR.  */)
-     (address, vector)
-     Lisp_Object address, vector;
+  (Lisp_Object address, Lisp_Object vector)
 {
   register int i;
   int offs, len;
   char *buf;
-  Lisp_Object val;
 
   CHECK_NUMBER (address);
   offs = (unsigned long) XINT (address);
@@ -122,13 +118,11 @@ Return the updated VECTOR.  */)
 
 DEFUN ("msdos-memput", Fdos_memput, Sdos_memput, 2, 2, 0,
        doc: /* Write DOS memory at offset ADDRESS from VECTOR.  */)
-     (address, vector)
-     Lisp_Object address, vector;
+  (Lisp_Object address, Lisp_Object vector)
 {
   register int i;
   int offs, len;
   char *buf;
-  Lisp_Object val;
 
   CHECK_NUMBER (address);
   offs = (unsigned long) XINT (address);
@@ -153,8 +147,7 @@ DEFUN ("msdos-set-keyboard", Fmsdos_set_keyboard, Smsdos_set_keyboard, 1, 2, 0,
 If the optional argument ALLKEYS is non-nil, the keyboard is mapped for
 all keys; otherwise it is only used when the ALT key is pressed.
 The current keyboard layout is available in dos-keyboard-code.  */)
-     (country_code, allkeys)
-     Lisp_Object country_code, allkeys;
+  (Lisp_Object country_code, Lisp_Object allkeys)
 {
   CHECK_NUMBER (country_code);
   if (!dos_set_keyboard (XINT (country_code), !NILP (allkeys)))
@@ -168,7 +161,7 @@ The current keyboard layout is available in dos-keyboard-code.  */)
 
 DEFUN ("msdos-mouse-p", Fmsdos_mouse_p, Smsdos_mouse_p, 0, 0, 0,
        doc: /* Report whether a mouse is present.  */)
-     ()
+  (void)
 {
   if (have_mouse)
     return Qt;
@@ -179,7 +172,7 @@ DEFUN ("msdos-mouse-p", Fmsdos_mouse_p, Smsdos_mouse_p, 0, 0, 0,
 
 DEFUN ("msdos-mouse-init", Fmsdos_mouse_init, Smsdos_mouse_init, 0, 0, "",
        doc: /* Initialize and enable mouse if available.  */)
-     ()
+  (void)
 {
   if (have_mouse)
     {
@@ -192,7 +185,7 @@ DEFUN ("msdos-mouse-init", Fmsdos_mouse_init, Smsdos_mouse_init, 0, 0, "",
 
 DEFUN ("msdos-mouse-enable", Fmsdos_mouse_enable, Smsdos_mouse_enable, 0, 0, "",
        doc: /* Enable mouse if available.  */)
-     ()
+  (void)
 {
   if (have_mouse)
     {
@@ -204,7 +197,7 @@ DEFUN ("msdos-mouse-enable", Fmsdos_mouse_enable, Smsdos_mouse_enable, 0, 0, "",
 
 DEFUN ("msdos-mouse-disable", Fmsdos_mouse_disable, Smsdos_mouse_disable, 0, 0, "",
        doc: /* Disable mouse if available.  */)
-     ()
+  (void)
 {
   mouse_off ();
   if (have_mouse) have_mouse = -1;
@@ -214,7 +207,7 @@ DEFUN ("msdos-mouse-disable", Fmsdos_mouse_disable, Smsdos_mouse_disable, 0, 0, 
 DEFUN ("insert-startup-screen", Finsert_startup_screen, Sinsert_startup_screen, 0, 0, "",
        doc: /* Insert copy of screen contents prior to starting Emacs.
 Return nil if startup screen is not available.  */)
-     ()
+  (void)
 {
   char *s;
   int rows, cols, i, j;
@@ -283,13 +276,15 @@ restore_parent_vm_title (void)
 #endif /* !HAVE_X_WINDOWS */
 
 void
-init_dosfns ()
+init_dosfns (void)
 {
   union REGS regs;
   _go32_dpmi_registers dpmiregs;
   unsigned long xbuf = _go32_info_block.linear_address_of_transfer_buffer;
 
 #ifndef SYSTEM_MALLOC
+  extern void get_lim_data (void);
+
   get_lim_data (); /* why the hell isn't this called elsewhere? */
 #endif
 
@@ -481,9 +476,7 @@ w95_set_virtual_machine_title (const char *title_string)
    sets the name in the frame struct, but has no other effects.  */
 
 void
-x_set_title (f, name)
-     struct frame *f;
-     Lisp_Object name;
+x_set_title (struct frame *f, Lisp_Object name)
 {
   /* Don't change the title if it's already NAME.  */
   if (EQ (name, f->title))
@@ -511,8 +504,7 @@ Value is a list of floats (TOTAL FREE AVAIL), where TOTAL is the total
 storage of the file system, FREE is the free storage, and AVAIL is the
 storage available to a non-superuser.  All 3 numbers are in bytes.
 If the underlying system call fails, value is nil.  */)
-     (filename)
-     Lisp_Object filename;
+  (Lisp_Object filename)
 {
   struct statfs stfs;
   Lisp_Object encoded, value;
@@ -536,7 +528,7 @@ If the underlying system call fails, value is nil.  */)
    (There are no other processes on DOS, right?)  */
 
 Lisp_Object
-list_system_processes ()
+list_system_processes (void)
 {
   Lisp_Object proclist = Qnil;
 
@@ -565,6 +557,7 @@ system_process_attributes (Lisp_Object pid)
       int i;
       Lisp_Object cmd_str, decoded_cmd, tem;
       double pmem;
+      EXFUN (Fget_internal_run_time, 0);
 #ifndef SYSTEM_MALLOC
       extern unsigned long ret_lim_data ();
 #endif
@@ -689,7 +682,8 @@ dos_cleanup (void)
 /*
  *	Define everything
  */
-syms_of_dosfns ()
+void
+syms_of_dosfns (void)
 {
   defsubr (&Sint86);
   defsubr (&Sdos_memget);

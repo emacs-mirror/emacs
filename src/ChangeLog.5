@@ -176,7 +176,7 @@
 1995-06-12  Roland McGrath  <roland@churchy.gnu.ai.mit.edu>
 
 	* mem-limits.h [_LIBC] (start_of_data): Define to &__data_start
- 	for GNU libc.
+	for GNU libc.
 
 1995-06-11  Richard Stallman  <rms@gnu.ai.mit.edu>
 
@@ -227,7 +227,7 @@
 	* xterm.c (x_get_keysym_name): New function.
 	* keyboard.c (modify_event_symbol): Mask out high bits here,
 	and only for certain purposes.  table_size now unsigned.
-	(modify_event_symbol) [HAVE_X_WINDOWS]:	Use x_get_keysym_name.
+	(modify_event_symbol) [HAVE_X_WINDOWS]: Use x_get_keysym_name.
 	(make_lispy_event): Don't mask high bits here.
 	Supply -1 as table_size for system-specific keys.
 
@@ -316,9 +316,9 @@
 	(Fexecute_extended_command, init_kboard, syms_of_keyboard):
 	Undo Feb 28 change; prefix arg handling is now in Lisp code again.
 
-	* buffer.c: (syms_of_buffer): Doc fix.
+	* buffer.c (syms_of_buffer): Doc fix.
 
-	* buffer.c: (Fbuffer_disable_undo): Make this function interactive.
+	* buffer.c (Fbuffer_disable_undo): Make this function interactive.
 
 1995-06-07  Richard Stallman  <rms@gnu.ai.mit.edu>
 
@@ -335,7 +335,7 @@
 	(ALL_CFLAGS): Insert $(TOOLKIT_DEFINES) here.
 	* xfns.c (syms_of_xfns): Provide motif in Motif version.
 
-	* lisp.h: (Fwaiting_for_user_input_p): Function declared.
+	* lisp.h (Fwaiting_for_user_input_p): Function declared.
 	(Fupcase_initials, Fupcase_initials_region): Likewise.
 	(Fplist_get, get_local_map, Fx_popup_menu, Fx_popup_dialog): Likewise.
 	(Fframe_first_window): Likewise.
@@ -387,7 +387,7 @@
 	based on frame name and icon_name fields.
 	(x_set_icon_name): New function.
 	(x_icon): Call x_text_icon.
-	(x_set_name): Look at icon_name field when setting the icon name,
+	(x_set_name): Look at icon_name field when setting the icon name.
 	(x_frame_parms): Add icon-name.
 	(syms_of_xfns): Set up Qicon_name.
 
@@ -849,7 +849,7 @@
 1995-05-07  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
 	* process.c (wait_reading_process_input): Pass arg in new call to
- 	set_waiting_for_input.
+	set_waiting_for_input.
 
 	* xfns.c (Funfocus_frame): Check for live X frame.
 
@@ -903,7 +903,7 @@
 
 1995-05-04  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
-	* s/freebsd.h: (GETPGRP_NO_ARG): Defined
+	* s/freebsd.h (GETPGRP_NO_ARG): Define.
 	(HAVE_GETPAGESIZE): Definition deleted.
 
 	* data.c (store_symval_forwarding): Error if value out of range
@@ -1308,7 +1308,7 @@
 
 	* ntinevt.c (do_mouse_event): Use XSETFASTINT.
 	(SET_FRAME): Undefined.
-	(select): Renamed to sys_select to correspond to routine in sysdep.c
+	(select): Renamed to sys_select to correspond to routine in sysdep.c.
 	(sys_select): Support struct timeval.
 	(key_event): Support German keyboard.
 	Replace SET_FRAME with XSETFRAME.
@@ -1366,8 +1366,8 @@
 1995-04-11  Roland McGrath  <roland@churchy.gnu.ai.mit.edu>
 
 	* process.c (create_process): Set PROCESS's tty_name to Qnil when
- 	!PTY_FLAG, so Fprocess_tty_name returns nil for pipes as its
- 	docstring says.
+	!PTY_FLAG, so Fprocess_tty_name returns nil for pipes as its
+	docstring says.
 
 1995-04-11  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -1764,12 +1764,12 @@
 	* keyboard.c (kbd_buffer_get_event): Pass 0 for `insist' arg.
 
 	* m/intel386.h (C_SWITCH_SYSTEM): Don't #undef or define it.
- 	[SOLARIS2, SOLARIS2_4, !__GNUC__] (C_SWITCH_MACHINE): Define instead.
+	[SOLARIS2, SOLARIS2_4, !__GNUC__] (C_SWITCH_MACHINE): Define instead.
 
 1995-03-26  Germano Caronni  <caronni@tik.ethz.ch>
 
 	* ralloc.c (r_re_alloc): Correct realloc behavior--allow shrinking
- 	of blocks while reallocating, if shrinking by more than one page.
+	of blocks while reallocating, if shrinking by more than one page.
 	(relocate_blocs, resize_blocs): Added failsafe to protect future
 	calling of these routines when in frozen state.
 	(r_alloc_thaw): Added call to r_alloc_init.
@@ -1820,7 +1820,7 @@
 	* m/sparc.h: Don't include alloca.h if NOT_C_CODE.
 
 	* m/mips-siemens.h (UNEXEC): Override the definition.
-  	(LIBS_DEBUG, ORDINARY_LINK): Add #undefs.
+	(LIBS_DEBUG, ORDINARY_LINK): Add #undefs.
 
 1995-03-22  Karl Heuer  <kwzh@hal.gnu.ai.mit.edu>
 
@@ -2334,7 +2334,7 @@
 
 1995-02-14  Richard Stallman  <rms@geech.gnu.ai.mit.edu>
 
-	* filelock.c: (unlock_buffer, unlock_all_files, Flock_buffer)
+	* filelock.c (unlock_buffer, unlock_all_files, Flock_buffer)
 	(Funlock_buffer): Use buffer's file_truename, not filename.
 
 	* buffer.c (syms_of_buffer): Set up Lisp var buffer-file-truename.
@@ -3107,7 +3107,7 @@
 
 	* lisp.h (enum Lisp_Type): Lisp_Process, Lisp_Window, Lisp_Frame,
 	Lisp_Subr deleted.
-	(PSEUDOVECTORP, GC_PSEUDOVECTORP):  Add paren for proper nesting.
+	(PSEUDOVECTORP, GC_PSEUDOVECTORP): Add paren for proper nesting.
 	(PROCESSP, GC_PROCESSP, XSETPROCESS): Rewrite to use pseudovectors.
 	(WINDOWP, GC_WINDOWP, XSETWINDOW): Likewise.
 	(FRAMEP, GC_FRAMEP): Likewise.
@@ -3461,7 +3461,7 @@
 
 1994-11-19  Francesco Potortì  <pot@cnuce.cnr.it>
 
-	* lisp.h: (running_asynch_code): New global flag.
+	* lisp.h (running_asynch_code): New global flag.
 	* emacs.c (running_asynch_code): New global flag.
 	(main): Initialise it.
 	* process.c (read_process_output, exec_sentinel): Set and
@@ -3493,7 +3493,7 @@
 
 1994-11-17  Karl Heuer  <kwzh@hal.gnu.ai.mit.edu>
 
-	* lisp.h: (enum Lisp_Misc_Type): Rename Lisp_Vector to
+	* lisp.h (enum Lisp_Misc_Type): Rename Lisp_Vector to
 	Lisp_Vectorlike.  Mark Lisp_Window_Configuration as obsolete.
 	(PSEUDOVECTOR_FLAG, PSEUDOVECTOR_SIZE_MASK, PVEC_BUFFER,
 	PVEC_PROCESS, PVEC_FRAME, PVEC_COMPILED, PVEC_WINDOW,
@@ -3645,7 +3645,7 @@
 
 1994-11-14  Karl Heuer  <kwzh@hal.gnu.ai.mit.edu>
 
-	* lisp.h: (enum Lisp_Misc_Type): Add new enumeration Lisp_Misc_Overlay.
+	* lisp.h (enum Lisp_Misc_Type): Add new enumeration Lisp_Misc_Overlay.
 	(enum Lisp_Type): Delete the corresponding enumeration from here.
 	(struct Lisp_Overlay): New structure.
 	(XOVERLAY, OVERLAYP): Access the new structure.
@@ -3711,7 +3711,7 @@
 
 1994-11-11  Karl Heuer  <kwzh@nutrimat.gnu.ai.mit.edu>
 
-	* lisp.h: (enum Lisp_Misc_Type): Add new enumerations
+	* lisp.h (enum Lisp_Misc_Type): Add new enumerations
 	Lisp_Misc_Buffer_Local_Value and Lisp_Misc_Some_Buffer_Local_Value.
 	(enum Lisp_Type): Delete the corresponding enumerations from here.
 	(struct Lisp_Buffer_Local_Value): New structure.
@@ -3798,7 +3798,7 @@
 	* xfns.c (Fx_list_fonts): Don't bother to retrieve font info when
 	there's no size_ref to compare it against.
 
-	* editfns.c: (Fdecode_time): Fix Lisp_Object vs. integer problems.
+	* editfns.c (Fdecode_time): Fix Lisp_Object vs. integer problems.
 	Don't use tm_gmtoff; it's not portable.
 
 	* lisp.h: Leave DEVICE_SEP undefined by default.
@@ -3955,7 +3955,7 @@
 	Use the return value of child_setup to get the child's pid;
 	don't call vfork etc. explicitly.
 
-	* callproc.c [WINDOWSNT]: Add includes.	 Define NOMINMAX, _P_NOWAIT.
+	* callproc.c [WINDOWSNT]: Add includes.  Define NOMINMAX, _P_NOWAIT.
 	(Vbinary_process_input, Vbinary_process_output)
 	(Qbuffer_file_type): Test DOS_NT, not MSDOS.
 	(syms_of_callproc): Test DOS_NT, not MSDOS.
@@ -4217,7 +4217,7 @@
 
 	* process.c: Handle multiple keyboard input descriptors.
 	(non_keyboard_wait_mask): New variable.
-	(Fset_process_filter): Update non_keyboard_wait_mask
+	(Fset_process_filter): Update non_keyboard_wait_mask.
 	(create_process, Fopen_network_stream, deactivate_process):
 	(init_process, sigchld_handler): Likewise.
 	(wait_reading_process_input): Maybe use non_keyboard_wait_mask.
@@ -4367,7 +4367,7 @@
 	(the_x_screen): Variable moved here.
 	(syms_of_xterm): Staticpro parts of the_x_screen.
 	* xfns.c (Fx_open_connection): Get dpyinfo from x_term_init.
-	Don't set up atoms, xrdb here.	Pass name as Lisp_Object.
+	Don't set up atoms, xrdb here.  Pass name as Lisp_Object.
 	(the_x_screen): Variable moved to xterm.c.
 	(syms_of_xfns): Don't staticpro it here.
 
@@ -4456,7 +4456,7 @@
 
 	* xfns.c: Use FRAME_X_DISPLAY instead of x_current_display
 	and XDISPLAY.
-	(x_in_use): New variable,
+	(x_in_use): New variable.
 	(check_x, using_x_p): Test x_in_use.
 	(Fx_open_connection): Set x_in_use.
 	(check_x_frame): New function.
@@ -4511,7 +4511,7 @@
 
 1994-10-19  Karl Heuer  <kwzh@hal.gnu.ai.mit.edu>
 
-	* search.c: (searchbufs): New variable, replaces searchbuf and
+	* search.c (searchbufs): New variable, replaces searchbuf and
 	last_regexp and search_fastmap.
 	(syms_of_search): Initialize it.
 	(searchbuf_head): New variable.
@@ -4597,7 +4597,7 @@
 	* frame.h [!MULTI_FRAME]: We give up having selected_frame be
 	an always-zero integer variable.  From now on it will be a
 	pointer to a `struct frame' just like in the MULTI_FRAME case.
-	(selected_frame, last_nonminibuf_frame): use FRAME_PTR,	not EMACS_INT.
+	(selected_frame, last_nonminibuf_frame): use FRAME_PTR, not EMACS_INT.
 	(XFRAME): Redefine to use the_only_frame.
 	(XSETFRAME): Define to set Lisp value.
 	(WINDOW_FRAME): Redefine to return Lisp value.
@@ -4640,7 +4640,7 @@
 	(the_only_x_display, x_current_display) [!HAVE_X_WINDOWS]: New
 	variables.
 
-	* msdos.h: (XFontStruct, GC, Pixmap, Display, Window) [MSDOS_NO_X]:
+	* msdos.h (XFontStruct, GC, Pixmap, Display, Window) [MSDOS_NO_X]:
 	Dummy types.
 	(struct face, FACE_HAS_GC, FACE_GC, FACE_FOREGROUND, FACE_BACKGROUND,
 	FACE_FONT, FACE_STIPPLE, FACE_UNDERLINE_P) [MSDOS_NO_X]: Define like
@@ -4937,7 +4937,7 @@
 	(struct Lisp_Free): New structure.
 	(Lisp_Misc_Free): Type code for that structure.
 	* buffer.h (OVERLAY_POSITION): Marker assert now tests substructure.
-	* alloc.c: (MARKER_BLOCK_SIZE, marker_block, marker_free_list):
+	* alloc.c (MARKER_BLOCK_SIZE, marker_block, marker_free_list):
 	Now refers to the superset type, not just markers.
 	(allocate_misc): New function, extracted from Fmake_marker.
 	(Fpurecopy): Check the substructure.
@@ -5185,7 +5185,7 @@
 
 1994-10-02  Paul Reilly  <pmr@geech.gnu.ai.mit.edu>
 
-	* xfns.c: (HACK_EDITRES): Declare if using X11R5.
+	* xfns.c (HACK_EDITRES): Declare if using X11R5.
 	(widget_id_tick): New variable.
 	(x_any_window_to_frame): Use lw_window_is_in_menubar for
 	widget set independence.
@@ -5953,7 +5953,7 @@
 1994-09-03  Kaveh R. Ghazi  (ghazi@noc.rutgers.edu)
 
 	* m/delta88k.h [__GNUC__] (HAVE_ALLOCA): Defined.
-	[__GNUC__] (C_ALLOCA): Add #undef
+	[__GNUC__] (C_ALLOCA): Add #undef.
 	(LIB_X11_LIB): Add #undef.
 	(HAVE_TERMIOS): Defined.
 	(HAVE_TERMIO): Add #undef.
@@ -7039,7 +7039,7 @@
 
 1994-06-07  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
-	* mips-siemens.h:  Include pyramid.h, not mips.h.
+	* mips-siemens.h: Include pyramid.h, not mips.h.
 	(LOAD_AVE_TYPE, LOAD_AVE_CVT): Definitions deleted.
 	(NO_ARG_ARRAY, HAVE_ALLOCA): Defined.
 	(BROKEN_FIONREAD): Add #undef.

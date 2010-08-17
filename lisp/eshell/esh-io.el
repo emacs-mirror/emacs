@@ -343,8 +343,9 @@ it defaults to `insert'."
 	(let* ((exists (get-file-buffer target))
 	       (buf (find-file-noselect target t)))
 	  (with-current-buffer buf
-	    (if buffer-read-only
+	    (if buffer-file-read-only
 		(error "Cannot write to read-only file `%s'" target))
+	    (setq buffer-read-only nil)
 	    (set (make-local-variable 'eshell-output-file-buffer)
 		 (if (eq exists buf) 0 t))
 	    (cond ((eq mode 'overwrite)

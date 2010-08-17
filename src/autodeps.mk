@@ -2,5 +2,5 @@
 
 ## This is inserted in src/Makefile if AUTO_DEPEND=yes.
 
-ALLOBJS=$(START_FILES) ${obj} ${otherobj} prefix-args.o
+ALLOBJS=$(START_FILES) ${obj} ${otherobj}
 -include $(ALLOBJS:%.o=${DEPDIR}/%.d)

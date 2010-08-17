@@ -39,13 +39,6 @@ as its argument.")
 
 (defvar window-system-default-frame-alist nil
   "Alist of window-system dependent default frame parameters.
-You can set this in your init file; for example,
-
- ;; Disable menubar and toolbar on the console, but enable them under X.
- (setq window-system-default-frame-alist
-       '((x (menu-bar-lines . 1) (tool-bar-lines . 1))
-         (nil (menu-bar-lines . 0) (tool-bar-lines . 0))))
-
 Parameters specified here supersede the values given in
 `default-frame-alist'.")
 
@@ -287,36 +280,6 @@ and (cdr ARGS) as second."
 React to settings of `initial-frame-alist',
 `window-system-default-frame-alist' and `default-frame-alist'
 there (in decreasing order of priority)."
-  ;; Make menu-bar-mode and default-frame-alist consistent.
-  (when (boundp 'menu-bar-mode)
-    (let ((default (assq 'menu-bar-lines default-frame-alist)))
-      (if default
-	  (setq menu-bar-mode (not (eq (cdr default) 0)))
-	(setq default-frame-alist
-	      (cons (cons 'menu-bar-lines (if menu-bar-mode 1 0))
-		    default-frame-alist)))))
-
-  ;; Make tool-bar-mode and default-frame-alist consistent.  Don't do
-  ;; it in batch mode since that would leave a tool-bar-lines
-  ;; parameter in default-frame-alist in a dumped Emacs, which is not
-  ;; what we want.
-  (when (and (boundp 'tool-bar-mode)
- 	     (not noninteractive))
-    (let ((default (assq 'tool-bar-lines default-frame-alist)))
-      (if default
- 	  (setq tool-bar-mode (not (eq (cdr default) 0)))
-	;; If Emacs was started on a tty, changing default-frame-alist
-	;; would disable the toolbar on X frames created later.  We
-	;; want to keep the default of showing a toolbar under X even
-	;; in this case.
-	;;
-	;; If the user explicitly called `tool-bar-mode' in .emacs,
-	;; then default-frame-alist is already changed anyway.
-	(when initial-window-system
-	  (setq default-frame-alist
-		(cons (cons 'tool-bar-lines (if tool-bar-mode 1 0))
-		      default-frame-alist))))))
-
   ;; Creating and deleting frames may shift the selected frame around,
   ;; and thus the current buffer.  Protect against that.  We don't
   ;; want to use save-excursion here, because that may also try to set
@@ -720,15 +683,17 @@ The functions are run with one arg, the newly created frame.")
 
 (defun make-frame (&optional parameters)
   "Return a newly created frame displaying the current buffer.
-Optional argument PARAMETERS is an alist of parameters for the new frame.
-Each element of PARAMETERS should have the form (NAME . VALUE), for example:
+Optional argument PARAMETERS is an alist of frame parameters for
+the new frame.  Each element of PARAMETERS should have the
+form (NAME . VALUE), for example:
 
  (name . STRING)	The frame should be named STRING.
 
  (width . NUMBER)	The frame should be NUMBER characters in width.
  (height . NUMBER)	The frame should be NUMBER text lines high.
 
-You cannot specify either `width' or `height', you must use neither or both.
+You cannot specify either `width' or `height', you must specify
+neither or both.
 
  (minibuffer . t)	The frame should have a minibuffer.
  (minibuffer . nil)	The frame should have no minibuffer.
@@ -740,15 +705,17 @@ You cannot specify either `width' or `height', you must use neither or both.
 
  (terminal . TERMINAL)  The frame should use the terminal object TERMINAL.
 
-Before the frame is created (via `frame-creation-function-alist'), functions on the
-hook `before-make-frame-hook' are run.  After the frame is created, functions
-on `after-make-frame-functions' are run with one arg, the newly created frame.
+In addition, any parameter specified in `default-frame-alist',
+but not present in PARAMETERS, is applied.
 
-This function itself does not make the new frame the selected frame.
-The previously selected frame remains selected.  However, the
-window system may select the new frame for its own reasons, for
-instance if the frame appears under the mouse pointer and your
-setup is for focus to follow the pointer."
+Before creating the frame (via `frame-creation-function-alist'),
+this function runs the hook `before-make-frame-hook'.  After
+creating the frame, it runs the hook `after-make-frame-functions'
+with one arg, the newly created frame.
+
+On graphical displays, this function does not itself make the new
+frame the selected frame.  However, the window system may select
+the new frame according to its own rules."
   (interactive)
   (let* ((w (cond
 	     ((assq 'terminal parameters)
@@ -763,14 +730,21 @@ setup is for focus to follow the pointer."
 	     (t window-system)))
 	 (frame-creation-function (cdr (assq w frame-creation-function-alist)))
 	 (oldframe (selected-frame))
+	 (params parameters)
 	 frame)
     (unless frame-creation-function
       (error "Don't know how to create a frame on window system %s" w))
+    ;; Add parameters from `window-system-default-frame-alist'.
+    (dolist (p (cdr (assq w window-system-default-frame-alist)))
+      (unless (assq (car p) params)
+	(push p params)))
+    ;; Add parameters from `default-frame-alist'.
+    (dolist (p default-frame-alist)
+      (unless (assq (car p) params)
+	(push p params)))
+    ;; Now make the frame.
     (run-hooks 'before-make-frame-hook)
-    (setq frame
-          (funcall frame-creation-function
-                   (append parameters
-                           (cdr (assq w window-system-default-frame-alist)))))
+    (setq frame (funcall frame-creation-function params))
     (normal-erase-is-backspace-setup-frame frame)
     ;; Inherit the original frame's parameters.
     (dolist (param frame-inherited-parameters)
@@ -1457,23 +1431,6 @@ In the 3rd, 4th, and 6th examples, the returned value is relative to
 the opposite frame edge from the edge indicated in the input spec."
   (cons (car spec) (frame-geom-value-cons (car spec) (cdr spec))))
 
-;;;; Aliases for backward compatibility with Emacs 18.
-(define-obsolete-function-alias 'screen-height 'frame-height "19.7")
-(define-obsolete-function-alias 'screen-width 'frame-width "19.7")
-
-(defun set-screen-width (cols &optional pretend)
-  "Change the size of the screen to COLS columns.
-Optional second arg non-nil means that redisplay should use COLS columns
-but that the idea of the actual width of the frame should not be changed.
-This function is provided only for compatibility with Emacs 18."
-  (set-frame-width (selected-frame) cols pretend))
-
-(defun set-screen-height (lines &optional pretend)
-  "Change the height of the screen to LINES lines.
-Optional second arg non-nil means that redisplay should use LINES lines
-but that the idea of the actual height of the screen should not be changed.
-This function is provided only for compatibility with Emacs 18."
-  (set-frame-height (selected-frame) lines pretend))
 
 (defun delete-other-frames (&optional frame)
   "Delete all frames except FRAME.
@@ -1498,9 +1455,6 @@ left untouched.  FRAME nil or omitted means use the selected frame."
     (dolist (frame frames)
       (when (eq (frame-parameter frame 'minibuffer) 'only)
 	(delete-frame frame)))))
-
-(make-obsolete 'set-screen-width 'set-frame-width "19.7")
-(make-obsolete 'set-screen-height 'set-frame-height "19.7")
 
 ;; miscellaneous obsolescence declarations
 (define-obsolete-variable-alias 'delete-frame-hook

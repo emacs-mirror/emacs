@@ -357,21 +357,21 @@ Must be greater than 1."
   :group 'ispell)
 
 (defcustom ispell-alternate-dictionary
-  (cond ((file-exists-p "/usr/dict/web2") "/usr/dict/web2")
-	((file-exists-p "/usr/share/dict/web2") "/usr/share/dict/web2")
-	((file-exists-p "/usr/dict/words") "/usr/dict/words")
-	((file-exists-p "/usr/lib/dict/words") "/usr/lib/dict/words")
-	((file-exists-p "/usr/share/dict/words") "/usr/share/dict/words")
-	((file-exists-p "/usr/share/lib/dict/words")
+  (cond ((file-readable-p "/usr/dict/web2") "/usr/dict/web2")
+	((file-readable-p "/usr/share/dict/web2") "/usr/share/dict/web2")
+	((file-readable-p "/usr/dict/words") "/usr/dict/words")
+	((file-readable-p "/usr/lib/dict/words") "/usr/lib/dict/words")
+	((file-readable-p "/usr/share/dict/words") "/usr/share/dict/words")
+	((file-readable-p "/usr/share/lib/dict/words")
 	 "/usr/share/lib/dict/words")
-	((file-exists-p "/sys/dict") "/sys/dict")
-	(t "/usr/dict/words"))
-  "*Alternate dictionary for spelling help."
+	((file-readable-p "/sys/dict") "/sys/dict"))
+  "*Alternate plain word-list dictionary for spelling help."
   :type '(choice file (const :tag "None" nil))
   :group 'ispell)
 
-(defcustom ispell-complete-word-dict ispell-alternate-dictionary
-  "*Dictionary used for word completion."
+(defcustom ispell-complete-word-dict nil
+  "*Plain word-list dictionary used for word completion if
+different from `ispell-alternate-dictionary'."
   :type '(choice file (const :tag "None" nil))
   :group 'ispell)
 
@@ -660,8 +660,8 @@ re-start Emacs."
      "[^A-Za-z\241\243\246\254\257\261\263\266\274\277\306\312\321\323\346\352\361\363]"
      "[.]" nil nil nil iso-8859-2)
     ("portugues"                        ; Portuguese mode
-     "[a-zA-Z\301\302\311\323\340\341\342\351\352\355\363\343\372]"
-     "[^a-zA-Z\301\302\311\323\340\341\342\351\352\355\363\343\372]"
+     "[a-zA-Z\301\302\307\311\323\340\341\342\351\352\355\363\343\347\372]"
+     "[^a-zA-Z\301\302\307\311\323\340\341\342\351\352\355\363\343\347\372]"
      "[']" t ("-C") "~latin1" iso-8859-1)
     ("russian"				; Russian.aff (KOI8-R charset)
      "[\341\342\367\347\344\345\263\366\372\351\352\353\354\355\356\357\360\362\363\364\365\346\350\343\376\373\375\370\371\377\374\340\361\301\302\327\307\304\305\243\326\332\311\312\313\314\315\316\317\320\322\323\324\325\306\310\303\336\333\335\330\331\337\334\300\321]"
@@ -982,8 +982,8 @@ Assumes that value contains no whitespace."
   ;; This returns nil if the data file does not exist.
   ;; Can someone please explain the return value format when the
   ;; file does exist -- rms?
-  (let* ((lang ;; Strip out region, variant, etc.
-	  (and (string-match "^[[:alpha:]]+" dict-name)
+  (let* ((lang ;; Strip out variant, etc.
+	  (and (string-match "^[[:alpha:]_]+" dict-name)
 	       (match-string 0 dict-name)))
 	 (data-file
 	  (concat (or ispell-aspell-data-dir
@@ -2049,10 +2049,11 @@ Global `ispell-quit' set to start location to continue spell session."
 			      (erase-buffer)
 			      (setq count ?0
 				    skipped 0
-				    mode-line-format
+				    mode-line-format ;; setup the *Choices* buffer with valid data.
 				    (concat "--  %b  --  word: " new-word
-					    "  --  dict: "
-					    ispell-alternate-dictionary)
+					    "  --  word-list: "
+					    (or ispell-complete-word-dict
+						ispell-alternate-dictionary))
 				    miss (lookup-words new-word)
 				    choices miss
 				    line ispell-choices-win-default-height)
@@ -2267,11 +2268,20 @@ Otherwise the variable `ispell-grep-command' contains the command used to
 search for the words (usually egrep).
 
 Optional second argument contains the dictionary to use; the default is
-`ispell-alternate-dictionary'."
+`ispell-alternate-dictionary', overriden by `ispell-complete-word-dict'
+if defined."
   ;; We don't use the filter for this function, rather the result is written
   ;; into a buffer.  Hence there is no need to save the filter values.
   (if (null lookup-dict)
-      (setq lookup-dict ispell-alternate-dictionary))
+      (setq lookup-dict (or ispell-complete-word-dict
+			    ispell-alternate-dictionary)))
+
+  (if lookup-dict
+      (unless (file-readable-p lookup-dict)
+	(error "lookup-words error: Unreadable or missing plain word-list %s."
+	       lookup-dict))
+    (error (concat "lookup-words error: No plain word-list found at system default "
+		   "locations.  Customize `ispell-alternate-dictionary' to set yours.")))
 
   (let* ((process-connection-type ispell-use-ptys-p)
 	 (wild-p (string-match "\\*" word))
@@ -2622,7 +2632,7 @@ Keeps argument list for future ispell invocations for no async support."
 	   ;; Restart check for personal dictionary is done in
 	   ;; `ispell-internal-change-dictionary', called from `ispell-buffer-local-dict'
 	   (or (or ispell-local-pdict ispell-personal-dictionary)
-	       (equal ispell-process-directory default-directory)))
+	       (equal ispell-process-directory (expand-file-name default-directory))))
       (setq ispell-filter nil ispell-filter-continue nil)
     ;; may need to restart to select new personal dictionary.
     (ispell-kill-ispell t)
@@ -2638,13 +2648,13 @@ Keeps argument list for future ispell invocations for no async support."
     (if (window-minibuffer-p)
 	(if (fboundp 'minibuffer-selected-window)
 	    ;; Assign ispell process to parent buffer
-	    (setq ispell-process-directory default-directory
+	    (setq ispell-process-directory (expand-file-name default-directory)
 		  ispell-process-buffer-name (window-buffer (minibuffer-selected-window)))
 	  ;; Force `ispell-process-directory' to $HOME and use a dummy name
 	  (setq ispell-process-directory (expand-file-name "~/")
 		ispell-process-buffer-name " * Minibuffer-has-spellcheck-enabled"))
       ;; Not in a minibuffer
-      (setq ispell-process-directory default-directory
+      (setq ispell-process-directory (expand-file-name default-directory)
 	    ispell-process-buffer-name (buffer-name)))
     (if ispell-async-processp
 	(set-process-filter ispell-process 'ispell-filter))
@@ -3342,7 +3352,8 @@ Standard ispell choices are then available."
 	      (lookup-words (concat (and interior-frag "*") word
 				    (if (or interior-frag (null ispell-look-p))
 					"*"))
-			    ispell-complete-word-dict)))
+			    (or ispell-complete-word-dict
+				ispell-alternate-dictionary))))
     (cond ((eq possibilities t)
 	   (message "No word to complete"))
 	  ((null possibilities)

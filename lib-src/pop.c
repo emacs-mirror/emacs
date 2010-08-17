@@ -108,24 +108,16 @@ extern int h_errno;
 #endif
 #endif
 
-#ifndef __P
-# ifdef __STDC__
-#  define __P(a) a
-# else
-#  define __P(a) ()
-# endif /* __STDC__ */
-#endif /* ! __P */
-
-static int socket_connection __P((char *, int));
-static int pop_getline __P((popserver, char **));
-static int sendline __P((popserver, char *));
-static int fullwrite __P((int, char *, int));
-static int getok __P((popserver));
+static int socket_connection (char *, int);
+static int pop_getline (popserver, char **);
+static int sendline (popserver, const char *);
+static int fullwrite (int, char *, int);
+static int getok (popserver);
 #if 0
-static int gettermination __P((popserver));
+static int gettermination (popserver);
 #endif
-static void pop_trash __P((popserver));
-static char *find_crlf __P((char *, int));
+static void pop_trash (popserver);
+static char *find_crlf (char *, int);
 
 #define ERROR_MAX 160		/* a pretty arbitrary size, but needs
 				   to be bigger than the original
@@ -174,11 +166,7 @@ int pop_debug = 0;
  * 	explanation of the error.
  */
 popserver
-pop_open (host, username, password, flags)
-     char *host;
-     char *username;
-     char *password;
-     int flags;
+pop_open (char *host, char *username, char *password, int flags)
 {
   int sock;
   popserver server;
@@ -345,10 +333,7 @@ pop_open (host, username, password, flags)
  * 	connection impossible.
  */
 int
-pop_stat (server, count, size)
-     popserver server;
-     int *count;
-     int *size;
+pop_stat (popserver server, int *count, int *size)
 {
   char *fromserver;
   char *end_ptr;
@@ -421,11 +406,7 @@ pop_stat (server, count, size)
  * 	connection impossible.
  */
 int
-pop_list (server, message, IDs, sizes)
-     popserver server;
-     int message;
-     int **IDs;
-     int **sizes;
+pop_list (popserver server, int message, int **IDs, int **sizes)
 {
   int how_many, i;
   char *fromserver;
@@ -484,7 +465,7 @@ pop_list (server, message, IDs, sizes)
 	  return (-1);
 	}
       (*IDs)[0] = atoi (&fromserver[4]);
-      fromserver = index (&fromserver[4], ' ');
+      fromserver = strchr (&fromserver[4], ' ');
       if (! fromserver)
 	{
 	  strcpy (pop_error,
@@ -515,7 +496,7 @@ pop_list (server, message, IDs, sizes)
 	      return (-1);
 	    }
 	  (*IDs)[i] = atoi (fromserver);
-	  fromserver = index (fromserver, ' ');
+	  fromserver = strchr (fromserver, ' ');
 	  if (! fromserver)
 	    {
 	      strcpy (pop_error,
@@ -567,11 +548,7 @@ pop_list (server, message, IDs, sizes)
  * Side effects: May kill connection on error.
  */
 int
-pop_retrieve (server, message, markfrom, msg_buf)
-     popserver server;
-     int message;
-     int markfrom;
-     char **msg_buf;
+pop_retrieve (popserver server, int message, int markfrom, char **msg_buf)
 {
   int *IDs, *sizes, bufsize, fromcount = 0, cp = 0;
   char *ptr, *fromserver;
@@ -635,7 +612,7 @@ pop_retrieve (server, message, markfrom, msg_buf)
 	    }
 	  ptr[cp++] = '>';
 	}
-      bcopy (fromserver, &ptr[cp], ret);
+      memcpy (&ptr[cp], fromserver, ret);
       cp += ret;
       ptr[cp++] = '\n';
     }
@@ -645,10 +622,7 @@ pop_retrieve (server, message, markfrom, msg_buf)
 }
 
 int
-pop_retrieve_first (server, message, response)
-     popserver server;
-     int message;
-     char **response;
+pop_retrieve_first (popserver server, int message, char **response)
 {
   sprintf (pop_error, "RETR %d", message);
   return (pop_multi_first (server, pop_error, response));
@@ -663,25 +637,19 @@ pop_retrieve_first (server, message, response)
   */
 
 int
-pop_retrieve_next (server, line)
-     popserver server;
-     char **line;
+pop_retrieve_next (popserver server, char **line)
 {
   return (pop_multi_next (server, line));
 }
 
 int
-pop_retrieve_flush (server)
-     popserver server;
+pop_retrieve_flush (popserver server)
 {
   return (pop_multi_flush (server));
 }
 
 int
-pop_top_first (server, message, lines, response)
-     popserver server;
-     int message, lines;
-     char **response;
+pop_top_first (popserver server, int message, int lines, char **response)
 {
   sprintf (pop_error, "TOP %d %d", message, lines);
   return (pop_multi_first (server, pop_error, response));
@@ -696,25 +664,19 @@ pop_top_first (server, message, lines, response)
   */
 
 int
-pop_top_next (server, line)
-     popserver server;
-     char **line;
+pop_top_next (popserver server, char **line)
 {
   return (pop_multi_next (server, line));
 }
 
 int
-pop_top_flush (server)
-     popserver server;
+pop_top_flush (popserver server)
 {
   return (pop_multi_flush (server));
 }
 
 int
-pop_multi_first (server, command, response)
-     popserver server;
-     char *command;
-     char **response;
+pop_multi_first (popserver server, const char *command, char **response)
 {
   if (server->in_multi)
     {
@@ -757,9 +719,7 @@ pop_multi_first (server, command, response)
   0, LINE is set to null. */
 
 int
-pop_multi_next (server, line)
-     popserver server;
-     char **line;
+pop_multi_next (popserver server, char **line)
 {
   char *fromserver;
   int ret;
@@ -797,8 +757,7 @@ pop_multi_next (server, line)
 }
 
 int
-pop_multi_flush (server)
-     popserver server;
+pop_multi_flush (popserver server)
 {
   char *line;
   int ret;
@@ -829,9 +788,7 @@ pop_multi_flush (server)
  * 	otherwise.
  */
 int
-pop_delete (server, message)
-     popserver server;
-     int message;
+pop_delete (popserver server, int message)
 {
   if (server->in_multi)
     {
@@ -861,8 +818,7 @@ pop_delete (server, message)
  * Side effects: Closes connection on error.
  */
 int
-pop_noop (server)
-     popserver server;
+pop_noop (popserver server)
 {
   if (server->in_multi)
     {
@@ -891,8 +847,7 @@ pop_noop (server)
  * Side effects: Closes the connection on error.
  */
 int
-pop_last (server)
-     popserver server;
+pop_last (popserver server)
 {
   char *fromserver;
 
@@ -949,8 +904,7 @@ pop_last (server)
  * Side effects: Closes the connection on error.
  */
 int
-pop_reset (server)
-     popserver server;
+pop_reset (popserver server)
 {
   if (pop_retrieve_flush (server))
     {
@@ -978,8 +932,7 @@ pop_reset (server)
  * 	function is called, even if an error occurs.
  */
 int
-pop_quit (server)
-     popserver server;
+pop_quit (popserver server)
 {
   int ret = 0;
 
@@ -1023,9 +976,7 @@ static int have_winsock = 0;
  * 	into pop_error.
  */
 static int
-socket_connection (host, flags)
-     char *host;
-     int flags;
+socket_connection (char *host, int flags)
 {
 #ifdef HAVE_GETADDRINFO
   struct addrinfo *res, *it;
@@ -1037,7 +988,7 @@ socket_connection (host, flags)
   struct servent *servent;
   struct sockaddr_in addr;
   char found_port = 0;
-  char *service;
+  const char *service;
   int sock;
   char *realhost;
 #ifdef KERBEROS
@@ -1069,7 +1020,7 @@ socket_connection (host, flags)
   }
 #endif
 
-  bzero ((char *) &addr, sizeof (addr));
+  memset (&addr, 0, sizeof (addr));
   addr.sin_family = AF_INET;
 
   /** "kpop" service is  never used: look for 20060515 to see why **/
@@ -1145,8 +1096,7 @@ socket_connection (host, flags)
           if (it->ai_addrlen == sizeof (addr))
             {
               struct sockaddr_in *in_a = (struct sockaddr_in *) it->ai_addr;
-              bcopy (&in_a->sin_addr, (char *) &addr.sin_addr,
-                     sizeof (addr.sin_addr));
+              memcpy (&addr.sin_addr, &in_a->sin_addr, sizeof (addr.sin_addr));
               if (! connect (sock, (struct sockaddr *) &addr, sizeof (addr)))
                 break;
             }
@@ -1174,8 +1124,7 @@ socket_connection (host, flags)
 
   while (*hostent->h_addr_list)
     {
-      bcopy (*hostent->h_addr_list, (char *) &addr.sin_addr,
-	     hostent->h_length);
+      memcpy (&addr.sin_addr, *hostent->h_addr_list, hostent->h_length);
       if (! connect (sock, (struct sockaddr *) &addr, sizeof (addr)))
 	break;
       hostent->h_addr_list++;
@@ -1335,9 +1284,7 @@ socket_connection (host, flags)
  * THE RETURNED LINE MAY CONTAIN EMBEDDED NULLS!
  */
 static int
-pop_getline (server, line)
-     popserver server;
-     char **line;
+pop_getline (popserver server, char **line)
 {
 #define GETLINE_ERROR "Error reading from server: "
 
@@ -1369,8 +1316,8 @@ pop_getline (server, line)
 	}
       else
 	{
-	  bcopy (server->buffer + server->buffer_index,
-		 server->buffer, server->data);
+	  memmove (server->buffer, server->buffer + server->buffer_index,
+		   server->data);
 	  /* Record the fact that we've searched the data already in
              the buffer for a CRLF, so that when we search below, we
              don't have to search the same data twice.  There's a "-
@@ -1467,9 +1414,7 @@ pop_getline (server, line)
  * Side effects: Closes the connection on error.
  */
 static int
-sendline (server, line)
-     popserver server;
-     char *line;
+sendline (popserver server, const char *line)
 {
 #define SENDLINE_ERROR "Error writing to POP server: "
   int ret;
@@ -1516,10 +1461,7 @@ sendline (server, line)
  * Return value: Same as write.  Pop_error is not set.
  */
 static int
-fullwrite (fd, buf, nbytes)
-     int fd;
-     char *buf;
-     int nbytes;
+fullwrite (int fd, char *buf, int nbytes)
 {
   char *cp;
   int ret = 0;
@@ -1549,8 +1491,7 @@ fullwrite (fd, buf, nbytes)
  * Side effects: On failure, may make the connection unusable.
  */
 static int
-getok (server)
-     popserver server;
+getok (popserver server)
 {
   char *fromline;
 
@@ -1621,8 +1562,7 @@ gettermination (server)
  * 	since the last pop_reset) may be lost.
  */
 void
-pop_close (server)
-     popserver server;
+pop_close (popserver server)
 {
   pop_trash (server);
   free ((char *) server);
@@ -1638,8 +1578,7 @@ pop_close (server)
  * 	pop_close or pop_quit after this function has been called.
  */
 static void
-pop_trash (server)
-     popserver server;
+pop_trash (popserver server)
 {
   if (server->file >= 0)
     {
@@ -1671,9 +1610,7 @@ pop_trash (server)
    null, or 0 if it does not contain one.  */
 
 static char *
-find_crlf (in_string, len)
-     char *in_string;
-     int len;
+find_crlf (char *in_string, int len)
 {
   while (len--)
     {

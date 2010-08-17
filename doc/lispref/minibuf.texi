@@ -1,7 +1,8 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001, 2002,
-@c   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+@c   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/minibuf
 @node Minibuffers, Command Loop, Read and Print, Top
@@ -22,13 +23,13 @@ argument.
 * Intro to Minibuffers::      Basic information about minibuffers.
 * Text from Minibuffer::      How to read a straight text string.
 * Object from Minibuffer::    How to read a Lisp object or expression.
-* Minibuffer History::	      Recording previous minibuffer inputs
-				so the user can reuse them.
+* Minibuffer History::        Recording previous minibuffer inputs
+                                so the user can reuse them.
 * Initial Input::             Specifying initial contents for the minibuffer.
 * Completion::                How to invoke and customize completion.
 * Yes-or-No Queries::         Asking a question with a simple answer.
-* Multiple Queries::	      Asking a series of similar questions.
-* Reading a Password::	      Reading a password from the terminal.
+* Multiple Queries::          Asking a series of similar questions.
+* Reading a Password::        Reading a password from the terminal.
 * Minibuffer Commands::       Commands used as key bindings in minibuffers.
 * Minibuffer Contents::       How such commands access the minibuffer text.
 * Minibuffer Windows::        Operating on the special minibuffer windows.
@@ -1221,10 +1222,11 @@ Buffer name (default foo): @point{}
 @end defun
 
 @defopt read-buffer-function
-This variable specifies how to read buffer names.  For example, if you
-set this variable to @code{iswitchb-read-buffer}, all Emacs commands
-that call @code{read-buffer} to read a buffer name will actually use the
-@code{iswitchb} package to read it.
+This variable specifies how to read buffer names.  The function is
+called with the arguments passed to @code{read-buffer}.  For example,
+if you set this variable to @code{iswitchb-read-buffer}, all Emacs
+commands that call @code{read-buffer} to read a buffer name will
+actually use the @code{iswitchb} package to read it.
 @end defopt
 
 @defopt read-buffer-completion-ignore-case

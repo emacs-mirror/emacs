@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.35i
+;; Version: 7.01
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -36,8 +36,8 @@
 (defvar org-datetree-base-level 1
   "The level at which years should be placed in the date tree.
 This is normally one, but if the buffer has an entry with a DATE_TREE
-property, the date tree will become a subtree under that entry, so the
-base level will be properly adjusted.")
+property (any value), the date tree will become a subtree under that entry,
+so the base level will be properly adjusted.")
 
 ;;;###autoload
 (defun org-datetree-find-date-create (date &optional keep-restriction)

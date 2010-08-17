@@ -35,10 +35,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    for terminal control.  */
 #define HAVE_TERMIO
 
-/* Define SYSV_SYSTEM_DIR to use the V.3 getdents/readir library
-   functions. Almost, but not quite the same as the 4.2 functions.  */
-#define SYSV_SYSTEM_DIR
-
 /* The file containing the kernel's symbol table is called /unix.  */
 #define KERNEL_FILE "/unix"
 
@@ -50,21 +46,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define _setjmp setjmp
 #define _longjmp longjmp
 
-/* On USG systems these have different names.  */
-#ifndef HAVE_INDEX
-#define index strchr
-#endif /* ! defined (HAVE_INDEX) */
-#ifndef HAVE_RINDEX
-#define rindex strrchr
-#endif /* ! defined (HAVE_RINDEX) */
-
 /* The docs for system V/386 suggest v.3 has sigpause, so let's try it.  */
 #define HAVE_SYSV_SIGPAUSE
 
 /* On USG systems signal handlers return void.  */
 #define SIGTYPE void
-
-#undef COFF
 
 /* Get FIONREAD from <sys/filio.h>.  Get <sys/ttold.h> to get struct tchars.
    But get <termio.h> first to make sure ttold.h doesn't interfere.

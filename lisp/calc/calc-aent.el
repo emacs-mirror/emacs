@@ -1,7 +1,7 @@
 ;;; calc-aent.el --- algebraic entry functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -609,9 +609,9 @@ in Calc algebraic input.")
         (setq math-exp-str (math-remove-percentsigns math-exp-str)))
     (if calc-language-input-filter
 	(setq math-exp-str (funcall calc-language-input-filter math-exp-str)))
-    (while (setq math-exp-token 
+    (while (setq math-exp-token
                  (string-match "\\.\\.\\([^.]\\|.[^.]\\)" math-exp-str))
-      (setq math-exp-str 
+      (setq math-exp-str
             (concat (substring math-exp-str 0 math-exp-token) "\\dots"
 			    (substring math-exp-str (+ math-exp-token 2)))))
     (math-build-parse-table)
@@ -712,7 +712,7 @@ in Calc algebraic input.")
 	       (math-read-token)))
 	    ((and (memq ch calc-user-token-chars)
 		  (let ((case-fold-search nil))
-		    (eq (string-match 
+		    (eq (string-match
                          calc-user-tokens math-exp-str math-exp-pos)
 			math-exp-pos)))
 	     (setq math-exp-token 'punc
@@ -722,7 +722,7 @@ in Calc algebraic input.")
 		 (and (>= ch ?A) (<= ch ?Z))
 		 (and (>= ch ?α) (<= ch ?ω))
 		 (and (>= ch ?Α) (<= ch ?Ω)))
-	     (string-match 
+	     (string-match
               (cond
                ((and (memq calc-language calc-lang-allow-underscores)
                      (memq calc-language calc-lang-allow-percentsigns))
@@ -745,7 +745,7 @@ in Calc algebraic input.")
 		      (eq (string-match "_\\.?[0-9]" math-exp-str math-exp-pos)
                           math-exp-pos)
 		      (or (eq math-exp-pos 0)
-			  (and (not (memq calc-language 
+			  (and (not (memq calc-language
                                           calc-lang-allow-underscores))
 			       (eq (string-match "[^])}\"a-zA-Zα-ωΑ-Ω0-9'$]_"
 						 math-exp-str (1- math-exp-pos))
@@ -757,7 +757,7 @@ in Calc algebraic input.")
 	     (setq math-exp-token 'number
 		   math-expr-data (math-match-substring math-exp-str 0)
 		   math-exp-pos (match-end 0)))
-            ((and (setq adfn 
+            ((and (setq adfn
                         (assq ch (get calc-language 'math-lang-read-symbol)))
                   (eval (nth 1 adfn)))
              (eval (nth 2 adfn)))
@@ -810,8 +810,8 @@ in Calc algebraic input.")
 
 (defun math-read-expr-level (exp-prec &optional exp-term)
   (let* ((math-expr-opers (math-expr-ops))
-         (x (math-read-factor)) 
-         (first t) 
+         (x (math-read-factor))
+         (first t)
          op op2)
     (while (and (or (and calc-user-parse-table
 			 (setq op (calc-check-user-syntax x exp-prec))
@@ -832,8 +832,8 @@ in Calc algebraic input.")
 			     (memq math-exp-token '(symbol number dollar hash))
 			     (equal math-expr-data "(")
 			     (and (equal math-expr-data "[")
-				  (not (equal 
-                                        (get calc-language 
+				  (not (equal
+                                        (get calc-language
                                              'math-function-open) "["))
 				  (not (and math-exp-keep-spaces
 					    (eq (car-safe x) 'vec)))))
@@ -1141,8 +1141,8 @@ If the current Calc language does not use placeholders, return nil."
 				    (eq math-exp-token 'end)))
 			   (throw 'syntax "Expected `)'"))
 		       (math-read-token)
-		       (if (and (memq calc-language 
-                                      calc-lang-parens-are-subscripts) 
+		       (if (and (memq calc-language
+                                      calc-lang-parens-are-subscripts)
                                 args
 				(require 'calc-ext)
 				(let ((calc-matrix-mode 'scalar))
@@ -1184,7 +1184,7 @@ If the current Calc language does not use placeholders, return nil."
 					       (substring (symbol-name (cdr v))
 							  4))
 					      (cdr v))))))
-		   (while (and (memq calc-language 
+		   (while (and (memq calc-language
                                      calc-lang-brackets-are-subscripts)
 			       (equal math-expr-data "["))
 		     (math-read-token)
@@ -1284,6 +1284,7 @@ If the current Calc language does not use placeholders, return nil."
 (provide 'calc-aent)
 
 ;; Local variables:
+;; coding: utf-8
 ;; generated-autoload-file: "calc-loaddefs.el"
 ;; End:
 

@@ -33,8 +33,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* For now, don't try to include termcap.h.  On some systems,
    configure finds a non-standard termcap.h that the main build
    won't find.  */
-extern void tputs P_ ((const char *, int, int (*)(int)));
-extern char *tgoto P_ ((const char *, int, int));
+extern void tputs (const char *, int, int (*)(int));
+extern char *tgoto (const char *, int, int);
 
 #define	BIG	9999		/* 9999 good on VAXen.  For 16 bit machines
 				   use about 2000.... */
@@ -45,8 +45,7 @@ int cost;		/* sums up costs */
 
 /* ARGSUSED */
 int
-evalcost (c)
-     char c;
+evalcost (int c)
 {
   cost++;
   return c;
@@ -56,8 +55,7 @@ evalcost (c)
 struct tty_display_info *current_tty;
 
 int
-cmputc (c)
-     char c;
+cmputc (int c)
 {
   if (current_tty->termscript)
     putc (c & 0177, current_tty->termscript);
@@ -326,9 +324,7 @@ losecursor ()
 #define	USECR	3
 
 void
-cmgoto (tty, row, col)
-     struct tty_display_info *tty;
-     int row, col;
+cmgoto (struct tty_display_info *tty, int row, int col)
 {
     int     homecost,
             crcost,
@@ -434,7 +430,7 @@ cmgoto (tty, row, col)
 void
 Wcm_clear (struct tty_display_info *tty)
 {
-  bzero (tty->Wcm, sizeof (struct cm));
+  memset (tty->Wcm, 0, sizeof (struct cm));
   UP = 0;
   BC = 0;
 }

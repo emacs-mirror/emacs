@@ -1,7 +1,7 @@
 ;;; calc-units.el --- unit conversion functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <jay.p.belanger@gmail.com>
@@ -323,7 +323,7 @@ that the combined units table will be rebuilt.")
      ( ?c  (^ 10 -2)  "Centi"  )
      ( ?m  (^ 10 -3)  "Milli"  )
      ( ?u  (^ 10 -6)  "Micro"  )
-     ( ?μ  (^ 10 -6)  "Micro"  )     
+     ( ?μ  (^ 10 -6)  "Micro"  )
      ( ?n  (^ 10 -9)  "Nano"   )
      ( ?p  (^ 10 -12) "Pico"   )
      ( ?f  (^ 10 -15) "Femto"  )
@@ -1547,6 +1547,10 @@ If EXPR is nil, return nil."
       (display-buffer (get-buffer "*Units Table*")))))
 
 (provide 'calc-units)
+
+;; Local variables:
+;; coding: utf-8
+;; End:
 
 ;; arch-tag: e993314f-3adc-4191-be61-4ef8874881c4
 ;;; calc-units.el ends here

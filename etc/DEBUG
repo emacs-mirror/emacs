@@ -5,9 +5,8 @@ Copyright (C) 1985, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
 See the end of the file for license conditions.
 
 
-[People who debug Emacs on Windows using Microsoft debuggers
-should read the Windows-specific section near the end of this
-document.]
+[People who debug Emacs on Windows using Microsoft debuggers should
+read the Windows-specific section near the end of this document.]
 
 ** When you debug Emacs with GDB, you should start it in the directory
 where the executable was made.  That directory has a .gdbinit file
@@ -50,8 +49,7 @@ On modern POSIX systems, you can override that with this command:
    handle SIGINT stop nopass
 
 After this `handle' command, SIGINT will return control to GDB.  If
-you want the C-g to cause a QUIT within Emacs as well, omit the
-`nopass'.
+you want the C-g to cause a QUIT within Emacs as well, omit the `nopass'.
 
 A technique that can work when `handle SIGINT' does not is to store
 the code for some character into the variable stop_character.  Thus,
@@ -443,10 +441,9 @@ It is necessary to refer to the file `nmout' to convert
 numeric addresses into symbols and vice versa.
 
 It is useful to be running under a window system.
-Then, if Emacs becomes hopelessly wedged, you can create
-another window to do kill -9 in.  kill -ILL is often
-useful too, since that may make Emacs dump core or return
-to adb.
+Then, if Emacs becomes hopelessly wedged, you can create another
+window to do kill -9 in.  kill -ILL is often useful too, since that
+may make Emacs dump core or return to adb.
 
 
 ** Debugging incorrect screen updating.
@@ -483,16 +480,14 @@ suitable for Unix and GNU systems, to build such a debugging version:
 Building Emacs like that activates many assertions which scrutinize
 display code operation more than Emacs does normally.  (To see the
 code which tests these assertions, look for calls to the `xassert'
-macros.)  Any assertion that is reported to fail should be
-investigated.
+macros.)  Any assertion that is reported to fail should be investigated.
 
 Building with GLYPH_DEBUG defined also defines several helper
 functions which can help debugging display code.  One such function is
 `dump_glyph_matrix'.  If you run Emacs under GDB, you can print the
 contents of any glyph matrix by just calling that function with the
 matrix as its argument.  For example, the following command will print
-the contents of the current matrix of the window whose pointer is in
-`w':
+the contents of the current matrix of the window whose pointer is in `w':
 
   (gdb) p dump_glyph_matrix (w->current_matrix, 2)
 
@@ -621,13 +616,9 @@ Emacs compiled with such packages might not run without some hacking,
 because Emacs replaces the system's memory allocation functions with
 its own versions, and because the dumping process might be
 incompatible with the way these packages use to track allocated
-memory.  Here are some of the changes you might find necessary
-(SYSTEM-NAME and MACHINE-NAME are the names of your OS- and
-CPU-specific headers in the subdirectories of `src'):
+memory.  Here are some of the changes you might find necessary:
 
-  - In src/s/SYSTEM-NAME.h add "#define SYSTEM_MALLOC".
-
-  - In src/m/MACHINE-NAME.h add "#define CANNOT_DUMP"
+  - Edit configure, to set system_malloc and CANNOT_DUMP to "yes".
 
   - Configure with a different --prefix= option.  If you use GCC,
     version 2.7.2 is preferred, as some malloc debugging packages

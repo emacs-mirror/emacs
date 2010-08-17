@@ -1219,35 +1219,27 @@ This is the actual text stored in the X cut buffer.")
   "Max number of characters to put in the cut buffer.
 It is said that overlarge strings are slow to put into the cut buffer.")
 
-(defcustom x-select-enable-clipboard nil
+(defcustom x-select-enable-clipboard t
   "Non-nil means cutting and pasting uses the clipboard.
-This is in addition to, but in preference to, the primary selection.
-
-On MS-Windows, this is non-nil by default, since Windows does not
-support other types of selections.  \(The primary selection that is
-set by Emacs is not accessible to other programs on Windows.\)"
+This is in addition to, but in preference to, the primary selection."
   :type 'boolean
-  :group 'killing)
+  :group 'killing
+  :version "24.1")
 
-(defcustom x-select-enable-primary t
+(defcustom x-select-enable-primary nil
   "Non-nil means cutting and pasting uses the primary selection."
   :type 'boolean
-  :group 'killing)
+  :group 'killing
+  :version "24.1")
 
 (defun x-select-text (text &optional push)
   "Select TEXT, a string, according to the window system.
-
-On X, put TEXT in the primary X selection.  For backward
-compatibility with older X applications, set the value of X cut
-buffer 0 as well, and if the optional argument PUSH is non-nil,
-rotate the cut buffers.  If `x-select-enable-clipboard' is
-non-nil, copy the text to the X clipboard as well.
-
-On Windows, make TEXT the current selection.  If
-`x-select-enable-clipboard' is non-nil, copy the text to the
-clipboard as well.  The argument PUSH is ignored.
-
-On Nextstep, put TEXT in the pasteboard; PUSH is ignored."
+If `x-select-enable-clipboard' is non-nil, copy TEXT to the
+clipboard.  If `x-select-enable-primary' is non-nil, put TEXT in
+the primary selection.  For backward compatibility with older X
+applications, this function also sets the value of X cut buffer
+0, and, if the optional argument PUSH is non-nil, rotates the cut
+buffers."
   ;; With multi-tty, this function may be called from a tty frame.
   (when (eq (framep (selected-frame)) 'x)
     ;; Don't send the cut buffer too much text.
@@ -1560,12 +1552,12 @@ The value nil is the same as this list:
   ;; Enable CLIPBOARD copy/paste through menu bar commands.
   (menu-bar-enable-clipboard)
 
-  ;; Override Paste so it looks at CLIPBOARD first.
-  (define-key menu-bar-edit-menu [paste]
-    (append '(menu-item "Paste" x-clipboard-yank
-			:enable (not buffer-read-only)
-			:help "Paste (yank) text most recently cut/copied")
-	    nil))
+  ;; ;; Override Paste so it looks at CLIPBOARD first.
+  ;; (define-key menu-bar-edit-menu [paste]
+  ;;   (append '(menu-item "Paste" x-clipboard-yank
+  ;; 			:enable (not buffer-read-only)
+  ;; 			:help "Paste (yank) text most recently cut/copied")
+  ;; 	    nil))
 
   (setq x-initialized t))
 

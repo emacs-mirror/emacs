@@ -18,21 +18,12 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-/* Define WORDS_BIG_ENDIAN if lowest-numbered byte in a word
-   is the most significant byte.  */
-#if ! (defined (__MIPSEL__) || defined (MIPSEL) || defined (_MIPSEL))
-#define WORDS_BIG_ENDIAN
-#endif
-
 /* Define EXPLICIT_SIGN_EXTEND if XINT must explicitly sign-extend
    the 24-bit bit field into an int.  In other words, if bit fields
    are always unsigned.
 
    This flag only matters if you use USE_LISP_UNION_TYPE.  */
 #define EXPLICIT_SIGN_EXTEND
-
-/* Describe layout of the address space in an executing process.  */
-#define TEXT_START      0x00400000
 
 /* arch-tag: 8fd020ee-78a7-4d87-96ce-6129f52f7bee
    (do not change this comment) */

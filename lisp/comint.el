@@ -674,6 +674,9 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (make-local-variable 'comint-process-echoes)
   (make-local-variable 'comint-file-name-chars)
   (make-local-variable 'comint-file-name-quote-list)
+  ;; dir tracking on remote files
+  (set (make-local-variable 'comint-file-name-prefix)
+       (or (file-remote-p default-directory) ""))
   (make-local-variable 'comint-accum-marker)
   (setq comint-accum-marker (make-marker))
   (make-local-variable 'font-lock-defaults)
@@ -701,7 +704,9 @@ a running process in that buffer, it is not restarted.  Optional fourth arg
 STARTFILE is the name of a file, whose contents are sent to the
 process as its initial input.
 
-If PROGRAM is a string, any more args are arguments to PROGRAM."
+If PROGRAM is a string, any more args are arguments to PROGRAM.
+
+Returns the (possibly newly created) process buffer."
   (or (fboundp 'start-file-process)
       (error "Multi-processing is not supported for this system"))
   (setq buffer (get-buffer-create (or buffer (concat "*" name "*"))))
@@ -725,7 +730,9 @@ a running process in that buffer, it is not restarted.  Optional third arg
 STARTFILE is the name of a file, whose contents are sent to the
 process as its initial input.
 
-If PROGRAM is a string, any more args are arguments to PROGRAM."
+If PROGRAM is a string, any more args are arguments to PROGRAM.
+
+Returns the (possibly newly created) process buffer."
   (apply #'make-comint-in-buffer name nil program startfile switches))
 
 ;;;###autoload

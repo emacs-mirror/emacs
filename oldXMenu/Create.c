@@ -91,19 +91,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #define TILE_BUF_SIZE		5
 
-int atoi();
-double atof();
-char *x_get_resource_string ();
+int atoi(const char *);
+double atof(const char *);
+char *x_get_resource_string (char *attribute, char *class);
 
 
 
 static Status
-XAllocDisplayColor(display, map, colorName, color, junk)
-    Display *display;
-    Colormap map;
-    char *colorName;
-    XColor *color;
-    XColor *junk;
+XAllocDisplayColor(Display *display, Colormap map, char *colorName, XColor *color, XColor *junk)
 {
   return (colorName!=0 &&
 	  XParseColor(display, map, colorName, color) &&
@@ -112,10 +107,10 @@ XAllocDisplayColor(display, map, colorName, color, junk)
 
 
 XMenu *
-XMenuCreate(display, parent, def_env)
-    Display *display;           /* ID of previously opened display */
-    Window parent;		/* Window ID of the menu's parent window. */
-    register char *def_env;	/* X Defaults program environment name. */
+XMenuCreate(Display *display, Window parent, register char *def_env)
+                                /* ID of previously opened display */
+                  		/* Window ID of the menu's parent window. */
+                           	/* X Defaults program environment name. */
 {
   register int i;		/* Loop counter. */
   register int j;		/* Loop counter. */

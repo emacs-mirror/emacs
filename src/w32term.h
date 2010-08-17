@@ -48,8 +48,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 extern MSG CurMsg;
 extern BOOL bUseDflt;
 
-extern struct frame *x_window_to_frame ();
-
 /* Structure recording bitmaps and reference count.
    If REFCOUNT is 0 then this record is free to be reused.  */
 
@@ -226,16 +224,19 @@ extern Lisp_Object w32_display_name_list;
 /* Regexp matching a font name whose width is the same as `PIXEL_SIZE'.  */
 extern Lisp_Object Vx_pixel_size_width_font_regexp;
 
-struct w32_display_info *x_display_info_for_name ();
+extern struct frame *x_window_to_frame (struct w32_display_info *, HWND);
 
-Lisp_Object display_x_get_resource P_ ((struct w32_display_info *,
-					Lisp_Object, Lisp_Object,
-					Lisp_Object, Lisp_Object));
+struct w32_display_info *x_display_info_for_name (Lisp_Object);
 
-extern struct w32_display_info *w32_term_init ();
+Lisp_Object display_x_get_resource (struct w32_display_info *,
+                                    Lisp_Object, Lisp_Object,
+                                    Lisp_Object, Lisp_Object);
 
-extern int x_display_pixel_height P_ ((struct w32_display_info *));
-extern int x_display_pixel_width P_ ((struct w32_display_info *));
+extern struct w32_display_info *w32_term_init (Lisp_Object,
+					       char *, char *);
+
+extern int x_display_pixel_height (struct w32_display_info *);
+extern int x_display_pixel_width (struct w32_display_info *);
 
 
 #define PIX_TYPE COLORREF
@@ -544,8 +545,10 @@ struct scroll_bar {
 #define VERTICAL_SCROLL_BAR_WIDTH_TRIM (0)
 
 
-extern void w32_fill_rect ();
-extern void w32_clear_window ();
+struct frame;  /* from frame.h */
+
+extern void w32_fill_rect (struct frame *, HDC, COLORREF, RECT *);
+extern void w32_clear_window (struct frame *);
 
 #define w32_fill_area(f,hdc,pix,x,y,nx,ny) \
 do { \
@@ -645,10 +648,10 @@ typedef struct deferred_msg
 
 extern CRITICAL_SECTION critsect;
 
-extern void init_crit ();
-extern void delete_crit ();
+extern void init_crit (void);
+extern void delete_crit (void);
 
-extern void signal_quit ();
+extern void signal_quit (void);
 
 #define enter_crit() EnterCriticalSection (&critsect)
 #define leave_crit() LeaveCriticalSection (&critsect)
@@ -658,14 +661,13 @@ extern void deselect_palette (struct frame * f, HDC hdc);
 extern HDC get_frame_dc (struct frame * f);
 extern int release_frame_dc (struct frame * f, HDC hDC);
 
-extern void drain_message_queue ();
+extern void drain_message_queue (void);
 
-extern BOOL get_next_msg ();
-extern BOOL post_msg ();
+extern BOOL get_next_msg (W32Msg *, BOOL);
+extern BOOL post_msg (W32Msg *);
 extern void complete_deferred_msg (HWND hwnd, UINT msg, LRESULT result);
-extern void wait_for_sync ();
 
-extern BOOL parse_button ();
+extern BOOL parse_button (int, int, int *, int *);
 
 extern void w32_sys_ring_bell (struct frame *f);
 extern void x_delete_display (struct w32_display_info *dpyinfo);
@@ -725,7 +727,7 @@ struct frame * check_x_frame (Lisp_Object);
 EXFUN (Fx_display_color_p, 1);
 EXFUN (Fx_display_grayscale_p, 1);
 
-typedef DWORD (WINAPI * ClipboardSequence_Proc) ();
+typedef DWORD (WINAPI * ClipboardSequence_Proc) (void);
 typedef BOOL (WINAPI * AppendMenuW_Proc) (
     IN HMENU,
     IN UINT,

@@ -32,7 +32,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define DISP_INVIS_VECTOR(dp) ((dp)->extras[4])
 #define DISP_BORDER_GLYPH(dp) ((dp)->extras[5])
 
-extern Lisp_Object disp_char_vector P_ ((struct Lisp_Char_Table *, int));
+extern Lisp_Object disp_char_vector (struct Lisp_Char_Table *, int);
 
 #define DISP_CHAR_VECTOR(dp, c)				\
   (ASCII_CHAR_P(c)					\
@@ -44,10 +44,10 @@ extern Lisp_Object disp_char_vector P_ ((struct Lisp_Char_Table *, int));
    : disp_char_vector ((dp), (c)))
 
 /* Defined in window.c.  */
-extern struct Lisp_Char_Table *window_display_table P_ ((struct window *));
+extern struct Lisp_Char_Table *window_display_table (struct window *);
 
 /* Defined in indent.c.  */
-extern struct Lisp_Char_Table *buffer_display_table P_ ((void));
+extern struct Lisp_Char_Table *buffer_display_table (void);
 
 /* Display table to use for vectors that don't specify their own.  */
 extern Lisp_Object Vstandard_display_table;

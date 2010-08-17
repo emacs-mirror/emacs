@@ -376,7 +376,7 @@ FRAME nil or not specified means do it for all frames."
 (defun face-all-attributes (face &optional frame)
   "Return an alist stating the attributes of FACE.
 Each element of the result has the form (ATTR-NAME . ATTR-VALUE).
-Normally the value describes the default attributes,
+If FRAME is omitted or nil the value describes the default attributes,
 but if you specify FRAME, the value describes the attributes
 of FACE on FRAME."
   (mapcar (lambda (pair)
@@ -915,13 +915,14 @@ of the default face.  Value is FACE."
 ;;; Interactively modifying faces.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun read-face-name (prompt &optional string-describing-default multiple)
+(defun read-face-name (prompt &optional default multiple)
   "Read a face, defaulting to the face or faces on the char after point.
 If it has the property `read-face-name', that overrides the `face' property.
 PROMPT should be a string that describes what the caller will do with the face;
 it should not end in a space.
-STRING-DESCRIBING-DEFAULT should describe what default the caller will use if
-the user just types RET; you can omit it.
+The optional argument DEFAULT provides the value to display in the
+minibuffer prompt that is returned if the user just types RET
+unless DEFAULT is a string (in which case nil is returned).
 If MULTIPLE is non-nil, return a list of faces (possibly only one).
 Otherwise, return a single face."
   (let ((faceprop (or (get-char-property (point) 'read-face-name)
@@ -960,10 +961,10 @@ Otherwise, return a single face."
     (let* ((input
 	    ;; Read the input.
 	    (completing-read-multiple
-	     (if (or faces string-describing-default)
-		 (format "%s (default %s): " prompt
+	     (if (or faces default)
+		 (format "%s (default `%s'): " prompt
 			 (if faces (mapconcat 'symbol-name faces ",")
-			   string-describing-default))
+			   default))
 	       (format "%s: " prompt))
 	     (completion-table-in-turn nonaliasfaces aliasfaces)
 	     nil t nil 'face-name-history
@@ -971,7 +972,7 @@ Otherwise, return a single face."
 	   ;; Canonicalize the output.
 	   (output
 	    (cond ((or (equal input "") (equal input '("")))
-		   faces)
+		   (or faces (unless (stringp default) default)))
 		  ((stringp input)
 		   (mapcar 'intern (split-string input ", *" t)))
 		  ((listp input)
@@ -1334,7 +1335,7 @@ and FRAME defaults to the selected frame.
 If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame."
-  (interactive (list (read-face-name "Describe face" "= `default' face" t)))
+  (interactive (list (read-face-name "Describe face" 'default t)))
   (let* ((attrs '((:family . "Family")
 		  (:foundry . "Foundry")
 		  (:width . "Width")
@@ -1948,8 +1949,7 @@ according to the `background-mode' and `display-type' frame parameters."
   "Add geometry parameters for a named frame to parameter list PARAMETERS.
 Value is the new parameter list."
   ;; Note that `x-resource-name' has a global meaning.
-  (let ((x-resource-name (or (cdr (assq 'name parameters))
-			     (cdr (assq 'name default-frame-alist)))))
+  (let ((x-resource-name (cdr (assq 'name parameters))))
     (when x-resource-name
       ;; Before checking X resources, we must have an X connection.
       (or (window-system)
@@ -1960,7 +1960,7 @@ Value is the new parameter list."
 	(and (setq res-geometry (x-get-resource "geometry" "Geometry"))
 	     (setq parsed (x-parse-geometry res-geometry))
 	     (setq parameters
-		   (append parameters default-frame-alist parsed
+		   (append parameters parsed
 			   ;; If the resource specifies a position,
 			   ;; take note of that.
 			   (if (or (assq 'top parsed) (assq 'left parsed))
@@ -1972,7 +1972,6 @@ Value is the new parameter list."
   "Handle the reverse-video frame parameter and X resource.
 `x-create-frame' does not handle this one."
   (when (cdr (or (assq 'reverse parameters)
-		 (assq 'reverse default-frame-alist)
 		 (let ((resource (x-get-resource "reverseVideo"
 						 "ReverseVideo")))
 		   (if resource
@@ -1998,13 +1997,10 @@ Value is the new parameter list."
 (declare-function x-setup-function-keys "term/x-win" (frame))
 
 (defun x-create-frame-with-faces (&optional parameters)
-  "Create a frame from optional frame parameters PARAMETERS.
-Parameters not specified by PARAMETERS are taken from
-`default-frame-alist'.  If PARAMETERS specify a frame name,
-handle X geometry resources for that name.  If either PARAMETERS
-or `default-frame-alist' contains a `reverse' parameter, or
-the X resource ``reverseVideo'' is present, handle that.
-Value is the new frame created."
+  "Create and return a frame with frame parameters PARAMETERS.
+If PARAMETERS specify a frame name, handle X geometry resources
+for that name.  If PARAMETERS includes a `reverse' parameter, or
+the X resource ``reverseVideo'' is present, handle that."
   (setq parameters (x-handle-named-frame-geometry parameters))
   (let* ((params (copy-tree parameters))
 	 (visibility-spec (assq 'visibility parameters))
@@ -2035,7 +2031,7 @@ Value is the new frame created."
 Calculate the face definitions using the face specs, custom theme
 settings, X resources, and `face-new-frame-defaults'.
 Finally, apply any relevant face attributes found amongst the
-frame parameters in PARAMETERS and `default-frame-alist'."
+frame parameters in PARAMETERS."
   (dolist (face (nreverse (face-list))) ;Why reverse?  --Stef
     (condition-case ()
 	(progn
@@ -2061,16 +2057,14 @@ frame parameters in PARAMETERS and `default-frame-alist'."
   		       (mouse-color mouse :background))))
     (dolist (param face-params)
       (let* ((param-name (nth 0 param))
-  	     (value (cdr (or (assq param-name parameters)
-  			     (assq param-name default-frame-alist)))))
+  	     (value (cdr (assq param-name parameters))))
   	(if value
   	    (set-face-attribute (nth 1 param) frame
 				(nth 2 param) value))))))
 
 (defun tty-handle-reverse-video (frame parameters)
   "Handle the reverse-video frame parameter for terminal frames."
-  (when (cdr (or (assq 'reverse parameters)
-		 (assq 'reverse default-frame-alist)))
+  (when (cdr (assq 'reverse parameters))
     (let* ((params (frame-parameters frame))
 	   (bg (cdr (assq 'foreground-color params)))
 	   (fg (cdr (assq 'background-color params))))
@@ -2086,11 +2080,8 @@ frame parameters in PARAMETERS and `default-frame-alist'."
 
 
 (defun tty-create-frame-with-faces (&optional parameters)
-  "Create a frame from optional frame parameters PARAMETERS.
-Parameters not specified by PARAMETERS are taken from
-`default-frame-alist'.  If either PARAMETERS or `default-frame-alist'
-contains a `reverse' parameter, handle that.  Value is the new frame
-created."
+  "Create and return a frame from optional frame parameters PARAMETERS.
+If PARAMETERS contains a `reverse' parameter, handle that."
   (let ((frame (make-terminal-frame parameters))
 	success)
     (unwind-protect
@@ -2290,6 +2281,9 @@ terminal type to a different value."
 (defface region
   '((((class color) (min-colors 88) (background dark))
      :background "blue3")
+    (((class color) (min-colors 88) (background light) (type gtk))
+     :foreground "gtk_selection_fg_color"
+     :background "gtk_selection_bg_color")
     (((class color) (min-colors 88) (background light) (type ns))
      :background "ns_selection_color")
     (((class color) (min-colors 88) (background light))

@@ -1037,7 +1037,7 @@ into Meta.  This is because of the great importance of Meta in Emacs.
 
 This happens sometimes when using Metacity.  Resizing Emacs or ALT-Tab:bing
 makes the system unresponsive to the mouse or the keyboard.  Killing Emacs
-or shifting out from X11 and back again usually cures it (i.e. Ctrl-Alt-F1 
+or shifting out from X11 and back again usually cures it (i.e. Ctrl-Alt-F1
 and then Alt-F7).  A bug for it is here:
 https://bugs.launchpad.net/ubuntu/+source/metacity/+bug/231034.
 Note that a permanent fix seems to be to disable "assistive technologies".
@@ -1514,7 +1514,7 @@ One way to cure this is to disable flow control on the local host
 (the one running rlogin, not the one running rlogind) using the
 stty command, before starting the rlogin process.  On many systems,
 "stty start u stop u" will do this.  On some systems, use
-"stty -ixon" instead. 
+"stty -ixon" instead.
 
 Some versions of tcsh will prevent even this from working.  One way
 around this is to start another shell before starting rlogin, and
@@ -2339,17 +2339,18 @@ files are installed. Then use:
 
 (using the location of the 32-bit X libraries on your system).
 
-*** Building the Cygwin port for MS-Windows can fail with some GCC versions
+*** Building Emacs for Cygwin can fail with GCC 3
 
-Building Emacs 22 with Cygwin builds of GCC 3.4.4-1 and 3.4.4-2 is
-reported to either fail or cause Emacs to segfault at run time.  In
-addition, the Cygwin GCC 3.4.4-2 has problems with generating debug
-info.  Cygwin users are advised not to use these versions of GCC for
-compiling Emacs.  GCC versions 4.0.3, 4.0.4, 4.1.1, and 4.1.2
-reportedly build a working Cygwin binary of Emacs, so we recommend
-these GCC versions.  Note that these versions of GCC, 4.0.3, 4.0.4,
-4.1.1, and 4.1.2, are currently the _only_ versions known to succeed
-in building Emacs (as of v22.1).
+As of Emacs 22.1, there have been stability problems with Cygwin
+builds of Emacs using GCC 3.  Cygwin users are advised to use GCC 4.
+
+*** Building Emacs 23.3 and later will fail under Cygwin 1.5.19
+
+This is a consequence of a change to src/dired.c on 2010-07-27.  The
+issue is that Cygwin 1.5.19 did not have d_ino in 'struct dirent'.
+See
+
+  http://lists.gnu.org/archive/html/emacs-devel/2010-07/msg01266.html
 
 *** Building the native MS-Windows port fails due to unresolved externals
 
@@ -2439,6 +2440,20 @@ several workarounds for this problem:
 	1. Use Free MinGW tools to compile, which do not have this problem.
 	2. Install the latest Windows SDK.
 	3. Replace emacs.ico with an older or edited icon.
+
+*** Building the MS-Windows port complains about unknown escape sequences.
+
+Errors and warnings can look like this:
+
+ w32.c:1959:27: error: \x used with no following hex digits
+ w32.c:1959:27: warning: unknown escape sequence '\i'
+
+This happens when paths using backslashes are passed to the compiler or
+linker (via -I and possibly other compiler flags); when these paths are
+included in source code, the backslashes are interpreted as escape sequences.
+See http://lists.gnu.org/archive/html/emacs-devel/2010-07/msg00995.html
+
+The fix is to use forward slashes in all paths passed to the compiler.
 
 ** Linking
 
@@ -2733,7 +2748,7 @@ build Emacs in a directory on a local disk.
 Two causes have been seen for such problems.
 
 1) On a system where getpagesize is not a system call, it is defined
-as a macro.  If the definition (in both unexec.c and malloc.c) is wrong,
+as a macro.  If the definition (in both unex*.c and malloc.c) is wrong,
 it can cause problems like this.  You might be able to find the correct
 value in the man page for a.out (5).
 

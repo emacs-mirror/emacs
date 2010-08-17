@@ -38,22 +38,10 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
    It sets the Lisp variable system-type.  */
 #define SYSTEM_TYPE "ms-dos"
 
-#define SYMS_SYSTEM syms_of_dosfns();syms_of_msdos();syms_of_win16select()
-
-#define SYSV_SYSTEM_DIR
-
-/* Define this is the compiler understands `volatile'.  */
-#define HAVE_VOLATILE
-
-
 /* subprocesses should be defined if you want to have code for
    asynchronous subprocesses (as used in M-x compile and M-x shell).
    This is the only system that needs this.  */
 #undef subprocesses
-
-/* If your system uses COFF (Common Object File Format) then define the
-   preprocessor symbol "COFF".  */
-#define COFF
 
 /* Here, on a separate page, add any special hacks needed to make
    Emacs work on this system.  For example, you might define certain
@@ -75,7 +63,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #define _longjmp longjmp
 
 #define DATA_START  (&etext + 1)
-#define TEXT_START  &start
 
 #define _NAIVE_DOS_REGS
 
@@ -104,10 +91,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #define IS_DIRECTORY_SEP(_c_) ((_c_) == '/' || (_c_) == '\\')
 #define IS_ANY_SEP(_c_) (IS_DIRECTORY_SEP (_c_) || IS_DEVICE_SEP (_c_))
 
-/* bcopy under djgpp is quite safe.  */
-#define GAP_USE_BCOPY
-#define BCOPY_UPWARD_SAFE 1
-#define BCOPY_DOWNWARD_SAFE 1
 
 /* Mode line description of a buffer's type.  */
 #define MODE_LINE_BINARY_TEXT(buf) (NILP(buf->buffer_file_type) ? "T" : "B")
@@ -141,8 +124,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
    registers relevant for conservative garbage collection in the jmp_buf.  */
 #define GC_SETJMP_WORKS 1
 #define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
-
-#define NO_REMAP
 
 /* arch-tag: d184f860-815d-4ff4-8187-d05c0f3c37d0
    (do not change this comment) */

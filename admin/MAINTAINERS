@@ -23,6 +23,11 @@ Jason Rumney
 	W32
 
 Eli Zaretskii
+
+	src/bidi.c
+	bidirectional editing support in xdisp.c and elsewhere
+	lisp/term/tty-colors.el
+
 	The MS-DOS (a.k.a. DJGPP) port:
 	    config.bat
 	    msdos/*
@@ -35,11 +40,7 @@ Eli Zaretskii
 	    lisp/dos-fns.el
 	    lisp/dos-w32.el
 	    lisp/dos-vars.el
-
-	lisp/term/tty-colors.el
-	lisp/international/codepage.el
-
-	doc/emacs/msdog.texi
+	    doc/emacs/msdog.texi
 
 Kenichi Handa
 	Mule
@@ -91,6 +92,7 @@ Eli Zaretskii
 	info/dir
 
 	src/xfaces.c
+	src/xdisp.c
 	src/term.c
 	src/frame.c
 	src/dired.c
@@ -189,7 +191,7 @@ src/tparam.c
 src/undo.c
 src/unexaix.c
 src/unexalpha.c
-src/unexec.c
+src/unexcoff.c
 src/unexelf.c
 src/unexhp9k800.c
 src/unexw32.c

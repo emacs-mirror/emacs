@@ -161,7 +161,9 @@ static NSFontDescriptor
 
 /* Converts NSFont descriptor to FONT_WEIGHT, FONT_SLANT, FONT_WIDTH, etc.. */
 static Lisp_Object
-ns_descriptor_to_entity (NSFontDescriptor *desc, Lisp_Object extra, char *style)
+ns_descriptor_to_entity (NSFontDescriptor *desc,
+                         Lisp_Object extra,
+                         const char *style)
 {
     Lisp_Object font_entity = font_make_entity ();
     /*   NSString *psName = [desc postscriptName]; */
@@ -223,7 +225,7 @@ ns_descriptor_to_entity (NSFontDescriptor *desc, Lisp_Object extra, char *style)
 
 /* Default font entity. */
 static Lisp_Object
-ns_fallback_entity ()
+ns_fallback_entity (void)
 {
   return ns_descriptor_to_entity ([[NSFont userFixedPitchFontOfSize: 0]
       fontDescriptor], Qnil, NULL);
@@ -776,8 +778,8 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
     xmalloc (0x100 * sizeof (struct font_metrics *));
   if (!font_info->glyphs || !font_info->metrics)
     return Qnil;
-  bzero (font_info->glyphs, 0x100 * sizeof (unsigned short *));
-  bzero (font_info->metrics, 0x100 * sizeof (struct font_metrics *));
+  memset (font_info->glyphs, 0, 0x100 * sizeof (unsigned short *));
+  memset (font_info->metrics, 0, 0x100 * sizeof (struct font_metrics *));
 
   BLOCK_INPUT;
 
@@ -816,8 +818,8 @@ nsfont_open (FRAME_PTR f, Lisp_Object font_entity, int pixel_size)
     [font_info->nsfont retain];
 
     /* set up ns_font (defined in nsgui.h) */
-    font_info->name = (char *)xmalloc (strlen (fontName) + 1);
-    bcopy (fontName, font_info->name, strlen (fontName) + 1);
+    font_info->name = (char *)xmalloc (strlen (fontName)+1);
+    strcpy (font_info->name, fontName);
     font_info->bold = [fontMgr traitsOfFont: nsfont] & NSBoldFontMask;
     font_info->ital =
       synthItal || ([fontMgr traitsOfFont: nsfont] & NSItalicFontMask);
@@ -972,7 +974,7 @@ nsfont_text_extents (struct font *font, unsigned int *code, int nglyphs,
   int totalWidth = 0;
   int i;
 
-  bzero (metrics, sizeof (struct font_metrics));
+  memset (metrics, 0, sizeof (struct font_metrics));
 
   for (i =0; i<nglyphs; i++)
     {
@@ -1395,7 +1397,7 @@ ns_glyph_metrics (struct nsfont_info *font_info, unsigned char block)
  sfont = [font_info->nsfont screenFont];
 
   font_info->metrics[block] = xmalloc (0x100 * sizeof (struct font_metrics));
-  bzero (font_info->metrics[block], 0x100 * sizeof (struct font_metrics));
+  memset (font_info->metrics[block], 0, 0x100 * sizeof (struct font_metrics));
   if (!(font_info->metrics[block]))
     abort ();
 
@@ -1510,7 +1512,7 @@ ns_dump_glyphstring (struct glyph_string *s)
 
 
 void
-syms_of_nsfont ()
+syms_of_nsfont (void)
 {
   nsfont_driver.type = Qns;
   register_font_driver (&nsfont_driver, NULL);

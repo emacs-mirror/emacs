@@ -18,12 +18,19 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 /*
- * unexec.c - Convert a running program into an a.out file.
+ * unexcoff.c - Convert a running program into an a.out or COFF file.
+ *
+ * ==================================================================
+ * Note: This file is currently used only by the MSDOS (a.k.a. DJGPP)
+ * build of Emacs.  If you are not interested in the MSDOS build, you
+ * are looking at the wrong version of unexec!
+ * ==================================================================
  *
  * Author:	Spencer W. Thomas
  * 		Computer Science Dept.
  * 		University of Utah
  * Date:	Tue Mar  2 1982
+ * Originally under the name unexec.c.
  * Modified heavily since then.
  *
  * Synopsis:
@@ -48,8 +55,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
  *
  * Specifying zero for data_start means the boundary between text and data
  * should not be the same as when the program was loaded.
- * If NO_REMAP is defined, the argument data_start is ignored and the
- * segment boundaries are never changed.
  *
  * Bss_start indicates how much of the data segment is to be saved in the
  * a.out file and restored when the program is executed.  It gives the lowest
@@ -69,62 +74,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
  * of Dell Computer Corporation.  james@bigtex.cactus.org.
  */
 
-/* There are several compilation parameters affecting unexec:
-
-* COFF
-
-Define this if your system uses COFF for executables.
-
-* NO_REMAP
-
-Define this if you do not want to try to save Emacs's pure data areas
-as part of the text segment.
-
-Saving them as text is good because it allows users to share more.
-
-However, on machines that locate the text area far from the data area,
-the boundary cannot feasibly be moved.  Such machines require
-NO_REMAP.
-
-Also, remapping can cause trouble with the built-in startup routine
-/lib/crt0.o, which defines `environ' as an initialized variable.
-Dumping `environ' as pure does not work!  So, to use remapping,
-you must write a startup routine for your machine in Emacs's crt0.c.
-If NO_REMAP is defined, Emacs uses the system's crt0.o.
-
-* SECTION_ALIGNMENT
-
-Some machines that use COFF executables require that each section
-start on a certain boundary *in the COFF file*.  Such machines should
-define SECTION_ALIGNMENT to a mask of the low-order bits that must be
-zero on such a boundary.  This mask is used to control padding between
-segments in the COFF file.
-
-If SECTION_ALIGNMENT is not defined, the segments are written
-consecutively with no attempt at alignment.  This is right for
-unmodified system V.
-
-* SEGMENT_MASK
-
-Some machines require that the beginnings and ends of segments
-*in core* be on certain boundaries.  For most machines, a page
-boundary is sufficient.  That is the default.  When a larger
-boundary is needed, define SEGMENT_MASK to a mask of
-the bits that must be zero on such a boundary.
-
-* ADJUST_EXEC_HEADER
-
-This macro can be used to generate statements to adjust or
-initialize nonstandard fields in the file header
-
-*/
-
-#ifndef emacs
-#define PERROR(arg) perror (arg); return -1
-#else
 #include <config.h>
 #define PERROR(file) report_error (file, new)
-#endif
 
 #ifndef CANNOT_DUMP  /* all rest of file!  */
 
@@ -177,7 +128,6 @@ struct aouthdr
 #endif
 
 
-extern char *start_of_text ();		/* Start of text */
 extern char *start_of_data ();		/* Start of initialized data */
 
 static long block_copy_start;		/* Old executable start point */
@@ -200,8 +150,6 @@ static int pagemask;
 
 #define ADDR_CORRECT(x) ((char *)(x) - (char*)0)
 
-#ifdef emacs
-
 #include <setjmp.h>
 #include "lisp.h"
 
@@ -214,7 +162,6 @@ report_error (file, fd)
     close (fd);
   report_file_error ("Cannot unexec", Fcons (build_string (file), Qnil));
 }
-#endif /* emacs */
 
 #define ERROR0(msg) report_error_1 (new, msg, 0, 0); return -1
 #define ERROR1(msg,x) report_error_1 (new, msg, x, 0); return -1
@@ -227,12 +174,7 @@ report_error_1 (fd, msg, a1, a2)
      int a1, a2;
 {
   close (fd);
-#ifdef emacs
   error (msg, a1, a2);
-#else
-  fprintf (stderr, msg, a1, a2);
-  fprintf (stderr, "\n");
-#endif
 }
 
 static int make_hdr ();
@@ -264,19 +206,9 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
   pagemask = getpagesize () - 1;
 
   /* Adjust text/data boundary. */
-#ifdef NO_REMAP
   data_start = (int) start_of_data ();
-#else /* not NO_REMAP */
-  if (!data_start)
-    data_start = (int) start_of_data ();
-#endif /* not NO_REMAP */
   data_start = ADDR_CORRECT (data_start);
-
-#ifdef SEGMENT_MASK
-  data_start = data_start & ~SEGMENT_MASK; /* (Down) to segment boundary. */
-#else
   data_start = data_start & ~pagemask; /* (Down) to page boundary. */
-#endif
 
   bss_end = ADDR_CORRECT (sbrk (0)) + pagemask;
   bss_end &= ~ pagemask;
@@ -374,42 +306,17 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
      to correspond to what we want to dump.  */
 
   f_hdr.f_flags |= (F_RELFLG | F_EXEC);
-#ifndef NO_REMAP
-  f_ohdr.text_start = (long) start_of_text ();
-  f_ohdr.tsize = data_start - f_ohdr.text_start;
-  f_ohdr.data_start = data_start;
-#endif /* NO_REMAP */
   f_ohdr.dsize = bss_start - f_ohdr.data_start;
   f_ohdr.bsize = bss_end - bss_start;
-  /* On some machines, the old values are right.
-     ??? Maybe on all machines with NO_REMAP.  */
   f_thdr.s_size = f_ohdr.tsize;
   f_thdr.s_scnptr = sizeof (f_hdr) + sizeof (f_ohdr);
   f_thdr.s_scnptr += (f_hdr.f_nscns) * (sizeof (f_thdr));
   lnnoptr = f_thdr.s_lnnoptr;
-#ifdef SECTION_ALIGNMENT
-  /* Some systems require special alignment
-     of the sections in the file itself.  */
-  f_thdr.s_scnptr
-    = (f_thdr.s_scnptr + SECTION_ALIGNMENT) & ~SECTION_ALIGNMENT;
-#endif /* SECTION_ALIGNMENT */
   text_scnptr = f_thdr.s_scnptr;
   f_dhdr.s_paddr = f_ohdr.data_start;
   f_dhdr.s_vaddr = f_ohdr.data_start;
   f_dhdr.s_size = f_ohdr.dsize;
   f_dhdr.s_scnptr = f_thdr.s_scnptr + f_thdr.s_size;
-#ifdef SECTION_ALIGNMENT
-  /* Some systems require special alignment
-     of the sections in the file itself.  */
-  f_dhdr.s_scnptr
-    = (f_dhdr.s_scnptr + SECTION_ALIGNMENT) & ~SECTION_ALIGNMENT;
-#endif /* SECTION_ALIGNMENT */
-#ifdef DATA_SECTION_ALIGNMENT
-  /* Some systems require special alignment
-     of the data section only.  */
-  f_dhdr.s_scnptr
-    = (f_dhdr.s_scnptr + DATA_SECTION_ALIGNMENT) & ~DATA_SECTION_ALIGNMENT;
-#endif /* DATA_SECTION_ALIGNMENT */
   data_scnptr = f_dhdr.s_scnptr;
   f_bhdr.s_paddr = f_ohdr.data_start + f_ohdr.dsize;
   f_bhdr.s_vaddr = f_ohdr.data_start + f_ohdr.dsize;
@@ -426,10 +333,6 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
     {
       f_thdr.s_lnnoptr += bias;
     }
-
-#ifdef ADJUST_EXEC_HEADER
-  ADJUST_EXEC_HEADER;
-#endif /* ADJUST_EXEC_HEADER */
 
   if (write (new, &f_hdr, sizeof (f_hdr)) != sizeof (f_hdr))
     {
@@ -472,7 +375,7 @@ write_segment (new, ptr, end)
   int pagesize = getpagesize ();
   char zeros[1 << 13];
 
-  bzero (zeros, sizeof (zeros));
+  memset (zeros, 0, sizeof (zeros));
 
   for (i = 0; ptr < end;)
     {
@@ -498,16 +401,6 @@ write_segment (new, ptr, end)
 	    nwrite = pagesize;
 	  write (new, zeros, nwrite);
 	}
-#if 0 /* Now that we have can ask `write' to write more than a page,
-	 it is legit for write do less than the whole amount specified.  */
-      else if (nwrite != ret)
-	{
-	  sprintf (buf,
-		   "unexec write failure: addr 0x%x, fileno %d, size 0x%x, wrote 0x%x, errno %d",
-		   ptr, new, nwrite, ret, errno);
-	  PERROR (buf);
-	}
-#endif
       i += nwrite;
       ptr += nwrite;
     }

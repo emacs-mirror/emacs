@@ -197,6 +197,11 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (help-char keyboard character)
 	     (help-event-list keyboard (repeat (sexp :format "%v")))
 	     (menu-prompting menu boolean)
+	     (select-active-regions killing
+				    (choice (const :tag "always" t)
+					    (const :tag "only shift-selection or mouse-drag" only)
+					    (const :tag "off" nil))
+				    "24.1")
 	     (suggest-key-bindings keyboard (choice (const :tag "off" nil)
 						    (integer :tag "time" 2)
 						    (other :tag "on")))
@@ -345,6 +350,7 @@ since it could result in memory overflow and make Emacs crash."
 		      (const :tag "Text" :value text)
 		      (const :tag "Both" :value both)
 		      (const :tag "Both-horiz" :value both-horiz)
+		      (const :tag "Text-image-horiz" :value text-image-horiz)
 		      (const :tag "System default" :value nil)) "23.3")
              (tool-bar-max-label-size frames integer "23.3")
 
@@ -357,6 +363,7 @@ since it could result in memory overflow and make Emacs crash."
 	     (x-gtk-show-hidden-files menu boolean "22.1")
 	     (x-gtk-file-dialog-help-text menu boolean "22.1")
 	     (x-gtk-whole-detached-tool-bar x boolean "22.1")
+	     (x-gtk-use-system-tooltips tooltip boolean "23.3")
 	     ;; xterm.c
 	     (x-use-underline-position-properties display boolean "22.1")
 	     (x-underline-at-descent-line display boolean "22.1")

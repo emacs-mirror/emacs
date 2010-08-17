@@ -34,9 +34,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -119,14 +117,12 @@ Lisp_Object Vtemporary_file_directory;
 static time_t boot_time;
 static int boot_time_initialized;
 
-extern Lisp_Object Vshell_file_name;
-
 #ifdef BOOT_TIME
-static void get_boot_time_1 P_ ((char *, int));
+static void get_boot_time_1 (const char *, int);
 #endif
 
 static time_t
-get_boot_time ()
+get_boot_time (void)
 {
 #if defined (BOOT_TIME)
   int counter;
@@ -253,9 +249,7 @@ get_boot_time ()
    Success is indicated by setting BOOT_TIME to a larger value.  */
 
 void
-get_boot_time_1 (filename, newest)
-     char *filename;
-     int newest;
+get_boot_time_1 (const char *filename, int newest)
 {
   struct utmp ut, *utp;
   int desc;
@@ -326,9 +320,7 @@ typedef struct
    fill_in_lock_file_name (lock, (file)))
 
 static void
-fill_in_lock_file_name (lockfile, fn)
-     register char *lockfile;
-     register Lisp_Object fn;
+fill_in_lock_file_name (register char *lockfile, register Lisp_Object fn)
 {
   register char *p;
   struct stat st;
@@ -364,14 +356,12 @@ fill_in_lock_file_name (lockfile, fn)
    Return 1 if successful, 0 if not.  */
 
 static int
-lock_file_1 (lfname, force)
-     char *lfname;
-     int force;
+lock_file_1 (char *lfname, int force)
 {
   register int err;
   time_t boot_time;
-  char *user_name;
-  char *host_name;
+  const char *user_name;
+  const char *host_name;
   char *lock_info_str;
 
   /* Call this first because it can GC.  */
@@ -408,8 +398,7 @@ lock_file_1 (lfname, force)
 /* Return 1 if times A and B are no more than one second apart.  */
 
 int
-within_one_second (a, b)
-     time_t a, b;
+within_one_second (time_t a, time_t b)
 {
   return (a - b >= -1 && a - b <= 1);
 }
@@ -420,13 +409,8 @@ within_one_second (a, b)
    or -1 if something is wrong with the locking mechanism.  */
 
 static int
-current_lock_owner (owner, lfname)
-     lock_info_type *owner;
-     char *lfname;
+current_lock_owner (lock_info_type *owner, char *lfname)
 {
-#ifndef index
-  extern char *rindex (), *index ();
-#endif
   int len, ret;
   int local_owner = 0;
   char *at, *dot, *colon;
@@ -468,8 +452,8 @@ current_lock_owner (owner, lfname)
 
   /* Parse USER@HOST.PID:BOOT_TIME.  If can't parse, return -1.  */
   /* The USER is everything before the last @.  */
-  at = rindex (lfinfo, '@');
-  dot = rindex (lfinfo, '.');
+  at = strrchr (lfinfo, '@');
+  dot = strrchr (lfinfo, '.');
   if (!at || !dot)
     {
       xfree (lfinfo);
@@ -540,9 +524,7 @@ current_lock_owner (owner, lfname)
    Return -1 if cannot lock for any other reason.  */
 
 static int
-lock_if_free (clasher, lfname)
-     lock_info_type *clasher;
-     register char *lfname;
+lock_if_free (lock_info_type *clasher, register char *lfname)
 {
   while (lock_file_1 (lfname, 0) == 0)
     {
@@ -585,8 +567,7 @@ lock_if_free (clasher, lfname)
    take away the lock, or return nil meaning ignore the lock.  */
 
 void
-lock_file (fn)
-     Lisp_Object fn;
+lock_file (Lisp_Object fn)
 {
   register Lisp_Object attack, orig_fn, encoded_fn;
   register char *lfname, *locker;
@@ -645,8 +626,7 @@ lock_file (fn)
 }
 
 void
-unlock_file (fn)
-     register Lisp_Object fn;
+unlock_file (register Lisp_Object fn)
 {
   register char *lfname;
 
@@ -660,7 +640,7 @@ unlock_file (fn)
 }
 
 void
-unlock_all_files ()
+unlock_all_files (void)
 {
   register Lisp_Object tail;
   register struct buffer *b;
@@ -680,8 +660,7 @@ DEFUN ("lock-buffer", Flock_buffer, Slock_buffer,
        doc: /* Lock FILE, if current buffer is modified.
 FILE defaults to current buffer's visited file,
 or else nothing is done if current buffer isn't visiting a file.  */)
-     (file)
-     Lisp_Object file;
+  (Lisp_Object file)
 {
   if (NILP (file))
     file = current_buffer->file_truename;
@@ -698,7 +677,7 @@ DEFUN ("unlock-buffer", Funlock_buffer, Sunlock_buffer,
        doc: /* Unlock the file visited in the current buffer.
 If the buffer is not modified, this does nothing because the file
 should not be locked in that case.  */)
-     ()
+  (void)
 {
   if (SAVE_MODIFF < MODIFF
       && STRINGP (current_buffer->file_truename))
@@ -709,8 +688,7 @@ should not be locked in that case.  */)
 /* Unlock the file visited in buffer BUFFER.  */
 
 void
-unlock_buffer (buffer)
-     struct buffer *buffer;
+unlock_buffer (struct buffer *buffer)
 {
   if (BUF_SAVE_MODIFF (buffer) < BUF_MODIFF (buffer)
       && STRINGP (buffer->file_truename))
@@ -721,8 +699,7 @@ DEFUN ("file-locked-p", Ffile_locked_p, Sfile_locked_p, 1, 1, 0,
        doc: /* Return a value indicating whether FILENAME is locked.
 The value is nil if the FILENAME is not locked,
 t if it is locked by you, else a string saying which user has locked it.  */)
-     (filename)
-     Lisp_Object filename;
+  (Lisp_Object filename)
 {
   Lisp_Object ret;
   register char *lfname;
@@ -750,14 +727,14 @@ t if it is locked by you, else a string saying which user has locked it.  */)
 /* Initialization functions.  */
 
 void
-init_filelock ()
+init_filelock (void)
 {
   boot_time = 0;
   boot_time_initialized = 0;
 }
 
 void
-syms_of_filelock ()
+syms_of_filelock (void)
 {
   DEFVAR_LISP ("temporary-file-directory", &Vtemporary_file_directory,
 	       doc: /* The directory for writing temporary files.  */);

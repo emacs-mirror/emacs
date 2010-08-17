@@ -5,32 +5,38 @@ Copyright (C) 1992, 1994, 1996, 1997, 2000, 2001, 2002, 2003, 2004,
 See the end of the file for license conditions.
 
 
-This file contains general information.  For more specific information
-for the Windows, GNUstep/Mac OS X, and MS-DOS ports, also see the files
-nt/INSTALL nextstep/INSTALL, and msdos/INSTALL.  For information
-specific to building from a Bazaar checkout (rather than a release), see
-the file INSTALL.BZR.
+This file contains general information on building GNU Emacs.
+For more information specific to the MS-Windows, GNUstep/Mac OS X, and
+MS-DOS ports, also read the files nt/INSTALL, nextstep/INSTALL, and
+msdos/INSTALL.  For information about building from a Bazaar checkout
+(rather than a release), also read the file INSTALL.BZR.
 
 
 BASIC INSTALLATION
 
-The simplest way to build Emacs is to use the `configure' shell script
-which attempts to guess correct values for various system-dependent
-variables and features and find the directories where various system
-headers and libraries are kept.  It then creates a `Makefile' in each
-subdirectory and a `config.h' file containing system-dependent
-definitions.  Running the `make' utility then builds the package for
-your system.
+On most Unix systems, you build Emacs by first running the `configure'
+shell script.  This attempts to deduce the correct values for
+various system-dependent variables and features, and find the
+directories where certain system headers and libraries are kept.
+In a few cases, you may need to explicitly tell configure where to
+find some things, or what options to use.
+
+`configure' creates a `Makefile' in several subdirectories, and a
+`src/config.h' file containing system-dependent definitions.
+Running the `make' utility then builds the package for your system.
 
 Here's the procedure to build Emacs using `configure' on systems which
-are supported by it.  If this simplified procedure fails, or if you
-are using a platform such as MS-Windows, where `configure' script
-doesn't work, you might need to use various non-default options, and
-maybe perform some of the steps manually.  The more detailed
-description in the rest of the sections of this guide will help you do
-that, so please refer to them if the simple procedure does not work.
+are supported by it.  In some cases, if the simplified procedure fails,
+you might need to use various non-default options, and maybe perform
+some of the steps manually.  The more detailed description in the other
+sections of this guide will help you do that, so please refer to those
+sections if you need to.
 
-  1. Make sure your system has at least 120 MB of free disk space.
+  1. Unpacking the Emacs 23.2 release requires about 170 MB of free
+  disk space.  Building Emacs uses about another 60 MB of space.
+  The final installed Emacs uses about 120 MB of disk space.
+  This includes the space-saving that comes from automatically
+  compressing the Lisp source files on installation.
 
   2a. `cd' to the directory where you unpacked Emacs and invoke the
       `configure' script:
@@ -43,8 +49,8 @@ that, so please refer to them if the simple procedure does not work.
 
 		 SOURCE-DIR/configure
 
-      where SOURCE-DIR is the top-level Emacs source directory.  This
-      may not work unless you use GNU make.
+      where SOURCE-DIR is the top-level Emacs source directory.
+      This may not work unless you use GNU make.
 
   3. When `configure' finishes, it prints several lines of details
      about the system configuration.  Read those details carefully
@@ -52,17 +58,18 @@ that, so please refer to them if the simple procedure does not work.
      system names, wrong places for headers or libraries, missing
      libraries that you know are installed on your system, etc.
 
-     If you find anything wrong, you will have to pass to `configure'
-     explicit machine configuration name, and one or more options
-     which tell it where to find various headers and libraries; refer
-     to DETAILED BUILDING AND INSTALLATION section below.
+     If you find anything wrong, you may have to pass to `configure'
+     one or more options specifying the explicit machine configuration
+     name, where to find various headers and libraries, etc.
+     Refer to the section DETAILED BUILDING AND INSTALLATION below.
 
-     If `configure' didn't find some image support libraries, such as
-     Xpm, jpeg, etc., and you want to use them refer to the subsection
-     "Image support libraries", below.
+     If `configure' didn't find some (optional) image support libraries,
+     such as Xpm, jpeg, etc., and you want to use them, refer to the
+     subsection "Image support libraries" below.
 
      If the details printed by `configure' don't make any sense to
-     you, assume that `configure' did its job and proceed.
+     you, but there are no obvious errors, assume that `configure' did
+     its job and proceed.
 
   4. If you need to run the `configure' script more than once (e.g.,
      with some non-default options), always clean the source
@@ -79,7 +86,7 @@ that, so please refer to them if the simple procedure does not work.
      in the `src' directory.  You can try this program, to make sure
      it works:
 
-		 src/emacs -q
+		 src/emacs -Q
 
   7. Assuming that the program `src/emacs' starts and displays its
      opening screen, you can install the program and its auxiliary
@@ -93,9 +100,12 @@ that, so please refer to them if the simple procedure does not work.
 
 		 make clean
 
-  You can also save some space by compressing (with `gzip') Info files
-  and installed Lisp source (.el) files which have corresponding .elc
-  versions.
+  You can delete the entire build directory if you do not plan to
+  build Emacs again, but it can be useful to keep for debugging.
+
+  Note that the install automatically saves space by compressing
+  (provided you have the `gzip' program) those installed Lisp source (.el)
+  files that have corresponding .elc versions, as well as the Info files.
 
 
 ADDITIONAL DISTRIBUTION FILES
@@ -157,19 +167,15 @@ download and build libraries from sources.  None of them are vital for
 running Emacs; however, note that Emacs will not be able to use
 colored icons in the toolbar if XPM support is not compiled in.
 
-Here's the list of these optional libraries, and the URLs where they
-can be found:
+Here's the list of some of these optional libraries, and the URLs
+where they can be found (in the unlikely event that your distribution
+does not provide them):
 
-  . libXaw3d for fancy 3D-style
-      scroll bars:    ftp://ftp.x.org/contrib/widgets/Xaw3d/
-  . libxpm for XPM:   ftp://ftp.x.org/contrib/libraries/
-		      Get version 3.4k or later, which lets Emacs
-		      use its own color allocation functions.
-  . libpng for PNG:   ftp://ftp.simplesystems.org/pub/libpng/png/
+  . libXaw3d          http://directory.fsf.org/project/xaw3d/
+  . libxpm for XPM:   http://www.x.org/releases/current/src/lib/
+  . libpng for PNG:   http://www.libpng.org/
   . libz (for PNG):   http://www.zlib.net/
-  . libjpeg for JPEG: ftp://ftp.uu.net/graphics/jpeg/
-                      Get version 6b -- 6a is reported to fail in
-                      Emacs.
+  . libjpeg for JPEG: http://www.ijg.org/
   . libtiff for TIFF: http://www.libtiff.org/
   . libgif for GIF:   http://sourceforge.net/projects/giflib/
 
@@ -178,61 +184,38 @@ Emacs will configure itself to build with these libraries if the
 appropriate --without-LIB option.  In some cases, older versions of
 these libraries won't work because some routines are missing, and
 configure should avoid such old versions.  If that happens, use the
---without-LIB options to `configure'.  See below for more details.
+--without-LIB options to `configure', if you need to.
 
 * Extra fonts
 
 The Emacs distribution does not include fonts and does not install
-them.  You must do that yourself.
+them.
 
-Emacs running on the GNU system supports both X fonts and local fonts
-(i.e. the fonts managed by the fontconfig library).
-
-For `Unicode' (ISO 10646) X fonts, see
-<URL:http://czyborra.com/unifont/> (packaged in Debian),
-<URL:http://openlab.ring.gr.jp/efont/> (packaged in Debian).  (In
-recent Debian versions, there is an extensive `misc-fixed' iso10646-1
-in the default X installation.)  Perhaps also see
-<URL:http://www.cl.cam.ac.uk/%7Emgk25/ucs-fonts.html>.
-
-<URL:http://czyborra.com/charsets/> has basic fonts for Emacs's
-ISO-8859 charsets.
-
-XFree86 release 4 (from <URL:ftp://ftp.xfree86.org/pub/XFree86/> and mirrors)
-contains font support for most, if not all, of the charsets that Emacs
-currently supports, including iso10646-1 encoded fonts for use with
-the mule-unicode charsets.  The font files should also be usable with
-older X releases.  Note that XFree 4 contains many iso10646-1 fonts
-with minimal character repertoires, which can cause problems -- see
-etc/PROBLEMS.
-
-BDF Unicode fonts etl-unicode.tar.gz are available from
-<URL:ftp://ftp.x.org/contrib/fonts/> and
-<URL:ftp://ftp.xfree86.org/pub/mirror/X.Org/contrib/fonts/>.  These
-fonts can also be used by ps-print and ps-mule to print Unicode
-characters.
-
-Finally, the Web page <URL:http://www.gnu.org/software/freefont/>
-lists a large number of free Unicode fonts.
+On the GNU system, Emacs supports both X fonts and local fonts
+(i.e. fonts managed by the fontconfig library).  If you need more
+fonts than your distribution normally provides, you must install them
+yourself.  See <URL:http://www.gnu.org/software/freefont/> for a large
+number of free Unicode fonts.
 
 * GNU/Linux development packages
 
-Many GNU/Linux systems do not come with development packages by
-default; they just include the files that you need to run Emacs, but
-not those you need to compile it.  For example, to compile Emacs with
-X11 support, you may need to install the special `X11 development'
-package.  For example, in April 2003, the package names to install
-were `XFree86-devel' and `Xaw3d-devel' on Red Hat.  On Debian, the
-packages necessary to build the installed version should be
-sufficient; they can be installed using `apt-get build-dep emacs21' in
-Debian 3 and above.
+Many GNU/Linux systems do not come with development packages by default;
+they include the files that you need to run Emacs, but not those you
+need to compile it.  For example, to compile Emacs with support for X
+and graphics libraries, you may need to install the `X development'
+package(s), and development versions of the jpeg, png, etc. packages.
+
+The names of the packages that you need varies according to the
+GNU/Linux distribution that you use, and the options that you want to
+configure Emacs with.  On Debian-based systems, you can install all the
+packages needed to build the installed version of Emacs with a command
+like `apt-get build-dep emacs23'.
 
 
 DETAILED BUILDING AND INSTALLATION:
 
-(This is for a Unix or Unix-like system.  For MS-DOS and Windows 3.X,
-see msdos/INSTALL.  For Windows 9X, Windows ME, Windows NT, Windows
-2000, Windows XP/2003, and Windows Vista/2008, see the file
+(This is for a Unix or Unix-like system.  For MS-DOS and MS Windows 3.X,
+see msdos/INSTALL.  For later versions of MS Windows, see the file
 nt/INSTALL.  For GNUstep and Mac OS X, see nextstep/INSTALL.)
 
 1) Make sure your system has enough swapping space allocated to handle
@@ -240,21 +223,20 @@ a program whose pure code is 1.5 MB and whose data area is at
 least 2.8 MB and can reach 100 MB or more.  If the swapping space is
 insufficient, you will get an error in the command `temacs -batch -l
 loadup dump', found in `./src/Makefile.in', or possibly when
-running the final dumped Emacs.
+running the final dumped Emacs.  (This should not be an issue
+on any recent system.)
 
-Building Emacs requires about 140 MB of disk space (including the
-Emacs sources) Once installed, Emacs occupies about 77 MB in the file
+Building Emacs requires about 230 MB of disk space (including the
+Emacs sources).  Once installed, Emacs occupies about 120 MB in the file
 system where it is installed; this includes the executable files, Lisp
 libraries, miscellaneous data files, and on-line documentation.  If
 the building and installation take place in different directories,
-then the installation procedure momentarily requires 140+77 MB.
+then the installation procedure momentarily requires 230+120 MB.
 
-2) Consult `./etc/MACHINES' to see what configuration name you should
-give to the `configure' program.  That file offers hints for
-getting around some possible installation problems.  The file lists
-many different configurations, but only the part for your machine and
-operating system is relevant.  (The list is arranged in alphabetical
-order by the vendor name.)
+2) In the unlikely event that `configure' does not detect your system
+type correctly, consult `./etc/MACHINES' to see what --host, --build
+options you should pass to `configure'.  That file also offers hints
+for getting around some possible installation problems.
 
 3) You can build Emacs in the top-level Emacs source directory
 or in a separate directory.
@@ -262,15 +244,10 @@ or in a separate directory.
 3a) To build in the top-level Emacs source directory, go to that
 directory and run the program `configure' as follows:
 
-    ./configure [CONFIGURATION-NAME] [--OPTION[=VALUE]] ...
+    ./configure [--OPTION[=VALUE]] ...
 
-The CONFIGURATION-NAME argument should be a configuration name given
-in `./etc/MACHINES', with the system version number added at the end.
-
-You should try first omitting CONFIGURATION-NAME.  This way,
-`configure' will try to guess your system type.  If it cannot guess,
-or if something goes wrong in building or installing Emacs this way,
-try again specifying the proper CONFIGURATION-NAME explicitly.
+If `configure' cannot determine your system type, try again
+specifying the proper --build, --host options explicitly.
 
 If you don't want X support, specify `--with-x=no'.  If you omit this
 option, `configure' will try to figure out for itself whether your
@@ -285,20 +262,19 @@ accept a list of directories, separated with colons.
 
 To get more attractive menus, you can specify an X toolkit when you
 configure Emacs; use the option `--with-x-toolkit=TOOLKIT', where
-TOOLKIT is `athena', `motif' or `gtk' (`yes' and `lucid' are synonyms
-for `athena').  On some systems, it does not work to use a toolkit
-with shared libraries.  A free implementation of Motif, called
-LessTif, is available from <http://www.lesstif.org>.  Compiling with
-LessTif or Motif causes a standard File Selection Dialog to pop up
-when you invoke file commands with the mouse.  You can get fancy
-3D-style scroll bars, even without LessTif/Motif, if you have the
-Xaw3d library installed (see "Image support libraries" above for Xaw3d
-availability).
+TOOLKIT is `gtk' (the default), `athena', or `motif' (`yes' and
+`lucid' are synonyms for `athena').  On some systems, it does not work
+to use a toolkit with shared libraries.  A free implementation of
+Motif, called LessTif, is available from <http://www.lesstif.org>.
+Compiling with LessTif or Motif causes a standard File Selection
+Dialog to pop up when you invoke file commands with the mouse.  You
+can get fancy 3D-style scroll bars, even without Gtk or LessTif/Motif,
+if you have the Xaw3d library installed (see "Image support libraries"
+above for Xaw3d availability).
 
-If `--with-x-toolkit=gtk' is specified, you can tell configure where
-to search for GTK by specifying `--with-pkg-config-prog=PATH' where
-PATH is the pathname to pkg-config.  Note that GTK version 2.4 or
-newer is required for Emacs.
+You can tell configure where to search for GTK by specifying
+`--with-pkg-config-prog=PATH' where PATH is the pathname to
+pkg-config.  Note that GTK version 2.6 or newer is required for Emacs.
 
 The Emacs mail reader RMAIL is configured to be able to read mail from
 a POP3 server by default.  Versions of the POP protocol older than
@@ -325,10 +301,10 @@ or more of these options:
 Use --without-toolkit-scroll-bars to disable LessTif/Motif or Xaw3d
 scroll bars.
 
-Use --without-xim to inhibit the default use of X Input Methods.  In
-this case, the X resource useXIM can be used to turn on use of XIM.
+Use --without-xim to inhibit the default use of X Input Methods.
+In this case, the X resource useXIM can be used to turn on use of XIM.
 
-Use --disable-largefile omits support for files larger than 2GB on
+Use --disable-largefile to omit support for files larger than 2GB on
 systems which support that.
 
 Use --without-sound to disable sound support.
@@ -338,11 +314,11 @@ should put emacs and its data files.  This defaults to `/usr/local'.
 - Emacs (and the other utilities users run) go in PREFIXDIR/bin
   (unless the `--exec-prefix' option says otherwise).
 - The architecture-independent files go in PREFIXDIR/share/emacs/VERSION
-  (where VERSION is the version number of Emacs, like `19.27').
+  (where VERSION is the version number of Emacs, like `23.2').
 - The architecture-dependent files go in
   PREFIXDIR/libexec/emacs/VERSION/CONFIGURATION
-  (where CONFIGURATION is the configuration name, like mips-dec-ultrix4.2),
-  unless the `--exec-prefix' option says otherwise.
+  (where CONFIGURATION is the configuration name, like
+  i686-pc-linux-gnu), unless the `--exec-prefix' option says otherwise.
 
 The `--exec-prefix=EXECDIR' option allows you to specify a separate
 portion of the directory tree for installing architecture-specific
@@ -354,17 +330,16 @@ EXECDIR/bin should be a directory that is normally in users' PATHs.
 
 For example, the command
 
-    ./configure mips-dec-ultrix --with-x11
+    ./configure --build=i386-linux-gnu --without-sound
 
-configures Emacs to build for a DECstation running Ultrix, with
-support for the X11 window system.
+configures Emacs to build for a 32-bit GNU/Linux distribution,
+without sound support.
 
-`configure' doesn't do any compilation or installation
-itself.  It just creates the files that influence those things:
-`./Makefile', `lib-src/Makefile', `oldXMenu/Makefile',
-`lwlib/Makefile', `src/Makefile', and `./src/config.h'.  For details
-on exactly what it does, see the section called `CONFIGURATION BY
-HAND', below.
+`configure' doesn't do any compilation or installation itself.
+It just creates the files that influence those things:
+`./Makefile' in the top-level directory and several subdirectories;
+and `./src/config.h'.  For details on exactly what it does, see the
+section called `CONFIGURATION BY HAND', below.
 
 When it is done, `configure' prints a description of what it did and
 creates a shell script `config.status' which, when run, recreates the
@@ -406,7 +381,7 @@ shell such as Bash, which uses these variables:
 preprocessor to look in the `/foo/myinclude' directory for header
 files (in addition to the standard directories), instruct the linker
 to look in `/bar/mylib' for libraries, pass the -O3 optimization
-switch to the compiler, and link against libfoo.a and libbar.a
+switch to the compiler, and link against libfoo and libbar
 libraries in addition to the standard ones.
 
 For some libraries, like Gtk+, fontconfig and ALSA, `configure' uses
@@ -436,14 +411,9 @@ Emacs source code in the directory that `configure' is in.
 To build in a separate directory, you must use a version of `make'
 that supports the `VPATH' variable, such as GNU `make'.
 
-3c) Some people try to build in a separate directory by filling
-it full of symlinks to the files in the real source directory.
-If you do that, `make all' does work, but `make install' fails:
-it copies the symbolic links rather than the actual files.
-
-As far as is known, there is no particular reason to use
-a directory full of links rather than use the standard GNU
-facilities to build in a separate directory (see 3b above).
+(Do not try to build in a separate directory by creating many links
+to the real source directory--there is no need, and installation will
+fail.)
 
 4) Look at `./lisp/paths.el'; if some of those values are not right
 for your system, set up the file `./lisp/site-init.el' with Emacs
@@ -454,7 +424,7 @@ rather than `defvar', as used by `./lisp/paths.el'.  For example,
      (setq news-inews-program "/usr/bin/inews")
 
 is how you would override the default value of the variable
-news-inews-program (which is "/usr/local/inews").
+news-inews-program.
 
 Before you override a variable this way, *look at the value* that the
 variable gets by default!  Make sure you know what kind of value the
@@ -473,18 +443,11 @@ If you set load-path to a different value in site-init.el or
 site-load.el, Emacs will use *precisely* that value when it starts up
 again.  If you do this, you are on your own!
 
-Note that, on some systems, the code you place in site-init.el must
-not use expand-file-name or any other function which may look
-something up in the system's password and user information database.
-See `./etc/PROBLEMS' for more details on which systems this affects.
-
 The `site-*.el' files are nonexistent in the distribution.  You do not
 need to create them if you have nothing to put in them.
 
 6) Refer to the file `./etc/TERMS' for information on fields you may
-wish to add to various termcap entries.  The files `./etc/termcap.ucb'
-and `./etc/termcap.dat' may already contain appropriately-modified
-entries.
+wish to add to various termcap entries.  (This is unlikely to be necessary.)
 
 7) Run `make' in the top directory of the Emacs distribution to finish
 building Emacs in the standard way.  The final executable file is
@@ -498,11 +461,11 @@ are installed in the following directories:
 
 `/usr/local/bin' holds the executable programs users normally run -
 		`emacs', `etags', `ctags', `b2m', `emacsclient',
-		and `rcs-checkin'.
+		`grep-changelog', and `rcs-checkin'.
 
 `/usr/local/share/emacs/VERSION/lisp' holds the Emacs Lisp library;
 		`VERSION' stands for the number of the Emacs version
-		you are installing, like `18.59' or `19.27'.  Since the
+		you are installing, like `23.1' or `23.2'.  Since the
 		Lisp library changes from one version of Emacs to
 		another, including the version number in the path
 		allows you to have several versions of Emacs installed
@@ -510,18 +473,17 @@ are installed in the following directories:
 		make Emacs unavailable while installing a new version.
 
 `/usr/local/share/emacs/VERSION/etc' holds the Emacs tutorial, the DOC
-		file, the `yow' database, and other
-		architecture-independent files Emacs might need while
-		running.  VERSION is as specified for `.../lisp'.
+		file, and other architecture-independent files Emacs
+		might need while running.
 
 `/usr/local/libexec/emacs/VERSION/CONFIGURATION-NAME' contains executable
 		programs used by Emacs that users are not expected to
 		run themselves.
 		`VERSION' is the number of the Emacs version you are
-		installing, and `CONFIGURATION-NAME' is the argument
-		you gave to the `configure' program to identify the
+		installing, and `CONFIGURATION-NAME' is the value
+		deduced by the `configure' program to identify the
 		architecture and operating system of your machine,
-		like `mips-dec-ultrix' or `sparc-sun-sunos'.  Since
+		like `i686-pc-linux-gnu' or `sparc-sun-sunos'.  Since
 		these files are specific to the version of Emacs,
 		operating system, and architecture in use, including
 		the configuration name in the path allows you to have
@@ -533,10 +495,9 @@ are installed in the following directories:
 `/usr/local/share/info' holds the on-line documentation for Emacs,
 		known as "info files".  Many other GNU programs are
 		documented using info files as well, so this directory
-		stands apart from the other, Emacs-specific
-		directories.
+		stands apart from the other, Emacs-specific directories.
 
-`/usr/local/man/man1' holds the man pages for the programs installed
+`/usr/local/share/man/man1' holds the man pages for the programs installed
 		in `/usr/local/bin'.
 
 Any version of Emacs, whether installed or not, also looks for Lisp
@@ -599,10 +560,9 @@ Here is a complete list of the variables you may want to set.
 	defaults to /usr/local/share.  We create the following
 	subdirectories under `datadir':
 	- `emacs/VERSION/lisp', containing the Emacs Lisp library, and
-	- `emacs/VERSION/etc', containing the Emacs tutorial, the DOC
-		file, and the `yow' database.
+	- `emacs/VERSION/etc', containing the tutorials, DOC file, etc.
 	`VERSION' is the number of the Emacs version you are installing,
-	like `18.59' or `19.0'.  Since these files vary from one version
+	like `23.1' or `23.2'.  Since these files vary from one version
 	of Emacs to another, including the version number in the path
 	allows you to have several versions of Emacs installed at the
 	same time; this means that you don't have to make Emacs
@@ -615,29 +575,23 @@ Here is a complete list of the variables you may want to set.
 		programs used by Emacs that users are not expected to run
 		themselves.
 	`VERSION' is the number of the Emacs version you are installing,
-	and `CONFIGURATION-NAME' is the argument you gave to the
+	and `CONFIGURATION-NAME' is the value deduced by the
 	`configure' program to identify the architecture and operating
-	system of your machine, like `mips-dec-ultrix' or
-	`sparc-sun-sunos'.  Since these files are specific to the version
-	of Emacs, operating system, and architecture in use, including
-	the configuration name in the path allows you to have several
-	versions of Emacs for any mix of machines and operating systems
-	installed at the same time; this is useful for sites at which
-	different kinds of machines share the file system Emacs is
-	installed on.
+	system of your machine, like `i686-pc-linux-gnu' or `sparc-sun-sunos'.
+	Since these files are specific to the version of Emacs,
+	operating system, and architecture in use, including the
+	configuration name in the path allows you to have several
+	versions of Emacs for any mix of machines and operating
+	systems installed at the same time; this is useful for sites
+	at which different kinds of machines share the file system
+	Emacs is installed on.
 
 `infodir' indicates where to put the info files distributed with
 	Emacs; it defaults to `/usr/local/share/info'.
 
 `mandir' indicates where to put the man pages for Emacs and its
 	utilities (like `etags'); it defaults to
-	`/usr/local/man/man1'.
-
-`manext' gives the extension the man pages should be installed with.
-	It should contain a period, followed by the appropriate
-	digit.  It defaults to `.1'.  For example given the default
-	values for `mandir' and `manext', the Emacs man page would be
-	installed as `/usr/local/man/man1/emacs.1'.
+	`/usr/local/share/man/man1'.
 
 `prefix' doesn't give a path for any specific part of Emacs; instead,
 	its value is used to determine the defaults for all the
@@ -659,7 +613,7 @@ Here is a complete list of the variables you may want to set.
 	path variables - `bindir' and `libexecdir'.
 
 The above variables serve analogous purposes in the makefiles for all
-GNU software; this variable is specific to Emacs.
+GNU software; the following variable is specific to Emacs.
 
 `archlibdir' indicates where Emacs installs and expects the executable
 	files and other architecture-dependent data it uses while
@@ -675,7 +629,7 @@ settings persist, you can edit them into the `Makefile' in the top
 directory, but be aware that running the `configure' program erases
 `Makefile' and rebuilds it from `Makefile.in'.
 
-The path for finding Lisp files is specified in src/paths.h,
+The path for finding Lisp files is specified in src/epaths.h,
 a file which is generated by running configure.  To change the path,
 you can edit the definition of PATH_LOADSEARCH in that file
 before you run `make'.
@@ -717,15 +671,15 @@ BUILDING GNU EMACS BY HAND
 Once Emacs is configured, running `make' in the top directory performs
 the following steps.
 
-1) Run `make src/paths.h' in the top directory.  This produces
-`./src/paths.h' from the template file `./src/paths.in', changing
+1) Run `make epaths-force' in the top directory.  This produces
+`./src/epaths.h' from the template file `./src/epaths.in', changing
 the paths to the values specified in `./Makefile'.
 
 2) Go to directory `./lib-src' and run `make'.  This creates
 executables named `ctags' and `etags' and `make-docfile' and
 `digest-doc' and `test-distrib'.  And others.
 
-3) Go to directory `./src' and Run `make'.  This refers to files in
+3) Go to directory `./src' and run `make'.  This refers to files in
 the `./lisp' and `./lib-src' subdirectories using names `../lisp' and
 `../lib-src'.
 
@@ -737,8 +691,7 @@ It also creates a file in `./etc' whose name is `DOC' followed by the
 current Emacs version.  This file contains documentation strings for
 all the functions in Emacs.  Each time you run make to make a new
 emacs, a new DOC file with a new name is made.  You must keep the DOC
-file for an Emacs version as long as you keep using that Emacs
-version.
+file for an Emacs version as long as you keep using that Emacs version.
 
 
 INSTALLATION BY HAND
@@ -747,7 +700,7 @@ The steps below are done by running `make install' in the main
 directory of the Emacs distribution.
 
 1) Copy `./lisp' and its subdirectories, `./etc', and the executables
-in `./lib-src' to their final destinations, as selected in `./src/paths.h'.
+in `./lib-src' to their final destinations, as selected in `./src/epaths.h'.
 
 Strictly speaking, not all of the executables in `./lib-src' need be copied.
 - The programs `fakemail', `hexl', `movemail', `profile', `rcs2log',
@@ -778,8 +731,7 @@ You can delete `./src/temacs'.
 `rcs-checkin' from `./lib-src' to `/usr/local/bin'.  These programs are
 intended for users to run.
 
-5) Copy the man pages in `./etc' for emacs, ctags, and etags into the
-appropriate man directories.
+5) Copy the man pages in `./doc/man' into the appropriate man directory.
 
 6) The files in the `./src' subdirectory, except for `emacs', are not
 used by Emacs once it is built.  However, it is very desirable to keep
@@ -788,8 +740,8 @@ the source on line for debugging.
 
 PROBLEMS
 
-See the file PROBLEMS in etc subdirectory for a list of various
-problems sometimes encountered, and what to do about them.
+See the file `./etc/PROBLEMS' for a list of various problems sometimes
+encountered, and what to do about them.
 
 This file is part of GNU Emacs.
 

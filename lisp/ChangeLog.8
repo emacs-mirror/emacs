@@ -104,7 +104,7 @@
 	version numbering regexp list
 	change-log-version-number-regexp-list.
 	(change-log-find-version): Renamed to
-	change-log-version-number-search
+	change-log-version-number-search.
 	(add-log-file-name-function): New.
 	(change-log-search-vc-number): Added END parameter.  Added doc
 	string to function.
@@ -338,7 +338,7 @@
 1999-12-15  Carsten Dominik  <dominik@astro.uva.nl>
 
 	* textmodes/reftex.el (reftex-compile-variables): Respect new
-	structure of `reftex-index-macro'
+	structure of `reftex-index-macro'.
 	(reftex-compile-variables): Use the changed structure of
 	`reftex-label-alist'.
 
@@ -448,7 +448,7 @@
 	ps-mule-prepare-cmpchar-font): Deleted.
 	(ps-mule-string-encoding): New arg NO-SETFONT.
 	(ps-mule-bitmap-prologue): In Postscript code of BuildGlyphCommon,
-	check Composing, not Cmpchar
+	check Composing, not Cmpchar.
 	(ps-mule-initialize): Set ps-mule-composition-prologue-generated
 	to nil.
 	(ps-mule-begin-job): Check existence of new composition.
@@ -978,7 +978,7 @@
 	(font-lock-add-keywords): Rename `major-mode' into `mode'.
 	(font-lock-remove-keywords): Added a dummy `mode' argument for
 	potential future support.
-	(font-lock-fontify-anchored-keywords,
+	(font-lock-fontify-anchored-keywords)
 	(font-lock-fontify-keywords-region): Only handle multiline strings
 	if necessary (avoids a pathological behavior in (f.ex) diff-mode).
 
@@ -1603,7 +1603,7 @@
 	the new backquote syntax.
 	(smbclient-program, smbclient-program-options)
 	(smbclient-prompt-regexp, smbclient-font-lock-keywords): New
-	variables
+	variables.
 	(smbclient, smbclient-list-shares): New functions
 
 1999-11-12  Sam Steingold  <sds@ksp.com>
@@ -1858,7 +1858,7 @@
 	* whitespace.el: Test for existence of `defcustom' and `defgroup'
 	using fboundp instead of assuming that these are not present in
 	particular flavors of emacs.
-	(whitespace-version): Update to 2.8
+	(whitespace-version): Update to 2.8.
 	(whitespace-display-in-modeline): Add custom variable to control
 	displaying the whitespace errors on the modeline based on
 	suggestion from <klaus.berndl@sdm.de>
@@ -2136,17 +2136,17 @@
 1999-10-19  Peter Kleiweg  <kleiweg@let.rug.nl>
 
 	* progmodes/ps-mode.el (ps-mode-print-function): Fix default
-	value: \"lpr\" changed to "lpr"
-	(ps-mode-version): New constant
-	(ps-mode-show-version): New function, added key in ps-mode-map
-	(ps-run-messages): Removed
+	value: \"lpr\" changed to "lpr".
+	(ps-mode-version): New constant.
+	(ps-mode-show-version): New function, added key in ps-mode-map.
+	(ps-run-messages): Removed.
 	(ps-run-font-lock-keywords-2): New defcustom variable replacing
 	ps-run-messages.  These keywords now include the value of
 	ps-run-prompt, making its fontification customizable.
 	(ps-run-init): Removed \\n from docstring, it is now added when
-	the value is used
+	the value is used.
 	(ps-run-font-lock-keywords-1): Added checking for initial ^ in
-	ps-run-prompt
+	ps-run-prompt.
 	(ps-mode): Added ps-run-font-lock-keywords-2 to list of
 	customizable variables in doc-string (its equivalent
 	ps-run-messages was missing in previous version of the doc-string).
@@ -2271,7 +2271,7 @@
 1999-10-14  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* ange-ftp.el (ange-ftp-make-tmp-name, ange-ftp-del-tmp-name):
-	* browse-url.el (browse-url-of-buffer, browse-url-delete-temp-file),
+	* browse-url.el (browse-url-of-buffer, browse-url-delete-temp-file)
 	(browse-url-temp-file-list, browse-url-delete-temp-file-list):
 	* ediff-util.el (ediff-make-temp-file):
 	* ediff-vers.el (ediff-pcl-cvs-view-revision):
@@ -2830,7 +2830,7 @@
 	(custom-buffer-create-internal): Obey custom-raised-buttons,
 	Custom-buffer-done.
 	(custom-button-face): Make it `released-button'.
-	(custom-button-pressed-face): Make it `pressed-button'
+	(custom-button-pressed-face): Make it `pressed-button'.
 	(custom-mode-map): Bind "q" to Custom-buffer-done.
 	(custom-mode): Deal with raised/pressed buttons.
 
@@ -2987,7 +2987,7 @@
 	font-lock-defaults setting.
 	(java-properties-generic-mode): Supports both ! and # as comment
 	characters.
-	(java-properties-generic-mode): Added an imenu-generic-expression
+	(java-properties-generic-mode): Added an imenu-generic-expression.
 	(java-properties-generic-mode): Reworked to support the various
 	different ways to separate name and value (viz, '=', ':' and
 	whitespace).
@@ -3483,7 +3483,7 @@
 	(reftex-toc-find-section): Use new version of `reftex-nearest-match'.
 	(reftex-insert-docstruct): Adapted to work with the index stuff.
 	(reftex-parse-from-file): Find index entries as well.
-	(reftex-toc-toggle-index): New function
+	(reftex-toc-toggle-index): New function.
 	(reftex-toc-map): `i' is now used to toggle the index, File
 	boundaries has been moved to `F'.
 	(reftex-select-label-map): Toggling display of file boundaries is
@@ -3506,7 +3506,7 @@
 	(reftex-index-section-letters, reftex-index-include-context)
 	(reftex-index-follow-mode, reftex-index-header-face)
 	(reftex-index-section-face, reftex-index-tag-face)
-	(reftex-index-face): New options
+	(reftex-index-face): New options.
 	(reftex-index-map, reftex-index-menu, reftex-last-index-file)
 	(reftex-index-tag, reftex-index-return-marker)
 	(reftex-index-restriction-indicator, reftex-index-restriction-data)
@@ -3514,9 +3514,9 @@
 	(reftex-index-key-end-re, reftex-find-index-entry-regexp-format)
 	(reftex-everything-regexp-no-index, reftex-index-re)
 	(reftex-macros-with-index, reftex-index-macro-alist): New variables.
-	(reftex-index-help, reftex-index-macros-builtin,
+	(reftex-index-help, reftex-index-macros-builtin)
 	(reftex-key-to-index-macro-alist, reftex-query-index-macro-prompt)
-	(reftex-query-index-macro-help): New constants
+	(reftex-query-index-macro-help): New constants.
 	(reftex-index-selection-or-word, reftex-index)
 	(reftex-default-index, reftex-update-default-index)
 	(reftex-index-complete-tag, reftex-index-select-tag)
@@ -3607,7 +3607,7 @@
 	window; and poles can be oriented horizontally.  Face support is
 	thrown in gratuitously.
 	(hanoi): Changed default number of rings back to 3.
-	(hanoi-unix, hanoi-unix-64): New commands
+	(hanoi-unix, hanoi-unix-64): New commands.
 	(hanoi-horizontal-flag, hanoi-move-period, hanoi-use-faces,
 	hanoi-pole-face, hanoi-base-face, hanoi-even-ring-face,
 	hanoi-odd-ring-face): New variables.
@@ -5777,20 +5777,20 @@
 1999-03-12  Eric M. Ludlam  <zappo@ultranet.com>
 
 	* speedbar.el: Added commentary about stealthy functions.
-	(speedbar-message) new function.
-	(speedbar-y-or-n-p): New function
-	(speedbar-with-attached-buffer) Moved macro before reference.
+	(speedbar-message): New function.
+	(speedbar-y-or-n-p): New function.
+	(speedbar-with-attached-buffer): Moved macro before reference.
 	Now uses `save-selected-window'.
-	(speedbar-mouse-hscroll, speedbar-track-mouse, speedbar-refresh,
-	speedbar-generic-item-info, speedbar-item-info-file-helper,
-	speedbar-item-delete, speedbar-insert-generic-list,
-	speedbar-timer-fn, speedbar-check-vc-this-line,
-	speedbar-check-obj-this-line, speedbar-fetch-dynamic-etags,
-	speedbar-buffers-item-info) Use speedbar-message.
-	(speedbar-item-info) Limit `message-log-max'.
-	(speedbar-item-load, speedbar-item-copy, speedbar-item-rename,
-	speedbar-item-delete, speedbar-item-object-delete,
-	speedbar-buffer-kill-buffer) Use speedbar-y-or-n-p.
+	(speedbar-mouse-hscroll, speedbar-track-mouse, speedbar-refresh)
+	(speedbar-generic-item-info, speedbar-item-info-file-helper)
+	(speedbar-item-delete, speedbar-insert-generic-list)
+	(speedbar-timer-fn, speedbar-check-vc-this-line)
+	(speedbar-check-obj-this-line, speedbar-fetch-dynamic-etags)
+	(speedbar-buffers-item-info): Use speedbar-message.
+	(speedbar-item-info): Limit `message-log-max'.
+	(speedbar-item-load, speedbar-item-copy, speedbar-item-rename)
+	(speedbar-item-delete, speedbar-item-object-delete)
+	(speedbar-buffer-kill-buffer): Use speedbar-y-or-n-p.
 
 1999-03-10  Kenichi Handa  <handa@mulelab.etl.go.jp>
 
@@ -6230,7 +6230,7 @@
 
 1999-02-12  Alex Schroeder  <a.schroeder@bsiag.ch>
 
-	* sql.el: Set version to 1.3.2
+	* sql.el: Set version to 1.3.2.
 	(sql-solid-program): Added support for solid.
 	(sql-help): Doc mentions sql-solid.
 	(sql-solid): Entry function for Solid.
@@ -6384,7 +6384,7 @@
 	coding-system-list here.
 
 	* international/mule.el (coding-system-lessp): Moved here from
-	mule-util.el
+	mule-util.el.
 	(add-to-coding-system-list): New function.
 	(make-subsidiary-coding-system, make-coding-system,
 	define-coding-system-alias): Use it instead of setting
@@ -6721,7 +6721,7 @@
 	(speedbar-add-mode-functions-list) Improve doc.
 	(speedbar-line-token) New function.
 	(speedbar-dired) Fix order of directories in -shown-directories.
-	(speedbar-line-path): Default return is default-directory
+	(speedbar-line-path): Default return is default-directory.
 	(speedbar-buffers-line-path): Return is dir name only.
 	(speedbar-mode-functions-list): New variable.
 	(speedbar-mouse-item-info): Rewrote to be a replaceable fn.
@@ -7321,7 +7321,7 @@
 1998-12-29  Masatake Yamato  <masata-y@tori.aist-nara.ac.jp>
 
 	* page-ext.el: Added mouse-selection feature for pages directory buffer.
-	(pages-directory-map): Bind mouse-2
+	(pages-directory-map): Bind mouse-2.
 	(pages-copy-header-and-position): Put text property.
 	(pages-directory-goto-with-mouse): New function.
 
@@ -7399,7 +7399,7 @@
 	(cperl-after-block-p): Likewise.
 	(cperl-after-block-and-statement-beg): Likewise.
 	(cperl-after-block-p): After END/BEGIN we are a block.
-	(cperl-after-expr-p): Skip labels when checking
+	(cperl-after-expr-p): Skip labels when checking.
 	(cperl-indent-region): Make a marker for END - text added/removed.
 	Disable hooks during the call (how to call them later?).
 	Now indents 820-line-long function in 6.5 sec (including
@@ -7462,7 +7462,7 @@
 	(cperl-fix-line-spacing): Sped up to bail out early.
 	(x-color-defined-p): Was not compiling on XEmacs
 	Was defmacro'ed with a tick.  Remove another def.
-	(cperl-clobber-lisp-bindings): If set, C-c variants are the old ones
+	(cperl-clobber-lisp-bindings): If set, C-c variants are the old ones.
 	(cperl-unwind-to-safe): New function.
 	(cperl-fontify-syntaxically): Use `cperl-unwind-to-safe' to start at
 	reasonable position.
@@ -7512,7 +7512,7 @@
 	(cperl-etags-goto-tag-location): New macro.
 	(cperl-version): New variable.  New menu entry
 	random docstrings: References to "future" 20.3 removed.
-	Menu was described as `CPerl' instead of `Perl'
+	Menu was described as `CPerl' instead of `Perl'.
 	(perl-font-lock-keywords): Would not highlight `sub foo($$);'.
 	(cperl-toggle-construct-fix): Was toggling to t instead of 1.
 	(cperl-ps-print-init): Associate `cperl-array-face', `cperl-hash-face'
@@ -8808,14 +8808,14 @@
 	enable-kinsoku.
 
 	* simple.el (do-auto-fill): Don't check kinsoku-enable here.
-	Don't call kinsoku directly, intead call fill-find-break-point.
+	Don't call kinsoku directly, instead call fill-find-break-point.
 
 	* textmodes/fill.el: Setup `fill-find-break-point-function'
 	property to character sets which require `kinsoku' processing for
 	filling.
 	(fill-find-break-point): New function.
 	(fill-region-as-paragraph): Don't check kinsoku-enable here.
-	Don't call kinsoku directly, intead call fill-find-break-point.
+	Don't call kinsoku directly, instead call fill-find-break-point.
 
 1998-10-18  Richard Stallman  <rms@psilocin.ai.mit.edu>
 
@@ -8972,7 +8972,7 @@
 	set unconditional-jump to nil.
 	(ccl-compile-read-multibyte-character): Return nil.
 	(ccl-compile-write-multibyte-character): Likewise.
-	(ccl-compile-translate-character): Likewise
+	(ccl-compile-translate-character): Likewise.
 	(ccl-compile-map-multiple): Likewise.
 	(ccl-compile-map-single): Likewise.
 
@@ -9055,7 +9055,7 @@
 
 	* net-utils.el (ftp, nslookup): Require comint.
 	(network-service-connection): Likewise.
-	(whois-server-name): Defaults to whois.arin.net
+	(whois-server-name): Defaults to whois.arin.net.
 	(whois-server-list, whois-server-tld, whois-guess-server): New var.
 	(whois): Tries to guess the appropriate top-level domain server.
 	(whois-get-tld): New function.
@@ -9599,7 +9599,7 @@
 	(reftex-view-cr-cite, reftex-view-cr-ref, reftex-end-of-bib-entry):
 	New functions.
 	(reftex-auto-view-crossref): New value `window' allowed.
-	(reftex-view-crossref-when-idle): Process new `window' option in
+	(reftex-view-crossref-when-idle): Process new `window' option.
 	(reftex-translate-to-ascii-function): New default.
 	(reftex-label-illegal-re): Default changed, removed Latin1.
 	(reftex-latin1-to-ascii): New function.
@@ -9639,7 +9639,7 @@
 	(checkdoc-this-string-valid): When converting a comment into a doc
 	string, make sure " chars are \".
 	(checkdoc-sentencespace-region-engine): Only do double space check
-	if based on the variable `sentence-end-double-space'
+	if based on the variable `sentence-end-double-space'.
 	(checkdoc-this-string-valid-engine): ? ends valid sentence.
 	(checkdoc-proper-noun-region-engine): Exclude items in URLs
 

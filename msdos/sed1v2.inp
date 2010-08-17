@@ -20,12 +20,6 @@ s/^#.*//
 s/^[ \f\t][ \f\t]*$//
 s/^ /	/
 s/\.h\.in/.h-in/
-/^	LC_ALL=C \$(RUN_TEMACS)/i\
-	stubedit temacs.exe minstack=1024k
-/^	LC_ALL=C.*\$(RUN_TEMACS)/s/LC_ALL=C/set &;/
-/-batch -l loadup/a\
-	stubify emacs\
-	stubedit emacs.exe minstack=2048k
 /^MAKE *=/s/^/# /
 /^SHELL *=/s/^/# /
 /^srcdir *=/s/@[^@\n]*@/./
@@ -46,6 +40,9 @@ s/\.h\.in/.h-in/
 /^C_SWITCH_SYSTEM *=/s/@C_SWITCH_SYSTEM@//
 /^C_SWITCH_X_SYSTEM *=/s/@C_SWITCH_X_SYSTEM@//
 /^C_SWITCH_X_SITE *=/s/@C_SWITCH_X_SITE@//
+/^C_WARNINGS_SWITCH *=/s/@C_WARNINGS_SWITCH@//
+/^PROFILING_CFLAGS *=/s/@PROFILING_CFLAGS@//
+/^PROFILING_LDFLAGS *=/s/@PROFILING_LDFLAGS@//
 #/^LD_SWITCH_X_SITE *=/s/@LD_SWITCH_X_SITE@//
 /^LD_SWITCH_SYSTEM_TEMACS *=/s/@LD_SWITCH_SYSTEM_TEMACS@//
 /^LD_SWITCH_X_SITE_AUX *=/s/@LD_SWITCH_X_SITE_AUX@//
@@ -53,7 +50,7 @@ s/\.h\.in/.h-in/
 /^LD_SWITCH_SYSTEM *=/s/@LD_SWITCH_SYSTEM@//
 /^TEMACS_LDFLAGS2 *=/s/@TEMACS_LDFLAGS2@/$(LDFLAGS)/
 /^LIBS_SYSTEM *=/s/@LIBS_SYSTEM@//
-/^LIB_GCC *=/s/@LIB_GCC@/-Lgcc/
+/^LIB_GCC *=/s/@LIB_GCC@//
 /^LD *=/s/@LINKER@/$(CC)/
 /^LIB_STANDARD *=/s/@LIB_STANDARD@//
 /^LIB_MATH *=/s/@LIB_MATH@/-lm/
@@ -121,10 +118,10 @@ s/\.h\.in/.h-in/
 /^RALLOC_OBJ *=/s/@RALLOC_OBJ@/ralloc.o/
 /^PRE_ALLOC_OBJ *=/s/@PRE_ALLOC_OBJ@/lastfile.o/
 /^POST_ALLOC_OBJ *=/s/@POST_ALLOC_OBJ@/$(vmlimitobj)/
-/^UNEXEC_OBJ *=/s/@UNEXEC_OBJ@/unexec.o/
-/^CANNOT_DUMP *=/s/@cannot_dump@/no/
+/^UNEXEC_OBJ *=/s/@UNEXEC_OBJ@/unexcoff.o/
+/^CANNOT_DUMP *=/s/@CANNOT_DUMP@/no/
 /^DEPFLAGS *=/s/@DEPFLAGS@//
-/^MKDEPDIR *=/s/@MKDEPDIR@/:/
+/^MKDEPDIR *=/s/@MKDEPDIR@//
 /^version *=/s/@[^@\n]*@//
 /^M_FILE *=/s!@[^@\n]*@!m/intel386.h!
 /^S_FILE *=/s!@[^@\n]*@!s/msdos.h!
@@ -132,17 +129,27 @@ s/\.h\.in/.h-in/
 /^.\${libsrc}make-docfile.*>/s!make-docfile!make-docfile -o ../etc/DOC!
 /^.\${libsrc}make-doc/s!>.*$!!
 /^[ 	]*$/d
-/^temacs:/s/prefix-args//
-/^temacs:/s/stamp-oldxmenu//
-/^RUN_TEMACS *=/s|`/bin/pwd`|.|
-/^	mv \.\/\.gdbinit/d
-/^	if test -f/c\
+/^	if test -f/,/^	fi$/c\
 	command.com /c if exist .gdbinit rm -f _gdbinit
-/^	else mv \.\/\.gdbinit/d
+/^	if test "\${CANNOT_DUMP}" =/,/^	else /d
+/^	fi/d
+/^	LC_ALL=C \$(RUN_TEMACS)/i\
+	stubedit temacs.exe minstack=1024k
+/^	 *LC_ALL=C.*\$(RUN_TEMACS)/s/LC_ALL=C/set &;/
+/-batch -l loadup/a\
+	stubify emacs\
+	stubedit emacs.exe minstack=2048k
+s/ || exit 1\; \\$//
+s/ || true\; \\$//
+/^RUN_TEMACS *=/s|`/bin/pwd`|.|
+/^	 *@\$(MKDEPDIR) *$/d
+/^	mv \.\/\.gdbinit/d
+/^	if test -f/,/^	fi$/c\
+	command.com /c if exist .gdbinit rm -f _gdbinit
 /^	#/d
 /^	cd.*make-docfile/s!$!; cd ${dot}${dot}/src!
 /^	@: /d
-/^	-\{0,1\}ln -/s/ln -f/cp -pf/
+/^	-\{0,1\} *ln -/s/ln -f/cp -pf/
 /^[ 	]touch /s/touch/djecho $@ >/
 s/@YMF_PASS_LDFLAGS@/flags/
 s/@deps_frag@//
@@ -162,7 +169,8 @@ s/echo.*buildobj.lst/dj&/
 	stubedit b-emacs.exe minstack=3072k\
 	djecho bootlisp > bootlisp
 /^	-\{0,1\}rm -f/s/\\#/#/
-/^	@\{0,1\}cd ..\/lisp; /s|$|\; cd ../src|
+/^	@\{0,1\}cd ..\/lisp;.*[^\]$/s|$|\; cd ../src|
+/^	 *THEFILE=/s|$|\; cd ../src|
 /^	echo.* buildobj.h/s|echo |djecho |
 
 # arch-tag: c7e3aacb-4162-460e-99f9-4252bca68d2c

@@ -1783,15 +1783,18 @@ preserve `hi-lock-mode' highlighting patterns."
   (kill-local-variable 'font-lock-set-defaults)
   (font-lock-mode 1))
 
-(defvar font-lock-mode-major-mode)
+(defvar font-lock-major-mode nil
+  "Major mode for which the font-lock settings have been setup.")
+(make-variable-buffer-local 'font-lock-major-mode)
+
 (defun font-lock-set-defaults ()
   "Set fontification defaults appropriately for this mode.
 Sets various variables using `font-lock-defaults' (or, if nil, using
 `font-lock-defaults-alist') and `font-lock-maximum-decoration'."
   ;; Set fontification defaults if not previously set for correct major mode.
   (unless (and font-lock-set-defaults
-	       (eq font-lock-mode-major-mode major-mode))
-    (setq font-lock-mode-major-mode major-mode)
+	       (eq font-lock-major-mode major-mode))
+    (setq font-lock-major-mode major-mode)
     (set (make-local-variable 'font-lock-set-defaults) t)
     (make-local-variable 'font-lock-fontified)
     (make-local-variable 'font-lock-multiline)
@@ -2280,14 +2283,17 @@ in which C preprocessor directives are used. e.g. `asm-mode' and
 		 "inline" "lambda" "save-restriction" "save-excursion"
 		 "save-selected-window" "save-window-excursion"
 		 "save-match-data" "save-current-buffer"
-		 "unwind-protect" "condition-case" "track-mouse"
-		 "eval-after-load" "eval-and-compile" "eval-when-compile"
-		 "eval-when" "eval-next-after-load"
+		 "combine-after-change-calls" "unwind-protect"
+		 "condition-case" "condition-case-no-debug"
+		 "track-mouse" "eval-after-load" "eval-and-compile"
+		 "eval-when-compile" "eval-when" "eval-next-after-load"
 		 "with-case-table" "with-category-table"
-		 "with-current-buffer" "with-electric-help"
+		 "with-current-buffer" "with-demoted-errors"
+		 "with-electric-help"
 		 "with-local-quit" "with-no-warnings"
 		 "with-output-to-string" "with-output-to-temp-buffer"
-		 "with-selected-window" "with-selected-frame" "with-syntax-table"
+		 "with-selected-window" "with-selected-frame"
+		 "with-silent-modifications" "with-syntax-table"
 		 "with-temp-buffer" "with-temp-file" "with-temp-message"
 		 "with-timeout" "with-timeout-handler") t)
 	  "\\>")

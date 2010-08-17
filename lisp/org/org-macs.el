@@ -6,7 +6,7 @@
 ;; Author: Carsten Dominik <carsten at orgmode dot org>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://orgmode.org
-;; Version: 6.35i
+;; Version: 7.01
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -42,6 +42,11 @@
 (defmacro org-bound-and-true-p (var)
   "Return the value of symbol VAR if it is bound, else nil."
   `(and (boundp (quote ,var)) ,var))
+
+(defun org-not-nil (v)
+  "If V not nil, and also not the string \"nil\", then return V.
+Otherwise return nil."
+  (and v (not (equal v "nil")) v))
 
 (defmacro org-unmodified (&rest body)
   "Execute body without changing `buffer-modified-p'.
@@ -87,7 +92,7 @@ Also, do not record undo information."
 
 (defmacro org-maybe-intangible (props)
   "Add '(intangible t) to PROPS if Emacs version is earlier than Emacs 22.
-In emacs 21, invisible text is not avoided by the command loop, so the
+In Emacs 21, invisible text is not avoided by the command loop, so the
 intangible property is needed to make sure point skips this text.
 In Emacs 22, this is not necessary.  The intangible text property has
 led to problems with flyspell.  These problems are fixed in flyspell.el,
@@ -162,7 +167,8 @@ We use a macro so that the test can happen at compilation time."
   `(let ((inhibit-read-only t)) ,@body))
 
 (defconst org-rm-props '(invisible t face t keymap t intangible t mouse-face t
-				   rear-nonsticky t mouse-map t fontified t)
+				   rear-nonsticky t mouse-map t fontified t
+				   org-emphasis t)
   "Properties to remove when a string without properties is wanted.")
 
 (defsubst org-match-string-no-properties (num &optional string)
@@ -270,7 +276,6 @@ This is in contrast to merely setting it to 0."
       (setq plist (cddr plist)))
     p))
 
-
 (defun org-replace-match-keep-properties (newtext &optional fixedcase
 						  literal string)
   "Like `replace-match', but add the text properties found original text."
@@ -287,7 +292,7 @@ This is in contrast to merely setting it to 0."
 (defvar org-inlinetask-min-level) ; defined in org-inlinetask.el
 (defun org-get-limited-outline-regexp ()
   "Return outline-regexp with limited number of levels.
-The number of levels is controlled by "
+The number of levels is controlled by `org-inlinetask-min-level'"
   (if (or (not (org-mode-p)) (not (featurep 'org-inlinetask)))
 
       outline-regexp

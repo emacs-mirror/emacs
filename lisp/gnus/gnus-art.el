@@ -4414,6 +4414,8 @@ If variable `gnus-use-long-file-name' is non-nil, it is
 
     (gnus-run-hooks 'gnus-article-menu-hook)))
 
+(defvar bookmark-make-record-function)
+
 (defun gnus-article-mode ()
   "Major mode for displaying an article.
 
@@ -4452,6 +4454,8 @@ commands:
   (make-local-variable 'gnus-article-image-alist)
   (make-local-variable 'gnus-article-charset)
   (make-local-variable 'gnus-article-ignored-charsets)
+  (set (make-local-variable 'bookmark-make-record-function)
+       'gnus-summary-bookmark-make-record)
   ;; Prevent Emacs 22 from displaying non-break space with `nobreak-space'
   ;; face.
   (set (make-local-variable 'nobreak-char-display) nil)

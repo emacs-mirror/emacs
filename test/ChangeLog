@@ -1,3 +1,24 @@
+2010-08-08  Ulf Jasper  <ulf.jasper@web.de>
+
+	* icalendar-testsuite.el (icalendar-testsuite-run): Added internal tests.
+	(icalendar-testsuite--trim, icalendar-testsuite--compare-strings)
+	(icalendar-testsuite--run-internal-tests): New.
+	(icalendar-testsuite--test-convert-ordinary-to-ical)
+	(icalendar-testsuite--test-convert-block-to-ical)
+	(icalendar-testsuite--test-convert-anniversary-to-ical)
+	(icalendar-testsuite--test-parse-vtimezone)
+	(icalendar-testsuite--do-test-export): Code formatting.
+	(icalendar-testsuite--test-parse-vtimezone): Doc fix.
+	(icalendar-testsuite--do-test-import)
+	(icalendar-testsuite--do-test-cycle): Use icalendar-testsuite--compare-strings
+	(icalendar-testsuite--run-import-tests): Comment added.
+	(icalendar-testsuite--run-import-tests)
+	(icalendar-testsuite--run-real-world-tests): Fixed expected results.
+
+2010-06-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* redisplay-testsuite.el (test-redisplay-3): New test.
+
 2010-06-11  Chong Yidong  <cyd@stupidchicken.com>
 
 	* comint-testsuite.el: New file.

@@ -74,6 +74,52 @@
 (declare-function message-sort-headers "message" ())
 (defvar message-strip-special-text-properties)
 
+(defun report-emacs-bug-can-use-xdg-email ()
+  "Check if xdg-email can be used, i.e. we are on Gnome, KDE or xfce4."
+  (and (getenv "DISPLAY")
+       (executable-find "xdg-email")
+       (or (getenv "GNOME_DESKTOP_SESSION_ID")
+	   ;; GNOME_DESKTOP_SESSION_ID is deprecated, check on Dbus also.
+	   (condition-case nil
+	       (eq 0 (call-process
+		      "dbus-send" nil nil nil
+				  "--dest=org.gnome.SessionManager"
+				  "--print-reply"
+				  "/org/gnome/SessionManager"
+				  "org.gnome.SessionManager.CanShutdown"))
+	     (error nil))
+	   (equal (getenv "KDE_FULL_SESSION") "true")
+	   (condition-case nil
+	       (eq 0 (call-process
+		      "/bin/sh" nil nil nil
+		      "-c"
+		      "xprop -root _DT_SAVE_MODE|grep xfce4"))
+	     (error nil)))))
+
+(defun report-emacs-bug-insert-to-mailer ()
+  (interactive)
+  (save-excursion
+    (let* ((to (progn
+		 (goto-char (point-min))
+		 (forward-line)
+		 (and (looking-at "^To: \\(.*\\)")
+		      (match-string-no-properties 1))))
+	   (subject (progn
+		      (forward-line)
+		      (and (looking-at "^Subject: \\(.*\\)")
+			   (match-string-no-properties 1))))
+	   (body (progn
+		   (forward-line 2)
+		   (if (> (point-max) (point))
+		       (buffer-substring-no-properties (point) (point-max))))))
+      (if (and to subject body)
+	  (start-process "xdg-email" nil "xdg-email"
+			 "--subject" subject
+			 "--body" body
+			 (concat "mailto:" to))
+	(error "Subject, To or body not found")))))
+
+ 
 ;;;###autoload
 (defun report-emacs-bug (topic &optional recent-keys)
   "Report a bug in GNU Emacs.
@@ -93,6 +139,7 @@ Prompts for bug subject.  Leaves you in a mail buffer."
         (prompt-properties '(field emacsbug-prompt
                                    intangible but-helpful
                                    rear-nonsticky t))
+	(can-xdg-email (report-emacs-bug-can-use-xdg-email))
         user-point message-end-point)
     (setq message-end-point
 	  (with-current-buffer (get-buffer-create "*Messages*")
@@ -226,6 +273,9 @@ usually do not have translators to read other languages for them.\n\n")
     ;; This is so the user has to type something in order to send easily.
     (use-local-map (nconc (make-sparse-keymap) (current-local-map)))
     (define-key (current-local-map) "\C-c\C-i" 'report-emacs-bug-info)
+    (if can-xdg-email
+	(define-key (current-local-map) "\C-cm" 
+	  'report-emacs-bug-insert-to-mailer))
     ;; Could test major-mode instead.
     (cond ((memq mail-user-agent '(message-user-agent gnus-user-agent))
            (setq report-emacs-bug-send-command "message-send-and-exit"
@@ -245,6 +295,9 @@ usually do not have translators to read other languages for them.\n\n")
                             report-emacs-bug-send-command))))
 	(princ (substitute-command-keys
 		"  Type \\[kill-buffer] RET to cancel (don't send it).\n"))
+	(if can-xdg-email
+	    (princ (substitute-command-keys
+		    "  Type \\[report-emacs-bug-insert-to-mailer] to insert text to you preferred mail program.\n")))
 	(terpri)
 	(princ (substitute-command-keys
 		"  Type \\[report-emacs-bug-info] to visit in Info the Emacs Manual section

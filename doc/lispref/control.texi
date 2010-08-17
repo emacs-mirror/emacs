@@ -1039,7 +1039,7 @@ to @code{condition-case} whose error condition you want to re-throw.
 @xref{Definition of signal}.
 @end defspec
 
-@defun error-message-string error-description
+@defun error-message-string error-descriptor
 This function returns the error message string for a given error
 descriptor.  It is useful if you want to handle an error by printing the
 usual error message for that error.  @xref{Definition of signal}.

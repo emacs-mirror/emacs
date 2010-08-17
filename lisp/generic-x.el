@@ -508,8 +508,7 @@ like an INI file.  You can add this hook to `find-file-hook'."
      '("^[ \t]*\\(:\\sw+\\)"         1 font-lock-function-name-face t)
      '("\\(%\\sw+%\\)"               1 font-lock-variable-name-face t)
      '("\\(%[0-9]\\)"                1 font-lock-variable-name-face t)
-     '("\\(/[^/ \"\t\n]+\\)"         1 font-lock-type-face)
-     '("[\t ]+\\([+-][^\t\n\" ]+\\)" 1 font-lock-type-face)
+     '("[\t ]+\\([+-/][^\t\n\" ]+\\)" 1 font-lock-type-face)
      '("[ \t\n|]\\<\\([gG][oO][tT][oO]\\)\\>[ \t]*\\(\\sw+\\)?"
        (1 font-lock-keyword-face)
        (2 font-lock-function-name-face nil t))

@@ -244,6 +244,16 @@ The format is (FUNCTION ARGS...).")
 		       (message "Unable to find location in file"))))
   'help-echo (purecopy "mouse-2, RET: find face's definition"))
 
+(define-button-type 'help-package
+  :supertype 'help-xref
+  'help-function 'describe-package
+  'help-echo (purecopy "mouse-2, RET: Describe package"))
+
+(define-button-type 'help-package-def
+  :supertype 'help-xref
+  'help-function (lambda (file) (dired file))
+  'help-echo (purecopy "mouse-2, RET: visit package directory"))
+
 
 ;;;###autoload
 (defun help-mode ()
@@ -271,6 +281,9 @@ Commands:
 	  ;; also removes BUFFER from the selected window.
 	  (with-current-buffer buffer
 	    (bury-buffer))))
+
+  (set (make-local-variable 'revert-buffer-function)
+       'help-mode-revert-buffer)
 
   (run-mode-hooks 'help-mode-hook))
 
@@ -782,6 +795,17 @@ Show all docs for that symbol as either a variable, function or face."
 	      (get sym 'variable-documentation)
 	      (fboundp sym) (facep sym))
       (help-do-xref pos #'help-xref-interned (list sym)))))
+
+(defun help-mode-revert-buffer (ignore-auto noconfirm)
+  (when (or noconfirm (yes-or-no-p "Revert help buffer? "))
+    (let ((pos (point))
+	  (item help-xref-stack-item)
+	  ;; Pretend there is no current item to add to the history.
+	  (help-xref-stack-item nil)
+	  ;; Use the current buffer.
+	  (help-xref-following t))
+      (apply (car item) (cdr item))
+      (goto-char pos))))
 
 (defun help-insert-string (string)
   "Insert STRING to the help buffer and install xref info for it.

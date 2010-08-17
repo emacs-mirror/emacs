@@ -48,32 +48,24 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    Since applying strlen to the name always works, we'll just do that.  */
 #define NAMLEN(p) strlen (p->d_name)
 
-#ifdef SYSV_SYSTEM_DIR
+#ifdef HAVE_DIRENT_H
 
 #include <dirent.h>
 #define DIRENTRY struct dirent
 
-#else /* not SYSV_SYSTEM_DIR */
+#else /* not HAVE_DIRENT_H */
 
-#ifdef MSDOS
-#include <dirent.h>
-#else
 #include <sys/dir.h>
-#endif
-
 #include <sys/stat.h>
 
-#ifndef MSDOS
 #define DIRENTRY struct direct
 
-extern DIR *opendir ();
-extern struct direct *readdir ();
+extern DIR *opendir (char *);
+extern struct direct *readdir (DIR *);
 
-#endif /* not MSDOS */
-#endif /* not SYSV_SYSTEM_DIR */
+#endif /* HAVE_DIRENT_H */
 
-/* Some versions of Cygwin don't have d_ino in `struct dirent'.  */
-#if defined(MSDOS) || defined(__CYGWIN__)
+#ifdef MSDOS
 #define DIRENTRY_NONEMPTY(p) ((p)->d_name[0] != 0)
 #else
 #define DIRENTRY_NONEMPTY(p) ((p)->d_ino)
@@ -90,10 +82,12 @@ extern struct direct *readdir ();
 #include "blockinput.h"
 
 /* Returns a search buffer, with a fastmap allocated and ready to go.  */
-extern struct re_pattern_buffer *compile_pattern ();
+extern struct re_pattern_buffer *compile_pattern (Lisp_Object,
+						  struct re_registers *,
+						  Lisp_Object, int, int);
 
 /* From filemode.c.  Can't go in Lisp.h because of `stat'.  */
-extern void filemodestring P_ ((struct stat *, char *));
+extern void filemodestring (struct stat *, char *);
 
 /* if system does not have symbolic links, it does not have lstat.
    In that case, use ordinary stat instead.  */
@@ -102,9 +96,6 @@ extern void filemodestring P_ ((struct stat *, char *));
 #define lstat stat
 #endif
 
-extern int completion_ignore_case;
-extern Lisp_Object Qcompletion_ignore_case;
-extern Lisp_Object Vcompletion_regexp_list;
 extern Lisp_Object Vw32_get_true_file_attributes;
 
 Lisp_Object Vcompletion_ignored_extensions;
@@ -115,7 +106,7 @@ Lisp_Object Qfile_name_all_completions;
 Lisp_Object Qfile_attributes;
 Lisp_Object Qfile_attributes_lessp;
 
-static int scmp P_ ((unsigned char *, unsigned char *, int));
+static int scmp (const unsigned char *, const unsigned char *, int);
 
 #ifdef WINDOWSNT
 Lisp_Object
@@ -127,8 +118,7 @@ directory_files_internal_w32_unwind (Lisp_Object arg)
 #endif
 
 Lisp_Object
-directory_files_internal_unwind (dh)
-     Lisp_Object dh;
+directory_files_internal_unwind (Lisp_Object dh)
 {
   DIR *d = (DIR *) XSAVE_VALUE (dh)->pointer;
   BLOCK_INPUT;
@@ -143,10 +133,7 @@ directory_files_internal_unwind (dh)
    In the latter case, ID_FORMAT is passed to Ffile_attributes.  */
 
 Lisp_Object
-directory_files_internal (directory, full, match, nosort, attrs, id_format)
-     Lisp_Object directory, full, match, nosort;
-     int attrs;
-     Lisp_Object id_format;
+directory_files_internal (Lisp_Object directory, Lisp_Object full, Lisp_Object match, Lisp_Object nosort, int attrs, Lisp_Object id_format)
 {
   DIR *d;
   int directory_nbytes;
@@ -210,7 +197,6 @@ directory_files_internal (directory, full, match, nosort, attrs, id_format)
 #ifdef WINDOWSNT
   if (attrs)
     {
-      extern Lisp_Object Qlocal;
       extern int is_slow_fs (const char *);
 
       /* Do this only once to avoid doing it (in w32.c:stat) for each
@@ -293,15 +279,14 @@ directory_files_internal (directory, full, match, nosort, attrs, id_format)
 		  int nchars;
 
 		  fullname = make_uninit_multibyte_string (nbytes, nbytes);
-		  bcopy (SDATA (directory), SDATA (fullname),
-			 directory_nbytes);
+		  memcpy (SDATA (fullname), SDATA (directory),
+			  directory_nbytes);
 
 		  if (needsep)
 		    SSET (fullname, directory_nbytes, DIRECTORY_SEP);
 
-		  bcopy (SDATA (name),
-			 SDATA (fullname) + directory_nbytes + needsep,
-			 len);
+		  memcpy (SDATA (fullname) + directory_nbytes + needsep,
+			  SDATA (name), len);
 
 		  nchars = chars_in_text (SDATA (fullname), nbytes);
 
@@ -371,8 +356,7 @@ If MATCH is non-nil, mention only file names that match the regexp MATCH.
 If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
  Otherwise, the list returned is sorted with `string-lessp'.
  NOSORT is useful if you plan to sort the result yourself.  */)
-     (directory, full, match, nosort)
-     Lisp_Object directory, full, match, nosort;
+  (Lisp_Object directory, Lisp_Object full, Lisp_Object match, Lisp_Object nosort)
 {
   Lisp_Object handler;
   directory = Fexpand_file_name (directory, Qnil);
@@ -400,8 +384,7 @@ ID-FORMAT specifies the preferred format of attributes uid and gid, see
 `file-attributes' for further documentation.
 On MS-Windows, performance depends on `w32-get-true-file-attributes',
 which see.  */)
-     (directory, full, match, nosort, id_format)
-     Lisp_Object directory, full, match, nosort, id_format;
+  (Lisp_Object directory, Lisp_Object full, Lisp_Object match, Lisp_Object nosort, Lisp_Object id_format)
 {
   Lisp_Object handler;
   directory = Fexpand_file_name (directory, Qnil);
@@ -417,7 +400,7 @@ which see.  */)
 }
 
 
-Lisp_Object file_name_completion ();
+Lisp_Object file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int ver_flag, Lisp_Object predicate);
 
 DEFUN ("file-name-completion", Ffile_name_completion, Sfile_name_completion,
        2, 3, 0,
@@ -432,8 +415,7 @@ completion (in absolute form) and ignore it if PREDICATE returns nil.
 
 This function ignores some of the possible completions as
 determined by the variable `completion-ignored-extensions', which see.  */)
-     (file, directory, predicate)
-     Lisp_Object file, directory, predicate;
+  (Lisp_Object file, Lisp_Object directory, Lisp_Object predicate)
 {
   Lisp_Object handler;
 
@@ -456,8 +438,7 @@ DEFUN ("file-name-all-completions", Ffile_name_all_completions,
        Sfile_name_all_completions, 2, 2, 0,
        doc: /* Return a list of all completions of file name FILE in directory DIRECTORY.
 These are all file names in directory DIRECTORY which begin with FILE.  */)
-     (file, directory)
-     Lisp_Object file, directory;
+  (Lisp_Object file, Lisp_Object directory)
 {
   Lisp_Object handler;
 
@@ -476,14 +457,11 @@ These are all file names in directory DIRECTORY which begin with FILE.  */)
   return file_name_completion (file, directory, 1, 0, Qnil);
 }
 
-static int file_name_completion_stat ();
+static int file_name_completion_stat (Lisp_Object dirname, DIRENTRY *dp, struct stat *st_addr);
 Lisp_Object Qdefault_directory;
 
 Lisp_Object
-file_name_completion (file, dirname, all_flag, ver_flag, predicate)
-     Lisp_Object file, dirname;
-     int all_flag, ver_flag;
-     Lisp_Object predicate;
+file_name_completion (Lisp_Object file, Lisp_Object dirname, int all_flag, int ver_flag, Lisp_Object predicate)
 {
   DIR *d;
   int bestmatchsize = 0;
@@ -825,9 +803,7 @@ file_name_completion (file, dirname, all_flag, ver_flag, predicate)
    else number of chars that match at the beginning.  */
 
 static int
-scmp (s1, s2, len)
-     register unsigned char *s1, *s2;
-     int len;
+scmp (const unsigned char *s1, const unsigned char *s2, int len)
 {
   register int l = len;
 
@@ -848,10 +824,7 @@ scmp (s1, s2, len)
 }
 
 static int
-file_name_completion_stat (dirname, dp, st_addr)
-     Lisp_Object dirname;
-     DIRENTRY *dp;
-     struct stat *st_addr;
+file_name_completion_stat (Lisp_Object dirname, DIRENTRY *dp, struct stat *st_addr)
 {
   int len = NAMLEN (dp);
   int pos = SCHARS (dirname);
@@ -869,11 +842,11 @@ file_name_completion_stat (dirname, dp, st_addr)
   _djstat_flags = _STAT_INODE | _STAT_EXEC_MAGIC | _STAT_DIRSIZE;
 #endif /* MSDOS */
 
-  bcopy (SDATA (dirname), fullname, pos);
+  memcpy (fullname, SDATA (dirname), pos);
   if (!IS_DIRECTORY_SEP (fullname[pos - 1]))
     fullname[pos++] = DIRECTORY_SEP;
 
-  bcopy (dp->d_name, fullname + pos, len);
+  memcpy (fullname + pos, dp->d_name, len);
   fullname[pos + len] = 0;
 
 #ifdef S_IFLNK
@@ -893,8 +866,7 @@ file_name_completion_stat (dirname, dp, st_addr)
 }
 
 Lisp_Object
-make_time (time)
-     time_t time;
+make_time (time_t time)
 {
   return Fcons (make_number (time >> 16),
 		Fcons (make_number (time & 0177777), Qnil));
@@ -973,16 +945,15 @@ which see.
 
 On some FAT-based filesystems, only the date of last access is recorded,
 so last access time will always be midnight of that day.  */)
-     (filename, id_format)
-     Lisp_Object filename, id_format;
+  (Lisp_Object filename, Lisp_Object id_format)
 {
   Lisp_Object values[12];
   Lisp_Object encoded;
   struct stat s;
-#if defined (BSD4_2) || defined (BSD4_3)
+#ifdef BSD4_2
   Lisp_Object dirname;
   struct stat sdir;
-#endif
+#endif /* BSD4_2 */
   char modes[10];
   Lisp_Object handler;
   struct gcpro gcpro1;
@@ -1049,7 +1020,7 @@ so last access time will always be midnight of that day.  */)
 
   filemodestring (&s, modes);
   values[8] = make_string (modes, 10);
-#if defined (BSD4_2) || defined (BSD4_3) /* file gid will be dir gid */
+#ifdef BSD4_2 /* file gid will be dir gid */
   dirname = Ffile_name_directory (filename);
   if (! NILP (dirname))
     encoded = ENCODE_FILE (dirname);
@@ -1059,7 +1030,7 @@ so last access time will always be midnight of that day.  */)
     values[9] = Qt;
 #else					/* file gid will be egid */
   values[9] = (s.st_gid != getegid ()) ? Qt : Qnil;
-#endif	/* BSD4_2 (or BSD4_3) */
+#endif	/* not BSD4_2 */
   if (!FIXNUM_OVERFLOW_P (s.st_ino))
     /* Keep the most common cases as integers.  */
     values[10] = make_number (s.st_ino);
@@ -1096,14 +1067,13 @@ so last access time will always be midnight of that day.  */)
 DEFUN ("file-attributes-lessp", Ffile_attributes_lessp, Sfile_attributes_lessp, 2, 2, 0,
        doc: /* Return t if first arg file attributes list is less than second.
 Comparison is in lexicographic order and case is significant.  */)
-     (f1, f2)
-     Lisp_Object f1, f2;
+  (Lisp_Object f1, Lisp_Object f2)
 {
   return Fstring_lessp (Fcar (f1), Fcar (f2));
 }
 
 void
-syms_of_dired ()
+syms_of_dired (void)
 {
   Qdirectory_files = intern_c_string ("directory-files");
   Qdirectory_files_and_attributes = intern_c_string ("directory-files-and-attributes");

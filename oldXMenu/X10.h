@@ -71,8 +71,8 @@ typedef struct {
     int size;			/* Table size (number of buckets). */
 } XAssocTable;
 
-XAssocTable *XCreateAssocTable();
-char *XLookUpAssoc();
+XAssocTable *XCreateAssocTable(int size);
+char *XLookUpAssoc(Display *dpy, XAssocTable *table, XID x_id);
 
 #endif /* _X10_H_ */
 

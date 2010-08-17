@@ -29,25 +29,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "window.h"
 #include "keymap.h"
 
-#ifdef HAVE_INDEX
-extern char *index P_ ((const char *, int));
-#endif
-
-extern Lisp_Object Qcursor_in_echo_area;
-extern Lisp_Object Qfile_directory_p;
-extern Lisp_Object Qonly;
-
 Lisp_Object Vcurrent_prefix_arg, Qminus, Qplus;
 Lisp_Object Qcall_interactively;
 Lisp_Object Vcommand_history;
 
-extern Lisp_Object Vhistory_length;
-extern Lisp_Object Vthis_original_command, real_this_command;
-extern int history_delete_duplicates;
-
 Lisp_Object Vcommand_debug_status, Qcommand_debug_status;
 Lisp_Object Qenable_recursive_minibuffers;
-extern Lisp_Object Qface, Qminibuffer_prompt;
 
 /* Non-nil means treat the mark as active
    even if mark_active is 0.  */
@@ -131,8 +118,7 @@ If the string begins with `^' and `shift-select-mode' is non-nil,
 You may use `@', `*', and `^' together.  They are processed in the
  order that they appear, before reading any arguments.
 usage: (interactive &optional ARGS)  */)
-     (args)
-     Lisp_Object args;
+  (Lisp_Object args)
 {
   return Qnil;
 }
@@ -140,8 +126,7 @@ usage: (interactive &optional ARGS)  */)
 /* Quotify EXP: if EXP is constant, return it.
    If EXP is not constant, return (quote EXP).  */
 Lisp_Object
-quotify_arg (exp)
-     register Lisp_Object exp;
+quotify_arg (register Lisp_Object exp)
 {
   if (!INTEGERP (exp) && !STRINGP (exp)
       && !NILP (exp) && !EQ (exp, Qt))
@@ -152,8 +137,7 @@ quotify_arg (exp)
 
 /* Modify EXP by quotifying each element (except the first).  */
 Lisp_Object
-quotify_args (exp)
-     Lisp_Object exp;
+quotify_args (Lisp_Object exp)
 {
   register Lisp_Object tail;
   Lisp_Object next;
@@ -165,12 +149,11 @@ quotify_args (exp)
   return exp;
 }
 
-char *callint_argfuns[]
+static const char *callint_argfuns[]
     = {"", "point", "mark", "region-beginning", "region-end"};
 
 static void
-check_mark (for_region)
-     int for_region;
+check_mark (int for_region)
 {
   Lisp_Object tem;
   tem = Fmarker_buffer (current_buffer->mark);
@@ -191,8 +174,7 @@ check_mark (for_region)
    of VALUES to do its job.  */
 
 static void
-fix_command (input, values)
-     Lisp_Object input, values;
+fix_command (Lisp_Object input, Lisp_Object values)
 {
   if (CONSP (input))
     {
@@ -267,8 +249,7 @@ Optional third arg KEYS, if given, specifies the sequence of events to
 supply, as a vector, if the command inquires which events were used to
 invoke it.  If KEYS is omitted or nil, the return value of
 `this-command-keys-vector' is used.  */)
-     (function, record_flag, keys)
-     Lisp_Object function, record_flag, keys;
+  (Lisp_Object function, Lisp_Object record_flag, Lisp_Object keys)
 {
   Lisp_Object *args, *visargs;
   Lisp_Object specs;
@@ -352,8 +333,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
       /* Make a copy of string so that if a GC relocates specs,
 	 `string' will still be valid.  */
       string = (unsigned char *) alloca (SBYTES (specs) + 1);
-      bcopy (SDATA (specs), string,
-	     SBYTES (specs) + 1);
+      memcpy (string, SDATA (specs), SBYTES (specs) + 1);
     }
   else
     {
@@ -476,7 +456,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	j += 2;
       else
 	j++;
-      tem = (unsigned char *) index (tem, '\n');
+      tem = (unsigned char *) strchr (tem, '\n');
       if (tem)
 	++tem;
       else
@@ -507,11 +487,11 @@ invoke it.  If KEYS is omitted or nil, the return value of
     {
       strncpy (prompt1, tem + 1, sizeof prompt1 - 1);
       prompt1[sizeof prompt1 - 1] = 0;
-      tem1 = (char *) index (prompt1, '\n');
+      tem1 = strchr (prompt1, '\n');
       if (tem1) *tem1 = 0;
 
       visargs[0] = build_string (prompt1);
-      if (index (prompt1, '%'))
+      if (strchr (prompt1, '%'))
 	callint_message = Fformat (i, visargs);
       else
 	callint_message = visargs[0];
@@ -816,7 +796,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
       if (NILP (visargs[i]) && STRINGP (args[i]))
 	visargs[i] = args[i];
 
-      tem = (unsigned char *) index (tem, '\n');
+      tem = (unsigned char *) strchr (tem, '\n');
       if (tem) tem++;
       else tem = (unsigned char *) "";
     }
@@ -877,8 +857,7 @@ DEFUN ("prefix-numeric-value", Fprefix_numeric_value, Sprefix_numeric_value,
        doc: /* Return numeric meaning of raw prefix argument RAW.
 A raw prefix argument is what you get from `(interactive "P")'.
 Its numeric meaning is what you would get from `(interactive "p")'.  */)
-     (raw)
-     Lisp_Object raw;
+  (Lisp_Object raw)
 {
   Lisp_Object val;
 
@@ -897,7 +876,7 @@ Its numeric meaning is what you would get from `(interactive "p")'.  */)
 }
 
 void
-syms_of_callint ()
+syms_of_callint (void)
 {
   point_marker = Fmake_marker ();
   staticpro (&point_marker);

@@ -23,7 +23,7 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* Speedbar: (speedbar). File/Tag summarizing utility.
+* Speedbar: (speedbar).         File/Tag summarizing utility.
 @end direntry
 
 @titlepage
@@ -1131,7 +1131,7 @@ beginning, like this:
 
 @example
 (add-to-list 'speedbar-dynamic-tags-function-list
-	     '(my-fetch-dynamic-tags  . my-insert-tag-list))
+             '(my-fetch-dynamic-tags . my-insert-tag-list))
 @end example
 
 If your parser is only good for a few types of files, make sure that it

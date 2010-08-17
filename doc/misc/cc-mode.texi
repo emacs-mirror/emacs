@@ -180,8 +180,8 @@ developing GNU and promoting software freedom.''
 @comment here is by request from the FSF folks.
 @dircategory Emacs
 @direntry
-* CC Mode: (ccmode).    Emacs mode for editing C, C++, Objective-C,
-                        Java, Pike, AWK, and CORBA IDL code.
+* CC Mode: (ccmode).            Emacs mode for editing C, C++, Objective-C,
+                                Java, Pike, AWK, and CORBA IDL code.
 @end direntry
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -312,19 +312,19 @@ Indentation Engine Basics
 
 Syntactic Symbols
 
-* Function Symbols::
-* Class Symbols::
-* Conditional Construct Symbols::
-* Switch Statement Symbols::
-* Brace List Symbols::
-* External Scope Symbols::
-* Paren List Symbols::
-* Literal Symbols::
-* Multiline Macro Symbols::
-* Objective-C Method Symbols::
-* Anonymous Class Symbol::
-* Statement Block Symbols::
-* K&R Symbols::
+* Function Symbols::            
+* Class Symbols::               
+* Conditional Construct Symbols::  
+* Switch Statement Symbols::    
+* Brace List Symbols::          
+* External Scope Symbols::      
+* Paren List Symbols::          
+* Literal Symbols::             
+* Multiline Macro Symbols::     
+* Objective-C Method Symbols::  
+* Java Symbols::
+* Statement Block Symbols::     
+* K&R Symbols::                 
 
 Customizing Indentation
 
@@ -3971,6 +3971,9 @@ The first line in a ``topmost'' definition.  @ref{Function Symbols}.
 Topmost definition continuation lines.  This is only used in the parts
 that aren't covered by other symbols such as @code{func-decl-cont} and
 @code{knr-argdecl}.  @ref{Function Symbols}.
+@item annotation-top-cont
+Topmost definition continuation lines where all previous items are
+annotations.  @ref{Java Symbols}.
 @item member-init-intro
 First line in a member initialization list.  @ref{Class Symbols}.
 @item member-init-cont
@@ -3999,6 +4002,9 @@ with an open brace.  @ref{Brace List Symbols}.
 A statement.  @ref{Function Symbols}.
 @item statement-cont
 A continuation of a statement.  @ref{Function Symbols}.
+@item annotation-var-cont
+A continuation of a statement where all previous items are
+annotations.  @ref{Java Symbols}.
 @item statement-block-intro
 The first line in a new statement block.  @ref{Conditional Construct
 Symbols}.
@@ -4112,23 +4118,23 @@ Symbols}.
 @item inexpr-class
 A class definition inside an expression.  This is used for anonymous
 classes in Java.  It's also used for anonymous array initializers in
-Java.  @ref{Anonymous Class Symbol}.
+Java.  @ref{Java Symbols}.
 @end table
 
 @menu
-* Function Symbols::
-* Class Symbols::
-* Conditional Construct Symbols::
-* Switch Statement Symbols::
-* Brace List Symbols::
-* External Scope Symbols::
-* Paren List Symbols::
-* Literal Symbols::
-* Multiline Macro Symbols::
-* Objective-C Method Symbols::
-* Anonymous Class Symbol::
-* Statement Block Symbols::
-* K&R Symbols::
+* Function Symbols::            
+* Class Symbols::               
+* Conditional Construct Symbols::  
+* Switch Statement Symbols::    
+* Brace List Symbols::          
+* External Scope Symbols::      
+* Paren List Symbols::          
+* Literal Symbols::             
+* Multiline Macro Symbols::     
+* Objective-C Method Symbols::  
+* Java Symbols::
+* Statement Block Symbols::     
+* K&R Symbols::                 
 @end menu
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -4233,7 +4239,7 @@ Hitting @kbd{C-c C-s} on line 5 shows the following analysis:
 
 @noindent
 The primary syntactic symbol for this line is @code{access-label} as
-this a label keyword that specifies access protection in C++.  However,
+this is a label keyword that specifies access protection in C++.  However,
 because this line is also a top-level construct inside a class
 definition, the analysis actually shows two syntactic symbols.  The
 other syntactic symbol assigned to this line is @code{inclass}.
@@ -4740,7 +4746,7 @@ macros.}.
 @xref{Custom Macros}, for more info about the treatment of macros.
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Objective-C Method Symbols, Anonymous Class Symbol, Multiline Macro Symbols, Syntactic Symbols
+@node    Objective-C Method Symbols, Java Symbols, Multiline Macro Symbols, Syntactic Symbols
 @comment node-name, next, previous, up
 @subsection Objective-C Method Symbols
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -4767,34 +4773,45 @@ assigned @code{objc-method-args-cont} syntax.  Lines 5 and 6 are both
 assigned @code{objc-method-call-cont} syntax.
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Anonymous Class Symbol, Statement Block Symbols, Objective-C Method Symbols, Syntactic Symbols
+@node    Java Symbols, Statement Block Symbols, Objective-C Method Symbols, Syntactic Symbols
 @comment node-name, next, previous, up
-@subsection Anonymous Class Symbol (Java)
+@subsection Java Symbols
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 Java has a concept of anonymous classes which can look something like
 this:
 
 @example
- 1: public void watch(Observable o) @{
- 2:     o.addObserver(new Observer() @{
- 3:             public void update(Observable o, Object arg) @{
- 4:                 history.addElement(arg);
- 5:             @}
- 6:         @});
- 7: @}
+ 1:  @@Test
+ 2:  public void watch(Observable o) @{
+ 3:      @@NonNull
+ 4:      Observer obs = new Observer() @{
+ 5:          public void update(Observable o, Object arg) @{
+ 6:              history.addElement(arg);
+ 7:          @}
+ 8:      @};
+ 9:      o.addObserver(obs);
+ 10: @}
 @end example
 
 @ssindex inexpr-class
 The brace following the @code{new} operator opens the anonymous class.
-Lines 3 and 6 are assigned the @code{inexpr-class} syntax, besides the
+Lines 5 and 8 are assigned the @code{inexpr-class} syntax, besides the
 @code{inclass} symbol used in normal classes.  Thus, the class will be
 indented just like a normal class, with the added indentation given to
 @code{inexpr-class}.  An @code{inexpr-class} syntactic element doesn't
 have an anchor position.
 
+@ssindex annotation-top-cont
+@ssindex annotation-var-cont
+Line 2 is assigned the @code{annotation-top-cont} syntax, due to it being a
+continuation of a topmost introduction with an annotation symbol preceding
+the current line.  Similarly, line 4 is assigned the @code{annotation-var-cont}
+syntax due to it being a continuation of a variable declaration where preceding
+the declaration is an annotation.
+
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@node    Statement Block Symbols, K&R Symbols, Anonymous Class Symbol, Syntactic Symbols
+@node    Statement Block Symbols, K&R Symbols, Java Symbols, Syntactic Symbols
 @comment node-name, next, previous, up
 @subsection Statement Block Symbols
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

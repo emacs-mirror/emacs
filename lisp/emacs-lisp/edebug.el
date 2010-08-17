@@ -885,17 +885,12 @@ already is one.)"
    (edebug-storing-offsets (1- (point)) 'quote)
    (edebug-read-storing-offsets stream)))
 
-(defvar edebug-read-backquote-level 0
-  "If non-zero, we're in a new-style backquote.
-It should never be negative.  This controls how we read comma constructs.")
-
 (defun edebug-read-backquote (stream)
   ;; Turn `thing into (\` thing)
   (forward-char 1)
   (list
    (edebug-storing-offsets (1- (point)) '\`)
-   (let ((edebug-read-backquote-level (1+ edebug-read-backquote-level)))
-     (edebug-read-storing-offsets stream))))
+   (edebug-read-storing-offsets stream)))
 
 (defun edebug-read-comma (stream)
   ;; Turn ,thing into (\, thing).  Handle ,@ and ,. also.
@@ -910,12 +905,9 @@ It should never be negative.  This controls how we read comma constructs.")
 	     (forward-char 1)))
       ;; Generate the same structure of offsets we would have
       ;; if the resulting list appeared verbatim in the input text.
-      (if (zerop edebug-read-backquote-level)
-	  (edebug-storing-offsets opoint symbol)
-	(list
-	 (edebug-storing-offsets opoint symbol)
-	 (let ((edebug-read-backquote-level (1- edebug-read-backquote-level)))
-	   (edebug-read-storing-offsets stream)))))))
+      (list
+       (edebug-storing-offsets opoint symbol)
+       (edebug-read-storing-offsets stream)))))
 
 (defun edebug-read-function (stream)
   ;; Turn #'thing into (function thing)
@@ -937,17 +929,7 @@ It should never be negative.  This controls how we read comma constructs.")
   (prog1
       (let ((elements))
 	(while (not (memq (edebug-next-token-class) '(rparen dot)))
-	  (if (and (eq (edebug-next-token-class) 'backquote)
-		   (null elements)
-		   (zerop edebug-read-backquote-level))
-	      (progn
-		;; Old style backquote.
-		(forward-char 1)	; Skip backquote.
-		;; Call edebug-storing-offsets here so that we
-		;; produce the same offsets we would have had
-		;; if the backquote were an ordinary symbol.
-		(push (edebug-storing-offsets (1- (point)) '\`) elements))
-	    (push (edebug-read-storing-offsets stream) elements)))
+          (push (edebug-read-storing-offsets stream) elements))
 	(setq elements (nreverse elements))
 	(if (eq 'dot (edebug-next-token-class))
 	    (let (dotted-form)
@@ -4455,7 +4437,7 @@ With prefix argument, make it a temporary breakpoint."
   (add-hook 'cl-load-hook
 	    (function (lambda () (require 'cl-specs)))))
 
-;;; edebug-cl-read and cl-read are available from liberte@cs.uiuc.edu
+;; edebug-cl-read and cl-read are available from liberte@cs.uiuc.edu
 (if (featurep 'cl-read)
     (add-hook 'edebug-setup-hook
 	      (function (lambda () (require 'edebug-cl-read))))
@@ -4466,8 +4448,8 @@ With prefix argument, make it a temporary breakpoint."
 
 ;;; Finalize Loading
 
-;;; Finally, hook edebug into the rest of Emacs.
-;;; There are probably some other things that could go here.
+;; Finally, hook edebug into the rest of Emacs.
+;; There are probably some other things that could go here.
 
 ;; Install edebug read and eval functions.
 (edebug-install-read-eval-functions)

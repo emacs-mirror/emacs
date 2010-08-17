@@ -103,32 +103,27 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 /* For debug, set this to 0 to not grab the keyboard on menu popup */
 int x_menu_grab_keyboard = 1;
 
-typedef void (*Wait_func)();
-
 static Wait_func wait_func;
 static void* wait_data;
 
 void
-XMenuActivateSetWaitFunction (func, data)
-     Wait_func func;
-     void *data;
+XMenuActivateSetWaitFunction (Wait_func func, void *data)
 {
   wait_func = func;
   wait_data = data;
 }
 
 int
-XMenuActivate(display, menu, p_num, s_num, x_pos, y_pos, event_mask, data,
-	      help_callback)
-    register Display *display;		/* Display to put menu on. */
-    register XMenu *menu;		/* Menu to activate. */
-    int *p_num;				/* Pane number selected. */
-    int *s_num;				/* Selection number selected. */
-    int x_pos;				/* X coordinate of menu position. */
-    int y_pos;				/* Y coordinate of menu position. */
-    unsigned int event_mask;		/* Mouse button event mask. */
-    char **data;			/* Pointer to return data value. */
-    void (* help_callback) ();		/* Help callback.  */
+XMenuActivate(
+    register Display *display,		/* Display to put menu on. */
+    register XMenu *menu,		/* Menu to activate. */
+    int *p_num,				/* Pane number selected. */
+    int *s_num,				/* Selection number selected. */
+    int x_pos,				/* X coordinate of menu position. */
+    int y_pos,				/* Y coordinate of menu position. */
+    unsigned int event_mask,		/* Mouse button event mask. */
+    char **data,			/* Pointer to return data value. */
+    void (* help_callback) (char *, int, int)) /* Help callback.  */
 {
     int status;				/* X routine call status. */
     int orig_x;				/* Upper left menu origin X coord. */

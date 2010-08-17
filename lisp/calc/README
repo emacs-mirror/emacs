@@ -74,6 +74,8 @@ Summary of changes to "Calc"
 
 Emacs 24.1
 
+* Added option to highlight selections using faces.
+
 * Gave `calc-histogram' the option of using a vector to determine the bins.
 
 * Added "O" option prefix.

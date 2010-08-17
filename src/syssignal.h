@@ -17,17 +17,13 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-extern void init_signals P_ ((void));
+extern void init_signals (void);
 
 #if defined (HAVE_GTK_AND_PTHREAD) || defined (HAVE_NS)
 #include <pthread.h>
 /* If defined, asynchronous signals delivered to a non-main thread are
    forwarded to the main thread.  */
 #define FORWARD_SIGNAL_TO_MAIN_THREAD
-#endif
-
-#ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
-extern pthread_t main_thread;
 #endif
 
 /* Don't #include <signal.h>.  That header should always be #included
@@ -69,42 +65,19 @@ extern sigset_t sys_sigmask ();
 #ifndef sigsetmask
 #define sigsetmask(SIG)  sys_sigsetmask (SIG)
 #endif
-#define sighold(SIG)     ONLY_USED_IN_BSD_4_1
-#define sigrelse(SIG)    ONLY_USED_IN_BSD_4_1
 #undef signal
 #define signal(SIG,ACT)      sys_signal(SIG,ACT)
 
 /* Whether this is what all systems want or not, this is what
    appears to be assumed in the source, for example data.c:arith_error.  */
-typedef RETSIGTYPE (*signal_handler_t) (/*int*/);
+typedef RETSIGTYPE (*signal_handler_t) (int);
 
-signal_handler_t sys_signal P_ ((int signal_number, signal_handler_t action));
-sigset_t sys_sigblock   P_ ((sigset_t new_mask));
-sigset_t sys_sigunblock P_ ((sigset_t new_mask));
-sigset_t sys_sigsetmask P_ ((sigset_t new_mask));
+signal_handler_t sys_signal (int signal_number, signal_handler_t action);
+sigset_t sys_sigblock   (sigset_t new_mask);
+sigset_t sys_sigunblock (sigset_t new_mask);
+sigset_t sys_sigsetmask (sigset_t new_mask);
 
 #define sys_sigdel(MASK,SIG) sigdelset (&MASK,SIG)
-
-#ifndef SIGMASKTYPE
-#define SIGMASKTYPE int
-#endif
-
-#ifndef SIGEMPTYMASK
-#define SIGEMPTYMASK (0)
-#endif
-
-#ifndef SIGFULLMASK
-#define SIGFULLMASK (0xffffffff)
-#endif
-
-#ifndef sigmask
-#define sigmask(no) (1L << ((no) - 1))
-#endif
-
-#ifndef sigunblock
-#define sigunblock(SIG) \
-{ SIGMASKTYPE omask = sigblock (SIGFULLMASK); sigsetmask (omask & ~SIG); }
-#endif
 
 #define sigfree() sigsetmask (SIGEMPTYMASK)
 
@@ -113,9 +86,6 @@ sigset_t sys_sigsetmask P_ ((sigset_t new_mask));
 #endif
 #if defined (SIGIO) && defined (BROKEN_SIGIO)
 # undef SIGIO
-# if defined (__Lynx__)
-# undef SIGPOLL /* Defined as SIGIO on LynxOS */
-# endif
 #endif
 #if defined (SIGPOLL) && defined (BROKEN_SIGPOLL)
 #undef SIGPOLL
@@ -163,10 +133,11 @@ sigset_t sys_sigsetmask P_ ((sigset_t new_mask));
 
 #ifndef HAVE_STRSIGNAL
 /* strsignal is in sysdep.c */
-char *strsignal ();
+char *strsignal (int);
 #endif
 
 #ifdef FORWARD_SIGNAL_TO_MAIN_THREAD
+extern pthread_t main_thread;
 #define SIGNAL_THREAD_CHECK(signo)                                      \
   do {                                                                  \
     if (!pthread_equal (pthread_self (), main_thread))			\

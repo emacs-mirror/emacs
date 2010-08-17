@@ -47,7 +47,7 @@
 ;; using the same *compilation* buffer. this necessitates re-parsing markers.
 
 ;;   FILE-STRUCTURE is a list of
-;;   ((FILENAME . DIRECTORY) FORMATS (LINE LOC ...) ...)
+;;   ((FILENAME DIRECTORY) FORMATS (LINE LOC ...) ...)
 
 ;; FILENAME is a string parsed from an error message.  DIRECTORY is a string
 ;; obtained by following directory change messages.  DIRECTORY will be nil for
@@ -196,6 +196,10 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      "^\"\\([^,\" \n\t]+\\)\", line \\([0-9]+\\)\
 \\(?:[(. pos]+\\([0-9]+\\))?\\)?[:.,; (-]\\( warning:\\|[-0-9 ]*(W)\\)?" 1 2 3 (4))
 
+    (cucumber
+     "\\(?:^cucumber\\(?: -p [^[:space:]]+\\)?\\|#\\)\
+\\(?: \\)\\([^\(].*\\):\\([1-9][0-9]*\\)" 1 2)
+
     (edg-1
      "^\\([^ \n]+\\)(\\([0-9]+\\)): \\(?:error\\|warnin\\(g\\)\\|remar\\(k\\)\\)"
      1 2 nil (3 . 4))
@@ -222,6 +226,10 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
     (irix
      "^[-[:alnum:]_/ ]+: \\(?:\\(?:[sS]evere\\|[eE]rror\\|[wW]arnin\\(g\\)\\|[iI]nf\\(o\\)\\)[0-9 ]*: \\)?\
 \\([^,\" \n\t]+\\)\\(?:, line\\|:\\) \\([0-9]+\\):" 3 4 nil (1 . 2))
+
+    (ruby
+     "^[\t ]*\\(?:from \\)?\
+\\([^\(\n][^[:space:]\n]*\\):\\([1-9][0-9]*\\)\\(:in `.*'\\)?.*$" 1 2)
 
     (java
      "^\\(?:[ \t]+at \\|==[0-9]+== +\\(?:at\\|b\\(y\\)\\)\\).+(\\([^()\n]+\\):\\([0-9]+\\))$" 2 3 nil (1))
@@ -324,6 +332,9 @@ during global destruction\\.$\\)" 1 2)
     (php
      "\\(?:Parse\\|Fatal\\) error: \\(.*\\) in \\(.*\\) on line \\([0-9]+\\)"
      2 3 nil nil)
+
+    (ruby-Test::Unit
+     "[\t ]*\\[\\([^\(].*\\):\\([1-9][0-9]*\\)\\(\\]\\)?:$" 1 2)
 
     (rxp
      "^\\(?:Error\\|Warnin\\(g\\)\\):.*\n.* line \\([0-9]+\\) char\
@@ -2083,7 +2094,7 @@ and overlay is highlighted between MK and END-MK."
                 pre-existing
               (let ((display-buffer-reuse-frames t)
                     (pop-up-windows t))
-	        ;; Pop up a window.
+		;; Pop up a window.
                 (display-buffer (marker-buffer msg)))))
 	 (highlight-regexp (with-current-buffer (marker-buffer msg)
 			     ;; also do this while we change buffer

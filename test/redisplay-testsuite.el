@@ -110,13 +110,72 @@
 	  (propertize "XXX\n" 'face 'highlight)
 	  "\n  Test:     ")
   (test-insert-overlay "XXX\n" 'mouse-face 'highlight)
-  (insert "\n"))
+  (insert "\n\n"))
+
+(defun test-redisplay-3 ()
+  (insert "Test 3: Overlay with before/after strings and images:\n\n")
+  (let ((img-data "#define x_width 8
+#define x_height 8
+static unsigned char x_bits[] = {0xff, 0x81, 0xbd, 0xa5, 0xa5, 0xbd, 0x81, 0xff };"))
+    ;; Control
+    (insert "  Expected: AB"
+	    (propertize "X" 'display `(image :data ,img-data :type xbm))
+	    "CD\n")
+
+    ;; Overlay with before, after, and image display string.
+    (insert "  Result 1: ")
+    (let ((opoint (point)))
+      (insert "AXD\n")
+      (let ((ov (make-overlay (1+ opoint) (+ 2 opoint))))
+	(overlay-put ov 'before-string "B")
+	(overlay-put ov 'after-string "C")
+	(overlay-put ov 'display
+		     `(image :data ,img-data :type xbm))))
+
+    ;; Overlay with before and after string, and image text prop.
+    (insert "  Result 2: ")
+    (let ((opoint (point)))
+      (insert "AXD\n")
+      (let ((ov (make-overlay (1+ opoint) (+ 2 opoint))))
+	(overlay-put ov 'before-string "B")
+	(overlay-put ov 'after-string "C")
+	(put-text-property (1+ opoint) (+ 2 opoint) 'display
+			   `(image :data ,img-data :type xbm))))
+
+    ;; Overlays with adjacent before and after strings, and image text
+    ;; prop.
+    (insert "  Result 3: ")
+    (let ((opoint (point)))
+      (insert "AXD\n")
+      (let ((ov1 (make-overlay opoint (1+ opoint)))
+	    (ov2 (make-overlay (+ 2 opoint) (+ 3 opoint))))
+	(overlay-put ov1 'after-string "B")
+	(overlay-put ov2 'before-string "C")
+	(put-text-property (1+ opoint) (+ 2 opoint) 'display
+			   `(image :data ,img-data :type xbm))))
+
+    ;; Three overlays.
+    (insert "  Result 4: ")
+    (let ((opoint (point)))
+      (insert "AXD\n\n")
+      (let ((ov1 (make-overlay opoint (1+ opoint)))
+	    (ov2 (make-overlay (+ 2 opoint) (+ 3 opoint)))
+	    (ov3 (make-overlay (1+ opoint) (+ 2 opoint))))
+	(overlay-put ov1 'after-string "B")
+	(overlay-put ov2 'before-string "C")
+	(overlay-put ov3 'display `(image :data ,img-data :type xbm))))))
+
 
 (defun test-redisplay ()
   (interactive)
-  (pop-to-buffer (generate-new-buffer "*Redisplay Test*"))
-  (test-redisplay-1)
-  (test-redisplay-2)
-  (goto-char (point-min)))
+  (let ((buf (get-buffer "*Redisplay Test*")))
+    (if buf
+	(kill-buffer buf))
+    (pop-to-buffer (get-buffer-create "*Redisplay Test*"))
+    (erase-buffer)
+    (test-redisplay-1)
+    (test-redisplay-2)
+    (test-redisplay-3)
+    (goto-char (point-min))))
 
 ;; arch-tag: fcee53c8-024f-403d-9154-61ae3ce0bfb8

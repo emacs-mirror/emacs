@@ -27,6 +27,10 @@ with a prefix argument or by typing C-u C-h C-n.
 
 * Changes in Specialized Modes and Packages in Emacs 23.3
 
+---
+** The appt-add command takes an optional argument for the warning time.
+This can be used in place of the default appt-message-warning-time.
+
 
 * New Modes and Packages in Emacs 23.3
 

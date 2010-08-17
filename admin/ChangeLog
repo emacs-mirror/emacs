@@ -1,3 +1,32 @@
+2010-08-09  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* CPP-DEFINES (WORDS_BIG_ENDIAN): Remove.
+
+2010-08-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* MAINTAINERS: Rename src/unexec.c => src/unexcoff.c.
+
+2010-07-24  Christoph Scholtes  <cschol2112@gmail.com>
+
+	* admin.el: Write version number to nt/makefile.w32-in.
+	* nt/makedist.bat: Remove; replaced with `zipdist.bat'
+	in the nt/ directory.
+	* nt/README.W32: Relocate to nt/ directory.
+
+2010-07-11  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* CPP-DEFINES (HAVE_INDEX, HAVE_RINDEX): Remove.
+
+2010-07-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* MAINTAINERS: Update my responsibilities.
+
+2010-07-07  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* CPP-DEFINES (BCOPY_DOWNWARD_SAFE, BCOPY_UPWARD_SAFE)
+	(GAP_USE_BCOPY, HAVE_BCMP, HAVE_BCOPY, bcmp, bcopy, bzero):
+	Remove.
+
 2010-06-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* unidata/bidimirror.awk: New file.
@@ -418,7 +447,7 @@
 
 	* charsets/mapconv: Handle UNICODE2.
 
-	* charsets/Makefile (CJK): Include CP932-2BYTE.map
+	* charsets/Makefile (CJK): Include CP932-2BYTE.map.
 	(CP932-2BYTE.map): New target.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
@@ -738,7 +767,7 @@
 
 2004-08-28  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* FOR-RELEASE (Indications): Remove entry about GTK and geometry,
+	* FOR-RELEASE (Indications): Remove entry about GTK and geometry
 	(now behaves as well as other ports).
 
 2004-06-28  Jan Djärv  <jan.h.d@swipnet.se>

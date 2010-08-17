@@ -85,11 +85,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* #undef subprocesses */
 
-/* If your system uses COFF (Common Object File Format) then define the
-   preprocessor symbol "COFF".  */
-
-/* #define COFF */
-
 /* Define CLASH_DETECTION if you want lock files to be written
    so that Emacs can tell instantly when you try to modify
    a file that someone else has modified in his Emacs.  */
@@ -107,9 +102,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* If the character used to separate elements of the executable path
    is not ':', #define this to be the appropriate character constant.  */
 /* #define SEPCHAR ':' */
-
-/* Define this if the system can use mmap for buffer text allocation.  */
-/* #define USE_MMAP_FOR_BUFFERS 1 */
 
 /* ============================================================ */
 

@@ -37,7 +37,7 @@
 	      (coding-system utf-8)
 	      (coding-priority utf-8)
 	      (input-method . "tai-sonla")
-	      (sample-text . "TaiViet (ꪁꪫꪱꪣ ꪽꪕ)\t\tꪅꪰꪙ꫃ ꪨꪮ꫃ ꪁꪫꪱ / ꪅꪾ ꪨ� ꪁꪫꪱ")
+	      (sample-text . "TaiViet (ꪁꪫꪱꪣ ꪼꪕ)\t\tꪅꪰꪙꫂ ꪨꪮꫂ ꪁꪫꪱ / ꪅꪽ ꪨꪷ ꪁꪫꪱ")
 	      (documentation . "\
 TaiViet refers to the Tai language used by Tai people in
 Vietnam, and also refers to the script used for this language.
@@ -45,15 +45,15 @@ Both the script and language have the same origin as that of Thai
 language/script used in Thailand, but now they differ from each
 other in a significant way (especially the scripts are).
 
-The language name is spelled as \"ꪁꪫꪱꪣ ꪽꪕ\", and the script name is
-spelled as \"ꪎ� ꪽꪕ\" in the modern form, \"ꪎꪴ ꪽꪕ\" in the traditional
-from.
+The language name is spelled as \"ꪁꪫꪱꪣ ꪼꪕ\", and the script name is
+spelled as \"ꪎ ꪼꪕ\" in the modern form, \"ꪎꪳ ꪼꪕ\" in the traditional
+form.
 
 As the proposal for TaiViet script to the Unicode is still on
 the progress, we use the Private Use Area for TaiViet
 characters (U+F000..U+F07E).  A TaiViet font encoded accordingly
 is available at this web page:
-    http://www.m17n.org/TaiViet/
+    http://www.m17n.org/viettai/
 ")))
 
 (provide 'tai-viet)

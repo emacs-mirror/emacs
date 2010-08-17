@@ -142,7 +142,7 @@ extern int synch_process_alive;
    to Fcall_process.  */
 
 /* Nonzero => this is a string explaining death of synchronous subprocess.  */
-extern char *synch_process_death;
+extern const char *synch_process_death;
 
 /* Nonzero => this is the signal number that terminated the subprocess.  */
 extern int synch_process_termsig;
@@ -166,9 +166,16 @@ extern Lisp_Object Qminflt, Qmajflt, Qcminflt, Qcmajflt, Qutime, Qstime;
 extern Lisp_Object Qcutime, Qpri, Qnice, Qthcount, Qstart, Qvsize, Qrss, Qargs;
 extern Lisp_Object Quser, Qgroup, Qetime, Qpcpu, Qpmem, Qtpgid, Qcstime;
 extern Lisp_Object Qtime, Qctime;
+extern Lisp_Object QCport, QCspeed, QCprocess;
+extern Lisp_Object QCbytesize, QCstopbits, QCparity, Qodd, Qeven;
+extern Lisp_Object QCflowcontrol, Qhw, Qsw, QCsummary;
 
 extern Lisp_Object list_system_processes (void);
 extern Lisp_Object system_process_attributes (Lisp_Object);
+
+extern void hold_keyboard_input (void);
+extern void unhold_keyboard_input (void);
+extern int kbd_on_hold_p (void);
 
 /* arch-tag: dffedfc4-d7bc-4b58-a26f-c16155449c72
    (do not change this comment) */

@@ -89,7 +89,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define CYGWIN 1
 
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->_p - (FILE)->_bf._base)
-#define SYSV_SYSTEM_DIR 1
 
 #define HAVE_SOCKETS
 

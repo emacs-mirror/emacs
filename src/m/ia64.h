@@ -23,10 +23,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define BITS_PER_LONG		64
 #define BITS_PER_EMACS_INT	64
 
-/* Define WORDS_BIG_ENDIAN if lowest-numbered byte in a word
-   is the most significant byte.  */
-#undef WORDS_BIG_ENDIAN
-
 /* Now define a symbol for the cpu type, if your compiler
    does not define it automatically.  */
 /* __ia64__ defined automatically */
@@ -57,8 +53,6 @@ extern char *r_alloc (), *r_re_alloc ();
 extern void r_alloc_free ();
 #endif /* not _MALLOC_INTERNAL */
 #endif /* REL_ALLOC */
-
-#define HAVE_TEXT_START
 
 /* arch-tag: 9b8e9fb2-2e49-4c22-b68f-11a488e77c66
    (do not change this comment) */

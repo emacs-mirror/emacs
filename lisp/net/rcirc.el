@@ -1342,6 +1342,12 @@ Logfiles are kept in `rcirc-log-directory'."
   :type 'integer
   :group 'rcirc)
 
+(defcustom rcirc-log-process-buffers nil
+  "Non-nil if rcirc process buffers should be logged to disk."
+  :group 'rcirc
+  :type 'boolean
+  :version "24.1")
+
 (defun rcirc-last-quit-line (process nick target)
   "Return the line number where NICK left TARGET.
 Returns nil if the information is not recorded."
@@ -1507,14 +1513,21 @@ record activity."
 				     (when (not (rcirc-channel-p rcirc-target))
 				       'nick)))
 
-	(when rcirc-log-flag
+	(when (and rcirc-log-flag
+		   (or target
+		       rcirc-log-process-buffers))
 	  (rcirc-log process sender response target text))
 
 	(sit-for 0)			; displayed text before hook
 	(run-hook-with-args 'rcirc-print-hooks
 			    process sender response target text)))))
 
-(defcustom rcirc-log-filename-function 'rcirc-generate-new-buffer-name
+(defun rcirc-generate-log-filename (process target)
+  (if target
+      (rcirc-generate-new-buffer-name process target)
+    (process-name process)))
+
+(defcustom rcirc-log-filename-function 'rcirc-generate-log-filename
   "A function to generate the filename used by rcirc's logging facility.
 
 It is called with two arguments, PROCESS and TARGET (see

@@ -138,7 +138,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef HAVE_STDLIB_H
 #undef HAVE_PWD_H
 #undef STDC_HEADERS
-#undef TIME_WITH_SYS_TIME
 
 #undef HAVE_LIBDNET
 #undef HAVE_LIBPTHREADS
@@ -212,8 +211,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef HAVE_SYSINFO
 #undef HAVE_RANDOM
 #undef HAVE_LRAND48
-#undef HAVE_BCOPY
-#undef HAVE_BCMP
+#undef HAVE_MEMCPY
+#undef HAVE_MEMMOVE
+#undef HAVE_MEMSET
+#undef HAVE_MEMCMP
 #undef HAVE_LOGB
 #undef HAVE_FREXP
 #undef HAVE_FMOD
@@ -306,12 +307,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef config_machfile
 #include "m/intel386.h"
 
-/* If no remapping takes place, static variables cannot be dumped as
-   pure, so don't worry about the `static' keyword. */
-#ifdef NO_REMAP
-#undef static
-#endif
-
 /* Define `subprocesses' should be defined if you want to
    have code for asynchronous subprocesses
    (as used in M-x compile and M-x shell).
@@ -346,13 +341,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #define my_strftime nstrftime   /* for strftime.c */
-
-/* Non-ANSI C compilers usually don't have volatile.  */
-#ifndef HAVE_VOLATILE
-#ifndef __STDC__
-#define volatile
-#endif
-#endif
 
 #ifndef WINDOWSNT
 /* Some of the files of Emacs which are intended for use with other
@@ -391,14 +379,6 @@ extern char *getenv ();
 
 #ifndef PROTOTYPES
 #define PROTOTYPES 1
-#endif
-
-#ifndef __P
-#if defined PROTOTYPES
-#define __P(args) args
-#else
-#define __P(args) ()
-#endif
 #endif
 
 #ifdef HAVE_STRING_H

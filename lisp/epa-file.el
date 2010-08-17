@@ -101,6 +101,14 @@ way."
     (insert (epa-file--decode-coding-string string (or coding-system-for-read
 						       'undecided)))))
 
+(defvar epa-file-error nil)
+(defun epa-file--find-file-not-found-function ()
+  (let ((error epa-file-error))
+    (save-window-excursion
+      (kill-buffer))
+    (signal 'file-error
+	    (cons "Opening input file" (cdr error)))))
+
 (defvar last-coding-system-used)
 (defun epa-file-insert-file-contents (file &optional visit beg end replace)
   (barf-if-buffer-read-only)
@@ -131,6 +139,16 @@ way."
 	    (error
 	     (if (setq entry (assoc file epa-file-passphrase-alist))
 		 (setcdr entry nil))
+	     ;; Hack to prevent find-file from opening empty buffer
+	     ;; when decryption failed (bug#6568).  See the place
+	     ;; where `find-file-not-found-functions' are called in
+	     ;; `find-file-noselect-1'.
+	     (when (file-exists-p local-file)
+	       (make-local-variable 'epa-file-error)
+	       (setq epa-file-error error)
+	       (add-hook 'find-file-not-found-functions
+			 'epa-file--find-file-not-found-function
+			 nil t))
 	     (signal 'file-error
 		     (cons "Opening input file" (cdr error)))))
 	  (make-local-variable 'epa-file-encrypt-to)

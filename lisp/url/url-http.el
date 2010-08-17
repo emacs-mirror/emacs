@@ -339,7 +339,7 @@ request.")
              ;; End request
              "\r\n"
              ;; Any data
-             url-http-data))
+             url-http-data "\r\n"))
            ""))
     (url-http-debug "Request is: \n%s" request)
     request))
@@ -486,7 +486,11 @@ should be shown to the user."
 	(class nil)
 	(success nil)
 	;; other status symbols: jewelry and luxury cars
-	(status-symbol (cadr (assq url-http-response-status url-http-codes))))
+	(status-symbol (cadr (assq url-http-response-status url-http-codes)))
+	;; The filename part of a URL could be in remote file syntax,
+	;; see Bug#6717 for an example.  We disable file name
+	;; handlers, therefore.
+	(file-name-handler-alist nil))
     (setq class (/ url-http-response-status 100))
     (url-http-debug "Parsed HTTP headers: class=%d status=%d" class url-http-response-status)
     (url-http-handle-cookies)

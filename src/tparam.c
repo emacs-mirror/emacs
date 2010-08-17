@@ -18,65 +18,13 @@ the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 Boston, MA 02110-1301, USA.  */
 
 /* Emacs config.h may rename various library functions such as malloc.  */
-#ifdef HAVE_CONFIG_H
 #include <config.h>
-#endif
-
-#ifdef emacs
 #include <setjmp.h>
 #include "lisp.h"		/* for xmalloc */
-#else
-
-#ifdef STDC_HEADERS
-#include <stdlib.h>
-#include <string.h>
-#else
-char *malloc ();
-char *realloc ();
-#endif
-
-/* Do this after the include, in case string.h prototypes bcopy.  */
-#if (defined(HAVE_STRING_H) || defined(STDC_HEADERS)) && !defined(bcopy)
-#define bcopy(s, d, n) memcpy ((d), (s), (n))
-#endif
-
-#endif /* not emacs */
 
 #ifndef NULL
 #define NULL (char *) 0
 #endif
-
-#ifndef emacs
-static void
-memory_out ()
-{
-  write (2, "virtual memory exhausted\n", 25);
-  exit (1);
-}
-
-static char *
-xmalloc (size)
-     unsigned size;
-{
-  register char *tem = malloc (size);
-
-  if (!tem)
-    memory_out ();
-  return tem;
-}
-
-static char *
-xrealloc (ptr, size)
-     char *ptr;
-     unsigned size;
-{
-  register char *tem = realloc (ptr, size);
-
-  if (!tem)
-    memory_out ();
-  return tem;
-}
-#endif /* not emacs */
 
 /* Assuming STRING is the value of a termcap string entry
    containing `%' constructs to expand parameters,
@@ -90,15 +38,11 @@ xrealloc (ptr, size)
 
    The fourth and following args to tparam serve as the parameter values.  */
 
-static char *tparam1 ();
+static char *tparam1 (char *string, char *outstring, int len, char *up, char *left, register int *argp);
 
 /* VARARGS 2 */
 char *
-tparam (string, outstring, len, arg0, arg1, arg2, arg3)
-     char *string;
-     char *outstring;
-     int len;
-     int arg0, arg1, arg2, arg3;
+tparam (char *string, char *outstring, int len, int arg0, int arg1, int arg2, int arg3)
 {
   int arg[4];
 
@@ -115,9 +59,7 @@ char *UP;
 static char tgoto_buf[50];
 
 char *
-tgoto (cm, hpos, vpos)
-     char *cm;
-     int hpos, vpos;
+tgoto (char *cm, int hpos, int vpos)
 {
   int args[2];
   if (!cm)
@@ -128,12 +70,7 @@ tgoto (cm, hpos, vpos)
 }
 
 static char *
-tparam1 (string, outstring, len, up, left, argp)
-     char *string;
-     char *outstring;
-     int len;
-     char *up, *left;
-     register int *argp;
+tparam1 (char *string, char *outstring, int len, char *up, char *left, register int *argp)
 {
   register int c;
   register char *p = string;
@@ -162,7 +99,7 @@ tparam1 (string, outstring, len, up, left, argp)
 	    {
 	      outlen = len + 40;
 	      new = (char *) xmalloc (outlen);
-	      bcopy (outstring, new, offset);
+	      memcpy (new, outstring, offset);
 	    }
 	  else
 	    {

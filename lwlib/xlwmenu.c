@@ -185,25 +185,26 @@ xlwMenuResources[] =
 };
 #undef offset
 
-static Boolean XlwMenuSetValues();
-static void XlwMenuRealize();
-static void XlwMenuResize();
-static void XlwMenuInitialize();
-static void XlwMenuRedisplay();
-static void XlwMenuDestroy();
-static void XlwMenuClassInitialize();
-static void Start();
-static void Drag();
-static void Down();
-static void Up();
-static void Left();
-static void Right();
-static void Select();
-static void Key();
-static void Nothing();
-static int separator_height __P ((enum menu_separator));
-static void pop_up_menu __P ((XlwMenuWidget, XButtonPressedEvent *));
-
+static Boolean XlwMenuSetValues(Widget current, Widget request, Widget new,
+                                ArgList args, Cardinal *num_args);
+static void XlwMenuRealize(Widget, Mask *, XSetWindowAttributes *);
+static void XlwMenuResize(Widget w);
+static void XlwMenuInitialize(Widget, Widget, ArgList, Cardinal *);
+static void XlwMenuRedisplay(Widget w, XEvent *ev, Region region);
+static void XlwMenuDestroy(Widget w);
+static void XlwMenuClassInitialize(void);
+static void Start(Widget w, XEvent *ev, String *params, Cardinal *num_params);
+static void Drag(Widget w, XEvent *ev, String *params, Cardinal *num_params);
+static void Down(Widget w, XEvent *ev, String *params, Cardinal *num_params);
+static void Up(Widget w, XEvent *ev, String *params, Cardinal *num_params);
+static void Left(Widget w, XEvent *ev, String *params, Cardinal *num_params);
+static void Right(Widget w, XEvent *ev, String *params, Cardinal *num_params);
+static void Select(Widget w, XEvent *ev, String *params, Cardinal *num_params);
+static void Key(Widget w, XEvent *ev, String *params, Cardinal *num_params);
+static void Nothing(Widget w, XEvent *ev, String *params, Cardinal *num_params);
+static int separator_height (enum menu_separator);
+static void pop_up_menu (XlwMenuWidget, XButtonPressedEvent *);
+static void abort_gracefully (Widget w) NO_RETURN;
 
 static XtActionsRec
 xlwMenuActionsList [] =
@@ -278,9 +279,7 @@ static int next_release_must_exit;
 
 /* Ungrab pointer and keyboard */
 static void
-ungrab_all (w, ungrabtime)
-     Widget w;
-     Time ungrabtime;
+ungrab_all (Widget w, Time ungrabtime)
 {
   XtUngrabPointer (w, ungrabtime);
   if (GRAB_KEYBOARD) XtUngrabKeyboard (w, ungrabtime);
@@ -289,8 +288,7 @@ ungrab_all (w, ungrabtime)
 /* Like abort, but remove grabs from widget W before.  */
 
 static void
-abort_gracefully (w)
-     Widget w;
+abort_gracefully (Widget w)
 {
   if (XtIsShell (XtParent (w)))
     XtRemoveGrab (w);
@@ -299,9 +297,7 @@ abort_gracefully (w)
 }
 
 static void
-push_new_stack (mw, val)
-     XlwMenuWidget mw;
-     widget_value* val;
+push_new_stack (XlwMenuWidget mw, widget_value *val)
 {
   if (!mw->menu.new_stack)
     {
@@ -321,8 +317,7 @@ push_new_stack (mw, val)
 }
 
 static void
-pop_new_stack_if_no_contents (mw)
-     XlwMenuWidget mw;
+pop_new_stack_if_no_contents (XlwMenuWidget mw)
 {
   if (mw->menu.new_depth > 1)
     {
@@ -332,9 +327,7 @@ pop_new_stack_if_no_contents (mw)
 }
 
 static void
-make_old_stack_space (mw, n)
-     XlwMenuWidget mw;
-     int n;
+make_old_stack_space (XlwMenuWidget mw, int n)
 {
   if (!mw->menu.old_stack)
     {
@@ -354,9 +347,7 @@ make_old_stack_space (mw, n)
 
 /* Size code */
 static int
-string_width (mw, s)
-     XlwMenuWidget mw;
-     char *s;
+string_width (XlwMenuWidget mw, char *s)
 {
   XCharStruct xcs;
   int drop;
@@ -415,8 +406,7 @@ string_width (mw, s)
 #endif
 
 static int
-arrow_width (mw)
-     XlwMenuWidget mw;
+arrow_width (XlwMenuWidget mw)
 {
   return (MENU_FONT_ASCENT (mw) * 3/4) | 1;
 }
@@ -424,8 +414,7 @@ arrow_width (mw)
 /* Return the width of toggle buttons of widget MW.  */
 
 static int
-toggle_button_width (mw)
-     XlwMenuWidget mw;
+toggle_button_width (XlwMenuWidget mw)
 {
   return (MENU_FONT_HEIGHT (mw) * 2 / 3) | 1;
 }
@@ -434,8 +423,7 @@ toggle_button_width (mw)
 /* Return the width of radio buttons of widget MW.  */
 
 static int
-radio_button_width (mw)
-     XlwMenuWidget mw;
+radio_button_width (XlwMenuWidget mw)
 {
   return toggle_button_width (mw) * 1.41;
 }
@@ -449,9 +437,7 @@ nameResource[] =
 };
 
 static char*
-resource_widget_value (mw, val)
-     XlwMenuWidget mw;
-     widget_value *val;
+resource_widget_value (XlwMenuWidget mw, widget_value *val)
 {
   if (!val->toolkit_data)
     {
@@ -487,15 +473,13 @@ resource_widget_value (mw, val)
 
 /* Returns the sizes of an item */
 static void
-size_menu_item (mw, val, horizontal_p, label_width, rest_width, button_width,
-		height)
-     XlwMenuWidget mw;
-     widget_value* val;
-     int horizontal_p;
-     int* label_width;
-     int* rest_width;
-     int* button_width;
-     int* height;
+size_menu_item (XlwMenuWidget mw,
+                widget_value* val,
+                int horizontal_p,
+                int* label_width,
+                int* rest_width,
+                int* button_width,
+                int* height)
 {
   enum menu_separator separator;
 
@@ -537,16 +521,14 @@ size_menu_item (mw, val, horizontal_p, label_width, rest_width, button_width,
 }
 
 static void
-size_menu (mw, level)
-     XlwMenuWidget mw;
-     int level;
+size_menu (XlwMenuWidget mw, int level)
 {
-  unsigned int  label_width = 0;
+  int           label_width = 0;
   int		rest_width = 0;
   int		button_width = 0;
   int		max_rest_width = 0;
   int		max_button_width = 0;
-  unsigned int  height = 0;
+  int           height = 0;
   int		horizontal_p = mw->menu.horizontal && (level == 0);
   widget_value*	val;
   window_state*	ws;
@@ -605,14 +587,13 @@ size_menu (mw, level)
 /* Display code */
 
 static void
-draw_arrow (mw, window, gc, x, y, width, down_p)
-     XlwMenuWidget mw;
-     Window window;
-     GC gc;
-     int x;
-     int y;
-     int width;
-     int down_p;
+draw_arrow (XlwMenuWidget mw,
+            Window window,
+            GC gc,
+            int x,
+            int y,
+            int width,
+            int down_p)
 {
   Display *dpy = XtDisplay (mw);
   GC top_gc = mw->menu.shadow_top_gc;
@@ -669,15 +650,14 @@ draw_arrow (mw, window, gc, x, y, width, down_p)
 
 
 static void
-draw_shadow_rectangle (mw, window, x, y, width, height, erase_p, down_p)
-     XlwMenuWidget mw;
-     Window window;
-     int x;
-     int y;
-     int width;
-     int height;
-     int erase_p;
-     int down_p;
+draw_shadow_rectangle (XlwMenuWidget mw,
+                       Window window,
+                       int x,
+                       int y,
+                       int width,
+                       int height,
+                       int erase_p,
+                       int down_p)
 {
   Display *dpy = XtDisplay (mw);
   GC top_gc = !erase_p ? mw->menu.shadow_top_gc : mw->menu.background_gc;
@@ -733,15 +713,14 @@ draw_shadow_rectangle (mw, window, x, y, width, height, erase_p, down_p)
 
 
 static void
-draw_shadow_rhombus (mw, window, x, y, width, height, erase_p, down_p)
-     XlwMenuWidget mw;
-     Window window;
-     int x;
-     int y;
-     int width;
-     int height;
-     int erase_p;
-     int down_p;
+draw_shadow_rhombus (XlwMenuWidget mw,
+                     Window window,
+                     int x,
+                     int y,
+                     int width,
+                     int height,
+                     int erase_p,
+                     int down_p)
 {
   Display *dpy = XtDisplay (mw);
   GC top_gc = !erase_p ? mw->menu.shadow_top_gc : mw->menu.background_gc;
@@ -801,10 +780,7 @@ draw_shadow_rhombus (mw, window, x, y, width, height, erase_p, down_p)
    toggle button is selected.  */
 
 static void
-draw_toggle (mw, window, x, y, selected_p)
-     XlwMenuWidget mw;
-     Window window;
-     int x, y, selected_p;
+draw_toggle (XlwMenuWidget mw, Window window, int x, int y, int selected_p)
 {
   int width, height;
 
@@ -821,10 +797,7 @@ draw_toggle (mw, window, x, y, selected_p)
    toggle button is selected.  */
 
 static void
-draw_radio (mw, window, x, y, selected_p)
-     XlwMenuWidget mw;
-     Window window;
-     int x, y, selected_p;
+draw_radio (XlwMenuWidget mw, Window window, int x, int y, int selected_p)
 {
   int width, height;
 
@@ -841,11 +814,12 @@ draw_radio (mw, window, x, y, selected_p)
    separator to draw.  TYPE is the separator type.  */
 
 static void
-draw_separator (mw, window, x, y, width, type)
-     XlwMenuWidget mw;
-     Window window;
-     int x, y, width;
-     enum menu_separator type;
+draw_separator (XlwMenuWidget mw,
+                Window window,
+                int x,
+                int y,
+                int width,
+                enum menu_separator type)
 {
   Display *dpy = XtDisplay (mw);
   XGCValues xgcv;
@@ -958,8 +932,7 @@ draw_separator (mw, window, x, y, width, type)
 /* Return the pixel height of menu separator SEPARATOR.  */
 
 static int
-separator_height (separator)
-     enum menu_separator separator;
+separator_height (enum menu_separator separator)
 {
   switch (separator)
     {
@@ -996,15 +969,13 @@ separator_height (separator)
    the menu item was.  */
 
 static void
-display_menu_item (mw, val, ws, where, highlighted_p, horizontal_p,
-		   just_compute_p)
-     XlwMenuWidget mw;
-     widget_value* val;
-     window_state* ws;
-     XPoint* where;
-     Boolean highlighted_p;
-     Boolean horizontal_p;
-     Boolean just_compute_p;
+display_menu_item (XlwMenuWidget mw,
+                   widget_value* val,
+                   window_state* ws,
+                   XPoint* where,
+                   Boolean highlighted_p,
+                   Boolean horizontal_p,
+                   Boolean just_compute_p)
 {
   GC deco_gc;
   GC text_gc;
@@ -1137,7 +1108,6 @@ display_menu_item (mw, val, ws, where, highlighted_p, horizontal_p,
 #ifdef HAVE_XFT
                   if (ws->xft_draw)
                     {
-                      XGlyphInfo gi;
                       int draw_x = ws->width - ws->max_rest_width
                         + mw->menu.arrow_spacing;
                       int draw_y = y + v_spacing + shadow + font_ascent;
@@ -1188,13 +1158,12 @@ display_menu_item (mw, val, ws, where, highlighted_p, horizontal_p,
 }
 
 static void
-display_menu (mw, level, just_compute_p, highlighted_pos, hit, hit_return)
-     XlwMenuWidget mw;
-     int level;
-     Boolean just_compute_p;
-     XPoint* highlighted_pos;
-     XPoint* hit;
-     widget_value** hit_return;
+display_menu (XlwMenuWidget mw,
+              int level,
+              Boolean just_compute_p,
+              XPoint *highlighted_pos,
+              XPoint *hit,
+              widget_value **hit_return)
 {
   widget_value*	val;
   widget_value* following_item;
@@ -1285,10 +1254,7 @@ display_menu (mw, level, just_compute_p, highlighted_pos, hit, hit_return)
 
 /* Motion code */
 static void
-set_new_state (mw, val, level)
-     XlwMenuWidget mw;
-     widget_value* val;
-     int level;
+set_new_state (XlwMenuWidget mw, widget_value *val, int level)
 {
   int i;
 
@@ -1311,7 +1277,7 @@ expose_cb (Widget widget,
   for (i = 0; i < mw->menu.windows_length; ++i)
     if (mw->menu.windows [i].w == widget) break;
   if (i < mw->menu.windows_length && i < mw->menu.old_depth)
-    display_menu (mw, i, False, NULL, NULL, NULL, NULL, NULL);
+    display_menu (mw, i, False, NULL, NULL, NULL);
 }
 
 static void
@@ -1332,16 +1298,11 @@ set_window_type (Widget w, XlwMenuWidget mw)
 
 
 static void
-make_windows_if_needed (mw, n)
-     XlwMenuWidget mw;
-     int n;
+make_windows_if_needed (XlwMenuWidget mw, int n)
 {
   int i;
   int start_at;
   window_state* windows;
-#ifdef HAVE_XFT
-  int screen = XScreenNumberOfScreen (mw->core.screen);
-#endif
 
   if (mw->menu.windows_length >= n)
     return;
@@ -1396,9 +1357,7 @@ make_windows_if_needed (mw, n)
 /* Value is non-zero if WINDOW is part of menu bar widget W.  */
 
 int
-xlwmenu_window_p (w, window)
-     Widget w;
-     Window window;
+xlwmenu_window_p (Widget w, Window window)
 {
   XlwMenuWidget mw = (XlwMenuWidget) w;
   int i;
@@ -1412,11 +1371,10 @@ xlwmenu_window_p (w, window)
 
 /* Make the window fit in the screen */
 static void
-fit_to_screen (mw, ws, previous_ws, horizontal_p)
-     XlwMenuWidget mw;
-     window_state* ws;
-     window_state* previous_ws;
-     Boolean horizontal_p;
+fit_to_screen (XlwMenuWidget mw,
+               window_state *ws,
+               window_state *previous_ws,
+               Boolean horizontal_p)
 {
   unsigned int screen_width = WidthOfScreen (XtScreen (mw));
   unsigned int screen_height = HeightOfScreen (XtScreen (mw));
@@ -1497,8 +1455,7 @@ create_pixmap_for_menu (window_state* ws, XlwMenuWidget mw)
 
 /* Updates old_stack from new_stack and redisplays. */
 static void
-remap_menubar (mw)
-     XlwMenuWidget mw;
+remap_menubar (XlwMenuWidget mw)
 {
   int i;
   int last_same;
@@ -1591,11 +1548,10 @@ remap_menubar (mw)
 }
 
 static Boolean
-motion_event_is_in_menu (mw, ev, level, relative_pos)
-     XlwMenuWidget mw;
-     XMotionEvent* ev;
-     int level;
-     XPoint* relative_pos;
+motion_event_is_in_menu (XlwMenuWidget mw,
+                         XMotionEvent *ev,
+                         int level,
+                         XPoint *relative_pos)
 {
   window_state* ws = &mw->menu.windows [level];
   int shadow = level == 0 ? 0 : mw->menu.shadow_thickness;
@@ -1608,11 +1564,10 @@ motion_event_is_in_menu (mw, ev, level, relative_pos)
 }
 
 static Boolean
-map_event_to_widget_value (mw, ev, val, level)
-     XlwMenuWidget mw;
-     XMotionEvent* ev;
-     widget_value** val;
-     int* level;
+map_event_to_widget_value (XlwMenuWidget mw,
+                           XMotionEvent *ev,
+                           widget_value **val,
+                           int *level)
 {
   int 		i;
   XPoint	relative_pos;
@@ -1651,8 +1606,7 @@ map_event_to_widget_value (mw, ev, val, level)
 
 /* Procedures */
 static void
-make_drawing_gcs (mw)
-     XlwMenuWidget mw;
+make_drawing_gcs (XlwMenuWidget mw)
 {
   XGCValues xgcv;
   float scale;
@@ -1722,8 +1676,7 @@ make_drawing_gcs (mw)
 }
 
 static void
-release_drawing_gcs (mw)
-     XlwMenuWidget mw;
+release_drawing_gcs (XlwMenuWidget mw)
 {
   XtReleaseGC ((Widget) mw, mw->menu.foreground_gc);
   XtReleaseGC ((Widget) mw, mw->menu.button_gc);
@@ -1742,8 +1695,7 @@ release_drawing_gcs (mw)
 		   ? ((unsigned long) (x)) : ((unsigned long) (y)))
 
 static void
-make_shadow_gcs (mw)
-     XlwMenuWidget mw;
+make_shadow_gcs (XlwMenuWidget mw)
 {
   XGCValues xgcv;
   unsigned long pm = 0;
@@ -1875,8 +1827,7 @@ make_shadow_gcs (mw)
 
 
 static void
-release_shadow_gcs (mw)
-     XlwMenuWidget mw;
+release_shadow_gcs (XlwMenuWidget mw)
 {
   Display *dpy = XtDisplay ((Widget) mw);
   Screen *screen = XtScreen ((Widget) mw);
@@ -1897,8 +1848,7 @@ release_shadow_gcs (mw)
 
 #ifdef HAVE_XFT
 static int
-openXftFont (mw)
-     XlwMenuWidget mw;
+openXftFont (XlwMenuWidget mw)
 {
   char *fname = mw->menu.faceName;
 
@@ -1934,14 +1884,10 @@ openXftFont (mw)
 #endif
 
 static void
-XlwMenuInitialize (request, mw, args, num_args)
-     Widget request;
-     XlwMenuWidget mw;
-     ArgList args;
-     Cardinal *num_args;
+XlwMenuInitialize (Widget request, Widget w, ArgList args, Cardinal *num_args)
 {
   /* Get the GCs and the widget size */
-
+  XlwMenuWidget mw = (XlwMenuWidget) w;
   Window window = RootWindowOfScreen (DefaultScreenOfDisplay (XtDisplay (mw)));
   Display* display = XtDisplay (mw);
 
@@ -1950,7 +1896,7 @@ XlwMenuInitialize (request, mw, args, num_args)
 
   /* _XtCreate is freeing the object that was passed to us,
      so make a copy that we will actually keep.  */
-  lwlib_bcopy (mw->menu.contents, tem, sizeof (widget_value));
+  memcpy (tem, mw->menu.contents, sizeof (widget_value));
   mw->menu.contents = tem;
 #endif
 
@@ -2018,16 +1964,13 @@ XlwMenuInitialize (request, mw, args, num_args)
 }
 
 static void
-XlwMenuClassInitialize ()
+XlwMenuClassInitialize (void)
 {
   xlwmenu_default_font = 0;
 }
 
 static void
-XlwMenuRealize (w, valueMask, attributes)
-     Widget w;
-     Mask *valueMask;
-     XSetWindowAttributes *attributes;
+XlwMenuRealize (Widget w, Mask *valueMask, XSetWindowAttributes *attributes)
 {
   XlwMenuWidget mw = (XlwMenuWidget)w;
   XSetWindowAttributes xswa;
@@ -2089,13 +2032,9 @@ XlwMenuRealize (w, valueMask, attributes)
    receives expose events through Xt.  So we repaint all the other panes
    when receiving an Expose event. */
 static void
-XlwMenuRedisplay (w, ev, region)
-     Widget w;
-     XEvent* ev;
-     Region region;
+XlwMenuRedisplay (Widget w, XEvent *ev, Region region)
 {
   XlwMenuWidget mw = (XlwMenuWidget)w;
-  int i;
 
   /* If we have a depth beyond 1, it's because a submenu was displayed.
      If the submenu has been destroyed, set the depth back to 1.  */
@@ -2113,15 +2052,13 @@ XlwMenuRedisplay (w, ev, region)
    over a menu item is unmapped.  */
 
 void
-xlwmenu_redisplay (w)
-     Widget w;
+xlwmenu_redisplay (Widget w)
 {
   XlwMenuRedisplay (w, NULL, None);
 }
 
 static void
-XlwMenuDestroy (w)
-     Widget w;
+XlwMenuDestroy (Widget w)
 {
   int i;
   XlwMenuWidget mw = (XlwMenuWidget) w;
@@ -2200,10 +2137,8 @@ facename_changed (XlwMenuWidget newmw,
 #endif
 
 static Boolean
-XlwMenuSetValues (current, request, new)
-     Widget current;
-     Widget request;
-     Widget new;
+XlwMenuSetValues (Widget current, Widget request, Widget new,
+                  ArgList args, Cardinal *num_args)
 {
   XlwMenuWidget oldmw = (XlwMenuWidget)current;
   XlwMenuWidget newmw = (XlwMenuWidget)new;
@@ -2292,8 +2227,7 @@ XlwMenuSetValues (current, request, new)
 }
 
 static void
-XlwMenuResize (w)
-     Widget w;
+XlwMenuResize (Widget w)
 {
   XlwMenuWidget mw = (XlwMenuWidget)w;
 
@@ -2315,9 +2249,7 @@ XlwMenuResize (w)
 
 /* Action procedures */
 static void
-handle_single_motion_event (mw, ev)
-     XlwMenuWidget mw;
-     XMotionEvent* ev;
+handle_single_motion_event (XlwMenuWidget mw, XMotionEvent *ev)
 {
   widget_value*	val;
   int 		level;
@@ -2333,9 +2265,7 @@ handle_single_motion_event (mw, ev)
 }
 
 static void
-handle_motion_event (mw, ev)
-     XlwMenuWidget mw;
-     XMotionEvent* ev;
+handle_motion_event (XlwMenuWidget mw, XMotionEvent *ev)
 {
   int x = ev->x_root;
   int y = ev->y_root;
@@ -2357,11 +2287,7 @@ handle_motion_event (mw, ev)
 }
 
 static void
-Start (w, ev, params, num_params)
-     Widget w;
-     XEvent *ev;
-     String *params;
-     Cardinal *num_params;
+Start (Widget w, XEvent *ev, String *params, Cardinal *num_params)
 {
   XlwMenuWidget mw = (XlwMenuWidget)w;
 
@@ -2394,11 +2320,7 @@ Start (w, ev, params, num_params)
 }
 
 static void
-Drag (w, ev, params, num_params)
-     Widget w;
-     XEvent *ev;
-     String *params;
-     Cardinal *num_params;
+Drag (Widget w, XEvent *ev, String *params, Cardinal *num_params)
 {
   XlwMenuWidget mw = (XlwMenuWidget)w;
   if (mw->menu.popped_up)
@@ -2408,19 +2330,12 @@ Drag (w, ev, params, num_params)
 /* Do nothing.
    This is how we handle presses and releases of modifier keys.  */
 static void
-Nothing (w, ev, params, num_params)
-     Widget w;
-     XEvent *ev;
-     String *params;
-     Cardinal *num_params;
+Nothing (Widget w, XEvent *ev, String *params, Cardinal *num_params)
 {
 }
 
 static widget_value *
-find_first_selectable (mw, item, skip_titles)
-     XlwMenuWidget mw;
-     widget_value *item;
-     int skip_titles;
+find_first_selectable (XlwMenuWidget mw, widget_value *item, int skip_titles)
 {
   widget_value *current = item;
   enum menu_separator separator;
@@ -2436,10 +2351,7 @@ find_first_selectable (mw, item, skip_titles)
 }
 
 static widget_value *
-find_next_selectable (mw, item, skip_titles)
-     XlwMenuWidget mw;
-     widget_value *item;
-     int skip_titles;
+find_next_selectable (XlwMenuWidget mw, widget_value *item, int skip_titles)
 {
   widget_value *current = item;
   enum menu_separator separator;
@@ -2473,10 +2385,7 @@ find_next_selectable (mw, item, skip_titles)
 }
 
 static widget_value *
-find_prev_selectable (mw, item, skip_titles)
-     XlwMenuWidget mw;
-     widget_value *item;
-     int skip_titles;
+find_prev_selectable (XlwMenuWidget mw, widget_value *item, int skip_titles)
 {
   widget_value *current = item;
   widget_value *prev = item;
@@ -2493,11 +2402,7 @@ find_prev_selectable (mw, item, skip_titles)
 }
 
 static void
-Down (w, ev, params, num_params)
-     Widget w;
-     XEvent *ev;
-     String *params;
-     Cardinal *num_params;
+Down (Widget w, XEvent *ev, String *params, Cardinal *num_params)
 {
   XlwMenuWidget mw = (XlwMenuWidget) w;
   widget_value* selected_item = mw->menu.old_stack [mw->menu.old_depth - 1];
@@ -2522,11 +2427,7 @@ Down (w, ev, params, num_params)
 }
 
 static void
-Up (w, ev, params, num_params)
-     Widget w;
-     XEvent *ev;
-     String *params;
-     Cardinal *num_params;
+Up (Widget w, XEvent *ev, String *params, Cardinal *num_params)
 {
   XlwMenuWidget mw = (XlwMenuWidget) w;
   widget_value* selected_item = mw->menu.old_stack [mw->menu.old_depth - 1];
@@ -2562,11 +2463,7 @@ Up (w, ev, params, num_params)
 }
 
 void
-Left (w, ev, params, num_params)
-     Widget w;
-     XEvent *ev;
-     String *params;
-     Cardinal *num_params;
+Left (Widget w, XEvent *ev, String *params, Cardinal *num_params)
 {
   XlwMenuWidget mw = (XlwMenuWidget) w;
   widget_value* selected_item = mw->menu.old_stack [mw->menu.old_depth - 1];
@@ -2602,11 +2499,7 @@ Left (w, ev, params, num_params)
 }
 
 void
-Right (w, ev, params, num_params)
-     Widget w;
-     XEvent *ev;
-     String *params;
-     Cardinal *num_params;
+Right (Widget w, XEvent *ev, String *params, Cardinal *num_params)
 {
   XlwMenuWidget mw = (XlwMenuWidget) w;
   widget_value* selected_item = mw->menu.old_stack [mw->menu.old_depth - 1];
@@ -2642,11 +2535,7 @@ Right (w, ev, params, num_params)
 /* Handle key press and release events while menu is popped up.
    Our action is to get rid of the menu.  */
 static void
-Key (w, ev, params, num_params)
-     Widget w;
-     XEvent *ev;
-     String *params;
-     Cardinal *num_params;
+Key (Widget w, XEvent *ev, String *params, Cardinal *num_params)
 {
   XlwMenuWidget mw = (XlwMenuWidget)w;
 
@@ -2672,11 +2561,7 @@ Key (w, ev, params, num_params)
 }
 
 static void
-Select (w, ev, params, num_params)
-     Widget w;
-     XEvent *ev;
-     String *params;
-     Cardinal *num_params;
+Select (Widget w, XEvent *ev, String *params, Cardinal *num_params)
 {
   XlwMenuWidget mw = (XlwMenuWidget)w;
   widget_value* selected_item = mw->menu.old_stack [mw->menu.old_depth - 1];
@@ -2715,9 +2600,7 @@ Select (w, ev, params, num_params)
 
 /* Special code to pop-up a menu */
 static void
-pop_up_menu (mw, event)
-     XlwMenuWidget mw;
-     XButtonPressedEvent* event;
+pop_up_menu (XlwMenuWidget mw, XButtonPressedEvent *event)
 {
   int		x = event->x_root;
   int		y = event->y_root;

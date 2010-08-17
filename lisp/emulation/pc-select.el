@@ -6,7 +6,7 @@
 ;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: Michael Staats <michael@thp.Uni-Duisburg.DE>
-;; Keywords: convenience emulation
+;; Keywords: convenience emulations
 ;; Created: 26 Sep 1995
 
 ;; This file is part of GNU Emacs.
@@ -110,7 +110,7 @@ This gives mostly Emacs-like behavior with only the selection keys enabled."
   :group 'pc-select)
 
 (defcustom pc-selection-mode-hook nil
-  "The hook to run when pc-selection-mode is toggled."
+  "The hook to run when PC Selection mode is toggled."
   :type 'hook
   :group 'pc-select)
 
@@ -261,7 +261,7 @@ association.")
 (provide 'pc-select)
 
 (defun copy-region-as-kill-nomark (beg end)
-  "Save the region as if killed; but don't kill it; deactivate mark.
+  "Save the region as if killed, but don't kill it; deactivate mark.
 If `interprogram-cut-function' is non-nil, also save the text for a window
 system cut and paste.
 
@@ -569,7 +569,7 @@ Don't use this command in Lisp programs!
 ;;;;;;;;;;;;;;;;;;;;
 
 (defun backward-char-mark (&optional arg)
-"Ensure mark is active; move point left ARG characters (right if ARG negative).
+  "Ensure mark is active; move point left ARG characters (right if ARG negative).
 On attempt to pass beginning or end of buffer, stop and signal error."
   (interactive "p")
   (pc-select-ensure-mark)
@@ -633,7 +633,7 @@ If scan reaches end of buffer, stop there without error."
 
 
 (defun scroll-up-mark (&optional arg)
-"Ensure mark is active; scroll upward ARG lines; or near full screen if no ARG.
+  "Ensure mark is active; scroll upward ARG lines; or near full screen if no ARG.
 A near full screen is `next-screen-context-lines' less than a full screen.
 Negative ARG means scroll downward.
 When calling from a program, supply a number as argument or nil.
@@ -654,7 +654,7 @@ If the buffer is narrowed, this command uses the beginning and size
 of the accessible part of the buffer.
 
 Don't use this command in Lisp programs!
-\(goto-char (p\oint-min)) is faster and avoids clobbering the mark."
+\(goto-char (point-min)) is faster and avoids clobbering the mark."
   (interactive "P")
   (pc-select-ensure-mark)
   (let ((size (- (point-max) (point-min))))
@@ -841,7 +841,7 @@ If the value is non-nil, call the function MODE with an argument of
 
 ;;;###autoload
 (define-minor-mode pc-selection-mode
-  "Change mark behavior to emulate Motif, MAC or MS-Windows cut and paste style.
+  "Change mark behavior to emulate Motif, Mac or MS-Windows cut and paste style.
 
 This mode enables Delete Selection mode and Transient Mark mode.
 

@@ -20,7 +20,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 
 #define IRIX6_5			/* used in m/iris4d */
-#include "usg5-4.h"
+#include "usg5-4-common.h"
 
 #undef _longjmp /* use system versions, not conservative aliases */
 #undef _setjmp
@@ -85,15 +85,13 @@ char *_getpty();
 
 #define NARROWPROTO 1
 
-#define USE_MMAP_FOR_BUFFERS 1
-
 #if _MIPS_SZLONG == 64		/* -mabi=64 (gcc) or -64 (MIPSpro) */
 #define _LP64			/* lisp.h takes care of the rest */
 #endif /* _MIPS_SZLONG */
 
 #undef SA_RESTART
 
-#undef TIOCSIGSEND		/* defined in usg5-4.h */
+#undef TIOCSIGSEND		/* defined in usg5-4-common.h */
 
 /* Tested on Irix 6.5.  SCM worked on earlier versions.  */
 #define GC_SETJMP_WORKS 1

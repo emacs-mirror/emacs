@@ -39,14 +39,14 @@
 #include "XMenuInt.h"
 
 char *
-XMenuPost(display, menu, p_num, s_num, x_pos, y_pos, event_mask)
-    register Display *display;	/* Previously opened display. */
-    register XMenu *menu;	/* Menu to post. */
-    register int *p_num;	/* Pane number selected. */
-    register int *s_num;	/* Selection number selected. */
-    register int x_pos;		/* X coordinate of menu position. */
-    register int y_pos;		/* Y coordinate of menu position. */
-    int event_mask;		/* Mouse button event mask. */
+XMenuPost(register Display *display, register XMenu *menu, register int *p_num, register int *s_num, register int x_pos, register int y_pos, int event_mask)
+                              	/* Previously opened display. */
+                         	/* Menu to post. */
+                        	/* Pane number selected. */
+                        	/* Selection number selected. */
+                       		/* X coordinate of menu position. */
+                       		/* Y coordinate of menu position. */
+                   		/* Mouse button event mask. */
 {
     register int stat;		/* Routine call return status. */
     char *data;			/* Return data. */

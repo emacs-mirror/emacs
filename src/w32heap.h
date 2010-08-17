@@ -41,8 +41,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 #define get_w32_major_version()  	w32_major_version
 #define get_w32_minor_version()  	w32_minor_version
 
-extern unsigned char *get_data_start();
-extern unsigned char *get_data_end();
+extern unsigned char *get_data_start (void);
+extern unsigned char *get_data_end (void);
 extern unsigned long  reserved_heap_size;
 extern SYSTEM_INFO    sysinfo_cache;
 extern OSVERSIONINFO  osinfo_cache;
@@ -62,7 +62,7 @@ extern int os_subtype;
 extern void *sbrk (unsigned long size);
 
 /* Initialize heap structures for sbrk on startup.  */
-extern void init_heap ();
+extern void init_heap (void);
 
 /* Round the heap to this size.  */
 extern void round_heap (unsigned long size);

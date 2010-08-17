@@ -528,26 +528,36 @@ old one."
     (setq bookmark-current-bookmark stripped-name)
     (bookmark-bmenu-surreptitiously-rebuild-list)))
 
-(defun bookmark-make-record-default (&optional point-only)
+(defun bookmark-make-record-default (&optional no-file no-context posn)
   "Return the record describing the location of a new bookmark.
-Must be at the correct position in the buffer in which the bookmark is
-being set.
-If POINT-ONLY is non-nil, then only return the subset of the
-record that pertains to the location within the buffer."
-  `(,@(unless point-only `((filename . ,(bookmark-buffer-file-name))))
-    (front-context-string
-     . ,(if (>= (- (point-max) (point)) bookmark-search-size)
-            (buffer-substring-no-properties
-             (point)
-             (+ (point) bookmark-search-size))
-          nil))
-    (rear-context-string
-     . ,(if (>= (- (point) (point-min)) bookmark-search-size)
-            (buffer-substring-no-properties
-             (point)
-             (- (point) bookmark-search-size))
-          nil))
-    (position . ,(point))))
+Point should be at the buffer in which the bookmark is being set,
+and normally should be at the position where the bookmark is desired,
+but see the optional arguments for other possibilities.
+
+If NO-FILE is non-nil, then only return the subset of the
+record that pertains to the location within the buffer, leaving off
+the part that records the filename.
+
+If NO-CONTEXT is non-nil, do not include the front- and rear-context
+strings in the record -- the position is enough.
+
+If POSN is non-nil, record POSN as the point instead of `(point)'."
+  `(,@(unless no-file `((filename . ,(bookmark-buffer-file-name))))
+    ,@(unless no-context `((front-context-string
+                           . ,(if (>= (- (point-max) (point))
+                                      bookmark-search-size)
+                                  (buffer-substring-no-properties
+                                   (point)
+                                   (+ (point) bookmark-search-size))
+                                  nil))))
+    ,@(unless no-context `((rear-context-string
+                           . ,(if (>= (- (point) (point-min))
+                                      bookmark-search-size)
+                                  (buffer-substring-no-properties
+                                   (point)
+                                   (- (point) bookmark-search-size))
+                                  nil))))
+    (position . ,(or posn (point)))))
 
 
 ;;; File format stuff
@@ -773,27 +783,34 @@ Use \\[bookmark-delete] to remove bookmarks (you give it a name and
 it removes only the first instance of a bookmark with that name from
 the list of bookmarks.)"
   (interactive (list nil current-prefix-arg))
-  (let* ((record (bookmark-make-record))
-         (default (car record)))
+  (unwind-protect
+       (let* ((record (bookmark-make-record))
+              (default (car record)))
 
-    (bookmark-maybe-load-default-file)
+         (bookmark-maybe-load-default-file)
+         ;; Don't set `bookmark-yank-point' and `bookmark-current-buffer'
+         ;; if they have been already set in another buffer. (e.g gnus-art).
+         (unless (and bookmark-yank-point
+                      bookmark-current-buffer)
+           (setq bookmark-yank-point (point))
+           (setq bookmark-current-buffer (current-buffer)))
 
-    (setq bookmark-yank-point (point))
-    (setq bookmark-current-buffer (current-buffer))
+         (let ((str
+                (or name
+                    (read-from-minibuffer
+                     (format "Set bookmark (%s): " default)
+                     nil
+                     bookmark-minibuffer-read-name-map
+                     nil nil default))))
+           (and (string-equal str "") (setq str default))
+           (bookmark-store str (cdr record) no-overwrite)
 
-    (let ((str
-           (or name
-               (read-from-minibuffer
-                (format "Set bookmark (%s): " default)
-                nil
-                bookmark-minibuffer-read-name-map
-                nil nil default))))
-      (and (string-equal str "") (setq str default))
-      (bookmark-store str (cdr record) no-overwrite)
+           ;; Ask for an annotation buffer for this bookmark
+           (when bookmark-use-annotations
+             (bookmark-edit-annotation str))))
+    (setq bookmark-yank-point nil)
+    (setq bookmark-current-buffer nil)))
 
-      ;; Ask for an annotation buffer for this bookmark
-      (when bookmark-use-annotations
-        (bookmark-edit-annotation str)))))
 
 (defun bookmark-kill-line (&optional newline-too)
   "Kill from point to end of line.
@@ -1733,15 +1750,15 @@ last full line, move to the last full line.  The return value is undefined."
   "Display the annotation for bookmark named BOOKMARK in a buffer,
 if an annotation exists."
   (let ((annotation (bookmark-get-annotation bookmark)))
-    (if (and annotation (not (string-equal annotation "")))
-        (save-excursion
-          (let ((old-buf (current-buffer)))
-            (pop-to-buffer (get-buffer-create "*Bookmark Annotation*") t)
-            (delete-region (point-min) (point-max))
-            ;; (insert (concat "Annotation for bookmark '" bookmark "':\n\n"))
-            (insert annotation)
-            (goto-char (point-min))
-            (pop-to-buffer old-buf))))))
+    (when (and annotation (not (string-equal annotation "")))
+      (save-excursion
+        (let ((old-buf (current-buffer)))
+          (pop-to-buffer (get-buffer-create "*Bookmark Annotation*") t)
+          (delete-region (point-min) (point-max))
+          ;; (insert (concat "Annotation for bookmark '" bookmark "':\n\n"))
+          (insert annotation)
+          (goto-char (point-min))
+          (switch-to-buffer-other-window old-buf))))))
 
 
 (defun bookmark-show-all-annotations ()
@@ -1860,8 +1877,7 @@ With a prefix arg, prompts for a file to save them in."
         (pop-up-windows t))
     (delete-other-windows)
     (switch-to-buffer (other-buffer))
-    (let ((bookmark-automatically-show-annotations nil)) ;FIXME: needed?
-      (bookmark--jump-via bmrk 'pop-to-buffer))
+    (bookmark--jump-via bmrk 'pop-to-buffer)
     (bury-buffer menu)))
 
 
@@ -1875,8 +1891,7 @@ With a prefix arg, prompts for a file to save them in."
   "Select this line's bookmark in other window, leaving bookmark menu visible."
   (interactive)
   (let ((bookmark (bookmark-bmenu-bookmark)))
-    (let ((bookmark-automatically-show-annotations t)) ;FIXME: needed?
-      (bookmark--jump-via bookmark 'switch-to-buffer-other-window))))
+    (bookmark--jump-via bookmark 'switch-to-buffer-other-window)))
 
 
 (defun bookmark-bmenu-switch-other-window ()
@@ -1887,8 +1902,7 @@ The current window remains selected."
         (pop-up-windows t)
         same-window-buffer-names
         same-window-regexps)
-    (let ((bookmark-automatically-show-annotations t)) ;FIXME: needed?
-      (bookmark--jump-via bookmark 'display-buffer))))
+    (bookmark--jump-via bookmark 'display-buffer)))
 
 (defun bookmark-bmenu-other-window-with-mouse (event)
   "Select bookmark at the mouse pointer in other window, leaving bookmark menu visible."
@@ -2182,7 +2196,7 @@ strings returned are not."
 
 ;; Load Hook
 (defvar bookmark-load-hook nil
-  "Hook run at the end of loading bookmark.")
+  "Hook run at the end of loading library `bookmark.el'.")
 
 ;; Exit Hook, called from kill-emacs-hook
 (defvar bookmark-exit-hook nil

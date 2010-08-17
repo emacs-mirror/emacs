@@ -596,24 +596,24 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    : 0)
 
 
-extern int char_resolve_modifier_mask P_ ((int));
-extern int char_string P_ ((unsigned, unsigned char *));
-extern int string_char P_ ((const unsigned char *,
-			    const unsigned char **, int *));
+extern int char_resolve_modifier_mask (int);
+extern int char_string (unsigned, unsigned char *);
+extern int string_char (const unsigned char *,
+                        const unsigned char **, int *);
 
-extern int translate_char P_ ((Lisp_Object, int c));
-extern int char_printable_p P_ ((int c));
-extern void parse_str_as_multibyte P_ ((const unsigned char *, int, int *,
-					int *));
-extern int parse_str_to_multibyte P_ ((unsigned char *, int));
-extern int str_as_multibyte P_ ((unsigned char *, int, int, int *));
-extern int str_to_multibyte P_ ((unsigned char *, int, int));
-extern int str_as_unibyte P_ ((unsigned char *, int));
-extern EMACS_INT str_to_unibyte P_ ((const unsigned char *, unsigned char *,
-				     EMACS_INT, int));
-extern int strwidth P_ ((unsigned char *, int));
-extern int c_string_width P_ ((const unsigned char *, int, int, int *, int *));
-extern int lisp_string_width P_ ((Lisp_Object, int, int *, int *));
+extern int translate_char (Lisp_Object, int c);
+extern int char_printable_p (int c);
+extern void parse_str_as_multibyte (const unsigned char *, int, int *,
+                                    int *);
+extern int parse_str_to_multibyte (const unsigned char *, int);
+extern int str_as_multibyte (unsigned char *, int, int, int *);
+extern int str_to_multibyte (unsigned char *, int, int);
+extern int str_as_unibyte (unsigned char *, int);
+extern EMACS_INT str_to_unibyte (const unsigned char *, unsigned char *,
+                                 EMACS_INT, int);
+extern int strwidth (const unsigned char *, int);
+extern int c_string_width (const unsigned char *, int, int, int *, int *);
+extern int lisp_string_width (Lisp_Object, int, int *, int *);
 
 extern Lisp_Object Vprintable_chars;
 
@@ -624,7 +624,7 @@ extern Lisp_Object Vchar_direction_table;
 extern Lisp_Object Vchar_unify_table;
 extern Lisp_Object Vunicode_category_table;
 
-extern Lisp_Object string_escape_byte8 P_ ((Lisp_Object));
+extern Lisp_Object string_escape_byte8 (Lisp_Object);
 
 /* Return a translation table of id number ID.  */
 #define GET_TRANSLATION_TABLE(id) \
@@ -635,18 +635,6 @@ extern Lisp_Object Vauto_fill_chars;
 
 extern Lisp_Object Vchar_script_table;
 extern Lisp_Object Vscript_representative_chars;
-
-/* Copy LEN bytes from FROM to TO.  This macro should be used only
-   when a caller knows that LEN is short and the obvious copy loop is
-   faster than calling bcopy which has some overhead.  Copying a
-   multibyte sequence of a character is the typical case.  */
-
-#define BCOPY_SHORT(from, to, len)		\
-  do {						\
-    int i = len;				\
-    unsigned char *from_p = from, *to_p = to;	\
-    while (i--) *to_p++ = *from_p++;		\
-  } while (0)
 
 #define DEFSYM(sym, name)	\
   do { (sym) = intern_c_string ((name)); staticpro (&(sym)); } while (0)

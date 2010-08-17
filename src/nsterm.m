@@ -296,7 +296,7 @@ append2 (Lisp_Object list, Lisp_Object item)
 
 
 void
-ns_init_paths ()
+ns_init_paths (void)
 /* --------------------------------------------------------------------------
    Used to allow emacs to find its resources under Emacs.app
    Called from emacs.c at startup.
@@ -479,7 +479,7 @@ ns_retain_object (void *obj)
 
 
 void *
-ns_alloc_autorelease_pool ()
+ns_alloc_autorelease_pool (void)
 /* --------------------------------------------------------------------------
      Allocate a pool for temporary objects (callable from C)
    -------------------------------------------------------------------------- */
@@ -790,7 +790,7 @@ ns_clip_to_row (struct window *w, struct glyph_row *row, int area, BOOL gc)
 
 
 static void
-ns_ring_bell ()
+ns_ring_bell (struct frame *f)
 /* --------------------------------------------------------------------------
      "Beep" routine
    -------------------------------------------------------------------------- */
@@ -1138,15 +1138,15 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
     /* NOTE: previously this would generate wrong result if toolbar not
              yet displayed and fixing toolbar_height=32 helped, but
              now (200903) seems no longer needed */
-    FRAME_NS_TOOLBAR_HEIGHT (f) =
+    FRAME_TOOLBAR_HEIGHT (f) =
       NSHeight ([window frameRectForContentRect: NSMakeRect (0, 0, 0, 0)])
         - FRAME_NS_TITLEBAR_HEIGHT (f);
   else
-    FRAME_NS_TOOLBAR_HEIGHT (f) = 0;
+    FRAME_TOOLBAR_HEIGHT (f) = 0;
 
   wr.size.width = pixelwidth + f->border_width;
   wr.size.height = pixelheight + FRAME_NS_TITLEBAR_HEIGHT (f) 
-                  + FRAME_NS_TOOLBAR_HEIGHT (f);
+                  + FRAME_TOOLBAR_HEIGHT (f);
 
   /* constrain to screen if we can */
   if (screen)
@@ -1186,12 +1186,14 @@ x_set_window_size (struct frame *f, int change_grav, int cols, int rows)
      difference between the real width and Emacs' imagined one.  For
      right-hand bars, don't worry about it since the extra is never used.
      (Obviously doesn't work for vertically split windows tho..) */
-  NSPoint origin = FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT (f)
-    ? NSMakePoint (FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f)
-                  - NS_SCROLL_BAR_WIDTH (f), 0)
-    : NSMakePoint (0, 0);
-  [view setFrame: NSMakeRect (0, 0, pixelwidth, pixelheight)];
-  [view setBoundsOrigin: origin];
+  {
+    NSPoint origin = FRAME_HAS_VERTICAL_SCROLL_BARS_ON_LEFT (f)
+      ? NSMakePoint (FRAME_SCROLL_BAR_COLS (f) * FRAME_COLUMN_WIDTH (f)
+                     - NS_SCROLL_BAR_WIDTH (f), 0)
+      : NSMakePoint (0, 0);
+    [view setFrame: NSMakeRect (0, 0, pixelwidth, pixelheight)];
+    [view setBoundsOrigin: origin];
+  }
 
   change_frame_size (f, rows, cols, 0, 1, 0); /* pretend, delay, safe */
   FRAME_PIXEL_WIDTH (f) = pixelwidth;
@@ -1507,7 +1509,10 @@ ns_query_color(void *col, XColor *color_def, int setPixel)
 
 
 int
-ns_defined_color (struct frame *f, char *name, XColor *color_def, int alloc,
+ns_defined_color (struct frame *f,
+                  const char *name,
+                  XColor *color_def,
+                  int alloc,
                   char makeIndex)
 /* --------------------------------------------------------------------------
          Return 1 if named color found, and set color_def rgb accordingly.
@@ -2163,11 +2168,11 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
     {
       EmacsImage **newBimgs
 	= xmalloc (max_used_fringe_bitmap * sizeof (EmacsImage *));
-      bzero (newBimgs, max_used_fringe_bitmap * sizeof (EmacsImage *));
+      memset (newBimgs, 0, max_used_fringe_bitmap * sizeof (EmacsImage *));
 
       if (nBimgs)
         {
-          bcopy (bimgs, newBimgs, nBimgs * sizeof (EmacsImage *));
+          memcpy (newBimgs, bimgs, nBimgs * sizeof (EmacsImage *));
           xfree (bimgs);
         }
 
@@ -2177,29 +2182,15 @@ ns_draw_fringe_bitmap (struct window *w, struct glyph_row *row,
 
   /* Must clip because of partially visible lines.  */
   rowY = WINDOW_TO_FRAME_PIXEL_Y (w, row->y);
-  if (p->y < rowY)
-    {
-      /* Adjust position of "bottom aligned" bitmap on partially
-	 visible last row.  */
-      int oldY = row->y;
-      int oldVH = row->visible_height;
-      row->visible_height = p->h;
-      row->y -= rowY - p->y;
-      ns_clip_to_row (w, row, -1, NO);
-      row->y = oldY;
-      row->visible_height = oldVH;
-    }
-  else
-    ns_clip_to_row (w, row, -1, YES);
+  ns_clip_to_row (w, row, -1, YES);
 
   if (p->bx >= 0 && !p->overlay_p)
     {
       int yAdjust = rowY - FRAME_INTERNAL_BORDER_WIDTH (f) < 5 ?
         -FRAME_INTERNAL_BORDER_WIDTH (f) : 0;
       int yIncr = FRAME_PIXEL_HEIGHT (f) - (p->by+yAdjust + p->ny) < 5 ?
-        FRAME_INTERNAL_BORDER_WIDTH (f) : 0;
-      if (yAdjust)
-        yIncr += FRAME_INTERNAL_BORDER_WIDTH (f);
+        FRAME_INTERNAL_BORDER_WIDTH (f) : 0
+        + (yAdjust ? FRAME_INTERNAL_BORDER_WIDTH (f) : 0);
       NSRect r = NSMakeRect (p->bx+xAdjust, p->by+yAdjust, p->nx, p->ny+yIncr);
       NSRectClip (r);
       [ns_lookup_indexed_color(face->background, f) set];
@@ -2388,7 +2379,7 @@ show_hourglass (struct atimer *timer)
 
 
 void
-hide_hourglass ()
+hide_hourglass (void)
 {
   if (!hourglass_shown_p)
     return;
@@ -3419,16 +3410,14 @@ x_wm_set_icon_position (struct frame *f, int icon_x, int icon_y)
    ========================================================================== */
 
 int
-x_display_pixel_height (dpyinfo)
-     struct ns_display_info *dpyinfo;
+x_display_pixel_height (struct ns_display_info *dpyinfo)
 {
   NSScreen *screen = [NSScreen mainScreen];
   return [screen frame].size.height;
 }
 
 int
-x_display_pixel_width (dpyinfo)
-     struct ns_display_info *dpyinfo;
+x_display_pixel_width (struct ns_display_info *dpyinfo)
 {
   NSScreen *screen = [NSScreen mainScreen];
   return [screen frame].size.width;
@@ -3707,7 +3696,7 @@ ns_term_init (Lisp_Object display_name)
                                              name: nil object: nil]; */
 
   dpyinfo = (struct ns_display_info *)xmalloc (sizeof (struct ns_display_info));
-  bzero (dpyinfo, sizeof (struct ns_display_info));
+  memset (dpyinfo, 0, sizeof (struct ns_display_info));
 
   ns_initialize_display_info (dpyinfo);
   terminal = ns_create_terminal (dpyinfo);
@@ -4894,16 +4883,16 @@ ns_term_shutdown (int sig)
   rows = FRAME_PIXEL_HEIGHT_TO_TEXT_LINES (emacsframe, frameSize.height
 #ifdef NS_IMPL_GNUSTEP
       - FRAME_NS_TITLEBAR_HEIGHT (emacsframe) + 3
-        - FRAME_NS_TOOLBAR_HEIGHT (emacsframe));
+        - FRAME_TOOLBAR_HEIGHT (emacsframe));
 #else
       - FRAME_NS_TITLEBAR_HEIGHT (emacsframe)
-        - FRAME_NS_TOOLBAR_HEIGHT (emacsframe));
+        - FRAME_TOOLBAR_HEIGHT (emacsframe));
 #endif
   if (rows < MINHEIGHT)
     rows = MINHEIGHT;
   frameSize.height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (emacsframe, rows)
                        + FRAME_NS_TITLEBAR_HEIGHT (emacsframe)
-                       + FRAME_NS_TOOLBAR_HEIGHT (emacsframe);
+                       + FRAME_TOOLBAR_HEIGHT (emacsframe);
 #ifdef NS_IMPL_COCOA
   {
     /* this sets window title to have size in it; the wm does this under GS */
@@ -5114,7 +5103,7 @@ ns_term_shutdown (int sig)
   [toggleButton setTarget: self];
   [toggleButton setAction: @selector (toggleToolbar: )];
 #endif
-  FRAME_NS_TOOLBAR_HEIGHT (f) = 0;
+  FRAME_TOOLBAR_HEIGHT (f) = 0;
 
   tem = f->icon_name;
   if (!NILP (tem))
@@ -5756,9 +5745,10 @@ ns_term_shutdown (int sig)
   NSTRACE (judge);
   if (condemned)
     {
+      EmacsView *view;
       BLOCK_INPUT;
       /* ensure other scrollbar updates after deletion */
-      EmacsView *view = (EmacsView *)FRAME_NS_VIEW (frame);
+      view = (EmacsView *)FRAME_NS_VIEW (frame);
       if (view != nil)
         view->scrollbarsNeedingUpdate++;
       [self removeFromSuperview];
@@ -6135,7 +6125,7 @@ ns_xlfd_to_fontname (const char *xlfd)
 
 
 void
-syms_of_nsterm ()
+syms_of_nsterm (void)
 {
   NSTRACE (syms_of_nsterm);
 

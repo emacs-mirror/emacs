@@ -1,3 +1,236 @@
+2010-08-11  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* fakemail.c: Include stdlib.h for getenv. Remove declaration of
+	popen, fclose and pclose.
+	(my_name, fatal, error, put_line): Use const char*
+	(main): Remove extern getenv, mail_program_name is const char*.
+
+	* update-game-score.c (get_prefix, write_scores, main): Use const char*.
+
+	* sorted-doc.c (error, fatal, states): Use const char *.
+
+	* pop.h (pop_multi_first): Use const char *.
+	(_ARGS): Remove.
+
+	* pop.c (pop_multi_first, socket_connection, sendline): Use conat char*.
+
+	* movemail.c (fatal, error, concat): Use const char *.
+
+	* make-docfile.c (error, fatal, scan_c_file, scan_lisp_file): Use
+	const char *.
+
+	* etags.c (compressor, language, Ada_suffix, Ada_help, Asm_suffixes)
+	(Asm_help, default_C_suffixes, default_C_help, Cplusplus_suffixes)
+	(Cplusplus_help, Cjava_suffixes, Cobol_suffixes, Cstar_suffixes)
+	(Erlang_suffixes, Erlang_help, Forth_suffixes, Forth_help)
+	(Fortran_suffixes, Fortran_help, HTML_suffixes,  HTML_help)
+	(Lisp_suffixes, Lisp_help, Lua_suffixes, Lua_help)
+	(Makefile_filenames, Makefile_help, Objc_suffixes, Objc_help)
+	(Pascal_suffixes, Pascal_help, Perl_suffixes, Perl_interpreters)
+	(Perl_help, PHP_suffixes, PHP_help, plain_C_suffixses, PS_suffixes)
+	(PS_help, Prolog_suffixes, Prolog_help, Python_suffixes, Python_help)
+	(Scheme_suffixes, Scheme_help, TeX_suffixes, TeX_help, Texinfo_suffixes)
+	(Texinfo_help, Yacc_suffixes, Yacc_help, auto_help, none_help)
+	(no_lang_help, print_language_names)
+	(get_language_from_interpreter, get_language_from_filename)
+	(init, make_tag, struct C_stab_entry, write_classname, TEX_defenv)
+	(TEX_decode_env, nocase_tail, savestr, savenstr, fatal, pfatal)
+	(concat): Use const char*.
+
+	* emacsclient.c (message, sock_err_message, send_to_emacs)
+	(quote_argument, set_local_socket)
+	(start_daemon_and_retry_set_socket): Use const char*.
+
+	* ebrowse.c (struct member): filename, def_filename is const.
+	(struct sym): filename, sfilename is const.
+	(struct kw): name is const.
+	(add_sym, yyerror, token_string, insert_keyword, main): Use const char*.
+
+	* b2m.c (concat, fatal): Use const char*.
+	(main): Don't assign labels a string literal.
+
+2010-08-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ebrowse.c (usage, version, mark_virtual):
+	Remove duplicate declarations.
+
+2010-08-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacsclient.c: Move socket related #includes together with the
+	rest of the #includes.  Move a WINDOWSNT includes closer together.
+	(HAVE_CONFIG_H): Remove.
+	(NO_RETURN): Remove, defined in config.h.
+	(main): Convert definition to standard C.
+
+2010-07-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* make-docfile.c (write_c_args): Warn for old-style empty arglist ().
+
+2010-07-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (getcwd): Fix previous change: make getcwd
+	conditional on HAVE_GETCWD and declare with the correct POSIX
+	profile (for some reason MinGW headers define its 2nd arg as int,
+	not size_t; but getcwd is not used on Windows nonetheless).
+
+2010-07-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (getcwd, w32_getenv):
+	* ntlib.h (getlogin, getuid, getegid, getgid): Fix prototypes.
+
+2010-07-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* update-game-score.c (usage): Add NO_RETURN specifier.
+	* movemail.c (fatal, pfatal_with_name, pfatal_and_delete):
+	* make-docfile.c (fatal):
+	* hexl.c (usage):
+	* fakemail.c (fatal):
+	* etags.c (fatal, suggest_asking_for_help, pfatal):
+	* emacsclient.c (fatal):
+	* b2m.c (fatal): Likewise.
+
+2010-07-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* make-docfile.c (write_c_args): Correctly handle prefixes of "defalt".
+
+2010-07-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (get_current_dir_name, w32_get_resource)
+	(w32_getenv, w32_set_user_model_id, w32_window_app, w32_execvp)
+	(close_winsock, initialize_sockets, w32_find_emacs_process)
+	(w32_give_focus):
+	* ntlib.c (getlogin, getuid, getgid, getegid):
+	Convert definitions to standard C.
+
+2010-07-12  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.in (C_WARNINGS_SWITCH, PROFILING_CFLAGS)
+	(PROFILING_LDFLAGS): Set from substitution.
+	(BASE_CFLAGS): Add  ${C_WARNINGS_SWITCH}.
+	(ALL_CFLAGS, CPP_CFLAGS): Add ${PROFILING_CFLAGS}.
+	(LINK_CFLAGS): Add ${PROFILING_LDFLAGS}.
+
+2010-07-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (lisp2): Change hebrew.el to hebrew.elc (see
+	revno 100789).
+
+2010-07-11  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* emacsclient.c (set_local_socket): Use strchr, strrchr instead of
+	index, rindex.
+	* movemail.c (mail_spool_name, popmail): Likewise.
+	* pop.c (pop_list): Likewise.
+
+2010-07-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (obj): Add menu.o, bidi.o, w32uniscribe.o,
+	and unexw32.o.  (Bug#6603)
+
+2010-07-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in ($(DESTDIR)${archlibdir}): Convert spaces to TABs.
+
+2010-07-09  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* make-docfile.c (write_c_args): Restructure scanning loop.
+
+2010-07-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* make-docfile.c (write_c_args): Deal with type names in DEFUN
+	arguments.
+
+2010-07-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* update-game-score.c (P_): Remove macro.
+	* ebrowse.c: Remove include guards.
+	(P_): Remove macro.
+
+2010-07-07  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* ebrowse.c (add_sym, make_namespace): Replace bcopy, bzero by
+	memcpy, memmove, memset.
+	* pop.c (pop_retrieve, socket_connection, pop_getline): Likewise.
+
+2010-07-06  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* movemail.c: Add MAIL_USE_POP around prototypes.
+	Include <string.h> if HAVE_STRING_H.
+	(strerror): Only declare if !HAVE_STRERROR.
+	(fatal): Make static.
+	(error): Likewise.
+	(pfatal_with_name): Likewise.
+	(pfatal_and_delete). Likewise.
+	(concat): Likewise.
+	(xmalloc): Likewise.
+	(popmail): Likewise.
+	(pop_retr): Likewise.
+	(mbx_write): Likewise.
+	(mbx_delimit_begin): Likewise.
+	(mbx_delimit_end): Likewise.
+
+2010-07-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* fakemail.c (action): Convert function definitions to standard C.
+	(add_a_stream):
+	* test-distrib.c (cool_read):
+	(main): Likewise.
+
+2010-07-03  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* sorted-doc.c (cmpdoc): Fix signature.
+	(qsort_compare): Delete.
+	(main): Remove cast.
+
+2010-07-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ebrowse.c (match_qualified_namespace_alias): Check for null pointer.
+
+2010-07-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	Fix prototype warnings.
+
+	* ebrowse.c (match_qualified_namespace_alias):
+	Pass sym* to find_namespace, not link*.
+
+	* emacsclient.c (send_to_emacs, quote_argument): Arg s is HSOCKET.
+
+	* sorted-doc.c (qsort_compare): New typedef.
+	(main): Use it to cast cmpdoc.
+
+2010-07-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* update-game-score.c: Convert function definitions to standard C.
+	* sorted-doc.c:
+	* profile.c:
+	* pop.c:
+	* movemail.c:
+	* make-docfile.c:
+	* hexl.c:
+	* fakemail.c:
+	* etags.c:
+	* ebrowse.c:
+	* digest-doc.c:
+	* b2m.c: Likewise.
+
+2010-07-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* make-docfile.c (xmalloc, xrealloc, concat, readline, fatal):
+	* b2m.c (scan_file, scan_lisp_file, scan_c_file): Convert to
+	standard C prototypes.
+
+2010-07-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* ebrowse.c: Remove P_ and __P.
+	* etags.c:
+	* movemail.c:
+	* pop.c:
+	* update-game-score.c: Likewise.
+
+2010-06-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* movemail.c (error): Avoid warning when there are no args.
+
 2010-06-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (lisp2): Fix references to vc/vc-hooks.elc
@@ -143,8 +376,7 @@
 
 2010-01-29  Kester Habermann  <kester@linuxtag.org>  (tiny change)
 
-	* etags.c (Fortran_functions): Handle recursive keyword
-	(Bug#5484).
+	* etags.c (Fortran_functions): Handle recursive keyword (Bug#5484).
 
 2010-01-11  Glenn Morris  <rgm@gnu.org>
 
@@ -638,7 +870,7 @@
 
 2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
-	* makefile.w32-in (obj): Sync with src/Makefile.in
+	* makefile.w32-in (obj): Sync with src/Makefile.in.
 	(TOOLTIP_SUPPORT, WINDOW_SUPPORT): New definitions.
 	(WINNT_SUPPORT): Add term/w32-win.elc.
 	(lisp1, lisp2): Sync with lisp in src/Makefile.in.
@@ -2334,7 +2566,7 @@
 
 	* makefile.w32-in (WINNT_SUPPORT, MOUSE_SUPPORT, lisp): Revert to
 	using .elc files.
-	(lisp): Sync with list in src/Makefile.in
+	(lisp): Sync with list in src/Makefile.in.
 	(VMS_SUPPORT, MSDOS_SUPPORT): Define, so DOC files can be shared.
 
 2002-02-10  Paul Eggert  <eggert@twinsun.com>
@@ -6176,7 +6408,7 @@
 	(TOKEN): Member linestart removed.
 	(linepos, prev_linepos, lb1): Deleted.
 	(main): Call initbuffer on lbs array instead of lb1.
-	(init): Removed the initialisation of the logical _gd array;
+	(init): Removed the initialisation of the logical _gd array.
 	(find_entries): A .sa suffix means assembler file.
 	(C_create_stab): "auto", "void", "extern", "static" are st_C_typespec.
 	All C state machines rewritten.
@@ -7040,7 +7272,7 @@
 	* etags.c: Changes for VMS.
 	Always define ETAGS on VMS.
 	Define macros GOOD and BAD for success and failure exit codes.
-	(begtk, intk): Allow `$' in identifiers
+	(begtk, intk): Allow `$' in identifiers.
 	(main): Don't support -B, -F or -u on VMS.
 	Alternate loop for scanning filename arguments.
 	(system): Delete definition of this function.

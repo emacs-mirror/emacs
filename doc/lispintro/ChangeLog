@@ -1,3 +1,7 @@
+2010-06-23  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp-intro.texi: Untabify.
+
 2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 23.2 released.
@@ -208,7 +212,7 @@
 	(Simple Extension): Replace longer expression with
 	`emacs-major-version'.  Remove comment about `number-to-string'
 	function.
-	(Miscellaneous): Add filename option, `-H', to `grep' example
+	(Miscellaneous): Add filename option, `-H', to `grep' example.
 	(debug, debug-on-entry): Replace `GNU Emacs 22' with `a recent
 	GNU Emacs'.
 	(edebug): More properly state where to place point for 'M-x
@@ -230,7 +234,7 @@
 	(sentence-end): Specify `in English' for glyphs that end a sentence.
 	Note that in GNU Emacs 22, the name refers to both a variable and a
 	function.
-	(fwd-sentence while loops): Write a function as one, not as a form
+	(fwd-sentence while loops): Write a function as one, not as a form.
 	(fwd-para let): Add `which' to sentence with `parstart' and `parsep'.
 	(etags): Move sentences involving `find-tag' and sources.  State
 	location of Emacs `src' directory.
@@ -352,7 +356,7 @@
 2003-11-16  Kevin Ryde  <user42@zip.com.au>
 
 	* emacs-lisp-intro.texi: [CVS commitment by <bob@rattlesnake.com>]
-	Corrections to cross references,
+	Corrections to cross references.
 	(Interactive Options): elisp "interactive" -> "Using Interactive".
 	(defvar and asterisk): Remove emacs "Edit Options" reference,
 	edit-options is no longer described in the emacs manual.

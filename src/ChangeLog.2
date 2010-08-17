@@ -683,7 +683,7 @@
 	(That `select' saw something on channel 0 doesn't mean it is
 	kbd input; it could be an expose event.)
 
-	* keyboard.c (read_avail_input) [FIONREAD]:  Now static.
+	* keyboard.c (read_avail_input) [FIONREAD]: Now static.
 	New arg specifies value of NREAD;
 	if it is nonzero, don't call get_input_pending to get it.
 	Use kbd_buffer_store_char to put chars into kbd_buffer.
@@ -1210,7 +1210,7 @@
 	Remove #ifndef VMS around the sleep when buffer is full.
 	* s-vms.h: Define nonstandard PENDING_OUTPUT_COUNT for VMS use.
 
-	* fileio.c (file_name_as_directory) [VMS]:  Fix 3rd arg to strncmp.
+	* fileio.c (file_name_as_directory) [VMS]: Fix 3rd arg to strncmp.
 
 1987-07-17  Paul Rubin  (phr@prep)
 
@@ -1323,7 +1323,7 @@
 
 1987-06-09  Richard M. Stallman  (rms@prep)
 
-	* syntax.c: (scan_lists): Clear mathexit on 2nd math-char in a pair.
+	* syntax.c (scan_lists): Clear mathexit on 2nd math-char in a pair.
 
 1987-06-08  Richard M. Stallman  (rms@prep)
 
@@ -1442,7 +1442,7 @@
 	Turn on call to vmserrstr.
 	* sysdep.c (vmserrstr) [VMS]: Define this function.
 
-	* process.c (create_process) [IRIS]:  Don't open the pty's tty
+	* process.c (create_process) [IRIS]: Don't open the pty's tty
 	in the parent process.  Open only once, in the child.
 
 	* xdisp.c (redisplay_window): If window-start points nowhere,
@@ -1544,8 +1544,8 @@
 
 1987-05-05  Richard Mlynarik  (mly@prep)
 
-	* m-irist.h:  New version from raible@orville.arpa
-	* s-iris3-5.h:  New file.  (s-usg5-2 with additions)
+	* m-irist.h: New version from raible@orville.arpa
+	* s-iris3-5.h: New file.  (s-usg5-2 with additions)
 
 	* keyboard.c:
 	IRIS, like HPUX, #defines but does not implement FIONREAD.
@@ -1566,7 +1566,7 @@
 	Fcopy_file, Fset_file_modes: Don't use un*x modes if
 	env var USE_DOMAIN_ACLS is set.
 	Fset_file_modes: utimes fix.
-	Finsert_file_contents:  Must do fstat after open for Apollo.
+	Finsert_file_contents: Must do fstat after open for Apollo.
 
 	* emacs.c (main): (APOLLO from lnz):
 	Don't use un*x modes if env var USE_DOMAIN_ACLS set.
@@ -1675,7 +1675,7 @@
 
 1987-03-20  Richard Mlynarik  (mly@prep)
 
-	* filemode.c:  Hacks for set-uid/gid but not executable.
+	* filemode.c: Hacks for set-uid/gid but not executable.
 
 1987-03-20  Richard M. Stallman  (rms@prep)
 
@@ -1966,7 +1966,7 @@
 
 1987-02-22  Richard M. Stallman  (rms@prep)
 
-	* dispnew.c (Fopen_termscript):  Close existing termscript
+	* dispnew.c (Fopen_termscript): Close existing termscript
 	file before trying to open a new one.  Report open failure
 	with report_file_error.
 
@@ -2071,7 +2071,7 @@
 
 1987-02-10  Richard Mlynarik  (mly@prep)
 
-	* xfns.c (Fx_get_default):  Add (unsigned char *) cast.
+	* xfns.c (Fx_get_default): Add (unsigned char *) cast.
 
 	* window.c: typo.
 
@@ -2853,7 +2853,7 @@
 	local variables for more register decls.  Compute
 	and pass `envlen' arg to child_setup.
 
-	* process.c (create_process):  Compute and pass `envlen' arg
+	* process.c (create_process): Compute and pass `envlen' arg
 	to child_setup.
 
 	* xterm.c (x_term_init): Don't call XPopUpWindow at all.
@@ -3102,9 +3102,9 @@
 	[So (-259 . (259 . x)) means to format x -exactly- 259 chars wide.]
 
 	* dispnew.c (Fding):
-	Do not terminate macro-definition if given an argument
+	Do not terminate macro-definition if given an argument.
 	(This is so things like asynchronous process notifications
-	can beep but not screw)
+	can beep but not screw.)
 
 1986-11-10  Richard M. Stallman  (rms@prep)
 
@@ -3998,7 +3998,7 @@
 	* editfns.c (Fuser_uid, Fuser_real_uid):
 	New functions that return values of geteuid and getuid system calls.
 
-	* dired.c (Ffile_attributes):  Value has additional element
+	* dired.c (Ffile_attributes): Value has additional element
 	t iff file gid would change if Emacs deletes it and recreates it.
 
 	* xdisp.c (display_mode_element):
@@ -4078,7 +4078,7 @@
 	being unbound.  struct catchtag has two new fields,
 	gcpro and pdlcount.
 
-	* eval.c (Fthrow, Fsignal):  Use unbind_catch before longjmp.
+	* eval.c (Fthrow, Fsignal): Use unbind_catch before longjmp.
 
 	* eval.c (internal_catch): No need to restore anything
 	from the catchtag after throw, because unbind_catch does it all.
@@ -4657,14 +4657,14 @@
 
 	* fileio.c (Ffile_newer_than_file_p): New Lisp primitive.
 
-	* fileio.c (Ffile_exists_p):  this is now distinct from
+	* fileio.c (Ffile_exists_p): This is now distinct from
 	Ffile_readable_p; it checks only for existence, not for
 	readability.
 
 	* editfns.c (Fgoto_char): Use new interactive code N.
 
-	* callint.c (Fcall_interactively): New code N
-	means use prefix argif have one, else read number from minibuffer.
+	* callint.c (Fcall_interactively): New code N means use
+	prefix arg if have one, else read number from minibuffer.
 
 	* buffer.c (record_buffer):
 	Don't use Frassq, Fmemq or Fdelq since their loops

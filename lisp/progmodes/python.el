@@ -93,7 +93,7 @@
 
 (defvar python-font-lock-keywords
   `(,(rx symbol-start
-	 ;; From v 2.5 reference, § keywords.
+	 ;; From v 2.7 reference, § keywords.
 	 ;; def and class dealt with separately below
 	 (or "and" "as" "assert" "break" "continue" "del" "elif" "else"
 	     "except" "exec" "finally" "for" "from" "global" "if"
@@ -102,7 +102,7 @@
              ;; Not real keywords, but close enough to be fontified as such
              "self" "True" "False")
 	 symbol-end)
-    (,(rx symbol-start "None" symbol-end)	; see § Keywords in 2.5 manual
+    (,(rx symbol-start "None" symbol-end)	; see § Keywords in 2.7 manual
      . font-lock-constant-face)
     ;; Definitions
     (,(rx symbol-start (group "class") (1+ space) (group (1+ (or word ?_))))
@@ -117,7 +117,7 @@
 					    (0+ "." (1+ (or word ?_)))))
      (1 font-lock-type-face))
     ;; Built-ins.  (The next three blocks are from
-    ;; `__builtin__.__dict__.keys()' in Python 2.5.1.)  These patterns
+    ;; `__builtin__.__dict__.keys()' in Python 2.7)  These patterns
     ;; are debateable, but they at least help to spot possible
     ;; shadowing of builtins.
     (,(rx symbol-start (or
@@ -135,7 +135,9 @@
 	  "SystemExit" "TabError" "TypeError" "UnboundLocalError"
 	  "UnicodeDecodeError" "UnicodeEncodeError" "UnicodeError"
 	  "UnicodeTranslateError" "UnicodeWarning" "UserWarning"
-	  "ValueError" "Warning" "ZeroDivisionError") symbol-end)
+	  "ValueError" "Warning" "ZeroDivisionError"
+	  ;; Python 2.7
+	  "BufferError" "BytesWarning" "WindowsError") symbol-end)
      . font-lock-type-face)
     (,(rx (or line-start (not (any ". \t"))) (* (any " \t")) symbol-start
 	  (group (or
@@ -152,12 +154,16 @@
 	  "range" "raw_input" "reduce" "reload" "repr" "reversed"
 	  "round" "set" "setattr" "slice" "sorted" "staticmethod"
 	  "str" "sum" "super" "tuple" "type" "unichr" "unicode" "vars"
-	  "xrange" "zip")) symbol-end)
+	  "xrange" "zip"
+	  ;; Python 2.7.
+	  "bin" "bytearray" "bytes" "format" "memoryview" "next" "print"
+	  )) symbol-end)
      (1 font-lock-builtin-face))
     (,(rx symbol-start (or
 	  ;; other built-ins
 	  "True" "False" "None" "Ellipsis"
-	  "_" "__debug__" "__doc__" "__import__" "__name__") symbol-end)
+	  "_" "__debug__" "__doc__" "__import__" "__name__" "__package__")
+          symbol-end)
      . font-lock-builtin-face)))
 
 (defconst python-font-lock-syntactic-keywords

@@ -65,7 +65,6 @@ current form for the frame (i.e. hinting or somesuch changed)."
 		      frame-font)))
 	      (if font-to-set
 		  (progn
-		    (message "setting %s" font-to-set)
 		    (set-frame-parameter f 'font-parameter font-to-set)
 		    (set-face-attribute 'default f
 					:width 'normal
@@ -96,6 +95,11 @@ Changes can be
 
 	  ((eq type 'font-render)
 	   (font-setting-change-default-font display-name nil))
+
+	  ;; This is a bit heavy, ideally we would just clear faces
+	  ;; on the affected display, and perhaps only the relevant
+	  ;; faces.  Oh well.
+	  ((eq type 'theme-name) (clear-face-cache))
 
 	  ((eq type 'tool-bar-style) (force-mode-line-update t)))))
 

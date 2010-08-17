@@ -18,10 +18,6 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-/* Define WORDS_BIG_ENDIAN if lowest-numbered byte in a word
-   is the most significant byte.  */
-#define WORDS_BIG_ENDIAN
-
 /* Now define a symbol for the cpu type, if your compiler
    does not define it automatically.  */
 #ifndef m68k
@@ -40,8 +36,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define DATA_SEG_BITS 0x80000000
 #endif
 
-#define NO_REMAP
-#define TEXT_START 0
 #endif
 
 /* arch-tag: 4eadd161-b4e8-4b82-82a1-e4ce7f42969d

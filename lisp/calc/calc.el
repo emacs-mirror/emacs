@@ -419,11 +419,32 @@ in normal mode."
   :group 'calc
   :type 'boolean)
 
-(defcustom calc-undo-length 
+(defcustom calc-undo-length
   100
   "The number of undo steps that will be preserved when Calc is quit."
   :group 'calc
   :type 'integer)
+
+(defcustom calc-highlight-selections-with-faces
+  nil
+  "If non-nil, use a separate face to indicate selected sub-formulas.
+If `calc-show-selections' is non-nil, then selected sub-formulas are shown
+by displaying the rest of the formula in `calc-nonselected-face'.  
+If `calc-show-selections' is nil, then selected sub-formulas are shown
+by displaying the sub-formula in `calc-selected-face'."
+  :group 'calc
+  :type 'boolean)
+
+(defface calc-nonselected-face
+  '((t :inherit shadow       
+       :slant italic))
+  "Face used to show the non-selected portion of a formula."
+  :group 'calc)
+
+(defface calc-selected-face
+  '((t :weight bold))
+  "Face used to show the selected portion of a formula."
+  :group 'calc)
 
 (defvar calc-bug-address "jay.p.belanger@gmail.com"
   "Address of the maintainer of Calc, for use by `report-calc-bug'.")
@@ -1233,7 +1254,7 @@ the trail buffer."
     ;; Eventually, prompt user with a list of buffers using embedded mode.
     (when (and
            info-list
-           (yes-or-no-p 
+           (yes-or-no-p
             (concat "This Calc stack is being used for embedded mode. Kill anyway?")))
       (while info-list
         (with-current-buffer (car (car info-list))
@@ -1385,8 +1406,7 @@ commands given here will actually operate on the *Calculator* stack."
     (set (make-local-variable 'calc-main-buffer) buf))
   (when (= (buffer-size) 0)
     (let ((buffer-read-only nil))
-      (insert (propertize (concat "Emacs Calculator Trail\n")
-			  'font-lock-face 'italic))))
+      (insert (propertize "Emacs Calculator Trail\n" 'face 'italic))))
   (run-mode-hooks 'calc-trail-mode-hook))
 
 (defun calc-create-buffer ()
@@ -1976,7 +1996,7 @@ See calc-keypad for details."
 	 (erase-buffer)
 	 (when calc-show-banner
 	   (insert (propertize "--- Emacs Calculator Mode ---\n"
-			       'font-lock-face 'italic)))
+			       'face 'italic)))
 	 (while thing
 	   (goto-char (point-min))
 	   (when calc-show-banner
@@ -3409,7 +3429,7 @@ largest Emacs integer.")
                   (Math-lessp a math-half-2-word-size))
              (and (Math-integer-negp a)
                   (require 'calc-ext)
-                  (let ((comparison 
+                  (let ((comparison
                          (math-compare (Math-integer-neg a) math-half-2-word-size)))
                     (or (= comparison 0)
                         (= comparison -1))))))
@@ -3553,7 +3573,7 @@ largest Emacs integer.")
   (math-normalize
    (save-match-data
      (cond
-      
+
       ;; Integers (most common case)
       ((string-match "\\` *\\([0-9]+\\) *\\'" s)
        (let ((digs (math-match-substring s 1)))
@@ -3565,22 +3585,22 @@ largest Emacs integer.")
            (if (<= (length digs) (* 2 math-bignum-digit-length))
                (string-to-number digs)
              (cons 'bigpos (math-read-bignum digs))))))
-      
+
       ;; Clean up the string if necessary
       ((string-match "\\`\\(.*\\)[ \t\n]+\\([^\001]*\\)\\'" s)
        (math-read-number (concat (math-match-substring s 1)
                                  (math-match-substring s 2))))
-      
+
       ;; Plus and minus signs
       ((string-match "^[-_+]\\(.*\\)$" s)
        (let ((val (math-read-number (math-match-substring s 1))))
          (and val (if (eq (aref s 0) ?+) val (math-neg val)))))
-      
+
       ;; Forms that require extensions module
       ((string-match "[^-+0-9eE.]" s)
        (require 'calc-ext)
        (math-read-number-fancy s))
-      
+
       ;; Decimal point
       ((string-match "^\\([0-9]*\\)\\.\\([0-9]*\\)$" s)
        (let ((int (math-match-substring s 1))
@@ -3593,7 +3613,7 @@ largest Emacs integer.")
                   (list 'float
                         (math-add (math-scale-int int flen) frac)
                         (- flen)))))))
-      
+
       ;; "e" notation
       ((string-match "^\\(.*\\)[eE]\\([-+]?[0-9]+\\)$" s)
        (let ((mant (math-match-substring s 1))
@@ -3604,7 +3624,7 @@ largest Emacs integer.")
            (and mant exp (Math-realp mant) (> exp -4000000) (< exp 4000000)
                 (let ((mant (math-float mant)))
                   (list 'float (nth 1 mant) (+ (nth 2 mant) exp)))))))
-      
+
       ;; Syntax error!
       (t nil)))))
 
@@ -3797,7 +3817,7 @@ See Info node `(calc)Defining Functions'."
       (setq unread-command-event nil)
     (setq unread-command-events nil)))
 
-(defcalcmodevar math-2-word-size 
+(defcalcmodevar math-2-word-size
   (math-read-number-simple "4294967296")
   "Two to the power of `calc-word-size'.")
 
@@ -3813,6 +3833,10 @@ See Info node `(calc)Defining Functions'."
 (run-hooks 'calc-load-hook)
 
 (provide 'calc)
+
+;; Local variables:
+;; coding: utf-8
+;; End:
 
 ;; arch-tag: 0c3b170c-4ce6-4eaf-8d9b-5834d1fe938f
 ;;; calc.el ends here
