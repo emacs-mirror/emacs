@@ -1,3 +1,9 @@
+2010-08-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c <w32_frame_parm_handlers>: Add a slot for the
+	x_set_tool_bar_position handler, needed to support changes from
+	2010-07-29 (revno 100939) for positioning the tool bar.  (Bug#6796)
+
 2010-08-16  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsselect.m: include keyboard.h for QPRIMARY, remove its

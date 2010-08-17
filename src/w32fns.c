@@ -6812,6 +6812,7 @@ frame_parm_handler w32_frame_parm_handlers[] =
   x_set_font_backend,
   x_set_alpha,
   0, /* x_set_sticky */
+  0, /* x_set_tool_bar_position */
 };
 
 void
