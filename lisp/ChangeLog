@@ -1,5 +1,10 @@
 2010-08-17  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/cc-engine.el (c-new-BEG, c-new-END)
+	(c-fontify-recorded-types-and-refs): Define for compiler.
+	* progmodes/cc-mode.el (c-new-BEG, c-new-END): Move definitions
+	before use.
+
 	* calendar/icalendar.el (icalendar--convert-recurring-to-diary):
 	Fix format call.
 

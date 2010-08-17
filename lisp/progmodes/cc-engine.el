@@ -1,8 +1,8 @@
 ;;; cc-engine.el --- core syntax guessing engine for CC mode
 
 ;; Copyright (C) 1985, 1987, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;;   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+;;   2010  Free Software Foundation, Inc.
 
 ;; Authors:    2001- Alan Mackenzie
 ;;             1998- Martin Stjernholm
@@ -5023,6 +5023,10 @@ comment at the start of cc-engine.el for more info."
 	(c-unmark-<->-as-paren pos))
       t)))
 
+;; Set by c-common-init in cc-mode.el.
+(defvar c-new-BEG)
+(defvar c-new-END)
+
 (defun c-before-change-check-<>-operators (beg end)
   ;; Unmark certain pairs of "< .... >" which are currently marked as
   ;; template/generic delimiters.  (This marking is via syntax-table
@@ -5365,6 +5369,9 @@ comment at the start of cc-engine.el for more info."
 
       (goto-char safe-pos)
       t)))
+
+;; cc-mode requires cc-fonts.
+(declare-function c-fontify-recorded-types-and-refs "cc-fonts" ())
 
 (defun c-forward-<>-arglist (all-types)
   ;; The point is assumed to be at a "<".  Try to treat it as the open
