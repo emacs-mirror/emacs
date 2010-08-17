@@ -1,18 +1,11 @@
 2010-08-17  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* net/browse-url.el (browse-url-default-browser): Add cond
-	for browse-url-xdg-open
-	(browse-url-can-use-xdg-open, browse-url-xdg-open): New functions
-
-2010-08-17  Glenn Morris  <rgm@gnu.org>
-
-	* progmodes/cc-engine.el (c-new-BEG, c-new-END)
-	(c-fontify-recorded-types-and-refs): Define for compiler.
-	* progmodes/cc-mode.el (c-new-BEG, c-new-END): Move definitions
-	before use.
-
-	* calendar/icalendar.el (icalendar--convert-recurring-to-diary):
-	Fix format call.
+	* mail/emacsbug.el (report-emacs-bug-insert-to-mailer)
+	(report-emacs-bug-can-use-xdg-email): New functions.
+	(report-emacs-bug): Set can-xdg-email to result of
+	report-emacs-bug-can-use-xdg-email.  If can-xdg-email bind
+	\C-cm to report-emacs-bug-insert-to-mailer and add help text
+	about it.
 
 2010-08-17  Michael Albinus  <michael.albinus@gmx.de>
 
