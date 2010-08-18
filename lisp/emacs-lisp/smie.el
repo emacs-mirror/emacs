@@ -158,9 +158,9 @@ one of those elements share the same precedence level and associativity."
             (if (not (member (car shr) nts))
                 (pushnew (car shr) last-ops)
               (pushnew (car shr) last-nts)
-            (when (consp (cdr shr))
-              (assert (not (member (cadr shr) nts)))
-              (pushnew (cadr shr) last-ops)))))
+              (when (consp (cdr shr))
+                (assert (not (member (cadr shr) nts)))
+                (pushnew (cadr shr) last-ops)))))
         (push (cons nt first-ops) first-ops-table)
         (push (cons nt last-ops) last-ops-table)
         (push (cons nt first-nts) first-nts-table)
@@ -282,7 +282,7 @@ PREC2 is a table as returned by `smie-precs-precedence-table' or
               ;; distinguish associative operators (which will have
               ;; left = right).
               (unless (caar cst)
-              (setcar (car cst) i)
+                (setcar (car cst) i)
                 (incf i))
               (setq csts (delq cst csts))))
           (unless progress
@@ -386,8 +386,8 @@ Possible return values:
             (cond
              ((null toklevels)
               (when (zerop (length token))
-                  (condition-case err
-                      (progn (goto-char pos) (funcall next-sexp 1) nil)
+                (condition-case err
+                    (progn (goto-char pos) (funcall next-sexp 1) nil)
                   (scan-error (throw 'return
                                      (list t (caddr err)
                                            (buffer-substring-no-properties
@@ -417,10 +417,10 @@ Possible return values:
                 (let ((lastlevels levels))
                   (if (and levels (= (funcall op-back toklevels)
                                      (funcall op-forw (car levels))))
-                    (setq levels (cdr levels)))
+                      (setq levels (cdr levels)))
                   ;; We may have found a match for the previously pending
                   ;; operator.  Is this the end?
-                (cond
+                  (cond
                    ;; Keep looking as long as we haven't matched the
                    ;; topmost operator.
                    (levels
@@ -462,11 +462,11 @@ Possible return values:
   (t POS TOKEN): same thing but for an open-paren or the beginning of buffer.
   (nil POS TOKEN): we skipped over a paren-like pair.
   nil: we skipped over an identifier, matched parentheses, ..."
-    (smie-next-sexp
-     (indirect-function smie-backward-token-function)
-     (indirect-function 'backward-sexp)
-     (indirect-function 'smie-op-left)
-     (indirect-function 'smie-op-right)
+  (smie-next-sexp
+   (indirect-function smie-backward-token-function)
+   (indirect-function 'backward-sexp)
+   (indirect-function 'smie-op-left)
+   (indirect-function 'smie-op-right)
    halfsexp))
 
 (defun smie-forward-sexp (&optional halfsexp)
@@ -480,11 +480,11 @@ Possible return values:
   (t POS TOKEN): same thing but for an open-paren or the beginning of buffer.
   (nil POS TOKEN): we skipped over a paren-like pair.
   nil: we skipped over an identifier, matched parentheses, ..."
-    (smie-next-sexp
-     (indirect-function smie-forward-token-function)
-     (indirect-function 'forward-sexp)
-     (indirect-function 'smie-op-right)
-     (indirect-function 'smie-op-left)
+  (smie-next-sexp
+   (indirect-function smie-forward-token-function)
+   (indirect-function 'forward-sexp)
+   (indirect-function 'smie-op-right)
+   (indirect-function 'smie-op-left)
    halfsexp))
 
 ;;; Miscellanous commands using the precedence parser.
@@ -501,14 +501,14 @@ Possible return values:
         (forward-sexp-function nil))
     (while (/= n 0)
       (setq n (- n (if forw 1 -1)))
-        (let ((pos (point))
+      (let ((pos (point))
             (res (if forw
                      (smie-forward-sexp 'halfsexp)
                    (smie-backward-sexp 'halfsexp))))
         (if (and (car res) (= pos (point)) (not (if forw (eobp) (bobp))))
-              (signal 'scan-error
-                      (list "Containing expression ends prematurely"
-                            (cadr res) (cadr res)))
+            (signal 'scan-error
+                    (list "Containing expression ends prematurely"
+                          (cadr res) (cadr res)))
           nil)))))
 
 (defvar smie-closer-alist nil
@@ -764,13 +764,13 @@ in order to figure out the indentation of some other (further down) point."
   ;; Obey the `fixindent' special comment.
   (and (smie-bolp)
        (save-excursion
-          (comment-normalize-vars)
-          (re-search-forward (concat comment-start-skip
-                                     "fixindent"
-                                     comment-end-skip)
-                             ;; 1+ to account for the \n comment termination.
-                             (1+ (line-end-position)) t))
-    (current-column)))
+         (comment-normalize-vars)
+         (re-search-forward (concat comment-start-skip
+                                    "fixindent"
+                                    comment-end-skip)
+                            ;; 1+ to account for the \n comment termination.
+                            (1+ (line-end-position)) t))
+       (current-column)))
 
 (defun smie-indent-bob ()
   ;; Start the file at column 0.
@@ -802,26 +802,26 @@ in order to figure out the indentation of some other (further down) point."
           (save-excursion
             (goto-char pos)
             ;; Different cases:
-          ;; - smie-bolp: "indent according to others".
-          ;; - common hanging: "indent according to others".
-          ;; - SML-let hanging: "indent like parent".
-          ;; - if-after-else: "indent-like parent".
-          ;; - middle-of-line: "trust current position".
-          (cond
-           ((null (cdr toklevels)) nil) ;Not a keyword.
-           ((smie-bolp)
-            ;; For an open-paren-like thingy at BOL, always indent only
-            ;; based on other rules (typically smie-indent-after-keyword).
-            nil)
-           (t
+            ;; - smie-bolp: "indent according to others".
+            ;; - common hanging: "indent according to others".
+            ;; - SML-let hanging: "indent like parent".
+            ;; - if-after-else: "indent-like parent".
+            ;; - middle-of-line: "trust current position".
+            (cond
+             ((null (cdr toklevels)) nil) ;Not a keyword.
+             ((smie-bolp)
+              ;; For an open-paren-like thingy at BOL, always indent only
+              ;; based on other rules (typically smie-indent-after-keyword).
+              nil)
+             (t
               ;; We're only ever here for virtual-indent, which is why
               ;; we can use (current-column) as answer for `point'.
               (let* ((tokinfo (or (assoc (cons :before token)
                                          smie-indent-rules)
-                                ;; By default use point unless we're hanging.
+                                  ;; By default use point unless we're hanging.
                                   `((:before . ,token) (:hanging nil) point)))
                      ;; (after (prog1 (point) (goto-char pos)))
-                   (offset (smie-indent-offset-rule tokinfo)))
+                     (offset (smie-indent-offset-rule tokinfo)))
                 (smie-indent-column offset)))))
 
         ;; FIXME: This still looks too much like black magic!!
@@ -896,17 +896,17 @@ in order to figure out the indentation of some other (further down) point."
                 ;; affect the indentation of the "end".
                 (current-column)
               (goto-char (cadr parent))
-            ;; Don't use (smie-indent-virtual :not-hanging) here, because we
-            ;; want to jump back over a sequence of same-level ops such as
-            ;;    a -> b -> c
-            ;;    -> d
-            ;; So as to align with the earliest appropriate place.
+              ;; Don't use (smie-indent-virtual :not-hanging) here, because we
+              ;; want to jump back over a sequence of same-level ops such as
+              ;;    a -> b -> c
+              ;;    -> d
+              ;; So as to align with the earliest appropriate place.
               (smie-indent-virtual)))
            (tokinfo
             (if (and (= (point) pos) (smie-bolp)
                      (or (eq offset 'point)
                          (and (consp offset) (memq 'point offset))))
-            ;; Since we started at BOL, we're not computing a virtual
+                ;; Since we started at BOL, we're not computing a virtual
                 ;; indentation, and we're still at the starting point, so
                 ;; we can't use `current-column' which would cause
                 ;; indentation to depend on itself.
@@ -934,12 +934,12 @@ in order to figure out the indentation of some other (further down) point."
                        (comment-string-strip comment-continue t t))))
     (and (< 0 (length continue))
          (looking-at (regexp-quote continue)) (nth 4 (syntax-ppss))
-       (let ((ppss (syntax-ppss)))
-         (save-excursion
-           (forward-line -1)
-           (if (<= (point) (nth 8 ppss))
-               (progn (goto-char (1+ (nth 8 ppss))) (current-column))
-             (skip-chars-forward " \t")
+         (let ((ppss (syntax-ppss)))
+           (save-excursion
+             (forward-line -1)
+             (if (<= (point) (nth 8 ppss))
+                 (progn (goto-char (1+ (nth 8 ppss))) (current-column))
+               (skip-chars-forward " \t")
                (if (looking-at (regexp-quote continue))
                    (current-column))))))))
 
@@ -1024,8 +1024,8 @@ in order to figure out the indentation of some other (further down) point."
 
 (defvar smie-indent-functions
   '(smie-indent-fixindent smie-indent-bob smie-indent-close smie-indent-comment
-    smie-indent-comment-continue smie-indent-keyword smie-indent-after-keyword
-    smie-indent-exps)
+   smie-indent-comment-continue smie-indent-keyword smie-indent-after-keyword
+   smie-indent-exps)
   "Functions to compute the indentation.
 Each function is called with no argument, shouldn't move point, and should
 return either nil if it has no opinion, or an integer representing the column
