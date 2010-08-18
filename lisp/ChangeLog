@@ -1,5 +1,7 @@
 2010-08-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/octave-mod.el (octave-mode-menu): Make toggle buttons.
+
 	* progmodes/prolog.el (smie): Require.
 
 	* emacs-lisp/smie.el (smie-default-backward-token)
