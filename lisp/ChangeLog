@@ -1,5 +1,21 @@
 2010-08-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/smie.el (smie-default-backward-token)
+	(smie-default-forward-token): Strip properties.
+	(smie-next-sexp): Be more careful with associative operators.
+	(smie-forward-sexp-command): Generalize.
+	(smie-backward-sexp-command): Simplify.
+	(smie-closer-alist): New var.
+	(smie-close-block): New command.
+	(smie-indent-debug-log): New var.
+	(smie-indent-offset-rule): Add a few more cases.
+	(smie-indent-column): New function.
+	(smie-indent-after-keyword): Use it.
+	(smie-indent-keyword): Use it.
+	Fix up the opener code's point position.
+	(smie-indent-comment): Only applies at BOL.
+	(smie-indent-debug): New command.
+
 	* emacs-lisp/autoload.el (make-autoload): Preload the macros's
 	declarations that are useful before running the macro.
 
