@@ -1,5 +1,8 @@
 2010-08-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* simple.el (prog-mode-map): New var.
+	(prog-indent-sexp): New command.
+
 	* progmodes/octave-mod.el (octave-mode-menu): Make toggle buttons.
 
 	* progmodes/prolog.el (smie): Require.
