@@ -1792,6 +1792,9 @@ ns_define_frame_cursor (struct frame *f, Cursor cursor)
       EmacsView *view = FRAME_NS_VIEW (f);
       FRAME_POINTER_TYPE (f) = cursor;
       [[view window] invalidateCursorRectsForView: view];
+      /* Redisplay assumes this function also draws the changed frame
+         cursor, but this function doesn't, so do it explicitly.  */
+      x_update_cursor (f, 1);
     }
 }
 

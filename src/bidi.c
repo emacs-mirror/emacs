@@ -1533,7 +1533,7 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
 
 	 we want it to be displayed as
 
-	     {RLO}STet{PDF}
+	     {PDF}STet{RLO}
 
 	 not as
 

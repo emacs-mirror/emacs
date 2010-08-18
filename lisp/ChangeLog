@@ -1,3 +1,28 @@
+2010-08-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/octave-mod.el (octave-mode-menu): Make toggle buttons.
+
+	* progmodes/prolog.el (smie): Require.
+
+	* emacs-lisp/smie.el (smie-default-backward-token)
+	(smie-default-forward-token): Strip properties.
+	(smie-next-sexp): Be more careful with associative operators.
+	(smie-forward-sexp-command): Generalize.
+	(smie-backward-sexp-command): Simplify.
+	(smie-closer-alist): New var.
+	(smie-close-block): New command.
+	(smie-indent-debug-log): New var.
+	(smie-indent-offset-rule): Add a few more cases.
+	(smie-indent-column): New function.
+	(smie-indent-after-keyword): Use it.
+	(smie-indent-keyword): Use it.
+	Fix up the opener code's point position.
+	(smie-indent-comment): Only applies at BOL.
+	(smie-indent-debug): New command.
+
+	* emacs-lisp/autoload.el (make-autoload): Preload the macros's
+	declarations that are useful before running the macro.
+
 2010-08-18  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* image.el (create-animated-image): Don't add heuristic mask to image
@@ -5,8 +30,8 @@
 
 2010-08-18  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* term/ns-win.el (ns-get-pasteboard, ns-set-pasteboard): Use
-	QCLIPBOARD instead of QPRIMARY (Bug#6677).
+	* term/ns-win.el (ns-get-pasteboard, ns-set-pasteboard):
+	Use QCLIPBOARD instead of QPRIMARY (Bug#6677).
 
 2010-08-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 

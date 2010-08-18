@@ -221,6 +221,8 @@ casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
   start_byte = CHAR_TO_BYTE (start);
   end_byte = CHAR_TO_BYTE (end);
 
+  SETUP_BUFFER_SYNTAX_TABLE();	/* For syntax_prefix_flag_p.  */
+
   while (start < end)
     {
       int c2, len;

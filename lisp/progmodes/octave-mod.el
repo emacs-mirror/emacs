@@ -283,9 +283,10 @@ parenthetical grouping.")
     ["Indent Line"		indent-according-to-mode t]
     ["Complete Symbol"		completion-at-point t]
     "-"
-    ;; FIXME: Make them toggle-buttons.
-    ["Toggle Abbrev Mode"	abbrev-mode t]
-    ["Toggle Auto-Fill Mode"	auto-fill-mode t]
+    ["Toggle Abbrev Mode"	abbrev-mode
+     :style toggle :selected abbrev-mode]
+    ["Toggle Auto-Fill Mode"	auto-fill-mode
+     :style toggle :selected auto-fill-function]
     "-"
     ["Submit Bug Report"	octave-submit-bug-report t]
     "-"
