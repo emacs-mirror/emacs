@@ -7152,6 +7152,8 @@ x_draw_bar_cursor (struct window *w, struct glyph_row *row, int width, enum text
 
       if (kind == BAR_CURSOR)
 	{
+	  int x = WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x);
+
 	  if (width < 0)
 	    width = FRAME_CURSOR_WIDTH (f);
 	  width = min (cursor_glyph->pixel_width, width);
@@ -7163,8 +7165,7 @@ x_draw_bar_cursor (struct window *w, struct glyph_row *row, int width, enum text
 	  if ((cursor_glyph->resolved_level & 1) != 0)
 	    x += cursor_glyph->pixel_width - width;
 
-	  XFillRectangle (dpy, window, gc,
-			  WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x),
+	  XFillRectangle (dpy, window, gc, x,
 			  WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y),
 			  width, row->height);
 	}
