@@ -1,3 +1,7 @@
+2010-08-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (update_frame_tool_bar): Literal stings are const char*.
+
 2010-08-18  David De La Harpe Golden  <david@harpegolden.net>
 
 	* nsselect.m (QCLIPBOARD, NXPrimaryPboard): Define.
