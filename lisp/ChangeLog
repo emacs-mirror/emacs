@@ -1,3 +1,8 @@
+2010-08-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* progmodes/flymake.el (flymake-start-syntax-check-process): Use
+	`start-file-process' in order to let it run also on remote hosts.
+
 2010-08-18  Kenichi Handa  <handa@m17n.org>
 
 	* files.el: Add `word-wrap' as safe local variable.
@@ -68,6 +73,7 @@
 	(ctext-no-compositions): Doc fix.
 	(compound-text-with-extensions): Doc fix.
 
+>>>>>>> MERGE-SOURCE
 2010-08-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (exchange-dot-and-mark): Mark obsolete, finally.
