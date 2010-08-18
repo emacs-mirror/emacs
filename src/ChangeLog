@@ -1,3 +1,18 @@
+2010-08-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (update_frame_tool_bar): Literal stings are const char*.
+
+2010-08-18  David De La Harpe Golden  <david@harpegolden.net>
+
+	* nsselect.m (QCLIPBOARD, NXPrimaryPboard): Define.
+	(symbol_to_nsstring): Map QCLIPBOARD => NSGeneralPboard,
+	QPRIMARY => NXPrimaryPboard.
+	(ns_string_to_symbol): NSGeneralPboard => QCLIPBOARD,
+	NXPrimaryPboard => QPRIMARY.
+	(nxatoms_of_nsselect): NXPrimaryPboard = PrimarySelection,
+	NXSecondaryPboard = SecondarySelection.
+	(syms_of_nsselect): Intern QCLIPBOARD (Bug#6677).
+
 2010-08-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* gtkutil.c (update_frame_tool_bar): Don't assume TOOL_BAR_ITEM_LABEL

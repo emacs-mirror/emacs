@@ -4292,8 +4292,8 @@ update_frame_tool_bar (FRAME_PTR f)
       GtkWidget *wbutton = NULL;
       GtkWidget *weventbox;
       Lisp_Object specified_file;
-      char *label = (STRINGP (PROP (TOOL_BAR_ITEM_LABEL))
-		     ? SSDATA (PROP (TOOL_BAR_ITEM_LABEL)) : "");
+      const char *label = (STRINGP (PROP (TOOL_BAR_ITEM_LABEL))
+                           ? SSDATA (PROP (TOOL_BAR_ITEM_LABEL)) : "");
       
       ti = gtk_toolbar_get_nth_item (GTK_TOOLBAR (wtoolbar), i);
 
