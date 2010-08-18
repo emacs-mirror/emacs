@@ -45,9 +45,9 @@
 
 
 (require 'org)
+(eval-when-compile (require 'doc-view))	; doc-view-current-page macro
 
-(declare-function doc-view-goto-page "doc-view" (page))
-(declare-function doc-view-current-page "doc-view"  (&optional win))
+(autoload 'doc-view-goto-page "doc-view")
 
 (org-add-link-type "docview" 'org-docview-open)
 (add-hook 'org-store-link-functions 'org-docview-store-link)
