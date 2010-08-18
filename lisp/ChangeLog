@@ -1,3 +1,7 @@
+2010-08-18  Glenn Morris  <rgm@gnu.org>
+
+	* woman.el (woman-translate): Case matters.  (Bug#6849)
+
 2010-08-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (kill-region): Doc fix (Bug#6787).
