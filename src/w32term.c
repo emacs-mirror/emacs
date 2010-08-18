@@ -4897,6 +4897,11 @@ x_draw_bar_cursor (struct window *w, struct glyph_row *row,
 
 	  w->phys_cursor_width = width;
 
+	  /* If the character under cursor is R2L, draw the bar cursor
+	     on the right of its glyph, rather than on the left.  */
+	  if ((cursor_glyph->resolved_level & 1) != 0)
+	    x += cursor_glyph->pixel_width - width;
+
 	  w32_fill_area (f, hdc, cursor_color, x,
 			 WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y),
 			 width, row->height);

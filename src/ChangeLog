@@ -1,3 +1,9 @@
+2010-08-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* xterm.c (x_draw_bar_cursor):
+	* w32term.c (x_draw_bar_cursor): If the character under cursor is
+	R2L, draw the bar cursor on its right rather than on its left.
+
 2010-08-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c (Fdefmacro): Only obey one declaration.
