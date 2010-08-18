@@ -1,3 +1,8 @@
+2010-08-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* term/ns-win.el (ns-get-pasteboard, ns-set-pasteboard): Use
+	QCLIPBOARD instead of QPRIMARY (Bug#6677).
+
 2010-08-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/lisp.el (up-list): Obey forward-sexp-function if set.
