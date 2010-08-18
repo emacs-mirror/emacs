@@ -1,3 +1,7 @@
+2010-08-18  Kenichi Handa  <handa@m17n.org>
+
+	* files.el: Add `word-wrap' as safe local variable.
+
 2010-08-18  Glenn Morris  <rgm@gnu.org>
 
 	* woman.el (woman-translate): Case matters.  (Bug#6849)
