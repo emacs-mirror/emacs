@@ -7542,15 +7542,6 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
   image_error ("im read failed", Qnil, Qnil);
   if (status == MagickFalse) goto imagemagick_error;
 
-
-  /* if(ino == 0) */
-  /*   MagickSetFirstIterator(image_wand); */
-  /* else */
-  /*   MagickSetIteratorIndex(image_wand, ino); */
-
-  //MagickSetFirstIterator(image_wand);
-
-
   /* If width and/or height is set in the display spec assume we want
      to scale to those values.  if either h or w is unspecified, the
      unspecified should be calculated from the specified to preserve
@@ -7701,7 +7692,9 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
 
   if (imagemagick_rendermethod == 1)
     {
-      /* Try if magicexportimage is any faster than pixelpushing. */
+      /* Magicexportimage is normaly faster than pixelpushing.  This
+         method is also well tested. Some aspects of this method are
+         ad-hoc and needs to be more researched. */
       int imagedepth = 24;/*MagickGetImageDepth(image_wand);*/
       char* exportdepth = imagedepth <= 8 ? "I" : "BGRP";/*"RGBP";*/
       /* Try to create a x pixmap to hold the imagemagick pixmap.  */
