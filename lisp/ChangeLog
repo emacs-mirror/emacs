@@ -1,3 +1,16 @@
+2010-08-18  Glenn Morris  <rgm@gnu.org>
+
+	* woman.el (woman-translate): Case matters.  (Bug#6849)
+
+2010-08-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (kill-region): Doc fix (Bug#6787).
+
+2010-08-14  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-header-line-format):
+	Fit it to the window, not the frame.
+
 2010-08-11  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* subr.el (ignore-errors): Add debug declaration.

@@ -1280,8 +1280,8 @@ e.g.
  (":;i" ?,F@)
  (";:y" ?,F`)
  (":;y" ?,F`)
- (";<" "«")
- (";>" "»"))
+ (";<" ?«)
+ (";>" ?»))
 
 (quail-define-package
  "greek-postfix" "GreekPost" ",FX" nil
@@ -1422,11 +1422,11 @@ e.g.
  ("i;:" ?,F@)
  ("y:;" ?,F`)
  ("y;:" ?,F`)
- ;; There two are asymmetric with ";<" and ";>" in "greek" input
- ;; method.  But, as the other Latin postfix methdos adopt "<<" and
+ ;; These two are asymmetric with ";<" and ";>" in "greek" input
+ ;; method.  But, as the other Latin postfix methods adopt "<<" and
  ;; ">>", it may be better to follow them.
- ("<<" "«")
- (">>" "»"))
+ ("<<" ?«)
+ (">>" ?»))
 
 
 ;; arch-tag: 2a37e042-db1b-4ecf-b755-117775a3c150

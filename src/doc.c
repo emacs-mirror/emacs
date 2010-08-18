@@ -640,24 +640,28 @@ the same file name is found in the `doc-directory'.  */)
       p = buf;
       end = buf + (filled < 512 ? filled : filled - 128);
       while (p != end && *p != '\037') p++;
-      /* p points to ^_Ffunctionname\n or ^_Vvarname\n.  */
+      /* p points to ^_Ffunctionname\n or ^_Vvarname\n or ^_Sfilename\n.  */
       if (p != end)
 	{
 	  end = (char *) index (p, '\n');
 
           /* See if this is a file name, and if it is a file in build-files.  */
-          if (p[1] == 'S' && end - p > 4 && end[-2] == '.'
-              && (end[-1] == 'o' || end[-1] == 'c'))
+          if (p[1] == 'S')
             {
-              int len = end - p - 2;
-              char *fromfile = alloca (len + 1);
-              strncpy (fromfile, &p[2], len);
-              fromfile[len] = 0;
-              if (fromfile[len-1] == 'c')
-                fromfile[len-1] = 'o';
+              skip_file = 0;
+              if (end - p > 4 && end[-2] == '.'
+                  && (end[-1] == 'o' || end[-1] == 'c'))
+                {
+                  int len = end - p - 2;
+                  char *fromfile = alloca (len + 1);
+                  strncpy (fromfile, &p[2], len);
+                  fromfile[len] = 0;
+                  if (fromfile[len-1] == 'c')
+                    fromfile[len-1] = 'o';
 
-	      skip_file = NILP (Fmember (build_string (fromfile),
-					 Vbuild_files));
+                  skip_file = NILP (Fmember (build_string (fromfile),
+                                             Vbuild_files));
+                }
             }
 
 	  sym = oblookup (Vobarray, p + 2,
