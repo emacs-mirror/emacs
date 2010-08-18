@@ -505,7 +505,7 @@ Possible return values:
             (res (if forw
                      (smie-forward-sexp 'halfsexp)
                    (smie-backward-sexp 'halfsexp))))
-        (if (and (car res) (= pos (point)) (not (if forw (eolp) (bobp))))
+        (if (and (car res) (= pos (point)) (not (if forw (eobp) (bobp))))
               (signal 'scan-error
                       (list "Containing expression ends prematurely"
                             (cadr res) (cadr res)))
