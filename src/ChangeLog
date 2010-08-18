@@ -1,5 +1,7 @@
 2010-08-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* eval.c (Fdefmacro): Only obey one declaration.
+
 	* casefiddle.c (casify_region): Setup gl_state.
 
 2010-08-18  Jan Djärv  <jan.h.d@swipnet.se>

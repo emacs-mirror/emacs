@@ -690,8 +690,8 @@ usage: (defmacro NAME ARGLIST [DOCSTRING] [DECL] BODY...)  */)
       tail = XCDR (tail);
     }
 
-  while (CONSP (Fcar (tail))
-	 && EQ (Fcar (Fcar (tail)), Qdeclare))
+  if (CONSP (Fcar (tail))
+      && EQ (Fcar (Fcar (tail)), Qdeclare))
     {
       if (!NILP (Vmacro_declaration_function))
 	{
