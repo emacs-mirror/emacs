@@ -64,7 +64,7 @@ Works like for "gif" support. Thanks to Juri Linkov.
 * TODO decide what to do with some uncommitted imagemagick support
   functions for image size etc.
 * TODO Test with more systems
-Tested on Fedora 12 so far, and the libmagick that ships with it.
+Tested on Fedora 12, Fedora 14 so far, and the libmagick that ships with it.
 Ubuntu 8.04 was also tested, but it seems it ships a broken
 ImageMagick.
 
@@ -77,7 +77,7 @@ Is handled by configure now
 * Some nits from Stefan Monnier
 I just took a quick look at the code and I see the following nits to fix:
 
-** TODO obviously a merge will have to come with a good ChangeLog.
+** DONE obviously a merge will have to come with a good ChangeLog.
 ** DONE also the merge will need to come with documentation.  Maybe not in the
    Texinfo form yet, but at least in the etc/NEWS with enough info that
    describes the `scale' and other such arguments that someone can start
@@ -146,20 +146,6 @@ as TIFF or DJVM, to view.
 
 The image-metadata function can be used to retrieve the total number
 of images in an image bundle. This is simmilar to how GIF files work.
-
-* Changelog entry
-2010-06-12 Joakim Verona <joakim@verona.se>
-           * image.c: Add support for ImageMagick. When HAVE_IMAGEMAGICK is
-           defined:
-           (imagemagick_image_p): New function to test for ImageMagic img.
-           (imagemagick_load): New function to load ImageMagick img.
-           (imagemagick_load_image): New function, helper for imagemagick_load
-           (imagemagick-types): New function.
-           (Qimagemagick): New Lisp_object.
-           * image.el:
-           (imagemagick-types-inhibit): New var.
-           (imagemagick-register-types): New function.
-           * config.in, Makefile.in, configure.in
 
 * Manual entry
 nothing yet, but the NEWS entry could be adapted.

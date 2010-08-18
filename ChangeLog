@@ -139,6 +139,21 @@
 
 	* Makefile.in (install-arch-indep): Delete any old info .gz files first.
 
+2010-06-12 Joakim Verona <joakim@verona.se>
+
+        * image.c: Add support for ImageMagick. When HAVE_IMAGEMAGICK is
+        defined:
+        (imagemagick_image_p): New function to test for ImageMagic img.
+        (imagemagick_load): New function to load ImageMagick img.
+        (imagemagick_load_image): New function, helper for imagemagick_load
+        (imagemagick-types): New function.
+        (Qimagemagick): New Lisp_object.
+	(imagemagick-render-type): New var, decides which renderer to use
+        * image.el:
+        (imagemagick-types-inhibit): New var.
+        (imagemagick-register-types): New function.
+        * config.in, Makefile.in, configure.in
+
 2010-06-11  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (--without-compress-info): New option.
