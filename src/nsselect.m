@@ -37,7 +37,7 @@ GNUstep port and post-20 update by Adrian Robert (arobert@cogsci.ucsd.edu)
 
 #define CUT_BUFFER_SUPPORT
 
-Lisp_Object QSECONDARY, QTEXT, QFILE_NAME;
+Lisp_Object QCLIPBOARD, QSECONDARY, QTEXT, QFILE_NAME;
 
 static Lisp_Object Vns_sent_selection_hooks;
 static Lisp_Object Vns_lost_selection_hooks;
@@ -46,6 +46,8 @@ static Lisp_Object Vselection_converter_alist;
 
 static Lisp_Object Qforeign_selection;
 
+/* NSGeneralPboard is pretty much analogous to X11 CLIPBOARD */
+NSString *NXPrimaryPboard;
 NSString *NXSecondaryPboard;
 
 
@@ -61,7 +63,8 @@ static NSString *
 symbol_to_nsstring (Lisp_Object sym)
 {
   CHECK_SYMBOL (sym);
-  if (EQ (sym, QPRIMARY))     return NSGeneralPboard;
+  if (EQ (sym, QCLIPBOARD))     return NSGeneralPboard;
+  if (EQ (sym, QPRIMARY))     return NXPrimaryPboard;
   if (EQ (sym, QSECONDARY))   return NXSecondaryPboard;
   if (EQ (sym, QTEXT))        return NSStringPboardType;
   return [NSString stringWithUTF8String: SDATA (XSYMBOL (sym)->xname)];
@@ -72,6 +75,8 @@ static Lisp_Object
 ns_string_to_symbol (NSString *t)
 {
   if ([t isEqualToString: NSGeneralPboard])
+    return QCLIPBOARD;
+  if ([t isEqualToString: NXPrimaryPboard])
     return QPRIMARY;
   if ([t isEqualToString: NXSecondaryPboard])
     return QSECONDARY;
@@ -537,12 +542,14 @@ DEFUN ("ns-store-cut-buffer-internal", Fns_store_cut_buffer_internal,
 void
 nxatoms_of_nsselect (void)
 {
-  NXSecondaryPboard = @"Selection";
+  NXPrimaryPboard = @"PrimarySelection";
+  NXSecondaryPboard = @"SecondarySelection";
 }
 
 void
 syms_of_nsselect (void)
 {
+  QCLIPBOARD = intern ("CLIPBOARD");	staticpro (&QCLIPBOARD);
   QSECONDARY = intern ("SECONDARY");	staticpro (&QSECONDARY);
   QTEXT      = intern ("TEXT"); 	staticpro (&QTEXT);
   QFILE_NAME = intern ("FILE_NAME"); 	staticpro (&QFILE_NAME);

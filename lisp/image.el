@@ -616,7 +616,7 @@ Images should not be larger than specified by `max-image-size'."
     (let* ((animate (memq type image-animated-types))
 	   (image
 	    (append (list 'image :type type (if data-p :data :file) file-or-data)
-		    (if animate '(:index 0 :mask heuristic))
+		    (if animate '(:index 0))
 		    props)))
       (if animate
 	  (image-animate-start image))

@@ -142,7 +142,13 @@ This command assumes point is not in a string or comment."
   (or arg (setq arg 1))
   (let ((inc (if (> arg 0) 1 -1)))
     (while (/= arg 0)
-      (goto-char (or (scan-lists (point) inc 1) (buffer-end arg)))
+      (if forward-sexp-function
+          (condition-case err
+              (while (let ((pos (point)))
+                       (forward-sexp inc)
+                       (/= (point) pos)))
+            (scan-error (goto-char (nth 2 err))))
+        (goto-char (or (scan-lists (point) inc 1) (buffer-end arg))))
       (setq arg (- arg inc)))))
 
 (defun kill-sexp (&optional arg)

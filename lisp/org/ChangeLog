@@ -1,3 +1,13 @@
+2010-08-18  Glenn Morris  <rgm@gnu.org>
+
+	* ob.el: Require org when compiling.
+	(org-save-outline-visibility): Remove macro declaration.
+	* ob-emacs-lisp.el: Require ob-comint when compiling, for macros.
+	Remove unnecessary/macro declarations.
+	* org-docview.el: Require doc-view when compiling.
+	(doc-view-goto-page): Autoload rather than declaring.
+	(doc-view-current-page): Remove macro declaration.
+
 2010-08-17  Glenn Morris  <rgm@gnu.org>
 
 	* ob.el (tramp-compat-make-temp-file, org-edit-src-code)

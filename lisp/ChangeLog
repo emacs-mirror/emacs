@@ -1,3 +1,61 @@
+2010-08-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/prolog.el (smie): Require.
+
+	* emacs-lisp/smie.el (smie-default-backward-token)
+	(smie-default-forward-token): Strip properties.
+	(smie-next-sexp): Be more careful with associative operators.
+	(smie-forward-sexp-command): Generalize.
+	(smie-backward-sexp-command): Simplify.
+	(smie-closer-alist): New var.
+	(smie-close-block): New command.
+	(smie-indent-debug-log): New var.
+	(smie-indent-offset-rule): Add a few more cases.
+	(smie-indent-column): New function.
+	(smie-indent-after-keyword): Use it.
+	(smie-indent-keyword): Use it.
+	Fix up the opener code's point position.
+	(smie-indent-comment): Only applies at BOL.
+	(smie-indent-debug): New command.
+
+	* emacs-lisp/autoload.el (make-autoload): Preload the macros's
+	declarations that are useful before running the macro.
+
+2010-08-18  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* image.el (create-animated-image): Don't add heuristic mask to image
+	(Bug#6839).
+
+2010-08-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* term/ns-win.el (ns-get-pasteboard, ns-set-pasteboard):
+	Use QCLIPBOARD instead of QPRIMARY (Bug#6677).
+
+2010-08-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp.el (up-list): Obey forward-sexp-function if set.
+
+	Font-lock '...' strings, plus various simplifications and fixes.
+	* progmodes/octave-mod.el (octave-font-lock-keywords): Use regexp-opt.
+	(octave-font-lock-close-quotes): New function.
+	(octave-font-lock-syntactic-keywords): New var.
+	(octave-mode): Use it.  Set beginning-of-defun-function.
+	(octave-mode-map): Don't override the <foo>-defun commands.
+	(octave-mode-menu): Pass it directly to easy-menu-define;
+	remove (now generic) <foo>-defun commands; use info-lookup-symbol.
+	(octave-block-match-alist): Fix up last change so that
+	octave-close-block uses the more specific keyword.
+	(info-lookup-mode): Silence byte-compiler.
+	(octave-beginning-of-defun): Not interactive any more.
+	Optimize slightly.
+	(octave-end-of-defun, octave-mark-defun, octave-in-defun-p): Remove.
+	(octave-indent-defun, octave-send-defun): Use mark-defun instead.
+	(octave-completion-at-point-function): Make sure point is within
+	beg..end.
+	(octave-reindent-then-newline-and-indent):
+	Use reindent-then-newline-and-indent.
+	(octave-add-octave-menu): Remove.
+
 2010-08-17  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* mail/emacsbug.el (report-emacs-bug-insert-to-mailer)
@@ -6,6 +64,20 @@
 	report-emacs-bug-can-use-xdg-email.  If can-xdg-email bind
 	\C-cm to report-emacs-bug-insert-to-mailer and add help text
 	about it.
+
+	* net/browse-url.el (browse-url-default-browser): Add cond
+	for browse-url-xdg-open.
+	(browse-url-can-use-xdg-open, browse-url-xdg-open): New functions.
+
+2010-08-17  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/cc-engine.el (c-new-BEG, c-new-END)
+	(c-fontify-recorded-types-and-refs): Define for compiler.
+	* progmodes/cc-mode.el (c-new-BEG, c-new-END): Move definitions
+	before use.
+
+	* calendar/icalendar.el (icalendar--convert-recurring-to-diary):
+	Fix format call.
 
 2010-08-17  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -34,8 +106,8 @@
 2010-08-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mouse.el (mouse--drag-set-mark-and-point): New function.
-	(mouse-drag-track): Use LOCATION arg to push-mark.  Use
-	mouse--drag-set-mark-and-point to take click-count into
+	(mouse-drag-track): Use LOCATION arg to push-mark.
+	Use mouse--drag-set-mark-and-point to take click-count into
 	consideration when updating point and mark (Bug#6840).
 
 2010-08-15  Chong Yidong  <cyd@stupidchicken.com>
@@ -45,8 +117,8 @@
 
 2010-08-14  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
 
-	* font-lock.el (lisp-font-lock-keywords-2): Add
-	combine-after-change-calls, condition-case-no-debug,
+	* font-lock.el (lisp-font-lock-keywords-2):
+	Add combine-after-change-calls, condition-case-no-debug,
 	with-demoted-errors, and with-silent-modifications (Bug#6025).
 
 2010-08-14  Kevin Ryde  <user42@zip.com.au>
@@ -71,8 +143,8 @@
 	(menu-bar-showhide-tool-bar-menu-customize-enable-left)
 	(menu-bar-showhide-tool-bar-menu-customize-enable-right)
 	(menu-bar-showhide-tool-bar-menu-customize-enable-top)
-	(menu-bar-showhide-tool-bar-menu-customize-enable-bottom): Call
-	menu-bar-set-tool-bar-position.
+	(menu-bar-showhide-tool-bar-menu-customize-enable-bottom):
+	Call menu-bar-set-tool-bar-position.
 
 2010-08-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 

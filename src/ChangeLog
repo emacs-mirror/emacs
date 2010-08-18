@@ -1,3 +1,44 @@
+2010-08-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Fdefmacro): Only obey one declaration.
+
+	* casefiddle.c (casify_region): Setup gl_state.
+
+2010-08-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_define_frame_cursor): Call x_update_cursor (Bug#6868).
+
+2010-08-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (update_frame_tool_bar): Literal stings are const char*.
+
+2010-08-18  David De La Harpe Golden  <david@harpegolden.net>
+
+	* nsselect.m (QCLIPBOARD, NXPrimaryPboard): Define.
+	(symbol_to_nsstring): Map QCLIPBOARD => NSGeneralPboard,
+	QPRIMARY => NXPrimaryPboard.
+	(ns_string_to_symbol): NSGeneralPboard => QCLIPBOARD,
+	NXPrimaryPboard => QPRIMARY.
+	(nxatoms_of_nsselect): NXPrimaryPboard = PrimarySelection,
+	NXSecondaryPboard = SecondarySelection.
+	(syms_of_nsselect): Intern QCLIPBOARD (Bug#6677).
+
+2010-08-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gtkutil.c (update_frame_tool_bar): Don't assume TOOL_BAR_ITEM_LABEL
+	is a string.
+
+2010-08-17  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsfns.m (ns_frame_parm_handlers): Add a slot for the
+	x_set_tool_bar_position handler.
+
+2010-08-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c <w32_frame_parm_handlers>: Add a slot for the
+	x_set_tool_bar_position handler, needed to support changes from
+	2010-07-29 (revno 100939) for positioning the tool bar.  (Bug#6796)
+
 2010-08-16  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsselect.m: include keyboard.h for QPRIMARY, remove its
@@ -30,8 +71,9 @@
 
 2010-08-15  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* keyboard.c (parse_tool_bar_item): malloc buf.  Set TOOL_BAR_ITEM_LABEL
-	to empty string if not set to new_lbl (Bug#6855).
+	* keyboard.c (parse_tool_bar_item): malloc buf.
+	Set TOOL_BAR_ITEM_LABEL to empty string if not set to
+	new_lbl (Bug#6855).
 
 2010-08-14  Eli Zaretskii  <eliz@gnu.org>
 
@@ -39,8 +81,8 @@
 	* w32term.c (x_draw_stretch_glyph_string): In R2L rows, display
 	the cursor on the right edge of the stretch glyph.
 
-	* xdisp.c (window_box_right_offset, window_box_right): Fix
-	commentary.
+	* xdisp.c (window_box_right_offset, window_box_right):
+	Fix commentary.
 
 	* xdisp.c (Fcurrent_bidi_paragraph_direction): Fix paragraph
 	direction when point is inside a run of whitespace characters.
