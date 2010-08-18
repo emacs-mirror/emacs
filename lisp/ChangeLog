@@ -1,5 +1,7 @@
 2010-08-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/prolog.el (smie): Require.
+
 	* emacs-lisp/smie.el (smie-default-backward-token)
 	(smie-default-forward-token): Strip properties.
 	(smie-next-sexp): Be more careful with associative operators.
