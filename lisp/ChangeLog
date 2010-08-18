@@ -73,7 +73,6 @@
 	(ctext-no-compositions): Doc fix.
 	(compound-text-with-extensions): Doc fix.
 
->>>>>>> MERGE-SOURCE
 2010-08-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (exchange-dot-and-mark): Mark obsolete, finally.
