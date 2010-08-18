@@ -214,7 +214,7 @@ kill ring).
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
 
-** FIXME: xdg-open for browse-url and reportbug, 2010/08.
+** FIXME: xdg-open for browse-url and reportbug, 2010/08.  (Close bug#4546?)
 
 ** Archive Mode has basic support to browse 7z archives.
 
