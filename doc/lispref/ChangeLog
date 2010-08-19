@@ -1,3 +1,7 @@
+2010-08-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* objects.texi (Bool-Vector Type): Minor definition tweak (Bug#6878).
+
 2010-08-02  Christoph  <cschol2112@googlemail.com>
 
 	* control.texi (Handling Errors) <error-message-string>: Fix arg name.
