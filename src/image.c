@@ -7484,8 +7484,7 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
   /* Handle image index for image types who can contain more than one
      image.  Interface :index is same as for GIF.  First we "ping" the
      image to see how many sub-images it contains. Pinging is faster
-     than loading the image to find out things about it.
-  */
+     than loading the image to find out things about it.  */
   printf("im ping file %s\n", filename);
   image = image_spec_value (img->spec, QCindex, NULL);
   ino = INTEGERP (image) ? XFASTINT (image) : 0;
@@ -7516,8 +7515,7 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
 
   DestroyMagickWand (ping_wand);
   /* Now, after pinging, we know how many images are inside the
-     file. If its not a bundle, just one.
-  */
+     file. If its not a bundle, just one.  */
 
   if (filename != NULL)
     {
@@ -7545,7 +7543,7 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
   /* If width and/or height is set in the display spec assume we want
      to scale to those values.  if either h or w is unspecified, the
      unspecified should be calculated from the specified to preserve
-     aspect ratio. */
+     aspect ratio.  */
 
   value = image_spec_value (img->spec, QCwidth, NULL);
   desired_width = (INTEGERP (value)  ? XFASTINT (value) : -1);
@@ -7557,12 +7555,12 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
 
   if(desired_width != -1 && desired_height == -1)
     {
-      /* w known, calculate h*/
+      /* w known, calculate h.  */
       desired_height = ( (double)desired_width / width  ) * height;
     }
   if(desired_width == -1 && desired_height != -1)
     {
-      /* h known, calculate w*/
+      /* h known, calculate w.  */
       desired_width = ( (double)desired_height / height  ) * width;
     }  
   if(desired_width != -1 && desired_height != -1)
@@ -7587,8 +7585,7 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
          crop function in ImageMagick. This crop function seems to do
          less copying than the alternatives, but it still reads the
          entire image into memory before croping, which is aparently
-         difficult to avoid when using imagemagick.
-      */
+         difficult to avoid when using imagemagick. */
       
       int w,h,x,y;
       w=XFASTINT(XCAR(crop));
@@ -7604,8 +7601,7 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
   /*
     TODO background handling for rotation specified_bg =
     image_spec_value (img->spec, QCbackground, NULL); if (!STRINGP
-    (specified_bg)
-  */
+    (specified_bg).  */
   value = image_spec_value (img->spec, QCrotation, NULL);
   if (FLOATP (value))
     {
@@ -7625,8 +7621,7 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
     }
   
   /* Finaly we are done manipulating the image, figure out resulting
-     width, height, and then transfer ownerwship to Emacs.
-  */
+     width, height, and then transfer ownerwship to Emacs.  */
   height = MagickGetImageHeight (image_wand);
   width = MagickGetImageWidth (image_wand);
   if (status == MagickFalse)
@@ -7643,7 +7638,6 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
   
   /* We can now get a valid pixel buffer from the imagemagick file, if all
      went ok.  */
-  
 
   init_color_table ();
   imagemagick_rendermethod = (INTEGERP (Vimagemagick_render_type)
@@ -7660,8 +7654,7 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
     
       /* Copy imagegmagick image to x with primitive yet robust pixel
          pusher loop.  This has been tested a lot with many different
-         images.
-      */
+         images.  */
   
       /* Copy pixels from the imagemagick image structure to the x image map. */
       iterator = NewPixelIterator (image_wand);
