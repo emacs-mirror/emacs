@@ -1,22 +1,22 @@
 /* Functions for image support on window system.
    Copyright (C) 1989, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-   Free Software Foundation, Inc.
+                 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+                 Free Software Foundation, Inc.
 
-   This file is part of GNU Emacs.
+This file is part of GNU Emacs.
 
-   GNU Emacs is free software: you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
-   the Free Software Foundation, either version 3 of the License, or
-   (at your option) any later version.
+GNU Emacs is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-   GNU Emacs is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+GNU Emacs is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
-   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
+You should have received a copy of the GNU General Public License
+along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
@@ -115,7 +115,7 @@ typedef struct ns_bitmap_record Bitmap_Record;
 #define PIX_MASK_DRAW	1
 
 #define FRAME_X_VISUAL FRAME_NS_DISPLAY_INFO(f)->visual
-#define x_defined_color(f, name, color_def, alloc)      \
+#define x_defined_color(f, name, color_def, alloc) \
   ns_defined_color (f, name, color_def, alloc, 0)
 #define FRAME_X_SCREEN(f) 0
 #define DefaultDepthOfScreen(screen) x_display_list->n_planes
@@ -279,7 +279,7 @@ x_create_bitmap_from_data (struct frame *f, char *bits, unsigned int width, unsi
 #ifdef HAVE_NS
   void *bitmap = ns_image_from_XBM (bits, width, height);
   if (!bitmap)
-    return -1;
+      return -1;
 #endif
 
   id = x_allocate_bitmap_record (f);
@@ -325,7 +325,7 @@ x_create_bitmap_from_file (struct frame *f, Lisp_Object file)
   void *bitmap = ns_image_from_file (file);
 
   if (!bitmap)
-    return -1;
+      return -1;
 
 
   id = x_allocate_bitmap_record (f);
@@ -552,7 +552,7 @@ x_create_bitmap_mask (struct frame *f, int id)
 
 /***********************************************************************
 			    Image types
-***********************************************************************/
+ ***********************************************************************/
 
 /* Value is the number of elements of vector VECTOR.  */
 
@@ -604,10 +604,10 @@ static void x_emboss (struct frame *, struct image *);
 static int x_build_heuristic_mask (struct frame *, struct image *,
                                    Lisp_Object);
 
-#define CACHE_IMAGE_TYPE(type, status)                                  \
+#define CACHE_IMAGE_TYPE(type, status) \
   do { Vimage_type_cache = Fcons (Fcons (type, status), Vimage_type_cache); } while (0)
 
-#define ADD_IMAGE_TYPE(type)                                    \
+#define ADD_IMAGE_TYPE(type) \
   do { Vimage_types = Fcons (type, Vimage_types); } while (0)
 
 /* Define a new image type from TYPE.  This adds a copy of TYPE to
@@ -708,23 +708,23 @@ image_error (const char *format, Lisp_Object arg1, Lisp_Object arg2)
 
 /***********************************************************************
 			 Image specifications
-***********************************************************************/
+ ***********************************************************************/
 
 enum image_value_type
-  {
-    IMAGE_DONT_CHECK_VALUE_TYPE,
-    IMAGE_STRING_VALUE,
-    IMAGE_STRING_OR_NIL_VALUE,
-    IMAGE_SYMBOL_VALUE,
-    IMAGE_POSITIVE_INTEGER_VALUE,
-    IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,
-    IMAGE_NON_NEGATIVE_INTEGER_VALUE,
-    IMAGE_ASCENT_VALUE,
-    IMAGE_INTEGER_VALUE,
-    IMAGE_FUNCTION_VALUE,
-    IMAGE_NUMBER_VALUE,
-    IMAGE_BOOL_VALUE
-  };
+{
+  IMAGE_DONT_CHECK_VALUE_TYPE,
+  IMAGE_STRING_VALUE,
+  IMAGE_STRING_OR_NIL_VALUE,
+  IMAGE_SYMBOL_VALUE,
+  IMAGE_POSITIVE_INTEGER_VALUE,
+  IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,
+  IMAGE_NON_NEGATIVE_INTEGER_VALUE,
+  IMAGE_ASCENT_VALUE,
+  IMAGE_INTEGER_VALUE,
+  IMAGE_FUNCTION_VALUE,
+  IMAGE_NUMBER_VALUE,
+  IMAGE_BOOL_VALUE
+};
 
 /* Structure used when parsing image specifications.  */
 
@@ -998,7 +998,7 @@ or omitted means use the selected frame.  */)
 
 /***********************************************************************
 		 Image type independent image structures
-***********************************************************************/
+ ***********************************************************************/
 
 static struct image *make_image (Lisp_Object spec, unsigned hash);
 static void free_image (struct frame *f, struct image *img);
@@ -1203,10 +1203,10 @@ four_corners_best (XImagePtr_or_DC ximg, int *corners,
 
 #ifdef HAVE_NTGUI
 
-#define Destroy_Image(img_dc, prev)                                     \
+#define Destroy_Image(img_dc, prev) \
   do { SelectObject (img_dc, prev); DeleteDC (img_dc); } while (0)
 
-#define Free_Pixmap(display, pixmap)            \
+#define Free_Pixmap(display, pixmap) \
   DeleteObject (pixmap)
 
 #elif defined (HAVE_NS)
@@ -1219,10 +1219,10 @@ four_corners_best (XImagePtr_or_DC ximg, int *corners,
 
 #else
 
-#define Destroy_Image(ximg, dummy)              \
+#define Destroy_Image(ximg, dummy) \
   XDestroyImage (ximg)
 
-#define Free_Pixmap(display, pixmap)            \
+#define Free_Pixmap(display, pixmap) \
   XFreePixmap (display, pixmap)
 
 #endif /* !HAVE_NTGUI && !HAVE_NS */
@@ -1316,7 +1316,7 @@ image_background_transparent (struct image *img, struct frame *f, XImagePtr_or_D
 
 /***********************************************************************
 		  Helper functions for X image types
-***********************************************************************/
+ ***********************************************************************/
 
 static void x_clear_image_1 (struct frame *, struct image *, int,
                              int, int);
@@ -1410,7 +1410,7 @@ x_alloc_image_color (struct frame *f, struct image *img, Lisp_Object color_name,
 
 /***********************************************************************
 			     Image Cache
-***********************************************************************/
+ ***********************************************************************/
 
 static struct image *search_image_cache (struct frame *, Lisp_Object, unsigned);
 static void cache_image (struct frame *f, struct image *img);
@@ -1625,9 +1625,9 @@ which is then usually a filename.  */)
 DEFUN ("image-flush", Fimage_flush, Simage_flush,
        1, 2, 0,
        doc: /* Fush the image with specification SPEC on frame FRAME.
-               This removes the image from the Emacs image cache.  If SPEC specifies
-               an image file, the next redisplay of this image will read from the
-               current contents of that file.
+This removes the image from the Emacs image cache.  If SPEC specifies
+an image file, the next redisplay of this image will read from the
+current contents of that file.
 
 FRAME nil or omitted means use the selected frame.
 FRAME t means refresh the image on all frames.  */)
@@ -1914,7 +1914,7 @@ mark_image_cache (struct image_cache *c)
 
 /***********************************************************************
 			  X / NS / W32 support code
-***********************************************************************/
+ ***********************************************************************/
 
 #ifdef HAVE_NTGUI
 
@@ -1922,9 +1922,9 @@ mark_image_cache (struct image_cache *c)
 #define DEF_IMGLIB_FN(func) int (FAR CDECL *fn_##func)()
 
 /* Macro for loading those image functions from the library.  */
-#define LOAD_IMGLIB_FN(lib,func) {                      \
-    fn_##func = (void *) GetProcAddress (lib, #func);   \
-    if (!fn_##func) return 0;                           \
+#define LOAD_IMGLIB_FN(lib,func) {					\
+    fn_##func = (void *) GetProcAddress (lib, #func);			\
+    if (!fn_##func) return 0;						\
   }
 
 /* Load a DLL implementing an image type.
@@ -2166,7 +2166,7 @@ x_put_x_image (struct frame *f, XImagePtr ximg, Pixmap pixmap, int width, int he
 
 /***********************************************************************
 			      File Handling
-***********************************************************************/
+ ***********************************************************************/
 
 static unsigned char *slurp_file (char *, int *);
 
@@ -2243,7 +2243,7 @@ slurp_file (char *file, int *size)
 
 /***********************************************************************
 			      XBM images
-***********************************************************************/
+ ***********************************************************************/
 
 static int xbm_scan (unsigned char **, unsigned char *, char *, int *);
 static int xbm_load (struct frame *f, struct image *img);
@@ -2259,61 +2259,61 @@ static int xbm_file_p (Lisp_Object);
 /* Indices of image specification fields in xbm_format, below.  */
 
 enum xbm_keyword_index
-  {
-    XBM_TYPE,
-    XBM_FILE,
-    XBM_WIDTH,
-    XBM_HEIGHT,
-    XBM_DATA,
-    XBM_FOREGROUND,
-    XBM_BACKGROUND,
-    XBM_ASCENT,
-    XBM_MARGIN,
-    XBM_RELIEF,
-    XBM_ALGORITHM,
-    XBM_HEURISTIC_MASK,
-    XBM_MASK,
-    XBM_LAST
-  };
+{
+  XBM_TYPE,
+  XBM_FILE,
+  XBM_WIDTH,
+  XBM_HEIGHT,
+  XBM_DATA,
+  XBM_FOREGROUND,
+  XBM_BACKGROUND,
+  XBM_ASCENT,
+  XBM_MARGIN,
+  XBM_RELIEF,
+  XBM_ALGORITHM,
+  XBM_HEURISTIC_MASK,
+  XBM_MASK,
+  XBM_LAST
+};
 
 /* Vector of image_keyword structures describing the format
    of valid XBM image specifications.  */
 
 static const struct image_keyword xbm_format[XBM_LAST] =
-  {
-    {":type",		IMAGE_SYMBOL_VALUE,			1},
-    {":file",		IMAGE_STRING_VALUE,			0},
-    {":width",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
-    {":height",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
-    {":data",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-    {":foreground",	IMAGE_STRING_OR_NIL_VALUE,		0},
-    {":background",	IMAGE_STRING_OR_NIL_VALUE,		0},
-    {":ascent",		IMAGE_ASCENT_VALUE,			0},
-    {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
-    {":relief",		IMAGE_INTEGER_VALUE,			0},
-    {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-    {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-    {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0}
-  };
+{
+  {":type",		IMAGE_SYMBOL_VALUE,			1},
+  {":file",		IMAGE_STRING_VALUE,			0},
+  {":width",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
+  {":height",		IMAGE_POSITIVE_INTEGER_VALUE,		0},
+  {":data",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":foreground",	IMAGE_STRING_OR_NIL_VALUE,		0},
+  {":background",	IMAGE_STRING_OR_NIL_VALUE,		0},
+  {":ascent",		IMAGE_ASCENT_VALUE,			0},
+  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
+  {":relief",		IMAGE_INTEGER_VALUE,			0},
+  {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0}
+};
 
 /* Structure describing the image type XBM.  */
 
 static struct image_type xbm_type =
-  {
-    &Qxbm,
-    xbm_image_p,
-    xbm_load,
-    x_clear_image,
-    NULL
-  };
+{
+  &Qxbm,
+  xbm_image_p,
+  xbm_load,
+  x_clear_image,
+  NULL
+};
 
 /* Tokens returned from xbm_scan.  */
 
 enum xbm_token
-  {
-    XBM_TK_IDENT = 256,
-    XBM_TK_NUMBER
-  };
+{
+  XBM_TK_IDENT = 256,
+  XBM_TK_NUMBER
+};
 
 
 /* Return non-zero if OBJECT is a valid XBM-type image specification.
@@ -2652,20 +2652,20 @@ xbm_read_bitmap_data (struct frame *f, unsigned char *contents, unsigned char *e
   int value;
   int LA1;
 
-#define match()                                 \
-  LA1 = xbm_scan (&s, end, buffer, &value)
+#define match() \
+     LA1 = xbm_scan (&s, end, buffer, &value)
 
-#define expect(TOKEN)                           \
-  if (LA1 != (TOKEN))                           \
-    goto failure;                               \
-  else                                          \
-    match ()
+#define expect(TOKEN)		\
+     if (LA1 != (TOKEN)) 	\
+       goto failure;		\
+     else			\
+       match ()
 
 #define expect_ident(IDENT)					\
-  if (LA1 == XBM_TK_IDENT && strcmp (buffer, (IDENT)) == 0)	\
-    match ();                                                   \
-  else                                                          \
-    goto failure
+     if (LA1 == XBM_TK_IDENT && strcmp (buffer, (IDENT)) == 0)	\
+       match ();						\
+     else							\
+       goto failure
 
   *width = *height = -1;
   if (data)
@@ -3005,7 +3005,7 @@ xbm_load (struct frame *f, struct image *img)
 
 /***********************************************************************
 			      XPM images
-***********************************************************************/
+ ***********************************************************************/
 
 #if defined (HAVE_XPM) || defined (HAVE_NS)
 
@@ -3044,49 +3044,49 @@ Lisp_Object Qxpm;
 /* Indices of image specification fields in xpm_format, below.  */
 
 enum xpm_keyword_index
-  {
-    XPM_TYPE,
-    XPM_FILE,
-    XPM_DATA,
-    XPM_ASCENT,
-    XPM_MARGIN,
-    XPM_RELIEF,
-    XPM_ALGORITHM,
-    XPM_HEURISTIC_MASK,
-    XPM_MASK,
-    XPM_COLOR_SYMBOLS,
-    XPM_BACKGROUND,
-    XPM_LAST
-  };
+{
+  XPM_TYPE,
+  XPM_FILE,
+  XPM_DATA,
+  XPM_ASCENT,
+  XPM_MARGIN,
+  XPM_RELIEF,
+  XPM_ALGORITHM,
+  XPM_HEURISTIC_MASK,
+  XPM_MASK,
+  XPM_COLOR_SYMBOLS,
+  XPM_BACKGROUND,
+  XPM_LAST
+};
 
 /* Vector of image_keyword structures describing the format
    of valid XPM image specifications.  */
 
 static const struct image_keyword xpm_format[XPM_LAST] =
-  {
-    {":type",		IMAGE_SYMBOL_VALUE,			1},
-    {":file",		IMAGE_STRING_VALUE,			0},
-    {":data",		IMAGE_STRING_VALUE,			0},
-    {":ascent",		IMAGE_ASCENT_VALUE,			0},
-    {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
-    {":relief",		IMAGE_INTEGER_VALUE,			0},
-    {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-    {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-    {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-    {":color-symbols",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-    {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
-  };
+{
+  {":type",		IMAGE_SYMBOL_VALUE,			1},
+  {":file",		IMAGE_STRING_VALUE,			0},
+  {":data",		IMAGE_STRING_VALUE,			0},
+  {":ascent",		IMAGE_ASCENT_VALUE,			0},
+  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
+  {":relief",		IMAGE_INTEGER_VALUE,			0},
+  {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":color-symbols",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
+};
 
 /* Structure describing the image type XPM.  */
 
 static struct image_type xpm_type =
-  {
-    &Qxpm,
-    xpm_image_p,
-    xpm_load,
-    x_clear_image,
-    NULL
-  };
+{
+  &Qxpm,
+  xpm_image_p,
+  xpm_load,
+  x_clear_image,
+  NULL
+};
 
 #ifdef HAVE_X_WINDOWS
 
@@ -3645,11 +3645,11 @@ static int xpm_load_image (struct frame *, struct image *,
 /* Tokens returned from xpm_scan.  */
 
 enum xpm_token
-  {
-    XPM_TK_IDENT = 256,
-    XPM_TK_STRING,
-    XPM_TK_EOF
-  };
+{
+  XPM_TK_IDENT = 256,
+  XPM_TK_STRING,
+  XPM_TK_EOF
+};
 
 /* Scan an XPM data and return a character (< 256) or a token defined
    by enum xpm_token above.  *S and END are the start (inclusive) and
@@ -3679,7 +3679,7 @@ xpm_scan (const unsigned char **s,
 	  *beg = *s - 1;
 	  while (*s < end
 		 && (c = **s, isalnum (c) || c == '_' || c == '-' || c == '+'))
-            ++*s;
+	      ++*s;
 	  *len = *s - *beg;
 	  return XPM_TK_IDENT;
 	}
@@ -3839,21 +3839,21 @@ xpm_load_image (struct frame *f,
   int best_key, have_mask = 0;
   XImagePtr ximg = NULL, mask_img = NULL;
 
-#define match()                                 \
-  LA1 = xpm_scan (&s, end, &beg, &len)
+#define match() \
+     LA1 = xpm_scan (&s, end, &beg, &len)
 
-#define expect(TOKEN)                           \
-  if (LA1 != (TOKEN))                           \
-    goto failure;                               \
-  else                                          \
-    match ()
+#define expect(TOKEN)		\
+     if (LA1 != (TOKEN)) 	\
+       goto failure;		\
+     else			\
+       match ()
 
-#define expect_ident(IDENT)                                             \
-  if (LA1 == XPM_TK_IDENT                                               \
-      && strlen ((IDENT)) == len && memcmp ((IDENT), beg, len) == 0)	\
-    match ();                                                           \
-  else                                                                  \
-    goto failure
+#define expect_ident(IDENT)					\
+     if (LA1 == XPM_TK_IDENT \
+         && strlen ((IDENT)) == len && memcmp ((IDENT), beg, len) == 0)	\
+       match ();						\
+     else							\
+       goto failure
 
   if (!(end - s >= 9 && memcmp (s, "/* XPM */", 9) == 0))
     goto failure;
@@ -4112,7 +4112,7 @@ xpm_load (struct frame *f,
 
 /***********************************************************************
 			     Color table
-***********************************************************************/
+ ***********************************************************************/
 
 #ifdef COLOR_TABLE_SUPPORT
 
@@ -4379,7 +4379,7 @@ init_color_table (void)
 
 /***********************************************************************
 			      Algorithms
-***********************************************************************/
+ ***********************************************************************/
 
 static XColor *x_to_xcolors (struct frame *, struct image *, int);
 static void x_from_xcolors (struct frame *, struct image *, XColor *);
@@ -4398,17 +4398,17 @@ int cross_disabled_images;
    strategies.  */
 
 static int emboss_matrix[9] = {
-  /* x - 1	x	x + 1  */
-  2,     -1,  	  0,		/* y - 1 */
-  -1,      0,        1,		/* y     */
-  0,      1,       -2		/* y + 1 */
+   /* x - 1	x	x + 1  */
+        2,     -1,  	  0,		/* y - 1 */
+       -1,      0,        1,		/* y     */
+        0,      1,       -2		/* y + 1 */
 };
 
 static int laplace_matrix[9] = {
-  /* x - 1	x	x + 1  */
-  1,      0,  	  0,		/* y - 1 */
-  0,      0,        0,		/* y     */
-  0,      0,       -1		/* y + 1 */
+   /* x - 1	x	x + 1  */
+        1,      0,  	  0,		/* y - 1 */
+        0,      0,        0,		/* y     */
+        0,      0,       -1		/* y + 1 */
 };
 
 /* Value is the intensity of the color whose red/green/blue values
@@ -4928,7 +4928,7 @@ x_build_heuristic_mask (struct frame *f, struct image *img, Lisp_Object how)
 
 /***********************************************************************
 		       PBM (mono, gray, color)
-***********************************************************************/
+ ***********************************************************************/
 
 static int pbm_image_p (Lisp_Object object);
 static int pbm_load (struct frame *f, struct image *img);
@@ -4941,49 +4941,49 @@ Lisp_Object Qpbm;
 /* Indices of image specification fields in gs_format, below.  */
 
 enum pbm_keyword_index
-  {
-    PBM_TYPE,
-    PBM_FILE,
-    PBM_DATA,
-    PBM_ASCENT,
-    PBM_MARGIN,
-    PBM_RELIEF,
-    PBM_ALGORITHM,
-    PBM_HEURISTIC_MASK,
-    PBM_MASK,
-    PBM_FOREGROUND,
-    PBM_BACKGROUND,
-    PBM_LAST
-  };
+{
+  PBM_TYPE,
+  PBM_FILE,
+  PBM_DATA,
+  PBM_ASCENT,
+  PBM_MARGIN,
+  PBM_RELIEF,
+  PBM_ALGORITHM,
+  PBM_HEURISTIC_MASK,
+  PBM_MASK,
+  PBM_FOREGROUND,
+  PBM_BACKGROUND,
+  PBM_LAST
+};
 
 /* Vector of image_keyword structures describing the format
    of valid user-defined image specifications.  */
 
 static const struct image_keyword pbm_format[PBM_LAST] =
-  {
-    {":type",		IMAGE_SYMBOL_VALUE,			1},
-    {":file",		IMAGE_STRING_VALUE,			0},
-    {":data",		IMAGE_STRING_VALUE,			0},
-    {":ascent",		IMAGE_ASCENT_VALUE,			0},
-    {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
-    {":relief",		IMAGE_INTEGER_VALUE,			0},
-    {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-    {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-    {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-    {":foreground",	IMAGE_STRING_OR_NIL_VALUE,		0},
-    {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
-  };
+{
+  {":type",		IMAGE_SYMBOL_VALUE,			1},
+  {":file",		IMAGE_STRING_VALUE,			0},
+  {":data",		IMAGE_STRING_VALUE,			0},
+  {":ascent",		IMAGE_ASCENT_VALUE,			0},
+  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
+  {":relief",		IMAGE_INTEGER_VALUE,			0},
+  {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":foreground",	IMAGE_STRING_OR_NIL_VALUE,		0},
+  {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
+};
 
 /* Structure describing the image type `pbm'.  */
 
 static struct image_type pbm_type =
-  {
-    &Qpbm,
-    pbm_image_p,
-    pbm_load,
-    x_clear_image,
-    NULL
-  };
+{
+  &Qpbm,
+  pbm_image_p,
+  pbm_load,
+  x_clear_image,
+  NULL
+};
 
 
 /* Return non-zero if OBJECT is a valid PBM image specification.  */
@@ -5344,7 +5344,7 @@ pbm_load (struct frame *f, struct image *img)
 
 /***********************************************************************
 				 PNG
-***********************************************************************/
+ ***********************************************************************/
 
 #if defined (HAVE_PNG) || defined (HAVE_NS)
 
@@ -5360,47 +5360,47 @@ Lisp_Object Qpng;
 /* Indices of image specification fields in png_format, below.  */
 
 enum png_keyword_index
-  {
-    PNG_TYPE,
-    PNG_DATA,
-    PNG_FILE,
-    PNG_ASCENT,
-    PNG_MARGIN,
-    PNG_RELIEF,
-    PNG_ALGORITHM,
-    PNG_HEURISTIC_MASK,
-    PNG_MASK,
-    PNG_BACKGROUND,
-    PNG_LAST
-  };
+{
+  PNG_TYPE,
+  PNG_DATA,
+  PNG_FILE,
+  PNG_ASCENT,
+  PNG_MARGIN,
+  PNG_RELIEF,
+  PNG_ALGORITHM,
+  PNG_HEURISTIC_MASK,
+  PNG_MASK,
+  PNG_BACKGROUND,
+  PNG_LAST
+};
 
 /* Vector of image_keyword structures describing the format
    of valid user-defined image specifications.  */
 
 static const struct image_keyword png_format[PNG_LAST] =
-  {
-    {":type",		IMAGE_SYMBOL_VALUE,			1},
-    {":data",		IMAGE_STRING_VALUE,			0},
-    {":file",		IMAGE_STRING_VALUE,			0},
-    {":ascent",		IMAGE_ASCENT_VALUE,			0},
-    {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
-    {":relief",		IMAGE_INTEGER_VALUE,			0},
-    {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-    {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-    {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-    {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
-  };
+{
+  {":type",		IMAGE_SYMBOL_VALUE,			1},
+  {":data",		IMAGE_STRING_VALUE,			0},
+  {":file",		IMAGE_STRING_VALUE,			0},
+  {":ascent",		IMAGE_ASCENT_VALUE,			0},
+  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
+  {":relief",		IMAGE_INTEGER_VALUE,			0},
+  {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
+};
 
 /* Structure describing the image type `png'.  */
 
 static struct image_type png_type =
-  {
-    &Qpng,
-    png_image_p,
-    png_load,
-    x_clear_image,
-    NULL
-  };
+{
+  &Qpng,
+  png_image_p,
+  png_load,
+  x_clear_image,
+  NULL
+};
 
 /* Return non-zero if OBJECT is a valid PNG image specification.  */
 
@@ -5935,7 +5935,7 @@ png_load (struct frame *f, struct image *img)
 
 /***********************************************************************
 				 JPEG
-***********************************************************************/
+ ***********************************************************************/
 
 #if defined (HAVE_JPEG) || defined (HAVE_NS)
 
@@ -5949,47 +5949,47 @@ Lisp_Object Qjpeg;
 /* Indices of image specification fields in gs_format, below.  */
 
 enum jpeg_keyword_index
-  {
-    JPEG_TYPE,
-    JPEG_DATA,
-    JPEG_FILE,
-    JPEG_ASCENT,
-    JPEG_MARGIN,
-    JPEG_RELIEF,
-    JPEG_ALGORITHM,
-    JPEG_HEURISTIC_MASK,
-    JPEG_MASK,
-    JPEG_BACKGROUND,
-    JPEG_LAST
-  };
+{
+  JPEG_TYPE,
+  JPEG_DATA,
+  JPEG_FILE,
+  JPEG_ASCENT,
+  JPEG_MARGIN,
+  JPEG_RELIEF,
+  JPEG_ALGORITHM,
+  JPEG_HEURISTIC_MASK,
+  JPEG_MASK,
+  JPEG_BACKGROUND,
+  JPEG_LAST
+};
 
 /* Vector of image_keyword structures describing the format
    of valid user-defined image specifications.  */
 
 static const struct image_keyword jpeg_format[JPEG_LAST] =
-  {
-    {":type",		IMAGE_SYMBOL_VALUE,			1},
-    {":data",		IMAGE_STRING_VALUE,			0},
-    {":file",		IMAGE_STRING_VALUE,			0},
-    {":ascent",		IMAGE_ASCENT_VALUE,			0},
-    {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
-    {":relief",		IMAGE_INTEGER_VALUE,			0},
-    {":conversions",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-    {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-    {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-    {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
-  };
+{
+  {":type",		IMAGE_SYMBOL_VALUE,			1},
+  {":data",		IMAGE_STRING_VALUE,			0},
+  {":file",		IMAGE_STRING_VALUE,			0},
+  {":ascent",		IMAGE_ASCENT_VALUE,			0},
+  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
+  {":relief",		IMAGE_INTEGER_VALUE,			0},
+  {":conversions",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
+};
 
 /* Structure describing the image type `jpeg'.  */
 
 static struct image_type jpeg_type =
-  {
-    &Qjpeg,
-    jpeg_image_p,
-    jpeg_load,
-    x_clear_image,
-    NULL
-  };
+{
+  &Qjpeg,
+  jpeg_image_p,
+  jpeg_load,
+  x_clear_image,
+  NULL
+};
 
 /* Return non-zero if OBJECT is a valid JPEG image specification.  */
 
@@ -6271,7 +6271,7 @@ jpeg_file_src (j_decompress_ptr cinfo, FILE *fp)
   struct jpeg_stdio_mgr *src;
 
   if (cinfo->src != NULL)
-    src = (struct jpeg_stdio_mgr *) cinfo->src;
+      src = (struct jpeg_stdio_mgr *) cinfo->src;
   else
     {
       /* First time for this JPEG object?  */
@@ -6280,8 +6280,8 @@ jpeg_file_src (j_decompress_ptr cinfo, FILE *fp)
                                     sizeof (struct jpeg_stdio_mgr));
       src = (struct jpeg_stdio_mgr *) cinfo->src;
       src->buffer = (JOCTET *)
-        (*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_PERMANENT,
-                                    JPEG_STDIO_BUFFER_SIZE);
+          (*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_PERMANENT,
+                                      JPEG_STDIO_BUFFER_SIZE);
     }
 
   src->file = fp;
@@ -6373,7 +6373,7 @@ jpeg_load (struct frame *f, struct image *img)
     }
 
   /* Create the JPEG decompression object.  Let it read from fp.
-     Read the JPEG image header.  */
+	 Read the JPEG image header.  */
   fn_jpeg_CreateDecompress (&cinfo, JPEG_LIB_VERSION, sizeof (cinfo));
 
   if (NILP (specified_data))
@@ -6385,7 +6385,7 @@ jpeg_load (struct frame *f, struct image *img)
   fn_jpeg_read_header (&cinfo, 1);
 
   /* Customize decompression so that color quantization will be used.
-     Start decompression.  */
+	 Start decompression.  */
   cinfo.quantize_colors = 1;
   fn_jpeg_start_decompress (&cinfo);
   width = img->width = cinfo.output_width;
@@ -6488,7 +6488,7 @@ jpeg_load (struct frame *f, struct image *img)
 
 /***********************************************************************
 				 TIFF
-***********************************************************************/
+ ***********************************************************************/
 
 #if defined (HAVE_TIFF) || defined (HAVE_NS)
 
@@ -6502,49 +6502,49 @@ Lisp_Object Qtiff;
 /* Indices of image specification fields in tiff_format, below.  */
 
 enum tiff_keyword_index
-  {
-    TIFF_TYPE,
-    TIFF_DATA,
-    TIFF_FILE,
-    TIFF_ASCENT,
-    TIFF_MARGIN,
-    TIFF_RELIEF,
-    TIFF_ALGORITHM,
-    TIFF_HEURISTIC_MASK,
-    TIFF_MASK,
-    TIFF_BACKGROUND,
-    TIFF_INDEX,
-    TIFF_LAST
-  };
+{
+  TIFF_TYPE,
+  TIFF_DATA,
+  TIFF_FILE,
+  TIFF_ASCENT,
+  TIFF_MARGIN,
+  TIFF_RELIEF,
+  TIFF_ALGORITHM,
+  TIFF_HEURISTIC_MASK,
+  TIFF_MASK,
+  TIFF_BACKGROUND,
+  TIFF_INDEX,
+  TIFF_LAST
+};
 
 /* Vector of image_keyword structures describing the format
    of valid user-defined image specifications.  */
 
 static const struct image_keyword tiff_format[TIFF_LAST] =
-  {
-    {":type",		IMAGE_SYMBOL_VALUE,			1},
-    {":data",		IMAGE_STRING_VALUE,			0},
-    {":file",		IMAGE_STRING_VALUE,			0},
-    {":ascent",		IMAGE_ASCENT_VALUE,			0},
-    {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
-    {":relief",		IMAGE_INTEGER_VALUE,			0},
-    {":conversions",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-    {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-    {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-    {":background",	IMAGE_STRING_OR_NIL_VALUE,		0},
-    {":index",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0}
-  };
+{
+  {":type",		IMAGE_SYMBOL_VALUE,			1},
+  {":data",		IMAGE_STRING_VALUE,			0},
+  {":file",		IMAGE_STRING_VALUE,			0},
+  {":ascent",		IMAGE_ASCENT_VALUE,			0},
+  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
+  {":relief",		IMAGE_INTEGER_VALUE,			0},
+  {":conversions",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":background",	IMAGE_STRING_OR_NIL_VALUE,		0},
+  {":index",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0}
+};
 
 /* Structure describing the image type `tiff'.  */
 
 static struct image_type tiff_type =
-  {
-    &Qtiff,
-    tiff_image_p,
-    tiff_load,
-    x_clear_image,
-    NULL
-  };
+{
+  &Qtiff,
+  tiff_image_p,
+  tiff_load,
+  x_clear_image,
+  NULL
+};
 
 /* Return non-zero if OBJECT is a valid TIFF image specification.  */
 
@@ -6626,7 +6626,7 @@ typedef struct
   size_t len;
   int index;
 }
-  tiff_memory_source;
+tiff_memory_source;
 
 static size_t
 tiff_read_from_memory (thandle_t data, tdata_t buf, tsize_t size)
@@ -6915,7 +6915,7 @@ tiff_load (struct frame *f, struct image *img)
 
 /***********************************************************************
 				 GIF
-***********************************************************************/
+ ***********************************************************************/
 
 #if defined (HAVE_GIF) || defined (HAVE_NS)
 
@@ -6930,49 +6930,49 @@ Lisp_Object Qgif;
 /* Indices of image specification fields in gif_format, below.  */
 
 enum gif_keyword_index
-  {
-    GIF_TYPE,
-    GIF_DATA,
-    GIF_FILE,
-    GIF_ASCENT,
-    GIF_MARGIN,
-    GIF_RELIEF,
-    GIF_ALGORITHM,
-    GIF_HEURISTIC_MASK,
-    GIF_MASK,
-    GIF_IMAGE,
-    GIF_BACKGROUND,
-    GIF_LAST
-  };
+{
+  GIF_TYPE,
+  GIF_DATA,
+  GIF_FILE,
+  GIF_ASCENT,
+  GIF_MARGIN,
+  GIF_RELIEF,
+  GIF_ALGORITHM,
+  GIF_HEURISTIC_MASK,
+  GIF_MASK,
+  GIF_IMAGE,
+  GIF_BACKGROUND,
+  GIF_LAST
+};
 
 /* Vector of image_keyword structures describing the format
    of valid user-defined image specifications.  */
 
 static const struct image_keyword gif_format[GIF_LAST] =
-  {
-    {":type",		IMAGE_SYMBOL_VALUE,			1},
-    {":data",		IMAGE_STRING_VALUE,			0},
-    {":file",		IMAGE_STRING_VALUE,			0},
-    {":ascent",		IMAGE_ASCENT_VALUE,			0},
-    {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
-    {":relief",		IMAGE_INTEGER_VALUE,			0},
-    {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-    {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-    {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-    {":index",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
-    {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
-  };
+{
+  {":type",		IMAGE_SYMBOL_VALUE,			1},
+  {":data",		IMAGE_STRING_VALUE,			0},
+  {":file",		IMAGE_STRING_VALUE,			0},
+  {":ascent",		IMAGE_ASCENT_VALUE,			0},
+  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
+  {":relief",		IMAGE_INTEGER_VALUE,			0},
+  {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":index",		IMAGE_NON_NEGATIVE_INTEGER_VALUE,	0},
+  {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
+};
 
 /* Structure describing the image type `gif'.  */
 
 static struct image_type gif_type =
-  {
-    &Qgif,
-    gif_image_p,
-    gif_load,
-    gif_clear_image,
-    NULL
-  };
+{
+  &Qgif,
+  gif_image_p,
+  gif_load,
+  gif_clear_image,
+  NULL
+};
 
 /* Free X resources of GIF image IMG which is used on frame F.  */
 
@@ -7062,7 +7062,7 @@ typedef struct
   size_t len;
   int index;
 }
-  gif_memory_source;
+gif_memory_source;
 
 /* Make the current memory source available to gif_read_from_memory.
    It's done this way because not all versions of libungif support
@@ -7865,7 +7865,7 @@ DEFUN ("imagemagick-types", Fimagemagick_types, Simagemagick_types, 0, 0, 0,
 
 /***********************************************************************
 				 SVG
-***********************************************************************/
+ ***********************************************************************/
 
 #if defined (HAVE_RSVG)
 
@@ -7884,55 +7884,55 @@ Lisp_Object Qsvg;
 /* Indices of image specification fields in svg_format, below.  */
 
 enum svg_keyword_index
-  {
-    SVG_TYPE,
-    SVG_DATA,
-    SVG_FILE,
-    SVG_ASCENT,
-    SVG_MARGIN,
-    SVG_RELIEF,
-    SVG_ALGORITHM,
-    SVG_HEURISTIC_MASK,
-    SVG_MASK,
-    SVG_BACKGROUND,
-    SVG_LAST
-  };
+{
+  SVG_TYPE,
+  SVG_DATA,
+  SVG_FILE,
+  SVG_ASCENT,
+  SVG_MARGIN,
+  SVG_RELIEF,
+  SVG_ALGORITHM,
+  SVG_HEURISTIC_MASK,
+  SVG_MASK,
+  SVG_BACKGROUND,
+  SVG_LAST
+};
 
 /* Vector of image_keyword structures describing the format
    of valid user-defined image specifications.  */
 
 static const struct image_keyword svg_format[SVG_LAST] =
-  {
-    {":type",		IMAGE_SYMBOL_VALUE,			1},
-    {":data",		IMAGE_STRING_VALUE,			0},
-    {":file",		IMAGE_STRING_VALUE,			0},
-    {":ascent",		IMAGE_ASCENT_VALUE,			0},
-    {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
-    {":relief",		IMAGE_INTEGER_VALUE,			0},
-    {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-    {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-    {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-    {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
-  };
+{
+  {":type",		IMAGE_SYMBOL_VALUE,			1},
+  {":data",		IMAGE_STRING_VALUE,			0},
+  {":file",		IMAGE_STRING_VALUE,			0},
+  {":ascent",		IMAGE_ASCENT_VALUE,			0},
+  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
+  {":relief",		IMAGE_INTEGER_VALUE,			0},
+  {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
+};
 
 /* Structure describing the image type `svg'.  Its the same type of
    structure defined for all image formats, handled by emacs image
    functions.  See struct image_type in dispextern.h.  */
 
 static struct image_type svg_type =
-  {
-    /* An identifier showing that this is an image structure for the SVG format.  */
-    &Qsvg,
-    /* Handle to a function that can be used to identify a SVG file.  */
-    svg_image_p,
-    /* Handle to function used to load a SVG file.  */
-    svg_load,
-    /* Handle to function to free sresources for SVG.  */
-    x_clear_image,
-    /* An internal field to link to the next image type in a list of
-       image types, will be filled in when registering the format.  */
-    NULL
-  };
+{
+  /* An identifier showing that this is an image structure for the SVG format.  */
+  &Qsvg,
+  /* Handle to a function that can be used to identify a SVG file.  */
+  svg_image_p,
+  /* Handle to function used to load a SVG file.  */
+  svg_load,
+  /* Handle to function to free sresources for SVG.  */
+  x_clear_image,
+  /* An internal field to link to the next image type in a list of
+     image types, will be filled in when registering the format.  */
+  NULL
+};
 
 
 /* Return non-zero if OBJECT is a valid SVG image specification.  Do
@@ -8257,7 +8257,7 @@ svg_load_image (struct frame *f,         /* Pointer to emacs frame structure.  *
 
 /***********************************************************************
 				Ghostscript
-***********************************************************************/
+ ***********************************************************************/
 
 #ifdef HAVE_X_WINDOWS
 #define HAVE_GHOSTSCRIPT 1
@@ -8276,53 +8276,53 @@ Lisp_Object QCloader, QCbounding_box, QCpt_width, QCpt_height;
 /* Indices of image specification fields in gs_format, below.  */
 
 enum gs_keyword_index
-  {
-    GS_TYPE,
-    GS_PT_WIDTH,
-    GS_PT_HEIGHT,
-    GS_FILE,
-    GS_LOADER,
-    GS_BOUNDING_BOX,
-    GS_ASCENT,
-    GS_MARGIN,
-    GS_RELIEF,
-    GS_ALGORITHM,
-    GS_HEURISTIC_MASK,
-    GS_MASK,
-    GS_BACKGROUND,
-    GS_LAST
-  };
+{
+  GS_TYPE,
+  GS_PT_WIDTH,
+  GS_PT_HEIGHT,
+  GS_FILE,
+  GS_LOADER,
+  GS_BOUNDING_BOX,
+  GS_ASCENT,
+  GS_MARGIN,
+  GS_RELIEF,
+  GS_ALGORITHM,
+  GS_HEURISTIC_MASK,
+  GS_MASK,
+  GS_BACKGROUND,
+  GS_LAST
+};
 
 /* Vector of image_keyword structures describing the format
    of valid user-defined image specifications.  */
 
 static const struct image_keyword gs_format[GS_LAST] =
-  {
-    {":type",		IMAGE_SYMBOL_VALUE,			1},
-    {":pt-width",		IMAGE_POSITIVE_INTEGER_VALUE,		1},
-    {":pt-height",	IMAGE_POSITIVE_INTEGER_VALUE,		1},
-    {":file",		IMAGE_STRING_VALUE,			1},
-    {":loader",		IMAGE_FUNCTION_VALUE,			0},
-    {":bounding-box",	IMAGE_DONT_CHECK_VALUE_TYPE,		1},
-    {":ascent",		IMAGE_ASCENT_VALUE,			0},
-    {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
-    {":relief",		IMAGE_INTEGER_VALUE,			0},
-    {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-    {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-    {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
-    {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
-  };
+{
+  {":type",		IMAGE_SYMBOL_VALUE,			1},
+  {":pt-width",		IMAGE_POSITIVE_INTEGER_VALUE,		1},
+  {":pt-height",	IMAGE_POSITIVE_INTEGER_VALUE,		1},
+  {":file",		IMAGE_STRING_VALUE,			1},
+  {":loader",		IMAGE_FUNCTION_VALUE,			0},
+  {":bounding-box",	IMAGE_DONT_CHECK_VALUE_TYPE,		1},
+  {":ascent",		IMAGE_ASCENT_VALUE,			0},
+  {":margin",		IMAGE_POSITIVE_INTEGER_VALUE_OR_PAIR,	0},
+  {":relief",		IMAGE_INTEGER_VALUE,			0},
+  {":conversion",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":heuristic-mask",	IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":mask",		IMAGE_DONT_CHECK_VALUE_TYPE,		0},
+  {":background",	IMAGE_STRING_OR_NIL_VALUE,		0}
+};
 
 /* Structure describing the image type `ghostscript'.  */
 
 static struct image_type gs_type =
-  {
-    &Qpostscript,
-    gs_image_p,
-    gs_load,
-    gs_clear_image,
-    NULL
-  };
+{
+  &Qpostscript,
+  gs_image_p,
+  gs_load,
+  gs_clear_image,
+  NULL
+};
 
 
 /* Free X resources of Ghostscript image IMG which is used on frame F.  */
@@ -8550,7 +8550,7 @@ x_kill_gs_process (Pixmap pixmap, struct frame *f)
 
 /***********************************************************************
 				Tests
-***********************************************************************/
+ ***********************************************************************/
 
 #if GLYPH_DEBUG
 
@@ -8579,7 +8579,7 @@ DEFUN ("lookup-image", Flookup_image, Slookup_image, 1, 1, 0, "")
 
 /***********************************************************************
 			    Initialization
-***********************************************************************/
+ ***********************************************************************/
 
 #ifdef HAVE_NTGUI
 /* Image types that rely on external libraries are loaded dynamically
@@ -8593,7 +8593,7 @@ DEFUN ("lookup-image", Flookup_image, Slookup_image, 1, 1, 0, "")
 
 DEFUN ("init-image-library", Finit_image_library, Sinit_image_library, 2, 2, 0,
        doc: /* Initialize image library implementing image type TYPE.
-               Return non-nil if TYPE is a supported image type.
+Return non-nil if TYPE is a supported image type.
 
 Image types pbm and xbm are prebuilt; other types are loaded here.
 Libraries to load are specified in alist LIBRARIES (usually, the value
@@ -8656,7 +8656,6 @@ of `image-library-alist', which see).  */)
   return Qnil;
 }
 
-
 void
 syms_of_image (void)
 {
@@ -8668,13 +8667,13 @@ syms_of_image (void)
   /* Must be defined now becase we're going to update it below, while
      defining the supported image types.  */
   DEFVAR_LISP ("image-types", &Vimage_types,
-               doc: /* List of potentially supported image types.
-                       Each element of the list is a symbol for an image type, like 'jpeg or 'png.
-                       To check whether it is really supported, use `image-type-available-p'.  */);
+    doc: /* List of potentially supported image types.
+Each element of the list is a symbol for an image type, like 'jpeg or 'png.
+To check whether it is really supported, use `image-type-available-p'.  */);
   Vimage_types = Qnil;
 
   DEFVAR_LISP ("image-library-alist", &Vimage_library_alist,
-               doc: /* Alist of image types vs external libraries needed to display them.
+    doc: /* Alist of image types vs external libraries needed to display them.
 
 Each element is a list (IMAGE-TYPE LIBRARY...), where the car is a symbol
 representing a supported image type, and the rest are strings giving
@@ -8688,15 +8687,15 @@ listed; they are always supported.  */);
   Fput (intern_c_string ("image-library-alist"), Qrisky_local_variable, Qt);
 
   DEFVAR_LISP ("max-image-size", &Vmax_image_size,
-               doc: /* Maximum size of images.
-                       Emacs will not load an image into memory if its pixel width or
-                       pixel height exceeds this limit.
+    doc: /* Maximum size of images.
+Emacs will not load an image into memory if its pixel width or
+pixel height exceeds this limit.
 
-                       If the value is an integer, it directly specifies the maximum
-                       image height and width, measured in pixels.  If it is a floating
-                       point number, it specifies the maximum image height and width
-                       as a ratio to the frame height and width.  If the value is
-                       non-numeric, there is no explicit limit on the size of images.  */);
+If the value is an integer, it directly specifies the maximum
+image height and width, measured in pixels.  If it is a floating
+point number, it specifies the maximum image height and width
+as a ratio to the frame height and width.  If the value is
+non-numeric, there is no explicit limit on the size of images.  */);
   Vmax_image_size = make_float (MAX_IMAGE_SIZE);
 
   Vimage_type_cache = Qnil;
@@ -8739,7 +8738,6 @@ listed; they are always supported.  */);
   QCrotation = intern (":rotation");
   staticpro (&QCrotation);
   QCmatrix = intern_c_string (":matrix");
-
   staticpro (&QCmatrix);
   QCcolor_adjustment = intern_c_string (":color-adjustment");
   staticpro (&QCcolor_adjustment);
@@ -8836,22 +8834,23 @@ listed; they are always supported.  */);
 #endif
 
   DEFVAR_BOOL ("cross-disabled-images", &cross_disabled_images,
-               doc: /* Non-nil means always draw a cross over disabled images.
-                       Disabled images are those having a `:conversion disabled' property.
-                       A cross is always drawn on black & white displays.  */);
+    doc: /* Non-nil means always draw a cross over disabled images.
+Disabled images are those having a `:conversion disabled' property.
+A cross is always drawn on black & white displays.  */);
   cross_disabled_images = 0;
 
   DEFVAR_LISP ("x-bitmap-file-path", &Vx_bitmap_file_path,
-               doc: /* List of directories to search for window system bitmap files.  */);
+    doc: /* List of directories to search for window system bitmap files.  */);
   Vx_bitmap_file_path = decode_env_path ((char *) 0, PATH_BITMAPS);
 
   DEFVAR_LISP ("image-cache-eviction-delay", &Vimage_cache_eviction_delay,
-               doc: /* Maximum time after which images are removed from the cache.
-                       When an image has not been displayed this many seconds, Emacs
-                       automatically removes it from the image cache.  If the cache contains
-                       a large number of images, the actual eviction time may be shorter.
-                       The value can also be nil, meaning the cache is never cleared.
-                       The function `clear-image-cache' disregards this variable.  */);
+    doc: /* Maximum time after which images are removed from the cache.
+When an image has not been displayed this many seconds, Emacs
+automatically removes it from the image cache.  If the cache contains
+a large number of images, the actual eviction time may be shorter.
+The value can also be nil, meaning the cache is never cleared.
+
+The function `clear-image-cache' disregards this variable.  */);
   Vimage_cache_eviction_delay = make_number (300);
 #ifdef HAVE_IMAGEMAGICK  
   DEFVAR_LISP ("imagemagick-render-type", &Vimagemagick_render_type,
@@ -8860,14 +8859,10 @@ listed; they are always supported.  */);
 
 }
 
-
 void
 init_image (void)
 {
-
 }
-
-
 
 /* arch-tag: 123c2a5e-14a8-4c53-ab95-af47d7db49b9
    (do not change this comment) */
