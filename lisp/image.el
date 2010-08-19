@@ -694,6 +694,27 @@ shall be displayed."
 	(cons images tmo))))))
 
 
+(defcustom imagemagick-types-inhibit
+  '(C HTML HTM TXT PDF)
+  "Types the imagemagick loader should not try to handle.")
+
+;;;###autoload
+(defun imagemagick-register-types ()
+  "Register file types that imagemagick is able to handle."
+  (let ((im-types (imagemagick-types)))
+    (dolist (im-inhibit imagemagick-types-inhibit)
+      (setq im-types (remove im-inhibit im-types)))
+    (dolist (im-type im-types)
+      (let ((extension (downcase (symbol-name im-type))))
+	(push
+	 (cons  (concat "\\." extension "\\'") 'image-mode)
+	 auto-mode-alist)
+	(push
+	 (cons  (concat "\\." extension "\\'") 'imagemagick)
+	 image-type-file-name-regexps)))))
+
+
+
 (provide 'image)
 
 ;; arch-tag: 8e76a07b-eb48-4f3e-a7a0-1a7ba9f096b3

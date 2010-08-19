@@ -109,6 +109,22 @@ The frame-parameter tool-bar-position controls this.  It takes the values
 top, left, right or bottom.  The Options => Show/Hide menu has entries
 for this.
 
+** ImageMagick support
+It is now possible to use the Imagemagick library to load many new
+image formats in Emacs.
+
+To enable, use the following configure option:
+--with-imagemagick
+
+The new function (imagemagick-types) returns a list of image file
+extensions that your installation of imagemagick supports.
+
+The function (imagemagick-register-types) will enable the imagemagick
+support for the extensions in imagemagick-types minus the types listed
+in imagemagick-types-inhibit.
+
+See the Emacs Manual for more information.
+
 ** The colors for selected text (the region face) are taken from the GTK
 theme when Emacs is built with GTK.
 
