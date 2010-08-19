@@ -1,3 +1,7 @@
+2010-08-19  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (w32_wnd_proc): Don't check context before initializing.
+
 2010-08-19  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsselect.m (nxatoms_of_nsselect): Use "Selection" and "Secondary".

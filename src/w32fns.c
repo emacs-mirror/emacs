@@ -3109,9 +3109,6 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 	  HIMC context;
 	  struct window *w;
 
-	  if (!context)
-	    break;
-
 	  f = x_window_to_frame (dpyinfo, hwnd);
 	  w = XWINDOW (FRAME_SELECTED_WINDOW (f));
 
@@ -3129,6 +3126,10 @@ w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				- WINDOW_MODE_LINE_HEIGHT (w));
 
 	  context = get_ime_context_fn (hwnd);
+
+	  if (!context)
+	    break;
+
 	  set_ime_composition_window_fn (context, &form);
 	  release_ime_context_fn (hwnd, context);
 	}
