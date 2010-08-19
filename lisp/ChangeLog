@@ -1,5 +1,10 @@
 2010-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* facemenu.el (facemenu-self-insert-data): New var.
+	(facemenu-post-self-insert-function, facemenu-set-self-insert-face):
+	New functions.
+	(facemenu-add-face): Use them.
+
 	* simple.el (blink-matching-open): Obey forward-sexp-function.
 
 2010-08-18  Stefan Monnier  <monnier@iro.umontreal.ca>

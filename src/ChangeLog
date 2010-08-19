@@ -1,3 +1,11 @@
+2010-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* cmds.c (Vself_insert_face, Vself_insert_face_command): Remove.
+	(Qpost_self_insert_hook, Vpost_self_insert_hook): New vars.
+	(internal_self_insert): Run Qpost_self_insert_hook rather than handle
+	self-insert-face.
+	(syms_of_cmds): Initialize the new vars.
+
 2010-08-19  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (w32_wnd_proc): Don't check context before initializing.
