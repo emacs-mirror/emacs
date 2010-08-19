@@ -420,12 +420,8 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 
       set_buffer_internal_1 (XBUFFER (buffer));
 
-      /* Run the Lucid hook.  */
+      /* Run the hooks.  */
       safe_run_hooks (Qactivate_menubar_hook);
-      /* If it has changed current-menubar from previous value,
-	 really recompute the menubar from the value.  */
-      if (! NILP (Vlucid_menu_bar_dirty_flag))
-	call0 (Qrecompute_lucid_menubar);
       safe_run_hooks (Qmenu_bar_update_hook);
       FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
 
