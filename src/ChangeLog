@@ -1,3 +1,21 @@
+2010-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* cmds.c (Vself_insert_face, Vself_insert_face_command): Remove.
+	(Qpost_self_insert_hook, Vpost_self_insert_hook): New vars.
+	(internal_self_insert): Run Qpost_self_insert_hook rather than handle
+	self-insert-face.
+	(syms_of_cmds): Initialize the new vars.
+
+2010-08-19  Jason Rumney  <jasonr@gnu.org>
+
+	* w32menu.c (set_frame_menubar): Remove call to undefined function.
+
+	* w32fns.c (w32_wnd_proc): Don't check context before initializing.
+
+2010-08-19  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsselect.m (nxatoms_of_nsselect): Use "Selection" and "Secondary".
+
 2010-08-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* xterm.c (x_draw_bar_cursor):

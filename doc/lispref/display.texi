@@ -4039,6 +4039,7 @@ displayed (@pxref{Display Feature Testing}).
 * GIF Images::          Special features for GIF format.
 * TIFF Images::         Special features for TIFF format.
 * PostScript Images::   Special features for PostScript format.
+* ImageMagick Images::  Special features available through ImageMagick.
 * Other Image Types::   Various other formats are supported.
 * Defining Images::     Convenient ways to define an image for later use.
 * Showing Images::      Convenient ways to display an image once it is defined.
@@ -4462,6 +4463,51 @@ specifying the bounding box of the PostScript image, analogous to the
 %%BoundingBox: 22 171 567 738
 @end example
 @end table
+
+@node ImageMagick Images
+@subsection ImageMagick Images
+The Imagemagick library can be used to load many image formats in Emacs.
+
+The function (imagemagick-types) returns a list of image file
+extensions that your installation of imagemagick supports.
+
+The function (imagemagick-register-types) will enable the imagemagick
+support for the extensions in imagemagick-types minus the types listed
+in imagemagick-types-inhibit.
+
+imagemagick-types-inhibit has the value '(C HTML HTM TXT PDF) by
+default.  There can be overlap between image loaders in your Emacs
+installation. If you never want to use the ImageMagick loader to use
+Jpeg files, for instance, add 'JPG to imagemagick-types-inhibit. Which
+loader that will be used in practice depends on the priority of the
+loaders.
+
+imagemagick-render-type is a new variable which can be set to choose
+between screen render methods for the ImageMagick loader.
+
+- 0 is a conservative metod which works with older ImageMagick
+  versions. It is a bit slow, but robust.
+
+- 1 utilizes a newer ImageMagick method   
+
+
+Images loaded with imagemagick will support a couple of new display
+specification behaviours:
+
+- if the :width and :height keywords are specified, these values are
+used for scaling the image. If only one of :width or :height is
+specified, the other one will be calculated so as to preserve the
+aspect ratio.If both :width and :height are specified, aspect ratio
+will not be preserved.
+
+- :rotation specifies a rotation angle in degrees.
+
+- :index specifies which image inside an image bundle file format, such
+as TIFF or DJVM, to view.
+
+The image-metadata function can be used to retrieve the total number
+of images in an image bundle. This is simmilar to how GIF files work.
+
 
 @node Other Image Types
 @subsection Other Image Types

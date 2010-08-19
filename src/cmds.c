@@ -37,12 +37,6 @@ Lisp_Object Qkill_forward_chars, Qkill_backward_chars, Vblink_paren_function;
 /* A possible value for a buffer's overwrite-mode variable.  */
 Lisp_Object Qoverwrite_mode_binary;
 
-/* Non-nil means put this face on the next self-inserting character.  */
-Lisp_Object Vself_insert_face;
-
-/* This is the command that set up Vself_insert_face.  */
-Lisp_Object Vself_insert_face_command;
-
 static int internal_self_insert (int, int);
 
 DEFUN ("forward-point", Fforward_point, Sforward_point, 1, 1, 0,
@@ -346,6 +340,7 @@ After insertion, the value of `auto-fill-function' is called if the
    A value of 2 means this did things that call for an undo boundary.  */
 
 static Lisp_Object Qexpand_abbrev;
+static Lisp_Object Qpost_self_insert_hook, Vpost_self_insert_hook;
 
 static int
 internal_self_insert (int c, int noautofill)
@@ -451,10 +446,10 @@ internal_self_insert (int c, int noautofill)
       && synt != Sword
       && NILP (current_buffer->read_only)
       && PT > BEGV
-      && (!NILP (current_buffer->enable_multibyte_characters)
-	  ? SYNTAX (XFASTINT (Fprevious_char ())) == Sword
-	  : (SYNTAX (UNIBYTE_TO_CHAR (XFASTINT (Fprevious_char ())))
-	     == Sword)))
+      && (SYNTAX (!NILP (current_buffer->enable_multibyte_characters)
+		  ? XFASTINT (Fprevious_char ())
+		  : UNIBYTE_TO_CHAR (XFASTINT (Fprevious_char ())))
+	  == Sword))
     {
       int modiff = MODIFF;
       Lisp_Object sym;
@@ -514,15 +509,6 @@ internal_self_insert (int c, int noautofill)
 	hairy = 2;
     }
 
-  /* If previous command specified a face to use, use it.  */
-  if (!NILP (Vself_insert_face)
-      && EQ (current_kboard->Vlast_command, Vself_insert_face_command))
-    {
-      Fput_text_property (make_number (PT - 1), make_number (PT),
-			  Qface, Vself_insert_face, Qnil);
-      Vself_insert_face = Qnil;
-    }
-
   if ((synt == Sclose || synt == Smath)
       && !NILP (Vblink_paren_function) && INTERACTIVE
       && !noautofill)
@@ -530,6 +516,9 @@ internal_self_insert (int c, int noautofill)
       call0 (Vblink_paren_function);
       hairy = 2;
     }
+  /* Run hooks for electric keys.  */
+  call1 (Vrun_hooks, Qpost_self_insert_hook);
+
   return hairy;
 }
 
@@ -550,15 +539,13 @@ syms_of_cmds (void)
   Qexpand_abbrev = intern_c_string ("expand-abbrev");
   staticpro (&Qexpand_abbrev);
 
-  DEFVAR_LISP ("self-insert-face", &Vself_insert_face,
-	       doc: /* If non-nil, set the face of the next self-inserting character to this.
-See also `self-insert-face-command'.  */);
-  Vself_insert_face = Qnil;
+  Qpost_self_insert_hook = intern_c_string ("post-self-insert-hook");
+  staticpro (&Qpost_self_insert_hook);
 
-  DEFVAR_LISP ("self-insert-face-command", &Vself_insert_face_command,
-	       doc: /* This is the command that set up `self-insert-face'.
-If `last-command' does not equal this value, we ignore `self-insert-face'.  */);
-  Vself_insert_face_command = Qnil;
+  DEFVAR_LISP ("post-self-insert-hook", &Vpost_self_insert_hook,
+	       doc: /* Hook run at the end of `self-insert-command'.
+This run is run after inserting the charater.  */);
+  Vpost_self_insert_hook = Qnil;
 
   DEFVAR_LISP ("blink-paren-function", &Vblink_paren_function,
 	       doc: /* Function called, if non-nil, whenever a close parenthesis is inserted.

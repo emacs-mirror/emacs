@@ -30,8 +30,7 @@
 
 ;;; Code:
 (eval-when-compile
-  (require 'cl)
-  (require 'org))                  ; org-save-outline-visibility macro
+  (require 'cl))
 (require 'org-macs)
 
 (defvar org-babel-call-process-region-original)

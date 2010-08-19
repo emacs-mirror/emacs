@@ -1,3 +1,12 @@
+2010-08-19  Glenn Morris  <rgm@gnu.org>
+
+	* org.el (org-outline-overlay-data, org-set-outline-overlay-data)
+	(org-save-outline-visibility): Move to org-macs.
+	* org-macs.el (org-outline-overlay-data, org-set-outline-overlay-data)
+	(org-save-outline-visibility): Move here from org.el.
+	(show-all): Autoload it.
+	* ob.el: Don't require org when compiling.
+
 2010-08-18  Glenn Morris  <rgm@gnu.org>
 
 	* ob.el: Require org when compiling.

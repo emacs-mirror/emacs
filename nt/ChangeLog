@@ -1,3 +1,7 @@
+2010-08-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* addpm.c (add_registry): Create App Paths of type REG_EXPAND_SZ.
+
 2010-08-12  Jason Rumney  <jasonr@gnu.org>
 
 	* addpm.c (add_registry): Set path for runemacs.exe to use.
