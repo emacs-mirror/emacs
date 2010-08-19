@@ -542,8 +542,8 @@ DEFUN ("ns-store-cut-buffer-internal", Fns_store_cut_buffer_internal,
 void
 nxatoms_of_nsselect (void)
 {
-  NXPrimaryPboard = @"PrimarySelection";
-  NXSecondaryPboard = @"SecondarySelection";
+  NXPrimaryPboard = @"Selection";
+  NXSecondaryPboard = @"Secondary";
 }
 
 void

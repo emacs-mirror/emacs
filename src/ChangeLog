@@ -1,3 +1,7 @@
+2010-08-19  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsselect.m (nxatoms_of_nsselect): Use "Selection" and "Secondary".
+
 2010-08-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* xterm.c (x_draw_bar_cursor):
