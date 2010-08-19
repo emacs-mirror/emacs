@@ -424,6 +424,19 @@ Other major modes are defined by comparison with this one."
 
 ;; Major mode meant to be the parent of programming modes.
 
+(defvar prog-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [?\C-\M-q] 'prog-indent-sexp)
+    map)
+  "Keymap used for programming modes.")
+
+(defun prog-indent-sexp ()
+  "Indent the expression after point."
+  (interactive)
+  (let ((start (point))
+        (end (save-excursion (forward-sexp 1) (point))))
+    (indent-region start end nil)))
+
 (define-derived-mode prog-mode fundamental-mode "Prog"
   "Major mode for editing programming language source code."
   (set (make-local-variable 'require-final-newline) mode-require-final-newline)
