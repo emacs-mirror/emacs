@@ -1,5 +1,8 @@
 2010-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* files.el (locate-file-completion-table): Only list the .el and .elc
+	extensions if there's no other choice (bug#5955).
+
 	* facemenu.el (facemenu-self-insert-data): New var.
 	(facemenu-post-self-insert-function, facemenu-set-self-insert-face):
 	New functions.
