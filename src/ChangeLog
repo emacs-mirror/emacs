@@ -62,6 +62,17 @@
 	NXSecondaryPboard = SecondarySelection.
 	(syms_of_nsselect): Intern QCLIPBOARD (Bug#6677).
 
+2010-08-18 Joakim Verona <joakim@verona.se>
+
+        * image.c: Add support for ImageMagick. When HAVE_IMAGEMAGICK is
+        defined:
+        (imagemagick_image_p): New function to test for ImageMagic img.
+        (imagemagick_load): New function to load ImageMagick img.
+        (imagemagick_load_image): New function, helper for imagemagick_load
+        (imagemagick-types): New function.
+        (Qimagemagick): New Lisp_object.
+	(imagemagick-render-type): New var, decides which renderer to use
+
 2010-08-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* gtkutil.c (update_frame_tool_bar): Don't assume TOOL_BAR_ITEM_LABEL
