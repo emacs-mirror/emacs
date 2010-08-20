@@ -88,6 +88,8 @@ s/\.h\.in/.h-in/
 /^CFLAGS_SOUND *=/s/@CFLAGS_SOUND@//
 /^RSVG_LIBS *=/s/@RSVG_LIBS@//
 /^RSVG_CFLAGS *=/s/@RSVG_CFLAGS@//
+/^IMAGEMAGICK_LIBS *=/s/@IMAGEMAGICK_LIBS@//
+/^IMAGEMAGICK_CFLAGS *=/s/@IMAGEMAGICK_CFLAGS@//
 /^WIDGET_OBJ *=/s/@WIDGET_OBJ@//
 /^CYGWIN_OBJ *=/s/@CYGWIN_OBJ@//
 /^MSDOS_OBJ *=/s/= */= dosfns.o msdos.o w16select.o/
