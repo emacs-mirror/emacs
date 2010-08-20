@@ -5495,7 +5495,9 @@ it skips the contents of comments that end before point."
                        (and parse-sexp-ignore-comments
                             (not blink-matching-paren-dont-ignore-comments))))
                   (condition-case ()
-                      (scan-sexps oldpos -1)
+                      (progn
+                        (forward-sexp -1)
+                        (point))
                     (error nil))))))
 	   (matching-paren
             (and blinkpos

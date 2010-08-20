@@ -7400,7 +7400,6 @@ static void
 imagemagick_clear_image (struct frame *f,
                          struct image *img)
 {
-  printf("clearing imagemagick image\n");
   x_clear_image (f, img);
 }
 
@@ -7485,7 +7484,6 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
      image.  Interface :index is same as for GIF.  First we "ping" the
      image to see how many sub-images it contains. Pinging is faster
      than loading the image to find out things about it.  */
-  printf("im ping file %s\n", filename);
   image = image_spec_value (img->spec, QCindex, NULL);
   ino = INTEGERP (image) ? XFASTINT (image) : 0;
   ping_wand=NewMagickWand();
@@ -7519,7 +7517,6 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
 
   if (filename != NULL)
     {
-      printf("im read file %s\n", filename);
       image_info=CloneImageInfo((ImageInfo *) NULL);
       (void) strcpy(image_info->filename, filename);
       image_info -> number_scenes = 1;
@@ -7529,7 +7526,6 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
       im_image = ReadImage (image_info, exception); 
       CatchException(exception);
 
-      printf("im wand from image\n");   
       image_wand = NewMagickWandFromImage(im_image);
     }
   else
@@ -7565,7 +7561,6 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
     }  
   if(desired_width != -1 && desired_height != -1)
     {
-      printf("MagickScaleImage %d %d\n", desired_width, desired_height);
       status = MagickScaleImage(image_wand, desired_width, desired_height);
       if (status == MagickFalse) {
         image_error ("Imagemagick scale failed", Qnil, Qnil);
@@ -7592,7 +7587,6 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
       h=XFASTINT(XCAR(XCDR(crop)));
       x=XFASTINT(XCAR(XCDR(XCDR(crop))));
       y=XFASTINT(XCAR(XCDR(XCDR(XCDR(crop)))));
-      printf("MagickCropImage(image_wand, %d,%d, %d,%d)\n", w, h, x, y);
       MagickCropImage(image_wand, w,h, x,y);
     }
   
@@ -7609,7 +7603,6 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
       PixelSetColor (background, "#ffffff");/*TODO remove hardcode*/
         
       rotation = extract_float (value);
-      printf ("MagickRotateImage %f\n", rotation);
         
       status = MagickRotateImage (image_wand, background, rotation);
       DestroyPixelWand (background);
@@ -7691,7 +7684,6 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
       int imagedepth = 24;/*MagickGetImageDepth(image_wand);*/
       char* exportdepth = imagedepth <= 8 ? "I" : "BGRP";/*"RGBP";*/
       /* Try to create a x pixmap to hold the imagemagick pixmap.  */
-      printf("imagedepth:%d exportdepth:%s\n", imagedepth, exportdepth);
       if (!x_create_x_image_and_pixmap (f, width, height, imagedepth,
                                         &ximg, &img->pixmap)){
         image_error("Imagemagick X bitmap allocation failure", Qnil, Qnil);
@@ -7758,7 +7750,6 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
  imagemagick_error:
   /* TODO more cleanup.  */
   image_error ("Error parsing IMAGEMAGICK image `%s'", img->spec, Qnil);
-  printf("Imagemagick error, see *Messages*\n");
   return 0;
 }
 

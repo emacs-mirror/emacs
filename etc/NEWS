@@ -453,6 +453,8 @@ has now been removed.
 
 * Lisp changes in Emacs 24.1
 
+** New hook post-self-insert-hook run at the end of self-insert-command.
+
 ** Syntax tables support a new "comment style c" additionally to style b.
 ** frame-local variables cannot be let-bound any more.
 ** prog-mode is a new major-mode meant to be the parent of programming mode.
