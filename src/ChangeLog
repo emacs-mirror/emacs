@@ -1,3 +1,9 @@
+2010-08-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/unixware.h (HAVE_TCATTR):
+	* s/aix4-2.h (HAVE_TCATTR): Remove definitions, not needed.
+	systty.h defines it when HAVE_TERMIOS is defined.
+
 2010-08-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispnew.c (buffer_posn_from_coords): Fix last change for text
