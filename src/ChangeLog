@@ -1,3 +1,8 @@
+2010-08-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs.c <emacs_version>: Add a comment regarding
+	msdos/mainmake.v2's dependency on the syntax of this declaration.
+
 2010-08-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* unexcoff.c: Remove the parts used when "emacs" is not defined.

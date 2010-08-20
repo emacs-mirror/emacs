@@ -91,6 +91,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #endif
 
+/* If you change the following line, remember to update
+   msdos/mainmake.v2 which gleans the Emacs version from it!  */
 static const char emacs_copyright[] = "Copyright (C) 2010 Free Software Foundation, Inc.";
 static const char emacs_version[] = "24.0.50";
 
