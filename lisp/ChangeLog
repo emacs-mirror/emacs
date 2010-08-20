@@ -1,5 +1,8 @@
 2010-08-20  Glenn Morris  <rgm@gnu.org>
 
+	* align.el (align-regexp): Make group and spacing arguments
+	use the interactive defaults when non-interactive.  (Bug#6698)
+
 	* mail/rmail.el (rmail-forward): Replace mail-text-start with its
 	expansion, so as not to need sendmail.
 	(mail-text-start): Remove declaration.
