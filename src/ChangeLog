@@ -1,5 +1,8 @@
 2010-08-20  Eli Zaretskii  <eliz@gnu.org>
 
+	* dispnew.c (buffer_posn_from_coords): Fix last change for text
+	terminals: add one-character offset for R2L lines.
+
 	* emacs.c <emacs_version>: Add a comment regarding
 	msdos/mainmake.v2's dependency on the syntax of this declaration.
 
