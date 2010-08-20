@@ -1,3 +1,8 @@
+2010-08-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* commands.texi (Misc Events): Add cross-references to where
+	POSITION of a mouse event is described in detail.
+
 2010-08-08  Christoph  <cschol2112@googlemail.com>
 
 	* control.texi (Handling Errors) <error-message-string>: Fix arg name.
