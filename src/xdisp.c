@@ -217,7 +217,26 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    glyph with suitably computed width.  Both the blanks and the
    stretch glyph are given the face of the background of the line.
    This way, the terminal-specific back-end can still draw the glyphs
-   left to right, even for R2L lines.  */
+   left to right, even for R2L lines.
+
+   Note one important detail mentioned above: that the bidi reordering
+   engine, driven by the iterator, produces characters in R2L rows
+   starting at the character that will be the rightmost on display.
+   As far as the iterator is concerned, the geometry of such rows is
+   still left to right, i.e. the iterator "thinks" the first character
+   is at the leftmost pixel position.  The iterator does not know that
+   PRODUCE_GLYPHS reverses the order of the glyphs that the iterator
+   delivers.  This is important when functions from the the move_it_*
+   family are used to get to certain screen position or to match
+   screen coordinates with buffer coordinates: these functions use the
+   iterator geometry, which is left to right even in R2L paragraphs.
+   This works well with most callers of move_it_*, because they need
+   to get to a specific column, and columns are still numbered in the
+   reading order, i.e. the rightmost character in a R2L paragraph is
+   still column zero.  But some callers do not get well with this; a
+   notable example is mouse clicks that need to find the character
+   that corresponds to certain pixel coordinates.  See
+   buffer_posn_from_coords in dispnew.c for how this is handled.  */
 
 #include <config.h>
 #include <stdio.h>
