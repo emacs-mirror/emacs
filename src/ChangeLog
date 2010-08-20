@@ -1,3 +1,7 @@
+2010-08-20  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* image.c (imagemagick_clear_image): Remove debugging output.
+
 2010-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* cmds.c (Vself_insert_face, Vself_insert_face_command): Remove.
