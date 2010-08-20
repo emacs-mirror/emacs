@@ -1,5 +1,10 @@
 2010-08-20  Eli Zaretskii  <eliz@gnu.org>
 
+	* emacs.c <emacs_version>: Add a comment regarding
+	msdos/mainmake.v2's dependency on the syntax of this declaration.
+
+2010-08-20  Eli Zaretskii  <eliz@gnu.org>
+
 	* dispnew.c (buffer_posn_from_coords): Fix calculation of buffer
 	position for R2L lines by mirroring the pixel position wrt the
 	text are box.  Improve commentary.
