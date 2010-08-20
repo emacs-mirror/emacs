@@ -1,5 +1,8 @@
 2010-08-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* puresize.h: Remove code assuming PNTR_COMPARISON_TYPE is not
+	defined, unconditionally defined in lisp.h.
+
 	* term.c: Do not include <termios.h>, systty.h does it.
 
 	* s/unixware.h (HAVE_TCATTR):

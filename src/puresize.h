@@ -87,7 +87,6 @@ extern EMACS_INT pure[];
   && (PNTR_COMPARISON_TYPE) XPNTR (obj) >= (PNTR_COMPARISON_TYPE) pure)
 
 #else /* not VIRT_ADDR_VARIES */
-#ifdef PNTR_COMPARISON_TYPE
 /* When PNTR_COMPARISON_TYPE is not the default (unsigned int).  */
 
 extern char my_edata[];
@@ -95,14 +94,6 @@ extern char my_edata[];
 #define PURE_P(obj) \
   ((PNTR_COMPARISON_TYPE) XPNTR (obj) < (PNTR_COMPARISON_TYPE) my_edata)
 
-#else /* not VIRT_ADDRESS_VARIES, not PNTR_COMPARISON_TYPE */
-
-extern char my_edata[];
-
-#define PURE_P(obj) \
-  (XPNTR (obj) < (unsigned int) my_edata)
-
-#endif /* PNTR_COMPARISON_TYPE */
 #endif /* VIRT_ADDRESS_VARIES */
 
 /* arch-tag: fd9b0a91-a70e-4729-a75a-6bb4ca1ce14f
