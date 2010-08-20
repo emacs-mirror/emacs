@@ -1,5 +1,10 @@
 2010-08-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* alloc.c (malloc_sbrk_used, malloc_sbrk_unused): Remove,
+	write only.
+	(init_alloc_once): Remove writes to malloc_sbrk_unused, and
+	malloc_sbrk_used, nothing uses them.
+
 	* puresize.h: Remove code assuming PNTR_COMPARISON_TYPE is not
 	defined, unconditionally defined in lisp.h.
 
