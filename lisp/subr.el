@@ -1818,6 +1818,7 @@ When there's an ambiguity because the key looks like the prefix of
 some sort of escape sequence, the ambiguity is resolved via `read-key-delay'."
   (let ((overriding-terminal-local-map read-key-empty-map)
 	(overriding-local-map nil)
+        (echo-keystrokes 0)
 	(old-global-map (current-global-map))
         (timer (run-with-idle-timer
                 ;; Wait long enough that Emacs has the time to receive and
