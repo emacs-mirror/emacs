@@ -10858,7 +10858,7 @@ note_tool_bar_highlight (struct frame *f, int x, int y)
   enum draw_glyphs_face draw = DRAW_IMAGE_RAISED;
   int mouse_down_p, rc;
 
-  /* Function note_mouse_highlight is called with negative x(y
+  /* Function note_mouse_highlight is called with negative X/Y
      values when mouse moves outside of the frame.  */
   if (x <= 0 || y <= 0)
     {
