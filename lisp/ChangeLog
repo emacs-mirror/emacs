@@ -1,3 +1,7 @@
+2010-08-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/add-log.el (add-log-file-name): Don't get confused by symlinks.
+
 2010-08-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mouse.el (mouse-save-then-kill): Don't save region to kill ring
@@ -10,19 +14,18 @@
 2010-08-21  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* whitespace.el: Fix slow cursor movement.  Reported by Christoph
-	Groth <cwg@falma.de> and Liu Xin <x_liu@neusoft.com>.  New version
-	13.0.
+	Groth <cwg@falma.de> and Liu Xin <x_liu@neusoft.com>.
+	New version 13.0.
 	(whitespace-empty-at-bob-regexp, whitespace-empty-at-eob-regexp):
 	Adjust initialization.
 	(whitespace-bob-marker, whitespace-eob-marker)
 	(whitespace-buffer-changed): New vars.
 	(whitespace-cleanup, whitespace-color-on, whitespace-color-off)
 	(whitespace-empty-at-bob-regexp, whitespace-empty-at-eob-regexp)
-	(whitespace-post-command-hook, whitespace-display-char-on): Adjust
-	code.
+	(whitespace-post-command-hook, whitespace-display-char-on):
+	Adjust code.
 	(whitespace-looking-back, whitespace-buffer-changed): New funs.
-	(whitespace-space-regexp, whitespace-tab-regexp): Eliminated
-	funs.
+	(whitespace-space-regexp, whitespace-tab-regexp): Eliminate funs.
 
 2010-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -3227,7 +3230,8 @@
 	* minibuffer.el (tags-completion-at-point-function): New function.
 	(completion-at-point-functions): Use it.
 
-	* cedet/semantic.el (semantic-completion-at-point-function): New function.
+	* cedet/semantic.el (semantic-completion-at-point-function):
+	New function.
 	(semantic-mode): Use semantic-completion-at-point-function for
 	completion-at-point-functions instead.
 
@@ -3277,8 +3281,8 @@
 
 2010-04-28  Chong Yidong  <cyd@stupidchicken.com>
 
-	* progmodes/bug-reference.el (bug-reference-url-format): Revert
-	2010-04-27 change due to security risk.
+	* progmodes/bug-reference.el (bug-reference-url-format):
+	Revert 2010-04-27 change due to security risk.
 
 2010-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -3453,8 +3457,7 @@
 
 	* ido.el (ido-init-completion-maps): For ido-switch-buffer, C-o
 	toggles the use of virtual buffers.
-	(ido-buffer-internal): Guard `ido-use-virtual-buffers' global
-	value.
+	(ido-buffer-internal): Guard `ido-use-virtual-buffers' global value.
 	(ido-toggle-virtual-buffers): New function.
 
 2010-04-21  Juanma Barranquero  <lekktu@gmail.com>
@@ -4031,7 +4034,7 @@
 
 	Enable recentf-mode if using virtual buffers.
 	* ido.el (recentf-list): Declare for byte-compiler.
-	(ido-virtual-buffers): Move up to silence byte-compiler.  Add docstring.
+	(ido-virtual-buffers): Move up to silence byte-compiler. Add docstring.
 	(ido-make-buffer-list): Simplify.
 	(ido-add-virtual-buffers-to-list): Simplify.  Enable recentf-mode.
 
@@ -5542,8 +5545,8 @@
 2010-01-21  Alan Mackenzie  <acm@muc.de>
 
 	Fix a situation where deletion of a cpp construct throws an error.
-	* progmodes/cc-engine.el (c-invalidate-state-cache): Before
-	invoking c-with-all-but-one-cpps-commented-out, check that the
+	* progmodes/cc-engine.el (c-invalidate-state-cache):
+	Before invoking c-with-all-but-one-cpps-commented-out, check that the
 	special cpp construct is still in the buffer.
 	(c-parse-state): Record the special cpp with markers, not numbers.
 
