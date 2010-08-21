@@ -1,3 +1,7 @@
+2010-08-21  Glenn Morris  <rgm@gnu.org>
+
+	* misc.texi (Amusements): Mention bubbles and animate.
+
 2010-06-23  Glenn Morris  <rgm@gnu.org>
 
 	* abbrevs.texi, basic.texi, buffers.texi, building.texi, calendar.texi:
