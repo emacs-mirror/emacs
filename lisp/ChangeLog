@@ -1,3 +1,12 @@
+2010-08-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse.el (mouse-save-then-kill): Don't save region to kill ring
+	when extending it.  Before killing on the second click, check if
+	the buffer is the correct one.  Doc fix.
+	(mouse-secondary-save-then-kill): Allow usage without first
+	calling mouse-start-secondary, by defaulting to point.  Don't save
+	an empty secondary selection.  Doc fix.
+
 2010-08-21  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* whitespace.el: Fix slow cursor movement.  Reported by Christoph
