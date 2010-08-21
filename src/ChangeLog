@@ -1,5 +1,8 @@
 2010-08-21  Eli Zaretskii  <eliz@gnu.org>
 
+	* xdisp.c (mouse_face_from_buffer_pos): Support mouse highlight in
+	bidi-reordered L2R lines.  Continued lines are not yet supported.
+
 	* dispnew.c (buffer_posn_from_coords): Fix off-by-one error in
 	mirroring pixel positions.
 

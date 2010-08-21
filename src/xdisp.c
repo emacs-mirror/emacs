@@ -23839,7 +23839,7 @@ mouse_face_from_buffer_pos (Lisp_Object window,
   struct glyph_row *first = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
   struct glyph_row *row;
   struct glyph *glyph, *end;
-  EMACS_INT ignore;
+  EMACS_INT ignore, pos;
   int x;
 
   xassert (NILP (display_string) || STRINGP (display_string));
@@ -23847,7 +23847,9 @@ mouse_face_from_buffer_pos (Lisp_Object window,
   xassert (NILP (after_string) || STRINGP (after_string));
 
   /* Find the first highlighted glyph.  */
-  if (start_charpos < MATRIX_ROW_START_CHARPOS (first))
+  if (start_charpos < MATRIX_ROW_START_CHARPOS (first)
+      && (NILP (XBUFFER (w->buffer)->bidi_display_reordering)
+	  || row_containing_pos (w, start_charpos, first, NULL, 0) == NULL))
     {
       dpyinfo->mouse_face_beg_col = 0;
       dpyinfo->mouse_face_beg_row = MATRIX_ROW_VPOS (first, w->current_matrix);
@@ -23856,6 +23858,10 @@ mouse_face_from_buffer_pos (Lisp_Object window,
     }
   else
     {
+      /* FIXME: this assumes that START_CHARPOS is in beg_row.  This
+	 is false for reordered lines that are continued.  Need to
+	 compute beg_row and end_row separately from beg_col and
+	 end_col.  */
       row = row_containing_pos (w, start_charpos, first, NULL, 0);
       if (row == NULL)
 	row = MATRIX_ROW (w->current_matrix, XFASTINT (w->window_end_vpos));
@@ -23880,33 +23886,72 @@ mouse_face_from_buffer_pos (Lisp_Object window,
 	    }
 	}
 
-      glyph = row->glyphs[TEXT_AREA];
-      end = glyph + row->used[TEXT_AREA];
-      x = row->x;
       dpyinfo->mouse_face_beg_y = row->y;
       dpyinfo->mouse_face_beg_row = MATRIX_ROW_VPOS (row, w->current_matrix);
 
-      /* Skip truncation glyphs at the start of the glyph row.  */
-      if (row->displays_text_p)
-	for (; glyph < end
-	       && INTEGERP (glyph->object)
-	       && glyph->charpos < 0;
-	     ++glyph)
-	  x += glyph->pixel_width;
+      /* For a bidi-reordered row, the positions of BEFORE_STRING,
+	 AFTER_STRING, DISPLAY_STRING, START_CHARPOS, and END_CHARPOS
+	 could be anywhere in the row and in any order.  The strategy
+	 below is to find the leftmost and the rightmost glyph that
+	 belongs to either of these 3 strings, or whose position is
+	 between START_CHARPOS and END_CHARPOS, and highlight all the
+	 glyphs between those two.  This may cover more than just the
+	 text between START_CHARPOS and END_CHARPOS if the range of
+	 characters strides the the bidi level boundary, e.g. if the
+	 beginning is in R2L text while the end is in L2R text or vice
+	 versa.  */
+      if (!row->reversed_p)
+	{
+	  /* This row is in a left to right paragraph.  Scan it left
+	     to right.  */
+	  glyph = row->glyphs[TEXT_AREA];
+	  end = glyph + row->used[TEXT_AREA];
+	  x = row->x;
 
-      /* Scan the glyph row, stopping before BEFORE_STRING or
-	 DISPLAY_STRING or START_CHARPOS.  */
-      for (; glyph < end
-	     && !INTEGERP (glyph->object)
-	     && !EQ (glyph->object, before_string)
-	     && !EQ (glyph->object, display_string)
-	     && !(BUFFERP (glyph->object)
-		  && glyph->charpos >= start_charpos);
-	   ++glyph)
-	x += glyph->pixel_width;
+	  /* Skip truncation glyphs at the start of the glyph row.  */
+	  if (row->displays_text_p)
+	    for (; glyph < end
+		   && INTEGERP (glyph->object)
+		   && glyph->charpos < 0;
+		 ++glyph)
+	      x += glyph->pixel_width;
 
-      dpyinfo->mouse_face_beg_x = x;
-      dpyinfo->mouse_face_beg_col = glyph - row->glyphs[TEXT_AREA];
+      /* Scan the glyph row, looking for BEFORE_STRING, AFTER_STRING,
+	 or DISPLAY_STRING, and the first glyph whose position is
+	 between START_CHARPOS and END_CHARPOS.  */
+	  for (; glyph < end
+		 && !INTEGERP (glyph->object)
+		 && !EQ (glyph->object, display_string)
+		 && !(BUFFERP (glyph->object)
+		      && (glyph->charpos >= start_charpos
+			  && glyph->charpos < end_charpos));
+	       ++glyph)
+	    {
+	      /* BEFORE_STRING or AFTER_STRING are only relevant if
+		 they are present at buffer positions between
+		 START_CHARPOS and END_CHARPOS.  */
+	      if (EQ (glyph->object, before_string))
+		{
+		  pos = string_buffer_position (w, before_string,
+						start_charpos);
+		  if (pos && pos >= start_charpos && pos < end_charpos)
+		    break;
+		}
+	      else if (EQ (glyph->object, after_string))
+		{
+		  pos = string_buffer_position (w, after_string, end_charpos);
+		  if (pos && pos >= start_charpos && pos < end_charpos)
+		    break;
+		}
+	      x += glyph->pixel_width;
+	    }
+	  dpyinfo->mouse_face_beg_x = x;
+	  dpyinfo->mouse_face_beg_col = glyph - row->glyphs[TEXT_AREA];
+	}
+      else
+	{
+	  /* FIXME! */
+	}
     }
 
   /* Find the last highlighted glyph.  */
@@ -23931,60 +23976,54 @@ mouse_face_from_buffer_pos (Lisp_Object window,
 	row = next;
     }
 
-  glyph = row->glyphs[TEXT_AREA];
-  end = glyph + row->used[TEXT_AREA];
-  x = row->x;
   dpyinfo->mouse_face_end_y = row->y;
   dpyinfo->mouse_face_end_row = MATRIX_ROW_VPOS (row, w->current_matrix);
 
-  /* Skip truncation glyphs at the start of the row.  */
-  if (row->displays_text_p)
-    for (; glyph < end
-	   && INTEGERP (glyph->object)
-	   && glyph->charpos < 0;
-	 ++glyph)
-      x += glyph->pixel_width;
-
-  /* Scan the glyph row, stopping at END_CHARPOS or when we encounter
-     AFTER_STRING.  */
-  for (; glyph < end
-	 && !INTEGERP (glyph->object)
-	 && !EQ (glyph->object, after_string)
-	 && !(BUFFERP (glyph->object) && glyph->charpos >= end_charpos);
-       ++glyph)
-    x += glyph->pixel_width;
-
-  /* If we found AFTER_STRING, consume it and stop.  */
-  if (EQ (glyph->object, after_string))
+  if (!row->reversed_p)
     {
-      for (; EQ (glyph->object, after_string) && glyph < end; ++glyph)
+      /* Skip truncation and continuation glyphs near the end of the
+	 row, and also blanks and stretch glyphs inserted by
+	 extend_face_to_end_of_line.  */
+      while (end > glyph
+	     && INTEGERP ((end - 1)->object)
+	     && (end - 1)->charpos <= 0)
+	--end;
+      /* Scan the rest of the glyph row from the end, looking for the
+	 first glyph that comes from BEFORE_STRING, AFTER_STRING, or
+	 DISPLAY_STRING, or whose position is between START_CHARPOS
+	 and END_CHARPOS */
+      for (--end;
+	     end > glyph
+	     && !INTEGERP (end->object)
+	     && !EQ (end->object, display_string)
+	     && !(BUFFERP (end->object)
+		  && (end->charpos >= start_charpos
+		      && end->charpos < end_charpos));
+	   --end)
+	{
+	  /* BEFORE_STRING or AFTER_STRING are only relevant if
+	     they are present at buffer positions between
+	     START_CHARPOS and END_CHARPOS.  */
+	  if (EQ (end->object, before_string))
+	    {
+	      pos = string_buffer_position (w, before_string, start_charpos);
+	      if (pos && pos >= start_charpos && pos < end_charpos)
+		break;
+	    }
+	  else if (EQ (end->object, after_string))
+	    {
+	      pos = string_buffer_position (w, after_string, end_charpos);
+	      if (pos && pos >= start_charpos && pos < end_charpos)
+		break;
+	    }
+	}
+      /* Find the X coordinate of the last glyph to be highlighted.  */
+      for (; glyph <= end; ++glyph)
 	x += glyph->pixel_width;
     }
   else
     {
-      /* If there's no after-string, we must check if we overshot,
-	 which might be the case if we stopped after a string glyph.
-	 That glyph may belong to a before-string or display-string
-	 associated with the end position, which must not be
-	 highlighted.  */
-      Lisp_Object prev_object;
-      EMACS_INT pos;
-
-      while (glyph > row->glyphs[TEXT_AREA])
-	{
-	  prev_object = (glyph - 1)->object;
-	  if (!STRINGP (prev_object) || EQ (prev_object, display_string))
-	    break;
-
-	  pos = string_buffer_position (w, prev_object, end_charpos);
-	  if (pos && pos < end_charpos)
-	    break;
-
-	  for (; glyph > row->glyphs[TEXT_AREA]
-		 && EQ ((glyph - 1)->object, prev_object);
-	       --glyph)
-	    x -= (glyph - 1)->pixel_width;
-	}
+      /* FIXME! */
     }
 
   dpyinfo->mouse_face_end_x = x;
