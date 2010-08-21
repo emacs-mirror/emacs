@@ -1,3 +1,20 @@
+2010-08-21  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* whitespace.el: Fix slow cursor movement.  Reported by Christoph
+	Groth <cwg@falma.de> and Liu Xin <x_liu@neusoft.com>.  New version
+	13.0.
+	(whitespace-empty-at-bob-regexp, whitespace-empty-at-eob-regexp):
+	Adjust initialization.
+	(whitespace-bob-marker, whitespace-eob-marker)
+	(whitespace-buffer-changed): New vars.
+	(whitespace-cleanup, whitespace-color-on, whitespace-color-off)
+	(whitespace-empty-at-bob-regexp, whitespace-empty-at-eob-regexp)
+	(whitespace-post-command-hook, whitespace-display-char-on): Adjust
+	code.
+	(whitespace-looking-back, whitespace-buffer-changed): New funs.
+	(whitespace-space-regexp, whitespace-tab-regexp): Eliminated
+	funs.
+
 2010-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (locate-file-completion-table): Only list the .el and .elc
@@ -6244,7 +6261,7 @@
 
 	* ps-print.el (ps-face-attributes): It was not returning the
 	attribute face for faces specified as string.  Reported by harven
-	<harven@free.fr>.
+	<harven@free.fr>.  (Bug#5254)
 	(ps-print-version): New version 7.3.5.
 
 2009-12-18  Ulf Jasper  <ulf.jasper@web.de>
