@@ -1,3 +1,9 @@
+2010-08-21  Kirk Kelsey  <kirk.kelsey@0x4b.net>  (tiny change)
+            Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/make-mode.el (makefile-fill-paragraph): Account for the
+	extra backslash added to each line (bug#6890).
+
 2010-08-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (read-key): Don't echo keystrokes (bug#6883).
