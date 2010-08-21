@@ -1,3 +1,11 @@
+2010-08-21  Leo  <sdl.web@gmail.com>
+
+	Fix buffer-list rename&refresh after after killing a buffer in ido.
+	* lisp/ido.el: Revert Óscar's.
+	(ido-kill-buffer-at-head): Exit the minibuffer with ido-exit=refresh.
+	Remember the buffers at head, rather than their name.
+	* lisp/iswitchb.el (iswitchb-kill-buffer): Re-make the list.
+
 2010-08-21  Kirk Kelsey  <kirk.kelsey@0x4b.net>  (tiny change)
             Stefan Monnier  <monnier@iro.umontreal.ca>
 
