@@ -38,15 +38,15 @@
 	* emacs-lisp/autoload.el (make-autoload): Preload the macros's
 	declarations that are useful before running the macro.
 
-2010-08-18 Joakim Verona <joakim@verona.se>
-        * image.el:
-        (imagemagick-types-inhibit): New var.
-        (imagemagick-register-types): New function.
-	* image-mode.el:
-	(image-transform-properties): New function.
+2010-08-18  Joakim Verona  <joakim@verona.se>
+
+	* image.el (imagemagick-types-inhibit): New variable.
+	(imagemagick-register-types): New function.
+	* image-mode.el (image-transform-properties): New function.
 	(image-transform-set-scale, image-transform-fit-to-height)
 	(image-transform-set-rotation, image-transform-set-resize)
-	(image-transform-fit-to-width, image-transform-fit-to-height):New functions.
+	(image-transform-fit-to-width, image-transform-fit-to-height):
+	New functions.
 	(image-toggle-display-image): Support image transforms.
 
 2010-08-18  Katsumi Yamaoka  <yamaoka@jpl.org>
