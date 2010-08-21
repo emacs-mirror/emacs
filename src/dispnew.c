@@ -5386,12 +5386,12 @@ buffer_posn_from_coords (struct window *w, int *x, int *y, struct display_pos *p
 
   /* First, move to the beginning of the row corresponding to *Y.  We
      need to be in that row to get the correct value of base paragraph
-     direction for the paragraph at *X.  */
+     direction for the text at (*X, *Y).  */
   move_it_to (&it, -1, 0, *y, -1, MOVE_TO_X | MOVE_TO_Y);
 
   /* TO_X is the pixel position that the iterator will compute for the
-     glyph at *X.  This is because iterator positions are not offset
-     due to hscroll.  */
+     glyph at *X.  We add it.first_visible_x because iterator
+     positions include the hscroll.  */
   to_x = x0 + it.first_visible_x;
   if (it.bidi_it.paragraph_dir == R2L)
     /* For lines in an R2L paragraph, we need to mirror TO_X wrt the
@@ -5401,13 +5401,14 @@ buffer_posn_from_coords (struct window *w, int *x, int *y, struct display_pos *p
        display, we reverse their order in PRODUCE_GLYPHS, but the
        iterator doesn't know about that.)  The following line adjusts
        the pixel position to the iterator geometry, which is what
-       move_it_* routines use.  */
-    to_x = window_box_width (w, TEXT_AREA) - to_x
-	   /* Text terminals need a one-character offset to get it right.  */
-	   - (FRAME_MSDOS_P (WINDOW_XFRAME (w))
-	      || FRAME_TERMCAP_P (WINDOW_XFRAME (w)));
+       move_it_* routines use.  (The -1 is because in a window whose
+       text-area width is W, the rightmost pixel position is W-1, and
+       it should be mirrored into zero pixel position.)  */
+    to_x = window_box_width (w, TEXT_AREA) - to_x - 1;
 
-  /* Now move horizontally in the row to the glyph under *X. */
+  /* Now move horizontally in the row to the glyph under *X.  Second
+     argument is ZV to prevent move_it_in_display_line from matching
+     based on buffer positions.  */
   move_it_in_display_line (&it, ZV, to_x, MOVE_TO_X);
 
   Fset_buffer (old_current_buffer);

@@ -1,3 +1,8 @@
+2010-08-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (buffer_posn_from_coords): Fix off-by-one error in
+	mirroring pixel positions.
+
 2010-08-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* alloc.c (malloc_sbrk_used, malloc_sbrk_unused): Remove,
