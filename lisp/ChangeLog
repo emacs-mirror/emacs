@@ -18,8 +18,8 @@
 
 2010-08-21  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* whitespace.el: Fix slow cursor movement.  Reported by Christoph
-	Groth <cwg@falma.de> and Liu Xin <x_liu@neusoft.com>.
+	* whitespace.el: Fix slow cursor movement (Bug#6172).  Reported by
+	Christoph Groth <cwg@falma.de> and Liu Xin <x_liu@neusoft.com>.
 	New version 13.0.
 	(whitespace-empty-at-bob-regexp, whitespace-empty-at-eob-regexp):
 	Adjust initialization.
