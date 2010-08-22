@@ -1,3 +1,7 @@
+2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Doc fix (Bug#6880).
+
 2010-08-21  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* whitespace.el: Fix slow cursor movement (Bug#6172).  Reported by

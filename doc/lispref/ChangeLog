@@ -1,3 +1,7 @@
+2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* modes.texi (Defining Minor Modes): Doc fix (Bug#6880).
+
 2010-08-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* objects.texi (Bool-Vector Type): Minor definition tweak (Bug#6878).
