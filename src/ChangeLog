@@ -1,3 +1,12 @@
+2010-08-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* unexcoff.c (report_error, make_hdr, write_segment)
+	(copy_text_and_data, copy_sym, mark_x, adjust_lnnoptrs, unexec):
+	Convert argument lists and prototypes to ANSI C.
+	(make_hdr, write_segment): Remove unused variables.
+	(unexec): Remove commented-out line.  Initialize `new' to shut up
+	compiler warnings.
+
 2010-08-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispnew.c (buffer_posn_from_coords): Fix off-by-one error in
