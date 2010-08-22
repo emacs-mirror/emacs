@@ -1,5 +1,13 @@
 2010-08-22  Eli Zaretskii  <eliz@gnu.org>
 
+	* sysselect.h [WINDOWSNT]: Don't define the FD_* and select stuff
+	for w32.
+
+	* s/ms-w32.h (HAVE_SYS_TIMEB_H): Don't #undef HAVE_SYS_SELECT_H,
+	it's done in nt/config.nt.
+
+	* makefile.w32-in ($(BLD)/sysdep.$(O)): Depend on sysselect.h.
+
 	* unexcoff.c (report_error, make_hdr, write_segment)
 	(copy_text_and_data, copy_sym, mark_x, adjust_lnnoptrs, unexec):
 	Convert argument lists and prototypes to ANSI C.
