@@ -1,3 +1,28 @@
+2010-08-22  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* eval.c (Flet, Feval, Fapply, apply_lambda): Use SAFE_ALLOCA_LISP
+	instead of SAFE_ALLOCA.
+
+2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* eval.c (Flet, Feval, Fapply, apply_lambda): Use SAFE_ALLOCA
+	(Bug#6214).
+
+2010-08-22  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* doc.c (Fsnarf_documentation): Set skip_file only if p[1] is S.
+
+2010-08-22  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* doc.c (Fsnarf_documentation): Initialize skip_file before
+	build-files test.
+
+2010-08-22  Peter O'Gorman <pogma@thewrittenword.com>  (tiny change)
+
+	* s/hpux10-20.h (HAVE_TERMIOS, NO_TERMIO, ORDINARY_LINK): New
+	definitions.
+	(HAVE_TERMIO): Remove.
+
 2010-08-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* deps.mk (sysdep.o, msdos.o): Depend on sysselect.h.

@@ -383,14 +383,14 @@ The format of the header is specified by `diary-header-line-format'."
                      "Some text is hidden - press \"s\" in calendar \
 before edit/copy"
                    "Diary"))
-           ?\s (frame-width)))
+           ?\s (window-width)))
   "Format of the header line displayed by `diary-simple-display'.
 Only used if `diary-header-line-flag' is non-nil."
   :group 'diary
   :type 'sexp
   :initialize 'custom-initialize-default
   :set 'diary-set-header
-  :version "22.1")
+  :version "23.3")                      ; frame-width -> window-width
 
 ;; The first version of this also checked for diary-selective-display
 ;; in the non-fancy case. This was an attempt to distinguish between
