@@ -1,3 +1,7 @@
+2010-08-21  Glenn Morris  <rgm@gnu.org>
+
+	* misc.texi (Amusements): Mention bubbles and animate.
+
 2010-07-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* files.texi (Visiting): Add more index entries for

@@ -1,3 +1,74 @@
+2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Doc fix (Bug#6880).
+
+2010-08-22  Leo  <sdl.web@gmail.com>
+
+	Fix buffer-list rename&refresh after after killing a buffer in ido.
+	* lisp/ido.el: Revert Óscar's.
+	(ido-kill-buffer-at-head): Exit the minibuffer with ido-exit=refresh.
+	Remember the buffers at head, rather than their name.
+	* lisp/iswitchb.el (iswitchb-kill-buffer): Re-make the list.
+
+2010-08-22  Kirk Kelsey  <kirk.kelsey@0x4b.net>  (tiny change)
+            Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/make-mode.el (makefile-fill-paragraph): Account for the
+	extra backslash added to each line (bug#6890).
+
+2010-08-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (read-key): Don't echo keystrokes (bug#6883).
+
+2010-08-22  Glenn Morris  <rgm@gnu.org>
+
+	* menu-bar.el (menu-bar-games-menu): Add landmark.
+
+2010-08-22  Glenn Morris  <rgm@gnu.org>
+
+	* align.el (align-regexp): Make group and spacing arguments
+	use the interactive defaults when non-interactive.  (Bug#6698)
+
+	* mail/rmail.el (rmail-forward): Replace mail-text-start with its
+	expansion, so as not to need sendmail.
+	(mail-text-start): Remove declaration.
+	(rmail-retry-failure): Require sendmail.
+
+2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (read-key): Don't hide the menu-bar entries (bug#6881).
+
+2010-08-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* progmodes/flymake.el (flymake-start-syntax-check-process):
+	Use `start-file-process' in order to let it run also on remote hosts.
+
+2010-08-22  Kenichi Handa  <handa@m17n.org>
+
+	* files.el: Add `word-wrap' as safe local variable.
+
+2010-08-22  Glenn Morris  <rgm@gnu.org>
+
+	* woman.el (woman-translate): Case matters.  (Bug#6849)
+
+2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (kill-region): Doc fix (Bug#6787).
+
+2010-08-22  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-header-line-format):
+	Fit it to the window, not the frame.
+
+2010-08-22  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* subr.el (ignore-errors): Add debug declaration.
+
+2010-08-22  Geoff Gole  <geoffgole@gmail.com>  (tiny change)
+
+	* whitespace.el (whitespace-color-off): Remove post-command-hook
+	locally.
+
 2010-08-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc/add-log.el (add-log-file-name): Don't get confused by symlinks.
@@ -346,7 +417,7 @@
 	(ctext-standard-encodings): New variable.
 	(ctext-non-standard-encodings-table): List only elements for
 	non-standard encodings.
-	(ctext-pre-write-conversion): Adjusted for the above change.
+	(ctext-pre-write-conversion): Adjust for the above change.
 	Check ctext-standard-encodings.
 
 	* international/mule-conf.el (compound-text): Doc fix.

@@ -2805,6 +2805,7 @@ asking you for confirmation."
 	(no-update-autoloads     . booleanp)
 	(tab-width               . integerp)   ;; C source code
 	(truncate-lines          . booleanp)   ;; C source code
+	(word-wrap               . booleanp) ;; C source code
 	(bidi-display-reordering . booleanp))) ;; C source code
 
 (put 'bidi-paragraph-direction 'safe-local-variable
