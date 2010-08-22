@@ -55,10 +55,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Special items needed to make Emacs run on this system.  */
 
-/* The following definition seems to be needed in AIX version 3.1.6.8.
-   It may not have been needed in certain earlier versions.  */
-#define HAVE_TCATTR
-
 /* AIX doesn't define this.  */
 #define unix 1
 

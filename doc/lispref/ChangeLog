@@ -1,3 +1,23 @@
+2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nonascii.texi (Text Representations):
+	* loading.texi (Loading Non-ASCII):
+	* compile.texi (Byte Compilation): Don't mention obsolete
+	--unibyte command-line argument.
+
+2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* modes.texi (Defining Minor Modes): Doc fix (Bug#6880).
+
+2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* objects.texi (Bool-Vector Type): Minor definition tweak (Bug#6878).
+
+2010-08-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* commands.texi (Misc Events): Add cross-references to where
+	POSITION of a mouse event is described in detail.
+
 2010-08-08  Christoph  <cschol2112@googlemail.com>
 
 	* control.texi (Handling Errors) <error-message-string>: Fix arg name.

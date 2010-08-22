@@ -1,3 +1,113 @@
+2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (command-line-1): Issue warning for ignored arguments
+	--unibyte, etc (Bug#6886).
+
+2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Doc fix (Bug#6880).
+
+2010-08-22  Leo  <sdl.web@gmail.com>
+
+	Fix buffer-list rename&refresh after after killing a buffer in ido.
+	* lisp/ido.el: Revert Óscar's.
+	(ido-kill-buffer-at-head): Exit the minibuffer with ido-exit=refresh.
+	Remember the buffers at head, rather than their name.
+	* lisp/iswitchb.el (iswitchb-kill-buffer): Re-make the list.
+
+2010-08-22  Kirk Kelsey  <kirk.kelsey@0x4b.net>  (tiny change)
+            Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/make-mode.el (makefile-fill-paragraph): Account for the
+	extra backslash added to each line (bug#6890).
+
+2010-08-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (read-key): Don't echo keystrokes (bug#6883).
+
+2010-08-22  Glenn Morris  <rgm@gnu.org>
+
+	* menu-bar.el (menu-bar-games-menu): Add landmark.
+
+2010-08-22  Glenn Morris  <rgm@gnu.org>
+
+	* align.el (align-regexp): Make group and spacing arguments
+	use the interactive defaults when non-interactive.  (Bug#6698)
+
+	* mail/rmail.el (rmail-forward): Replace mail-text-start with its
+	expansion, so as not to need sendmail.
+	(mail-text-start): Remove declaration.
+	(rmail-retry-failure): Require sendmail.
+
+2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (read-key): Don't hide the menu-bar entries (bug#6881).
+
+2010-08-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* progmodes/flymake.el (flymake-start-syntax-check-process):
+	Use `start-file-process' in order to let it run also on remote hosts.
+
+2010-08-22  Kenichi Handa  <handa@m17n.org>
+
+	* files.el: Add `word-wrap' as safe local variable.
+
+2010-08-22  Glenn Morris  <rgm@gnu.org>
+
+	* woman.el (woman-translate): Case matters.  (Bug#6849)
+
+2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (kill-region): Doc fix (Bug#6787).
+
+2010-08-22  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-header-line-format):
+	Fit it to the window, not the frame.
+
+2010-08-22  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* subr.el (ignore-errors): Add debug declaration.
+
+2010-08-22  Geoff Gole  <geoffgole@gmail.com>  (tiny change)
+
+	* whitespace.el (whitespace-color-off): Remove post-command-hook
+	locally.
+
+2010-08-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc/add-log.el (add-log-file-name): Don't get confused by symlinks.
+
+2010-08-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (custom-group-value-create): Add extra newline
+	before end line (Bug#6876).
+
+2010-08-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse.el (mouse-save-then-kill): Don't save region to kill ring
+	when extending it.  Before killing on the second click, check if
+	the buffer is the correct one.  Doc fix.
+	(mouse-secondary-save-then-kill): Allow usage without first
+	calling mouse-start-secondary, by defaulting to point.  Don't save
+	an empty secondary selection.  Doc fix.
+
+2010-08-21  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* whitespace.el: Fix slow cursor movement (Bug#6172).  Reported by
+	Christoph Groth <cwg@falma.de> and Liu Xin <x_liu@neusoft.com>.
+	New version 13.0.
+	(whitespace-empty-at-bob-regexp, whitespace-empty-at-eob-regexp):
+	Adjust initialization.
+	(whitespace-bob-marker, whitespace-eob-marker)
+	(whitespace-buffer-changed): New vars.
+	(whitespace-cleanup, whitespace-color-on, whitespace-color-off)
+	(whitespace-empty-at-bob-regexp, whitespace-empty-at-eob-regexp)
+	(whitespace-post-command-hook, whitespace-display-char-on):
+	Adjust code.
+	(whitespace-looking-back, whitespace-buffer-changed): New funs.
+	(whitespace-space-regexp, whitespace-tab-regexp): Eliminate funs.
+
 2010-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (locate-file-completion-table): Only list the .el and .elc
@@ -37,6 +147,17 @@
 
 	* emacs-lisp/autoload.el (make-autoload): Preload the macros's
 	declarations that are useful before running the macro.
+
+2010-08-18  Joakim Verona  <joakim@verona.se>
+
+	* image.el (imagemagick-types-inhibit): New variable.
+	(imagemagick-register-types): New function.
+	* image-mode.el (image-transform-properties): New function.
+	(image-transform-set-scale, image-transform-fit-to-height)
+	(image-transform-set-rotation, image-transform-set-resize)
+	(image-transform-fit-to-width, image-transform-fit-to-height):
+	New functions.
+	(image-toggle-display-image): Support image transforms.
 
 2010-08-18  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -301,7 +422,7 @@
 	(ctext-standard-encodings): New variable.
 	(ctext-non-standard-encodings-table): List only elements for
 	non-standard encodings.
-	(ctext-pre-write-conversion): Adjusted for the above change.
+	(ctext-pre-write-conversion): Adjust for the above change.
 	Check ctext-standard-encodings.
 
 	* international/mule-conf.el (compound-text): Doc fix.
@@ -3190,7 +3311,8 @@
 	* minibuffer.el (tags-completion-at-point-function): New function.
 	(completion-at-point-functions): Use it.
 
-	* cedet/semantic.el (semantic-completion-at-point-function): New function.
+	* cedet/semantic.el (semantic-completion-at-point-function):
+	New function.
 	(semantic-mode): Use semantic-completion-at-point-function for
 	completion-at-point-functions instead.
 
@@ -3240,8 +3362,8 @@
 
 2010-04-28  Chong Yidong  <cyd@stupidchicken.com>
 
-	* progmodes/bug-reference.el (bug-reference-url-format): Revert
-	2010-04-27 change due to security risk.
+	* progmodes/bug-reference.el (bug-reference-url-format):
+	Revert 2010-04-27 change due to security risk.
 
 2010-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -3416,8 +3538,7 @@
 
 	* ido.el (ido-init-completion-maps): For ido-switch-buffer, C-o
 	toggles the use of virtual buffers.
-	(ido-buffer-internal): Guard `ido-use-virtual-buffers' global
-	value.
+	(ido-buffer-internal): Guard `ido-use-virtual-buffers' global value.
 	(ido-toggle-virtual-buffers): New function.
 
 2010-04-21  Juanma Barranquero  <lekktu@gmail.com>
@@ -3994,7 +4115,7 @@
 
 	Enable recentf-mode if using virtual buffers.
 	* ido.el (recentf-list): Declare for byte-compiler.
-	(ido-virtual-buffers): Move up to silence byte-compiler.  Add docstring.
+	(ido-virtual-buffers): Move up to silence byte-compiler. Add docstring.
 	(ido-make-buffer-list): Simplify.
 	(ido-add-virtual-buffers-to-list): Simplify.  Enable recentf-mode.
 
@@ -5505,8 +5626,8 @@
 2010-01-21  Alan Mackenzie  <acm@muc.de>
 
 	Fix a situation where deletion of a cpp construct throws an error.
-	* progmodes/cc-engine.el (c-invalidate-state-cache): Before
-	invoking c-with-all-but-one-cpps-commented-out, check that the
+	* progmodes/cc-engine.el (c-invalidate-state-cache):
+	Before invoking c-with-all-but-one-cpps-commented-out, check that the
 	special cpp construct is still in the buffer.
 	(c-parse-state): Record the special cpp with markers, not numbers.
 
@@ -6233,7 +6354,7 @@
 
 	* ps-print.el (ps-face-attributes): It was not returning the
 	attribute face for faces specified as string.  Reported by harven
-	<harven@free.fr>.
+	<harven@free.fr>.  (Bug#5254)
 	(ps-print-version): New version 7.3.5.
 
 2009-12-18  Ulf Jasper  <ulf.jasper@web.de>

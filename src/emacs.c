@@ -91,6 +91,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #endif
 
+/* If you change the following line, remember to update
+   msdos/mainmake.v2 which gleans the Emacs version from it!  */
 static const char emacs_copyright[] = "Copyright (C) 2010 Free Software Foundation, Inc.";
 static const char emacs_version[] = "24.0.50";
 
@@ -1330,68 +1332,6 @@ main (int argc, char **argv)
   init_atimer ();
   running_asynch_code = 0;
 
-  /* Handle --unibyte and the EMACS_UNIBYTE envvar,
-     but not while dumping.  */
-  if (1)
-    {
-      int inhibit_unibyte = 0;
-
-      /* --multibyte overrides EMACS_UNIBYTE.  */
-      if (argmatch (argv, argc, "-no-unibyte", "--no-unibyte", 4, NULL, &skip_args)
-	  || argmatch (argv, argc, "-multibyte", "--multibyte", 4, NULL, &skip_args)
-	  /* Ignore EMACS_UNIBYTE before dumping.  */
-	  || (!initialized && noninteractive))
-	inhibit_unibyte = 1;
-
-      /* --unibyte requests that we set up to do everything with single-byte
-	 buffers and strings.  We need to handle this before calling
-	 init_lread, init_editfns and other places that generate Lisp strings
-	 from text in the environment.  */
-      /* Actually this shouldn't be needed as of 20.4 in a generally
-	 unibyte environment.  As handa says, environment values
-	 aren't now decoded; also existing buffers are now made
-	 unibyte during startup if .emacs sets unibyte.  Tested with
-	 8-bit data in environment variables and /etc/passwd, setting
-	 unibyte and Latin-1 in .emacs. -- Dave Love  */
-      if (argmatch (argv, argc, "-unibyte", "--unibyte", 4, NULL, &skip_args)
-	  || argmatch (argv, argc, "-no-multibyte", "--no-multibyte", 4, NULL, &skip_args)
-	  || (getenv ("EMACS_UNIBYTE") && !inhibit_unibyte))
-	{
-	  Lisp_Object old_log_max;
-	  Lisp_Object symbol, tail;
-
-	  symbol = intern_c_string ("enable-multibyte-characters");
-	  Fset_default (symbol, Qnil);
-
-	  if (initialized)
-	    {
-	      /* Erase pre-dump messages in *Messages* now so no abort.  */
-	      old_log_max = Vmessage_log_max;
-	      XSETFASTINT (Vmessage_log_max, 0);
-	      message_dolog ("", 0, 1, 0);
-	      Vmessage_log_max = old_log_max;
-	    }
-
-	  for (tail = Vbuffer_alist; CONSP (tail);
-	       tail = XCDR (tail))
-	    {
-	      Lisp_Object buffer;
-
-	      buffer = Fcdr (XCAR (tail));
-	      /* Make a multibyte buffer unibyte.  */
-	      if (BUF_Z_BYTE (XBUFFER (buffer)) > BUF_Z (XBUFFER (buffer)))
-		{
-		  struct buffer *current = current_buffer;
-
-		  set_buffer_temp (XBUFFER (buffer));
-		  Fset_buffer_multibyte (Qnil);
-		  set_buffer_temp (current);
-		}
-	    }
-	  message ("Warning: unibyte sessions are obsolete and will disappear");
-	}
-    }
-
   no_loadup
     = argmatch (argv, argc, "-nl", "--no-loadup", 6, NULL, &skip_args);
 
@@ -1790,10 +1730,6 @@ const struct standard_args standard_args[] =
   { "-script", "--script", 100, 1 },
   { "-daemon", "--daemon", 99, 0 },
   { "-help", "--help", 90, 0 },
-  { "-no-unibyte", "--no-unibyte", 83, 0 },
-  { "-multibyte", "--multibyte", 82, 0 },
-  { "-unibyte", "--unibyte", 81, 0 },
-  { "-no-multibyte", "--no-multibyte", 80, 0 },
   { "-nl", "--no-loadup", 70, 0 },
   /* -d must come last before the options handled in startup.el.  */
   { "-d", "--display", 60, 1 },
@@ -2094,7 +2030,7 @@ shut_down_emacs (int sig, int no_x, Lisp_Object stuff)
   Vinhibit_redisplay = Qt;
 
   /* If we are controlling the terminal, reset terminal modes.  */
-#ifdef EMACS_HAVE_TTY_PGRP
+#ifndef DOS_NT
   {
     int pgrp = EMACS_GETPGRP (0);
 

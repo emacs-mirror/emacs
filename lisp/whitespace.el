@@ -6,7 +6,7 @@
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: data, wp
-;; Version: 12.1
+;; Version: 13.0
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 ;; This file is part of GNU Emacs.
@@ -812,7 +812,7 @@ Used when `whitespace-style' includes `indentation',
   :group 'whitespace)
 
 
-(defcustom whitespace-empty-at-bob-regexp "\\`\\(\\([ \t]*\n\\)+\\)"
+(defcustom whitespace-empty-at-bob-regexp "^\\(\\([ \t]*\n\\)+\\)"
   "Specify regexp for empty lines at beginning of buffer.
 
 If you're using `mule' package, there may be other characters besides:
@@ -827,7 +827,7 @@ Used when `whitespace-style' includes `empty'."
   :group 'whitespace)
 
 
-(defcustom whitespace-empty-at-eob-regexp "^\\([ \t\n]+\\)\\'"
+(defcustom whitespace-empty-at-eob-regexp "^\\([ \t\n]+\\)"
   "Specify regexp for empty lines at end of buffer.
 
 If you're using `mule' package, there may be other characters besides:
@@ -1228,6 +1228,19 @@ Used by `whitespace-trailing-regexp' function (which see).")
   "Used to save locally the font-lock refontify state.
 Used by `whitespace-post-command-hook' function (which see).")
 
+(defvar whitespace-bob-marker nil
+  "Used to save locally the bob marker value.
+Used by `whitespace-post-command-hook' function (which see).")
+
+(defvar whitespace-eob-marker nil
+  "Used to save locally the eob marker value.
+Used by `whitespace-post-command-hook' function (which see).")
+
+(defvar whitespace-buffer-changed nil
+  "Used to indicate locally if buffer changed.
+Used by `whitespace-post-command-hook' and `whitespace-buffer-changed'
+functions (which see).")
+
 
 ;;;###autoload
 (defun whitespace-toggle-options (arg)
@@ -1463,10 +1476,10 @@ documentation."
 	  (let (overwrite-mode)		; enforce no overwrite
 	    (goto-char (point-min))
 	    (when (re-search-forward
-		   whitespace-empty-at-bob-regexp nil t)
+		   (concat "\\`" whitespace-empty-at-bob-regexp) nil t)
 	      (delete-region (match-beginning 1) (match-end 1)))
 	    (when (re-search-forward
-		   whitespace-empty-at-eob-regexp nil t)
+		   (concat whitespace-empty-at-eob-regexp "\\'") nil t)
 	      (delete-region (match-beginning 1) (match-end 1)))))))
     ;; PROBLEM 3: 8 or more SPACEs at bol
     ;; PROBLEM 4: SPACEs before TAB
@@ -2146,8 +2159,15 @@ resultant list will be returned."
     (set (make-local-variable 'whitespace-point)
 	 (point))
     (set (make-local-variable 'whitespace-font-lock-refontify)
+	 0)
+    (set (make-local-variable 'whitespace-bob-marker)
+	 (point-min-marker))
+    (set (make-local-variable 'whitespace-eob-marker)
+	 (point-max-marker))
+    (set (make-local-variable 'whitespace-buffer-changed)
 	 nil)
     (add-hook 'post-command-hook #'whitespace-post-command-hook nil t)
+    (add-hook 'before-change-functions #'whitespace-buffer-changed nil t)
     ;; turn off font lock
     (set (make-local-variable 'whitespace-font-lock-mode)
 	 font-lock-mode)
@@ -2158,7 +2178,7 @@ resultant list will be returned."
        nil
        (list
 	;; Show SPACEs
-	(list #'whitespace-space-regexp  1 whitespace-space  t)
+	(list whitespace-space-regexp  1 whitespace-space  t)
 	;; Show HARD SPACEs
 	(list whitespace-hspace-regexp 1 whitespace-hspace t))
        t))
@@ -2167,7 +2187,7 @@ resultant list will be returned."
        nil
        (list
 	;; Show TABs
-	(list #'whitespace-tab-regexp 1 whitespace-tab t))
+	(list whitespace-tab-regexp 1 whitespace-tab t))
        t))
     (when (memq 'trailing whitespace-active-style)
       (font-lock-add-keywords
@@ -2296,7 +2316,8 @@ resultant list will be returned."
   ;; turn off font lock
   (when (whitespace-style-face-p)
     (font-lock-mode 0)
-    (remove-hook 'post-command-hook #'whitespace-post-command-hook)
+    (remove-hook 'post-command-hook #'whitespace-post-command-hook t)
+    (remove-hook 'before-change-functions #'whitespace-buffer-changed t)
     (when whitespace-font-lock
       (setq whitespace-font-lock nil
 	    font-lock-keywords   whitespace-font-lock-keywords))
@@ -2317,37 +2338,128 @@ resultant list will be returned."
 (defun whitespace-empty-at-bob-regexp (limit)
   "Match spaces at beginning of buffer which do not contain the point at \
 beginning of buffer."
-  (and (/= whitespace-point 1)
-       (re-search-forward whitespace-empty-at-bob-regexp limit t)))
+  (let ((b (point))
+	r)
+    (cond
+     ;; at bob
+     ((= b 1)
+      (setq r (and (/= whitespace-point 1)
+		   (looking-at whitespace-empty-at-bob-regexp)))
+      (if r
+	  (set-marker whitespace-bob-marker (match-end 1))
+	(set-marker whitespace-bob-marker b)))
+     ;; inside bob empty region
+     ((<= limit whitespace-bob-marker)
+      (setq r (looking-at whitespace-empty-at-bob-regexp))
+      (if r
+	  (when (< (match-end 1) limit)
+	    (set-marker whitespace-bob-marker (match-end 1)))
+	(set-marker whitespace-bob-marker b)))
+     ;; intersection with end of bob empty region
+     ((<= b whitespace-bob-marker)
+      (setq r (looking-at whitespace-empty-at-bob-regexp))
+      (if r
+	  (set-marker whitespace-bob-marker (match-end 1))
+	(set-marker whitespace-bob-marker b)))
+     ;; it is not inside bob empty region
+     (t
+      (setq r nil)))
+    ;; move to end of matching
+    (and r (goto-char (match-end 1)))
+    r))
+
+
+(defsubst whitespace-looking-back (regexp limit)
+  (save-excursion
+    (when (/= 0 (skip-chars-backward " \t\n" limit))
+      (unless (bolp)
+	(forward-line 1))
+      (looking-at regexp))))
 
 
 (defun whitespace-empty-at-eob-regexp (limit)
   "Match spaces at end of buffer which do not contain the point at end of \
 buffer."
-  (and (/= whitespace-point (1+ (buffer-size)))
-       (re-search-forward whitespace-empty-at-eob-regexp limit t)))
+  (let ((b (point))
+	(e (1+ (buffer-size)))
+	r)
+    (cond
+     ;; at eob
+     ((= limit e)
+      (when (/= whitespace-point e)
+	(goto-char limit)
+	(setq r (whitespace-looking-back whitespace-empty-at-eob-regexp b)))
+      (if r
+	  (set-marker whitespace-eob-marker (match-beginning 1))
+	(set-marker whitespace-eob-marker limit)
+	(goto-char b)))			; return back to initial position
+     ;; inside eob empty region
+     ((>= b whitespace-eob-marker)
+      (goto-char limit)
+      (setq r (whitespace-looking-back whitespace-empty-at-eob-regexp b))
+      (if r
+	  (when (> (match-beginning 1) b)
+	    (set-marker whitespace-eob-marker (match-beginning 1)))
+	(set-marker whitespace-eob-marker limit)
+	(goto-char b)))			; return back to initial position
+     ;; intersection with beginning of eob empty region
+     ((>= limit whitespace-eob-marker)
+      (goto-char limit)
+      (setq r (whitespace-looking-back whitespace-empty-at-eob-regexp b))
+      (if r
+	  (set-marker whitespace-eob-marker (match-beginning 1))
+	(set-marker whitespace-eob-marker limit)
+	(goto-char b)))			; return back to initial position
+     ;; it is not inside eob empty region
+     (t
+      (setq r nil)))
+    r))
 
 
-(defun whitespace-space-regexp (limit)
-  "Match spaces."
-  (setq whitespace-font-lock-refontify t)
-  (re-search-forward whitespace-space-regexp limit t))
-
-
-(defun whitespace-tab-regexp (limit)
-  "Match tabs."
-  (setq whitespace-font-lock-refontify t)
-  (re-search-forward whitespace-tab-regexp limit t))
+(defun whitespace-buffer-changed (beg end)
+  "Set `whitespace-buffer-changed' variable to t."
+  (setq whitespace-buffer-changed t))
 
 
 (defun whitespace-post-command-hook ()
   "Save current point into `whitespace-point' variable.
 Also refontify when necessary."
-  (setq whitespace-point (point))
-  (let ((refontify (or (eolp)			 ; end of line
-		       (= whitespace-point 1)))) ; beginning of buffer
-    (when (or whitespace-font-lock-refontify refontify)
-      (setq whitespace-font-lock-refontify refontify)
+  (setq whitespace-point (point))	; current point position
+  (let ((refontify
+	 (or
+	  ;; it is at end of line ...
+	  (and (eolp)
+	       ;; ... with trailing SPACE or TAB
+	       (or (= (preceding-char) ?\ )
+		   (= (preceding-char) ?\t)))
+	  ;; it is at beginning of buffer (bob)
+	  (= whitespace-point 1)
+	  ;; the buffer was modified and ...
+	  (and whitespace-buffer-changed
+	       (or
+		;; ... or inside bob whitespace region
+		(<= whitespace-point whitespace-bob-marker)
+		;; ... or at bob whitespace region border
+		(and (= whitespace-point (1+ whitespace-bob-marker))
+		     (= (preceding-char) ?\n))))
+	  ;; it is at end of buffer (eob)
+	  (= whitespace-point (1+ (buffer-size)))
+	  ;; the buffer was modified and ...
+	  (and whitespace-buffer-changed
+	       (or
+		;; ... or inside eob whitespace region
+	        (>= whitespace-point whitespace-eob-marker)
+		;; ... or at eob whitespace region border
+		(and (= whitespace-point (1- whitespace-eob-marker))
+		     (= (following-char) ?\n)))))))
+    (when (or refontify (> whitespace-font-lock-refontify 0))
+      (setq whitespace-buffer-changed nil)
+      ;; adjust refontify counter
+      (setq whitespace-font-lock-refontify
+	    (if refontify
+		1
+	      (1- whitespace-font-lock-refontify)))
+      ;; refontify
       (jit-lock-refontify))))
 
 
@@ -2386,11 +2498,11 @@ Also refontify when necessary."
       (unless whitespace-display-table-was-local
 	(setq whitespace-display-table-was-local t
 	      whitespace-display-table
+	      (copy-sequence buffer-display-table))
+	;; asure `buffer-display-table' is unique
+	;; when two or more windows are visible.
+	(setq buffer-display-table
 	      (copy-sequence buffer-display-table)))
-      ;; asure `buffer-display-table' is unique
-      ;; when two or more windows are visible.
-      (set (make-local-variable 'buffer-display-table)
-	   (copy-sequence buffer-display-table))
       (unless buffer-display-table
 	(setq buffer-display-table (make-display-table)))
       (dolist (entry whitespace-display-mappings)

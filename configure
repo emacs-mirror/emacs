@@ -8726,7 +8726,7 @@ $as_echo "#define HAVE_IMAGEMAGICK 1" >>confdefs.h
   fi
 
 
-$as_echo "#define HAVE_MAGICKEXPORTIMAGEPIXELS 1" >>confdefs.h
+$as_echo "#define HAVE_MAGICKEXPORTIMAGEPIXELS 0" >>confdefs.h
 
 
 

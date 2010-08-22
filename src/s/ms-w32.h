@@ -106,7 +106,6 @@ struct sigaction {
 #define HAVE_SOUND  1
 #define LISP_FLOAT_TYPE 1
 
-#undef  HAVE_SYS_SELECT_H
 #define HAVE_SYS_TIMEB_H 1
 #define HAVE_SYS_TIME_H 1
 #define HAVE_UNISTD_H 1

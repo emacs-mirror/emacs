@@ -367,13 +367,6 @@ example) is read without decoding, the text of the program will be
 unibyte text, and its string constants will be unibyte strings.
 @xref{Coding Systems}.
 
-  To make the results more predictable, Emacs always performs decoding
-into the multibyte representation when loading Lisp files, even if it
-was started with the @samp{--unibyte} option.  This means that string
-constants with non-@acronym{ASCII} characters translate into multibyte
-strings.  The only exception is when a particular file specifies no
-decoding.
-
   The reason Emacs is designed this way is so that Lisp programs give
 predictable results, regardless of how Emacs was started.  In addition,
 this enables programs that depend on using multibyte text to work even

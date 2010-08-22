@@ -27,6 +27,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 #endif
 
+/* The w32 build defines select stuff in w32.h, which is included
+   where w32 needs it, but not where sysselect.h is included.  The w32
+   definitions in w32.h are incompatible with the below.  */
+#ifndef WINDOWSNT
 #ifdef FD_SET
 #ifdef FD_SETSIZE
 #define MAXDESC FD_SETSIZE
@@ -44,6 +48,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define FD_ISSET(n, p) (*(p) & (1 << (n)))
 #define FD_ZERO(p) (*(p) = 0)
 #endif /* no FD_SET */
+#endif /* not WINDOWSNT */
 
 #if !defined (HAVE_SELECT)
 #define select sys_select

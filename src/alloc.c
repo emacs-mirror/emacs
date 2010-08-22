@@ -214,16 +214,6 @@ int abort_on_gc;
 
 int garbage_collection_messages;
 
-#ifndef VIRT_ADDR_VARIES
-extern
-#endif /* VIRT_ADDR_VARIES */
-int malloc_sbrk_used;
-
-#ifndef VIRT_ADDR_VARIES
-extern
-#endif /* VIRT_ADDR_VARIES */
-int malloc_sbrk_unused;
-
 /* Number of live and free conses etc.  */
 
 static int total_conses, total_markers, total_symbols, total_vector_size;
@@ -6178,11 +6168,6 @@ init_alloc_once (void)
   consing_since_gc = 0;
   gc_cons_threshold = 100000 * sizeof (Lisp_Object);
   gc_relative_threshold = 0;
-
-#ifdef VIRT_ADDR_VARIES
-  malloc_sbrk_unused = 1<<22;	/* A large number */
-  malloc_sbrk_used = 100000;	/* as reasonable as any number */
-#endif /* VIRT_ADDR_VARIES */
 }
 
 void

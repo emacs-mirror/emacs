@@ -1852,7 +1852,7 @@ if test "${with_imagemagick}" != "no"; then
     LIBS="$IMAGEMAGICK_LIBS $LIBS"
   fi
 
-  AC_DEFINE(HAVE_MAGICKEXPORTIMAGEPIXELS, 1, [Define to 1 if MagickExportImagePixels is defined.])
+  AC_DEFINE(HAVE_MAGICKEXPORTIMAGEPIXELS, 0, [Define to 1 if MagickExportImagePixels is defined.])
   AC_CHECK_FUNCS_ONCE(MagickExportImagePixels)
   
 fi
