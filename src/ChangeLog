@@ -1,3 +1,9 @@
+2010-08-22  Juri Linkov  <juri@jurta.org>
+
+	* keyboard.c (Fexecute_extended_command): Move reading a command name
+	with `completing-read' to a new Elisp function `read-extended-command'.
+	Call it to read a command to `function'  (bug#5364, bug#5214).
+
 2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs.c (main): Remove handling of --unibyte arg (Bug#6886).
