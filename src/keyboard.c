@@ -11506,11 +11506,11 @@ init_keyboard (void)
          Emacs on SIGINT when there are no termcap frames on the
          controlling terminal. */
       signal (SIGINT, interrupt_signal);
-#if defined (HAVE_TERMIO) || defined (HAVE_TERMIOS)
+#ifndef DOS_NT
       /* For systems with SysV TERMIO, C-g is set up for both SIGINT and
 	 SIGQUIT and we can't tell which one it will give us.  */
       signal (SIGQUIT, interrupt_signal);
-#endif /* HAVE_TERMIO */
+#endif /* not DOS_NT */
     }
 /* Note SIGIO has been undef'd if FIONREAD is missing.  */
 #ifdef SIGIO

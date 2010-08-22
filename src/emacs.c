@@ -2096,7 +2096,7 @@ shut_down_emacs (int sig, int no_x, Lisp_Object stuff)
   Vinhibit_redisplay = Qt;
 
   /* If we are controlling the terminal, reset terminal modes.  */
-#ifdef EMACS_HAVE_TTY_PGRP
+#ifndef DOS_NT
   {
     int pgrp = EMACS_GETPGRP (0);
 

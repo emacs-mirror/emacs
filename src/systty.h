@@ -17,34 +17,17 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifdef HAVE_TERMIOS
-#define HAVE_TCATTR
-#endif
-
-
 /* Include the proper files.  */
-#ifdef HAVE_TERMIO
+#ifndef DOS_NT
 #ifndef NO_TERMIO
 #include <termio.h>
 #endif /* not NO_TERMIO */
-#include <fcntl.h>
-#else /* not HAVE_TERMIO */
-#ifdef HAVE_TERMIOS
-#ifndef NO_TERMIO
-#include <termio.h>
-#endif
 #include <termios.h>
 #include <fcntl.h>
-#else /* neither HAVE_TERMIO nor HAVE_TERMIOS */
-#ifndef DOS_NT
-#include <sgtty.h>
 #endif /* not DOS_NT */
-#endif /* not HAVE_TERMIOS */
-#endif /* not HAVE_TERMIO */
 
-#ifdef __GNU_LIBRARY__
+#ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
-#include <termios.h>
 #endif
 
 #ifdef HPUX
@@ -74,17 +57,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef SIGIO
 #endif
 
-/* On TERMIOS systems, the tcmumbleattr calls take care of these
-   parameters, and it's a bad idea to use them (on AIX, it makes the
-   tty hang for a long time).  */
-#if defined (TIOCGLTC) && !defined (HAVE_TERMIOS)
-#define HAVE_LTCHARS
-#endif
-
-#if defined (TIOCGETC) && !defined (HAVE_TERMIOS)
-#define HAVE_TCHARS
-#endif
-
 
 /* Try to establish the correct character to disable terminal functions
    in a system-independent manner.  Note that USG (at least) define
@@ -111,60 +83,19 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define EMACS_OUTQSIZE(fd, size) (ioctl ((fd), TIOCOUTQ, (size)))
 #endif
 
-#ifdef HAVE_TERMIO
-#ifdef TCOUTQ
-#undef EMACS_OUTQSIZE
-#define EMACS_OUTQSIZE(fd, size) (ioctl ((fd), TCOUTQ, (size)))
-#endif
-#endif
-
 
 /* Manipulate a terminal's current process group.  */
 
-/* EMACS_HAVE_TTY_PGRP is true if we can get and set the tty's current
-   controlling process group.
-
-   EMACS_GET_TTY_PGRP(int FD, int *PGID) sets *PGID the terminal FD's
+/* EMACS_GET_TTY_PGRP(int FD, int *PGID) sets *PGID the terminal FD's
    current process group.  Return -1 if there is an error.
 
    EMACS_SET_TTY_PGRP(int FD, int *PGID) sets the terminal FD's
    current process group to *PGID.  Return -1 if there is an error.  */
 
-/* HPUX tty process group stuff doesn't work, says the anonymous voice
-   from the past.  */
-#ifndef HPUX
-#ifdef TIOCGPGRP
-#define EMACS_HAVE_TTY_PGRP
-#else
-#ifdef HAVE_TERMIOS
-#define EMACS_HAVE_TTY_PGRP
-#endif /* HAVE_TERMIOS */
-#endif /* TIOCGPGRP */
-#endif /* not HPUX */
-
-#ifdef EMACS_HAVE_TTY_PGRP
-
-#if defined (HAVE_TERMIOS)
-
+#ifndef DOS_NT
 #define EMACS_GET_TTY_PGRP(fd, pgid) (*(pgid) = tcgetpgrp ((fd)))
 #define EMACS_SET_TTY_PGRP(fd, pgid) (tcsetpgrp ((fd), *(pgid)))
-
-#else /* not HAVE_TERMIOS */
-#ifdef TIOCSPGRP
-
-#define EMACS_GET_TTY_PGRP(fd, pgid) (ioctl ((fd), TIOCGPGRP, (pgid)))
-#define EMACS_SET_TTY_PGRP(fd, pgid) (ioctl ((fd), TIOCSPGRP, (pgid)))
-
-#endif /* TIOCSPGRP */
-#endif /* HAVE_TERMIOS */
-
-#else /* not EMACS_SET_TTY_PGRP */
-
-/* Just ignore this for now and hope for the best */
-#define EMACS_GET_TTY_PGRP(fd, pgid) 0
-#define EMACS_SET_TTY_PGRP(fd, pgif) 0
-
-#endif /* not EMACS_SET_TTY_PGRP */
+#endif /* not DOS_NT */
 
 /* EMACS_GETPGRP (arg) returns the process group of the process.  */
 
@@ -207,32 +138,11 @@ struct emacs_tty {
 
 /* There is always one of the following elements, so there is no need
    for dummy get and set definitions.  */
-#ifdef HAVE_TCATTR
+#ifndef DOS_NT
   struct termios main;
-#else /* not HAVE_TCATTR */
-#ifdef HAVE_TERMIO
-  struct termio main;
-#else /* not HAVE_TERMIO */
-#ifdef DOS_NT
+#else /* DOS_NT */
   int main;
-#else  /* not DOS_NT */
-  struct sgttyb main;
-#endif /* not DOS_NT */
-#endif /* not HAVE_TERMIO */
-#endif /* not HAVE_TCATTR */
-
-/* If we have TERMIOS, we don't need to do this - they're taken care of
-   by the tc*attr calls.  */
-#ifndef HAVE_TERMIOS
-#ifdef HAVE_LTCHARS
-  struct ltchars ltchars;
-#endif /* HAVE_LTCHARS */
-
-#ifdef HAVE_TCHARS
-  struct tchars tchars;
-  int lmode;
-#endif /* HAVE_TCHARS */
-#endif /* not defined HAVE_TERMIOS */
+#endif /* DOS_NT */
 };
 
 /* Define EMACS_GET_TTY and EMACS_SET_TTY,
@@ -249,7 +159,7 @@ extern int emacs_set_tty (int, struct emacs_tty *, int);
 
 /* Define EMACS_TTY_TABS_OK.  */
 
-#ifdef HAVE_TERMIOS
+#ifndef DOS_NT
 
 #ifdef TABDLY
 #define EMACS_TTY_TABS_OK(p) (((p)->main.c_oflag & TABDLY) != TAB3)
@@ -257,21 +167,9 @@ extern int emacs_set_tty (int, struct emacs_tty *, int);
 #define EMACS_TTY_TABS_OK(p) 1
 #endif /* not TABDLY */
 
-#else /* not def HAVE_TERMIOS */
-#ifdef HAVE_TERMIO
-
-#define EMACS_TTY_TABS_OK(p) (((p)->main.c_oflag & TABDLY) != TAB3)
-
-#else /* neither HAVE_TERMIO nor HAVE_TERMIOS */
-
-#ifdef DOS_NT
+#else /* DOS_NT */
 #define EMACS_TTY_TABS_OK(p) 0
-#else /* not DOS_NT */
-#define EMACS_TTY_TABS_OK(p) (((p)->main.sg_flags & XTABS) != XTABS)
-#endif /* not DOS_NT */
-
-#endif /* not def HAVE_TERMIO */
-#endif /* not def HAVE_TERMIOS */
+#endif /* DOS_NT */
 
 /* arch-tag: cf4b90bc-be41-401c-be98-40619178a712
    (do not change this comment) */

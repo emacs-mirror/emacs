@@ -31,9 +31,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_INTTYPES_H
 #include <inttypes.h>
 #endif
-#ifdef STDC_HEADERS
 #include <stdlib.h>
-#endif
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -61,9 +59,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #if defined(HAVE_SYS_IOCTL_H)
 #include <sys/ioctl.h>
-#if !defined (O_NDELAY) && defined (HAVE_PTYS) && !defined(USG5)
-#include <fcntl.h>
-#endif /* HAVE_PTYS and no O_NDELAY */
 #if defined(HAVE_NET_IF_H)
 #include <net/if.h>
 #endif /* HAVE_NET_IF_H */
@@ -182,16 +177,9 @@ extern Lisp_Object QCfilter;
 
 extern const char *get_operating_system_release (void);
 
-/* Serial processes require termios or Windows.  */
-#if defined (HAVE_TERMIOS) || defined (WINDOWSNT)
-#define HAVE_SERIAL
-#endif
-
-#ifdef HAVE_SERIAL
 /* From sysdep.c or w32.c  */
 extern int serial_open (char *port);
 extern void serial_configure (struct Lisp_Process *p, Lisp_Object contact);
-#endif
 
 #ifndef HAVE_H_ERRNO
 extern int h_errno;
@@ -1903,7 +1891,7 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 	setpgrp ();
 #endif /* USG */
 #endif /* not HAVE_SETSID */
-#if defined (HAVE_TERMIOS) && defined (LDISC1)
+#if defined (LDISC1)
 	if (pty_flag && xforkin >= 0)
 	  {
 	    struct termios t;
@@ -2569,7 +2557,6 @@ OPTION is not a supported option, return nil instead; otherwise return t.  */)
 }
 
 
-#ifdef HAVE_SERIAL
 DEFUN ("serial-process-configure",
        Fserial_process_configure,
        Sserial_process_configure,
@@ -2865,7 +2852,6 @@ usage:  (make-serial-process &rest ARGS)  */)
   UNGCPRO;
   return proc;
 }
-#endif /* HAVE_SERIAL  */
 
 /* Create a network stream/datagram client/server process.  Treated
    exactly like a normal process when reading and writing.  Primary
@@ -5801,9 +5787,6 @@ process_send_signal (Lisp_Object process, int signo, Lisp_Object current_group,
       /* If possible, send signals to the entire pgrp
 	 by sending an input character to it.  */
 
-      /* TERMIOS is the latest and bestest, and seems most likely to
-	 work.  If the system has it, use it.  */
-#ifdef HAVE_TERMIOS
       struct termios t;
       cc_t *sig_char = NULL;
 
@@ -5835,65 +5818,6 @@ process_send_signal (Lisp_Object process, int signo, Lisp_Object current_group,
 	}
       /* If we can't send the signal with a character,
 	 fall through and send it another way.  */
-#else /* ! HAVE_TERMIOS */
-
-      /* On Berkeley descendants, the following IOCTL's retrieve the
-	 current control characters.  */
-#if defined (TIOCGLTC) && defined (TIOCGETC)
-
-      struct tchars c;
-      struct ltchars lc;
-
-      switch (signo)
-	{
-	case SIGINT:
-	  ioctl (p->infd, TIOCGETC, &c);
-	  send_process (proc, &c.t_intrc, 1, Qnil);
-	  return;
-	case SIGQUIT:
-	  ioctl (p->infd, TIOCGETC, &c);
-	  send_process (proc, &c.t_quitc, 1, Qnil);
-	  return;
-#ifdef SIGTSTP
-	case SIGTSTP:
-	  ioctl (p->infd, TIOCGLTC, &lc);
-	  send_process (proc, &lc.t_suspc, 1, Qnil);
-	  return;
-#endif /* ! defined (SIGTSTP) */
-	}
-
-#else /* ! defined (TIOCGLTC) && defined (TIOCGETC) */
-
-      /* On SYSV descendants, the TCGETA ioctl retrieves the current control
-	 characters.  */
-#ifdef TCGETA
-      struct termio t;
-      switch (signo)
-	{
-	case SIGINT:
-	  ioctl (p->infd, TCGETA, &t);
-	  send_process (proc, &t.c_cc[VINTR], 1, Qnil);
-	  return;
-	case SIGQUIT:
-	  ioctl (p->infd, TCGETA, &t);
-	  send_process (proc, &t.c_cc[VQUIT], 1, Qnil);
-	  return;
-#ifdef SIGTSTP
-	case SIGTSTP:
-	  ioctl (p->infd, TCGETA, &t);
-	  send_process (proc, &t.c_cc[VSWTCH], 1, Qnil);
-	  return;
-#endif /* ! defined (SIGTSTP) */
-	}
-#else /* ! defined (TCGETA) */
-      Your configuration files are messed up.
-      /* If your system configuration files define SIGNALS_VIA_CHARACTERS,
-	 you'd better be using one of the alternatives above!  */
-#endif /* ! defined (TCGETA) */
-#endif /* ! defined (TIOCGLTC) && defined (TIOCGETC) */
-	/* In this case, the code above should alway return.  */
-	abort ();
-#endif /* ! defined HAVE_TERMIOS */
 
       /* The code above may fall through if it can't
 	 handle the signal.  */
@@ -6065,10 +5989,9 @@ traffic.  */)
 #ifdef WINDOWSNT
 	  if (fd_info[ p->infd ].flags & FILE_SERIAL)
 	    PurgeComm (fd_info[ p->infd ].hnd, PURGE_RXABORT | PURGE_RXCLEAR);
-#endif
-#ifdef HAVE_TERMIOS
+#else /* not WINDOWSNT */
 	  tcflush (p->infd, TCIFLUSH);
-#endif
+#endif /* not WINDOWSNT */
 	}
       p->command = Qnil;
       return process;
@@ -6282,10 +6205,10 @@ process has been transmitted to the serial port.  */)
     send_process (proc, "\004", 1, Qnil);
   else if (EQ (XPROCESS (proc)->type, Qserial))
     {
-#ifdef HAVE_TERMIOS
+#ifndef WINDOWSNT
       if (tcdrain (XPROCESS (proc)->outfd) != 0)
 	error ("tcdrain() failed: %s", emacs_strerror (errno));
-#endif
+#endif /* not WINDOWSNT */
       /* Do nothing on Windows because writes are blocking.  */
     }
   else
@@ -7672,10 +7595,8 @@ The variable takes effect when `start-process' is called.  */);
   defsubr (&Slist_processes);
   defsubr (&Sprocess_list);
   defsubr (&Sstart_process);
-#ifdef HAVE_SERIAL
   defsubr (&Sserial_process_configure);
   defsubr (&Smake_serial_process);
-#endif /* HAVE_SERIAL  */
   defsubr (&Sset_network_process_option);
   defsubr (&Smake_network_process);
   defsubr (&Sformat_network_address);

@@ -1,3 +1,42 @@
+2010-08-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Simplify termio code.
+	All non-MSDOS non-WINDOWSNT platforms define HAVE_TERMIOS, so
+	HAVE_TERMIO code is obsolete.
+	Replace HAVE_TERMIOS conditionals with !DOS_NT.
+	* systty.h: Do not define HAVE_TCATTR.
+	Remove HAVE_TERMIO, HAVE_LTCHARS and HAVE_TCHARS code.
+	Do not define EMACS_HAVE_TTY_PGRP.  Only define
+	EMACS_GET_TTY_PGRP for !DOS_NT.
+	* sysdep.c: Include sysselect.h unconditionally.  Do not include
+	sys/ioctl.h and termios.h, systty.h does it.  Use
+	HAVE_SYS_UTSNAME_H instead of USG as an include guard.
+	(init_baud_rate): Remove HAVE_TERMIO code.
+	(child_setup_tty): Remove HAVE_TERMIO code.
+	(emacs_get_tty, emacs_set_tty): Remove HAVE_TERMIO, HAVE_TCHARS
+	and HAVE_LTCHARS code.  Use !DOS_NT instead of HAVE_TCATTR.
+	(new_ltchars, new_tchars): Remove, unused.
+	(init_sys_modes): Remove HAVE_TERMIO, HAVE_TCHARS and HAVE_LTCHARS
+	code.  Remove special casing for __mips__, it was a no-op.  Remove
+	HAVE_TCATTR conditional, it is implied by HAVE_TERMIOS.
+	(init_sys_modes): Remove HPUX special case.
+	* process.c: Include stdlib.h unconditionally.  Do not include
+	fcntl.h, systty.h does it.  Remove conditional code for
+	HAVE_SERIAL, it is always true.
+	(process_send_signal): Remove HAVE_TERMIOS conditional, it's
+	always true when SIGNALS_VIA_CHARACTERS is true.
+	(Fcontinue_process, Fprocess_send_eof): Simplify conditionals:
+	!WINDOWSNT means HAVE_TERMIOS.
+	(create_process): Remove HAVE_TERMIOS, it's inside a HAVE_PTYS
+	conditional, which is true for all HAVE_TERMIOS systems.
+	* keyboard.c (init_keyboard): Do not use HAVE_TERMIO, use !DOS_NT
+	instead of HAVE_TERMIOS.
+	* emacs.c (shut_down_emacs): Use !defined DOS_NT instead of
+	EMACS_HAVE_TTY_PGRP.
+	* callproc.c (child_setup): Move EMACS_SET_TTY_PGRP use to the
+	non-MSDOS, non-WINDOWSNT code, it's only defined for such systems
+	anyway.
+
 2010-08-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* dispnew.c (buffer_posn_from_coords): Fix off-by-one error in
