@@ -32,10 +32,9 @@ srcdir = $(CURDIR)/..
 
 EMACS = $(THISDIR)/../bin/emacs.exe
 
-# Command line flags for Emacs.  This must include --multibyte,
-# otherwise some files will not compile.
+# Command line flags for Emacs.
 
-EMACSOPT = -batch --no-init-file --no-site-file --multibyte
+EMACSOPT = -batch --no-init-file --no-site-file
 
 # Extra flags to pass to the byte compiler
 BYTE_COMPILE_EXTRA_FLAGS =

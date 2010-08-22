@@ -1,3 +1,7 @@
+2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs.c (main): Remove handling of --unibyte arg (Bug#6886).
+
 2010-08-22  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* eval.c (Flet, Feval, Fapply, apply_lambda): Use SAFE_ALLOCA_LISP

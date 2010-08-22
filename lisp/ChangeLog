@@ -1,5 +1,10 @@
 2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
 
+	* startup.el (command-line-1): Issue warning for ignored arguments
+	--unibyte, etc (Bug#6886).
+
+2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
 	* emacs-lisp/easy-mmode.el (define-minor-mode): Doc fix (Bug#6880).
 
 2010-08-22  Leo  <sdl.web@gmail.com>

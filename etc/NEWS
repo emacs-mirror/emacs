@@ -59,6 +59,10 @@ automatically select it.
 
 * Startup Changes in Emacs 24.1
 
+** The --unibyte, --multibyte, --no-multibyte, and --no-unibyte
+command line arguments no longer have any effect.  (They were declared
+obsolete in Emacs 23.)
+
 
 * Changes in Emacs 24.1
 

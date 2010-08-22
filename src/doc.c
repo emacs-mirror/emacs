@@ -285,8 +285,7 @@ get_doc_string (Lisp_Object filepos, int unibyte, int definition)
 				to - (get_doc_string_buffer + offset));
   else
     {
-      /* Let the data determine whether the string is multibyte,
-	 even if Emacs is running in --unibyte mode.  */
+      /* The data determines whether the string is multibyte.  */
       int nchars = multibyte_chars_in_text (get_doc_string_buffer + offset,
 					    to - (get_doc_string_buffer + offset));
       return make_string_from_bytes (get_doc_string_buffer + offset,
