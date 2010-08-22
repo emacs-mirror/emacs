@@ -1,5 +1,7 @@
 2010-08-22  Eli Zaretskii  <eliz@gnu.org>
 
+	* deps.mk (sysdep.o, msdos.o): Depend on sysselect.h.
+
 	* sysselect.h [WINDOWSNT]: Don't define the FD_* and select stuff
 	for w32.
 
