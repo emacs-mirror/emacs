@@ -1,3 +1,8 @@
+2010-08-23  Chris Foote <chris@foote.com.au>  (tiny change)
+
+	* progmodes/python.el (python-block-pairs): Allow use of "finally"
+	with "else" (Bug#3991).
+
 2010-08-22  Leo  <sdl.web@gmail.com>
 
 	* net/rcirc.el (rcirc-add-or-remove): Accept a list of elements.
