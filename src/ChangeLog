@@ -27,10 +27,10 @@
 	* doc.c (Fsnarf_documentation): Initialize skip_file before
 	build-files test.
 
-2010-08-22  Peter O'Gorman <pogma@thewrittenword.com>  (tiny change)
+2010-08-22  Peter O'Gorman  <pogma@thewrittenword.com>  (tiny change)
 
-	* s/hpux10-20.h (HAVE_TERMIOS, NO_TERMIO, ORDINARY_LINK): New
-	definitions.
+	* s/hpux10-20.h (HAVE_TERMIOS, NO_TERMIO, ORDINARY_LINK):
+	New definitions.
 	(HAVE_TERMIO): Remove.
 
 2010-08-22  Eli Zaretskii  <eliz@gnu.org>
@@ -486,10 +486,10 @@
 
 2010-08-08  Kenichi Handa  <handa@m17n.org>
 
-	* charset.c: Include <stdlib.h>
+	* charset.c: Include <stdlib.h>.
 	(struct charset_sort_data): New struct.
 	(charset_compare): New function.
-	(Fsort_charsets): New funciton.
+	(Fsort_charsets): New function.
 	(syms_of_charset): Declare Fsort_charsets as a Lisp function.
 
 	* coding.c (decode_coding_iso_2022): Fix checking of dimension
