@@ -413,6 +413,11 @@ enabled by default in 23.1.
 supports multithread non-stop debugging and debugging of several
 threads simultaneously.
 
+** D-Bus
+
+*** It is possible now, to access alternative buses than the default
+system or session bus.
+
 
 * New Modes and Packages in Emacs 24.1
 
