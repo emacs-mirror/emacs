@@ -1,3 +1,7 @@
+2010-08-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Alternative Buses): New chapter.
+
 2010-08-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* cl.texi (Mapping over Sequences): Rename mapc => cl-mapc.
