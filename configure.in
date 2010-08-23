@@ -1825,12 +1825,11 @@ if test "${HAVE_X11}" = "yes" || test "${NS_IMPL_GNUSTEP}" = "yes"; then
     RSVG_REQUIRED=2.11.0
     RSVG_MODULE="librsvg-2.0 >= $RSVG_REQUIRED"
 
-    PKG_CHECK_MODULES(RSVG, $RSVG_MODULE, :, :)
+    PKG_CHECK_MODULES(RSVG, $RSVG_MODULE, HAVE_RSVG=yes, :)
     AC_SUBST(RSVG_CFLAGS)
     AC_SUBST(RSVG_LIBS)
 
-    if test ".${RSVG_CFLAGS}" != "."; then
-      HAVE_RSVG=yes
+    if test $HAVE_RSVG = yes; then
       AC_DEFINE(HAVE_RSVG, 1, [Define to 1 if using librsvg.])
       CFLAGS="$CFLAGS $RSVG_CFLAGS"
       LIBS="$RSVG_LIBS $LIBS"
@@ -1841,20 +1840,16 @@ fi
 HAVE_IMAGEMAGICK=no
 if test "${with_imagemagick}" != "no"; then
   IMAGEMAGICK_MODULE="Wand"
-  PKG_CHECK_MODULES(IMAGEMAGICK, $IMAGEMAGICK_MODULE, :, :)
+  PKG_CHECK_MODULES(IMAGEMAGICK, $IMAGEMAGICK_MODULE, HAVE_IMAGEMAGICK=yes, :)
   AC_SUBST(IMAGEMAGICK_CFLAGS)
   AC_SUBST(IMAGEMAGICK_LIBS)
 
-  if test ".${IMAGEMAGICK_CFLAGS}" != "."; then
-    HAVE_IMAGEMAGICK=yes
+  if test $HAVE_IMAGEMAGICK = yes; then
     AC_DEFINE(HAVE_IMAGEMAGICK, 1, [Define to 1 if using imagemagick.])
     CFLAGS="$CFLAGS $IMAGEMAGICK_CFLAGS"
     LIBS="$IMAGEMAGICK_LIBS $LIBS"
+    AC_CHECK_FUNCS(MagickExportImagePixels)
   fi
-
-  AC_DEFINE(HAVE_MAGICKEXPORTIMAGEPIXELS, 0, [Define to 1 if MagickExportImagePixels is defined.])
-  AC_CHECK_FUNCS_ONCE(MagickExportImagePixels)
-  
 fi
 
 

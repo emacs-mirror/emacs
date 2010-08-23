@@ -2442,7 +2442,6 @@ fi
 as_fn_append ac_header_list " stdlib.h"
 as_fn_append ac_header_list " unistd.h"
 as_fn_append ac_header_list " sys/param.h"
-as_fn_append ac_func_list " MagickExportImagePixels"
 as_fn_append ac_header_list " sys/time.h"
 as_fn_append ac_func_list " alarm"
 # Check that the precious variables saved in the cache have kept the same
@@ -8597,7 +8596,7 @@ $as_echo "no" >&6; }
   fi
 
   if test $succeeded = yes; then
-     :
+     HAVE_RSVG=yes
   else
      :
   fi
@@ -8605,8 +8604,7 @@ $as_echo "no" >&6; }
 
 
 
-    if test ".${RSVG_CFLAGS}" != "."; then
-      HAVE_RSVG=yes
+    if test $HAVE_RSVG = yes; then
 
 $as_echo "#define HAVE_RSVG 1" >>confdefs.h
 
@@ -8708,7 +8706,7 @@ $as_echo "no" >&6; }
   fi
 
   if test $succeeded = yes; then
-     :
+     HAVE_IMAGEMAGICK=yes
   else
      :
   fi
@@ -8716,38 +8714,24 @@ $as_echo "no" >&6; }
 
 
 
-  if test ".${IMAGEMAGICK_CFLAGS}" != "."; then
-    HAVE_IMAGEMAGICK=yes
+  if test $HAVE_IMAGEMAGICK = yes; then
 
 $as_echo "#define HAVE_IMAGEMAGICK 1" >>confdefs.h
 
     CFLAGS="$CFLAGS $IMAGEMAGICK_CFLAGS"
     LIBS="$IMAGEMAGICK_LIBS $LIBS"
-  fi
-
-
-$as_echo "#define HAVE_MAGICKEXPORTIMAGEPIXELS 0" >>confdefs.h
-
-
-
-
-  for ac_func in $ac_func_list
+    for ac_func in MagickExportImagePixels
 do :
-  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
-ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
-eval as_val=\$$as_ac_var
-   if test "x$as_val" = x""yes; then :
+  ac_fn_c_check_func "$LINENO" "MagickExportImagePixels" "ac_cv_func_MagickExportImagePixels"
+if test "x$ac_cv_func_MagickExportImagePixels" = x""yes; then :
   cat >>confdefs.h <<_ACEOF
-#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+#define HAVE_MAGICKEXPORTIMAGEPIXELS 1
 _ACEOF
 
 fi
 done
 
-
-
-
-
+  fi
 fi
 
 
@@ -11620,6 +11604,22 @@ done
 
 
 
+
+
+
+
+  for ac_func in $ac_func_list
+do :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+eval as_val=\$$as_ac_var
+   if test "x$as_val" = x""yes; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
 
 
 
