@@ -1,3 +1,26 @@
+2010-08-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c: Accept UNIX domain sockets as bus address.
+	(Fdbus_close_bus): New function.
+	(Vdbus_registered_buses): New variable.
+	(xd_initialize): Implement string as bus address.
+	(Fdbus_init_bus): Add bus to Vdbus_registered_buses).
+	(Fdbus_get_unique_name, Fdbus_call_method)
+	(Fdbus_call_method_asynchronously, Fdbus_method_return_internal)
+	(Fdbus_method_error_internal, Fdbus_send_signal)
+	(Fdbus_register_signal, Fdbus_register_method): Remove bus type
+	check.  This is done in xd_initialize_bus.  Adapt doc string, if
+	necessary.
+	(xd_pending_messages, xd_read_queued_messages): Loop over buses in
+	Vdbus_registered_buses.
+	(Vdbus_registered_objects_table): Create hash.
+
+2010-08-22  Juri Linkov  <juri@jurta.org>
+
+	* keyboard.c (Fexecute_extended_command): Move reading a command name
+	with `completing-read' to a new Elisp function `read-extended-command'.
+	Call it to read a command to `function'  (bug#5364, bug#5214).
+
 2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs.c (main): Remove handling of --unibyte arg (Bug#6886).
@@ -21,10 +44,10 @@
 	* doc.c (Fsnarf_documentation): Initialize skip_file before
 	build-files test.
 
-2010-08-22  Peter O'Gorman <pogma@thewrittenword.com>  (tiny change)
+2010-08-22  Peter O'Gorman  <pogma@thewrittenword.com>  (tiny change)
 
-	* s/hpux10-20.h (HAVE_TERMIOS, NO_TERMIO, ORDINARY_LINK): New
-	definitions.
+	* s/hpux10-20.h (HAVE_TERMIOS, NO_TERMIO, ORDINARY_LINK):
+	New definitions.
 	(HAVE_TERMIO): Remove.
 
 2010-08-22  Eli Zaretskii  <eliz@gnu.org>
@@ -480,10 +503,10 @@
 
 2010-08-08  Kenichi Handa  <handa@m17n.org>
 
-	* charset.c: Include <stdlib.h>
+	* charset.c: Include <stdlib.h>.
 	(struct charset_sort_data): New struct.
 	(charset_compare): New function.
-	(Fsort_charsets): New funciton.
+	(Fsort_charsets): New function.
 	(syms_of_charset): Declare Fsort_charsets as a Lisp function.
 
 	* coding.c (decode_coding_iso_2022): Fix checking of dimension

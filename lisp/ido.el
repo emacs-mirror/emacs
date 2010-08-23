@@ -780,7 +780,7 @@ Essentially it works as follows: Say you are visiting a file and
 the buffer gets cleaned up by mignight.el.  Later, you want to
 switch to that buffer, but find it's no longer open.  With
 virtual buffers enabled, the buffer name stays in the buffer
-list (using the ido-virtual face, and always at the end), and if
+list (using the `ido-virtual' face, and always at the end), and if
 you select it, it opens the file back up again.  This allows you
 to think less about whether recently opened files are still open
 or not.  Most of the time you can quit Emacs, restart, and then

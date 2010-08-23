@@ -1,3 +1,24 @@
+2010-08-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el: Accept UNIX domain sockets as bus address.
+	(top): Don't initialize `dbus-registered-objects-table' anymore,
+	this is done in dbusbind,c.
+	(dbus-check-event): Adapt test for bus.
+	(dbus-return-values-table, dbus-unregister-service)
+	(dbus-event-bus-name, dbus-introspect, dbus-register-property):
+	Adapt doc string.
+
+2010-08-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ido.el (ido-use-virtual-buffers): Fix typo in docstring.
+
+2010-08-22  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (read-extended-command): New function with the logic
+	for `completing-read' moved to Elisp from `execute-extended-command'.
+	Use `function-called-at-point' in `minibuffer-default-add-function'
+	to get a command name for M-n (bug#5364, bug#5214).
+
 2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* startup.el (command-line-1): Issue warning for ignored arguments
