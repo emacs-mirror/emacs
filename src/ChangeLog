@@ -1,3 +1,20 @@
+2010-08-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c: Accept UNIX domain sockets as bus address.
+	(Fdbus_close_bus): New function.
+	(Vdbus_registered_buses): New variable.
+	(xd_initialize): Implement string as bus address.
+	(Fdbus_init_bus): Add bus to Vdbus_registered_buses).
+	(Fdbus_get_unique_name, Fdbus_call_method)
+	(Fdbus_call_method_asynchronously, Fdbus_method_return_internal)
+	(Fdbus_method_error_internal, Fdbus_send_signal)
+	(Fdbus_register_signal, Fdbus_register_method): Remove bus type
+	check.  This is done in xd_initialize_bus.  Adapt doc string, if
+	necessary.
+	(xd_pending_messages, xd_read_queued_messages): Loop over buses in
+	Vdbus_registered_buses.
+	(Vdbus_registered_objects_table): Create hash.
+
 2010-08-22  Juri Linkov  <juri@jurta.org>
 
 	* keyboard.c (Fexecute_extended_command): Move reading a command name
