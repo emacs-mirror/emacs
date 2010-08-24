@@ -1,5 +1,8 @@
 2010-08-24  Kevin Ryde  <user42@zip.com.au>
 
+	* textmodes/flyspell.el (flyspell-check-tex-math-command): Doc fix
+	(Bug#5651).
+
 	* progmodes/ruby-mode.el (ruby): Add defgroup.
 
 2010-08-24  Chong Yidong  <cyd@stupidchicken.com>
