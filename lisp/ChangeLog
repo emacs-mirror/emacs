@@ -1,3 +1,8 @@
+2010-08-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (list-packages): Alias for
+	package-list-packages.
+
 2010-08-24  Kevin Ryde  <user42@zip.com.au>
 
 	* textmodes/flyspell.el (flyspell-check-tex-math-command): Doc fix

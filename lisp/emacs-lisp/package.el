@@ -1557,6 +1557,9 @@ The list is displayed in a buffer named `*Packages*'."
   (package-refresh-contents)
   (package--list-packages))
 
+;;;###autoload
+(defalias 'list-packages 'package-list-packages)
+
 (defun package-list-packages-no-fetch ()
   "Display a list of packages.
 Does not fetch the updated list of packages before displaying.
