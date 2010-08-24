@@ -1,5 +1,25 @@
 2010-08-24  Chong Yidong  <cyd@stupidchicken.com>
 
+	* progmodes/python.el: Add Ipython support (Bug#5390).
+	(python-shell-prompt-alist)
+	(python-shell-continuation-prompt-alist): New options.
+	(python--set-prompt-regexp): New function.
+	(inferior-python-mode, run-python, python-shell): Require
+	ansi-color.  Use python--set-prompt-regexp to set the comint
+	prompt based on the Python interpreter.
+	(python--prompt-regexp): New var.
+	(python-check-comint-prompt)
+	(python-comint-output-filter-function): Use it.
+	(run-python): Use a pipe (Bug#5694).
+
+2010-08-24  Fabian Ezequiel Gallina  <galli.87@gmail.com>  (tiny change)
+
+	* progmodes/python.el (python-send-region): Send a different
+	Python command if Ipython is in use.
+	(python-check-version): Use a Python command to find the version.
+
+2010-08-24  Chong Yidong  <cyd@stupidchicken.com>
+
 	* mouse.el (mouse-yank-primary): Avoid setting primary when
 	deactivating the mark (Bug#6872).
 
