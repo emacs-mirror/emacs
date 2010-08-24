@@ -368,7 +368,7 @@ Lisp_Object Vselect_active_regions;
    Used by the `select-active-regions' feature.  */
 Lisp_Object Vsaved_region_selection;
 
-Lisp_Object Qx_set_selection, QPRIMARY;
+Lisp_Object Qx_set_selection, QPRIMARY, Qhandle_switch_frame;
 
 Lisp_Object Qself_insert_command;
 Lisp_Object Qforward_char;
@@ -1799,10 +1799,11 @@ command_loop_1 (void)
 	    {
 	      /* Even if not deactivating the mark, set PRIMARY if
 		 `select-active-regions' is non-nil.  */
-	      if (EQ (Vselect_active_regions, Qonly)
-		  ? EQ (CAR_SAFE (Vtransient_mark_mode), Qonly)
-		  : (!NILP (Vselect_active_regions)
-		     && !NILP (Vtransient_mark_mode)))
+	      if ((EQ (Vselect_active_regions, Qonly)
+		   ? EQ (CAR_SAFE (Vtransient_mark_mode), Qonly)
+		   : (!NILP (Vselect_active_regions)
+		      && !NILP (Vtransient_mark_mode)))
+		  && !EQ (Vthis_command, Qhandle_switch_frame))
 		{
 		  int beg = XINT (Fmarker_position (current_buffer->mark));
 		  int end = XINT (make_number (PT));
@@ -11702,6 +11703,8 @@ syms_of_keyboard (void)
   staticpro (&Qx_set_selection);
   QPRIMARY = intern_c_string ("PRIMARY");
   staticpro (&QPRIMARY);
+  Qhandle_switch_frame = intern_c_string ("handle-switch-frame");
+  staticpro (&Qhandle_switch_frame);
 
   Qinput_method_exit_on_first_char = intern_c_string ("input-method-exit-on-first-char");
   staticpro (&Qinput_method_exit_on_first_char);

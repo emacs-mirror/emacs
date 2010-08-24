@@ -1,3 +1,8 @@
+2010-08-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (command_loop_1): Don't clobber primary selection
+	during handle-switch-frame (Bug#6872).
+
 2010-08-23  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c: Accept UNIX domain sockets as bus address.
