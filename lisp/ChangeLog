@@ -1,3 +1,7 @@
+2010-08-24  Kevin Ryde  <user42@zip.com.au>
+
+	* progmodes/ruby-mode.el (ruby): Add defgroup.
+
 2010-08-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/python.el: Add Ipython support (Bug#5390).
