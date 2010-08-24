@@ -1,3 +1,9 @@
+2010-08-24  Markus Triska  <triska@gmx.at>
+
+	* processes.texi (Filter Functions): Use `buffer-live-p' instead
+	of `buffer-name' in the main text as well as in the example
+	(Bug#3098).
+
 2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* nonascii.texi (Text Representations):

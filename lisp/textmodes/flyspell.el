@@ -199,9 +199,9 @@ Ispell's ultimate default dictionary."
 
 (defcustom flyspell-check-tex-math-command nil
   "Non-nil means check even inside TeX math environment.
-TeX math environments are discovered by the TEXMATHP that implemented
-inside the texmathp.el Emacs package.  That package may be found at:
-http://strw.leidenuniv.nl/~dominik/Tools"
+TeX math environments are discovered by `texmathp', implemented
+inside AUCTeX package.  That package may be found at
+URL `http://www.gnu.org/software/auctex/'"
   :group 'flyspell
   :type 'boolean)
 
