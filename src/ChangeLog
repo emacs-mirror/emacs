@@ -1,5 +1,14 @@
 2010-08-25  Kenichi Handa  <handa@m17n.org>
 
+	* composite.c (composition_compute_stop_pos): Don't break
+	composition at PT.
+	(composition_reseat_it): Likewise.  Fix calculation of character
+	position starting a composition.
+	(Fcomposition_get_gstring): Don't limit the number of components
+	for automatic composition.
+
+2010-08-25  Kenichi Handa  <handa@m17n.org>
+
 	* composite.c (composition_compute_stop_pos): In forward search,
 	pay attention to the possibility that some character after ENDPOS
 	will be composed with charactrs before ENDPOS.
