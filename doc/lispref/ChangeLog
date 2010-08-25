@@ -1,3 +1,7 @@
+2010-08-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* processes.texi (Filter Functions): Fix last change.
+
 2010-08-24  Markus Triska  <triska@gmx.at>
 
 	* processes.texi (Filter Functions): Use `buffer-live-p' instead
