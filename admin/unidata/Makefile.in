@@ -21,7 +21,7 @@
 
 EMACS = ../../src/emacs
 DSTDIR = ../../lisp/international
-RUNEMACS = ${EMACS} -Q --multibyte -batch
+RUNEMACS = ${EMACS} -Q -batch
 
 all: ${DSTDIR}/charprop.el ../../src/biditype.h ../../src/bidimirror.h
 

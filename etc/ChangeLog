@@ -1,3 +1,7 @@
+2010-08-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: dbus.el supports alternative buses.
+
 2010-08-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* tutorials/TUTORIAL.he: Use MAQAF instead of hyphen where appropriate.

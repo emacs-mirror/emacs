@@ -43,6 +43,11 @@
 
 (eval-when-compile (require 'cl))
 
+(defgroup ruby nil
+  "Major mode for editing Ruby code."
+  :prefix "ruby-"
+  :group 'languages)
+
 (defconst ruby-keyword-end-re
   (if (string-match "\\_>" "ruby")
       "\\_>"

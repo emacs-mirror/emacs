@@ -102,9 +102,6 @@ it contains unibyte encoded text or binary non-text data.
 
 You cannot set this variable directly; instead, use the function
 @code{set-buffer-multibyte} to change a buffer's representation.
-
-The @samp{--unibyte} command line option does its job by setting the
-default value to @code{nil} early in startup.
 @end defvar
 
 @defun position-bytes position

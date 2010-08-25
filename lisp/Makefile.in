@@ -33,10 +33,9 @@ VPATH = $(srcdir)
 # to use an absolute file name.
 EMACS = ${abs_top_builddir}/src/emacs
 
-# Command line flags for Emacs.  This must include --multibyte,
-# otherwise some files will not compile.
+# Command line flags for Emacs.
 
-EMACSOPT = -batch --no-site-file --multibyte
+EMACSOPT = -batch --no-site-file
 
 # Extra flags to pass to the byte compiler
 BYTE_COMPILE_EXTRA_FLAGS =

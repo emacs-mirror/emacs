@@ -35,9 +35,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    if system supports pty's.  'p' means it is /dev/ptym/ptyp0  */
 #define FIRST_PTY_LETTER 'p'
 
-/* Define HAVE_TERMIO if the system provides sysV-style ioctls
-   for terminal control.  */
-#define HAVE_TERMIO
+#define HAVE_TERMIOS
+#define NO_TERMIO
+
+#define ORDINARY_LINK
 
 /* Define HAVE_PTYS if the system supports pty devices.  */
 #define HAVE_PTYS

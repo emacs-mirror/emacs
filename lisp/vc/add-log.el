@@ -755,7 +755,17 @@ Optional arg BUFFER-FILE overrides `buffer-file-name'."
     (if add-log-file-name-function
 	(funcall add-log-file-name-function buffer-file)
       (setq buffer-file
-            (file-relative-name buffer-file (file-name-directory log-file)))
+            (let* ((dir (file-name-directory log-file))
+                   (rel (file-relative-name buffer-file dir)))
+              ;; Sometimes with symlinks, the two buffers may have names that
+              ;; appear to belong to different directory trees.  So check the
+              ;; file-truenames, to see if we get a better result.
+              (if (not (string-match "\\`\\.\\./" rel))
+                  rel
+                (let ((new (file-relative-name (file-truename buffer-file)
+                                               (file-truename dir))))
+                  (if (< (length new) (length rel))
+                      new rel)))))
       ;; If we have a backup file, it's presumably because we're
       ;; comparing old and new versions (e.g. for deleted
       ;; functions) and we'll want to use the original name.

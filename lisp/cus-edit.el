@@ -4097,8 +4097,8 @@ If GROUPS-ONLY non-nil, return only those members that are groups."
 	     (custom-group-state-update widget)
 	     (progress-reporter-done reporter))
 	   ;; End line
-	   (let ((p (point)))
-	     (insert "\n")
+	   (let ((p (1+ (point))))
+	     (insert "\n\n")
 	     (put-text-property p (1+ p) 'face '(:underline t))
 	     (overlay-put (make-overlay p (1+ p))
 			  'before-string

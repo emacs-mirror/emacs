@@ -1,7 +1,7 @@
 ;;; align.el --- align text to a specific column, by regexp
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Maintainer: FSF
@@ -944,6 +944,8 @@ region, call `align-regexp' and type in that regular expression."
       (list (concat "\\(\\s-*\\)"
 		    (read-string "Align regexp: "))
 	    1 align-default-spacing nil))))
+  (or group (setq group 1))
+  (or spacing (setq spacing align-default-spacing))
   (let ((rule
 	 (list (list nil (cons 'regexp regexp)
 		     (cons 'group (abs group))

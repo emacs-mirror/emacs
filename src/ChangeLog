@@ -4,6 +4,174 @@
 	pay attention to the possibility that some character after ENDPOS
 	will be composed with charactrs before ENDPOS.
 
+2010-08-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (command_loop_1): Don't clobber primary selection
+	during handle-switch-frame (Bug#6872).
+
+2010-08-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c: Accept UNIX domain sockets as bus address.
+	(Fdbus_close_bus): New function.
+	(Vdbus_registered_buses): New variable.
+	(xd_initialize): Implement string as bus address.
+	(Fdbus_init_bus): Add bus to Vdbus_registered_buses).
+	(Fdbus_get_unique_name, Fdbus_call_method)
+	(Fdbus_call_method_asynchronously, Fdbus_method_return_internal)
+	(Fdbus_method_error_internal, Fdbus_send_signal)
+	(Fdbus_register_signal, Fdbus_register_method): Remove bus type
+	check.  This is done in xd_initialize_bus.  Adapt doc string, if
+	necessary.
+	(xd_pending_messages, xd_read_queued_messages): Loop over buses in
+	Vdbus_registered_buses.
+	(Vdbus_registered_objects_table): Create hash.
+
+2010-08-22  Juri Linkov  <juri@jurta.org>
+
+	* keyboard.c (Fexecute_extended_command): Move reading a command name
+	with `completing-read' to a new Elisp function `read-extended-command'.
+	Call it to read a command to `function'  (bug#5364, bug#5214).
+
+2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs.c (main): Remove handling of --unibyte arg (Bug#6886).
+
+2010-08-22  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* eval.c (Flet, Feval, Fapply, apply_lambda): Use SAFE_ALLOCA_LISP
+	instead of SAFE_ALLOCA.
+
+2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* eval.c (Flet, Feval, Fapply, apply_lambda): Use SAFE_ALLOCA
+	(Bug#6214).
+
+2010-08-22  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* doc.c (Fsnarf_documentation): Set skip_file only if p[1] is S.
+
+2010-08-22  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* doc.c (Fsnarf_documentation): Initialize skip_file before
+	build-files test.
+
+2010-08-22  Peter O'Gorman  <pogma@thewrittenword.com>  (tiny change)
+
+	* s/hpux10-20.h (HAVE_TERMIOS, NO_TERMIO, ORDINARY_LINK):
+	New definitions.
+	(HAVE_TERMIO): Remove.
+
+2010-08-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* deps.mk (sysdep.o, msdos.o): Depend on sysselect.h.
+
+	* sysselect.h [WINDOWSNT]: Don't define the FD_* and select stuff
+	for w32.
+
+	* s/ms-w32.h (HAVE_SYS_TIMEB_H): Don't #undef HAVE_SYS_SELECT_H,
+	it's done in nt/config.nt.
+
+	* makefile.w32-in ($(BLD)/sysdep.$(O)): Depend on sysselect.h.
+
+	* unexcoff.c (report_error, make_hdr, write_segment)
+	(copy_text_and_data, copy_sym, mark_x, adjust_lnnoptrs, unexec):
+	Convert argument lists and prototypes to ANSI C.
+	(make_hdr, write_segment): Remove unused variables.
+	(unexec): Remove commented-out line.  Initialize `new' to shut up
+	compiler warnings.
+
+2010-08-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Simplify termio code.
+	All non-MSDOS non-WINDOWSNT platforms define HAVE_TERMIOS, so
+	HAVE_TERMIO code is obsolete.
+	Replace HAVE_TERMIOS conditionals with !DOS_NT.
+	* systty.h: Do not define HAVE_TCATTR.
+	Remove HAVE_TERMIO, HAVE_LTCHARS and HAVE_TCHARS code.
+	Do not define EMACS_HAVE_TTY_PGRP.  Only define
+	EMACS_GET_TTY_PGRP for !DOS_NT.
+	* sysdep.c: Include sysselect.h unconditionally.  Do not include
+	sys/ioctl.h and termios.h, systty.h does it.  Use
+	HAVE_SYS_UTSNAME_H instead of USG as an include guard.
+	(init_baud_rate): Remove HAVE_TERMIO code.
+	(child_setup_tty): Remove HAVE_TERMIO code.
+	(emacs_get_tty, emacs_set_tty): Remove HAVE_TERMIO, HAVE_TCHARS
+	and HAVE_LTCHARS code.  Use !DOS_NT instead of HAVE_TCATTR.
+	(new_ltchars, new_tchars): Remove, unused.
+	(init_sys_modes): Remove HAVE_TERMIO, HAVE_TCHARS and HAVE_LTCHARS
+	code.  Remove special casing for __mips__, it was a no-op.  Remove
+	HAVE_TCATTR conditional, it is implied by HAVE_TERMIOS.
+	(init_sys_modes): Remove HPUX special case.
+	* process.c: Include stdlib.h unconditionally.  Do not include
+	fcntl.h, systty.h does it.  Remove conditional code for
+	HAVE_SERIAL, it is always true.
+	(process_send_signal): Remove HAVE_TERMIOS conditional, it's
+	always true when SIGNALS_VIA_CHARACTERS is true.
+	(Fcontinue_process, Fprocess_send_eof): Simplify conditionals:
+	!WINDOWSNT means HAVE_TERMIOS.
+	(create_process): Remove HAVE_TERMIOS, it's inside a HAVE_PTYS
+	conditional, which is true for all HAVE_TERMIOS systems.
+	* keyboard.c (init_keyboard): Do not use HAVE_TERMIO, use !DOS_NT
+	instead of HAVE_TERMIOS.
+	* emacs.c (shut_down_emacs): Use !defined DOS_NT instead of
+	EMACS_HAVE_TTY_PGRP.
+	* callproc.c (child_setup): Move EMACS_SET_TTY_PGRP use to the
+	non-MSDOS, non-WINDOWSNT code, it's only defined for such systems
+	anyway.
+
+2010-08-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (buffer_posn_from_coords): Fix off-by-one error in
+	mirroring pixel positions.
+
+2010-08-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* alloc.c (malloc_sbrk_used, malloc_sbrk_unused): Remove,
+	write only.
+	(init_alloc_once): Remove writes to malloc_sbrk_unused, and
+	malloc_sbrk_used, nothing uses them.
+
+	* puresize.h: Remove code assuming PNTR_COMPARISON_TYPE is not
+	defined, unconditionally defined in lisp.h.
+
+	* term.c: Do not include <termios.h>, systty.h does it.
+
+	* s/unixware.h (HAVE_TCATTR):
+	* s/aix4-2.h (HAVE_TCATTR): Remove definitions, not needed.
+	systty.h defines it when HAVE_TERMIOS is defined.
+
+2010-08-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (buffer_posn_from_coords): Fix last change for text
+	terminals: add one-character offset for R2L lines.
+
+	* emacs.c <emacs_version>: Add a comment regarding
+	msdos/mainmake.v2's dependency on the syntax of this declaration.
+
+2010-08-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispnew.c (buffer_posn_from_coords): Fix calculation of buffer
+	position for R2L lines by mirroring the pixel position wrt the
+	text are box.  Improve commentary.
+
+2010-08-20  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* image.c (imagemagick_clear_image): Remove debugging output.
+
+2010-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* cmds.c (Vself_insert_face, Vself_insert_face_command): Remove.
+	(Qpost_self_insert_hook, Vpost_self_insert_hook): New vars.
+	(internal_self_insert): Run Qpost_self_insert_hook rather than handle
+	self-insert-face.
+	(syms_of_cmds): Initialize the new vars.
+
+2010-08-19  Jason Rumney  <jasonr@gnu.org>
+
+	* w32menu.c (set_frame_menubar): Remove call to undefined function.
+
+	* w32fns.c (w32_wnd_proc): Don't check context before initializing.
+
 2010-08-19  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsselect.m (nxatoms_of_nsselect): Use "Selection" and "Secondary".
@@ -38,6 +206,17 @@
 	(nxatoms_of_nsselect): NXPrimaryPboard = PrimarySelection,
 	NXSecondaryPboard = SecondarySelection.
 	(syms_of_nsselect): Intern QCLIPBOARD (Bug#6677).
+
+2010-08-18  Joakim Verona  <joakim@verona.se>
+
+	* image.c: Add support for ImageMagick.  When HAVE_IMAGEMAGICK is
+	defined:
+	(imagemagick_image_p): New function to test for ImageMagic image.
+	(imagemagick_load): New function to load ImageMagick image.
+	(imagemagick_load_image): New function, helper for imagemagick_load.
+	(imagemagick-types): New function.
+	(Qimagemagick): New Lisp_object.
+	(imagemagick-render-type): New variable, decides which renderer to use.
 
 2010-08-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -335,10 +514,10 @@
 
 2010-08-08  Kenichi Handa  <handa@m17n.org>
 
-	* charset.c: Include <stdlib.h>
+	* charset.c: Include <stdlib.h>.
 	(struct charset_sort_data): New struct.
 	(charset_compare): New function.
-	(Fsort_charsets): New funciton.
+	(Fsort_charsets): New function.
 	(syms_of_charset): Declare Fsort_charsets as a Lisp function.
 
 	* coding.c (decode_coding_iso_2022): Fix checking of dimension

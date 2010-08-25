@@ -86,25 +86,23 @@ replacing its case-insensitive matches with the literal string in LIGHTER."
 ;;;###autoload
 (defmacro define-minor-mode (mode doc &optional init-value lighter keymap &rest body)
   "Define a new minor mode MODE.
-This function defines the associated control variable MODE, keymap MODE-map,
-and toggle command MODE.
-
+This defines the control variable MODE and the toggle command MODE.
 DOC is the documentation for the mode toggle command.
+
 Optional INIT-VALUE is the initial value of the mode's variable.
 Optional LIGHTER is displayed in the modeline when the mode is on.
-Optional KEYMAP is the default (defvar) keymap bound to the mode keymap.
-  If it is a list, it is passed to `easy-mmode-define-keymap'
-  in order to build a valid keymap.  It's generally better to use
-  a separate MODE-map variable than to use this argument.
-The above three arguments can be skipped if keyword arguments are
-used (see below).
+Optional KEYMAP is the default keymap bound to the mode keymap.
+  If non-nil, it should be a variable name (whose value is a keymap),
+  a keymap, or a list of arguments for `easy-mmode-define-keymap'.
+  If KEYMAP is a keymap or list, this also defines the variable MODE-map.
 
-BODY contains code to execute each time the mode is activated or deactivated.
-  It is executed after toggling the mode,
-  and before running the hook variable `MODE-hook'.
-  Before the actual body code, you can write keyword arguments (alternating
-  keywords and values).  These following keyword arguments are supported (other
-  keywords will be passed to `defcustom' if the minor mode is global):
+BODY contains code to execute each time the mode is enabled or disabled.
+  It is executed after toggling the mode, and before running MODE-hook.
+  Before the actual body code, you can write keyword arguments, i.e.
+  alternating keywords and values.  These following special keywords
+  are supported (other keywords are passed to `defcustom' if the minor
+  mode is global):
+
 :group GROUP	Custom group name to use in all generated `defcustom' forms.
 		Defaults to MODE without the possible trailing \"-mode\".
 		Don't use this default group name unless you have written a
