@@ -1357,6 +1357,7 @@ $(BLD)/sysdep.$(O) : \
 	$(SRC)/frame.h \
 	$(SRC)/keyboard.h \
 	$(SRC)/process.h \
+	$(SRC)/sysselect.h \
 	$(SRC)/syssignal.h \
 	$(SRC)/systime.h \
 	$(SRC)/systty.h \

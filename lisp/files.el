@@ -757,21 +757,44 @@ one or more of those symbols."
              (let ((x (file-name-directory suffix)))
                (if x (1- (length x)) (length suffix))))))
    (t
-    (let ((names nil)
+    (let ((names '())
+          ;; If we have files like "foo.el" and "foo.elc", we could load one of
+          ;; them with "foo.el", "foo.elc", or "foo", where just "foo" is the
+          ;; preferred way.  So if we list all 3, that gives a lot of redundant
+          ;; entries for the poor soul looking just for "foo".  OTOH, sometimes
+          ;; the user does want to pay attention to the extension.  We try to
+          ;; diffuse this tension by stripping the suffix, except when the
+          ;; result is a single element (i.e. usually we only list "foo" unless
+          ;; it's the only remaining element in the list, in which case we do
+          ;; list "foo", "foo.elc" and "foo.el").
+          (fullnames '())
 	  (suffix (concat (regexp-opt suffixes t) "\\'"))
 	  (string-dir (file-name-directory string))
           (string-file (file-name-nondirectory string)))
       (dolist (dir dirs)
-	(unless dir
-	  (setq dir default-directory))
-	(if string-dir (setq dir (expand-file-name string-dir dir)))
-	(when (file-directory-p dir)
-	  (dolist (file (file-name-all-completions
-			 string-file dir))
-	    (push file names)
-	    (when (string-match suffix file)
-	      (setq file (substring file 0 (match-beginning 0)))
-              (push file names)))))
+        (unless dir
+          (setq dir default-directory))
+        (if string-dir (setq dir (expand-file-name string-dir dir)))
+        (when (file-directory-p dir)
+          (dolist (file (file-name-all-completions
+                         string-file dir))
+            (if (not (string-match suffix file))
+                (push file names)
+              (push file fullnames)
+              (push (substring file 0 (match-beginning 0)) names)))))
+      ;; Switching from names to names+fullnames creates a non-monotonicity
+      ;; which can cause problems with things like partial-completion.
+      ;; To minimize the problem, filter out completion-regexp-list, so that
+      ;; M-x load-library RET t/x.e TAB finds some files.
+      (if completion-regexp-list
+          (setq names (all-completions "" names)))
+      ;; Remove duplicates of the first element, so that we can easily check
+      ;; if `names' really only contains a single element.
+      (when (cdr names) (setcdr names (delete (car names) (cdr names))))
+      (unless (cdr names)
+        ;; There's no more than one matching non-suffixed element, so expand
+        ;; the list by adding the suffixed elements as well.
+        (setq names (nconc names fullnames)))
       (completion-table-with-context
        string-dir names string-file pred action)))))
 
@@ -2782,6 +2805,7 @@ asking you for confirmation."
 	(no-update-autoloads     . booleanp)
 	(tab-width               . integerp)   ;; C source code
 	(truncate-lines          . booleanp)   ;; C source code
+	(word-wrap               . booleanp) ;; C source code
 	(bidi-display-reordering . booleanp))) ;; C source code
 
 (put 'bidi-paragraph-direction 'safe-local-variable

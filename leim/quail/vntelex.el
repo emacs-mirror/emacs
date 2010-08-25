@@ -53,7 +53,7 @@ Other diacritics:
   acute         s      as -> ,1a(B
   grave         f      af -> ,1`(B
   hook above    r      ar -> ,1d(B
-  tilde         x      ax  -> ,1c(B
+  tilde         x      ax -> ,1c(B
   dot below     j      aj -> ,1U(B
 
   d bar                dd -> ,1p(B
