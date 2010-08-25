@@ -970,7 +970,8 @@ mail status in mode line"))
 
 (defun menu-bar-set-tool-bar-position (position)
   (customize-set-variable 'tool-bar-mode t)
-  (set-frame-parameter nil 'tool-bar-position position)
+  (dolist (frame (frame-list))
+    (set-frame-parameter frame 'tool-bar-position position))
   (customize-set-variable 'default-frame-alist
 			  (cons (cons 'tool-bar-position position)
 				(assq-delete-all 'tool-bar-position

@@ -1286,7 +1286,7 @@ of point.  Here is how to do these things:
 @end group
 @group
         (save-excursion
-          ;;  <at> r{Insert the text, advancing the process marker.}
+          ;;  @r{Insert the text, advancing the process marker.}
           (goto-char (process-mark proc))
           (insert string)
           (set-marker (process-mark proc) (point)))
