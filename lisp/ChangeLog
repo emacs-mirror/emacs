@@ -6,6 +6,11 @@
 	* international/fontset.el (setup-default-fontset): Fix typo for
 	arabic OTF spec (fini->fina).
 
+2010-08-25  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* menu-bar.el (menu-bar-set-tool-bar-position): Set frame parameter
+	on all frames.
+
 2010-08-24  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* whitespace.el: Allow cleaning up blanks without blank
