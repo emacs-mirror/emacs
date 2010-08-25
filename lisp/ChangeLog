@@ -1,3 +1,22 @@
+2010-08-24  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* whitespace.el: Allow cleaning up blanks without blank
+	visualization (Bug#6651).  Adjust help window for
+	whitespace-toggle-options (Bug#6479).  Allow to use fill-column
+	instead of whitespace-line-column (from EmacsWiki).  New version
+	13.1.
+	(whitespace-style): Added new value 'face.  Adjust docstring.
+	(whitespace-space, whitespace-hspace, whitespace-tab): Adjust
+	foreground property face.
+	(whitespace-line-column): Adjust docstring and type declaration.
+	(whitespace-style-value-list, whitespace-toggle-option-alist)
+	(whitespace-help-text): Adjust const initialization.
+	(whitespace-toggle-options, global-whitespace-toggle-options):
+	Adjust docstring.
+	(whitespace-display-window, whitespace-interactive-char)
+	(whitespace-style-face-p, whitespace-color-on): Adjust code.
+	(whitespace-help-scroll): New fun.
+
 2010-08-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/package.el (list-packages): Alias for
@@ -164,7 +183,7 @@
 	(whitespace-post-command-hook, whitespace-display-char-on):
 	Adjust code.
 	(whitespace-looking-back, whitespace-buffer-changed): New funs.
-	(whitespace-space-regexp, whitespace-tab-regexp): Eliminate funs.
+	(whitespace-space-regexp, whitespace-tab-regexp): Fun eliminated.
 
 2010-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
