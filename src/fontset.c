@@ -283,6 +283,10 @@ fontset_id_valid_p (id)
 #define RFONT_DEF_OBJECT(rfont_def) AREF (rfont_def, 2)
 #define RFONT_DEF_SET_OBJECT(rfont_def, object)	\
   ASET ((rfont_def), 2, (object))
+/* Score of RFONT_DEF is an integer value; the lowest 8 bits represent
+   the order of listing by font backends, the higher bits represents
+   the order given by charset priority list.  The smaller value is
+   preferable.  */
 #define RFONT_DEF_SCORE(rfont_def) XINT (AREF (rfont_def, 3))
 #define RFONT_DEF_SET_SCORE(rfont_def, score) \
   ASET ((rfont_def), 3, make_number (score))
@@ -412,8 +416,13 @@ reorder_font_vector (Lisp_Object font_group, struct font *font)
       Lisp_Object font_def = RFONT_DEF_FONT_DEF (rfont_def);
       Lisp_Object font_spec = FONT_DEF_SPEC (font_def);
       int score = RFONT_DEF_SCORE (rfont_def) & 0xFF;
+      Lisp_Object otf_spec = Ffont_get (font_spec, QCotf);
 
-      if (! font_match_p (font_spec, font_object))
+      if (! NILP (otf_spec))
+	/* A font-spec with :otf is preferable regardless of encoding
+	   and language..  */
+	;
+      else if (! font_match_p (font_spec, font_object))
 	{
 	  Lisp_Object encoding = FONT_DEF_ENCODING (font_def);
 
