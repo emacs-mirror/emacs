@@ -1,3 +1,14 @@
+2010-08-25  Tom Tromey  <tromey@redhat.com>
+
+	* vol2.texi (Top): Update.
+	* vol1.texi (Top): Update.
+	* tips.texi (Library Headers): Mention Package-Version and
+	Package-Requires.
+	* package.texi: New file.
+	* os.texi (System Interface): Update pointers.
+	* elisp.texi (Top): Link to new nodes.  Include package.texi.
+	* anti.texi (Antinews): Update pointers.
+
 2010-08-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* processes.texi (Filter Functions): Fix last change.

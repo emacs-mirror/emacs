@@ -1052,6 +1052,31 @@ Please use that command to see a list of the meaningful keywords.
 This field is important; it's how people will find your package when
 they're looking for things by topic area.  To separate the keywords, you
 can use spaces, commas, or both.
+
+@item Package-Version
+If @samp{Version} is not suitable for use by the package manager, then
+a package can define @samp{Package-Version}; it will be used instead.
+This is handy if @samp{Version} is an RCS id or something else that
+cannot be parsed by @code{version-to-list}.  @xref{Packaging Basics}.
+
+@item Package-Requires
+If this exists, it names packages on which the current package depends
+for proper operation.  @xref{Packaging Basics}.  This is used by the
+package manager both at download time (to ensure that a complete set
+of packages is downloaded) and at activation time (to ensure that a
+package is activated if and only if all its dependencies have been).
+
+Its format is a list of lists.  The @code{car} of each sub-list is the
+name of a package, as a symbol.  The @code{cadr} of each sub-list is
+the minimum acceptable version number, as a string.  For instance:
+
+@smallexample
+;; Package-Requires: ((gnus "1.0") (bubbles "2.7.2"))
+@end smallexample
+
+The package code automatically defines a package named @samp{emacs}
+with the version number of the currently running Emacs.  This can be
+used to require a minimal version of Emacs for a package.
 @end table
 
   Just about every Lisp library ought to have the @samp{Author} and
