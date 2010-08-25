@@ -1091,6 +1091,16 @@ composition_compute_stop_pos (struct composition_it *cmp_it, EMACS_INT charpos, 
 		}
 	    }
 	}
+      if (charpos == endpos)
+	{
+	  /* We couldn't find a composition point before ENDPOS.  But,
+	     some character after ENDPOS may be composed with
+	     characters before ENDPOS.  So, we should stop at the safe
+	     point.  */
+	  charpos = endpos - MAX_AUTO_COMPOSITION_LOOKBACK;
+	  if (charpos < start)
+	    charpos = start;
+	}
     }
   else if (charpos > endpos)
     {

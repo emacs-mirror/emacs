@@ -1,3 +1,9 @@
+2010-08-25  Kenichi Handa  <handa@m17n.org>
+
+	* composite.c (composition_compute_stop_pos): In forward search,
+	pay attention to the possibility that some character after ENDPOS
+	will be composed with charactrs before ENDPOS.
+
 2010-08-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keyboard.c (command_loop_1): Don't clobber primary selection
