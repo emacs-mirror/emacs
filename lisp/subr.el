@@ -1818,6 +1818,7 @@ When there's an ambiguity because the key looks like the prefix of
 some sort of escape sequence, the ambiguity is resolved via `read-key-delay'."
   (let ((overriding-terminal-local-map read-key-empty-map)
 	(overriding-local-map nil)
+        (echo-keystrokes 0)
 	(old-global-map (current-global-map))
         (timer (run-with-idle-timer
                 ;; Wait long enough that Emacs has the time to receive and
@@ -1842,7 +1843,12 @@ some sort of escape sequence, the ambiguity is resolved via `read-key-delay'."
                       (throw 'read-key keys)))))))
     (unwind-protect
         (progn
-	  (use-global-map read-key-empty-map)
+	  (use-global-map
+           (let ((map (make-sparse-keymap)))
+             ;; Don't hide the menu-bar and tool-bar entries.
+             (define-key map [menu-bar] (lookup-key global-map [menu-bar]))
+             (define-key map [tool-bar] (lookup-key global-map [tool-bar]))
+             map))
 	  (aref	(catch 'read-key (read-key-sequence-vector prompt nil t)) 0))
       (cancel-timer timer)
       (use-global-map old-global-map))))

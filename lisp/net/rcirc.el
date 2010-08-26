@@ -1083,7 +1083,7 @@ Create the buffer if it doesn't exist."
     (when (not (equal 0 (- (point) rcirc-prompt-end-marker)))
       ;; delete a trailing newline
       (when (eq (point) (point-at-bol))
-	(delete-backward-char 1))
+	(delete-char -1))
       (let ((input (buffer-substring-no-properties
 		    rcirc-prompt-end-marker (point))))
 	(dolist (line (split-string input "\n"))
@@ -2110,12 +2110,13 @@ With a prefix arg, prompt for new topic."
   (rcirc-send-string process (format "PRIVMSG %s :\C-aACTION %s\C-a"
                                      target args)))
 
-(defun rcirc-add-or-remove (set &optional elt)
-  (if (and elt (not (string= "" elt)))
-      (if (member-ignore-case elt set)
-	  (delete elt set)
-	(cons elt set))
-    set))
+(defun rcirc-add-or-remove (set &rest elements)
+  (dolist (elt elements)
+    (if (and elt (not (string= "" elt)))
+	(setq set (if (member-ignore-case elt set)
+		      (delete elt set)
+		    (cons elt set)))))
+  set)
 
 (defun-rcirc-command ignore (nick)
   "Manage the ignore list.
@@ -2123,7 +2124,9 @@ Ignore NICK, unignore NICK if already ignored, or list ignored
 nicks when no NICK is given.  When listing ignored nicks, the
 ones added to the list automatically are marked with an asterisk."
   (interactive "sToggle ignoring of nick: ")
-  (setq rcirc-ignore-list (rcirc-add-or-remove rcirc-ignore-list nick))
+  (setq rcirc-ignore-list
+	(apply #'rcirc-add-or-remove rcirc-ignore-list
+	       (split-string nick nil t)))
   (rcirc-print process nil "IGNORE" target
 	       (mapconcat
 		(lambda (nick)
@@ -2135,14 +2138,18 @@ ones added to the list automatically are marked with an asterisk."
 (defun-rcirc-command bright (nick)
   "Manage the bright nick list."
   (interactive "sToggle emphasis of nick: ")
-  (setq rcirc-bright-nicks (rcirc-add-or-remove rcirc-bright-nicks nick))
+  (setq rcirc-bright-nicks
+	(apply #'rcirc-add-or-remove rcirc-bright-nicks
+	       (split-string nick nil t)))
   (rcirc-print process nil "BRIGHT" target
 	       (mapconcat 'identity rcirc-bright-nicks " ")))
 
 (defun-rcirc-command dim (nick)
   "Manage the dim nick list."
   (interactive "sToggle deemphasis of nick: ")
-  (setq rcirc-dim-nicks (rcirc-add-or-remove rcirc-dim-nicks nick))
+  (setq rcirc-dim-nicks
+	(apply #'rcirc-add-or-remove rcirc-dim-nicks
+	       (split-string nick nil t)))
   (rcirc-print process nil "DIM" target
 	       (mapconcat 'identity rcirc-dim-nicks " ")))
 
@@ -2151,7 +2158,9 @@ ones added to the list automatically are marked with an asterisk."
 Mark KEYWORD, unmark KEYWORD if already marked, or list marked
 keywords when no KEYWORD is given."
   (interactive "sToggle highlighting of keyword: ")
-  (setq rcirc-keywords (rcirc-add-or-remove rcirc-keywords keyword))
+  (setq rcirc-keywords
+	(apply #'rcirc-add-or-remove rcirc-keywords
+	       (split-string keyword nil t)))
   (rcirc-print process nil "KEYWORD" target
 	       (mapconcat 'identity rcirc-keywords " ")))
 

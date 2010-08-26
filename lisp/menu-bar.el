@@ -1191,6 +1191,9 @@ mail status in mode line"))
 (define-key menu-bar-games-menu [life]
   `(menu-item ,(purecopy "Life")  life
 	      :help ,(purecopy "Watch how John Conway's cellular automaton evolves")))
+(define-key menu-bar-games-menu [land]
+  `(menu-item ,(purecopy "Landmark") landmark
+	      :help ,(purecopy "Watch a neural-network robot learn landmarks")))
 (define-key menu-bar-games-menu [hanoi]
   `(menu-item ,(purecopy "Towers of Hanoi") hanoi
 	      :help ,(purecopy "Watch Towers-of-Hanoi puzzle solved by Emacs")))
