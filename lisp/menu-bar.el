@@ -1485,6 +1485,9 @@ mail status in mode line"))
 (define-key menu-bar-describe-menu [describe-current-display-table]
   `(menu-item ,(purecopy "Describe Display Table") describe-current-display-table
 	      :help ,(purecopy "Describe the current display table")))
+(define-key menu-bar-describe-menu [describe-package]
+  `(menu-item ,(purecopy "Describe Package...") describe-package
+              :help ,(purecopy "Display documentation of a Lisp package")))
 (define-key menu-bar-describe-menu [describe-face]
   `(menu-item ,(purecopy "Describe Face...") describe-face
               :help ,(purecopy "Display the properties of a face")))
@@ -1616,11 +1619,11 @@ key, a click, or a menu-item")))
 (define-key menu-bar-help-menu [sep2]
   menu-bar-separator)
 (define-key menu-bar-help-menu [external-packages]
-  `(menu-item ,(purecopy "External Packages") menu-bar-help-extra-packages
+  `(menu-item ,(purecopy "Finding Extra Packages") menu-bar-help-extra-packages
 	      :help ,(purecopy "Lisp packages distributed separately for use in Emacs")))
 (define-key menu-bar-help-menu [find-emacs-packages]
-  `(menu-item ,(purecopy "Find Emacs Packages") finder-by-keyword
-	      :help ,(purecopy "Find packages and features by keyword")))
+  `(menu-item ,(purecopy "Search Built-in Packages") finder-by-keyword
+	      :help ,(purecopy "Find built-in packages and features by keyword")))
 (define-key menu-bar-help-menu [more-manuals]
   `(menu-item ,(purecopy "More Manuals") ,menu-bar-manuals-menu))
 (define-key menu-bar-help-menu [emacs-manual]

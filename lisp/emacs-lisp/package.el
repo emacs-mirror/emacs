@@ -216,6 +216,7 @@ If VERSION is nil, the package is not loaded (it is \"disabled\")."
 (declare-function lm-header "lisp-mnt" (header))
 (declare-function lm-commentary "lisp-mnt" (&optional file))
 (declare-function dired-delete-file "dired" (file &optional recursive trash))
+(defvar url-http-end-of-headers)
 
 (defcustom package-archives '(("gnu" . "http://elpa.gnu.org/packages/"))
   "An alist of archives from which to fetch.
@@ -1016,7 +1017,10 @@ download."
   (unless (file-exists-p package-user-dir)
     (make-directory package-user-dir t))
   (dolist (archive package-archives)
-    (package--download-one-archive archive "archive-contents"))
+    (condition-case nil
+	(package--download-one-archive archive "archive-contents")
+      (error (message "Failed to download archive `%s'."
+		      (car archive)))))
   (package-read-all-archive-contents))
 
 ;;;###autoload
@@ -1052,9 +1056,7 @@ The variable `package-load-list' controls which packages to load."
 					guess)
 			      "Describe package: ")
 			    packages nil t nil nil guess))
-     (list (if (equal val "")
-	       guess
-	     (intern val)))))
+     (list (if (equal val "") guess (intern val)))))
   (if (or (null package) (null (symbolp package)))
       (message "You did not specify a package")
     (help-setup-xref (list #'describe-package package)
@@ -1064,38 +1066,60 @@ The variable `package-load-list' controls which packages to load."
 	(describe-package-1 package)))))
 
 (defun describe-package-1 (package)
-  (let ((desc (cdr (assq package package-alist)))
-	reqs version installable)
+  (let ((package-name (symbol-name package))
+	(built-in (assq package package--builtins))
+	desc pkg-dir reqs version installable)
     (prin1 package)
     (princ " is ")
-    (cond
-     (desc
-      ;; This package is loaded (i.e. in `package-alist').
-      (let (pkg-dir)
-	(setq version (package-version-join (package-desc-vers desc)))
-	(if (assq package package--builtins)
-	    (princ "a built-in package.\n\n")
-	  (setq pkg-dir (package--dir (symbol-name package) version))
-	  (if pkg-dir
-	      (progn
-		(insert "a package installed in `")
-		(help-insert-xref-button (file-name-as-directory pkg-dir)
-					 'help-package-def pkg-dir)
-		(insert "'.\n\n"))
-	    ;; This normally does not happen.
-	    (insert "a deleted package.\n\n")
-	    (setq version nil)))))
-     (t
-      ;; An uninstalled package.
-      (setq desc (cdr (assq package package-archive-contents))
+    (if (setq desc (cdr (assq package package-alist)))
+	;; This package is loaded (i.e. in `package-alist').
+	(progn
+	  (setq version (package-version-join (package-desc-vers desc)))
+	  (cond (built-in
+		 (princ "a built-in package.\n\n"))
+		((setq pkg-dir (package--dir package-name version))
+		 (insert "an installed package.\n\n"))
+		(t ;; This normally does not happen.
+		 (insert "a deleted package.\n\n")
+		 (setq version nil))))
+      ;; This package is not installed.
+      (setq desc    (cdr (assq package package-archive-contents))
 	    version (package-version-join (package-desc-vers desc))
 	    installable t)
-      (insert "an installable package.\n\n")))
-    (if version
-	(insert "      Version: " version "\n"))
+      (insert "an uninstalled package.\n\n"))
+
+    (insert "     " (propertize "Status" 'face 'bold) ": ")
+    (cond (pkg-dir
+	   (insert (propertize "Installed" 'face 'font-lock-comment-face))
+	   (insert " in `")
+	   ;; Todo: Add button for uninstalling.
+	   (help-insert-xref-button (file-name-as-directory pkg-dir)
+				    'help-package-def pkg-dir)
+	   (insert "'."))
+	  (installable
+	   (insert "Available -- ")
+	   (let ((button-text (if (display-graphic-p)
+				  "Install"
+				"[Install]"))
+		 (button-face (if (display-graphic-p)
+				  '(:box (:line-width 2 :color "dark grey")
+					 :background "light grey"
+					 :foreground "black")
+				'link)))
+	     (insert-text-button button-text
+				 'face button-face
+				 'follow-link t
+				 'package-symbol package
+				 'action 'package-install-button-action)))
+	  (built-in
+	   (insert (propertize "Built-in" 'face 'font-lock-builtin-face) "."))
+	  (t (insert "Deleted.")))
+    (insert "\n")
+    (when version
+      (insert "    " (propertize "Version" 'face 'bold) ": " version "\n"))
     (setq reqs (package-desc-reqs desc))
     (when reqs
-      (insert "     Requires: ")
+      (insert "   " (propertize "Requires" 'face 'bold) ": ")
       (let ((first t)
 	    name vers text)
 	(dolist (req reqs)
@@ -1110,28 +1134,45 @@ The variable `package-load-list' controls which packages to load."
 		(t (insert ", ")))
 	  (help-insert-xref-button text 'help-package name))
 	(insert "\n")))
-    (insert "  Description: " (package-desc-doc desc) "\n")
-    ;; Todo: button for uninstalling a package.
-    (when installable
-      (let ((button-text (if (display-graphic-p)
-			     "Install"
-			   "[Install]"))
-	    (button-face (if (display-graphic-p)
-			     '(:box (:line-width 2 :color "dark grey")
-				    :background "light grey"
-				    :foreground "black")
-			   'link)))
-	(insert "\n")
-	(insert-text-button button-text
-			    'face button-face
-			    'follow-link t
-			    'package-symbol package
-			    'action (lambda (button)
-				      (package-install
-				       (button-get button 'package-symbol))
-				      (revert-buffer nil t)
-				      (goto-char (point-min))))
-	(insert "\n")))))
+    (insert "    " (propertize "Summary" 'face 'bold)
+	    ": " (package-desc-doc desc) "\n\n")
+
+    ;; Insert the package commentary.
+    ;; FIXME: We should try to be smarter about when to download.
+    (let ((readme (expand-file-name (concat package-name "-readme.txt")
+				    package-user-dir)))
+      ;; Try downloading the commentary.  If that fails, try an
+      ;; existing readme file in `package-user-dir'.
+      (cond ((let ((buffer
+		    (condition-case nil
+			(url-retrieve-synchronously
+			 (concat (package-archive-url package)
+				 package-name "-readme.txt"))
+		      (error nil)))
+		   response)
+	       (when buffer
+		 (with-current-buffer buffer
+		   (setq response (url-http-parse-response))
+		   (if (or (< response 200) (>= response 300))
+		       (setq response nil)
+		     (setq buffer-file-name
+			   (expand-file-name readme package-user-dir))
+		     (delete-region (point-min) (1+ url-http-end-of-headers))
+		     (save-buffer)))
+		 (when response
+		   (insert-buffer-substring buffer)
+		   (kill-buffer buffer)
+		   t))))
+	    ((file-readable-p readme)
+	     (insert-file-contents readme)
+	     (goto-char (point-max)))))))
+
+(defun package-install-button-action (button)
+  (let ((package (button-get button 'package-symbol)))
+    (when (y-or-n-p (format "Install package `%s'? " package))
+      (package-install package)
+      (revert-buffer nil t)
+      (goto-char (point-min)))))
 
 
 ;;;; Package menu mode.
@@ -1153,7 +1194,7 @@ The variable `package-load-list' controls which packages to load."
     (define-key map "~" 'package-menu-mark-obsolete-for-deletion)
     (define-key map "x" 'package-menu-execute)
     (define-key map "h" 'package-menu-quick-help)
-    (define-key map "?" 'package-menu-view-commentary)
+    (define-key map "?" 'package-menu-describe-package)
     (define-key map [menu-bar package-menu] (cons "Package" menu-map))
     (define-key menu-map [mq]
       '(menu-item "Quit" quit-window
@@ -1297,32 +1338,8 @@ available for download."
   (interactive)
   (message "n-ext, i-nstall, d-elete, u-nmark, x-ecute, r-efresh, h-elp"))
 
-(defun package-menu-view-commentary ()
-  "Display information about this package.
-For single-file packages, shows the commentary section from the header.
-For larger packages, shows the README file."
-  (interactive)
-  (let* ((pkg-name (package-menu-get-package))
-	 (buffer (url-retrieve-synchronously
-		  (concat (package-archive-url pkg-name)
-			  pkg-name
-			  "-readme.txt")))
-	 start-point ok)
-    (with-current-buffer buffer
-      ;; FIXME: it would be nice to work with any URL type.
-      (setq start-point url-http-end-of-headers)
-      (setq ok (eq (url-http-parse-response) 200)))
-    (let ((new-buffer (get-buffer-create "*Package Info*")))
-      (with-current-buffer new-buffer
-	(let ((buffer-read-only nil))
-	  (erase-buffer)
-	  (insert "Package information for " pkg-name "\n\n")
-	  (if ok
-	      (insert-buffer-substring buffer start-point)
-	    (insert "This package lacks a README file or commentary.\n"))
-	  (goto-char (point-min))
-	  (view-mode)))
-      (display-buffer new-buffer t))))
+(define-obsolete-function-alias
+  'package-menu-view-commentary 'package-menu-describe-package "24.1")
 
 ;; Return the name of the package on the current line.
 (defun package-menu-get-package ()
@@ -1426,7 +1443,7 @@ Emacs."
 	(setq name (car elt)
 	      desc (cdr elt)
 	      hold (assq name package-load-list))
-	(unless (eq name 'emacs)
+	(unless (memq name '(emacs package))
 	  (setq info-list
 		(package-list-maybe-add
 		 name (package-desc-vers desc)

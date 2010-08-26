@@ -30,14 +30,14 @@
 ;; version check is defined in macro AC_EMACS_INFO of aclocal.m4;
 ;; should be changed only there.
 
-(defconst tramp-version "2.1.19-pre"
+(defconst tramp-version "2.1.19"
   "This version of Tramp.")
 
 (defconst tramp-bug-report-address "tramp-devel@gnu.org"
   "Email address to send bug reports to.")
 
 ;; Check for (X)Emacs version.
-(let ((x (if (or (>= emacs-major-version 22)	(and (featurep 'xemacs)	     (= emacs-major-version 21)	     (>= emacs-minor-version 4)))    "ok"    (format "Tramp 2.1.19-pre is not fit for %s"	    (when (string-match "^.*$" (emacs-version))	      (match-string 0 (emacs-version)))))))
+(let ((x (if (or (>= emacs-major-version 22)	(and (featurep 'xemacs)	     (= emacs-major-version 21)	     (>= emacs-minor-version 4)))    "ok"    (format "Tramp 2.1.19 is not fit for %s"	    (when (string-match "^.*$" (emacs-version))	      (match-string 0 (emacs-version)))))))
   (unless (string-match "\\`ok\\'" x) (error "%s" x)))
 
 (provide 'trampver)
