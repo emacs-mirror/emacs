@@ -2179,7 +2179,7 @@ See `set-language-info-alist' for use in programs."
     ("af" . "Latin-1") ; Afrikaans
     ("am" "Ethiopic" utf-8) ; Amharic
     ("an" . "Latin-9") ; Aragonese
-    ; ar Arabic glibc uses 8859-6
+    ("ar" . "Arabic")
     ; as Assamese
     ; ay Aymara
     ("az" . "UTF-8") ; Azerbaijani

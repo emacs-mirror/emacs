@@ -1,3 +1,11 @@
+2010-08-25  Kenichi Handa  <handa@m17n.org>
+
+	* language/misc-lang.el ("Arabic"): New language environment.
+	Setup composition-function-table for Arabic characters.
+
+	* international/fontset.el (setup-default-fontset): Fix typo for
+	arabic OTF spec (fini->fina).
+
 2010-08-25  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* menu-bar.el (menu-bar-set-tool-bar-position): Set frame parameter
