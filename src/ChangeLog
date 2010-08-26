@@ -1,3 +1,8 @@
+2010-08-26  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (compute_stop_pos): Pay attention to bidi scan direction
+	on calling composition_compute_stop_pos.
+
 2010-08-25  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (reorder_font_vector): Prefer a font-spec specifying

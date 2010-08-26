@@ -3177,7 +3177,7 @@ compute_stop_pos (struct it *it)
 {
   register INTERVAL iv, next_iv;
   Lisp_Object object, limit, position;
-  EMACS_INT charpos, bytepos;
+  EMACS_INT charpos, bytepos, stoppos;
 
   /* If nowhere else, stop at the end.  */
   it->stop_charpos = it->end_charpos;
@@ -3267,8 +3267,12 @@ compute_stop_pos (struct it *it)
 	}
     }
 
+  if (it->bidi_p && it->bidi_it.scan_dir < 0)
+    stoppos = -1;
+  else
+    stoppos = it->stop_charpos;
   composition_compute_stop_pos (&it->cmp_it, charpos, bytepos,
-				it->stop_charpos, it->string);
+				stoppos, it->string);
 
   xassert (STRINGP (it->string)
 	   || (it->stop_charpos >= BEGV
