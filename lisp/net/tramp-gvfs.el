@@ -28,6 +28,10 @@
 ;; incompatibility with the mount_info structure, which has been
 ;; worked around.
 
+;; It has also been tested with GVFS 1.6.2 (Ubuntu 10.04, Gnome 2.30),
+;; where the default_location has been added to mount_info (see
+;; <https://bugzilla.gnome.org/show_bug.cgi?id=561998>.
+
 ;; All actions to mount a remote location, and to retrieve mount
 ;; information, are performed by D-Bus messages.  File operations
 ;; themselves are performed via the mounted filesystem in ~/.gvfs.
@@ -100,6 +104,7 @@
 (require 'tramp)
 (require 'dbus)
 (require 'url-parse)
+(require 'url-util)
 (require 'zeroconf)
 
 (defcustom tramp-gvfs-methods '("dav" "davs" "obex" "synce")
@@ -133,10 +138,6 @@
        (unless (assoc elt tramp-methods)
 	 (add-to-list 'tramp-methods (cons elt nil))))))
 
-(defconst tramp-gvfs-mount-point
-  (file-name-as-directory (expand-file-name ".gvfs" "~/"))
-  "The directory name, fuses mounts remote ressources.")
-
 (defconst tramp-gvfs-path-tramp (concat dbus-path-emacs "/Tramp")
   "The preceeding object path for own objects.")
 
@@ -156,7 +157,7 @@
 ;; <interface name='org.gtk.vfs.MountTracker'>
 ;;   <method name='listMounts'>
 ;;     <arg name='mount_info_list'
-;;          type='a{sosssssbay{aya{say}}}'
+;;          type='a{sosssssbay{aya{say}}ay}'
 ;;          direction='out'/>
 ;;   </method>
 ;;   <method name='mountLocation'>
@@ -166,11 +167,11 @@
 ;;   </method>
 ;;   <signal name='mounted'>
 ;;     <arg name='mount_info'
-;;          type='{sosssssbay{aya{say}}}'/>
+;;          type='{sosssssbay{aya{say}}ay}'/>
 ;;   </signal>
 ;;   <signal name='unmounted'>
 ;;     <arg name='mount_info'
-;;          type='{sosssssbay{aya{say}}}'/>
+;;          type='{sosssssbay{aya{say}}ay}'/>
 ;;   </signal>
 ;; </interface>
 ;;
@@ -190,6 +191,7 @@
 ;;       STRUCT		    mount_spec_item
 ;;         STRING	      key (server, share, type, user, host, port)
 ;;         ARRAY BYTE	      value
+;;   ARRAY BYTE           default_location	Since GVFS 1.5 only !!!
 
 (defconst tramp-gvfs-interface-mountoperation "org.gtk.vfs.MountOperation"
   "Used by the dbus-proxying implementation of GMountOperation.")
@@ -386,7 +388,6 @@ Every entry is a list (NAME ADDRESS).")
     (file-executable-p . tramp-gvfs-handle-file-executable-p)
     (file-exists-p . tramp-gvfs-handle-file-exists-p)
     (file-local-copy . tramp-gvfs-handle-file-local-copy)
-    (file-remote-p . tramp-handle-file-remote-p)
     ;; `file-modes' performed by default handler.
     (file-name-all-completions . tramp-gvfs-handle-file-name-all-completions)
     (file-name-as-directory . tramp-handle-file-name-as-directory)
@@ -398,6 +399,8 @@ Every entry is a list (NAME ADDRESS).")
     (file-ownership-preserved-p . ignore)
     (file-readable-p . tramp-gvfs-handle-file-readable-p)
     (file-regular-p . tramp-handle-file-regular-p)
+    (file-remote-p . tramp-handle-file-remote-p)
+    (file-selinux-context . tramp-gvfs-handle-file-selinux-context)
     (file-symlink-p . tramp-handle-file-symlink-p)
     ;; `file-truename' performed by default handler.
     (file-writable-p . tramp-gvfs-handle-file-writable-p)
@@ -413,6 +416,7 @@ Every entry is a list (NAME ADDRESS).")
     (process-file . tramp-gvfs-handle-process-file)
     (rename-file . tramp-gvfs-handle-rename-file)
     (set-file-modes . tramp-gvfs-handle-set-file-modes)
+    (set-file-selinux-context . tramp-gvfs-handle-set-file-selinux-context)
     (set-visited-file-modtime . tramp-gvfs-handle-set-visited-file-modtime)
     (shell-command . tramp-gvfs-handle-shell-command)
     (start-file-process . tramp-gvfs-handle-start-file-process)
@@ -447,6 +451,17 @@ pass to the OPERATION."
 (add-to-list 'tramp-foreign-file-name-handler-alist
 	     (cons 'tramp-gvfs-file-name-p 'tramp-gvfs-file-name-handler))
 
+(defun tramp-gvfs-stringify-dbus-message (message)
+  "Convert a D-Bus message into readable UTF8 strings, used for traces."
+  (cond
+   ((and (consp message) (characterp (car message)))
+    (format "%S" (dbus-byte-array-to-string message)))
+   ((consp message)
+    (mapcar 'tramp-gvfs-stringify-dbus-message message))
+   ((stringp message)
+    (format "%S" message))
+   (t message)))
+
 (defmacro with-tramp-dbus-call-method
   (vec synchronous bus service path interface method &rest args)
   "Apply a D-Bus call on bus BUS.
@@ -464,7 +479,7 @@ will be traced by Tramp with trace level 6."
 	 result)
      (tramp-message ,vec 6 "%s %s" func args)
      (setq result (apply func args))
-     (tramp-message ,vec 6 "\n%s" result)
+     (tramp-message ,vec 6 "%s" (tramp-gvfs-stringify-dbus-message result))
      result))
 
 (put 'with-tramp-dbus-call-method 'lisp-indent-function 2)
@@ -478,7 +493,7 @@ In case of an error, modify the error message by replacing
   `(let ((fuse-file-name  (regexp-quote (tramp-gvfs-fuse-file-name ,filename)))
 	 elt)
      (condition-case err
-	 (apply ,handler (list ,@args))
+	 (funcall ,handler ,@args)
        (error
 	(setq elt (cdr err))
 	(while elt
@@ -510,25 +525,56 @@ is no information where to trace the message.")
 ;; File name primitives.
 
 (defun tramp-gvfs-handle-copy-file
-  (filename newname &optional ok-if-already-exists keep-date preserve-uid-gid)
+  (filename newname &optional ok-if-already-exists keep-date
+	    preserve-uid-gid preserve-selinux-context)
   "Like `copy-file' for Tramp files."
-  (copy-file
-   (if (tramp-gvfs-file-name-p filename)
-       (tramp-gvfs-fuse-file-name filename)
-     filename)
-   (if (tramp-gvfs-file-name-p newname)
-       (tramp-gvfs-fuse-file-name newname)
-     newname)
-   ok-if-already-exists keep-date preserve-uid-gid))
+  (with-parsed-tramp-file-name
+      (if (tramp-tramp-file-p filename) filename newname) nil
+    (with-progress-reporter
+	v 0 (format "Copying %s to %s" filename newname)
+      (condition-case err
+	  (let ((args
+		 (list
+		  (if (tramp-gvfs-file-name-p filename)
+		      (tramp-gvfs-fuse-file-name filename)
+		    filename)
+		  (if (tramp-gvfs-file-name-p newname)
+		      (tramp-gvfs-fuse-file-name newname)
+		    newname)
+		  ok-if-already-exists keep-date preserve-uid-gid)))
+	    (when preserve-selinux-context
+	      (setq args (append args (list preserve-selinux-context))))
+	    (apply 'copy-file args))
+
+	;; Error case.  Let's try it with the GVFS utilities.
+	(error
+	 (tramp-message v 4 "`copy-file' failed, trying `gvfs-copy'")
+	 (unless
+	     (zerop
+	      (let ((args
+		     (append (if (or keep-date preserve-uid-gid)
+				 (list "--preserve")
+			       nil)
+			     (list
+			      (tramp-gvfs-url-file-name filename)
+			      (tramp-gvfs-url-file-name newname)))))
+		(apply 'tramp-gvfs-send-command v "gvfs-copy" args)))
+	   ;; Propagate the error.
+	   (tramp-error v (car err) "%s" (cdr err)))))))
+
+  (when (file-remote-p newname)
+    (with-parsed-tramp-file-name newname nil
+      (tramp-flush-file-property v (file-name-directory localname))
+      (tramp-flush-file-property v localname))))
 
 (defun tramp-gvfs-handle-delete-directory (directory &optional recursive)
   "Like `delete-directory' for Tramp files."
   (tramp-compat-delete-directory
    (tramp-gvfs-fuse-file-name directory) recursive))
 
-(defun tramp-gvfs-handle-delete-file (filename)
+(defun tramp-gvfs-handle-delete-file (filename &optional trash)
   "Like `delete-file' for Tramp files."
-  (delete-file (tramp-gvfs-fuse-file-name filename)))
+  (tramp-compat-delete-file (tramp-gvfs-fuse-file-name filename) trash))
 
 (defun tramp-gvfs-handle-directory-files
   (directory &optional full match nosort)
@@ -565,6 +611,14 @@ is no information where to trace the message.")
       (tramp-run-real-handler 'expand-file-name (list name nil))
     ;; Dissect NAME.
     (with-parsed-tramp-file-name name nil
+      ;; If there is a default location, expand tilde.
+      (when (string-match "\\`\\(~\\)\\(/\\|\\'\\)" localname)
+	(save-match-data
+	  (tramp-gvfs-maybe-open-connection (vector method user host "/")))
+	(setq localname
+	      (replace-match
+	       (tramp-get-file-property  v "/" "default-location" "~")
+	       nil t localname 1)))
       ;; Tilde expansion is not possible.
       (when (string-match "\\`\\(~[^/]*\\)\\(.*\\)\\'" localname)
 	(tramp-error
@@ -620,6 +674,11 @@ is no information where to trace the message.")
   "Like `file-readable-p' for Tramp files."
   (file-readable-p (tramp-gvfs-fuse-file-name filename)))
 
+(defun tramp-gvfs-handle-file-selinux-context (filename)
+  "Like `file-selinux-context' for Tramp files."
+  (tramp-compat-funcall
+   'file-selinux-context (tramp-gvfs-fuse-file-name filename)))
+
 (defun tramp-gvfs-handle-file-writable-p (filename)
   "Like `file-writable-p' for Tramp files."
   (file-writable-p (tramp-gvfs-fuse-file-name filename)))
@@ -645,19 +704,20 @@ is no information where to trace the message.")
 
 (defun tramp-gvfs-handle-make-directory (dir &optional parents)
   "Like `make-directory' for Tramp files."
-  (condition-case err
-      (with-tramp-gvfs-error-message dir 'make-directory
-	(tramp-gvfs-fuse-file-name dir) parents)
-    ;; Error case.  Let's try it with the GVFS utilities.
-    (error
-     (with-parsed-tramp-file-name dir nil
+  (with-parsed-tramp-file-name dir nil
+    (condition-case err
+	(with-tramp-gvfs-error-message dir 'make-directory
+	  (tramp-gvfs-fuse-file-name dir) parents)
+
+      ;; Error case.  Let's try it with the GVFS utilities.
+      (error
        (tramp-message v 4 "`make-directory' failed, trying `gvfs-mkdir'")
        (unless
 	   (zerop
-	    (tramp-local-call-process
-	     "gvfs-mkdir" nil (tramp-get-buffer v) nil
-	     (tramp-gvfs-url-file-name dir)))
-	 (signal (car err) (cdr err)))))))
+	    (tramp-gvfs-send-command
+	     v "gvfs-mkdir" (tramp-gvfs-url-file-name dir)))
+	 ;; Propagate the error.
+	 (tramp-error v (car err) "%s" (cdr err)))))))
 
 (defun tramp-gvfs-handle-process-file
   (program &optional infile destination display &rest args)
@@ -668,19 +728,51 @@ is no information where to trace the message.")
 (defun tramp-gvfs-handle-rename-file
   (filename newname &optional ok-if-already-exists)
   "Like `rename-file' for Tramp files."
-  (rename-file
-   (if (tramp-gvfs-file-name-p filename)
-       (tramp-gvfs-fuse-file-name filename)
-     filename)
-   (if (tramp-gvfs-file-name-p newname)
-       (tramp-gvfs-fuse-file-name newname)
-     newname)
-   ok-if-already-exists))
+  (with-parsed-tramp-file-name
+      (if (tramp-tramp-file-p filename) filename newname) nil
+    (with-progress-reporter
+	v 0 (format "Renaming %s to %s" filename newname)
+      (condition-case err
+	  (rename-file
+	   (if (tramp-gvfs-file-name-p filename)
+	       (tramp-gvfs-fuse-file-name filename)
+	     filename)
+	   (if (tramp-gvfs-file-name-p newname)
+	       (tramp-gvfs-fuse-file-name newname)
+	     newname)
+	   ok-if-already-exists)
+
+	;; Error case.  Let's try it with the GVFS utilities.
+	(error
+	 (tramp-message v 4 "`rename-file' failed, trying `gvfs-move'")
+	 (unless
+	     (zerop
+	      (tramp-gvfs-send-command
+	       v "gvfs-move"
+	       (tramp-gvfs-url-file-name filename)
+	       (tramp-gvfs-url-file-name newname)))
+	   ;; Propagate the error.
+	   (tramp-error v (car err) "%s" (cdr err)))))))
+
+  (when (file-remote-p filename)
+    (with-parsed-tramp-file-name filename nil
+      (tramp-flush-file-property v (file-name-directory localname))
+      (tramp-flush-file-property v localname)))
+
+  (when (file-remote-p newname)
+    (with-parsed-tramp-file-name newname nil
+      (tramp-flush-file-property v (file-name-directory localname))
+      (tramp-flush-file-property v localname))))
 
 (defun tramp-gvfs-handle-set-file-modes (filename mode)
   "Like `set-file-modes' for Tramp files."
   (with-tramp-gvfs-error-message filename 'set-file-modes
     (tramp-gvfs-fuse-file-name filename) mode))
+
+(defun tramp-gvfs-handle-set-file-selinux-context (filename context)
+  "Like `set-file-selinux-context' for Tramp files."
+  (with-tramp-gvfs-error-message filename 'set-file-selinux-context
+    (tramp-gvfs-fuse-file-name filename) context))
 
 (defun tramp-gvfs-handle-set-visited-file-modtime (&optional time-list)
   "Like `set-visited-file-modtime' for Tramp files."
@@ -713,19 +805,16 @@ is no information where to trace the message.")
 	  start end (tramp-gvfs-fuse-file-name filename)
 	  append visit lockname confirm)
 
-      ;; Error case.  Let's try it with the GVFS utilities.
+      ;; Error case.  Let's try rename.
       (error
        (let ((tmpfile (tramp-compat-make-temp-file filename)))
-	 (tramp-message v 4 "`write-region' failed, trying `gvfs-save'")
+	 (tramp-message v 4 "`write-region' failed, trying `rename-file'")
 	 (write-region start end tmpfile)
-	 (unwind-protect
-	     (unless
-		 (zerop
-		  (tramp-local-call-process
-		   "gvfs-save" tmpfile (tramp-get-buffer v) nil
-		   (tramp-gvfs-url-file-name filename)))
-	       (signal (car err) (cdr err)))
-	   (delete-file tmpfile)))))
+	 (condition-case nil
+	     (rename-file tmpfile filename)
+	   (error
+	    (delete-file tmpfile)
+	    (tramp-error v (car err) "%s" (cdr err)))))))
 
     ;; Set file modification time.
     (when (or (eq visit t) (stringp visit))
@@ -741,16 +830,20 @@ is no information where to trace the message.")
 
 (defun tramp-gvfs-url-file-name (filename)
   "Return FILENAME in URL syntax."
-  (url-recreate-url
-   (if (tramp-tramp-file-p filename)
-       (with-parsed-tramp-file-name (file-truename filename) nil
-	 (when (string-match tramp-user-with-domain-regexp user)
-	   (setq user
-		 (concat (match-string 2 user) ";"  (match-string 2 user))))
-	 (url-parse-make-urlobj
-	  method user nil
-	  (tramp-file-name-real-host v) (tramp-file-name-port v) localname))
-     (url-parse-make-urlobj "file" nil nil nil nil (file-truename filename)))))
+  ;; "/" must NOT be hexlified.
+  (let ((url-unreserved-chars (append '(?/) url-unreserved-chars)))
+    (url-recreate-url
+     (if (tramp-tramp-file-p filename)
+	 (with-parsed-tramp-file-name (file-truename filename) nil
+	   (when (string-match tramp-user-with-domain-regexp user)
+	     (setq user
+		   (concat (match-string 2 user) ";"  (match-string 2 user))))
+	   (url-parse-make-urlobj
+	    method user nil
+	    (tramp-file-name-real-host v) (tramp-file-name-port v)
+	    (url-hexify-string localname)))
+       (url-parse-make-urlobj
+	"file" nil nil nil nil (url-hexify-string (file-truename filename)))))))
 
 (defun tramp-gvfs-object-path (filename)
   "Create a D-Bus object path from FILENAME."
@@ -765,15 +858,19 @@ is no information where to trace the message.")
   "Return FUSE file name, which is directly accessible."
   (with-parsed-tramp-file-name (expand-file-name filename) nil
     (tramp-gvfs-maybe-open-connection v)
-    (let ((fuse-mountpoint
+    (let ((prefix (tramp-get-file-property v "/" "prefix" ""))
+	  (fuse-mountpoint
 	   (tramp-get-file-property v "/" "fuse-mountpoint" nil)))
       (unless fuse-mountpoint
 	(tramp-error
 	 v 'file-error "There is no FUSE mount point for `%s'" filename))
-      ;; We must remove the share from the local name.
-      (when (and (string-equal "smb" method) (string-match "/[^/]+" localname))
+      ;; We must hide the prefix, if any.
+      (when (string-match (concat "^" (regexp-quote prefix)) localname)
 	(setq localname (replace-match "" t t localname)))
-      (concat tramp-gvfs-mount-point fuse-mountpoint localname))))
+      (tramp-message
+       v 10 "remote file `%s' is local file `%s'"
+       filename (concat fuse-mountpoint localname))
+      (concat fuse-mountpoint localname))))
 
 (defun tramp-bluez-address (device)
   "Return bluetooth device address from a given bluetooth DEVICE name."
@@ -857,59 +954,79 @@ ADDRESS can have the form \"xx:xx:xx:xx:xx:xx\" or \"[xx:xx:xx:xx:xx:xx]\"."
 	    ;; there is only the question whether to accept an unknown
 	    ;; host signature.
 	    (with-temp-buffer
-	      (insert message)
-	      (pop-to-buffer (current-buffer))
-	      (setq choice (if (yes-or-no-p (concat (car choices) " ")) 0 1))
-	      (tramp-message v 6 "%d" choice))
+	      ;; Preserve message for `progress-reporter'.
+	      (with-temp-message ""
+		(insert message)
+		(pop-to-buffer (current-buffer))
+		(setq choice (if (yes-or-no-p (concat (car choices) " ")) 0 1))
+		(tramp-message v 6 "%d" choice)))
 
-	    ;; When the choice is "no", we set an empty
-	    ;; fuse-mountpoint in order to leave the timeout.
+	    ;; When the choice is "no", we set a dummy fuse-mountpoint
+	    ;; in order to leave the timeout.
 	    (unless (zerop choice)
-	      (tramp-set-file-property v "/" "fuse-mountpoint" ""))
+	      (tramp-set-file-property v "/" "fuse-mountpoint" "/"))
 
 	    (list
 	     t ;; handled.
 	     nil ;; no abort of D-Bus.
 	     choice))
 
-	  ;; When QUIT is raised, we shall return this information to D-Bus.
-	  (quit (list nil t 0))))))
+	;; When QUIT is raised, we shall return this information to D-Bus.
+	(quit (list nil t 0))))))
 
 (defun tramp-gvfs-handler-mounted-unmounted (mount-info)
   "Signal handler for the \"org.gtk.vfs.MountTracker.mounted\" and
 \"org.gtk.vfs.MountTracker.unmounted\" signals."
   (ignore-errors
-    (let* ((signal-name (dbus-event-member-name last-input-event))
-	   (mount-spec (cadar (last mount-info)))
-	   (method (dbus-byte-array-to-string (cadr (assoc "type" mount-spec))))
-	   (user (dbus-byte-array-to-string (cadr (assoc "user" mount-spec))))
-	   (domain (dbus-byte-array-to-string
-		    (cadr (assoc "domain" mount-spec))))
-	   (host (dbus-byte-array-to-string
-		  (cadr (or (assoc "host" mount-spec)
-			    (assoc "server" mount-spec)))))
-	   (port (dbus-byte-array-to-string (cadr (assoc "port" mount-spec))))
-	   (ssl (dbus-byte-array-to-string (cadr (assoc "ssl" mount-spec)))))
-      (when (string-match "^smb" method)
-	(setq method "smb"))
-      (when (string-equal "obex" method)
-	(setq host (tramp-bluez-device host)))
-      (when (and (string-equal "dav" method) (string-equal "true" ssl))
-	(setq method "davs"))
-      (unless (zerop (length domain))
-	(setq user (concat user tramp-prefix-domain-format domain)))
-      (unless (zerop (length port))
-	(setq host (concat host tramp-prefix-port-format port)))
-      (with-parsed-tramp-file-name
-	  (tramp-make-tramp-file-name method user host "") nil
-	(tramp-message v 6 "%s %s" signal-name mount-info)
-	(tramp-set-file-property v "/" "list-mounts" 'undef)
-	(if (string-equal signal-name "unmounted")
-	    (tramp-set-file-property v "/" "fuse-mountpoint" nil)
-	  (tramp-set-file-property
-	   v "/" "fuse-mountpoint"
-	   (file-name-nondirectory
-	    (dbus-byte-array-to-string (car (last mount-info 2))))))))))
+    (let ((signal-name (dbus-event-member-name last-input-event))
+	  (elt mount-info))
+      ;; Jump over the first elements of the mount info. Since there
+      ;; were changes in the antries, we cannot access dedicated
+      ;; elements.
+      (while (stringp (car elt)) (setq elt (cdr elt)))
+      (let* ((fuse-mountpoint (dbus-byte-array-to-string (cadr elt)))
+	     (mount-spec (caddr elt))
+	     (default-location (dbus-byte-array-to-string (cadddr elt)))
+	     (method (dbus-byte-array-to-string
+		      (cadr (assoc "type" (cadr mount-spec)))))
+	     (user (dbus-byte-array-to-string
+		    (cadr (assoc "user" (cadr mount-spec)))))
+	     (domain (dbus-byte-array-to-string
+		      (cadr (assoc "domain" (cadr mount-spec)))))
+	     (host (dbus-byte-array-to-string
+		    (cadr (or (assoc "host" (cadr mount-spec))
+			      (assoc "server" (cadr mount-spec))))))
+	     (port (dbus-byte-array-to-string
+		    (cadr (assoc "port" (cadr mount-spec)))))
+	     (ssl (dbus-byte-array-to-string
+		   (cadr (assoc "ssl" (cadr mount-spec)))))
+	     (prefix (concat (dbus-byte-array-to-string (car mount-spec))
+			     (dbus-byte-array-to-string
+			      (cadr (assoc "share" (cadr mount-spec)))))))
+	(when (string-match "^smb" method)
+	  (setq method "smb"))
+	(when (string-equal "obex" method)
+	  (setq host (tramp-bluez-device host)))
+	(when (and (string-equal "dav" method) (string-equal "true" ssl))
+	  (setq method "davs"))
+	(unless (zerop (length domain))
+	  (setq user (concat user tramp-prefix-domain-format domain)))
+	(unless (zerop (length port))
+	  (setq host (concat host tramp-prefix-port-format port)))
+	(with-parsed-tramp-file-name
+	    (tramp-make-tramp-file-name method user host "") nil
+	  (tramp-message
+	   v 6 "%s %s"
+	   signal-name (tramp-gvfs-stringify-dbus-message mount-info))
+	  (tramp-set-file-property v "/" "list-mounts" 'undef)
+	  (if (string-equal signal-name "unmounted")
+	      (tramp-set-file-property v "/" "fuse-mountpoint" nil)
+	    ;; Set prefix, mountpoint and location.
+	    (unless (string-equal prefix "/")
+	      (tramp-set-file-property v "/" "prefix" prefix))
+	    (tramp-set-file-property v "/" "fuse-mountpoint" fuse-mountpoint)
+	    (tramp-set-file-property
+	     v "/" "default-location" default-location)))))))
 
 (dbus-register-signal
  :session nil tramp-gvfs-path-mounttracker
@@ -923,47 +1040,63 @@ ADDRESS can have the form \"xx:xx:xx:xx:xx:xx\" or \"[xx:xx:xx:xx:xx:xx]\"."
 
 (defun tramp-gvfs-connection-mounted-p (vec)
   "Check, whether the location is already mounted."
-  (catch 'mounted
-    (dolist
-	(elt
-	 (with-file-property vec "/" "list-mounts"
-	   (with-tramp-dbus-call-method vec t
-	     :session tramp-gvfs-service-daemon tramp-gvfs-path-mounttracker
-	     tramp-gvfs-interface-mounttracker "listMounts"))
-	 nil)
-      (let* ((mount-spec (cadar (last elt)))
-	     (method (dbus-byte-array-to-string
-		      (cadr (assoc "type" mount-spec))))
-	     (user (dbus-byte-array-to-string
-		    (cadr (assoc "user" mount-spec))))
-	     (domain (dbus-byte-array-to-string
-		      (cadr (assoc "domain" mount-spec))))
-	     (host (dbus-byte-array-to-string
-		    (cadr (or (assoc "host" mount-spec)
-			      (assoc "server" mount-spec)))))
-	     (port (dbus-byte-array-to-string (cadr (assoc "port" mount-spec))))
-	     (ssl (dbus-byte-array-to-string (cadr (assoc "ssl" mount-spec)))))
-	(when (string-match "^smb" method)
-	  (setq method "smb"))
-	(when (string-equal "obex" method)
-	  (setq host (tramp-bluez-device host)))
-	(when (and (string-equal "dav" method) (string-equal "true" ssl))
-	  (setq method "davs"))
-	(when (and (string-equal "synce" method) (zerop (length user)))
-	  (setq user (or (tramp-file-name-user vec) "")))
-	(unless (zerop (length domain))
-	  (setq user (concat user tramp-prefix-domain-format domain)))
-	(unless (zerop (length port))
-	  (setq host (concat host tramp-prefix-port-format port)))
-	(when (and
-	       (string-equal method (tramp-file-name-method vec))
-	       (string-equal user (or (tramp-file-name-user vec) ""))
-	       (string-equal host (tramp-file-name-host vec)))
-	  (tramp-set-file-property
-	   vec "/" "fuse-mountpoint"
-	   (file-name-nondirectory
-	    (dbus-byte-array-to-string (car (last elt 2)))))
-	  (throw 'mounted t))))))
+  (or
+   (tramp-get-file-property vec "/" "fuse-mountpoint" nil)
+   (catch 'mounted
+     (dolist
+	 (elt
+	  (with-file-property vec "/" "list-mounts"
+	    (with-tramp-dbus-call-method vec t
+	      :session tramp-gvfs-service-daemon tramp-gvfs-path-mounttracker
+	      tramp-gvfs-interface-mounttracker "listMounts"))
+	  nil)
+       ;; Jump over the first elements of the mount info. Since there
+       ;; were changes in the antries, we cannot access dedicated
+       ;; elements.
+       (while (stringp (car elt)) (setq elt (cdr elt)))
+       (let* ((fuse-mountpoint (dbus-byte-array-to-string (cadr elt)))
+	      (mount-spec (caddr elt))
+	      (default-location (dbus-byte-array-to-string (cadddr elt)))
+	      (method (dbus-byte-array-to-string
+		       (cadr (assoc "type" (cadr mount-spec)))))
+	      (user (dbus-byte-array-to-string
+		     (cadr (assoc "user" (cadr mount-spec)))))
+	      (domain (dbus-byte-array-to-string
+		       (cadr (assoc "domain" (cadr mount-spec)))))
+	      (host (dbus-byte-array-to-string
+		     (cadr (or (assoc "host" (cadr mount-spec))
+			       (assoc "server" (cadr mount-spec))))))
+	      (port (dbus-byte-array-to-string
+		     (cadr (assoc "port" (cadr mount-spec)))))
+	      (ssl (dbus-byte-array-to-string
+		    (cadr (assoc "ssl" (cadr mount-spec)))))
+	      (prefix (concat (dbus-byte-array-to-string (car mount-spec))
+			      (dbus-byte-array-to-string
+			       (cadr (assoc "share" (cadr mount-spec)))))))
+	 (when (string-match "^smb" method)
+	   (setq method "smb"))
+	 (when (string-equal "obex" method)
+	   (setq host (tramp-bluez-device host)))
+	 (when (and (string-equal "dav" method) (string-equal "true" ssl))
+	   (setq method "davs"))
+	 (when (and (string-equal "synce" method) (zerop (length user)))
+	   (setq user (or (tramp-file-name-user vec) "")))
+	 (unless (zerop (length domain))
+	   (setq user (concat user tramp-prefix-domain-format domain)))
+	 (unless (zerop (length port))
+	   (setq host (concat host tramp-prefix-port-format port)))
+	 (when (and
+		(string-equal method (tramp-file-name-method vec))
+		(string-equal user (or (tramp-file-name-user vec) ""))
+		(string-equal host (tramp-file-name-host vec))
+		(string-match (concat "^" (regexp-quote prefix))
+			      (tramp-file-name-localname vec)))
+	   ;; Set prefix, mountpoint and location.
+	   (unless (string-equal prefix "/")
+	     (tramp-set-file-property vec "/" "prefix" prefix))
+	   (tramp-set-file-property vec "/" "fuse-mountpoint" fuse-mountpoint)
+	   (tramp-set-file-property vec "/" "default-location" default-location)
+	   (throw 'mounted t)))))))
 
 (defun tramp-gvfs-mount-spec (vec)
   "Return a mount-spec for \"org.gtk.vfs.MountTracker.mountLocation\"."
@@ -974,7 +1107,8 @@ ADDRESS can have the form \"xx:xx:xx:xx:xx:xx\" or \"[xx:xx:xx:xx:xx:xx]\"."
 	 (port (tramp-file-name-port vec))
 	 (localname (tramp-file-name-localname vec))
 	 (ssl (if (string-match "^davs" method) "true" "false"))
-	 (mount-spec `(:array)))
+	 (mount-spec '(:array))
+	 (mount-pref "/"))
 
     (setq
      mount-spec
@@ -1017,8 +1151,12 @@ ADDRESS can have the form \"xx:xx:xx:xx:xx:xx\" or \"[xx:xx:xx:xx:xx:xx]\"."
        `(:struct "port" ,(dbus-string-to-byte-array (number-to-string port)))
        'append))
 
+    (when (and (string-match "^dav" method)
+	       (string-match "^/?[^/]+" localname))
+      (setq mount-pref (match-string 0 localname)))
+
     ;; Return.
-    mount-spec))
+    `(:struct ,(dbus-string-to-byte-array mount-pref) ,mount-spec)))
 
 
 ;; Connection functions
@@ -1050,65 +1188,73 @@ connection if a previous connection has died for some reason."
 	    (tramp-gvfs-object-path
 	     (tramp-make-tramp-file-name method user host ""))))
 
-      (if (zerop (length (tramp-file-name-user vec)))
-	  (tramp-message
-	   vec 3 "Opening connection for %s using %s..." host method)
-	(tramp-message
-	 vec 3 "Opening connection for %s@%s using %s..." user host method))
+      (with-progress-reporter
+	  vec 3
+	  (if (zerop (length user))
+	      (format "Opening connection for %s using %s" host method)
+	    (format "Opening connection for %s@%s using %s" user host method))
 
-      ;; Enable auth-sorce and password-cache.
-      (tramp-set-connection-property vec "first-password-request" t)
+	;; Enable auth-sorce and password-cache.
+	(tramp-set-connection-property vec "first-password-request" t)
 
-      ;; There will be a callback of "askPassword", when a password is
-      ;; needed.
-      (dbus-register-method
-       :session dbus-service-emacs object-path
-       tramp-gvfs-interface-mountoperation "askPassword"
-       'tramp-gvfs-handler-askpassword)
+	;; There will be a callback of "askPassword", when a password is
+	;; needed.
+	(dbus-register-method
+	 :session dbus-service-emacs object-path
+	 tramp-gvfs-interface-mountoperation "askPassword"
+	 'tramp-gvfs-handler-askpassword)
 
-      ;; There could be a callback of "askQuestion", when adding fingerprint.
-      (dbus-register-method
-       :session dbus-service-emacs object-path
-       tramp-gvfs-interface-mountoperation "askQuestion"
-       'tramp-gvfs-handler-askquestion)
+	;; There could be a callback of "askQuestion", when adding fingerprint.
+	(dbus-register-method
+	 :session dbus-service-emacs object-path
+	 tramp-gvfs-interface-mountoperation "askQuestion"
+	 'tramp-gvfs-handler-askquestion)
 
-      ;; The call must be asynchronously, because of the "askPassword"
-      ;; or "askQuestion"callbacks.
-      (with-tramp-dbus-call-method vec nil
-	:session tramp-gvfs-service-daemon tramp-gvfs-path-mounttracker
-	tramp-gvfs-interface-mounttracker "mountLocation"
-	`(:struct
-	  ,(dbus-string-to-byte-array "/")
-	  ,(tramp-gvfs-mount-spec vec))
-	(dbus-get-unique-name :session)
-	:object-path object-path)
+	;; The call must be asynchronously, because of the "askPassword"
+	;; or "askQuestion"callbacks.
+	(with-tramp-dbus-call-method vec nil
+	  :session tramp-gvfs-service-daemon tramp-gvfs-path-mounttracker
+	  tramp-gvfs-interface-mounttracker "mountLocation"
+	  (tramp-gvfs-mount-spec vec) (dbus-get-unique-name :session)
+	  :object-path object-path)
 
-      ;; We must wait, until the mount is applied.  This will be
-      ;; indicated by the "mounted" signal, i.e. the "fuse-mountpoint"
-      ;; file property.
-      (with-timeout
-	  (60
-	   (if (zerop (length (tramp-file-name-user vec)))
+	;; We must wait, until the mount is applied.  This will be
+	;; indicated by the "mounted" signal, i.e. the "fuse-mountpoint"
+	;; file property.
+	(with-timeout
+	    (60
+	     (if (zerop (length (tramp-file-name-user vec)))
+		 (tramp-error
+		  vec 'file-error
+		  "Timeout reached mounting %s using %s" host method)
 	       (tramp-error
 		vec 'file-error
-		"Timeout reached mounting %s using %s" host method)
-	     (tramp-error
-	      vec 'file-error
-	      "Timeout reached mounting %s@%s using %s" user host method)))
-	(while (not (tramp-get-file-property vec "/" "fuse-mountpoint" nil))
-	  (read-event nil nil 0.1)))
+		"Timeout reached mounting %s@%s using %s" user host method)))
+	  (while (not (tramp-get-file-property vec "/" "fuse-mountpoint" nil))
+	    (read-event nil nil 0.1)))
 
-      ;; We set the connection property "started" in order to put the
-      ;; remote location into the cache, which is helpful for further
-      ;; completion.
-      (tramp-set-connection-property vec "started" t)
+	;; If `tramp-gvfs-handler-askquestion' has returned "No", it
+	;; is marked with the fuse-mountpoint "/".  We shall react.
+	(when (string-equal
+	       (tramp-get-file-property vec "/" "fuse-mountpoint" "") "/")
+	  (tramp-error vec 'file-error "FUSE mount denied"))
 
-      (if (zerop (length (tramp-file-name-user vec)))
-	  (tramp-message
-	   vec 3 "Opening connection for %s using %s...done" host method)
-	(tramp-message
-	 vec 3
-	 "Opening connection for %s@%s using %s...done" user host method)))))
+	;; We set the connection property "started" in order to put the
+	;; remote location into the cache, which is helpful for further
+	;; completion.
+	(tramp-set-connection-property vec "started" t)))))
+
+(defun tramp-gvfs-send-command (vec command &rest args)
+  "Send the COMMAND with its ARGS to connection VEC.
+COMMAND is usually a command from the gvfs-* utilities.
+`call-process' is applied, and its return code is returned."
+  (let (result)
+    (with-current-buffer (tramp-get-buffer vec)
+      (erase-buffer)
+      (tramp-message vec 6 "%s %s" command (mapconcat 'identity args " "))
+      (setq result (apply 'tramp-local-call-process command nil t nil args))
+      (tramp-message vec 6 "%s" (buffer-string))
+      result)))
 
 
 ;; D-Bus BLUEZ functions.

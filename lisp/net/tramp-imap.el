@@ -63,6 +63,7 @@
 (autoload 'epg-context-set-progress-callback "epg")
 (autoload 'epg-decrypt-string "epg")
 (autoload 'epg-encrypt-string "epg")
+(autoload 'epg-make-context "epg")
 (autoload 'imap-hash-get "imap-hash")
 (autoload 'imap-hash-make "imap-hash")
 (autoload 'imap-hash-map "imap-hash")
@@ -124,7 +125,6 @@
     (file-executable-p . tramp-imap-handle-file-executable-p)
     (file-exists-p . tramp-imap-handle-file-exists-p)
     (file-local-copy . tramp-imap-handle-file-local-copy)
-    (file-remote-p . tramp-handle-file-remote-p)
     (file-modes . tramp-handle-file-modes)
     (file-name-all-completions . tramp-imap-handle-file-name-all-completions)
     (file-name-as-directory . tramp-handle-file-name-as-directory)
@@ -136,6 +136,8 @@
     (file-ownership-preserved-p . ignore)
     (file-readable-p . tramp-imap-handle-file-readable-p)
     (file-regular-p . tramp-handle-file-regular-p)
+    (file-remote-p . tramp-handle-file-remote-p)
+    ;; `file-selinux-context' performed by default handler.
     (file-symlink-p . tramp-handle-file-symlink-p)
     ;; `file-truename' performed by default handler
     (file-writable-p . tramp-imap-handle-file-writable-p)
@@ -150,6 +152,7 @@
     (make-symbolic-link . ignore)
     (rename-file . tramp-imap-handle-rename-file)
     (set-file-modes . ignore)
+    ;; `set-file-selinux-context' performed by default handler.
     (set-file-times . ignore) ;; tramp-imap-handle-set-file-times)
     (set-visited-file-modtime . ignore)
     (shell-command . ignore)
@@ -168,7 +171,7 @@ Operations not mentioned here will be handled by the default Emacs primitives.")
 (defgroup tramp-imap nil
   "Tramp over IMAP configuration."
   :version "23.2"
-  :group 'applications)
+  :group 'tramp)
 
 (defcustom tramp-imap-subject-marker "tramp-imap-subject-marker"
   "The subject marker that Tramp-IMAP will use."
@@ -200,7 +203,8 @@ pass to the OPERATION."
 	     (cons 'tramp-imap-file-name-p 'tramp-imap-file-name-handler))
 
 (defun tramp-imap-handle-copy-file
-  (filename newname &optional ok-if-already-exists keep-date preserve-uid-gid)
+  (filename newname &optional ok-if-already-exists keep-date
+	    preserve-uid-gid preserve-selinux-context)
   "Like `copy-file' for Tramp files."
   (tramp-imap-do-copy-or-rename-file
    'copy filename newname ok-if-already-exists keep-date preserve-uid-gid))
@@ -237,35 +241,33 @@ of `copy' and `rename'."
 	(t2 (and (tramp-tramp-file-p newname)
 		 (tramp-imap-file-name-p newname))))
 
-    (when (and (not ok-if-already-exists) (file-exists-p newname))
-      (with-parsed-tramp-file-name (if t1 filename newname) nil
+    (with-parsed-tramp-file-name (if t1 filename newname) nil
+      (when (and (not ok-if-already-exists) (file-exists-p newname))
 	(tramp-error
-	 v 'file-already-exists "File %s already exists" newname)))
+	 v 'file-already-exists "File %s already exists" newname))
 
-    (with-parsed-tramp-file-name (if t1 filename newname) nil
-      (tramp-message v 0 "Transferring %s to %s..." filename newname))
+      (with-progress-reporter
+	  v 0 (format "%s %s to %s"
+		      (if (eq op 'copy) "Copying" "Renaming")
+		      filename newname)
 
-    ;; We just make a local copy of FILENAME, and write it then to
-    ;; NEWNAME.  This must be optimized, when both files are located
-    ;; on the same IMAP server.
-    (with-temp-buffer
-      (if (and t1 t2)
-	  ;; We don't encrypt.
-	  (with-parsed-tramp-file-name newname nil
-	    (insert (tramp-imap-get-file filename nil))
-	    (tramp-imap-put-file
-	     v (current-buffer)
-	     (tramp-imap-file-name-name v)
-	     nil nil (nth 7 (file-attributes filename))))
-	;; One of them is not located on a IMAP mailbox.
-	(insert-file-contents filename)
-	(write-region (point-min) (point-max) newname)))
+	;; We just make a local copy of FILENAME, and write it then to
+	;; NEWNAME.  This must be optimized, when both files are
+	;; located on the same IMAP server.
+	(with-temp-buffer
+	  (if (and t1 t2)
+	      ;; We don't encrypt.
+	      (with-parsed-tramp-file-name newname v1
+		(insert (tramp-imap-get-file filename nil))
+		(tramp-imap-put-file
+		 v1 (current-buffer)
+		 (tramp-imap-file-name-name v1)
+		 nil nil (nth 7 (file-attributes filename))))
+	    ;; One of them is not located on a IMAP mailbox.
+	    (insert-file-contents filename)
+	    (write-region (point-min) (point-max) newname)))))
 
-    (with-parsed-tramp-file-name (if t1 filename newname) nil
-      (tramp-message v 0 "Transferring %s to %s...done" filename newname))
-
-    (when (eq op 'rename)
-      (delete-file filename))))
+    (when (eq op 'rename) (delete-file filename))))
 
 ;; TODO: revise this much
 (defun tramp-imap-handle-expand-file-name (name &optional dir)
@@ -501,17 +503,16 @@ SIZE MODE WEIRD INODE DEVICE)."
 	 v 'file-error "File `%s' not found on remote host" filename)
       (let ((point (point))
 	    size data)
-	(tramp-message v 4 "Fetching file %s..." filename)
-	(insert (tramp-imap-get-file filename t))
-	(setq size (- (point) point))
+	(with-progress-reporter v 3 (format "Fetching file %s" filename)
+	  (insert (tramp-imap-get-file filename t))
+	  (setq size (- (point) point))
 ;;; TODO: handle ranges.
 ;;; 	       (let ((beg (or beg (point-min)))
 ;;; 		   (end (min (or end (point-max)) (point-max))))
 ;;; 		 (setq size (- end beg))
 ;;; 	       (buffer-substring beg end))
-	(goto-char point)
-	(tramp-message v 4 "Fetching file %s...done" filename)
-	(list (expand-file-name filename) size)))))
+	  (goto-char point)
+	  (list (expand-file-name filename) size))))))
 
 (defun tramp-imap-handle-file-exists-p (filename)
   "Like `file-exists-p' for Tramp files."
@@ -550,7 +551,7 @@ SIZE MODE WEIRD INODE DEVICE)."
   ;; (file-exists-p (file-name-directory filename)))
   (file-directory-p (file-name-directory filename)))
 
-(defun tramp-imap-handle-delete-file (filename)
+(defun tramp-imap-handle-delete-file (filename &optional trash)
   "Like `delete-file' for Tramp files."
   (cond
    ((not (file-exists-p filename)) nil)
@@ -584,12 +585,12 @@ SIZE MODE WEIRD INODE DEVICE)."
        v 'file-error
        "Cannot make local copy of non-existing file `%s'" filename))
     (let ((tmpfile (tramp-compat-make-temp-file filename)))
-      (tramp-message v 4 "Fetching %s to tmp file %s..." filename tmpfile)
-      (with-temp-buffer
-	(insert-file-contents filename)
- 	(write-region (point-min) (point-max) tmpfile)
- 	(tramp-message v 4 "Fetching %s to tmp file %s...done" filename tmpfile)
- 	tmpfile))))
+      (with-progress-reporter
+	  v 3 (format "Fetching %s to tmp file %s" filename tmpfile)
+	(with-temp-buffer
+	  (insert-file-contents filename)
+	  (write-region (point-min) (point-max) tmpfile)
+	  tmpfile)))))
 
 (defun tramp-imap-put-file
   (vec filename-or-buffer &optional subject inode encode size)

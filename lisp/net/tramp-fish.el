@@ -149,8 +149,11 @@
 ;; parameter of `write-region'.  Transfer of binary data fails due to
 ;; Emacs' process input/output handling.
 
-
 ;;; Code:
+
+(eval-when-compile
+  ;; Pacify byte-compiler.
+  (require 'cl))
 
 (require 'tramp)
 (require 'tramp-cache)
@@ -217,7 +220,6 @@ Used instead of analyzing error codes of commands.")
     (file-executable-p . tramp-fish-handle-file-executable-p)
     (file-exists-p . tramp-fish-handle-file-exists-p)
     (file-local-copy . tramp-fish-handle-file-local-copy)
-    (file-remote-p . tramp-handle-file-remote-p)
     (file-modes . tramp-handle-file-modes)
     (file-name-all-completions . tramp-fish-handle-file-name-all-completions)
     (file-name-as-directory . tramp-handle-file-name-as-directory)
@@ -229,6 +231,8 @@ Used instead of analyzing error codes of commands.")
     (file-ownership-preserved-p . ignore)
     (file-readable-p . tramp-fish-handle-file-readable-p)
     (file-regular-p . tramp-handle-file-regular-p)
+    (file-remote-p . tramp-handle-file-remote-p)
+    ;; `file-selinux-context' performed by default handler.
     (file-symlink-p . tramp-handle-file-symlink-p)
     ;; `file-truename' performed by default handler
     (file-writable-p . tramp-fish-handle-file-writable-p)
@@ -243,6 +247,7 @@ Used instead of analyzing error codes of commands.")
     (make-symbolic-link . tramp-fish-handle-make-symbolic-link)
     (rename-file . tramp-fish-handle-rename-file)
     (set-file-modes . tramp-fish-handle-set-file-modes)
+    ;; `set-file-selinux-context' performed by default handler.
     (set-file-times . tramp-fish-handle-set-file-times)
     (set-visited-file-modtime . ignore)
     (shell-command . tramp-handle-shell-command)
@@ -307,7 +312,8 @@ pass to the OPERATION."
 	 v1 'file-error "Error with add-name-to-file %s" newname)))))
 
 (defun tramp-fish-handle-copy-file
-  (filename newname &optional ok-if-already-exists keep-date preserve-uid-gid)
+  (filename newname &optional ok-if-already-exists keep-date
+	    preserve-uid-gid preserve-selinux-context)
   "Like `copy-file' for Tramp files."
   (tramp-fish-do-copy-or-rename-file
    'copy filename newname ok-if-already-exists keep-date preserve-uid-gid))
@@ -324,12 +330,12 @@ pass to the OPERATION."
 	 ;; We do not want to delete "." and "..".
 	 (directory-files
 	  directory 'full "^\\([^.]\\|\\.\\([^.]\\|\\..\\)\\).*")))
-     (with-parsed-tramp-file-name
+    (with-parsed-tramp-file-name
 	(directory-file-name (expand-file-name directory)) nil
       (tramp-flush-directory-property v localname)
       (tramp-fish-send-command-and-check v (format "#RMD %s" localname)))))
 
-(defun tramp-fish-handle-delete-file (filename)
+(defun tramp-fish-handle-delete-file (filename &optional trash)
   "Like `delete-file' for Tramp files."
   (when (file-exists-p filename)
     (with-parsed-tramp-file-name (expand-file-name filename) nil
@@ -341,10 +347,10 @@ pass to the OPERATION."
   "Like `directory-files-and-attributes' for Tramp files."
   (mapcar
    (lambda (x)
-     ;; We cannot call `file-attributes' for backward compatibility reasons.
-     ;; Its optional parameter ID-FORMAT is introduced with Emacs 22.
-     (cons x (tramp-fish-handle-file-attributes
-	(if full x (expand-file-name x directory)) id-format)))
+     (cons x
+	   (tramp-compat-file-attributes
+	    (if full x (expand-file-name x directory))
+	    id-format)))
    (directory-files directory full match nosort)))
 
 (defun tramp-fish-handle-expand-file-name (name &optional dir)
@@ -484,13 +490,13 @@ pass to the OPERATION."
        v 'file-error
        "Cannot make local copy of non-existing file `%s'" filename))
     (let ((tmpfile (tramp-compat-make-temp-file filename)))
-      (tramp-message v 4 "Fetching %s to tmp file %s..." filename tmpfile)
-      (when (tramp-fish-retrieve-data v)
-	;; Save file
-	(with-current-buffer (tramp-get-buffer v)
-	  (write-region (point-min) (point-max) tmpfile))
-	(tramp-message v 4 "Fetching %s to tmp file %s...done" filename tmpfile)
-	tmpfile))))
+      (with-progress-reporter
+	  v 3 (format "Fetching %s to tmp file %s" filename tmpfile)
+	(when (tramp-fish-retrieve-data v)
+	  ;; Save file
+	  (with-current-buffer (tramp-get-buffer v)
+	    (write-region (point-min) (point-max) tmpfile))
+	  tmpfile)))))
 
 ;; This function should return "foo/" for directories and "bar" for
 ;; files.
@@ -588,17 +594,16 @@ WILDCARD and FULL-DIRECTORY-P are not handled."
 
       (let ((point (point))
 	    size)
-	(tramp-message v 4 "Fetching file %s..." filename)
-	(when (tramp-fish-retrieve-data v)
-	  ;; Insert file
-	  (insert
-	   (with-current-buffer (tramp-get-buffer v)
-	     (let ((beg (or beg (point-min)))
-		   (end (min (or end (point-max)) (point-max))))
-	       (setq size (- end beg))
-	       (buffer-substring beg end))))
-	  (goto-char point))
-	(tramp-message v 4 "Fetching file %s...done" filename)
+	(with-progress-reporter v 3 (format "Fetching file %s" filename)
+	  (when (tramp-fish-retrieve-data v)
+	    ;; Insert file
+	    (insert
+	     (with-current-buffer (tramp-get-buffer v)
+	       (let ((beg (or beg (point-min)))
+		     (end (min (or end (point-max)) (point-max))))
+		 (setq size (- end beg))
+		 (buffer-substring beg end))))
+	    (goto-char point)))
 
 	(list (expand-file-name filename) size)))))
 
@@ -1030,15 +1035,15 @@ SIZE MODE WEIRD)."
 	 ;; last line
 	 ((looking-at "^$")
 	  (return)))
-	;; delete line
+	;; Delete line.
 	(forward-line)
 	(delete-region (point-min) (point))))
 
-    ;; delete trailing empty line
+    ;; Delete trailing empty line.
     (forward-line)
     (delete-region (point-min) (point))
 
-    ;; Return entry in file-attributes format
+    ;; Return entry in `file-attributes' format.
     (list localname link -1 uid gid '(0 0) mtime '(0 0) size mode nil)))
 
 (defun tramp-fish-retrieve-data (vec)
@@ -1112,34 +1117,36 @@ connection if a previous connection has died for some reason."
 	(delete-process p))
       (setenv "TERM" tramp-terminal-type)
       (setenv "PS1" tramp-initial-end-of-output)
-      (tramp-message
-       vec 3 "Opening connection for %s@%s using %s..."
-       tramp-current-user tramp-current-host tramp-current-method)
+      (with-progress-reporter
+	  vec 3
+	  (format "Opening connection for %s@%s using %s"
+		  tramp-current-user tramp-current-host tramp-current-method)
 
-      (let* ((process-connection-type tramp-process-connection-type)
-	     (inhibit-eol-conversion nil)
-	     (coding-system-for-read 'binary)
-	     (coding-system-for-write 'binary)
-	     ;; This must be done in order to avoid our file name handler.
-	     (p (let ((default-directory
-			(tramp-compat-temporary-file-directory)))
-		  (start-process
-		   (or (tramp-get-connection-property vec "process-name" nil)
-		       (tramp-buffer-name vec))
-		   (tramp-get-connection-buffer vec)
-		   "ssh" "-l"
-		   (tramp-file-name-user vec)
-		   (tramp-file-name-host vec)))))
-	(tramp-message vec 6 "%s" (mapconcat 'identity (process-command p) " "))
+	(let* ((process-connection-type tramp-process-connection-type)
+	       (inhibit-eol-conversion nil)
+	       (coding-system-for-read 'binary)
+	       (coding-system-for-write 'binary)
+	       ;; This must be done in order to avoid our file name handler.
+	       (p (let ((default-directory
+			  (tramp-compat-temporary-file-directory)))
+		    (start-process
+		     (or (tramp-get-connection-property vec "process-name" nil)
+			 (tramp-buffer-name vec))
+		     (tramp-get-connection-buffer vec)
+		     "ssh" "-l"
+		     (tramp-file-name-user vec)
+		     (tramp-file-name-host vec)))))
+	  (tramp-message
+	   vec 6 "%s" (mapconcat 'identity (process-command p) " "))
 
-	;; Check whether process is alive.
-	(tramp-set-process-query-on-exit-flag p nil)
+	  ;; Check whether process is alive.
+	  (tramp-set-process-query-on-exit-flag p nil)
 
-	(tramp-process-actions p vec tramp-actions-before-shell 60)
-	(tramp-fish-send-command vec tramp-fish-start-fish-server-command)
-	(tramp-message
-	 vec 3
-	 "Found remote shell prompt on `%s'" (tramp-file-name-host vec))))))
+	  (tramp-process-actions p vec tramp-actions-before-shell 60)
+	  (tramp-fish-send-command vec tramp-fish-start-fish-server-command)
+	  (tramp-message
+	   vec 3
+	   "Found remote shell prompt on `%s'" (tramp-file-name-host vec)))))))
 
 (defun tramp-fish-send-command (vec command)
   "Send the COMMAND to connection VEC."

@@ -106,8 +106,7 @@ This includes password cache, file cache, connection cache, buffers."
   (setq tramp-locked nil)
 
   ;; Flush password cache.
-  (when (functionp 'password-reset)
-    (funcall (symbol-function 'password-reset)))
+  (tramp-compat-funcall 'password-reset)
 
   ;; Flush file and connection cache.
   (clrhash tramp-cache-data)
@@ -226,7 +225,7 @@ Before reproducing the bug, you might apply
 This allows to investigate from a clean environment.  Another
 useful thing to do is to put
 
-  (setq tramp-verbose 8)
+  (setq tramp-verbose 9)
 
 in the ~/.emacs file and to repeat the bug.  Then, include the
 contents of the *tramp/foo* buffer and the *debug tramp/foo*
@@ -254,7 +253,7 @@ Used for non-7bit chars in strings."
 			      (base64-encode-string val))))))
 
     ;; Dump variable.
-    (funcall (symbol-function 'reporter-dump-variable) varsym mailbuf)
+    (tramp-compat-funcall 'reporter-dump-variable varsym mailbuf)
 
     (unless (hash-table-p val)
       ;; Remove string quotation.
@@ -283,10 +282,8 @@ Used for non-7bit chars in strings."
 	(load "mml" 'noerror))
     (require 'message nil 'noerror)
     (require 'mml nil 'noerror))
-  (when (functionp 'message-mode)
-    (funcall (symbol-function 'message-mode)))
-  (when (functionp 'mml-mode)
-    (funcall (symbol-function 'mml-mode) t)))
+  (tramp-compat-funcall 'message-mode)
+  (tramp-compat-funcall 'mml-mode t))
 
 (defun tramp-append-tramp-buffers ()
   "Append Tramp buffers and buffer local variables into the bug report."
@@ -308,15 +305,14 @@ Used for non-7bit chars in strings."
 	(erase-buffer)
 	(insert "\n(setq\n")
 	(lisp-indent-line)
-	(funcall (symbol-function 'reporter-dump-variable)
-		 'buffer-name (current-buffer))
+	(tramp-compat-funcall
+	 'reporter-dump-variable 'buffer-name (current-buffer))
 	(dolist (varsym-or-cons-cell (buffer-local-variables buffer))
 	  (let ((varsym (or (car-safe varsym-or-cons-cell)
 			    varsym-or-cons-cell)))
 	    (when (string-match "tramp" (symbol-name varsym))
-	      (funcall
-	       (symbol-function 'reporter-dump-variable)
-	       varsym (current-buffer)))))
+	      (tramp-compat-funcall
+	       'reporter-dump-variable varsym (current-buffer)))))
 	(lisp-indent-line)
 	(insert ")\n"))
       (insert-buffer-substring elbuf)))
@@ -328,7 +324,7 @@ Used for non-7bit chars in strings."
 	 (symbol-value 'mml-mode))
 
     (let ((tramp-buf-regexp "\\*\\(debug \\)?tramp/")
-	  (buffer-list (funcall (symbol-function 'tramp-list-tramp-buffers)))
+	  (buffer-list (tramp-compat-funcall 'tramp-list-tramp-buffers))
 	  (curbuf (current-buffer)))
 
       ;; There is at least one Tramp buffer.
@@ -376,10 +372,10 @@ This is a special notion of the `gnus/message' package.  If you
 use another mail agent (by copying the contents of this buffer)
 please ensure that the buffers are attached to your email.\n\n")
 	      (dolist (buffer buffer-list)
-		(funcall (symbol-function 'mml-insert-empty-tag)
-			 'part 'type "text/plain" 'encoding "base64"
-			 'disposition "attachment" 'buffer buffer
-			 'description buffer))
+		(tramp-compat-funcall
+		 'mml-insert-empty-tag 'part 'type "text/plain"
+		 'encoding "base64" 'disposition "attachment" 'buffer buffer
+		 'description buffer))
 	      (set-buffer-modified-p nil))
 
 	  ;; Don't send.  Delete the message buffer.

@@ -1,3 +1,256 @@
+2010-08-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.1.19.
+
+	* net/tramp-cmds.el (tramp-cleanup-all-connections)
+	(tramp-reporter-dump-variable, tramp-load-report-modules)
+	(tramp-append-tramp-buffers): Use `tramp-compat-funcall'.
+	(tramp-bug): Recommend setting of `tramp-verbose' to 9.
+
+	* net/tramp-compat.el (top): Do not autoload
+	`tramp-handle-file-remote-p'.  Load tramp-util.el and tramp-vc.el
+	only when `start-file-process' is not bound.
+	(byte-compile-not-obsolete-vars): Define if not bound.
+	(tramp-compat-funcall): New defmacro.
+	(tramp-compat-line-beginning-position)
+	(tramp-compat-line-end-position)
+	(tramp-compat-temporary-file-directory)
+	(tramp-compat-make-temp-file, tramp-compat-file-attributes)
+	(tramp-compat-copy-file, tramp-compat-copy-directory)
+	(tramp-compat-delete-file, tramp-compat-delete-directory)
+	(tramp-compat-number-sequence, tramp-compat-process-running-p):
+	Use it.
+	(tramp-advice-file-expand-wildcards): Do not use
+	`tramp-handle-file-remote-p'.
+	(tramp-compat-make-temp-file): Simplify fallback implementation.
+	(tramp-compat-copy-file): Add PRESERVE-SELINUX-CONTEXT.
+	(tramp-compat-copy-tree): Remove function.
+	(tramp-compat-delete-file): New defun.
+	(tramp-compat-delete-directory): Provide implementation for older
+	Emacsen.
+	(tramp-compat-file-attributes): Handle only
+	`wrong-number-of-arguments' error.
+
+	* net/tramp-fish.el (tramp-fish-handle-copy-file): Add
+	PRESERVE_SELINUX_CONTEXT.
+	(tramp-fish-handle-delete-file): Add TRASH arg.
+	(tramp-fish-handle-directory-files-and-attributes):
+	Do not use `tramp-fish-handle-file-attributes.
+	(tramp-fish-handle-file-local-copy)
+	(tramp-fish-handle-insert-file-contents)
+	(tramp-fish-maybe-open-connection): Use `with-progress-reporter'.
+
+	* net/tramp-gvfs.el (top): Require url-util.
+	(tramp-gvfs-mount-point): Remove.
+	(tramp-gvfs-file-name-handler-alist): Add `file-selinux-context'
+	and `set-file-selinux-context'.
+	(tramp-gvfs-stringify-dbus-message, tramp-gvfs-send-command)
+	(tramp-gvfs-handle-file-selinux-context)
+	(tramp-gvfs-handle-set-file-selinux-context): New defuns.
+	(with-tramp-dbus-call-method): Format trace message.
+	(tramp-gvfs-handle-copy-file): Handle PRESERVE-SELINUX-CONTEXT.
+	(tramp-gvfs-handle-copy-file, tramp-gvfs-handle-rename-file):
+	Implement backup call, when operation on local files fails.  Use
+	progress reporter.  Flush properties of changed files.
+	(tramp-gvfs-handle-delete-file): Add TRASH arg.  Use
+	`tramp-compat-delete-file'.
+	(tramp-gvfs-handle-expand-file-name): Expand "~/".
+	(tramp-gvfs-handle-make-directory): Make more traces.
+	(tramp-gvfs-handle-write-region): Protect deleting tmpfile.
+	(tramp-gvfs-url-file-name): Hexify file name in url.
+	(tramp-gvfs-fuse-file-name): Take also prefix (like dav shares)
+	into account for the resulting file name.
+	(tramp-gvfs-handler-askquestion): Preserve current message, in
+	order to let progress reporter continue afterwards.  (Bug#6257)
+	Return dummy mountpoint, when the answer is "no".  See
+	`tramp-gvfs-maybe-open-connection'.
+	(tramp-gvfs-handler-mounted-unmounted)
+	(tramp-gvfs-connection-mounted-p): Test also for new mountspec
+	attribute "default_location".  Set "prefix" property.  Handle
+	default-location.
+	(tramp-gvfs-mount-spec): Return both prefix and mountspec.
+	(tramp-gvfs-maybe-open-connection): Test, whether mountpoint
+	exists.  Raise an error, if not (due to a corresponding answer
+	"no" in interactive questions, for example). Use
+	`tramp-compat-funcall'.
+
+	* net/tramp-imap.el (top): Autoload `epg-make-context'.
+	(tramp-imap-handle-copy-file): Add PRESERVE-SELINUX-CONTEXT.
+	(tramp-imap-do-copy-or-rename-file)
+	(tramp-imap-handle-insert-file-contents)
+	(tramp-imap-handle-file-local-copy): Use `with-progress-reporter'.
+	(tramp-imap-handle-delete-file): Add TRASH arg.
+
+	* net/tramp-smb.el (tramp-smb-handle-copy-file): Add
+	PRESERVE-SELINUX-CONTEXT.
+	(tramp-smb-handle-copy-file)
+	(tramp-smb-handle-file-local-copy, tramp-smb-handle-rename-file)
+	(tramp-smb-handle-write-region, tramp-smb-maybe-open-connection):
+	Use `with-progress-reporter'.
+	(tramp-smb-handle-delete-file): Add TRASH arg.
+
+	* net/tramp.el (tramp-methods): Move hostname to the end in all
+	ssh `tramp-login-args'.  Add `tramp-async-args' attribute where
+	appropriate.
+	(tramp-verbose): Describe verbose level 9.
+	(tramp-completion-function-alist)
+	(tramp-file-name-regexp, tramp-chunksize)
+	(tramp-local-coding-commands, tramp-remote-coding-commands)
+	(with-connection-property, tramp-completion-mode-p)
+	(tramp-action-process-alive, tramp-action-out-of-band)
+	(tramp-check-for-regexp, tramp-file-name-p, tramp-equal-remote)
+	(tramp-exists-file-name-handler): Fix docstring.
+	(tramp-remote-process-environment): Use `format' instead of
+	`concat'.  Protect version string by apostroph.
+	(tramp-shell-prompt-pattern): Do not use a shy group in case of
+	XEmacs.
+	(tramp-file-name-regexp-unified)
+	(tramp-completion-file-name-regexp-unified): On W32 systems, do
+	not regard the volume letter as remote filename.  (Bug#5447)
+	(tramp-perl-file-attributes)
+	(tramp-perl-directory-files-and-attributes): Don't pass "$3".
+	(tramp-vc-registered-read-file-names): Read input as
+	here-document, otherwise the command could exceed maximum length
+	of command line.
+	(tramp-file-name-handler-alist): Add `file-selinux-context' and
+	`set-file-selinux-context'.
+	(tramp-debug-message): Add `tramp-compat-funcall' to ignored
+	backtrace functions.
+	(tramp-error-with-buffer): Don't show the connection buffer when
+	we are in completion mode.
+	(tramp-progress-reporter-update, tramp-remote-selinux-p)
+	(tramp-handle-file-selinux-context)
+	(tramp-handle-set-file-selinux-context, tramp-process-sentinel)
+	(tramp-connectable-p, tramp-open-shell, tramp-get-remote-trash):
+	New defuns.
+	(with-progress-reporter): New defmacro.
+	(tramp-debug-outline-regexp): New defconst.
+	(top, tramp-rfn-eshadow-setup-minibuffer)
+	(tramp-rfn-eshadow-update-overlay, tramp-handle-set-file-times)
+	(tramp-handle-dired-compress-file, tramp-handle-shell-command)
+	(tramp-completion-mode-p, tramp-check-for-regexp)
+	(tramp-open-connection-setup-interactive-shell)
+	(tramp-compute-multi-hops, tramp-read-passwd, tramp-clear-passwd)
+	(tramp-time-diff, tramp-coding-system-change-eol-conversion)
+	(tramp-set-process-query-on-exit-flag, tramp-unload-tramp):
+	Use `tramp-compat-funcall'.
+	(tramp-handle-make-symbolic-link): Flush file properties.
+	(tramp-handle-load, tramp-handle-file-local-copy)
+	(tramp-handle-insert-file-contents, tramp-handle-write-region)
+	(tramp-handle-vc-registered, tramp-maybe-send-script)
+	(tramp-find-shell): Use `with-progress-reporter'.
+	(tramp-do-file-attributes-with-stat): Add space in format string,
+	in order to work around a bug in pdksh.  Reported by Gilles Pion
+	<gpion@lfdj.com>.
+	(tramp-handle-verify-visited-file-modtime): Do not send a command
+	when the connection is not established.
+	(tramp-handle-set-file-times): Simplify the check for utc.
+	(tramp-handle-directory-files-and-attributes)
+	(tramp-get-remote-path): Use `copy-tree'.
+	(tramp-completion-handle-file-name-all-completions): Ensure, that
+	non remote files are still checked.  Oops.
+	(tramp-handle-copy-file, tramp-do-copy-or-rename-file): Handle
+	PRESERVE-SELINUX-CONTEXT.
+	(tramp-do-copy-or-rename-file): Add progress reporter.
+	(tramp-do-copy-or-rename-file-directly): Do not use
+	`tramp-handle-file-remote-p'.
+	(tramp-do-copy-or-rename-file-out-of-band):
+	Use `tramp-compat-delete-directory'.
+	(tramp-do-copy-or-rename-file-out-of-band)
+	(tramp-compute-multi-hops, tramp-maybe-open-connection):
+	Use `format-spec-make'.
+	(tramp-handle-delete-file): Add TRASH arg.
+	(tramp-handle-dired-uncache): Flush directory cache, not only file
+	cache.
+	(tramp-handle-expand-file-name)
+	(tramp-completion-handle-file-name-all-completions)
+	(tramp-completion-handle-file-name-completion): Use
+	`tramp-connectable-p'.
+	(tramp-handle-start-file-process): Set connection property "vec".
+	Use it, in order to invalidate file caches.  Check only for
+	`remote-tty' process property.
+	Implement tty setting.  (Bug#4604, Bug#6360)
+	(tramp-file-name-for-operation): Add `call-process-region' and
+	`set-file-selinux-context'.
+	(tramp-find-foreign-file-name-handler)
+	(tramp-advice-make-auto-save-file-name)
+	(tramp-set-auto-save-file-modes): Remove superfluous check for
+	`stringp'.  This is done inside `tramp-tramp-file-p'.
+	(tramp-file-name-handler): Trace 'quit.  Catch the error for some
+	operations when we are in completion mode.  This gives the user
+	the chance to correct the file name in the minibuffer.
+	(tramp-completion-mode-p): Use `non-essential'.
+	(tramp-handle-file-name-all-completions): Backward/ XEmacs
+	compatibility: Use `completion-ignore-case' if
+	`read-file-name-completion-ignore-case' does not exist.
+	(tramp-get-debug-buffer): Use `tramp-debug-outline-regexp'.
+	(tramp-find-shell, tramp-open-connection-setup-interactive-shell):
+	`tramp-open-shell'.
+	(tramp-action-password): Hide password prompt before next run.
+	(tramp-process-actions): Widen connection buffer for the trace.
+	(tramp-open-connection-setup-interactive-shell): Set `remote-tty'
+	process property.  Trace stty settings if `tramp-verbose' >= 9.
+	Apply workaround for IRIX64 bug.  Move argument of last
+	`tramp-send-command' where it belongs to.
+	(tramp-maybe-open-connection): Use `async-args' and `gw-args' in
+	front of `login-args'.
+	(tramp-get-ls-command, tramp-get-ls-command-with-dired): Run tests
+	on "/dev/null" instead of "/".
+	(tramp-get-ls-command-with-dired): Make test for "--dired"
+	stronger.
+	(tramp-set-auto-save-file-modes): Adapt version check.
+	(tramp-set-process-query-on-exit-flag): Fix wrong parentheses.
+	(tramp-handle-process-file): Call the program in a subshell, in
+	order to preserve working directory.
+	(tramp-handle-shell-command): Don't use hard-wired "/bin/sh" but
+	`tramp-remote-sh' from `tramp-methods'.
+	(tramp-get-ls-command): Make test for "--color=never" stronger.
+	(tramp-check-for-regexp): Use (forward-line 1).
+
+	* net/trampver.el: Update release number.
+
+2010-08-26  Magnus Henoch  <magnus.henoch@gmail.com>
+
+	* net/tramp-gvfs.el (tramp-gvfs-handle-copy-file): Do not pass
+	empty argument to gvfs-copy.
+
+2010-08-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* net/tramp-compat.el (tramp-compat-delete-file): Rewrite to
+	handle new TRASH arg of `delete-file'.
+
+2010-08-26  Christian Lynbech  <christian.lynbech@tieto.com>  (tiny change)
+
+	* net/tramp.el (tramp-handle-insert-directory): Don't use
+	`forward-word', its default syntax could be changed.
+
+2010-08-26  Toru TSUNEYOSHI  <t_tuneyosi@hotmail.com>
+            Michael Albinus  <michael.albinus@gmx.de>
+
+	Implement compression for inline methods.
+
+	* net/tramp.el (tramp-inline-compress-start-size): New defcustom.
+	(tramp-copy-size-limit): Allow also nil.
+	(tramp-inline-compress-commands): New defconst.
+	(tramp-find-inline-compress, tramp-get-inline-compress)
+	(tramp-get-inline-coding): New defuns.
+	(tramp-get-remote-coding, tramp-get-local-coding): Remove,
+	replaced by `tramp-get-inline-coding'.
+	(tramp-handle-file-local-copy, tramp-handle-write-region)
+	(tramp-method-out-of-band-p): Use `tramp-get-inline-coding'.
+
+2010-08-26  Noah Lavine  <noah549@gmail.com>  (tiny change)
+
+	Detect ssh 'ControlMaster' argument automatically in some cases.
+
+	* net/tramp.el (tramp-detect-ssh-controlmaster): New defun.
+	(tramp-default-method): Use it.
+
+2010-08-26  Karel Klíč  <kklic@redhat.com>
+
+	* net/tramp.el (tramp-file-name-for-operation):
+	Add file-selinux-context.
+
 2010-08-26  Łukasz Stelmach  <lukasz.stelmach@iem.pw.edu.pl>  (tiny change)
 
 	* play/cookie1.el (read-cookie): Fix off-by-one error (bug#6921).
