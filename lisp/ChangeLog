@@ -1,3 +1,17 @@
+2010-08-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* help.el (help-map): Bind `C-h P' to describe-package.
+
+	* menu-bar.el (menu-bar-describe-menu): Add describe-package.
+
+	* emacs-lisp/package.el (package-refresh-contents): Catch errors
+	when downloading archives.
+	(describe-package-1): Add package commentary.
+	(package-install-button-action): New function.
+	(package-menu-mode-map): Bind ? to package-menu-describe-package.
+	(package-menu-view-commentary): Function removed.
+	(package-list-packages-internal): Hide the `package' package too.
+
 2010-08-25  Kenichi Handa  <handa@m17n.org>
 
 	* language/misc-lang.el ("Arabic"): New language environment.
