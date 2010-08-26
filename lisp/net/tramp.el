@@ -8995,6 +8995,13 @@ Only works for Bourne-like shells."
 ;; * Try telnet+curl as new method.  It might be useful for busybox,
 ;;   without built-in uuencode/uudecode.
 ;; * Load ~/.emacs_SHELLNAME on the remote host for `shell'.
+;; * I was wondering it it would be possible to use tramp even if I'm
+;;   actually using sshfs.  But when I launch a command I would like
+;;   to get it executed on the remote machine where the files really
+;;   are.  (Andrea Crotti)
+;; * Run emerge on two remote files.  Bug is described here:
+;;   <http://www.mail-archive.com/tramp-devel@nongnu.org/msg01041.html>.
+;;   (Bug#6850)
 
 ;; Functions for file-name-handler-alist:
 ;; diff-latest-backup-file -- in diff.el
