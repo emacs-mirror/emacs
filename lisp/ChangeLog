@@ -1,3 +1,7 @@
+2010-08-26  Łukasz Stelmach  <lukasz.stelmach@iem.pw.edu.pl>  (tiny change)
+
+	* play/cookie1.el (read-cookie): Fix off-by-one error (bug#6921).
+
 2010-08-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (beginning-of-buffer, end-of-buffer): Doc fix
@@ -36,7 +40,7 @@
 
 2010-08-21  Leo  <sdl.web@gmail.com>
 
-	Fix buffer-list rename&refresh after after killing a buffer in ido.
+	Fix buffer-list rename&refresh after killing a buffer in ido.
 	* lisp/ido.el: Revert Óscar's.
 	(ido-kill-buffer-at-head): Exit the minibuffer with ido-exit=refresh.
 	Remember the buffers at head, rather than their name.
