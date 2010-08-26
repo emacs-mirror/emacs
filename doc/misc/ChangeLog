@@ -1,3 +1,22 @@
+2010-08-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.1.19.
+
+	* tramp.texi (Inline methods, Default Method): Mention
+	`tramp-inline-compress-start-size'.  Remove "kludgy" phrase.  Remove
+	remark about doubled "-t" argument.
+	(Auto-save and Backup): Remove reference to Emacs 21.
+	(Filename Syntax): Describe port numbers.
+	(Frequently Asked Questions): Adapt supported (X)Emacs versions.  Adapt
+	supported MS Windows versions.  Remove obsolete URL.  Recommend "sshx"
+	and "scpx" for echoing shells.  Use the $() syntax, texi2dvi reports
+	errors with the backquotes.
+	(External packages): File attributes cache flushing for asynchronous
+	processes.
+	(Traces and Profiles): Describe verbose level 9.
+
+	* trampver.texi: Update release number.
+
 2010-08-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* org.texi (Footnotes, Tables in HTML export): Fix typos.
