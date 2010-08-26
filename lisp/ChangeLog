@@ -1,3 +1,8 @@
+2010-08-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (beginning-of-buffer, end-of-buffer): Doc fix
+	(Bug#6907).
+
 2010-08-23  Chris Foote <chris@foote.com.au>  (tiny change)
 
 	* progmodes/python.el (python-block-pairs): Allow use of "finally"
