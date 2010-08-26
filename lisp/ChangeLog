@@ -1,3 +1,10 @@
+2010-08-26  David Reitter  <david.reitter@gmail.com>
+
+	* server.el (server-visit-files): Run pre-command-hook and
+	post-command-hook for each buffer while it is current
+	(Bug#6910).
+	(server-execute): Do not run hooks here.
+
 2010-08-26  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.1.19.
