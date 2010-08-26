@@ -1,3 +1,10 @@
+2010-08-26  Nathan Weizenbaum  <nweiz@cressida.sea.corp.google.com>  (tiny change)
+
+	* progmodes/js.el: Make indentation more customizable (Bug#6914).
+	(js-paren-indent-offset, js-square-indent-offset)
+	(js-curly-indent-offset): New options.
+	(js--proper-indentation): Use them.
+
 2010-08-26  Daniel Colascione  <dan.colascione@gmail.com>
 
 	* progmodes/sh-script.el (sh-get-indent-info): Use syntax-ppss
