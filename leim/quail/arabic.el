@@ -57,8 +57,8 @@ Based on Arabic table in X Keyboard Configuration DB.
 
  ("A" ?ِ)
  ("S" ?ٍ)
- ("D" ?])
- ("F" ?[)
+ ("D" ?\])
+ ("F" ?\[)
  ("G" ["لأ"])
  ("H" ?أ)
  ("J" ?ـ)

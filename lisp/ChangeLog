@@ -1,3 +1,451 @@
+2010-08-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.1.19.
+
+	* net/tramp-cmds.el (tramp-cleanup-all-connections)
+	(tramp-reporter-dump-variable, tramp-load-report-modules)
+	(tramp-append-tramp-buffers): Use `tramp-compat-funcall'.
+	(tramp-bug): Recommend setting of `tramp-verbose' to 9.
+
+	* net/tramp-compat.el (top): Do not autoload
+	`tramp-handle-file-remote-p'.  Load tramp-util.el and tramp-vc.el
+	only when `start-file-process' is not bound.
+	(byte-compile-not-obsolete-vars): Define if not bound.
+	(tramp-compat-funcall): New defmacro.
+	(tramp-compat-line-beginning-position)
+	(tramp-compat-line-end-position)
+	(tramp-compat-temporary-file-directory)
+	(tramp-compat-make-temp-file, tramp-compat-file-attributes)
+	(tramp-compat-copy-file, tramp-compat-copy-directory)
+	(tramp-compat-delete-file, tramp-compat-delete-directory)
+	(tramp-compat-number-sequence, tramp-compat-process-running-p):
+	Use it.
+	(tramp-advice-file-expand-wildcards): Do not use
+	`tramp-handle-file-remote-p'.
+	(tramp-compat-make-temp-file): Simplify fallback implementation.
+	(tramp-compat-copy-file): Add PRESERVE-SELINUX-CONTEXT.
+	(tramp-compat-copy-tree): Remove function.
+	(tramp-compat-delete-file): New defun.
+	(tramp-compat-delete-directory): Provide implementation for older
+	Emacsen.
+	(tramp-compat-file-attributes): Handle only
+	`wrong-number-of-arguments' error.
+
+	* net/tramp-fish.el (tramp-fish-handle-copy-file): Add
+	PRESERVE_SELINUX_CONTEXT.
+	(tramp-fish-handle-delete-file): Add TRASH arg.
+	(tramp-fish-handle-directory-files-and-attributes):
+	Do not use `tramp-fish-handle-file-attributes.
+	(tramp-fish-handle-file-local-copy)
+	(tramp-fish-handle-insert-file-contents)
+	(tramp-fish-maybe-open-connection): Use `with-progress-reporter'.
+
+	* net/tramp-gvfs.el (top): Require url-util.
+	(tramp-gvfs-mount-point): Remove.
+	(tramp-gvfs-file-name-handler-alist): Add `file-selinux-context'
+	and `set-file-selinux-context'.
+	(tramp-gvfs-stringify-dbus-message, tramp-gvfs-send-command)
+	(tramp-gvfs-handle-file-selinux-context)
+	(tramp-gvfs-handle-set-file-selinux-context): New defuns.
+	(with-tramp-dbus-call-method): Format trace message.
+	(tramp-gvfs-handle-copy-file): Handle PRESERVE-SELINUX-CONTEXT.
+	(tramp-gvfs-handle-copy-file, tramp-gvfs-handle-rename-file):
+	Implement backup call, when operation on local files fails.  Use
+	progress reporter.  Flush properties of changed files.
+	(tramp-gvfs-handle-delete-file): Add TRASH arg.  Use
+	`tramp-compat-delete-file'.
+	(tramp-gvfs-handle-expand-file-name): Expand "~/".
+	(tramp-gvfs-handle-make-directory): Make more traces.
+	(tramp-gvfs-handle-write-region): Protect deleting tmpfile.
+	(tramp-gvfs-url-file-name): Hexify file name in url.
+	(tramp-gvfs-fuse-file-name): Take also prefix (like dav shares)
+	into account for the resulting file name.
+	(tramp-gvfs-handler-askquestion): Preserve current message, in
+	order to let progress reporter continue afterwards.  (Bug#6257)
+	Return dummy mountpoint, when the answer is "no".  See
+	`tramp-gvfs-maybe-open-connection'.
+	(tramp-gvfs-handler-mounted-unmounted)
+	(tramp-gvfs-connection-mounted-p): Test also for new mountspec
+	attribute "default_location".  Set "prefix" property.  Handle
+	default-location.
+	(tramp-gvfs-mount-spec): Return both prefix and mountspec.
+	(tramp-gvfs-maybe-open-connection): Test, whether mountpoint
+	exists.  Raise an error, if not (due to a corresponding answer
+	"no" in interactive questions, for example). Use
+	`tramp-compat-funcall'.
+
+	* net/tramp-imap.el (top): Autoload `epg-make-context'.
+	(tramp-imap-handle-copy-file): Add PRESERVE-SELINUX-CONTEXT.
+	(tramp-imap-do-copy-or-rename-file)
+	(tramp-imap-handle-insert-file-contents)
+	(tramp-imap-handle-file-local-copy): Use `with-progress-reporter'.
+	(tramp-imap-handle-delete-file): Add TRASH arg.
+
+	* net/tramp-smb.el (tramp-smb-handle-copy-file): Add
+	PRESERVE-SELINUX-CONTEXT.
+	(tramp-smb-handle-copy-file)
+	(tramp-smb-handle-file-local-copy, tramp-smb-handle-rename-file)
+	(tramp-smb-handle-write-region, tramp-smb-maybe-open-connection):
+	Use `with-progress-reporter'.
+	(tramp-smb-handle-delete-file): Add TRASH arg.
+
+	* net/tramp.el (tramp-methods): Move hostname to the end in all
+	ssh `tramp-login-args'.  Add `tramp-async-args' attribute where
+	appropriate.
+	(tramp-verbose): Describe verbose level 9.
+	(tramp-completion-function-alist)
+	(tramp-file-name-regexp, tramp-chunksize)
+	(tramp-local-coding-commands, tramp-remote-coding-commands)
+	(with-connection-property, tramp-completion-mode-p)
+	(tramp-action-process-alive, tramp-action-out-of-band)
+	(tramp-check-for-regexp, tramp-file-name-p, tramp-equal-remote)
+	(tramp-exists-file-name-handler): Fix docstring.
+	(tramp-remote-process-environment): Use `format' instead of
+	`concat'.  Protect version string by apostroph.
+	(tramp-shell-prompt-pattern): Do not use a shy group in case of
+	XEmacs.
+	(tramp-file-name-regexp-unified)
+	(tramp-completion-file-name-regexp-unified): On W32 systems, do
+	not regard the volume letter as remote filename.  (Bug#5447)
+	(tramp-perl-file-attributes)
+	(tramp-perl-directory-files-and-attributes): Don't pass "$3".
+	(tramp-vc-registered-read-file-names): Read input as
+	here-document, otherwise the command could exceed maximum length
+	of command line.
+	(tramp-file-name-handler-alist): Add `file-selinux-context' and
+	`set-file-selinux-context'.
+	(tramp-debug-message): Add `tramp-compat-funcall' to ignored
+	backtrace functions.
+	(tramp-error-with-buffer): Don't show the connection buffer when
+	we are in completion mode.
+	(tramp-progress-reporter-update, tramp-remote-selinux-p)
+	(tramp-handle-file-selinux-context)
+	(tramp-handle-set-file-selinux-context, tramp-process-sentinel)
+	(tramp-connectable-p, tramp-open-shell, tramp-get-remote-trash):
+	New defuns.
+	(with-progress-reporter): New defmacro.
+	(tramp-debug-outline-regexp): New defconst.
+	(top, tramp-rfn-eshadow-setup-minibuffer)
+	(tramp-rfn-eshadow-update-overlay, tramp-handle-set-file-times)
+	(tramp-handle-dired-compress-file, tramp-handle-shell-command)
+	(tramp-completion-mode-p, tramp-check-for-regexp)
+	(tramp-open-connection-setup-interactive-shell)
+	(tramp-compute-multi-hops, tramp-read-passwd, tramp-clear-passwd)
+	(tramp-time-diff, tramp-coding-system-change-eol-conversion)
+	(tramp-set-process-query-on-exit-flag, tramp-unload-tramp):
+	Use `tramp-compat-funcall'.
+	(tramp-handle-make-symbolic-link): Flush file properties.
+	(tramp-handle-load, tramp-handle-file-local-copy)
+	(tramp-handle-insert-file-contents, tramp-handle-write-region)
+	(tramp-handle-vc-registered, tramp-maybe-send-script)
+	(tramp-find-shell): Use `with-progress-reporter'.
+	(tramp-do-file-attributes-with-stat): Add space in format string,
+	in order to work around a bug in pdksh.  Reported by Gilles Pion
+	<gpion@lfdj.com>.
+	(tramp-handle-verify-visited-file-modtime): Do not send a command
+	when the connection is not established.
+	(tramp-handle-set-file-times): Simplify the check for utc.
+	(tramp-handle-directory-files-and-attributes)
+	(tramp-get-remote-path): Use `copy-tree'.
+	(tramp-completion-handle-file-name-all-completions): Ensure, that
+	non remote files are still checked.  Oops.
+	(tramp-handle-copy-file, tramp-do-copy-or-rename-file): Handle
+	PRESERVE-SELINUX-CONTEXT.
+	(tramp-do-copy-or-rename-file): Add progress reporter.
+	(tramp-do-copy-or-rename-file-directly): Do not use
+	`tramp-handle-file-remote-p'.
+	(tramp-do-copy-or-rename-file-out-of-band):
+	Use `tramp-compat-delete-directory'.
+	(tramp-do-copy-or-rename-file-out-of-band)
+	(tramp-compute-multi-hops, tramp-maybe-open-connection):
+	Use `format-spec-make'.
+	(tramp-handle-delete-file): Add TRASH arg.
+	(tramp-handle-dired-uncache): Flush directory cache, not only file
+	cache.
+	(tramp-handle-expand-file-name)
+	(tramp-completion-handle-file-name-all-completions)
+	(tramp-completion-handle-file-name-completion): Use
+	`tramp-connectable-p'.
+	(tramp-handle-start-file-process): Set connection property "vec".
+	Use it, in order to invalidate file caches.  Check only for
+	`remote-tty' process property.
+	Implement tty setting.  (Bug#4604, Bug#6360)
+	(tramp-file-name-for-operation): Add `call-process-region' and
+	`set-file-selinux-context'.
+	(tramp-find-foreign-file-name-handler)
+	(tramp-advice-make-auto-save-file-name)
+	(tramp-set-auto-save-file-modes): Remove superfluous check for
+	`stringp'.  This is done inside `tramp-tramp-file-p'.
+	(tramp-file-name-handler): Trace 'quit.  Catch the error for some
+	operations when we are in completion mode.  This gives the user
+	the chance to correct the file name in the minibuffer.
+	(tramp-completion-mode-p): Use `non-essential'.
+	(tramp-handle-file-name-all-completions): Backward/ XEmacs
+	compatibility: Use `completion-ignore-case' if
+	`read-file-name-completion-ignore-case' does not exist.
+	(tramp-get-debug-buffer): Use `tramp-debug-outline-regexp'.
+	(tramp-find-shell, tramp-open-connection-setup-interactive-shell):
+	`tramp-open-shell'.
+	(tramp-action-password): Hide password prompt before next run.
+	(tramp-process-actions): Widen connection buffer for the trace.
+	(tramp-open-connection-setup-interactive-shell): Set `remote-tty'
+	process property.  Trace stty settings if `tramp-verbose' >= 9.
+	Apply workaround for IRIX64 bug.  Move argument of last
+	`tramp-send-command' where it belongs to.
+	(tramp-maybe-open-connection): Use `async-args' and `gw-args' in
+	front of `login-args'.
+	(tramp-get-ls-command, tramp-get-ls-command-with-dired): Run tests
+	on "/dev/null" instead of "/".
+	(tramp-get-ls-command-with-dired): Make test for "--dired"
+	stronger.
+	(tramp-set-auto-save-file-modes): Adapt version check.
+	(tramp-set-process-query-on-exit-flag): Fix wrong parentheses.
+	(tramp-handle-process-file): Call the program in a subshell, in
+	order to preserve working directory.
+	(tramp-handle-shell-command): Don't use hard-wired "/bin/sh" but
+	`tramp-remote-sh' from `tramp-methods'.
+	(tramp-get-ls-command): Make test for "--color=never" stronger.
+	(tramp-check-for-regexp): Use (forward-line 1).
+
+	* net/trampver.el: Update release number.
+
+2010-08-26  Magnus Henoch  <magnus.henoch@gmail.com>
+
+	* net/tramp-gvfs.el (tramp-gvfs-handle-copy-file): Do not pass
+	empty argument to gvfs-copy.
+
+2010-08-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* net/tramp-compat.el (tramp-compat-delete-file): Rewrite to
+	handle new TRASH arg of `delete-file'.
+
+2010-08-26  Christian Lynbech  <christian.lynbech@tieto.com>  (tiny change)
+
+	* net/tramp.el (tramp-handle-insert-directory): Don't use
+	`forward-word', its default syntax could be changed.
+
+2010-08-26  Toru TSUNEYOSHI  <t_tuneyosi@hotmail.com>
+            Michael Albinus  <michael.albinus@gmx.de>
+
+	Implement compression for inline methods.
+
+	* net/tramp.el (tramp-inline-compress-start-size): New defcustom.
+	(tramp-copy-size-limit): Allow also nil.
+	(tramp-inline-compress-commands): New defconst.
+	(tramp-find-inline-compress, tramp-get-inline-compress)
+	(tramp-get-inline-coding): New defuns.
+	(tramp-get-remote-coding, tramp-get-local-coding): Remove,
+	replaced by `tramp-get-inline-coding'.
+	(tramp-handle-file-local-copy, tramp-handle-write-region)
+	(tramp-method-out-of-band-p): Use `tramp-get-inline-coding'.
+
+2010-08-26  Noah Lavine  <noah549@gmail.com>  (tiny change)
+
+	Detect ssh 'ControlMaster' argument automatically in some cases.
+
+	* net/tramp.el (tramp-detect-ssh-controlmaster): New defun.
+	(tramp-default-method): Use it.
+
+2010-08-26  Karel Klíč  <kklic@redhat.com>
+
+	* net/tramp.el (tramp-file-name-for-operation):
+	Add file-selinux-context.
+
+2010-08-26  Łukasz Stelmach  <lukasz.stelmach@iem.pw.edu.pl>  (tiny change)
+
+	* play/cookie1.el (read-cookie): Fix off-by-one error (bug#6921).
+
+2010-08-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (beginning-of-buffer, end-of-buffer): Doc fix
+	(Bug#6907).
+
+2010-08-23  Chris Foote <chris@foote.com.au>  (tiny change)
+
+	* progmodes/python.el (python-block-pairs): Allow use of "finally"
+	with "else" (Bug#3991).
+
+2010-08-22  Leo  <sdl.web@gmail.com>
+
+	* net/rcirc.el (rcirc-add-or-remove): Accept a list of elements.
+	(ignore, bright, dim, keyword): Split list of nicknames before
+	passing to rcirc-add-or-remove (Bug#6894).
+
+2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Doc fix (Bug#6880).
+
+2010-08-21  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* whitespace.el: Fix slow cursor movement (Bug#6172).  Reported by
+	Christoph Groth <cwg@falma.de> and Liu Xin <x_liu@neusoft.com>.
+	New version 13.0.
+	(whitespace-empty-at-bob-regexp, whitespace-empty-at-eob-regexp):
+	Adjust initialization.
+	(whitespace-bob-marker, whitespace-eob-marker)
+	(whitespace-buffer-changed): New vars.
+	(whitespace-cleanup, whitespace-color-on, whitespace-color-off)
+	(whitespace-empty-at-bob-regexp, whitespace-empty-at-eob-regexp)
+	(whitespace-post-command-hook, whitespace-display-char-on):
+	Adjust code.
+	(whitespace-looking-back, whitespace-buffer-changed): New funs.
+	(whitespace-space-regexp, whitespace-tab-regexp): Eliminate funs.
+
+2010-08-21  Leo  <sdl.web@gmail.com>
+
+	Fix buffer-list rename&refresh after killing a buffer in ido.
+	* lisp/ido.el: Revert Óscar's.
+	(ido-kill-buffer-at-head): Exit the minibuffer with ido-exit=refresh.
+	Remember the buffers at head, rather than their name.
+	* lisp/iswitchb.el (iswitchb-kill-buffer): Re-make the list.
+
+2010-08-21  Kirk Kelsey  <kirk.kelsey@0x4b.net>  (tiny change)
+            Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/make-mode.el (makefile-fill-paragraph): Account for the
+	extra backslash added to each line (bug#6890).
+
+2010-08-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (read-key): Don't echo keystrokes (bug#6883).
+
+2010-08-21  Glenn Morris  <rgm@gnu.org>
+
+	* menu-bar.el (menu-bar-games-menu): Add landmark.
+
+2010-08-20  Glenn Morris  <rgm@gnu.org>
+
+	* align.el (align-regexp): Make group and spacing arguments
+	use the interactive defaults when non-interactive.  (Bug#6698)
+
+	* mail/rmail.el (rmail-forward): Replace mail-text-start with its
+	expansion, so as not to need sendmail.
+	(mail-text-start): Remove declaration.
+	(rmail-retry-failure): Require sendmail.
+
+2010-08-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (read-key): Don't hide the menu-bar entries (bug#6881).
+
+2010-08-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* progmodes/flymake.el (flymake-start-syntax-check-process):
+	Use `start-file-process' in order to let it run also on remote hosts.
+
+2010-08-18  Kenichi Handa  <handa@m17n.org>
+
+	* files.el: Add `word-wrap' as safe local variable.
+
+2010-08-18  Glenn Morris  <rgm@gnu.org>
+
+	* woman.el (woman-translate): Case matters.  (Bug#6849)
+
+2010-08-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (kill-region): Doc fix (Bug#6787).
+
+2010-08-14  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-header-line-format):
+	Fit it to the window, not the frame.
+
+2010-08-11  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* subr.el (ignore-errors): Add debug declaration.
+
+2010-08-09  Geoff Gole  <geoffgole@gmail.com>  (tiny change)
+
+	* whitespace.el (whitespace-color-off): Remove post-command-hook
+	locally.
+
+2010-08-08  Johan Bockgård  <bojohan@gnu.org>
+
+	* replace.el (replace-highlight): Bind isearch-forward and
+	isearch-error, ensuring that highlighting is updated if the user
+	switches the search direction (Bug#6808).
+
+	* isearch.el (isearch-lazy-highlight-forward): New var.
+	(isearch-lazy-highlight-new-loop, isearch-lazy-highlight-search):
+	(isearch-lazy-highlight-update): Use it.
+
+2010-08-06  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (define-charset): Store NAME as :base property.
+	(ctext-non-standard-encodings-table): Pay attention to charset aliases.
+	(ctext-pre-write-conversion): Sort ctext-standard-encodings by the
+	current priority.  Force using the designation of the specific
+	charset by adding `charset' text property.  Improve the whole
+	algorithm.
+
+2010-08-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emulation/pc-select.el (pc-selection-mode-hook)
+	(copy-region-as-kill-nomark, beginning-of-buffer-mark)
+	(pc-selection-mode): Fix typos in docstrings.
+
+2010-08-04  Kenichi Handa  <handa@m17n.org>
+
+	* language/cyrillic.el: Don't add "microsoft-cp1251" to
+	ctext-non-standard-encodings-alist here.
+
+	* international/mule.el (ctext-non-standard-encodings-alist):
+	Add "koi8-r" and "microsoft-cp1251".
+	(ctext-standard-encodings): New variable.
+	(ctext-non-standard-encodings-table): List only elements for
+	non-standard encodings.
+	(ctext-pre-write-conversion): Adjust for the above change.
+	Check ctext-standard-encodings.
+
+	* international/mule-conf.el (compound-text): Doc fix.
+	(ctext-no-compositions): Doc fix.
+	(compound-text-with-extensions): Doc fix.
+
+2010-08-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (exchange-dot-and-mark): Mark obsolete, finally.
+
+2010-08-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/which-func.el (which-func-format): Split help-echo text
+	into lines, like other mode-line tooltips.
+
+	* server.el (server-start): When using TCP sockets, force IPv4
+	and use a literal 127.0.0.1 for localhost.  (Related to bug#6781.)
+
+2010-08-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bindings.el (complete-symbol): Run completion-at-point as a fallback.
+
+2010-08-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* term.el (term-delimiter-argument-list): Reflow docstring.
+	(term-read-input-ring, term-write-input-ring, term-send-input)
+	(term-bol, term-erase-in-display, serial-supported-or-barf):
+	Fix typos in docstrings.
+
+2010-08-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bindings.el (function-key-map): Add a S-tab => backtab fallback.
+
+2010-08-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dabbrev.el (dabbrev-completion): Fix typo in docstring.
+
+2010-08-01  MON KEY  <monkey@sandpframing.com>  (tiny change)
+
+	* emacs-lisp/syntax.el (syntax-ppss-toplevel-pos):
+	Fix typo in docstring (bug#6747).
+
+2010-07-30  Leo  <sdl.web@gmail.com>
+
+	* eshell/esh-io.el (eshell-get-target): Better detection of
+	read-only file (Bug#6762).
+
+2010-07-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* align.el (align-default-spacing): Doc fix.
+	(align-region-heuristic, align-regexp): Fix typos in docstrings.
+
 2010-07-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* help-fns.el (find-lisp-object-file-name): Doc fix (bug#6494).
@@ -2140,7 +2588,7 @@
 
 	* ps-print.el (ps-face-attributes): It was not returning the
 	attribute face for faces specified as string.  Reported by harven
-	<harven@free.fr>.
+	<harven@free.fr>.  (Bug#5254)
 	(ps-print-version): New version 7.3.5.
 
 2009-12-18  Ulf Jasper  <ulf.jasper@web.de>

@@ -68,3 +68,5 @@ configure.lineno
 src/core
 core
 lib-src/stamp-*
++*
+lisp/vc

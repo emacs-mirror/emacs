@@ -3384,7 +3384,10 @@ Format paragraphs upto TO.  Supports special chars.
   "Translate up to marker TO.  Do this last of all transformations."
   (if translations
       (let ((matches (car translations))
-	    (alist (cdr translations)))
+	    (alist (cdr translations))
+	    ;; Translations are case-sensitive, eg ".tr ab" does not
+	    ;; affect "A" (bug#6849).
+	    (case-fold-search nil))
 	(while (re-search-forward matches to t)
 	  ;; Done like this to retain text properties and
 	  ;; support translation of special characters:

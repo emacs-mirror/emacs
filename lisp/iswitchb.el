@@ -1027,8 +1027,8 @@ Return the modified list with the last element prepended to it."
 (defun iswitchb-kill-buffer ()
   "Kill the buffer at the head of `iswitchb-matches'."
   (interactive)
-  (let ( (enable-recursive-minibuffers t)
-	 buf)
+  (let ((enable-recursive-minibuffers t)
+        buf)
 
     (setq buf (car iswitchb-matches))
     ;; check to see if buf is non-nil.
@@ -1042,8 +1042,10 @@ Return the modified list with the last element prepended to it."
 	  (if (get-buffer buf)
 	      ;; buffer couldn't be killed.
 	      (setq iswitchb-rescan t)
-	    ;; else buffer was killed so remove name from list.
-	    (setq iswitchb-buflist  (delq buf iswitchb-buflist)))))))
+	    ;; Else `kill-buffer' succeeds so re-make the buffer list
+	    ;; taking into account packages like uniquify may rename
+	    ;; buffers
+	    (iswitchb-make-buflist iswitchb-default))))))
 
 ;;; VISIT CHOSEN BUFFER
 (defun iswitchb-visit-buffer (buffer)

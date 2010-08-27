@@ -2482,6 +2482,14 @@ files are installed. Then use:
 As of Emacs 22.1, there have been stability problems with Cygwin
 builds of Emacs using GCC 3.  Cygwin users are advised to use GCC 4.
 
+*** Building Emacs 23.3 and later will fail under Cygwin 1.5.19
+
+This is a consequence of a change to src/dired.c on 2010-07-27.  The
+issue is that Cygwin 1.5.19 did not have d_ino in 'struct dirent'.
+See
+
+  http://lists.gnu.org/archive/html/emacs-devel/2010-07/msg01266.html
+
 *** Building the native MS-Windows port fails due to unresolved externals
 
 The linker error messages look like this:

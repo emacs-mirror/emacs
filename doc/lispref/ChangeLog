@@ -1,3 +1,25 @@
+2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* modes.texi (Defining Minor Modes): Doc fix (Bug#6880).
+
+2010-08-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* objects.texi (Bool-Vector Type): Minor definition tweak (Bug#6878).
+
+2010-08-02  Christoph  <cschol2112@googlemail.com>
+
+	* control.texi (Handling Errors) <error-message-string>: Fix arg name.
+
+2010-07-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* modes.texi (Defining Minor Modes): Use C-backspace, not C-delete.
+	Suggested by Štěpán Němec <stepnem@gmail.com>.
+
+2010-07-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* minibuf.texi (High-Level Completion): Document args of
+	`read-buffer-function' (bug#5625).
+
 2010-07-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* modes.texi (Defining Minor Modes): Use C-delete in examples,

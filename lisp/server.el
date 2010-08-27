@@ -560,9 +560,9 @@ server or call `M-x server-force-delete' to forcibly disconnect it.")
 		       :coding 'raw-text-unix
 		       ;; The other args depend on the kind of socket used.
 		       (if server-use-tcp
-			   (list :family nil
+			   (list :family 'ipv4  ;; We're not ready for IPv6 yet
 				 :service t
-				 :host (or server-host 'local)
+				 :host (or server-host "127.0.0.1") ;; See bug#6781
 				 :plist '(:authenticated nil))
 			 (list :family 'local
 			       :service server-file

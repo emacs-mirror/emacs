@@ -138,7 +138,7 @@ Optional fifth arg REQUIRE-MATCH non-nil forces a matching cookie."
 				(vec (cookie-snarf phrase-file
 						   startmsg endmsg))
 				(i (length vec)))
-			   (while (> (setq i (1- i)) 0)
+			   (while (>= (setq i (1- i)) 0)
 			     (setq alist (cons (list (aref vec i)) alist)))
 			   (put sym 'completion-alist alist))))
 		   nil require-match nil nil))

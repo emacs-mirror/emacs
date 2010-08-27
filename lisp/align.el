@@ -1,7 +1,7 @@
 ;;; align.el --- align text to a specific column, by regexp
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Maintainer: FSF
@@ -140,8 +140,8 @@
   "An integer that represents the default amount of padding to use.
 If `align-to-tab-stop' is non-nil, this will represent the number of
 tab stops to use for alignment, rather than the number of spaces.
-Each alignment rule can optionally override both this variable.  See
-`align-mode-alist'."
+Each alignment rule can optionally override both this variable and
+`align-to-tab-stop'.  See `align-rules-list'."
   :type 'integer
   :group 'align)
 
@@ -157,8 +157,8 @@ Since each alignment rule can possibly have its own set of alignment
 sections (whenever `align-region-separate' is non-nil, and not a
 string), this heuristic is used to determine how far before and after
 point we should search in looking for a region separator.  Larger
-values can mean slower perform in large files, although smaller values
-may cause unexpected behavior at times."
+values can mean slower performance in large files, although smaller
+values may cause unexpected behavior at times."
   :type 'integer
   :group 'align)
 
@@ -926,7 +926,7 @@ align them so that the opening parentheses would line up:
     Joe (123) 456-7890
 
 There is no predefined rule to handle this, but you could easily do it
-using a REGEXP like \"(\". All you would have to do is to mark the
+using a REGEXP like \"(\".  All you would have to do is to mark the
 region, call `align-regexp' and type in that regular expression."
   (interactive
    (append
@@ -944,6 +944,8 @@ region, call `align-regexp' and type in that regular expression."
       (list (concat "\\(\\s-*\\)"
 		    (read-string "Align regexp: "))
 	    1 align-default-spacing nil))))
+  (or group (setq group 1))
+  (or spacing (setq spacing align-default-spacing))
   (let ((rule
 	 (list (list nil (cons 'regexp regexp)
 		     (cons 'group (abs group))

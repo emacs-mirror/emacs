@@ -1411,13 +1411,19 @@ The string @var{lighter} says what to display in the mode line
 when the mode is enabled; if it is @code{nil}, the mode is not displayed
 in the mode line.
 
-The optional argument @var{keymap} specifies the keymap for the minor mode.
-It can be a variable name, whose value is the keymap, or it can be an alist
-specifying bindings in this form:
+The optional argument @var{keymap} specifies the keymap for the minor
+mode.  If non-@code{nil}, it should be a variable name (whose value is
+a keymap), a keymap, or an alist of the form
 
 @example
 (@var{key-sequence} . @var{definition})
 @end example
+
+@noindent
+where each @var{key-sequence} and @var{definition} are arguments
+suitable for passing to @code{define-key} (@pxref{Changing Key
+Bindings}).  If @var{keymap} is a keymap or an alist, this also
+defines the variable @code{@var{mode}-map}.
 
 The above three arguments @var{init-value}, @var{lighter}, and
 @var{keymap} can be (partially) omitted when @var{keyword-args} are
@@ -1494,7 +1500,7 @@ See the command \\[hungry-electric-delete]."
  ;; The indicator for the mode line.
  " Hungry"
  ;; The minor mode bindings.
- '(([C-delete] . hungry-electric-delete))
+ '(([C-backspace] . hungry-electric-delete))
  :group 'hunger)
 @end smallexample
 
@@ -1526,8 +1532,8 @@ See the command \\[hungry-electric-delete]."
  :lighter " Hungry"
  ;; The minor mode bindings.
  :keymap
- '(([C-delete] . hungry-electric-delete)
-   ([C-M-delete]
+ '(([C-backspace] . hungry-electric-delete)
+   ([C-M-backspace]
     . (lambda ()
         (interactive)
         (hungry-electric-delete t))))

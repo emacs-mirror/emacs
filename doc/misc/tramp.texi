@@ -592,6 +592,10 @@ If both commands aren't available on the remote host, @value{tramp}
 transfers a small piece of Perl code to the remote host, and tries to
 apply it for encoding and decoding.
 
+The variable @var{tramp-inline-compress-start-size} controls, whether
+a file shall be compressed before encoding.  This could increase
+transfer speed for large text files.
+
 
 @table @asis
 @item @option{rsh}
@@ -625,11 +629,11 @@ Two other variants, @option{ssh1_old} and @option{ssh2_old}, use the
 @command{ssh1} and @command{ssh2} commands explicitly.  If you don't
 know what these are, you do not need these options.
 
-All the methods based on @command{ssh} have an additional kludgy
-feature: you can specify a host name which looks like @file{host#42}
-(the real host name, then a hash sign, then a port number).  This
-means to connect to the given host but to also pass @code{-p 42} as
-arguments to the @command{ssh} command.
+All the methods based on @command{ssh} have an additional feature: you
+can specify a host name which looks like @file{host#42} (the real host
+name, then a hash sign, then a port number).  This means to connect to
+the given host but to also pass @code{-p 42} as arguments to the
+@command{ssh} command.
 
 
 @item @option{telnet}
@@ -689,8 +693,6 @@ This is also useful for Windows users where @command{ssh}, when
 invoked from an @value{emacsname} buffer, tells them that it is not
 allocating a pseudo tty.  When this happens, the login shell is wont
 to not print any shell prompt, which confuses @value{tramp} mightily.
-For reasons unknown, some Windows ports for @command{ssh} require the
-doubled @samp{-t} option.
 
 This supports the @samp{-p} argument.
 
@@ -1230,7 +1232,9 @@ without bossing you around.  You tell me whether it works @dots{}
 
 My suggestion is to use an inline method.  For large files, external
 methods might be more efficient, but I guess that most people will
-want to edit mostly small files.
+want to edit mostly small files.  And if you access large text files,
+compression (driven by @var{tramp-inline-compress-start-size}) shall
+still result in good performance.
 
 I guess that these days, most people can access a remote machine by
 using @command{ssh}.  So I suggest that you use the @option{ssh}
@@ -2125,10 +2129,9 @@ The backup file name of @file{@trampfn{su, root, localhost,
 
 The same problem can happen with auto-saving files.
 @ifset emacs
-Since @value{emacsname} 21, the variable
-@code{auto-save-file-name-transforms} keeps information, on which
-directory an auto-saved file should go.  By default, it is initialized
-for @value{tramp} files to the local temporary directory.
+The variable @code{auto-save-file-name-transforms} keeps information,
+on which directory an auto-saved file should go.  By default, it is
+initialized for @value{tramp} files to the local temporary directory.
 
 On some versions of @value{emacsname}, namely the version built for
 Debian GNU/Linux, the variable @code{auto-save-file-name-transforms}
@@ -2304,6 +2307,11 @@ So, to connect to the machine @code{melancholia} as @code{daniel},
 using the @option{ssh} method to transfer files, and edit
 @file{.emacs} in my home directory I would specify the filename
 @file{@trampfn{ssh, daniel, melancholia, .emacs}}.
+
+Finally, for some methods it is possible to specify a different port
+number than the default one, given by the method.  This is specified
+by adding @file{#<port>} to the host name, like in @file{@trampfn{ssh,
+daniel, melancholia#42, .emacs}}.
 
 
 @node Alternative Syntax
@@ -2749,17 +2757,13 @@ There is also a Savannah project page.
 @item
 Which systems does it work on?
 
-The package has been used successfully on GNU Emacs 21, GNU Emacs 22,
-GNU Emacs 23, XEmacs 21 (starting with 21.4), and SXEmacs 22.
+The package has been used successfully on GNU Emacs 22, GNU Emacs 23,
+XEmacs 21 (starting with 21.4), and SXEmacs 22.
 
 The package was intended to work on Unix, and it really expects a
-Unix-like system on the remote end (except the @option{smb} method),
-but some people seemed to have some success getting it to work on MS
-Windows NT/2000/XP @value{emacsname}.
-
-There is some informations on @value{tramp} on NT at the following URL;
-many thanks to Joe Stoy for providing the information:
-@uref{ftp://ftp.comlab.ox.ac.uk/tmp/Joe.Stoy/}
+Unix-like system on the remote end (except the @option{smb} and
+@option{imap} methods), but some people seemed to have some success
+getting it to work on MS Windows XP/Vista/7 @value{emacsname}.
 
 
 @item
@@ -2797,7 +2801,7 @@ increase this level only temporarily, hunting bugs.
 @item
 @value{tramp} does not connect to the remote host
 
-When @value{tramp} does not connect to the remote host, there are two
+When @value{tramp} does not connect to the remote host, there are three
 reasons heading the bug mailing list:
 
 @itemize @minus
@@ -2830,6 +2834,17 @@ the following command:
 @example
 [ $TERM = "dumb" ] && unsetopt zle && PS1='$ '
 @end example
+
+@item
+Echoed characters after login
+
+When the remote machine opens an echoing shell, there might be control
+characters in the welcome message.  @value{tramp} tries to suppress
+such echoes via the @code{stty -echo} command, but sometimes this
+command is not reached, because the echoed output has confused
+@value{tramp} already.  In such situations it might be helpful to use
+the @option{sshx} or @option{scpx} methods, which allocate a pseudo tty.
+@xref{Inline methods}.
 
 @item
 @value{tramp} doesn't transfer strings with more than 500 characters
@@ -3339,7 +3354,7 @@ could write a script @file{emacsclient.sh}:
 
 @example
 #!/bin/sh
-emacsclient @trampfn{ssh, `whoami`, `hostname --fqdn`, $1}
+emacsclient @trampfn{ssh, $(whoami), $(hostname --fqdn), $1}
 @end example
 
 Then you must set the environment variable @code{EDITOR} pointing to
@@ -3456,7 +3471,7 @@ it has seen so far.
 
 This is a performance degradation, because the lost file attributes
 must be recomputed, when needed again.  In cases the caller of
-@code{process-file} knows that there are file attribute changes, it
+@code{process-file} knows that there are no file attribute changes, it
 shall let-bind the variable @code{process-file-side-effects} to
 @code{nil}.  @value{tramp} wouldn't flush the file attributes cache then.
 
@@ -3464,6 +3479,25 @@ shall let-bind the variable @code{process-file-side-effects} to
 (let (process-file-side-effects)
   ...)
 @end lisp
+
+For asynchronous processes, @value{tramp} flushes the file attributes
+cache via a process sentinel.  If the caller of
+@code{start-file-process} knows that there are no file attribute
+changes, it shall set the process sentinel to @code{nil}.  In case the
+caller defines an own process sentinel, @value{tramp}'s process
+sentinel is overwritten.  The caller can still flush the file
+attributes cache in its process sentinel with this code:
+
+@lisp
+(unless (memq (process-status proc) '(run open))
+  (dired-uncache remote-directory))
+@end lisp
+
+@code{remote-directory} shall be the root directory, where file
+attribute changes can happen during the process lifetime.
+@value{tramp} traverses all subdirectories, starting at this
+directory.  Often, it is sufficient to use @code{default-directory} of
+the process buffer as root directory.
 @end ifset
 
 
@@ -3486,6 +3520,7 @@ The verbosity levels are
 @*@indent @w{ 6}  sent and received strings
 @*@indent @w{ 7}  file caching
 @*@indent @w{ 8}  connection properties
+@*@indent @w{ 9}  test commands
 @*@indent @w{10}  traces (huge)
 
 When @code{tramp-verbose} is greater than or equal to 4, the messages
