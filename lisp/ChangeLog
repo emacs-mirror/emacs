@@ -1,3 +1,7 @@
+2010-08-27  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* whitespace.el (whitespace-style): Adjust type declaration.
+
 2010-08-26  Nathan Weizenbaum  <nweiz@cressida.sea.corp.google.com>  (tiny change)
 
 	* progmodes/js.el: Make indentation more customizable (Bug#6914).
