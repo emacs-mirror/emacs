@@ -38,6 +38,7 @@
 (declare-function dbus-method-return-internal "dbusbind.c")
 (declare-function dbus-method-error-internal "dbusbind.c")
 (declare-function dbus-register-signal "dbusbind.c")
+(declare-function dbus-register-method "dbusbind.c")
 (defvar dbus-debug)
 (defvar dbus-registered-objects-table)
 
@@ -398,7 +399,7 @@ not well formed."
   "Handle events from the D-Bus.
 EVENT is a D-Bus event, see `dbus-check-event'.  HANDLER, being
 part of the event, is called with arguments ARGS.
-If the HANDLER returns an `dbus-error', it is propagated as return message."
+If the HANDLER returns a `dbus-error', it is propagated as return message."
   (interactive "e")
   (condition-case err
       (let (result)
@@ -434,8 +435,7 @@ If the HANDLER returns an `dbus-error', it is propagated as return message."
   "Return the bus name the event is coming from.
 The result is either the symbol `:system' or the symbol `:session'.
 EVENT is a D-Bus event, see `dbus-check-event'.  This function
-raises a `dbus-error' signal in case the event is not well
-formed."
+raises a `dbus-error' signal in case the event is not well formed."
   (dbus-check-event event)
   (nth 1 event))
 
@@ -562,7 +562,7 @@ apply
 ;;; D-Bus introspection.
 
 (defun dbus-introspect (bus service path)
-  "This function returns all interfaces and sub-nodes of SERVICE,
+  "Return all interfaces and sub-nodes of SERVICE,
 registered at object path PATH at bus BUS.
 
 BUS must be either the symbol `:system' or the symbol `:session'.
@@ -634,9 +634,8 @@ children, beside \"method\" and \"signal\" objects."
 (defun dbus-introspect-get-interface (bus service path interface)
   "Return the INTERFACE of SERVICE in D-Bus BUS at object path PATH.
 The return value is an XML object.  INTERFACE must be a string,
-element of the list returned by
-`dbus-introspect-get-interface-names'.  The resulting
-\"interface\" object can contain \"method\", \"signal\",
+element of the list returned by `dbus-introspect-get-interface-names'.
+The resulting \"interface\" object can contain \"method\", \"signal\",
 \"property\" and \"annotation\" children."
   (let ((elt (xml-get-children
 	      (dbus-introspect-xml bus service path) 'interface)))
@@ -776,8 +775,8 @@ therefore, even if the method or signal has arguments."
 
 (defun dbus-introspect-get-argument (bus service path interface name arg)
   "Return argument ARG as XML object.
-NAME must be a \"method\" or \"signal\" object.  ARG must be a
-string, element of the list returned by `dbus-introspect-get-argument-names'."
+NAME must be a \"method\" or \"signal\" object.  ARG must be a string,
+element of the list returned by `dbus-introspect-get-argument-names'."
   (let ((elt (xml-get-children
 	      (or (dbus-introspect-get-method bus service path interface name)
 		  (dbus-introspect-get-signal bus service path interface name))
@@ -922,7 +921,7 @@ PATH, including a default handler for the \"Get\", \"GetAll\" and
     (list key (list service path))))
 
 (defun dbus-property-handler (&rest args)
-  "Default Handler for the \"org.freedesktop.DBus.Properties\" interface.
+  "Default handler for the \"org.freedesktop.DBus.Properties\" interface.
 It will be registered for all objects created by `dbus-register-object'."
   (let ((bus (dbus-event-bus-name last-input-event))
 	(path (dbus-event-path-name last-input-event))

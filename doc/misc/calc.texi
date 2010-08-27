@@ -112,7 +112,7 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* Calc: (calc).         Advanced desk calculator and mathematical tool.
+* Calc: (calc).                 Advanced desk calculator and mathematical tool.
 @end direntry
 
 @titlepage

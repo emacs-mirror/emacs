@@ -630,7 +630,7 @@ contiene los mensajes que han aparecido en la línea de abajo durante
 su sesión de Emacs.
 
 >> Teclee C-x b *Messages* <Return> para ver el buffer de mensajes.
-   Luego teclee C-b TUTORIAL <Return> para regresar a este tutorial.
+   Luego teclee C-x b TUTORIAL <Return> para regresar a este tutorial.
 
 Si hace cambios al texto de un archivo, y luego encuentra otro
 archivo, esto no guarda el primer archivo.  Sus cambios permanecerán

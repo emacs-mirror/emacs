@@ -761,22 +761,22 @@ If they are on the border between WINDOW and its right sibling,\n\
 @group
   switch (coordinates_in_window (XWINDOW (window), &x, &y))
     @{
-    case 0:			/* NOT in window at all. */
+    case 0:                     /* NOT in window at all. */
       return Qnil;
 @end group
 
 @group
-    case 1:			/* In text part of window. */
+    case 1:                     /* In text part of window. */
       return Fcons (make_number (x), make_number (y));
 @end group
 
 @group
-    case 2:			/* In mode line of window. */
+    case 2:                     /* In mode line of window. */
       return Qmode_line;
 @end group
 
 @group
-    case 3:			/* On right border of window.  */
+    case 3:                     /* On right border of window.  */
       return Qvertical_line;
 @end group
 

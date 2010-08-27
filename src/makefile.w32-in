@@ -1564,6 +1564,7 @@ $(BLD)/w32fns.$(O) : \
 	$(SRC)/keyboard.h \
 	$(SRC)/systime.h \
 	$(SRC)/termhooks.h \
+	$(SRC)/w32.h \
 	$(SRC)/w32font.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32heap.h \

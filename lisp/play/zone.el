@@ -1,7 +1,7 @@
 ;;; zone.el --- idle display hacks
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Victor Zandy <zandy@cs.wisc.edu>
 ;; Maintainer: Thien-Thi Nguyen <ttn@gnu.org>
@@ -487,8 +487,10 @@ If the element is a function or a list of a function and a number,
          (wait 0.15)
          newpos fall-p)
     (while (when (save-excursion
-                   (forward-line 1)
-                   (and (= col (current-column))
+                   (and (zerop (forward-line 1))
+                        (progn
+                          (forward-char col)
+                          (= col (current-column)))
                         (setq newpos (point))
                         (string= spaces (buffer-substring-no-properties
                                          newpos (+ newpos cw-ceil)))

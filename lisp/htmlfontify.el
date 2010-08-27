@@ -959,7 +959,7 @@ See also `hfy-display-class' for details of valid values for CLASS."
                new-spec)))))
     (if (or (memq :inherit face-spec) (eq 'default face))
         face-spec
-      (nconc face-spec (list :inherit 'default))) ))
+      (append face-spec (list :inherit 'default)))))
 
 ;; construct an assoc of (css-tag-name . css-tag-value) pairs
 ;; from a face or assoc of face attributes:
@@ -1059,14 +1059,25 @@ haven't encountered them yet.  Returns a `hfy-style-assoc'."
     (setq  n (apply '* m))
     (nconc r (hfy-size (if x (round n) (* n 1.0)))) ))
 
+(defun hfy-face-resolve-face (fn)
+  (cond
+   ((facep fn)
+    (hfy-face-attr-for-class fn hfy-display-class))
+   ((and (symbolp fn)
+	 (facep (symbol-value fn)))
+    ;; Obsolete faces like `font-lock-reference-face' are defined as
+    ;; aliases for another face.
+    (hfy-face-attr-for-class (symbol-value fn) hfy-display-class))
+   (t nil)))
+
+
 (defun hfy-face-to-style (fn)
   "Take FN, a font or `defface' style font specification,
 \(as returned by `face-attr-construct' or `hfy-face-attr-for-class')
 and return a `hfy-style-assoc'.\n
 See also `hfy-face-to-style-i', `hfy-flatten-style'."
   ;;(message "hfy-face-to-style");;DBUG
-  (let ((face-def (if (facep fn)
-                      (hfy-face-attr-for-class fn hfy-display-class) fn))
+  (let ((face-def (hfy-face-resolve-face fn))
         (final-style nil))
 
     (setq final-style (hfy-flatten-style (hfy-face-to-style-i face-def)))
@@ -1790,6 +1801,7 @@ FILE, if set, is the file name."
     (when font-lock-defaults
       (font-lock-fontify-buffer)) ))
 
+;;;###autoload
 (defun htmlfontify-buffer (&optional srcdir file)
   "Create a new buffer, named for the current buffer + a .html extension,
 containing an inline CSS-stylesheet and formatted CSS-markup HTML
@@ -2276,6 +2288,7 @@ See also `hfy-load-tags-cache'."
     (save-buffer)
     (kill-buffer B)))
 
+;;;###autoload
 (defun htmlfontify-copy-and-link-dir (srcdir dstdir &optional f-ext l-ext)
   "Trawl SRCDIR and write fontified-and-hyperlinked output in DSTDIR.
 F-EXT and L-EXT specify values for `hfy-extn' and `hfy-link-extn'.\n

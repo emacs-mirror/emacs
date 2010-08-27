@@ -2377,28 +2377,28 @@ read1 (readcharfun, pch, first_in_list)
 	      /* This is repetitive but fast and simple. */
 	      params[param_count] = QCsize;
 	      params[param_count+1] = Fplist_get (tmp, Qsize);
-	      if (!NILP (params[param_count+1]))
-		param_count+=2;
+	      if (!NILP (params[param_count + 1]))
+		param_count += 2;
 
 	      params[param_count] = QCtest;
 	      params[param_count+1] = Fplist_get (tmp, Qtest);
-	      if (!NILP (params[param_count+1]))
-		param_count+=2;
+	      if (!NILP (params[param_count + 1]))
+		param_count += 2;
 
 	      params[param_count] = QCweakness;
 	      params[param_count+1] = Fplist_get (tmp, Qweakness);
-	      if (!NILP (params[param_count+1]))
-		param_count+=2;
+	      if (!NILP (params[param_count + 1]))
+		param_count += 2;
 
 	      params[param_count] = QCrehash_size;
 	      params[param_count+1] = Fplist_get (tmp, Qrehash_size);
-	      if (!NILP (params[param_count+1]))
-		param_count+=2;
+	      if (!NILP (params[param_count + 1]))
+		param_count += 2;
 
 	      params[param_count] = QCrehash_threshold;
 	      params[param_count+1] = Fplist_get (tmp, Qrehash_threshold);
-	      if (!NILP (params[param_count+1]))
-		param_count+=2;
+	      if (!NILP (params[param_count + 1]))
+		param_count += 2;
 
 	      /* This is the hashtable data. */
 	      data = Fplist_get (tmp, Qdata);
@@ -2419,6 +2419,8 @@ read1 (readcharfun, pch, first_in_list)
 
 	      return ht;
 	    }
+	  UNREAD (c);
+	  invalid_syntax ("#", 1);
 	}
       if (c == '^')
 	{

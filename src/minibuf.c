@@ -1184,7 +1184,7 @@ Optional second arg DEF is value to return if user enters an empty line.
  If DEF is a list of default values, return its first element.
 Optional third arg REQUIRE-MATCH determines whether non-existing
  buffer names are allowed.  It has the same meaning as the
- REQUIRE-MATCH argument of `confirm-after-completion'.
+ REQUIRE-MATCH argument of `completing-read'.
 The argument PROMPT should be a string ending with a colon and a space.
 If `read-buffer-completion-ignore-case' is non-nil, completion ignores
 case while reading the buffer name.
@@ -1589,6 +1589,7 @@ with a space are ignored unless STRING itself starts with a space.  */)
   tail = collection;
   if (type == 2)
     {
+      collection = check_obarray (collection);
       obsize = XVECTOR (collection)->size;
       bucket = XVECTOR (collection)->contents[index];
     }
@@ -1612,6 +1613,8 @@ with a space are ignored unless STRING itself starts with a space.  */)
 	{
 	  if (!EQ (bucket, zero))
 	    {
+	      if (!SYMBOLP (bucket))
+		error ("Bad data in guts of obarray");
 	      elt = bucket;
 	      eltstring = elt;
 	      if (XSYMBOL (bucket)->next)

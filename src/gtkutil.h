@@ -154,6 +154,8 @@ extern void xg_modify_menubar_widgets P_ ((GtkWidget *menubar,
 
 extern int xg_update_frame_menubar P_ ((FRAME_PTR f));
 
+extern int xg_event_is_for_menubar P_ ((FRAME_PTR f, XEvent *event));
+
 extern int xg_have_tear_offs P_ ((void));
 
 extern int xg_get_scroll_id_for_window P_ ((Display *dpy, Window wid));

@@ -1,4 +1,4 @@
-;;; font-setting.el --- Support dynamic font changes
+;;; font-setting.el --- Support dynamic font changes   -*- coding: utf-8 -*-
 
 ;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 

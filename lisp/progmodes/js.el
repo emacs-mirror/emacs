@@ -474,8 +474,7 @@ for preventing Firefox from stealing the keyboard focus."
 (defcustom js-js-tmpdir
   "~/.emacs.d/js/js"
   "Temporary directory used by `js-mode' to communicate with Mozilla.
-This directory must be readable and writable by both Mozilla and
-Emacs."
+This directory must be readable and writable by both Mozilla and Emacs."
   :type 'directory
   :group 'js)
 
@@ -499,11 +498,11 @@ getting timeout messages."
     (define-key keymap [(meta ?.)] #'js-find-symbol)
     (easy-menu-define nil keymap "Javascript Menu"
       '("Javascript"
-        ["Select new Mozilla context…" js-set-js-context
+        ["Select New Mozilla Context..." js-set-js-context
          (fboundp #'inferior-moz-process)]
-        ["Evaluate expression in Mozilla context…" js-eval
+        ["Evaluate Expression in Mozilla Context..." js-eval
          (fboundp #'inferior-moz-process)]
-        ["Send current function to Mozilla…" js-eval-defun
+        ["Send Current Function to Mozilla..." js-eval-defun
          (fboundp #'inferior-moz-process)]))
     keymap)
   "Keymap for `js-mode'.")
@@ -3327,6 +3326,13 @@ Key bindings:
         comment-start-skip "\\(//+\\|/\\*+\\)\\s *")
 
   (let ((c-buffer-is-cc-mode t))
+    ;; FIXME: These are normally set by `c-basic-common-init'.  Should
+    ;; we call it instead?  (Bug#6071)
+    (make-local-variable 'paragraph-start)
+    (make-local-variable 'paragraph-separate)
+    (make-local-variable 'paragraph-ignore-fill-prefix)
+    (make-local-variable 'adaptive-fill-mode)
+    (make-local-variable 'adaptive-fill-regexp)
     (c-setup-paragraph-variables))
 
   (set (make-local-variable 'syntax-begin-function)

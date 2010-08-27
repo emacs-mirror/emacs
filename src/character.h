@@ -285,7 +285,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* If P is before LIMIT, advance P to the next character boundary.
    Assumes that P is already at a character boundary of the same
-   mulitbyte form whose end address is LIMIT.  */
+   multibyte form whose end address is LIMIT.  */
 
 #define NEXT_CHAR_BOUNDARY(p, limit)	\
   do {					\
@@ -296,7 +296,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* If P is after LIMIT, advance P to the previous character boundary.
    Assumes that P is already at a character boundary of the same
-   mulitbyte form whose beginning address is LIMIT.  */
+   multibyte form whose beginning address is LIMIT.  */
 
 #define PREV_CHAR_BOUNDARY(p, limit)					\
   do {									\
@@ -608,7 +608,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    : 0)
 
 /* If C is a high surrogate, return 1.  If C is a low surrogate,
-   return 0. Otherwise, return 0.  */
+   return 0.  Otherwise, return 0.  */
 
 #define CHAR_SURROGATE_PAIR_P(c)	\
   ((c) < 0xD800 ? 0			\

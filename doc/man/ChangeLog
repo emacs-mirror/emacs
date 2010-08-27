@@ -1,3 +1,7 @@
+2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.2 released.
+
 2010-01-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs.1: Copyedits.  Update options -Q, -mm and --daemon.  Remove

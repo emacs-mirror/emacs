@@ -1362,7 +1362,7 @@ ccl_driver (ccl, source, destination, src_size, dst_size, charset_list)
 		    if (point >= size) continue;
 		    map = AREF (Vcode_conversion_map_vector, point);
 
-		    /* Check map varidity.  */
+		    /* Check map validity.  */
 		    if (!CONSP (map)) continue;
 		    map = XCDR (map);
 		    if (!VECTORP (map)) continue;
@@ -1373,7 +1373,7 @@ ccl_driver (ccl, source, destination, src_size, dst_size, charset_list)
 
 		    /* check map type,
 		       [STARTPOINT VAL1 VAL2 ...] or
-		       [t ELELMENT STARTPOINT ENDPOINT]  */
+		       [t ELEMENT STARTPOINT ENDPOINT]  */
 		    if (NUMBERP (content))
 		      {
 			point = XUINT (content);
@@ -1535,7 +1535,7 @@ ccl_driver (ccl, source, destination, src_size, dst_size, charset_list)
 		      if (point >= map_vector_size) continue;
 		      map = AREF (Vcode_conversion_map_vector, point);
 
-		      /* Check map varidity.  */
+		      /* Check map validity.  */
 		      if (!CONSP (map)) continue;
 		      map = XCDR (map);
 		      if (!VECTORP (map)) continue;
@@ -1977,7 +1977,7 @@ check_ccl_update (ccl)
 
 DEFUN ("ccl-program-p", Fccl_program_p, Sccl_program_p, 1, 1, 0,
        doc: /* Return t if OBJECT is a CCL program name or a compiled CCL program code.
-See the documentation of  `define-ccl-program' for the detail of CCL program.  */)
+See the documentation of `define-ccl-program' for the detail of CCL program.  */)
      (object)
      Lisp_Object object;
 {
@@ -2229,7 +2229,7 @@ Return index number of the registered CCL program.  */)
 
       slot = AREF (Vccl_program_table, idx);
       if (!VECTORP (slot))
-	/* This is the first unsed slot.  Register NAME here.  */
+	/* This is the first unused slot.  Register NAME here.  */
 	break;
 
       if (EQ (name, AREF (slot, 0)))

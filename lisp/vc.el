@@ -1398,6 +1398,16 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
 ;;          (vc-call-backend ',(vc-backend f)
 ;;                           'diff (list ',f) ',rev1 ',rev2))))))
 
+(defvar vc-coding-system-inherit-eol t
+  "When non-nil, inherit the EOL format for reading Diff output from the file.
+
+Used in `vc-coding-system-for-diff' to determine the EOL format to use
+for reading Diff output for a file.  If non-nil, the EOL format is
+inherited from the file itself.
+Set this variable to nil if your Diff tool might use a different
+EOL.  Then Emacs will auto-detect the EOL format in Diff output, which
+gives better results.") ;; Cf. bug#4451.
+
 (defun vc-coding-system-for-diff (file)
   "Return the coding system for reading diff output for FILE."
   (or coding-system-for-read
@@ -1405,7 +1415,12 @@ Runs the normal hooks `vc-before-checkin-hook' and `vc-checkin-hook'."
       ;; use the buffer's coding system
       (let ((buf (find-buffer-visiting file)))
         (when buf (with-current-buffer buf
-		    buffer-file-coding-system)))
+		    (if vc-coding-system-inherit-eol
+			buffer-file-coding-system
+		      ;; Don't inherit the EOL part of the coding-system,
+		      ;; because some Diff tools may choose to use
+		      ;; a different one.  bug#4451.
+		      (coding-system-base buffer-file-coding-system)))))
       ;; otherwise, try to find one based on the file name
       (car (find-operation-coding-system 'insert-file-contents file))
       ;; and a final fallback
@@ -1655,8 +1670,9 @@ If `F.~REV~' already exists, use it instead of checking it out again."
 		    rev)))
     (switch-to-buffer-other-window (vc-find-revision file revision))))
 
-(defun vc-find-revision (file revision)
-  "Read REVISION of FILE into a buffer and return the buffer."
+(defun vc-find-revision (file revision &optional backend)
+  "Read REVISION of FILE into a buffer and return the buffer.
+Use BACKEND as the VC backend if specified."
   (let ((automatic-backup (vc-version-backup-file-name file revision))
 	(filebuf (or (get-file-buffer file) (current-buffer)))
         (filename (vc-version-backup-file-name file revision 'manual)))
@@ -1674,7 +1690,9 @@ If `F.~REV~' already exists, use it instead of checking it out again."
 		      ;; Change buffer to get local value of
 		      ;; vc-checkout-switches.
 		      (with-current-buffer filebuf
-			(vc-call find-revision file revision outbuf))))
+			(if backend
+			    (vc-call-backend backend 'find-revision file revision outbuf)
+			  (vc-call find-revision file revision outbuf)))))
 		  (setq failed nil))
 	      (when (and failed (file-exists-p filename))
 		(delete-file filename))))

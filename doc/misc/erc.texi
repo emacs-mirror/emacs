@@ -8,7 +8,8 @@
 @copying
 This manual is for ERC version 5.3.
 
-Copyright @copyright{} 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+Copyright @copyright{} 2005, 2006, 2007, 2008, 2009, 2010
+Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -29,7 +30,7 @@ and modified without restriction.
 
 @dircategory Emacs
 @direntry
-* ERC: (erc).           Powerful, modular, and extensible IRC client for Emacs.
+* ERC: (erc).                   Powerful and extensible IRC client for Emacs.
 @end direntry
 
 @titlepage

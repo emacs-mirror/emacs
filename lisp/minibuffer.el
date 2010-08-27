@@ -381,18 +381,32 @@ the second failed attempt to complete."
 (defconst completion-styles-alist
   '((emacs21
      completion-emacs21-try-completion completion-emacs21-all-completions
-     "Simple prefix-based completion.")
+     "Simple prefix-based completion.
+I.e. when completing \"foo_bar\" (where _ is the position of point),
+it will consider all completions candidates matching the glob
+pattern \"foobar*\".")
     (emacs22
      completion-emacs22-try-completion completion-emacs22-all-completions
-     "Prefix completion that only operates on the text before point.")
+     "Prefix completion that only operates on the text before point.
+I.e. when completing \"foo_bar\" (where _ is the position of point),
+it will consider all completions candidates matching the glob
+pattern \"foo*\" and will add back \"bar\" to the end of it.")
     (basic
      completion-basic-try-completion completion-basic-all-completions
-     "Completion of the prefix before point and the suffix after point.")
+     "Completion of the prefix before point and the suffix after point.
+I.e. when completing \"foo_bar\" (where _ is the position of point),
+it will consider all completions candidates matching the glob
+pattern \"foo*bar*\".")
     (partial-completion
      completion-pcm-try-completion completion-pcm-all-completions
      "Completion of multiple words, each one taken as a prefix.
-E.g. M-x l-c-h can complete to list-command-history
-and C-x C-f /u/m/s to /usr/monnier/src.")
+I.e. when completing \"l-co_h\" (where _ is the position of point),
+it will consider all completions candidates matching the glob
+pattern \"l*-co*h*\".
+Furthermore, for completions that are done step by step in subfields,
+the method is applied to all the preceding fields that do not yet match.
+E.g. C-x C-f /u/mo/s TAB could complete to /usr/monnier/src.
+Additionally the user can use the char \"*\" as a glob pattern.")
     (initials
      completion-initials-try-completion completion-initials-all-completions
      "Completion of acronyms and initialisms.
@@ -407,7 +421,19 @@ ALL-COMPLETIONS is the function that lists the completions (it should
 follow the calling convention of `completion-all-completions'),
 and DOC describes the way this style of completion works.")
 
-(defcustom completion-styles '(basic partial-completion emacs22)
+(defcustom completion-styles
+  ;; First, use `basic' because prefix completion has been the standard
+  ;; for "ever" and works well in most cases, so using it first
+  ;; ensures that we obey previous behavior in most cases.
+  '(basic
+    ;; Then use `partial-completion' because it has proven to
+    ;; be a very convenient extension.
+    partial-completion
+    ;; Finally use `emacs22' so as to maintain (in many/most cases)
+    ;; the previous behavior that when completing "foobar" with point
+    ;; between "foo" and "bar" the completion try to complete "foo"
+    ;; and simply add "bar" to the end of the result.
+    emacs22)
   "List of completion styles to use.
 The available styles are listed in `completion-styles-alist'."
   :type `(repeat (choice ,@(mapcar (lambda (x) (list 'const (car x)))
@@ -1137,7 +1163,9 @@ Currently supported properties are:
  `:annotation-function' the value to use for `completion-annotate-function'.")
 
 (defun completion-at-point ()
-  "Complete the thing at point according to local mode."
+  "Complete the thing at point according to local mode.
+This runs the hook `completion-at-point-functions' until a member returns
+non-nil."
   (interactive)
   (let ((res (run-hook-with-args-until-success
               'completion-at-point-functions)))

@@ -22,7 +22,7 @@ developing GNU and promoting software freedom.''
 
 @dircategory Emacs
 @direntry
-* SMTP: (smtpmail). Emacs library for sending mail via SMTP.
+* SMTP: (smtpmail).             Emacs library for sending mail via SMTP.
 @end direntry
 
 @titlepage
@@ -44,17 +44,17 @@ developing GNU and promoting software freedom.''
 @end ifnottex
 
 @menu
-* How Mail Works::	Brief introduction to mail concepts.
+* How Mail Works::      Brief introduction to mail concepts.
 * Emacs Speaks SMTP::   How to use the SMTP library in Emacs.
-* Authentication::	Authenticating yourself to the server.
-* Queued delivery::	Sending mail without an internet connection.
-* Server workarounds::	Mail servers with special requirements.
-* Debugging::		Tracking down problems.
+* Authentication::      Authenticating yourself to the server.
+* Queued delivery::     Sending mail without an internet connection.
+* Server workarounds::  Mail servers with special requirements.
+* Debugging::           Tracking down problems.
 * GNU Free Documentation License:: The license for this documentation.
 
 Indices
 
-* Index::		Index over variables and functions.
+* Index::               Index over variables and functions.
 @end menu
 
 @node How Mail Works
@@ -355,15 +355,15 @@ configurations of sendmail requires this behavior.  Don't bother to
 set this unless you have get an error like:
 
 @example
-	Sending failed; SMTP protocol error
+        Sending failed; SMTP protocol error
 @end example
 
 when sending mail, and the debug buffer (@pxref{Debugging})) contains
 an error such as:
 
 @example
-	RCPT TO: @var{someone}
-	501 @var{someone}: recipient address must contain a domain
+        RCPT TO: @var{someone}
+        501 @var{someone}: recipient address must contain a domain
 @end example
 
 @end table

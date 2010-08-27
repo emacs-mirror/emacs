@@ -180,8 +180,8 @@ developing GNU and promoting software freedom.''
 @comment here is by request from the FSF folks.
 @dircategory Emacs
 @direntry
-* CC Mode: (ccmode).    Emacs mode for editing C, C++, Objective-C,
-                        Java, Pike, AWK, and CORBA IDL code.
+* CC Mode: (ccmode).            Emacs mode for editing C, C++, Objective-C,
+                                Java, Pike, AWK, and CORBA IDL code.
 @end direntry
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

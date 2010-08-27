@@ -45,7 +45,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #define LIBS_DEBUG
 /* -lutil is not needed for NetBSD >0.9.  */
 /* #define LIBS_SYSTEM -lutil */
+#ifdef HAVE_TERM_H
+#define TERMINFO
+#define LIBS_TERMCAP -lterminfo
+#else
 #define LIBS_TERMCAP -ltermcap
+#endif
 
 #define NEED_ERRNO
 #define SYSV_SYSTEM_DIR

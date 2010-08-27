@@ -101,7 +101,7 @@
 ;; that on-disk files and the contents of their visiting Emacs buffers
 ;; coincide.
 ;;
-;; When the client mode adds a local mode-line-hook to a buffer, it
+;; When the client mode adds a local vc-mode-line-hook to a buffer, it
 ;; will be called with the buffer file name as argument whenever the
 ;; dispatcher resynchs the buffer.
 
@@ -454,6 +454,10 @@ ARG and NO-CONFIRM are passed on to `revert-buffer'."
       (revert-buffer arg no-confirm t))
     (vc-restore-buffer-context context)))
 
+(defvar vc-mode-line-hook nil)
+(make-variable-buffer-local 'vc-mode-line-hook)
+(put 'vc-mode-line-hook 'permanent-local t)
+
 (defun vc-resynch-window (file &optional keep noquery)
   "If FILE is in the current buffer, either revert or unvisit it.
 The choice between revert (to see expanded keywords) and unvisit
@@ -479,7 +483,8 @@ editing!"
                          (not (eq (get major-mode 'mode-class) 'special))
                          (view-mode-enter))))
 
-	     (run-hook-with-args 'mode-line-hook buffer-file-name))
+             ;; FIXME: Why use a hook?  Why pass it buffer-file-name?
+	     (run-hook-with-args 'vc-mode-line-hook buffer-file-name))
 	 (kill-buffer (current-buffer)))))
 
 (declare-function vc-dir-resynch-file "vc-dir" (&optional fname))

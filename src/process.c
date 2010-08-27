@@ -2540,9 +2540,11 @@ conv_lisp_to_sockaddr (family, address, sa, len)
 		ip6[i] = ntohs (j);
 	      }
 	  sa->sa_family = family;
+	  return;
 	}
 #endif
-      return;
+      else
+	return;
     }
   else if (STRINGP (address))
     {

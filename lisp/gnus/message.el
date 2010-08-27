@@ -5880,6 +5880,7 @@ Headers already prepared in the buffer are not modified."
 		      (if formatter
 			  (funcall formatter header value)
 			(insert header-string ": " value))
+		      (push header-string message-inserted-headers)
 		      (goto-char (message-fill-field))
 		      ;; We check whether the value was ended by a
 		      ;; newline.  If not, we insert one.

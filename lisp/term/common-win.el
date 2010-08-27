@@ -275,10 +275,11 @@ This function returns ARGS minus the arguments that have been processed."
     "medium slate blue" "slate blue" "dark slate blue" "midnight blue" "navy"
     "dark blue" "light steel blue" "cornflower blue" "dodger blue" "royal blue"
     "light slate gray" "slate gray" "dark slate gray" "steel blue" "cadet blue"
-    "light sky blue" "sky blue" "light blue" "powder blue" "pale turquoise" "turquoise"
-    "medium turquoise" "dark cyan" "aquamarine" "medium aquamarine" "light sea green"
+    "light sky blue" "sky blue" "light blue" "powder blue" "pale turquoise"
+    "turquoise" "medium turquoise" "dark turquoise"  "dark cyan" "aquamarine"
+    "medium aquamarine" "light sea green"
     "medium sea green" "sea green" "dark sea green" "pale green" "lime green"
-    "forest green" "light green" "green yellow" "yellow green" "olive drab"
+    "dark green" "forest green" "light green" "green yellow" "yellow green" "olive drab"
     "dark olive green" "lemon chiffon" "khaki" "dark khaki" "cornsilk"
     "pale goldenrod" "light goldenrod" "goldenrod" "dark goldenrod" "wheat"
     "navajo white" "tan" "burlywood" "sandy brown" "peru" "chocolate" "saddle brown"
@@ -287,7 +288,7 @@ This function returns ARGS minus the arguments that have been processed."
     "dark magenta" "dark violet" "medium blue" "blue" "deep sky blue"
     "cyan" "medium spring green" "spring green" "green" "lawn green" "chartreuse"
     "yellow" "gold" "orange" "dark orange" "orange red" "red" "white" "white smoke"
-    "gainsboro" "light grey" "gray" "dark grey" "dim gray" "black" ))
+    "gainsboro" "light gray" "gray" "dark gray" "dim gray" "black" ))
   "List of basic colors available on color displays.
 For X, the list comes from the `rgb.txt' file,v 10.41 94/02/20.
 For Nextstep, this is a list of non-PANTONE colors returned by

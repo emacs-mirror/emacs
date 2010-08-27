@@ -68,7 +68,7 @@ license to the document, as described in section 6 of the license.
 
 @dircategory Emacs
 @direntry
-* Org Mode: (org).      Outline-based notes management and organizer
+* Org Mode: (org).              Outline-based notes management and organizer.
 @end direntry
 
 @titlepage
@@ -2928,7 +2928,7 @@ link and description parts of the link.
 Open link at point.  This will launch a web browser for URLs (using
 @command{browse-url-at-point}), run VM/MH-E/Wanderlust/Rmail/Gnus/BBDB for
 the corresponding links, and execute the command in a shell link.  When the
-cursor is on an internal link, this commands runs the corresponding search.
+cursor is on an internal link, this command runs the corresponding search.
 When the cursor is on a TAG list in a headline, it creates the corresponding
 TAGS view.  If the cursor is on a timestamp, it compiles the agenda for that
 date.  Furthermore, it will visit text and remote files in @samp{file:} links
@@ -4624,7 +4624,7 @@ values.
 
 @example
 :COLUMNS:  %25ITEM %9Approved(Approved?)@{X@} %Owner %11Status \@footnote{Please note that the COLUMNS definition must be on a single line---it is wrapped here only because of formatting constraints.}
-		   %10Time_Estimate@{:@} %CLOCKSUM
+                   %10Time_Estimate@{:@} %CLOCKSUM
 :Owner_ALL:    Tammy Mark Karl Lisa Don
 :Status_ALL:   "In progress" "Not started yet" "Finished" ""
 :Approved_ALL: "[ ]" "[X]"
@@ -7393,12 +7393,12 @@ Internet, and outside of business hours, with something like this:
 @group
 (defun org-my-auto-exclude-function (tag)
   (and (cond
-	((string= tag "Net")
-	 (/= 0 (call-process "/sbin/ping" nil nil nil
-			     "-c1" "-q" "-t1" "mail.gnu.org")))
-	((or (string= tag "Errand") (string= tag "Call"))
-	 (let ((hour (nth 2 (decode-time))))
-	   (or (< hour 8) (> hour 21)))))
+        ((string= tag "Net")
+         (/= 0 (call-process "/sbin/ping" nil nil nil
+                             "-c1" "-q" "-t1" "mail.gnu.org")))
+        ((or (string= tag "Errand") (string= tag "Call"))
+         (let ((hour (nth 2 (decode-time))))
+           (or (< hour 8) (> hour 21)))))
        (concat "-" tag)))
 
 (setq org-agenda-auto-exclude-function 'org-my-auto-exclude-function)
@@ -11040,9 +11040,9 @@ fixed this problem:
 
 @lisp
 (add-hook 'org-mode-hook
-	  (lambda ()
-	    (org-set-local 'yas/trigger-key [tab])
-	    (define-key yas/keymap [tab] 'yas/next-field-group)))
+          (lambda ()
+            (org-set-local 'yas/trigger-key [tab])
+            (define-key yas/keymap [tab] 'yas/next-field-group)))
 @end lisp
 
 @item @file{windmove.el} by Hovav Shacham

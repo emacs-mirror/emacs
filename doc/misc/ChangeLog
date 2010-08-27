@@ -1,3 +1,71 @@
+2010-07-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nxml-mode.texi (Limitations): Remove obsolete discussion (Bug#6708).
+
+2010-06-27  Alex Schroeder  <alex@gnu.org>
+
+	* nxml-mode.texi (Commands for locating a schema): Fix typo.
+
+2010-06-24  Glenn Morris  <rgm@gnu.org>
+
+	* ada-mode.texi, auth.texi, autotype.texi, calc.texi, cc-mode.texi:
+	* dired-x.texi, ebrowse.texi, ede.texi, edt.texi, eieio.texi:
+	* emacs-mime.texi, epa.texi, erc.texi, eshell.texi, eudc.texi:
+	* flymake.texi, gnus.texi, info.texi, mairix-el.texi, message.texi:
+	* newsticker.texi, org.texi, pgg.texi, rcirc.texi, reftex.texi:
+	* remember.texi, sasl.texi, semantic.texi, ses.texi, smtpmail.texi:
+	* speedbar.texi, tramp.texi, url.texi, viper.texi, widget.texi:
+	* woman.texi: Start direntry descriptions in column 32, per Texinfo
+	convention.   Make them end with a period.
+
+2010-06-23  Glenn Morris  <rgm@gnu.org>
+
+	* autotype.texi, cl.texi, dired-x.texi, ebrowse.texi, ede.texi:
+	* eieio.texi, epa.texi, faq.texi, flymake.texi, forms.texi:
+	* gnus-faq.texi, idlwave.texi, mh-e.texi, nxml-mode.texi, org.texi:
+	* pcl-cvs.texi, pgg.texi, reftex.texi, sasl.texi, sc.texi,
+	* sem-user.texi, semantic.texi, sieve.texi, smtpmail.texi,
+	* speedbar.texi, vip.texi, viper.texi, widget.texi: Untabify.
+
+2010-06-10  Glenn Morris  <rgm@gnu.org>
+
+	* idlwave.texi (Load-Path Shadows):
+	* org.texi (Handling links): Fix typos.
+
+2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 23.2 released.
+
+2010-05-03  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
+
+	* url.texi (HTTP language/coding, Customization):
+	* message.texi (Header Commands, Responses):
+	* cl.texi (Argument Lists): Fix typos.
+
+2010-04-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ede.texi (EDE Mode): Refer to init file rather than `.emacs'.  Note
+	that Development menu is always available.
+	(Creating a project): Fix terminology.
+	(Add/Remove files): Fix typo.
+
+2010-04-17  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus.texi (Gnus Versions, Oort Gnus): Mention the Git repo instead of
+	the CVS repo.  Put the Git repo in the news section.
+
+	* gnus-coding.texi (Gnus Maintainance Guide): Fixed title typo.
+	Removed some mentions of CVS.  Mention the new Git repo.
+
+2010-04-15  Andreas Seltenreich  <seltenreich@gmx.de>
+
+	* gnus.texi (Score File Format): Fix typo.  Reported by Štěpán Němec.
+	(Mail Group Commands): Add index entry.
+
+2010-04-15  Glenn Morris  <rgm@gnu.org>
+
+	* info.texi (Search Index): Mention Emacs's Info-virtual-index.
+
 2010-03-14  Michael Albinus  <michael.albinus@gmx.de>
 
 	* trampver.texi: Update release number.
@@ -6316,10 +6384,6 @@
 	* Makefile.in (../info/cc-mode, cc-mode.dvi): New targets.
 	(INFO_TARGETS): Add ../info/cc-mode.
 	(DVI_TARGETS): Add cc-mode.dvi.
-
-1996-05-25  Karl Heuer  <kwzh@gnu.ai.mit.edu>
-
-	* Version 19.31 released.
 
 1995-11-24  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 

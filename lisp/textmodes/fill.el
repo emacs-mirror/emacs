@@ -1036,7 +1036,7 @@ space does not end a sentence, so don't break a line there."
 	  (fill-forward-paragraph -1))
 	(if (< (point) beg)
 	    (goto-char beg))
-	(if (>= (point) initial)
+	(if (and (>= (point) initial) (< (point) end))
 	    (setq fill-pfx
 		  (fill-region-as-paragraph (point) end justify nosqueeze))
 	  (goto-char end))))
