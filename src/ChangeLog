@@ -4,6 +4,11 @@
 	test case.  Implement  highlight for R2L rows.  Fix the case of
 	continued L2R lines.
 	(show_mouse_face): Support drawing highlighted R2L lines.
+	(coords_in_mouse_face_p): New function, bidi-aware.
+	(cursor_in_mouse_face_p, note_mouse_highlight, erase_phys_cursor):
+	Call it instead of comparing with mouse-face members of dpyinfo.
+	(note_mode_line_or_margin_highlight): Fix confusingly swapped
+	usage of hpos and vpos.
 
 2010-08-21  Eli Zaretskii  <eliz@gnu.org>
 

@@ -1082,6 +1082,7 @@ static void notice_overwritten_cursor (struct window *,
                                        int, int, int, int);
 static void append_stretch_glyph (struct it *, Lisp_Object,
                                   int, int, int);
+static int coords_in_mouse_face_p (struct window *, int, int);
 
 
 
@@ -23482,13 +23483,7 @@ erase_phys_cursor (struct window *w)
   /* If the cursor is in the mouse face area, redisplay that when
      we clear the cursor.  */
   if (! NILP (dpyinfo->mouse_face_window)
-      && w == XWINDOW (dpyinfo->mouse_face_window)
-      && (vpos > dpyinfo->mouse_face_beg_row
-	  || (vpos == dpyinfo->mouse_face_beg_row
-	      && hpos >= dpyinfo->mouse_face_beg_col))
-      && (vpos < dpyinfo->mouse_face_end_row
-	  || (vpos == dpyinfo->mouse_face_end_row
-	      && hpos < dpyinfo->mouse_face_end_col))
+      && coords_in_mouse_face_p (w, hpos, vpos)
       /* Don't redraw the cursor's spot in mouse face if it is at the
 	 end of a line (on a newline).  The cursor appears there, but
 	 mouse highlighting does not.  */
@@ -23819,6 +23814,43 @@ clear_mouse_face (Display_Info *dpyinfo)
   return cleared;
 }
 
+/* Return non-zero if the coordinates HPOS and VPOS on windows W are
+   within the mouse face on that window.  */
+static int
+coords_in_mouse_face_p (struct window *w, int hpos, int vpos)
+{
+  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (XFRAME (w->frame));
+
+  /* Quickly resolve the easy cases.  */
+  if (!(WINDOWP (dpyinfo->mouse_face_window)
+	&& XWINDOW (dpyinfo->mouse_face_window) == w))
+    return 0;
+  if (vpos < dpyinfo->mouse_face_beg_row
+      || vpos > dpyinfo->mouse_face_end_row)
+    return 0;
+  if (vpos > dpyinfo->mouse_face_beg_row
+      && vpos < dpyinfo->mouse_face_end_row)
+    return 1;
+
+  if (MATRIX_ROW (w->current_matrix, vpos)->reversed_p)
+    {
+      if ((vpos == dpyinfo->mouse_face_beg_row
+	   && hpos <= dpyinfo->mouse_face_beg_col)
+	  || (vpos == dpyinfo->mouse_face_end_row
+	      && hpos > dpyinfo->mouse_face_end_col))
+	return 1;
+    }
+  else
+    {
+      if ((vpos == dpyinfo->mouse_face_beg_row
+	   && hpos >= dpyinfo->mouse_face_beg_col)
+	  || (vpos == dpyinfo->mouse_face_end_row
+	      && hpos < dpyinfo->mouse_face_end_col))
+	return 1;
+    }
+  return 0;
+}
+
 
 /* EXPORT:
    Non-zero if physical cursor of window W is within mouse face.  */
@@ -23826,28 +23858,8 @@ clear_mouse_face (Display_Info *dpyinfo)
 int
 cursor_in_mouse_face_p (struct window *w)
 {
-  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (XFRAME (w->frame));
-  int in_mouse_face = 0;
-
-  if (WINDOWP (dpyinfo->mouse_face_window)
-      && XWINDOW (dpyinfo->mouse_face_window) == w)
-    {
-      int hpos = w->phys_cursor.hpos;
-      int vpos = w->phys_cursor.vpos;
-
-      if (vpos >= dpyinfo->mouse_face_beg_row
-	  && vpos <= dpyinfo->mouse_face_end_row
-	  && (vpos > dpyinfo->mouse_face_beg_row
-	      || hpos >= dpyinfo->mouse_face_beg_col)
-	  && (vpos < dpyinfo->mouse_face_end_row
-	      || hpos < dpyinfo->mouse_face_end_col
-	      || dpyinfo->mouse_face_past_end))
-	in_mouse_face = 1;
-    }
-
-  return in_mouse_face;
+  return coords_in_mouse_face_p (w, w->phys_cursor.hpos, w->phys_cursor.vpos);
 }
-
 
 
 
@@ -24632,29 +24644,29 @@ note_mode_line_or_margin_highlight (Lisp_Object window, int x, int y,
 	    total_pixel_width += tmp_glyph->pixel_width;
 
 	  /* Pre calculation of re-rendering position */
-	  vpos = (x - gpos);
-	  hpos = (area == ON_MODE_LINE
+	  hpos = (x - gpos);
+	  vpos = (area == ON_MODE_LINE
 		  ? (w->current_matrix)->nrows - 1
 		  : 0);
 
 	  /* If the re-rendering position is included in the last
 	     re-rendering area, we should do nothing. */
 	  if ( EQ (window, dpyinfo->mouse_face_window)
-	       && dpyinfo->mouse_face_beg_col <= vpos
-	       && vpos < dpyinfo->mouse_face_end_col
-	       && dpyinfo->mouse_face_beg_row == hpos )
+	       && dpyinfo->mouse_face_beg_col <= hpos
+	       && hpos < dpyinfo->mouse_face_end_col
+	       && dpyinfo->mouse_face_beg_row == vpos )
 	    return;
 
 	  if (clear_mouse_face (dpyinfo))
 	    cursor = No_Cursor;
 
-	  dpyinfo->mouse_face_beg_col = vpos;
-	  dpyinfo->mouse_face_beg_row = hpos;
+	  dpyinfo->mouse_face_beg_col = hpos;
+	  dpyinfo->mouse_face_beg_row = vpos;
 
 	  dpyinfo->mouse_face_beg_x   = original_x_pixel - (total_pixel_width + dx);
 	  dpyinfo->mouse_face_beg_y   = 0;
 
-	  dpyinfo->mouse_face_end_col = vpos + gseq_length;
+	  dpyinfo->mouse_face_end_col = hpos + gseq_length;
 	  dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_beg_row;
 
 	  dpyinfo->mouse_face_end_x   = 0;
@@ -24879,14 +24891,7 @@ note_mouse_highlight (struct frame *f, int x, int y)
       else
 	noverlays = 0;
 
-      same_region = (EQ (window, dpyinfo->mouse_face_window)
-		     && vpos >= dpyinfo->mouse_face_beg_row
-		     && vpos <= dpyinfo->mouse_face_end_row
-		     && (vpos > dpyinfo->mouse_face_beg_row
-			 || hpos >= dpyinfo->mouse_face_beg_col)
-		     && (vpos < dpyinfo->mouse_face_end_row
-			 || hpos < dpyinfo->mouse_face_end_col
-			 || dpyinfo->mouse_face_past_end));
+      same_region = coords_in_mouse_face_p (w, hpos, vpos);
 
       if (same_region)
 	cursor = No_Cursor;
