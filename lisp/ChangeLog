@@ -1,3 +1,8 @@
+2010-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/macroexp.el (macroexpand-all-1): Use pcase.
+	(macroexp-accumulate): Use `declare'.
+
 2010-08-27  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* whitespace.el (whitespace-style): Adjust type declaration.
