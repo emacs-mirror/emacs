@@ -23897,7 +23897,7 @@ mouse_face_from_buffer_pos (Lisp_Object window,
 	 between START_CHARPOS and END_CHARPOS, and highlight all the
 	 glyphs between those two.  This may cover more than just the
 	 text between START_CHARPOS and END_CHARPOS if the range of
-	 characters strides the the bidi level boundary, e.g. if the
+	 characters strides the bidi level boundary, e.g. if the
 	 beginning is in R2L text while the end is in L2R text or vice
 	 versa.  */
       if (!row->reversed_p)
@@ -23929,18 +23929,21 @@ mouse_face_from_buffer_pos (Lisp_Object window,
 	    {
 	      /* BEFORE_STRING or AFTER_STRING are only relevant if
 		 they are present at buffer positions between
-		 START_CHARPOS and END_CHARPOS.  */
+		 START_CHARPOS and END_CHARPOS, or if they come from
+		 an overlay.  */
 	      if (EQ (glyph->object, before_string))
 		{
 		  pos = string_buffer_position (w, before_string,
 						start_charpos);
-		  if (pos && pos >= start_charpos && pos < end_charpos)
+		  /* If pos == 0, it means before_string came from an
+		     overlay, not from a buffer position.  */
+		  if (!pos || pos >= start_charpos && pos < end_charpos)
 		    break;
 		}
 	      else if (EQ (glyph->object, after_string))
 		{
 		  pos = string_buffer_position (w, after_string, end_charpos);
-		  if (pos && pos >= start_charpos && pos < end_charpos)
+		  if (!pos || pos >= start_charpos && pos < end_charpos)
 		    break;
 		}
 	      x += glyph->pixel_width;
@@ -24001,19 +24004,19 @@ mouse_face_from_buffer_pos (Lisp_Object window,
 		      && end->charpos < end_charpos));
 	   --end)
 	{
-	  /* BEFORE_STRING or AFTER_STRING are only relevant if
-	     they are present at buffer positions between
-	     START_CHARPOS and END_CHARPOS.  */
+	  /* BEFORE_STRING or AFTER_STRING are only relevant if they
+	     are present at buffer positions between START_CHARPOS and
+	     END_CHARPOS, or if they come from an overlay.  */
 	  if (EQ (end->object, before_string))
 	    {
 	      pos = string_buffer_position (w, before_string, start_charpos);
-	      if (pos && pos >= start_charpos && pos < end_charpos)
+	      if (!pos || pos >= start_charpos && pos < end_charpos)
 		break;
 	    }
 	  else if (EQ (end->object, after_string))
 	    {
 	      pos = string_buffer_position (w, after_string, end_charpos);
-	      if (pos && pos >= start_charpos && pos < end_charpos)
+	      if (!pos || pos >= start_charpos && pos < end_charpos)
 		break;
 	    }
 	}

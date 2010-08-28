@@ -1,3 +1,8 @@
+2010-08-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (mouse_face_from_buffer_pos): Fix code using bug#1220 as
+	test case.
+
 2010-08-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (mouse_face_from_buffer_pos): Support mouse highlight in
