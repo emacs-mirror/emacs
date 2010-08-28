@@ -1,4 +1,4 @@
-2010-08-22  Alex Harsanyi <harsanyi@mac.com>
+2010-08-22  Alex Harsanyi <harsanyi@mac.com>  (tiny change)
 
 	* emacs3.py: Import imp module and use it (Bug#5756).
 
