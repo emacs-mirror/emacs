@@ -23711,8 +23711,30 @@ show_mouse_face (Display_Info *dpyinfo, enum draw_glyphs_face draw)
 	  /* For all but the first row, the highlight starts at column 0.  */
 	  if (row == first)
 	    {
-	      start_hpos = dpyinfo->mouse_face_beg_col;
-	      start_x = dpyinfo->mouse_face_beg_x;
+	      /* R2L rows have BEG and END in reversed order, but the
+		 screen drawing geometry is always left to right.  So
+		 we need to mirror the beginning and end of the
+		 highlighted area in R2L rows.  */
+	      if (!row->reversed_p)
+		{
+		  start_hpos = dpyinfo->mouse_face_beg_col;
+		  start_x = dpyinfo->mouse_face_beg_x;
+		}
+	      else if (row == last)
+		{
+		  start_hpos = dpyinfo->mouse_face_end_col;
+		  start_x = dpyinfo->mouse_face_end_x;
+		}
+	      else
+		{
+		  start_hpos = 0;
+		  start_x = 0;
+		}
+	    }
+	  else if (row->reversed_p && row == last)
+	    {
+	      start_hpos = dpyinfo->mouse_face_end_col;
+	      start_x = dpyinfo->mouse_face_end_x;
 	    }
 	  else
 	    {
@@ -23721,7 +23743,20 @@ show_mouse_face (Display_Info *dpyinfo, enum draw_glyphs_face draw)
 	    }
 
 	  if (row == last)
-	    end_hpos = dpyinfo->mouse_face_end_col;
+	    {
+	      if (!row->reversed_p)
+		end_hpos = dpyinfo->mouse_face_end_col;
+	      else if (row == first)
+		end_hpos = dpyinfo->mouse_face_beg_col;
+	      else
+		{
+		  end_hpos = row->used[TEXT_AREA];
+		  if (draw == DRAW_NORMAL_TEXT)
+		    row->fill_line_p = 1; /* Clear to end of line */
+		}
+	    }
+	  else if (row->reversed_p && row == first)
+	    end_hpos = dpyinfo->mouse_face_beg_col;
 	  else
 	    {
 	      end_hpos = row->used[TEXT_AREA];
@@ -24002,16 +24037,11 @@ mouse_face_from_buffer_pos (Lisp_Object window,
 		}
 	    }
 
-	  /* Mouse highlight uses the screen geometry, which is left
-	     to right even in R2L paragraphs.  Therefore, for R2L
-	     paragraphs, the "first" highlighted glyph actually
-	     determines the _end_ column and x of the highlighted
-	     area.  */
-	  glyph++;	/* first glyph beyond the highlighted area */
+	  glyph++; /* first glyph to the right of the highlighted area */
 	  for (g = row->glyphs[TEXT_AREA], x = row->x; g < glyph; g++)
 	    x += g->pixel_width;
-	  dpyinfo->mouse_face_end_x = x;
-	  dpyinfo->mouse_face_end_col = glyph - row->glyphs[TEXT_AREA];
+	  dpyinfo->mouse_face_beg_x = x;
+	  dpyinfo->mouse_face_beg_col = glyph - row->glyphs[TEXT_AREA];
 	}
     }
 
@@ -24041,13 +24071,6 @@ mouse_face_from_buffer_pos (Lisp_Object window,
      for the end row.  */
   if (r != row)
     {
-      /* If the beginning row was an R2L row, we actually computed
-	 above the beginning of the highlighted area, not its end.  */
-      if (row->reversed_p)
-	{
-	  dpyinfo->mouse_face_beg_x = dpyinfo->mouse_face_end_x;
-	  dpyinfo->mouse_face_beg_col = dpyinfo->mouse_face_end_col;
-	}
       if (!r->reversed_p)
 	{
 	  glyph = r->glyphs[TEXT_AREA];
@@ -24154,19 +24177,8 @@ mouse_face_from_buffer_pos (Lisp_Object window,
 	    }
 	  x += end->pixel_width;
 	}
-      /* In the left-to-right screen geometry, END is actually the
-	 _beginning_ of the highlighted area for R2L paragraphs, if
-	 the highlight begins and ends in the same row.  */
-      if (dpyinfo->mouse_face_end_row == dpyinfo->mouse_face_beg_row)
-	{
-	  dpyinfo->mouse_face_beg_x = x;
-	  dpyinfo->mouse_face_beg_col = end - row->glyphs[TEXT_AREA];
-	}
-      else
-	{
-	  dpyinfo->mouse_face_end_x = x;
-	  dpyinfo->mouse_face_end_col = end - row->glyphs[TEXT_AREA];
-	}
+      dpyinfo->mouse_face_end_x = x;
+      dpyinfo->mouse_face_end_col = end - row->glyphs[TEXT_AREA];
     }
 
   dpyinfo->mouse_face_window = window;
