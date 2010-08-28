@@ -1,7 +1,8 @@
 2010-08-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (mouse_face_from_buffer_pos): Fix code using bug#1220 as
-	test case.  Implement  highlight for R2L rows.
+	test case.  Implement  highlight for R2L rows.  Fix the case of
+	continued L2R lines.
 
 2010-08-21  Eli Zaretskii  <eliz@gnu.org>
 
