@@ -23916,9 +23916,10 @@ mouse_face_from_buffer_pos (Lisp_Object window,
 		 ++glyph)
 	      x += glyph->pixel_width;
 
-      /* Scan the glyph row, looking for BEFORE_STRING, AFTER_STRING,
-	 or DISPLAY_STRING, and the first glyph whose position is
-	 between START_CHARPOS and END_CHARPOS.  */
+	  /* Scan the glyph row, looking for BEFORE_STRING,
+	     AFTER_STRING, or DISPLAY_STRING, and the first glyph from
+	     buffer whose position is between START_CHARPOS and
+	     END_CHARPOS.  */
 	  for (; glyph < end
 		 && !INTEGERP (glyph->object)
 		 && !EQ (glyph->object, display_string)
@@ -23953,7 +23954,64 @@ mouse_face_from_buffer_pos (Lisp_Object window,
 	}
       else
 	{
-	  /* FIXME! */
+	  /* This row is in a right to left paragraph.  Scan it right
+	     to left.  */
+	  struct glyph *g;
+
+	  end = row->glyphs[TEXT_AREA] - 1;
+	  glyph = end + row->used[TEXT_AREA];
+
+	  /* Skip truncation glyphs at the start of the glyph row.  */
+	  if (row->displays_text_p)
+	    for (; glyph > end
+		   && INTEGERP (glyph->object)
+		   && glyph->charpos < 0;
+		 --glyph)
+	      ;
+
+	  /* Scan the glyph row, looking for BEFORE_STRING,
+	     AFTER_STRING, or DISPLAY_STRING, and the first glyph from
+	     buffer whose position is between START_CHARPOS and
+	     END_CHARPOS.  */
+	  for (; glyph > end
+		 && !INTEGERP (glyph->object)
+		 && !EQ (glyph->object, display_string)
+		 && !(BUFFERP (glyph->object)
+		      && (glyph->charpos >= start_charpos
+			  && glyph->charpos < end_charpos));
+	       --glyph)
+	    {
+	      /* BEFORE_STRING or AFTER_STRING are only relevant if
+		 they are present at buffer positions between
+		 START_CHARPOS and END_CHARPOS, or if they come from
+		 an overlay.  */
+	      if (EQ (glyph->object, before_string))
+		{
+		  pos = string_buffer_position (w, before_string,
+						start_charpos);
+		  /* If pos == 0, it means before_string came from an
+		     overlay, not from a buffer position.  */
+		  if (!pos || pos >= start_charpos && pos < end_charpos)
+		    break;
+		}
+	      else if (EQ (glyph->object, after_string))
+		{
+		  pos = string_buffer_position (w, after_string, end_charpos);
+		  if (!pos || pos >= start_charpos && pos < end_charpos)
+		    break;
+		}
+	    }
+
+	  /* Mouse highlight uses the screen geometry, which is left
+	     to right even in R2L paragraphs.  Therefore, for R2L
+	     paragraphs, the "first" highlighted glyph actually
+	     determines the _end_ column and x of the highlighted
+	     area.  */
+	  glyph++;	/* first glyph beyond the highlighted area */
+	  for (g = row->glyphs[TEXT_AREA], x = row->x; g < glyph; g++)
+	    x += g->pixel_width;
+	  dpyinfo->mouse_face_end_x = x;
+	  dpyinfo->mouse_face_end_col = glyph - row->glyphs[TEXT_AREA];
 	}
     }
 
@@ -24023,14 +24081,60 @@ mouse_face_from_buffer_pos (Lisp_Object window,
       /* Find the X coordinate of the last glyph to be highlighted.  */
       for (; glyph <= end; ++glyph)
 	x += glyph->pixel_width;
+
+      dpyinfo->mouse_face_end_x = x;
+      dpyinfo->mouse_face_end_col = glyph - row->glyphs[TEXT_AREA];
     }
   else
     {
-      /* FIXME! */
+      /* Skip truncation and continuation glyphs near the end of the
+	 row, and also blanks and stretch glyphs inserted by
+	 extend_face_to_end_of_line.  */
+      x = row->x;
+      end++;
+      while (end < glyph
+	     && INTEGERP (end->object)
+	     && end->charpos <= 0)
+	{
+	  x += end->pixel_width;
+	  ++end;
+	}
+      /* Scan the rest of the glyph row from the end, looking for the
+	 first glyph that comes from BEFORE_STRING, AFTER_STRING, or
+	 DISPLAY_STRING, or whose position is between START_CHARPOS
+	 and END_CHARPOS */
+      for ( ;
+	     end < glyph
+	     && !INTEGERP (end->object)
+	     && !EQ (end->object, display_string)
+	     && !(BUFFERP (end->object)
+		  && (end->charpos >= start_charpos
+		      && end->charpos < end_charpos));
+	   ++end)
+	{
+	  /* BEFORE_STRING or AFTER_STRING are only relevant if they
+	     are present at buffer positions between START_CHARPOS and
+	     END_CHARPOS, or if they come from an overlay.  */
+	  if (EQ (end->object, before_string))
+	    {
+	      pos = string_buffer_position (w, before_string, start_charpos);
+	      if (!pos || pos >= start_charpos && pos < end_charpos)
+		break;
+	    }
+	  else if (EQ (end->object, after_string))
+	    {
+	      pos = string_buffer_position (w, after_string, end_charpos);
+	      if (!pos || pos >= start_charpos && pos < end_charpos)
+		break;
+	    }
+	  x += end->pixel_width;
+	}
+      /* In the left-to-right screen geometry, END is actually the
+	 _beginning_ of the highlighted area for R2L paragraphs.  */
+      dpyinfo->mouse_face_beg_x = x;
+      dpyinfo->mouse_face_beg_col = end - row->glyphs[TEXT_AREA];
     }
 
-  dpyinfo->mouse_face_end_x = x;
-  dpyinfo->mouse_face_end_col = glyph - row->glyphs[TEXT_AREA];
   dpyinfo->mouse_face_window = window;
   dpyinfo->mouse_face_face_id
     = face_at_buffer_position (w, mouse_charpos, 0, 0, &ignore,
