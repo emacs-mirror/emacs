@@ -4,6 +4,7 @@
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
+;; Version: 1.0.0
 
 ;; This file is part of GNU Emacs.
 

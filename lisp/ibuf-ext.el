@@ -7,6 +7,7 @@
 ;; Maintainer: John Paul Wallington <jpw@gnu.org>
 ;; Created: 2 Dec 2001
 ;; Keywords: buffer, convenience
+;; Package: ibuffer
 
 ;; This file is part of GNU Emacs.
 

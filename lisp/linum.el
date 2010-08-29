@@ -5,6 +5,7 @@
 ;; Author: Markus Triska <markus.triska@gmx.at>
 ;; Maintainer: FSF
 ;; Keywords: convenience
+;; Version: 0.9x
 
 ;; This file is part of GNU Emacs.
 

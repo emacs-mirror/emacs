@@ -7,6 +7,7 @@
 ;;          Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: J.D. Smith <jdsmith@as.arizona.edu>
 ;; Version: 6.1.22
+;; Package: idlwave
 
 ;; This file is part of GNU Emacs.
 
