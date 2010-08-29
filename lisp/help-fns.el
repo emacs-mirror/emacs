@@ -6,6 +6,7 @@
 
 ;; Maintainer: FSF
 ;; Keywords: help, internal
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

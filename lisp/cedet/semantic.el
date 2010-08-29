@@ -4,7 +4,7 @@
 ;;   2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
-;; Keywords: syntax
+;; Keywords: syntax tools
 
 ;; This file is part of GNU Emacs.
 

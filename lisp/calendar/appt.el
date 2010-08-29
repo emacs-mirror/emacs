@@ -6,6 +6,7 @@
 ;; Author: Neil Mager <neilm@juliet.ll.mit.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
 ;; Keywords: calendar
+;; Package: calendar
 
 ;; This file is part of GNU Emacs.
 

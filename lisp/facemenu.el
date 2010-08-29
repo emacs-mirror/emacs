@@ -5,6 +5,7 @@
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: faces
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

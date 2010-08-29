@@ -6,6 +6,7 @@
 
 ;; Author: Kai Großjohann <kai.grossjohann@gmx.net>
 ;; Keywords: comm, processes
+;; Package: tramp
 
 ;; This file is part of GNU Emacs.
 

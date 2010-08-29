@@ -5,6 +5,7 @@
 
 ;; Maintainer: FSF
 ;; Keywords: hardware, mouse
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

@@ -7,6 +7,7 @@
 ;; Keywords: calendar
 ;; Human-Keywords: calendar, diary, HTML
 ;; Created: 23 Aug 2002
+;; Package: calendar
 
 ;; This file is part of GNU Emacs.
 

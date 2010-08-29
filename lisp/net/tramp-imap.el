@@ -4,6 +4,7 @@
 
 ;; Author: Teodor Zlatanov <tzz@lifelogs.com>
 ;; Keywords: mail, comm
+;; Package: tramp
 
 ;; This file is part of GNU Emacs.
 

@@ -7,6 +7,7 @@
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;; Maintainer: FSF
 ;; Keywords: files
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -3534,7 +3535,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
 ;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
 ;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "07676ea25af17f5d50cc5db4f53bddc0")
+;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "416d272299fd4774c47c2f677ee640a4")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\
@@ -3987,7 +3988,7 @@ true then the type of the file linked to by FILE is printed instead.
 ;;;***
 
 ;;;### (autoloads (dired-do-relsymlink dired-jump) "dired-x" "dired-x.el"
-;;;;;;  "6c492aba3ca0d36a4cd7b02fb9c1cc10")
+;;;;;;  "27c312d6d5d40d8cb4ef8d62e30d5f4a")
 ;;; Generated autoloads from dired-x.el
 
 (autoload 'dired-jump "dired-x" "\

@@ -6,6 +6,7 @@
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
 ;; Keywords: holidays, calendar
+;; Package: calendar
 
 ;; This file is part of GNU Emacs.
 

@@ -6,6 +6,7 @@
 ;; Created: 10 Mar 2007
 ;; Version: 0.9
 ;; Keywords: tools
+;; Package: package
 
 ;; This file is part of GNU Emacs.
 

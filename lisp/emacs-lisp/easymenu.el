@@ -5,6 +5,7 @@
 
 ;; Keywords: emulations
 ;; Author: Richard Stallman <rms@gnu.org>
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

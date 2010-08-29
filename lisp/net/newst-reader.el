@@ -7,6 +7,7 @@
 ;; Filename:    newst-reader.el
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Time-stamp:  "6. Dezember 2009, 19:16:38 (ulf)"
+;; Package:     newsticker
 
 ;; ======================================================================
 

@@ -3,6 +3,7 @@
 ;; Copyright (C) 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

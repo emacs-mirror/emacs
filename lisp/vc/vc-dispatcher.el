@@ -6,6 +6,7 @@
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Eric S. Raymond <esr@thyrsus.com>
 ;; Keywords: vc tools
+;; Package: vc
 
 ;; This file is part of GNU Emacs.
 

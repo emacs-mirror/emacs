@@ -6,7 +6,7 @@
 ;; Author:     Peter Kleiweg <p.c.j.kleiweg@rug.nl>
 ;; Maintainer: Peter Kleiweg <p.c.j.kleiweg@rug.nl>
 ;; Created:    20 Aug 1997
-;; Version:    1.1h, 16 Jun 2005
+;; Version:    1.1h
 ;; Keywords:   PostScript, languages
 
 ;; Yoni Rabkin <yoni@rabkins.net> contacted the maintainer of this

@@ -6,6 +6,7 @@
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
 ;; Keywords: help, faces
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

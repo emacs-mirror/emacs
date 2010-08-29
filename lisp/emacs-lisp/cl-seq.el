@@ -6,6 +6,7 @@
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Version: 2.02
 ;; Keywords: extensions
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

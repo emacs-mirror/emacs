@@ -5,7 +5,8 @@
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.2
-;; Keywords: oop, lisp, tools
+;; Keywords: lisp, tools
+;; Package: eieio
 
 ;; This file is part of GNU Emacs.
 

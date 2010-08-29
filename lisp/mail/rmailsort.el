@@ -6,6 +6,7 @@
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
 ;; Maintainer: FSF
 ;; Keywords: mail
+;; Package: rmail
 
 ;; This file is part of GNU Emacs.
 

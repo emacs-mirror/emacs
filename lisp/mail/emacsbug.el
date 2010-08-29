@@ -7,6 +7,7 @@
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
 ;; Keywords: maint mail
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -119,7 +120,7 @@
 			 (concat "mailto:" to))
 	(error "Subject, To or body not found")))))
 
- 
+
 ;;;###autoload
 (defun report-emacs-bug (topic &optional recent-keys)
   "Report a bug in GNU Emacs.
@@ -274,7 +275,7 @@ usually do not have translators to read other languages for them.\n\n")
     (use-local-map (nconc (make-sparse-keymap) (current-local-map)))
     (define-key (current-local-map) "\C-c\C-i" 'report-emacs-bug-info)
     (if can-xdg-email
-	(define-key (current-local-map) "\C-cm" 
+	(define-key (current-local-map) "\C-cm"
 	  'report-emacs-bug-insert-to-mailer))
     ;; Could test major-mode instead.
     (cond ((memq mail-user-agent '(message-user-agent gnus-user-agent))

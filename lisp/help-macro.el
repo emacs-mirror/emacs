@@ -7,6 +7,7 @@
 ;; Maintainer: FSF
 ;; Created: Mon Oct  1 11:42:39 1990
 ;; Adapted-By: ESR
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

@@ -8,6 +8,7 @@
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
 ;; Keywords: calendar
 ;; Human-Keywords: sunrise, sunset, equinox, solstice, calendar, diary, holidays
+;; Package: calendar
 
 ;; This file is part of GNU Emacs.
 

@@ -6,8 +6,9 @@
 ;; 	   Riccardo Murri <riccardo.murri@gmail.com>
 ;; Keywords: vc tools
 ;; Created: Sept 2006
-;; Version: 2008-01-04 (Bzr revno 25)
+;; Version: 2008-01-04
 ;; URL: http://launchpad.net/vc-bzr
+;; Package: vc
 
 ;; This file is part of GNU Emacs.
 

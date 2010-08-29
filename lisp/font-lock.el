@@ -9,6 +9,7 @@
 ;;	Stefan Monnier
 ;; Maintainer: FSF
 ;; Keywords: languages, faces
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
