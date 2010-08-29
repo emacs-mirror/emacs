@@ -5,6 +5,7 @@
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
 ;; Version: 0.2
 ;; Keywords: OO, lisp
+;; Package: cedet
 
 ;; This file is part of GNU Emacs.
 

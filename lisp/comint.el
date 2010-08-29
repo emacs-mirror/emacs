@@ -8,6 +8,7 @@
 ;;	Simon Marshall <simon@gnu.org>
 ;; Maintainer: FSF
 ;; Keywords: processes
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

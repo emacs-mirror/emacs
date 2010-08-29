@@ -7,7 +7,7 @@
 ;; Maintainer: Daniel Colascione <dan.colascione@gmail.com>
 ;; Version: 9
 ;; Date: 2009-07-25
-;; Keywords: languages, oop, javascript
+;; Keywords: languages, javascript
 
 ;; This file is part of GNU Emacs.
 

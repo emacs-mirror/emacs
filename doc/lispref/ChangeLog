@@ -1,3 +1,13 @@
+2010-08-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Fringe Size/Pos): Add a cross-reference to "Layout
+	Parameters", where the default fringe width is described.
+
+	* frames.texi (Window Frame Parameters, Basic Parameters)
+	(Position Parameters, Layout Parameters, Management Parameters)
+	(Cursor Parameters, Font and Color Parameters): Add indexing for
+	frame parameters.  (Bug#6929)
+
 2010-08-25  Tom Tromey  <tromey@redhat.com>
 
 	* vol2.texi (Top): Update.

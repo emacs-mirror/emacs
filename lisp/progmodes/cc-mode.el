@@ -12,7 +12,7 @@
 ;;             1985 Richard M. Stallman
 ;; Maintainer: bug-cc-mode@gnu.org
 ;; Created:    a long, long, time ago. adapted from the original c-mode.el
-;; Keywords:   c languages oop
+;; Keywords:   c languages
 
 ;; This file is part of GNU Emacs.
 

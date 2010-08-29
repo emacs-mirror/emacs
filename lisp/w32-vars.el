@@ -5,6 +5,7 @@
 
 ;; Author: Jason Rumney <jasonr@gnu.org>
 ;; Keywords: internal
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

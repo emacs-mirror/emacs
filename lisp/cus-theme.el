@@ -6,6 +6,7 @@
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: FSF
 ;; Keywords: help, faces
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

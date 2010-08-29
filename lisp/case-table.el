@@ -6,6 +6,7 @@
 ;; Author: Howard Gayle
 ;; Maintainer: FSF
 ;; Keywords: i18n
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

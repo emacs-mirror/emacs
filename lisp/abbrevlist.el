@@ -6,6 +6,7 @@
 
 ;; Maintainer: FSF
 ;; Keywords: abbrev
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

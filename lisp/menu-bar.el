@@ -6,6 +6,7 @@
 ;; Author: RMS
 ;; Maintainer: FSF
 ;; Keywords: internal, mouse
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

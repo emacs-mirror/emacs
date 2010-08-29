@@ -6,6 +6,7 @@
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Created: 1999/10/28
 ;; Keywords: PGP, OpenPGP, GnuPG
+;; Package: pgg
 
 ;; This file is part of GNU Emacs.
 

@@ -1,3 +1,52 @@
+2010-08-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* finder.el: Require `package'.
+	(finder-known-keywords): Tweak descriptions.  Retire `oop' keyword.
+	(finder-package-info): Var deleted.
+	(finder-keywords-hash, finder--builtins-alist): New vars.
+	(finder-compile-keywords): Compute package--builtins and
+	finder-keywords-hash instead of finder-keywords-hash, respecting
+	the "Package" header.
+	(finder-unknown-keywords, finder-list-matches): Use
+	finder-keywords-hash and package--list-packages.
+	(finder-mode): Don't set font-lock-defaults.
+	(finder-exit): We don't use "*Finder-package*" and "*Finder
+	Category*" buffers anymore.
+
+	* emacs-lisp/package.el (package--builtins-base): Var deleted.
+	(package--builtins): Set default value to nil.
+	(package-initialize): Load precomputed value of package--builtins
+	from finder-inf.el.
+	(package-alist, package-compute-transaction)
+	(package-download-transaction): Improve docstring.
+	(package-read-all-archive-contents): Do not change
+	package--builtins here.
+	(list-packages): Make package-list-packages an alias for this.
+	Sort by status by default.
+	(package--list-packages): Add optional PACKAGES arg.
+	(describe-package-1): Use font-lock-face property.  For built-in
+	packages, insert file commentary.
+	(package--generate-package-list): Rename from
+	package-list-packages-internal; all callers changed.  Add optional
+	PACKAGES arg.  Add alphabetical sort fallbacks.
+	(package-menu--version-predicate, package-menu--status-predicate)
+	(package-menu--description-predicate)
+	(package-menu--name-predicate): New functions.
+
+	* info.el (Info-finder-find-node): Search package-alist instead of
+	finder-package-info.
+
+2010-08-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (version-regexp-alist): Don't use "a" and "b" for
+	"alpha" and "beta".
+	(version-to-list): Handle versions like "10.3d".
+
+2010-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/macroexp.el (macroexpand-all-1): Use pcase.
+	(macroexp-accumulate): Use `declare'.
+
 2010-08-27  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* whitespace.el (whitespace-style): Adjust type declaration.

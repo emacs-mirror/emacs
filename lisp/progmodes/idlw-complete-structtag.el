@@ -7,6 +7,7 @@
 ;; Maintainer: J.D. Smith <jdsmith@as.arizona.edu>
 ;; Version: 1.2
 ;; Keywords: languages
+;; Package: idlwave
 
 ;; This file is part of GNU Emacs.
 

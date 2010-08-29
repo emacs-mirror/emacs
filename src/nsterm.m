@@ -2251,6 +2251,11 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   struct frame *f = WINDOW_XFRAME (w);
   struct glyph *phys_cursor_glyph;
   int overspill;
+  struct glyph *cursor_glyph;
+
+  /* If cursor is out of bounds, don't draw garbage.  This can happen
+     in mini-buffer windows when switching between echo area glyphs
+     and mini-buffer.  */
 
   NSTRACE (dumpcursor);
 //fprintf(stderr, "drawcursor (%d,%d) activep = %d\tonp = %d\tc_type = %d\twidth = %d\n",x,y, active_p,on_p,cursor_type,cursor_width);
@@ -2328,6 +2333,13 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
     case BAR_CURSOR:
       s = r;
       s.size.width = min (cursor_width, 2); //FIXME(see above)
+
+      /* If the character under cursor is R2L, draw the bar cursor
+         on the right of its glyph, rather than on the left.  */
+      cursor_glyph = get_phys_cursor_glyph (w);
+      if ((cursor_glyph->resolved_level & 1) != 0)
+        s.origin.x += cursor_glyph->pixel_width - s.size.width;
+
       NSRectFill (s);
       break;
     }

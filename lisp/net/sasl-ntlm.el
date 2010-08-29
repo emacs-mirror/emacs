@@ -6,6 +6,7 @@
 ;; Keywords: SASL, NTLM
 ;; Version: 1.00
 ;; Created: February 2001
+;; Package: sasl
 
 ;; This file is part of GNU Emacs.
 

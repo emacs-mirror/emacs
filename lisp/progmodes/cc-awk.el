@@ -6,6 +6,7 @@
 ;; Author: Alan Mackenzie <acm@muc.de> (originally based on awk-mode.el)
 ;; Maintainer: FSF
 ;; Keywords: AWK, cc-mode, unix, languages
+;; Package: cc-mode
 
 ;; This file is part of GNU Emacs.
 

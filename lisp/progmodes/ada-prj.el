@@ -6,6 +6,7 @@
 ;; Author: Emmanuel Briot <briot@gnat.com>
 ;; Maintainer: Stephen Leake <stephen_leake@stephe-leake.org>
 ;; Keywords: languages, ada, project file
+;; Package: ada-mode
 
 ;; This file is part of GNU Emacs.
 

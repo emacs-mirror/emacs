@@ -8,8 +8,8 @@
 ;;	       1994-1999 Barry A. Warsaw
 ;; Maintainer: bug-cc-mode@gnu.org
 ;; Created:    August 1994, split from cc-mode.el
-;; Version:    See cc-mode.el
-;; Keywords:   c languages oop
+;; Keywords:   c languages
+;; Package:    cc-mode
 
 ;; This file is part of GNU Emacs.
 

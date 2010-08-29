@@ -5,6 +5,7 @@
 ;;
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: mouse frames
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

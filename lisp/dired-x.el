@@ -7,6 +7,7 @@
 ;;	Lawrence R. Dodd <dodd@roebling.poly.edu>
 ;; Maintainer: Romain Francoise <rfrancoise@gnu.org>
 ;; Keywords: dired extensions files
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

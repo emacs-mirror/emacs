@@ -7,6 +7,7 @@
 ;; Maintainer: FSF
 ;; Created: 12 Dec 1992
 ;; Keywords: extensions, lisp, tools
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

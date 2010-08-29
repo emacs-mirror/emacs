@@ -6,6 +6,7 @@
 
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Keywords: maint
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

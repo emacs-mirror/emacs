@@ -6,6 +6,7 @@
 ;; Author: code extracted from Emacs-20's simple.el
 ;; Maintainer: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: comment uncomment
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

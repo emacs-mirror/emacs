@@ -4,6 +4,7 @@
 ;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
+;; Package: viper
 
 ;; This file is part of GNU Emacs.
 

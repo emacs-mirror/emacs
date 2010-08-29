@@ -5,6 +5,7 @@
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard emulations convenience CUA
+;; Package: cua-base
 
 ;; This file is part of GNU Emacs.
 

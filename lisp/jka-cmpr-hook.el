@@ -6,6 +6,7 @@
 ;; Author: jka@ece.cmu.edu (Jay K. Adams)
 ;; Maintainer: FSF
 ;; Keywords: data
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
