@@ -695,7 +695,12 @@ encode_terminal_code (src, src_len, coding)
 						  encode_terminal_src_size);
 		  buf = encode_terminal_src + nbytes;
 		}
-	      if (char_charset (c, charset_list, NULL))
+	      if (CHAR_BYTE8_P (c))
+		{
+		  *buf++ = CHAR_TO_BYTE8 (c);
+		  nchars++;
+		}
+	      else if (char_charset (c, charset_list, NULL))
 		{
 		  /* Store the multibyte form of C at BUF.  */
 		  buf += CHAR_STRING (c, buf);

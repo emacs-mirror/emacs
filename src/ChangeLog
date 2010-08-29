@@ -1,3 +1,8 @@
+2010-08-29  Kenichi Handa  <handa@m17n.org>
+
+	* term.c (encode_terminal_code): Encode byte chars to the
+	correspnding bytes.
+
 2010-08-17  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* eval.c (Flet, Feval, Fapply, apply_lambda): Use SAFE_ALLOCA_LISP
