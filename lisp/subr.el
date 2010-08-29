@@ -3584,11 +3584,11 @@ Usually the separator is \".\", but it can be any other string.")
 
 
 (defconst version-regexp-alist
-  '(("^[-_+ ]?a\\(lpha\\)?$"   . -3)
+  '(("^[-_+ ]?alpha$"   . -3)
     ("^[-_+]$"                 . -3) ; treat "1.2.3-20050920" and "1.2-3" as alpha releases
     ("^[-_+ ]cvs$"             . -3)	; treat "1.2.3-CVS" as alpha release
-    ("^[-_+ ]?b\\(eta\\)?$"    . -2)
-    ("^[-_+ ]?\\(pre\\|rc\\)$" . -1))
+    ("^[-_+ ]?beta$"    . -2)
+    ("^[-_+ ]?\\(pre\\|rcc\\)$" . -1))
   "*Specify association between non-numeric version and its priority.
 
 This association is used to handle version string like \"1.0pre2\",
@@ -3681,8 +3681,13 @@ See documentation for `version-separator' and `version-regexp-alist'."
 	    (setq al version-regexp-alist)
 	    (while (and al (not (string-match (caar al) s)))
 	      (setq al (cdr al)))
-	    (or al (error "Invalid version syntax: '%s'" ver))
-	    (setq lst (cons (cdar al) lst)))))
+	    (cond (al
+		   (push (cdar al) lst))
+		  ;; Convert 22.3a to 22.3.1.
+		  ((string-match "^[-_+ ]?\\([a-zA-Z]\\)$" s)
+		   (push (- (aref (downcase (match-string 1 s)) 0) ?a -1)
+			 lst))
+		  (t (error "Invalid version syntax: '%s'" ver))))))
       (if (null lst)
 	  (error "Invalid version syntax: '%s'" ver)
 	(nreverse lst)))))
