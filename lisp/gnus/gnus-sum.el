@@ -76,6 +76,12 @@ See `gnus-group-goto-unread'."
   :version "23.1" ;; No Gnus
   :type 'boolean)
 
+(defcustom gnus-summary-stop-at-end-of-message nil
+  "If non-nil, don't select the next message when using `SPC'."
+  :link '(custom-manual "(gnus)Group Maneuvering")
+  :group 'gnus-summary-maneuvering
+  :type 'boolean)
+
 (defcustom gnus-fetch-old-headers nil
   "*Non-nil means that Gnus will try to build threads by grabbing old headers.
 If an unread article in the group refers to an older, already
@@ -7781,7 +7787,7 @@ Also see the variable `gnus-article-skip-boring'."
 	    (setq endp (or (gnus-article-next-page lines)
 			   (gnus-article-only-boring-p))))
 	  (when endp
-	    (cond (stop
+	    (cond ((or stop gnus-summary-stop-at-end-of-message)
 		   (gnus-message 3 "End of message"))
 		  (circular
 		   (gnus-summary-beginning-of-article))

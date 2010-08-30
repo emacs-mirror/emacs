@@ -105,10 +105,9 @@
 	 ,disposition ,description ,cache ,id))
 
 (defcustom mm-text-html-renderer
-  (cond ((executable-find "w3m")
-	 (if (locate-library "w3m")
-	     'w3m
-	   'w3m-standalone))
+  (cond ((and (executable-find "w3m")
+	      (executable-find "curl"))
+	 'gnus-article-html)
 	((executable-find "links") 'links)
 	((executable-find "lynx") 'lynx)
 	((locate-library "w3") 'w3)

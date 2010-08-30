@@ -71,6 +71,13 @@ It should return non-nil if the article is to be prefetched."
   :group 'gnus-asynchronous
   :type 'function)
 
+(defcustom gnus-async-post-fetch-function nil
+  "Function called after an article has been prefetched.
+The function will be called narrowed to the region of the article
+that was fetched."
+  :group 'gnus-asynchronous
+  :type 'function)
+
 ;;; Internal variables.
 
 (defvar gnus-async-prefetch-article-buffer " *Async Prefetch Article*")
@@ -227,6 +234,11 @@ It should return non-nil if the article is to be prefetched."
     (setq gnus-async-current-prefetch-article nil)
     (when arg
       (gnus-async-set-buffer)
+      (when gnus-async-post-fetch-function
+	(save-excursion
+	  (save-restriction
+	    (narrow-to-region mark (point-max))
+	    (funcall gnus-async-post-fetch-function summary))))
       (gnus-async-with-semaphore
 	(setq
 	 gnus-async-article-alist

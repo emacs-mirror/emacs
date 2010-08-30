@@ -1,4 +1,28 @@
+2010-08-29  Adam Sjøgren  <asjo@koldfront.dk>
+
+	* gnus-html.el (gnus-html-put-image): Use XEmacs-compatible image
+	functions.
+
 2010-08-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (gnus-article-add-button): Take an optional parameter to
+	say what the mouseover text should be.
+
+	* gnus-html.el (gnus-html-prefetch-images): Use the summary-local
+	version of the mm-w3m-safe-url-regexp variable to only download images
+	in the groups where we want that to happen.
+
+	* gnus-sum.el (gnus-summary-stop-at-end-of-message): New variable.
+
+	* gnus-art.el (gnus-article-beginning-of-window): Make into defun for
+	easier debugging.
+	(gnus-article-beginning-of-window): Add kludge to allow spacing past
+	big pictures in the article buffer.
+
+	* mm-decode.el (mm-text-html-renderer): Default the html renderer to
+	gnus-article-html.
+	(mm-text-html-renderer): gnus-article-html needs curl in addition to
+	w3m.
 
 	* gnus-html.el: Start a new super-simple HTML renderer based on w3m.
 
