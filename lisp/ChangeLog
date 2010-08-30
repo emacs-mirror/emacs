@@ -1,5 +1,9 @@
 2010-08-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/smie.el (smie-indent-offset-rule): Let :parent take
+	a list of parents.
+	(smie-indent-column): Allow indirection through variables.
+
 	* composite.el (save-buffer-state): Delete, unused.
 	* font-lock.el (save-buffer-state): Use with-silent-modifications.
 	(font-lock-default-fontify-region): Use with-syntax-table.
