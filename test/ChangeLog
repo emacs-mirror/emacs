@@ -1,6 +1,10 @@
+2010-08-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent/octave.m: New file.
+
 2010-08-08  Ulf Jasper  <ulf.jasper@web.de>
 
-	* icalendar-testsuite.el (icalendar-testsuite-run): Added internal tests.
+	* icalendar-testsuite.el (icalendar-testsuite-run): Add internal tests.
 	(icalendar-testsuite--trim, icalendar-testsuite--compare-strings)
 	(icalendar-testsuite--run-internal-tests): New.
 	(icalendar-testsuite--test-convert-ordinary-to-ical)
@@ -13,7 +17,7 @@
 	(icalendar-testsuite--do-test-cycle): Use icalendar-testsuite--compare-strings
 	(icalendar-testsuite--run-import-tests): Comment added.
 	(icalendar-testsuite--run-import-tests)
-	(icalendar-testsuite--run-real-world-tests): Fixed expected results.
+	(icalendar-testsuite--run-real-world-tests): Fix expected results.
 
 2010-06-25  Chong Yidong  <cyd@stupidchicken.com>
 

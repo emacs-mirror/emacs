@@ -615,21 +615,10 @@ Major/minor modes can set this variable if they know which option applies.")
   (defmacro save-buffer-state (varlist &rest body)
     "Bind variables according to VARLIST and eval BODY restoring buffer state."
     (declare (indent 1) (debug let))
-    (let ((modified (make-symbol "modified")))
-      `(let* ,(append varlist
-		      `((,modified (buffer-modified-p))
-			(buffer-undo-list t)
-			(inhibit-read-only t)
-			(inhibit-point-motion-hooks t)
-			(inhibit-modification-hooks t)
-			deactivate-mark
-			buffer-file-name
-			buffer-file-truename))
-	 (unwind-protect
-	     (progn
-	       ,@body)
-	   (unless ,modified
-	     (restore-buffer-modified-p nil))))))
+    `(let* ,(append varlist
+                    `((inhibit-point-motion-hooks t)))
+       (with-silent-modifications
+         ,@body)))
   ;;
   ;; Shut up the byte compiler.
   (defvar font-lock-face-attributes))	; Obsolete but respected if set.
@@ -1125,38 +1114,33 @@ Put first the functions more likely to cause a change and cheaper to compute.")
 (defun font-lock-default-fontify-region (beg end loudly)
   (save-buffer-state
       ((parse-sexp-lookup-properties
-        (or parse-sexp-lookup-properties font-lock-syntactic-keywords))
-       (old-syntax-table (syntax-table)))
-    (unwind-protect
-	(save-restriction
-	  (unless font-lock-dont-widen (widen))
-	  ;; Use the fontification syntax table, if any.
-	  (when font-lock-syntax-table
-	    (set-syntax-table font-lock-syntax-table))
-          ;; Extend the region to fontify so that it starts and ends at
-          ;; safe places.
-          (let ((funs font-lock-extend-region-functions)
-                (font-lock-beg beg)
-                (font-lock-end end))
-            (while funs
-              (setq funs (if (or (not (funcall (car funs)))
-                                 (eq funs font-lock-extend-region-functions))
-                             (cdr funs)
-                           ;; If there's been a change, we should go through
-                           ;; the list again since this new position may
-                           ;; warrant a different answer from one of the fun
-                           ;; we've already seen.
-                           font-lock-extend-region-functions)))
-            (setq beg font-lock-beg end font-lock-end))
-	  ;; Now do the fontification.
-	  (font-lock-unfontify-region beg end)
-	  (when font-lock-syntactic-keywords
-	    (font-lock-fontify-syntactic-keywords-region beg end))
-	  (unless font-lock-keywords-only
-	    (font-lock-fontify-syntactically-region beg end loudly))
-	  (font-lock-fontify-keywords-region beg end loudly))
-      ;; Clean up.
-      (set-syntax-table old-syntax-table))))
+        (or parse-sexp-lookup-properties font-lock-syntactic-keywords)))
+    ;; Use the fontification syntax table, if any.
+    (with-syntax-table (or font-lock-syntax-table (syntax-table))
+      (save-restriction
+        (unless font-lock-dont-widen (widen))
+        ;; Extend the region to fontify so that it starts and ends at
+        ;; safe places.
+        (let ((funs font-lock-extend-region-functions)
+              (font-lock-beg beg)
+              (font-lock-end end))
+          (while funs
+            (setq funs (if (or (not (funcall (car funs)))
+                               (eq funs font-lock-extend-region-functions))
+                           (cdr funs)
+                         ;; If there's been a change, we should go through
+                         ;; the list again since this new position may
+                         ;; warrant a different answer from one of the fun
+                         ;; we've already seen.
+                         font-lock-extend-region-functions)))
+          (setq beg font-lock-beg end font-lock-end))
+        ;; Now do the fontification.
+        (font-lock-unfontify-region beg end)
+        (when font-lock-syntactic-keywords
+          (font-lock-fontify-syntactic-keywords-region beg end))
+        (unless font-lock-keywords-only
+          (font-lock-fontify-syntactically-region beg end loudly))
+        (font-lock-fontify-keywords-region beg end loudly)))))
 
 ;; The following must be rethought, since keywords can override fontification.
 ;;    ;; Now scan for keywords, but not if we are inside a comment now.

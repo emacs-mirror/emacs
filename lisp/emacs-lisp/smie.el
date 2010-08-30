@@ -593,20 +593,21 @@ OFFSET-RULES is a list of elements which can each either be:
 \(:bolp . OFFSET-RULES)		If TOK is first on a line, use OFFSET-RULES.
 OFFSET				the offset to use.
 
-PARENT can be either the name of the parent or `open' to mean any parent
-which acts as an open-paren (i.e. has a nil left-precedence).
+PARENT can be either the name of the parent or a list of such names.
 
 OFFSET can be of the form:
 `point'				align with the token.
 `parent'				align with the parent.
 NUMBER				offset by NUMBER.
 \(+ OFFSETS...)			use the sum of OFFSETS.
+VARIABLE			use the value of VARIABLE as offset.
 
 The precise meaning of `point' depends on various details: it can
 either mean the position of the token we're indenting, or the
 position of its parent, or the position right after its parent.
 
-A nil offset for indentation after a token defaults to `smie-indent-basic'.")
+A nil offset for indentation after an opening token defaults
+to `smie-indent-basic'.")
 
 (defun smie-indent-hanging-p ()
   ;; A hanging keyword is one that's at the end of a line except it's not at
@@ -674,8 +675,9 @@ PARENT if non-nil should be the parent info returned by `smie-backward-sexp'."
             (save-excursion
               (if after (goto-char after))
               (setq parent (smie-backward-sexp 'halfsexp))))
-          (when (or (equal (nth 2 parent) (cadr rule))
-                    (and (eq (cadr rule) 'open) (null (car parent))))
+          (when (if (listp (cadr rule))
+                    (member (nth 2 parent) (cadr rule))
+                  (equal (nth 2 parent) (cadr rule)))
             (setq rules (cddr rule))))
          (t (error "Unknown rule %s for indentation of %s"
                    rule (car tokinfo))))))
@@ -726,6 +728,8 @@ If VIRTUAL-POINT is non-nil, then `point' is virtual."
     (if (consp parent) (goto-char (cadr parent)))
     (smie-indent-virtual))
    ((eq offset nil) nil)
+   ((and (symbolp offset) (boundp 'offset))
+    (smie-indent-column (symbol-value offset) base parent virtual-point))
    (t (error "Unknown indentation offset %s" offset))))
 
 (defun smie-indent-forward-token ()
@@ -1016,6 +1020,7 @@ in order to figure out the indentation of some other (further down) point."
        (positions
         ;; We're the first arg.
         (goto-char (car positions))
+        ;; FIXME: Use smie-indent-column.
         (+ (smie-indent-offset 'args)
            ;; We used to use (smie-indent-virtual), but that
            ;; doesn't seem right since it might then indent args less than
