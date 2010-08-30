@@ -1,3 +1,9 @@
+2009-07-16  Kevin Ryde  <user42@zip.com.au>  (tiny change)
+
+	* gnus-sum.el (gnus-summary-idna-message):
+	* nnrss.el (nnrss-normalize-date, nnrss-discover-feed):
+	Hyperlink urls in docstrings with URL `...'.
+
 2010-08-29  Adam Sjøgren  <asjo@koldfront.dk>
 
 	* gnus-html.el (gnus-html-put-image): Use XEmacs-compatible image
