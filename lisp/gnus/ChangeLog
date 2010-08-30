@@ -1,5 +1,10 @@
 2010-08-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-html.el (gnus-html-put-image): Use gnus-put-image.
+
+	* gnus-ems.el (gnus-put-image): Have gnus-put-image take an optional
+	point parameter.
+
 	* gnus-group.el (gnus-group-completing-read): Add 'substring to
 	completion-styles for group selection.
 

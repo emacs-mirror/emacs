@@ -171,11 +171,11 @@
 		       (= (car (image-size image t)) 30)
 		       (= (cdr (image-size image t)) 30))))
 	(progn
-	  (put-image image point)
+	  (gnus-put-image image nil nil point)
 	  t)
       (when (fboundp 'find-image)
-	(put-image (find-image '((:type xpm :file "lock-broken.xpm")))
-		   point))
+	(gnus-put-image (find-image '((:type xpm :file "lock-broken.xpm")))
+			nil nil point))
       nil)))
 
 (defun gnus-html-prune-cache ()
