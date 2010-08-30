@@ -13623,6 +13623,9 @@ If you have some messages that you wish not to send, you can use the
 @kbd{D t} (@code{gnus-draft-toggle-sending}) command to mark the message
 as unsendable.  This is a toggling command.
 
+Finally, if you want to delete a draft, use the normal @kbd{B DEL}
+command (@pxref{Mail Group Commands}).
+
 
 @node Rejected Articles
 @section Rejected Articles
