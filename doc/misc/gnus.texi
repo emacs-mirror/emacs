@@ -695,7 +695,6 @@ Browsing the Web
 
 * Archiving Mail::
 * Web Searches::                Creating groups from articles that match a string.
-* Slashdot::                    Reading the Slashdot comments.
 * Ultimate::                    The Ultimate Bulletin Board systems.
 * Web Archive::                 Reading mailing list archived on web.
 * RSS::                         Reading RDF site summary.
@@ -1295,7 +1294,7 @@ parameter (@pxref{Topic Parameters}).  For instance, a @code{subscribe}
 topic parameter that looks like
 
 @example
-"nnslashdot"
+"nnml"
 @end example
 
 will mean that all groups that match that regex will be subscribed under
@@ -17417,7 +17416,6 @@ interfaces to these sources.
 @menu
 * Archiving Mail::
 * Web Searches::                Creating groups from articles that match a string.
-* Slashdot::                    Reading the Slashdot comments.
 * Ultimate::                    The Ultimate Bulletin Board systems.
 * Web Archive::                 Reading mailing list archived on web.
 * RSS::                         Reading RDF site summary.
@@ -17560,94 +17558,6 @@ Format string URL to fetch an article by @code{Message-ID}.
 @end table
 
 @end table
-
-
-@node Slashdot
-@subsection Slashdot
-@cindex Slashdot
-@cindex nnslashdot
-
-@uref{http://slashdot.org/, Slashdot} is a popular news site, with
-lively discussion following the news articles.  @code{nnslashdot} will
-let you read this forum in a convenient manner.
-
-The easiest way to read this source is to put something like the
-following in your @file{~/.gnus.el} file:
-
-@lisp
-(setq gnus-secondary-select-methods
-      '((nnslashdot "")))
-@end lisp
-
-This will make Gnus query the @code{nnslashdot} back end for new comments
-and groups.  The @kbd{F} command will subscribe each new news article as
-a new Gnus group, and you can read the comments by entering these
-groups.  (Note that the default subscription method is to subscribe new
-groups as zombies.  Other methods are available (@pxref{Subscription
-Methods}).
-
-If you want to remove an old @code{nnslashdot} group, the @kbd{G DEL}
-command is the most handy tool (@pxref{Foreign Groups}).
-
-When following up to @code{nnslashdot} comments (or posting new
-comments), some light @acronym{HTML}izations will be performed.  In
-particular, text quoted with @samp{> } will be quoted with
-@samp{blockquote} instead, and signatures will have @samp{br} added to
-the end of each line.  Other than that, you can just write @acronym{HTML}
-directly into the message buffer.  Note that Slashdot filters out some
-@acronym{HTML} forms.
-
-The following variables can be altered to change its behavior:
-
-@table @code
-@item nnslashdot-threaded
-Whether @code{nnslashdot} should display threaded groups or not.  The
-default is @code{t}.  To be able to display threads, @code{nnslashdot}
-has to retrieve absolutely all comments in a group upon entry.  If a
-threaded display is not required, @code{nnslashdot} will only retrieve
-the comments that are actually wanted by the user.  Threading is nicer,
-but much, much slower than unthreaded.
-
-@item nnslashdot-login-name
-@vindex nnslashdot-login-name
-The login name to use when posting.
-
-@item nnslashdot-password
-@vindex nnslashdot-password
-The password to use when posting.
-
-@item nnslashdot-directory
-@vindex nnslashdot-directory
-Where @code{nnslashdot} will store its files.  The default is
-@file{~/News/slashdot/}.
-
-@item nnslashdot-active-url
-@vindex nnslashdot-active-url
-The @acronym{URL} format string that will be used to fetch the
-information on news articles and comments.  The default is@*
-@samp{http://slashdot.org/search.pl?section=&min=%d}.
-
-@item nnslashdot-comments-url
-@vindex nnslashdot-comments-url
-The @acronym{URL} format string that will be used to fetch comments.
-
-@item nnslashdot-article-url
-@vindex nnslashdot-article-url
-The @acronym{URL} format string that will be used to fetch the news
-article.  The default is
-@samp{http://slashdot.org/article.pl?sid=%s&mode=nocomment}.
-
-@item nnslashdot-threshold
-@vindex nnslashdot-threshold
-The score threshold.  The default is -1.
-
-@item nnslashdot-group-number
-@vindex nnslashdot-group-number
-The number of old groups, in addition to the ten latest, to keep
-updated.  The default is 0.
-
-@end table
-
 
 
 @node Ultimate
@@ -29591,7 +29501,7 @@ As the variables for the other back ends, there are
 @code{nnml-nov-is-evil}, @code{nnspool-nov-is-evil}, and
 @code{nnwarchive-nov-is-evil}.  Note that a non-@code{nil} value for
 @code{gnus-nov-is-evil} overrides all those variables.@footnote{Although
-the back ends @code{nnkiboze}, @code{nnslashdot}, @code{nnultimate}, and
+the back ends @code{nnkiboze}, @code{nnultimate}, and
 @code{nnwfm} don't have their own nn*-nov-is-evil.}
 @end table
 
