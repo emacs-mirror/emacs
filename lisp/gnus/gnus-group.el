@@ -2202,7 +2202,8 @@ be permanent."
 The arguments are the same as `completing-read' except that COLLECTION
 and HIST default to `gnus-active-hashtb' and `gnus-group-history'
 respectively if they are omitted."
-  (let ((completion-styles completion-styles)
+  (let ((completion-styles (and (boundp 'completion-styles)
+				completion-styles))
 	group)
     (push 'substring completion-styles)
     (mapatoms (lambda (symbol)

@@ -1,5 +1,11 @@
 2010-08-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-group.el (gnus-group-completing-read): Protect against not
+	having completion-styles bound.
+
+	* mml.el (mml-insert-mime-headers-always): Change the default to t, to
+	make broken recipients happier.
+
 	* gnus-html.el (gnus-html-put-image): Use gnus-put-image.
 
 	* gnus-ems.el (gnus-put-image): Have gnus-put-image take an optional
