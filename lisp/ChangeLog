@@ -1,3 +1,8 @@
+2010-08-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* menu-bar.el (menu-bar-edit-menu) <"Paste">: Check selection in
+	CLIPBOARD, not in PRIMARY.  (Bug#6944)
+
 2010-08-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/smie.el (smie-indent-offset-rule): Let :parent take
