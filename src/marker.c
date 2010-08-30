@@ -806,16 +806,18 @@ marker_byte_position (Lisp_Object marker)
   return i;
 }
 
-DEFUN ("copy-marker", Fcopy_marker, Scopy_marker, 1, 2, 0,
+DEFUN ("copy-marker", Fcopy_marker, Scopy_marker, 0, 2, 0,
        doc: /* Return a new marker pointing at the same place as MARKER.
 If argument is a number, makes a new marker pointing
 at that position in the current buffer.
+If MARKER is not specified, the new marker does not point anywhere.
 The optional argument TYPE specifies the insertion type of the new marker;
 see `marker-insertion-type'.  */)
   (register Lisp_Object marker, Lisp_Object type)
 {
   register Lisp_Object new;
 
+  if (!NILP (marker))
   CHECK_TYPE (INTEGERP (marker) || MARKERP (marker), Qinteger_or_marker_p, marker);
 
   new = Fmake_marker ();
