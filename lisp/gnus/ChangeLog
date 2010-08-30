@@ -1,3 +1,15 @@
+2010-08-28  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.el (gnus-valid-select-methods): Remove reference to nngoogle,
+	which doesn't exist.
+
+	* message.el (message-inhibit-ecomplete): New variable to allow some
+	function to inhibit ecomplete address storage.
+	(message-resend): Disable ecomplete message storage when resending
+	messages.
+
+	* nntp.el (nntp-async-kluge): Remove the Emacs 20.3-related kluge.
+
 2010-08-27  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-sum.el (gnus-summary-move-article, gnus-summary-delete-article):

@@ -298,13 +298,6 @@ to insert Cancel-Lock headers.")
 (defvoo nntp-server-xover 'try)
 (defvoo nntp-server-list-active-group 'try)
 
-(defvar nntp-async-needs-kluge
-  (string-match "^GNU Emacs 20\\.3\\." (emacs-version))
-  "*When non-nil, nntp will poll asynchronous connections
-once a second.  By default, this is turned on only for Emacs
-20.3, which has a bug that breaks nntp's normal method of
-noticing asynchronous data.")
-
 (defvar nntp-async-timer nil)
 (defvar nntp-async-process-list nil)
 
@@ -1368,17 +1361,7 @@ password contained in '~/.nntp-authinfo'."
 	  nntp-process-decode decode
 	  nntp-process-callback callback
 	  nntp-process-start-point (point-max))
-    (setq after-change-functions '(nntp-after-change-function))
-    (if nntp-async-needs-kluge
-	(nntp-async-kluge process))))
-
-(defun nntp-async-kluge (process)
-  ;; emacs 20.3 bug: process output with encoding 'binary
-  ;; doesn't trigger after-change-functions.
-  (unless nntp-async-timer
-    (setq nntp-async-timer
-	  (run-at-time 1 1 'nntp-async-timer-handler)))
-  (add-to-list 'nntp-async-process-list process))
+    (setq after-change-functions '(nntp-after-change-function))))
 
 (defun nntp-async-timer-handler ()
   (mapcar
