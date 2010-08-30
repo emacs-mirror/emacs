@@ -1,3 +1,13 @@
+2009-03-24  Miles Bader  <miles@gnu.org>
+
+	* smiley.el (smiley-regexp-alist): Don't delete the semicolon before
+	the blinking smiley.
+
+2009-03-24  Simon Josefsson  <simon@josefsson.org>
+
+	* smiley.el (smiley-regexp-alist): Disallow ;;) from being treated as a
+	blink smiley.
+
 2010-08-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-start.el (gnus-dribble-read-file): Ensure that the directory
