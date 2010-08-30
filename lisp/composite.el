@@ -413,27 +413,6 @@ after a sequence of character events."
 
 ;;; Automatic character composition.
 
-;; Copied from font-lock.el.
-(eval-when-compile
-  ;; Borrowed from lazy-lock.el.
-  ;; We use this to preserve or protect things when modifying text properties.
-  (defmacro save-buffer-state (varlist &rest body)
-    "Bind variables according to VARLIST and eval BODY restoring buffer state."
-    `(let* ,(append varlist
-		    '((modified (buffer-modified-p)) (buffer-undo-list t)
-		      (inhibit-read-only t) (inhibit-point-motion-hooks t)
-		      (inhibit-modification-hooks t)
-		      deactivate-mark buffer-file-name buffer-file-truename))
-       ,@body
-       (unless modified
-	 (restore-buffer-modified-p nil))))
-  ;; Fixme: This makes bootstrapping fail with this error.
-  ;;   Symbol's function definition is void: eval-defun
-  ;;(def-edebug-spec save-buffer-state let)
-  )
-
-(put 'save-buffer-state 'lisp-indent-function 1)
-
 ;; These macros must match with C macros LGSTRING_XXX and LGLYPH_XXX in font.h
 (defsubst lgstring-header (gstring) (aref gstring 0))
 (defsubst lgstring-set-header (gstring header) (aset gstring 0 header))

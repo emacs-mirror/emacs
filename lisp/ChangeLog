@@ -1,5 +1,11 @@
 2010-08-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* composite.el (save-buffer-state): Delete, unused.
+	* font-lock.el (save-buffer-state): Use with-silent-modifications.
+	(font-lock-default-fontify-region): Use with-syntax-table.
+	* jit-lock.el (with-buffer-unmodified): Remove.
+	(with-buffer-prepared-for-jit-lock): Use with-silent-modifications.
+
 	Use `declare' in defmacros.
 	* window.el (save-selected-window):
 	* subr.el (with-temp-file, with-temp-message, with-syntax-table):
