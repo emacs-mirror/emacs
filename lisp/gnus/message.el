@@ -1620,7 +1620,7 @@ If you'd like to make it possible to share draft files between XEmacs
 and Emacs, you may use `iso-2022-7bit' for this value at your own risk.
 Note that the coding-system `iso-2022-7bit' isn't suitable to all data.")
 
-(defcustom message-send-mail-partially-limit 1000000
+(defcustom message-send-mail-partially-limit nil
   "The limitation of messages sent as message/partial.
 The lower bound of message size in characters, beyond which the message
 should be sent in several parts.  If it is nil, the size is unlimited."

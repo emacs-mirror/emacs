@@ -1,3 +1,14 @@
+2010-08-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-dribble-read-file): Ensure that the directory
+	where the dribbel file lives exists.
+
+	* message.el (message-send-mail-partially-limit): Change the default to
+	nil, since most people don't want this.
+
+	* mm-url.el (mm-url-decode-entities): Also decode entities like
+	&#x3212.
+
 2009-07-16  Kevin Ryde  <user42@zip.com.au>  (tiny change)
 
 	* gnus-sum.el (gnus-summary-idna-message):
