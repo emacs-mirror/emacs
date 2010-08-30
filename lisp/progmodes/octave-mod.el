@@ -161,8 +161,8 @@ parenthetical grouping.")
   (list
    ;; Fontify all builtin keywords.
    (cons (concat "\\<\\("
-		 (mapconcat 'identity octave-reserved-words "\\|")
-		 (mapconcat 'identity octave-text-functions "\\|")
+		 (regexp-opt (append octave-reserved-words
+                                     octave-text-functions))
 		 "\\)\\>")
 	 'font-lock-keyword-face)
    ;; Fontify all builtin operators.
@@ -223,13 +223,10 @@ parenthetical grouping.")
     (define-key map "\C-c\C-n" 'octave-next-code-line)
     (define-key map "\C-c\C-a" 'octave-beginning-of-line)
     (define-key map "\C-c\C-e" 'octave-end-of-line)
-    (define-key map "\C-c\M-\C-n" 'octave-forward-block)
-    (define-key map "\C-c\M-\C-p" 'octave-backward-block)
-    (define-key map "\C-c\M-\C-u" 'octave-backward-up-block)
     (define-key map "\C-c\M-\C-d" 'octave-down-block)
     (define-key map "\C-c\M-\C-h" 'octave-mark-block)
-    (define-key map "\C-c]" 'octave-close-block)
-    (define-key map "\C-c/" 'octave-close-block)
+    (define-key map "\C-c]" 'smie-close-block)
+    (define-key map "\C-c/" 'smie-close-block)
     (define-key map "\C-c\C-f" 'octave-insert-defun)
     (define-key map "\C-c\C-h" 'octave-help)
     (define-key map "\C-c\C-il" 'octave-send-line)
@@ -261,12 +258,9 @@ parenthetical grouping.")
       ["End of Continuation"	octave-end-of-line t]
       ["Split Line at Point"	octave-indent-new-comment-line t])
     ("Blocks"
-      ["Next Block"		octave-forward-block t]
-      ["Previous Block"		octave-backward-block t]
       ["Down Block"		octave-down-block t]
-      ["Up Block"		octave-backward-up-block t]
       ["Mark Block"		octave-mark-block t]
-      ["Close Block"		octave-close-block t])
+      ["Close Block"		smie-close-block t])
     ("Functions"
       ["Indent Function"	octave-indent-defun t]
       ["Insert Function"	octave-insert-defun t])
@@ -386,8 +380,11 @@ end keywords as associated values.")
   "Extra indentation applied to Octave continuation lines."
   :type 'integer
   :group 'octave)
+(eval-and-compile
+  (defconst octave-continuation-marker-regexp "\\\\\\|\\.\\.\\."))
 (defvar octave-continuation-regexp
-  "[^#%\n]*\\(\\\\\\|\\.\\.\\.\\)\\s-*\\(\\s<.*\\)?$")
+  (concat "[^#%\n]*\\(" octave-continuation-marker-regexp
+          "\\)\\s-*\\(\\s<.*\\)?$"))
 (defcustom octave-continuation-string "\\"
   "Character string used for Octave continuation lines.  Normally \\."
   :type 'string
@@ -425,6 +422,143 @@ Non-nil means always go to the next Octave code line after sending."
   :group 'octave)
 
 
+;;; SMIE indentation
+
+(require 'smie)
+
+(defconst octave-operator-table
+  '((assoc ";" "\n") (assoc ",") ; The doc claims they have equal precedence!?
+    (right "=" "+=" "-=" "*=" "/=")
+    (assoc "&&") (assoc "||") ; The doc claims they have equal precedence!?
+    (assoc "&") (assoc "|")   ; The doc claims they have equal precedence!?
+    (nonassoc "<" "<=" "==" ">=" ">" "!=" "~=")
+    (nonassoc ":")                      ;No idea what this is.
+    (assoc "+" "-")
+    (assoc "*" "/" "\\" ".\\" ".*" "./")
+    (nonassoc "'" ".'")
+    (nonassoc "++" "--" "!" "~")        ;And unary "+" and "-".
+    (right "^" "**" ".^" ".**")
+    ;; It's not really an operator, but for indentation purposes it
+    ;; could be convenient to treat it as one.
+    (assoc "...")))
+
+(defconst octave-smie-op-levels
+  (smie-prec2-levels
+   (smie-merge-prec2s
+    (smie-bnf-precedence-table
+     '((atom)
+       ;; We can't distinguish the first element in a sequence with
+       ;; precedence grammars, so we can't distinguish the condition
+       ;; if the `if' from the subsequent body, for example.
+       ;; This has to be done later in the indentation rules.
+       (exp (exp "\n" exp)
+            ;; We need to mention at least one of the operators in this part
+            ;; of the grammar: if the BNF and the operator table have
+            ;; no overlap, SMIE can't know how they relate.
+            (exp ";" exp)
+            ("try" exp "catch" exp "end_try_catch")
+            ("try" exp "catch" exp "end")
+            ("unwind_protect" exp
+             "unwind_protect_cleanup" exp "end_unwind_protect")
+            ("unwind_protect" exp "unwind_protect_cleanup" exp "end")
+            ("for" exp "endfor")
+            ("for" exp "end")
+            ("do" exp "until" atom)
+            ("while" exp "endwhile")
+            ("while" exp "end")
+            ("if" exp "endif")
+            ("if" exp "else" exp "endif")
+            ("if" exp "elseif" exp "else" exp "endif")
+            ("if" exp "elseif" exp "elseif" exp "else" exp "endif")
+            ("if" exp "elseif" exp "elseif" exp "else" exp "end")
+            ("switch" exp "case" exp "endswitch")
+            ("switch" exp "case" exp "otherwise" exp "endswitch")
+            ("switch" exp "case" exp "case" exp "otherwise" exp "endswitch")
+            ("switch" exp "case" exp "case" exp "otherwise" exp "end")
+            ("function" exp "endfunction")
+            ("function" exp "end"))
+       ;; (fundesc (atom "=" atom))
+       )
+     '((assoc "\n" ";")))
+
+    (smie-precs-precedence-table
+     (append octave-operator-table
+             '((nonassoc " -dummy- "))) ;Bogus anchor at the end.
+     ))))
+
+;; Tokenizing needs to be refined so that ";;" is treated as two
+;; tokens and also so as to recognize the \n separator (and
+;; corresponding continuation lines).
+
+(defconst octave-operator-regexp
+  (regexp-opt (apply 'append (mapcar 'cdr octave-operator-table))))
+
+(defun octave-smie-backward-token ()
+  (let ((pos (point)))
+    (forward-comment (- (point)))
+    (cond
+     ((and (not (eq (char-before) ?\;)) ;Coalesce ";" and "\n".
+           (> pos (line-end-position))
+           (if (looking-back octave-continuation-marker-regexp (- (point) 3))
+               (progn
+                 (goto-char (match-beginning 0))
+                 (forward-comment (- (point)))
+                 nil)
+             t)
+           ;; Ignore it if it's within parentheses.
+           (let ((ppss (syntax-ppss)))
+             (not (and (nth 1 ppss)
+                       (eq ?\( (char-after (nth 1 ppss)))))))
+      (skip-chars-forward " \t")
+      ;; Why bother distinguishing \n and ;?
+      ";") ;;"\n"
+     ((and (looking-back octave-operator-regexp (- (point) 3) 'greedy)
+           ;; Don't mistake a string quote for a transpose.
+           (not (looking-back "\\s\"" (1- (point)))))
+      (goto-char (match-beginning 0))
+      (match-string-no-properties 0))
+     (t
+      (smie-default-backward-token)))))
+
+(defun octave-smie-forward-token ()
+  (skip-chars-forward " \t")
+  (when (looking-at (eval-when-compile
+                      (concat "\\(" octave-continuation-marker-regexp
+                              "\\)[ \t]*\\($\\|[%#]\\)")))
+    (goto-char (match-end 1))
+    (forward-comment 1))
+  (cond
+   ((and (looking-at "$\\|[%#]")
+         ;; Ignore it if it's within parentheses.
+         (prog1 (let ((ppss (syntax-ppss)))
+                  (not (and (nth 1 ppss)
+                            (eq ?\( (char-after (nth 1 ppss))))))
+           (forward-comment (point-max))))
+    ;; Why bother distinguishing \n and ;?
+    ";") ;;"\n"
+   ((looking-at ";[ \t]*\\($\\|[%#]\\)")
+    ;; Combine the ; with the subsequent \n.
+    (goto-char (match-beginning 1))
+    (forward-comment 1)
+    ";")
+   ((and (looking-at octave-operator-regexp)
+         ;; Don't mistake a string quote for a transpose.
+         (not (looking-at "\\s\"")))
+    (goto-char (match-end 0))
+    (match-string-no-properties 0))
+   (t
+    (smie-default-forward-token))))
+
+(defconst octave-smie-indent-rules
+  '((";"
+     (:parent ("function" "if" "while" "else" "elseif" "for" "otherwise"
+               "case" "try" "catch" "unwind_protect" "unwind_protect_cleanup")
+      ;; FIXME: don't hardcode 2.
+      (+ parent octave-block-offset))
+     ;; (:parent "switch" 4) ;For (invalid) code between switch and case.
+     0)
+    ((:before . "case") octave-block-offset)))
+
 ;;;###autoload
 (define-derived-mode octave-mode prog-mode "Octave"
   "Major mode for editing Octave code.
@@ -511,7 +645,17 @@ already added.  You just need to add a description of the problem,
 including a reproducible test case and send the message."
   (setq local-abbrev-table octave-abbrev-table)
 
-  (set (make-local-variable 'indent-line-function) 'octave-indent-line)
+  (smie-setup octave-smie-op-levels octave-smie-indent-rules)
+  (set (make-local-variable 'smie-indent-basic) 'octave-block-offset)
+  (set (make-local-variable 'smie-backward-token-function)
+       'octave-smie-backward-token)
+  (set (make-local-variable 'smie-forward-token-function)
+       'octave-smie-forward-token)
+  (set (make-local-variable 'forward-sexp-function)
+       'smie-forward-sexp-command)
+  (set (make-local-variable 'smie-closer-alist)
+       (mapcar (lambda (elem) (cons (car elem) (car (last elem))))
+               octave-block-match-alist))
 
   (set (make-local-variable 'comment-start) octave-comment-start)
   (set (make-local-variable 'comment-end) "")
@@ -923,29 +1067,6 @@ The block marked is the one that contains point or follows point."
 	  (exchange-point-and-mark))
       (goto-char pos)
       (message "No block to mark found"))))
-
-(defun octave-close-block ()
-  "Close the current Octave block on a separate line.
-An error is signaled if no block to close is found."
-  (interactive)
-  (let (bb-keyword)
-    (condition-case nil
-	(progn
-	  (save-excursion
-	    (octave-backward-up-block 1)
-	    (setq bb-keyword (buffer-substring-no-properties
-			      (match-beginning 1) (match-end 1))))
-	  (if (save-excursion
-		(beginning-of-line)
-		(looking-at "^\\s-*$"))
-	      (indent-according-to-mode)
-	    (octave-reindent-then-newline-and-indent))
-	  (insert (car (reverse
-			(assoc bb-keyword
-			       octave-block-match-alist))))
-	  (octave-reindent-then-newline-and-indent)
-	  t)
-      (error (message "No block to close found")))))
 
 (defun octave-blink-matching-block-open ()
   "Blink the matching Octave begin block keyword.

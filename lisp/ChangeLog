@@ -1,3 +1,16 @@
+2010-08-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/octave-mod.el (octave-font-lock-keywords): Use regexp-opt.
+	(octave-mode-map): Remove special bindings for forward/backward-block
+	and octave-backward-up-block.  Use smie-close-block.
+	(octave-continuation-marker-regexp): New var.
+	(octave-continuation-regexp): Use it.
+	(octave-operator-table, octave-smie-op-levels)
+	(octave-operator-regexp, octave-smie-indent-rules): New vars.
+	(octave-smie-backward-token, octave-smie-forward-token): New funs.
+	(octave-mode): Use SMIE.
+	(octave-close-block): Delete.
+
 2010-08-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* menu-bar.el (menu-bar-edit-menu) <"Paste">: Check selection in

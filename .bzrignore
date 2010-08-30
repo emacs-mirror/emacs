@@ -71,3 +71,4 @@ src/gdb.ini
 src/prefix-args*
 src/stamp-oldxmenu
 src/temacs
+test/indent/*.new
