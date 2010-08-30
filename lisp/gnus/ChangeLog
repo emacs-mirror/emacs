@@ -1,3 +1,8 @@
+2010-08-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-group-completing-read): Add 'substring to
+	completion-styles for group selection.
+
 2009-02-04  Andreas Schwab  <schwab@suse.de>
 
 	* gnus-score.el (gnus-score-string): Fix regex for matching extra

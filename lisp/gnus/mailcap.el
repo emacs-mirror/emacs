@@ -335,7 +335,7 @@ nil means your home directory."
   :group 'mailcap)
 
 (defvar mailcap-poor-system-types
-  '(ms-dos ms-windows windows-nt win32 w32 mswindows)
+  '(ms-dos windows-nt)
   "Systems that don't have a Unix-like directory hierarchy.")
 
 ;;;

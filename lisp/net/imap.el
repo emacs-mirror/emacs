@@ -267,7 +267,7 @@ See also `imap-log'."
   :type 'string)
 
 (defcustom imap-read-timeout (if (string-match
-				  "windows-nt\\|os/2\\|emx\\|cygwin"
+				  "windows-nt\\|os/2\\|cygwin"
 				  (symbol-name system-type))
 				 1.0
 			       0.1)

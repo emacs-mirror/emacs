@@ -2202,7 +2202,9 @@ be permanent."
 The arguments are the same as `completing-read' except that COLLECTION
 and HIST default to `gnus-active-hashtb' and `gnus-group-history'
 respectively if they are omitted."
-  (let (group)
+  (let ((completion-styles completion-styles)
+	group)
+    (push 'substring completion-styles)
     (mapatoms (lambda (symbol)
 		(setq group (symbol-name symbol))
 		(set (intern (if (string-match "[^\000-\177]" group)
