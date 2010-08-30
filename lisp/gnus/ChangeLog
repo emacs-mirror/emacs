@@ -1,3 +1,7 @@
+2010-08-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-html.el: Start a new super-simple HTML renderer based on w3m.
+
 2010-08-28  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.el (gnus-valid-select-methods): Remove reference to nngoogle,
