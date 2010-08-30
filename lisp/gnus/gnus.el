@@ -7,6 +7,7 @@
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news, mail
+;; Version: 5.13
 
 ;; This file is part of GNU Emacs.
 

@@ -1093,9 +1093,7 @@ The following commands are accepted by the client:
     (condition-case err
         (let* ((buffers
                 (when files
-                  (run-hooks 'pre-command-hook)
-                  (prog1 (server-visit-files files proc nowait)
-                    (run-hooks 'post-command-hook)))))
+                  (server-visit-files files proc nowait))))
 
           (mapc 'funcall (nreverse commands))
 
@@ -1166,8 +1164,13 @@ so don't mark these buffers specially, just visit them normally."
 	       (obuf (get-file-buffer filen)))
 	  (add-to-history 'file-name-history filen)
 	  (if (null obuf)
-              (set-buffer (find-file-noselect filen))
+	      (progn
+		(run-hooks 'pre-command-hook)  
+		(set-buffer (find-file-noselect filen)))
             (set-buffer obuf)
+	    ;; separately for each file, in sync with post-command hooks,
+	    ;; with the new buffer current:
+	    (run-hooks 'pre-command-hook)  
             (cond ((file-exists-p filen)
                    (when (not (verify-visited-file-modtime obuf))
                      (revert-buffer t nil)))
@@ -1179,7 +1182,9 @@ so don't mark these buffers specially, just visit them normally."
             (unless server-buffer-clients
               (setq server-existing-buffer t)))
           (server-goto-line-column (cdr file))
-          (run-hooks 'server-visit-hook))
+          (run-hooks 'server-visit-hook)
+	  ;; hooks may be specific to current buffer:
+	  (run-hooks 'post-command-hook)) 
 	(unless nowait
 	  ;; When the buffer is killed, inform the clients.
 	  (add-hook 'kill-buffer-hook 'server-kill-buffer nil t)

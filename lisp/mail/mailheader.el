@@ -5,6 +5,7 @@
 
 ;; Author: Erik Naggum <erik@naggum.no>
 ;; Keywords: tools, mail, news
+;; Package: mail-utils
 
 ;; This file is part of GNU Emacs.
 

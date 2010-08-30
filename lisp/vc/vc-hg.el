@@ -4,6 +4,7 @@
 
 ;; Author: Ivan Kanis
 ;; Keywords: vc tools
+;; Package: vc
 
 ;; This file is part of GNU Emacs.
 

@@ -6,6 +6,7 @@
 ;; Author: Joe Wells <jbw@bigbird.bu.edu>
 ;;	Daniel Pfeiffer <occitan@esperanto.org> (rewrite)
 ;; Keywords: help
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

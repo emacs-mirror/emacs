@@ -9848,12 +9848,14 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 	;;;!!!Why is this necessary?
 	(set-buffer gnus-summary-buffer)
 
-	(gnus-summary-goto-subject article)
 	(when (eq action 'move)
-	  (gnus-summary-mark-article article gnus-canceled-mark))))
+	  (save-excursion
+	    (gnus-summary-goto-subject article)
+	    (gnus-summary-mark-article article gnus-canceled-mark)))))
       (push article articles-to-update-marks))
 
-    (apply 'gnus-summary-remove-process-mark articles-to-update-marks)
+    (save-excursion
+      (apply 'gnus-summary-remove-process-mark articles-to-update-marks))
     ;; Re-activate all groups that have been moved to.
     (with-current-buffer gnus-group-buffer
       (let ((gnus-group-marked to-groups))
@@ -10109,19 +10111,20 @@ confirmation before the articles are deleted."
       ;; Delete the articles.
       (setq not-deleted (gnus-request-expire-articles
 			 articles gnus-newsgroup-name 'force))
-      (while articles
-	(gnus-summary-remove-process-mark (car articles))
-	;; The backend might not have been able to delete the article
-	;; after all.
-	(unless (memq (car articles) not-deleted)
-	  (gnus-summary-mark-article (car articles) gnus-canceled-mark))
-	(let* ((article (car articles))
-	       (ghead  (gnus-data-header
-				    (assoc article (gnus-data-list nil)))))
-	  (run-hook-with-args 'gnus-summary-article-delete-hook
-			      'delete ghead gnus-newsgroup-name nil
-			      nil))
-	(setq articles (cdr articles)))
+      (save-excursion
+	(while articles
+	  (gnus-summary-remove-process-mark (car articles))
+	  ;; The backend might not have been able to delete the article
+	  ;; after all.
+	  (unless (memq (car articles) not-deleted)
+	    (gnus-summary-mark-article (car articles) gnus-canceled-mark))
+	  (let* ((article (car articles))
+		 (ghead  (gnus-data-header
+			  (assoc article (gnus-data-list nil)))))
+	    (run-hook-with-args 'gnus-summary-article-delete-hook
+				'delete ghead gnus-newsgroup-name nil
+				nil))
+	  (setq articles (cdr articles))))
       (when not-deleted
 	(gnus-message 4 "Couldn't delete articles %s" not-deleted)))
     (gnus-summary-position-point)

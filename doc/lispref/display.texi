@@ -3214,7 +3214,9 @@ width from the window's frame.
   The values of these variables take effect when you display the
 buffer in a window.  If you change them while the buffer is visible,
 you can call @code{set-window-buffer} to display it once again in the
-same window, to make the changes take effect.
+same window, to make the changes take effect.  A buffer that does not
+specify values for these variables will use the default values
+specified for the frame; see @ref{Layout Parameters}.
 
 @defun set-window-fringes window left &optional right outside-margins
 This function sets the fringe widths of window @var{window}.

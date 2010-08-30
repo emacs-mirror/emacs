@@ -5,6 +5,7 @@
 
 ;; Author:   Dan Nicolaescu <dann@ics.uci.edu>
 ;; Keywords: vc tools
+;; Package: vc
 
 ;; This file is part of GNU Emacs.
 

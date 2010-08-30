@@ -4,6 +4,7 @@
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: codegeneration
+;; Version: 1.0pre7
 
 ;; This file is part of GNU Emacs.
 

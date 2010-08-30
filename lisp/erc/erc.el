@@ -12,6 +12,7 @@
 ;;               David Edmondson (dme@dme.org)
 ;; Maintainer: Michael Olson (mwolson@gnu.org)
 ;; Keywords: IRC, chat, client, Internet
+;; Version: 5.3
 
 ;; This file is part of GNU Emacs.
 

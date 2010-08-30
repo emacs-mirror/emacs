@@ -9,6 +9,7 @@
 ;; Created:     17. June 2003
 ;; Keywords:    News, RSS, Atom
 ;; Time-stamp:  "6. Dezember 2009, 19:15:18 (ulf)"
+;; Version:     1.99
 
 ;; ======================================================================
 

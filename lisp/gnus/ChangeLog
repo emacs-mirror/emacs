@@ -1,3 +1,9 @@
+2010-08-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-move-article, gnus-summary-delete-article):
+	Save excursion while copying, moving, and deleting articles in order to
+	prevent the cursor from jumping to unforeseen place.
+
 2010-08-17  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-sync.el: Require gnus components whose functions are used.

@@ -7,6 +7,7 @@
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
 ;; Keywords: calendar
 ;; Human-Keywords: Chinese calendar, calendar, holidays, diary
+;; Package: calendar
 
 ;; This file is part of GNU Emacs.
 

@@ -6,6 +6,7 @@
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Maintainer: Kim F. Storm <storm@cua.dk>
 ;; Keywords: maint
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

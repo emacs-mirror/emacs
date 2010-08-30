@@ -2207,10 +2207,9 @@ STRING	     This is ignored for the purposes of calculating
       ;; Note: setting result to t means we are done and will return nil.
       ;;(This function never returns just t.)
       (cond
-       ((or (and (boundp 'font-lock-string-face) (not (bobp))
-		 (eq (get-text-property (1- (point)) 'face)
-		     font-lock-string-face))
+       ((or (nth 3 (syntax-ppss (point)))
 	    (eq (get-text-property (point) 'face) sh-heredoc-face))
+	;; String continuation -- don't indent
 	(setq result t)
 	(setq have-result t))
        ((looking-at "\\s-*#")		; was (equal this-kw "#")

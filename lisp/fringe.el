@@ -6,6 +6,7 @@
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Maintainer: FSF
 ;; Keywords: frames
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

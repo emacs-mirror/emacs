@@ -7,6 +7,7 @@
 ;; Maintainer: FSF
 ;; Keywords: files
 ;; Created: 15 May 86
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

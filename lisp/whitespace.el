@@ -529,6 +529,8 @@ cleanning up a buffer.  See `whitespace-cleanup' and
 See also `whitespace-display-mappings' for documentation."
   :type '(repeat :tag "Kind of Blank"
 		 (choice :tag "Kind of Blank Face"
+			 (const :tag "(Face) Face visualization"
+				face)
 			 (const :tag "(Face) Trailing TABs, SPACEs and HARD SPACEs"
 				trailing)
 			 (const :tag "(Face) SPACEs and HARD SPACEs"

@@ -6,8 +6,8 @@
 ;;             2002- Martin Stjernholm
 ;; Maintainer: bug-cc-mode@gnu.org
 ;; Created:    07-Jan-2002
-;; Version:    See cc-mode.el
-;; Keywords:   c languages oop
+;; Keywords:   c languages
+;; Package:    cc-mode
 
 ;; This file is part of GNU Emacs.
 

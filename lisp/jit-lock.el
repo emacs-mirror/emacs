@@ -5,6 +5,7 @@
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Keywords: faces files
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

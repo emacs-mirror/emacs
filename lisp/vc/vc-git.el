@@ -4,6 +4,7 @@
 
 ;; Author: Alexandre Julliard <julliard@winehq.org>
 ;; Keywords: vc tools
+;; Package: vc
 
 ;; This file is part of GNU Emacs.
 

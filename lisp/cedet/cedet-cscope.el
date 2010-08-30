@@ -3,6 +3,7 @@
 ;;; Copyright (C) 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
+;; Package: cedet
 
 ;; This file is part of GNU Emacs.
 

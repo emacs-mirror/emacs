@@ -5,7 +5,7 @@
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: Eric M. Ludlam  <zappo@gnu.org>
-;; Version: 0.2
+;; Version: 1.0pre7
 ;; Keywords: OO, lisp
 
 ;; This file is part of GNU Emacs.

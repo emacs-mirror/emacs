@@ -1,3 +1,7 @@
+2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* sedleim.inp (RUN-EMACS): Don't use --multibyte.
+
 2010-08-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* sed1v2.inp (IMAGEMAGICK_LIBS, IMAGEMAGICK_CFLAGS): Edit to empty.
