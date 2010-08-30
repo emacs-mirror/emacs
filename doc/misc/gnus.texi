@@ -6043,6 +6043,11 @@ threads.
 This variable can also be a number.  In that case, center the window at
 the given number of lines from the top.
 
+@item gnus-summary-stop-at-end-of-message
+@vindex gnus-summary-stop-at-end-of-message
+If non-@code{nil}, don't go to the next article when hitting
+@kbd{SPC}, and you're at the end of the article.
+
 @end table
 
 
@@ -8270,6 +8275,16 @@ than 100 lines, you could say something like:
 These functions will be called many, many times, so they should
 preferably be short and sweet to avoid slowing down Gnus too much.
 It's probably a good idea to byte-compile things like this.
+
+@vindex gnus-async-post-fetch-function
+@findex gnus-html-prefetch-images
+After an article has been prefetched, this
+@code{gnus-async-post-fetch-function} will be called.  The buffer will
+be narrowed to the region of the article that was fetched.  A useful
+value would be @code{gnus-html-prefetch-images}, which will prefetch
+and store images referenced in the article, so that you don't have to
+wait for them to be fetched when you read the article.  This is useful
+for @acronym{HTML} messages that have external images.
 
 @vindex gnus-prefetched-article-deletion-strategy
 Articles have to be removed from the asynch buffer sooner or later.  The
@@ -12186,6 +12201,7 @@ tell Gnus otherwise.
 @menu
 * Hiding Headers::              Deciding what headers should be displayed.
 * Using MIME::                  Pushing articles through @acronym{MIME} before reading them.
+* HTML::                        Reading @acronym{HTML} messages.
 * Customizing Articles::        Tailoring the look of the articles.
 * Article Keymap::              Keystrokes available in the article buffer.
 * Misc Article::                Other stuff.
@@ -12480,6 +12496,48 @@ to look at you disdainfully, and you'll feel rather stupid.)
 Any similarity to real events and people is purely coincidental.  Ahem.
 
 Also @pxref{MIME Commands}.
+
+
+@node HTML
+@section @acronym{HTML}
+@cindex @acronym{HTML}
+
+If you have @code{w3m} installed on your system, Gnus can display
+@acronym{HTML} articles in the article buffer.  There are many Gnus
+add-ons for doing this, using various approaches, but there's one
+(sort of) built-in method that's used by default.
+
+For a complete overview, consult @xref{Display Customization,
+,Display Customization, emacs-mime, The Emacs MIME Manual}.  This
+section only describes the default method.
+
+@table @code
+@item mm-text-html-renderer
+@vindex mm-text-html-renderer
+If set to @code{gnus-article-html}, Gnus will use the built-in method,
+that's based on @code{curl} and @code{w3m}.
+
+@item gnus-html-cache-directory
+@vindex gnus-html-cache-directory
+Gnus will download and cache images according to how
+@code{mm-w3m-safe-url-regexp} is set.  These images will be stored in
+this directory.
+
+@item gnus-html-cache-size
+@vindex gnus-html-cache-size
+When @code{gnus-html-cache-size} bytes have been used in that
+directory, the oldest files will be deleted.  The default is 500MB.
+
+@item gnus-html-frame-width
+@vindex gnus-html-frame-width
+The width to use when rendering HTML.  The default is 70.
+
+@end table
+
+To use this, make sure that you have @code{w3m} and @code{curl}
+installed.  If you have, then Gnus should display @acronym{HTML}
+automatically. 
+
 
 
 @node Customizing Articles
