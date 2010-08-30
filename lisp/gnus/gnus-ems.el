@@ -278,7 +278,7 @@
   (let ((point (or point (point))))
     (save-excursion
       (goto-char point)
-      (put-image glyph point)
+      (insert-image glyph (or string " "))
       (put-text-property point (point) 'gnus-image-category category)
       (unless string
 	(put-text-property (1- (point)) (point)

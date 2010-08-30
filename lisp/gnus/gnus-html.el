@@ -157,7 +157,7 @@
 	  (set-buffer buffer)
 	  (let ((buffer-read-only nil))
 	    (when (gnus-html-put-image file (cadr spec))
-	      (delete-region (cadr spec) (caddr spec))))))
+	      (delete-region (1+ (cadr spec)) (caddr spec))))))
       (when images
 	(gnus-html-schedule-image-fetching buffer images)))))
 
