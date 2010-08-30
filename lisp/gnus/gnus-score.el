@@ -2055,8 +2055,11 @@ score in `gnus-newsgroup-scored' by SCORE."
 
 	  ;; Evil hackery to make match usable in non-standard headers.
 	  (when extra
-	    (setq match (concat "[ (](" extra " \\. \"[^)]*"
-				match "[^\"]*\")[ )]")
+	    (setq match (concat "[ (](" extra " \\. \"\\([^\"]*\\\\\"\\)*[^\"]*"
+				(if (eq search-func 're-search-forward)
+				    match
+				  (regexp-quote match))
+				"\\([^\"]*\\\\\"\\)*[^\"]*\")[ )]")
 		  search-func 're-search-forward)) ; XXX danger?!?
 
 	  (cond

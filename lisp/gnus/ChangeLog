@@ -1,3 +1,8 @@
+2009-02-04  Andreas Schwab  <schwab@suse.de>
+
+	* gnus-score.el (gnus-score-string): Fix regex for matching extra
+	headers and regexp-quote the match if necessary.
+
 2009-03-24  Miles Bader  <miles@gnu.org>
 
 	* smiley.el (smiley-regexp-alist): Don't delete the semicolon before
