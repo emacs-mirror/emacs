@@ -1,3 +1,29 @@
+2010-08-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Use `declare' in defmacros.
+	* window.el (save-selected-window):
+	* subr.el (with-temp-file, with-temp-message, with-syntax-table):
+	* progmodes/python.el (def-python-skeleton):
+	* net/dbus.el (dbus-ignore-errors):
+	* jka-cmpr-hook.el (with-auto-compression-mode):
+	* international/mule.el (with-category-table):
+	* emacs-lisp/timer.el (with-timeout):
+	* emacs-lisp/lisp-mnt.el (lm-with-file):
+	* emacs-lisp/eieio.el (with-slots):
+	* emacs-lisp/easymenu.el (easy-menu-define):
+	* emacs-lisp/debug.el (debugger-env-macro):
+	* emacs-lisp/cl-compat.el (Multiple-value-bind, Multiple-value-setq)
+	(Multiple-value-call, Multiple-value-prog1):
+	* emacs-lisp/cl-seq.el (cl-parsing-keywords, cl-check-key)
+	(cl-check-test-nokey, cl-check-test, cl-check-match): Move indent and
+	edebug rule to definition.
+	* emacs-lisp/lisp-mode.el (save-selected-window)
+	(with-current-buffer, combine-after-change-calls)
+	(with-output-to-string, with-temp-file, with-temp-buffer)
+	(with-temp-message, with-syntax-table, read-if, eval-after-load)
+	(dolist, dotimes, when, unless):
+	* emacs-lisp/byte-run.el (inline): Remove indent rule, redundant.
+
 2010-08-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* finder.el: Require `package'.
@@ -7,8 +33,8 @@
 	(finder-compile-keywords): Compute package--builtins and
 	finder-keywords-hash instead of finder-keywords-hash, respecting
 	the "Package" header.
-	(finder-unknown-keywords, finder-list-matches): Use
-	finder-keywords-hash and package--list-packages.
+	(finder-unknown-keywords, finder-list-matches):
+	Use finder-keywords-hash and package--list-packages.
 	(finder-mode): Don't set font-lock-defaults.
 	(finder-exit): We don't use "*Finder-package*" and "*Finder
 	Category*" buffers anymore.

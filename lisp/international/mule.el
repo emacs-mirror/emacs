@@ -2297,13 +2297,12 @@ It returns the number of characters changed."
 	(setq table val)))
   (translate-region-internal start end table))
 
-(put 'with-category-table 'lisp-indent-function 1)
-
 (defmacro with-category-table (table &rest body)
   "Execute BODY like `progn' with TABLE the current category table.
 The category table of the current buffer is saved, BODY is evaluated,
 then the saved table is restored, even in case of an abnormal exit.
 Value is what BODY returns."
+  (declare (indent 1) (debug t))
   (let ((old-table (make-symbol "old-table"))
 	(old-buffer (make-symbol "old-buffer")))
     `(let ((,old-table (category-table))

@@ -514,9 +514,9 @@ Applies to the frame whose line point is on in the backtrace."
 	(insert ? )))
   (beginning-of-line))
 
-(put 'debugger-env-macro 'lisp-indent-function 0)
 (defmacro debugger-env-macro (&rest body)
   "Run BODY in original environment."
+  (declare (indent 0))
   `(save-excursion
     (if (null (buffer-name debugger-old-buffer))
         ;; old buffer deleted
