@@ -154,6 +154,9 @@ FORMS may use backtick quote syntax."
      ;; We are on a boundary, so we create a new action.
      (gnus-undo-boundary
       (push (list function) gnus-undo-actions)
+      ;; Don't let the undo actions grow infinitely.
+      (when (> (length gnus-undo-actions) 100)
+	(setcdr (nthcdr 100 gnus-undo-actions) nil))
       (setq gnus-undo-boundary nil))
      ;; Prepend the function to an old action.
      (gnus-undo-actions

@@ -1,5 +1,8 @@
 2010-08-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-undo.el (gnus-undo-register-1): Limit the undo actions to 100
+	actions.
+
 	* gnus-group.el (gnus-group-completing-read): Protect against not
 	having completion-styles bound.
 
