@@ -1,3 +1,8 @@
+2010-08-29  Tim Landscheidt  <tim@tim-landscheidt.de>  (tiny change)
+
+	* gnus.texi (Delayed Articles): Mention that the Date header is the
+	original one, even if you delay.
+
 2010-08-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.texi (Asynchronous Fetching): Document
