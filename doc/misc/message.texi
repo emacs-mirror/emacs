@@ -1645,7 +1645,8 @@ the problem will actually occur.
 @cindex split large message
 The limitation of messages sent as message/partial.  The lower bound
 of message size in characters, beyond which the message should be sent
-in several parts.  If it is @code{nil}, the size is unlimited.
+in several parts.  If it is @code{nil} (which is the default), the
+size is unlimited.
 
 @end table
 

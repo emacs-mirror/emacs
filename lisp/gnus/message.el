@@ -1620,7 +1620,7 @@ If you'd like to make it possible to share draft files between XEmacs
 and Emacs, you may use `iso-2022-7bit' for this value at your own risk.
 Note that the coding-system `iso-2022-7bit' isn't suitable to all data.")
 
-(defcustom message-send-mail-partially-limit 1000000
+(defcustom message-send-mail-partially-limit nil
   "The limitation of messages sent as message/partial.
 The lower bound of message size in characters, beyond which the message
 should be sent in several parts.  If it is nil, the size is unlimited."
@@ -1739,6 +1739,7 @@ You must have the \"hashcash\" binary installed, see `hashcash-path'."
 (defvar message-mime-part nil)
 (defvar message-posting-charset nil)
 (defvar message-inserted-headers nil)
+(defvar message-inhibit-ecomplete nil)
 
 ;; Byte-compiler warning
 (defvar gnus-active-hashtb)
@@ -4091,7 +4092,8 @@ It should typically alter the sending method in some way or other."
 	(run-hooks 'message-sent-hook))
       (message "Sending...done")
       ;; Do ecomplete address snarfing.
-      (when (message-mail-alias-type-p 'ecomplete)
+      (when (and (message-mail-alias-type-p 'ecomplete)
+		 (not message-inhibit-ecomplete))
 	(message-put-addresses-in-ecomplete))
       ;; Mark the buffer as unmodified and delete auto-save.
       (set-buffer-modified-p nil)
@@ -7425,6 +7427,7 @@ is for the internal use."
 	(replace-match "X-From-Line: "))
       ;; Send it.
       (let ((message-inhibit-body-encoding t)
+	    (message-inhibit-ecomplete t)
 	    message-required-mail-headers
 	    message-generate-hashcash
 	    rfc2047-encode-encoded-words)

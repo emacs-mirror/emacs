@@ -869,6 +869,8 @@ prompt the user for the name of an NNTP server to use."
 (defun gnus-dribble-read-file ()
   "Read the dribble file from disk."
   (let ((dribble-file (gnus-dribble-file-name)))
+    (unless (file-exists-p (file-name-directory dribble-file))
+      (make-directory (file-name-directory dribble-file) t))
     (save-excursion
       (set-buffer (setq gnus-dribble-buffer
 			(gnus-get-buffer-create

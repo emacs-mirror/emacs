@@ -102,7 +102,8 @@ is nil, use `smiley-style'."
 
 ;; The XEmacs version has a baroque, if not rococo, set of these.
 (defcustom smiley-regexp-alist
-  '(("\\(;-?)\\)\\W" 1 "blink")
+  '(("\\(;-)\\)\\W" 1 "blink")
+    ("[^;]\\(;)\\)\\W" 1 "blink")
     ("\\(:-]\\)\\W" 1 "forced")
     ("\\(8-)\\)\\W" 1 "braindamaged")
     ("\\(:-|\\)\\W" 1 "indifferent")

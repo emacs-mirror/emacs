@@ -6283,18 +6283,22 @@ Argument LINES specifies lines to be scrolled up."
     (gnus-article-next-page-1 lines)
     nil))
 
-(defmacro gnus-article-beginning-of-window ()
+(defun gnus-article-beginning-of-window ()
   "Move point to the beginning of the window.
 In Emacs, the point is placed at the line number which `scroll-margin'
 specifies."
   (if (featurep 'xemacs)
-      '(move-to-window-line 0)
-    '(move-to-window-line
-      (min (max 0 scroll-margin)
-	   (max 1 (- (window-height)
-		     (if mode-line-format 1 0)
-		     (if header-line-format 1 0)
-		     2))))))
+      (move-to-window-line 0)
+    ;; There is an obscure bug in Emacs that makes it impossible to
+    ;; scroll past big pictures in the article buffer.  Try to fix
+    ;; this by adding a sanity check by counting the lines visible.
+    (when (> (count-lines (window-start) (window-end)) 30)
+      (move-to-window-line
+       (min (max 0 scroll-margin)
+	    (max 1 (- (window-height)
+		      (if mode-line-format 1 0)
+		      (if header-line-format 1 0)
+		      2)))))))
 
 (defun gnus-article-next-page-1 (lines)
   (unless (featurep 'xemacs)
@@ -7899,7 +7903,7 @@ url is put as the `gnus-button-url' overlay property on the button."
 
 ;;; External functions:
 
-(defun gnus-article-add-button (from to fun &optional data)
+(defun gnus-article-add-button (from to fun &optional data text)
   "Create a button between FROM and TO with callback FUN and data DATA."
   (when gnus-article-button-face
     (gnus-overlay-put (gnus-make-overlay from to nil t)
@@ -7911,6 +7915,7 @@ url is put as the `gnus-button-url' overlay property on the button."
 	  (list 'gnus-callback fun)
 	  (and data (list 'gnus-data data))))
   (widget-convert-button 'link from to :action 'gnus-widget-press-button
+			 :help-echo (or text "Follow the link")
 			 :button-keymap gnus-widget-button-keymap))
 
 ;;; Internal functions:
