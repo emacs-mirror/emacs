@@ -3026,8 +3026,6 @@ gnus-registry.el will populate this if it's loaded.")
       gnus-dup-enter-articles)
      ("gnus-range" gnus-copy-sequence)
      ("gnus-eform" gnus-edit-form)
-     ("gnus-move" :interactive t
-      gnus-group-move-group-to-server gnus-change-server)
      ("gnus-logic" gnus-score-advanced)
      ("gnus-undo" gnus-undo-mode gnus-undo-register)
      ("gnus-async" gnus-async-request-fetched-article gnus-async-prefetch-next

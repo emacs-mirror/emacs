@@ -1,5 +1,7 @@
 2010-08-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-move.el: Removed file, since it doesn't really work.
+
 	* gnus-html.el (gnus-article-html): Tell w3m that the input is
 	UTF-8. This seems to fix problems with some German web feeds.
 
