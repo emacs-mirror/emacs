@@ -10,6 +10,9 @@
 2010-08-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-html.el: require mm-url.
+	(gnus-html-wash-tags): Clarify the code a bit by renaming the variable
+	with the url to `url'.
+	(gnus-html-wash-tags): Support cid: URLs/images.
 
 2010-08-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 

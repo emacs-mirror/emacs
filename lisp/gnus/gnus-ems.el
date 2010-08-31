@@ -276,7 +276,7 @@
 
 (defun gnus-put-image (glyph &optional string category)
   (let ((point (point)))
-    (insert-image glyph (or string " "))
+    (insert-image glyph (or string "*"))
     (put-text-property point (point) 'gnus-image-category category)
     (unless string
       (put-text-property (1- (point)) (point)
