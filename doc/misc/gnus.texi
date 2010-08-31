@@ -1384,31 +1384,11 @@ you have read is by keeping track of article numbers.  So when you
 change @code{gnus-select-method}, your @file{.newsrc} file becomes
 worthless.
 
-Gnus provides a few functions to attempt to translate a @file{.newsrc}
-file from one server to another.  They all have one thing in
-common---they take a looong time to run.  You don't want to use these
-functions more than absolutely necessary.
-
-@kindex M-x gnus-change-server
-@findex gnus-change-server
-If you have access to both servers, Gnus can request the headers for all
-the articles you have read and compare @code{Message-ID}s and map the
-article numbers of the read articles and article marks.  The @kbd{M-x
-gnus-change-server} command will do this for all your native groups.  It
-will prompt for the method you want to move to.
-
-@kindex M-x gnus-group-move-group-to-server
-@findex gnus-group-move-group-to-server
-You can also move individual groups with the @kbd{M-x
-gnus-group-move-group-to-server} command.  This is useful if you want to
-move a (foreign) group from one server to another.
-
 @kindex M-x gnus-group-clear-data-on-native-groups
 @findex gnus-group-clear-data-on-native-groups
-If you don't have access to both the old and new server, all your marks
-and read ranges have become worthless.  You can use the @kbd{M-x
-gnus-group-clear-data-on-native-groups} command to clear out all data
-that you have on your native groups.  Use with caution.
+You can use the @kbd{M-x gnus-group-clear-data-on-native-groups}
+command to clear out all data that you have on your native groups.
+Use with caution.
 
 @kindex M-x gnus-group-clear-data
 @findex gnus-group-clear-data

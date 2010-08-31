@@ -2,6 +2,8 @@
 
 	* gnus.texi (Summary Mail Commands): Note that only the addresses from
 	the first message are used for wide replies.
+	(Changing Servers): Remove documentation on gnus-change-server and
+	friends, since it's been removed.
 
 2010-08-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
