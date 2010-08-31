@@ -13,7 +13,6 @@
 ;; Keywords: wp, print, PostScript
 ;; Version: 7.3.5
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
-;; Package: ps-print
 
 (defconst ps-print-version "7.3.5"
   "ps-print.el, v 7.3.5 <2009/12/23 vinicius>
