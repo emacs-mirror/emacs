@@ -1,3 +1,31 @@
+2010-08-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package--read-archive-file): Just use
+	`read', to avoid copying an additional string.
+	(package-menu-mode): Set header-line-format here.
+	(package-menu-refresh, package-menu-revert): Signal an error if
+	not in the Package Menu.
+	(package-menu-package-list): New var.
+	(package--generate-package-list): Operate on the current buffer;
+	don't assume that it is *Packages*, since the user may rename it.
+	Allow persistent package listings and sort keys using
+	package-menu-package-list and package-menu-package-sort-key.
+	(package-menu--version-predicate): Fix version calculation.
+	(package-menu-sort-by-column): Don't select the window.
+	(package--list-packages): Create the *Packages* buffer.  Set
+	package-menu-package-list-key.
+	(list-packages): Sorting by status is now the default.
+	(package-buffer-info): Use match-string-no-properties.
+	(define-package): Add a &rest argument for future proofing, but
+	don't use it yet.
+	(package-install-from-buffer, package-install-buffer-internal):
+	Merged into a single function, package-install-from-buffer.
+	(package-install-file): Caller changed.
+
+	* finder.el: Load finder-inf using `require'.
+	(finder-list-matches): Sorting by status is now the default.
+	(finder-compile-keywords): Simpify printing.
+
 2010-08-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/octave-mod.el (octave-font-lock-keywords): Use regexp-opt.

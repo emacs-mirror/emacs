@@ -1,5 +1,23 @@
 2010-08-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-sum.el: As per discussion 3 years, 8 weeks, 3 days, 9 hours, 57
+	minutes, 56 seconds ago on the ding list, remove the `w' and `i'
+	bindings, as they aren't useful at all. `w' is moved to `W w'.
+
+	* gnus-move.el: Removed file, since it doesn't really work.
+
+	* gnus-html.el (gnus-article-html): Tell w3m that the input is
+	UTF-8. This seems to fix problems with some German web feeds.
+
+	* gnus.el (gnus-group-startup-message): Put the xpm version of the logo
+	at the top so that the proper colours are applied.
+
+	* gnus-art.el (gnus-article-view-part): Doc fix.
+
+	* gnus-html.el (gnus-html-put-image): Use gnus-create-image to be
+	XEmacs-compatible.
+	(gnus-html-put-image): Don't do images on non-graphic displays.
+
 	* nnslashdot.el: Removed this unused backend.
 
 	* gnus-undo.el (gnus-undo-register-1): Limit the undo actions to 100

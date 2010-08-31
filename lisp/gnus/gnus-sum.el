@@ -1859,7 +1859,6 @@ increase the score of each group you read."
   "=" gnus-summary-expand-window
   "\C-x\C-s" gnus-summary-reselect-current-group
   "\M-g" gnus-summary-rescan-group
-  "w" gnus-summary-stop-page-breaking
   "\C-c\C-r" gnus-summary-caesar-message
   "f" gnus-summary-followup
   "F" gnus-summary-followup-with-original
@@ -1881,7 +1880,6 @@ increase the score of each group you read."
   [follow-link] mouse-face
   "m" gnus-summary-mail-other-window
   "a" gnus-summary-post-news
-  "i" gnus-summary-news-other-window
   "x" gnus-summary-limit-to-unread
   "s" gnus-summary-isearch-article
   "t" gnus-summary-toggle-header

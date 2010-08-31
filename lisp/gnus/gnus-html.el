@@ -28,6 +28,8 @@
 
 ;;; Code:
 
+(require 'mm-url)
+
 (defcustom gnus-html-cache-directory (nnheader-concat gnus-directory "html-cache/")
   "Where Gnus will cache images it downloads from the web."
   :group 'gnus-art
@@ -59,8 +61,10 @@
 				 nil article-buffer nil
 				 "-halfdump"
 				 "-no-cookie"
+				 "-I" "UTF-8"
 				 "-O" "UTF-8"
 				 "-o" "ext_halfdump=1"
+				 "-o" "pre_conv=1"
 				 "-t" (format "%s" tab-width)
 				 "-cols" (format "%s" gnus-html-frame-width)
 				 "-o" "display_image=off"
@@ -162,21 +166,25 @@
 	(gnus-html-schedule-image-fetching buffer images)))))
 
 (defun gnus-html-put-image (file point)
-  (let ((image (ignore-errors
-		 (create-image file))))
-    (if (and image
-	     ;; Kludge to avoid displaying 30x30 gif images, which
-	     ;; seems to be a signal of a broken image.
-	     (not (and (eq (getf (cdr image) :type) 'gif)
-		       (= (car (image-size image t)) 30)
-		       (= (cdr (image-size image t)) 30))))
-	(progn
-	  (gnus-put-image image nil nil point)
-	  t)
-      (when (fboundp 'find-image)
-	(gnus-put-image (find-image '((:type xpm :file "lock-broken.xpm")))
-			nil nil point))
-      nil)))
+  (when (display-graphic-p)
+    (let ((image (ignore-errors
+		   (gnus-create-image file))))
+      (save-excursion
+	(goto-char point)
+	(if (and image
+		 ;; Kludge to avoid displaying 30x30 gif images, which
+		 ;; seems to be a signal of a broken image.
+		 (not (and (listp image)
+			   (eq (getf (cdr image) :type) 'gif)
+			   (= (car (image-size image t)) 30)
+			   (= (cdr (image-size image t)) 30))))
+	    (progn
+	      (gnus-put-image image)
+	      t)
+	  (when (fboundp 'find-image)
+	    (gnus-put-image (find-image
+			     '((:type xpm :file "lock-broken.xpm")))))
+	  nil)))))
 
 (defun gnus-html-prune-cache ()
   (let ((total-size 0)

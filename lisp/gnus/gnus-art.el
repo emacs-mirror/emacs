@@ -5549,7 +5549,9 @@ N is the numerical prefix."
     1))
 
 (defun gnus-article-view-part (&optional n)
-  "View MIME part N, which is the numerical prefix."
+  "View MIME part N, which is the numerical prefix.
+If the part is already shown, hide the part.  If N is nil, view
+all parts."
   (interactive "P")
   (with-current-buffer gnus-article-buffer
     (or (numberp n) (setq n (gnus-article-mime-match-handle-first

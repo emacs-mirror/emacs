@@ -13,6 +13,7 @@
 ;; Description: fallback code for colour name -> rgb mapping
 ;; URL: http://rtfm.etla.org/emacs/htmlfontify/
 ;; Last-Updated: Sat 2003-02-15 03:49:32 +0000
+;; Package: htmlfontify
 
 ;; This file is part of GNU Emacs.
 

@@ -1058,14 +1058,14 @@ be set in `.emacs' instead."
 				    (symbol-value 'image-load-path))
 				   (t load-path)))
 	    (image (find-image
-		    `((:type svg :file "gnus.svg")
-		      (:type png :file "gnus.png")
-		      (:type xpm :file "gnus.xpm"
+		    `((:type xpm :file "gnus.xpm"
 			     :color-symbols
 			     (("thing" . ,(car gnus-logo-colors))
 			      ("shadow" . ,(cadr gnus-logo-colors))
 			      ("oort" . "#eeeeee")
 			      ("background" . ,(face-background 'default))))
+		      (:type svg :file "gnus.svg")
+		      (:type png :file "gnus.png")
 		      (:type pbm :file "gnus.pbm"
 			     ;; Account for the pbm's blackground.
 			     :background ,(face-foreground 'gnus-splash)
@@ -3026,8 +3026,6 @@ gnus-registry.el will populate this if it's loaded.")
       gnus-dup-enter-articles)
      ("gnus-range" gnus-copy-sequence)
      ("gnus-eform" gnus-edit-form)
-     ("gnus-move" :interactive t
-      gnus-group-move-group-to-server gnus-change-server)
      ("gnus-logic" gnus-score-advanced)
      ("gnus-undo" gnus-undo-mode gnus-undo-register)
      ("gnus-async" gnus-async-request-fetched-article gnus-async-prefetch-next

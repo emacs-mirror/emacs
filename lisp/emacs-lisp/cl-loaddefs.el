@@ -754,7 +754,7 @@ surrounded by (block NAME ...).
 ;;;;;;  find nsubstitute-if-not nsubstitute-if nsubstitute substitute-if-not
 ;;;;;;  substitute-if substitute delete-duplicates remove-duplicates
 ;;;;;;  delete-if-not delete-if delete* remove-if-not remove-if remove*
-;;;;;;  replace fill reduce) "cl-seq" "cl-seq.el" "8f4ba525c894365101b9a53905db94ba")
+;;;;;;  replace fill reduce) "cl-seq" "cl-seq.el" "7b7531276ddf8457abecdd487d3cf0b7")
 ;;; Generated autoloads from cl-seq.el
 
 (autoload 'reduce "cl-seq" "\
