@@ -6399,8 +6399,6 @@ the posting style of the current group.  If given a prefix, disable that.
 If the prefix is 1, prompt for a group name to find the posting style.
 
 @item S i
-@itemx i
-@kindex i (Summary)
 @kindex S i (Summary)
 @findex gnus-summary-news-other-window
 Prepare a news (@code{gnus-summary-news-other-window}).  By default,

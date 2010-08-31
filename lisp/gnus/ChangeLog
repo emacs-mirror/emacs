@@ -1,5 +1,9 @@
 2010-08-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-sum.el: As per discussion 3 years, 8 weeks, 3 days, 9 hours, 57
+	minutes, 56 seconds ago on the ding list, remove the `w' and `i'
+	bindings, as they aren't useful at all. `w' is moved to `W w'.
+
 	* gnus-move.el: Removed file, since it doesn't really work.
 
 	* gnus-html.el (gnus-article-html): Tell w3m that the input is
