@@ -1694,7 +1694,7 @@ struct face_cache
    This macro is only meaningful for multibyte character CHAR.  */
 
 #define FACE_FOR_CHAR(F, FACE, CHAR, POS, OBJECT)	\
-  (ASCII_CHAR_P (CHAR)					\
+  ((ASCII_CHAR_P (CHAR) || CHAR_BYTE8_P (CHAR))		\
    ? (FACE)->ascii_face->id				\
    : face_for_char ((F), (FACE), (CHAR), (POS), (OBJECT)))
 
@@ -2131,9 +2131,11 @@ struct it
      composition.  */
   struct composition_it cmp_it;
 
-  /* The character to display, possibly translated to multibyte
-     if unibyte_display_via_language_environment is set.  This
-     is set after produce_glyphs has been called.  */
+  /* The character to display, possibly translated to multibyte if
+     multibyte_p is zero or unibyte_display_via_language_environment
+     is set.  This is set after get_next_display_element has been
+     called.  If we are setting it->C directly before calling
+     PRODUCE_GLYPHS, this should be set beforehand too.  */
   int char_to_display;
 
   /* If what == IT_IMAGE, the id of the image to display.  */

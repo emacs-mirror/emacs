@@ -1953,7 +1953,7 @@ See `set-language-info-alist' for use in programs."
 		     (> (aref (number-to-string (nth 2 (x-server-version))) 0)
 			?3))
 	  ;; Make non-line-break space display as a plain space.
-	  (aset standard-display-table 160 [32]))
+	  (aset standard-display-table (unibyte-char-to-multibyte 160) [32]))
 	;; Most Windows programs send out apostrophes as \222.  Most X fonts
 	;; don't contain a character at that position.  Map it to the ASCII
 	;; apostrophe.  [This is actually RIGHT SINGLE QUOTATION MARK,
@@ -1961,7 +1961,7 @@ See `set-language-info-alist' for use in programs."
 	;; fonts probably have the appropriate glyph at this position,
 	;; so they could use standard-display-8bit.  It's better to use a
 	;; proper windows-1252 coding system.  --fx]
-	(aset standard-display-table 146 [39]))))
+	(aset standard-display-table (unibyte-char-to-multibyte 146) [39]))))
 
 (defun set-language-environment-coding-systems (language-name)
   "Do various coding system setups for language environment LANGUAGE-NAME."
