@@ -1,5 +1,7 @@
 2010-08-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-art.el (gnus-article-view-part): Doc fix.
+
 	* gnus-html.el (gnus-html-put-image): Use gnus-create-image to be
 	XEmacs-compatible.
 	(gnus-html-put-image): Don't do images on non-graphic displays.
