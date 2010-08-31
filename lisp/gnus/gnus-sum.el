@@ -80,6 +80,7 @@ See `gnus-group-goto-unread'."
   "If non-nil, don't select the next message when using `SPC'."
   :link '(custom-manual "(gnus)Group Maneuvering")
   :group 'gnus-summary-maneuvering
+  :version "24.1"
   :type 'boolean)
 
 (defcustom gnus-fetch-old-headers nil
