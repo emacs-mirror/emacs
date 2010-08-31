@@ -1,3 +1,14 @@
+2010-08-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-prune-recipients): New function.
+	(message-prune-recipient-rules): New variable.
+
+	* gnus-cite.el (gnus-article-natural-long-line-p): New function to
+	guess whether a long line is natural text or not.
+
+	* gnus-html.el (gnus-html-schedule-image-fetching): Use
+	gnus-process-plist and friends for compatibility.
+
 2010-08-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* gnus-html.el: Require packages that define macros used in this file.
@@ -8,6 +19,9 @@
 	(gnus-html-prefetch-images): Use with-current-buffer.
 
 2010-08-31  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-ems.el: Provide compatibility functions for
+	gnus-set-process-plist.
 
 	* gnus-sum.el (gnus-summary-stop-at-end-of-message)
 	* gnus.el (gnus-valid-select-methods)

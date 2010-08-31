@@ -305,6 +305,27 @@
 	  (setq start end
 		end nil))))))
 
+(if (fboundp 'set-process-plist)
+    (progn
+      (defalias 'gnus-set-process-plist 'set-process-plist)
+      (defalias 'gnus-process-plist 'process-plist))
+  (defun gnus-set-process-plist (process plist)
+    "Replace the plist of PROCESS with PLIST.  Returns PLIST."
+    (put 'gnus-process-plist process plist))
+  (defun gnus-process-plist (process)
+    "Return the plist of PROCESS."
+    ;; Remove those of dead processes from `gnus-process-plist'
+    ;; to prevent it from growing.
+    (let ((plist (symbol-plist 'gnus-process-plist))
+	  proc)
+      (while (setq proc (car plist))
+	(if (and (processp proc)
+		 (memq (process-status proc) '(open run)))
+	    (setq plist (cddr plist))
+	  (setcar plist (caddr plist))
+	  (setcdr plist (or (cdddr plist) '(nil))))))
+    (get 'gnus-process-plist process)))
+
 (provide 'gnus-ems)
 
 ;; arch-tag: e7360b45-14b5-4171-aa39-69a44aed3cdb
