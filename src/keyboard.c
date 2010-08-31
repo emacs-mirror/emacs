@@ -1493,6 +1493,11 @@ cancel_hourglass_unwind (Lisp_Object arg)
 }
 #endif
 
+/* FIXME: This is wrong rather than test window-system, we should call
+   a new set-selection, which will then dispatch to x-set-selection, or
+   tty-set-selection, or w32-set-selection, ...  */
+EXFUN (Fwindow_system, 1);
+
 Lisp_Object
 command_loop_1 (void)
 {
