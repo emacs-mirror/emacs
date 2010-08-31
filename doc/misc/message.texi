@@ -192,26 +192,26 @@ to match addresses to be pruned.
 
 It's complicated to explain, but it's easy to use.
 
-For instance, if you get an email from @samp{foo@example.org}, but
-@samp{foo@zot.example.org} is also in the @code{Cc} list, then your
+For instance, if you get an email from @samp{foo@@example.org}, but
+@samp{foo@@zot.example.org} is also in the @code{Cc} list, then your
 wide reply will go out to both these addresses, since they are unique.
 
 To avoid this, do something like the following:
 
-@code
+@lisp
 (setq message-prune-recipient-rules
       '(("^\\([^@]+\\)@\\(.*\\)" "\\1@.*[.]\\2")))
-@end code
+@end lisp
 
 If, for instance, you want all wide replies that involve messages from
-@samp{cvs@example.org} to go to that address, and nowhere else (i.e.,
-remove all other recipients if @samp{cvs@example.org} is in the
+@samp{cvs@@example.org} to go to that address, and nowhere else (i.e.,
+remove all other recipients if @samp{cvs@@example.org} is in the
 recipient list:
 
-@code
+@lisp
 (setq message-prune-recipient-rules
       '(("cvs@example.org" ".")))
-@end code
+@end lisp
 
 @vindex message-wide-reply-confirm-recipients
 If @code{message-wide-reply-confirm-recipients} is non-@code{nil} you
