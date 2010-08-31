@@ -172,7 +172,8 @@
 	(if (and image
 		 ;; Kludge to avoid displaying 30x30 gif images, which
 		 ;; seems to be a signal of a broken image.
-		 (not (and (eq (getf (cdr image) :type) 'gif)
+		 (not (and (listp image)
+			   (eq (getf (cdr image) :type) 'gif)
 			   (= (car (image-size image t)) 30)
 			   (= (cdr (image-size image t)) 30))))
 	    (progn
