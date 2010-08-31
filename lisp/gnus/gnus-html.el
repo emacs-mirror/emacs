@@ -59,8 +59,10 @@
 				 nil article-buffer nil
 				 "-halfdump"
 				 "-no-cookie"
+				 "-I" "UTF-8"
 				 "-O" "UTF-8"
 				 "-o" "ext_halfdump=1"
+				 "-o" "pre_conv=1"
 				 "-t" (format "%s" tab-width)
 				 "-cols" (format "%s" gnus-html-frame-width)
 				 "-o" "display_image=off"

@@ -1,5 +1,8 @@
 2010-08-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-html.el (gnus-article-html): Tell w3m that the input is
+	UTF-8. This seems to fix problems with some German web feeds.
+
 	* gnus.el (gnus-group-startup-message): Put the xpm version of the logo
 	at the top so that the proper colours are applied.
 
