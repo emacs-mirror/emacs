@@ -28,6 +28,8 @@
 
 ;;; Code:
 
+(require 'mm-url)
+
 (defcustom gnus-html-cache-directory (nnheader-concat gnus-directory "html-cache/")
   "Where Gnus will cache images it downloads from the web."
   :group 'gnus-art
