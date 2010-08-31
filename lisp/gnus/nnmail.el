@@ -265,7 +265,7 @@ It scans low-level sorted spools even when not required."
   :type 'function)
 
 (defcustom nnmail-crosspost-link-function
-  (if (string-match "windows-nt\\|emx" (symbol-name system-type))
+  (if (string-match "windows-nt" (symbol-name system-type))
       'copy-file
     'add-name-to-file)
   "*Function called to create a copy of a file.

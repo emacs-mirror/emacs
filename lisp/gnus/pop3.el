@@ -120,7 +120,7 @@ Used for APOP authentication.")
       (defalias 'pop3-accept-process-output 'nnheader-accept-process-output)
     ;; Borrowed from `nnheader.el':
     (defvar pop3-read-timeout
-      (if (string-match "windows-nt\\|os/2\\|emx\\|cygwin"
+      (if (string-match "windows-nt\\|os/2\\|cygwin"
 			(symbol-name system-type))
 	  1.0
 	0.01)

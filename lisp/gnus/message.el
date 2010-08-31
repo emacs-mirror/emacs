@@ -5433,7 +5433,7 @@ In posting styles use `(\"Expires\" (make-expires-date 30))'."
 	   (* 25 25)))
   (let ((tm (current-time)))
     (concat
-     (if (or (memq system-type '(ms-dos emx))
+     (if (or (eq system-type 'ms-dos)
 	     ;; message-number-base36 doesn't handle bigints.
 	     (floatp (user-uid)))
 	 (let ((user (downcase (user-login-name))))
@@ -6451,9 +6451,7 @@ are not included."
       (setq buffer-file-name (expand-file-name
 			      (concat
 			      (if (memq system-type
-					'(ms-dos ms-windows windows-nt
-						 cygwin cygwin32 win32 w32
-						 mswindows))
+					'(ms-dos windows-nt cygwin))
 				  "message"
 				"*message*")
 			       (format-time-string "-%Y%m%d-%H%M%S"))

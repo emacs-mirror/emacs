@@ -1,3 +1,25 @@
+2010-08-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnslashdot.el: Removed this unused backend.
+
+	* gnus-undo.el (gnus-undo-register-1): Limit the undo actions to 100
+	actions.
+	(gnus-undo-register-1): Revert last change.
+
+	* gnus-group.el (gnus-group-completing-read): Protect against not
+	having completion-styles bound.
+
+	* mml.el (mml-insert-mime-headers-always): Change the default to t, to
+	make broken recipients happier.
+
+	* gnus-html.el (gnus-html-put-image): Use gnus-put-image.
+
+	* gnus-ems.el (gnus-put-image): Have gnus-put-image take an optional
+	point parameter.
+
+	* gnus-group.el (gnus-group-completing-read): Add 'substring to
+	completion-styles for group selection.
+
 2009-02-04  Andreas Schwab  <schwab@suse.de>
 
 	* gnus-score.el (gnus-score-string): Fix regex for matching extra

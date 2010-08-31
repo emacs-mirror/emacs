@@ -680,7 +680,7 @@ superset of iso-8859-1."
   "100% binary coding system.")
 
 (defvar mm-text-coding-system
-  (or (if (memq system-type '(windows-nt ms-dos ms-windows))
+  (or (if (memq system-type '(windows-nt ms-dos))
 	  (and (mm-coding-system-p 'raw-text-dos) 'raw-text-dos)
 	(and (mm-coding-system-p 'raw-text) 'raw-text))
       mm-binary-coding-system)
@@ -692,12 +692,12 @@ superset of iso-8859-1."
 (defvar mm-auto-save-coding-system
   (cond
    ((mm-coding-system-p 'utf-8-emacs)	; Mule 7
-    (if (memq system-type '(windows-nt ms-dos ms-windows))
+    (if (memq system-type '(windows-nt ms-dos))
 	(if (mm-coding-system-p 'utf-8-emacs-dos)
 	    'utf-8-emacs-dos mm-binary-coding-system)
       'utf-8-emacs))
    ((mm-coding-system-p 'emacs-mule)
-    (if (memq system-type '(windows-nt ms-dos ms-windows))
+    (if (memq system-type '(windows-nt ms-dos))
 	(if (mm-coding-system-p 'emacs-mule-dos)
 	    'emacs-mule-dos mm-binary-coding-system)
       'emacs-mule))
