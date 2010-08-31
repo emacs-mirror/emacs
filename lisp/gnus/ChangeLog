@@ -1,5 +1,7 @@
 2010-08-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-html.el (gnus-blocked-images): New variable.
+
 	* message.el (message-prune-recipients): New function.
 	(message-prune-recipient-rules): New variable.
 

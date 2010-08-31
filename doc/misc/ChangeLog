@@ -1,5 +1,7 @@
 2010-08-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus.texi (HTML): Document gnus-blocked-images.
+
 	* message.texi (Wide Reply): Document message-prune-recipient-rules.
 
 2010-08-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>

@@ -47,6 +47,11 @@
   :group 'gnus-art
   :type 'integer)
 
+(defcustom gnus-blocked-images "."
+  "Images that have URLs matching this regexp will be blocked."
+  :group 'gnus-art
+  :type 'regexp)
+
 ;;;###autoload
 (defun gnus-article-html (handle)
   (let ((article-buffer (current-buffer)))
@@ -94,23 +99,23 @@
        ((equal tag "img_alt")
 	(when (string-match "src=\"\\([^\"]+\\)" parameters)
 	  (setq url (match-string 1 parameters))
-	  (when (or (null mm-w3m-safe-url-regexp)
-		    (string-match mm-w3m-safe-url-regexp url))
-	    (if (string-match "^cid:\\(.*\\)" url)
-		;; URLs with cid: have their content stashed in other
-		;; parts of the MIME structure, so just insert them
-		;; immediately.
-		(let ((handle (mm-get-content-id
-			       (setq url (match-string 1 url))))
-		      image)
-		  (when handle
-		    (mm-with-part handle
-		      (setq image (gnus-create-image (buffer-string)
-						     nil t))))
-		  (when image
-		    (delete-region start end)
-		    (gnus-put-image image)))
-	      ;; Normal, external URL.
+	  (if (string-match "^cid:\\(.*\\)" url)
+	      ;; URLs with cid: have their content stashed in other
+	      ;; parts of the MIME structure, so just insert them
+	      ;; immediately.
+	      (let ((handle (mm-get-content-id
+			     (setq url (match-string 1 url))))
+		    image)
+		(when handle
+		  (mm-with-part handle
+		    (setq image (gnus-create-image (buffer-string)
+						   nil t))))
+		(when image
+		  (delete-region start end)
+		  (gnus-put-image image)))
+	    ;; Normal, external URL.
+	    (when (or (null gnus-blocked-images)
+		      (not (string-match gnus-blocked-images url)))
 	      (let ((file (gnus-html-image-id url)))
 		(if (file-exists-p file)
 		    ;; It's already cached, so just insert it.
@@ -224,15 +229,15 @@
 
 ;;;###autoload
 (defun gnus-html-prefetch-images (summary)
-  (let (safe-url-regexp urls)
+  (let (blocked-images urls)
     (when (buffer-live-p summary)
       (with-current-buffer summary
-	(setq safe-url-regexp mm-w3m-safe-url-regexp))
+	(setq blocked-images gnus-blocked-images))
       (save-match-data
 	(while (re-search-forward "<img.*src=[\"']\\([^\"']+\\)" nil t)
 	  (let ((url (match-string 1)))
-	    (when (or (null safe-url-regexp)
-		      (string-match safe-url-regexp url))
+	    (when (or (null blocked-images)
+		      (not (string-match blocked-images url)))
 	      (unless (file-exists-p (gnus-html-image-id url))
 		(push url urls)
 		(push (gnus-html-image-id url) urls)
