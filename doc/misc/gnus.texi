@@ -6354,7 +6354,8 @@ present, that's used instead.
 @findex gnus-summary-wide-reply-with-original
 Mail a wide reply to the current article and include the original
 message (@code{gnus-summary-wide-reply-with-original}).  This command uses
-the process/prefix convention.
+the process/prefix convention, but only uses the headers from the
+first article to determine the recipients.
 
 @item S v
 @kindex S v (Summary)
