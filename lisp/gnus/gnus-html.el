@@ -162,21 +162,24 @@
 	(gnus-html-schedule-image-fetching buffer images)))))
 
 (defun gnus-html-put-image (file point)
-  (let ((image (ignore-errors
-		 (create-image file))))
-    (if (and image
-	     ;; Kludge to avoid displaying 30x30 gif images, which
-	     ;; seems to be a signal of a broken image.
-	     (not (and (eq (getf (cdr image) :type) 'gif)
-		       (= (car (image-size image t)) 30)
-		       (= (cdr (image-size image t)) 30))))
-	(progn
-	  (gnus-put-image image nil nil point)
-	  t)
-      (when (fboundp 'find-image)
-	(gnus-put-image (find-image '((:type xpm :file "lock-broken.xpm")))
-			nil nil point))
-      nil)))
+  (when (display-graphic-p)
+    (let ((image (ignore-errors
+		   (gnus-create-image file))))
+      (save-excursion
+	(goto-char point)
+	(if (and image
+		 ;; Kludge to avoid displaying 30x30 gif images, which
+		 ;; seems to be a signal of a broken image.
+		 (not (and (eq (getf (cdr image) :type) 'gif)
+			   (= (car (image-size image t)) 30)
+			   (= (cdr (image-size image t)) 30))))
+	    (progn
+	      (gnus-put-image image)
+	      t)
+	  (when (fboundp 'find-image)
+	    (gnus-put-image (find-image
+			     '((:type xpm :file "lock-broken.xpm")))))
+	  nil)))))
 
 (defun gnus-html-prune-cache ()
   (let ((total-size 0)
