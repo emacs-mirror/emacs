@@ -1,3 +1,11 @@
+2010-08-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (Fwindow_system): Fix compilation for USE_LISP_UNION_TYPE.
+
+2010-08-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (command_loop_1): Don't call x-set-selection on tty.
+
 2010-08-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* marker.c (Fcopy_marker): Make the first arg optional.
