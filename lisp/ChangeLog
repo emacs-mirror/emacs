@@ -1,3 +1,14 @@
+2010-08-31  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (standard-display-european-internal):
+	Setup standard-display-table for 8-bit characters by storing 8-bit
+	characters in the element vector.
+
+	* disp-table.el (standard-display-8bit): Setup
+	standard-display-table for 8-bit characters by storing 8-bit
+	characters in the element vector.
+	(standard-display-european): Likewise.
+
 2010-08-26  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.1.19.

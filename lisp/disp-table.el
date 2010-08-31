@@ -109,11 +109,27 @@ Valid symbols are `truncation', `wrap', `escape', `control',
 
 ;;;###autoload
 (defun standard-display-8bit (l h)
-  "Display characters in the range L to H literally."
+  "Display characters representing raw bytes in the range L to H literally.
+
+On a terminal display, each character in the range is displayed
+by sending the corresponding byte directly to the terminal.
+
+On a graphic display, each character in the range is displayed
+using the default font by a glyph whose code is the corresponding
+byte.
+
+Note that ASCII printable characters (SPC to TILDA) are displayed
+in the default way after this call."
   (or standard-display-table
       (setq standard-display-table (make-display-table)))
+  (if (> h 255)
+      (setq h 255))
   (while (<= l h)
-    (aset standard-display-table l (if (or (< l ?\s) (>= l 127)) (vector l)))
+    (if (< l 128)
+	(aset standard-display-table l
+	      (if (or (< l ?\s) (= l 127)) (vector l)))
+      (let ((c (unibyte-char-to-multibyte l)))
+	(aset standard-display-table c (vector c))))
     (setq l (1+ l))))
 
 ;;;###autoload
@@ -235,9 +251,12 @@ in `.emacs'."
 	  (and (null arg)
 	       (char-table-p standard-display-table)
 	       ;; Test 161, because 160 displays as a space.
-	       (equal (aref standard-display-table 161) [161])))
+	       (equal (aref standard-display-table
+			    (unibyte-char-to-multibyte 161))
+		      (vector (unibyte-char-to-multibyte 161)))))
       (progn
-	(standard-display-default 160 255)
+	(standard-display-default
+	 (unibyte-char-to-multibyte 160) (unibyte-char-to-multibyte 255))
 	(unless (or (memq window-system '(x w32 ns)))
 	  (and (terminal-coding-system)
 	       (set-terminal-coding-system nil))))
