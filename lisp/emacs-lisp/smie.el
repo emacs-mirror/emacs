@@ -560,6 +560,42 @@ Possible return values:
         (indent-according-to-mode)
       (reindent-then-newline-and-indent))))
 
+(defun smie-down-list (&optional arg)
+  "Move forward down one level paren-like blocks.  Like `down-list'.
+With argument ARG, do this that many times.
+A negative argument means move backward but still go down a level.
+This command assumes point is not in a string or comment."
+  (interactive "p")
+  (let ((start (point))
+        (inc (if (< arg 0) -1 1))
+        (offset (if (< arg 0) 1 0))
+        (next-token (if (< arg 0)
+                        smie-backward-token-function
+                      smie-forward-token-function)))
+    (while (/= arg 0)
+      (setq arg (- arg inc))
+      (while
+          (let* ((pos (point))
+                 (token (funcall next-token))
+                 (levels (assoc token smie-op-levels)))
+            (cond
+             ((zerop (length token))
+              (if (if (< inc 0) (looking-back "\\s(\\|\\s)" (1- (point)))
+                    (looking-at "\\s(\\|\\s)"))
+                  ;; Go back to `start' in case of an error.  This presumes
+                  ;; none of the token we've found until now include a ( or ).
+                  (progn (goto-char start) (down-list inc) nil)
+                (forward-sexp inc)
+                (/= (point) pos)))
+             ((and levels (null (nth (+ 1 offset) levels))) nil)
+             ((and levels (null (nth (- 2 offset) levels)))
+              (let ((end (point)))
+                (goto-char start)
+                (signal 'scan-error
+                        (list "Containing expression ends prematurely"
+                              pos end))))
+             (t)))))))
+
 ;;; The indentation engine.
 
 (defcustom smie-indent-basic 4

@@ -1,5 +1,7 @@
 2010-08-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/smie.el (smie-down-list): New command.
+
 	Remove old indentation and navigation code on octave-mode.
 	* progmodes/octave-mod.el (octave-mode-map): Remap down-list to
 	smie-down-list rather than add a binding for octave-down-block.
