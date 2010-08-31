@@ -1,3 +1,20 @@
+2010-08-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Remove old indentation and navigation code on octave-mode.
+	* progmodes/octave-mod.el (octave-mode-map): Remap down-list to
+	smie-down-list rather than add a binding for octave-down-block.
+	(octave-mark-block, octave-blink-matching-block-open):
+	Rely on forward-sexp-function.
+	(octave-fill-paragraph): Don't narrow, so you can use
+	indent-according-to-mode.
+	(octave-block-begin-regexp, octave-block-begin-or-end-regexp): Remove.
+	(octave-in-block-p, octave-re-search-forward-kw)
+	(octave-re-search-backward-kw, octave-indent-calculate)
+	(octave-end-as-array-index-p, octave-block-end-offset)
+	(octave-scan-blocks, octave-forward-block, octave-backward-block)
+	(octave-down-block, octave-backward-up-block, octave-up-block)
+	(octave-before-magic-comment-p, octave-indent-line): Remove.
+
 2010-08-31  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/package.el (package--read-archive-file): Just use
@@ -12,15 +29,15 @@
 	package-menu-package-list and package-menu-package-sort-key.
 	(package-menu--version-predicate): Fix version calculation.
 	(package-menu-sort-by-column): Don't select the window.
-	(package--list-packages): Create the *Packages* buffer.  Set
-	package-menu-package-list-key.
+	(package--list-packages): Create the *Packages* buffer.
+	Set package-menu-package-list-key.
 	(list-packages): Sorting by status is now the default.
 	(package-buffer-info): Use match-string-no-properties.
 	(define-package): Add a &rest argument for future proofing, but
 	don't use it yet.
 	(package-install-from-buffer, package-install-buffer-internal):
-	Merged into a single function, package-install-from-buffer.
-	(package-install-file): Caller changed.
+	Merge into a single function, package-install-from-buffer.
+	(package-install-file): Change caller.
 
 	* finder.el: Load finder-inf using `require'.
 	(finder-list-matches): Sorting by status is now the default.
