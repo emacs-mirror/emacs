@@ -1,3 +1,8 @@
+2010-08-31  Masatake YAMATO  <yamato@redhat.com>
+
+	* textmodes/nroff-mode.el (nroff-view): New command.
+	(nroff-mode-map): Bind it to C-c C-c.
+
 2010-08-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/smie.el (smie-down-list): New command.
