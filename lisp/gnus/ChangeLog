@@ -1,5 +1,8 @@
 2010-08-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus.el (gnus-group-startup-message): Put the xpm version of the logo
+	at the top so that the proper colours are applied.
+
 	* gnus-art.el (gnus-article-view-part): Doc fix.
 
 	* gnus-html.el (gnus-html-put-image): Use gnus-create-image to be

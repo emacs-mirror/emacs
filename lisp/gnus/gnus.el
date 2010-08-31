@@ -1058,14 +1058,14 @@ be set in `.emacs' instead."
 				    (symbol-value 'image-load-path))
 				   (t load-path)))
 	    (image (find-image
-		    `((:type svg :file "gnus.svg")
-		      (:type png :file "gnus.png")
-		      (:type xpm :file "gnus.xpm"
+		    `((:type xpm :file "gnus.xpm"
 			     :color-symbols
 			     (("thing" . ,(car gnus-logo-colors))
 			      ("shadow" . ,(cadr gnus-logo-colors))
 			      ("oort" . "#eeeeee")
 			      ("background" . ,(face-background 'default))))
+		      (:type svg :file "gnus.svg")
+		      (:type png :file "gnus.png")
 		      (:type pbm :file "gnus.pbm"
 			     ;; Account for the pbm's blackground.
 			     :background ,(face-foreground 'gnus-splash)
