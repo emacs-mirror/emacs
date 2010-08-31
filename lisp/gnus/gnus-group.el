@@ -680,13 +680,6 @@ simple manner.")
   "\177" gnus-group-delete-group
   [delete] gnus-group-delete-group)
 
-(gnus-define-keys (gnus-group-soup-map "s" gnus-group-group-map)
-  "b" gnus-group-brew-soup
-  "w" gnus-soup-save-areas
-  "s" gnus-soup-send-replies
-  "p" gnus-soup-pack-packet
-  "r" nnsoup-pack-replies)
-
 (gnus-define-keys (gnus-group-sort-map "S" gnus-group-group-map)
   "s" gnus-group-sort-groups
   "a" gnus-group-sort-groups-by-alphabet
@@ -972,13 +965,6 @@ simple manner.")
     (easy-menu-define
      gnus-group-misc-menu gnus-group-mode-map ""
      `("Gnus"
-       ("SOUP"
-	["Pack replies" nnsoup-pack-replies (fboundp 'nnsoup-request-group)]
-	["Send replies" gnus-soup-send-replies
-	 (fboundp 'gnus-soup-pack-packet)]
-	["Pack packet" gnus-soup-pack-packet (fboundp 'gnus-soup-pack-packet)]
-	["Save areas" gnus-soup-save-areas (fboundp 'gnus-soup-pack-packet)]
-	["Brew SOUP" gnus-group-brew-soup (fboundp 'gnus-soup-pack-packet)])
        ["Send a mail" gnus-group-mail t]
        ["Send a message (mail or news)" gnus-group-post-news t]
        ["Create a local message" gnus-group-news t]

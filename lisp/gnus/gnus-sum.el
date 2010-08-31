@@ -538,11 +538,6 @@ string with the suggested prefix."
   :group 'gnus-summary-marks
   :type 'character)
 
-(defcustom gnus-souped-mark ?F
-  "*Mark used for souped articles."
-  :group 'gnus-summary-marks
-  :type 'character)
-
 (defcustom gnus-kill-file-mark ?X
   "*Mark used for articles killed by kill files."
   :group 'gnus-summary-marks
@@ -666,7 +661,7 @@ string with the suggested prefix."
 (defcustom gnus-auto-expirable-marks
   (list gnus-killed-mark gnus-del-mark gnus-catchup-mark
 	gnus-low-score-mark gnus-ancient-mark gnus-read-mark
-	gnus-souped-mark gnus-duplicate-mark)
+	gnus-duplicate-mark)
   "*The list of marks converted into expiration if a group is auto-expirable."
   :version "21.1"
   :group 'gnus-summary
@@ -1258,7 +1253,7 @@ type of files to save."
   "Whether Gnus should parse all headers made available to it.
 This is mostly relevant for slow back ends where the user may
 wish to widen the summary buffer to include all headers
-that were fetched.  Say, for nnultimate groups."
+that were fetched."
   :version "22.1"
   :group 'gnus-summary
   :type '(choice boolean regexp))
@@ -2180,8 +2175,7 @@ increase the score of each group you read."
   "h" gnus-summary-save-article-folder
   "v" gnus-summary-save-article-vm
   "p" gnus-summary-pipe-output
-  "P" gnus-summary-muttprint
-  "s" gnus-soup-add-article)
+  "P" gnus-summary-muttprint)
 
 (gnus-define-keys (gnus-summary-mime-map "K" gnus-summary-mode-map)
   "b" gnus-summary-display-buttonized
@@ -2445,7 +2439,6 @@ gnus-summary-show-article-from-menu-as-charset-%s" cs))))
 	      ["Save in RMAIL mbox..." gnus-summary-save-article-rmail t]
 	      ["Save body in file..." gnus-summary-save-article-body-file t]
 	      ["Pipe through a filter..." gnus-summary-pipe-output t]
-	      ["Add to SOUP packet" gnus-soup-add-article t]
 	      ["Print with Muttprint..." gnus-summary-muttprint t]
 	      ["Print" gnus-summary-print-article
 	       ,@(if (featurep 'xemacs) '(t)
@@ -8305,7 +8298,7 @@ If ALL is non-nil, limit strictly to unread articles."
 	   gnus-killed-mark gnus-spam-mark gnus-kill-file-mark
 	   gnus-low-score-mark gnus-expirable-mark
 	   gnus-canceled-mark gnus-catchup-mark gnus-sparse-mark
-	   gnus-duplicate-mark gnus-souped-mark)
+	   gnus-duplicate-mark)
      'reverse)))
 
 (defun gnus-summary-limit-to-headers (match &optional reverse)

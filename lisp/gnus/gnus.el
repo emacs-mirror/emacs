@@ -1741,12 +1741,10 @@ slower."
     ("nndoc" none address prompt-address)
     ("nnbabyl" mail address respool)
     ("nnkiboze" post virtual)
-    ("nnsoup" post-mail address)
     ("nndraft" post-mail)
     ("nnfolder" mail respool address)
     ("nngateway" post-mail address prompt-address physical-address)
     ("nnweb" none)
-    ("nnultimate" none)
     ("nnrss" none)
     ("nnwfm" none)
     ("nnwarchive" none)
@@ -2892,10 +2890,6 @@ gnus-registry.el will populate this if it's loaded.")
      ("rmailsum" rmail-update-summary)
      ("gnus-audio" :interactive t gnus-audio-play)
      ("gnus-xmas" gnus-xmas-splash)
-     ("gnus-soup" :interactive t
-      gnus-group-brew-soup gnus-brew-soup gnus-soup-add-article
-      gnus-soup-send-replies gnus-soup-save-areas gnus-soup-pack-packet)
-     ("nnsoup" nnsoup-pack-replies)
      ("score-mode" :interactive t gnus-score-mode)
      ("gnus-mh" gnus-summary-save-article-folder
       gnus-Folder-save-name gnus-folder-save-name)
