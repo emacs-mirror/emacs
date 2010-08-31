@@ -1624,7 +1624,7 @@ Note that the coding-system `iso-2022-7bit' isn't suitable to all data.")
   "The limitation of messages sent as message/partial.
 The lower bound of message size in characters, beyond which the message
 should be sent in several parts.  If it is nil, the size is unlimited."
-  :version "21.1"
+  :version "24.1"
   :group 'message-buffers
   :link '(custom-manual "(message)Mail Variables")
   :type '(choice (const :tag "unlimited" nil)

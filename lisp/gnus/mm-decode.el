@@ -123,7 +123,7 @@ The defined renderer types are:
 `w3'   : use Emacs/W3;
 `html2text' : use html2text;
 nil    : use external viewer (default web browser)."
-  :version "23.0" ;; No Gnus
+  :version "24.1"
   :type '(choice (const w3)
 		 (const w3m :tag "emacs-w3m")
 		 (const w3m-standalone :tag "standalone w3m" )

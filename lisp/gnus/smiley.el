@@ -120,6 +120,7 @@ is nil, use `smiley-style'."
 The elements are (REGEXP MATCH IMAGE), where MATCH is the submatch in
 regexp to replace with IMAGE.  IMAGE is the name of an image file in
 `smiley-data-directory'."
+  :version "24.1"
   :type '(repeat (list regexp
 		       (integer :tag "Regexp match number")
 		       (string :tag "Image name")))
