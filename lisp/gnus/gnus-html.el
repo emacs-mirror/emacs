@@ -28,6 +28,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+(eval-when-compile (require 'mm-decode))
 (require 'mm-url)
 
 (defcustom gnus-html-cache-directory (nnheader-concat gnus-directory "html-cache/")
@@ -44,6 +46,11 @@
   "What width to use when rendering HTML."
   :group 'gnus-art
   :type 'integer)
+
+(defcustom gnus-blocked-images "."
+  "Images that have URLs matching this regexp will be blocked."
+  :group 'gnus-art
+  :type 'regexp)
 
 ;;;###autoload
 (defun gnus-article-html (handle)
@@ -71,8 +78,10 @@
 				 "-T" "text/html"))))
       (gnus-html-wash-tags))))
 
+(defvar gnus-article-mouse-face)
+
 (defun gnus-html-wash-tags ()
-  (let (tag parameters string start end images)
+  (let (tag parameters string start end images url)
     (mm-url-decode-entities)
     (goto-char (point-min))
     (while (re-search-forward "<\\([^ />]+\\)\\([^>]*\\)>" nil t)
@@ -89,31 +98,46 @@
        ;; Fetch and insert a picture.
        ((equal tag "img_alt")
 	(when (string-match "src=\"\\([^\"]+\\)" parameters)
-	  (setq parameters (match-string 1 parameters))
-	  (when (or (null mm-w3m-safe-url-regexp)
-		    (string-match mm-w3m-safe-url-regexp parameters))
-	    (let ((file (gnus-html-image-id parameters)))
-	      (if (file-exists-p file)
-		  ;; It's already cached, so just insert it.
-		  (when (gnus-html-put-image file (point))
-		    ;; Delete the ALT text.
-		    (delete-region start end))
-		;; We don't have it, so schedule it for fetching
-		;; asynchronously.
-		(push (list parameters
-			    (set-marker (make-marker) start)
-			    (point-marker))
-		      images))))))
+	  (setq url (match-string 1 parameters))
+	  (if (string-match "^cid:\\(.*\\)" url)
+	      ;; URLs with cid: have their content stashed in other
+	      ;; parts of the MIME structure, so just insert them
+	      ;; immediately.
+	      (let ((handle (mm-get-content-id
+			     (setq url (match-string 1 url))))
+		    image)
+		(when handle
+		  (mm-with-part handle
+		    (setq image (gnus-create-image (buffer-string)
+						   nil t))))
+		(when image
+		  (delete-region start end)
+		  (gnus-put-image image)))
+	    ;; Normal, external URL.
+	    (when (or (null gnus-blocked-images)
+		      (not (string-match gnus-blocked-images url)))
+	      (let ((file (gnus-html-image-id url)))
+		(if (file-exists-p file)
+		    ;; It's already cached, so just insert it.
+		    (when (gnus-html-put-image file (point))
+		      ;; Delete the ALT text.
+		      (delete-region start end))
+		  ;; We don't have it, so schedule it for fetching
+		  ;; asynchronously.
+		  (push (list url
+			      (set-marker (make-marker) start)
+			      (point-marker))
+			images)))))))
        ;; Add a link.
        ((equal tag "a")
 	(when (string-match "href=\"\\([^\"]+\\)" parameters)
-	  (setq parameters (match-string 1 parameters))
+	  (setq url (match-string 1 parameters))
 	  (gnus-article-add-button start end
-				   'browse-url parameters
-				   parameters)
+				   'browse-url url
+				   url)
 	  (let ((overlay (gnus-make-overlay start end)))
 	    (gnus-overlay-put overlay 'evaporate t)
-	    (gnus-overlay-put overlay 'gnus-button-url parameters)
+	    (gnus-overlay-put overlay 'gnus-button-url url)
 	    (when gnus-article-mouse-face
 	      (gnus-overlay-put overlay 'mouse-face gnus-article-mouse-face)))))
        ;; Whatever.  Just ignore the tag.
@@ -139,27 +163,26 @@
 		   url)))
     (process-kill-without-query process)
     (set-process-sentinel process 'gnus-html-curl-sentinel)
-    (set-process-plist process (list 'images images
-				     'buffer buffer))))
+    (gnus-set-process-plist process (list 'images images
+					  'buffer buffer))))
 
 (defun gnus-html-image-id (url)
   (expand-file-name (sha1 url) gnus-html-cache-directory))
 
 (defun gnus-html-curl-sentinel (process event)
   (when (string-match "finished" event)
-    (let* ((images (getf (process-plist process) 'images))
-	   (buffer (getf (process-plist process) 'buffer))
+    (let* ((images (process-get process 'images))
+	   (buffer (process-get process 'buffer))
 	   (spec (pop images))
 	   (file (gnus-html-image-id (car spec))))
       (when (and (buffer-live-p buffer)
 		 ;; If the position of the marker is 1, then that
-		 ;; means that the text is was in has been deleted;
+		 ;; means that the text it was in has been deleted;
 		 ;; i.e., that the user has selected a different
 		 ;; article before the image arrived.
-		 (not (= (marker-position (cadr spec)) 1)))
-	(save-excursion
-	  (set-buffer buffer)
-	  (let ((buffer-read-only nil))
+		 (not (= (marker-position (cadr spec)) (point-min))))
+	(with-current-buffer buffer
+	  (let ((inhibit-read-only t))
 	    (when (gnus-html-put-image file (cadr spec))
 	      (delete-region (1+ (cadr spec)) (caddr spec))))))
       (when images
@@ -175,7 +198,7 @@
 		 ;; Kludge to avoid displaying 30x30 gif images, which
 		 ;; seems to be a signal of a broken image.
 		 (not (and (listp image)
-			   (eq (getf (cdr image) :type) 'gif)
+			   (eq (plist-get (cdr image) :type) 'gif)
 			   (= (car (image-size image t)) 30)
 			   (= (cdr (image-size image t)) 30))))
 	    (progn
@@ -206,16 +229,15 @@
 
 ;;;###autoload
 (defun gnus-html-prefetch-images (summary)
-  (let (safe-url-regexp urls)
+  (let (blocked-images urls)
     (when (buffer-live-p summary)
-      (save-excursion
-	(set-buffer summary)
-	(setq safe-url-regexp mm-w3m-safe-url-regexp))
+      (with-current-buffer summary
+	(setq blocked-images gnus-blocked-images))
       (save-match-data
 	(while (re-search-forward "<img.*src=[\"']\\([^\"']+\\)" nil t)
 	  (let ((url (match-string 1)))
-	    (when (or (null safe-url-regexp)
-		      (string-match safe-url-regexp url))
+	    (when (or (null blocked-images)
+		      (not (string-match blocked-images url)))
 	      (unless (file-exists-p (gnus-html-image-id url))
 		(push url urls)
 		(push (gnus-html-image-id url) urls)

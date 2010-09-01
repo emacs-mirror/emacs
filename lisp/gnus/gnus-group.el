@@ -680,13 +680,6 @@ simple manner.")
   "\177" gnus-group-delete-group
   [delete] gnus-group-delete-group)
 
-(gnus-define-keys (gnus-group-soup-map "s" gnus-group-group-map)
-  "b" gnus-group-brew-soup
-  "w" gnus-soup-save-areas
-  "s" gnus-soup-send-replies
-  "p" gnus-soup-pack-packet
-  "r" nnsoup-pack-replies)
-
 (gnus-define-keys (gnus-group-sort-map "S" gnus-group-group-map)
   "s" gnus-group-sort-groups
   "a" gnus-group-sort-groups-by-alphabet
@@ -972,13 +965,6 @@ simple manner.")
     (easy-menu-define
      gnus-group-misc-menu gnus-group-mode-map ""
      `("Gnus"
-       ("SOUP"
-	["Pack replies" nnsoup-pack-replies (fboundp 'nnsoup-request-group)]
-	["Send replies" gnus-soup-send-replies
-	 (fboundp 'gnus-soup-pack-packet)]
-	["Pack packet" gnus-soup-pack-packet (fboundp 'gnus-soup-pack-packet)]
-	["Save areas" gnus-soup-save-areas (fboundp 'gnus-soup-pack-packet)]
-	["Brew SOUP" gnus-group-brew-soup (fboundp 'gnus-soup-pack-packet)])
        ["Send a mail" gnus-group-mail t]
        ["Send a message (mail or news)" gnus-group-post-news t]
        ["Create a local message" gnus-group-news t]
@@ -3096,42 +3082,6 @@ If there is, use Gnus to create an nnrss group"
 	  (push (list title href desc) nnrss-group-alist)
 	  (nnrss-save-server-data nil))
       (error "No feeds found for %s" url))))
-
-(defvar nnwarchive-type-definition)
-(defvar gnus-group-warchive-type-history nil)
-(defvar gnus-group-warchive-login-history nil)
-(defvar gnus-group-warchive-address-history nil)
-
-(defun gnus-group-make-warchive-group ()
-  "Create a nnwarchive group."
-  (interactive)
-  (require 'nnwarchive)
-  (let* ((group (gnus-read-group "Group name: "))
-	 (default-type (or (car gnus-group-warchive-type-history)
-			   (symbol-name (caar nnwarchive-type-definition))))
-	 (type
-	  (gnus-string-or
-	   (completing-read
-	    (format "Warchive type (default %s): " default-type)
-	    (mapcar (lambda (elem) (list (symbol-name (car elem))))
-		    nnwarchive-type-definition)
-	    nil t nil 'gnus-group-warchive-type-history)
-	   default-type))
-	 (address (read-string "Warchive address: "
-			       nil 'gnus-group-warchive-address-history))
-	 (default-login (or (car gnus-group-warchive-login-history)
-			    user-mail-address))
-	 (login
-	  (gnus-string-or
-	   (read-string
-	    (format "Warchive login (default %s): " user-mail-address)
-	    default-login 'gnus-group-warchive-login-history)
-	   user-mail-address))
-	 (method
-	  `(nnwarchive ,address
-		       (nnwarchive-type ,(intern type))
-		       (nnwarchive-login ,login))))
-    (gnus-group-make-group group method)))
 
 (defun gnus-group-make-archive-group (&optional all)
   "Create the (ding) Gnus archive group of the most recent articles.

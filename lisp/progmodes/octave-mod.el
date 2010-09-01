@@ -223,7 +223,7 @@ parenthetical grouping.")
     (define-key map "\C-c\C-n" 'octave-next-code-line)
     (define-key map "\C-c\C-a" 'octave-beginning-of-line)
     (define-key map "\C-c\C-e" 'octave-end-of-line)
-    (define-key map "\C-c\M-\C-d" 'octave-down-block)
+    (define-key map [remap down-list] 'smie-down-list)
     (define-key map "\C-c\M-\C-h" 'octave-mark-block)
     (define-key map "\C-c]" 'smie-close-block)
     (define-key map "\C-c/" 'smie-close-block)
@@ -258,7 +258,6 @@ parenthetical grouping.")
       ["End of Continuation"	octave-end-of-line t]
       ["Split Line at Point"	octave-indent-new-comment-line t])
     ("Blocks"
-      ["Down Block"		octave-down-block t]
       ["Mark Block"		octave-mark-block t]
       ["Close Block"		smie-close-block t])
     ("Functions"
@@ -343,10 +342,6 @@ newline or semicolon after an else or end keyword."
   :type 'integer
   :group 'octave)
 
-(defvar octave-block-begin-regexp
-  (concat "\\<\\("
-	  (mapconcat 'identity octave-begin-keywords "\\|")
-	  "\\)\\>"))
 (defvar octave-block-else-regexp
   (concat "\\<\\("
 	  (mapconcat 'identity octave-else-keywords "\\|")
@@ -355,8 +350,6 @@ newline or semicolon after an else or end keyword."
   (concat "\\<\\("
 	  (mapconcat 'identity octave-end-keywords "\\|")
 	  "\\)\\>"))
-(defvar octave-block-begin-or-end-regexp
-  (concat octave-block-begin-regexp "\\|" octave-block-end-regexp))
 (defvar octave-block-else-or-end-regexp
   (concat octave-block-else-regexp "\\|" octave-block-end-regexp))
 (defvar octave-block-match-alist
@@ -723,35 +716,11 @@ Look up symbol in the function, operator and variable indices of the info files.
   (let ((pps (parse-partial-sexp (line-beginning-position) (point))))
     (not (or (nth 3 pps) (nth 4 pps)))))
 
-(defun octave-in-block-p ()
-  "Return t if point is inside an Octave block.
-The block is taken to start at the first letter of the begin keyword and
-to end after the end keyword."
-  (let ((pos (point)))
-    (save-excursion
-      (condition-case nil
-	  (progn
-	    (skip-syntax-forward "w")
-	    (octave-up-block -1)
-	    (octave-forward-block)
-	    t)
-	(error nil))
-      (< pos (point)))))
 
 (defun octave-looking-at-kw (regexp)
   "Like `looking-at', but sets `case-fold-search' nil."
   (let ((case-fold-search nil))
     (looking-at regexp)))
-
-(defun octave-re-search-forward-kw (regexp count)
-  "Like `re-search-forward', but sets `case-fold-search' nil, and moves point."
-  (let ((case-fold-search nil))
-    (re-search-forward regexp nil 'move count)))
-
-(defun octave-re-search-backward-kw (regexp count)
-  "Like `re-search-backward', but sets `case-fold-search' nil, and moves point."
-  (let ((case-fold-search nil))
-    (re-search-backward regexp nil 'move count)))
 
 (defun octave-maybe-insert-continuation-string ()
   (if (or (octave-in-comment-p)
@@ -764,108 +733,6 @@ to end after the end keyword."
 
 
 ;;; Indentation
-(defun octave-indent-calculate ()
-  "Return appropriate indentation for current line as Octave code.
-Returns an integer (the column to indent to) unless the line is a
-comment line with fixed goal golumn.  In that case, returns a list whose
-car is the column to indent to, and whose cdr is the current indentation
-level."
-  (let ((is-continuation-line
-	 (save-excursion
-	   (if (zerop (octave-previous-code-line))
-	       (looking-at octave-continuation-regexp))))
-	(icol 0))
-    (save-excursion
-      (beginning-of-line)
-      ;; If we can move backward out one level of parentheses, take 1
-      ;; plus the indentation of that parenthesis.  Otherwise, go back
-      ;; to the beginning of the previous code line, and compute the
-      ;; offset this line gives.
-      (if (condition-case nil
-	      (progn
-		(up-list -1)
-		t)
-	    (error nil))
-	  (setq icol (+ 1 (current-column)))
-	(if (zerop (octave-previous-code-line))
-	    (progn
-	      (octave-beginning-of-line)
-	      (back-to-indentation)
-	      (setq icol (current-column))
-	      (let ((bot (point))
-		    (eol (line-end-position)))
-		(while (< (point) eol)
-		  (if (octave-not-in-string-or-comment-p)
-		      (cond
-		       ((octave-looking-at-kw "\\<switch\\>")
-			(setq icol (+ icol (* 2 octave-block-offset))))
-		       ((octave-looking-at-kw octave-block-begin-regexp)
-			(setq icol (+ icol octave-block-offset)))
-		       ((octave-looking-at-kw octave-block-else-regexp)
-			(if (= bot (point))
-			    (setq icol (+ icol octave-block-offset))))
-		       ((octave-looking-at-kw octave-block-end-regexp)
-			(if (and (not (= bot (point)))
-				 ;; special case for `end' keyword,
-				 ;; applied to all keywords
-				 (not (octave-end-as-array-index-p)))
-			    (setq icol (- icol
-					  (octave-block-end-offset)))))))
-		  (forward-char)))
-	      (if is-continuation-line
-		  (setq icol (+ icol octave-continuation-offset)))))))
-    (save-excursion
-      (back-to-indentation)
-      (cond
-       ((and (octave-looking-at-kw octave-block-else-regexp)
-	     (octave-not-in-string-or-comment-p))
-	(setq icol (- icol octave-block-offset)))
-       ((and (octave-looking-at-kw octave-block-end-regexp)
-	     (octave-not-in-string-or-comment-p))
-	(setq icol (- icol (octave-block-end-offset))))
-       ((or (looking-at "\\s<\\s<\\s<\\S<")
-	    (octave-before-magic-comment-p))
-	(setq icol (list 0 icol)))
-       ((looking-at "\\s<\\S<")
-	(setq icol (list comment-column icol)))))
-    icol))
-
-;; FIXME: this should probably also make sure we are actually looking
-;; at the "end" keyword.
-(defun octave-end-as-array-index-p ()
-  (save-excursion
-    (condition-case nil
-	;; Check if point is between parens
-	(progn (up-list 1) t)
-      (error nil))))
-
-(defun octave-block-end-offset ()
-  (save-excursion
-    (octave-backward-up-block 1)
-    (* octave-block-offset
-       (if (string-match (match-string 0) "switch") 2 1))))
-
-(defun octave-before-magic-comment-p ()
-  (save-excursion
-    (beginning-of-line)
-    (and (bobp) (looking-at "\\s-*#!"))))
-
-(defun octave-indent-line (&optional arg)
-  "Indent current line as Octave code.
-With optional ARG, use this as offset unless this line is a comment with
-fixed goal column."
-  (interactive)
-  (or arg (setq arg 0))
-  (let ((icol (octave-indent-calculate))
-	(relpos (- (current-column) (current-indentation))))
-    (if (listp icol)
-	(setq icol (car icol))
-      (setq icol (+ icol arg)))
-    (if (< icol 0)
-	(error "Unmatched end keyword")
-      (indent-line-to icol)
-      (if (> relpos 0)
-	  (move-to-column (+ icol relpos))))))
 
 (defun octave-indent-new-comment-line ()
   "Break Octave line at point, continuing comment if within one.
@@ -967,106 +834,17 @@ does not end in `...' or `\\' or is inside an open parenthesis list."
 		    (zerop (forward-line 1)))))
     (end-of-line)))
 
-(defun octave-scan-blocks (count depth)
-  "Scan from point by COUNT Octave begin-end blocks.
-Returns the character number of the position thus found.
-
-If DEPTH is nonzero, block depth begins counting from that value.
-Only places where the depth in blocks becomes zero are candidates for
-stopping; COUNT such places are counted.
-
-If the beginning or end of the buffer is reached and the depth is wrong,
-an error is signaled."
-  (let ((min-depth (if (> depth 0) 0 depth))
-	(inc (if (> count 0) 1 -1)))
-    (save-excursion
-      (while (/= count 0)
-	(catch 'foo
-	  (while (or (octave-re-search-forward-kw
-		      octave-block-begin-or-end-regexp inc)
-		     (if (/= depth 0)
-			 (error "Unbalanced block")))
-	    (if (octave-not-in-string-or-comment-p)
-		(progn
-		  (cond
-		   ((match-end 1)
-		    (setq depth (+ depth inc)))
-		   ((match-end 2)
-		    (setq depth (- depth inc))))
-		  (if (< depth min-depth)
-		      (error "Containing expression ends prematurely"))
-		  (if (= depth 0)
-		      (throw 'foo nil))))))
-	(setq count (- count inc)))
-      (point))))
-
-(defun octave-forward-block (&optional arg)
-  "Move forward across one balanced Octave begin-end block.
-With argument, do it that many times.
-Negative arg -N means move backward across N blocks."
-  (interactive "p")
-  (or arg (setq arg 1))
-  (goto-char (or (octave-scan-blocks arg 0) (buffer-end arg))))
-
-(defun octave-backward-block (&optional arg)
-  "Move backward across one balanced Octave begin-end block.
-With argument, do it that many times.
-Negative arg -N means move forward across N blocks."
-  (interactive "p")
-  (or arg (setq arg 1))
-  (octave-forward-block (- arg)))
-
-(defun octave-down-block (arg)
-  "Move forward down one begin-end block level of Octave code.
-With argument, do this that many times.
-A negative argument means move backward but still go down a level.
-In Lisp programs, an argument is required."
-  (interactive "p")
-  (let ((inc (if (> arg 0) 1 -1)))
-    (while (/= arg 0)
-      (goto-char (or (octave-scan-blocks inc -1)
-		     (buffer-end arg)))
-      (setq arg (- arg inc)))))
-
-(defun octave-backward-up-block (arg)
-  "Move backward out of one begin-end block level of Octave code.
-With argument, do this that many times.
-A negative argument means move forward but still to a less deep spot.
-In Lisp programs, an argument is required."
-  (interactive "p")
-  (octave-up-block (- arg)))
-
-(defun octave-up-block (arg)
-  "Move forward out of one begin-end block level of Octave code.
-With argument, do this that many times.
-A negative argument means move backward but still to a less deep spot.
-In Lisp programs, an argument is required."
-  (interactive "p")
-  (let ((inc (if (> arg 0) 1 -1)))
-    (while (/= arg 0)
-      (goto-char (or (octave-scan-blocks inc 1)
-		     (buffer-end arg)))
-      (setq arg (- arg inc)))))
-
 (defun octave-mark-block ()
   "Put point at the beginning of this Octave block, mark at the end.
 The block marked is the one that contains point or follows point."
   (interactive)
-  (let ((pos (point)))
-    (if (or (and (octave-in-block-p)
-		 (skip-syntax-forward "w"))
-	    (condition-case nil
-		(progn
-		  (octave-down-block 1)
-		  (octave-in-block-p))
-	      (error nil)))
-	(progn
-	  (octave-up-block -1)
-	  (push-mark (point))
-	  (octave-forward-block)
-	  (exchange-point-and-mark))
-      (goto-char pos)
-      (message "No block to mark found"))))
+  (unless (or (looking-at "\\s(")
+              (save-excursion
+                (let* ((token (funcall smie-forward-token-function))
+                       (level (assoc token smie-op-levels)))
+                  (and level (null (cadr level))))))
+    (backward-up-list 1))
+  (mark-sexp))
 
 (defun octave-blink-matching-block-open ()
   "Blink the matching Octave begin block keyword.
@@ -1086,12 +864,12 @@ Signal an error if the keywords are incompatible."
 	    (setq eb-keyword
 		  (buffer-substring-no-properties
 		   (match-beginning 1) (match-end 1)))
-	    (octave-backward-up-block 1))
+	    (backward-up-list 1))
 	   ((match-end 2)
 	    (setq eb-keyword
 		  (buffer-substring-no-properties
 		   (match-beginning 2) (match-end 2)))
-	    (octave-backward-block)))
+	    (backward-sexp 1)))
 	  (setq pos (match-end 0)
 		bb-keyword
 		(buffer-substring-no-properties
@@ -1202,81 +980,73 @@ otherwise."
       (not give-up))))
 
 (defun octave-fill-paragraph (&optional arg)
- "Fill paragraph of Octave code, handling Octave comments."
- ;; FIXME: now that the default fill-paragraph takes care of similar issues,
- ;; this seems obsolete.  --Stef
- (interactive "P")
- (save-excursion
-   (let ((end (progn (forward-paragraph) (point)))
-	 (beg (progn
-		(forward-paragraph -1)
-		(skip-chars-forward " \t\n")
-		(beginning-of-line)
-		(point)))
-	 (cfc (current-fill-column))
-	 (ind (octave-indent-calculate))
-	 comment-prefix)
-     (save-restriction
-       (goto-char beg)
-       (narrow-to-region beg end)
-       (if (listp ind) (setq ind (nth 1 ind)))
-       (while (not (eobp))
-	 (condition-case nil
-	     (octave-indent-line ind)
-	   (error nil))
-	 (if (and (> ind 0)
-		  (not
-		   (save-excursion
-		     (beginning-of-line)
-		     (looking-at "^\\s-*\\($\\|\\s<+\\)"))))
-	     (setq ind 0))
-	 (move-to-column cfc)
-	 ;; First check whether we need to combine non-empty comment lines
-	 (if (and (< (current-column) cfc)
-		  (octave-in-comment-p)
-		  (not (save-excursion
-			 (beginning-of-line)
-			 (looking-at "^\\s-*\\s<+\\s-*$"))))
-	     ;; This is a nonempty comment line which does not extend
-	     ;; past the fill column.  If it is followed by a nonempty
-	     ;; comment line with the same comment prefix, try to
-	     ;; combine them, and repeat this until either we reach the
-	     ;; fill-column or there is nothing more to combine.
-	     (progn
-	       ;; Get the comment prefix
-	       (save-excursion
-		 (beginning-of-line)
-		 (while (and (re-search-forward "\\s<+")
-			     (not (octave-in-comment-p))))
-		 (setq comment-prefix (match-string 0)))
-	       ;; And keep combining ...
-	       (while (and (< (current-column) cfc)
-			   (save-excursion
-			     (forward-line 1)
-			     (and (looking-at
-				   (concat "^\\s-*"
-					   comment-prefix
-					   "\\S<"))
-				  (not (looking-at
-					(concat "^\\s-*"
-						comment-prefix
-						"\\s-*$"))))))
-		 (delete-char 1)
-		 (re-search-forward comment-prefix)
-		 (delete-region (match-beginning 0) (match-end 0))
-		 (fixup-whitespace)
-		 (move-to-column cfc))))
-	 ;; We might also try to combine continued code lines>  Perhaps
-	 ;; some other time ...
-	 (skip-chars-forward "^ \t\n")
-	 (delete-horizontal-space)
-	 (if (or (< (current-column) cfc)
-		 (and (= (current-column) cfc) (eolp)))
-	     (forward-line 1)
-	   (if (not (eolp)) (insert " "))
-	   (or (octave-auto-fill)
-	       (forward-line 1)))))
-     t)))
+  "Fill paragraph of Octave code, handling Octave comments."
+  ;; FIXME: difference with generic fill-paragraph:
+  ;; - code lines are only split, never joined.
+  ;; - \n that end comments are never removed.
+  ;; - insert continuation marker when splitting code lines.
+  (interactive "P")
+  (save-excursion
+    (let ((end (progn (forward-paragraph) (copy-marker (point) t)))
+          (beg (progn
+                 (forward-paragraph -1)
+                 (skip-chars-forward " \t\n")
+                 (beginning-of-line)
+                 (point)))
+          (cfc (current-fill-column))
+          comment-prefix)
+      (goto-char beg)
+      (while (< (point) end)
+        (condition-case nil
+            (indent-according-to-mode)
+          (error nil))
+        (move-to-column cfc)
+        ;; First check whether we need to combine non-empty comment lines
+        (if (and (< (current-column) cfc)
+                 (octave-in-comment-p)
+                 (not (save-excursion
+                        (beginning-of-line)
+                        (looking-at "^\\s-*\\s<+\\s-*$"))))
+            ;; This is a nonempty comment line which does not extend
+            ;; past the fill column.  If it is followed by a nonempty
+            ;; comment line with the same comment prefix, try to
+            ;; combine them, and repeat this until either we reach the
+            ;; fill-column or there is nothing more to combine.
+            (progn
+              ;; Get the comment prefix
+              (save-excursion
+                (beginning-of-line)
+                (while (and (re-search-forward "\\s<+")
+                            (not (octave-in-comment-p))))
+                (setq comment-prefix (match-string 0)))
+              ;; And keep combining ...
+              (while (and (< (current-column) cfc)
+                          (save-excursion
+                            (forward-line 1)
+                            (and (looking-at
+                                  (concat "^\\s-*"
+                                          comment-prefix
+                                          "\\S<"))
+                                 (not (looking-at
+                                       (concat "^\\s-*"
+                                               comment-prefix
+                                               "\\s-*$"))))))
+                (delete-char 1)
+                (re-search-forward comment-prefix)
+                (delete-region (match-beginning 0) (match-end 0))
+                (fixup-whitespace)
+                (move-to-column cfc))))
+        ;; We might also try to combine continued code lines>  Perhaps
+        ;; some other time ...
+        (skip-chars-forward "^ \t\n")
+        (delete-horizontal-space)
+        (if (or (< (current-column) cfc)
+                (and (= (current-column) cfc) (eolp)))
+            (forward-line 1)
+          (if (not (eolp)) (insert " "))
+          (or (octave-auto-fill)
+              (forward-line 1))))
+      t)))
 
 
 ;;; Completions
