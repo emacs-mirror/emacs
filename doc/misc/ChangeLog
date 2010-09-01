@@ -1,3 +1,7 @@
+2010-09-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (HTML): Document gnus-max-image-proportion.
+
 2010-08-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.texi (HTML): Document gnus-blocked-images.

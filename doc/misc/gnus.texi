@@ -12515,6 +12515,14 @@ directory, the oldest files will be deleted.  The default is 500MB.
 @vindex gnus-html-frame-width
 The width to use when rendering HTML.  The default is 70.
 
+@item gnus-max-image-proportion
+@vindex gnus-max-image-proportion
+How big pictures displayed are in relation to the window they're in.
+A value of 0.7 (the default) means that they are allowed to take up
+70% of the width and height of the window.  If they are larger than
+this, and Emacs supports it, then the images will be rescaled down to
+fit these criteria.
+
 @end table
 
 To use this, make sure that you have @code{w3m} and @code{curl}
