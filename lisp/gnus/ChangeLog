@@ -7,6 +7,9 @@
 2010-09-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-html.el (gnus-html-wash-tags): Delete the IMG_ALT region.
+	(gnus-max-image-proportion): New variable.
+	(gnus-html-rescale-image): New function.
+	(gnus-html-put-image): Rescale images.
 
 2010-09-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 

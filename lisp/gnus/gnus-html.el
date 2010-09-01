@@ -56,6 +56,16 @@
   :group 'gnus-art
   :type 'regexp)
 
+(defcustom gnus-max-image-proportion 0.7
+  "How big pictures displayed are in relation to the window they're in.
+A value of 0.7 means that they are allowed to take up 70% of the
+width and height of the window.  If they are larger than this,
+and Emacs supports it, then the images will be rescaled down to
+fit these criteria."
+  :version "24.1"
+  :group 'gnus-art
+  :type 'float)
+
 ;;;###autoload
 (defun gnus-article-html (handle)
   (let ((article-buffer (current-buffer)))
@@ -219,12 +229,32 @@
 			   (= (car (image-size image t)) 30)
 			   (= (cdr (image-size image t)) 30))))
 	    (progn
-	      (gnus-put-image image)
+	      (gnus-put-image (gnus-html-rescale-image image))
 	      t)
 	  (when (fboundp 'find-image)
 	    (gnus-put-image (find-image
 			     '((:type xpm :file "lock-broken.xpm")))))
 	  nil)))))
+
+(defun gnus-html-rescale-image (image)
+  (if (not (fboundp 'imagemagick-types))
+      image
+    (let* ((width (car (image-size image t)))
+	   (height (cdr (image-size image t)))
+	   (edges (window-pixel-edges))
+	   (window-width (truncate (* gnus-max-image-proportion
+				      (- (nth 2 edges) (nth 0 edges)))))
+	   (window-height (truncate (* gnus-max-image-proportion
+				       (- (nth 3 edges) (nth 1 edges)))))
+	   scaled-image)
+      (when (> width window-width)
+	(setq window-height (truncate (* window-height
+					 (/ (* 1.0 window-width) width)))))
+      (if (> height window-height)
+	  (or (create-image file 'imagemagick nil
+			    :height window-height)
+	      image)
+	image))))
 
 (defun gnus-html-prune-cache ()
   (let ((total-size 0)
