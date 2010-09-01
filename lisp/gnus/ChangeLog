@@ -1,3 +1,9 @@
+2010-09-01  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-html.el (gnus-html-wash-tags)
+	(gnus-html-schedule-image-fetching, gnus-html-prefetch-images): Add
+	extra logging.
+
 2010-09-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-html.el (gnus-html-wash-tags): Delete the IMG_ALT region.
