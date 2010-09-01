@@ -336,7 +336,7 @@ This is the last value stored with `(gnus-process-put PROCESS PROPNAME VALUE)'."
       "Change PROCESS' PROPNAME property to VALUE.
 It can be retrieved with `(gnus-process-get PROCESS PROPNAME)'."
       (gnus-set-process-plist process
-			      (plist-put (process-plist process)
+			      (plist-put (gnus-process-plist process)
 					 propname value)))))
 
 (provide 'gnus-ems)
