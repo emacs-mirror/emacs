@@ -1,3 +1,11 @@
+2010-09-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* cmds.c (Vblink_paren_function): Remove.
+	(internal_self_insert): Make it insert N chars at a time.
+	Don't call blink-paren-function.
+	(Fself_insert_command): Adjust accordingly.
+	(syms_of_cmds): Don't declare blink-paren-function.
+
 2010-08-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keyboard.c (Fwindow_system): Fix compilation for USE_LISP_UNION_TYPE.

@@ -34,21 +34,25 @@
 
 (defcustom gnus-html-cache-directory (nnheader-concat gnus-directory "html-cache/")
   "Where Gnus will cache images it downloads from the web."
+  :version "24.1"
   :group 'gnus-art
   :type 'directory)
 
 (defcustom gnus-html-cache-size 500000000
   "The size of the Gnus image cache."
+  :version "24.1"
   :group 'gnus-art
   :type 'integer)
 
 (defcustom gnus-html-frame-width 70
   "What width to use when rendering HTML."
+  :version "24.1"
   :group 'gnus-art
   :type 'integer)
 
 (defcustom gnus-blocked-images "."
   "Images that have URLs matching this regexp will be blocked."
+  :version "24.1"
   :group 'gnus-art
   :type 'regexp)
 
@@ -62,7 +66,13 @@
 	  (let* ((coding-system-for-read 'utf-8)
 		 (coding-system-for-write 'utf-8)
 		 (default-process-coding-system
-		   (cons coding-system-for-read coding-system-for-write)))
+		   (cons coding-system-for-read coding-system-for-write))
+		 (charset (mail-content-type-get (mm-handle-type handle)
+						 'charset)))
+	    (when (and charset
+		       (setq charset (mm-charset-to-coding-system charset))
+		       (not (eq charset 'ascii)))
+	      (mm-decode-coding-region (point-min) (point-max) charset))
 	    (call-process-region (point-min) (point-max)
 				 "w3m" 
 				 nil article-buffer nil
@@ -171,8 +181,8 @@
 
 (defun gnus-html-curl-sentinel (process event)
   (when (string-match "finished" event)
-    (let* ((images (process-get process 'images))
-	   (buffer (process-get process 'buffer))
+    (let* ((images (gnus-process-get process 'images))
+	   (buffer (gnus-process-get process 'buffer))
 	   (spec (pop images))
 	   (file (gnus-html-image-id (car spec))))
       (when (and (buffer-live-p buffer)

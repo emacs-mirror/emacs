@@ -252,6 +252,7 @@ included.  Organization and User-Agent are optional."
 (defcustom message-prune-recipient-rules nil
   "Rules for how to prune the list of recipients when doing wide replies.
 This is a list of regexps and regexp matches."
+  :version "24.1"
   :group 'message-mail
   :group 'message-headers
   :link '(custom-manual "(message)Wide Reply")
