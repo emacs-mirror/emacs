@@ -66,7 +66,13 @@
 	  (let* ((coding-system-for-read 'utf-8)
 		 (coding-system-for-write 'utf-8)
 		 (default-process-coding-system
-		   (cons coding-system-for-read coding-system-for-write)))
+		   (cons coding-system-for-read coding-system-for-write))
+		 (charset (mail-content-type-get (mm-handle-type handle)
+						 'charset)))
+	    (when (and charset
+		       (setq charset (mm-charset-to-coding-system charset))
+		       (not (eq charset 'ascii)))
+	      (mm-decode-coding-region (point-min) (point-max) charset))
 	    (call-process-region (point-min) (point-max)
 				 "w3m" 
 				 nil article-buffer nil

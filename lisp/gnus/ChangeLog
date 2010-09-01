@@ -1,5 +1,9 @@
 2010-09-01  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* gnus-html.el (gnus-article-html): Decode contents by charset.
+
+2010-09-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
 	* gnus-html.el (gnus-html-cache-directory, gnus-html-cache-size)
 	(gnus-html-frame-width, gnus-blocked-images)
 	* message.el (message-prune-recipient-rules): Add custom version.
