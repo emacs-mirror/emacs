@@ -1,3 +1,8 @@
+2010-09-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-ems.el (gnus-process-get, gnus-process-put): New compatibility
+	functions.
+
 2010-08-31  Julien Danjou  <julien@danjou.info>  (tiny change)
 
 	* nnimap.el (nnimap-request-newgroups): Use nnimap-request-list-method
