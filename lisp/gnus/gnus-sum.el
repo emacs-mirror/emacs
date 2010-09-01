@@ -663,7 +663,7 @@ string with the suggested prefix."
 	gnus-low-score-mark gnus-ancient-mark gnus-read-mark
 	gnus-duplicate-mark)
   "*The list of marks converted into expiration if a group is auto-expirable."
-  :version "21.1"
+  :version "24.1"
   :group 'gnus-summary
   :type '(repeat character))
 

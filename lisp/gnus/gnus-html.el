@@ -34,21 +34,25 @@
 
 (defcustom gnus-html-cache-directory (nnheader-concat gnus-directory "html-cache/")
   "Where Gnus will cache images it downloads from the web."
+  :version "24.1"
   :group 'gnus-art
   :type 'directory)
 
 (defcustom gnus-html-cache-size 500000000
   "The size of the Gnus image cache."
+  :version "24.1"
   :group 'gnus-art
   :type 'integer)
 
 (defcustom gnus-html-frame-width 70
   "What width to use when rendering HTML."
+  :version "24.1"
   :group 'gnus-art
   :type 'integer)
 
 (defcustom gnus-blocked-images "."
   "Images that have URLs matching this regexp will be blocked."
+  :version "24.1"
   :group 'gnus-art
   :type 'regexp)
 
