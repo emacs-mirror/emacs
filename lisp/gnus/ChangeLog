@@ -1,5 +1,7 @@
 2010-08-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* nnwarchive.el: Removed.
+
 	* gnus-soup.el: Removed.
 
 	* nnsoup.el: Removed.

@@ -695,7 +695,6 @@ Browsing the Web
 
 * Archiving Mail::
 * Web Searches::                Creating groups from articles that match a string.
-* Web Archive::                 Reading mailing list archived on web.
 * RSS::                         Reading RDF site summary.
 * Customizing W3::              Doing stuff to Emacs/W3 from Gnus.
 
@@ -17395,7 +17394,6 @@ interfaces to these sources.
 @menu
 * Archiving Mail::
 * Web Searches::                Creating groups from articles that match a string.
-* Web Archive::                 Reading mailing list archived on web.
 * RSS::                         Reading RDF site summary.
 * Customizing W3::              Doing stuff to Emacs/W3 from Gnus.
 @end menu
@@ -17537,43 +17535,6 @@ Format string URL to fetch an article by @code{Message-ID}.
 
 @end table
 
-
-@node Web Archive
-@subsection Web Archive
-@cindex nnwarchive
-@cindex Web Archive
-
-Some mailing lists only have archives on Web servers, such as
-@uref{http://www.egroups.com/} and
-@uref{http://www.mail-archive.com/}.  It has a quite regular and nice
-interface, and it's possible to get the information Gnus needs to keep
-groups updated.
-
-@findex gnus-group-make-warchive-group
-The easiest way to get started with @code{nnwarchive} is to say
-something like the following in the group buffer: @kbd{M-x
-gnus-group-make-warchive-group RET @var{an_egroup} RET egroups RET
-www.egroups.com RET @var{your@@email.address} RET}.  (Substitute the
-@var{an_egroup} with the mailing list you subscribed, the
-@var{your@@email.address} with your email address.), or to browse the
-back end by @kbd{B nnwarchive RET mail-archive RET}.
-
-The following @code{nnwarchive} variables can be altered:
-
-@table @code
-@item nnwarchive-directory
-@vindex nnwarchive-directory
-The directory where @code{nnwarchive} stores its files.  The default is@*
-@file{~/News/warchive/}.
-
-@item nnwarchive-login
-@vindex nnwarchive-login
-The account name on the web server.
-
-@item nnwarchive-passwd
-@vindex nnwarchive-passwd
-The password for your account on the web server.
-@end table
 
 @node RSS
 @subsection RSS
@@ -29163,10 +29124,9 @@ Gnus not to use @acronym{NOV}.
 As the variables for the other back ends, there are
 @code{nndiary-nov-is-evil}, @code{nndir-nov-is-evil},
 @code{nnfolder-nov-is-evil}, @code{nnimap-nov-is-evil},
-@code{nnml-nov-is-evil}, @code{nnspool-nov-is-evil}, and
-@code{nnwarchive-nov-is-evil}.  Note that a non-@code{nil} value for
-@code{gnus-nov-is-evil} overrides all those variables.@footnote{Although
-+the back ends @code{nnkiboze}, and
+@code{nnml-nov-is-evil}, and @code{nnspool-nov-is-evil}.  Note that a
+non-@code{nil} value for @code{gnus-nov-is-evil} overrides all those
+variables.@footnote{Although the back ends @code{nnkiboze}, and
 @code{nnwfm} don't have their own nn*-nov-is-evil.}
 @end table
 
