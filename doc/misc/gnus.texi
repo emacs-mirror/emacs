@@ -632,7 +632,7 @@ Select Methods
 * Getting Mail::                Reading your personal mail with Gnus.
 * Browsing the Web::            Getting messages from a plethora of Web sources.
 * IMAP::                        Using Gnus as a @acronym{IMAP} client.
-* Other Sources::               Reading directories, files, SOUP packets.
+* Other Sources::               Reading directories, files.
 * Combined Groups::             Combining groups into one group.
 * Email Based Diary::           Using mails to manage diary events in Gnus.
 * Gnus Unplugged::              Reading news and mail offline.
@@ -695,8 +695,6 @@ Browsing the Web
 
 * Archiving Mail::
 * Web Searches::                Creating groups from articles that match a string.
-* Ultimate::                    The Ultimate Bulletin Board systems.
-* Web Archive::                 Reading mailing list archived on web.
 * RSS::                         Reading RDF site summary.
 * Customizing W3::              Doing stuff to Emacs/W3 from Gnus.
 
@@ -714,18 +712,11 @@ Other Sources
 * Directory Groups::            You can read a directory as if it was a newsgroup.
 * Anything Groups::             Dired?  Who needs dired?
 * Document Groups::             Single files can be the basis of a group.
-* SOUP::                        Reading @sc{soup} packets ``offline''.
 * Mail-To-News Gateways::       Posting articles via mail-to-news gateways.
 
 Document Groups
 
 * Document Server Internals::   How to add your own document types.
-
-SOUP
-
-* SOUP Commands::               Commands for creating and sending @sc{soup} packets
-* SOUP Groups::                 A back end for reading @sc{soup} packets.
-* SOUP Replies::                How to enable @code{nnsoup} to take over mail and news.
 
 Combined Groups
 
@@ -6850,10 +6841,6 @@ Marked as read by a catchup (@code{gnus-catchup-mark}).
 @vindex gnus-canceled-mark
 Canceled article (@code{gnus-canceled-mark})
 
-@item F
-@vindex gnus-souped-mark
-@sc{soup}ed article (@code{gnus-souped-mark}).  @xref{SOUP}.
-
 @item Q
 @vindex gnus-sparse-mark
 Sparsely reffed article (@code{gnus-sparse-mark}).  @xref{Customizing
@@ -7824,7 +7811,7 @@ This is a rather obscure variable that few will find useful.  It's
 intended for those non-news newsgroups where the back end has to fetch
 quite a lot to present the summary buffer, and where it's impossible to
 go back to parents of articles.  This is mostly the case in the
-web-based groups, like the @code{nnultimate} groups.
+web-based groups.
 
 If you don't use those, then it's safe to leave this as the default
 @code{nil}.  If you want to use this variable, it should be a regexp
@@ -12501,10 +12488,22 @@ section only describes the default method.
 If set to @code{gnus-article-html}, Gnus will use the built-in method,
 that's based on @code{curl} and @code{w3m}.
 
+@item gnus-blocked-images
+@vindex gnus-blocked-images
+Images that have @acronym{URL}s that match this regexp won't be
+fetched and displayed.  For instance, do block all @acronym{URL}s that
+have the string ``ads'' in them, do the following:
+
+@lisp
+(setq gnus-blocked-images "ads")
+@end lisp
+
+The default is to block all external images.
+
 @item gnus-html-cache-directory
 @vindex gnus-html-cache-directory
 Gnus will download and cache images according to how
-@code{mm-w3m-safe-url-regexp} is set.  These images will be stored in
+@code{gnus-blocked-images} is set.  These images will be stored in
 this directory.
 
 @item gnus-html-cache-size
@@ -13734,7 +13733,7 @@ The different methods all have their peculiarities, of course.
 * Getting Mail::                Reading your personal mail with Gnus.
 * Browsing the Web::            Getting messages from a plethora of Web sources.
 * IMAP::                        Using Gnus as a @acronym{IMAP} client.
-* Other Sources::               Reading directories, files, SOUP packets.
+* Other Sources::               Reading directories, files.
 * Combined Groups::             Combining groups into one group.
 * Email Based Diary::           Using mails to manage diary events in Gnus.
 * Gnus Unplugged::              Reading news and mail offline.
@@ -17395,8 +17394,6 @@ interfaces to these sources.
 @menu
 * Archiving Mail::
 * Web Searches::                Creating groups from articles that match a string.
-* Ultimate::                    The Ultimate Bulletin Board systems.
-* Web Archive::                 Reading mailing list archived on web.
 * RSS::                         Reading RDF site summary.
 * Customizing W3::              Doing stuff to Emacs/W3 from Gnus.
 @end menu
@@ -17538,71 +17535,6 @@ Format string URL to fetch an article by @code{Message-ID}.
 
 @end table
 
-
-@node Ultimate
-@subsection Ultimate
-@cindex nnultimate
-@cindex Ultimate Bulletin Board
-
-@uref{http://www.ultimatebb.com/, The Ultimate Bulletin Board} is
-probably the most popular Web bulletin board system used.  It has a
-quite regular and nice interface, and it's possible to get the
-information Gnus needs to keep groups updated.
-
-The easiest way to get started with @code{nnultimate} is to say
-something like the following in the group buffer:  @kbd{B nnultimate RET
-http://www.tcj.com/messboard/ubbcgi/ RET}.  (Substitute the @acronym{URL}
-(not including @samp{Ultimate.cgi} or the like at the end) for a forum
-you're interested in; there's quite a list of them on the Ultimate web
-site.)  Then subscribe to the groups you're interested in from the
-server buffer, and read them from the group buffer.
-
-The following @code{nnultimate} variables can be altered:
-
-@table @code
-@item nnultimate-directory
-@vindex nnultimate-directory
-The directory where @code{nnultimate} stores its files.  The default is@*
-@file{~/News/ultimate/}.
-@end table
-
-
-@node Web Archive
-@subsection Web Archive
-@cindex nnwarchive
-@cindex Web Archive
-
-Some mailing lists only have archives on Web servers, such as
-@uref{http://www.egroups.com/} and
-@uref{http://www.mail-archive.com/}.  It has a quite regular and nice
-interface, and it's possible to get the information Gnus needs to keep
-groups updated.
-
-@findex gnus-group-make-warchive-group
-The easiest way to get started with @code{nnwarchive} is to say
-something like the following in the group buffer: @kbd{M-x
-gnus-group-make-warchive-group RET @var{an_egroup} RET egroups RET
-www.egroups.com RET @var{your@@email.address} RET}.  (Substitute the
-@var{an_egroup} with the mailing list you subscribed, the
-@var{your@@email.address} with your email address.), or to browse the
-back end by @kbd{B nnwarchive RET mail-archive RET}.
-
-The following @code{nnwarchive} variables can be altered:
-
-@table @code
-@item nnwarchive-directory
-@vindex nnwarchive-directory
-The directory where @code{nnwarchive} stores its files.  The default is@*
-@file{~/News/warchive/}.
-
-@item nnwarchive-login
-@vindex nnwarchive-login
-The account name on the web server.
-
-@item nnwarchive-passwd
-@vindex nnwarchive-passwd
-The password for your account on the web server.
-@end table
 
 @node RSS
 @subsection RSS
@@ -18540,7 +18472,6 @@ newsgroups.
 * Directory Groups::            You can read a directory as if it was a newsgroup.
 * Anything Groups::             Dired?  Who needs dired?
 * Document Groups::             Single files can be the basis of a group.
-* SOUP::                        Reading @sc{soup} packets ``offline''.
 * Mail-To-News Gateways::       Posting articles via mail-to-news gateways.
 @end menu
 
@@ -18906,289 +18837,6 @@ So @code{nndoc-mmdf-type-p} is called to see whether a document is of
 is of the correct type; and a number if the document might be of the
 correct type.  A high number means high probability; a low number
 means low probability with @samp{0} being the lowest valid number.
-
-
-@node SOUP
-@subsection SOUP
-@cindex SOUP
-@cindex offline
-
-In the PC world people often talk about ``offline'' newsreaders.  These
-are thingies that are combined reader/news transport monstrosities.
-With built-in modem programs.  Yecchh!
-
-Of course, us Unix Weenie types of human beans use things like
-@code{uucp} and, like, @code{nntpd} and set up proper news and mail
-transport things like Ghod intended.  And then we just use normal
-newsreaders.
-
-However, it can sometimes be convenient to do something that's a bit
-easier on the brain if you have a very slow modem, and you're not really
-that interested in doing things properly.
-
-A file format called @sc{soup} has been developed for transporting news
-and mail from servers to home machines and back again.  It can be a bit
-fiddly.
-
-First some terminology:
-
-@table @dfn
-
-@item server
-This is the machine that is connected to the outside world and where you
-get news and/or mail from.
-
-@item home machine
-This is the machine that you want to do the actual reading and responding
-on.  It is typically not connected to the rest of the world in any way.
-
-@item packet
-Something that contains messages and/or commands.  There are two kinds
-of packets:
-
-@table @dfn
-@item message packets
-These are packets made at the server, and typically contain lots of
-messages for you to read.  These are called @file{SoupoutX.tgz} by
-default, where @var{x} is a number.
-
-@item response packets
-These are packets made at the home machine, and typically contains
-replies that you've written.  These are called @file{SoupinX.tgz} by
-default, where @var{x} is a number.
-
-@end table
-
-@end table
-
-
-@enumerate
-
-@item
-You log in on the server and create a @sc{soup} packet.  You can either
-use a dedicated @sc{soup} thingie (like the @code{awk} program), or you
-can use Gnus to create the packet with its @sc{soup} commands (@kbd{O
-s} and/or @kbd{G s b}; and then @kbd{G s p}) (@pxref{SOUP Commands}).
-
-@item
-You transfer the packet home.  Rail, boat, car or modem will do fine.
-
-@item
-You put the packet in your home directory.
-
-@item
-You fire up Gnus on your home machine using the @code{nnsoup} back end as
-the native or secondary server.
-
-@item
-You read articles and mail and answer and followup to the things you
-want (@pxref{SOUP Replies}).
-
-@item
-You do the @kbd{G s r} command to pack these replies into a @sc{soup}
-packet.
-
-@item
-You transfer this packet to the server.
-
-@item
-You use Gnus to mail this packet out with the @kbd{G s s} command.
-
-@item
-You then repeat until you die.
-
-@end enumerate
-
-So you basically have a bipartite system---you use @code{nnsoup} for
-reading and Gnus for packing/sending these @sc{soup} packets.
-
-@menu
-* SOUP Commands::               Commands for creating and sending @sc{soup} packets
-* SOUP Groups::                 A back end for reading @sc{soup} packets.
-* SOUP Replies::                How to enable @code{nnsoup} to take over mail and news.
-@end menu
-
-
-@node SOUP Commands
-@subsubsection SOUP Commands
-
-These are commands for creating and manipulating @sc{soup} packets.
-
-@table @kbd
-@item G s b
-@kindex G s b (Group)
-@findex gnus-group-brew-soup
-Pack all unread articles in the current group
-(@code{gnus-group-brew-soup}).  This command understands the
-process/prefix convention.
-
-@item G s w
-@kindex G s w (Group)
-@findex gnus-soup-save-areas
-Save all @sc{soup} data files (@code{gnus-soup-save-areas}).
-
-@item G s s
-@kindex G s s (Group)
-@findex gnus-soup-send-replies
-Send all replies from the replies packet
-(@code{gnus-soup-send-replies}).
-
-@item G s p
-@kindex G s p (Group)
-@findex gnus-soup-pack-packet
-Pack all files into a @sc{soup} packet (@code{gnus-soup-pack-packet}).
-
-@item G s r
-@kindex G s r (Group)
-@findex nnsoup-pack-replies
-Pack all replies into a replies packet (@code{nnsoup-pack-replies}).
-
-@item O s
-@kindex O s (Summary)
-@findex gnus-soup-add-article
-This summary-mode command adds the current article to a @sc{soup} packet
-(@code{gnus-soup-add-article}).  It understands the process/prefix
-convention (@pxref{Process/Prefix}).
-
-@end table
-
-
-There are a few variables to customize where Gnus will put all these
-thingies:
-
-@table @code
-
-@item gnus-soup-directory
-@vindex gnus-soup-directory
-Directory where Gnus will save intermediate files while composing
-@sc{soup} packets.  The default is @file{~/SoupBrew/}.
-
-@item gnus-soup-replies-directory
-@vindex gnus-soup-replies-directory
-This is what Gnus will use as a temporary directory while sending our
-reply packets.  @file{~/SoupBrew/SoupReplies/} is the default.
-
-@item gnus-soup-prefix-file
-@vindex gnus-soup-prefix-file
-Name of the file where Gnus stores the last used prefix.  The default is
-@samp{gnus-prefix}.
-
-@item gnus-soup-packer
-@vindex gnus-soup-packer
-A format string command for packing a @sc{soup} packet.  The default is
-@samp{tar cf - %s | gzip > $HOME/Soupout%d.tgz}.
-
-@item gnus-soup-unpacker
-@vindex gnus-soup-unpacker
-Format string command for unpacking a @sc{soup} packet.  The default is
-@samp{gunzip -c %s | tar xvf -}.
-
-@item gnus-soup-packet-directory
-@vindex gnus-soup-packet-directory
-Where Gnus will look for reply packets.  The default is @file{~/}.
-
-@item gnus-soup-packet-regexp
-@vindex gnus-soup-packet-regexp
-Regular expression matching @sc{soup} reply packets in
-@code{gnus-soup-packet-directory}.
-
-@end table
-
-
-@node SOUP Groups
-@subsubsection SOUP Groups
-@cindex nnsoup
-
-@code{nnsoup} is the back end for reading @sc{soup} packets.  It will
-read incoming packets, unpack them, and put them in a directory where
-you can read them at leisure.
-
-These are the variables you can use to customize its behavior:
-
-@table @code
-
-@item nnsoup-tmp-directory
-@vindex nnsoup-tmp-directory
-When @code{nnsoup} unpacks a @sc{soup} packet, it does it in this
-directory.  (@file{/tmp/} by default.)
-
-@item nnsoup-directory
-@vindex nnsoup-directory
-@code{nnsoup} then moves each message and index file to this directory.
-The default is @file{~/SOUP/}.
-
-@item nnsoup-replies-directory
-@vindex nnsoup-replies-directory
-All replies will be stored in this directory before being packed into a
-reply packet.  The default is @file{~/SOUP/replies/}.
-
-@item nnsoup-replies-format-type
-@vindex nnsoup-replies-format-type
-The @sc{soup} format of the replies packets.  The default is @samp{?n}
-(rnews), and I don't think you should touch that variable.  I probably
-shouldn't even have documented it.  Drats!  Too late!
-
-@item nnsoup-replies-index-type
-@vindex nnsoup-replies-index-type
-The index type of the replies packet.  The default is @samp{?n}, which
-means ``none''.  Don't fiddle with this one either!
-
-@item nnsoup-active-file
-@vindex nnsoup-active-file
-Where @code{nnsoup} stores lots of information.  This is not an ``active
-file'' in the @code{nntp} sense; it's an Emacs Lisp file.  If you lose
-this file or mess it up in any way, you're dead.  The default is
-@file{~/SOUP/active}.
-
-@item nnsoup-packer
-@vindex nnsoup-packer
-Format string command for packing a reply @sc{soup} packet.  The default
-is @samp{tar cf - %s | gzip > $HOME/Soupin%d.tgz}.
-
-@item nnsoup-unpacker
-@vindex nnsoup-unpacker
-Format string command for unpacking incoming @sc{soup} packets.  The
-default is @samp{gunzip -c %s | tar xvf -}.
-
-@item nnsoup-packet-directory
-@vindex nnsoup-packet-directory
-Where @code{nnsoup} will look for incoming packets.  The default is
-@file{~/}.
-
-@item nnsoup-packet-regexp
-@vindex nnsoup-packet-regexp
-Regular expression matching incoming @sc{soup} packets.  The default is
-@samp{Soupout}.
-
-@item nnsoup-always-save
-@vindex nnsoup-always-save
-If non-@code{nil}, save the replies buffer after each posted message.
-
-@end table
-
-
-@node SOUP Replies
-@subsubsection SOUP Replies
-
-Just using @code{nnsoup} won't mean that your postings and mailings end
-up in @sc{soup} reply packets automagically.  You have to work a bit
-more for that to happen.
-
-@findex nnsoup-set-variables
-The @code{nnsoup-set-variables} command will set the appropriate
-variables to ensure that all your followups and replies end up in the
-@sc{soup} system.
-
-In specific, this is what it does:
-
-@lisp
-(setq message-send-news-function 'nnsoup-request-post)
-(setq message-send-mail-function 'nnsoup-request-mail)
-@end lisp
-
-And that's it, really.  If you only want news to go into the @sc{soup}
-system you just use the first line.  If you only want mail to be
-@sc{soup}ed you use the second.
 
 
 @node Mail-To-News Gateways
@@ -27915,8 +27563,7 @@ news batches, ClariNet briefs collections, and just about everything
 else (@pxref{Document Groups}).
 
 @item
-Gnus has a new back end (@code{nnsoup}) to create/read SOUP packets
-(@pxref{SOUP}).
+Gnus has a new back end (@code{nnsoup}) to create/read SOUP packets.
 
 @item
 The Gnus cache is much faster.
@@ -29477,10 +29124,9 @@ Gnus not to use @acronym{NOV}.
 As the variables for the other back ends, there are
 @code{nndiary-nov-is-evil}, @code{nndir-nov-is-evil},
 @code{nnfolder-nov-is-evil}, @code{nnimap-nov-is-evil},
-@code{nnml-nov-is-evil}, @code{nnspool-nov-is-evil}, and
-@code{nnwarchive-nov-is-evil}.  Note that a non-@code{nil} value for
-@code{gnus-nov-is-evil} overrides all those variables.@footnote{Although
-the back ends @code{nnkiboze}, @code{nnultimate}, and
+@code{nnml-nov-is-evil}, and @code{nnspool-nov-is-evil}.  Note that a
+non-@code{nil} value for @code{gnus-nov-is-evil} overrides all those
+variables.@footnote{Although the back ends @code{nnkiboze}, and
 @code{nnwfm} don't have their own nn*-nov-is-evil.}
 @end table
 
