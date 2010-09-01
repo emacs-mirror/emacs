@@ -1,3 +1,14 @@
+2010-09-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Fix up some byte-compiler warnings.
+	* gnus.el (gnus-group-find-parameter, gnus-kill-save-kill-buffer):
+	* gnus-cite.el (gnus-article-highlight-citation, gnus-dissect-cited-text)
+	(gnus-article-fill-cited-article, gnus-article-hide-citation)
+	(gnus-article-hide-citation-in-followups, gnus-cite-toggle):
+	* gnus-group.el (gnus-group-set-mode-line, gnus-group-quit)
+	(gnus-group-set-info, gnus-add-mark): Use with-current-buffer.
+	(gnus-group-update-group): Use save-excursion and with-current-buffer.
+
 2010-09-01  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-html.el (gnus-article-html): Decode contents by charset.

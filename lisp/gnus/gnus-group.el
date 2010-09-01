@@ -1691,72 +1691,66 @@ if it is a string, only list groups matching REGEXP."
   "Update all lines where GROUP appear.
 If VISIBLE-ONLY is non-nil, the group won't be displayed if it isn't
 already."
-  ;; Can't use `save-excursion' here, so we do it manually.
-  (let ((buf (current-buffer))
-	mark)
-    (set-buffer gnus-group-buffer)
-    (setq mark (point-marker))
-    ;; The buffer may be narrowed.
-    (save-restriction
-      (widen)
-      (let ((ident (gnus-intern-safe group gnus-active-hashtb))
-	    (loc (point-min))
-	    found buffer-read-only)
-	;; Enter the current status into the dribble buffer.
-	(let ((entry (gnus-group-entry group)))
-	  (when (and entry
-		     (not (gnus-ephemeral-group-p group)))
-	    (gnus-dribble-enter
-	     (concat "(gnus-group-set-info '"
-		     (gnus-prin1-to-string (nth 2 entry))
-		     ")"))))
-	;; Find all group instances.  If topics are in use, each group
-	;; may be listed in more than once.
-	(while (setq loc (text-property-any
-			  loc (point-max) 'gnus-group ident))
-	  (setq found t)
-	  (goto-char loc)
-	  (let ((gnus-group-indentation (gnus-group-group-indentation)))
-	    (gnus-delete-line)
-	    (gnus-group-insert-group-line-info group)
-	    (save-excursion
-	      (forward-line -1)
-	      (gnus-run-hooks 'gnus-group-update-group-hook)))
-	  (setq loc (1+ loc)))
-	(unless (or found visible-only)
-	  ;; No such line in the buffer, find out where it's supposed to
-	  ;; go, and insert it there (or at the end of the buffer).
-	  (if gnus-goto-missing-group-function
-	      (funcall gnus-goto-missing-group-function group)
-	    (let ((entry (cddr (gnus-group-entry group))))
-	      (while (and entry (car entry)
-			  (not
-			   (gnus-goto-char
-			    (text-property-any
-			     (point-min) (point-max)
-			     'gnus-group (gnus-intern-safe
-					  (caar entry) gnus-active-hashtb)))))
-		(setq entry (cdr entry)))
-	      (or entry (goto-char (point-max)))))
-	  ;; Finally insert the line.
-	  (let ((gnus-group-indentation (gnus-group-group-indentation)))
-	    (gnus-group-insert-group-line-info group)
-	    (save-excursion
-	      (forward-line -1)
-	      (gnus-run-hooks 'gnus-group-update-group-hook))))
-	(when gnus-group-update-group-function
-	  (funcall gnus-group-update-group-function group))
-	(gnus-group-set-mode-line)))
-    (goto-char mark)
-    (set-marker mark nil)
-    (set-buffer buf)))
+  (with-current-buffer gnus-group-buffer
+    (save-excursion
+      ;; The buffer may be narrowed.
+      (save-restriction
+        (widen)
+        (let ((ident (gnus-intern-safe group gnus-active-hashtb))
+              (loc (point-min))
+              found buffer-read-only)
+          ;; Enter the current status into the dribble buffer.
+          (let ((entry (gnus-group-entry group)))
+            (when (and entry
+                       (not (gnus-ephemeral-group-p group)))
+              (gnus-dribble-enter
+               (concat "(gnus-group-set-info '"
+                       (gnus-prin1-to-string (nth 2 entry))
+                       ")"))))
+          ;; Find all group instances.  If topics are in use, each group
+          ;; may be listed in more than once.
+          (while (setq loc (text-property-any
+                            loc (point-max) 'gnus-group ident))
+            (setq found t)
+            (goto-char loc)
+            (let ((gnus-group-indentation (gnus-group-group-indentation)))
+              (gnus-delete-line)
+              (gnus-group-insert-group-line-info group)
+              (save-excursion
+                (forward-line -1)
+                (gnus-run-hooks 'gnus-group-update-group-hook)))
+            (setq loc (1+ loc)))
+          (unless (or found visible-only)
+            ;; No such line in the buffer, find out where it's supposed to
+            ;; go, and insert it there (or at the end of the buffer).
+            (if gnus-goto-missing-group-function
+                (funcall gnus-goto-missing-group-function group)
+              (let ((entry (cddr (gnus-group-entry group))))
+                (while (and entry (car entry)
+                            (not
+                             (gnus-goto-char
+                              (text-property-any
+                               (point-min) (point-max)
+                               'gnus-group (gnus-intern-safe
+                                            (caar entry)
+                                            gnus-active-hashtb)))))
+                  (setq entry (cdr entry)))
+                (or entry (goto-char (point-max)))))
+            ;; Finally insert the line.
+            (let ((gnus-group-indentation (gnus-group-group-indentation)))
+              (gnus-group-insert-group-line-info group)
+              (save-excursion
+                (forward-line -1)
+                (gnus-run-hooks 'gnus-group-update-group-hook))))
+          (when gnus-group-update-group-function
+            (funcall gnus-group-update-group-function group))
+          (gnus-group-set-mode-line))))))
 
 (defun gnus-group-set-mode-line ()
   "Update the mode line in the group buffer."
   (when (memq 'group gnus-updated-mode-lines)
     ;; Yes, we want to keep this mode line updated.
-    (save-excursion
-      (set-buffer gnus-group-buffer)
+    (with-current-buffer gnus-group-buffer
       (let* ((gformat (or gnus-group-mode-line-format-spec
 			  (gnus-set-format 'group-mode)))
 	     (gnus-tmp-news-server (cadr gnus-select-method))
@@ -1769,8 +1763,7 @@ already."
 	      (and gnus-dribble-buffer
 		   (buffer-name gnus-dribble-buffer)
 		   (buffer-modified-p gnus-dribble-buffer)
-		   (save-excursion
-		     (set-buffer gnus-dribble-buffer)
+		   (with-current-buffer gnus-dribble-buffer
 		     (not (zerop (buffer-size))))))
 	     (mode-string (eval gformat)))
 	;; Say whether the dribble buffer has been modified.
@@ -4433,8 +4426,7 @@ The hook `gnus-exit-gnus-hook' is called before actually exiting."
     (gnus-run-hooks 'gnus-exit-gnus-hook)
     (gnus-configure-windows 'group t)
     (when (and (gnus-buffer-live-p gnus-dribble-buffer)
-	       (not (zerop (save-excursion
-			    (set-buffer gnus-dribble-buffer)
+	       (not (zerop (with-current-buffer gnus-dribble-buffer
 			    (buffer-size)))))
       (gnus-dribble-enter
        ";;; Gnus was exited on purpose without saving the .newsrc files."))
@@ -4495,13 +4487,11 @@ and the second element is the address."
 	  (setcar (nthcdr (1- total) info) part-info)))
       (unless entry
 	;; This is a new group, so we just create it.
-	(save-excursion
-	  (set-buffer gnus-group-buffer)
+	(with-current-buffer gnus-group-buffer
 	  (setq method (gnus-info-method info))
 	  (when (gnus-server-equal method "native")
 	    (setq method nil))
-	  (save-excursion
-	    (set-buffer gnus-group-buffer)
+	  (with-current-buffer gnus-group-buffer
 	    (if method
 		;; It's a foreign group...
 		(gnus-group-make-group
@@ -4565,8 +4555,7 @@ and the second element is the address."
   "Mark ARTICLE in GROUP with MARK, whether the group is displayed or not."
   (let ((buffer (gnus-summary-buffer-name group)))
     (if (gnus-buffer-live-p buffer)
-	(save-excursion
-	  (set-buffer (get-buffer buffer))
+	(with-current-buffer (get-buffer buffer)
 	  (gnus-summary-add-mark article mark))
       (gnus-add-marked-articles group (cdr (assq mark gnus-article-mark-lists))
 				(list article)))))
