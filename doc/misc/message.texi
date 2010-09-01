@@ -200,7 +200,7 @@ To avoid this, do something like the following:
 
 @lisp
 (setq message-prune-recipient-rules
-      '(("^\\([^@]+\\)@\\(.*\\)" "\\1@.*[.]\\2")))
+      '(("^\\([^@@]+\\)@@\\(.*\\)" "\\1@@.*[.]\\2")))
 @end lisp
 
 If, for instance, you want all wide replies that involve messages from
@@ -210,7 +210,7 @@ recipient list:
 
 @lisp
 (setq message-prune-recipient-rules
-      '(("cvs@example.org" ".")))
+      '(("cvs@@example.org" ".")))
 @end lisp
 
 @vindex message-wide-reply-confirm-recipients
