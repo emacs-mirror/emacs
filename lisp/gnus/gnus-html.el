@@ -150,6 +150,10 @@
 	    (gnus-overlay-put overlay 'gnus-button-url url)
 	    (when gnus-article-mouse-face
 	      (gnus-overlay-put overlay 'mouse-face gnus-article-mouse-face)))))
+       ;; The upper-case IMG_ALT is apparently just an artifact that
+       ;; should be deleted.
+       ((equal tag "IMG_ALT")
+	(delete-region start end))
        ;; Whatever.  Just ignore the tag.
        (t
 	))

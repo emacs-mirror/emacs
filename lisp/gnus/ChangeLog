@@ -1,3 +1,7 @@
+2010-09-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-html.el (gnus-html-wash-tags): Delete the IMG_ALT region.
+
 2010-09-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Fix up some byte-compiler warnings.
