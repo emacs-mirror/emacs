@@ -5,6 +5,7 @@
 ;; Author: Jan Djärv <jan.h.d@swipnet.se>
 ;; Maintainer: FSF
 ;; Keywords: font, system-font, tool-bar-style
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

@@ -6,6 +6,7 @@
 ;; Author: Joe Wells <jbw@cs.bu.edu>
 ;; Maintainer: FSF
 ;; Keywords: mail
+;; Package: mail-utils
 
 ;; This file is part of GNU Emacs.
 

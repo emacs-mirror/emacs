@@ -5,6 +5,7 @@
 
 ;; Author: Georges Brun-Cottan <Georges.Brun-Cottan@inria.fr>
 ;; Maintainer: Stefan Monnier <monnier@gnu.org>
+;; Package: emacs
 
 ;; Keywords: extensions lisp
 

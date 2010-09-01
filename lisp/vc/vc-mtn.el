@@ -4,6 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: vc
+;; Package: vc
 
 ;; This file is part of GNU Emacs.
 

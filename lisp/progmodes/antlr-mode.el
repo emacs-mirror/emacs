@@ -5,7 +5,7 @@
 
 ;; Author: Christoph.Wedler@sap.com
 ;; Keywords: languages, ANTLR, code generator
-;; Version: (see `antlr-version' below)
+;; Version: 2.2c
 ;; X-URL: http://antlr-mode.sourceforge.net/
 
 ;; This file is part of GNU Emacs.

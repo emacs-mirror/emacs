@@ -7,6 +7,7 @@
 ;; Author: John Eaton <jwe@bevo.che.wisc.edu>
 ;; Maintainer: Kurt Hornik <Kurt.Hornik@wu-wien.ac.at>
 ;; Keywords: languages
+;; Package: octave-mod
 
 ;; This file is part of GNU Emacs.
 

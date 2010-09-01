@@ -5,6 +5,7 @@
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;;	Kenichi OKADA <okada@opaopa.org>
 ;; Keywords: SASL, CRAM-MD5
+;; Package: sasl
 
 ;; This file is part of GNU Emacs.
 

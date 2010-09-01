@@ -8,6 +8,7 @@
 ;; Author: Kenichi HANDA <handa@etl.go.jp>
 ;; (according to ack.texi)
 ;; Keywords: mule, multilingual, character composition
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

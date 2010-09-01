@@ -6,6 +6,7 @@
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Keywords: calendar
 ;; Human-Keywords: Bahá'í calendar, Bahá'í, Baha'i, Bahai, calendar, diary
+;; Package: calendar
 
 ;; This file is part of GNU Emacs.
 

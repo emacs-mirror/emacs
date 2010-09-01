@@ -1,3 +1,12 @@
+2010-08-30  Kenichi Handa  <handa@m17n.org>
+
+	* composite.c (composition_update_it): Fix computing of
+	cmp_it->width.
+
+2010-08-29  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (ns_draw_window_cursor): Draw BAR_CURSOR correct for R2L.
+
 2010-08-26  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (compute_stop_pos): Pay attention to bidi scan direction

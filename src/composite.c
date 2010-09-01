@@ -1440,8 +1440,7 @@ composition_update_it (struct composition_it *cmp_it, EMACS_INT charpos, EMACS_I
 	{
 	  c = XINT (LGSTRING_CHAR (gstring, i));
 	  cmp_it->nbytes += CHAR_BYTES (c);
-	  cmp_it->width = (LGLYPH_WIDTH (glyph) > 0
-			   ? CHAR_WIDTH (LGLYPH_CHAR (glyph)) : 0);
+	  cmp_it->width += CHAR_WIDTH (c);
 	}
     }
   return c;

@@ -176,8 +176,12 @@ for `list-colors-display'.
 
 ** An Emacs Lisp package manager is now included.
 This is a convenient way to download and install additional packages,
-from elpa.gnu.org.  `M-x package-list-packages' shows a list of
-packages, which can be selected for installation.
+from elpa.gnu.org.
+
+*** `M-x list-packages' shows a list of packages, which can be
+selected for installation.
+
+*** New command `describe-package', bound to `C-h P'.
 
 *** By default, all installed packages are loaded and activated
 automatically when Emacs starts up.  To disable this, set

@@ -7,6 +7,7 @@
 ;; Modified by: Francis J. Wright <F.J.Wright@maths.qmw.ac.uk>
 ;; Maintainer: FSF
 ;; Keywords: unix, dired
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

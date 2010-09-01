@@ -4,6 +4,7 @@
 ;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
+;; Package: pcomplete
 
 ;; This file is part of GNU Emacs.
 

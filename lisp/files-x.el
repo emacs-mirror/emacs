@@ -5,6 +5,7 @@
 ;; Author: Juri Linkov <juri@jurta.org>
 ;; Maintainer: FSF
 ;; Keywords: files
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

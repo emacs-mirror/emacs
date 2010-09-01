@@ -15,6 +15,7 @@
 ;; Compatibility: Emacs23, Emacs22
 ;; Incompatibility: Emacs19, Emacs20, Emacs21
 ;; Last Updated: Thu 2009-11-19 01:31:21 +0000
+;; Version: 0.21
 
 ;; This file is part of GNU Emacs.
 

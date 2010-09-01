@@ -1,3 +1,95 @@
+2010-08-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* finder.el: Require `package'.
+	(finder-known-keywords): Tweak descriptions.  Retire `oop' keyword.
+	(finder-package-info): Var deleted.
+	(finder-keywords-hash, finder--builtins-alist): New vars.
+	(finder-compile-keywords): Compute package--builtins and
+	finder-keywords-hash instead of finder-keywords-hash, respecting
+	the "Package" header.
+	(finder-unknown-keywords, finder-list-matches): Use
+	finder-keywords-hash and package--list-packages.
+	(finder-mode): Don't set font-lock-defaults.
+	(finder-exit): We don't use "*Finder-package*" and "*Finder
+	Category*" buffers anymore.
+
+	* emacs-lisp/package.el (package--builtins-base): Var deleted.
+	(package--builtins): Set default value to nil.
+	(package-initialize): Load precomputed value of package--builtins
+	from finder-inf.el.
+	(package-alist, package-compute-transaction)
+	(package-download-transaction): Improve docstring.
+	(package-read-all-archive-contents): Do not change
+	package--builtins here.
+	(list-packages): Make package-list-packages an alias for this.
+	Sort by status by default.
+	(package--list-packages): Add optional PACKAGES arg.
+	(describe-package-1): Use font-lock-face property.  For built-in
+	packages, insert file commentary.
+	(package--generate-package-list): Rename from
+	package-list-packages-internal; all callers changed.  Add optional
+	PACKAGES arg.  Add alphabetical sort fallbacks.
+	(package-menu--version-predicate, package-menu--status-predicate)
+	(package-menu--description-predicate)
+	(package-menu--name-predicate): New functions.
+
+	* info.el (Info-finder-find-node): Search package-alist instead of
+	finder-package-info.
+
+2010-08-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* subr.el (version-regexp-alist): Don't use "a" and "b" for
+	"alpha" and "beta".
+	(version-to-list): Handle versions like "10.3d".
+
+2010-08-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/macroexp.el (macroexpand-all-1): Use pcase.
+	(macroexp-accumulate): Use `declare'.
+
+2010-08-27  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* whitespace.el (whitespace-style): Adjust type declaration.
+
+2010-08-26  Nathan Weizenbaum  <nweiz@cressida.sea.corp.google.com>  (tiny change)
+
+	* progmodes/js.el: Make indentation more customizable (Bug#6914).
+	(js-paren-indent-offset, js-square-indent-offset)
+	(js-curly-indent-offset): New options.
+	(js--proper-indentation): Use them.
+
+2010-08-26  Daniel Colascione  <dan.colascione@gmail.com>
+
+	* progmodes/sh-script.el (sh-get-indent-info): Use syntax-ppss
+	instead of inspecting font-lock properties (Bug#6916).
+
+2010-08-26  David Reitter  <david.reitter@gmail.com>
+
+	* server.el (server-visit-files): Run pre-command-hook and
+	post-command-hook for each buffer while it is current
+	(Bug#6910).
+	(server-execute): Do not run hooks here.
+
+2010-08-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.1.19.
+
+	* net/trampver.el: Update release number.
+
+2010-08-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* help.el (help-map): Bind `C-h P' to describe-package.
+
+	* menu-bar.el (menu-bar-describe-menu): Add describe-package.
+
+	* emacs-lisp/package.el (package-refresh-contents): Catch errors
+	when downloading archives.
+	(describe-package-1): Add package commentary.
+	(package-install-button-action): New function.
+	(package-menu-mode-map): Bind ? to package-menu-describe-package.
+	(package-menu-view-commentary): Function removed.
+	(package-list-packages-internal): Hide the `package' package too.
+
 2010-08-25  Kenichi Handa  <handa@m17n.org>
 
 	* language/misc-lang.el ("Arabic"): New language environment.

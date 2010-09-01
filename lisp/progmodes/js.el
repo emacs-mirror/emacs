@@ -7,7 +7,7 @@
 ;; Maintainer: Daniel Colascione <dan.colascione@gmail.com>
 ;; Version: 9
 ;; Date: 2009-07-25
-;; Keywords: languages, oop, javascript
+;; Keywords: languages, javascript
 
 ;; This file is part of GNU Emacs.
 
@@ -431,10 +431,31 @@ Match group 1 is the name of the macro.")
   :group 'js)
 
 (defcustom js-expr-indent-offset 0
-  "Number of additional spaces used for indentation of continued expressions.
+  "Number of additional spaces for indenting continued expressions.
 The value must be no less than minus `js-indent-level'."
   :type 'integer
   :group 'js)
+
+(defcustom js-paren-indent-offset 0
+  "Number of additional spaces for indenting expressions in parentheses.
+The value must be no less than minus `js-indent-level'."
+  :type 'integer
+  :group 'js
+  :version "24.1")
+
+(defcustom js-square-indent-offset 0
+  "Number of additional spaces for indenting expressions in square braces.
+The value must be no less than minus `js-indent-level'."
+  :type 'integer
+  :group 'js
+  :version "24.1")
+
+(defcustom js-curly-indent-offset 0
+  "Number of additional spaces for indenting expressions in curly braces.
+The value must be no less than minus `js-indent-level'."
+  :type 'integer
+  :group 'js
+  :version "24.1")
 
 (defcustom js-auto-indent-flag t
   "Whether to automatically indent when typing punctuation characters.
@@ -1769,14 +1790,17 @@ nil."
           ((eq (char-after) ?#) 0)
           ((save-excursion (js--beginning-of-macro)) 4)
           ((nth 1 parse-status)
+	   ;; A single closing paren/bracket should be indented at the
+	   ;; same level as the opening statement. Same goes for
+	   ;; "case" and "default".
            (let ((same-indent-p (looking-at
                                  "[]})]\\|\\_<case\\_>\\|\\_<default\\_>"))
                  (continued-expr-p (js--continued-expression-p)))
-             (goto-char (nth 1 parse-status))
+             (goto-char (nth 1 parse-status)) ; go to the opening char
              (if (looking-at "[({[]\\s-*\\(/[/*]\\|$\\)")
-                 (progn
+                 (progn ; nothing following the opening paren/bracket
                    (skip-syntax-backward " ")
-		   (when (eq (char-before) ?\)) (backward-list))
+                   (when (eq (char-before) ?\)) (backward-list))
                    (back-to-indentation)
                    (cond (same-indent-p
                           (current-column))
@@ -1784,7 +1808,14 @@ nil."
                           (+ (current-column) (* 2 js-indent-level)
                              js-expr-indent-offset))
                          (t
-                          (+ (current-column) js-indent-level))))
+                          (+ (current-column) js-indent-level
+                             (case (char-after (nth 1 parse-status))
+                               (?\( js-paren-indent-offset)
+                               (?\[ js-square-indent-offset)
+                               (?\{ js-curly-indent-offset))))))
+               ;; If there is something following the opening
+               ;; paren/bracket, everything else should be indented at
+               ;; the same level.
                (unless same-indent-p
                  (forward-char)
                  (skip-chars-forward " \t"))
