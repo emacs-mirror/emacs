@@ -1,3 +1,8 @@
+2010-08-28  Kenichi Handa  <handa@m17n.org>
+
+	* quail/japanese.el (quail-japanese-update-translation): Fix
+	handling of invalid key.
+
 2010-08-15  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* quail/vntelex.el ("vietnamese-telex"): Doc fix.
