@@ -171,8 +171,8 @@
 
 (defun gnus-html-curl-sentinel (process event)
   (when (string-match "finished" event)
-    (let* ((images (process-get process 'images))
-	   (buffer (process-get process 'buffer))
+    (let* ((images (gnus-process-get process 'images))
+	   (buffer (gnus-process-get process 'buffer))
 	   (spec (pop images))
 	   (file (gnus-html-image-id (car spec))))
       (when (and (buffer-live-p buffer)
