@@ -1,5 +1,19 @@
 2010-09-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus.el (gnus-refer-article-method): Change default to 'current.
+	When referring an article, the common behaviour is to refer it from the
+	current select method, not the native select method.  The chances of
+	the native select method having the message in question is rather slim
+	these days.
+
+	* gnus-sum.el (gnus-auto-select-subject): Change default to
+	`unseen-or-unread'.  I think it's likely that most people want to
+	select an unseen article over a previously seen, but unread one.
+
+	* gnus.el (gnus-mode-non-string-length): Change default to 30.  nil
+	means that in the article buffer none of the minor mode elements will
+	be shown, usually, and this is not desirable in most cases.
+
 	* gnus-sum.el (gnus-summary-goto-unread): Change default to nil, so
 	that commands like `d' (and the like) go to the next line in the
 	buffer, instead of the next unread article.  I think this is the

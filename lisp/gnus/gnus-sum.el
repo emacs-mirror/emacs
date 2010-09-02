@@ -350,7 +350,7 @@ newsgroups, set the variable to nil in `gnus-select-group-hook'."
   :type '(choice (const :tag "none" nil)
 		 (sexp :menu-tag "first" t)))
 
-(defcustom gnus-auto-select-subject 'unread
+(defcustom gnus-auto-select-subject 'unseen-or-unread
   "*Says what subject to place under point when entering a group.
 
 This variable can either be the symbols `first' (place point on the
@@ -361,7 +361,7 @@ the first unseen article), `unseen-or-unread' (place point on the subject
 line of the first unseen article or, if all article have been seen, on the
 subject line of the first unread article), or a function to be called to
 place point on some subject line."
-  :version "22.1"
+  :version "24.1"
   :group 'gnus-group-select
   :type '(choice (const best)
 		 (const unread)

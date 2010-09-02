@@ -1443,7 +1443,7 @@ Obsolete variable; use `message-user-organization' instead.")
 
 ;; Customization variables
 
-(defcustom gnus-refer-article-method nil
+(defcustom gnus-refer-article-method 'current
   "Preferred method for fetching an article by Message-ID.
 If you are reading news from the local spool (with nnspool), fetching
 articles by Message-ID is painfully slow.  By setting this method to an
@@ -1455,6 +1455,7 @@ in the documentation of `gnus-select-method'.
 It can also be a list of select methods, as well as the special symbol
 `current', which means to use the current select method.  If it is a
 list, Gnus will try all the methods in the list until it finds a match."
+  :version "24.1"
   :group 'gnus-server
   :type '(choice (const :tag "default" nil)
 		 (const current)
@@ -1804,12 +1805,11 @@ If this variable is nil, screen refresh may be quicker."
 	      (const summary)
 	      (const tree)))
 
-;; Added by Keinonen Kari <kk85613@cs.tut.fi>.
-(defcustom gnus-mode-non-string-length nil
+(defcustom gnus-mode-non-string-length 30
   "*Max length of mode-line non-string contents.
 If this is nil, Gnus will take space as is needed, leaving the rest
-of the mode line intact.  Note that the default of nil is unlikely
-to be desirable; see the manual for further details."
+of the mode line intact."
+  :version "24.1"
   :group 'gnus-various
   :type '(choice (const nil)
 		 integer))
