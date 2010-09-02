@@ -497,7 +497,3 @@ If non-@code{nil}, don't check the checksum of the packets.
 @bye
 
 @c End:
-
-@ignore
-   arch-tag: 0c205838-34b9-41a5-b9d7-49ae57ccac85
-@end ignore

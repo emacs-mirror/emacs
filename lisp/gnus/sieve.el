@@ -380,5 +380,4 @@ Server  : " server ":" (or port "2000") "
 
 (provide 'sieve)
 
-;; arch-tag: 7f6a6d94-94e1-4654-ab9a-aee21b9b8a94
 ;; sieve.el ends here

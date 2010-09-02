@@ -364,5 +364,4 @@ This function does not work for SECONDS greater than `most-positive-fixnum'."
 
 (provide 'time-date)
 
-;; arch-tag: addcf07b-b20a-465b-af72-550b8ac5190f
 ;;; time-date.el ends here

@@ -223,5 +223,4 @@ MODE can be \"login\" or \"password\", suitable for passing to
 
 (provide 'netrc)
 
-;; arch-tag: af9929cc-2d12-482f-936e-eb4366f9fa55
 ;;; netrc.el ends here

@@ -1045,5 +1045,4 @@ The following commands are available:
 
 (provide 'gnus-salt)
 
-;; arch-tag: 35449164-77b3-4398-bcbd-a2e3e998f810
 ;;; gnus-salt.el ends here

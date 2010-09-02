@@ -2044,5 +2044,4 @@ VALUES may contain values for editable fields from current article."
 
 (provide 'nnmairix)
 
-;; arch-tag: bb187498-b229-4a55-8c07-6d3f80713e94
 ;;; nnmairix.el ends here

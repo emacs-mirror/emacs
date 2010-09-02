@@ -715,5 +715,4 @@ Usage: emacs -batch -l ~/.emacs -l gnus -f gnus-batch-score"
 
 (provide 'gnus-kill)
 
-;; arch-tag: b30c0f53-df1a-490b-b81e-17b13474f395
 ;;; gnus-kill.el ends here

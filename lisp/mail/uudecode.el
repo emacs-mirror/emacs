@@ -236,5 +236,4 @@ If FILE-NAME is non-nil, save the result to FILE-NAME."
 
 (provide 'uudecode)
 
-;; arch-tag: e1f09ed5-62b4-4677-9f13-4e81c4fe8ce3
 ;;; uudecode.el ends here

@@ -167,5 +167,4 @@ If NO-DISPLAY is nil, display it. Otherwise, do nothing after replacing."
 
 (provide 'mm-extern)
 
-;; arch-tag: 9653808e-14d9-4172-86e6-adceaa05378e
 ;;; mm-extern.el ends here

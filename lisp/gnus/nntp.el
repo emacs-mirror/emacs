@@ -2178,5 +2178,4 @@ Please refer to the following variables to customize the connection:
 
 (provide 'nntp)
 
-;; arch-tag: 8655466a-b1b5-4929-9c45-7b1b2e767271
 ;;; nntp.el ends here

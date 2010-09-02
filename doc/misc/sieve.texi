@@ -356,7 +356,3 @@ A Protocol for Remotely Managing Sieve Scripts
 @bye
 
 @c End:
-
-@ignore
-   arch-tag: 6e3ad0af-2eaf-4f35-a081-d40f4a683ec3
-@end ignore

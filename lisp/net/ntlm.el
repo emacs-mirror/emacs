@@ -534,5 +534,4 @@ into a Unicode string.  PASSWD is truncated to 128 bytes if longer."
 
 (provide 'ntlm)
 
-;; arch-tag: 348ace18-f8e2-4176-8fe9-d9ab4e96f296
 ;;; ntlm.el ends here

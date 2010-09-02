@@ -319,5 +319,4 @@ If picons are already displayed, remove them."
 
 (provide 'gnus-picon)
 
-;; arch-tag: fe9aede0-1b1b-463a-b4ab-807f98bcb31f
 ;;; gnus-picon.el ends here

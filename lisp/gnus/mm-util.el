@@ -1653,5 +1653,4 @@ gzip, bzip2, etc. are allowed."
 
 (provide 'mm-util)
 
-;; arch-tag: 94dc5388-825d-4fd1-bfa5-2100aa351238
 ;;; mm-util.el ends here

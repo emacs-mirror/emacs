@@ -254,5 +254,4 @@ passphrase cache or user."
 
 (provide 'pgg-pgp)
 
-;; arch-tag: 076b7801-37b2-49a6-97c3-218fdecde33c
 ;;; pgg-pgp.el ends here
