@@ -1,5 +1,8 @@
 2010-09-02  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* simple.el (kill-new): Call interprogram-cut-function with only
+	one argument.
+
 	* term.el (term-mouse-paste): Don't call x-get-cutbuffer.
 	Remove cut buffer from error message.
 

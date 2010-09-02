@@ -3047,7 +3047,7 @@ argument should still be a \"useful\" string for such uses."
 	  (setcdr (nthcdr (1- kill-ring-max) kill-ring) nil))))
   (setq kill-ring-yank-pointer kill-ring)
   (if interprogram-cut-function
-      (funcall interprogram-cut-function string (not replace))))
+      (funcall interprogram-cut-function string)))
 
 (defun kill-append (string before-p &optional yank-handler)
   "Append STRING to the end of the latest kill in the kill ring.
