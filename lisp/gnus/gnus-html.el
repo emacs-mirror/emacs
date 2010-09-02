@@ -94,7 +94,7 @@ fit these criteria."
 				 "-o" "pre_conv=1"
 				 "-t" (format "%s" tab-width)
 				 "-cols" (format "%s" gnus-html-frame-width)
-				 "-o" "display_image=off"
+				 "-o" "display_image=on"
 				 "-T" "text/html"))))
       (gnus-html-wash-tags))))
 
@@ -142,19 +142,30 @@ fit these criteria."
 			 (with-current-buffer gnus-summary-buffer
 			   gnus-blocked-images)
 		       gnus-blocked-images))
-	      (let ((file (gnus-html-image-id url)))
-		(if (file-exists-p file)
-		    ;; It's already cached, so just insert it.
-		    (let ((string (buffer-substring start end)))
-		      ;; Delete the ALT text.
-		      (delete-region start end)
-		      (gnus-html-put-image file (point) string))
-		  ;; We don't have it, so schedule it for fetching
-		  ;; asynchronously.
-		  (push (list url
-			      (set-marker (make-marker) start)
-			      (point-marker))
-			images)))))))
+	      (let ((file (gnus-html-image-id url))
+		    width height)
+		(when (string-match "height=\"?\\([0-9]+\\)" parameters)
+		  (setq height (string-to-number (match-string 1 parameters))))
+		(when (string-match "width=\"?\\([0-9]+\\)" parameters)
+		  (setq width (string-to-number (match-string 1 parameters))))
+		;; Don't fetch images that are really small.  They're
+		;; probably tracking pictures.
+		(when (and (or (null height)
+			       (> height 4))
+			   (or (null width)
+			       (> width 4)))
+		  (if (file-exists-p file)
+		      ;; It's already cached, so just insert it.
+		      (let ((string (buffer-substring start end)))
+			;; Delete the ALT text.
+			(delete-region start end)
+			(gnus-html-put-image file (point) string))
+		    ;; We don't have it, so schedule it for fetching
+		    ;; asynchronously.
+		    (push (list url
+				(set-marker (make-marker) start)
+				(point-marker))
+			  images))))))))
        ;; Add a link.
        ((or (equal tag "a")
 	    (equal tag "A"))

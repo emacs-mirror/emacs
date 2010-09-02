@@ -1,3 +1,11 @@
+2010-09-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-html.el (gnus-html-wash-tags): Don't show images that are really
+	small. They're probably tracking images.
+
+	* nntp.el (nntp-request-set-mark): Refuse to do marks if
+	nntp-marks-file-name is nil.
+
 2010-09-01  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus-html.el (gnus-html-wash-tags)
