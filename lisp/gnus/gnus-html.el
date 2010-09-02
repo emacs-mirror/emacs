@@ -256,11 +256,14 @@ fit these criteria."
       (when (> width window-width)
 	(setq window-height (truncate (* window-height
 					 (/ (* 1.0 window-width) width)))))
-      (if (> height window-height)
-	  (or (create-image file 'imagemagick nil
-			    :height window-height)
-	      image)
-	image))))
+      (or
+       (cond ((> height window-height)
+	      (create-image file 'imagemagick nil
+			    :height window-height))
+	     ((> width window-width)
+	      (create-image file 'imagemagick nil
+			    :width window-width)))
+       image))))
 
 (defun gnus-html-prune-cache ()
   (let ((total-size 0)

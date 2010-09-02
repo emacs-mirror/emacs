@@ -2,6 +2,8 @@
 
 	* gnus-html.el (gnus-html-put-image): Use the deleted text as the image
 	alt text.
+	(gnus-html-rescale-image): Try to get the rescaling logic right for
+	images that are just wide and not tall.
 
 	* gnus.el (gnus-string-or): Fix the syntax to not use eval or
 	overshadow variable bindings.
