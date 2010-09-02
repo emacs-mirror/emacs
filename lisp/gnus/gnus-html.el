@@ -82,7 +82,10 @@ fit these criteria."
 	    (when (and charset
 		       (setq charset (mm-charset-to-coding-system charset))
 		       (not (eq charset 'ascii)))
-	      (mm-decode-coding-region (point-min) (point-max) charset))
+	      (insert (prog1
+			  (mm-decode-coding-string (buffer-string) charset)
+			(erase-buffer)
+			(mm-enable-multibyte))))
 	    (call-process-region (point-min) (point-max)
 				 "w3m"
 				 nil article-buffer nil

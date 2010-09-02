@@ -464,7 +464,7 @@ A value of nil means let mailer mail back a message to report errors."
   :link '(custom-manual "(message)Sending Variables")
   :type 'boolean)
 
-(defcustom message-generate-new-buffers 'unique
+(defcustom message-generate-new-buffers 'unsent
   "*Say whether to create a new message buffer to compose a message.
 Valid values include:
 
@@ -487,6 +487,7 @@ function
   If this is a function, call that function with three parameters:
   The type, the To address and the group name (any of these may be nil).
   The function should return the new buffer name."
+  :version "24.1"
   :group 'message-buffers
   :link '(custom-manual "(message)Message Buffers")
   :type '(choice (const nil)
