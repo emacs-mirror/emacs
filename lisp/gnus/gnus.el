@@ -1740,7 +1740,6 @@ slower."
     ("nneething" none address prompt-address physical-address)
     ("nndoc" none address prompt-address)
     ("nnbabyl" mail address respool)
-    ("nnkiboze" post virtual)
     ("nndraft" post-mail)
     ("nnfolder" mail respool address)
     ("nngateway" post-mail address prompt-address physical-address)
@@ -3289,12 +3288,12 @@ with a `subscribed' parameter."
 (defmacro gnus-string-or (&rest strings)
   "Return the first element of STRINGS that is a non-blank string.
 STRINGS will be evaluated in normal `or' order."
-  `(gnus-string-or-1 ',strings))
+  `(gnus-string-or-1 (list ,@strings)))
 
 (defun gnus-string-or-1 (strings)
   (let (string)
     (while strings
-      (setq string (eval (pop strings)))
+      (setq string (pop strings))
       (if (string-match "^[ \t]*$" string)
 	  (setq string nil)
 	(setq strings nil)))
@@ -3937,8 +3936,7 @@ If SYMBOL, return the value of that symbol in the group parameters.
 
 If you call this function inside a loop, consider using the faster
 `gnus-group-fast-parameter' instead."
-  (save-excursion
-    (set-buffer gnus-group-buffer)
+  (with-current-buffer gnus-group-buffer
     (if symbol
 	(gnus-group-fast-parameter group symbol allow-list)
       (nconc
@@ -4097,8 +4095,7 @@ Returns the number of articles marked as read."
 (defun gnus-kill-save-kill-buffer ()
   (let ((file (gnus-newsgroup-kill-file gnus-newsgroup-name)))
     (when (get-file-buffer file)
-      (save-excursion
-	(set-buffer (get-file-buffer file))
+      (with-current-buffer (get-file-buffer file)
 	(when (buffer-modified-p)
 	  (save-buffer))
 	(kill-buffer (current-buffer))))))

@@ -1,3 +1,63 @@
+2010-09-01  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-html.el (gnus-html-image-url-blocked-p): New function.
+	(gnus-html-prefetch-images, gnus-html-wash-tags): Use it.
+
+2010-09-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnkiboze.el: Removed.
+
+	* nndb.el: Removed.
+
+	* gnus-html.el (gnus-html-put-image): Use the deleted text as the image
+	alt text.
+	(gnus-html-rescale-image): Try to get the rescaling logic right for
+	images that are just wide and not tall.
+
+	* gnus.el (gnus-string-or): Fix the syntax to not use eval or
+	overshadow variable bindings.
+
+2010-09-01  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-html.el (gnus-html-wash-tags)
+	(gnus-html-schedule-image-fetching, gnus-html-prefetch-images): Add
+	extra logging.
+
+2010-09-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-html.el (gnus-html-wash-tags): Delete the IMG_ALT region.
+	(gnus-max-image-proportion): New variable.
+	(gnus-html-rescale-image): New function.
+	(gnus-html-put-image): Rescale images.
+
+2010-09-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Fix up some byte-compiler warnings.
+	* gnus.el (gnus-group-find-parameter, gnus-kill-save-kill-buffer):
+	* gnus-cite.el (gnus-article-highlight-citation, gnus-dissect-cited-text)
+	(gnus-article-fill-cited-article, gnus-article-hide-citation)
+	(gnus-article-hide-citation-in-followups, gnus-cite-toggle):
+	* gnus-group.el (gnus-group-set-mode-line, gnus-group-quit)
+	(gnus-group-set-info, gnus-add-mark): Use with-current-buffer.
+	(gnus-group-update-group): Use save-excursion and with-current-buffer.
+
+2010-09-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-html.el (gnus-article-html): Decode contents by charset.
+
+2010-09-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-html.el (gnus-html-cache-directory, gnus-html-cache-size)
+	(gnus-html-frame-width, gnus-blocked-images)
+	* message.el (message-prune-recipient-rules): Add custom version.
+	* gnus-sum.el (gnus-auto-expirable-marks): Bump custom version.
+
+	* gnus-ems.el (gnus-process-get, gnus-process-put): New compatibility
+	functions.
+
+	* gnus-html.el (gnus-html-curl-sentinel): Replace process-get with
+	gnus-process-get.
+
 2010-08-31  Julien Danjou  <julien@danjou.info>  (tiny change)
 
 	* nnimap.el (nnimap-request-newgroups): Use nnimap-request-list-method

@@ -34,23 +34,37 @@
 
 (defcustom gnus-html-cache-directory (nnheader-concat gnus-directory "html-cache/")
   "Where Gnus will cache images it downloads from the web."
+  :version "24.1"
   :group 'gnus-art
   :type 'directory)
 
 (defcustom gnus-html-cache-size 500000000
   "The size of the Gnus image cache."
+  :version "24.1"
   :group 'gnus-art
   :type 'integer)
 
 (defcustom gnus-html-frame-width 70
   "What width to use when rendering HTML."
+  :version "24.1"
   :group 'gnus-art
   :type 'integer)
 
 (defcustom gnus-blocked-images "."
   "Images that have URLs matching this regexp will be blocked."
+  :version "24.1"
   :group 'gnus-art
   :type 'regexp)
+
+(defcustom gnus-max-image-proportion 0.7
+  "How big pictures displayed are in relation to the window they're in.
+A value of 0.7 means that they are allowed to take up 70% of the
+width and height of the window.  If they are larger than this,
+and Emacs supports it, then the images will be rescaled down to
+fit these criteria."
+  :version "24.1"
+  :group 'gnus-art
+  :type 'float)
 
 ;;;###autoload
 (defun gnus-article-html (handle)
@@ -62,7 +76,13 @@
 	  (let* ((coding-system-for-read 'utf-8)
 		 (coding-system-for-write 'utf-8)
 		 (default-process-coding-system
-		   (cons coding-system-for-read coding-system-for-write)))
+		   (cons coding-system-for-read coding-system-for-write))
+		 (charset (mail-content-type-get (mm-handle-type handle)
+						 'charset)))
+	    (when (and charset
+		       (setq charset (mm-charset-to-coding-system charset))
+		       (not (eq charset 'ascii)))
+	      (mm-decode-coding-region (point-min) (point-max) charset))
 	    (call-process-region (point-min) (point-max)
 				 "w3m" 
 				 nil article-buffer nil
@@ -97,8 +117,9 @@
       (cond
        ;; Fetch and insert a picture.
        ((equal tag "img_alt")
-	(when (string-match "src=\"\\([^\"]+\\)" parameters)
+        (when (string-match "src=\"\\([^\"]+\\)" parameters)
 	  (setq url (match-string 1 parameters))
+          (gnus-message 8 "Fetching image URL %s" url)
 	  (if (string-match "^cid:\\(.*\\)" url)
 	      ;; URLs with cid: have their content stashed in other
 	      ;; parts of the MIME structure, so just insert them
@@ -111,17 +132,18 @@
 		    (setq image (gnus-create-image (buffer-string)
 						   nil t))))
 		(when image
-		  (delete-region start end)
-		  (gnus-put-image image)))
+		  (let ((string (buffer-substring start end)))
+		    (delete-region start end)
+		    (gnus-put-image image (gnus-string-or string "*")))))
 	    ;; Normal, external URL.
-	    (when (or (null gnus-blocked-images)
-		      (not (string-match gnus-blocked-images url)))
+	    (unless (gnus-html-image-url-blocked-p url)
 	      (let ((file (gnus-html-image-id url)))
 		(if (file-exists-p file)
 		    ;; It's already cached, so just insert it.
-		    (when (gnus-html-put-image file (point))
+		    (let ((string (buffer-substring start end)))
 		      ;; Delete the ALT text.
-		      (delete-region start end))
+		      (delete-region start end)
+		      (gnus-html-put-image file (point) string))
 		  ;; We don't have it, so schedule it for fetching
 		  ;; asynchronously.
 		  (push (list url
@@ -132,6 +154,7 @@
        ((equal tag "a")
 	(when (string-match "href=\"\\([^\"]+\\)" parameters)
 	  (setq url (match-string 1 parameters))
+          (gnus-message 8 "Fetching link URL %s" url)
 	  (gnus-article-add-button start end
 				   'browse-url url
 				   url)
@@ -140,6 +163,10 @@
 	    (gnus-overlay-put overlay 'gnus-button-url url)
 	    (when gnus-article-mouse-face
 	      (gnus-overlay-put overlay 'mouse-face gnus-article-mouse-face)))))
+       ;; The upper-case IMG_ALT is apparently just an artifact that
+       ;; should be deleted.
+       ((equal tag "IMG_ALT")
+	(delete-region start end))
        ;; Whatever.  Just ignore the tag.
        (t
 	))
@@ -153,6 +180,7 @@
       (gnus-html-schedule-image-fetching (current-buffer) (nreverse images)))))
 
 (defun gnus-html-schedule-image-fetching (buffer images)
+  (gnus-message 8 "Scheduling image fetching in buffer %s, images %s" buffer images)
   (let* ((url (caar images))
 	 (process (start-process
 		   "images" nil "curl"
@@ -171,8 +199,8 @@
 
 (defun gnus-html-curl-sentinel (process event)
   (when (string-match "finished" event)
-    (let* ((images (process-get process 'images))
-	   (buffer (process-get process 'buffer))
+    (let* ((images (gnus-process-get process 'images))
+	   (buffer (gnus-process-get process 'buffer))
 	   (spec (pop images))
 	   (file (gnus-html-image-id (car spec))))
       (when (and (buffer-live-p buffer)
@@ -182,13 +210,14 @@
 		 ;; article before the image arrived.
 		 (not (= (marker-position (cadr spec)) (point-min))))
 	(with-current-buffer buffer
-	  (let ((inhibit-read-only t))
-	    (when (gnus-html-put-image file (cadr spec))
-	      (delete-region (1+ (cadr spec)) (caddr spec))))))
+	  (let ((inhibit-read-only t)
+		(string (buffer-substring (cadr spec) (caddr spec))))
+	    (delete-region (cadr spec) (caddr spec))
+	    (gnus-html-put-image file (cadr spec) string))))
       (when images
 	(gnus-html-schedule-image-fetching buffer images)))))
 
-(defun gnus-html-put-image (file point)
+(defun gnus-html-put-image (file point string)
   (when (display-graphic-p)
     (let ((image (ignore-errors
 		   (gnus-create-image file))))
@@ -202,12 +231,39 @@
 			   (= (car (image-size image t)) 30)
 			   (= (cdr (image-size image t)) 30))))
 	    (progn
-	      (gnus-put-image image)
+	      (gnus-put-image (gnus-html-rescale-image image)
+			      (gnus-string-or string "*"))
 	      t)
+	  (insert string)
 	  (when (fboundp 'find-image)
 	    (gnus-put-image (find-image
-			     '((:type xpm :file "lock-broken.xpm")))))
+			     '((:type xpm :file "lock-broken.xpm")))
+			    (gnus-string-or string "*")))
 	  nil)))))
+
+(defun gnus-html-rescale-image (image)
+  (if (or (not (fboundp 'imagemagick-types))
+	  (not (get-buffer-window (current-buffer))))
+      image
+    (let* ((width (car (image-size image t)))
+	   (height (cdr (image-size image t)))
+	   (edges (window-pixel-edges (get-buffer-window (current-buffer))))
+	   (window-width (truncate (* gnus-max-image-proportion
+				      (- (nth 2 edges) (nth 0 edges)))))
+	   (window-height (truncate (* gnus-max-image-proportion
+				       (- (nth 3 edges) (nth 1 edges)))))
+	   scaled-image)
+      (when (> width window-width)
+	(setq window-height (truncate (* window-height
+					 (/ (* 1.0 window-width) width)))))
+      (or
+       (cond ((> height window-height)
+	      (create-image file 'imagemagick nil
+			    :height window-height))
+	     ((> width window-width)
+	      (create-image file 'imagemagick nil
+			    :width window-width)))
+       image))))
 
 (defun gnus-html-prune-cache ()
   (let ((total-size 0)
@@ -227,6 +283,15 @@
 	  (decf total-size (cadr file))
 	  (delete-file (nth 2 file)))))))
 
+
+(defun gnus-html-image-url-blocked-p (url)
+"Find out if URL is blocked by `gnus-blocked-images'."
+  (let ((ret (and gnus-blocked-images
+                  (string-match gnus-blocked-images url))))
+    (when ret
+      (gnus-message 8 "Image URL %s is blocked by gnus-blocked-images regex %s" url gnus-blocked-images))
+    ret))
+
 ;;;###autoload
 (defun gnus-html-prefetch-images (summary)
   (let (blocked-images urls)
@@ -236,12 +301,11 @@
       (save-match-data
 	(while (re-search-forward "<img.*src=[\"']\\([^\"']+\\)" nil t)
 	  (let ((url (match-string 1)))
-	    (when (or (null blocked-images)
-		      (not (string-match blocked-images url)))
-	      (unless (file-exists-p (gnus-html-image-id url))
-		(push url urls)
-		(push (gnus-html-image-id url) urls)
-		(push "-o" urls)))))
+	    (unless (gnus-html-image-url-blocked-p url)
+              (unless (file-exists-p (gnus-html-image-id url))
+                (push url urls)
+                (push (gnus-html-image-id url) urls)
+                (push "-o" urls)))))
 	(let ((process
 	       (apply 'start-process 
 		      "images" nil "curl"

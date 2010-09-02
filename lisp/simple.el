@@ -5609,7 +5609,23 @@ it skips the contents of comments that end before point."
             (message "Matches %s"
                      (substring-no-properties open-paren-line-string)))))))))
 
-(setq blink-paren-function 'blink-matching-open)
+(defvar blink-paren-function 'blink-matching-open
+  "Function called, if non-nil, whenever a close parenthesis is inserted.
+More precisely, a char with closeparen syntax is self-inserted.")
+
+(defun blink-paren-post-self-insert-function ()
+  (when (and (eq (char-before) last-command-event) ; Sanity check.
+             (memq (char-syntax last-command-event) '(?\) ?\$))
+             blink-paren-function
+             (not executing-kbd-macro)
+             (not noninteractive))
+    (funcall blink-paren-function)))
+
+(add-hook 'post-self-insert-hook #'blink-paren-post-self-insert-function
+          ;; Most likely, this hook is nil, so this arg doesn't matter,
+          ;; but I use it as a reminder that this function usually
+          ;; likes to be run after others since it does `sit-for'.
+          'append)
 
 ;; This executes C-g typed while Emacs is waiting for a command.
 ;; Quitting out of a program does not go through here;

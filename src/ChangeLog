@@ -1,3 +1,11 @@
+2010-09-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* cmds.c (Vblink_paren_function): Remove.
+	(internal_self_insert): Make it insert N chars at a time.
+	Don't call blink-paren-function.
+	(Fself_insert_command): Adjust accordingly.
+	(syms_of_cmds): Don't declare blink-paren-function.
+
 2010-08-31  Kenichi Handa  <handa@m17n.org>
 
 	* dispextern.h (FACE_FOR_CHAR): Use an ASCII face for 8-bit

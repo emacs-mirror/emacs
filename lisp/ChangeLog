@@ -1,3 +1,13 @@
+2010-09-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (blink-paren-function): Move from C to here.
+	(blink-paren-post-self-insert-function): New function.
+	(post-self-insert-hook): Use it.
+
+	* emacs-lisp/pcase.el (pcase-split-memq):
+	Fix overenthusiastic optimisation.
+	(pcase-u1): Handle the case of a lambda pred.
+
 2010-08-31  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el (standard-display-european-internal):
