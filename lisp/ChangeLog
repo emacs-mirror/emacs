@@ -1,7 +1,19 @@
+2010-09-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (newline): Eliminate optimization.
+	Use post-self-insert-hook to set hard-newline and things before
+	running post-self-insert-hook.
+	(blink-matching-check-mismatch): New function.
+	(blink-matching-check-function): New variable.
+	(blink-matching-open): Use them.
+	Skip back forward over prefix chars skipped by forward-sexp.
+	Don't check if the parens are backslash escaped.
+	(blink-paren-post-self-insert-function): Check backslash escaping here.
+
 2010-09-02  Chong Yidong  <cyd@stupidchicken.com>
 
-	* emacs-lisp/package.el (package-menu-mode-map): Change
-	package-menu-revert bindings to revert-buffer.
+	* emacs-lisp/package.el (package-menu-mode-map):
+	Change package-menu-revert bindings to revert-buffer.
 	(package-menu-mode): Set revert-buffer-function.
 	(package-menu-revert): Doc fix.
 
