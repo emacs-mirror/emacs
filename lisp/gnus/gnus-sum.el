@@ -221,7 +221,7 @@ This variable will only be used if the value of
   :group 'gnus-summary-format
   :type 'string)
 
-(defcustom gnus-summary-goto-unread t
+(defcustom gnus-summary-goto-unread nil
   "*If t, many commands will go to the next unread article.
 This applies to marking commands as well as other commands that
 \"naturally\" select the next article, like, for instance, `SPC' at
@@ -231,6 +231,7 @@ If nil, the marking commands do NOT go to the next unread article
 \(they go to the next article instead).  If `never', commands that
 usually go to the next unread article, will go to the next article,
 whether it is read or not."
+  :version "24.1"
   :group 'gnus-summary-marks
   :link '(custom-manual "(gnus)Setting Marks")
   :type '(choice (const :tag "off" nil)
@@ -464,9 +465,10 @@ and non-`vertical', do both horizontal and vertical recentering."
   :group 'gnus-summary
   :type 'boolean)
 
-(defcustom gnus-single-article-buffer t
+(defcustom gnus-single-article-buffer nil
   "*If non-nil, display all articles in the same buffer.
 If nil, each group will get its own article buffer."
+  :version "24.1"
   :group 'gnus-article-various
   :type 'boolean)
 
