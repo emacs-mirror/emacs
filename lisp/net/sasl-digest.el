@@ -95,10 +95,10 @@ charset algorithm cipher-opts auth-param)."
 	 (md5-binary
 	  (concat
 	   (encode-hex-string
-	    (md5-binary (concat (md5-binary 
+	    (md5-binary (concat (md5-binary
 				 (concat username ":" realm ":" passphrase))
 				":" nonce ":" cnonce
-				(if authzid 
+				(if authzid
 				    (concat ":" authzid)))))
 	   ":" nonce
 	   ":" (format "%08x" nonce-count) ":" cnonce ":" qop ":"

@@ -102,7 +102,7 @@ thing can fall apart and leave you with a corrupt mailbox."
   "*If non-nil, display the size of the message that is being fetched."
   :version "22.1" ;; Oort Gnus
   :type 'boolean
-  :group 'pop3) 
+  :group 'pop3)
 
 (defvar pop3-timestamp nil
   "Timestamp returned when initially connected to the POP server.
@@ -167,7 +167,7 @@ Shorter values mean quicker response, but are more CPU intensive.")
 		       (/ (cdr (assoc n message-sizes))
 			  1024.0))
 	    (message "Retrieving message %d of %d from %s..."
-		     n message-count pop3-mailhost)) 	  
+		     n message-count pop3-mailhost))
 	  (pop3-retr process n crashbuf)
 	  (save-excursion
 	    (set-buffer crashbuf)
@@ -283,7 +283,7 @@ Returns the process associated with the connection."
 		    (pop3-quit process)
 		    (error "POP server doesn't support starttls")))
 		process))
-	     (t 
+	     (t
 	      (open-network-stream "POP" (current-buffer) mailhost port))))
       (let ((response (pop3-read-response process t)))
 	(setq pop3-timestamp
@@ -468,7 +468,7 @@ If NOW, use that time instead."
 (defun pop3-list (process &optional msg)
   "If MSG is nil, return an alist of (MESSAGE-ID . SIZE) pairs.
 Otherwise, return the size of the message-id MSG"
-  (pop3-send-command process (if msg 
+  (pop3-send-command process (if msg
 				 (format "LIST %d" msg)
 			       "LIST"))
   (let ((response (pop3-read-response process t)))

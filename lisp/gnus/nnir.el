@@ -792,7 +792,7 @@ and show thread that contains this article."
 	      (setq novitem (funcall nnir-get-article-nov-override-function
 				     artitem))
 	  ;; else, set novitem through nnheader-parse-nov/nnheader-parse-head
-	    (case (setq foo (gnus-retrieve-headers (list artno) 
+	    (case (setq foo (gnus-retrieve-headers (list artno)
 						   artfullgroup nil))
 	      (nov
 	       (goto-char (point-min))

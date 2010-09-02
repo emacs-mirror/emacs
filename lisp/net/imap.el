@@ -1227,7 +1227,7 @@ password is remembered in the buffer."
       (when user (setq imap-username user))
       (when passwd (setq imap-password passwd))
       (if imap-auth
-	  (and (setq imap-last-authenticator 
+	  (and (setq imap-last-authenticator
 		     (assq imap-auth imap-authenticator-alist))
 	       (funcall (nth 2 imap-last-authenticator) (current-buffer))
 	       (setq imap-state 'auth))

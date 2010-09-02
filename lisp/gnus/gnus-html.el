@@ -84,7 +84,7 @@ fit these criteria."
 		       (not (eq charset 'ascii)))
 	      (mm-decode-coding-region (point-min) (point-max) charset))
 	    (call-process-region (point-min) (point-max)
-				 "w3m" 
+				 "w3m"
 				 nil article-buffer nil
 				 "-halfdump"
 				 "-no-cookie"
@@ -328,7 +328,7 @@ fit these criteria."
                 (push (gnus-html-image-id url) urls)
                 (push "-o" urls)))))
 	(let ((process
-	       (apply 'start-process 
+	       (apply 'start-process
 		      "images" nil "curl"
 		      "-s" "--create-dirs"
 		      "--location"

@@ -95,7 +95,7 @@
   (let* ((elems (cdr (assq type ecomplete-database)))
 	 (match (regexp-quote match))
 	 (candidates
-	  (sort 
+	  (sort
 	   (loop for (key count time text) in elems
 		 when (string-match match text)
 		 collect (list count time text))

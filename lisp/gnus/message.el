@@ -6687,7 +6687,7 @@ want to get rid of this query permanently.")))
 		    (setq recipients (delq recip recipients))))))))
 
       (setq recipients (message-prune-recipients recipients))
-      
+
       ;; Build the header alist.  Allow the user to be asked whether
       ;; or not to reply to all recipients in a wide reply.
       (setq follow-to (list (cons 'To (cdr (pop recipients)))))
@@ -6704,7 +6704,7 @@ want to get rid of this query permanently.")))
 (defun message-prune-recipients (recipients)
   (dolist (rule message-prune-recipient-rules)
     (let ((match (car rule))
-	  dup-match 
+	  dup-match
 	  address)
       (dolist (recipient recipients)
 	(setq address (car recipient))

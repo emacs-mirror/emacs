@@ -309,8 +309,8 @@ port number on server.  The program should accept IMAP commands on
 stdin and return responses to stdout.")
 
 (defvar nntp-authinfo-rejected nil
-"A custom error condition used to report 'Authentication Rejected' errors.  
-Condition handlers that match just this condition ensure that the nntp 
+"A custom error condition used to report 'Authentication Rejected' errors.
+Condition handlers that match just this condition ensure that the nntp
 backend doesn't catch this error.")
 (put 'nntp-authinfo-rejected 'error-conditions '(error nntp-authinfo-rejected))
 (put 'nntp-authinfo-rejected 'error-message "Authorization Rejected")
@@ -2013,7 +2013,7 @@ Please refer to the following variables to customize the connection:
     (and nntp-pre-command (push nntp-pre-command command))
     (let ((process-connection-type nil)) ;See `nntp-open-via-rlogin-and-netcat'.
       (apply 'start-process "nntpd" buffer command))))
- 
+
 
 (defun nntp-open-via-telnet-and-telnet (buffer)
   "Open a connection to an nntp server through an intermediate host.

@@ -556,7 +556,7 @@ Other back ends might or might not work.")
 	    (mapcar
 	     (lambda (arg) (- arg numcorr))
 	     articles)))
-    (setq rval 
+    (setq rval
 	  (if (eq nnmairix-backend 'nnimap)
 	      (let ((gnus-nov-is-evil t))
 		(nnmairix-call-backend

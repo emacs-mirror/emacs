@@ -765,7 +765,7 @@ prompt the user for the name of an NNTP server to use."
     (when gnus-select-method
       (push (cons "native" gnus-select-method)
 	    gnus-predefined-server-alist))
-    
+
     (if gnus-agent
 	(gnus-agentize))
 

@@ -100,7 +100,7 @@ from the document.")
      (head-end . "^\t")
      (generate-head-function . nndoc-generate-clari-briefs-head)
      (article-transform-function . nndoc-transform-clari-briefs))
-    
+
     (standard-digest
      (first-article . ,(concat "^" (make-string 70 ?-) "\n *\n+"))
      (article-begin . ,(concat "^\n" (make-string 30 ?-) "\n *\n+"))

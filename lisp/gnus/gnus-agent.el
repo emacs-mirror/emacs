@@ -1788,7 +1788,7 @@ and that there are no duplicates."
     (while alist
       (let ((entry (pop alist)))
 	(when (gnus-methods-equal-p gnus-command-method (gnus-info-method entry))
-	  (gnus-agent-flush-group (gnus-info-group entry)))))))	
+	  (gnus-agent-flush-group (gnus-info-group entry)))))))
 
 (defun gnus-agent-flush-group (group)
   "Flush the agent's index files such that the GROUP no longer
@@ -2162,13 +2162,13 @@ doesn't exist, to valid the overview buffer."
 		(gnus-agent-save-alist gnus-agent-read-agentview)))
 	    alist))
       ((end-of-file file-error)
-       ;; The agentview file is missing. 
+       ;; The agentview file is missing.
        (condition-case nil
 	   ;; If the agent directory exists, attempt to perform a brute-force
 	   ;; reconstruction of its contents.
 	   (let* (alist
 		  (file-name-coding-system nnmail-pathname-coding-system)
-		  (file-attributes (directory-files-and-attributes 
+		  (file-attributes (directory-files-and-attributes
 				    (gnus-agent-article-name ""
 							     gnus-agent-read-agentview) nil "^[0-9]+$" t)))
 	     (while file-attributes
@@ -3258,7 +3258,7 @@ FORCE is equivalent to setting the expiration predicates to true."
 	   (gnus-message 7 "gnus-agent-expire: Loading overview...")
 	   (nnheader-insert-file-contents nov-file)
 	   (goto-char (point-min))
-	
+
 	   (let (p)
 	     (while (< (setq p (point)) (point-max))
 	       (condition-case nil
