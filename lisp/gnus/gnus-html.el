@@ -255,7 +255,7 @@ fit these criteria."
 			   (= (car (image-size image t)) 30)
 			   (= (cdr (image-size image t)) 30))))
 	    (progn
-	      (gnus-put-image (gnus-html-rescale-image image)
+	      (gnus-put-image (gnus-html-rescale-image image file)
 			      (gnus-string-or string "*"))
 	      t)
 	  (insert string)
@@ -265,7 +265,7 @@ fit these criteria."
 			    (gnus-string-or string "*")))
 	  nil)))))
 
-(defun gnus-html-rescale-image (image)
+(defun gnus-html-rescale-image (image file)
   (if (or (not (fboundp 'imagemagick-types))
 	  (not (get-buffer-window (current-buffer))))
       image
