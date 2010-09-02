@@ -136,7 +136,12 @@ fit these criteria."
 		    (delete-region start end)
 		    (gnus-put-image image (gnus-string-or string "*")))))
 	    ;; Normal, external URL.
-	    (unless (gnus-html-image-url-blocked-p url gnus-blocked-images)
+	    (unless (gnus-html-image-url-blocked-p
+		     url
+		     (if (buffer-live-p gnus-summary-buffer)
+			 (with-current-buffer gnus-summary-buffer
+			   gnus-blocked-images)
+		       gnus-blocked-images))
 	      (let ((file (gnus-html-image-id url)))
 		(if (file-exists-p file)
 		    ;; It's already cached, so just insert it.
