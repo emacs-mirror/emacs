@@ -29066,8 +29066,7 @@ As the variables for the other back ends, there are
 @code{nnfolder-nov-is-evil}, @code{nnimap-nov-is-evil},
 @code{nnml-nov-is-evil}, and @code{nnspool-nov-is-evil}.  Note that a
 non-@code{nil} value for @code{gnus-nov-is-evil} overrides all those
-variables.@footnote{Although the back end @code{nnwfm} doesn't have
-its own nn*-nov-is-evil.}
+variables.
 @end table
 
 
