@@ -6,6 +6,8 @@
 
 2010-09-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* nndoc.el (nndoc-type-alist): Added a new type for Google digests.
+
 	* gnus-html.el (gnus-html-wash-tags): Check the value of
 	gnus-blocked-images in the summary buffer.
 

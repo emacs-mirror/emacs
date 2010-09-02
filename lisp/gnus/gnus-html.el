@@ -260,9 +260,6 @@ fit these criteria."
 	   (window-height (truncate (* gnus-max-image-proportion
 				       (- (nth 3 edges) (nth 1 edges)))))
 	   scaled-image)
-      (when (> width window-width)
-	(setq window-height (truncate (* window-height
-					 (/ (* 1.0 window-width) width)))))
       (or
        (cond ((> height window-height)
 	      (create-image file 'imagemagick nil
