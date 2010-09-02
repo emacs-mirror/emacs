@@ -4227,5 +4227,4 @@ modified."
 
 (provide 'gnus-agent)
 
-;; arch-tag: b0ba4afc-5229-4cee-ad25-9956daa4e91e
 ;;; gnus-agent.el ends here

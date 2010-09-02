@@ -228,5 +228,4 @@ Characters are in raw byte pairs in narrowed buffer."
 
 (provide 'utf7)
 
-;; arch-tag: 96078b55-85c7-4161-aed2-932c24b282c7
 ;;; utf7.el ends here

@@ -1697,5 +1697,4 @@ The Gnus backend/server information is added."
 ;; The end.
 (provide 'nnir)
 
-;; arch-tag: 9b3fecf8-4397-4bbb-bf3c-6ac3cbbc6664
 ;;; nnir.el ends here

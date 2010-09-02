@@ -30897,7 +30897,3 @@ former).  The manual is unambiguous, but it can be confusing.
 @c mode: texinfo
 @c coding: iso-8859-1
 @c End:
-
-@ignore
-   arch-tag: c9fa47e7-78ca-4681-bda9-9fef45d1c819
-@end ignore

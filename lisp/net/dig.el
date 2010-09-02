@@ -184,5 +184,4 @@ Returns nil for domain/class/type queries that result in no data."
 
 (provide 'dig)
 
-;; arch-tag: 1d61726e-9400-4013-9ae7-4035e0c7f7d6
 ;;; dig.el ends here

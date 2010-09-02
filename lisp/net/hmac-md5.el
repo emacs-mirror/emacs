@@ -79,5 +79,4 @@
 
 (provide 'hmac-md5)
 
-;; arch-tag: 0ab3f4f6-3d4b-4167-a9fa-635b7fed7f27
 ;;; hmac-md5.el ends here
