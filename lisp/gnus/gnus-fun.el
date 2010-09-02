@@ -290,5 +290,4 @@ colors of the displayed X-Faces."
 
 (provide 'gnus-fun)
 
-;; arch-tag: 9d000a69-15cc-4491-9dc0-4627484f50c1
 ;;; gnus-fun.el ends here

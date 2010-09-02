@@ -187,7 +187,7 @@ LIST1 and LIST2 have to be sorted over <."
 RANGE1 and RANGE2 have to be sorted over <."
   (let* (out
          (min1 (car range1))
-         (max1 (if (numberp min1) 
+         (max1 (if (numberp min1)
                    (if (numberp (cdr range1))
                        (prog1 (cdr range1)
                          (setq range1 nil)) min1)
@@ -196,8 +196,8 @@ RANGE1 and RANGE2 have to be sorted over <."
          (min2 (car range2))
          (max2 (if (numberp min2)
                    (if (numberp (cdr range2))
-                       (prog1 (cdr range2) 
-                         (setq range2 nil)) min2) 
+                       (prog1 (cdr range2)
+                         (setq range2 nil)) min2)
                  (prog1 (cdr min2)
                    (setq min2 (car min2))))))
     (setq range1 (cdr range1)
@@ -654,5 +654,4 @@ LIST is a sorted list."
 
 (provide 'gnus-range)
 
-;; arch-tag: 4780bdd8-5a15-4aff-be28-18727895b6ad
 ;;; gnus-range.el ends here

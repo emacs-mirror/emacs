@@ -263,10 +263,10 @@
 
 ;; I have tried to make the code expandable.  Basically, it is divided
 ;; into two layers.  The upper layer is somewhat like the `nnvirtual'
-;; or `nnkiboze' backends: given a specification of what articles to
-;; show from another backend, it creates a group containing exactly
-;; those articles.  The lower layer issues a query to a search engine
-;; and produces such a specification of what articles to show from the
+;; backend: given a specification of what articles to show from
+;; another backend, it creates a group containing exactly those
+;; articles.  The lower layer issues a query to a search engine and
+;; produces such a specification of what articles to show from the
 ;; other backend.
 
 ;; The interface between the two layers consists of the single
@@ -792,7 +792,7 @@ and show thread that contains this article."
 	      (setq novitem (funcall nnir-get-article-nov-override-function
 				     artitem))
 	  ;; else, set novitem through nnheader-parse-nov/nnheader-parse-head
-	    (case (setq foo (gnus-retrieve-headers (list artno) 
+	    (case (setq foo (gnus-retrieve-headers (list artno)
 						   artfullgroup nil))
 	      (nov
 	       (goto-char (point-min))
@@ -1697,5 +1697,4 @@ The Gnus backend/server information is added."
 ;; The end.
 (provide 'nnir)
 
-;; arch-tag: 9b3fecf8-4397-4bbb-bf3c-6ac3cbbc6664
 ;;; nnir.el ends here

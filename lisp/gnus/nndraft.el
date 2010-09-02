@@ -202,7 +202,7 @@ are generated if and only if they are also in `message-draft-headers'.")
 			'nnmh-request-group
 			(list group server dont-check)))
 
-(deffoo nndraft-request-move-article (article group server accept-form 
+(deffoo nndraft-request-move-article (article group server accept-form
 				      &optional last move-is-internal)
   (nndraft-possibly-change-group group)
   (let ((buf (get-buffer-create " *nndraft move*"))
@@ -313,5 +313,4 @@ are generated if and only if they are also in `message-draft-headers'.")
 
 (provide 'nndraft)
 
-;; arch-tag: 3ce26ca0-41cb-48b1-8703-4dad35e188aa
 ;;; nndraft.el ends here

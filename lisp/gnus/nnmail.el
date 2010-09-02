@@ -2052,5 +2052,4 @@ Doesn't change point."
 
 (provide 'nnmail)
 
-;; arch-tag: fe8f671a-50db-428a-bb5d-f00462f72ed7
 ;;; nnmail.el ends here

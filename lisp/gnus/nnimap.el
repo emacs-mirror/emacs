@@ -1871,5 +1871,4 @@ be used in a STORE FLAGS command."
 
 (provide 'nnimap)
 
-;; arch-tag: 2b001f20-3ff9-4094-a0ad-46807c1ba70b
 ;;; nnimap.el ends here

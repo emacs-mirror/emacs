@@ -1570,5 +1570,4 @@ or the `pop-to-buffer' function."
 
 (provide 'mml)
 
-;; arch-tag: 583c96cf-1ffe-451b-a5e5-4733ae9ddd12
 ;;; mml.el ends here

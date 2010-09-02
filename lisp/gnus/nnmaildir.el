@@ -1667,5 +1667,4 @@ by nnmaildir-request-article.")
 ;; fill-column: 77
 ;; End:
 
-;; arch-tag: 0c4e44cd-dfde-4040-888e-5597ec771849
 ;;; nnmaildir.el ends here

@@ -160,9 +160,9 @@ MODE can be \"login\" or \"password\", suitable for passing to
 	(defaults (or defaults '(nil)))
 	info)
     (if (listp mode)
-	(setq info 
-	      (mapcar 
-	       (lambda (mode-element) 
+	(setq info
+	      (mapcar
+	       (lambda (mode-element)
 		 (netrc-machine-user-or-password
 		  mode-element
 		  authinfo-list
@@ -223,5 +223,4 @@ MODE can be \"login\" or \"password\", suitable for passing to
 
 (provide 'netrc)
 
-;; arch-tag: af9929cc-2d12-482f-936e-eb4366f9fa55
 ;;; netrc.el ends here

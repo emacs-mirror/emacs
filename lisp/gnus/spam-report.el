@@ -95,12 +95,12 @@ undo that change.")
   "Report an article as spam by resending via email.
 Reports is as ham when HAM is set."
   (dolist (article articles)
-    (gnus-message 6 
+    (gnus-message 6
 		  "Reporting %s article %d to <%s>..."
 		  (if ham "ham" "spam")
 		  article spam-report-resend-to)
     (unless spam-report-resend-to
-      (customize-set-variable 
+      (customize-set-variable
        spam-report-resend-to
        (read-from-minibuffer "email address to resend SPAM/HAM to? ")))
     ;; This is ganked from the `gnus-summary-resend-message' function.
@@ -385,5 +385,4 @@ Process queued spam reports."
 
 (provide 'spam-report)
 
-;; arch-tag: f6683295-ec89-4ab5-8803-8cc842293022
 ;;; spam-report.el ends here.

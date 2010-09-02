@@ -508,5 +508,5 @@ See the documentation for that variable."
 ;; </Interactive functions>
 ;;
 (provide 'html2text)
-;; arch-tag: e9e57b79-35d4-4de1-a647-e7e01fe56d1e
+
 ;;; html2text.el ends here

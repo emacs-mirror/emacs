@@ -1,3 +1,74 @@
+2010-09-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-html.el (gnus-html-wash-tags): Don't show images that are really
+	small. They're probably tracking images.
+	(gnus-html-wash-tags): Remove all <pre_int> place holders.
+	(gnus-html-rescale-image): Yet another try at getting the image sizing
+	right.
+
+	* nntp.el (nntp-request-set-mark): Refuse to do marks if
+	nntp-marks-file-name is nil.
+
+2010-09-01  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-html.el (gnus-html-wash-tags)
+	(gnus-html-schedule-image-fetching, gnus-html-image-url-blocked-p):
+	Better logging.
+
+2010-09-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nndoc.el (nndoc-type-alist): Added a new type for Google digests.
+
+	* gnus-html.el (gnus-html-wash-tags): Check the value of
+	gnus-blocked-images in the summary buffer.
+
+2010-09-01  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-html.el (gnus-html-image-url-blocked-p): Doc fix.
+
+2010-09-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-html.el (gnus-html-wash-tags): "A" is also used for links, just
+	like "a", it seems like.
+	(gnus-html-image-url-blocked-p): Take a parameter for blocked-images
+	since it needs to be picked from the correct buffer.
+
+	* nnwfm.el: Removed.
+
+	* nnlistserv.el: Removed.
+
+2010-09-01  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-html.el (gnus-html-image-url-blocked-p): New function.
+	(gnus-html-prefetch-images, gnus-html-wash-tags): Use it.
+
+2010-09-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnkiboze.el: Removed.
+
+	* nndb.el: Removed.
+
+	* gnus-html.el (gnus-html-put-image): Use the deleted text as the image
+	alt text.
+	(gnus-html-rescale-image): Try to get the rescaling logic right for
+	images that are just wide and not tall.
+
+	* gnus.el (gnus-string-or): Fix the syntax to not use eval or
+	overshadow variable bindings.
+
+2010-09-01  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-html.el (gnus-html-wash-tags)
+	(gnus-html-schedule-image-fetching, gnus-html-prefetch-images): Add
+	extra logging.
+
+2010-09-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-html.el (gnus-html-wash-tags): Delete the IMG_ALT region.
+	(gnus-max-image-proportion): New variable.
+	(gnus-html-rescale-image): New function.
+	(gnus-html-put-image): Rescale images.
+
 2010-09-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Fix up some byte-compiler warnings.
@@ -14722,5 +14793,3 @@ See ChangeLog.2 for earlier changes.
 ;; fill-column: 79
 ;; add-log-time-zone-rule: t
 ;; End:
-
-;;; arch-tag: 3f33a3e7-090d-492b-bedd-02a1417d32b4

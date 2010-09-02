@@ -466,10 +466,10 @@ the `mail-source-keyword-map' variable."
 	   ;; 1) the auth-sources user and password override everything
 	   ;; 2) it avoids macros, so it's cleaner
 	   ;; 3) it falls through to the mail-sources and then default values
-	   (cond 
+	   (cond
 	    ((and
 	     (eq keyword :user)
-	     (setq user-auth 
+	     (setq user-auth
 		   (nth 0 (auth-source-user-or-password
 			   '("login" "password")
 			   ;; this is "host" in auth-sources
@@ -1145,5 +1145,4 @@ This only works when `display-time' is enabled."
 
 (provide 'mail-source)
 
-;; arch-tag: 72948025-1d17-4d6c-bb12-ef1aa2c490fd
 ;;; mail-source.el ends here

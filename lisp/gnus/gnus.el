@@ -1740,14 +1740,11 @@ slower."
     ("nneething" none address prompt-address physical-address)
     ("nndoc" none address prompt-address)
     ("nnbabyl" mail address respool)
-    ("nnkiboze" post virtual)
     ("nndraft" post-mail)
     ("nnfolder" mail respool address)
     ("nngateway" post-mail address prompt-address physical-address)
     ("nnweb" none)
     ("nnrss" none)
-    ("nnwfm" none)
-    ("nnlistserv" none)
     ("nnagent" post-mail)
     ("nnimap" post-mail address prompt-address physical-address)
     ("nnmaildir" mail respool address)
@@ -3289,12 +3286,12 @@ with a `subscribed' parameter."
 (defmacro gnus-string-or (&rest strings)
   "Return the first element of STRINGS that is a non-blank string.
 STRINGS will be evaluated in normal `or' order."
-  `(gnus-string-or-1 ',strings))
+  `(gnus-string-or-1 (list ,@strings)))
 
 (defun gnus-string-or-1 (strings)
   (let (string)
     (while strings
-      (setq string (eval (pop strings)))
+      (setq string (pop strings))
       (if (string-match "^[ \t]*$" string)
 	  (setq string nil)
 	(setq strings nil)))
@@ -4409,5 +4406,4 @@ prompt the user for the name of an NNTP server to use."
 
 (provide 'gnus)
 
-;; arch-tag: acebeeab-f331-4f8f-a7ea-89c58c84f636
 ;;; gnus.el ends here

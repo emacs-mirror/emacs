@@ -765,7 +765,7 @@ prompt the user for the name of an NNTP server to use."
     (when gnus-select-method
       (push (cons "native" gnus-select-method)
 	    gnus-predefined-server-alist))
-    
+
     (if gnus-agent
 	(gnus-agentize))
 
@@ -3195,7 +3195,6 @@ If this variable is nil, don't do anything."
 
 (provide 'gnus-start)
 
-;; arch-tag: f4584a22-b7b7-4853-abfc-a637329af5d2
 ;;; gnus-start.el ends here
 
 

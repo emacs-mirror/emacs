@@ -465,5 +465,4 @@ MODE can be \"login\" or \"password\"."
 
 (provide 'auth-source)
 
-;; arch-tag: ff1afe78-06e9-42c2-b693-e9f922cbe4ab
 ;;; auth-source.el ends here

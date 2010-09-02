@@ -1899,5 +1899,4 @@ is allowed once again.  (Immediately, if `inhibit-quit' is nil.)"
 
 (provide 'gnus-util)
 
-;; arch-tag: f94991af-d32b-4c97-8c26-ca12a934de49
 ;;; gnus-util.el ends here

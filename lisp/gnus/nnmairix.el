@@ -556,7 +556,7 @@ Other back ends might or might not work.")
 	    (mapcar
 	     (lambda (arg) (- arg numcorr))
 	     articles)))
-    (setq rval 
+    (setq rval
 	  (if (eq nnmairix-backend 'nnimap)
 	      (let ((gnus-nov-is-evil t))
 		(nnmairix-call-backend
@@ -2044,5 +2044,4 @@ VALUES may contain values for editable fields from current article."
 
 (provide 'nnmairix)
 
-;; arch-tag: bb187498-b229-4a55-8c07-6d3f80713e94
 ;;; nnmairix.el ends here

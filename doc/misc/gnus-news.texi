@@ -325,7 +325,3 @@ moving articles to a group that has not turned auto-expire on.
 @end itemize
 
 @c gnus-news.texi ends here.
-
-@ignore
-   arch-tag: 872c7569-4340-4d73-9d1d-7826d9f94a51
-@end ignore
