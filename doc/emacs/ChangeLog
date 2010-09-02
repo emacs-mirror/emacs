@@ -1,3 +1,7 @@
+2010-09-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* frames.texi (Cut/Paste Other App): Remove vut-buffer text.
+
 2010-08-21  Glenn Morris  <rgm@gnu.org>
 
 	* misc.texi (Amusements): Mention bubbles and animate.
