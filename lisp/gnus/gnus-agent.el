@@ -2644,10 +2644,10 @@ General format specifiers can also be used.  See Info node
 (defvar gnus-agent-predicate 'false
   "The selection predicate used when no other source is available.")
 
-(defvar gnus-agent-short-article 100
+(defvar gnus-agent-short-article 500
   "Articles that have fewer lines than this are short.")
 
-(defvar gnus-agent-long-article 200
+(defvar gnus-agent-long-article 1000
   "Articles that have more lines than this are long.")
 
 (defvar gnus-agent-low-score 0

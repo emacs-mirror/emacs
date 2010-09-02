@@ -1,5 +1,10 @@
 2010-09-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-agent.el (gnus-agent-short-article),
+	(gnus-agent-long-article): Increase values for these two variables,
+	since most people are likely to have more network connection and
+	storage than before.
+
 	* gnus.el (gnus-refer-article-method): Change default to 'current.
 	When referring an article, the common behaviour is to refer it from the
 	current select method, not the native select method.  The chances of
