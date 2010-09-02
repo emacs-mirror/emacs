@@ -35,7 +35,7 @@
 	(x-select-text): Remove argument PUSH, update documentation.  Remove
 	cut-buffer code.
 	(x-selection-value-internal): Was previously x-selection-value.
-	(x-selection-value): Renamed from x-cut-buffer-or-selection-value.
+	(x-selection-value): Rename from x-cut-buffer-or-selection-value.
 	Update documentation, remove cut-buffer code.  Call
 	x-selection-value-internal.
 	(x-clipboard-yank): Call x-selection-value-internal.
@@ -63,7 +63,7 @@
 
 	* mouse-sel.el (mouse-sel-get-selection-function):
 	x-cut-buffer-or-selection-value renamed to x-selection-value.
-	(x-select-text): Optional push removed.
+	(x-select-text): Remove optional push.
 
 2010-09-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
