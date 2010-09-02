@@ -1,3 +1,11 @@
+2010-09-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-html.el (gnus-html-put-image): Use the deleted text as the image
+	alt text.
+
+	* gnus.el (gnus-string-or): Fix the syntax to not use eval or
+	overshadow variable bindings.
+
 2010-09-01  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus-html.el (gnus-html-wash-tags)

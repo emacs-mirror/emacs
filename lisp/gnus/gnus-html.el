@@ -132,17 +132,19 @@ fit these criteria."
 		    (setq image (gnus-create-image (buffer-string)
 						   nil t))))
 		(when image
-		  (delete-region start end)
-		  (gnus-put-image image)))
+		  (let ((string (buffer-substring start end)))
+		    (delete-region start end)
+		    (gnus-put-image image (gnus-string-or string "*")))))
 	    ;; Normal, external URL.
 	    (when (or (null gnus-blocked-images)
 		      (not (string-match gnus-blocked-images url)))
 	      (let ((file (gnus-html-image-id url)))
 		(if (file-exists-p file)
 		    ;; It's already cached, so just insert it.
-		    (when (gnus-html-put-image file (point))
+		    (let ((string (buffer-substring start end)))
 		      ;; Delete the ALT text.
-		      (delete-region start end))
+		      (delete-region start end)
+		      (gnus-html-put-image file (point) string))
 		  ;; We don't have it, so schedule it for fetching
 		  ;; asynchronously.
 		  (push (list url
@@ -209,13 +211,14 @@ fit these criteria."
 		 ;; article before the image arrived.
 		 (not (= (marker-position (cadr spec)) (point-min))))
 	(with-current-buffer buffer
-	  (let ((inhibit-read-only t))
-	    (when (gnus-html-put-image file (cadr spec))
-	      (delete-region (1+ (cadr spec)) (caddr spec))))))
+	  (let ((inhibit-read-only t)
+		(string (buffer-substring (cadr spec) (caddr spec))))
+	    (delete-region (cadr spec) (caddr spec))
+	    (gnus-html-put-image file (cadr spec) string))))
       (when images
 	(gnus-html-schedule-image-fetching buffer images)))))
 
-(defun gnus-html-put-image (file point)
+(defun gnus-html-put-image (file point string)
   (when (display-graphic-p)
     (let ((image (ignore-errors
 		   (gnus-create-image file))))
@@ -229,11 +232,14 @@ fit these criteria."
 			   (= (car (image-size image t)) 30)
 			   (= (cdr (image-size image t)) 30))))
 	    (progn
-	      (gnus-put-image (gnus-html-rescale-image image))
+	      (gnus-put-image (gnus-html-rescale-image image)
+			      (gnus-string-or string "*"))
 	      t)
+	  (insert string)
 	  (when (fboundp 'find-image)
 	    (gnus-put-image (find-image
-			     '((:type xpm :file "lock-broken.xpm")))))
+			     '((:type xpm :file "lock-broken.xpm")))
+			    (gnus-string-or string "*")))
 	  nil)))))
 
 (defun gnus-html-rescale-image (image)

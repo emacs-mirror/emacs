@@ -3289,12 +3289,12 @@ with a `subscribed' parameter."
 (defmacro gnus-string-or (&rest strings)
   "Return the first element of STRINGS that is a non-blank string.
 STRINGS will be evaluated in normal `or' order."
-  `(gnus-string-or-1 ',strings))
+  `(gnus-string-or-1 (list ,@strings)))
 
 (defun gnus-string-or-1 (strings)
   (let (string)
     (while strings
-      (setq string (eval (pop strings)))
+      (setq string (pop strings))
       (if (string-match "^[ \t]*$" string)
 	  (setq string nil)
 	(setq strings nil)))
