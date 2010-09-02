@@ -1,5 +1,10 @@
 2010-09-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-html.el (gnus-html-wash-tags): "A" is also used for links, just
+	like "a", it seems like.
+	(gnus-html-image-url-blocked-p): Take a parameter for blocked-images
+	since it needs to be picked from the correct buffer.
+
 	* nnwfm.el: Removed.
 
 	* nnlistserv.el: Removed.
