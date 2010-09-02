@@ -9,7 +9,7 @@
 ;;      Mike Newton <newton@gumby.cs.caltech.edu>
 ;;      Aaron Larson <alarson@src.honeywell.com>
 ;;      Dirk Herrmann <D.Herrmann@tu-bs.de>
-;; Maintainer: Roland Winkler <roland.winkler@physik.uni-erlangen.de>
+;; Maintainer: Roland Winkler <winkler@gnu.org>
 ;; Keywords: BibTeX, LaTeX, TeX
 
 ;; This file is part of GNU Emacs.
