@@ -119,7 +119,7 @@ fit these criteria."
        ((equal tag "img_alt")
         (when (string-match "src=\"\\([^\"]+\\)" parameters)
 	  (setq url (match-string 1 parameters))
-          (gnus-message 8 "Fetching image URL %s" url)
+          (gnus-message 8 "gnus-html-wash-tags: fetching image URL %s" url)
 	  (if (string-match "^cid:\\(.*\\)" url)
 	      ;; URLs with cid: have their content stashed in other
 	      ;; parts of the MIME structure, so just insert them
@@ -160,7 +160,7 @@ fit these criteria."
 	    (equal tag "A"))
 	(when (string-match "href=\"\\([^\"]+\\)" parameters)
 	  (setq url (match-string 1 parameters))
-          (gnus-message 8 "Fetching link URL %s" url)
+          (gnus-message 8 "gnus-html-wash-tags: fetching link URL %s" url)
 	  (gnus-article-add-button start end
 				   'browse-url url
 				   url)
@@ -186,7 +186,8 @@ fit these criteria."
       (gnus-html-schedule-image-fetching (current-buffer) (nreverse images)))))
 
 (defun gnus-html-schedule-image-fetching (buffer images)
-  (gnus-message 8 "Scheduling image fetching in buffer %s, images %s" buffer images)
+  (gnus-message 8 "gnus-html-schedule-image-fetching: buffer %s, images %s"
+                buffer images)
   (let* ((url (caar images))
 	 (process (start-process
 		   "images" nil "curl"
@@ -294,8 +295,11 @@ fit these criteria."
 "Find out if URL is blocked by BLOCKED-IMAGES."
   (let ((ret (and blocked-images
                   (string-match blocked-images url))))
-    (when ret
-      (gnus-message 8 "Image URL %s is blocked by gnus-blocked-images regex %s" url blocked-images))
+    (if ret
+        (gnus-message 8 "gnus-html-image-url-blocked-p: %s blocked by regex %s"
+                      url blocked-images)
+      (gnus-message 9 "gnus-html-image-url-blocked-p: %s passes regex %s"
+                    url blocked-images))
     ret))
 
 ;;;###autoload
