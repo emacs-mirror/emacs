@@ -290,7 +290,7 @@ fit these criteria."
   (let ((ret (and blocked-images
                   (string-match blocked-images url))))
     (when ret
-      (gnus-message 8 "Image URL %s is blocked by gnus-blocked-images regex %s" url gnus-blocked-images))
+      (gnus-message 8 "Image URL %s is blocked by gnus-blocked-images regex %s" url blocked-images))
     ret))
 
 ;;;###autoload
