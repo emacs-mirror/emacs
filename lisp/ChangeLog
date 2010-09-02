@@ -1,3 +1,11 @@
+2010-09-02  Agustín Martín  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-init-process): Use "~/" as
+	`default-directory' unless using Ispell per-directory personal
+	dictionaries and not in a mini-buffer under XEmacs.
+	(kill-buffer-hook): Do not kill ispell process on exit when
+	`ispell-process-directory' is "~/". (Bug#6143)
+
 2010-09-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* simple.el (kill-new): Call interprogram-cut-function with only

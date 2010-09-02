@@ -2622,79 +2622,98 @@ Keeps argument list for future ispell invocations for no async support."
       t)))
 
 
-
 (defun ispell-init-process ()
   "Check status of Ispell process and start if necessary."
-  (if (and ispell-process
-	   (eq (ispell-process-status) 'run)
-	   ;; Unless we are using an explicit personal dictionary,
-	   ;; ensure we're in the same default directory!
-	   ;; Restart check for personal dictionary is done in
-	   ;; `ispell-internal-change-dictionary', called from `ispell-buffer-local-dict'
-	   (or (or ispell-local-pdict ispell-personal-dictionary)
-	       (equal ispell-process-directory (expand-file-name default-directory))))
-      (setq ispell-filter nil ispell-filter-continue nil)
-    ;; may need to restart to select new personal dictionary.
-    (ispell-kill-ispell t)
-    (message "Starting new Ispell process [%s] ..."
-	     (or ispell-local-dictionary ispell-dictionary "default"))
-    (sit-for 0)
-    (setq ispell-library-directory (ispell-check-version)
-	  ispell-process (ispell-start-process)
-	  ispell-filter nil
-	  ispell-filter-continue nil)
-    ;; When spellchecking minibuffer contents, make sure ispell process
-    ;; is not restarted every time the minibuffer is killed.
-    (if (window-minibuffer-p)
-	(if (fboundp 'minibuffer-selected-window)
-	    ;; Assign ispell process to parent buffer
-	    (setq ispell-process-directory (expand-file-name default-directory)
-		  ispell-process-buffer-name (window-buffer (minibuffer-selected-window)))
-	  ;; Force `ispell-process-directory' to $HOME and use a dummy name
-	  (setq ispell-process-directory (expand-file-name "~/")
-		ispell-process-buffer-name " * Minibuffer-has-spellcheck-enabled"))
-      ;; Not in a minibuffer
-      (setq ispell-process-directory (expand-file-name default-directory)
-	    ispell-process-buffer-name (buffer-name)))
-    (if ispell-async-processp
-	(set-process-filter ispell-process 'ispell-filter))
-    ;; protect against bogus binding of `enable-multibyte-characters' in XEmacs
-    (if (and (or (featurep 'xemacs)
-		 (and (boundp 'enable-multibyte-characters)
-		      enable-multibyte-characters))
-	     (fboundp 'set-process-coding-system))
-	(set-process-coding-system ispell-process (ispell-get-coding-system)
-				   (ispell-get-coding-system)))
-    ;; Get version ID line
-    (ispell-accept-output 3)
-    ;; get more output if filter empty?
-    (if (null ispell-filter) (ispell-accept-output 3))
-    (cond ((null ispell-filter)
-	   (error "%s did not output version line" ispell-program-name))
-	  ((and
-	    (stringp (car ispell-filter))
-	    (if (string-match "warning: " (car ispell-filter))
-		(progn
-		  (ispell-accept-output 3) ; was warn msg.
-		  (stringp (car ispell-filter)))
-	      (null (cdr ispell-filter)))
-	    (string-match "^@(#) " (car ispell-filter)))
-	   ;; got the version line as expected (we already know it's the right
-	   ;; version, so don't bother checking again.)
-	   nil)
-	  (t
-	   ;; Otherwise, it must be an error message.  Show the user.
-	   ;; But first wait to see if some more output is going to arrive.
-	   ;; Otherwise we get cool errors like "Can't open ".
-	   (sleep-for 1)
-	   (ispell-accept-output 3)
-	   (error "%s" (mapconcat 'identity ispell-filter "\n"))))
-    (setq ispell-filter nil)		; Discard version ID line
-    (let ((extended-char-mode (ispell-get-extended-character-mode)))
-      (if extended-char-mode		; ~ extended character mode
-	  (ispell-send-string (concat extended-char-mode "\n"))))
-    (if ispell-async-processp
-	(set-process-query-on-exit-flag ispell-process nil))))
+  (let* (;; Basename of dictionary used by the spell-checker
+	 (dict-bname (or (car (cdr (member "-d" (ispell-get-ispell-args))))
+			 ispell-current-dictionary))
+	 ;; Use "~/" as default-directory unless using Ispell with per-dir
+	 ;; personal dictionaries and not in a minibuffer under XEmacs
+	 (default-directory
+	   (if (or ispell-really-aspell
+		   ispell-really-hunspell
+		   ;; Protect against bad default-directory
+		   (not (and (file-directory-p default-directory)
+			     (file-readable-p default-directory)))
+		   ;; Ispell and per-dir personal dicts available
+		   (not (or (file-readable-p (concat default-directory
+						     ".ispell_words"))
+			    (file-readable-p (concat default-directory
+						     ".ispell_"
+						     (or dict-bname
+							 "default")))))
+		   ;; Ispell, in a minibuffer, and XEmacs
+		   (and (window-minibuffer-p)
+			(not (fboundp 'minibuffer-selected-window))))
+	       (expand-file-name "~/")
+	     (expand-file-name default-directory))))
+    ;; Check if process needs restart
+    (if (and ispell-process
+	     (eq (ispell-process-status) 'run)
+	     ;; Unless we are using an explicit personal dictionary,
+	     ;; ensure we're in the same default directory!
+	     ;; Restart check for personal dictionary is done in
+	     ;; `ispell-internal-change-dictionary', called from `ispell-buffer-local-dict'
+	     (or (or ispell-local-pdict ispell-personal-dictionary)
+		 (equal ispell-process-directory default-directory)))
+	(setq ispell-filter nil ispell-filter-continue nil)
+      ;; may need to restart to select new personal dictionary.
+      (ispell-kill-ispell t)
+      (message "Starting new Ispell process [%s] ..."
+	       (or ispell-local-dictionary ispell-dictionary "default"))
+      (sit-for 0)
+      (setq ispell-library-directory (ispell-check-version)
+	    ispell-process (ispell-start-process)
+	    ispell-filter nil
+	    ispell-filter-continue nil
+	    ispell-process-directory default-directory)
+      ;; When spellchecking minibuffer contents, assign ispell process to parent
+      ;; buffer if known (not known for XEmacs).  Use (buffer-name) otherwise.
+      (setq ispell-process-buffer-name
+	    (if (and (window-minibuffer-p)
+		     (fboundp 'minibuffer-selected-window)) ;; Not XEmacs
+		(window-buffer (minibuffer-selected-window))
+	      (buffer-name)))
+
+      (if ispell-async-processp
+	  (set-process-filter ispell-process 'ispell-filter))
+      ;; protect against bogus binding of `enable-multibyte-characters' in XEmacs
+      (if (and (or (featurep 'xemacs)
+		   (and (boundp 'enable-multibyte-characters)
+			enable-multibyte-characters))
+	       (fboundp 'set-process-coding-system))
+	  (set-process-coding-system ispell-process (ispell-get-coding-system)
+				     (ispell-get-coding-system)))
+      ;; Get version ID line
+      (ispell-accept-output 3)
+      ;; get more output if filter empty?
+      (if (null ispell-filter) (ispell-accept-output 3))
+      (cond ((null ispell-filter)
+	     (error "%s did not output version line" ispell-program-name))
+	    ((and
+	      (stringp (car ispell-filter))
+	      (if (string-match "warning: " (car ispell-filter))
+		  (progn
+		    (ispell-accept-output 3) ; was warn msg.
+		    (stringp (car ispell-filter)))
+		(null (cdr ispell-filter)))
+	      (string-match "^@(#) " (car ispell-filter)))
+	     ;; got the version line as expected (we already know it's the right
+	     ;; version, so don't bother checking again.)
+	     nil)
+	    (t
+	     ;; Otherwise, it must be an error message.  Show the user.
+	     ;; But first wait to see if some more output is going to arrive.
+	     ;; Otherwise we get cool errors like "Can't open ".
+	     (sleep-for 1)
+	     (ispell-accept-output 3)
+	     (error "%s" (mapconcat 'identity ispell-filter "\n"))))
+      (setq ispell-filter nil)		; Discard version ID line
+      (let ((extended-char-mode (ispell-get-extended-character-mode)))
+	(if extended-char-mode		; ~ extended character mode
+	    (ispell-send-string (concat extended-char-mode "\n"))))
+      (if ispell-async-processp
+	  (set-process-query-on-exit-flag ispell-process nil)))))
 
 ;;;###autoload
 (defun ispell-kill-ispell (&optional no-error)
@@ -2721,10 +2740,12 @@ With NO-ERROR, just return non-nil if there was no Ispell running."
     (message "Ispell process killed")
     nil))
 
-;; Kill ispell process when killing its associated buffer
+;; Kill ispell process when killing its associated buffer if using Ispell
+;; per-directory personal dictionaries.
 (add-hook 'kill-buffer-hook
 	  '(lambda ()
-	     (if (equal ispell-process-buffer-name (buffer-name))
+	     (if (and (not (equal ispell-process-directory (expand-file-name "~/")))
+		      (equal ispell-process-buffer-name (buffer-name)))
 		 (ispell-kill-ispell t))))
 
 ;;; ispell-change-dictionary is set in some people's hooks.  Maybe this should
