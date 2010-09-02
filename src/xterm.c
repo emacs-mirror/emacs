@@ -10124,8 +10124,6 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
   dpyinfo->Xatom_net_wm_name
     = XInternAtom (dpyinfo->display, "_NET_WM_NAME", False);
 
-  dpyinfo->cut_buffers_initialized = 0;
-
   dpyinfo->x_dnd_atoms_size = 8;
   dpyinfo->x_dnd_atoms_length = 0;
   dpyinfo->x_dnd_atoms = xmalloc (sizeof (*dpyinfo->x_dnd_atoms)

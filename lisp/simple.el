@@ -2929,11 +2929,8 @@ This variable holds a function that Emacs calls whenever text
 is put in the kill ring, to make the new kill available to other
 programs.
 
-The function takes one or two arguments.
-The first argument, TEXT, is a string containing
-the text which should be made available.
-The second, optional, argument PUSH, has the same meaning as the
-similar argument to `x-set-cut-buffer', which see.")
+The function takes one argument, TEXT, which is a string containing
+the text which should be made available.")
 
 (defvar interprogram-paste-function nil
   "Function to call to get text cut from other programs.
