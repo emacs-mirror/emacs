@@ -274,14 +274,16 @@ fit these criteria."
 	   (window-height (truncate (* gnus-max-image-proportion
 				       (- (nth 3 edges) (nth 1 edges)))))
 	   scaled-image)
-      (or
-       (cond ((> height window-height)
-	      (create-image file 'imagemagick nil
-			    :height window-height))
-	     ((> width window-width)
-	      (create-image file 'imagemagick nil
-			    :width window-width)))
-       image))))
+      (when (> height window-height)
+	(setq image (or (create-image file 'imagemagick nil
+				      :height window-height)
+			image))
+	(when (> (car (image-size image t)) window-width)
+	  (setq image (or
+		       (create-image file 'imagemagick nil
+				     :width window-width)
+		       image))))
+      image)))
 
 (defun gnus-html-prune-cache ()
   (let ((total-size 0)
@@ -300,7 +302,6 @@ fit these criteria."
 	(when (> total-size gnus-html-cache-size)
 	  (decf total-size (cadr file))
 	  (delete-file (nth 2 file)))))))
-
 
 (defun gnus-html-image-url-blocked-p (url blocked-images)
 "Find out if URL is blocked by BLOCKED-IMAGES."
