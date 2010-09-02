@@ -6,6 +6,10 @@
 
 	* NEWS: dbus.el supports alternative buses.
 
+2010-08-22  Alex Harsanyi  <harsanyi@mac.com>  (tiny change)
+
+	* emacs3.py: Import imp module and use it (Bug#5756).
+
 2010-08-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* tutorials/TUTORIAL.he: Use MAQAF instead of hyphen where appropriate.

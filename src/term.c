@@ -689,7 +689,8 @@ encode_terminal_code (struct glyph *src, int src_len, struct coding_system *codi
 						  encode_terminal_src_size);
 		  buf = encode_terminal_src + nbytes;
 		}
-	      if (char_charset (c, charset_list, NULL))
+	      if (CHAR_BYTE8_P (c)
+		  || char_charset (c, charset_list, NULL))
 		{
 		  /* Store the multibyte form of C at BUF.  */
 		  buf += CHAR_STRING (c, buf);
@@ -1614,18 +1615,15 @@ produce_glyphs (struct it *it)
       goto done;
     }
 
-  /* Maybe translate single-byte characters to multibyte.  */
-  it->char_to_display = it->c;
-
-  if (it->c >= 040 && it->c < 0177)
+  if (it->char_to_display >= 040 && it->char_to_display < 0177)
     {
       it->pixel_width = it->nglyphs = 1;
       if (it->glyph_row)
 	append_glyph (it);
     }
-  else if (it->c == '\n')
+  else if (it->char_to_display == '\n')
     it->pixel_width = it->nglyphs = 0;
-  else if (it->c == '\t')
+  else if (it->char_to_display == '\t')
     {
       int absolute_x = (it->current_x
 			+ it->continuation_lines_width);
@@ -1656,32 +1654,19 @@ produce_glyphs (struct it *it)
       it->pixel_width = nspaces;
       it->nglyphs = nspaces;
     }
-  else if (CHAR_BYTE8_P (it->c))
+  else if (CHAR_BYTE8_P (it->char_to_display))
     {
-      if (unibyte_display_via_language_environment
-	  && (it->c >= 0240))
-	{
-	  it->char_to_display = BYTE8_TO_CHAR (it->c);
-	  it->pixel_width = CHAR_WIDTH (it->char_to_display);
-	  it->nglyphs = it->pixel_width;
-	  if (it->glyph_row)
-	    append_glyph (it);
-	}
-      else
-	{
-	  /* Coming here means that it->c is from display table, thus
-	     we must send the raw 8-bit byte as is to the terminal.
-	     Although there's no way to know how many columns it
-	     occupies on a screen, it is a good assumption that a
-	     single byte code has 1-column width.  */
-	  it->pixel_width = it->nglyphs = 1;
-	  if (it->glyph_row)
-	    append_glyph (it);
-	}
+      /* Coming here means that we must send the raw 8-bit byte as is
+	 to the terminal.  Although there's no way to know how many
+	 columns it occupies on a screen, it is a good assumption that
+	 a single byte code has 1-column width.  */
+      it->pixel_width = it->nglyphs = 1;
+      if (it->glyph_row)
+	append_glyph (it);
     }
   else
     {
-      it->pixel_width = CHAR_WIDTH (it->c);
+      it->pixel_width = CHAR_WIDTH (it->char_to_display);
       it->nglyphs = it->pixel_width;
 
       if (it->glyph_row)
@@ -1917,7 +1902,7 @@ produce_special_glyphs (struct it *it, enum display_element_type what)
   else
     abort ();
 
-  temp_it.c = GLYPH_CHAR (glyph);
+  temp_it.c = temp_it.char_to_display = GLYPH_CHAR (glyph);
   temp_it.face_id = GLYPH_FACE (glyph);
   temp_it.len = CHAR_BYTES (temp_it.c);
 
