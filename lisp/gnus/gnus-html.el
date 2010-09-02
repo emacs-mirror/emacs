@@ -136,7 +136,7 @@ fit these criteria."
 		    (delete-region start end)
 		    (gnus-put-image image (gnus-string-or string "*")))))
 	    ;; Normal, external URL.
-	    (unless (gnus-html-image-url-blocked-p url)
+	    (unless (gnus-html-image-url-blocked-p url gnus-blocked-images)
 	      (let ((file (gnus-html-image-id url)))
 		(if (file-exists-p file)
 		    ;; It's already cached, so just insert it.
@@ -151,7 +151,8 @@ fit these criteria."
 			      (point-marker))
 			images)))))))
        ;; Add a link.
-       ((equal tag "a")
+       ((or (equal tag "a")
+	    (equal tag "A"))
 	(when (string-match "href=\"\\([^\"]+\\)" parameters)
 	  (setq url (match-string 1 parameters))
           (gnus-message 8 "Fetching link URL %s" url)
@@ -284,10 +285,10 @@ fit these criteria."
 	  (delete-file (nth 2 file)))))))
 
 
-(defun gnus-html-image-url-blocked-p (url)
+(defun gnus-html-image-url-blocked-p (url blocked-images)
 "Find out if URL is blocked by `gnus-blocked-images'."
-  (let ((ret (and gnus-blocked-images
-                  (string-match gnus-blocked-images url))))
+  (let ((ret (and blocked-images
+                  (string-match blocked-images url))))
     (when ret
       (gnus-message 8 "Image URL %s is blocked by gnus-blocked-images regex %s" url gnus-blocked-images))
     ret))
@@ -301,7 +302,7 @@ fit these criteria."
       (save-match-data
 	(while (re-search-forward "<img.*src=[\"']\\([^\"']+\\)" nil t)
 	  (let ((url (match-string 1)))
-	    (unless (gnus-html-image-url-blocked-p url)
+	    (unless (gnus-html-image-url-blocked-p url blocked-images)
               (unless (file-exists-p (gnus-html-image-id url))
                 (push url urls)
                 (push (gnus-html-image-id url) urls)
