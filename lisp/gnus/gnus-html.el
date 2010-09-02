@@ -286,7 +286,7 @@ fit these criteria."
 
 
 (defun gnus-html-image-url-blocked-p (url blocked-images)
-"Find out if URL is blocked by `gnus-blocked-images'."
+"Find out if URL is blocked by BLOCKED-IMAGES."
   (let ((ret (and blocked-images
                   (string-match blocked-images url))))
     (when ret
