@@ -280,12 +280,12 @@ fit these criteria."
       (when (> height window-height)
 	(setq image (or (create-image file 'imagemagick nil
 				      :height window-height)
-			image))
-	(when (> (car (image-size image t)) window-width)
-	  (setq image (or
-		       (create-image file 'imagemagick nil
-				     :width window-width)
-		       image))))
+			image)))
+      (when (> (car (image-size image t)) window-width)
+	(setq image (or
+		     (create-image file 'imagemagick nil
+				   :width window-width)
+		     image)))
       image)))
 
 (defun gnus-html-prune-cache ()

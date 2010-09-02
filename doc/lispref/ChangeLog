@@ -1,3 +1,9 @@
+2010-09-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* text.texi (Low-Level Kill Ring):
+	* frames.texi (Window System Selections): Remove cut buffer
+	documentation.
+
 2010-08-28  Eli Zaretskii  <eliz@gnu.org>
 
 	* display.texi (Fringe Size/Pos): Add a cross-reference to "Layout

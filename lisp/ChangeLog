@@ -1,3 +1,82 @@
+2010-09-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (newline): Eliminate optimization.
+	Use post-self-insert-hook to set hard-newline and things before
+	running post-self-insert-hook.
+	(blink-matching-check-mismatch): New function.
+	(blink-matching-check-function): New variable.
+	(blink-matching-open): Use them.
+	Skip back forward over prefix chars skipped by forward-sexp.
+	Don't check if the parens are backslash escaped.
+	(blink-paren-post-self-insert-function): Check backslash escaping here.
+
+2010-09-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package-menu-mode-map):
+	Change package-menu-revert bindings to revert-buffer.
+	(package-menu-mode): Set revert-buffer-function.
+	(package-menu-revert): Doc fix.
+
+2010-09-02  Agustín Martín  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-init-process): Use "~/" as
+	`default-directory' unless using Ispell per-directory personal
+	dictionaries and not in a mini-buffer under XEmacs.
+	(kill-buffer-hook): Do not kill ispell process on exit when
+	`ispell-process-directory' is "~/". (Bug#6143)
+
+2010-09-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* simple.el (kill-new): Call interprogram-cut-function with only
+	one argument.
+
+	* term.el (term-mouse-paste): Don't call x-get-cutbuffer.
+	Remove cut buffer from error message.
+
+	* term/x-win.el (x-select-text):
+	* term/pc-win.el (x-selection-value):
+	* term/ns-win.el (x-selection-value):
+	* eshell/em-term.el:
+	* w32-fns.el (x-get-selection-value):
+	* mouse-sel.el (mouse-sel-set-selection-function):
+	* frame.el (display-selections-p): Remove cut-buffer in documentation.
+
+	* term/x-win.el: Update documentation for x-last-selected-text-*.
+	(x-last-selected-text-cut, x-last-selected-text-cut-encoded)
+	(x-last-cut-buffer-coding, x-cut-buffer-max): Remove.
+	(x-select-text): Remove argument PUSH, update documentation.  Remove
+	cut-buffer code.
+	(x-selection-value-internal): Was previously x-selection-value.
+	(x-selection-value): Rename from x-cut-buffer-or-selection-value.
+	Update documentation, remove cut-buffer code.  Call
+	x-selection-value-internal.
+	(x-clipboard-yank): Call x-selection-value-internal.
+	(x-initialize-window-system): Remove setting of x-cut-buffer-max.
+
+	* term/pc-win.el (x-last-selected-text):
+	x-cut-buffer-or-selection-value renamed to x-selection-value
+	(x-select-text): Remove argument PUSH, update documentation.
+
+	* term/ns-win.el (x-setup-function-keys, ns-last-selected-text):
+	x-cut-buffer-or-selection-value renamed to x-selection-value
+	(x-selection-value): Renamed from x-cut-buffer-or-selection-value.
+	(x-select-text): Remove argument PUSH, update documentation.
+
+	* emacs-lisp/cl-macs.el (x-get-cutbuffer, x-get-cut-buffer): Remove.
+
+	* w32-fns.el (x-last-selected-text):
+	x-cut-buffer-or-selection-value renamed to x-selection-value.
+	(x-cut-buffer-max): Remove.
+	(x-select-text): Remove argument PUSH, update documentation.
+
+	* simple.el (interprogram-cut-function): Remove mention of PUSH.
+
+	* select.el (x-get-cut-buffer, x-set-cut-buffer): Remove.
+
+	* mouse-sel.el (mouse-sel-get-selection-function):
+	x-cut-buffer-or-selection-value renamed to x-selection-value.
+	(x-select-text): Remove optional push.
+
 2010-09-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (blink-paren-function): Move from C to here.

@@ -1195,7 +1195,7 @@ The variable `package-load-list' controls which packages to load."
     (define-key map "\177" 'package-menu-backup-unmark)
     (define-key map "d" 'package-menu-mark-delete)
     (define-key map "i" 'package-menu-mark-install)
-    (define-key map "g" 'package-menu-revert)
+    (define-key map "g" 'revert-buffer)
     (define-key map "r" 'package-menu-refresh)
     (define-key map "~" 'package-menu-mark-obsolete-for-deletion)
     (define-key map "x" 'package-menu-execute)
@@ -1229,7 +1229,7 @@ The variable `package-load-list' controls which packages to load."
 		  :help "Mark a package for installation and move to the next line"))
     (define-key menu-map [s3] '("--"))
     (define-key menu-map [mg]
-      '(menu-item "Update package list" package-menu-revert
+      '(menu-item "Update package list" revert-buffer
 		  :help "Update the list of packages"))
     (define-key menu-map [mr]
       '(menu-item "Refresh package list" package-menu-refresh
@@ -1272,6 +1272,7 @@ Letters do not insert themselves; instead, they are commands.
   (setq mode-name "Package Menu")
   (setq truncate-lines t)
   (setq buffer-read-only t)
+  (setq revert-buffer-function 'package-menu-revert)
   (setq header-line-format
 	(mapconcat
 	 (lambda (pair)
@@ -1311,8 +1312,10 @@ available for download."
   (package-refresh-contents)
   (package--generate-package-list))
 
-(defun package-menu-revert ()
-  "Update the list of packages."
+(defun package-menu-revert (&optional arg noconfirm)
+  "Update the list of packages.
+This function is the `revert-buffer-function' for Package Menu
+buffers.  The arguments are ignored."
   (interactive)
   (unless (eq major-mode 'package-menu-mode)
     (error "The current buffer is not a Package Menu"))

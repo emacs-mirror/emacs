@@ -235,6 +235,8 @@ kill ring).
 
 *** `mouse-drag-copy-region' now defaults to nil.
 
+*** Support for X cut buffers has been removed.
+
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
 
