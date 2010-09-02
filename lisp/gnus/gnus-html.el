@@ -243,11 +243,12 @@ fit these criteria."
 	  nil)))))
 
 (defun gnus-html-rescale-image (image)
-  (if (not (fboundp 'imagemagick-types))
+  (if (or (not (fboundp 'imagemagick-types))
+	  (not (get-buffer-window (current-buffer))))
       image
     (let* ((width (car (image-size image t)))
 	   (height (cdr (image-size image t)))
-	   (edges (window-pixel-edges))
+	   (edges (window-pixel-edges (get-buffer-window (current-buffer))))
 	   (window-width (truncate (* gnus-max-image-proportion
 				      (- (nth 2 edges) (nth 0 edges)))))
 	   (window-height (truncate (* gnus-max-image-proportion
