@@ -1,3 +1,9 @@
+2010-09-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnwfm.el: Removed.
+
+	* nnlistserv.el: Removed.
+
 2010-09-01  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus-html.el (gnus-html-image-url-blocked-p): New function.
