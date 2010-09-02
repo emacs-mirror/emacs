@@ -136,8 +136,7 @@ fit these criteria."
 		    (delete-region start end)
 		    (gnus-put-image image (gnus-string-or string "*")))))
 	    ;; Normal, external URL.
-	    (when (or (null gnus-blocked-images)
-		      (not (string-match gnus-blocked-images url)))
+	    (unless (gnus-html-image-url-blocked-p url)
 	      (let ((file (gnus-html-image-id url)))
 		(if (file-exists-p file)
 		    ;; It's already cached, so just insert it.
@@ -284,6 +283,15 @@ fit these criteria."
 	  (decf total-size (cadr file))
 	  (delete-file (nth 2 file)))))))
 
+
+(defun gnus-html-image-url-blocked-p (url)
+"Find out if URL is blocked by `gnus-blocked-images'."
+  (let ((ret (and gnus-blocked-images
+                  (string-match gnus-blocked-images url))))
+    (when ret
+      (gnus-message 8 "Image URL %s is blocked by gnus-blocked-images regex %s" url gnus-blocked-images))
+    ret))
+
 ;;;###autoload
 (defun gnus-html-prefetch-images (summary)
   (let (blocked-images urls)
@@ -293,13 +301,11 @@ fit these criteria."
       (save-match-data
 	(while (re-search-forward "<img.*src=[\"']\\([^\"']+\\)" nil t)
 	  (let ((url (match-string 1)))
-	    (if (or (null blocked-images)
-                    (not (string-match blocked-images url)))
-                (unless (file-exists-p (gnus-html-image-id url))
-                  (push url urls)
-                  (push (gnus-html-image-id url) urls)
-                  (push "-o" urls))
-              (gnus-message 8 "Image URL %s is blocked" url))))
+	    (unless (gnus-html-image-url-blocked-p url)
+              (unless (file-exists-p (gnus-html-image-id url))
+                (push url urls)
+                (push (gnus-html-image-id url) urls)
+                (push "-o" urls)))))
 	(let ((process
 	       (apply 'start-process 
 		      "images" nil "curl"
