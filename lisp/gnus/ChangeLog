@@ -1,3 +1,8 @@
+2010-09-02  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-html.el (gnus-article-html): Make work buffer multibyte for
+	decoded contents.
+
 2010-09-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-group.el (gnus-group-line-format): Remove %O (moderated) from
