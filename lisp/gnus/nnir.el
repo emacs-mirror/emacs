@@ -263,10 +263,10 @@
 
 ;; I have tried to make the code expandable.  Basically, it is divided
 ;; into two layers.  The upper layer is somewhat like the `nnvirtual'
-;; or `nnkiboze' backends: given a specification of what articles to
-;; show from another backend, it creates a group containing exactly
-;; those articles.  The lower layer issues a query to a search engine
-;; and produces such a specification of what articles to show from the
+;; backend: given a specification of what articles to show from
+;; another backend, it creates a group containing exactly those
+;; articles.  The lower layer issues a query to a search engine and
+;; produces such a specification of what articles to show from the
 ;; other backend.
 
 ;; The interface between the two layers consists of the single

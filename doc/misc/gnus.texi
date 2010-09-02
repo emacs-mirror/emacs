@@ -721,7 +721,6 @@ Document Groups
 Combined Groups
 
 * Virtual Groups::              Combining articles from many groups.
-* Kibozed Groups::              Looking through parts of the newsfeed for articles.
 
 Email Based Diary
 
@@ -2624,15 +2623,6 @@ default a group pointing to the most recent articles will be created
 (@code{gnus-group-recent-archive-directory}), but given a prefix, a full
 group will be created from @code{gnus-group-archive-directory}.
 
-@item G k
-@kindex G k (Group)
-@findex gnus-group-make-kiboze-group
-@cindex nnkiboze
-Make a kiboze group.  You will be prompted for a name, for a regexp to
-match groups to be ``included'' in the kiboze group, and a series of
-strings to match on headers (@code{gnus-group-make-kiboze-group}).
-@xref{Kibozed Groups}.
-
 @item G D
 @kindex G D (Group)
 @findex gnus-group-enter-directory
@@ -4420,8 +4410,7 @@ which point to the ``real'' message files (if mbox is used, copies are
 made).  Since mairix already presents search results in such a virtual
 mail folder, it is very well suited for using it as an external program
 for creating @emph{smart} mail folders, which represent certain mail
-searches.  This is similar to a Kiboze group (@pxref{Kibozed Groups}),
-but much faster.
+searches.
 
 @node nnmairix requirements
 @subsubsection nnmairix requirements
@@ -18933,7 +18922,6 @@ groups.
 
 @menu
 * Virtual Groups::              Combining articles from many groups.
-* Kibozed Groups::              Looking through parts of the newsfeed for articles.
 @end menu
 
 
@@ -19021,58 +19009,6 @@ line from the article you respond to in these cases.
 @code{nnvirtual} groups do not inherit anything but articles and marks
 from component groups---group parameters, for instance, are not
 inherited.
-
-
-@node Kibozed Groups
-@subsection Kibozed Groups
-@cindex nnkiboze
-@cindex kibozing
-
-@dfn{Kibozing} is defined by the @acronym{OED} as ``grepping through
-(parts of) the news feed''.  @code{nnkiboze} is a back end that will
-do this for you.  Oh joy!  Now you can grind any @acronym{NNTP} server
-down to a halt with useless requests!  Oh happiness!
-
-@kindex G k (Group)
-To create a kibozed group, use the @kbd{G k} command in the group
-buffer.
-
-The address field of the @code{nnkiboze} method is, as with
-@code{nnvirtual}, a regexp to match groups to be ``included'' in the
-@code{nnkiboze} group.  That's where most similarities between
-@code{nnkiboze} and @code{nnvirtual} end.
-
-In addition to this regexp detailing component groups, an
-@code{nnkiboze} group must have a score file to say what articles are
-to be included in the group (@pxref{Scoring}).
-
-@kindex M-x nnkiboze-generate-groups
-@findex nnkiboze-generate-groups
-You must run @kbd{M-x nnkiboze-generate-groups} after creating the
-@code{nnkiboze} groups you want to have.  This command will take time.
-Lots of time.  Oodles and oodles of time.  Gnus has to fetch the
-headers from all the articles in all the component groups and run them
-through the scoring process to determine if there are any articles in
-the groups that are to be part of the @code{nnkiboze} groups.
-
-Please limit the number of component groups by using restrictive
-regexps.  Otherwise your sysadmin may become annoyed with you, and the
-@acronym{NNTP} site may throw you off and never let you back in again.
-Stranger things have happened.
-
-@code{nnkiboze} component groups do not have to be alive---they can be dead,
-and they can be foreign.  No restrictions.
-
-@vindex nnkiboze-directory
-The generation of an @code{nnkiboze} group means writing two files in
-@code{nnkiboze-directory}, which is @file{~/News/kiboze/} by default.
-One contains the @acronym{NOV} header lines for all the articles in
-the group, and the other is an additional @file{.newsrc} file to store
-information on what groups have been searched through to find
-component articles.
-
-Articles marked as read in the @code{nnkiboze} group will have
-their @acronym{NOV} lines removed from the @acronym{NOV} file.
 
 
 @node Email Based Diary
@@ -27423,10 +27359,6 @@ You can set the process mark on both groups and articles and perform
 operations on all the marked items (@pxref{Process/Prefix}).
 
 @item
-You can grep through a subset of groups and create a group from the
-results (@pxref{Kibozed Groups}).
-
-@item
 You can list subsets of groups according to, well, anything
 (@pxref{Listing Groups}).
 
@@ -29134,8 +29066,8 @@ As the variables for the other back ends, there are
 @code{nnfolder-nov-is-evil}, @code{nnimap-nov-is-evil},
 @code{nnml-nov-is-evil}, and @code{nnspool-nov-is-evil}.  Note that a
 non-@code{nil} value for @code{gnus-nov-is-evil} overrides all those
-variables.@footnote{Although the back ends @code{nnkiboze}, and
-@code{nnwfm} don't have their own nn*-nov-is-evil.}
+variables.@footnote{Although the back end @code{nnwfm} doesn't have
+its own nn*-nov-is-evil.}
 @end table
 
 

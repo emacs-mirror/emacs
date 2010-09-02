@@ -660,7 +660,6 @@ simple manner.")
   "h" gnus-group-make-help-group
   "u" gnus-group-make-useful-group
   "a" gnus-group-make-archive-group
-  "k" gnus-group-make-kiboze-group
   "l" gnus-group-nnimap-edit-acl
   "m" gnus-group-make-group
   "E" gnus-group-edit-group
@@ -931,7 +930,6 @@ simple manner.")
 	["Add the archive group" gnus-group-make-archive-group t]
 	["Make a doc group..." gnus-group-make-doc-group t]
 	["Make a web group..." gnus-group-make-web-group t]
-	["Make a kiboze group..." gnus-group-make-kiboze-group t]
 	["Make a virtual group..." gnus-group-make-empty-virtual t]
 	["Add a group to a virtual..." gnus-group-add-to-virtual t]
 	["Make an ephemeral group..." gnus-group-read-ephemeral-group t]
@@ -982,7 +980,6 @@ simple manner.")
        ["Browse foreign server..." gnus-group-browse-foreign-server t]
        ["Enter server buffer" gnus-group-enter-server-mode t]
        ["Expire all expirable articles" gnus-group-expire-all-groups t]
-       ["Generate any kiboze groups" nnkiboze-generate-groups t]
        ["Gnus version" gnus-version t]
        ["Save .newsrc files" gnus-group-save-newsrc t]
        ["Suspend Gnus" gnus-group-suspend t]
@@ -3115,41 +3112,6 @@ mail messages or news articles in files that have numeric names."
     (gnus-group-make-group
      (gnus-group-real-name group)
      (list 'nndir (gnus-group-real-name group) (list 'nndir-directory dir)))))
-
-(defvar nnkiboze-score-file)
-(declare-function nnkiboze-score-file "nnkiboze" (group))
-
-(defun gnus-group-make-kiboze-group (group address scores)
-  "Create an nnkiboze group.
-The user will be prompted for a name, a regexp to match groups, and
-score file entries for articles to include in the group."
-  (interactive
-   (list
-    (read-string "nnkiboze group name: ")
-    (read-string "Source groups (regexp): ")
-    (let ((headers (mapcar 'list
-			   '("subject" "from" "number" "date" "message-id"
-			     "references" "chars" "lines" "xref"
-			     "followup" "all" "body" "head")))
-	  scores header regexp regexps)
-      (while (not (equal "" (setq header (completing-read
-					  "Match on header: " headers nil t))))
-	(setq regexps nil)
-	(while (not (equal "" (setq regexp (read-string
-					    (format "Match on %s (regexp): "
-						    header)))))
-	  (push (list regexp nil nil 'r) regexps))
-	(push (cons header regexps) scores))
-      scores)))
-  (gnus-group-make-group group "nnkiboze" address)
-  (let* ((nnkiboze-current-group group)
-	 (score-file (car (nnkiboze-score-file "")))
-	 (score-dir (file-name-directory score-file)))
-    (unless (file-exists-p score-dir)
-      (make-directory score-dir))
-    (with-temp-file score-file
-      (let (emacs-lisp-mode-hook)
-	(gnus-pp scores)))))
 
 (defun gnus-group-add-to-virtual (n vgroup)
   "Add the current group to a virtual group."
