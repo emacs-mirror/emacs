@@ -1,5 +1,8 @@
 2010-09-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-group.el (gnus-group-line-format): Remove %O (moderated) from
+	group line format, since it isn't very interesting.
+
 	* gnus-agent.el (gnus-agent-short-article),
 	(gnus-agent-long-article): Increase values for these two variables,
 	since most people are likely to have more network connection and
