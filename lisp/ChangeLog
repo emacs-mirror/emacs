@@ -1,3 +1,10 @@
+2010-09-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package-menu-mode-map): Change
+	package-menu-revert bindings to revert-buffer.
+	(package-menu-mode): Set revert-buffer-function.
+	(package-menu-revert): Doc fix.
+
 2010-09-02  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el (ispell-init-process): Use "~/" as
