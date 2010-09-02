@@ -2,6 +2,7 @@
 
 	* gnus-html.el (gnus-html-wash-tags): Don't show images that are really
 	small. They're probably tracking images.
+	(gnus-html-wash-tags): Remove all <pre_int> place holders.
 
 	* nntp.el (nntp-request-set-mark): Refuse to do marks if
 	nntp-marks-file-name is nil.
