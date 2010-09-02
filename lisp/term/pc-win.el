@@ -192,7 +192,7 @@ the operating system.")
 
 ;; From lisp/term/w32-win.el
 ;
-;;;; Selections and cut buffers
+;;;; Selections
 ;
 ;;; We keep track of the last text selected here, so we can check the
 ;;; current selection against it, and avoid passing back our own text
@@ -226,8 +226,7 @@ On Nextstep, put TEXT in the pasteboard."
   (setq x-last-selected-text text))
 
 ;;; Return the value of the current selection.
-;;; Consult the selection, then the cut buffer.  Treat empty strings
-;;; as if they were unset.
+;;; Consult the selection.  Treat empty strings as if they were unset.
 (defun x-get-selection-value ()
   (if x-select-enable-clipboard
       (let (text)

@@ -1192,7 +1192,7 @@ as returned by `x-server-vendor'."
 ;; #x0dde	THAI MAIHANAKAT	Thai
 
 
-;;;; Selections and cut buffers
+;;;; Selections
 
 ;; We keep track of the last text selected here, so we can check the
 ;; current selection against it, and avoid passing back our own text
@@ -1233,8 +1233,6 @@ clipboard as well.
 On Nextstep, put TEXT in the pasteboard."
   ;; With multi-tty, this function may be called from a tty frame.
   (when (eq (framep (selected-frame)) 'x)
-    ;; Don't send the cut buffer too much text.
-    ;; It becomes slow, and if really big it causes errors.
     (when x-select-enable-primary
       (x-set-selection 'PRIMARY text)
       (setq x-last-selected-text-primary text))

@@ -1126,16 +1126,13 @@ use @code{string=} to compare it with the last text Emacs provided.)
 @defvar interprogram-cut-function
 This variable provides a way of communicating killed text to other
 programs, when you are using a window system.  Its value should be
-@code{nil} or a function of one required and one optional argument.
+@code{nil} or a function of one required argument.
 
 If the value is a function, @code{kill-new} and @code{kill-append} call
-it with the new first element of the kill ring as the first argument.
-The second, optional, argument has the same meaning as the @var{push}
-argument to @code{x-set-cut-buffer} (@pxref{Definition of
-x-set-cut-buffer}) and only affects the second and later cut buffers.
+it with the new first element of the kill ring as the argument.
 
 The normal use of this function is to set the window system's primary
-selection (and first cut buffer) from the newly killed text.
+selection from the newly killed text.
 @xref{Window System Selections}.
 @end defvar
 

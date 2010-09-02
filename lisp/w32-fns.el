@@ -425,7 +425,7 @@ bit output with no translation."
                         'w32-charset-info-alist "21.1")
 
 
-;;;; Selections and cut buffers
+;;;; Selections
 
 ;; We keep track of the last text selected here, so we can check the
 ;; current selection against it, and avoid passing back our own text
@@ -450,8 +450,7 @@ On Nextstep, put TEXT in the pasteboard."
 
 (defun x-get-selection-value ()
   "Return the value of the current selection.
-Consult the selection, then the cut buffer.  Treat empty strings as if
-they were unset."
+Consult the selection.  Treat empty strings as if they were unset."
   (if x-select-enable-clipboard
       (let (text)
 	;; Don't die if x-get-selection signals an error.

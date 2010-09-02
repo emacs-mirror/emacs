@@ -1,5 +1,16 @@
 2010-09-02  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* term.el (term-mouse-paste): Don't call x-get-cutbuffer.
+	Remove cut buffer from error message.
+
+	* term/x-win.el (x-select-text):
+	* term/pc-win.el (x-selection-value):
+	* term/ns-win.el (x-selection-value):
+	* eshell/em-term.el:
+	* w32-fns.el (x-get-selection-value):
+	* mouse-sel.el (mouse-sel-set-selection-function):
+	* frame.el (display-selections-p): Remove cut-buffer in documentation.
+
 	* term/x-win.el: Update documentation for x-last-selected-text-*.
 	(x-last-selected-text-cut, x-last-selected-text-cut-encoded)
 	(x-last-cut-buffer-coding, x-cut-buffer-max): Remove.

@@ -314,8 +314,8 @@ Called with two arguments:
   SELECTION, the name of the selection concerned, and
   VALUE, the text to store.
 
-This sets the selection as well as the cut buffer for the older applications,
-unless `mouse-sel-default-bindings' is `interprogram-cut-paste'.")
+This sets the selection, unless `mouse-sel-default-bindings' 
+is `interprogram-cut-paste'.")
 
 (declare-function x-selection-value "term/x-win" ())
 

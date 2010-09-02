@@ -1041,8 +1041,7 @@ On Nextstep, put TEXT in the pasteboard."
 (defun x-selection-value ()
   (let (text)
 
-    ;; Consult the selection, then the cut buffer.  Treat empty strings
-    ;; as if they were unset.
+    ;; Consult the selection.  Treat empty strings as if they were unset.
     (or text (setq text (ns-get-pasteboard)))
     (if (string= text "") (setq text nil))
 
