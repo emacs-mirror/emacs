@@ -1,3 +1,7 @@
+2010-09-02  Glenn Morris  <rgm@gnu.org>
+
+	* desktop.el (desktop-path): Bump :version after 2009-09-15 change.
+
 2010-08-31  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el (standard-display-european-internal):
