@@ -2,6 +2,7 @@
 
 	* gnus-html.el (gnus-article-html): Make work buffer multibyte for
 	decoded contents.
+	(gnus-html-put-image, gnus-html-rescale-image): Pass `file' argument.
 
 2010-09-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
