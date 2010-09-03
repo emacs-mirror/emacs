@@ -1726,13 +1726,14 @@ functionality to work."
 		 (const :tag "Never" nil)
 		 (const :tag "Always" t)))
 
-(defcustom message-generate-hashcash (if (executable-find "hashcash") t)
+(defcustom message-generate-hashcash (if (executable-find "hashcash") 'opportunistic)
   "*Whether to generate X-Hashcash: headers.
 If t, always generate hashcash headers.  If `opportunistic',
 only generate hashcash headers if it can be done without the user
 waiting (i.e., only asynchronously).
 
 You must have the \"hashcash\" binary installed, see `hashcash-path'."
+  :version "24.1"
   :group 'message-headers
   :link '(custom-manual "(message)Mail Headers")
   :type '(choice (const :tag "Always" t)
