@@ -1,6 +1,11 @@
 2010-09-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* message.el (message-generate-hashcash): Change default to
+	'opportunistic if hashcash is installed.
+
 	* gnus-html.el (gnus-html-rescale-image): Fix up typo in rescaling.
+	(gnus-html-put-image): Only call image-size once, since it's somewhat
+	time-consuming on remote X servers.
 
 2010-09-02  Katsumi Yamaoka  <yamaoka@jpl.org>
 

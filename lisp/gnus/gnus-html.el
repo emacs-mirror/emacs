@@ -243,8 +243,10 @@ fit these criteria."
 
 (defun gnus-html-put-image (file point string)
   (when (display-graphic-p)
-    (let ((image (ignore-errors
-		   (gnus-create-image file))))
+    (let* ((image (ignore-errors
+		   (gnus-create-image file)))
+	  (size (and image
+		     (image-size image t))))
       (save-excursion
 	(goto-char point)
 	(if (and image
@@ -252,10 +254,10 @@ fit these criteria."
 		 ;; seems to be a signal of a broken image.
 		 (not (and (listp image)
 			   (eq (plist-get (cdr image) :type) 'gif)
-			   (= (car (image-size image t)) 30)
-			   (= (cdr (image-size image t)) 30))))
+			   (= (car size) 30)
+			   (= (cdr size) 30))))
 	    (progn
-	      (gnus-put-image (gnus-html-rescale-image image file)
+	      (gnus-put-image (gnus-html-rescale-image image file size)
 			      (gnus-string-or string "*"))
 	      t)
 	  (insert string)
@@ -265,12 +267,12 @@ fit these criteria."
 			    (gnus-string-or string "*")))
 	  nil)))))
 
-(defun gnus-html-rescale-image (image file)
+(defun gnus-html-rescale-image (image file size)
   (if (or (not (fboundp 'imagemagick-types))
 	  (not (get-buffer-window (current-buffer))))
       image
-    (let* ((width (car (image-size image t)))
-	   (height (cdr (image-size image t)))
+    (let* ((width (car size))
+	   (height (cdr size))
 	   (edges (window-pixel-edges (get-buffer-window (current-buffer))))
 	   (window-width (truncate (* gnus-max-image-proportion
 				      (- (nth 2 edges) (nth 0 edges)))))
@@ -280,8 +282,9 @@ fit these criteria."
       (when (> height window-height)
 	(setq image (or (create-image file 'imagemagick nil
 				      :height window-height)
-			image)))
-      (when (> (car (image-size image t)) window-width)
+			image))
+	(setq size (image-size image t)))
+      (when (> (car size) window-width)
 	(setq image (or
 		     (create-image file 'imagemagick nil
 				   :width window-width)
