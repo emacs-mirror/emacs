@@ -1,5 +1,13 @@
 2010-09-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* electric.el (electricity): New group.
+	(electric-indent-chars): New var.
+	(electric-indent-post-self-insert-function): New fun.
+	(electric-indent-mode): New minor mode.
+	(electric-pair-skip-self): New custom.
+	(electric-pair-post-self-insert-function): New function.
+	(electric-pair-mode): New minor mode.
+
 	* calc/calc-aent.el (calcAlg-blink-matching-check): New fun, to replace
 	calcAlg-blink-matching-open.
 	(calc-alg-ent-map, calc-alg-ent-esc-map): Initialize in the declaration.
