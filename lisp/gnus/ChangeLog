@@ -1,5 +1,12 @@
 2010-09-03  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* gnus-html.el (gnus-html-put-image): Use gnus-graphic-display-p,
+	glyph-width and glyph-height instead of display-graphic-p and
+	image-size for XEmacs.
+
+	* gnus-util.el (gnus-graphic-display-p): Use device-on-window-system-p
+	for XEmacs.
+
 	* gnus-ems.el (gnus-set-process-plist, gnus-process-plist): Change name
 	of symbol that holds plist data.
 	(gnus-process-plist): Remove plist of process after getting it.

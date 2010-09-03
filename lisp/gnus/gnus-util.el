@@ -1580,11 +1580,9 @@ SPEC is a predicate specifier that contains stuff like `or', `and',
    (car (symbol-value history))))
 
 (defun gnus-graphic-display-p ()
-  (or (and (fboundp 'display-graphic-p)
-	   (display-graphic-p))
-      ;;;!!!This is bogus.  Fixme!
-      (and (featurep 'xemacs)
-	   t)))
+  (if (featurep 'xemacs)
+      (device-on-window-system-p)
+    (display-graphic-p)))
 
 (put 'gnus-parse-without-error 'lisp-indent-function 0)
 (put 'gnus-parse-without-error 'edebug-form-spec '(body))

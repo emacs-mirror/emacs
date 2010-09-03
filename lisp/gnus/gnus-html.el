@@ -242,11 +242,13 @@ fit these criteria."
 	(gnus-html-schedule-image-fetching buffer images)))))
 
 (defun gnus-html-put-image (file point string)
-  (when (display-graphic-p)
+  (when (gnus-graphic-display-p)
     (let* ((image (ignore-errors
 		   (gnus-create-image file)))
 	  (size (and image
-		     (image-size image t))))
+		     (if (featurep 'xemacs)
+			 (cons (glyph-width image) (glyph-height image))
+		       (image-size image t)))))
       (save-excursion
 	(goto-char point)
 	(if (and image
