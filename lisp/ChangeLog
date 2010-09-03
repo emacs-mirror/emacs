@@ -1,5 +1,11 @@
 2010-09-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* calc/calc-aent.el (calcAlg-blink-matching-check): New fun, to replace
+	calcAlg-blink-matching-open.
+	(calc-alg-ent-map, calc-alg-ent-esc-map): Initialize in the declaration.
+	(calc-do-alg-entry): Only touch the part of the keymap that varies.
+	Use the new blink-matching-check-function.
+
 	Provide blink-matching support to SMIE.
 	* emacs-lisp/smie.el (smie-bnf-closer-alist): New function.
 	(smie-blink-matching-triggers, smie-blink-matching-inners): New vars.
