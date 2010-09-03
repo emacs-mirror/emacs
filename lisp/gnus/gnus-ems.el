@@ -314,24 +314,31 @@
 	(defalias 'gnus-process-put 'process-put))
     (defun gnus-set-process-plist (process plist)
       "Replace the plist of PROCESS with PLIST.  Returns PLIST."
-      (put 'gnus-process-plist process plist))
+      (put 'gnus-process-plist-internal process plist))
+
     (defun gnus-process-plist (process)
       "Return the plist of PROCESS."
-      ;; Remove those of dead processes from `gnus-process-plist'
-      ;; to prevent it from growing.
-      (let ((plist (symbol-plist 'gnus-process-plist))
-	    proc)
-	(while (setq proc (car plist))
-	  (if (and (processp proc)
-		   (memq (process-status proc) '(open run)))
-	      (setq plist (cddr plist))
-	    (setcar plist (caddr plist))
-	    (setcdr plist (or (cdddr plist) '(nil))))))
-      (get 'gnus-process-plist process))
+      ;; This form works but can't prevent the plist data from
+      ;; growing infinitely.
+      ;;(get 'gnus-process-plist-internal process)
+      (let* ((plist (symbol-plist 'gnus-process-plist-internal))
+	     (tem (memq process plist)))
+	(prog1
+	    (cadr tem)
+	  ;; Remove it from the plist data.
+	  (when tem
+	    (if (eq plist tem)
+		(progn
+		  (setcar plist (caddr plist))
+		  (setcdr plist (or (cdddr plist) '(nil))))
+	      (setcdr (nthcdr (- (length plist) (length tem) 1) plist)
+		      (cddr tem)))))))
+
     (defun gnus-process-get (process propname)
       "Return the value of PROCESS' PROPNAME property.
 This is the last value stored with `(gnus-process-put PROCESS PROPNAME VALUE)'."
       (plist-get (gnus-process-plist process) propname))
+
     (defun gnus-process-put (process propname value)
       "Change PROCESS' PROPNAME property to VALUE.
 It can be retrieved with `(gnus-process-get PROCESS PROPNAME)'."

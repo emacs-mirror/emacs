@@ -1,3 +1,9 @@
+2010-09-03  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-ems.el (gnus-set-process-plist, gnus-process-plist): Change name
+	of symbol that holds plist data.
+	(gnus-process-plist): Remove plist of process after getting it.
+
 2010-09-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* message.el (message-generate-hashcash): Change default to
