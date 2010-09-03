@@ -254,8 +254,16 @@ fit these criteria."
 	(if (and image
 		 ;; Kludge to avoid displaying 30x30 gif images, which
 		 ;; seems to be a signal of a broken image.
-		 (not (and (listp image)
-			   (eq (plist-get (cdr image) :type) 'gif)
+		 (not (and (if (featurep 'xemacs)
+			       (glyphp image)
+			     (listp image))
+			   (eq (if (featurep 'xemacs)
+				   (let ((data (cdadar (specifier-spec-list
+							(glyph-image image)))))
+				     (and (vectorp data)
+					  (aref data 0)))
+				 (plist-get (cdr image) :type))
+			       'gif)
 			   (= (car size) 30)
 			   (= (cdr size) 30))))
 	    (progn
