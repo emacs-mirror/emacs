@@ -1,5 +1,10 @@
 2010-09-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Provide blink-matching support to SMIE.
+	* emacs-lisp/smie.el (smie-bnf-closer-alist): New function.
+	(smie-blink-matching-triggers, smie-blink-matching-inners): New vars.
+	(smie-blink-matching-check, smie-blink-matching-open): New functions.
+
 	* simple.el (newline): Fix last change to properly remove itself from
 	the hook.
 
