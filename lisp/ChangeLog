@@ -1,5 +1,19 @@
 2010-09-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Use SMIE's blink-paren for octave-mode.
+	* progmodes/octave-mod.el (octave-font-lock-close-quotes):
+	Backslashes do not escape single-quotes, single-quotes do.
+	(octave-block-else-regexp, octave-block-end-regexp)
+	(octave-block-match-alist): Remove.
+	(octave-smie-bnf-table): New var, with old content.
+	(octave-smie-op-levels): Use it.
+	(octave-smie-closer-alist): New var.
+	(octave-mode): Use it.  Setup smie-blink-matching and electric-indent.
+	(octave-blink-matching-block-open): Remove.
+	(octave-reindent-then-newline-and-indent, octave-electric-semi)
+	(octave-electric-space): Let self-insert-command run expand-abbrev and
+	blink parens.
+
 	* electric.el (electricity): New group.
 	(electric-indent-chars): New var.
 	(electric-indent-post-self-insert-function): New fun.

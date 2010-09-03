@@ -193,10 +193,19 @@ parenthetical grouping.")
        ((eq (nth 3 state) ?\')
         ;; A '..' string.
         (save-excursion
-          (when (and (or (looking-at "\\('\\)")
-                         (re-search-forward "[^\\]\\(?:\\\\\\\\\\)*\\('\\)"
-                                            nil t))
-                     (not (eobp)))
+          (when (re-search-forward "\\(?:\\=\\|[^']\\)\\(?:''\\)*\\('\\)[^']"
+                                   nil t)
+            (goto-char (1- (point)))
+            ;; Remove any syntax-table property we may have applied to
+            ;; some of the (doubled) single quotes within the string.
+            ;; Since these are the only chars on which we place properties,
+            ;; we take a shortcut and just remove all properties.
+            (remove-text-properties (1+ (nth 8 state)) (match-beginning 1)
+                                    '(syntax-table nil))
+            (when (eq (char-before (match-beginning 1)) ?\\)
+              ;; Backslash cannot escape a single quote.
+              (put-text-property (1- (match-beginning 1)) (match-beginning 1)
+                                 'syntax-table (string-to-syntax ".")))
             (put-text-property (match-beginning 1) (match-end 1)
                                'syntax-table (string-to-syntax "\"'"))))))
 
@@ -342,29 +351,6 @@ newline or semicolon after an else or end keyword."
   :type 'integer
   :group 'octave)
 
-(defvar octave-block-else-regexp
-  (concat "\\<\\("
-	  (mapconcat 'identity octave-else-keywords "\\|")
-	  "\\)\\>"))
-(defvar octave-block-end-regexp
-  (concat "\\<\\("
-	  (mapconcat 'identity octave-end-keywords "\\|")
-	  "\\)\\>"))
-(defvar octave-block-else-or-end-regexp
-  (concat octave-block-else-regexp "\\|" octave-block-end-regexp))
-(defvar octave-block-match-alist
-  '(("do" . ("until"))
-    ("for" . ("end" "endfor"))
-    ("function" . ("end" "endfunction"))
-    ("if" . ("else" "elseif" "end" "endif"))
-    ("switch" . ("case" "otherwise" "end" "endswitch"))
-    ("try" . ("catch" "end" "end_try_catch"))
-    ("unwind_protect" . ("unwind_protect_cleanup" "end" "end_unwind_protect"))
-    ("while" . ("end" "endwhile")))
-  "Alist with Octave's matching block keywords.
-Has Octave's begin keywords as keys and a list of the matching else or
-end keywords as associated values.")
-
 (defvar octave-block-comment-start
   (concat (make-string 2 octave-comment-char) " ")
   "String to insert to start a new Octave comment on an empty line.")
@@ -435,43 +421,49 @@ Non-nil means always go to the next Octave code line after sending."
     ;; could be convenient to treat it as one.
     (assoc "...")))
 
+(defconst octave-smie-bnf-table
+  '((atom)
+    ;; We can't distinguish the first element in a sequence with
+    ;; precedence grammars, so we can't distinguish the condition
+    ;; if the `if' from the subsequent body, for example.
+    ;; This has to be done later in the indentation rules.
+    (exp (exp "\n" exp)
+         ;; We need to mention at least one of the operators in this part
+         ;; of the grammar: if the BNF and the operator table have
+         ;; no overlap, SMIE can't know how they relate.
+         (exp ";" exp)
+         ("try" exp "catch" exp "end_try_catch")
+         ("try" exp "catch" exp "end")
+         ("unwind_protect" exp
+          "unwind_protect_cleanup" exp "end_unwind_protect")
+         ("unwind_protect" exp "unwind_protect_cleanup" exp "end")
+         ("for" exp "endfor")
+         ("for" exp "end")
+         ("do" exp "until" atom)
+         ("while" exp "endwhile")
+         ("while" exp "end")
+         ("if" exp "endif")
+         ("if" exp "else" exp "endif")
+         ("if" exp "elseif" exp "else" exp "endif")
+         ("if" exp "elseif" exp "elseif" exp "else" exp "endif")
+         ("if" exp "elseif" exp "elseif" exp "else" exp "end")
+         ("switch" exp "case" exp "endswitch")
+         ("switch" exp "case" exp "otherwise" exp "endswitch")
+         ("switch" exp "case" exp "case" exp "otherwise" exp "endswitch")
+         ("switch" exp "case" exp "case" exp "otherwise" exp "end")
+         ("function" exp "endfunction")
+         ("function" exp "end"))
+    ;; (fundesc (atom "=" atom))
+    ))
+
+(defconst octave-smie-closer-alist
+  (smie-bnf-closer-alist octave-smie-bnf-table))
+
 (defconst octave-smie-op-levels
   (smie-prec2-levels
    (smie-merge-prec2s
     (smie-bnf-precedence-table
-     '((atom)
-       ;; We can't distinguish the first element in a sequence with
-       ;; precedence grammars, so we can't distinguish the condition
-       ;; if the `if' from the subsequent body, for example.
-       ;; This has to be done later in the indentation rules.
-       (exp (exp "\n" exp)
-            ;; We need to mention at least one of the operators in this part
-            ;; of the grammar: if the BNF and the operator table have
-            ;; no overlap, SMIE can't know how they relate.
-            (exp ";" exp)
-            ("try" exp "catch" exp "end_try_catch")
-            ("try" exp "catch" exp "end")
-            ("unwind_protect" exp
-             "unwind_protect_cleanup" exp "end_unwind_protect")
-            ("unwind_protect" exp "unwind_protect_cleanup" exp "end")
-            ("for" exp "endfor")
-            ("for" exp "end")
-            ("do" exp "until" atom)
-            ("while" exp "endwhile")
-            ("while" exp "end")
-            ("if" exp "endif")
-            ("if" exp "else" exp "endif")
-            ("if" exp "elseif" exp "else" exp "endif")
-            ("if" exp "elseif" exp "elseif" exp "else" exp "endif")
-            ("if" exp "elseif" exp "elseif" exp "else" exp "end")
-            ("switch" exp "case" exp "endswitch")
-            ("switch" exp "case" exp "otherwise" exp "endswitch")
-            ("switch" exp "case" exp "case" exp "otherwise" exp "endswitch")
-            ("switch" exp "case" exp "case" exp "otherwise" exp "end")
-            ("function" exp "endfunction")
-            ("function" exp "end"))
-       ;; (fundesc (atom "=" atom))
-       )
+     octave-smie-bnf-table
      '((assoc "\n" ";")))
 
     (smie-precs-precedence-table
@@ -646,9 +638,28 @@ including a reproducible test case and send the message."
        'octave-smie-forward-token)
   (set (make-local-variable 'forward-sexp-function)
        'smie-forward-sexp-command)
-  (set (make-local-variable 'smie-closer-alist)
-       (mapcar (lambda (elem) (cons (car elem) (car (last elem))))
-               octave-block-match-alist))
+  (set (make-local-variable 'smie-closer-alist) octave-smie-closer-alist)
+  ;; Only needed for interactive calls to blink-matching-open.
+  (set (make-local-variable 'blink-matching-check-function)
+       #'smie-blink-matching-check)
+
+  (when octave-blink-matching-block
+    (add-hook 'post-self-insert-hook #'smie-blink-matching-open 'append 'local)
+    (set (make-local-variable 'smie-blink-matching-triggers)
+         (append smie-blink-matching-triggers '(\;)
+                 ;; Rather than wait for SPC or ; to blink, try to blink as
+                 ;; soon as we type the last char of a block ender.
+                 ;; But strip ?d from this list so that we don't blink twice
+                 ;; when the user writes "endif" (once at "end" and another
+                 ;; time at "endif").
+                 (delq ?d (delete-dups
+                           (mapcar (lambda (kw)
+                                     (aref (cdr kw) (1- (length (cdr kw)))))
+                                   smie-closer-alist))))))
+
+  ;; FIXME: maybe we should use (cons ?\; electric-indent-chars)
+  ;; since only ; is really octave-specific.
+  (set (make-local-variable 'electric-indent-chars) '(?\; ?\s ?\n))
 
   (set (make-local-variable 'comment-start) octave-comment-start)
   (set (make-local-variable 'comment-end) "")
@@ -846,54 +857,6 @@ The block marked is the one that contains point or follows point."
     (backward-up-list 1))
   (mark-sexp))
 
-(defun octave-blink-matching-block-open ()
-  "Blink the matching Octave begin block keyword.
-If point is right after an Octave else or end type block keyword, move
-cursor momentarily to the corresponding begin keyword.
-Signal an error if the keywords are incompatible."
-  (interactive)
-  (let (bb-keyword bb-arg eb-keyword pos eol)
-    (if (and (octave-not-in-string-or-comment-p)
-	     (looking-at "\\>")
-	     (save-excursion
-	       (skip-syntax-backward "w")
-	       (octave-looking-at-kw octave-block-else-or-end-regexp)))
-	(save-excursion
-	  (cond
-	   ((match-end 1)
-	    (setq eb-keyword
-		  (buffer-substring-no-properties
-		   (match-beginning 1) (match-end 1)))
-	    (backward-up-list 1))
-	   ((match-end 2)
-	    (setq eb-keyword
-		  (buffer-substring-no-properties
-		   (match-beginning 2) (match-end 2)))
-	    (backward-sexp 1)))
-	  (setq pos (match-end 0)
-		bb-keyword
-		(buffer-substring-no-properties
-		 (match-beginning 0) pos)
-		pos (+ pos 1)
-		eol (line-end-position)
-		bb-arg
-		(save-excursion
-		  (save-restriction
-		    (goto-char pos)
-		    (while (and (skip-syntax-forward "^<" eol)
-				(octave-in-string-p)
-				(not (forward-char 1))))
-		    (skip-syntax-backward " ")
-		    (buffer-substring-no-properties pos (point)))))
-	  (if (member eb-keyword
-		      (cdr (assoc bb-keyword octave-block-match-alist)))
-	      (progn
-		(message "Matches `%s %s'" bb-keyword bb-arg)
-		(if (pos-visible-in-window-p)
-		    (sit-for blink-matching-delay)))
-	    (error "Block keywords `%s' and `%s' do not match"
-		   bb-keyword eb-keyword))))))
-
 (defun octave-beginning-of-defun (&optional arg)
   "Move backward to the beginning of an Octave function.
 With positive ARG, do it that many times.  Negative argument -N means
@@ -1082,9 +1045,6 @@ variables."
 If Abbrev mode is on, expand abbrevs first."
   ;; FIXME: None of this is Octave-specific.
   (interactive)
-  (if abbrev-mode (expand-abbrev))
-  (if octave-blink-matching-block
-      (octave-blink-matching-block-open))
   (reindent-then-newline-and-indent))
 
 (defun octave-electric-semi ()
@@ -1093,14 +1053,12 @@ Maybe expand abbrevs and blink matching block open keywords.
 Reindent the line if `octave-auto-indent' is non-nil.
 Insert a newline if `octave-auto-newline' is non-nil."
   (interactive)
+  (setq last-command-event ?\;)
   (if (not (octave-not-in-string-or-comment-p))
-      (insert ";")
-    (if abbrev-mode (expand-abbrev))
-    (if octave-blink-matching-block
-	(octave-blink-matching-block-open))
+      (self-insert-command 1)
     (if octave-auto-indent
 	(indent-according-to-mode))
-    (insert ";")
+    (self-insert-command 1)
     (if octave-auto-newline
 	(newline-and-indent))))
 
@@ -1115,9 +1073,6 @@ Reindent the line if `octave-auto-indent' is non-nil."
       (progn
 	(indent-according-to-mode)
 	(self-insert-command 1))
-    (if abbrev-mode (expand-abbrev))
-    (if octave-blink-matching-block
-	(octave-blink-matching-block-open))
     (if (and octave-auto-indent
 	     (save-excursion
 	       (skip-syntax-backward " ")
