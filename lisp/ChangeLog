@@ -1,3 +1,8 @@
+2010-09-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (newline): Fix last change to properly remove itself from
+	the hook.
+
 2010-09-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (newline): Eliminate optimization.

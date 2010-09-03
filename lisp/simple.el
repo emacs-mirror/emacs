@@ -457,38 +457,43 @@ Call `auto-fill-function' if the current column number is greater
 than the value of `fill-column' and ARG is nil."
   (interactive "*P")
   (barf-if-buffer-read-only)
-  (let ((was-page-start (and (bolp)
-			     (looking-at page-delimiter)))
-	(beforepos (point)))
-    ;; Call self-insert so that auto-fill, abbrev expansion etc. happens.
-    ;; Set last-command-event to tell self-insert what to insert.
-    (let ((last-command-event ?\n)
-	  ;; Don't auto-fill if we have a numeric argument.
-	  (auto-fill-function (if arg nil auto-fill-function))
-          (post-self-insert-hook post-self-insert-hook))
-      ;; Do the rest in post-self-insert-hook, because we want to do it
-      ;; *before* other functions on that hook.
-      (add-hook 'post-self-insert-hook
-                (lambda ()
-                  ;; Mark the newline(s) `hard'.
-                  (if use-hard-newlines
-                      (set-hard-newline-properties
-                       (- (point) (prefix-numeric-value arg)) (point)))
-                  ;; If the newline leaves the previous line blank, and we
-                  ;; have a left margin, delete that from the blank line.
-                  (save-excursion
-                    (goto-char beforepos)
-                    (beginning-of-line)
-                    (and (looking-at "[ \t]$")
-                         (> (current-left-margin) 0)
-                         (delete-region (point)
-                                        (line-end-position))))
-                  ;; Indent the line after the newline, except in one case:
-                  ;; when we added the newline at the beginning of a line which
-                  ;; starts a page.
-                  (or was-page-start
-                      (move-to-left-margin nil t))))
-      (self-insert-command (prefix-numeric-value arg))))
+  ;; Call self-insert so that auto-fill, abbrev expansion etc. happens.
+  ;; Set last-command-event to tell self-insert what to insert.
+  (let* ((was-page-start (and (bolp) (looking-at page-delimiter)))
+         (beforepos (point))
+         (last-command-event ?\n)
+         ;; Don't auto-fill if we have a numeric argument.
+         (auto-fill-function (if arg nil auto-fill-function))
+         (postproc
+          ;; Do the rest in post-self-insert-hook, because we want to do it
+          ;; *before* other functions on that hook.
+          (lambda ()
+            ;; Mark the newline(s) `hard'.
+            (if use-hard-newlines
+                (set-hard-newline-properties
+                 (- (point) (prefix-numeric-value arg)) (point)))
+            ;; If the newline leaves the previous line blank, and we
+            ;; have a left margin, delete that from the blank line.
+            (save-excursion
+              (goto-char beforepos)
+              (beginning-of-line)
+              (and (looking-at "[ \t]$")
+                   (> (current-left-margin) 0)
+                   (delete-region (point)
+                                  (line-end-position))))
+            ;; Indent the line after the newline, except in one case:
+            ;; when we added the newline at the beginning of a line which
+            ;; starts a page.
+            (or was-page-start
+                (move-to-left-margin nil t)))))
+    (unwind-protect
+        (progn
+          (add-hook 'post-self-insert-hook postproc)
+          (self-insert-command (prefix-numeric-value arg)))
+      ;; We first used let-binding to protect the hook, but that was naive
+      ;; since add-hook affects the symbol-default value of the variable,
+      ;; whereas the let-binding might only protect the buffer-local value.
+      (remove-hook 'post-self-insert-hook postproc)))
   nil)
 
 (defun set-hard-newline-properties (from to)
