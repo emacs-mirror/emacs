@@ -113,7 +113,7 @@ fit these criteria."
   (let (tag parameters string start end images url)
     (mm-url-decode-entities)
     (goto-char (point-min))
-    (while (re-search-forward "<pre_int> *</pre_int>\n" nil t)
+    (while (re-search-forward " *<pre_int> *</pre_int>\n" nil t)
       (replace-match "" t t))
     (goto-char (point-min))
     (while (re-search-forward "<\\([^ />]+\\)\\([^>]*\\)>" nil t)

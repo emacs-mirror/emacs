@@ -5,6 +5,10 @@
 	(gnus-html-insert-image): New command and keystroke.
 	(gnus-html-redisplay-with-images): New command and keystroke.
 	(gnus-html-show-images): Renamed command.
+	(gnus-html-wash-tags): Remove more white space before <pre_int> image
+	spacers.
+	(gnus-html-wash-tags): Decode entities at the end, so that entities
+	inside the tags don't mess up the rest of the "parsing".
 
 	* gnus-agent.el (gnus-agent-auto-agentize-methods): Change the default
 	so that nnimap methods aren't agentized by default.  There's apparently
