@@ -198,6 +198,10 @@
     ;; For newline, we want to reindent both lines and basically behave like
     ;; reindent-then-newline-and-indent (whose code we hence copied).
     (when (and (eq last-command-event ?\n)
+               ;; Don't reindent the previous line if the indentation function
+               ;; is not a real one.
+               (not (memq indent-line-function
+                          '(indent-relative indent-relative-maybe)))
                ;; Sanity check.
                (eq (char-before) last-command-event))
       (let ((pos (copy-marker (1- (point)) t)))

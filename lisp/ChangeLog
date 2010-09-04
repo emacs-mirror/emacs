@@ -1,5 +1,8 @@
 2010-09-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* electric.el (electric-indent-post-self-insert-function):
+	Don't reindent with a sloppy indentation function.
+
 	* emacs-lisp/syntax.el (syntax-ppss): More sanity check to catch
 	border case in change-log-mode.
 
@@ -12,7 +15,7 @@
 
 2010-09-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	Avoid global recursive calls to kill-buffer-hooks, and fit into 80 cols.
+	Avoid global recursive calls to kill-buffer-hooks; fit into 80 cols.
 	* textmodes/ispell.el (ispell-process-buffer-name): Remove.
 	(ispell-start-process): Avoid setq and simplify logic.
 	(ispell-init-process): Setup kill-buffer-hook locally when needed.
