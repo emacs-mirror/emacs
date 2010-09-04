@@ -7413,7 +7413,7 @@ static int
 imagemagick_image_p (Lisp_Object object)
 {
   struct image_keyword fmt[IMAGEMAGICK_LAST];
-  bcopy (imagemagick_format, fmt, sizeof fmt);
+  memcpy (fmt, imagemagick_format, sizeof fmt);
 
   if (!parse_image_spec (object, fmt, IMAGEMAGICK_LAST, Qimagemagick))
     return 0;
