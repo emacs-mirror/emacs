@@ -1,3 +1,19 @@
+2010-09-04  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* nsimage.m (ns_load_image): Check argument types.
+
+	* image.c: Remove all uses of gcpro.
+	(xpm_load): Check all lisp types.
+	(pbm_load): Likewise.
+	(png_load): Likewise.
+	(jpeg_load): Likewise.
+	(tiff_load): Likewise.
+	(gif_load): Likewise.
+	(imagemagick_load_image): Likewise.
+	(imagemagick_load): Likewise.
+	(svg_load): Likewise.
+	(gs_load): Likewise.
+
 2010-09-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32uniscribe.c (uniscribe_shape): Update commentary.  Don't
