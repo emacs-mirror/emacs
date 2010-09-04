@@ -1,3 +1,10 @@
+2010-09-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Remove ruby regexp; handle Ruby errors with gcc-include and gnu.
+	Recognize leading tab in gcc-include regexp.  Ignore names with
+	leading "from" or "in" in gnu regexp (Bug#6937).
+
 2010-09-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Avoid global recursive calls to kill-buffer-hooks, and fit into 80 cols.
