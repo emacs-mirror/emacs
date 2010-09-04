@@ -1,3 +1,9 @@
+2010-09-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (gnus-article-copy-string): New command and key binding.
+
+	* gnus-html.el: Doc fix.
+
 2010-09-03  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-html.el (gnus-html-put-image): Use gnus-graphic-display-p,

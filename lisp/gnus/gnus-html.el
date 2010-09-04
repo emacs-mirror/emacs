@@ -1,4 +1,4 @@
-;;; gnus-html.el --- Quoted-Printable functions
+;;; gnus-html.el --- Render HTML in a buffer.
 
 ;; Copyright (C) 2010  Free Software Foundation, Inc.
 

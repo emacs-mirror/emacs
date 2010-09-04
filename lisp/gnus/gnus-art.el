@@ -4823,6 +4823,22 @@ General format specifiers can also be used.  See Info node
 		(vector (caddr c) (car c) :active t))
 	      gnus-mime-button-commands)))
 
+(defvar gnus-url-button-commands
+  '((gnus-article-copy-string "u" "Copy URL to kill ring")))
+
+(defvar gnus-url-button-map
+  (let ((map (make-sparse-keymap)))
+    (dolist (c gnus-url-button-commands)
+      (define-key map (cadr c) (car c)))
+    map))
+
+(easy-menu-define
+  gnus-url-button-menu gnus-url-button-map "URL button menu."
+  `("Url Button"
+    ,@(mapcar (lambda (c)
+		(vector (caddr c) (car c) :active t))
+	      gnus-url-button-commands)))
+
 (defmacro gnus-bind-safe-url-regexp (&rest body)
   "Bind `mm-w3m-safe-url-regexp' according to `gnus-safe-html-newsgroups'."
   `(let ((mm-w3m-safe-url-regexp
@@ -7813,7 +7829,11 @@ specified by `gnus-button-alist'."
 	      (unless (and (eq (car entry) 'gnus-button-url-regexp)
 			   (gnus-article-extend-url-button from start end))
 		(gnus-article-add-button start end
-					 'gnus-button-push from)))))))))
+					 'gnus-button-push from)
+		(gnus-put-text-property
+		 start end
+		 'gnus-data (buffer-substring-no-properties
+			     start end))))))))))
 
 (defun gnus-article-extend-url-button (beg start end)
   "Extend url button if url is folded into two or more lines.
@@ -7918,7 +7938,18 @@ url is put as the `gnus-button-url' overlay property on the button."
 	  (and data (list 'gnus-data data))))
   (widget-convert-button 'link from to :action 'gnus-widget-press-button
 			 :help-echo (or text "Follow the link")
+			 :keymap gnus-url-button-map
 			 :button-keymap gnus-widget-button-keymap))
+
+(defun gnus-article-copy-string ()
+  "Copy the string in the button to the kill ring."
+  (interactive)
+  (gnus-article-check-buffer)
+  (let ((data (get-text-property (point) 'gnus-data)))
+    (when data
+      (with-temp-buffer
+	(insert data)
+	(copy-region-as-kill (point-min) (point-max))))))
 
 ;;; Internal functions:
 
