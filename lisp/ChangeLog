@@ -1,3 +1,10 @@
+2010-09-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package--download-one-archive): Ensure
+	that archive-contents is valid before saving it.
+	(package-activate-1, package-mark-obsolete, define-package)
+	(package-compute-transaction, package-list-maybe-add): Use push.
+
 2010-09-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Use SMIE's blink-paren for octave-mode.
