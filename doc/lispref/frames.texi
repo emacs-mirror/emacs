@@ -623,6 +623,10 @@ covers the whole screen.
 
 @node Layout Parameters
 @subsubsection Layout Parameters
+@cindex scroll bars, and frame parameters
+@cindex fringes, and frame parameters
+@cindex menu bars, and frame parameters
+@cindex tool bars, and frame parameters
 
   These frame parameters enable or disable various parts of the
 frame, or control their sizes.
@@ -638,13 +642,6 @@ The distance in pixels between text (or fringe) and the frame's border.
 Whether the frame has scroll bars for vertical scrolling, and which side
 of the frame they should be on.  The possible values are @code{left},
 @code{right}, and @code{nil} for no scroll bars.
-
-@ignore
-@item horizontal-scroll-bars
-Whether the frame has scroll bars for horizontal scrolling
-(non-@code{nil} means yes).  Horizontal scroll bars are not currently
-implemented.
-@end ignore
 
 @item scroll-bar-width
 The width of vertical scroll bars, in pixels, or @code{nil} meaning to
@@ -673,7 +670,7 @@ menu bar.  @xref{Menu Bar}.  (The X toolkit and GTK allow at most one
 menu bar line; they treat larger values as 1.)
 
 @item tool-bar-lines
-The number of lines to use for the tool bar.  A value of @code{nil}
+      The number of lines to use for the tool bar.  A value of @code{nil}
 means don't display a tool bar.  (GTK and Nextstep allow at most one
 tool bar line; they treat larger values as 1.)
 
