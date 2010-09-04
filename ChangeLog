@@ -1,3 +1,8 @@
+2010-09-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.bat: Produce lisp/gnus/_dir-locals.el from
+	lisp/gnus/.dir-locals.el.
+
 2010-08-23  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* configure.in: Fix check for librsvg, imagemagick and

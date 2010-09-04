@@ -250,6 +250,7 @@ cd ..
 rem   ----------------------------------------------------------------------
 Echo Configuring the lisp directory...
 cd lisp
+If Exist gnus\.dir-locals.el update gnus/.dir-locals.el gnus/_dir-locals.el
 sed -f ../msdos/sedlisp.inp < Makefile.in > Makefile
 cd ..
 rem   ----------------------------------------------------------------------
