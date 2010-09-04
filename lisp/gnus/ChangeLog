@@ -1,5 +1,13 @@
 2010-09-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-agent.el (gnus-agent-load-alist): Check whether the agentview
+	files exist before trying to read them.
+
+	* gnus-html.el (gnus-html-wash-tags): Remove even more white space
+	around <pre_int>.
+
+	* gnus-art.el (gnus-article-copy-string): Say what data we copied.
+
 	* nnmh.el (nnmh-request-list-1): Optimize for speed.
 
 2010-09-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>

@@ -112,7 +112,7 @@ fit these criteria."
 (defun gnus-html-wash-tags ()
   (let (tag parameters string start end images url)
     (goto-char (point-min))
-    (while (re-search-forward " *<pre_int> *</pre_int>\n" nil t)
+    (while (re-search-forward " *<pre_int> *</pre_int> *\n" nil t)
       (replace-match "" t t))
     (goto-char (point-min))
     (while (re-search-forward "<\\([^ />]+\\)\\([^>]*\\)>" nil t)

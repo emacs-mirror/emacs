@@ -7949,7 +7949,8 @@ url is put as the `gnus-button-url' overlay property on the button."
     (when data
       (with-temp-buffer
 	(insert data)
-	(copy-region-as-kill (point-min) (point-max))))))
+	(copy-region-as-kill (point-min) (point-max))
+	(message "Copied %s" data)))))
 
 ;;; Internal functions:
 

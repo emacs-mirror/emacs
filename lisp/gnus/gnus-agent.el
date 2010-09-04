@@ -2108,13 +2108,15 @@ doesn't exist, to valid the overview buffer."
 (defun gnus-agent-load-alist (group)
   "Load the article-state alist for GROUP."
   ;; Bind free variable that's used in `gnus-agent-read-agentview'.
-  (let ((gnus-agent-read-agentview group)
-	(file-name-coding-system nnmail-pathname-coding-system))
-    (setq gnus-agent-article-alist
-          (gnus-cache-file-contents
-           (gnus-agent-article-name ".agentview" group)
-           'gnus-agent-file-loading-cache
-           'gnus-agent-read-agentview))))
+  (let* ((gnus-agent-read-agentview group)
+	 (file-name-coding-system nnmail-pathname-coding-system)
+	 (agentview (gnus-agent-article-name ".agentview" group)))
+    (when (file-exists-p agentview)
+      (setq gnus-agent-article-alist
+	    (gnus-cache-file-contents
+	     agentview
+	     'gnus-agent-file-loading-cache
+	     'gnus-agent-read-agentview)))))
 
 (defun gnus-agent-read-agentview (file)
   "Load FILE and do a `read' there."
