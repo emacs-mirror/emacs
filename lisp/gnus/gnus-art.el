@@ -7832,8 +7832,8 @@ specified by `gnus-button-alist'."
 					 'gnus-button-push from)
 		(gnus-put-text-property
 		 start end
-		 'gnus-data (buffer-substring-no-properties
-			     start end))))))))))
+		 'gnus-string (buffer-substring-no-properties
+			       start end))))))))))
 
 (defun gnus-article-extend-url-button (beg start end)
   "Extend url button if url is folded into two or more lines.
@@ -7945,7 +7945,7 @@ url is put as the `gnus-button-url' overlay property on the button."
   "Copy the string in the button to the kill ring."
   (interactive)
   (gnus-article-check-buffer)
-  (let ((data (get-text-property (point) 'gnus-data)))
+  (let ((data (get-text-property (point) 'gnus-string)))
     (when data
       (with-temp-buffer
 	(insert data)

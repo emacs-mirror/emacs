@@ -1,5 +1,13 @@
 2010-09-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-html.el (gnus-html-put-image): Allow images to be removed.
+	(gnus-html-wash-tags): Add a new `i' command to insert images.
+	(gnus-html-insert-image): New command and keystroke.
+
+	* gnus-agent.el (gnus-agent-auto-agentize-methods): Change the default
+	so that nnimap methods aren't agentized by default.  There's apparently
+	many problems related to agent/imap behaviour.
+
 	* gnus-art.el (gnus-article-copy-string): New command and key binding.
 
 	* gnus-html.el: Doc fix.
