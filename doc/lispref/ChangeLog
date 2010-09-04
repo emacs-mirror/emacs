@@ -1,7 +1,3 @@
-2010-09-04  Chong Yidong  <cyd@stupidchicken.com>
-
-	* frames.texi (Layout Parameters): Add cindex entries (Bug#6929).
-
 2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* modes.texi (Defining Minor Modes): Doc fix (Bug#6880).
