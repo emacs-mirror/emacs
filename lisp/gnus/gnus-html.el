@@ -362,6 +362,18 @@ fit these criteria."
                     url blocked-images))
     ret))
 
+(defun gnus-html-show-images ()
+  "Show any images that are in the HTML-rendered article buffer.
+This only works if the article in question is HTML."
+  (interactive)
+  (gnus-with-article-buffer
+    (let ((overlays (overlays-in (point-min) (point-max)))
+	  overlay images)
+      (while (setq overlay (pop overlays))
+	(when (overlay-get overlay 'gnus-image)
+	  (push (overlay-get overlay 'gnus-image) images)))
+      (gnus-html-schedule-image-fetching (current-buffer) images))))
+
 ;;;###autoload
 (defun gnus-html-prefetch-images (summary)
   (let (blocked-images urls)

@@ -10351,6 +10351,14 @@ Piconify all news headers (i. e., @code{Newsgroups} and
 Remove all images from the article buffer
 (@code{gnus-article-remove-images}).
 
+@item W D W
+@kindex W D W (Summary)
+@findex gnus-html-show-images
+If you're reading an @acronym{HTML} article rendered with
+@code{gnus-article-html}, then you can insert any blocked images in
+the buffer with this command.
+(@code{gnus-html-show-images}).
+
 @end table
 
 

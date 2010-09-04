@@ -3,6 +3,8 @@
 	* gnus-html.el (gnus-html-put-image): Allow images to be removed.
 	(gnus-html-wash-tags): Add a new `i' command to insert images.
 	(gnus-html-insert-image): New command and keystroke.
+	(gnus-html-redisplay-with-images): New command and keystroke.
+	(gnus-html-show-images): Renamed command.
 
 	* gnus-agent.el (gnus-agent-auto-agentize-methods): Change the default
 	so that nnimap methods aren't agentized by default.  There's apparently
