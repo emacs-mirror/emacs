@@ -1,3 +1,11 @@
+2010-09-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32uniscribe.c (uniscribe_shape): Update commentary.  Don't
+	try to reorder grapheme clusters, since LGSTRING should always
+	hold them in the logical order.
+	(uniscribe_encode_char, uniscribe_shape): Force ScriptShape to
+	return glyph codes in the logical order.
+
 2010-09-04  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* image.c (imagemagick_image_p): Replace bcopy by memcpy.

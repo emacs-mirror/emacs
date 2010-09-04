@@ -180,17 +180,18 @@ uniscribe_otf_capability (struct font *font)
 
 /* Uniscribe implementation of shape for font backend.
 
-   Shape text in LGSTRING.  See the docstring of `font-make-gstring'
-   for the format of LGSTRING.  If the (N+1)th element of LGSTRING
-   is nil, input of shaping is from the 1st to (N)th elements.  In
-   each input glyph, FROM, TO, CHAR, and CODE are already set.
+   Shape text in LGSTRING.  See the docstring of
+   `composition-get-gstring' for the format of LGSTRING.  If the
+   (N+1)th element of LGSTRING is nil, input of shaping is from the
+   1st to (N)th elements.  In each input glyph, FROM, TO, CHAR, and
+   CODE are already set.
 
    This function updates all fields of the input glyphs.  If the
    output glyphs (M) are more than the input glyphs (N), (N+1)th
    through (M)th elements of LGSTRING are updated possibly by making
    a new glyph object and storing it in LGSTRING.  If (M) is greater
-   than the length of LGSTRING, nil should be return.  In that case,
-   this function is called again with the larger LGSTRING.  */
+   than the length of LGSTRING, nil should be returned.  In that case,
+   this function is called again with a larger LGSTRING.  */
 static Lisp_Object
 uniscribe_shape (Lisp_Object lgstring)
 {
@@ -217,6 +218,9 @@ uniscribe_shape (Lisp_Object lgstring)
   max_glyphs = nchars = LGSTRING_GLYPH_LEN (lgstring);
   done_glyphs = 0;
   chars = (wchar_t *) alloca (nchars * sizeof (wchar_t));
+  /* FIXME: This loop assumes that characters in the input LGSTRING
+     are all inside the BMP.  Need to encode characters beyond the BMP
+     as UTF-16.  */
   for (i = 0; i < nchars; i++)
     {
       /* lgstring can be bigger than the number of characters in it, in
@@ -248,9 +252,6 @@ uniscribe_shape (Lisp_Object lgstring)
       return Qnil;
     }
 
-  /* TODO: When we get BIDI support, we need to call ScriptLayout here.
-     Requires that we know the surrounding context.  */
-
   glyphs = alloca (max_glyphs * sizeof (WORD));
   clusters = alloca (nchars * sizeof (WORD));
   attributes = alloca (max_glyphs * sizeof (SCRIPT_VISATTR));
@@ -259,8 +260,12 @@ uniscribe_shape (Lisp_Object lgstring)
 
   for (i = 0; i < nitems; i++)
     {
-      int nglyphs, nchars_in_run, rtl = items[i].a.fRTL ? -1 : 1;
+      int nglyphs, nchars_in_run;
       nchars_in_run = items[i+1].iCharPos - items[i].iCharPos;
+      /* Force ScriptShape to generate glyphs in the same order as
+	 they are in the input LGSTRING, which is in the logical
+	 order.  */
+      items[i].a.fLogicalOrder = 1;
 
       /* Context may be NULL here, in which case the cache should be
          used without needing to select the font.  */
@@ -321,7 +326,7 @@ uniscribe_shape (Lisp_Object lgstring)
 	    {
 	      int j, nclusters, from, to;
 
-	      from = rtl > 0 ? 0 : nchars_in_run - 1;
+	      from = 0;
 	      to = from;
 
 	      for (j = 0; j < nglyphs; j++)
@@ -342,22 +347,19 @@ uniscribe_shape (Lisp_Object lgstring)
 		  gl = glyphs[j];
 		  LGLYPH_SET_CODE (lglyph, gl);
 
-		  /* Detect clusters, for linking codes back to characters.  */
+		  /* Detect clusters, for linking codes back to
+		     characters.  */
 		  if (attributes[j].fClusterStart)
 		    {
-		      while (from >= 0 && from < nchars_in_run
-			     && clusters[from] < j)
-			from += rtl;
-		      if (from < 0)
-			from = to = 0;
-		      else if (from >= nchars_in_run)
+		      while (from < nchars_in_run && clusters[from] < j)
+			from++;
+		      if (from >= nchars_in_run)
 			from = to = nchars_in_run - 1;
 		      else
 			{
 			  int k;
-			  to = rtl > 0 ? nchars_in_run - 1 : 0;
-			  for (k = from + rtl; k >= 0 && k < nchars_in_run;
-			       k += rtl)
+			  to = nchars_in_run - 1;
+			  for (k = from + 1; k < nchars_in_run; k++)
 			    {
 			      if (clusters[k] > j)
 				{
@@ -485,6 +487,10 @@ uniscribe_encode_char (struct font *font, int c)
           WORD glyphs[2], clusters[2];
           SCRIPT_VISATTR attrs[2];
           int nglyphs;
+
+	  /* Force ScriptShape to generate glyphs in the logical
+	     order.  */
+	  items[0].a.fLogicalOrder = 1;
 
           result = ScriptShape (context, &(uniscribe_font->cache),
                                 ch, len, 2, &(items[0].a),
