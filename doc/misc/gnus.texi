@@ -21574,7 +21574,7 @@ is @file{ADAPT}.
 @vindex gnus-adaptive-pretty-print
 Adaptive score files can get huge and are not meant to be edited by
 human hands.  If @code{gnus-adaptive-pretty-print} is @code{nil} (the
-deafult) those files will not be written in a human readable way.
+default) those files will not be written in a human readable way.
 
 @vindex gnus-score-exact-adapt-limit
 When doing adaptive scoring, substring or fuzzy matching would probably

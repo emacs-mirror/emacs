@@ -1,3 +1,7 @@
+2010-09-04  Julien Danjou  <julien@danjou.info>  (tiny change)
+
+	* gnus.texi (Adaptive Scoring): Fix typo.
+
 2010-09-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.texi (Article Display): Document gnus-html-show-images.
