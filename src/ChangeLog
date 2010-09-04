@@ -2,7 +2,7 @@
 
 	* image.c (imagemagick_image_p): Replace bcopy by memcpy.
 	(imagemagick_load_image): Fix type mismatch.
-	(Fimagemagick_types): Likewise.
+	(Fimagemagick_types): Likewise.  Doc fix.
 
 2010-09-02  Jan Djärv  <jan.h.d@swipnet.se>
 

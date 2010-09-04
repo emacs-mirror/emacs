@@ -7825,8 +7825,8 @@ static struct image_type imagemagick_type =
 
 DEFUN ("imagemagick-types", Fimagemagick_types, Simagemagick_types, 0, 0, 0, 
        doc: /* Return image file types supported by ImageMagick.
-               Since ImageMagick recognizes a lot of file-types that clash with Emacs,
-               such as .c, we want to be able to alter the list at the lisp level.  */)
+Since ImageMagick recognizes a lot of file-types that clash with Emacs,
+such as .c, we want to be able to alter the list at the lisp level.  */)
   (void)
 {
   Lisp_Object typelist = Qnil;
