@@ -260,8 +260,9 @@ packages in `package-directory-list'."
   ;; Defaults are subdirs named "elpa" in the site-lisp dirs.
   (let (result)
     (dolist (f load-path)
-      (if (equal (file-name-nondirectory f) "site-lisp")
-	  (push (expand-file-name "elpa" f) result)))
+      (and (stringp f)
+	   (equal (file-name-nondirectory f) "site-lisp")
+	   (push (expand-file-name "elpa" f) result)))
     (nreverse result))
   "List of additional directories containing Emacs Lisp packages.
 Each directory name should be absolute.

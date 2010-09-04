@@ -1,3 +1,8 @@
+2010-09-04  Noorul Islam K M  <noorul@noorul.com>  (tiny change)
+
+	* emacs-lisp/package.el (package-directory-list): Only call
+	file-name-nondirectory on a string.
+
 2010-09-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/package.el (package--download-one-archive): Ensure
