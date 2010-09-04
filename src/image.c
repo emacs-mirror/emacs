@@ -7450,8 +7450,8 @@ imagemagick_load_image (/* Pointer to emacs frame structure.  */
                            contents/size.  */
                         unsigned char *filename)
 {
-  size_t width;
-  size_t height;
+  unsigned long width;
+  unsigned long height;
 
   MagickBooleanType
     status;
@@ -7830,7 +7830,7 @@ DEFUN ("imagemagick-types", Fimagemagick_types, Simagemagick_types, 0, 0, 0,
   (void)
 {
   Lisp_Object typelist = Qnil;
-  size_t numf;
+  unsigned long numf;
   ExceptionInfo ex;
   char** imtypes = GetMagickList ("*", &numf, &ex);
   int i;
