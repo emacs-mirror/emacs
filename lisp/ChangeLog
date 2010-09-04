@@ -1,3 +1,13 @@
+2010-09-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Avoid global recursive calls to kill-buffer-hooks, and fit into 80 cols.
+	* textmodes/ispell.el (ispell-process-buffer-name): Remove.
+	(ispell-start-process): Avoid setq and simplify logic.
+	(ispell-init-process): Setup kill-buffer-hook locally when needed.
+	(kill-buffer-hook): Don't use it globally with code that uses
+	expand-file-name since that may call kill-buffer via
+	code_conversion_restore.
+
 2010-09-04  Noorul Islam K M  <noorul@noorul.com>  (tiny change)
 
 	* emacs-lisp/package.el (package-directory-list): Only call
@@ -5,8 +15,8 @@
 
 2010-09-02  Chong Yidong  <cyd@stupidchicken.com>
 
-	* emacs-lisp/package.el (package--download-one-archive): Ensure
-	that archive-contents is valid before saving it.
+	* emacs-lisp/package.el (package--download-one-archive):
+	Ensure that archive-contents is valid before saving it.
 	(package-activate-1, package-mark-obsolete, define-package)
 	(package-compute-transaction, package-list-maybe-add): Use push.
 
