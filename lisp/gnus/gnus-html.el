@@ -111,7 +111,6 @@ fit these criteria."
 
 (defun gnus-html-wash-tags ()
   (let (tag parameters string start end images url)
-    (mm-url-decode-entities)
     (goto-char (point-min))
     (while (re-search-forward " *<pre_int> *</pre_int>\n" nil t)
       (replace-match "" t t))
@@ -223,7 +222,8 @@ fit these criteria."
     (while (re-search-forward "</pre_int>" nil t)
       (replace-match "" t t))
     (when images
-      (gnus-html-schedule-image-fetching (current-buffer) (nreverse images)))))
+      (gnus-html-schedule-image-fetching (current-buffer) (nreverse images)))
+    (mm-url-decode-entities)))
 
 (defun gnus-html-insert-image ()
   "Fetch and insert the image under point."
