@@ -161,11 +161,15 @@ fit these criteria."
 		   :help-echo url
 		   :keymap gnus-html-image-map
 		   :button-keymap gnus-html-image-map)
-		  (gnus-put-text-property
-		   start end
-		   'gnus-image (list url
-				     (set-marker (make-marker) start)
-				     (set-marker (make-marker) end))))
+		  (let ((overlay (gnus-make-overlay start end))
+			(spec (list url
+				    (set-marker (make-marker) start)
+				    (set-marker (make-marker) end))))
+		    (gnus-overlay-put overlay 'local-map gnus-html-image-map)
+		    (gnus-overlay-put overlay 'gnus-image spec)
+		    (gnus-put-text-property
+		     start end
+		     'gnus-image spec)))
 	      (let ((file (gnus-html-image-id url))
 		    width height)
 		(when (string-match "height=\"?\\([0-9]+\\)" parameters)
@@ -292,7 +296,8 @@ fit these criteria."
 			   (= (car size) 30)
 			   (= (cdr size) 30))))
 	    (progn
-	      (gnus-put-image (gnus-html-rescale-image image file size)
+	      (setq image (gnus-html-rescale-image image file size))
+	      (gnus-put-image image
 			      (gnus-string-or string "*")
 			      'external)
 	      (gnus-add-image 'external image)
