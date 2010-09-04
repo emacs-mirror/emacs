@@ -1,4 +1,14 @@
+2010-09-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnmh.el (nnmh-request-list-1): Optimize for speed.
+
 2010-09-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mm-util.el (mm-image-load-path): Just return the image directories,
+	not all directories in the path in addition to the image directories.
+	(mm-image-load-path): Maintain a cache of the image directories so that
+	the `g' command in Gnus doesn't have to stat dozens of directories each
+	time.
 
 	* gnus-html.el (gnus-html-put-image): Allow images to be removed.
 	(gnus-html-wash-tags): Add a new `i' command to insert images.

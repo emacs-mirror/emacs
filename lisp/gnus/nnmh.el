@@ -207,21 +207,29 @@ as unread by Gnus.")
 (defun nnmh-request-list-1 (dir)
   (setq dir (expand-file-name dir))
   ;; Recurse down all directories.
-  (let ((dirs (and (file-readable-p dir)
-		   (nnheader-directory-files dir t nil t)))
-	rdir)
+  (let ((files (nnheader-directory-files dir t nil t))
+	(max 0)
+	min rdir attributes num)
     ;; Recurse down directories.
-    (while (setq rdir (pop dirs))
-      (when (and (file-directory-p rdir)
+    (dolist (rdir files)
+      (setq attributes (file-attributes rdir))
+      (when (null (nth 0 attributes))
+	(setq file (file-name-nondirectory rdir))
+	(when (string-match "^[0-9]+$" file)
+	  (setq num (string-to-number file))
+	  (setq max (max max num))
+	  (when (or (null min)
+		    (< num min))
+	    (setq min num))))
+      (when (and (eq (nth 0 attributes) t) ; Is a directory
+		 (> (nth 1 attributes) 2)  ; Has sub-directories
 		 (file-readable-p rdir)
 		 (not (equal (file-truename rdir)
 			     (file-truename dir))))
-	(nnmh-request-list-1 rdir))))
-  ;; For each directory, generate an active file line.
-  (unless (string= (expand-file-name nnmh-toplev) dir)
-    (let ((files (mapcar 'string-to-number
-			 (directory-files dir nil "^[0-9]+$" t))))
-      (when files
+	(nnmh-request-list-1 rdir)))
+    ;; For each directory, generate an active file line.
+    (unless (string= (expand-file-name nnmh-toplev) dir)
+      (when min
 	(with-current-buffer nntp-server-buffer
 	  (goto-char (point-max))
 	  (insert
@@ -233,14 +241,13 @@ as unread by Gnus.")
 		(file-truename (file-name-as-directory
 				(expand-file-name nnmh-toplev))))
 	       dir)
-	      (mm-string-to-multibyte   ;Why?  Isn't it multibyte already?
+	      (mm-string-to-multibyte ;Why?  Isn't it multibyte already?
 	       (mm-encode-coding-string
 		(nnheader-replace-chars-in-string
 		 (substring dir (match-end 0))
 		 ?/ ?.)
 		nnmail-pathname-coding-system)))
-	    (apply 'max files)
-	    (apply 'min files)))))))
+	    max min))))))
   t)
 
 (deffoo nnmh-request-newgroups (date &optional server)
