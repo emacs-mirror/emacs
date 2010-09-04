@@ -372,7 +372,9 @@ This only works if the article in question is HTML."
       (while (setq overlay (pop overlays))
 	(when (overlay-get overlay 'gnus-image)
 	  (push (overlay-get overlay 'gnus-image) images)))
-      (gnus-html-schedule-image-fetching (current-buffer) images))))
+      (if (not images)
+	  (message "No images to show")
+	(gnus-html-schedule-image-fetching (current-buffer) images)))))
 
 ;;;###autoload
 (defun gnus-html-prefetch-images (summary)

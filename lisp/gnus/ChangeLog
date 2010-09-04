@@ -1,5 +1,8 @@
 2010-09-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-html.el (gnus-html-show-images): If there are no images to show,
+	then say so instead of bugging out.
+
 	* gnus-agent.el (gnus-agent-load-alist): Check whether the agentview
 	files exist before trying to read them.
 
