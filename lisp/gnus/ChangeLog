@@ -1,7 +1,17 @@
 2010-09-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* mail-source.el (mail-source-delete-crash-box): Always move the crash
+	box to the Incoming file.  Fixes mistake in previous checkin.
+
+	* pop3.el (pop3-send-streaming-command): Off-by-one error on the
+	request loop (for debugging purposes) removed.
+
 	* nnml.el (nnml-save-nov): Message around nnml-save-nov so that the
 	culprit is more visible.
+	(nnml-save-incremental-nov, nnml-open-incremental-nov)
+	(nnml-add-incremental-nov): New functions to do "incremental" nov
+	updates, where we just append to the end of the existing nov files
+	without reading/writing them in full.
 
 	* mail-source.el (mail-source-delete-crash-box): Really only check the
 	incoming files once in a while.

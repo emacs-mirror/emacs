@@ -283,7 +283,7 @@ non-nil.")
 (deffoo nnml-request-scan (&optional group server)
   (setq nnml-article-file-alist nil)
   (nnml-possibly-change-directory group server)
-  (nnmail-get-new-mail 'nnml 'nnml-save-nov nnml-directory group))
+  (nnmail-get-new-mail 'nnml 'nnml-save-incremental-nov nnml-directory group))
 
 (deffoo nnml-close-group (group &optional server)
   (setq nnml-article-file-alist nil)
@@ -438,7 +438,7 @@ non-nil.")
 	 (setq result (car (nnml-save-mail
 			    (list (cons group (nnml-active-number group
 								  server)))
-			    server)))
+			    server t)))
 	 (progn
 	   (nnmail-save-active nnml-group-alist nnml-active-file)
 	   (and last (nnml-save-nov))))
@@ -449,7 +449,7 @@ non-nil.")
 				      (nnml-active-number group ,server)))))
 		(yes-or-no-p "Moved to `junk' group; delete article? "))
 	   (setq result 'junk)
-	 (setq result (car (nnml-save-mail result server))))
+	 (setq result (car (nnml-save-mail result server t))))
        (when last
 	 (nnmail-save-active nnml-group-alist nnml-active-file)
 	 (when nnmail-cache-accepted-message-ids
@@ -691,7 +691,7 @@ non-nil.")
       (make-directory (directory-file-name dir) t)
       (nnheader-message 5 "Creating mail directory %s" dir))))
 
-(defun nnml-save-mail (group-art &optional server)
+(defun nnml-save-mail (group-art &optional server full-nov)
   "Save a mail into the groups GROUP-ART in the nnml server SERVER.
 GROUP-ART is a list that each element is a cons of a group name and an
 article number.  This function is called narrowed to an article."
@@ -742,11 +742,14 @@ article number.  This function is called narrowed to an article."
     ;; header.
     (setq headers (nnml-parse-head chars))
     ;; Output the nov line to all nov databases that should have it.
-    (if nnmail-group-names-not-encoded-p
+    (let ((func (if full-nov
+		    'nnml-add-nov
+		  'nnml-add-incremental-nov)))
+      (if nnmail-group-names-not-encoded-p
+	  (dolist (ga group-art)
+	    (funcall func (pop dec) (cdr ga) headers))
 	(dolist (ga group-art)
-	  (nnml-add-nov (pop dec) (cdr ga) headers))
-      (dolist (ga group-art)
-	(nnml-add-nov (car ga) (cdr ga) headers))))
+	  (funcall func (car ga) (cdr ga) headers)))))
   group-art)
 
 (defun nnml-active-number (group &optional server)
@@ -778,6 +781,37 @@ article number.  This function is called narrowed to an article."
       (setcdr active (1+ (cdr active))))
     (cdr active)))
 
+(defvar nnml-incremental-nov-buffer-alist nil)
+
+(defun nnml-save-incremental-nov ()
+  (message "nnml saving incremental nov...")
+  (save-excursion
+    (while nnml-incremental-nov-buffer-alist
+      (when (buffer-name (cdar nnml-incremental-nov-buffer-alist))
+	(set-buffer (cdar nnml-incremental-nov-buffer-alist))
+	(when (buffer-modified-p)
+	  (nnmail-write-region (point-min) (point-max)
+			       nnml-nov-buffer-file-name t 'nomesg))
+	(set-buffer-modified-p nil)
+	(kill-buffer (current-buffer)))
+      (setq nnml-incremental-nov-buffer-alist
+	    (cdr nnml-incremental-nov-buffer-alist))))
+  (message "nnml saving incremental nov...done"))
+
+(defun nnml-open-incremental-nov (group)
+  (or (cdr (assoc group nnml-incremental-nov-buffer-alist))
+      (let ((buffer (nnml-get-nov-buffer group t)))
+	(push (cons group buffer) nnml-incremental-nov-buffer-alist)
+	buffer)))
+
+(defun nnml-add-incremental-nov (group article headers)
+  "Add a nov line for the GROUP nov headers, incrementally."
+  (save-excursion
+    (set-buffer (nnml-open-incremental-nov group))
+    (goto-char (point-max))
+    (mail-header-set-number headers article)
+    (nnheader-insert-nov headers)))
+
 (defun nnml-add-nov (group article headers)
   "Add a nov line for the GROUP base."
   (save-excursion
@@ -804,16 +838,21 @@ article number.  This function is called narrowed to an article."
 	(mail-header-set-number headers number)
 	headers))))
 
-(defun nnml-get-nov-buffer (group)
+(defun nnml-get-nov-buffer (group &optional incrementalp)
   (let* ((decoded (nnml-decoded-group-name group))
-	 (buffer (get-buffer-create (format " *nnml overview %s*" decoded)))
+	 (buffer (get-buffer-create (format " *nnml %soverview %s*"
+					    (if incrementalp
+						"incremental "
+					      "")
+					    decoded)))
 	 (file-name-coding-system nnmail-pathname-coding-system))
     (save-excursion
       (set-buffer buffer)
       (set (make-local-variable 'nnml-nov-buffer-file-name)
 	   (nnmail-group-pathname decoded nnml-directory nnml-nov-file-name))
       (erase-buffer)
-      (when (file-exists-p nnml-nov-buffer-file-name)
+      (when (and (not incrementalp)
+		 (file-exists-p nnml-nov-buffer-file-name))
 	(nnheader-insert-file-contents nnml-nov-buffer-file-name)))
     buffer))
 
