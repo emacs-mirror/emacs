@@ -209,7 +209,7 @@ as unread by Gnus.")
   ;; Recurse down all directories.
   (let ((files (nnheader-directory-files dir t nil t))
 	(max 0)
-	min rdir num subdirectoriesp)
+	min rdir num subdirectoriesp file)
     ;; Recurse down directories.
     (setq subdirectoriesp (> (nth 1 (file-attributes dir)) 2))
     (dolist (rdir files)
