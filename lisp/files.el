@@ -5563,12 +5563,14 @@ preference to the program given by this variable."
 
 (defun get-free-disk-space (dir)
   "Return the amount of free space on directory DIR's file system.
-The result is a string that gives the number of free 1KB blocks,
-or nil if the system call or the program which retrieve the information
-fail.  It returns also nil when DIR is a remote directory.
+The return value is a string describing the amount of free
+space (normally, the number of free 1KB blocks).
 
-This function calls `file-system-info' if it is available, or invokes the
-program specified by `directory-free-space-program' if that is non-nil."
+This function calls `file-system-info' if it is available, or
+invokes the program specified by `directory-free-space-program'
+and `directory-free-space-args'.  If the system call or program
+is unsuccessful, or if DIR is a remote directory, this function
+returns nil."
   (unless (file-remote-p dir)
     ;; Try to find the number of free blocks.  Non-Posix systems don't
     ;; always have df, but might have an equivalent system call.
@@ -5588,19 +5590,22 @@ program specified by `directory-free-space-program' if that is non-nil."
 					 directory-free-space-args
 					 dir)
 			   0)))
-	    ;; Usual format is a header line followed by a line of
-	    ;; numbers.
+	    ;; Usual format is as follows:
+	    ;; Filesystem ...    Used  Available  Capacity ...
+	    ;; /dev/sda6  ...48106535   35481255  10669850 ...
 	    (goto-char (point-min))
-	    (forward-line 1)
-	    (if (not (eobp))
-		(progn
-		  ;; Move to the end of the "available blocks" number.
-		  (skip-chars-forward "^ \t")
-		  (forward-word 3)
-		  ;; Copy it into AVAILABLE.
-		  (let ((end (point)))
-		    (forward-word -1)
-		    (buffer-substring (point) end))))))))))
+	    (when (re-search-forward " +Avail[^ \n]*"
+				     (line-end-position) t)
+	      (let ((beg (match-beginning 0))
+		    (end (match-end 0))
+		    str)
+		(forward-line 1)
+		(setq str
+		      (buffer-substring-no-properties
+		       (+ beg (point) (- (point-min)))
+		       (+ end (point) (- (point-min)))))
+		(when (string-match "\\` *\\([^ ]+\\)" str)
+		  (match-string 1 str))))))))))
 
 ;; The following expression replaces `dired-move-to-filename-regexp'.
 (defvar directory-listing-before-filename-regexp

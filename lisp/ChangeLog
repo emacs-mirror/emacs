@@ -1,3 +1,9 @@
+2010-09-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (get-free-disk-space): Search more robustly for
+	"available" column.  Suggested by Ehud Karni
+	<ehud@unix.mvs.co.il>.
+
 2010-09-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* international/uni-bidi.el:
