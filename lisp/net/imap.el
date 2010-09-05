@@ -515,6 +515,16 @@ sure of changing the value of `foo'."
 
 ;; Server functions; stream stuff:
 
+(defun imap-log (string-or-buffer)
+  (when imap-log
+    (with-current-buffer (get-buffer-create imap-log-buffer)
+      (imap-disable-multibyte)
+      (buffer-disable-undo)
+      (goto-char (point-max))
+      (if (bufferp string-or-buffer)
+	  (insert-buffer-substring string-or-buffer)
+	(insert string-or-buffer)))))
+
 (defun imap-kerberos4-stream-p (buffer)
   (imap-capability 'AUTH=KERBEROS_V4 buffer))
 
@@ -569,12 +579,6 @@ sure of changing the value of `foo'."
 				  (setq response (match-string 1)))))
 	      (accept-process-output process 1)
 	      (sit-for 1))
-	    (and imap-log
-		 (with-current-buffer (get-buffer-create imap-log-buffer)
-		   (imap-disable-multibyte)
-		   (buffer-disable-undo)
-		   (goto-char (point-max))
-		   (insert-buffer-substring buffer)))
 	    (erase-buffer)
 	    (message "Opening Kerberos 4 IMAP connection with `%s'...%s" cmd
 		     (if response (concat "done, " response) "failed"))
@@ -645,12 +649,7 @@ sure of changing the value of `foo'."
 				  (setq response (match-string 1)))))
 	      (accept-process-output process 1)
 	      (sit-for 1))
-	    (and imap-log
-		 (with-current-buffer (get-buffer-create imap-log-buffer)
-		   (imap-disable-multibyte)
-		   (buffer-disable-undo)
-		   (goto-char (point-max))
-		   (insert-buffer-substring buffer)))
+	    (imap-log buffer)
 	    (erase-buffer)
 	    (message "GSSAPI IMAP connection: %s" (or response "failed"))
 	    (if (and response (let ((case-fold-search nil))
@@ -701,12 +700,7 @@ sure of changing the value of `foo'."
 			(not (imap-parse-greeting)))
 	      (accept-process-output process 1)
 	      (sit-for 1))
-	    (and imap-log
-		 (with-current-buffer (get-buffer-create imap-log-buffer)
-		   (imap-disable-multibyte)
-		   (buffer-disable-undo)
-		   (goto-char (point-max))
-		   (insert-buffer-substring buffer)))
+	    (imap-log buffer)
 	    (erase-buffer)
 	    (when (memq (process-status process) '(open run))
 	      (setq done process))))))
@@ -740,12 +734,7 @@ sure of changing the value of `foo'."
 		  (not (imap-parse-greeting)))
 	(accept-process-output process 1)
 	(sit-for 1))
-      (and imap-log
-	   (with-current-buffer (get-buffer-create imap-log-buffer)
-	     (imap-disable-multibyte)
-	     (buffer-disable-undo)
-	     (goto-char (point-max))
-	     (insert-buffer-substring buffer)))
+      (imap-log buffer)
       (when (memq (process-status process) '(open run))
 	process))))
 
@@ -764,12 +753,7 @@ sure of changing the value of `foo'."
 		  (not (imap-parse-greeting)))
 	(accept-process-output process 1)
 	(sit-for 1))
-      (and imap-log
-	   (with-current-buffer (get-buffer-create imap-log-buffer)
-	     (imap-disable-multibyte)
-	     (buffer-disable-undo)
-	     (goto-char (point-max))
-	     (insert-buffer-substring buffer)))
+      (imap-log buffer)
       (when (memq (process-status process) '(open run))
 	process))))
 
@@ -803,12 +787,7 @@ sure of changing the value of `foo'."
 		      (not (imap-parse-greeting)))
 	    (accept-process-output process 1)
 	    (sit-for 1))
-	  (and imap-log
-	       (with-current-buffer (get-buffer-create imap-log-buffer)
-		 (imap-disable-multibyte)
-		 (buffer-disable-undo)
-		 (goto-char (point-max))
-		 (insert-buffer-substring buffer)))
+	  (imap-log buffer)
 	  (erase-buffer)
 	  (when (memq (process-status process) '(open run))
 	    (setq done process)))))
@@ -845,11 +824,7 @@ sure of changing the value of `foo'."
 		  (not (re-search-forward "[0-9]+ OK.*\r?\n" nil t)))
 	(accept-process-output process 1)
 	(sit-for 1))
-      (and imap-log
-	   (with-current-buffer (get-buffer-create imap-log-buffer)
-	     (buffer-disable-undo)
-	     (goto-char (point-max))
-	     (insert-buffer-substring buffer)))
+      (imap-log buffer)
       (when (and (setq tls-info (starttls-negotiate process))
 		 (memq (process-status process) '(open run)))
 	(setq done process)))
@@ -1959,12 +1934,7 @@ on failure."
 
 (defun imap-send-command-1 (cmdstr)
   (setq cmdstr (concat cmdstr imap-client-eol))
-  (and imap-log
-       (with-current-buffer (get-buffer-create imap-log-buffer)
-	 (imap-disable-multibyte)
-	 (buffer-disable-undo)
-	 (goto-char (point-max))
-	 (insert cmdstr)))
+  (imap-log cmdstr)
   (process-send-string imap-process cmdstr))
 
 (defun imap-send-command (command &optional buffer)
@@ -2002,13 +1972,7 @@ on failure."
 			     (stream imap-stream)
 			     (eol imap-client-eol))
 			 (with-current-buffer cmd
-			   (and imap-log
-				(with-current-buffer (get-buffer-create
-						      imap-log-buffer)
-				  (imap-disable-multibyte)
-				  (buffer-disable-undo)
-				  (goto-char (point-max))
-				  (insert-buffer-substring cmd)))
+			   (imap-log cmd)
 			   (process-send-region process (point-min)
 						(point-max)))
 			 (process-send-string process imap-client-eol))))
@@ -2084,12 +2048,7 @@ Return nil if no complete line has arrived."
     (with-current-buffer (process-buffer proc)
       (goto-char (point-max))
       (insert string)
-      (and imap-log
-	   (with-current-buffer (get-buffer-create imap-log-buffer)
-	     (imap-disable-multibyte)
-	     (buffer-disable-undo)
-	     (goto-char (point-max))
-	     (insert string)))
+      (imap-log string)
       (let (end)
 	(goto-char (point-min))
 	(while (setq end (imap-find-next-line))

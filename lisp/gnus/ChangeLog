@@ -1,5 +1,7 @@
 2010-09-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* pop3.el (pop3-streaming-movemail): Return t for success.
+
 	* nnimap.el (nnimap-open-connection): Look for the "imaps" entry in the
 	.authinfo if we're using ssl connection.
 

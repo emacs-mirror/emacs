@@ -1,3 +1,8 @@
+2010-09-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/imap.el (imap-log): New convenience function used throughout
+	instead of repeating the same code all over the place.
+
 2010-09-05  David De La Harpe Golden <david@harpegolden.net>
 
 	* mouse.el (mouse-save-then-kill): Save region to kill-ring
