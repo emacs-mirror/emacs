@@ -1764,6 +1764,9 @@ If SCAN, request a scan of that group as well."
 
 (defun gnus-method-rank (type method)
   (cond
+   ;; Get info for virtual groups last.
+   ((eq (car method) 'nnvirtual)
+    200)
    ((eq type 'primary)
     1)
    ;; Compute the rank of the secondary methods based on where they
