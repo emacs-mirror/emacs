@@ -832,9 +832,13 @@ If EXAMINE is non-nil the group is selected read-only."
     (let* ((list (progn (gnus-message 7 "Parsing authinfo file `%s'."
 				      nnimap-authinfo-file)
 			(netrc-parse nnimap-authinfo-file)))
- 	   (port (if nnimap-server-port
- 		     (int-to-string nnimap-server-port)
- 		   "imap"))
+	   (port (cond
+		  (nnimap-server-port
+		   (int-to-string nnimap-server-port))
+		  ((eq nnimap-stream 'ssl)
+		   "imaps")
+		  (t
+		   "imap")))
 	   (auth-info
 	    (auth-source-user-or-password '("login" "password") server port))
 	   (auth-user (nth 0 auth-info))

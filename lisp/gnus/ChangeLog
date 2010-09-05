@@ -1,5 +1,8 @@
 2010-09-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* nnimap.el (nnimap-open-connection): Look for the "imaps" entry in the
+	.authinfo if we're using ssl connection.
+
 	* nnvirtual.el (nnvirtual-create-mapping): Use the active info we
 	already have if we're in a main Gnus `g' run.
 
