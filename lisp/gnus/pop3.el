@@ -150,7 +150,7 @@ Use streaming commands."
 (defun pop3-send-streaming-command (process command count total-size)
   (erase-buffer)
   (let ((i 1))
-    (while (>= (1+ count) i)
+    (while (>= count i)
       (process-send-string process (format "%s %d\r\n" command i))
       ;; Only do 100 messages at a time to avoid pipe stalls.
       (when (zerop (% i 100))
@@ -197,7 +197,7 @@ Use streaming commands."
 	;; delete it.
 	(when (eolp)
 	  (delete-char 1))
-	(write-region (point-min) (point-max) file)))))
+	(write-region (point-min) (point-max) file nil 'nomesg)))))
 
 (defun pop3-number-of-responses (endp)
   (let ((responses 0))

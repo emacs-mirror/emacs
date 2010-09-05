@@ -1,5 +1,11 @@
 2010-09-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* nnml.el (nnml-save-nov): Message around nnml-save-nov so that the
+	culprit is more visible.
+
+	* mail-source.el (mail-source-delete-crash-box): Really only check the
+	incoming files once in a while.
+
 	* pop3.el (pop3-streaming-movemail): Always close the pop3 connection.
 
 	* mail-source.el (mail-source-delete-crash-box): Only check the

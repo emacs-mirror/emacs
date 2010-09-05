@@ -637,20 +637,20 @@ Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
 		(> (time-to-seconds
 		    (time-since mail-source-incoming-last-checked-time))
 		   (* 24 60 60)))
-	(setq mail-source-incoming-last-checked-time (current-time)))
-      (let ((incoming
-	     (mm-make-temp-file
-	      (expand-file-name
-	       mail-source-incoming-file-prefix
-	       mail-source-directory))))
-	(unless (file-exists-p (file-name-directory incoming))
-	  (make-directory (file-name-directory incoming) t))
-	(rename-file mail-source-crash-box incoming t)
-	;; remove old incoming files?
-	(when (natnump mail-source-delete-incoming)
-	  (mail-source-delete-old-incoming
-	   mail-source-delete-incoming
-	   mail-source-delete-old-incoming-confirm))))))
+	(setq mail-source-incoming-last-checked-time (current-time))
+	(let ((incoming
+	       (mm-make-temp-file
+		(expand-file-name
+		 mail-source-incoming-file-prefix
+		 mail-source-directory))))
+	  (unless (file-exists-p (file-name-directory incoming))
+	    (make-directory (file-name-directory incoming) t))
+	  (rename-file mail-source-crash-box incoming t)
+	  ;; remove old incoming files?
+	  (when (natnump mail-source-delete-incoming)
+	    (mail-source-delete-old-incoming
+	     mail-source-delete-incoming
+	     mail-source-delete-old-incoming-confirm)))))))
 
 (defun mail-source-movemail (from to)
   "Move FROM to TO using movemail."

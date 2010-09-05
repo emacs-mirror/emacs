@@ -824,6 +824,7 @@ article number.  This function is called narrowed to an article."
 	buffer)))
 
 (defun nnml-save-nov ()
+  (message "nnml saving nov...")
   (save-excursion
     (while nnml-nov-buffer-alist
       (when (buffer-name (cdar nnml-nov-buffer-alist))
@@ -833,7 +834,8 @@ article number.  This function is called narrowed to an article."
 			       nnml-nov-buffer-file-name nil 'nomesg))
 	(set-buffer-modified-p nil)
 	(kill-buffer (current-buffer)))
-      (setq nnml-nov-buffer-alist (cdr nnml-nov-buffer-alist)))))
+      (setq nnml-nov-buffer-alist (cdr nnml-nov-buffer-alist))))
+  (message "nnml saving nov...done"))
 
 ;;;###autoload
 (defun nnml-generate-nov-databases (&optional server)
