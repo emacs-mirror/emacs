@@ -1,5 +1,8 @@
 2010-09-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* pop3.el (pop3-display-message-size-flag): Removed -- everybody wants
+	message sizes.
+
 	* gnus-agent.el (gnus-agent-load-local): Only read the agent.lib/local
 	file once per `g' run.
 

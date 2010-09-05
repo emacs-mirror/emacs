@@ -98,12 +98,6 @@ thing can fall apart and leave you with a corrupt mailbox."
   :type 'boolean
   :group 'pop3)
 
-(defcustom pop3-display-message-size-flag t
-  "*If non-nil, display the size of the message that is being fetched."
-  :version "22.1" ;; Oort Gnus
-  :type 'boolean
-  :group 'pop3)
-
 (defvar pop3-timestamp nil
   "Timestamp returned when initially connected to the POP server.
 Used for APOP authentication.")
@@ -161,13 +155,10 @@ Shorter values mean quicker response, but are more CPU intensive.")
       (setq message-sizes (pop3-list process)))
     (unwind-protect
 	(while (<= n message-count)
-	  (if pop3-display-message-size-flag
-	      (message "Retrieving message %d of %d from %s... (%.1fk)"
-		       n message-count pop3-mailhost
-		       (/ (cdr (assoc n message-sizes))
-			  1024.0))
-	    (message "Retrieving message %d of %d from %s..."
-		     n message-count pop3-mailhost))
+	  (message "Retrieving message %d of %d from %s... (%.1fk)"
+		   n message-count pop3-mailhost
+		   (/ (cdr (assoc n message-sizes))
+		      1024.0))
 	  (pop3-retr process n crashbuf)
 	  (save-excursion
 	    (set-buffer crashbuf)
