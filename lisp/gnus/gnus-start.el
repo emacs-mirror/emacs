@@ -1747,18 +1747,19 @@ If SCAN, request a scan of that group as well."
 	    infos (nth 2 (car type-cache)))
       (pop type-cache)
 
-      ;; See if any of the groups from this method require updating.
-      (when (block nil
-	      (dolist (info infos)
-		(when (<= (gnus-info-level info)
-			  (if (eq method-type 'foreign)
-			      foreign-level
-			    alevel))
-		  (return t))))
-	(gnus-read-active-for-groups method infos)
-	(dolist (info infos)
-	  (inline (gnus-get-unread-articles-in-group
-		   info (gnus-active (gnus-info-group info)))))))
+      (when method
+	;; See if any of the groups from this method require updating.
+	(when (block nil
+		(dolist (info infos)
+		  (when (<= (gnus-info-level info)
+			    (if (eq method-type 'foreign)
+				foreign-level
+			      alevel))
+		    (return t))))
+	  (gnus-read-active-for-groups method infos)
+	  (dolist (info infos)
+	    (inline (gnus-get-unread-articles-in-group
+		     info (gnus-active (gnus-info-group info))))))))
     (gnus-message 6 "Checking new news...done")))
 
 (defun gnus-method-rank (type method)
