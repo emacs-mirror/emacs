@@ -248,7 +248,7 @@ as unread by Gnus.")
 	       ?/ ?.)
 	      nnmail-pathname-coding-system)))
 	  (or max 0)
-	  (or min 0))))))
+	  (or min 1))))))
   t)
 
 (deffoo nnmh-request-newgroups (date &optional server)

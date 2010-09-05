@@ -1684,6 +1684,7 @@ If SCAN, request a scan of that group as well."
 	   alevel))
 	 (methods-cache nil)
 	 (type-cache nil)
+	 (gnus-agent-article-local-times 0)
 	 infos info group active method cmethod
 	 method-type method-group-list)
     (gnus-message 6 "Checking new news...")

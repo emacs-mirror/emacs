@@ -2232,23 +2232,28 @@ doesn't exist, to valid the overview buffer."
     (gnus-agent-update-view-total-fetched-for group nil)))
 
 (defvar gnus-agent-article-local nil)
+(defvar gnus-agent-article-local-times nil)
 (defvar gnus-agent-file-loading-local nil)
 
 (defun gnus-agent-load-local (&optional method)
   "Load the METHOD'S local file.  The local file contains min/max
 article counts for each of the method's subscribed groups."
   (let ((gnus-command-method (or method gnus-command-method)))
-    (setq gnus-agent-article-local
-          (gnus-cache-file-contents
-           (gnus-agent-lib-file "local")
-           'gnus-agent-file-loading-local
-           'gnus-agent-read-and-cache-local))))
+    (when (or (null gnus-agent-article-local-times)
+	      (zerop gnus-agent-article-local-times))
+      (setq gnus-agent-article-local
+	    (gnus-cache-file-contents
+	     (gnus-agent-lib-file "local")
+	     'gnus-agent-file-loading-local
+	     'gnus-agent-read-and-cache-local))
+      (when gnus-agent-article-local-times
+	(incf gnus-agent-article-local-times)))
+    gnus-agent-article-local))
 
 (defun gnus-agent-read-and-cache-local (file)
   "Load and read FILE then bind its contents to
 gnus-agent-article-local.  If that variable had `dirty' (also known as
 modified) original contents, they are first saved to their own file."
-
   (if (and gnus-agent-article-local
            (symbol-value (intern "+dirty" gnus-agent-article-local)))
       (gnus-agent-save-local))

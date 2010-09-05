@@ -1,5 +1,8 @@
 2010-09-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-agent.el (gnus-agent-load-local): Only read the agent.lib/local
+	file once per `g' run.
+
 	* nnmh.el (nnmh-request-list-1): Output active lines also for empty
 	directories.  This makes the draft queue directory work.
 
