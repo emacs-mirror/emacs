@@ -1,5 +1,8 @@
 2010-09-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* mail-source.el (mail-source-fetch): Don't message if we're fetching
+	mail from a file, and the file doesn't exist.
+
 	* pop3.el (pop3-streaming-movemail): Return t for success.
 
 	* nnimap.el (nnimap-open-connection): Look for the "imaps" entry in the
