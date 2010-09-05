@@ -448,18 +448,6 @@ The actual value is really the text on the continuation line.")
 The function should take two arguments, the first the IMAP tag and the
 second the status (OK, NO, BAD etc) of the command.")
 
-(defvar imap-enable-exchange-bug-workaround nil
-  "Send FETCH UID commands as *:* instead of *.
-
-When non-nil, use an alternative UIDS form.  Enabling appears to
-be required for some servers (e.g., Microsoft Exchange 2007)
-which otherwise would trigger a response 'BAD The specified
-message set is invalid.'.  We don't unconditionally use this
-form, since this is said to be significantly inefficient.
-
-This variable is set to t automatically per server if the
-canonical form fails.")
-
 
 ;; Utility functions:
 
@@ -1780,48 +1768,6 @@ is non-nil return these properties."
 	 (format "String %s cannot be converted to a Lisp integer" number))
       number)))
 
-(defun imap-fetch-safe (uids props &optional receive nouidfetch buffer)
-  "Like `imap-fetch', but DTRT with Exchange 2007 bug.
-However, UIDS here is a cons, where the car is the canonical form
-of the UIDS specification, and the cdr is the one which works with
-Exchange 2007 or, potentially, other buggy servers.
-See `imap-enable-exchange-bug-workaround'."
-  ;; The first time we get here for a given, we'll try the canonical
-  ;; form.  If we get the known error from the buggy server, set the
-  ;; flag buffer-locally (to account for connections to multiple
-  ;; servers), then re-try with the alternative UIDS spec.  We don't
-  ;; unconditionally use the alternative form, since the
-  ;; currently-used alternatives are seriously inefficient with some
-  ;; servers (although they are valid).
-  ;;
-  ;; FIXME:  Maybe it would be cleaner to have a flag to not signal
-  ;; the error (which otherwise gives a message), and test
-  ;; `imap-failed-tags'.  Also, Other IMAP clients use other forms of
-  ;; request which work with Exchange, e.g. Claws does "UID FETCH 1:*
-  ;; (UID)" rather than "FETCH UID 1,*".  Is there a good reason not
-  ;; to do the same?
-  (condition-case data
-      ;; Binding `debug-on-error' allows us to get the error from
-      ;; `imap-parse-response' -- it's normally caught by Emacs around
-      ;; execution of a process filter.
-      (let ((debug-on-error t))
-	(imap-fetch (if imap-enable-exchange-bug-workaround
-			(cdr uids)
-		      (car uids))
-		    props receive nouidfetch buffer))
-    (error
-     (if (and (not imap-enable-exchange-bug-workaround)
-	      ;; This is the Exchange 2007 response.  It may be more
-	      ;; robust just to check for a BAD response to the
-	      ;; attempted fetch.
-	      (string-match "The specified message set is invalid"
-			    (cadr data)))
-	 (with-current-buffer (or buffer (current-buffer))
-	   (set (make-local-variable 'imap-enable-exchange-bug-workaround)
-		t)
-	   (imap-fetch (cdr uids) props receive nouidfetch))
-       (signal (car data) (cdr data))))))
-
 (defun imap-message-copyuid-1 (mailbox)
   (if (imap-capability 'UIDPLUS)
       (list (nth 0 (imap-mailbox-get-1 'copyuid mailbox))
@@ -1831,7 +1777,7 @@ See `imap-enable-exchange-bug-workaround'."
 	  (imap-message-data (make-vector 2 0)))
       (when (imap-mailbox-examine-1 mailbox)
 	(prog1
-	    (and (imap-fetch-safe '("*" . "*:*") "UID")
+	    (and (imap-fetch "*:*" "UID")
 		 (list (imap-mailbox-get-1 'uidvalidity mailbox)
 		       (apply 'max (imap-message-map
 				    (lambda (uid prop) uid) 'UID))))
@@ -1877,7 +1823,7 @@ first element.  The rest of list contains the saved articles' UIDs."
 	  (imap-message-data (make-vector 2 0)))
       (when (imap-mailbox-examine-1 mailbox)
 	(prog1
-	    (and (imap-fetch-safe '("*" . "*:*") "UID")
+	    (and (imap-fetch "*:*" "UID")
 		 (list (imap-mailbox-get-1 'uidvalidity mailbox)
 		       (apply 'max (imap-message-map
 				    (lambda (uid prop) uid) 'UID))))
@@ -3013,7 +2959,6 @@ Return nil if no complete line has arrived."
 	  imap-list-to-message-set
 	  imap-fetch-asynch
 	  imap-fetch
-	  imap-fetch-safe
 	  imap-message-put
 	  imap-message-get
 	  imap-message-map

@@ -588,7 +588,7 @@ If EXAMINE is non-nil the group is selected read-only."
 		(imap-mailbox-select decoded-group examine))
 	(let (minuid maxuid)
 	  (when (> (imap-mailbox-get 'exists) 0)
-	    (imap-fetch-safe '("1,*" . "1,*:*") "UID" nil 'nouidfetch)
+	    (imap-fetch "1:*" "UID" nil 'nouidfetch)
 	    (imap-message-map (lambda (uid Uid)
 				(setq minuid (if minuid (min minuid uid) uid)
 				      maxuid (if maxuid (max maxuid uid) uid)))
