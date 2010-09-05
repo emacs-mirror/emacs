@@ -300,10 +300,6 @@ component group will show up when you enter the virtual group.")
   t)
 
 
-(deffoo nnvirtual-request-list (&optional server)
-  (nnheader-report 'nnvirtual "LIST is not implemented."))
-
-
 (deffoo nnvirtual-request-newgroups (date &optional server)
   (nnheader-report 'nnvirtual "NEWGROUPS is not supported."))
 

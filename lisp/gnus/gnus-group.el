@@ -3982,23 +3982,13 @@ re-scanning.  If ARG is non-nil and not a number, this will force
 			(>= arg gnus-use-nocem))
 		   (not arg)))
       (gnus-nocem-scan-groups))
-    ;; If ARG is not a number, then we read the active file.
-    (when (and arg (not (numberp arg)))
-      (let ((gnus-read-active-file t))
-	(gnus-read-active-file))
-      (setq arg nil)
 
-      ;; If the user wants it, we scan for new groups.
-      (when (eq gnus-check-new-newsgroups 'always)
-	(gnus-find-new-newsgroups)))
+    (gnus-get-unread-articles arg)
 
-    (setq arg (gnus-group-default-level arg t))
-    (if (and gnus-read-active-file (not arg))
-	(progn
-	  (gnus-read-active-file)
-	  (gnus-get-unread-articles arg))
-      (let ((gnus-read-active-file (if arg nil gnus-read-active-file)))
-	(gnus-get-unread-articles arg)))
+    ;; If the user wants it, we scan for new groups.
+    (when (eq gnus-check-new-newsgroups 'always)
+      (gnus-find-new-newsgroups))
+
     (gnus-check-reasonable-setup)
     (gnus-run-hooks 'gnus-after-getting-new-news-hook)
     (gnus-group-list-groups (and (numberp arg)

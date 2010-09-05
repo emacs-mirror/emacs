@@ -536,7 +536,7 @@ See `mail-source-bind'."
    (t
     value)))
 
-(defun mail-source-fetch (source callback)
+(defun mail-source-fetch (source callback &optional method)
   "Fetch mail from SOURCE and call CALLBACK zero or more times.
 CALLBACK will be called with the name of the file where (some of)
 the mail from SOURCE is put.
@@ -544,6 +544,11 @@ Return the number of files that were found."
   (mail-source-bind-common source
     (if (or mail-source-plugged plugged)
 	(save-excursion
+	  (nnheader-message 4 "%sReading incoming mail from %s..."
+			    (if method
+				(format "%s: " method)
+			      "")
+			    (car source))
 	  (let ((function (cadr (assq (car source) mail-source-fetcher-alist)))
 		(found 0))
 	    (unless function

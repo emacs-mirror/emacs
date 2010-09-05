@@ -544,7 +544,8 @@ If GROUP is nil, all groups on GNUS-COMMAND-METHOD are scanned."
 	 (if group (gnus-find-method-for-group group) gnus-command-method))
 	(gnus-inhibit-demon t)
 	(mail-source-plugged gnus-plugged))
-    (when (or gnus-plugged (not (gnus-agent-method-p gnus-command-method)))
+    (when (or gnus-plugged
+	      (not (gnus-agent-method-p gnus-command-method)))
       (setq gnus-internal-registry-spool-current-method gnus-command-method)
       (funcall (gnus-get-function gnus-command-method 'request-scan)
 	       (and group (gnus-group-real-name group))

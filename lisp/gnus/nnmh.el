@@ -209,24 +209,25 @@ as unread by Gnus.")
   ;; Recurse down all directories.
   (let ((files (nnheader-directory-files dir t nil t))
 	(max 0)
-	min rdir attributes num)
+	min rdir num subdirectoriesp)
     ;; Recurse down directories.
+    (setq subdirectoriesp (> (nth 1 (file-attributes dir)) 2))
     (dolist (rdir files)
-      (setq attributes (file-attributes rdir))
-      (when (null (nth 0 attributes))
-	(setq file (file-name-nondirectory rdir))
-	(when (string-match "^[0-9]+$" file)
-	  (setq num (string-to-number file))
-	  (setq max (max max num))
-	  (when (or (null min)
-		    (< num min))
-	    (setq min num))))
-      (when (and (eq (nth 0 attributes) t) ; Is a directory
-		 (> (nth 1 attributes) 2)  ; Has sub-directories
-		 (file-readable-p rdir)
-		 (not (equal (file-truename rdir)
-			     (file-truename dir))))
-	(nnmh-request-list-1 rdir)))
+      (if (or (not subdirectoriesp)
+	      (file-regular-p rdir))
+	  (progn
+	    (setq file (file-name-nondirectory rdir))
+	    (when (string-match "^[0-9]+$" file)
+	      (setq num (string-to-number file))
+	      (setq max (max max num))
+	      (when (or (null min)
+			(< num min))
+		(setq min num))))
+	;; This is a directory.
+	(when (and (file-readable-p rdir)
+		   (not (equal (file-truename rdir)
+			       (file-truename dir))))
+	  (nnmh-request-list-1 rdir))))
     ;; For each directory, generate an active file line.
     (unless (string= (expand-file-name nnmh-toplev) dir)
       (when min

@@ -1,5 +1,16 @@
 2010-09-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-start.el (gnus-get-unread-articles): Rewrite the way we request
+	data from the backends, so that we only request the list of groups from
+	each method once.  This should speed things up considerably.
+
+	* nnvirtual.el (nnvirtual-request-list): Remove function so that we can
+	detect that it's not implemented.
+
+	* nnmh.el (nnmh-request-list-1): Fix up the recursion behavior so that
+	we actually do recurse down into the tree, but don't stat all leaf
+	nodes.
+
 	* gnus-html.el (gnus-html-show-images): If there are no images to show,
 	then say so instead of bugging out.
 
