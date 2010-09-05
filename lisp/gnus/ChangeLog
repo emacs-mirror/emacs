@@ -1,5 +1,7 @@
 2010-09-05  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* gnus-start.el (gnus-method-rank): Replace equalp with equal.
+
 	* nnmh.el (nnmh-request-list-1): Bind `file'.
 
 	* pop3.el (pop3-set-process-query-on-exit-flag): New function that's an

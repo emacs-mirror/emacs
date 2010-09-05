@@ -1772,7 +1772,7 @@ If SCAN, request a scan of that group as well."
     (let ((i 2))
       (block nil
 	(dolist (smethod gnus-secondary-select-methods)
-	  (when (equalp method smethod)
+	  (when (equal method smethod)
 	    (return i))
 	  (incf i))
 	i)))
