@@ -1,3 +1,12 @@
+2010-09-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/uni-bidi.el:
+	* international/uni-category.el:
+	* international/uni-combining.el:
+	* international/uni-decimal.el:
+	* international/uni-mirrored.el:
+	* international/uni-name.el: Regenerate.
+
 2010-09-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* electric.el (electric-indent-post-self-insert-function):
@@ -696,7 +705,7 @@
 	* mouse.el (mouse-yank-primary): Avoid setting primary when
 	deactivating the mark (Bug#6872).
 
-2010-08-23  Chris Foote <chris@foote.com.au>  (tiny change)
+2010-08-23  Chris Foote  <chris@foote.com.au>  (tiny change)
 
 	* progmodes/python.el (python-block-pairs): Allow use of "finally"
 	with "else" (Bug#3991).
@@ -1205,7 +1214,7 @@
 	* align.el (align-default-spacing): Doc fix.
 	(align-region-heuristic, align-regexp): Fix typos in docstrings.
 
-2010-08-08  Stephen Peters <speters@itasoftware.com>
+2010-08-08  Stephen Peters  <speters@itasoftware.com>
 
 	* calendar/icalendar.el
 	(icalendar--split-value): Fixed splitting regexp. (Bug#6766)
