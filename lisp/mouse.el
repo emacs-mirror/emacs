@@ -43,7 +43,10 @@
   :group 'mouse)
 
 (defcustom mouse-drag-copy-region nil
-  "If non-nil, mouse drag copies region to kill-ring."
+  "If non-nil, copy to kill-ring upon mouse adjustments of the region.
+
+This affects `mouse-save-then-kill' (\\[mouse-save-then-kill]) in
+addition to mouse drags."
   :type 'boolean
   :version "24.1"
   :group 'mouse)
@@ -1348,8 +1351,13 @@ moving point or mark, whichever is closer, to CLICK.  But if you
 have selected whole words or lines, move point or mark to the
 word or line boundary closest to CLICK instead.
 
+If `mouse-drag-copy-region' is non-nil, this command also saves the
+new region to the kill ring (replacing the previous kill if the
+previous region was just saved to the kill ring).
+
 If this command is called a second consecutive time with the same
-CLICK position, kill the region."
+CLICK position, kill the region (or delete it
+if `mouse-drag-copy-region' is non-nil)"
   (interactive "e")
   (mouse-minibuffer-check click)
   (let* ((posn     (event-start click))
@@ -1371,7 +1379,11 @@ CLICK position, kill the region."
      ((and (eq last-command 'mouse-save-then-kill)
 	   (eq click-pt mouse-save-then-kill-posn)
 	   (eq window (selected-window)))
-      (kill-region (mark t) (point))
+      (if mouse-drag-copy-region
+          ;; Region already saved in the previous click;
+          ;; don't make a duplicate entry, just delete.
+          (delete-region (mark t) (point))
+        (kill-region (mark t) (point)))
       (setq mouse-selection-click-count 0)
       (setq mouse-save-then-kill-posn nil))
 
@@ -1394,6 +1406,9 @@ CLICK position, kill the region."
 	  (goto-char (nth 1 range)))
 	(setq deactivate-mark nil)
 	(mouse-set-region-1)
+        (when mouse-drag-copy-region
+          ;; Region already copied to kill-ring once, so replace.
+          (kill-new (filter-buffer-substring (mark t) (point)) t))
 	;; Arrange for a repeated mouse-3 to kill the region.
 	(setq mouse-save-then-kill-posn click-pt)))
 
@@ -1405,6 +1420,8 @@ CLICK position, kill the region."
 	(if before-scroll (goto-char before-scroll)))
       (exchange-point-and-mark)
       (mouse-set-region-1)
+      (when mouse-drag-copy-region
+        (kill-new (filter-buffer-substring (mark t) (point))))
       (setq mouse-save-then-kill-posn click-pt)))))
 
 

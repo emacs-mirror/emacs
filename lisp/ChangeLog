@@ -1,3 +1,8 @@
+2010-09-05  David De La Harpe Golden <david@harpegolden.net>
+
+	* mouse.el (mouse-save-then-kill): Save region to kill-ring
+	when mouse-drag-copy-region is non-nil (Bug#6956).
+
 2010-09-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* dired.el (dired-ls-sorting-switches, dired-sort-by-name-regexp):
