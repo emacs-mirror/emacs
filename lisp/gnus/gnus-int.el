@@ -365,7 +365,7 @@ If it is down, start it up (again)."
     (when (stringp gnus-command-method)
       (setq gnus-command-method
 	    (inline (gnus-server-to-method gnus-command-method))))
-	 (funcall (inline (gnus-get-function gnus-command-method 'request-group))
+    (funcall (inline (gnus-get-function gnus-command-method 'request-group))
 	     (gnus-group-real-name group) (nth 1 gnus-command-method)
 	     dont-check)))
 
