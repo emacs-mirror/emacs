@@ -2,6 +2,8 @@
 
 	* gnus-start.el (gnus-get-unread-articles): Protect against groups that
 	come from no known methods.
+	(gnus-make-hashtable-from-newsrc-alist): Remove duplicates from .newsrc
+	list.
 
 	* pop3.el (pop3-display-message-size-flag): Removed -- everybody wants
 	message sizes.

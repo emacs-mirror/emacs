@@ -1815,14 +1815,18 @@ If SCAN, request a scan of that group as well."
 	(if (setq rest (member method methods))
 	    (gnus-info-set-method info (car rest))
 	  (push method methods)))
-      (gnus-sethash
-       (car info)
-       ;; Preserve number of unread articles in groups.
-       (cons (and ohashtb (car (gnus-gethash (car info) ohashtb)))
-	     prev)
-       gnus-newsrc-hashtb)
-      (setq prev alist
-	    alist (cdr alist)))
+      ;; Check for duplicates.
+      (if (gnus-gethash (car info) gnus-newsrc-hashtb)
+	  ;; Remove this entry from the alist.
+	  (setcdr prev (cddr prev))
+	(gnus-sethash
+	 (car info)
+	 ;; Preserve number of unread articles in groups.
+	 (cons (and ohashtb (car (gnus-gethash (car info) ohashtb)))
+	       prev)
+	 gnus-newsrc-hashtb)
+	(setq prev alist))
+      (setq alist (cdr alist)))
     ;; Make the same select-methods in `gnus-server-alist' identical
     ;; as well.
     (while methods
