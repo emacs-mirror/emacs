@@ -1,4 +1,6 @@
-2010-09-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+2010-09-05  Alexander Klimov  <alserkli@inbox.ru>  (tiny change)
+
+	* files.el (directory-abbrev-alist): Use \` as default regexp.
 
 	* emacs-lisp/rx.el (rx-any): Don't explode ranges that end in special
 	chars like - or ] (bug#6984).
