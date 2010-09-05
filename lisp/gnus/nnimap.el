@@ -1118,14 +1118,16 @@ function is generally only called when Gnus is shutting down."
       (dolist (pattern (nnimap-pattern-to-list-arguments nnimap-list-pattern))
 	(dolist (mbx (funcall nnimap-request-list-method
 			      (cdr pattern) (car pattern)))
-	  (or (member "\\NoSelect" (imap-mailbox-get 'list-flags mbx))
-	      (let* ((encoded-mbx (nnimap-encode-group-name mbx))
-		     (info (nnimap-find-minmax-uid encoded-mbx 'examine)))
-		(when info
-		  (with-current-buffer nntp-server-buffer
-		    (insert (format "\"%s\" %d %d y\n"
-				    encoded-mbx (or (nth 2 info) 0)
-				    (max 1 (or (nth 1 info) 1)))))))))))
+	  (unless (member "\\noselect"
+			  (mapcar #'downcase
+				  (imap-mailbox-get 'list-flags mbx)))
+	    (let* ((encoded-mbx (nnimap-encode-group-name mbx))
+		   (info (nnimap-find-minmax-uid encoded-mbx 'examine)))
+	      (when info
+		(with-current-buffer nntp-server-buffer
+		  (insert (format "\"%s\" %d %d y\n"
+				  encoded-mbx (or (nth 2 info) 0)
+				  (max 1 (or (nth 1 info) 1)))))))))))
     (gnus-message 5 "nnimap: Generating active list%s...done"
 		  (if (> (length server) 0) (concat " for " server) ""))
     t))
