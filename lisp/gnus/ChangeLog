@@ -1,5 +1,8 @@
 2010-09-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* nnmh.el (nnmh-request-list-1): Output active lines also for empty
+	directories.  This makes the draft queue directory work.
+
 	* gnus-start.el (gnus-get-unread-articles): Rewrite the way we request
 	data from the backends, so that we only request the list of groups from
 	each method once.  This should speed things up considerably.

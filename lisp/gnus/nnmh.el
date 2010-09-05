@@ -230,25 +230,25 @@ as unread by Gnus.")
 	  (nnmh-request-list-1 rdir))))
     ;; For each directory, generate an active file line.
     (unless (string= (expand-file-name nnmh-toplev) dir)
-      (when min
-	(with-current-buffer nntp-server-buffer
-	  (goto-char (point-max))
-	  (insert
-	   (format
-	    "%s %.0f %.0f y\n"
-	    (progn
-	      (string-match
-	       (regexp-quote
-		(file-truename (file-name-as-directory
-				(expand-file-name nnmh-toplev))))
-	       dir)
-	      (mm-string-to-multibyte ;Why?  Isn't it multibyte already?
-	       (mm-encode-coding-string
-		(nnheader-replace-chars-in-string
-		 (substring dir (match-end 0))
-		 ?/ ?.)
-		nnmail-pathname-coding-system)))
-	    max min))))))
+      (with-current-buffer nntp-server-buffer
+	(goto-char (point-max))
+	(insert
+	 (format
+	  "%s %.0f %.0f y\n"
+	  (progn
+	    (string-match
+	     (regexp-quote
+	      (file-truename (file-name-as-directory
+			      (expand-file-name nnmh-toplev))))
+	     dir)
+	    (mm-string-to-multibyte ;Why?  Isn't it multibyte already?
+	     (mm-encode-coding-string
+	      (nnheader-replace-chars-in-string
+	       (substring dir (match-end 0))
+	       ?/ ?.)
+	      nnmail-pathname-coding-system)))
+	  (or max 0)
+	  (or min 0))))))
   t)
 
 (deffoo nnmh-request-newgroups (date &optional server)
