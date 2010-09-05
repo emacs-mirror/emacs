@@ -1796,7 +1796,7 @@ If SCAN, request a scan of that group as well."
       (gnus-read-active-file-1 method nil))
      (t
       (dolist (info infos)
-	(gnus-activate-group (gnus-info-group info) nil nil method))))))
+	(gnus-activate-group (gnus-info-group info) nil t method))))))
 
 ;; Create a hash table out of the newsrc alist.  The `car's of the
 ;; alist elements are used as keys.

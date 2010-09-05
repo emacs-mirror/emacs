@@ -1,5 +1,8 @@
 2010-09-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* nnvirtual.el (nnvirtual-create-mapping): Use the active info we
+	already have if we're in a main Gnus `g' run.
+
 	* gnus-start.el (gnus-method-rank): Get info for virtual groups last.
 
 2010-09-05  Katsumi Yamaoka  <yamaoka@jpl.org>
