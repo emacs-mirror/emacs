@@ -34,7 +34,7 @@
   (require 'cl)
   (require 'imap))
 (autoload 'auth-source-user-or-password "auth-source")
-(autoload 'pop3-movemail "pop3")
+(autoload 'pop3-streaming-movemail "pop3")
 (autoload 'pop3-get-message-count "pop3")
 (autoload 'nnheader-cancel-timer "nnheader")
 (require 'mm-util)
@@ -624,11 +624,20 @@ Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
 	0)
     (funcall callback mail-source-crash-box info)))
 
+(defvar mail-source-incoming-last-checked-time nil)
+
 (defun mail-source-delete-crash-box ()
   (when (file-exists-p mail-source-crash-box)
     ;; Delete or move the incoming mail out of the way.
     (if (eq mail-source-delete-incoming t)
 	(delete-file mail-source-crash-box)
+      ;; Don't check for old incoming files more than once per day to
+      ;; save a lot of file accesses.
+      (when (or (null mail-source-incoming-last-checked-time)
+		(> (time-to-seconds
+		    (time-since mail-source-incoming-last-checked-time))
+		   (* 24 60 60)))
+	(setq mail-source-incoming-last-checked-time (current-time)))
       (let ((incoming
 	     (mm-make-temp-file
 	      (expand-file-name
@@ -825,9 +834,11 @@ Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
 		     (if (eq authentication 'apop) 'apop 'pass))
 		    (pop3-stream-type stream))
 		(if (or debug-on-quit debug-on-error)
-		    (save-excursion (pop3-movemail mail-source-crash-box))
+		    (save-excursion (pop3-streaming-movemail
+				     mail-source-crash-box))
 		  (condition-case err
-		      (save-excursion (pop3-movemail mail-source-crash-box))
+		      (save-excursion (pop3-streaming-movemail
+				       mail-source-crash-box))
 		    (error
 		     ;; We nix out the password in case the error
 		     ;; was because of a wrong password being given.

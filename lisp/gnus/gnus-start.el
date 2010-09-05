@@ -3184,5 +3184,3 @@ If this variable is nil, don't do anything."
 (provide 'gnus-start)
 
 ;;; gnus-start.el ends here
-
-
