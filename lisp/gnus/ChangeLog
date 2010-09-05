@@ -1,3 +1,9 @@
+2010-09-05  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* pop3.el (pop3-set-process-query-on-exit-flag): New function that's an
+	alias to set-process-query-on-exit-flag or process-kill-without-query.
+	(pop3-open-server): Use it.
+
 2010-09-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* mail-source.el (mail-source-delete-crash-box): Always move the crash

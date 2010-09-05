@@ -301,6 +301,13 @@ this is nil, `ssl' is assumed for connexions to port
 		 (const :tag "SSL/TLS" ssl)
 		 (const starttls)))
 
+(eval-and-compile
+  (if (fboundp 'set-process-query-on-exit-flag)
+      (defalias 'pop3-set-process-query-on-exit-flag
+	'set-process-query-on-exit-flag)
+    (defalias 'pop3-set-process-query-on-exit-flag
+      'process-kill-without-query)))
+
 (defun pop3-open-server (mailhost port)
   "Open TCP connection to MAILHOST on PORT.
 Returns the process associated with the connection."
@@ -361,7 +368,7 @@ Returns the process associated with the connection."
 	(setq pop3-timestamp
 	      (substring response (or (string-match "<" response) 0)
 			 (+ 1 (or (string-match ">" response) -1)))))
-      (set-process-query-on-exit-flag process nil)
+      (pop3-set-process-query-on-exit-flag process nil)
       process)))
 
 ;; Support functions
