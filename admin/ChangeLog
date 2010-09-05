@@ -1,3 +1,11 @@
+2010-09-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* unidata/BidiMirroring.txt: Update from
+	http://www.unicode.org/Public/6.0.0/ucd/BidiMirroring-6.0.0d2.txt
+
+	* unidata/UnicodeData.txt: Update from
+	http://www.unicode.org/Public/6.0.0/ucd/UnicodeData-6.0.0d7.txt
+
 2010-08-09  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* CPP-DEFINES (WORDS_BIG_ENDIAN): Remove.

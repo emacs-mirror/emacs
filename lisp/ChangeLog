@@ -1,3 +1,97 @@
+2010-09-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired.el (dired-ls-sorting-switches, dired-sort-by-name-regexp):
+	Improve regexps (Bug#6987).
+	(dired-sort-toggle): Search more robustly for -t flag.
+
+	* files.el (get-free-disk-space): Search more robustly for
+	"available" column.  Suggested by Ehud Karni
+	<ehud@unix.mvs.co.il>.
+
+2010-09-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/uni-bidi.el:
+	* international/uni-category.el:
+	* international/uni-combining.el:
+	* international/uni-decimal.el:
+	* international/uni-mirrored.el:
+	* international/uni-name.el: Regenerate.
+
+2010-09-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* electric.el (electric-indent-post-self-insert-function):
+	Don't reindent with a sloppy indentation function.
+
+	* emacs-lisp/syntax.el (syntax-ppss): More sanity check to catch
+	border case in change-log-mode.
+
+2010-09-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Remove ruby regexp; handle Ruby errors with gcc-include and gnu.
+	Recognize leading tab in gcc-include regexp.  Ignore names with
+	leading "from" or "in" in gnu regexp (Bug#6937).
+
+2010-09-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Avoid global recursive calls to kill-buffer-hooks; fit into 80 cols.
+	* textmodes/ispell.el (ispell-process-buffer-name): Remove.
+	(ispell-start-process): Avoid setq and simplify logic.
+	(ispell-init-process): Setup kill-buffer-hook locally when needed.
+	(kill-buffer-hook): Don't use it globally with code that uses
+	expand-file-name since that may call kill-buffer via
+	code_conversion_restore.
+
+2010-09-04  Noorul Islam K M  <noorul@noorul.com>  (tiny change)
+
+	* emacs-lisp/package.el (package-directory-list): Only call
+	file-name-nondirectory on a string.
+
+2010-09-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package--download-one-archive):
+	Ensure that archive-contents is valid before saving it.
+	(package-activate-1, package-mark-obsolete, define-package)
+	(package-compute-transaction, package-list-maybe-add): Use push.
+
+2010-09-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Use SMIE's blink-paren for octave-mode.
+	* progmodes/octave-mod.el (octave-font-lock-close-quotes):
+	Backslashes do not escape single-quotes, single-quotes do.
+	(octave-block-else-regexp, octave-block-end-regexp)
+	(octave-block-match-alist): Remove.
+	(octave-smie-bnf-table): New var, with old content.
+	(octave-smie-op-levels): Use it.
+	(octave-smie-closer-alist): New var.
+	(octave-mode): Use it.  Setup smie-blink-matching and electric-indent.
+	(octave-blink-matching-block-open): Remove.
+	(octave-reindent-then-newline-and-indent, octave-electric-semi)
+	(octave-electric-space): Let self-insert-command run expand-abbrev and
+	blink parens.
+
+	* electric.el (electricity): New group.
+	(electric-indent-chars): New var.
+	(electric-indent-post-self-insert-function): New fun.
+	(electric-indent-mode): New minor mode.
+	(electric-pair-skip-self): New custom.
+	(electric-pair-post-self-insert-function): New function.
+	(electric-pair-mode): New minor mode.
+
+	* calc/calc-aent.el (calcAlg-blink-matching-check): New fun, to replace
+	calcAlg-blink-matching-open.
+	(calc-alg-ent-map, calc-alg-ent-esc-map): Initialize in the declaration.
+	(calc-do-alg-entry): Only touch the part of the keymap that varies.
+	Use the new blink-matching-check-function.
+
+	Provide blink-matching support to SMIE.
+	* emacs-lisp/smie.el (smie-bnf-closer-alist): New function.
+	(smie-blink-matching-triggers, smie-blink-matching-inners): New vars.
+	(smie-blink-matching-check, smie-blink-matching-open): New functions.
+
+	* simple.el (newline): Fix last change to properly remove itself from
+	the hook.
+
 2010-09-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (newline): Eliminate optimization.
@@ -621,7 +715,7 @@
 	* mouse.el (mouse-yank-primary): Avoid setting primary when
 	deactivating the mark (Bug#6872).
 
-2010-08-23  Chris Foote <chris@foote.com.au>  (tiny change)
+2010-08-23  Chris Foote  <chris@foote.com.au>  (tiny change)
 
 	* progmodes/python.el (python-block-pairs): Allow use of "finally"
 	with "else" (Bug#3991).
@@ -1130,7 +1224,7 @@
 	* align.el (align-default-spacing): Doc fix.
 	(align-region-heuristic, align-regexp): Fix typos in docstrings.
 
-2010-08-08  Stephen Peters <speters@itasoftware.com>
+2010-08-08  Stephen Peters  <speters@itasoftware.com>
 
 	* calendar/icalendar.el
 	(icalendar--split-value): Fixed splitting regexp. (Bug#6766)

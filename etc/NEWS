@@ -427,6 +427,8 @@ system or session bus.
 
 * New Modes and Packages in Emacs 24.1
 
+** New global minor modes electric-pair-mode and electric-indent-mode.
+
 ** pcase.el provides the ML-style pattern matching macro `pcase'.
 
 ** smie.el is a package providing a simple generic indentation engine.

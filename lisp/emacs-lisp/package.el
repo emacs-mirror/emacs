@@ -260,8 +260,9 @@ packages in `package-directory-list'."
   ;; Defaults are subdirs named "elpa" in the site-lisp dirs.
   (let (result)
     (dolist (f load-path)
-      (if (equal (file-name-nondirectory f) "site-lisp")
-	  (push (expand-file-name "elpa" f) result)))
+      (and (stringp f)
+	   (equal (file-name-nondirectory f) "site-lisp")
+	   (push (expand-file-name "elpa" f) result)))
     (nreverse result))
   "List of additional directories containing Emacs Lisp packages.
 Each directory name should be absolute.
@@ -406,16 +407,15 @@ updates `package-alist' and `package-obsolete-alist'."
       (error "Internal error: could not find directory for %s-%s"
 	     name version-str))
     ;; Add info node.
-    (if (file-exists-p (expand-file-name "dir" pkg-dir))
-	(progn
-	  ;; FIXME: not the friendliest, but simple.
-	  (require 'info)
-	  (info-initialize)
-	  (setq Info-directory-list (cons pkg-dir Info-directory-list))))
+    (when (file-exists-p (expand-file-name "dir" pkg-dir))
+      ;; FIXME: not the friendliest, but simple.
+      (require 'info)
+      (info-initialize)
+      (push pkg-dir Info-directory-list))
     ;; Add to load path, add autoloads, and activate the package.
-    (setq load-path (cons pkg-dir load-path))
+    (push pkg-dir load-path)
     (load (expand-file-name (concat name "-autoloads") pkg-dir) nil t)
-    (setq package-activated-list (cons package package-activated-list))
+    (push package package-activated-list)
     ;; Don't return nil.
     t))
 
@@ -466,10 +466,9 @@ Return nil if the package could not be activated."
 	  (setcdr elt (cons (cons (package-desc-vers pkg-vec) pkg-vec)
 			    (cdr elt))))
       ;; Make a new association.
-      (setq package-obsolete-alist
-	    (cons (cons package (list (cons (package-desc-vers pkg-vec)
-					    pkg-vec)))
-		  package-obsolete-alist)))))
+      (push (cons package (list (cons (package-desc-vers pkg-vec)
+				      pkg-vec)))
+	    package-obsolete-alist))))
 
 (defun define-package (name-str version-string
 				&optional docstring requirements
@@ -505,7 +504,7 @@ EXTRA-PROPERTIES is currently unused."
 	    (setq package-alist (delq pkg-desc package-alist))
 	    (package-mark-obsolete (car pkg-desc) (cdr pkg-desc)))
 	  ;; Add package to the alist.
-	  (setq package-alist (cons new-pkg-desc package-alist)))
+	  (push new-pkg-desc package-alist))
       ;; You can have two packages with the same version, for instance
       ;; one in the system package directory and one in your private
       ;; directory.  We just let the first one win.
@@ -707,7 +706,7 @@ but version %s required"
 	     (package-version-join (package-desc-vers (cdr pkg-desc)))))
 	  ;; Only add to the transaction if we don't already have it.
 	  (unless (memq next-pkg package-list)
-	    (setq package-list (cons next-pkg package-list)))
+	    (push next-pkg package-list))
 	  (setq package-list
 		(package-compute-transaction package-list
 					     (package-desc-reqs
@@ -992,17 +991,19 @@ The file can either be a tar file or an Emacs Lisp file."
       (re-search-forward "^$" nil 'move)
       (forward-char)
       (delete-region (point-min) (point))
-      (make-directory dir t)
-      (setq buffer-file-name (expand-file-name file dir))
-      (let ((version-control 'never))
-	(save-buffer)))
+      ;; Read the retrieved buffer to make sure it is valid (e.g. it
+      ;; may fetch a URL redirect page).
+      (when (listp (read buffer))
+	(make-directory dir t)
+	(setq buffer-file-name (expand-file-name file dir))
+	(let ((version-control 'never))
+	  (save-buffer))))
     (kill-buffer buffer)))
 
 (defun package-refresh-contents ()
   "Download the ELPA archive description if needed.
-Invoking this will ensure that Emacs knows about the latest versions
-of all packages.  This will let Emacs make them available for
-download."
+This informs Emacs about the latest versions of all packages, and
+makes them available for download."
   (interactive)
   (unless (file-exists-p package-user-dir)
     (make-directory package-user-dir t))
@@ -1301,11 +1302,9 @@ Letters do not insert themselves; instead, they are commands.
   (run-mode-hooks 'package-menu-mode-hook))
 
 (defun package-menu-refresh ()
-  "Download the ELPA archive.
-This fetches the file describing the current contents of
-the Emacs Lisp Package Archive, and then refreshes the
-package menu.  This lets you see what new packages are
-available for download."
+  "Download the Emacs Lisp package archive.
+This fetches the contents of each archive specified in
+`package-archives', and then refreshes the package menu."
   (interactive)
   (unless (eq major-mode 'package-menu-mode)
     (error "The current buffer is not a Package Menu"))
@@ -1460,8 +1459,7 @@ Emacs."
 
 (defun package-list-maybe-add (package version status description result)
   (unless (assoc (cons package version) result)
-    (setq result (cons (list (cons package version) status description)
-		       result)))
+    (push (list (cons package version) status description) result))
   result)
 
 (defvar package-menu-package-list nil

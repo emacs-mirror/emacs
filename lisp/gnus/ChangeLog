@@ -1,3 +1,119 @@
+2010-09-05  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-start.el (gnus-method-rank): Replace equalp with equal.
+
+	* nnmh.el (nnmh-request-list-1): Bind `file'.
+
+	* pop3.el (pop3-set-process-query-on-exit-flag): New function that's an
+	alias to set-process-query-on-exit-flag or process-kill-without-query.
+	(pop3-open-server): Use it.
+
+2010-09-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail-source.el (mail-source-delete-crash-box): Always move the crash
+	box to the Incoming file.  Fixes mistake in previous checkin.
+
+	* pop3.el (pop3-send-streaming-command): Off-by-one error on the
+	request loop (for debugging purposes) removed.
+
+	* nnml.el (nnml-save-nov): Message around nnml-save-nov so that the
+	culprit is more visible.
+	(nnml-save-incremental-nov, nnml-open-incremental-nov)
+	(nnml-add-incremental-nov): New functions to do "incremental" nov
+	updates, where we just append to the end of the existing nov files
+	without reading/writing them in full.
+
+	* mail-source.el (mail-source-delete-crash-box): Really only check the
+	incoming files once in a while.
+
+	* pop3.el (pop3-streaming-movemail): Always close the pop3 connection.
+
+	* mail-source.el (mail-source-delete-crash-box): Only check the
+	incoming files for deletion once per day to save a lot of file
+	accesses.
+
+	* pop3.el (pop3-logon): Fix up unbound variable typo.
+
+	* mail-source.el (pop3-streaming-movemail): Autoload.
+
+	* pop3.el (pop3-streaming-movemail): Respect
+	pop3-leave-mail-on-server.
+
+	* mail-source.el (mail-source-fetch-pop): Use streaming pop3
+	retrieval.
+
+	* pop3.el (pop3-process-filter): Removed unused function.
+	(pop3-streaming-movemail, pop3-send-streaming-command)
+	(pop3-wait-for-messages, pop3-write-to-file)
+	(pop3-number-of-responses): New functions for streaming pop3
+	retrieval.
+
+	* gnus-start.el (gnus-get-unread-articles): Protect against groups that
+	come from no known methods.
+	(gnus-make-hashtable-from-newsrc-alist): Remove duplicates from .newsrc
+	list.
+
+	* pop3.el (pop3-display-message-size-flag): Removed -- everybody wants
+	message sizes.
+	(pop3-movemail): Use erase-buffer instead of looping and deleting
+	regions, which seems rather odd.
+
+	* gnus-agent.el (gnus-agent-load-local): Only read the agent.lib/local
+	file once per `g' run.
+
+	* nnmh.el (nnmh-request-list-1): Output active lines also for empty
+	directories.  This makes the draft queue directory work.
+
+	* gnus-start.el (gnus-get-unread-articles): Rewrite the way we request
+	data from the backends, so that we only request the list of groups from
+	each method once.  This should speed things up considerably.
+
+	* nnvirtual.el (nnvirtual-request-list): Remove function so that we can
+	detect that it's not implemented.
+
+	* nnmh.el (nnmh-request-list-1): Fix up the recursion behavior so that
+	we actually do recurse down into the tree, but don't stat all leaf
+	nodes.
+
+	* gnus-html.el (gnus-html-show-images): If there are no images to show,
+	then say so instead of bugging out.
+
+	* gnus-agent.el (gnus-agent-load-alist): Check whether the agentview
+	files exist before trying to read them.
+
+	* gnus-html.el (gnus-html-wash-tags): Remove even more white space
+	around <pre_int>.
+
+	* gnus-art.el (gnus-article-copy-string): Say what data we copied.
+
+	* nnmh.el (nnmh-request-list-1): Optimize for speed.
+
+2010-09-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mm-util.el (mm-image-load-path): Just return the image directories,
+	not all directories in the path in addition to the image directories.
+	(mm-image-load-path): Maintain a cache of the image directories so that
+	the `g' command in Gnus doesn't have to stat dozens of directories each
+	time.
+
+	* gnus-html.el (gnus-html-put-image): Allow images to be removed.
+	(gnus-html-wash-tags): Add a new `i' command to insert images.
+	(gnus-html-insert-image): New command and keystroke.
+	(gnus-html-redisplay-with-images): New command and keystroke.
+	(gnus-html-show-images): Renamed command.
+	(gnus-html-wash-tags): Remove more white space before <pre_int> image
+	spacers.
+	(gnus-html-wash-tags): Decode entities at the end, so that entities
+	inside the tags don't mess up the rest of the "parsing".
+
+	* gnus-agent.el (gnus-agent-auto-agentize-methods): Change the default
+	so that nnimap methods aren't agentized by default.  There's apparently
+	many problems related to agent/imap behaviour.
+
+	* gnus-art.el (gnus-article-copy-string): New command and key binding.
+
+	* gnus-html.el: Doc fix.
+
 2010-09-03  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-html.el (gnus-html-put-image): Use gnus-graphic-display-p,

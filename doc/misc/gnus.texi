@@ -10351,6 +10351,14 @@ Piconify all news headers (i. e., @code{Newsgroups} and
 Remove all images from the article buffer
 (@code{gnus-article-remove-images}).
 
+@item W D W
+@kindex W D W (Summary)
+@findex gnus-html-show-images
+If you're reading an @acronym{HTML} article rendered with
+@code{gnus-article-html}, then you can insert any blocked images in
+the buffer with this command.
+(@code{gnus-html-show-images}).
+
 @end table
 
 
@@ -21566,7 +21574,7 @@ is @file{ADAPT}.
 @vindex gnus-adaptive-pretty-print
 Adaptive score files can get huge and are not meant to be edited by
 human hands.  If @code{gnus-adaptive-pretty-print} is @code{nil} (the
-deafult) those files will not be written in a human readable way.
+default) those files will not be written in a human readable way.
 
 @vindex gnus-score-exact-adapt-limit
 When doing adaptive scoring, substring or fuzzy matching would probably

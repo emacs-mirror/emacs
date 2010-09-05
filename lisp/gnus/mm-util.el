@@ -1429,16 +1429,23 @@ If SUFFIX is non-nil, add that at the end of the file name."
 	;; Reset the umask.
 	(set-default-file-modes umask)))))
 
+(defvar mm-image-load-path-cache nil)
+
 (defun mm-image-load-path (&optional package)
-  (let (dir result)
-    (dolist (path load-path (nreverse result))
-      (when (and path
-		 (file-directory-p
-		  (setq dir (concat (file-name-directory
-				     (directory-file-name path))
-				    "etc/images/" (or package "gnus/")))))
-	(push dir result))
-      (push path result))))
+  (if (and mm-image-load-path-cache
+	   (equal load-path (car mm-image-load-path-cache)))
+      (cdr mm-image-load-path-cache)
+    (let (dir result)
+      (dolist (path load-path)
+	(when (and path
+		   (file-directory-p
+		    (setq dir (concat (file-name-directory
+				       (directory-file-name path))
+				      "etc/images/" (or package "gnus/")))))
+	  (push dir result)))
+      (setq result (nreverse result)
+	    mm-image-load-path-cache (cons load-path result))
+      result)))
 
 ;; Fixme: This doesn't look useful where it's used.
 (if (fboundp 'detect-coding-region)

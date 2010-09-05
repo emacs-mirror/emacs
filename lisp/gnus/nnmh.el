@@ -207,40 +207,48 @@ as unread by Gnus.")
 (defun nnmh-request-list-1 (dir)
   (setq dir (expand-file-name dir))
   ;; Recurse down all directories.
-  (let ((dirs (and (file-readable-p dir)
-		   (nnheader-directory-files dir t nil t)))
-	rdir)
+  (let ((files (nnheader-directory-files dir t nil t))
+	(max 0)
+	min rdir num subdirectoriesp file)
     ;; Recurse down directories.
-    (while (setq rdir (pop dirs))
-      (when (and (file-directory-p rdir)
-		 (file-readable-p rdir)
-		 (not (equal (file-truename rdir)
-			     (file-truename dir))))
-	(nnmh-request-list-1 rdir))))
-  ;; For each directory, generate an active file line.
-  (unless (string= (expand-file-name nnmh-toplev) dir)
-    (let ((files (mapcar 'string-to-number
-			 (directory-files dir nil "^[0-9]+$" t))))
-      (when files
-	(with-current-buffer nntp-server-buffer
-	  (goto-char (point-max))
-	  (insert
-	   (format
-	    "%s %.0f %.0f y\n"
-	    (progn
-	      (string-match
-	       (regexp-quote
-		(file-truename (file-name-as-directory
-				(expand-file-name nnmh-toplev))))
-	       dir)
-	      (mm-string-to-multibyte   ;Why?  Isn't it multibyte already?
-	       (mm-encode-coding-string
-		(nnheader-replace-chars-in-string
-		 (substring dir (match-end 0))
-		 ?/ ?.)
-		nnmail-pathname-coding-system)))
-	    (apply 'max files)
-	    (apply 'min files)))))))
+    (setq subdirectoriesp (> (nth 1 (file-attributes dir)) 2))
+    (dolist (rdir files)
+      (if (or (not subdirectoriesp)
+	      (file-regular-p rdir))
+	  (progn
+	    (setq file (file-name-nondirectory rdir))
+	    (when (string-match "^[0-9]+$" file)
+	      (setq num (string-to-number file))
+	      (setq max (max max num))
+	      (when (or (null min)
+			(< num min))
+		(setq min num))))
+	;; This is a directory.
+	(when (and (file-readable-p rdir)
+		   (not (equal (file-truename rdir)
+			       (file-truename dir))))
+	  (nnmh-request-list-1 rdir))))
+    ;; For each directory, generate an active file line.
+    (unless (string= (expand-file-name nnmh-toplev) dir)
+      (with-current-buffer nntp-server-buffer
+	(goto-char (point-max))
+	(insert
+	 (format
+	  "%s %.0f %.0f y\n"
+	  (progn
+	    (string-match
+	     (regexp-quote
+	      (file-truename (file-name-as-directory
+			      (expand-file-name nnmh-toplev))))
+	     dir)
+	    (mm-string-to-multibyte ;Why?  Isn't it multibyte already?
+	     (mm-encode-coding-string
+	      (nnheader-replace-chars-in-string
+	       (substring dir (match-end 0))
+	       ?/ ?.)
+	      nnmail-pathname-coding-system)))
+	  (or max 0)
+	  (or min 1))))))
   t)
 
 (deffoo nnmh-request-newgroups (date &optional server)
