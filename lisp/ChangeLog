@@ -1,5 +1,9 @@
 2010-09-05  Chong Yidong  <cyd@stupidchicken.com>
 
+	* dired.el (dired-ls-sorting-switches, dired-sort-by-name-regexp):
+	Improve regexps (Bug#6987).
+	(dired-sort-toggle): Search more robustly for -t flag.
+
 	* files.el (get-free-disk-space): Search more robustly for
 	"available" column.  Suggested by Ehud Karni
 	<ehud@unix.mvs.co.il>.
