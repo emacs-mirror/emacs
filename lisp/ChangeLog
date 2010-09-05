@@ -1,3 +1,9 @@
+2010-09-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/rx.el (rx-any): Don't explode ranges that end in special
+	chars like - or ] (bug#6984).
+	(rx-any-condense-range): Explode 2-char ranges.
+
 2010-09-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/bibtex.el:
