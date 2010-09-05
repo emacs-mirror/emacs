@@ -1,5 +1,7 @@
 2010-09-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* pop3.el (pop3-streaming-movemail): Always close the pop3 connection.
+
 	* mail-source.el (mail-source-delete-crash-box): Only check the
 	incoming files for deletion once per day to save a lot of file
 	accesses.
