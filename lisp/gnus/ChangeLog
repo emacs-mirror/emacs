@@ -1,5 +1,8 @@
 2010-09-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-html.el (gnus-html-wash-tags): Remove <a name...> tags, which
+	confuses the rest of the function.
+
 	* gnus-start.el (gnus-read-active-for-groups): Do a `gnus-request-scan'
 	for the methods that support -retrieve-groups, too.
 
