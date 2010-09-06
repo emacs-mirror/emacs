@@ -2,6 +2,7 @@
 
 	* nnimap.el (nnimap-request-list): Servers may return \NoSelect
 	case-insensitively.
+	(nnimap-debug): Removed.
 
 	* mail-source.el (mail-source-fetch): Don't message if we're fetching
 	mail from a file, and the file doesn't exist.

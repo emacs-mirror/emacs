@@ -1303,40 +1303,37 @@ If BUFFER is nil, the current buffer is assumed."
 
 ;; Mailbox functions:
 
-(defun imap-mailbox-put (propname value &optional mailbox buffer)
-  (with-current-buffer (or buffer (current-buffer))
-    (if imap-mailbox-data
-	(put (intern (or mailbox imap-current-mailbox) imap-mailbox-data)
-	     propname value)
-      (error "Imap-mailbox-data is nil, prop %s value %s mailbox %s buffer %s"
-	     propname value mailbox (current-buffer)))
-    t))
+(defun imap-mailbox-put (propname value &optional mailbox)
+  (if imap-mailbox-data
+      (put (intern (or mailbox imap-current-mailbox) imap-mailbox-data)
+	   propname value)
+    (error "Imap-mailbox-data is nil, prop %s value %s mailbox %s buffer %s"
+	   propname value mailbox (current-buffer)))
+  t)
 
 (defsubst imap-mailbox-get-1 (propname &optional mailbox)
   (get (intern-soft (or mailbox imap-current-mailbox) imap-mailbox-data)
        propname))
 
-(defun imap-mailbox-get (propname &optional mailbox buffer)
-  (let ((mailbox (imap-utf7-encode mailbox)))
-    (with-current-buffer (or buffer (current-buffer))
-      (imap-mailbox-get-1 propname (or mailbox imap-current-mailbox)))))
+(defun imap-mailbox-get (propname &optional mailbox)
+  (imap-mailbox-get-1 propname (or (imap-utf7-encode mailbox)
+				   imap-current-mailbox)))
 
-(defun imap-mailbox-map-1 (func &optional mailbox-decoder buffer)
-  (with-current-buffer (or buffer (current-buffer))
-    (let (result)
-      (mapatoms
-       (lambda (s)
-	 (push (funcall func (if mailbox-decoder
-				 (funcall mailbox-decoder (symbol-name s))
-			       (symbol-name s))) result))
-       imap-mailbox-data)
-      result)))
+(defun imap-mailbox-map-1 (func &optional mailbox-decoder)
+  (let (result)
+    (mapatoms
+     (lambda (s)
+       (push (funcall func (if mailbox-decoder
+			       (funcall mailbox-decoder (symbol-name s))
+			     (symbol-name s))) result))
+     imap-mailbox-data)
+    result))
 
-(defun imap-mailbox-map (func &optional buffer)
+(defun imap-mailbox-map (func)
   "Map a function across each mailbox in `imap-mailbox-data', returning a list.
 Function should take a mailbox name (a string) as
 the only argument."
-  (imap-mailbox-map-1 func 'imap-utf7-decode buffer))
+  (imap-mailbox-map-1 func 'imap-utf7-decode))
 
 (defun imap-current-mailbox (&optional buffer)
   (with-current-buffer (or buffer (current-buffer))
@@ -1650,29 +1647,26 @@ is non-nil return these properties."
 		    uids)
 	  (imap-message-get uids receive))))))
 
-(defun imap-message-put (uid propname value &optional buffer)
-  (with-current-buffer (or buffer (current-buffer))
-    (if imap-message-data
-	(put (intern (number-to-string uid) imap-message-data)
-	     propname value)
-      (error "Imap-message-data is nil, uid %s prop %s value %s buffer %s"
-	     uid propname value (current-buffer)))
-    t))
+(defun imap-message-put (uid propname value)
+  (if imap-message-data
+      (put (intern (number-to-string uid) imap-message-data)
+	   propname value)
+    (error "Imap-message-data is nil, uid %s prop %s value %s buffer %s"
+	   uid propname value (current-buffer)))
+  t)
 
-(defun imap-message-get (uid propname &optional buffer)
-  (with-current-buffer (or buffer (current-buffer))
-    (get (intern-soft (number-to-string uid) imap-message-data)
-	 propname)))
+(defun imap-message-get (uid propname)
+  (get (intern-soft (number-to-string uid) imap-message-data)
+       propname))
 
-(defun imap-message-map (func propname &optional buffer)
+(defun imap-message-map (func propname)
   "Map a function across each message in `imap-message-data', returning a list."
-  (with-current-buffer (or buffer (current-buffer))
-    (let (result)
-      (mapatoms
-       (lambda (s)
-	 (push (funcall func (get s 'UID) (get s propname)) result))
-       imap-message-data)
-      result)))
+  (let (result)
+    (mapatoms
+     (lambda (s)
+       (push (funcall func (get s 'UID) (get s propname)) result))
+     imap-message-data)
+    result))
 
 (defmacro imap-message-envelope-date (uid &optional buffer)
   `(with-current-buffer (or ,buffer (current-buffer))
