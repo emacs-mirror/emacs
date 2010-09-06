@@ -1736,7 +1736,7 @@ If SCAN, request a scan of that group as well."
 	      type-cache))
       ;; Only add groups that need updating.
       (when (<= (gnus-info-level info)
-		(if (eq method-type 'foreign)
+		(if (eq (cadr method-group-list) 'foreign)
 		    foreign-level
 		  alevel))
 	(setcar (nthcdr 2 method-group-list)

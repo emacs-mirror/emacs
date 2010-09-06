@@ -2,6 +2,7 @@
 
 	* gnus-start.el (gnus-get-unread-articles): Don't bother with groups
 	that aren't going to be activated.
+	(gnus-get-unread-articles): Fix up the last commit.
 
 	* gnus-html.el (gnus-article-html): Allow calling without specifying
 	the handle.  In that case, dissect the buffer first.
