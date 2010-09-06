@@ -1,3 +1,20 @@
+2010-09-06  Alexander Klimov  <alserkli@inbox.ru>  (tiny change)
+
+	* files.el (directory-abbrev-alist): Use \` as default regexp.
+
+	* emacs-lisp/rx.el (rx-any): Don't explode ranges that end in special
+	chars like - or ] (bug#6984).
+	(rx-any-condense-range): Explode 2-char ranges.
+
+2010-09-06  Glenn Morris  <rgm@gnu.org>
+
+	* desktop.el (desktop-path): Bump :version after 2009-09-15 change.
+
+2010-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/bibtex.el:
+	* proced.el: Update to new email for Roland Winkler <winkler@gnu.org>.
+
 2010-09-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/imap.el (imap-message-map): Removed optional buffer parameter,
