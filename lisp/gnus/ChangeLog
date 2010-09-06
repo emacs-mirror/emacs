@@ -1,5 +1,8 @@
 2010-09-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-html.el (gnus-article-html): Allow calling without specifying
+	the handle.  In that case, dissect the buffer first.
+
 	* gnus-sum.el (gnus-set-mode-line): Don't pad the mode line string.
 
 	* nnimap.el (nnimap-open-connection): Revert the change that would look
