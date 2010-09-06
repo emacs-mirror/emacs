@@ -1,5 +1,8 @@
 2010-09-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* nnimap.el (nnimap-open-connection): Revert the change that would look
+	into authinfo for imaps instead of imap.
+
 	* gnus-start.el (gnus-activate-group): Take an optional parameter to
 	say that you don't want to call gnus-request-group with don-check, but
 	do check the reponse.  This is for virtual groups only.
