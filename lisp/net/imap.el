@@ -1315,9 +1315,10 @@ If BUFFER is nil, the current buffer is assumed."
   (get (intern-soft (or mailbox imap-current-mailbox) imap-mailbox-data)
        propname))
 
-(defun imap-mailbox-get (propname &optional mailbox)
-  (imap-mailbox-get-1 propname (or (imap-utf7-encode mailbox)
-				   imap-current-mailbox)))
+(defun imap-mailbox-get (propname &optional mailbox buffer)
+  (with-current-buffer (or buffer (current-buffer))
+    (imap-mailbox-get-1 propname (or (imap-utf7-encode mailbox)
+				     imap-current-mailbox))))
 
 (defun imap-mailbox-map-1 (func &optional mailbox-decoder)
   (let (result)
