@@ -1734,8 +1734,13 @@ If SCAN, request a scan of that group as well."
 		'foreign)))
 	(push (setq method-group-list (list method method-type nil))
 	      type-cache))
-      (setcar (nthcdr 2 method-group-list)
-	      (cons info (nth 2 method-group-list))))
+      ;; Only add groups that need updating.
+      (when (<= (gnus-info-level info)
+		(if (eq method-type 'foreign)
+		    foreign-level
+		  alevel))
+	(setcar (nthcdr 2 method-group-list)
+		(cons info (nth 2 method-group-list)))))
 
     ;; Sort the methods based so that the primary and secondary
     ;; methods come first.  This is done for legacy reasons to try to
@@ -1753,19 +1758,13 @@ If SCAN, request a scan of that group as well."
 	    infos (nth 2 (car type-cache)))
       (pop type-cache)
 
-      (when method
+      (when (and method
+		 infos)
 	;; See if any of the groups from this method require updating.
-	(when (block nil
-		(dolist (info infos)
-		  (when (<= (gnus-info-level info)
-			    (if (eq method-type 'foreign)
-				foreign-level
-			      alevel))
-		    (return t))))
-	  (gnus-read-active-for-groups method infos)
-	  (dolist (info infos)
-	    (inline (gnus-get-unread-articles-in-group
-		     info (gnus-active (gnus-info-group info))))))))
+	(gnus-read-active-for-groups method infos)
+	(dolist (info infos)
+	  (inline (gnus-get-unread-articles-in-group
+		   info (gnus-active (gnus-info-group info)))))))
     (gnus-message 6 "Checking new news...done")))
 
 (defun gnus-method-rank (type method)
