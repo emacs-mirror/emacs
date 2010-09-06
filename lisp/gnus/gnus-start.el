@@ -1688,6 +1688,7 @@ If SCAN, request a scan of that group as well."
 	 (methods-cache nil)
 	 (type-cache nil)
 	 (gnus-agent-article-local-times 0)
+	 (archive-method (gnus-server-to-method "archive"))
 	 infos info group active method cmethod
 	 method-type method-group-list)
     (gnus-message 6 "Checking new news...")
@@ -1723,7 +1724,9 @@ If SCAN, request a scan of that group as well."
       (unless method-group-list
 	(setq method-type
 	      (cond
-	       ((gnus-secondary-method-p method)
+	       ((or (gnus-secondary-method-p method)
+		    (and (gnus-archive-server-wanted-p)
+			 (gnus-methods-equal-p archive-method method)))
 		'secondary)
 	       ((inline (gnus-server-equal gnus-select-method method))
 		'primary)

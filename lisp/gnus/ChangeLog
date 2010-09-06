@@ -3,6 +3,8 @@
 	* gnus-start.el (gnus-activate-group): Take an optional parameter to
 	say that you don't want to call gnus-request-group with don-check, but
 	do check the reponse.  This is for virtual groups only.
+	(gnus-get-unread-articles): Count the archive groups as secondary, so
+	that they're activated the same way as before.
 
 	* nnimap.el (nnimap-request-list): Servers may return \NoSelect
 	case-insensitively.
