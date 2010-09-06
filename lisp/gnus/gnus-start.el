@@ -1526,7 +1526,8 @@ newsgroup."
 	  (when (> (cdr cache-active) (cdr active))
 	    (setcdr active (cdr cache-active))))))))
 
-(defun gnus-activate-group (group &optional scan dont-check method)
+(defun gnus-activate-group (group &optional scan dont-check method
+				  dont-sub-check)
   "Check whether a group has been activated or not.
 If SCAN, request a scan of that group as well."
   (let ((method (or method (inline (gnus-find-method-for-group group))))
@@ -1541,9 +1542,11 @@ If SCAN, request a scan of that group as well."
 		(gnus-request-scan group method))
 	   t)
 	 (if (or debug-on-error debug-on-quit)
-	     (inline (gnus-request-group group dont-check method))
+	     (inline (gnus-request-group group (or dont-sub-check dont-check)
+					 method))
 	   (condition-case nil
-	       (inline (gnus-request-group group dont-check method))
+	       (inline (gnus-request-group group (or dont-sub-check dont-check)
+					   method))
 	     ;;(error nil)
 	     (quit
 	      (message "Quit activating %s" group)
@@ -1796,7 +1799,7 @@ If SCAN, request a scan of that group as well."
       (gnus-read-active-file-1 method nil))
      (t
       (dolist (info infos)
-	(gnus-activate-group (gnus-info-group info) nil t method))))))
+	(gnus-activate-group (gnus-info-group info) nil nil method t))))))
 
 ;; Create a hash table out of the newsrc alist.  The `car's of the
 ;; alist elements are used as keys.
