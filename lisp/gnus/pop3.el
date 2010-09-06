@@ -33,6 +33,7 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
 (require 'mail-utils)
 (defvar parse-time-months)
 
@@ -204,7 +205,7 @@ Use streaming commands."
   (let ((responses 0))
     (save-excursion
       (goto-char (point-min))
-      (while (or (and (re-search-forward "^\\+OK " nil t)
+      (while (or (and (re-search-forward "^\\+OK" nil t)
 		      (or (not endp)
 			  (re-search-forward "^\\.\r?\n" nil t)))
 		 (re-search-forward "^-ERR " nil t))

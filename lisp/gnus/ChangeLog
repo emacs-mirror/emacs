@@ -1,3 +1,8 @@
+2010-09-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* pop3.el: Require cl when compiling.
+	(pop3-number-of-responses): Search for "+OK", not "+OK ".
+
 2010-09-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-start.el (gnus-get-unread-articles): Don't bother with groups
