@@ -1,5 +1,8 @@
 2010-09-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-start.el (gnus-read-active-for-groups): Do a `gnus-request-scan'
+	for the methods that support -retrieve-groups, too.
+
 	* nnml.el (nnml-save-nov): Remove some debugging-related messages.
 
 2010-09-06  Katsumi Yamaoka  <yamaoka@jpl.org>

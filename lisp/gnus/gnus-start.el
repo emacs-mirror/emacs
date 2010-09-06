@@ -1792,6 +1792,8 @@ If SCAN, request a scan of that group as well."
   (with-current-buffer nntp-server-buffer
     (cond
      ((gnus-check-backend-function 'retrieve-groups (car method))
+      (when (gnus-check-backend-function 'request-scan (car method))
+	(gnus-request-scan nil method))
       (gnus-read-active-file-2
        (mapcar (lambda (info)
 		 (gnus-group-real-name (gnus-info-group info)))
