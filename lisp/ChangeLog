@@ -1,3 +1,32 @@
+2010-09-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/imap.el (imap-message-map): Removed optional buffer parameter,
+	since no callers use it.
+	(imap-message-get): Ditto.
+	(imap-message-put): Ditto.
+	(imap-mailbox-map): Ditto.
+	(imap-mailbox-put): Ditto.
+	(imap-mailbox-get): Ditto.
+	(imap-mailbox-get): Revert last change for this function.
+
+2010-09-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/imap.el (imap-fetch-safe): Removed function, and altered all
+	callers to use `imap-fetch' instead.  According to the comments, this
+	should be safe, since all other IMAP clients use the 1:* syntax.
+	(imap-enable-exchange-bug-workaround): Removed.
+	(imap-debug): Removed -- doesn't seem very useful.
+
+2010-09-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/imap.el (imap-log): New convenience function used throughout
+	instead of repeating the same code all over the place.
+
+2010-09-05  David De La Harpe Golden  <david@harpegolden.net>
+
+	* mouse.el (mouse-save-then-kill): Save region to kill-ring
+	when mouse-drag-copy-region is non-nil (Bug#6956).
+
 2010-09-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* dired.el (dired-ls-sorting-switches, dired-sort-by-name-regexp):

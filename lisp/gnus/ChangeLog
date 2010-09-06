@@ -1,3 +1,40 @@
+2010-09-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-get-unread-articles): Don't bother with groups
+	that aren't going to be activated.
+	(gnus-get-unread-articles): Fix up the last commit.
+
+	* gnus-html.el (gnus-article-html): Allow calling without specifying
+	the handle.  In that case, dissect the buffer first.
+
+	* gnus-sum.el (gnus-set-mode-line): Don't pad the mode line string.
+
+	* nnimap.el (nnimap-open-connection): Revert the change that would look
+	into authinfo for imaps instead of imap.
+
+	* gnus-start.el (gnus-activate-group): Take an optional parameter to
+	say that you don't want to call gnus-request-group with don-check, but
+	do check the reponse.  This is for virtual groups only.
+	(gnus-get-unread-articles): Count the archive groups as secondary, so
+	that they're activated the same way as before.
+
+	* nnimap.el (nnimap-request-list): Servers may return \NoSelect
+	case-insensitively.
+	(nnimap-debug): Removed.
+
+	* mail-source.el (mail-source-fetch): Don't message if we're fetching
+	mail from a file, and the file doesn't exist.
+
+	* pop3.el (pop3-streaming-movemail): Return t for success.
+
+	* nnimap.el (nnimap-open-connection): Look for the "imaps" entry in the
+	.authinfo if we're using ssl connection.
+
+	* nnvirtual.el (nnvirtual-create-mapping): Use the active info we
+	already have if we're in a main Gnus `g' run.
+
+	* gnus-start.el (gnus-method-rank): Get info for virtual groups last.
+
 2010-09-05  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-start.el (gnus-method-rank): Replace equalp with equal.

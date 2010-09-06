@@ -73,8 +73,10 @@ fit these criteria."
     map))
 
 ;;;###autoload
-(defun gnus-article-html (handle)
+(defun gnus-article-html (&optional handle)
   (let ((article-buffer (current-buffer)))
+    (unless handle
+      (setq handle (mm-dissect-buffer t)))
     (save-restriction
       (narrow-to-region (point) (point))
       (save-excursion

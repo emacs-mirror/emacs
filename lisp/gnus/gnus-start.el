@@ -1526,7 +1526,8 @@ newsgroup."
 	  (when (> (cdr cache-active) (cdr active))
 	    (setcdr active (cdr cache-active))))))))
 
-(defun gnus-activate-group (group &optional scan dont-check method)
+(defun gnus-activate-group (group &optional scan dont-check method
+				  dont-sub-check)
   "Check whether a group has been activated or not.
 If SCAN, request a scan of that group as well."
   (let ((method (or method (inline (gnus-find-method-for-group group))))
@@ -1541,9 +1542,11 @@ If SCAN, request a scan of that group as well."
 		(gnus-request-scan group method))
 	   t)
 	 (if (or debug-on-error debug-on-quit)
-	     (inline (gnus-request-group group dont-check method))
+	     (inline (gnus-request-group group (or dont-sub-check dont-check)
+					 method))
 	   (condition-case nil
-	       (inline (gnus-request-group group dont-check method))
+	       (inline (gnus-request-group group (or dont-sub-check dont-check)
+					   method))
 	     ;;(error nil)
 	     (quit
 	      (message "Quit activating %s" group)
@@ -1685,6 +1688,7 @@ If SCAN, request a scan of that group as well."
 	 (methods-cache nil)
 	 (type-cache nil)
 	 (gnus-agent-article-local-times 0)
+	 (archive-method (gnus-server-to-method "archive"))
 	 infos info group active method cmethod
 	 method-type method-group-list)
     (gnus-message 6 "Checking new news...")
@@ -1720,7 +1724,9 @@ If SCAN, request a scan of that group as well."
       (unless method-group-list
 	(setq method-type
 	      (cond
-	       ((gnus-secondary-method-p method)
+	       ((or (gnus-secondary-method-p method)
+		    (and (gnus-archive-server-wanted-p)
+			 (gnus-methods-equal-p archive-method method)))
 		'secondary)
 	       ((inline (gnus-server-equal gnus-select-method method))
 		'primary)
@@ -1728,8 +1734,13 @@ If SCAN, request a scan of that group as well."
 		'foreign)))
 	(push (setq method-group-list (list method method-type nil))
 	      type-cache))
-      (setcar (nthcdr 2 method-group-list)
-	      (cons info (nth 2 method-group-list))))
+      ;; Only add groups that need updating.
+      (when (<= (gnus-info-level info)
+		(if (eq (cadr method-group-list) 'foreign)
+		    foreign-level
+		  alevel))
+	(setcar (nthcdr 2 method-group-list)
+		(cons info (nth 2 method-group-list)))))
 
     ;; Sort the methods based so that the primary and secondary
     ;; methods come first.  This is done for legacy reasons to try to
@@ -1747,23 +1758,20 @@ If SCAN, request a scan of that group as well."
 	    infos (nth 2 (car type-cache)))
       (pop type-cache)
 
-      (when method
+      (when (and method
+		 infos)
 	;; See if any of the groups from this method require updating.
-	(when (block nil
-		(dolist (info infos)
-		  (when (<= (gnus-info-level info)
-			    (if (eq method-type 'foreign)
-				foreign-level
-			      alevel))
-		    (return t))))
-	  (gnus-read-active-for-groups method infos)
-	  (dolist (info infos)
-	    (inline (gnus-get-unread-articles-in-group
-		     info (gnus-active (gnus-info-group info))))))))
+	(gnus-read-active-for-groups method infos)
+	(dolist (info infos)
+	  (inline (gnus-get-unread-articles-in-group
+		   info (gnus-active (gnus-info-group info)))))))
     (gnus-message 6 "Checking new news...done")))
 
 (defun gnus-method-rank (type method)
   (cond
+   ;; Get info for virtual groups last.
+   ((eq (car method) 'nnvirtual)
+    200)
    ((eq type 'primary)
     1)
    ;; Compute the rank of the secondary methods based on where they
@@ -1793,7 +1801,7 @@ If SCAN, request a scan of that group as well."
       (gnus-read-active-file-1 method nil))
      (t
       (dolist (info infos)
-	(gnus-activate-group (gnus-info-group info) nil nil method))))))
+	(gnus-activate-group (gnus-info-group info) nil nil method t))))))
 
 ;; Create a hash table out of the newsrc alist.  The `car's of the
 ;; alist elements are used as keys.

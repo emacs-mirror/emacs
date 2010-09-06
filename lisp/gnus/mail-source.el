@@ -544,11 +544,16 @@ Return the number of files that were found."
   (mail-source-bind-common source
     (if (or mail-source-plugged plugged)
 	(save-excursion
-	  (nnheader-message 4 "%sReading incoming mail from %s..."
-			    (if method
-				(format "%s: " method)
-			      "")
-			    (car source))
+	  ;; Special-case the `file' handler since it's so common and
+	  ;; just adds noise.
+	  (when (or (not (eq (car source) 'file))
+		    (mail-source-bind (file source)
+		      (file-exists-p path)))
+	    (nnheader-message 4 "%sReading incoming mail from %s..."
+			      (if method
+				  (format "%s: " method)
+				"")
+			      (car source)))
 	  (let ((function (cadr (assq (car source) mail-source-fetcher-alist)))
 		(found 0))
 	    (unless function
