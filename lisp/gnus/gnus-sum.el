@@ -6051,9 +6051,7 @@ If WHERE is `summary', the summary mode line format will be used."
 	  (when (> (length mode-string) max-len)
 	    (setq mode-string
 		  (concat (truncate-string-to-width mode-string (- max-len 3))
-			  "...")))
-	  ;; Pad the mode string a bit.
-	  (setq mode-string (format (format "%%-%ds" max-len) mode-string))))
+			  "...")))))
       ;; Update the mode line.
       (setq mode-line-buffer-identification
 	    (gnus-mode-line-buffer-identification (list mode-string)))

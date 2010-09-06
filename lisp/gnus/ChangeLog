@@ -1,5 +1,7 @@
 2010-09-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-sum.el (gnus-set-mode-line): Don't pad the mode line string.
+
 	* nnimap.el (nnimap-open-connection): Revert the change that would look
 	into authinfo for imaps instead of imap.
 
