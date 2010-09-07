@@ -238,6 +238,9 @@ that was fetched."
 	(save-excursion
 	  (save-restriction
 	    (narrow-to-region mark (point-max))
+	    ;; Prefetch images for the groups that want that.
+	    (when (fboundp 'gnus-html-prefetch-images)
+	      (gnus-async-post-fetch-function summary))
 	    (funcall gnus-async-post-fetch-function summary))))
       (gnus-async-with-semaphore
 	(setq

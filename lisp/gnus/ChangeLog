@@ -1,5 +1,8 @@
 2010-09-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-async.el (gnus-async-article-callback): Always prefetch images
+	for groups that want that.
+
 	* nntp.el (nntp-wait-for-string): Supply a timeout for
 	accept-process-output to ensure progress.
 
