@@ -1,11 +1,47 @@
+2010-09-06  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* whitespace.el: Allow cleaning up blanks without blank
+	visualization (Bug#6651).  Adjust help window for
+	whitespace-toggle-options (Bug#6479).  Allow to use fill-column
+	instead of whitespace-line-column (from EmacsWiki).  New version
+	13.1.
+	(whitespace-style): Added new value 'face.  Adjust docstring.
+	(whitespace-space, whitespace-hspace, whitespace-tab): Adjust
+	foreground property face.
+	(whitespace-line-column): Adjust docstring and type declaration.
+	(whitespace-style-value-list, whitespace-toggle-option-alist)
+	(whitespace-help-text): Adjust const initialization.
+	(whitespace-toggle-options, global-whitespace-toggle-options):
+	Adjust docstring.
+	(whitespace-display-window, whitespace-interactive-char)
+	(whitespace-style-face-p, whitespace-color-on): Adjust code.
+	(whitespace-help-scroll): New fun.
+
+2010-09-05  Alexander Klimov  <alserkli@inbox.ru>  (tiny change)
+
+	* files.el (directory-abbrev-alist): Use \` as default regexp.
+
+	* emacs-lisp/rx.el (rx-any): Don't explode ranges that end in special
+	chars like - or ] (bug#6984).
+	(rx-any-condense-range): Explode 2-char ranges.
+
+2010-09-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/bibtex.el:
+	* proced.el: Update to new email for Roland Winkler <winkler@gnu.org>.
+
+2010-09-02  Glenn Morris  <rgm@gnu.org>
+
+	* desktop.el (desktop-path): Bump :version after 2009-09-15 change.
+
 2010-08-31  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el (standard-display-european-internal):
 	Setup standard-display-table for 8-bit characters by storing 8-bit
 	characters in the element vector.
 
-	* disp-table.el (standard-display-8bit): Setup
-	standard-display-table for 8-bit characters by storing 8-bit
+	* disp-table.el (standard-display-8bit):
+	Setup standard-display-table for 8-bit characters by storing 8-bit
 	characters in the element vector.
 	(standard-display-european): Likewise.
 
@@ -42,8 +78,8 @@
 	(tramp-compat-file-attributes): Handle only
 	`wrong-number-of-arguments' error.
 
-	* net/tramp-fish.el (tramp-fish-handle-copy-file): Add
-	PRESERVE_SELINUX_CONTEXT.
+	* net/tramp-fish.el (tramp-fish-handle-copy-file):
+	Add PRESERVE_SELINUX_CONTEXT.
 	(tramp-fish-handle-delete-file): Add TRASH arg.
 	(tramp-fish-handle-directory-files-and-attributes):
 	Do not use `tramp-fish-handle-file-attributes.
@@ -61,10 +97,10 @@
 	(with-tramp-dbus-call-method): Format trace message.
 	(tramp-gvfs-handle-copy-file): Handle PRESERVE-SELINUX-CONTEXT.
 	(tramp-gvfs-handle-copy-file, tramp-gvfs-handle-rename-file):
-	Implement backup call, when operation on local files fails.  Use
-	progress reporter.  Flush properties of changed files.
-	(tramp-gvfs-handle-delete-file): Add TRASH arg.  Use
-	`tramp-compat-delete-file'.
+	Implement backup call, when operation on local files fails.
+	Use progress reporter.  Flush properties of changed files.
+	(tramp-gvfs-handle-delete-file): Add TRASH arg.
+	Use `tramp-compat-delete-file'.
 	(tramp-gvfs-handle-expand-file-name): Expand "~/".
 	(tramp-gvfs-handle-make-directory): Make more traces.
 	(tramp-gvfs-handle-write-region): Protect deleting tmpfile.
@@ -73,17 +109,17 @@
 	into account for the resulting file name.
 	(tramp-gvfs-handler-askquestion): Preserve current message, in
 	order to let progress reporter continue afterwards.  (Bug#6257)
-	Return dummy mountpoint, when the answer is "no".  See
-	`tramp-gvfs-maybe-open-connection'.
+	Return dummy mountpoint, when the answer is "no".
+	See `tramp-gvfs-maybe-open-connection'.
 	(tramp-gvfs-handler-mounted-unmounted)
 	(tramp-gvfs-connection-mounted-p): Test also for new mountspec
-	attribute "default_location".  Set "prefix" property.  Handle
-	default-location.
+	attribute "default_location".  Set "prefix" property.
+	Handle default-location.
 	(tramp-gvfs-mount-spec): Return both prefix and mountspec.
 	(tramp-gvfs-maybe-open-connection): Test, whether mountpoint
 	exists.  Raise an error, if not (due to a corresponding answer
-	"no" in interactive questions, for example). Use
-	`tramp-compat-funcall'.
+	"no" in interactive questions, for example).
+	Use `tramp-compat-funcall'.
 
 	* net/tramp-imap.el (top): Autoload `epg-make-context'.
 	(tramp-imap-handle-copy-file): Add PRESERVE-SELINUX-CONTEXT.
@@ -92,8 +128,8 @@
 	(tramp-imap-handle-file-local-copy): Use `with-progress-reporter'.
 	(tramp-imap-handle-delete-file): Add TRASH arg.
 
-	* net/tramp-smb.el (tramp-smb-handle-copy-file): Add
-	PRESERVE-SELINUX-CONTEXT.
+	* net/tramp-smb.el (tramp-smb-handle-copy-file):
+	Add PRESERVE-SELINUX-CONTEXT.
 	(tramp-smb-handle-copy-file)
 	(tramp-smb-handle-file-local-copy, tramp-smb-handle-rename-file)
 	(tramp-smb-handle-write-region, tramp-smb-maybe-open-connection):
@@ -160,8 +196,8 @@
 	(tramp-get-remote-path): Use `copy-tree'.
 	(tramp-completion-handle-file-name-all-completions): Ensure, that
 	non remote files are still checked.  Oops.
-	(tramp-handle-copy-file, tramp-do-copy-or-rename-file): Handle
-	PRESERVE-SELINUX-CONTEXT.
+	(tramp-handle-copy-file, tramp-do-copy-or-rename-file):
+	Handle PRESERVE-SELINUX-CONTEXT.
 	(tramp-do-copy-or-rename-file): Add progress reporter.
 	(tramp-do-copy-or-rename-file-directly): Do not use
 	`tramp-handle-file-remote-p'.
@@ -175,8 +211,8 @@
 	cache.
 	(tramp-handle-expand-file-name)
 	(tramp-completion-handle-file-name-all-completions)
-	(tramp-completion-handle-file-name-completion): Use
-	`tramp-connectable-p'.
+	(tramp-completion-handle-file-name-completion):
+	Use `tramp-connectable-p'.
 	(tramp-handle-start-file-process): Set connection property "vec".
 	Use it, in order to invalidate file caches.  Check only for
 	`remote-tty' process property.
@@ -538,8 +574,7 @@
 2010-07-03  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/zeroconf.el (zeroconf-resolve-service)
-	(zeroconf-service-resolver-handler): Use
-	`dbus-byte-array-to-string'.
+	(zeroconf-service-resolver-handler): Use `dbus-byte-array-to-string'.
 	(zeroconf-publish-service): Use `dbus-string-to-byte-array'.
 
 2010-07-03  Jan Moringen  <jan.moringen@uni-bielefeld.de>
@@ -643,8 +678,8 @@
 2010-06-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Fix reading file names in Git annotate buffers.
-	* vc-git.el (vc-git-annotate-extract-revision-at-line): Remove
-	trailing whitespace.  Suggested by Eric Hanchrow.  (Bug#6481)
+	* vc-git.el (vc-git-annotate-extract-revision-at-line):
+	Remove trailing whitespace.  Suggested by Eric Hanchrow.  (Bug#6481)
 
 2010-06-20  Alan Mackenzie  <acm@muc.de>
 
@@ -887,15 +922,15 @@
 2010-04-20  Kenichi Handa  <handa@m17n.org>
 
 	* language/indian.el (oriya-composable-pattern)
-	(tamil-composable-pattern, malayalam-composable-pattern): Add
-	two-part vowels to "v" (vowel sign).
+	(tamil-composable-pattern, malayalam-composable-pattern):
+	Add two-part vowels to "v" (vowel sign).
 
 2010-04-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.el (copy-directory): Handle symlinks (Bug#5982).
 
-	* progmodes/compile.el (compilation-next-error-function): Revert
-	2009-10-12 change (Bug#5983).
+	* progmodes/compile.el (compilation-next-error-function):
+	Revert 2009-10-12 change (Bug#5983).
 
 2010-04-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -911,8 +946,8 @@
 
 2010-04-18  Chong Yidong  <cyd@stupidchicken.com>
 
-	* cedet/ede/pmake.el (ede-proj-makefile-insert-variables): Don't
-	destroy list before using it.
+	* cedet/ede/pmake.el (ede-proj-makefile-insert-variables):
+	Don't destroy list before using it.
 
 2010-04-17  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -1175,8 +1210,8 @@
 
 2010-03-07  Štěpán Němec  <stepnem@gmail.com>  (tiny change)
 
-	* vc-git.el (vc-git-annotate-extract-revision-at-line): Use
-	vc-git-root as default directory for revision path (Bug#5657).
+	* vc-git.el (vc-git-annotate-extract-revision-at-line):
+	Use vc-git-root as default directory for revision path (Bug#5657).
 
 2010-03-06  Chong Yidong  <cyd@stupidchicken.com>
 

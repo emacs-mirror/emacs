@@ -226,7 +226,7 @@ the normal hook `desktop-not-loaded-hook' is run."
 The base name of the file is specified in `desktop-base-file-name'."
   :type '(repeat directory)
   :group 'desktop
-  :version "22.1")
+  :version "23.2")                      ; user-emacs-directory added
 
 (defcustom desktop-missing-file-warning nil
   "If non-nil, offer to recreate the buffer of a deleted file.

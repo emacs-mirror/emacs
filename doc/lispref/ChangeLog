@@ -1,3 +1,7 @@
+2010-09-05  Alexander Klimov  <alserkli@inbox.ru>  (tiny change)
+
+	* files.texi (Directory Names): Use \` rather than ^.
+
 2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* modes.texi (Defining Minor Modes): Doc fix (Bug#6880).
