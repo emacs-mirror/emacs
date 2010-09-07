@@ -267,7 +267,7 @@ This is initialized based on `user-mail-address'."
 	(gnus-message 7 "Waiting for response from %s..." host)
 	(while (and (memq (process-status tcp-connection) '(open run))
 		    (zerop (buffer-size)))
-	  (accept-process-output tcp-connection))
+	  (accept-process-output tcp-connection 1))
 	(gnus-message 7 "Waiting for response from %s... done" host)))))
 
 ;;;###autoload

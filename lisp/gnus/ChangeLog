@@ -1,3 +1,26 @@
+2010-09-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-html.el (gnus-html-wash-tags): Limit end-tag matching to the
+	current line to work around bugs in the output from w3m.
+
+	* gnus-async.el (gnus-async-article-callback): Always prefetch images
+	for groups that want that.
+
+	* nntp.el (nntp-wait-for-string): Supply a timeout for
+	accept-process-output to ensure progress.
+
+	* gnus-start.el (gnus-get-unread-articles): If being given an explicit
+	level to get unread articles from, then use that for foreign groups,
+	too.
+
+	* gnus-html.el (gnus-html-wash-tags): Remove <a name...> tags, which
+	confuses the rest of the function.
+
+	* gnus-start.el (gnus-read-active-for-groups): Do a `gnus-request-scan'
+	for the methods that support -retrieve-groups, too.
+
+	* nnml.el (nnml-save-nov): Remove some debugging-related messages.
+
 2010-09-06  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* pop3.el: Require cl when compiling.

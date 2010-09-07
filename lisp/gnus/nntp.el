@@ -1768,7 +1768,7 @@ password contained in '~/.nntp-authinfo'."
     (while (and (setq proc (get-buffer-process buf))
 		(memq (process-status proc) '(open run))
 		(not (re-search-forward regexp nil t)))
-      (accept-process-output proc)
+      (accept-process-output proc 0.1)
       (set-buffer buf)
       (goto-char (point-min)))))
 
