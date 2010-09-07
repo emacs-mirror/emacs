@@ -150,7 +150,8 @@ fit these criteria."
 		(when image
 		  (let ((string (buffer-substring start end)))
 		    (delete-region start end)
-		    (gnus-put-image image (gnus-string-or string "*")))))
+		    (gnus-put-image image (gnus-string-or string "*") 'cid)
+		    (gnus-add-image 'cid image))))
 	    ;; Normal, external URL.
 	    (if (gnus-html-image-url-blocked-p
 		 url
@@ -309,9 +310,11 @@ fit these criteria."
 	      t)
 	  (insert string)
 	  (when (fboundp 'find-image)
-	    (gnus-put-image (find-image
-			     '((:type xpm :file "lock-broken.xpm")))
-			    (gnus-string-or string "*")))
+	    (setq image (find-image '((:type xpm :file "lock-broken.xpm"))))
+	    (gnus-put-image image
+			    (gnus-string-or string "*")
+			    'internal)
+	    (gnus-add-image 'internal image))
 	  nil)))))
 
 (defun gnus-html-rescale-image (image file size)
