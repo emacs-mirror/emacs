@@ -1,5 +1,8 @@
 2010-09-07  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* gnus-html.el (gnus-html-wash-tags, gnus-html-put-image): Mark cid and
+	internal images as deletable by `W D D'.
+
 	* gnus-async.el (gnus-html-prefetch-images): Autoload it when compiling.
 	(gnus-async-article-callback): Fix typo.
 
