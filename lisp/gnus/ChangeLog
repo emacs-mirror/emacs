@@ -1,5 +1,9 @@
 2010-09-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-start.el (gnus-get-unread-articles): If being given an explicit
+	level to get unread articles from, then use that for foreign groups,
+	too.
+
 	* gnus-html.el (gnus-html-wash-tags): Remove <a name...> tags, which
 	confuses the rest of the function.
 

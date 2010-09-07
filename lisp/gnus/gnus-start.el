@@ -1677,14 +1677,16 @@ If SCAN, request a scan of that group as well."
   (let* ((newsrc (cdr gnus-newsrc-alist))
 	 (alevel (or level gnus-activate-level (1+ gnus-level-subscribed)))
 	 (foreign-level
-	  (min
-	   (cond ((and gnus-activate-foreign-newsgroups
-		       (not (numberp gnus-activate-foreign-newsgroups)))
-		  (1+ gnus-level-subscribed))
-		 ((numberp gnus-activate-foreign-newsgroups)
-		  gnus-activate-foreign-newsgroups)
-		 (t 0))
-	   alevel))
+	  (or
+	   level
+	   (min
+	    (cond ((and gnus-activate-foreign-newsgroups
+			(not (numberp gnus-activate-foreign-newsgroups)))
+		   (1+ gnus-level-subscribed))
+		  ((numberp gnus-activate-foreign-newsgroups)
+		   gnus-activate-foreign-newsgroups)
+		  (t 0))
+	    alevel)))
 	 (methods-cache nil)
 	 (type-cache nil)
 	 (gnus-agent-article-local-times 0)
