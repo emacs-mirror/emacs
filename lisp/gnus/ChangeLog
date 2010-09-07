@@ -1,5 +1,8 @@
 2010-09-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* nntp.el (nntp-wait-for-string): Supply a timeout for
+	accept-process-output to ensure progress.
+
 	* gnus-start.el (gnus-get-unread-articles): If being given an explicit
 	level to get unread articles from, then use that for foreign groups,
 	too.
