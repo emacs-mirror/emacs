@@ -2031,7 +2031,7 @@ detect_coding_emacs_mule (coding, detect_info)
 	}
       else
 	{
-	  int more_bytes = emacs_mule_bytes[*src_base] - 1;
+	  int more_bytes = emacs_mule_bytes[c] - 1;
 
 	  while (more_bytes > 0)
 	    {
