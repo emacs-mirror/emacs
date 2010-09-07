@@ -228,6 +228,9 @@ that was fetched."
   `(lambda (arg)
      (gnus-async-article-callback arg ,group ,article ,mark ,summary ,next)))
 
+(eval-when-compile
+  (autoload 'gnus-html-prefetch-images "gnus-html"))
+
 (defun gnus-async-article-callback (arg group article mark summary next)
   "Function called when an async article is done being fetched."
   (save-excursion
@@ -240,7 +243,7 @@ that was fetched."
 	    (narrow-to-region mark (point-max))
 	    ;; Prefetch images for the groups that want that.
 	    (when (fboundp 'gnus-html-prefetch-images)
-	      (gnus-async-post-fetch-function summary))
+	      (gnus-html-prefetch-images summary))
 	    (funcall gnus-async-post-fetch-function summary))))
       (gnus-async-with-semaphore
 	(setq
