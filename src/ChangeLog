@@ -1,3 +1,8 @@
+2010-09-07  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (detect_coding_emacs_mule): Fix checking of multibyte
+	sequence when the source is multibyte.
+
 2010-08-31  Kenichi Handa  <handa@m17n.org>
 
 	* dispextern.h (FACE_FOR_CHAR): Use an ASCII face for 8-bit
