@@ -117,7 +117,7 @@ fit these criteria."
     (while (re-search-forward " *<pre_int> *</pre_int> *\n" nil t)
       (replace-match "" t t))
     (goto-char (point-min))
-    (while (re-search-forward "<a name[^>]+>" nil t)
+    (while (re-search-forward "<a name[^\n>]+>" nil t)
       (replace-match "" t t))
     (goto-char (point-min))
     (while (re-search-forward "<\\([^ />]+\\)\\([^>]*\\)>" nil t)
@@ -127,7 +127,7 @@ fit these criteria."
       (when (plusp (length parameters))
 	(set-text-properties 0 (1- (length parameters)) nil parameters))
       (delete-region start (point))
-      (when (search-forward (concat "</" tag ">") nil t)
+      (when (search-forward (concat "</" tag ">") (line-end-position) t)
 	(delete-region (match-beginning 0) (match-end 0)))
       (setq end (point))
       (cond
@@ -224,7 +224,7 @@ fit these criteria."
     (goto-char (point-min))
     ;; The output from -halfdump isn't totally regular, so strip
     ;; off any </pre_int>s that were left over.
-    (while (re-search-forward "</pre_int>" nil t)
+    (while (re-search-forward "</pre_int>\\|</internal>" nil t)
       (replace-match "" t t))
     (when images
       (gnus-html-schedule-image-fetching (current-buffer) (nreverse images)))

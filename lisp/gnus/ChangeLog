@@ -1,5 +1,8 @@
 2010-09-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-html.el (gnus-html-wash-tags): Limit end-tag matching to the
+	current line to work around bugs in the output from w3m.
+
 	* gnus-async.el (gnus-async-article-callback): Always prefetch images
 	for groups that want that.
 
