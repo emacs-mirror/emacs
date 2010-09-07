@@ -1,3 +1,8 @@
+2010-09-07  Agustín Martín  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-start-process): Make sure original
+	arg list is properly initialized (Bug#6993, Bug#6994).
+
 2010-09-06  Alexander Klimov  <alserkli@inbox.ru>  (tiny change)
 
 	* files.el (directory-abbrev-alist): Use \` as default regexp.

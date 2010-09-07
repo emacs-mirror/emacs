@@ -2591,12 +2591,13 @@ Keeps argument list for future ispell invocations for no async support."
                default-directory
              ;; Defend against bad `default-directory'.
              (expand-file-name "~/")))
+	 (orig-args (ispell-get-ispell-args))
          (args
           (append
-           (if (and ispell-current-dictionary ; Use specified dictionary.
-                    (not (member "-d" args))) ; Only define if not overridden.
+           (if (and ispell-current-dictionary      ; Not for default dict (nil)
+                    (not (member "-d" orig-args))) ; Only define if not overridden.
                (list "-d" ispell-current-dictionary))
-           (ispell-get-ispell-args)
+           orig-args
            (if ispell-current-personal-dictionary ; Use specified pers dict.
                (list "-p"
                      (expand-file-name ispell-current-personal-dictionary)))
