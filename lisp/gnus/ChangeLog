@@ -1,3 +1,8 @@
+2010-09-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-async.el (gnus-html-prefetch-images): Autoload it when compiling.
+	(gnus-async-article-callback): Fix typo.
+
 2010-09-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-html.el (gnus-html-wash-tags): Limit end-tag matching to the
