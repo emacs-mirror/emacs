@@ -1,3 +1,8 @@
+2010-09-08  Masatake YAMATO  <yamato@redhat.com>
+
+	* progmodes/antlr-mode.el (antlr-font-lock-additional-keywords):
+	Fix typo.  (Bug#6976)
+
 2010-09-06  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* whitespace.el: Allow cleaning up blanks without blank
