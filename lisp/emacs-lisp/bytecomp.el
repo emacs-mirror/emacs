@@ -1,7 +1,8 @@
 ;;; bytecomp.el --- compilation of Lisp code into byte code
 
 ;; Copyright (C) 1985, 1986, 1987, 1992, 1994, 1998, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -1548,6 +1549,9 @@ that already has a `.elc' file."
 	       (if (and (string-match emacs-lisp-file-regexp bytecomp-source)
 			(file-readable-p bytecomp-source)
 			(not (auto-save-file-name-p bytecomp-source))
+			(not (string-equal dir-locals-file
+					   (file-name-nondirectory
+					    bytecomp-source)))
 			(setq bytecomp-dest
                               (byte-compile-dest-file bytecomp-source))
 			(if (file-exists-p bytecomp-dest)

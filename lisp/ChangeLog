@@ -1,3 +1,8 @@
+2010-09-08  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-recompile-directory):
+	Ignore dir-locals-file.
+
 2010-09-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist):
