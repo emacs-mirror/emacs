@@ -50,6 +50,7 @@
   "Return the byte that is encoded as CHAR."
   (cdr (assq char tramp-uu-b64-char-to-byte)))
 
+;;;###tramp-autoload
 (defun tramp-uuencode-region (beg end)
   "UU-encode the region between BEG and END."
   ;; First we base64 encode the region, then we transmogrify that into
@@ -86,6 +87,10 @@
       (insert "`\nend\n")
       (goto-char beg)
       (insert "begin 600 xxx\n"))))
+
+(add-hook 'tramp-unload-hook
+	  (lambda ()
+	    (unload-feature 'tramp-uu 'force)))
 
 (provide 'tramp-uu)
 

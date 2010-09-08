@@ -30,17 +30,16 @@
 
 (eval-when-compile (require 'cl))	; block, return
 (require 'tramp)
-(require 'tramp-cache)
-(require 'tramp-compat)
 
 ;; Define SMB method ...
-(defcustom tramp-smb-method "smb"
-  "*Method to connect SAMBA and M$ SMB servers."
-  :group 'tramp
-  :type 'string)
+;;;###tramp-autoload
+(defconst tramp-smb-method "smb"
+  "*Method to connect SAMBA and M$ SMB servers.")
 
 ;; ... and add it to the method list.
-(add-to-list 'tramp-methods (cons tramp-smb-method nil))
+;;;###tramp-autoload
+(unless (memq system-type '(cygwin windows-nt))
+  (add-to-list 'tramp-methods (cons tramp-smb-method nil)))
 
 ;; Add a default for `tramp-default-method-alist'. Rule: If there is
 ;; a domain in USER, it must be the SMB method.
@@ -205,11 +204,13 @@ See `tramp-actions-before-shell' for more info.")
   "Alist of handler functions for Tramp SMB method.
 Operations not mentioned here will be handled by the default Emacs primitives.")
 
-(defun tramp-smb-file-name-p (filename)
+;;;###tramp-autoload
+(defsubst tramp-smb-file-name-p (filename)
   "Check if it's a filename for SMB servers."
   (let ((v (tramp-dissect-file-name filename)))
     (string= (tramp-file-name-method v) tramp-smb-method)))
 
+;;;###tramp-autoload
 (defun tramp-smb-file-name-handler (operation &rest args)
   "Invoke the SMB related OPERATION.
 First arg specifies the OPERATION, second arg is a list of arguments to
@@ -219,8 +220,10 @@ pass to the OPERATION."
 	(save-match-data (apply (cdr fn) args))
       (tramp-run-real-handler operation args))))
 
-(add-to-list 'tramp-foreign-file-name-handler-alist
-	     (cons 'tramp-smb-file-name-p 'tramp-smb-file-name-handler))
+;;;###tramp-autoload
+(unless (memq system-type '(cygwin windows-nt))
+  (add-to-list 'tramp-foreign-file-name-handler-alist
+	       (cons 'tramp-smb-file-name-p 'tramp-smb-file-name-handler)))
 
 
 ;; File name primitives.
@@ -784,7 +787,7 @@ PRESERVE-UID-GID is completely ignored."
 	   (if (tramp-smb-get-cifs-capabilities v)
 	       (format
 		"posix_mkdir \"%s\" %s"
-		file (tramp-decimal-to-octal (default-file-modes)))
+		file (tramp-compat-decimal-to-octal (default-file-modes)))
 	     (format "mkdir \"%s\"" file)))
 	  ;; We must also flush the cache of the directory, because
 	  ;; `file-attributes' reads the values from there.
@@ -893,7 +896,7 @@ target of the symlink differ."
       (unless (tramp-smb-send-command
 	       v (format "chmod \"%s\" %s"
 			 (tramp-smb-get-localname v)
-			 (tramp-decimal-to-octal mode)))
+			 (tramp-compat-decimal-to-octal mode)))
 	(tramp-error
 	 v 'file-error "Error while changing file's mode %s" filename)))))
 
@@ -1397,6 +1400,9 @@ Returns nil if an error message has appeared."
       (tramp-message vec 6 "\n%s" (buffer-string))
       (not err))))
 
+(add-hook 'tramp-unload-hook
+	  (lambda ()
+	    (unload-feature 'tramp-smb 'force)))
 
 (provide 'tramp-smb)
 
