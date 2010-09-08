@@ -1630,6 +1630,7 @@ Return nil if there isn't one."
 	      load-elt (and loads (car loads)))))
     load-elt))
 
+(put 'eval-after-load 'lisp-indent-function 1)
 (defun eval-after-load (file form)
   "Arrange that, if FILE is ever loaded, FORM will be run at that time.
 If FILE is already loaded, evaluate FORM right now.
@@ -2713,7 +2714,7 @@ nor the buffer list."
   "Create a new buffer, evaluate BODY there, and write the buffer to FILE.
 The value returned is the value of the last form in BODY.
 See also `with-temp-buffer'."
-  (declare (debug t))
+  (declare (indent 1) (debug t))
   (let ((temp-file (make-symbol "temp-file"))
 	(temp-buffer (make-symbol "temp-buffer")))
     `(let ((,temp-file ,file)
@@ -2735,7 +2736,7 @@ The value returned is the value of the last form in BODY.
 MESSAGE is written to the message log buffer if `message-log-max' is non-nil.
 If MESSAGE is nil, the echo area and message log buffer are unchanged.
 Use a MESSAGE of \"\" to temporarily clear the echo area."
-  (declare (debug t))
+  (declare (debug t) (indent 1))
   (let ((current-message (make-symbol "current-message"))
 	(temp-message (make-symbol "with-temp-message")))
     `(let ((,temp-message ,message)
@@ -2765,7 +2766,7 @@ See also `with-temp-file' and `with-output-to-string'."
                 (kill-buffer ,temp-buffer)))))))
 
 (defmacro with-silent-modifications (&rest body)
-  "Execute BODY, pretending it does not modifies the buffer.
+  "Execute BODY, pretending it does not modify the buffer.
 If BODY performs real modifications to the buffer's text, other
 than cosmetic ones, undo data may become corrupted.
 Typically used around modifications of text-properties which do not really
@@ -3227,7 +3228,7 @@ that can be added."
 The syntax table of the current buffer is saved, BODY is evaluated, and the
 saved table is restored, even in case of an abnormal exit.
 Value is what BODY returns."
-  (declare (debug t))
+  (declare (debug t) (indent 1))
   (let ((old-table (make-symbol "table"))
 	(old-buffer (make-symbol "buffer")))
     `(let ((,old-table (syntax-table))

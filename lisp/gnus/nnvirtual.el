@@ -260,13 +260,11 @@ component group will show up when you enter the virtual group.")
     (nnheader-report 'nnvirtual "No component groups in %s" group))
    (t
     (setq nnvirtual-current-group group)
-    (when (or (not dont-check)
-	      nnvirtual-always-rescan)
-      (nnvirtual-create-mapping)
-      (when nnvirtual-always-rescan
-	(nnvirtual-request-update-info
-	 (nnvirtual-current-group)
-	 (gnus-get-info (nnvirtual-current-group)))))
+    (nnvirtual-create-mapping dont-check)
+    (when nnvirtual-always-rescan
+      (nnvirtual-request-update-info
+       (nnvirtual-current-group)
+       (gnus-get-info (nnvirtual-current-group))))
     (nnheader-insert "211 %d 1 %d %s\n"
 		     nnvirtual-mapping-len nnvirtual-mapping-len group))))
 
@@ -298,10 +296,6 @@ component group will show up when you enter the virtual group.")
 	     (not (gnus-ephemeral-group-p (nnvirtual-current-group))))
     (nnvirtual-update-read-and-marked t t))
   t)
-
-
-(deffoo nnvirtual-request-list (&optional server)
-  (nnheader-report 'nnvirtual "LIST is not implemented."))
 
 
 (deffoo nnvirtual-request-newgroups (date &optional server)
@@ -674,7 +668,7 @@ the result."
     carticles))
 
 
-(defun nnvirtual-create-mapping ()
+(defun nnvirtual-create-mapping (dont-check)
   "Build the tables necessary to map between component (group, article) to virtual article.
 Generate the set of read messages and marks for the virtual group
 based on the marks on the component groups."
@@ -693,7 +687,9 @@ based on the marks on the component groups."
     ;; Into all-marks we put (g marks).
     ;; We also increment cnt and tot here, and compute M (max of sizes).
     (mapc (lambda (g)
-	    (setq active (gnus-activate-group g)
+	    (setq active (or (and dont-check
+				  (gnus-active g))
+			     (gnus-activate-group g))
 		  min (car active)
 		  max (cdr active))
 	    (when (and active (>= max min) (not (zerop max)))
@@ -809,5 +805,4 @@ based on the marks on the component groups."
 
 (provide 'nnvirtual)
 
-;; arch-tag: ca8c8ad9-1bd8-4b0f-9722-90dc645a45f5
 ;;; nnvirtual.el ends here

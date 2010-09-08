@@ -335,7 +335,7 @@ Returns t if login was successful, nil otherwise."
 (defun sieve-sasl-auth (buffer mech)
   "Login to server using the SASL MECH method."
   (message "sieve: Authenticating using %s..." mech)
-  (if (sieve-manage-interactive-login 
+  (if (sieve-manage-interactive-login
        buffer
        (lambda (user passwd)
 	 (let (client step tag data rsp)
@@ -701,5 +701,4 @@ password is remembered in the buffer."
 
 (provide 'sieve-manage)
 
-;; arch-tag: 321c4640-1371-4495-9baf-8ccb71dd5bd1
 ;; sieve-manage.el ends here

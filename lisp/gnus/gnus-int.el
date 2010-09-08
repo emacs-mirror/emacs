@@ -365,7 +365,7 @@ If it is down, start it up (again)."
     (when (stringp gnus-command-method)
       (setq gnus-command-method
 	    (inline (gnus-server-to-method gnus-command-method))))
-	 (funcall (inline (gnus-get-function gnus-command-method 'request-group))
+    (funcall (inline (gnus-get-function gnus-command-method 'request-group))
 	     (gnus-group-real-name group) (nth 1 gnus-command-method)
 	     dont-check)))
 
@@ -544,7 +544,8 @@ If GROUP is nil, all groups on GNUS-COMMAND-METHOD are scanned."
 	 (if group (gnus-find-method-for-group group) gnus-command-method))
 	(gnus-inhibit-demon t)
 	(mail-source-plugged gnus-plugged))
-    (when (or gnus-plugged (not (gnus-agent-method-p gnus-command-method)))
+    (when (or gnus-plugged
+	      (not (gnus-agent-method-p gnus-command-method)))
       (setq gnus-internal-registry-spool-current-method gnus-command-method)
       (funcall (gnus-get-function gnus-command-method 'request-scan)
 	       (and group (gnus-group-real-name group))
@@ -716,5 +717,4 @@ If GROUP is nil, all groups on GNUS-COMMAND-METHOD are scanned."
 
 (provide 'gnus-int)
 
-;; arch-tag: bbc90087-9b7f-4017-a92c-3abf180ac86d
 ;;; gnus-int.el ends here

@@ -427,7 +427,7 @@ Only both edges of each range is checked."
 	    (mapcar (lambda (e)
 		      (cond
 		       ((= (car e) (cdr e)) (list (car e)))
-		       ;; ((= (1+ (car e)) (cdr e)) (list (car e) (cdr e)))
+		       ((= (1+ (car e)) (cdr e)) (list (car e) (cdr e)))
 		       ((list e))))
 		    l))
      (delete-dups str))))
@@ -545,7 +545,10 @@ ARG is optional."
 			    ((numberp e) (string e))
 			    ((consp e)
 			     (if (and (= (1+ (car e)) (cdr e))
-				      (null (memq (car e) '(?\] ?-))))
+                                      ;; rx-any-condense-range should
+                                      ;; prevent this case from happening.
+				      (null (memq (car e) '(?\] ?-)))
+                                      (null (memq (cdr e) '(?\] ?-))))
 				 (string (car e) (cdr e))
 			       (string (car e) ?- (cdr e))))
 			    (e)))

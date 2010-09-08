@@ -96,5 +96,4 @@
 
 (provide 'nndir)
 
-;; arch-tag: 56f09f68-0e4e-4816-818a-df80b4a394c8
 ;;; nndir.el ends here

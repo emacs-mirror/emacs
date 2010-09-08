@@ -290,9 +290,13 @@ MATCH is the pattern that needs to be matched, of the form:
 (defun pcase-split-memq (elems pat)
   ;; Based on pcase-split-eq.
   (cond
-   ;; The same match will give the same result.
+   ;; The same match will give the same result, but we don't know how
+   ;; to check it.
+   ;; (???
+   ;;  (cons :pcase-succeed nil))
+   ;; A match for one of the elements may succeed or fail.
    ((and (eq (car-safe pat) '\`) (member (cadr pat) elems))
-    (cons :pcase-succeed nil))
+    nil)
    ;; A different match will fail if this one succeeds.
    ((and (eq (car-safe pat) '\`)
          ;; (or (integerp (cadr pat)) (symbolp (cadr pat))
@@ -383,18 +387,20 @@ and otherwise defers to REST which is a list of branches of the form
                         `(,(cadr upat) ,sym)
                       (let* ((exp (cadr upat))
                              ;; `vs' is an upper bound on the vars we need.
-                             (vs (pcase-fgrep (mapcar #'car vars) exp)))
-                        (if vs
-                            ;; Let's not replace `vars' in `exp' since it's
-                            ;; too difficult to do it right, instead just
-                            ;; let-bind `vars' around `exp'.
-                            `(let ,(mapcar (lambda (var)
-                                             (list var (cdr (assq var vars))))
-                                           vs)
-                               ;; FIXME: `vars' can capture `sym'.  E.g.
-                               ;; (pcase x ((and `(,x . ,y) (pred (fun x)))))
-                               (,@exp ,sym))
-                          `(,@exp ,sym))))
+                             (vs (pcase-fgrep (mapcar #'car vars) exp))
+                             (call (if (functionp exp)
+                                       `(,exp ,sym) `(,@exp ,sym))))
+                        (if (null vs)
+                            call
+                          ;; Let's not replace `vars' in `exp' since it's
+                          ;; too difficult to do it right, instead just
+                          ;; let-bind `vars' around `exp'.
+                          `(let ,(mapcar (lambda (var)
+                                           (list var (cdr (assq var vars))))
+                                         vs)
+                             ;; FIXME: `vars' can capture `sym'.  E.g.
+                             ;; (pcase x ((and `(,x . ,y) (pred (fun x)))))
+                             ,call))))
                     (pcase-u1 matches code vars then-rest)
                     (pcase-u else-rest))))
        ((symbolp upat)

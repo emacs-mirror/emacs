@@ -265,7 +265,7 @@ It scans low-level sorted spools even when not required."
   :type 'function)
 
 (defcustom nnmail-crosspost-link-function
-  (if (string-match "windows-nt\\|emx" (symbol-name system-type))
+  (if (string-match "windows-nt" (symbol-name system-type))
       'copy-file
     'add-name-to-file)
   "*Function called to create a copy of a file.
@@ -1823,8 +1823,6 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
       ;; The we go through all the existing mail source specification
       ;; and fetch the mail from each.
       (while (setq source (pop fetching-sources))
-	(nnheader-message 4 "%s: Reading incoming mail from %s..."
-			  method (car source))
 	(when (setq new
 		    (mail-source-fetch
 		     source
@@ -1842,8 +1840,9 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 	  (incf i)))
       ;; If we did indeed read any incoming spools, we save all info.
       (if (zerop total)
-	  (nnheader-message 4 "%s: Reading incoming mail (no new mail)...done"
-			    method (car source))
+	  (when mail-source-plugged
+	    (nnheader-message 4 "%s: Reading incoming mail (no new mail)...done"
+			      method (car source)))
 	(nnmail-save-active
 	 (nnmail-get-value "%s-group-alist" method)
 	 (nnmail-get-value "%s-active-file" method))
@@ -2052,5 +2051,4 @@ Doesn't change point."
 
 (provide 'nnmail)
 
-;; arch-tag: fe8f671a-50db-428a-bb5d-f00462f72ed7
 ;;; nnmail.el ends here

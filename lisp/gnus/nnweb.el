@@ -612,5 +612,4 @@ Valid types include `google', `dejanews', and `gmane'.")
 
 (provide 'nnweb)
 
-;; arch-tag: f59307eb-c90f-479f-b7d2-dbd8bf51b697
 ;;; nnweb.el ends here

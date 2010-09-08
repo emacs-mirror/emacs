@@ -77,7 +77,7 @@ Integer values will in effect be rounded up to the nearest multiple of
   "*Length of each read operation when trying to fetch HEAD headers.")
 
 (defvar nnheader-read-timeout
-  (if (string-match "windows-nt\\|os/2\\|emx\\|cygwin"
+  (if (string-match "windows-nt\\|os/2\\|cygwin"
 		    (symbol-name system-type))
       ;; http://thread.gmane.org/v9655t3pjo.fsf@marauder.physik.uni-ulm.de
       ;;
@@ -102,7 +102,7 @@ Shorter values mean quicker response, but are more CPU intensive.")
 (defvar nnheader-file-name-translation-alist
   (let ((case-fold-search t))
     (cond
-     ((string-match "windows-nt\\|os/2\\|emx\\|cygwin"
+     ((string-match "windows-nt\\|os/2\\|cygwin"
 		    (symbol-name system-type))
       (append (mapcar (lambda (c) (cons c ?_))
 		      '(?: ?* ?\" ?< ?> ??))
@@ -786,8 +786,7 @@ If FULL, translate everything."
 	;; We translate -- but only the file name.  We leave the directory
 	;; alone.
 	(if (and (featurep 'xemacs)
-		 (memq system-type '(cygwin32 win32 w32 mswindows windows-nt
-					      cygwin)))
+		 (memq system-type '(windows-nt cygwin)))
 	    ;; This is needed on NT and stuff, because
 	    ;; file-name-nondirectory is not enough to split
 	    ;; file names, containing ':', e.g.
@@ -1086,5 +1085,4 @@ See `find-file-noselect' for the arguments."
 
 (provide 'nnheader)
 
-;; arch-tag: a9c4b7d9-52ae-4ec9-b196-dfd93124d202
 ;;; nnheader.el ends here

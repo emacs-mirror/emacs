@@ -476,5 +476,4 @@ NODISPLAY is non-nil, don't redisplay the article buffer."
 ;; coding: iso-8859-1
 ;; End:
 
-;; arch-tag: 5f895cc9-51a9-487c-b42e-28844d79eb73
 ;;; deuglify.el ends here

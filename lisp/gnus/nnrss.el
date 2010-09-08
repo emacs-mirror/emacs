@@ -498,7 +498,7 @@ nnrss: %s: Not valid XML %s and w3-parse doesn't work %s"
 (defun nnrss-normalize-date (date)
   "Return a date string of DATE in the RFC822 style.
 This function handles the ISO 8601 date format described in
-<URL:http://www.w3.org/TR/NOTE-datetime>, and also the RFC822 style
+URL `http://www.w3.org/TR/NOTE-datetime', and also the RFC822 style
 which RSS 2.0 allows."
   (let (case-fold-search vector year month day time zone cts given)
     (cond ((null date))			; do nothing for this case
@@ -1012,7 +1012,7 @@ whether they are `offsite' or `onsite'."
 
 (defun nnrss-discover-feed (url)
   "Given a page, find an RSS feed using Mark Pilgrim's
-`ultra-liberal rss locator' (http://diveintomark.org/2002/08/15.html)."
+`ultra-liberal rss locator' (URL `http://diveintomark.org/2002/08/15.html')."
 
   (let ((parsed-page (nnrss-fetch url)))
 
@@ -1134,5 +1134,4 @@ prefix), return the prefix."
 
 (provide 'nnrss)
 
-;; arch-tag: 12910c07-0cdf-44fb-8d2c-416ded64c267
 ;;; nnrss.el ends here

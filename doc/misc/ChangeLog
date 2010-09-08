@@ -1,6 +1,63 @@
+2010-09-04  Julien Danjou  <julien@danjou.info>  (tiny change)
+
+	* gnus.texi (Adaptive Scoring): Fix typo.
+
+2010-09-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Article Display): Document gnus-html-show-images.
+
+2010-09-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* cl.texi (Basic Setf): Remove x-get-cut-buffer and x-get-cutbuffer.
+
+2010-09-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (HTML): Document gnus-max-image-proportion.
+
+2010-08-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (HTML): Document gnus-blocked-images.
+
+	* message.texi (Wide Reply): Document message-prune-recipient-rules.
+
+2010-08-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Summary Mail Commands): Note that only the addresses from
+	the first message are used for wide replies.
+	(Changing Servers): Remove documentation on gnus-change-server and
+	friends, since it's been removed.
+
+2010-08-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Drafts): Mention B DEL.
+
+2010-08-29  Tim Landscheidt  <tim@tim-landscheidt.de>  (tiny change)
+
+	* gnus.texi (Delayed Articles): Mention that the Date header is the
+	original one, even if you delay.
+
+2010-08-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Asynchronous Fetching): Document
+	gnus-async-post-fetch-function.
+	(HTML): Made into its own section.
+
 2010-08-26  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.1.19.
+
+	* tramp.texi (Inline methods, Default Method): Mention
+	`tramp-inline-compress-start-size'.  Remove "kludgy" phrase.  Remove
+	remark about doubled "-t" argument.
+	(Auto-save and Backup): Remove reference to Emacs 21.
+	(Filename Syntax): Describe port numbers.
+	(Frequently Asked Questions): Adapt supported (X)Emacs versions.  Adapt
+	supported MS Windows versions.  Remove obsolete URL.  Recommend "sshx"
+	and "scpx" for echoing shells.  Use the $() syntax, texi2dvi reports
+	errors with the backquotes.
+	(External packages): File attributes cache flushing for asynchronous
+	processes.
+	(Traces and Profiles): Describe verbose level 9.
 
 	* trampver.texi: Update release number.
 

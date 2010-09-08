@@ -782,7 +782,7 @@ Set `python-indent' locally to the value guessed."
   '(("else" "if" "elif" "while" "for" "try" "except")
     ("elif" "if" "elif")
     ("except" "try" "except")
-    ("finally" "try" "except"))
+    ("finally" "else" "try" "except"))
   "Alist of keyword matches.
 The car of an element is a keyword introducing a statement which
 can close a block opened by a keyword in the cdr.")
@@ -2285,6 +2285,7 @@ the if condition."
 (eval-when-compile
   ;; Define a user-level skeleton and add it to the abbrev table.
 (defmacro def-python-skeleton (name &rest elements)
+  (declare (indent 2))
   (let* ((name (symbol-name name))
 	 (function (intern (concat "python-insert-" name))))
     `(progn
@@ -2297,7 +2298,6 @@ the if condition."
        (define-skeleton ,function
 	 ,(format "Insert Python \"%s\" template." name)
 	 ,@elements)))))
-(put 'def-python-skeleton 'lisp-indent-function 2)
 
 ;; From `skeleton-further-elements' set below:
 ;;  `<': outdent a level;

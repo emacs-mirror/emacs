@@ -260,8 +260,9 @@ packages in `package-directory-list'."
   ;; Defaults are subdirs named "elpa" in the site-lisp dirs.
   (let (result)
     (dolist (f load-path)
-      (if (equal (file-name-nondirectory f) "site-lisp")
-	  (push (expand-file-name "elpa" f) result)))
+      (and (stringp f)
+	   (equal (file-name-nondirectory f) "site-lisp")
+	   (push (expand-file-name "elpa" f) result)))
     (nreverse result))
   "List of additional directories containing Emacs Lisp packages.
 Each directory name should be absolute.
@@ -406,16 +407,15 @@ updates `package-alist' and `package-obsolete-alist'."
       (error "Internal error: could not find directory for %s-%s"
 	     name version-str))
     ;; Add info node.
-    (if (file-exists-p (expand-file-name "dir" pkg-dir))
-	(progn
-	  ;; FIXME: not the friendliest, but simple.
-	  (require 'info)
-	  (info-initialize)
-	  (setq Info-directory-list (cons pkg-dir Info-directory-list))))
+    (when (file-exists-p (expand-file-name "dir" pkg-dir))
+      ;; FIXME: not the friendliest, but simple.
+      (require 'info)
+      (info-initialize)
+      (push pkg-dir Info-directory-list))
     ;; Add to load path, add autoloads, and activate the package.
-    (setq load-path (cons pkg-dir load-path))
+    (push pkg-dir load-path)
     (load (expand-file-name (concat name "-autoloads") pkg-dir) nil t)
-    (setq package-activated-list (cons package package-activated-list))
+    (push package package-activated-list)
     ;; Don't return nil.
     t))
 
@@ -466,22 +466,22 @@ Return nil if the package could not be activated."
 	  (setcdr elt (cons (cons (package-desc-vers pkg-vec) pkg-vec)
 			    (cdr elt))))
       ;; Make a new association.
-      (setq package-obsolete-alist
-	    (cons (cons package (list (cons (package-desc-vers pkg-vec)
-					    pkg-vec)))
-		  package-obsolete-alist)))))
+      (push (cons package (list (cons (package-desc-vers pkg-vec)
+				      pkg-vec)))
+	    package-obsolete-alist))))
 
-;; (define-package "emacs" "21.4.1" "GNU Emacs core package.")
-;; (define-package "erc" "5.1" "ERC - irc client" '((emacs "21.0")))
 (defun define-package (name-str version-string
-				&optional docstring requirements)
+				&optional docstring requirements
+				&rest extra-properties)
   "Define a new package.
 NAME is the name of the package, a string.
 VERSION-STRING is the version of the package, a dotted sequence
 of integers.
 DOCSTRING is the optional description.
 REQUIREMENTS is a list of requirements on other packages.
-Each requirement is of the form (OTHER-PACKAGE \"VERSION\")."
+Each requirement is of the form (OTHER-PACKAGE \"VERSION\").
+
+EXTRA-PROPERTIES is currently unused."
   (let* ((name (intern name-str))
 	 (pkg-desc (assq name package-alist))
 	 (new-version (version-to-list version-string))
@@ -504,7 +504,7 @@ Each requirement is of the form (OTHER-PACKAGE \"VERSION\")."
 	    (setq package-alist (delq pkg-desc package-alist))
 	    (package-mark-obsolete (car pkg-desc) (cdr pkg-desc)))
 	  ;; Add package to the alist.
-	  (setq package-alist (cons new-pkg-desc package-alist)))
+	  (push new-pkg-desc package-alist))
       ;; You can have two packages with the same version, for instance
       ;; one in the system package directory and one in your private
       ;; directory.  We just let the first one win.
@@ -706,7 +706,7 @@ but version %s required"
 	     (package-version-join (package-desc-vers (cdr pkg-desc)))))
 	  ;; Only add to the transaction if we don't already have it.
 	  (unless (memq next-pkg package-list)
-	    (setq package-list (cons next-pkg package-list)))
+	    (push next-pkg package-list))
 	  (setq package-list
 		(package-compute-transaction package-list
 					     (package-desc-reqs
@@ -717,13 +717,13 @@ but version %s required"
   "Read a Lisp expression from STR.
 Signal an error if the entire string was not used."
   (let* ((read-data (read-from-string str))
-          (more-left
-             (condition-case nil
-                       ;; The call to `ignore' suppresses a compiler warning.
-                       (progn (ignore (read-from-string
-                                       (substring str (cdr read-data))))
-                                   t)
-                   (end-of-file nil))))
+	 (more-left
+	  (condition-case nil
+	      ;; The call to `ignore' suppresses a compiler warning.
+	      (progn (ignore (read-from-string
+			      (substring str (cdr read-data))))
+		     t)
+	    (end-of-file nil))))
     (if more-left
         (error "Can't read whole string")
       (car read-data))))
@@ -733,16 +733,14 @@ Signal an error if the entire string was not used."
 Will return the data from the file, or nil if the file does not exist.
 Will throw an error if the archive version is too new."
   (let ((filename (expand-file-name file package-user-dir)))
-    (if (file-exists-p filename)
-	(with-temp-buffer
-	  (insert-file-contents-literally filename)
-	  (let ((contents (package-read-from-string
-			   (buffer-substring-no-properties (point-min)
-							   (point-max)))))
-	    (if (> (car contents) package-archive-version)
-		(error "Package archive version %d is greater than %d - upgrade package.el"
-		       (car contents) package-archive-version))
-	    (cdr contents))))))
+    (when (file-exists-p filename)
+      (with-temp-buffer
+	(insert-file-contents-literally filename)
+	(let ((contents (read (current-buffer))))
+	  (if (> (car contents) package-archive-version)
+	      (error "Package archive version %d is higher than %d"
+		     (car contents) package-archive-version))
+	  (cdr contents))))))
 
 (defun package-read-all-archive-contents ()
   "Re-read `archive-contents', if it exists.
@@ -751,18 +749,17 @@ If successful, set `package-archive-contents'."
     (package-read-archive-contents (car archive))))
 
 (defun package-read-archive-contents (archive)
-  "Re-read `archive-contents' and `builtin-packages' for ARCHIVE.
-If successful, set `package-archive-contents' and `package--builtins'.
+  "Re-read archive contents for ARCHIVE.
+If successful, set the variable `package-archive-contents'.
 If the archive version is too new, signal an error."
-  (let ((archive-contents (package--read-archive-file
-                           (concat "archives/" archive
-                                   "/archive-contents"))))
-    (if archive-contents
-        ;; Version 1 of 'archive-contents' is identical to our
-        ;; internal representation.
-        ;; TODO: merge archive lists
-        (dolist (package archive-contents)
-          (package--add-to-archive-contents package archive)))))
+  ;; Version 1 of 'archive-contents' is identical to our internal
+  ;; representation.
+  (let* ((dir (concat "archives/" archive))
+	 (contents-file (concat dir "/archive-contents"))
+	 contents)
+    (when (setq contents (package--read-archive-file contents-file))
+      (dolist (package contents)
+	(package--add-to-archive-contents package archive)))))
 
 (defun package--add-to-archive-contents (package archive)
   "Add the PACKAGE from the given ARCHIVE if necessary.
@@ -833,61 +830,60 @@ Otherwise return nil."
 	    v-str))))
 
 (defun package-buffer-info ()
-  "Return a vector of information about the package in the current buffer.
-The vector looks like [FILENAME REQUIRES DESCRIPTION VERSION COMMENTARY]
-FILENAME is the file name, a string.  It does not have the \".el\" extension.
+  "Return a vector describing the package in the current buffer.
+The vector has the form
+
+   [FILENAME REQUIRES DESCRIPTION VERSION COMMENTARY]
+
+FILENAME is the file name, a string, sans the \".el\" extension.
 REQUIRES is a requires list, or nil.
-DESCRIPTION is the package description (a string).
+DESCRIPTION is the package description, a string.
 VERSION is the version, a string.
 COMMENTARY is the commentary section, a string, or nil if none.
-Throws an exception if the buffer does not contain a conforming package.
-If there is a package, narrows the buffer to the file's boundaries.
-May narrow buffer or move point even on failure."
+
+If the buffer does not contain a conforming package, signal an
+error.  If there is a package, narrow the buffer to the file's
+boundaries."
   (goto-char (point-min))
-  (if (re-search-forward "^;;; \\([^ ]*\\)\\.el --- \\(.*\\)$" nil t)
-      (let ((file-name (match-string 1))
-	    (desc (match-string 2))
-	    (start (progn (beginning-of-line) (point))))
-	(if (search-forward (concat ";;; " file-name ".el ends here"))
-	    (progn
-	      ;; Try to include a trailing newline.
-	      (forward-line)
-	      (narrow-to-region start (point))
-	      (require 'lisp-mnt)
-	      ;; Use some headers we've invented to drive the process.
-	      (let* ((requires-str (lm-header "package-requires"))
-		     (requires (if requires-str
-				   (package-read-from-string requires-str)))
-		     ;; Prefer Package-Version, because if it is
-		     ;; defined the package author probably wants us
-		     ;; to use it.  Otherwise try Version.
-		     (pkg-version
-		      (or (package-strip-rcs-id (lm-header "package-version"))
-			  (package-strip-rcs-id (lm-header "version"))))
-		     (commentary (lm-commentary)))
-		(unless pkg-version
-		  (error
-		   "Package does not define a usable \"Version\" or \"Package-Version\" header"))
-		;; Turn string version numbers into list form.
-		(setq requires
-		      (mapcar
-		       (lambda (elt)
-			 (list (car elt)
-			       (version-to-list (car (cdr elt)))))
-		       requires))
-		(set-text-properties 0 (length file-name) nil file-name)
-		(set-text-properties 0 (length pkg-version) nil pkg-version)
-		(set-text-properties 0 (length desc) nil desc)
-		(vector file-name requires desc pkg-version commentary)))
-	  (error "Package missing a terminating comment")))
-    (error "No starting comment for package")))
+  (unless (re-search-forward "^;;; \\([^ ]*\\)\\.el --- \\(.*\\)$" nil t)
+    (error "Packages lacks a file header"))
+  (let ((file-name (match-string-no-properties 1))
+	(desc      (match-string-no-properties 2))
+	(start     (line-beginning-position)))
+    (unless (search-forward (concat ";;; " file-name ".el ends here"))
+      (error "Package lacks a terminating comment"))
+    ;; Try to include a trailing newline.
+    (forward-line)
+    (narrow-to-region start (point))
+    (require 'lisp-mnt)
+    ;; Use some headers we've invented to drive the process.
+    (let* ((requires-str (lm-header "package-requires"))
+	   (requires (if requires-str
+			 (package-read-from-string requires-str)))
+	   ;; Prefer Package-Version; if defined, the package author
+	   ;; probably wants us to use it.  Otherwise try Version.
+	   (pkg-version
+	    (or (package-strip-rcs-id (lm-header "package-version"))
+		(package-strip-rcs-id (lm-header "version"))))
+	   (commentary (lm-commentary)))
+      (unless pkg-version
+	(error
+	 "Package lacks a \"Version\" or \"Package-Version\" header"))
+      ;; Turn string version numbers into list form.
+      (setq requires
+	    (mapcar
+	     (lambda (elt)
+	       (list (car elt)
+		     (version-to-list (car (cdr elt)))))
+	     requires))
+      (vector file-name requires desc pkg-version commentary))))
 
 (defun package-tar-file-info (file)
   "Find package information for a tar file.
 FILE is the name of the tar file to examine.
 The return result is a vector like `package-buffer-info'."
   (unless (string-match "^\\(.+\\)-\\([0-9.]+\\)\\.tar$" file)
-    (error "`%s' doesn't have a package-ish name" file))
+    (error "Invalid package name `%s'" file))
   (let* ((pkg-name (file-name-nondirectory (match-string-no-properties 1 file)))
 	 (pkg-version (match-string-no-properties 2 file))
 	 ;; Extract the package descriptor.
@@ -898,20 +894,19 @@ The return result is a vector like `package-buffer-info'."
 				    pkg-name "-pkg.el")))
 	 (pkg-def-parsed (package-read-from-string pkg-def-contents)))
     (unless (eq (car pkg-def-parsed) 'define-package)
-      (error "%s-pkg.el doesn't contain `define-package' sexp" pkg-name))
-    (let ((name-str (nth 1 pkg-def-parsed))
+      (error "No `define-package' sexp is present in `%s-pkg.el'" pkg-name))
+    (let ((name-str       (nth 1 pkg-def-parsed))
 	  (version-string (nth 2 pkg-def-parsed))
-	  (docstring (nth 3 pkg-def-parsed))
-	  (requires (nth 4 pkg-def-parsed))
-
+	  (docstring      (nth 3 pkg-def-parsed))
+	  (requires       (nth 4 pkg-def-parsed))
 	  (readme (shell-command-to-string
 		   ;; Requires GNU tar.
 		   (concat "tar -xOf " file " "
 			   pkg-name "-" pkg-version "/README"))))
       (unless (equal pkg-version version-string)
-	(error "Inconsistent versions!"))
+	(error "Package has inconsistent versions"))
       (unless (equal pkg-name name-str)
-	(error "Inconsistent names!"))
+	(error "Package has inconsistent names"))
       ;; Kind of a hack.
       (if (string-match ": Not found in archive" readme)
 	  (setq readme nil))
@@ -919,18 +914,27 @@ The return result is a vector like `package-buffer-info'."
       (if (eq (car requires) 'quote)
 	  (setq requires (car (cdr requires))))
       (setq requires
-	    (mapcar
-	     (lambda (elt)
-	       (list (car elt)
-		     (version-to-list (car (cdr elt)))))
-	     requires))
+	    (mapcar (lambda (elt)
+		      (list (car elt)
+			    (version-to-list (cadr elt))))
+		    requires))
       (vector pkg-name requires docstring version-string readme))))
 
-(defun package-install-buffer-internal (pkg-info type)
+;;;###autoload
+(defun package-install-from-buffer (pkg-info type)
+  "Install a package from the current buffer.
+When called interactively, the current buffer is assumed to be a
+single .el file that follows the packaging guidelines; see info
+node `(elisp)Packaging'.
+
+When called from Lisp, PKG-INFO is a vector describing the
+information, of the type returned by `package-buffer-info'; and
+TYPE is the package type (either `single' or `tar')."
+  (interactive (list (package-buffer-info) 'single))
   (save-excursion
     (save-restriction
       (let* ((file-name (aref pkg-info 0))
-	     (requires (aref pkg-info 1))
+	     (requires  (aref pkg-info 1))
 	     (desc (if (string= (aref pkg-info 2) "")
 		       "No description available."
 		     (aref pkg-info 2)))
@@ -950,15 +954,6 @@ The return result is a vector like `package-buffer-info'."
 	(package-initialize)))))
 
 ;;;###autoload
-(defun package-install-from-buffer ()
-  "Install a package from the current buffer.
-The package is assumed to be a single .el file which
-follows the elisp comment guidelines; see
-info node `(elisp)Library Headers'."
-  (interactive)
-  (package-install-buffer-internal (package-buffer-info) 'single))
-
-;;;###autoload
 (defun package-install-file (file)
   "Install a package from a file.
 The file can either be a tar file or an Emacs Lisp file."
@@ -966,9 +961,10 @@ The file can either be a tar file or an Emacs Lisp file."
   (with-temp-buffer
     (insert-file-contents-literally file)
     (cond
-     ((string-match "\\.el$" file) (package-install-from-buffer))
+     ((string-match "\\.el$" file)
+      (package-install-from-buffer (package-buffer-info) 'single))
      ((string-match "\\.tar$" file)
-      (package-install-buffer-internal (package-tar-file-info file) 'tar))
+      (package-install-from-buffer (package-tar-file-info file) 'tar))
      (t (error "Unrecognized extension `%s'" (file-name-extension file))))))
 
 (defun package-delete (name version)
@@ -995,24 +991,26 @@ The file can either be a tar file or an Emacs Lisp file."
       (re-search-forward "^$" nil 'move)
       (forward-char)
       (delete-region (point-min) (point))
-      (make-directory dir t)
-      (setq buffer-file-name (expand-file-name file dir))
-      (let ((version-control 'never))
-	(save-buffer)))
+      ;; Read the retrieved buffer to make sure it is valid (e.g. it
+      ;; may fetch a URL redirect page).
+      (when (listp (read buffer))
+	(make-directory dir t)
+	(setq buffer-file-name (expand-file-name file dir))
+	(let ((version-control 'never))
+	  (save-buffer))))
     (kill-buffer buffer)))
 
 (defun package-refresh-contents ()
   "Download the ELPA archive description if needed.
-Invoking this will ensure that Emacs knows about the latest versions
-of all packages.  This will let Emacs make them available for
-download."
+This informs Emacs about the latest versions of all packages, and
+makes them available for download."
   (interactive)
   (unless (file-exists-p package-user-dir)
     (make-directory package-user-dir t))
   (dolist (archive package-archives)
     (condition-case nil
 	(package--download-one-archive archive "archive-contents")
-      (error (message "Failed to download archive `%s'."
+      (error (message "Failed to download `%s' archive."
 		      (car archive)))))
   (package-read-all-archive-contents))
 
@@ -1198,7 +1196,7 @@ The variable `package-load-list' controls which packages to load."
     (define-key map "\177" 'package-menu-backup-unmark)
     (define-key map "d" 'package-menu-mark-delete)
     (define-key map "i" 'package-menu-mark-install)
-    (define-key map "g" 'package-menu-revert)
+    (define-key map "g" 'revert-buffer)
     (define-key map "r" 'package-menu-refresh)
     (define-key map "~" 'package-menu-mark-obsolete-for-deletion)
     (define-key map "x" 'package-menu-execute)
@@ -1232,7 +1230,7 @@ The variable `package-load-list' controls which packages to load."
 		  :help "Mark a package for installation and move to the next line"))
     (define-key menu-map [s3] '("--"))
     (define-key menu-map [mg]
-      '(menu-item "Update package list" package-menu-revert
+      '(menu-item "Update package list" revert-buffer
 		  :help "Update the list of packages"))
     (define-key menu-map [mr]
       '(menu-item "Refresh package list" package-menu-refresh
@@ -1275,24 +1273,51 @@ Letters do not insert themselves; instead, they are commands.
   (setq mode-name "Package Menu")
   (setq truncate-lines t)
   (setq buffer-read-only t)
-  ;; Support Emacs 21.
-  (if (fboundp 'run-mode-hooks)
-      (run-mode-hooks 'package-menu-mode-hook)
-    (run-hooks 'package-menu-mode-hook)))
+  (setq revert-buffer-function 'package-menu-revert)
+  (setq header-line-format
+	(mapconcat
+	 (lambda (pair)
+	   (let ((column (car pair))
+		 (name (cdr pair)))
+	     (concat
+	      ;; Insert a space that aligns the button properly.
+	      (propertize " " 'display (list 'space :align-to column)
+			  'face 'fixed-pitch)
+	      ;; Set up the column button.
+	      (propertize name
+			  'column-name name
+			  'help-echo "mouse-1: sort by column"
+			  'mouse-face 'highlight
+			  'keymap package-menu-sort-button-map))))
+	 ;; We take a trick from buff-menu and have a dummy leading
+	 ;; space to align the header line with the beginning of the
+	 ;; text.  This doesn't really work properly on Emacs 21, but
+	 ;; it is close enough.
+	 '((0 . "")
+	   (2 . "Package")
+	   (20 . "Version")
+	   (32 . "Status")
+	   (43 . "Description"))
+	 ""))
+  (run-mode-hooks 'package-menu-mode-hook))
 
 (defun package-menu-refresh ()
-  "Download the ELPA archive.
-This fetches the file describing the current contents of
-the Emacs Lisp Package Archive, and then refreshes the
-package menu.  This lets you see what new packages are
-available for download."
+  "Download the Emacs Lisp package archive.
+This fetches the contents of each archive specified in
+`package-archives', and then refreshes the package menu."
   (interactive)
+  (unless (eq major-mode 'package-menu-mode)
+    (error "The current buffer is not a Package Menu"))
   (package-refresh-contents)
   (package--generate-package-list))
 
-(defun package-menu-revert ()
-  "Update the list of packages."
+(defun package-menu-revert (&optional arg noconfirm)
+  "Update the list of packages.
+This function is the `revert-buffer-function' for Package Menu
+buffers.  The arguments are ignored."
   (interactive)
+  (unless (eq major-mode 'package-menu-mode)
+    (error "The current buffer is not a Package Menu"))
   (package--generate-package-list))
 
 (defun package-menu-describe-package ()
@@ -1434,100 +1459,102 @@ Emacs."
 
 (defun package-list-maybe-add (package version status description result)
   (unless (assoc (cons package version) result)
-    (setq result (cons (list (cons package version) status description)
-		       result)))
+    (push (list (cons package version) status description) result))
   result)
 
-;; This decides how we should sort; nil means by package name.
-(defvar package-menu-sort-key nil)
+(defvar package-menu-package-list nil
+  "List of packages to display in the Package Menu buffer.
+A value of nil means to display all packages.")
 
-(defun package--generate-package-list (&optional packages)
-  (package-initialize)			; FIXME: do this here?
-  (with-current-buffer (get-buffer-create "*Packages*")
+(defvar package-menu-sort-key nil
+  "Sort key for the current Package Menu buffer.")
+
+(defun package--generate-package-list ()
+  "Populate the current Package Menu buffer."
+  (package-initialize)
+  (let ((inhibit-read-only t)
+	info-list name desc hold builtin)
     (setq buffer-read-only nil)
     (erase-buffer)
-    (let ((info-list)
-	  name desc hold
-	  builtin)
-      ;; List installed packages
-      (dolist (elt package-alist)
-	(setq name (car elt))
-	(when (and (not (eq name 'emacs)) ; Hide the `emacs' package.
-		   (or (null packages)
-		       (memq name packages)))
-	  (setq desc (cdr elt)
-		hold (cadr (assq name package-load-list))
-		builtin (cdr (assq name package--builtins)))
-	  (setq info-list
-		(package-list-maybe-add
-		 name (package-desc-vers desc)
-		 ;; FIXME: it turns out to be tricky to see if this
-		 ;; package is presently activated.
-		 (cond ((stringp hold) "held")
-		       ((and builtin
-			     (version-list-=
-			      (package-desc-vers builtin)
-			      (package-desc-vers desc)))
-			"built-in")
-		       (t "installed"))
-		 (package-desc-doc desc)
-		 info-list))))
+    ;; List installed packages
+    (dolist (elt package-alist)
+      (setq name (car elt))
+      (when (and (not (eq name 'emacs)) ; Hide the `emacs' package.
+		 (or (null package-menu-package-list)
+		     (memq name package-menu-package-list)))
+	(setq desc (cdr elt)
+	      hold (cadr (assq name package-load-list))
+	      builtin (cdr (assq name package--builtins)))
+	(setq info-list
+	      (package-list-maybe-add
+	       name (package-desc-vers desc)
+	       ;; FIXME: it turns out to be tricky to see if this
+	       ;; package is presently activated.
+	       (cond ((stringp hold) "held")
+		     ((and builtin
+			   (version-list-=
+			    (package-desc-vers builtin)
+			    (package-desc-vers desc)))
+		      "built-in")
+		     (t "installed"))
+	       (package-desc-doc desc)
+	       info-list))))
 
-      ;; List available and disabled packages
-      (dolist (elt package-archive-contents)
-	(setq name (car elt)
-	      desc (cdr elt)
-	      hold (assq name package-load-list))
-	(when (or (null packages)
-		  (memq name packages))
-	  (setq info-list
-		(package-list-maybe-add name
-					(package-desc-vers desc)
-					(if (and hold (null (cadr hold)))
-					    "disabled"
-					  "available")
-					(package-desc-doc (cdr elt))
-					info-list))))
-      ;; List obsolete packages
-      (mapc (lambda (elt)
-	      (mapc (lambda (inner-elt)
-		      (setq info-list
-			    (package-list-maybe-add (car elt)
-						    (package-desc-vers
-						     (cdr inner-elt))
-						    "obsolete"
-						    (package-desc-doc
-						     (cdr inner-elt))
-						    info-list)))
-		    (cdr elt)))
-	    package-obsolete-alist)
+    ;; List available and disabled packages
+    (dolist (elt package-archive-contents)
+      (setq name (car elt)
+	    desc (cdr elt)
+	    hold (assq name package-load-list))
+      (when (or (null package-menu-package-list)
+		(memq name package-menu-package-list))
+	(setq info-list
+	      (package-list-maybe-add name
+				      (package-desc-vers desc)
+				      (if (and hold (null (cadr hold)))
+					  "disabled"
+					"available")
+				      (package-desc-doc (cdr elt))
+				      info-list))))
+    ;; List obsolete packages
+    (mapc (lambda (elt)
+	    (mapc (lambda (inner-elt)
+		    (setq info-list
+			  (package-list-maybe-add (car elt)
+						  (package-desc-vers
+						   (cdr inner-elt))
+						  "obsolete"
+						  (package-desc-doc
+						   (cdr inner-elt))
+						  info-list)))
+		  (cdr elt)))
+	  package-obsolete-alist)
 
-      (setq info-list
-	    (sort info-list
-		  (cond ((string= package-menu-sort-key "Version")
-			 'package-menu--version-predicate)
-			((string= package-menu-sort-key "Status")
-			 'package-menu--status-predicate)
-			((string= package-menu-sort-key "Description")
-			 'package-menu--description-predicate)
-			(t ; Sort by package name by default
-			 'package-menu--name-predicate))))
+    (setq info-list
+	  (sort info-list
+		(cond ((string= package-menu-sort-key "Package")
+		       'package-menu--name-predicate)
+		      ((string= package-menu-sort-key "Version")
+		       'package-menu--version-predicate)
+		      ((string= package-menu-sort-key "Description")
+		       'package-menu--description-predicate)
+		      (t ; By default, sort by package status
+		       'package-menu--status-predicate))))
 
-      (dolist (elt info-list)
-	(package-print-package (car (car elt))
-			       (cdr (car elt))
-			       (car (cdr elt))
-			       (car (cdr (cdr elt))))))
+    (dolist (elt info-list)
+      (package-print-package (car (car elt))
+			     (cdr (car elt))
+			     (car (cdr elt))
+			     (car (cdr (cdr elt)))))
     (goto-char (point-min))
     (set-buffer-modified-p nil)
     (current-buffer)))
 
 (defun package-menu--version-predicate (left right)
-  (let ((vleft  (cdr (car left)))
-	(vright (cdr (car right))))
-    (if (version-list-= vleft right)
+  (let ((vleft  (or (cdr (car left))  '(0)))
+	(vright (or (cdr (car right)) '(0))))
+    (if (version-list-= vleft vright)
 	(package-menu--name-predicate left right)
-      (version-list-< left right))))
+      (version-list-< vleft vright))))
 
 (defun package-menu--status-predicate (left right)
   (let ((sleft  (cadr left))
@@ -1558,53 +1585,28 @@ Emacs."
 	   (symbol-name (caar right))))
 
 (defun package-menu-sort-by-column (&optional e)
-  "Sort the package menu by the last column clicked on."
+  "Sort the package menu by the column of the mouse click E."
   (interactive "e")
-  (if e (mouse-select-window e))
   (let* ((pos (event-start e))
-  	 (obj (posn-object pos))
-  	 (col (if obj
-  		  (get-text-property (cdr obj) 'column-name (car obj))
-  		(get-text-property (posn-point pos) 'column-name)))
-  	 (inhibit-read-only t))
-    (setq package-menu-sort-key col)
-    (package--generate-package-list)))
+	 (obj (posn-object pos))
+	 (col (if obj
+		  (get-text-property (cdr obj) 'column-name (car obj))
+		(get-text-property (posn-point pos) 'column-name)))
+	 (buf (window-buffer (posn-window (event-start e)))))
+    (with-current-buffer buf
+      (when (eq major-mode 'package-menu-mode)
+	(setq package-menu-sort-key col)
+	(package--generate-package-list)))))
 
 (defun package--list-packages (&optional packages)
-  "Display the properties of PACKAGES.
-PACKAGES should be a list of package names (symbols).
-If PACKAGES is nil, display all packages in `package-alist'."
-  (with-current-buffer (package--generate-package-list packages)
+  "Generate and pop to the *Packages* buffer.
+Optional PACKAGES is a list of names of packages (symbols) to
+list; the default is to display everything in `package-alist'."
+  (with-current-buffer (get-buffer-create "*Packages*")
     (package-menu-mode)
-    ;; Set up the header line.
-    (setq header-line-format
-	  (mapconcat
-	   (lambda (pair)
-	     (let ((column (car pair))
-		   (name (cdr pair)))
-	       (concat
-		;; Insert a space that aligns the button properly.
-		(propertize " " 'display (list 'space :align-to column)
-			    'face 'fixed-pitch)
-		;; Set up the column button.
-		(if (string= name "Version")
-		    name
-		  (propertize name
-			      'column-name name
-			      'help-echo "mouse-1: sort by column"
-			      'mouse-face 'highlight
-			      'keymap package-menu-sort-button-map)))))
-	   ;; We take a trick from buff-menu and have a dummy leading
-	   ;; space to align the header line with the beginning of the
-	   ;; text.  This doesn't really work properly on Emacs 21,
-	   ;; but it is close enough.
-	   '((0 . "")
-	     (2 . "Package")
-	     (20 . "Version")
-	     (32 . "Status")
-	     (43 . "Description"))
-	   ""))
-
+    (set (make-local-variable 'package-menu-package-list) packages)
+    (set (make-local-variable 'package-menu-sort-key) nil)
+    (package--generate-package-list)
     ;; It's okay to use pop-to-buffer here.  The package menu buffer
     ;; has keybindings, and the user just typed `M-x list-packages',
     ;; suggesting that they might want to use them.
@@ -1617,7 +1619,6 @@ Fetches the updated list of packages before displaying.
 The list is displayed in a buffer named `*Packages*'."
   (interactive)
   (package-refresh-contents)
-  (setq package-menu-sort-key "Status")
   (package--list-packages))
 
 ;;;###autoload

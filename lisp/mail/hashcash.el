@@ -276,7 +276,7 @@ BUFFER defaults to the current buffer."
   (unless buffer (setq buffer (current-buffer)))
   (let (entry)
     (while (setq entry (rassq buffer hashcash-process-alist))
-      (accept-process-output (car entry)))))
+      (accept-process-output (car entry) 1))))
 
 (defun hashcash-processes-running-p (buffer)
   "Return non-nil if hashcash processes in BUFFER are still running."
@@ -375,4 +375,4 @@ Prefix arg sets default accept amount temporarily."
 
 (provide 'hashcash)
 
-;; arch-tag: 0e7fe983-a124-4392-9788-0dbcbd2c4d62
+;;; hashcash.el ends here

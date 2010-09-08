@@ -394,7 +394,7 @@ variable will cause @samp{text/html} parts to be treated as attachments.
 @item mm-text-html-renderer
 @vindex mm-text-html-renderer
 This selects the function used to render @acronym{HTML}.  The predefined
-renderers are selected by the symbols @code{w3},
+renderers are selected by the symbols @code{gnus-article-html}, @code{w3},
 @code{w3m}@footnote{See @uref{http://emacs-w3m.namazu.org/} for more
 information about emacs-w3m}, @code{links}, @code{lynx},
 @code{w3m-standalone} or @code{html2text}.  If @code{nil} use an
@@ -1889,7 +1889,3 @@ Documentation of the text/plain format parameter for flowed text.
 @c mode: texinfo
 @c coding: iso-8859-1
 @c End:
-
-@ignore
-   arch-tag: c7ef2fd0-a91c-4e10-aa52-c1a2b11b1a8d
-@end ignore

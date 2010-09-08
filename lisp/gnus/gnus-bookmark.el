@@ -828,5 +828,4 @@ probably because we were called from there."
 
 (provide 'gnus-bookmark)
 
-;; arch-tag: 779df694-366f-46e8-84b2-1d0340e6f525
 ;;; gnus-bookmark.el ends here

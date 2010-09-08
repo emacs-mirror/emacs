@@ -588,11 +588,12 @@ If EXAMINE is non-nil the group is selected read-only."
 		(imap-mailbox-select decoded-group examine))
 	(let (minuid maxuid)
 	  (when (> (imap-mailbox-get 'exists) 0)
-	    (imap-fetch-safe '("1,*" . "1,*:*") "UID" nil 'nouidfetch)
-	    (imap-message-map (lambda (uid Uid)
-				(setq minuid (if minuid (min minuid uid) uid)
-				      maxuid (if maxuid (max maxuid uid) uid)))
-			      'UID))
+	    (imap-fetch "1:*" "UID" nil 'nouidfetch)
+	    (imap-message-map
+	     (lambda (uid Uid)
+	       (setq minuid (if minuid (min minuid uid) uid)
+		     maxuid (if maxuid (max maxuid uid) uid)))
+	     'UID))
 	  (list (imap-mailbox-get 'exists) minuid maxuid))))))
 
 (defun nnimap-possibly-change-group (group &optional server)
@@ -833,8 +834,8 @@ If EXAMINE is non-nil the group is selected read-only."
 				      nnimap-authinfo-file)
 			(netrc-parse nnimap-authinfo-file)))
  	   (port (if nnimap-server-port
- 		     (int-to-string nnimap-server-port)
- 		   "imap"))
+		     (int-to-string nnimap-server-port)
+		   "imap"))
 	   (auth-info
 	    (auth-source-user-or-password '("login" "password") server port))
 	   (auth-user (nth 0 auth-info))
@@ -1114,14 +1115,16 @@ function is generally only called when Gnus is shutting down."
       (dolist (pattern (nnimap-pattern-to-list-arguments nnimap-list-pattern))
 	(dolist (mbx (funcall nnimap-request-list-method
 			      (cdr pattern) (car pattern)))
-	  (or (member "\\NoSelect" (imap-mailbox-get 'list-flags mbx))
-	      (let* ((encoded-mbx (nnimap-encode-group-name mbx))
-		     (info (nnimap-find-minmax-uid encoded-mbx 'examine)))
-		(when info
-		  (with-current-buffer nntp-server-buffer
-		    (insert (format "\"%s\" %d %d y\n"
-				    encoded-mbx (or (nth 2 info) 0)
-				    (max 1 (or (nth 1 info) 1)))))))))))
+	  (unless (member "\\noselect"
+			  (mapcar #'downcase
+				  (imap-mailbox-get 'list-flags mbx)))
+	    (let* ((encoded-mbx (nnimap-encode-group-name mbx))
+		   (info (nnimap-find-minmax-uid encoded-mbx 'examine)))
+	      (when info
+		(with-current-buffer nntp-server-buffer
+		  (insert (format "\"%s\" %d %d y\n"
+				  encoded-mbx (or (nth 2 info) 0)
+				  (max 1 (or (nth 1 info) 1)))))))))))
     (gnus-message 5 "nnimap: Generating active list%s...done"
 		  (if (> (length server) 0) (concat " for " server) ""))
     t))
@@ -1499,8 +1502,8 @@ function is generally only called when Gnus is shutting down."
       (nnimap-before-find-minmax-bugworkaround)
       (dolist (pattern (nnimap-pattern-to-list-arguments
 			nnimap-list-pattern))
-	(dolist (mbx (imap-mailbox-lsub (cdr pattern) (car pattern) nil
-					nnimap-server-buffer))
+	(dolist (mbx (funcall nnimap-request-list-method (cdr pattern) (car pattern) nil
+                              nnimap-server-buffer))
 	  (or (catch 'found
 		(dolist (mailbox (imap-mailbox-get 'list-flags mbx
 						   nnimap-server-buffer))
@@ -1807,69 +1810,6 @@ be used in a STORE FLAGS command."
   "Return t if MARK can be permanently (between IMAP sessions) saved on articles, in GROUP."
   (imap-message-flag-permanent-p (nnimap-mark-to-flag mark)))
 
-(when nnimap-debug
-  (require 'trace)
-  (buffer-disable-undo (get-buffer-create nnimap-debug-buffer))
-  (mapc (lambda (f) (trace-function-background f nnimap-debug-buffer))
-	'(
-	  nnimap-possibly-change-server
-	  nnimap-verify-uidvalidity
-	  nnimap-find-minmax-uid
-	  nnimap-before-find-minmax-bugworkaround
-	  nnimap-possibly-change-group
-	  ;;nnimap-replace-whitespace
-	  nnimap-retrieve-headers-progress
-	  nnimap-retrieve-which-headers
-	  nnimap-group-overview-filename
-	  nnimap-retrieve-headers-from-file
-	  nnimap-retrieve-headers-from-server
-	  nnimap-retrieve-headers
-	  nnimap-open-connection
-	  nnimap-open-server
-	  nnimap-server-opened
-	  nnimap-close-server
-	  nnimap-request-close
-	  nnimap-status-message
-	  ;;nnimap-demule
-	  nnimap-request-article-part
-	  nnimap-request-article
-	  nnimap-request-head
-	  nnimap-request-body
-	  nnimap-request-group
-	  nnimap-close-group
-	  nnimap-pattern-to-list-arguments
-	  nnimap-request-list
-	  nnimap-request-post
-	  nnimap-retrieve-groups
-	  nnimap-request-update-info-internal
-	  nnimap-request-type
-	  nnimap-request-set-mark
-	  nnimap-split-to-groups
-	  nnimap-split-find-rule
-	  nnimap-split-find-inbox
-	  nnimap-split-articles
-	  nnimap-request-scan
-	  nnimap-request-newgroups
-	  nnimap-request-create-group
-	  nnimap-time-substract
-	  nnimap-date-days-ago
-	  nnimap-request-expire-articles-progress
-	  nnimap-request-expire-articles
-	  nnimap-request-move-article
-	  nnimap-request-accept-article
-	  nnimap-request-delete-group
-	  nnimap-request-rename-group
-	  gnus-group-nnimap-expunge
-	  gnus-group-nnimap-edit-acl
-	  gnus-group-nnimap-edit-acl-done
-	  nnimap-group-mode-hook
-	  nnimap-mark-to-predicate
-	  nnimap-mark-to-flag-1
-	  nnimap-mark-to-flag
-	  nnimap-mark-permanent-p
-	  )))
-
 (provide 'nnimap)
 
-;; arch-tag: 2b001f20-3ff9-4094-a0ad-46807c1ba70b
 ;;; nnimap.el ends here

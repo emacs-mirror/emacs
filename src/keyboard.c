@@ -1493,6 +1493,11 @@ cancel_hourglass_unwind (Lisp_Object arg)
 }
 #endif
 
+/* FIXME: This is wrong rather than test window-system, we should call
+   a new set-selection, which will then dispatch to x-set-selection, or
+   tty-set-selection, or w32-set-selection, ...  */
+EXFUN (Fwindow_system, 1);
+
 Lisp_Object
 command_loop_1 (void)
 {
@@ -1799,10 +1804,11 @@ command_loop_1 (void)
 	    {
 	      /* Even if not deactivating the mark, set PRIMARY if
 		 `select-active-regions' is non-nil.  */
-	      if ((EQ (Vselect_active_regions, Qonly)
-		   ? EQ (CAR_SAFE (Vtransient_mark_mode), Qonly)
-		   : (!NILP (Vselect_active_regions)
-		      && !NILP (Vtransient_mark_mode)))
+	      if (!NILP (Fwindow_system (Qnil))
+		  && (EQ (Vselect_active_regions, Qonly)
+		      ? EQ (CAR_SAFE (Vtransient_mark_mode), Qonly)
+		      : (!NILP (Vselect_active_regions)
+			 && !NILP (Vtransient_mark_mode)))
 		  && !EQ (Vthis_command, Qhandle_switch_frame))
 		{
 		  int beg = XINT (Fmarker_position (current_buffer->mark));

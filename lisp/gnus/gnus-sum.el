@@ -76,6 +76,13 @@ See `gnus-group-goto-unread'."
   :version "23.1" ;; No Gnus
   :type 'boolean)
 
+(defcustom gnus-summary-stop-at-end-of-message nil
+  "If non-nil, don't select the next message when using `SPC'."
+  :link '(custom-manual "(gnus)Group Maneuvering")
+  :group 'gnus-summary-maneuvering
+  :version "24.1"
+  :type 'boolean)
+
 (defcustom gnus-fetch-old-headers nil
   "*Non-nil means that Gnus will try to build threads by grabbing old headers.
 If an unread article in the group refers to an older, already
@@ -214,7 +221,7 @@ This variable will only be used if the value of
   :group 'gnus-summary-format
   :type 'string)
 
-(defcustom gnus-summary-goto-unread t
+(defcustom gnus-summary-goto-unread nil
   "*If t, many commands will go to the next unread article.
 This applies to marking commands as well as other commands that
 \"naturally\" select the next article, like, for instance, `SPC' at
@@ -224,6 +231,7 @@ If nil, the marking commands do NOT go to the next unread article
 \(they go to the next article instead).  If `never', commands that
 usually go to the next unread article, will go to the next article,
 whether it is read or not."
+  :version "24.1"
   :group 'gnus-summary-marks
   :link '(custom-manual "(gnus)Setting Marks")
   :type '(choice (const :tag "off" nil)
@@ -342,7 +350,7 @@ newsgroups, set the variable to nil in `gnus-select-group-hook'."
   :type '(choice (const :tag "none" nil)
 		 (sexp :menu-tag "first" t)))
 
-(defcustom gnus-auto-select-subject 'unread
+(defcustom gnus-auto-select-subject 'unseen-or-unread
   "*Says what subject to place under point when entering a group.
 
 This variable can either be the symbols `first' (place point on the
@@ -353,7 +361,7 @@ the first unseen article), `unseen-or-unread' (place point on the subject
 line of the first unseen article or, if all article have been seen, on the
 subject line of the first unread article), or a function to be called to
 place point on some subject line."
-  :version "22.1"
+  :version "24.1"
   :group 'gnus-group-select
   :type '(choice (const best)
 		 (const unread)
@@ -457,9 +465,10 @@ and non-`vertical', do both horizontal and vertical recentering."
   :group 'gnus-summary
   :type 'boolean)
 
-(defcustom gnus-single-article-buffer t
+(defcustom gnus-single-article-buffer nil
   "*If non-nil, display all articles in the same buffer.
 If nil, each group will get its own article buffer."
+  :version "24.1"
   :group 'gnus-article-various
   :type 'boolean)
 
@@ -528,11 +537,6 @@ string with the suggested prefix."
 (defcustom gnus-spam-mark ?$
   "*Mark used for spam articles."
   :version "22.1"
-  :group 'gnus-summary-marks
-  :type 'character)
-
-(defcustom gnus-souped-mark ?F
-  "*Mark used for souped articles."
   :group 'gnus-summary-marks
   :type 'character)
 
@@ -659,9 +663,9 @@ string with the suggested prefix."
 (defcustom gnus-auto-expirable-marks
   (list gnus-killed-mark gnus-del-mark gnus-catchup-mark
 	gnus-low-score-mark gnus-ancient-mark gnus-read-mark
-	gnus-souped-mark gnus-duplicate-mark)
+	gnus-duplicate-mark)
   "*The list of marks converted into expiration if a group is auto-expirable."
-  :version "21.1"
+  :version "24.1"
   :group 'gnus-summary
   :type '(repeat character))
 
@@ -1251,7 +1255,7 @@ type of files to save."
   "Whether Gnus should parse all headers made available to it.
 This is mostly relevant for slow back ends where the user may
 wish to widen the summary buffer to include all headers
-that were fetched.  Say, for nnultimate groups."
+that were fetched."
   :version "22.1"
   :group 'gnus-summary
   :type '(choice boolean regexp))
@@ -1853,7 +1857,6 @@ increase the score of each group you read."
   "=" gnus-summary-expand-window
   "\C-x\C-s" gnus-summary-reselect-current-group
   "\M-g" gnus-summary-rescan-group
-  "w" gnus-summary-stop-page-breaking
   "\C-c\C-r" gnus-summary-caesar-message
   "f" gnus-summary-followup
   "F" gnus-summary-followup-with-original
@@ -1875,7 +1878,6 @@ increase the score of each group you read."
   [follow-link] mouse-face
   "m" gnus-summary-mail-other-window
   "a" gnus-summary-post-news
-  "i" gnus-summary-news-other-window
   "x" gnus-summary-limit-to-unread
   "s" gnus-summary-isearch-article
   "t" gnus-summary-toggle-header
@@ -2108,6 +2110,7 @@ increase the score of each group you read."
   "d" gnus-article-display-face
   "s" gnus-treat-smiley
   "D" gnus-article-remove-images
+  "W" gnus-html-show-images
   "f" gnus-treat-from-picon
   "m" gnus-treat-mail-picon
   "n" gnus-treat-newsgroups-picon)
@@ -2175,8 +2178,7 @@ increase the score of each group you read."
   "h" gnus-summary-save-article-folder
   "v" gnus-summary-save-article-vm
   "p" gnus-summary-pipe-output
-  "P" gnus-summary-muttprint
-  "s" gnus-soup-add-article)
+  "P" gnus-summary-muttprint)
 
 (gnus-define-keys (gnus-summary-mime-map "K" gnus-summary-mode-map)
   "b" gnus-summary-display-buttonized
@@ -2440,7 +2442,6 @@ gnus-summary-show-article-from-menu-as-charset-%s" cs))))
 	      ["Save in RMAIL mbox..." gnus-summary-save-article-rmail t]
 	      ["Save body in file..." gnus-summary-save-article-body-file t]
 	      ["Pipe through a filter..." gnus-summary-pipe-output t]
-	      ["Add to SOUP packet" gnus-soup-add-article t]
 	      ["Print with Muttprint..." gnus-summary-muttprint t]
 	      ["Print" gnus-summary-print-article
 	       ,@(if (featurep 'xemacs) '(t)
@@ -6050,9 +6051,7 @@ If WHERE is `summary', the summary mode line format will be used."
 	  (when (> (length mode-string) max-len)
 	    (setq mode-string
 		  (concat (truncate-string-to-width mode-string (- max-len 3))
-			  "...")))
-	  ;; Pad the mode string a bit.
-	  (setq mode-string (format (format "%%-%ds" max-len) mode-string))))
+			  "...")))))
       ;; Update the mode line.
       (setq mode-line-buffer-identification
 	    (gnus-mode-line-buffer-identification (list mode-string)))
@@ -7781,7 +7780,7 @@ Also see the variable `gnus-article-skip-boring'."
 	    (setq endp (or (gnus-article-next-page lines)
 			   (gnus-article-only-boring-p))))
 	  (when endp
-	    (cond (stop
+	    (cond ((or stop gnus-summary-stop-at-end-of-message)
 		   (gnus-message 3 "End of message"))
 		  (circular
 		   (gnus-summary-beginning-of-article))
@@ -8300,7 +8299,7 @@ If ALL is non-nil, limit strictly to unread articles."
 	   gnus-killed-mark gnus-spam-mark gnus-kill-file-mark
 	   gnus-low-score-mark gnus-expirable-mark
 	   gnus-canceled-mark gnus-catchup-mark gnus-sparse-mark
-	   gnus-duplicate-mark gnus-souped-mark)
+	   gnus-duplicate-mark)
      'reverse)))
 
 (defun gnus-summary-limit-to-headers (match &optional reverse)
@@ -9518,7 +9517,7 @@ IDNA encoded domain names looks like `xn--bar'.  If a string
 remain unencoded after running this function, it is likely an
 invalid IDNA string (`xn--bar' is invalid).
 
-You must have GNU Libidn (`http://www.gnu.org/software/libidn/')
+You must have GNU Libidn (URL `http://www.gnu.org/software/libidn/')
 installed for this command to work."
   (interactive "P")
   (if (not (and (condition-case nil (require 'idna)
@@ -12693,5 +12692,4 @@ BOOKMARK is a bookmark name or a bookmark record."
 ;; coding: iso-8859-1
 ;; End:
 
-;; arch-tag: 17c6748f-6d00-4d36-bf01-835c42f31235
 ;;; gnus-sum.el ends here

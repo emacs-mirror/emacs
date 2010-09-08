@@ -1610,6 +1610,7 @@ SPEC-LIST is of a form similar to `let'.  For example:
 Where each VAR is the local variable given to the associated
 SLOT.  A slot specified without a variable name is given a
 variable name of the same name as the slot."
+  (declare (indent 2))
   ;; Transform the spec-list into a symbol-macrolet spec-list.
   (let ((mappings (mapcar (lambda (entry)
 			    (let ((var  (if (listp entry) (car entry) entry))
@@ -1618,8 +1619,6 @@ variable name of the same name as the slot."
 			  spec-list)))
     (append (list 'symbol-macrolet mappings)
 	    body)))
-(put 'with-slots 'lisp-indent-function 2)
-
 
 ;;; Simple generators, and query functions.  None of these would do
 ;;  well embedded into an object.

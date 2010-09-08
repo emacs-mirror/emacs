@@ -32,10 +32,8 @@
 
 (require 'package)
 (require 'lisp-mnt)
-(require 'find-func)			;for find-library(-suffixes)
-;; Use `load' rather than `require' so that it doesn't get loaded
-;; during byte-compilation (at which point it might be missing).
-(load "finder-inf" t t)
+(require 'find-func) ;for find-library(-suffixes)
+(require 'finder-inf nil t)
 
 ;; These are supposed to correspond to top-level customization groups,
 ;; says rms.
@@ -234,17 +232,10 @@ from; the default is `load-path'."
     (search-backward "")
     (insert "(setq package--builtins '(\n")
     (dolist (package package--builtins)
-      (insert "  (")
-      (prin1 (car package) (current-buffer))
-      (insert " .\n    [")
-      (let ((desc (cdr package)))
-	(prin1 (aref desc 0) (current-buffer))
-	(insert " ")
-	(prin1 (aref desc 1) (current-buffer))
-	(insert " ")
-	(prin1 (aref desc 2) (current-buffer)))
-      (insert "])\n"))
-    (insert "    ))\n\n")
+      (insert "  ")
+      (prin1 package (current-buffer))
+      (insert "\n"))
+    (insert "))\n\n")
     ;; Insert hash table.
     (insert "(setq finder-keywords-hash\n      ")
     (prin1 finder-keywords-hash (current-buffer))
@@ -325,7 +316,6 @@ not `finder-known-keywords'."
 	 (packages (gethash id finder-keywords-hash)))
     (unless packages
       (error "No packages matching key `%s'" key))
-    (setq package-menu-sort-key nil)
     (package--list-packages packages)))
 
 (define-button-type 'finder-xref 'action #'finder-goto-xref)

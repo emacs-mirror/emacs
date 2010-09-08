@@ -174,36 +174,6 @@ are not available to other programs."
       (symbolp data)
       (integerp data)))
 
-;;; Cut Buffer support
-
-(declare-function x-get-cut-buffer-internal "xselect.c")
-
-(defun x-get-cut-buffer (&optional which-one)
-  "Return the value of one of the 8 X server cut-buffers.
-Optional arg WHICH-ONE should be a number from 0 to 7, defaulting to 0.
-Cut buffers are considered obsolete; you should use selections instead."
-  (x-get-cut-buffer-internal
-   (if which-one
-       (aref [CUT_BUFFER0 CUT_BUFFER1 CUT_BUFFER2 CUT_BUFFER3
-	      CUT_BUFFER4 CUT_BUFFER5 CUT_BUFFER6 CUT_BUFFER7]
-	     which-one)
-     'CUT_BUFFER0)))
-
-(declare-function x-rotate-cut-buffers-internal "xselect.c")
-(declare-function x-store-cut-buffer-internal "xselect.c")
-
-(defun x-set-cut-buffer (string &optional push)
-  "Store STRING into the X server's primary cut buffer.
-If PUSH is non-nil, also rotate the cut buffers:
-this means the previous value of the primary cut buffer moves to the second
-cut buffer, and the second to the third, and so on (there are 8 buffers.)
-Cut buffers are considered obsolete; you should use selections instead."
-  (or (stringp string) (signal 'wrong-type-argument (list 'stringp string)))
-  (if push
-      (x-rotate-cut-buffers-internal 1))
-  (x-store-cut-buffer-internal 'CUT_BUFFER0 string))
-
-
 ;; Functions to convert the selection into various other selection types.
 ;; Every selection type that Emacs handles is implemented this way, except
 ;; for TIMESTAMP, which is a special case.

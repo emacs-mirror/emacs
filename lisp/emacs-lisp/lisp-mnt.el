@@ -298,6 +298,7 @@ The returned value is a list of strings, one per line."
 (defmacro lm-with-file (file &rest body)
   "Execute BODY in a buffer containing the contents of FILE.
 If FILE is nil, execute BODY in the current buffer."
+  (declare (indent 1) (debug t))
   (let ((filesym (make-symbol "file")))
     `(let ((,filesym ,file))
        (if ,filesym
@@ -310,9 +311,6 @@ If FILE is nil, execute BODY in the current buffer."
 	   ;; temporarily to the Emacs Lisp mode syntax table.
 	   (with-syntax-table emacs-lisp-mode-syntax-table
 	     ,@body))))))
-
-(put 'lm-with-file 'lisp-indent-function 1)
-(put 'lm-with-file 'edebug-form-spec t)
 
 ;; Fixme: Probably this should be amalgamated with copyright.el; also
 ;; we need a check for ranges in copyright years.

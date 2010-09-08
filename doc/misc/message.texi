@@ -182,6 +182,37 @@ Addresses that match the @code{message-dont-reply-to-names} regular
 expression (or list of regular expressions) will be removed from the
 @code{Cc} header. A value of @code{nil} means exclude your name only.
 
+@vindex message-prune-recipient-rules
+@code{message-prune-recipient-rules} is used to prune the addresses
+used when doing a wide reply.  It's meant to be used to remove
+duplicate addresses and the like.  It's a list of lists, where the
+first element is a regexp to match the address to trigger the rule,
+and the second is a regexp that will be expanded based on the first,
+to match addresses to be pruned.
+
+It's complicated to explain, but it's easy to use.
+
+For instance, if you get an email from @samp{foo@@example.org}, but
+@samp{foo@@zot.example.org} is also in the @code{Cc} list, then your
+wide reply will go out to both these addresses, since they are unique.
+
+To avoid this, do something like the following:
+
+@lisp
+(setq message-prune-recipient-rules
+      '(("^\\([^@@]+\\)@@\\(.*\\)" "\\1@@.*[.]\\2")))
+@end lisp
+
+If, for instance, you want all wide replies that involve messages from
+@samp{cvs@@example.org} to go to that address, and nowhere else (i.e.,
+remove all other recipients if @samp{cvs@@example.org} is in the
+recipient list:
+
+@lisp
+(setq message-prune-recipient-rules
+      '(("cvs@@example.org" ".")))
+@end lisp
+
 @vindex message-wide-reply-confirm-recipients
 If @code{message-wide-reply-confirm-recipients} is non-@code{nil} you
 will be asked to confirm that you want to reply to multiple
@@ -1645,7 +1676,8 @@ the problem will actually occur.
 @cindex split large message
 The limitation of messages sent as message/partial.  The lower bound
 of message size in characters, beyond which the message should be sent
-in several parts.  If it is @code{nil}, the size is unlimited.
+in several parts.  If it is @code{nil} (which is the default), the
+size is unlimited.
 
 @end table
 
@@ -2441,7 +2473,3 @@ basis of the new @code{Cc} header, except if this header is
 @bye
 
 @c End:
-
-@ignore
-   arch-tag: 16ab76af-a281-4e34-aed6-5624569f7601
-@end ignore

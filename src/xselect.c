@@ -83,8 +83,6 @@ static void lisp_data_to_selection_data (Display *, Lisp_Object,
                                          unsigned char **, Atom *,
                                          unsigned *, int *, int *);
 static Lisp_Object clean_local_selection_data (Lisp_Object);
-static void initialize_cut_buffers (Display *, Window);
-
 
 /* Printing traces to stderr.  */
 
@@ -105,8 +103,6 @@ static void initialize_cut_buffers (Display *, Window);
 #endif
 
 
-#define CUT_BUFFER_SUPPORT
-
 Lisp_Object QSECONDARY, QSTRING, QINTEGER, QCLIPBOARD, QTIMESTAMP,
   QTEXT, QDELETE, QMULTIPLE, QINCR, QEMACS_TMP, QTARGETS, QATOM, QNULL,
   QATOM_PAIR;
@@ -115,11 +111,6 @@ Lisp_Object QCOMPOUND_TEXT;	/* This is a type of selection.  */
 Lisp_Object QUTF8_STRING;	/* This is a type of selection.  */
 
 Lisp_Object Qcompound_text_with_extensions;
-
-#ifdef CUT_BUFFER_SUPPORT
-Lisp_Object QCUT_BUFFER0, QCUT_BUFFER1, QCUT_BUFFER2, QCUT_BUFFER3,
-  QCUT_BUFFER4, QCUT_BUFFER5, QCUT_BUFFER6, QCUT_BUFFER7;
-#endif
 
 static Lisp_Object Vx_lost_selection_functions;
 static Lisp_Object Vx_sent_selection_functions;
@@ -270,16 +261,6 @@ symbol_to_x_atom (struct x_display_info *dpyinfo, Display *display, Lisp_Object 
   if (EQ (sym, QEMACS_TMP)) return dpyinfo->Xatom_EMACS_TMP;
   if (EQ (sym, QTARGETS))   return dpyinfo->Xatom_TARGETS;
   if (EQ (sym, QNULL))	    return dpyinfo->Xatom_NULL;
-#ifdef CUT_BUFFER_SUPPORT
-  if (EQ (sym, QCUT_BUFFER0)) return XA_CUT_BUFFER0;
-  if (EQ (sym, QCUT_BUFFER1)) return XA_CUT_BUFFER1;
-  if (EQ (sym, QCUT_BUFFER2)) return XA_CUT_BUFFER2;
-  if (EQ (sym, QCUT_BUFFER3)) return XA_CUT_BUFFER3;
-  if (EQ (sym, QCUT_BUFFER4)) return XA_CUT_BUFFER4;
-  if (EQ (sym, QCUT_BUFFER5)) return XA_CUT_BUFFER5;
-  if (EQ (sym, QCUT_BUFFER6)) return XA_CUT_BUFFER6;
-  if (EQ (sym, QCUT_BUFFER7)) return XA_CUT_BUFFER7;
-#endif
   if (!SYMBOLP (sym)) abort ();
 
   TRACE1 (" XInternAtom %s", (char *) SDATA (SYMBOL_NAME (sym)));
@@ -315,24 +296,6 @@ x_atom_to_symbol (Display *dpy, Atom atom)
       return QINTEGER;
     case XA_ATOM:
       return QATOM;
-#ifdef CUT_BUFFER_SUPPORT
-    case XA_CUT_BUFFER0:
-      return QCUT_BUFFER0;
-    case XA_CUT_BUFFER1:
-      return QCUT_BUFFER1;
-    case XA_CUT_BUFFER2:
-      return QCUT_BUFFER2;
-    case XA_CUT_BUFFER3:
-      return QCUT_BUFFER3;
-    case XA_CUT_BUFFER4:
-      return QCUT_BUFFER4;
-    case XA_CUT_BUFFER5:
-      return QCUT_BUFFER5;
-    case XA_CUT_BUFFER6:
-      return QCUT_BUFFER6;
-    case XA_CUT_BUFFER7:
-      return QCUT_BUFFER7;
-#endif
     }
 
   dpyinfo = x_display_info_for_display (dpy);
@@ -2258,195 +2221,6 @@ and t is the same as `SECONDARY'.  */)
 }
 
 
-#ifdef CUT_BUFFER_SUPPORT
-
-/* Ensure that all 8 cut buffers exist.  ICCCM says we gotta...  */
-static void
-initialize_cut_buffers (Display *display, Window window)
-{
-  unsigned char *data = (unsigned char *) "";
-  BLOCK_INPUT;
-#define FROB(atom) XChangeProperty (display, window, atom, XA_STRING, 8, \
-				    PropModeAppend, data, 0)
-  FROB (XA_CUT_BUFFER0);
-  FROB (XA_CUT_BUFFER1);
-  FROB (XA_CUT_BUFFER2);
-  FROB (XA_CUT_BUFFER3);
-  FROB (XA_CUT_BUFFER4);
-  FROB (XA_CUT_BUFFER5);
-  FROB (XA_CUT_BUFFER6);
-  FROB (XA_CUT_BUFFER7);
-#undef FROB
-  UNBLOCK_INPUT;
-}
-
-
-#define CHECK_CUT_BUFFER(symbol)					\
-  do { CHECK_SYMBOL ((symbol));					\
-    if (!EQ((symbol), QCUT_BUFFER0) && !EQ((symbol), QCUT_BUFFER1)	\
-	&& !EQ((symbol), QCUT_BUFFER2) && !EQ((symbol), QCUT_BUFFER3)	\
-	&& !EQ((symbol), QCUT_BUFFER4) && !EQ((symbol), QCUT_BUFFER5)	\
-	&& !EQ((symbol), QCUT_BUFFER6) && !EQ((symbol), QCUT_BUFFER7))	\
-      signal_error ("Doesn't name a cut buffer", (symbol));		\
-  } while (0)
-
-DEFUN ("x-get-cut-buffer-internal", Fx_get_cut_buffer_internal,
-       Sx_get_cut_buffer_internal, 1, 1, 0,
-       doc: /* Returns the value of the named cut buffer (typically CUT_BUFFER0).  */)
-  (Lisp_Object buffer)
-{
-  Window window;
-  Atom buffer_atom;
-  unsigned char *data = NULL;
-  int bytes;
-  Atom type;
-  int format;
-  unsigned long size;
-  Lisp_Object ret;
-  Display *display;
-  struct x_display_info *dpyinfo;
-  struct frame *sf = SELECTED_FRAME ();
-
-  check_x ();
-
-  if (! FRAME_X_P (sf))
-    return Qnil;
-
-  display = FRAME_X_DISPLAY (sf);
-  dpyinfo = FRAME_X_DISPLAY_INFO (sf);
-  window = RootWindow (display, 0); /* Cut buffers are on screen 0 */
-  CHECK_CUT_BUFFER (buffer);
-  buffer_atom = symbol_to_x_atom (dpyinfo, display, buffer);
-
-  x_get_window_property (display, window, buffer_atom, &data, &bytes,
-			 &type, &format, &size, 0);
-
-  if (!data || !format)
-    {
-      xfree (data);
-      return Qnil;
-    }
-
-  if (format != 8 || type != XA_STRING)
-    signal_error ("Cut buffer doesn't contain 8-bit data",
-		  list2 (x_atom_to_symbol (display, type),
-			 make_number (format)));
-
-  ret = (bytes ? make_unibyte_string ((char *) data, bytes) : Qnil);
-  /* Use xfree, not XFree, because x_get_window_property
-     calls xmalloc itself.  */
-  xfree (data);
-  return ret;
-}
-
-
-DEFUN ("x-store-cut-buffer-internal", Fx_store_cut_buffer_internal,
-       Sx_store_cut_buffer_internal, 2, 2, 0,
-       doc: /* Sets the value of the named cut buffer (typically CUT_BUFFER0).  */)
-  (Lisp_Object buffer, Lisp_Object string)
-{
-  Window window;
-  Atom buffer_atom;
-  unsigned char *data;
-  int bytes;
-  int bytes_remaining;
-  int max_bytes;
-  Display *display;
-  struct frame *sf = SELECTED_FRAME ();
-
-  check_x ();
-
-  if (! FRAME_X_P (sf))
-    return Qnil;
-
-  display = FRAME_X_DISPLAY (sf);
-  window = RootWindow (display, 0); /* Cut buffers are on screen 0 */
-
-  max_bytes = SELECTION_QUANTUM (display);
-  if (max_bytes > MAX_SELECTION_QUANTUM)
-    max_bytes = MAX_SELECTION_QUANTUM;
-
-  CHECK_CUT_BUFFER (buffer);
-  CHECK_STRING (string);
-  buffer_atom = symbol_to_x_atom (FRAME_X_DISPLAY_INFO (sf),
-				  display, buffer);
-  data = (unsigned char *) SDATA (string);
-  bytes = SBYTES (string);
-  bytes_remaining = bytes;
-
-  if (! FRAME_X_DISPLAY_INFO (sf)->cut_buffers_initialized)
-    {
-      initialize_cut_buffers (display, window);
-      FRAME_X_DISPLAY_INFO (sf)->cut_buffers_initialized = 1;
-    }
-
-  BLOCK_INPUT;
-
-  /* Don't mess up with an empty value.  */
-  if (!bytes_remaining)
-    XChangeProperty (display, window, buffer_atom, XA_STRING, 8,
-		     PropModeReplace, data, 0);
-
-  while (bytes_remaining)
-    {
-      int chunk = (bytes_remaining < max_bytes
-		   ? bytes_remaining : max_bytes);
-      XChangeProperty (display, window, buffer_atom, XA_STRING, 8,
-		       (bytes_remaining == bytes
-			? PropModeReplace
-			: PropModeAppend),
-		       data, chunk);
-      data += chunk;
-      bytes_remaining -= chunk;
-    }
-  UNBLOCK_INPUT;
-  return string;
-}
-
-
-DEFUN ("x-rotate-cut-buffers-internal", Fx_rotate_cut_buffers_internal,
-       Sx_rotate_cut_buffers_internal, 1, 1, 0,
-       doc: /* Rotate the values of the cut buffers by N steps.
-Positive N means shift the values forward, negative means backward.  */)
-  (Lisp_Object n)
-{
-  Window window;
-  Atom props[8];
-  Display *display;
-  struct frame *sf = SELECTED_FRAME ();
-
-  check_x ();
-
-  if (! FRAME_X_P (sf))
-    return Qnil;
-
-  display = FRAME_X_DISPLAY (sf);
-  window = RootWindow (display, 0); /* Cut buffers are on screen 0 */
-  CHECK_NUMBER (n);
-  if (XINT (n) == 0)
-    return n;
-  if (! FRAME_X_DISPLAY_INFO (sf)->cut_buffers_initialized)
-    {
-      initialize_cut_buffers (display, window);
-      FRAME_X_DISPLAY_INFO (sf)->cut_buffers_initialized = 1;
-    }
-
-  props[0] = XA_CUT_BUFFER0;
-  props[1] = XA_CUT_BUFFER1;
-  props[2] = XA_CUT_BUFFER2;
-  props[3] = XA_CUT_BUFFER3;
-  props[4] = XA_CUT_BUFFER4;
-  props[5] = XA_CUT_BUFFER5;
-  props[6] = XA_CUT_BUFFER6;
-  props[7] = XA_CUT_BUFFER7;
-  BLOCK_INPUT;
-  XRotateWindowProperties (display, window, props, 8, XINT (n));
-  UNBLOCK_INPUT;
-  return n;
-}
-
-#endif
-
 /***********************************************************************
                       Drag and drop support
 ***********************************************************************/
@@ -2850,12 +2624,6 @@ syms_of_xselect (void)
   defsubr (&Sx_selection_owner_p);
   defsubr (&Sx_selection_exists_p);
 
-#ifdef CUT_BUFFER_SUPPORT
-  defsubr (&Sx_get_cut_buffer_internal);
-  defsubr (&Sx_store_cut_buffer_internal);
-  defsubr (&Sx_rotate_cut_buffers_internal);
-#endif
-
   defsubr (&Sx_get_atom_name);
   defsubr (&Sx_send_client_message);
   defsubr (&Sx_register_dnd_atom);
@@ -2936,17 +2704,6 @@ A value of 0 means wait as long as necessary.  This is initialized from the
   QNULL	     = intern_c_string ("NULL");		staticpro (&QNULL);
   Qcompound_text_with_extensions = intern_c_string ("compound-text-with-extensions");
   staticpro (&Qcompound_text_with_extensions);
-
-#ifdef CUT_BUFFER_SUPPORT
-  QCUT_BUFFER0 = intern_c_string ("CUT_BUFFER0"); staticpro (&QCUT_BUFFER0);
-  QCUT_BUFFER1 = intern_c_string ("CUT_BUFFER1"); staticpro (&QCUT_BUFFER1);
-  QCUT_BUFFER2 = intern_c_string ("CUT_BUFFER2"); staticpro (&QCUT_BUFFER2);
-  QCUT_BUFFER3 = intern_c_string ("CUT_BUFFER3"); staticpro (&QCUT_BUFFER3);
-  QCUT_BUFFER4 = intern_c_string ("CUT_BUFFER4"); staticpro (&QCUT_BUFFER4);
-  QCUT_BUFFER5 = intern_c_string ("CUT_BUFFER5"); staticpro (&QCUT_BUFFER5);
-  QCUT_BUFFER6 = intern_c_string ("CUT_BUFFER6"); staticpro (&QCUT_BUFFER6);
-  QCUT_BUFFER7 = intern_c_string ("CUT_BUFFER7"); staticpro (&QCUT_BUFFER7);
-#endif
 
   Qforeign_selection = intern_c_string ("foreign-selection");
   staticpro (&Qforeign_selection);

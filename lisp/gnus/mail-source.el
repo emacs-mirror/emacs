@@ -34,7 +34,7 @@
   (require 'cl)
   (require 'imap))
 (autoload 'auth-source-user-or-password "auth-source")
-(autoload 'pop3-movemail "pop3")
+(autoload 'pop3-streaming-movemail "pop3")
 (autoload 'pop3-get-message-count "pop3")
 (autoload 'nnheader-cancel-timer "nnheader")
 (require 'mm-util)
@@ -466,10 +466,10 @@ the `mail-source-keyword-map' variable."
 	   ;; 1) the auth-sources user and password override everything
 	   ;; 2) it avoids macros, so it's cleaner
 	   ;; 3) it falls through to the mail-sources and then default values
-	   (cond 
+	   (cond
 	    ((and
 	     (eq keyword :user)
-	     (setq user-auth 
+	     (setq user-auth
 		   (nth 0 (auth-source-user-or-password
 			   '("login" "password")
 			   ;; this is "host" in auth-sources
@@ -536,7 +536,7 @@ See `mail-source-bind'."
    (t
     value)))
 
-(defun mail-source-fetch (source callback)
+(defun mail-source-fetch (source callback &optional method)
   "Fetch mail from SOURCE and call CALLBACK zero or more times.
 CALLBACK will be called with the name of the file where (some of)
 the mail from SOURCE is put.
@@ -544,6 +544,16 @@ Return the number of files that were found."
   (mail-source-bind-common source
     (if (or mail-source-plugged plugged)
 	(save-excursion
+	  ;; Special-case the `file' handler since it's so common and
+	  ;; just adds noise.
+	  (when (or (not (eq (car source) 'file))
+		    (mail-source-bind (file source)
+		      (file-exists-p path)))
+	    (nnheader-message 4 "%sReading incoming mail from %s..."
+			      (if method
+				  (format "%s: " method)
+				"")
+			      (car source)))
 	  (let ((function (cadr (assq (car source) mail-source-fetcher-alist)))
 		(found 0))
 	    (unless function
@@ -619,6 +629,8 @@ Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
 	0)
     (funcall callback mail-source-crash-box info)))
 
+(defvar mail-source-incoming-last-checked-time nil)
+
 (defun mail-source-delete-crash-box ()
   (when (file-exists-p mail-source-crash-box)
     ;; Delete or move the incoming mail out of the way.
@@ -634,9 +646,16 @@ Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
 	(rename-file mail-source-crash-box incoming t)
 	;; remove old incoming files?
 	(when (natnump mail-source-delete-incoming)
-	  (mail-source-delete-old-incoming
-	   mail-source-delete-incoming
-	   mail-source-delete-old-incoming-confirm))))))
+	  ;; Don't check for old incoming files more than once per day to
+	  ;; save a lot of file accesses.
+	  (when (or (null mail-source-incoming-last-checked-time)
+		    (> (time-to-seconds
+			(time-since mail-source-incoming-last-checked-time))
+		       (* 24 60 60)))
+	    (setq mail-source-incoming-last-checked-time (current-time))
+	    (mail-source-delete-old-incoming
+	     mail-source-delete-incoming
+	     mail-source-delete-old-incoming-confirm)))))))
 
 (defun mail-source-movemail (from to)
   "Move FROM to TO using movemail."
@@ -820,9 +839,11 @@ Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
 		     (if (eq authentication 'apop) 'apop 'pass))
 		    (pop3-stream-type stream))
 		(if (or debug-on-quit debug-on-error)
-		    (save-excursion (pop3-movemail mail-source-crash-box))
+		    (save-excursion (pop3-streaming-movemail
+				     mail-source-crash-box))
 		  (condition-case err
-		      (save-excursion (pop3-movemail mail-source-crash-box))
+		      (save-excursion (pop3-streaming-movemail
+				       mail-source-crash-box))
 		    (error
 		     ;; We nix out the password in case the error
 		     ;; was because of a wrong password being given.
@@ -1145,5 +1166,4 @@ This only works when `display-time' is enabled."
 
 (provide 'mail-source)
 
-;; arch-tag: 72948025-1d17-4d6c-bb12-ef1aa2c490fd
 ;;; mail-source.el ends here

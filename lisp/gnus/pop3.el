@@ -33,6 +33,7 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
 (require 'mail-utils)
 (defvar parse-time-months)
 
@@ -98,12 +99,6 @@ thing can fall apart and leave you with a corrupt mailbox."
   :type 'boolean
   :group 'pop3)
 
-(defcustom pop3-display-message-size-flag t
-  "*If non-nil, display the size of the message that is being fetched."
-  :version "22.1" ;; Oort Gnus
-  :type 'boolean
-  :group 'pop3) 
-
 (defvar pop3-timestamp nil
   "Timestamp returned when initially connected to the POP server.
 Used for APOP authentication.")
@@ -120,7 +115,7 @@ Used for APOP authentication.")
       (defalias 'pop3-accept-process-output 'nnheader-accept-process-output)
     ;; Borrowed from `nnheader.el':
     (defvar pop3-read-timeout
-      (if (string-match "windows-nt\\|os/2\\|emx\\|cygwin"
+      (if (string-match "windows-nt\\|os/2\\|cygwin"
 			(symbol-name system-type))
 	  1.0
 	0.01)
@@ -134,15 +129,91 @@ Shorter values mean quicker response, but are more CPU intensive.")
 		       (truncate pop3-read-timeout))
 		    1000))))))
 
-(defun pop3-movemail (&optional crashbox)
-  "Transfer contents of a maildrop to the specified CRASHBOX."
-  (or crashbox (setq crashbox (expand-file-name "~/.crashbox")))
+(defun pop3-streaming-movemail (file)
+  "Transfer contents of a maildrop to the specified FILE.
+Use streaming commands."
   (let* ((process (pop3-open-server pop3-mailhost pop3-port))
-	 (crashbuf (get-buffer-create " *pop3-retr*"))
-	 (n 1)
-	 message-count
-	 message-sizes
-	 (pop3-password pop3-password))
+	 message-count message-total-size)
+    (pop3-logon process)
+    (with-current-buffer (process-buffer process)
+      (let ((size (pop3-stat process)))
+	(setq message-count (car size)
+	      message-total-size (cadr size)))
+      (when (plusp message-count)
+	(pop3-send-streaming-command
+	 process "RETR" message-count message-total-size)
+	(pop3-write-to-file file)
+	(unless pop3-leave-mail-on-server
+	  (pop3-send-streaming-command
+	   process "DELE" message-count nil))))
+    (pop3-quit process)
+    t))
+
+(defun pop3-send-streaming-command (process command count total-size)
+  (erase-buffer)
+  (let ((i 1))
+    (while (>= count i)
+      (process-send-string process (format "%s %d\r\n" command i))
+      ;; Only do 100 messages at a time to avoid pipe stalls.
+      (when (zerop (% i 100))
+	(pop3-wait-for-messages process i total-size))
+      (incf i)))
+  (pop3-wait-for-messages process count total-size))
+
+(defun pop3-wait-for-messages (process count total-size)
+  (while (< (pop3-number-of-responses total-size) count)
+    (when total-size
+      (message "pop3 retrieved %dKB (%d%%)"
+	       (truncate (/ (buffer-size) 1000))
+	       (truncate (* (/ (* (buffer-size) 1.0)
+			       total-size) 100))))
+    (nnheader-accept-process-output process)))
+
+(defun pop3-write-to-file (file)
+  (let ((pop-buffer (current-buffer))
+	(start (point-min))
+	beg end
+	temp-buffer)
+    (with-temp-buffer
+      (setq temp-buffer (current-buffer))
+      (with-current-buffer pop-buffer
+	(goto-char (point-min))
+	(while (re-search-forward "^\\+OK" nil t)
+	  (forward-line 1)
+	  (setq beg (point))
+	  (when (re-search-forward "^\\.\r?\n" nil t)
+	    (setq start (point))
+	    (forward-line -1)
+	    (setq end (point)))
+	  (with-current-buffer temp-buffer
+	    (goto-char (point-max))
+	    (let ((hstart (point)))
+	      (insert-buffer-substring pop-buffer beg end)
+	      (pop3-clean-region hstart (point))
+	      (goto-char (point-max))
+	      (pop3-munge-message-separator hstart (point))
+	      (goto-char (point-max))))))
+      (let ((coding-system-for-write 'binary))
+	(goto-char (point-min))
+	;; Check whether something inserted a newline at the start and
+	;; delete it.
+	(when (eolp)
+	  (delete-char 1))
+	(write-region (point-min) (point-max) file nil 'nomesg)))))
+
+(defun pop3-number-of-responses (endp)
+  (let ((responses 0))
+    (save-excursion
+      (goto-char (point-min))
+      (while (or (and (re-search-forward "^\\+OK" nil t)
+		      (or (not endp)
+			  (re-search-forward "^\\.\r?\n" nil t)))
+		 (re-search-forward "^-ERR " nil t))
+	(incf responses)))
+    responses))
+
+(defun pop3-logon (process)
+  (let ((pop3-password pop3-password))
     ;; for debugging only
     (if pop3-debug (switch-to-buffer (process-buffer process)))
     ;; query for password
@@ -154,30 +225,33 @@ Shorter values mean quicker response, but are more CPU intensive.")
 	  ((equal 'pass pop3-authentication-scheme)
 	   (pop3-user process pop3-maildrop)
 	   (pop3-pass process))
-	  (t (error "Invalid POP3 authentication scheme")))
+	  (t (error "Invalid POP3 authentication scheme")))))
+
+(defun pop3-movemail (&optional crashbox)
+  "Transfer contents of a maildrop to the specified CRASHBOX."
+  (or crashbox (setq crashbox (expand-file-name "~/.crashbox")))
+  (let* ((process (pop3-open-server pop3-mailhost pop3-port))
+	 (crashbuf (get-buffer-create " *pop3-retr*"))
+	 (n 1)
+	 message-count
+	 message-sizes)
+    (pop3-logon process)
     (setq message-count (car (pop3-stat process)))
-    (when (and pop3-display-message-size-flag
-	       (> message-count 0))
+    (when (> message-count 0)
       (setq message-sizes (pop3-list process)))
     (unwind-protect
 	(while (<= n message-count)
-	  (if pop3-display-message-size-flag
-	      (message "Retrieving message %d of %d from %s... (%.1fk)"
-		       n message-count pop3-mailhost
-		       (/ (cdr (assoc n message-sizes))
-			  1024.0))
-	    (message "Retrieving message %d of %d from %s..."
-		     n message-count pop3-mailhost)) 	  
+	  (message "Retrieving message %d of %d from %s... (%.1fk)"
+		   n message-count pop3-mailhost
+		   (/ (cdr (assoc n message-sizes))
+		      1024.0))
 	  (pop3-retr process n crashbuf)
 	  (save-excursion
 	    (set-buffer crashbuf)
 	    (let ((coding-system-for-write 'binary))
 	      (write-region (point-min) (point-max) crashbox t 'nomesg))
 	    (set-buffer (process-buffer process))
-	    (while (> (buffer-size) 5000)
-	      (goto-char (point-min))
-	      (forward-line 50)
-	      (delete-region (point-min) (point))))
+	    (erase-buffer))
           (unless pop3-leave-mail-on-server
             (pop3-dele process n))
 	  (setq n (+ 1 n))
@@ -228,6 +302,13 @@ this is nil, `ssl' is assumed for connexions to port
   :type '(choice (const :tag "Plain" nil)
 		 (const :tag "SSL/TLS" ssl)
 		 (const starttls)))
+
+(eval-and-compile
+  (if (fboundp 'set-process-query-on-exit-flag)
+      (defalias 'pop3-set-process-query-on-exit-flag
+	'set-process-query-on-exit-flag)
+    (defalias 'pop3-set-process-query-on-exit-flag
+      'process-kill-without-query)))
 
 (defun pop3-open-server (mailhost port)
   "Open TCP connection to MAILHOST on PORT.
@@ -283,21 +364,16 @@ Returns the process associated with the connection."
 		    (pop3-quit process)
 		    (error "POP server doesn't support starttls")))
 		process))
-	     (t 
+	     (t
 	      (open-network-stream "POP" (current-buffer) mailhost port))))
       (let ((response (pop3-read-response process t)))
 	(setq pop3-timestamp
 	      (substring response (or (string-match "<" response) 0)
 			 (+ 1 (or (string-match ">" response) -1)))))
+      (pop3-set-process-query-on-exit-flag process nil)
       process)))
 
 ;; Support functions
-
-(defun pop3-process-filter (process output)
-  (save-excursion
-    (set-buffer (process-buffer process))
-    (goto-char (point-max))
-    (insert output)))
 
 (defun pop3-send-command (process command)
   (set-buffer (process-buffer process))
@@ -415,10 +491,7 @@ If NOW, use that time instead."
 		nil
 	      (goto-char (point-max))
 	      (insert "\n"))
-	    (narrow-to-region (point) (point-max))
-	    (let ((size (- (point-max) (point-min))))
-	      (goto-char (point-min))
-	      (widen)
+	    (let ((size (- (point-max) (point))))
 	      (forward-line -1)
 	      (insert (format "Content-Length: %s\n" size)))
 	    )))))
@@ -468,7 +541,7 @@ If NOW, use that time instead."
 (defun pop3-list (process &optional msg)
   "If MSG is nil, return an alist of (MESSAGE-ID . SIZE) pairs.
 Otherwise, return the size of the message-id MSG"
-  (pop3-send-command process (if msg 
+  (pop3-send-command process (if msg
 				 (format "LIST %d" msg)
 			       "LIST"))
   (let ((response (pop3-read-response process t)))
@@ -643,5 +716,4 @@ and close the connection."
 
 (provide 'pop3)
 
-;; arch-tag: 2facc142-1d74-498e-82af-4659b64cac12
 ;;; pop3.el ends here

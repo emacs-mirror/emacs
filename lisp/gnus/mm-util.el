@@ -680,7 +680,7 @@ superset of iso-8859-1."
   "100% binary coding system.")
 
 (defvar mm-text-coding-system
-  (or (if (memq system-type '(windows-nt ms-dos ms-windows))
+  (or (if (memq system-type '(windows-nt ms-dos))
 	  (and (mm-coding-system-p 'raw-text-dos) 'raw-text-dos)
 	(and (mm-coding-system-p 'raw-text) 'raw-text))
       mm-binary-coding-system)
@@ -692,12 +692,12 @@ superset of iso-8859-1."
 (defvar mm-auto-save-coding-system
   (cond
    ((mm-coding-system-p 'utf-8-emacs)	; Mule 7
-    (if (memq system-type '(windows-nt ms-dos ms-windows))
+    (if (memq system-type '(windows-nt ms-dos))
 	(if (mm-coding-system-p 'utf-8-emacs-dos)
 	    'utf-8-emacs-dos mm-binary-coding-system)
       'utf-8-emacs))
    ((mm-coding-system-p 'emacs-mule)
-    (if (memq system-type '(windows-nt ms-dos ms-windows))
+    (if (memq system-type '(windows-nt ms-dos))
 	(if (mm-coding-system-p 'emacs-mule-dos)
 	    'emacs-mule-dos mm-binary-coding-system)
       'emacs-mule))
@@ -1429,16 +1429,23 @@ If SUFFIX is non-nil, add that at the end of the file name."
 	;; Reset the umask.
 	(set-default-file-modes umask)))))
 
+(defvar mm-image-load-path-cache nil)
+
 (defun mm-image-load-path (&optional package)
-  (let (dir result)
-    (dolist (path load-path (nreverse result))
-      (when (and path
-		 (file-directory-p
-		  (setq dir (concat (file-name-directory
-				     (directory-file-name path))
-				    "etc/images/" (or package "gnus/")))))
-	(push dir result))
-      (push path result))))
+  (if (and mm-image-load-path-cache
+	   (equal load-path (car mm-image-load-path-cache)))
+      (cdr mm-image-load-path-cache)
+    (let (dir result)
+      (dolist (path load-path)
+	(when (and path
+		   (file-directory-p
+		    (setq dir (concat (file-name-directory
+				       (directory-file-name path))
+				      "etc/images/" (or package "gnus/")))))
+	  (push dir result)))
+      (setq result (nreverse result)
+	    mm-image-load-path-cache (cons load-path result))
+      result)))
 
 ;; Fixme: This doesn't look useful where it's used.
 (if (fboundp 'detect-coding-region)
@@ -1653,5 +1660,4 @@ gzip, bzip2, etc. are allowed."
 
 (provide 'mm-util)
 
-;; arch-tag: 94dc5388-825d-4fd1-bfa5-2100aa351238
 ;;; mm-util.el ends here

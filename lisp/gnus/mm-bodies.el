@@ -302,5 +302,4 @@ decoding.  If it is nil, default to `mail-parse-charset'."
 
 (provide 'mm-bodies)
 
-;; arch-tag: 41104bb6-4443-4ca9-8d5c-ff87ecf27d8d
 ;;; mm-bodies.el ends here

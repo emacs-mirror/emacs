@@ -250,5 +250,4 @@ possible that the hook was persistently saved."
 
 (provide 'legacy-gnus-agent)
 
-;; arch-tag: 845c7b8a-88f7-4468-b8d7-94e8fc72cf1a
 ;;; legacy-gnus-agent.el ends here

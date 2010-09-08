@@ -92,12 +92,10 @@
 (defmacro dbus-ignore-errors (&rest body)
   "Execute BODY; signal D-Bus error when `dbus-debug' is non-nil.
 Otherwise, return result of last form in BODY, or all other errors."
+  (declare (indent 0) (debug t))
   `(condition-case err
        (progn ,@body)
      (dbus-error (when dbus-debug (signal (car err) (cdr err))))))
-
-(put 'dbus-ignore-errors 'lisp-indent-function 0)
-(put 'dbus-ignore-errors 'edebug-form-spec '(form body))
 (font-lock-add-keywords 'emacs-lisp-mode '("\\<dbus-ignore-errors\\>"))
 
 (defvar dbus-event-error-hooks nil

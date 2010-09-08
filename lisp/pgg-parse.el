@@ -519,5 +519,4 @@
 
 (provide 'pgg-parse)
 
-;; arch-tag: 16c2eb82-1313-4a7c-a70f-420709b5b43e
 ;;; pgg-parse.el ends here

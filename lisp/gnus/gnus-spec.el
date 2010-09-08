@@ -767,5 +767,4 @@ If PROPS, insert the result."
 ;; coding: iso-8859-1
 ;; End:
 
-;; arch-tag: a4328fa1-1f84-4b09-97ad-4b5767cfd50f
 ;;; gnus-spec.el ends here

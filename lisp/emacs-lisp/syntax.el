@@ -209,7 +209,8 @@ Point is at POS when this function returns."
 				(funcall syntax-begin-function)
 				;; Make sure it's better.
 				(> (point) pt-best))
-			 ;; Simple sanity check.
+			 ;; Simple sanity checks.
+                         (< (point) pos) ; backward-paragraph can fail here.
 			 (not (memq (get-text-property (point) 'face)
 				    '(font-lock-string-face font-lock-doc-face
 				      font-lock-comment-face))))

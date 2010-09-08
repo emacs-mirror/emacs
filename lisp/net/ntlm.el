@@ -27,9 +27,9 @@
 ;; This library is a direct translation of the Samba release 2.2.0
 ;; implementation of Windows NT and LanManager compatible password
 ;; encryption.
-;; 
+;;
 ;; Interface functions:
-;; 
+;;
 ;; ntlm-build-auth-request
 ;;   This will return a binary string, which should be used in the
 ;;   base64 encoded form and it is the caller's responsibility to encode
@@ -40,7 +40,7 @@
 ;;   (which will be a binary string) as the first argument and to
 ;;   encode the returned string with base64.  The second argument user
 ;;   should be given in user@domain format.
-;; 
+;;
 ;; ntlm-get-password-hashes
 ;;
 ;;
@@ -534,5 +534,4 @@ into a Unicode string.  PASSWD is truncated to 128 bytes if longer."
 
 (provide 'ntlm)
 
-;; arch-tag: 348ace18-f8e2-4176-8fe9-d9ab4e96f296
 ;;; ntlm.el ends here

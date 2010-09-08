@@ -1,3 +1,354 @@
+2010-09-07  Agustín Martín  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-start-process): Make sure original
+	arg list is properly initialized (Bug#6993, Bug#6994).
+
+2010-09-06  Alexander Klimov  <alserkli@inbox.ru>  (tiny change)
+
+	* files.el (directory-abbrev-alist): Use \` as default regexp.
+
+	* emacs-lisp/rx.el (rx-any): Don't explode ranges that end in special
+	chars like - or ] (bug#6984).
+	(rx-any-condense-range): Explode 2-char ranges.
+
+2010-09-06  Glenn Morris  <rgm@gnu.org>
+
+	* desktop.el (desktop-path): Bump :version after 2009-09-15 change.
+
+2010-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/bibtex.el:
+	* proced.el: Update to new email for Roland Winkler <winkler@gnu.org>.
+
+2010-09-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/imap.el (imap-message-map): Removed optional buffer parameter,
+	since no callers use it.
+	(imap-message-get): Ditto.
+	(imap-message-put): Ditto.
+	(imap-mailbox-map): Ditto.
+	(imap-mailbox-put): Ditto.
+	(imap-mailbox-get): Ditto.
+	(imap-mailbox-get): Revert last change for this function.
+
+2010-09-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/imap.el (imap-fetch-safe): Removed function, and altered all
+	callers to use `imap-fetch' instead.  According to the comments, this
+	should be safe, since all other IMAP clients use the 1:* syntax.
+	(imap-enable-exchange-bug-workaround): Removed.
+	(imap-debug): Removed -- doesn't seem very useful.
+
+2010-09-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/imap.el (imap-log): New convenience function used throughout
+	instead of repeating the same code all over the place.
+
+2010-09-05  David De La Harpe Golden  <david@harpegolden.net>
+
+	* mouse.el (mouse-save-then-kill): Save region to kill-ring
+	when mouse-drag-copy-region is non-nil (Bug#6956).
+
+2010-09-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired.el (dired-ls-sorting-switches, dired-sort-by-name-regexp):
+	Improve regexps (Bug#6987).
+	(dired-sort-toggle): Search more robustly for -t flag.
+
+	* files.el (get-free-disk-space): Search more robustly for
+	"available" column.  Suggested by Ehud Karni
+	<ehud@unix.mvs.co.il>.
+
+2010-09-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/uni-bidi.el:
+	* international/uni-category.el:
+	* international/uni-combining.el:
+	* international/uni-decimal.el:
+	* international/uni-mirrored.el:
+	* international/uni-name.el: Regenerate.
+
+2010-09-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* electric.el (electric-indent-post-self-insert-function):
+	Don't reindent with a sloppy indentation function.
+
+	* emacs-lisp/syntax.el (syntax-ppss): More sanity check to catch
+	border case in change-log-mode.
+
+2010-09-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Remove ruby regexp; handle Ruby errors with gcc-include and gnu.
+	Recognize leading tab in gcc-include regexp.  Ignore names with
+	leading "from" or "in" in gnu regexp (Bug#6937).
+
+2010-09-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Avoid global recursive calls to kill-buffer-hooks; fit into 80 cols.
+	* textmodes/ispell.el (ispell-process-buffer-name): Remove.
+	(ispell-start-process): Avoid setq and simplify logic.
+	(ispell-init-process): Setup kill-buffer-hook locally when needed.
+	(kill-buffer-hook): Don't use it globally with code that uses
+	expand-file-name since that may call kill-buffer via
+	code_conversion_restore.
+
+2010-09-04  Noorul Islam K M  <noorul@noorul.com>  (tiny change)
+
+	* emacs-lisp/package.el (package-directory-list): Only call
+	file-name-nondirectory on a string.
+
+2010-09-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package--download-one-archive):
+	Ensure that archive-contents is valid before saving it.
+	(package-activate-1, package-mark-obsolete, define-package)
+	(package-compute-transaction, package-list-maybe-add): Use push.
+
+2010-09-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Use SMIE's blink-paren for octave-mode.
+	* progmodes/octave-mod.el (octave-font-lock-close-quotes):
+	Backslashes do not escape single-quotes, single-quotes do.
+	(octave-block-else-regexp, octave-block-end-regexp)
+	(octave-block-match-alist): Remove.
+	(octave-smie-bnf-table): New var, with old content.
+	(octave-smie-op-levels): Use it.
+	(octave-smie-closer-alist): New var.
+	(octave-mode): Use it.  Setup smie-blink-matching and electric-indent.
+	(octave-blink-matching-block-open): Remove.
+	(octave-reindent-then-newline-and-indent, octave-electric-semi)
+	(octave-electric-space): Let self-insert-command run expand-abbrev and
+	blink parens.
+
+	* electric.el (electricity): New group.
+	(electric-indent-chars): New var.
+	(electric-indent-post-self-insert-function): New fun.
+	(electric-indent-mode): New minor mode.
+	(electric-pair-skip-self): New custom.
+	(electric-pair-post-self-insert-function): New function.
+	(electric-pair-mode): New minor mode.
+
+	* calc/calc-aent.el (calcAlg-blink-matching-check): New fun, to replace
+	calcAlg-blink-matching-open.
+	(calc-alg-ent-map, calc-alg-ent-esc-map): Initialize in the declaration.
+	(calc-do-alg-entry): Only touch the part of the keymap that varies.
+	Use the new blink-matching-check-function.
+
+	Provide blink-matching support to SMIE.
+	* emacs-lisp/smie.el (smie-bnf-closer-alist): New function.
+	(smie-blink-matching-triggers, smie-blink-matching-inners): New vars.
+	(smie-blink-matching-check, smie-blink-matching-open): New functions.
+
+	* simple.el (newline): Fix last change to properly remove itself from
+	the hook.
+
+2010-09-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (newline): Eliminate optimization.
+	Use post-self-insert-hook to set hard-newline and things before
+	running post-self-insert-hook.
+	(blink-matching-check-mismatch): New function.
+	(blink-matching-check-function): New variable.
+	(blink-matching-open): Use them.
+	Skip back forward over prefix chars skipped by forward-sexp.
+	Don't check if the parens are backslash escaped.
+	(blink-paren-post-self-insert-function): Check backslash escaping here.
+
+2010-09-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package-menu-mode-map):
+	Change package-menu-revert bindings to revert-buffer.
+	(package-menu-mode): Set revert-buffer-function.
+	(package-menu-revert): Doc fix.
+
+2010-09-02  Agustín Martín  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-init-process): Use "~/" as
+	`default-directory' unless using Ispell per-directory personal
+	dictionaries and not in a mini-buffer under XEmacs.
+	(kill-buffer-hook): Do not kill ispell process on exit when
+	`ispell-process-directory' is "~/". (Bug#6143)
+
+2010-09-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* simple.el (kill-new): Call interprogram-cut-function with only
+	one argument.
+
+	* term.el (term-mouse-paste): Don't call x-get-cutbuffer.
+	Remove cut buffer from error message.
+
+	* term/x-win.el (x-select-text):
+	* term/pc-win.el (x-selection-value):
+	* term/ns-win.el (x-selection-value):
+	* eshell/em-term.el:
+	* w32-fns.el (x-get-selection-value):
+	* mouse-sel.el (mouse-sel-set-selection-function):
+	* frame.el (display-selections-p): Remove cut-buffer in documentation.
+
+	* term/x-win.el: Update documentation for x-last-selected-text-*.
+	(x-last-selected-text-cut, x-last-selected-text-cut-encoded)
+	(x-last-cut-buffer-coding, x-cut-buffer-max): Remove.
+	(x-select-text): Remove argument PUSH, update documentation.  Remove
+	cut-buffer code.
+	(x-selection-value-internal): Was previously x-selection-value.
+	(x-selection-value): Rename from x-cut-buffer-or-selection-value.
+	Update documentation, remove cut-buffer code.  Call
+	x-selection-value-internal.
+	(x-clipboard-yank): Call x-selection-value-internal.
+	(x-initialize-window-system): Remove setting of x-cut-buffer-max.
+
+	* term/pc-win.el (x-last-selected-text):
+	x-cut-buffer-or-selection-value renamed to x-selection-value
+	(x-select-text): Remove argument PUSH, update documentation.
+
+	* term/ns-win.el (x-setup-function-keys, ns-last-selected-text):
+	x-cut-buffer-or-selection-value renamed to x-selection-value
+	(x-selection-value): Renamed from x-cut-buffer-or-selection-value.
+	(x-select-text): Remove argument PUSH, update documentation.
+
+	* emacs-lisp/cl-macs.el (x-get-cutbuffer, x-get-cut-buffer): Remove.
+
+	* w32-fns.el (x-last-selected-text):
+	x-cut-buffer-or-selection-value renamed to x-selection-value.
+	(x-cut-buffer-max): Remove.
+	(x-select-text): Remove argument PUSH, update documentation.
+
+	* simple.el (interprogram-cut-function): Remove mention of PUSH.
+
+	* select.el (x-get-cut-buffer, x-set-cut-buffer): Remove.
+
+	* mouse-sel.el (mouse-sel-get-selection-function):
+	x-cut-buffer-or-selection-value renamed to x-selection-value.
+	(x-select-text): Remove optional push.
+
+2010-09-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (blink-paren-function): Move from C to here.
+	(blink-paren-post-self-insert-function): New function.
+	(post-self-insert-hook): Use it.
+
+	* emacs-lisp/pcase.el (pcase-split-memq):
+	Fix overenthusiastic optimisation.
+	(pcase-u1): Handle the case of a lambda pred.
+
+2010-08-31  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (standard-display-european-internal):
+	Setup standard-display-table for 8-bit characters by storing 8-bit
+	characters in the element vector.
+
+	* disp-table.el (standard-display-8bit): Setup
+	standard-display-table for 8-bit characters by storing 8-bit
+	characters in the element vector.
+	(standard-display-european): Likewise.
+
+2010-08-31  Masatake YAMATO  <yamato@redhat.com>
+
+	* textmodes/nroff-mode.el (nroff-view): New command.
+	(nroff-mode-map): Bind it to C-c C-c.
+
+2010-08-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-down-list): New command.
+
+	Remove old indentation and navigation code on octave-mode.
+	* progmodes/octave-mod.el (octave-mode-map): Remap down-list to
+	smie-down-list rather than add a binding for octave-down-block.
+	(octave-mark-block, octave-blink-matching-block-open):
+	Rely on forward-sexp-function.
+	(octave-fill-paragraph): Don't narrow, so you can use
+	indent-according-to-mode.
+	(octave-block-begin-regexp, octave-block-begin-or-end-regexp): Remove.
+	(octave-in-block-p, octave-re-search-forward-kw)
+	(octave-re-search-backward-kw, octave-indent-calculate)
+	(octave-end-as-array-index-p, octave-block-end-offset)
+	(octave-scan-blocks, octave-forward-block, octave-backward-block)
+	(octave-down-block, octave-backward-up-block, octave-up-block)
+	(octave-before-magic-comment-p, octave-indent-line): Remove.
+
+2010-08-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package--read-archive-file): Just use
+	`read', to avoid copying an additional string.
+	(package-menu-mode): Set header-line-format here.
+	(package-menu-refresh, package-menu-revert): Signal an error if
+	not in the Package Menu.
+	(package-menu-package-list): New var.
+	(package--generate-package-list): Operate on the current buffer;
+	don't assume that it is *Packages*, since the user may rename it.
+	Allow persistent package listings and sort keys using
+	package-menu-package-list and package-menu-package-sort-key.
+	(package-menu--version-predicate): Fix version calculation.
+	(package-menu-sort-by-column): Don't select the window.
+	(package--list-packages): Create the *Packages* buffer.
+	Set package-menu-package-list-key.
+	(list-packages): Sorting by status is now the default.
+	(package-buffer-info): Use match-string-no-properties.
+	(define-package): Add a &rest argument for future proofing, but
+	don't use it yet.
+	(package-install-from-buffer, package-install-buffer-internal):
+	Merge into a single function, package-install-from-buffer.
+	(package-install-file): Change caller.
+
+	* finder.el: Load finder-inf using `require'.
+	(finder-list-matches): Sorting by status is now the default.
+	(finder-compile-keywords): Simpify printing.
+
+2010-08-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/octave-mod.el (octave-font-lock-keywords): Use regexp-opt.
+	(octave-mode-map): Remove special bindings for forward/backward-block
+	and octave-backward-up-block.  Use smie-close-block.
+	(octave-continuation-marker-regexp): New var.
+	(octave-continuation-regexp): Use it.
+	(octave-operator-table, octave-smie-op-levels)
+	(octave-operator-regexp, octave-smie-indent-rules): New vars.
+	(octave-smie-backward-token, octave-smie-forward-token): New funs.
+	(octave-mode): Use SMIE.
+	(octave-close-block): Delete.
+
+2010-08-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* menu-bar.el (menu-bar-edit-menu) <"Paste">: Check selection in
+	CLIPBOARD, not in PRIMARY.  (Bug#6944)
+
+2010-08-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-indent-offset-rule): Let :parent take
+	a list of parents.
+	(smie-indent-column): Allow indirection through variables.
+
+	* composite.el (save-buffer-state): Delete, unused.
+	* font-lock.el (save-buffer-state): Use with-silent-modifications.
+	(font-lock-default-fontify-region): Use with-syntax-table.
+	* jit-lock.el (with-buffer-unmodified): Remove.
+	(with-buffer-prepared-for-jit-lock): Use with-silent-modifications.
+
+	Use `declare' in defmacros.
+	* window.el (save-selected-window):
+	* subr.el (with-temp-file, with-temp-message, with-syntax-table):
+	* progmodes/python.el (def-python-skeleton):
+	* net/dbus.el (dbus-ignore-errors):
+	* jka-cmpr-hook.el (with-auto-compression-mode):
+	* international/mule.el (with-category-table):
+	* emacs-lisp/timer.el (with-timeout):
+	* emacs-lisp/lisp-mnt.el (lm-with-file):
+	* emacs-lisp/eieio.el (with-slots):
+	* emacs-lisp/easymenu.el (easy-menu-define):
+	* emacs-lisp/debug.el (debugger-env-macro):
+	* emacs-lisp/cl-compat.el (Multiple-value-bind, Multiple-value-setq)
+	(Multiple-value-call, Multiple-value-prog1):
+	* emacs-lisp/cl-seq.el (cl-parsing-keywords, cl-check-key)
+	(cl-check-test-nokey, cl-check-test, cl-check-match): Move indent and
+	edebug rule to definition.
+	* emacs-lisp/lisp-mode.el (save-selected-window)
+	(with-current-buffer, combine-after-change-calls)
+	(with-output-to-string, with-temp-file, with-temp-buffer)
+	(with-temp-message, with-syntax-table, read-if, eval-after-load)
+	(dolist, dotimes, when, unless):
+	* emacs-lisp/byte-run.el (inline): Remove indent rule, redundant.
+
 2010-08-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* finder.el: Require `package'.
@@ -7,8 +358,8 @@
 	(finder-compile-keywords): Compute package--builtins and
 	finder-keywords-hash instead of finder-keywords-hash, respecting
 	the "Package" header.
-	(finder-unknown-keywords, finder-list-matches): Use
-	finder-keywords-hash and package--list-packages.
+	(finder-unknown-keywords, finder-list-matches):
+	Use finder-keywords-hash and package--list-packages.
 	(finder-mode): Don't set font-lock-defaults.
 	(finder-exit): We don't use "*Finder-package*" and "*Finder
 	Category*" buffers anymore.
@@ -51,6 +402,57 @@
 
 	* whitespace.el (whitespace-style): Adjust type declaration.
 
+2010-08-26  Magnus Henoch  <magnus.henoch@gmail.com>
+
+	* net/tramp-gvfs.el (tramp-gvfs-handle-copy-file): Do not pass
+	empty argument to gvfs-copy.
+
+2010-08-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* net/tramp-compat.el (tramp-compat-delete-file): Rewrite to
+	handle new TRASH arg of `delete-file'.
+
+2010-08-26  Christian Lynbech  <christian.lynbech@tieto.com>  (tiny change)
+
+	* net/tramp.el (tramp-handle-insert-directory): Don't use
+	`forward-word', its default syntax could be changed.
+
+2010-08-26  Toru TSUNEYOSHI  <t_tuneyosi@hotmail.com>
+            Michael Albinus  <michael.albinus@gmx.de>
+
+	Implement compression for inline methods.
+
+	* net/tramp.el (tramp-inline-compress-start-size): New defcustom.
+	(tramp-copy-size-limit): Allow also nil.
+	(tramp-inline-compress-commands): New defconst.
+	(tramp-find-inline-compress, tramp-get-inline-compress)
+	(tramp-get-inline-coding): New defuns.
+	(tramp-get-remote-coding, tramp-get-local-coding): Remove,
+	replaced by `tramp-get-inline-coding'.
+	(tramp-handle-file-local-copy, tramp-handle-write-region)
+	(tramp-method-out-of-band-p): Use `tramp-get-inline-coding'.
+
+2010-08-26  Noah Lavine  <noah549@gmail.com>  (tiny change)
+
+	Detect ssh 'ControlMaster' argument automatically in some cases.
+
+	* net/tramp.el (tramp-detect-ssh-controlmaster): New defun.
+	(tramp-default-method): Use it.
+
+2010-08-26  Karel Klíč  <kklic@redhat.com>
+
+	* net/tramp.el (tramp-file-name-for-operation):
+	Add file-selinux-context.
+
+2010-08-26  Łukasz Stelmach  <lukasz.stelmach@iem.pw.edu.pl>  (tiny change)
+
+	* play/cookie1.el (read-cookie): Fix off-by-one error (bug#6921).
+
+2010-08-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (beginning-of-buffer, end-of-buffer): Doc fix
+	(Bug#6907).
+
 2010-08-26  Nathan Weizenbaum  <nweiz@cressida.sea.corp.google.com>  (tiny change)
 
 	* progmodes/js.el: Make indentation more customizable (Bug#6914).
@@ -73,6 +475,211 @@
 2010-08-26  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.1.19.
+
+	* net/tramp-cmds.el (tramp-cleanup-all-connections)
+	(tramp-reporter-dump-variable, tramp-load-report-modules)
+	(tramp-append-tramp-buffers): Use `tramp-compat-funcall'.
+	(tramp-bug): Recommend setting of `tramp-verbose' to 9.
+
+	* net/tramp-compat.el (top): Do not autoload
+	`tramp-handle-file-remote-p'.  Load tramp-util.el and tramp-vc.el
+	only when `start-file-process' is not bound.
+	(byte-compile-not-obsolete-vars): Define if not bound.
+	(tramp-compat-funcall): New defmacro.
+	(tramp-compat-line-beginning-position)
+	(tramp-compat-line-end-position)
+	(tramp-compat-temporary-file-directory)
+	(tramp-compat-make-temp-file, tramp-compat-file-attributes)
+	(tramp-compat-copy-file, tramp-compat-copy-directory)
+	(tramp-compat-delete-file, tramp-compat-delete-directory)
+	(tramp-compat-number-sequence, tramp-compat-process-running-p):
+	Use it.
+	(tramp-advice-file-expand-wildcards): Do not use
+	`tramp-handle-file-remote-p'.
+	(tramp-compat-make-temp-file): Simplify fallback implementation.
+	(tramp-compat-copy-file): Add PRESERVE-SELINUX-CONTEXT.
+	(tramp-compat-copy-tree): Remove function.
+	(tramp-compat-delete-file): New defun.
+	(tramp-compat-delete-directory): Provide implementation for older
+	Emacsen.
+	(tramp-compat-file-attributes): Handle only
+	`wrong-number-of-arguments' error.
+
+	* net/tramp-fish.el (tramp-fish-handle-copy-file): Add
+	PRESERVE_SELINUX_CONTEXT.
+	(tramp-fish-handle-delete-file): Add TRASH arg.
+	(tramp-fish-handle-directory-files-and-attributes):
+	Do not use `tramp-fish-handle-file-attributes.
+	(tramp-fish-handle-file-local-copy)
+	(tramp-fish-handle-insert-file-contents)
+	(tramp-fish-maybe-open-connection): Use `with-progress-reporter'.
+
+	* net/tramp-gvfs.el (top): Require url-util.
+	(tramp-gvfs-mount-point): Remove.
+	(tramp-gvfs-file-name-handler-alist): Add `file-selinux-context'
+	and `set-file-selinux-context'.
+	(tramp-gvfs-stringify-dbus-message, tramp-gvfs-send-command)
+	(tramp-gvfs-handle-file-selinux-context)
+	(tramp-gvfs-handle-set-file-selinux-context): New defuns.
+	(with-tramp-dbus-call-method): Format trace message.
+	(tramp-gvfs-handle-copy-file): Handle PRESERVE-SELINUX-CONTEXT.
+	(tramp-gvfs-handle-copy-file, tramp-gvfs-handle-rename-file):
+	Implement backup call, when operation on local files fails.  Use
+	progress reporter.  Flush properties of changed files.
+	(tramp-gvfs-handle-delete-file): Add TRASH arg.  Use
+	`tramp-compat-delete-file'.
+	(tramp-gvfs-handle-expand-file-name): Expand "~/".
+	(tramp-gvfs-handle-make-directory): Make more traces.
+	(tramp-gvfs-handle-write-region): Protect deleting tmpfile.
+	(tramp-gvfs-url-file-name): Hexify file name in url.
+	(tramp-gvfs-fuse-file-name): Take also prefix (like dav shares)
+	into account for the resulting file name.
+	(tramp-gvfs-handler-askquestion): Preserve current message, in
+	order to let progress reporter continue afterwards.  (Bug#6257)
+	Return dummy mountpoint, when the answer is "no".  See
+	`tramp-gvfs-maybe-open-connection'.
+	(tramp-gvfs-handler-mounted-unmounted)
+	(tramp-gvfs-connection-mounted-p): Test also for new mountspec
+	attribute "default_location".  Set "prefix" property.  Handle
+	default-location.
+	(tramp-gvfs-mount-spec): Return both prefix and mountspec.
+	(tramp-gvfs-maybe-open-connection): Test, whether mountpoint
+	exists.  Raise an error, if not (due to a corresponding answer
+	"no" in interactive questions, for example). Use
+	`tramp-compat-funcall'.
+
+	* net/tramp-imap.el (top): Autoload `epg-make-context'.
+	(tramp-imap-handle-copy-file): Add PRESERVE-SELINUX-CONTEXT.
+	(tramp-imap-do-copy-or-rename-file)
+	(tramp-imap-handle-insert-file-contents)
+	(tramp-imap-handle-file-local-copy): Use `with-progress-reporter'.
+	(tramp-imap-handle-delete-file): Add TRASH arg.
+
+	* net/tramp-smb.el (tramp-smb-handle-copy-file): Add
+	PRESERVE-SELINUX-CONTEXT.
+	(tramp-smb-handle-copy-file)
+	(tramp-smb-handle-file-local-copy, tramp-smb-handle-rename-file)
+	(tramp-smb-handle-write-region, tramp-smb-maybe-open-connection):
+	Use `with-progress-reporter'.
+	(tramp-smb-handle-delete-file): Add TRASH arg.
+
+	* net/tramp.el (tramp-methods): Move hostname to the end in all
+	ssh `tramp-login-args'.  Add `tramp-async-args' attribute where
+	appropriate.
+	(tramp-verbose): Describe verbose level 9.
+	(tramp-completion-function-alist)
+	(tramp-file-name-regexp, tramp-chunksize)
+	(tramp-local-coding-commands, tramp-remote-coding-commands)
+	(with-connection-property, tramp-completion-mode-p)
+	(tramp-action-process-alive, tramp-action-out-of-band)
+	(tramp-check-for-regexp, tramp-file-name-p, tramp-equal-remote)
+	(tramp-exists-file-name-handler): Fix docstring.
+	(tramp-remote-process-environment): Use `format' instead of
+	`concat'.  Protect version string by apostroph.
+	(tramp-shell-prompt-pattern): Do not use a shy group in case of
+	XEmacs.
+	(tramp-file-name-regexp-unified)
+	(tramp-completion-file-name-regexp-unified): On W32 systems, do
+	not regard the volume letter as remote filename.  (Bug#5447)
+	(tramp-perl-file-attributes)
+	(tramp-perl-directory-files-and-attributes): Don't pass "$3".
+	(tramp-vc-registered-read-file-names): Read input as
+	here-document, otherwise the command could exceed maximum length
+	of command line.
+	(tramp-file-name-handler-alist): Add `file-selinux-context' and
+	`set-file-selinux-context'.
+	(tramp-debug-message): Add `tramp-compat-funcall' to ignored
+	backtrace functions.
+	(tramp-error-with-buffer): Don't show the connection buffer when
+	we are in completion mode.
+	(tramp-progress-reporter-update, tramp-remote-selinux-p)
+	(tramp-handle-file-selinux-context)
+	(tramp-handle-set-file-selinux-context, tramp-process-sentinel)
+	(tramp-connectable-p, tramp-open-shell, tramp-get-remote-trash):
+	New defuns.
+	(with-progress-reporter): New defmacro.
+	(tramp-debug-outline-regexp): New defconst.
+	(top, tramp-rfn-eshadow-setup-minibuffer)
+	(tramp-rfn-eshadow-update-overlay, tramp-handle-set-file-times)
+	(tramp-handle-dired-compress-file, tramp-handle-shell-command)
+	(tramp-completion-mode-p, tramp-check-for-regexp)
+	(tramp-open-connection-setup-interactive-shell)
+	(tramp-compute-multi-hops, tramp-read-passwd, tramp-clear-passwd)
+	(tramp-time-diff, tramp-coding-system-change-eol-conversion)
+	(tramp-set-process-query-on-exit-flag, tramp-unload-tramp):
+	Use `tramp-compat-funcall'.
+	(tramp-handle-make-symbolic-link): Flush file properties.
+	(tramp-handle-load, tramp-handle-file-local-copy)
+	(tramp-handle-insert-file-contents, tramp-handle-write-region)
+	(tramp-handle-vc-registered, tramp-maybe-send-script)
+	(tramp-find-shell): Use `with-progress-reporter'.
+	(tramp-do-file-attributes-with-stat): Add space in format string,
+	in order to work around a bug in pdksh.  Reported by Gilles Pion
+	<gpion@lfdj.com>.
+	(tramp-handle-verify-visited-file-modtime): Do not send a command
+	when the connection is not established.
+	(tramp-handle-set-file-times): Simplify the check for utc.
+	(tramp-handle-directory-files-and-attributes)
+	(tramp-get-remote-path): Use `copy-tree'.
+	(tramp-completion-handle-file-name-all-completions): Ensure, that
+	non remote files are still checked.  Oops.
+	(tramp-handle-copy-file, tramp-do-copy-or-rename-file): Handle
+	PRESERVE-SELINUX-CONTEXT.
+	(tramp-do-copy-or-rename-file): Add progress reporter.
+	(tramp-do-copy-or-rename-file-directly): Do not use
+	`tramp-handle-file-remote-p'.
+	(tramp-do-copy-or-rename-file-out-of-band):
+	Use `tramp-compat-delete-directory'.
+	(tramp-do-copy-or-rename-file-out-of-band)
+	(tramp-compute-multi-hops, tramp-maybe-open-connection):
+	Use `format-spec-make'.
+	(tramp-handle-delete-file): Add TRASH arg.
+	(tramp-handle-dired-uncache): Flush directory cache, not only file
+	cache.
+	(tramp-handle-expand-file-name)
+	(tramp-completion-handle-file-name-all-completions)
+	(tramp-completion-handle-file-name-completion): Use
+	`tramp-connectable-p'.
+	(tramp-handle-start-file-process): Set connection property "vec".
+	Use it, in order to invalidate file caches.  Check only for
+	`remote-tty' process property.
+	Implement tty setting.  (Bug#4604, Bug#6360)
+	(tramp-file-name-for-operation): Add `call-process-region' and
+	`set-file-selinux-context'.
+	(tramp-find-foreign-file-name-handler)
+	(tramp-advice-make-auto-save-file-name)
+	(tramp-set-auto-save-file-modes): Remove superfluous check for
+	`stringp'.  This is done inside `tramp-tramp-file-p'.
+	(tramp-file-name-handler): Trace 'quit.  Catch the error for some
+	operations when we are in completion mode.  This gives the user
+	the chance to correct the file name in the minibuffer.
+	(tramp-completion-mode-p): Use `non-essential'.
+	(tramp-handle-file-name-all-completions): Backward/ XEmacs
+	compatibility: Use `completion-ignore-case' if
+	`read-file-name-completion-ignore-case' does not exist.
+	(tramp-get-debug-buffer): Use `tramp-debug-outline-regexp'.
+	(tramp-find-shell, tramp-open-connection-setup-interactive-shell):
+	`tramp-open-shell'.
+	(tramp-action-password): Hide password prompt before next run.
+	(tramp-process-actions): Widen connection buffer for the trace.
+	(tramp-open-connection-setup-interactive-shell): Set `remote-tty'
+	process property.  Trace stty settings if `tramp-verbose' >= 9.
+	Apply workaround for IRIX64 bug.  Move argument of last
+	`tramp-send-command' where it belongs to.
+	(tramp-maybe-open-connection): Use `async-args' and `gw-args' in
+	front of `login-args'.
+	(tramp-get-ls-command, tramp-get-ls-command-with-dired): Run tests
+	on "/dev/null" instead of "/".
+	(tramp-get-ls-command-with-dired): Make test for "--dired"
+	stronger.
+	(tramp-set-auto-save-file-modes): Adapt version check.
+	(tramp-set-process-query-on-exit-flag): Fix wrong parentheses.
+	(tramp-handle-process-file): Call the program in a subshell, in
+	order to preserve working directory.
+	(tramp-handle-shell-command): Don't use hard-wired "/bin/sh" but
+	`tramp-remote-sh' from `tramp-methods'.
+	(tramp-get-ls-command): Make test for "--color=never" stronger.
+	(tramp-check-for-regexp): Use (forward-line 1).
 
 	* net/trampver.el: Update release number.
 
@@ -159,6 +766,11 @@
 	* mouse.el (mouse-yank-primary): Avoid setting primary when
 	deactivating the mark (Bug#6872).
 
+2010-08-23  Chris Foote  <chris@foote.com.au>  (tiny change)
+
+	* progmodes/python.el (python-block-pairs): Allow use of "finally"
+	with "else" (Bug#3991).
+
 2010-08-23  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el: Accept UNIX domain sockets as bus address.
@@ -185,13 +797,19 @@
 	* startup.el (command-line-1): Issue warning for ignored arguments
 	--unibyte, etc (Bug#6886).
 
+2010-08-22  Leo  <sdl.web@gmail.com>
+
+	* net/rcirc.el (rcirc-add-or-remove): Accept a list of elements.
+	(ignore, bright, dim, keyword): Split list of nicknames before
+	passing to rcirc-add-or-remove (Bug#6894).
+
 2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/easy-mmode.el (define-minor-mode): Doc fix (Bug#6880).
 
 2010-08-22  Leo  <sdl.web@gmail.com>
 
-	Fix buffer-list rename&refresh after after killing a buffer in ido.
+	Fix buffer-list rename&refresh after killing a buffer in ido.
 	* lisp/ido.el: Revert Óscar's.
 	(ido-kill-buffer-at-head): Exit the minibuffer with ido-exit=refresh.
 	Remember the buffers at head, rather than their name.
@@ -657,7 +1275,7 @@
 	* align.el (align-default-spacing): Doc fix.
 	(align-region-heuristic, align-regexp): Fix typos in docstrings.
 
-2010-08-08  Stephen Peters <speters@itasoftware.com>
+2010-08-08  Stephen Peters  <speters@itasoftware.com>
 
 	* calendar/icalendar.el
 	(icalendar--split-value): Fixed splitting regexp. (Bug#6766)

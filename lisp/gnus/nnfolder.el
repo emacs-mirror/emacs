@@ -494,7 +494,7 @@ the group.  Then the marks file will be regenerated properly by Gnus.")
       (nnfolder-save-active nnfolder-group-alist nnfolder-active-file)
       (gnus-sorted-difference articles (nreverse deleted-articles)))))
 
-(deffoo nnfolder-request-move-article (article group server accept-form 
+(deffoo nnfolder-request-move-article (article group server accept-form
 					       &optional last move-is-internal)
   (save-excursion
     (let ((buf (get-buffer-create " *nnfolder move*"))
@@ -552,7 +552,7 @@ the group.  Then the marks file will be regenerated properly by Gnus.")
 	(while (re-search-backward (concat "^" nnfolder-article-marker) nil t)
 	  (delete-region (point) (progn (forward-line 1) (point))))
 	(when nnmail-cache-accepted-message-ids
-	  (nnmail-cache-insert (nnmail-fetch-field "message-id") 
+	  (nnmail-cache-insert (nnmail-fetch-field "message-id")
 			       group
 			       (nnmail-fetch-field "subject")
 			       (nnmail-fetch-field "from")))
@@ -1301,5 +1301,4 @@ This command does not work if you use short group names."
 
 (provide 'nnfolder)
 
-;; arch-tag: a040d0f4-4f4e-445f-8972-839575c5f7e6
 ;;; nnfolder.el ends here

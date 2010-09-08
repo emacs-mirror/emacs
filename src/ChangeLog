@@ -1,7 +1,110 @@
+2010-09-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* biditype.h: Regenerate.
+
+2010-09-04  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* nsimage.m (ns_load_image): Check argument types.
+
+	* image.c: Remove all uses of gcpro.
+	(xpm_load): Check all lisp types.
+	(pbm_load): Likewise.
+	(png_load): Likewise.
+	(jpeg_load): Likewise.
+	(tiff_load): Likewise.
+	(gif_load): Likewise.
+	(imagemagick_load_image): Likewise.
+	(imagemagick_load): Likewise.
+	(svg_load): Likewise.
+	(gs_load): Likewise.
+
+2010-09-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32uniscribe.c (uniscribe_shape): Update commentary.  Don't
+	try to reorder grapheme clusters, since LGSTRING should always
+	hold them in the logical order.
+	(uniscribe_encode_char, uniscribe_shape): Force ScriptShape to
+	return glyph codes in the logical order.
+
+2010-09-04  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* image.c (imagemagick_image_p): Replace bcopy by memcpy.
+	(imagemagick_load_image): Fix type mismatch.
+	(Fimagemagick_types): Likewise.  Doc fix.
+
+2010-09-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.h (struct dpyinfo): Remove cut_buffers_initialized.
+
+	* xterm.c (x_term_init): Don't set dpyinfo->cut_buffers_initialized.
+
+	* xselect.c: Remove declaration of cut-buffer objects and functions.
+	(symbol_to_x_atom): Remove mapping to XA_CUT_BUFFERn.
+	(x_atom_to_symbol): Remove mapping to QCUT_BUFFERn.
+	(Fx_get_cut_buffer_internal, Fx_store_cut_buffer_internal)
+	(Fx_rotate_cut_buffers_internal): Remove.
+	(syms_of_xselect): Remove defsubr of above.
+	Remove intern of QCUT_BUFFERn.
+
+2010-09-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* cmds.c (Vblink_paren_function): Remove.
+	(internal_self_insert): Make it insert N chars at a time.
+	Don't call blink-paren-function.
+	(Fself_insert_command): Adjust accordingly.
+	(syms_of_cmds): Don't declare blink-paren-function.
+
+2010-08-31  Kenichi Handa  <handa@m17n.org>
+
+	* dispextern.h (FACE_FOR_CHAR): Use an ASCII face for 8-bit
+	characters.
+
+	* term.c (encode_terminal_code): Fix the previous change.
+	(produce_glyphs): Don't set it->char_to_display here.  Don't
+	handle unibyte-display-via-language-environment here.
+	(produce_special_glyphs): Set temp_it.char_to_display before
+	calling produce_glyphs.
+
+	* xdisp.c (get_next_display_element): Set it->char_to_display
+	here.  Convert all 8-bit bytes from unibyte buffer/string to 8-bit
+	characters.
+	(get_overlay_arrow_glyph_row): Set it.char_to_display too before
+	calling PRODUCE_GLYPHS.
+	(append_space_for_newline): Save and store it->char_to_display.
+	Set it->char_to_display before calling PRODUCE_GLYPHS.
+	(extend_face_to_end_of_line): Set it->char_to_display before
+	calling PRODUCE_GLYPHS.
+	(get_glyph_face_and_encoding): Set the glyph code an 8-bit
+	character to its byte value.
+	(get_char_glyph_code): New function.
+	(produce_stretch_glyph): Set it2.char_to_display too before
+	calling x_produce_glyphs.
+	(x_produce_glyphs): Simplify by using the same code for ASCII and
+	non-ASCII characters.  Don't set it->char_to_display here.  Don't
+	handle unibyte-display-via-language-environment here. For a
+	charater of no glyph, use font->space_width instead of FONT_WIDTH.
+
+2010-08-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (Fwindow_system): Fix compilation for USE_LISP_UNION_TYPE.
+
+2010-08-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (command_loop_1): Don't call x-set-selection on tty.
+
+2010-08-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* marker.c (Fcopy_marker): Make the first arg optional.
+
 2010-08-30  Kenichi Handa  <handa@m17n.org>
 
 	* composite.c (composition_update_it): Fix computing of
 	cmp_it->width.
+
+2010-08-29  Kenichi Handa  <handa@m17n.org>
+
+	* term.c (encode_terminal_code): Encode byte chars to the
+	correspnding bytes.
 
 2010-08-29  Jan Djärv  <jan.h.d@swipnet.se>
 

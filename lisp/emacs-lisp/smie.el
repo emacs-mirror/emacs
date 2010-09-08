@@ -75,6 +75,26 @@
 
 ;;; Building precedence level tables from BNF specs.
 
+;; We have 4 different representations of a "grammar":
+;; - a BNF table, which is a list of BNF rules of the form
+;;   (NONTERM RHS1 ... RHSn) where each RHS is a list of terminals (tokens)
+;;   or nonterminals.  Any element in these lists which does not appear as
+;;   the `car' of a BNF rule is taken to be a terminal.
+;; - A list of precedences (key word "precs"), is a list, sorted
+;;   from lowest to highest precedence, of precedence classes that
+;;   have the form (ASSOCIATIVITY TERMINAL1 .. TERMINALn), where
+;;   ASSOCIATIVITY can be `assoc', `left', `right' or `nonassoc'.
+;; - a 2 dimensional precedence table (key word "prec2"), is a 2D
+;;   table recording the precedence relation (can be `<', `=', `>', or
+;;   nil) between each pair of tokens.
+;; - a precedence-level table (key word "levels"), while is a alist
+;;   giving for each token its left and right precedence level (a
+;;   number or nil).  This is used in `smie-op-levels'.
+;; The prec2 tables are only intermediate data structures: the source
+;; code normally provides a mix of BNF and precs tables, and then
+;; turns them into a levels table, which is what's used by the rest of
+;; the SMIE code.
+
 (defun smie-set-prec2tab (table x y val &optional override)
   (assert (and x y))
   (let* ((key (cons x y))
@@ -206,6 +226,87 @@ one of those elements share the same precedence level and associativity."
           (setq rhs (cdr rhs)))))
     prec2))
 
+;; (defun smie-prec2-closer-alist (prec2 include-inners)
+;;   "Build a closer-alist from a PREC2 table.
+;; The return value is in the same form as `smie-closer-alist'.
+;; INCLUDE-INNERS if non-nil means that inner keywords will be included
+;; in the table, e.g. the table will include things like (\"if\" . \"else\")."
+;;   (let* ((non-openers '())
+;;          (non-closers '())
+;;          ;; For each keyword, this gives the matching openers, if any.
+;;          (openers (make-hash-table :test 'equal))
+;;          (closers '())
+;;          (done nil))
+;;     ;; First, find the non-openers and non-closers.
+;;     (maphash (lambda (k v)
+;;                (unless (or (eq v '<) (member (cdr k) non-openers))
+;;                  (push (cdr k) non-openers))
+;;                (unless (or (eq v '>) (member (car k) non-closers))
+;;                  (push (car k) non-closers)))
+;;              prec2)
+;;     ;; Then find the openers and closers.
+;;     (maphash (lambda (k _)
+;;                (unless (member (car k) non-openers)
+;;                  (puthash (car k) (list (car k)) openers))
+;;                (unless (or (member (cdr k) non-closers)
+;;                            (member (cdr k) closers))
+;;                  (push (cdr k) closers)))
+;;              prec2)
+;;     ;; Then collect the matching elements.
+;;     (while (not done)
+;;       (setq done t)
+;;       (maphash (lambda (k v)
+;;                  (when (eq v '=)
+;;                    (let ((aopeners (gethash (car k) openers))
+;;                          (dopeners (gethash (cdr k) openers))
+;;                          (new nil))
+;;                      (dolist (o aopeners)
+;;                        (unless (member o dopeners)
+;;                          (setq new t)
+;;                          (push o dopeners)))
+;;                      (when new
+;;                        (setq done nil)
+;;                        (puthash (cdr k) dopeners openers)))))
+;;                prec2))
+;;     ;; Finally, dump the resulting table.
+;;     (let ((alist '()))
+;;       (maphash (lambda (k v)
+;;                  (when (or include-inners (member k closers))
+;;                    (dolist (opener v)
+;;                      (unless (equal opener k)
+;;                        (push (cons opener k) alist)))))
+;;                openers)
+;;       alist)))
+
+(defun smie-bnf-closer-alist (bnf &optional no-inners)
+  ;; We can also build this closer-alist table from a prec2 table,
+  ;; but it takes more work, and the order is unpredictable, which
+  ;; is a problem for smie-close-block.
+  ;; More convenient would be to build it from a levels table since we
+  ;; always have this table (contrary to the BNF), but it has all the
+  ;; disadvantages of the prec2 case plus the disadvantage that the levels
+  ;; table has lost some info which would result in extra invalid pairs.
+  "Build a closer-alist from a BNF table.
+The return value is in the same form as `smie-closer-alist'.
+NO-INNERS if non-nil means that inner keywords will be excluded
+from the table, e.g. the table will not include things like (\"if\" . \"else\")."
+  (let ((nts (mapcar #'car bnf))        ;non terminals.
+        (alist '()))
+    (dolist (nt bnf)
+      (dolist (rhs (cdr nt))
+        (unless (or (< (length rhs) 2) (member (car rhs) nts))
+          (if no-inners
+              (let ((last (car (last rhs))))
+                (unless (member last nts)
+                  (pushnew (cons (car rhs) last) alist :test #'equal)))
+            ;; Reverse so that the "real" closer gets there first,
+            ;; which is important for smie-close-block.
+            (dolist (term (reverse (cdr rhs)))
+              (unless (member term nts)
+                (pushnew (cons (car rhs) term) alist :test #'equal)))))))
+    (nreverse alist)))
+    
+
 (defun smie-prec2-levels (prec2)
   ;; FIXME: Rather than only return an alist of precedence levels, we should
   ;; also extract other useful data from it:
@@ -223,7 +324,7 @@ PREC2 is a table as returned by `smie-precs-precedence-table' or
 `smie-bnf-precedence-table'."
   ;; For each operator, we create two "variables" (corresponding to
   ;; the left and right precedence level), which are represented by
-  ;; cons cells.  Those are the vary cons cells that appear in the
+  ;; cons cells.  Those are the very cons cells that appear in the
   ;; final `table'.  The value of each "variable" is kept in the `car'.
   (let ((table ())
         (csts ())
@@ -560,6 +661,117 @@ Possible return values:
         (indent-according-to-mode)
       (reindent-then-newline-and-indent))))
 
+(defun smie-down-list (&optional arg)
+  "Move forward down one level paren-like blocks.  Like `down-list'.
+With argument ARG, do this that many times.
+A negative argument means move backward but still go down a level.
+This command assumes point is not in a string or comment."
+  (interactive "p")
+  (let ((start (point))
+        (inc (if (< arg 0) -1 1))
+        (offset (if (< arg 0) 1 0))
+        (next-token (if (< arg 0)
+                        smie-backward-token-function
+                      smie-forward-token-function)))
+    (while (/= arg 0)
+      (setq arg (- arg inc))
+      (while
+          (let* ((pos (point))
+                 (token (funcall next-token))
+                 (levels (assoc token smie-op-levels)))
+            (cond
+             ((zerop (length token))
+              (if (if (< inc 0) (looking-back "\\s(\\|\\s)" (1- (point)))
+                    (looking-at "\\s(\\|\\s)"))
+                  ;; Go back to `start' in case of an error.  This presumes
+                  ;; none of the token we've found until now include a ( or ).
+                  (progn (goto-char start) (down-list inc) nil)
+                (forward-sexp inc)
+                (/= (point) pos)))
+             ((and levels (null (nth (+ 1 offset) levels))) nil)
+             ((and levels (null (nth (- 2 offset) levels)))
+              (let ((end (point)))
+                (goto-char start)
+                (signal 'scan-error
+                        (list "Containing expression ends prematurely"
+                              pos end))))
+             (t)))))))
+
+(defvar smie-blink-matching-triggers '(?\s ?\n)
+  "Chars which might trigger `blink-matching-open'.
+These can include the final chars of end-tokens, or chars that are
+typically inserted right after an end token.
+I.e. a good choice can be:
+    (delete-dups
+     (mapcar (lambda (kw) (aref (cdr kw) (1- (length (cdr kw)))))
+             smie-closer-alist))")
+
+(defcustom smie-blink-matching-inners t
+  "Whether SMIE should blink to matching opener for inner keywords.
+If non-nil, it will blink not only for \"begin..end\" but also for \"if...else\"."
+  :type 'boolean)
+
+(defun smie-blink-matching-check (start end)
+  (save-excursion
+    (goto-char end)
+    (let ((ender (funcall smie-backward-token-function)))
+      (cond
+       ((not (and ender (rassoc ender smie-closer-alist)))
+        ;; This not is one of the begin..end we know how to check.
+        (blink-matching-check-mismatch start end))
+       ((not start) t)
+       (t
+        (goto-char start)
+        (let ((starter (funcall smie-forward-token-function)))
+          (not (member (cons starter ender) smie-closer-alist))))))))
+
+(defun smie-blink-matching-open ()
+  "Blink the matching opener when applicable.
+This uses SMIE's tables and is expected to be placed on `post-self-insert-hook'."
+  (when (and blink-matching-paren
+             smie-closer-alist                     ; Optimization.
+             (eq (char-before) last-command-event) ; Sanity check.
+             (memq last-command-event smie-blink-matching-triggers)
+             (save-excursion
+               ;; FIXME: Here we assume that closers all end
+               ;; with a word-syntax char.
+               (unless (eq ?\w (char-syntax last-command-event))
+		 (forward-char -1))
+               (and (looking-at "\\>")
+                    (not (nth 8 (syntax-ppss))))))
+    (save-excursion
+      (let ((pos (point))
+            (token (funcall smie-backward-token-function)))
+        (if (= 1 (length token))
+            ;; The trigger char is itself a token but is not
+            ;; one of the closers (e.g. ?\; in Octave mode),
+            ;; so go back to the previous token
+	    (setq token (save-excursion
+			  (funcall smie-backward-token-function)))
+	  (goto-char pos))
+	;; Here we assume that smie-backward-token-function
+	;; returns a token that is a string and whose content
+	;; match the buffer's representation of this token.
+	(when (and (> (length token) 1) (stringp token)
+		   (memq (aref token (1- (length token)))
+			 smie-blink-matching-triggers)
+		   (not (eq (aref token (1- (length token)))
+			    last-command-event)))
+	  ;; Token ends with a trigger char, so don't blink for
+	  ;; anything else than this trigger char, lest we'd blink
+	  ;; both when inserting the trigger char and when inserting a
+	  ;; subsequent SPC.
+	  (setq token nil))
+        (when (and (rassoc token smie-closer-alist)
+                   (or smie-blink-matching-inners
+                       (null (nth 2 (assoc token smie-op-levels)))))
+          ;; The major mode might set blink-matching-check-function
+          ;; buffer-locally so that interactive calls to
+          ;; blink-matching-open work right, but let's not presume
+          ;; that's the case.
+          (let ((blink-matching-check-function #'smie-blink-matching-check))
+            (blink-matching-open)))))))
+
 ;;; The indentation engine.
 
 (defcustom smie-indent-basic 4
@@ -593,20 +805,21 @@ OFFSET-RULES is a list of elements which can each either be:
 \(:bolp . OFFSET-RULES)		If TOK is first on a line, use OFFSET-RULES.
 OFFSET				the offset to use.
 
-PARENT can be either the name of the parent or `open' to mean any parent
-which acts as an open-paren (i.e. has a nil left-precedence).
+PARENT can be either the name of the parent or a list of such names.
 
 OFFSET can be of the form:
 `point'				align with the token.
 `parent'				align with the parent.
 NUMBER				offset by NUMBER.
 \(+ OFFSETS...)			use the sum of OFFSETS.
+VARIABLE			use the value of VARIABLE as offset.
 
 The precise meaning of `point' depends on various details: it can
 either mean the position of the token we're indenting, or the
 position of its parent, or the position right after its parent.
 
-A nil offset for indentation after a token defaults to `smie-indent-basic'.")
+A nil offset for indentation after an opening token defaults
+to `smie-indent-basic'.")
 
 (defun smie-indent-hanging-p ()
   ;; A hanging keyword is one that's at the end of a line except it's not at
@@ -674,8 +887,9 @@ PARENT if non-nil should be the parent info returned by `smie-backward-sexp'."
             (save-excursion
               (if after (goto-char after))
               (setq parent (smie-backward-sexp 'halfsexp))))
-          (when (or (equal (nth 2 parent) (cadr rule))
-                    (and (eq (cadr rule) 'open) (null (car parent))))
+          (when (if (listp (cadr rule))
+                    (member (nth 2 parent) (cadr rule))
+                  (equal (nth 2 parent) (cadr rule)))
             (setq rules (cddr rule))))
          (t (error "Unknown rule %s for indentation of %s"
                    rule (car tokinfo))))))
@@ -726,6 +940,8 @@ If VIRTUAL-POINT is non-nil, then `point' is virtual."
     (if (consp parent) (goto-char (cadr parent)))
     (smie-indent-virtual))
    ((eq offset nil) nil)
+   ((and (symbolp offset) (boundp 'offset))
+    (smie-indent-column (symbol-value offset) base parent virtual-point))
    (t (error "Unknown indentation offset %s" offset))))
 
 (defun smie-indent-forward-token ()
@@ -1016,6 +1232,7 @@ in order to figure out the indentation of some other (further down) point."
        (positions
         ;; We're the first arg.
         (goto-char (car positions))
+        ;; FIXME: Use smie-indent-column.
         (+ (smie-indent-offset 'args)
            ;; We used to use (smie-indent-virtual), but that
            ;; doesn't seem right since it might then indent args less than
