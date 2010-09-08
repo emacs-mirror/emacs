@@ -1,3 +1,13 @@
+2010-09-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Not a const.
+	(compilation-error-regexp-alist-alist): Rule out ": " in file names
+	for the `gnu' messages.
+	(compilation-set-skip-threshold): New command.
+	(compilation-start): Use \' rather than $.
+	(compilation-forget-errors): Use clrhash.
+
 2010-09-08  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el (ispell-valid-dictionary-list):
@@ -140,7 +150,7 @@
 
 2010-09-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* net/imap.el (imap-message-map): Removed optional buffer parameter,
+	* net/imap.el (imap-message-map): Remove optional buffer parameter,
 	since no callers use it.
 	(imap-message-get): Ditto.
 	(imap-message-put): Ditto.
@@ -151,11 +161,11 @@
 
 2010-09-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* net/imap.el (imap-fetch-safe): Removed function, and altered all
+	* net/imap.el (imap-fetch-safe): Remove function, and alter all
 	callers to use `imap-fetch' instead.  According to the comments, this
 	should be safe, since all other IMAP clients use the 1:* syntax.
-	(imap-enable-exchange-bug-workaround): Removed.
-	(imap-debug): Removed -- doesn't seem very useful.
+	(imap-enable-exchange-bug-workaround): Remove.
+	(imap-debug): Remove -- doesn't seem very useful.
 
 2010-09-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
