@@ -1,3 +1,8 @@
+2010-09-08  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (encode_coding_iso_2022): Don't optimize for ASCII if
+	we may use designation or locking-shift.
+
 2010-09-07  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (detect_coding_emacs_mule): Fix checking of multibyte

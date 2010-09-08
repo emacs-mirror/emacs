@@ -4528,7 +4528,10 @@ encode_coding_iso_2022 (coding)
   charset_list = CODING_ATTR_CHARSET_LIST (attrs);
   coding->safe_charsets = SDATA (CODING_ATTR_SAFE_CHARSETS (attrs));
 
-  ascii_compatible = ! NILP (CODING_ATTR_ASCII_COMPAT (attrs));
+  ascii_compatible
+    = (! NILP (CODING_ATTR_ASCII_COMPAT (attrs))
+       && ! (CODING_ISO_FLAGS (coding) & (CODING_ISO_FLAG_DESIGNATION
+					  | CODING_ISO_FLAG_LOCKING_SHIFT)));
 
   while (charbuf < charbuf_end)
     {
