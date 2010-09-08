@@ -247,7 +247,7 @@ fit these criteria."
 		   "--location"
 		   "--max-time" "60"
 		   "-o" (gnus-html-image-id url)
-		   url)))
+		   (mm-url-decode-entities-string url))))
     (process-kill-without-query process)
     (set-process-sentinel process 'gnus-html-curl-sentinel)
     (gnus-set-process-plist process (list 'images images
@@ -395,7 +395,7 @@ This only works if the article in question is HTML."
 	  (let ((url (match-string 1)))
 	    (unless (gnus-html-image-url-blocked-p url blocked-images)
               (unless (file-exists-p (gnus-html-image-id url))
-                (push url urls)
+                (push (mm-url-decode-entities-string url) urls)
                 (push (gnus-html-image-id url) urls)
                 (push "-o" urls)))))
 	(let ((process

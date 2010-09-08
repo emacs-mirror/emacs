@@ -237,13 +237,13 @@ that was fetched."
     (setq gnus-async-current-prefetch-article nil)
     (when arg
       (gnus-async-set-buffer)
-      (when gnus-async-post-fetch-function
-	(save-excursion
-	  (save-restriction
-	    (narrow-to-region mark (point-max))
-	    ;; Prefetch images for the groups that want that.
-	    (when (fboundp 'gnus-html-prefetch-images)
-	      (gnus-html-prefetch-images summary))
+      (save-excursion
+	(save-restriction
+	  (narrow-to-region mark (point-max))
+	  ;; Prefetch images for the groups that want that.
+	  (when (fboundp 'gnus-html-prefetch-images)
+	    (gnus-html-prefetch-images summary))
+	  (when gnus-async-post-fetch-function
 	    (funcall gnus-async-post-fetch-function summary))))
       (gnus-async-with-semaphore
 	(setq
