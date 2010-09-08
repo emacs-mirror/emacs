@@ -1,3 +1,166 @@
+2010-09-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/octave-mod.el (electric-indent-chars): Silence bytecomp.
+
+	* progmodes/js.el (require): Require is already "eval-and-compile".
+	(js--re-search-forward): Avoid `eval'.  Preserve the error data.
+	(js--re-search-backward): Use js--re-search-forward.
+
+	* progmodes/fortran.el (fortran-line-length): Don't recompute
+	syntactic keywords redundantly a second time.
+
+	* progmodes/ada-mode.el: Replace "(set '" with setq.
+	(ada-mode): Simplify.
+	(ada-create-case-exception, ada-adjust-case-interactive)
+	(ada-adjust-case-region, ada-format-paramlist, ada-indent-current)
+	(ada-search-ignore-string-comment, ada-move-to-start)
+	(ada-move-to-end): Use with-syntax-table.
+
+	* font-lock.el (save-buffer-state): Remove `varlist' arg.
+	(font-lock-unfontify-region, font-lock-default-fontify-region):
+	Update usage correspondingly.
+	(font-lock-fontify-syntactic-keywords-region):
+	Set parse-sexp-lookup-properties buffer-locally here.
+	(font-lock-fontify-syntactically-region): Remove unused `ppss' arg.
+
+	* simple.el (blink-matching-open): Don't burp if we can't find a match.
+
+2010-09-08  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-report-ops):
+	Error if not compiled with -DBYTE_CODE_METER.
+
+	* emacs-lisp/bytecomp.el (byte-recompile-directory):
+	Ignore dir-locals-file.
+
+2010-09-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Not a const.
+	(compilation-error-regexp-alist-alist): Rule out ": " in file names
+	for the `gnu' messages.
+	(compilation-set-skip-threshold): New command.
+	(compilation-start): Use \' rather than $.
+	(compilation-forget-errors): Use clrhash.
+
+2010-09-08  Agustín Martín  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-valid-dictionary-list):
+	Simplify logic.
+
+2010-09-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	Migrate to Tramp 2.2.  Rearrange load dependencies.
+	(Bug#1529, Bug#5448, Bug#5705)
+
+	* Makefile.in (TRAMP_DIR, TRAMP_SRC): New variables.
+	($(TRAMP_DIR)/tramp-loaddefs.el): New target.
+	(LOADDEFS): Add $(lisp)/net/tramp-loaddefs.el.
+
+	* net/tramp.el (top): Remove all other tramp-* loads except
+	tramp-compat.el.  Remove all changes to tramp-unload-hook for
+	other tramp-* packages.  Rearrange defun order.  Change calls of
+	`tramp-compat-call-process', `tramp-compat-decimal-to-octal',
+	`tramp-compat-octal-to-decimal' to new function names.
+	(tramp-terminal-type, tramp-initial-end-of-output)
+	(tramp-methods, tramp-foreign-file-name-handler-alist)
+	(tramp-tramp-file-p, tramp-completion-mode-p)
+	(tramp-send-command-and-check, tramp-get-remote-path)
+	(tramp-get-remote-tmpdir, tramp-get-remote-ln)
+	(tramp-shell-quote-argument): Set tramp-autoload cookie.
+	(with-file-property, with-connection-property): Move to
+	tramp-cache.el.
+	(tramp-local-call-process, tramp-decimal-to-octal)
+	(tramp-octal-to-decimal): Move to tramp-compat.el.
+	(tramp-handle-shell-command): Do not require 'shell.
+	(tramp-compute-multi-hops): No special handling for tramp-gw-*
+	symbols.
+	(tramp-unload-tramp): Do not call `tramp-unload-file-name-handlers'.
+
+	* net/tramp-cache.el (top): Require 'tramp.  Add to
+	`tramp-unload-hook'.
+	(tramp-cache-data, tramp-get-file-property)
+	(tramp-set-file-property, tramp-flush-file-property)
+	(tramp-flush-directory-property, tramp-get-connection-property)
+	(tramp-set-connection-property, tramp-flush-connection-property)
+	(tramp-cache-print, tramp-list-connections): Set tramp-autoload
+	cookie.
+	(with-file-property, with-connection-property): New defuns, moved
+	from tramp.el.
+	(tramp-flush-file-function): Use `with-parsed-tramp-file-name'
+	macro.
+
+	* net/tramp-cmds.el (top): Add to `tramp-unload-hook'.
+	(tramp-version): Set tramp-autoload cookie.
+
+	* net/tramp-compat.el (top): Require 'tramp-loaddefs.  Remove all
+	changes to tramp-unload-hook for other tramp-* packages.  Add to
+	`tramp-unload-hook'.
+	(tramp-compat-decimal-to-octal, tramp-compat-octal-to-decimal)
+	(tramp-compat-call-process): New defuns, moved from tramp.el.
+
+	* net/tramp-fish.el (top) Require just 'tramp.  Add objects to
+	`tramp-methods' and `tramp-foreign-file-name-handler-alist'.  Add
+	to `tramp-unload-hook'.  Change call of
+	`tramp-compat-decimal-to-octal' to new function name.
+	(tramp-fish-method): Make it a defconst.
+	(tramp-fish-file-name-p): Make it a defsubst.
+	(tramp-fish-method, tramp-fish-file-name-handler)
+	(tramp-fish-file-name-p): Set tramp-autoload cookie.
+
+	* net/tramp-ftp.el (top) Add objects to `tramp-methods' and
+	`tramp-foreign-file-name-handler-alist'.  Add to
+	`tramp-unload-hook'.
+	(tramp-ftp-method): Make it a defconst.
+	(tramp-ftp-file-name-p): Make it a defsubst.
+	(tramp-ftp-method, tramp-ftp-file-name-handler)
+	(tramp-ftp-file-name-p): Set tramp-autoload cookie.
+
+	* net/tramp-gvfs.el (top) Add objects to `tramp-methods' and
+	`tramp-foreign-file-name-handler-alist'.  Add to
+	`tramp-unload-hook'.  Change checks, whether package can be
+	loaded.
+	(tramp-gvfs-file-name-p): Make it a defsubst.
+	(tramp-gvfs-methods, tramp-gvfs-file-name-handler)
+	(tramp-gvfs-file-name-p): Set tramp-autoload cookie.
+	(tramp-gvfs-handle-file-directory-p): New defun.
+	(tramp-gvfs-file-name-handler-alist): Use it.
+
+	* net/tramp-gw.el (top) Add objects to `tramp-methods' and
+	`tramp-foreign-file-name-handler-alist'.  Add to
+	`tramp-unload-hook'.
+	(tramp-gw-tunnel-method, tramp-gw-default-tunnel-port)
+	(tramp-gw-socks-method, tramp-gw-default-socks-port): Make it a
+	defconst.
+	(tramp-gw-tunnel-method, tramp-gw-socks-method)
+	(tramp-gw-open-connection): Set tramp-autoload cookie.
+
+	* net/tramp-imap.el (top) Require just 'tramp.  Add objects to
+	`tramp-methods' and `tramp-foreign-file-name-handler-alist'.  Add
+	to `tramp-unload-hook'.  Change checks, whether package can be
+	loaded.
+	(tramp-imap-file-name-p): Make it a defsubst.
+	(tramp-imap-method, tramp-imaps-method)
+	(tramp-imap-file-name-handler)
+	(tramp-imap-file-name-p): Set tramp-autoload cookie.
+
+	* net/tramp-smb.el (top) Require just 'tramp.  Add objects to
+	`tramp-methods' and `tramp-foreign-file-name-handler-alist'.  Add
+	to `tramp-unload-hook'.  Change checks, whether package can be
+	loaded.  Change call of `tramp-compat-decimal-to-octal' to new
+	function name.
+	(tramp-smb-tunnel-method): Make it a defconst.
+	(tramp-smb-file-name-p): Make it a defsubst.
+	(tramp-smb-method, tramp-smb-file-name-handler)
+	(tramp-smb-file-name-p): Set tramp-autoload cookie.
+
+	* net/tramp-uu.el (top) Add to `tramp-unload-hook'.
+	(tramp-uuencode-region): Set tramp-autoload cookie.
+
+	* net/trampver.el (top) Add to `tramp-unload-hook'.
+	(tramp-version, tramp-bug-report-address): Set tramp-autoload
+	cookie.  Update release number.
+
 2010-09-07  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el (ispell-start-process): Make sure original
@@ -22,7 +185,7 @@
 
 2010-09-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* net/imap.el (imap-message-map): Removed optional buffer parameter,
+	* net/imap.el (imap-message-map): Remove optional buffer parameter,
 	since no callers use it.
 	(imap-message-get): Ditto.
 	(imap-message-put): Ditto.
@@ -33,11 +196,11 @@
 
 2010-09-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* net/imap.el (imap-fetch-safe): Removed function, and altered all
+	* net/imap.el (imap-fetch-safe): Remove function, and alter all
 	callers to use `imap-fetch' instead.  According to the comments, this
 	should be safe, since all other IMAP clients use the 1:* syntax.
-	(imap-enable-exchange-bug-workaround): Removed.
-	(imap-debug): Removed -- doesn't seem very useful.
+	(imap-enable-exchange-bug-workaround): Remove.
+	(imap-debug): Remove -- doesn't seem very useful.
 
 2010-09-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 

@@ -55,7 +55,6 @@
 
 (require 'assoc)
 (require 'tramp)
-(require 'tramp-compat)
 
 (autoload 'auth-source-user-or-password "auth-source")
 (autoload 'epg-context-operation "epg")
@@ -76,21 +75,29 @@
   '(add-to-list 'imap-hash-headers 'X-Size 'append))
 
 ;; Define Tramp IMAP method ...
+;;;###tramp-autoload
 (defconst tramp-imap-method "imap"
   "*Method to connect via IMAP protocol.")
 
-(add-to-list 'tramp-methods (list tramp-imap-method '(tramp-default-port 143)))
+;;;###tramp-autoload
+(when (and (locate-library "epa") (locate-library "imap-hash"))
+  (add-to-list 'tramp-methods
+	       (list tramp-imap-method '(tramp-default-port 143))))
 
 ;; Add a default for `tramp-default-user-alist'.  Default is the local user.
 (add-to-list 'tramp-default-user-alist
 	     `(,tramp-imap-method nil ,(user-login-name)))
 
 ;; Define Tramp IMAPS method ...
+;;;###tramp-autoload
 (defconst tramp-imaps-method "imaps"
   "*Method to connect via secure IMAP protocol.")
 
 ;; ... and add it to the method list.
-(add-to-list 'tramp-methods (list tramp-imaps-method '(tramp-default-port 993)))
+;;;###tramp-autoload
+(when (and (locate-library "epa") (locate-library "imap-hash"))
+  (add-to-list 'tramp-methods
+	       (list tramp-imaps-method '(tramp-default-port 993))))
 
 ;; Add a default for `tramp-default-user-alist'.  Default is the local user.
 (add-to-list 'tramp-default-user-alist
@@ -184,13 +191,15 @@ Operations not mentioned here will be handled by the default Emacs primitives.")
 (defvar tramp-imap-passphrase-cache nil) ;; can be t or 'never
 (defvar tramp-imap-passphrase nil)
 
-(defun tramp-imap-file-name-p (filename)
+;;;###tramp-autoload
+(defsubst tramp-imap-file-name-p (filename)
   "Check if it's a filename for IMAP protocol."
   (let ((v (tramp-dissect-file-name filename)))
     (or
      (string= (tramp-file-name-method v) tramp-imap-method)
      (string= (tramp-file-name-method v) tramp-imaps-method))))
 
+;;;###tramp-autoload
 (defun tramp-imap-file-name-handler (operation &rest args)
   "Invoke the IMAP related OPERATION.
 First arg specifies the OPERATION, second arg is a list of arguments to
@@ -200,8 +209,10 @@ pass to the OPERATION."
 	(save-match-data (apply (cdr fn) args))
       (tramp-run-real-handler operation args))))
 
-(add-to-list 'tramp-foreign-file-name-handler-alist
-	     (cons 'tramp-imap-file-name-p 'tramp-imap-file-name-handler))
+;;;###tramp-autoload
+(when (and (locate-library "epa") (locate-library "imap-hash"))
+  (add-to-list 'tramp-foreign-file-name-handler-alist
+	       (cons 'tramp-imap-file-name-p 'tramp-imap-file-name-handler)))
 
 (defun tramp-imap-handle-copy-file
   (filename newname &optional ok-if-already-exists keep-date
@@ -775,6 +786,10 @@ With NEEDED-SUBJECT, alters the imap-hash test accordingly."
      :test (format "^%s%s"
 		   tramp-imap-subject-marker
 		   (if needed-subject needed-subject "")))))
+
+(add-hook 'tramp-unload-hook
+	  (lambda ()
+	      (unload-feature 'tramp-imap 'force)))
 
 ;;; TODO:
 

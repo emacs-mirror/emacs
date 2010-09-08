@@ -38,11 +38,6 @@
   (require 'cl)
   (require 'custom))
 
-;; Autoload the socks library.  It is used only when we access a SOCKS server.
-(autoload 'socks-open-network-stream "socks")
-(defvar socks-username (user-login-name))
-(defvar socks-server (list "Default server" "socks" 1080 5))
-
 ;; Avoid byte-compiler warnings if the byte-compiler supports this.
 ;; Currently, XEmacs supports this.
 (eval-when-compile
@@ -50,20 +45,28 @@
       (byte-compiler-options (warnings (- unused-vars)))))
 
 ;; Define HTTP tunnel method ...
-(defvar tramp-gw-tunnel-method "tunnel"
+;;;###tramp-autoload
+(defconst tramp-gw-tunnel-method "tunnel"
   "*Method to connect HTTP gateways.")
 
 ;; ... and port.
-(defvar tramp-gw-default-tunnel-port 8080
+(defconst tramp-gw-default-tunnel-port 8080
   "*Default port for HTTP gateways.")
 
 ;; Define SOCKS method ...
-(defvar tramp-gw-socks-method "socks"
+;;;###tramp-autoload
+(defconst tramp-gw-socks-method "socks"
   "*Method to connect SOCKS servers.")
 
 ;; ... and port.
-(defvar tramp-gw-default-socks-port 1080
+(defconst tramp-gw-default-socks-port 1080
   "*Default port for SOCKS servers.")
+
+;; Autoload the socks library.  It is used only when we access a SOCKS server.
+(autoload 'socks-open-network-stream "socks")
+(defvar socks-username (user-login-name))
+(defvar socks-server
+  (list "Default server" "socks" tramp-gw-default-socks-port 5))
 
 ;; Add a default for `tramp-default-user-alist'.  Default is the local user.
 (add-to-list 'tramp-default-user-alist
@@ -125,6 +128,7 @@
     (process-send-string
      (tramp-get-connection-property proc "process" nil) string)))
 
+;;;###tramp-autoload
 (defun tramp-gw-open-connection (vec gw-vec target-vec)
   "Open a remote connection to VEC (see `tramp-file-name' structure).
 Take GW-VEC as SOCKS or HTTP gateway, i.e. its method must be a
@@ -310,6 +314,9 @@ password in password cache.  This is done for the first try only."
 	(format
 	 "Password for %s@[%s]: " socks-username (read (current-buffer)))))))))
 
+(add-hook 'tramp-unload-hook
+	  (lambda ()
+	    (unload-feature 'tramp-gw 'force)))
 
 (provide 'tramp-gw)
 

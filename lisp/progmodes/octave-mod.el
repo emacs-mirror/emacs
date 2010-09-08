@@ -544,6 +544,8 @@ Non-nil means always go to the next Octave code line after sending."
      0)
     ((:before . "case") octave-block-offset)))
 
+(defvar electric-indent-chars)
+
 ;;;###autoload
 (define-derived-mode octave-mode prog-mode "Octave"
   "Major mode for editing Octave code.

@@ -108,6 +108,7 @@
 (require 'url-util)
 (require 'zeroconf)
 
+;;;###tramp-autoload
 (defcustom tramp-gvfs-methods '("dav" "davs" "obex" "synce")
   "*List of methods for remote files, accessed with GVFS."
   :group 'tramp
@@ -133,11 +134,11 @@
 
 ;; Add the methods to `tramp-methods', in order to allow minibuffer
 ;; completion.
-(eval-after-load "tramp-gvfs"
-  '(when (featurep 'tramp-gvfs)
-     (dolist (elt tramp-gvfs-methods)
-       (unless (assoc elt tramp-methods)
-	 (add-to-list 'tramp-methods (cons elt nil))))))
+;;;###tramp-autoload
+(when (featurep 'dbusbind)
+  (dolist (elt tramp-gvfs-methods)
+    (unless (assoc elt tramp-methods)
+      (add-to-list 'tramp-methods (cons elt nil)))))
 
 (defconst tramp-gvfs-path-tramp (concat dbus-path-emacs "/Tramp")
   "The preceeding object path for own objects.")
@@ -145,9 +146,12 @@
 (defconst tramp-gvfs-service-daemon "org.gtk.vfs.Daemon"
   "The well known name of the GVFS daemon.")
 
-;; Check that GVFS is available.
-(unless (dbus-ping :session tramp-gvfs-service-daemon 100)
-  (throw 'tramp-loading nil))
+;; Check that GVFS is available.  D-Bus integration is available since
+;; Emacs 23 on some system types.  We don't call `dbus-ping', because
+;; this would load dbus.el.
+(unless (and (tramp-compat-funcall 'dbus-get-unique-name :session)
+	     (tramp-compat-process-running-p "gvfs-fuse-daemon"))
+  (error "Package `tramp-gvfs' not supported"))
 
 (defconst tramp-gvfs-path-mounttracker "/org/gtk/vfs/mounttracker"
   "The object path of the GVFS daemon.")
@@ -385,7 +389,7 @@ Every entry is a list (NAME ADDRESS).")
     (expand-file-name . tramp-gvfs-handle-expand-file-name)
     ;; `file-accessible-directory-p' performed by default handler.
     (file-attributes . tramp-gvfs-handle-file-attributes)
-    (file-directory-p . tramp-smb-handle-file-directory-p)
+    (file-directory-p . tramp-gvfs-handle-file-directory-p)
     (file-executable-p . tramp-gvfs-handle-file-executable-p)
     (file-exists-p . tramp-gvfs-handle-file-exists-p)
     (file-local-copy . tramp-gvfs-handle-file-local-copy)
@@ -431,13 +435,15 @@ Every entry is a list (NAME ADDRESS).")
   "Alist of handler functions for Tramp GVFS method.
 Operations not mentioned here will be handled by the default Emacs primitives.")
 
-(defun tramp-gvfs-file-name-p (filename)
+;;;###tramp-autoload
+(defsubst tramp-gvfs-file-name-p (filename)
   "Check if it's a filename handled by the GVFS daemon."
   (and (tramp-tramp-file-p filename)
        (let ((method
 	      (tramp-file-name-method (tramp-dissect-file-name filename))))
 	 (and (stringp method) (member method tramp-gvfs-methods)))))
 
+;;;###tramp-autoload
 (defun tramp-gvfs-file-name-handler (operation &rest args)
   "Invoke the GVFS related OPERATION.
 First arg specifies the OPERATION, second arg is a list of arguments to
@@ -449,8 +455,10 @@ pass to the OPERATION."
 
 ;; This might be moved to tramp.el.  It shall be the first file name
 ;; handler.
-(add-to-list 'tramp-foreign-file-name-handler-alist
-	     (cons 'tramp-gvfs-file-name-p 'tramp-gvfs-file-name-handler))
+;;;###tramp-autoload
+(when (featurep 'dbusbind)
+  (add-to-list 'tramp-foreign-file-name-handler-alist
+	       (cons 'tramp-gvfs-file-name-p 'tramp-gvfs-file-name-handler)))
 
 (defun tramp-gvfs-stringify-dbus-message (message)
   "Convert a D-Bus message into readable UTF8 strings, used for traces."
@@ -494,7 +502,7 @@ In case of an error, modify the error message by replacing
   `(let ((fuse-file-name  (regexp-quote (tramp-gvfs-fuse-file-name ,filename)))
 	 elt)
      (condition-case err
-	 (funcall ,handler ,@args)
+	 (tramp-compat-funcall ,handler ,@args)
        (error
 	(setq elt (cdr err))
 	(while elt
@@ -646,6 +654,10 @@ is no information where to trace the message.")
 (defun tramp-gvfs-handle-file-attributes (filename &optional id-format)
   "Like `file-attributes' for Tramp files."
   (file-attributes (tramp-gvfs-fuse-file-name filename) id-format))
+
+(defun tramp-gvfs-handle-file-directory-p (filename)
+  "Like `file-directory-p' for Tramp files."
+  (file-directory-p (tramp-gvfs-fuse-file-name filename)))
 
 (defun tramp-gvfs-handle-file-executable-p (filename)
   "Like `file-executable-p' for Tramp files."
@@ -1402,6 +1414,10 @@ They are retrieved from the hal daemon."
 ;; Add completion function for SYNCE method.
 (tramp-set-completion-function
  "synce" '((tramp-synce-parse-device-names "")))
+
+(add-hook 'tramp-unload-hook
+	  (lambda ()
+	    (unload-feature 'tramp-gvfs 'force)))
 
 (provide 'tramp-gvfs)
 

@@ -612,11 +612,10 @@ Major/minor modes can set this variable if they know which option applies.")
   ;;
   ;; Borrowed from lazy-lock.el.
   ;; We use this to preserve or protect things when modifying text properties.
-  (defmacro save-buffer-state (varlist &rest body)
+  (defmacro save-buffer-state (&rest body)
     "Bind variables according to VARLIST and eval BODY restoring buffer state."
-    (declare (indent 1) (debug let))
-    `(let* ,(append varlist
-                    `((inhibit-point-motion-hooks t)))
+    (declare (indent 0) (debug t))
+    `(let ((inhibit-point-motion-hooks t))
        (with-silent-modifications
          ,@body)))
   ;;
@@ -1020,7 +1019,7 @@ The region it returns may start or end in the middle of a line.")
   (funcall font-lock-fontify-region-function beg end loudly))
 
 (defun font-lock-unfontify-region (beg end)
-  (save-buffer-state nil
+  (save-buffer-state
     (funcall font-lock-unfontify-region-function beg end)))
 
 (defun font-lock-default-fontify-buffer ()
@@ -1113,8 +1112,6 @@ Put first the functions more likely to cause a change and cheaper to compute.")
 
 (defun font-lock-default-fontify-region (beg end loudly)
   (save-buffer-state
-      ((parse-sexp-lookup-properties
-        (or parse-sexp-lookup-properties font-lock-syntactic-keywords)))
     ;; Use the fontification syntax table, if any.
     (with-syntax-table (or font-lock-syntax-table (syntax-table))
       (save-restriction
@@ -1436,6 +1433,10 @@ LIMIT can be modified by the value of its PRE-MATCH-FORM."
 (defun font-lock-fontify-syntactic-keywords-region (start end)
   "Fontify according to `font-lock-syntactic-keywords' between START and END.
 START should be at the beginning of a line."
+  (unless parse-sexp-lookup-properties
+    ;; We wouldn't go through so much trouble if we didn't intend to use those
+    ;; properties, would we?
+    (set (make-local-variable 'parse-sexp-lookup-properties) t))
   ;; Ensure the beginning of the file is properly syntactic-fontified.
   (when (and font-lock-syntactically-fontified
 	     (< font-lock-syntactically-fontified start))
@@ -1483,19 +1484,17 @@ START should be at the beginning of a line."
 (defvar font-lock-comment-end-skip nil
   "If non-nil, Font Lock mode uses this instead of `comment-end'.")
 
-(defun font-lock-fontify-syntactically-region (start end &optional loudly ppss)
+(defun font-lock-fontify-syntactically-region (start end &optional loudly)
   "Put proper face on each string and comment between START and END.
 START should be at the beginning of a line."
   (let ((comment-end-regexp
 	 (or font-lock-comment-end-skip
 	     (regexp-quote
 	      (replace-regexp-in-string "^ *" "" comment-end))))
-        state face beg)
+        ;; Find the `start' state.
+        (state (syntax-ppss start))
+        face beg)
     (if loudly (message "Fontifying %s... (syntactically...)" (buffer-name)))
-    (goto-char start)
-    ;;
-    ;; Find the `start' state.
-    (setq state (or ppss (syntax-ppss start)))
     ;;
     ;; Find each interesting place between here and `end'.
     (while

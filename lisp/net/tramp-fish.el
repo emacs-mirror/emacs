@@ -157,16 +157,14 @@
   (require 'cl))
 
 (require 'tramp)
-(require 'tramp-cache)
-(require 'tramp-compat)
 
 ;; Define FISH method ...
-(defcustom tramp-fish-method "fish"
-  "*Method to connect via FISH protocol."
-  :group 'tramp
-  :type 'string)
+;;;###tramp-autoload
+(defconst tramp-fish-method "fish"
+  "*Method to connect via FISH protocol.")
 
 ;; ... and add it to the method list.
+;;;###tramp-autoload
 (add-to-list 'tramp-methods (cons tramp-fish-method nil))
 
 ;; Add a default for `tramp-default-user-alist'. Default is the local user.
@@ -264,11 +262,13 @@ Used instead of analyzing error codes of commands.")
   "Alist of handler functions for Tramp FISH method.
 Operations not mentioned here will be handled by the default Emacs primitives.")
 
-(defun tramp-fish-file-name-p (filename)
+;;;###tramp-autoload
+(defsubst tramp-fish-file-name-p (filename)
   "Check if it's a filename for FISH protocol."
   (let ((v (tramp-dissect-file-name filename)))
     (string= (tramp-file-name-method v) tramp-fish-method)))
 
+;;;###tramp-autoload
 (defun tramp-fish-file-name-handler (operation &rest args)
   "Invoke the FISH related OPERATION.
 First arg specifies the OPERATION, second arg is a list of arguments to
@@ -278,6 +278,7 @@ pass to the OPERATION."
 	(save-match-data (apply (cdr fn) args))
       (tramp-run-real-handler operation args))))
 
+;;;###tramp-autoload
 (add-to-list 'tramp-foreign-file-name-handler-alist
 	     (cons 'tramp-fish-file-name-p 'tramp-fish-file-name-handler))
 
@@ -688,7 +689,7 @@ target of the symlink differ."
     (tramp-flush-file-property v localname)
     (unless (tramp-fish-send-command-and-check
 	     v (format "#CHMOD %s %s"
-		       (tramp-decimal-to-octal mode)
+		       (tramp-compat-decimal-to-octal mode)
 		       (tramp-shell-quote-argument localname)))
       (tramp-error
        v 'file-error "Error while changing file's mode %s" filename))))
@@ -1169,6 +1170,10 @@ Returns nil if there has been an error message."
   (with-current-buffer (tramp-get-buffer vec)
     (goto-char (point-min))
     (looking-at tramp-fish-ok-prompt-regexp)))
+
+(add-hook 'tramp-unload-hook
+	  (lambda ()
+	    (unload-feature 'tramp-fish 'force)))
 
 (provide 'tramp-fish)
 ;

@@ -1116,26 +1116,24 @@ The variable `ispell-library-directory' defines the library location."
 
   (let ((dicts (append ispell-local-dictionary-alist ispell-dictionary-alist))
 	(dict-list (cons "default" nil))
-	name load-dict)
+	name dict-bname)
     (dolist (dict dicts)
       (setq name (car dict)
-	    load-dict (car (cdr (member "-d" (nth 5 dict)))))
+	    dict-bname (or (car (cdr (member "-d" (nth 5 dict))))
+			   name))
       ;; Include if the dictionary is in the library, or dir not defined.
       (if (and
 	   name
-	   ;; include all dictionaries if lib directory not known.
 	   ;; For Aspell, we already know which dictionaries exist.
 	   (or ispell-really-aspell
+	       ;; Include all dictionaries if lib directory not known.
+	       ;; Same for Hunspell, where ispell-library-directory is nil.
 	       (not ispell-library-directory)
 	       (file-exists-p (concat ispell-library-directory
-				      "/" name ".hash"))
-	       (file-exists-p (concat ispell-library-directory "/" name ".has"))
-	       (and load-dict
-		    (or (file-exists-p (concat ispell-library-directory
-					       "/" load-dict ".hash"))
-			(file-exists-p (concat ispell-library-directory
-					       "/" load-dict ".has"))))))
-	  (setq dict-list (cons name dict-list))))
+				      "/" dict-bname ".hash"))
+	       (file-exists-p (concat ispell-library-directory
+				      "/" dict-bname ".has"))))
+	  (push name dict-list)))
     dict-list))
 
 ;;; define commands in menu in opposite order you want them to appear.

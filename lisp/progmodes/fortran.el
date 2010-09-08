@@ -920,8 +920,7 @@ affects all Fortran buffers, and also the default."
                       new (fortran-font-lock-syntactic-keywords))
                 ;; Refontify only if necessary.
                 (unless (equal new font-lock-syntactic-keywords)
-                  (setq font-lock-syntactic-keywords
-                        (fortran-font-lock-syntactic-keywords))
+                  (setq font-lock-syntactic-keywords new)
                   (if font-lock-mode (font-lock-mode 1))))))
           (if global
               (buffer-list)

@@ -164,7 +164,7 @@ and a string describing how the process finished.")
 
 (defvar compilation-num-errors-found)
 
-(defconst compilation-error-regexp-alist-alist
+(defvar compilation-error-regexp-alist-alist
   '((absoft
      "^\\(?:[Ee]rror on \\|[Ww]arning on\\( \\)\\)?[Ll]ine[ \t]+\\([0-9]+\\)[ \t]+\
 of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
@@ -263,9 +263,11 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      ;; The core of the regexp is the one with *?.  It says that a file name
      ;; can be composed of any non-newline char, but it also rules out some
      ;; valid but unlikely cases, such as a trailing space or a space
-     ;; followed by a -.
+     ;; followed by a -, or a colon followed by a space.
+
+     ;; The "in \\|from " exception was added to handle messages from Ruby.
      "^\\(?:[[:alpha:]][-[:alnum:].]+: ?\\|[ \t]+\\(?:in \\|from \\)\\)?\
-\\([0-9]*[^0-9\n]\\(?:[^\n ]\\| [^-/\n]\\)*?\\): ?\
+\\([0-9]*[^0-9\n]\\(?:[^\n :]\\| [^-/\n]\\|:[^ \n]\\)*?\\): ?\
 \\([0-9]+\\)\\(?:\\([.:]\\)\\([0-9]+\\)\\)?\
 \\(?:-\\([0-9]+\\)?\\(?:\\.\\([0-9]+\\)\\)?\\)?:\
 \\(?: *\\(\\(?:Future\\|Runtime\\)?[Ww]arning\\|W:\\)\\|\
@@ -766,11 +768,26 @@ The value can be either 2 -- skip anything less than error, 1 --
 skip anything less than warning or 0 -- don't skip any messages.
 Note that all messages not positively identified as warning or
 info, are considered errors."
-  :type '(choice (const :tag "Warnings and info" 2)
-		 (const :tag "Info" 1)
-		 (const :tag "None" 0))
+  :type '(choice (const :tag "Skip warnings and info" 2)
+		 (const :tag "Skip info" 1)
+		 (const :tag "No skip" 0))
   :group 'compilation
   :version "22.1")
+
+(defun compilation-set-skip-threshold (level)
+  "Switch the `compilation-skip-threshold' level."
+  (interactive
+   (list
+    (mod (if current-prefix-arg
+             (prefix-numeric-value current-prefix-arg)
+           (1+ compilation-skip-threshold))
+         3)))
+  (setq compilation-skip-threshold level)
+  (message "Skipping %s"
+           (case compilation-skip-threshold
+             (0 "Nothing")
+             (1 "Info messages")
+             (2 "Warnings and info"))))
 
 (defcustom compilation-skip-visited nil
   "Compilation motion commands skip visited messages if this is t.
@@ -1212,7 +1229,7 @@ Returns the compilation buffer created."
   (let* ((name-of-mode
 	  (if (eq mode t)
 	      "compilation"
-	    (replace-regexp-in-string "-mode$" "" (symbol-name mode))))
+	    (replace-regexp-in-string "-mode\\'" "" (symbol-name mode))))
 	 (thisdir default-directory)
 	 outwin outbuf)
     (with-current-buffer
@@ -2377,7 +2394,7 @@ The file-structure looks like this:
 (defun compilation-forget-errors ()
   ;; In case we hit the same file/line specs, we want to recompute a new
   ;; marker for them, so flush our cache.
-  (setq compilation-locs (make-hash-table :test 'equal :weakness 'value))
+  (clrhash compilation-locs)
   (setq compilation-gcpro nil)
   ;; FIXME: the old code reset the directory-stack, so maybe we should
   ;; put a `directory change' marker of some sort, but where?  -stef
