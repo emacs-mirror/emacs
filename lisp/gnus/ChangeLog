@@ -1,3 +1,257 @@
+2010-09-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-html.el (gnus-html-wash-tags, gnus-html-put-image): Mark cid and
+	internal images as deletable by `W D D'.
+
+	* gnus-async.el (gnus-html-prefetch-images): Autoload it when compiling.
+	(gnus-async-article-callback): Fix typo.
+
+2010-09-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-html.el (gnus-html-wash-tags): Limit end-tag matching to the
+	current line to work around bugs in the output from w3m.
+
+	* gnus-async.el (gnus-async-article-callback): Always prefetch images
+	for groups that want that.
+
+	* nntp.el (nntp-wait-for-string): Supply a timeout for
+	accept-process-output to ensure progress.
+
+	* gnus-start.el (gnus-get-unread-articles): If being given an explicit
+	level to get unread articles from, then use that for foreign groups,
+	too.
+
+	* gnus-html.el (gnus-html-wash-tags): Remove <a name...> tags, which
+	confuses the rest of the function.
+
+	* gnus-start.el (gnus-read-active-for-groups): Do a `gnus-request-scan'
+	for the methods that support -retrieve-groups, too.
+
+	* nnml.el (nnml-save-nov): Remove some debugging-related messages.
+
+2010-09-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* pop3.el: Require cl when compiling.
+	(pop3-number-of-responses): Search for "+OK", not "+OK ".
+
+2010-09-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-get-unread-articles): Don't bother with groups
+	that aren't going to be activated.
+	(gnus-get-unread-articles): Fix up the last commit.
+
+	* gnus-html.el (gnus-article-html): Allow calling without specifying
+	the handle.  In that case, dissect the buffer first.
+
+	* gnus-sum.el (gnus-set-mode-line): Don't pad the mode line string.
+
+	* nnimap.el (nnimap-open-connection): Revert the change that would look
+	into authinfo for imaps instead of imap.
+
+	* gnus-start.el (gnus-activate-group): Take an optional parameter to
+	say that you don't want to call gnus-request-group with don-check, but
+	do check the reponse.  This is for virtual groups only.
+	(gnus-get-unread-articles): Count the archive groups as secondary, so
+	that they're activated the same way as before.
+
+	* nnimap.el (nnimap-request-list): Servers may return \NoSelect
+	case-insensitively.
+	(nnimap-debug): Removed.
+
+	* mail-source.el (mail-source-fetch): Don't message if we're fetching
+	mail from a file, and the file doesn't exist.
+
+	* pop3.el (pop3-streaming-movemail): Return t for success.
+
+	* nnimap.el (nnimap-open-connection): Look for the "imaps" entry in the
+	.authinfo if we're using ssl connection.
+
+	* nnvirtual.el (nnvirtual-create-mapping): Use the active info we
+	already have if we're in a main Gnus `g' run.
+
+	* gnus-start.el (gnus-method-rank): Get info for virtual groups last.
+
+2010-09-05  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-start.el (gnus-method-rank): Replace equalp with equal.
+
+	* nnmh.el (nnmh-request-list-1): Bind `file'.
+
+	* pop3.el (pop3-set-process-query-on-exit-flag): New function that's an
+	alias to set-process-query-on-exit-flag or process-kill-without-query.
+	(pop3-open-server): Use it.
+
+2010-09-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail-source.el (mail-source-delete-crash-box): Always move the crash
+	box to the Incoming file.  Fixes mistake in previous checkin.
+
+	* pop3.el (pop3-send-streaming-command): Off-by-one error on the
+	request loop (for debugging purposes) removed.
+
+	* nnml.el (nnml-save-nov): Message around nnml-save-nov so that the
+	culprit is more visible.
+	(nnml-save-incremental-nov, nnml-open-incremental-nov)
+	(nnml-add-incremental-nov): New functions to do "incremental" nov
+	updates, where we just append to the end of the existing nov files
+	without reading/writing them in full.
+
+	* mail-source.el (mail-source-delete-crash-box): Really only check the
+	incoming files once in a while.
+
+	* pop3.el (pop3-streaming-movemail): Always close the pop3 connection.
+
+	* mail-source.el (mail-source-delete-crash-box): Only check the
+	incoming files for deletion once per day to save a lot of file
+	accesses.
+
+	* pop3.el (pop3-logon): Fix up unbound variable typo.
+
+	* mail-source.el (pop3-streaming-movemail): Autoload.
+
+	* pop3.el (pop3-streaming-movemail): Respect
+	pop3-leave-mail-on-server.
+
+	* mail-source.el (mail-source-fetch-pop): Use streaming pop3
+	retrieval.
+
+	* pop3.el (pop3-process-filter): Removed unused function.
+	(pop3-streaming-movemail, pop3-send-streaming-command)
+	(pop3-wait-for-messages, pop3-write-to-file)
+	(pop3-number-of-responses): New functions for streaming pop3
+	retrieval.
+
+	* gnus-start.el (gnus-get-unread-articles): Protect against groups that
+	come from no known methods.
+	(gnus-make-hashtable-from-newsrc-alist): Remove duplicates from .newsrc
+	list.
+
+	* pop3.el (pop3-display-message-size-flag): Removed -- everybody wants
+	message sizes.
+	(pop3-movemail): Use erase-buffer instead of looping and deleting
+	regions, which seems rather odd.
+
+	* gnus-agent.el (gnus-agent-load-local): Only read the agent.lib/local
+	file once per `g' run.
+
+	* nnmh.el (nnmh-request-list-1): Output active lines also for empty
+	directories.  This makes the draft queue directory work.
+
+	* gnus-start.el (gnus-get-unread-articles): Rewrite the way we request
+	data from the backends, so that we only request the list of groups from
+	each method once.  This should speed things up considerably.
+
+	* nnvirtual.el (nnvirtual-request-list): Remove function so that we can
+	detect that it's not implemented.
+
+	* nnmh.el (nnmh-request-list-1): Fix up the recursion behavior so that
+	we actually do recurse down into the tree, but don't stat all leaf
+	nodes.
+
+	* gnus-html.el (gnus-html-show-images): If there are no images to show,
+	then say so instead of bugging out.
+
+	* gnus-agent.el (gnus-agent-load-alist): Check whether the agentview
+	files exist before trying to read them.
+
+	* gnus-html.el (gnus-html-wash-tags): Remove even more white space
+	around <pre_int>.
+
+	* gnus-art.el (gnus-article-copy-string): Say what data we copied.
+
+	* nnmh.el (nnmh-request-list-1): Optimize for speed.
+
+2010-09-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mm-util.el (mm-image-load-path): Just return the image directories,
+	not all directories in the path in addition to the image directories.
+	(mm-image-load-path): Maintain a cache of the image directories so that
+	the `g' command in Gnus doesn't have to stat dozens of directories each
+	time.
+
+	* gnus-html.el (gnus-html-put-image): Allow images to be removed.
+	(gnus-html-wash-tags): Add a new `i' command to insert images.
+	(gnus-html-insert-image): New command and keystroke.
+	(gnus-html-redisplay-with-images): New command and keystroke.
+	(gnus-html-show-images): Renamed command.
+	(gnus-html-wash-tags): Remove more white space before <pre_int> image
+	spacers.
+	(gnus-html-wash-tags): Decode entities at the end, so that entities
+	inside the tags don't mess up the rest of the "parsing".
+
+	* gnus-agent.el (gnus-agent-auto-agentize-methods): Change the default
+	so that nnimap methods aren't agentized by default.  There's apparently
+	many problems related to agent/imap behaviour.
+
+	* gnus-art.el (gnus-article-copy-string): New command and key binding.
+
+	* gnus-html.el: Doc fix.
+
+2010-09-03  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-html.el (gnus-html-put-image): Use gnus-graphic-display-p,
+	glyph-width and glyph-height instead of display-graphic-p and
+	image-size; make avoidance of displaying small images work for XEmacs.
+
+	* gnus-util.el (gnus-graphic-display-p): Use device-on-window-system-p
+	for XEmacs.
+
+	* gnus-ems.el (gnus-set-process-plist, gnus-process-plist): Change name
+	of symbol that holds plist data.
+	(gnus-process-plist): Remove plist of process after getting it.
+
+2010-09-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-generate-hashcash): Change default to
+	'opportunistic if hashcash is installed.
+
+	* gnus-html.el (gnus-html-rescale-image): Fix up typo in rescaling.
+	(gnus-html-put-image): Only call image-size once, since it's somewhat
+	time-consuming on remote X servers.
+
+2010-09-02  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-html.el (gnus-article-html): Make work buffer multibyte for
+	decoded contents.
+	(gnus-html-put-image, gnus-html-rescale-image): Pass `file' argument.
+
+2010-09-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-group-line-format): Remove %O (moderated) from
+	group line format, since it isn't very interesting.
+
+	* gnus-agent.el (gnus-agent-short-article),
+	(gnus-agent-long-article): Increase values for these two variables,
+	since most people are likely to have more network connection and
+	storage than before.
+
+	* gnus.el (gnus-refer-article-method): Change default to 'current.
+	When referring an article, the common behaviour is to refer it from the
+	current select method, not the native select method.  The chances of
+	the native select method having the message in question is rather slim
+	these days.
+
+	* gnus-sum.el (gnus-auto-select-subject): Change default to
+	`unseen-or-unread'.  I think it's likely that most people want to
+	select an unseen article over a previously seen, but unread one.
+
+	* gnus.el (gnus-mode-non-string-length): Change default to 30.  nil
+	means that in the article buffer none of the minor mode elements will
+	be shown, usually, and this is not desirable in most cases.
+
+	* gnus-sum.el (gnus-summary-goto-unread): Change default to nil, so
+	that commands like `d' (and the like) go to the next line in the
+	buffer, instead of the next unread article.  I think this is the
+	behaviour that is most natural for most users.
+	(gnus-single-article-buffer): Change default to nil, so that people can
+	have as many article buffers open as they have summary buffer.  I think
+	this is the most natural way for the groups to behave.
+
+	* message.el (message-generate-new-buffers): Change default to
+	`unsent', so that all new message buffers start their names with the
+	string "*unsent", and it's easier to find the buffers if you move from
+	them.
+
 2010-09-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-html.el (gnus-html-wash-tags): Don't show images that are really

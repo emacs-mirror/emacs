@@ -1,3 +1,227 @@
+2010-09-07  Agustín Martín  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-start-process): Make sure original
+	arg list is properly initialized (Bug#6993, Bug#6994).
+
+2010-09-06  Alexander Klimov  <alserkli@inbox.ru>  (tiny change)
+
+	* files.el (directory-abbrev-alist): Use \` as default regexp.
+
+	* emacs-lisp/rx.el (rx-any): Don't explode ranges that end in special
+	chars like - or ] (bug#6984).
+	(rx-any-condense-range): Explode 2-char ranges.
+
+2010-09-06  Glenn Morris  <rgm@gnu.org>
+
+	* desktop.el (desktop-path): Bump :version after 2009-09-15 change.
+
+2010-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/bibtex.el:
+	* proced.el: Update to new email for Roland Winkler <winkler@gnu.org>.
+
+2010-09-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/imap.el (imap-message-map): Removed optional buffer parameter,
+	since no callers use it.
+	(imap-message-get): Ditto.
+	(imap-message-put): Ditto.
+	(imap-mailbox-map): Ditto.
+	(imap-mailbox-put): Ditto.
+	(imap-mailbox-get): Ditto.
+	(imap-mailbox-get): Revert last change for this function.
+
+2010-09-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/imap.el (imap-fetch-safe): Removed function, and altered all
+	callers to use `imap-fetch' instead.  According to the comments, this
+	should be safe, since all other IMAP clients use the 1:* syntax.
+	(imap-enable-exchange-bug-workaround): Removed.
+	(imap-debug): Removed -- doesn't seem very useful.
+
+2010-09-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/imap.el (imap-log): New convenience function used throughout
+	instead of repeating the same code all over the place.
+
+2010-09-05  David De La Harpe Golden  <david@harpegolden.net>
+
+	* mouse.el (mouse-save-then-kill): Save region to kill-ring
+	when mouse-drag-copy-region is non-nil (Bug#6956).
+
+2010-09-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired.el (dired-ls-sorting-switches, dired-sort-by-name-regexp):
+	Improve regexps (Bug#6987).
+	(dired-sort-toggle): Search more robustly for -t flag.
+
+	* files.el (get-free-disk-space): Search more robustly for
+	"available" column.  Suggested by Ehud Karni
+	<ehud@unix.mvs.co.il>.
+
+2010-09-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/uni-bidi.el:
+	* international/uni-category.el:
+	* international/uni-combining.el:
+	* international/uni-decimal.el:
+	* international/uni-mirrored.el:
+	* international/uni-name.el: Regenerate.
+
+2010-09-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* electric.el (electric-indent-post-self-insert-function):
+	Don't reindent with a sloppy indentation function.
+
+	* emacs-lisp/syntax.el (syntax-ppss): More sanity check to catch
+	border case in change-log-mode.
+
+2010-09-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Remove ruby regexp; handle Ruby errors with gcc-include and gnu.
+	Recognize leading tab in gcc-include regexp.  Ignore names with
+	leading "from" or "in" in gnu regexp (Bug#6937).
+
+2010-09-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Avoid global recursive calls to kill-buffer-hooks; fit into 80 cols.
+	* textmodes/ispell.el (ispell-process-buffer-name): Remove.
+	(ispell-start-process): Avoid setq and simplify logic.
+	(ispell-init-process): Setup kill-buffer-hook locally when needed.
+	(kill-buffer-hook): Don't use it globally with code that uses
+	expand-file-name since that may call kill-buffer via
+	code_conversion_restore.
+
+2010-09-04  Noorul Islam K M  <noorul@noorul.com>  (tiny change)
+
+	* emacs-lisp/package.el (package-directory-list): Only call
+	file-name-nondirectory on a string.
+
+2010-09-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package--download-one-archive):
+	Ensure that archive-contents is valid before saving it.
+	(package-activate-1, package-mark-obsolete, define-package)
+	(package-compute-transaction, package-list-maybe-add): Use push.
+
+2010-09-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Use SMIE's blink-paren for octave-mode.
+	* progmodes/octave-mod.el (octave-font-lock-close-quotes):
+	Backslashes do not escape single-quotes, single-quotes do.
+	(octave-block-else-regexp, octave-block-end-regexp)
+	(octave-block-match-alist): Remove.
+	(octave-smie-bnf-table): New var, with old content.
+	(octave-smie-op-levels): Use it.
+	(octave-smie-closer-alist): New var.
+	(octave-mode): Use it.  Setup smie-blink-matching and electric-indent.
+	(octave-blink-matching-block-open): Remove.
+	(octave-reindent-then-newline-and-indent, octave-electric-semi)
+	(octave-electric-space): Let self-insert-command run expand-abbrev and
+	blink parens.
+
+	* electric.el (electricity): New group.
+	(electric-indent-chars): New var.
+	(electric-indent-post-self-insert-function): New fun.
+	(electric-indent-mode): New minor mode.
+	(electric-pair-skip-self): New custom.
+	(electric-pair-post-self-insert-function): New function.
+	(electric-pair-mode): New minor mode.
+
+	* calc/calc-aent.el (calcAlg-blink-matching-check): New fun, to replace
+	calcAlg-blink-matching-open.
+	(calc-alg-ent-map, calc-alg-ent-esc-map): Initialize in the declaration.
+	(calc-do-alg-entry): Only touch the part of the keymap that varies.
+	Use the new blink-matching-check-function.
+
+	Provide blink-matching support to SMIE.
+	* emacs-lisp/smie.el (smie-bnf-closer-alist): New function.
+	(smie-blink-matching-triggers, smie-blink-matching-inners): New vars.
+	(smie-blink-matching-check, smie-blink-matching-open): New functions.
+
+	* simple.el (newline): Fix last change to properly remove itself from
+	the hook.
+
+2010-09-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (newline): Eliminate optimization.
+	Use post-self-insert-hook to set hard-newline and things before
+	running post-self-insert-hook.
+	(blink-matching-check-mismatch): New function.
+	(blink-matching-check-function): New variable.
+	(blink-matching-open): Use them.
+	Skip back forward over prefix chars skipped by forward-sexp.
+	Don't check if the parens are backslash escaped.
+	(blink-paren-post-self-insert-function): Check backslash escaping here.
+
+2010-09-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/package.el (package-menu-mode-map):
+	Change package-menu-revert bindings to revert-buffer.
+	(package-menu-mode): Set revert-buffer-function.
+	(package-menu-revert): Doc fix.
+
+2010-09-02  Agustín Martín  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-init-process): Use "~/" as
+	`default-directory' unless using Ispell per-directory personal
+	dictionaries and not in a mini-buffer under XEmacs.
+	(kill-buffer-hook): Do not kill ispell process on exit when
+	`ispell-process-directory' is "~/". (Bug#6143)
+
+2010-09-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* simple.el (kill-new): Call interprogram-cut-function with only
+	one argument.
+
+	* term.el (term-mouse-paste): Don't call x-get-cutbuffer.
+	Remove cut buffer from error message.
+
+	* term/x-win.el (x-select-text):
+	* term/pc-win.el (x-selection-value):
+	* term/ns-win.el (x-selection-value):
+	* eshell/em-term.el:
+	* w32-fns.el (x-get-selection-value):
+	* mouse-sel.el (mouse-sel-set-selection-function):
+	* frame.el (display-selections-p): Remove cut-buffer in documentation.
+
+	* term/x-win.el: Update documentation for x-last-selected-text-*.
+	(x-last-selected-text-cut, x-last-selected-text-cut-encoded)
+	(x-last-cut-buffer-coding, x-cut-buffer-max): Remove.
+	(x-select-text): Remove argument PUSH, update documentation.  Remove
+	cut-buffer code.
+	(x-selection-value-internal): Was previously x-selection-value.
+	(x-selection-value): Rename from x-cut-buffer-or-selection-value.
+	Update documentation, remove cut-buffer code.  Call
+	x-selection-value-internal.
+	(x-clipboard-yank): Call x-selection-value-internal.
+	(x-initialize-window-system): Remove setting of x-cut-buffer-max.
+
+	* term/pc-win.el (x-last-selected-text):
+	x-cut-buffer-or-selection-value renamed to x-selection-value
+	(x-select-text): Remove argument PUSH, update documentation.
+
+	* term/ns-win.el (x-setup-function-keys, ns-last-selected-text):
+	x-cut-buffer-or-selection-value renamed to x-selection-value
+	(x-selection-value): Renamed from x-cut-buffer-or-selection-value.
+	(x-select-text): Remove argument PUSH, update documentation.
+
+	* emacs-lisp/cl-macs.el (x-get-cutbuffer, x-get-cut-buffer): Remove.
+
+	* w32-fns.el (x-last-selected-text):
+	x-cut-buffer-or-selection-value renamed to x-selection-value.
+	(x-cut-buffer-max): Remove.
+	(x-select-text): Remove argument PUSH, update documentation.
+
+	* simple.el (interprogram-cut-function): Remove mention of PUSH.
+
+	* select.el (x-get-cut-buffer, x-set-cut-buffer): Remove.
+
+	* mouse-sel.el (mouse-sel-get-selection-function):
+	x-cut-buffer-or-selection-value renamed to x-selection-value.
+	(x-select-text): Remove optional push.
+
 2010-09-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (blink-paren-function): Move from C to here.
@@ -542,7 +766,7 @@
 	* mouse.el (mouse-yank-primary): Avoid setting primary when
 	deactivating the mark (Bug#6872).
 
-2010-08-23  Chris Foote <chris@foote.com.au>  (tiny change)
+2010-08-23  Chris Foote  <chris@foote.com.au>  (tiny change)
 
 	* progmodes/python.el (python-block-pairs): Allow use of "finally"
 	with "else" (Bug#3991).
@@ -1051,7 +1275,7 @@
 	* align.el (align-default-spacing): Doc fix.
 	(align-region-heuristic, align-regexp): Fix typos in docstrings.
 
-2010-08-08  Stephen Peters <speters@itasoftware.com>
+2010-08-08  Stephen Peters  <speters@itasoftware.com>
 
 	* calendar/icalendar.el
 	(icalendar--split-value): Fixed splitting regexp. (Bug#6766)

@@ -1,3 +1,51 @@
+2010-09-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* biditype.h: Regenerate.
+
+2010-09-04  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* nsimage.m (ns_load_image): Check argument types.
+
+	* image.c: Remove all uses of gcpro.
+	(xpm_load): Check all lisp types.
+	(pbm_load): Likewise.
+	(png_load): Likewise.
+	(jpeg_load): Likewise.
+	(tiff_load): Likewise.
+	(gif_load): Likewise.
+	(imagemagick_load_image): Likewise.
+	(imagemagick_load): Likewise.
+	(svg_load): Likewise.
+	(gs_load): Likewise.
+
+2010-09-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32uniscribe.c (uniscribe_shape): Update commentary.  Don't
+	try to reorder grapheme clusters, since LGSTRING should always
+	hold them in the logical order.
+	(uniscribe_encode_char, uniscribe_shape): Force ScriptShape to
+	return glyph codes in the logical order.
+
+2010-09-04  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* image.c (imagemagick_image_p): Replace bcopy by memcpy.
+	(imagemagick_load_image): Fix type mismatch.
+	(Fimagemagick_types): Likewise.  Doc fix.
+
+2010-09-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.h (struct dpyinfo): Remove cut_buffers_initialized.
+
+	* xterm.c (x_term_init): Don't set dpyinfo->cut_buffers_initialized.
+
+	* xselect.c: Remove declaration of cut-buffer objects and functions.
+	(symbol_to_x_atom): Remove mapping to XA_CUT_BUFFERn.
+	(x_atom_to_symbol): Remove mapping to QCUT_BUFFERn.
+	(Fx_get_cut_buffer_internal, Fx_store_cut_buffer_internal)
+	(Fx_rotate_cut_buffers_internal): Remove.
+	(syms_of_xselect): Remove defsubr of above.
+	Remove intern of QCUT_BUFFERn.
+
 2010-09-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* cmds.c (Vblink_paren_function): Remove.

@@ -1985,28 +1985,6 @@ with X conventions.)  The default for @var{data-type} is
 @code{STRING}.
 @end defun
 
-@cindex cut buffer
-The X server also has a set of eight numbered @dfn{cut buffers} which can
-store text or other data being moved between applications.  Cut buffers
-are considered obsolete, but Emacs supports them for the sake of X
-clients that still use them.  Cut buffers are numbered from 0 to 7.
-
-@defun x-get-cut-buffer &optional n
-This function returns the contents of cut buffer number @var{n}.
-If omitted @var{n} defaults to 0.
-@end defun
-
-@defun x-set-cut-buffer string &optional push
-@anchor{Definition of x-set-cut-buffer}
-This function stores @var{string} into the first cut buffer (cut buffer
-0).  If @var{push} is @code{nil}, only the first cut buffer is changed.
-If @var{push} is non-@code{nil}, that says to move the values down
-through the series of cut buffers, much like the way successive kills in
-Emacs move down the kill ring.  In other words, the previous value of
-the first cut buffer moves into the second cut buffer, and the second to
-the third, and so on through all eight cut buffers.
-@end defun
-
 @defopt selection-coding-system
 This variable specifies the coding system to use when reading and
 writing selections or the clipboard.  @xref{Coding

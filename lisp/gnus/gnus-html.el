@@ -1,4 +1,4 @@
-;;; gnus-html.el --- Quoted-Printable functions
+;;; gnus-html.el --- Render HTML in a buffer.
 
 ;; Copyright (C) 2010  Free Software Foundation, Inc.
 
@@ -66,9 +66,17 @@ fit these criteria."
   :group 'gnus-art
   :type 'float)
 
+(defvar gnus-html-image-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "u" 'gnus-article-copy-string)
+    (define-key map "i" 'gnus-html-insert-image)
+    map))
+
 ;;;###autoload
-(defun gnus-article-html (handle)
+(defun gnus-article-html (&optional handle)
   (let ((article-buffer (current-buffer)))
+    (unless handle
+      (setq handle (mm-dissect-buffer t)))
     (save-restriction
       (narrow-to-region (point) (point))
       (save-excursion
@@ -82,7 +90,10 @@ fit these criteria."
 	    (when (and charset
 		       (setq charset (mm-charset-to-coding-system charset))
 		       (not (eq charset 'ascii)))
-	      (mm-decode-coding-region (point-min) (point-max) charset))
+	      (insert (prog1
+			  (mm-decode-coding-string (buffer-string) charset)
+			(erase-buffer)
+			(mm-enable-multibyte))))
 	    (call-process-region (point-min) (point-max)
 				 "w3m"
 				 nil article-buffer nil
@@ -102,9 +113,11 @@ fit these criteria."
 
 (defun gnus-html-wash-tags ()
   (let (tag parameters string start end images url)
-    (mm-url-decode-entities)
     (goto-char (point-min))
-    (while (re-search-forward "<pre_int> *</pre_int>\n" nil t)
+    (while (re-search-forward " *<pre_int> *</pre_int> *\n" nil t)
+      (replace-match "" t t))
+    (goto-char (point-min))
+    (while (re-search-forward "<a name[^\n>]+>" nil t)
       (replace-match "" t t))
     (goto-char (point-min))
     (while (re-search-forward "<\\([^ />]+\\)\\([^>]*\\)>" nil t)
@@ -114,7 +127,7 @@ fit these criteria."
       (when (plusp (length parameters))
 	(set-text-properties 0 (1- (length parameters)) nil parameters))
       (delete-region start (point))
-      (when (search-forward (concat "</" tag ">") nil t)
+      (when (search-forward (concat "</" tag ">") (line-end-position) t)
 	(delete-region (match-beginning 0) (match-end 0)))
       (setq end (point))
       (cond
@@ -137,14 +150,31 @@ fit these criteria."
 		(when image
 		  (let ((string (buffer-substring start end)))
 		    (delete-region start end)
-		    (gnus-put-image image (gnus-string-or string "*")))))
+		    (gnus-put-image image (gnus-string-or string "*") 'cid)
+		    (gnus-add-image 'cid image))))
 	    ;; Normal, external URL.
-	    (unless (gnus-html-image-url-blocked-p
-		     url
-		     (if (buffer-live-p gnus-summary-buffer)
-			 (with-current-buffer gnus-summary-buffer
-			   gnus-blocked-images)
-		       gnus-blocked-images))
+	    (if (gnus-html-image-url-blocked-p
+		 url
+		 (if (buffer-live-p gnus-summary-buffer)
+		     (with-current-buffer gnus-summary-buffer
+		       gnus-blocked-images)
+		   gnus-blocked-images))
+		(progn
+		  (widget-convert-button
+		   'link start end
+		   :action 'gnus-html-insert-image
+		   :help-echo url
+		   :keymap gnus-html-image-map
+		   :button-keymap gnus-html-image-map)
+		  (let ((overlay (gnus-make-overlay start end))
+			(spec (list url
+				    (set-marker (make-marker) start)
+				    (set-marker (make-marker) end))))
+		    (gnus-overlay-put overlay 'local-map gnus-html-image-map)
+		    (gnus-overlay-put overlay 'gnus-image spec)
+		    (gnus-put-text-property
+		     start end
+		     'gnus-image spec)))
 	      (let ((file (gnus-html-image-id url))
 		    width height)
 		(when (string-match "height=\"?\\([0-9]+\\)" parameters)
@@ -181,6 +211,7 @@ fit these criteria."
 	  (let ((overlay (gnus-make-overlay start end)))
 	    (gnus-overlay-put overlay 'evaporate t)
 	    (gnus-overlay-put overlay 'gnus-button-url url)
+	    (gnus-put-text-property start end 'gnus-string url)
 	    (when gnus-article-mouse-face
 	      (gnus-overlay-put overlay 'mouse-face gnus-article-mouse-face)))))
        ;; The upper-case IMG_ALT is apparently just an artifact that
@@ -194,10 +225,17 @@ fit these criteria."
     (goto-char (point-min))
     ;; The output from -halfdump isn't totally regular, so strip
     ;; off any </pre_int>s that were left over.
-    (while (re-search-forward "</pre_int>" nil t)
+    (while (re-search-forward "</pre_int>\\|</internal>" nil t)
       (replace-match "" t t))
     (when images
-      (gnus-html-schedule-image-fetching (current-buffer) (nreverse images)))))
+      (gnus-html-schedule-image-fetching (current-buffer) (nreverse images)))
+    (mm-url-decode-entities)))
+
+(defun gnus-html-insert-image ()
+  "Fetch and insert the image under point."
+  (interactive)
+  (gnus-html-schedule-image-fetching
+   (current-buffer) (list (get-text-property (point) 'gnus-image))))
 
 (defun gnus-html-schedule-image-fetching (buffer images)
   (gnus-message 8 "gnus-html-schedule-image-fetching: buffer %s, images %s"
@@ -239,35 +277,52 @@ fit these criteria."
 	(gnus-html-schedule-image-fetching buffer images)))))
 
 (defun gnus-html-put-image (file point string)
-  (when (display-graphic-p)
-    (let ((image (ignore-errors
-		   (gnus-create-image file))))
+  (when (gnus-graphic-display-p)
+    (let* ((image (ignore-errors
+		   (gnus-create-image file)))
+	  (size (and image
+		     (if (featurep 'xemacs)
+			 (cons (glyph-width image) (glyph-height image))
+		       (image-size image t)))))
       (save-excursion
 	(goto-char point)
 	(if (and image
 		 ;; Kludge to avoid displaying 30x30 gif images, which
 		 ;; seems to be a signal of a broken image.
-		 (not (and (listp image)
-			   (eq (plist-get (cdr image) :type) 'gif)
-			   (= (car (image-size image t)) 30)
-			   (= (cdr (image-size image t)) 30))))
+		 (not (and (if (featurep 'xemacs)
+			       (glyphp image)
+			     (listp image))
+			   (eq (if (featurep 'xemacs)
+				   (let ((data (cdadar (specifier-spec-list
+							(glyph-image image)))))
+				     (and (vectorp data)
+					  (aref data 0)))
+				 (plist-get (cdr image) :type))
+			       'gif)
+			   (= (car size) 30)
+			   (= (cdr size) 30))))
 	    (progn
-	      (gnus-put-image (gnus-html-rescale-image image)
-			      (gnus-string-or string "*"))
+	      (setq image (gnus-html-rescale-image image file size))
+	      (gnus-put-image image
+			      (gnus-string-or string "*")
+			      'external)
+	      (gnus-add-image 'external image)
 	      t)
 	  (insert string)
 	  (when (fboundp 'find-image)
-	    (gnus-put-image (find-image
-			     '((:type xpm :file "lock-broken.xpm")))
-			    (gnus-string-or string "*")))
+	    (setq image (find-image '((:type xpm :file "lock-broken.xpm"))))
+	    (gnus-put-image image
+			    (gnus-string-or string "*")
+			    'internal)
+	    (gnus-add-image 'internal image))
 	  nil)))))
 
-(defun gnus-html-rescale-image (image)
+(defun gnus-html-rescale-image (image file size)
   (if (or (not (fboundp 'imagemagick-types))
 	  (not (get-buffer-window (current-buffer))))
       image
-    (let* ((width (car (image-size image t)))
-	   (height (cdr (image-size image t)))
+    (let* ((width (car size))
+	   (height (cdr size))
 	   (edges (window-pixel-edges (get-buffer-window (current-buffer))))
 	   (window-width (truncate (* gnus-max-image-proportion
 				      (- (nth 2 edges) (nth 0 edges)))))
@@ -278,11 +333,12 @@ fit these criteria."
 	(setq image (or (create-image file 'imagemagick nil
 				      :height window-height)
 			image))
-	(when (> (car (image-size image t)) window-width)
-	  (setq image (or
-		       (create-image file 'imagemagick nil
-				     :width window-width)
-		       image))))
+	(setq size (image-size image t)))
+      (when (> (car size) window-width)
+	(setq image (or
+		     (create-image file 'imagemagick nil
+				   :width window-width)
+		     image)))
       image)))
 
 (defun gnus-html-prune-cache ()
@@ -313,6 +369,20 @@ fit these criteria."
       (gnus-message 9 "gnus-html-image-url-blocked-p: %s passes regex %s"
                     url blocked-images))
     ret))
+
+(defun gnus-html-show-images ()
+  "Show any images that are in the HTML-rendered article buffer.
+This only works if the article in question is HTML."
+  (interactive)
+  (gnus-with-article-buffer
+    (let ((overlays (overlays-in (point-min) (point-max)))
+	  overlay images)
+      (while (setq overlay (pop overlays))
+	(when (overlay-get overlay 'gnus-image)
+	  (push (overlay-get overlay 'gnus-image) images)))
+      (if (not images)
+	  (message "No images to show")
+	(gnus-html-schedule-image-fetching (current-buffer) images)))))
 
 ;;;###autoload
 (defun gnus-html-prefetch-images (summary)

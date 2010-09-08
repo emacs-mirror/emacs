@@ -184,7 +184,7 @@ When found, offer to remove them."
   :type 'boolean
   :group 'gnus-agent)
 
-(defcustom gnus-agent-auto-agentize-methods '(nntp nnimap)
+(defcustom gnus-agent-auto-agentize-methods '(nntp)
   "Initially, all servers from these methods are agentized.
 The user may remove or add servers using the Server buffer.
 See Info node `(gnus)Server Buffer'."
@@ -2108,13 +2108,15 @@ doesn't exist, to valid the overview buffer."
 (defun gnus-agent-load-alist (group)
   "Load the article-state alist for GROUP."
   ;; Bind free variable that's used in `gnus-agent-read-agentview'.
-  (let ((gnus-agent-read-agentview group)
-	(file-name-coding-system nnmail-pathname-coding-system))
-    (setq gnus-agent-article-alist
-          (gnus-cache-file-contents
-           (gnus-agent-article-name ".agentview" group)
-           'gnus-agent-file-loading-cache
-           'gnus-agent-read-agentview))))
+  (let* ((gnus-agent-read-agentview group)
+	 (file-name-coding-system nnmail-pathname-coding-system)
+	 (agentview (gnus-agent-article-name ".agentview" group)))
+    (when (file-exists-p agentview)
+      (setq gnus-agent-article-alist
+	    (gnus-cache-file-contents
+	     agentview
+	     'gnus-agent-file-loading-cache
+	     'gnus-agent-read-agentview)))))
 
 (defun gnus-agent-read-agentview (file)
   "Load FILE and do a `read' there."
@@ -2230,23 +2232,28 @@ doesn't exist, to valid the overview buffer."
     (gnus-agent-update-view-total-fetched-for group nil)))
 
 (defvar gnus-agent-article-local nil)
+(defvar gnus-agent-article-local-times nil)
 (defvar gnus-agent-file-loading-local nil)
 
 (defun gnus-agent-load-local (&optional method)
   "Load the METHOD'S local file.  The local file contains min/max
 article counts for each of the method's subscribed groups."
   (let ((gnus-command-method (or method gnus-command-method)))
-    (setq gnus-agent-article-local
-          (gnus-cache-file-contents
-           (gnus-agent-lib-file "local")
-           'gnus-agent-file-loading-local
-           'gnus-agent-read-and-cache-local))))
+    (when (or (null gnus-agent-article-local-times)
+	      (zerop gnus-agent-article-local-times))
+      (setq gnus-agent-article-local
+	    (gnus-cache-file-contents
+	     (gnus-agent-lib-file "local")
+	     'gnus-agent-file-loading-local
+	     'gnus-agent-read-and-cache-local))
+      (when gnus-agent-article-local-times
+	(incf gnus-agent-article-local-times)))
+    gnus-agent-article-local))
 
 (defun gnus-agent-read-and-cache-local (file)
   "Load and read FILE then bind its contents to
 gnus-agent-article-local.  If that variable had `dirty' (also known as
 modified) original contents, they are first saved to their own file."
-
   (if (and gnus-agent-article-local
            (symbol-value (intern "+dirty" gnus-agent-article-local)))
       (gnus-agent-save-local))
@@ -2644,10 +2651,10 @@ General format specifiers can also be used.  See Info node
 (defvar gnus-agent-predicate 'false
   "The selection predicate used when no other source is available.")
 
-(defvar gnus-agent-short-article 100
+(defvar gnus-agent-short-article 500
   "Articles that have fewer lines than this are short.")
 
-(defvar gnus-agent-long-article 200
+(defvar gnus-agent-long-article 1000
   "Articles that have more lines than this are long.")
 
 (defvar gnus-agent-low-score 0
