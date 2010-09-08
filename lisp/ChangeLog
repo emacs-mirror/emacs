@@ -1,5 +1,28 @@
 2010-09-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/octave-mod.el (electric-indent-chars): Silence bytecomp.
+
+	* progmodes/js.el (require): Require is already "eval-and-compile".
+	(js--re-search-forward): Avoid `eval'.  Preserve the error data.
+	(js--re-search-backward): Use js--re-search-forward.
+
+	* progmodes/fortran.el (fortran-line-length): Don't recompute
+	syntactic keywords redundantly a second time.
+
+	* progmodes/ada-mode.el: Replace "(set '" with setq.
+	(ada-mode): Simplify.
+	(ada-create-case-exception, ada-adjust-case-interactive)
+	(ada-adjust-case-region, ada-format-paramlist, ada-indent-current)
+	(ada-search-ignore-string-comment, ada-move-to-start)
+	(ada-move-to-end): Use with-syntax-table.
+
+	* font-lock.el (save-buffer-state): Remove `varlist' arg.
+	(font-lock-unfontify-region, font-lock-default-fontify-region):
+	Update usage correspondingly.
+	(font-lock-fontify-syntactic-keywords-region):
+	Set parse-sexp-lookup-properties buffer-locally here.
+	(font-lock-fontify-syntactically-region): Remove unused `ppss' arg.
+
 	* simple.el (blink-matching-open): Don't burp if we can't find a match.
 
 2010-09-08  Glenn Morris  <rgm@gnu.org>
