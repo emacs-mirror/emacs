@@ -1,3 +1,7 @@
+2010-09-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (blink-matching-open): Don't burp if we can't find a match.
+
 2010-09-08  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-report-ops):

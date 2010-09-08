@@ -5541,6 +5541,7 @@ The function should return non-nil if the two tokens do not match.")
           (if (minibufferp)
               (minibuffer-message " [Unmatched parenthesis]")
             (message "Unmatched parenthesis"))))
+       ((not blinkpos) nil)
        ((pos-visible-in-window-p blinkpos)
         ;; Matching open within window, temporarily move to blinkpos but only
         ;; if `blink-matching-paren-on-screen' is non-nil.
