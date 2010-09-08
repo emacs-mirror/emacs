@@ -4244,6 +4244,8 @@ and corresponding effects."
 
 (defvar byte-code-meter)
 (defun byte-compile-report-ops ()
+  (or (boundp 'byte-metering-on)
+      (error "You must build Emacs with -DBYTE_CODE_METER to use this"))
   (with-output-to-temp-buffer "*Meter*"
     (set-buffer "*Meter*")
     (let ((i 0) n op off)
