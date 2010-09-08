@@ -1,5 +1,10 @@
 2010-09-08  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-html.el (gnus-html-show-alt-text): New command.
+	(gnus-html-browse-image): Ditto.
+	(gnus-html-wash-tags): Add the data to allow showing the ALT text and
+	to browse the image directly.
+
 	* gnus-async.el (gnus-async-article-callback): Call
 	`gnus-html-prefetch-images' unconditionally.
 

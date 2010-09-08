@@ -72,6 +72,12 @@ fit these criteria."
     (define-key map "i" 'gnus-html-insert-image)
     map))
 
+(defvar gnus-html-displayed-image-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "a" 'gnus-html-show-alt-text)
+    (define-key map "i" 'gnus-html-browse-image)
+    map))
+
 ;;;###autoload
 (defun gnus-article-html (&optional handle)
   (let ((article-buffer (current-buffer)))
@@ -176,11 +182,14 @@ fit these criteria."
 		     start end
 		     'gnus-image spec)))
 	      (let ((file (gnus-html-image-id url))
-		    width height)
+		    width height alt-text)
 		(when (string-match "height=\"?\\([0-9]+\\)" parameters)
 		  (setq height (string-to-number (match-string 1 parameters))))
 		(when (string-match "width=\"?\\([0-9]+\\)" parameters)
 		  (setq width (string-to-number (match-string 1 parameters))))
+		(when (string-match "\\(alt\\|title\\)=\"\\([^\"]+\\)"
+				    parameters)
+		  (setq alt-text (match-string 2 parameters)))
 		;; Don't fetch images that are really small.  They're
 		;; probably tracking pictures.
 		(when (and (or (null height)
@@ -190,9 +199,9 @@ fit these criteria."
 		  (if (file-exists-p file)
 		      ;; It's already cached, so just insert it.
 		      (let ((string (buffer-substring start end)))
-			;; Delete the ALT text.
+			;; Delete the IMG text.
 			(delete-region start end)
-			(gnus-html-put-image file (point) string))
+			(gnus-html-put-image file (point) string url alt-text))
 		    ;; We don't have it, so schedule it for fetching
 		    ;; asynchronously.
 		    (push (list url
@@ -237,6 +246,16 @@ fit these criteria."
   (gnus-html-schedule-image-fetching
    (current-buffer) (list (get-text-property (point) 'gnus-image))))
 
+(defun gnus-html-show-alt-text ()
+  "Show the ALT text of the image under point."
+  (interactive)
+  (message "%s" (get-text-property (point) 'gnus-alt-text)))
+
+(defun gnus-html-browse-image ()
+  "Browse the image under point."
+  (interactive)
+  (browse-url (get-text-property (point) 'gnus-image)))
+
 (defun gnus-html-schedule-image-fetching (buffer images)
   (gnus-message 8 "gnus-html-schedule-image-fetching: buffer %s, images %s"
                 buffer images)
@@ -276,7 +295,7 @@ fit these criteria."
       (when images
 	(gnus-html-schedule-image-fetching buffer images)))))
 
-(defun gnus-html-put-image (file point string)
+(defun gnus-html-put-image (file point string &optional url alt-text)
   (when (gnus-graphic-display-p)
     (let* ((image (ignore-errors
 		   (gnus-create-image file)))
@@ -301,11 +320,17 @@ fit these criteria."
 			       'gif)
 			   (= (car size) 30)
 			   (= (cdr size) 30))))
-	    (progn
+	    (let ((start (point)))
 	      (setq image (gnus-html-rescale-image image file size))
 	      (gnus-put-image image
 			      (gnus-string-or string "*")
 			      'external)
+	      (let ((overlay (gnus-make-overlay start (point))))
+		(gnus-overlay-put overlay 'local-map
+				  gnus-html-displayed-image-map)
+		(gnus-put-text-property start (point) 'gnus-alt-text alt-text)
+		(when url
+		  (gnus-put-text-property start (point) 'gnus-image url)))
 	      (gnus-add-image 'external image)
 	      t)
 	  (insert string)
@@ -360,7 +385,7 @@ fit these criteria."
 	  (delete-file (nth 2 file)))))))
 
 (defun gnus-html-image-url-blocked-p (url blocked-images)
-"Find out if URL is blocked by BLOCKED-IMAGES."
+  "Find out if URL is blocked by BLOCKED-IMAGES."
   (let ((ret (and blocked-images
                   (string-match blocked-images url))))
     (if ret
