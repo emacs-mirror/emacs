@@ -1,3 +1,7 @@
+2010-09-09  shawn boles  <shawn.boles@gmail.com>  (tiny change)
+
+	* url-cookie.el (url-cookie-expired-p): Simplify and fix.  (Bug#6957)
+
 2010-07-26  Michael Albinus  <michael.albinus@gmx.de>
 
 	* url-http (url-http-parse-headers): Disable file name handlers at

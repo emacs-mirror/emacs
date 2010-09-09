@@ -24,7 +24,6 @@
 
 ;;; Code:
 
-(require 'timezone)
 (require 'url-util)
 (require 'url-parse)
 (eval-when-compile (require 'cl))
@@ -194,34 +193,12 @@ telling Microsoft that."
 	(setq url-cookie-storage (list (list domain tmp))))))))
 
 (defun url-cookie-expired-p (cookie)
-  (let* (
-	 (exp (url-cookie-expires cookie))
-	 (cur-date (and exp (timezone-parse-date (current-time-string))))
-	 (exp-date (and exp (timezone-parse-date exp)))
-	 (cur-greg (and cur-date (timezone-absolute-from-gregorian
-				  (string-to-number (aref cur-date 1))
-				  (string-to-number (aref cur-date 2))
-				  (string-to-number (aref cur-date 0)))))
-	 (exp-greg (and exp (timezone-absolute-from-gregorian
-			     (string-to-number (aref exp-date 1))
-			     (string-to-number (aref exp-date 2))
-			     (string-to-number (aref exp-date 0)))))
-	 (diff-in-days (and exp (- cur-greg exp-greg)))
-	 )
-    (cond
-     ((not exp)	nil)			; No expiry == expires at browser quit
-     ((< diff-in-days 0) nil)		; Expires sometime after today
-     ((> diff-in-days 0) t)		; Expired before today
-     (t					; Expires sometime today, check times
-      (let* ((cur-time (timezone-parse-time (aref cur-date 3)))
-	     (exp-time (timezone-parse-time (aref exp-date 3)))
-	     (cur-norm (+ (* 360 (string-to-number (aref cur-time 2)))
-			  (*  60 (string-to-number (aref cur-time 1)))
-			  (*   1 (string-to-number (aref cur-time 0)))))
-	     (exp-norm (+ (* 360 (string-to-number (aref exp-time 2)))
-			  (*  60 (string-to-number (aref exp-time 1)))
-			  (*   1 (string-to-number (aref exp-time 0))))))
-	(> (- cur-norm exp-norm) 1))))))
+	"Returns true if COOKIE is expired.
+If COOKIE has an expiration date it is converted to seconds, adjusted to the client timezone and then compared against (float-time)." 
+	(let* ((exp (url-cookie-expires cookie))
+				 (exp-time (and exp (float-time (date-to-time exp)))))
+		(if (not exp) nil	(> (float-time) exp-time)))
+	)
 
 (defun url-cookie-retrieve (host &optional localpart secure)
   "Retrieve all the netscape-style cookies for a specified HOST and LOCALPART."
