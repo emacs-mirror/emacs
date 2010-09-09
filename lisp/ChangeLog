@@ -1,3 +1,8 @@
+2010-09-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-cache.el (tramp-parse-connection-properties): Set
+	tramp-autoload cookie.
+
 2010-09-09  Glenn Morris  <rgm@gnu.org>
 
 	* image.el (imagemagick-types-inhibit): Add :type, :version, :group.
