@@ -625,6 +625,51 @@ http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02234.html
    the window associated with that modeline.
    http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg02416.html
 
+* Things to be done for specific packages or features
+
+** ImageMagick support
+
+*** image-type-header-regexps priorities the jpeg loader over the
+ImageMagick one.  This is not wrong, but how should a user go about
+prefering the ImageMagick loader?  The user might like zooming etc in jpegs.
+
+Try (setq image-type-header-regexps nil) for a quick hack to prefer
+ImageMagick over the jpg loader.
+
+*** For some reason its unbearably slow to look at a page in a large
+image bundle using the :index feature.  The ImageMagick "display"
+command is also a bit slow, but nowhere near as slow as the Emacs
+code.  It seems ImageMagick tries to unpack every page when loading the
+bundle.  This feature is not the primary usecase in Emacs though.
+
+ImageMagick 6.6.2-9 introduced a bugfix for single page djvu load.  It
+is now much faster to use the :index feature, but still not very fast.
+
+*** Try to cache the num pages calculation.  It can take a while to
+calculate the number of pages, and if you need to do it for each page
+view, page-flipping becomes uselessly slow.
+
+*** Integrate with image-dired.
+
+*** Integrate with docview. 
+  
+*** Integrate with image-mode.
+Some work has been done, e.g. M-x image-transform-fit-to-height will
+fit the image to the height of the Emacs window.
+
+*** Look for optimizations for handling images with low depth.
+Currently the code seems to default to 24 bit RGB which is costly for
+images with lower bit depth.
+
+*** Decide what to do with some uncommitted imagemagick support
+functions for image size etc.
+
+*** Test with more systems.
+Tested on Fedora 12, 14, and the libmagick that ships with it.
+I also tried using an ImageMagick compiled from their SVN, in
+parallel with the one packaged by Fedora, it worked well.
+Ubuntu 8.04 was tested, but it seems it ships a broken ImageMagick.
+
 * Internal changes
 
 ** Cleanup all the GC_ mark bit stuff -- there is no longer any distinction
