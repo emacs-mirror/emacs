@@ -4,6 +4,8 @@
 	(gnus-html-browse-image): Ditto.
 	(gnus-html-wash-tags): Add the data to allow showing the ALT text and
 	to browse the image directly.
+	(gnus-html-wash-tags): Search for images first, so that <a><img> works
+	better.
 
 	* gnus-async.el (gnus-async-article-callback): Call
 	`gnus-html-prefetch-images' unconditionally.
