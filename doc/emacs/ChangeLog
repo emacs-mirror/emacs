@@ -1,3 +1,7 @@
+2010-09-09  Glenn Morris  <rgm@gnu.org>
+
+	* xresources.texi: Untabify.
+
 2010-09-06  Chong Yidong  <cyd@stupidchicken.com>
 
 	* dired.texi (Dired Enter): Minor doc fix (Bug#6982).

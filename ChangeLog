@@ -1,3 +1,7 @@
+2010-09-09  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: No more TODO files under lisp/.
+
 2010-09-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.bat: Produce lisp/gnus/_dir-locals.el from

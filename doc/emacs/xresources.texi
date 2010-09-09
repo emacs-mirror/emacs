@@ -480,7 +480,7 @@ Emacs.menu*.font:       8x16
 For dialog boxes, use @samp{dialog*}:
 
 @example
-Emacs.dialog*.faceName:	Sans-12
+Emacs.dialog*.faceName: Sans-12
 @end example
 
 @noindent

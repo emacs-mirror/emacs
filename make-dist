@@ -398,10 +398,10 @@ echo "Making links to \`lisp' and its subdirectories"
    mkdir -p ../${tempdir}/lisp/$file
    ln $file/[a-zA-Z0-9]*.el ../${tempdir}/lisp/$file
    ln $file/[a-zA-Z0-9]*.elc ../${tempdir}/lisp/$file
-   ## calc/README.priv, nxml/TODO
+   ## calc/README.priv
    for f in $file/[a-zA-Z]*.xpm $file/[a-zA-Z]*.[xp]bm \
        $file/README $file/ChangeLog $file/ChangeLog.*[0-9] \
-       $file/README.prev $file/TODO; do
+       $file/README.prev; do
      if [ -f $f ]; then
        ln $f ../${tempdir}/lisp/$file
      fi

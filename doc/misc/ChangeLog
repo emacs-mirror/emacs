@@ -1,3 +1,7 @@
+2010-09-09  Glenn Morris  <rgm@gnu.org>
+
+	* org.texi: Restore clobbered changes (copyright years, untabify).
+
 2010-09-04  Julien Danjou  <julien@danjou.info>  (tiny change)
 
 	* gnus.texi (Adaptive Scoring): Fix typo.
