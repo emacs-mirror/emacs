@@ -1,3 +1,9 @@
+2010-09-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi: Remove Japanese manual.  Fix typo.
+
+	* trampver.texi: Update release number.  Remove japanesemanual.
+
 2010-09-09  Glenn Morris  <rgm@gnu.org>
 
 	* org.texi: Restore clobbered changes (copyright years, untabify).
