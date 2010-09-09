@@ -1,3 +1,8 @@
+2010-09-09  Glenn Morris  <rgm@gnu.org>
+
+	* image.el (imagemagick-types-inhibit): Add :type, :version, :group.
+	(imagemagick-register-types): Doc fix.
+
 2010-09-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/octave-mod.el (electric-indent-chars): Silence bytecomp.

@@ -697,21 +697,28 @@ shall be displayed."
 
 (defcustom imagemagick-types-inhibit
   '(C HTML HTM TXT PDF)
-  "Types the imagemagick loader should not try to handle.")
+  ;; FIXME what are the possible options?
+  ;; Are these actually file-name extensions?
+  ;; Why are these upper-case when eg image-types is lower-case?
+  "Types the ImageMagick loader should not try to handle."
+  :type '(choice (const :tag "Let ImageMagick handle all the types it can" nil)
+		 (repeat symbol))
+  :version "24.1"
+  :group 'image)
 
 ;;;###autoload
 (defun imagemagick-register-types ()
-  "Register file types that imagemagick is able to handle."
+  "Register the file types that ImageMagick is able to handle."
   (let ((im-types (imagemagick-types)))
     (dolist (im-inhibit imagemagick-types-inhibit)
       (setq im-types (remove im-inhibit im-types)))
     (dolist (im-type im-types)
       (let ((extension (downcase (symbol-name im-type))))
 	(push
-	 (cons  (concat "\\." extension "\\'") 'image-mode)
+	 (cons (concat "\\." extension "\\'") 'image-mode)
 	 auto-mode-alist)
 	(push
-	 (cons  (concat "\\." extension "\\'") 'imagemagick)
+	 (cons (concat "\\." extension "\\'") 'imagemagick)
 	 image-type-file-name-regexps)))))
 
 
