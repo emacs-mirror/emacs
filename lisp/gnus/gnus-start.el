@@ -1692,7 +1692,7 @@ If SCAN, request a scan of that group as well."
 	 (gnus-agent-article-local-times 0)
 	 (archive-method (gnus-server-to-method "archive"))
 	 infos info group active method cmethod
-	 method-type method-group-list)
+	 method-type method-group-list entry)
     (gnus-message 6 "Checking new news...")
 
     (while newsrc
@@ -1737,12 +1737,18 @@ If SCAN, request a scan of that group as well."
 	(push (setq method-group-list (list method method-type nil))
 	      type-cache))
       ;; Only add groups that need updating.
-      (when (<= (gnus-info-level info)
-		(if (eq (cadr method-group-list) 'foreign)
-		    foreign-level
-		  alevel))
-	(setcar (nthcdr 2 method-group-list)
-		(cons info (nth 2 method-group-list)))))
+      (if (<= (gnus-info-level info)
+	      (if (eq (cadr method-group-list) 'foreign)
+		  foreign-level
+		alevel))
+	  (setcar (nthcdr 2 method-group-list)
+		  (cons info (nth 2 method-group-list)))
+	;; The group is inactive, so we nix out the number of unread articles.
+	;; It leads `(gnus-group-unread group)' to return t.  See also
+	;; `gnus-group-prepare-flat'.
+	(unless active
+	  (when (setq entry (gnus-group-entry group))
+	    (setcar entry t)))))
 
     ;; Sort the methods based so that the primary and secondary
     ;; methods come first.  This is done for legacy reasons to try to
