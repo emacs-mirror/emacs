@@ -16,7 +16,7 @@
 
 @include trampver.texi
 
-@c Macro for formatting a filename according to the repective syntax.
+@c Macro for formatting a filename according to the respective syntax.
 @c xxx and yyy are auxiliary macros in order to omit leading and
 @c trailing whitespace.  Not very elegant, but I don't know it better.
 
@@ -105,11 +105,6 @@ If you're using the other Emacs flavor, you should read the
 @end ifset
 
 @ifhtml
-@ifset jamanual
-This manual is also available as a @uref{@value{japanesemanual},
-Japanese translation}.
-@end ifset
-
 The latest release of @value{tramp} is available for
 @uref{ftp://ftp.gnu.org/gnu/tramp/, download}, or you may see
 @ref{Obtaining Tramp} for more details, including the CVS server
@@ -171,7 +166,6 @@ Installing @value{tramp} with your @value{emacsname}
 
 * Installation parameters::     Parameters in order to control installation.
 * Load paths::                  How to plug-in @value{tramp} into your environment.
-* Japanese manual::             Japanese manual.
 
 @end ifset
 

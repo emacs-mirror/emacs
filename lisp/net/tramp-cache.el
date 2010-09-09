@@ -357,6 +357,7 @@ KEY identifies the connection, it is either a process or a vector."
 	     (remove-hook 'kill-emacs-hook
 			  'tramp-dump-connection-properties)))
 
+;;;###tramp-autoload
 (defun tramp-parse-connection-properties (method)
   "Return a list of (user host) tuples allowed to access for METHOD.
 This function is added always in `tramp-get-completion-function'
