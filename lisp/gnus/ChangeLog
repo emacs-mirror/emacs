@@ -1,3 +1,9 @@
+2010-09-09  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-start.el (gnus-get-unread-articles): Set the number of unread
+	articles of every unchecked group to t, which means unknown since the
+	server has never been opened.
+
 2010-09-08  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-html.el (gnus-html-show-alt-text): New command.
