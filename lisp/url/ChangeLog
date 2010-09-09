@@ -1,3 +1,7 @@
+2010-09-09  Glenn Morris  <rgm@gnu.org>
+
+	* url-cookie.el (url-cookie-expired-p): Tweak previous change.
+
 2010-09-09  shawn boles  <shawn.boles@gmail.com>  (tiny change)
 
 	* url-cookie.el (url-cookie-expired-p): Simplify and fix.  (Bug#6957)

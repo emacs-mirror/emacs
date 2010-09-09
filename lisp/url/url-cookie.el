@@ -1,7 +1,7 @@
 ;;; url-cookie.el --- Netscape Cookie support
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1998, 1999, 2004, 2005, 2006, 2007, 2008,
+;;   2009, 2010  Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -193,12 +193,9 @@ telling Microsoft that."
 	(setq url-cookie-storage (list (list domain tmp))))))))
 
 (defun url-cookie-expired-p (cookie)
-	"Returns true if COOKIE is expired.
-If COOKIE has an expiration date it is converted to seconds, adjusted to the client timezone and then compared against (float-time)." 
-	(let* ((exp (url-cookie-expires cookie))
-				 (exp-time (and exp (float-time (date-to-time exp)))))
-		(if (not exp) nil	(> (float-time) exp-time)))
-	)
+  "Return non-nil if COOKIE is expired."
+  (let ((exp (url-cookie-expires cookie)))
+    (and exp (> (float-time) (float-time (date-to-time exp))))))
 
 (defun url-cookie-retrieve (host &optional localpart secure)
   "Retrieve all the netscape-style cookies for a specified HOST and LOCALPART."
