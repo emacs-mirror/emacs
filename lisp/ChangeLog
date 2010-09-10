@@ -1,3 +1,10 @@
+2010-09-10  Glenn Morris  <rgm@gnu.org>
+
+	* menu-bar.el (menu-bar-options-save): Fix handling of menu-bar
+	and tool-bar modes.  (Bug#6211)
+	(menu-bar-mode): Move setting of standard-value after the
+	minor-mode definition, otherwise it seems to have no effect.
+
 2010-09-08  Masatake YAMATO  <yamato@redhat.com>
 
 	* progmodes/antlr-mode.el (antlr-font-lock-additional-keywords):

@@ -674,13 +674,23 @@ by \"Save Options\" in Custom buffers.")
     ;; put on a customized-value property.
     (dolist (elt '(line-number-mode column-number-mode size-indication-mode
 		   cua-mode show-paren-mode transient-mark-mode
-		   blink-cursor-mode display-time-mode display-battery-mode))
+		   blink-cursor-mode display-time-mode display-battery-mode
+		   ;; These are set by other functions that don't set
+		   ;; the customized state.  Having them here has the
+		   ;; side-effect that turning them off via X
+		   ;; resources acts like having customized them, but
+		   ;; that seems harmless.
+		   menu-bar-mode tool-bar-mode))
+      ;; FIXME ? It's a little annoying that running this command
+      ;; always loads cua-base, paren, time, and battery, even if they
+      ;; have not been customized in any way.  (Due to custom-load-symbol.)
       (and (customize-mark-to-save elt)
 	   (setq need-save t)))
     ;; These are set with `customize-set-variable'.
     (dolist (elt '(scroll-bar-mode
 		   debug-on-quit debug-on-error
-		   tooltip-mode menu-bar-mode tool-bar-mode
+		   ;; Somehow this works, when tool-bar and menu-bar don't.
+		   tooltip-mode
 		   save-place uniquify-buffer-name-style fringe-mode
 		   indicate-empty-lines indicate-buffer-boundaries
 		   case-fold-search font-use-system-font
@@ -1923,15 +1933,6 @@ Buffers menu is regenerated."
     `(menu-item ,(purecopy "Previous History Item") previous-history-element
 		:help ,(purecopy "Put previous minibuffer history element in the minibuffer"))))
 
-;;;###autoload
-;; This comment is taken from tool-bar.el near
-;; (put 'tool-bar-mode ...)
-;; We want to pretend the menu bar by standard is on, as this will make
-;; customize consider disabling the menu bar a customization, and save
-;; that.  We could do this for real by setting :init-value below, but
-;; that would overwrite disabling the tool bar from X resources.
-(put 'menu-bar-mode 'standard-value '(t))
-
 (define-minor-mode menu-bar-mode
   "Toggle display of a menu bar on each frame.
 This command applies to all frames that exist and frames to be
@@ -1953,6 +1954,16 @@ turn on menu bars; otherwise, turn off menu bars."
     (run-with-idle-timer 0 nil 'message
 			 "Menu-bar mode disabled.  Use M-x menu-bar-mode to make the menu bar appear."))
   menu-bar-mode)
+
+;;;###autoload
+;; (This does not work right unless it comes after the above definition.)
+;; This comment is taken from tool-bar.el near
+;; (put 'tool-bar-mode ...)
+;; We want to pretend the menu bar by standard is on, as this will make
+;; customize consider disabling the menu bar a customization, and save
+;; that.  We could do this for real by setting :init-value above, but
+;; that would overwrite disabling the menu bar from X resources.
+(put 'menu-bar-mode 'standard-value '(t))
 
 (defun toggle-menu-bar-mode-from-frame (&optional arg)
   "Toggle menu bar on or off, based on the status of the current frame.
