@@ -3577,6 +3577,11 @@ extern char *x_get_keysym_name (int);
 EXFUN (Fmsdos_downcase_filename, 1);
 #endif
 
+#ifdef HAVE_LIBXML2
+/* Defined in xml.c */
+extern void syms_of_xml (void);
+#endif
+
 #ifdef HAVE_MENUS
 /* Defined in (x|w32)fns.c, nsfns.m...  */
 extern int have_menus_p (void);

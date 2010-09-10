@@ -1,3 +1,13 @@
+2010-09-09  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* xml.c (Fxml_parse_buffer): New function to parse XML files.
+
+2010-09-08  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* xml.c: New file.
+	(Fhtml_parse_buffer): New function to interface to the libxml2
+	html parsing function.
+
 2010-09-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* biditype.h: Regenerate.
