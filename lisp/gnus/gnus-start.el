@@ -1801,14 +1801,15 @@ If SCAN, request a scan of that group as well."
     (cond
      ((gnus-check-backend-function 'retrieve-groups (car method))
       (when (gnus-check-backend-function 'request-scan (car method))
-	(gnus-request-scan nil method))
-      (gnus-read-active-file-2
-       (mapcar (lambda (info)
-		 (gnus-group-real-name (gnus-info-group info)))
-	       infos)
-       method))
+	(dolist (info infos)
+	  (gnus-request-scan (gnus-info-group info) method)))
+      (let (groups)
+	(gnus-read-active-file-2
+	 (dolist (info infos (nreverse groups))
+	   (push (gnus-group-real-name (gnus-info-group info)) groups))
+	 method)))
      ((gnus-check-backend-function 'request-list (car method))
-      (gnus-read-active-file-1 method nil))
+      (gnus-read-active-file-1 method nil infos))
      (t
       (dolist (info infos)
 	(gnus-activate-group (gnus-info-group info) nil nil method t))))))
@@ -2037,7 +2038,7 @@ If SCAN, request a scan of that group as well."
 	       (message "Quit reading the active file")
 	       nil))))))))
 
-(defun gnus-read-active-file-1 (method force)
+(defun gnus-read-active-file-1 (method force &optional infos)
   (let (where mesg)
     (setq where (nth 1 method)
 	  mesg (format "Reading active file%s via %s..."
@@ -2050,7 +2051,10 @@ If SCAN, request a scan of that group as well."
       (when (and gnus-agent
 		 (gnus-online method)
 		 (gnus-check-backend-function 'request-scan (car method)))
-	(gnus-request-scan nil method))
+	(if infos
+	    (dolist (info infos)
+	      (gnus-request-scan (gnus-info-group info) method))
+	  (gnus-request-scan nil method)))
       (cond
        ((and (eq gnus-read-active-file 'some)
 	     (gnus-check-backend-function 'retrieve-groups (car method))
