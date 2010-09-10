@@ -544,6 +544,8 @@ and what they do:
  contexts will not be affected.
 
 This is normally set via `font-lock-defaults'.")
+(make-obsolete-variable 'font-lock-syntactic-keywords
+                        'syntax-propertize-function "24.1")
 
 (defvar font-lock-syntax-table nil
   "Non-nil means use this syntax table for fontifying.
@@ -1133,8 +1135,14 @@ Put first the functions more likely to cause a change and cheaper to compute.")
           (setq beg font-lock-beg end font-lock-end))
         ;; Now do the fontification.
         (font-lock-unfontify-region beg end)
-        (when font-lock-syntactic-keywords
-          (font-lock-fontify-syntactic-keywords-region beg end))
+        (when (and font-lock-syntactic-keywords
+                   (null syntax-propertize-function))
+          ;; Ensure the beginning of the file is properly syntactic-fontified.
+          (let ((start beg))
+            (when (< font-lock-syntactically-fontified start)
+              (setq start (max font-lock-syntactically-fontified (point-min)))
+              (setq font-lock-syntactically-fontified end))
+            (font-lock-fontify-syntactic-keywords-region start end)))
         (unless font-lock-keywords-only
           (font-lock-fontify-syntactically-region beg end loudly))
         (font-lock-fontify-keywords-region beg end loudly)))))
@@ -1437,11 +1445,6 @@ START should be at the beginning of a line."
     ;; We wouldn't go through so much trouble if we didn't intend to use those
     ;; properties, would we?
     (set (make-local-variable 'parse-sexp-lookup-properties) t))
-  ;; Ensure the beginning of the file is properly syntactic-fontified.
-  (when (and font-lock-syntactically-fontified
-	     (< font-lock-syntactically-fontified start))
-    (setq start (max font-lock-syntactically-fontified (point-min)))
-    (setq font-lock-syntactically-fontified end))
   ;; If `font-lock-syntactic-keywords' is a symbol, get the real keywords.
   (when (symbolp font-lock-syntactic-keywords)
     (setq font-lock-syntactic-keywords (font-lock-eval-keywords
@@ -1487,6 +1490,7 @@ START should be at the beginning of a line."
 (defun font-lock-fontify-syntactically-region (start end &optional loudly)
   "Put proper face on each string and comment between START and END.
 START should be at the beginning of a line."
+  (syntax-propertize end)  ; Apply any needed syntax-table properties.
   (let ((comment-end-regexp
 	 (or font-lock-comment-end-skip
 	     (regexp-quote

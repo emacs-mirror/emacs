@@ -1,3 +1,133 @@
+2010-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/texinfo.el (texinfo-syntax-propertize-function): New fun
+	to replace texinfo-font-lock-syntactic-keywords.
+	(texinfo-mode): Use it.
+
+	* textmodes/tex-mode.el (tex-common-initialization, doctex-mode):
+	Use syntax-propertize-function.
+
+	* textmodes/sgml-mode.el (sgml-syntax-propertize-function): New var to
+	replace sgml-font-lock-syntactic-keywords.
+	(sgml-mode): Use it.
+
+	* textmodes/reftex.el (font-lock-syntactic-keywords): Don't declare
+	since we don't use it.
+
+	* textmodes/bibtex.el (bibtex-mode): Use syntax-propertize-function.
+
+	* progmodes/vhdl-mode.el (vhdl-mode): Use syntax-propertize-function
+	if available.
+	(vhdl-fontify-buffer): Adjust.
+
+	* progmodes/tcl.el (tcl-syntax-propertize-function): New var to
+	replace tcl-font-lock-syntactic-keywords.
+	(tcl-mode): Use it.
+
+	* progmodes/simula.el (simula-syntax-propertize-function): New var to
+	replace simula-font-lock-syntactic-keywords.
+	(simula-mode): Use it.
+
+	* progmodes/sh-script.el (sh-st-symbol): Remove.
+	(sh-font-lock-close-heredoc, sh-font-lock-open-heredoc): Add eol arg.
+	(sh-font-lock-flush-syntax-ppss-cache, sh-font-lock-here-doc): Remove.
+	(sh-font-lock-quoted-subshell): Assume we've already matched $(.
+	(sh-font-lock-paren): Set syntax-multiline.
+	(sh-font-lock-syntactic-keywords): Remove.
+	(sh-syntax-propertize-function): New function to replace it.
+	(sh-mode): Use it.
+
+	* progmodes/ruby-mode.el (ruby-here-doc-beg-re):
+	Define while compiling.
+	(ruby-here-doc-end-re, ruby-here-doc-beg-match)
+	(ruby-font-lock-syntactic-keywords, ruby-comment-beg-syntax)
+	(syntax-ppss, ruby-in-ppss-context-p, ruby-in-here-doc-p)
+	(ruby-here-doc-find-end, ruby-here-doc-beg-syntax)
+	(ruby-here-doc-end-syntax): Only define when
+	syntax-propertize is not available.
+	(ruby-syntax-propertize-function, ruby-syntax-propertize-heredoc):
+	New functions.
+	(ruby-in-ppss-context-p): Update to new syntax of heredocs.
+	(electric-indent-chars): Silence bytecompiler.
+	(ruby-mode): Use prog-mode, syntax-propertize-function, and
+	electric-indent-chars.
+
+	* progmodes/python.el (python-syntax-propertize-function): New var to
+	replace python-font-lock-syntactic-keywords.
+	(python-mode): Use it.
+	(python-quote-syntax): Simplify and adjust to new use.
+
+	* progmodes/perl-mode.el (perl-syntax-propertize-function): New fun to
+	replace perl-font-lock-syntactic-keywords.
+	(perl-syntax-propertize-special-constructs): New fun to replace
+	perl-font-lock-special-syntactic-constructs.
+	(perl-font-lock-syntactic-face-function): New fun.
+	(perl-mode): Use it.
+
+	* progmodes/octave-mod.el (octave-syntax-propertize-sqs): New function
+	to replace octave-font-lock-close-quotes.
+	(octave-syntax-propertize-function): New function to replace
+	octave-font-lock-syntactic-keywords.
+	(octave-mode): Use it.
+
+	* progmodes/mixal-mode.el (mixal-syntax-propertize-function): New var;
+	replaces mixal-font-lock-syntactic-keywords.
+	(mixal-mode): Use it.
+
+	* progmodes/make-mode.el (makefile-syntax-propertize-function):
+	New var; replaces makefile-font-lock-syntactic-keywords.
+	(makefile-mode): Use it.
+	(makefile-imake-mode): Adjust.
+
+	* progmodes/js.el (js--regexp-literal): Define while compiling.
+	(js-syntax-propertize-function): New var; replaces
+	js-font-lock-syntactic-keywords.
+	(js-mode): Use it.
+
+	* progmodes/gud.el (gdb-script-syntax-propertize-function): New var;
+	replaces gdb-script-font-lock-syntactic-keywords.
+	(gdb-script-mode): Use it.
+
+	* progmodes/fortran.el (fortran-mode): Use syntax-propertize-function.
+	(fortran--font-lock-syntactic-keywords): New var.
+	(fortran-line-length): Update syntax-propertize-function and
+	fortran--font-lock-syntactic-keywords.
+
+	* progmodes/cperl-mode.el (cperl-mode): Use syntax-propertize-function.
+
+	* progmodes/cfengine.el (cfengine-mode):
+	Use syntax-propertize-function.
+	(cfengine-font-lock-syntactic-keywords): Remove.
+
+	* progmodes/autoconf.el (autoconf-mode):
+	Use syntax-propertize-function.
+	(autoconf-font-lock-syntactic-keywords): Remove.
+
+	* progmodes/ada-mode.el (ada-set-syntax-table-properties)
+	(ada-after-change-function, ada-initialize-syntax-table-properties)
+	(ada-handle-syntax-table-properties): Only define when
+	syntax-propertize is not available.
+	(ada-mode): Use syntax-propertize-function.
+
+	* font-lock.el (font-lock-syntactic-keywords): Make obsolete.
+	(font-lock-fontify-syntactic-keywords-region): Move handling of
+	font-lock-syntactically-fontified to...
+	(font-lock-default-fontify-region): ...here.
+	Let syntax-propertize-function take precedence.
+	(font-lock-fontify-syntactically-region): Cal syntax-propertize.
+
+	* emacs-lisp/syntax.el (syntax-propertize-function)
+	(syntax-propertize-chunk-size, syntax-propertize--done)
+	(syntax-propertize-extend-region-functions): New vars.
+	(syntax-propertize-wholelines, syntax-propertize-multiline)
+	(syntax-propertize--shift-groups, syntax-propertize-via-font-lock)
+	(syntax-propertize): New functions.
+	(syntax-propertize-rules): New macro.
+	(syntax-ppss-flush-cache): Set syntax-propertize--done.
+	(syntax-ppss): Call syntax-propertize.
+
+	* emacs-lisp/regexp-opt.el (regexp-opt-depth): Skip named groups.
+
 2010-09-10  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el (ispell-init-process): Improve comments.
@@ -6,8 +136,8 @@
 
 2010-09-09  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp-cache.el (tramp-parse-connection-properties): Set
-	tramp-autoload cookie.
+	* net/tramp-cache.el (tramp-parse-connection-properties):
+	Set tramp-autoload cookie.
 
 2010-09-09  Glenn Morris  <rgm@gnu.org>
 

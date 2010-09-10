@@ -466,6 +466,16 @@ has now been removed.
 
 * Lisp changes in Emacs 24.1
 
+** New variable syntax-propertize-function to set syntax-table properties.
+Replaces font-lock-syntactic-keywords which are now obsolete.
+This allows syntax-table properties to be set independently from font-lock:
+just call syntax-propertize to make sure the text is propertized.
+Together with this new variable come a new hook
+syntax-propertize-extend-region-functions, as well as two helper functions:
+syntax-propertize-via-font-lock to reuse old font-lock-syntactic-keywords
+as-is; and syntax-propertize-rules which provides a new way to specify
+syntactic rules.
+
 ** New hook post-self-insert-hook run at the end of self-insert-command.
 
 ** Syntax tables support a new "comment style c" additionally to style b.

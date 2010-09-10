@@ -834,10 +834,7 @@ the 4 file locations can be clicked on and jumped to."
 ;;
 ;; On Emacs, this is done through the `syntax-table' text property.  The
 ;; corresponding action is applied automatically each time the buffer
-;; changes.  If `font-lock-mode' is enabled (the default) the action is
-;; set up by `font-lock-syntactic-keywords'.  Otherwise, we do it
-;; manually in `ada-after-change-function'.  The proper method is
-;; installed by `ada-handle-syntax-table-properties'.
+;; changes via syntax-propertize-function.
 ;;
 ;; on XEmacs, the `syntax-table' property does not exist and we have to use a
 ;; slow advice to `parse-partial-sexp' to do the same thing.
@@ -937,6 +934,12 @@ declares it as a word constituent."
 	    (insert (caddar change))
 	    (setq change (cdr change)))))))
 
+(unless (eval-when-compile (fboundp 'syntax-propertize-via-font-lock))
+  ;; Before `syntax-propertize', we had to use font-lock to apply syntax-table
+  ;; properties, and in some cases we even had to do it manually (in
+  ;; `ada-after-change-function').  `ada-handle-syntax-table-properties'
+  ;; decides which method to use.
+
 (defun ada-set-syntax-table-properties ()
   "Assign `syntax-table' properties in accessible part of buffer.
 In particular, character constants are said to be strings, #...#
@@ -990,6 +993,8 @@ OLD-LEN indicates what the length of the replaced text was."
       (remove-hook 'after-change-functions 'ada-after-change-function t)
     ;; Take care of `syntax-table' properties manually.
     (ada-initialize-syntax-table-properties)))
+
+) ;;(not (fboundp 'syntax-propertize))
 
 ;;------------------------------------------------------------------
 ;;  Testing the grammatical context
@@ -1187,8 +1192,13 @@ the file name."
        '(ada-font-lock-keywords
 	 nil t
 	 ((?\_ . "w") (?# . "."))
-	 beginning-of-line
-	 (font-lock-syntactic-keywords . ada-font-lock-syntactic-keywords)))
+	 beginning-of-line))
+
+  (if (eval-when-compile (fboundp 'syntax-propertize-via-font-lock))
+      (set (make-local-variable 'syntax-propertize-function)
+           (syntax-propertize-via-font-lock ada-font-lock-syntactic-keywords))
+    (set (make-local-variable 'font-lock-syntactic-keywords)
+         ada-font-lock-syntactic-keywords))
 
   ;; Set up support for find-file.el.
   (set (make-local-variable 'ff-other-file-alist)
@@ -1331,7 +1341,8 @@ the file name."
   ;;  Run this after the hook to give the users a chance to activate
   ;;  font-lock-mode
 
-  (unless (featurep 'xemacs)
+  (unless (or (eval-when-compile (fboundp 'syntax-propertize-via-font-lock))
+              (featurep 'xemacs))
     (ada-initialize-syntax-table-properties)
     (add-hook 'font-lock-mode-hook 'ada-handle-syntax-table-properties nil t))
 

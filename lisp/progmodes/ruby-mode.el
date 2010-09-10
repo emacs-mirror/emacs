@@ -100,17 +100,10 @@
 
 (defconst ruby-block-end-re "\\<end\\>")
 
-(defconst ruby-here-doc-beg-re
+(eval-and-compile
+  (defconst ruby-here-doc-beg-re
   "\\(<\\)<\\(-\\)?\\(\\([a-zA-Z0-9_]+\\)\\|[\"]\\([^\"]+\\)[\"]\\|[']\\([^']+\\)[']\\)"
-  "Regexp to match the beginning of a heredoc.")
-
-(defconst ruby-here-doc-end-re
-  "^\\([ \t]+\\)?\\(.*\\)\\(.\\)$"
-  "Regexp to match the end of heredocs.
-
-This will actually match any line with one or more characters.
-It's useful in that it divides up the match string so that
-`ruby-here-doc-beg-match' can search for the beginning of the heredoc.")
+    "Regexp to match the beginning of a heredoc."))
 
 (defun ruby-here-doc-end-match ()
   "Return a regexp to find the end of a heredoc.
@@ -122,18 +115,6 @@ This should only be called after matching against `ruby-here-doc-beg-re'."
            (or (match-string 4)
                (match-string 5)
                (match-string 6)))))
-
-(defun ruby-here-doc-beg-match ()
-  "Return a regexp to find the beginning of a heredoc.
-
-This should only be called after matching against `ruby-here-doc-end-re'."
-  (let ((contents (regexp-quote (concat (match-string 2) (match-string 3)))))
-    (concat "<<"
-            (let ((match (match-string 1)))
-              (if (and match (> (length match) 0))
-                  (concat "\\(?:-\\([\"']?\\)\\|\\([\"']\\)" (match-string 1) "\\)"
-                          contents "\\b\\(\\1\\|\\2\\)")
-                (concat "-?\\([\"']\\|\\)" contents "\\b\\1"))))))
 
 (defconst ruby-delimiter
   (concat "[?$/%(){}#\"'`.:]\\|<<\\|\\[\\|\\]\\|\\<\\("
@@ -362,7 +343,7 @@ Also ignores spaces after parenthesis when 'space."
     (back-to-indentation)
     (current-column)))
 
-(defun ruby-indent-line (&optional flag)
+(defun ruby-indent-line (&optional ignored)
   "Correct the indentation of the current Ruby line."
   (interactive)
   (ruby-indent-to (ruby-calculate-indent)))
@@ -405,8 +386,7 @@ and `\\' when preceded by `?'."
   "TODO: document."
   (save-excursion
     (store-match-data nil)
-    (let ((space (skip-chars-backward " \t"))
-          (start (point)))
+    (let ((space (skip-chars-backward " \t")))
       (cond
        ((bolp) t)
        ((progn
@@ -700,7 +680,7 @@ and `\\' when preceded by `?'."
     (beginning-of-line)
     (let ((ruby-indent-point (point))
           (case-fold-search nil)
-          state bol eol begin op-end
+          state eol begin op-end
           (paren (progn (skip-syntax-forward " ")
                         (and (char-after) (matching-paren (char-after)))))
           (indent 0))
@@ -780,7 +760,6 @@ and `\\' when preceded by `?'."
               (if (re-search-forward "^\\s *#" end t)
                   (beginning-of-line)
                 (setq done t))))
-          (setq bol (point))
           (end-of-line)
           ;; skip the comment at the end
           (skip-chars-backward " \t")
@@ -1037,10 +1016,8 @@ With ARG, do it many times.  Negative ARG means move forward."
   (ruby-beginning-of-defun)
   (re-search-backward "^\n" (- (point) 1) t))
 
-(defun ruby-indent-exp (&optional shutup-p)
-  "Indent each line in the balanced expression following the point.
-If a prefix arg is given or SHUTUP-P is non-nil, no errors
-are signalled if a balanced expression isn't found."
+(defun ruby-indent-exp (&optional ignored)
+  "Indent each line in the balanced expression following the point."
   (interactive "*P")
   (let ((here (point-marker)) start top column (nest t))
     (set-marker-insertion-type here t)
@@ -1133,58 +1110,208 @@ See `add-log-current-defun-function'."
               (if mlist (concat mlist mname) mname)
             mlist)))))
 
-(defconst ruby-font-lock-syntactic-keywords
-  `(;; #{ }, #$hoge, #@foo are not comments
-    ("\\(#\\)[{$@]" 1 (1 . nil))
-    ;; the last $', $", $` in the respective string is not variable
-    ;; the last ?', ?", ?` in the respective string is not ascii code
-    ("\\(^\\|[\[ \t\n<+\(,=]\\)\\(['\"`]\\)\\(\\\\.\\|\\2\\|[^'\"`\n\\\\]\\)*?\\\\?[?$]\\(\\2\\)"
-     (2 (7 . nil))
-     (4 (7 . nil)))
-    ;; $' $" $` .... are variables
-    ;; ?' ?" ?` are ascii codes
-    ("\\(^\\|[^\\\\]\\)\\(\\\\\\\\\\)*[?$]\\([#\"'`]\\)" 3 (1 . nil))
-    ;; regexps
-    ("\\(^\\|[=(,~?:;<>]\\|\\(^\\|\\s \\)\\(if\\|elsif\\|unless\\|while\\|until\\|when\\|and\\|or\\|&&\\|||\\)\\|g?sub!?\\|scan\\|split!?\\)\\s *\\(/\\)[^/\n\\\\]*\\(\\\\.[^/\n\\\\]*\\)*\\(/\\)"
-     (4 (7 . ?/))
-     (6 (7 . ?/)))
-    ("^=en\\(d\\)\\_>" 1 "!")
-    ("^\\(=\\)begin\\_>" 1 (ruby-comment-beg-syntax))
-    ;; Currently, the following case is highlighted incorrectly:
-    ;;
-    ;;   <<FOO
-    ;;   FOO
-    ;;   <<BAR
-    ;;   <<BAZ
-    ;;   BAZ
-    ;;   BAR
-    ;;
-    ;; This is because all here-doc beginnings are highlighted before any endings,
-    ;; so although <<BAR is properly marked as a beginning, when we get to <<BAZ
-    ;; it thinks <<BAR is part of a string so it's marked as well.
-    ;;
-    ;; This may be fixable by modifying ruby-in-here-doc-p to use
-    ;; ruby-in-non-here-doc-string-p rather than syntax-ppss-context,
-    ;; but I don't want to try that until we've got unit tests set up
-    ;; to make sure I don't break anything else.
-    (,(concat ruby-here-doc-beg-re ".*\\(\n\\)")
-     ,(+ 1 (regexp-opt-depth ruby-here-doc-beg-re))
-     (ruby-here-doc-beg-syntax))
-    (,ruby-here-doc-end-re 3 (ruby-here-doc-end-syntax)))
-  "Syntactic keywords for Ruby mode.  See `font-lock-syntactic-keywords'.")
+(if (eval-when-compile (fboundp #'syntax-propertize-rules))
+    ;; New code that works independently from font-lock.
+    (progn
+      (defun ruby-syntax-propertize-function (start end)
+        "Syntactic keywords for Ruby mode.  See `syntax-propertize-function'."
+        (goto-char start)
+        (ruby-syntax-propertize-heredoc end)
+        (funcall
+         (syntax-propertize-rules
+          ;; #{ }, #$hoge, #@foo are not comments
+          ("\\(#\\)[{$@]" (1 "."))
+          ;; the last $', $", $` in the respective string is not variable
+          ;; the last ?', ?", ?` in the respective string is not ascii code
+          ("\\(^\\|[\[ \t\n<+\(,=]\\)\\(['\"`]\\)\\(\\\\.\\|\\2\\|[^'\"`\n\\\\]\\)*?\\\\?[?$]\\(\\2\\)"
+           (2 "\"")
+           (4 "\""))
+          ;; $' $" $` .... are variables
+          ;; ?' ?" ?` are ascii codes
+          ("\\(^\\|[^\\\\]\\)\\(\\\\\\\\\\)*[?$]\\([#\"'`]\\)" (3 "."))
+          ;; regexps
+          ("\\(^\\|[=(,~?:;<>]\\|\\(^\\|\\s \\)\\(if\\|elsif\\|unless\\|while\\|until\\|when\\|and\\|or\\|&&\\|||\\)\\|g?sub!?\\|scan\\|split!?\\)\\s *\\(/\\)[^/\n\\\\]*\\(\\\\.[^/\n\\\\]*\\)*\\(/\\)"
+           (4 "\"/")
+           (6 "\"/"))
+          ("^=en\\(d\\)\\_>" (1 "!"))
+          ("^\\(=\\)begin\\_>" (1 "!"))
+          ;; Handle here documents.
+          ((concat ruby-here-doc-beg-re ".*\\(\n\\)")
+           (7 (prog1 "\"" (ruby-syntax-propertize-heredoc end)))))
+         (point) end))
 
-(defun ruby-comment-beg-syntax ()
-  "Return the syntax cell for a the first character of a =begin.
+      (defun ruby-syntax-propertize-heredoc (limit)
+        (let ((ppss (syntax-ppss))
+              (res '()))
+          (when (eq ?\n (nth 3 ppss))
+            (save-excursion
+              (goto-char (nth 8 ppss))
+              (beginning-of-line)
+              (while (re-search-forward ruby-here-doc-beg-re
+                                        (line-end-position) t)
+                (push (concat (ruby-here-doc-end-match) "\n") res)))
+            (let ((start (point)))
+              ;; With multiple openers on the same line, we don't know in which
+              ;; part `start' is, so we have to go back to the beginning.
+              (when (cdr res)
+                (goto-char (nth 8 ppss))
+                (setq res (nreverse res)))
+              (while (and res (re-search-forward (pop res) limit 'move))
+                (if (null res)
+                    (put-text-property (1- (point)) (point)
+                                       'syntax-table (string-to-syntax "\""))))
+              ;; Make extra sure we don't move back, lest we could fall into an
+              ;; inf-loop.
+              (if (< (point) start) (goto-char start))))))
+      )
+      
+  ;; For Emacsen where syntax-propertize-rules is not (yet) available,
+  ;; fallback on the old font-lock-syntactic-keywords stuff.
+
+  (defconst ruby-here-doc-end-re
+    "^\\([ \t]+\\)?\\(.*\\)\\(\n\\)"
+    "Regexp to match the end of heredocs.
+
+This will actually match any line with one or more characters.
+It's useful in that it divides up the match string so that
+`ruby-here-doc-beg-match' can search for the beginning of the heredoc.")
+
+  (defun ruby-here-doc-beg-match ()
+    "Return a regexp to find the beginning of a heredoc.
+
+This should only be called after matching against `ruby-here-doc-end-re'."
+    (let ((contents (regexp-quote (match-string 2))))
+      (concat "<<"
+              (let ((match (match-string 1)))
+                (if (and match (> (length match) 0))
+                    (concat "\\(?:-\\([\"']?\\)\\|\\([\"']\\)" match "\\)"
+                            contents "\\b\\(\\1\\|\\2\\)")
+                  (concat "-?\\([\"']\\|\\)" contents "\\b\\1"))))))
+
+  (defconst ruby-font-lock-syntactic-keywords
+    `( ;; #{ }, #$hoge, #@foo are not comments
+      ("\\(#\\)[{$@]" 1 (1 . nil))
+      ;; the last $', $", $` in the respective string is not variable
+      ;; the last ?', ?", ?` in the respective string is not ascii code
+      ("\\(^\\|[\[ \t\n<+\(,=]\\)\\(['\"`]\\)\\(\\\\.\\|\\2\\|[^'\"`\n\\\\]\\)*?\\\\?[?$]\\(\\2\\)"
+       (2 (7 . nil))
+       (4 (7 . nil)))
+      ;; $' $" $` .... are variables
+      ;; ?' ?" ?` are ascii codes
+      ("\\(^\\|[^\\\\]\\)\\(\\\\\\\\\\)*[?$]\\([#\"'`]\\)" 3 (1 . nil))
+      ;; regexps
+      ("\\(^\\|[=(,~?:;<>]\\|\\(^\\|\\s \\)\\(if\\|elsif\\|unless\\|while\\|until\\|when\\|and\\|or\\|&&\\|||\\)\\|g?sub!?\\|scan\\|split!?\\)\\s *\\(/\\)[^/\n\\\\]*\\(\\\\.[^/\n\\\\]*\\)*\\(/\\)"
+       (4 (7 . ?/))
+       (6 (7 . ?/)))
+      ("^=en\\(d\\)\\_>" 1 "!")
+      ("^\\(=\\)begin\\_>" 1 (ruby-comment-beg-syntax))
+      ;; Currently, the following case is highlighted incorrectly:
+      ;;
+      ;;   <<FOO
+      ;;   FOO
+      ;;   <<BAR
+      ;;   <<BAZ
+      ;;   BAZ
+      ;;   BAR
+      ;;
+      ;; This is because all here-doc beginnings are highlighted before any endings,
+      ;; so although <<BAR is properly marked as a beginning, when we get to <<BAZ
+      ;; it thinks <<BAR is part of a string so it's marked as well.
+      ;;
+      ;; This may be fixable by modifying ruby-in-here-doc-p to use
+      ;; ruby-in-non-here-doc-string-p rather than syntax-ppss-context,
+      ;; but I don't want to try that until we've got unit tests set up
+      ;; to make sure I don't break anything else.
+      (,(concat ruby-here-doc-beg-re ".*\\(\n\\)")
+       ,(+ 1 (regexp-opt-depth ruby-here-doc-beg-re))
+       (ruby-here-doc-beg-syntax))
+      (,ruby-here-doc-end-re 3 (ruby-here-doc-end-syntax)))
+    "Syntactic keywords for Ruby mode.  See `font-lock-syntactic-keywords'.")
+
+  (defun ruby-comment-beg-syntax ()
+    "Return the syntax cell for a the first character of a =begin.
 See the definition of `ruby-font-lock-syntactic-keywords'.
 
 This returns a comment-delimiter cell as long as the =begin
 isn't in a string or another comment."
-  (when (not (nth 3 (syntax-ppss)))
-    (string-to-syntax "!")))
+    (when (not (nth 3 (syntax-ppss)))
+      (string-to-syntax "!")))
 
-(unless (functionp 'syntax-ppss)
-  (defun syntax-ppss (&optional pos)
-    (parse-partial-sexp (point-min) (or pos (point)))))
+  (defun ruby-in-here-doc-p ()
+    "Return whether or not the point is in a heredoc."
+    (save-excursion
+      (let ((old-point (point)) (case-fold-search nil))
+        (beginning-of-line)
+        (catch 'found-beg
+          (while (re-search-backward ruby-here-doc-beg-re nil t)
+            (if (not (or (ruby-in-ppss-context-p 'anything)
+                         (ruby-here-doc-find-end old-point)))
+                (throw 'found-beg t)))))))
+
+  (defun ruby-here-doc-find-end (&optional limit)
+    "Expects the point to be on a line with one or more heredoc openers.
+Returns the buffer position at which all heredocs on the line
+are terminated, or nil if they aren't terminated before the
+buffer position `limit' or the end of the buffer."
+    (save-excursion
+      (beginning-of-line)
+      (catch 'done
+        (let ((eol (save-excursion (end-of-line) (point)))
+              (case-fold-search nil)
+              ;; Fake match data such that (match-end 0) is at eol
+              (end-match-data (progn (looking-at ".*$") (match-data)))
+              beg-match-data end-re)
+          (while (re-search-forward ruby-here-doc-beg-re eol t)
+            (setq beg-match-data (match-data))
+            (setq end-re (ruby-here-doc-end-match))
+
+            (set-match-data end-match-data)
+            (goto-char (match-end 0))
+            (unless (re-search-forward end-re limit t) (throw 'done nil))
+            (setq end-match-data (match-data))
+
+            (set-match-data beg-match-data)
+            (goto-char (match-end 0)))
+          (set-match-data end-match-data)
+          (goto-char (match-end 0))
+          (point)))))
+
+  (defun ruby-here-doc-beg-syntax ()
+    "Return the syntax cell for a line that may begin a heredoc.
+See the definition of `ruby-font-lock-syntactic-keywords'.
+
+This sets the syntax cell for the newline ending the line
+containing the heredoc beginning so that cases where multiple
+heredocs are started on one line are handled correctly."
+    (save-excursion
+      (goto-char (match-beginning 0))
+      (unless (or (ruby-in-ppss-context-p 'non-heredoc)
+                  (ruby-in-here-doc-p))
+        (string-to-syntax "\""))))
+
+  (defun ruby-here-doc-end-syntax ()
+    "Return the syntax cell for a line that may end a heredoc.
+See the definition of `ruby-font-lock-syntactic-keywords'."
+    (let ((pss (syntax-ppss)) (case-fold-search nil))
+      ;; If we aren't in a string, we definitely aren't ending a heredoc,
+      ;; so we can just give up.
+      ;; This means we aren't doing a full-document search
+      ;; every time we enter a character.
+      (when (ruby-in-ppss-context-p 'heredoc pss)
+        (save-excursion
+          (goto-char (nth 8 pss))    ; Go to the beginning of heredoc.
+          (let ((eol (point)))
+            (beginning-of-line)
+            (if (and (re-search-forward (ruby-here-doc-beg-match) eol t) ; If there is a heredoc that matches this line...
+                     (not (ruby-in-ppss-context-p 'anything)) ; And that's not inside a heredoc/string/comment...
+                     (progn (goto-char (match-end 0)) ; And it's the last heredoc on its line...
+                            (not (re-search-forward ruby-here-doc-beg-re eol t))))
+                (string-to-syntax "\"")))))))
+
+  (unless (functionp 'syntax-ppss)
+    (defun syntax-ppss (&optional pos)
+      (parse-partial-sexp (point-min) (or pos (point)))))
+  )
 
 (defun ruby-in-ppss-context-p (context &optional ppss)
   (let ((ppss (or ppss (syntax-ppss (point)))))
@@ -1195,10 +1322,7 @@ isn't in a string or another comment."
          ((eq context 'string)
           (nth 3 ppss))
          ((eq context 'heredoc)
-          (and (nth 3 ppss)
-               ;; If it's generic string, it's a heredoc and we don't care
-               ;; See `parse-partial-sexp'
-               (not (numberp (nth 3 ppss)))))
+          (eq ?\n (nth 3 ppss)))
          ((eq context 'non-heredoc)
           (and (ruby-in-ppss-context-p 'anything)
                (not (ruby-in-ppss-context-p 'heredoc))))
@@ -1209,77 +1333,6 @@ isn't in a string or another comment."
                   "Internal error on `ruby-in-ppss-context-p': "
                   "context name `" (symbol-name context) "' is unknown"))))
         t)))
-
-(defun ruby-in-here-doc-p ()
-  "Return whether or not the point is in a heredoc."
-  (save-excursion
-    (let ((old-point (point)) (case-fold-search nil))
-      (beginning-of-line)
-      (catch 'found-beg
-        (while (re-search-backward ruby-here-doc-beg-re nil t)
-          (if (not (or (ruby-in-ppss-context-p 'anything)
-                       (ruby-here-doc-find-end old-point)))
-              (throw 'found-beg t)))))))
-
-(defun ruby-here-doc-find-end (&optional limit)
-  "Expects the point to be on a line with one or more heredoc openers.
-Returns the buffer position at which all heredocs on the line
-are terminated, or nil if they aren't terminated before the
-buffer position `limit' or the end of the buffer."
-  (save-excursion
-    (beginning-of-line)
-    (catch 'done
-      (let ((eol (save-excursion (end-of-line) (point)))
-            (case-fold-search nil)
-            ;; Fake match data such that (match-end 0) is at eol
-            (end-match-data (progn (looking-at ".*$") (match-data)))
-            beg-match-data end-re)
-        (while (re-search-forward ruby-here-doc-beg-re eol t)
-          (setq beg-match-data (match-data))
-          (setq end-re (ruby-here-doc-end-match))
-
-          (set-match-data end-match-data)
-          (goto-char (match-end 0))
-          (unless (re-search-forward end-re limit t) (throw 'done nil))
-          (setq end-match-data (match-data))
-
-          (set-match-data beg-match-data)
-          (goto-char (match-end 0)))
-        (set-match-data end-match-data)
-        (goto-char (match-end 0))
-        (point)))))
-
-(defun ruby-here-doc-beg-syntax ()
-  "Return the syntax cell for a line that may begin a heredoc.
-See the definition of `ruby-font-lock-syntactic-keywords'.
-
-This sets the syntax cell for the newline ending the line
-containing the heredoc beginning so that cases where multiple
-heredocs are started on one line are handled correctly."
-  (save-excursion
-    (goto-char (match-beginning 0))
-    (unless (or (ruby-in-ppss-context-p 'non-heredoc)
-                (ruby-in-here-doc-p))
-      (string-to-syntax "|"))))
-
-(defun ruby-here-doc-end-syntax ()
-  "Return the syntax cell for a line that may end a heredoc.
-See the definition of `ruby-font-lock-syntactic-keywords'."
-  (let ((pss (syntax-ppss)) (case-fold-search nil))
-    ;; If we aren't in a string, we definitely aren't ending a heredoc,
-    ;; so we can just give up.
-    ;; This means we aren't doing a full-document search
-    ;; every time we enter a character.
-    (when (ruby-in-ppss-context-p 'heredoc pss)
-      (save-excursion
-        (goto-char (nth 8 pss))  ; Go to the beginning of heredoc.
-        (let ((eol (point)))
-          (beginning-of-line)
-          (if (and (re-search-forward (ruby-here-doc-beg-match) eol t) ; If there is a heredoc that matches this line...
-                   (not (ruby-in-ppss-context-p 'anything)) ; And that's not inside a heredoc/string/comment...
-                   (progn (goto-char (match-end 0)) ; And it's the last heredoc on its line...
-                          (not (re-search-forward ruby-here-doc-beg-re eol t))))
-              (string-to-syntax "|")))))))
 
 (if (featurep 'xemacs)
     (put 'ruby-mode 'font-lock-defaults
@@ -1377,8 +1430,10 @@ See `font-lock-syntax-table'.")
    )
   "Additional expressions to highlight in Ruby mode.")
 
+(defvar electric-indent-chars)
+
 ;;;###autoload
-(defun ruby-mode ()
+(define-derived-mode ruby-mode prog-mode "Ruby"
   "Major mode for editing Ruby scripts.
 \\[ruby-indent-line] properly indents subexpressions of multi-line
 class, module, def, if, while, for, do, and case statements, taking
@@ -1387,27 +1442,22 @@ nesting into account.
 The variable `ruby-indent-level' controls the amount of indentation.
 
 \\{ruby-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map ruby-mode-map)
-  (setq mode-name "Ruby")
-  (setq major-mode 'ruby-mode)
   (ruby-mode-variables)
 
-  (set (make-local-variable 'indent-line-function)
-       'ruby-indent-line)
   (set (make-local-variable 'imenu-create-index-function)
        'ruby-imenu-create-index)
   (set (make-local-variable 'add-log-current-defun-function)
        'ruby-add-log-current-method)
 
   (add-hook
-   (cond ((boundp 'before-save-hook)
-          (make-local-variable 'before-save-hook)
-          'before-save-hook)
+   (cond ((boundp 'before-save-hook) 'before-save-hook)
          ((boundp 'write-contents-functions) 'write-contents-functions)
          ((boundp 'write-contents-hooks) 'write-contents-hooks))
-   'ruby-mode-set-encoding)
+   'ruby-mode-set-encoding nil 'local)
+
+  (set (make-local-variable 'electric-indent-chars)
+       (append '(?\{ ?\}) (if (boundp 'electric-indent-chars)
+                              (default-value 'electric-indent-chars))))
 
   (set (make-local-variable 'font-lock-defaults)
        '((ruby-font-lock-keywords) nil nil))
@@ -1415,12 +1465,12 @@ The variable `ruby-indent-level' controls the amount of indentation.
        ruby-font-lock-keywords)
   (set (make-local-variable 'font-lock-syntax-table)
        ruby-font-lock-syntax-table)
-  (set (make-local-variable 'font-lock-syntactic-keywords)
-       ruby-font-lock-syntactic-keywords)
 
-  (if (fboundp 'run-mode-hooks)
-      (run-mode-hooks 'ruby-mode-hook)
-    (run-hooks 'ruby-mode-hook)))
+  (if (eval-when-compile (fboundp 'syntax-propertize-rules))
+      (set (make-local-variable 'syntax-propertize-function)
+           #'ruby-syntax-propertize-function)
+    (set (make-local-variable 'font-lock-syntactic-keywords)
+         ruby-font-lock-syntactic-keywords)))
 
 ;;; Invoke ruby-mode when appropriate
 
