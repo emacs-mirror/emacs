@@ -1,3 +1,11 @@
+2010-09-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-start.el (gnus-read-active-for-groups): Check only subscribed
+	groups; replace mapcar with dolist which is a bit faster; pass groups
+	info to gnus-read-active-file-1.
+	(gnus-read-active-file-1): Scan only specified groups if the new
+	optional arg `infos' is given.
+
 2010-09-09  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* mail-source.el (mail-source-fetch-pop): Use pop3-movemail again.
