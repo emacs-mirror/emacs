@@ -1,5 +1,10 @@
 2010-09-09  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* mail-source.el (mail-source-fetch-pop): Use pop3-movemail again.
+
+	* pop3.el (pop3-movemail): Removed.
+	(pop3-streaming-movemail): Renamed to pop3-movemail.
+
 	* gnus-html.el (gnus-html-wash-tags): Refactor out the image bit, and
 	don't restrict end-tag searches to the end of the line.
 
