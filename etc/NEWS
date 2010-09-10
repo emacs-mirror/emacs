@@ -493,6 +493,14 @@ by the Graphic Control Extension of the image.
 
 *** `image-extension-data' is renamed to `image-metadata'.
 
+** XML and HTML parsing
+
+*** If Emacs is compiled with libxml2 support (which is the default),
+two new Emacs Lisp-level functions are defined: `html-parse-string'
+(which will parse "real world" HTML) and `xml-parse-string' (which
+parses XML).  Both return an Emacs Lisp parse tree.  See the Emacs
+Lisp Reference Manual for details.
+
 ** Isearch
 
 *** New hook `isearch-update-post-hook' that runs in `isearch-update'.
