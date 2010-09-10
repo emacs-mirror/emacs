@@ -1,3 +1,9 @@
+2010-09-10  Agustín Martín  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-init-process): Improve comments.
+	XEmacs compatibility changes regarding (add-hook) 'local option
+	and (set-process-query-on-exit-flag).
+
 2010-09-09  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-cache.el (tramp-parse-connection-properties): Set
