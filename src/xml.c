@@ -62,7 +62,7 @@ Lisp_Object make_dom (xmlNode *node)
 
     if (node->content)
       content = build_string (node->content);
-      
+
     return Fcons (intern (node->name), content);
   } else
     return Qnil;
@@ -76,21 +76,21 @@ parse_buffer (Lisp_Object string, Lisp_Object base_url, int htmlp)
   Lisp_Object result;
   int ibeg, iend;
   char *burl = "";
-  
+
   LIBXML_TEST_VERSION;
-	
+
   CHECK_STRING (string);
 
   if (! NILP (base_url)) {
     CHECK_STRING (base_url);
     burl = SDATA (base_url);
   }
-  
+
   if (htmlp)
     doc = htmlReadMemory (SDATA (string), SBYTES (string), burl, "utf-8",
 			  HTML_PARSE_RECOVER|HTML_PARSE_NONET|
 			  HTML_PARSE_NOWARNING|HTML_PARSE_NOERROR);
-  else 
+  else
     doc = xmlReadMemory (SDATA (string), SBYTES (string), burl, "utf-8",
 			 XML_PARSE_NONET|XML_PARSE_NOWARNING|
 			 XML_PARSE_NOERROR);
@@ -99,11 +99,11 @@ parse_buffer (Lisp_Object string, Lisp_Object base_url, int htmlp)
     node = xmlDocGetRootElement (doc);
     if (node != NULL)
       result = make_dom (node);
-    
+
     xmlFreeDoc (doc);
     xmlCleanupParser ();
   }
-      
+
   return result;
 }
 
