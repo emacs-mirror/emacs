@@ -43,7 +43,7 @@
 
 ;;;###autoload
 (defcustom url-debug nil
-  "*What types of debug messages from the URL library to show.
+  "What types of debug messages from the URL library to show.
 Debug messages are logged to the *URL-DEBUG* buffer.
 
 If t, all messages will be logged.
