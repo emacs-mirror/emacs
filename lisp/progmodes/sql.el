@@ -5,7 +5,7 @@
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Michael Mauger <mmaug@yahoo.com>
-;; Version: 2.5
+;; Version: 2.6
 ;; Keywords: comm languages processes
 ;; URL: http://savannah.gnu.org/cgi-bin/viewcvs/emacs/emacs/lisp/progmodes/sql.el
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?SqlMode
@@ -187,10 +187,10 @@
 
 ;; 6) Define a convienence function to invoke the SQL interpreter.
 
-;;     (defun my-sql-xyz ()
+;;     (defun my-sql-xyz (&optional buffer)
 ;;       "Run ixyz by XyzDB as an inferior process."
-;;       (interactive)
-;;       (sql-product-interactive 'xyz))
+;;       (interactive "P")
+;;       (sql-product-interactive 'xyz buffer))
 
 ;;; To Do:
 
@@ -275,8 +275,8 @@ Customizing your password will store it in your ~/.emacs file."
   :group 'SQL
   :safe 'stringp)
 
-(defcustom sql-port nil
-  "Default server or host."
+(defcustom sql-port 0
+  "Default port."
   :version "24.1"
   :type 'number
   :group 'SQL
@@ -430,9 +430,9 @@ Customizing your password will store it in your ~/.emacs file."
      :sqli-comint-func sql-comint-postgres
      :prompt-regexp "^.*=[#>] "
      :prompt-length 5
-     :prompt-cont-regexp "^.*-[#>] "
+     :prompt-cont-regexp "^.*[-(][#>] "
      :input-filter sql-remove-tabs-filter
-     :terminator ("\\(^[\\]g\\|;\\)" . ";"))
+     :terminator ("\\(^\\s-*\\\\g\\|;\\)" . ";"))
 
     (solid
      :name "Solid"
@@ -551,7 +551,6 @@ settings.")
 (defvar sql-indirect-features
   '(:font-lock :sqli-program :sqli-options :sqli-login))
 
-;;;###autoload
 (defcustom sql-connection-alist nil
   "An alist of connection parameters for interacting with a SQL
   product.
@@ -600,7 +599,6 @@ prompted for during login."
   :version "24.1"
   :group 'SQL)
 
-;;;###autoload
 (defcustom sql-product 'ansi
   "Select the SQL database product used so that buffers can be
 highlighted properly when you open them."
@@ -613,6 +611,7 @@ highlighted properly when you open them."
                     sql-product-alist))
   :group 'SQL
   :safe 'symbolp)
+(defvaralias 'sql-dialect 'sql-product)
 
 ;; misc customization of sql.el behaviour
 
@@ -788,7 +787,9 @@ to be safe:
 
 ;; Customization for SQLite
 
-(defcustom sql-sqlite-program "sqlite3"
+(defcustom sql-sqlite-program (or (executable-find "sqlite3")
+                                  (executable-find "sqlite")
+                                  "sqlite")
   "Command to start SQLite.
 
 Starts `sql-interactive-mode' after doing some setup."
@@ -801,7 +802,7 @@ Starts `sql-interactive-mode' after doing some setup."
   :version "20.8"
   :group 'SQL)
 
-(defcustom sql-sqlite-login-params '((database :file ".*\\.db"))
+(defcustom sql-sqlite-login-params '((database :file ".*\\.\\(db\\|sqlite[23]?\\)"))
   "List of login parameters needed to connect to SQLite."
   :type 'sql-login-params
   :version "24.1"
@@ -1022,9 +1023,6 @@ Starts `sql-interactive-mode' after doing some setup."
 (defvar sql-server-history nil
   "History of servers used.")
 
-(defvar sql-port-history nil
-  "History of ports used.")
-
 ;; Passwords are not kept in a history.
 
 (defvar sql-buffer nil
@@ -1053,6 +1051,12 @@ You can change `sql-prompt-length' on `sql-interactive-mode-hook'.")
   "Buffer-local string used to possibly rename the SQLi buffer.
 
 Used by `sql-rename-buffer'.")
+
+(defun sql-buffer-live-p (buffer)
+  "Returns non-nil if the process associated with buffer is live."
+  (and buffer
+       (buffer-live-p (get-buffer buffer))
+       (get-buffer-process buffer)))
 
 ;; Keymap for sql-interactive-mode.
 
@@ -1091,15 +1095,11 @@ Based on `comint-mode-map'.")
  sql-mode-menu sql-mode-map
  "Menu for `sql-mode'."
  `("SQL"
-   ["Send Paragraph" sql-send-paragraph (and (buffer-live-p sql-buffer)
-					     (get-buffer-process sql-buffer))]
+   ["Send Paragraph" sql-send-paragraph (sql-buffer-live-p sql-buffer)]
    ["Send Region" sql-send-region (and mark-active
-				       (buffer-live-p sql-buffer)
-				       (get-buffer-process sql-buffer))]
-   ["Send Buffer" sql-send-buffer (and (buffer-live-p sql-buffer)
-				       (get-buffer-process sql-buffer))]
-   ["Send String" sql-send-string (and (buffer-live-p sql-buffer)
-				       (get-buffer-process sql-buffer))]
+				       (sql-buffer-live-p sql-buffer))]
+   ["Send Buffer" sql-send-buffer (sql-buffer-live-p sql-buffer)]
+   ["Send String" sql-send-string (sql-buffer-live-p sql-buffer)]
    "--"
    ["Start SQLi session" sql-product-interactive
     :visible (not sql-connection-alist)
@@ -1364,7 +1364,7 @@ to add functions and PL/SQL keywords.")
      ;; Oracle SQL*Plus Commands
      (cons
       (concat
-       "^\\(?:\\(?:" (regexp-opt '(
+       "^\\s-*\\(?:\\(?:" (regexp-opt '(
 "@" "@@" "accept" "append" "archive" "attribute" "break"
 "btitle" "change" "clear" "column" "connect" "copy" "define"
 "del" "describe" "disconnect" "edit" "execute" "exit" "get" "help"
@@ -1403,7 +1403,7 @@ to add functions and PL/SQL keywords.")
        "\\)\\b.*"
        )
       'font-lock-doc-face)
-     '("^[ \t]*rem\\(?:ark\\)?.*" . font-lock-comment-face)
+     '("^\\s-*rem\\(?:ark\\)?\\>.*" . font-lock-comment-face)
 
      ;; Oracle Functions
      (sql-font-lock-keywords-builder 'font-lock-builtin-face nil
@@ -1585,81 +1585,153 @@ to add functions and PL/SQL keywords.")
 (defvar sql-mode-postgres-font-lock-keywords
   (eval-when-compile
     (list
-     ;; Postgres Functions
-     (sql-font-lock-keywords-builder 'font-lock-builtin-face nil
-"abbrev" "abs" "acos" "age" "area" "ascii" "asin" "atab2" "atan"
-"atan2" "avg" "bit_length" "both" "broadcast" "btrim" "cbrt" "ceil"
-"center" "char_length" "chr" "coalesce" "col_description" "convert"
-"cos" "cot" "count" "current_database" "current_date" "current_schema"
-"current_schemas" "current_setting" "current_time" "current_timestamp"
-"current_user" "currval" "date_part" "date_trunc" "decode" "degrees"
-"diameter" "encode" "exp" "extract" "floor" "get_bit" "get_byte"
-"has_database_privilege" "has_function_privilege"
-"has_language_privilege" "has_schema_privilege" "has_table_privilege"
-"height" "host" "initcap" "isclosed" "isfinite" "isopen" "leading"
-"length" "ln" "localtime" "localtimestamp" "log" "lower" "lpad"
-"ltrim" "masklen" "max" "min" "mod" "netmask" "network" "nextval"
-"now" "npoints" "nullif" "obj_description" "octet_length" "overlay"
-"pclose" "pg_client_encoding" "pg_function_is_visible"
-"pg_get_constraintdef" "pg_get_indexdef" "pg_get_ruledef"
-"pg_get_userbyid" "pg_get_viewdef" "pg_opclass_is_visible"
-"pg_operator_is_visible" "pg_table_is_visible" "pg_type_is_visible"
-"pi" "popen" "position" "pow" "quote_ident" "quote_literal" "radians"
-"radius" "random" "repeat" "replace" "round" "rpad" "rtrim"
-"session_user" "set_bit" "set_byte" "set_config" "set_masklen"
-"setval" "sign" "sin" "split_part" "sqrt" "stddev" "strpos" "substr"
-"substring" "sum" "tan" "timeofday" "to_ascii" "to_char" "to_date"
-"to_hex" "to_number" "to_timestamp" "trailing" "translate" "trim"
-"trunc" "upper" "variance" "version" "width"
+     ;; Postgres psql commands
+     '("^\\s-*\\\\.*$" . font-lock-doc-face)
+
+     ;; Postgres unreserved words but may have meaning
+     (sql-font-lock-keywords-builder 'font-lock-builtin-face nil "a"
+"abs" "absent" "according" "ada" "alias" "allocate" "are" "array_agg"
+"asensitive" "atomic" "attribute" "attributes" "avg" "base64"
+"bernoulli" "bit_length" "bitvar" "blob" "blocked" "bom" "breadth" "c"
+"call" "cardinality" "catalog_name" "ceil" "ceiling" "char_length"
+"character_length" "character_set_catalog" "character_set_name"
+"character_set_schema" "characters" "checked" "class_origin" "clob"
+"cobol" "collation" "collation_catalog" "collation_name"
+"collation_schema" "collect" "column_name" "columns"
+"command_function" "command_function_code" "completion" "condition"
+"condition_number" "connect" "connection_name" "constraint_catalog"
+"constraint_name" "constraint_schema" "constructor" "contains"
+"control" "convert" "corr" "corresponding" "count" "covar_pop"
+"covar_samp" "cube" "cume_dist" "current_default_transform_group"
+"current_path" "current_transform_group_for_type" "cursor_name"
+"datalink" "datetime_interval_code" "datetime_interval_precision" "db"
+"defined" "degree" "dense_rank" "depth" "deref" "derived" "describe"
+"descriptor" "destroy" "destructor" "deterministic" "diagnostics"
+"disconnect" "dispatch" "dlnewcopy" "dlpreviouscopy" "dlurlcomplete"
+"dlurlcompleteonly" "dlurlcompletewrite" "dlurlpath" "dlurlpathonly"
+"dlurlpathwrite" "dlurlscheme" "dlurlserver" "dlvalue" "dynamic"
+"dynamic_function" "dynamic_function_code" "element" "empty"
+"end-exec" "equals" "every" "exception" "exec" "existing" "exp" "file"
+"filter" "final" "first_value" "flag" "floor" "fortran" "found" "free"
+"fs" "fusion" "g" "general" "generated" "get" "go" "goto" "grouping"
+"hex" "hierarchy" "host" "id" "ignore" "implementation" "import"
+"indent" "indicator" "infix" "initialize" "instance" "instantiable"
+"integrity" "intersection" "iterate" "k" "key_member" "key_type" "lag"
+"last_value" "lateral" "lead" "length" "less" "library" "like_regex"
+"link" "ln" "locator" "lower" "m" "map" "matched" "max"
+"max_cardinality" "member" "merge" "message_length"
+"message_octet_length" "message_text" "method" "min" "mod" "modifies"
+"modify" "module" "more" "multiset" "mumps" "namespace" "nclob"
+"nesting" "new" "nfc" "nfd" "nfkc" "nfkd" "nil" "normalize"
+"normalized" "nth_value" "ntile" "nullable" "number"
+"occurrences_regex" "octet_length" "octets" "old" "open" "operation"
+"ordering" "ordinality" "others" "output" "overriding" "p" "pad"
+"parameter" "parameter_mode" "parameter_name"
+"parameter_ordinal_position" "parameter_specific_catalog"
+"parameter_specific_name" "parameter_specific_schema" "parameters"
+"pascal" "passing" "passthrough" "percent_rank" "percentile_cont"
+"percentile_disc" "permission" "pli" "position_regex" "postfix"
+"power" "prefix" "preorder" "public" "rank" "reads" "recovery" "ref"
+"referencing" "regr_avgx" "regr_avgy" "regr_count" "regr_intercept"
+"regr_r2" "regr_slope" "regr_sxx" "regr_sxy" "regr_syy" "requiring"
+"respect" "restore" "result" "return" "returned_cardinality"
+"returned_length" "returned_octet_length" "returned_sqlstate" "rollup"
+"routine" "routine_catalog" "routine_name" "routine_schema"
+"row_count" "row_number" "scale" "schema_name" "scope" "scope_catalog"
+"scope_name" "scope_schema" "section" "selective" "self" "sensitive"
+"server_name" "sets" "size" "source" "space" "specific"
+"specific_name" "specifictype" "sql" "sqlcode" "sqlerror"
+"sqlexception" "sqlstate" "sqlwarning" "sqrt" "state" "static"
+"stddev_pop" "stddev_samp" "structure" "style" "subclass_origin"
+"sublist" "submultiset" "substring_regex" "sum" "system_user" "t"
+"table_name" "tablesample" "terminate" "than" "ties" "timezone_hour"
+"timezone_minute" "token" "top_level_count" "transaction_active"
+"transactions_committed" "transactions_rolled_back" "transform"
+"transforms" "translate" "translate_regex" "translation"
+"trigger_catalog" "trigger_name" "trigger_schema" "trim_array"
+"uescape" "under" "unlink" "unnamed" "unnest" "untyped" "upper" "uri"
+"usage" "user_defined_type_catalog" "user_defined_type_code"
+"user_defined_type_name" "user_defined_type_schema" "var_pop"
+"var_samp" "varbinary" "variable" "whenever" "width_bucket" "within"
+"xmlagg" "xmlbinary" "xmlcast" "xmlcomment" "xmldeclaration"
+"xmldocument" "xmlexists" "xmliterate" "xmlnamespaces" "xmlquery"
+"xmlschema" "xmltable" "xmltext" "xmlvalidate"
 )
+
+     ;; Postgres non-reserved words
+     (sql-font-lock-keywords-builder 'font-lock-builtin-face nil
+"abort" "absolute" "access" "action" "add" "admin" "after" "aggregate"
+"also" "alter" "always" "assertion" "assignment" "at" "backward"
+"before" "begin" "between" "by" "cache" "called" "cascade" "cascaded"
+"catalog" "chain" "characteristics" "checkpoint" "class" "close"
+"cluster" "coalesce" "comment" "comments" "commit" "committed"
+"configuration" "connection" "constraints" "content" "continue"
+"conversion" "copy" "cost" "createdb" "createrole" "createuser" "csv"
+"current" "cursor" "cycle" "data" "database" "day" "deallocate" "dec"
+"declare" "defaults" "deferred" "definer" "delete" "delimiter"
+"delimiters" "dictionary" "disable" "discard" "document" "domain"
+"drop" "each" "enable" "encoding" "encrypted" "enum" "escape"
+"exclude" "excluding" "exclusive" "execute" "exists" "explain"
+"external" "extract" "family" "first" "float" "following" "force"
+"forward" "function" "functions" "global" "granted" "greatest"
+"handler" "header" "hold" "hour" "identity" "if" "immediate"
+"immutable" "implicit" "including" "increment" "index" "indexes"
+"inherit" "inherits" "inline" "inout" "input" "insensitive" "insert"
+"instead" "invoker" "isolation" "key" "language" "large" "last"
+"lc_collate" "lc_ctype" "least" "level" "listen" "load" "local"
+"location" "lock" "login" "mapping" "match" "maxvalue" "minute"
+"minvalue" "mode" "month" "move" "name" "names" "national" "nchar"
+"next" "no" "nocreatedb" "nocreaterole" "nocreateuser" "noinherit"
+"nologin" "none" "nosuperuser" "nothing" "notify" "nowait" "nullif"
+"nulls" "object" "of" "oids" "operator" "option" "options" "out"
+"overlay" "owned" "owner" "parser" "partial" "partition" "password"
+"plans" "position" "preceding" "prepare" "prepared" "preserve" "prior"
+"privileges" "procedural" "procedure" "quote" "range" "read"
+"reassign" "recheck" "recursive" "reindex" "relative" "release"
+"rename" "repeatable" "replace" "replica" "reset" "restart" "restrict"
+"returns" "revoke" "role" "rollback" "row" "rows" "rule" "savepoint"
+"schema" "scroll" "search" "second" "security" "sequence" "sequences"
+"serializable" "server" "session" "set" "setof" "share" "show"
+"simple" "stable" "standalone" "start" "statement" "statistics"
+"stdin" "stdout" "storage" "strict" "strip" "substring" "superuser"
+"sysid" "system" "tables" "tablespace" "temp" "template" "temporary"
+"transaction" "treat" "trigger" "trim" "truncate" "trusted" "type"
+"unbounded" "uncommitted" "unencrypted" "unknown" "unlisten" "until"
+"update" "vacuum" "valid" "validator" "value" "values" "version"
+"view" "volatile" "whitespace" "work" "wrapper" "write"
+"xmlattributes" "xmlconcat" "xmlelement" "xmlforest" "xmlparse"
+"xmlpi" "xmlroot" "xmlserialize" "year" "yes"
+)
+
      ;; Postgres Reserved
      (sql-font-lock-keywords-builder 'font-lock-keyword-face nil
-"abort" "access" "add" "after" "aggregate" "alignment" "all" "alter"
-"analyze" "and" "any" "as" "asc" "assignment" "authorization"
-"backward" "basetype" "before" "begin" "between" "binary" "by" "cache"
-"called" "cascade" "case" "cast" "characteristics" "check"
-"checkpoint" "class" "close" "cluster" "column" "comment" "commit"
-"committed" "commutator" "constraint" "constraints" "conversion"
-"copy" "create" "createdb" "createuser" "cursor" "cycle" "database"
-"deallocate" "declare" "default" "deferrable" "deferred" "definer"
-"delete" "delimiter" "desc" "distinct" "do" "domain" "drop" "each"
-"element" "else" "encoding" "encrypted" "end" "escape" "except"
-"exclusive" "execute" "exists" "explain" "extended" "external" "false"
-"fetch" "finalfunc" "for" "force" "foreign" "forward" "freeze" "from"
-"full" "function" "grant" "group" "gtcmp" "handler" "hashes" "having"
-"immediate" "immutable" "implicit" "in" "increment" "index" "inherits"
-"initcond" "initially" "input" "insensitive" "insert" "instead"
-"internallength" "intersect" "into" "invoker" "is" "isnull"
-"isolation" "join" "key" "language" "leftarg" "level" "like" "limit"
-"listen" "load" "local" "location" "lock" "ltcmp" "main" "match"
-"maxvalue" "merges" "minvalue" "mode" "move" "natural" "negator"
-"next" "nocreatedb" "nocreateuser" "none" "not" "nothing" "notify"
-"notnull" "null" "of" "offset" "oids" "on" "only" "operator" "or"
-"order" "output" "owner" "partial" "passedbyvalue" "password" "plain"
-"prepare" "primary" "prior" "privileges" "procedural" "procedure"
-"public" "read" "recheck" "references" "reindex" "relative" "rename"
-"reset" "restrict" "returns" "revoke" "rightarg" "rollback" "row"
-"rule" "schema" "scroll" "security" "select" "sequence" "serializable"
-"session" "set" "sfunc" "share" "show" "similar" "some" "sort1"
-"sort2" "stable" "start" "statement" "statistics" "storage" "strict"
-"stype" "sysid" "table" "temp" "template" "temporary" "then" "to"
-"transaction" "trigger" "true" "truncate" "trusted" "type"
-"unencrypted" "union" "unique" "unknown" "unlisten" "until" "update"
-"usage" "user" "using" "vacuum" "valid" "validator" "values"
-"variable" "verbose" "view" "volatile" "when" "where" "with" "without"
-"work"
+"all" "analyse" "analyze" "and" "any" "array" "asc" "as" "asymmetric"
+"authorization" "binary" "both" "case" "cast" "check" "collate"
+"column" "concurrently" "constraint" "create" "cross"
+"current_catalog" "current_date" "current_role" "current_schema"
+"current_time" "current_timestamp" "current_user" "default"
+"deferrable" "desc" "distinct" "do" "else" "end" "except" "false"
+"fetch" "foreign" "for" "freeze" "from" "full" "grant" "group"
+"having" "ilike" "initially" "inner" "in" "intersect" "into" "isnull"
+"is" "join" "leading" "left" "like" "limit" "localtime"
+"localtimestamp" "natural" "notnull" "not" "null" "off" "offset"
+"only" "on" "order" "or" "outer" "overlaps" "over" "placing" "primary"
+"references" "returning" "right" "select" "session_user" "similar"
+"some" "symmetric" "table" "then" "to" "trailing" "true" "union"
+"unique" "user" "using" "variadic" "verbose" "when" "where" "window"
+"with"
 )
 
      ;; Postgres Data Types
      (sql-font-lock-keywords-builder 'font-lock-type-face nil
-"anyarray" "bigint" "bigserial" "bit" "boolean" "box" "bytea" "char"
-"character" "cidr" "circle" "cstring" "date" "decimal" "double"
-"float4" "float8" "inet" "int2" "int4" "int8" "integer" "internal"
-"interval" "language_handler" "line" "lseg" "macaddr" "money"
-"numeric" "oid" "opaque" "path" "point" "polygon" "precision" "real"
-"record" "regclass" "regoper" "regoperator" "regproc" "regprocedure"
-"regtype" "serial" "serial4" "serial8" "smallint" "text" "time"
-"timestamp" "varchar" "varying" "void" "zone"
+"bigint" "bigserial" "bit" "bool" "boolean" "box" "bytea" "char"
+"character" "cidr" "circle" "date" "decimal" "double" "float4"
+"float8" "inet" "int" "int2" "int4" "int8" "integer" "interval" "line"
+"lseg" "macaddr" "money" "numeric" "path" "point" "polygon"
+"precision" "real" "serial" "serial4" "serial8" "smallint" "text"
+"time" "timestamp" "timestamptz" "timetz" "tsquery" "tsvector"
+"txid_snapshot" "uuid" "varbit" "varchar" "varying" "without"
+"xml" "zone"
 )))
 
   "Postgres SQL keywords used by font-lock.
@@ -1979,6 +2051,9 @@ you define your own `sql-mode-mysql-font-lock-keywords'.")
 (defvar sql-mode-sqlite-font-lock-keywords
   (eval-when-compile
     (list
+     ;; SQLite commands
+     '("^[.].*$" . font-lock-doc-face)
+
      ;; SQLite Keyword
      (sql-font-lock-keywords-builder 'font-lock-keyword-face nil
 "abort" "action" "add" "after" "all" "alter" "analyze" "and" "as"
@@ -2493,16 +2568,18 @@ function like this: (sql-get-login 'user 'password 'database)."
 
           ((eq token 'port)		; port
            (setq sql-port
-                 (read-number "Port: " sql-port))))))
-       what))
+                 (read-number "Port: " (if (numberp sql-port)
+                                           sql-port
+                                         0)))))))
+     what))
 
 (defun sql-find-sqli-buffer ()
-  "Returns the current default SQLi buffer or nil.
-In order to qualify, the SQLi buffer must be alive,
-be in `sql-interactive-mode' and have a process."
-  (let ((default-buffer (default-value 'sql-buffer)))
-    (if (and (buffer-live-p default-buffer)
-	     (get-buffer-process default-buffer))
+  "Returns the name of the current default SQLi buffer or nil.
+In order to qualify, the SQLi buffer must be alive, be in
+`sql-interactive-mode' and have a process."
+  (let ((default-buffer (default-value 'sql-buffer))
+        (current-product sql-product))
+    (if (sql-buffer-live-p default-buffer)
 	default-buffer
       (save-current-buffer
 	(let ((buflist (buffer-list))
@@ -2511,9 +2588,10 @@ be in `sql-interactive-mode' and have a process."
 			  found))
 	    (let ((candidate (car buflist)))
 	      (set-buffer candidate)
-	      (if (and (derived-mode-p 'sql-interactive-mode)
-		       (get-buffer-process candidate))
-		  (setq found candidate))
+	      (if (and (sql-buffer-live-p candidate)
+                       (derived-mode-p 'sql-interactive-mode)
+                       (eq sql-product current-product))
+		  (setq found (buffer-name candidate)))
 	      (setq buflist (cdr buflist))))
 	  found)))))
 
@@ -2527,15 +2605,15 @@ using `sql-find-sqli-buffer'.  If `sql-buffer' is set,
   (interactive)
   (save-excursion
     (let ((buflist (buffer-list))
-	  (default-sqli-buffer (sql-find-sqli-buffer)))
-      (setq-default sql-buffer default-sqli-buffer)
+	  (default-buffer (sql-find-sqli-buffer)))
+      (setq-default sql-buffer default-buffer)
       (while (not (null buflist))
 	(let ((candidate (car buflist)))
 	  (set-buffer candidate)
 	  (if (and (derived-mode-p 'sql-mode)
 		   (not (buffer-live-p sql-buffer)))
 	      (progn
-		(setq sql-buffer default-sqli-buffer)
+		(setq sql-buffer default-buffer)
 		(run-hooks 'sql-set-sqli-hook))))
 	(setq buflist (cdr buflist))))))
 
@@ -2561,11 +2639,11 @@ If you call it from anywhere else, it sets the global copy of
       (if (null (get-buffer-process new-buffer))
 	  (error "Buffer %s has no process" (buffer-name new-buffer)))
       (if (null (with-current-buffer new-buffer
-		  (equal major-mode 'sql-interactive-mode)))
+		  (derived-mode-p 'sql-interactive-mode)))
 	  (error "Buffer %s is no SQLi buffer" (buffer-name new-buffer)))
       (if new-buffer
 	  (progn
-	    (setq sql-buffer new-buffer)
+	    (setq sql-buffer (buffer-name new-buffer))
 	    (run-hooks 'sql-set-sqli-hook))))))
 
 (defun sql-show-sqli-buffer ()
@@ -2574,11 +2652,11 @@ If you call it from anywhere else, it sets the global copy of
 This is the buffer SQL strings are sent to.  It is stored in the
 variable `sql-buffer'.  See `sql-help' on how to create such a buffer."
   (interactive)
-  (if (null (buffer-live-p sql-buffer))
+  (if (null (buffer-live-p (get-buffer sql-buffer)))
       (message "%s has no SQLi buffer set." (buffer-name (current-buffer)))
     (if (null (get-buffer-process sql-buffer))
-	(message "Buffer %s has no process." (buffer-name sql-buffer))
-      (message "Current SQLi buffer is %s." (buffer-name sql-buffer)))))
+	(message "Buffer %s has no process." sql-buffer)
+      (message "Current SQLi buffer is %s." sql-buffer))))
 
 (defun sql-make-alternate-buffer-name ()
   "Return a string that can be used to rename a SQLi buffer.
@@ -2610,8 +2688,9 @@ server/database name."
                               (unless (string= "" sql-user)
                                 (list "/" sql-user)))
                              ((eq token 'port)
-                              (unless (= 0 sql-port)
-                                (list ":" sql-port)))
+                              (unless (or (not (numberp sql-port))
+                                          (= 0 sql-port))
+                                (list ":" (number-to-string sql-port))))
                              ((eq token 'server)
                               (unless (string= "" sql-server)
                                 (list "."
@@ -2619,7 +2698,7 @@ server/database name."
                                           (file-name-nondirectory sql-server)
                                         sql-server))))
                              ((eq token 'database)
-                              (when (string= "" sql-database)
+                              (unless (string= "" sql-database)
                                 (list "@"
                                       (if (eq type :file)
                                          (file-name-nondirectory sql-database)
@@ -2649,10 +2728,32 @@ server/database name."
         ;; Use the name we've got
         name))))
 
-(defun sql-rename-buffer ()
-  "Rename a SQLi buffer."
-  (interactive)
-  (rename-buffer (format "*SQL: %s*" sql-alternate-buffer-name) t))
+(defun sql-rename-buffer (&optional new-name)
+  "Rename a SQL interactive buffer.
+
+Prompts for the new name if command is preceeded by
+\\[universal-argument].  If no buffer name is provided, then the
+`sql-alternate-buffer-name' is used.
+
+The actual buffer name set will be \"*SQL: NEW-NAME*\".  If
+NEW-NAME is empty, then the buffer name will be \"*SQL*\"."
+  (interactive "P")
+
+  (if (not (derived-mode-p 'sql-interactive-mode))
+      (message "Current buffer is not a SQL interactive buffer")
+
+    (cond
+     ((stringp new-name)
+      (setq sql-alternate-buffer-name new-name))
+     ((listp new-name)
+      (setq sql-alternate-buffer-name
+            (read-string "Buffer name (\"*SQL: XXX*\"; enter `XXX'): "
+                         sql-alternate-buffer-name))))
+
+    (rename-buffer (if (string= "" sql-alternate-buffer-name)
+                       "*SQL*"
+                     (format "*SQL: %s*" sql-alternate-buffer-name))
+                   t)))
 
 (defun sql-copy-column ()
   "Copy current column to the end of buffer.
@@ -2801,7 +2902,7 @@ to force the output from the query to appear on a new line."
 
   (let ((comint-input-sender-no-newline nil)
         (s (replace-regexp-in-string "[[:space:]\n\r]+\\'" "" str)))
-    (if (buffer-live-p sql-buffer)
+    (if (sql-buffer-live-p sql-buffer)
 	(progn
 	  ;; Ignore the hoping around...
 	  (save-excursion
@@ -2814,7 +2915,7 @@ to force the output from the query to appear on a new line."
 	      (if sql-send-terminator
 		  (sql-send-magic-terminator sql-buffer s sql-send-terminator))
 
-	      (message "Sent string to buffer %s." (buffer-name sql-buffer))))
+	      (message "Sent string to buffer %s." sql-buffer)))
 
 	  ;; Display the sql buffer
 	  (if sql-pop-to-buffer-after-send-region
@@ -3063,7 +3164,7 @@ you entered, right above the output it created.
   (setq local-abbrev-table sql-mode-abbrev-table)
   (setq abbrev-all-caps 1)
   ;; Exiting the process will call sql-stop.
-  (set-process-sentinel (get-buffer-process sql-buffer) 'sql-stop)
+  (set-process-sentinel (get-buffer-process (current-buffer)) 'sql-stop)
   ;; Save the connection name
   (make-local-variable 'sql-connection)
   ;; Create a usefull name for renaming this buffer later.
@@ -3248,49 +3349,60 @@ optionally is saved to the user's init file."
 ;;; Entry functions for different SQL interpreters.
 
 ;;;###autoload
-(defun sql-product-interactive (&optional product)
+(defun sql-product-interactive (&optional product new-name)
   "Run PRODUCT interpreter as an inferior process.
 
 If buffer `*SQL*' exists but no process is running, make a new process.
 If buffer exists and a process is running, just switch to buffer `*SQL*'.
 
+To specify the SQL product, prefix the call with
+\\[universal-argument].  To set the buffer name as well, prefix
+the call to \\[sql-product-interactive] with
+\\[universal-argument] \\[universal-argument].
+
 \(Type \\[describe-mode] in the SQL buffer for a list of commands.)"
   (interactive "P")
 
+  ;; Handle universal arguments if specified
+  (when (not (or executing-kbd-macro noninteractive))
+    (when (and (listp product)
+               (not (cdr product))
+               (numberp (car product)))
+      (when (>= (car product) 16)
+        (when (not new-name)
+          (setq new-name '(4)))
+        (setq product '(4)))))
+
+  ;; Get the value of product that we need
   (setq product
         (cond
-         ((equal product '(4))          ; Universal arg, prompt for product
+         ((equal product '(4))          ; C-u, prompt for product
           (intern (completing-read "SQL product: "
                                    (mapcar (lambda (info) (symbol-name (car info)))
                                            sql-product-alist)
                                    nil 'require-match
-                                   (or (and sql-product (symbol-name sql-product)) "ansi"))))
+                                   (or (and sql-product
+                                            (symbol-name sql-product))
+                                       "ansi"))))
          ((and product                  ; Product specified
                (symbolp product)) product)
          (t sql-product)))              ; Default to sql-product
 
+  ;; If we have a product and it has a interactive mode
   (if product
       (when (sql-get-product-feature product :sqli-comint-func)
-        (if (and sql-buffer
-                 (buffer-live-p sql-buffer)
-                 (comint-check-proc sql-buffer))
+        ;; If no new name specified, fall back on sql-buffer if its for
+        ;; the same product
+        (if (and (not new-name)
+                 sql-buffer
+                 (sql-buffer-live-p sql-buffer)
+                 (comint-check-proc sql-buffer)
+                 (eq product (with-current-buffer sql-buffer sql-product)))
             (pop-to-buffer sql-buffer)
 
-          ;; Is the current buffer in sql-mode and
-          ;; there is a buffer local setting of sql-buffer
-          (let* ((start-buffer
-                  (and (derived-mode-p 'sql-mode)
-                       (current-buffer)))
-                 (start-sql-buffer
-                  (and start-buffer
-                       (let (found)
-                         (dolist (var (buffer-local-variables))
-                           (and (consp var)
-                                (eq (car var) 'sql-buffer)
-                                (buffer-live-p (cdr var))
-                                (get-buffer-process (cdr var))
-                                (setq found (cdr var))))
-                         found)))
+          ;; We have a new name or sql-buffer doesn't exist or match
+          ;; Start by remembering where we start
+          (let* ((start-buffer (current-buffer))
                  new-sqli-buffer)
 
             ;; Get credentials.
@@ -3303,15 +3415,18 @@ If buffer exists and a process is running, just switch to buffer `*SQL*'.
                      (sql-get-product-feature product :sqli-options))
 
             ;; Set SQLi mode.
-            (setq sql-interactive-product product
-                  new-sqli-buffer (current-buffer)
-                  sql-buffer new-sqli-buffer)
-            (sql-interactive-mode)
+            (setq new-sqli-buffer (current-buffer))
+            (let ((sql-interactive-product product))
+              (sql-interactive-mode))
+
+            ;; Set the new buffer name
+            (when new-name
+              (sql-rename-buffer new-name))
 
             ;; Set `sql-buffer' in the start buffer
-            (when (and start-buffer (not start-sql-buffer))
-              (with-current-buffer start-buffer
-                (setq sql-buffer new-sqli-buffer)))
+            (setq sql-buffer (buffer-name new-sqli-buffer))
+            (with-current-buffer start-buffer
+              (setq sql-buffer (buffer-name new-sqli-buffer)))
 
             ;; All done.
             (message "Login...done")
@@ -3323,12 +3438,22 @@ If buffer exists and a process is running, just switch to buffer `*SQL*'.
 
 PRODUCT is the SQL product.  PARAMS is a list of strings which are
 passed as command line arguments."
-  (let ((program (sql-get-product-feature product :sqli-program)))
+  (let ((program (sql-get-product-feature product :sqli-program))
+        (buf-name "SQL"))
+    ;; Make sure buffer name is unique
+    (when (get-buffer (format "*%s*" buf-name))
+      (setq buf-name (format "SQL-%s" product))
+      (when (get-buffer (format "*%s*" buf-name))
+        (let ((i 1))
+          (while (get-buffer (format "*%s*"
+                                     (setq buf-name
+                                           (format "SQL-%s%d" product i))))
+            (setq i (1+ i))))))
     (set-buffer
-     (apply 'make-comint "SQL" program nil params))))
+     (apply 'make-comint buf-name program nil params))))
 
 ;;;###autoload
-(defun sql-oracle ()
+(defun sql-oracle (&optional buffer)
   "Run sqlplus by Oracle as an inferior process.
 
 If buffer `*SQL*' exists but no process is running, make a new process.
@@ -3343,6 +3468,11 @@ the list `sql-oracle-options'.
 The buffer is put in SQL interactive mode, giving commands for sending
 input.  See `sql-interactive-mode'.
 
+To set the buffer name directly, use \\[universal-argument]
+before \\[sql-oracle].  Once session has started,
+\\[sql-rename-buffer] can be called separately to rename the
+buffer.
+
 To specify a coding system for converting non-ASCII characters
 in the input and output to the process, use \\[universal-coding-system-argument]
 before \\[sql-oracle].  You can also specify this with \\[set-buffer-process-coding-system]
@@ -3351,8 +3481,8 @@ The default comes from `process-coding-system-alist' and
 `default-process-coding-system'.
 
 \(Type \\[describe-mode] in the SQL buffer for a list of commands.)"
-  (interactive)
-  (sql-product-interactive 'oracle))
+  (interactive "P")
+  (sql-product-interactive 'oracle buffer))
 
 (defun sql-comint-oracle (product options)
   "Create comint buffer and connect to Oracle."
@@ -3375,7 +3505,7 @@ The default comes from `process-coding-system-alist' and
 
 
 ;;;###autoload
-(defun sql-sybase ()
+(defun sql-sybase (&optional buffer)
   "Run isql by Sybase as an inferior process.
 
 If buffer `*SQL*' exists but no process is running, make a new process.
@@ -3390,6 +3520,11 @@ can be stored in the list `sql-sybase-options'.
 The buffer is put in SQL interactive mode, giving commands for sending
 input.  See `sql-interactive-mode'.
 
+To set the buffer name directly, use \\[universal-argument]
+before \\[sql-sybase].  Once session has started,
+\\[sql-rename-buffer] can be called separately to rename the
+buffer.
+
 To specify a coding system for converting non-ASCII characters
 in the input and output to the process, use \\[universal-coding-system-argument]
 before \\[sql-sybase].  You can also specify this with \\[set-buffer-process-coding-system]
@@ -3398,8 +3533,8 @@ The default comes from `process-coding-system-alist' and
 `default-process-coding-system'.
 
 \(Type \\[describe-mode] in the SQL buffer for a list of commands.)"
-  (interactive)
-  (sql-product-interactive 'sybase))
+  (interactive "P")
+  (sql-product-interactive 'sybase buffer))
 
 (defun sql-comint-sybase (product options)
   "Create comint buffer and connect to Sybase."
@@ -3419,7 +3554,7 @@ The default comes from `process-coding-system-alist' and
 
 
 ;;;###autoload
-(defun sql-informix ()
+(defun sql-informix (&optional buffer)
   "Run dbaccess by Informix as an inferior process.
 
 If buffer `*SQL*' exists but no process is running, make a new process.
@@ -3432,6 +3567,11 @@ the variable `sql-database' as default, if set.
 The buffer is put in SQL interactive mode, giving commands for sending
 input.  See `sql-interactive-mode'.
 
+To set the buffer name directly, use \\[universal-argument]
+before \\[sql-informix].  Once session has started,
+\\[sql-rename-buffer] can be called separately to rename the
+buffer.
+
 To specify a coding system for converting non-ASCII characters
 in the input and output to the process, use \\[universal-coding-system-argument]
 before \\[sql-informix].  You can also specify this with \\[set-buffer-process-coding-system]
@@ -3440,8 +3580,8 @@ The default comes from `process-coding-system-alist' and
 `default-process-coding-system'.
 
 \(Type \\[describe-mode] in the SQL buffer for a list of commands.)"
-  (interactive)
-  (sql-product-interactive 'informix))
+  (interactive "P")
+  (sql-product-interactive 'informix buffer))
 
 (defun sql-comint-informix (product options)
   "Create comint buffer and connect to Informix."
@@ -3456,7 +3596,7 @@ The default comes from `process-coding-system-alist' and
 
 
 ;;;###autoload
-(defun sql-sqlite ()
+(defun sql-sqlite (&optional buffer)
   "Run sqlite as an inferior process.
 
 SQLite is free software.
@@ -3473,6 +3613,11 @@ can be stored in the list `sql-sqlite-options'.
 The buffer is put in SQL interactive mode, giving commands for sending
 input.  See `sql-interactive-mode'.
 
+To set the buffer name directly, use \\[universal-argument]
+before \\[sql-sqlite].  Once session has started,
+\\[sql-rename-buffer] can be called separately to rename the
+buffer.
+
 To specify a coding system for converting non-ASCII characters
 in the input and output to the process, use \\[universal-coding-system-argument]
 before \\[sql-sqlite].  You can also specify this with \\[set-buffer-process-coding-system]
@@ -3481,8 +3626,8 @@ The default comes from `process-coding-system-alist' and
 `default-process-coding-system'.
 
 \(Type \\[describe-mode] in the SQL buffer for a list of commands.)"
-  (interactive)
-  (sql-product-interactive 'sqlite))
+  (interactive "P")
+  (sql-product-interactive 'sqlite buffer))
 
 (defun sql-comint-sqlite (product options)
   "Create comint buffer and connect to SQLite."
@@ -3498,7 +3643,7 @@ The default comes from `process-coding-system-alist' and
 
 
 ;;;###autoload
-(defun sql-mysql ()
+(defun sql-mysql (&optional buffer)
   "Run mysql by TcX as an inferior process.
 
 Mysql versions 3.23 and up are free software.
@@ -3515,6 +3660,11 @@ can be stored in the list `sql-mysql-options'.
 The buffer is put in SQL interactive mode, giving commands for sending
 input.  See `sql-interactive-mode'.
 
+To set the buffer name directly, use \\[universal-argument]
+before \\[sql-mysql].  Once session has started,
+\\[sql-rename-buffer] can be called separately to rename the
+buffer.
+
 To specify a coding system for converting non-ASCII characters
 in the input and output to the process, use \\[universal-coding-system-argument]
 before \\[sql-mysql].  You can also specify this with \\[set-buffer-process-coding-system]
@@ -3523,8 +3673,8 @@ The default comes from `process-coding-system-alist' and
 `default-process-coding-system'.
 
 \(Type \\[describe-mode] in the SQL buffer for a list of commands.)"
-  (interactive)
-  (sql-product-interactive 'mysql))
+  (interactive "P")
+  (sql-product-interactive 'mysql buffer))
 
 (defun sql-comint-mysql (product options)
   "Create comint buffer and connect to MySQL."
@@ -3535,7 +3685,7 @@ The default comes from `process-coding-system-alist' and
 	(setq params (append (list sql-database) params)))
     (if (not (string= "" sql-server))
 	(setq params (append (list (concat "--host=" sql-server)) params)))
-    (if (and sql-port (numberp sql-port))
+    (if (not (= 0 sql-port))
 	(setq params (append (list (concat "--port=" (number-to-string sql-port))) params)))
     (if (not (string= "" sql-password))
 	(setq params (append (list (concat "--password=" sql-password)) params)))
@@ -3547,7 +3697,7 @@ The default comes from `process-coding-system-alist' and
 
 
 ;;;###autoload
-(defun sql-solid ()
+(defun sql-solid (&optional buffer)
   "Run solsql by Solid as an inferior process.
 
 If buffer `*SQL*' exists but no process is running, make a new process.
@@ -3561,6 +3711,11 @@ defaults, if set.
 The buffer is put in SQL interactive mode, giving commands for sending
 input.  See `sql-interactive-mode'.
 
+To set the buffer name directly, use \\[universal-argument]
+before \\[sql-solid].  Once session has started,
+\\[sql-rename-buffer] can be called separately to rename the
+buffer.
+
 To specify a coding system for converting non-ASCII characters
 in the input and output to the process, use \\[universal-coding-system-argument]
 before \\[sql-solid].  You can also specify this with \\[set-buffer-process-coding-system]
@@ -3569,8 +3724,8 @@ The default comes from `process-coding-system-alist' and
 `default-process-coding-system'.
 
 \(Type \\[describe-mode] in the SQL buffer for a list of commands.)"
-  (interactive)
-  (sql-product-interactive 'solid))
+  (interactive "P")
+  (sql-product-interactive 'solid buffer))
 
 (defun sql-comint-solid (product options)
   "Create comint buffer and connect to Solid."
@@ -3588,7 +3743,7 @@ The default comes from `process-coding-system-alist' and
 
 
 ;;;###autoload
-(defun sql-ingres ()
+(defun sql-ingres (&optional buffer)
   "Run sql by Ingres as an inferior process.
 
 If buffer `*SQL*' exists but no process is running, make a new process.
@@ -3601,6 +3756,11 @@ the variable `sql-database' as default, if set.
 The buffer is put in SQL interactive mode, giving commands for sending
 input.  See `sql-interactive-mode'.
 
+To set the buffer name directly, use \\[universal-argument]
+before \\[sql-ingres].  Once session has started,
+\\[sql-rename-buffer] can be called separately to rename the
+buffer.
+
 To specify a coding system for converting non-ASCII characters
 in the input and output to the process, use \\[universal-coding-system-argument]
 before \\[sql-ingres].  You can also specify this with \\[set-buffer-process-coding-system]
@@ -3609,8 +3769,8 @@ The default comes from `process-coding-system-alist' and
 `default-process-coding-system'.
 
 \(Type \\[describe-mode] in the SQL buffer for a list of commands.)"
-  (interactive)
-  (sql-product-interactive 'ingres))
+  (interactive "P")
+  (sql-product-interactive 'ingres buffer))
 
 (defun sql-comint-ingres (product options)
   "Create comint buffer and connect to Ingres."
@@ -3624,7 +3784,7 @@ The default comes from `process-coding-system-alist' and
 
 
 ;;;###autoload
-(defun sql-ms ()
+(defun sql-ms (&optional buffer)
   "Run osql by Microsoft as an inferior process.
 
 If buffer `*SQL*' exists but no process is running, make a new process.
@@ -3639,6 +3799,11 @@ in the list `sql-ms-options'.
 The buffer is put in SQL interactive mode, giving commands for sending
 input.  See `sql-interactive-mode'.
 
+To set the buffer name directly, use \\[universal-argument]
+before \\[sql-ms].  Once session has started,
+\\[sql-rename-buffer] can be called separately to rename the
+buffer.
+
 To specify a coding system for converting non-ASCII characters
 in the input and output to the process, use \\[universal-coding-system-argument]
 before \\[sql-ms].  You can also specify this with \\[set-buffer-process-coding-system]
@@ -3647,8 +3812,8 @@ The default comes from `process-coding-system-alist' and
 `default-process-coding-system'.
 
 \(Type \\[describe-mode] in the SQL buffer for a list of commands.)"
-  (interactive)
-  (sql-product-interactive 'ms))
+  (interactive "P")
+  (sql-product-interactive 'ms buffer))
 
 (defun sql-comint-ms (product options)
   "Create comint buffer and connect to Microsoft SQL Server."
@@ -3675,7 +3840,7 @@ The default comes from `process-coding-system-alist' and
 
 
 ;;;###autoload
-(defun sql-postgres ()
+(defun sql-postgres (&optional buffer)
   "Run psql by Postgres as an inferior process.
 
 If buffer `*SQL*' exists but no process is running, make a new process.
@@ -3690,6 +3855,11 @@ Additional command line parameters can be stored in the list
 The buffer is put in SQL interactive mode, giving commands for sending
 input.  See `sql-interactive-mode'.
 
+To set the buffer name directly, use \\[universal-argument]
+before \\[sql-postgres].  Once session has started,
+\\[sql-rename-buffer] can be called separately to rename the
+buffer.
+
 To specify a coding system for converting non-ASCII characters
 in the input and output to the process, use \\[universal-coding-system-argument]
 before \\[sql-postgres].  You can also specify this with \\[set-buffer-process-coding-system]
@@ -3703,8 +3873,8 @@ Try to set `comint-output-filter-functions' like this:
 					     '(comint-strip-ctrl-m)))
 
 \(Type \\[describe-mode] in the SQL buffer for a list of commands.)"
-  (interactive)
-  (sql-product-interactive 'postgres))
+  (interactive "P")
+  (sql-product-interactive 'postgres buffer))
 
 (defun sql-comint-postgres (product options)
   "Create comint buffer and connect to Postgres."
@@ -3725,7 +3895,7 @@ Try to set `comint-output-filter-functions' like this:
 
 
 ;;;###autoload
-(defun sql-interbase ()
+(defun sql-interbase (&optional buffer)
   "Run isql by Interbase as an inferior process.
 
 If buffer `*SQL*' exists but no process is running, make a new process.
@@ -3739,6 +3909,11 @@ defaults, if set.
 The buffer is put in SQL interactive mode, giving commands for sending
 input.  See `sql-interactive-mode'.
 
+To set the buffer name directly, use \\[universal-argument]
+before \\[sql-interbase].  Once session has started,
+\\[sql-rename-buffer] can be called separately to rename the
+buffer.
+
 To specify a coding system for converting non-ASCII characters
 in the input and output to the process, use \\[universal-coding-system-argument]
 before \\[sql-interbase].  You can also specify this with \\[set-buffer-process-coding-system]
@@ -3747,8 +3922,8 @@ The default comes from `process-coding-system-alist' and
 `default-process-coding-system'.
 
 \(Type \\[describe-mode] in the SQL buffer for a list of commands.)"
-  (interactive)
-  (sql-product-interactive 'interbase))
+  (interactive "P")
+  (sql-product-interactive 'interbase buffer))
 
 (defun sql-comint-interbase (product options)
   "Create comint buffer and connect to Interbase."
@@ -3766,7 +3941,7 @@ The default comes from `process-coding-system-alist' and
 
 
 ;;;###autoload
-(defun sql-db2 ()
+(defun sql-db2 (&optional buffer)
   "Run db2 by IBM as an inferior process.
 
 If buffer `*SQL*' exists but no process is running, make a new process.
@@ -3784,6 +3959,11 @@ db2, newlines will be escaped if necessary.  If you don't want that, set
 `comint-input-sender' back to `comint-simple-send' by writing an after
 advice.  See the elisp manual for more information.
 
+To set the buffer name directly, use \\[universal-argument]
+before \\[sql-db2].  Once session has started,
+\\[sql-rename-buffer] can be called separately to rename the
+buffer.
+
 To specify a coding system for converting non-ASCII characters
 in the input and output to the process, use \\[universal-coding-system-argument]
 before \\[sql-db2].  You can also specify this with \\[set-buffer-process-coding-system]
@@ -3792,8 +3972,8 @@ The default comes from `process-coding-system-alist' and
 `default-process-coding-system'.
 
 \(Type \\[describe-mode] in the SQL buffer for a list of commands.)"
-  (interactive)
-  (sql-product-interactive 'db2))
+  (interactive "P")
+  (sql-product-interactive 'db2 buffer))
 
 (defun sql-comint-db2 (product options)
   "Create comint buffer and connect to DB2."
@@ -3801,11 +3981,9 @@ The default comes from `process-coding-system-alist' and
   ;; make-comint.
   (sql-comint product options)
 )
-;;   ;; Properly escape newlines when DB2 is interactive.
-;;   (setq comint-input-sender 'sql-escape-newlines-and-send))
 
 ;;;###autoload
-(defun sql-linter ()
+(defun sql-linter (&optional buffer)
   "Run inl by RELEX as an inferior process.
 
 If buffer `*SQL*' exists but no process is running, make a new process.
@@ -3827,9 +4005,14 @@ an empty password.
 The buffer is put in SQL interactive mode, giving commands for sending
 input.  See `sql-interactive-mode'.
 
+To set the buffer name directly, use \\[universal-argument]
+before \\[sql-linter].  Once session has started,
+\\[sql-rename-buffer] can be called separately to rename the
+buffer.
+
 \(Type \\[describe-mode] in the SQL buffer for a list of commands.)"
-  (interactive)
-  (sql-product-interactive 'linter))
+  (interactive "P")
+  (sql-product-interactive 'linter buffer))
 
 (defun sql-comint-linter (product options)
   "Create comint buffer and connect to Linter."

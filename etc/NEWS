@@ -317,9 +317,23 @@ For example, adding "(diff-mode . ((mode . whitespace)))" to your
 variables `sql-product', `sql-user', `sql-server', `sql-database' and
 `sql-port' can now be safely used as local variables.
 
+*** `sql-dialect' is a synonym for `sql-product'.
+
 *** Added ability to login with a port on MySQL.
 The custom variable `sql-port' can be specified for connection to
 MySQL servers.
+
+*** Dynamic selection of product in an SQL interactive session.
+If you use `sql-product-interactive' to start an SQL interactive
+session it uses the current value of `sql-product'.  Preceding the
+invocation with C-u will force it to ask for the product before
+creating the session.
+
+*** Renaming a SQL interactive buffer when it is created.
+Prefixing the SQL interactive commands (`sql-sqlite', `sql-postgres',
+`sql-mysql', etc.) with C-u will force a new interactive session to be
+started and will prompt for the new name.  This will reduce the need
+for `sql-rename-buffer' is most common use cases.
 
 *** Command continuation prompts in SQL interactive mode are suppressed.
 Multiple line commands in SQL interactive mode, generate command

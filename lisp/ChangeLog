@@ -1,3 +1,37 @@
+2010-09-11  Michael R. Mauger  <mmaug@yahoo.com>
+
+	* progmodes/sql.el: Version 2.6
+	(sql-dialect): Synonym for "sql-product".
+	(sql-find-sqli-buffer, sql-set-sqli-buffer-generally)
+	(sql-set-sqli-buffer, sql-show-sqli-buffer, sql-interactive-mode):
+	Set "sql-buffer" to buffer name not buffer object so multiple sql
+	interactive buffers work properly.  Reverts misguided changes in
+	earlier work.
+	(sql-comint): Make sure different buffer name is used if "*SQL*"
+	buffer is for a different product.
+	(sql-make-alternate-buffer-name): Fix bug with "sql-database"
+	login param.
+	(sql-oracle, sql-sybase, sql-informix, sql-sqlite, sql-mysql)
+	(sql-solid, sql-ingres, sql-ms, sql-postgres, sql-interbase)
+	(sql-db2, sql-linter, sql-product-interactive, sql-rename-buffer):
+	Accept new buffer name or prompt for one.
+	(sql-port): Default to zero.
+	(sql-comint-mysql): Handle "sql-port" as a numeric.
+	(sql-port-history): Delete unused variable.
+	(sql-get-login): Default "sql-port" to a number.
+	(sql-product-alist): Correct Postgres prompt and terminator
+	regexp.
+	(sql-sqlite-program): Dynamically detect presence of "sqlite" or
+	"sqlite3" executables.
+	(sql-sqlite-login-params): Add "*.sqlite[23]?" database name
+	pattern.
+	(sql-buffer-live-p): New function.
+	(sql-mode-menu, sql-send-string): Use it.
+	(sql-mode-oracle-font-lock-keywords): Improve SQL*Plus REMARK
+	syntax pattern.
+	(sql-mode-postgres-font-lock-keywords): Support Postgres V9.
+	(sql-mode-sqlite-font-lock-keywords): Hilight sqlite commands.
+
 2010-09-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/netrc.el (netrc-credentials): New conveniency function.
