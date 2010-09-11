@@ -1,3 +1,8 @@
+2010-09-11  Sascha Wilde  <wilde@sha-bang.de>
+
+	* vc/vc-hg.el (vc-hg-state,vc-hg-working-revision):
+	Replace setting HGRCPATH to "" by some less invasive --config options.
+
 2010-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* font-lock.el (font-lock-beginning-of-syntax-function):
