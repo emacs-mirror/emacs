@@ -1,3 +1,7 @@
+2010-09-11  Anonymous  <emacs-bugs-7626@cbane.org>  (tiny change)
+
+	* term.c (tty_set_terminal_modes): Don't initialize twice (bug#7002).
+
 2010-09-08  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (encode_coding_iso_2022): Don't optimize for ASCII if
@@ -14,8 +18,8 @@
 	characters.
 
 	* term.c (encode_terminal_code): Fix the previous change.
-	(produce_glyphs): Don't set it->char_to_display here.  Don't
-	handle unibyte-display-via-language-environment here.
+	(produce_glyphs): Don't set it->char_to_display here.
+	Don't handle unibyte-display-via-language-environment here.
 	(produce_special_glyphs): Set temp_it.char_to_display before
 	calling produce_glyphs.
 
@@ -34,8 +38,8 @@
 	(produce_stretch_glyph): Set it2.char_to_display too before
 	calling x_produce_glyphs.
 	(x_produce_glyphs): Simplify by using the same code for ASCII and
-	non-ASCII characters.  Don't set it->char_to_display here.  Don't
-	handle unibyte-display-via-language-environment here. For a
+	non-ASCII characters.  Don't set it->char_to_display here.
+	Don't handle unibyte-display-via-language-environment here.  For a
 	charater of no glyph, use font->space_width instead of FONT_WIDTH.
 
 2010-08-29  Kenichi Handa  <handa@m17n.org>
@@ -64,8 +68,8 @@
 
 2010-08-09  Peter O'Gorman <pogma@thewrittenword.com>  (tiny change)
 
-	* s/hpux10-20.h (HAVE_TERMIOS, NO_TERMIO, ORDINARY_LINK): New
-	definitions.
+	* s/hpux10-20.h (HAVE_TERMIOS, NO_TERMIO, ORDINARY_LINK):
+	New definitions.
 	(HAVE_TERMIO): Remove.
 
 2010-08-06  Kenichi Handa  <handa@m17n.org>
@@ -301,16 +305,16 @@
 
 	* ftfont.c (M17N_FLT_USE_NEW_FEATURE): Define it if we can use the
 	new feature of libotf and m17n-flt.
-	(ftfont_check_otf) [M17N_FLT_USE_NEW_FEATURE]: Call
-	OTF_check_features even if no specific feature is given.
+	(ftfont_check_otf) [M17N_FLT_USE_NEW_FEATURE]:
+	Call OTF_check_features even if no specific feature is given.
 	(PACK_OTF_TAG) [M17N_FLT_USE_NEW_FEATURE]: New macro.
 	(ftfont_drive_otf) [M17N_FLT_USE_NEW_FEATURE]: Handle the case
 	that OUT is NULL.  Use OTF_drive_gsub_with_log and
 	OTF_drive_gpos_with_log instead of OTF_drive_gsub and
 	OTF_drive_gpos.
 	(ftfont_try_otf) [M17N_FLT_USE_NEW_FEATURE]: New function.
-	(ftfont_shape_by_flt) [M17N_FLT_USE_NEW_FEATURE]: Setup
-	mflt_enable_new_feature and mflt_try_otf.
+	(ftfont_shape_by_flt) [M17N_FLT_USE_NEW_FEATURE]:
+	Setup mflt_enable_new_feature and mflt_try_otf.
 
 2010-04-19  Juanma Barranquero  <lekktu@gmail.com>
 
