@@ -1,3 +1,8 @@
+2010-09-11  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-file): Create .elc files
+	atomically, to avoid parallel build errors.  (Bug#4196)
+
 2010-09-11  Michael R. Mauger  <mmaug@yahoo.com>
 
 	* progmodes/sql.el: Version 2.6
