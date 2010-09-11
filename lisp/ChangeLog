@@ -1,3 +1,8 @@
+2010-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* repeat.el (repeat): Allow repeating when the last event is a click.
+	Suggested by Drew Adams (bug#6256).
+
 2010-09-11  Sascha Wilde  <wilde@sha-bang.de>
 
 	* vc/vc-hg.el (vc-hg-state,vc-hg-working-revision):
