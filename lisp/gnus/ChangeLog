@@ -1,3 +1,14 @@
+2010-09-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-read-active-file-1): If gnus-agent isn't set,
+	then do request scans from the backends.
+
+	* gnus-sum.el (gnus-summary-update-hook): Change default to nil, to
+	avoid running a hook per line, since this takes a lot of time,
+	profiling shows.
+	(gnus-summary-prepare-threads): Call `gnus-summary-highlight-line'
+	directly if gnus-visual-p is true.
+
 2010-09-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-start.el (gnus-read-active-for-groups): Check only subscribed

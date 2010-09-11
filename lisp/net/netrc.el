@@ -54,12 +54,19 @@
  "Netrc configuration."
  :group 'comm)
 
+(defcustom netrc-file "~/.authinfo"
+  "File where user credentials are stored."
+  :type 'file
+  :group 'netrc)
+
 (defvar netrc-services-file "/etc/services"
   "The name of the services file.")
 
-(defun netrc-parse (file)
+(defun netrc-parse (&optional file)
   (interactive "fFile to Parse: ")
   "Parse FILE and return a list of all entries in the file."
+  (unless file
+    (setq file netrc-file))
   (if (listp file)
       file
     (when (file-exists-p file)
@@ -220,6 +227,19 @@ MODE can be \"login\" or \"password\", suitable for passing to
 		(not (and (string= name (car service))
 			  (eq type (car (cddr service)))))))
     (cadr service)))
+
+(defun netrc-credentials (machine &rest ports)
+  "Return a user name/password pair.
+Port specifications will be prioritised in the order they are
+listed in the PORTS list."
+  (let ((list (netrc-parse))
+	found)
+    (while (and ports
+		(not found))
+      (setq found (netrc-machine list machine (pop ports))))
+    (when found
+      (list (cdr (assoc "login" found))
+	    (cdr (assoc "password" found))))))
 
 (provide 'netrc)
 

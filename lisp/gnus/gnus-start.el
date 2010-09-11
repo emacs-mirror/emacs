@@ -2048,8 +2048,9 @@ If SCAN, request a scan of that group as well."
     (gnus-message 5 mesg)
     (when (gnus-check-server method)
       ;; Request that the backend scan its incoming messages.
-      (when (and gnus-agent
-		 (gnus-online method)
+      (when (and (or (and gnus-agent
+			  (gnus-online method))
+		     (not gnus-agent))
 		 (gnus-check-backend-function 'request-scan (car method)))
 	(if infos
 	    (dolist (info infos)
