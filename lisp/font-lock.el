@@ -560,6 +560,8 @@ outside of any comment, string, or sexp.  This variable is semi-obsolete;
 we recommend setting `syntax-begin-function' instead.
 
 This is normally set via `font-lock-defaults'.")
+(make-obsolete-variable 'font-lock-beginning-of-syntax-function
+                        'syntax-begin-function "23.3")
 
 (defvar font-lock-mark-block-function nil
   "*Non-nil means use this function to mark a block of text.

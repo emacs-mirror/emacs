@@ -1,3 +1,8 @@
+2010-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock-beginning-of-syntax-function):
+	Mark as obsolete.
+
 2010-09-10  Glenn Morris  <rgm@gnu.org>
 
 	* menu-bar.el (menu-bar-options-save): Fix handling of menu-bar
@@ -15,11 +20,10 @@
 	* whitespace.el: Allow cleaning up blanks without blank
 	visualization (Bug#6651).  Adjust help window for
 	whitespace-toggle-options (Bug#6479).  Allow to use fill-column
-	instead of whitespace-line-column (from EmacsWiki).  New version
-	13.1.
-	(whitespace-style): Added new value 'face.  Adjust docstring.
-	(whitespace-space, whitespace-hspace, whitespace-tab): Adjust
-	foreground property face.
+	instead of whitespace-line-column (from EmacsWiki).  New version 13.1.
+	(whitespace-style): Add new value 'face.  Adjust docstring.
+	(whitespace-space, whitespace-hspace, whitespace-tab):
+	Adjust foreground property face.
 	(whitespace-line-column): Adjust docstring and type declaration.
 	(whitespace-style-value-list, whitespace-toggle-option-alist)
 	(whitespace-help-text): Adjust const initialization.
