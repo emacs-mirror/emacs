@@ -1706,7 +1706,7 @@ The value is non-nil if there were no errors, nil if errors."
 		      (tempfile (make-temp-name target-file)))
 		  (if (memq system-type '(ms-dos 'windows-nt))
 		      (setq buffer-file-type t))
-		  (write-region (point-min) (point-max) tempfile)
+		  (write-region (point-min) (point-max) tempfile nil 1)
 		  ;; This has the intentional side effect that any
 		  ;; hard-links to target-file continue to
 		  ;; point to the old file (this makes it possible
@@ -1715,7 +1715,8 @@ The value is non-nil if there were no errors, nil if errors."
 		  ;; emacs-lisp files in the build tree are
 		  ;; recompiled).  Previously this was accomplished by
 		  ;; deleting target-file before writing it.
-		  (rename-file tempfile target-file t))
+		  (rename-file tempfile target-file t)
+		  (message "Wrote %s" target-file))
 	      ;; This is just to give a better error message than write-region
 	      (signal 'file-error
 		      (list "Opening output file"
