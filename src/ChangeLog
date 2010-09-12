@@ -1,4 +1,4 @@
-2010-09-11  Anonymous  <emacs-bugs-7626@cbane.org>  (tiny change)
+2010-09-11  Courtney Bane  <emacs-bugs-7626@cbane.org>  (tiny change)
 
 	* term.c (tty_set_terminal_modes): Don't initialize twice (bug#7002).
 
