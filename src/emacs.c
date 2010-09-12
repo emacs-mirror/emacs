@@ -1544,6 +1544,10 @@ main (int argc, char **argv)
 #endif
 #endif /* HAVE_X_WINDOWS */
 
+#ifdef HAVE_LIBXML2
+      syms_of_xml ();
+#endif
+
       syms_of_menu ();
 
 #ifdef HAVE_NTGUI

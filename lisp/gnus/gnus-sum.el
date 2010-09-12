@@ -985,8 +985,7 @@ This hook is not called from the non-updating exit commands like `Q'."
   :group 'gnus-various
   :type 'hook)
 
-(defcustom gnus-summary-update-hook
-  (list 'gnus-summary-highlight-line)
+(defcustom gnus-summary-update-hook nil
   "*A hook called when a summary line is changed.
 The hook will not be called if `gnus-visual' is nil.
 
@@ -3753,6 +3752,7 @@ buffer that was in action when the last article was fetched."
       (error (gnus-message 5 "Error updating the summary line")))
     (when (gnus-visual-p 'summary-highlight 'highlight)
       (forward-line -1)
+      (gnus-summary-highlight-line)
       (gnus-run-hooks 'gnus-summary-update-hook)
       (forward-line 1))))
 
@@ -3785,6 +3785,7 @@ buffer that was in action when the last article was fetched."
 	 'score))
       ;; Do visual highlighting.
       (when (gnus-visual-p 'summary-highlight 'highlight)
+	(gnus-summary-highlight-line)
 	(gnus-run-hooks 'gnus-summary-update-hook)))))
 
 (defvar gnus-tmp-new-adopts nil)
@@ -5363,7 +5364,9 @@ or a straight list of headers."
                'gnus-number number)
 	      (when gnus-visual-p
 		(forward-line -1)
-		(gnus-run-hooks 'gnus-summary-update-hook)
+		(gnus-summary-highlight-line)
+		(when gnus-summary-update-hook
+		  (gnus-run-hooks 'gnus-summary-update-hook))
 		(forward-line 1))
 
 	      (setq gnus-tmp-prev-subject simp-subject)))
@@ -10734,6 +10737,7 @@ If NO-EXPIRE, auto-expiry will be inhibited."
 	 (t gnus-no-mark))
    'replied)
   (when (gnus-visual-p 'summary-highlight 'highlight)
+    (gnus-summary-highlight-line)
     (gnus-run-hooks 'gnus-summary-update-hook))
   t)
 

@@ -89,7 +89,7 @@
 (defvar mixal-mode-syntax-table
   (let ((st (make-syntax-table)))
     ;; We need to do a bit more to make fontlocking for comments work.
-    ;; See mixal-font-lock-syntactic-keywords.
+    ;; See use of syntax-propertize-function.
     ;; (modify-syntax-entry ?* "<" st)
     (modify-syntax-entry ?\n ">" st)
     st)
@@ -1028,13 +1028,14 @@ EXECUTION-TIME holds info about the time it takes, number or string.")
 
 
 ;;; Font-locking:
-(defvar mixal-font-lock-syntactic-keywords
-  ;; Normal comments start with a * in column 0 and end at end of line.
-  '(("^\\*" (0 '(11)))                  ;(string-to-syntax "<") == '(11)
-    ;; Every line can end with a comment which is placed after the operand.
-    ;; I assume here that mnemonics without operands can not have a comment.
-    ("^[[:alnum:]]*[ \t]+[[:alnum:]]+[ \t]+[^ \n\t]+[ \t]*\\([ \t]\\)[^\n \t]"
-     (1 '(11)))))
+(defconst mixal-syntax-propertize-function
+  (syntax-propertize-rules
+   ;; Normal comments start with a * in column 0 and end at end of line.
+   ("^\\*" (0 "<"))
+   ;; Every line can end with a comment which is placed after the operand.
+   ;; I assume here that mnemonics without operands can not have a comment.
+   ("^[[:alnum:]]*[ \t]+[[:alnum:]]+[ \t]+[^ \n\t]+[ \t]*\\([ \t]\\)[^\n \t]"
+    (1 "<"))))
 
 (defvar mixal-font-lock-keywords
   `(("^\\([A-Z0-9a-z]+\\)"
@@ -1110,9 +1111,9 @@ Assumes that file has been compiled with debugging support."
   (set (make-local-variable 'comment-start) "*")
   (set (make-local-variable 'comment-start-skip) "^\\*[ \t]*")
   (set (make-local-variable 'font-lock-defaults)
-       `(mixal-font-lock-keywords nil nil nil nil
-         (font-lock-syntactic-keywords . ,mixal-font-lock-syntactic-keywords)
-         (parse-sexp-lookup-properties . t)))
+       `(mixal-font-lock-keywords))
+  (set (make-local-variable 'syntax-propertize-function)
+       mixal-syntax-propertize-function)
   ;; might add an indent function in the future
   ;;  (set (make-local-variable 'indent-line-function) 'mixal-indent-line)
   (set (make-local-variable 'compile-command) (concat "mixasm "

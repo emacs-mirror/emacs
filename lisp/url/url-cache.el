@@ -1,7 +1,7 @@
 ;;; url-cache.el --- Uniform Resource Locator retrieval tool
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1998, 1999, 2004, 2005, 2006, 2007, 2008,
+;;   2009, 2010  Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -28,7 +28,7 @@
 
 (defcustom url-cache-directory
   (expand-file-name "cache" url-configuration-directory)
-  "*The directory where cache files should be stored."
+  "The directory where cache files should be stored."
   :type 'directory
   :group 'url-file)
 
@@ -165,7 +165,7 @@ Very fast if you have an `md5' primitive function, suitably fast otherwise."
 				url-cache-directory))))))
 
 (defcustom url-cache-creation-function 'url-cache-create-filename-using-md5
-  "*What function to use to create a cached filename."
+  "What function to use to create a cached filename."
   :type '(choice (const :tag "MD5 of filename (low collision rate)"
 			:value url-cache-create-filename-using-md5)
 		 (const :tag "Human readable filenames (higher collision rate)"

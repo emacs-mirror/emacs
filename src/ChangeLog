@@ -1,3 +1,24 @@
+2010-09-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* xml.c (Fhtml_parse_string, Fxml_parse_string): Mention BASE-URL.
+
+2010-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fns.c (Fy_or_n_p): Move to lisp/subr.el.
+	(syms_of_fns): Don't defsubr Sy_or_n_p.
+	* lisp.h: Don't declare Fy_or_n_p.
+	* fileio.c (barf_or_query_if_file_exists): Fy_or_n_p -> y-or-n-p.
+
+2010-09-09  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* xml.c (Fxml_parse_buffer): New function to parse XML files.
+
+2010-09-08  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* xml.c: New file.
+	(Fhtml_parse_buffer): New function to interface to the libxml2
+	html parsing function.
+
 2010-09-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* biditype.h: Regenerate.
@@ -60,8 +81,8 @@
 	characters.
 
 	* term.c (encode_terminal_code): Fix the previous change.
-	(produce_glyphs): Don't set it->char_to_display here.  Don't
-	handle unibyte-display-via-language-environment here.
+	(produce_glyphs): Don't set it->char_to_display here.
+	Don't handle unibyte-display-via-language-environment here.
 	(produce_special_glyphs): Set temp_it.char_to_display before
 	calling produce_glyphs.
 
@@ -104,7 +125,7 @@
 2010-08-29  Kenichi Handa  <handa@m17n.org>
 
 	* term.c (encode_terminal_code): Encode byte chars to the
-	correspnding bytes.
+	corresponding bytes.
 
 2010-08-29  Jan Djärv  <jan.h.d@swipnet.se>
 

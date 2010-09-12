@@ -310,10 +310,11 @@ chapter."
     ("Chapters" "^@chapter[ \t]+\\(.*\\)$" 1))
   "Imenu generic expression for Texinfo mode.  See `imenu-generic-expression'.")
 
-(defvar texinfo-font-lock-syntactic-keywords
-  '(("\\(@\\)c\\(omment\\)?\\>" (1 "<"))
-    ("^\\(@\\)ignore\\>" (1 "< b"))
-    ("^@end ignore\\(\n\\)" (1 "> b")))
+(defconst texinfo-syntax-propertize-function
+  (syntax-propertize-rules
+   ("\\(@\\)c\\(omment\\)?\\>" (1 "<"))
+   ("^\\(@\\)ignore\\>" (1 "< b"))
+   ("^@end ignore\\(\n\\)" (1 "> b")))
   "Syntactic keywords to catch comment delimiters in `texinfo-mode'.")
 
 (defconst texinfo-environments
@@ -600,9 +601,9 @@ value of `texinfo-mode-hook'."
   (setq imenu-case-fold-search nil)
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults
-	'(texinfo-font-lock-keywords nil nil nil backward-paragraph
-				     (font-lock-syntactic-keywords
-				      . texinfo-font-lock-syntactic-keywords)))
+	'(texinfo-font-lock-keywords nil nil nil backward-paragraph))
+  (set (make-local-variable 'syntax-propertize-function)
+       texinfo-syntax-propertize-function)
   (set (make-local-variable 'parse-sexp-lookup-properties) t)
 
   ;; Outline settings.

@@ -4693,8 +4693,15 @@ Key bindings:
   (set (make-local-variable 'font-lock-defaults)
        (list
 	'(nil vhdl-font-lock-keywords) nil
-	(not vhdl-highlight-case-sensitive) '((?\_ . "w")) 'beginning-of-line
-	'(font-lock-syntactic-keywords . vhdl-font-lock-syntactic-keywords)))
+	(not vhdl-highlight-case-sensitive) '((?\_ . "w")) 'beginning-of-line))
+  (if (eval-when-compile (fboundp 'syntax-propertize-rules))
+      (set (make-local-variable 'syntax-propertize-function)
+           (syntax-propertize-rules
+            ;; Mark single quotes as having string quote syntax in
+            ;; 'c' instances.
+            ("\\(\'\\).\\(\'\\)" (1 "\"'") (2 "\"'"))))
+    (set (make-local-variable 'font-lock-syntactic-keywords)
+         vhdl-font-lock-syntactic-keywords))
   (unless vhdl-emacs-21
     (set (make-local-variable 'font-lock-support-mode) 'lazy-lock-mode)
     (set (make-local-variable 'lazy-lock-defer-contextually) nil)
@@ -12914,10 +12921,9 @@ This does background highlighting of translate-off regions.")
   "Re-initialize fontification and fontify buffer."
   (interactive)
   (setq font-lock-defaults
-	(list
-	 'vhdl-font-lock-keywords nil
-	 (not vhdl-highlight-case-sensitive) '((?\_ . "w")) 'beginning-of-line
-	 '(font-lock-syntactic-keywords . vhdl-font-lock-syntactic-keywords)))
+	`(vhdl-font-lock-keywords
+          nil ,(not vhdl-highlight-case-sensitive) ((?\_ . "w"))
+          beginning-of-line))
   (when (fboundp 'font-lock-unset-defaults)
     (font-lock-unset-defaults))		; not implemented in XEmacs
   (font-lock-set-defaults)

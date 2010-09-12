@@ -1660,18 +1660,19 @@ This performs fontification according to `js--class-styles'."
 ;; XXX: Javascript can continue a regexp literal across lines so long
 ;; as the newline is escaped with \. Account for that in the regexp
 ;; below.
-(defconst js--regexp-literal
+(eval-and-compile
+  (defconst js--regexp-literal
   "[=(,:]\\(?:\\s-\\|\n\\)*\\(/\\)\\(?:\\\\/\\|[^/*]\\)\\(?:\\\\/\\|[^/]\\)*\\(/\\)"
   "Regexp matching a JavaScript regular expression literal.
 Match groups 1 and 2 are the characters forming the beginning and
-end of the literal.")
+end of the literal."))
 
-;; we want to match regular expressions only at the beginning of
-;; expressions
-(defconst js-font-lock-syntactic-keywords
-  `((,js--regexp-literal (1 "|") (2 "|")))
-  "Syntactic font lock keywords matching regexps in JavaScript.
-See `font-lock-keywords'.")
+
+(defconst js-syntax-propertize-function
+  (syntax-propertize-rules
+   ;; We want to match regular expressions only at the beginning of
+   ;; expressions.
+   (js--regexp-literal (1 "\"") (2 "\""))))
 
 ;;; Indentation
 
@@ -3303,10 +3304,9 @@ Key bindings:
 
   (set (make-local-variable 'open-paren-in-column-0-is-defun-start) nil)
   (set (make-local-variable 'font-lock-defaults)
-       (list js--font-lock-keywords
-	     nil nil nil nil
-	     '(font-lock-syntactic-keywords
-               . js-font-lock-syntactic-keywords)))
+       '(js--font-lock-keywords))
+  (set (make-local-variable 'syntax-propertize-function)
+       js-syntax-propertize-function)
 
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
   (set (make-local-variable 'parse-sexp-lookup-properties) t)

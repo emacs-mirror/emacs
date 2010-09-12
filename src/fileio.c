@@ -1842,7 +1842,7 @@ barf_or_query_if_file_exists (Lisp_Object absname, const unsigned char *querystr
       tem = format2 ("File %s already exists; %s anyway? ",
 		     absname, build_string (querystring));
       if (quick)
-	tem = Fy_or_n_p (tem);
+	tem = call1 (intern ("y-or-n-p"), tem);
       else
 	tem = do_yes_or_no_p (tem);
       UNGCPRO;

@@ -1,3 +1,7 @@
+2010-09-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* configure.in: Check for libxml2.
+
 2010-09-09  Glenn Morris  <rgm@gnu.org>
 
 	* make-dist: No more TODO files under lisp/.

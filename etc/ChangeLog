@@ -1,3 +1,12 @@
+2010-09-11  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.bash, emacs.csh, ms-kermit: Remove obsolete files (use
+	emacsclient -a instead of the first two).
+
+2010-09-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* NEWS: Mention the new libxml2 functions.
+
 2010-08-25  Kenichi Handa  <handa@m17n.org>
 
 	* HELLO: Change designation sequences for Arabic text.

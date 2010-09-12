@@ -83,12 +83,6 @@ This includes those for cfservd as well as cfagent."))
     ;; File, acl &c in group:   { token ... }
     ("{[ \t]*\\([^ \t\n]+\\)" 1 font-lock-constant-face)))
 
-(defconst cfengine-font-lock-syntactic-keywords
-  ;; In the main syntax-table, backslash is marked as a punctuation, because
-  ;; of its use in DOS-style directory separators.  Here we try to recognize
-  ;; the cases where backslash is used as an escape inside strings.
-  '(("\\(\\(?:\\\\\\)+\\)\"" 1 "\\")))
-
 (defvar cfengine-imenu-expression
   `((nil ,(concat "^[ \t]*" (eval-when-compile
 			      (regexp-opt cfengine-actions t))
@@ -237,13 +231,15 @@ to the action header."
   (set (make-local-variable 'fill-paragraph-function)
        #'cfengine-fill-paragraph)
   (define-abbrev-table 'cfengine-mode-abbrev-table cfengine-mode-abbrevs)
-  ;; Fixme: Use `font-lock-syntactic-keywords' to set the args of
-  ;; functions in evaluated classes to string syntax, and then obey
-  ;; syntax properties.
   (setq font-lock-defaults
-	'(cfengine-font-lock-keywords nil nil nil beginning-of-line
-          (font-lock-syntactic-keywords
-           . cfengine-font-lock-syntactic-keywords)))
+	'(cfengine-font-lock-keywords nil nil nil beginning-of-line))
+  ;; Fixme: set the args of functions in evaluated classes to string
+  ;; syntax, and then obey syntax properties.
+  (set (make-local-variable 'syntax-propertize-function)
+       ;; In the main syntax-table, \ is marked as a punctuation, because
+       ;; of its use in DOS-style directory separators.  Here we try to
+       ;; recognize the cases where \ is used as an escape inside strings.
+       (syntax-propertize-rules ("\\(\\(?:\\\\\\)+\\)\"" (1 "\\"))))
   (setq imenu-generic-expression cfengine-imenu-expression)
   (set (make-local-variable 'beginning-of-defun-function)
        #'cfengine-beginning-of-defun)

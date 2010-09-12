@@ -1,3 +1,7 @@
+2010-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent/octave.m: Remove some `fixindent' not needed any more.
+
 2010-08-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* indent/octave.m: New file.
