@@ -1,3 +1,8 @@
+2010-09-12  David Reitter  <david.reitter@gmail.com>
+
+	* simple.el (line-move-visual): Do not truncate goal column to
+	integer size.  (Bug#7020)
+
 2010-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* repeat.el (repeat): Allow repeating when the last event is a click.
