@@ -1,3 +1,11 @@
+2010-09-12  Glenn Morris  <rgm@gnu.org>
+
+	* trouble.texi (Bugs): Update the section intro.
+	(Known Problems): New section.
+	(Checklist): Misc updates.  Prefer M-x report-emacs-bug.
+	(Sending Patches): Bug fixes are best as responses to existing bugs.
+	* emacs.texi (Known Problems): Add menu entry for new section.
+
 2010-09-04  Chong Yidong  <cyd@stupidchicken.com>
 
 	* dired.texi (Dired Enter): Minor doc fix (Bug#6982).
