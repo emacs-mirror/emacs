@@ -1,3 +1,16 @@
+2010-09-12  Leo  <sdl.web@gmail.com>
+
+	* net/rcirc.el (rcirc-server-commands, rcirc-client-commands)
+	(rcirc-completion-start): New variables.
+	(rcirc-nick-completions): Rename to rcirc-completions.
+	(rcirc-nick-completion-start-offset): Delete.
+	(rcirc-completion-at-point): New function for constructing
+	completion data for both nicks and irc commands.  Add to
+	completion-at-point-functions in rcirc mode.
+	(rcirc-complete): Rename from rcirc-nick-complete; use
+	rcirc-completion-at-point.
+	(defun-rcirc-command): Update rcirc-client-commands.
+
 2010-09-11  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-file): Create .elc files
