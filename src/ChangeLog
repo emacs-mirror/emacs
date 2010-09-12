@@ -1,3 +1,11 @@
+2010-09-12  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (get_current_vm_state): New function.
+	(do_ewmh_fullscreen): Call get_current_vm_state and compare with
+	want_fullscreen so set_wm_state calls are few (Bug#7013).
+	(x_handle_net_wm_state): Move code to get_current_vm_state and
+	call that function.
+
 2010-09-11  Courtney Bane  <emacs-bugs-7626@cbane.org>  (tiny change)
 
 	* term.c (tty_set_terminal_modes): Don't initialize twice (bug#7002).
