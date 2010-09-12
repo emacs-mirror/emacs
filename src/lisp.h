@@ -2516,7 +2516,6 @@ EXFUN (Ffillarray, 2);
 EXFUN (Fnconc, MANY);
 EXFUN (Fmapcar, 2);
 EXFUN (Fmapconcat, 3);
-EXFUN (Fy_or_n_p, 1);
 extern Lisp_Object do_yes_or_no_p (Lisp_Object);
 EXFUN (Frequire, 3);
 EXFUN (Fprovide, 2);

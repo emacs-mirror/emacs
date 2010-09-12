@@ -1,3 +1,7 @@
+2010-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (y-or-n-p): New function, moved from src/fns.c.  Use read-key.
+
 2010-09-12  Leo  <sdl.web@gmail.com>
 
 	* net/rcirc.el (rcirc-server-commands, rcirc-client-commands)
