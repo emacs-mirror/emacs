@@ -1,3 +1,7 @@
+2010-09-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* xml.c (Fhtml_parse_string, Fxml_parse_string): Mention BASE-URL.
+
 2010-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fns.c (Fy_or_n_p): Move to lisp/subr.el.
