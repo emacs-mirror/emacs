@@ -2541,6 +2541,7 @@ if test "${with_xml2}" != "no"; then
   ### I'm not sure what the version number should be, so I just guessed.
   PKG_CHECK_MODULES(LIBXML2, libxml-2.0 > 2.2.0, HAVE_LIBXML2=yes, HAVE_LIBXML2=no)
   if test "${HAVE_LIBXML2}" = "yes"; then
+    LIBS="$LIBXML2_LIBS $LIBS"
     AC_CHECK_LIB(xml2, htmlReadMemory, HAVE_LIBXML2=yes, HAVE_LIBXML2=no)
     if test "${HAVE_LIBXML2}" = "yes"; then
       AC_DEFINE(HAVE_LIBXML2, 1, [Define to 1 if you have the libxml library (-lxml2).])
