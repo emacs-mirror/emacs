@@ -29,7 +29,9 @@
 
 ;;; Code:
 
-(require 'tramp-loaddefs)
+(eval-when-compile
+
+  (require 'tramp-loaddefs))
 
 (eval-when-compile
 

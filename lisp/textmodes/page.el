@@ -1,3 +1,10 @@
+;; (push-mark (point) t)  needed at the end of forward-page 
+;; The documentation in simple.el for set-mark says
+;;   To remember a location for internal use in the Lisp program,
+;;   store it in a Lisp variable.  Example:
+;;      (let ((beg (point))) (forward-line 1) (delete-region beg (point)))."
+
+
 ;;; page.el --- page motion commands for Emacs
 
 ;; Copyright (C) 1985, 2001, 2002, 2003, 2004, 2005,

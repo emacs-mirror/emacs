@@ -1,3 +1,18 @@
+;;  (defun auto-save-mode (arg)
+;;   "Toggle auto-saving of contents of current buffer.
+;; With prefix argument ARG, turn auto-saving on if positive, else off."
+;;     (interactive)
+;;     (if (> arg 0) auto-save (null auto-save)))
+
+
+;; (defun auto-fill-mode (arg)
+;;   "Toggle Auto Fill mode.
+;; With ARG, turn Auto Fill mode on if and only if ARG is positive.
+;; In Auto Fill mode, inserting a space at a column beyond `current-fill-column'
+;; automatically breaks the line at a previous space."
+;;    (interactive)
+;;    (if (> arg 0) auto-fill (null auto-fill)))
+
 ;;; files.el --- file input and output commands for Emacs
 
 ;; Copyright (C) 1985, 1986, 1987, 1992, 1993, 1994, 1995, 1996,
