@@ -149,8 +149,10 @@ FILE must be a local file name on a connection identified via VEC."
 	value)
      ,@body))
 
+;;;###tramp-autoload
 (put 'with-file-property 'lisp-indent-function 3)
 (put 'with-file-property 'edebug-form-spec t)
+;;;###tramp-autoload
 (font-lock-add-keywords 'emacs-lisp-mode '("\\<with-file-property\\>"))
 
 ;;;###tramp-autoload
@@ -235,12 +237,7 @@ PROPERTY is set persistent when KEY is a vector."
 			    tramp-cache-data))))
     (puthash property value hash)
     (setq tramp-cache-data-changed t)
-    ;; This function is called also during initialization of
-    ;; tramp-cache.el.  `tramp-message´ is not defined yet at this
-    ;; time, so we ignore the corresponding error.
-    (condition-case nil
-	(tramp-message key 7 "%s %s" property value)
-      (error nil))
+    (tramp-message key 7 "%s %s" property value)
     value))
 
 ;;;###tramp-autoload
@@ -255,8 +252,10 @@ PROPERTY is set persistent when KEY is a vector."
       (tramp-set-connection-property ,key ,property value))
     value))
 
+;;;###tramp-autoload
 (put 'with-connection-property 'lisp-indent-function 2)
 (put 'with-connection-property 'edebug-form-spec t)
+;;;###tramp-autoload
 (font-lock-add-keywords 'emacs-lisp-mode '("\\<with-connection-property\\>"))
 
 ;;;###tramp-autoload
@@ -315,41 +314,40 @@ KEY identifies the connection, it is either a process or a vector."
 (defun tramp-dump-connection-properties ()
   "Write persistent connection properties into file `tramp-persistency-file-name'."
   ;; We shouldn't fail, otherwise (X)Emacs might not be able to be closed.
-  (condition-case nil
-      (when (and (hash-table-p tramp-cache-data)
-		 (not (zerop (hash-table-count tramp-cache-data)))
-		 tramp-cache-data-changed
-		 (stringp tramp-persistency-file-name))
-	(let ((cache (copy-hash-table tramp-cache-data)))
-	  ;; Remove temporary data.
-	  (maphash
-	   '(lambda (key value)
-	      (if (and (vectorp key) (not (tramp-file-name-localname key)))
-		  (progn
-		    (remhash "process-name" value)
-		    (remhash "process-buffer" value)
-		    (remhash "first-password-request" value))
-		(remhash key cache)))
-	   cache)
-	  ;; Dump it.
-	  (with-temp-buffer
-	    (insert
-	     ";; -*- emacs-lisp -*-"
-	     ;; `time-stamp-string' might not exist in all (X)Emacs flavors.
-	     (condition-case nil
-		 (progn
-		   (format
-		    " <%s %s>\n"
-		    (time-stamp-string "%02y/%02m/%02d %02H:%02M:%02S")
-		    tramp-persistency-file-name))
-	       (error "\n"))
-	     ";; Tramp connection history.  Don't change this file.\n"
-	     ";; You can delete it, forcing Tramp to reapply the checks.\n\n"
-	     (with-output-to-string
-	       (pp (read (format "(%s)" (tramp-cache-print cache))))))
-	    (write-region
-	     (point-min) (point-max) tramp-persistency-file-name))))
-    (error nil)))
+  (ignore-errors
+    (when (and (hash-table-p tramp-cache-data)
+	       (not (zerop (hash-table-count tramp-cache-data)))
+	       tramp-cache-data-changed
+	       (stringp tramp-persistency-file-name))
+      (let ((cache (copy-hash-table tramp-cache-data)))
+	;; Remove temporary data.
+	(maphash
+	 '(lambda (key value)
+	    (if (and (vectorp key) (not (tramp-file-name-localname key)))
+		(progn
+		  (remhash "process-name" value)
+		  (remhash "process-buffer" value)
+		  (remhash "first-password-request" value))
+	      (remhash key cache)))
+	 cache)
+	;; Dump it.
+	(with-temp-buffer
+	  (insert
+	   ";; -*- emacs-lisp -*-"
+	   ;; `time-stamp-string' might not exist in all (X)Emacs flavors.
+	   (condition-case nil
+	       (progn
+		 (format
+		  " <%s %s>\n"
+		  (time-stamp-string "%02y/%02m/%02d %02H:%02M:%02S")
+		  tramp-persistency-file-name))
+	     (error "\n"))
+	   ";; Tramp connection history.  Don't change this file.\n"
+	   ";; You can delete it, forcing Tramp to reapply the checks.\n\n"
+	   (with-output-to-string
+	     (pp (read (format "(%s)" (tramp-cache-print cache))))))
+	  (write-region
+	   (point-min) (point-max) tramp-persistency-file-name))))))
 
 (add-hook 'kill-emacs-hook 'tramp-dump-connection-properties)
 (add-hook 'tramp-cache-unload-hook

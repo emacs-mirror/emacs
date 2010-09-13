@@ -31,6 +31,10 @@
 (eval-when-compile (require 'cl))	; block, return
 (require 'tramp)
 
+;; We call several `tramp-handle-*' functions directly.  So we must
+;; reqire that package as well.
+(require 'tramp-sh)
+
 ;; Define SMB method ...
 ;;;###tramp-autoload
 (defconst tramp-smb-method "smb"

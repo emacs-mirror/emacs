@@ -103,6 +103,11 @@
   (require 'custom))
 
 (require 'tramp)
+
+;; We call several `tramp-handle-*' functions directly.  So we must
+;; reqire that package as well.
+(require 'tramp-sh)
+
 (require 'dbus)
 (require 'url-parse)
 (require 'url-util)

@@ -219,11 +219,7 @@ pass to the OPERATION."
 
 ;;; TODO:
 
-;; * In case of "/ftp:host:file" this works only for functions which
-;;   are defined in `tramp-file-name-handler-alist'.  Call has to be
-;;   pretended in `tramp-file-name-handler' otherwise.
-;;   Furthermore, there are no backup files on FTP hosts.
-;;   Worth further investigations.
+;; * There are no backup files on FTP hosts.
 
 ;; arch-tag: 759fb338-5c63-4b99-bd36-b4d59db91cff
 ;;; tramp-ftp.el ends here

@@ -1,3 +1,144 @@
+2010-09-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	Major code cleanup.  Split tramp.el into tramp.el and tramp-sh.el.
+
+	* Makefile.in (TRAMP_SRC): Remove tramp-fish.el.  Add tramp-sh.el.
+
+	* net/tramp.el (top): Don't show loading message.  Require just
+	'tramp-compat, everything else is required there.  Use
+	`ignore-errors' where appropriate.
+	(tramp-inline-compress-start-size, tramp-copy-size-limit)
+	(tramp-terminal-type, tramp-end-of-output)
+	(tramp-initial-end-of-output, tramp-completion-function-alist-rsh)
+	(tramp-completion-function-alist-ssh)
+	(tramp-completion-function-alist-telnet)
+	(tramp-completion-function-alist-su)
+	(tramp-completion-function-alist-putty, tramp-remote-path)
+	(tramp-remote-process-environment, tramp-sh-extra-args)
+	(tramp-actions-before-shell, tramp-uudecode)
+	(tramp-perl-file-truename, tramp-perl-file-name-all-completions)
+	(tramp-perl-file-attributes)
+	(tramp-perl-directory-files-and-attributes)
+	(tramp-perl-encode-with-module, tramp-perl-decode-with-module)
+	(tramp-perl-encode, tramp-perl-decode)
+	(tramp-vc-registered-read-file-names, tramp-file-mode-type-map)
+	(tramp-file-name-handler-alist, tramp-make-tramp-temp-file)
+	(tramp-handle-make-symbolic-link, tramp-handle-load)
+	(tramp-handle-file-name-as-directory)
+	(tramp-handle-file-name-directory)
+	(tramp-handle-file-name-nondirectory, tramp-handle-file-truename)
+	(tramp-handle-file-exists-p, tramp-handle-file-attributes)
+	(tramp-do-file-attributes-with-ls)
+	(tramp-do-file-attributes-with-perl)
+	(tramp-do-file-attributes-with-stat)
+	(tramp-handle-set-visited-file-modtime)
+	(tramp-handle-verify-visited-file-modtime)
+	(tramp-handle-set-file-modes, tramp-handle-set-file-times)
+	(tramp-set-file-uid-gid, tramp-remote-selinux-p)
+	(tramp-handle-file-selinux-context)
+	(tramp-handle-set-file-selinux-context)
+	(tramp-handle-file-executable-p, tramp-handle-file-readable-p)
+	(tramp-handle-file-newer-than-file-p, tramp-handle-file-modes)
+	(tramp-handle-file-directory-p, tramp-handle-file-regular-p)
+	(tramp-handle-file-symlink-p, tramp-handle-file-writable-p)
+	(tramp-handle-file-ownership-preserved-p)
+	(tramp-handle-directory-file-name, tramp-handle-directory-files)
+	(tramp-handle-directory-files-and-attributes)
+	(tramp-do-directory-files-and-attributes-with-perl)
+	(tramp-do-directory-files-and-attributes-with-stat)
+	(tramp-handle-file-name-all-completions)
+	(tramp-handle-file-name-completion, tramp-handle-add-name-to-file)
+	(tramp-handle-copy-file, tramp-handle-copy-directory)
+	(tramp-handle-rename-file, tramp-do-copy-or-rename-file)
+	(tramp-do-copy-or-rename-file-via-buffer)
+	(tramp-do-copy-or-rename-file-directly)
+	(tramp-do-copy-or-rename-file-out-of-band)
+	(tramp-handle-make-directory, tramp-handle-delete-directory)
+	(tramp-handle-delete-file)
+	(tramp-handle-dired-recursive-delete-directory)
+	(tramp-handle-dired-compress-file, tramp-handle-dired-uncache)
+	(tramp-handle-insert-directory)
+	(tramp-handle-unhandled-file-name-directory)
+	(tramp-handle-expand-file-name)
+	(tramp-handle-substitute-in-file-name)
+	(tramp-handle-executable-find, tramp-process-sentinel)
+	(tramp-handle-start-file-process, tramp-handle-process-file)
+	(tramp-handle-call-process-region, tramp-handle-shell-command)
+	(tramp-handle-file-local-copy, tramp-handle-file-remote-p)
+	(tramp-handle-insert-file-contents)
+	(tramp-handle-insert-file-contents-literally)
+	(tramp-handle-find-backup-file-name)
+	(tramp-handle-make-auto-save-file-name, tramp-handle-write-region)
+	(tramp-vc-registered-file-names, tramp-handle-vc-registered)
+	(tramp-sh-file-name-handler, tramp-vc-file-name-handler)
+	(tramp-maybe-send-script, tramp-set-auto-save, tramp-run-test)
+	(tramp-run-test2, tramp-find-executable, tramp-set-remote-path)
+	(tramp-find-file-exists-command, tramp-open-shell)
+	(tramp-find-shell, tramp-barf-if-no-shell-prompt)
+	(tramp-open-connection-setup-interactive-shell)
+	(tramp-local-coding-commands, tramp-remote-coding-commands)
+	(tramp-find-inline-encoding, tramp-call-local-coding-command)
+	(tramp-inline-compress-commands, tramp-find-inline-compress)
+	(tramp-compute-multi-hops, tramp-maybe-open-connection)
+	(tramp-send-command , tramp-wait-for-output)
+	(tramp-send-command-and-check, tramp-barf-unless-okay)
+	(tramp-send-command-and-read, tramp-mode-string-to-int)
+	(tramp-convert-file-attributes, tramp-check-cached-permissions)
+	(tramp-file-mode-from-int, tramp-file-mode-permissions)
+	(tramp-shell-case-fold, tramp-make-copy-program-file-name)
+	(tramp-method-out-of-band-p, tramp-local-host-p)
+	(tramp-get-remote-path, tramp-get-remote-tmpdir)
+	(tramp-get-ls-command, tramp-get-ls-command-with-dired)
+	(tramp-get-test-command, tramp-get-test-nt-command)
+	(tramp-get-file-exists-command, tramp-get-remote-ln)
+	(tramp-get-remote-perl, tramp-get-remote-stat)
+	(tramp-get-remote-readlink, tramp-get-remote-trash)
+	(tramp-get-remote-id, tramp-get-remote-uid, tramp-get-remote-gid)
+	(tramp-get-local-uid, tramp-get-local-gid)
+	(tramp-get-inline-compress, tramp-get-inline-coding, ): Move to
+	tramp-sh.el.
+	(tramp-methods, tramp-default-method-alist)
+	(tramp-default-user-alist, tramp-foreign-file-name-handler-alist):
+	Move initialization to tramp-sh.el.
+	(tramp-temp-name-prefix): Make it a defconst.
+	(tramp-dissect-file-name): Don't check anymore for multi-hop
+	methods.
+	(tramp-debug-outline-regexp): Add a docstring.
+	(tramp-debug-outline-level): Renamed from `tramp-outline-level'.
+	(tramp-get-debug-buffer): Use it.
+
+	* net/tramp-cache.el (top): Set tramp-autoload cookie for
+	initialization forms.
+	(tramp-set-connection-property): Don't protect `tramp-message'
+	call, it isn't necessary any longer.
+	(tramp-dump-connection-properties): Use `ignore-errors'.
+
+	* net/tramp-compat.el (top): Require 'advice, 'format-spec,
+	'password-cache and 'auth-source.
+
+	* net/tramp-gvfs.el (top):
+	* net/tramp-smb.el (top): Require 'tramp-sh.
+
+	* net/tramp-gw.el (tramp-gw-open-network-stream): Use `ignore-errors'.
+
+	* net/tramp-sh.el: New file, derived from tramp.el.
+	(top): Initialize `tramp-methods', `tramp-default-method-alist',
+	`tramp-default-user-alist', tramp-foreign-file-name-handler-alist.
+	Remove "scp1_old", "scp2_old", "ssh1_old", "ssh2_old".  Use
+	`ignore-errors' where appropriate.
+	(tramp-sh-file-name-handler-alist): Renamed from
+	`tramp-file-name-handler-alist'.
+	(tramp-send-command-and-check): Return t or nil.  Remove all
+	`zerop' checks, where called.
+	(tramp-handle-set-file-modes)
+	(tramp-do-copy-or-rename-file-directly)
+	(tramp-handle-delete-directory, tramp-handle-delete-file)
+	(tramp-maybe-send-script, ): Use `tramp-barf-unless-okay'.
+	(tramp-sh-file-name-handler, tramp-send-command-and-check)
+	(tramp-get-remote-ln): Set tramp-autoload cookie.
+
+	* net/tramp-fish.el: Remove file.
+
 2010-09-13  Daiki Ueno  <ueno@unixuser.org>
 
 	* epa-file.el (epa-file-insert-file-contents): If visiting, bind
