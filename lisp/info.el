@@ -3372,7 +3372,6 @@ Build a menu of the possible matches."
   filename)
 
 (defvar finder-known-keywords)
-(defvar finder-package-info)
 (declare-function find-library-name "find-func" (library))
 (declare-function finder-unknown-keywords "finder" ())
 (declare-function lm-commentary "lisp-mnt" (&optional file))
@@ -3388,15 +3387,14 @@ Build a menu of the possible matches."
     (insert "Finder Keywords\n")
     (insert "***************\n\n")
     (insert "* Menu:\n\n")
-    (mapc
-     (lambda (assoc)
-       (let ((keyword (car assoc)))
-	 (insert (format "* %-14s %s.\n"
-			 (concat (symbol-name keyword) "::")
-			 (cdr assoc)))))
-     (append '((all . "All package info")
-	       (unknown . "unknown keywords"))
-	   finder-known-keywords)))
+    (dolist (assoc (append '((all . "All package info")
+			     (unknown . "unknown keywords"))
+			   finder-known-keywords))
+      (let ((keyword (car assoc)))
+	(insert (format "* %s %s.\n"
+			(concat (symbol-name keyword) ": "
+				"kw:" (symbol-name keyword) ".")
+			(cdr assoc))))))
    ((equal nodename "unknown")
     ;; Display unknown keywords
     (insert (format "\n\^_\nFile: %s,  Node: %s,  Up: Top\n\n"
@@ -3416,17 +3414,36 @@ Build a menu of the possible matches."
 		    Info-finder-file nodename))
     (insert "Finder Package Info\n")
     (insert "*******************\n\n")
-    (mapc (lambda (package)
-	    (insert (format "%s - %s\n"
-			    (format "*Note %s::" (nth 0 package))
-			    (nth 1 package)))
-	    (insert "Keywords: "
-		    (mapconcat (lambda (keyword)
-				 (format "*Note %s::" (symbol-name keyword)))
-			       (nth 2 package) ", ")
-		    "\n\n"))
-	  finder-package-info))
-   ((string-match-p "\\.el\\'" nodename)
+    (dolist (package package-alist)
+      (insert (format "%s - %s\n"
+		      (format "*Note %s::" (nth 0 package))
+		      (nth 1 package)))))
+   ((string-match "\\`kw:" nodename)
+    (setq nodename (substring nodename (match-end 0)))
+    ;; Display packages that match the keyword
+    ;; or the list of keywords separated by comma.
+    (insert (format "\n\^_\nFile: %s,  Node: kw:%s,  Up: Top\n\n"
+		    Info-finder-file nodename))
+    (insert "Finder Packages\n")
+    (insert "***************\n\n")
+    (insert
+     "The following packages match the keyword `" nodename "':\n\n")
+    (insert "* Menu:\n\n")
+    (let ((keywords
+	   (mapcar 'intern (if (string-match-p "," nodename)
+			       (split-string nodename ",[ \t\n]*" t)
+			     (list nodename))))
+	  hits desc)
+      (dolist (kw keywords)
+	(push (copy-tree (gethash kw finder-keywords-hash)) hits))
+      (setq hits (delete-dups (apply 'append hits)))
+      (dolist (package hits)
+	(setq desc (cdr-safe (assq package package-alist)))
+	(when (vectorp desc)
+	  (insert (format "* %-16s %s.\n"
+			  (concat (symbol-name package) "::")
+			  (aref desc 2)))))))
+   (t
     ;; Display commentary section
     (insert (format "\n\^_\nFile: %s,  Node: %s,  Up: Top\n\n"
 		    Info-finder-file nodename))
@@ -3447,29 +3464,7 @@ Build a menu of the possible matches."
 	   (goto-char (point-min))
 	   (while (re-search-forward "^;+ ?" nil t)
 	     (replace-match "" nil nil))
-	   (buffer-string))))))
-   (t
-    ;; Display packages that match the keyword
-    ;; or the list of keywords separated by comma.
-    (insert (format "\n\^_\nFile: %s,  Node: %s,  Up: Top\n\n"
-		    Info-finder-file nodename))
-    (insert "Finder Packages\n")
-    (insert "***************\n\n")
-    (insert
-     "The following packages match the keyword `" nodename "':\n\n")
-    (insert "* Menu:\n\n")
-    (let ((keywords
-	   (mapcar 'intern (if (string-match-p "," nodename)
-			       (split-string nodename ",[ \t\n]*" t)
-			     (list nodename)))))
-      (mapc
-       (lambda (package)
-	 (unless (memq nil (mapcar (lambda (k) (memq k (nth 2 package)))
-				   keywords))
-	   (insert (format "* %-16s %s.\n"
-			   (concat (nth 0 package) "::")
-			   (nth 1 package)))))
-       finder-package-info)))))
+	   (buffer-string))))))))
 
 ;;;###autoload
 (defun info-finder (&optional keywords)

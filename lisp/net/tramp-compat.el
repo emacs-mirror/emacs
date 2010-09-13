@@ -4,6 +4,7 @@
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
+;; Package: tramp
 
 ;; This file is part of GNU Emacs.
 
@@ -30,6 +31,10 @@
 
 (eval-when-compile
 
+  (require 'tramp-loaddefs))
+
+(eval-when-compile
+
   ;; Pacify byte-compiler.
   (require 'cl))
 
@@ -42,33 +47,20 @@
       (require 'timer-funcs)
     (require 'timer))
 
-  (autoload 'tramp-tramp-file-p "tramp")
-  (autoload 'tramp-file-name-handler "tramp")
-
   ;; We check whether `start-file-process' is bound.
   (unless (fboundp 'start-file-process)
 
     ;; tramp-util offers integration into other (X)Emacs packages like
     ;; compile.el, gud.el etc.  Not necessary in Emacs 23.
     (eval-after-load "tramp"
-      '(progn
-	 (require 'tramp-util)
-	 (add-hook 'tramp-unload-hook
-		   '(lambda ()
-		      (when (featurep 'tramp-util)
-			(unload-feature 'tramp-util 'force))))))
+      '(require 'tramp-util))
 
     ;; Make sure that we get integration with the VC package.  When it
     ;; is loaded, we need to pull in the integration module.  Not
     ;; necessary in Emacs 23.
     (eval-after-load "vc"
       (eval-after-load "tramp"
-	'(progn
-	   (require 'tramp-vc)
-	   (add-hook 'tramp-unload-hook
-		     '(lambda ()
-			(when (featurep 'tramp-vc)
-			  (unload-feature 'tramp-vc 'force))))))))
+	'(require 'tramp-vc))))
 
   ;; Avoid byte-compiler warnings if the byte-compiler supports this.
   ;; Currently, XEmacs supports this.
@@ -262,6 +254,24 @@ Add the extension of FILENAME, if existing."
    ;; Default value in XEmacs.
    (t 134217727)))
 
+(defun tramp-compat-decimal-to-octal (i)
+  "Return a string consisting of the octal digits of I.
+Not actually used.  Use `(format \"%o\" i)' instead?"
+  (cond ((< i 0) (error "Cannot convert negative number to octal"))
+        ((not (integerp i)) (error "Cannot convert non-integer to octal"))
+        ((zerop i) "0")
+        (t (concat (tramp-compat-decimal-to-octal (/ i 8))
+                   (number-to-string (% i 8))))))
+
+;; Kudos to Gerd Moellmann for this suggestion.
+(defun tramp-compat-octal-to-decimal (ostr)
+  "Given a string of octal digits, return a decimal number."
+  (let ((x (or ostr "")))
+    ;; `save-match' is in `tramp-mode-string-to-int' which calls this.
+    (unless (string-match "\\`[0-7]*\\'" x)
+      (error "Non-octal junk in string `%s'" x))
+    (string-to-number ostr 8)))
+
 ;; ID-FORMAT does not exists in XEmacs.
 (defun tramp-compat-file-attributes (filename &optional id-format)
   "Like `file-attributes' for Tramp files (compat function)."
@@ -396,6 +406,20 @@ This is, the first, empty, element is omitted.  In XEmacs, the first
 element is not omitted."
   (delete "" (split-string string pattern)))
 
+(defun tramp-compat-call-process
+  (program &optional infile destination display &rest args)
+  "Calls `call-process' on the local host.
+This is needed because for some Emacs flavors Tramp has
+defadviced `call-process' to behave like `process-file'.  The
+Lisp error raised when PROGRAM is nil is trapped also, returning 1."
+  (let ((default-directory
+	  (if (file-remote-p default-directory)
+	      (tramp-compat-temporary-file-directory)
+	    default-directory)))
+    (if (executable-find program)
+	(apply 'call-process program infile destination display args)
+      1)))
+
 (defun tramp-compat-process-running-p (process-name)
   "Returns `t' if system process PROCESS-NAME is running for `user-login-name'."
   (when (stringp process-name)
@@ -437,6 +461,10 @@ element is not omitted."
 	    (setq result t))
 	  (setenv "UNIX95" unix95)
 	  result)))))
+
+(add-hook 'tramp-unload-hook
+	  (lambda ()
+	    (unload-feature 'tramp-compat 'force)))
 
 (provide 'tramp-compat)
 

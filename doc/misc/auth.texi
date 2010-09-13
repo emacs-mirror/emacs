@@ -286,7 +286,3 @@ users' netrc files.
 @bye
 
 @c End:
-
-@ignore
-   arch-tag: 7b835fd3-473f-40fc-9776-1c4e49d26c94
-@end ignore

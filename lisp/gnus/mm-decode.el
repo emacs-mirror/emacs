@@ -105,10 +105,9 @@
 	 ,disposition ,description ,cache ,id))
 
 (defcustom mm-text-html-renderer
-  (cond ((executable-find "w3m")
-	 (if (locate-library "w3m")
-	     'w3m
-	   'w3m-standalone))
+  (cond ((and (executable-find "w3m")
+	      (executable-find "curl"))
+	 'gnus-article-html)
 	((executable-find "links") 'links)
 	((executable-find "lynx") 'lynx)
 	((locate-library "w3") 'w3)
@@ -124,7 +123,7 @@ The defined renderer types are:
 `w3'   : use Emacs/W3;
 `html2text' : use html2text;
 nil    : use external viewer (default web browser)."
-  :version "23.0" ;; No Gnus
+  :version "24.1"
   :type '(choice (const w3)
 		 (const w3m :tag "emacs-w3m")
 		 (const w3m-standalone :tag "standalone w3m" )
@@ -1671,5 +1670,4 @@ If RECURSIVE, search recursively."
 
 (provide 'mm-decode)
 
-;; arch-tag: 4f35d360-56b8-4030-9388-3ed82d359b9b
 ;;; mm-decode.el ends here

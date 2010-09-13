@@ -6,6 +6,7 @@
 
 ;; Maintainer: FSF
 ;; Keywords: internal
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -785,15 +786,16 @@ opening the first frame (e.g. open a connection to an X server).")
                 argi (match-string 1 argi)))
 	(when (string-match "\\`--." orig-argi)
 	  (let ((completion (try-completion argi longopts)))
-	    (if (eq completion t)
-		(setq argi (substring argi 1))
-	      (if (stringp completion)
-		  (let ((elt (assoc completion longopts)))
-		    (or elt
-			(error "Option `%s' is ambiguous" argi))
-		    (setq argi (substring (car elt) 1)))
-		(setq argval nil
-                      argi orig-argi)))))
+	    (cond ((eq completion t)
+		   (setq argi (substring argi 1)))
+		  ((stringp completion)
+		   (let ((elt (assoc completion longopts)))
+		     (unless elt
+		       (error "Option `%s' is ambiguous" argi))
+		     (setq argi (substring (car elt) 1))))
+		  (t
+		   (setq argval nil
+			 argi orig-argi)))))
 	(cond
 	 ;; The --display arg is handled partly in C, partly in Lisp.
 	 ;; When it shows up here, we just put it back to be handled
@@ -2230,6 +2232,11 @@ A fancy display is used on graphic displays, normal otherwise."
 		   (unless (< cl1-column 1)
 		     (move-to-column (1- cl1-column)))
 		   (setq cl1-column 0))
+
+		  ;; These command lines now have no effect.
+		  ((string-match "\\`--?\\(no-\\)?\\(uni\\|multi\\)byte$" argi)
+		   (display-warning 'initialization
+				    (format "Ignoring obsolete arg %s" argi)))
 
 		  ((equal argi "--")
 		   (setq just-files t))

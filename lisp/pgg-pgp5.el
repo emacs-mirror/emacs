@@ -6,6 +6,7 @@
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Created: 1999/11/02
 ;; Keywords: PGP, OpenPGP
+;; Package: pgg
 
 ;; This file is part of GNU Emacs.
 
@@ -254,5 +255,4 @@ Bourne shell or its equivalent \(not tcsh) is needed for \"2>\"."
 
 (provide 'pgg-pgp5)
 
-;; arch-tag: 3dbd1073-6b3a-466c-9f55-5c587ffa6d7b
 ;;; pgg-pgp5.el ends here

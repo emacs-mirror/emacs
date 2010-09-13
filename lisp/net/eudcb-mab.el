@@ -6,6 +6,7 @@
 ;; Author: John Wiegley <johnw@newartisans.com>
 ;; Maintainer: FSF
 ;; Keywords: comm
+;; Package: eudc
 
 ;; This file is part of GNU Emacs.
 

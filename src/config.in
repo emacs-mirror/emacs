@@ -294,6 +294,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if netdb.h declares h_errno. */
 #undef HAVE_H_ERRNO
 
+/* Define to 1 if using imagemagick. */
+#undef HAVE_IMAGEMAGICK
+
 /* Define to 1 if you have inet sockets. */
 #undef HAVE_INET_SOCKETS
 
@@ -431,6 +434,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the <mach/mach.h> header file. */
 #undef HAVE_MACH_MACH_H
+
+/* Define to 1 if you have the `MagickExportImagePixels' function. */
+#undef HAVE_MAGICKEXPORTIMAGEPIXELS
 
 /* Define to 1 if you have the <maillock.h> header file. */
 #undef HAVE_MAILLOCK_H
@@ -806,6 +812,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the SM library (-lSM). */
 #undef HAVE_X_SM
+
+/* Define to 1 if you have the libxml2 library (-lxml2). */
+#undef HAVE_LIBXML2
 
 /* Define to 1 if you want to use the X window system. */
 #undef HAVE_X_WINDOWS

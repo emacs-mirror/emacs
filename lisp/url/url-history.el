@@ -1,7 +1,7 @@
 ;;; url-history.el --- Global history tracking for URL package
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1998, 1999, 2004, 2005, 2006, 2007, 2008,
+;;   2009, 2010  Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -35,7 +35,7 @@
   :group 'url)
 
 (defcustom url-history-track nil
-  "*Controls whether to keep a list of all the URLs being visited.
+  "Controls whether to keep a list of all the URLs being visited.
 If non-nil, the URL package will keep track of all the URLs visited.
 If set to t, then the list is saved to disk at the end of each Emacs
 session."
@@ -49,14 +49,14 @@ session."
   :group 'url-history)
 
 (defcustom url-history-file nil
-  "*The global history file for the URL package.
+  "The global history file for the URL package.
 This file contains a list of all the URLs you have visited.  This file
 is parsed at startup and used to provide URL completion."
   :type '(choice (const :tag "Default" :value nil) file)
   :group 'url-history)
 
 (defcustom url-history-save-interval 3600
-  "*The number of seconds between automatic saves of the history list.
+  "The number of seconds between automatic saves of the history list.
 Default is 1 hour.  Note that if you change this variable outside of
 the `customize' interface after `url-do-setup' has been run, you need
 to run the `url-history-setup-save-timer' function manually."

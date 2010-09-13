@@ -1,7 +1,7 @@
 ;;; url-vars.el --- Variables for Uniform Resource Locator tool
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2001, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1998, 1999, 2001, 2004, 2005, 2006, 2007,
+;;   2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -68,7 +68,7 @@
 	))
 
 (defcustom url-honor-refresh-requests t
-  "*Whether to do automatic page reloads.
+  "Whether to do automatic page reloads.
 These are done at the request of the document author or the server via
 the `Refresh' header in an HTTP response.  If nil, no refresh
 requests will be honored.  If t, all refresh requests will be honored.
@@ -79,14 +79,14 @@ If non-nil and not t, the user will be asked for each refresh request."
   :group 'url-hairy)
 
 (defcustom url-automatic-caching nil
-  "*If non-nil, all documents will be automatically cached to the local disk."
+  "If non-nil, all documents will be automatically cached to the local disk."
   :type 'boolean
   :group 'url-cache)
 
 ;; Fixme: sanitize this.
 (defcustom url-cache-expired
   (lambda (t1 t2) (>= (- (car t2) (car t1)) 5))
-  "*A function determining if a cached item has expired.
+  "A function determining if a cached item has expired.
 It takes two times (numbers) as its arguments, and returns non-nil if
 the second time is 'too old' when compared to the first time."
   :type 'function
@@ -96,14 +96,14 @@ the second time is 'too old' when compared to the first time."
   "Where to send bug reports.")
 
 (defcustom url-personal-mail-address nil
-  "*Your full email address.
+  "Your full email address.
 This is what is sent to HTTP servers as the FROM field in an HTTP
 request."
   :type '(choice (const :tag "Unspecified" nil) string)
   :group 'url)
 
 (defcustom url-directory-index-file "index.html"
-  "*The filename to look for when indexing a directory.
+  "The filename to look for when indexing a directory.
 If this file exists, and is readable, then it will be viewed instead of
 using `dired' to view the directory."
   :type 'string
@@ -166,14 +166,14 @@ variable."
 				    (".hqx" . "x-hqx")
 				    (".Z"  . "x-compress")
 				    (".bz2"  . "x-bzip2"))
-  "*An alist of file extensions and appropriate content-transfer-encodings."
+  "An alist of file extensions and appropriate content-transfer-encodings."
   :type '(repeat (cons :format "%v"
 		       (string :tag "Extension")
 		       (string :tag "Encoding")))
   :group 'url-mime)
 
 (defcustom url-mail-command 'compose-mail
-  "*This function will be called whenever URL needs to send mail.
+  "This function will be called whenever URL needs to send mail.
 It should enter a mail-mode-like buffer in the current window.
 The commands `mail-to' and `mail-subject' should still work in this
 buffer, and it should use `mail-header-separator' if possible."
@@ -181,7 +181,7 @@ buffer, and it should use `mail-header-separator' if possible."
   :group 'url)
 
 (defcustom url-proxy-services nil
-  "*An alist of schemes and proxy servers that gateway them.
+  "An alist of schemes and proxy servers that gateway them.
 Looks like ((\"http\" . \"hostname:portnumber\") ...).  This is set up
 from the ACCESS_proxy environment variables."
   :type '(repeat (cons :format "%v"
@@ -190,7 +190,7 @@ from the ACCESS_proxy environment variables."
   :group 'url)
 
 (defcustom url-standalone-mode nil
-  "*Rely solely on the cache?"
+  "Rely solely on the cache?"
   :type 'boolean
   :group 'url-cache)
 
@@ -202,7 +202,7 @@ from the ACCESS_proxy environment variables."
 
 (defcustom url-bad-port-list
   '("25" "119" "19")
-  "*List of ports to warn the user about connecting to.
+  "List of ports to warn the user about connecting to.
 Defaults to just the mail, chargen, and NNTP ports so you cannot be
 tricked into sending fake mail or forging messages by a malicious HTML
 document."
@@ -255,7 +255,7 @@ given priority 1 and the rest are given priority 0.5.")
 
 ;; Fixme: set from the locale.
 (defcustom url-mime-language-string nil
-  "*String to send in the Accept-language: field in HTTP requests.
+  "String to send in the Accept-language: field in HTTP requests.
 
 Specifies the preferred language when servers can serve documents in
 several languages.  Use RFC 1766 abbreviations, e.g.: `en' for
@@ -284,20 +284,20 @@ get the first available language (as opposed to the default)."
   "What OS we are on.")
 
 (defcustom url-max-password-attempts 5
-  "*Maximum number of times a password will be prompted for.
+  "Maximum number of times a password will be prompted for.
 Applies when a protected document is denied by the server."
   :type 'integer
   :group 'url)
 
 (defcustom url-temporary-directory (or (getenv "TMPDIR") "/tmp")
-  "*Where temporary files go."
+  "Where temporary files go."
   :type 'directory
   :group 'url-file)
 (make-obsolete-variable 'url-temporary-directory
 			'temporary-file-directory "23.1")
 
 (defcustom url-show-status t
-  "*Whether to show a running total of bytes transferred.
+  "Whether to show a running total of bytes transferred.
 Can cause a large hit if using a remote X display over a slow link, or
 a terminal with a slow modem."
   :type 'boolean
@@ -308,7 +308,7 @@ a terminal with a slow modem."
 http://www.example.com/")
 
 (defcustom url-news-server nil
-  "*The default news server from which to get newsgroups/articles.
+  "The default news server from which to get newsgroups/articles.
 Applies if no server is specified in the URL.  Defaults to the
 environment variable NNTPSERVER or \"news\" if NNTPSERVER is
 undefined."
@@ -320,13 +320,13 @@ undefined."
   "A regular expression that will match an absolute URL.")
 
 (defcustom url-max-redirections 30
-  "*The maximum number of redirection requests to honor in a HTTP connection.
+  "The maximum number of redirection requests to honor in a HTTP connection.
 A negative number means to honor an unlimited number of redirection requests."
   :type 'integer
   :group 'url)
 
 (defcustom url-confirmation-func 'y-or-n-p
-  "*What function to use for asking yes or no functions.
+  "What function to use for asking yes or no functions.
 Possible values are `yes-or-no-p' or `y-or-n-p', or any function that
 takes a single argument (the prompt), and returns t only if a positive
 answer is given."
@@ -336,7 +336,7 @@ answer is given."
   :group 'url-hairy)
 
 (defcustom url-gateway-method 'native
-  "*The type of gateway support to use.
+  "The type of gateway support to use.
 Should be a symbol specifying how to get a connection from the local machine.
 
 Currently supported methods:

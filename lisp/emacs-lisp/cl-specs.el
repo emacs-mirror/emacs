@@ -4,6 +4,7 @@
 ;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 ;; Author: Daniel LaLiberte <liberte@holonexus.org>
 ;; Keywords: lisp, tools, maint
+;; Package: emacs
 
 ;; LCD Archive Entry:
 ;; cl-specs.el|Daniel LaLiberte|liberte@holonexus.org

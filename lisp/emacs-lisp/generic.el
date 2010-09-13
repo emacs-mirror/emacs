@@ -6,6 +6,7 @@
 ;; Author:  Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Fri Sep 27 1996
 ;; Keywords: generic, comment, font-lock
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

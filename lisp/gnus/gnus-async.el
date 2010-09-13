@@ -71,6 +71,13 @@ It should return non-nil if the article is to be prefetched."
   :group 'gnus-asynchronous
   :type 'function)
 
+(defcustom gnus-async-post-fetch-function nil
+  "Function called after an article has been prefetched.
+The function will be called narrowed to the region of the article
+that was fetched."
+  :group 'gnus-asynchronous
+  :type 'function)
+
 ;;; Internal variables.
 
 (defvar gnus-async-prefetch-article-buffer " *Async Prefetch Article*")
@@ -221,12 +228,23 @@ It should return non-nil if the article is to be prefetched."
   `(lambda (arg)
      (gnus-async-article-callback arg ,group ,article ,mark ,summary ,next)))
 
+(eval-when-compile
+  (autoload 'gnus-html-prefetch-images "gnus-html"))
+
 (defun gnus-async-article-callback (arg group article mark summary next)
   "Function called when an async article is done being fetched."
   (save-excursion
     (setq gnus-async-current-prefetch-article nil)
     (when arg
       (gnus-async-set-buffer)
+      (save-excursion
+	(save-restriction
+	  (narrow-to-region mark (point-max))
+	  ;; Prefetch images for the groups that want that.
+	  (when (fboundp 'gnus-html-prefetch-images)
+	    (gnus-html-prefetch-images summary))
+	  (when gnus-async-post-fetch-function
+	    (funcall gnus-async-post-fetch-function summary))))
       (gnus-async-with-semaphore
 	(setq
 	 gnus-async-article-alist
@@ -372,5 +390,4 @@ It should return non-nil if the article is to be prefetched."
 
 (provide 'gnus-async)
 
-;; arch-tag: fee61de5-3ea2-4de6-8578-2f90ce89391d
 ;;; gnus-async.el ends here

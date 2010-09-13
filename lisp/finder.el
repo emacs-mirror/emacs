@@ -30,55 +30,50 @@
 
 ;;; Code:
 
+(require 'package)
 (require 'lisp-mnt)
-(require 'find-func)			;for find-library(-suffixes)
-;; Use `load' rather than `require' so that it doesn't get loaded
-;; during byte-compilation (at which point it might be missing).
-(load "finder-inf" t t)
+(require 'find-func) ;for find-library(-suffixes)
+(require 'finder-inf nil t)
 
 ;; These are supposed to correspond to top-level customization groups,
 ;; says rms.
 (defvar finder-known-keywords
-  '(
-    (abbrev	. "abbreviation handling, typing shortcuts, macros")
-    ;; Too specific:
-    (bib	. "code related to the `bib' bibliography processor")
-    (c		. "support for the C language and related languages")
-    (calendar	. "calendar and time management support")
-    (comm	. "communications, networking, remote access to files")
+  '((abbrev	. "abbreviation handling, typing shortcuts, and macros")
+    (bib	. "bibliography processors")
+    (c		. "C and related programming languages")
+    (calendar	. "calendar and time management tools")
+    (comm	. "communications, networking, and remote file access")
     (convenience . "convenience features for faster editing")
-    (data	. "support for editing files of data")
-    (docs	. "support for Emacs documentation")
+    (data	. "editing data (non-text) files")
+    (docs	. "Emacs documentation facilities")
     (emulations	. "emulations of other editors")
     (extensions	. "Emacs Lisp language extensions")
-    (faces	. "support for multiple fonts")
-    (files      . "support for editing and manipulating files")
-    (frames     . "support for Emacs frames and window systems")
+    (faces	. "fonts and colors for text")
+    (files      . "file editing and manipulation")
+    (frames     . "Emacs frames and window systems")
     (games	. "games, jokes and amusements")
-    (hardware	. "support for interfacing with exotic hardware")
-    (help	. "support for on-line help systems")
-    (hypermedia . "support for links between text or other media types")
-    (i18n	. "internationalization and alternate character-set support")
+    (hardware	. "interfacing with system hardware")
+    (help	. "on-line help systems")
+    (hypermedia . "links between text or other media types")
+    (i18n	. "internationalization and character-set support")
     (internal	. "code for Emacs internals, build process, defaults")
     (languages	. "specialized modes for editing programming languages")
     (lisp	. "Lisp support, including Emacs Lisp")
     (local	. "code local to your site")
-    (maint	. "maintenance aids for the Emacs development group")
-    (mail	. "modes for electronic-mail handling")
-    (matching	. "various sorts of searching and matching")
+    (maint	. "Emacs development tools and aids")
+    (mail	. "email reading and posting")
+    (matching	. "searching, matching, and sorting")
     (mouse	. "mouse support")
-    (multimedia . "images and sound support")
-    (news	. "support for netnews reading and posting")
-    (oop        . "support for object-oriented programming")
-    (outlines   . "support for hierarchical outlining")
-    (processes	. "process, subshell, compilation, and job control support")
-    (terminals	. "support for terminal types")
-    (tex	. "supporting code for the TeX formatter")
+    (multimedia . "images and sound")
+    (news	. "USENET news reading and posting")
+    (outlines   . "hierarchical outlining and note taking")
+    (processes	. "processes, subshells, and compilation")
+    (terminals	. "text terminals (ttys)")
+    (tex	. "the TeX document formatter")
     (tools	. "programming tools")
-    (unix	. "front-ends/assistants for, or emulators of, UNIX-like features")
+    (unix	. "UNIX feature interfaces and emulators")
     (vc		. "version control")
-    (wp		. "word processing")
-    ))
+    (wp		. "word processing")))
 
 (defvar finder-mode-map
   (let ((map (make-sparse-keymap))
@@ -125,8 +120,9 @@
 
 ;;; Code for regenerating the keyword list.
 
-(defvar finder-package-info nil
-  "Assoc list mapping file names to description & keyword lists.")
+(defvar finder-keywords-hash nil
+  "Hash table mapping keywords to lists of package names.
+Keywords and package names both should be symbols.")
 
 (defvar generated-finder-keywords-file "finder-inf.el"
   "The function `finder-compile-keywords' writes keywords into this file.")
@@ -142,10 +138,91 @@ cus-load\\|finder-inf\\|esh-groups\\|subdirs\\)\\.el$\\)"
 
 (autoload 'autoload-rubric "autoload")
 
+(defvar finder--builtins-alist
+  '(("calc" . calc)
+    ("ede"  . ede)
+    ("erc"  . erc)
+    ("eshell" . eshell)
+    ("gnus" . gnus)
+    ("international" . emacs)
+    ("language" . emacs)
+    ("mh-e" . mh-e)
+    ("semantic" . semantic)
+    ("analyze" . semantic)
+    ("bovine" . semantic)
+    ("decorate" . semantic)
+    ("symref" . semantic)
+    ("wisent" . semantic)
+    ("nxml" . nxml)
+    ("org"  . org)
+    ("srecode" . srecode)
+    ("term" . emacs)
+    ("url"  . url))
+  "Alist of built-in package directories.
+Each element should have the form (DIR . PACKAGE), where DIR is a
+directory name and PACKAGE is the name of a package (a symbol).
+When generating `package--builtins', Emacs assumes any file in
+DIR is part of the package PACKAGE.")
+
 (defun finder-compile-keywords (&rest dirs)
-  "Regenerate the keywords association list into `generated-finder-keywords-file'.
-Optional arguments DIRS are a list of Emacs Lisp directories to compile from;
-no arguments compiles from `load-path'."
+  "Regenerate list of built-in Emacs packages.
+This recomputes `package--builtins' and `finder-keywords-hash',
+and prints them into the file `generated-finder-keywords-file'.
+
+Optional DIRS is a list of Emacs Lisp directories to compile
+from; the default is `load-path'."
+  ;; Allow compressed files also.
+  (setq package--builtins nil)
+  (setq finder-keywords-hash (make-hash-table :test 'eq))
+  (let ((el-file-regexp "^\\([^=].*\\)\\.el\\(\\.\\(gz\\|Z\\)\\)?$")
+	package-override files base-name processed
+	summary keywords package version entry desc)
+    (dolist (d (or dirs load-path))
+      (when (file-exists-p (directory-file-name d))
+	(message "Directory %s" d)
+	(setq package-override
+	      (intern-soft
+	       (cdr-safe
+		(assoc (file-name-nondirectory (directory-file-name d))
+		       finder--builtins-alist))))
+	(setq files (directory-files d nil el-file-regexp))
+	(dolist (f files)
+	  (unless (or (string-match finder-no-scan-regexp f)
+		      (null (setq base-name
+				  (and (string-match el-file-regexp f)
+				       (intern (match-string 1 f)))))
+		      (memq base-name processed))
+	    (push base-name processed)
+	    (with-temp-buffer
+	      (insert-file-contents (expand-file-name f d))
+	      (setq summary  (lm-synopsis)
+		    keywords (mapcar 'intern (lm-keywords-list))
+		    package  (or package-override
+				 (intern-soft (lm-header "package"))
+				 base-name)
+		    version  (lm-header "version")))
+	    (when summary
+	      (setq version (ignore-errors (version-to-list version)))
+	      (setq entry (assq package package--builtins))
+	      (cond ((null entry)
+		     (push (cons package (vector version nil summary))
+			   package--builtins))
+		    ((eq base-name package)
+		     (setq desc (cdr entry))
+		     (aset desc 0 version)
+		     (aset desc 2 summary)))
+	      (dolist (kw keywords)
+		(puthash kw
+			 (cons package
+			       (delq package
+				     (gethash kw finder-keywords-hash)))
+			 finder-keywords-hash))))))))
+
+  (setq package--builtins
+	(sort package--builtins
+	      (lambda (a b) (string< (symbol-name (car a))
+				     (symbol-name (car b))))))
+
   (save-excursion
     (find-file generated-finder-keywords-file)
     (setq buffer-undo-list t)
@@ -153,40 +230,16 @@ no arguments compiles from `load-path'."
     (insert (autoload-rubric generated-finder-keywords-file
                              "keyword-to-package mapping" t))
     (search-backward "")
-    (insert "(setq finder-package-info '(\n")
-    (let (processed summary keywords)
-      (mapc
-       (lambda (d)
-	 (when (file-exists-p (directory-file-name d))
-	   (message "Directory %s" d)
-	   (mapc
-	    (lambda (f)
-              ;; FIXME should this not be using (expand-file-name f d)?
-	      (unless (or (member f processed)
-                          (string-match finder-no-scan-regexp f))
-                (setq processed (cons f processed))
-                (with-temp-buffer
-                  (insert-file-contents (expand-file-name f d))
-                  (setq summary (lm-synopsis)
-                        keywords (lm-keywords-list)))
-                (insert
-                 (format "    (\"%s\"\n        "
-                         (if (string-match "\\.\\(gz\\|Z\\)$" f)
-                             (file-name-sans-extension f)
-                           f)))
-                (prin1 summary (current-buffer))
-                (insert "\n        ")
-                (prin1 (mapcar 'intern keywords) (current-buffer))
-                (insert ")\n")))
-	    (directory-files d nil
-                             ;; Allow compressed files also.  FIXME:
-                             ;; generalize this, especially for
-                             ;; MS-DOG-type filenames.
-                             "^[^=].*\\.el\\(\\.\\(gz\\|Z\\)\\)?$"
-                             ))))
-       (or dirs load-path)))
-    (insert "    ))\n")
-    (eval-buffer)         ; so we get the new keyword list immediately
+    (insert "(setq package--builtins '(\n")
+    (dolist (package package--builtins)
+      (insert "  ")
+      (prin1 package (current-buffer))
+      (insert "\n"))
+    (insert "))\n\n")
+    ;; Insert hash table.
+    (insert "(setq finder-keywords-hash\n      ")
+    (prin1 finder-keywords-hash (current-buffer))
+    (insert ")\n")
     (basic-save-buffer)))
 
 (defun finder-compile-keywords-make-dist ()
@@ -226,26 +279,14 @@ no arguments compiles from `load-path'."
 
 (defun finder-unknown-keywords ()
   "Return an alist of unknown keywords and number of their occurences.
-Unknown are keywords that are present in `finder-package-info'
-but absent in `finder-known-keywords'."
-  (let ((unknown-keywords-hash (make-hash-table)))
-    ;; Prepare a hash where key is a keyword
-    ;; and value is the number of keyword occurences.
-    (mapc (lambda (package)
-	    (mapc (lambda (keyword)
-		    (unless (assq keyword finder-known-keywords)
-		      (puthash keyword
-			       (1+ (gethash keyword unknown-keywords-hash 0))
-			       unknown-keywords-hash)))
-		  (nth 2 package)))
-	  finder-package-info)
-    ;; Make an alist from the hash and sort by the keyword name.
-    (sort (let (unknown-keywords-list)
-	    (maphash (lambda (key value)
-		       (push (cons key value) unknown-keywords-list))
-		     unknown-keywords-hash)
-	    unknown-keywords-list)
-	  (lambda (a b) (string< (car a) (car b))))))
+Unknown keywords are those present in `finder-keywords-hash' but
+not `finder-known-keywords'."
+  (let (alist)
+    (maphash (lambda (kw packages)
+	       (unless (assq kw finder-known-keywords)
+		 (push (cons kw (length packages)) alist)))
+	     finder-keywords-hash)
+    (sort alist (lambda (a b) (string< (car a) (car b))))))
 
 ;;;###autoload
 (defun finder-list-keywords ()
@@ -255,46 +296,27 @@ but absent in `finder-known-keywords'."
       (pop-to-buffer "*Finder*")
     (pop-to-buffer (get-buffer-create "*Finder*"))
     (finder-mode)
-    (setq buffer-read-only nil
-          buffer-undo-list t)
-    (erase-buffer)
-    (mapc
-     (lambda (assoc)
-       (let ((keyword (car assoc)))
-	 (insert (symbol-name keyword))
-	 (finder-insert-at-column 14 (concat (cdr assoc) "\n"))
-	 (finder-mouse-face-on-line)))
-     finder-known-keywords)
-    (goto-char (point-min))
-    (setq finder-headmark (point)
-          buffer-read-only t)
-    (set-buffer-modified-p nil)
-    (balance-windows)
-    (finder-summary)))
+    (let ((inhibit-read-only t))
+      (erase-buffer)
+      (dolist (assoc finder-known-keywords)
+	(let ((keyword (car assoc)))
+	  (insert (propertize (symbol-name keyword)
+			      'font-lock-face 'font-lock-constant-face))
+	  (finder-insert-at-column 14 (concat (cdr assoc) "\n"))
+	  (finder-mouse-face-on-line)))
+      (goto-char (point-min))
+      (setq finder-headmark (point)
+	    buffer-read-only t)
+      (set-buffer-modified-p nil)
+      (balance-windows)
+      (finder-summary))))
 
 (defun finder-list-matches (key)
-  (pop-to-buffer (set-buffer (get-buffer-create "*Finder Category*")))
-  (finder-mode)
-  (setq buffer-read-only nil
-         buffer-undo-list t)
-  (erase-buffer)
-  (let ((id (intern key)))
-    (insert
-     "The following packages match the keyword `" key "':\n\n")
-    (setq finder-headmark (point))
-    (mapc
-     (lambda (x)
-       (when (memq id (cadr (cdr x)))
-         (insert (car x))
-         (finder-insert-at-column 16 (concat (cadr x) "\n"))
-         (finder-mouse-face-on-line)))
-     finder-package-info)
-    (goto-char (point-min))
-    (forward-line)
-    (setq buffer-read-only t)
-    (set-buffer-modified-p nil)
-    (shrink-window-if-larger-than-buffer)
-    (finder-summary)))
+  (let* ((id (intern key))
+	 (packages (gethash id finder-keywords-hash)))
+    (unless packages
+      (error "No packages matching key `%s'" key))
+    (package--list-packages packages)))
 
 (define-button-type 'finder-xref 'action #'finder-goto-xref)
 
@@ -381,8 +403,8 @@ FILE should be in a form suitable for passing to `locate-library'."
 \\[finder-select]	more help for the item on the current line
 \\[finder-exit]	exit Finder mode and kill the Finder buffer."
   :syntax-table finder-mode-syntax-table
-  (setq font-lock-defaults '(finder-font-lock-keywords nil nil
-                             (("+-*/.<>=!?$%_&~^:@" . "w")) nil))
+  (setq buffer-read-only t
+	buffer-undo-list t)
   (set (make-local-variable 'finder-headmark) nil))
 
 (defun finder-summary ()
@@ -399,8 +421,8 @@ finder directory, \\[finder-exit] = quit, \\[finder-summary] = help")))
 Delete the window and kill all Finder-related buffers."
   (interactive)
   (ignore-errors (delete-window))
-  (dolist (buff '("*Finder*" "*Finder-package*" "*Finder Category*"))
-    (and (get-buffer buff) (kill-buffer buff))))
+  (let ((buf "*Finder*"))
+    (and (get-buffer buf) (kill-buffer buf))))
 
 
 (provide 'finder)

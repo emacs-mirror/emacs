@@ -31,7 +31,7 @@
 
 (defvar comint-prompt-regexp)
 (defvar comint-process-echoes)
-(defvar smie-indent-basic)
+(require 'smie)
 
 (defgroup prolog nil
   "Major mode for editing and running Prolog under Emacs."

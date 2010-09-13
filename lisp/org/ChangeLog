@@ -1,3 +1,33 @@
+2010-08-19  Glenn Morris  <rgm@gnu.org>
+
+	* org.el (org-outline-overlay-data, org-set-outline-overlay-data)
+	(org-save-outline-visibility): Move to org-macs.
+	* org-macs.el (org-outline-overlay-data, org-set-outline-overlay-data)
+	(org-save-outline-visibility): Move here from org.el.
+	(show-all): Autoload it.
+	* ob.el: Don't require org when compiling.
+
+2010-08-18  Glenn Morris  <rgm@gnu.org>
+
+	* ob.el: Require org when compiling.
+	(org-save-outline-visibility): Remove macro declaration.
+	* ob-emacs-lisp.el: Require ob-comint when compiling, for macros.
+	Remove unnecessary/macro declarations.
+	* org-docview.el: Require doc-view when compiling.
+	(doc-view-goto-page): Autoload rather than declaring.
+	(doc-view-current-page): Remove macro declaration.
+
+2010-08-17  Glenn Morris  <rgm@gnu.org>
+
+	* ob.el (tramp-compat-make-temp-file, org-edit-src-code)
+	(org-entry-get, org-table-import): Fix declarations.
+	(org-match-string-no-properties): Remove unnecessary declaration.
+	* ob-sh.el (org-babel-comint-in-buffer)
+	(org-babel-comint-wait-for-output, org-babel-comint-buffer-livep)
+	(org-babel-comint-with-output): Remove unnecessary declarations.
+	* ob-R.el (orgtbl-to-tsv): Fix declaration.
+	* org-list.el (org-entry-get): Fix declaration.
+
 2010-07-19  Eric Schulte  <schulte.eric@gmail.com>
 
 	* ob-C.el: New file.

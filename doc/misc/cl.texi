@@ -1043,10 +1043,10 @@ frame-visible-p                   window-hscroll
 frame-width                       window-point
 get-register                      window-start
 getenv                            window-width
-global-key-binding                x-get-cut-buffer
-keymap-parent                     x-get-cutbuffer
-local-key-binding                 x-get-secondary-selection
-mark                              x-get-selection
+global-key-binding                x-get-secondary-selection
+keymap-parent                     x-get-selection
+local-key-binding                 
+mark                              
 mark-marker
 @end smallexample
 
@@ -3763,10 +3763,10 @@ that it passes in the list pointers themselves rather than the
 @code{car}s of the advancing pointers.
 @end defun
 
-@defun mapc function seq &rest more-seqs
+@defun cl-mapc function seq &rest more-seqs
 This function is like @code{mapcar*}, except that the values returned
 by @var{function} are ignored and thrown away rather than being
-collected into a list.  The return value of @code{mapc} is @var{seq},
+collected into a list.  The return value of @code{cl-mapc} is @var{seq},
 the first sequence.  This function is more general than the Emacs
 primitive @code{mapc}.
 @end defun

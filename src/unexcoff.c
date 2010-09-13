@@ -74,12 +74,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
  * of Dell Computer Corporation.  james@bigtex.cactus.org.
  */
 
-#ifndef emacs
-#define PERROR(arg) perror (arg); return -1
-#else
 #include <config.h>
 #define PERROR(file) report_error (file, new)
-#endif
 
 #ifndef CANNOT_DUMP  /* all rest of file!  */
 
@@ -88,6 +84,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef MSDOS
 #include <fcntl.h>  /* for O_RDONLY, O_RDWR */
 #include <crt0.h>   /* for _crt0_startup_flags and its bits */
+#include <sys/exceptn.h>
 static int save_djgpp_startup_flags;
 #define filehdr external_filehdr
 #define scnhdr external_scnhdr
@@ -132,8 +129,7 @@ struct aouthdr
 #endif
 
 
-extern char *start_of_text ();		/* Start of text */
-extern char *start_of_data ();		/* Start of initialized data */
+extern char *start_of_data (void);		/* Start of initialized data */
 
 static long block_copy_start;		/* Old executable start point */
 static struct filehdr f_hdr;		/* File header */
@@ -155,45 +151,33 @@ static int pagemask;
 
 #define ADDR_CORRECT(x) ((char *)(x) - (char*)0)
 
-#ifdef emacs
-
 #include <setjmp.h>
 #include "lisp.h"
 
-static
-report_error (file, fd)
-     char *file;
-     int fd;
+static void
+report_error (const char *file, int fd)
 {
   if (fd)
     close (fd);
   report_file_error ("Cannot unexec", Fcons (build_string (file), Qnil));
 }
-#endif /* emacs */
 
 #define ERROR0(msg) report_error_1 (new, msg, 0, 0); return -1
 #define ERROR1(msg,x) report_error_1 (new, msg, x, 0); return -1
 #define ERROR2(msg,x,y) report_error_1 (new, msg, x, y); return -1
 
-static
-report_error_1 (fd, msg, a1, a2)
-     int fd;
-     char *msg;
-     int a1, a2;
+static void
+report_error_1 (int fd, const char *msg, int a1, int a2)
 {
   close (fd);
-#ifdef emacs
   error (msg, a1, a2);
-#else
-  fprintf (stderr, msg, a1, a2);
-  fprintf (stderr, "\n");
-#endif
 }
 
-static int make_hdr ();
-static int copy_text_and_data ();
-static int copy_sym ();
-static void mark_x ();
+static int make_hdr (int, int, unsigned, unsigned, unsigned,
+		     const char *, const char *);
+static int copy_text_and_data (int, int);
+static int copy_sym (int, int, const char *, const char *);
+static void mark_x (const char *);
 
 /* ****************************************************************
  * make_hdr
@@ -202,13 +186,9 @@ static void mark_x ();
  * Modify the text and data sizes.
  */
 static int
-make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
-     int new, a_out;
-     unsigned data_start, bss_start, entry_address;
-     char *a_name;
-     char *new_name;
+make_hdr (int new, int a_out, unsigned data_start, unsigned bss_start,
+	  unsigned entry_address, const char *a_name, const char *new_name)
 {
-  int tem;
   auto struct scnhdr f_thdr;		/* Text section header */
   auto struct scnhdr f_dhdr;		/* Data section header */
   auto struct scnhdr f_bhdr;		/* Bss section header */
@@ -319,9 +299,6 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
      to correspond to what we want to dump.  */
 
   f_hdr.f_flags |= (F_RELFLG | F_EXEC);
-  f_ohdr.text_start = (long) start_of_text ();
-  f_ohdr.tsize = data_start - f_ohdr.text_start;
-  f_ohdr.data_start = data_start;
   f_ohdr.dsize = bss_start - f_ohdr.data_start;
   f_ohdr.bsize = bss_end - bss_start;
   f_thdr.s_size = f_ohdr.tsize;
@@ -379,12 +356,10 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
 
 }
 
-write_segment (new, ptr, end)
-     int new;
-     register char *ptr, *end;
+void
+write_segment (int new, const char *ptr, const char *end)
 {
   register int i, nwrite, ret;
-  char buf[80];
   /* This is the normal amount to write at once.
      It is the size of block that NFS uses.  */
   int writesize = 1 << 13;
@@ -417,16 +392,6 @@ write_segment (new, ptr, end)
 	    nwrite = pagesize;
 	  write (new, zeros, nwrite);
 	}
-#if 0 /* Now that we have can ask `write' to write more than a page,
-	 it is legit for write do less than the whole amount specified.  */
-      else if (nwrite != ret)
-	{
-	  sprintf (buf,
-		   "unexec write failure: addr 0x%x, fileno %d, size 0x%x, wrote 0x%x, errno %d",
-		   ptr, new, nwrite, ret, errno);
-	  PERROR (buf);
-	}
-#endif
       i += nwrite;
       ptr += nwrite;
     }
@@ -437,8 +402,7 @@ write_segment (new, ptr, end)
  * Copy the text and data segments from memory to the new a.out
  */
 static int
-copy_text_and_data (new, a_out)
-     int new, a_out;
+copy_text_and_data (int new, int a_out)
 {
   register char *end;
   register char *ptr;
@@ -482,9 +446,7 @@ copy_text_and_data (new, a_out)
  * Copy the relocation information and symbol table from the a.out to the new
  */
 static int
-copy_sym (new, a_out, a_name, new_name)
-     int new, a_out;
-     char *a_name, *new_name;
+copy_sym (int new, int a_out, const char *a_name, const char *new_name)
 {
   char page[1024];
   int n;
@@ -520,8 +482,7 @@ copy_sym (new, a_out, a_name, new_name)
  * After successfully building the new a.out, mark it executable
  */
 static void
-mark_x (name)
-     char *name;
+mark_x (const char *name)
 {
   struct stat sbuf;
   int um;
@@ -561,10 +522,8 @@ mark_x (name)
    a reasonable size buffer.  But I don't have time to work on such
    things, so I am installing it as submitted to me.  -- RMS.  */
 
-adjust_lnnoptrs (writedesc, readdesc, new_name)
-     int writedesc;
-     int readdesc;
-     char *new_name;
+int
+adjust_lnnoptrs (int writedesc, int readdesc, const char *new_name)
 {
   register int nsyms;
   register int new;
@@ -606,31 +565,16 @@ adjust_lnnoptrs (writedesc, readdesc, new_name)
   return 0;
 }
 
-extern unsigned start __asm__ ("start");
-
-/*
- *	Return the address of the start of the text segment prior to
- *	doing an unexec.  After unexec the return value is undefined.
- *	See crt0.c for further explanation and _start.
- *
- */
-
-char *
-start_of_text (void)
-{
-  return ((char *) &start);
-}
-
 /* ****************************************************************
  * unexec
  *
  * driving logic.
  */
-unexec (new_name, a_name, data_start, bss_start, entry_address)
-     char *new_name, *a_name;
-     unsigned data_start, bss_start, entry_address;
+int
+unexec (const char *new_name, const char *a_name,
+	unsigned data_start, unsigned bss_start, unsigned entry_address)
 {
-  int new, a_out = -1;
+  int new = -1, a_out = -1;
 
   if (a_name && (a_out = open (a_name, O_RDONLY)) < 0)
     {
@@ -648,7 +592,6 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
       )
     {
       close (new);
-      /* unlink (new_name);	    	/* Failed, unlink new a.out */
       return -1;
     }
 

@@ -5,6 +5,7 @@
 
 ;; Maintainer: FSF
 ;; Keywords: internal
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -1209,8 +1210,7 @@ frame's display)."
 (defun display-selections-p (&optional display)
   "Return non-nil if DISPLAY supports selections.
 A selection is a way to transfer text or other data between programs
-via special system buffers called `selection' or `cut buffer' or
-`clipboard'.
+via special system buffers called `selection' or `clipboard'.
 DISPLAY can be a display name, a frame, or nil (meaning the selected
 frame's display)."
   (let ((frame-type (framep-on-display display)))

@@ -7,6 +7,7 @@
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 ;; Maintainer: FSF
 ;; Keywords: matching
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

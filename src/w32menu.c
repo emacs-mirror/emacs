@@ -72,10 +72,16 @@ typedef BOOL (WINAPI * SetMenuItemInfoA_Proc) (
     IN UINT,
     IN BOOL,
     IN LPCMENUITEMINFOA);
+typedef int (WINAPI * MessageBoxW_Proc) (
+    IN HWND window,
+    IN WCHAR *text,
+    IN WCHAR *caption,
+    IN UINT type);
 
 GetMenuItemInfoA_Proc get_menu_item_info = NULL;
 SetMenuItemInfoA_Proc set_menu_item_info = NULL;
 AppendMenuW_Proc unicode_append_menu = NULL;
+MessageBoxW_Proc unicode_message_box = NULL;
 
 Lisp_Object Qdebug_on_next_call;
 
@@ -98,6 +104,8 @@ static Lisp_Object w32_dialog_show (FRAME_PTR, int, Lisp_Object, char**);
 static int is_simple_dialog (Lisp_Object);
 static Lisp_Object simple_dialog_show (FRAME_PTR, Lisp_Object, Lisp_Object);
 #endif
+
+static void utf8to16 (unsigned char *, int, WCHAR *);
 
 void w32_free_menu_strings (HWND);
 
@@ -412,12 +420,8 @@ set_frame_menubar (FRAME_PTR f, int first_time, int deep_p)
 
       set_buffer_internal_1 (XBUFFER (buffer));
 
-      /* Run the Lucid hook.  */
+      /* Run the hooks.  */
       safe_run_hooks (Qactivate_menubar_hook);
-      /* If it has changed current-menubar from previous value,
-	 really recompute the menubar from the value.  */
-      if (! NILP (Vlucid_menu_bar_dirty_flag))
-	call0 (Qrecompute_lucid_menubar);
       safe_run_hooks (Qmenu_bar_update_hook);
       FRAME_MENU_BAR_ITEMS (f) = menu_bar_items (FRAME_MENU_BAR_ITEMS (f));
 
@@ -662,7 +666,7 @@ free_frame_menubar (FRAME_PTR f)
 
 Lisp_Object
 w32_menu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
-	       Lisp_Object title, char **error)
+	       Lisp_Object title, const char **error)
 {
   int i;
   int menu_item_selection;
@@ -1220,30 +1224,73 @@ simple_dialog_show (FRAME_PTR f, Lisp_Object contents, Lisp_Object header)
 {
   int answer;
   UINT type;
-  char *text, *title;
   Lisp_Object lispy_answer = Qnil, temp = XCAR (contents);
 
-  if (STRINGP (temp))
-    text = SDATA (temp);
-  else
-    text = "";
-
-  if (NILP (header))
-    {
-      title = "Question";
-      type = MB_ICONQUESTION;
-    }
-  else
-    {
-      title = "Information";
-      type = MB_ICONINFORMATION;
-    }
-  type |= MB_YESNO;
+  type = MB_YESNO;
 
   /* Since we only handle Yes/No dialogs, and we already checked
      is_simple_dialog, we don't need to worry about checking contents
      to see what type of dialog to use.  */
-  answer = MessageBox (FRAME_W32_WINDOW (f), text, title, type);
+
+  /* Use unicode if possible, so any language can be displayed.  */
+  if (unicode_message_box)
+    {
+      WCHAR *text, *title;
+
+      if (STRINGP (temp))
+	{
+	  char *utf8_text = SDATA (ENCODE_UTF_8 (temp));
+	  /* Be pessimistic about the number of characters needed.
+	     Remember characters outside the BMP will take more than
+	     one utf16 word, so we cannot simply use the character
+	     length of temp.  */
+	  int utf8_len = strlen (utf8_text);
+	  text = alloca ((utf8_len + 1) * sizeof (WCHAR));
+	  utf8to16 (utf8_text, utf8_len, text);
+	}
+      else
+	{
+	  text = L"";
+	}
+
+      if (NILP (header))
+	{
+	  title = L"Question";
+	  type |= MB_ICONQUESTION;
+	}
+      else
+	{
+	  title = L"Information";
+	  type |= MB_ICONINFORMATION;
+	}
+
+      answer = unicode_message_box (FRAME_W32_WINDOW (f), text, title, type);
+    }
+  else
+    {
+      char *text, *title;
+
+      /* Fall back on ANSI message box, but at least use system
+	 encoding so questions representable by the system codepage
+	 are encoded properly.  */
+      if (STRINGP (temp))
+	text = SDATA (ENCODE_SYSTEM (temp));
+      else
+	text = "";
+
+      if (NILP (header))
+	{
+	  title = "Question";
+	  type |= MB_ICONQUESTION;
+	}
+      else
+	{
+	  title = "Information";
+	  type |= MB_ICONINFORMATION;
+	}
+
+      answer = MessageBox (FRAME_W32_WINDOW (f), text, title, type);
+    }
 
   if (answer == IDYES)
     lispy_answer = build_string ("Yes");
@@ -1280,9 +1327,9 @@ simple_dialog_show (FRAME_PTR f, Lisp_Object contents, Lisp_Object header)
 
 /* Is this item a separator? */
 static int
-name_is_separator (char *name)
+name_is_separator (const char *name)
 {
-  char *start = name;
+  const char *start = name;
 
   /* Check if name string consists of only dashes ('-').  */
   while (*name == '-') name++;
@@ -1360,7 +1407,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 	  strcat (out_string, wv->key);
 	}
       else
-	out_string = wv->name;
+	out_string = (char *)wv->name;
 
       /* Quote any special characters within the menu item's text and
 	 key binding.  */
@@ -1697,6 +1744,7 @@ globals_of_w32menu (void)
   get_menu_item_info = (GetMenuItemInfoA_Proc) GetProcAddress (user32, "GetMenuItemInfoA");
   set_menu_item_info = (SetMenuItemInfoA_Proc) GetProcAddress (user32, "SetMenuItemInfoA");
   unicode_append_menu = (AppendMenuW_Proc) GetProcAddress (user32, "AppendMenuW");
+  unicode_message_box = (MessageBoxW_Proc) GetProcAddress (user32, "MessageBoxW");
 }
 
 /* arch-tag: 0eaed431-bb4e-4aac-a527-95a1b4f1fed0

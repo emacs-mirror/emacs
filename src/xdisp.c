@@ -217,7 +217,26 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    glyph with suitably computed width.  Both the blanks and the
    stretch glyph are given the face of the background of the line.
    This way, the terminal-specific back-end can still draw the glyphs
-   left to right, even for R2L lines.  */
+   left to right, even for R2L lines.
+
+   Note one important detail mentioned above: that the bidi reordering
+   engine, driven by the iterator, produces characters in R2L rows
+   starting at the character that will be the rightmost on display.
+   As far as the iterator is concerned, the geometry of such rows is
+   still left to right, i.e. the iterator "thinks" the first character
+   is at the leftmost pixel position.  The iterator does not know that
+   PRODUCE_GLYPHS reverses the order of the glyphs that the iterator
+   delivers.  This is important when functions from the the move_it_*
+   family are used to get to certain screen position or to match
+   screen coordinates with buffer coordinates: these functions use the
+   iterator geometry, which is left to right even in R2L paragraphs.
+   This works well with most callers of move_it_*, because they need
+   to get to a specific column, and columns are still numbered in the
+   reading order, i.e. the rightmost character in a R2L paragraph is
+   still column zero.  But some callers do not get well with this; a
+   notable example is mouse clicks that need to find the character
+   that corresponds to certain pixel coordinates.  See
+   buffer_posn_from_coords in dispnew.c for how this is handled.  */
 
 #include <config.h>
 #include <stdio.h>
@@ -1208,7 +1227,7 @@ window_box_left_offset (struct window *w, int area)
 
 
 /* Return the window-relative coordinate of the right edge of display
-   area AREA of window W.  AREA < 0 means return the left edge of the
+   area AREA of window W.  AREA < 0 means return the right edge of the
    whole window, to the left of the right fringe of W.  */
 
 INLINE int
@@ -1238,7 +1257,7 @@ window_box_left (struct window *w, int area)
 
 
 /* Return the frame-relative coordinate of the right edge of display
-   area AREA of window W.  AREA < 0 means return the left edge of the
+   area AREA of window W.  AREA < 0 means return the right edge of the
    whole window, to the left of the right fringe of W.  */
 
 INLINE int
@@ -3158,7 +3177,7 @@ compute_stop_pos (struct it *it)
 {
   register INTERVAL iv, next_iv;
   Lisp_Object object, limit, position;
-  EMACS_INT charpos, bytepos;
+  EMACS_INT charpos, bytepos, stoppos;
 
   /* If nowhere else, stop at the end.  */
   it->stop_charpos = it->end_charpos;
@@ -3248,8 +3267,12 @@ compute_stop_pos (struct it *it)
 	}
     }
 
+  if (it->bidi_p && it->bidi_it.scan_dir < 0)
+    stoppos = -1;
+  else
+    stoppos = it->stop_charpos;
   composition_compute_stop_pos (&it->cmp_it, charpos, bytepos,
-				it->stop_charpos, it->string);
+				stoppos, it->string);
 
   xassert (STRINGP (it->string)
 	   || (it->stop_charpos >= BEGV
@@ -5739,10 +5762,23 @@ get_next_display_element (struct it *it)
 	  struct charset *unibyte = CHARSET_FROM_ID (charset_unibyte);
 	  enum { char_is_other = 0, char_is_nbsp, char_is_soft_hyphen }
 	  nbsp_or_shy = char_is_other;
-	  int decoded = it->c;
+	  int c = it->c;	/* This is the character to display.  */
+
+	  if (! it->multibyte_p && ! ASCII_CHAR_P (c))
+	    {
+	      xassert (SINGLE_BYTE_CHAR_P (c));
+	      if (unibyte_display_via_language_environment)
+		{
+		  c = DECODE_CHAR (unibyte, c);
+		  if (c < 0)
+		    c = BYTE8_TO_CHAR (it->c);
+		}
+	      else
+		c = BYTE8_TO_CHAR (it->c);
+	    }
 
 	  if (it->dp
-	      && (dv = DISP_CHAR_VECTOR (it->dp, it->c),
+	      && (dv = DISP_CHAR_VECTOR (it->dp, c),
 		  VECTORP (dv)))
 	    {
 	      struct Lisp_Vector *v = XVECTOR (dv);
@@ -5768,21 +5804,10 @@ get_next_display_element (struct it *it)
 	      goto get_next;
 	    }
 
-	  if (unibyte_display_via_language_environment
-	      && !ASCII_CHAR_P (it->c))
-	    decoded = DECODE_CHAR (unibyte, it->c);
-
-	  if (it->c >= 0x80 && ! NILP (Vnobreak_char_display))
-	    {
-	      if (it->multibyte_p)
-		nbsp_or_shy = (it->c == 0xA0   ? char_is_nbsp
-			       : it->c == 0xAD ? char_is_soft_hyphen
-			       :                 char_is_other);
-	      else if (unibyte_display_via_language_environment)
-		nbsp_or_shy = (decoded == 0xA0   ? char_is_nbsp
-			       : decoded == 0xAD ? char_is_soft_hyphen
-			       :                   char_is_other);
-	    }
+	  if (! ASCII_CHAR_P (c) && ! NILP (Vnobreak_char_display))
+	    nbsp_or_shy = (c == 0xA0   ? char_is_nbsp
+			   : c == 0xAD ? char_is_soft_hyphen
+			   :             char_is_other);
 
 	  /* Translate control characters into `\003' or `^C' form.
 	     Control characters coming from a display table entry are
@@ -5790,27 +5815,23 @@ get_next_display_element (struct it *it)
 	     the translation.  This could easily be changed but I
 	     don't believe that it is worth doing.
 
-	     If it->multibyte_p is nonzero, non-printable non-ASCII
-	     characters are also translated to octal form.
+	     NBSP and SOFT-HYPEN are property translated too.
 
-	     If it->multibyte_p is zero, eight-bit characters that
-	     don't have corresponding multibyte char code are also
+	     Non-printable characters and raw-byte characters are also
 	     translated to octal form.  */
-	  if ((it->c < ' '
+	  if (((c < ' ' || c == 127) /* ASCII control chars */
 	       ? (it->area != TEXT_AREA
 		  /* In mode line, treat \n, \t like other crl chars.  */
-		  || (it->c != '\t'
+		  || (c != '\t'
 		      && it->glyph_row
 		      && (it->glyph_row->mode_line_p || it->avoid_cursor_p))
-		  || (it->c != '\n' && it->c != '\t'))
+		  || (c != '\n' && c != '\t'))
 	       : (nbsp_or_shy
-		  || (it->multibyte_p
-		      ? ! CHAR_PRINTABLE_P (it->c)
-		      : (! unibyte_display_via_language_environment
-			 ? it->c >= 0x80
-			 : (decoded >= 0x80 && decoded < 0xA0))))))
+		  || CHAR_BYTE8_P (c)
+		  || ! CHAR_PRINTABLE_P (c))))
 	    {
-	      /* IT->c is a control character which must be displayed
+	      /* C is a control character, NBSP, SOFT-HYPEN, raw-byte,
+		 or a non-printable character which must be displayed
 		 either as '\003' or as `^C' where the '\\' and '^'
 		 can be defined in the display table.  Fill
 		 IT->ctl_chars with glyphs for what we have to
@@ -5822,7 +5843,7 @@ get_next_display_element (struct it *it)
 
 	      /* Handle control characters with ^.  */
 
-	      if (it->c < 128 && it->ctl_arrow_p)
+	      if (ASCII_CHAR_P (c) && it->ctl_arrow_p)
 		{
 		  int g;
 
@@ -5855,7 +5876,7 @@ get_next_display_element (struct it *it)
 		    }
 
 		  XSETINT (it->ctl_chars[0], g);
-		  XSETINT (it->ctl_chars[1], it->c ^ 0100);
+		  XSETINT (it->ctl_chars[1], c ^ 0100);
 		  ctl_len = 2;
 		  goto display_control;
 		}
@@ -5870,7 +5891,7 @@ get_next_display_element (struct it *it)
 		  face_id = merge_faces (it->f, Qnobreak_space, 0,
 					 it->face_id);
 
-		  it->c = ' ';
+		  c = ' ';
 		  XSETINT (it->ctl_chars[0], ' ');
 		  ctl_len = 1;
 		  goto display_control;
@@ -5916,7 +5937,6 @@ get_next_display_element (struct it *it)
 	      if (EQ (Vnobreak_char_display, Qt)
 		  && nbsp_or_shy == char_is_soft_hyphen)
 		{
-		  it->c = '-';
 		  XSETINT (it->ctl_chars[0], '-');
 		  ctl_len = 1;
 		  goto display_control;
@@ -5928,55 +5948,25 @@ get_next_display_element (struct it *it)
 	      if (nbsp_or_shy)
 		{
 		  XSETINT (it->ctl_chars[0], escape_glyph);
-		  it->c = (nbsp_or_shy == char_is_nbsp ? ' ' : '-');
-		  XSETINT (it->ctl_chars[1], it->c);
+		  c = (nbsp_or_shy == char_is_nbsp ? ' ' : '-');
+		  XSETINT (it->ctl_chars[1], c);
 		  ctl_len = 2;
 		  goto display_control;
 		}
 
 	      {
-		unsigned char str[MAX_MULTIBYTE_LENGTH];
-		int len;
-		int i;
+		char str[10];
+		int len, i;
 
-		/* Set IT->ctl_chars[0] to the glyph for `\\'.  */
-		if (CHAR_BYTE8_P (it->c))
-		  {
-		    str[0] = CHAR_TO_BYTE8 (it->c);
-		    len = 1;
-		  }
-		else if (it->c < 256)
-		  {
-		    str[0] = it->c;
-		    len = 1;
-		  }
-		else
-		  {
-		    /* It's an invalid character, which shouldn't
-		       happen actually, but due to bugs it may
-		       happen.  Let's print the char as is, there's
-		       not much meaningful we can do with it.  */
-		    str[0] = it->c;
-		    str[1] = it->c >> 8;
-		    str[2] = it->c >> 16;
-		    str[3] = it->c >> 24;
-		    len = 4;
-		  }
+		if (CHAR_BYTE8_P (c))
+		  /* Display \200 instead of \17777600.  */
+		  c = CHAR_TO_BYTE8 (c);
+		len = sprintf (str, "%03o", c);
 
+		XSETINT (it->ctl_chars[0], escape_glyph);
 		for (i = 0; i < len; i++)
-		  {
-		    int g;
-		    XSETINT (it->ctl_chars[i * 4], escape_glyph);
-		    /* Insert three more glyphs into IT->ctl_chars for
-		       the octal display of the character.  */
-		    g = ((str[i] >> 6) & 7) + '0';
-		    XSETINT (it->ctl_chars[i * 4 + 1], g);
-		    g = ((str[i] >> 3) & 7) + '0';
-		    XSETINT (it->ctl_chars[i * 4 + 2], g);
-		    g = (str[i] & 7) + '0';
-		    XSETINT (it->ctl_chars[i * 4 + 3], g);
-		  }
-		ctl_len = len * 4;
+		  XSETINT (it->ctl_chars[i + 1], str[i]);
+		ctl_len = len + 1;
 	      }
 
 	    display_control:
@@ -5991,6 +5981,11 @@ get_next_display_element (struct it *it)
 	      it->ellipsis_p = 0;
 	      goto get_next;
 	    }
+	  it->char_to_display = c;
+	}
+      else if (success_p)
+	{
+	  it->char_to_display = it->c;
 	}
     }
 
@@ -6017,7 +6012,8 @@ get_next_display_element (struct it *it)
 		     : STRINGP (it->string) ? IT_STRING_CHARPOS (*it)
 		     : IT_CHARPOS (*it));
 
-	  it->face_id = FACE_FOR_CHAR (it->f, face, it->c, pos, it->string);
+	  it->face_id = FACE_FOR_CHAR (it->f, face, it->char_to_display, pos,
+				       it->string);
 	}
     }
 #endif
@@ -10839,7 +10835,7 @@ note_tool_bar_highlight (struct frame *f, int x, int y)
   enum draw_glyphs_face draw = DRAW_IMAGE_RAISED;
   int mouse_down_p, rc;
 
-  /* Function note_mouse_highlight is called with negative x(y
+  /* Function note_mouse_highlight is called with negative X/Y
      values when mouse moves outside of the frame.  */
   if (x <= 0 || y <= 0)
     {
@@ -16458,15 +16454,19 @@ get_overlay_arrow_glyph_row (struct window *w, Lisp_Object overlay_arrow_string)
 
       /* Get the next character.  */
       if (multibyte_p)
-	it.c = string_char_and_length (p, &it.len);
+	it.c = it.char_to_display = string_char_and_length (p, &it.len);
       else
-	it.c = *p, it.len = 1;
+	{
+	  it.c = it.char_to_display = *p, it.len = 1;
+	  if (! ASCII_CHAR_P (it.c))
+	    it.char_to_display = BYTE8_TO_CHAR (it.c);
+	}
       p += it.len;
 
       /* Get its face.  */
       ilisp = make_number (p - arrow_string);
       face = Fget_text_property (ilisp, Qface, overlay_arrow_string);
-      it.face_id = compute_char_face (f, it.c, face);
+      it.face_id = compute_char_face (f, it.char_to_display, face);
 
       /* Compute its width, get its glyphs.  */
       n_glyphs_before = it.glyph_row->used[TEXT_AREA];
@@ -16698,6 +16698,7 @@ append_space_for_newline (struct it *it, int default_face_p)
 	     append_space_for_newline has been called.  */
 	  enum display_element_type saved_what = it->what;
 	  int saved_c = it->c, saved_len = it->len;
+	  int saved_char_to_display = it->char_to_display;
 	  int saved_x = it->current_x;
 	  int saved_face_id = it->face_id;
 	  struct text_pos saved_pos;
@@ -16710,7 +16711,7 @@ append_space_for_newline (struct it *it, int default_face_p)
 	  it->what = IT_CHARACTER;
 	  memset (&it->position, 0, sizeof it->position);
 	  it->object = make_number (0);
-	  it->c = ' ';
+	  it->c = it->char_to_display = ' ';
 	  it->len = 1;
 
 	  if (default_face_p)
@@ -16731,6 +16732,7 @@ append_space_for_newline (struct it *it, int default_face_p)
 	  it->face_id = saved_face_id;
 	  it->len = saved_len;
 	  it->c = saved_c;
+	  it->char_to_display = saved_char_to_display;
 	  return 1;
 	}
     }
@@ -16863,7 +16865,7 @@ extend_face_to_end_of_line (struct it *it)
       it->what = IT_CHARACTER;
       memset (&it->position, 0, sizeof it->position);
       it->object = make_number (0);
-      it->c = ' ';
+      it->c = it->char_to_display = ' ';
       it->len = 1;
       /* The last row's blank glyphs should get the default face, to
 	 avoid painting the rest of the window with the region face,
@@ -17962,16 +17964,22 @@ See also `bidi-paragraph-direction'.  */)
       struct bidi_it itb;
       EMACS_INT pos = BUF_PT (buf);
       EMACS_INT bytepos = BUF_PT_BYTE (buf);
+      int c;
 
       if (buf != current_buffer)
 	set_buffer_temp (buf);
-      /* Find previous non-empty line.  */
+      /* bidi_paragraph_init finds the base direction of the paragraph
+	 by searching forward from paragraph start.  We need the base
+	 direction of the current or _previous_ paragraph, so we need
+	 to make sure we are within that paragraph.  To that end, find
+	 the previous non-empty line.  */
       if (pos >= ZV && pos > BEGV)
 	{
 	  pos--;
 	  bytepos = CHAR_TO_BYTE (pos);
 	}
-      while (FETCH_BYTE (bytepos) == '\n')
+      while ((c = FETCH_BYTE (bytepos)) == '\n'
+	     || c == ' ' || c == '\t' || c == '\f')
 	{
 	  if (bytepos <= BEGV_BYTE)
 	    break;
@@ -17983,6 +17991,7 @@ See also `bidi-paragraph-direction'.  */)
       itb.charpos = pos;
       itb.bytepos = bytepos;
       itb.first_elt = 1;
+      itb.separator_limit = -1;
 
       bidi_paragraph_init (NEUTRAL_DIR, &itb);
       if (buf != current_buffer)
@@ -20460,7 +20469,12 @@ get_glyph_face_and_encoding (struct frame *f, struct glyph *glyph,
 
   if (face->font)
     {
-      unsigned code = face->font->driver->encode_char (face->font, glyph->u.ch);
+      unsigned code;
+
+      if (CHAR_BYTE8_P (glyph->u.ch))
+	code = CHAR_TO_BYTE8 (glyph->u.ch);
+      else
+	code = face->font->driver->encode_char (face->font, glyph->u.ch);
 
       if (code != FONT_INVALID_CODE)
 	STORE_XCHAR2B (char2b, (code >> 8), (code & 0xFF));
@@ -20472,6 +20486,26 @@ get_glyph_face_and_encoding (struct frame *f, struct glyph *glyph,
   xassert (face != NULL);
   PREPARE_FACE_FOR_DISPLAY (f, face);
   return face;
+}
+
+
+/* Get glyph code of character C in FONT in the two-byte form CHAR2B.
+   Retunr 1 if FONT has a glyph for C, otherwise return 0.  */
+
+static INLINE int
+get_char_glyph_code (int c, struct font *font, XChar2b *char2b)
+{
+  unsigned code;
+
+  if (CHAR_BYTE8_P (c))
+    code = CHAR_TO_BYTE8 (c);
+  else
+    code = font->driver->encode_char (font, c);
+
+  if (code == FONT_INVALID_CODE)
+    return 0;
+  STORE_XCHAR2B (char2b, (code >> 8), (code & 0xFF));
+  return 1;
 }
 
 
@@ -21879,10 +21913,14 @@ produce_stretch_glyph (struct it *it)
 	{
 	  int maxlen = ((IT_BYTEPOS (*it) >= GPT ? ZV : GPT)
 			- IT_BYTEPOS (*it));
-	  it2.c = STRING_CHAR_AND_LENGTH (p, it2.len);
+	  it2.c = it2.char_to_display = STRING_CHAR_AND_LENGTH (p, it2.len);
 	}
       else
-	it2.c = *p, it2.len = 1;
+	{
+	  it2.c = it2.char_to_display = *p, it2.len = 1;
+	  if (! ASCII_CHAR_P (it2.c))
+	    it2.char_to_display = BYTE8_TO_CHAR (it2.c);
+	}
 
       it2.glyph_row = NULL;
       it2.what = IT_CHARACTER;
@@ -22052,49 +22090,12 @@ x_produce_glyphs (struct it *it)
   if (it->what == IT_CHARACTER)
     {
       XChar2b char2b;
-      struct font *font;
       struct face *face = FACE_FROM_ID (it->f, it->face_id);
-      struct font_metrics *pcm;
-      int font_not_found_p;
+      struct font *font = face->font;
+      int font_not_found_p = font == NULL;
+      struct font_metrics *pcm = NULL;
       int boff;			/* baseline offset */
-      /* We may change it->multibyte_p upon unibyte<->multibyte
-	 conversion.  So, save the current value now and restore it
-	 later.
 
-	 Note: It seems that we don't have to record multibyte_p in
-	 struct glyph because the character code itself tells whether
-	 or not the character is multibyte.  Thus, in the future, we
-	 must consider eliminating the field `multibyte_p' in the
-	 struct glyph.  */
-      int saved_multibyte_p = it->multibyte_p;
-
-      /* Maybe translate single-byte characters to multibyte, or the
-	 other way.  */
-      it->char_to_display = it->c;
-      if (!ASCII_BYTE_P (it->c)
-	  && ! it->multibyte_p)
-	{
-	  if (SINGLE_BYTE_CHAR_P (it->c)
-	      && unibyte_display_via_language_environment)
-	    {
-	      struct charset *unibyte = CHARSET_FROM_ID (charset_unibyte);
-
-	      /* get_next_display_element assures that this decoding
-		 never fails.  */
-	      it->char_to_display = DECODE_CHAR (unibyte, it->c);
-	      it->multibyte_p = 1;
-	      it->face_id = FACE_FOR_CHAR (it->f, face, it->char_to_display,
-					   -1, Qnil);
-	      face = FACE_FROM_ID (it->f, it->face_id);
-	    }
-	}
-
-      /* Get font to use.  Encode IT->char_to_display.  */
-      get_char_face_and_encoding (it->f, it->char_to_display, it->face_id,
-				  &char2b, it->multibyte_p, 0);
-      font = face->font;
-
-      font_not_found_p = font == NULL;
       if (font_not_found_p)
 	{
 	  /* When no suitable font found, display an empty box based
@@ -22114,15 +22115,11 @@ x_produce_glyphs (struct it *it)
 	    boff = VCENTER_BASELINE_OFFSET (font, it->f) - boff;
 	}
 
-      if (it->char_to_display >= ' '
-	  && (!it->multibyte_p || it->char_to_display < 128))
+      if (it->char_to_display != '\n' && it->char_to_display != '\t')
 	{
-	  /* Either unibyte or ASCII.  */
 	  int stretched_p;
 
 	  it->nglyphs = 1;
-
-	  pcm = get_per_char_metric (it->f, font, &char2b);
 
  	  if (it->override_ascent >= 0)
  	    {
@@ -22136,6 +22133,15 @@ x_produce_glyphs (struct it *it)
  	      it->descent = FONT_DESCENT (font) - boff;
  	    }
 
+	  if (! font_not_found_p
+	      && get_char_glyph_code (it->char_to_display, font, &char2b))
+	    {
+	      pcm = get_per_char_metric (it->f, font, &char2b);
+	      if (pcm->width == 0
+		  && pcm->rbearing == 0 && pcm->lbearing == 0)
+		pcm = NULL;
+	    }
+
 	  if (pcm)
 	    {
 	      it->phys_ascent = pcm->ascent + boff;
@@ -22147,7 +22153,7 @@ x_produce_glyphs (struct it *it)
 	      it->glyph_not_available_p = 1;
 	      it->phys_ascent = it->ascent;
 	      it->phys_descent = it->descent;
-	      it->pixel_width = FONT_WIDTH (font);
+	      it->pixel_width = font->space_width;
 	    }
 
 	  if (it->constrain_row_ascent_descent_p)
@@ -22321,7 +22327,7 @@ x_produce_glyphs (struct it *it)
 		}
 	    }
 	}
-      else if (it->char_to_display == '\t')
+      else		      /* i.e. (it->char_to_display == '\t') */
 	{
 	  if (font->space_width > 0)
 	    {
@@ -22352,85 +22358,6 @@ x_produce_glyphs (struct it *it)
 	      it->nglyphs = 1;
 	    }
 	}
-      else
-	{
-	  /* A multi-byte character.  Assume that the display width of the
-	     character is the width of the character multiplied by the
-	     width of the font.  */
-
-	  /* If we found a font, this font should give us the right
-	     metrics.  If we didn't find a font, use the frame's
-	     default font and calculate the width of the character by
-	     multiplying the width of font by the width of the
-	     character.  */
-
-	  pcm = get_per_char_metric (it->f, font, &char2b);
-
-	  if (font_not_found_p || !pcm)
-	    {
-	      int char_width = CHAR_WIDTH (it->char_to_display);
-
-	      if (char_width == 0)
-		/* This is a non spacing character.  But, as we are
-		   going to display an empty box, the box must occupy
-		   at least one column.  */
-		char_width = 1;
-	      it->glyph_not_available_p = 1;
-	      it->pixel_width = font->space_width * char_width;
-	      it->phys_ascent = FONT_BASE (font) + boff;
-	      it->phys_descent = FONT_DESCENT (font) - boff;
-	    }
-	  else
-	    {
-	      it->pixel_width = pcm->width;
-	      it->phys_ascent = pcm->ascent + boff;
-	      it->phys_descent = pcm->descent - boff;
-	      if (it->glyph_row
-		  && (pcm->lbearing < 0
-		      || pcm->rbearing > pcm->width))
-		it->glyph_row->contains_overlapping_glyphs_p = 1;
-	    }
-	  it->nglyphs = 1;
-          it->ascent = FONT_BASE (font) + boff;
-          it->descent = FONT_DESCENT (font) - boff;
-	  if (face->box != FACE_NO_BOX)
-	    {
-	      int thick = face->box_line_width;
-
-	      if (thick > 0)
-		{
-		  it->ascent += thick;
-		  it->descent += thick;
-		}
-	      else
-		thick = - thick;
-
-	      if (it->start_of_box_run_p)
-		it->pixel_width += thick;
-	      if (it->end_of_box_run_p)
-		it->pixel_width += thick;
-	    }
-
-	  /* If face has an overline, add the height of the overline
-	     (1 pixel) and a 1 pixel margin to the character height.  */
-	  if (face->overline_p)
-	    it->ascent += overline_margin;
-
-	  take_vertical_position_into_account (it);
-
-	  if (it->ascent < 0)
-	    it->ascent = 0;
-	  if (it->descent < 0)
-	    it->descent = 0;
-
-	  if (it->glyph_row)
-	    append_glyph (it);
-	  if (it->pixel_width == 0)
-	    /* We assure that all visible glyphs have at least 1-pixel
-	       width.  */
-	    it->pixel_width = 1;
-	}
-      it->multibyte_p = saved_multibyte_p;
     }
   else if (it->what == IT_COMPOSITION && it->cmp_it.ch < 0)
     {
@@ -22526,7 +22453,7 @@ x_produce_glyphs (struct it *it)
 	    }
 	  else
 	    {
-	      width = FONT_WIDTH (font);
+	      width = font->space_width;
 	      ascent = FONT_BASE (font);
 	      descent = FONT_DESCENT (font);
 	      lbearing = 0;

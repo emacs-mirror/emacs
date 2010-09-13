@@ -3214,7 +3214,9 @@ width from the window's frame.
   The values of these variables take effect when you display the
 buffer in a window.  If you change them while the buffer is visible,
 you can call @code{set-window-buffer} to display it once again in the
-same window, to make the changes take effect.
+same window, to make the changes take effect.  A buffer that does not
+specify values for these variables will use the default values
+specified for the frame; see @ref{Layout Parameters}.
 
 @defun set-window-fringes window left &optional right outside-margins
 This function sets the fringe widths of window @var{window}.
@@ -4039,6 +4041,7 @@ displayed (@pxref{Display Feature Testing}).
 * GIF Images::          Special features for GIF format.
 * TIFF Images::         Special features for TIFF format.
 * PostScript Images::   Special features for PostScript format.
+* ImageMagick Images::  Special features available through ImageMagick.
 * Other Image Types::   Various other formats are supported.
 * Defining Images::     Convenient ways to define an image for later use.
 * Showing Images::      Convenient ways to display an image once it is defined.
@@ -4462,6 +4465,60 @@ specifying the bounding box of the PostScript image, analogous to the
 %%BoundingBox: 22 171 567 738
 @end example
 @end table
+
+@node ImageMagick Images
+@subsection ImageMagick Images
+@cindex ImageMagick images
+@cindex images, support for more formats
+
+  If you build Emacs with ImageMagick (@url{http://www.imagemagick.org})
+support, you can use the ImageMagick library to load many image formats.
+
+@findex imagemagick-types
+The function @code{imagemagick-types} returns a list of image file
+extensions that your installation of ImageMagick supports.  To enable
+support, you must call the function @code{imagemagick-register-types}.
+
+@vindex imagemagick-types-inhibit
+The variable @code{imagemagick-types-inhibit} specifies a list of
+image types that you do @emph{not} want ImageMagick to handle.  There
+may be overlap between image loaders in your Emacs installation, and
+you may prefer to use a different one for a given image type (which
+@c FIXME how is this priority determined?
+loader will be used in practice depends on the priority of the loaders).
+@c FIXME why are these uppercase when image-types is lower-case?
+@c FIXME what are the possibe options?  Are these actually file extensions?
+For example, if you never want to use the ImageMagick loader to use
+JPEG files, add @code{JPG} to this list.
+
+@vindex imagemagick-render-type
+You can set the variable @code{imagemagick-render-type} to choose
+between screen render methods for the ImageMagick loader.  The options
+are: @code{0}, a conservative method which works with older
+@c FIXME details of this "newer method"?
+@c Presumably it is faster but may be less "robust"?
+ImageMagick versions (it is a bit slow, but robust); and @code{1},
+a newer ImageMagick method.
+
+Images loaded with ImageMagick support a few new display specifications:
+
+@table @code
+@item :width, :height
+The @code{:width} and @code{:height} keywords are used for scaling the
+image.  If only one of them is specified, the other one will be
+calculated so as to preserve the aspect ratio.  If both are specified,
+aspect ratio may not be preserved.
+
+@item :rotation
+Specifies a rotation angle in degrees.
+
+@item :index
+Specifies which image to view inside an image bundle file format, such
+as TIFF or DJVM.  You can use the @code{image-metadata} function to
+retrieve the total number of images in an image bundle (this is
+similar to how GIF files work).
+@end table
+
 
 @node Other Image Types
 @subsection Other Image Types

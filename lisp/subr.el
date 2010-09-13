@@ -5,6 +5,7 @@
 
 ;; Maintainer: FSF
 ;; Keywords: internal
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -219,6 +220,7 @@ Treated as a declaration when used at the right place in a
 (defmacro ignore-errors (&rest body)
   "Execute BODY; if an error occurs, return nil.
 Otherwise, return result of last form in BODY."
+  (declare (debug t) (indent 0))
   `(condition-case nil (progn ,@body) (error nil)))
 
 ;;;; Basic Lisp functions.
@@ -1634,6 +1636,7 @@ Return nil if there isn't one."
 	      load-elt (and loads (car loads)))))
     load-elt))
 
+(put 'eval-after-load 'lisp-indent-function 1)
 (defun eval-after-load (file form)
   "Arrange that, if FILE is ever loaded, FORM will be run at that time.
 If FILE is already loaded, evaluate FORM right now.
@@ -1824,6 +1827,7 @@ When there's an ambiguity because the key looks like the prefix of
 some sort of escape sequence, the ambiguity is resolved via `read-key-delay'."
   (let ((overriding-terminal-local-map read-key-empty-map)
 	(overriding-local-map nil)
+        (echo-keystrokes 0)
 	(old-global-map (current-global-map))
         (timer (run-with-idle-timer
                 ;; Wait long enough that Emacs has the time to receive and
@@ -1848,7 +1852,12 @@ some sort of escape sequence, the ambiguity is resolved via `read-key-delay'."
                       (throw 'read-key keys)))))))
     (unwind-protect
         (progn
-	  (use-global-map read-key-empty-map)
+	  (use-global-map
+           (let ((map (make-sparse-keymap)))
+             ;; Don't hide the menu-bar and tool-bar entries.
+             (define-key map [menu-bar] (lookup-key global-map [menu-bar]))
+             (define-key map [tool-bar] (lookup-key global-map [tool-bar]))
+             map))
 	  (aref	(catch 'read-key (read-key-sequence-vector prompt nil t)) 0))
       (cancel-timer timer)
       (use-global-map old-global-map))))
@@ -2711,7 +2720,7 @@ nor the buffer list."
   "Create a new buffer, evaluate BODY there, and write the buffer to FILE.
 The value returned is the value of the last form in BODY.
 See also `with-temp-buffer'."
-  (declare (debug t))
+  (declare (indent 1) (debug t))
   (let ((temp-file (make-symbol "temp-file"))
 	(temp-buffer (make-symbol "temp-buffer")))
     `(let ((,temp-file ,file)
@@ -2733,7 +2742,7 @@ The value returned is the value of the last form in BODY.
 MESSAGE is written to the message log buffer if `message-log-max' is non-nil.
 If MESSAGE is nil, the echo area and message log buffer are unchanged.
 Use a MESSAGE of \"\" to temporarily clear the echo area."
-  (declare (debug t))
+  (declare (debug t) (indent 1))
   (let ((current-message (make-symbol "current-message"))
 	(temp-message (make-symbol "with-temp-message")))
     `(let ((,temp-message ,message)
@@ -2763,7 +2772,7 @@ See also `with-temp-file' and `with-output-to-string'."
                 (kill-buffer ,temp-buffer)))))))
 
 (defmacro with-silent-modifications (&rest body)
-  "Execute BODY, pretending it does not modifies the buffer.
+  "Execute BODY, pretending it does not modify the buffer.
 If BODY performs real modifications to the buffer's text, other
 than cosmetic ones, undo data may become corrupted.
 Typically used around modifications of text-properties which do not really
@@ -3225,7 +3234,7 @@ that can be added."
 The syntax table of the current buffer is saved, BODY is evaluated, and the
 saved table is restored, even in case of an abnormal exit.
 Value is what BODY returns."
-  (declare (debug t))
+  (declare (debug t) (indent 1))
   (let ((old-table (make-symbol "table"))
 	(old-buffer (make-symbol "buffer")))
     `(let ((,old-table (syntax-table))
@@ -3355,6 +3364,52 @@ clone should be incorporated in the clone."
     (overlay-put ol2 'evaporate t)
     (overlay-put ol2 'text-clones dups)))
 
+;;;; Misc functions moved over from the C side.
+
+(defun y-or-n-p (prompt)
+  "Ask user a \"y or n\" question.  Return t if answer is \"y\".
+The argument PROMPT is the string to display to ask the question.
+It should end in a space; `y-or-n-p' adds `(y or n) ' to it.
+No confirmation of the answer is requested; a single character is enough.
+Also accepts Space to mean yes, or Delete to mean no.  \(Actually, it uses
+the bindings in `query-replace-map'; see the documentation of that variable
+for more information.  In this case, the useful bindings are `act', `skip',
+`recenter', and `quit'.\)
+
+Under a windowing system a dialog box will be used if `last-nonmenu-event'
+is nil and `use-dialog-box' is non-nil."
+  ;; ¡Beware! when I tried to edebug this code, Emacs got into a weird state
+  ;; where all the keys were unbound (i.e. it somehow got triggered
+  ;; within read-key, apparently).  I had to kill it.
+  (let ((answer 'none)
+        (xprompt prompt))
+    (if (and (display-popup-menus-p)
+             (listp last-nonmenu-event)
+             use-dialog-box)
+        (setq answer
+              (x-popup-dialog t `(,prompt ("yes" . act) ("No" . skip))))
+      (while
+          (let* ((key
+                  (let ((cursor-in-echo-area t))
+                    (when minibuffer-auto-raise
+                      (raise-frame (window-frame (minibuffer-window))))
+                    (read-key (propertize xprompt 'face 'minibuffer-prompt)))))
+            (setq answer (lookup-key query-replace-map (vector key) t))
+            (cond
+             ((memq answer '(skip act)) nil)
+             ((eq answer 'recenter) (recenter) t)
+             ((memq answer '(exit-prefix quit)) (signal 'quit nil) t)
+             (t t)))
+        (ding)
+        (discard-input)
+        (setq xprompt
+              (if (eq answer 'recenter) prompt
+                (concat "Please answer y or n.  " prompt)))))
+    (let ((ret (eq answer 'act)))
+      (unless noninteractive
+        (message "%s %s" prompt (if ret "y" "n")))
+      ret)))
+
 ;;;; Mail user agents.
 
 ;; Here we include just enough for other packages to be able
@@ -3583,11 +3638,11 @@ Usually the separator is \".\", but it can be any other string.")
 
 
 (defconst version-regexp-alist
-  '(("^[-_+ ]?a\\(lpha\\)?$"   . -3)
+  '(("^[-_+ ]?alpha$"   . -3)
     ("^[-_+]$"                 . -3) ; treat "1.2.3-20050920" and "1.2-3" as alpha releases
     ("^[-_+ ]cvs$"             . -3)	; treat "1.2.3-CVS" as alpha release
-    ("^[-_+ ]?b\\(eta\\)?$"    . -2)
-    ("^[-_+ ]?\\(pre\\|rc\\)$" . -1))
+    ("^[-_+ ]?beta$"    . -2)
+    ("^[-_+ ]?\\(pre\\|rcc\\)$" . -1))
   "*Specify association between non-numeric version and its priority.
 
 This association is used to handle version string like \"1.0pre2\",
@@ -3680,8 +3735,13 @@ See documentation for `version-separator' and `version-regexp-alist'."
 	    (setq al version-regexp-alist)
 	    (while (and al (not (string-match (caar al) s)))
 	      (setq al (cdr al)))
-	    (or al (error "Invalid version syntax: '%s'" ver))
-	    (setq lst (cons (cdar al) lst)))))
+	    (cond (al
+		   (push (cdar al) lst))
+		  ;; Convert 22.3a to 22.3.1.
+		  ((string-match "^[-_+ ]?\\([a-zA-Z]\\)$" s)
+		   (push (- (aref (downcase (match-string 1 s)) 0) ?a -1)
+			 lst))
+		  (t (error "Invalid version syntax: '%s'" ver))))))
       (if (null lst)
 	  (error "Invalid version syntax: '%s'" ver)
 	(nreverse lst)))))

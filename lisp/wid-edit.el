@@ -6,6 +6,7 @@
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
 ;; Keywords: extensions
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

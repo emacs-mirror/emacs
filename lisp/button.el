@@ -5,6 +5,7 @@
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: extensions
+;; Package: emacs
 ;;
 ;; This file is part of GNU Emacs.
 ;;

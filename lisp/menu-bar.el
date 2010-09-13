@@ -6,6 +6,7 @@
 ;; Author: RMS
 ;; Maintainer: FSF
 ;; Keywords: internal, mouse
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -462,7 +463,7 @@
 			    ;; Emacs compiled --without-x doesn't have
 			    ;; x-selection-exists-p.
 			    (and (fboundp 'x-selection-exists-p)
-				 (x-selection-exists-p))
+				 (x-selection-exists-p 'CLIPBOARD))
 			    kill-ring)
 			   (not buffer-read-only))
 	      :help ,(purecopy "Paste (yank) text most recently cut/copied")))
@@ -968,6 +969,15 @@ mail status in mode line"))
 	      :help ,(purecopy "Turn menu-bar on/off")
 	      :button (:toggle . (> (frame-parameter nil 'menu-bar-lines) 0))))
 
+(defun menu-bar-set-tool-bar-position (position)
+  (customize-set-variable 'tool-bar-mode t)
+  (dolist (frame (frame-list))
+    (set-frame-parameter frame 'tool-bar-position position))
+  (customize-set-variable 'default-frame-alist
+			  (cons (cons 'tool-bar-position position)
+				(assq-delete-all 'tool-bar-position
+						 default-frame-alist))))
+
 (defun menu-bar-showhide-tool-bar-menu-customize-disable ()
   "Do not display tool bars."
   (interactive)
@@ -975,24 +985,20 @@ mail status in mode line"))
 (defun menu-bar-showhide-tool-bar-menu-customize-enable-left ()
   "Display tool bars on the left side."
   (interactive)
-  (customize-set-variable 'tool-bar-mode t)
-  (set-frame-parameter nil 'tool-bar-position 'left))
+  (menu-bar-set-tool-bar-position 'left))
 
 (defun menu-bar-showhide-tool-bar-menu-customize-enable-right ()
   "Display tool bars on the right side."
   (interactive)
-  (customize-set-variable 'tool-bar-mode t)
-  (set-frame-parameter nil 'tool-bar-position 'right))
+  (menu-bar-set-tool-bar-position 'right))
 (defun menu-bar-showhide-tool-bar-menu-customize-enable-top ()
   "Display tool bars on the top side."
   (interactive)
-  (customize-set-variable 'tool-bar-mode t)
-  (set-frame-parameter nil 'tool-bar-position 'top))
+  (menu-bar-set-tool-bar-position 'top))
 (defun menu-bar-showhide-tool-bar-menu-customize-enable-bottom ()
   "Display tool bars on the bottom side."
   (interactive)
-  (customize-set-variable 'tool-bar-mode t)
-  (set-frame-parameter nil 'tool-bar-position 'bottom))
+  (menu-bar-set-tool-bar-position 'bottom))
 
 (if (featurep 'move-toolbar)
     (progn
@@ -1268,6 +1274,9 @@ mail status in mode line"))
 (define-key menu-bar-games-menu [life]
   `(menu-item ,(purecopy "Life")  life
 	      :help ,(purecopy "Watch how John Conway's cellular automaton evolves")))
+(define-key menu-bar-games-menu [land]
+  `(menu-item ,(purecopy "Landmark") landmark
+	      :help ,(purecopy "Watch a neural-network robot learn landmarks")))
 (define-key menu-bar-games-menu [hanoi]
   `(menu-item ,(purecopy "Towers of Hanoi") hanoi
 	      :help ,(purecopy "Watch Towers-of-Hanoi puzzle solved by Emacs")))
@@ -1477,6 +1486,9 @@ mail status in mode line"))
 (define-key menu-bar-describe-menu [describe-current-display-table]
   `(menu-item ,(purecopy "Describe Display Table") describe-current-display-table
 	      :help ,(purecopy "Describe the current display table")))
+(define-key menu-bar-describe-menu [describe-package]
+  `(menu-item ,(purecopy "Describe Package...") describe-package
+              :help ,(purecopy "Display documentation of a Lisp package")))
 (define-key menu-bar-describe-menu [describe-face]
   `(menu-item ,(purecopy "Describe Face...") describe-face
               :help ,(purecopy "Display the properties of a face")))
@@ -1608,11 +1620,11 @@ key, a click, or a menu-item")))
 (define-key menu-bar-help-menu [sep2]
   menu-bar-separator)
 (define-key menu-bar-help-menu [external-packages]
-  `(menu-item ,(purecopy "External Packages") menu-bar-help-extra-packages
+  `(menu-item ,(purecopy "Finding Extra Packages") menu-bar-help-extra-packages
 	      :help ,(purecopy "Lisp packages distributed separately for use in Emacs")))
 (define-key menu-bar-help-menu [find-emacs-packages]
-  `(menu-item ,(purecopy "Find Emacs Packages") finder-by-keyword
-	      :help ,(purecopy "Find packages and features by keyword")))
+  `(menu-item ,(purecopy "Search Built-in Packages") finder-by-keyword
+	      :help ,(purecopy "Find built-in packages and features by keyword")))
 (define-key menu-bar-help-menu [more-manuals]
   `(menu-item ,(purecopy "More Manuals") ,menu-bar-manuals-menu))
 (define-key menu-bar-help-menu [emacs-manual]

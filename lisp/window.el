@@ -6,6 +6,7 @@
 
 ;; Maintainer: FSF
 ;; Keywords: internal
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -54,6 +55,7 @@ This macro saves and restores the current buffer, since otherwise
 its normal operation could make a different buffer current.  The
 order of recently selected windows and the buffer list ordering
 are not altered by this macro (unless they are altered in BODY)."
+  (declare (indent 0) (debug t))
   `(let ((save-selected-window-window (selected-window))
 	 ;; It is necessary to save all of these, because calling
 	 ;; select-window changes frame-selected-window for whatever

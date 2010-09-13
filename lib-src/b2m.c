@@ -68,9 +68,9 @@ extern char *strtok(char *, const char *);
 
 long *xmalloc (unsigned int size);
 long *xrealloc (char *ptr, unsigned int size);
-char *concat (char *s1, char *s2, char *s3);
+char *concat (const char *s1, const char *s2, const char *s3);
 long readline (struct linebuffer *linebuffer, register FILE *stream);
-void fatal (char *message) NO_RETURN;
+void fatal (const char *message) NO_RETURN;
 
 /*
  * xnew -- allocate storage.  SYNOPSIS: Type *xnew (int n, Type);
@@ -170,6 +170,7 @@ main (int argc, char **argv)
 	    continue;
 	  else if (data.buffer[1] == '\f')
 	    {
+              static char babyl[] = "X-Babyl-Labels: ";
 	      if (first)
 		first = FALSE;
 	      else if (! last_was_blank_line)
@@ -177,7 +178,7 @@ main (int argc, char **argv)
 	      /* Save labels. */
 	      readline (&data, stdin);
 	      p = strtok (data.buffer, " ,\r\n\t");
-	      labels = "X-Babyl-Labels: ";
+	      labels = babyl;
 
 	      while ((p = strtok (NULL, " ,\r\n\t")))
 		labels = concat (labels, p, ", ");
@@ -218,7 +219,7 @@ main (int argc, char **argv)
  * concatenate those of s1, s2, s3.
  */
 char *
-concat (char *s1, char *s2, char *s3)
+concat (const char *s1, const char *s2, const char *s3)
 {
   int len1 = strlen (s1), len2 = strlen (s2), len3 = strlen (s3);
   char *result = xnew (len1 + len2 + len3 + 1, char);
@@ -305,7 +306,7 @@ xrealloc (char *ptr, unsigned int size)
 }
 
 void
-fatal (char *message)
+fatal (const char *message)
 {
   fprintf (stderr, "%s: %s\n", progname, message);
   exit (EXIT_FAILURE);

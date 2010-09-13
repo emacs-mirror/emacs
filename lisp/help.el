@@ -5,6 +5,7 @@
 
 ;; Maintainer: FSF
 ;; Keywords: help, internal
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -103,6 +104,7 @@
     (define-key map "m" 'describe-mode)
     (define-key map "n" 'view-emacs-news)
     (define-key map "p" 'finder-by-keyword)
+    (define-key map "P" 'describe-package)
     (define-key map "r" 'info-emacs-manual)
     (define-key map "s" 'describe-syntax)
     (define-key map "t" 'help-with-tutorial)

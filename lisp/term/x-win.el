@@ -1192,32 +1192,19 @@ as returned by `x-server-vendor'."
 ;; #x0dde	THAI MAIHANAKAT	Thai
 
 
-;;;; Selections and cut buffers
+;;;; Selections
 
 ;; We keep track of the last text selected here, so we can check the
 ;; current selection against it, and avoid passing back our own text
-;; from x-cut-buffer-or-selection-value.  We track all three
+;; from x-selection-value.  We track both
 ;; separately in case another X application only sets one of them
-;; (say the cut buffer) we aren't fooled by the PRIMARY or
-;; CLIPBOARD selection staying the same.
+;; we aren't fooled by the PRIMARY or CLIPBOARD selection staying the same.
 (defvar x-last-selected-text-clipboard nil
   "The value of the CLIPBOARD X selection last time we selected or
 pasted text.")
 (defvar x-last-selected-text-primary nil
   "The value of the PRIMARY X selection last time we selected or
 pasted text.")
-(defvar x-last-selected-text-cut nil
-  "The value of the X cut buffer last time we selected or pasted text.
-The actual text stored in the X cut buffer is what encoded from this value.")
-(defvar x-last-selected-text-cut-encoded nil
-  "The value of the X cut buffer last time we selected or pasted text.
-This is the actual text stored in the X cut buffer.")
-(defvar x-last-cut-buffer-coding 'iso-latin-1
-  "The coding we last used to encode/decode the text from the X cut buffer")
-
-(defvar x-cut-buffer-max 20000 ; Note this value is overridden below.
-  "Max number of characters to put in the cut buffer.
-It is said that overlarge strings are slow to put into the cut buffer.")
 
 (defcustom x-select-enable-clipboard t
   "Non-nil means cutting and pasting uses the clipboard.
@@ -1232,29 +1219,20 @@ This is in addition to, but in preference to, the primary selection."
   :group 'killing
   :version "24.1")
 
-(defun x-select-text (text &optional push)
+(defun x-select-text (text)
   "Select TEXT, a string, according to the window system.
-If `x-select-enable-clipboard' is non-nil, copy TEXT to the
+
+On X, if `x-select-enable-clipboard' is non-nil, copy TEXT to the
 clipboard.  If `x-select-enable-primary' is non-nil, put TEXT in
-the primary selection.  For backward compatibility with older X
-applications, this function also sets the value of X cut buffer
-0, and, if the optional argument PUSH is non-nil, rotates the cut
-buffers."
+the primary selection.
+
+On Windows, make TEXT the current selection.  If
+`x-select-enable-clipboard' is non-nil, copy the text to the
+clipboard as well.
+
+On Nextstep, put TEXT in the pasteboard."
   ;; With multi-tty, this function may be called from a tty frame.
   (when (eq (framep (selected-frame)) 'x)
-    ;; Don't send the cut buffer too much text.
-    ;; It becomes slow, and if really big it causes errors.
-    (cond ((>= (length text) x-cut-buffer-max)
-           (x-set-cut-buffer "" push)
-           (setq x-last-selected-text-cut ""
-                 x-last-selected-text-cut-encoded ""))
-          (t
-           (setq x-last-selected-text-cut text
-                 x-last-cut-buffer-coding 'iso-latin-1
-                 x-last-selected-text-cut-encoded
-                 ;; ICCCM says cut buffer always contain ISO-Latin-1
-                 (encode-coding-string text 'iso-latin-1))
-           (x-set-cut-buffer x-last-selected-text-cut-encoded push)))
     (when x-select-enable-primary
       (x-set-selection 'PRIMARY text)
       (setq x-last-selected-text-primary text))
@@ -1282,7 +1260,7 @@ The value nil is the same as this list:
 ;; The return value is already decoded.  If x-get-selection causes an
 ;; error, this function return nil.
 
-(defun x-selection-value (type)
+(defun x-selection-value-internal (type)
   (let ((request-type (or x-select-request-type
 			  '(UTF8_STRING COMPOUND_TEXT STRING)))
 	text)
@@ -1300,17 +1278,16 @@ The value nil is the same as this list:
     text))
 
 ;; Return the value of the current X selection.
-;; Consult the selection, and the cut buffer.  Treat empty strings
-;; as if they were unset.
+;; Consult the selection.  Treat empty strings as if they were unset.
 ;; If this function is called twice and finds the same text,
 ;; it returns nil the second time.  This is so that a single
 ;; selection won't be added to the kill ring over and over.
-(defun x-cut-buffer-or-selection-value ()
+(defun x-selection-value ()
   ;; With multi-tty, this function may be called from a tty frame.
   (when (eq (framep (selected-frame)) 'x)
-    (let (clip-text primary-text cut-text)
+    (let (clip-text primary-text)
       (when x-select-enable-clipboard
-        (setq clip-text (x-selection-value 'CLIPBOARD))
+        (setq clip-text (x-selection-value-internal 'CLIPBOARD))
         (if (string= clip-text "") (setq clip-text nil))
 
         ;; Check the CLIPBOARD selection for 'newness', is it different
@@ -1329,7 +1306,7 @@ The value nil is the same as this list:
                (t (setq x-last-selected-text-clipboard clip-text)))))
 
       (when x-select-enable-primary
-	(setq primary-text (x-selection-value 'PRIMARY))
+	(setq primary-text (x-selection-value-internal 'PRIMARY))
 	;; Check the PRIMARY selection for 'newness', is it different
 	;; from what we remebered them to be last time we did a
 	;; cut/paste operation.
@@ -1346,69 +1323,35 @@ The value nil is the same as this list:
 	       (t
 		(setq x-last-selected-text-primary primary-text)))))
 
-      (setq cut-text (x-get-cut-buffer 0))
-
-      ;; Check the x cut buffer for 'newness', is it different
-      ;; from what we remebered them to be last time we did a
-      ;; cut/paste operation.
-      (setq cut-text
-            (let ((next-coding (or next-selection-coding-system 'iso-latin-1)))
-              (cond ;; check cut buffer
-               ((or (not cut-text) (string= cut-text ""))
-                (setq x-last-selected-text-cut nil))
-               ;; This short cut doesn't work because x-get-cut-buffer
-               ;; always returns a newly created string.
-               ;; ((eq      cut-text x-last-selected-text-cut) nil)
-               ((and (string= cut-text x-last-selected-text-cut-encoded)
-                     (eq x-last-cut-buffer-coding next-coding))
-                ;; See the comment above.  No need of this recording.
-                ;; Record the newer string,
-                ;; so subsequent calls can use the `eq' test.
-                ;; (setq x-last-selected-text-cut cut-text)
-                nil)
-               (t
-                (setq x-last-selected-text-cut-encoded cut-text
-                      x-last-cut-buffer-coding next-coding
-                      x-last-selected-text-cut
-                      ;; ICCCM says cut buffer always contain ISO-Latin-1, but
-                      ;; use next-selection-coding-system if not nil.
-                      (decode-coding-string
-                       cut-text next-coding))))))
-
       ;; As we have done one selection, clear this now.
       (setq next-selection-coding-system nil)
 
       ;; At this point we have recorded the current values for the
-      ;; selection from clipboard (if we are supposed to) primary,
-      ;; and cut buffer.  So return the first one that has changed
+      ;; selection from clipboard (if we are supposed to) and primary.
+      ;; So return the first one that has changed
       ;; (which is the first non-null one).
       ;;
       ;; NOTE: There will be cases where more than one of these has
       ;; changed and the new values differ.  This indicates that
       ;; something like the following has happened since the last time
       ;; we looked at the selections: Application X set all the
-      ;; selections, then Application Y set only one or two of them (say
-      ;; just the cut-buffer).  In this case since we don't have
+      ;; selections, then Application Y set only one of them.
+      ;; In this case since we don't have
       ;; timestamps there is no way to know what the 'correct' value to
       ;; return is.  The nice thing to do would be to tell the user we
       ;; saw multiple possible selections and ask the user which was the
       ;; one they wanted.
-      ;; This code is still a big improvement because now the user can
-      ;; futz with the current selection and get emacs to pay attention
-      ;; to the cut buffer again (previously as soon as clipboard or
-      ;; primary had been set the cut buffer would essentially never be
-      ;; checked again).
-      (or clip-text primary-text cut-text)
+      (or clip-text primary-text)
       )))
 
 ;; Arrange for the kill and yank functions to set and check the clipboard.
 (setq interprogram-cut-function 'x-select-text)
-(setq interprogram-paste-function 'x-cut-buffer-or-selection-value)
+(setq interprogram-paste-function 'x-selection-value)
 
 (defun x-clipboard-yank ()
   "Insert the clipboard contents, or the last stretch of killed text."
   (interactive "*")
-  (let ((clipboard-text (x-selection-value 'CLIPBOARD))
+  (let ((clipboard-text (x-selection-value-internal 'CLIPBOARD))
 	(x-select-enable-clipboard t))
     (if (and clipboard-text (> (length clipboard-text) 0))
 	(kill-new clipboard-text))
@@ -1464,9 +1407,6 @@ The value nil is the same as this list:
 		     ;; Exit Emacs with fatal error if this fails and we
 		     ;; are the initial display.
 		     (eq initial-window-system 'x))
-
-  (setq x-cut-buffer-max (min (- (/ (x-server-max-request-size) 2) 100)
-			      x-cut-buffer-max))
 
   ;; Create the default fontset.
   (create-default-fontset)

@@ -6,6 +6,7 @@
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Created: March, 1994
 ;; Keywords: mail, history
+;; Package: mail-utils
 
 ;; This file is part of GNU Emacs.
 

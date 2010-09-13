@@ -37,7 +37,7 @@ BUILT_EMACS = $(THISDIR)/$(dot)$(dot)/src/$(BLD)/emacs.exe
 buildlisppath=$(CURDIR)/$(dot)$(dot)/lisp
 
 # How to run Emacs.
-RUN_EMACS = "$(BUILT_EMACS)" -batch --no-init-file --no-site-file --multibyte
+RUN_EMACS = "$(BUILT_EMACS)" -batch --no-init-file --no-site-file
 
 # Set EMACSLOADPATH correctly (already defined in environment).
 EMACSLOADPATH=$(buildlisppath)

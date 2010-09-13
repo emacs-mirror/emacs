@@ -30,7 +30,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #if defined (BSD_SYSTEM) && !defined (USE_FAKEMAIL)
 /* This program isnot used in BSD, so just avoid loader complaints.  */
 int
-main ()
+main (void)
 {
   return 0;
 }
@@ -59,6 +59,7 @@ main ()
 #include <ctype.h>
 #include <time.h>
 #include <pwd.h>
+#include <stdlib.h>
 
 /* This is to declare cuserid.  */
 #ifdef HAVE_UNISTD_H
@@ -140,21 +141,16 @@ struct linebuffer lb;
 #define MAIL_PROGRAM_NAME "/bin/mail"
 #endif
 
-static char *my_name;
+static const char *my_name;
 static char *the_date;
 static char *the_user;
 static line_list file_preface;
 static stream_list the_streams;
 static boolean no_problems = true;
 
-static void fatal (char *s1) NO_RETURN;
-
-extern FILE *popen (const char *, const char *);
-extern int fclose (FILE *), pclose (FILE *);
+static void fatal (const char *s1) NO_RETURN;
 
 #ifdef CURRENT_USER
-extern struct passwd *getpwuid ();
-extern unsigned short geteuid ();
 static struct passwd *my_entry;
 #define cuserid(s)				\
 (my_entry = getpwuid (((int) geteuid ())),	\
@@ -166,7 +162,7 @@ static struct passwd *my_entry;
 /* Print error message.  `s1' is printf control string, `s2' is arg for it. */
 
 static void
-error (char *s1, char *s2)
+error (const char *s1, const char *s2)
 {
   printf ("%s: ", my_name);
   printf (s1, s2);
@@ -177,7 +173,7 @@ error (char *s1, char *s2)
 /* Print error message and exit.  */
 
 static void
-fatal (char *s1)
+fatal (const char *s1)
 {
   error ("%s", s1);
   exit (EXIT_FAILURE);
@@ -464,20 +460,20 @@ put_string (char *s)
 }
 
 void
-put_line (char *string)
+put_line (const char *string)
 {
   register stream_list rem;
   for (rem = the_streams;
        rem != ((stream_list) NULL);
        rem = rem->rest_streams)
     {
-      char *s = string;
+      const char *s = string;
       int column = 0;
 
       /* Divide STRING into lines.  */
       while (*s != 0)
 	{
-	  char *breakpos;
+	  const char *breakpos;
 
 	  /* Find the last char that fits.  */
 	  for (breakpos = s; *breakpos && column < 78; ++breakpos)
@@ -699,12 +695,10 @@ main (int argc, char **argv)
   char *command_line;
   header the_header;
   long name_length;
-  char *mail_program_name;
+  const char *mail_program_name;
   char buf[BUFLEN + 1];
   register int size;
   FILE *the_pipe;
-
-  extern char *getenv (const char *);
 
   mail_program_name = getenv ("FAKEMAILER");
   if (!(mail_program_name && *mail_program_name))

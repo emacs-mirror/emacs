@@ -46,11 +46,11 @@ extern void mouse_position_for_popup (FRAME_PTR f, int *x, int *y);
 #endif
 
 extern Lisp_Object w32_menu_show (FRAME_PTR, int, int, int, int,
-				  Lisp_Object, char **);
+				  Lisp_Object, const char **);
 extern Lisp_Object ns_menu_show (FRAME_PTR, int, int, int, int,
-				 Lisp_Object, char **);
+				 Lisp_Object, const char **);
 extern Lisp_Object xmenu_show (FRAME_PTR, int, int, int, int,
-			       Lisp_Object, char **, EMACS_UINT);
+			       Lisp_Object, const char **, EMACS_UINT);
 #endif /* MENU_H */
 
 /* arch-tag: c32b2778-724d-4e85-81d7-45f98530a988

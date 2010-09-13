@@ -969,7 +969,9 @@ autocmp_chars (Lisp_Object rule, EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT
 static Lisp_Object _work_val;
 static int _work_char;
 
-/* 1 iff the character C is composable.  */
+/* 1 iff the character C is composable.  Characters of general
+   category Z? or C? are not composable except for ZWNJ and ZWJ. */
+
 #define CHAR_COMPOSABLE_P(C)						\
   ((C) == 0x200C || (C) == 0x200D					\
    || (_work_val = CHAR_TABLE_REF (Vunicode_category_table, (C)),	\
@@ -1028,19 +1030,6 @@ composition_compute_stop_pos (struct composition_it *cmp_it, EMACS_INT charpos, 
       cmp_it->stop_pos = endpos = start;
       cmp_it->ch = -1;
     }
-  if (NILP (string))
-    {
-      /* A composition never strides over PT.  */
-      if (PT > charpos)
-	{
-	  if (PT < endpos)
-	    cmp_it->stop_pos = endpos = PT;
-	}
-      else if (PT < charpos && PT > endpos)
-	{
-	  cmp_it->stop_pos = endpos = PT - 1;
-	}
-    }
   if (NILP (current_buffer->enable_multibyte_characters)
       || NILP (Vauto_composition_mode))
     return;
@@ -1090,6 +1079,16 @@ composition_compute_stop_pos (struct composition_it *cmp_it, EMACS_INT charpos, 
 		  return;
 		}
 	    }
+	}
+      if (charpos == endpos)
+	{
+	  /* We couldn't find a composition point before ENDPOS.  But,
+	     some character after ENDPOS may be composed with
+	     characters before ENDPOS.  So, we should stop at the safe
+	     point.  */
+	  charpos = endpos - MAX_AUTO_COMPOSITION_LOOKBACK;
+	  if (charpos < start)
+	    charpos = start;
 	}
     }
   else if (charpos > endpos)
@@ -1223,23 +1222,8 @@ composition_compute_stop_pos (struct composition_it *cmp_it, EMACS_INT charpos, 
 int
 composition_reseat_it (struct composition_it *cmp_it, EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT endpos, struct window *w, struct face *face, Lisp_Object string)
 {
-  if (endpos <= charpos)
-    {
-      if (NILP (string))
-	{
-	  if (endpos < 0)
-	    endpos = BEGV;
-	  if (endpos < PT && PT < charpos)
-	    endpos = PT;
-	}
-      else if (endpos < 0)
-	endpos = 0;
-    }
-  else
-    {
-      if (NILP (string) && charpos < PT && PT < endpos)
-	endpos = PT;
-    }
+  if (endpos < 0)
+    endpos = NILP (string) ? BEGV : 0;
 
   if (cmp_it->ch == -2)
     {
@@ -1301,7 +1285,7 @@ composition_reseat_it (struct composition_it *cmp_it, EMACS_INT charpos, EMACS_I
 	      elt = XCAR (val);
 	      if (cmp_it->lookback > 0)
 		{
-		  cpos -= cmp_it->lookback;
+		  cpos = charpos - cmp_it->lookback;
 		  if (STRINGP (string))
 		    bpos = string_char_to_byte (string, cpos);
 		  else
@@ -1456,8 +1440,7 @@ composition_update_it (struct composition_it *cmp_it, EMACS_INT charpos, EMACS_I
 	{
 	  c = XINT (LGSTRING_CHAR (gstring, i));
 	  cmp_it->nbytes += CHAR_BYTES (c);
-	  cmp_it->width = (LGLYPH_WIDTH (glyph) > 0
-			   ? CHAR_WIDTH (LGLYPH_CHAR (glyph)) : 0);
+	  cmp_it->width += CHAR_WIDTH (c);
 	}
     }
   return c;
@@ -1763,8 +1746,6 @@ should be ignored.  */)
 
   CHECK_NATNUM (from);
   CHECK_NATNUM (to);
-  if (XINT (to) > XINT (from) + MAX_COMPOSITION_COMPONENTS)
-    to = make_number (XINT (from) + MAX_COMPOSITION_COMPONENTS);
   if (! FONT_OBJECT_P (font_object))
     {
       struct coding_system *coding;

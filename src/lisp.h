@@ -2542,7 +2542,6 @@ EXFUN (Ffillarray, 2);
 EXFUN (Fnconc, MANY);
 EXFUN (Fmapcar, 2);
 EXFUN (Fmapconcat, 3);
-EXFUN (Fy_or_n_p, 1);
 extern Lisp_Object do_yes_or_no_p (Lisp_Object);
 EXFUN (Frequire, 3);
 EXFUN (Fprovide, 2);
@@ -3605,6 +3604,11 @@ extern char *x_get_keysym_name (int);
 #ifdef MSDOS
 /* Defined in msdos.c */
 EXFUN (Fmsdos_downcase_filename, 1);
+#endif
+
+#ifdef HAVE_LIBXML2
+/* Defined in xml.c */
+extern void syms_of_xml (void);
 #endif
 
 #ifdef HAVE_MENUS

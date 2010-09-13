@@ -1840,7 +1840,13 @@ or as help on variables `cperl-tips', `cperl-problems',
   (make-local-variable 'cperl-syntax-state)
   (setq cperl-syntax-state nil)		; reset syntaxification cache
   (if cperl-use-syntax-table-text-property
-      (progn
+      (if (boundp 'syntax-propertize-function)
+          (progn
+            ;; Reset syntaxification cache.
+            (set (make-local-variable 'cperl-syntax-done-to) nil)
+            (set (make-local-variable 'syntax-propertize-function)
+                 (lambda (start end)
+                   (goto-char start) (cperl-fontify-syntaxically end))))
 	(make-local-variable 'parse-sexp-lookup-properties)
 	;; Do not introduce variable if not needed, we check it!
 	(set 'parse-sexp-lookup-properties t)

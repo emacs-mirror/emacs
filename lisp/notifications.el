@@ -42,6 +42,9 @@
 
 (require 'dbus)
 
+(defconst notifications-specification-version "1.1"
+  "The version of the Desktop Notifications Specification implemented.")
+
 (defconst notifications-application-name "Emacs"
   "Default application name.")
 
@@ -151,7 +154,14 @@ Various PARAMS can be set:
  :image-data     This is a raw data image format which describes the width,
                  height, rowstride, has alpha, bits per sample, channels and
                  image data respectively.
+ :image-path     This is represented either as a URI (file:// is the
+                 only URI schema supported right now) or a name
+                 in a freedesktop.org-compliant icon theme.
  :sound-file     The path to a sound file to play when the notification pops up.
+ :sound-name     A themeable named sound from the freedesktop.org sound naming
+                 specification to play when the notification pops up.
+                 Similar to icon-name,only for sounds. An example would
+                 be \"message-new-instant\".
  :suppress-sound Causes the server to suppress playing any sounds, if it has
                  that ability.
  :x              Specifies the X location on the screen that the notification
@@ -186,7 +196,9 @@ used to manipulate the notification item with
         (category (plist-get params :category))
         (desktop-entry (plist-get params :desktop-entry))
         (image-data (plist-get params :image-data))
+        (image-path (plist-get params :image-path))
         (sound-file (plist-get params :sound-file))
+        (sound-name (plist-get params :sound-name))
         (suppress-sound (plist-get params :suppress-sound))
         (x (plist-get params :x))
         (y (plist-get params :y))
@@ -211,10 +223,18 @@ used to manipulate the notification item with
       (add-to-list 'hints `(:dict-entry
                             "image_data"
                             (:variant :struct ,image-data)) t))
+    (when image-path
+      (add-to-list 'hints `(:dict-entry
+                            "image_path"
+                            (:variant :string ,image-path)) t))
     (when sound-file
       (add-to-list 'hints `(:dict-entry
                             "sound-file"
                             (:variant :string ,sound-file)) t))
+    (when sound-name
+      (add-to-list 'hints `(:dict-entry
+                            "sound-name"
+                            (:variant :string ,sound-name)) t))
     (when suppress-sound
       (add-to-list 'hints `(:dict-entry
                             "suppress-sound"

@@ -401,5 +401,4 @@ If ARG (or prefix) is non-nil, force prompting for all fields."
 
 (provide 'gnus-diary)
 
-;; arch-tag: 98467e70-337e-4ddc-b92d-45d403ff1b4b
 ;;; gnus-diary.el ends here

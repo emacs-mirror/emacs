@@ -5,6 +5,7 @@
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: extensions
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

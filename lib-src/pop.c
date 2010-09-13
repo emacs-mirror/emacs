@@ -110,7 +110,7 @@ extern int h_errno;
 
 static int socket_connection (char *, int);
 static int pop_getline (popserver, char **);
-static int sendline (popserver, char *);
+static int sendline (popserver, const char *);
 static int fullwrite (int, char *, int);
 static int getok (popserver);
 #if 0
@@ -676,7 +676,7 @@ pop_top_flush (popserver server)
 }
 
 int
-pop_multi_first (popserver server, char *command, char **response)
+pop_multi_first (popserver server, const char *command, char **response)
 {
   if (server->in_multi)
     {
@@ -988,7 +988,7 @@ socket_connection (char *host, int flags)
   struct servent *servent;
   struct sockaddr_in addr;
   char found_port = 0;
-  char *service;
+  const char *service;
   int sock;
   char *realhost;
 #ifdef KERBEROS
@@ -1414,7 +1414,7 @@ pop_getline (popserver server, char **line)
  * Side effects: Closes the connection on error.
  */
 static int
-sendline (popserver server, char *line)
+sendline (popserver server, const char *line)
 {
 #define SENDLINE_ERROR "Error writing to POP server: "
   int ret;

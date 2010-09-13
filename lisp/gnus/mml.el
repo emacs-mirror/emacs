@@ -120,10 +120,10 @@ match found will be used."
 			  ,dispositions))))
   :group 'message)
 
-(defcustom mml-insert-mime-headers-always nil
+(defcustom mml-insert-mime-headers-always t
   "If non-nil, always put Content-Type: text/plain at top of empty parts.
 It is necessary to work against a bug in certain clients."
-  :version "22.1"
+  :version "24.1"
   :type 'boolean
   :group 'message)
 
@@ -1570,5 +1570,4 @@ or the `pop-to-buffer' function."
 
 (provide 'mml)
 
-;; arch-tag: 583c96cf-1ffe-451b-a5e5-4733ae9ddd12
 ;;; mml.el ends here

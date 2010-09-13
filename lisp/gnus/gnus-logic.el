@@ -225,5 +225,4 @@
 
 (provide 'gnus-logic)
 
-;; arch-tag: 9651a100-4a59-4b69-a55b-e511e67c0f8d
 ;;; gnus-logic.el ends here

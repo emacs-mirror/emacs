@@ -267,7 +267,7 @@ See also `imap-log'."
   :type 'string)
 
 (defcustom imap-read-timeout (if (string-match
-				  "windows-nt\\|os/2\\|emx\\|cygwin"
+				  "windows-nt\\|os/2\\|cygwin"
 				  (symbol-name system-type))
 				 1.0
 			       0.1)
@@ -448,18 +448,6 @@ The actual value is really the text on the continuation line.")
 The function should take two arguments, the first the IMAP tag and the
 second the status (OK, NO, BAD etc) of the command.")
 
-(defvar imap-enable-exchange-bug-workaround nil
-  "Send FETCH UID commands as *:* instead of *.
-
-When non-nil, use an alternative UIDS form.  Enabling appears to
-be required for some servers (e.g., Microsoft Exchange 2007)
-which otherwise would trigger a response 'BAD The specified
-message set is invalid.'.  We don't unconditionally use this
-form, since this is said to be significantly inefficient.
-
-This variable is set to t automatically per server if the
-canonical form fails.")
-
 
 ;; Utility functions:
 
@@ -515,6 +503,16 @@ sure of changing the value of `foo'."
 
 ;; Server functions; stream stuff:
 
+(defun imap-log (string-or-buffer)
+  (when imap-log
+    (with-current-buffer (get-buffer-create imap-log-buffer)
+      (imap-disable-multibyte)
+      (buffer-disable-undo)
+      (goto-char (point-max))
+      (if (bufferp string-or-buffer)
+	  (insert-buffer-substring string-or-buffer)
+	(insert string-or-buffer)))))
+
 (defun imap-kerberos4-stream-p (buffer)
   (imap-capability 'AUTH=KERBEROS_V4 buffer))
 
@@ -569,12 +567,6 @@ sure of changing the value of `foo'."
 				  (setq response (match-string 1)))))
 	      (accept-process-output process 1)
 	      (sit-for 1))
-	    (and imap-log
-		 (with-current-buffer (get-buffer-create imap-log-buffer)
-		   (imap-disable-multibyte)
-		   (buffer-disable-undo)
-		   (goto-char (point-max))
-		   (insert-buffer-substring buffer)))
 	    (erase-buffer)
 	    (message "Opening Kerberos 4 IMAP connection with `%s'...%s" cmd
 		     (if response (concat "done, " response) "failed"))
@@ -645,12 +637,7 @@ sure of changing the value of `foo'."
 				  (setq response (match-string 1)))))
 	      (accept-process-output process 1)
 	      (sit-for 1))
-	    (and imap-log
-		 (with-current-buffer (get-buffer-create imap-log-buffer)
-		   (imap-disable-multibyte)
-		   (buffer-disable-undo)
-		   (goto-char (point-max))
-		   (insert-buffer-substring buffer)))
+	    (imap-log buffer)
 	    (erase-buffer)
 	    (message "GSSAPI IMAP connection: %s" (or response "failed"))
 	    (if (and response (let ((case-fold-search nil))
@@ -701,12 +688,7 @@ sure of changing the value of `foo'."
 			(not (imap-parse-greeting)))
 	      (accept-process-output process 1)
 	      (sit-for 1))
-	    (and imap-log
-		 (with-current-buffer (get-buffer-create imap-log-buffer)
-		   (imap-disable-multibyte)
-		   (buffer-disable-undo)
-		   (goto-char (point-max))
-		   (insert-buffer-substring buffer)))
+	    (imap-log buffer)
 	    (erase-buffer)
 	    (when (memq (process-status process) '(open run))
 	      (setq done process))))))
@@ -740,12 +722,7 @@ sure of changing the value of `foo'."
 		  (not (imap-parse-greeting)))
 	(accept-process-output process 1)
 	(sit-for 1))
-      (and imap-log
-	   (with-current-buffer (get-buffer-create imap-log-buffer)
-	     (imap-disable-multibyte)
-	     (buffer-disable-undo)
-	     (goto-char (point-max))
-	     (insert-buffer-substring buffer)))
+      (imap-log buffer)
       (when (memq (process-status process) '(open run))
 	process))))
 
@@ -764,12 +741,7 @@ sure of changing the value of `foo'."
 		  (not (imap-parse-greeting)))
 	(accept-process-output process 1)
 	(sit-for 1))
-      (and imap-log
-	   (with-current-buffer (get-buffer-create imap-log-buffer)
-	     (imap-disable-multibyte)
-	     (buffer-disable-undo)
-	     (goto-char (point-max))
-	     (insert-buffer-substring buffer)))
+      (imap-log buffer)
       (when (memq (process-status process) '(open run))
 	process))))
 
@@ -803,12 +775,7 @@ sure of changing the value of `foo'."
 		      (not (imap-parse-greeting)))
 	    (accept-process-output process 1)
 	    (sit-for 1))
-	  (and imap-log
-	       (with-current-buffer (get-buffer-create imap-log-buffer)
-		 (imap-disable-multibyte)
-		 (buffer-disable-undo)
-		 (goto-char (point-max))
-		 (insert-buffer-substring buffer)))
+	  (imap-log buffer)
 	  (erase-buffer)
 	  (when (memq (process-status process) '(open run))
 	    (setq done process)))))
@@ -845,11 +812,7 @@ sure of changing the value of `foo'."
 		  (not (re-search-forward "[0-9]+ OK.*\r?\n" nil t)))
 	(accept-process-output process 1)
 	(sit-for 1))
-      (and imap-log
-	   (with-current-buffer (get-buffer-create imap-log-buffer)
-	     (buffer-disable-undo)
-	     (goto-char (point-max))
-	     (insert-buffer-substring buffer)))
+      (imap-log buffer)
       (when (and (setq tls-info (starttls-negotiate process))
 		 (memq (process-status process) '(open run)))
 	(setq done process)))
@@ -1227,7 +1190,7 @@ password is remembered in the buffer."
       (when user (setq imap-username user))
       (when passwd (setq imap-password passwd))
       (if imap-auth
-	  (and (setq imap-last-authenticator 
+	  (and (setq imap-last-authenticator
 		     (assq imap-auth imap-authenticator-alist))
 	       (funcall (nth 2 imap-last-authenticator) (current-buffer))
 	       (setq imap-state 'auth))
@@ -1340,40 +1303,38 @@ If BUFFER is nil, the current buffer is assumed."
 
 ;; Mailbox functions:
 
-(defun imap-mailbox-put (propname value &optional mailbox buffer)
-  (with-current-buffer (or buffer (current-buffer))
-    (if imap-mailbox-data
-	(put (intern (or mailbox imap-current-mailbox) imap-mailbox-data)
-	     propname value)
-      (error "Imap-mailbox-data is nil, prop %s value %s mailbox %s buffer %s"
-	     propname value mailbox (current-buffer)))
-    t))
+(defun imap-mailbox-put (propname value &optional mailbox)
+  (if imap-mailbox-data
+      (put (intern (or mailbox imap-current-mailbox) imap-mailbox-data)
+	   propname value)
+    (error "Imap-mailbox-data is nil, prop %s value %s mailbox %s buffer %s"
+	   propname value mailbox (current-buffer)))
+  t)
 
 (defsubst imap-mailbox-get-1 (propname &optional mailbox)
   (get (intern-soft (or mailbox imap-current-mailbox) imap-mailbox-data)
        propname))
 
 (defun imap-mailbox-get (propname &optional mailbox buffer)
-  (let ((mailbox (imap-utf7-encode mailbox)))
-    (with-current-buffer (or buffer (current-buffer))
-      (imap-mailbox-get-1 propname (or mailbox imap-current-mailbox)))))
-
-(defun imap-mailbox-map-1 (func &optional mailbox-decoder buffer)
   (with-current-buffer (or buffer (current-buffer))
-    (let (result)
-      (mapatoms
-       (lambda (s)
-	 (push (funcall func (if mailbox-decoder
-				 (funcall mailbox-decoder (symbol-name s))
-			       (symbol-name s))) result))
-       imap-mailbox-data)
-      result)))
+    (imap-mailbox-get-1 propname (or (imap-utf7-encode mailbox)
+				     imap-current-mailbox))))
 
-(defun imap-mailbox-map (func &optional buffer)
+(defun imap-mailbox-map-1 (func &optional mailbox-decoder)
+  (let (result)
+    (mapatoms
+     (lambda (s)
+       (push (funcall func (if mailbox-decoder
+			       (funcall mailbox-decoder (symbol-name s))
+			     (symbol-name s))) result))
+     imap-mailbox-data)
+    result))
+
+(defun imap-mailbox-map (func)
   "Map a function across each mailbox in `imap-mailbox-data', returning a list.
 Function should take a mailbox name (a string) as
 the only argument."
-  (imap-mailbox-map-1 func 'imap-utf7-decode buffer))
+  (imap-mailbox-map-1 func 'imap-utf7-decode))
 
 (defun imap-current-mailbox (&optional buffer)
   (with-current-buffer (or buffer (current-buffer))
@@ -1687,29 +1648,26 @@ is non-nil return these properties."
 		    uids)
 	  (imap-message-get uids receive))))))
 
-(defun imap-message-put (uid propname value &optional buffer)
-  (with-current-buffer (or buffer (current-buffer))
-    (if imap-message-data
-	(put (intern (number-to-string uid) imap-message-data)
-	     propname value)
-      (error "Imap-message-data is nil, uid %s prop %s value %s buffer %s"
-	     uid propname value (current-buffer)))
-    t))
+(defun imap-message-put (uid propname value)
+  (if imap-message-data
+      (put (intern (number-to-string uid) imap-message-data)
+	   propname value)
+    (error "Imap-message-data is nil, uid %s prop %s value %s buffer %s"
+	   uid propname value (current-buffer)))
+  t)
 
-(defun imap-message-get (uid propname &optional buffer)
-  (with-current-buffer (or buffer (current-buffer))
-    (get (intern-soft (number-to-string uid) imap-message-data)
-	 propname)))
+(defun imap-message-get (uid propname)
+  (get (intern-soft (number-to-string uid) imap-message-data)
+       propname))
 
-(defun imap-message-map (func propname &optional buffer)
+(defun imap-message-map (func propname)
   "Map a function across each message in `imap-message-data', returning a list."
-  (with-current-buffer (or buffer (current-buffer))
-    (let (result)
-      (mapatoms
-       (lambda (s)
-	 (push (funcall func (get s 'UID) (get s propname)) result))
-       imap-message-data)
-      result)))
+  (let (result)
+    (mapatoms
+     (lambda (s)
+       (push (funcall func (get s 'UID) (get s propname)) result))
+     imap-message-data)
+    result))
 
 (defmacro imap-message-envelope-date (uid &optional buffer)
   `(with-current-buffer (or ,buffer (current-buffer))
@@ -1805,48 +1763,6 @@ is non-nil return these properties."
 	 (format "String %s cannot be converted to a Lisp integer" number))
       number)))
 
-(defun imap-fetch-safe (uids props &optional receive nouidfetch buffer)
-  "Like `imap-fetch', but DTRT with Exchange 2007 bug.
-However, UIDS here is a cons, where the car is the canonical form
-of the UIDS specification, and the cdr is the one which works with
-Exchange 2007 or, potentially, other buggy servers.
-See `imap-enable-exchange-bug-workaround'."
-  ;; The first time we get here for a given, we'll try the canonical
-  ;; form.  If we get the known error from the buggy server, set the
-  ;; flag buffer-locally (to account for connections to multiple
-  ;; servers), then re-try with the alternative UIDS spec.  We don't
-  ;; unconditionally use the alternative form, since the
-  ;; currently-used alternatives are seriously inefficient with some
-  ;; servers (although they are valid).
-  ;;
-  ;; FIXME:  Maybe it would be cleaner to have a flag to not signal
-  ;; the error (which otherwise gives a message), and test
-  ;; `imap-failed-tags'.  Also, Other IMAP clients use other forms of
-  ;; request which work with Exchange, e.g. Claws does "UID FETCH 1:*
-  ;; (UID)" rather than "FETCH UID 1,*".  Is there a good reason not
-  ;; to do the same?
-  (condition-case data
-      ;; Binding `debug-on-error' allows us to get the error from
-      ;; `imap-parse-response' -- it's normally caught by Emacs around
-      ;; execution of a process filter.
-      (let ((debug-on-error t))
-	(imap-fetch (if imap-enable-exchange-bug-workaround
-			(cdr uids)
-		      (car uids))
-		    props receive nouidfetch buffer))
-    (error
-     (if (and (not imap-enable-exchange-bug-workaround)
-	      ;; This is the Exchange 2007 response.  It may be more
-	      ;; robust just to check for a BAD response to the
-	      ;; attempted fetch.
-	      (string-match "The specified message set is invalid"
-			    (cadr data)))
-	 (with-current-buffer (or buffer (current-buffer))
-	   (set (make-local-variable 'imap-enable-exchange-bug-workaround)
-		t)
-	   (imap-fetch (cdr uids) props receive nouidfetch))
-       (signal (car data) (cdr data))))))
-
 (defun imap-message-copyuid-1 (mailbox)
   (if (imap-capability 'UIDPLUS)
       (list (nth 0 (imap-mailbox-get-1 'copyuid mailbox))
@@ -1856,7 +1772,7 @@ See `imap-enable-exchange-bug-workaround'."
 	  (imap-message-data (make-vector 2 0)))
       (when (imap-mailbox-examine-1 mailbox)
 	(prog1
-	    (and (imap-fetch-safe '("*" . "*:*") "UID")
+	    (and (imap-fetch "*:*" "UID")
 		 (list (imap-mailbox-get-1 'uidvalidity mailbox)
 		       (apply 'max (imap-message-map
 				    (lambda (uid prop) uid) 'UID))))
@@ -1902,7 +1818,7 @@ first element.  The rest of list contains the saved articles' UIDs."
 	  (imap-message-data (make-vector 2 0)))
       (when (imap-mailbox-examine-1 mailbox)
 	(prog1
-	    (and (imap-fetch-safe '("*" . "*:*") "UID")
+	    (and (imap-fetch "*:*" "UID")
 		 (list (imap-mailbox-get-1 'uidvalidity mailbox)
 		       (apply 'max (imap-message-map
 				    (lambda (uid prop) uid) 'UID))))
@@ -1959,12 +1875,7 @@ on failure."
 
 (defun imap-send-command-1 (cmdstr)
   (setq cmdstr (concat cmdstr imap-client-eol))
-  (and imap-log
-       (with-current-buffer (get-buffer-create imap-log-buffer)
-	 (imap-disable-multibyte)
-	 (buffer-disable-undo)
-	 (goto-char (point-max))
-	 (insert cmdstr)))
+  (imap-log cmdstr)
   (process-send-string imap-process cmdstr))
 
 (defun imap-send-command (command &optional buffer)
@@ -2002,13 +1913,7 @@ on failure."
 			     (stream imap-stream)
 			     (eol imap-client-eol))
 			 (with-current-buffer cmd
-			   (and imap-log
-				(with-current-buffer (get-buffer-create
-						      imap-log-buffer)
-				  (imap-disable-multibyte)
-				  (buffer-disable-undo)
-				  (goto-char (point-max))
-				  (insert-buffer-substring cmd)))
+			   (imap-log cmd)
 			   (process-send-region process (point-min)
 						(point-max)))
 			 (process-send-string process imap-client-eol))))
@@ -2084,12 +1989,7 @@ Return nil if no complete line has arrived."
     (with-current-buffer (process-buffer proc)
       (goto-char (point-max))
       (insert string)
-      (and imap-log
-	   (with-current-buffer (get-buffer-create imap-log-buffer)
-	     (imap-disable-multibyte)
-	     (buffer-disable-undo)
-	     (goto-char (point-max))
-	     (insert string)))
+      (imap-log string)
       (let (end)
 	(goto-char (point-min))
 	(while (setq end (imap-find-next-line))
@@ -2992,106 +2892,6 @@ Return nil if no complete line has arrived."
 	(imap-forward)
 	(nreverse body)))))
 
-(when imap-debug			; (untrace-all)
-  (require 'trace)
-  (buffer-disable-undo (get-buffer-create imap-debug-buffer))
-  (mapc (lambda (f) (trace-function-background f imap-debug-buffer))
-	'(
-	  imap-utf7-encode
-	  imap-utf7-decode
-	  imap-error-text
-	  imap-kerberos4s-p
-	  imap-kerberos4-open
-	  imap-ssl-p
-	  imap-ssl-open
-	  imap-network-p
-	  imap-network-open
-	  imap-interactive-login
-	  imap-kerberos4a-p
-	  imap-kerberos4-auth
-	  imap-cram-md5-p
-	  imap-cram-md5-auth
-	  imap-login-p
-	  imap-login-auth
-	  imap-anonymous-p
-	  imap-anonymous-auth
-	  imap-open-1
-	  imap-open
-	  imap-opened
-	  imap-ping-server
-	  imap-authenticate
-	  imap-close
-	  imap-capability
-	  imap-namespace
-	  imap-send-command-wait
-	  imap-mailbox-put
-	  imap-mailbox-get
-	  imap-mailbox-map-1
-	  imap-mailbox-map
-	  imap-current-mailbox
-	  imap-current-mailbox-p-1
-	  imap-current-mailbox-p
-	  imap-mailbox-select-1
-	  imap-mailbox-select
-	  imap-mailbox-examine-1
-	  imap-mailbox-examine
-	  imap-mailbox-unselect
-	  imap-mailbox-expunge
-	  imap-mailbox-close
-	  imap-mailbox-create-1
-	  imap-mailbox-create
-	  imap-mailbox-delete
-	  imap-mailbox-rename
-	  imap-mailbox-lsub
-	  imap-mailbox-list
-	  imap-mailbox-subscribe
-	  imap-mailbox-unsubscribe
-	  imap-mailbox-status
-	  imap-mailbox-acl-get
-	  imap-mailbox-acl-set
-	  imap-mailbox-acl-delete
-	  imap-current-message
-	  imap-list-to-message-set
-	  imap-fetch-asynch
-	  imap-fetch
-	  imap-fetch-safe
-	  imap-message-put
-	  imap-message-get
-	  imap-message-map
-	  imap-search
-	  imap-message-flag-permanent-p
-	  imap-message-flags-set
-	  imap-message-flags-del
-	  imap-message-flags-add
-	  imap-message-copyuid-1
-	  imap-message-copyuid
-	  imap-message-copy
-	  imap-message-appenduid-1
-	  imap-message-appenduid
-	  imap-message-append
-	  imap-body-lines
-	  imap-envelope-from
-	  imap-send-command-1
-	  imap-send-command
-	  imap-wait-for-tag
-	  imap-sentinel
-	  imap-find-next-line
-	  imap-arrival-filter
-	  imap-parse-greeting
-	  imap-parse-response
-	  imap-parse-resp-text
-	  imap-parse-resp-text-code
-	  imap-parse-data-list
-	  imap-parse-fetch
-	  imap-parse-status
-	  imap-parse-acl
-	  imap-parse-flag-list
-	  imap-parse-envelope
-	  imap-parse-body-extension
-	  imap-parse-body
-	  )))
-
 (provide 'imap)
 
-;; arch-tag: 27369ed6-33e4-482f-96f1-8bb906ba70f7
 ;;; imap.el ends here

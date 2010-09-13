@@ -8,6 +8,7 @@
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Keywords:    News, RSS, Atom
 ;; Time-stamp:  "6. Dezember 2009, 19:16:00 (ulf)"
+;; Package:     newsticker
 
 ;; ======================================================================
 

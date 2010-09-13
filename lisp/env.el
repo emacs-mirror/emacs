@@ -5,6 +5,7 @@
 
 ;; Maintainer: FSF
 ;; Keywords: processes, unix
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

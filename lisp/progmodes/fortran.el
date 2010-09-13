@@ -483,6 +483,7 @@ The only difference is, it returns t in a case when the default returns nil."
   "Maximum highlighting for Fortran mode.
 Consists of level 3 plus all other intrinsics not already highlighted.")
 
+(defvar fortran--font-lock-syntactic-keywords)
 ;; Comments are real pain in Fortran because there is no way to
 ;; represent the standard comment syntax in an Emacs syntax table.
 ;; (We can do so for F90-style).  Therefore an unmatched quote in a
@@ -887,9 +888,11 @@ with no args, if that value is non-nil."
           fortran-font-lock-keywords-3
           fortran-font-lock-keywords-4)
          nil t ((?/ . "$/") ("_$" . "w"))
-         fortran-beginning-of-subprogram
-         (font-lock-syntactic-keywords
-          . fortran-font-lock-syntactic-keywords)))
+         fortran-beginning-of-subprogram))
+  (set (make-local-variable 'fortran--font-lock-syntactic-keywords)
+       (fortran-make-syntax-propertize-function))
+  (set (make-local-variable 'syntax-propertize-function)
+       (syntax-propertize-via-font-lock fortran--font-lock-syntactic-keywords))
   (set (make-local-variable 'imenu-case-fold-search) t)
   (set (make-local-variable 'imenu-generic-expression)
        fortran-imenu-generic-expression)
@@ -917,11 +920,13 @@ affects all Fortran buffers, and also the default."
               (when (eq major-mode 'fortran-mode)
                 (setq fortran-line-length nchars
                       fill-column fortran-line-length
-                      new (fortran-font-lock-syntactic-keywords))
+                      new (fortran-make-syntax-propertize-function))
                 ;; Refontify only if necessary.
-                (unless (equal new font-lock-syntactic-keywords)
-                  (setq font-lock-syntactic-keywords
-                        (fortran-font-lock-syntactic-keywords))
+                (unless (equal new fortran--font-lock-syntactic-keywords)
+                  (setq fortran--font-lock-syntactic-keywords new)
+                  (setq syntax-propertize-function
+                        (syntax-propertize-via-font-lock new))
+                  (syntax-ppss-flush-cache (point-min))
                   (if font-lock-mode (font-lock-mode 1))))))
           (if global
               (buffer-list)

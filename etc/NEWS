@@ -59,6 +59,10 @@ automatically select it.
 
 * Startup Changes in Emacs 24.1
 
+** The --unibyte, --multibyte, --no-multibyte, and --no-unibyte
+command line arguments no longer have any effect.  (They were declared
+obsolete in Emacs 23.)
+
 
 * Changes in Emacs 24.1
 
@@ -106,8 +110,23 @@ is taken from the desktop settings.
 
 ** GTK tool bars can be placed on the left/right or top/bottom of the frame.
 The frame-parameter tool-bar-position controls this.  It takes the values
-top, left, tight or bottom.  The Options => Show/Hide menu has entries
+top, left, right or bottom.  The Options => Show/Hide menu has entries
 for this.
+
+** ImageMagick support.
+It is now possible to use the Imagemagick library to load many new
+image formats in Emacs.  To enable this, use the configure option
+`--with-imagemagick'.
+
+The new function `imagemagick-types' returns a list of image file
+extensions that your installation of ImageMagick supports.  The
+function `imagemagick-register-types' enables ImageMagick support for
+these imaeg types, minus those listed in `imagemagick-types-inhibit'.
+
+See the Emacs Lisp Reference Manual for more information.
+
+** The colors for selected text (the region face) are taken from the GTK
+theme when Emacs is built with GTK.
 
 ** Emacs uses GTK tooltips by default if built with GTK.  You can turn that
 off by customizing x-gtk-use-system-tooltips.
@@ -153,8 +172,12 @@ for `list-colors-display'.
 
 ** An Emacs Lisp package manager is now included.
 This is a convenient way to download and install additional packages,
-from elpa.gnu.org.  `M-x package-list-packages' shows a list of
-packages, which can be selected for installation.
+from elpa.gnu.org.
+
+*** `M-x list-packages' shows a list of packages, which can be
+selected for installation.
+
+*** New command `describe-package', bound to `C-h P'.
 
 *** By default, all installed packages are loaded and activated
 automatically when Emacs starts up.  To disable this, set
@@ -188,27 +211,42 @@ should use delete-char with a negative argument instead.
 
 ** Selection changes.
 
-The way Emacs interacts with the clipboard and primary selection, by
-default, is now similar to other X applications.  In particular, kill
-and yank use the clipboard, in addition to the primary selection.
+The default handling of clipboard and primary selections has been
+changed to conform with other X applications.
 
-*** `select-active-regions' now defaults to `lazy'.
-This means that any active region made with shift-selection or mouse
-dragging, or acted on by Emacs (e.g. with M-w or C-w), is
-automatically added to the primary window selection.
+*** `select-active-regions' now defaults to t, so active regions set
+the primary selection.
+
+It also accepts a new value, `lazy', which means to only set the
+primary selection for temporarily active regions (usually made by
+mouse-dragging or shift-selection).
+
+*** `mouse-2' is now bound to `mouse-yank-primary'.
 
 *** `x-select-enable-clipboard' now defaults to t.
+Thus, killing and yanking now use the clipboard (in addition to the
+kill ring).
 
 *** `x-select-enable-primary' now defaults to nil.
 
 *** `mouse-drag-copy-region' now defaults to nil.
 
-*** `mouse-2' is now bound to `mouse-yank-primary'.
+*** Support for X cut buffers has been removed.
 
 
 * Changes in Specialized Modes and Packages in Emacs 24.1
 
+** FIXME: xdg-open for browse-url and reportbug, 2010/08.  (Close bug#4546?)
+
 ** Archive Mode has basic support to browse 7z archives.
+
+** ERC changes
+
+*** New vars `erc-autojoin-timing' and `erc-autojoin-delay'.
+If the value of `erc-autojoin-timing' is 'ident, ERC autojoins after a
+successful NickServ identification, or after `erc-autojoin-delay'
+seconds.  The default value, 'ident, means to autojoin immediately
+after connecting.
 
 ** In ido-mode, C-v is no longer bound to ido-toggle-vc.
 The reason is that this interferes with cua-mode.
@@ -279,9 +317,31 @@ For example, adding "(diff-mode . ((mode . whitespace)))" to your
 variables `sql-product', `sql-user', `sql-server', `sql-database' and
 `sql-port' can now be safely used as local variables.
 
+*** `sql-dialect' is a synonym for `sql-product'.
+
 *** Added ability to login with a port on MySQL.
 The custom variable `sql-port' can be specified for connection to
 MySQL servers.
+
+*** Dynamic selection of product in an SQL interactive session.
+If you use `sql-product-interactive' to start an SQL interactive
+session it uses the current value of `sql-product'.  Preceding the
+invocation with C-u will force it to ask for the product before
+creating the session.
+
+*** Renaming a SQL interactive buffer when it is created.
+Prefixing the SQL interactive commands (`sql-sqlite', `sql-postgres',
+`sql-mysql', etc.) with C-u will force a new interactive session to be
+started and will prompt for the new name.  This will reduce the need
+for `sql-rename-buffer' is most common use cases.
+
+*** Command continuation prompts in SQL interactive mode are suppressed.
+Multiple line commands in SQL interactive mode, generate command
+continuation prompts which needlessly confuse the output.  These
+prompts are now filtered out from the output.  This change impacts
+multiple line SQL statements entered with C-j between each line,
+statements yanked into the buffer and statements sent with
+`sql-send-*' functions.
 
 *** Custom variables control prompting for login parameters.
 Each supported product has a custom variable `sql-*-login-params'
@@ -302,7 +362,8 @@ names (without the directory portion).  Generally these strings will
 be of the form ".+\.SUF" where SUF is the desired file suffix.
 
 When :completion is specified, the ARG corresponds to the PREDICATE
-argument to the `completing-read' function.
+argument to the `completing-read' function (a list of possible values
+or a function returning such a list).
 
 *** Added `sql-connection-alist' to record login parameter values.
 An alist for recording different username, database and server
@@ -368,8 +429,15 @@ enabled by default in 23.1.
 supports multithread non-stop debugging and debugging of several
 threads simultaneously.
 
+** D-Bus
+
+*** It is possible now, to access alternative buses than the default
+system or session bus.
+
 
 * New Modes and Packages in Emacs 24.1
+
+** New global minor modes electric-pair-mode and electric-indent-mode.
 
 ** pcase.el provides the ML-style pattern matching macro `pcase'.
 
@@ -412,6 +480,20 @@ has now been removed.
 
 * Lisp changes in Emacs 24.1
 
+** New variable syntax-propertize-function to set syntax-table properties.
+Replaces font-lock-syntactic-keywords which are now obsolete.
+This allows syntax-table properties to be set independently from font-lock:
+just call syntax-propertize to make sure the text is propertized.
+Together with this new variable come a new hook
+syntax-propertize-extend-region-functions, as well as two helper functions:
+syntax-propertize-via-font-lock to reuse old font-lock-syntactic-keywords
+as-is; and syntax-propertize-rules which provides a new way to specify
+syntactic rules.
+
+** New hook post-self-insert-hook run at the end of self-insert-command.
+
++++
+** Syntax tables support a new "comment style c" additionally to style b.
 ** frame-local variables cannot be let-bound any more.
 ** prog-mode is a new major-mode meant to be the parent of programming mode.
 ** define-minor-mode accepts a new keyword :variable.
@@ -435,6 +517,14 @@ sub-images are displayed successively with the duration defined by
 by the Graphic Control Extension of the image.
 
 *** `image-extension-data' is renamed to `image-metadata'.
+
+** XML and HTML parsing
+
+*** If Emacs is compiled with libxml2 support (which is the default),
+two new Emacs Lisp-level functions are defined: `html-parse-string'
+(which will parse "real world" HTML) and `xml-parse-string' (which
+parses XML).  Both return an Emacs Lisp parse tree.  See the Emacs
+Lisp Reference Manual for details.
 
 ** Isearch
 

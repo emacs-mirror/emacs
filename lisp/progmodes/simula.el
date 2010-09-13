@@ -163,17 +163,18 @@ for SIMULA mode to function correctly."
 (defvar simula-mode-syntax-table nil
   "Syntax table in SIMULA mode buffers.")
 
-(defconst simula-font-lock-syntactic-keywords
-  `(;; `comment' directive.
-    ("\\<\\(c\\)omment\\>" 1 "<")
-    ;; end comments
-    (,(concat "\\<end\\>\\([^;\n]\\).*?\\(\n\\|\\(.\\)\\(;\\|"
-	      (regexp-opt '("end" "else" "when" "otherwise"))
-	      "\\)\\)")
-     (1 "< b")
-     (3 "> b" nil t))
-    ;; non-quoted single-quote char.
-    ("'\\('\\)'" 1 ".")))
+(defconst simula-syntax-propertize-function
+  (syntax-propertize-rules
+   ;; `comment' directive.
+   ("\\<\\(c\\)omment\\>" (1 "<"))
+   ;; end comments
+   ((concat "\\<end\\>\\([^;\n]\\).*?\\(\n\\|\\(.\\)\\(;\\|"
+            (regexp-opt '("end" "else" "when" "otherwise"))
+            "\\)\\)")
+    (1 "< b")
+    (3 "> b"))
+   ;; non-quoted single-quote char.
+   ("'\\('\\)'" (1 "."))))
 
 ;; Regexps written with help from Alf-Ivar Holm <alfh@ifi.uio.no>.
 (defconst simula-font-lock-keywords-1
@@ -396,8 +397,9 @@ with no arguments, if that value is non-nil."
   (setq font-lock-defaults
 	'((simula-font-lock-keywords simula-font-lock-keywords-1
 	   simula-font-lock-keywords-2 simula-font-lock-keywords-3)
-	  nil t ((?_ . "w")) nil
-	  (font-lock-syntactic-keywords . simula-font-lock-syntactic-keywords)))
+	  nil t ((?_ . "w"))))
+  (set (make-local-variable 'syntax-propertize-function)
+       simula-syntax-propertize-function)
   (abbrev-mode 1))
 
 (defun simula-indent-exp ()

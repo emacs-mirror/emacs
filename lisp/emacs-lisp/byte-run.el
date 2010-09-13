@@ -7,6 +7,7 @@
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
 ;; Maintainer: FSF
 ;; Keywords: internal
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -65,7 +66,6 @@ The return value of this function is not used."
 ;; Redefined in byte-optimize.el.
 ;; This is not documented--it's not clear that we should promote it.
 (fset 'inline 'progn)
-(put 'inline 'lisp-indent-function 0)
 
 ;;; Interface to inline functions.
 

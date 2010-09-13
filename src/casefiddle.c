@@ -221,6 +221,8 @@ casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
   start_byte = CHAR_TO_BYTE (start);
   end_byte = CHAR_TO_BYTE (end);
 
+  SETUP_BUFFER_SYNTAX_TABLE();	/* For syntax_prefix_flag_p.  */
+
   while (start < end)
     {
       int c2, len;
@@ -243,7 +245,8 @@ casify_region (enum case_action flag, Lisp_Object b, Lisp_Object e)
 	       && (!inword || flag != CASE_CAPITALIZE_UP))
 	c = UPCASE1 (c);
       if ((int) flag >= (int) CASE_CAPITALIZE)
-	inword = ((SYNTAX (c) == Sword) && (inword || !SYNTAX_PREFIX (c)));
+	inword = ((SYNTAX (c) == Sword)
+		  && (inword || !syntax_prefix_flag_p (c)));
       if (c != c2)
 	{
 	  last = start;

@@ -142,7 +142,7 @@ extern int synch_process_alive;
    to Fcall_process.  */
 
 /* Nonzero => this is a string explaining death of synchronous subprocess.  */
-extern char *synch_process_death;
+extern const char *synch_process_death;
 
 /* Nonzero => this is the signal number that terminated the subprocess.  */
 extern int synch_process_termsig;

@@ -1152,7 +1152,8 @@ For the format of LINE-ERR-INFO, see `flymake-ler-make-ler'."
 	  (when dir
 	    (let ((default-directory dir))
 	      (flymake-log 3 "starting process on dir %s" default-directory)))
-	  (setq process (apply 'start-process "flymake-proc" (current-buffer) cmd args))
+	  (setq process (apply 'start-file-process
+			       "flymake-proc" (current-buffer) cmd args))
 	  (set-process-sentinel process 'flymake-process-sentinel)
 	  (set-process-filter process 'flymake-process-filter)
           (push process flymake-processes)

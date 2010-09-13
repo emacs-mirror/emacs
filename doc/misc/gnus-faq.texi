@@ -2331,7 +2331,3 @@ NUA is an acronym for News User Agent, it's the program you
 use to read and write Usenet news.
 
 @end table
-
-@ignore
-arch-tag: 64dc5692-edb4-4848-a965-7aa0181acbb8
-@end ignore

@@ -1,3 +1,18 @@
+;;  (defun auto-save-mode (arg)
+;;   "Toggle auto-saving of contents of current buffer.
+;; With prefix argument ARG, turn auto-saving on if positive, else off."
+;;     (interactive)
+;;     (if (> arg 0) auto-save (null auto-save)))
+
+
+;; (defun auto-fill-mode (arg)
+;;   "Toggle Auto Fill mode.
+;; With ARG, turn Auto Fill mode on if and only if ARG is positive.
+;; In Auto Fill mode, inserting a space at a column beyond `current-fill-column'
+;; automatically breaks the line at a previous space."
+;;    (interactive)
+;;    (if (> arg 0) auto-fill (null auto-fill)))
+
 ;;; files.el --- file input and output commands for Emacs
 
 ;; Copyright (C) 1985, 1986, 1987, 1992, 1993, 1994, 1995, 1996,
@@ -5,6 +20,7 @@
 ;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -66,9 +82,9 @@ Use this feature when you have directories which you normally refer to
 via absolute symbolic links.  Make TO the name of the link, and FROM
 the name it is linked to."
   :type '(repeat (cons :format "%v"
-		       :value ("" . "")
+		       :value ("\\`" . "")
 		       (regexp :tag "From")
-		       (regexp :tag "To")))
+		       (string :tag "To")))
   :group 'abbrev
   :group 'find-file)
 
@@ -757,21 +773,44 @@ one or more of those symbols."
              (let ((x (file-name-directory suffix)))
                (if x (1- (length x)) (length suffix))))))
    (t
-    (let ((names nil)
+    (let ((names '())
+          ;; If we have files like "foo.el" and "foo.elc", we could load one of
+          ;; them with "foo.el", "foo.elc", or "foo", where just "foo" is the
+          ;; preferred way.  So if we list all 3, that gives a lot of redundant
+          ;; entries for the poor soul looking just for "foo".  OTOH, sometimes
+          ;; the user does want to pay attention to the extension.  We try to
+          ;; diffuse this tension by stripping the suffix, except when the
+          ;; result is a single element (i.e. usually we only list "foo" unless
+          ;; it's the only remaining element in the list, in which case we do
+          ;; list "foo", "foo.elc" and "foo.el").
+          (fullnames '())
 	  (suffix (concat (regexp-opt suffixes t) "\\'"))
 	  (string-dir (file-name-directory string))
           (string-file (file-name-nondirectory string)))
       (dolist (dir dirs)
-	(unless dir
-	  (setq dir default-directory))
-	(if string-dir (setq dir (expand-file-name string-dir dir)))
-	(when (file-directory-p dir)
-	  (dolist (file (file-name-all-completions
-			 string-file dir))
-	    (push file names)
-	    (when (string-match suffix file)
-	      (setq file (substring file 0 (match-beginning 0)))
-              (push file names)))))
+        (unless dir
+          (setq dir default-directory))
+        (if string-dir (setq dir (expand-file-name string-dir dir)))
+        (when (file-directory-p dir)
+          (dolist (file (file-name-all-completions
+                         string-file dir))
+            (if (not (string-match suffix file))
+                (push file names)
+              (push file fullnames)
+              (push (substring file 0 (match-beginning 0)) names)))))
+      ;; Switching from names to names+fullnames creates a non-monotonicity
+      ;; which can cause problems with things like partial-completion.
+      ;; To minimize the problem, filter out completion-regexp-list, so that
+      ;; M-x load-library RET t/x.e TAB finds some files.
+      (if completion-regexp-list
+          (setq names (all-completions "" names)))
+      ;; Remove duplicates of the first element, so that we can easily check
+      ;; if `names' really only contains a single element.
+      (when (cdr names) (setcdr names (delete (car names) (cdr names))))
+      (unless (cdr names)
+        ;; There's no more than one matching non-suffixed element, so expand
+        ;; the list by adding the suffixed elements as well.
+        (setq names (nconc names fullnames)))
       (completion-table-with-context
        string-dir names string-file pred action)))))
 
@@ -2782,6 +2821,7 @@ asking you for confirmation."
 	(no-update-autoloads     . booleanp)
 	(tab-width               . integerp)   ;; C source code
 	(truncate-lines          . booleanp)   ;; C source code
+	(word-wrap               . booleanp) ;; C source code
 	(bidi-display-reordering . booleanp))) ;; C source code
 
 (put 'bidi-paragraph-direction 'safe-local-variable
@@ -5538,12 +5578,14 @@ preference to the program given by this variable."
 
 (defun get-free-disk-space (dir)
   "Return the amount of free space on directory DIR's file system.
-The result is a string that gives the number of free 1KB blocks,
-or nil if the system call or the program which retrieve the information
-fail.  It returns also nil when DIR is a remote directory.
+The return value is a string describing the amount of free
+space (normally, the number of free 1KB blocks).
 
-This function calls `file-system-info' if it is available, or invokes the
-program specified by `directory-free-space-program' if that is non-nil."
+This function calls `file-system-info' if it is available, or
+invokes the program specified by `directory-free-space-program'
+and `directory-free-space-args'.  If the system call or program
+is unsuccessful, or if DIR is a remote directory, this function
+returns nil."
   (unless (file-remote-p dir)
     ;; Try to find the number of free blocks.  Non-Posix systems don't
     ;; always have df, but might have an equivalent system call.
@@ -5563,19 +5605,22 @@ program specified by `directory-free-space-program' if that is non-nil."
 					 directory-free-space-args
 					 dir)
 			   0)))
-	    ;; Usual format is a header line followed by a line of
-	    ;; numbers.
+	    ;; Usual format is as follows:
+	    ;; Filesystem ...    Used  Available  Capacity ...
+	    ;; /dev/sda6  ...48106535   35481255  10669850 ...
 	    (goto-char (point-min))
-	    (forward-line 1)
-	    (if (not (eobp))
-		(progn
-		  ;; Move to the end of the "available blocks" number.
-		  (skip-chars-forward "^ \t")
-		  (forward-word 3)
-		  ;; Copy it into AVAILABLE.
-		  (let ((end (point)))
-		    (forward-word -1)
-		    (buffer-substring (point) end))))))))))
+	    (when (re-search-forward " +Avail[^ \n]*"
+				     (line-end-position) t)
+	      (let ((beg (match-beginning 0))
+		    (end (match-end 0))
+		    str)
+		(forward-line 1)
+		(setq str
+		      (buffer-substring-no-properties
+		       (+ beg (point) (- (point-min)))
+		       (+ end (point) (- (point-min)))))
+		(when (string-match "\\` *\\([^ ]+\\)" str)
+		  (match-string 1 str))))))))))
 
 ;; The following expression replaces `dired-move-to-filename-regexp'.
 (defvar directory-listing-before-filename-regexp

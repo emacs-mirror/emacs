@@ -1986,8 +1986,7 @@ If it is @code{combined} then the region in buffer C will look like
 this:
 
 @comment Use @set to avoid triggering merge conflict detectors like CVS.
-@set seven-left <<<<<<<
-@set seven-right >>>>>>>
+@set seven-left 
 @example
 @value{seven-left} variant A
 the difference region from buffer A

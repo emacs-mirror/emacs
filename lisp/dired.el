@@ -7,6 +7,7 @@
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;; Maintainer: FSF
 ;; Keywords: files
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -3248,12 +3249,16 @@ variable `dired-listing-switches'.  To temporarily override the listing
 format, use `\\[universal-argument] \\[dired]'.")
 
 (defvar dired-sort-by-date-regexp
-  (concat "^-[^" dired-ls-sorting-switches
-	  "]*t[^" dired-ls-sorting-switches "]*$")
+  (concat "\\(\\`\\| \\)-[^- ]*t"
+	  ;; `dired-ls-sorting-switches' after -t overrides -t.
+	  "[^ " dired-ls-sorting-switches "]*"
+	  "\\(\\(\\`\\| +\\)\\(--[^ ]+\\|-[^- t"
+	  dired-ls-sorting-switches "]+\\)\\)* *$")
   "Regexp recognized by Dired to set `by date' mode.")
 
 (defvar dired-sort-by-name-regexp
-  (concat "^-[^t" dired-ls-sorting-switches "]+$")
+  (concat "\\`\\(\\(\\`\\| +\\)\\(--[^ ]+\\|"
+	  "-[^- t" dired-ls-sorting-switches "]+\\)\\)* *$")
   "Regexp recognized by Dired to set `by name' mode.")
 
 (defvar dired-sort-inhibit nil
@@ -3279,8 +3284,8 @@ The idea is to set this buffer-locally in special dired buffers.")
     (force-mode-line-update)))
 
 (defun dired-sort-toggle-or-edit (&optional arg)
-  "Toggle between sort by date/name and refresh the dired buffer.
-With a prefix argument you can edit the current listing switches instead."
+  "Toggle sorting by date, and refresh the Dired buffer.
+With a prefix argument, edit the current listing switches instead."
   (interactive "P")
   (when dired-sort-inhibit
     (error "Cannot sort this dired buffer"))
@@ -3291,24 +3296,24 @@ With a prefix argument you can edit the current listing switches instead."
 
 (defun dired-sort-toggle ()
   ;; Toggle between sort by date/name.  Reverts the buffer.
-  (setq dired-actual-switches
-	(let (case-fold-search)
-	  (if (string-match " " dired-actual-switches)
-	      ;; New toggle scheme: add/remove a trailing " -t"
-	      (if (string-match " -t\\'" dired-actual-switches)
-		  (substring dired-actual-switches 0 (match-beginning 0))
-		(concat dired-actual-switches " -t"))
-	    ;; old toggle scheme: look for some 't' switch and add/remove it
-	    (concat
-	     "-l"
-	     (dired-replace-in-string (concat "[-lt"
-					      dired-ls-sorting-switches "]")
-				      ""
-				      dired-actual-switches)
-	     (if (string-match (concat "[t" dired-ls-sorting-switches "]")
-			       dired-actual-switches)
-		 ""
-	       "t")))))
+  (let ((sorting-by-date (string-match dired-sort-by-date-regexp
+				       dired-actual-switches))
+	;; Regexp for finding (possibly embedded) -t switches.
+	(switch-regexp "\\(\\`\\| \\)-\\([a-su-zA-Z]*\\)\\(t\\)\\([^ ]*\\)")
+	case-fold-search)
+    ;; Remove the -t switch.
+    (while (string-match switch-regexp dired-actual-switches)
+      (if (and (equal (match-string 2 dired-actual-switches) "")
+	       (equal (match-string 4 dired-actual-switches) ""))
+	  ;; Remove a stand-alone -t switch.
+	  (setq dired-actual-switches
+		(replace-match "" t t dired-actual-switches))
+	;; Remove a switch of the form -XtY for some X and Y.
+	(setq dired-actual-switches
+	      (replace-match "" t t dired-actual-switches 3))))
+    ;; Now, if we weren't sorting by date before, add the -t switch.
+    (unless sorting-by-date
+      (setq dired-actual-switches (concat dired-actual-switches " -t"))))
   (dired-sort-set-modeline)
   (revert-buffer))
 
@@ -3534,7 +3539,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 ;;;;;;  dired-run-shell-command dired-do-shell-command dired-do-async-shell-command
 ;;;;;;  dired-clean-directory dired-do-print dired-do-touch dired-do-chown
 ;;;;;;  dired-do-chgrp dired-do-chmod dired-compare-directories dired-backup-diff
-;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "07676ea25af17f5d50cc5db4f53bddc0")
+;;;;;;  dired-diff) "dired-aux" "dired-aux.el" "416d272299fd4774c47c2f677ee640a4")
 ;;; Generated autoloads from dired-aux.el
 
 (autoload 'dired-diff "dired-aux" "\
@@ -3987,7 +3992,7 @@ true then the type of the file linked to by FILE is printed instead.
 ;;;***
 
 ;;;### (autoloads (dired-do-relsymlink dired-jump) "dired-x" "dired-x.el"
-;;;;;;  "6c492aba3ca0d36a4cd7b02fb9c1cc10")
+;;;;;;  "27c312d6d5d40d8cb4ef8d62e30d5f4a")
 ;;; Generated autoloads from dired-x.el
 
 (autoload 'dired-jump "dired-x" "\

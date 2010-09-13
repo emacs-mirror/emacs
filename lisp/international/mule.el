@@ -326,8 +326,7 @@ Return t if file exists."
 	    (with-current-buffer buffer
               ;; So that we don't get completely screwed if the
               ;; file is encoded in some complicated character set,
-              ;; read it with real decoding, as a multibyte buffer,
-              ;; even if this is a --unibyte Emacs session.
+              ;; read it with real decoding, as a multibyte buffer.
               (set-buffer-multibyte t)
 	      ;; Don't let deactivate-mark remain set.
 	      (let (deactivate-mark)
@@ -346,12 +345,7 @@ Return t if file exists."
 	    (eval-buffer buffer nil
 			 ;; This is compatible with what `load' does.
 			 (if purify-flag file fullname)
-			 ;; If this Emacs is running with --unibyte,
-			 ;; convert multibyte strings to unibyte
-			 ;; after reading them.
-;;			 (not (default-value 'enable-multibyte-characters))
-			 nil t
-			 ))
+			 nil t))
 	(let (kill-buffer-hook kill-buffer-query-functions)
 	  (kill-buffer buffer)))
       (do-after-load-evaluation fullname)
@@ -2303,13 +2297,12 @@ It returns the number of characters changed."
 	(setq table val)))
   (translate-region-internal start end table))
 
-(put 'with-category-table 'lisp-indent-function 1)
-
 (defmacro with-category-table (table &rest body)
   "Execute BODY like `progn' with TABLE the current category table.
 The category table of the current buffer is saved, BODY is evaluated,
 then the saved table is restored, even in case of an abnormal exit.
 Value is what BODY returns."
+  (declare (indent 1) (debug t))
   (let ((old-table (make-symbol "old-table"))
 	(old-buffer (make-symbol "old-buffer")))
     `(let ((,old-table (category-table))

@@ -5,6 +5,7 @@
 
 ;; Maintainer: FSF
 ;; Keywords: multimedia
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -616,7 +617,7 @@ Images should not be larger than specified by `max-image-size'."
     (let* ((animate (memq type image-animated-types))
 	   (image
 	    (append (list 'image :type type (if data-p :data :file) file-or-data)
-		    (if animate '(:index 0 :mask heuristic))
+		    (if animate '(:index 0))
 		    props)))
       (if animate
 	  (image-animate-start image))
@@ -694,6 +695,34 @@ shall be displayed."
 	(cons images tmo))))))
 
 
+(defcustom imagemagick-types-inhibit
+  '(C HTML HTM TXT PDF)
+  ;; FIXME what are the possible options?
+  ;; Are these actually file-name extensions?
+  ;; Why are these upper-case when eg image-types is lower-case?
+  "Types the ImageMagick loader should not try to handle."
+  :type '(choice (const :tag "Let ImageMagick handle all the types it can" nil)
+		 (repeat symbol))
+  :version "24.1"
+  :group 'image)
+
+;;;###autoload
+(defun imagemagick-register-types ()
+  "Register the file types that ImageMagick is able to handle."
+  (let ((im-types (imagemagick-types)))
+    (dolist (im-inhibit imagemagick-types-inhibit)
+      (setq im-types (remove im-inhibit im-types)))
+    (dolist (im-type im-types)
+      (let ((extension (downcase (symbol-name im-type))))
+	(push
+	 (cons (concat "\\." extension "\\'") 'image-mode)
+	 auto-mode-alist)
+	(push
+	 (cons (concat "\\." extension "\\'") 'imagemagick)
+	 image-type-file-name-regexps)))))
+
+
+
 (provide 'image)
 
 ;; arch-tag: 8e76a07b-eb48-4f3e-a7a0-1a7ba9f096b3

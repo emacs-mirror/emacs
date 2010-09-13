@@ -276,7 +276,7 @@
 
 (defun gnus-put-image (glyph &optional string category)
   (let ((point (point)))
-    (insert-image glyph (or string " "))
+    (insert-image glyph (or string "*"))
     (put-text-property point (point) 'gnus-image-category category)
     (unless string
       (put-text-property (1- (point)) (point)
@@ -305,7 +305,47 @@
 	  (setq start end
 		end nil))))))
 
+(eval-and-compile
+  (if (fboundp 'set-process-plist)
+      (progn
+	(defalias 'gnus-set-process-plist 'set-process-plist)
+	(defalias 'gnus-process-plist 'process-plist)
+	(defalias 'gnus-process-get 'process-get)
+	(defalias 'gnus-process-put 'process-put))
+    (defun gnus-set-process-plist (process plist)
+      "Replace the plist of PROCESS with PLIST.  Returns PLIST."
+      (put 'gnus-process-plist-internal process plist))
+
+    (defun gnus-process-plist (process)
+      "Return the plist of PROCESS."
+      ;; This form works but can't prevent the plist data from
+      ;; growing infinitely.
+      ;;(get 'gnus-process-plist-internal process)
+      (let* ((plist (symbol-plist 'gnus-process-plist-internal))
+	     (tem (memq process plist)))
+	(prog1
+	    (cadr tem)
+	  ;; Remove it from the plist data.
+	  (when tem
+	    (if (eq plist tem)
+		(progn
+		  (setcar plist (caddr plist))
+		  (setcdr plist (or (cdddr plist) '(nil))))
+	      (setcdr (nthcdr (- (length plist) (length tem) 1) plist)
+		      (cddr tem)))))))
+
+    (defun gnus-process-get (process propname)
+      "Return the value of PROCESS' PROPNAME property.
+This is the last value stored with `(gnus-process-put PROCESS PROPNAME VALUE)'."
+      (plist-get (gnus-process-plist process) propname))
+
+    (defun gnus-process-put (process propname value)
+      "Change PROCESS' PROPNAME property to VALUE.
+It can be retrieved with `(gnus-process-get PROCESS PROPNAME)'."
+      (gnus-set-process-plist process
+			      (plist-put (gnus-process-plist process)
+					 propname value)))))
+
 (provide 'gnus-ems)
 
-;; arch-tag: e7360b45-14b5-4171-aa39-69a44aed3cdb
 ;;; gnus-ems.el ends here

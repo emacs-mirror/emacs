@@ -92,12 +92,10 @@
 (defmacro dbus-ignore-errors (&rest body)
   "Execute BODY; signal D-Bus error when `dbus-debug' is non-nil.
 Otherwise, return result of last form in BODY, or all other errors."
+  (declare (indent 0) (debug t))
   `(condition-case err
        (progn ,@body)
      (dbus-error (when dbus-debug (signal (car err) (cdr err))))))
-
-(put 'dbus-ignore-errors 'lisp-indent-function 0)
-(put 'dbus-ignore-errors 'edebug-form-spec '(form body))
 (font-lock-add-keywords 'emacs-lisp-mode '("\\<dbus-ignore-errors\\>"))
 
 (defvar dbus-event-error-hooks nil
@@ -108,15 +106,12 @@ catched in `condition-case' by `dbus-error'.")
 
 ;;; Hash table of registered functions.
 
-;; We create it here.  So we have a simple test in dbusbind.c, whether
-;; the Lisp code has been loaded.
-(setq dbus-registered-objects-table (make-hash-table :test 'equal))
-
 (defvar dbus-return-values-table (make-hash-table :test 'equal)
   "Hash table for temporary storing arguments of reply messages.
-A key in this hash table is a list (BUS SERIAL).  BUS is either the
-symbol `:system' or the symbol `:session'.  SERIAL is the serial number
-of the reply message.  See `dbus-call-method-non-blocking-handler' and
+A key in this hash table is a list (BUS SERIAL).  BUS is either a
+Lisp symbol, `:system' or `:session', or a string denoting the
+bus address.  SERIAL is the serial number of the reply message.
+See `dbus-call-method-non-blocking-handler' and
 `dbus-call-method-non-blocking'.")
 
 (defun dbus-list-hash-table ()
@@ -187,8 +182,8 @@ association to the service from D-Bus."
 
 (defun dbus-unregister-service (bus service)
   "Unregister all objects related to SERVICE from D-Bus BUS.
-BUS must be either the symbol `:system' or the symbol `:session'.
-SERVICE must be a known service name."
+BUS is either a Lisp symbol, `:system' or `:session', or a string
+denoting the bus address.  SERVICE must be a known service name."
   (maphash
    (lambda (key value)
      (dolist (elt value)
@@ -353,15 +348,15 @@ EVENT is a list which starts with symbol `dbus-event':
   (dbus-event BUS TYPE SERIAL SERVICE PATH INTERFACE MEMBER HANDLER &rest ARGS)
 
 BUS identifies the D-Bus the message is coming from.  It is
-either the symbol `:system' or the symbol `:session'.  TYPE is
-the D-Bus message type which has caused the event, SERIAL is the
-serial number of the received D-Bus message.  SERVICE and PATH
-are the unique name and the object path of the D-Bus object
-emitting the message.  INTERFACE and MEMBER denote the message
-which has been sent.  HANDLER is the function which has been
-registered for this message.  ARGS are the arguments passed to
-HANDLER, when it is called during event handling in
-`dbus-handle-event'.
+either a Lisp symbol, `:system' or `:session', or a string
+denoting the bus address.  TYPE is the D-Bus message type which
+has caused the event, SERIAL is the serial number of the received
+D-Bus message.  SERVICE and PATH are the unique name and the
+object path of the D-Bus object emitting the message.  INTERFACE
+and MEMBER denote the message which has been sent.  HANDLER is
+the function which has been registered for this message.  ARGS
+are the arguments passed to HANDLER, when it is called during
+event handling in `dbus-handle-event'.
 
 This function raises a `dbus-error' signal in case the event is
 not well formed."
@@ -369,7 +364,8 @@ not well formed."
   (unless (and (listp event)
 	       (eq (car event) 'dbus-event)
 	       ;; Bus symbol.
-	       (symbolp (nth 1 event))
+	       (or (symbolp (nth 1 event))
+		   (stringp (nth 1 event)))
 	       ;; Type.
 	       (and (natnump (nth 2 event))
 		    (< dbus-message-type-invalid (nth 2 event)))
@@ -434,9 +430,10 @@ If the HANDLER returns a `dbus-error', it is propagated as return message."
 
 (defun dbus-event-bus-name (event)
   "Return the bus name the event is coming from.
-The result is either the symbol `:system' or the symbol `:session'.
-EVENT is a D-Bus event, see `dbus-check-event'.  This function
-raises a `dbus-error' signal in case the event is not well formed."
+The result is either a Lisp symbol, `:system' or `:session', or a
+string denoting the bus address.  EVENT is a D-Bus event, see
+`dbus-check-event'.  This function raises a `dbus-error' signal
+in case the event is not well formed."
   (dbus-check-event event)
   (nth 1 event))
 
@@ -566,10 +563,11 @@ apply
   "Return all interfaces and sub-nodes of SERVICE,
 registered at object path PATH at bus BUS.
 
-BUS must be either the symbol `:system' or the symbol `:session'.
-SERVICE must be a known service name, and PATH must be a valid
-object path.  The last two parameters are strings.  The result,
-the introspection data, is a string in XML format."
+BUS is either a Lisp symbol, `:system' or `:session', or a string
+denoting the bus address.  SERVICE must be a known service name,
+and PATH must be a valid object path.  The last two parameters
+are strings.  The result, the introspection data, is a string in
+XML format."
   ;; We don't want to raise errors.  `dbus-call-method-non-blocking'
   ;; is used, because the handler can be registered in our Emacs
   ;; instance; caller an callee would block each other.
@@ -873,7 +871,8 @@ name of the property, and its value.  If there are no properties,
   (bus service path interface property access value &optional emits-signal)
   "Register property PROPERTY on the D-Bus BUS.
 
-BUS is either the symbol `:system' or the symbol `:session'.
+BUS is either a Lisp symbol, `:system' or `:session', or a string
+denoting the bus address.
 
 SERVICE is the D-Bus service name of the D-Bus.  It must be a
 known name.

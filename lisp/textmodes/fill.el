@@ -5,6 +5,7 @@
 
 ;; Maintainer: FSF
 ;; Keywords: wp
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

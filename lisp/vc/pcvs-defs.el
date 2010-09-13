@@ -6,6 +6,7 @@
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: pcl-cvs
+;; Package: pcvs
 
 ;; This file is part of GNU Emacs.
 

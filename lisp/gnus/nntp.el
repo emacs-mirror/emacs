@@ -298,13 +298,6 @@ to insert Cancel-Lock headers.")
 (defvoo nntp-server-xover 'try)
 (defvoo nntp-server-list-active-group 'try)
 
-(defvar nntp-async-needs-kluge
-  (string-match "^GNU Emacs 20\\.3\\." (emacs-version))
-  "*When non-nil, nntp will poll asynchronous connections
-once a second.  By default, this is turned on only for Emacs
-20.3, which has a bug that breaks nntp's normal method of
-noticing asynchronous data.")
-
 (defvar nntp-async-timer nil)
 (defvar nntp-async-process-list nil)
 
@@ -316,8 +309,8 @@ port number on server.  The program should accept IMAP commands on
 stdin and return responses to stdout.")
 
 (defvar nntp-authinfo-rejected nil
-"A custom error condition used to report 'Authentication Rejected' errors.  
-Condition handlers that match just this condition ensure that the nntp 
+"A custom error condition used to report 'Authentication Rejected' errors.
+Condition handlers that match just this condition ensure that the nntp
 backend doesn't catch this error.")
 (put 'nntp-authinfo-rejected 'error-conditions '(error nntp-authinfo-rejected))
 (put 'nntp-authinfo-rejected 'error-message "Authorization Rejected")
@@ -1116,7 +1109,8 @@ command whose response triggered the error."
   t)
 
 (deffoo nntp-request-set-mark (group actions &optional server)
-  (unless nntp-marks-is-evil
+  (when (and (not nntp-marks-is-evil)
+	     nntp-marks-file-name)
     (nntp-possibly-create-directory group server)
     (nntp-open-marks group server)
     (dolist (action actions)
@@ -1136,7 +1130,8 @@ command whose response triggered the error."
   nil)
 
 (deffoo nntp-request-update-info (group info &optional server)
-  (unless nntp-marks-is-evil
+  (when (and (not nntp-marks-is-evil)
+	     nntp-marks-file-name)
     (nntp-possibly-create-directory group server)
     (when (nntp-marks-changed-p group server)
       (nnheader-message 8 "Updating marks for %s..." group)
@@ -1368,17 +1363,7 @@ password contained in '~/.nntp-authinfo'."
 	  nntp-process-decode decode
 	  nntp-process-callback callback
 	  nntp-process-start-point (point-max))
-    (setq after-change-functions '(nntp-after-change-function))
-    (if nntp-async-needs-kluge
-	(nntp-async-kluge process))))
-
-(defun nntp-async-kluge (process)
-  ;; emacs 20.3 bug: process output with encoding 'binary
-  ;; doesn't trigger after-change-functions.
-  (unless nntp-async-timer
-    (setq nntp-async-timer
-	  (run-at-time 1 1 'nntp-async-timer-handler)))
-  (add-to-list 'nntp-async-process-list process))
+    (setq after-change-functions '(nntp-after-change-function))))
 
 (defun nntp-async-timer-handler ()
   (mapcar
@@ -1783,7 +1768,7 @@ password contained in '~/.nntp-authinfo'."
     (while (and (setq proc (get-buffer-process buf))
 		(memq (process-status proc) '(open run))
 		(not (re-search-forward regexp nil t)))
-      (accept-process-output proc)
+      (accept-process-output proc 0.1)
       (set-buffer buf)
       (goto-char (point-min)))))
 
@@ -2028,7 +2013,7 @@ Please refer to the following variables to customize the connection:
     (and nntp-pre-command (push nntp-pre-command command))
     (let ((process-connection-type nil)) ;See `nntp-open-via-rlogin-and-netcat'.
       (apply 'start-process "nntpd" buffer command))))
- 
+
 
 (defun nntp-open-via-telnet-and-telnet (buffer)
   "Open a connection to an nntp server through an intermediate host.
@@ -2195,5 +2180,4 @@ Please refer to the following variables to customize the connection:
 
 (provide 'nntp)
 
-;; arch-tag: 8655466a-b1b5-4929-9c45-7b1b2e767271
 ;;; nntp.el ends here

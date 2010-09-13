@@ -1,3 +1,72 @@
+2010-09-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* syntax.texi (Syntax Flags): Document new `c' flag.
+
+2010-09-09  Glenn Morris  <rgm@gnu.org>
+
+	* display.texi (ImageMagick Images): General cleanup.
+
+2010-09-06  Alexander Klimov  <alserkli@inbox.ru>  (tiny change)
+
+	* files.texi (Directory Names): Use \` rather than ^.
+
+2010-09-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* text.texi (Low-Level Kill Ring):
+	* frames.texi (Window System Selections): Remove cut buffer
+	documentation.
+
+2010-08-28  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Fringe Size/Pos): Add a cross-reference to "Layout
+	Parameters", where the default fringe width is described.
+
+	* frames.texi (Window Frame Parameters, Basic Parameters)
+	(Position Parameters, Layout Parameters, Management Parameters)
+	(Cursor Parameters, Font and Color Parameters): Add indexing for
+	frame parameters.  (Bug#6929)
+
+2010-08-25  Tom Tromey  <tromey@redhat.com>
+
+	* vol2.texi (Top): Update.
+	* vol1.texi (Top): Update.
+	* tips.texi (Library Headers): Mention Package-Version and
+	Package-Requires.
+	* package.texi: New file.
+	* os.texi (System Interface): Update pointers.
+	* elisp.texi (Top): Link to new nodes.  Include package.texi.
+	* anti.texi (Antinews): Update pointers.
+
+2010-08-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* processes.texi (Filter Functions): Fix last change.
+
+2010-08-24  Markus Triska  <triska@gmx.at>
+
+	* processes.texi (Filter Functions): Use `buffer-live-p' instead
+	of `buffer-name' in the main text as well as in the example
+	(Bug#3098).
+
+2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* nonascii.texi (Text Representations):
+	* loading.texi (Loading Non-ASCII):
+	* compile.texi (Byte Compilation): Don't mention obsolete
+	--unibyte command-line argument.
+
+2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* modes.texi (Defining Minor Modes): Doc fix (Bug#6880).
+
+2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* objects.texi (Bool-Vector Type): Minor definition tweak (Bug#6878).
+
+2010-08-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* commands.texi (Misc Events): Add cross-references to where
+	POSITION of a mouse event is described in detail.
+
 2010-08-08  Christoph  <cschol2112@googlemail.com>
 
 	* control.texi (Handling Errors) <error-message-string>: Fix arg name.

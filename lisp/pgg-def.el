@@ -6,6 +6,7 @@
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Created: 1999/11/02
 ;; Keywords: PGP, OpenPGP, GnuPG
+;; Package: pgg
 
 ;; This file is part of GNU Emacs.
 
@@ -94,5 +95,4 @@ Whether the passphrase is cached at all is controlled by
 
 (provide 'pgg-def)
 
-;; arch-tag: c425f3ab-ed75-4055-bb46-431a418c94b7
 ;;; pgg-def.el ends here

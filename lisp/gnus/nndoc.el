@@ -100,7 +100,7 @@ from the document.")
      (head-end . "^\t")
      (generate-head-function . nndoc-generate-clari-briefs-head)
      (article-transform-function . nndoc-transform-clari-briefs))
-    
+
     (standard-digest
      (first-article . ,(concat "^" (make-string 70 ?-) "\n *\n+"))
      (article-begin . ,(concat "^\n" (make-string 30 ?-) "\n *\n+"))
@@ -116,6 +116,16 @@ from the document.")
      (body-end-function . nndoc-digest-body-end)
      (body-begin . "^ ?$")
      (file-end . "^End of")
+     (prepare-body-function . nndoc-unquote-dashes)
+     (subtype digest guess))
+    (google
+     (pre-dissection-function . nndoc-decode-content-transfer-encoding)
+     (article-begin . "^== [0-9]+ of [0-9]+ ==$")
+     (head-begin . "^Date:")
+     (head-end . "^$")
+     (body-end-function . nndoc-digest-body-end)
+     (body-begin . "^$")
+     (file-end . "^==============================================================================$")
      (prepare-body-function . nndoc-unquote-dashes)
      (subtype digest guess))
     (lanl-gov-announce
@@ -186,6 +196,7 @@ from the document.")
 (defvoo nndoc-article-begin-function nil)
 (defvoo nndoc-generate-article-function nil)
 (defvoo nndoc-dissection-function nil)
+(defvoo nndoc-pre-dissection-function nil)
 
 (defvoo nndoc-status-string "")
 (defvoo nndoc-group-alist nil)
@@ -363,7 +374,8 @@ from the document.")
 		nndoc-generate-head-function nndoc-body-begin-function
 		nndoc-head-begin-function
 		nndoc-generate-article-function
-		nndoc-dissection-function)))
+		nndoc-dissection-function
+		nndoc-pre-dissection-function)))
     (while vars
       (set (pop vars) nil)))
   (let (defs)
@@ -444,6 +456,22 @@ from the document.")
   (and (re-search-backward nndoc-article-begin nil t)
        (forward-line 1)
        (goto-char (+ (point) (string-to-number (match-string 1))))))
+
+(defun nndoc-google-type-p ()
+  (when (re-search-forward "^=3D=3D 1 of [0-9]+ =3D=3D$" nil t)
+    t))
+
+(defun nndoc-decode-content-transfer-encoding ()
+  (let ((encoding
+	 (save-restriction
+	   (message-narrow-to-head)
+	   (message-fetch-field "content-transfer-encoding"))))
+    (when (and encoding
+	       (search-forward "\n\n" nil t))
+      (save-restriction
+	(narrow-to-region (point) (point-max))
+	(mm-decode-content-transfer-encoding
+	 (intern (downcase (mail-header-strip encoding))))))))
 
 (defun nndoc-babyl-type-p ()
   (when (re-search-forward "\^_\^L *\n" nil t)
@@ -807,6 +835,9 @@ from the document.")
       ;; Remove blank lines.
       (while (eq (following-char) ?\n)
 	(delete-char 1))
+      (when nndoc-pre-dissection-function
+	(save-excursion
+	  (funcall nndoc-pre-dissection-function)))
       (if nndoc-dissection-function
 	  (funcall nndoc-dissection-function)
 	;; Find the beginning of the file.
@@ -1025,5 +1056,4 @@ symbol in the alist."
 
 (provide 'nndoc)
 
-;; arch-tag: f5c2970e-0387-47ac-a0b3-6cc317dffabe
 ;;; nndoc.el ends here

@@ -179,6 +179,8 @@ Reference Manual, corresponding to GNU Emacs version @value{EMACSVER}.
 * System Interface::        Getting the user id, system type, environment
                               variables, and other such things.
 
+* Packaging::               Preparing Lisp code for distribution.
+
 Appendices
 
 * Antinews::                Info for users downgrading to Emacs 22.
@@ -1413,6 +1415,12 @@ Operating System Interface
 * Batch Mode::              Running Emacs without terminal interaction.
 * Session Management::      Saving and restoring state with
                               X Session Management.
+
+Preparing Lisp code for distribution
+
+* Packaging Basics::        The basic concepts of Emacs Lisp packages.
+* Simple Packages::         How to package a single .el file.
+* Multi-file Packages::     How to package multiple files.
 
 Starting Up Emacs
 

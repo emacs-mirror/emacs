@@ -1050,7 +1050,7 @@ extern Lisp_Object Qbackground_color, Qforeground_color;
 extern Lisp_Object Qicon, Qicon_name, Qicon_type, Qicon_left, Qicon_top;
 extern Lisp_Object Qinternal_border_width;
 extern Lisp_Object Qtooltip;
-extern Lisp_Object Qmenu_bar_lines, Qtool_bar_lines;
+extern Lisp_Object Qmenu_bar_lines, Qtool_bar_lines, Qtool_bar_position;
 extern Lisp_Object Qmouse_color;
 extern Lisp_Object Qname, Qtitle;
 extern Lisp_Object Qparent_id;

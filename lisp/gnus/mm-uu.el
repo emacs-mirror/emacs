@@ -441,7 +441,7 @@ apply the face `mm-uu-extract'."
 (defun mm-uu-yenc-extract ()
   ;; This might not be exactly correct, but we sure can't get the
   ;; binary data from the article buffer, since that's already in a
-  ;; non-binary charset.  So get it from the original article buffer. 
+  ;; non-binary charset.  So get it from the original article buffer.
   (mm-make-handle (with-current-buffer gnus-original-article-buffer
 		    (mm-uu-copy-to-buffer start-point end-point))
 		  (list (or (and file-name
@@ -729,5 +729,4 @@ Assume text has been decoded if DECODED is non-nil."
 
 (provide 'mm-uu)
 
-;; arch-tag: 7db076bf-53db-4320-aa19-ca76a1d2ab2c
 ;;; mm-uu.el ends here

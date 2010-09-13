@@ -5,6 +5,7 @@
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: internal
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -198,8 +199,8 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (help-event-list keyboard (repeat (sexp :format "%v")))
 	     (menu-prompting menu boolean)
 	     (select-active-regions killing
-				    (choice (const :tag "lazy" lazy)
-					    (const :tag "always" t)
+				    (choice (const :tag "always" t)
+					    (const :tag "only shift-selection or mouse-drag" only)
 					    (const :tag "off" nil))
 				    "24.1")
 	     (suggest-key-bindings keyboard (choice (const :tag "off" nil)

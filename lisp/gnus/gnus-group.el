@@ -169,7 +169,7 @@ list."
 			 (function-item gnus-group-sort-by-rank)
 			 (function :tag "other" nil))))
 
-(defcustom gnus-group-line-format "%M\%S\%p\%P\%5y:%B%(%g%)%O\n"
+(defcustom gnus-group-line-format "%M\%S\%p\%P\%5y:%B%(%g%)\n"
   "*Format of group lines.
 It works along the same lines as a normal formatting string,
 with some simple extensions.
@@ -660,7 +660,6 @@ simple manner.")
   "h" gnus-group-make-help-group
   "u" gnus-group-make-useful-group
   "a" gnus-group-make-archive-group
-  "k" gnus-group-make-kiboze-group
   "l" gnus-group-nnimap-edit-acl
   "m" gnus-group-make-group
   "E" gnus-group-edit-group
@@ -679,13 +678,6 @@ simple manner.")
   "x" gnus-group-nnimap-expunge
   "\177" gnus-group-delete-group
   [delete] gnus-group-delete-group)
-
-(gnus-define-keys (gnus-group-soup-map "s" gnus-group-group-map)
-  "b" gnus-group-brew-soup
-  "w" gnus-soup-save-areas
-  "s" gnus-soup-send-replies
-  "p" gnus-soup-pack-packet
-  "r" nnsoup-pack-replies)
 
 (gnus-define-keys (gnus-group-sort-map "S" gnus-group-group-map)
   "s" gnus-group-sort-groups
@@ -938,7 +930,6 @@ simple manner.")
 	["Add the archive group" gnus-group-make-archive-group t]
 	["Make a doc group..." gnus-group-make-doc-group t]
 	["Make a web group..." gnus-group-make-web-group t]
-	["Make a kiboze group..." gnus-group-make-kiboze-group t]
 	["Make a virtual group..." gnus-group-make-empty-virtual t]
 	["Add a group to a virtual..." gnus-group-add-to-virtual t]
 	["Make an ephemeral group..." gnus-group-read-ephemeral-group t]
@@ -972,13 +963,6 @@ simple manner.")
     (easy-menu-define
      gnus-group-misc-menu gnus-group-mode-map ""
      `("Gnus"
-       ("SOUP"
-	["Pack replies" nnsoup-pack-replies (fboundp 'nnsoup-request-group)]
-	["Send replies" gnus-soup-send-replies
-	 (fboundp 'gnus-soup-pack-packet)]
-	["Pack packet" gnus-soup-pack-packet (fboundp 'gnus-soup-pack-packet)]
-	["Save areas" gnus-soup-save-areas (fboundp 'gnus-soup-pack-packet)]
-	["Brew SOUP" gnus-group-brew-soup (fboundp 'gnus-soup-pack-packet)])
        ["Send a mail" gnus-group-mail t]
        ["Send a message (mail or news)" gnus-group-post-news t]
        ["Create a local message" gnus-group-news t]
@@ -996,7 +980,6 @@ simple manner.")
        ["Browse foreign server..." gnus-group-browse-foreign-server t]
        ["Enter server buffer" gnus-group-enter-server-mode t]
        ["Expire all expirable articles" gnus-group-expire-all-groups t]
-       ["Generate any kiboze groups" nnkiboze-generate-groups t]
        ["Gnus version" gnus-version t]
        ["Save .newsrc files" gnus-group-save-newsrc t]
        ["Suspend Gnus" gnus-group-suspend t]
@@ -1705,72 +1688,66 @@ if it is a string, only list groups matching REGEXP."
   "Update all lines where GROUP appear.
 If VISIBLE-ONLY is non-nil, the group won't be displayed if it isn't
 already."
-  ;; Can't use `save-excursion' here, so we do it manually.
-  (let ((buf (current-buffer))
-	mark)
-    (set-buffer gnus-group-buffer)
-    (setq mark (point-marker))
-    ;; The buffer may be narrowed.
-    (save-restriction
-      (widen)
-      (let ((ident (gnus-intern-safe group gnus-active-hashtb))
-	    (loc (point-min))
-	    found buffer-read-only)
-	;; Enter the current status into the dribble buffer.
-	(let ((entry (gnus-group-entry group)))
-	  (when (and entry
-		     (not (gnus-ephemeral-group-p group)))
-	    (gnus-dribble-enter
-	     (concat "(gnus-group-set-info '"
-		     (gnus-prin1-to-string (nth 2 entry))
-		     ")"))))
-	;; Find all group instances.  If topics are in use, each group
-	;; may be listed in more than once.
-	(while (setq loc (text-property-any
-			  loc (point-max) 'gnus-group ident))
-	  (setq found t)
-	  (goto-char loc)
-	  (let ((gnus-group-indentation (gnus-group-group-indentation)))
-	    (gnus-delete-line)
-	    (gnus-group-insert-group-line-info group)
-	    (save-excursion
-	      (forward-line -1)
-	      (gnus-run-hooks 'gnus-group-update-group-hook)))
-	  (setq loc (1+ loc)))
-	(unless (or found visible-only)
-	  ;; No such line in the buffer, find out where it's supposed to
-	  ;; go, and insert it there (or at the end of the buffer).
-	  (if gnus-goto-missing-group-function
-	      (funcall gnus-goto-missing-group-function group)
-	    (let ((entry (cddr (gnus-group-entry group))))
-	      (while (and entry (car entry)
-			  (not
-			   (gnus-goto-char
-			    (text-property-any
-			     (point-min) (point-max)
-			     'gnus-group (gnus-intern-safe
-					  (caar entry) gnus-active-hashtb)))))
-		(setq entry (cdr entry)))
-	      (or entry (goto-char (point-max)))))
-	  ;; Finally insert the line.
-	  (let ((gnus-group-indentation (gnus-group-group-indentation)))
-	    (gnus-group-insert-group-line-info group)
-	    (save-excursion
-	      (forward-line -1)
-	      (gnus-run-hooks 'gnus-group-update-group-hook))))
-	(when gnus-group-update-group-function
-	  (funcall gnus-group-update-group-function group))
-	(gnus-group-set-mode-line)))
-    (goto-char mark)
-    (set-marker mark nil)
-    (set-buffer buf)))
+  (with-current-buffer gnus-group-buffer
+    (save-excursion
+      ;; The buffer may be narrowed.
+      (save-restriction
+        (widen)
+        (let ((ident (gnus-intern-safe group gnus-active-hashtb))
+              (loc (point-min))
+              found buffer-read-only)
+          ;; Enter the current status into the dribble buffer.
+          (let ((entry (gnus-group-entry group)))
+            (when (and entry
+                       (not (gnus-ephemeral-group-p group)))
+              (gnus-dribble-enter
+               (concat "(gnus-group-set-info '"
+                       (gnus-prin1-to-string (nth 2 entry))
+                       ")"))))
+          ;; Find all group instances.  If topics are in use, each group
+          ;; may be listed in more than once.
+          (while (setq loc (text-property-any
+                            loc (point-max) 'gnus-group ident))
+            (setq found t)
+            (goto-char loc)
+            (let ((gnus-group-indentation (gnus-group-group-indentation)))
+              (gnus-delete-line)
+              (gnus-group-insert-group-line-info group)
+              (save-excursion
+                (forward-line -1)
+                (gnus-run-hooks 'gnus-group-update-group-hook)))
+            (setq loc (1+ loc)))
+          (unless (or found visible-only)
+            ;; No such line in the buffer, find out where it's supposed to
+            ;; go, and insert it there (or at the end of the buffer).
+            (if gnus-goto-missing-group-function
+                (funcall gnus-goto-missing-group-function group)
+              (let ((entry (cddr (gnus-group-entry group))))
+                (while (and entry (car entry)
+                            (not
+                             (gnus-goto-char
+                              (text-property-any
+                               (point-min) (point-max)
+                               'gnus-group (gnus-intern-safe
+                                            (caar entry)
+                                            gnus-active-hashtb)))))
+                  (setq entry (cdr entry)))
+                (or entry (goto-char (point-max)))))
+            ;; Finally insert the line.
+            (let ((gnus-group-indentation (gnus-group-group-indentation)))
+              (gnus-group-insert-group-line-info group)
+              (save-excursion
+                (forward-line -1)
+                (gnus-run-hooks 'gnus-group-update-group-hook))))
+          (when gnus-group-update-group-function
+            (funcall gnus-group-update-group-function group))
+          (gnus-group-set-mode-line))))))
 
 (defun gnus-group-set-mode-line ()
   "Update the mode line in the group buffer."
   (when (memq 'group gnus-updated-mode-lines)
     ;; Yes, we want to keep this mode line updated.
-    (save-excursion
-      (set-buffer gnus-group-buffer)
+    (with-current-buffer gnus-group-buffer
       (let* ((gformat (or gnus-group-mode-line-format-spec
 			  (gnus-set-format 'group-mode)))
 	     (gnus-tmp-news-server (cadr gnus-select-method))
@@ -1783,8 +1760,7 @@ already."
 	      (and gnus-dribble-buffer
 		   (buffer-name gnus-dribble-buffer)
 		   (buffer-modified-p gnus-dribble-buffer)
-		   (save-excursion
-		     (set-buffer gnus-dribble-buffer)
+		   (with-current-buffer gnus-dribble-buffer
 		     (not (zerop (buffer-size))))))
 	     (mode-string (eval gformat)))
 	;; Say whether the dribble buffer has been modified.
@@ -2202,7 +2178,10 @@ be permanent."
 The arguments are the same as `completing-read' except that COLLECTION
 and HIST default to `gnus-active-hashtb' and `gnus-group-history'
 respectively if they are omitted."
-  (let (group)
+  (let ((completion-styles (and (boundp 'completion-styles)
+				completion-styles))
+	group)
+    (push 'substring completion-styles)
     (mapatoms (lambda (symbol)
 		(setq group (symbol-name symbol))
 		(set (intern (if (string-match "[^\000-\177]" group)
@@ -3094,42 +3073,6 @@ If there is, use Gnus to create an nnrss group"
 	  (nnrss-save-server-data nil))
       (error "No feeds found for %s" url))))
 
-(defvar nnwarchive-type-definition)
-(defvar gnus-group-warchive-type-history nil)
-(defvar gnus-group-warchive-login-history nil)
-(defvar gnus-group-warchive-address-history nil)
-
-(defun gnus-group-make-warchive-group ()
-  "Create a nnwarchive group."
-  (interactive)
-  (require 'nnwarchive)
-  (let* ((group (gnus-read-group "Group name: "))
-	 (default-type (or (car gnus-group-warchive-type-history)
-			   (symbol-name (caar nnwarchive-type-definition))))
-	 (type
-	  (gnus-string-or
-	   (completing-read
-	    (format "Warchive type (default %s): " default-type)
-	    (mapcar (lambda (elem) (list (symbol-name (car elem))))
-		    nnwarchive-type-definition)
-	    nil t nil 'gnus-group-warchive-type-history)
-	   default-type))
-	 (address (read-string "Warchive address: "
-			       nil 'gnus-group-warchive-address-history))
-	 (default-login (or (car gnus-group-warchive-login-history)
-			    user-mail-address))
-	 (login
-	  (gnus-string-or
-	   (read-string
-	    (format "Warchive login (default %s): " user-mail-address)
-	    default-login 'gnus-group-warchive-login-history)
-	   user-mail-address))
-	 (method
-	  `(nnwarchive ,address
-		       (nnwarchive-type ,(intern type))
-		       (nnwarchive-login ,login))))
-    (gnus-group-make-group group method)))
-
 (defun gnus-group-make-archive-group (&optional all)
   "Create the (ding) Gnus archive group of the most recent articles.
 Given a prefix, create a full group."
@@ -3169,41 +3112,6 @@ mail messages or news articles in files that have numeric names."
     (gnus-group-make-group
      (gnus-group-real-name group)
      (list 'nndir (gnus-group-real-name group) (list 'nndir-directory dir)))))
-
-(defvar nnkiboze-score-file)
-(declare-function nnkiboze-score-file "nnkiboze" (group))
-
-(defun gnus-group-make-kiboze-group (group address scores)
-  "Create an nnkiboze group.
-The user will be prompted for a name, a regexp to match groups, and
-score file entries for articles to include in the group."
-  (interactive
-   (list
-    (read-string "nnkiboze group name: ")
-    (read-string "Source groups (regexp): ")
-    (let ((headers (mapcar 'list
-			   '("subject" "from" "number" "date" "message-id"
-			     "references" "chars" "lines" "xref"
-			     "followup" "all" "body" "head")))
-	  scores header regexp regexps)
-      (while (not (equal "" (setq header (completing-read
-					  "Match on header: " headers nil t))))
-	(setq regexps nil)
-	(while (not (equal "" (setq regexp (read-string
-					    (format "Match on %s (regexp): "
-						    header)))))
-	  (push (list regexp nil nil 'r) regexps))
-	(push (cons header regexps) scores))
-      scores)))
-  (gnus-group-make-group group "nnkiboze" address)
-  (let* ((nnkiboze-current-group group)
-	 (score-file (car (nnkiboze-score-file "")))
-	 (score-dir (file-name-directory score-file)))
-    (unless (file-exists-p score-dir)
-      (make-directory score-dir))
-    (with-temp-file score-file
-      (let (emacs-lisp-mode-hook)
-	(gnus-pp scores)))))
 
 (defun gnus-group-add-to-virtual (n vgroup)
   "Add the current group to a virtual group."
@@ -4074,23 +3982,13 @@ re-scanning.  If ARG is non-nil and not a number, this will force
 			(>= arg gnus-use-nocem))
 		   (not arg)))
       (gnus-nocem-scan-groups))
-    ;; If ARG is not a number, then we read the active file.
-    (when (and arg (not (numberp arg)))
-      (let ((gnus-read-active-file t))
-	(gnus-read-active-file))
-      (setq arg nil)
 
-      ;; If the user wants it, we scan for new groups.
-      (when (eq gnus-check-new-newsgroups 'always)
-	(gnus-find-new-newsgroups)))
+    (gnus-get-unread-articles arg)
 
-    (setq arg (gnus-group-default-level arg t))
-    (if (and gnus-read-active-file (not arg))
-	(progn
-	  (gnus-read-active-file)
-	  (gnus-get-unread-articles arg))
-      (let ((gnus-read-active-file (if arg nil gnus-read-active-file)))
-	(gnus-get-unread-articles arg)))
+    ;; If the user wants it, we scan for new groups.
+    (when (eq gnus-check-new-newsgroups 'always)
+      (gnus-find-new-newsgroups))
+
     (gnus-check-reasonable-setup)
     (gnus-run-hooks 'gnus-after-getting-new-news-hook)
     (gnus-group-list-groups (and (numberp arg)
@@ -4480,8 +4378,7 @@ The hook `gnus-exit-gnus-hook' is called before actually exiting."
     (gnus-run-hooks 'gnus-exit-gnus-hook)
     (gnus-configure-windows 'group t)
     (when (and (gnus-buffer-live-p gnus-dribble-buffer)
-	       (not (zerop (save-excursion
-			    (set-buffer gnus-dribble-buffer)
+	       (not (zerop (with-current-buffer gnus-dribble-buffer
 			    (buffer-size)))))
       (gnus-dribble-enter
        ";;; Gnus was exited on purpose without saving the .newsrc files."))
@@ -4542,13 +4439,11 @@ and the second element is the address."
 	  (setcar (nthcdr (1- total) info) part-info)))
       (unless entry
 	;; This is a new group, so we just create it.
-	(save-excursion
-	  (set-buffer gnus-group-buffer)
+	(with-current-buffer gnus-group-buffer
 	  (setq method (gnus-info-method info))
 	  (when (gnus-server-equal method "native")
 	    (setq method nil))
-	  (save-excursion
-	    (set-buffer gnus-group-buffer)
+	  (with-current-buffer gnus-group-buffer
 	    (if method
 		;; It's a foreign group...
 		(gnus-group-make-group
@@ -4612,8 +4507,7 @@ and the second element is the address."
   "Mark ARTICLE in GROUP with MARK, whether the group is displayed or not."
   (let ((buffer (gnus-summary-buffer-name group)))
     (if (gnus-buffer-live-p buffer)
-	(save-excursion
-	  (set-buffer (get-buffer buffer))
+	(with-current-buffer (get-buffer buffer)
 	  (gnus-summary-add-mark article mark))
       (gnus-add-marked-articles group (cdr (assq mark gnus-article-mark-lists))
 				(list article)))))
@@ -4813,5 +4707,4 @@ Compacting group %s... (this may take a long time)"
 
 (provide 'gnus-group)
 
-;; arch-tag: 2eb5440f-0bca-4091-814c-e37817536af6
 ;;; gnus-group.el ends here

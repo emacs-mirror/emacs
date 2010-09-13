@@ -111,7 +111,7 @@ Lisp_Object Qdebug_on_next_call;
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
 static Lisp_Object xdialog_show (FRAME_PTR, int, Lisp_Object, Lisp_Object,
-                                 char **);
+                                 const char **);
 #endif
 
 static int update_frame_menubar (struct frame *);
@@ -312,7 +312,7 @@ for instance using the window manager, then this produces a quit and
 #else
   {
     Lisp_Object title;
-    char *error_name;
+    const char *error_name;
     Lisp_Object selection;
     int specpdl_count = SPECPDL_INDEX ();
 
@@ -1600,7 +1600,7 @@ create_and_show_popup_menu (FRAME_PTR f, widget_value *first_wv,
 
 Lisp_Object
 xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
-	    Lisp_Object title, char **error, EMACS_UINT timestamp)
+	    Lisp_Object title, const char **error, EMACS_UINT timestamp)
 {
   int i;
   widget_value *wv, *save_wv = 0, *first_wv = 0, *prev_wv = 0;
@@ -1664,7 +1664,7 @@ xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
 	{
 	  /* Create a new pane.  */
 	  Lisp_Object pane_name, prefix;
-	  char *pane_string;
+	  const char *pane_string;
 
 	  pane_name = AREF (menu_items, i + MENU_ITEMS_PANE_NAME);
 	  prefix = AREF (menu_items, i + MENU_ITEMS_PANE_PREFIX);
@@ -1976,12 +1976,16 @@ create_and_show_dialog (FRAME_PTR f, widget_value *first_wv)
 
 #endif /* not USE_GTK */
 
-static char * button_names [] = {
+static const char * button_names [] = {
   "button1", "button2", "button3", "button4", "button5",
   "button6", "button7", "button8", "button9", "button10" };
 
 static Lisp_Object
-xdialog_show (FRAME_PTR f, int keymaps, Lisp_Object title, Lisp_Object header, char **error_name)
+xdialog_show (FRAME_PTR f,
+              int keymaps,
+              Lisp_Object title,
+              Lisp_Object header,
+              const char **error_name)
 {
   int i, nb_buttons=0;
   char dialog_name[6];
@@ -2008,7 +2012,7 @@ xdialog_show (FRAME_PTR f, int keymaps, Lisp_Object title, Lisp_Object header, c
      representing the text label and buttons.  */
   {
     Lisp_Object pane_name, prefix;
-    char *pane_string;
+    const char *pane_string;
     pane_name = XVECTOR (menu_items)->contents[MENU_ITEMS_PANE_NAME];
     prefix = XVECTOR (menu_items)->contents[MENU_ITEMS_PANE_PREFIX];
     pane_string = (NILP (pane_name)
@@ -2239,7 +2243,7 @@ pop_down_menu (Lisp_Object arg)
 
 Lisp_Object
 xmenu_show (FRAME_PTR f, int x, int y, int for_click, int keymaps,
-	    Lisp_Object title, char **error, EMACS_UINT timestamp)
+	    Lisp_Object title, const char **error, EMACS_UINT timestamp)
 {
   Window root;
   XMenu *menu;

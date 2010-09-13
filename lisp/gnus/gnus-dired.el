@@ -204,7 +204,7 @@ If ARG is non-nil, open it in a new buffer."
 		  (setq method
 			(cdr (assoc 'viewer
 				    (car (mailcap-mime-info mime-type
-							    'all 
+							    'all
 							    'no-decode)))))))
 	    (let ((view-command (mm-mailcap-command method file-name nil)))
 	      (message "viewing via %s" view-command)
@@ -261,5 +261,4 @@ file to save in."
 
 (provide 'gnus-dired)
 
-;; arch-tag: 44737731-e445-4638-a31e-713c7590ec76
 ;;; gnus-dired.el ends here

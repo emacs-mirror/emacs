@@ -6190,62 +6190,6 @@ Optional argument N means put the headline into the Nth line of the window."
     (beginning-of-line)
     (recenter (prefix-numeric-value N))))
 
-;;; Saving and restoring visibility
-
-(defun org-outline-overlay-data (&optional use-markers)
-  "Return a list of the locations of all outline overlays.
-The are overlays with the `invisible' property value `outline'.
-The return values is a list of cons cells, with start and stop
-positions for each overlay.
-If USE-MARKERS is set, return the positions as markers."
-  (let (beg end)
-    (save-excursion
-      (save-restriction
-	(widen)
-	(delq nil
-	      (mapcar (lambda (o)
-			(when (eq (overlay-get o 'invisible) 'outline)
-			  (setq beg (overlay-start o)
-				end (overlay-end o))
-			  (and beg end (> end beg)
-			       (if use-markers
-				   (cons (move-marker (make-marker) beg)
-					 (move-marker (make-marker) end))
-				 (cons beg end)))))
-		      (overlays-in (point-min) (point-max))))))))
-
-(defun org-set-outline-overlay-data (data)
-  "Create visibility overlays for all positions in DATA.
-DATA should have been made by `org-outline-overlay-data'."
-  (let (o)
-    (save-excursion
-      (save-restriction
-	(widen)
-	(show-all)
-	(mapc (lambda (c)
-		(setq o (make-overlay (car c) (cdr c)))
-		(overlay-put o 'invisible 'outline))
-	      data)))))
-
-(defmacro org-save-outline-visibility (use-markers &rest body)
-  "Save and restore outline visibility around BODY.
-If USE-MARKERS is non-nil, use markers for the positions.
-This means that the buffer may change while running BODY,
-but it also means that the buffer should stay alive
-during the operation, because otherwise all these markers will
-point nowhere."
-  (declare (indent 1))
-  `(let ((data (org-outline-overlay-data ,use-markers)))
-     (unwind-protect
-	 (progn
-	   ,@body
-	   (org-set-outline-overlay-data data))
-       (when ,use-markers
-	 (mapc (lambda (c)
-		 (and (markerp (car c)) (move-marker (car c) nil))
-		 (and (markerp (cdr c)) (move-marker (cdr c) nil)))
-	       data)))))
-
 
 ;;; Folding of blocks
 

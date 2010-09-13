@@ -5351,9 +5351,15 @@ update_frame_line (struct frame *f, int vpos)
  ***********************************************************************/
 
 /* Determine what's under window-relative pixel position (*X, *Y).
-   Return the object (string or buffer) that's there.
+   Return the OBJECT (string or buffer) that's there.
    Return in *POS the position in that object.
-   Adjust *X and *Y to character positions.  */
+   Adjust *X and *Y to character positions.
+   Return in *DX and *DY the pixel coordinates of the click,
+   relative to the top left corner of OBJECT, or relative to
+   the top left corner of the character glyph at (*X, *Y)
+   if OBJECT is nil.
+   Return WIDTH and HEIGHT of the object at (*X, *Y), or zero
+   if the coordinates point to an empty area of the display.  */
 
 Lisp_Object
 buffer_posn_from_coords (struct window *w, int *x, int *y, struct display_pos *pos, Lisp_Object *object, int *dx, int *dy, int *width, int *height)
@@ -5366,7 +5372,7 @@ buffer_posn_from_coords (struct window *w, int *x, int *y, struct display_pos *p
 #ifdef HAVE_WINDOW_SYSTEM
   struct image *img = 0;
 #endif
-  int x0, x1;
+  int x0, x1, to_x;
 
   /* We used to set current_buffer directly here, but that does the
      wrong thing with `face-remapping-alist' (bug#2044).  */
@@ -5377,8 +5383,33 @@ buffer_posn_from_coords (struct window *w, int *x, int *y, struct display_pos *p
   start_display (&it, w, startp);
 
   x0 = *x - WINDOW_LEFT_MARGIN_WIDTH (w);
-  move_it_to (&it, -1, x0 + it.first_visible_x, *y, -1,
-	      MOVE_TO_X | MOVE_TO_Y);
+
+  /* First, move to the beginning of the row corresponding to *Y.  We
+     need to be in that row to get the correct value of base paragraph
+     direction for the text at (*X, *Y).  */
+  move_it_to (&it, -1, 0, *y, -1, MOVE_TO_X | MOVE_TO_Y);
+
+  /* TO_X is the pixel position that the iterator will compute for the
+     glyph at *X.  We add it.first_visible_x because iterator
+     positions include the hscroll.  */
+  to_x = x0 + it.first_visible_x;
+  if (it.bidi_it.paragraph_dir == R2L)
+    /* For lines in an R2L paragraph, we need to mirror TO_X wrt the
+       text area.  This is because the iterator, even in R2L
+       paragraphs, delivers glyphs as if they started at the left
+       margin of the window.  (When we actually produce glyphs for
+       display, we reverse their order in PRODUCE_GLYPHS, but the
+       iterator doesn't know about that.)  The following line adjusts
+       the pixel position to the iterator geometry, which is what
+       move_it_* routines use.  (The -1 is because in a window whose
+       text-area width is W, the rightmost pixel position is W-1, and
+       it should be mirrored into zero pixel position.)  */
+    to_x = window_box_width (w, TEXT_AREA) - to_x - 1;
+
+  /* Now move horizontally in the row to the glyph under *X.  Second
+     argument is ZV to prevent move_it_in_display_line from matching
+     based on buffer positions.  */
+  move_it_in_display_line (&it, ZV, to_x, MOVE_TO_X);
 
   Fset_buffer (old_current_buffer);
 

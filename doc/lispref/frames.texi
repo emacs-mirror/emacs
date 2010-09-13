@@ -461,6 +461,7 @@ Line Arguments for Emacs Invocation, emacs, The GNU Emacs Manual}.
 
 @node Window Frame Parameters
 @subsection Window Frame Parameters
+@cindex frame parameters for windowed displays
 
   Just what parameters a frame has depends on what display mechanism
 it uses.  This section describes the parameters that have special
@@ -489,16 +490,19 @@ terminal frames.
 frame.  @code{title} and @code{name} are meaningful on all terminals.
 
 @table @code
+@vindex display, a frame parameter
 @item display
 The display on which to open this frame.  It should be a string of the
 form @code{"@var{host}:@var{dpy}.@var{screen}"}, just like the
 @code{DISPLAY} environment variable.
 
+@vindex display-type, a frame parameter
 @item display-type
 This parameter describes the range of possible colors that can be used
 in this frame.  Its value is @code{color}, @code{grayscale} or
 @code{mono}.
 
+@vindex title, a frame parameter
 @item title
 If a frame has a non-@code{nil} title, it appears in the window
 system's title bar at the top of the frame, and also in the mode line
@@ -507,6 +511,7 @@ of windows in that frame if @code{mode-line-frame-identification} uses
 Emacs is not using a window system, and can only display one frame at
 a time.  @xref{Frame Titles}.
 
+@vindex name, a frame parameter
 @item name
 The name of the frame.  The frame name serves as a default for the frame
 title, if the @code{title} parameter is unspecified or @code{nil}.  If
@@ -520,11 +525,13 @@ looking up X resources for the frame.
 
 @node Position Parameters
 @subsubsection Position Parameters
+@cindex window position on display
 
   Position parameters' values are normally measured in pixels, but on
 text-only terminals they count characters or lines instead.
 
 @table @code
+@vindex left, a frame parameter
 @item left
 The position, in pixels, of the left (or right) edge of the frame with
 respect to the left (or right) edge of the screen.  The value may be:
@@ -550,11 +557,13 @@ Some window managers ignore program-specified positions.  If you want to
 be sure the position you specify is not ignored, specify a
 non-@code{nil} value for the @code{user-position} parameter as well.
 
+@vindex top, a frame parameter
 @item top
 The screen position of the top (or bottom) edge, in pixels, with respect
 to the top (or bottom) edge of the screen.  It works just like
 @code{left}, except vertically instead of horizontally.
 
+@vindex icon-left, a frame parameter
 @item icon-left
 The screen position of the left edge @emph{of the frame's icon}, in
 pixels, counting from the left edge of the screen.  This takes effect if
@@ -564,11 +573,13 @@ If you specify a value for this parameter, then you must also specify
 a value for @code{icon-top} and vice versa.  The window manager may
 ignore these two parameters.
 
+@vindex icon-top, a frame parameter
 @item icon-top
 The screen position of the top edge @emph{of the frame's icon}, in
 pixels, counting from the top edge of the screen.  This takes effect if
 and when the frame is iconified.
 
+@vindex user-position, a frame parameter
 @item user-position
 When you create a frame and specify its screen position with the
 @code{left} and @code{top} parameters, use this parameter to say whether
@@ -576,6 +587,7 @@ the specified position was user-specified (explicitly requested in some
 way by a human user) or merely program-specified (chosen by a program).
 A non-@code{nil} value says the position was user-specified.
 
+@cindex window positions and window managers
 Window managers generally heed user-specified positions, and some heed
 program-specified positions too.  But many ignore program-specified
 positions, placing the window in a default fashion or letting the user
@@ -591,24 +603,31 @@ parameters represent the user's stated preference; otherwise, use
 
 @node Size Parameters
 @subsubsection Size Parameters
+@cindex window size on display
 
   Size parameters' values are normally measured in pixels, but on
 text-only terminals they count characters or lines instead.
 
 @table @code
+@vindex height, a frame parameter
 @item height
 The height of the frame contents, in characters.  (To get the height in
 pixels, call @code{frame-pixel-height}; see @ref{Size and Position}.)
 
+@vindex width, a frame parameter
 @item width
 The width of the frame contents, in characters.  (To get the width in
 pixels, call @code{frame-pixel-width}; see @ref{Size and Position}.)
 
+@vindex user-size, a frame parameter
 @item user-size
 This does for the size parameters @code{height} and @code{width} what
-the @code{user-position} parameter (see above) does for the position
-parameters @code{top} and @code{left}.
+the @code{user-position} parameter (@pxref{Position Parameters,
+user-position}) does for the position parameters @code{top} and
+@code{left}.
 
+@cindex full-screen frames
+@vindex fullscreen, a frame parameter
 @item fullscreen
 Specify that width, height or both shall be maximized.  The value
 @code{fullwidth} specifies that width shall be as wide as possible.
@@ -623,33 +642,42 @@ covers the whole screen.
 
 @node Layout Parameters
 @subsubsection Layout Parameters
+@cindex layout parameters of frames
+@cindex frame layout parameters
 
   These frame parameters enable or disable various parts of the
 frame, or control their sizes.
 
 @table @code
+@vindex border-width, a frame parameter
 @item border-width
 The width in pixels of the frame's border.
 
+@vindex internal-border-width, a frame parameter
 @item internal-border-width
 The distance in pixels between text (or fringe) and the frame's border.
 
+@vindex vertical-scroll-bars, a frame parameter
 @item vertical-scroll-bars
 Whether the frame has scroll bars for vertical scrolling, and which side
 of the frame they should be on.  The possible values are @code{left},
 @code{right}, and @code{nil} for no scroll bars.
 
 @ignore
+@vindex horizontal-scroll-bars, a frame parameter
 @item horizontal-scroll-bars
 Whether the frame has scroll bars for horizontal scrolling
 (non-@code{nil} means yes).  Horizontal scroll bars are not currently
 implemented.
 @end ignore
 
+@vindex scroll-bar-width, a frame parameter
 @item scroll-bar-width
 The width of vertical scroll bars, in pixels, or @code{nil} meaning to
 use the default width.
 
+@vindex left-fringe, a frame parameter
+@vindex right-fringe, a frame parameter
 @item left-fringe
 @itemx right-fringe
 The default width of the left and right fringes of windows in this
@@ -666,22 +694,26 @@ fringe.  However, you can force one fringe or the other to a precise
 width by specifying that width as a negative integer.  If both widths are
 negative, only the left fringe gets the specified width.
 
+@vindex menu-bar-lines, a frame parameter
 @item menu-bar-lines
 The number of lines to allocate at the top of the frame for a menu
 bar.  The default is 1.  A value of @code{nil} means don't display a
 menu bar.  @xref{Menu Bar}.  (The X toolkit and GTK allow at most one
 menu bar line; they treat larger values as 1.)
 
+@vindex tool-bar-lines, a frame parameter
 @item tool-bar-lines
 The number of lines to use for the tool bar.  A value of @code{nil}
 means don't display a tool bar.  (GTK and Nextstep allow at most one
 tool bar line; they treat larger values as 1.)
 
+@vindex tool-bar-position, a frame parameter
 @item tool-bar-position
 The position of the tool bar.  Currently only for the GTK tool bar.
 Value can be one of @code{top}, @code{bottom} @code{left}, @code{right}.
 The default is  @code{top}.
 
+@vindex line-spacing, a frame parameter
 @item line-spacing
 Additional space to leave below each text line, in pixels (a positive
 integer).  @xref{Line Height}, for more information.
@@ -694,6 +726,7 @@ integer).  @xref{Line Height}, for more information.
 with which buffers have been, or should, be displayed in the frame.
 
 @table @code
+@vindex minibuffer, a frame parameter
 @item minibuffer
 Whether this frame has its own minibuffer.  The value @code{t} means
 yes, @code{nil} means no, @code{only} means this frame is just a
@@ -703,6 +736,7 @@ frame), the frame uses that minibuffer.
 This frame parameter takes effect when the frame is created, and can
 not be changed afterwards.
 
+@vindex buffer-predicate, a frame parameter
 @item buffer-predicate
 The buffer-predicate function for this frame.  The function
 @code{other-buffer} uses this predicate (from the selected frame) to
@@ -711,61 +745,73 @@ decide which buffers it should consider, if the predicate is not
 each buffer; if the predicate returns a non-@code{nil} value, it
 considers that buffer.
 
+@vindex buffer-list, a frame parameter
 @item buffer-list
-A list of buffers that have been selected in this frame,
-ordered most-recently-selected first.
+A list of buffers that have been selected in this frame, ordered
+most-recently-selected first.
 
+@vindex unsplittable, a frame parameter
 @item unsplittable
 If non-@code{nil}, this frame's window is never split automatically.
 @end table
 
 @node Management Parameters
 @subsubsection Window Management Parameters
-@cindex window manager, and frame parameters
+@cindex window manager interaction, and frame parameters
 
   These frame parameters, meaningful only on window system displays,
 interact with the window manager.
 
 @table @code
+@vindex visibility, a frame parameter
 @item visibility
 The state of visibility of the frame.  There are three possibilities:
 @code{nil} for invisible, @code{t} for visible, and @code{icon} for
 iconified.  @xref{Visibility of Frames}.
 
+@vindex auto-raise, a frame parameter
 @item auto-raise
 Whether selecting the frame raises it (non-@code{nil} means yes).
 
+@vindex auto-lower, a frame parameter
 @item auto-lower
 Whether deselecting the frame lowers it (non-@code{nil} means yes).
 
+@vindex icon-type, a frame parameter
 @item icon-type
 The type of icon to use for this frame when it is iconified.  If the
 value is a string, that specifies a file containing a bitmap to use.
 Any other non-@code{nil} value specifies the default bitmap icon (a
 picture of a gnu); @code{nil} specifies a text icon.
 
+@vindex icon-name, a frame parameter
 @item icon-name
 The name to use in the icon for this frame, when and if the icon
 appears.  If this is @code{nil}, the frame's title is used.
 
+@vindex window-id, a frame parameter
 @item window-id
 The number of the window-system window used by the frame
 to contain the actual Emacs windows.
 
+@vindex outer-window-id, a frame parameter
 @item outer-window-id
 The number of the outermost window-system window used for the whole frame.
 
+@vindex wait-for-wm, a frame parameter
 @item wait-for-wm
 If non-@code{nil}, tell Xt to wait for the window manager to confirm
 geometry changes.  Some window managers, including versions of Fvwm2
 and KDE, fail to confirm, so Xt hangs.  Set this to @code{nil} to
 prevent hanging with those window managers.
 
+@vindex sticky, a frame parameter
 @item sticky
 If non-@code{nil}, the frame is visible on all virtual desktops on systems
 with virtual desktops.
 
 @ignore
+@vindex parent-id, a frame parameter
 @item parent-id
 @c ??? Not yet working.
 The X window number of the window that should be the parent of this one.
@@ -777,10 +823,12 @@ it and see if it works.)
 
 @node Cursor Parameters
 @subsubsection Cursor Parameters
+@cindex cursor, and frame parameters
 
   This frame parameter controls the way the cursor looks.
 
 @table @code
+@vindex cursor-type, a frame parameter
 @item cursor-type
 How to display the cursor.  Legitimate values are:
 
@@ -832,10 +880,12 @@ and bar becomes a narrower bar).
 
 @node Font and Color Parameters
 @subsubsection Font and Color Parameters
+@cindex font and color, frame parameters
 
   These frame parameters control the use of fonts and colors.
 
 @table @code
+@vindex font-backend, a frame parameter
 @item font-backend
 A list of symbols, specifying the @dfn{font backends} to use for
 drawing fonts in the frame, in order of priority.  On X, there are
@@ -844,10 +894,12 @@ driver) and @code{xft} (the Xft font driver).  On other systems, there
 is only one available font backend, so it does not make sense to
 modify this frame parameter.
 
+@vindex background-mode, a frame parameter
 @item background-mode
 This parameter is either @code{dark} or @code{light}, according
 to whether the background color is a light one or a dark one.
 
+@vindex tty-color-mode, a frame parameter
 @item tty-color-mode
 @cindex standard colors for character terminals
 This parameter overrides the terminal's color support as given by the
@@ -863,6 +915,7 @@ If the parameter's value is a symbol, it specifies a number through
 the value of @code{tty-color-mode-alist}, and the associated number is
 used instead.
 
+@vindex screen-gamma, a frame parameter
 @item screen-gamma
 @cindex gamma correction
 If this is a number, Emacs performs ``gamma correction'' which adjusts
@@ -882,6 +935,7 @@ If your monitor displays colors too light, you should specify a
 that makes colors darker.  A screen gamma value of 1.5 may give good
 results for LCD color displays.
 
+@vindex alpha, a frame parameter
 @item alpha
 @cindex opacity, frame
 @cindex transparency, frame
@@ -909,37 +963,45 @@ automatically equivalent to particular face attributes of particular
 faces (@pxref{Standard Faces,,, emacs, The Emacs Manual}):
 
 @table @code
+@vindex font, a frame parameter
 @item font
 The name of the font for displaying text in the frame.  This is a
 string, either a valid font name for your system or the name of an Emacs
 fontset (@pxref{Fontsets}).  It is equivalent to the @code{font}
 attribute of the @code{default} face.
 
+@vindex foreground-color, a frame parameter
 @item foreground-color
 The color to use for the image of a character.  It is equivalent to
 the @code{:foreground} attribute of the @code{default} face.
 
+@vindex background-color, a frame parameter
 @item background-color
 The color to use for the background of characters.  It is equivalent to
 the @code{:background} attribute of the @code{default} face.
 
+@vindex mouse-color, a frame parameter
 @item mouse-color
 The color for the mouse pointer.  It is equivalent to the @code{:background}
 attribute of the @code{mouse} face.
 
+@vindex cursor-color, a frame parameter
 @item cursor-color
 The color for the cursor that shows point.  It is equivalent to the
 @code{:background} attribute of the @code{cursor} face.
 
+@vindex border-color, a frame parameter
 @item border-color
 The color for the border of the frame.  It is equivalent to the
 @code{:background} attribute of the @code{border} face.
 
+@vindex scroll-bar-foreground, a frame parameter
 @item scroll-bar-foreground
 If non-@code{nil}, the color for the foreground of scroll bars.  It is
 equivalent to the @code{:foreground} attribute of the
 @code{scroll-bar} face.
 
+@vindex scroll-bar-background, a frame parameter
 @item scroll-bar-background
 If non-@code{nil}, the color for the background of scroll bars.  It is
 equivalent to the @code{:background} attribute of the
@@ -1921,28 +1983,6 @@ data.  Meaningful values include @code{TEXT}, @code{STRING},
 @code{INTEGER}.  (These are symbols with upper-case names in accord
 with X conventions.)  The default for @var{data-type} is
 @code{STRING}.
-@end defun
-
-@cindex cut buffer
-The X server also has a set of eight numbered @dfn{cut buffers} which can
-store text or other data being moved between applications.  Cut buffers
-are considered obsolete, but Emacs supports them for the sake of X
-clients that still use them.  Cut buffers are numbered from 0 to 7.
-
-@defun x-get-cut-buffer &optional n
-This function returns the contents of cut buffer number @var{n}.
-If omitted @var{n} defaults to 0.
-@end defun
-
-@defun x-set-cut-buffer string &optional push
-@anchor{Definition of x-set-cut-buffer}
-This function stores @var{string} into the first cut buffer (cut buffer
-0).  If @var{push} is @code{nil}, only the first cut buffer is changed.
-If @var{push} is non-@code{nil}, that says to move the values down
-through the series of cut buffers, much like the way successive kills in
-Emacs move down the kill ring.  In other words, the previous value of
-the first cut buffer moves into the second cut buffer, and the second to
-the third, and so on through all eight cut buffers.
 @end defun
 
 @defopt selection-coding-system

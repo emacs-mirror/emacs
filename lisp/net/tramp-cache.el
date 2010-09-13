@@ -1,3 +1,5 @@
+(setq tramp-version 24)
+
 ;;; tramp-cache.el --- file information caching for Tramp
 
 ;; Copyright (C) 2000, 2005, 2006, 2007, 2008, 2009,
@@ -6,6 +8,7 @@
 ;; Author: Daniel Pittman <daniel@inanna.danann.net>
 ;;         Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
+;; Package: tramp
 
 ;; This file is part of GNU Emacs.
 
@@ -49,24 +52,14 @@
 
 ;;; Code:
 
-;; Pacify byte-compiler.
-(eval-when-compile
-  (require 'cl)
-  (autoload 'tramp-message "tramp")
-  (autoload 'tramp-tramp-file-p "tramp")
-  ;; We cannot autoload macro `with-parsed-tramp-file-name', it
-  ;; results in problems of byte-compiled code.
-  (autoload 'tramp-dissect-file-name "tramp")
-  (autoload 'tramp-file-name-method "tramp")
-  (autoload 'tramp-file-name-user "tramp")
-  (autoload 'tramp-file-name-host "tramp")
-  (autoload 'tramp-file-name-localname "tramp")
-  (autoload 'tramp-run-real-handler "tramp")
-  (autoload 'tramp-time-less-p "tramp")
-  (autoload 'time-stamp-string "time-stamp"))
+(require 'tramp)
+; bob, 2010 Sep 11
+; (require 'trampver.el)
+(autoload 'time-stamp-string "time-stamp")
 
 ;;; -- Cache --
 
+;;;###tramp-autoload
 (defvar tramp-cache-data (make-hash-table :test 'equal)
   "Hash table for remote files properties.")
 
@@ -102,6 +95,7 @@ time.")
 (defvar tramp-cache-data-changed nil
   "Whether persistent cache data have been changed.")
 
+;;;###tramp-autoload
 (defun tramp-get-file-property (vec file property default)
   "Get the PROPERTY of FILE from the cache context of VEC.
 Returns DEFAULT if not set."
@@ -129,6 +123,7 @@ Returns DEFAULT if not set."
     (tramp-message vec 8 "%s %s %s" file property value)
     value))
 
+;;;###tramp-autoload
 (defun tramp-set-file-property (vec file property value)
   "Set the PROPERTY of FILE to VALUE, in the cache context of VEC.
 Returns VALUE."
@@ -143,6 +138,26 @@ Returns VALUE."
     (tramp-message vec 8 "%s %s %s" file property value)
     value))
 
+;;;###tramp-autoload
+(defmacro with-file-property (vec file property &rest body)
+  "Check in Tramp cache for PROPERTY, otherwise execute BODY and set cache.
+FILE must be a local file name on a connection identified via VEC."
+  `(if (file-name-absolute-p ,file)
+      (let ((value (tramp-get-file-property ,vec ,file ,property 'undef)))
+	(when (eq value 'undef)
+	  ;; We cannot pass @body as parameter to
+	  ;; `tramp-set-file-property' because it mangles our
+	  ;; debug messages.
+	  (setq value (progn ,@body))
+	  (tramp-set-file-property ,vec ,file ,property value))
+	value)
+     ,@body))
+
+(put 'with-file-property 'lisp-indent-function 3)
+(put 'with-file-property 'edebug-form-spec t)
+(font-lock-add-keywords 'emacs-lisp-mode '("\\<with-file-property\\>"))
+
+;;;###tramp-autoload
 (defun tramp-flush-file-property (vec file)
   "Remove all properties of FILE in the cache context of VEC."
   ;; Unify localname.
@@ -151,6 +166,7 @@ Returns VALUE."
   (tramp-message vec 8 "%s" file)
   (remhash vec tramp-cache-data))
 
+;;;###tramp-autoload
 (defun tramp-flush-directory-property (vec directory)
   "Remove all properties of DIRECTORY in the cache context of VEC.
 Remove also properties of all files in subdirectories."
@@ -174,8 +190,7 @@ Remove also properties of all files in subdirectories."
 		 (buffer-file-name)
 	       default-directory)))
     (when (tramp-tramp-file-p bfn)
-      (let* ((v (tramp-dissect-file-name bfn))
-	     (localname (tramp-file-name-localname v)))
+      (with-parsed-tramp-file-name bfn nil
 	(tramp-flush-file-property v localname)))))
 
 (add-hook 'before-revert-hook 'tramp-flush-file-function)
@@ -192,6 +207,7 @@ Remove also properties of all files in subdirectories."
 
 ;;; -- Properties --
 
+;;;###tramp-autoload
 (defun tramp-get-connection-property (key property default)
   "Get the named PROPERTY for the connection.
 KEY identifies the connection, it is either a process or a vector.
@@ -208,6 +224,7 @@ If the value is not set for the connection, returns DEFAULT."
     (tramp-message key 7 "%s %s" property value)
     value))
 
+;;;###tramp-autoload
 (defun tramp-set-connection-property (key property value)
   "Set the named PROPERTY of a connection to VALUE.
 KEY identifies the connection, it is either a process or a vector.
@@ -230,6 +247,23 @@ PROPERTY is set persistent when KEY is a vector."
       (error nil))
     value))
 
+;;;###tramp-autoload
+(defmacro with-connection-property (key property &rest body)
+  "Check in Tramp for property PROPERTY, otherwise executes BODY and set."
+  `(let ((value (tramp-get-connection-property ,key ,property 'undef)))
+    (when (eq value 'undef)
+      ;; We cannot pass ,@body as parameter to
+      ;; `tramp-set-connection-property' because it mangles our debug
+      ;; messages.
+      (setq value (progn ,@body))
+      (tramp-set-connection-property ,key ,property value))
+    value))
+
+(put 'with-connection-property 'lisp-indent-function 2)
+(put 'with-connection-property 'edebug-form-spec t)
+(font-lock-add-keywords 'emacs-lisp-mode '("\\<with-connection-property\\>"))
+
+;;;###tramp-autoload
 (defun tramp-flush-connection-property (key)
   "Remove all properties identified by KEY.
 KEY identifies the connection, it is either a process or a vector."
@@ -250,6 +284,7 @@ KEY identifies the connection, it is either a process or a vector."
   (setq tramp-cache-data-changed t)
   (remhash key tramp-cache-data))
 
+;;;###tramp-autoload
 (defun tramp-cache-print (table)
   "Print hash table TABLE."
   (when (hash-table-p table)
@@ -270,6 +305,7 @@ KEY identifies the connection, it is either a process or a vector."
        table)
       result)))
 
+;;;###tramp-autoload
 (defun tramp-list-connections ()
   "Return a list of all known connection vectors according to `tramp-cache'."
     (let (result)
@@ -325,6 +361,7 @@ KEY identifies the connection, it is either a process or a vector."
 	     (remove-hook 'kill-emacs-hook
 			  'tramp-dump-connection-properties)))
 
+;;;###tramp-autoload
 (defun tramp-parse-connection-properties (method)
   "Return a list of (user host) tuples allowed to access for METHOD.
 This function is added always in `tramp-get-completion-function'
@@ -362,6 +399,10 @@ for all methods.  Resulting data are derived from connection history."
      (message "Tramp persistency file '%s' is corrupted: %s"
 	      tramp-persistency-file-name (error-message-string err))
      (clrhash tramp-cache-data))))
+
+(add-hook 'tramp-unload-hook
+	  (lambda ()
+	    (unload-feature 'tramp-cache 'force)))
 
 (provide 'tramp-cache)
 

@@ -191,8 +191,6 @@ please report it with \\[report-emacs-bug].")
   :group 'rmail-retrieve
   :type '(repeat (directory)))
 
-(declare-function mail-position-on-field "sendmail" (field &optional soft))
-(declare-function mail-text-start "sendmail" ())
 (declare-function rmail-dont-reply-to "mail-utils" (destinations))
 (declare-function rmail-update-summary "rmailsum" (&rest ignore))
 
@@ -1643,8 +1641,6 @@ The duplicate copy goes into the Rmail file just after the original."
 (declare-function rmail-summary-mark-deleted "rmailsum" (&optional n undel))
 (declare-function rfc822-addresses "rfc822" (header-text))
 (declare-function mail-abbrev-make-syntax-table "mailabbrev.el" ())
-(declare-function mail-sendmail-delimit-header "sendmail" ())
-(declare-function mail-header-end "sendmail" ())
 
 ;; RLK feature not added in this version:
 ;; argument specifies inbox file or files in various ways.
@@ -3686,7 +3682,8 @@ see the documentation of `rmail-resend'."
 	  ;; The mail buffer is now current.
 	  (save-excursion
 	    ;; Insert after header separator--before signature if any.
-	    (goto-char (mail-text-start))
+	    (rfc822-goto-eoh)
+	    (forward-line 1)
 	    (if (or rmail-enable-mime rmail-enable-mime-composing)
 		(funcall rmail-insert-mime-forwarded-message-function
 			 forward-buffer)
@@ -3841,6 +3838,10 @@ The message should be narrowed to just the headers."
 			   (1- (point))
 			 (point-max)))))))
 
+(declare-function mail-sendmail-delimit-header "sendmail" ())
+(declare-function mail-header-end "sendmail" ())
+(declare-function mail-position-on-field "sendmail" (field &optional soft))
+
 (defun rmail-retry-failure ()
   "Edit a mail message which is based on the contents of the current message.
 For a message rejected by the mail system, extract the interesting headers and
@@ -3932,6 +3933,8 @@ specifying headers which should not be copied into the new message."
 	    (goto-char (point-min))
 	    (if bounce-indent
 		(indent-rigidly (point-min) (point-max) bounce-indent))
+	    ;; FIXME better to replace sendmail functions.
+	    (require 'sendmail)
 	    (mail-sendmail-delimit-header)
 	    (save-restriction
 	      (narrow-to-region (point-min) (mail-header-end))
@@ -4236,7 +4239,7 @@ encoded string (and the same mask) will decode the string."
 ;;; Start of automatically extracted autoloads.
 
 ;;;### (autoloads (rmail-edit-current-message) "rmailedit" "rmailedit.el"
-;;;;;;  "60db8013bf16d7999914a16cda435287")
+;;;;;;  "4bf8a5cdfc921b9e30680ee71b7f9ca6")
 ;;; Generated autoloads from rmailedit.el
 
 (autoload 'rmail-edit-current-message "rmailedit" "\
@@ -4248,7 +4251,7 @@ Edit the contents of this message.
 
 ;;;### (autoloads (rmail-next-labeled-message rmail-previous-labeled-message
 ;;;;;;  rmail-read-label rmail-kill-label rmail-add-label) "rmailkwd"
-;;;;;;  "rmailkwd.el" "7027ce1ac922c0dd51262b641e4d42c1")
+;;;;;;  "rmailkwd.el" "112240cbb53c402294013cc49987771a")
 ;;; Generated autoloads from rmailkwd.el
 
 (autoload 'rmail-add-label "rmailkwd" "\
@@ -4291,7 +4294,7 @@ With prefix argument N moves forward N messages with these labels.
 
 ;;;***
 
-;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "4a7502b4aeb3bd5f2111b48cc6512924")
+;;;### (autoloads (rmail-mime) "rmailmm" "rmailmm.el" "9f67f3b67de9b700b128b73c52abfefa")
 ;;; Generated autoloads from rmailmm.el
 
 (autoload 'rmail-mime "rmailmm" "\
@@ -4307,7 +4310,7 @@ attachments as specfied by `rmail-mime-attachment-dirs-alist'.
 ;;;***
 
 ;;;### (autoloads (set-rmail-inbox-list) "rmailmsc" "rmailmsc.el"
-;;;;;;  "b2a72d4e370f2d2b31b6f8f0794820e4")
+;;;;;;  "c3575020691d5769bcf08ecc932304c3")
 ;;; Generated autoloads from rmailmsc.el
 
 (autoload 'set-rmail-inbox-list "rmailmsc" "\
@@ -4323,7 +4326,7 @@ This applies only to the current session.
 
 ;;;### (autoloads (rmail-sort-by-labels rmail-sort-by-lines rmail-sort-by-correspondent
 ;;;;;;  rmail-sort-by-recipient rmail-sort-by-author rmail-sort-by-subject
-;;;;;;  rmail-sort-by-date) "rmailsort" "rmailsort.el" "5a3b5ee477d2fbf79d0c566d776a7fd4")
+;;;;;;  rmail-sort-by-date) "rmailsort" "rmailsort.el" "b96e85edd736f23f1e9d54a299268d1e")
 ;;; Generated autoloads from rmailsort.el
 
 (autoload 'rmail-sort-by-date "rmailsort" "\
@@ -4382,7 +4385,7 @@ If prefix argument REVERSE is non-nil, sorts in reverse order.
 
 ;;;### (autoloads (rmail-summary-by-senders rmail-summary-by-topic
 ;;;;;;  rmail-summary-by-regexp rmail-summary-by-recipients rmail-summary-by-labels
-;;;;;;  rmail-summary) "rmailsum" "rmailsum.el" "26b95919c7e1f8c5609ce7323aee77ae")
+;;;;;;  rmail-summary) "rmailsum" "rmailsum.el" "4715fb58fb191bf6b192458ea75524b2")
 ;;; Generated autoloads from rmailsum.el
 
 (autoload 'rmail-summary "rmailsum" "\

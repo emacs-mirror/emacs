@@ -69,5 +69,4 @@
 
 (provide 'spam-wash)
 
-;; arch-tag: 3c7f94a7-c96d-4c77-bb59-950df12bc85f
 ;;; spam-wash.el ends here
