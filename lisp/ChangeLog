@@ -1,3 +1,9 @@
+2010-09-13  Julien Danjou  <julien@danjou.info>
+
+	* notifications.el (notifications-notify): Add support for
+	image-path and sound-name.
+	(notifications-specification-version): Add this variable.
+
 2010-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (y-or-n-p): New function, moved from src/fns.c.  Use read-key.
