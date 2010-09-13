@@ -1,3 +1,8 @@
+2010-09-13  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa-file.el (epa-file-insert-file-contents): If visiting, bind
+	buffer-file-name to avoid file-locking.  (Bug#7026)
+
 2010-09-13  Julien Danjou  <julien@danjou.info>
 
 	* notifications.el (notifications-notify): Add support for

@@ -158,12 +158,17 @@ way."
 	  (if (or beg end)
 	      (setq string (substring string (or beg 0) end)))
 	  (save-excursion
-	    (save-restriction
-	      (narrow-to-region (point) (point))
-	      (epa-file-decode-and-insert string file visit beg end replace)
-	      (setq length (- (point-max) (point-min))))
-	    (if replace
-		(delete-region (point) (point-max)))
+	    ;; If visiting, bind off buffer-file-name so that
+	    ;; file-locking will not ask whether we should
+	    ;; really edit the buffer.
+	    (let ((buffer-file-name
+		   (if visit nil buffer-file-name)))
+	      (save-restriction
+		(narrow-to-region (point) (point))
+		(epa-file-decode-and-insert string file visit beg end replace)
+		(setq length (- (point-max) (point-min))))
+	      (if replace
+		  (delete-region (point) (point-max))))
 	    (if visit
 		(set-visited-file-modtime))))
       (if (and local-copy
