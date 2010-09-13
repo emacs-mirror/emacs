@@ -1,5 +1,3 @@
-(setq tramp-version 24)
-
 ;;; tramp-cache.el --- file information caching for Tramp
 
 ;; Copyright (C) 2000, 2005, 2006, 2007, 2008, 2009,
@@ -53,8 +51,6 @@
 ;;; Code:
 
 (require 'tramp)
-; bob, 2010 Sep 11
-; (require 'trampver.el)
 (autoload 'time-stamp-string "time-stamp")
 
 ;;; -- Cache --
