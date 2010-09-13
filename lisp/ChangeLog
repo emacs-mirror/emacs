@@ -1,3 +1,13 @@
+2010-09-13  Michael R. Mauger  <mmaug@yahoo.com>
+
+	* progmodes/sql.el: Version 2.7.
+	(sql-buffer-live-p): Improve detection.
+	(sql-find-sqli-buffer, sql-set-sqli-buffer-generally)
+	(sql-set-sqli-buffer): Use it.
+	(sql-product-interactive): Run `sql-set-sqli-hook'.
+	(sql-rename-buffer): Code cleanup.
+	(sql-redirect, sql-redirect-value): New functions.  More to come.
+
 2010-09-13  Juanma Barranquero  <lekktu@gmail.com>
 
 	Port tramp-related Makefile changes of revnos 101381, 101422 to Windows.
