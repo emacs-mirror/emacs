@@ -1,3 +1,10 @@
+2010-09-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	Port tramp-related Makefile changes of revnos 101381, 101422 to Windows.
+	* makefile.w32-in (LOADDEFS): Add $(lisp)/net/tramp-loaddefs.el.
+	(TRAMP_SRC): New macro.
+	($(lisp)/net/tramp-loaddefs.el): New target.
+
 2010-09-13  Michael Albinus  <michael.albinus@gmx.de>
 
 	Major code cleanup.  Split tramp.el into tramp.el and tramp-sh.el.
