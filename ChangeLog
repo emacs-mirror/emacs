@@ -1,3 +1,8 @@
+2010-09-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* configure.in (HAVE_LIBXML2): Check that the libxml2 we found can
+	be used.  This fixes a conf problem on Mac OS X.
+
 2010-09-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* configure.in: Check for libxml2.

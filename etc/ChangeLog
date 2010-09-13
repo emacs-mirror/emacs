@@ -1,3 +1,7 @@
+2010-09-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Some Tramp methods are discontinued.
+
 2010-09-11  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.bash, emacs.csh, ms-kermit: Remove obsolete files (use

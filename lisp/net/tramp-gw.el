@@ -243,10 +243,9 @@ authentication is requested from proxy server, provide it."
 	;; Trap errors to be traced in the right trace buffer.  Often,
 	;; proxies have a timeout of 60".  We wait 65" in order to
 	;; receive an answer this case.
-	(condition-case nil
-	    (let (tramp-verbose)
-	      (tramp-wait-for-regexp proc 65 "\r?\n\r?\n"))
-	  (error nil))
+	(ignore-errors
+	  (let (tramp-verbose)
+	    (tramp-wait-for-regexp proc 65 "\r?\n\r?\n")))
 	;; Check return code.
 	(goto-char (point-min))
 	(narrow-to-region

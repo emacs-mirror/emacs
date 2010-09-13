@@ -38,7 +38,21 @@
 
 (eval-and-compile
 
+  (require 'advice)
   (require 'custom)
+  (require 'format-spec)
+
+  ;; As long as password.el is not part of (X)Emacs, it shouldn't be
+  ;; mandatory.
+  (if (featurep 'xemacs)
+      (load "password" 'noerror)
+    (or (require 'password-cache nil 'noerror)
+	(require 'password nil 'noerror))) ; Part of contrib.
+
+  ;; auth-source is relatively new.
+  (if (featurep 'xemacs)
+      (load "auth-source" 'noerror)
+    (require 'auth-source nil 'noerror))
 
   ;; Load the appropriate timer package.
   (if (featurep 'xemacs)

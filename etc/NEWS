@@ -434,6 +434,11 @@ threads simultaneously.
 *** It is possible now, to access alternative buses than the default
 system or session bus.
 
+** Tramp
+
+*** The following access methods are discontinued: "ssh1_old",
+"ssh2_old", "scp1_old", "scp2_old" and "fish".
+
 
 * New Modes and Packages in Emacs 24.1
 

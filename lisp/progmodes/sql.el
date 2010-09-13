@@ -5,7 +5,7 @@
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Michael Mauger <mmaug@yahoo.com>
-;; Version: 2.6
+;; Version: 2.7
 ;; Keywords: comm languages processes
 ;; URL: http://savannah.gnu.org/cgi-bin/viewcvs/emacs/emacs/lisp/progmodes/sql.el
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?SqlMode
@@ -1052,11 +1052,24 @@ You can change `sql-prompt-length' on `sql-interactive-mode-hook'.")
 
 Used by `sql-rename-buffer'.")
 
-(defun sql-buffer-live-p (buffer)
-  "Returns non-nil if the process associated with buffer is live."
-  (and buffer
-       (buffer-live-p (get-buffer buffer))
-       (get-buffer-process buffer)))
+(defun sql-buffer-live-p (buffer &optional product)
+  "Returns non-nil if the process associated with buffer is live.
+
+BUFFER can be a buffer object or a buffer name.  The buffer must
+be a live buffer, have an running process attached to it, be in
+`sql-interactive-mode', and, if PRODUCT is specified, it's
+`sql-product' must match."
+
+  (when buffer
+    (setq buffer (get-buffer buffer))
+    (and buffer
+         (buffer-live-p buffer)
+         (get-buffer-process buffer)
+         (comint-check-proc buffer)
+         (with-current-buffer buffer
+           (and (derived-mode-p 'sql-product-interactive)
+                (or (not product)
+                    (eq product sql-product)))))))
 
 ;; Keymap for sql-interactive-mode.
 
@@ -2577,23 +2590,22 @@ function like this: (sql-get-login 'user 'password 'database)."
   "Returns the name of the current default SQLi buffer or nil.
 In order to qualify, the SQLi buffer must be alive, be in
 `sql-interactive-mode' and have a process."
-  (let ((default-buffer (default-value 'sql-buffer))
-        (current-product sql-product))
-    (if (sql-buffer-live-p default-buffer)
-	default-buffer
-      (save-current-buffer
-	(let ((buflist (buffer-list))
-	      (found))
-	  (while (not (or (null buflist)
-			  found))
-	    (let ((candidate (car buflist)))
-	      (set-buffer candidate)
-	      (if (and (sql-buffer-live-p candidate)
-                       (derived-mode-p 'sql-interactive-mode)
-                       (eq sql-product current-product))
-		  (setq found (buffer-name candidate)))
-	      (setq buflist (cdr buflist))))
-	  found)))))
+  (let ((buf  sql-buffer)
+        (prod sql-product))
+    (or
+     ;; Current sql-buffer, if there is one.
+     (and (sql-buffer-live-p buf prod)
+          buf)
+     ;; Global sql-buffer
+     (and (setq buf (default-value 'sql-buffer))
+          (sql-buffer-live-p buf prod)
+          buf)
+     ;; Look thru each buffer
+     (car (apply 'append
+                 (mapcar (lambda (b)
+                           (and (sql-buffer-live-p b prod)
+                                (list (buffer-name b))))
+                         (buffer-list)))))))
 
 (defun sql-set-sqli-buffer-generally ()
   "Set SQLi buffer for all SQL buffers that have none.
@@ -2611,10 +2623,11 @@ using `sql-find-sqli-buffer'.  If `sql-buffer' is set,
 	(let ((candidate (car buflist)))
 	  (set-buffer candidate)
 	  (if (and (derived-mode-p 'sql-mode)
-		   (not (buffer-live-p sql-buffer)))
+		   (not (sql-buffer-live-p sql-buffer)))
 	      (progn
 		(setq sql-buffer default-buffer)
-		(run-hooks 'sql-set-sqli-hook))))
+		(when default-buffer
+                  (run-hooks 'sql-set-sqli-hook)))))
 	(setq buflist (cdr buflist))))))
 
 (defun sql-set-sqli-buffer ()
@@ -2632,19 +2645,13 @@ If you call it from anywhere else, it sets the global copy of
   (interactive)
   (let ((default-buffer (sql-find-sqli-buffer)))
     (if (null default-buffer)
-	(error "There is no suitable SQLi buffer"))
-    (let ((new-buffer
-	   (get-buffer
-	    (read-buffer "New SQLi buffer: " default-buffer t))))
-      (if (null (get-buffer-process new-buffer))
-	  (error "Buffer %s has no process" (buffer-name new-buffer)))
-      (if (null (with-current-buffer new-buffer
-		  (derived-mode-p 'sql-interactive-mode)))
-	  (error "Buffer %s is no SQLi buffer" (buffer-name new-buffer)))
-      (if new-buffer
-	  (progn
-	    (setq sql-buffer (buffer-name new-buffer))
-	    (run-hooks 'sql-set-sqli-hook))))))
+        (error "There is no suitable SQLi buffer")
+      (let ((new-buffer (read-buffer "New SQLi buffer: " default-buffer t)))
+        (if (null (sql-buffer-live-p new-buffer))
+            (error "Buffer %s is not a working SQLi buffer" new-buffer)
+          (when new-buffer
+            (setq sql-buffer new-buffer)
+            (run-hooks 'sql-set-sqli-hook)))))))
 
 (defun sql-show-sqli-buffer ()
   "Show the name of current SQLi buffer.
@@ -2742,13 +2749,13 @@ NEW-NAME is empty, then the buffer name will be \"*SQL*\"."
   (if (not (derived-mode-p 'sql-interactive-mode))
       (message "Current buffer is not a SQL interactive buffer")
 
-    (cond
-     ((stringp new-name)
-      (setq sql-alternate-buffer-name new-name))
-     ((listp new-name)
-      (setq sql-alternate-buffer-name
+    (setq sql-alternate-buffer-name
+          (cond
+           ((stringp new-name) new-name)
+           ((consp new-name)
             (read-string "Buffer name (\"*SQL: XXX*\"; enter `XXX'): "
-                         sql-alternate-buffer-name))))
+                         sql-alternate-buffer-name))
+           (t                  sql-alternate-buffer-name)))
 
     (rename-buffer (if (string= "" sql-alternate-buffer-name)
                        "*SQL*"
@@ -2991,6 +2998,91 @@ If given the optional parameter VALUE, sets
       (setq sql-pop-to-buffer-after-send-region value)
     (setq sql-pop-to-buffer-after-send-region
 	  (null sql-pop-to-buffer-after-send-region))))
+
+
+
+;;; Redirect output functions
+
+(defun sql-redirect (command combuf &optional outbuf save-prior)
+  "Execute the SQL command and send output to OUTBUF.
+
+COMBUF must be an active SQL interactive buffer.  OUTBUF may be
+an existing buffer, or the name of a non-existing buffer.  If
+omitted the output is sent to a temporary buffer which will be
+killed after the command completes.  COMMAND should be a string
+of commands accepted by the SQLi program."
+
+  (with-current-buffer combuf
+    (let ((buf  (get-buffer-create (or outbuf " *SQL-Redirect*")))
+          (proc (get-buffer-process (current-buffer)))
+          (comint-prompt-regexp (sql-get-product-feature sql-product
+                                                         :prompt-regexp))
+          (start nil))
+      (with-current-buffer buf
+        (unless save-prior
+          (erase-buffer))
+        (goto-char (point-max))
+        (setq start (point)))
+
+      ;; Run the command
+      (comint-redirect-send-command-to-process command buf proc nil t)
+      (while (null comint-redirect-completed)
+	(accept-process-output nil 1))
+
+      ;; Remove echo if there was one
+      (with-current-buffer buf
+        (goto-char start)
+        (when (looking-at (concat "^" (regexp-quote command) "[\\n]"))
+          (delete-region (match-beginning 0) (match-end 0)))
+        (goto-char start)))))
+
+(defun sql-redirect-value (command combuf regexp &optional regexp-groups)
+  "Execute the SQL command and return part of result.
+
+COMBUF must be an active SQL interactive buffer.  COMMAND should
+be a string of commands accepted by the SQLi program.  From the
+output, the REGEXP is repeatedly matched and the list of
+REGEXP-GROUPS submatches is returned.  This behaves much like
+\\[comint-redirect-results-list-from-process] but instead of
+returning a single submatch it returns a list of each submatch
+for each match."
+
+  (let ((outbuf " *SQL-Redirect-values*")
+        (results nil))
+    (sql-redirect command combuf outbuf nil)
+    (with-current-buffer outbuf
+      (while (re-search-forward regexp nil t)
+	(push
+         (cond
+          ;; no groups-return all of them
+          ((null regexp-groups)
+           (let ((i 1)
+                 (r nil))
+             (while (match-beginning i)
+               (push (match-string i) r))
+             (nreverse r)))
+          ;; one group specified
+          ((numberp regexp-groups)
+           (match-string regexp-groups))
+           ;; (buffer-substring-no-properties
+           ;;  (match-beginning regexp-groups)
+           ;;  (match-end regexp-groups)))
+          ;; list of numbers; return the specified matches only
+          ((consp regexp-groups)
+           (mapcar (lambda (c)
+                     (cond
+                      ((numberp c) (match-string c))
+                      ((stringp c) (match-substitute-replacement c))
+                      (t (error "sql-redirect-value: unknown REGEXP-GROUPS value - %s" c))))
+                   regexp-groups))
+          ;; String is specified; return replacement string
+          ((stringp regexp-groups)
+           (match-substitute-replacement regexp-groups))
+          (t
+           (error "sql-redirect-value: unknown REGEXP-GROUPS value - %s"
+                  regexp-groups)))
+         results)))
+      (nreverse results)))
 
 
 
@@ -3365,7 +3457,7 @@ the call to \\[sql-product-interactive] with
 
   ;; Handle universal arguments if specified
   (when (not (or executing-kbd-macro noninteractive))
-    (when (and (listp product)
+    (when (and (consp product)
                (not (cdr product))
                (numberp (car product)))
       (when (>= (car product) 16)
@@ -3394,10 +3486,7 @@ the call to \\[sql-product-interactive] with
         ;; If no new name specified, fall back on sql-buffer if its for
         ;; the same product
         (if (and (not new-name)
-                 sql-buffer
-                 (sql-buffer-live-p sql-buffer)
-                 (comint-check-proc sql-buffer)
-                 (eq product (with-current-buffer sql-buffer sql-product)))
+                 (sql-buffer-live-p sql-buffer product))
             (pop-to-buffer sql-buffer)
 
           ;; We have a new name or sql-buffer doesn't exist or match
@@ -3423,10 +3512,11 @@ the call to \\[sql-product-interactive] with
             (when new-name
               (sql-rename-buffer new-name))
 
-            ;; Set `sql-buffer' in the start buffer
+            ;; Set `sql-buffer' in the new buffer and the start buffer
             (setq sql-buffer (buffer-name new-sqli-buffer))
             (with-current-buffer start-buffer
-              (setq sql-buffer (buffer-name new-sqli-buffer)))
+              (setq sql-buffer (buffer-name new-sqli-buffer))
+              (run-hooks 'sql-set-sqli-hook))
 
             ;; All done.
             (message "Login...done")
