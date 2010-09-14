@@ -1,3 +1,10 @@
+2010-09-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/byte-run.el (set-advertised-calling-convention):
+	Add `when' argument.  Update callers.
+
+	* subr.el (unintern): Declare the obarray arg mandatory.
+
 2010-09-14  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/diary-lib.el (diary-list-entries-hook, diary-sort-entries):
