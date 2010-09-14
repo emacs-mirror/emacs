@@ -1,3 +1,7 @@
+2010-09-14  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* calendar/time-date.el (format-seconds): Comment fix.
+
 2010-09-13  Michael R. Mauger  <mmaug@yahoo.com>
 
 	* progmodes/sql.el: Version 2.7.
