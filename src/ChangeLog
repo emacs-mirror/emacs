@@ -1,3 +1,8 @@
+2010-09-14  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* xml.c (Fxml_parse_string, Fxml_parse_string): Revert last
+	change.  Don't make first argument optional.  Doc fix.
+
 2010-09-14  Leo  <sdl.web@gmail.com>  (tiny change)
 
 	* xml.c (Fxml_parse_string, Fhtml_parse_string): Fix up the
