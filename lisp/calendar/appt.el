@@ -345,6 +345,8 @@ displayed in a window:
                           (if d-buff    ; diary buffer exists
                               (with-current-buffer d-buff
                                 diary-selective-display))))
+                    ;; FIXME why not using diary-list-entries with
+                    ;; non-nil LIST-ONLY?
                     (diary)
                     ;; If the diary buffer existed before this command,
                     ;; restore its display state.  Otherwise, kill it.
@@ -642,8 +644,10 @@ hour and minute parts."
 
 (defun appt-update-list ()
   "If the current buffer is visiting the diary, update appointments.
-This function is intended for use with `write-file-functions'."
-  (and (string-equal buffer-file-name (expand-file-name diary-file))
+This function also acts on any file listed in `diary-included-files'.
+It is intended for use with `write-file-functions'."
+  (and (member buffer-file-name (append diary-included-files
+                                        (list (expand-file-name diary-file))))
        appt-timer
        (let ((appt-display-diary nil))
          (appt-check t)))

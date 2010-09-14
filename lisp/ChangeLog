@@ -1,3 +1,11 @@
+2010-09-14  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-included-files): New variable.
+	(diary-list-entries): Maybe initialize diary-included-files.
+	(diary-include-other-diary-files): Append to diary-included-files.
+	* calendar/appt.el (appt-update-list): Also check the members of
+	diary-included-files.  (Bug#6999)
+
 2010-09-12  David Reitter  <david.reitter@gmail.com>
 
 	* simple.el (line-move-visual): Do not truncate goal column to

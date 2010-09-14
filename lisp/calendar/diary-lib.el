@@ -699,6 +699,10 @@ of the appropriate type."
              (1+ (calendar-absolute-from-gregorian gdate))))))
   (goto-char (point-min)))
 
+(defvar diary-including) ; dynamically bound in diary-include-other-diary-files
+(defvar diary-included-files nil
+  "List of any diary files included in the last call to `diary-list-entries'.")
+
 ;; FIXME non-greg and list hooks run same number of times?
 (defun diary-list-entries (date number &optional list-only)
   "Create and display a buffer containing the relevant lines in `diary-file'.
@@ -743,6 +747,8 @@ LIST-ONLY is non-nil, in which case it just returns the list."
            (date-string (calendar-date-string date))
            (diary-buffer (find-buffer-visiting diary-file))
            diary-entries-list file-glob-attrs)
+      (or (bound-and-true-p diary-including)
+          (setq diary-included-files nil))
       (message "Preparing diary...")
       (save-current-buffer
         (if (not diary-buffer)
@@ -828,11 +834,15 @@ the variable `diary-include-string'."
     (let ((diary-file (match-string-no-properties 1))
           (diary-list-entries-hook 'diary-include-other-diary-files)
           (diary-display-function 'ignore)
+          (diary-including t)
           diary-hook diary-list-include-blanks)
       (if (file-exists-p diary-file)
           (if (file-readable-p diary-file)
               (unwind-protect
-                  (setq diary-entries-list
+                  (setq diary-included-files
+                        (append diary-included-files
+                                (list (expand-file-name diary-file)))
+                        diary-entries-list
                         (append diary-entries-list
                                 (diary-list-entries original-date number)))
                 (with-current-buffer (find-buffer-visiting diary-file)
