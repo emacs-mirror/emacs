@@ -187,11 +187,12 @@ you will probably also want to add `diary-mark-included-diary-files' to
 
      (setq diary-display-function 'diary-fancy-display)
      (add-hook 'diary-list-entries-hook 'diary-include-other-diary-files)
-     (add-hook 'diary-list-entries-hook 'diary-sort-entries)
+     (add-hook 'diary-list-entries-hook 'diary-sort-entries t)
 
 in your `.emacs' file to cause the fancy diary buffer to be displayed with
 diary entries from various included files, each day's entries sorted into
-lexicographic order."
+lexicographic order.  Note how the sort function is placed last,
+so that it can sort the entries included from other files."
   :type 'hook
   :options '(diary-include-other-diary-files diary-sort-entries)
   :group 'diary)
@@ -1584,7 +1585,10 @@ be used instead of a colon (:) to separate the hour and minute parts."
                       (string-lessp ts1 ts2)))))))
 
 (defun diary-sort-entries ()
-  "Sort the list of diary entries by time of day."
+  "Sort the list of diary entries by time of day.
+If you add this function to `diary-list-entries-hook', it should
+be the last item in the hook, in case earlier items add diary
+entries, or change the order."
   (setq diary-entries-list (sort diary-entries-list 'diary-entry-compare)))
 
 (define-obsolete-function-alias 'sort-diary-entries 'diary-sort-entries "23.1")

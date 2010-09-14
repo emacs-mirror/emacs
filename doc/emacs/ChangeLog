@@ -1,5 +1,8 @@
 2010-09-14  Glenn Morris  <rgm@gnu.org>
 
+	* cal-xtra.texi (Fancy Diary Display): Emphasize that sort should be
+	the last hook item.
+
 	* calendar.texi (Appointments): Also updated when a diary include file
 	is saved.
 

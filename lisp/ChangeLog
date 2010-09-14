@@ -1,5 +1,8 @@
 2010-09-14  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/diary-lib.el (diary-list-entries-hook, diary-sort-entries):
+	Doc fixes.
+
 	* calendar/diary-lib.el (diary-included-files): New variable.
 	(diary-list-entries): Maybe initialize diary-included-files.
 	(diary-include-other-diary-files): Append to diary-included-files.
