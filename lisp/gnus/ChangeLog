@@ -1,3 +1,15 @@
+2010-09-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-read-active-for-groups): Reverted the previous
+	change.
+
+	* nnrss.el (nnrss-request-list): Removed this function and related
+	functions, including the moreover stuff.
+
+2010-09-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnrss.el (nnrss-retrieve-groups): New function.
+
 2010-09-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* .dir-locals.el: Add no-byte-compile cookie.
