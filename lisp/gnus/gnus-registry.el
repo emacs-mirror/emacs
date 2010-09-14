@@ -783,7 +783,7 @@ Uses `gnus-registry-marks' to find what shortcuts to install."
 		  (function-name (format function-format variant-name))
 		  (shortcut (format "%c" data))
 		  (shortcut (if remove (upcase shortcut) shortcut)))
-	     (unintern function-name)
+	     (unintern function-name obarray)
 	     (eval
 	      `(defun
 		 ;; function name

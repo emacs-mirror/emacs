@@ -788,7 +788,7 @@ This is meant to be added buffer-locally to `write-file-functions'."
 
 (defun whitespace-unload-function ()
   "Unload the whitespace library."
-  (if (unintern "whitespace-unload-hook")
+  (if (unintern "whitespace-unload-hook" obarray)
       ;; if whitespace-unload-hook is defined, let's get rid of it
       ;; and recursively call `unload-feature'
       (progn (unload-feature 'whitespace) t)
