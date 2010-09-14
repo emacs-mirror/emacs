@@ -1,3 +1,9 @@
+2010-09-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* xml.c (parse_string): Renamed to parse_string(), since that's
+	what it does.
+	(parse_string): Return nil when the document can't be parsed.
+
 2010-09-14  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (get_current_vm_state): New function.
