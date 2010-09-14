@@ -1,3 +1,8 @@
+2010-09-14  Leo  <sdl.web@gmail.com>  (tiny change)
+
+	* xml.c (Fxml_parse_string, Fhtml_parse_string): Fix up the
+	parameters for the doc string.
+
 2010-09-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* xml.c (Fhtml_parse_string, Fxml_parse_string): Mention BASE-URL.

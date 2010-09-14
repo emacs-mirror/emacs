@@ -11180,6 +11180,7 @@ $as_echo "no" >&6; }
   fi
 
   if test "${HAVE_LIBXML2}" = "yes"; then
+    LIBS="$LIBXML2_LIBS $LIBS"
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for htmlReadMemory in -lxml2" >&5
 $as_echo_n "checking for htmlReadMemory in -lxml2... " >&6; }
 if test "${ac_cv_lib_xml2_htmlReadMemory+set}" = set; then :
