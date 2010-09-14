@@ -6914,7 +6914,7 @@
 
 	* search.c (search_buffer): Give up BM search on case-fold-search
 	if one of a target character has a case-equivalence of different
-	charset even if that target charcter is an ASCII.
+	charset even if that target character is an ASCII.
 
 	* casefiddle.c (casify_object): Fix for the case that case
 	conversion change the byte length.
