@@ -1808,11 +1808,11 @@ If SCAN, request a scan of that group as well."
 	 (dolist (info infos (nreverse groups))
 	   (push (gnus-group-real-name (gnus-info-group info)) groups))
 	 method)))
-     ((gnus-check-backend-function 'request-list (car method))
+     ((gnus-check-backend-function 'request-scan (car method))
       (gnus-read-active-file-1 method nil infos))
      (t
       (dolist (info infos)
-	(gnus-activate-group (gnus-info-group info) nil nil method t))))))
+	(gnus-activate-group (gnus-info-group info) nil nil method))))))
 
 ;; Create a hash table out of the newsrc alist.  The `car's of the
 ;; alist elements are used as keys.

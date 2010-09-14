@@ -1,3 +1,8 @@
+2010-09-14  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-start.el (gnus-read-active-for-groups): Run gnus-activate-group
+	for back end that doesn't support request-scan.
+
 2010-09-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-start.el (gnus-read-active-file-1): If gnus-agent isn't set,
