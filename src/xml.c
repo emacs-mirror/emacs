@@ -112,7 +112,8 @@ DEFUN ("html-parse-string", Fhtml_parse_string, Shtml_parse_string,
        doc: /* Parse the string as an HTML document and return the parse tree.
 If BASE-URL is non-nil, it will be used to expand relative URLs in
 the HTML document.*/)
-  (Lisp_Object string, Lisp_Object base_url)
+     (string, base_url)
+     Lisp_Object string, base_url;
 {
   return parse_buffer (string, base_url, 1);
 }
@@ -122,7 +123,8 @@ DEFUN ("xml-parse-string", Fxml_parse_string, Sxml_parse_string,
        doc: /* Parse the string as an XML document and return the parse tree.
 If BASE-URL is non-nil, it will be used to expand relative URLs in
 the XML document.*/)
-  (Lisp_Object string, Lisp_Object base_url)
+     (string, base_url)
+     Lisp_Object string, base_url;
 {
   return parse_buffer (string, base_url, 0);
 }
