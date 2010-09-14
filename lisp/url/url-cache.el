@@ -62,14 +62,11 @@ FILE can be created or overwritten."
 ;;;###autoload
 (defun url-store-in-cache (&optional buff)
   "Store buffer BUFF in the cache."
-  (if (not (and buff (get-buffer buff)))
-      nil
-    (save-current-buffer
-      (and buff (set-buffer buff))
-      (let* ((fname (url-cache-create-filename (url-view-url t))))
-	(if (url-cache-prepare fname)
-	    (let ((coding-system-for-write 'binary))
-	      (write-region (point-min) (point-max) fname nil 5)))))))
+    (with-current-buffer (get-buffer (or buff (current-buffer)))
+      (let ((fname (url-cache-create-filename (url-view-url t))))
+        (if (url-cache-prepare fname)
+            (let ((coding-system-for-write 'binary))
+              (write-region (point-min) (point-max) fname nil 5))))))
 
 ;;;###autoload
 (defun url-is-cached (url)

@@ -951,7 +951,7 @@ group.  The string matched by the first group is highlighted with
       (3 antlr-keyword-face)
       (4 (if (member (match-string 4) '("Lexer" "Parser" "TreeParser"))
 	     antlr-keyword-face
-	   type-face)))
+	   font-lock-type-face)))
      (,(lambda (limit)
 	 (antlr-re-search-forward
 	  "\\<\\(header\\|options\\|tokens\\|exception\\|catch\\|returns\\)\\>"

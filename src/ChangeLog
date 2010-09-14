@@ -1,7 +1,29 @@
+2010-09-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (get_current_vm_state): New function.
+	(do_ewmh_fullscreen): Call get_current_vm_state and compare with
+	want_fullscreen so set_wm_state calls are few (Bug#7013).
+	(x_handle_net_wm_state): Move code to get_current_vm_state and
+	call that function.
+
+2010-09-14  Courtney Bane  <emacs-bugs-7626@cbane.org>  (tiny change)
+
+	* term.c (tty_set_terminal_modes): Don't initialize twice (bug#7002).
+
+2010-09-14  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (encode_coding_iso_2022): Don't optimize for ASCII if
+	we may use designation or locking-shift.
+
+2010-09-14  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (detect_coding_emacs_mule): Fix checking of multibyte
+	sequence when the source is multibyte.
+
 2010-09-14  Andreas Schwab  <schwab@linux-m68k.org>
 
-	* xml.c (Fxml_parse_string, Fxml_parse_string): Revert last
-	change.  Don't make first argument optional.  Doc fix.
+	* xml.c (Fxml_parse_string, Fxml_parse_string): Revert last change.
+	Don't make first argument optional.  Doc fix.
 
 2010-09-14  Leo  <sdl.web@gmail.com>  (tiny change)
 
@@ -111,8 +133,8 @@
 	(produce_stretch_glyph): Set it2.char_to_display too before
 	calling x_produce_glyphs.
 	(x_produce_glyphs): Simplify by using the same code for ASCII and
-	non-ASCII characters.  Don't set it->char_to_display here.  Don't
-	handle unibyte-display-via-language-environment here. For a
+	non-ASCII characters.  Don't set it->char_to_display here.
+	Don't handle unibyte-display-via-language-environment here.  For a
 	charater of no glyph, use font->space_width instead of FONT_WIDTH.
 
 2010-08-31  Stefan Monnier  <monnier@iro.umontreal.ca>

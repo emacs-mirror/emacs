@@ -40,6 +40,8 @@ This can be used in place of the default appt-message-warning-time.
 
 * Lisp changes in Emacs 23.3
 
+** The use of unintern without an obarray arg is declared obsolete.
+
 ** New function byte-to-string, like char-to-string but for bytes.
 
 

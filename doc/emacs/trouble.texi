@@ -409,28 +409,75 @@ say something to the psychotherapist, you must end it by typing
 @section Reporting Bugs
 
 @cindex bugs
-  Sometimes you will encounter a bug in Emacs.  Although we cannot
-promise we can or will fix the bug, and we might not even agree that it
-is a bug, we want to hear about problems you encounter.  Often we agree
-they are bugs and want to fix them.
-
-  To make it possible for us to fix a bug, you must report it.  In order
-to do so effectively, you must know when and how to do it.
-
-  Before reporting a bug, it is a good idea to see if it is already
-known.  You can find the list of known problems in the file
-@file{etc/PROBLEMS} in the Emacs distribution; type @kbd{C-h C-p} to read
-it.  Some additional user-level problems can be found in @ref{Bugs and
-problems, , Bugs and problems, efaq, GNU Emacs FAQ}.  Looking up your
-problem in these two documents might provide you with a solution or a
-work-around, or give you additional information about related issues.
+  If you think you have found a bug in Emacs, please report it.  We
+cannot promise to fix it, or always to agree that it is a bug, but we
+certainly want to hear about it.  The same applies for new features
+you would like to see added.  The following sections will help you to
+construct an effective bug report.
 
 @menu
+* Known Problems::               How to read about known problems and bugs.
 * Criteria:  Bug Criteria.       Have you really found a bug?
 * Understanding Bug Reporting::  How to report a bug effectively.
 * Checklist::                    Steps to follow for a good bug report.
 * Sending Patches::              How to send a patch for GNU Emacs.
 @end menu
+
+@node Known Problems
+@subsection Reading Existing Bug Reports and Known Problems
+
+  Before reporting a bug, if at all possible please check to see if it
+is already known about.  Indeed, it may already have been fixed in a
+later release of Emacs, or in the development version.  Here is a list
+of the main places you can read about known issues:
+
+@itemize
+@item
+The @file{etc/PROBLEMS} file in the Emacs distribution; type @kbd{C-h
+C-p} to read it.  This file contains a list of particularly well-known
+issues that have been encountered in compiling, installing and running
+Emacs.  Often, there are suggestions for workarounds and solutions.
+
+@item
+Some additional user-level problems can be found in @ref{Bugs and
+problems, , Bugs and problems, efaq, GNU Emacs FAQ}.
+
+@item
+The @samp{bug-gnu-emacs} mailing list (also available as the newsgroup
+@samp{gnu.emacs.bug}).  This is where you will find most Emacs bug
+reports.  You can read the list archives at
+@url{http://lists.gnu.org/mailman/listinfo/bug-gnu-emacs}.  If you
+like, you can also subscribe to the list.  Be aware that the sole
+purpose of this list is to provide the Emacs maintainers with
+information about bugs and feature requests.  Reports may contain
+fairly large amounts of data; spectators should not complain about
+this.
+
+@item
+The bug tracker at @url{http://debbugs.gnu.org}.  From early 2008,
+reports from the @samp{bug-gnu-emacs} list have been sent here.  The
+tracker contains the same information as the mailing list, just in a
+different format.  You may prefer to browse and read reports using the
+tracker.
+
+@item
+The @samp{emacs-pretest-bug} mailing list.  This list is no longer
+used, and is mainly of historical interest.  At one time, it was used
+for bug reports in development (i.e., not yet released) versions of
+Emacs.  You can read the archives for 2003 to mid 2007 at
+@url{http://lists.gnu.org/archive/html/emacs-pretest-bug/}.  From
+late 2007 to mid 2008, the address was an alias for the
+@samp{emacs-devel} mailing list.  From mid 2008 onwards, it has been
+an alias for @samp{bug-gnu-emacs}.
+
+@item
+The @samp{emacs-devel} mailing list.  Sometimes people report bugs to
+this mailing list.  This is not the main purpose of the list, however,
+and it is much better to send bug reports to the bug list.  You should
+not feel obliged to read this list before reporting a bug.
+
+@end itemize
+
 
 @node Bug Criteria
 @subsection When Is There a Bug
@@ -540,56 +587,81 @@ well.
 @subsection Checklist for Bug Reports
 
 @cindex reporting bugs
-  The best way to send a bug report is to mail it electronically to the
-Emacs maintainers at @email{bug-gnu-emacs@@gnu.org}.  (If you want to
-suggest a change as an improvement, use the same address.)
 
-  If you'd like to read the bug reports, you can find them on the
-newsgroup @samp{gnu.emacs.bug}; keep in mind, however, that as a
-spectator you should not criticize anything about what you see there.
-The purpose of bug reports is to give information to the Emacs
-maintainers.  Spectators are welcome only as long as they do not
-interfere with this.  In particular, some bug reports contain fairly
-large amounts of data; spectators should not complain about this.
+  Before reporting a bug, first try to see if the problem has already
+been reported (@pxref{Known Problems}).
 
-  Please do not post bug reports using netnews; mail is more reliable
-than netnews about reporting your correct address, which we may need
-in order to ask you for more information.  If your data is more than
-500,000 bytes, please don't include it directly in the bug report;
-instead, offer to send it on request, or make it available by ftp and
-say where.
+If you are able to, try the latest release of Emacs to see if the
+problem has already been fixed.  Even better is to try the latest
+development version.  We recognize that this is not easy for some
+people, so do not feel that you absolutely must do this before making
+a report.
 
 @findex report-emacs-bug
-  A convenient way to send a bug report for Emacs is to use the command
-@kbd{M-x report-emacs-bug}.  This sets up a mail buffer (@pxref{Sending
-Mail}) and automatically inserts @emph{some} of the essential
-information.  However, it cannot supply all the necessary information;
-you should still read and follow the guidelines below, so you can enter
-the other crucial information by hand before you send the message.
+  The best way to write a bug report for Emacs is to use the command
+@kbd{M-x report-emacs-bug}.  This sets up a mail buffer
+(@pxref{Sending Mail}) and automatically inserts @emph{some} of the
+essential information.  However, it cannot supply all the necessary
+information; you should still read and follow the guidelines below, so
+you can enter the other crucial information by hand before you send
+the message.  You may feel that some of the information inserted by
+@kbd{M-x report-emacs-bug} is not relevant, but unless you are
+absolutely sure it is best to leave it, so that the developers can
+decide for themselves.
+
+When you have finished writing your report, type @kbd{C-c C-c} and it
+will be sent to the Emacs maintainers at @email{bug-gnu-emacs@@gnu.org}.
+(If you want to suggest an improvement or new feature, use the same
+address.)  If you cannot send mail from inside Emacs, you can copy the
+text of your report to your normal mail client and send it to that
+address.  Or you can simply send an email to that address describing
+the problem.
+
+Your report will be sent to the @samp{bug-gnu-emacs} mailing list, and
+stored in the tracker at @url{http://debbugs.gnu.org}.  Please try to
+include a valid reply email address, in case we need to ask you for
+more information about your report.  Submissions are moderated, so
+there may be a delay before your report appears.
+
+You do not need to know how the @url{http://debbugs.gnu.org} bug
+tracker works in order to report a bug, but if you want to, you can
+read the tracker's online documentation to see the various features
+you can use.
+
+All mail sent to the @samp{bug-gnu-emacs} mailing list is also
+gatewayed to the @samp{bug.gnu.emacs} newsgroup.  The reverse is also
+true, but we ask you not to post bug reports via the newsgroup.  It
+can make it much harder to contact you if we need to ask for more
+information, and it does not integrate well with the bug tracker.
+
+If your data is more than 500,000 bytes, please don't include it
+directly in the bug report; instead, offer to send it on request, or
+make it available by ftp and say where.
 
   To enable maintainers to investigate a bug, your report
 should include all these things:
 
 @itemize @bullet
 @item
-The version number of Emacs.  Without this, we won't know whether there
-is any point in looking for the bug in the current version of GNU
-Emacs.
+The version number of Emacs.  Without this, we won't know whether there is any
+point in looking for the bug in the current version of GNU Emacs.
 
-You can get the version number by typing @kbd{M-x emacs-version
-@key{RET}}.  If that command does not work, you probably have something
-other than GNU Emacs, so you will have to report the bug somewhere
-else.
+@kbd{M-x report-emacs-bug} includes this information automatically,
+but if you are not using that command for your report you can get the
+version number by typing @kbd{M-x emacs-version @key{RET}}.  If that
+command does not work, you probably have something other than GNU
+Emacs, so you will have to report the bug somewhere else.
 
 @item
 The type of machine you are using, and the operating system name and
-version number.  @kbd{M-x emacs-version @key{RET}} provides this
-information too.  Copy its output from the @samp{*Messages*} buffer, so
-that you get it all and get it accurately.
+version number (again, automatically included by @kbd{M-x
+report-emacs-bug}).  @kbd{M-x emacs-version @key{RET}} provides this
+information too.  Copy its output from the @samp{*Messages*} buffer,
+so that you get it all and get it accurately.
 
 @item
 The operands given to the @code{configure} command when Emacs was
-installed.
+installed (automatically included by @kbd{M-x report-emacs-bug}).
 
 @item
 A complete list of any modifications you have made to the Emacs source.
@@ -619,12 +691,15 @@ the last line is terminated, but try telling the bugs that).
 
 @item
 The precise commands we need to type to reproduce the bug.
+If at all possible, give a full recipe for an Emacs started with the
+@samp{-Q} option (@pxref{Initial Options}).  This bypasses your
+@file{.emacs} customizations.
 
 @findex open-dribble-file
 @cindex dribble file
 @cindex logging keystrokes
-The easy way to record the input to Emacs precisely is to write a
-dribble file.  To start the file, execute the Lisp expression
+One way to record the input to Emacs precisely is to write a dribble
+file.  To start the file, execute the Lisp expression
 
 @example
 (open-dribble-file "~/dribble")
@@ -735,7 +810,7 @@ Check whether any programs you have loaded into the Lisp world,
 including your @file{.emacs} file, set any variables that may affect the
 functioning of Emacs.  Also, see whether the problem happens in a
 freshly started Emacs without loading your @file{.emacs} file (start
-Emacs with the @code{-q} switch to prevent loading the init file).  If
+Emacs with the @code{-Q} switch to prevent loading the init files).  If
 the problem does @emph{not} occur then, you must report the precise
 contents of any programs that you must load into the Lisp world in order
 to cause the problem to occur.
@@ -907,12 +982,10 @@ your best to help.
 @itemize @bullet
 @item
 Send an explanation with your changes of what problem they fix or what
-improvement they bring about.  For a bug fix, just include a copy of the
-bug report, and explain why the change fixes the bug.
-
-(Referring to a bug report is not as good as including it, because then
-we will have to look it up, and we have probably already deleted it if
-we've already fixed the bug.)
+improvement they bring about.  For a fix for an existing bug, it is
+best to reply to the relevant discussion on the @samp{bug-gnu-emacs}
+list, or item in the @url{http://debbugs.gnu.org} tracker.  Explain
+why your change fixes the bug.
 
 @item
 Always include a proper bug report for the problem you think you have

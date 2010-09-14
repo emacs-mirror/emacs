@@ -48,8 +48,9 @@
 ;; package is activated.  Additionally, the appointments list is
 ;; recreated automatically at 12:01am for those who do not logout
 ;; every day or are programming late.  It is also updated when the
-;; `diary-file' is saved.  Calling `appt-check' with an argument (or
-;; re-enabling the package) forces a re-initialization at any time.
+;; `diary-file' (or a file it includes) is saved.  Calling
+;; `appt-check' with an argument (or re-enabling the package) forces a
+;; re-initialization at any time.
 ;;
 ;; In order to add or delete items from today's list, without
 ;; changing the diary file, use `appt-add' and `appt-delete'.
@@ -262,7 +263,7 @@ The variable `appt-audible' controls the audible reminder."
   "Check for an appointment and update any reminder display.
 If optional argument FORCE is non-nil, reparse the diary file for
 appointments.  Otherwise the diary file is only parsed once per day,
-and when saved.
+or when it (or a file it includes) is saved.
 
 Note: the time must be the first thing in the line in the diary
 for a warning to be issued.  The format of the time can be either
@@ -346,6 +347,8 @@ displayed in a window:
                           (if d-buff    ; diary buffer exists
                               (with-current-buffer d-buff
                                 diary-selective-display))))
+                    ;; FIXME why not using diary-list-entries with
+                    ;; non-nil LIST-ONLY?
                     (diary)
                     ;; If the diary buffer existed before this command,
                     ;; restore its display state.  Otherwise, kill it.
@@ -643,8 +646,10 @@ hour and minute parts."
 
 (defun appt-update-list ()
   "If the current buffer is visiting the diary, update appointments.
-This function is intended for use with `write-file-functions'."
-  (and (string-equal buffer-file-name (expand-file-name diary-file))
+This function also acts on any file listed in `diary-included-files'.
+It is intended for use with `write-file-functions'."
+  (and (member buffer-file-name (append diary-included-files
+                                        (list (expand-file-name diary-file))))
        appt-timer
        (let ((appt-display-diary nil))
          (appt-check t)))
