@@ -1,3 +1,15 @@
+2010-09-14  Julien Danjou  <julien@danjou.info>
+
+	* url-cache (url-store-in-cache): Make `buff' argument really optional.
+
+2010-09-14  Glenn Morris  <rgm@gnu.org>
+
+	* url-cookie.el (url-cookie-expired-p): Tweak previous change.
+
+2010-09-14  shawn boles  <shawn.boles@gmail.com>  (tiny change)
+
+	* url-cookie.el (url-cookie-expired-p): Simplify and fix.  (Bug#6957)
+
 2010-09-11  Glenn Morris  <rgm@gnu.org>
 
 	* url-cache.el, url-gw.el, url-history.el, url-irc.el, url-util.el:

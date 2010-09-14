@@ -342,11 +342,6 @@ used to render text.  If it is nil, text will simply be folded.")
       ;; we return the article number.
       (cons nnrss-group (car e))))))
 
-(deffoo nnrss-request-list (&optional server)
-  (nnrss-possibly-change-group nil server)
-  (nnrss-generate-active)
-  t)
-
 (deffoo nnrss-open-server (server &optional defs connectionless)
   (nnrss-read-server-data server)
   (nnoo-change-server 'nnrss server defs)
@@ -396,6 +391,18 @@ used to render text.  If it is nil, text will simply be folded.")
       (if (third elem)
 	  (insert (car elem) "\t" (third elem) "\n"))))
   t)
+
+(deffoo nnrss-retrieve-groups (groups &optional server)
+  (nnrss-possibly-change-group nil server)
+  (dolist (group groups)
+    (nnrss-check-group group server))
+  (save-excursion
+    (set-buffer nntp-server-buffer)
+    (erase-buffer)
+    (dolist (group groups)
+      (let ((elem (assoc group nnrss-server-data)))
+	(insert (format "%S %s 1 y\n" group (or (cadr elem) 0)))))
+    'active))
 
 (nnoo-define-skeleton nnrss)
 
@@ -478,20 +485,6 @@ nnrss: %s: Not valid XML %s and w3-parse doesn't work %s"
   (when (and group (not (equal group nnrss-group)))
     (nnrss-read-group-data group server)
     (setq nnrss-group group)))
-
-(defvar nnrss-extra-categories '(nnrss-snarf-moreover-categories))
-
-(defun nnrss-generate-active ()
-  (when (y-or-n-p "Fetch extra categories? ")
-    (mapc 'funcall nnrss-extra-categories))
-  (save-excursion
-    (set-buffer nntp-server-buffer)
-    (erase-buffer)
-    (dolist (elem nnrss-group-alist)
-      (insert (prin1-to-string (car elem)) " 0 1 y\n"))
-    (dolist (elem nnrss-server-data)
-      (unless (assoc (car elem) nnrss-group-alist)
-	(insert (prin1-to-string (car elem)) " 0 1 y\n")))))
 
 (autoload 'timezone-parse-date "timezone")
 
@@ -867,33 +860,6 @@ It is useful when `(setq nnrss-use-local t)'."
   (let ((nnheader-file-name-translation-alist
 	 (append nnheader-file-name-translation-alist '((?' . ?_)))))
     (nnheader-translate-file-chars name)))
-
-(defvar nnrss-moreover-url
-  "http://w.moreover.com/categories/category_list_rss.html"
-  "The url of moreover.com categories.")
-
-(defun nnrss-snarf-moreover-categories ()
-  "Snarf RSS links from moreover.com."
-  (interactive)
-  (let (category name url changed)
-    (with-temp-buffer
-      (nnrss-insert nnrss-moreover-url)
-      (goto-char (point-min))
-      (while (re-search-forward
-	      "<a name=\"\\([^\"]+\\)\">\\|<a href=\"\\(http://[^\"]*moreover\\.com[^\"]+page\\?c=\\([^\"&]+\\)&o=rss\\)" nil t)
-	(if (match-string 1)
-	    (setq category (match-string 1))
-	  (setq url (match-string 2)
-		name (mm-url-decode-entities-string
-		      (rfc2231-decode-encoded-string
-		       (match-string 3))))
-	  (if category
-	      (setq name (concat category "." name)))
-	  (unless (assoc name nnrss-server-data)
-	    (setq changed t)
-	    (push (list name 0 url) nnrss-server-data)))))
-    (if changed
-	(nnrss-save-server-data ""))))
 
 (defun nnrss-node-text (namespace local-name element)
   (let* ((node (assq (intern (concat namespace (symbol-name local-name)))

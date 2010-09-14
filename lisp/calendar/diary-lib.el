@@ -187,11 +187,12 @@ you will probably also want to add `diary-mark-included-diary-files' to
 
      (setq diary-display-function 'diary-fancy-display)
      (add-hook 'diary-list-entries-hook 'diary-include-other-diary-files)
-     (add-hook 'diary-list-entries-hook 'diary-sort-entries)
+     (add-hook 'diary-list-entries-hook 'diary-sort-entries t)
 
 in your `.emacs' file to cause the fancy diary buffer to be displayed with
 diary entries from various included files, each day's entries sorted into
-lexicographic order."
+lexicographic order.  Note how the sort function is placed last,
+so that it can sort the entries included from other files."
   :type 'hook
   :options '(diary-include-other-diary-files diary-sort-entries)
   :group 'diary)
@@ -699,6 +700,10 @@ of the appropriate type."
              (1+ (calendar-absolute-from-gregorian gdate))))))
   (goto-char (point-min)))
 
+(defvar diary-including) ; dynamically bound in diary-include-other-diary-files
+(defvar diary-included-files nil
+  "List of any diary files included in the last call to `diary-list-entries'.")
+
 ;; FIXME non-greg and list hooks run same number of times?
 (defun diary-list-entries (date number &optional list-only)
   "Create and display a buffer containing the relevant lines in `diary-file'.
@@ -743,6 +748,8 @@ LIST-ONLY is non-nil, in which case it just returns the list."
            (date-string (calendar-date-string date))
            (diary-buffer (find-buffer-visiting diary-file))
            diary-entries-list file-glob-attrs)
+      (or (bound-and-true-p diary-including)
+          (setq diary-included-files nil))
       (message "Preparing diary...")
       (save-current-buffer
         (if (not diary-buffer)
@@ -828,11 +835,15 @@ the variable `diary-include-string'."
     (let ((diary-file (match-string-no-properties 1))
           (diary-list-entries-hook 'diary-include-other-diary-files)
           (diary-display-function 'ignore)
+          (diary-including t)
           diary-hook diary-list-include-blanks)
       (if (file-exists-p diary-file)
           (if (file-readable-p diary-file)
               (unwind-protect
-                  (setq diary-entries-list
+                  (setq diary-included-files
+                        (append diary-included-files
+                                (list (expand-file-name diary-file)))
+                        diary-entries-list
                         (append diary-entries-list
                                 (diary-list-entries original-date number)))
                 (with-current-buffer (find-buffer-visiting diary-file)
@@ -1574,7 +1585,10 @@ be used instead of a colon (:) to separate the hour and minute parts."
                       (string-lessp ts1 ts2)))))))
 
 (defun diary-sort-entries ()
-  "Sort the list of diary entries by time of day."
+  "Sort the list of diary entries by time of day.
+If you add this function to `diary-list-entries-hook', it should
+be the last item in the hook, in case earlier items add diary
+entries, or change the order."
   (setq diary-entries-list (sort diary-entries-list 'diary-entry-compare)))
 
 (define-obsolete-function-alias 'sort-diary-entries 'diary-sort-entries "23.1")

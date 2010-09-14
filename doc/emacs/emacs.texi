@@ -1137,6 +1137,7 @@ Dealing with Emacs Trouble
 
 Reporting Bugs
 
+* Known Problems::      How to read about known problems and bugs.
 * Bug Criteria::        Have you really found a bug?
 * Understanding Bug Reporting:: How to report a bug effectively.
 * Checklist::           Steps to follow for a good bug report.

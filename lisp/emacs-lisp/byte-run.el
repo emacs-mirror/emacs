@@ -108,10 +108,11 @@ The return value of this function is not used."
 
 (defvar advertised-signature-table (make-hash-table :test 'eq :weakness 'key))
 
-(defun set-advertised-calling-convention (function signature)
+(defun set-advertised-calling-convention (function signature when)
   "Set the advertised SIGNATURE of FUNCTION.
 This will allow the byte-compiler to warn the programmer when she uses
-an obsolete calling convention."
+an obsolete calling convention.  WHEN specifies since when the calling
+convention was modified."
   (puthash (indirect-function function) signature
            advertised-signature-table))
 
@@ -132,7 +133,7 @@ was first made obsolete, for example a date or a release number."
   obsolete-name)
 (set-advertised-calling-convention
  ;; New code should always provide the `when' argument.
- 'make-obsolete '(obsolete-name current-name when))
+ 'make-obsolete '(obsolete-name current-name when) "23.1")
 
 (defmacro define-obsolete-function-alias (obsolete-name current-name
 						   &optional when docstring)
@@ -153,7 +154,7 @@ See the docstrings of `defalias' and `make-obsolete' for more details."
 (set-advertised-calling-convention
  ;; New code should always provide the `when' argument.
  'define-obsolete-function-alias
- '(obsolete-name current-name when &optional docstring))
+ '(obsolete-name current-name when &optional docstring) "23.1")
 
 (defun make-obsolete-variable (obsolete-name current-name &optional when)
   "Make the byte-compiler warn that OBSOLETE-NAME is obsolete.
@@ -175,7 +176,7 @@ was first made obsolete, for example a date or a release number."
   obsolete-name)
 (set-advertised-calling-convention
  ;; New code should always provide the `when' argument.
- 'make-obsolete-variable '(obsolete-name current-name when))
+ 'make-obsolete-variable '(obsolete-name current-name when) "23.1")
 
 (defmacro define-obsolete-variable-alias (obsolete-name current-name
 						 &optional when docstring)
@@ -210,7 +211,7 @@ CURRENT-NAME, if it does not already have them:
 (set-advertised-calling-convention
  ;; New code should always provide the `when' argument.
  'define-obsolete-variable-alias
- '(obsolete-name current-name when &optional docstring))
+ '(obsolete-name current-name when &optional docstring) "23.1")
 
 ;; FIXME This is only defined in this file because the variable- and
 ;; function- versions are too.  Unlike those two, this one is not used
