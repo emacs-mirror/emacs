@@ -1,6 +1,10 @@
+2010-09-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* cmds.c (syms_of_cmds) <post-self-insert-hook>: Fix typos in docstring.
+
 2010-09-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* xml.c (parse_string): Renamed to parse_string(), since that's
+	* xml.c (parse_buffer): Renamed to parse_string(), since that's
 	what it does.
 	(parse_string): Return nil when the document can't be parsed.
 
@@ -141,7 +145,7 @@
 	(x_produce_glyphs): Simplify by using the same code for ASCII and
 	non-ASCII characters.  Don't set it->char_to_display here.
 	Don't handle unibyte-display-via-language-environment here.  For a
-	charater of no glyph, use font->space_width instead of FONT_WIDTH.
+	character of no glyph, use font->space_width instead of FONT_WIDTH.
 
 2010-08-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
