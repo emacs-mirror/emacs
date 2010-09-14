@@ -1,3 +1,8 @@
+2010-09-14  Glenn Morris  <rgm@gnu.org>
+
+	* calendar.texi (Appointments): Also updated when a diary include file
+	is saved.
+
 2010-09-12  Glenn Morris  <rgm@gnu.org>
 
 	* trouble.texi (Bugs): Update the section intro.
