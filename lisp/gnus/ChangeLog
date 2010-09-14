@@ -1,3 +1,15 @@
+2010-09-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-html.el (gnus-html-schedule-image-fetching)
+	(gnus-html-prefetch-images): Check for curl before using it.
+
+	* mm-decode.el (mm-text-html-renderer): Don't have gnus-article-html
+	depend on curl, which isn't essential.
+
+	* imap.el: Revert back to version
+	cb950ed8ff3e0f40dac437a51b269166f9ffb60d, since some of the changes
+	seem problematic.
+
 2010-09-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* gnus-registry.el (gnus-registry-install-shortcuts):

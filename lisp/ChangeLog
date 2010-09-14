@@ -1,3 +1,9 @@
+2010-09-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/imap.el: Revert back to version
+	cb950ed8ff3e0f40dac437a51b269166f9ffb60d, since some of the changes
+	seem problematic.
+
 2010-09-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* obsolete/old-whitespace.el (whitespace-unload-function):

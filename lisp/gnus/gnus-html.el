@@ -288,18 +288,19 @@ fit these criteria."
 (defun gnus-html-schedule-image-fetching (buffer images)
   (gnus-message 8 "gnus-html-schedule-image-fetching: buffer %s, images %s"
                 buffer images)
-  (let* ((url (caar images))
-	 (process (start-process
-		   "images" nil "curl"
-		   "-s" "--create-dirs"
-		   "--location"
-		   "--max-time" "60"
-		   "-o" (gnus-html-image-id url)
-		   (mm-url-decode-entities-string url))))
-    (process-kill-without-query process)
-    (set-process-sentinel process 'gnus-html-curl-sentinel)
-    (gnus-set-process-plist process (list 'images images
-					  'buffer buffer))))
+  (when (executable-find "curl")
+    (let* ((url (caar images))
+	   (process (start-process
+		     "images" nil "curl"
+		     "-s" "--create-dirs"
+		     "--location"
+		     "--max-time" "60"
+		     "-o" (gnus-html-image-id url)
+		     (mm-url-decode-entities-string url))))
+      (process-kill-without-query process)
+      (set-process-sentinel process 'gnus-html-curl-sentinel)
+      (gnus-set-process-plist process (list 'images images
+					    'buffer buffer)))))
 
 (defun gnus-html-image-id (url)
   (expand-file-name (sha1 url) gnus-html-cache-directory))
@@ -441,7 +442,8 @@ This only works if the article in question is HTML."
 ;;;###autoload
 (defun gnus-html-prefetch-images (summary)
   (let (blocked-images urls)
-    (when (buffer-live-p summary)
+    (when (and (buffer-live-p summary)
+	       (executable-find "curl"))
       (with-current-buffer summary
 	(setq blocked-images gnus-blocked-images))
       (save-match-data
