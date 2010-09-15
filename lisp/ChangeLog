@@ -1,5 +1,8 @@
 2010-09-15  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/appt.el (appt-check): Rather than showing the diary,
+	just turn off invisible display, and only if needed.
+
 	* calendar/diary-lib.el (diary-list-entries): Doc fix.  (Bug#7019)
 
 2010-09-14  Stefan Monnier  <monnier@iro.umontreal.ca>
