@@ -1,3 +1,7 @@
+2010-09-15  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-list-entries): Doc fix.  (Bug#7019)
+
 2010-09-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/byte-run.el (set-advertised-calling-convention):
