@@ -5479,16 +5479,14 @@ comment at the start of cc-engine.el for more info."
 
 		  (setq pos (point))
 
-		  (or
-		   ;; Note: These regexps exploit the match order in \| so
-		   ;; that "<>" is matched by "<" rather than "[^>:-]>".
-		   (c-syntactic-re-search-forward
-		    ;; Stop on ',', '|', '&', '+' and '-' to catch
-		    ;; common binary operators that could be between
-		    ;; two comparison expressions "a<b" and "c>d".
-		    "[<;{},|+&-]\\|[>)]"
-		    nil t t)
-		   t))
+		  ;; Note: These regexps exploit the match order in \| so
+		  ;; that "<>" is matched by "<" rather than "[^>:-]>".
+		  (c-syntactic-re-search-forward
+		   ;; Stop on ',', '|', '&', '+' and '-' to catch
+		   ;; common binary operators that could be between
+		   ;; two comparison expressions "a<b" and "c>d".
+		   "[<;{},|+&-]\\|[>)]"
+		   nil t t))
 
 		(cond
 		 ((eq (char-before) ?>)

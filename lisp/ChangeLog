@@ -2,6 +2,7 @@
 
 	* progmodes/cc-engine.el (c-forward-<>-arglist-recur): Correct the
 	indentation.
+	(c-forward-<>-arglist-recur): Fix an infinite recursion.
 
 2010-09-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
