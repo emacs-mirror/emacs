@@ -27,6 +27,7 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))	; ignore-errors
 (require 'tramp)
 (require 'shell)
 
@@ -2855,7 +2856,8 @@ beginning of local filename are not substituted."
 	      (tramp-send-command v command nil t) ; nooutput
 	    ;; Check, whether a pty is associated.
 	    (tramp-maybe-open-connection v)
-	    (unless (process-get (tramp-get-connection-process v) 'remote-tty)
+	    (unless (tramp-compat-process-get
+		     (tramp-get-connection-process v) 'remote-tty)
 	      (tramp-error
 	       v 'file-error "pty association is not supported for `%s'" name)))
 	  (let ((p (tramp-get-connection-process v)))
@@ -3659,7 +3661,7 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 ;; any other remote command.
 (defun tramp-handle-vc-registered (file)
   "Like `vc-registered' for Tramp files."
-  (with-temp-message ""
+  (tramp-compat-with-temp-message ""
     (with-parsed-tramp-file-name file nil
       (with-progress-reporter
 	  v 3 (format "Checking `vc-registered' for %s" file)
@@ -4139,7 +4141,8 @@ process to set up.  VEC specifies the connection."
   ;; Set `remote-tty' process property.
   (ignore-errors
     (let ((tty (tramp-send-command-and-read vec "echo \\\"`tty`\\\"")))
-      (unless (zerop (length tty)) (process-put proc 'remote-tty tty))))
+      (unless (zerop (length tty))
+	(tramp-compat-process-put proc 'remote-tty tty))))
 
   ;; Set the environment.
   (tramp-message vec 5 "Setting default environment")
@@ -5268,7 +5271,7 @@ Return the local name of the temporary file."
       (when result
 	(setq tmp
 	      ;; We don't want to display an error message.
-	      (with-temp-message (or (current-message) "")
+	      (tramp-compat-with-temp-message (or (current-message) "")
 		(ignore-errors
 		  (tramp-send-command-and-read
 		   vec (format "%s -c '(\"%%N\" %%s)' /" result)))))
@@ -5285,7 +5288,7 @@ Return the local name of the temporary file."
 		   vec "readlink" (tramp-get-remote-path vec))))
       (when (and result
 		 ;; We don't want to display an error message.
-		 (with-temp-message (or (current-message) "")
+		 (tramp-compat-with-temp-message (or (current-message) "")
 		   (ignore-errors
 		     (tramp-send-command-and-check
 		      vec (format "%s --canonicalize-missing /" result)))))

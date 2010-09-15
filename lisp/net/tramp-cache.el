@@ -152,8 +152,8 @@ FILE must be a local file name on a connection identified via VEC."
 ;;;###tramp-autoload
 (put 'with-file-property 'lisp-indent-function 3)
 (put 'with-file-property 'edebug-form-spec t)
-;;;###tramp-autoload
-(font-lock-add-keywords 'emacs-lisp-mode '("\\<with-file-property\\>"))
+(tramp-compat-font-lock-add-keywords
+ 'emacs-lisp-mode '("\\<with-file-property\\>"))
 
 ;;;###tramp-autoload
 (defun tramp-flush-file-property (vec file)
@@ -255,8 +255,8 @@ PROPERTY is set persistent when KEY is a vector."
 ;;;###tramp-autoload
 (put 'with-connection-property 'lisp-indent-function 2)
 (put 'with-connection-property 'edebug-form-spec t)
-;;;###tramp-autoload
-(font-lock-add-keywords 'emacs-lisp-mode '("\\<with-connection-property\\>"))
+(tramp-compat-font-lock-add-keywords
+ 'emacs-lisp-mode '("\\<with-connection-property\\>"))
 
 ;;;###tramp-autoload
 (defun tramp-flush-connection-property (key)

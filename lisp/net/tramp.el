@@ -1413,13 +1413,14 @@ If VAR is nil, then we bind `v' to the structure and `method', `user',
 
 (put 'with-parsed-tramp-file-name 'lisp-indent-function 2)
 (put 'with-parsed-tramp-file-name 'edebug-form-spec '(form symbolp body))
-(font-lock-add-keywords 'emacs-lisp-mode '("\\<with-parsed-tramp-file-name\\>"))
+(tramp-compat-font-lock-add-keywords
+ 'emacs-lisp-mode '("\\<with-parsed-tramp-file-name\\>"))
 
 (defun tramp-progress-reporter-update (reporter &optional value)
   (let* ((parameters (cdr reporter))
 	 (message (aref parameters 3)))
     (when (string-match message (or (current-message) ""))
-      (funcall 'progress-reporter-update reporter value))))
+      (tramp-compat-funcall 'progress-reporter-update reporter value))))
 
 (defmacro with-progress-reporter (vec level message &rest body)
   "Executes BODY, spinning a progress reporter with MESSAGE.
@@ -1450,7 +1451,8 @@ progress reporter."
 
 (put 'with-progress-reporter 'lisp-indent-function 3)
 (put 'with-progress-reporter 'edebug-form-spec t)
-(font-lock-add-keywords 'emacs-lisp-mode '("\\<with-progress-reporter\\>"))
+(tramp-compat-font-lock-add-keywords
+ 'emacs-lisp-mode '("\\<with-progress-reporter\\>"))
 
 (eval-and-compile			;; Silence compiler.
   (if (memq system-type '(cygwin windows-nt))
@@ -2688,7 +2690,7 @@ The terminal type can be configured with `tramp-terminal-type'."
 (defun tramp-process-actions (proc vec actions &optional timeout)
   "Perform actions until success or TIMEOUT."
   ;; Preserve message for `progress-reporter'.
-  (with-temp-message ""
+  (tramp-compat-with-temp-message ""
     ;; Enable auth-source and password-cache.
     (tramp-set-connection-property vec "first-password-request" t)
     (let (exit)

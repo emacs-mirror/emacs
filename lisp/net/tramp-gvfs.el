@@ -498,7 +498,8 @@ will be traced by Tramp with trace level 6."
 
 (put 'with-tramp-dbus-call-method 'lisp-indent-function 2)
 (put 'with-tramp-dbus-call-method 'edebug-form-spec '(form symbolp body))
-(font-lock-add-keywords 'emacs-lisp-mode '("\\<with-tramp-dbus-call-method\\>"))
+(tramp-compat-font-lock-add-keywords
+ 'emacs-lisp-mode '("\\<with-tramp-dbus-call-method\\>"))
 
 (defmacro with-tramp-gvfs-error-message (filename handler &rest args)
   "Apply a Tramp GVFS `handler'.
@@ -519,7 +520,8 @@ In case of an error, modify the error message by replacing
 
 (put 'with-tramp-gvfs-error-message 'lisp-indent-function 2)
 (put 'with-tramp-gvfs-error-message 'edebug-form-spec '(form symbolp body))
-(font-lock-add-keywords 'emacs-lisp-mode '("\\<with-tramp-gvfs-error-message\\>"))
+(tramp-compat-font-lock-add-keywords
+ 'emacs-lisp-mode '("\\<with-tramp-gvfs-error-message\\>"))
 
 (defvar tramp-gvfs-dbus-event-vector nil
   "Current Tramp file name to be used, as vector.
@@ -973,7 +975,7 @@ ADDRESS can have the form \"xx:xx:xx:xx:xx:xx\" or \"[xx:xx:xx:xx:xx:xx]\"."
 	    ;; host signature.
 	    (with-temp-buffer
 	      ;; Preserve message for `progress-reporter'.
-	      (with-temp-message ""
+	      (tramp-compat-with-temp-message ""
 		(insert message)
 		(pop-to-buffer (current-buffer))
 		(setq choice (if (yes-or-no-p (concat (car choices) " ")) 0 1))

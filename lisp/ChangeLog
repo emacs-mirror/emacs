@@ -1,3 +1,27 @@
+2010-09-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-compat.el (tramp-compat-with-temp-message)
+	(tramp-compat-font-lock-add-keywords, tramp-compat-process-get)
+	(tramp-compat-process-put): New defuns.
+
+	* net/tramp.el (top):
+	* net/tramp-gvfs.el (top):
+	* net/tramp-cache.el (top): Use `tramp-compat-font-lock-add-keywords'.
+
+	* net/tramp.el (tramp-progress-reporter-update): Use
+	`tramp-compat-funcall.
+
+	* net/tramp.el (tramp-process-actions):
+	* net/tramp-gvfs.el (tramp-handle-vc-registered):
+	* net/tramp-sh.el (tramp-gvfs-handler-askquestion)
+	(tramp-get-remote-stat, tramp-get-remote-readlink): Use
+	`tramp-compat-with-temp-message'.
+
+	* net/tramp-sh.el (top): Require 'cl.
+	(tramp-handle-start-file-process): Use `tramp-compat-process-get'.
+	(tramp-open-connection-setup-interactive-shell): Use
+	`tramp-compat-process-put'.
+
 2010-09-15  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-engine.el (c-forward-<>-arglist-recur): Correct the
@@ -238,7 +262,7 @@
 
 	* net/tramp-sh.el: New file, derived from tramp.el.
 	(top): Initialize `tramp-methods', `tramp-default-method-alist',
-	`tramp-default-user-alist', tramp-foreign-file-name-handler-alist.
+	`tramp-default-user-alist', `tramp-foreign-file-name-handler-alist'.
 	Remove "scp1_old", "scp2_old", "ssh1_old", "ssh2_old".  Use
 	`ignore-errors' where appropriate.
 	(tramp-sh-file-name-handler-alist): Renamed from
