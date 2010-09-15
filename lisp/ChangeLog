@@ -1,3 +1,11 @@
+2010-09-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-warning-types): New type
+	`lexical' for warnings related to lexical scoping.
+	(byte-compile-file-form-defvar, byte-compile-defvar): Warn about
+	global vars which don't have a prefix and could hence affect lexical
+	scoping in unrelated files.
+
 2010-09-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/imap.el: Revert back to version
@@ -106,8 +114,8 @@
 	* Makefile.in (TRAMP_SRC): Remove tramp-fish.el.  Add tramp-sh.el.
 
 	* net/tramp.el (top): Don't show loading message.  Require just
-	'tramp-compat, everything else is required there.  Use
-	`ignore-errors' where appropriate.
+	'tramp-compat, everything else is required there.
+	Use `ignore-errors' where appropriate.
 	(tramp-inline-compress-start-size, tramp-copy-size-limit)
 	(tramp-terminal-type, tramp-end-of-output)
 	(tramp-initial-end-of-output, tramp-completion-function-alist-rsh)

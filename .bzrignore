@@ -72,3 +72,4 @@ src/prefix-args*
 src/stamp-oldxmenu
 src/temacs
 test/indent/*.new
++*
