@@ -333,40 +333,42 @@ displayed in a window:
         (if (or force                      ; eg initialize, diary save
                 (null appt-prev-comp-time) ; first check
                 (< cur-comp-time appt-prev-comp-time)) ; new day
-            (condition-case nil
-                (if appt-display-diary
-                    (let ((diary-hook
-                           (if (assoc 'appt-make-list diary-hook)
-                               diary-hook
-                             (cons 'appt-make-list diary-hook))))
-                      (diary))
-                  (let* ((diary-display-function 'appt-make-list)
-                         (d-buff (find-buffer-visiting diary-file))
-                         (selective
-                          (if d-buff    ; diary buffer exists
-                              (with-current-buffer d-buff
-                                diary-selective-display)))
-                         d-buff2)
-                    ;; FIXME why not using diary-list-entries with
-                    ;; non-nil LIST-ONLY?
-                    (diary)
-                    ;; If the diary buffer existed before this command,
-                    ;; restore its display state.  Otherwise, kill it.
-                    (and (setq d-buff2 (find-buffer-visiting diary-file))
-                         (if d-buff
-                             (or selective
-                                 (with-current-buffer d-buff2
-                                   (if diary-selective-display
-                                       ;; diary-show-all-entries displays
-                                       ;; the diary buffer.
-                                       (diary-unhide-everything))))
-                           ;; FIXME does not kill any included diary files.
-                           ;; The real issue is that (diary) should not
-                           ;; have the side effect of visiting all the
-                           ;; diary files.  It is not really appt.el's job to
-                           ;; clean up this mess...
-                           (kill-buffer d-buff2)))))
-              (error nil)))
+            (ignore-errors
+              (if appt-display-diary
+                  (let ((diary-hook
+                         (if (assoc 'appt-make-list diary-hook)
+                             diary-hook
+                           (cons 'appt-make-list diary-hook))))
+                    (diary))
+                (let* ((diary-display-function 'appt-make-list)
+                       (d-buff (find-buffer-visiting diary-file))
+                       (selective
+                        (if d-buff    ; diary buffer exists
+                            (with-current-buffer d-buff
+                              diary-selective-display)))
+                       d-buff2)
+                  ;; Not displaying the diary, so we can ignore
+                  ;; diary-number-of-entries.  Since appt.el only
+                  ;; works on a daily basis, no need for more entries.
+                  ;; FIXME why not using diary-list-entries with
+                  ;; non-nil LIST-ONLY?
+                  (diary 1)
+                  ;; If the diary buffer existed before this command,
+                  ;; restore its display state.  Otherwise, kill it.
+                  (and (setq d-buff2 (find-buffer-visiting diary-file))
+                       (if d-buff
+                           (or selective
+                               (with-current-buffer d-buff2
+                                 (if diary-selective-display
+                                     ;; diary-show-all-entries displays
+                                     ;; the diary buffer.
+                                     (diary-unhide-everything))))
+                         ;; FIXME does not kill any included diary files.
+                         ;; The real issue is that (diary) should not
+                         ;; have the side effect of visiting all the
+                         ;; diary files.  It is not really appt.el's job to
+                         ;; clean up this mess...
+                         (kill-buffer d-buff2)))))))
         (setq appt-prev-comp-time cur-comp-time
               appt-mode-string nil
               appt-display-count nil)
@@ -582,6 +584,17 @@ appointment package (if it is not already active)."
               (let ((entry-list diary-entries-list)
                     (new-time-string "")
                     time-string)
+                ;; Below, we assume diary-entries-list was in date
+                ;; order.  It is, unless something on
+                ;; diary-list-entries-hook has changed it, eg
+                ;; diary-include-other-files (bug#7019).  It must be
+                ;; in date order if number = 1.
+                (and diary-list-entries-hook
+                     appt-display-diary
+                     (not (eq diary-number-of-entries 1))
+                     (not (memq (car (last diary-list-entries-hook))
+                                '(diary-sort-entries sort-diary-entries)))
+                     (setq entry-list (sort entry-list 'diary-entry-compare)))
                 ;; Skip diary entries for dates before today.
                 (while (and entry-list
                             (calendar-date-compare

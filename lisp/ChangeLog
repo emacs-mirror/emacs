@@ -1,5 +1,10 @@
 2010-09-15  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/appt.el (appt-check): If not displaying the diary,
+	use (diary 1) to only get the entries we need.
+	(appt-make-list): Sort diary-list-entries, if we cannot guarantee
+	that it is in day order.  (Bug#7019)
+
 	* calendar/appt.el (appt-check): Rather than showing the diary,
 	just turn off invisible display, and only if needed.
 
