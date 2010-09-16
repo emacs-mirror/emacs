@@ -2345,7 +2345,7 @@ current buffer is cleared.  */)
 	    {
 	      c = STRING_CHAR_AND_LENGTH (p, bytes);
 	      /* Delete all bytes for this 8-bit character but the
-		 last one, and change the last one to the charcter
+		 last one, and change the last one to the character
 		 code.  */
 	      bytes--;
 	      del_range_2 (pos, pos, pos + bytes, pos + bytes, 0);

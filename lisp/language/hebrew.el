@@ -88,14 +88,14 @@ Bidirectional editing is supported.")))
 ;; corresponding glyph of FONT-OBJECT.
 (defun hebrew-font-get-precomposed (font-object)
   (let ((precomposed (font-get font-object 'hebrew-precomposed))
-	;; Vector of Hebrew precomposed charaters.
+	;; Vector of Hebrew precomposed characters.
 	(chars [#xFB2A #xFB2B #xFB2C #xFB2D #xFB2E #xFB2F #xFB30 #xFB31
 		#xFB32 #xFB33 #xFB34 #xFB35 #xFB36 #xFB38 #xFB39 #xFB3A
 		#xFB3B #xFB3C #xFB3E #xFB40 #xFB41 #xFB43 #xFB44 #xFB46
 		#xFB47 #xFB48 #xFB49 #xFB4A #xFB4B #xFB4C #xFB4D #xFB4E])
 	;; Vector of decomposition character sequences corresponding
 	;; to the above vector.
-	(decomposed 
+	(decomposed
 	 [[#x05E9 #x05C1]
 	  [#x05E9 #x05C2]
 	  [#x05E9 #x05BC #x05C1]

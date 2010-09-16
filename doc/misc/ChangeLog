@@ -1,3 +1,19 @@
+2010-09-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Inline methods): Remove "ssh1_old", "ssh2_old" and
+	"fish" methods.
+	(External methods): Remove "scp1_old" and "scp2_old" methods.
+
+2010-09-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi: Remove Japanese manual.  Fix typo.
+
+	* trampver.texi: Update release number.  Remove japanesemanual.
+
+2010-09-09  Glenn Morris  <rgm@gnu.org>
+
+	* org.texi: Restore clobbered changes (copyright years, untabify).
+
 2010-09-04  Julien Danjou  <julien@danjou.info>  (tiny change)
 
 	* gnus.texi (Adaptive Scoring): Fix typo.

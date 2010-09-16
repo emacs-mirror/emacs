@@ -524,7 +524,7 @@ syms_of_cmds (void)
 
   DEFVAR_LISP ("post-self-insert-hook", &Vpost_self_insert_hook,
 	       doc: /* Hook run at the end of `self-insert-command'.
-This run is run after inserting the charater.  */);
+This is run after inserting the character.  */);
   Vpost_self_insert_hook = Qnil;
 
   defsubr (&Sforward_point);

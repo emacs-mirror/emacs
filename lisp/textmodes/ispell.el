@@ -1116,26 +1116,24 @@ The variable `ispell-library-directory' defines the library location."
 
   (let ((dicts (append ispell-local-dictionary-alist ispell-dictionary-alist))
 	(dict-list (cons "default" nil))
-	name load-dict)
+	name dict-bname)
     (dolist (dict dicts)
       (setq name (car dict)
-	    load-dict (car (cdr (member "-d" (nth 5 dict)))))
+	    dict-bname (or (car (cdr (member "-d" (nth 5 dict))))
+			   name))
       ;; Include if the dictionary is in the library, or dir not defined.
       (if (and
 	   name
-	   ;; include all dictionaries if lib directory not known.
 	   ;; For Aspell, we already know which dictionaries exist.
 	   (or ispell-really-aspell
+	       ;; Include all dictionaries if lib directory not known.
+	       ;; Same for Hunspell, where ispell-library-directory is nil.
 	       (not ispell-library-directory)
 	       (file-exists-p (concat ispell-library-directory
-				      "/" name ".hash"))
-	       (file-exists-p (concat ispell-library-directory "/" name ".has"))
-	       (and load-dict
-		    (or (file-exists-p (concat ispell-library-directory
-					       "/" load-dict ".hash"))
-			(file-exists-p (concat ispell-library-directory
-					       "/" load-dict ".has"))))))
-	  (setq dict-list (cons name dict-list))))
+				      "/" dict-bname ".hash"))
+	       (file-exists-p (concat ispell-library-directory
+				      "/" dict-bname ".has"))))
+	  (push name dict-list)))
     dict-list))
 
 ;;; define commands in menu in opposite order you want them to appear.
@@ -2676,24 +2674,27 @@ Keeps argument list for future ispell invocations for no async support."
 	    ispell-filter-continue nil
 	    ispell-process-directory default-directory)
 
-      ;; Kill ispell process when killing its associated buffer if using Ispell
-      ;; per-directory personal dictionaries.
       (unless (equal ispell-process-directory (expand-file-name "~/"))
-        (with-current-buffer
-	    (if (and (window-minibuffer-p)
-                     (fboundp 'minibuffer-selected-window)) ;; E.g. XEmacs.
-                ;; When spellchecking minibuffer contents, assign ispell
-                ;; process to parent buffer if known (not known for XEmacs).
-                ;; Use (buffer-name) otherwise.
+	;; At this point, `ispell-process-directory' will be "~/" unless using
+	;; Ispell with directory-specific dicts and not in XEmacs minibuffer.
+	;; If not, kill ispell process when killing buffer.  It may be in a
+	;; removable device that would otherwise become un-mountable.
+	(with-current-buffer
+	    (if (and (window-minibuffer-p)                  ;; In minibuffer
+		     (fboundp 'minibuffer-selected-window)) ;; Not XEmacs.
+		;; In this case kill ispell only when parent buffer is killed
+		;; to avoid over and over ispell kill.
 		(window-buffer (minibuffer-selected-window))
-              (current-buffer))
-          (add-hook 'kill-buffer-hook (lambda () (ispell-kill-ispell t))
-                    nil 'local)))
+	      (current-buffer))
+	  ;; 'local does not automatically make hook buffer-local in XEmacs.
+	  (if (featurep 'xemacs)
+	      (make-local-hook 'kill-buffer-hook))
+	  (add-hook 'kill-buffer-hook
+		    (lambda () (ispell-kill-ispell t)) nil 'local)))
 
       (if ispell-async-processp
 	  (set-process-filter ispell-process 'ispell-filter))
-      ;; protect against bogus binding of `enable-multibyte-characters' in
-      ;; XEmacs.
+      ;; Protect against XEmacs bogus binding of `enable-multibyte-characters'.
       (if (and (or (featurep 'xemacs)
 		   (and (boundp 'enable-multibyte-characters)
 			enable-multibyte-characters))
@@ -2729,7 +2730,9 @@ Keeps argument list for future ispell invocations for no async support."
 	(if extended-char-mode		; ~ extended character mode
 	    (ispell-send-string (concat extended-char-mode "\n"))))
       (if ispell-async-processp
-	  (set-process-query-on-exit-flag ispell-process nil)))))
+	  (if (fboundp 'set-process-query-on-exit-flag) ;; not XEmacs
+	      (set-process-query-on-exit-flag ispell-process nil)
+	    (process-kill-without-query ispell-process))))))
 
 ;;;###autoload
 (defun ispell-kill-ispell (&optional no-error)

@@ -129,6 +129,7 @@ This includes password cache, file cache, connection cache, buffers."
 
 ;; Tramp version is useful in a number of situations.
 
+;;;###tramp-autoload
 (defun tramp-version (arg)
   "Print version number of tramp.el in minibuffer or current buffer."
   (interactive "P")
@@ -387,6 +388,9 @@ please ensure that the buffers are attached to your email.\n\n")
 
 (defalias 'tramp-submit-bug 'tramp-bug)
 
+(add-hook 'tramp-unload-hook
+	  (lambda () (unload-feature 'tramp-cmds 'force)))
+
 (provide 'tramp-cmds)
 
 ;;; TODO:
@@ -395,7 +399,7 @@ please ensure that the buffers are attached to your email.\n\n")
 ;; * WIBNI there was an interactive command prompting for Tramp
 ;;   method, hostname, username and filename and translates the user
 ;;   input into the correct filename syntax (depending on the Emacs
-;;   flavor) (Reiner Steib)
+;;   flavor)  (Reiner Steib)
 ;; * Let the user edit the connection properties interactively.
 ;;   Something like `gnus-server-edit-server' in Gnus' *Server* buffer.
 ;; * It's just that when I come to Customize `tramp-default-user-alist'
@@ -404,7 +408,7 @@ please ensure that the buffers are attached to your email.\n\n")
 ;;   Option and should not be modified by the code.  add-to-list is
 ;;   called in several places. One way to handle that is to have a new
 ;;   ordinary variable that gets its initial value from
-;;   tramp-default-user-alist and then is added to. (Pete Forman)
+;;   tramp-default-user-alist and then is added to.  (Pete Forman)
 
 ;; arch-tag: 190d4c33-76bb-4e99-8b6f-71741f23d98c
 ;;; tramp-cmds.el ends here

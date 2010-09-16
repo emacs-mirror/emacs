@@ -488,7 +488,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
 	   ;; (arg "\\(?:{\\(\\(?:[^{}\\]+\\|\\\\.\\|{[^}]*}\\)+\\)\\|\\\\[a-z*]+\\)"))
 	   (arg "{\\(\\(?:[^{}\\]+\\|\\\\.\\|{[^}]*}\\)+\\)"))
       (list
-       ;; font-lock-syntactic-keywords causes the \ of \end{verbatim} to be
+       ;; tex-font-lock-syntactic-keywords causes the \ of \end{verbatim} to be
        ;; highlighted as tex-verbatim face.  Let's undo that.
        ;; This is ugly and brittle :-(  --Stef
        '("^\\(\\\\\\)end" (1 (get-text-property (match-end 1) 'face) t))
@@ -655,6 +655,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
     ;;     line is re-font-locked on its own.
     ;; There's a hack in tex-font-lock-keywords-1 to remove the verbatim
     ;; face from the \ but C-M-f still jumps to the wrong spot :-(  --Stef
+    ;; FIXME: See gud.el for an example of a solution to a similar problem.
     (eval . `(,(concat "^\\(\\\\\\)end *{"
                        (regexp-opt tex-verbatim-environments t)
                        "}\\(.?\\)") (1 "|") (3 "<")))
@@ -1163,10 +1164,9 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
 	 (font-lock-syntactic-face-function
 	  . tex-font-lock-syntactic-face-function)
 	 (font-lock-unfontify-region-function
-	  . tex-font-lock-unfontify-region)
-	 (font-lock-syntactic-keywords
-	  . tex-font-lock-syntactic-keywords)
-	 (parse-sexp-lookup-properties . t)))
+	  . tex-font-lock-unfontify-region)))
+  (set (make-local-variable 'syntax-propertize-function)
+       (syntax-propertize-via-font-lock tex-font-lock-syntactic-keywords))
   ;; TABs in verbatim environments don't do what you think.
   (set (make-local-variable 'indent-tabs-mode) nil)
   ;; Other vars that should be buffer-local.
@@ -2850,12 +2850,12 @@ There might be text before point."
 	      (mapcar
 	       (lambda (x)
 		 (case (car-safe x)
-		   (font-lock-syntactic-keywords
-		    (cons (car x) 'doctex-font-lock-syntactic-keywords))
 		   (font-lock-syntactic-face-function
 		    (cons (car x) 'doctex-font-lock-syntactic-face-function))
 		   (t x)))
-	       (cdr font-lock-defaults)))))
+	       (cdr font-lock-defaults))))
+  (set (make-local-variable 'syntax-propertize-function)
+       (syntax-propertize-via-font-lock doctex-font-lock-syntactic-keywords)))
 
 (run-hooks 'tex-mode-load-hook)
 

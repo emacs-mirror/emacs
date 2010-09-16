@@ -247,7 +247,6 @@ tty_set_terminal_modes (struct terminal *terminal)
             cmputc ('\n');
         }
 
-      OUTPUT_IF (tty, tty->TS_termcap_modes);
       OUTPUT_IF (tty, visible_cursor ? tty->TS_cursor_visible : tty->TS_cursor_normal);
       OUTPUT_IF (tty, tty->TS_keypad_mode);
       losecursor (tty);

@@ -1,3 +1,91 @@
+2010-09-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-html.el (gnus-html-schedule-image-fetching)
+	(gnus-html-prefetch-images): Check for curl before using it.
+
+	* mm-decode.el (mm-text-html-renderer): Don't have gnus-article-html
+	depend on curl, which isn't essential.
+
+	* imap.el: Revert back to version
+	cb950ed8ff3e0f40dac437a51b269166f9ffb60d, since some of the changes
+	seem problematic.
+
+2010-09-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnus-registry.el (gnus-registry-install-shortcuts):
+	Explicitly pass `obarray' to `unintern' to avoid a warning.
+
+2010-09-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-read-active-for-groups): Reverted the previous
+	change.
+
+	* nnrss.el (nnrss-request-list): Removed this function and related
+	functions, including the moreover stuff.
+
+2010-09-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnrss.el (nnrss-retrieve-groups): New function.
+
+2010-09-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* .dir-locals.el: Add no-byte-compile cookie.
+
+2010-09-14  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-start.el (gnus-read-active-for-groups): Run gnus-activate-group
+	for back end that doesn't support request-scan.
+
+2010-09-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-read-active-file-1): If gnus-agent isn't set,
+	then do request scans from the backends.
+
+	* gnus-sum.el (gnus-summary-update-hook): Change default to nil, to
+	avoid running a hook per line, since this takes a lot of time,
+	profiling shows.
+	(gnus-summary-prepare-threads): Call `gnus-summary-highlight-line'
+	directly if gnus-visual-p is true.
+
+2010-09-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-start.el (gnus-read-active-for-groups): Check only subscribed
+	groups; replace mapcar with dolist which is a bit faster; pass groups
+	info to gnus-read-active-file-1.
+	(gnus-read-active-file-1): Scan only specified groups if the new
+	optional arg `infos' is given.
+
+2010-09-09  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mail-source.el (mail-source-fetch-pop): Use pop3-movemail again.
+
+	* pop3.el (pop3-movemail): Removed.
+	(pop3-streaming-movemail): Renamed to pop3-movemail.
+
+	* gnus-html.el (gnus-html-wash-tags): Refactor out the image bit, and
+	don't restrict end-tag searches to the end of the line.
+
+2010-09-09  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-start.el (gnus-get-unread-articles): Set the number of unread
+	articles of every unchecked group to t, which means unknown since the
+	server has never been opened.
+
+2010-09-08  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-html.el (gnus-html-show-alt-text): New command.
+	(gnus-html-browse-image): Ditto.
+	(gnus-html-wash-tags): Add the data to allow showing the ALT text and
+	to browse the image directly.
+	(gnus-html-wash-tags): Search for images first, so that <a><img> works
+	better.
+
+	* gnus-async.el (gnus-async-article-callback): Call
+	`gnus-html-prefetch-images' unconditionally.
+
+	* gnus-html.el (gnus-html-schedule-image-fetching): Decode entities
+	before feeding URLs to curl.
+
 2010-09-07  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-html.el (gnus-html-wash-tags, gnus-html-put-image): Mark cid and

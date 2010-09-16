@@ -29,6 +29,8 @@
 
 ;;; Code:
 
+(require 'tramp-loaddefs)
+
 (eval-when-compile
 
   ;; Pacify byte-compiler.
@@ -36,15 +38,26 @@
 
 (eval-and-compile
 
+  (require 'advice)
   (require 'custom)
+  (require 'format-spec)
+
+  ;; As long as password.el is not part of (X)Emacs, it shouldn't be
+  ;; mandatory.
+  (if (featurep 'xemacs)
+      (load "password" 'noerror)
+    (or (require 'password-cache nil 'noerror)
+	(require 'password nil 'noerror))) ; Part of contrib.
+
+  ;; auth-source is relatively new.
+  (if (featurep 'xemacs)
+      (load "auth-source" 'noerror)
+    (require 'auth-source nil 'noerror))
 
   ;; Load the appropriate timer package.
   (if (featurep 'xemacs)
       (require 'timer-funcs)
     (require 'timer))
-
-  (autoload 'tramp-tramp-file-p "tramp")
-  (autoload 'tramp-file-name-handler "tramp")
 
   ;; We check whether `start-file-process' is bound.
   (unless (fboundp 'start-file-process)
@@ -52,24 +65,14 @@
     ;; tramp-util offers integration into other (X)Emacs packages like
     ;; compile.el, gud.el etc.  Not necessary in Emacs 23.
     (eval-after-load "tramp"
-      '(progn
-	 (require 'tramp-util)
-	 (add-hook 'tramp-unload-hook
-		   '(lambda ()
-		      (when (featurep 'tramp-util)
-			(unload-feature 'tramp-util 'force))))))
+      '(require 'tramp-util))
 
     ;; Make sure that we get integration with the VC package.  When it
     ;; is loaded, we need to pull in the integration module.  Not
     ;; necessary in Emacs 23.
     (eval-after-load "vc"
       (eval-after-load "tramp"
-	'(progn
-	   (require 'tramp-vc)
-	   (add-hook 'tramp-unload-hook
-		     '(lambda ()
-			(when (featurep 'tramp-vc)
-			  (unload-feature 'tramp-vc 'force))))))))
+	'(require 'tramp-vc))))
 
   ;; Avoid byte-compiler warnings if the byte-compiler supports this.
   ;; Currently, XEmacs supports this.
@@ -93,11 +96,6 @@
     (defvar byte-compile-not-obsolete-vars nil))
   (setq byte-compile-not-obsolete-vars '(directory-sep-char))
 
-  ;; `with-temp-message' does not exists in XEmacs.
-  (condition-case nil
-      (with-temp-message (current-message) nil)
-    (error (defmacro with-temp-message (message &rest body) `(progn ,@body))))
-
   ;; For not existing functions, or functions with a changed argument
   ;; list, there are compiler warnings.  We want to avoid them in
   ;; cases we know what we do.
@@ -110,10 +108,6 @@
   ;; `set-buffer-multibyte' comes from Emacs Leim.
   (unless (fboundp 'set-buffer-multibyte)
     (defalias 'set-buffer-multibyte 'ignore))
-
-  ;; `font-lock-add-keywords' does not exist in XEmacs.
-  (unless (fboundp 'font-lock-add-keywords)
-    (defalias 'font-lock-add-keywords 'ignore))
 
   ;; The following functions cannot be aliases of the corresponding
   ;; `tramp-handle-*' functions, because this would bypass the locking
@@ -186,6 +180,19 @@
        (ad-remove-advice
 	'file-expand-wildcards 'around 'tramp-advice-file-expand-wildcards)
        (ad-activate 'file-expand-wildcards)))))
+
+;; `with-temp-message' does not exists in XEmacs.
+(if (fboundp 'with-temp-message)
+    (defalias 'tramp-compat-with-temp-message 'with-temp-message)
+  (defun tramp-compat-with-temp-message (message &rest body)
+    "Display MESSAGE temporarily if non-nil while BODY is evaluated."
+    `(progn ,@body)))
+
+;; `font-lock-add-keywords' does not exist in XEmacs.
+(defun tramp-compat-font-lock-add-keywords (mode keywords &optional how)
+  "Add highlighting KEYWORDS for MODE."
+  (ignore-errors
+    (tramp-compat-funcall 'font-lock-add-keywords mode keywords how)))
 
 (defsubst tramp-compat-line-beginning-position ()
   "Return point at beginning of line (compat function).
@@ -262,6 +269,24 @@ Add the extension of FILENAME, if existing."
    ((boundp 'most-positive-fixnum) (symbol-value 'most-positive-fixnum))
    ;; Default value in XEmacs.
    (t 134217727)))
+
+(defun tramp-compat-decimal-to-octal (i)
+  "Return a string consisting of the octal digits of I.
+Not actually used.  Use `(format \"%o\" i)' instead?"
+  (cond ((< i 0) (error "Cannot convert negative number to octal"))
+        ((not (integerp i)) (error "Cannot convert non-integer to octal"))
+        ((zerop i) "0")
+        (t (concat (tramp-compat-decimal-to-octal (/ i 8))
+                   (number-to-string (% i 8))))))
+
+;; Kudos to Gerd Moellmann for this suggestion.
+(defun tramp-compat-octal-to-decimal (ostr)
+  "Given a string of octal digits, return a decimal number."
+  (let ((x (or ostr "")))
+    ;; `save-match' is in `tramp-mode-string-to-int' which calls this.
+    (unless (string-match "\\`[0-7]*\\'" x)
+      (error "Non-octal junk in string `%s'" x))
+    (string-to-number ostr 8)))
 
 ;; ID-FORMAT does not exists in XEmacs.
 (defun tramp-compat-file-attributes (filename &optional id-format)
@@ -397,6 +422,20 @@ This is, the first, empty, element is omitted.  In XEmacs, the first
 element is not omitted."
   (delete "" (split-string string pattern)))
 
+(defun tramp-compat-call-process
+  (program &optional infile destination display &rest args)
+  "Calls `call-process' on the local host.
+This is needed because for some Emacs flavors Tramp has
+defadviced `call-process' to behave like `process-file'.  The
+Lisp error raised when PROGRAM is nil is trapped also, returning 1."
+  (let ((default-directory
+	  (if (file-remote-p default-directory)
+	      (tramp-compat-temporary-file-directory)
+	    default-directory)))
+    (if (executable-find program)
+	(apply 'call-process program infile destination display args)
+      1)))
+
 (defun tramp-compat-process-running-p (process-name)
   "Returns `t' if system process PROCESS-NAME is running for `user-login-name'."
   (when (stringp process-name)
@@ -438,6 +477,22 @@ element is not omitted."
 	    (setq result t))
 	  (setenv "UNIX95" unix95)
 	  result)))))
+
+;; The following functions do not exist in XEmacs.  We ignore this;
+;; they are used for checking a remote tty.
+(defun tramp-compat-process-get (process propname)
+  "Return the value of PROCESS' PROPNAME property.
+This is the last value stored with `(process-put PROCESS PROPNAME VALUE)'."
+  (ignore-errors (tramp-compat-funcall 'process-get process propname)))
+
+(defun tramp-compat-process-put (process propname value)
+  "Change PROCESS' PROPNAME property to VALUE.
+It can be retrieved with `(process-get PROCESS PROPNAME)'."
+  (ignore-errors (tramp-compat-funcall 'process-put process propname value)))
+
+(add-hook 'tramp-unload-hook
+	  (lambda ()
+	    (unload-feature 'tramp-compat 'force)))
 
 (provide 'tramp-compat)
 

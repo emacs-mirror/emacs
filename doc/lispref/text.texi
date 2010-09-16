@@ -59,6 +59,7 @@ the character after point.
                        position stored in a register.
 * Base 64::          Conversion to or from base 64 encoding.
 * MD5 Checksum::     Compute the MD5 "message digest"/"checksum".
+* Parsing HTML::     Parsing HTML and XML.
 * Atomic Changes::   Installing several buffer changes "atomically".
 * Change Hooks::     Supplying functions to be run when text is changed.
 @end menu
@@ -4105,6 +4106,49 @@ using the specified or chosen coding system.  However, if
 @var{noerror} is non-@code{nil}, it silently uses @code{raw-text}
 coding instead.
 @end defun
+
+@node Parsing HTML
+@section Parsing HTML
+@cindex parsing html
+@cindex parsing xml
+
+Emacs provides an interface to the @code{libxml2} library via two
+functions: @code{html-parse-buffer} and @code{xml-parse-buffer}.  The
+HTML function will parse ``real world'' HTML and try to return a
+sensible parse tree, while the XML function is somewhat stricter about
+syntax.
+
+They both take a two optional parameter.  The first is a buffer, and
+the second is a base URL to be used to expand relative URLs in the
+document, if any.
+
+Here's an example demonstrating the structure of the parsed data you
+get out.  Given this HTML document:
+
+@example
+<html><hEad></head><body width=101><div class=thing>Foo<div>Yes
+@end example
+
+You get this parse tree:
+
+@example
+(html
+ (head)
+ (body
+  (:width . "101")
+  (div
+   (:class . "thing")
+   (text . "Foo")
+   (div
+    (text . "Yes\n")))))
+@end example
+
+It's a simple tree structure, where the @code{car} for each node is
+the name of the node, and the @code{cdr} is the value, or the list of
+values.
+
+Attributes are coded the same way as child nodes, but with @samp{:} as
+the first character.
 
 @node Atomic Changes
 @section Atomic Change Groups

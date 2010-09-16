@@ -45,16 +45,16 @@
 
 ;;; Code:
 
-(eval-and-compile
-  (require 'cc-mode)
-  (require 'font-lock)
-  (require 'newcomment)
-  (require 'imenu)
-  (require 'etags)
-  (require 'thingatpt)
-  (require 'easymenu)
-  (require 'moz nil t)
-  (require 'json nil t))
+
+(require 'cc-mode)
+(require 'font-lock)
+(require 'newcomment)
+(require 'imenu)
+(require 'etags)
+(require 'thingatpt)
+(require 'easymenu)
+(require 'moz nil t)
+(require 'json nil t)
 
 (eval-when-compile
   (require 'cl)
@@ -725,20 +725,19 @@ as if strings, cpp macros, and comments have been removed.
 
 If invoked while inside a macro, it treats the contents of the
 macro as normal text."
+  (unless count (setq count 1))
   (let ((saved-point (point))
-        (search-expr
-         (cond ((null count)
-                '(js--re-search-forward-inner regexp bound 1))
-               ((< count 0)
-                '(js--re-search-backward-inner regexp bound (- count)))
-               ((> count 0)
-                '(js--re-search-forward-inner regexp bound count)))))
+        (search-fun
+         (cond ((< count 0) (setq count (- count))
+                #'js--re-search-backward-inner)
+               ((> count 0) #'js--re-search-forward-inner)
+               (t #'ignore))))
     (condition-case err
-        (eval search-expr)
+        (funcall search-fun regexp bound count)
       (search-failed
        (goto-char saved-point)
        (unless noerror
-         (error (error-message-string err)))))))
+         (signal (car err) (cdr err)))))))
 
 
 (defun js--re-search-backward-inner (regexp &optional bound count)
@@ -782,20 +781,7 @@ as if strings, preprocessor macros, and comments have been
 removed.
 
 If invoked while inside a macro, treat the macro as normal text."
-  (let ((saved-point (point))
-        (search-expr
-         (cond ((null count)
-                '(js--re-search-backward-inner regexp bound 1))
-               ((< count 0)
-                '(js--re-search-forward-inner regexp bound (- count)))
-               ((> count 0)
-                '(js--re-search-backward-inner regexp bound count)))))
-    (condition-case err
-        (eval search-expr)
-      (search-failed
-       (goto-char saved-point)
-       (unless noerror
-         (error (error-message-string err)))))))
+  (js--re-search-forward regexp bound noerror (if count (- count) -1)))
 
 (defun js--forward-expression ()
   "Move forward over a whole JavaScript expression.
@@ -1674,18 +1660,19 @@ This performs fontification according to `js--class-styles'."
 ;; XXX: Javascript can continue a regexp literal across lines so long
 ;; as the newline is escaped with \. Account for that in the regexp
 ;; below.
-(defconst js--regexp-literal
+(eval-and-compile
+  (defconst js--regexp-literal
   "[=(,:]\\(?:\\s-\\|\n\\)*\\(/\\)\\(?:\\\\/\\|[^/*]\\)\\(?:\\\\/\\|[^/]\\)*\\(/\\)"
   "Regexp matching a JavaScript regular expression literal.
 Match groups 1 and 2 are the characters forming the beginning and
-end of the literal.")
+end of the literal."))
 
-;; we want to match regular expressions only at the beginning of
-;; expressions
-(defconst js-font-lock-syntactic-keywords
-  `((,js--regexp-literal (1 "|") (2 "|")))
-  "Syntactic font lock keywords matching regexps in JavaScript.
-See `font-lock-keywords'.")
+
+(defconst js-syntax-propertize-function
+  (syntax-propertize-rules
+   ;; We want to match regular expressions only at the beginning of
+   ;; expressions.
+   (js--regexp-literal (1 "\"") (2 "\""))))
 
 ;;; Indentation
 
@@ -3317,10 +3304,9 @@ Key bindings:
 
   (set (make-local-variable 'open-paren-in-column-0-is-defun-start) nil)
   (set (make-local-variable 'font-lock-defaults)
-       (list js--font-lock-keywords
-	     nil nil nil nil
-	     '(font-lock-syntactic-keywords
-               . js-font-lock-syntactic-keywords)))
+       '(js--font-lock-keywords))
+  (set (make-local-variable 'syntax-propertize-function)
+       js-syntax-propertize-function)
 
   (set (make-local-variable 'parse-sexp-ignore-comments) t)
   (set (make-local-variable 'parse-sexp-lookup-properties) t)

@@ -113,21 +113,17 @@ The frame-parameter tool-bar-position controls this.  It takes the values
 top, left, right or bottom.  The Options => Show/Hide menu has entries
 for this.
 
-** ImageMagick support
+** ImageMagick support.
 It is now possible to use the Imagemagick library to load many new
-image formats in Emacs.
+image formats in Emacs.  To enable this, use the configure option
+`--with-imagemagick'.
 
-To enable, use the following configure option:
---with-imagemagick
+The new function `imagemagick-types' returns a list of image file
+extensions that your installation of ImageMagick supports.  The
+function `imagemagick-register-types' enables ImageMagick support for
+these imaeg types, minus those listed in `imagemagick-types-inhibit'.
 
-The new function (imagemagick-types) returns a list of image file
-extensions that your installation of imagemagick supports.
-
-The function (imagemagick-register-types) will enable the imagemagick
-support for the extensions in imagemagick-types minus the types listed
-in imagemagick-types-inhibit.
-
-See the Emacs Manual for more information.
+See the Emacs Lisp Reference Manual for more information.
 
 ** The colors for selected text (the region face) are taken from the GTK
 theme when Emacs is built with GTK.
@@ -321,9 +317,23 @@ For example, adding "(diff-mode . ((mode . whitespace)))" to your
 variables `sql-product', `sql-user', `sql-server', `sql-database' and
 `sql-port' can now be safely used as local variables.
 
+*** `sql-dialect' is a synonym for `sql-product'.
+
 *** Added ability to login with a port on MySQL.
 The custom variable `sql-port' can be specified for connection to
 MySQL servers.
+
+*** Dynamic selection of product in an SQL interactive session.
+If you use `sql-product-interactive' to start an SQL interactive
+session it uses the current value of `sql-product'.  Preceding the
+invocation with C-u will force it to ask for the product before
+creating the session.
+
+*** Renaming a SQL interactive buffer when it is created.
+Prefixing the SQL interactive commands (`sql-sqlite', `sql-postgres',
+`sql-mysql', etc.) with C-u will force a new interactive session to be
+started and will prompt for the new name.  This will reduce the need
+for `sql-rename-buffer' is most common use cases.
 
 *** Command continuation prompts in SQL interactive mode are suppressed.
 Multiple line commands in SQL interactive mode, generate command
@@ -424,6 +434,11 @@ threads simultaneously.
 *** It is possible now, to access alternative buses than the default
 system or session bus.
 
+** Tramp
+
+*** The following access methods are discontinued: "ssh1_old",
+"ssh2_old", "scp1_old", "scp2_old" and "fish".
+
 
 * New Modes and Packages in Emacs 24.1
 
@@ -470,8 +485,19 @@ has now been removed.
 
 * Lisp changes in Emacs 24.1
 
+** New variable syntax-propertize-function to set syntax-table properties.
+Replaces font-lock-syntactic-keywords which are now obsolete.
+This allows syntax-table properties to be set independently from font-lock:
+just call syntax-propertize to make sure the text is propertized.
+Together with this new variable come a new hook
+syntax-propertize-extend-region-functions, as well as two helper functions:
+syntax-propertize-via-font-lock to reuse old font-lock-syntactic-keywords
+as-is; and syntax-propertize-rules which provides a new way to specify
+syntactic rules.
+
 ** New hook post-self-insert-hook run at the end of self-insert-command.
 
++++
 ** Syntax tables support a new "comment style c" additionally to style b.
 ** frame-local variables cannot be let-bound any more.
 ** prog-mode is a new major-mode meant to be the parent of programming mode.
@@ -496,6 +522,14 @@ sub-images are displayed successively with the duration defined by
 by the Graphic Control Extension of the image.
 
 *** `image-extension-data' is renamed to `image-metadata'.
+
+** XML and HTML parsing
+
+*** If Emacs is compiled with libxml2 support (which is the default),
+two new Emacs Lisp-level functions are defined: `html-parse-string'
+(which will parse "real world" HTML) and `xml-parse-string' (which
+parses XML).  Both return an Emacs Lisp parse tree.  See the Emacs
+Lisp Reference Manual for details.
 
 ** Isearch
 

@@ -660,6 +660,8 @@ BLESSMAIL_TARGET
 LIBS_MAIL
 liblockfile
 ALLOCA
+LIBXML2_LIBS
+LIBXML2_CFLAGS
 LIBXSM
 LIBGPM
 LIBGIF
@@ -807,6 +809,7 @@ with_tiff
 with_gif
 with_png
 with_rsvg
+with_xml2
 with_imagemagick
 with_xft
 with_libotf
@@ -1514,6 +1517,7 @@ Optional Packages:
   --without-gif           don't compile with GIF image support
   --without-png           don't compile with PNG image support
   --without-rsvg          don't compile with SVG image support
+  --without-xml2          don't compile with XML parsing support
   --with-imagemagick      compile with ImageMagick image support
   --without-xft           don't use XFT for anti aliased fonts
   --without-libotf        don't use libotf for OpenType font support
@@ -2729,6 +2733,14 @@ if test "${with_rsvg+set}" = set; then :
   withval=$with_rsvg;
 else
      with_rsvg=yes
+fi
+
+
+# Check whether --with-xml2 was given.
+if test "${with_xml2+set}" = set; then :
+  withval=$with_xml2;
+else
+     with_xml2=yes
 fi
 
 
@@ -11068,6 +11080,160 @@ $as_echo "#define HAVE_X_SM 1" >>confdefs.h
     esac
   fi
 fi
+
+
+### Use libxml (-lxml2) if available
+if test "${with_xml2}" != "no"; then
+  ### I'm not sure what the version number should be, so I just guessed.
+
+  succeeded=no
+
+  # Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if test "${ac_cv_path_PKG_CONFIG+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $PKG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PKG_CONFIG="$PKG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_PKG_CONFIG" && ac_cv_path_PKG_CONFIG="no"
+  ;;
+esac
+fi
+PKG_CONFIG=$ac_cv_path_PKG_CONFIG
+if test -n "$PKG_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PKG_CONFIG" >&5
+$as_echo "$PKG_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+
+  if test "$PKG_CONFIG" = "no" ; then
+     HAVE_LIBXML2=no
+  else
+     PKG_CONFIG_MIN_VERSION=0.9.0
+     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libxml-2.0 > 2.2.0" >&5
+$as_echo_n "checking for libxml-2.0 > 2.2.0... " >&6; }
+
+        if $PKG_CONFIG --exists "libxml-2.0 > 2.2.0" 2>&5; then
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+            succeeded=yes
+
+            { $as_echo "$as_me:${as_lineno-$LINENO}: checking LIBXML2_CFLAGS" >&5
+$as_echo_n "checking LIBXML2_CFLAGS... " >&6; }
+            LIBXML2_CFLAGS=`$PKG_CONFIG --cflags "libxml-2.0 > 2.2.0"|sed -e 's,///*,/,g'`
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $LIBXML2_CFLAGS" >&5
+$as_echo "$LIBXML2_CFLAGS" >&6; }
+
+            { $as_echo "$as_me:${as_lineno-$LINENO}: checking LIBXML2_LIBS" >&5
+$as_echo_n "checking LIBXML2_LIBS... " >&6; }
+            LIBXML2_LIBS=`$PKG_CONFIG --libs "libxml-2.0 > 2.2.0"|sed -e 's,///*,/,g'`
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: $LIBXML2_LIBS" >&5
+$as_echo "$LIBXML2_LIBS" >&6; }
+        else
+            { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+            LIBXML2_CFLAGS=""
+            LIBXML2_LIBS=""
+            ## If we have a custom action on failure, don't print errors, but
+            ## do set a variable so people can do so.
+            LIBXML2_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "libxml-2.0 > 2.2.0"`
+
+        fi
+
+
+
+     else
+        echo "*** Your version of pkg-config is too old. You need version $PKG_CONFIG_MIN_VERSION or newer."
+        echo "*** See http://www.freedesktop.org/software/pkgconfig"
+     fi
+  fi
+
+  if test $succeeded = yes; then
+     HAVE_LIBXML2=yes
+  else
+     HAVE_LIBXML2=no
+  fi
+
+  if test "${HAVE_LIBXML2}" = "yes"; then
+    LIBS="$LIBXML2_LIBS $LIBS"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for htmlReadMemory in -lxml2" >&5
+$as_echo_n "checking for htmlReadMemory in -lxml2... " >&6; }
+if test "${ac_cv_lib_xml2_htmlReadMemory+set}" = set; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lxml2  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char htmlReadMemory ();
+int
+main ()
+{
+return htmlReadMemory ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_xml2_htmlReadMemory=yes
+else
+  ac_cv_lib_xml2_htmlReadMemory=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_xml2_htmlReadMemory" >&5
+$as_echo "$ac_cv_lib_xml2_htmlReadMemory" >&6; }
+if test "x$ac_cv_lib_xml2_htmlReadMemory" = x""yes; then :
+  HAVE_LIBXML2=yes
+else
+  HAVE_LIBXML2=no
+fi
+
+    if test "${HAVE_LIBXML2}" = "yes"; then
+
+$as_echo "#define HAVE_LIBXML2 1" >>confdefs.h
+
+    else
+      LIBXML2_LIBS=""
+      LIBXML2_CFLAGS=""
+    fi
+  fi
+fi
+
 
 
 # If netdb.h doesn't declare h_errno, we must declare it by hand.

@@ -16,7 +16,7 @@
 
 @include trampver.texi
 
-@c Macro for formatting a filename according to the repective syntax.
+@c Macro for formatting a filename according to the respective syntax.
 @c xxx and yyy are auxiliary macros in order to omit leading and
 @c trailing whitespace.  Not very elegant, but I don't know it better.
 
@@ -105,11 +105,6 @@ If you're using the other Emacs flavor, you should read the
 @end ifset
 
 @ifhtml
-@ifset jamanual
-This manual is also available as a @uref{@value{japanesemanual},
-Japanese translation}.
-@end ifset
-
 The latest release of @value{tramp} is available for
 @uref{ftp://ftp.gnu.org/gnu/tramp/, download}, or you may see
 @ref{Obtaining Tramp} for more details, including the CVS server
@@ -171,7 +166,6 @@ Installing @value{tramp} with your @value{emacsname}
 
 * Installation parameters::     Parameters in order to control installation.
 * Load paths::                  How to plug-in @value{tramp} into your environment.
-* Japanese manual::             Japanese manual.
 
 @end ifset
 
@@ -625,10 +619,6 @@ or 2 to connect to the remote host.  (You can also specify in
 @file{~/.ssh/config}, the SSH configuration file, which protocol
 should be used, and use the regular @option{ssh} method.)
 
-Two other variants, @option{ssh1_old} and @option{ssh2_old}, use the
-@command{ssh1} and @command{ssh2} commands explicitly.  If you don't
-know what these are, you do not need these options.
-
 All the methods based on @command{ssh} have an additional feature: you
 can specify a host name which looks like @file{host#42} (the real host
 name, then a hash sign, then a port number).  This means to connect to
@@ -737,19 +727,6 @@ expects PuTTY session names, calling @samp{plink -load @var{session}
 hasn't defined a user name.  Different port numbers must be defined in
 the session.
 
-
-@item @option{fish}
-@cindex method fish
-@cindex fish method
-
-This is an experimental implementation of the fish protocol, known from
-the GNU Midnight Commander or the KDE Konqueror.  @value{tramp} expects
-the fish server implementation from the KDE kioslave.  That means, the
-file @file{~/.fishsrv.pl} is expected to reside on the remote host.
-
-The implementation lacks good performance.  The code is offered anyway,
-maybe somebody can improve the performance.
-
 @end table
 
 
@@ -808,10 +785,6 @@ explicitly select whether you want to use the SSH protocol version 1
 or 2 to connect to the remote host.  (You can also specify in
 @file{~/.ssh/config}, the SSH configuration file, which protocol
 should be used, and use the regular @option{scp} method.)
-
-Two other variants, @option{scp1_old} and @option{scp2_old}, use the
-@command{ssh1} and @command{ssh2} commands explicitly.  If you don't
-know what these are, you do not need these options.
 
 All the @command{ssh} based methods support the @samp{-p} feature
 where you can specify a port number to connect to in the host name.

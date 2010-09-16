@@ -129,7 +129,8 @@ Shorter values mean quicker response, but are more CPU intensive.")
 		       (truncate pop3-read-timeout))
 		    1000))))))
 
-(defun pop3-streaming-movemail (file)
+;;;###autoload
+(defun pop3-movemail (file)
   "Transfer contents of a maildrop to the specified FILE.
 Use streaming commands."
   (let* ((process (pop3-open-server pop3-mailhost pop3-port))
@@ -226,44 +227,6 @@ Use streaming commands."
 	   (pop3-user process pop3-maildrop)
 	   (pop3-pass process))
 	  (t (error "Invalid POP3 authentication scheme")))))
-
-(defun pop3-movemail (&optional crashbox)
-  "Transfer contents of a maildrop to the specified CRASHBOX."
-  (or crashbox (setq crashbox (expand-file-name "~/.crashbox")))
-  (let* ((process (pop3-open-server pop3-mailhost pop3-port))
-	 (crashbuf (get-buffer-create " *pop3-retr*"))
-	 (n 1)
-	 message-count
-	 message-sizes)
-    (pop3-logon process)
-    (setq message-count (car (pop3-stat process)))
-    (when (> message-count 0)
-      (setq message-sizes (pop3-list process)))
-    (unwind-protect
-	(while (<= n message-count)
-	  (message "Retrieving message %d of %d from %s... (%.1fk)"
-		   n message-count pop3-mailhost
-		   (/ (cdr (assoc n message-sizes))
-		      1024.0))
-	  (pop3-retr process n crashbuf)
-	  (save-excursion
-	    (set-buffer crashbuf)
-	    (let ((coding-system-for-write 'binary))
-	      (write-region (point-min) (point-max) crashbox t 'nomesg))
-	    (set-buffer (process-buffer process))
-	    (erase-buffer))
-          (unless pop3-leave-mail-on-server
-            (pop3-dele process n))
-	  (setq n (+ 1 n))
-	  (pop3-accept-process-output process))
-      (when (and pop3-leave-mail-on-server
-		 (> n 1))
-	(message "pop3.el doesn't support UIDL.  Setting `pop3-leave-mail-on-server'
-to %s might not give the result you'd expect." pop3-leave-mail-on-server)
-	(sit-for 1))
-      (pop3-quit process))
-    (kill-buffer crashbuf))
-  t)
 
 (defun pop3-get-message-count ()
   "Return the number of messages in the maildrop."

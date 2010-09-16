@@ -37,50 +37,50 @@
   :group 'url)
 
 (defcustom url-gateway-local-host-regexp nil
-  "*A regular expression specifying local hostnames/machines."
+  "A regular expression specifying local hostnames/machines."
   :type '(choice (const nil) regexp)
   :group 'url-gateway)
 
 (defcustom url-gateway-prompt-pattern
   "^[^#$%>;]*[#$%>;] *" ;; "bash\\|\$ *\r?$\\|> *\r?"
-  "*A regular expression matching a shell prompt."
+  "A regular expression matching a shell prompt."
   :type 'regexp
   :group 'url-gateway)
 
 (defcustom url-gateway-rlogin-host nil
-  "*What hostname to actually rlog into before doing a telnet."
+  "What hostname to actually rlog into before doing a telnet."
   :type '(choice (const nil) string)
   :group 'url-gateway)
 
 (defcustom url-gateway-rlogin-user-name nil
-  "*Username to log into the remote machine with when using rlogin."
+  "Username to log into the remote machine with when using rlogin."
   :type '(choice (const nil) string)
   :group 'url-gateway)
 
 (defcustom url-gateway-rlogin-parameters '("telnet" "-8")
-  "*Parameters to `url-open-rlogin'.
+  "Parameters to `url-open-rlogin'.
 This list will be used as the parameter list given to rsh."
   :type '(repeat string)
   :group 'url-gateway)
 
 (defcustom url-gateway-telnet-host nil
-  "*What hostname to actually login to before doing a telnet."
+  "What hostname to actually login to before doing a telnet."
   :type '(choice (const nil) string)
   :group 'url-gateway)
 
 (defcustom url-gateway-telnet-parameters '("exec" "telnet" "-8")
-  "*Parameters to `url-open-telnet'.
+  "Parameters to `url-open-telnet'.
 This list will be executed as a command after logging in via telnet."
   :type '(repeat string)
   :group 'url-gateway)
 
 (defcustom url-gateway-telnet-login-prompt "^\r*.?login:"
-  "*Prompt that tells us we should send our username when loggin in w/telnet."
+  "Prompt that tells us we should send our username when loggin in w/telnet."
   :type 'regexp
   :group 'url-gateway)
 
 (defcustom url-gateway-telnet-password-prompt "^\r*.?password:"
-  "*Prompt that tells us we should send our password when loggin in w/telnet."
+  "Prompt that tells us we should send our password when loggin in w/telnet."
   :type 'regexp
   :group 'url-gateway)
 
@@ -95,7 +95,7 @@ This list will be executed as a command after logging in via telnet."
   :group 'url-gateway)
 
 (defcustom url-gateway-broken-resolution nil
-  "*Whether to use nslookup to resolve hostnames.
+  "Whether to use nslookup to resolve hostnames.
 This should be used when your version of Emacs cannot correctly use DNS,
 but your machine can.  This usually happens if you are running a statically
 linked Emacs under SunOS 4.x."
@@ -103,7 +103,7 @@ linked Emacs under SunOS 4.x."
   :group 'url-gateway)
 
 (defcustom url-gateway-nslookup-program "nslookup"
-  "*If non-nil then a string naming nslookup program."
+  "If non-nil then a string naming nslookup program."
   :type '(choice (const :tag "None" :value nil) string)
   :group 'url-gateway)
 

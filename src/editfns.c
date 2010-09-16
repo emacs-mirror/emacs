@@ -3517,7 +3517,7 @@ usage: (format STRING &rest OBJECTS)  */)
   int multibyte = 0;
   /* When we make a multibyte string, we must pay attention to the
      byte combining problem, i.e., a byte may be combined with a
-     multibyte charcter of the previous string.  This flag tells if we
+     multibyte character of the previous string.  This flag tells if we
      must consider such a situation or not.  */
   int maybe_combine_byte;
   unsigned char *this_format;
