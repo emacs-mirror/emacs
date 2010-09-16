@@ -1,3 +1,7 @@
+2010-09-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ido.el (ido-make-buffer-list): Fix error in 2010-08-22 merge.
+
 2010-09-16  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-cmds.el (tramp-cleanup-connection): Set tramp-autoload
