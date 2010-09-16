@@ -1,3 +1,8 @@
+2010-09-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-cmds.el (tramp-cleanup-connection): Set tramp-autoload
+	cookie.
+
 2010-09-15  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-compat.el (tramp-compat-with-temp-message)
@@ -9,7 +14,7 @@
 	* net/tramp-cache.el (top): Use `tramp-compat-font-lock-add-keywords'.
 
 	* net/tramp.el (tramp-progress-reporter-update): Use
-	`tramp-compat-funcall.
+	`tramp-compat-funcall'.
 
 	* net/tramp.el (tramp-process-actions):
 	* net/tramp-gvfs.el (tramp-handle-vc-registered):
