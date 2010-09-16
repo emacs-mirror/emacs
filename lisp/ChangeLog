@@ -1,5 +1,8 @@
 2010-09-16  Chong Yidong  <cyd@stupidchicken.com>
 
+	* term/x-win.el (x-cut-buffer-or-selection-value): Define as
+	obsolete alias for x-selection-value.
+
 	* ido.el (ido-make-buffer-list): Fix error in 2010-08-22 merge.
 
 2010-09-16  Michael Albinus  <michael.albinus@gmx.de>
