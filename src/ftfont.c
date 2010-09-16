@@ -1637,32 +1637,55 @@ ftfont_check_otf (MFLTFont *font, MFLTOtfSpec *spec)
   OTF_Tag *tags;
   int i, n, negative;
 
+  if (spec->features[0] && spec->features[0][0] ==0
+      && spec->features[1] && spec->features[1][0] ==0)
+    /* Return 1 iff any of GSUB or GPOS support the script (and language).  */
+    return (otf
+	    && (OTF_check_features (otf, 0, spec->script, spec->langsys,
+				    NULL, 0) > 0
+		|| OTF_check_features (otf, 1, spec->script, spec->langsys,
+				       NULL, 0) > 0));
+
   for (i = 0; i < 2; i++)
-    {
-      if (! spec->features[i])
-	continue;
-      for (n = 0; spec->features[i][n]; n++);
-      tags = alloca (sizeof (OTF_Tag) * n);
-      for (n = 0, negative = 0; spec->features[i][n]; n++)
-	{
-	  if (spec->features[i][n] == 0xFFFFFFFF)
-	    negative = 1;
-	  else if (negative)
-	    tags[n - 1] = spec->features[i][n] | 0x80000000;
-	  else
-	    tags[n] = spec->features[i][n];
-	}
+    if (! spec->features[i] || spec->features[i][0] != 0)
+      {
+	int no_feature = ! otf || OTF_get_features (otf, i == 0) < 0;
+	if (! spec->features[i])
+	  {
+	    if (no_feature)
+	      continue;
+	    return 0;
+	  }
+	if (spec->features[i][0] == 0xFFFFFFFF)
+	  {
+	    if (no_feature)
+	      continue;
+	  }
+	else if (no_feature)
+	  return 0;
+	/* Now (! no_feature) */
+	for (n = 1; spec->features[i][n]; n++);
+	tags = alloca (sizeof (OTF_Tag) * n);
+	for (n = 0, negative = 0; spec->features[i][n]; n++)
+	  {
+	    if (spec->features[i][n] == 0xFFFFFFFF)
+	      negative = 1;
+	    else if (negative)
+	      tags[n - 1] = spec->features[i][n] | 0x80000000;
+	    else
+	      tags[n] = spec->features[i][n];
+	  }
 #ifdef M17N_FLT_USE_NEW_FEATURE
-      if (OTF_check_features (otf, i == 0, spec->script, spec->langsys,
-			      tags, n - negative) != 1)
-	return 0;
+	if (OTF_check_features (otf, i == 0, spec->script, spec->langsys,
+				tags, n - negative) != 1)
+	  return 0;
 #else  /* not M17N_FLT_USE_NEW_FEATURE */
-      if (n - negative > 0
-	  && OTF_check_features (otf, i == 0, spec->script, spec->langsys,
-				 tags, n - negative) != 1)
-	return 0;
+	if (n - negative > 0
+	    && OTF_check_features (otf, i == 0, spec->script, spec->langsys,
+				   tags, n - negative) != 1)
+	  return 0;
 #endif	/* not M17N_FLT_USE_NEW_FEATURE */
-    }
+      }
   return 1;
 }
 

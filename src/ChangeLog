@@ -1,3 +1,8 @@
+2010-09-14  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (ftfont_check_otf): Fix the case of checking just
+	existence of GSUB or GPOS.
+
 2010-09-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* biditype.h: Regenerate.
