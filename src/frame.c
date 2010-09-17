@@ -2669,7 +2669,7 @@ used.  */)
   if (FRAME_WINDOW_P (f))
     return make_number (FRAME_TOOLBAR_WIDTH (f));
 #endif
-  return 0;
+  return make_number (0);
 }
 
 DEFUN ("set-frame-height", Fset_frame_height, Sset_frame_height, 2, 3, 0,

@@ -1,3 +1,8 @@
+2010-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.c (Ftool_bar_pixel_width): YAILOM (Yet another
+	int/Lisp_Object mixup).
+
 2010-09-17  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* keyboard.c (parse_tool_bar_item): For QClabel, set TOOL_BAR_ITEM_LABEL
@@ -8,9 +13,10 @@
 	* frame.c (Ftool_bar_pixel_width): New function to expose tool
 	bar's pixel width to Lisp (Bug#7048).
 
- 2010-09-14  Juanma Barranquero  <lekktu@gmail.com>
+2010-09-14  Juanma Barranquero  <lekktu@gmail.com>
 
- 	* cmds.c (syms_of_cmds) <post-self-insert-hook>: Fix typos in docstring.
+	* cmds.c (syms_of_cmds) <post-self-insert-hook>: Fix typos in docstring.
+
 2010-09-17  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_pack_tool_bar): Call gtk_handle_box_set_handle_position
