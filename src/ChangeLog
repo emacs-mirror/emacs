@@ -1,3 +1,8 @@
+2010-09-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (_PROCESS_MEMORY_COUNTERS_EX): Don't define with versions
+	of w32api >= 3.15.  (Bug#6989)
+
 2010-09-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* process.c (wait_reading_process_output): Don't message about

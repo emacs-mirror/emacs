@@ -94,8 +94,11 @@ typedef struct _MEMORY_STATUS_EX {
 
 #include <tlhelp32.h>
 #include <psapi.h>
+#include <w32api.h>
+#if !defined(__MINGW32__) || __W32API_MAJOR_VERSION < 3 || (__W32API_MAJOR_VERSION == 3 && __W32API_MINOR_VERSION < 15)
 /* This either is not in psapi.h or guarded by higher value of
-   _WIN32_WINNT than what we use.  */
+   _WIN32_WINNT than what we use.  w32api suplied with MinGW 3.15
+   defines it in psapi.h  */
 typedef struct _PROCESS_MEMORY_COUNTERS_EX {
 	DWORD cb;
 	DWORD PageFaultCount;
@@ -109,6 +112,7 @@ typedef struct _PROCESS_MEMORY_COUNTERS_EX {
 	DWORD PeakPagefileUsage;
 	DWORD PrivateUsage;
 } PROCESS_MEMORY_COUNTERS_EX,*PPROCESS_MEMORY_COUNTERS_EX;
+#endif
 
 #ifdef HAVE_SOCKETS	/* TCP connection support, if kernel can do it */
 #include <sys/socket.h>
