@@ -1,5 +1,8 @@
 2010-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/bytecomp.el (byte-compile-file-form-defvar)
+	(byte-compile-defvar): "foo/bar" does not lack a prefix.
+
 	* subr.el (y-or-n-p): Add the "(y or n)" that was lost somehow.
 
 2010-09-17  Stephen Berman  <stephen.berman@gmx.net>
