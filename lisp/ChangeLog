@@ -1,3 +1,8 @@
+2010-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* isearch.el (isearch-face): Rename from `isearch'.
+	(isearch-highlight): Use new name.
+
 2010-09-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* fringe.el (fringe-mode, fringe-query-style): Use 4 pixels, not
