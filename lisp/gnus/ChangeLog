@@ -1,3 +1,10 @@
+2010-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* nnrss.el (nnrss-retrieve-headers, nnrss-request-list-newsgroups)
+	(nnrss-retrieve-groups):
+	* pop3.el (pop3-open-server, pop3-read-response, pop3-list, pop3-retr)
+	(pop3-quit): Use with-current-buffer.
+
 2010-09-17  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* pop3.el (pop3-wait-for-messages): Use pop3-accept-process-output

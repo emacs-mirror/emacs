@@ -134,8 +134,7 @@ used to render text.  If it is nil, text will simply be folded.")
   (setq group (nnrss-decode-group-name group))
   (nnrss-possibly-change-group group server)
   (let (e)
-    (save-excursion
-      (set-buffer nntp-server-buffer)
+    (with-current-buffer nntp-server-buffer
       (erase-buffer)
       (dolist (article articles)
 	(if (setq e (assq article nnrss-group-data))
@@ -384,8 +383,7 @@ used to render text.  If it is nil, text will simply be folded.")
 
 (deffoo nnrss-request-list-newsgroups (&optional server)
   (nnrss-possibly-change-group nil server)
-  (save-excursion
-    (set-buffer nntp-server-buffer)
+  (with-current-buffer nntp-server-buffer
     (erase-buffer)
     (dolist (elem nnrss-group-alist)
       (if (third elem)
@@ -396,8 +394,7 @@ used to render text.  If it is nil, text will simply be folded.")
   (nnrss-possibly-change-group nil server)
   (dolist (group groups)
     (nnrss-check-group group server))
-  (save-excursion
-    (set-buffer nntp-server-buffer)
+  (with-current-buffer nntp-server-buffer
     (erase-buffer)
     (dolist (group groups)
       (let ((elem (assoc group nnrss-server-data)))
