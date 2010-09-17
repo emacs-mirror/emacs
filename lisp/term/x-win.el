@@ -1344,6 +1344,9 @@ The value nil is the same as this list:
       (or clip-text primary-text)
       )))
 
+(define-obsolete-function-alias 'x-cut-buffer-or-selection-value
+  'x-selection-value "24.1")
+
 ;; Arrange for the kill and yank functions to set and check the clipboard.
 (setq interprogram-cut-function 'x-select-text)
 (setq interprogram-paste-function 'x-selection-value)
