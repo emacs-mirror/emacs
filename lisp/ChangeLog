@@ -1,3 +1,7 @@
+2010-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (y-or-n-p): Add the "(y or n)" that was lost somehow.
+
 2010-09-17  Stephen Berman  <stephen.berman@gmx.net>
 
 	* dframe.el (dframe-reposition-frame-emacs): Use tool-bar-pixel-width
@@ -11,8 +15,7 @@
 
 2010-09-16  Chong Yidong  <cyd@stupidchicken.com>
 
-	* mail/sendmail.el: Add "*unsent mail*" to
-	same-window-buffer-names.
+	* mail/sendmail.el: Add "*unsent mail*" to same-window-buffer-names.
 
 	* term/x-win.el (x-cut-buffer-or-selection-value): Define as
 	obsolete alias for x-selection-value.
@@ -34,19 +37,19 @@
 	* net/tramp-gvfs.el (top):
 	* net/tramp-cache.el (top): Use `tramp-compat-font-lock-add-keywords'.
 
-	* net/tramp.el (tramp-progress-reporter-update): Use
-	`tramp-compat-funcall'.
+	* net/tramp.el (tramp-progress-reporter-update):
+	Use `tramp-compat-funcall'.
 
 	* net/tramp.el (tramp-process-actions):
 	* net/tramp-gvfs.el (tramp-handle-vc-registered):
 	* net/tramp-sh.el (tramp-gvfs-handler-askquestion)
-	(tramp-get-remote-stat, tramp-get-remote-readlink): Use
-	`tramp-compat-with-temp-message'.
+	(tramp-get-remote-stat, tramp-get-remote-readlink):
+	Use `tramp-compat-with-temp-message'.
 
 	* net/tramp-sh.el (top): Require 'cl.
 	(tramp-handle-start-file-process): Use `tramp-compat-process-get'.
-	(tramp-open-connection-setup-interactive-shell): Use
-	`tramp-compat-process-put'.
+	(tramp-open-connection-setup-interactive-shell):
+	Use `tramp-compat-process-put'.
 
 2010-09-15  Alan Mackenzie  <acm@muc.de>
 
@@ -269,7 +272,7 @@
 	(tramp-dissect-file-name): Don't check anymore for multi-hop
 	methods.
 	(tramp-debug-outline-regexp): Add a docstring.
-	(tramp-debug-outline-level): Renamed from `tramp-outline-level'.
+	(tramp-debug-outline-level): Rename from `tramp-outline-level'.
 	(tramp-get-debug-buffer): Use it.
 
 	* net/tramp-cache.el (top): Set tramp-autoload cookie for
@@ -289,9 +292,9 @@
 	* net/tramp-sh.el: New file, derived from tramp.el.
 	(top): Initialize `tramp-methods', `tramp-default-method-alist',
 	`tramp-default-user-alist', `tramp-foreign-file-name-handler-alist'.
-	Remove "scp1_old", "scp2_old", "ssh1_old", "ssh2_old".  Use
-	`ignore-errors' where appropriate.
-	(tramp-sh-file-name-handler-alist): Renamed from
+	Remove "scp1_old", "scp2_old", "ssh1_old", "ssh2_old".
+	Use `ignore-errors' where appropriate.
+	(tramp-sh-file-name-handler-alist): Rename from
 	`tramp-file-name-handler-alist'.
 	(tramp-send-command-and-check): Return t or nil.  Remove all
 	`zerop' checks, where called.
@@ -317,7 +320,7 @@
 
 2010-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* subr.el (y-or-n-p): New function, moved from src/fns.c.  Use read-key.
+	* subr.el (y-or-n-p): New function, moved from src/fns.c; use read-key.
 
 2010-09-12  Leo  <sdl.web@gmail.com>
 
@@ -358,12 +361,10 @@
 	(sql-comint-mysql): Handle "sql-port" as a numeric.
 	(sql-port-history): Delete unused variable.
 	(sql-get-login): Default "sql-port" to a number.
-	(sql-product-alist): Correct Postgres prompt and terminator
-	regexp.
+	(sql-product-alist): Correct Postgres prompt and terminator regexp.
 	(sql-sqlite-program): Dynamically detect presence of "sqlite" or
 	"sqlite3" executables.
-	(sql-sqlite-login-params): Add "*.sqlite[23]?" database name
-	pattern.
+	(sql-sqlite-login-params): Add "*.sqlite[23]?" database name pattern.
 	(sql-buffer-live-p): New function.
 	(sql-mode-menu, sql-send-string): Use it.
 	(sql-mode-oracle-font-lock-keywords): Improve SQL*Plus REMARK
@@ -373,7 +374,7 @@
 
 2010-09-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* net/netrc.el (netrc-credentials): New conveniency function.
+	* net/netrc.el (netrc-credentials): New convenience function.
 
 2010-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 

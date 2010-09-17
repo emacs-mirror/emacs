@@ -3376,19 +3376,26 @@ is nil and `use-dialog-box' is non-nil."
   ;; ¡Beware! when I tried to edebug this code, Emacs got into a weird state
   ;; where all the keys were unbound (i.e. it somehow got triggered
   ;; within read-key, apparently).  I had to kill it.
-  (let ((answer 'none)
-        (xprompt prompt))
+  (let ((answer 'recenter))
     (if (and (display-popup-menus-p)
              (listp last-nonmenu-event)
              use-dialog-box)
         (setq answer
               (x-popup-dialog t `(,prompt ("yes" . act) ("No" . skip))))
+      (setq prompt (concat prompt
+                           (if (eq ?\s (aref prompt (1- (length prompt))))
+                               "" " ")
+                           "(y or n) "))
       (while
           (let* ((key
                   (let ((cursor-in-echo-area t))
                     (when minibuffer-auto-raise
                       (raise-frame (window-frame (minibuffer-window))))
-                    (read-key (propertize xprompt 'face 'minibuffer-prompt)))))
+                    (read-key (propertize (if (eq answer 'recenter)
+                                              prompt
+                                            (concat "Please answer y or n.  "
+                                                    prompt))
+                                          'face 'minibuffer-prompt)))))
             (setq answer (lookup-key query-replace-map (vector key) t))
             (cond
              ((memq answer '(skip act)) nil)
