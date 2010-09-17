@@ -299,7 +299,7 @@ fit these criteria."
 		     "--max-time" "60"
 		     "-o" (gnus-html-image-id url)
 		     (mm-url-decode-entities-string url))))
-      (process-kill-without-query process)
+      (gnus-set-process-query-on-exit-flag process nil)
       (set-process-sentinel process 'gnus-html-curl-sentinel)
       (gnus-set-process-plist process (list 'images images
 					    'buffer buffer)))))
@@ -463,7 +463,7 @@ This only works if the article in question is HTML."
 		      "--location"
 		      "--max-time" "60"
 		      urls)))
-	  (process-kill-without-query process))))))
+	  (gnus-set-process-query-on-exit-flag process nil))))))
 
 (provide 'gnus-html)
 

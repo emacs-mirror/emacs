@@ -1,3 +1,9 @@
+2010-09-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-html.el (gnus-html-schedule-image-fetching)
+	(gnus-html-prefetch-images): Replace process-kill-without-query by
+	gnus-set-process-query-on-exit-flag.
+
 2010-09-16  Romain Francoise  <romain@orebokech.com>
 
 	* gnus-html.el: Require gnus-art for `gnus-with-article-buffer'.
