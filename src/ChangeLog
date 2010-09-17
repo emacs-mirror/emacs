@@ -1,3 +1,8 @@
+2010-09-17  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* keyboard.c (parse_tool_bar_item): For QClabel, set TOOL_BAR_ITEM_LABEL
+	not HELP.
+
 2010-09-17  Stephen Berman  <stephen.berman@gmx.net>
 
 	* frame.c (Ftool_bar_pixel_width): New function to expose tool
