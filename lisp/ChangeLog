@@ -1,5 +1,8 @@
 2010-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* obsolete/old-whitespace.el (whitespace-rescan-files-in-buffers):
+	Use with-current-buffer.
+
 	* isearch.el (isearch-face): Rename from `isearch'.
 	(isearch-highlight): Use new name.
 
