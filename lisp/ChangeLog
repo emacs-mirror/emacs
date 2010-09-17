@@ -1,5 +1,8 @@
 2010-09-16  Chong Yidong  <cyd@stupidchicken.com>
 
+	* mail/sendmail.el: Add "*unsent mail*" to
+	same-window-buffer-names.
+
 	* term/x-win.el (x-cut-buffer-or-selection-value): Define as
 	obsolete alias for x-selection-value.
 
