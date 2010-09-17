@@ -1,3 +1,7 @@
+2010-09-17  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_tool_bar_menu_proxy): Set gtk-menu-items to TRUE.
+
 2010-09-12  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (get_current_vm_state): New function.
