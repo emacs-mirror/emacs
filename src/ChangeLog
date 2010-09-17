@@ -1,3 +1,8 @@
+2010-09-17  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_pack_tool_bar): Call gtk_handle_box_set_handle_position
+	with argument top/left if tool bar is vertical/horizontal (Bug#7051).
+
 2010-09-17  Kenichi Handa  <handa@m17n.org>
 
 	* ftfont.c (ftfont_check_otf): Fix previous change.
