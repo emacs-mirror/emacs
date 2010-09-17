@@ -1,3 +1,8 @@
+2010-09-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* process.c (wait_reading_process_output): Don't message about
+	accept-process-output unless the time limit really is zero.
+
 2010-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* frame.c (Ftool_bar_pixel_width): YAILOM (Yet another
