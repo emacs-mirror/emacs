@@ -153,7 +153,7 @@ you can use the interactive function `set-fringe-style'."
 		 (const :tag "No fringes" 0)
 		 (const :tag "Only right" (0 . nil))
 		 (const :tag "Only left" (nil . 0))
-		 (const :tag "Half width" (5 . 5))
+		 (const :tag "Half width" (4 . 4))
 		 (const :tag "Minimal" (1 . 1))
 		 (integer :tag "Specific width")
 		 (cons :tag "Different left/right sizes"
@@ -187,7 +187,7 @@ frame parameter is used."
 	  ((eq mode 'default) nil)
 	  ((eq mode 'left-only) '(nil . 0))
 	  ((eq mode 'right-only) '(0 . nil))
-	  ((eq mode 'half) '(5 . 5))
+	  ((eq mode 'half) '(4 . 4))
 	  ((eq mode 'minimal) '(1 . 1))
 	  ((eq mode (intern ""))
 	   (if (eq 0 (cdr (assq 'left-fringe
