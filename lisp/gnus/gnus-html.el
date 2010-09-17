@@ -30,6 +30,8 @@
 
 (eval-when-compile (require 'cl))
 (eval-when-compile (require 'mm-decode))
+
+(require 'gnus-art)
 (require 'mm-url)
 
 (defcustom gnus-html-cache-directory (nnheader-concat gnus-directory "html-cache/")
