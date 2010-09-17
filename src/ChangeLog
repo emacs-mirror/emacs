@@ -1,3 +1,11 @@
+2010-09-17  Stephen Berman  <stephen.berman@gmx.net>
+
+	* frame.c (Ftool_bar_pixel_width): New function to expose tool
+	bar's pixel width to Lisp (Bug#7048).
+
+ 2010-09-14  Juanma Barranquero  <lekktu@gmail.com>
+
+ 	* cmds.c (syms_of_cmds) <post-self-insert-hook>: Fix typos in docstring.
 2010-09-17  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_pack_tool_bar): Call gtk_handle_box_set_handle_position
