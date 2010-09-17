@@ -168,7 +168,7 @@ Use streaming commands."
 	       (truncate (/ (buffer-size) 1000))
 	       (truncate (* (/ (* (buffer-size) 1.0)
 			       total-size) 100))))
-    (nnheader-accept-process-output process)))
+    (pop3-accept-process-output process)))
 
 (defun pop3-write-to-file (file)
   (let ((pop-buffer (current-buffer))

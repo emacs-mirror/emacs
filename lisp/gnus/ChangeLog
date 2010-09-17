@@ -1,5 +1,8 @@
 2010-09-17  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* pop3.el (pop3-wait-for-messages): Use pop3-accept-process-output
+	instead of nnheader-accept-process-output.
+
 	* gnus-html.el (gnus-html-schedule-image-fetching)
 	(gnus-html-prefetch-images): Replace process-kill-without-query by
 	gnus-set-process-query-on-exit-flag.
