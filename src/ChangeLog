@@ -1,3 +1,15 @@
+2010-09-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (Fcurrent_bidi_paragraph_direction): Call
+	bidi_paragraph_init with NO_DEFAULT_P non-zero.  (Bug#7038)
+
+	* bidi.c (bidi_paragraph_init): Accept an additional argument
+	NO_DEFAULT_P; all callers changed.  If NO_DEFAULT_P is non-zero,
+	search back until a paragraph with a strong directional character
+	is found, and use that to determine paragraph's base direction.
+
+	* dispextern.h (bidi_paragraph_init): Update prototype.
+
 2010-09-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (_PROCESS_MEMORY_COUNTERS_EX): Don't define with versions

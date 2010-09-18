@@ -3821,7 +3821,8 @@ handle_invisible_prop (struct it *it)
 		     not have a chance to do it, if we are going to
 		     skip any text at the beginning, which resets the
 		     FIRST_ELT flag.  */
-		  bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it);
+		  bidi_paragraph_init (it->paragraph_embedding,
+				       &it->bidi_it, 0);
 		}
 	      do
 		{
@@ -5143,7 +5144,7 @@ iterate_out_of_display_property (struct it *it)
      of a new paragraph, next_element_from_buffer may not have a
      chance to do that.  */
   if (it->bidi_it.first_elt && it->bidi_it.charpos < ZV)
-    bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it);
+    bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it, 0);
   /* prev_stop can be zero, so check against BEGV as well.  */
   while (it->bidi_it.charpos >= BEGV
 	 && it->prev_stop <= it->bidi_it.charpos
@@ -6201,7 +6202,7 @@ set_iterator_to_next (struct it *it, int reseat_p)
 	      /* If this is a new paragraph, determine its base
 		 direction (a.k.a. its base embedding level).  */
 	      if (it->bidi_it.new_paragraph)
-		bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it);
+		bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it, 0);
 	      bidi_move_to_visually_next (&it->bidi_it);
 	      IT_BYTEPOS (*it) = it->bidi_it.bytepos;
 	      IT_CHARPOS (*it) = it->bidi_it.charpos;
@@ -6673,7 +6674,7 @@ next_element_from_buffer (struct it *it)
 	{
 	  /* If we are at the beginning of a line, we can produce the
 	     next element right away.  */
-	  bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it);
+	  bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it, 0);
 	  bidi_move_to_visually_next (&it->bidi_it);
 	}
       else
@@ -6687,7 +6688,7 @@ next_element_from_buffer (struct it *it)
 	  IT_BYTEPOS (*it) = CHAR_TO_BYTE (IT_CHARPOS (*it));
 	  it->bidi_it.charpos = IT_CHARPOS (*it);
 	  it->bidi_it.bytepos = IT_BYTEPOS (*it);
-	  bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it);
+	  bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it, 0);
 	  do
 	    {
 	      /* Now return to buffer position where we were asked to
@@ -6910,7 +6911,7 @@ next_element_from_composition (struct it *it)
 	  if (it->bidi_p)
 	    {
 	      if (it->bidi_it.new_paragraph)
-		bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it);
+		bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it, 0);
 	      /* Resync the bidi iterator with IT's new position.
 		 FIXME: this doesn't support bidirectional text.  */
 	      while (it->bidi_it.charpos < IT_CHARPOS (*it))
@@ -17992,8 +17993,9 @@ See also `bidi-paragraph-direction'.  */)
       itb.bytepos = bytepos;
       itb.first_elt = 1;
       itb.separator_limit = -1;
+      itb.paragraph_dir = NEUTRAL_DIR;
 
-      bidi_paragraph_init (NEUTRAL_DIR, &itb);
+      bidi_paragraph_init (NEUTRAL_DIR, &itb, 1);
       if (buf != current_buffer)
 	set_buffer_temp (old);
       switch (itb.paragraph_dir)
