@@ -1,6 +1,6 @@
 2010-09-18  Julien Danjou  <julien@danjou.info>
 
-	* url-vars.el (url-automatic-caching): Remove unused variable.
+	* url-vars.el (url-cache-expired): Remove unused variable.
 
 2010-09-14  Julien Danjou  <julien@danjou.info>
 
