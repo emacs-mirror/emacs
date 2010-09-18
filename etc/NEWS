@@ -49,7 +49,7 @@ also depend on Gtk+.  You can disable them with --without-rsvg and
 
 ** There is a new configure option --enable-use-lisp-union-type.
 This is only useful for Emacs developers to debug certain types of bugs.
-These is not a new feature; only the configure flag is new.
+This is not a new feature; only the configure flag is new.
 
 ---
 ** New translation of the Emacs Tutorial in Hebrew is available
@@ -121,7 +121,7 @@ image formats in Emacs.  To enable this, use the configure option
 The new function `imagemagick-types' returns a list of image file
 extensions that your installation of ImageMagick supports.  The
 function `imagemagick-register-types' enables ImageMagick support for
-these imaeg types, minus those listed in `imagemagick-types-inhibit'.
+these image types, minus those listed in `imagemagick-types-inhibit'.
 
 See the Emacs Lisp Reference Manual for more information.
 
@@ -157,7 +157,7 @@ when a new variable `scroll-error-top-bottom' is non-nil.
 scroll a line instead of full screen.
 
 ** New property `scroll-command' should be set on a command's symbol to
-define it as a scroll command affected by `scroll-preserve-screen-position.
+define it as a scroll command affected by `scroll-preserve-screen-position'.
 
 ** Trash changes
 
@@ -188,8 +188,6 @@ loaded, customize `package-load-list'.
 * Editing Changes in Emacs 24.1
 
 ** completion-at-point is now an alias for complete-symbol.
-
-** mouse-region-delete-keys has been deleted.
 
 ** Deletion changes
 
@@ -259,6 +257,7 @@ You can get a comparable behavior with:
 (setq completion-pcm-complete-word-inserts-delimiters t)
 
 ** mpc.el: Can use pseudo tags of the form tag1|tag2 as a union of two tags.
+
 ** Customize
 
 *** Customize buffers now contain a search field.
@@ -395,7 +394,7 @@ SQLite database without prompting; the "prd" connection would prompt
 for the users password and then connect to the Oracle database.
 
 **** Added SQL->Start... submenu when connections are defined.
-When connections have been defined, There is a submenu available that
+When connections have been defined, there is a submenu available that
 allows the user to select one to start a SQLi session.  The "Start
 SQLi Session" item moves to the "Start..." submenu when cnnections
 have been defined.
@@ -505,7 +504,7 @@ syntactic rules.
 ** prog-mode is a new major-mode meant to be the parent of programming mode.
 ** define-minor-mode accepts a new keyword :variable.
 
-** `delete-file' and `delete-directory now accept optional arg TRASH.
+** `delete-file' and `delete-directory' now accept optional arg TRASH.
 Trashing is performed if TRASH and `delete-by-moving-to-trash' are
 both non-nil.  Interactively, TRASH defaults to t, unless a prefix
 argument is supplied (see Trash changes, above).
