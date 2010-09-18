@@ -1,3 +1,7 @@
+2010-09-18  Glenn Morris  <rgm@gnu.org>
+
+	* url-cache.el (url-is-cached): Doc fix.
+
 2010-09-11  Julien Danjou  <julien@danjou.info>
 
 	* url-cache (url-store-in-cache): Make `buff' argument really optional.

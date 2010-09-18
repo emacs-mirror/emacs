@@ -1,7 +1,7 @@
 ;;; url-cache.el --- Uniform Resource Locator retrieval tool
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1998, 1999, 2004, 2005, 2006, 2007, 2008,
+;;   2009, 2010  Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -70,7 +70,8 @@ FILE can be created or overwritten."
 
 ;;;###autoload
 (defun url-is-cached (url)
-  "Return non-nil if the URL is cached."
+  "Return non-nil if the URL is cached.
+The actual return value is the last modification time of the cache file."
   (let* ((fname (url-cache-create-filename url))
 	 (attribs (file-attributes fname)))
     (and fname				; got a filename
