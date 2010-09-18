@@ -178,7 +178,7 @@ used to render text.  If it is nil, text will simply be folded.")
 		    "\n")))))
   'nov)
 
-(deffoo nnrss-request-group (group &optional server dont-check)
+(deffoo nnrss-request-group (group &optional server dont-check info)
   (setq group (nnrss-decode-group-name group))
   (nnheader-message 6 "nnrss: Requesting %s..." group)
   (nnrss-possibly-change-group group server)

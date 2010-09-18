@@ -375,7 +375,7 @@ If it is down, start it up (again)."
   (funcall (gnus-get-function gnus-command-method 'request-compact)
 	   (nth 1 gnus-command-method)))
 
-(defun gnus-request-group (group &optional dont-check gnus-command-method)
+(defun gnus-request-group (group &optional dont-check gnus-command-method info)
   "Request GROUP.  If DONT-CHECK, no information is required."
   (let ((gnus-command-method
 	 (or gnus-command-method (inline (gnus-find-method-for-group group)))))
@@ -384,7 +384,8 @@ If it is down, start it up (again)."
 	    (inline (gnus-server-to-method gnus-command-method))))
     (funcall (inline (gnus-get-function gnus-command-method 'request-group))
 	     (gnus-group-real-name group) (nth 1 gnus-command-method)
-	     dont-check)))
+	     dont-check
+	     info)))
 
 (defun gnus-list-active-group (group)
   "Request active information on GROUP."

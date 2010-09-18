@@ -424,7 +424,7 @@ Other back ends might or might not work.")
   (setq nnmairix-current-server server)
   (nnoo-change-server 'nnmairix server definitions))
 
-(deffoo nnmairix-request-group (group &optional server fast)
+(deffoo nnmairix-request-group (group &optional server fast info)
   ;; Call mairix and request group on back end server
   (when server (nnmairix-open-server server))
   (let* ((qualgroup (if server

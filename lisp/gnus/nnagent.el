@@ -190,9 +190,9 @@
 (deffoo nnagent-request-expire-articles (articles group &optional server force)
   articles)
 
-(deffoo nnagent-request-group (group &optional server dont-check)
+(deffoo nnagent-request-group (group &optional server dont-check info)
   (nnoo-parent-function 'nnagent 'nnml-request-group
-			(list group (nnagent-server server) dont-check)))
+			(list group (nnagent-server server) dont-check info)))
 
 (deffoo nnagent-close-group (group &optional server)
   (nnoo-parent-function 'nnagent 'nnml-close-group

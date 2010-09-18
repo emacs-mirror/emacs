@@ -482,7 +482,7 @@ all.  This may very well take some time.")
       (cons (if group-num (car group-num) group)
 	    (string-to-number (file-name-nondirectory path)))))))
 
-(deffoo nndiary-request-group (group &optional server dont-check)
+(deffoo nndiary-request-group (group &optional server dont-check info)
   (let ((file-name-coding-system nnmail-pathname-coding-system))
     (cond
      ((not (nndiary-possibly-change-directory group server))

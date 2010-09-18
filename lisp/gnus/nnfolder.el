@@ -289,7 +289,7 @@ the group.  Then the marks file will be regenerated properly by Gnus.")
 				      (point) (point-at-eol)))
 		    -1))))))))
 
-(deffoo nnfolder-request-group (group &optional server dont-check)
+(deffoo nnfolder-request-group (group &optional server dont-check info)
   (nnfolder-possibly-change-group group server t)
   (save-excursion
     (cond ((not (assoc group nnfolder-group-alist))

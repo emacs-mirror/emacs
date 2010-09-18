@@ -67,6 +67,9 @@ This is always done if the server supports UID EXPUNGE, but it's
 not done by default on servers that doesn't support that command.")
 
 (defvoo nnimap-connection-alist nil)
+
+(defvoo nnimap-current-infos nil)
+
 (defvar nnimap-process nil)
 
 (defvar nnimap-status-string "")
@@ -75,7 +78,7 @@ not done by default on servers that doesn't support that command.")
   "Internal variable with default value for `nnimap-split-download-body'.")
 
 (defstruct nnimap
-  group process commands capabilities)
+  group process commands capabilities select-result newlinep)
 
 (defvar nnimap-object nil)
 
@@ -95,7 +98,7 @@ not done by default on servers that doesn't support that command.")
 (defun nnimap-buffer ()
   (nnimap-find-process-buffer nntp-server-buffer))
 
-(defun nnimap-retrieve-headers (articles &optional group server fetch-old)
+(deffoo nnimap-retrieve-headers (articles &optional group server fetch-old)
   (with-current-buffer nntp-server-buffer
     (erase-buffer)
     (when (nnimap-possibly-change-group group server)
@@ -171,7 +174,7 @@ not done by default on servers that doesn't support that command.")
 	 result))
       (mapconcat #'identity (nreverse result) ",")))))
 
-(defun nnimap-open-server (server &optional defs)
+(deffoo nnimap-open-server (server &optional defs)
   (if (nnimap-server-opened server)
       t
     (unless (assq 'nnimap-address defs)
@@ -203,55 +206,69 @@ not done by default on servers that doesn't support that command.")
 				  ?p port)))))
     process))
 
+(defun nnimap-credentials (address ports)
+  (let (port credentials)
+    ;; Request the credentials from all ports, but only query on the
+    ;; last port if all the previous ones have failed.
+    (while (and (null credentials)
+		(setq port (pop ports)))
+      (setq credentials
+	    (auth-source-user-or-password
+	     '("login" "password") address port nil (null ports))))
+    credentials))
+
 (defun nnimap-open-connection (buffer)
   (with-current-buffer (nnimap-make-process-buffer buffer)
     (let* ((coding-system-for-read 'binary)
 	   (coding-system-for-write 'binary)
-	   (credentials
+	   (ports
 	    (cond
 	     ((eq nnimap-stream 'network)
-	      (open-network-stream "*nnimap*" (current-buffer) nnimap-address
-				   (or nnimap-server-port
-				       (if (netrc-find-service-number "imap")
-					   "imap"
-					 "143")))
-	      (auth-source-user-or-password
-	       '("login" "password") nnimap-address "imap" nil t))
-	     ((eq nnimap-stream 'stream)
+	      (open-network-stream
+	       "*nnimap*" (current-buffer) nnimap-address
+	       (or nnimap-server-port
+		   (if (netrc-find-service-number "imap")
+		       "imap"
+		     "143")))
+	      '("143" "imap"))
+	     ((eq nnimap-stream 'shell)
 	      (nnimap-open-shell-stream
 	       "*nnimap*" (current-buffer) nnimap-address
 	       (or nnimap-server-port "imap"))
-	      (auth-source-user-or-password
-	       '("login" "password") nnimap-address "imap" nil t))
+	      '("imap"))
 	     ((eq nnimap-stream 'ssl)
-	      (open-tls-stream "*nnimap*" (current-buffer) nnimap-address
-			       (or nnimap-server-port
-				   (if (netrc-find-service-number "imaps")
-				       "imaps"
-				     "993")))
-	      (or
-	       (auth-source-user-or-password
-		'("login" "password") nnimap-address "imap")
-	       (auth-source-user-or-password
-		'("login" "password") nnimap-address "imaps" nil t))))))
+	      (open-tls-stream
+	       "*nnimap*" (current-buffer) nnimap-address
+	       (or nnimap-server-port
+		   (if (netrc-find-service-number "imaps")
+		       "imaps"
+		     "993")))
+	      '("143" "993" "imap" "imaps"))))
+	   connection-result login-result credentials)
       (setf (nnimap-process nnimap-object)
 	    (get-buffer-process (current-buffer)))
-      (unless credentials
-	(delete-process (nnimap-process nnimap-object)))
       (when (and (nnimap-process nnimap-object)
 		 (memq (process-status (nnimap-process nnimap-object))
 		       '(open run)))
 	(gnus-set-process-query-on-exit-flag (nnimap-process nnimap-object) nil)
-	(let ((result (nnimap-command "LOGIN %S %S"
-				      (car credentials) (cadr credentials))))
-	  (if (not (car result))
-	      (progn
+	(when (setq connection-result (nnimap-wait-for-connection))
+	  (unless (equal connection-result "PREAUTH")
+	    (if (not (setq credentials
+			   (nnimap-credentials nnimap-address ports)))
+		(setq nnimap-object nil)
+	      (setq login-result (nnimap-command "LOGIN %S %S"
+						 (car credentials)
+						 (cadr credentials)))
+	      (unless (car login-result)
 		(delete-process (nnimap-process nnimap-object))
-		nil)
+		(setq nnimap-object nil))))
+	  (when nnimap-object
+	    (when (eq nnimap-stream 'shell)
+	      (setf (nnimap-newlinep nnimap-object) t))
 	    (setf (nnimap-capabilities nnimap-object)
 		  (mapcar
 		   #'upcase
-		   (or (nnimap-find-parameter "CAPABILITY" (cdr result))
+		   (or (nnimap-find-parameter "CAPABILITY" (cdr login-result))
 		       (nnimap-find-parameter
 			"CAPABILITY" (cdr (nnimap-command "CAPABILITY"))))))
 	    (when (member "QRESYNC" (nnimap-capabilities nnimap-object))
@@ -270,22 +287,22 @@ not done by default on servers that doesn't support that command.")
 	(setq result (cdr (cadr elem))))))
     result))
 
-(defun nnimap-close-server (&optional server)
+(deffoo nnimap-close-server (&optional server)
   t)
 
-(defun nnimap-request-close ()
+(deffoo nnimap-request-close ()
   t)
 
-(defun nnimap-server-opened (&optional server)
+(deffoo nnimap-server-opened (&optional server)
   (and (nnoo-current-server-p 'nnimap server)
        nntp-server-buffer
        (gnus-buffer-live-p nntp-server-buffer)
        (nnimap-find-connection nntp-server-buffer)))
 
-(defun nnimap-status-message (&optional server)
+(deffoo nnimap-status-message (&optional server)
   nnimap-status-string)
 
-(defun nnimap-request-article (article &optional group server to-buffer)
+(deffoo nnimap-request-article (article &optional group server to-buffer)
   (with-current-buffer nntp-server-buffer
     (let ((result (nnimap-possibly-change-group group server)))
       (when (stringp article)
@@ -314,21 +331,46 @@ not done by default on servers that doesn't support that command.")
 		(nnheader-ms-strip-cr))
 	      t)))))))
 
-(defun nnimap-request-group (group &optional server dont-check)
+(deffoo nnimap-request-group (group &optional server dont-check info)
   (with-current-buffer nntp-server-buffer
     (let ((result (nnimap-possibly-change-group group server))
-	  articles)
+	  articles active marks high low)
       (when result
-	(setq articles (nnimap-get-flags "1:*"))
-	(erase-buffer)
-	(insert
-	 (format
-	  "211 %d %d %d %S\n"
-	  (length articles)
-	  (or (caar articles) 0)
-	  (or (caar (last articles)) 0)
-	  group))
-	t))))
+	(if (and dont-check
+		 (setq active (nth 2 (assoc group nnimap-current-infos))))
+	    (insert (format "211 %d %d %d %S\n"
+			    (- (cdr active) (car active))
+			    (car active)
+			    (cdr active)
+			    group))
+	  (with-current-buffer (nnimap-buffer)
+	    (erase-buffer)
+	    (let ((group-sequence
+		   (nnimap-send-command "SELECT %S" (utf7-encode group)))
+		  (flag-sequence
+		   (nnimap-send-command "UID FETCH 1:* FLAGS")))
+	      (nnimap-wait-for-response flag-sequence)
+	      (setq marks
+		    (nnimap-flags-to-marks
+		     (nnimap-parse-flags
+		      (list (list group-sequence flag-sequence 1 group)))))
+	      (when info
+		(nnimap-update-infos marks (list info)))
+	      (goto-char (point-max))
+	      (cond
+	       (marks
+		(setq high (nth 3 (car marks))
+		      low (nth 4 (car marks))))
+	       ((re-search-backward "UIDNEXT \\([0-9]+\\)" nil t)
+		(setq high (string-to-number (match-string 1))
+		      low 1)))))
+	  (erase-buffer)
+	  (insert
+	   (format
+	    "211 %d %d %d %S\n"
+	    (1+ (- high low))
+	    low high group))))
+      t)))
 
 (defun nnimap-get-flags (spec)
   (let ((articles nil)
@@ -345,7 +387,7 @@ not done by default on servers that doesn't support that command.")
 	      articles)))
     (nreverse articles)))
 
-(defun nnimap-close-group (group &optional server)
+(deffoo nnimap-close-group (group &optional server)
   t)
 
 (deffoo nnimap-request-move-article (article group server accept-form
@@ -417,7 +459,7 @@ not done by default on servers that doesn't support that command.")
 	(push flag flags)))
     flags))
 
-(defun nnimap-request-set-mark (group actions &optional server)
+(deffoo nnimap-request-set-mark (group actions &optional server)
   (when (nnimap-possibly-change-group group server)
     (let (sequence)
       (with-current-buffer (nnimap-buffer)
@@ -449,7 +491,10 @@ not done by default on servers that doesn't support that command.")
 			"APPEND %S {%d}" (utf7-encode group t)
 			(length message)))
 	(process-send-string (get-buffer-process (current-buffer)) message)
-	(process-send-string (get-buffer-process (current-buffer)) "\r\n")
+	(process-send-string (get-buffer-process (current-buffer))
+			     (if (nnimap-newlinep nnimap-object)
+				 "\n"
+			       "\r\n"))
 	(let ((result (nnimap-get-response sequence)))
 	  (when result
 	    (cons group
@@ -471,7 +516,7 @@ not done by default on servers that doesn't support that command.")
 	  (push (car (last line)) groups)))
       (nreverse groups))))
 
-(defun nnimap-request-list (&optional server)
+(deffoo nnimap-request-list (&optional server)
   (nnimap-possibly-change-group nil server)
   (with-current-buffer nntp-server-buffer
     (erase-buffer)
@@ -514,7 +559,7 @@ not done by default on servers that doesn't support that command.")
 				  (or highest exists)))))))))
 	t))))
 
-(defun nnimap-retrieve-group-data-early (server infos)
+(deffoo nnimap-retrieve-group-data-early (server infos)
   (when (nnimap-possibly-change-group nil server)
     (with-current-buffer (nnimap-buffer)
       ;; QRESYNC handling isn't implemented.
@@ -554,7 +599,7 @@ not done by default on servers that doesn't support that command.")
 		    sequences))))
 	sequences))))
 
-(defun nnimap-finish-retrieve-group-infos (server infos sequences)
+(deffoo nnimap-finish-retrieve-group-infos (server infos sequences)
   (when (and sequences
 	     (nnimap-possibly-change-group nil server))
     (with-current-buffer (nnimap-buffer)
@@ -601,9 +646,11 @@ not done by default on servers that doesn't support that command.")
 	  (when (> start-article 1)
 	    (setq read
 		  (gnus-range-nconcat
-		   (gnus-sorted-range-intersection
-		    (cons 1 start-article)
-		    (gnus-info-read info))
+		   (if (> start-article 1)
+		       (gnus-sorted-range-intersection
+			(cons 1 (1- start-article))
+			(gnus-info-read info))
+		     (gnus-info-read info))
 		   read)))
 	  (gnus-info-set-read info read)
 	  ;; Update the marks.
@@ -622,12 +669,20 @@ not done by default on servers that doesn't support that command.")
 	      (when (and old-marks
 			 (> start-article 1))
 		(setq old-marks (gnus-range-difference
-				 (cons start-article high)
-				 old-marks))
+				 old-marks
+				 (cons start-article high)))
 		(setq new-marks (gnus-range-nconcat old-marks new-marks)))
 	      (when new-marks
 		(push (cons (car type) new-marks) marks)))
-	    (gnus-info-set-marks info marks)))))))
+	    (gnus-info-set-marks info marks t)
+	    (nnimap-store-info info (gnus-active group))))))))
+
+(defun nnimap-store-info (info active)
+  (let* ((group (gnus-group-real-name (gnus-info-group info)))
+	 (entry (assoc group nnimap-current-infos)))
+    (if entry
+	(setcdr entry (list info active))
+      (push (list group info active) nnimap-current-infos))))
 
 (defun nnimap-flags-to-marks (groups)
   (let (data group totalp uidnext articles start-article mark)
@@ -681,7 +736,7 @@ not done by default on servers that doesn't support that command.")
 (defun nnimap-find-process-buffer (buffer)
   (cadr (assoc buffer nnimap-connection-alist)))
 
-(defun nnimap-request-post (&optional server)
+(deffoo nnimap-request-post (&optional server)
   (setq nnimap-status-string "Read-only server")
   nil)
 
@@ -701,7 +756,8 @@ not done by default on servers that doesn't support that command.")
 	    t
 	  (let ((result (nnimap-command "SELECT %S" (utf7-encode group t))))
 	    (when (car result)
-	      (setf (nnimap-group nnimap-object) group)
+	      (setf (nnimap-group nnimap-object) group
+		    (nnimap-select-result nnimap-object) result)
 	      result))))))))
 
 (defun nnimap-find-connection (buffer)
@@ -722,9 +778,12 @@ not done by default on servers that doesn't support that command.")
   (process-send-string
    (get-buffer-process (current-buffer))
    (nnimap-log-command
-    (format "%d %s\r\n"
+    (format "%d %s%s\n"
 	    (incf nnimap-sequence)
-	    (apply #'format args))))
+	    (apply #'format args)
+	    (if (nnimap-newlinep nnimap-object)
+		""
+	      "\r"))))
   nnimap-sequence)
 
 (defun nnimap-log-command (command)
@@ -747,12 +806,22 @@ not done by default on servers that doesn't support that command.")
   (nnimap-wait-for-response sequence)
   (nnimap-parse-response))
 
+(defun nnimap-wait-for-connection ()
+  (let ((process (get-buffer-process (current-buffer))))
+    (goto-char (point-min))
+    (while (and (memq (process-status process)
+		      '(open run))
+		(not (re-search-forward "^\\* " nil t)))
+      (nnheader-accept-process-output process)
+      (goto-char (point-min)))
+    (and (looking-at "[A-Z0-9]+")
+	 (match-string 0))))
+
 (defun nnimap-wait-for-response (sequence &optional messagep)
   (goto-char (point-max))
-  (while (or (bobp)
-	     (progn
-	       (forward-line -1)
-	       (not (looking-at (format "^%d .*\n" sequence)))))
+  (while (not (re-search-backward (format "^%d .*\n" sequence)
+				  (max (point-min) (- (point) 500))
+				  t))
     (when messagep
       (message "Read %dKB" (/ (buffer-size) 1000)))
     (nnheader-accept-process-output (get-buffer-process (current-buffer)))

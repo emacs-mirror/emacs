@@ -983,7 +983,7 @@ by nnmaildir-request-article.")
       (setf (nnmaildir--grp-mmth group) new-mmth)
       info)))
 
-(defun nnmaildir-request-group (gname &optional server fast)
+(defun nnmaildir-request-group (gname &optional server fast info)
   (let ((group (nnmaildir--prepare server gname))
 	deactivate-mark)
     (catch 'return

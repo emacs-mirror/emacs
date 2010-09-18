@@ -264,7 +264,7 @@ from the document.")
 	    (funcall nndoc-article-transform-function article))
 	  t))))))
 
-(deffoo nndoc-request-group (group &optional server dont-check)
+(deffoo nndoc-request-group (group &optional server dont-check info)
   "Select news GROUP."
   (let (number)
     (cond

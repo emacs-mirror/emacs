@@ -182,7 +182,7 @@ are generated if and only if they are also in `message-draft-headers'.")
       (add-hook hook 'nndraft-generate-headers nil t))
     article))
 
-(deffoo nndraft-request-group (group &optional server dont-check)
+(deffoo nndraft-request-group (group &optional server dont-check info)
   (nndraft-possibly-change-group group)
   (unless dont-check
     (let* ((pathname (nnmail-group-pathname group nndraft-directory))

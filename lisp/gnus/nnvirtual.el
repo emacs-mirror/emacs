@@ -247,7 +247,7 @@ component group will show up when you enter the virtual group.")
       t)))
 
 
-(deffoo nnvirtual-request-group (group &optional server dont-check)
+(deffoo nnvirtual-request-group (group &optional server dont-check info)
   (nnvirtual-possibly-change-server server)
   (setq nnvirtual-component-groups
 	(delete (nnvirtual-current-group) nnvirtual-component-groups))

@@ -1,6 +1,67 @@
+2010-09-18  Julien Danjou  <julien@danjou.info>
+
+	* gnus-html.el (gnus-html-schedule-image-fetching): Fetch all images in
+	parallel.
+
 2010-09-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* nnimap.el: Require nnoo and other files necessary.
+	* nnimap.el (nnimap-update-info): When doing partial marks update, get
+	the range update right.
+	(nnimap-request-group): Don't make `M-g' bug out on group with no
+	marks.
+	(nnoo): Required, so that other packages can require nnimap.
+	(nnimap-wait-for-response): Be a bit more lax in finding the end of the
+	command we're looking for.  This helps when the server sends more
+	responses after we've gotten everything we expected.
+	(nnimap): Add a `newlinep' field to keep track of end-of-line
+	conventions.
+	Don't send CRLF to things that don't want it.
+	(nnimap-request-accept-article): Ditto.
+
+2010-09-18  Julien Danjou  <julien@danjou.info>
+
+	* gnus-html.el (gnus-html-schedule-image-fetching): Use `url' rather
+	than curl to retrieve images.
+
+2010-09-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-update-info): Extend the info so that we can set
+	the marks.
+	(nnimap-open-connection): Fix typo -- should be 'shell, not 'stream.
+	(nnimap-wait-for-connection): New function.
+	(nnimap-open-connection): If we have PREAUTH, don't query for login
+	credentials.
+	(nnimap-update-info): Fix off-by-one error when concatenating ranges
+	when doing a partial update.
+
+2010-09-18  Julien Danjou  <julien@danjou.info>
+
+	* gnus-html.el (gnus-html-wash-tags): Add support for i, b and u HTML
+	tags.
+
+2010-09-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-credentials): New function.
+	(nnimap-open-connection): Use the new function to look for credentials
+	also on the numeric equivalents of "imap" and "imaps".
+
+	* gnus-start.el (gnus-activate-group): Send the info to
+	gnus-request-group.
+
+	* nnimap.el (nnimap-request-group): Have the "check" version of the
+	function parse flags and update the info, so that a `M-g' get a total
+	resync of all flags from the group.
+
+	* gnus-int.el (gnus-request-group): Take an optional `info' parameter
+	to allow backends to alter the info on group selection.  Also alter all
+	the backend -request-group functions to take the parameter.
+
+	* nnimap.el (nnimap-store-info): New function.
+	(nnimap-update-info): Store the info for later usage.
+	(nnimap-request-group): Use the stored info for the dont-check case, so
+	that we don't retrieve all marks when we enter a group.
+
+	* nnimap.el: Use deffoo instead of defun for interface functions.
 
 	* gnus-start.el (gnus-get-unread-articles): Allow the backends to
 	update the group info.  This makes the nndraft groups, for instance, go

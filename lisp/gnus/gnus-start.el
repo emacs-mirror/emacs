@@ -1536,10 +1536,12 @@ If SCAN, request a scan of that group as well."
 	   t)
 	 (if (or debug-on-error debug-on-quit)
 	     (inline (gnus-request-group group (or dont-sub-check dont-check)
-					 method))
+					 method
+					 (gnus-get-info group)))
 	   (condition-case nil
 	       (inline (gnus-request-group group (or dont-sub-check dont-check)
-					   method))
+					   method
+					   (gnus-get-info group)))
 	     ;;(error nil)
 	     (quit
 	      (message "Quit activating %s" group)

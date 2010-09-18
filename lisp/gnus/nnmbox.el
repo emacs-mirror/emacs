@@ -172,7 +172,7 @@
 	      (cons nnmbox-current-group article)
 	    (nnmbox-article-group-number nil)))))))
 
-(deffoo nnmbox-request-group (group &optional server dont-check)
+(deffoo nnmbox-request-group (group &optional server dont-check info)
   (nnmbox-possibly-change-newsgroup nil server)
   (let ((active (cadr (assoc group nnmbox-group-alist))))
     (cond

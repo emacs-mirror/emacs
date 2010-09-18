@@ -226,7 +226,7 @@ there.")
 	(nnheader-fold-continuation-lines)))
     res))
 
-(deffoo nnspool-request-group (group &optional server dont-check)
+(deffoo nnspool-request-group (group &optional server dont-check info)
   "Select news GROUP."
   (let ((pathname (nnspool-article-pathname group))
 	dir)

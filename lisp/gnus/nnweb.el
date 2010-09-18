@@ -124,7 +124,7 @@ Valid types include `google', `dejanews', and `gmane'.")
     (nnweb-write-active)
     (nnweb-write-overview group)))
 
-(deffoo nnweb-request-group (group &optional server dont-check)
+(deffoo nnweb-request-group (group &optional server dont-check info)
   (nnweb-possibly-change-server group server)
   (unless (or nnweb-ephemeral-p
 	      dont-check

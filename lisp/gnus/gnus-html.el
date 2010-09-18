@@ -33,6 +33,7 @@
 
 (require 'gnus-art)
 (require 'mm-url)
+(require 'url)
 
 (defcustom gnus-html-cache-directory (nnheader-concat gnus-directory "html-cache/")
   "Where Gnus will cache images it downloads from the web."
@@ -253,6 +254,12 @@ fit these criteria."
        ((equal tag "IMG_ALT")
 	(delete-region start end))
        ;; Whatever.  Just ignore the tag.
+       ((equal tag "b")
+        (gnus-overlay-put (gnus-make-overlay start end) 'face 'bold))
+       ((equal tag "U")
+        (gnus-overlay-put (gnus-make-overlay start end) 'face 'underline))
+       ((equal tag "i")
+        (gnus-overlay-put (gnus-make-overlay start end) 'face 'italic))
        (t
 	))
       (goto-char start))
@@ -290,42 +297,32 @@ fit these criteria."
 (defun gnus-html-schedule-image-fetching (buffer images)
   (gnus-message 8 "gnus-html-schedule-image-fetching: buffer %s, images %s"
                 buffer images)
-  (when (executable-find "curl")
-    (let* ((url (caar images))
-	   (process (start-process
-		     "images" nil "curl"
-		     "-s" "--create-dirs"
-		     "--location"
-		     "--max-time" "60"
-		     "-o" (gnus-html-image-id url)
-		     (mm-url-decode-entities-string url))))
-      (gnus-set-process-query-on-exit-flag process nil)
-      (set-process-sentinel process 'gnus-html-curl-sentinel)
-      (gnus-set-process-plist process (list 'images images
-					    'buffer buffer)))))
+  (dolist (image images)
+    (url-retrieve (car image)
+                  'gnus-html-image-fetched
+                  (list buffer image))))
 
 (defun gnus-html-image-id (url)
   (expand-file-name (sha1 url) gnus-html-cache-directory))
 
-(defun gnus-html-curl-sentinel (process event)
-  (when (string-match "finished" event)
-    (let* ((images (gnus-process-get process 'images))
-	   (buffer (gnus-process-get process 'buffer))
-	   (spec (pop images))
-	   (file (gnus-html-image-id (car spec))))
-      (when (and (buffer-live-p buffer)
-		 ;; If the position of the marker is 1, then that
-		 ;; means that the text it was in has been deleted;
-		 ;; i.e., that the user has selected a different
-		 ;; article before the image arrived.
-		 (not (= (marker-position (cadr spec)) (point-min))))
-	(with-current-buffer buffer
-	  (let ((inhibit-read-only t)
-		(string (buffer-substring (cadr spec) (caddr spec))))
-	    (delete-region (cadr spec) (caddr spec))
-	    (gnus-html-put-image file (cadr spec) string))))
-      (when images
-	(gnus-html-schedule-image-fetching buffer images)))))
+(defun gnus-html-image-fetched (status buffer image)
+  (when (and (buffer-live-p buffer)
+             ;; If the position of the marker is 1, then that
+             ;; means that the text it was in has been deleted;
+             ;; i.e., that the user has selected a different
+             ;; article before the image arrived.
+             (not (= (marker-position (cadr image)) (point-min))))
+    (let ((file (gnus-html-image-id (car image))))
+      ;; Search the start of the image data
+      (search-forward "\n\n")
+      ;; Write region (image) silently
+      (write-region (point) (point-max) file nil 1)
+      (kill-buffer)
+      (with-current-buffer buffer
+        (let ((inhibit-read-only t)
+              (string (buffer-substring (cadr image) (caddr image))))
+          (delete-region (cadr image) (caddr image))
+          (gnus-html-put-image file (cadr image) string))))))
 
 (defun gnus-html-put-image (file point string &optional url alt-text)
   (when (gnus-graphic-display-p)

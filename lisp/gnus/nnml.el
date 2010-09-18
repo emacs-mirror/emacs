@@ -254,7 +254,7 @@ non-nil.")
       (cons (if group-num (car group-num) group)
 	    (string-to-number (file-name-nondirectory path)))))))
 
-(deffoo nnml-request-group (group &optional server dont-check)
+(deffoo nnml-request-group (group &optional server dont-check info)
   (let ((file-name-coding-system nnmail-pathname-coding-system)
 	(decoded (nnml-decoded-group-name group server)))
     (cond

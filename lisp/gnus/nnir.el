@@ -733,7 +733,7 @@ and show thread that contains this article."
   ;; Just set the server variables appropriately.
   (nnoo-change-server 'nnir server definitions))
 
-(deffoo nnir-request-group (group &optional server fast)
+(deffoo nnir-request-group (group &optional server fast info)
   "GROUP is the query string."
   (nnir-possibly-change-server server)
   ;; Check for cache and return that if appropriate.

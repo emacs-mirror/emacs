@@ -191,7 +191,7 @@
 	      (cons nnbabyl-current-group article)
 	    (nnbabyl-article-group-number)))))))
 
-(deffoo nnbabyl-request-group (group &optional server dont-check)
+(deffoo nnbabyl-request-group (group &optional server dont-check info)
   (let ((active (cadr (assoc group nnbabyl-group-alist))))
     (save-excursion
       (cond

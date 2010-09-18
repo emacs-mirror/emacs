@@ -144,7 +144,7 @@ included.")
 	     (insert "\n"))
 	   t))))
 
-(deffoo nneething-request-group (group &optional server dont-check)
+(deffoo nneething-request-group (group &optional server dont-check info)
   (nneething-possibly-change-directory group server)
   (unless dont-check
     (nneething-create-mapping)

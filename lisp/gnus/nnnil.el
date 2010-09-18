@@ -56,7 +56,7 @@
   (setq nnnil-status-string "No such group")
   nil)
 
-(defun nnnil-request-group (group &optional server fast)
+(defun nnnil-request-group (group &optional server fast info)
   (let (deactivate-mark)
     (with-current-buffer nntp-server-buffer
       (erase-buffer)

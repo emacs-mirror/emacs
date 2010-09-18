@@ -987,7 +987,7 @@ command whose response triggered the error."
     "\r?\n\\.\r?\n" "BODY"
     (if (numberp article) (int-to-string article) article))))
 
-(deffoo nntp-request-group (group &optional server dont-check)
+(deffoo nntp-request-group (group &optional server dont-check info)
   (nntp-with-open-group
     nil server
     (when (nntp-send-command "^[245].*\n" "GROUP" group)
