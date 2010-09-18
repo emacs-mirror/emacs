@@ -1,5 +1,7 @@
 2010-09-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* nnimap.el: Require nnoo and other files necessary.
+
 	* gnus-start.el (gnus-get-unread-articles): Allow the backends to
 	update the group info.  This makes the nndraft groups, for instance, go
 	back to their old behaviour.
