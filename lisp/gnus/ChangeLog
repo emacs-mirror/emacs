@@ -1,3 +1,103 @@
+2010-09-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-select-newsgroup): Indent.
+
+	* nnimap.el (nnimap-possibly-change-group): Return nil if we can't log
+	in.
+	(nnimap-finish-retrieve-group-infos): Make sure we're not waiting for
+	nothing.
+
+	* gnus-start.el (gnus-get-unread-articles): Don't try to scan groups
+	from methods that are denied.
+
+	* gnus-int.el (gnus-method-denied-p): New function.
+
+	* nnimap.el (nnimap-open-connection): Use auth-sources to query and
+	store the password instead of netrc.
+	(nnimap-open-connection): Don't error out when we can't make a
+	connections.
+
+	* auth-source.el (auth-source-create): In the password prompt, say what
+	we're querying for.  Also prompt for user name if that hasn't been
+	given.
+
+	* nnimap.el (nnimap-with-process-buffer): Removed.
+
+2010-09-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-read-active-for-groups): Don't use the "finish"
+	method when we're reading from the agent.
+
+	* nnagent.el (nnagent-retrieve-group-data-early): New dummy method.
+
+	* auth-source.el (auth-sources): Add ~/.authinfo to the default, since
+	that's probably most useful for users.
+
+	* gnus-int.el (gnus-check-server): Save result so that it doesn't say
+	"failed" all the time.
+
+	* gnus.el: Throughout all files, replace (save-excursion (set-buffer
+	...)) with (with-current-buffer ... ).
+
+	* nntp.el (nntp-open-server): Return whether the open was successful or
+	not.
+
+	* gnus-sum.el (gnus-summary-first-subject): Have `unseen-or-unread'
+	select an unread unseen article first.
+
+	* nnimap.el (nnimap-open-connection): If the user doesn't have a
+	/etc/services, supply some sensible port defaults.
+
+	* dgnushack.el: Define netrc-credentials.
+
+2010-09-17  Julien Danjou  <julien@danjou.info>  (tiny fix)
+
+	* mm-decode.el (mm-text-html-renderer): Document gnus-article-html.
+
+2010-09-17  Knut Anders Hatlen  <kahatlen@gmail.com>  (tiny change)
+
+	* nnimap.el (nnimap-get-groups): Don't bug out if the LIST command
+	doesn't have any parameters.
+
+2010-09-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-open-connection): Upcase all capabilities, and use
+	only upcased checks.
+
+	* nnmail.el (nnmail-article-group): Fix typo in "bogus" section.
+
+	* nnimap.el (nnimap-open-shell-stream): New function.
+	(nnimap-open-connection): Use it.
+	(nnimap-transform-headers): Get the number of lines in each message.
+	(nnimap-retrieve-headers): Query for BODYSTRUCTURE so that we get the
+	number of lines.
+	(nnimap-request-list): Not all servers return UIDNEXT.  Work past this
+	problem.
+
+	* utf7.el (utf7-encode): Autoload.
+
+	* nnmail.el (nnmail-inhibit-default-split-group): New internal variable
+	to allow the mail splitting to not return a default group.  This is
+	useful for nnimap, which will leave unmatched mail in the inbox.
+
+	* nnimap.el: Rewritten.
+
+	* gnus.el (gnus-article-special-mark-lists): Add uid/active tuples, for
+	nnimap usage.
+
+	* gnus-sum.el (gnus-summary-move-article): Pass the move-to group name
+	if the move is internal, so that nnimap can do fast internal moves.
+
+	* gnus-start.el (gnus-get-unread-articles): Support early retrieval of
+	data.
+	(gnus-read-active-for-groups): Support finishing the early retrieval of
+	data.
+
+	* gnus-range.el (gnus-range-nconcat): New function.
+
+	* gnus-int.el (gnus-finish-retrieve-group-infos)
+	(gnus-retrieve-group-data-early): New functions.
+
 2010-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* nnrss.el (nnrss-retrieve-headers, nnrss-request-list-newsgroups)
