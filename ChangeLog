@@ -1,3 +1,8 @@
+2010-09-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.bat: Detect that libxml2 is installed and if so, build
+	with it.
+
 2010-09-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* configure.in (HAVE_LIBXML2): Check that the libxml2 we found can
