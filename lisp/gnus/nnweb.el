@@ -104,8 +104,7 @@ Valid types include `google', `dejanews', and `gmane'.")
 
 (deffoo nnweb-retrieve-headers (articles &optional group server fetch-old)
   (nnweb-possibly-change-server group server)
-  (save-excursion
-    (set-buffer nntp-server-buffer)
+  (with-current-buffer nntp-server-buffer
     (erase-buffer)
     (let (article header)
       (mm-with-unibyte-current-buffer
@@ -147,16 +146,14 @@ Valid types include `google', `dejanews', and `gmane'.")
 (deffoo nnweb-close-group (group &optional server)
   (nnweb-possibly-change-server group server)
   (when (gnus-buffer-live-p nnweb-buffer)
-    (save-excursion
-      (set-buffer nnweb-buffer)
+    (with-current-buffer nnweb-buffer
       (set-buffer-modified-p nil)
       (kill-buffer nnweb-buffer)))
   t)
 
 (deffoo nnweb-request-article (article &optional group server buffer)
   (nnweb-possibly-change-server group server)
-  (save-excursion
-    (set-buffer (or buffer nntp-server-buffer))
+  (with-current-buffer (or buffer nntp-server-buffer)
     (let* ((header (cadr (assq article nnweb-articles)))
 	   (url (and header (mail-header-xref header))))
       (when (or (and url
@@ -185,16 +182,14 @@ Valid types include `google', `dejanews', and `gmane'.")
 (deffoo nnweb-close-server (&optional server)
   (when (and (nnweb-server-opened server)
 	     (gnus-buffer-live-p nnweb-buffer))
-    (save-excursion
-      (set-buffer nnweb-buffer)
+    (with-current-buffer nnweb-buffer
       (set-buffer-modified-p nil)
       (kill-buffer nnweb-buffer)))
   (nnoo-close-server 'nnweb server))
 
 (deffoo nnweb-request-list (&optional server)
   (nnweb-possibly-change-server nil server)
-  (save-excursion
-    (set-buffer nntp-server-buffer)
+  (with-current-buffer nntp-server-buffer
     (nnmail-generate-active (list (assoc server nnweb-group-alist)))
     t))
 
@@ -402,8 +397,7 @@ Valid types include `google', `dejanews', and `gmane'.")
 
 (defun nnweb-google-create-mapping ()
   "Perform the search and create a number-to-url alist."
-  (save-excursion
-    (set-buffer nnweb-buffer)
+  (with-current-buffer nnweb-buffer
     (erase-buffer)
     (nnheader-message 7 "Searching google...")
     (when (funcall (nnweb-definition 'search) nnweb-search)
@@ -459,8 +453,7 @@ Valid types include `google', `dejanews', and `gmane'.")
 ;;;
 (defun nnweb-gmane-create-mapping ()
   "Perform the search and create a number-to-url alist."
-  (save-excursion
-    (set-buffer nnweb-buffer)
+  (with-current-buffer nnweb-buffer
     (let ((case-fold-search t)
 	  (active (or (cadr (assoc nnweb-group nnweb-group-alist))
 		      (cons 1 0)))

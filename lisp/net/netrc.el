@@ -228,6 +228,7 @@ MODE can be \"login\" or \"password\", suitable for passing to
 			  (eq type (car (cddr service)))))))
     (cadr service)))
 
+;;;###autoload
 (defun netrc-credentials (machine &rest ports)
   "Return a user name/password pair.
 Port specifications will be prioritised in the order they are

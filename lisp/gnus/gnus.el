@@ -2743,6 +2743,8 @@ a string, be sure to use a valid format, see RFC 2616."
   '((seen range)
     (killed range)
     (bookmark tuple)
+    (uid tuple)
+    (active tuple)
     (score tuple)))
 
 ;; Propagate flags to server, with the following exceptions:

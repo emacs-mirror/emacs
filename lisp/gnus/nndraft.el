@@ -77,8 +77,7 @@ are generated if and only if they are also in `message-draft-headers'.")
 
 (deffoo nndraft-retrieve-headers (articles &optional group server fetch-old)
   (nndraft-possibly-change-group group)
-  (save-excursion
-    (set-buffer nntp-server-buffer)
+  (with-current-buffer nntp-server-buffer
     (erase-buffer)
     (let* (article)
       ;; We don't support fetching by Message-ID.
@@ -119,8 +118,7 @@ are generated if and only if they are also in `message-draft-headers'.")
 			      mm-text-coding-system)
 			  mm-auto-save-coding-system)))
 		   (nnmail-find-file newest)))
-	(save-excursion
-	  (set-buffer nntp-server-buffer)
+	(with-current-buffer nntp-server-buffer
 	  (goto-char (point-min))
 	  ;; If there's a mail header separator in this file,
 	  ;; we remove it.
@@ -209,8 +207,7 @@ are generated if and only if they are also in `message-draft-headers'.")
 	result)
     (and
      (nndraft-request-article article group server)
-     (save-excursion
-       (set-buffer buf)
+     (with-current-buffer buf
        (erase-buffer)
        (insert-buffer-substring nntp-server-buffer)
        (setq result (eval accept-form))

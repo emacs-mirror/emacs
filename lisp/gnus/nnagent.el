@@ -252,6 +252,9 @@
   (nnoo-parent-function 'nnagent 'nnml-request-regenerate
 			(list (nnagent-server server))))
 
+(deffoo nnagent-retrieve-group-data-early (server infos)
+  nil)
+
 ;; Use nnml functions for just about everything.
 (nnoo-import nnagent
   (nnml))

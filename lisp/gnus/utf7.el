@@ -205,6 +205,7 @@ Characters are in raw byte pairs in narrowed buffer."
   (mm-decode-coding-region (point-min) (point-max) 'iso-8859-1)
   (mm-enable-multibyte))
 
+;;;###autoload
 (defun utf7-encode (string &optional for-imap)
   "Encode UTF-7 STRING.  Use IMAP modification if FOR-IMAP is non-nil."
   (if (and (coding-system-p 'utf-7) (coding-system-p 'utf-7-imap))

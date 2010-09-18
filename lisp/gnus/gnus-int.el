@@ -179,10 +179,7 @@ If it is down, start it up (again)."
 			(format " on %s" (nth 1 method)))))
       (gnus-run-hooks 'gnus-open-server-hook)
       (prog1
-	  (condition-case ()
-	      (setq result (gnus-open-server method))
-	    (quit (message "Quit gnus-check-server")
-		  nil))
+	  (setq result (gnus-open-server method))
 	(unless silent
 	  (gnus-message 5 "Opening %s server%s...%s" (car method)
 			(if (equal (nth 1 method) "") ""
@@ -224,6 +221,10 @@ If it is down, start it up (again)."
 ;;;
 ;;; Interface functions to the backends.
 ;;;
+
+(defun gnus-method-denied-p (method)
+  (eq (nth 1 (assoc method gnus-opened-servers))
+      'denied))
 
 (defun gnus-open-server (gnus-command-method)
   "Open a connection to GNUS-COMMAND-METHOD."
@@ -318,6 +319,22 @@ If it is down, start it up (again)."
     (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
   (funcall (gnus-get-function gnus-command-method 'request-list)
 	   (nth 1 gnus-command-method)))
+
+(defun gnus-finish-retrieve-group-infos (gnus-command-method infos data)
+  "Read and update infos from GNUS-COMMAND-METHOD."
+  (when (stringp gnus-command-method)
+    (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
+  (funcall (gnus-get-function gnus-command-method 'finish-retrieve-group-infos)
+	   (nth 1 gnus-command-method)
+	   infos data))
+
+(defun gnus-retrieve-group-data-early (gnus-command-method infos)
+  "Start early async retrival of data from GNUS-COMMAND-METHOD."
+  (when (stringp gnus-command-method)
+    (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
+  (funcall (gnus-get-function gnus-command-method 'retrieve-group-data-early)
+	   (nth 1 gnus-command-method)
+	   infos))
 
 (defun gnus-request-list-newsgroups (gnus-command-method)
   "Request the newsgroups file from GNUS-COMMAND-METHOD."
@@ -490,8 +507,7 @@ If BUFFER, insert the article in that group."
       (setq res (gnus-request-article article group)
 	    clean-up t)))
     (when clean-up
-      (save-excursion
-	(set-buffer nntp-server-buffer)
+      (with-current-buffer nntp-server-buffer
 	(goto-char (point-min))
 	(when (search-forward "\n\n" nil t)
 	  (delete-region (1- (point)) (point-max)))
@@ -523,8 +539,7 @@ If BUFFER, insert the article in that group."
       (setq res (gnus-request-article article group)
 	    clean-up t)))
     (when clean-up
-      (save-excursion
-	(set-buffer nntp-server-buffer)
+      (with-current-buffer nntp-server-buffer
 	(goto-char (point-min))
 	(when (search-forward "\n\n" nil t)
 	  (delete-region (point-min) (1- (point))))))

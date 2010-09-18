@@ -305,8 +305,7 @@ buffer.  Automatically blocks multiple updates due to recursion."
 `(prog1 (let ((gnus-agent-inhibit-update-total-fetched-for t)) ,@body)
      (when (and gnus-agent-need-update-total-fetched-for
 		(not gnus-agent-inhibit-update-total-fetched-for))
-	(save-excursion
-	  (set-buffer gnus-group-buffer)
+	(with-current-buffer gnus-group-buffer
 	  (setq gnus-agent-need-update-total-fetched-for nil)
 	  (gnus-group-update-group ,group t)))))
 
@@ -474,8 +473,7 @@ manipulated as follows:
 (defun gnus-agent-stop-fetch ()
   "Save all data structures and clean up."
   (setq gnus-agent-spam-hashtb nil)
-  (save-excursion
-    (set-buffer nntp-server-buffer)
+  (with-current-buffer nntp-server-buffer
     (widen)))
 
 (defmacro gnus-agent-with-fetch (&rest forms)
@@ -1608,8 +1606,7 @@ downloaded into the agent."
 		       nntp-server-buffer (point-min) (point-max))
                       (setq pos (nreverse pos)))))
                 ;; Then save these articles into the Agent.
-                (save-excursion
-                  (set-buffer nntp-server-buffer)
+                (with-current-buffer nntp-server-buffer
                   (while pos
                     (narrow-to-region (cdar pos) (or (cdadr pos) (point-max)))
                     (goto-char (point-min))
@@ -1693,8 +1690,7 @@ downloaded into the agent."
   (setq date (or date t))
 
   (let (gnus-agent-article-alist group alist beg end)
-    (save-excursion
-      (set-buffer gnus-agent-overview-buffer)
+    (with-current-buffer gnus-agent-overview-buffer
       (when (nnheader-find-nov-line article)
 	(forward-word 1)
 	(setq beg (point))
@@ -1705,9 +1701,8 @@ downloaded into the agent."
 	(push (setq alist (list group (gnus-agent-load-alist (caar crosses))))
 	      gnus-agent-group-alist))
       (setcdr alist (cons (cons (cdar crosses) date) (cdr alist)))
-      (save-excursion
-	(set-buffer (gnus-get-buffer-create (format " *Gnus agent overview %s*"
-						    group)))
+      (with-current-buffer (gnus-get-buffer-create
+			    (format " *Gnus agent overview %s*"group))
 	(when (= (point-max) (point-min))
 	  (push (cons group (current-buffer)) gnus-agent-buffer-alist)
 	  (ignore-errors
@@ -1939,9 +1934,7 @@ article numbers will be returned."
        10 "gnus-agent-fetch-headers: undownloaded articles are '%s'"
        (gnus-compress-sequence articles t))
 
-      (save-excursion
-        (set-buffer nntp-server-buffer)
-
+      (with-current-buffer nntp-server-buffer
         (if articles
             (progn
 	      (gnus-message 7 "Fetching headers for %s..."
@@ -2767,8 +2760,7 @@ The following commands are available:
 
 (defun gnus-category-setup-buffer ()
   (unless (get-buffer gnus-category-buffer)
-    (save-excursion
-      (set-buffer (gnus-get-buffer-create gnus-category-buffer))
+    (with-current-buffer (gnus-get-buffer-create gnus-category-buffer)
       (gnus-category-mode))))
 
 (defun gnus-category-prepare ()

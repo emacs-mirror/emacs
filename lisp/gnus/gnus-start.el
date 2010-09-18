@@ -594,8 +594,7 @@ Can be used to turn version control on or off."
 (defun gnus-subscribe-hierarchically (newgroup)
   "Subscribe new NEWGROUP and insert it in hierarchical newsgroup order."
   ;; Basic ideas by mike-w@cs.aukuni.ac.nz (Mike Williams)
-  (save-excursion
-    (set-buffer (nnheader-find-file-noselect gnus-current-startup-file))
+  (with-current-buffer (nnheader-find-file-noselect gnus-current-startup-file)
     (prog1
 	(let ((groupkey newgroup) before)
 	  (while (and (not before) groupkey)
@@ -857,8 +856,7 @@ prompt the user for the name of an NNTP server to use."
       ;; it's not needed).
       ;; (set-window-point (get-buffer-window (current-buffer)) (point-max))
       (bury-buffer gnus-dribble-buffer)
-      (save-excursion
-	(set-buffer gnus-group-buffer)
+      (with-current-buffer gnus-group-buffer
 	(gnus-group-set-mode-line))
       (set-buffer obuf))))
 
@@ -871,10 +869,9 @@ prompt the user for the name of an NNTP server to use."
   (let ((dribble-file (gnus-dribble-file-name)))
     (unless (file-exists-p (file-name-directory dribble-file))
       (make-directory (file-name-directory dribble-file) t))
-    (save-excursion
-      (set-buffer (setq gnus-dribble-buffer
-			(gnus-get-buffer-create
-			 (file-name-nondirectory dribble-file))))
+    (with-current-buffer (setq gnus-dribble-buffer
+			       (gnus-get-buffer-create
+				(file-name-nondirectory dribble-file)))
       (set (make-local-variable 'file-precious-flag) t)
       (erase-buffer)
       (setq buffer-file-name dribble-file)
@@ -923,8 +920,7 @@ prompt the user for the name of an NNTP server to use."
   (when (file-exists-p (gnus-dribble-file-name))
     (delete-file (gnus-dribble-file-name)))
   (when gnus-dribble-buffer
-    (save-excursion
-      (set-buffer gnus-dribble-buffer)
+    (with-current-buffer gnus-dribble-buffer
       (let ((auto (make-auto-save-file-name)))
 	(when (file-exists-p auto)
 	  (delete-file auto))
@@ -934,14 +930,12 @@ prompt the user for the name of an NNTP server to use."
 (defun gnus-dribble-save ()
   (when (and gnus-dribble-buffer
 	     (buffer-name gnus-dribble-buffer))
-    (save-excursion
-      (set-buffer gnus-dribble-buffer)
+    (with-current-buffer gnus-dribble-buffer
       (save-buffer))))
 
 (defun gnus-dribble-clear ()
   (when (gnus-buffer-exists-p gnus-dribble-buffer)
-    (save-excursion
-      (set-buffer gnus-dribble-buffer)
+    (with-current-buffer gnus-dribble-buffer
       (erase-buffer)
       (set-buffer-modified-p nil)
       (setq buffer-saved-size (buffer-size)))))
@@ -1302,8 +1296,7 @@ for new groups, and subscribe the new groups as zombies."
 	  (when (gnus-active group)
 	    (gnus-group-change-level
 	     group gnus-level-default-subscribed gnus-level-killed)))
-	(save-excursion
-	  (set-buffer gnus-group-buffer)
+	(with-current-buffer gnus-group-buffer
 	  ;; Don't error if the group already exists. This happens when a
 	  ;; first-time user types 'F'. -- didier
 	  (gnus-group-make-help-group t))
@@ -1734,7 +1727,7 @@ If SCAN, request a scan of that group as well."
 		'primary)
 	       (t
 		'foreign)))
-	(push (setq method-group-list (list method method-type nil))
+	(push (setq method-group-list (list method method-type nil nil))
 	      type-cache))
       ;; Only add groups that need updating.
       (if (<= (gnus-info-level info)
@@ -1760,19 +1753,28 @@ If SCAN, request a scan of that group as well."
 		  (< (gnus-method-rank (cadr c1) (car c1))
 		     (gnus-method-rank (cadr c2) (car c2))))))
 
-    (while type-cache
-      (setq method (nth 0 (car type-cache))
-	    method-type (nth 1 (car type-cache))
-	    infos (nth 2 (car type-cache)))
-      (pop type-cache)
+    ;; Start early async retrieval of data.
+    (dolist (elem type-cache)
+      (destructuring-bind (method method-type infos dummy) elem
+	(when (and method infos
+		   (not (gnus-method-denied-p method))
+		   (gnus-check-backend-function
+		    'retrieve-group-data-early (car method)))
+	  (when (gnus-check-backend-function 'request-scan (car method))
+	    (dolist (info infos)
+	      (gnus-request-scan (gnus-info-group info) method)))
+	  (setcar (nthcdr 3 elem)
+		  (gnus-retrieve-group-data-early method infos)))))
 
-      (when (and method
-		 infos)
-	;; See if any of the groups from this method require updating.
-	(gnus-read-active-for-groups method infos)
-	(dolist (info infos)
-	  (inline (gnus-get-unread-articles-in-group
-		   info (gnus-active (gnus-info-group info)))))))
+    ;; Do the rest of the retrieval.
+    (dolist (elem type-cache)
+      (destructuring-bind (method method-type infos early-data) elem
+	(when (and method infos)
+	  ;; See if any of the groups from this method require updating.
+	  (gnus-read-active-for-groups method infos early-data)
+	  (dolist (info infos)
+	    (inline (gnus-get-unread-articles-in-group
+		     info (gnus-active (gnus-info-group info))))))))
     (gnus-message 6 "Checking new news...done")))
 
 (defun gnus-method-rank (type method)
@@ -1796,9 +1798,14 @@ If SCAN, request a scan of that group as well."
    (t
     100)))
 
-(defun gnus-read-active-for-groups (method infos)
+(defun gnus-read-active-for-groups (method infos early-data)
   (with-current-buffer nntp-server-buffer
     (cond
+     ((and
+       (gnus-check-backend-function 'finish-retrieve-group-infos (car method))
+       (or (not (gnus-agent-method-p method))
+	   (gnus-online method)))
+      (gnus-finish-retrieve-group-infos method infos early-data))
      ((gnus-check-backend-function 'retrieve-groups (car method))
       (when (gnus-check-backend-function 'request-scan (car method))
 	(dolist (info infos)
@@ -1867,8 +1874,7 @@ If SCAN, request a scan of that group as well."
 
 (defun gnus-parse-active ()
   "Parse active info in the nntp server buffer."
-  (save-excursion
-    (set-buffer nntp-server-buffer)
+  (with-current-buffer nntp-server-buffer
     (goto-char (point-min))
     ;; Parse the result we got from `gnus-request-group'.
     (when (looking-at "[0-9]+ [0-9]+ \\([0-9]+\\) [0-9]+")
@@ -2022,8 +2028,7 @@ If SCAN, request a scan of that group as well."
 	     (list "archive")))))
 	method)
     (setq gnus-have-read-active-file nil)
-    (save-excursion
-      (set-buffer nntp-server-buffer)
+    (with-current-buffer nntp-server-buffer
       (while (setq method (pop methods))
 	;; Only do each method once, in case the methods appear more
 	;; than once in this list.
@@ -2089,8 +2094,7 @@ If SCAN, request a scan of that group as well."
 (defun gnus-read-active-file-2 (groups method)
   "Read an active file for GROUPS in METHOD using `gnus-retrieve-groups'."
   (when groups
-    (save-excursion
-      (set-buffer nntp-server-buffer)
+    (with-current-buffer nntp-server-buffer
       (gnus-check-server method)
       (let ((list-type (gnus-retrieve-groups groups method)))
 	(cond ((not list-type)
@@ -2771,8 +2775,7 @@ If FORCE is non-nil, the .newsrc file is read."
 	       (not force)
 	       (or (not gnus-dribble-buffer)
 		   (not (buffer-name gnus-dribble-buffer))
-		   (zerop (save-excursion
-			    (set-buffer gnus-dribble-buffer)
+		   (zerop (with-current-buffer gnus-dribble-buffer
 			    (buffer-size)))))
 	  (gnus-message 4 "(No changes need to be saved)")
 	(gnus-run-hooks 'gnus-save-newsrc-hook)
@@ -2906,8 +2909,7 @@ If FORCE is non-nil, the .newsrc file is read."
 
 (defun gnus-gnus-to-newsrc-format ()
   ;; Generate and save the .newsrc file.
-  (save-excursion
-    (set-buffer (create-file-buffer gnus-current-startup-file))
+  (with-current-buffer (create-file-buffer gnus-current-startup-file)
     (let ((newsrc (cdr gnus-newsrc-alist))
 	  (standard-output (current-buffer))
 	  info ranges range method)
@@ -2980,8 +2982,7 @@ If FORCE is non-nil, the .newsrc file is read."
   (gnus-run-hooks 'gnus-slave-mode-hook))
 
 (defun gnus-slave-save-newsrc ()
-  (save-excursion
-    (set-buffer gnus-dribble-buffer)
+  (with-current-buffer gnus-dribble-buffer
     (let ((slave-name
 	   (mm-make-temp-file (concat gnus-current-startup-file "-slave-")))
 	  (modes (ignore-errors
@@ -3005,8 +3006,7 @@ If FORCE is non-nil, the .newsrc file is read."
     (if (not slave-files)
 	()				; There are no slave files to read.
       (gnus-message 7 "Reading slave newsrcs...")
-      (save-excursion
-	(set-buffer (gnus-get-buffer-create " *gnus slave*"))
+      (with-current-buffer (gnus-get-buffer-create " *gnus slave*")
 	(setq slave-files
 	      (sort (mapcar (lambda (file)
 			      (list (nth 5 (file-attributes file)) file))
@@ -3126,8 +3126,7 @@ If FORCE is non-nil, the .newsrc file is read."
 (defun gnus-group-get-description (group)
   "Get the description of a group by sending XGTITLE to the server."
   (when (gnus-request-group-description group)
-    (save-excursion
-      (set-buffer nntp-server-buffer)
+    (with-current-buffer nntp-server-buffer
       (goto-char (point-min))
       (when (looking-at "[^ \t]+[ \t]+\\(.*\\)")
 	(match-string 1)))))

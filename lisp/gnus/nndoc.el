@@ -215,8 +215,7 @@ from the document.")
 
 (deffoo nndoc-retrieve-headers (articles &optional newsgroup server fetch-old)
   (when (nndoc-possibly-change-buffer newsgroup server)
-    (save-excursion
-      (set-buffer nntp-server-buffer)
+    (with-current-buffer nntp-server-buffer
       (erase-buffer)
       (let (article entry)
 	(if (stringp (car articles))
@@ -333,8 +332,7 @@ from the document.")
 			       (concat " *nndoc " group "*"))))
 	    nndoc-group-alist)
       (setq nndoc-dissection-alist nil)
-      (save-excursion
-	(set-buffer nndoc-current-buffer)
+      (with-current-buffer nndoc-current-buffer
 	(erase-buffer)
 	(if (and (stringp nndoc-address)
 		 (string-match nndoc-binary-file-names nndoc-address))
@@ -347,8 +345,7 @@ from the document.")
     ;; Initialize the nndoc structures according to this new document.
     (when (and nndoc-current-buffer
 	       (not nndoc-dissection-alist))
-      (save-excursion
-	(set-buffer nndoc-current-buffer)
+      (with-current-buffer nndoc-current-buffer
 	(nndoc-set-delims)
 	(if (eq nndoc-article-type 'mime-parts)
 	    (nndoc-dissect-mime-parts)
@@ -588,8 +585,7 @@ from the document.")
 (defun nndoc-generate-clari-briefs-head (article)
   (let ((entry (cdr (assq article nndoc-dissection-alist)))
 	subject from)
-    (save-excursion
-      (set-buffer nndoc-current-buffer)
+    (with-current-buffer nndoc-current-buffer
       (save-restriction
 	(narrow-to-region (car entry) (nth 3 entry))
 	(goto-char (point-min))
@@ -677,8 +673,7 @@ from the document.")
   (let ((entry (cdr (assq article nndoc-dissection-alist)))
 	(from "<no address given>")
 	subject date)
-    (save-excursion
-      (set-buffer nndoc-current-buffer)
+    (with-current-buffer nndoc-current-buffer
       (save-restriction
 	(narrow-to-region (car entry) (nth 1 entry))
 	(goto-char (point-min))
@@ -829,8 +824,7 @@ from the document.")
 	(first t)
 	art-begin head-begin head-end body-begin body-end)
     (setq nndoc-dissection-alist nil)
-    (save-excursion
-      (set-buffer nndoc-current-buffer)
+    (with-current-buffer nndoc-current-buffer
       (goto-char (point-min))
       ;; Remove blank lines.
       (while (eq (following-char) ?\n)
@@ -902,8 +896,7 @@ When a MIME entity contains sub-entities, dissection produces one article for
 the header of this entity, and one article per sub-entity."
   (setq nndoc-dissection-alist nil
 	nndoc-mime-split-ordinal 0)
-  (save-excursion
-    (set-buffer nndoc-current-buffer)
+  (with-current-buffer nndoc-current-buffer
     (nndoc-dissect-mime-parts-sub (point-min) (point-max) nil nil nil)))
 
 (defun nndoc-dissect-mime-parts-sub (head-begin body-end article-insert

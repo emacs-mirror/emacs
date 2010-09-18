@@ -708,8 +708,7 @@ file for the command instead of the current score file."
 
     ;; Change score file to the "all.SCORE" file.
     (when (eq symp 'a)
-      (save-excursion
-	(set-buffer gnus-summary-buffer)
+      (with-current-buffer gnus-summary-buffer
 	(gnus-score-load-file
 	 ;; This is a kludge; yes...
 	 (cond
@@ -735,14 +734,12 @@ file for the command instead of the current score file."
 
     (when (eq symp 'a)
       ;; We change the score file back to the previous one.
-      (save-excursion
-	(set-buffer gnus-summary-buffer)
+      (with-current-buffer gnus-summary-buffer
 	(gnus-score-load-file current-score-file)))))
 
 (defun gnus-score-insert-help (string alist idx)
   (setq gnus-score-help-winconf (current-window-configuration))
-  (save-excursion
-    (set-buffer (gnus-get-buffer-create "*Score Help*"))
+  (with-current-buffer (gnus-get-buffer-create "*Score Help*")
     (buffer-disable-undo)
     (delete-windows-on (current-buffer))
     (erase-buffer)
@@ -1270,8 +1267,7 @@ If FORMAT, also format the current score file."
 	       exclude-files))
 	     gnus-scores-exclude-files))
       (when local
-	(save-excursion
-	  (set-buffer gnus-summary-buffer)
+	(with-current-buffer gnus-summary-buffer
 	  (while local
 	    (and (consp (car local))
 		 (symbolp (caar local))
@@ -1528,8 +1524,7 @@ If FORMAT, also format the current score file."
 		    (cons (cons header (or gnus-summary-default-score 0))
 			  gnus-scores-articles))))
 
-	  (save-excursion
-	    (set-buffer (gnus-get-buffer-create "*Headers*"))
+	  (with-current-buffer (gnus-get-buffer-create "*Headers*")
 	    (buffer-disable-undo)
 	    (when (gnus-buffer-live-p gnus-summary-buffer)
 	      (message-clone-locals gnus-summary-buffer))
@@ -1854,8 +1849,7 @@ score in `gnus-newsgroup-scored' by SCORE."
 
       ;; Change score file to the adaptive score file.  All entries that
       ;; this function makes will be put into this file.
-      (save-excursion
-	(set-buffer gnus-summary-buffer)
+      (with-current-buffer gnus-summary-buffer
 	(gnus-score-load-file
 	 (or gnus-newsgroup-adaptive-score-file
 	     (gnus-score-file-name
@@ -1946,15 +1940,13 @@ score in `gnus-newsgroup-scored' by SCORE."
 		   (setq rest entries)))
 	    (setq entries rest))))
       ;; We change the score file back to the previous one.
-      (save-excursion
-	(set-buffer gnus-summary-buffer)
+      (with-current-buffer gnus-summary-buffer
 	(gnus-score-load-file current-score-file))
       (list (cons "references" news)))))
 
 (defun gnus-score-add-followups (header score scores &optional thread)
   "Add a score entry to the adapt file."
-  (save-excursion
-    (set-buffer gnus-summary-buffer)
+  (with-current-buffer gnus-summary-buffer
     (let* ((id (mail-header-id header))
 	   (scores (car scores))
 	   entry dont)
@@ -2282,8 +2274,7 @@ score in `gnus-newsgroup-scored' by SCORE."
   "Create adaptive score rules for this newsgroup."
   (when gnus-newsgroup-adaptive
     ;; We change the score file to the adaptive score file.
-    (save-excursion
-      (set-buffer gnus-summary-buffer)
+    (with-current-buffer gnus-summary-buffer
       (gnus-score-load-file
        (or gnus-newsgroup-adaptive-score-file
 	   (gnus-home-score-file gnus-newsgroup-name t)
@@ -2697,8 +2688,7 @@ GROUP using BNews sys file syntax."
 	 (trans (cdr (assq ?: nnheader-file-name-translation-alist)))
 	 (group-trans (nnheader-translate-file-chars group t))
 	 ofiles not-match regexp)
-    (save-excursion
-      (set-buffer (gnus-get-buffer-create "*gnus score files*"))
+    (with-current-buffer (gnus-get-buffer-create "*gnus score files*")
       (buffer-disable-undo)
       ;; Go through all score file names and create regexp with them
       ;; as the source.

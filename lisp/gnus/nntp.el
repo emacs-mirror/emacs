@@ -1014,7 +1014,8 @@ command whose response triggered the error."
     (unless (assq 'nntp-address defs)
       (setq defs (append defs (list (list 'nntp-address server)))))
     (nnoo-change-server 'nntp server defs)
-    (unless connectionless
+    (if connectionless
+	t
       (or (nntp-find-connection nntp-server-buffer)
 	  (nntp-open-connection nntp-server-buffer)))))
 

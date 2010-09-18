@@ -79,8 +79,7 @@
 (nnoo-define-basics nnmbox)
 
 (deffoo nnmbox-retrieve-headers (sequence &optional newsgroup server fetch-old)
-  (save-excursion
-    (set-buffer nntp-server-buffer)
+  (with-current-buffer nntp-server-buffer
     (erase-buffer)
     (let ((number (length sequence))
 	  (count 0)
@@ -149,8 +148,7 @@
 
 (deffoo nnmbox-request-article (article &optional newsgroup server buffer)
   (nnmbox-possibly-change-newsgroup newsgroup server)
-  (save-excursion
-    (set-buffer nnmbox-mbox-buffer)
+  (with-current-buffer nnmbox-mbox-buffer
     (when (nnmbox-find-article article)
       (let (start stop)
 	(re-search-backward (concat "^" message-unix-mail-delimiter) nil t)
@@ -208,8 +206,7 @@
   (nnmail-get-new-mail
    'nnmbox
    (lambda ()
-     (save-excursion
-       (set-buffer nnmbox-mbox-buffer)
+     (with-current-buffer nnmbox-mbox-buffer
        (nnmbox-save-buffer)))
    (file-name-directory nnmbox-mbox-file)
    group
@@ -253,8 +250,7 @@
 	 rest)
     (nnmail-activate 'nnmbox)
 
-    (save-excursion
-      (set-buffer nnmbox-mbox-buffer)
+    (with-current-buffer nnmbox-mbox-buffer
       (while (and articles is-old)
 	(when (nnmbox-find-article (car articles))
 	  (if (setq is-old
@@ -292,8 +288,7 @@
 	result)
     (and
      (nnmbox-request-article article group server)
-     (save-excursion
-       (set-buffer buf)
+     (with-current-buffer buf
        (erase-buffer)
        (insert-buffer-substring nntp-server-buffer)
        (goto-char (point-min))
@@ -364,8 +359,7 @@
 
 (deffoo nnmbox-request-replace-article (article group buffer)
   (nnmbox-possibly-change-newsgroup group)
-  (save-excursion
-    (set-buffer nnmbox-mbox-buffer)
+  (with-current-buffer nnmbox-mbox-buffer
     (if (not (nnmbox-find-article article))
 	nil
       (nnmbox-delete-mail t t)
@@ -391,8 +385,7 @@
   ;; Delete all articles in GROUP.
   (if (not force)
       ()				; Don't delete the articles.
-    (save-excursion
-      (set-buffer nnmbox-mbox-buffer)
+    (with-current-buffer nnmbox-mbox-buffer
       (goto-char (point-min))
       ;; Delete all articles in this group.
       (let ((ident (concat "\nX-Gnus-Newsgroup: " nnmbox-current-group ":"))
@@ -412,8 +405,7 @@
 
 (deffoo nnmbox-request-rename-group (group new-name &optional server)
   (nnmbox-possibly-change-newsgroup group server)
-  (save-excursion
-    (set-buffer nnmbox-mbox-buffer)
+  (with-current-buffer nnmbox-mbox-buffer
     (goto-char (point-min))
     (let ((ident (concat "\nX-Gnus-Newsgroup: " nnmbox-current-group ":"))
 	  (new-ident (concat "\nX-Gnus-Newsgroup: " new-name ":"))
@@ -633,8 +625,7 @@
   (nnmbox-create-mbox)
   (if (and nnmbox-mbox-buffer
 	   (buffer-name nnmbox-mbox-buffer)
-	   (save-excursion
-	     (set-buffer nnmbox-mbox-buffer)
+	   (with-current-buffer nnmbox-mbox-buffer
 	     (= (buffer-size) (nnheader-file-size nnmbox-mbox-file))))
       ()
     (save-excursion

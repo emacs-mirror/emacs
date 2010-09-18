@@ -279,9 +279,9 @@ Returns the process associated with the connection."
   (let ((coding-system-for-read 'binary)
 	(coding-system-for-write 'binary)
 	process)
-    (with-current-buffer
-        (get-buffer-create (concat " trace of POP session to "
-                                   mailhost))
+    (save-excursion
+      (set-buffer (get-buffer-create (concat " trace of POP session to "
+					     mailhost)))
       (erase-buffer)
       (setq pop3-read-point (point-min))
       (setq process
@@ -353,7 +353,8 @@ Returns the process associated with the connection."
 Return the response string if optional second argument is non-nil."
   (let ((case-fold-search nil)
 	match-end)
-    (with-current-buffer (process-buffer process)
+    (save-excursion
+      (set-buffer (process-buffer process))
       (goto-char pop3-read-point)
       (while (and (memq (process-status process) '(open run))
 		  (not (search-forward "\r\n" nil t)))
@@ -510,7 +511,8 @@ Otherwise, return the size of the message-id MSG"
     (if msg
 	(string-to-number (nth 2 (split-string response " ")))
       (let ((start pop3-read-point) end)
-	(with-current-buffer (process-buffer process)
+	(save-excursion
+	  (set-buffer (process-buffer process))
 	  (while (not (re-search-forward "^\\.\r\n" nil t))
 	    (pop3-accept-process-output process)
 	    (goto-char start))
@@ -528,7 +530,8 @@ Otherwise, return the size of the message-id MSG"
   (pop3-send-command process (format "RETR %s" msg))
   (pop3-read-response process)
   (let ((start pop3-read-point) end)
-    (with-current-buffer (process-buffer process)
+    (save-excursion
+      (set-buffer (process-buffer process))
       (while (not (re-search-forward "^\\.\r\n" nil t))
 	(pop3-accept-process-output process)
 	(goto-char start))
@@ -544,7 +547,8 @@ Otherwise, return the size of the message-id MSG"
       (setq end (point-marker))
       (pop3-clean-region start end)
       (pop3-munge-message-separator start end)
-      (with-current-buffer crashbuf
+      (save-excursion
+	(set-buffer crashbuf)
 	(erase-buffer))
       (copy-to-buffer crashbuf start end)
       (delete-region start end)
@@ -581,7 +585,8 @@ and close the connection."
   (pop3-send-command process "QUIT")
   (pop3-read-response process t)
   (if process
-      (with-current-buffer (process-buffer process)
+      (save-excursion
+	(set-buffer (process-buffer process))
 	(goto-char (point-max))
 	(delete-process process))))
 

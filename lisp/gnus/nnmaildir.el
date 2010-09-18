@@ -208,20 +208,16 @@ by nnmaildir-request-article.")
   (eval param))
 
 (defmacro nnmaildir--with-nntp-buffer (&rest body)
-  `(save-excursion
-     (set-buffer nntp-server-buffer)
+  `(with-current-buffer nntp-server-buffer
      ,@body))
 (defmacro nnmaildir--with-work-buffer (&rest body)
-  `(save-excursion
-     (set-buffer (get-buffer-create " *nnmaildir work*"))
+  `(with-current-buffer (get-buffer-create " *nnmaildir work*")
      ,@body))
 (defmacro nnmaildir--with-nov-buffer (&rest body)
-  `(save-excursion
-     (set-buffer (get-buffer-create " *nnmaildir nov*"))
+  `(with-current-buffer (get-buffer-create " *nnmaildir nov*")
      ,@body))
 (defmacro nnmaildir--with-move-buffer (&rest body)
-  `(save-excursion
-     (set-buffer (get-buffer-create " *nnmaildir move*"))
+  `(with-current-buffer (get-buffer-create " *nnmaildir move*")
      ,@body))
 
 (defmacro nnmaildir--subdir (dir subdir)
@@ -1249,8 +1245,7 @@ by nnmaildir-request-article.")
 	(setf (nnmaildir--srv-error nnmaildir--cur-server)
 	      "Article has expired")
 	(throw 'return nil))
-      (save-excursion
-	(set-buffer (or to-buffer nntp-server-buffer))
+      (with-current-buffer (or to-buffer nntp-server-buffer)
 	(erase-buffer)
 	(nnheader-insert-file-contents nnmaildir-article-file-name))
       (cons gname num-msgid))))
@@ -1289,8 +1284,7 @@ by nnmaildir-request-article.")
 	(setf (nnmaildir--srv-error nnmaildir--cur-server)
 	      (concat "File exists: " tmpfile))
 	(throw 'return nil))
-      (save-excursion
-	(set-buffer buffer)
+      (with-current-buffer buffer
 	(gmm-write-region (point-min) (point-max) tmpfile nil 'no-message nil
 			  'excl))
       (unix-sync) ;; no fsync :(

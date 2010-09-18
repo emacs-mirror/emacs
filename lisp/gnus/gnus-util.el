@@ -1115,8 +1115,7 @@ FILENAME exists and is Babyl format."
 		  (gnus-yes-or-no-p
 		   (concat "\"" filename "\" does not exist, create it? ")))
 	      (let ((file-buffer (create-file-buffer filename)))
-		(save-excursion
-		  (set-buffer file-buffer)
+		(with-current-buffer file-buffer
                   (if (fboundp 'rmail-insert-rmail-file-header)
                       (rmail-insert-rmail-file-header))
 		  (let ((require-final-newline nil)
@@ -1194,8 +1193,7 @@ FILENAME exists and is Babyl format."
 		(gnus-y-or-n-p
 		 (concat "\"" filename "\" does not exist, create it? ")))
 	    (let ((file-buffer (create-file-buffer filename)))
-	      (save-excursion
-		(set-buffer file-buffer)
+	      (with-current-buffer file-buffer
 		(let ((require-final-newline nil)
 		      (coding-system-for-write mm-text-coding-system))
 		  (gnus-write-buffer filename)))
@@ -1274,8 +1272,7 @@ This function saves the current buffer."
   "Say whether Gnus is running or not."
   (and (boundp 'gnus-group-buffer)
        (get-buffer gnus-group-buffer)
-       (save-excursion
-	 (set-buffer gnus-group-buffer)
+       (with-current-buffer gnus-group-buffer
 	 (eq major-mode 'gnus-group-mode))))
 
 (defun gnus-remove-if (predicate list)

@@ -5504,11 +5504,11 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 	   (mm-decode-coding-string (gnus-status-message group) charset))))
 
     (unless (gnus-request-group group t)
-	(when (equal major-mode 'gnus-summary-mode)
-	  (gnus-kill-buffer (current-buffer)))
-	(error "Couldn't request group %s: %s"
-	       (mm-decode-coding-string group charset)
-	       (mm-decode-coding-string (gnus-status-message group) charset)))
+      (when (equal major-mode 'gnus-summary-mode)
+	(gnus-kill-buffer (current-buffer)))
+      (error "Couldn't request group %s: %s"
+	     (mm-decode-coding-string group charset)
+	     (mm-decode-coding-string (gnus-status-message group) charset)))
 
     (when gnus-agent
       (gnus-agent-possibly-alter-active group (gnus-active group) info)
@@ -7394,7 +7394,7 @@ If prefix argument NO-ARTICLE is non-nil, no article is selected initially."
   "Go to the first subject satisfying any non-nil constraint.
 If UNREAD is non-nil, the article should be unread.
 If UNDOWNLOADED is non-nil, the article should be undownloaded.
-If UNSEEN is non-nil, the article should be unseen.
+If UNSEEN is non-nil, the article should be unseen as well as unread.
 Returns the article selected or nil if there are no matching articles."
   (interactive "P")
   (cond
@@ -7417,7 +7417,8 @@ Returns the article selected or nil if there are no matching articles."
                                  (and undownloaded
                                       (memq num gnus-newsgroup-undownloaded))
                                  (and unseen
-                                      (memq num gnus-newsgroup-unseen)))))))
+                                      (memq num gnus-newsgroup-unseen)
+				      (memq num gnus-newsgroup-unreads)))))))
         (setq data (cdr data)))
       (prog1
           (if data
@@ -7908,8 +7909,8 @@ Return nil if there are no unseen articles."
     (gnus-summary-position-point)))
 
 (defun gnus-summary-first-unseen-or-unread-subject ()
-  "Place the point on the subject line of the first unseen article or,
-if all article have been seen, on the subject line of the first unread
+  "Place the point on the subject line of the first unseen and unread article.
+If all article have been seen, on the subject line of the first unread
 article."
   (interactive)
   (prog1
@@ -9690,7 +9691,8 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 		  to-newsgroup (list 'quote select-method)
 		  (not articles) t)	; Accept form
 	    (not articles)		; Only save nov last time
-	    move-is-internal)))		; is this move internal?
+	    (and move-is-internal
+		 (gnus-group-real-name to-newsgroup))))) ; is this move internal?
 	;; Copy the article.
 	((eq action 'copy)
 	 (with-current-buffer copy-buf
@@ -9821,8 +9823,9 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 		  (gnus-add-marked-articles
 		   to-group 'expire (list to-article) info))
 
-		(gnus-request-set-mark
-		 to-group (list (list (list to-article) 'add to-marks))))
+		(when to-marks
+		  (gnus-request-set-mark
+		   to-group (list (list (list to-article) 'add to-marks)))))
 
 	      (gnus-dribble-enter
 	       (concat "(gnus-group-set-info '"

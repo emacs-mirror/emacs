@@ -148,8 +148,7 @@ See Info node `(gnus)Formatting Variables'."
 
 (defun gnus-group-parent-topic (group)
   "Return the topic GROUP is member of by looking at the group buffer."
-  (save-excursion
-    (set-buffer gnus-group-buffer)
+  (with-current-buffer gnus-group-buffer
     (if (gnus-group-goto-group group)
 	(gnus-current-topic)
       (gnus-group-topic group))))
@@ -912,8 +911,7 @@ articles in the topic and its subtopics."
 
 (defun gnus-topic-change-level (group level oldlevel &optional previous)
   "Run when changing levels to enter/remove groups from topics."
-  (save-excursion
-    (set-buffer gnus-group-buffer)
+  (with-current-buffer gnus-group-buffer
     (let ((buffer-read-only nil))
       (unless gnus-topic-inhibit-change-level
 	(gnus-group-goto-group (or (car (nth 2 previous)) group))

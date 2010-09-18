@@ -58,8 +58,7 @@
 
 (defun nnnil-request-group (group &optional server fast)
   (let (deactivate-mark)
-    (save-excursion
-      (set-buffer nntp-server-buffer)
+    (with-current-buffer nntp-server-buffer
       (erase-buffer)
       (insert "411 no such news group\n")))
   (setq nnnil-status-string "No such group")

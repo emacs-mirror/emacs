@@ -151,8 +151,7 @@ If N is negative, move backward instead."
 
 (defun earcon-button-push (marker)
   ;; Push button starting at MARKER.
-  (save-excursion
-    (set-buffer gnus-article-buffer)
+  (with-current-buffer gnus-article-buffer
     (goto-char marker)
     (let* ((entry (earcon-button-entry))
 	   (inhibit-point-motion-hooks t)
@@ -214,8 +213,7 @@ If N is negative, move backward instead."
 (defun gnus-earcon-display ()
   "Play sounds in message buffers."
   (interactive)
-  (save-excursion
-    (set-buffer gnus-article-buffer)
+  (with-current-buffer gnus-article-buffer
     (goto-char (point-min))
     ;; Skip headers
     (unless (search-forward "\n\n" nil t)

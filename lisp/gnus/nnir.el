@@ -744,8 +744,7 @@ and show thread that contains this article."
       nnir-artlist
     ;; Cache miss.
     (setq nnir-artlist (nnir-run-query group)))
-  (save-excursion
-    (set-buffer nntp-server-buffer)
+  (with-current-buffer nntp-server-buffer
     (if (zerop (length nnir-artlist))
 	(progn
 	  (setq nnir-current-query nil
