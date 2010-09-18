@@ -1,5 +1,9 @@
 2010-09-18  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-start.el (gnus-get-unread-articles): Allow the backends to
+	update the group info.  This makes the nndraft groups, for instance, go
+	back to their old behaviour.
+
 	* gnus-sum.el (gnus-select-newsgroup): Indent.
 
 	* nnimap.el (nnimap-possibly-change-group): Return nil if we can't log
