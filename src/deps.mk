@@ -230,6 +230,7 @@ xmenu.o: xmenu.c xterm.h termhooks.h window.h dispextern.h frame.h buffer.h \
    charset.h keyboard.h $(srcdir)/../lwlib/lwlib.h blockinput.h atimer.h \
    systime.h gtkutil.h msdos.h coding.h menu.h lisp.h $(config_h) composite.h \
    keymap.h sysselect.h
+xml.o: xml.c buffer.h lisp.h $(config_h)
 xterm.o: xterm.c xterm.h termhooks.h termopts.h termchar.h window.h buffer.h \
    dispextern.h frame.h disptab.h blockinput.h atimer.h systime.h syssignal.h \
    keyboard.h emacs-icon.h character.h charset.h ccl.h fontset.h composite.h \

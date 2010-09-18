@@ -1,5 +1,9 @@
 2010-09-18  Eli Zaretskii  <eliz@gnu.org>
 
+	* deps.mk (xml.o): Add dependencies.
+
+2010-09-18  Eli Zaretskii  <eliz@gnu.org>
+
 	* xdisp.c (Fcurrent_bidi_paragraph_direction): Call
 	bidi_paragraph_init with NO_DEFAULT_P non-zero.  (Bug#7038)
 
