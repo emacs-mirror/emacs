@@ -1,3 +1,30 @@
+2010-09-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (tex-syntax-propertize-rules)
+	(latex-syntax-propertize-rules): New consts; replace
+	tex-font-lock-syntactic-keywords.
+	(tex-env-mark, latex-env-before-change): New functions.
+	(latex-electric-env-pair-mode): New minor mode.
+	(tex-font-lock-verb): Change arguments; do move point.
+	(tex-font-lock-syntactic-face-function): Adjust to new verbatim
+	representation as a form of comment.
+	(tex-font-lock-keywords-1): Remove workaround, now unneeded.
+	(doctex-syntax-propertize-rules): New const; replaces
+	doctex-font-lock-syntactic-keywords.
+	(tex-common-initialization, doctex-mode): Use syntax-propertize-rules.
+
+	* progmodes/fortran.el (fortran--font-lock-syntactic-keywords): Remove.
+	(fortran-make-syntax-propertize-function): New function; replaces
+	fortran-font-lock-syntactic-keywords.
+	(fortran-mode): Use it.
+	(fortran-line-length): Use it.  Improve interactive spec.
+
+	* emacs-lisp/syntax.el (syntax-propertize-precompile-rules): New macro.
+	(syntax-propertize-rules): Add var-ref case.  Fix offset computation
+	when adding surrounding \(..\).
+
+	* progmodes/js.el (js-mode): Fix last change (bug#7054).
+
 2010-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* obsolete/old-whitespace.el (whitespace-rescan-files-in-buffers):
