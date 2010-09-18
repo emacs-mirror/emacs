@@ -144,6 +144,9 @@ the width of both left and right fringe (where 0 means no fringe), or
 a cons cell where car indicates width of left fringe and cdr indicates
 width of right fringe (where again 0 can be used to indicate no
 fringe).
+Note that the actual width may be rounded up to ensure that the sum of
+the width of the left and right fringes is a multiple of the frame's
+character width.  However, a fringe width of 0 is never rounded.
 To set this variable in a Lisp program, use `set-fringe-mode' to make
 it take real effect.
 Setting the variable with a customization buffer also takes effect.
