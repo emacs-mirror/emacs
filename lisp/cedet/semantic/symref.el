@@ -71,6 +71,7 @@
 (declare-function data-debug-insert-object-slots "eieio-datadebug")
 (declare-function ede-toplevel "ede/files")
 (declare-function ede-project-root-directory "ede/files")
+(declare-function ede-up-directory "ede/files")
 
 ;;; Code:
 (defvar semantic-symref-tool 'detect
@@ -98,16 +99,27 @@ is supported.
 
 If no tools are supported, then 'grep is assumed.")
 
+(defun semantic-symref-calculate-rootdir ()
+  "Calculate the root directory for a symref search.
+Start with and EDE project, or use the default directory."
+  (let* ((rootproj (when (and (featurep 'ede) ede-minor-mode)
+		     (ede-toplevel)))
+	 (rootdirbase (if rootproj
+			  (ede-project-root-directory rootproj)
+			default-directory)))
+    (if (and rootproj (condition-case nil
+			  ;; Hack for subprojects.
+			  (oref rootproj :metasubproject)
+			(error nil)))
+	(ede-up-directory rootdirbase)
+      rootdirbase)))
+
 (defun semantic-symref-detect-symref-tool ()
   "Detect the symref tool to use for the current buffer."
   (if (not (eq semantic-symref-tool 'detect))
       semantic-symref-tool
     ;; We are to perform a detection for the right tool to use.
-    (let* ((rootproj (when (and (featurep 'ede) ede-minor-mode)
-		       (ede-toplevel)))
-	   (rootdir (if rootproj
-			(ede-project-root-directory rootproj)
-		      default-directory))
+    (let* ((rootdir (semantic-symref-calculate-rootdir))
 	   (tools semantic-symref-tool-alist))
       (while (and tools (eq semantic-symref-tool 'detect))
 	(when (funcall (car (car tools)) rootdir)
