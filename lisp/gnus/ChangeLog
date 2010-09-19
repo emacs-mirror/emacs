@@ -1,3 +1,12 @@
+2010-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* nnml.el (nnml-files): Add prefix to dynamic var `files'.
+	(nnml-generate-nov-databases-directory, nnml-generate-active-info):
+	Update var name.
+	(nnml-generate-nov-file): Use dolist.
+	(nnml-directory-articles, nnml-current-group-article-to-file-alist):
+	Use with-current-buffer.
+
 2010-09-18  Julien Danjou  <julien@danjou.info>
 
 	* gnus-html.el (gnus-html-schedule-image-fetching): Fetch all images in
@@ -9,7 +18,7 @@
 	the range update right.
 	(nnimap-request-group): Don't make `M-g' bug out on group with no
 	marks.
-	(nnoo): Required, so that other packages can require nnimap.
+	(nnoo): Require, so that other packages can require nnimap.
 	(nnimap-wait-for-response): Be a bit more lax in finding the end of the
 	command we're looking for.  This helps when the server sends more
 	responses after we've gotten everything we expected.

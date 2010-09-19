@@ -878,6 +878,7 @@ article number.  This function is called narrowed to an article."
   ;; Save the active file.
   (nnmail-save-active nnml-group-alist nnml-active-file))
 
+(defvar nnml-files)
 (defun nnml-generate-nov-databases-directory (dir &optional seen no-active)
   "Regenerate the NOV database in DIR.
 
@@ -897,9 +898,9 @@ Unless no-active is non-nil, update the active file too."
 		   (file-directory-p dir))
 	  (nnml-generate-nov-databases-directory dir seen)))
       ;; Do this directory.
-      (let ((files (sort (nnheader-article-to-file-alist dir)
+      (let ((nnml-files (sort (nnheader-article-to-file-alist dir)
 			 'car-less-than-car)))
-	(if (not files)
+	(if (not nnml-files)
 	    (let* ((group (nnheader-file-to-group
 			   (directory-file-name dir) nnml-directory))
 		   (info (cadr (assoc group nnml-group-alist))))
@@ -907,11 +908,10 @@ Unless no-active is non-nil, update the active file too."
 		(setcar info (1+ (cdr info)))))
 	  (funcall nnml-generate-active-function dir)
 	  ;; Generate the nov file.
-	  (nnml-generate-nov-file dir files)
+	  (nnml-generate-nov-file dir nnml-files)
 	  (unless no-active
 	    (nnmail-save-active nnml-group-alist nnml-active-file)))))))
 
-(defvar files)
 (defun nnml-generate-active-info (dir)
   ;; Update the active info for this group.
   (let ((group (directory-file-name dir))
@@ -922,9 +922,9 @@ Unless no-active is non-nil, update the active file too."
 	  last (or (caadr entry) 0)
 	  nnml-group-alist (delq entry nnml-group-alist))
     (push (list group
-		(cons (or (caar files) (1+ last))
+		(cons (or (caar nnml-files) (1+ last))
 		      (max last
-			   (or (caar (last files))
+			   (or (caar (last nnml-files))
 			       0))))
 	  nnml-group-alist)))
 
@@ -941,8 +941,8 @@ Unless no-active is non-nil, update the active file too."
       ;; Delete the old NOV file.
       (when (file-exists-p nov)
 	(funcall nnmail-delete-file-function nov))
-      (while files
-	(unless (file-directory-p (setq file (concat dir (cdar files))))
+      (dolist (file files)
+	(unless (file-directory-p (setq file (concat dir (cdr file))))
 	  (erase-buffer)
 	  (nnheader-insert-file-contents file)
 	  (narrow-to-region
@@ -953,12 +953,11 @@ Unless no-active is non-nil, update the active file too."
 	     (max (point-min) (1- (point)))))
 	  (unless (zerop (buffer-size))
 	    (goto-char (point-min))
-	    (setq headers (nnml-parse-head chars (caar files)))
+	    (setq headers (nnml-parse-head chars (car file)))
 	    (with-current-buffer nov-buffer
 	      (goto-char (point-max))
 	      (nnheader-insert-nov headers)))
-	  (widen))
-	(setq files (cdr files)))
+	  (widen)))
       (with-current-buffer nov-buffer
 	(nnmail-write-region (point-min) (point-max) nov nil 'nomesg)
 	(kill-buffer (current-buffer))))))
@@ -995,11 +994,9 @@ Use the nov database for that directory if available."
     ;; build list from .overview if available
     ;; We would use nnml-open-nov, except that nnml-nov-buffer-alist is
     ;; defvoo'd, and we might get called when it hasn't been swapped in.
-    (save-excursion
+    (with-current-buffer (nnml-get-nov-buffer nnml-current-group)
       (let ((list nil)
-	    art
-	    (buffer (nnml-get-nov-buffer nnml-current-group)))
-	(set-buffer buffer)
+	    art)
 	(goto-char (point-min))
 	(while (not (eobp))
 	  (setq art (read (current-buffer)))
@@ -1018,11 +1015,9 @@ Use the nov database for the current group if available."
 				  nnml-current-directory))))
       (nnheader-article-to-file-alist nnml-current-directory)
     ;; build list from .overview if available
-    (save-excursion
+    (with-current-buffer (nnml-get-nov-buffer nnml-current-group)
       (let ((alist nil)
-	    (buffer (nnml-get-nov-buffer nnml-current-group))
 	    art)
-	(set-buffer buffer)
 	(goto-char (point-min))
 	(while (not (eobp))
 	  (setq art (read (current-buffer)))
