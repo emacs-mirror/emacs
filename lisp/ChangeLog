@@ -1,5 +1,15 @@
 2010-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/smie.el (smie-bnf-precedence-table): Improve error message.
+	(smie-debug--prec2-cycle, smie-debug--describe-cycle): New functions.
+	(smie-prec2-levels): Use them to better diagnose precedence cycles.
+	(smie-blink-matching-check): Don't signal a mismatch if car is t.
+	(smie-blink-matching-open): Rewrite to remove assumptions, so that
+	something like "." can also be a closer.
+	(smie--associative-p, smie-indent--hanging-p, smie-indent--bolp)
+	(smie-indent--offset, smie-indent--offset-rule, smie-indent--column):
+	Rename internal functions to use "--".  Update callers.
+
 	* frame.el (make-frame-names-alist): Don't list frames on other displays.
 
 	* fringe.el (fringe-styles): New var.
