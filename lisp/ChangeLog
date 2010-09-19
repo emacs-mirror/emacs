@@ -1,5 +1,7 @@
 2010-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* frame.el (make-frame-names-alist): Don't list frames on other displays.
+
 	* fringe.el (fringe-styles): New var.
 	(fringe-mode, fringe-query-style): Use it.
 

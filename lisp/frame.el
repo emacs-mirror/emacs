@@ -907,15 +907,16 @@ Calls `suspend-emacs' if invoked from the controlling tty device,
      (t (suspend-emacs)))))
 
 (defun make-frame-names-alist ()
+  ;; Only consider the frames on the same display.
   (let* ((current-frame (selected-frame))
 	 (falist
 	  (cons
 	   (cons (frame-parameter current-frame 'name) current-frame) nil))
-	 (frame (next-frame nil t)))
+	 (frame (next-frame nil 0)))
     (while (not (eq frame current-frame))
       (progn
-	(setq falist (cons (cons (frame-parameter frame 'name) frame) falist))
-	(setq frame (next-frame frame t))))
+	(push (cons (frame-parameter frame 'name) frame) falist)
+	(setq frame (next-frame frame 0))))
     falist))
 
 (defvar frame-name-history nil)
