@@ -320,9 +320,11 @@ variables `sql-product', `sql-user', `sql-server', `sql-database' and
 
 *** `sql-dialect' is a synonym for `sql-product'.
 
-*** Added ability to login with a port on MySQL.
+*** Added ability to login with a port on MySQL and Postgres.
 The custom variable `sql-port' can be specified for connection to
-MySQL servers.
+MySQL or Postgres servers.  By default, the port is not listed in
+either login parameter, but will be added to the command line if set
+to a non-zero value.
 
 *** Dynamic selection of product in an SQL interactive session.
 If you use `sql-product-interactive' to start an SQL interactive
@@ -349,22 +351,34 @@ Each supported product has a custom variable `sql-*-login-params'
 which is a list of the parameters to be prompted for before a
 connection is established.
 
-By default, the value of the parameter is simply prompted for.  For
-`server' and `database', they can be specified in a list as shown
-below:
+The lists consist of the following five tokens: `user', `password',
+`database', `server', and `port'.  The order in which they appear is
+the order in which they are prompted.  The tokens symbols can be
+replaced by a sublist starting with the token and followed by a plist
+which control the prompting for values.  The tokens `user',
+`database', and `server' each can take a property of :default which
+specifies the value to be used if no value is entered.  The
+`database', `server', and `port' tokens handle the :completion
+property which restricts the entry to either one of the values in the
+list or to one of the values returned by the function provided as the
+property value.  The `database' and `server' tokens also accept the
+:file property whose value is a regexp to identify useful file names.
 
-  (server :file ARG)
-  (database :file ARG)
-  (server :completion ARG)
-  (database :completion ARG)
+  (user :default DEF)
+  (database :default DEF
+            :file FILEPAT
+            :completion COMPLETE)
+  (server :default DEF
+          :file FILEPAT
+          :completion COMPLETE)
 
-The ARG when :file is specified is a regexp that will match valid file
-names (without the directory portion).  Generally these strings will
-be of the form ".+\.SUF" where SUF is the desired file suffix.
+The FILEPAT when :file is specified is a regexp that will match valid
+file names (without the directory portion).  Generally these strings
+will be of the form ".+\.SUF" where SUF is the desired file suffix.
 
-When :completion is specified, the ARG corresponds to the PREDICATE
-argument to the `completing-read' function (a list of possible values
-or a function returning such a list).
+When :completion is specified, the COMPLETE corresponds to the
+PREDICATE argument to the `completing-read' function (a list of
+possible values or a function returning such a list).
 
 *** Added `sql-connection-alist' to record login parameter values.
 An alist for recording different username, database and server
@@ -403,6 +417,26 @@ have been defined.
 When a SQLi session is not started by a connection then
 `sql-save-connection' will gather the login params specified for the
 session and save them as a new connection.
+
+*** List database objects and details.
+Once a SQL interactive session has been started, you can get a list of
+the objects in the database and see details of those objects.  The
+objects shown and the details available are product specific.
+
+**** List all objects.
+Using `M-x sql-list-all', `C-c C-l a' or selecting "SQL->List all
+objects" will list all the objects in the database.  At a minimum it
+lists the tables and views in the database.  Preceeding the command by
+universal argument may provide additional details or extend the
+listing to include other schemas objects.  The list will appear in a
+separate window in view-mode.
+
+**** List Table details.
+Using `M-x sql-list-table', `C-c C-l t' or selecting "SQL->List Table
+details" will ask for the name of a database table or view and display
+the list of columns in the relation.  Preceeding the comand with the
+universal argument may provide additional details about each column.
+The list will appear in a separate window in view-mode.
 
 *** Added option `sql-send-terminator'.
 When set makes sure that each command sent with `sql-send-*' commands

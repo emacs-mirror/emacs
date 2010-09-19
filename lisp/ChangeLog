@@ -1,3 +1,32 @@
+2010-09-18  Michael R. Mauger  <mmaug@yahoo.com>
+
+	* progmodes/sql.el: Version 2.8
+	(sql-login-params): Updated widget structure; changes still
+	needed.
+	(sql-product-alist): Add :list-all and :list-table features for
+	SQLite, Postgres and MySQL products.
+	(sql-redirect): Handle default value.
+	(sql-execute, sql-execute-feature): New functions.
+	(sql-read-table-name): New function.
+	(sql-list-all, sql-list-table): New functions. User API
+	(sql-mode-map, sql-interactive-mode-map): Add key definitions
+	for above functions.
+	(sql-mode-menu, sql-interactive-mode-menu): Add menu definitions
+	for above functions.
+	(sql-postgres-login-params): Add user and database defaults.
+	(sql-buffer-live-p): Bug fix.
+	(sql-product-history); New variable.
+	(sql-read-product): New function. Use it.
+	(sql-set-product, sql-product-interactive): Use it.
+	(sql-connection-history): New variable.
+	(sql-read-connection): New function. Use it.
+	(sql-connect): New function.
+	(sql-for-each-login): Redesign function interface.
+	(sql-make-alternate-buffer-name, sql-save-connection): Use it.
+	(sql-get-login-ext, sql-get-login): Use it. Handle default values.
+	(sql-comint): Check for program. Existing live buffer.
+	(sql-comint-postgres): Add port parameter.
+
 2010-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/warnings.el: Fix commenting convention.
