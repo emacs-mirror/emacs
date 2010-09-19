@@ -1,3 +1,38 @@
+2010-09-19  Eric M. Ludlam  <zappo@gnu.org>
+
+	Update to CEDET 1.0's version of EIEIO.
+
+	* emacs-lisp/eieio.el (eieio-specialized-key-to-generic-key): New
+	function.
+	(eieio-defmethod, eieio-generic-form, eieio-generic-call): Use it.
+	(eieio-default-eval-maybe): Eval val instead of unquoting only.
+	(class-precedence-list): If class is nil, return nil.
+	(eieio-generic-call): If class of first input arg is nil, don't
+	look up static methods, and do check for primary methods.
+	(initialize-instance): See if the default needs to be evaluated
+	during the constructor.
+	(eieio-perform-slot-validation-for-default): Don't do the check
+	for values that will eventually be evaluated.
+	(eieio-eval-default-p): New function.
+	(eieio-default-eval-maybe): Use it.
+
+2010-07-03  Jan Moringen  <jan.moringen@uni-bielefeld.de>
+
+	* emacs-lisp/eieio.el (eieio-defclass): Allow :c3
+	method-invocation-order.
+	(eieio-c3-candidate, eieio-c3-merge-lists): New functions.
+	(eieio-class-precedence-dfs): Compute class precedence list using
+	dfs algorithm.
+	(eieio-class-precedence-bfs): Compute class precedence list using
+	bfs algorithm.
+	(eieio-class-precedence-c3): compute class precedence list using
+	c3 algorithm.
+	(class-precedence-list): New function.
+	(eieiomt-method-list, eieiomt-sym-optimize): Use it.
+	(inconsistent-class-hierarchy): New error symbol.
+	(call-next-method): Stow the replacement argument list for future
+	call-next-method invocations.
+
 2010-09-15  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/appt.el (appt-check): If not displaying the diary,
