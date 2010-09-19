@@ -1,3 +1,8 @@
+2010-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/warnings.el: Fix commenting convention.
+	(display-warning): Use special mode and make the buffer read-only.
+
 2010-09-18  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-prog.el (calc-read-parse-table-part): Don't "fix" the

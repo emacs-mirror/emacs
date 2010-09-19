@@ -119,9 +119,9 @@ See also `warning-suppress-log-types'."
   :type '(repeat (repeat symbol))
   :version "22.1")
 
-;;; The autoload cookie is so that programs can bind this variable
-;;; safely, testing the existing value, before they call one of the
-;;; warnings functions.
+;; The autoload cookie is so that programs can bind this variable
+;; safely, testing the existing value, before they call one of the
+;; warnings functions.
 ;;;###autoload
 (defvar warning-prefix-function nil
   "Function to generate warning prefixes.
@@ -132,9 +132,9 @@ The warnings buffer is current when this function is called
 and the function can insert text in it.  This text becomes
 the beginning of the warning.")
 
-;;; The autoload cookie is so that programs can bind this variable
-;;; safely, testing the existing value, before they call one of the
-;;; warnings functions.
+;; The autoload cookie is so that programs can bind this variable
+;; safely, testing the existing value, before they call one of the
+;; warnings functions.
 ;;;###autoload
 (defvar warning-series nil
   "Non-nil means treat multiple `display-warning' calls as a series.
@@ -146,16 +146,16 @@ A symbol with a function definition is like t, except
 also call that function before the next warning.")
 (put 'warning-series 'risky-local-variable t)
 
-;;; The autoload cookie is so that programs can bind this variable
-;;; safely, testing the existing value, before they call one of the
-;;; warnings functions.
+;; The autoload cookie is so that programs can bind this variable
+;; safely, testing the existing value, before they call one of the
+;; warnings functions.
 ;;;###autoload
 (defvar warning-fill-prefix nil
   "Non-nil means fill each warning text using this string as `fill-prefix'.")
 
-;;; The autoload cookie is so that programs can bind this variable
-;;; safely, testing the existing value, before they call one of the
-;;; warnings functions.
+;; The autoload cookie is so that programs can bind this variable
+;; safely, testing the existing value, before they call one of the
+;; warnings functions.
 ;;;###autoload
 (defvar warning-type-format (purecopy " (%s)")
   "Format for displaying the warning type in the warning message.
@@ -241,6 +241,8 @@ See also `warning-series', `warning-prefix-function' and
 	(with-current-buffer buffer
           ;; If we created the buffer, disable undo.
           (unless old
+            (special-mode)
+            (setq buffer-read-only t)
             (setq buffer-undo-list t))
 	  (goto-char (point-max))
 	  (when (and warning-series (symbolp warning-series))
@@ -248,6 +250,7 @@ See also `warning-series', `warning-prefix-function' and
 		  (prog1 (point-marker)
 		    (unless (eq warning-series t)
 		      (funcall warning-series)))))
+          (let ((inhibit-read-only t))
 	  (unless (bolp)
 	    (newline))
 	  (setq start (point))
@@ -262,7 +265,7 @@ See also `warning-series', `warning-prefix-function' and
 	    (let ((fill-prefix warning-fill-prefix)
 		  (fill-column 78))
 	      (fill-region start (point))))
-	  (setq end (point))
+            (setq end (point)))
 	  (when (and (markerp warning-series)
 		     (eq (marker-buffer warning-series) buffer))
 	    (goto-char warning-series)))
