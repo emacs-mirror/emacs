@@ -197,14 +197,14 @@ not done by default on servers that doesn't support that command.")
     (current-buffer)))
 
 (defun nnimap-open-shell-stream (name buffer host port)
-  (let ((process (start-process name buffer shell-file-name
-				shell-command-switch
-				(format-spec
-				 nnimap-shell-program
-				 (format-spec-make
-				  ?s host
-				  ?p port)))))
-    process))
+  (let ((process-connection-type nil))
+    (start-process name buffer shell-file-name
+		   shell-command-switch
+		   (format-spec
+		    nnimap-shell-program
+		    (format-spec-make
+		     ?s host
+		     ?p port)))))
 
 (defun nnimap-credentials (address ports)
   (let (port credentials)
@@ -263,8 +263,6 @@ not done by default on servers that doesn't support that command.")
 		(delete-process (nnimap-process nnimap-object))
 		(setq nnimap-object nil))))
 	  (when nnimap-object
-	    (when (eq nnimap-stream 'shell)
-	      (setf (nnimap-newlinep nnimap-object) t))
 	    (setf (nnimap-capabilities nnimap-object)
 		  (mapcar
 		   #'upcase
@@ -317,10 +315,14 @@ not done by default on servers that doesn't support that command.")
 		 (if (member "IMAP4REV1" (nnimap-capabilities nnimap-object))
 		     "UID FETCH %d BODY.PEEK[]"
 		   "UID FETCH %d RFC822.PEEK")
-		 article)))
+		 article))
+	  ;; Check that we really got an article.
+	  (goto-char (point-min))
+	  (unless (looking-at "\\* [0-9]+ FETCH")
+	    (setq result nil)))
 	(let ((buffer (nnimap-find-process-buffer (current-buffer))))
 	  (when (car result)
-	    (with-current-buffer to-buffer
+	    (with-current-buffer (or to-buffer nntp-server-buffer)
 	      (insert-buffer-substring buffer)
 	      (goto-char (point-min))
 	      (let ((bytes (nnimap-get-length)))
@@ -611,7 +613,19 @@ not done by default on servers that doesn't support that command.")
       (nnimap-update-infos (nnimap-flags-to-marks
 			    (nnimap-parse-flags
 			     (nreverse sequences)))
-			   infos))))
+			   infos)
+      ;; Finally, just return something resembling an active file in
+      ;; the nntp buffer, so that the agent can save the info, too.
+      (with-current-buffer nntp-server-buffer
+	(erase-buffer)
+	(dolist (info infos)
+	  (let* ((group (gnus-info-group info))
+		 (active (gnus-active group)))
+	    (when active
+	      (insert (format "%S %d %d y\n"
+			      (gnus-group-real-name group)
+			      (cdr active)
+			      (car active))))))))))
 
 (defun nnimap-update-infos (flags infos)
   (dolist (info infos)

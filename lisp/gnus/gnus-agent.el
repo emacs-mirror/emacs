@@ -184,7 +184,7 @@ When found, offer to remove them."
   :type 'boolean
   :group 'gnus-agent)
 
-(defcustom gnus-agent-auto-agentize-methods '(nntp)
+(defcustom gnus-agent-auto-agentize-methods nil
   "Initially, all servers from these methods are agentized.
 The user may remove or add servers using the Server buffer.
 See Info node `(gnus)Server Buffer'."
@@ -2104,12 +2104,12 @@ doesn't exist, to valid the overview buffer."
   (let* ((gnus-agent-read-agentview group)
 	 (file-name-coding-system nnmail-pathname-coding-system)
 	 (agentview (gnus-agent-article-name ".agentview" group)))
-    (when (file-exists-p agentview)
-      (setq gnus-agent-article-alist
-	    (gnus-cache-file-contents
-	     agentview
-	     'gnus-agent-file-loading-cache
-	     'gnus-agent-read-agentview)))))
+    (setq gnus-agent-article-alist
+	  (and (file-exists-p agentview)
+	       (gnus-cache-file-contents
+		agentview
+		'gnus-agent-file-loading-cache
+		'gnus-agent-read-agentview)))))
 
 (defun gnus-agent-read-agentview (file)
   "Load FILE and do a `read' there."
@@ -2353,7 +2353,6 @@ modified) original contents, they are first saved to their own file."
          (local (or local (gnus-agent-load-local)))
          (symb (intern gmane local))
          (minmax (and (boundp symb) (symbol-value symb))))
-
     (if (cond ((and minmax
                     (or (not (eq min (car minmax)))
                         (not (eq max (cdr minmax))))

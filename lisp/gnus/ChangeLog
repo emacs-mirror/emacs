@@ -1,3 +1,26 @@
+2010-09-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-agent.el (gnus-agent-auto-agentize-methods): Switch the default
+	to nil, so that no methods are automatically agentized.  I think this
+	is probably what most users want.
+
+	* gnus-html.el (gnus-html-schedule-image-fetching): Ignore all errors
+	from url-retrieve, for instance about invalid URLs.
+
+	* nnimap.el (nnimap-finish-retrieve-group-infos): Protect against
+	groups that have no articles.
+	(nnimap-request-article): Check that we really got an article when we
+	requested one.
+
+	* gnus-agent.el (gnus-agent-load-alist): Nix out the alist if the file
+	doesn't exist.
+
+	* nnimap.el (nnimap-finish-retrieve-group-infos): Return data in the
+	nntp buffer so the agent can save it.
+	(nnimap-open-shell-stream): Bind `process-connection-type' to nil, so
+	that CRLF doesn't get translated to \n.
+	(nnimap-open-connection): Don't make 'shell commands only send \n.
+
 2010-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* nnml.el (nnml-files): Add prefix to dynamic var `files'.

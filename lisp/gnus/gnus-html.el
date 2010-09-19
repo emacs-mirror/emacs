@@ -298,9 +298,10 @@ fit these criteria."
   (gnus-message 8 "gnus-html-schedule-image-fetching: buffer %s, images %s"
                 buffer images)
   (dolist (image images)
-    (url-retrieve (car image)
-                  'gnus-html-image-fetched
-                  (list buffer image))))
+    (ignore-errors
+      (url-retrieve (car image)
+		    'gnus-html-image-fetched
+		    (list buffer image)))))
 
 (defun gnus-html-image-id (url)
   (expand-file-name (sha1 url) gnus-html-cache-directory))
