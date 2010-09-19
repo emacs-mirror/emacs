@@ -1,7 +1,12 @@
+2010-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fringe.el (fringe-styles): New var.
+	(fringe-mode, fringe-query-style): Use it.
+
 2010-09-18  Michael R. Mauger  <mmaug@yahoo.com>
 
 	* progmodes/sql.el: Version 2.8
-	(sql-login-params): Updated widget structure; changes still
+	(sql-login-params): Update widget structure; changes still
 	needed.
 	(sql-product-alist): Add :list-all and :list-table features for
 	SQLite, Postgres and MySQL products.
