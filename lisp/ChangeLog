@@ -1,9 +1,19 @@
+2010-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/float-sup.el (float-pi): New name for `pi'.
+	(float-e): New name for `e'.
+	(degrees-to-radians, radians-to-degrees):
+	* calendar/solar.el (solar-longitude):
+	* calculator.el (calculator-registers, calculator-funcall):
+	* textmodes/artist.el (artist-spray-random-points):
+	* play/bubbles.el (bubbles--initialize-images): Use new names.
+
 2010-09-19  Eric M. Ludlam  <zappo@gnu.org>
 
 	Update to CEDET 1.0's version of EIEIO.
 
-	* emacs-lisp/eieio.el (eieio-specialized-key-to-generic-key): New
-	function.
+	* emacs-lisp/eieio.el (eieio-specialized-key-to-generic-key):
+	New function.
 	(eieio-defmethod, eieio-generic-form, eieio-generic-call): Use it.
 	(eieio-default-eval-maybe): Eval val instead of unquoting only.
 	(class-precedence-list): If class is nil, return nil.
@@ -25,7 +35,7 @@
 	dfs algorithm.
 	(eieio-class-precedence-bfs): Compute class precedence list using
 	bfs algorithm.
-	(eieio-class-precedence-c3): compute class precedence list using
+	(eieio-class-precedence-c3): Compute class precedence list using
 	c3 algorithm.
 	(class-precedence-list): New function.
 	(eieiomt-method-list, eieiomt-sym-optimize): Use it.

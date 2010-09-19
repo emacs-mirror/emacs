@@ -34,25 +34,25 @@
 
 ;; provide an easy hook to tell if we are running with floats or not.
 ;; define pi and e via math-lib calls. (much less prone to killer typos.)
-(defconst pi (* 4 (atan 1)) "The value of Pi (3.1415926...).")
+(defconst float-pi (* 4 (atan 1)) "The value of Pi (3.1415926...).")
+(defconst pi float-pi "Obsolete since Emacs-23.3.  Use `float-pi' instead.")
 
-;; It's too inconvenient to make `e' a constant because it's used as
-;; a temporary variable all the time.
-(defvar e (exp 1) "The value of e (2.7182818...).")
+(defconst float-e (exp 1) "The value of e (2.7182818...).")
+(defvar e float-e "Obsolete since Emacs-23.3.  Use `float-e' instead.")
 
-(defconst degrees-to-radians (/ pi 180.0)
+(defconst degrees-to-radians (/ float-pi 180.0)
   "Degrees to radian conversion constant.")
-(defconst radians-to-degrees (/ 180.0 pi)
+(defconst radians-to-degrees (/ 180.0 float-pi)
   "Radian to degree conversion constant.")
 
 ;; these expand to a single multiply by a float when byte compiled
 
 (defmacro degrees-to-radians (x)
   "Convert ARG from degrees to radians."
-  (list '* (/ pi 180.0) x))
+  (list '* degrees-to-radians x))
 (defmacro radians-to-degrees (x)
   "Convert ARG from radians to degrees."
-  (list '* (/ 180.0 pi) x))
+  (list '* radians-to-degrees x))
 
 (provide 'lisp-float-type)
 
