@@ -1,5 +1,8 @@
 2010-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* mail/sendmail.el: Fix commenting convention.
+	(sendmail-send-it): Use line-beginning-position.
+
 	* help-fns.el (describe-variable): Add original value, if applicable.
 
 2010-09-20  Juanma Barranquero  <lekktu@gmail.com>
