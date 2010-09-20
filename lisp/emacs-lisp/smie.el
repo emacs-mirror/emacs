@@ -865,7 +865,7 @@ to `smie-indent-basic'.")
            (forward-char 1))
          (skip-chars-forward " \t")
          (eolp))
-       (not (smie-bolp))))
+       (not (smie-indent--bolp))))
 
 (defun smie-indent--bolp ()
   (save-excursion (skip-chars-backward " \t") (bolp)))

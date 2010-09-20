@@ -1,3 +1,7 @@
+2010-09-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/smie.el (smie-indent--hanging-p): Use `smie-indent--bolp'.
+
 2010-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/smie.el (smie-bnf-precedence-table): Improve error message.
