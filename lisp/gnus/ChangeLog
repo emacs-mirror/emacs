@@ -1,3 +1,28 @@
+2010-09-20  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-request-group): Don't select the imap buffer before
+	opening the server.
+	(nnimap-request-delete-group): Implement group deletion.
+	(nnimap-transform-headers): Return the size of the entire message in
+	the Bytes header, not just the size of the first part.
+	(nnimap-request-move-article): When moving an article from nnimap,
+	request the article first so the accepting form has an article to
+	accept.  Reported by Dan Christensen.
+	(nnimap-command): Make sure that the error message doesn't error out.
+
+2010-09-20  David Edmondson  <dme@dme.org>  (tiny change)
+
+	* nnimap.el (nnimap-request-set-mark): Don't wait for a response when
+	we haven't requested anything.
+
+2010-09-20  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-fetch-inbox): Use "[]" as the parameter instead of
+	"".  Fix found by Andrew Cohen.
+
+	* mail-parse.el (mail-header-encode-parameter): Use -encode-parameter
+	instead of -encode-string.
+
 2010-09-20  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-html.el (gnus-html-image-fetched): Pass arg to kill-buffer.

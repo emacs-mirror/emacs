@@ -137,7 +137,7 @@ textual parts.")
 
 (defun nnimap-transform-headers ()
   (goto-char (point-min))
-  (let (article bytes lines)
+  (let (article bytes lines size)
     (block nil
       (while (not (eobp))
 	(while (not (looking-at "^\\* [0-9]+ FETCH.*UID \\([0-9]+\\)"))
@@ -148,6 +148,12 @@ textual parts.")
 	      bytes (nnimap-get-length)
 	      lines nil)
 	(beginning-of-line)
+	(setq size
+	      (and (re-search-forward "RFC822.SIZE \\([0-9]+\\)"
+				      (line-end-position)
+				      t)
+		   (match-string 1)))
+	(beginning-of-line)
 	(when (search-forward "BODYSTRUCTURE" (line-end-position) t)
 	  (let ((structure (ignore-errors (read (current-buffer)))))
 	    (while (and (consp structure)
@@ -157,7 +163,8 @@ textual parts.")
 	(delete-region (line-beginning-position) (line-end-position))
 	(insert (format "211 %s Article retrieved." article))
 	(forward-line 1)
-	(insert (format "Chars: %d\n" bytes))
+	(when size
+	  (insert (format "Chars: %s\n" size)))
 	(when lines
 	  (insert (format "Lines: %s\n" lines)))
 	(re-search-forward "^\r$")
@@ -384,9 +391,9 @@ textual parts.")
     (nreverse parts)))
 
 (deffoo nnimap-request-group (group &optional server dont-check info)
-  (with-current-buffer nntp-server-buffer
-    (let ((result (nnimap-possibly-change-group group server))
-	  articles active marks high low)
+  (let ((result (nnimap-possibly-change-group group server))
+	articles active marks high low)
+    (with-current-buffer nntp-server-buffer
       (when result
 	(if (and dont-check
 		 (setq active (nth 2 (assoc group nnimap-current-infos))))
@@ -424,6 +431,11 @@ textual parts.")
 	    low high group))))
       t)))
 
+(deffoo nnimap-request-delete-group (group &optional force server)
+  (when (nnimap-possibly-change-group nil server)
+    (with-current-buffer (nnimap-buffer)
+      (car (nnimap-command "DELETE %S" (utf7-encode group))))))
+
 (defun nnimap-get-flags (spec)
   (let ((articles nil)
 	elems)
@@ -460,10 +472,11 @@ textual parts.")
 		    (nnimap-find-article-by-message-id
 		     internal-move-group message-id))))
 	(with-temp-buffer
-	  (let ((result (eval accept-form)))
-	    (when result
-	      (nnimap-delete-article article)
-	      result)))))))
+	  (when (nnimap-request-article article group server (current-buffer))
+	    (let ((result (eval accept-form)))
+	      (when result
+		(nnimap-delete-article article)
+		result))))))))
 
 (deffoo nnimap-request-expire-articles (articles group &optional server force)
   (cond
@@ -530,7 +543,8 @@ textual parts.")
 				(mapconcat #'identity flags " ")))))))
 	;; Wait for the last command to complete to avoid later
 	;; syncronisation problems with the stream.
-	(nnimap-wait-for-response sequence)))))
+	(when sequence
+	  (nnimap-wait-for-response sequence))))))
 
 (deffoo nnimap-request-accept-article (group &optional server last)
   (when (nnimap-possibly-change-group nil server)
@@ -863,7 +877,9 @@ textual parts.")
     (if (equal (caar response) "OK")
 	(cons t response)
       (nnheader-report 'nnimap "%s"
-		       (mapconcat #'identity (car response) " "))
+		       (mapconcat (lambda (a)
+				    (format "%s" a))
+				  (car response) " "))
       nil)))
 
 (defun nnimap-get-response (sequence)
@@ -972,7 +988,7 @@ textual parts.")
 		 "BODY.PEEK[HEADER] BODY.PEEK"
 	       "RFC822.PEEK"))
 	    (if nnimap-split-download-body-default
-		""
+		"[]"
 	      "[1]")))
    t))
 
