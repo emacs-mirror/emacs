@@ -1,5 +1,10 @@
 2010-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/pascal.el (pascal-mode): Use define-derived-mode.
+	Set invisibility spec for pascal's outline mode.
+	(pascal-outline-change): Clean up calling convention.
+	(pascal-show-all, pascal-hide-other-defuns): Update callers.
+
 	* progmodes/prolog.el (prolog-smie-forward-token)
 	(prolog-smie-backward-token): New functions.
 	(prolog-mode-variables): Use them to parse "!," correctly.
