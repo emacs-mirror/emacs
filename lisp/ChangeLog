@@ -1,5 +1,14 @@
 2010-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/ispell.el: Fix commenting convention.
+	(ispell-parse-output): Simplify, use push.
+	(ispell-region): Use match-string-no-properties.
+	(ispell-begin-skip-region-regexp): Use mapconcat to simplify.
+	(ispell-minor-mode): Use define-minor-mode.
+	(ispell-message): Remove unused var `skip-regexp'.
+	(ispell-add-per-file-word-list): Use dynamic let-binding.
+	Try and use the proper comment marker.
+
 	* mail/sendmail.el: Fix commenting convention.
 	(sendmail-send-it): Use line-beginning-position.
 
