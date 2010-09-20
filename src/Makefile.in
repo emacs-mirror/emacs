@@ -35,6 +35,7 @@ CC = @CC@
 CFLAGS = @CFLAGS@
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
+LD_FIRSTFLAG=@LD_FIRSTFLAG@
 EXEEXT = @EXEEXT@
 version = @version@
 # Substitute an assignment for the MAKE variable, because
@@ -123,8 +124,6 @@ LIBS_SYSTEM=@LIBS_SYSTEM@
 
 ## Where to find libgcc.a, if using gcc and necessary.
 LIB_GCC=@LIB_GCC@
-
-LD=@LINKER@
 
 ## May use $CRT_DIR.
 LIB_STANDARD=@LIB_STANDARD@
@@ -646,7 +645,7 @@ buildobj.h: Makefile
 
 
 temacs${EXEEXT}: $(START_FILES) stamp-oldxmenu ${obj} ${otherobj}
-	$(LD) ${TEMACS_LDFLAGS} ${TEMACS_LDFLAGS2} \
+	$(CC) $(LD_FIRSTFLAG) ${TEMACS_LDFLAGS} ${TEMACS_LDFLAGS2} \
 	  -o temacs ${START_FILES} ${obj} ${otherobj} ${LIBES}
 
 ## The following oldxmenu-related rules are only (possibly) used if

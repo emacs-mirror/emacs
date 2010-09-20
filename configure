@@ -599,7 +599,7 @@ WINDOW_SUPPORT
 TOOLTIP_SUPPORT
 MOUSE_SUPPORT
 LIB_GCC
-LINKER
+LD_FIRSTFLAG
 LD_SWITCH_SYSTEM_TEMACS
 POST_ALLOC_OBJ
 PRE_ALLOC_OBJ
@@ -14703,7 +14703,7 @@ fi
 
 
 
-LINKER=
+LD_FIRSTFLAG=
 ORDINARY_LINK=
 case "$opsys" in
   ## gnu: GNU needs its own crt0.
@@ -14713,14 +14713,14 @@ case "$opsys" in
   ## library search parth, i.e. it won't search /usr/lib for libc and
   ## friends.  Using -nostartfiles instead avoids this problem, and
   ## will also work on earlier NetBSD releases.
-  netbsd|openbsd) LINKER="\$(CC) -nostartfiles" ;;
+  netbsd|openbsd) LD_FIRSTFLAG="-nostartfiles" ;;
 
   ## macpcc: NAKAJI Hiroyuki <nakaji@tutrp.tut.ac.jp> says
   ##   MkLinux/LinuxPPC needs this.
   ## ibms390x only supports opsys = gnu-linux so it can be added here.
   gnu-*)
     case "$machine" in
-      macppc|ibms390x) LINKER="\$(CC) -nostdlib" ;;
+      macppc|ibms390x) LD_FIRSTFLAG="-nostdlib" ;;
     esac
     ;;
 esac
@@ -14728,14 +14728,14 @@ esac
 
 if test "x$ORDINARY_LINK" = "xyes"; then
 
-  LINKER="\$(CC)"
+  LD_FIRSTFLAG=""
 
 $as_echo "#define ORDINARY_LINK 1" >>confdefs.h
 
 
-## The system files defining neither ORDINARY_LINK nor LINKER are:
+## The system files defining neither ORDINARY_LINK nor LD_FIRSTFLAG are:
 ## freebsd, gnu-* not on macppc|ibms390x.
-elif test "x$GCC" = "xyes" && test "x$LINKER" = "x"; then
+elif test "x$GCC" = "xyes" && test "x$LD_FIRSTFLAG" = "x"; then
 
   ## Versions of GCC >= 2.0 put their library, libgcc.a, in obscure
   ## places that are difficult to figure out at make time.  Fortunately,
@@ -14745,18 +14745,17 @@ elif test "x$GCC" = "xyes" && test "x$LINKER" = "x"; then
   ## Well, it is not quite perfect.  The "-nostdlib" keeps GCC from
   ## searching for libraries in its internal directories, so we have to
   ## ask GCC explicitly where to find libgcc.a (LIB_GCC below).
-  LINKER="\$(CC) -nostdlib"
+  LD_FIRSTFLAG="-nostdlib"
 fi
 
-test "x$LINKER" = "x" && LINKER=ld
 ## FIXME? What setting of EDIT_LDFLAGS should this have?
-test "$NS_IMPL_GNUSTEP" = "yes" && LINKER="\$(CC) -rdynamic"
+test "$NS_IMPL_GNUSTEP" = "yes" && LD_FIRSTFLAG="-rdynamic"
 
 
 
 
 ## FIXME? The logic here is not precisely the same as that above.
-## There is no check here for a pre-defined LINKER.
+## There is no check here for a pre-defined LD_FIRSTFLAG.
 ## Should we only be setting LIB_GCC if LD ~ -nostdlib?
 LIB_GCC=
 if test "x$GCC" = "xyes" && test "x$ORDINARY_LINK" != "xyes"; then
