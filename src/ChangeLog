@@ -1,3 +1,7 @@
+2010-09-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xterm.c (xt_action_hook): Use const.
+
 2010-09-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	Don't make W32 code conditional on HAVE_SOCKETS, it's always defined.
