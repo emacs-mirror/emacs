@@ -775,7 +775,7 @@ of master file."
           pos cmd-list cmd cnt cnt-opt entry)
       (save-restriction
         (save-excursion
-          (narrow-to-region (max 1 bound) (point-max))
+          (narrow-to-region (max (point-min) bound) (point-max))
           ;; move back out of the current parenthesis
           (while (condition-case nil
                      (progn (up-list -1) t)

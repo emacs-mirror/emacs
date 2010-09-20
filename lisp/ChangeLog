@@ -1,5 +1,8 @@
 2010-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/reftex-parse.el (reftex-what-macro): Don't hardcode
+	point-min==1.
+
 	* textmodes/ispell.el: Fix commenting convention.
 	(ispell-parse-output): Simplify, use push.
 	(ispell-region): Use match-string-no-properties.
