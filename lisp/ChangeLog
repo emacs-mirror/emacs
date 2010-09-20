@@ -1,5 +1,7 @@
 2010-09-20  Juanma Barranquero  <lekktu@gmail.com>
 
+	* subr.el (y-or-n-p): Remove leftover code from revno 101459.
+
 	* emacs-lisp/smie.el (smie-indent--hanging-p): Use `smie-indent--bolp'.
 
 2010-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>

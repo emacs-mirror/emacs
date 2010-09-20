@@ -3403,10 +3403,7 @@ is nil and `use-dialog-box' is non-nil."
              ((memq answer '(exit-prefix quit)) (signal 'quit nil) t)
              (t t)))
         (ding)
-        (discard-input)
-        (setq xprompt
-              (if (eq answer 'recenter) prompt
-                (concat "Please answer y or n.  " prompt)))))
+        (discard-input)))
     (let ((ret (eq answer 'act)))
       (unless noninteractive
         (message "%s %s" prompt (if ret "y" "n")))
