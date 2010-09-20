@@ -9838,6 +9838,9 @@ Customization, emacs-mime, The Emacs MIME Manual}) to convert the
 can use include:
 
 @table @code
+@item gnus-article-html
+Use Gnus rendered based on w3m.
+
 @item w3
 Use Emacs/W3.
 
