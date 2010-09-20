@@ -1,3 +1,14 @@
+2010-09-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	Don't make W32 code conditional on HAVE_SOCKETS, it's always defined.
+	* w32.c: Remove top-level uses of #ifdef HAVE_SOCKETS.
+	(gethostname) [!HAVE_SOCKETS]: Remove.
+	(SOCK_REPLACE_HANDLE): Remove macro.
+	(socket_to_fd, sys_close, _sys_read_ahead, sys_read, sys_write)
+	(term_ntproc, init_ntproc): Don't conditionalize on HAVE_SOCKETS.
+	* w32proc.c: Remove top-level uses of #ifdef HAVE_SOCKETS.
+	(syms_of_ntproc): Don't conditionalize on HAVE_SOCKETS.
+
 2010-09-18  Eli Zaretskii  <eliz@gnu.org>
 
 	* deps.mk (xml.o): Add dependencies.
