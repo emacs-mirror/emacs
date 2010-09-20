@@ -2816,7 +2816,11 @@ a new one will be started when needed."
       (setq ispell-current-dictionary dict
 	    ispell-current-personal-dictionary pdict))))
 
-;;; Spelling of comments are checked when ispell-check-comments is non-nil.
+;; Avoid error messages when compiling for these dynamic variables.
+(defvar ispell-start)
+(defvar ispell-end)
+
+;; Spelling of comments are checked when ispell-check-comments is non-nil.
 
 ;;;###autoload
 (defun ispell-region (reg-start reg-end &optional recheckp shift)
@@ -2893,18 +2897,20 @@ Return nil if spell session is quit,
 				 (if (marker-position skip-region-start)
 				     (min skip-region-start ispell-region-end)
 				   (marker-position ispell-region-end))))
-	      (let* ((start (point))
-		     (end (save-excursion (end-of-line) (min (point) reg-end)))
-		     (string (ispell-get-line start end in-comment)))
+	      (let* ((ispell-start (point))
+		     (ispell-end (save-excursion
+                                   (end-of-line) (min (point) reg-end)))
+		     (string (ispell-get-line
+                              ispell-start ispell-end in-comment)))
 		(if in-comment		; account for comment chars added
-		    (setq start (- start (length in-comment))
+		    (setq ispell-start (- ispell-start (length in-comment))
 			  in-comment nil))
-		(setq end (point))	; "end" tracks region retrieved.
+		(setq ispell-end (point)) ; "end" tracks region retrieved.
 		(if string		; there is something to spell check!
 		    ;; (special start end)
 		    (setq shift (ispell-process-line string
 						     (and recheckp shift))))
-		(goto-char end)))))
+		(goto-char ispell-end)))))
 	(if ispell-quit
 	    nil
 	  (or shift 0)))
@@ -3136,17 +3142,13 @@ Returns a string with the line data."
 				       (point) (+ (point) len))
 				      coding)))))
 
-;; Avoid error messages when compiling for these dynamic variables.
-;; FIXME: dynamically scoped vars should have an "ispell-" prefix.
-(defvar start)
-(defvar end)
-
 (defun ispell-process-line (string shift)
   "Send STRING, a line of text, to ispell and processes the result.
 This will modify the buffer for spelling errors.
-Requires variables START and END to be defined in its lexical scope.
+Requires variables ISPELL-START and ISPELL-END to be defined in its
+dynamic scope.
 Returns the sum SHIFT due to changes in word replacements."
-  ;;(declare special start end)
+  ;;(declare special ispell-start ispell-end)
   (let (poss accept-list)
     (if (not (numberp shift))
 	(setq shift 0))
@@ -3169,10 +3171,10 @@ Returns the sum SHIFT due to changes in word replacements."
 	  ;; Markers can move with highlighting!  This destroys
 	  ;; end of region markers line-end and ispell-region-end
 	  (let ((word-start
-		 (copy-marker (+ start ispell-offset (car (cdr poss)))))
+		 (copy-marker (+ ispell-start ispell-offset (car (cdr poss)))))
 		(word-len (length (car poss)))
-		(line-end (copy-marker end))
-		(line-start (copy-marker start))
+		(line-end (copy-marker ispell-end))
+		(line-start (copy-marker ispell-start))
 		recheck-region replace)
 	    (goto-char word-start)
 	    ;; Adjust the horizontal scroll & point
@@ -3279,11 +3281,12 @@ Returns the sum SHIFT due to changes in word replacements."
                    (file-name-nondirectory ispell-program-name)
                    (or ispell-current-dictionary "default"))))
 	    (sit-for 0)
-	    (setq start (marker-position line-start)
-		  end (marker-position line-end))
+	    (setq ispell-start (marker-position line-start)
+		  ispell-end (marker-position line-end))
 	    ;; Adjust markers when end of region lost from highlighting.
-	    (if (and (not recheck-region) (< end (+ word-start word-len)))
-		(setq end (+ word-start word-len)))
+	    (if (and (not recheck-region)
+                     (< ispell-end (+ word-start word-len)))
+		(setq ispell-end (+ word-start word-len)))
 	    (if (= word-start ispell-region-end)
 		(set-marker ispell-region-end (+ word-start word-len)))
 	    ;; going out of scope - unneeded

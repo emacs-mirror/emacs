@@ -1,5 +1,9 @@
 2010-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/ispell.el (ispell-start, ispell-end): Rename from `start'
+	and `end'.
+	(ispell-region, ispell-process-line): Update users.
+
 	* textmodes/reftex-parse.el (reftex-what-macro): Don't hardcode
 	point-min==1.
 
