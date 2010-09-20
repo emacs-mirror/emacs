@@ -42,7 +42,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #undef KERNEL_FILE
 #undef LDAV_SYMBOL
 
-#define HAVE_TERMIOS
 #define NO_TERMIO
 
 /* If the system's imake configuration file defines `NeedWidePrototypes'

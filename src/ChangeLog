@@ -1,5 +1,17 @@
 2010-09-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	Remove HAVE_TERMIOS definitions.
+	* s/usg5-4-common.h (HAVE_TERMIOS):
+	* s/template.h (HAVE_TERMIOS):
+	* s/gnu-linux.h (HAVE_TERMIOS):
+	* s/darwin.h (HAVE_TERMIOS):
+	* s/cygwin.h (HAVE_TERMIOS):
+	* s/bsd-common.h (HAVE_TERMIOS):
+	* s/aix4-2.h (HAVE_TERMIOS):
+	* s/hpux10-20.h (HAVE_TERMIOS): Do not define, it is assumed
+	defined on all non-MS platforms.
+	(HAVE_PSTAT_GETDYNAMIC): Do not define, autoconf does it.
+
 	* xterm.c (xt_action_hook): Use const.
 
 2010-09-20  Juanma Barranquero  <lekktu@gmail.com>

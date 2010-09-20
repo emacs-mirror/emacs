@@ -31,10 +31,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    It sets the Lisp variable system-type.  */
 #define SYSTEM_TYPE "usg-unix-v"
 
-/* Define HAVE_TERMIO if the system provides sysV-style ioctls
-   for terminal control.  */
-#define HAVE_TERMIO
-
 /* The file containing the kernel's symbol table is called /unix.  */
 #define KERNEL_FILE "/unix"
 
@@ -78,7 +74,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define HAVE_PTYS if the system supports pty devices.  */
 #define HAVE_PTYS
-#define HAVE_TERMIOS
 
 /* It is possible to receive SIGCHLD when there are no children
    waiting, because a previous waitsys(2) cleaned up the carcass of child
