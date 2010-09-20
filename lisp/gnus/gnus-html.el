@@ -339,7 +339,7 @@ fit these criteria."
     (when (search-forward "\n\n" nil t)
       ;; Write region (image data) silently
       (write-region (point) (point-max) file nil 1)
-      (kill-buffer)
+      (kill-buffer (current-buffer))
       (when (and (buffer-live-p buffer)
 		 ;; If the `image' has no marker, do not replace anything
 		 (cadr image)

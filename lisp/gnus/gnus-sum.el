@@ -10769,8 +10769,9 @@ If NO-EXPIRE, auto-expiry will be inhibited."
 	(goto-char (+ forward (point)))
 	;; Replace the old mark with the new mark.
         (let ((to-insert
-               (subst-char-in-string (char-after) mark
-                                     (buffer-substring (point) (1+ (point))))))
+               (mm-subst-char-in-string
+		(char-after) mark
+		(buffer-substring (point) (1+ (point))))))
           (delete-region (point) (1+ (point)))
           (insert to-insert))
 	;; Optionally update the marks by some user rule.

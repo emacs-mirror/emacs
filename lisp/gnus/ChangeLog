@@ -1,3 +1,10 @@
+2010-09-20  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-html.el (gnus-html-image-fetched): Pass arg to kill-buffer.
+
+	* gnus-sum.el (gnus-summary-update-mark): Replace subst-char-in-string
+	by mm-subst-char-in-string.
+
 2010-09-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* nnimap.el (nnimap-wait-for-connection): Avoid a race condition while
