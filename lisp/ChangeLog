@@ -1,5 +1,10 @@
 2010-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/prolog.el (prolog-smie-forward-token)
+	(prolog-smie-backward-token): New functions.
+	(prolog-mode-variables): Use them to parse "!," correctly.
+	Set up smie-blink-matching for ".".
+
 	* textmodes/ispell.el (ispell-start, ispell-end): Rename from `start'
 	and `end'.
 	(ispell-region, ispell-process-line): Update users.
