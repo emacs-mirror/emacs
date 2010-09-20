@@ -1,5 +1,9 @@
 2010-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/lisp.el (up-list): Don't do nothing silently.
+
+	* simple.el (blink-matching-open): Use syntax-class.
+
 	* progmodes/pascal.el (pascal-mode): Use define-derived-mode.
 	Set invisibility spec for pascal's outline mode.
 	(pascal-outline-change): Clean up calling convention.

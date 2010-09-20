@@ -141,15 +141,19 @@ A negative argument means move backward but still to a less deep spot.
 This command assumes point is not in a string or comment."
   (interactive "^p")
   (or arg (setq arg 1))
-  (let ((inc (if (> arg 0) 1 -1)))
+  (let ((inc (if (> arg 0) 1 -1))
+        pos)
     (while (/= arg 0)
-      (if forward-sexp-function
+      (if (null forward-sexp-function)
+          (goto-char (or (scan-lists (point) inc 1) (buffer-end arg)))
           (condition-case err
-              (while (let ((pos (point)))
+              (while (progn (setq pos (point))
                        (forward-sexp inc)
                        (/= (point) pos)))
             (scan-error (goto-char (nth 2 err))))
-        (goto-char (or (scan-lists (point) inc 1) (buffer-end arg))))
+        (if (= (point) pos)
+            (signal 'scan-error
+                    (list "Unbalanced parentheses" (point) (point)))))
       (setq arg (- arg inc)))))
 
 (defun kill-sexp (&optional arg)
