@@ -70,7 +70,7 @@
 	(gnus-html-image-fetched): Fix `gnus-html-put-image' call not setting
 	the right URL and ALT text on images.
 	(gnus-html-wash-tags): Fix tag case.
-	Add support for `s' and `ins' tags. Use gnus-emphasis-* faces.
+	Add support for `s' and `ins' tags.  Use gnus-emphasis-* faces.
 	(gnus-article-html): Add -o display_ins_del=2 option.
 	(gnus-html-wash-tags): Add better support for <ul> tags symbols.
 
@@ -647,7 +647,7 @@
 2010-09-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-html.el (gnus-html-wash-tags): Don't show images that are really
-	small. They're probably tracking images.
+	small.  They're probably tracking images.
 	(gnus-html-wash-tags): Remove all <pre_int> place holders.
 	(gnus-html-rescale-image): Yet another try at getting the image sizing
 	right.
@@ -801,12 +801,12 @@
 
 	* gnus-sum.el: As per discussion 3 years, 8 weeks, 3 days, 9 hours, 57
 	minutes, 56 seconds ago on the ding list, remove the `w' and `i'
-	bindings, as they aren't useful at all. `w' is moved to `W w'.
+	bindings, as they aren't useful at all.  `w' is moved to `W w'.
 
 	* gnus-move.el: Removed file, since it doesn't really work.
 
 	* gnus-html.el (gnus-article-html): Tell w3m that the input is
-	UTF-8. This seems to fix problems with some German web feeds.
+	UTF-8.  This seems to fix problems with some German web feeds.
 
 	* gnus.el (gnus-group-startup-message): Put the xpm version of the logo
 	at the top so that the proper colours are applied.
@@ -4293,7 +4293,7 @@
 	(nntp-wait-for, nntp-retrieve-articles, nntp-async-trigger)
 	(nntp-retrieve-headers-with-xover): Use nntp-insert-buffer-substring to
 	copy data from unibyte buffer to multibyte current buffer.
-	(nntp-retrieve-headers, nntp-retrieve-groups); Use nntp-copy-to-buffer
+	(nntp-retrieve-headers, nntp-retrieve-groups): Use nntp-copy-to-buffer
 	to copy data from unibyte current buffer to multibyte buffer.
 	(nntp-make-process-buffer): Make process buffer unibyte.
 

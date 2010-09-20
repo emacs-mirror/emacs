@@ -24,30 +24,29 @@
 2010-09-18  Michael R. Mauger  <mmaug@yahoo.com>
 
 	* progmodes/sql.el: Version 2.8
-	(sql-login-params): Update widget structure; changes still
-	needed.
+	(sql-login-params): Update widget structure; changes still needed.
 	(sql-product-alist): Add :list-all and :list-table features for
 	SQLite, Postgres and MySQL products.
 	(sql-redirect): Handle default value.
 	(sql-execute, sql-execute-feature): New functions.
 	(sql-read-table-name): New function.
-	(sql-list-all, sql-list-table): New functions. User API
+	(sql-list-all, sql-list-table): New functions.  User API.
 	(sql-mode-map, sql-interactive-mode-map): Add key definitions
 	for above functions.
 	(sql-mode-menu, sql-interactive-mode-menu): Add menu definitions
 	for above functions.
 	(sql-postgres-login-params): Add user and database defaults.
 	(sql-buffer-live-p): Bug fix.
-	(sql-product-history); New variable.
+	(sql-product-history): New variable.
 	(sql-read-product): New function. Use it.
 	(sql-set-product, sql-product-interactive): Use it.
 	(sql-connection-history): New variable.
-	(sql-read-connection): New function. Use it.
+	(sql-read-connection): New function.  Use it.
 	(sql-connect): New function.
 	(sql-for-each-login): Redesign function interface.
 	(sql-make-alternate-buffer-name, sql-save-connection): Use it.
-	(sql-get-login-ext, sql-get-login): Use it. Handle default values.
-	(sql-comint): Check for program. Existing live buffer.
+	(sql-get-login-ext, sql-get-login): Use it.  Handle default values.
+	(sql-comint): Check for program.  Existing live buffer.
 	(sql-comint-postgres): Add port parameter.
 
 2010-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -420,7 +419,7 @@
 	(tramp-handle-set-file-modes)
 	(tramp-do-copy-or-rename-file-directly)
 	(tramp-handle-delete-directory, tramp-handle-delete-file)
-	(tramp-maybe-send-script, ): Use `tramp-barf-unless-okay'.
+	(tramp-maybe-send-script): Use `tramp-barf-unless-okay'.
 	(tramp-sh-file-name-handler, tramp-send-command-and-check)
 	(tramp-get-remote-ln): Set tramp-autoload cookie.
 
@@ -974,7 +973,7 @@
 	`default-directory' unless using Ispell per-directory personal
 	dictionaries and not in a mini-buffer under XEmacs.
 	(kill-buffer-hook): Do not kill ispell process on exit when
-	`ispell-process-directory' is "~/". (Bug#6143)
+	`ispell-process-directory' is "~/".  (Bug#6143)
 
 2010-09-02  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -1351,8 +1350,8 @@
 	(tramp-gvfs-mount-spec): Return both prefix and mountspec.
 	(tramp-gvfs-maybe-open-connection): Test, whether mountpoint
 	exists.  Raise an error, if not (due to a corresponding answer
-	"no" in interactive questions, for example). Use
-	`tramp-compat-funcall'.
+	"no" in interactive questions, for example).
+	Use `tramp-compat-funcall'.
 
 	* net/tramp-imap.el (top): Autoload `epg-make-context'.
 	(tramp-imap-handle-copy-file): Add PRESERVE-SELINUX-CONTEXT.
@@ -2084,10 +2083,10 @@
 2010-08-08  Stephen Peters  <speters@itasoftware.com>
 
 	* calendar/icalendar.el
-	(icalendar--split-value): Fixed splitting regexp. (Bug#6766)
-	(icalendar--get-weekday-numbers): New
+	(icalendar--split-value): Fix splitting regexp.  (Bug#6766)
+	(icalendar--get-weekday-numbers): New.
 	(icalendar--convert-recurring-to-diary): Handle multiple byday
-	values in weekly rules. (Bug#6766)
+	values in weekly rules.  (Bug#6766)
 
 2010-08-08  Ulf Jasper  <ulf.jasper@web.de>
 
@@ -5721,7 +5720,7 @@
 
 	Enable recentf-mode if using virtual buffers.
 	* ido.el (recentf-list): Declare for byte-compiler.
-	(ido-virtual-buffers): Move up to silence byte-compiler. Add docstring.
+	(ido-virtual-buffers): Move up to silence byte-compiler.  Add docstring.
 	(ido-make-buffer-list): Simplify.
 	(ido-add-virtual-buffers-to-list): Simplify.  Enable recentf-mode.
 

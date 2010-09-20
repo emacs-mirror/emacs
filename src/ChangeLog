@@ -13,8 +13,8 @@
 
 	* deps.mk (xml.o): Add dependencies.
 
-	* xdisp.c (Fcurrent_bidi_paragraph_direction): Call
-	bidi_paragraph_init with NO_DEFAULT_P non-zero.  (Bug#7038)
+	* xdisp.c (Fcurrent_bidi_paragraph_direction):
+	Call bidi_paragraph_init with NO_DEFAULT_P non-zero.  (Bug#7038)
 
 	* bidi.c (bidi_paragraph_init): Accept an additional argument
 	NO_DEFAULT_P; all callers changed.  If NO_DEFAULT_P is non-zero,
@@ -644,7 +644,7 @@
 	* xterm.c (emacs_class): New char[] for EMACS_CLASS.
 	(xim_open_dpy, xim_initialize, xim_close_dpy): Use emacs_class.
 	(x_term_init): Use char[] display_opt and name_opt instead of
-	string literal. file is const char*.
+	string literal.  file is const char*.
 
 	* xsmfns.c (NOSPLASH_OPT): Change to char[].
 	(smc_save_yourself_CB): Do xstrdup on all ->type and ->name for
@@ -656,7 +656,7 @@
 	non-const char.
 
 	* xmenu.c (Fx_popup_dialog): error_name is const char*.
-	(xmenu_show): error parameter is const char **. pane_string is const
+	(xmenu_show): error parameter is const char **.  pane_string is const
 	char *.
 	(button_names): Is const char *.
 	(xdialog_show): error_name and pane_string is const.
