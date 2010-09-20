@@ -1,5 +1,9 @@
 2010-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/reftex-parse.el (reftex-what-macro)
+	(reftex-context-substring): Let-bind forward-sexp-function to nil
+	since we don't need/want to treat \begin...\end as a block (bug#7053).
+
 	* emacs-lisp/lisp.el (up-list): Don't do nothing silently.
 
 	* simple.el (blink-matching-open): Use syntax-class.
