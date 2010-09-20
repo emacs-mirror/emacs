@@ -463,7 +463,7 @@ on your system, you could say something like:
       (let ((extra (mail-header-extra header)))
 	(while extra
 	  (insert (symbol-name (caar extra))
-		  ": " (cdar extra) "\t")
+		  ": " (if (stringp (cdar extra)) (cdar extra) "") "\t")
 	  (pop extra))))
     (insert "\n")
     (backward-char 1)

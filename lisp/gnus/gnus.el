@@ -3678,6 +3678,41 @@ that that variable is buffer-local to the summary buffers."
 					    gnus-valid-select-methods)))
 		 (equal (nth 1 m1) (nth 1 m2)))))))
 
+(defun gnus-methods-sloppily-equal (m1 m2)
+  ;; Same method.
+  (or
+   (eq m1 m2)
+   ;; Type and name are equal.
+   (and
+    (eq (car m1) (car m2))
+    (equal (cadr m1) (cadr m2))
+    ;; Check parameters for sloppy equalness.
+    (let ((p1 (copy-list (cddr m1)))
+	  (p2 (copy-list (cddr m2)))
+	  e1 e2)
+      (block nil
+	(while (setq e1 (pop p1))
+	  (unless (setq e2 (assq (car e1) p2))
+	    ;; The parameter doesn't exist in p2.
+	    (return nil))
+	  (setq p2 (delq e2 p2))
+	  (unless (equalp e1 e2)
+	    (if (not (and (stringp (cadr e1))
+			  (stringp (cadr e2))))
+		(return nil)
+	      ;; Special-case string parameter comparison so that we
+	      ;; can uniquify them.
+	      (let ((s1 (cadr e1))
+		    (s2 (cadr e2)))
+		(when (string-match "/$" s1)
+		  (setq s1 (directory-file-name s1)))
+		(when (string-match "/$" s2)
+		  (setq s2 (directory-file-name s2)))
+		(unless (equal s1 s2)
+		  (return nil))))))
+	;; If p2 now is empty, they were equal.
+	(null p2))))))
+
 (defun gnus-server-equal (m1 m2)
   "Say whether two methods are equal."
   (let ((m1 (cond ((null m1) gnus-select-method)
@@ -4142,13 +4177,19 @@ If NEWSGROUP is nil, return the global kill file name instead."
 		      gnus-valid-select-methods)))
 
 (defun gnus-similar-server-opened (method)
-  (let ((opened gnus-opened-servers))
+  "Return non-nil if we have a similar server opened.
+This is defined as a server with the same name, but different
+parameters."
+  (let ((opened gnus-opened-servers)
+	open)
     (while (and method opened)
-      (when (and (equal (cadr method) (cadaar opened))
-		 (equal (car method) (caaar opened))
-		 (not (equal method (caar opened))))
-	(setq method nil))
-      (pop opened))
+      (setq open (car (pop opened)))
+      ;; Type and name are the same...
+      (when (and (equal (car method) (car open))
+		 (equal (cadr method) (cadr open))
+		 ;; ... but the rest of the parameters differ.
+		 (not (gnus-methods-sloppily-equal method open)))
+	(setq method nil)))
     (not method)))
 
 (defun gnus-server-extend-method (group method)
@@ -4397,6 +4438,10 @@ If ARG is non-nil and a positive number, Gnus will use that as the
 startup level.  If ARG is non-nil and not a positive number, Gnus will
 prompt the user for the name of an NNTP server to use."
   (interactive "P")
+  ;; When using the development version of Gnus, load the gnus-load
+  ;; file.
+  (unless (string-match "^Gnus" gnus-version)
+    (load "gnus-load"))
   (unless (byte-code-function-p (symbol-function 'gnus))
     (message "You should byte-compile Gnus")
     (sit-for 2))

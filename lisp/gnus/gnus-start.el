@@ -268,7 +268,7 @@ not match this regexp will be removed before saving the list."
   (mapconcat 'identity
 	     '("^to\\."			; not "real" groups
 	       "^[0-9. \t]+\\( \\|$\\)"	; all digits in name
-	       "^[\"][]\"[#'()]"	; bogus characters
+	       "^[\"][\"#'()]"	; bogus characters
 	       )
 	     "\\|")
   "*A regexp to match uninteresting newsgroups in the active file.
@@ -1759,14 +1759,16 @@ If SCAN, request a scan of that group as well."
     (dolist (elem type-cache)
       (destructuring-bind (method method-type infos dummy) elem
 	(when (and method infos
-		   (not (gnus-method-denied-p method))
-		   (gnus-check-backend-function
-		    'retrieve-group-data-early (car method)))
-	  (when (gnus-check-backend-function 'request-scan (car method))
-	    (dolist (info infos)
-	      (gnus-request-scan (gnus-info-group info) method)))
-	  (setcar (nthcdr 3 elem)
-		  (gnus-retrieve-group-data-early method infos)))))
+		   (not (gnus-method-denied-p method)))
+	  (unless (gnus-server-opened method)
+	    (gnus-open-server method))
+	  (when (gnus-check-backend-function
+		 'retrieve-group-data-early (car method))
+	    (when (gnus-check-backend-function 'request-scan (car method))
+	      (dolist (info infos)
+		(gnus-request-scan (gnus-info-group info) method)))
+	    (setcar (nthcdr 3 elem)
+		    (gnus-retrieve-group-data-early method infos))))))
 
     ;; Do the rest of the retrieval.
     (dolist (elem type-cache)
@@ -2054,7 +2056,7 @@ If SCAN, request a scan of that group as well."
 		       (if (and where (not (zerop (length where))))
 			   (concat " from " where) "")
 		       (car method)))
-    (gnus-message 5 mesg)
+    (gnus-message 5 "%s" mesg)
     (when (gnus-check-server method)
       ;; Request that the backend scan its incoming messages.
       (when (and (or (and gnus-agent
@@ -2089,7 +2091,7 @@ If SCAN, request a scan of that group as well."
 	    (unless (equal method gnus-message-archive-method)
 	      (gnus-error 1 "Cannot read active file from %s server"
 			  (car method)))
-	  (gnus-message 5 mesg)
+	  (gnus-message 5 "%s" mesg)
 	  (gnus-active-to-gnus-format method gnus-active-hashtb nil t)
 	  ;; We mark this active file as read.
 	  (push method gnus-have-read-active-file)

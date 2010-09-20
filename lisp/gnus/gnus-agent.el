@@ -2377,7 +2377,7 @@ modified) original contents, they are first saved to their own file."
 
 (defun gnus-agent-batch-confirmation (msg)
   "Show error message and return t."
-  (gnus-message 1 msg)
+  (gnus-message 1 "%s" msg)
   t)
 
 ;;;###autoload
@@ -3123,7 +3123,7 @@ FORCE is equivalent to setting the expiration predicates to true."
                        group overview (gnus-gethash-safe group orig)
                        articles force))))
               (kill-buffer overview))))
-      (gnus-message 4 (gnus-agent-expire-done-message)))))
+      (gnus-message 4 "%s" (gnus-agent-expire-done-message)))))
 
 (defun gnus-agent-expire-group-1 (group overview active articles force)
   ;; Internal function - requires caller to have set
@@ -3548,7 +3548,7 @@ articles in every agentized group? "))
                              expiring-group overview active articles force))))))))
             (kill-buffer overview))
           (gnus-agent-expire-unagentized-dirs)
-          (gnus-message 4 (gnus-agent-expire-done-message))))))
+          (gnus-message 4 "%s" (gnus-agent-expire-done-message))))))
 
 (defun gnus-agent-expire-done-message ()
   (if (and (> gnus-verbose 4)

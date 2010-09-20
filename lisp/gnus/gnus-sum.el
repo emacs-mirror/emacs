@@ -7330,7 +7330,7 @@ in."
 (defun gnus-summary-describe-briefly ()
   "Describe summary mode commands briefly."
   (interactive)
-  (gnus-message 6 (substitute-command-keys "\\<gnus-summary-mode-map>\\[gnus-summary-next-page]:Select  \\[gnus-summary-next-unread-article]:Forward  \\[gnus-summary-prev-unread-article]:Backward  \\[gnus-summary-exit]:Exit  \\[gnus-info-find-node]:Run Info	 \\[gnus-summary-describe-briefly]:This help")))
+  (gnus-message 6 "%s" (substitute-command-keys "\\<gnus-summary-mode-map>\\[gnus-summary-next-page]:Select  \\[gnus-summary-next-unread-article]:Forward  \\[gnus-summary-prev-unread-article]:Backward  \\[gnus-summary-exit]:Exit  \\[gnus-info-find-node]:Run Info	 \\[gnus-summary-describe-briefly]:This help")))
 
 ;; Walking around group mode buffer from summary mode.
 
@@ -10768,7 +10768,11 @@ If NO-EXPIRE, auto-expiry will be inhibited."
 	;; Go to the right position on the line.
 	(goto-char (+ forward (point)))
 	;; Replace the old mark with the new mark.
-	(subst-char-in-region (point) (1+ (point)) (char-after) mark)
+        (let ((to-insert
+               (subst-char-in-string (char-after) mark
+                                     (buffer-substring (point) (1+ (point))))))
+          (delete-region (point) (1+ (point)))
+          (insert to-insert))
 	;; Optionally update the marks by some user rule.
 	(when (eq type 'unread)
 	  (gnus-data-set-mark

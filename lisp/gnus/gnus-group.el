@@ -1273,7 +1273,7 @@ Also see the `gnus-group-use-permanent-levels' variable."
 		   (zerop number))
 	      (zerop (buffer-size)))
       ;; No groups in the buffer.
-      (gnus-message 5 gnus-no-groups-message))
+      (gnus-message 5 "%s" gnus-no-groups-message))
     ;; We have some groups displayed.
     (goto-char (point-max))
     (when (or (not gnus-group-goto-next-group-function)
@@ -4136,7 +4136,7 @@ If given a prefix argument, prompt for a group."
 		   (gnus-gethash mname gnus-description-hashtb))
 	      (setq desc (gnus-group-get-description group))
 	      (gnus-read-descriptions-file method))
-      (gnus-message 1
+      (gnus-message 1 "%s"
 		    (or desc (gnus-gethash group gnus-description-hashtb)
 			"No description available")))))
 
@@ -4297,11 +4297,9 @@ If GROUP, edit that local kill file instead."
   (interactive "P")
   (setq gnus-current-kill-article article)
   (gnus-kill-file-edit-file group)
-  (gnus-message
-   6
-   (substitute-command-keys
-    (format "Editing a %s kill file (Type \\[gnus-kill-file-exit] to exit)"
-	    (if group "local" "global")))))
+  (gnus-message 6 "Editing a %s kill file (Type %s to exit)"
+		(if group "local" "global")
+		(substitute-command-keys "\\[gnus-kill-file-exit]")))
 
 (defun gnus-group-edit-local-kill (article group)
   "Edit a local kill file."
@@ -4392,7 +4390,7 @@ The hook `gnus-exit-gnus-hook' is called before actually exiting."
 (defun gnus-group-describe-briefly ()
   "Give a one line description of the group mode commands."
   (interactive)
-  (gnus-message 7 (substitute-command-keys "\\<gnus-group-mode-map>\\[gnus-group-read-group]:Select  \\[gnus-group-next-unread-group]:Forward  \\[gnus-group-prev-unread-group]:Backward  \\[gnus-group-exit]:Exit  \\[gnus-info-find-node]:Run Info  \\[gnus-group-describe-briefly]:This help")))
+  (gnus-message 7 "%s" (substitute-command-keys "\\<gnus-group-mode-map>\\[gnus-group-read-group]:Select  \\[gnus-group-next-unread-group]:Forward  \\[gnus-group-prev-unread-group]:Backward  \\[gnus-group-exit]:Exit  \\[gnus-info-find-node]:Run Info  \\[gnus-group-describe-briefly]:This help")))
 
 (defun gnus-group-browse-foreign-server (method)
   "Browse a foreign news server.

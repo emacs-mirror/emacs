@@ -66,6 +66,17 @@ Values are `ssl' and `network'.")
 This is always done if the server supports UID EXPUNGE, but it's
 not done by default on servers that doesn't support that command.")
 
+(defvoo nnimap-authenticator nil
+  "How nnimap authenticate itself to the server.
+Possible choices are nil (use default methods) or `anonymous'.")
+
+(defvoo nnimap-fetch-partial-articles nil
+  "If non-nil, nnimap will fetch partial articles.
+If t, nnimap will fetch only the first part.  If a string, it
+will fetch all parts that have types that match that string.  A
+likely value would be \"text/\" to automatically fetch all
+textual parts.")
+
 (defvoo nnimap-connection-alist nil)
 
 (defvoo nnimap-current-infos nil)
@@ -146,7 +157,7 @@ not done by default on servers that doesn't support that command.")
 	(delete-region (line-beginning-position) (line-end-position))
 	(insert (format "211 %s Article retrieved." article))
 	(forward-line 1)
-	(insert (format "Bytes: %d\n" bytes))
+	(insert (format "Chars: %d\n" bytes))
 	(when lines
 	  (insert (format "Lines: %s\n" lines)))
 	(re-search-forward "^\r$")
@@ -254,7 +265,14 @@ not done by default on servers that doesn't support that command.")
 	(when (setq connection-result (nnimap-wait-for-connection))
 	  (unless (equal connection-result "PREAUTH")
 	    (if (not (setq credentials
-			   (nnimap-credentials nnimap-address ports)))
+			   (if (eq nnimap-authenticator 'anonymous)
+			       (list "anonymous"
+				     (message-make-address))
+			     (nnimap-credentials
+			      nnimap-address
+			      (if nnimap-server-port
+				  (cons (format "%s" nnimap-server-port) ports)
+				ports)))))
 		(setq nnimap-object nil)
 	      (setq login-result (nnimap-command "LOGIN %S %S"
 						 (car credentials)
@@ -302,7 +320,8 @@ not done by default on servers that doesn't support that command.")
 
 (deffoo nnimap-request-article (article &optional group server to-buffer)
   (with-current-buffer nntp-server-buffer
-    (let ((result (nnimap-possibly-change-group group server)))
+    (let ((result (nnimap-possibly-change-group group server))
+	  parts)
       (when (stringp article)
 	(setq article (nnimap-find-article-by-message-id group article)))
       (when (and result
@@ -310,6 +329,14 @@ not done by default on servers that doesn't support that command.")
 	(erase-buffer)
 	(with-current-buffer (nnimap-buffer)
 	  (erase-buffer)
+	  (when nnimap-fetch-partial-articles
+	    (if (eq nnimap-fetch-partial-articles t)
+		(setq parts '(1))
+	      (nnimap-command "UID FETCH %d (BODYSTRUCTURE)" article)
+	      (goto-char (point-min))
+	      (when (re-search-forward "FETCH.*BODYSTRUCTURE" nil t)
+		(let ((structure (ignore-errors (read (current-buffer)))))
+		  (setq parts (nnimap-find-wanted-parts structure))))))
 	  (setq result
 		(nnimap-command
 		 (if (member "IMAP4REV1" (nnimap-capabilities nnimap-object))
@@ -331,7 +358,30 @@ not done by default on servers that doesn't support that command.")
 		(goto-char (+ (point) bytes))
 		(delete-region (point) (point-max))
 		(nnheader-ms-strip-cr))
-	      t)))))))
+	      (cons group article))))))))
+
+(defun nnimap-find-wanted-parts (structure)
+  (message-flatten-list (nnimap-find-wanted-parts-1 structure "")))
+
+(defun nnimap-find-wanted-parts-1 (structure prefix)
+  (let ((num 1)
+	parts)
+    (while (consp (car structure))
+      (let ((sub (pop structure)))
+	(if (consp (car sub))
+	    (push (nnimap-find-wanted-parts-1
+		   sub (if (string= prefix "")
+			   (number-to-string num)
+			 (format "%s.%s" prefix num)))
+		  parts)
+	  (let ((type (format "%s/%s" (nth 0 sub) (nth 1 sub))))
+	    (when (string-match nnimap-fetch-partial-articles type)
+	      (push (if (string= prefix "")
+			(number-to-string num)
+		      (format "%s.%s" prefix num))
+		    parts)))
+	  (incf num))))
+    (nreverse parts)))
 
 (deffoo nnimap-request-group (group &optional server dont-check info)
   (with-current-buffer nntp-server-buffer
@@ -825,21 +875,25 @@ not done by default on servers that doesn't support that command.")
     (goto-char (point-min))
     (while (and (memq (process-status process)
 		      '(open run))
-		(not (re-search-forward "^\\* " nil t)))
+		(not (re-search-forward "^\\* .*\n" nil t)))
       (nnheader-accept-process-output process)
       (goto-char (point-min)))
-    (and (looking-at "[A-Z0-9]+")
-	 (match-string 0))))
+    (forward-line -1)
+    (and (looking-at "\\* \\([A-Z0-9]+\\)")
+	 (match-string 1))))
 
 (defun nnimap-wait-for-response (sequence &optional messagep)
-  (goto-char (point-max))
-  (while (not (re-search-backward (format "^%d .*\n" sequence)
-				  (max (point-min) (- (point) 500))
-				  t))
-    (when messagep
-      (message "Read %dKB" (/ (buffer-size) 1000)))
-    (nnheader-accept-process-output (get-buffer-process (current-buffer)))
-    (goto-char (point-max))))
+  (let ((process (get-buffer-process (current-buffer))))
+    (goto-char (point-max))
+    (while (and (memq (process-status process)
+		      '(open run))
+		(not (re-search-backward (format "^%d .*\n" sequence)
+					 (max (point-min) (- (point) 500))
+					 t)))
+      (when messagep
+	(message "Read %dKB" (/ (buffer-size) 1000)))
+      (nnheader-accept-process-output process)
+      (goto-char (point-max)))))
 
 (defun nnimap-parse-response ()
   (let ((lines (split-string (nnimap-last-response-string) "\r\n" t))

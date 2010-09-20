@@ -114,6 +114,7 @@ fit these criteria."
 				 "-I" "UTF-8"
 				 "-O" "UTF-8"
 				 "-o" "ext_halfdump=1"
+                                 "-o" "display_ins_del=2"
 				 "-o" "pre_conv=1"
 				 "-t" (format "%s" tab-width)
 				 "-cols" (format "%s" gnus-html-frame-width)
@@ -253,13 +254,39 @@ fit these criteria."
        ;; should be deleted.
        ((equal tag "IMG_ALT")
 	(delete-region start end))
+       ;; w3m does not normalize the case
+       ((or (equal tag "b")
+            (equal tag "B"))
+        (gnus-overlay-put (gnus-make-overlay start end) 'face 'gnus-emphasis-bold))
+       ((or (equal tag "u")
+            (equal tag "U"))
+        (gnus-overlay-put (gnus-make-overlay start end) 'face 'gnus-emphasis-underline))
+       ((or (equal tag "i")
+            (equal tag "I"))
+        (gnus-overlay-put (gnus-make-overlay start end) 'face 'gnus-emphasis-italic))
+       ((or (equal tag "s")
+            (equal tag "S"))
+        (gnus-overlay-put (gnus-make-overlay start end) 'face 'gnus-emphasis-strikethru))
+       ((or (equal tag "ins")
+            (equal tag "INS"))
+        (gnus-overlay-put (gnus-make-overlay start end) 'face 'gnus-emphasis-underline))
+       ;; Handle different UL types
+       ((equal tag "_SYMBOL")
+        (when (string-match "TYPE=\\(.+\\)" parameters)
+          (let ((type (string-to-number (match-string 1 parameters))))
+            (delete-region start end)
+            (cond ((= type 33) (insert " "))
+                  ((= type 34) (insert " "))
+                  ((= type 35) (insert " "))
+                  ((= type 36) (insert " "))
+                  ((= type 37) (insert " "))
+                  ((= type 38) (insert " "))
+                  ((= type 39) (insert " "))
+                  ((= type 40) (insert " "))
+                  ((= type 42) (insert " "))
+                  ((= type 43) (insert " "))
+                  (t (insert " "))))))
        ;; Whatever.  Just ignore the tag.
-       ((equal tag "b")
-        (gnus-overlay-put (gnus-make-overlay start end) 'face 'bold))
-       ((equal tag "U")
-        (gnus-overlay-put (gnus-make-overlay start end) 'face 'underline))
-       ((equal tag "i")
-        (gnus-overlay-put (gnus-make-overlay start end) 'face 'italic))
        (t
 	))
       (goto-char start))
@@ -307,23 +334,25 @@ fit these criteria."
   (expand-file-name (sha1 url) gnus-html-cache-directory))
 
 (defun gnus-html-image-fetched (status buffer image)
-  (when (and (buffer-live-p buffer)
-             ;; If the position of the marker is 1, then that
-             ;; means that the text it was in has been deleted;
-             ;; i.e., that the user has selected a different
-             ;; article before the image arrived.
-             (not (= (marker-position (cadr image)) (point-min))))
-    (let ((file (gnus-html-image-id (car image))))
-      ;; Search the start of the image data
-      (search-forward "\n\n")
-      ;; Write region (image) silently
+  (let ((file (gnus-html-image-id (car image))))
+    ;; Search the start of the image data
+    (when (search-forward "\n\n" nil t)
+      ;; Write region (image data) silently
       (write-region (point) (point-max) file nil 1)
       (kill-buffer)
-      (with-current-buffer buffer
-        (let ((inhibit-read-only t)
-              (string (buffer-substring (cadr image) (caddr image))))
-          (delete-region (cadr image) (caddr image))
-          (gnus-html-put-image file (cadr image) string))))))
+      (when (and (buffer-live-p buffer)
+		 ;; If the `image' has no marker, do not replace anything
+		 (cadr image)
+		 ;; If the position of the marker is 1, then that
+		 ;; means that the text it was in has been deleted;
+		 ;; i.e., that the user has selected a different
+		 ;; article before the image arrived.
+		 (not (= (marker-position (cadr image)) (point-min))))
+	(with-current-buffer buffer
+	  (let ((inhibit-read-only t)
+		(string (buffer-substring (cadr image) (caddr image))))
+	    (delete-region (cadr image) (caddr image))
+	    (gnus-html-put-image file (cadr image) (car image) string)))))))
 
 (defun gnus-html-put-image (file point string &optional url alt-text)
   (when (gnus-graphic-display-p)
@@ -441,27 +470,18 @@ This only works if the article in question is HTML."
 
 ;;;###autoload
 (defun gnus-html-prefetch-images (summary)
-  (let (blocked-images urls)
-    (when (and (buffer-live-p summary)
-	       (executable-find "curl"))
-      (with-current-buffer summary
-	(setq blocked-images gnus-blocked-images))
+  (when (buffer-live-p summary)
+    (let ((blocked-images (with-current-buffer summary
+                            gnus-blocked-images)))
       (save-match-data
 	(while (re-search-forward "<img.*src=[\"']\\([^\"']+\\)" nil t)
 	  (let ((url (match-string 1)))
 	    (unless (gnus-html-image-url-blocked-p url blocked-images)
               (unless (file-exists-p (gnus-html-image-id url))
-                (push (mm-url-decode-entities-string url) urls)
-                (push (gnus-html-image-id url) urls)
-                (push "-o" urls)))))
-	(let ((process
-	       (apply 'start-process
-		      "images" nil "curl"
-		      "-s" "--create-dirs"
-		      "--location"
-		      "--max-time" "60"
-		      urls)))
-	  (gnus-set-process-query-on-exit-flag process nil))))))
+                (ignore-errors
+                  (url-retrieve (mm-url-decode-entities-string url)
+                                'gnus-html-image-fetched
+				(list nil (list url))))))))))))
 
 (provide 'gnus-html)
 

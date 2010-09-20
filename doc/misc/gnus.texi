@@ -29672,13 +29672,16 @@ group and article numbers are when fetching articles by
 on successful article retrieval.
 
 
-@item (nnchoke-request-group GROUP &optional SERVER FAST)
+@item (nnchoke-request-group GROUP &optional SERVER FAST INFO)
 
 Get data on @var{group}.  This function also has the side effect of
 making @var{group} the current group.
 
 If @var{fast}, don't bother to return useful data, just make @var{group}
 the current group.
+
+If @var{info}, it allows the backend to update the group info
+structure.
 
 Here's an example of some result data and a definition of the same:
 

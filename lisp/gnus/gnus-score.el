@@ -1114,8 +1114,8 @@ EXTRA is the possible non-standard header."
       (make-local-variable 'gnus-prev-winconf)
       (setq gnus-prev-winconf winconf))
     (gnus-message
-     4 (substitute-command-keys
-	"\\<gnus-score-mode-map>\\[gnus-score-edit-exit] to save edits"))))
+     4 "%s" (substitute-command-keys
+	     "\\<gnus-score-mode-map>\\[gnus-score-edit-exit] to save edits"))))
 
 (defun gnus-score-edit-all-score ()
   "Edit the all.SCORE file."
@@ -1142,8 +1142,8 @@ EXTRA is the possible non-standard header."
     (make-local-variable 'gnus-prev-winconf)
     (setq gnus-prev-winconf winconf))
   (gnus-message
-   4 (substitute-command-keys
-      "\\<gnus-score-mode-map>\\[gnus-score-edit-exit] to save edits")))
+   4 "%s" (substitute-command-keys
+	   "\\<gnus-score-mode-map>\\[gnus-score-edit-exit] to save edits")))
 
 (defun gnus-score-edit-file-at-point (&optional format)
   "Edit score file at point in Score Trace buffers.
@@ -1391,7 +1391,7 @@ If FORMAT, also format the current score file."
       (if err
 	  (progn
 	    (ding)
-	    (gnus-message 3 err)
+	    (gnus-message 3 "%s" err)
 	    (sit-for 2)
 	    nil)
 	alist)))))

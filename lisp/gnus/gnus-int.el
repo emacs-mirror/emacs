@@ -245,9 +245,8 @@ If it is down, start it up (again)."
                           (nth 1 gnus-command-method)
                           (nthcdr 2 gnus-command-method))
                (error
-                (gnus-message 1 (format
-                                 "Unable to open server %s due to: %s"
-                                 server (error-message-string err)))
+                (gnus-message 1 "Unable to open server %s due to: %s"
+			      server (error-message-string err))
                 nil)
                (quit
                 (gnus-message 1 "Quit trying to open server %s" server)

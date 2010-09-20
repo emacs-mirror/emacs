@@ -1,5 +1,90 @@
 2010-09-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* nnimap.el (nnimap-wait-for-connection): Avoid a race condition while
+	waiting for the connection string.
+
+	* gnus-html.el (gnus-html-image-fetched): Protect against the data not
+	arriving.
+
+	* gnus-start.el (gnus-ignored-newsgroups): Remove [] from the list of
+	bogus characters.  This allows selecting certain Gmail groups.
+
+	* nnimap.el (nnimap-find-wanted-parts-1): New function.
+	(nnimap-fetch-partial-articles): New variable.
+	(nnimap-open-connection): When looking for credentials, also use the
+	nnimap-server-port.
+	(nnimap-request-article): Return the group/article number, so that Gnus
+	`^' works as expected.
+	(nnimap-find-wanted-parts-1): Return the MIME parts as IMAP wants
+	them.
+
+	* gnus.el (gnus-similar-server-opened): Refactor a bit and add
+	comments.
+	(gnus-methods-sloppily-equal): New function.
+	(gnus): When using the development version of Gnus, load the gnus-load
+	file.
+
+	* gnus-start.el (gnus-get-unread-articles): Make sure that we call
+	`gnus-open-server' on each method before trying to scan them etc.  This
+	ensures that all the backend parameters are set correctly.
+
+	* nnimap.el (nnimap-authenticator): New variable.
+	(nnimap-open-connection): Allow anonymous login.
+	(nnimap-transform-headers): The chars header is called Chars not
+	Bytes.
+	(nnimap-wait-for-response): Don't infloop if the IMAP connection
+	drops.
+
+	* gnus-art.el (gnus-article-describe-briefly): Fix up typo in last
+	patch, found by Knut Anders Hatlen.
+
+2010-09-19  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* gnus-agent.el (gnus-agent-batch-confirmation)
+	(gnus-agent-expire-group, gnus-agent-expire): Pass proper format string
+	to gnus-message.
+	* gnus-art.el (gnus-article-describe-briefly): Likewise.
+	* gnus-group.el (gnus-group-list-groups, gnus-group-describe-group)
+	(gnus-group-edit-global-kill, gnus-group-describe-briefly): Likewise.
+	* gnus-int.el (gnus-open-server): Likewise.
+	* gnus-score.el (gnus-score-edit-current-scores, gnus-score-edit-file)
+	(gnus-score-check-syntax): Likewise.
+	* gnus-srvr.el (gnus-browse-describe-briefly): Likewise.
+	* gnus-start.el (gnus-read-active-file-1, gnus-read-active-file-1):
+	Likewise.
+	* gnus-sum.el (gnus-summary-describe-briefly): Likewise.
+
+2010-09-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-html.el (gnus-html-prefetch-images): Fix up the url-retrieve
+	calling conventions so that prefetch doesn't bug out.
+
+2010-09-19  Julien Danjou  <julien@danjou.info>
+
+	* gnus-sum.el (gnus-summary-update-mark): Use `subst-char-in-string'
+	rather than `subst-char-in-region' in order to be able to replace ASCII
+	char by UTF-8 ones.
+
+	* gnus-html.el (gnus-html-prefetch-images): Use `url-retrieve' rather
+	than curl.
+	(gnus-html-image-fetched): Fix `gnus-html-put-image' call not setting
+	the right URL and ALT text on images.
+	(gnus-html-wash-tags): Fix tag case.
+	Add support for `s' and `ins' tags. Use gnus-emphasis-* faces.
+	(gnus-article-html): Add -o display_ins_del=2 option.
+	(gnus-html-wash-tags): Add better support for <ul> tags symbols.
+
+2010-09-19  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnheader.el (nnheader-insert-nov): Protect against junk appearing in
+	the extra mail headers, which sometimes seem to happen for unknown
+	reasons.
+
+	* mail-parse.el (mail-header-encode-parameter): Define as
+	rfc2045-encode-string instead of as rfc2231-encode-string, since some
+	(or most, perhaps?) mail readers don't understand the latter, but do
+	understand the former.
+
 	* gnus-agent.el (gnus-agent-auto-agentize-methods): Switch the default
 	to nil, so that no methods are automatically agentized.  I think this
 	is probably what most users want.
@@ -41,7 +126,7 @@
 	the range update right.
 	(nnimap-request-group): Don't make `M-g' bug out on group with no
 	marks.
-	(nnoo): Require, so that other packages can require nnimap.
+	(nnoo): Required, so that other packages can require nnimap.
 	(nnimap-wait-for-response): Be a bit more lax in finding the end of the
 	command we're looking for.  This helps when the server sends more
 	responses after we've gotten everything we expected.
