@@ -1,3 +1,11 @@
+2010-09-19  Julien Danjou  <julien@danjou.info>
+
+	* url-cache.el (url-fetch-from-cache): New function.
+
+2010-09-18  Julien Danjou  <julien@danjou.info>
+
+	* url-vars.el (url-cache-expired): Remove unused variable.
+
 2010-09-14  Julien Danjou  <julien@danjou.info>
 
 	* url-cache (url-store-in-cache): Make `buff' argument really optional.

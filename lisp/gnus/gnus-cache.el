@@ -180,8 +180,7 @@ it's not cached."
 	;; Save the article in the cache.
 	(if (file-exists-p file)
 	    t				; The article already is saved.
-	  (save-excursion
-	    (set-buffer nntp-server-buffer)
+	  (with-current-buffer nntp-server-buffer
 	    (require 'gnus-art)
 	    (let ((gnus-use-cache nil)
 		  (gnus-article-decode-hook nil))
@@ -554,8 +553,7 @@ system for example was used.")
   (let ((cache-buf (gnus-get-buffer-create " *gnus-cache*"))
 	beg end)
     (gnus-cache-save-buffers)
-    (save-excursion
-      (set-buffer cache-buf)
+    (with-current-buffer cache-buf
       (erase-buffer)
       (let ((coding-system-for-read gnus-cache-overview-coding-system)
 	    (file-name-coding-system nnmail-pathname-coding-system))
@@ -844,8 +842,7 @@ supported."
 	    ,@body)
      (when (and gnus-cache-need-update-total-fetched-for
 		(not gnus-cache-inhibit-update-total-fetched-for))
-	(save-excursion
-	  (set-buffer gnus-group-buffer)
+	(with-current-buffer gnus-group-buffer
 	  (setq gnus-cache-need-update-total-fetched-for nil)
 	  (gnus-group-update-group ,group t)))))
 

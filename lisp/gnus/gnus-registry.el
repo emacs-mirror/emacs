@@ -241,8 +241,7 @@ considered precious) will not be trimmed."
   "Save the registry cache file."
   (interactive)
   (let ((file gnus-registry-cache-file))
-    (save-excursion
-      (set-buffer (gnus-get-buffer-create " *Gnus-registry-cache*"))
+    (with-current-buffer (gnus-get-buffer-create " *Gnus-registry-cache*")
       (make-local-variable 'version-control)
     (setq version-control gnus-backup-startup-file)
     (setq buffer-file-name file)
@@ -674,8 +673,7 @@ Consults `gnus-registry-unfollowed-groups' and
 	word words)
     (if (or (not (gnus-registry-fetch-extra id 'keywords))
 	    force)
-	(save-excursion
-	  (set-buffer gnus-article-buffer)
+	(with-current-buffer gnus-article-buffer
 	  (article-goto-body)
 	  (save-window-excursion
 	    (save-restriction

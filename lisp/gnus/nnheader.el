@@ -463,7 +463,7 @@ on your system, you could say something like:
       (let ((extra (mail-header-extra header)))
 	(while extra
 	  (insert (symbol-name (caar extra))
-		  ": " (cdar extra) "\t")
+		  ": " (if (stringp (cdar extra)) (cdar extra) "") "\t")
 	  (pop extra))))
     (insert "\n")
     (backward-char 1)
@@ -835,8 +835,7 @@ The first string in ARGS can be a format string."
   "Clear the communication buffer and insert FORMAT and ARGS into the buffer.
 If FORMAT isn't a format string, it and all ARGS will be inserted
 without formatting."
-  (save-excursion
-    (set-buffer nntp-server-buffer)
+  (with-current-buffer nntp-server-buffer
     (erase-buffer)
     (if (string-match "%" format)
 	(insert (apply 'format format args))

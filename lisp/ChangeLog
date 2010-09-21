@@ -1,7 +1,192 @@
+2010-09-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/ange-ftp.el (ange-ftp-skip-msgs): Add "^504 ..." message.
+
+2010-09-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* menu-bar.el (menu-bar-set-tool-bar-position): customize-set-variable
+	tool-bar-position.  Don't modify frame parameters here.
+	(menu-bar-options-save): Add tool-bar-position.
+
+	* tool-bar.el (tool-bar-position): New defcustom (Bug#7049).
+
+2010-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/reftex-parse.el (reftex-what-macro)
+	(reftex-context-substring): Let-bind forward-sexp-function to nil
+	since we don't need/want to treat \begin...\end as a block (bug#7053).
+
+	* emacs-lisp/lisp.el (up-list): Don't do nothing silently.
+
+	* simple.el (blink-matching-open): Use syntax-class.
+
+	* progmodes/pascal.el (pascal-mode): Use define-derived-mode.
+	Set invisibility spec for pascal's outline mode.
+	(pascal-outline-change): Clean up calling convention.
+	(pascal-show-all, pascal-hide-other-defuns): Update callers.
+
+	* progmodes/prolog.el (prolog-smie-forward-token)
+	(prolog-smie-backward-token): New functions.
+	(prolog-mode-variables): Use them to parse "!," correctly.
+	Set up smie-blink-matching for ".".
+
+	* textmodes/ispell.el (ispell-start, ispell-end): Rename from `start'
+	and `end'.
+	(ispell-region, ispell-process-line): Update users.
+
+	* textmodes/reftex-parse.el (reftex-what-macro): Don't hardcode
+	point-min==1.
+
+	* textmodes/ispell.el: Fix commenting convention.
+	(ispell-parse-output): Simplify, use push.
+	(ispell-region): Use match-string-no-properties.
+	(ispell-begin-skip-region-regexp): Use mapconcat to simplify.
+	(ispell-minor-mode): Use define-minor-mode.
+	(ispell-message): Remove unused var `skip-regexp'.
+	(ispell-add-per-file-word-list): Use dynamic let-binding.
+	Try and use the proper comment marker.
+
+	* mail/sendmail.el: Fix commenting convention.
+	(sendmail-send-it): Use line-beginning-position.
+
+	* help-fns.el (describe-variable): Add original value, if applicable.
+
+2010-09-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (y-or-n-p): Remove leftover code from revno 101459.
+
+	* emacs-lisp/smie.el (smie-indent--hanging-p): Use `smie-indent--bolp'.
+
+2010-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-bnf-precedence-table): Improve error message.
+	(smie-debug--prec2-cycle, smie-debug--describe-cycle): New functions.
+	(smie-prec2-levels): Use them to better diagnose precedence cycles.
+	(smie-blink-matching-check): Don't signal a mismatch if car is t.
+	(smie-blink-matching-open): Rewrite to remove assumptions, so that
+	something like "." can also be a closer.
+	(smie--associative-p, smie-indent--hanging-p, smie-indent--bolp)
+	(smie-indent--offset, smie-indent--offset-rule, smie-indent--column):
+	Rename internal functions to use "--".  Update callers.
+
+	* frame.el (make-frame-names-alist): Don't list frames on other displays.
+
+	* fringe.el (fringe-styles): New var.
+	(fringe-mode, fringe-query-style): Use it.
+
+2010-09-18  Michael R. Mauger  <mmaug@yahoo.com>
+
+	* progmodes/sql.el: Version 2.8
+	(sql-login-params): Update widget structure; changes still needed.
+	(sql-product-alist): Add :list-all and :list-table features for
+	SQLite, Postgres and MySQL products.
+	(sql-redirect): Handle default value.
+	(sql-execute, sql-execute-feature): New functions.
+	(sql-read-table-name): New function.
+	(sql-list-all, sql-list-table): New functions.  User API.
+	(sql-mode-map, sql-interactive-mode-map): Add key definitions
+	for above functions.
+	(sql-mode-menu, sql-interactive-mode-menu): Add menu definitions
+	for above functions.
+	(sql-postgres-login-params): Add user and database defaults.
+	(sql-buffer-live-p): Bug fix.
+	(sql-product-history): New variable.
+	(sql-read-product): New function. Use it.
+	(sql-set-product, sql-product-interactive): Use it.
+	(sql-connection-history): New variable.
+	(sql-read-connection): New function.  Use it.
+	(sql-connect): New function.
+	(sql-for-each-login): Redesign function interface.
+	(sql-make-alternate-buffer-name, sql-save-connection): Use it.
+	(sql-get-login-ext, sql-get-login): Use it.  Handle default values.
+	(sql-comint): Check for program.  Existing live buffer.
+	(sql-comint-postgres): Add port parameter.
+
+2010-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/warnings.el: Fix commenting convention.
+	(display-warning): Use special mode and make the buffer read-only.
+
+2010-09-18  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-prog.el (calc-read-parse-table-part): Don't "fix" the
+	empty string when it follows a repeated or optional pattern.
+
+2010-09-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent.el (indent-according-to-mode): Apply syntax-propertize.
+	(indent-region): Use indent-according-to-mode.
+
+2010-09-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* fringe.el (fringe-mode): Doc fix.
+
+2010-09-14  Kan-Ru Chen  <kanru@kanru.info>  (tiny change)
+
+	* textmodes/nroff-mode.el (nroff-view): Kill old buffer before
+	refreshing the preview buffer.
+
+2010-09-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (tex-syntax-propertize-rules)
+	(latex-syntax-propertize-rules): New consts; replace
+	tex-font-lock-syntactic-keywords.
+	(tex-env-mark, latex-env-before-change): New functions.
+	(latex-electric-env-pair-mode): New minor mode.
+	(tex-font-lock-verb): Change arguments; do move point.
+	(tex-font-lock-syntactic-face-function): Adjust to new verbatim
+	representation as a form of comment.
+	(tex-font-lock-keywords-1): Remove workaround, now unneeded.
+	(doctex-syntax-propertize-rules): New const; replaces
+	doctex-font-lock-syntactic-keywords.
+	(tex-common-initialization, doctex-mode): Use syntax-propertize-rules.
+
+	* progmodes/fortran.el (fortran--font-lock-syntactic-keywords): Remove.
+	(fortran-make-syntax-propertize-function): New function; replaces
+	fortran-font-lock-syntactic-keywords.
+	(fortran-mode): Use it.
+	(fortran-line-length): Use it.  Improve interactive spec.
+
+	* emacs-lisp/syntax.el (syntax-propertize-precompile-rules): New macro.
+	(syntax-propertize-rules): Add var-ref case.  Fix offset computation
+	when adding surrounding \(..\).
+
+	* progmodes/js.el (js-mode): Fix last change (bug#7054).
+
+2010-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* obsolete/old-whitespace.el (whitespace-rescan-files-in-buffers):
+	Use with-current-buffer.
+
+	* isearch.el (isearch-face): Rename from `isearch'.
+	(isearch-highlight): Use new name.
+
+2010-09-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* fringe.el (fringe-mode, fringe-query-style): Use 4 pixels, not
+	5, for `half' width fringes.  (Bug#6933)
+
+2010-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-file-form-defvar)
+	(byte-compile-defvar): "foo/bar" does not lack a prefix.
+
+	* subr.el (y-or-n-p): Add the "(y or n)" that was lost somehow.
+
+2010-09-17  Stephen Berman  <stephen.berman@gmx.net>
+
+	* dframe.el (dframe-reposition-frame-emacs): Use tool-bar-pixel-width
+	in calculating new frame position.  Add more space between new and
+	parent on the left (Bug#7048).
+
+2010-09-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-compat.el (tramp-compat-with-temp-message): Make it a
+	defmacro.
+
 2010-09-16  Chong Yidong  <cyd@stupidchicken.com>
 
-	* mail/sendmail.el: Add "*unsent mail*" to
-	same-window-buffer-names.
+	* mail/sendmail.el: Add "*unsent mail*" to same-window-buffer-names.
 
 	* term/x-win.el (x-cut-buffer-or-selection-value): Define as
 	obsolete alias for x-selection-value.
@@ -23,19 +208,19 @@
 	* net/tramp-gvfs.el (top):
 	* net/tramp-cache.el (top): Use `tramp-compat-font-lock-add-keywords'.
 
-	* net/tramp.el (tramp-progress-reporter-update): Use
-	`tramp-compat-funcall'.
+	* net/tramp.el (tramp-progress-reporter-update):
+	Use `tramp-compat-funcall'.
 
 	* net/tramp.el (tramp-process-actions):
 	* net/tramp-gvfs.el (tramp-handle-vc-registered):
 	* net/tramp-sh.el (tramp-gvfs-handler-askquestion)
-	(tramp-get-remote-stat, tramp-get-remote-readlink): Use
-	`tramp-compat-with-temp-message'.
+	(tramp-get-remote-stat, tramp-get-remote-readlink):
+	Use `tramp-compat-with-temp-message'.
 
 	* net/tramp-sh.el (top): Require 'cl.
 	(tramp-handle-start-file-process): Use `tramp-compat-process-get'.
-	(tramp-open-connection-setup-interactive-shell): Use
-	`tramp-compat-process-put'.
+	(tramp-open-connection-setup-interactive-shell):
+	Use `tramp-compat-process-put'.
 
 2010-09-15  Alan Mackenzie  <acm@muc.de>
 
@@ -258,7 +443,7 @@
 	(tramp-dissect-file-name): Don't check anymore for multi-hop
 	methods.
 	(tramp-debug-outline-regexp): Add a docstring.
-	(tramp-debug-outline-level): Renamed from `tramp-outline-level'.
+	(tramp-debug-outline-level): Rename from `tramp-outline-level'.
 	(tramp-get-debug-buffer): Use it.
 
 	* net/tramp-cache.el (top): Set tramp-autoload cookie for
@@ -278,16 +463,16 @@
 	* net/tramp-sh.el: New file, derived from tramp.el.
 	(top): Initialize `tramp-methods', `tramp-default-method-alist',
 	`tramp-default-user-alist', `tramp-foreign-file-name-handler-alist'.
-	Remove "scp1_old", "scp2_old", "ssh1_old", "ssh2_old".  Use
-	`ignore-errors' where appropriate.
-	(tramp-sh-file-name-handler-alist): Renamed from
+	Remove "scp1_old", "scp2_old", "ssh1_old", "ssh2_old".
+	Use `ignore-errors' where appropriate.
+	(tramp-sh-file-name-handler-alist): Rename from
 	`tramp-file-name-handler-alist'.
 	(tramp-send-command-and-check): Return t or nil.  Remove all
 	`zerop' checks, where called.
 	(tramp-handle-set-file-modes)
 	(tramp-do-copy-or-rename-file-directly)
 	(tramp-handle-delete-directory, tramp-handle-delete-file)
-	(tramp-maybe-send-script, ): Use `tramp-barf-unless-okay'.
+	(tramp-maybe-send-script): Use `tramp-barf-unless-okay'.
 	(tramp-sh-file-name-handler, tramp-send-command-and-check)
 	(tramp-get-remote-ln): Set tramp-autoload cookie.
 
@@ -306,7 +491,7 @@
 
 2010-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* subr.el (y-or-n-p): New function, moved from src/fns.c.  Use read-key.
+	* subr.el (y-or-n-p): New function, moved from src/fns.c; use read-key.
 
 2010-09-12  Leo  <sdl.web@gmail.com>
 
@@ -347,12 +532,10 @@
 	(sql-comint-mysql): Handle "sql-port" as a numeric.
 	(sql-port-history): Delete unused variable.
 	(sql-get-login): Default "sql-port" to a number.
-	(sql-product-alist): Correct Postgres prompt and terminator
-	regexp.
+	(sql-product-alist): Correct Postgres prompt and terminator regexp.
 	(sql-sqlite-program): Dynamically detect presence of "sqlite" or
 	"sqlite3" executables.
-	(sql-sqlite-login-params): Add "*.sqlite[23]?" database name
-	pattern.
+	(sql-sqlite-login-params): Add "*.sqlite[23]?" database name pattern.
 	(sql-buffer-live-p): New function.
 	(sql-mode-menu, sql-send-string): Use it.
 	(sql-mode-oracle-font-lock-keywords): Improve SQL*Plus REMARK
@@ -362,7 +545,7 @@
 
 2010-09-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* net/netrc.el (netrc-credentials): New conveniency function.
+	* net/netrc.el (netrc-credentials): New convenience function.
 
 2010-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -843,7 +1026,7 @@
 	`default-directory' unless using Ispell per-directory personal
 	dictionaries and not in a mini-buffer under XEmacs.
 	(kill-buffer-hook): Do not kill ispell process on exit when
-	`ispell-process-directory' is "~/". (Bug#6143)
+	`ispell-process-directory' is "~/".  (Bug#6143)
 
 2010-09-02  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -1220,8 +1403,8 @@
 	(tramp-gvfs-mount-spec): Return both prefix and mountspec.
 	(tramp-gvfs-maybe-open-connection): Test, whether mountpoint
 	exists.  Raise an error, if not (due to a corresponding answer
-	"no" in interactive questions, for example). Use
-	`tramp-compat-funcall'.
+	"no" in interactive questions, for example).
+	Use `tramp-compat-funcall'.
 
 	* net/tramp-imap.el (top): Autoload `epg-make-context'.
 	(tramp-imap-handle-copy-file): Add PRESERVE-SELINUX-CONTEXT.
@@ -1953,10 +2136,10 @@
 2010-08-08  Stephen Peters  <speters@itasoftware.com>
 
 	* calendar/icalendar.el
-	(icalendar--split-value): Fixed splitting regexp. (Bug#6766)
-	(icalendar--get-weekday-numbers): New
+	(icalendar--split-value): Fix splitting regexp.  (Bug#6766)
+	(icalendar--get-weekday-numbers): New.
 	(icalendar--convert-recurring-to-diary): Handle multiple byday
-	values in weekly rules. (Bug#6766)
+	values in weekly rules.  (Bug#6766)
 
 2010-08-08  Ulf Jasper  <ulf.jasper@web.de>
 
@@ -5590,7 +5773,7 @@
 
 	Enable recentf-mode if using virtual buffers.
 	* ido.el (recentf-list): Declare for byte-compiler.
-	(ido-virtual-buffers): Move up to silence byte-compiler. Add docstring.
+	(ido-virtual-buffers): Move up to silence byte-compiler.  Add docstring.
 	(ido-make-buffer-list): Simplify.
 	(ido-add-virtual-buffers-to-list): Simplify.  Enable recentf-mode.
 

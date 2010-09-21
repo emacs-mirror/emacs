@@ -184,7 +184,7 @@
 ;; `with-temp-message' does not exists in XEmacs.
 (if (fboundp 'with-temp-message)
     (defalias 'tramp-compat-with-temp-message 'with-temp-message)
-  (defun tramp-compat-with-temp-message (message &rest body)
+  (defmacro tramp-compat-with-temp-message (message &rest body)
     "Display MESSAGE temporarily if non-nil while BODY is evaluated."
     `(progn ,@body)))
 

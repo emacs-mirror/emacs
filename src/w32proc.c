@@ -1694,8 +1694,6 @@ set_process_dir (char * dir)
   process_dir = dir;
 }
 
-#ifdef HAVE_SOCKETS
-
 /* To avoid problems with winsock implementations that work over dial-up
    connections causing or requiring a connection to exist while Emacs is
    running, Emacs no longer automatically loads winsock on startup if it
@@ -1758,8 +1756,6 @@ socket connections still exist.  */)
 {
   return term_winsock () ? Qt : Qnil;
 }
-
-#endif /* HAVE_SOCKETS */
 
 
 /* Some miscellaneous functions that are Windows specific, but not GUI
@@ -2268,10 +2264,9 @@ syms_of_ntproc (void)
   DEFSYM (Qhigh, "high");
   DEFSYM (Qlow, "low");
 
-#ifdef HAVE_SOCKETS
   defsubr (&Sw32_has_winsock);
   defsubr (&Sw32_unload_winsock);
-#endif
+
   defsubr (&Sw32_short_file_name);
   defsubr (&Sw32_long_file_name);
   defsubr (&Sw32_set_process_priority);

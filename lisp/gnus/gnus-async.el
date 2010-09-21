@@ -145,8 +145,7 @@ that was fetched."
   (when (and (gnus-buffer-live-p summary)
 	     gnus-asynchronous
 	     (gnus-group-asynchronous-p group))
-    (save-excursion
-      (set-buffer gnus-summary-buffer)
+    (with-current-buffer gnus-summary-buffer
       (let ((next (caadr (gnus-data-find-list article))))
 	(when next
 	  (if (not (fboundp 'run-with-idle-timer))
@@ -205,8 +204,7 @@ that was fetched."
 
 	  (when (and do-fetch article)
 	    ;; We want to fetch some more articles.
-	    (save-excursion
-	      (set-buffer summary)
+	    (with-current-buffer summary
 	      (let (mark)
 		(gnus-async-set-buffer)
 		(goto-char (point-max))

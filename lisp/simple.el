@@ -5525,9 +5525,10 @@ The function should return non-nil if the two tokens do not match.")
                         ;; backward-sexp skips backward over prefix chars,
                         ;; so move back to the matching paren.
                         (while (and (< (point) (1- oldpos))
-                                    (let ((code (car (syntax-after (point)))))
-                                      (or (eq (logand 65536 code) 6)
-                                          (eq (logand 1048576 code) 1048576))))
+                                    (let ((code (syntax-after (point))))
+                                      (or (eq (syntax-class code) 6)
+                                          (eq (logand 1048576 (car code))
+                                              1048576))))
                           (forward-char 1))
                         (point))
                     (error nil))))))

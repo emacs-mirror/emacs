@@ -1096,23 +1096,23 @@ external program defined by `sendmail-program'."
 	      ;; Delete Resent-BCC ourselves
 	      (if (save-excursion (beginning-of-line)
 				  (looking-at "resent-bcc"))
-		  (delete-region (save-excursion (beginning-of-line) (point))
-				 (save-excursion (end-of-line) (1+ (point))))))
-;;;  Apparently this causes a duplicate Sender.
-;;; 	    ;; If the From is different than current user, insert Sender.
-;;; 	    (goto-char (point-min))
-;;; 	    (and (re-search-forward "^From:"  delimline t)
-;;; 		 (progn
-;;; 		   (require 'mail-utils)
-;;; 		   (not (string-equal
-;;; 			 (mail-strip-quoted-names
-;;; 			  (save-restriction
-;;; 			    (narrow-to-region (point-min) delimline)
-;;; 			    (mail-fetch-field "From")))
-;;; 			 (user-login-name))))
-;;; 		 (progn
-;;; 		   (forward-line 1)
-;;; 		   (insert "Sender: " (user-login-name) "\n")))
+		  (delete-region (line-beginning-position)
+				 (line-beginning-position 2))))
+            ;; Apparently this causes a duplicate Sender.
+	    ;; ;; If the From is different than current user, insert Sender.
+	    ;; (goto-char (point-min))
+	    ;; (and (re-search-forward "^From:"  delimline t)
+	    ;;      (progn
+	    ;;        (require 'mail-utils)
+	    ;;        (not (string-equal
+	    ;;     	 (mail-strip-quoted-names
+	    ;;     	  (save-restriction
+	    ;;     	    (narrow-to-region (point-min) delimline)
+	    ;;     	    (mail-fetch-field "From")))
+	    ;;     	 (user-login-name))))
+	    ;;      (progn
+	    ;;        (forward-line 1)
+	    ;;        (insert "Sender: " (user-login-name) "\n")))
 	    ;; Don't send out a blank subject line
 	    (goto-char (point-min))
 	    (if (re-search-forward "^Subject:\\([ \t]*\n\\)+\\b" delimline t)
@@ -1179,9 +1179,9 @@ external program defined by `sendmail-program'."
 				    nil errbuf nil "-oi")
 			      (and envelope-from
 				   (list "-f" envelope-from))
-;;; 			      ;; Don't say "from root" if running under su.
-;;; 			      (and (equal (user-real-login-name) "root")
-;;; 				   (list "-f" (user-login-name)))
+			      ;; ;; Don't say "from root" if running under su.
+			      ;; (and (equal (user-real-login-name) "root")
+			      ;;      (list "-f" (user-login-name)))
 			      (and mail-alias-file
 				   (list (concat "-oA" mail-alias-file)))
 			      (if mail-interactive
@@ -1714,48 +1714,48 @@ The seventh argument ACTIONS is a list of actions to take
  when the message is sent, we apply FUNCTION to ARGS.
  This is how Rmail arranges to mark messages `answered'."
   (interactive "P")
-;;;  This is commented out because I found it was confusing in practice.
-;;;  It is easy enough to rename *mail* by hand with rename-buffer
-;;;  if you want to have multiple mail buffers.
-;;;  And then you can control which messages to save. --rms.
-;;;  (let ((index 1)
-;;;	buffer)
-;;;    ;; If requested, look for a mail buffer that is modified and go to it.
-;;;    (if noerase
-;;;	(progn
-;;;	  (while (and (setq buffer
-;;;			    (get-buffer (if (= 1 index) "*mail*"
-;;;					  (format "*mail*<%d>" index))))
-;;;		      (not (buffer-modified-p buffer)))
-;;;	    (setq index (1+ index)))
-;;;	  (if buffer (switch-to-buffer buffer)
-;;;	    ;; If none exists, start a new message.
-;;;	    ;; This will never re-use an existing unmodified mail buffer
-;;;	    ;; (since index is not 1 anymore).  Perhaps it should.
-;;;	    (setq noerase nil))))
-;;;    ;; Unless we found a modified message and are happy, start a new message.
-;;;    (if (not noerase)
-;;;	(progn
-;;;	  ;; Look for existing unmodified mail buffer.
-;;;	  (while (and (setq buffer
-;;;			    (get-buffer (if (= 1 index) "*mail*"
-;;;					  (format "*mail*<%d>" index))))
-;;;		      (buffer-modified-p buffer))
-;;;	    (setq index (1+ index)))
-;;;	  ;; If none, make a new one.
-;;;	  (or buffer
-;;;	      (setq buffer (generate-new-buffer "*mail*")))
-;;;	  ;; Go there and initialize it.
-;;;	  (switch-to-buffer buffer)
-;;;	  (erase-buffer)
-;;;          (setq default-directory (expand-file-name "~/"))
-;;;          (auto-save-mode auto-save-default)
-;;;          (mail-mode)
-;;;          (mail-setup to subject in-reply-to cc replybuffer actions)
-;;;	  (if (and buffer-auto-save-file-name
-;;;		   (file-exists-p buffer-auto-save-file-name))
-;;;	      (message "Auto save file for draft message exists; consider M-x mail-recover"))
-;;;          t))
+ ;; This is commented out because I found it was confusing in practice.
+ ;; It is easy enough to rename *mail* by hand with rename-buffer
+ ;; if you want to have multiple mail buffers.
+ ;; And then you can control which messages to save. --rms.
+ ;; (let ((index 1)
+ ;;        buffer)
+ ;;   ;; If requested, look for a mail buffer that is modified and go to it.
+ ;;   (if noerase
+ ;;        (progn
+ ;;          (while (and (setq buffer
+ ;;        		    (get-buffer (if (= 1 index) "*mail*"
+ ;;        				  (format "*mail*<%d>" index))))
+ ;;        	      (not (buffer-modified-p buffer)))
+ ;;            (setq index (1+ index)))
+ ;;          (if buffer (switch-to-buffer buffer)
+ ;;            ;; If none exists, start a new message.
+ ;;            ;; This will never re-use an existing unmodified mail buffer
+ ;;            ;; (since index is not 1 anymore).  Perhaps it should.
+ ;;            (setq noerase nil))))
+ ;;   ;; Unless we found a modified message and are happy, start a new message.
+ ;;   (if (not noerase)
+ ;;        (progn
+ ;;          ;; Look for existing unmodified mail buffer.
+ ;;          (while (and (setq buffer
+ ;;        		    (get-buffer (if (= 1 index) "*mail*"
+ ;;        				  (format "*mail*<%d>" index))))
+ ;;        	      (buffer-modified-p buffer))
+ ;;            (setq index (1+ index)))
+ ;;          ;; If none, make a new one.
+ ;;          (or buffer
+ ;;              (setq buffer (generate-new-buffer "*mail*")))
+ ;;          ;; Go there and initialize it.
+ ;;          (switch-to-buffer buffer)
+ ;;          (erase-buffer)
+ ;;         (setq default-directory (expand-file-name "~/"))
+ ;;         (auto-save-mode auto-save-default)
+ ;;         (mail-mode)
+ ;;         (mail-setup to subject in-reply-to cc replybuffer actions)
+ ;;          (if (and buffer-auto-save-file-name
+ ;;        	   (file-exists-p buffer-auto-save-file-name))
+ ;;              (message "Auto save file for draft message exists; consider M-x mail-recover"))
+ ;;         t))
 
   (if (eq noerase 'new)
       (pop-to-buffer (generate-new-buffer "*mail*"))
@@ -1776,7 +1776,7 @@ The seventh argument ACTIONS is a list of actions to take
   (mail-mode)
   ;; Disconnect the buffer from its visited file
   ;; (in case the user has actually visited a file *mail*).
-;;;  (set-visited-file-name nil)
+  ;; (set-visited-file-name nil)
   (let (initialized)
     (and (not (and noerase
 		   (not (eq noerase 'new))))

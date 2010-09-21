@@ -6406,7 +6406,7 @@ not have a face in `gnus-article-boring-faces'."
 (defun gnus-article-describe-briefly ()
   "Describe article mode commands briefly."
   (interactive)
-  (gnus-message 6 (substitute-command-keys "\\<gnus-article-mode-map>\\[gnus-article-goto-next-page]:Next page	 \\[gnus-article-goto-prev-page]:Prev page  \\[gnus-article-show-summary]:Show summary  \\[gnus-info-find-node]:Run Info  \\[gnus-article-describe-briefly]:This help")))
+  (gnus-message 6 "%s" (substitute-command-keys "\\<gnus-article-mode-map>\\[gnus-article-goto-next-page]:Next page	 \\[gnus-article-goto-prev-page]:Prev page  \\[gnus-article-show-summary]:Show summary  \\[gnus-info-find-node]:Run Info  \\[gnus-article-describe-briefly]:This help")))
 
 (defun gnus-article-check-buffer ()
   "Beep if not in an article buffer."

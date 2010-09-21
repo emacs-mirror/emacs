@@ -2154,7 +2154,7 @@ list that represents a doc string reference.
       ;; and not do a file-boundary.
       (byte-compile-keep-pending form)
     (when (and (symbolp (nth 1 form))
-               (not (string-match "[-*:$]" (symbol-name (nth 1 form))))
+               (not (string-match "[-*/:$]" (symbol-name (nth 1 form))))
                (byte-compile-warning-enabled-p 'lexical))
       (byte-compile-warn "Global/dynamic var `%s' lacks a prefix"
                          (nth 1 form)))
@@ -3810,7 +3810,7 @@ that suppresses all warnings during execution of BODY."
 (defun byte-compile-defvar (form)
   ;; This is not used for file-level defvar/consts with doc strings.
   (when (and (symbolp (nth 1 form))
-             (not (string-match "[-*:$]" (symbol-name (nth 1 form))))
+             (not (string-match "[-*/:$]" (symbol-name (nth 1 form))))
              (byte-compile-warning-enabled-p 'lexical))
     (byte-compile-warn "Global/dynamic var `%s' lacks a prefix"
                        (nth 1 form)))

@@ -68,6 +68,12 @@ FILE can be created or overwritten."
             (let ((coding-system-for-write 'binary))
               (write-region (point-min) (point-max) fname nil 5))))))
 
+(defun url-fetch-from-cache (url)
+  "Fetch URL from cache and return a buffer with the content."
+  (with-current-buffer (generate-new-buffer " *temp*")
+    (url-cache-extract (url-cache-create-filename url))
+    (current-buffer)))
+
 ;;;###autoload
 (defun url-is-cached (url)
   "Return non-nil if the URL is cached."

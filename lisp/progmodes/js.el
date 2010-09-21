@@ -3304,7 +3304,7 @@ Key bindings:
 
   (set (make-local-variable 'open-paren-in-column-0-is-defun-start) nil)
   (set (make-local-variable 'font-lock-defaults)
-       '(js--font-lock-keywords))
+       (list js--font-lock-keywords))
   (set (make-local-variable 'syntax-propertize-function)
        js-syntax-propertize-function)
 

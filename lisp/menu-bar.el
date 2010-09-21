@@ -691,7 +691,7 @@ by \"Save Options\" in Custom buffers.")
 		   ;; Nonetheless, not saving it would like be confuse
 		   ;; more often.
 		   ;; -- Per Abrahamsen <abraham@dina.kvl.dk> 2002-02-11.
-		   text-mode-hook))
+		   text-mode-hook tool-bar-position))
       (and (get elt 'customized-value)
 	   (customize-mark-to-save elt)
 	   (setq need-save t)))
@@ -981,13 +981,7 @@ mail status in mode line"))
 
 (defun menu-bar-set-tool-bar-position (position)
   (customize-set-variable 'tool-bar-mode t)
-  (dolist (frame (frame-list))
-    (set-frame-parameter frame 'tool-bar-position position))
-  (customize-set-variable 'default-frame-alist
-			  (cons (cons 'tool-bar-position position)
-				(assq-delete-all 'tool-bar-position
-						 default-frame-alist))))
-
+  (customize-set-variable 'tool-bar-position position))
 (defun menu-bar-showhide-tool-bar-menu-customize-disable ()
   "Do not display tool bars."
   (interactive)
@@ -996,7 +990,6 @@ mail status in mode line"))
   "Display tool bars on the left side."
   (interactive)
   (menu-bar-set-tool-bar-position 'left))
-
 (defun menu-bar-showhide-tool-bar-menu-customize-enable-right ()
   "Display tool bars on the right side."
   (interactive)

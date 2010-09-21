@@ -107,7 +107,8 @@ Only relevant if `auth-source-debug' is not nil."
   :version "23.2" ;; No Gnus
   :type `boolean)
 
-(defcustom auth-sources '((:source "~/.authinfo.gpg"))
+(defcustom auth-sources '((:source "~/.authinfo.gpg")
+			  (:source "~/.authinfo"))
   "List of authentication sources.
 
 The default will get login and password information from a .gpg
@@ -311,20 +312,23 @@ Return structure as specified by MODE."
     (setq result
 	  (mapcar
 	   (lambda (m)
-	     (if (equal "password" m)
-		 (let ((passwd (read-passwd "Password: ")))
-		   (cond
-		    ;; Secret Service API.
-		    ((consp source)
-		     (apply
-		      'secrets-create-item
-		      (auth-get-source entry) name passwd spec))
-		    (t)) ;; netrc not implemented yes.
-		   passwd)
-	       (or
-		;; the originally requested :user
-		user
-		"unknown-user")))
+	     (cond
+	      ((equal "password" m)
+	       (let ((passwd (read-passwd
+			      (format "Password for %s on %s: " prot host))))
+		 (cond
+		  ;; Secret Service API.
+		  ((consp source)
+		   (apply
+		    'secrets-create-item
+		    (auth-get-source entry) name passwd spec))
+		  (t)) ;; netrc not implemented yes.
+		 passwd))
+	      ((equal "login" m)
+	       (or user
+		   (read-string (format "User name for %s on %s: " prot host))))
+	      (t
+	       "unknownuser")))
 	   (if (consp mode) mode (list mode))))
     (if (consp mode) result (car result))))
 

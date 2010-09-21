@@ -1,3 +1,89 @@
+2010-09-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacs.c: Do not include sys/ioctl.h, not needed.
+
+	* doprnt.c: Do not include stdlib.h, config.h does it.
+	Move #include before macro definition.
+
+2010-09-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (temacs): Link using $(CC) not $(LD).
+	(LD_FIRSTFLAG): Define using autoconf.
+	(LD): Remove.
+
+	Remove HAVE_TERMIOS definitions.
+	* s/usg5-4-common.h (HAVE_TERMIOS):
+	* s/template.h (HAVE_TERMIOS):
+	* s/gnu-linux.h (HAVE_TERMIOS):
+	* s/darwin.h (HAVE_TERMIOS):
+	* s/cygwin.h (HAVE_TERMIOS):
+	* s/bsd-common.h (HAVE_TERMIOS):
+	* s/aix4-2.h (HAVE_TERMIOS):
+	* s/hpux10-20.h (HAVE_TERMIOS): Do not define, it is assumed
+	defined on all non-MS platforms.
+	(HAVE_PSTAT_GETDYNAMIC): Do not define, autoconf does it.
+
+	* xterm.c (xt_action_hook): Use const.
+
+2010-09-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	Don't make W32 code conditional on HAVE_SOCKETS, it's always defined.
+	* w32.c: Remove top-level uses of #ifdef HAVE_SOCKETS.
+	(gethostname) [!HAVE_SOCKETS]: Remove.
+	(SOCK_REPLACE_HANDLE): Remove macro.
+	(socket_to_fd, sys_close, _sys_read_ahead, sys_read, sys_write)
+	(term_ntproc, init_ntproc): Don't conditionalize on HAVE_SOCKETS.
+	* w32proc.c: Remove top-level uses of #ifdef HAVE_SOCKETS.
+	(syms_of_ntproc): Don't conditionalize on HAVE_SOCKETS.
+
+2010-09-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* deps.mk (xml.o): Add dependencies.
+
+	* xdisp.c (Fcurrent_bidi_paragraph_direction):
+	Call bidi_paragraph_init with NO_DEFAULT_P non-zero.  (Bug#7038)
+
+	* bidi.c (bidi_paragraph_init): Accept an additional argument
+	NO_DEFAULT_P; all callers changed.  If NO_DEFAULT_P is non-zero,
+	search back until a paragraph with a strong directional character
+	is found, and use that to determine paragraph's base direction.
+
+	* dispextern.h (bidi_paragraph_init): Update prototype.
+
+2010-09-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (_PROCESS_MEMORY_COUNTERS_EX): Don't define with versions
+	of w32api >= 3.15.  (Bug#6989)
+
+2010-09-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* process.c (wait_reading_process_output): Don't message about
+	accept-process-output unless the time limit really is zero.
+
+2010-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.c (Ftool_bar_pixel_width): YAILOM (Yet another
+	int/Lisp_Object mixup).
+
+2010-09-17  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* keyboard.c (parse_tool_bar_item): For QClabel, set TOOL_BAR_ITEM_LABEL
+	not HELP.
+
+2010-09-17  Stephen Berman  <stephen.berman@gmx.net>
+
+	* frame.c (Ftool_bar_pixel_width): New function to expose tool
+	bar's pixel width to Lisp (Bug#7048).
+
+2010-09-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* cmds.c (syms_of_cmds) <post-self-insert-hook>: Fix typos in docstring.
+
+2010-09-17  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_pack_tool_bar): Call gtk_handle_box_set_handle_position
+	with argument top/left if tool bar is vertical/horizontal (Bug#7051).
+
 2010-09-17  Kenichi Handa  <handa@m17n.org>
 
 	* ftfont.c (ftfont_check_otf): Fix previous change.
@@ -585,7 +671,7 @@
 	* xterm.c (emacs_class): New char[] for EMACS_CLASS.
 	(xim_open_dpy, xim_initialize, xim_close_dpy): Use emacs_class.
 	(x_term_init): Use char[] display_opt and name_opt instead of
-	string literal. file is const char*.
+	string literal.  file is const char*.
 
 	* xsmfns.c (NOSPLASH_OPT): Change to char[].
 	(smc_save_yourself_CB): Do xstrdup on all ->type and ->name for
@@ -597,7 +683,7 @@
 	non-const char.
 
 	* xmenu.c (Fx_popup_dialog): error_name is const char*.
-	(xmenu_show): error parameter is const char **. pane_string is const
+	(xmenu_show): error parameter is const char **.  pane_string is const
 	char *.
 	(button_names): Is const char *.
 	(xdialog_show): error_name and pane_string is const.

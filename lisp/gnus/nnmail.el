@@ -614,6 +614,7 @@ using different case (i.e. mailing-list@domain vs Mailing-List@Domain)."
 
 (defvar nnmail-split-tracing nil)
 (defvar nnmail-split-trace nil)
+(defvar nnmail-inhibit-default-split-group nil)
 
 
 
@@ -674,8 +675,7 @@ using different case (i.e. mailing-list@domain vs Mailing-List@Domain)."
   "Returns an assoc of group names and active ranges.
 nn*-request-list should have been called before calling this function."
   ;; Go through all groups from the active list.
-  (save-excursion
-    (set-buffer nntp-server-buffer)
+  (with-current-buffer nntp-server-buffer
     (nnmail-parse-active)))
 
 (defun nnmail-parse-active ()
@@ -1058,7 +1058,9 @@ If SOURCE is a directory spec, try to return the group name component."
 (defun nnmail-split-incoming (incoming func &optional exit-func
 				       group artnum-func)
   "Go through the entire INCOMING file and pick out each individual mail.
-FUNC will be called with the buffer narrowed to each mail."
+FUNC will be called with the buffer narrowed to each mail.
+INCOMING can also be a buffer object.  In that case, the mail
+will be copied over from that buffer."
   (let ( ;; If this is a group-specific split, we bind the split
 	;; methods to just this group.
 	(nnmail-split-methods (if (and group
@@ -1066,12 +1068,13 @@ FUNC will be called with the buffer narrowed to each mail."
 				  (list (list group ""))
 				nnmail-split-methods))
 	(nnmail-group-names-not-encoded-p t))
-    (save-excursion
-      ;; Insert the incoming file.
-      (set-buffer (get-buffer-create nnmail-article-buffer))
+    ;; Insert the incoming file.
+    (with-current-buffer (get-buffer-create nnmail-article-buffer)
       (erase-buffer)
-      (let ((coding-system-for-read nnmail-incoming-coding-system))
-	(mm-insert-file-contents incoming))
+      (if (bufferp incoming)
+	  (insert-buffer-substring incoming)
+	(let ((coding-system-for-read nnmail-incoming-coding-system))
+	  (mm-insert-file-contents incoming)))
       (prog1
 	  (if (zerop (buffer-size))
 	      0
@@ -1100,15 +1103,15 @@ FUNC will be called with the group name to determine the article number."
 	(obuf (current-buffer))
 	group-art method grp)
     (if (and (sequencep methods)
-	     (= (length methods) 1))
+	     (= (length methods) 1)
+	     (not nnmail-inhibit-default-split-group))
 	;; If there is only just one group to put everything in, we
 	;; just return a list with just this one method in.
 	(setq group-art
 	      (list (cons (caar methods) (funcall func (caar methods)))))
       ;; We do actual comparison.
-      (save-excursion
-	;; Copy the article into the work buffer.
-	(set-buffer nntp-server-buffer)
+      ;; Copy the article into the work buffer.
+      (with-current-buffer nntp-server-buffer
 	(erase-buffer)
 	(insert-buffer-substring obuf)
 	;; Narrow to headers.
@@ -1149,7 +1152,8 @@ FUNC will be called with the group name to determine the article number."
 		       ;; just call this function here and use the
 		       ;; result.
 		       (or (funcall nnmail-split-methods)
-			   '("bogus"))
+			   (and (not nnmail-inhibit-default-split-group)
+				'("bogus")))
 		     (error
 		      (nnheader-message
 		       5 "Error in `nnmail-split-methods'; using `bogus' mail group: %S" error-info)
@@ -1194,12 +1198,14 @@ FUNC will be called with the group name to determine the article number."
 			group-art))
 	      ;; This is the final group, which is used as a
 	      ;; catch-all.
-	      (unless group-art
+	      (when (and (not group-art)
+			 (not nnmail-inhibit-default-split-group))
 		(setq group-art
 		      (list (cons (car method)
 				  (funcall func (car method))))))))
 	  ;; Fall back on "bogus" if all else fails.
-	  (unless group-art
+	  (when (and (not group-art)
+		     (not nnmail-inhibit-default-split-group))
 	    (setq group-art (list (cons "bogus" (funcall func "bogus"))))))
 	;; Produce a trace if non-empty.
 	(when (and trace nnmail-split-trace)
@@ -1572,10 +1578,9 @@ See the documentation for the variable `nnmail-split-fancy' for details."
 	  (and nnmail-cache-buffer
 	       (buffer-name nnmail-cache-buffer)))
       ()				; The buffer is open.
-    (save-excursion
-      (set-buffer
+    (with-current-buffer
        (setq nnmail-cache-buffer
-	     (get-buffer-create " *nnmail message-id cache*")))
+	     (get-buffer-create " *nnmail message-id cache*"))
       (gnus-add-buffer)
       (when (file-exists-p nnmail-message-id-cache-file)
 	(nnheader-insert-file-contents nnmail-message-id-cache-file))
@@ -1587,8 +1592,7 @@ See the documentation for the variable `nnmail-split-fancy' for details."
 	     nnmail-treat-duplicates
 	     (buffer-name nnmail-cache-buffer)
 	     (buffer-modified-p nnmail-cache-buffer))
-    (save-excursion
-      (set-buffer nnmail-cache-buffer)
+    (with-current-buffer nnmail-cache-buffer
       ;; Weed out the excess number of Message-IDs.
       (goto-char (point-max))
       (when (search-backward "\n" nil t nnmail-message-id-cache-length)
@@ -1623,8 +1627,7 @@ See the documentation for the variable `nnmail-split-fancy' for details."
       ;; pass the first (of possibly >1) group which matches. -Josh
       (unless (gnus-buffer-live-p nnmail-cache-buffer)
 	(nnmail-cache-open))
-      (save-excursion
-	(set-buffer nnmail-cache-buffer)
+      (with-current-buffer nnmail-cache-buffer
 	(goto-char (point-max))
 	(if (and grp (not (string= "" grp))
 		 (gnus-methods-equal-p gnus-command-method
@@ -1657,8 +1660,7 @@ See the documentation for the variable `nnmail-split-fancy' for details."
 ;; cache.
 (defun nnmail-cache-fetch-group (id)
   (when (and nnmail-treat-duplicates nnmail-cache-buffer)
-    (save-excursion
-      (set-buffer nnmail-cache-buffer)
+    (with-current-buffer nnmail-cache-buffer
       (goto-char (point-max))
       (when (search-backward id nil t)
 	(beginning-of-line)
@@ -1702,8 +1704,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 
 (defun nnmail-cache-id-exists-p (id)
   (when nnmail-treat-duplicates
-    (save-excursion
-      (set-buffer nnmail-cache-buffer)
+    (with-current-buffer nnmail-cache-buffer
       (goto-char (point-max))
       (search-backward id nil t))))
 

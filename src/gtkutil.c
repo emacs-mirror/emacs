@@ -3974,6 +3974,8 @@ xg_pack_tool_bar (FRAME_PTR f, Lisp_Object pos)
 
   if (into_hbox) 
     {
+      gtk_handle_box_set_handle_position (GTK_HANDLE_BOX (x->handlebox_widget),
+                                          GTK_POS_TOP);
       gtk_box_pack_start (GTK_BOX (x->hbox_widget), x->handlebox_widget,
                           FALSE, FALSE, 0);
 
@@ -3986,6 +3988,8 @@ xg_pack_tool_bar (FRAME_PTR f, Lisp_Object pos)
   else
     {
       int vbox_pos = x->menubar_widget ? 1 : 0;
+      gtk_handle_box_set_handle_position (GTK_HANDLE_BOX (x->handlebox_widget),
+                                          GTK_POS_LEFT);
       gtk_box_pack_start (GTK_BOX (x->vbox_widget), x->handlebox_widget,
                           FALSE, FALSE, 0);
 

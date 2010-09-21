@@ -254,8 +254,7 @@ handshake, or nil on failure."
     (starttls-set-process-query-on-exit-flag process nil)
     (while (and (processp process)
 		(eq (process-status process) 'run)
-		(save-excursion
-		  (set-buffer buffer)
+		(with-current-buffer buffer
 		  (goto-char old-max)
 		  (not (setq done (re-search-forward
 				   starttls-connect nil t)))))

@@ -18,6 +18,17 @@
 
 @itemize @bullet
 
+@item Supported Emacs versions
+The following Emacs versions are supported by No Gnus:
+@itemize @bullet
+
+@item Emacs 22 and up
+@item XEmacs 21.4
+@item XEmacs 21.5
+@item SXEmacs
+
+@end itemize
+
 @item Installation changes
 
 @itemize @bullet
@@ -54,6 +65,11 @@ remove-installed-shadows}.
 @item New packages and libraries within Gnus
 
 @itemize @bullet
+
+@item New version of @code{nnimap}
+
+@code{nnimap} has been reimplemented in a mostly-compatible way.
+@c Mention any incompatibilities.
 
 @item Gnus includes the Emacs Lisp @acronym{SASL} library.
 

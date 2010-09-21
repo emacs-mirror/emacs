@@ -2000,7 +2000,7 @@
 	(math-rewrite, math-rewrite-phase): Replace variable expr by
 	declared variable.
 	(math-rewrite-heads-heads, math-rewrite-heads-skips)
-	(math-rewrite-heads-blanks ): New variables.
+	(math-rewrite-heads-blanks): New variables.
 	(math-rewrite-heads, math-rewrite-heads-rec): Replace variables
 	heads, skips and blanks by declared variables.
 	(math-rwcomp-subst-old, math-rwcomp-subst-new)
@@ -11832,7 +11832,7 @@
 	(ido-saved-vc-hb): Rename from ido-saved-vc-mt.  Uses changed.
 	(ido-no-final-slash): New defun.
 	(ido-make-prompt, ido-file-internal, ido-toggle-vc)
-	(ido-read-file-name): ): Toggle VC checking via
+	(ido-read-file-name): Toggle VC checking via
 	vc-handled-backends instead of vc-master-templates.
 	(ido-file-internal): Handle ido-use-url-at-point and
 	ido-use-filename-at-point via code borrowed from ffap-guesser.

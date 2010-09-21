@@ -4004,7 +4004,7 @@ xt_action_hook (Widget widget, XtPointer client_data, String action_name,
 		XEvent *event, String *params, Cardinal *num_params)
 {
   int scroll_bar_p;
-  char *end_action;
+  const char *end_action;
 
 #ifdef USE_MOTIF
   scroll_bar_p = XmIsScrollBar (widget);

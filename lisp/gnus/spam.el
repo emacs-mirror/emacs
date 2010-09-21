@@ -1605,8 +1605,7 @@ to find it out)."
        article))))
 
 (defun spam-fetch-article-header (article)
-  (save-excursion
-    (set-buffer gnus-summary-buffer)
+  (with-current-buffer gnus-summary-buffer
     (gnus-read-header article)
     (nth 3 (assq article gnus-newsgroup-data))))
 ;;}}}
@@ -2172,8 +2171,7 @@ See `spam-ifile-database'."
     (with-temp-buffer
       (let ((temp-buffer-name (buffer-name))
 	    (db-param (spam-get-ifile-database-parameter)))
-	(save-excursion
-	  (set-buffer article-buffer-name)
+	(with-current-buffer article-buffer-name
 	  (apply 'call-process-region
 		 (point-min) (point-max) spam-ifile-program
 		 nil temp-buffer-name nil "-c"
@@ -2318,9 +2316,8 @@ With a non-nil REMOVE, remove the ADDRESSES."
     ;; else, we have a list of addresses here
     (unless (file-exists-p (file-name-directory file))
       (make-directory (file-name-directory file) t))
-    (save-excursion
-      (set-buffer
-       (find-file-noselect file))
+    (with-current-buffer
+       (find-file-noselect file)
       (dolist (a addresses)
 	(when (stringp a)
 	  (goto-char (point-min))
@@ -2521,8 +2518,7 @@ With a non-nil REMOVE, remove the ADDRESSES."
 	    return)
 	(with-temp-buffer
 	  (let ((temp-buffer-name (buffer-name)))
-	    (save-excursion
-	      (set-buffer article-buffer-name)
+	    (with-current-buffer article-buffer-name
 	      (apply 'call-process-region
 		     (point-min) (point-max)
 		     spam-bogofilter-program
@@ -2579,8 +2575,7 @@ With a non-nil REMOVE, remove the ADDRESSES."
   (let ((article-buffer-name (buffer-name)))
     (with-temp-buffer
       (let ((temp-buffer-name (buffer-name)))
-	(save-excursion
-	  (set-buffer article-buffer-name)
+	(with-current-buffer article-buffer-name
 	  (let ((status
 		 (apply 'call-process-region
 			(point-min) (point-max)
@@ -2656,8 +2651,7 @@ With a non-nil REMOVE, remove the ADDRESSES."
   (let ((article-buffer-name (buffer-name)))
     (with-temp-buffer
       (let ((temp-buffer-name (buffer-name)))
-	(save-excursion
-	  (set-buffer article-buffer-name)
+	(with-current-buffer article-buffer-name
 	  (apply 'call-process-region
 		 (point-min) (point-max) spam-assassin-program
 		 nil temp-buffer-name nil spam-spamassassin-arguments))
@@ -2691,8 +2685,7 @@ With a non-nil REMOVE, remove the ADDRESSES."
 	  ;; group the articles into mbox format
 	  (dolist (article articles)
 	    (let (article-string)
-	      (save-excursion
-		(set-buffer summary-buffer-name)
+	      (with-current-buffer summary-buffer-name
 		(setq article-string (spam-get-article-as-string article)))
 	      (when (stringp article-string)
 		(insert "From \n") ; mbox separator (sa-learn only checks the
@@ -2755,8 +2748,7 @@ With a non-nil REMOVE, remove the ADDRESSES."
 	return)
     (with-temp-buffer
       (let ((temp-buffer-name (buffer-name)))
-	(save-excursion
-	  (set-buffer article-buffer-name)
+	(with-current-buffer article-buffer-name
 	  (apply 'call-process-region
 		 (point-min) (point-max)
 		 spam-bsfilter-program
@@ -2841,8 +2833,7 @@ With a non-nil REMOVE, remove the ADDRESSES."
 	return)
     (with-temp-buffer
       (let ((temp-buffer-name (buffer-name)))
-	(save-excursion
-	  (set-buffer article-buffer-name)
+	(with-current-buffer article-buffer-name
 	  (apply 'call-process-region
 		 (point-min) (point-max)
 		 spam-crm114-program

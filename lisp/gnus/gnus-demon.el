@@ -291,11 +291,9 @@ minutes, the connection is closed."
   (let ((win (current-window-configuration)))
     (unwind-protect
 	(save-window-excursion
-	  (save-excursion
-	    (when (gnus-alive-p)
-	      (save-excursion
-		(set-buffer gnus-group-buffer)
-		(gnus-group-get-new-news)))))
+	  (when (gnus-alive-p)
+	    (with-current-buffer gnus-group-buffer
+	      (gnus-group-get-new-news))))
       (set-window-configuration win))))
 
 (defun gnus-demon-add-scan-timestamps ()

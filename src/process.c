@@ -4403,7 +4403,7 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
   FD_ZERO (&Connecting);
 #endif
 
-  if (time_limit == 0 && wait_proc && !NILP (Vinhibit_quit)
+  if (time_limit == 0 && microsecs == 0 && wait_proc && !NILP (Vinhibit_quit)
       && !(CONSP (wait_proc->status) && EQ (XCAR (wait_proc->status), Qexit)))
     message ("Blocking call to accept-process-output with quit inhibited!!");
 
