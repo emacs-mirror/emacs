@@ -1,3 +1,27 @@
+2010-09-21  Julien Danjou  <julien@danjou.info>
+
+	* gnus-html.el (gnus-html-image-cache-ttl): Add new variable.
+	(gnus-html-cache-expired): Add new function.
+	(gnus-html-wash-images): Use `gnus-html-cache-expired' to check
+	wethever we should display image for fetch it.
+	Compute alt-text earlier to pass it to the fetching function too.
+	(gnus-html-schedule-image-fetching): Change function argument to only
+	get one image at a time, not a list.
+	(gnus-html-image-fetched): Use `url-store-in-cache' to store image in
+	cache.
+	(gnus-html-get-image-data): New function to retrieve image data from
+	cache.
+	(gnus-html-put-image): Change buffer argument to use image data rather
+	than file, and place image above region rather than inserting a new
+	one. Do not take alt-text as argument, since it's useless now: we place
+	the image above alt-text.
+	(gnus-html-prune-cache): Remove.
+	(gnus-html-show-images): Start to fetch image when we find one, do not
+	push into a temporary list.
+	(gnus-html-prefetch-images): Only fetch image if they have expired.
+	(gnus-html-browse-image): Fix, use 'gnus-image-url.
+	(gnus-html-image-map): Add "v" to browse-url on undisplayed image.
+
 2010-09-20  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* rfc2047.el (rfc2047-encode-parameter): Doc fix.
