@@ -1,5 +1,8 @@
 2010-09-21  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* menu-bar.el (menu-bar-set-tool-bar-position): customize-set-variable
+	tool-bar-position.  Don't modify frame parameters here.
+
 	* tool-bar.el (tool-bar-position): New defcustom (Bug#7049).
 
 2010-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
