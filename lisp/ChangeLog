@@ -1,3 +1,7 @@
+2010-09-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* tool-bar.el (tool-bar-position): New defcustom (Bug#7049).
+
 2010-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/reftex-parse.el (reftex-what-macro)
