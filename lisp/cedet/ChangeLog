@@ -1,3 +1,127 @@
+2010-09-21  Eric Ludlam  <zappo@gnu.org>
+
+	Synch EDE to CEDET 1.0.
+
+	* cedet-idutils.el (cedet-idutils-make-command): New option.
+	(cedet-idutils-mkid-call):
+	(cedet-idutils-create/update-database): New functions.
+
+	* cedet-cscope.el (cedet-cscope-create):
+	(cedet-cscope-create/update-database): New functions.
+	(cedet-cscope-support-for-directory): Make interactive.
+
+	* cedet-global.el (cedet-global-gtags-command): New option.
+	(cedet-gnu-global-gtags-call)
+	(cedet-gnu-global-create/update-database): New functions.
+
+	* ede.el (ede-save-cache): Fix recentf-exclude expression.
+	(ede-make-dist): Always use toplevel project.
+	(ede-buffer-object): If we fail to find an object in the current
+	project, loop upward looking for a match.  If no target is found,
+	use most local project.
+	(ede-buffer-belongs-to-target-p)
+	(ede-buffer-belongs-to-project-p): New functions.
+	(ede-initialize-state-current-buffer): New function.
+	(ede-target-forms-menu, ede-project-buffers): Use them.
+	(ede-minor-mode, ede-reset-all-buffers): Use it.
+	(project-interactive-select-target, project-add-file): Don't use
+	ede-project-force-load.
+	(ede-buffer-object): New arg PROJSYM.
+	(ede-minor-mode): Remove ede-directory-project-p test.
+	(ede-initialize-state-current-buffer): Don't test for
+	ede-directory-project-p if there is a matching open project.
+	(ede-customize-forms-menu): Prevent error if there is no project.
+	(ede-load-project-file): Set ede-constructing to the thing being
+	constructed, instead of t.
+	(ede-project-force-load): Deleted.
+
+	* ede/base.el:
+	* ede/auto.el:
+	* ede/custom.el: New files.
+
+	* ede/autoconf-edit.el (autoconf-find-last-macro)
+	(autoconf-parameters-for-macro): Parse multiline parameters of
+	macros.  Optionally ignore case and at bol for macro.
+	(autoconf-parameter-strip): Use greedy match for newlines.
+	(autoconf-new-automake-string): Deleted.
+	(autoconf-new-program): Use SRecode to fill an empty file.
+
+	* ede/cpp-root.el (ede-create-lots-of-projects-under-dir): New
+	function.
+
+	* ede/files.el (ede-flush-project-hash): New command.
+	(ede-convert-path): Add optional PROJECT arg.
+	(ede-directory-project-p): Obey ".ede-ignore".
+	(ede-expand-filename-local)
+	(ede-expand-filename-impl-via-subproj): New methods.
+	(ede-expand-filename-impl): Use them.
+	(ede-project-root, ede-project-root-directory): Move to
+	ede/auto.el.
+
+	* ede/locate.el (ede-locate-flush-hash):
+	(ede-locate-create/update-root-database): New methods.
+	(initialize-instance): Use ede-locate-flush-hash.
+
+	* ede/pmake.el (ede-proj-makefile-insert-variables): If this is
+	the top project and not a metasubproject, set TOP to CURDIR.
+	(ede-proj-makefile-insert-variables): Output a target's object
+	list whether or not the vars are already in the Makefile.
+	(ede-pmake-insert-variable-once): New macro.
+
+	* ede/project-am.el (project-am-with-makefile-current): Add
+	recentf-exclude.
+	(project-am-load-makefile): Obey an optional suggested name.
+	(project-am-expand-subdirlist): New function.
+	(project-am-makefile::project-rescan): Use it.  Combine SUBDIRS
+	and DIST_SUBDIRS.
+	(project-am-meta-type-alist): A list to scan better Makefile.am
+	(project-am-scan-for-targets): Scan also over
+	project-am-meta-type-alist.
+	(ede-system-include-path): Simple implementation.
+	(ede-find-target): Deleted.  EDE core takes care of this.
+	(ede-buffer-mine): Create the searched filename as relative.
+	(project-am-load): Simplify, using autoconf-edit.
+	(project-am-extract-package-info): Fix separators.
+
+	* ede/proj.el (project-run-target): New method.
+	(project-make-dist, project-compile-project): Use
+	ede-proj-automake-p to determine which kind of compile to use.
+	(project-rescan): Call ede-load-project-file.
+	(ede-buffer-mine): Add more file names that belong to the project.
+	(ede-proj-compilers): Improve error message.
+
+	* ede/proj-obj.el (ede-ld-linker): Use the LDDEPS variable.
+	(ede-source-c++): Add more C++ extensions.
+	(ede-proj-target-makefile-objectcode): Quote initforms.  Support
+	lex and yacc.
+
+	* ede/proj-prog.el (ede-proj-makefile-insert-rules): Removed.
+	(ede-proj-makefile-insert-variables): New, add LDDEPS.
+	(ede-proj-makefile-insert-automake-post-variables): Add LDADD
+	variable.  Use ldlibs-local slot.  Add a -l to ldlibs strings.
+	(ede-proj-target-makefile-program): Swap order of two slots so
+	they show up in the same order as in the command line.
+	(ede-proj-target-makefile-program): Add ldlibs-local slot.
+
+	* ede/proj-shared.el (ede-g++-libtool-shared-compiler): Fix
+	inference rule to use cpp files.
+	(ede-proj-target-makefile-shared-object): Quote initforms.
+
+	* ede/proj-misc.el (ede-proj-target-makefile-miscelaneous):
+	* ede/proj-info.el (ede-proj-target-makefile-info):
+	* ede/proj-aux.el (ede-proj-target-aux):
+	* ede/proj-archive.el (ede-proj-target-makefile-archive):
+	* ede/proj-elisp.el (ede-proj-target-elisp)
+	(ede-proj-target-elisp-autoloads): Quote initforms.
+
+	* ede/srecode.el (ede-srecode-setup): Load autoconf templates.
+
+	* ede/shell.el (ede-shell-buffer): Fix buffer name.
+
+	* ede/pconf.el (ede-proj-configure-synchronize): If user events
+	occur while waiting for the compile process to finish, pull them
+	in and discard those events.
+
 2010-09-19  Eric Ludlam  <zappo@gnu.org>
 
 	Synch Semantic to CEDET 1.0.

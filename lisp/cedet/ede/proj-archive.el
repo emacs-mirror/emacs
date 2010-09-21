@@ -29,7 +29,7 @@
 
 (defclass ede-proj-target-makefile-archive
   (ede-proj-target-makefile-objectcode)
-  ((availablelinkers :initform (ede-archive-linker)))
+  ((availablelinkers :initform '(ede-archive-linker)))
   "This target generates an object code archive.")
 
 (defvar ede-archive-linker

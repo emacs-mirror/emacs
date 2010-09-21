@@ -88,7 +88,7 @@ negative, force off."
   (let ((files (dired-get-marked-files t)))
     (while files
       (project-add-file target (car files))
-      ;; Find the buffer for this files, and set it's ede-object
+      ;; Find the buffer for this files, and set its ede-object
       (if (get-file-buffer (car files))
 	  (with-current-buffer (get-file-buffer (car files))
 	    (setq ede-object nil)

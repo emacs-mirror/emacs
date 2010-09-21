@@ -34,15 +34,15 @@
 ;;; Code:
 (defclass ede-proj-target-makefile-shared-object
   (ede-proj-target-makefile-program)
-  ((availablecompilers :initform (ede-gcc-libtool-shared-compiler
-				  ;;ede-gcc-shared-compiler
-				  ede-g++-libtool-shared-compiler
-				  ;;ede-g++-shared-compiler
-				  ))
-   (availablelinkers :initform (ede-cc-linker-libtool
-				ede-g++-linker-libtool
-				;; Add more linker thingies here.
-				))
+  ((availablecompilers :initform '(ede-gcc-libtool-shared-compiler
+				   ;;ede-gcc-shared-compiler
+				   ede-g++-libtool-shared-compiler
+				   ;;ede-g++-shared-compiler
+				   ))
+   (availablelinkers :initform '(ede-cc-linker-libtool
+				 ede-g++-linker-libtool
+				 ;; Add more linker thingies here.
+				 ))
    (ldflags :custom (repeat (string :tag "Libtool flag"))
 	    :documentation
 	    "Additional flags to add when linking this shared library.
@@ -124,7 +124,7 @@ Use ldlibs to add addition libraries.")
 	 :rules (list (ede-makefile-rule
 		       "c++-inference-rule-libtool"
 		       :target "%.o"
-		       :dependencies "%.c"
+		       :dependencies "%.cpp"
 		       :rules '("@echo '$(LTCOMPILE) -o $@ $<'; \\"
 				"$(LTCOMPILE) -o $@ $<"
 				)
