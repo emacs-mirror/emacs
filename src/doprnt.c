@@ -33,20 +33,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 #endif
 
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-
 #include "lisp.h"
-
-#ifndef DBL_MAX_10_EXP
-#define DBL_MAX_10_EXP 308 /* IEEE double */
-#endif
 
 /* Since we use the macro CHAR_HEAD_P, we have to include this, but
    don't have to include others because CHAR_HEAD_P does not contains
    another macro.  */
 #include "character.h"
+
+#ifndef DBL_MAX_10_EXP
+#define DBL_MAX_10_EXP 308 /* IEEE double */
+#endif
 
 /* Generate output from a format-spec FORMAT,
    terminated at position FORMAT_END.
