@@ -1,5 +1,9 @@
 2010-09-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* Makefile.in (temacs): Link using $(CC) not $(LD).
+	(LD_FIRSTFLAG): Define using autoconf.
+	(LD): Remove.
+
 	Remove HAVE_TERMIOS definitions.
 	* s/usg5-4-common.h (HAVE_TERMIOS):
 	* s/template.h (HAVE_TERMIOS):
