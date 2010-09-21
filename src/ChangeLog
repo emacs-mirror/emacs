@@ -1,3 +1,8 @@
+2010-09-21  Ari Roponen  <ari.roponen@gmail.com>  (tiny change)
+
+	* doc.c (Fsnarf_documentation): Use memmove instead of memcpy as
+	the regions may overlap.
+
 2010-09-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in ($(BLD)/sysdep.$(O)): Update dependencies.
