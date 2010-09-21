@@ -5311,8 +5311,14 @@ Otherwise, generate and save a value for `canlock-password' first."
 
 (defun message-output (filename)
   "Append this article to Unix/babyl mail file FILENAME."
-  (if (and (file-readable-p filename)
-	   (mail-file-babyl-p filename))
+  (if (or (and (file-readable-p filename)
+	       (mail-file-babyl-p filename))
+	  ;; gnus-output-to-mail does the wrong thing with live, mbox
+	  ;; Rmail buffers in Emacs 23.
+	  ;; http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=597255
+	  (let ((buff (find-buffer-visiting filename)))
+	    (and buff (with-current-buffer buff
+			(eq major-mode 'rmail-mode)))))
       (gnus-output-to-rmail filename t)
     (gnus-output-to-mail filename t)))
 

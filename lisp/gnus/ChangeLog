@@ -1,3 +1,8 @@
+2010-09-21  Glenn Morris  <rgm@gnu.org>
+
+	* message.el (message-output): Use gnus-output-to-rmail if a buffer is
+	visiting the fcc file in rmail-mode.
+
 2010-04-22  Andreas Seltenreich  <seltenreich@gmx.de>
 
 	* message.el (message-generate-headers): Record insertion of optional
