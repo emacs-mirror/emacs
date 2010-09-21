@@ -1,3 +1,7 @@
+2010-09-21  Eric Ludlam  <zappo@gnu.org>
+
+	* srecode/java.srt: Make NAME be a prompt.
+
 2010-08-22  Alex Harsanyi  <harsanyi@mac.com>  (tiny change)
 
 	* emacs3.py: Import imp module and use it (Bug#5756).

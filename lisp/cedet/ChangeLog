@@ -1,5 +1,75 @@
 2010-09-21  Eric Ludlam  <zappo@gnu.org>
 
+	Synch SRecode to CEDET 1.0.
+
+	* pulse.el (pulse-momentary-highlight-overlay): If pulse-flag is
+	'never, disable all pulsing.
+
+	* cedet.el (cedet-version):
+	* srecode.el (srecode-version): Bump version to 1.0.
+
+	* srecode/texi.el (srecode-texi-insert-tag-as-doc): New function.
+	(semantic-insert-foreign-tag): Use it.
+
+	* srecode/mode.el (srecode-bind-insert): Call
+	srecode-load-tables-for-mode.
+	(srecode-minor-mode-templates-menu): Do not list templates that
+	are not in the current project.
+	(srecode-menu-bar): Add binding for srecode-macro-help.
+
+	* srecode/table.el (srecode-template-table): Add :project slot.
+	(srecode-dump): Dump it.
+
+	* srecode/map.el (srecode-map-update-map): Make map loading more
+	robust.
+
+	* srecode/insert.el (srecode-insert-fcn): Merge template
+	dictionary before resolving arguments.
+	(srecode-insert-method-helper): Add error checking to make sure
+	that we only have dictionaries.
+	(srecode-insert-method): Check template nesting depth when using
+	point inserter override.
+	(srecode-insert-method): Install override with depth limit.
+
+	* srecode/getset.el (srecode-insert-getset): Force tag table
+	update.  Don't query the class if it is empty.
+
+	* srecode/find.el (srecode-template-get-table)
+	(srecode-template-get-table-for-binding)
+	(srecode-all-template-hash): Skip if not in current project.
+	(srecode-template-table-in-project-p): New method.
+
+	* srecode/fields.el (srecode-fields-exit-confirmation): New option.
+	(srecode-field-exit-ask): Use it.
+
+	* srecode/dictionary.el (srecode-dictionary-add-template-table):
+	Do not add variables in tables not for the current project.
+	(srecode-compound-toString): Handle cases where the default value
+	is another compound value.
+	(srecode-dictionary-lookup-name): New optional argument
+	NON-RECURSIVE, which inhibits visiting dictionary parents.
+	(srecode-dictionary-add-section-dictionary)
+	(srecode-dictionary-merge): New optional argument FORCE adds
+	values even if an identically named entry exists.
+	(srecode-dictionary-add-entries): New method.
+	(srecode-create-dictionaries-from-tags): New function.
+
+	* srecode/cpp.el (srecode-cpp): New defgroup.
+	(srecode-cpp-namespaces): New option.
+	(srecode-semantic-handle-:using-namespaces)
+	(srecode-cpp-apply-templates): New functions.
+	(srecode-semantic-apply-tag-to-dict): Handle template parameters
+	by calling `srecode-cpp-apply-templates'.
+
+	* srecode/compile.el (srecode-compile-templates): Fix directory
+	compare of built-in templates.  Give built-ins lower piority.
+	Support special variable "project".
+	(srecode-compile-template-table): Set :project slot of new tables.
+	(srecode-compile-one-template-tag): Use
+	srecode-create-dictionaries-from-tags.
+
+2010-09-21  Eric Ludlam  <zappo@gnu.org>
+
 	Synch EDE to CEDET 1.0.
 
 	* cedet-idutils.el (cedet-idutils-make-command): New option.

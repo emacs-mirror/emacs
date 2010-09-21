@@ -3,6 +3,7 @@
 ;;; Copyright (C) 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Version: 1.0
 
 ;; This file is part of GNU Emacs.
 
@@ -57,10 +58,14 @@
     (error nil)))
 
 (defcustom pulse-flag (pulse-available-p)
-  "*Non-nil means to pulse the overlay face for momentary highlighting.
-Pulsing involves a bright highlight that slowly shifts to the background
-color.  Non-nil just means to highlight with an unchanging color for a short
-time.
+  "Whether to use pulsing for momentary highlighting.
+Pulsing involves a bright highlight that slowly shifts to the
+background color.
+
+If the value is nil, highlight with an unchanging color until a
+key is pressed.
+If the value is `never', do no coloring at all.
+Any other value means to the default pulsing behavior.
 
 If `pulse-flag' is non-nil, but `pulse-available-p' is nil, then
 this flag is ignored."
@@ -178,22 +183,23 @@ Be sure to call `pulse-reset-face' after calling pulse."
 Optional argument FACE specifies the fact to do the highlighting."
   (overlay-put o 'original-face (overlay-get o 'face))
   (add-to-list 'pulse-momentary-overlay o)
-  (if (or (not pulse-flag) (not (pulse-available-p)))
-      ;; Provide a face... clear on next command
-      (progn
-	(overlay-put o 'face (or face 'pulse-highlight-start-face))
-	(add-hook 'pre-command-hook
-		  'pulse-momentary-unhighlight)
-	)
-    ;; pulse it.
-    (unwind-protect
+  (if (eq pulse-flag 'never)
+      nil
+    (if (or (not pulse-flag) (not (pulse-available-p)))
+	;; Provide a face... clear on next command
 	(progn
-	  (overlay-put o 'face 'pulse-highlight-face)
-	  ;; The pulse function puts FACE onto 'pulse-highlight-face.
-	  ;; Thus above we put our face on the overlay, but pulse
-	  ;; with a reference face needed for the color.
-	  (pulse face))
-      (pulse-momentary-unhighlight))))
+	  (overlay-put o 'face (or face 'pulse-highlight-start-face))
+	  (add-hook 'pre-command-hook
+		    'pulse-momentary-unhighlight))
+      ;; pulse it.
+      (unwind-protect
+	  (progn
+	    (overlay-put o 'face 'pulse-highlight-face)
+	    ;; The pulse function puts FACE onto 'pulse-highlight-face.
+	    ;; Thus above we put our face on the overlay, but pulse
+	    ;; with a reference face needed for the color.
+	    (pulse face))
+	(pulse-momentary-unhighlight)))))
 
 (defun pulse-momentary-unhighlight ()
   "Unhighlight a line recently highlighted."

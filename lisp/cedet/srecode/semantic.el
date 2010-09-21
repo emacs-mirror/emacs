@@ -91,7 +91,7 @@ The hook is called with two arguments, the TAG and DICT
 to be augmented.")
 
 (define-overload srecode-semantic-apply-tag-to-dict (tagobj dict)
-  "Insert fewatures of TAGOBJ into the dictionary DICT.
+  "Insert features of TAGOBJ into the dictionary DICT.
 TAGOBJ is an object of class `srecode-semantic-tag'.  This class
 is a compound inserter value.
 DICT is a dictionary object.
@@ -195,7 +195,7 @@ variable default values, and other things."
 ;;; :tag ARGUMENT HANDLING
 ;;
 ;; When a :tag argument is required, identify the current :tag,
-;; and apply it's parts into the dictionary.
+;; and apply its parts into the dictionary.
 (defun srecode-semantic-handle-:tag (dict)
   "Add macros into the dictionary DICT based on the current :tag."
   ;; We have a tag, start adding "stuff" into the dictionary.
@@ -305,8 +305,8 @@ or `code'.
 
 For various conditions, this function looks for a template with
 the name CLASS-tag, where CLASS is the tag class.  If it cannot
-find that, it will look for that template in the
-`declaration'context (if the current context was not `declaration').
+find that, it will look for that template in the `declaration'
+context (if the current context was not `declaration').
 
 If PROTOTYPE is specified, it will first look for templates with
 the name CLASS-tag-prototype, or CLASS-prototype as above.
@@ -382,7 +382,7 @@ as `function' will leave point where code might be inserted."
       (error "Cannot find template %s in %s for inserting tag %S"
 	     errtype top (semantic-format-tag-summarize tag)))
 
-    ;; Resolve Arguments
+    ;; Resolve arguments
     (let ((srecode-semantic-selected-tag tag))
       (srecode-resolve-arguments temp dict))
 

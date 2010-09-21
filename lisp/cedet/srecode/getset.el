@@ -55,8 +55,9 @@ will be derived."
       (error "No templates for inserting get/set"))
 
   ;; Step 1: Try to derive the tag for the class we will use
+  (semantic-fetch-tags)
   (let* ((class (or class-in (srecode-auto-choose-class (point))))
-	 (tagstart (semantic-tag-start class))
+	 (tagstart (when class (semantic-tag-start class)))
 	 (inclass (eq (semantic-current-tag-of-class 'type) class))
 	 (field nil)
 	 )

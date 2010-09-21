@@ -295,8 +295,14 @@ if that file is NEW, otherwise assume the mode has not changed."
 
     ;; 2) Do we not have a current map?  If so load.
     (when (not srecode-current-map)
-      (setq srecode-current-map
-	    (eieio-persistent-read srecode-map-save-file))
+      (condition-case nil
+	  (setq srecode-current-map
+		(eieio-persistent-read srecode-map-save-file))
+	(error
+	 ;; There was an error loading the old map.  Create a new one.
+	 (setq srecode-current-map
+	       (srecode-map "SRecode Map"
+			    :file srecode-map-save-file))))
       )
 
     )

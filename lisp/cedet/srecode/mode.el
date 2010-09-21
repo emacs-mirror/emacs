@@ -125,7 +125,13 @@
      ["Dump Dictionary"
       srecode-dictionary-dump
       :active t
-      :help "Calculate a dump a dictionary for point."
+      :help "Calculate and dump a dictionary for point."
+      ])
+    (semantic-menu-item
+     ["Show Macro Help"
+      srecode-macro-help
+      :active t
+      :help "Display the different types of macros available."
       ])
     )
    )
@@ -223,43 +229,44 @@ MENU-DEF is the menu to bind this into."
       (setq context (car-safe (srecode-calculate-context)))
 
       (while subtab
-	(setq ltab (oref (car subtab) templates))
-	(while ltab
-	  (setq temp (car ltab))
+	(when (srecode-template-table-in-project-p (car subtab))
+	  (setq ltab (oref (car subtab) templates))
+	  (while ltab
+	    (setq temp (car ltab))
 
-	  ;; Do something with this template.
+	    ;; Do something with this template.
 
-	  (let* ((ctxt (oref temp context))
-		 (ctxtcons (assoc ctxt alltabs))
-		 (bind (if (slot-boundp temp 'binding)
-			   (oref temp binding)))
-		 (name (object-name-string temp)))
+	    (let* ((ctxt (oref temp context))
+		   (ctxtcons (assoc ctxt alltabs))
+		   (bind (if (slot-boundp temp 'binding)
+			     (oref temp binding)))
+		   (name (object-name-string temp)))
 
-	    (when (not ctxtcons)
-	      (if (string= context ctxt)
-		  ;; If this context is not in the current list of contexts
-		  ;; is equal to the current context, then manage the
-		  ;; active list instead
-		  (setq active
-			(setq ctxtcons (or active (cons ctxt nil))))
-		;; This is not an active context, add it to alltabs.
-		(setq ctxtcons (cons ctxt nil))
-		(setq alltabs (cons ctxtcons alltabs))))
+	      (when (not ctxtcons)
+		(if (string= context ctxt)
+		    ;; If this context is not in the current list of contexts
+		    ;; is equal to the current context, then manage the
+		    ;; active list instead
+		    (setq active
+			  (setq ctxtcons (or active (cons ctxt nil))))
+		  ;; This is not an active context, add it to alltabs.
+		  (setq ctxtcons (cons ctxt nil))
+		  (setq alltabs (cons ctxtcons alltabs))))
 
-	    (let ((new (vector
-			(if bind
-			    (concat name "   (" bind ")")
-			  name)
-			`(lambda () (interactive)
-			   (srecode-insert (concat ,ctxt ":" ,name)))
-			t)))
+	      (let ((new (vector
+			  (if bind
+			      (concat name "   (" bind ")")
+			    name)
+			  `(lambda () (interactive)
+			     (srecode-insert (concat ,ctxt ":" ,name)))
+			  t)))
 
-	      (setcdr ctxtcons (cons
-				new
-				(cdr ctxtcons)))))
+		(setcdr ctxtcons (cons
+				  new
+				  (cdr ctxtcons)))))
 
-	  (setq ltab (cdr ltab)))
-	(setq subtab (cdr subtab)))
+	    (setq ltab (cdr ltab))))
+  	(setq subtab (cdr subtab)))
 
       ;; Now create the menu
       (easy-menu-filter-return
@@ -300,6 +307,7 @@ MENU-DEF is the menu to bind this into."
 This command will insert whichever srecode template has a binding
 to the current key."
   (interactive)
+  (srecode-load-tables-for-mode major-mode)
   (let* ((k last-command-event)
 	 (ctxt (srecode-calculate-context))
 	 ;; Find the template with the binding K
