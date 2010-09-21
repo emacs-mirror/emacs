@@ -1,3 +1,8 @@
+2010-09-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Expunging mailboxes): Update name of the expunging
+	command.
+
 2010-09-20  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* emacs-mime.texi (rfc2047): Update description for
