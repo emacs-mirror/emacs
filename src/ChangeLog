@@ -1,5 +1,7 @@
 2010-09-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* emacs.c: Do not include sys/ioctl.h, not needed.
+
 	* doprnt.c: Do not include stdlib.h, config.h does it.
 	Move #include before macro definition.
 
