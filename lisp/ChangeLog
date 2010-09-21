@@ -2,6 +2,7 @@
 
 	* menu-bar.el (menu-bar-set-tool-bar-position): customize-set-variable
 	tool-bar-position.  Don't modify frame parameters here.
+	(menu-bar-options-save): Add tool-bar-position.
 
 	* tool-bar.el (tool-bar-position): New defcustom (Bug#7049).
 
