@@ -1,3 +1,57 @@
+2010-09-21  Adam Sjøgren  <asjo@koldfront.dk>
+
+	* gnus-sum.el (gnus-adjust-marked-articles): Fix typo.
+
+2010-09-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-int.el (gnus-open-server): Give a better error message in the
+	"go offline" case.
+
+	* gnus-sum.el (gnus-adjust-marked-articles): Hack to avoid adjusting
+	marks for nnimap, which is seldom the right thing to do.
+
+	* gnus.el (gnus-sloppily-equal-method-parameters): Refactor out.
+	(gnus-same-method-different-name): New function.
+
+	* nnimap.el (parse-time): Require.
+
+	* gnus-start.el (gnus-get-unread-articles): Fix the prefixed select
+	method in the presence of many similar methods.
+
+	* nnmail.el (nnmail-expired-article-p): Fix typo: time-subtract.
+
+	* nnimap.el (nnimap-find-expired-articles): Don't refer to
+	nnml-inhibit-expiry.
+
+	* gnus-sum.el (gnus-summary-move-article): Use gnus-server-equal to
+	find out whether methods are equal.
+
+	* nnimap.el (nnimap-find-expired-articles): New function.
+	(nnimap-process-expiry-targets): New function.
+	(nnimap-request-move-article): Request the article before looking at
+	what the Message-ID is.  Fix found by Andrew Cohen.
+	(nnimap-mark-and-expunge-incoming): Wait for the last sequence.
+
+	* nnmail.el (nnmail-expired-article-p): Allow returning the cutoff time
+	for oldness in addition to being a predicate.
+
+	* nnimap.el (nnimap-request-group): When we have zero articles, return
+	the right data to Gnus.
+	(nnimap-request-expire-articles): Only delete articles immediately if
+	the target is 'delete.
+
+	* gnus-sum.el (gnus-summary-move-article): When respooling to the same
+	method, this would bug out.
+
+	* gnus-group.el (gnus-group-expunge-group): Renamed from
+	gnus-group-nnimap-expunge, and implemented as a normal interface
+	function.
+
+	* gnus-int.el (gnus-request-expunge-group): New function.
+
+	* nnimap.el (nnimap-request-create-group): Implement.
+	(nnimap-request-expunge-group): New function.
+
 2010-09-21  Julien Danjou  <julien@danjou.info>
 
 	* gnus-html.el (gnus-html-image-cache-ttl): Add new variable.

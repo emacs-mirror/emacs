@@ -2682,6 +2682,7 @@ a string, be sure to use a valid format, see RFC 2616."
 (defvar gnus-newsgroup-name nil)
 (defvar gnus-ephemeral-servers nil)
 (defvar gnus-server-method-cache nil)
+(defvar gnus-extended-servers nil)
 
 (defvar gnus-agent-fetching nil
   "Whether Gnus agent is in fetching mode.")
@@ -3686,32 +3687,35 @@ that that variable is buffer-local to the summary buffers."
    (and
     (eq (car m1) (car m2))
     (equal (cadr m1) (cadr m2))
-    ;; Check parameters for sloppy equalness.
-    (let ((p1 (copy-list (cddr m1)))
-	  (p2 (copy-list (cddr m2)))
-	  e1 e2)
-      (block nil
-	(while (setq e1 (pop p1))
-	  (unless (setq e2 (assq (car e1) p2))
-	    ;; The parameter doesn't exist in p2.
-	    (return nil))
-	  (setq p2 (delq e2 p2))
-	  (unless (equalp e1 e2)
-	    (if (not (and (stringp (cadr e1))
-			  (stringp (cadr e2))))
-		(return nil)
-	      ;; Special-case string parameter comparison so that we
-	      ;; can uniquify them.
-	      (let ((s1 (cadr e1))
-		    (s2 (cadr e2)))
-		(when (string-match "/$" s1)
-		  (setq s1 (directory-file-name s1)))
-		(when (string-match "/$" s2)
-		  (setq s2 (directory-file-name s2)))
-		(unless (equal s1 s2)
-		  (return nil))))))
-	;; If p2 now is empty, they were equal.
-	(null p2))))))
+    (gnus-sloppily-equal-method-parameters m1 m2))))
+
+(defsubst gnus-sloppily-equal-method-parameters (m1 m2)
+  ;; Check parameters for sloppy equalness.
+  (let ((p1 (copy-list (cddr m1)))
+	(p2 (copy-list (cddr m2)))
+	e1 e2)
+    (block nil
+      (while (setq e1 (pop p1))
+	(unless (setq e2 (assq (car e1) p2))
+	  ;; The parameter doesn't exist in p2.
+	  (return nil))
+	(setq p2 (delq e2 p2))
+	(unless (equalp e1 e2)
+	  (if (not (and (stringp (cadr e1))
+			(stringp (cadr e2))))
+	      (return nil)
+	    ;; Special-case string parameter comparison so that we
+	    ;; can uniquify them.
+	    (let ((s1 (cadr e1))
+		  (s2 (cadr e2)))
+	      (when (string-match "/$" s1)
+		(setq s1 (directory-file-name s1)))
+	      (when (string-match "/$" s2)
+		(setq s2 (directory-file-name s2)))
+	      (unless (equal s1 s2)
+		(return nil))))))
+      ;; If p2 now is empty, they were equal.
+      (null p2))))
 
 (defun gnus-server-equal (m1 m2)
   "Say whether two methods are equal."
@@ -4200,9 +4204,12 @@ parameters."
   (if (or (not (inline (gnus-similar-server-opened method)))
 	  (not (cddr method)))
       method
-    `(,(car method) ,(concat (cadr method) "+" group)
-      (,(intern (format "%s-address" (car method))) ,(cadr method))
-      ,@(cddr method))))
+    (setq method
+	  `(,(car method) ,(concat (cadr method) "+" group)
+	    (,(intern (format "%s-address" (car method))) ,(cadr method))
+	    ,@(cddr method)))
+    (push method gnus-extended-servers)
+    method))
 
 (defun gnus-server-status (method)
   "Return the status of METHOD."
@@ -4227,6 +4234,20 @@ parameters."
 	(format "%s using %s" address (car server))
       (format "%s" (car server)))))
 
+(defun gnus-same-method-different-name (method)
+  (let ((slot (intern (concat (symbol-name (car method)) "-address"))))
+    (unless (assq slot (cddr method))
+      (setq method
+	    (append method (list (list slot (nth 1 method)))))))
+  (let ((methods gnus-extended-servers)
+	open found)
+    (while (and (not found)
+		(setq open (pop methods)))
+      (when (and (eq (car method) (car open))
+		 (gnus-sloppily-equal-method-parameters method open))
+	(setq found open)))
+    found))
+
 (defun gnus-find-method-for-group (group &optional info)
   "Find the select method that GROUP uses."
   (or gnus-override-method
@@ -4249,7 +4270,10 @@ parameters."
 		(cond ((stringp method)
 		       (inline (gnus-server-to-method method)))
 		      ((stringp (cadr method))
-		       (inline (gnus-server-extend-method group method)))
+		       (or
+			(inline
+			 (gnus-same-method-different-name method))
+			(inline (gnus-server-extend-method group method))))
 		      (t
 		       method)))
 	  (cond ((equal (cadr method) "")
