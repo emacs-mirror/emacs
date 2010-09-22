@@ -31,6 +31,7 @@ s/\.h\.in/.h-in/
 /^ALL_CFLAGS *=/s/@[^@\n]*@//g
 /^CPPFLAGS *=/s/@[^@\n]*@//
 /^LDFLAGS *=/s/@[^@\n]*@//
+/^LD_FIRSTFLAG *=/s/@[^@\n]*@//
 /^LIBS *=/s/@[^@\n]*@//
 /^LIBES *=/,/^ *$/ {
   s/@[^@\n]*@//g
@@ -51,7 +52,6 @@ s/\.h\.in/.h-in/
 /^TEMACS_LDFLAGS2 *=/s/@TEMACS_LDFLAGS2@/$(LDFLAGS)/
 /^LIBS_SYSTEM *=/s/@LIBS_SYSTEM@//
 /^LIB_GCC *=/s/@LIB_GCC@//
-/^LD *=/s/@LINKER@/$(CC)/
 /^LIB_STANDARD *=/s/@LIB_STANDARD@//
 /^LIB_MATH *=/s/@LIB_MATH@/-lm/
 /^LIBTIFF *=/s/@LIBTIFF@//
