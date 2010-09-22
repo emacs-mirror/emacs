@@ -1,3 +1,7 @@
+2010-09-22  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* nnimap.el (nnimap-delete-article): Tell user if expunge won't happen.
+
 2010-09-22  Julien Danjou  <julien@danjou.info>
 
 	* gnus-group.el (gnus-group-update-hook): Call gnus-group-add-icon by

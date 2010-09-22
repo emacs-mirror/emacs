@@ -580,7 +580,10 @@ textual parts.")
       t)
      (nnimap-expunge
       (nnimap-command "EXPUNGE")
-      t))))
+      t)
+     (t (gnus-message 7 (concat "nnimap: nnimap-expunge is not set and the "
+                                "server doesn't support UIDPLUS, so we won't "
+                                "delete this article now"))))))
 
 (deffoo nnimap-request-scan (&optional group server)
   (when (and (nnimap-possibly-change-group nil server)
