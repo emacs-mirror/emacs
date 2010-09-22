@@ -5850,6 +5850,10 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 	 (types gnus-article-mark-lists)
 	 marks var articles article mark mark-type
          bgn end)
+    ;; Hack to avoid adjusting marks for imap.
+    (when (eq (car (gnus-find-method-for-group (gnus-info-group info)))
+	      'nnimap)
+      (setq min 1))
 
     (dolist (marks marked-lists)
       (setq mark (car marks)
@@ -9681,7 +9685,7 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 			      gnus-newsgroup-name))
 		(to-method (or select-method
 			       (gnus-find-method-for-group to-newsgroup)))
-		(move-is-internal (gnus-method-equal from-method to-method)))
+		(move-is-internal (gnus-server-equal from-method to-method)))
 	   (gnus-request-move-article
 	    article			; Article to move
 	    gnus-newsgroup-name		; From newsgroup
@@ -9692,7 +9696,8 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 		  (not articles) t)	; Accept form
 	    (not articles)		; Only save nov last time
 	    (and move-is-internal
-		 (gnus-group-real-name to-newsgroup))))) ; is this move internal?
+		 to-newsgroup		; Not respooling
+		 (gnus-group-real-name to-newsgroup))))) ; Is this move internal?
 	;; Copy the article.
 	((eq action 'copy)
 	 (with-current-buffer copy-buf

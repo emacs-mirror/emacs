@@ -1344,7 +1344,6 @@ $(BLD)/sysdep.$(O) : \
 	$(EMACS_ROOT)/nt/inc/pwd.h \
 	$(EMACS_ROOT)/nt/inc/unistd.h \
 	$(EMACS_ROOT)/nt/inc/sys/file.h \
-	$(EMACS_ROOT)/nt/inc/sys/ioctl.h \
 	$(EMACS_ROOT)/nt/inc/sys/socket.h \
 	$(EMACS_ROOT)/nt/inc/sys/time.h \
 	$(SRC)/lisp.h \

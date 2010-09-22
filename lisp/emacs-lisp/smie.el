@@ -338,7 +338,7 @@ CSTS is a list of pairs representing arcs in a graph."
                      res))
                  cycle)))
     (mapconcat
-     (lambda (elems) (mapconcat 'indentity elems "="))
+     (lambda (elems) (mapconcat 'identity elems "="))
      (append names (list (car names)))
      " < ")))
 
@@ -1173,7 +1173,11 @@ in order to figure out the indentation of some other (further down) point."
   ;; front of a comment" when doing virtual-indentation anyway.  And if we are
   ;; (as can happen in octave-mode), moving forward can lead to inf-loops.
   (and (smie-indent--bolp)
-       (looking-at comment-start-skip)
+       (let ((pos (point)))
+         (save-excursion
+           (beginning-of-line)
+           (and (re-search-forward comment-start-skip (line-end-position) t)
+                (eq pos (or (match-end 1) (match-beginning 0))))))
        (save-excursion
          (forward-comment (point-max))
          (skip-chars-forward " \t\r\n")
@@ -1193,6 +1197,20 @@ in order to figure out the indentation of some other (further down) point."
                (skip-chars-forward " \t")
                (if (looking-at (regexp-quote continue))
                    (current-column))))))))
+
+(defun smie-indent-comment-close ()
+  (and (boundp 'comment-end-skip)
+       comment-end-skip
+       (not (looking-at " \t*$"))       ;Not just a \n comment-closer.
+       (looking-at comment-end-skip)
+       (nth 4 (syntax-ppss))
+       (save-excursion
+         (goto-char (nth 8 (syntax-ppss)))
+         (current-column))))
+
+(defun smie-indent-comment-inside ()
+  (and (nth 4 (syntax-ppss))
+       'noindent))
 
 (defun smie-indent-after-keyword ()
   ;; Indentation right after a special keyword.
@@ -1275,9 +1293,10 @@ in order to figure out the indentation of some other (further down) point."
            (current-column)))))))
 
 (defvar smie-indent-functions
-  '(smie-indent-fixindent smie-indent-bob smie-indent-close smie-indent-comment
-   smie-indent-comment-continue smie-indent-keyword smie-indent-after-keyword
-   smie-indent-exps)
+  '(smie-indent-fixindent smie-indent-bob smie-indent-close
+    smie-indent-comment smie-indent-comment-continue smie-indent-comment-close
+    smie-indent-comment-inside smie-indent-keyword smie-indent-after-keyword
+    smie-indent-exps)
   "Functions to compute the indentation.
 Each function is called with no argument, shouldn't move point, and should
 return either nil if it has no opinion, or an integer representing the column

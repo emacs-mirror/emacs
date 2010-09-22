@@ -705,6 +705,7 @@ the first newsgroup."
 	nnoo-state-alist nil
 	gnus-current-select-method nil
 	nnmail-split-history nil
+	gnus-extended-servers nil
 	gnus-ephemeral-servers nil)
   (gnus-shutdown 'gnus)
   ;; Kill the startup file.
@@ -1693,28 +1694,19 @@ If SCAN, request a scan of that group as well."
     (while newsrc
       (setq active (gnus-active (setq group (gnus-info-group
 					     (setq info (pop newsrc))))))
-
-      ;; Check newsgroups.  If the user doesn't want to check them, or
-      ;; they can't be checked (for instance, if the news server can't
-      ;; be reached) we just set the number of unread articles in this
-      ;; newsgroup to t.  This means that Gnus thinks that there are
-      ;; unread articles, but it has no idea how many.
-
-      ;; To be more explicit:
-      ;; >0 for an active group with messages
-      ;; 0 for an active group with no unread messages
-      ;; nil for non-foreign groups that the user has requested not be checked
-      ;; t for unchecked foreign groups or bogus groups, or groups that can't
-      ;;   be checked, for one reason or other.
-
       ;; First go through all the groups, see what select methods they
       ;; belong to, and then collect them into lists per unique select
       ;; method.
       (if (not (setq method (gnus-info-method info)))
 	  (setq method gnus-select-method)
+	;; There may be several similar methods.  Possibly extend the
+	;; method.
 	(if (setq cmethod (assoc method methods-cache))
 	    (setq method (cdr cmethod))
-	  (setq cmethod (inline (gnus-server-get-method nil method)))
+	  (setq cmethod (if (stringp method)
+			    (gnus-server-to-method method)
+			  (inline (gnus-find-method-for-group
+				   (gnus-info-group info) info))))
 	  (push (cons method cmethod) methods-cache)
 	  (setq method cmethod)))
       (setq method-group-list (assoc method type-cache))

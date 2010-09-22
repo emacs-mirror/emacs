@@ -509,7 +509,10 @@ simple manner.")
 		   (gnus-range-length (cdr (assq 'tick gnus-tmp-marked))))))
 	      (t number)) ?s)
     (?R gnus-tmp-number-of-read ?s)
-    (?U (gnus-number-of-unseen-articles-in-group gnus-tmp-group) ?d)
+    (?U (if (gnus-active gnus-tmp-group)
+	    (gnus-number-of-unseen-articles-in-group gnus-tmp-group)
+	  "*")
+	?s)
     (?t gnus-tmp-number-total ?d)
     (?y gnus-tmp-number-of-unread ?s)
     (?I (gnus-range-length (cdr (assq 'dormant gnus-tmp-marked))) ?d)
@@ -675,7 +678,7 @@ simple manner.")
   "R" gnus-group-make-rss-group
   "c" gnus-group-customize
   "z" gnus-group-compact-group
-  "x" gnus-group-nnimap-expunge
+  "x" gnus-group-expunge-group
   "\177" gnus-group-delete-group
   [delete] gnus-group-delete-group)
 
@@ -3163,21 +3166,17 @@ mail messages or news articles in files that have numeric names."
 		       'summary 'group)))
       (error "Couldn't enter %s" dir))))
 
-(autoload 'nnimap-expunge "nnimap")
-(autoload 'nnimap-acl-get "nnimap")
-(autoload 'nnimap-acl-edit "nnimap")
-
-(defun gnus-group-nnimap-expunge (group)
+(defun gnus-group-expunge-group (group)
   "Expunge deleted articles in current nnimap GROUP."
   (interactive (list (gnus-group-group-name)))
-  (let ((mailbox (gnus-group-real-name group)) method)
-    (unless group
-      (error "No group on current line"))
-    (unless (gnus-get-info group)
-      (error "Killed group; can't be edited"))
-    (unless (eq 'nnimap (car (setq method (gnus-find-method-for-group group))))
-      (error "%s is not an nnimap group" group))
-    (nnimap-expunge mailbox (cadr method))))
+  (let ((method (gnus-find-method-for-group group)))
+    (if (not (gnus-check-backend-function
+	      'request-expunge-group (car method)))
+	(error "%s does not support expunging" (car method))
+      (gnus-request-expunge-group group method))))
+
+(autoload 'nnimap-acl-get "nnimap")
+(autoload 'nnimap-acl-edit "nnimap")
 
 (defun gnus-group-nnimap-edit-acl (group)
   "Edit the Access Control List of current nnimap GROUP."

@@ -1858,9 +1858,12 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
       (run-hooks 'nnmail-post-get-new-mail-hook))))
 
 (defun nnmail-expired-article-p (group time force &optional inhibit)
-  "Say whether an article that is TIME old in GROUP should be expired."
+  "Say whether an article that is TIME old in GROUP should be expired.
+If TIME is nil, then return the cutoff time for oldness instead."
   (if force
-      t
+      (if (null time)
+	  (current-time)
+	t)
     (let ((days (or (and nnmail-expiry-wait-function
 			 (funcall nnmail-expiry-wait-function group))
 		    nnmail-expiry-wait)))
@@ -1871,14 +1874,18 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 	     nil)
 	    ((eq days 'immediate)
 	     ;; We expire all articles on sight.
-	     t)
+	     (if (null time)
+		 (current-time)
+	       t))
 	    ((equal time '(0 0))
 	    ;; This is an ange-ftp group, and we don't have any dates.
 	     nil)
 	    ((numberp days)
 	     (setq days (days-to-time days))
 	     ;; Compare the time with the current time.
-	     (ignore-errors (time-less-p days (time-since time))))))))
+	     (if (null time)
+		 (time-subtract (current-time) days)
+	       (ignore-errors (time-less-p days (time-since time)))))))))
 
 (declare-function gnus-group-mark-article-read "gnus-group" (group article))
 

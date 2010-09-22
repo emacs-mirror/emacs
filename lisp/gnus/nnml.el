@@ -942,22 +942,23 @@ Unless no-active is non-nil, update the active file too."
       (when (file-exists-p nov)
 	(funcall nnmail-delete-file-function nov))
       (dolist (file files)
-	(unless (file-directory-p (setq file (concat dir (cdr file))))
-	  (erase-buffer)
-	  (nnheader-insert-file-contents file)
-	  (narrow-to-region
-	   (goto-char (point-min))
-	   (progn
-	     (re-search-forward "\n\r?\n" nil t)
-	     (setq chars (- (point-max) (point)))
-	     (max (point-min) (1- (point)))))
-	  (unless (zerop (buffer-size))
-	    (goto-char (point-min))
-	    (setq headers (nnml-parse-head chars (car file)))
-	    (with-current-buffer nov-buffer
-	      (goto-char (point-max))
-	      (nnheader-insert-nov headers)))
-	  (widen)))
+	(let ((path (concat dir (cdr file))))
+	  (unless (file-directory-p path)
+	    (erase-buffer)
+	    (nnheader-insert-file-contents path)
+	    (narrow-to-region
+	     (goto-char (point-min))
+	     (progn
+	       (re-search-forward "\n\r?\n" nil t)
+	       (setq chars (- (point-max) (point)))
+	       (max (point-min) (1- (point)))))
+	    (unless (zerop (buffer-size))
+	      (goto-char (point-min))
+	      (setq headers (nnml-parse-head chars (car file)))
+	      (with-current-buffer nov-buffer
+		(goto-char (point-max))
+		(nnheader-insert-nov headers)))
+	    (widen))))
       (with-current-buffer nov-buffer
 	(nnmail-write-region (point-min) (point-max) nov nil 'nomesg)
 	(kill-buffer (current-buffer))))))

@@ -275,8 +275,10 @@ If it is down, start it up (again)."
 			       (not gnus-batch-mode)
 			       (gnus-y-or-n-p
 				(format
-				 "Unable to open server %s, go offline? "
-				 server)))
+				 "Unable to open server %s (%s), go offline? "
+				 server
+				 (nnheader-get-report
+				  (car gnus-command-method)))))
                               (setq open-offline t)
                               'offline)
                              (t
@@ -550,6 +552,14 @@ If BUFFER, insert the article in that group."
   (when (stringp gnus-command-method)
     (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
   (funcall (gnus-get-function gnus-command-method 'request-post)
+	   (nth 1 gnus-command-method)))
+
+(defun gnus-request-expunge-group (group gnus-command-method)
+  "Expunge GROUP, which is removing articles that have been marked as deleted."
+  (when (stringp gnus-command-method)
+    (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
+  (funcall (gnus-get-function gnus-command-method 'request-expunge-group)
+	   (gnus-group-real-name group)
 	   (nth 1 gnus-command-method)))
 
 (defun gnus-request-scan (group gnus-command-method)
