@@ -1963,6 +1963,7 @@ get_emacs_configuration_options (void)
     size += strlen (options[i]);
 
   options_buffer = xmalloc (size + 1);
+  options_buffer[0] = '\0';
 
   for (i = 0; options[i]; i++)
     strcat (options_buffer, options[i]);
