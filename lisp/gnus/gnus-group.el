@@ -292,13 +292,14 @@ If you want to modify the group buffer, you can use this hook."
   :group 'gnus-exit
   :type 'hook)
 
-(defcustom gnus-group-update-hook '(gnus-group-highlight-line)
+(defcustom gnus-group-update-hook '(gnus-group-highlight-line gnus-group-add-icon)
   "Hook called when a group line is changed.
 The hook will not be called if `gnus-visual' is nil.
 
-The default function `gnus-group-highlight-line' will
-highlight the line according to the `gnus-group-highlight'
-variable."
+The default functions `gnus-group-highlight-line' will highlight
+the line according to the `gnus-group-highlight' variable, and
+`gnus-group-add-icon' will add an icon according to
+`gnus-group-icon-list'"
   :group 'gnus-group-visual
   :type 'hook)
 
@@ -1578,7 +1579,7 @@ if it is a string, only list groups matching REGEXP."
 	      ?m ? ))
 	 (gnus-tmp-moderated-string
 	  (if (eq gnus-tmp-moderated ?m) "(m)" ""))
-	 (gnus-tmp-group-icon "==&&==")
+         (gnus-tmp-group-icon (propertize " " 'gnus-group-icon t))
 	 (gnus-tmp-news-server (or (cadr gnus-tmp-method) ""))
 	 (gnus-tmp-news-method (or (car gnus-tmp-method) ""))
 	 (gnus-tmp-news-method-string
@@ -1686,6 +1687,47 @@ if it is a string, only list groups matching REGEXP."
 	 (setq face (if (boundp face) (symbol-value face) face)))
 	(gnus-extent-start-open beg)))
     (goto-char p)))
+
+(defun gnus-group-add-icon ()
+  "Add an icon to the current line according to `gnus-group-icon-list'."
+  (save-excursion
+    (let* ((end (line-end-position))
+           ;; now find out where the line starts and leave point there.
+           (beg (line-beginning-position)))
+      (save-restriction
+        (narrow-to-region beg end)
+        (goto-char beg)
+        (let ((mystart (text-property-any beg end 'gnus-group-icon t)))
+          (when mystart
+            (let* ((group (gnus-group-group-name))
+                   (entry (gnus-group-entry group))
+                   (unread (if (numberp (car entry)) (car entry) 0))
+                   (active (gnus-active group))
+                   (total (if active (1+ (- (cdr active) (car active))) 0))
+                   (info (nth 2 entry))
+                   (method (gnus-server-get-method group (gnus-info-method info)))
+                   (marked (gnus-info-marks info))
+                   (mailp (memq 'mail (assoc (symbol-name
+                                              (car (or method gnus-select-method)))
+                                             gnus-valid-select-methods)))
+                   (level (or (gnus-info-level info) gnus-level-killed))
+                   (score (or (gnus-info-score info) 0))
+                   (ticked (gnus-range-length (cdr (assq 'tick marked))))
+                   (group-age (gnus-group-timestamp-delta group))
+                   (inhibit-read-only t)
+                   (list gnus-group-icon-list)
+                   (myend (next-single-property-change
+                           mystart 'gnus-group-icon)))
+              (while (and list
+                          (not (eval (caar list))))
+                (setq list (cdr list)))
+              (when list
+                (put-text-property
+                 mystart myend
+                 'display
+                 (append
+                  (gnus-create-image (expand-file-name (cdar list)))
+                  '(:ascent center)))))))))))
 
 (defun gnus-group-update-group (group &optional visible-only)
   "Update all lines where GROUP appear.

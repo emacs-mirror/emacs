@@ -1,5 +1,9 @@
 2010-09-22  Julien Danjou  <julien@danjou.info>
 
+	* gnus-group.el (gnus-group-update-hook): Call gnus-group-add-icon by
+	default.
+	(gnus-group-add-icon): Move to gnus-group.el, and rewrite so it works.
+
 	* gnus-html.el (gnus-html-wash-images): Use xml-substitute-special on
 	images alt-text.
 	(gnus-html-put-image): Put alt-text as help-echo.
