@@ -1,3 +1,10 @@
+2010-09-22  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mailcap.el (mailcap-parse-mailcap, mailcap-parse-mimetypes)
+	* mm-util.el (mm-decompress-buffer)
+	* nnir.el (nnir-run-find-grep)
+	* pop3.el (pop3-list): Use 3rd arg of split-string.
+
 2010-09-21  Adam Sjøgren  <asjo@koldfront.dk>
 
 	* gnus-sum.el (gnus-adjust-marked-articles): Fix typo.
