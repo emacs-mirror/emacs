@@ -1,3 +1,18 @@
+2010-09-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* editfns.c (Fsubst_char_in_region, Ftranslate_region_internal)
+	(check_translation): Use EMACS_INT for buffer positions and
+	length.
+
+	* undo.c (record_marker_adjustment, record_delete)
+	(record_change, record_point, record_insert)
+	(record_property_change, Fprimitive_undo): Use EMACS_INT for
+	buffer positions.
+
+	* lisp.h (record_marker_adjustment, record_delete)
+	(record_change, record_point, record_insert)
+	(record_property_change, Fprimitive_undo): Adjust prototypes.
+
 2010-09-22  Juanma Barranquero  <lekktu@gmail.com>
             Eli Zaretskii  <eliz@gnu.org>
 

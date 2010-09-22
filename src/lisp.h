@@ -3393,12 +3393,13 @@ extern Lisp_Object Qapply;
 extern Lisp_Object Qinhibit_read_only;
 EXFUN (Fundo_boundary, 0);
 extern void truncate_undo_list (struct buffer *);
-extern void record_marker_adjustment (Lisp_Object, int);
-extern void record_insert (int, int);
-extern void record_delete (int, Lisp_Object);
+extern void record_marker_adjustment (Lisp_Object, EMACS_INT);
+extern void record_insert (EMACS_INT, EMACS_INT);
+extern void record_delete (EMACS_INT, Lisp_Object);
 extern void record_first_change (void);
-extern void record_change (int, int);
-extern void record_property_change (int, int, Lisp_Object, Lisp_Object,
+extern void record_change (EMACS_INT, EMACS_INT);
+extern void record_property_change (EMACS_INT, EMACS_INT,
+				    Lisp_Object, Lisp_Object,
                                     Lisp_Object);
 extern void syms_of_undo (void);
 extern Lisp_Object Vundo_outer_limit;

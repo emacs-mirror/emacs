@@ -2705,7 +2705,7 @@ and don't mark the buffer as really changed.
 Both characters must have the same length of multi-byte form.  */)
   (Lisp_Object start, Lisp_Object end, Lisp_Object fromchar, Lisp_Object tochar, Lisp_Object noundo)
 {
-  register int pos, pos_byte, stop, i, len, end_byte;
+  register EMACS_INT pos, pos_byte, stop, i, len, end_byte;
   /* Keep track of the first change in the buffer:
      if 0 we haven't found it yet.
      if < 0 we've found it and we've run the before-change-function.
@@ -2776,7 +2776,7 @@ Both characters must have the same length of multi-byte form.  */)
     stop = min (stop, GPT_BYTE);
   while (1)
     {
-      int pos_byte_next = pos_byte;
+      EMACS_INT pos_byte_next = pos_byte;
 
       if (pos_byte >= stop)
 	{
@@ -2879,7 +2879,8 @@ Both characters must have the same length of multi-byte form.  */)
 }
 
 
-static Lisp_Object check_translation (int, int, int, Lisp_Object);
+static Lisp_Object check_translation (EMACS_INT, EMACS_INT, EMACS_INT,
+				      Lisp_Object);
 
 /* Helper function for Ftranslate_region_internal.
 
@@ -2888,7 +2889,8 @@ static Lisp_Object check_translation (int, int, int, Lisp_Object);
    element is found, return it.  Otherwise return Qnil.  */
 
 static Lisp_Object
-check_translation (int pos, int pos_byte, int end, Lisp_Object val)
+check_translation (EMACS_INT pos, EMACS_INT pos_byte, EMACS_INT end,
+		   Lisp_Object val)
 {
   int buf_size = 16, buf_used = 0;
   int *buf = alloca (sizeof (int) * buf_size);
@@ -2896,7 +2898,7 @@ check_translation (int pos, int pos_byte, int end, Lisp_Object val)
   for (; CONSP (val); val = XCDR (val))
     {
       Lisp_Object elt;
-      int len, i;
+      EMACS_INT len, i;
 
       elt = XCAR (val);
       if (! CONSP (elt))
@@ -2912,7 +2914,7 @@ check_translation (int pos, int pos_byte, int end, Lisp_Object val)
 	      if (buf_used <= i)
 		{
 		  unsigned char *p = BYTE_POS_ADDR (pos_byte);
-		  int len;
+		  int len1;
 
 		  if (buf_used == buf_size)
 		    {
@@ -2923,8 +2925,8 @@ check_translation (int pos, int pos_byte, int end, Lisp_Object val)
 		      memcpy (newbuf, buf, sizeof (int) * buf_used);
 		      buf = newbuf;
 		    }
-		  buf[buf_used++] = STRING_CHAR_AND_LENGTH (p, len);
-		  pos_byte += len;
+		  buf[buf_used++] = STRING_CHAR_AND_LENGTH (p, len1);
+		  pos_byte += len1;
 		}
 	      if (XINT (AREF (elt, i)) != buf[i])
 		break;
@@ -2950,7 +2952,7 @@ It returns the number of characters changed.  */)
   register int nc;		/* New character. */
   int cnt;			/* Number of changes made. */
   int size;			/* Size of translate table. */
-  int pos, pos_byte, end_pos;
+  EMACS_INT pos, pos_byte, end_pos;
   int multibyte = !NILP (current_buffer->enable_multibyte_characters);
   int string_multibyte;
   Lisp_Object val;
