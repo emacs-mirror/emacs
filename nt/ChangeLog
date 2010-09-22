@@ -1,3 +1,8 @@
+2010-09-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* configure.bat: Err out when the argument of --cflags contains
+	invalid characters (check implemented only for GCC).  (Bug#6820)
+
 2010-08-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* addpm.c (add_registry): Create App Paths of type REG_EXPAND_SZ.

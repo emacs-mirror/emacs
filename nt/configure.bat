@@ -358,9 +358,25 @@ gcc %cf% -c junk.c
 @echo gcc %cf% -c junk.c >>config.log
 gcc %cf% -c junk.c >>config.log 2>&1
 set cf=
-if exist junk.o goto gccOk
+if exist junk.o goto chkuser
 echo The failed program was: >>config.log
 type junk.c >>config.log
+goto nocompiler
+
+:chkuser
+rm -f junk.o
+echo int main (int argc, char *argv[]) {>junk.c
+echo char *usercflags = "%usercflags%";>>junk.c
+echo }>>junk.c
+echo gcc -Werror -c junk.c >>config.log
+gcc -Werror -c junk.c >>config.log 2>&1
+if exist junk.o goto gccOk
+echo.
+echo Error in --cflags argument: %usercflags%
+echo Backslashes and quotes cannot be used with --cflags.  Please use forward
+echo slashes for filenames and paths (e.g. when passing directories to -I).
+rm -f junk.c
+goto end
 
 :nocompiler
 echo.
