@@ -1,3 +1,9 @@
+2010-09-22  Julien Danjou  <julien@danjou.info>
+
+	* gnus-html.el (gnus-html-wash-images): Use xml-substitute-special on
+	images alt-text.
+	(gnus-html-put-image): Put alt-text as help-echo.
+
 2010-09-22  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mailcap.el (mailcap-parse-mailcap, mailcap-parse-mimetypes)
