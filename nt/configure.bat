@@ -630,6 +630,8 @@ echo. >>config.settings
 copy config.nt config.tmp
 echo. >>config.tmp
 echo /* Start of settings from configure.bat.  */ >>config.tmp
+rem   We write USER_CFLAGS and USER_LDFLAGS starting with a space to simplify
+rem   processing of compiler options in w32.c:get_emacs_configuration_options
 if (%docflags%) == (Y) echo #define USER_CFLAGS " %usercflags%">>config.tmp
 if (%doldflags%) == (Y) echo #define USER_LDFLAGS " %userldflags%">>config.tmp
 if (%profile%) == (Y) echo #define PROFILING 1 >>config.tmp
