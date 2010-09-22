@@ -976,7 +976,7 @@ If NUMBER, fetch this number of articles."
 (defun gnus-browse-describe-briefly ()
   "Give a one line description of the group mode commands."
   (interactive)
-  (gnus-message 6
+  (gnus-message 6 "%s"
 		(substitute-command-keys "\\<gnus-browse-mode-map>\\[gnus-group-next-group]:Forward  \\[gnus-group-prev-group]:Backward  \\[gnus-browse-exit]:Exit  \\[gnus-info-find-node]:Run Info  \\[gnus-browse-describe-briefly]:This help")))
 
 (defun gnus-server-regenerate-server ()

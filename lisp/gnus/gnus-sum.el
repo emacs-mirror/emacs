@@ -985,8 +985,7 @@ This hook is not called from the non-updating exit commands like `Q'."
   :group 'gnus-various
   :type 'hook)
 
-(defcustom gnus-summary-update-hook
-  (list 'gnus-summary-highlight-line)
+(defcustom gnus-summary-update-hook nil
   "*A hook called when a summary line is changed.
 The hook will not be called if `gnus-visual' is nil.
 
@@ -3753,6 +3752,7 @@ buffer that was in action when the last article was fetched."
       (error (gnus-message 5 "Error updating the summary line")))
     (when (gnus-visual-p 'summary-highlight 'highlight)
       (forward-line -1)
+      (gnus-summary-highlight-line)
       (gnus-run-hooks 'gnus-summary-update-hook)
       (forward-line 1))))
 
@@ -3785,6 +3785,7 @@ buffer that was in action when the last article was fetched."
 	 'score))
       ;; Do visual highlighting.
       (when (gnus-visual-p 'summary-highlight 'highlight)
+	(gnus-summary-highlight-line)
 	(gnus-run-hooks 'gnus-summary-update-hook)))))
 
 (defvar gnus-tmp-new-adopts nil)
@@ -5363,7 +5364,9 @@ or a straight list of headers."
                'gnus-number number)
 	      (when gnus-visual-p
 		(forward-line -1)
-		(gnus-run-hooks 'gnus-summary-update-hook)
+		(gnus-summary-highlight-line)
+		(when gnus-summary-update-hook
+		  (gnus-run-hooks 'gnus-summary-update-hook))
 		(forward-line 1))
 
 	      (setq gnus-tmp-prev-subject simp-subject)))
@@ -5501,11 +5504,11 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 	   (mm-decode-coding-string (gnus-status-message group) charset))))
 
     (unless (gnus-request-group group t)
-	(when (equal major-mode 'gnus-summary-mode)
-	  (gnus-kill-buffer (current-buffer)))
-	(error "Couldn't request group %s: %s"
-	       (mm-decode-coding-string group charset)
-	       (mm-decode-coding-string (gnus-status-message group) charset)))
+      (when (equal major-mode 'gnus-summary-mode)
+	(gnus-kill-buffer (current-buffer)))
+      (error "Couldn't request group %s: %s"
+	     (mm-decode-coding-string group charset)
+	     (mm-decode-coding-string (gnus-status-message group) charset)))
 
     (when gnus-agent
       (gnus-agent-possibly-alter-active group (gnus-active group) info)
@@ -5847,6 +5850,10 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 	 (types gnus-article-mark-lists)
 	 marks var articles article mark mark-type
          bgn end)
+    ;; Hack to avoid adjusting marks for imap.
+    (when (eq (car (gnus-find-method-for-group (gnus-info-group info)))
+	      'nnimap)
+      (setq min 1))
 
     (dolist (marks marked-lists)
       (setq mark (car marks)
@@ -7327,7 +7334,7 @@ in."
 (defun gnus-summary-describe-briefly ()
   "Describe summary mode commands briefly."
   (interactive)
-  (gnus-message 6 (substitute-command-keys "\\<gnus-summary-mode-map>\\[gnus-summary-next-page]:Select  \\[gnus-summary-next-unread-article]:Forward  \\[gnus-summary-prev-unread-article]:Backward  \\[gnus-summary-exit]:Exit  \\[gnus-info-find-node]:Run Info	 \\[gnus-summary-describe-briefly]:This help")))
+  (gnus-message 6 "%s" (substitute-command-keys "\\<gnus-summary-mode-map>\\[gnus-summary-next-page]:Select  \\[gnus-summary-next-unread-article]:Forward  \\[gnus-summary-prev-unread-article]:Backward  \\[gnus-summary-exit]:Exit  \\[gnus-info-find-node]:Run Info	 \\[gnus-summary-describe-briefly]:This help")))
 
 ;; Walking around group mode buffer from summary mode.
 
@@ -7391,7 +7398,7 @@ If prefix argument NO-ARTICLE is non-nil, no article is selected initially."
   "Go to the first subject satisfying any non-nil constraint.
 If UNREAD is non-nil, the article should be unread.
 If UNDOWNLOADED is non-nil, the article should be undownloaded.
-If UNSEEN is non-nil, the article should be unseen.
+If UNSEEN is non-nil, the article should be unseen as well as unread.
 Returns the article selected or nil if there are no matching articles."
   (interactive "P")
   (cond
@@ -7414,7 +7421,8 @@ Returns the article selected or nil if there are no matching articles."
                                  (and undownloaded
                                       (memq num gnus-newsgroup-undownloaded))
                                  (and unseen
-                                      (memq num gnus-newsgroup-unseen)))))))
+                                      (memq num gnus-newsgroup-unseen)
+				      (memq num gnus-newsgroup-unreads)))))))
         (setq data (cdr data)))
       (prog1
           (if data
@@ -7905,8 +7913,8 @@ Return nil if there are no unseen articles."
     (gnus-summary-position-point)))
 
 (defun gnus-summary-first-unseen-or-unread-subject ()
-  "Place the point on the subject line of the first unseen article or,
-if all article have been seen, on the subject line of the first unread
+  "Place the point on the subject line of the first unseen and unread article.
+If all article have been seen, on the subject line of the first unread
 article."
   (interactive)
   (prog1
@@ -9677,7 +9685,7 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 			      gnus-newsgroup-name))
 		(to-method (or select-method
 			       (gnus-find-method-for-group to-newsgroup)))
-		(move-is-internal (gnus-method-equal from-method to-method)))
+		(move-is-internal (gnus-server-equal from-method to-method)))
 	   (gnus-request-move-article
 	    article			; Article to move
 	    gnus-newsgroup-name		; From newsgroup
@@ -9687,7 +9695,9 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 		  to-newsgroup (list 'quote select-method)
 		  (not articles) t)	; Accept form
 	    (not articles)		; Only save nov last time
-	    move-is-internal)))		; is this move internal?
+	    (and move-is-internal
+		 to-newsgroup		; Not respooling
+		 (gnus-group-real-name to-newsgroup))))) ; Is this move internal?
 	;; Copy the article.
 	((eq action 'copy)
 	 (with-current-buffer copy-buf
@@ -9818,8 +9828,9 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 		  (gnus-add-marked-articles
 		   to-group 'expire (list to-article) info))
 
-		(gnus-request-set-mark
-		 to-group (list (list (list to-article) 'add to-marks))))
+		(when to-marks
+		  (gnus-request-set-mark
+		   to-group (list (list (list to-article) 'add to-marks)))))
 
 	      (gnus-dribble-enter
 	       (concat "(gnus-group-set-info '"
@@ -10734,6 +10745,7 @@ If NO-EXPIRE, auto-expiry will be inhibited."
 	 (t gnus-no-mark))
    'replied)
   (when (gnus-visual-p 'summary-highlight 'highlight)
+    (gnus-summary-highlight-line)
     (gnus-run-hooks 'gnus-summary-update-hook))
   t)
 
@@ -10761,7 +10773,12 @@ If NO-EXPIRE, auto-expiry will be inhibited."
 	;; Go to the right position on the line.
 	(goto-char (+ forward (point)))
 	;; Replace the old mark with the new mark.
-	(subst-char-in-region (point) (1+ (point)) (char-after) mark)
+        (let ((to-insert
+               (mm-subst-char-in-string
+		(char-after) mark
+		(buffer-substring (point) (1+ (point))))))
+          (delete-region (point) (1+ (point)))
+          (insert to-insert))
 	;; Optionally update the marks by some user rule.
 	(when (eq type 'unread)
 	  (gnus-data-set-mark

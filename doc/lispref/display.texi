@@ -4468,47 +4468,56 @@ specifying the bounding box of the PostScript image, analogous to the
 
 @node ImageMagick Images
 @subsection ImageMagick Images
-The Imagemagick library can be used to load many image formats in Emacs.
+@cindex ImageMagick images
+@cindex images, support for more formats
 
-The function (imagemagick-types) returns a list of image file
-extensions that your installation of imagemagick supports.
+  If you build Emacs with ImageMagick (@url{http://www.imagemagick.org})
+support, you can use the ImageMagick library to load many image formats.
 
-The function (imagemagick-register-types) will enable the imagemagick
-support for the extensions in imagemagick-types minus the types listed
-in imagemagick-types-inhibit.
+@findex imagemagick-types
+The function @code{imagemagick-types} returns a list of image file
+extensions that your installation of ImageMagick supports.  To enable
+support, you must call the function @code{imagemagick-register-types}.
 
-imagemagick-types-inhibit has the value '(C HTML HTM TXT PDF) by
-default.  There can be overlap between image loaders in your Emacs
-installation. If you never want to use the ImageMagick loader to use
-Jpeg files, for instance, add 'JPG to imagemagick-types-inhibit. Which
-loader that will be used in practice depends on the priority of the
-loaders.
+@vindex imagemagick-types-inhibit
+The variable @code{imagemagick-types-inhibit} specifies a list of
+image types that you do @emph{not} want ImageMagick to handle.  There
+may be overlap between image loaders in your Emacs installation, and
+you may prefer to use a different one for a given image type (which
+@c FIXME how is this priority determined?
+loader will be used in practice depends on the priority of the loaders).
+@c FIXME why are these uppercase when image-types is lower-case?
+@c FIXME what are the possibe options?  Are these actually file extensions?
+For example, if you never want to use the ImageMagick loader to use
+JPEG files, add @code{JPG} to this list.
 
-imagemagick-render-type is a new variable which can be set to choose
-between screen render methods for the ImageMagick loader.
+@vindex imagemagick-render-type
+You can set the variable @code{imagemagick-render-type} to choose
+between screen render methods for the ImageMagick loader.  The options
+are: @code{0}, a conservative method which works with older
+@c FIXME details of this "newer method"?
+@c Presumably it is faster but may be less "robust"?
+ImageMagick versions (it is a bit slow, but robust); and @code{1},
+a newer ImageMagick method.
 
-- 0 is a conservative metod which works with older ImageMagick
-  versions. It is a bit slow, but robust.
+Images loaded with ImageMagick support a few new display specifications:
 
-- 1 utilizes a newer ImageMagick method   
+@table @code
+@item :width, :height
+The @code{:width} and @code{:height} keywords are used for scaling the
+image.  If only one of them is specified, the other one will be
+calculated so as to preserve the aspect ratio.  If both are specified,
+aspect ratio may not be preserved.
 
+@item :rotation
+Specifies a rotation angle in degrees.
 
-Images loaded with imagemagick will support a couple of new display
-specification behaviours:
-
-- if the :width and :height keywords are specified, these values are
-used for scaling the image. If only one of :width or :height is
-specified, the other one will be calculated so as to preserve the
-aspect ratio.If both :width and :height are specified, aspect ratio
-will not be preserved.
-
-- :rotation specifies a rotation angle in degrees.
-
-- :index specifies which image inside an image bundle file format, such
-as TIFF or DJVM, to view.
-
-The image-metadata function can be used to retrieve the total number
-of images in an image bundle. This is simmilar to how GIF files work.
+@item :index
+Specifies which image to view inside an image bundle file format, such
+as TIFF or DJVM.  You can use the @code{image-metadata} function to
+retrieve the total number of images in an image bundle (this is
+similar to how GIF files work).
+@end table
 
 
 @node Other Image Types

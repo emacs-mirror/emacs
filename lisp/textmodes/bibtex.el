@@ -3027,12 +3027,14 @@ if that value is non-nil.
                 ;; brace-delimited ones
                 )
          nil
-         (font-lock-syntactic-keywords . bibtex-font-lock-syntactic-keywords)
          (font-lock-extra-managed-props . (category))
 	 (font-lock-mark-block-function
 	  . (lambda ()
               (set-mark (bibtex-end-of-entry))
 	      (bibtex-beginning-of-entry)))))
+  (set (make-local-variable 'syntax-propertize-function)
+       (syntax-propertize-via-font-lock
+        bibtex-font-lock-syntactic-keywords))
   (setq imenu-generic-expression
         (list (list nil bibtex-entry-head bibtex-key-in-head))
         imenu-case-fold-search t)

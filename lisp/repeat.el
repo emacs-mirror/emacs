@@ -335,7 +335,12 @@ recently executed command not bound to an input event\"."
 	(setq real-last-command 'repeat)
 	(setq repeat-undo-count 1)
 	(unwind-protect
-	    (while (eq (read-event) repeat-repeat-char)
+	    (while (let ((evt (read-event))) ;FIXME: read-key maybe?
+                     ;; For clicks, we need to strip the meta-data to
+                     ;; check the underlying event name.
+                     (eq (or (car-safe evt) evt)
+                         (or (car-safe repeat-repeat-char)
+                             repeat-repeat-char)))
 	      (repeat repeat-arg))
 	  ;; Make sure `repeat-undo-count' is reset.
 	  (setq repeat-undo-count nil))

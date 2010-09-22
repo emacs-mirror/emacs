@@ -6,7 +6,7 @@ function res = tcomp (fn)
 	 
   if nargin ~= 1
     print_usage()
-  endif
+  end
 
   data = dlmread(fn, 3, 0);
 
@@ -1412,10 +1412,10 @@ function create_pkgadddel (desc, packdir, nm, global_install)
     for i = 1:length (lst)
       nam = fullfile (packdir, "inst", lst(i).name);
       fwrite (instfid, extract_pkg (nam, ['^[#%][#%]* *' nm ': *(.*)$']));
-    endfor                                   # fixindent
+    endfor
 
     ## Search all C++ source files for PKG commands.
-    lst = dir (fullfile (packdir, "src", "*.cc")); # fixindent
+    lst = dir (fullfile (packdir, "src", "*.cc"));
     for i = 1:length (lst)
       nam = fullfile (packdir, "src", lst(i).name);
       fwrite (archfid, extract_pkg (nam, ['^//* *' nm ': *(.*)$']));
@@ -1451,10 +1451,10 @@ function create_pkgadddel (desc, packdir, nm, global_install)
         unlink (archpkg);
       endif
     endif
-  endif                         # fixindent
-endfunction                     # fixindent
+  endif
+endfunction
 
-function copy_files (desc, packdir, global_install) # fixindent
+function copy_files (desc, packdir, global_install)
   ## Create the installation directory.
   if (! exist (desc.dir, "dir"))
     [status, output] = mkdir (desc.dir);

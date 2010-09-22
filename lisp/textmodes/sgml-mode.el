@@ -293,11 +293,12 @@ Any terminating `>' or `/' is not matched.")
 (defvar sgml-font-lock-keywords sgml-font-lock-keywords-1
   "*Rules for highlighting SGML code.  See also `sgml-tag-face-alist'.")
 
-(defvar sgml-font-lock-syntactic-keywords
+(defconst sgml-syntax-propertize-function
+  (syntax-propertize-rules
   ;; Use the `b' style of comments to avoid interference with the -- ... --
   ;; comments recognized when `sgml-specials' includes ?-.
   ;; FIXME: beware of <!--> blabla <!--> !!
-  '(("\\(<\\)!--" (1 "< b"))
+   ("\\(<\\)!--" (1 "< b"))
     ("--[ \t\n]*\\(>\\)" (1 "> b"))
     ;; Double quotes outside of tags should not introduce strings.
     ;; Be careful to call `syntax-ppss' on a position before the one we're
@@ -477,9 +478,9 @@ Do \\[describe-key] on the following bindings to discover what they do.
        '((sgml-font-lock-keywords
           sgml-font-lock-keywords-1
           sgml-font-lock-keywords-2)
-         nil t nil nil
-         (font-lock-syntactic-keywords
-          . sgml-font-lock-syntactic-keywords)))
+         nil t))
+  (set (make-local-variable 'syntax-propertize-function)
+       sgml-syntax-propertize-function)
   (set (make-local-variable 'facemenu-add-face-function)
        'sgml-mode-facemenu-add-face-function)
   (set (make-local-variable 'sgml-xml-mode) (sgml-xml-guess))

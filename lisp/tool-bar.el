@@ -311,6 +311,23 @@ holds a keymap."
 		       'help
 		       :help "Pop up the Help menu")))
 
+(if (featurep 'move-toolbar)
+    (defcustom tool-bar-position 'top
+      "Specify on which side the tool bar shall be.
+Possible values are `top' (tool bar on top), `bottom' (tool bar at bottom),
+`left' (tool bar on left) and `right' (tool bar on right).
+Customize `tool-bar-mode' if you want to show or hide the tool bar."
+      :type '(choice (const top)
+		     (const bottom)
+		     (const left)
+		     (const right))
+      :group 'frames
+      :initialize 'custom-initialize-default
+      :set (lambda (sym val)
+	     (set-default sym val)
+	     (modify-all-frames-parameters 
+	      (list (cons 'tool-bar-position val))))))
+
 
 (provide 'tool-bar)
 ;; arch-tag: 15f30f0a-d0d7-4d50-bbb7-f48fd0c8582f

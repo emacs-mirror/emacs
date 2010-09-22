@@ -105,9 +105,7 @@
 	 ,disposition ,description ,cache ,id))
 
 (defcustom mm-text-html-renderer
-  (cond ((and (executable-find "w3m")
-	      (executable-find "curl"))
-	 'gnus-article-html)
+  (cond ((executable-find "w3m") 'gnus-article-html)
 	((executable-find "links") 'links)
 	((executable-find "lynx") 'lynx)
 	((locate-library "w3") 'w3)
@@ -116,6 +114,7 @@
   "Render of HTML contents.
 It is one of defined renderer types, or a rendering function.
 The defined renderer types are:
+`gnus-article-html' : use Gnus renderer based on w3m;
 `w3m'  : use emacs-w3m;
 `w3m-standalone': use w3m;
 `links': use links;
@@ -124,8 +123,9 @@ The defined renderer types are:
 `html2text' : use html2text;
 nil    : use external viewer (default web browser)."
   :version "24.1"
-  :type '(choice (const w3)
-		 (const w3m :tag "emacs-w3m")
+  :type '(choice (const gnus-article-html)
+                 (const w3)
+                 (const w3m :tag "emacs-w3m")
 		 (const w3m-standalone :tag "standalone w3m" )
 		 (const links)
 		 (const lynx)

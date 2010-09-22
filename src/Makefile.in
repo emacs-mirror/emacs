@@ -35,6 +35,7 @@ CC = @CC@
 CFLAGS = @CFLAGS@
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
+LD_FIRSTFLAG=@LD_FIRSTFLAG@
 EXEEXT = @EXEEXT@
 version = @version@
 # Substitute an assignment for the MAKE variable, because
@@ -123,8 +124,6 @@ LIBS_SYSTEM=@LIBS_SYSTEM@
 
 ## Where to find libgcc.a, if using gcc and necessary.
 LIB_GCC=@LIB_GCC@
-
-LD=@LINKER@
 
 ## May use $CRT_DIR.
 LIB_STANDARD=@LIB_STANDARD@
@@ -226,6 +225,8 @@ RSVG_CFLAGS= @RSVG_CFLAGS@
 IMAGEMAGICK_LIBS= @IMAGEMAGICK_LIBS@
 IMAGEMAGICK_CFLAGS= @IMAGEMAGICK_CFLAGS@
 
+LIBXML2_LIBS = @LIBXML2_LIBS@
+LIBXML2_CFLAGS = @LIBXML2_CFLAGS@
 
 ## widget.o if USE_X_TOOLKIT, otherwise empty.
 WIDGET_OBJ=@WIDGET_OBJ@
@@ -320,7 +321,8 @@ MKDEPDIR=@MKDEPDIR@
 ## FIXME? MYCPPFLAGS only referenced in etc/DEBUG.
 ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I${srcdir} \
   ${C_SWITCH_MACHINE} ${C_SWITCH_SYSTEM} ${C_SWITCH_X_SITE} \
-  ${C_SWITCH_X_SYSTEM} ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${IMAGEMAGICK_CFLAGS} ${DBUS_CFLAGS} \
+  ${C_SWITCH_X_SYSTEM} ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${IMAGEMAGICK_CFLAGS} \
+  ${LIBXML2_CFLAGS} ${DBUS_CFLAGS} \
   ${GCONF_CFLAGS} ${FREETYPE_CFLAGS} ${FONTCONFIG_CFLAGS} \
   ${LIBOTF_CFLAGS} ${M17N_FLT_CFLAGS} ${DEPFLAGS} ${PROFILING_CFLAGS} \
   ${C_WARNINGS_SWITCH} ${CFLAGS}
@@ -349,7 +351,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	syntax.o $(UNEXEC_OBJ) bytecode.o \
 	process.o callproc.o \
 	region-cache.o sound.o atimer.o \
-	doprnt.o strftime.o intervals.o textprop.o composite.o md5.o \
+	doprnt.o strftime.o intervals.o textprop.o composite.o md5.o xml.o \
 	$(MSDOS_OBJ) $(MSDOS_X_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_OBJ)
 
 ## Object files used on some machine or other.
@@ -595,7 +597,8 @@ SOME_MACHINE_LISP = ../lisp/mouse.elc \
 ## duplicated symbols.  If the standard libraries were compiled
 ## with GCC, we might need LIB_GCC again after them.
 LIBES = $(LIBS) $(LIBX_BASE) $(LIBX_OTHER) $(LIBSOUND) \
-   $(RSVG_LIBS) ${IMAGEMAGICK_LIBS}  $(DBUS_LIBS) $(LIBGPM) $(LIBRESOLV) $(LIBS_SYSTEM) \
+   $(RSVG_LIBS) ${IMAGEMAGICK_LIBS} $(DBUS_LIBS) \
+   ${LIBXML2_LIBS} $(LIBGPM) $(LIBRESOLV) $(LIBS_SYSTEM) \
    $(LIBS_TERMCAP) $(GETLOADAVG_LIBS) ${GCONF_LIBS} ${LIBSELINUX_LIBS} \
    $(FREETYPE_LIBS) $(FONTCONFIG_LIBS) $(LIBOTF_LIBS) $(M17N_FLT_LIBS) \
    $(LIB_GCC) $(LIB_MATH) $(LIB_STANDARD) $(LIB_GCC)
@@ -642,7 +645,7 @@ buildobj.h: Makefile
 
 
 temacs${EXEEXT}: $(START_FILES) stamp-oldxmenu ${obj} ${otherobj}
-	$(LD) ${TEMACS_LDFLAGS} ${TEMACS_LDFLAGS2} \
+	$(CC) $(LD_FIRSTFLAG) ${TEMACS_LDFLAGS} ${TEMACS_LDFLAGS2} \
 	  -o temacs ${START_FILES} ${obj} ${otherobj} ${LIBES}
 
 ## The following oldxmenu-related rules are only (possibly) used if

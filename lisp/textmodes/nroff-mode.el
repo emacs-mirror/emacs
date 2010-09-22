@@ -311,10 +311,16 @@ turns it on if arg is positive, otherwise off."
   "Run man on this file."
   (interactive)
   (require 'man)
-  (let* ((file (buffer-file-name)))
-    (if file
-	(Man-getpage-in-background file)
-      (error "No associated file for the current buffer"))))
+  (let* ((file (buffer-file-name))
+	 (viewbuf (get-buffer (concat "*Man " file "*"))))
+    (unless file
+      (error "Buffer is not associated with any file"))
+    (and (buffer-modified-p)
+	 (y-or-n-p (format "Save buffer %s first? " (buffer-name)))
+	 (save-buffer))
+    (if viewbuf
+	(kill-buffer viewbuf))
+    (Man-getpage-in-background file)))
 
 ;; Old names that were not namespace clean.
 (define-obsolete-function-alias 'count-text-lines 'nroff-count-text-lines "22.1")

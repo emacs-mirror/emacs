@@ -66,9 +66,9 @@ static widget_info*
 all_widget_info = NULL;
 
 #ifdef USE_MOTIF
-char *lwlib_toolkit_type = "motif";
+const char *lwlib_toolkit_type = "motif";
 #else
-char *lwlib_toolkit_type = "lucid";
+const char *lwlib_toolkit_type = "lucid";
 #endif
 
 static widget_value *merge_widget_value (widget_value *,
@@ -80,7 +80,7 @@ static void safe_free_str (char *);
 static void free_widget_value_tree (widget_value *);
 static widget_value *copy_widget_value_tree (widget_value *,
                                              change_type);
-static widget_info *allocate_widget_info (char *, char *, LWLIB_ID,
+static widget_info *allocate_widget_info (const char *, const char *, LWLIB_ID,
                                           widget_value *,
                                           lw_callback, lw_callback,
                                           lw_callback, lw_callback);
@@ -249,8 +249,8 @@ copy_widget_value_tree (widget_value *val, change_type change)
 }
 
 static widget_info *
-allocate_widget_info (char* type,
-                      char* name,
+allocate_widget_info (const char* type,
+                      const char* name,
                       LWLIB_ID id,
                       widget_value* val,
                       lw_callback pre_activate_cb,
@@ -823,8 +823,8 @@ instantiate_widget_instance (widget_instance *instance)
 }
 
 void
-lw_register_widget (char* type,
-                    char* name,
+lw_register_widget (const char* type,
+                    const char* name,
                     LWLIB_ID id,
                     widget_value* val,
                     lw_callback pre_activate_cb,
@@ -867,7 +867,7 @@ lw_make_widget (LWLIB_ID id, Widget parent, Boolean pop_up_p)
 }
 
 Widget
-lw_create_widget (char* type, char* name, LWLIB_ID id, widget_value* val,
+lw_create_widget (const char* type, const char* name, LWLIB_ID id, widget_value* val,
 		  Widget parent, Boolean pop_up_p,
 		  lw_callback pre_activate_cb, lw_callback selection_cb,
 		  lw_callback post_activate_cb, lw_callback highlight_cb)
@@ -1326,7 +1326,7 @@ lw_separator_p (char *label, enum menu_separator *type, int motif_p)
     {
       static struct separator_table
       {
-	char *name;
+	const char *name;
 	enum menu_separator type;
       }
       separator_names[] =
@@ -1371,7 +1371,7 @@ lw_separator_p (char *label, enum menu_separator *type, int motif_p)
       /* Alternative, more Emacs-style names.  */
       static struct separator_table
       {
-	char *name;
+	const char *name;
 	enum menu_separator type;
       }
       separator_names[] =

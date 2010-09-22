@@ -1,3 +1,868 @@
+2010-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-debug--describe-cycle): Fix typo.
+	(smie-indent-comment): Be more careful with comment-start-skip.
+	(smie-indent-comment-close, smie-indent-comment-inside): New funs.
+	(smie-indent-functions): Use them.
+
+2010-09-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/ange-ftp.el (ange-ftp-skip-msgs): Add "^504 ..." message.
+
+2010-09-21  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* menu-bar.el (menu-bar-set-tool-bar-position): customize-set-variable
+	tool-bar-position.  Don't modify frame parameters here.
+	(menu-bar-options-save): Add tool-bar-position.
+
+	* tool-bar.el (tool-bar-position): New defcustom (Bug#7049).
+
+2010-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/reftex-parse.el (reftex-what-macro)
+	(reftex-context-substring): Let-bind forward-sexp-function to nil
+	since we don't need/want to treat \begin...\end as a block (bug#7053).
+
+	* emacs-lisp/lisp.el (up-list): Don't do nothing silently.
+
+	* simple.el (blink-matching-open): Use syntax-class.
+
+	* progmodes/pascal.el (pascal-mode): Use define-derived-mode.
+	Set invisibility spec for pascal's outline mode.
+	(pascal-outline-change): Clean up calling convention.
+	(pascal-show-all, pascal-hide-other-defuns): Update callers.
+
+	* progmodes/prolog.el (prolog-smie-forward-token)
+	(prolog-smie-backward-token): New functions.
+	(prolog-mode-variables): Use them to parse "!," correctly.
+	Set up smie-blink-matching for ".".
+
+	* textmodes/ispell.el (ispell-start, ispell-end): Rename from `start'
+	and `end'.
+	(ispell-region, ispell-process-line): Update users.
+
+	* textmodes/reftex-parse.el (reftex-what-macro): Don't hardcode
+	point-min==1.
+
+	* textmodes/ispell.el: Fix commenting convention.
+	(ispell-parse-output): Simplify, use push.
+	(ispell-region): Use match-string-no-properties.
+	(ispell-begin-skip-region-regexp): Use mapconcat to simplify.
+	(ispell-minor-mode): Use define-minor-mode.
+	(ispell-message): Remove unused var `skip-regexp'.
+	(ispell-add-per-file-word-list): Use dynamic let-binding.
+	Try and use the proper comment marker.
+
+	* mail/sendmail.el: Fix commenting convention.
+	(sendmail-send-it): Use line-beginning-position.
+
+	* help-fns.el (describe-variable): Add original value, if applicable.
+
+2010-09-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (y-or-n-p): Remove leftover code from revno 101459.
+
+	* emacs-lisp/smie.el (smie-indent--hanging-p): Use `smie-indent--bolp'.
+
+2010-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-bnf-precedence-table): Improve error message.
+	(smie-debug--prec2-cycle, smie-debug--describe-cycle): New functions.
+	(smie-prec2-levels): Use them to better diagnose precedence cycles.
+	(smie-blink-matching-check): Don't signal a mismatch if car is t.
+	(smie-blink-matching-open): Rewrite to remove assumptions, so that
+	something like "." can also be a closer.
+	(smie--associative-p, smie-indent--hanging-p, smie-indent--bolp)
+	(smie-indent--offset, smie-indent--offset-rule, smie-indent--column):
+	Rename internal functions to use "--".  Update callers.
+
+	* frame.el (make-frame-names-alist): Don't list frames on other displays.
+
+	* fringe.el (fringe-styles): New var.
+	(fringe-mode, fringe-query-style): Use it.
+
+2010-09-18  Michael R. Mauger  <mmaug@yahoo.com>
+
+	* progmodes/sql.el: Version 2.8
+	(sql-login-params): Update widget structure; changes still needed.
+	(sql-product-alist): Add :list-all and :list-table features for
+	SQLite, Postgres and MySQL products.
+	(sql-redirect): Handle default value.
+	(sql-execute, sql-execute-feature): New functions.
+	(sql-read-table-name): New function.
+	(sql-list-all, sql-list-table): New functions.  User API.
+	(sql-mode-map, sql-interactive-mode-map): Add key definitions
+	for above functions.
+	(sql-mode-menu, sql-interactive-mode-menu): Add menu definitions
+	for above functions.
+	(sql-postgres-login-params): Add user and database defaults.
+	(sql-buffer-live-p): Bug fix.
+	(sql-product-history): New variable.
+	(sql-read-product): New function. Use it.
+	(sql-set-product, sql-product-interactive): Use it.
+	(sql-connection-history): New variable.
+	(sql-read-connection): New function.  Use it.
+	(sql-connect): New function.
+	(sql-for-each-login): Redesign function interface.
+	(sql-make-alternate-buffer-name, sql-save-connection): Use it.
+	(sql-get-login-ext, sql-get-login): Use it.  Handle default values.
+	(sql-comint): Check for program.  Existing live buffer.
+	(sql-comint-postgres): Add port parameter.
+
+2010-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/warnings.el: Fix commenting convention.
+	(display-warning): Use special mode and make the buffer read-only.
+
+2010-09-18  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-prog.el (calc-read-parse-table-part): Don't "fix" the
+	empty string when it follows a repeated or optional pattern.
+
+2010-09-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent.el (indent-according-to-mode): Apply syntax-propertize.
+	(indent-region): Use indent-according-to-mode.
+
+2010-09-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* fringe.el (fringe-mode): Doc fix.
+
+2010-09-14  Kan-Ru Chen  <kanru@kanru.info>  (tiny change)
+
+	* textmodes/nroff-mode.el (nroff-view): Kill old buffer before
+	refreshing the preview buffer.
+
+2010-09-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (tex-syntax-propertize-rules)
+	(latex-syntax-propertize-rules): New consts; replace
+	tex-font-lock-syntactic-keywords.
+	(tex-env-mark, latex-env-before-change): New functions.
+	(latex-electric-env-pair-mode): New minor mode.
+	(tex-font-lock-verb): Change arguments; do move point.
+	(tex-font-lock-syntactic-face-function): Adjust to new verbatim
+	representation as a form of comment.
+	(tex-font-lock-keywords-1): Remove workaround, now unneeded.
+	(doctex-syntax-propertize-rules): New const; replaces
+	doctex-font-lock-syntactic-keywords.
+	(tex-common-initialization, doctex-mode): Use syntax-propertize-rules.
+
+	* progmodes/fortran.el (fortran--font-lock-syntactic-keywords): Remove.
+	(fortran-make-syntax-propertize-function): New function; replaces
+	fortran-font-lock-syntactic-keywords.
+	(fortran-mode): Use it.
+	(fortran-line-length): Use it.  Improve interactive spec.
+
+	* emacs-lisp/syntax.el (syntax-propertize-precompile-rules): New macro.
+	(syntax-propertize-rules): Add var-ref case.  Fix offset computation
+	when adding surrounding \(..\).
+
+	* progmodes/js.el (js-mode): Fix last change (bug#7054).
+
+2010-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* obsolete/old-whitespace.el (whitespace-rescan-files-in-buffers):
+	Use with-current-buffer.
+
+	* isearch.el (isearch-face): Rename from `isearch'.
+	(isearch-highlight): Use new name.
+
+2010-09-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* fringe.el (fringe-mode, fringe-query-style): Use 4 pixels, not
+	5, for `half' width fringes.  (Bug#6933)
+
+2010-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-file-form-defvar)
+	(byte-compile-defvar): "foo/bar" does not lack a prefix.
+
+	* subr.el (y-or-n-p): Add the "(y or n)" that was lost somehow.
+
+2010-09-17  Stephen Berman  <stephen.berman@gmx.net>
+
+	* dframe.el (dframe-reposition-frame-emacs): Use tool-bar-pixel-width
+	in calculating new frame position.  Add more space between new and
+	parent on the left (Bug#7048).
+
+2010-09-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-compat.el (tramp-compat-with-temp-message): Make it a
+	defmacro.
+
+2010-09-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/sendmail.el: Add "*unsent mail*" to same-window-buffer-names.
+
+	* term/x-win.el (x-cut-buffer-or-selection-value): Define as
+	obsolete alias for x-selection-value.
+
+	* ido.el (ido-make-buffer-list): Fix error in 2010-08-22 merge.
+
+2010-09-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-cmds.el (tramp-cleanup-connection): Set tramp-autoload
+	cookie.
+
+2010-09-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-compat.el (tramp-compat-with-temp-message)
+	(tramp-compat-font-lock-add-keywords, tramp-compat-process-get)
+	(tramp-compat-process-put): New defuns.
+
+	* net/tramp.el (top):
+	* net/tramp-gvfs.el (top):
+	* net/tramp-cache.el (top): Use `tramp-compat-font-lock-add-keywords'.
+
+	* net/tramp.el (tramp-progress-reporter-update):
+	Use `tramp-compat-funcall'.
+
+	* net/tramp.el (tramp-process-actions):
+	* net/tramp-gvfs.el (tramp-handle-vc-registered):
+	* net/tramp-sh.el (tramp-gvfs-handler-askquestion)
+	(tramp-get-remote-stat, tramp-get-remote-readlink):
+	Use `tramp-compat-with-temp-message'.
+
+	* net/tramp-sh.el (top): Require 'cl.
+	(tramp-handle-start-file-process): Use `tramp-compat-process-get'.
+	(tramp-open-connection-setup-interactive-shell):
+	Use `tramp-compat-process-put'.
+
+2010-09-15  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-engine.el (c-forward-<>-arglist-recur): Correct the
+	indentation.
+	(c-forward-<>-arglist-recur): Fix an infinite recursion.
+
+2010-09-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-warning-types): New type
+	`lexical' for warnings related to lexical scoping.
+	(byte-compile-file-form-defvar, byte-compile-defvar): Warn about
+	global vars which don't have a prefix and could hence affect lexical
+	scoping in unrelated files.
+
+2010-09-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/imap.el: Revert back to version
+	cb950ed8ff3e0f40dac437a51b269166f9ffb60d, since some of the changes
+	seem problematic.
+
+2010-09-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* obsolete/old-whitespace.el (whitespace-unload-function):
+	Explicitly pass `obarray' to `unintern' to avoid a warning.
+
+2010-09-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/byte-run.el (set-advertised-calling-convention):
+	Add `when' argument.  Update callers.
+
+	* subr.el (unintern): Declare the obarray arg mandatory.
+
+2010-09-14  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-list-entries-hook, diary-sort-entries):
+	Doc fixes.
+
+	* calendar/diary-lib.el (diary-included-files): New variable.
+	(diary-list-entries): Maybe initialize diary-included-files.
+	(diary-include-other-diary-files): Append to diary-included-files.
+	* calendar/appt.el (appt-update-list): Also check the members of
+	diary-included-files.  (Bug#6999)
+	(appt-check): Doc fix.
+
+2010-09-14  David Reitter  <david.reitter@gmail.com>
+
+	* simple.el (line-move-visual): Do not truncate goal column to
+	integer size.  (Bug#7020)
+
+2010-09-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* repeat.el (repeat): Allow repeating when the last event is a click.
+	Suggested by Drew Adams (bug#6256).
+
+2010-09-14  Sascha Wilde  <wilde@sha-bang.de>
+
+	* vc/vc-hg.el (vc-hg-state,vc-hg-working-revision):
+	Replace setting HGRCPATH to "" by some less invasive --config options.
+
+2010-09-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock-beginning-of-syntax-function):
+	Mark as obsolete.
+
+2010-09-14  Glenn Morris  <rgm@gnu.org>
+
+	* menu-bar.el (menu-bar-options-save): Fix handling of menu-bar
+	and tool-bar modes.  (Bug#6211)
+	(menu-bar-mode): Move setting of standard-value after the
+	minor-mode definition, otherwise it seems to have no effect.
+
+2010-09-14  Masatake YAMATO  <yamato@redhat.com>
+
+	* progmodes/antlr-mode.el (antlr-font-lock-additional-keywords):
+	Fix typo.  (Bug#6976)
+
+2010-09-14  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* whitespace.el: Allow cleaning up blanks without blank
+	visualization (Bug#6651).  Adjust help window for
+	whitespace-toggle-options (Bug#6479).  Allow to use fill-column
+	instead of whitespace-line-column (from EmacsWiki).  New version 13.1.
+	(whitespace-style): Add new value 'face.  Adjust docstring.
+	(whitespace-space, whitespace-hspace, whitespace-tab):
+	Adjust foreground property face.
+	(whitespace-line-column): Adjust docstring and type declaration.
+	(whitespace-style-value-list, whitespace-toggle-option-alist)
+	(whitespace-help-text): Adjust const initialization.
+	(whitespace-toggle-options, global-whitespace-toggle-options):
+	Adjust docstring.
+	(whitespace-display-window, whitespace-interactive-char)
+	(whitespace-style-face-p, whitespace-color-on): Adjust code.
+	(whitespace-help-scroll): New fun.
+
+2010-09-14  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* calendar/time-date.el (format-seconds): Comment fix.
+
+2010-09-13  Michael R. Mauger  <mmaug@yahoo.com>
+
+	* progmodes/sql.el: Version 2.7.
+	(sql-buffer-live-p): Improve detection.
+	(sql-find-sqli-buffer, sql-set-sqli-buffer-generally)
+	(sql-set-sqli-buffer): Use it.
+	(sql-product-interactive): Run `sql-set-sqli-hook'.
+	(sql-rename-buffer): Code cleanup.
+	(sql-redirect, sql-redirect-value): New functions.  More to come.
+
+2010-09-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	Port tramp-related Makefile changes of revnos 101381, 101422 to Windows.
+	* makefile.w32-in (LOADDEFS): Add $(lisp)/net/tramp-loaddefs.el.
+	(TRAMP_SRC): New macro.
+	($(lisp)/net/tramp-loaddefs.el): New target.
+
+2010-09-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	Major code cleanup.  Split tramp.el into tramp.el and tramp-sh.el.
+
+	* Makefile.in (TRAMP_SRC): Remove tramp-fish.el.  Add tramp-sh.el.
+
+	* net/tramp.el (top): Don't show loading message.  Require just
+	'tramp-compat, everything else is required there.
+	Use `ignore-errors' where appropriate.
+	(tramp-inline-compress-start-size, tramp-copy-size-limit)
+	(tramp-terminal-type, tramp-end-of-output)
+	(tramp-initial-end-of-output, tramp-completion-function-alist-rsh)
+	(tramp-completion-function-alist-ssh)
+	(tramp-completion-function-alist-telnet)
+	(tramp-completion-function-alist-su)
+	(tramp-completion-function-alist-putty, tramp-remote-path)
+	(tramp-remote-process-environment, tramp-sh-extra-args)
+	(tramp-actions-before-shell, tramp-uudecode)
+	(tramp-perl-file-truename, tramp-perl-file-name-all-completions)
+	(tramp-perl-file-attributes)
+	(tramp-perl-directory-files-and-attributes)
+	(tramp-perl-encode-with-module, tramp-perl-decode-with-module)
+	(tramp-perl-encode, tramp-perl-decode)
+	(tramp-vc-registered-read-file-names, tramp-file-mode-type-map)
+	(tramp-file-name-handler-alist, tramp-make-tramp-temp-file)
+	(tramp-handle-make-symbolic-link, tramp-handle-load)
+	(tramp-handle-file-name-as-directory)
+	(tramp-handle-file-name-directory)
+	(tramp-handle-file-name-nondirectory, tramp-handle-file-truename)
+	(tramp-handle-file-exists-p, tramp-handle-file-attributes)
+	(tramp-do-file-attributes-with-ls)
+	(tramp-do-file-attributes-with-perl)
+	(tramp-do-file-attributes-with-stat)
+	(tramp-handle-set-visited-file-modtime)
+	(tramp-handle-verify-visited-file-modtime)
+	(tramp-handle-set-file-modes, tramp-handle-set-file-times)
+	(tramp-set-file-uid-gid, tramp-remote-selinux-p)
+	(tramp-handle-file-selinux-context)
+	(tramp-handle-set-file-selinux-context)
+	(tramp-handle-file-executable-p, tramp-handle-file-readable-p)
+	(tramp-handle-file-newer-than-file-p, tramp-handle-file-modes)
+	(tramp-handle-file-directory-p, tramp-handle-file-regular-p)
+	(tramp-handle-file-symlink-p, tramp-handle-file-writable-p)
+	(tramp-handle-file-ownership-preserved-p)
+	(tramp-handle-directory-file-name, tramp-handle-directory-files)
+	(tramp-handle-directory-files-and-attributes)
+	(tramp-do-directory-files-and-attributes-with-perl)
+	(tramp-do-directory-files-and-attributes-with-stat)
+	(tramp-handle-file-name-all-completions)
+	(tramp-handle-file-name-completion, tramp-handle-add-name-to-file)
+	(tramp-handle-copy-file, tramp-handle-copy-directory)
+	(tramp-handle-rename-file, tramp-do-copy-or-rename-file)
+	(tramp-do-copy-or-rename-file-via-buffer)
+	(tramp-do-copy-or-rename-file-directly)
+	(tramp-do-copy-or-rename-file-out-of-band)
+	(tramp-handle-make-directory, tramp-handle-delete-directory)
+	(tramp-handle-delete-file)
+	(tramp-handle-dired-recursive-delete-directory)
+	(tramp-handle-dired-compress-file, tramp-handle-dired-uncache)
+	(tramp-handle-insert-directory)
+	(tramp-handle-unhandled-file-name-directory)
+	(tramp-handle-expand-file-name)
+	(tramp-handle-substitute-in-file-name)
+	(tramp-handle-executable-find, tramp-process-sentinel)
+	(tramp-handle-start-file-process, tramp-handle-process-file)
+	(tramp-handle-call-process-region, tramp-handle-shell-command)
+	(tramp-handle-file-local-copy, tramp-handle-file-remote-p)
+	(tramp-handle-insert-file-contents)
+	(tramp-handle-insert-file-contents-literally)
+	(tramp-handle-find-backup-file-name)
+	(tramp-handle-make-auto-save-file-name, tramp-handle-write-region)
+	(tramp-vc-registered-file-names, tramp-handle-vc-registered)
+	(tramp-sh-file-name-handler, tramp-vc-file-name-handler)
+	(tramp-maybe-send-script, tramp-set-auto-save, tramp-run-test)
+	(tramp-run-test2, tramp-find-executable, tramp-set-remote-path)
+	(tramp-find-file-exists-command, tramp-open-shell)
+	(tramp-find-shell, tramp-barf-if-no-shell-prompt)
+	(tramp-open-connection-setup-interactive-shell)
+	(tramp-local-coding-commands, tramp-remote-coding-commands)
+	(tramp-find-inline-encoding, tramp-call-local-coding-command)
+	(tramp-inline-compress-commands, tramp-find-inline-compress)
+	(tramp-compute-multi-hops, tramp-maybe-open-connection)
+	(tramp-send-command , tramp-wait-for-output)
+	(tramp-send-command-and-check, tramp-barf-unless-okay)
+	(tramp-send-command-and-read, tramp-mode-string-to-int)
+	(tramp-convert-file-attributes, tramp-check-cached-permissions)
+	(tramp-file-mode-from-int, tramp-file-mode-permissions)
+	(tramp-shell-case-fold, tramp-make-copy-program-file-name)
+	(tramp-method-out-of-band-p, tramp-local-host-p)
+	(tramp-get-remote-path, tramp-get-remote-tmpdir)
+	(tramp-get-ls-command, tramp-get-ls-command-with-dired)
+	(tramp-get-test-command, tramp-get-test-nt-command)
+	(tramp-get-file-exists-command, tramp-get-remote-ln)
+	(tramp-get-remote-perl, tramp-get-remote-stat)
+	(tramp-get-remote-readlink, tramp-get-remote-trash)
+	(tramp-get-remote-id, tramp-get-remote-uid, tramp-get-remote-gid)
+	(tramp-get-local-uid, tramp-get-local-gid)
+	(tramp-get-inline-compress, tramp-get-inline-coding): Move to
+	tramp-sh.el.
+	(tramp-methods, tramp-default-method-alist)
+	(tramp-default-user-alist, tramp-foreign-file-name-handler-alist):
+	Move initialization to tramp-sh.el.
+	(tramp-temp-name-prefix): Make it a defconst.
+	(tramp-dissect-file-name): Don't check anymore for multi-hop
+	methods.
+	(tramp-debug-outline-regexp): Add a docstring.
+	(tramp-debug-outline-level): Rename from `tramp-outline-level'.
+	(tramp-get-debug-buffer): Use it.
+
+	* net/tramp-cache.el (top): Set tramp-autoload cookie for
+	initialization forms.
+	(tramp-set-connection-property): Don't protect `tramp-message'
+	call, it isn't necessary any longer.
+	(tramp-dump-connection-properties): Use `ignore-errors'.
+
+	* net/tramp-compat.el (top): Require 'advice, 'format-spec,
+	'password-cache and 'auth-source.
+
+	* net/tramp-gvfs.el (top):
+	* net/tramp-smb.el (top): Require 'tramp-sh.
+
+	* net/tramp-gw.el (tramp-gw-open-network-stream): Use `ignore-errors'.
+
+	* net/tramp-sh.el: New file, derived from tramp.el.
+	(top): Initialize `tramp-methods', `tramp-default-method-alist',
+	`tramp-default-user-alist', `tramp-foreign-file-name-handler-alist'.
+	Remove "scp1_old", "scp2_old", "ssh1_old", "ssh2_old".
+	Use `ignore-errors' where appropriate.
+	(tramp-sh-file-name-handler-alist): Rename from
+	`tramp-file-name-handler-alist'.
+	(tramp-send-command-and-check): Return t or nil.  Remove all
+	`zerop' checks, where called.
+	(tramp-handle-set-file-modes)
+	(tramp-do-copy-or-rename-file-directly)
+	(tramp-handle-delete-directory, tramp-handle-delete-file)
+	(tramp-maybe-send-script): Use `tramp-barf-unless-okay'.
+	(tramp-sh-file-name-handler, tramp-send-command-and-check)
+	(tramp-get-remote-ln): Set tramp-autoload cookie.
+
+	* net/tramp-fish.el: Remove file.
+
+2010-09-13  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa-file.el (epa-file-insert-file-contents): If visiting, bind
+	buffer-file-name to avoid file-locking.  (Bug#7026)
+
+2010-09-13  Julien Danjou  <julien@danjou.info>
+
+	* notifications.el (notifications-notify): Add support for
+	image-path and sound-name.
+	(notifications-specification-version): Add this variable.
+
+2010-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (y-or-n-p): New function, moved from src/fns.c; use read-key.
+
+2010-09-12  Leo  <sdl.web@gmail.com>
+
+	* net/rcirc.el (rcirc-server-commands, rcirc-client-commands)
+	(rcirc-completion-start): New variables.
+	(rcirc-nick-completions): Rename to rcirc-completions.
+	(rcirc-nick-completion-start-offset): Delete.
+	(rcirc-completion-at-point): New function for constructing
+	completion data for both nicks and irc commands.  Add to
+	completion-at-point-functions in rcirc mode.
+	(rcirc-complete): Rename from rcirc-nick-complete; use
+	rcirc-completion-at-point.
+	(defun-rcirc-command): Update rcirc-client-commands.
+
+2010-09-11  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-file): Create .elc files
+	atomically, to avoid parallel build errors.  (Bug#4196)
+
+2010-09-11  Michael R. Mauger  <mmaug@yahoo.com>
+
+	* progmodes/sql.el: Version 2.6
+	(sql-dialect): Synonym for "sql-product".
+	(sql-find-sqli-buffer, sql-set-sqli-buffer-generally)
+	(sql-set-sqli-buffer, sql-show-sqli-buffer, sql-interactive-mode):
+	Set "sql-buffer" to buffer name not buffer object so multiple sql
+	interactive buffers work properly.  Reverts misguided changes in
+	earlier work.
+	(sql-comint): Make sure different buffer name is used if "*SQL*"
+	buffer is for a different product.
+	(sql-make-alternate-buffer-name): Fix bug with "sql-database"
+	login param.
+	(sql-oracle, sql-sybase, sql-informix, sql-sqlite, sql-mysql)
+	(sql-solid, sql-ingres, sql-ms, sql-postgres, sql-interbase)
+	(sql-db2, sql-linter, sql-product-interactive, sql-rename-buffer):
+	Accept new buffer name or prompt for one.
+	(sql-port): Default to zero.
+	(sql-comint-mysql): Handle "sql-port" as a numeric.
+	(sql-port-history): Delete unused variable.
+	(sql-get-login): Default "sql-port" to a number.
+	(sql-product-alist): Correct Postgres prompt and terminator regexp.
+	(sql-sqlite-program): Dynamically detect presence of "sqlite" or
+	"sqlite3" executables.
+	(sql-sqlite-login-params): Add "*.sqlite[23]?" database name pattern.
+	(sql-buffer-live-p): New function.
+	(sql-mode-menu, sql-send-string): Use it.
+	(sql-mode-oracle-font-lock-keywords): Improve SQL*Plus REMARK
+	syntax pattern.
+	(sql-mode-postgres-font-lock-keywords): Support Postgres V9.
+	(sql-mode-sqlite-font-lock-keywords): Hilight sqlite commands.
+
+2010-09-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/netrc.el (netrc-credentials): New convenience function.
+
+2010-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/texinfo.el (texinfo-syntax-propertize-function): New fun
+	to replace texinfo-font-lock-syntactic-keywords.
+	(texinfo-mode): Use it.
+
+	* textmodes/tex-mode.el (tex-common-initialization, doctex-mode):
+	Use syntax-propertize-function.
+
+	* textmodes/sgml-mode.el (sgml-syntax-propertize-function): New var to
+	replace sgml-font-lock-syntactic-keywords.
+	(sgml-mode): Use it.
+
+	* textmodes/reftex.el (font-lock-syntactic-keywords): Don't declare
+	since we don't use it.
+
+	* textmodes/bibtex.el (bibtex-mode): Use syntax-propertize-function.
+
+	* progmodes/vhdl-mode.el (vhdl-mode): Use syntax-propertize-function
+	if available.
+	(vhdl-fontify-buffer): Adjust.
+
+	* progmodes/tcl.el (tcl-syntax-propertize-function): New var to
+	replace tcl-font-lock-syntactic-keywords.
+	(tcl-mode): Use it.
+
+	* progmodes/simula.el (simula-syntax-propertize-function): New var to
+	replace simula-font-lock-syntactic-keywords.
+	(simula-mode): Use it.
+
+	* progmodes/sh-script.el (sh-st-symbol): Remove.
+	(sh-font-lock-close-heredoc, sh-font-lock-open-heredoc): Add eol arg.
+	(sh-font-lock-flush-syntax-ppss-cache, sh-font-lock-here-doc): Remove.
+	(sh-font-lock-quoted-subshell): Assume we've already matched $(.
+	(sh-font-lock-paren): Set syntax-multiline.
+	(sh-font-lock-syntactic-keywords): Remove.
+	(sh-syntax-propertize-function): New function to replace it.
+	(sh-mode): Use it.
+
+	* progmodes/ruby-mode.el (ruby-here-doc-beg-re):
+	Define while compiling.
+	(ruby-here-doc-end-re, ruby-here-doc-beg-match)
+	(ruby-font-lock-syntactic-keywords, ruby-comment-beg-syntax)
+	(syntax-ppss, ruby-in-ppss-context-p, ruby-in-here-doc-p)
+	(ruby-here-doc-find-end, ruby-here-doc-beg-syntax)
+	(ruby-here-doc-end-syntax): Only define when
+	syntax-propertize is not available.
+	(ruby-syntax-propertize-function, ruby-syntax-propertize-heredoc):
+	New functions.
+	(ruby-in-ppss-context-p): Update to new syntax of heredocs.
+	(electric-indent-chars): Silence bytecompiler.
+	(ruby-mode): Use prog-mode, syntax-propertize-function, and
+	electric-indent-chars.
+
+	* progmodes/python.el (python-syntax-propertize-function): New var to
+	replace python-font-lock-syntactic-keywords.
+	(python-mode): Use it.
+	(python-quote-syntax): Simplify and adjust to new use.
+
+	* progmodes/perl-mode.el (perl-syntax-propertize-function): New fun to
+	replace perl-font-lock-syntactic-keywords.
+	(perl-syntax-propertize-special-constructs): New fun to replace
+	perl-font-lock-special-syntactic-constructs.
+	(perl-font-lock-syntactic-face-function): New fun.
+	(perl-mode): Use it.
+
+	* progmodes/octave-mod.el (octave-syntax-propertize-sqs): New function
+	to replace octave-font-lock-close-quotes.
+	(octave-syntax-propertize-function): New function to replace
+	octave-font-lock-syntactic-keywords.
+	(octave-mode): Use it.
+
+	* progmodes/mixal-mode.el (mixal-syntax-propertize-function): New var;
+	replaces mixal-font-lock-syntactic-keywords.
+	(mixal-mode): Use it.
+
+	* progmodes/make-mode.el (makefile-syntax-propertize-function):
+	New var; replaces makefile-font-lock-syntactic-keywords.
+	(makefile-mode): Use it.
+	(makefile-imake-mode): Adjust.
+
+	* progmodes/js.el (js--regexp-literal): Define while compiling.
+	(js-syntax-propertize-function): New var; replaces
+	js-font-lock-syntactic-keywords.
+	(js-mode): Use it.
+
+	* progmodes/gud.el (gdb-script-syntax-propertize-function): New var;
+	replaces gdb-script-font-lock-syntactic-keywords.
+	(gdb-script-mode): Use it.
+
+	* progmodes/fortran.el (fortran-mode): Use syntax-propertize-function.
+	(fortran--font-lock-syntactic-keywords): New var.
+	(fortran-line-length): Update syntax-propertize-function and
+	fortran--font-lock-syntactic-keywords.
+
+	* progmodes/cperl-mode.el (cperl-mode): Use syntax-propertize-function.
+
+	* progmodes/cfengine.el (cfengine-mode):
+	Use syntax-propertize-function.
+	(cfengine-font-lock-syntactic-keywords): Remove.
+
+	* progmodes/autoconf.el (autoconf-mode):
+	Use syntax-propertize-function.
+	(autoconf-font-lock-syntactic-keywords): Remove.
+
+	* progmodes/ada-mode.el (ada-set-syntax-table-properties)
+	(ada-after-change-function, ada-initialize-syntax-table-properties)
+	(ada-handle-syntax-table-properties): Only define when
+	syntax-propertize is not available.
+	(ada-mode): Use syntax-propertize-function.
+
+	* font-lock.el (font-lock-syntactic-keywords): Make obsolete.
+	(font-lock-fontify-syntactic-keywords-region): Move handling of
+	font-lock-syntactically-fontified to...
+	(font-lock-default-fontify-region): ...here.
+	Let syntax-propertize-function take precedence.
+	(font-lock-fontify-syntactically-region): Cal syntax-propertize.
+
+	* emacs-lisp/syntax.el (syntax-propertize-function)
+	(syntax-propertize-chunk-size, syntax-propertize--done)
+	(syntax-propertize-extend-region-functions): New vars.
+	(syntax-propertize-wholelines, syntax-propertize-multiline)
+	(syntax-propertize--shift-groups, syntax-propertize-via-font-lock)
+	(syntax-propertize): New functions.
+	(syntax-propertize-rules): New macro.
+	(syntax-ppss-flush-cache): Set syntax-propertize--done.
+	(syntax-ppss): Call syntax-propertize.
+
+	* emacs-lisp/regexp-opt.el (regexp-opt-depth): Skip named groups.
+
+2010-09-10  Agustín Martín  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-init-process): Improve comments.
+	XEmacs compatibility changes regarding (add-hook) 'local option
+	and (set-process-query-on-exit-flag).
+
+2010-09-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-cache.el (tramp-parse-connection-properties):
+	Set tramp-autoload cookie.
+
+2010-09-09  Glenn Morris  <rgm@gnu.org>
+
+	* image.el (imagemagick-types-inhibit): Add :type, :version, :group.
+	(imagemagick-register-types): Doc fix.
+
+2010-09-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/octave-mod.el (electric-indent-chars): Silence bytecomp.
+
+	* progmodes/js.el (require): Require is already "eval-and-compile".
+	(js--re-search-forward): Avoid `eval'.  Preserve the error data.
+	(js--re-search-backward): Use js--re-search-forward.
+
+	* progmodes/fortran.el (fortran-line-length): Don't recompute
+	syntactic keywords redundantly a second time.
+
+	* progmodes/ada-mode.el: Replace "(set '" with setq.
+	(ada-mode): Simplify.
+	(ada-create-case-exception, ada-adjust-case-interactive)
+	(ada-adjust-case-region, ada-format-paramlist, ada-indent-current)
+	(ada-search-ignore-string-comment, ada-move-to-start)
+	(ada-move-to-end): Use with-syntax-table.
+
+	* font-lock.el (save-buffer-state): Remove `varlist' arg.
+	(font-lock-unfontify-region, font-lock-default-fontify-region):
+	Update usage correspondingly.
+	(font-lock-fontify-syntactic-keywords-region):
+	Set parse-sexp-lookup-properties buffer-locally here.
+	(font-lock-fontify-syntactically-region): Remove unused `ppss' arg.
+
+	* simple.el (blink-matching-open): Don't burp if we can't find a match.
+
+2010-09-08  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-report-ops):
+	Error if not compiled with -DBYTE_CODE_METER.
+
+	* emacs-lisp/bytecomp.el (byte-recompile-directory):
+	Ignore dir-locals-file.
+
+2010-09-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Not a const.
+	(compilation-error-regexp-alist-alist): Rule out ": " in file names
+	for the `gnu' messages.
+	(compilation-set-skip-threshold): New command.
+	(compilation-start): Use \' rather than $.
+	(compilation-forget-errors): Use clrhash.
+
+2010-09-08  Agustín Martín  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-valid-dictionary-list):
+	Simplify logic.
+
+2010-09-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	Migrate to Tramp 2.2.  Rearrange load dependencies.
+	(Bug#1529, Bug#5448, Bug#5705)
+
+	* Makefile.in (TRAMP_DIR, TRAMP_SRC): New variables.
+	($(TRAMP_DIR)/tramp-loaddefs.el): New target.
+	(LOADDEFS): Add $(lisp)/net/tramp-loaddefs.el.
+
+	* net/tramp.el (top): Remove all other tramp-* loads except
+	tramp-compat.el.  Remove all changes to tramp-unload-hook for
+	other tramp-* packages.  Rearrange defun order.  Change calls of
+	`tramp-compat-call-process', `tramp-compat-decimal-to-octal',
+	`tramp-compat-octal-to-decimal' to new function names.
+	(tramp-terminal-type, tramp-initial-end-of-output)
+	(tramp-methods, tramp-foreign-file-name-handler-alist)
+	(tramp-tramp-file-p, tramp-completion-mode-p)
+	(tramp-send-command-and-check, tramp-get-remote-path)
+	(tramp-get-remote-tmpdir, tramp-get-remote-ln)
+	(tramp-shell-quote-argument): Set tramp-autoload cookie.
+	(with-file-property, with-connection-property): Move to
+	tramp-cache.el.
+	(tramp-local-call-process, tramp-decimal-to-octal)
+	(tramp-octal-to-decimal): Move to tramp-compat.el.
+	(tramp-handle-shell-command): Do not require 'shell.
+	(tramp-compute-multi-hops): No special handling for tramp-gw-*
+	symbols.
+	(tramp-unload-tramp): Do not call `tramp-unload-file-name-handlers'.
+
+	* net/tramp-cache.el (top): Require 'tramp.  Add to
+	`tramp-unload-hook'.
+	(tramp-cache-data, tramp-get-file-property)
+	(tramp-set-file-property, tramp-flush-file-property)
+	(tramp-flush-directory-property, tramp-get-connection-property)
+	(tramp-set-connection-property, tramp-flush-connection-property)
+	(tramp-cache-print, tramp-list-connections): Set tramp-autoload
+	cookie.
+	(with-file-property, with-connection-property): New defuns, moved
+	from tramp.el.
+	(tramp-flush-file-function): Use `with-parsed-tramp-file-name'
+	macro.
+
+	* net/tramp-cmds.el (top): Add to `tramp-unload-hook'.
+	(tramp-version): Set tramp-autoload cookie.
+
+	* net/tramp-compat.el (top): Require 'tramp-loaddefs.  Remove all
+	changes to tramp-unload-hook for other tramp-* packages.  Add to
+	`tramp-unload-hook'.
+	(tramp-compat-decimal-to-octal, tramp-compat-octal-to-decimal)
+	(tramp-compat-call-process): New defuns, moved from tramp.el.
+
+	* net/tramp-fish.el (top) Require just 'tramp.  Add objects to
+	`tramp-methods' and `tramp-foreign-file-name-handler-alist'.  Add
+	to `tramp-unload-hook'.  Change call of
+	`tramp-compat-decimal-to-octal' to new function name.
+	(tramp-fish-method): Make it a defconst.
+	(tramp-fish-file-name-p): Make it a defsubst.
+	(tramp-fish-method, tramp-fish-file-name-handler)
+	(tramp-fish-file-name-p): Set tramp-autoload cookie.
+
+	* net/tramp-ftp.el (top) Add objects to `tramp-methods' and
+	`tramp-foreign-file-name-handler-alist'.  Add to
+	`tramp-unload-hook'.
+	(tramp-ftp-method): Make it a defconst.
+	(tramp-ftp-file-name-p): Make it a defsubst.
+	(tramp-ftp-method, tramp-ftp-file-name-handler)
+	(tramp-ftp-file-name-p): Set tramp-autoload cookie.
+
+	* net/tramp-gvfs.el (top) Add objects to `tramp-methods' and
+	`tramp-foreign-file-name-handler-alist'.  Add to
+	`tramp-unload-hook'.  Change checks, whether package can be
+	loaded.
+	(tramp-gvfs-file-name-p): Make it a defsubst.
+	(tramp-gvfs-methods, tramp-gvfs-file-name-handler)
+	(tramp-gvfs-file-name-p): Set tramp-autoload cookie.
+	(tramp-gvfs-handle-file-directory-p): New defun.
+	(tramp-gvfs-file-name-handler-alist): Use it.
+
+	* net/tramp-gw.el (top) Add objects to `tramp-methods' and
+	`tramp-foreign-file-name-handler-alist'.  Add to
+	`tramp-unload-hook'.
+	(tramp-gw-tunnel-method, tramp-gw-default-tunnel-port)
+	(tramp-gw-socks-method, tramp-gw-default-socks-port): Make it a
+	defconst.
+	(tramp-gw-tunnel-method, tramp-gw-socks-method)
+	(tramp-gw-open-connection): Set tramp-autoload cookie.
+
+	* net/tramp-imap.el (top) Require just 'tramp.  Add objects to
+	`tramp-methods' and `tramp-foreign-file-name-handler-alist'.  Add
+	to `tramp-unload-hook'.  Change checks, whether package can be
+	loaded.
+	(tramp-imap-file-name-p): Make it a defsubst.
+	(tramp-imap-method, tramp-imaps-method)
+	(tramp-imap-file-name-handler)
+	(tramp-imap-file-name-p): Set tramp-autoload cookie.
+
+	* net/tramp-smb.el (top) Require just 'tramp.  Add objects to
+	`tramp-methods' and `tramp-foreign-file-name-handler-alist'.  Add
+	to `tramp-unload-hook'.  Change checks, whether package can be
+	loaded.  Change call of `tramp-compat-decimal-to-octal' to new
+	function name.
+	(tramp-smb-tunnel-method): Make it a defconst.
+	(tramp-smb-file-name-p): Make it a defsubst.
+	(tramp-smb-method, tramp-smb-file-name-handler)
+	(tramp-smb-file-name-p): Set tramp-autoload cookie.
+
+	* net/tramp-uu.el (top) Add to `tramp-unload-hook'.
+	(tramp-uuencode-region): Set tramp-autoload cookie.
+
+	* net/trampver.el (top) Add to `tramp-unload-hook'.
+	(tramp-version, tramp-bug-report-address): Set tramp-autoload
+	cookie.  Update release number.
+
 2010-09-07  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el (ispell-start-process): Make sure original
@@ -22,7 +887,7 @@
 
 2010-09-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* net/imap.el (imap-message-map): Removed optional buffer parameter,
+	* net/imap.el (imap-message-map): Remove optional buffer parameter,
 	since no callers use it.
 	(imap-message-get): Ditto.
 	(imap-message-put): Ditto.
@@ -33,11 +898,11 @@
 
 2010-09-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* net/imap.el (imap-fetch-safe): Removed function, and altered all
+	* net/imap.el (imap-fetch-safe): Remove function, and alter all
 	callers to use `imap-fetch' instead.  According to the comments, this
 	should be safe, since all other IMAP clients use the 1:* syntax.
-	(imap-enable-exchange-bug-workaround): Removed.
-	(imap-debug): Removed -- doesn't seem very useful.
+	(imap-enable-exchange-bug-workaround): Remove.
+	(imap-debug): Remove -- doesn't seem very useful.
 
 2010-09-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -168,7 +1033,7 @@
 	`default-directory' unless using Ispell per-directory personal
 	dictionaries and not in a mini-buffer under XEmacs.
 	(kill-buffer-hook): Do not kill ispell process on exit when
-	`ispell-process-directory' is "~/". (Bug#6143)
+	`ispell-process-directory' is "~/".  (Bug#6143)
 
 2010-09-02  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -545,8 +1410,8 @@
 	(tramp-gvfs-mount-spec): Return both prefix and mountspec.
 	(tramp-gvfs-maybe-open-connection): Test, whether mountpoint
 	exists.  Raise an error, if not (due to a corresponding answer
-	"no" in interactive questions, for example). Use
-	`tramp-compat-funcall'.
+	"no" in interactive questions, for example).
+	Use `tramp-compat-funcall'.
 
 	* net/tramp-imap.el (top): Autoload `epg-make-context'.
 	(tramp-imap-handle-copy-file): Add PRESERVE-SELINUX-CONTEXT.
@@ -1278,10 +2143,10 @@
 2010-08-08  Stephen Peters  <speters@itasoftware.com>
 
 	* calendar/icalendar.el
-	(icalendar--split-value): Fixed splitting regexp. (Bug#6766)
-	(icalendar--get-weekday-numbers): New
+	(icalendar--split-value): Fix splitting regexp.  (Bug#6766)
+	(icalendar--get-weekday-numbers): New.
 	(icalendar--convert-recurring-to-diary): Handle multiple byday
-	values in weekly rules. (Bug#6766)
+	values in weekly rules.  (Bug#6766)
 
 2010-08-08  Ulf Jasper  <ulf.jasper@web.de>
 
@@ -4915,7 +5780,7 @@
 
 	Enable recentf-mode if using virtual buffers.
 	* ido.el (recentf-list): Declare for byte-compiler.
-	(ido-virtual-buffers): Move up to silence byte-compiler. Add docstring.
+	(ido-virtual-buffers): Move up to silence byte-compiler.  Add docstring.
 	(ido-make-buffer-list): Simplify.
 	(ido-add-virtual-buffers-to-list): Simplify.  Enable recentf-mode.
 

@@ -94,8 +94,11 @@ typedef struct _MEMORY_STATUS_EX {
 
 #include <tlhelp32.h>
 #include <psapi.h>
+#include <w32api.h>
+#if !defined(__MINGW32__) || __W32API_MAJOR_VERSION < 3 || (__W32API_MAJOR_VERSION == 3 && __W32API_MINOR_VERSION < 15)
 /* This either is not in psapi.h or guarded by higher value of
-   _WIN32_WINNT than what we use.  */
+   _WIN32_WINNT than what we use.  w32api suplied with MinGW 3.15
+   defines it in psapi.h  */
 typedef struct _PROCESS_MEMORY_COUNTERS_EX {
 	DWORD cb;
 	DWORD PageFaultCount;
@@ -109,8 +112,9 @@ typedef struct _PROCESS_MEMORY_COUNTERS_EX {
 	DWORD PeakPagefileUsage;
 	DWORD PrivateUsage;
 } PROCESS_MEMORY_COUNTERS_EX,*PPROCESS_MEMORY_COUNTERS_EX;
+#endif
 
-#ifdef HAVE_SOCKETS	/* TCP connection support, if kernel can do it */
+/* TCP connection support.  */
 #include <sys/socket.h>
 #undef socket
 #undef bind
@@ -129,7 +133,6 @@ typedef struct _PROCESS_MEMORY_COUNTERS_EX {
 #undef accept
 #undef recvfrom
 #undef sendto
-#endif
 
 #include "w32.h"
 #include "ndir.h"
@@ -829,17 +832,6 @@ getwd (char *dir)
   return dir;
 #endif
 }
-
-#ifndef HAVE_SOCKETS
-/* Emulate gethostname.  */
-int
-gethostname (char *buffer, int size)
-{
-  /* NT only allows small host names, so the buffer is
-     certainly large enough.  */
-  return !GetComputerName (buffer, &size);
-}
-#endif /* HAVE_SOCKETS */
 
 /* Emulate getloadavg.  */
 
@@ -4348,8 +4340,6 @@ system_process_attributes (Lisp_Object pid)
 }
 
 
-#ifdef HAVE_SOCKETS
-
 /* Wrappers for  winsock functions to map between our file descriptors
    and winsock's handles; also set h_errno for convenience.
 
@@ -4636,13 +4626,7 @@ sys_strerror (int error_no)
    but I believe the method of keeping the socket handle separate (and
    insuring it is not inheritable) is the correct one. */
 
-//#define SOCK_REPLACE_HANDLE
-
-#ifdef SOCK_REPLACE_HANDLE
-#define SOCK_HANDLE(fd) ((SOCKET) _get_osfhandle (fd))
-#else
 #define SOCK_HANDLE(fd) ((SOCKET) fd_info[fd].hnd)
-#endif
 
 int socket_to_fd (SOCKET s);
 
@@ -4686,13 +4670,6 @@ socket_to_fd (SOCKET s)
   fd = _open ("NUL:", _O_RDWR);
   if (fd >= 0)
     {
-#ifdef SOCK_REPLACE_HANDLE
-      /* now replace handle to NUL with our socket handle */
-      CloseHandle ((HANDLE) _get_osfhandle (fd));
-      _free_osfhnd (fd);
-      _set_osfhnd (fd, s);
-      /* setmode (fd, _O_BINARY); */
-#else
       /* Make a non-inheritable copy of the socket handle.  Note
 	 that it is possible that sockets aren't actually kernel
 	 handles, which appears to be the case on Windows 9x when
@@ -4738,7 +4715,6 @@ socket_to_fd (SOCKET s)
 	  }
       }
       fd_info[fd].hnd = (HANDLE) s;
-#endif
 
       /* set our own internal flags */
       fd_info[fd].flags = FILE_SOCKET | FILE_BINARY | FILE_READ | FILE_WRITE;
@@ -5099,8 +5075,6 @@ fcntl (int s, int cmd, int options)
   return SOCKET_ERROR;
 }
 
-#endif /* HAVE_SOCKETS */
-
 
 /* Shadow main io functions: we need to handle pipes and sockets more
    intelligently, and implement non-blocking mode as well. */
@@ -5135,18 +5109,15 @@ sys_close (int fd)
 	    }
 	  if (i == MAXDESC)
 	    {
-#ifdef HAVE_SOCKETS
 	      if (fd_info[fd].flags & FILE_SOCKET)
 		{
-#ifndef SOCK_REPLACE_HANDLE
 		  if (winsock_lib == NULL) abort ();
 
 		  pfn_shutdown (SOCK_HANDLE (fd), 2);
 		  rc = pfn_closesocket (SOCK_HANDLE (fd));
-#endif
+
 		  winsock_inuse--; /* count open sockets */
 		}
-#endif
 	      delete_child (cp);
 	    }
 	}
@@ -5314,7 +5285,6 @@ _sys_read_ahead (int fd)
 	    return STATUS_READ_ERROR;
 	}
     }
-#ifdef HAVE_SOCKETS
   else if (fd_info[fd].flags & FILE_SOCKET)
     {
       unsigned long nblock = 0;
@@ -5330,7 +5300,6 @@ _sys_read_ahead (int fd)
 	  pfn_ioctlsocket (SOCK_HANDLE (fd), FIONBIO, &nblock);
 	}
     }
-#endif
 
   if (rc == sizeof (char))
     cp->status = STATUS_READ_SUCCEEDED;
@@ -5502,7 +5471,6 @@ sys_read (int fd, char * buffer, unsigned int count)
 		  nchars += rc;
 		}
 	    }
-#ifdef HAVE_SOCKETS
 	  else /* FILE_SOCKET */
 	    {
 	      if (winsock_lib == NULL) abort ();
@@ -5529,7 +5497,6 @@ sys_read (int fd, char * buffer, unsigned int count)
 		  nchars += res;
 		}
 	    }
-#endif
 	}
       else
 	{
@@ -5654,9 +5621,7 @@ sys_write (int fd, const void * buffer, unsigned int count)
 	    }
 	}
     }
-  else
-#ifdef HAVE_SOCKETS
-  if (fd < MAXDESC && fd_info[fd].flags & FILE_SOCKET)
+  else if (fd < MAXDESC && fd_info[fd].flags & FILE_SOCKET)
     {
       unsigned long nblock = 0;
       if (winsock_lib == NULL) abort ();
@@ -5684,7 +5649,6 @@ sys_write (int fd, const void * buffer, unsigned int count)
 	}
     }
   else
-#endif
     {
       /* Some networked filesystems don't like too large writes, so
 	 break them into smaller chunks.  See the Comments section of
@@ -5776,10 +5740,8 @@ check_windows_init_file (void)
 void
 term_ntproc (void)
 {
-#ifdef HAVE_SOCKETS
   /* shutdown the socket interface if necessary */
   term_winsock ();
-#endif
 
   term_w32select ();
 }
@@ -5787,7 +5749,6 @@ term_ntproc (void)
 void
 init_ntproc (void)
 {
-#ifdef HAVE_SOCKETS
   /* Initialise the socket interface now if available and requested by
      the user by defining PRELOAD_WINSOCK; otherwise loading will be
      delayed until open-network-stream is called (w32-has-winsock can
@@ -5801,7 +5762,6 @@ init_ntproc (void)
 
   if (getenv ("PRELOAD_WINSOCK") != NULL)
     init_winsock (TRUE);
-#endif
 
   /* Initial preparation for subprocess support: replace our standard
      handles with non-inheritable versions. */

@@ -179,8 +179,7 @@
 (defun gnus-advanced-body (header match type)
   (when (string= header "all")
     (setq header "article"))
-  (save-excursion
-    (set-buffer nntp-server-buffer)
+  (with-current-buffer nntp-server-buffer
     (let* ((request-func (cond ((string= "head" header)
 				'gnus-request-head)
 			       ((string= "body" header)

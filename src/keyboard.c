@@ -8305,7 +8305,7 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
         {
           const char *bad_label = "!!?GARBLED ITEM?!!";
           /* `:label LABEL-STRING'.  */
-          PROP (TOOL_BAR_ITEM_HELP) = STRINGP (value)
+          PROP (TOOL_BAR_ITEM_LABEL) = STRINGP (value)
             ? value
             : make_string (bad_label, strlen (bad_label));
           have_label = 1;

@@ -1,7 +1,8 @@
 ;;; bytecomp.el --- compilation of Lisp code into byte code
 
 ;; Copyright (C) 1985, 1986, 1987, 1992, 1994, 1998, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -264,7 +265,7 @@ If it is 'byte, then only byte-level optimizations will be logged."
 (defconst byte-compile-warning-types
   '(redefine callargs free-vars unresolved
 	     obsolete noruntime cl-functions interactive-only
-	     make-local mapcar constants suspicious)
+	     make-local mapcar constants suspicious lexical)
   "The list of warning types used when `byte-compile-warnings' is t.")
 (defcustom byte-compile-warnings t
   "List of warnings that the byte-compiler should issue (t for all).
@@ -1548,6 +1549,9 @@ that already has a `.elc' file."
 	       (if (and (string-match emacs-lisp-file-regexp bytecomp-source)
 			(file-readable-p bytecomp-source)
 			(not (auto-save-file-name-p bytecomp-source))
+			(not (string-equal dir-locals-file
+					   (file-name-nondirectory
+					    bytecomp-source)))
 			(setq bytecomp-dest
                               (byte-compile-dest-file bytecomp-source))
 			(if (file-exists-p bytecomp-dest)
@@ -1694,17 +1698,25 @@ The value is non-nil if there were no errors, nil if errors."
 	  (insert "\n")			; aaah, unix.
 	    (if (file-writable-p target-file)
 		;; We must disable any code conversion here.
-		(let ((coding-system-for-write 'no-conversion))
+		(let ((coding-system-for-write 'no-conversion)
+		      ;; Write to a tempfile so that if another Emacs
+		      ;; process is trying to load target-file (eg in a
+		      ;; parallel bootstrap), it does not risk getting a
+		      ;; half-finished file.  (Bug#4196)
+		      (tempfile (make-temp-name target-file)))
 		  (if (memq system-type '(ms-dos 'windows-nt))
 		      (setq buffer-file-type t))
-		  (when (file-exists-p target-file)
-		    ;; Remove the target before writing it, so that any
-		    ;; hard-links continue to point to the old file (this makes
-		    ;; it possible for installed files to share disk space with
-		    ;; the build tree, without causing problems when emacs-lisp
-		    ;; files in the build tree are recompiled).
-		    (delete-file target-file))
-		  (write-region (point-min) (point-max) target-file))
+		  (write-region (point-min) (point-max) tempfile nil 1)
+		  ;; This has the intentional side effect that any
+		  ;; hard-links to target-file continue to
+		  ;; point to the old file (this makes it possible
+		  ;; for installed files to share disk space with
+		  ;; the build tree, without causing problems when
+		  ;; emacs-lisp files in the build tree are
+		  ;; recompiled).  Previously this was accomplished by
+		  ;; deleting target-file before writing it.
+		  (rename-file tempfile target-file t)
+		  (message "Wrote %s" target-file))
 	      ;; This is just to give a better error message than write-region
 	      (signal 'file-error
 		      (list "Opening output file"
@@ -2141,6 +2153,11 @@ list that represents a doc string reference.
       ;; Since there is no doc string, we can compile this as a normal form,
       ;; and not do a file-boundary.
       (byte-compile-keep-pending form)
+    (when (and (symbolp (nth 1 form))
+               (not (string-match "[-*/:$]" (symbol-name (nth 1 form))))
+               (byte-compile-warning-enabled-p 'lexical))
+      (byte-compile-warn "Global/dynamic var `%s' lacks a prefix"
+                         (nth 1 form)))
     (push (nth 1 form) byte-compile-bound-variables)
     (if (eq (car form) 'defconst)
 	(push (nth 1 form) byte-compile-const-variables))
@@ -3792,6 +3809,11 @@ that suppresses all warnings during execution of BODY."
 
 (defun byte-compile-defvar (form)
   ;; This is not used for file-level defvar/consts with doc strings.
+  (when (and (symbolp (nth 1 form))
+             (not (string-match "[-*/:$]" (symbol-name (nth 1 form))))
+             (byte-compile-warning-enabled-p 'lexical))
+    (byte-compile-warn "Global/dynamic var `%s' lacks a prefix"
+                       (nth 1 form)))
   (let ((fun (nth 0 form))
 	(var (nth 1 form))
 	(value (nth 2 form))
@@ -4240,6 +4262,8 @@ and corresponding effects."
 
 (defvar byte-code-meter)
 (defun byte-compile-report-ops ()
+  (or (boundp 'byte-metering-on)
+      (error "You must build Emacs with -DBYTE_CODE_METER to use this"))
   (with-output-to-temp-buffer "*Meter*"
     (set-buffer "*Meter*")
     (let ((i 0) n op off)

@@ -239,7 +239,7 @@ Default value, nil, means edit the string instead."
   "Face for highlighting Isearch matches."
   :group 'isearch
   :group 'basic-faces)
-(defvar isearch 'isearch)
+(defvar isearch-face 'isearch)
 
 (defface isearch-fail
   '((((class color) (min-colors 88) (background light))
@@ -2537,7 +2537,7 @@ since they have special meaning in a regexp."
 	(setq isearch-overlay (make-overlay beg end))
 	;; 1001 is higher than lazy's 1000 and ediff's 100+
 	(overlay-put isearch-overlay 'priority 1001)
-	(overlay-put isearch-overlay 'face isearch))))
+	(overlay-put isearch-overlay 'face isearch-face))))
 
 (defun isearch-dehighlight ()
   (when isearch-overlay

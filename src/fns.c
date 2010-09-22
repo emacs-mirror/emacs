@@ -2444,146 +2444,6 @@ SEQUENCE may be a list, a vector, a bool-vector, or a string.  */)
   return sequence;
 }
 
-/* Anything that calls this function must protect from GC!  */
-
-DEFUN ("y-or-n-p", Fy_or_n_p, Sy_or_n_p, 1, 1, 0,
-       doc: /* Ask user a "y or n" question.  Return t if answer is "y".
-Takes one argument, which is the string to display to ask the question.
-It should end in a space; `y-or-n-p' adds `(y or n) ' to it.
-No confirmation of the answer is requested; a single character is enough.
-Also accepts Space to mean yes, or Delete to mean no.  \(Actually, it uses
-the bindings in `query-replace-map'; see the documentation of that variable
-for more information.  In this case, the useful bindings are `act', `skip',
-`recenter', and `quit'.\)
-
-Under a windowing system a dialog box will be used if `last-nonmenu-event'
-is nil and `use-dialog-box' is non-nil.  */)
-  (Lisp_Object prompt)
-{
-  register Lisp_Object obj, key, def, map;
-  register int answer;
-  Lisp_Object xprompt;
-  Lisp_Object args[2];
-  struct gcpro gcpro1, gcpro2;
-  int count = SPECPDL_INDEX ();
-
-  specbind (Qcursor_in_echo_area, Qt);
-
-  map = Fsymbol_value (intern ("query-replace-map"));
-
-  CHECK_STRING (prompt);
-  xprompt = prompt;
-  GCPRO2 (prompt, xprompt);
-
-#ifdef HAVE_WINDOW_SYSTEM
-  if (display_hourglass_p)
-    cancel_hourglass ();
-#endif
-
-  while (1)
-    {
-
-#ifdef HAVE_MENUS
-      if (FRAME_WINDOW_P (SELECTED_FRAME ())
-          && (NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
-	  && use_dialog_box
-	  && have_menus_p ())
-	{
-	  Lisp_Object pane, menu;
-	  redisplay_preserve_echo_area (3);
-	  pane = Fcons (Fcons (build_string ("Yes"), Qt),
-			Fcons (Fcons (build_string ("No"), Qnil),
-			       Qnil));
-	  menu = Fcons (prompt, pane);
-	  obj = Fx_popup_dialog (Qt, menu, Qnil);
-	  answer = !NILP (obj);
-	  break;
-	}
-#endif /* HAVE_MENUS */
-      cursor_in_echo_area = 1;
-      choose_minibuf_frame ();
-
-      {
-	Lisp_Object pargs[3];
-
-	/* Colorize prompt according to `minibuffer-prompt' face.  */
-	pargs[0] = build_string ("%s(y or n) ");
-	pargs[1] = intern ("face");
-	pargs[2] = intern ("minibuffer-prompt");
-	args[0] = Fpropertize (3, pargs);
-	args[1] = xprompt;
-	Fmessage (2, args);
-      }
-
-      if (minibuffer_auto_raise)
-	{
-	  Lisp_Object mini_frame;
-
-	  mini_frame = WINDOW_FRAME (XWINDOW (minibuf_window));
-
-	  Fraise_frame (mini_frame);
-	}
-
-      temporarily_switch_to_single_kboard (SELECTED_FRAME ());
-      obj = read_filtered_event (1, 0, 0, 0, Qnil);
-      cursor_in_echo_area = 0;
-      /* If we need to quit, quit with cursor_in_echo_area = 0.  */
-      QUIT;
-
-      key = Fmake_vector (make_number (1), obj);
-      def = Flookup_key (map, key, Qt);
-
-      if (EQ (def, intern ("skip")))
-	{
-	  answer = 0;
-	  break;
-	}
-      else if (EQ (def, intern ("act")))
-	{
-	  answer = 1;
-	  break;
-	}
-      else if (EQ (def, intern ("recenter")))
-	{
-	  Frecenter (Qnil);
-	  xprompt = prompt;
-	  continue;
-	}
-      else if (EQ (def, intern ("quit")))
-	Vquit_flag = Qt;
-      /* We want to exit this command for exit-prefix,
-	 and this is the only way to do it.  */
-      else if (EQ (def, intern ("exit-prefix")))
-	Vquit_flag = Qt;
-
-      QUIT;
-
-      /* If we don't clear this, then the next call to read_char will
-	 return quit_char again, and we'll enter an infinite loop.  */
-      Vquit_flag = Qnil;
-
-      Fding (Qnil);
-      Fdiscard_input ();
-      if (EQ (xprompt, prompt))
-	{
-	  args[0] = build_string ("Please answer y or n.  ");
-	  args[1] = prompt;
-	  xprompt = Fconcat (2, args);
-	}
-    }
-  UNGCPRO;
-
-  if (! noninteractive)
-    {
-      cursor_in_echo_area = -1;
-      message_with_string (answer ? "%s(y or n) y" : "%s(y or n) n",
-			   xprompt, 0);
-    }
-
-  unbind_to (count, Qnil);
-  return answer ? Qt : Qnil;
-}
-
 /* This is how C code calls `yes-or-no-p' and allows the user
    to redefined it.
 
@@ -5058,7 +4918,6 @@ this variable.  */);
   defsubr (&Smapcar);
   defsubr (&Smapc);
   defsubr (&Smapconcat);
-  defsubr (&Sy_or_n_p);
   defsubr (&Syes_or_no_p);
   defsubr (&Sload_average);
   defsubr (&Sfeaturep);

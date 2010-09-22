@@ -509,7 +509,10 @@ simple manner.")
 		   (gnus-range-length (cdr (assq 'tick gnus-tmp-marked))))))
 	      (t number)) ?s)
     (?R gnus-tmp-number-of-read ?s)
-    (?U (gnus-number-of-unseen-articles-in-group gnus-tmp-group) ?d)
+    (?U (if (gnus-active gnus-tmp-group)
+	    (gnus-number-of-unseen-articles-in-group gnus-tmp-group)
+	  "*")
+	?s)
     (?t gnus-tmp-number-total ?d)
     (?y gnus-tmp-number-of-unread ?s)
     (?I (gnus-range-length (cdr (assq 'dormant gnus-tmp-marked))) ?d)
@@ -675,7 +678,7 @@ simple manner.")
   "R" gnus-group-make-rss-group
   "c" gnus-group-customize
   "z" gnus-group-compact-group
-  "x" gnus-group-nnimap-expunge
+  "x" gnus-group-expunge-group
   "\177" gnus-group-delete-group
   [delete] gnus-group-delete-group)
 
@@ -1273,7 +1276,7 @@ Also see the `gnus-group-use-permanent-levels' variable."
 		   (zerop number))
 	      (zerop (buffer-size)))
       ;; No groups in the buffer.
-      (gnus-message 5 gnus-no-groups-message))
+      (gnus-message 5 "%s" gnus-no-groups-message))
     ;; We have some groups displayed.
     (goto-char (point-max))
     (when (or (not gnus-group-goto-next-group-function)
@@ -3163,21 +3166,17 @@ mail messages or news articles in files that have numeric names."
 		       'summary 'group)))
       (error "Couldn't enter %s" dir))))
 
-(autoload 'nnimap-expunge "nnimap")
-(autoload 'nnimap-acl-get "nnimap")
-(autoload 'nnimap-acl-edit "nnimap")
-
-(defun gnus-group-nnimap-expunge (group)
+(defun gnus-group-expunge-group (group)
   "Expunge deleted articles in current nnimap GROUP."
   (interactive (list (gnus-group-group-name)))
-  (let ((mailbox (gnus-group-real-name group)) method)
-    (unless group
-      (error "No group on current line"))
-    (unless (gnus-get-info group)
-      (error "Killed group; can't be edited"))
-    (unless (eq 'nnimap (car (setq method (gnus-find-method-for-group group))))
-      (error "%s is not an nnimap group" group))
-    (nnimap-expunge mailbox (cadr method))))
+  (let ((method (gnus-find-method-for-group group)))
+    (if (not (gnus-check-backend-function
+	      'request-expunge-group (car method)))
+	(error "%s does not support expunging" (car method))
+      (gnus-request-expunge-group group method))))
+
+(autoload 'nnimap-acl-get "nnimap")
+(autoload 'nnimap-acl-edit "nnimap")
 
 (defun gnus-group-nnimap-edit-acl (group)
   "Edit the Access Control List of current nnimap GROUP."
@@ -4136,7 +4135,7 @@ If given a prefix argument, prompt for a group."
 		   (gnus-gethash mname gnus-description-hashtb))
 	      (setq desc (gnus-group-get-description group))
 	      (gnus-read-descriptions-file method))
-      (gnus-message 1
+      (gnus-message 1 "%s"
 		    (or desc (gnus-gethash group gnus-description-hashtb)
 			"No description available")))))
 
@@ -4297,11 +4296,9 @@ If GROUP, edit that local kill file instead."
   (interactive "P")
   (setq gnus-current-kill-article article)
   (gnus-kill-file-edit-file group)
-  (gnus-message
-   6
-   (substitute-command-keys
-    (format "Editing a %s kill file (Type \\[gnus-kill-file-exit] to exit)"
-	    (if group "local" "global")))))
+  (gnus-message 6 "Editing a %s kill file (Type %s to exit)"
+		(if group "local" "global")
+		(substitute-command-keys "\\[gnus-kill-file-exit]")))
 
 (defun gnus-group-edit-local-kill (article group)
   "Edit a local kill file."
@@ -4392,7 +4389,7 @@ The hook `gnus-exit-gnus-hook' is called before actually exiting."
 (defun gnus-group-describe-briefly ()
   "Give a one line description of the group mode commands."
   (interactive)
-  (gnus-message 7 (substitute-command-keys "\\<gnus-group-mode-map>\\[gnus-group-read-group]:Select  \\[gnus-group-next-unread-group]:Forward  \\[gnus-group-prev-unread-group]:Backward  \\[gnus-group-exit]:Exit  \\[gnus-info-find-node]:Run Info  \\[gnus-group-describe-briefly]:This help")))
+  (gnus-message 7 "%s" (substitute-command-keys "\\<gnus-group-mode-map>\\[gnus-group-read-group]:Select  \\[gnus-group-next-unread-group]:Forward  \\[gnus-group-prev-unread-group]:Backward  \\[gnus-group-exit]:Exit  \\[gnus-info-find-node]:Run Info  \\[gnus-group-describe-briefly]:This help")))
 
 (defun gnus-group-browse-foreign-server (method)
   "Browse a foreign news server.

@@ -2649,6 +2649,28 @@ If FRAME is omitted, the selected frame is used.  */)
 #endif
     return make_number (FRAME_COLS (f));
 }
+
+DEFUN ("tool-bar-pixel-width", Ftool_bar_pixel_width,
+       Stool_bar_pixel_width, 0, 1, 0,
+       doc: /* Return width in pixels of FRAME's tool bar.
+The result is greater than zero only when the tool bar is on the left
+or right side of FRAME.  If FRAME is omitted, the selected frame is
+used.  */)
+  (Lisp_Object frame)
+{
+  struct frame *f;
+
+  if (NILP (frame))
+    frame = selected_frame;
+  CHECK_FRAME (frame);
+  f = XFRAME (frame);
+
+#ifdef FRAME_TOOLBAR_WIDTH
+  if (FRAME_WINDOW_P (f))
+    return make_number (FRAME_TOOLBAR_WIDTH (f));
+#endif
+  return make_number (0);
+}
 
 DEFUN ("set-frame-height", Fset_frame_height, Sset_frame_height, 2, 3, 0,
        doc: /* Specify that the frame FRAME has LINES lines.
@@ -4596,6 +4618,7 @@ automatically.  See also `mouse-autoselect-window'.  */);
   defsubr (&Sframe_char_width);
   defsubr (&Sframe_pixel_height);
   defsubr (&Sframe_pixel_width);
+  defsubr (&Stool_bar_pixel_width);
   defsubr (&Sset_frame_height);
   defsubr (&Sset_frame_width);
   defsubr (&Sset_frame_size);

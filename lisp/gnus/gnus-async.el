@@ -145,8 +145,7 @@ that was fetched."
   (when (and (gnus-buffer-live-p summary)
 	     gnus-asynchronous
 	     (gnus-group-asynchronous-p group))
-    (save-excursion
-      (set-buffer gnus-summary-buffer)
+    (with-current-buffer gnus-summary-buffer
       (let ((next (caadr (gnus-data-find-list article))))
 	(when next
 	  (if (not (fboundp 'run-with-idle-timer))
@@ -205,8 +204,7 @@ that was fetched."
 
 	  (when (and do-fetch article)
 	    ;; We want to fetch some more articles.
-	    (save-excursion
-	      (set-buffer summary)
+	    (with-current-buffer summary
 	      (let (mark)
 		(gnus-async-set-buffer)
 		(goto-char (point-max))
@@ -237,13 +235,13 @@ that was fetched."
     (setq gnus-async-current-prefetch-article nil)
     (when arg
       (gnus-async-set-buffer)
-      (when gnus-async-post-fetch-function
-	(save-excursion
-	  (save-restriction
-	    (narrow-to-region mark (point-max))
-	    ;; Prefetch images for the groups that want that.
-	    (when (fboundp 'gnus-html-prefetch-images)
-	      (gnus-html-prefetch-images summary))
+      (save-excursion
+	(save-restriction
+	  (narrow-to-region mark (point-max))
+	  ;; Prefetch images for the groups that want that.
+	  (when (fboundp 'gnus-html-prefetch-images)
+	    (gnus-html-prefetch-images summary))
+	  (when gnus-async-post-fetch-function
 	    (funcall gnus-async-post-fetch-function summary))))
       (gnus-async-with-semaphore
 	(setq

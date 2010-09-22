@@ -627,7 +627,8 @@
 			(error "Separator not allowed with { ... }?"))
 		   (if (string-match "\\`\"" sep)
 		       (setq sep (read-from-string sep)))
-		   (setq sep (calc-fix-token-name sep))
+                   (if (> (length sep) 0)
+                       (setq sep (calc-fix-token-name sep)))
 		   (setq part (nconc part
 				     (list (list sym p
 						 (and (> (length sep) 0)

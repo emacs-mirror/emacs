@@ -4343,7 +4343,7 @@ into account variable-width characters and line continuation."
     (or (and (= (vertical-motion
 		 (cons (or goal-column
 			   (if (consp temporary-goal-column)
-			       (truncate (car temporary-goal-column))
+			       (car temporary-goal-column)
 			     temporary-goal-column))
 		       arg))
 		arg)
@@ -5525,9 +5525,10 @@ The function should return non-nil if the two tokens do not match.")
                         ;; backward-sexp skips backward over prefix chars,
                         ;; so move back to the matching paren.
                         (while (and (< (point) (1- oldpos))
-                                    (let ((code (car (syntax-after (point)))))
-                                      (or (eq (logand 65536 code) 6)
-                                          (eq (logand 1048576 code) 1048576))))
+                                    (let ((code (syntax-after (point))))
+                                      (or (eq (syntax-class code) 6)
+                                          (eq (logand 1048576 (car code))
+                                              1048576))))
                           (forward-char 1))
                         (point))
                     (error nil))))))
@@ -5541,6 +5542,7 @@ The function should return non-nil if the two tokens do not match.")
           (if (minibufferp)
               (minibuffer-message " [Unmatched parenthesis]")
             (message "Unmatched parenthesis"))))
+       ((not blinkpos) nil)
        ((pos-visible-in-window-p blinkpos)
         ;; Matching open within window, temporarily move to blinkpos but only
         ;; if `blink-matching-paren-on-screen' is non-nil.

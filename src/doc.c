@@ -678,7 +678,7 @@ the same file name is found in the `doc-directory'.  */)
 	}
       pos += end - buf;
       filled -= end - buf;
-      memcpy (buf, end, filled);
+      memmove (buf, end, filled);
     }
   emacs_close (fd);
   return Qnil;

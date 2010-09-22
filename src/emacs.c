@@ -32,10 +32,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 #endif
 
-#ifdef HAVE_SYS_IOCTL_H
-#include <sys/ioctl.h>
-#endif
-
 #ifdef WINDOWSNT
 #include <fcntl.h>
 #include <windows.h> /* just for w32.h */
@@ -1543,6 +1539,10 @@ main (int argc, char **argv)
       syms_of_xselect ();
 #endif
 #endif /* HAVE_X_WINDOWS */
+
+#ifdef HAVE_LIBXML2
+      syms_of_xml ();
+#endif
 
       syms_of_menu ();
 

@@ -9838,6 +9838,9 @@ Customization, emacs-mime, The Emacs MIME Manual}) to convert the
 can use include:
 
 @table @code
+@item gnus-article-html
+Use Gnus rendered based on w3m.
+
 @item w3
 Use Emacs/W3.
 
@@ -18381,7 +18384,7 @@ INBOX.mailbox).
 @cindex expunge
 @cindex manual expunging
 @kindex G x (Group)
-@findex gnus-group-nnimap-expunge
+@findex gnus-group-expunge-group
 
 If you're using the @code{never} setting of @code{nnimap-expunge-on-close},
 you may want the option of expunging all deleted articles in a mailbox
@@ -29672,13 +29675,16 @@ group and article numbers are when fetching articles by
 on successful article retrieval.
 
 
-@item (nnchoke-request-group GROUP &optional SERVER FAST)
+@item (nnchoke-request-group GROUP &optional SERVER FAST INFO)
 
 Get data on @var{group}.  This function also has the side effect of
 making @var{group} the current group.
 
 If @var{fast}, don't bother to return useful data, just make @var{group}
 the current group.
+
+If @var{info}, it allows the backend to update the group info
+structure.
 
 Here's an example of some result data and a definition of the same:
 

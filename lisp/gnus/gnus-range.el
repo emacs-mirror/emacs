@@ -59,6 +59,36 @@ If RANGE is a single range, return (RANGE). Otherwise, return RANGE."
       (setq list2 (cdr list2)))
     list1))
 
+(defun gnus-range-nconcat (&rest ranges)
+  "Return a range comprising all the RANGES, which are pre-sorted.
+RANGES will be destructively altered."
+  (setq ranges (delete nil ranges))
+  (let* ((result (gnus-range-normalize (pop ranges)))
+	 (last (last result)))
+    (dolist (range ranges)
+      (setq range (gnus-range-normalize range))
+      ;; Normalize the single-number case, so that we don't need to
+      ;; special-case that so much.
+      (when (numberp (car last))
+	(setcar last (cons (car last) (car last))))
+      (when (numberp (car range))
+	(setcar range (cons (car range) (car range))))
+      (if (= (1+ (cdar last)) (caar range))
+	  (progn
+	    (setcdr (car last) (cdar range))
+	    (setcdr last (cdr range)))
+	(setcdr last range)
+	;; Denormalize back, since we couldn't join the ranges up.
+	(when (= (caar range) (cdar range))
+	  (setcar range (caar range)))
+	(when (= (caar last) (cdar last))
+	  (setcar last (caar last))))
+      (setq last (last last)))
+    (if (and (consp (car result))
+	     (= (length result) 1))
+	(car result)
+      result)))
+
 (defun gnus-range-difference (range1 range2)
   "Return the range of elements in RANGE1 that do not appear in RANGE2.
 Both ranges must be in ascending order."

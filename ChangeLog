@@ -1,3 +1,25 @@
+2010-09-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (LINKER): Rename to LD_FIRSTFLAG, do not include $(CC).
+
+2010-09-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.bat: Detect that libxml2 is installed and if so, build
+	with it.
+
+2010-09-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* configure.in (HAVE_LIBXML2): Check that the libxml2 we found can
+	be used.  This fixes a conf problem on Mac OS X.
+
+2010-09-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* configure.in: Check for libxml2.
+
+2010-09-09  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: No more TODO files under lisp/.
+
 2010-09-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.bat: Produce lisp/gnus/_dir-locals.el from

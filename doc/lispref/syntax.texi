@@ -292,19 +292,21 @@ identifying them as generic string delimiters.
 @cindex syntax flags
 
   In addition to the classes, entries for characters in a syntax table
-can specify flags.  There are seven possible flags, represented by the
-characters @samp{1}, @samp{2}, @samp{3}, @samp{4}, @samp{b}, @samp{n},
-and @samp{p}.
+can specify flags.  There are eight possible flags, represented by the
+characters @samp{1}, @samp{2}, @samp{3}, @samp{4}, @samp{b}, @samp{c},
+@samp{n}, and @samp{p}.
 
-  All the flags except @samp{n} and @samp{p} are used to describe
-multi-character comment delimiters.  The digit flags indicate that a
-character can @emph{also} be part of a comment sequence, in addition to
-the syntactic properties associated with its character class.  The flags
-are independent of the class and each other for the sake of characters
-such as @samp{*} in C mode, which is a punctuation character, @emph{and}
-the second character of a start-of-comment sequence (@samp{/*}),
-@emph{and} the first character of an end-of-comment sequence
-(@samp{*/}).
+  All the flags except @samp{p} are used to describe comment
+delimiters.  The digit flags are used for comment delimiters made up
+of 2 characters.  They indicate that a character can @emph{also} be
+part of a comment sequence, in addition to the syntactic properties
+associated with its character class.  The flags are independent of the
+class and each other for the sake of characters such as @samp{*} in
+C mode, which is a punctuation character, @emph{and} the second
+character of a start-of-comment sequence (@samp{/*}), @emph{and} the
+first character of an end-of-comment sequence (@samp{*/}).  The flags
+@samp{b}, @samp{c}, and @samp{n} are used to qualify the corresponding
+comment delimiter.
 
   Here is a table of the possible flags for a character @var{c},
 and what they mean:
@@ -325,61 +327,60 @@ sequence.
 @samp{4} means @var{c} is the second character of such a sequence.
 
 @item
-@c Emacs 19 feature
 @samp{b} means that @var{c} as a comment delimiter belongs to the
-alternative ``b'' comment style.
+alternative ``b'' comment style.  For a two-character comment starter,
+this flag is only significant on the second char, and for a 2-character
+comment ender it is only significant on the first char.
 
-Emacs supports two comment styles simultaneously in any one syntax
-table.  This is for the sake of C++.  Each style of comment syntax has
-its own comment-start sequence and its own comment-end sequence.  Each
-comment must stick to one style or the other; thus, if it starts with
-the comment-start sequence of style ``b,'' it must also end with the
-comment-end sequence of style ``b.''
-
-The two comment-start sequences must begin with the same character; only
-the second character may differ.  Mark the second character of the
-``b''-style comment-start sequence with the @samp{b} flag.
-
-A comment-end sequence (one or two characters) applies to the ``b''
-style if its first character has the @samp{b} flag set; otherwise, it
-applies to the ``a'' style.
-
-The appropriate comment syntax settings for C++ are as follows:
-
-@table @asis
-@item @samp{/}
-@samp{124b}
-@item @samp{*}
-@samp{23}
-@item newline
-@samp{>b}
-@end table
-
-This defines four comment-delimiting sequences:
-
-@table @asis
-@item @samp{/*}
-This is a comment-start sequence for ``a'' style because the
-second character, @samp{*}, does not have the @samp{b} flag.
-
-@item @samp{//}
-This is a comment-start sequence for ``b'' style because the second
-character, @samp{/}, does have the @samp{b} flag.
-
-@item @samp{*/}
-This is a comment-end sequence for ``a'' style because the first
-character, @samp{*}, does not have the @samp{b} flag.
-
-@item newline
-This is a comment-end sequence for ``b'' style, because the newline
-character has the @samp{b} flag.
-@end table
+@item
+@samp{c} means that @var{c} as a comment delimiter belongs to the
+alternative ``c'' comment style.  For a two-character comment
+delimiter, @samp{c} on either character makes it of style ``c''.
 
 @item
 @samp{n} on a comment delimiter character specifies
 that this kind of comment can be nested.  For a two-character
 comment delimiter, @samp{n} on either character makes it
 nestable.
+
+Emacs supports several comment styles simultaneously in any one syntax
+table.  A comment style is a set of flags @samp{b}, @samp{c}, and
+@samp{n}, so there can be up to 8 different comment styles.
+Each comment delimiter has a style and only matches comment delimiters
+of the same style.  Thus if a comment starts with the comment-start
+sequence of style ``bn'', it will extend until the next matching
+comment-end sequence of style ``bn''.
+
+The appropriate comment syntax settings for C++ can be as follows:
+
+@table @asis
+@item @samp{/}
+@samp{124}
+@item @samp{*}
+@samp{23b}
+@item newline
+@samp{>}
+@end table
+
+This defines four comment-delimiting sequences:
+
+@table @asis
+@item @samp{/*}
+This is a comment-start sequence for ``b'' style because the
+second character, @samp{*}, has the @samp{b} flag.
+
+@item @samp{//}
+This is a comment-start sequence for ``a'' style because the second
+character, @samp{/}, does not have the @samp{b} flag.
+
+@item @samp{*/}
+This is a comment-end sequence for ``b'' style because the first
+character, @samp{*}, does have the @samp{b} flag.
+
+@item newline
+This is a comment-end sequence for ``a'' style, because the newline
+character does not have the @samp{b} flag.
+@end table
 
 @item
 @c Emacs 19 feature

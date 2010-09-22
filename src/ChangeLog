@@ -1,3 +1,182 @@
+2010-09-22  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (compute_stop_pos): Call composition_compute_stop_pos
+	only if we are not at a composition.
+	(set_iterator_to_next): Give it->end_charpos to
+	composition_compute_stop_pos.
+	(set_iterator_to_next, next_element_from_buffer): Likewise.
+
+	* dispnew.c (buffer_posn_from_coords): Fix position when the
+	current display element is a grapheme cluster in bidi-reordered
+	region.
+
+2010-09-21  Ari Roponen  <ari.roponen@gmail.com>  (tiny change)
+
+	* doc.c (Fsnarf_documentation): Use memmove instead of memcpy as
+	the regions may overlap.
+
+2010-09-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in ($(BLD)/sysdep.$(O)): Update dependencies.
+
+2010-09-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacs.c: Do not include sys/ioctl.h, not needed.
+
+	* doprnt.c: Do not include stdlib.h, config.h does it.
+	Move #include before macro definition.
+
+2010-09-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (temacs): Link using $(CC) not $(LD).
+	(LD_FIRSTFLAG): Define using autoconf.
+	(LD): Remove.
+
+	Remove HAVE_TERMIOS definitions.
+	* s/usg5-4-common.h (HAVE_TERMIOS):
+	* s/template.h (HAVE_TERMIOS):
+	* s/gnu-linux.h (HAVE_TERMIOS):
+	* s/darwin.h (HAVE_TERMIOS):
+	* s/cygwin.h (HAVE_TERMIOS):
+	* s/bsd-common.h (HAVE_TERMIOS):
+	* s/aix4-2.h (HAVE_TERMIOS):
+	* s/hpux10-20.h (HAVE_TERMIOS): Do not define, it is assumed
+	defined on all non-MS platforms.
+	(HAVE_PSTAT_GETDYNAMIC): Do not define, autoconf does it.
+
+	* xterm.c (xt_action_hook): Use const.
+
+2010-09-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	Don't make W32 code conditional on HAVE_SOCKETS, it's always defined.
+	* w32.c: Remove top-level uses of #ifdef HAVE_SOCKETS.
+	(gethostname) [!HAVE_SOCKETS]: Remove.
+	(SOCK_REPLACE_HANDLE): Remove macro.
+	(socket_to_fd, sys_close, _sys_read_ahead, sys_read, sys_write)
+	(term_ntproc, init_ntproc): Don't conditionalize on HAVE_SOCKETS.
+	* w32proc.c: Remove top-level uses of #ifdef HAVE_SOCKETS.
+	(syms_of_ntproc): Don't conditionalize on HAVE_SOCKETS.
+
+2010-09-18  Eli Zaretskii  <eliz@gnu.org>
+
+	* deps.mk (xml.o): Add dependencies.
+
+	* xdisp.c (Fcurrent_bidi_paragraph_direction):
+	Call bidi_paragraph_init with NO_DEFAULT_P non-zero.  (Bug#7038)
+
+	* bidi.c (bidi_paragraph_init): Accept an additional argument
+	NO_DEFAULT_P; all callers changed.  If NO_DEFAULT_P is non-zero,
+	search back until a paragraph with a strong directional character
+	is found, and use that to determine paragraph's base direction.
+
+	* dispextern.h (bidi_paragraph_init): Update prototype.
+
+2010-09-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (_PROCESS_MEMORY_COUNTERS_EX): Don't define with versions
+	of w32api >= 3.15.  (Bug#6989)
+
+2010-09-17  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* process.c (wait_reading_process_output): Don't message about
+	accept-process-output unless the time limit really is zero.
+
+2010-09-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.c (Ftool_bar_pixel_width): YAILOM (Yet another
+	int/Lisp_Object mixup).
+
+2010-09-17  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* keyboard.c (parse_tool_bar_item): For QClabel, set TOOL_BAR_ITEM_LABEL
+	not HELP.
+
+2010-09-17  Stephen Berman  <stephen.berman@gmx.net>
+
+	* frame.c (Ftool_bar_pixel_width): New function to expose tool
+	bar's pixel width to Lisp (Bug#7048).
+
+2010-09-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* cmds.c (syms_of_cmds) <post-self-insert-hook>: Fix typos in docstring.
+
+2010-09-17  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_pack_tool_bar): Call gtk_handle_box_set_handle_position
+	with argument top/left if tool bar is vertical/horizontal (Bug#7051).
+
+2010-09-17  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (ftfont_check_otf): Fix previous change.
+
+2010-09-14  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (ftfont_check_otf): Fix the case of checking just
+	existence of GSUB or GPOS.
+
+2010-09-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* cmds.c (syms_of_cmds) <post-self-insert-hook>: Fix typos in docstring.
+
+2010-09-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* xml.c (parse_buffer): Renamed to parse_string(), since that's
+	what it does.
+	(parse_string): Return nil when the document can't be parsed.
+
+2010-09-14  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (get_current_vm_state): New function.
+	(do_ewmh_fullscreen): Call get_current_vm_state and compare with
+	want_fullscreen so set_wm_state calls are few (Bug#7013).
+	(x_handle_net_wm_state): Move code to get_current_vm_state and
+	call that function.
+
+2010-09-14  Courtney Bane  <emacs-bugs-7626@cbane.org>  (tiny change)
+
+	* term.c (tty_set_terminal_modes): Don't initialize twice (bug#7002).
+
+2010-09-14  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (encode_coding_iso_2022): Don't optimize for ASCII if
+	we may use designation or locking-shift.
+
+2010-09-14  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (detect_coding_emacs_mule): Fix checking of multibyte
+	sequence when the source is multibyte.
+
+2010-09-14  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* xml.c (Fxml_parse_string, Fxml_parse_string): Revert last change.
+	Don't make first argument optional.  Doc fix.
+
+2010-09-14  Leo  <sdl.web@gmail.com>  (tiny change)
+
+	* xml.c (Fxml_parse_string, Fhtml_parse_string): Fix up the
+	parameters for the doc string.
+
+2010-09-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* xml.c (Fhtml_parse_string, Fxml_parse_string): Mention BASE-URL.
+
+2010-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fns.c (Fy_or_n_p): Move to lisp/subr.el.
+	(syms_of_fns): Don't defsubr Sy_or_n_p.
+	* lisp.h: Don't declare Fy_or_n_p.
+	* fileio.c (barf_or_query_if_file_exists): Fy_or_n_p -> y-or-n-p.
+
+2010-09-09  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* xml.c (Fxml_parse_buffer): New function to parse XML files.
+
+2010-09-08  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* xml.c: New file.
+	(Fhtml_parse_buffer): New function to interface to the libxml2
+	html parsing function.
+
 2010-09-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* biditype.h: Regenerate.
@@ -60,8 +239,8 @@
 	characters.
 
 	* term.c (encode_terminal_code): Fix the previous change.
-	(produce_glyphs): Don't set it->char_to_display here.  Don't
-	handle unibyte-display-via-language-environment here.
+	(produce_glyphs): Don't set it->char_to_display here.
+	Don't handle unibyte-display-via-language-environment here.
 	(produce_special_glyphs): Set temp_it.char_to_display before
 	calling produce_glyphs.
 
@@ -80,9 +259,9 @@
 	(produce_stretch_glyph): Set it2.char_to_display too before
 	calling x_produce_glyphs.
 	(x_produce_glyphs): Simplify by using the same code for ASCII and
-	non-ASCII characters.  Don't set it->char_to_display here.  Don't
-	handle unibyte-display-via-language-environment here. For a
-	charater of no glyph, use font->space_width instead of FONT_WIDTH.
+	non-ASCII characters.  Don't set it->char_to_display here.
+	Don't handle unibyte-display-via-language-environment here.  For a
+	character of no glyph, use font->space_width instead of FONT_WIDTH.
 
 2010-08-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -104,7 +283,7 @@
 2010-08-29  Kenichi Handa  <handa@m17n.org>
 
 	* term.c (encode_terminal_code): Encode byte chars to the
-	correspnding bytes.
+	corresponding bytes.
 
 2010-08-29  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -513,7 +692,7 @@
 	* xterm.c (emacs_class): New char[] for EMACS_CLASS.
 	(xim_open_dpy, xim_initialize, xim_close_dpy): Use emacs_class.
 	(x_term_init): Use char[] display_opt and name_opt instead of
-	string literal. file is const char*.
+	string literal.  file is const char*.
 
 	* xsmfns.c (NOSPLASH_OPT): Change to char[].
 	(smc_save_yourself_CB): Do xstrdup on all ->type and ->name for
@@ -525,7 +704,7 @@
 	non-const char.
 
 	* xmenu.c (Fx_popup_dialog): error_name is const char*.
-	(xmenu_show): error parameter is const char **. pane_string is const
+	(xmenu_show): error parameter is const char **.  pane_string is const
 	char *.
 	(button_names): Is const char *.
 	(xdialog_show): error_name and pane_string is const.
@@ -20244,7 +20423,7 @@
 
 	* search.c (search_buffer): Give up BM search on case-fold-search
 	if one of a target character has a case-equivalence of different
-	byte length even if that target charcter is an ASCII.
+	byte length even if that target character is an ASCII.
 	(simple_search): Fix calculation of byte length of matched text.
 	(boyer_moore): Fix handling of case-equivalent multibyte characters.
 

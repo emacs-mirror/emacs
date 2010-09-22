@@ -10392,7 +10392,7 @@
 	* term.c (get_char_info): Use WHAT field of CHAR_INFO.
 	Use tabs as multiples of spaces.
 
-	* dispextern.h (struct char_info ): WHAT field.
+	* dispextern.h (struct char_info): WHAT field.
 
 	* term.c (encode_terminal_code): Don't use GLYPH_CHAR, use
 	FAST_GLYPH_CHAR instead because GLYPH_CHAR won't remove faces.
@@ -10407,8 +10407,7 @@
 
 	* xterm.c (XTget_char_info): Check WANT_ELLIPSIS_P.
 
-	* dispextern.h (struct char_info ): GLYPH_ROW for intermediate
-	glyphs.
+	* dispextern.h (struct char_info): GLYPH_ROW for intermediate glyphs.
 
 	* dispnew.c (init_char_info): Init GLYPH_ROW to NULL.  CHAR_CURSOR
 	moved to xdisp.c.
@@ -10436,7 +10435,7 @@
 
 	* term.c (get_char_info): Set MAX_PIXEL_WIDTH in CHAR_INFO.
 
-	* dispextern.h (struct char_info ): Use LISP_CHAR_TABLE for DP.
+	* dispextern.h (struct char_info): Use LISP_CHAR_TABLE for DP.
 	New member MAX_PIXEL_HEIGHT.
 
 	* xterm.c (x_per_char_metric): Get per character metrics.
@@ -13869,10 +13868,10 @@
 1998-08-31  Kenichi Handa  <handa@etl.go.jp>
 
 	* charset.c (unibyte_char_to_multibyte):
-	Vnonacii_translation_table will convert a 7-bit charcater.
+	Vnonacii_translation_table will convert a 7-bit character.
 	(multibyte_char_to_unibyte): Handle the case that
-	Vnonacii_translation_table converts a multibyte charcater to a
-	unibyte charcter of less than 128.
+	Vnonacii_translation_table converts a multibyte character to a
+	unibyte character of less than 128.
 	(init_charset_once): Initialize nonascii_insert_offset and
 	Vnonacii_translation_table.
 

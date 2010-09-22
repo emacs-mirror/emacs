@@ -1469,21 +1469,9 @@ Decode a string and return the results.
 
 @item rfc2047-encode-parameter
 @findex rfc2047-encode-parameter
-Encode a parameter in the RFC2047-like style.  This is a replacement for
-the @code{rfc2231-encode-string} function.  @xref{rfc2231}.
-
-When attaching files as @acronym{MIME} parts, we should use the RFC2231
-encoding to specify the file names containing non-@acronym{ASCII}
-characters.  However, many mail softwares don't support it in practice
-and recipients won't be able to extract files with correct names.
-Instead, the RFC2047-like encoding is acceptable generally.  This
-function provides the very RFC2047-like encoding, resigning to such a
-regrettable trend.  To use it, put the following line in your
-@file{~/.gnus.el} file:
-
-@lisp
-(defalias 'mail-header-encode-parameter 'rfc2047-encode-parameter)
-@end lisp
+Encode a parameter in the RFC2047-like style.  This is a substitution
+for the @code{rfc2231-encode-string} function, that is the standard but
+many mailers don't support it.  @xref{rfc2231}.
 
 @end table
 

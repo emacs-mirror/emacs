@@ -599,7 +599,6 @@ on the menu bar.
 (defvar font-lock-mode)
 (defvar font-lock-keywords)
 (defvar font-lock-fontify-region-function)
-(defvar font-lock-syntactic-keywords)
 
 ;;; =========================================================================
 ;;;

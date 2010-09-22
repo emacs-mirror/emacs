@@ -733,7 +733,7 @@ and show thread that contains this article."
   ;; Just set the server variables appropriately.
   (nnoo-change-server 'nnir server definitions))
 
-(deffoo nnir-request-group (group &optional server fast)
+(deffoo nnir-request-group (group &optional server fast info)
   "GROUP is the query string."
   (nnir-possibly-change-server server)
   ;; Check for cache and return that if appropriate.
@@ -744,8 +744,7 @@ and show thread that contains this article."
       nnir-artlist
     ;; Cache miss.
     (setq nnir-artlist (nnir-run-query group)))
-  (save-excursion
-    (set-buffer nntp-server-buffer)
+  (with-current-buffer nntp-server-buffer
     (if (zerop (length nnir-artlist))
 	(progn
 	  (setq nnir-current-query nil

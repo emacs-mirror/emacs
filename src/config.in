@@ -813,6 +813,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the SM library (-lSM). */
 #undef HAVE_X_SM
 
+/* Define to 1 if you have the libxml2 library (-lxml2). */
+#undef HAVE_LIBXML2
+
 /* Define to 1 if you want to use the X window system. */
 #undef HAVE_X_WINDOWS
 

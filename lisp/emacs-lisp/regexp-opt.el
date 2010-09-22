@@ -120,7 +120,7 @@ This means the number of non-shy regexp grouping constructs
     (string-match regexp "")
     ;; Count the number of open parentheses in REGEXP.
     (let ((count 0) start last)
-      (while (string-match "\\\\(\\(\\?:\\)?" regexp start)
+      (while (string-match "\\\\(\\(\\?[0-9]*:\\)?" regexp start)
 	(setq start (match-end 0))	      ; Start of next search.
 	(when (and (not (match-beginning 1))
 		   (subregexp-context-p regexp (match-beginning 0) last))

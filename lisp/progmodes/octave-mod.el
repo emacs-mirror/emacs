@@ -179,38 +179,28 @@ parenthetical grouping.")
 	 '(3 font-lock-function-name-face nil t)))
   "Additional Octave expressions to highlight.")
 
-(defvar octave-font-lock-syntactic-keywords
+(defun octave-syntax-propertize-function (start end)
+  (goto-char start)
+  (octave-syntax-propertize-sqs end)
+  (funcall (syntax-propertize-rules
   ;; Try to distinguish the string-quotes from the transpose-quotes.
-  '(("[[({,; ]\\('\\)" (1 "\"'"))
-    (octave-font-lock-close-quotes)))
+            ("[[({,; ]\\('\\)"
+             (1 (prog1 "\"'" (octave-syntax-propertize-sqs end)))))
+           (point) end))
 
-(defun octave-font-lock-close-quotes (limit)
-  "Fix the syntax-table of the closing quotes of single-quote strings."
-  ;; Freely inspired from perl-font-lock-special-syntactic-constructs.
-  (let ((state (syntax-ppss)))
-    (while (< (point) limit)
-      (cond
-       ((eq (nth 3 state) ?\')
+(defun octave-syntax-propertize-sqs (end)
+  "Propertize the content/end of single-quote strings."
+  (when (eq (nth 3 (syntax-ppss)) ?\')
         ;; A '..' string.
-        (save-excursion
-          (when (re-search-forward "\\(?:\\=\\|[^']\\)\\(?:''\\)*\\('\\)[^']"
-                                   nil t)
-            (goto-char (1- (point)))
-            ;; Remove any syntax-table property we may have applied to
-            ;; some of the (doubled) single quotes within the string.
-            ;; Since these are the only chars on which we place properties,
-            ;; we take a shortcut and just remove all properties.
-            (remove-text-properties (1+ (nth 8 state)) (match-beginning 1)
-                                    '(syntax-table nil))
+    (when (re-search-forward
+           "\\(?:\\=\\|[^']\\)\\(?:''\\)*\\('\\)\\($\\|[^']\\)" end 'move)
+      (goto-char (match-beginning 2))
             (when (eq (char-before (match-beginning 1)) ?\\)
               ;; Backslash cannot escape a single quote.
               (put-text-property (1- (match-beginning 1)) (match-beginning 1)
                                  'syntax-table (string-to-syntax ".")))
             (put-text-property (match-beginning 1) (match-end 1)
-                               'syntax-table (string-to-syntax "\"'"))))))
-
-      (setq state (parse-partial-sexp (point) limit nil nil state
-				      'syntax-table)))))
+                         'syntax-table (string-to-syntax "\"'")))))
 
 (defcustom inferior-octave-buffer "*Inferior Octave*"
   "Name of buffer for running an inferior Octave process."
@@ -544,6 +534,8 @@ Non-nil means always go to the next Octave code line after sending."
      0)
     ((:before . "case") octave-block-offset)))
 
+(defvar electric-indent-chars)
+
 ;;;###autoload
 (define-derived-mode octave-mode prog-mode "Octave"
   "Major mode for editing Octave code.
@@ -682,9 +674,10 @@ including a reproducible test case and send the message."
   (set (make-local-variable 'normal-auto-fill-function) 'octave-auto-fill)
 
   (set (make-local-variable 'font-lock-defaults)
-       '(octave-font-lock-keywords nil nil nil nil
-         (font-lock-syntactic-keywords . octave-font-lock-syntactic-keywords)
-         (parse-sexp-lookup-properties . t)))
+       '(octave-font-lock-keywords))
+
+  (set (make-local-variable 'syntax-propertize-function)
+       #'octave-syntax-propertize-function)
 
   (set (make-local-variable 'imenu-generic-expression)
        octave-mode-imenu-generic-expression)

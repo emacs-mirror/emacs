@@ -1163,7 +1163,7 @@
 	(org-agenda-bulk-remove-overlays): Use the normal overlay API.
 
 	* org-freemind.el (org-freemind-from-org-mode-node)
-	(org-freemind-from-org-mode, )
+	(org-freemind-from-org-mode)
 	(org-freemind-from-org-sparse-tree, org-freemind-to-org-mode): Use
 	interactive-p instead of called-interactively, because this is
 	backward compatible with older Emacsen I still support..
@@ -2616,7 +2616,7 @@
 2010-02-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* org-freemind.el (org-freemind-from-org-mode-node)
-	(org-freemind-from-org-mode, )
+	(org-freemind-from-org-mode)
 	(org-freemind-from-org-sparse-tree, org-freemind-to-org-mode):
 	Pass arg to called-interactively-p.
 

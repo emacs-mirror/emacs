@@ -129,7 +129,8 @@ Shorter values mean quicker response, but are more CPU intensive.")
 		       (truncate pop3-read-timeout))
 		    1000))))))
 
-(defun pop3-streaming-movemail (file)
+;;;###autoload
+(defun pop3-movemail (file)
   "Transfer contents of a maildrop to the specified FILE.
 Use streaming commands."
   (let* ((process (pop3-open-server pop3-mailhost pop3-port))
@@ -167,7 +168,7 @@ Use streaming commands."
 	       (truncate (/ (buffer-size) 1000))
 	       (truncate (* (/ (* (buffer-size) 1.0)
 			       total-size) 100))))
-    (nnheader-accept-process-output process)))
+    (pop3-accept-process-output process)))
 
 (defun pop3-write-to-file (file)
   (let ((pop-buffer (current-buffer))
@@ -227,44 +228,6 @@ Use streaming commands."
 	   (pop3-pass process))
 	  (t (error "Invalid POP3 authentication scheme")))))
 
-(defun pop3-movemail (&optional crashbox)
-  "Transfer contents of a maildrop to the specified CRASHBOX."
-  (or crashbox (setq crashbox (expand-file-name "~/.crashbox")))
-  (let* ((process (pop3-open-server pop3-mailhost pop3-port))
-	 (crashbuf (get-buffer-create " *pop3-retr*"))
-	 (n 1)
-	 message-count
-	 message-sizes)
-    (pop3-logon process)
-    (setq message-count (car (pop3-stat process)))
-    (when (> message-count 0)
-      (setq message-sizes (pop3-list process)))
-    (unwind-protect
-	(while (<= n message-count)
-	  (message "Retrieving message %d of %d from %s... (%.1fk)"
-		   n message-count pop3-mailhost
-		   (/ (cdr (assoc n message-sizes))
-		      1024.0))
-	  (pop3-retr process n crashbuf)
-	  (save-excursion
-	    (set-buffer crashbuf)
-	    (let ((coding-system-for-write 'binary))
-	      (write-region (point-min) (point-max) crashbox t 'nomesg))
-	    (set-buffer (process-buffer process))
-	    (erase-buffer))
-          (unless pop3-leave-mail-on-server
-            (pop3-dele process n))
-	  (setq n (+ 1 n))
-	  (pop3-accept-process-output process))
-      (when (and pop3-leave-mail-on-server
-		 (> n 1))
-	(message "pop3.el doesn't support UIDL.  Setting `pop3-leave-mail-on-server'
-to %s might not give the result you'd expect." pop3-leave-mail-on-server)
-	(sit-for 1))
-      (pop3-quit process))
-    (kill-buffer crashbuf))
-  t)
-
 (defun pop3-get-message-count ()
   "Return the number of messages in the maildrop."
   (let* ((process (pop3-open-server pop3-mailhost pop3-port))
@@ -316,9 +279,9 @@ Returns the process associated with the connection."
   (let ((coding-system-for-read 'binary)
 	(coding-system-for-write 'binary)
 	process)
-    (save-excursion
-      (set-buffer (get-buffer-create (concat " trace of POP session to "
-					     mailhost)))
+    (with-current-buffer
+        (get-buffer-create (concat " trace of POP session to "
+                                   mailhost))
       (erase-buffer)
       (setq pop3-read-point (point-min))
       (setq process
@@ -390,8 +353,7 @@ Returns the process associated with the connection."
 Return the response string if optional second argument is non-nil."
   (let ((case-fold-search nil)
 	match-end)
-    (save-excursion
-      (set-buffer (process-buffer process))
+    (with-current-buffer (process-buffer process)
       (goto-char pop3-read-point)
       (while (and (memq (process-status process) '(open run))
 		  (not (search-forward "\r\n" nil t)))
@@ -548,8 +510,7 @@ Otherwise, return the size of the message-id MSG"
     (if msg
 	(string-to-number (nth 2 (split-string response " ")))
       (let ((start pop3-read-point) end)
-	(save-excursion
-	  (set-buffer (process-buffer process))
+	(with-current-buffer (process-buffer process)
 	  (while (not (re-search-forward "^\\.\r\n" nil t))
 	    (pop3-accept-process-output process)
 	    (goto-char start))
@@ -567,8 +528,7 @@ Otherwise, return the size of the message-id MSG"
   (pop3-send-command process (format "RETR %s" msg))
   (pop3-read-response process)
   (let ((start pop3-read-point) end)
-    (save-excursion
-      (set-buffer (process-buffer process))
+    (with-current-buffer (process-buffer process)
       (while (not (re-search-forward "^\\.\r\n" nil t))
 	(pop3-accept-process-output process)
 	(goto-char start))
@@ -584,8 +544,7 @@ Otherwise, return the size of the message-id MSG"
       (setq end (point-marker))
       (pop3-clean-region start end)
       (pop3-munge-message-separator start end)
-      (save-excursion
-	(set-buffer crashbuf)
+      (with-current-buffer crashbuf
 	(erase-buffer))
       (copy-to-buffer crashbuf start end)
       (delete-region start end)
@@ -622,8 +581,7 @@ and close the connection."
   (pop3-send-command process "QUIT")
   (pop3-read-response process t)
   (if process
-      (save-excursion
-	(set-buffer (process-buffer process))
+      (with-current-buffer (process-buffer process)
 	(goto-char (point-max))
 	(delete-process process))))
 
