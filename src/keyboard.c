@@ -1811,8 +1811,9 @@ command_loop_1 (void)
 			 && !NILP (Vtransient_mark_mode)))
 		  && !EQ (Vthis_command, Qhandle_switch_frame))
 		{
-		  int beg = XINT (Fmarker_position (current_buffer->mark));
-		  int end = XINT (make_number (PT));
+		  EMACS_INT beg =
+		    XINT (Fmarker_position (current_buffer->mark));
+		  EMACS_INT end = PT;
 		  if (beg < end)
 		    call2 (Qx_set_selection, QPRIMARY,
 			   make_buffer_string (beg, end, 0));

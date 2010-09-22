@@ -1,3 +1,29 @@
+2010-09-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* minibuf.c (Fminibuffer_contents)
+	(Fminibuffer_contents_no_properties)
+	(Fminibuffer_completion_contents): Use EMACS_INT for minibuffer
+	positions.
+
+	* keyboard.c (command_loop_1): Use EMACS_INT to compare point with
+	mark.
+
+	* alloc.c (make_uninit_string, make_uninit_multibyte_string)
+	(allocate_string_data): Accept EMACS_INT for string length.
+
+	* editfns.c (Ffield_string, Ffield_string_no_properties)
+	(make_buffer_string, make_buffer_string_both, Fbuffer_substring)
+	(Fbuffer_substring_no_properties, find_field, Fdelete_field)
+	(Ffield_string, Ffield_string_no_properties, Ffield_beginning)
+	(Ffield_end): Use EMACS_INT for buffer positions.
+
+	* insdel.c (prepare_to_modify_buffer): Use EMACS_INT to compare
+	point with mark.
+
+	* lisp.h (allocate_string_data, make_uninit_string)
+	(make_uninit_multibyte_string, make_buffer_string)
+	(make_buffer_string_both): Adjust prototypes.
+
 2010-09-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xml.c: Switch to GNU indentation.

@@ -2692,7 +2692,7 @@ extern void memory_warnings (POINTER_TYPE *, void (*warnfun) (const char *));
 
 /* Defined in alloc.c */
 extern void check_pure_size (void);
-extern void allocate_string_data (struct Lisp_String *, int, int);
+extern void allocate_string_data (struct Lisp_String *, EMACS_INT, EMACS_INT);
 extern void reset_malloc_hooks (void);
 extern void uninterrupt_malloc (void);
 extern void malloc_warning (const char *);
@@ -2722,8 +2722,8 @@ extern Lisp_Object make_string (const char *, int);
 extern Lisp_Object make_unibyte_string (const char *, int);
 extern Lisp_Object make_multibyte_string (const char *, int, int);
 extern Lisp_Object make_event_array (int, Lisp_Object *);
-extern Lisp_Object make_uninit_string (int);
-extern Lisp_Object make_uninit_multibyte_string (int, int);
+extern Lisp_Object make_uninit_string (EMACS_INT);
+extern Lisp_Object make_uninit_multibyte_string (EMACS_INT, EMACS_INT);
 extern Lisp_Object make_string_from_bytes (const char *, int, int);
 extern Lisp_Object make_specified_string (const char *, int, int, int);
 EXFUN (Fpurecopy, 1);
@@ -2991,8 +2991,9 @@ EXFUN (Fuser_login_name, 1);
 EXFUN (Fsystem_name, 0);
 EXFUN (Fcurrent_time, 0);
 extern int clip_to_bounds (int, int, int);
-extern Lisp_Object make_buffer_string (int, int, int);
-extern Lisp_Object make_buffer_string_both (int, int, int, int, int);
+extern Lisp_Object make_buffer_string (EMACS_INT, EMACS_INT, int);
+extern Lisp_Object make_buffer_string_both (EMACS_INT, EMACS_INT, EMACS_INT,
+					    EMACS_INT, int);
 extern void init_editfns (void);
 extern void syms_of_editfns (void);
 EXFUN (Fconstrain_to_field, 5);

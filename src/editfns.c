@@ -94,7 +94,8 @@ extern Lisp_Object w32_get_internal_run_time (void);
 #endif
 
 static int tm_diff (struct tm *, struct tm *);
-static void find_field (Lisp_Object, Lisp_Object, Lisp_Object, int *, Lisp_Object, int *);
+static void find_field (Lisp_Object, Lisp_Object, Lisp_Object,
+			EMACS_INT *, Lisp_Object, EMACS_INT *);
 static void update_buffer_properties (int, int);
 static Lisp_Object region_limit (int);
 static size_t emacs_memftimeu (char *, size_t, const char *,
@@ -515,7 +516,9 @@ get_pos_property (Lisp_Object position, register Lisp_Object prop, Lisp_Object o
    is not stored.  */
 
 static void
-find_field (Lisp_Object pos, Lisp_Object merge_at_boundary, Lisp_Object beg_limit, int *beg, Lisp_Object end_limit, int *end)
+find_field (Lisp_Object pos, Lisp_Object merge_at_boundary,
+	    Lisp_Object beg_limit,
+	    EMACS_INT *beg, Lisp_Object end_limit, EMACS_INT *end)
 {
   /* Fields right before and after the point.  */
   Lisp_Object before_field, after_field;
@@ -631,7 +634,7 @@ A field is a region of text with the same `field' property.
 If POS is nil, the value of point is used for POS.  */)
   (Lisp_Object pos)
 {
-  int beg, end;
+  EMACS_INT beg, end;
   find_field (pos, Qnil, Qnil, &beg, Qnil, &end);
   if (beg != end)
     del_range (beg, end);
@@ -644,7 +647,7 @@ A field is a region of text with the same `field' property.
 If POS is nil, the value of point is used for POS.  */)
   (Lisp_Object pos)
 {
-  int beg, end;
+  EMACS_INT beg, end;
   find_field (pos, Qnil, Qnil, &beg, Qnil, &end);
   return make_buffer_string (beg, end, 1);
 }
@@ -655,7 +658,7 @@ A field is a region of text with the same `field' property.
 If POS is nil, the value of point is used for POS.  */)
   (Lisp_Object pos)
 {
-  int beg, end;
+  EMACS_INT beg, end;
   find_field (pos, Qnil, Qnil, &beg, Qnil, &end);
   return make_buffer_string (beg, end, 0);
 }
@@ -670,7 +673,7 @@ If LIMIT is non-nil, it is a buffer position; if the beginning of the field
 is before LIMIT, then LIMIT will be returned instead.  */)
   (Lisp_Object pos, Lisp_Object escape_from_edge, Lisp_Object limit)
 {
-  int beg;
+  EMACS_INT beg;
   find_field (pos, escape_from_edge, limit, &beg, Qnil, 0);
   return make_number (beg);
 }
@@ -685,7 +688,7 @@ If LIMIT is non-nil, it is a buffer position; if the end of the field
 is after LIMIT, then LIMIT will be returned instead.  */)
   (Lisp_Object pos, Lisp_Object escape_from_edge, Lisp_Object limit)
 {
-  int end;
+  EMACS_INT end;
   find_field (pos, escape_from_edge, Qnil, 0, limit, &end);
   return make_number (end);
 }
@@ -2343,10 +2346,10 @@ from adjoining text, if those properties are sticky.  */)
    buffer substrings.  */
 
 Lisp_Object
-make_buffer_string (int start, int end, int props)
+make_buffer_string (EMACS_INT start, EMACS_INT end, int props)
 {
-  int start_byte = CHAR_TO_BYTE (start);
-  int end_byte = CHAR_TO_BYTE (end);
+  EMACS_INT start_byte = CHAR_TO_BYTE (start);
+  EMACS_INT end_byte = CHAR_TO_BYTE (end);
 
   return make_buffer_string_both (start, start_byte, end, end_byte, props);
 }
@@ -2367,7 +2370,8 @@ make_buffer_string (int start, int end, int props)
    buffer substrings.  */
 
 Lisp_Object
-make_buffer_string_both (int start, int start_byte, int end, int end_byte, int props)
+make_buffer_string_both (EMACS_INT start, EMACS_INT start_byte,
+			 EMACS_INT end, EMACS_INT end_byte, int props)
 {
   Lisp_Object result, tem, tem1;
 
@@ -2439,7 +2443,7 @@ into the result string; if you don't want the text properties,
 use `buffer-substring-no-properties' instead.  */)
   (Lisp_Object start, Lisp_Object end)
 {
-  register int b, e;
+  register EMACS_INT b, e;
 
   validate_region (&start, &end);
   b = XINT (start);
@@ -2455,7 +2459,7 @@ The two arguments START and END are character positions;
 they can be in either order.  */)
   (Lisp_Object start, Lisp_Object end)
 {
-  register int b, e;
+  register EMACS_INT b, e;
 
   validate_region (&start, &end);
   b = XINT (start);

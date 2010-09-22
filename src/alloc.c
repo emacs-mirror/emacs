@@ -1908,7 +1908,8 @@ allocate_string (void)
    S->data if it was initially non-null.  */
 
 void
-allocate_string_data (struct Lisp_String *s, int nchars, int nbytes)
+allocate_string_data (struct Lisp_String *s,
+		      EMACS_INT nchars, EMACS_INT nbytes)
 {
   struct sdata *data, *old_data;
   struct sblock *b;
@@ -2412,7 +2413,7 @@ build_string (const char *str)
    occupying LENGTH bytes.  */
 
 Lisp_Object
-make_uninit_string (int length)
+make_uninit_string (EMACS_INT length)
 {
   Lisp_Object val;
 
@@ -2428,7 +2429,7 @@ make_uninit_string (int length)
    which occupy NBYTES bytes.  */
 
 Lisp_Object
-make_uninit_multibyte_string (int nchars, int nbytes)
+make_uninit_multibyte_string (EMACS_INT nchars, EMACS_INT nbytes)
 {
   Lisp_Object string;
   struct Lisp_String *s;

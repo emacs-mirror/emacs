@@ -2057,8 +2057,8 @@ prepare_to_modify_buffer (EMACS_INT start, EMACS_INT end,
 	  : (!NILP (Vselect_active_regions)
 	     && !NILP (Vtransient_mark_mode))))
     {
-      int b = XINT (Fmarker_position (current_buffer->mark));
-      int e = XINT (make_number (PT));
+      EMACS_INT b = XINT (Fmarker_position (current_buffer->mark));
+      EMACS_INT e = PT;
       if (b < e)
 	Vsaved_region_selection = make_buffer_string (b, e, 0);
       else if (b > e)

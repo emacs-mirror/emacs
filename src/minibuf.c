@@ -370,7 +370,7 @@ DEFUN ("minibuffer-contents", Fminibuffer_contents,
 If the current buffer is not a minibuffer, return its entire contents.  */)
   (void)
 {
-  int prompt_end = XINT (Fminibuffer_prompt_end ());
+  EMACS_INT prompt_end = XINT (Fminibuffer_prompt_end ());
   return make_buffer_string (prompt_end, ZV, 1);
 }
 
@@ -380,7 +380,7 @@ DEFUN ("minibuffer-contents-no-properties", Fminibuffer_contents_no_properties,
 If the current buffer is not a minibuffer, return its entire contents.  */)
   (void)
 {
-  int prompt_end = XINT (Fminibuffer_prompt_end ());
+  EMACS_INT prompt_end = XINT (Fminibuffer_prompt_end ());
   return make_buffer_string (prompt_end, ZV, 0);
 }
 
@@ -391,7 +391,7 @@ That is what completion commands operate on.
 If the current buffer is not a minibuffer, return its entire contents.  */)
   (void)
 {
-  int prompt_end = XINT (Fminibuffer_prompt_end ());
+  EMACS_INT prompt_end = XINT (Fminibuffer_prompt_end ());
   if (PT < prompt_end)
     error ("Cannot do completion in the prompt");
   return make_buffer_string (prompt_end, PT, 1);
