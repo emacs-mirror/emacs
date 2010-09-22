@@ -5420,6 +5420,22 @@ buffer_posn_from_coords (struct window *w, int *x, int *y, struct display_pos *p
   if (STRINGP (it.string))
     string = it.string;
   *pos = it.current;
+  if (it.what == IT_COMPOSITION
+      && it.cmp_it.nchars > 1
+      && it.cmp_it.reversed_p)
+    {
+      /* The current display element is a grapheme cluster in a
+	 composition.  In that case, we need the position of the first
+	 character of the cluster.  But, as it.cmp_it.reversed_p is 1,
+	 it.current points to the last character of the cluster, thus
+	 we must move back to the first character of the same
+	 cluster.  */
+      CHARPOS (pos->pos) -= it.cmp_it.nchars - 1;
+      if (STRINGP (it.string))
+	BYTEPOS (pos->pos) = string_char_to_byte (string, CHARPOS (pos->pos));
+      else
+	BYTEPOS (pos->pos) = CHAR_TO_BYTE (CHARPOS (pos->pos));
+    }
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (it.what == IT_IMAGE)
