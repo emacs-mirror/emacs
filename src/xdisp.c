@@ -3177,7 +3177,7 @@ compute_stop_pos (struct it *it)
 {
   register INTERVAL iv, next_iv;
   Lisp_Object object, limit, position;
-  EMACS_INT charpos, bytepos, stoppos;
+  EMACS_INT charpos, bytepos;
 
   /* If nowhere else, stop at the end.  */
   it->stop_charpos = it->end_charpos;
@@ -3267,12 +3267,15 @@ compute_stop_pos (struct it *it)
 	}
     }
 
-  if (it->bidi_p && it->bidi_it.scan_dir < 0)
-    stoppos = -1;
-  else
-    stoppos = it->stop_charpos;
-  composition_compute_stop_pos (&it->cmp_it, charpos, bytepos,
-				stoppos, it->string);
+  if (it->cmp_it.id < 0)
+    {
+      EMACS_INT stoppos = it->end_charpos;
+
+      if (it->bidi_p && it->bidi_it.scan_dir < 0)
+	stoppos = -1;
+      composition_compute_stop_pos (&it->cmp_it, charpos, bytepos,
+				    stoppos, it->string);
+    }
 
   xassert (STRINGP (it->string)
 	   || (it->stop_charpos >= BEGV
@@ -6126,7 +6129,7 @@ set_iterator_to_next (struct it *it, int reseat_p)
 		  it->cmp_it.id = -1;
 		  composition_compute_stop_pos (&it->cmp_it, IT_CHARPOS (*it),
 						IT_BYTEPOS (*it),
-						it->stop_charpos, Qnil);
+						it->end_charpos, Qnil);
 		}
 	    }
 	  else if (! it->cmp_it.reversed_p)
@@ -6149,7 +6152,7 @@ set_iterator_to_next (struct it *it, int reseat_p)
 		{
 		  /* No more grapheme clusters in this composition.
 		     Find the next stop position.  */
-		  EMACS_INT stop = it->stop_charpos;
+		  EMACS_INT stop = it->end_charpos;
 		  if (it->bidi_it.scan_dir < 0)
 		    /* Now we are scanning backward and don't know
 		       where to stop.  */
@@ -6177,7 +6180,7 @@ set_iterator_to_next (struct it *it, int reseat_p)
 		{
 		  /* No more grapheme clusters in this composition.
 		     Find the next stop position.  */
-		  EMACS_INT stop = it->stop_charpos;
+		  EMACS_INT stop = it->end_charpos;
 		  if (it->bidi_it.scan_dir < 0)
 		    /* Now we are scanning backward and don't know
 		       where to stop.  */
@@ -6210,7 +6213,7 @@ set_iterator_to_next (struct it *it, int reseat_p)
 		{
 		  /* As the scan direction was changed, we must
 		     re-compute the stop position for composition.  */
-		  EMACS_INT stop = it->stop_charpos;
+		  EMACS_INT stop = it->end_charpos;
 		  if (it->bidi_it.scan_dir < 0)
 		    stop = -1;
 		  composition_compute_stop_pos (&it->cmp_it, IT_CHARPOS (*it),
@@ -6288,7 +6291,7 @@ set_iterator_to_next (struct it *it, int reseat_p)
 	      composition_compute_stop_pos (&it->cmp_it,
 					    IT_STRING_CHARPOS (*it),
 					    IT_STRING_BYTEPOS (*it),
-					    it->stop_charpos, it->string);
+					    it->end_charpos, it->string);
 	    }
 	}
       else
@@ -6705,7 +6708,7 @@ next_element_from_buffer (struct it *it)
       IT_BYTEPOS (*it) = it->bidi_it.bytepos;
       SET_TEXT_POS (it->position, IT_CHARPOS (*it), IT_BYTEPOS (*it));
       {
-	EMACS_INT stop = it->stop_charpos;
+	EMACS_INT stop = it->end_charpos;
 	if (it->bidi_it.scan_dir < 0)
 	  stop = -1;
 	composition_compute_stop_pos (&it->cmp_it, IT_CHARPOS (*it),
