@@ -1273,7 +1273,7 @@ Letters do not insert themselves; instead, they are commands.
   (setq mode-name "Package Menu")
   (setq truncate-lines t)
   (setq buffer-read-only t)
-  (setq revert-buffer-function 'package-menu-revert)
+  (set (make-local-variable 'revert-buffer-function) 'package-menu-revert)
   (setq header-line-format
 	(mapconcat
 	 (lambda (pair)
