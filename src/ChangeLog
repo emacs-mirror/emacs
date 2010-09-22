@@ -1,3 +1,10 @@
+2010-09-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xml.c: Switch to GNU indentation.
+	(make_dom): Change parse tree format to match xml.el.
+	(Fxml_parse_html_string_internal): Rename from html-parse-string.
+	(Fxml_parse_string_internal): Rename from xml-parse-string.
+
 2010-09-22  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (compute_stop_pos): Call composition_compute_stop_pos

@@ -1,3 +1,7 @@
+2010-09-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure.in: Announce whether libxml2 is linked to.
+
 2010-09-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in (LINKER): Rename to LD_FIRSTFLAG, do not include $(CC).
