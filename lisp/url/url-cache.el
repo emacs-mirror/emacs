@@ -198,12 +198,12 @@ If `url-standalone-mode' is non-nil, cached items never expire."
   (if url-standalone-mode
       (not (file-exists-p (url-cache-create-filename url)))
     (let ((cache-time (url-is-cached url)))
-      (and cache-time
-	   (time-less-p
-	    (time-add
-	     cache-time
-	     (seconds-to-time (or expire-time url-cache-expire-time)))
-	    (current-time))))))
+      (or (not cache-time)
+	  (time-less-p
+	   (time-add
+	    cache-time
+	    (seconds-to-time (or expire-time url-cache-expire-time)))
+	   (current-time))))))
 
 (provide 'url-cache)
 
