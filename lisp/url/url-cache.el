@@ -32,6 +32,12 @@
   :type 'directory
   :group 'url-file)
 
+(defcustom url-cache-expire-time 3600
+  "Maximum time in seconds to keep the documents cached."
+  :version "24.1"
+  :type 'integer
+  :group 'url-cache)
+
 ;; Cache manager
 (defun url-cache-file-writable-p (file)
   "Follows the documentation of `file-writable-p', unlike `file-writable-p'."
@@ -186,21 +192,19 @@ Very fast if you have an `md5' primitive function, suitably fast otherwise."
   (insert-file-contents-literally fnam))
 
 ;;;###autoload
-(defun url-cache-expired (url mod)
-  "Return t if a cached file has expired."
-  (let* ((urlobj (if (vectorp url) url (url-generic-parse-url url)))
-	 (type (url-type urlobj)))
-    (cond
-     (url-standalone-mode
-      (not (file-exists-p (url-cache-create-filename url))))
-     ((string= type "http")
-      t)
-     ((member type '("file" "ftp"))
-      (if (or (equal mod '(0 0)) (not mod))
-	  t
-	(or (> (nth 0 mod) (nth 0 (current-time)))
-	    (> (nth 1 mod) (nth 1 (current-time))))))
-     (t nil))))
+(defun url-cache-expired (url &optional expire-time)
+  "Return t if a cached URL is more than EXPIRE-TIME old.
+If EXPIRE-TIME is not set, `url-cache-expire-time' is used instead."
+  (cond (url-standalone-mode
+	 (not (file-exists-p (url-cache-create-filename url))))
+	(t (let ((cache-time (url-is-cached url)))
+	     (if cache-time
+		 (time-less-p
+		  (time-add
+		   (url-is-cached url)
+		   (seconds-to-time (or expire-time url-cache-expire-time)))
+		  (current-time))
+	       t)))))
 
 (provide 'url-cache)
 
