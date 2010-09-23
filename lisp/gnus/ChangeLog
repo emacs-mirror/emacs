@@ -1,5 +1,8 @@
 2010-09-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* nnimap.el (nnimap-update-info): Sync non-standard flags from the
+	server in symbolic form.
+
 	* gnus-html.el (gnus-max-image-proportion): Increase proportion to
 	0.9.
 

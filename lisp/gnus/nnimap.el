@@ -825,6 +825,7 @@ not done by default on servers that doesn't support that command.")
 		  (new-marks
 		   (gnus-compress-sequence
 		    (cdr (or (assoc (caddr type) flags)	    ; %Flagged
+			     (assoc (intern (cadr type) obarray) flags)
 			     (assoc (cadr type) flags)))))) ; "\Flagged"
 	      (setq marks (delq old-marks marks))
 	      (pop old-marks)
