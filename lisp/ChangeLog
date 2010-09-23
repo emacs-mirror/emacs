@@ -1,5 +1,10 @@
 2010-09-23  Glenn Morris  <rgm@gnu.org>
 
+	* vc/add-log.el: Don't require timezone when compiling.
+	(timezone-make-date-sortable): Autoload it.
+	(change-log-sortable-date-at): Don't require timezone.
+	Use `ignore-errors'.
+
 	* comint.el (comint-use-prompt-regexp-instead-of-fields):
 	Move alias before definition, so it does not need autoloading.
 
