@@ -2318,7 +2318,10 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\)\\'" . archive-mode)
      ;; .xs is also used for ld scripts, but seems to be more commonly
      ;; associated with Perl .xs files (C with Perl bindings).  (Bug#7071)
      ("\\.xs\\'" . c-mode)
-     ("\\.x[bdsru]?[cn]?\\'" . ld-script-mode)
+     ;; Explained in binutils ld/genscripts.sh.  Eg:
+     ;; A .x script file is the default script.
+     ;; A .xr script is for linking without relocation (-r flag).  Etc.
+     ("\\.x[abdsru]?[cnw]?\\'" . ld-script-mode)
      ;; Common Lisp ASDF package system.
      ("\\.asd\\'" . lisp-mode)
      ("\\.\\(asn\\|mib\\|smi\\)\\'" . snmp-mode)
