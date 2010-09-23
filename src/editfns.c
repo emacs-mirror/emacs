@@ -272,7 +272,7 @@ DEFUN ("point-marker", Fpoint_marker, Spoint_marker, 0, 0, 0,
   return buildmark (PT, PT_BYTE);
 }
 
-int
+EMACS_INT
 clip_to_bounds (EMACS_INT lower, EMACS_INT num, EMACS_INT upper)
 {
   if (num < lower)

@@ -1926,7 +1926,7 @@ set_point (EMACS_INT charpos)
    Note that `stickiness' is determined by overlay marker insertion types,
    if the invisible property comes from an overlay.  */
 
-static int
+static EMACS_INT
 adjust_for_invis_intang (EMACS_INT pos, EMACS_INT test_offs, EMACS_INT adj,
 			 int test_intang)
 {

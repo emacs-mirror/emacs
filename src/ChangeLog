@@ -1,3 +1,11 @@
+2010-09-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* editfns.c (clip_to_bounds): Return an EMACS_INT value.
+
+	* lisp.h (clip_to_bounds): Adjust prototype.
+
+	* intervals.c (adjust_for_invis_intang): Return EMACS_INT value.
+
 2010-09-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* lisp.h: Change the definition of all marker.c functions that
