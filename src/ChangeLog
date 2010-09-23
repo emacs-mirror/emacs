@@ -1,5 +1,16 @@
 2010-09-23  Eli Zaretskii  <eliz@gnu.org>
 
+	* editfns.c (transpose_markers, update_buffer_properties)
+	(buildmark, clip_to_bounds, Fgoto_char, overlays_around)
+	(get_pos_property, Fconstrain_to_field)
+	(Fline_beginning_position, Fline_end_position, Fprevious_char)
+	(Fchar_after, Fchar_before, Finsert_char)
+	(Finsert_buffer_substring, Fcompare_buffer_substrings)
+	(Fsubst_char_in_region, Fformat, Ftranspose_regions): Use
+	EMACS_INT for buffer and string position variables.
+
+	* lisp.h (clip_to_bounds): Adjust prototype.
+
 	* intervals.c (traverse_intervals, rotate_right, rotate_left)
 	(balance_an_interval, split_interval_right, split_interval_left)
 	(find_interval, next_interval, update_interval)

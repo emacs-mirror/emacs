@@ -2991,7 +2991,7 @@ EXFUN (Fwiden, 0);
 EXFUN (Fuser_login_name, 1);
 EXFUN (Fsystem_name, 0);
 EXFUN (Fcurrent_time, 0);
-extern int clip_to_bounds (int, int, int);
+extern int clip_to_bounds (EMACS_INT, EMACS_INT, EMACS_INT);
 extern Lisp_Object make_buffer_string (EMACS_INT, EMACS_INT, int);
 extern Lisp_Object make_buffer_string_both (EMACS_INT, EMACS_INT, EMACS_INT,
 					    EMACS_INT, int);

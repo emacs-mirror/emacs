@@ -96,7 +96,7 @@ extern Lisp_Object w32_get_internal_run_time (void);
 static int tm_diff (struct tm *, struct tm *);
 static void find_field (Lisp_Object, Lisp_Object, Lisp_Object,
 			EMACS_INT *, Lisp_Object, EMACS_INT *);
-static void update_buffer_properties (int, int);
+static void update_buffer_properties (EMACS_INT, EMACS_INT);
 static Lisp_Object region_limit (int);
 static size_t emacs_memftimeu (char *, size_t, const char *,
                                size_t, const struct tm *, int);
@@ -107,7 +107,8 @@ static void general_insert_function (void (*) (const unsigned char *, EMACS_INT)
 				     int, int, Lisp_Object *);
 static Lisp_Object subst_char_in_region_unwind (Lisp_Object);
 static Lisp_Object subst_char_in_region_unwind_1 (Lisp_Object);
-static void transpose_markers (int, int, int, int, int, int, int, int);
+static void transpose_markers (EMACS_INT, EMACS_INT, EMACS_INT, EMACS_INT,
+			       EMACS_INT, EMACS_INT, EMACS_INT, EMACS_INT);
 
 Lisp_Object Vbuffer_access_fontify_functions;
 Lisp_Object Qbuffer_access_fontify_functions;
@@ -246,7 +247,7 @@ A multibyte character is handled correctly.  */)
 }
 
 static Lisp_Object
-buildmark (int charpos, int bytepos)
+buildmark (EMACS_INT charpos, EMACS_INT bytepos)
 {
   register Lisp_Object mark;
   mark = Fmake_marker ();
@@ -272,7 +273,7 @@ DEFUN ("point-marker", Fpoint_marker, Spoint_marker, 0, 0, 0,
 }
 
 int
-clip_to_bounds (int lower, int num, int upper)
+clip_to_bounds (EMACS_INT lower, EMACS_INT num, EMACS_INT upper)
 {
   if (num < lower)
     return lower;
@@ -289,7 +290,7 @@ Beginning of buffer is position (point-min), end is (point-max).
 The return value is POSITION.  */)
   (register Lisp_Object position)
 {
-  int pos;
+  EMACS_INT pos;
 
   if (MARKERP (position)
       && current_buffer == XMARKER (position)->buffer)
@@ -365,11 +366,11 @@ If you set the marker not to point anywhere, the buffer will have no mark.  */)
    of length LEN.  */
 
 static int
-overlays_around (int pos, Lisp_Object *vec, int len)
+overlays_around (EMACS_INT pos, Lisp_Object *vec, int len)
 {
   Lisp_Object overlay, start, end;
   struct Lisp_Overlay *tail;
-  int startpos, endpos;
+  EMACS_INT startpos, endpos;
   int idx = 0;
 
   for (tail = current_buffer->overlays_before; tail; tail = tail->next)
@@ -437,7 +438,7 @@ get_pos_property (Lisp_Object position, register Lisp_Object prop, Lisp_Object o
     return Fget_text_property (position, prop, object);
   else
     {
-      int posn = XINT (position);
+      EMACS_INT posn = XINT (position);
       int noverlays;
       Lisp_Object *overlay_vec, tem;
       struct buffer *obuf = current_buffer;
@@ -723,7 +724,7 @@ Field boundaries are not noticed if `inhibit-field-text-motion' is non-nil.  */)
   (Lisp_Object new_pos, Lisp_Object old_pos, Lisp_Object escape_from_edge, Lisp_Object only_in_line, Lisp_Object inhibit_capture_property)
 {
   /* If non-zero, then the original point, before re-positioning.  */
-  int orig_point = 0;
+  EMACS_INT orig_point = 0;
   int fwd;
   Lisp_Object prev_old, prev_new;
 
@@ -820,7 +821,7 @@ boundaries bind `inhibit-field-text-motion' to t.
 This function does not move point.  */)
   (Lisp_Object n)
 {
-  int orig, orig_byte, end;
+  EMACS_INT orig, orig_byte, end;
   int count = SPECPDL_INDEX ();
   specbind (Qinhibit_point_motion_hooks, Qt);
 
@@ -861,8 +862,8 @@ boundaries bind `inhibit-field-text-motion' to t.
 This function does not move point.  */)
   (Lisp_Object n)
 {
-  int end_pos;
-  int orig = PT;
+  EMACS_INT end_pos;
+  EMACS_INT orig = PT;
 
   if (NILP (n))
     XSETFASTINT (n, 1);
@@ -1134,7 +1135,7 @@ At the beginning of the buffer or accessible region, return 0.  */)
     XSETFASTINT (temp, 0);
   else if (!NILP (current_buffer->enable_multibyte_characters))
     {
-      int pos = PT_BYTE;
+      EMACS_INT pos = PT_BYTE;
       DEC_POS (pos);
       XSETFASTINT (temp, FETCH_CHAR (pos));
     }
@@ -1188,7 +1189,7 @@ POS is an integer or a marker and defaults to point.
 If POS is out of range, the value is nil.  */)
   (Lisp_Object pos)
 {
-  register int pos_byte;
+  register EMACS_INT pos_byte;
 
   if (NILP (pos))
     {
@@ -1221,7 +1222,7 @@ If POS is out of range, the value is nil.  */)
   (Lisp_Object pos)
 {
   register Lisp_Object val;
-  register int pos_byte;
+  register EMACS_INT pos_byte;
 
   if (NILP (pos))
     {
@@ -2270,7 +2271,8 @@ from adjoining text, if those properties are sticky.  */)
 {
   register unsigned char *string;
   register int strlen;
-  register int i, n;
+  register int i;
+  register EMACS_INT n;
   int len;
   unsigned char str[MAX_MULTIBYTE_LENGTH];
 
@@ -2281,6 +2283,8 @@ from adjoining text, if those properties are sticky.  */)
     len = CHAR_STRING (XFASTINT (character), str);
   else
     str[0] = XFASTINT (character), len = 1;
+  if (MOST_POSITIVE_FIXNUM / len < XINT (count))
+    error ("Maximum buffer size would be exceeded");
   n = XINT (count) * len;
   if (n <= 0)
     return Qnil;
@@ -2404,7 +2408,7 @@ make_buffer_string_both (EMACS_INT start, EMACS_INT start_byte,
    in the current buffer, if necessary.  */
 
 static void
-update_buffer_properties (int start, int end)
+update_buffer_properties (EMACS_INT start, EMACS_INT end)
 {
   /* If this buffer has some access functions,
      call them, specifying the range of the buffer being accessed.  */
@@ -2485,7 +2489,7 @@ Arguments START and END are character positions specifying the substring.
 They default to the values of (point-min) and (point-max) in BUFFER.  */)
   (Lisp_Object buffer, Lisp_Object start, Lisp_Object end)
 {
-  register int b, e, temp;
+  register EMACS_INT b, e, temp;
   register struct buffer *bp, *obuf;
   Lisp_Object buf;
 
@@ -2538,13 +2542,13 @@ The value of `case-fold-search' in the current buffer
 determines whether case is significant or ignored.  */)
   (Lisp_Object buffer1, Lisp_Object start1, Lisp_Object end1, Lisp_Object buffer2, Lisp_Object start2, Lisp_Object end2)
 {
-  register int begp1, endp1, begp2, endp2, temp;
+  register EMACS_INT begp1, endp1, begp2, endp2, temp;
   register struct buffer *bp1, *bp2;
   register Lisp_Object trt
     = (!NILP (current_buffer->case_fold_search)
        ? current_buffer->case_canon_table : Qnil);
-  int chars = 0;
-  int i1, i2, i1_byte, i2_byte;
+  EMACS_INT chars = 0;
+  EMACS_INT i1, i2, i1_byte, i2_byte;
 
   /* Find the first buffer and its substring.  */
 
@@ -2710,7 +2714,7 @@ Both characters must have the same length of multi-byte form.  */)
      if 0 we haven't found it yet.
      if < 0 we've found it and we've run the before-change-function.
      if > 0 we've actually performed it and the value is its position.  */
-  int changed = 0;
+  EMACS_INT changed = 0;
   unsigned char fromstr[MAX_MULTIBYTE_LENGTH], tostr[MAX_MULTIBYTE_LENGTH];
   unsigned char *p;
   int count = SPECPDL_INDEX ();
@@ -2719,7 +2723,7 @@ Both characters must have the same length of multi-byte form.  */)
 #define COMBINING_AFTER  2
 #define COMBINING_BOTH (COMBINING_BEFORE | COMBINING_AFTER)
   int maybe_byte_combining = COMBINING_NO;
-  int last_changed = 0;
+  EMACS_INT last_changed = 0;
   int multibyte_p = !NILP (current_buffer->enable_multibyte_characters);
 
  restart:
@@ -3514,7 +3518,7 @@ usage: (format STRING &rest OBJECTS)  */)
   (int nargs, register Lisp_Object *args)
 {
   register int n;		/* The number of the next arg to substitute */
-  register int total;		/* An estimate of the final length */
+  register EMACS_INT total;	/* An estimate of the final length */
   char *buf, *p;
   register unsigned char *format, *end, *format_start;
   int nchars;
@@ -3608,7 +3612,7 @@ usage: (format STRING &rest OBJECTS)  */)
   while (format != end)
     if (*format++ == '%')
       {
-	int thissize = 0;
+	EMACS_INT thissize = 0;
 	EMACS_INT actual_width = 0;
 	unsigned char *this_format_start = format - 1;
 	int field_width = 0;
@@ -4023,7 +4027,8 @@ usage: (format STRING &rest OBJECTS)  */)
 
       if (CONSP (props))
 	{
-	  int bytepos = 0, position = 0, translated = 0, argn = 1;
+	  EMACS_INT bytepos = 0, position = 0, translated = 0;
+	  int argn = 1;
 	  Lisp_Object list;
 
 	  /* Adjust the bounds of each text property
@@ -4041,7 +4046,7 @@ usage: (format STRING &rest OBJECTS)  */)
 	  for (list = props; CONSP (list); list = XCDR (list))
 	    {
 	      Lisp_Object item;
-	      int pos;
+	      EMACS_INT pos;
 
 	      item = XCAR (list);
 
@@ -4177,11 +4182,12 @@ Case is ignored if `case-fold-search' is non-nil in the current buffer.  */)
    It's the caller's job to ensure that START1 <= END1 <= START2 <= END2.  */
 
 static void
-transpose_markers (int start1, int end1, int start2, int end2,
-		   int start1_byte, int end1_byte,
-		   int start2_byte, int end2_byte)
+transpose_markers (EMACS_INT start1, EMACS_INT end1,
+		   EMACS_INT start2, EMACS_INT end2,
+		   EMACS_INT start1_byte, EMACS_INT end1_byte,
+		   EMACS_INT start2_byte, EMACS_INT end2_byte)
 {
-  register int amt1, amt1_byte, amt2, amt2_byte, diff, diff_byte, mpos;
+  register EMACS_INT amt1, amt1_byte, amt2, amt2_byte, diff, diff_byte, mpos;
   register struct Lisp_Marker *marker;
 
   /* Update point as if it were a marker.  */
@@ -4278,7 +4284,7 @@ Transposing beyond buffer boundaries is an error.  */)
   /* Swap the regions if they're reversed.  */
   if (start2 < end1)
     {
-      register int glumph = start1;
+      register EMACS_INT glumph = start1;
       start1 = start2;
       start2 = glumph;
       glumph = end1;
