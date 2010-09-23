@@ -1343,7 +1343,7 @@ extra args."
 	     (not (and (eq (get func 'byte-compile)
 			   'cl-byte-compile-compiler-macro)
 		       (string-match "\\`c[ad]+r\\'" (symbol-name func)))))
-	(byte-compile-warn "Function `%s' from cl package called at runtime"
+	(byte-compile-warn "function `%s' from cl package called at runtime"
 			   func)))
   form)
 
@@ -2156,7 +2156,7 @@ list that represents a doc string reference.
     (when (and (symbolp (nth 1 form))
                (not (string-match "[-*/:$]" (symbol-name (nth 1 form))))
                (byte-compile-warning-enabled-p 'lexical))
-      (byte-compile-warn "Global/dynamic var `%s' lacks a prefix"
+      (byte-compile-warn "global/dynamic var `%s' lacks a prefix"
                          (nth 1 form)))
     (push (nth 1 form) byte-compile-bound-variables)
     (if (eq (car form) 'defconst)
@@ -3812,7 +3812,7 @@ that suppresses all warnings during execution of BODY."
   (when (and (symbolp (nth 1 form))
              (not (string-match "[-*/:$]" (symbol-name (nth 1 form))))
              (byte-compile-warning-enabled-p 'lexical))
-    (byte-compile-warn "Global/dynamic var `%s' lacks a prefix"
+    (byte-compile-warn "global/dynamic var `%s' lacks a prefix"
                        (nth 1 form)))
   (let ((fun (nth 0 form))
 	(var (nth 1 form))

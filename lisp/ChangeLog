@@ -1,5 +1,9 @@
 2010-09-23  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/bytecomp.el (byte-compile-file-form-defvar):
+	(byte-compile-defvar, byte-compile-cl-warn):
+ 	Start warnings with lower-case, like the majority.
+
 	* files.el (auto-mode-alist): Add .xa, .xw, .xsw for ld-script-mode.
 
 	* files.el (auto-mode-alist): Prefer C-mode for .xs.  (Bug#7071)
