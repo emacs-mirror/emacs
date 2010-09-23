@@ -1,3 +1,14 @@
+2010-09-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* lisp.h: Change the definition of all marker.c functions that
+	take and return buffer stuff to be EMACS_INT instead of int.
+
+	* marker.c (buf_charpos_to_bytepos, CONSIDER, set_marker_both)
+	(buf_charpos_to_bytepos, bytepos_to_charpos)
+	(buf_bytepos_to_charpos, Fbuffer_has_markers_at)
+	(set_marker_restricted, set_marker_both): Convert int to EMACS_INT
+	for all buffer positions.
+
 2010-09-23  Chong Yidong  <cyd@stupidchicken.com>
 
 	* intervals.c (traverse_intervals, rotate_right, rotate_left)

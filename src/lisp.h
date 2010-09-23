@@ -3054,17 +3054,17 @@ EXFUN (Fmarker_position, 1);
 EXFUN (Fmarker_buffer, 1);
 EXFUN (Fcopy_marker, 2);
 EXFUN (Fset_marker, 3);
-extern int marker_position (Lisp_Object);
-extern int marker_byte_position (Lisp_Object);
+extern EMACS_INT marker_position (Lisp_Object);
+extern EMACS_INT marker_byte_position (Lisp_Object);
 extern void clear_charpos_cache (struct buffer *);
-extern int charpos_to_bytepos (int);
-extern int buf_charpos_to_bytepos (struct buffer *, int);
-extern int buf_bytepos_to_charpos (struct buffer *, int);
+extern EMACS_INT charpos_to_bytepos (EMACS_INT);
+extern EMACS_INT buf_charpos_to_bytepos (struct buffer *, EMACS_INT);
+extern EMACS_INT buf_bytepos_to_charpos (struct buffer *, EMACS_INT);
 extern void unchain_marker (struct Lisp_Marker *marker);
 extern Lisp_Object set_marker_restricted (Lisp_Object, Lisp_Object, Lisp_Object);
-extern Lisp_Object set_marker_both (Lisp_Object, Lisp_Object, int, int);
+extern Lisp_Object set_marker_both (Lisp_Object, Lisp_Object, EMACS_INT, EMACS_INT);
 extern Lisp_Object set_marker_restricted_both (Lisp_Object, Lisp_Object,
-                                               int, int);
+                                               EMACS_INT, EMACS_INT);
 extern void syms_of_marker (void);
 
 /* Defined in fileio.c */
