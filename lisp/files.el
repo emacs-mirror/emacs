@@ -2310,6 +2310,12 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\)\\'" . archive-mode)
      ("[:/]_emacs\\'" . emacs-lisp-mode)
      ("/crontab\\.X*[0-9]+\\'" . shell-script-mode)
      ("\\.ml\\'" . lisp-mode)
+     ;; Linux-2.6.9 uses some different suffix for linker scripts:
+     ;; "ld", "lds", "lds.S", "lds.in", "ld.script", and "ld.script.balo".
+     ;; eCos uses "ld" and "ldi".  Netbsd uses "ldscript.*".
+     ("\\.ld[si]?\\'" . ld-script-mode)
+     ("ld\\.?script\\'" . ld-script-mode)
+     ("\\.x[bdsru]?[cn]?\\'" . ld-script-mode)
      ;; Common Lisp ASDF package system.
      ("\\.asd\\'" . lisp-mode)
      ("\\.\\(asn\\|mib\\|smi\\)\\'" . snmp-mode)

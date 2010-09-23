@@ -1,5 +1,9 @@
 2010-09-23  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/ld-script.el (auto-mode-alist): Move to files.el.
+	* files.el (auto-mode-alist): Move ld-script entries here, further down
+	the list.
+
 	* vc/add-log.el: Don't require timezone when compiling.
 	(timezone-make-date-sortable): Autoload it.
 	(change-log-sortable-date-at): Don't require timezone.
