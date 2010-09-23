@@ -62,7 +62,7 @@
   :group 'gnus-art
   :type 'regexp)
 
-(defcustom gnus-max-image-proportion 0.7
+(defcustom gnus-max-image-proportion 0.9
   "How big pictures displayed are in relation to the window they're in.
 A value of 0.7 means that they are allowed to take up 70% of the
 width and height of the window.  If they are larger than this,

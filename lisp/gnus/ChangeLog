@@ -1,3 +1,8 @@
+2010-09-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-html.el (gnus-max-image-proportion): Increase proportion to
+	0.9.
+
 2010-09-22  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* nnimap.el (nnimap-parse-flags): Parse the data in any order.
