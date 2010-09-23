@@ -3609,7 +3609,7 @@ usage: (format STRING &rest OBJECTS)  */)
     if (*format++ == '%')
       {
 	int thissize = 0;
-	int actual_width = 0;
+	EMACS_INT actual_width = 0;
 	unsigned char *this_format_start = format - 1;
 	int field_width = 0;
 
@@ -3851,8 +3851,8 @@ usage: (format STRING &rest OBJECTS)  */)
 	      /* handle case (precision[n] >= 0) */
 
 	      int width, padding;
-	      int nbytes, start, end;
-	      int nchars_string;
+	      EMACS_INT nbytes, start, end;
+	      EMACS_INT nchars_string;
 
 	      /* lisp_string_width ignores a precision of 0, but GNU
 		 libc functions print 0 characters when the precision
@@ -3863,7 +3863,8 @@ usage: (format STRING &rest OBJECTS)  */)
 	      if (precision[n] == 0)
 		width = nchars_string = nbytes = 0;
 	      else if (precision[n] > 0)
-		width = lisp_string_width (args[n], precision[n], &nchars_string, &nbytes);
+		width = lisp_string_width (args[n], precision[n],
+					   &nchars_string, &nbytes);
 	      else
 		{		/* no precision spec given for this argument */
 		  width = lisp_string_width (args[n], -1, NULL, NULL);

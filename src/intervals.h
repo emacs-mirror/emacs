@@ -276,7 +276,7 @@ extern int compare_string_intervals (Lisp_Object, Lisp_Object);
 extern Lisp_Object textget (Lisp_Object, Lisp_Object);
 extern Lisp_Object lookup_char_property (Lisp_Object, Lisp_Object, int);
 extern void move_if_not_intangible (int);
-extern int get_property_and_range (int, Lisp_Object, Lisp_Object *,
+extern int get_property_and_range (EMACS_INT, Lisp_Object, Lisp_Object *,
                                    EMACS_INT *, EMACS_INT *, Lisp_Object);
 extern Lisp_Object get_local_map (int, struct buffer *, Lisp_Object);
 extern INTERVAL update_interval (INTERVAL, int);

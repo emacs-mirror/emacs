@@ -2246,7 +2246,8 @@ move_if_not_intangible (int position)
    nil means the current buffer. */
 
 int
-get_property_and_range (int pos, Lisp_Object prop, Lisp_Object *val, EMACS_INT *start, EMACS_INT *end, Lisp_Object object)
+get_property_and_range (EMACS_INT pos, Lisp_Object prop, Lisp_Object *val,
+			EMACS_INT *start, EMACS_INT *end, Lisp_Object object)
 {
   INTERVAL i, prev, next;
 

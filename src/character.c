@@ -378,11 +378,12 @@ usage: (char-width CHAR)  */)
    characters and bytes of the substring in *NCHARS and *NBYTES
    respectively.  */
 
-int
-c_string_width (const unsigned char *str, int len, int precision, int *nchars, int *nbytes)
+EMACS_INT
+c_string_width (const unsigned char *str, EMACS_INT len, int precision,
+		EMACS_INT *nchars, EMACS_INT *nbytes)
 {
-  int i = 0, i_byte = 0;
-  int width = 0;
+  EMACS_INT i = 0, i_byte = 0;
+  EMACS_INT width = 0;
   struct Lisp_Char_Table *dp = buffer_display_table ();
 
   while (i_byte < len)
@@ -429,8 +430,8 @@ c_string_width (const unsigned char *str, int len, int precision, int *nchars, i
    current buffer.  The width is measured by how many columns it
    occupies on the screen.  */
 
-int
-strwidth (const unsigned char *str, int len)
+EMACS_INT
+strwidth (const unsigned char *str, EMACS_INT len)
 {
   return c_string_width (str, len, -1, NULL, NULL);
 }
@@ -442,17 +443,18 @@ strwidth (const unsigned char *str, int len)
    PRECISION, and set number of characters and bytes of the substring
    in *NCHARS and *NBYTES respectively.  */
 
-int
-lisp_string_width (Lisp_Object string, int precision, int *nchars, int *nbytes)
+EMACS_INT
+lisp_string_width (Lisp_Object string, int precision,
+		   EMACS_INT *nchars, EMACS_INT *nbytes)
 {
-  int len = SCHARS (string);
+  EMACS_INT len = SCHARS (string);
   /* This set multibyte to 0 even if STRING is multibyte when it
      contains only ascii and eight-bit-graphic, but that's
      intentional.  */
   int multibyte = len < SBYTES (string);
   unsigned char *str = SDATA (string);
-  int i = 0, i_byte = 0;
-  int width = 0;
+  EMACS_INT i = 0, i_byte = 0;
+  EMACS_INT width = 0;
   struct Lisp_Char_Table *dp = buffer_display_table ();
 
   while (i < len)
@@ -570,11 +572,11 @@ EMACS_INT
 multibyte_chars_in_text (const unsigned char *ptr, EMACS_INT nbytes)
 {
   const unsigned char *endp = ptr + nbytes;
-  int chars = 0;
+  EMACS_INT chars = 0;
 
   while (ptr < endp)
     {
-      int len = MULTIBYTE_LENGTH (ptr, endp);
+      EMACS_INT len = MULTIBYTE_LENGTH (ptr, endp);
 
       if (len == 0)
 	abort ();

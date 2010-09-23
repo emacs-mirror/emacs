@@ -1,16 +1,43 @@
 2010-09-23  Eli Zaretskii  <eliz@gnu.org>
 
-	* font.c (font_intern_prop): Use EMACS_INT for string length
-	variables.
+	* xdisp.c (check_point_in_composition, reconsider_clip_changes):
+	Use EMACS_INT for buffer position variables and arguments.
+
+	* composite.c (get_composition_id, find_composition)
+	(run_composition_function, compose_text)
+	(composition_gstring_width, autocmp_chars)
+	(composition_update_it, Ffind_composition_internal): Use EMACS_INT
+	for buffer positions and string length variables and arguments.
+
+	* composite.h (get_composition_id, find_composition, compose_text)
+	(composition_gstring_width): Adjust prototypes.
+
+	* editfns.c (Fformat): Use EMACS_INT for string size variables.
+
+	* xdisp.c (store_mode_line_noprop, display_mode_element): Use
+	EMACS_INT for string positions.
+
+	* intervals.c (get_property_and_range): Use EMACS_INT for buffer
+	position arguments.
+
+	* intervals.h (get_property_and_range): Adjust prototype.
 
 	* character.c (parse_str_as_multibyte, str_as_multibyte)
 	(parse_str_to_multibyte, str_to_multibyte, str_as_unibyte)
-	(string_count_byte8, string_escape_byte8): Use EMACS_INT for
-	string length arguments, variables, and return values.
+	(string_count_byte8, string_escape_byte8, c_string_width)
+	(strwidth, lisp_string_width, multibyte_chars_in_text): Use
+	EMACS_INT for string length variables and arguments.
 
 	* character.h (parse_str_as_multibyte, str_as_multibyte)
-	(parse_str_to_multibyte, str_to_multibyte, str_as_unibyte): Adjust
+	(parse_str_to_multibyte, str_to_multibyte, str_as_unibyte)
+	(c_string_width, strwidth, lisp_string_width): Adjust
 	prototypes.
+
+	* font.c (font_intern_prop): Use EMACS_INT for string length
+	variables.
+
+	* font.c (font_intern_prop): Use EMACS_INT for string length
+	variables.
 
 	* fns.c (Fstring_as_multibyte): Use EMACS_INT for string length
 	variables.
@@ -33,7 +60,8 @@
 
 	* lisp.h (make_string, make_unibyte_string, make_multibyte_string)
 	(make_string_from_bytes, make_specified_string_string)
-	(make_pure_string, string_bytes): Adjust prototypes.
+	(make_pure_string, string_bytes, check_point_in_composition):
+	Adjust prototypes.
 
 2010-09-22  Eli Zaretskii  <eliz@gnu.org>
 

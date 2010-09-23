@@ -612,9 +612,11 @@ extern EMACS_INT str_to_multibyte (unsigned char *, EMACS_INT, EMACS_INT);
 extern EMACS_INT str_as_unibyte (unsigned char *, EMACS_INT);
 extern EMACS_INT str_to_unibyte (const unsigned char *, unsigned char *,
                                  EMACS_INT, int);
-extern int strwidth (const unsigned char *, int);
-extern int c_string_width (const unsigned char *, int, int, int *, int *);
-extern int lisp_string_width (Lisp_Object, int, int *, int *);
+extern EMACS_INT strwidth (const unsigned char *, EMACS_INT);
+extern EMACS_INT c_string_width (const unsigned char *, EMACS_INT, int,
+				 EMACS_INT *, EMACS_INT *);
+extern EMACS_INT lisp_string_width (Lisp_Object, int,
+				    EMACS_INT *, EMACS_INT *);
 
 extern Lisp_Object Vprintable_chars;
 

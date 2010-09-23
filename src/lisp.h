@@ -2673,7 +2673,7 @@ extern void update_echo_area (void);
 extern void truncate_echo_area (int);
 extern void redisplay (void);
 extern int check_point_in_composition
-        (struct buffer *, int, struct buffer *, int);
+        (struct buffer *, EMACS_INT, struct buffer *, EMACS_INT);
 extern void redisplay_preserve_echo_area (int);
 extern void prepare_menu_bars (void);
 
