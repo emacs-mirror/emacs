@@ -191,20 +191,19 @@ Very fast if you have an `md5' primitive function, suitably fast otherwise."
   (erase-buffer)
   (insert-file-contents-literally fnam))
 
-;;;###autoload
 (defun url-cache-expired (url &optional expire-time)
-  "Return t if a cached URL is more than EXPIRE-TIME old.
-If EXPIRE-TIME is not set, `url-cache-expire-time' is used instead."
-  (cond (url-standalone-mode
-	 (not (file-exists-p (url-cache-create-filename url))))
-	(t (let ((cache-time (url-is-cached url)))
-	     (if cache-time
-		 (time-less-p
-		  (time-add
-		   (url-is-cached url)
-		   (seconds-to-time (or expire-time url-cache-expire-time)))
-		  (current-time))
-	       t)))))
+  "Return non-nil if a cached URL is older than EXPIRE-TIME seconds.
+The default value of EXPIRE-TIME is `url-cache-expire-time'.
+If `url-standalone-mode' is non-nil, cached items never expire."
+  (if url-standalone-mode
+      (not (file-exists-p (url-cache-create-filename url)))
+    (let ((cache-time (url-is-cached url)))
+      (and cache-time
+	   (time-less-p
+	    (time-add
+	     cache-time
+	     (seconds-to-time (or expire-time url-cache-expire-time)))
+	    (current-time))))))
 
 (provide 'url-cache)
 

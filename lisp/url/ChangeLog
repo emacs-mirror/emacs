@@ -1,3 +1,8 @@
+2010-09-23  Glenn Morris  <rgm@gnu.org>
+
+	* url-cache.el (url-cache-expired): Don't autoload.
+	Tweak previous change.
+
 2010-09-23  Julien Danjou  <julien@danjou.info>
 
 	* url-cache.el (url-cache-expire-time): New option.
