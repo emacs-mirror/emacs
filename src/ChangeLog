@@ -1,3 +1,40 @@
+2010-09-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* font.c (font_intern_prop): Use EMACS_INT for string length
+	variables.
+
+	* character.c (parse_str_as_multibyte, str_as_multibyte)
+	(parse_str_to_multibyte, str_to_multibyte, str_as_unibyte)
+	(string_count_byte8, string_escape_byte8): Use EMACS_INT for
+	string length arguments, variables, and return values.
+
+	* character.h (parse_str_as_multibyte, str_as_multibyte)
+	(parse_str_to_multibyte, str_to_multibyte, str_as_unibyte): Adjust
+	prototypes.
+
+	* fns.c (Fstring_as_multibyte): Use EMACS_INT for string length
+	variables.
+
+	* alloc.c <total_string_size>: Declare as EMACS_INT, not int.
+	(Fmake_string): Protect against too large strings.
+	(live_string_p, live_cons_p, live_symbol_p, live_float_p)
+	(live_misc_p): Use ptrdiff_t instead of int for pointer
+	differences.
+	(string_bytes, check_sblock, check_string_free_list)
+	(allocate_string_data, compact_small_strings, Fmake_string)
+	(Fmake_bool_vector, make_string, make_unibyte_string)
+	(make_multibyte_string, make_string_from_bytes)
+	(make_specified_string_string, Fmake_list, Fmake_vector): Use
+	EMACS_INT for string length variables and arguments.
+	(find_string_data_in_pure, make_pure_string, make_pure_c_string)
+	(Fpurecopy): Use EMACS_INT for string size.
+	(mark_vectorlike, mark_char_table, mark_object): Use EMACS_UINT
+	for vector size.
+
+	* lisp.h (make_string, make_unibyte_string, make_multibyte_string)
+	(make_string_from_bytes, make_specified_string_string)
+	(make_pure_string, string_bytes): Adjust prototypes.
+
 2010-09-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* editfns.c (Fsubst_char_in_region, Ftranslate_region_internal)

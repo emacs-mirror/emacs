@@ -739,7 +739,7 @@ struct Lisp_Cons
 #ifdef GC_CHECK_STRING_BYTES
 
 struct Lisp_String;
-extern int string_bytes (struct Lisp_String *);
+extern EMACS_INT string_bytes (struct Lisp_String *);
 #define STRING_BYTES(S) string_bytes ((S))
 
 #else /* not GC_CHECK_STRING_BYTES */
@@ -2718,16 +2718,17 @@ EXFUN (Fmake_symbol, 1);
 EXFUN (Fmake_marker, 0);
 EXFUN (Fmake_string, 2);
 extern Lisp_Object build_string (const char *);
-extern Lisp_Object make_string (const char *, int);
-extern Lisp_Object make_unibyte_string (const char *, int);
-extern Lisp_Object make_multibyte_string (const char *, int, int);
+extern Lisp_Object make_string (const char *, EMACS_INT);
+extern Lisp_Object make_unibyte_string (const char *, EMACS_INT);
+extern Lisp_Object make_multibyte_string (const char *, EMACS_INT, EMACS_INT);
 extern Lisp_Object make_event_array (int, Lisp_Object *);
 extern Lisp_Object make_uninit_string (EMACS_INT);
 extern Lisp_Object make_uninit_multibyte_string (EMACS_INT, EMACS_INT);
-extern Lisp_Object make_string_from_bytes (const char *, int, int);
-extern Lisp_Object make_specified_string (const char *, int, int, int);
+extern Lisp_Object make_string_from_bytes (const char *, EMACS_INT, EMACS_INT);
+extern Lisp_Object make_specified_string (const char *,
+					  EMACS_INT, EMACS_INT, int);
 EXFUN (Fpurecopy, 1);
-extern Lisp_Object make_pure_string (const char *, int, int, int);
+extern Lisp_Object make_pure_string (const char *, EMACS_INT, EMACS_INT, int);
 extern Lisp_Object make_pure_c_string (const char *data);
 extern Lisp_Object pure_cons (Lisp_Object, Lisp_Object);
 extern Lisp_Object make_pure_vector (EMACS_INT);

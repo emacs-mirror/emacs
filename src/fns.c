@@ -1036,7 +1036,7 @@ If you're not sure, whether to use `string-as-multibyte' or
   if (! STRING_MULTIBYTE (string))
     {
       Lisp_Object new_string;
-      int nchars, nbytes;
+      EMACS_INT nchars, nbytes;
 
       parse_str_as_multibyte (SDATA (string),
 			      SBYTES (string),
