@@ -6,7 +6,6 @@
 ;; Keywords: wp, convenience
 ;; Author: Takaaki Ota <Takaaki.Ota@am.sony.com>
 ;; Created: Sat Jul 08 2000 13:28:45 (PST)
-;; Revised: Tue Sep 21 2010 12:42:03 (PDT)
 
 ;; This file is part of GNU Emacs.
 
@@ -5589,15 +5588,6 @@ It returns COLUMN unless STR contains some wide characters."
 (run-hooks 'table-load-hook)
 
 (provide 'table)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Local Variables: ***
-;; time-stamp-line-limit: 16 ***
-;; time-stamp-start: ";; Revised:[ \t]+" ***
-;; time-stamp-end: "$" ***
-;; time-stamp-format: "%3a %3b %02d %:y %02H:%02M:%02S (%Z)" ***
-;; End: ***
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; arch-tag: 0d69b03e-aa5f-4e72-8806-5727217617e0
 ;;; table.el ends here
