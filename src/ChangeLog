@@ -57,7 +57,7 @@
 	(move_if_not_intangible, get_local_map, copy_intervals)
 	(copy_intervals_to_string, compare_string_intervals)
 	(set_intervals_multibyte_1): Use EMACS_INT for buffer positions
-	and EMACS_UINT for interval tree size.
+	and for interval tree size.
 
 	* intervals.h (traverse_intervals, split_interval_right)
 	(split_interval_left, find_interval, offset_intervals)

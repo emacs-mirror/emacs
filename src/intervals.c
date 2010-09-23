@@ -1326,8 +1326,8 @@ interval_deletion_adjustment (register INTERVAL tree, register EMACS_INT from,
   if (relative_position < LEFT_TOTAL_LENGTH (tree))
     {
       EMACS_INT subtract = interval_deletion_adjustment (tree->left,
-							 relative_position,
-							 amount);
+							  relative_position,
+							  amount);
       tree->total_length -= subtract;
       CHECK_TOTAL_LENGTH (tree);
       return subtract;
