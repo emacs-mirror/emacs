@@ -1,5 +1,28 @@
 2010-09-23  Eli Zaretskii  <eliz@gnu.org>
 
+	* indent.c (compute_motion): Use EMACS_INT for arguments to
+	region_cache_forward.
+
+	* region-cache.c (struct boundary, struct region_cache): Use
+	EMACS_INT for positions.
+	(find_cache_boundary, move_cache_gap, insert_cache_boundary)
+	(delete_cache_boundaries, set_cache_region)
+	(invalidate_region_cache, know_region_cache)
+	(region_cache_forward, region_cache_backward, pp_cache): Use
+	EMACS_INT for buffer positions.
+
+	* region-cache.h (know_region_cache, invalidate_region_cache)
+	(region_cache_forward, region_cache_backward): Adjust prototypes.
+
+	* search.c (string_match_1, fast_c_string_match_ignore_case)
+	(looking_at_1, scan_buffer, scan_newline)
+	(find_next_newline_no_quit, find_before_next_newline)
+	(search_command, trivial_regexp_p, search_buffer, simple_search)
+	(boyer_moore, wordify, Freplace_match): Use EMACS_INT for buffer
+	and string positions and length.
+
+	* lisp.h (scan_buffer, scan_newline, find_next_newline_no_quit, find_before_next_newline)
+
 	* editfns.c (transpose_markers, update_buffer_properties)
 	(buildmark, clip_to_bounds, Fgoto_char, overlays_around)
 	(get_pos_property, Fconstrain_to_field)
@@ -8,6 +31,7 @@
 	(Finsert_buffer_substring, Fcompare_buffer_substrings)
 	(Fsubst_char_in_region, Fformat, Ftranspose_regions): Use
 	EMACS_INT for buffer and string position variables.
+	(Finsert_char): Protect against too large insertions.
 
 	* lisp.h (clip_to_bounds): Adjust prototype.
 

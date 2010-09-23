@@ -62,7 +62,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    revalidate_region_cache to see how this helps.  */
 
 struct boundary {
-  int pos;
+  EMACS_INT pos;
   int value;
 };
 
@@ -72,7 +72,7 @@ struct region_cache {
   struct boundary *boundaries;
 
   /* boundaries[gap_start ... gap_start + gap_len - 1] is the gap.  */
-  int gap_start, gap_len;
+  EMACS_INT gap_start, gap_len;
 
   /* The number of elements allocated to boundaries, not including the
      gap.  */
@@ -81,7 +81,7 @@ struct region_cache {
   /* The areas that haven't changed since the last time we cleaned out
      invalid entries from the cache.  These overlap when the buffer is
      entirely unchanged.  */
-  int beg_unchanged, end_unchanged;
+  EMACS_INT beg_unchanged, end_unchanged;
 
   /* The first and last positions in the buffer.  Because boundaries
      store their positions relative to the start (BEG) and end (Z) of
@@ -91,7 +91,7 @@ struct region_cache {
 
      Yes, buffer_beg is always 1.  It's there for symmetry with
      buffer_end and the BEG and BUF_BEG macros.  */
-  int buffer_beg, buffer_end;
+  EMACS_INT buffer_beg, buffer_end;
 };
 
 /* Return the position of boundary i in cache c.  */
@@ -173,7 +173,7 @@ free_region_cache (struct region_cache *c)
    entries.  It would be nice if it took advantage of locality of
    reference, too, by searching entries near the last entry found.  */
 static int
-find_cache_boundary (struct region_cache *c, int pos)
+find_cache_boundary (struct region_cache *c, EMACS_INT pos)
 {
   int low = 0, high = c->cache_len;
 
@@ -182,7 +182,7 @@ find_cache_boundary (struct region_cache *c, int pos)
       /* mid is always a valid index, because low < high and ">> 1"
          rounds down.  */
       int mid = (low + high) >> 1;
-      int boundary = BOUNDARY_POS (c, mid);
+      EMACS_INT boundary = BOUNDARY_POS (c, mid);
 
       if (pos < boundary)
         high = mid;
@@ -207,13 +207,13 @@ find_cache_boundary (struct region_cache *c, int pos)
 /* Move the gap of cache C to index POS, and make sure it has space
    for at least MIN_SIZE boundaries.  */
 static void
-move_cache_gap (struct region_cache *c, int pos, int min_size)
+move_cache_gap (struct region_cache *c, EMACS_INT pos, int min_size)
 {
   /* Copy these out of the cache and into registers.  */
-  int gap_start = c->gap_start;
-  int gap_len = c->gap_len;
-  int buffer_beg = c->buffer_beg;
-  int buffer_end = c->buffer_end;
+  EMACS_INT gap_start = c->gap_start;
+  EMACS_INT gap_len = c->gap_len;
+  EMACS_INT buffer_beg = c->buffer_beg;
+  EMACS_INT buffer_end = c->buffer_end;
 
   if (pos < 0
       || pos > c->cache_len)
@@ -245,7 +245,7 @@ move_cache_gap (struct region_cache *c, int pos, int min_size)
      when the portion after the gap is smallest.  */
   if (gap_len < min_size)
     {
-      int i;
+      EMACS_INT i;
 
       /* Always make at least NEW_CACHE_GAP elements, as long as we're
          expanding anyway.  */
@@ -292,7 +292,8 @@ move_cache_gap (struct region_cache *c, int pos, int min_size)
 /* Insert a new boundary in cache C; it will have cache index INDEX,
    and have the specified POS and VALUE.  */
 static void
-insert_cache_boundary (struct region_cache *c, int index, int pos, int value)
+insert_cache_boundary (struct region_cache *c, int index, EMACS_INT pos,
+		       int value)
 {
   /* index must be a valid cache index.  */
   if (index < 0 || index > c->cache_len)
@@ -328,9 +329,10 @@ insert_cache_boundary (struct region_cache *c, int index, int pos, int value)
 /* Delete the i'th entry from cache C if START <= i < END.  */
 
 static void
-delete_cache_boundaries (struct region_cache *c, int start, int end)
+delete_cache_boundaries (struct region_cache *c,
+			 EMACS_INT start, EMACS_INT end)
 {
-  int len = end - start;
+  EMACS_INT len = end - start;
 
   /* Gotta be in range.  */
   if (start < 0
@@ -380,7 +382,8 @@ delete_cache_boundaries (struct region_cache *c, int start, int end)
 
 /* Set the value in cache C for the region START..END to VALUE.  */
 static void
-set_cache_region (struct region_cache *c, int start, int end, int value)
+set_cache_region (struct region_cache *c,
+		  EMACS_INT start, EMACS_INT end, int value)
 {
   if (start > end)
     abort ();
@@ -481,7 +484,8 @@ set_cache_region (struct region_cache *c, int start, int end, int value)
    buffer positions in the presence of insertions and deletions; the
    args to pass are the same before and after such an operation.)  */
 void
-invalidate_region_cache (struct buffer *buf, struct region_cache *c, int head, int tail)
+invalidate_region_cache (struct buffer *buf, struct region_cache *c,
+			 EMACS_INT head, EMACS_INT tail)
 {
   /* Let chead = c->beg_unchanged, and
          ctail = c->end_unchanged.
@@ -687,7 +691,8 @@ revalidate_region_cache (struct buffer *buf, struct region_cache *c)
    buffer positions) is "known," for the purposes of CACHE (e.g. "has
    no newlines", in the case of the line cache).  */
 void
-know_region_cache (struct buffer *buf, struct region_cache *c, int start, int end)
+know_region_cache (struct buffer *buf, struct region_cache *c,
+		   EMACS_INT start, EMACS_INT end)
 {
   revalidate_region_cache (buf, c);
 
@@ -701,7 +706,8 @@ know_region_cache (struct buffer *buf, struct region_cache *c, int start, int en
    the purposes of CACHE.  If NEXT is non-zero, set *NEXT to the nearest
    position after POS where the knownness changes.  */
 int
-region_cache_forward (struct buffer *buf, struct region_cache *c, int pos, int *next)
+region_cache_forward (struct buffer *buf, struct region_cache *c,
+		      EMACS_INT pos, EMACS_INT *next)
 {
   revalidate_region_cache (buf, c);
 
@@ -736,7 +742,8 @@ region_cache_forward (struct buffer *buf, struct region_cache *c, int pos, int *
 /* Return true if the text immediately before POS in BUF is known, for
    the purposes of CACHE.  If NEXT is non-zero, set *NEXT to the nearest
    position before POS where the knownness changes.  */
-int region_cache_backward (struct buffer *buf, struct region_cache *c, int pos, int *next)
+int region_cache_backward (struct buffer *buf, struct region_cache *c,
+			   EMACS_INT pos, EMACS_INT *next)
 {
   revalidate_region_cache (buf, c);
 
@@ -777,8 +784,8 @@ void
 pp_cache (struct region_cache *c)
 {
   int i;
-  int beg_u = c->buffer_beg + c->beg_unchanged;
-  int end_u = c->buffer_end - c->end_unchanged;
+  EMACS_INT beg_u = c->buffer_beg + c->beg_unchanged;
+  EMACS_INT end_u = c->buffer_end - c->end_unchanged;
 
   fprintf (stderr,
            "basis: %d..%d    modified: %d..%d\n",

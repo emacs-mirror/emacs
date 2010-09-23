@@ -3122,12 +3122,13 @@ extern int fast_c_string_match_ignore_case (Lisp_Object, const char *);
 extern int fast_string_match_ignore_case (Lisp_Object, Lisp_Object);
 extern EMACS_INT fast_looking_at (Lisp_Object, EMACS_INT, EMACS_INT,
                                   EMACS_INT, EMACS_INT, Lisp_Object);
-extern int scan_buffer (int, EMACS_INT, EMACS_INT, int, int *, int);
-extern int scan_newline (EMACS_INT, EMACS_INT, EMACS_INT, EMACS_INT,
-                         int, int);
-extern int find_next_newline (EMACS_INT, int);
-extern int find_next_newline_no_quit (EMACS_INT, int);
-extern int find_before_next_newline (EMACS_INT, EMACS_INT, int);
+extern EMACS_INT scan_buffer (int, EMACS_INT, EMACS_INT, EMACS_INT,
+			      int *, int);
+extern EMACS_INT scan_newline (EMACS_INT, EMACS_INT, EMACS_INT, EMACS_INT,
+			       EMACS_INT, int);
+extern EMACS_INT find_next_newline (EMACS_INT, int);
+extern EMACS_INT find_next_newline_no_quit (EMACS_INT, EMACS_INT);
+extern EMACS_INT find_before_next_newline (EMACS_INT, EMACS_INT, EMACS_INT);
 extern void syms_of_search (void);
 extern void clear_regexp_cache (void);
 

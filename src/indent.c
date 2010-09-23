@@ -1448,7 +1448,7 @@ compute_motion (EMACS_INT from, EMACS_INT fromvpos, EMACS_INT fromhpos, int did_
          the text character-by-character.  */
       if (current_buffer->width_run_cache && pos >= next_width_run)
         {
-          int run_end;
+          EMACS_INT run_end;
           int common_width
             = region_cache_forward (current_buffer,
                                     current_buffer->width_run_cache,
