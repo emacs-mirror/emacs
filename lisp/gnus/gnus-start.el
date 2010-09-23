@@ -380,6 +380,13 @@ disc."
   :group 'gnus-newsrc
   :type 'boolean)
 
+(defcustom gnus-use-backend-marks nil
+  "If non-nil, Gnus will store and retrieve marks from the backends.
+This means that marks will be stored both in .newsrc.eld and in
+the backend, and will slow operation down somewhat."
+  :group 'gnus-newsrc
+  :type 'boolean)
+
 (defcustom gnus-check-bogus-groups-hook nil
   "A hook run after removing bogus groups."
   :group 'gnus-start-server
@@ -402,8 +409,7 @@ This hook is called as the first thing when Gnus is started."
   :group 'gnus-start
   :type 'hook)
 
-(defcustom gnus-setup-news-hook
-  '(gnus-fixup-nnimap-unread-after-getting-new-news)
+(defcustom gnus-setup-news-hook nil
   "A hook after reading the .newsrc file, but before generating the buffer."
   :group 'gnus-start
   :type 'hook)
@@ -420,8 +426,7 @@ This hook is called as the first thing when Gnus is started."
   :type 'hook)
 
 (defcustom gnus-after-getting-new-news-hook
-  '(gnus-display-time-event-handler
-    gnus-fixup-nnimap-unread-after-getting-new-news)
+  '(gnus-display-time-event-handler)
   "*A hook run after Gnus checks for new news when Gnus is already running."
   :group 'gnus-group-new
   :type 'hook)
@@ -1580,6 +1585,13 @@ If SCAN, request a scan of that group as well."
 			      (gnus-info-group info)))))
       (gnus-activate-group (gnus-info-group info) nil t))
 
+    ;; Allow backends to update marks, 
+    (when gnus-use-backend-marks
+      (let ((method (inline (gnus-find-method-for-group
+			     (gnus-info-group info)))))
+	(when (gnus-check-backend-function 'request-marks (car method))
+	  (gnus-request-marks info method))))
+
     (let* ((range (gnus-info-read info))
 	   (num 0))
 
@@ -1765,11 +1777,14 @@ If SCAN, request a scan of that group as well."
     (dolist (elem type-cache)
       (destructuring-bind (method method-type infos early-data) elem
 	(when (and method infos)
-	  ;; See if any of the groups from this method require updating.
-	  (gnus-read-active-for-groups method infos early-data)
-	  (dolist (info infos)
-	    (inline (gnus-get-unread-articles-in-group
-		     info (gnus-active (gnus-info-group info))))))))
+	  (let ((updatep (gnus-check-backend-function
+			  'request-update-info (car method))))
+	    ;; See if any of the groups from this method require updating.
+	    (gnus-read-active-for-groups method infos early-data)
+	    (dolist (info infos)
+	      (inline (gnus-get-unread-articles-in-group
+		       info (gnus-active (gnus-info-group info))
+		       updatep)))))))
     (gnus-message 6 "Checking new news...done")))
 
 (defun gnus-method-rank (type method)
@@ -3144,20 +3159,6 @@ If this variable is nil, don't do anything."
   (if (and (fboundp 'display-time-event-handler)
 	   (gnus-boundp 'display-time-timer))
       (display-time-event-handler)))
-
-;;;###autoload
-(defun gnus-fixup-nnimap-unread-after-getting-new-news ()
-  (let (server group info)
-    (mapatoms
-     (lambda (sym)
-       (when (and (setq group (symbol-name sym))
-		  (gnus-group-entry group)
-		  (setq info (symbol-value sym)))
-	 (gnus-sethash group (cons (nth 2 info) (cdr (gnus-group-entry group)))
-		       gnus-newsrc-hashtb)))
-     (if (boundp 'nnimap-mailbox-info)
-	 (symbol-value 'nnimap-mailbox-info)
-       (make-vector 1 0)))))
 
 (defun gnus-check-reasonable-setup ()
   ;; Check whether nnml and nnfolder share a directory.

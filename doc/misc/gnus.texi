@@ -1646,6 +1646,12 @@ If non-@code{nil}, play the Gnus jingle at startup.
 Jingle to be played if the above variable is non-@code{nil}.  The
 default is @samp{Tuxedomoon.Jingle4.au}.
 
+@item gnus-use-backend-marks
+@vindex gnus-use-backend-marks
+If non-@code{nil}, Gnus will store article marks both in the
+@file{.newsrc.eld} file and in the backends.  This will slow down
+group operation some.
+
 @end table
 
 

@@ -1047,7 +1047,7 @@ Use the nov database for the current group if available."
     (nnml-save-marks group server))
   nil)
 
-(deffoo nnml-request-update-info (group info &optional server)
+(deffoo nnml-request-marks (group info &optional server)
   (nnml-possibly-change-directory group server)
   (when (and (not nnml-marks-is-evil) (nnml-marks-changed-p group server))
     (nnheader-message 8 "Updating marks for %s..." group)

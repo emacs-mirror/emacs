@@ -1130,7 +1130,7 @@ command whose response triggered the error."
     (nntp-save-marks group server))
   nil)
 
-(deffoo nntp-request-update-info (group info &optional server)
+(deffoo nntp-request-marks (group info &optional server)
   (when (and (not nntp-marks-is-evil)
 	     nntp-marks-file-name)
     (nntp-possibly-create-directory group server)

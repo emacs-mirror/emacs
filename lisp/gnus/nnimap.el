@@ -51,7 +51,7 @@ it will default to `imap'.")
 
 (defvoo nnimap-stream 'ssl
   "How nnimap will talk to the IMAP server.
-Values are `ssl', `network' or `shell'.")
+Values are `ssl', `network', `starttls' or `shell'.")
 
 (defvoo nnimap-shell-program (if (boundp 'imap-shell-program)
 				 (if (listp imap-shell-program)
@@ -135,19 +135,26 @@ not done by default on servers that doesn't support that command.")
 	(nnimap-transform-headers))
       (insert-buffer-substring
        (nnimap-find-process-buffer (current-buffer))))
-    t))
+    'headers))
 
 (defun nnimap-transform-headers ()
   (goto-char (point-min))
-  (let (article bytes lines size)
+  (let (article bytes lines size string)
     (block nil
       (while (not (eobp))
 	(while (not (looking-at "^\\* [0-9]+ FETCH.*UID \\([0-9]+\\)"))
 	  (delete-region (point) (progn (forward-line 1) (point)))
 	  (when (eobp)
 	    (return)))
-	(setq article (match-string 1)
-	      bytes (nnimap-get-length)
+	(setq article (match-string 1))
+	;; Unfold quoted {number} strings.
+	(while (re-search-forward "[^]] {\\([0-9]+\\)}\r\n"
+				  (1+ (line-end-position)) t)
+	  (setq size (string-to-number (match-string 1)))
+	  (delete-region (+ (match-beginning 0) 2) (point))
+	  (setq string (delete-region (point) (+ (point) size)))
+	  (insert (format "%S" string)))
+	(setq bytes (nnimap-get-length)
 	      lines nil)
 	(beginning-of-line)
 	(setq size
@@ -157,7 +164,8 @@ not done by default on servers that doesn't support that command.")
 		   (match-string 1)))
 	(beginning-of-line)
 	(when (search-forward "BODYSTRUCTURE" (line-end-position) t)
-	  (let ((structure (ignore-errors (read (current-buffer)))))
+	  (let ((structure (ignore-errors
+			     (read (current-buffer)))))
 	    (while (and (consp structure)
 			(not (stringp (car structure))))
 	      (setq structure (car structure)))
@@ -257,6 +265,11 @@ not done by default on servers that doesn't support that command.")
 	       "*nnimap*" (current-buffer) nnimap-address
 	       (or nnimap-server-port "imap"))
 	      '("imap"))
+	     ((eq nnimap-stream 'starttls)
+	      (starttls-open-stream
+	       "*nnimap*" (current-buffer) nnimap-address
+	       (or nnimap-server-port "imap"))
+	      '("imap"))
 	     ((eq nnimap-stream 'ssl)
 	      (open-tls-stream
 	       "*nnimap*" (current-buffer) nnimap-address
@@ -273,6 +286,9 @@ not done by default on servers that doesn't support that command.")
 		       '(open run)))
 	(gnus-set-process-query-on-exit-flag (nnimap-process nnimap-object) nil)
 	(when (setq connection-result (nnimap-wait-for-connection))
+	  (when (eq nnimap-stream 'starttls)
+	    (nnimap-send-command "STARTTLS")
+	    (starttls-negotiate (nnimap-process nnimap-object)))
 	  (unless (equal connection-result "PREAUTH")
 	    (if (not (setq credentials
 			   (if (eq nnimap-authenticator 'anonymous)
@@ -419,14 +435,11 @@ not done by default on servers that doesn't support that command.")
 	      (when info
 		(nnimap-update-infos marks (list info)))
 	      (goto-char (point-max))
-	      (cond
-	       (marks
-		(let ((uidnext (nth 5 (car marks))))
-		  (setq high (or (nth 3 (car marks)) (1- uidnext))
-			low (or (nth 4 (car marks)) uidnext))))
-	       ((re-search-backward "UIDNEXT \\([0-9]+\\)" nil t)
-		(setq high (1- (string-to-number (match-string 1)))
-		      low 1)))))
+	      (let ((uidnext (nth 5 (car marks))))
+		(setq high (if uidnext
+			       (1- uidnext)
+			     (nth 3 (car marks)))
+		      low (or (nth 4 (car marks)) uidnext)))))
 	  (erase-buffer)
 	  (insert
 	   (format
@@ -782,11 +795,13 @@ not done by default on servers that doesn't support that command.")
       (let ((group (gnus-info-group info))
 	    (completep (and start-article
 			    (= start-article 1))))
+	(when uidnext
+	  (setq high (1- uidnext)))
 	;; First set the active ranges based on high/low.
 	(if (or completep
 		(not (gnus-active group)))
 	    (gnus-set-active group
-			     (if high
+			     (if (and low high)
 				 (cons low high)
 			       ;; No articles in this group.
 			       (cons uidnext (1- uidnext))))

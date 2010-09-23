@@ -432,7 +432,7 @@ Return a string with image data."
       image
     (let* ((width (car size))
 	   (height (cdr size))
-	   (edges (window-inside-pixel-edges (get-buffer-window (current-buffer))))
+	   (edges (window-pixel-edges (get-buffer-window (current-buffer))))
 	   (window-width (truncate (* gnus-max-image-proportion
 				      (- (nth 2 edges) (nth 0 edges)))))
 	   (window-height (truncate (* gnus-max-image-proportion

@@ -1539,22 +1539,34 @@ This list will always be a subset of gnus-newsgroup-undownloaded.")
 
 (defvar gnus-summary-local-variables
   '(gnus-newsgroup-name
+
+    ;; Marks lists
+    gnus-newsgroup-unreads
+    gnus-newsgroup-unselected
+    gnus-newsgroup-marked
+    gnus-newsgroup-spam-marked
+    gnus-newsgroup-reads
+    gnus-newsgroup-saved
+    gnus-newsgroup-replied
+    gnus-newsgroup-forwarded
+    gnus-newsgroup-recent
+    gnus-newsgroup-expirable
+    gnus-newsgroup-killed
+    gnus-newsgroup-unseen
+    gnus-newsgroup-seen
+    gnus-newsgroup-cached
+    gnus-newsgroup-downloadable
+    gnus-newsgroup-undownloaded
+    gnus-newsgroup-unsendable
+
     gnus-newsgroup-begin gnus-newsgroup-end
     gnus-newsgroup-last-rmail gnus-newsgroup-last-mail
     gnus-newsgroup-last-folder gnus-newsgroup-last-file
     gnus-newsgroup-last-directory
-    gnus-newsgroup-auto-expire gnus-newsgroup-unreads
-    gnus-newsgroup-unselected gnus-newsgroup-marked
-    gnus-newsgroup-spam-marked
-    gnus-newsgroup-reads gnus-newsgroup-saved
-    gnus-newsgroup-replied gnus-newsgroup-forwarded
-    gnus-newsgroup-recent
-    gnus-newsgroup-expirable
-    gnus-newsgroup-processable gnus-newsgroup-killed
-    gnus-newsgroup-downloadable gnus-newsgroup-undownloaded
+    gnus-newsgroup-auto-expire
+    gnus-newsgroup-processable
     gnus-newsgroup-unfetched
-    gnus-newsgroup-unsendable gnus-newsgroup-unseen
-    gnus-newsgroup-seen gnus-newsgroup-articles
+    gnus-newsgroup-articles
     gnus-newsgroup-bookmarks gnus-newsgroup-dormant
     gnus-newsgroup-headers gnus-newsgroup-threads
     gnus-newsgroup-prepared gnus-summary-highlight-line-function
@@ -1573,7 +1585,7 @@ This list will always be a subset of gnus-newsgroup-undownloaded.")
     (gnus-newsgroup-adaptive . gnus-use-adaptive-scoring)
     gnus-newsgroup-adaptive-score-file (gnus-reffed-article-number . -1)
     (gnus-newsgroup-expunged-tally . 0)
-    gnus-cache-removable-articles gnus-newsgroup-cached
+    gnus-cache-removable-articles
     gnus-newsgroup-data gnus-newsgroup-data-reverse
     gnus-newsgroup-limit gnus-newsgroup-limits
     gnus-newsgroup-charset gnus-newsgroup-display

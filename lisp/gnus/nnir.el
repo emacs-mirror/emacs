@@ -967,23 +967,27 @@ details on the language and supported extensions"
 	  (defs (caddr (gnus-server-to-method srv)))
 	  (criteria (or (cdr (assq 'criteria query))
 			nnir-imap-search-field))
-	  artlist buf)
+	  (gnus-inhibit-demon t)
+	  artlist)
       (message "Opening server %s" server)
       (condition-case ()
-	  (when (nnimap-open-server server defs) ;; xxx
-	    (setq buf nnimap-server-buffer) ;; xxx
-	    (message "Searching %s..." group)
-            (let ((arts 0)
-                  (mbx (gnus-group-real-name group)))
-              (when (imap-mailbox-select mbx nil buf)
-                (mapc
-                 (lambda (artnum)
-                   (push (vector group artnum 1) artlist)
-                   (setq arts (1+ arts)))
-                 (imap-search (nnir-imap-make-query criteria qstring) buf))
-                (message "Searching %s... %d matches" mbx arts)))
-            (message "Searching %s...done" group))
-        (quit nil))
+	  (when (nnimap-possibly-change-group (gnus-group-short-name group) server)
+	    (with-current-buffer (nnimap-buffer)
+	      (message "Searching %s..." group)
+	      (let ((arts 0)
+		    (result
+		     (nnimap-command "UID SEARCH  %s" 
+				     (nnir-imap-make-query criteria qstring))))
+		(mapc
+		 (lambda (artnum)
+		   (push (vector group artnum 1) artlist)
+		   (setq arts (1+ arts)))
+		 (and (car result)
+		      (delete 0 (mapcar #'string-to-number
+					(cdr (assoc "SEARCH" (cdr result)))))))
+		(message "Searching %s... %d matches" group arts)))
+	    (message "Searching %s...done" group))
+	(quit nil))
       (reverse artlist))))
 
 (defun nnir-imap-make-query (criteria qstring)

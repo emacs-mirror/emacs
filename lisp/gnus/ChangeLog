@@ -1,5 +1,63 @@
 2010-09-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-start.el (gnus-use-backend-marks): New variable.
+	(gnus-get-unread-articles-in-group): Use it.
+
+	* gnus-sum.el (gnus-summary-local-variables): Prepare for list/range
+	makeover.
+
+2010-09-23  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnimap.el (nnimap-retrieve-headers): Return 'headers.
+
+2010-09-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-fixup-nnimap-unread-after-getting-new-news):
+	Removed.
+	(gnus-setup-news-hook): Removed
+	gnus-fixup-nnimap-unread-after-getting-new-news.
+
+	* gnus-int.el (gnus-request-update-info): Protect against backends not
+	having the function.
+
+	* nnimap.el (nnimap-stream): Mention starttls.
+	(nnimap-open-connection): Add starttls support.
+
+2010-09-23  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (nnir-run-imap): Fix up nnir to work with the new nnimap.
+
+2010-09-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-transform-headers): Don't bug out on invalid
+	BODYSTRUCTUREs.
+	(nnimap-transform-headers): Unfold quoted {42} headers.
+
+	* gnus-start.el (gnus-get-unread-articles): Allow backends to update
+	the info.
+	(gnus-get-unread-articles): Only call updatep on backends that support
+	it.
+
+	* nnweb.el (nnweb-request-update-info): NOOP.
+
+	* nnmaildir.el (nnmaildir-request-marks): Renamed from -update-info.
+
+	* nnfolder.el (nnfolder-request-marks): Renamed from -update-info,
+	since it only deals with marks.
+
+	* gnus-int.el (gnus-request-marks): Renamed gnus-request-update-info to
+	gnus-request-marks, and make a new gnus-request-update-info.
+
+	* nnimap.el (nnimap-update-info): When UIDNEXT is present, use that for
+	the active instead of the high number, which is usually too low.
+
+2010-09-23  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* netrc.el (netrc-parse): Remove encrypt.el mentions.
+	* encrypt.el: Removed.
+
+2010-09-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
 	* nnimap.el (nnimap-update-info): Sync non-standard flags from the
 	server in symbolic form.
 
@@ -21,11 +79,6 @@
 	* gnus-start.el (gnus-get-unread-articles): Don't have
 	`gnus-get-unread-articles-in-group' update info, since that can be
 	really slow and doesn't seem to be needed?
-
-2010-09-22  Dan Christensen  <jdc@uwo.ca>
-
-	* time-date.el (date-to-time): Try using parse-time-string first before
-	using the slower timezone-make-date-arpa-standard.
 
 2010-09-22  Julien Danjou  <julien@danjou.info>
 
@@ -84,11 +137,9 @@
 
 2010-09-22  Julien Danjou  <julien@danjou.info>
 
-	* gnus-html.el (gnus-html-rescale-image): Use window-inside-pixel-edges
-	rather than window-pixel-edges.
-	(gnus-html-put-image): Stop using markers. They are harmful if you have
-	2 images side-by-side, they can't be properly update on text deletion.
-	Using text-property is safer here.
+	* gnus-html.el (gnus-html-put-image): Stop using markers. They are
+	harmful if you have 2 images side-by-side, they can't be properly
+	update on text deletion.  Using text-property is safer here.
 	(gnus-html-image-fetched): Search also for \r\n\r\n to get the start of
 	data.
 
