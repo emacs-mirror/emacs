@@ -34,14 +34,10 @@
 ;;; .netrc and .authinfo rc parsing
 ;;;
 
-;; use encrypt if loaded (encrypt-file-alist has to be set as well)
-(autoload 'encrypt-find-model "encrypt")
-(autoload 'encrypt-insert-file-contents "encrypt")
 (defalias 'netrc-point-at-eol
   (if (fboundp 'point-at-eol)
       'point-at-eol
     'line-end-position))
-(defvar encrypt-file-alist)
 (eval-when-compile
   ;; This is unnecessary in the compiled version as it is a macro.
   (if (fboundp 'bound-and-true-p)
@@ -74,12 +70,8 @@
 	(let ((tokens '("machine" "default" "login"
 			"password" "account" "macdef" "force"
 			"port"))
-	      (encryption-model (when (netrc-bound-and-true-p encrypt-file-alist)
-				  (encrypt-find-model file)))
 	      alist elem result pair)
-	  (if encryption-model
-	      (encrypt-insert-file-contents file encryption-model)
-	    (insert-file-contents file))
+          (insert-file-contents file)
 	  (goto-char (point-min))
 	  ;; Go through the file, line by line.
 	  (while (not (eobp))

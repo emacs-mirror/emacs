@@ -1,3 +1,7 @@
+2010-09-23  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/netrc.el (netrc-parse): Remove encrypt.el mentions.
+
 2010-09-22  Dan Christensen  <jdc@uwo.ca>
 
 	* calendar/time-date.el (date-to-time): Try using parse-time-string
