@@ -1996,8 +1996,7 @@ functions for snarfing info on the group.
 @vindex gnus-group-update-hook
 @findex gnus-group-highlight-line
 @code{gnus-group-update-hook} is called when a group line is changed.
-It will not be called when @code{gnus-visual} is @code{nil}.  This hook
-calls @code{gnus-group-highlight-line} by default.
+It will not be called when @code{gnus-visual} is @code{nil}.
 
 
 @node Group Maneuvering

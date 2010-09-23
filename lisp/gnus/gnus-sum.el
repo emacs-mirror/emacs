@@ -5976,6 +5976,10 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 	    (when add
 	      (push (list add 'add (list (cdr type))) delta-marks))
 	    (when del
+	      ;; Don't delete marks from outside the active range.  This
+	      ;; shouldn't happen, but is a sanity check.
+	      (setq del (gnus-sorted-range-intersection
+			 (gnus-active gnus-newsgroup-name) del))
 	      (push (list del 'del (list (cdr type))) delta-marks))))
 
 	(when list

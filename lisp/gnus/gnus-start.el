@@ -1757,8 +1757,7 @@ If SCAN, request a scan of that group as well."
 	  (when (gnus-check-backend-function
 		 'retrieve-group-data-early (car method))
 	    (when (gnus-check-backend-function 'request-scan (car method))
-	      (dolist (info infos)
-		(gnus-request-scan (gnus-info-group info) method)))
+	      (gnus-request-scan nil method))
 	    (setcar (nthcdr 3 elem)
 		    (gnus-retrieve-group-data-early method infos))))))
 
@@ -1770,8 +1769,7 @@ If SCAN, request a scan of that group as well."
 	  (gnus-read-active-for-groups method infos early-data)
 	  (dolist (info infos)
 	    (inline (gnus-get-unread-articles-in-group
-		     info (gnus-active (gnus-info-group info))
-		     t))))))
+		     info (gnus-active (gnus-info-group info))))))))
     (gnus-message 6 "Checking new news...done")))
 
 (defun gnus-method-rank (type method)
@@ -1806,8 +1804,7 @@ If SCAN, request a scan of that group as well."
       (gnus-agent-save-active method))
      ((gnus-check-backend-function 'retrieve-groups (car method))
       (when (gnus-check-backend-function 'request-scan (car method))
-	(dolist (info infos)
-	  (gnus-request-scan (gnus-info-group info) method)))
+	(gnus-request-scan nil method))
       (let (groups)
 	(gnus-read-active-file-2
 	 (dolist (info infos (nreverse groups))
@@ -2055,10 +2052,7 @@ If SCAN, request a scan of that group as well."
 			  (gnus-online method))
 		     (not gnus-agent))
 		 (gnus-check-backend-function 'request-scan (car method)))
-	(if infos
-	    (dolist (info infos)
-	      (gnus-request-scan (gnus-info-group info) method))
-	  (gnus-request-scan nil method)))
+	(gnus-request-scan nil method))
       (cond
        ((and (eq gnus-read-active-file 'some)
 	     (gnus-check-backend-function 'retrieve-groups (car method))

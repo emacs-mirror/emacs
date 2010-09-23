@@ -62,11 +62,6 @@ Values are `ssl' and `network'.")
 (defvoo nnimap-inbox nil
   "The mail box where incoming mail arrives and should be split out of.")
 
-(defvoo nnimap-expunge-inbox nil
-  "If non-nil, expunge the inbox after fetching mail.
-This is always done if the server supports UID EXPUNGE, but it's
-not done by default on servers that doesn't support that command.")
-
 (defvoo nnimap-authenticator nil
   "How nnimap authenticate itself to the server.
 Possible choices are nil (use default methods) or `anonymous'.")
@@ -78,7 +73,11 @@ will fetch all parts that have types that match that string.  A
 likely value would be \"text/\" to automatically fetch all
 textual parts.")
 
-(defvoo nnimap-expunge nil)
+(defvoo nnimap-expunge t
+  "If non-nil, expunge articles after deleting them.
+This is always done if the server supports UID EXPUNGE, but it's
+not done by default on servers that doesn't support that command.")
+
 
 (defvoo nnimap-connection-alist nil)
 
@@ -92,14 +91,14 @@ textual parts.")
   "Internal variable with default value for `nnimap-split-download-body'.")
 
 (defstruct nnimap
-  group process commands capabilities select-result newlinep)
+  group process commands capabilities select-result newlinep server)
 
 (defvar nnimap-object nil)
 
 (defvar nnimap-mark-alist
-  '((read "\\Seen")
-    (tick "\\Flagged")
-    (reply "\\Answered")
+  '((read "\\Seen" %Seen)
+    (tick "\\Flagged" %Flagged)
+    (reply "\\Answered" %Answered)
     (expire "gnus-expire")
     (dormant "gnus-dormant")
     (score "gnus-score")
@@ -213,7 +212,8 @@ textual parts.")
     (buffer-disable-undo)
     (gnus-add-buffer)
     (set (make-local-variable 'after-change-functions) nil)
-    (set (make-local-variable 'nnimap-object) (make-nnimap))
+    (set (make-local-variable 'nnimap-object)
+	 (make-nnimap :server (nnoo-current-server 'nnimap)))
     (push (list buffer (current-buffer)) nnimap-connection-alist)
     (current-buffer)))
 
@@ -421,8 +421,9 @@ textual parts.")
 	      (goto-char (point-max))
 	      (cond
 	       (marks
-		(setq high (nth 3 (car marks))
-		      low (nth 4 (car marks))))
+		(let ((uidnext (nth 5 (car marks))))
+		  (setq high (or (nth 3 (car marks)) (1- uidnext))
+			low (or (nth 4 (car marks)) uidnext))))
 	       ((re-search-backward "UIDNEXT \\([0-9]+\\)" nil t)
 		(setq high (1- (string-to-number (match-string 1)))
 		      low 1)))))
@@ -502,7 +503,8 @@ textual parts.")
     nil)
    (t
     (let ((deletable-articles
-	   (if force
+	   (if (or force
+		   (eq nnmail-expiry-wait 'immediate))
 	       articles
 	     (gnus-sorted-intersection
 	      articles
@@ -587,9 +589,9 @@ textual parts.")
 
 (deffoo nnimap-request-scan (&optional group server)
   (when (and (nnimap-possibly-change-group nil server)
-	     (equal group nnimap-inbox)
 	     nnimap-inbox
 	     nnimap-split-methods)
+    (message "nnimap %s splitting mail..." server)
     (nnimap-split-incoming-mail)))
 
 (defun nnimap-marks-to-flags (marks)
@@ -667,6 +669,7 @@ textual parts.")
 	  sequences responses)
       (when groups
 	(with-current-buffer (nnimap-buffer)
+	  (setf (nnimap-group nnimap-object) nil)
 	  (dolist (group groups)
 	    (push (list (nnimap-send-command "EXAMINE %S" (utf7-encode group t))
 			group)
@@ -716,6 +719,7 @@ textual parts.")
 		groups))
 	;; Then request the data.
 	(erase-buffer)
+	(setf (nnimap-group nnimap-object) nil)
 	(dolist (elem groups)
 	  (if (and qresyncp
 		   (nth 2 elem))
@@ -773,7 +777,8 @@ textual parts.")
 
 (defun nnimap-update-info (info marks)
   (when marks
-    (destructuring-bind (existing flags high low uidnext start-article) marks
+    (destructuring-bind (existing flags high low uidnext start-article
+				  permanent-flags) marks
       (let ((group (gnus-info-group info))
 	    (completep (and start-article
 			    (= start-article 1))))
@@ -784,16 +789,18 @@ textual parts.")
 			     (if high
 				 (cons low high)
 			       ;; No articles in this group.
-			       (cons (1- uidnext) uidnext)))
-	  (setcdr (gnus-active group) high))
+			       (cons uidnext (1- uidnext))))
+	  (setcdr (gnus-active group) (or high (1- uidnext))))
+	(unless high
+	  (setq high (1- uidnext)))
 	;; Then update the list of read articles.
 	(let* ((unread
 		(gnus-compress-sequence
 		 (gnus-set-difference
 		  (gnus-set-difference
 		   existing
-		   (cdr (assoc "\\Seen" flags)))
-		  (cdr (assoc "\\Flagged" flags)))))
+		   (cdr (assoc '%Seen flags)))
+		  (cdr (assoc '%Flagged flags)))))
 	       (read (gnus-range-difference
 		      (cons start-article high) unread)))
 	  (when (> start-article 1)
@@ -815,8 +822,10 @@ textual parts.")
 	      (push (cons 'active (gnus-active group)) marks)))
 	  (dolist (type (cdr nnimap-mark-alist))
 	    (let ((old-marks (assoc (car type) marks))
-		  (new-marks (gnus-compress-sequence
-			      (cdr (assoc (cadr type) flags)))))
+		  (new-marks
+		   (gnus-compress-sequence
+		    (cdr (or (assoc (caddr type) flags)	    ; %Flagged
+			     (assoc (cadr type) flags)))))) ; "\Flagged"
 	      (setq marks (delq old-marks marks))
 	      (pop old-marks)
 	      (when (and old-marks
@@ -838,12 +847,13 @@ textual parts.")
       (push (list group info active) nnimap-current-infos))))
 
 (defun nnimap-flags-to-marks (groups)
-  (let (data group totalp uidnext articles start-article mark)
+  (let (data group totalp uidnext articles start-article mark permanent-flags)
     (dolist (elem groups)
       (setq group (car elem)
-	    uidnext (cadr elem)
-	    start-article (caddr elem)
-	    articles (cdddr elem))
+	    uidnext (nth 1 elem)
+	    start-article (nth 2 elem)
+	    permanent-flags (nth 3 elem)
+	    articles (nthcdr 4 elem))
       (let ((high (caar articles))
 	    marks low existing)
 	(dolist (article articles)
@@ -853,36 +863,49 @@ textual parts.")
 	    (setq mark (assoc flag marks))
 	    (if (not mark)
 		(push (list flag (car article)) marks)
-	      (setcdr mark (cons (car article) (cdr mark)))))
-	  (push (list group existing marks high low uidnext start-article)
-		data))))
+	      (setcdr mark (cons (car article) (cdr mark))))))
+	(push (list group existing marks high low uidnext start-article
+		    permanent-flags)
+	      data)))
     data))
 
 (defun nnimap-parse-flags (sequences)
   (goto-char (point-min))
-  (let (start end articles groups uidnext elems)
+  ;; Change \Delete etc to %Delete, so that the reader can read it.
+  (subst-char-in-region (point-min) (point-max)
+			?\\ ?% t)
+  (let (start end articles groups uidnext elems permanent-flags)
     (dolist (elem sequences)
       (destructuring-bind (group-sequence flag-sequence totalp group) elem
+	(setq start (point))
 	;; The EXAMINE was successful.
 	(when (and (search-forward (format "\n%d OK " group-sequence) nil t)
 		   (progn
 		     (forward-line 1)
-		     (setq start (point))
-		     (if (re-search-backward "UIDNEXT \\([0-9]+\\)"
-					       (or end (point-min)) t)
-			 (setq uidnext (string-to-number (match-string 1)))
-		       (setq uidnext nil))
-		     (goto-char start))
+		     (setq end (point))
+		     (goto-char start)
+		     (setq permanent-flags
+			   (and (search-forward "PERMANENTFLAGS "
+						 (or end (point-min)) t)
+				(read (current-buffer))))
+		     (goto-char start)
+		     (setq uidnext
+			   (and (search-forward "UIDNEXT "
+						 (or end (point-min)) t)
+				(read (current-buffer))))
+		     (goto-char end)
+		     (forward-line -1))
 		   ;; The UID FETCH FLAGS was successful.
 		   (search-forward (format "\n%d OK " flag-sequence) nil t))
-	  (setq end (point))
-	  (goto-char start)
-	  (while (re-search-forward "^\\* [0-9]+ FETCH (\\(.*\\))" end t)
-	    (setq elems (nnimap-parse-line (match-string 1)))
-	    (push (cons (string-to-number (cadr (member "UID" elems)))
-			(cadr (member "FLAGS" elems)))
+	  (setq start (point))
+	  (goto-char end)
+	  (while (search-forward " FETCH " start t)
+	    (setq elems (read (current-buffer)))
+	    (push (cons (cadr (memq 'UID elems))
+			(cadr (memq 'FLAGS elems)))
 		  articles))
-	  (push (nconc (list group uidnext totalp) articles) groups)
+	  (push (nconc (list group uidnext totalp permanent-flags) articles)
+		groups)
 	  (setq articles nil))))
     groups))
 
@@ -1085,32 +1108,38 @@ textual parts.")
 	(nnmail-split-incoming (current-buffer)
 			       #'nnimap-save-mail-spec
 			       nil nil
-			       #'nnimap-dummy-active-number)
+			       #'nnimap-dummy-active-number
+			       #'nnimap-save-mail-spec)
 	(when nnimap-incoming-split-list
 	  (let ((specs (nnimap-make-split-specs nnimap-incoming-split-list))
-		sequences)
+		sequences junk-articles)
 	    ;; Create any groups that doesn't already exist on the
 	    ;; server first.
 	    (dolist (spec specs)
-	      (unless (member (car spec) groups)
+	      (when (and (not (member (car spec) groups))
+			 (not (eq (car spec) 'junk)))
 		(nnimap-command "CREATE %S" (utf7-encode (car spec) t))))
 	    ;; Then copy over all the messages.
 	    (erase-buffer)
 	    (dolist (spec specs)
 	      (let ((group (car spec))
 		    (ranges (cdr spec)))
-		(push (list (nnimap-send-command "UID COPY %s %S"
-						 (nnimap-article-ranges ranges)
-						 (utf7-encode group t))
-			    ranges)
-		      sequences)))
+		(if (eq group 'junk)
+		    (setq junk-articles ranges)
+		  (push (list (nnimap-send-command
+			       "UID COPY %s %S"
+			       (nnimap-article-ranges ranges)
+			       (utf7-encode group t))
+			      ranges)
+			sequences))))
 	    ;; Wait for the last COPY response...
 	    (when sequences
 	      (nnimap-wait-for-response (caar sequences))
 	      ;; And then mark the successful copy actions as deleted,
 	      ;; and possibly expunge them.
 	      (nnimap-mark-and-expunge-incoming
-	       (nnimap-parse-copied-articles sequences)))))))))
+	       (nnimap-parse-copied-articles sequences))
+	      (nnimap-mark-and-expunge-incoming junk-articles))))))))
 
 (defun nnimap-mark-and-expunge-incoming (range)
   (when range
@@ -1125,7 +1154,7 @@ textual parts.")
 	(setq sequence (nnimap-send-command "UID EXPUNGE %s" range)))
        ;; If it doesn't support UID EXPUNGE, then we only expunge if the
        ;; user has configured it.
-       (nnimap-expunge-inbox
+       (nnimap-expunge
 	(setq sequence (nnimap-send-command "EXPUNGE"))))
       (nnimap-wait-for-response sequence))))
 
@@ -1142,8 +1171,8 @@ textual parts.")
   (let (new)
     (dolist (elem flags)
       (when (or (null (cdr elem))
-		(and (not (member "\\Deleted" (cdr elem)))
-		     (not (member "\\Seen" (cdr elem)))))
+		(and (not (memq '%Deleted (cdr elem)))
+		     (not (memq '%Seen (cdr elem)))))
 	(push (car elem) new)))
     (gnus-compress-sequence (nreverse new))))
 
@@ -1190,7 +1219,10 @@ textual parts.")
     (if (not (re-search-forward "X-nnimap-article: \\([0-9]+\\)" nil t))
 	(error "Invalid nnimap mail")
       (setq article (string-to-number (match-string 1))))
-    (push (list article group-art)
+    (push (list article
+		(if (eq group-art 'junk)
+		    (list (cons 'junk 1))
+		  group-art))
 	  nnimap-incoming-split-list)))
 
 (provide 'nnimap)

@@ -292,14 +292,8 @@ If you want to modify the group buffer, you can use this hook."
   :group 'gnus-exit
   :type 'hook)
 
-(defcustom gnus-group-update-hook '(gnus-group-highlight-line gnus-group-add-icon)
-  "Hook called when a group line is changed.
-The hook will not be called if `gnus-visual' is nil.
-
-The default functions `gnus-group-highlight-line' will highlight
-the line according to the `gnus-group-highlight' variable, and
-`gnus-group-add-icon' will add an icon according to
-`gnus-group-icon-list'"
+(defcustom gnus-group-update-hook nil
+  "Hook called when a group line is changed."
   :group 'gnus-group-visual
   :type 'hook)
 
@@ -429,7 +423,6 @@ group: The name of the group.
 unread: The number of unread articles in the group.
 method: The select method used.
 mailp: Whether it's a mail group or not.
-newsp: Whether it's a news group or not
 level: The level of the group.
 score: The score of the group.
 ticked: The number of ticked articles."
@@ -1579,7 +1572,7 @@ if it is a string, only list groups matching REGEXP."
 	      ?m ? ))
 	 (gnus-tmp-moderated-string
 	  (if (eq gnus-tmp-moderated ?m) "(m)" ""))
-         (gnus-tmp-group-icon (propertize " " 'gnus-group-icon t))
+         (gnus-tmp-group-icon (gnus-group-get-icon gnus-tmp-qualified-group))
 	 (gnus-tmp-news-server (or (cadr gnus-tmp-method) ""))
 	 (gnus-tmp-news-method (or (car gnus-tmp-method) ""))
 	 (gnus-tmp-news-method-string
@@ -1626,108 +1619,85 @@ if it is a string, only list groups matching REGEXP."
 			      'gnus-tool-bar-update))
     (forward-line -1)
     (when (inline (gnus-visual-p 'group-highlight 'highlight))
-      (gnus-run-hooks 'gnus-group-update-hook))
+      (gnus-group-highlight-line gnus-tmp-group beg end))
+    (gnus-run-hooks 'gnus-group-update-hook)
     (forward-line)
     ;; Allow XEmacs to remove front-sticky text properties.
     (gnus-group-remove-excess-properties)))
 
-(defun gnus-group-highlight-line ()
-  "Highlight the current line according to `gnus-group-highlight'."
-  (let* ((list gnus-group-highlight)
-	 (p (point))
-	 (end (point-at-eol))
-	 ;; now find out where the line starts and leave point there.
-	 (beg (progn (beginning-of-line) (point)))
-	 (group (gnus-group-group-name))
-	 (entry (gnus-group-entry group))
-	 (unread (if (numberp (car entry)) (car entry) 0))
-	 (active (gnus-active group))
-	 (total (if active (1+ (- (cdr active) (car active))) 0))
-	 (info (nth 2 entry))
-	 (method (inline (gnus-server-get-method group (gnus-info-method info))))
-	 (marked (gnus-info-marks info))
-	 (mailp (apply 'append
-		       (mapcar
-			(lambda (x)
-			  (memq x (assoc (symbol-name
-					  (car (or method gnus-select-method)))
-					 gnus-valid-select-methods)))
-			'(mail post-mail))))
-	 (level (or (gnus-info-level info) gnus-level-killed))
-	 (score (or (gnus-info-score info) 0))
-	 (ticked (gnus-range-length (cdr (assq 'tick marked))))
-	 (group-age (gnus-group-timestamp-delta group))
-	 (inhibit-read-only t))
-    ;; FIXME: http://thread.gmane.org/gmane.emacs.gnus.general/65451/focus=65465
-    ;; ======================================================================
-    ;; From: Richard Stallman
-    ;; Subject: Re: Rewriting gnus-group-highlight-line (was: [...])
-    ;; Cc: ding@gnus.org
-    ;; Date: Sat, 27 Oct 2007 19:41:20 -0400
-    ;; Message-ID: <E1IlvHM-0006TS-7t@fencepost.gnu.org>
-    ;;
-    ;; [...]
-    ;; The kludge is that the alist elements contain expressions that refer
-    ;; to local variables with short names.  Perhaps write your own tiny
-    ;; evaluator that handles just `and', `or', and numeric comparisons
-    ;; and just a few specific variables.
-    ;; ======================================================================
-    ;;
-    ;; Similar for other evaluated variables.  Grep for risky-local-variable
-    ;; to find them!  -- rsteib
-    ;;
-    ;; Eval the cars of the lists until we find a match.
-    (while (and list
-		(not (eval (caar list))))
-      (setq list (cdr list)))
-    (let ((face (cdar list)))
-      (unless (eq face (get-text-property beg 'face))
-	(gnus-put-text-property-excluding-characters-with-faces
-	 beg end 'face
-	 (setq face (if (boundp face) (symbol-value face) face)))
-	(gnus-extent-start-open beg)))
-    (goto-char p)))
+(defun gnus-group-update-eval-form (group list)
+  "Eval `car' of each element of LIST, and return the first that return t.
+Some value are bound so the form can use them."
+  (when list
+    (let* ((entry (gnus-group-entry group))
+           (unread (if (numberp (car entry)) (car entry) 0))
+           (active (gnus-active group))
+           (total (if active (1+ (- (cdr active) (car active))) 0))
+           (info (nth 2 entry))
+           (method (inline (gnus-server-get-method group (gnus-info-method info))))
+           (marked (gnus-info-marks info))
+           (mailp (apply 'append
+                         (mapcar
+                          (lambda (x)
+                            (memq x (assoc (symbol-name
+                                            (car (or method gnus-select-method)))
+                                           gnus-valid-select-methods)))
+                          '(mail post-mail))))
+           (level (or (gnus-info-level info) gnus-level-killed))
+           (score (or (gnus-info-score info) 0))
+           (ticked (gnus-range-length (cdr (assq 'tick marked))))
+           (group-age (gnus-group-timestamp-delta group)))
+      ;; FIXME: http://thread.gmane.org/gmane.emacs.gnus.general/65451/focus=65465
+      ;; ======================================================================
+      ;; From: Richard Stallman
+      ;; Subject: Re: Rewriting gnus-group-highlight-line (was: [...])
+      ;; Cc: ding@gnus.org
+      ;; Date: Sat, 27 Oct 2007 19:41:20 -0400
+      ;; Message-ID: <E1IlvHM-0006TS-7t@fencepost.gnu.org>
+      ;;
+      ;; [...]
+      ;; The kludge is that the alist elements contain expressions that refer
+      ;; to local variables with short names.  Perhaps write your own tiny
+      ;; evaluator that handles just `and', `or', and numeric comparisons
+      ;; and just a few specific variables.
+      ;; ======================================================================
+      ;;
+      ;; Similar for other evaluated variables.  Grep for risky-local-variable
+      ;; to find them!  -- rsteib
+      ;;
+      ;; Eval the cars of the lists until we find a match.
+      (while (and list
+                  (not (eval (caar list))))
+        (setq list (cdr list)))
+      list)))
 
-(defun gnus-group-add-icon ()
-  "Add an icon to the current line according to `gnus-group-icon-list'."
-  (save-excursion
-    (let* ((end (line-end-position))
-           ;; now find out where the line starts and leave point there.
-           (beg (line-beginning-position)))
-      (save-restriction
-        (narrow-to-region beg end)
-        (goto-char beg)
-        (let ((mystart (text-property-any beg end 'gnus-group-icon t)))
-          (when mystart
-            (let* ((group (gnus-group-group-name))
-                   (entry (gnus-group-entry group))
-                   (unread (if (numberp (car entry)) (car entry) 0))
-                   (active (gnus-active group))
-                   (total (if active (1+ (- (cdr active) (car active))) 0))
-                   (info (nth 2 entry))
-                   (method (gnus-server-get-method group (gnus-info-method info)))
-                   (marked (gnus-info-marks info))
-                   (mailp (memq 'mail (assoc (symbol-name
-                                              (car (or method gnus-select-method)))
-                                             gnus-valid-select-methods)))
-                   (level (or (gnus-info-level info) gnus-level-killed))
-                   (score (or (gnus-info-score info) 0))
-                   (ticked (gnus-range-length (cdr (assq 'tick marked))))
-                   (group-age (gnus-group-timestamp-delta group))
-                   (inhibit-read-only t)
-                   (list gnus-group-icon-list)
-                   (myend (next-single-property-change
-                           mystart 'gnus-group-icon)))
-              (while (and list
-                          (not (eval (caar list))))
-                (setq list (cdr list)))
-              (when list
-                (put-text-property
-                 mystart myend
-                 'display
-                 (append
-                  (gnus-create-image (expand-file-name (cdar list)))
-                  '(:ascent center)))))))))))
+(defun gnus-group-highlight-line (group beg end)
+  "Highlight the current line according to `gnus-group-highlight'.
+GROUP is current group, and the line to highlight starts at START
+and ends at END."
+  (let ((face (cdar (gnus-group-update-eval-form
+                      group
+                      gnus-group-highlight))))
+    (unless (eq face (get-text-property beg 'face))
+      (let ((inhibit-read-only t))
+        (gnus-put-text-property-excluding-characters-with-faces
+         beg end 'face
+         (if (boundp face) (symbol-value face) face)))
+      (gnus-extent-start-open beg))))
+
+(defun gnus-group-get-icon (group)
+  "Return an icon for GROUP according to `gnus-group-icon-list'."
+  (if gnus-group-icon-list
+      (let ((image-path
+             (cdar (gnus-group-update-eval-form group gnus-group-icon-list))))
+        (if image-path
+            (propertize " "
+                        'display
+                        (append
+                         (gnus-create-image (expand-file-name image-path))
+                         '(:ascent center)))
+          " "))
+    " "))
 
 (defun gnus-group-update-group (group &optional visible-only)
   "Update all lines where GROUP appear.

@@ -1,8 +1,111 @@
+2010-09-22  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-parse-flags): Parse the data in any order.
+	(nnimap-update-info): Fix up code slightly.
+
+	* gnus-int.el (gnus-open-server): Add tracing for performance
+	debugging.
+
+	* gnus-group.el (gnus-group-highlight-line): Typo fix: beg, not start.
+	(gnus-group-insert-group-line): Pass the real group name so that it
+	gets the right data.
+
+	* gnus-start.el (gnus-get-unread-articles): Don't have
+	`gnus-get-unread-articles-in-group' update info, since that can be
+	really slow and doesn't seem to be needed?
+
+2010-09-22  Dan Christensen  <jdc@uwo.ca>
+
+	* time-date.el (date-to-time): Try using parse-time-string first before
+	using the slower timezone-make-date-arpa-standard.
+
+2010-09-22  Julien Danjou  <julien@danjou.info>
+
+	* gnus-group.el (gnus-group-insert-group-line): Call
+	gnus-group-highlight-line.
+	(gnus-group-update-hook): Remove gnus-group-highlight-line from the
+	default hook list.
+	(gnus-group-update-eval-form): Add new function.
+	(gnus-group-highlight-line): Use gnus-group-update-eval-form.
+	(gnus-group-get-icon): Use gnus-group-update-eval-form.
+
+2010-09-22  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-request-expire-articles): If nnmail-expiry-wait is
+	immediate, then expire all articles.
+	(nnimap-update-info): Fix off-by-one errors.
+	(nnimap-flags-to-marks): Would return no marks lists for group with no
+	flags.  Instead return the other data.
+
+2010-09-22  Julien Danjou  <julien@danjou.info>
+
+	* gnus-group.el (gnus-group-get-icon): Renamed gnus-group-add-icon that
+	Only return an icon.
+	(gnus-group-insert-group-line): Compute icon to return.
+
+	* gnus-html.el (gnus-html-image-automatic-caching): Add custom
+	variable.
+	(gnus-html-image-fetched): Only cache if
+	gnus-html-image-automatic-caching is set.
+	(gnus-html-image-fetched): Check for errors.
+
+2010-09-22  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-start.el (gnus-read-active-for-groups): Only run -request-scan
+	once per method on `g'.  This ensures that backends like nnfolder don't
+	open all their folders.
+
+	* nnimap.el (nnimap-split-incoming-mail): Delete 'junk.
+	(nnimap-request-list): Nix out group in the correct buffer.
+	(nnimap-parse-flags): Implement by using `read' instead of
+	hand-parsing.
+	(nnimap-flags-to-marks): Pass on permanent-flags.
+	(nnimap-make-process-buffer): Record the server name.
+	(nnimap-parse-flags): Fix typo.
+	(nnimap-request-scan): Run split on the server in general, not just a
+	single group.
+
+	* nnmail.el (nnmail-split-incoming): Take an optional junk-func
+	parameter, and propagate this downwards.
+
+	* nnimap.el (nnimap-request-list): Set the current nnimap group to nil,
+	since EXAMINE changes it on the server.
+
+	* gnus-int.el (gnus-request-expire-articles): Inhibit the daemon, since
+	this command might take a while.
+
+2010-09-22  Julien Danjou  <julien@danjou.info>
+
+	* gnus-html.el (gnus-html-rescale-image): Use window-inside-pixel-edges
+	rather than window-pixel-edges.
+	(gnus-html-put-image): Stop using markers. They are harmful if you have
+	2 images side-by-side, they can't be properly update on text deletion.
+	Using text-property is safer here.
+	(gnus-html-image-fetched): Search also for \r\n\r\n to get the start of
+	data.
+
+2010-09-22  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-expunge-inbox): Removed.
+	(nnimap-mark-and-expunge-incoming): Use nnimap-expunge instead.
+	(nnimap-expunge): Flip default to t.
+
+	* gnus.el (gnus-method-to-server): Don't push things to the cache
+	unless it's unique.
+	(gnus-server-to-method): Ditto.
+
 2010-09-22  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* nnimap.el (nnimap-delete-article): Tell user if expunge won't happen.
 
 2010-09-22  Julien Danjou  <julien@danjou.info>
+
+	* gnus-html.el (gnus-html-get-image-data): Search also for \r\n\r\n to
+	get the start of data.
+	(gnus-html-encode-url): Add this function to encode special chars in
+	URL.
+	(gnus-html-wash-images): Use gnus-html-encode-url to encode URL.
+	(gnus-html-prefetch-images): Use gnus-html-encode-url to encode URL.
 
 	* gnus-group.el (gnus-group-update-hook): Call gnus-group-add-icon by
 	default.
@@ -18,6 +121,19 @@
 	* mm-util.el (mm-decompress-buffer)
 	* nnir.el (nnir-run-find-grep)
 	* pop3.el (pop3-list): Use 3rd arg of split-string.
+
+2010-09-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-update-marks): Add sanity check to not delete marks
+	outside the active range.  Suggested by Dan Christensen.
+
+	* gnus-start.el (gnus-get-unread-articles): Get the extended method
+	slightly later to avoid double-getting it.
+
+	* nnml.el (nnml-generate-nov-file): Fix variable name clobbering from
+	previous patch.
+
+	* gnus-sum.el (gnus-adjust-marked-articles): Fix another typo.
 
 2010-09-21  Adam Sjøgren  <asjo@koldfront.dk>
 
@@ -102,6 +218,9 @@
 	* rfc2047.el (rfc2047-encode-parameter): Doc fix.
 
 2010-09-20  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-group-line-format-alist): Have the ?U (unseen)
+	spec inser "*" if the group isn't active instead of 0.
 
 	* nnimap.el (nnimap-request-group): Don't select the imap buffer before
 	opening the server.
@@ -369,7 +488,7 @@
 
 	* dgnushack.el: Define netrc-credentials.
 
-2010-09-17  Julien Danjou  <julien@danjou.info>  (tiny fix)
+2010-09-17  Julien Danjou  <julien@danjou.info>
 
 	* mm-decode.el (mm-text-html-renderer): Document gnus-article-html.
 
@@ -438,6 +557,9 @@
 	* gnus-html.el: Require gnus-art for `gnus-with-article-buffer'.
 
 2010-09-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-registry.el (gnus-registry-install-shortcuts): The second
+	parameter to unintern is mandatory-ish in Emacs 24.
 
 	* gnus-html.el (gnus-html-schedule-image-fetching)
 	(gnus-html-prefetch-images): Check for curl before using it.
