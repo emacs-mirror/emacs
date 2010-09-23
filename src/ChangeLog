@@ -21,7 +21,8 @@
 	(boyer_moore, wordify, Freplace_match): Use EMACS_INT for buffer
 	and string positions and length.
 
-	* lisp.h (scan_buffer, scan_newline, find_next_newline_no_quit, find_before_next_newline)
+	* lisp.h (scan_buffer, scan_newline, find_next_newline_no_quit)
+	(find_before_next_newline): Adjust prototypes.
 
 	* editfns.c (transpose_markers, update_buffer_properties)
 	(buildmark, clip_to_bounds, Fgoto_char, overlays_around)
