@@ -1,5 +1,8 @@
 2010-09-23  Glenn Morris  <rgm@gnu.org>
 
+	* comint.el (comint-use-prompt-regexp-instead-of-fields):
+	Move alias before definition, so it does not need autoloading.
+
 	* emulation/crisp.el, emulation/cua-base.el, emulation/edt.el:
 	* emulation/pc-select.el, emulation/vip.el, international/iso-ascii.el:
 	* international/kkc.el, international/ogonek.el, mail/feedmail.el:
