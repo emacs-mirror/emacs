@@ -1,5 +1,9 @@
 2010-09-23  Glenn Morris  <rgm@gnu.org>
 
+	* url-cache.el (url-is-cached): Doc fix.
+
+2010-09-23  Glenn Morris  <rgm@gnu.org>
+
 	* url-cache.el (url-cache-expired): Don't autoload.
 	Tweak previous change.
 	(url-cache-expire-time): Doc fix.

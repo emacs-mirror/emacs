@@ -599,12 +599,18 @@ that may or may not have a name.)")
   "Return a list of scoped types by name for the current context at POINT.
 This is very different for various languages, and does nothing unless
 overridden."
-  (if point (goto-char point))
-  (let ((case-fold-search semantic-case-fold))
-    ;; We need to look at TYPES within the bounds of locally parse arguments.
-    ;; C needs to find using statements and the like too.  Bleh.
-    nil
-    ))
+  nil)
+
+(define-overloadable-function semantic-ctxt-imported-packages (&optional point)
+  "Return a list of package tags or names which are being imported at POINT.
+The return value is a list of strings which are package names
+that are implied in code.  Thus a C++ symbol:
+  foo::bar();
+where there is a statement such as:
+  using baz;
+means that the first symbol might be:
+  baz::foo::bar();"
+  nil)
 
 (provide 'semantic/ctxt)
 

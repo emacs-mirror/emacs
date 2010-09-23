@@ -1377,7 +1377,7 @@ Return t if new char is non-empty."
                                    (g (nth 1 crgb))
                                    (b (nth 2 crgb))
                                    (brightness (/ (+ r g b) 3.0 256 256))
-                                   (val (sin (* brightness (/ pi 2))))
+                                   (val (sin (* brightness (/ float-pi 2))))
                                    (rr (* red val))
                                    (gg (* green val))
                                    (bb (* blue val))

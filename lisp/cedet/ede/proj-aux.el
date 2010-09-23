@@ -29,7 +29,7 @@
 
 ;;; Code:
 (defclass ede-proj-target-aux (ede-proj-target)
-  ((sourcetype :initform (ede-aux-source)))
+  ((sourcetype :initform '(ede-aux-source)))
   "This target consists of aux files such as READMEs and COPYING.")
 
 (defvar ede-aux-source

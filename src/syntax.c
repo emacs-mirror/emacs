@@ -559,6 +559,7 @@ back_comment (EMACS_INT from, EMACS_INT from_byte, EMACS_INT stop, int comnested
     {
       int temp_byte, prev_syntax;
       int com2start, com2end;
+      int comstart;
 
       /* Move back and examine a character.  */
       DEC_BOTH (from, from_byte);
@@ -578,7 +579,8 @@ back_comment (EMACS_INT from, EMACS_INT from_byte, EMACS_INT stop, int comnested
 		       || SYNTAX_FLAGS_COMMENT_NESTED (syntax)) == comnested);
       com2end = (SYNTAX_FLAGS_COMEND_FIRST (syntax)
 		 && SYNTAX_FLAGS_COMEND_SECOND (prev_syntax));
-
+      comstart = (com2start || code == Scomment);
+      
       /* Nasty cases with overlapping 2-char comment markers:
 	 - snmp-mode: -- c -- foo -- c --
 	              --- c --
@@ -589,15 +591,16 @@ back_comment (EMACS_INT from, EMACS_INT from_byte, EMACS_INT stop, int comnested
 		      ///   */
 
       /* If a 2-char comment sequence partly overlaps with another,
-	 we don't try to be clever.  */
-      if (from > stop && (com2end || com2start))
+	 we don't try to be clever.  E.g. |*| in C, or }% in modes that
+	 have %..\n and %{..}%.  */
+      if (from > stop && (com2end || comstart))
 	{
 	  int next = from, next_byte = from_byte, next_c, next_syntax;
 	  DEC_BOTH (next, next_byte);
 	  UPDATE_SYNTAX_TABLE_BACKWARD (next);
 	  next_c = FETCH_CHAR_AS_MULTIBYTE (next_byte);
 	  next_syntax = SYNTAX_WITH_FLAGS (next_c);
-	  if (((com2start || comnested)
+	  if (((comstart || comnested)
 	       && SYNTAX_FLAGS_COMEND_SECOND (syntax)
 	       && SYNTAX_FLAGS_COMEND_FIRST (next_syntax))
 	      || ((com2end || comnested)

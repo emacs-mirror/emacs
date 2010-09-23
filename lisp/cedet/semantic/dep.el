@@ -208,7 +208,8 @@ provided mode, not from the current major mode."
 	       mode 'semantic-dependency-system-include-path))
 	(edesys (when (and (featurep 'ede) ede-minor-mode
 			   ede-object)
-		  (ede-system-include-path ede-object)))
+		  (ede-system-include-path
+		   (if (listp ede-object) (car ede-object) ede-object))))
 	(locp (mode-local-value
 	       mode 'semantic-dependency-include-path))
 	(found nil))

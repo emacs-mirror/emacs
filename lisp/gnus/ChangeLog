@@ -1,3 +1,8 @@
+2010-09-21  Glenn Morris  <rgm@gnu.org>
+
+	* message.el (message-output): Use gnus-output-to-rmail if a buffer is
+	visiting the fcc file in rmail-mode.
+
 2010-09-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* nnimap.el (nnimap-update-info): Sync non-standard flags from the
