@@ -2315,6 +2315,9 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\)\\'" . archive-mode)
      ;; eCos uses "ld" and "ldi".  Netbsd uses "ldscript.*".
      ("\\.ld[si]?\\'" . ld-script-mode)
      ("ld\\.?script\\'" . ld-script-mode)
+     ;; .xs is also used for ld scripts, but seems to be more commonly
+     ;; associated with Perl .xs files (C with Perl bindings).  (Bug#7071)
+     ("\\.xs\\'" . c-mode)
      ("\\.x[bdsru]?[cn]?\\'" . ld-script-mode)
      ;; Common Lisp ASDF package system.
      ("\\.asd\\'" . lisp-mode)
