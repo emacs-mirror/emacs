@@ -8,6 +8,13 @@
 
 2010-09-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* lisp.h: doprnt.c EMACS_INT/int cleanup.
+
+	* doprnt.c (doprnt): EMACS_INT/int cleanup.
+
+	* doc.c (Fsnarf_documentation, get_doc_string): EMACS_INT/int
+	cleanup.
+
 	* lisp.h: Change the definition of all marker.c functions that
 	take and return buffer stuff to be EMACS_INT instead of int.
 

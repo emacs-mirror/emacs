@@ -2816,7 +2816,7 @@ extern void float_to_string (unsigned char *, double);
 extern void syms_of_print (void);
 
 /* Defined in doprnt.c */
-extern int doprnt (char *, int, const char *, const char *, va_list);
+extern EMACS_INT doprnt (char *, int, const char *, const char *, va_list);
 
 /* Defined in lread.c */
 extern Lisp_Object Vafter_load_alist;
