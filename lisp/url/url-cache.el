@@ -33,7 +33,8 @@
   :group 'url-file)
 
 (defcustom url-cache-expire-time 3600
-  "Maximum time in seconds to keep the documents cached."
+  "Default maximum time in seconds before cache files expire.
+Used by the function `url-cache-expired'."
   :version "24.1"
   :type 'integer
   :group 'url-cache)
