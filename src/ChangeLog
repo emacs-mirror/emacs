@@ -1,5 +1,10 @@
 2010-09-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* lisp.h (SPECPDL_INDEX): Cast to int, since we're not going to
+	unwind_protect more than 2GB worth of functions.
+
+	* editfns.c (Finsert_char): EMACS_INT/int cleanup.
+
 	* lisp.h: Have oblookup take EMACS_INT to allow interning big
 	string and avoid compiler warnings.
 	(USE_SAFE_ALLOCA): Cast to int to avoid compilation warnings in

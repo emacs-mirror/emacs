@@ -1881,7 +1881,7 @@ extern int specpdl_size;
 
 extern EMACS_INT max_specpdl_size;
 
-#define SPECPDL_INDEX()	(specpdl_ptr - specpdl)
+#define SPECPDL_INDEX()	((int) (specpdl_ptr - specpdl))
 
 /* Everything needed to describe an active condition case.  */
 struct handler

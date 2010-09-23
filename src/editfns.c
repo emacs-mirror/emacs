@@ -2270,7 +2270,7 @@ from adjoining text, if those properties are sticky.  */)
   (Lisp_Object character, Lisp_Object count, Lisp_Object inherit)
 {
   register unsigned char *string;
-  register int strlen;
+  register EMACS_INT strlen;
   register int i;
   register EMACS_INT n;
   int len;
@@ -2955,7 +2955,7 @@ It returns the number of characters changed.  */)
   register unsigned char *tt;	/* Trans table. */
   register int nc;		/* New character. */
   int cnt;			/* Number of changes made. */
-  int size;			/* Size of translate table. */
+  EMACS_INT size;		/* Size of translate table. */
   EMACS_INT pos, pos_byte, end_pos;
   int multibyte = !NILP (current_buffer->enable_multibyte_characters);
   int string_multibyte;
@@ -3026,7 +3026,7 @@ It returns the number of characters changed.  */)
 	    }
 	  else
 	    {
-	      int c;
+	      EMACS_INT c;
 
 	      nc = oc;
 	      val = CHAR_TABLE_REF (table, oc);
@@ -3239,7 +3239,7 @@ save_restriction_restore (Lisp_Object data)
 	/* The restriction has changed from the saved one, so restore
 	   the saved restriction.  */
 	{
-	  int pt = BUF_PT (buf);
+	  EMACS_INT pt = BUF_PT (buf);
 
 	  SET_BUF_BEGV_BOTH (buf, beg->charpos, beg->bytepos);
 	  SET_BUF_ZV_BOTH (buf, end->charpos, end->bytepos);
