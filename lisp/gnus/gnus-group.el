@@ -295,6 +295,7 @@ If you want to modify the group buffer, you can use this hook."
 (defcustom gnus-group-update-hook nil
   "Hook called when a group line is changed."
   :group 'gnus-group-visual
+  :version "24.1"
   :type 'hook)
 
 (defcustom gnus-useful-groups
@@ -1673,7 +1674,7 @@ Some value are bound so the form can use them."
 
 (defun gnus-group-highlight-line (group beg end)
   "Highlight the current line according to `gnus-group-highlight'.
-GROUP is current group, and the line to highlight starts at START
+GROUP is current group, and the line to highlight starts at BEG
 and ends at END."
   (let ((face (cdar (gnus-group-update-eval-form
                       group

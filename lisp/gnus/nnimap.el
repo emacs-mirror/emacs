@@ -51,7 +51,7 @@ it will default to `imap'.")
 
 (defvoo nnimap-stream 'ssl
   "How nnimap will talk to the IMAP server.
-Values are `ssl' and `network'.")
+Values are `ssl', `network' or `shell'.")
 
 (defvoo nnimap-shell-program (if (boundp 'imap-shell-program)
 				 (if (listp imap-shell-program)
