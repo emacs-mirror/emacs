@@ -1,5 +1,23 @@
 2010-09-23  Eli Zaretskii  <eliz@gnu.org>
 
+	* intervals.c (traverse_intervals, rotate_right, rotate_left)
+	(balance_an_interval, split_interval_right, split_interval_left)
+	(find_interval, next_interval, update_interval)
+	(adjust_intervals_for_insertion, delete_node, delete_interval)
+	(interval_deletion_adjustment, adjust_intervals_for_deletion)
+	(offset_intervals, merge_interval_right, merge_interval_left)
+	(graft_intervals_into_buffer, adjust_for_invis_intang)
+	(move_if_not_intangible, get_local_map, copy_intervals)
+	(copy_intervals_to_string, compare_string_intervals)
+	(set_intervals_multibyte_1): Use EMACS_INT for buffer positions
+	and EMACS_UINT for interval tree size.
+
+	* intervals.h (traverse_intervals, split_interval_right)
+	(split_interval_left, find_interval, offset_intervals)
+	(graft_intervals_into_buffer, copy_intervals)
+	(copy_intervals_to_string, move_if_not_intangible, get_local_map)
+	(update_interval): Adjust prototypes.
+
 	* xdisp.c (check_point_in_composition, reconsider_clip_changes):
 	Use EMACS_INT for buffer position variables and arguments.
 
