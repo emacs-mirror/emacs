@@ -3739,7 +3739,7 @@ OBARRAY defaults to the value of the variable `obarray'.  */)
    Also store the bucket number in oblookup_last_bucket_number.  */
 
 Lisp_Object
-oblookup (Lisp_Object obarray, register const char *ptr, int size, int size_byte)
+oblookup (Lisp_Object obarray, register const char *ptr, EMACS_INT size, EMACS_INT size_byte)
 {
   int hash;
   int obsize;

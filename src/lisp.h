@@ -2839,7 +2839,7 @@ extern Lisp_Object check_obarray (Lisp_Object);
 extern Lisp_Object intern (const char *);
 extern Lisp_Object intern_c_string (const char *);
 extern Lisp_Object make_symbol (const char *);
-extern Lisp_Object oblookup (Lisp_Object, const char *, int, int);
+extern Lisp_Object oblookup (Lisp_Object, const char *, EMACS_INT, EMACS_INT);
 #define LOADHIST_ATTACH(x) \
   do {									\
     if (initialized) Vcurrent_load_list = Fcons (x, Vcurrent_load_list); \
@@ -3726,7 +3726,7 @@ extern void init_system_name (void);
 extern Lisp_Object safe_alloca_unwind (Lisp_Object);
 
 #define USE_SAFE_ALLOCA			\
-  int sa_count = SPECPDL_INDEX (), sa_must_free = 0
+  int sa_count = (int) SPECPDL_INDEX (), sa_must_free = 0
 
 /* SAFE_ALLOCA allocates a simple buffer.  */
 

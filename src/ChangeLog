@@ -1,3 +1,14 @@
+2010-09-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* lisp.h: Have oblookup take EMACS_INT to allow interning big
+	string and avoid compiler warnings.
+	(USE_SAFE_ALLOCA): Cast to int to avoid compilation warnings in
+	all users.
+
+	* lread.c (oblookup): EMACS_INT/int cleanup.
+
+	* cmds.c (Fforward_line, Fdelete_char): EMACS_INT/int cleanup.
+
 2010-09-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* editfns.c (clip_to_bounds): Return an EMACS_INT value.
