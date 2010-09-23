@@ -1,3 +1,14 @@
+2010-09-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* intervals.c (traverse_intervals, rotate_right, rotate_left)
+	(split_interval_right, find_interval, next_interval)
+	(delete_node, delete_interval, interval_deletion_adjustment)
+	(adjust_intervals_for_deletion, merge_interval_right)
+	(merge_interval_left, graft_intervals_into_buffer)
+	(copy_intervals): Convert EMACS_UINTs to EMACS_INT.
+
+	* intervals.h (traverse_intervals): Update prototype.
+
 2010-09-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* indent.c (compute_motion): Use EMACS_INT for arguments to

@@ -250,7 +250,7 @@ extern INTERVAL make_interval (void);
 extern INTERVAL create_root_interval (Lisp_Object);
 extern void copy_properties (INTERVAL, INTERVAL);
 extern int intervals_equal (INTERVAL, INTERVAL);
-extern void traverse_intervals (INTERVAL, EMACS_UINT,
+extern void traverse_intervals (INTERVAL, EMACS_INT,
                                 void (*) (INTERVAL, Lisp_Object),
                                 Lisp_Object);
 extern void traverse_intervals_noorder (INTERVAL,

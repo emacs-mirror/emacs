@@ -222,7 +222,7 @@ traverse_intervals_noorder (INTERVAL tree, void (*function) (INTERVAL, Lisp_Obje
    Pass FUNCTION two args: an interval, and ARG.  */
 
 void
-traverse_intervals (INTERVAL tree, EMACS_UINT position,
+traverse_intervals (INTERVAL tree, EMACS_INT position,
 		    void (*function) (INTERVAL, Lisp_Object), Lisp_Object arg)
 {
   while (!NULL_INTERVAL_P (tree))
@@ -317,7 +317,7 @@ rotate_right (INTERVAL interval)
 {
   INTERVAL i;
   INTERVAL B = interval->left;
-  EMACS_UINT old_total = interval->total_length;
+  EMACS_INT old_total = interval->total_length;
 
   /* Deal with any Parent of A;  make it point to B.  */
   if (! ROOT_INTERVAL_P (interval))
@@ -364,7 +364,7 @@ rotate_left (INTERVAL interval)
 {
   INTERVAL i;
   INTERVAL B = interval->right;
-  EMACS_UINT old_total = interval->total_length;
+  EMACS_INT old_total = interval->total_length;
 
   /* Deal with any parent of A;  make it point to B.  */
   if (! ROOT_INTERVAL_P (interval))
@@ -506,8 +506,8 @@ INTERVAL
 split_interval_right (INTERVAL interval, EMACS_INT offset)
 {
   INTERVAL new = make_interval ();
-  EMACS_UINT position = interval->position;
-  EMACS_UINT new_length = LENGTH (interval) - offset;
+  EMACS_INT position = interval->position;
+  EMACS_INT new_length = LENGTH (interval) - offset;
 
   new->position = position + offset;
   SET_INTERVAL_PARENT (new, interval);
@@ -618,7 +618,7 @@ find_interval (register INTERVAL tree, register EMACS_INT position)
 {
   /* The distance from the left edge of the subtree at TREE
                     to POSITION.  */
-  register EMACS_UINT relative_position;
+  register EMACS_INT relative_position;
 
   if (NULL_INTERVAL_P (tree))
     return NULL_INTERVAL;
@@ -671,7 +671,7 @@ INTERVAL
 next_interval (register INTERVAL interval)
 {
   register INTERVAL i = interval;
-  register EMACS_UINT next_position;
+  register EMACS_INT next_position;
 
   if (NULL_INTERVAL_P (i))
     return NULL_INTERVAL;
@@ -1230,7 +1230,7 @@ static INTERVAL
 delete_node (register INTERVAL i)
 {
   register INTERVAL migrate, this;
-  register EMACS_UINT migrate_amt;
+  register EMACS_INT migrate_amt;
 
   if (NULL_INTERVAL_P (i->left))
     return i->right;
@@ -1263,7 +1263,7 @@ void
 delete_interval (register INTERVAL i)
 {
   register INTERVAL parent;
-  EMACS_UINT amt = LENGTH (i);
+  EMACS_INT amt = LENGTH (i);
 
   if (amt > 0)			/* Only used on zero-length intervals now.  */
     abort ();
@@ -1313,11 +1313,11 @@ delete_interval (register INTERVAL i)
    Do this by recursing down TREE to the interval in question, and
    deleting the appropriate amount of text.  */
 
-static EMACS_UINT
-interval_deletion_adjustment (register INTERVAL tree, register EMACS_UINT from,
-			      register EMACS_UINT amount)
+static EMACS_INT
+interval_deletion_adjustment (register INTERVAL tree, register EMACS_INT from,
+			      register EMACS_INT amount)
 {
-  register EMACS_UINT relative_position = from;
+  register EMACS_INT relative_position = from;
 
   if (NULL_INTERVAL_P (tree))
     return 0;
@@ -1325,9 +1325,9 @@ interval_deletion_adjustment (register INTERVAL tree, register EMACS_UINT from,
   /* Left branch */
   if (relative_position < LEFT_TOTAL_LENGTH (tree))
     {
-      EMACS_UINT subtract = interval_deletion_adjustment (tree->left,
-							  relative_position,
-							  amount);
+      EMACS_INT subtract = interval_deletion_adjustment (tree->left,
+							 relative_position,
+							 amount);
       tree->total_length -= subtract;
       CHECK_TOTAL_LENGTH (tree);
       return subtract;
@@ -1336,7 +1336,7 @@ interval_deletion_adjustment (register INTERVAL tree, register EMACS_UINT from,
   else if (relative_position >= (TOTAL_LENGTH (tree)
 				 - RIGHT_TOTAL_LENGTH (tree)))
     {
-      EMACS_UINT subtract;
+      EMACS_INT subtract;
 
       relative_position -= (tree->total_length
 			    - RIGHT_TOTAL_LENGTH (tree));
@@ -1351,7 +1351,7 @@ interval_deletion_adjustment (register INTERVAL tree, register EMACS_UINT from,
   else
     {
       /* How much can we delete from this interval?  */
-      EMACS_UINT my_amount = ((tree->total_length
+      EMACS_INT my_amount = ((tree->total_length
 			       - RIGHT_TOTAL_LENGTH (tree))
 			      - relative_position);
 
@@ -1381,7 +1381,7 @@ adjust_intervals_for_deletion (struct buffer *buffer,
   register EMACS_INT left_to_delete = length;
   register INTERVAL tree = BUF_INTERVALS (buffer);
   Lisp_Object parent;
-  EMACS_UINT offset;
+  EMACS_INT offset;
 
   GET_INTERVAL_OBJECT (parent, tree);
   offset = (BUFFERP (parent) ? BUF_BEG (XBUFFER (parent)) : 0);
@@ -1450,7 +1450,7 @@ offset_intervals (struct buffer *buffer, EMACS_INT start, EMACS_INT length)
 INTERVAL
 merge_interval_right (register INTERVAL i)
 {
-  register EMACS_UINT absorb = LENGTH (i);
+  register EMACS_INT absorb = LENGTH (i);
   register INTERVAL successor;
 
   /* Zero out this interval.  */
@@ -1506,7 +1506,7 @@ merge_interval_right (register INTERVAL i)
 INTERVAL
 merge_interval_left (register INTERVAL i)
 {
-  register EMACS_UINT absorb = LENGTH (i);
+  register EMACS_INT absorb = LENGTH (i);
   register INTERVAL predecessor;
 
   /* Zero out this interval.  */
@@ -1680,7 +1680,7 @@ graft_intervals_into_buffer (INTERVAL source, EMACS_INT position,
 {
   register INTERVAL under, over, this, prev;
   register INTERVAL tree;
-  EMACS_UINT over_used;
+  EMACS_INT over_used;
 
   tree = BUF_INTERVALS (buffer);
 
@@ -2354,7 +2354,7 @@ INTERVAL
 copy_intervals (INTERVAL tree, EMACS_INT start, EMACS_INT length)
 {
   register INTERVAL i, new, t;
-  register EMACS_UINT got, prevlen;
+  register EMACS_INT got, prevlen;
 
   if (NULL_INTERVAL_P (tree) || length <= 0)
     return NULL_INTERVAL;
