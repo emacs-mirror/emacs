@@ -731,14 +731,6 @@ directory to store the cache files.  It defaults to sub-directory
 @file{cache} of @code{url-configuration-directory}.
 @end defopt
 
-@c Fixme: function v. option, but neither used.
-@c @findex url-cache-expired
-@c @defopt url-cache-expired
-@c This is a function to decide whether or not a cache entry has expired.
-@c It takes two times as it parameters and returns non-@code{nil} if the
-@c second time is ``too old'' when compared with the first time.
-@c @end defopt
-
 @defopt url-cache-creation-function
 The cache relies on a scheme for mapping URLs to files in the cache.
 This variable names a function which sets the type of cache to use.
@@ -746,6 +738,11 @@ It takes a URL as argument and returns the absolute file name of the
 corresponding cache file.  The two supplied possibilities are
 @code{url-cache-create-filename-using-md5} and
 @code{url-cache-create-filename-human-readable}.
+@end defopt
+
+@defopt url-cache-expire-time
+This variable defines a default time value to use as expire delay when
+checking if an URL has expired with @code{url-cache-expired}.
 @end defopt
 
 @defun url-cache-create-filename-using-md5 url
@@ -766,6 +763,19 @@ more likely to conflict with other files.
 (url-cache-create-filename-human-readable "http://www.example.com/foo/bar")
   @result{} "/home/fx/.url/cache/fx/http/com/example/www/foo/bar"
 @end smallexample
+@end defun
+
+@defun url-cache-expired
+This is a function to decide whether or not a cache entry has expired.
+It takes a an URL as it first parameters and a expiration delay in
+second paramater. It returns non-@code{nil} if URL is not cached or is
+cached for more than the give expiration delay. If the delay is not
+used, @var{url-cache-expire-time} is used instead.
+@end defun
+
+@defun url-fetch-from-cache
+This function takes an URL as its first argument and then returns a
+buffer containing the data cached for the given URL.
 @end defun
 
 @c Fixme: never actually used currently?

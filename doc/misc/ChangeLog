@@ -1,3 +1,8 @@
+2010-09-24  Julien Danjou  <julien@danjou.info>
+
+	* url.texi (Disk Caching): Mention url-cache-expire-time,
+	url-cache-expired, and url-fetch-from-cache.
+
 2010-09-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.texi (Expunging mailboxes): Update name of the expunging
