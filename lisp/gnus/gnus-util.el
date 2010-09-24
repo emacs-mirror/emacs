@@ -1661,30 +1661,14 @@ CHOICE is a list of the choice char and help message at IDX."
 	(kill-buffer buf))
     tchar))
 
-(declare-function x-focus-frame "xfns.c" (frame))
-(declare-function w32-focus-frame "../term/w32-win" (frame))
-
-(defun gnus-select-frame-set-input-focus (frame)
-  "Select FRAME, raise it, and set input focus, if possible."
-  (cond ((featurep 'xemacs)
-	 (if (fboundp 'select-frame-set-input-focus)
-	     (select-frame-set-input-focus frame)
-	   (raise-frame frame)
-	   (select-frame frame)
-	   (focus-frame frame)))
-	;; `select-frame-set-input-focus' defined in Emacs 21 will not
-	;; set the input focus.
-	((>= emacs-major-version 22)
-	 (select-frame-set-input-focus frame))
-	(t
-	 (raise-frame frame)
-	 (select-frame frame)
-	 (cond ((memq window-system '(x ns mac))
-		(x-focus-frame frame))
-	       ((eq window-system 'w32)
-		(w32-focus-frame frame)))
-	 (when focus-follows-mouse
-	   (set-mouse-position frame (1- (frame-width frame)) 0)))))
+(if (fboundp 'select-frame-set-input-focus)
+    (defalias 'gnus-select-frame-set-input-focus 'select-frame-set-input-focus)
+  ;; XEmacs 21.4, SXEmacs
+  (defun gnus-select-frame-set-input-focus (frame)
+    "Select FRAME, raise it, and set input focus, if possible."
+    (raise-frame frame)
+    (select-frame frame)
+    (focus-frame frame)))
 
 (defun gnus-frame-or-window-display-name (object)
   "Given a frame or window, return the associated display name.

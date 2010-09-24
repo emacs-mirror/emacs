@@ -39,7 +39,7 @@
 (defvar gnus-audio-inline-sound
   (or (if (fboundp 'device-sound-enabled-p)
 	  (device-sound-enabled-p))	; XEmacs
-      (fboundp 'play-sound))		; Emacs 21
+      (fboundp 'play-sound))		; Emacs
   "Non-nil means try to play sounds without using an external program.")
 
 (defcustom gnus-audio-directory (nnheader-find-etc-directory "sounds")

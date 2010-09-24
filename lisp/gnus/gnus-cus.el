@@ -50,7 +50,7 @@ if that value is non-nil."
   (setq major-mode 'gnus-custom-mode
 	mode-name "Gnus Customize")
   (use-local-map widget-keymap)
-  ;; Emacs 21 stuff:
+  ;; Emacs stuff:
   (when (and (facep 'custom-button-face)
 	     (facep 'custom-button-pressed-face))
     (set (make-local-variable 'widget-button-face)

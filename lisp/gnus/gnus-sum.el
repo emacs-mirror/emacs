@@ -11318,7 +11318,7 @@ If ARG is positive number, turn showing conversation threads on."
       (defalias 'gnus-remove-overlays 'remove-overlays)
     (defun gnus-remove-overlays (beg end name val)
       "Clear BEG and END of overlays whose property NAME has value VAL.
-For compatibility with Emacs 21 and XEmacs."
+For compatibility with XEmacs."
       (dolist (ov (gnus-overlays-in beg end))
 	(when (eq (gnus-overlay-get ov name) val)
 	  (gnus-delete-overlay ov))))))

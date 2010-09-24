@@ -34,10 +34,7 @@
 (defvar w3m-minor-mode-map)
 
 (require 'gnus)
-;; Avoid the "Recursive load suspected" error in Emacs 21.1.
-(eval-and-compile
-  (let ((recursive-load-depth-limit 100))
-    (require 'gnus-sum)))
+(require 'gnus-sum)
 (require 'gnus-spec)
 (require 'gnus-int)
 (require 'gnus-win)
@@ -4259,7 +4256,7 @@ If variable `gnus-use-long-file-name' is non-nil, it is
 		  (put-text-property (match-end 0) (point-max)
 				     'face eface)))))))))
 
-(autoload 'canlock-verify "canlock" nil t) ;; for Emacs 21.
+(autoload 'canlock-verify "canlock" nil t) ;; for XEmacs.
 
 (defun article-verify-cancel-lock ()
   "Verify Cancel-Lock header."
@@ -4894,10 +4891,7 @@ General format specifiers can also be used.  See Info node
   ;; FIXME: why is it necessary?
   (sit-for 0)
   (let ((parts (length gnus-article-mime-handle-alist)))
-    (or n (setq n
-		(string-to-number
-		 (read-string ;; Emacs 21 doesn't have `read-number'.
-		  (format "Jump to part (2..%s): " parts)))))
+    (or n (setq n (read-number (format "Jump to part (2..%s): " parts))))
     (unless (and (integerp n) (<= n parts) (>= n 1))
       (setq n
 	    (progn
@@ -5681,7 +5675,7 @@ all parts."
      :action 'gnus-widget-press-button
      :button-keymap gnus-mime-button-map
      :help-echo
-     (lambda (widget/window &optional overlay pos)
+     (lambda (widget)
        ;; Needed to properly clear the message due to a bug in
        ;; wid-edit (XEmacs only).
        (if (boundp 'help-echo-owns-message)
@@ -5689,14 +5683,7 @@ all parts."
        (format
 	"%S: %s the MIME part; %S: more options"
 	(aref gnus-mouse-2 0)
-	;; XEmacs will get a single widget arg; Emacs 21 will get
-	;; window, overlay, position.
-	(if (mm-handle-displayed-p
-	     (if overlay
-		 (with-current-buffer (gnus-overlay-buffer overlay)
-		   (widget-get (widget-at (gnus-overlay-start overlay))
-			       :mime-handle))
-	       (widget-get widget/window :mime-handle)))
+	(if (mm-handle-displayed-p (widget-get widget :mime-handle))
 	    "hide" "show")
 	(aref gnus-down-mouse-3 0))))))
 
@@ -6319,15 +6306,6 @@ specifies."
 		      2)))))))
 
 (defun gnus-article-next-page-1 (lines)
-  (unless (featurep 'xemacs)
-    ;; Protect against the bug that Emacs 21.x hangs up when scrolling up for
-    ;; too many number of lines if `scroll-margin' is set as two or greater.
-    (when (and (numberp lines)
-	       (> lines 0)
-	       (> scroll-margin 0))
-      (setq lines (min lines
-		       (max 0 (- (count-lines (window-start) (point-max))
-				 scroll-margin))))))
   (condition-case ()
       (let ((scroll-in-place nil))
 	(scroll-up lines))
@@ -6581,6 +6559,9 @@ KEY is a string or a vector."
 (defvar gnus-draft-mode)
 ;; Calling help-buffer will autoload help-mode.
 (defvar help-xref-stack-item)
+;; Emacs 22 doesn't load it in the batch mode.
+(eval-when-compile
+  (autoload 'help-buffer "help-mode"))
 
 (defun gnus-article-describe-bindings (&optional prefix)
   "Show a list of all defined keys, and their definitions.
@@ -6631,9 +6612,7 @@ then we display only bindings that start with that prefix."
 		    (with-current-buffer ,(current-buffer)
 		      (gnus-article-describe-bindings prefix)))
 		  ,prefix)))
-      (with-current-buffer (if (fboundp 'help-buffer)
-			       (let (help-xref-following) (help-buffer))
-			     "*Help*") ;; Emacs 21
+      (with-current-buffer (let (help-xref-following) (help-buffer))
 	(setq help-xref-stack-item item)))))
 
 (defun gnus-article-reply-with-original (&optional wide)
@@ -8702,7 +8681,7 @@ For example:
      :action 'gnus-widget-press-button
      :button-keymap gnus-mime-security-button-map
      :help-echo
-     (lambda (widget/window &optional overlay pos)
+     (lambda (widget)
        ;; Needed to properly clear the message due to a bug in
        ;; wid-edit (XEmacs only).
        (when (boundp 'help-echo-owns-message)

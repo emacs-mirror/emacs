@@ -1,3 +1,28 @@
+2010-09-24  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gmm-utils.el (gmm-tool-bar-from-list): Always use tool-bar-local-item
+	and tool-bar-local-item-from-menu.
+
+	* gnus-agent.el (gnus-agent-make-mode-line-string): Always use
+	mode-line-highlight face for Emacs.
+
+	* gnus-art.el (toplevel): Don't bind recursive-load-depth-limit while
+	loading gnus-sum.elc; fix comment for canlock-verify.
+	(gnus-article-jump-to-part): Use read-number.
+	(gnus-insert-mime-button, gnus-insert-mime-security-button): Remove
+	Emacs pre-21 compatible code for help-echo.
+	(gnus-article-next-page-1): No need to adjust the number of lines.
+	(gnus-article-describe-bindings): Always use help-buffer.
+
+	* gnus-audio.el (gnus-audio-inline-sound)
+	* gnus-cus.el (gnus-custom-mode)
+	* gnus-group.el (gnus-group-update-tool-bar): Comment fix.
+
+	* gnus-sum.el (gnus-remove-overlays): Doc fix.
+
+	* gnus-util.el (gnus-select-frame-set-input-focus): Remove Emacs 21
+	compatible code.
+
 2010-09-24  Glenn Morris  <rgm@gnu.org>
 
 	* message.el (message-output): Use gnus-output-to-rmail if a buffer is

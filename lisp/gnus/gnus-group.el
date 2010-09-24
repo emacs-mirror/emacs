@@ -1515,7 +1515,7 @@ if it is a string, only list groups matching REGEXP."
   (and (not (featurep 'xemacs))
        (boundp 'tool-bar-mode)
        tool-bar-mode
-       ;; Using `redraw-frame' (see `gnus-tool-bar-update') in Emacs 21 might
+       ;; Using `redraw-frame' (see `gnus-tool-bar-update') in Emacs might
        ;; be confusing, so maybe we shouldn't call it by default.
        (fboundp 'force-window-update))
   "Force updating the group buffer tool bar."
