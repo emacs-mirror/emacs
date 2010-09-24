@@ -1,5 +1,10 @@
 2010-09-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* region-cache.c (move_cache_gap, set_cache_region, pp_cache)
+	(region_cache_backward, region_cache_forward)
+	(revalidate_region_cache, set_cache_region): FIX EMACS_INT/int
+	conversion.
+
 	* xdisp.c (message_dolog): Fix EMACS_INT/int conversion.
 
 	* eval.c (verror): Fix EMACS_INT/int conversion.

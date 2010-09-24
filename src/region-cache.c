@@ -76,7 +76,7 @@ struct region_cache {
 
   /* The number of elements allocated to boundaries, not including the
      gap.  */
-  int cache_len;
+  EMACS_INT cache_len;
 
   /* The areas that haven't changed since the last time we cleaned out
      invalid entries from the cache.  These overlap when the buffer is
@@ -172,16 +172,16 @@ free_region_cache (struct region_cache *c)
    This operation should be logarithmic in the number of cache
    entries.  It would be nice if it took advantage of locality of
    reference, too, by searching entries near the last entry found.  */
-static int
+static EMACS_INT
 find_cache_boundary (struct region_cache *c, EMACS_INT pos)
 {
-  int low = 0, high = c->cache_len;
+  EMACS_INT low = 0, high = c->cache_len;
 
   while (low + 1 < high)
     {
       /* mid is always a valid index, because low < high and ">> 1"
          rounds down.  */
-      int mid = (low + high) >> 1;
+      EMACS_INT mid = (low + high) >> 1;
       EMACS_INT boundary = BOUNDARY_POS (c, mid);
 
       if (pos < boundary)
@@ -207,7 +207,7 @@ find_cache_boundary (struct region_cache *c, EMACS_INT pos)
 /* Move the gap of cache C to index POS, and make sure it has space
    for at least MIN_SIZE boundaries.  */
 static void
-move_cache_gap (struct region_cache *c, EMACS_INT pos, int min_size)
+move_cache_gap (struct region_cache *c, EMACS_INT pos, EMACS_INT min_size)
 {
   /* Copy these out of the cache and into registers.  */
   EMACS_INT gap_start = c->gap_start;
@@ -292,7 +292,7 @@ move_cache_gap (struct region_cache *c, EMACS_INT pos, int min_size)
 /* Insert a new boundary in cache C; it will have cache index INDEX,
    and have the specified POS and VALUE.  */
 static void
-insert_cache_boundary (struct region_cache *c, int index, EMACS_INT pos,
+insert_cache_boundary (struct region_cache *c, EMACS_INT index, EMACS_INT pos,
 		       int value)
 {
   /* index must be a valid cache index.  */
@@ -406,8 +406,8 @@ set_cache_region (struct region_cache *c,
        index of the earliest boundary after the last character in
        start..end.  (This tortured terminology is intended to answer
        all the "< or <=?" sort of questions.)  */
-    int start_ix = find_cache_boundary (c, start);
-    int end_ix   = find_cache_boundary (c, end - 1) + 1;
+    EMACS_INT start_ix = find_cache_boundary (c, start);
+    EMACS_INT end_ix   = find_cache_boundary (c, end - 1) + 1;
 
     /* We must remember the value established by the last boundary
        before end; if that boundary's domain stretches beyond end,
@@ -623,7 +623,7 @@ revalidate_region_cache (struct buffer *buf, struct region_cache *c)
      corresponds to the modified region of the buffer.  */
   else
     {
-      int modified_ix;
+      EMACS_INT modified_ix;
 
       /* These positions are correct, relative to both the cache basis
          and the buffer basis.  */
@@ -712,9 +712,9 @@ region_cache_forward (struct buffer *buf, struct region_cache *c,
   revalidate_region_cache (buf, c);
 
   {
-    int i = find_cache_boundary (c, pos);
+    EMACS_INT i = find_cache_boundary (c, pos);
     int i_value = BOUNDARY_VALUE (c, i);
-    int j;
+    EMACS_INT j;
 
     /* Beyond the end of the buffer is unknown, by definition.  */
     if (pos >= BUF_Z (buf))
@@ -756,9 +756,9 @@ int region_cache_backward (struct buffer *buf, struct region_cache *c,
     }
 
   {
-    int i = find_cache_boundary (c, pos - 1);
+    EMACS_INT i = find_cache_boundary (c, pos - 1);
     int i_value = BOUNDARY_VALUE (c, i);
-    int j;
+    EMACS_INT j;
 
     if (next)
       {
@@ -794,7 +794,7 @@ pp_cache (struct region_cache *c)
 
   for (i = 0; i < c->cache_len; i++)
     {
-      int pos = BOUNDARY_POS (c, i);
+      EMACS_INT pos = BOUNDARY_POS (c, i);
 
       putc (((pos < beg_u) ? 'v'
              : (pos == beg_u) ? '-'
