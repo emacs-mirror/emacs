@@ -1,3 +1,8 @@
+2010-09-24  Glenn Morris  <rgm@gnu.org>
+
+	* message.el (message-output): Use gnus-output-to-rmail if a buffer is
+	visiting the fcc file in rmail-mode.
+
 2010-09-24  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* nnir.el: Silence the byte compiler.

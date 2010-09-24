@@ -591,12 +591,16 @@ Note: TYPE not yet implemented."
 ;;     ;; Test for doc string
 ;;     (unless docstring
 ;;       (error "Could not find documentation for %s" (semantic-tag-name tag)))
+;;
+;;     (require 'srecode)
+;;     (require 'srecode-texi)
+;;
 ;;     ;; If we have a string, do the replacement.
 ;;     (delete-region (semantic-tag-start tag)
 ;; 		   (semantic-tag-end tag))
 ;;     ;; Use useful functions from the docaument library.
-;;     (require 'document)
-;;     (document-insert-texinfo doctag (semantic-tag-buffer doctag))
+;;    (srecode-texi-insert-tag-as-doc doctag)
+;;    ;(semantic-insert-foreign-tag doctag)
 ;;     ))
 
 ;; (defun semantic-texi-update-doc-from-source (&optional tag)

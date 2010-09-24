@@ -35,6 +35,7 @@
 (defconst wisent-python-wy--keyword-table
   (semantic-lex-make-keyword-table
    '(("and" . AND)
+     ("as" . AS)
      ("assert" . ASSERT)
      ("break" . BREAK)
      ("class" . CLASS)
@@ -72,6 +73,7 @@
      ("pass" summary "Statement that does nothing")
      ("or" summary "Binary logical 'or' operator")
      ("not" summary "Unary boolean negation operator")
+     ("lambda" summary "Create anonymous function")
      ("is" summary "Binary operator that tests for object equality")
      ("in" summary "Part of 'for' statement ")
      ("import" summary "Load specified modules")
@@ -86,10 +88,11 @@
      ("elif" summary "Shorthand for 'else if' following an 'if' statement")
      ("del" summary "Delete specified objects, i.e., undo what assignment did")
      ("def" summary "Define a new function")
-     ("continue" summary "Skip to the next interation of enclosing 'for' or 'while' loop")
+     ("continue" summary "Skip to the next iteration of enclosing 'for' or 'while' loop")
      ("class" summary "Define a new class")
      ("break" summary "Terminate 'for' or 'while' loop")
      ("assert" summary "Raise AssertionError exception if <expr> is false")
+     ("as" summary "EXPR as NAME makes value of EXPR available as variable NAME")
      ("and" summary "Logical AND binary operator ... ")))
   "Table of language keywords.")
 
@@ -172,7 +175,7 @@
     (eval-when-compile
       (require 'semantic/wisent/comp))
     (wisent-compile-grammar
-     '((BACKSLASH NEWLINE INDENT DEDENT INDENT_BLOCK PAREN_BLOCK BRACE_BLOCK BRACK_BLOCK LPAREN RPAREN LBRACE RBRACE LBRACK RBRACK LTLTEQ GTGTEQ EXPEQ DIVDIVEQ DIVDIV LTLT GTGT EXPONENT EQ GE LE PLUSEQ MINUSEQ MULTEQ DIVEQ MODEQ AMPEQ OREQ HATEQ LTGT NE HAT LT GT AMP MULT DIV MOD PLUS MINUS PERIOD TILDE BAR COLON SEMICOLON COMMA ASSIGN BACKQUOTE STRING_LITERAL NUMBER_LITERAL NAME AND ASSERT BREAK CLASS CONTINUE DEF DEL ELIF ELSE EXCEPT EXEC FINALLY FOR FROM GLOBAL IF IMPORT IN IS LAMBDA NOT OR PASS PRINT RAISE RETURN TRY WHILE YIELD)
+     '((BACKSLASH NEWLINE INDENT DEDENT INDENT_BLOCK PAREN_BLOCK BRACE_BLOCK BRACK_BLOCK LPAREN RPAREN LBRACE RBRACE LBRACK RBRACK LTLTEQ GTGTEQ EXPEQ DIVDIVEQ DIVDIV LTLT GTGT EXPONENT EQ GE LE PLUSEQ MINUSEQ MULTEQ DIVEQ MODEQ AMPEQ OREQ HATEQ LTGT NE HAT LT GT AMP MULT DIV MOD PLUS MINUS PERIOD TILDE BAR COLON SEMICOLON COMMA ASSIGN BACKQUOTE STRING_LITERAL NUMBER_LITERAL NAME AND AS ASSERT BREAK CLASS CONTINUE DEF DEL ELIF ELSE EXCEPT EXEC FINALLY FOR FROM GLOBAL IF IMPORT IN IS LAMBDA NOT OR PASS PRINT RAISE RETURN TRY WHILE YIELD)
        nil
        (goal
 	((NEWLINE))
@@ -280,6 +283,9 @@
 	((testlist)
 	 nil))
        (yield_stmt
+	((YIELD)
+	 (wisent-raw-tag
+	  (semantic-tag-new-code $1 nil)))
 	((YIELD testlist)
 	 (wisent-raw-tag
 	  (semantic-tag-new-code $1 nil))))
@@ -320,14 +326,14 @@
 	((import_as_name_list COMMA import_as_name)
 	 nil))
        (import_as_name
-	((NAME name_name_opt)
+	((NAME as_name_opt)
 	 nil))
        (dotted_as_name
-	((dotted_name name_name_opt)))
-       (name_name_opt
+	((dotted_name as_name_opt)))
+       (as_name_opt
 	(nil)
-	((NAME NAME)
-	 nil))
+	((AS NAME)
+	 (identity $2)))
        (dotted_name
 	((NAME))
 	((dotted_name PERIOD NAME)

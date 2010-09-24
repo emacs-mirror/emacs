@@ -2939,7 +2939,7 @@ Blanks in the rendered text overwrite any text in the buffer."
 Returns a list of points.  Each point is on the form (X1 . Y1)."
   (let ((points))
     (while (> n 0)
-      (let* ((angle (* (random 359) (/ pi 180)))
+      (let* ((angle (* (random 359) (/ float-pi 180)))
 	     (dist  (random radius))
 	     (point (cons (round (* dist (cos angle)))
 			  (round (* dist (sin angle))))))

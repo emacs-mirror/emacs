@@ -253,7 +253,7 @@ Optional argument THROWSYM specifies a symbol the throw on non-recoverable error
 	(tag nil)			; tag return list
 	(tagtype nil)			; tag types return list
 	(fname nil)
-	(miniscope (clone scope))
+	(miniscope (when scope (clone scope)))
 	)
     ;; First order check.  Is this wholely contained in the typecache?
     (setq tmp (semanticdb-typecache-find sequence))
@@ -297,11 +297,12 @@ Optional argument THROWSYM specifies a symbol the throw on non-recoverable error
 	      ;; and we can use it directly.
 	      (cond ((semantic-tag-of-class-p tmp 'type)
 		     ;; update the miniscope when we need to analyze types directly.
-		     (let ((rawscope
-			    (apply 'append
-				   (mapcar 'semantic-tag-type-members
-					   tagtype))))
-		       (oset miniscope fullscope rawscope))
+		     (when miniscope
+		       (let ((rawscope
+			      (apply 'append
+				     (mapcar 'semantic-tag-type-members
+					     tagtype))))
+			 (oset miniscope fullscope rawscope)))
 		     ;; Now analayze the type to remove metatypes.
 		     (or (semantic-analyze-type tmp miniscope)
 			 tmp))
@@ -351,7 +352,7 @@ Optional argument SCOPE specifies a scope object which has
 additional tags which are in SCOPE and do not need prefixing to
 find.
 
-This is a wrapper on top of semanticdb, semanticdb-typecache,
+This is a wrapper on top of semanticdb, semanticdb typecache,
 semantic-scope, and semantic search functions.  Almost all
 searches use the same arguments."
   (let ((namelst (if (consp name) name ;; test if pre-split.

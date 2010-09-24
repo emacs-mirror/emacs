@@ -45,7 +45,7 @@ Optional FACE specifies the face to use."
     ))
 
 (defun semantic-unhighlight-tag (tag)
-  "Unhighlight TAG, restoring it's previous face."
+  "Unhighlight TAG, restoring its previous face."
   (let ((o (semantic-tag-overlay tag)))
     (semantic-overlay-put o 'face (car (semantic-overlay-get o 'old-face)))
     (semantic-overlay-put o 'old-face (cdr (semantic-overlay-get o 'old-face)))

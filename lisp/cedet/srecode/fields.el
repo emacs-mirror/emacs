@@ -35,6 +35,8 @@
 ;; Each field has 2 overlays.  The second overlay allows control in
 ;; the character just after the field, but does not highlight it.
 
+;; @TODO - Cancel an old field array if a new one is about to be created!
+
 ;; Keep this library independent of SRecode proper.
 (require 'eieio)
 
@@ -43,6 +45,10 @@
   "While inserting a set of fields, collect in this variable.
 Once an insertion set is done, these fields will be activated.")
 
+
+;;; Customization
+;;
+
 (defface srecode-field-face
   '((((class color) (background dark))
      (:underline "green"))
@@ -50,6 +56,11 @@ Once an insertion set is done, these fields will be activated.")
      (:underline "green4")))
   "*Face used to specify editable fields from a template."
   :group 'semantic-faces)
+
+(defcustom srecode-fields-exit-confirmation nil
+  "Ask for confirmation before leaving field editing mode."
+  :group 'srecode
+  :type  'boolean)
 
 ;;; BASECLASS
 ;;
@@ -237,7 +248,7 @@ If SET-TO is a string, then replace the text of OLAID wit SET-TO."
 	(remove-hook 'post-command-hook 'srecode-field-post-command t)
       (if (srecode-point-in-region-p ar)
 	  nil ;; Keep going
-	;; We moved out of the temlate.  Cancel the edits.
+	;; We moved out of the template.  Cancel the edits.
 	(srecode-delete ar)))
     ))
 
@@ -429,7 +440,8 @@ PRE-LEN is used in the after mode for the length of the changed text."
 (defun srecode-field-exit-ask ()
   "Ask if the user wants to exit field-editing mini-mode."
   (interactive)
-  (when (y-or-n-p "Exit field-editing mode? ")
+  (when (or (not srecode-fields-exit-confirmation)
+	    (y-or-n-p "Exit field-editing mode? "))
     (srecode-delete (srecode-active-template-region))))
 
 

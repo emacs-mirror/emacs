@@ -40,7 +40,8 @@
 (require 'pulse)
 (eval-when-compile
   (require 'semantic/analyze)
-  (require 'semantic/analyze/refs))
+  (require 'semantic/analyze/refs)
+  (require 'semantic/find))
 
 (declare-function imenu--mouse-menu "imenu")
 
@@ -56,14 +57,6 @@
   "Function used to convert a tag to a string during completion."
   :group 'semantic
   :type semantic-format-tag-custom-list)
-
-(defvar semantic-ia-cache nil
-  "Cache of the last completion request.
-Of the form ( POINT . COMPLETIONS ) where POINT is a location in the
-buffer where the completion was requested.  COMPLETONS is the list
-of semantic tag names that provide logical completions from that
-location.")
-(make-variable-buffer-local 'semantic-ia-cache)
 
 ;;; COMPLETION HELPER
 ;;
@@ -86,23 +79,16 @@ location.")
 	   (insert "("))
 	  (t nil))))
 
-(declare-function semantic-analyze-possible-completions
-		  "semantic/analyze/complete")
+(defalias 'semantic-ia-get-completions 'semantic-ia-get-completions-deprecated
+  "`Semantic-ia-get-completions' is obsolete.
+Use `semantic-analyze-possible-completions' instead.")
 
-(defun semantic-ia-get-completions (context point)
-  "Fetch the completion of CONTEXT at POINT.
-Supports caching."
-  ;; Cache the current set of symbols so that we can get at
-  ;; them quickly the second time someone presses the
-  ;; complete button.
-  (let ((symbols
-	 (if (and semantic-ia-cache
-		  (= point (car semantic-ia-cache)))
-	     (cdr semantic-ia-cache)
-	   (semantic-analyze-possible-completions context))))
-    ;; Set the cache
-    (setq semantic-ia-cache (cons point symbols))
-    symbols))
+(defun semantic-ia-get-completions-deprecated (context point)
+  "A function to help transition away from `semantic-ia-get-completions'.
+Return completions based on CONTEXT at POINT.
+You should not use this, nor the aliased version.
+Use `semantic-analyze-possible-completions' instead."
+  (semantic-analyze-possible-completions context))
 
 ;;;###autoload
 (defun semantic-ia-complete-symbol (&optional pos)
@@ -119,7 +105,7 @@ Completion options are calculated with `semantic-analyze-possible-completions'."
     ;;
     ;; The second step derives completions from that context.
     (let* ((a (semantic-analyze-current-context pos))
-	   (syms (semantic-ia-get-completions a pos))
+	   (syms (semantic-analyze-possible-completions a))
 	   (pre (car (reverse (oref a prefix)))))
       ;; If PRE was actually an already completed symbol, it doesn't
       ;; come in as a string, but as a tag instead.
@@ -173,7 +159,7 @@ Completion options are calculated with `semantic-analyze-possible-completions'."
   "Pop up a tooltip for completion at POINT."
   (interactive "d")
   (let* ((a (semantic-analyze-current-context point))
-	 (syms (semantic-ia-get-completions a point))
+	 (syms (semantic-analyze-possible-completions a))
          (x (mod (- (current-column) (window-hscroll))
                  (window-width)))
          (y (save-excursion
@@ -212,8 +198,48 @@ Completion options are calculated with `semantic-analyze-possible-completions'."
 	       ;; tag associated with the current context.
 	       (semantic-analyze-interesting-tag ctxt)))
 	)
-    (when pf
-      (message "%s" (semantic-format-tag-summarize pf nil t)))))
+    (if pf
+	(message "%s" (semantic-format-tag-summarize pf nil t))
+      (message "No summary info availalble"))))
+
+;;; Variants
+;;
+;; Show all variants for the symbol under point.
+
+;;;###autoload
+(defun semantic-ia-show-variants (point)
+  "Display a list of all variants for the symbol under POINT."
+  (interactive "P")
+  (let* ((ctxt (semantic-analyze-current-context point))
+	 (comp nil))
+
+    ;; We really want to look at the function if we are on an
+    ;; argument.  Are there some additional rules we care about for
+    ;; changing the CTXT we look at?
+    (when (semantic-analyze-context-functionarg-p ctxt)
+      (goto-char (cdr (oref ctxt bounds)))
+      (setq ctxt (semantic-analyze-current-context (point))))
+
+    ;; Get the "completion list", but remove ALL filters to get the master list
+    ;; of all the possible things.
+    (setq comp (semantic-analyze-possible-completions ctxt 'no-unique 'no-tc))
+
+    ;; Special case for a single type.  List the constructors?
+    (when (and (= (length comp) 1) (semantic-tag-of-class-p (car comp) 'type))
+      (setq comp (semantic-find-tags-by-name (semantic-tag-name (car comp))
+					     (semantic-tag-type-members (car comp)))))
+
+    ;; Display the results.
+    (cond ((= (length comp) 0)
+	   (message "No Variants found."))
+	  ((= (length comp) 1)
+	   (message "%s" (semantic-format-tag-summarize (car comp) nil t)))
+	  (t
+	   (with-output-to-temp-buffer "*Symbol Variants*"
+	     (semantic-analyze-princ-sequence comp "" (current-buffer)))
+	   (shrink-window-if-larger-than-buffer
+	    (get-buffer-window "*Symbol Variants*")))
+	  )))
 
 ;;; FAST Jump
 ;;
@@ -354,18 +380,21 @@ See `semantic-ia-fast-jump' for details on how it works.
       ;; The default tries to find a comment in front of the tag
       ;; and then strings off comment prefixes.
       (let ((doc (semantic-documentation-for-tag (car pf))))
-	(with-output-to-temp-buffer "*TAG DOCUMENTATION*"
-	  (princ "Tag: ")
-	  (princ (semantic-format-tag-prototype (car pf)))
-	  (princ "\n")
-	  (princ "\n")
-	  (princ "Snarfed Documentation: ")
-	  (princ "\n")
-	  (princ "\n")
-	  (if doc
-	      (princ doc)
-	    (princ "  Documentation unavailable."))
-	  )))
+	(if (or (null doc) (string= doc ""))
+	    (message "Doc unavailable for: %s"
+		     (semantic-format-tag-prototype (car pf)))
+	  (with-output-to-temp-buffer "*TAG DOCUMENTATION*"
+	    (princ "Tag: ")
+	    (princ (semantic-format-tag-prototype (car pf)))
+	    (princ "\n")
+	    (princ "\n")
+	    (princ "Snarfed Documentation: ")
+	    (princ "\n")
+	    (princ "\n")
+	    (if doc
+		(princ doc)
+	      (princ "  Documentation unavailable."))
+	    ))))
      (t
       (message "Unknown tag.")))
     ))

@@ -1206,6 +1206,27 @@ Uses semanticdb for searching all tags in the current project."
   (require 'semantic/db-find)
   (semanticdb-brute-deep-find-tags-for-completion prefix (oref obj path)))
 
+;;; Current Datatype member search.
+(defclass semantic-collector-local-members (semantic-collector-project-abstract)
+  ((scope :initform nil
+	  :type (or null semantic-scope-cache)
+	  :documentation
+	  "The scope the local members are being completed from."))
+  "Completion engine for tags in a project.")
+
+(defmethod semantic-collector-calculate-completions-raw
+  ((obj semantic-collector-local-members) prefix completionlist)
+  "Calculate the completions for prefix from completionlist."
+  (let* ((scope (or (oref obj scope)
+		    (oset obj scope (semantic-calculate-scope))))
+	 (localstuff (oref scope scope)))
+    (list
+     (cons
+      (oref scope :table)
+      (semantic-find-tags-for-completion prefix localstuff)))))
+    ;(semanticdb-brute-deep-find-tags-for-completion prefix (oref obj path))))
+
+;;; Smart completion collector
 (defclass semantic-collector-analyze-completions (semantic-collector-abstract)
   ((context :initarg :context
 	    :type semantic-analyze-context
@@ -1800,6 +1821,28 @@ HISTORY is a symbol representing a variable to store the history in."
    history)
   )
 
+(defun semantic-complete-read-tag-local-members (prompt &optional
+							default-tag
+							initial-input
+							history)
+  "Ask for a tag by name from the local type members.
+Available tags are from the the current scope.
+Completion options are presented in a traditional way, with highlighting
+to resolve same-name collisions.
+PROMPT is a string to prompt with.
+DEFAULT-TAG is a semantic tag or string to use as the default value.
+If INITIAL-INPUT is non-nil, insert it in the minibuffer initially.
+HISTORY is a symbol representing a variable to store the history in."
+  (semantic-complete-read-tag-engine
+   (semantic-collector-local-members prompt :buffer (current-buffer))
+   (semantic-displayor-traditional-with-focus-highlight "simple")
+   ;;(semantic-displayor-tooltip "simple")
+   prompt
+   default-tag
+   initial-input
+   history)
+  )
+
 (defun semantic-complete-read-tag-project (prompt &optional
 						  default-tag
 						  initial-input
@@ -1979,7 +2022,7 @@ completion works."
 
 ;;;###autoload
 (defun semantic-complete-jump-local ()
-  "Jump to a semantic symbol."
+  "Jump to a local semantic symbol."
   (interactive)
   (let ((tag (semantic-complete-read-tag-buffer-deep "Jump to symbol: ")))
     (when (semantic-tag-p tag)
@@ -2003,6 +2046,23 @@ completion works."
       (message "%S: %s "
 	       (semantic-tag-class tag)
 	       (semantic-tag-name  tag)))))
+
+;;;###autoload
+(defun semantic-complete-jump-local-members ()
+  "Jump to a semantic symbol."
+  (interactive)
+  (let* ((tag (semantic-complete-read-tag-local-members "Jump to symbol: ")))
+    (when (semantic-tag-p tag)
+      (let ((start (condition-case nil (semantic-tag-start tag)
+		     (error nil))))
+	(unless start
+	  (error "Tag %s has no location" (semantic-format-tag-prototype tag)))
+	(push-mark)
+	(goto-char start)
+	(semantic-momentary-highlight-tag tag)
+	(message "%S: %s "
+		 (semantic-tag-class tag)
+		 (semantic-tag-name  tag))))))
 
 ;;;###autoload
 (defun semantic-complete-analyze-and-replace ()
@@ -2075,15 +2135,17 @@ use `semantic-complete-analyze-inline' to complete."
 
   ;; Prepare for doing completion, but exit quickly if there is keyboard
   ;; input.
-  (when (and (not (semantic-exit-on-input 'csi
-		    (semantic-fetch-tags)
-		    (semantic-throw-on-input 'csi)
-		    nil))
-	     (= arg 1)
-	     (not (semantic-exit-on-input 'csi
-		    (semantic-analyze-current-context)
-		    (semantic-throw-on-input 'csi)
-		    nil)))
+  (when (save-window-excursion
+	  (save-excursion
+	    (and (not (semantic-exit-on-input 'csi
+			(semantic-fetch-tags)
+			(semantic-throw-on-input 'csi)
+			nil))
+		 (= arg 1)
+		 (not (semantic-exit-on-input 'csi
+			(semantic-analyze-current-context)
+			(semantic-throw-on-input 'csi)
+			nil)))))
     (condition-case nil
 	(semantic-complete-analyze-inline)
       ;; Ignore errors.  Seems likely that we'll get some once in a while.

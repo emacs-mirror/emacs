@@ -83,7 +83,8 @@ FILE can be created or overwritten."
 
 ;;;###autoload
 (defun url-is-cached (url)
-  "Return non-nil if the URL is cached."
+  "Return non-nil if the URL is cached.
+The actual return value is the last modification time of the cache file."
   (let* ((fname (url-cache-create-filename url))
 	 (attribs (file-attributes fname)))
     (and fname				; got a filename

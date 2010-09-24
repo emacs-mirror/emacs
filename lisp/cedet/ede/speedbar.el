@@ -108,7 +108,7 @@ Argument DIR is the directory from which to derive the list of objects."
 ;;; Some special commands useful in EDE
 ;;
 (defun ede-speedbar-remove-file-from-target ()
-  "Remove the file at point from it's target."
+  "Remove the file at point from its target."
   (interactive)
   (if (stringp (speedbar-line-token))
       (progn

@@ -99,7 +99,7 @@ A nil value means to keep them in the same order.
 Overriden to nil if `semantic-imenu-bucketize-file' is nil."
   :group 'semantic-imenu
   :type 'boolean)
-(make-variable-buffer-local 'semantic-imenu-bucketize-type-parts)
+(make-variable-buffer-local 'semantic-imenu-bucketize-type-members)
 (semantic-varalias-obsolete 'semantic-imenu-bucketize-type-parts
                             'semantic-imenu-bucketize-type-members "23.2")
 

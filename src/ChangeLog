@@ -1,3 +1,12 @@
+2010-09-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* syntax.c (back_comment): Detect the case where a 1-char comment
+	starter is also the 2nd char of a 2-char comment ender.
+
+2010-09-23  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_tool_bar_menu_proxy): Set gtk-menu-items to TRUE.
+
 2010-09-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* lisp.h (SPECPDL_INDEX): Cast to int, since we're not going to
