@@ -1,3 +1,57 @@
+2010-09-24  Julien Danjou  <julien@danjou.info>
+
+	* gnus-sum.el: Add support for Gravatars.
+
+	* gnus-art.el: Add support for Gravatars.
+
+	* gnus-gravatar.el: Add this file.
+
+	* gravatar.el: Add this file.
+
+2010-09-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-summary-fetch-faq): Removed.
+
+	* gnus-group.el (gnus-group-fetch-faq): Removed.
+
+	* gnus.el (gnus-group-faq-directory): Removed.
+
+	* gnus-group.el (gnus-group-fetch-charter): Removed.
+
+	* gnus.el (gnus-group-charter-alist): Removed.
+
+	* gnus-group.el (gnus-group-archive-directory): Removed.
+	(gnus-group-recent-archive-directory): Ditto.
+	(gnus-group-make-archive-group): Removed.
+
+	* nnimap.el (nnimap-update-info): Protect against nil uidnexts.
+
+	* gnus-cache.el (gnus-cache-braid-heads): When braiding heads, don't
+	use the same article number for all the cached articles.
+
+	* nnimap.el (nnimap-command): Register the last command time so
+	that we can use it for idling NOOPs.
+	(nnimap-open-connection): Start the keeplive timer.
+	(nnimap-make-process-buffer): Store all the process buffers.
+	(nnimap-keepalive): New function.
+
+	* starttls.el: (starttls-open-stream): Add autoload cookie.
+
+2010-09-24  Michael Welsh Duggan  <md5i@md5i.com>  (tiny change)
+
+	* nnimap.el (nnimap-split-incoming-mail): Fix paren typo in the 'junk
+	handling.
+
+2010-09-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnrss.el (nnrss-retrieve-groups): Change to the group before checking
+	its data structures.
+
+	* gnus.el (gnus-sloppily-equal-method-parameters): Use copy-sequence
+	instead of the cl.el copy-list.
+	(gnus-sloppily-equal-method-parameters): Use equal instead of the cl
+	equalp.
+
 2010-09-24  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gmm-utils.el (gmm-tool-bar-from-list): Always use tool-bar-local-item

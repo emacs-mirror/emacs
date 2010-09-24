@@ -1470,75 +1470,6 @@ list, Gnus will try all the methods in the list until it finds a match."
 					(nnweb "refer" (nnweb-type google)))
 				 gnus-select-method))))
 
-(defcustom gnus-group-faq-directory
-  '("/ftp@mirrors.aol.com:/pub/rtfm/usenet/"
-    "/ftp@sunsite.doc.ic.ac.uk:/pub/usenet/news-faqs/"
-    "/ftp@src.doc.ic.ac.uk:/usenet/news-FAQS/"
-    "/ftp@ftp.seas.gwu.edu:/pub/rtfm/"
-    "/ftp@ftp.pasteur.fr:/pub/FAQ/"
-    "/ftp@rtfm.mit.edu:/pub/usenet/"
-    "/ftp@ftp.uni-paderborn.de:/pub/FAQ/"
-    "/ftp@ftp.sunet.se:/pub/usenet/"
-    "/ftp@nctuccca.nctu.edu.tw:/pub/Documents/rtfm/usenet-by-group/"
-    "/ftp@hwarang.postech.ac.kr:/pub/usenet/"
-    "/ftp@ftp.hk.super.net:/mirror/faqs/")
-  "*Directory where the group FAQs are stored.
-This will most commonly be on a remote machine, and the file will be
-fetched by ange-ftp.
-
-This variable can also be a list of directories.  In that case, the
-first element in the list will be used by default.  The others can
-be used when being prompted for a site.
-
-Note that Gnus uses an aol machine as the default directory.  If this
-feels fundamentally unclean, just think of it as a way to finally get
-something of value back from them.
-
-If the default site is too slow, try one of these:
-
-   North America: mirrors.aol.com		 /pub/rtfm/usenet
-		  ftp.seas.gwu.edu		 /pub/rtfm
-		  rtfm.mit.edu			 /pub/usenet
-   Europe:	  ftp.uni-paderborn.de		 /pub/FAQ
-		  src.doc.ic.ac.uk               /usenet/news-FAQS
-		  ftp.sunet.se			 /pub/usenet
-		  ftp.pasteur.fr                 /pub/FAQ
-   Asia:	  nctuccca.nctu.edu.tw		 /pub/Documents/rtfm/usenet-by-group/
-		  hwarang.postech.ac.kr		 /pub/usenet
-		  ftp.hk.super.net		 /mirror/faqs"
-  :group 'gnus-group-various
-  :type '(choice directory
-		 (repeat directory)))
-
-(defcustom gnus-group-charter-alist
-  '(("no" . (concat "http://no.news-admin.org/charter/" name ".txt"))
-    ("de" . (concat "http://purl.net/charta/" name ".html"))
-    ("dk" . (concat "http://www.usenet.dk/grupper.pl?get=" name))
-    ("england" . (concat "http://england.news-admin.org/charters/" name))
-    ("fr" . (concat "http://www.usenet-fr.net/fur/chartes/" name ".html"))
-    ("europa" . (concat "http://www.europa.usenet.eu.org/chartas/charta-en-"
-			(gnus-replace-in-string name "europa\\." "") ".html"))
-    ("nl" . (concat "http://www.xs4all.nl/~sister/usenet/charters/" name))
-    ("aus" . (concat "http://aus.news-admin.org/groupinfo.cgi/" name))
-    ("pl" . (concat "http://www.usenet.pl/opisy/" name))
-    ("ch" . (concat "http://www.use-net.ch/Usenet/charter.html#" name))
-    ("at" . (concat "http://www.usenet.at/chartas/" name "/charta"))
-    ("uk" . (concat "http://www.usenet.org.uk/" name ".html"))
-    ("dfw" . (concat "http://www.cirr.com/dfw/charters/" name ".html"))
-    ("se" . (concat "http://www.usenet-se.net/Reglementen/"
-		    (gnus-replace-in-string name "\\." "_") ".html"))
-    ("milw" . (concat "http://usenet.mil.wi.us/"
-		      (gnus-replace-in-string name "milw\\." "") "-charter"))
-    ("ca" . (concat "http://www.sbay.org/ca/charter-" name ".html"))
-    ("netins" . (concat "http://www.netins.net/usenet/charter/"
-			(gnus-replace-in-string name "\\." "-") "-charter.html")))
-  "*An alist of (HIERARCHY . FORM) pairs used to construct the URL of a charter.
-When FORM is evaluated `name' is bound to the name of the group."
-  :version "22.1"
-  :group 'gnus-group-various
-  :type '(repeat (cons (string :tag "Hierarchy") (sexp :tag "Form"))))
-(put 'gnus-group-charter-alist 'risky-local-variable t)
-
 (defcustom gnus-group-fetch-control-use-browse-url nil
   "*Non-nil means that control messages are displayed using `browse-url'.
 Otherwise they are fetched with ange-ftp and displayed in an ephemeral
@@ -3695,8 +3626,8 @@ that that variable is buffer-local to the summary buffers."
 
 (defsubst gnus-sloppily-equal-method-parameters (m1 m2)
   ;; Check parameters for sloppy equalness.
-  (let ((p1 (copy-list (cddr m1)))
-	(p2 (copy-list (cddr m2)))
+  (let ((p1 (copy-sequence (cddr m1)))
+	(p2 (copy-sequence (cddr m2)))
 	e1 e2)
     (block nil
       (while (setq e1 (pop p1))
@@ -3704,7 +3635,7 @@ that that variable is buffer-local to the summary buffers."
 	  ;; The parameter doesn't exist in p2.
 	  (return nil))
 	(setq p2 (delq e2 p2))
-	(unless (equalp e1 e2)
+	(unless (equal e1 e2)
 	  (if (not (and (stringp (cadr e1))
 			(stringp (cadr e2))))
 	      (return nil)

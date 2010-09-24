@@ -1529,10 +1529,40 @@ node `(gnus)Picons' for details."
   :type gnus-article-treat-head-custom)
 (put 'gnus-treat-newsgroups-picon 'highlight t)
 
+(defcustom gnus-treat-from-gravatar
+  (when (display-images-p) 'head)
+  "Display gravatars in the From header.
+Valid values are nil, t, `head', `first', `last', an integer or a
+predicate.  See Info node `(gnus)Customizing Articles' and Info
+node `(gnus)Gravatars' for details."
+  :version "24.1"
+  :group 'gnus-article-treat
+  :group 'gnus-gravatar
+  :link '(custom-manual "(gnus)Customizing Articles")
+  :link '(custom-manual "(gnus)Gravatars")
+  :type gnus-article-treat-head-custom)
+(put 'gnus-treat-from-gravatar 'highlight t)
+
+(defcustom gnus-treat-mail-gravatar
+  (when (display-images-p) 'head)
+  "Display gravatars in To and Cc headers.
+Valid values are nil, t, `head', `first', `last', an integer or a
+predicate.  See Info node `(gnus)Customizing Articles' and Info
+node `(gnus)Gravatars' for details."
+  :version "24.1"
+  :group 'gnus-article-treat
+  :group 'gnus-gravatar
+  :link '(custom-manual "(gnus)Customizing Articles")
+  :link '(custom-manual "(gnus)Gravatars")
+  :type gnus-article-treat-head-custom)
+(put 'gnus-treat-mail-gravatar 'highlight t)
+
 (defcustom gnus-treat-body-boundary
   (if (or gnus-treat-newsgroups-picon
 	  gnus-treat-mail-picon
-	  gnus-treat-from-picon)
+	  gnus-treat-from-picon
+          gnus-treat-from-gravatar
+          gnus-treat-mail-gravatar)
       ;; If there's much decoration, the user might prefer a boundery.
       'head
     nil)
@@ -1669,6 +1699,8 @@ This requires GNU Libidn, and by default only enabled if it is found."
     (gnus-treat-from-picon gnus-treat-from-picon)
     (gnus-treat-mail-picon gnus-treat-mail-picon)
     (gnus-treat-newsgroups-picon gnus-treat-newsgroups-picon)
+    (gnus-treat-from-gravatar gnus-treat-from-gravatar)
+    (gnus-treat-mail-gravatar gnus-treat-mail-gravatar)
     (gnus-treat-highlight-headers gnus-article-highlight-headers)
     (gnus-treat-highlight-signature gnus-article-highlight-signature)
     (gnus-treat-strip-trailing-blank-lines

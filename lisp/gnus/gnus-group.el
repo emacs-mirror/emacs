@@ -55,18 +55,6 @@
 (autoload 'gnus-agent-total-fetched-for "gnus-agent")
 (autoload 'gnus-cache-total-fetched-for "gnus-cache")
 
-(defcustom gnus-group-archive-directory
-  "/ftp@ftp.hpc.uh.edu:/pub/emacs/ding-list/"
-  "*The address of the (ding) archives."
-  :group 'gnus-group-foreign
-  :type 'directory)
-
-(defcustom gnus-group-recent-archive-directory
-  "/ftp@ftp.hpc.uh.edu:/pub/emacs/ding-list-recent/"
-  "*The address of the most recent (ding) articles."
-  :group 'gnus-group-foreign
-  :type 'directory)
-
 (defcustom gnus-no-groups-message "No Gnus is good news"
   "*Message displayed by Gnus when no groups are available."
   :group 'gnus-start
@@ -657,7 +645,6 @@ simple manner.")
   "d" gnus-group-make-directory-group
   "h" gnus-group-make-help-group
   "u" gnus-group-make-useful-group
-  "a" gnus-group-make-archive-group
   "l" gnus-group-nnimap-edit-acl
   "m" gnus-group-make-group
   "E" gnus-group-edit-group
@@ -752,10 +739,8 @@ simple manner.")
   "e" gnus-score-edit-all-score)
 
 (gnus-define-keys (gnus-group-help-map "H" gnus-group-mode-map)
-  "c" gnus-group-fetch-charter
   "C" gnus-group-fetch-control
   "d" gnus-group-describe-group
-  "f" gnus-group-fetch-faq
   "v" gnus-version)
 
 (gnus-define-keys (gnus-group-sub-map "S" gnus-group-mode-map)
@@ -821,11 +806,6 @@ simple manner.")
        ["Describe" gnus-group-describe-group :active (gnus-group-group-name)
 	,@(if (featurep 'xemacs) nil
 	    '(:help "Display description of the current group"))]
-       ["Fetch FAQ" gnus-group-fetch-faq (gnus-group-group-name)]
-       ["Fetch charter" gnus-group-fetch-charter
-	:active (gnus-group-group-name)
-	,@(if (featurep 'xemacs) nil
-	    '(:help "Display the charter of the current group"))]
        ["Fetch control message" gnus-group-fetch-control
 	:active (gnus-group-group-name)
 	,@(if (featurep 'xemacs) nil
@@ -925,7 +905,6 @@ simple manner.")
 	["Make a foreign group..." gnus-group-make-group t]
 	["Add a directory group..." gnus-group-make-directory-group t]
 	["Add the help group" gnus-group-make-help-group t]
-	["Add the archive group" gnus-group-make-archive-group t]
 	["Make a doc group..." gnus-group-make-doc-group t]
 	["Make a web group..." gnus-group-make-web-group t]
 	["Make a virtual group..." gnus-group-make-empty-virtual t]
@@ -3089,22 +3068,6 @@ If there is, use Gnus to create an nnrss group"
 	  (nnrss-save-server-data nil))
       (error "No feeds found for %s" url))))
 
-(defun gnus-group-make-archive-group (&optional all)
-  "Create the (ding) Gnus archive group of the most recent articles.
-Given a prefix, create a full group."
-  (interactive "P")
-  (let ((group (gnus-group-prefixed-name
-		(if all "ding.archives" "ding.recent") '(nndir ""))))
-    (when (gnus-group-entry group)
-      (error "Archive group already exists"))
-    (gnus-group-make-group
-     (gnus-group-real-name group)
-     (list 'nndir (if all "hpc" "edu")
-	   (list 'nndir-directory
-		 (if all gnus-group-archive-directory
-		   gnus-group-recent-archive-directory))))
-    (gnus-group-add-parameter group (cons 'to-address "ding@gnus.org"))))
-
 (defun gnus-group-make-directory-group (dir)
   "Create an nndir group.
 The user will be prompted for a directory.  The contents of this
@@ -4048,62 +4011,6 @@ If DONT-SCAN is non-nil, scan non-activated groups as well."
       (gnus-group-next-unread-group 1 t))
     (gnus-summary-position-point)
     ret))
-
-(defun gnus-group-fetch-faq (group &optional faq-dir)
-  "Fetch the FAQ for the current group.
-If given a prefix argument, prompt for the FAQ dir
-to use."
-  (interactive
-   (list
-    (gnus-group-group-name)
-    (when current-prefix-arg
-      (completing-read
-       "FAQ dir: " (and (listp gnus-group-faq-directory)
-			(mapcar #'list
-				gnus-group-faq-directory))))))
-  (unless group
-    (error "No group name given"))
-  (let ((dirs (or faq-dir gnus-group-faq-directory))
-	dir found file)
-    (unless (listp dirs)
-      (setq dirs (list dirs)))
-    (while (and (not found)
-		(setq dir (pop dirs)))
-      (let ((name (gnus-group-real-name group)))
-	(setq file (expand-file-name name dir)))
-      (if (not (file-exists-p file))
-	  (gnus-message 1 "No such file: %s" file)
-	(let ((enable-local-variables nil))
-	  (find-file file)
-	  (setq found t))))))
-
-(defun gnus-group-fetch-charter (group)
-  "Fetch the charter for the current group.
-If given a prefix argument, prompt for a group."
-  (interactive
-   (list (or (when current-prefix-arg
-	       (gnus-group-completing-read "Group: "))
-	     (gnus-group-group-name)
-	     gnus-newsgroup-name)))
-  (unless group
-    (error "No group name given"))
-  (require 'mm-url)
-  (condition-case nil (require 'url-http) (error nil))
-  (let ((name (mm-url-form-encode-xwfu (gnus-group-real-name group)))
-	url hierarchy)
-    (when (string-match "\\(^[^\\.]+\\)\\..*" name)
-      (setq hierarchy (match-string 1 name))
-      (if (and (setq url (cdr (assoc hierarchy gnus-group-charter-alist)))
-	       (if (fboundp 'url-http-file-exists-p)
-		   (url-http-file-exists-p (eval url))
-		 t))
-	  (browse-url (eval url))
-	(setq url (concat "http://" hierarchy
-			  ".news-admin.org/charters/" name))
-	(if (and (fboundp 'url-http-file-exists-p)
-		 (url-http-file-exists-p url))
-	    (browse-url url)
-	  (gnus-group-fetch-control group))))))
 
 (defun gnus-group-fetch-control (group)
   "Fetch the archived control messages for the current group.

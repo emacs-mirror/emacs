@@ -589,7 +589,7 @@ Article Treatment
 * Article Buttons::             Click on URLs, Message-IDs, addresses and the like.
 * Article Button Levels::       Controlling appearance of buttons.
 * Article Date::                Grumble, UT!
-* Article Display::             Display various stuff---X-Face, Picons, Smileys
+* Article Display::             Display various stuff---X-Face, Picons, Smileys, Gravatars
 * Article Signature::           What is a signature?
 * Article Miscellanea::         Various other stuff.
 
@@ -2615,18 +2615,6 @@ for a directory name (@code{gnus-group-make-directory-group}).
 @cindex help group
 @findex gnus-group-make-help-group
 Make the Gnus help group (@code{gnus-group-make-help-group}).
-
-@item G a
-@kindex G a (Group)
-@cindex (ding) archive
-@cindex archive group
-@findex gnus-group-make-archive-group
-@vindex gnus-group-archive-directory
-@vindex gnus-group-recent-archive-directory
-Make a Gnus archive group (@code{gnus-group-make-archive-group}).  By
-default a group pointing to the most recent articles will be created
-(@code{gnus-group-recent-archive-directory}), but given a prefix, a full
-group will be created from @code{gnus-group-archive-directory}.
 
 @item G D
 @kindex G D (Group)
@@ -5221,19 +5209,6 @@ used for fetching the file.
 
 If fetching from the first site is unsuccessful, Gnus will attempt to go
 through @code{gnus-group-faq-directory} and try to open them one by one.
-
-@item H c
-@kindex H c (Group)
-@findex gnus-group-fetch-charter
-@vindex gnus-group-charter-alist
-@cindex charter
-Try to open the charter for the current group in a web browser
-(@code{gnus-group-fetch-charter}).  Query for a group if given a
-prefix argument.
-
-Gnus will use @code{gnus-group-charter-alist} to find the location of
-the charter.  If no location is known, Gnus will fetch the control
-messages for the group, which in some cases includes the charter.
 
 @item H C
 @kindex H C (Group)
@@ -9255,7 +9230,8 @@ these articles easier.
 * Article Buttons::             Click on URLs, Message-IDs, addresses and the like.
 * Article Button Levels::       Controlling appearance of buttons.
 * Article Date::                Grumble, UT!
-* Article Display::             Display various stuff---X-Face, Picons, Smileys
+* Article Display::             Display various stuff:
+                                X-Face, Picons, Gravatars, Smileys.
 * Article Signature::           What is a signature?
 * Article Miscellanea::         Various other stuff.
 @end menu
@@ -10299,6 +10275,7 @@ preferred format automatically.
 @cindex picons
 @cindex x-face
 @cindex smileys
+@cindex gravatars
 
 These commands add various frivolous display gimmicks to the article
 buffer in Emacs versions that support them.
@@ -10314,6 +10291,9 @@ their messages with (@pxref{Smileys}).
 
 Picons, on the other hand, reside on your own system, and Gnus will
 try to match the headers to what you have (@pxref{Picons}).
+
+Gravatars reside on-line and are fetched from
+@uref{http://www.gravatar.com/} (@pxref{Gravatars}).
 
 All these functions are toggles---if the elements already exist,
 they'll be removed.
@@ -10352,6 +10332,17 @@ Piconify all mail headers (i. e., @code{Cc}, @code{To})
 @findex gnus-treat-newsgroups-picon
 Piconify all news headers (i. e., @code{Newsgroups} and
 @code{Followup-To}) (@code{gnus-treat-newsgroups-picon}).
+
+@item W D g
+@kindex W D g (Summary)
+@findex gnus-treat-from-gravatar
+Gravatarify the @code{From} header (@code{gnus-treat-from-gravatar}).
+
+@item W D h
+@kindex W D h (Summary)
+@findex gnus-treat-mail-gravatar
+Gravatarify all mail headers (i. e., @code{Cc}, @code{To})
+(@code{gnus-treat-from-gravatar}).
 
 @item W D D
 @kindex W D D (Summary)
@@ -11561,18 +11552,6 @@ sieve.
 
 @table @kbd
 
-@item H f
-@kindex H f (Summary)
-@findex gnus-summary-fetch-faq
-@vindex gnus-group-faq-directory
-Try to fetch the @acronym{FAQ} (list of frequently asked questions)
-for the current group (@code{gnus-summary-fetch-faq}).  Gnus will try
-to get the @acronym{FAQ} from @code{gnus-group-faq-directory}, which
-is usually a directory on a remote machine.  This variable can also be
-a list of directories.  In that case, giving a prefix to this command
-will allow you to choose between the various sites.  @code{ange-ftp}
-or @code{efs} will probably be used for fetching the file.
-
 @item H d
 @kindex H d (Summary)
 @findex gnus-summary-describe-group
@@ -12631,6 +12610,8 @@ controlling variable is a predicate list, as described above.
 @vindex gnus-treat-from-picon
 @vindex gnus-treat-mail-picon
 @vindex gnus-treat-newsgroups-picon
+@vindex gnus-treat-from-gravatar
+@vindex gnus-treat-mail-gravatar
 @vindex gnus-treat-display-smileys
 @vindex gnus-treat-body-boundary
 @vindex gnus-treat-display-x-face
@@ -12696,6 +12677,11 @@ possible but those listed are probably sufficient for most people.
 @item gnus-treat-newsgroups-picon (head)
 
 @xref{Picons}.
+
+@item gnus-treat-from-gravatar (head)
+@item gnus-treat-mail-gravatar (head)
+
+@xref{Gravatars}.
 
 @item gnus-treat-display-smileys (t, integer)
 
@@ -23709,6 +23695,7 @@ stuff, so Gnus has taken advantage of that.
 * Face::                        Display a funkier, teensier colored image.
 * Smileys::                     Show all those happy faces the way they were meant to be shown.
 * Picons::                      How to display pictures of what you're reading.
+* Gravatars::                   Display the avatar of people you read.
 * XVarious::                    Other XEmacsy Gnusey variables.
 @end menu
 
@@ -24036,6 +24023,48 @@ Ordered list of suffixes on picon file names to try.  Defaults to
 @code{("xpm" "gif" "xbm")} minus those not built-in your Emacs.
 
 @end table
+
+@node Gravatars
+@subsection Gravatars
+
+@iftex
+@iflatex
+\include{gravatars}
+@end iflatex
+@end iftex
+
+A gravatar is an image registered to an e-mail address.
+
+You can submit yours on-line at @uref{http://www.gravatar.com}.
+
+The following variables offer control over how things are displayed.
+
+@table @code
+
+@item gnus-gravatar-size
+@vindex gnus-gravatar-size
+The size in pixels of gravatars. Gravatars are always square, so one
+number for the size is enough.
+
+@item gnus-gravatar-relief
+@vindex gnus-gravatar-relief
+If non-nil, adds a shadow rectangle around the image. The value,
+relief, specifies the width of the shadow lines, in pixels. If relief
+is negative, shadows are drawn so that the image appears as a pressed
+button; otherwise, it appears as an unpressed button.
+
+@end table
+
+If you want to see them in the From field, set:
+@lisp
+(setq gnus-treat-from-gravatar 'head)
+@end lisp
+
+If you want to see them in the Cc and To fields, set:
+
+@lisp
+(setq gnus-treat-mail-gravatar 'head)
+@end lisp
 
 
 @node XVarious

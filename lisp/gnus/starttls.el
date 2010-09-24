@@ -269,6 +269,7 @@ handshake, or nil on failure."
 	     host port (if done "done" "failed"))
     process))
 
+;;;###autoload
 (defun starttls-open-stream (name buffer host port)
   "Open a TLS connection for a port to a host.
 Returns a subprocess object to represent the connection.

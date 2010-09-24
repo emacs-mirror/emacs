@@ -2124,7 +2124,9 @@ increase the score of each group you read."
   "W" gnus-html-show-images
   "f" gnus-treat-from-picon
   "m" gnus-treat-mail-picon
-  "n" gnus-treat-newsgroups-picon)
+  "n" gnus-treat-newsgroups-picon
+  "g" gnus-treat-from-gravatar
+  "h" gnus-treat-mail-gravatar)
 
 (gnus-define-keys (gnus-summary-wash-mime-map "M" gnus-summary-wash-map)
   "w" gnus-article-decode-mime-words
@@ -2154,11 +2156,9 @@ increase the score of each group you read."
 
 (gnus-define-keys (gnus-summary-help-map "H" gnus-summary-mode-map)
   "v" gnus-version
-  "f" gnus-summary-fetch-faq
   "d" gnus-summary-describe-group
   "h" gnus-summary-describe-briefly
   "i" gnus-info-find-node
-  "c" gnus-group-fetch-charter
   "C" gnus-group-fetch-control)
 
 (gnus-define-keys (gnus-summary-backend-map "B" gnus-summary-mode-map)
@@ -2374,6 +2374,8 @@ increase the score of each group you read."
 	      ["Show picons in From" gnus-treat-from-picon t]
 	      ["Show picons in mail headers" gnus-treat-mail-picon t]
 	      ["Show picons in news headers" gnus-treat-newsgroups-picon t]
+              ["Show Gravatars in From" gnus-treat-from-gravatar t]
+	      ["Show Gravatars in mail headers" gnus-treat-mail-gravatar t]
 	      ("View as different encoding"
 	       ,@(gnus-summary-menu-split
 		  (mapcar
@@ -2733,11 +2735,7 @@ gnus-summary-show-article-from-menu-as-charset-%s" cs))))
 	 ["Randomize" gnus-summary-sort-by-random t]
 	 ["Original sort" gnus-summary-sort-by-original t])
 	("Help"
-	 ["Fetch group FAQ" gnus-summary-fetch-faq t]
 	 ["Describe group" gnus-summary-describe-group t]
-	 ["Fetch charter" gnus-group-fetch-charter
-	  ,@(if (featurep 'xemacs) nil
-	      '(:help "Display the charter of the current group"))]
 	 ["Fetch control message" gnus-group-fetch-control
 	  ,@(if (featurep 'xemacs) nil
 	      '(:help "Display the archived control message for the current group"))]
@@ -5370,18 +5368,18 @@ or a straight list of headers."
 	    (if (= gnus-tmp-lines -1)
 		(setq gnus-tmp-lines "?")
 	      (setq gnus-tmp-lines (number-to-string gnus-tmp-lines)))
-              (gnus-put-text-property
-	       (point)
-	       (progn (eval gnus-summary-line-format-spec) (point))
-               'gnus-number number)
-	      (when gnus-visual-p
-		(forward-line -1)
-		(gnus-summary-highlight-line)
-		(when gnus-summary-update-hook
-		  (gnus-run-hooks 'gnus-summary-update-hook))
-		(forward-line 1))
+	    (gnus-put-text-property
+	     (point)
+	     (progn (eval gnus-summary-line-format-spec) (point))
+	     'gnus-number number)
+	    (when gnus-visual-p
+	      (forward-line -1)
+	      (gnus-summary-highlight-line)
+	      (when gnus-summary-update-hook
+		(gnus-run-hooks 'gnus-summary-update-hook))
+	      (forward-line 1))
 
-	      (setq gnus-tmp-prev-subject simp-subject)))
+	    (setq gnus-tmp-prev-subject simp-subject)))
 
 	(when (nth 1 thread)
 	  (push (list (max 0 gnus-tmp-level)
@@ -7323,23 +7321,6 @@ The state which existed when entering the ephemeral is reset."
 	       (substring name (match-end 0)))
        t)))
   (gnus-message 3 "This dead summary is now alive again"))
-
-;; Suggested by Andrew Eskilsson <pi92ae@pt.hk-r.se>.
-(defun gnus-summary-fetch-faq (&optional faq-dir)
-  "Fetch the FAQ for the current group.
-If FAQ-DIR (the prefix), prompt for a directory to search for the faq
-in."
-  (interactive
-   (list
-    (when current-prefix-arg
-      (completing-read
-       "FAQ dir: " (and (listp gnus-group-faq-directory)
-			(mapcar 'list
-				gnus-group-faq-directory))))))
-  (let (gnus-faq-buffer)
-    (when (setq gnus-faq-buffer
-		(gnus-group-fetch-faq gnus-newsgroup-name faq-dir))
-      (gnus-configure-windows 'summary-faq))))
 
 ;; Suggested by Per Abrahamsen <amanda@iesd.auc.dk>.
 (defun gnus-summary-describe-group (&optional force)

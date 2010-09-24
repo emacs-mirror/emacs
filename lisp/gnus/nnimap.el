@@ -90,8 +90,12 @@ not done by default on servers that doesn't support that command.")
 (defvar nnimap-split-download-body-default nil
   "Internal variable with default value for `nnimap-split-download-body'.")
 
+(defvar nnimap-keepalive-timer nil)
+(defvar nnimap-process-buffers nil)
+
 (defstruct nnimap
-  group process commands capabilities select-result newlinep server)
+  group process commands capabilities select-result newlinep server
+  last-command-time)
 
 (defvar nnimap-object nil)
 
@@ -223,6 +227,7 @@ not done by default on servers that doesn't support that command.")
     (set (make-local-variable 'nnimap-object)
 	 (make-nnimap :server (nnoo-current-server 'nnimap)))
     (push (list buffer (current-buffer)) nnimap-connection-alist)
+    (push (current-buffer) nnimap-process-buffers)
     (current-buffer)))
 
 (defun nnimap-open-shell-stream (name buffer host port)
@@ -246,7 +251,25 @@ not done by default on servers that doesn't support that command.")
 	     '("login" "password") address port nil (null ports))))
     credentials))
 
+(defun nnimap-keepalive ()
+  (let ((now (current-time)))
+    (dolist (buffer nnimap-process-buffers)
+      (when (buffer-name buffer)
+	(with-current-buffer buffer
+	  (when (and nnimap-object
+		     (nnimap-last-command-time nnimap-object)
+		     (> (time-to-seconds
+			 (time-subtract
+			  now
+			  (nnimap-last-command-time nnimap-object)))
+			;; More than five minutes since the last command.
+			(* 5 60)))
+	    (nnimap-send-command "NOOP")))))))
+
 (defun nnimap-open-connection (buffer)
+  (unless nnimap-keepalive-timer
+    (setq nnimap-keepalive-timer (run-at-time (* 60 15) (* 60 15)
+					      'nnimap-keepalive)))
   (with-current-buffer (nnimap-make-process-buffer buffer)
     (let* ((coding-system-for-read 'binary)
 	   (coding-system-for-write 'binary)
@@ -801,12 +824,20 @@ not done by default on servers that doesn't support that command.")
 	(if (or completep
 		(not (gnus-active group)))
 	    (gnus-set-active group
-			     (if (and low high)
-				 (cons low high)
+			     (cond
+			      ((and low high)
+			       (cons low high))
+			      (uidnext
 			       ;; No articles in this group.
-			       (cons uidnext (1- uidnext))))
+			       (cons uidnext (1- uidnext)))
+			      (start-article
+			       (cons start-article (1- start-article)))
+			      (t
+			       ;; No articles and no uidnext.
+			       nil)))
 	  (setcdr (gnus-active group) (or high (1- uidnext))))
-	(unless high
+	(when (and (not high)
+		   uidnext)
 	  (setq high (1- uidnext)))
 	;; Then update the list of read articles.
 	(let* ((unread
@@ -986,6 +1017,7 @@ not done by default on servers that doesn't support that command.")
 
 (defun nnimap-command (&rest args)
   (erase-buffer)
+  (setf (nnimap-last-command-time nnimap-object) (current-time))
   (let* ((sequence (apply #'nnimap-send-command args))
 	 (response (nnimap-get-response sequence)))
     (if (equal (caar response) "OK")
@@ -1154,8 +1186,8 @@ not done by default on servers that doesn't support that command.")
 	      ;; And then mark the successful copy actions as deleted,
 	      ;; and possibly expunge them.
 	      (nnimap-mark-and-expunge-incoming
-	       (nnimap-parse-copied-articles sequences))
-	      (nnimap-mark-and-expunge-incoming junk-articles))))))))
+	       (nnimap-parse-copied-articles sequences)))
+            (nnimap-mark-and-expunge-incoming junk-articles)))))))
 
 (defun nnimap-mark-and-expunge-incoming (range)
   (when range
