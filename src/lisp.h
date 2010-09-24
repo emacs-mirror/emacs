@@ -2495,7 +2495,8 @@ EXFUN (Fstring_as_unibyte, 1);
 EXFUN (Fstring_to_multibyte, 1);
 EXFUN (Fstring_to_unibyte, 1);
 EXFUN (Fsubstring, 3);
-extern Lisp_Object substring_both (Lisp_Object, int, int, int, int);
+extern Lisp_Object substring_both (Lisp_Object, EMACS_INT, EMACS_INT,
+				   EMACS_INT, EMACS_INT);
 EXFUN (Fnth, 2);
 EXFUN (Fnthcdr, 2);
 EXFUN (Fmemq, 2);

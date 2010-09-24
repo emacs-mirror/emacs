@@ -1,3 +1,16 @@
+2010-09-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* fns.c (Fcompare_strings, Fstring_lessp, concat)
+	(string_make_unibyte, Fstring_as_unibyte, Fsubstring)
+	(Fsubstring_no_properties, substring_both, Ffillarray)
+	(Fclear_string, mapcar1, Fmapconcat, Fmapcar, Fmapc)
+	(Fbase64_encode_region, Fbase64_encode_string, base64_encode_1)
+	(Fbase64_decode_region, Fbase64_decode_string, base64_decode_1)
+	(Fmd5): Use EMACS_INT for buffer and string positions and length
+	variables and arguments.
+
+	* lisp.h (substring_both): Adjust prototype.
+
 2010-09-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	Remove W32 API function pointer unused since 2005-02-15 (revno 60055).
