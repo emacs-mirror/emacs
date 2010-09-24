@@ -348,7 +348,7 @@ See `add-submenu' for documentation."
   :group 'filesets)
 
 ;;(defcustom filesets-menu-cnvfp-flag nil
-;;  "*Non-nil means show \"Convert :pattern to :files\" entry for :pattern menus."
+;;  "Non-nil means show \"Convert :pattern to :files\" entry for :pattern menus."
 ;;  :set (function filesets-set-default!)
 ;;  :type 'boolean
 ;;  :group 'filesets)
