@@ -1,3 +1,7 @@
+2010-09-24  Glenn Morris  <rgm@gnu.org>
+
+	* url.texi (Disk Caching): Tweak previous change.
+
 2010-09-24  Julien Danjou  <julien@danjou.info>
 
 	* url.texi (Disk Caching): Mention url-cache-expire-time,

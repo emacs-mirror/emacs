@@ -740,11 +740,6 @@ corresponding cache file.  The two supplied possibilities are
 @code{url-cache-create-filename-human-readable}.
 @end defopt
 
-@defopt url-cache-expire-time
-This variable defines a default time value to use as expire delay when
-checking if an URL has expired with @code{url-cache-expired}.
-@end defopt
-
 @defun url-cache-create-filename-using-md5 url
 Creates a cache file name from @var{url} using MD5 hashing.
 This is creates entries with very few cache collisions and is fast.
@@ -766,16 +761,19 @@ more likely to conflict with other files.
 @end defun
 
 @defun url-cache-expired
-This is a function to decide whether or not a cache entry has expired.
-It takes a an URL as it first parameters and a expiration delay in
-second paramater. It returns non-@code{nil} if URL is not cached or is
-cached for more than the give expiration delay. If the delay is not
-used, @var{url-cache-expire-time} is used instead.
+This function returns non-nil if a cache entry has expired (or is absent).
+The arguments are a URL and optional expiration delay in seconds
+(default @var{url-cache-expire-time}).
 @end defun
 
+@defopt url-cache-expire-time
+This variable is the default number of seconds to use for the
+expire-time argument of the function @code{url-cache-expired}.
+@end defopt
+
 @defun url-fetch-from-cache
-This function takes an URL as its first argument and then returns a
-buffer containing the data cached for the given URL.
+This function takes a URL as its argument and returns a buffer
+containing the data cached for that URL.
 @end defun
 
 @c Fixme: never actually used currently?
