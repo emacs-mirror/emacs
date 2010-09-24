@@ -1,3 +1,11 @@
+2010-09-24  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnir.el: Silence the byte compiler.
+
+	* gnus-html.el (gnus-html-encode-url-chars): New function, that's an
+	alias to browse-url-url-encode-chars if any.
+	(gnus-html-encode-url): Use it.
+
 2010-09-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-start.el (gnus-use-backend-marks): New variable.

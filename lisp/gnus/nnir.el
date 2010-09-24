@@ -956,6 +956,11 @@ pairs (also vectors, actually)."
 (autoload 'imap-search "imap")
 (autoload 'imap-quote-specials "imap")
 
+(eval-when-compile
+  (autoload 'nnimap-buffer "nnimap")
+  (autoload 'nnimap-command "nnimap")
+  (autoload 'nnimap-possibly-change-group "nnimap"))
+
 (defun nnir-run-imap (query srv &optional group-option)
   "Run a search against an IMAP back-end server.
 This uses a custom query language parser; see `nnir-imap-make-query' for
