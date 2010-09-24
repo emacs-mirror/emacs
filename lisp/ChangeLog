@@ -20,7 +20,7 @@
 	* newcomment.el (comment-normalize-vars): Better test validity of
 	comment-end-skip.
 
-2010-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+2010-09-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/float-sup.el (float-pi): New name for `pi'.
 	(float-e): New name for `e'.
@@ -30,7 +30,7 @@
 	* textmodes/artist.el (artist-spray-random-points):
 	* play/bubbles.el (bubbles--initialize-images): Use new names.
 
-2010-09-19  Eric M. Ludlam  <zappo@gnu.org>
+2010-09-23  Eric M. Ludlam  <zappo@gnu.org>
 
 	Update to CEDET 1.0's version of EIEIO.
 
@@ -48,7 +48,7 @@
 	(eieio-eval-default-p): New function.
 	(eieio-default-eval-maybe): Use it.
 
-2010-07-03  Jan Moringen  <jan.moringen@uni-bielefeld.de>
+2010-09-23  Jan Moringen  <jan.moringen@uni-bielefeld.de>
 
 	* emacs-lisp/eieio.el (eieio-defclass): Allow :c3
 	method-invocation-order.
@@ -81,7 +81,7 @@
 
 	* emacs-lisp/bytecomp.el (byte-compile-file-form-defvar):
 	(byte-compile-defvar, byte-compile-cl-warn):
- 	Start warnings with lower-case, like the majority.
+	Start warnings with lower-case, like the majority.
 
 	* files.el (auto-mode-alist): Add .xa, .xw, .xsw for ld-script-mode.
 
