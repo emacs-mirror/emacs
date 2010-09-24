@@ -1,3 +1,15 @@
+2010-09-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* syntax.c (scan_words, update_syntax_table)
+	(prev_char_comend_first, back_comment, skip_chars)
+	(skip_syntaxes, Fforward_comment, Fbackward_prefix_chars): Use
+	EMACS_INT for buffer and string positions.
+
+	* syntax.h (scan_words, update_syntax_table): Adjust prototypes.
+
+	* casefiddle.c (operate_on_word): Use EMACS_INT for buffer
+	positions.
+
 2010-09-24  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* scroll.c (calculate_scrolling, line_ins_del)
@@ -20,6 +32,14 @@
 	* xdisp.c (message_dolog): Fix EMACS_INT/int conversion.
 
 2010-09-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* syntax.c (scan_words, update_syntax_table)
+	(prev_char_comend_first, back_comment, skip_chars): 
+
+	* syntax.h (scan_words): Adjust prototype.
+
+	* casefiddle.c (operate_on_word): Use EMACS_INT for buffer
+	positions.
 
 	* callproc.c (Fcall_process): Use EMACS_INT for count of
 	characters read from the subprocess.
