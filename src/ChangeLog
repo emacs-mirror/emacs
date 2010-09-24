@@ -1,5 +1,8 @@
 2010-09-24  Eli Zaretskii  <eliz@gnu.org>
 
+	* dispextern.h (struct bidi_saved_info): Use EMACS_INT for buffer
+	positions.
+
 	* fns.c (Fcompare_strings, Fstring_lessp, concat)
 	(string_make_unibyte, Fstring_as_unibyte, Fsubstring)
 	(Fsubstring_no_properties, substring_both, Ffillarray)

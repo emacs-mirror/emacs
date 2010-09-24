@@ -1770,7 +1770,7 @@ typedef enum { NEUTRAL_DIR, L2R, R2L } bidi_dir_t;
 /* Data type for storing information about characters we need to
    remember.  */
 struct bidi_saved_info {
-  int bytepos, charpos;		/* character's buffer position */
+  EMACS_INT bytepos, charpos;	/* character's buffer position */
   bidi_type_t type;		/* character's resolved bidi type */
   bidi_type_t type_after_w1;	/* original type of the character, after W1 */
   bidi_type_t orig_type;	/* type as we found it in the buffer */
