@@ -53,21 +53,13 @@
 
 	* eval.c (verror): Fix EMACS_INT/int conversion.
 
-	* print.c: (PRINTDECLARE, PRINTPREPARE, strout, print_string)
+	* print.c (PRINTDECLARE, PRINTPREPARE, strout, print_string)
 	(print_preprocess, print_check_string_charset_prop)
 	(print_object): Fix EMACS_INT/int conversion.
 
 	* xdisp.c (message_dolog): Fix EMACS_INT/int conversion.
 
 2010-09-24  Eli Zaretskii  <eliz@gnu.org>
-
-	* syntax.c (scan_words, update_syntax_table)
-	(prev_char_comend_first, back_comment, skip_chars): 
-
-	* syntax.h (scan_words): Adjust prototype.
-
-	* casefiddle.c (operate_on_word): Use EMACS_INT for buffer
-	positions.
 
 	* callproc.c (Fcall_process): Use EMACS_INT for count of
 	characters read from the subprocess.
