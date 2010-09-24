@@ -2003,7 +2003,7 @@ verror (const char *m, va_list ap)
 
   while (1)
     {
-      int used;
+      EMACS_INT used;
       used = doprnt (buffer, size, m, m + mlen, ap);
       if (used < size)
 	break;

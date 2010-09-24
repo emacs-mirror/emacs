@@ -7990,7 +7990,7 @@ message_log_maybe_newline (void)
    so the buffer M must NOT point to a Lisp string.  */
 
 void
-message_dolog (const char *m, int nbytes, int nlflag, int multibyte)
+message_dolog (const char *m, EMACS_INT nbytes, int nlflag, int multibyte)
 {
   if (!NILP (Vmemory_full))
     return;

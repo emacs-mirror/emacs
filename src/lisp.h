@@ -2667,7 +2667,7 @@ extern void message2 (const char *, int, int);
 extern void message2_nolog (const char *, int, int);
 extern void message3 (Lisp_Object, int, int);
 extern void message3_nolog (Lisp_Object, int, int);
-extern void message_dolog (const char *, int, int, int);
+extern void message_dolog (const char *, EMACS_INT, int, int);
 extern void message_with_string (const char *, Lisp_Object, int);
 extern void message_log_maybe_newline (void);
 extern void update_echo_area (void);
