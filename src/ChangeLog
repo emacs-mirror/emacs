@@ -1,3 +1,9 @@
+2010-09-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	Remove W32 API function pointer unused since 2005-02-15 (revno 60055).
+	* w32fns.c (clipboard_sequence_fn): Don't declare.
+	(globals_of_w32fns): Don't initialize it.
+
 2010-09-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* syntax.c (back_comment): Detect the case where a 1-char comment
