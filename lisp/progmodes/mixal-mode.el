@@ -125,7 +125,7 @@ value.")
 (defvar mixal-operation-codes-alist
   ;; FIXME: the codes FADD, FSUB, FMUL, FDIV, JRAD, and FCMP were in
   ;; mixal-operation-codes but not here.  They should probably be added here.
-  ;; 
+  ;;
   ;; We used to define this with a backquote and subexps like ,(+ 8 3) for
   ;; better clarity, but the resulting code was too big and caused the
   ;; byte-compiler to eat up all the stack space.  Even using
@@ -1122,9 +1122,6 @@ Assumes that file has been compiled with debugging support."
   ;; so let Emacs ensure that it is always there
   (set (make-local-variable 'require-final-newline)
        mode-require-final-newline))
-
-;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.mixal\\'" . mixal-mode))
 
 (provide 'mixal-mode)
 

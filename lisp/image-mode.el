@@ -36,18 +36,6 @@
 (require 'image)
 (eval-when-compile (require 'cl))
 
-;;;###autoload (push (cons (purecopy "\\.jpe?g\\'")    'image-mode) auto-mode-alist)
-;;;###autoload (push (cons (purecopy "\\.png\\'")      'image-mode) auto-mode-alist)
-;;;###autoload (push (cons (purecopy "\\.gif\\'")      'image-mode) auto-mode-alist)
-;;;###autoload (push (cons (purecopy "\\.tiff?\\'")    'image-mode) auto-mode-alist)
-;;;###autoload (push (cons (purecopy "\\.p[bpgn]m\\'") 'image-mode) auto-mode-alist)
-
-;;;###autoload (push (cons (purecopy "\\.x[bp]m\\'")   'c-mode)     auto-mode-alist)
-;;;###autoload (push (cons (purecopy "\\.x[bp]m\\'")   'image-mode) auto-mode-alist)
-
-;;;###autoload (push (cons (purecopy "\\.svgz?\\'")    'xml-mode)   auto-mode-alist)
-;;;###autoload (push (cons (purecopy "\\.svgz?\\'")    'image-mode) auto-mode-alist)
-
 ;;; Image mode window-info management.
 
 (defvar image-mode-winprops-alist t)

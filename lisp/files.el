@@ -2211,6 +2211,15 @@ since only a single case-insensitive search through the alist is made."
      (cons (purecopy (car elt)) (cdr elt)))
    `(;; do this first, so that .html.pl is Polish html, not Perl
      ("\\.s?html?\\(\\.[a-zA-Z_]+\\)?\\'" . html-mode)
+     ("\\.svgz?\\'" . image-mode)
+     ("\\.svgz?\\'" . xml-mode)
+     ("\\.x[bp]m\\'" . image-mode)
+     ("\\.x[bp]m\\'" . c-mode)
+     ("\\.p[bpgn]m\\'" . image-mode)
+     ("\\.tiff?\\'" . image-mode)
+     ("\\.gif\\'" . image-mode)
+     ("\\.png\\'" . image-mode)
+     ("\\.jpe?g\\'" . image-mode)
      ("\\.te?xt\\'" . text-mode)
      ("\\.[tT]e[xX]\\'" . tex-mode)
      ("\\.ins\\'" . tex-mode)		;Installation files for TeX packages.
@@ -2246,6 +2255,14 @@ since only a single case-insensitive search through the alist is made."
      ("\\.te?xi\\'" . texinfo-mode)
      ("\\.[sS]\\'" . asm-mode)
      ("\\.asm\\'" . asm-mode)
+     ("\\.css\\'" . css-mode)
+     ("\\.mixal\\'" . mixal-mode)
+     ("\\.gcov\\'" . compilation-mode)
+     ;; Besides .gdbinit, gdb documents other names to be usable for init
+     ;; files, cross-debuggers can use something like
+     ;; .PROCESSORNAME-gdbinit so that the host and target gdbinit files
+     ;; don't interfere with each other.
+     ("/\\.[a-z0-9-]*gdbinit" . gdb-script-mode)
      ("[cC]hange\\.?[lL]og?\\'" . change-log-mode)
      ("[cC]hange[lL]og[-.][0-9]+\\'" . change-log-mode)
      ("\\$CHANGE_LOG\\$\\.TXT" . change-log-mode)
@@ -2262,6 +2279,7 @@ since only a single case-insensitive search through the alist is made."
      ("\\.cl[so]\\'" . latex-mode)		;LaTeX 2e class option
      ("\\.bbl\\'" . latex-mode)
      ("\\.bib\\'" . bibtex-mode)
+     ("\\.bst\\'" . bibtex-style-mode)
      ("\\.sql\\'" . sql-mode)
      ("\\.m[4c]\\'" . m4-mode)
      ("\\.mf\\'" . metafont-mode)
@@ -2322,6 +2340,8 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\)\\'" . archive-mode)
      ;; A .x script file is the default script.
      ;; A .xr script is for linking without relocation (-r flag).  Etc.
      ("\\.x[abdsru]?[cnw]?\\'" . ld-script-mode)
+     ("\\.zone\\'" . dns-mode)
+     ("\\.soa\\'" . dns-mode)
      ;; Common Lisp ASDF package system.
      ("\\.asd\\'" . lisp-mode)
      ("\\.\\(asn\\|mib\\|smi\\)\\'" . snmp-mode)
