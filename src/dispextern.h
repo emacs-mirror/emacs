@@ -2929,7 +2929,8 @@ void remember_mouse_glyph (struct frame *, int, int, NativeRectangle *);
 void mark_window_display_accurate (Lisp_Object, int);
 void redisplay_preserve_echo_area (int);
 int set_cursor_from_row (struct window *, struct glyph_row *,
-                         struct glyph_matrix *, int, int, int, int);
+                         struct glyph_matrix *, EMACS_INT, EMACS_INT,
+			 int, int);
 void init_iterator (struct it *, struct window *, EMACS_INT,
                     EMACS_INT, struct glyph_row *, enum face_id);
 void init_iterator_to_row_start (struct it *, struct window *,
@@ -3209,11 +3210,11 @@ extern Lisp_Object buffer_posn_from_coords (struct window *,
                                             Lisp_Object *,
                                             int *, int *, int *, int *);
 extern Lisp_Object mode_line_string (struct window *, enum window_part,
-                                     int *, int *, int *,
+                                     int *, int *, EMACS_INT *,
                                      Lisp_Object *,
                                      int *, int *, int *, int *);
 extern Lisp_Object marginal_area_string (struct window *, enum window_part,
-                                         int *, int *, int *,
+                                         int *, int *, EMACS_INT *,
                                          Lisp_Object *,
                                          int *, int *, int *, int *);
 extern void redraw_frame (struct frame *);
@@ -3236,9 +3237,9 @@ void shift_glyph_matrix (struct window *, struct glyph_matrix *,
                          int, int, int);
 void rotate_matrix (struct glyph_matrix *, int, int, int);
 void increment_matrix_positions (struct glyph_matrix *,
-                                 int, int, int, int);
+                                 int, int, EMACS_INT, EMACS_INT);
 void blank_row (struct window *, struct glyph_row *, int);
-void increment_row_positions (struct glyph_row *, int, int);
+void increment_row_positions (struct glyph_row *, EMACS_INT, EMACS_INT);
 void enable_glyph_matrix_rows (struct glyph_matrix *, int, int, int);
 void clear_glyph_row (struct glyph_row *);
 void prepare_desired_row (struct glyph_row *);

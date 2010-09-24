@@ -5281,7 +5281,8 @@ make_lispy_position (struct frame *f, Lisp_Object *x, Lisp_Object *y,
       /* It's a click in window window at frame coordinates (x,y)  */
       struct window *w = XWINDOW (window);
       Lisp_Object string_info = Qnil;
-      int textpos = -1, rx = -1, ry = -1;
+      EMACS_INT textpos = -1;
+      int rx = -1, ry = -1;
       int dx = -1, dy = -1;
       int width = -1, height = -1;
       Lisp_Object object = Qnil;
@@ -5300,7 +5301,7 @@ make_lispy_position (struct frame *f, Lisp_Object *x, Lisp_Object *y,
 	  /* Mode line or header line.  Look for a string under
 	     the mouse that may have a `local-map' property.  */
 	  Lisp_Object string;
-	  int charpos;
+	  EMACS_INT charpos;
 
 	  posn = part == ON_MODE_LINE ? Qmode_line : Qheader_line;
 	  rx = wx, ry = wy;
@@ -5324,7 +5325,7 @@ make_lispy_position (struct frame *f, Lisp_Object *x, Lisp_Object *y,
       else if (part == ON_LEFT_MARGIN || part == ON_RIGHT_MARGIN)
 	{
 	  Lisp_Object string;
-	  int charpos;
+	  EMACS_INT charpos;
 
 	  posn = (part == ON_LEFT_MARGIN) ? Qleft_margin : Qright_margin;
 	  rx = wx, ry = wy;

@@ -1,5 +1,33 @@
 2010-09-24  Eli Zaretskii  <eliz@gnu.org>
 
+	* keyboard.c (make_lispy_position): Use EMACS_INT for buffer
+	positions.
+
+	* xdisp.c (redisplay_internal, try_window_id)
+	(set_cursor_from_row, find_first_unchanged_at_end_row): Use
+	EMACS_INT for buffer positions.
+
+	* dispextern.h (set_cursor_from_row, mode_line_string)
+	(marginal_area_string): Adjust prototypes.
+
+	* dispnew.c (increment_matrix_positions)
+	(increment_row_positions, copy_glyph_row_contents)
+	(mode_line_string, marginal_area_string): Use EMACS_INT for buffer
+	positions.
+
+	* dispextern.h (mode_line_string, marginal_area_string)
+	(increment_matrix_positions, increment_row_positions): Adjust
+	prototypes.
+
+	* data.c (Faref, Faset): Use EMACS_INT for string length and
+	positions.
+
+	* cmds.c (internal_self_insert): Use EMACS_INT for the count of
+	characters to insert.
+
+	* ccl.c (Fccl_execute_on_string): Use EMACS_INT for string
+	position and size.
+
 	* syntax.c (scan_words, update_syntax_table)
 	(prev_char_comend_first, back_comment, skip_chars)
 	(skip_syntaxes, Fforward_comment, Fbackward_prefix_chars): Use

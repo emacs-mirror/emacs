@@ -37,7 +37,7 @@ Lisp_Object Qkill_forward_chars, Qkill_backward_chars;
 /* A possible value for a buffer's overwrite-mode variable.  */
 Lisp_Object Qoverwrite_mode_binary;
 
-static int internal_self_insert (int, int);
+static int internal_self_insert (int, EMACS_INT);
 
 DEFUN ("forward-point", Fforward_point, Sforward_point, 1, 1, 0,
        doc: /* Return buffer position N characters after (before if N negative) point.  */)
@@ -304,7 +304,7 @@ After insertion, the value of `auto-fill-function' is called if the
   {
     int character = translate_char (Vtranslation_table_for_input,
 				    (int) XINT (last_command_event));
-    int val = internal_self_insert (character, (int) XFASTINT (n));
+    int val = internal_self_insert (character, XFASTINT (n));
     if (val == 2)
       nonundocount = 0;
     frame_make_pointer_invisible ();
@@ -323,7 +323,7 @@ static Lisp_Object Qexpand_abbrev;
 static Lisp_Object Qpost_self_insert_hook, Vpost_self_insert_hook;
 
 static int
-internal_self_insert (int c, int n)
+internal_self_insert (int c, EMACS_INT n)
 {
   int hairy = 0;
   Lisp_Object tem;
