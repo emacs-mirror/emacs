@@ -1877,7 +1877,7 @@ struct specbinding
 
 extern struct specbinding *specpdl;
 extern struct specbinding *specpdl_ptr;
-extern int specpdl_size;
+extern EMACS_INT specpdl_size;
 
 extern EMACS_INT max_specpdl_size;
 
@@ -3241,7 +3241,7 @@ EXFUN (Fcurrent_column, 0);
 EXFUN (Fmove_to_column, 2);
 extern double current_column (void);
 extern void invalidate_current_column (void);
-extern int indented_beyond_p (int, int, double);
+extern int indented_beyond_p (EMACS_INT, EMACS_INT, double);
 extern void syms_of_indent (void);
 
 /* Defined in frame.c */

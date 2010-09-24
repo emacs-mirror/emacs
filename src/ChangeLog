@@ -1,5 +1,20 @@
 2010-09-24  Eli Zaretskii  <eliz@gnu.org>
 
+	* indent.c (Fcurrent_indentation, indented_beyond_p)
+	(compute_motion): Use EMACS_INT for buffer position variables.
+
+	* lisp.h (indented_beyond_p): Adjust prototype.
+
+	* buffer.c (overlay_strings): Return EMACS_INT.
+
+	* buffer.h (overlay_strings): Adjust prototype.
+
+	* region-cache.c (pp_cache): Adjust format to arguments.
+
+	* eval.c <specpdl_size, lisp_eval_depth>: Declare EMACS_INT.
+	(call_debugger): Use EMACS_INT for specpdl_size related variables.
+	(verror): Use EMACS_INT for size of allocated buffer.
+
 	* keyboard.c (make_lispy_position): Use EMACS_INT for buffer
 	positions.
 

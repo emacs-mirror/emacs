@@ -3134,7 +3134,7 @@ record_overlay_string (struct sortstrlist *ssl, Lisp_Object str, Lisp_Object str
    PSTR, if that variable is non-null.  The string may be overwritten by
    subsequent calls.  */
 
-int
+EMACS_INT
 overlay_strings (EMACS_INT pos, struct window *w, unsigned char **pstr)
 {
   Lisp_Object overlay, window, str;

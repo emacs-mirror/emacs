@@ -79,7 +79,7 @@ Lisp_Object Vautoload_queue;
 
 /* Current number of specbindings allocated in specpdl.  */
 
-int specpdl_size;
+EMACS_INT specpdl_size;
 
 /* Pointer to beginning of specpdl.  */
 
@@ -95,7 +95,7 @@ EMACS_INT max_specpdl_size;
 
 /* Depth in Lisp evaluations and function calls.  */
 
-int lisp_eval_depth;
+EMACS_INT lisp_eval_depth;
 
 /* Maximum allowed depth in Lisp evaluations and function calls.  */
 
@@ -216,7 +216,7 @@ call_debugger (Lisp_Object arg)
   int debug_while_redisplaying;
   int count = SPECPDL_INDEX ();
   Lisp_Object val;
-  int old_max = max_specpdl_size;
+  EMACS_INT old_max = max_specpdl_size;
 
   /* Temporarily bump up the stack limits,
      so the debugger won't run out of stack.  */
@@ -1992,7 +1992,7 @@ void
 verror (const char *m, va_list ap)
 {
   char buf[200];
-  int size = 200;
+  EMACS_INT size = 200;
   int mlen;
   char *buffer = buf;
   char *args[3];
