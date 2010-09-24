@@ -428,6 +428,7 @@ This hook is called as the first thing when Gnus is started."
 (defcustom gnus-after-getting-new-news-hook
   '(gnus-display-time-event-handler)
   "*A hook run after Gnus checks for new news when Gnus is already running."
+  :version "24.1"
   :group 'gnus-group-new
   :type 'hook)
 
