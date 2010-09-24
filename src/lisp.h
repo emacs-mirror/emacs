@@ -3015,10 +3015,10 @@ EXFUN (Foverlay_end, 1);
 EXFUN (Foverlay_buffer, 1);
 extern void adjust_overlays_for_insert (EMACS_INT, EMACS_INT);
 extern void adjust_overlays_for_delete (EMACS_INT, EMACS_INT);
-extern void fix_start_end_in_overlays (int, int);
+extern void fix_start_end_in_overlays (EMACS_INT, EMACS_INT);
 extern void report_overlay_modification (Lisp_Object, Lisp_Object, int,
                                          Lisp_Object, Lisp_Object, Lisp_Object);
-extern int overlay_touches_p (int);
+extern int overlay_touches_p (EMACS_INT);
 extern Lisp_Object Vbuffer_alist, Vinhibit_read_only;
 EXFUN (Fbuffer_list, 1);
 EXFUN (Fget_buffer, 1);

@@ -1,5 +1,18 @@
 2010-09-24  Eli Zaretskii  <eliz@gnu.org>
 
+	* buffer.c (struct sortvec): Use EMACS_INT for buffer positions.
+	(struct sortstrlist, overlay_str_len): Use EMACS_INT for string
+	length.
+	(advance_to_char_boundary, Fset_buffer_multibyte)
+	(overlays_at, overlays_in, mouse_face_overlay_overlaps)
+	(overlay_touches_p, record_overlay_string, overlay_strings)
+	(recenter_overlay_lists, fix_start_end_in_overlays)
+	(modify_overlay, Fmove_overlay, report_overlay_modification)
+	(evaporate_overlays): Use EMACS_INT for buffer positions.
+
+	* lisp.h (fix_start_end_in_overlays, overlay_touches_p): Adjust
+	prototypes.
+
 	* dispextern.h (struct bidi_saved_info): Use EMACS_INT for buffer
 	positions.
 
