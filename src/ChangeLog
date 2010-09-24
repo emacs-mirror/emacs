@@ -1,5 +1,10 @@
 2010-09-24  Eli Zaretskii  <eliz@gnu.org>
 
+	* bidi.c (struct bidi_paragraph_info): Use EMACS_INT for buffer
+	positions.
+	(bidi_cache_search, bidi_cache_find): Use EMACS_INT for buffer
+	positions.
+
 	* buffer.c (struct sortvec): Use EMACS_INT for buffer positions.
 	(struct sortstrlist, overlay_str_len): Use EMACS_INT for string
 	length.
