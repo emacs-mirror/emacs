@@ -3170,7 +3170,9 @@ usage: (make-network-process &rest ARGS)  */)
   if (!NILP (host))
     {
       if (EQ (host, Qlocal))
-	host = build_string ("localhost");
+	/* Depending on setup, "localhost" may map to different IPv4 and/or
+	   IPv6 addresses, so it's better to be explicit.  (Bug#6781) */
+	host = build_string ("127.0.0.1");
       CHECK_STRING (host);
     }
 

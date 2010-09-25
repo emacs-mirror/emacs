@@ -1,3 +1,8 @@
+2010-09-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-start): Revert part of 2010-08-08 change.  Using
+	address 127.0.0.1 for local host is now done in Fmake_network_process.
+
 2010-09-24  Glenn Morris  <rgm@gnu.org>
 
 	* image-mode.el, progmodes/compile.el, progmodes/gud.el:

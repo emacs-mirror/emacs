@@ -1,3 +1,8 @@
+2010-09-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* process.c (Fmake_network_process): When arg :host is 'local,
+	use address 127.0.0.1, not name "localhost".  (Bug#6781)
+
 2010-09-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* indent.c (Fcurrent_indentation, indented_beyond_p)
