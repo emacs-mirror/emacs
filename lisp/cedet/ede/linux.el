@@ -116,7 +116,7 @@ ROOTPROJ is nil, since there is only one project."
 (add-to-list 'ede-project-class-files
 	     (ede-project-autoload "linux"
 	      :name "LINUX ROOT"
-	      :file 'ede-linux
+	      :file 'ede/linux
 	      :proj-file "scripts/ver_linux"
 	      :proj-root 'ede-linux-project-root
 	      :load-type 'ede-linux-load

@@ -368,7 +368,7 @@ the class `ede-generic-project' project."
   (add-to-list 'ede-project-class-files
 	       (ede-project-autoload internal-name
 				     :name external-name
-				     :file 'ede-generic
+				     :file 'ede/generic
 				     :proj-file projectfile
 				     :load-type 'ede-generic-load
 				     :class-sym class
