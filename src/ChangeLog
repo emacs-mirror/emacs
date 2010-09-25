@@ -27,8 +27,8 @@
 	(set_cursor_from_row, find_first_unchanged_at_end_row): Use
 	EMACS_INT for buffer positions.
 
-	* dispextern.h (set_cursor_from_row, mode_line_string)
-	(marginal_area_string): Adjust prototypes.
+	* dispextern.h (set_cursor_from_row, mode_line_string): Adjust
+	prototype.
 
 	* dispnew.c (increment_matrix_positions)
 	(increment_row_positions, copy_glyph_row_contents)
