@@ -320,7 +320,7 @@ extern int composition_reseat_it (struct composition_it *,
 extern int composition_update_it (struct composition_it *,
                                   EMACS_INT, EMACS_INT, Lisp_Object);
 
-extern int composition_adjust_point (EMACS_INT, EMACS_INT);
+extern EMACS_INT composition_adjust_point (EMACS_INT, EMACS_INT);
 
 EXFUN (Fcompose_region_internal, 4);
 EXFUN (Fcompose_string_internal, 5);

@@ -2957,7 +2957,7 @@ extern int help_echo_showing_p;
 extern int current_mode_line_height, current_header_line_height;
 extern Lisp_Object help_echo_string, help_echo_window;
 extern Lisp_Object help_echo_object, previous_help_echo_string;
-extern int help_echo_pos;
+extern EMACS_INT help_echo_pos;
 extern struct frame *last_mouse_frame;
 extern int last_tool_bar_item;
 extern Lisp_Object Vmouse_autoselect_window;

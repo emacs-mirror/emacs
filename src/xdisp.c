@@ -907,7 +907,7 @@ Lisp_Object Qinhibit_free_realized_faces;
 Lisp_Object help_echo_string;
 Lisp_Object help_echo_window;
 Lisp_Object help_echo_object;
-int help_echo_pos;
+EMACS_INT help_echo_pos;
 
 /* Temporary variable for XTread_socket.  */
 
@@ -9189,7 +9189,7 @@ check_message_stack (void)
    time we display it---but don't redisplay it now.  */
 
 void
-truncate_echo_area (int nchars)
+truncate_echo_area (EMACS_INT nchars)
 {
   if (nchars == 0)
     echo_area_buffer[0] = Qnil;

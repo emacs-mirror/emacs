@@ -1662,7 +1662,7 @@ find_automatic_composition (EMACS_INT pos, EMACS_INT limit, EMACS_INT *start, EM
 /* Return the adjusted point provided that point is moved from LAST_PT
    to NEW_PT.  */
 
-int
+EMACS_INT
 composition_adjust_point (EMACS_INT last_pt, EMACS_INT new_pt)
 {
   EMACS_INT charpos, bytepos, startpos, beg, end, pos;

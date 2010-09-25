@@ -1,3 +1,29 @@
+2010-09-25  Eli Zaretskii  <eliz@gnu.org>
+
+	* keyboard.c <last_point_position, last_non_minibuf_size>: Declare
+	EMACS_INT.
+	(echo_truncate, adjust_point_for_property, read_char)
+	(gen_help_event, make_lispy_event, modify_event_symbol)
+	(Fexecute_extended_command, stuff_buffered_input): Use EMACS_INT
+	for buffer positions and string length.
+
+	* keyboard.h (gen_help_event): Adjust prototype.
+
+	* termhooks.h <struct input_event>: Make `code' member EMACS_INT.
+
+	* commands.h <last_point_position>: Declare EMACS_INT.
+
+	* xdisp.c <help_echo_pos>: Define as EMACS_INT.
+	(truncate_echo_area): Accept EMACS_INT argument.
+
+	* dispextern.h <help_echo_pos>: Declare EMACS_INT.
+
+	* lisp.h (truncate_echo_area): Adjust prototype.
+
+	* composite.c (composition_adjust_point): Return EMACS_INT.
+
+	* composite.h (composition_adjust_point): Adjust prototype.
+
 2010-09-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* process.c (Fmake_network_process): When arg :host is 'local,

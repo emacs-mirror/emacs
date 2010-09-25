@@ -2671,7 +2671,7 @@ extern void message_dolog (const char *, EMACS_INT, int, int);
 extern void message_with_string (const char *, Lisp_Object, int);
 extern void message_log_maybe_newline (void);
 extern void update_echo_area (void);
-extern void truncate_echo_area (int);
+extern void truncate_echo_area (EMACS_INT);
 extern void redisplay (void);
 extern int check_point_in_composition
         (struct buffer *, EMACS_INT, struct buffer *, EMACS_INT);
