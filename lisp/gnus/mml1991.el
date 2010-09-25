@@ -65,9 +65,6 @@
 	 mml1991-epg-encrypt))
   "Alist of PGP functions.")
 
-(defvar mml1991-verbose mml-secure-verbose
-  "If non-nil, ask the user about the current operation more verbosely.")
-
 (defvar mml1991-cache-passphrase mml-secure-cache-passphrase
   "If t, cache passphrase.")
 

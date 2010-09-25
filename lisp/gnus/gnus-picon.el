@@ -101,7 +101,6 @@ added right to the textual representation."
 
 ;;; Internal variables:
 
-(defvar gnus-picon-setup-p nil)
 (defvar gnus-picon-glyph-alist nil
   "Picon glyphs cache.
 List of pairs (KEY . GLYPH) where KEY is either a filename or an URL.")

@@ -548,8 +548,6 @@ simple manner.")
 (defvar gnus-group-list-mode nil)
 
 
-(defvar gnus-group-icon-cache nil)
-
 (defvar gnus-group-listed-groups nil)
 (defvar gnus-group-list-option nil)
 
@@ -2221,8 +2219,6 @@ Returns whether the fetching was successful or not."
 	  (t
 	   (other-frame 1))))
   (gnus-fetch-group group))
-
-(defvar gnus-ephemeral-group-server 0)
 
 (defcustom gnus-large-ephemeral-newsgroup 200
   "The number of articles which indicates a large ephemeral newsgroup.

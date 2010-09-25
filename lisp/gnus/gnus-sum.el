@@ -6216,8 +6216,6 @@ The resulting hash table is returned, or nil if no Xrefs were found."
 	(unless (gnus-ephemeral-group-p group)
 	  (gnus-group-update-group group t))))))
 
-(defvar gnus-newsgroup-none-id 0)
-
 (defun gnus-get-newsgroup-headers (&optional dependencies force-new)
   (let ((cur nntp-server-buffer)
 	(dependencies

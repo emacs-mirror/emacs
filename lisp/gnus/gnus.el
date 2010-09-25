@@ -2621,9 +2621,6 @@ a string, be sure to use a valid format, see RFC 2616."
 (defvar gnus-tree-buffer "*Tree*"
   "Buffer where Gnus thread trees are displayed.")
 
-;; Dummy variable.
-(defvar gnus-use-generic-from nil)
-
 ;; Variable holding the user answers to all method prompts.
 (defvar gnus-method-history nil)
 
@@ -2650,8 +2647,6 @@ a string, be sure to use a valid format, see RFC 2616."
      (nnspool-active-file
       ,(nnheader-concat gnus-cache-directory "active"))))
   "List of predefined (convenience) servers.")
-
-(defvar gnus-topic-indentation "") ;; Obsolete variable.
 
 (defconst gnus-article-mark-lists
   '((marked . tick) (replied . reply)

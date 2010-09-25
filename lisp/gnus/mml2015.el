@@ -188,9 +188,6 @@ Whether the passphrase is cached at all is controlled by
 (autoload 'mc-cleanup-recipient-headers "mc-toplev")
 (autoload 'mc-sign-generic "mc-toplev")
 
-(defvar mc-default-scheme)
-(defvar mc-schemes)
-
 (defvar mml2015-decrypt-function 'mailcrypt-decrypt)
 (defvar mml2015-verify-function 'mailcrypt-verify)
 

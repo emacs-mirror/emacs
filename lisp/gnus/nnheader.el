@@ -570,8 +570,6 @@ the line could be found."
 
 (defvar nntp-server-buffer nil)
 (defvar nntp-process-response nil)
-(defvar news-reply-yank-from nil)
-(defvar news-reply-yank-message-id nil)
 
 (defvar nnheader-callback-function nil)
 

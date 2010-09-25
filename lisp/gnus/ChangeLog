@@ -1,5 +1,30 @@
 2010-09-25  Julien Danjou  <julien@danjou.info>
 
+	* rfc1843.el: Remove useless rfc1843-old-gnus-decode-header-function
+	variables.
+
+	* nnheader.el: Remove useless variables news-reply-yank-from and
+	news-reply-yank-message-id.
+
+	* mml2015.el: Remove useless mc-default-scheme and mc-schemes
+	variables.
+
+	* mml1991.el: Remove useless mml1991-verbose.
+
+	* gnus.el: Remove useless variable gnus-use-generic-from.
+	Remove obsolete variable gnus-topic-indentation.
+
+	* gnus-uu.el: Remove useless gnus-uu-shar-file-name.
+
+	* gnus-sum.el: Remove useless gnus-newsgroup-none-id.
+
+	* gnus-picon.el: Remove useless gnus-picon-setup-p variable.
+
+	* gnus-group.el: Remove useless gnus-group-icon-cache.
+	Remove useless gnus-ephemeral-group-server.
+
+	* gnus-bookmark.el: Remove useless gnus-bookmark-after-jump-hook.
+
 	* mml2015.el: Remove useless mml2015-verbose.
 
 	* mml-smime.el: Remove useless mml-smime-verbose.
