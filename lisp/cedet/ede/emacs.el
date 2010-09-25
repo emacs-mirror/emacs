@@ -137,7 +137,7 @@ ROOTPROJ is nil, since there is only one project."
 (add-to-list 'ede-project-class-files
 	     (ede-project-autoload "emacs"
 	      :name "EMACS ROOT"
-	      :file 'ede-emacs
+	      :file 'ede/emacs
 	      :proj-file "src/emacs.c"
 	      :proj-root 'ede-emacs-project-root
 	      :load-type 'ede-emacs-load
