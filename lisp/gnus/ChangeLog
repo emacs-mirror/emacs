@@ -1,3 +1,8 @@
+2010-09-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nndraft.el (nndraft-retrieve-headers): Insert Lines and Chars headers
+	for prettier summary display.
+
 2010-09-25  Andrew Cohen  <cohen@andy.bu.edu>  (tiny change)
 
 	* nnir.el (nnir-run-imap): Allow sending IMAP search patterns
