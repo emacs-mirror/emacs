@@ -1,3 +1,7 @@
+2010-09-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* xrdb.c (magic_file_p): EMACS_INT/int fixup.
+
 2010-09-25  Eli Zaretskii  <eliz@gnu.org>
 
 	* window.c (Fpos_visible_in_window_p, Fdelete_other_windows)
