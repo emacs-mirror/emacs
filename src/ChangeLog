@@ -1,5 +1,12 @@
 2010-09-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* xdisp.c (face_before_or_after_it_pos): EMACS_INT/int fixup.
+
+	* dispextern.h: EMACS_INT/int fixup.
+
+	* xdisp.c (string_pos_nchars_ahead, init_iterator): EMACS_INT/int
+	fixup.
+
 	* xrdb.c (magic_file_p): EMACS_INT/int fixup.
 
 2010-09-25  Eli Zaretskii  <eliz@gnu.org>

@@ -2938,7 +2938,7 @@ void init_iterator_to_row_start (struct it *, struct window *,
 int get_next_display_element (struct it *);
 void set_iterator_to_next (struct it *, int);
 void start_display (struct it *, struct window *, struct text_pos);
-void move_it_to (struct it *, int, int, int, int, int);
+void move_it_to (struct it *, EMACS_INT, int, int, int, int);
 void move_it_vertically (struct it *, int);
 void move_it_vertically_backward (struct it *, int);
 void move_it_by_lines (struct it *, int, int);
