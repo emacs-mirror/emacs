@@ -1,5 +1,11 @@
 2010-09-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus.el (gnus-local-domain): Put gnus-local-domain back again, since
+	apparently third-party libraries depend on it.
+
+	* nnimap.el (nnimap-open-connection): Wait for the response to STARTTLS
+	before starting negotiation.
+
 	* gnus-art.el (gnus-treat-from-gravatar): Change default to nil for
 	privacy reasons.
 	(gnus-treat-mail-gravatar): Ditto.

@@ -310,7 +310,7 @@ not done by default on servers that doesn't support that command.")
 	(gnus-set-process-query-on-exit-flag (nnimap-process nnimap-object) nil)
 	(when (setq connection-result (nnimap-wait-for-connection))
 	  (when (eq nnimap-stream 'starttls)
-	    (nnimap-send-command "STARTTLS")
+	    (nnimap-command "STARTTLS")
 	    (starttls-negotiate (nnimap-process nnimap-object)))
 	  (unless (equal connection-result "PREAUTH")
 	    (if (not (setq credentials
