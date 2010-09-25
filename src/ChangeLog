@@ -1,5 +1,19 @@
 2010-09-25  Eli Zaretskii  <eliz@gnu.org>
 
+	* window.c (Fpos_visible_in_window_p, Fdelete_other_windows)
+	(Fselect_window, window_scroll_pixel_based)
+	(window_scroll_line_based, Frecenter, Fset_window_configuration):
+	Use EMACS_INT for buffer positions.
+
+	* textprop.c (validate_interval_range, interval_of)
+	(property_change_between_p, Fadd_text_properties)
+	(set_text_properties_1, Fremove_text_properties)
+	(Fremove_list_of_text_properties, Ftext_property_any)
+	(Ftext_property_not_all, copy_text_properties)
+	(text_property_list, extend_property_ranges)
+	(verify_interval_modification): Use EMACS_INT for buffer
+	positions.
+
 	* term.c (fast_find_position, term_mouse_highlight): Use EMACS_INT
 	for buffer positions.
 
