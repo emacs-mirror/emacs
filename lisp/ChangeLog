@@ -1,3 +1,7 @@
+2010-09-25  Julien Danjou  <julien@danjou.info>
+
+	* notifications.el: Call dbus-register-signal only if it is bound.
+
 2010-09-25  Glenn Morris  <rgm@gnu.org>
 
 	* eshell/em-alias.el, eshell/em-banner.el, eshell/em-basic.el:

@@ -95,13 +95,14 @@
       (funcall (cadr entry) id action)
       (remove entry 'notifications-on-action-map))))
 
-(dbus-register-signal
- :session
- notifications-service
- notifications-path
- notifications-interface
- notifications-action-signal
- 'notifications-on-action-signal)
+(when (fboundp 'dbus-register-signal)
+  (dbus-register-signal
+   :session
+   notifications-service
+   notifications-path
+   notifications-interface
+   notifications-action-signal
+   'notifications-on-action-signal))
 
 (defun notifications-on-closed-signal (id reason)
   "Dispatch signals to callback functions from `notifications-on-closed-map'."
@@ -111,13 +112,14 @@
 	       id (cadr (assoc reason notifications-closed-reason)))
       (remove entry 'notifications-on-close-map))))
 
-(dbus-register-signal
- :session
- notifications-service
- notifications-path
- notifications-interface
- notifications-closed-signal
- 'notifications-on-closed-signal)
+(when (fboundp 'dbus-register-signal)
+  (dbus-register-signal
+   :session
+   notifications-service
+   notifications-path
+   notifications-interface
+   notifications-closed-signal
+   'notifications-on-closed-signal))
 
 (defun notifications-notify (&rest params)
   "Send notification via D-Bus using the Freedesktop notification protocol.
