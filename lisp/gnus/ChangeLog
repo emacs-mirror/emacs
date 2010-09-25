@@ -1,3 +1,8 @@
+2010-09-25  Andrew Cohen  <cohen@andy.bu.edu>  (tiny change)
+
+	* nnir.el (nnir-run-imap): Allow sending IMAP search patterns
+	directly.
+
 2010-09-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.el (gnus-local-domain): Put gnus-local-domain back again, since

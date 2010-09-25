@@ -345,14 +345,16 @@
 (gnus-declare-backend "nnir" 'mail)
 
 (defvar nnir-imap-search-field "TEXT"
-  "The IMAP search item when doing an nnir search")
+  "The IMAP search item when doing an nnir search. To use raw
+  imap queries by default set this to \"\"")
 
 (defvar nnir-imap-search-arguments
   '(("Whole message" . "TEXT")
     ("Subject" . "SUBJECT")
     ("To" . "TO")
     ("From" . "FROM")
-    (nil . "HEADER \"%s\""))
+    ("Head" . "HEADER \"%s\"")
+    (nil . ""))
   "Mapping from user readable strings to IMAP search items for use in nnir")
 
 (defvar nnir-imap-search-argument-history ()
@@ -981,8 +983,11 @@ details on the language and supported extensions"
 	      (message "Searching %s..." group)
 	      (let ((arts 0)
 		    (result
-		     (nnimap-command "UID SEARCH  %s" 
-				     (nnir-imap-make-query criteria qstring))))
+		     (nnimap-command "UID SEARCH  %s"
+				     (if (string= criteria "")
+					 qstring
+				       (nnir-imap-make-query criteria qstring)
+				       ))))
 		(mapc
 		 (lambda (artnum)
 		   (push (vector group artnum 1) artlist)
