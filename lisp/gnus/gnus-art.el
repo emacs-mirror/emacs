@@ -1529,8 +1529,7 @@ node `(gnus)Picons' for details."
   :type gnus-article-treat-head-custom)
 (put 'gnus-treat-newsgroups-picon 'highlight t)
 
-(defcustom gnus-treat-from-gravatar
-  (when (display-images-p) 'head)
+(defcustom gnus-treat-from-gravatar nil
   "Display gravatars in the From header.
 Valid values are nil, t, `head', `first', `last', an integer or a
 predicate.  See Info node `(gnus)Customizing Articles' and Info
@@ -1543,8 +1542,7 @@ node `(gnus)Gravatars' for details."
   :type gnus-article-treat-head-custom)
 (put 'gnus-treat-from-gravatar 'highlight t)
 
-(defcustom gnus-treat-mail-gravatar
-  (when (display-images-p) 'head)
+(defcustom gnus-treat-mail-gravatar nil
   "Display gravatars in To and Cc headers.
 Valid values are nil, t, `head', `first', `last', an integer or a
 predicate.  See Info node `(gnus)Customizing Articles' and Info

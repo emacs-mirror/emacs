@@ -1,5 +1,9 @@
 2010-09-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-art.el (gnus-treat-from-gravatar): Change default to nil for
+	privacy reasons.
+	(gnus-treat-mail-gravatar): Ditto.
+
 	* gnus-ems.el (gnus-put-image): Don't put any non-blank text into the
 	buffer when inserting images.  Inserting text into the headers, for
 	instance, can make them invalid.
