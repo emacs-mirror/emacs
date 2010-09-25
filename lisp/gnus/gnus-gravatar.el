@@ -54,11 +54,12 @@ unpressed button."
                (mail-encode-encoded-word-string
                 (or (mail-fetch-field header) "")))
              (mail-fetch-field header)))))
-      (dolist (address addresses)
-        (gravatar-retrieve
-         (car address)
-         'gnus-gravatar-insert
-         (list header (car address) category))))))
+      (let ((gravatar-size gnus-gravatar-size))
+        (dolist (address addresses)
+          (gravatar-retrieve
+           (car address)
+           'gnus-gravatar-insert
+           (list header (car address) category)))))))
 
 (defun gnus-gravatar-insert (gravatar header address category)
   "Insert GRAVATAR for ADDRESS in HEADER in current article buffer.

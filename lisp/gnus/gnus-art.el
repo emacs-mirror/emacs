@@ -1609,15 +1609,6 @@ predicate.  See Info node `(gnus)Customizing Articles'."
   :link '(custom-manual "(gnus)Customizing Articles")
   :type gnus-article-treat-custom)
 
-(defcustom gnus-treat-translate nil
-  "Translate articles from one language to another.
-Valid values are nil, t, `head', `first', `last', an integer or a
-predicate.  See Info node `(gnus)Customizing Articles'."
-  :version "21.1"
-  :group 'gnus-article-treat
-  :link '(custom-manual "(gnus)Customizing Articles")
-  :type gnus-article-treat-custom)
-
 (defcustom gnus-treat-x-pgp-sig nil
   "Verify X-PGP-Sig.
 To automatically treat X-PGP-Sig, set it to head.

@@ -1,3 +1,16 @@
+2010-09-25  Julien Danjou  <julien@danjou.info>
+
+	* mml2015.el: Remove useless mml2015-verbose.
+
+	* mml-smime.el: Remove useless mml-smime-verbose.
+
+	* gnus.el: Remove useless gnus-local-domain.
+
+	* gnus-gravatar.el (gnus-gravatar-transform-address): Use
+	gnus-gravatar-size.
+
+	* gnus-art.el: Remove useless gnus-treat-translate.
+
 2010-09-24  Julien Danjou  <julien@danjou.info>
 
 	* gnus-sum.el: Add support for Gravatars.

@@ -119,11 +119,6 @@ Valid packages include `epg', `pgg', `gpg' and `mailcrypt'.")
   :type '(repeat (cons (regexp :tag "GnuPG output regexp")
 		       (boolean :tag "Trust key"))))
 
-(defcustom mml2015-verbose mml-secure-verbose
-  "If non-nil, ask the user about the current operation more verbosely."
-  :group 'mime-security
-  :type 'boolean)
-
 (defcustom mml2015-cache-passphrase mml-secure-cache-passphrase
   "If t, cache passphrase."
   :group 'mime-security
