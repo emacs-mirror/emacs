@@ -95,8 +95,7 @@ The actual return value is the last modification time of the cache file."
 (defun url-cache-create-filename-human-readable (url)
   "Return a filename in the local cache for URL."
   (if url
-      (let* ((url (if (vectorp url) (url-recreate-url url) url))
-	     (urlobj (url-generic-parse-url url))
+      (let* ((urlobj (url-generic-parse-url url))
 	     (protocol (url-type urlobj))
 	     (hostname (url-host urlobj))
 	     (host-components
@@ -154,8 +153,7 @@ The actual return value is the last modification time of the cache file."
 Very fast if you have an `md5' primitive function, suitably fast otherwise."
   (require 'md5)
   (if url
-      (let* ((url (if (vectorp url) (url-recreate-url url) url))
-	     (checksum (md5 url))
+      (let* ((checksum (md5 url))
 	     (urlobj (url-generic-parse-url url))
 	     (protocol (url-type urlobj))
 	     (hostname (url-host urlobj))
@@ -185,7 +183,13 @@ Very fast if you have an `md5' primitive function, suitably fast otherwise."
   :group 'url-cache)
 
 (defun url-cache-create-filename (url)
-  (funcall url-cache-creation-function url))
+  (funcall url-cache-creation-function
+           ;; We need to parse+recreate in order to remove the default port
+           ;; if it has been specified: e.g. http://www.example.com:80 will
+           ;; be transcoded as http://www.example.com
+           (url-recreate-url
+            (if (vectorp url) url
+              (url-generic-parse-url url)))))
 
 ;;;###autoload
 (defun url-cache-extract (fnam)
