@@ -71,8 +71,9 @@ Setting this to nil is offered as an aid to debugging only."
   :group 'eshell-util)
 
 (defcustom eshell-tar-regexp
-  "\\.t\\(ar\\(\\.\\(gz\\|bz2\\|Z\\)\\)?\\|gz\\|a[zZ]\\|z2\\)\\'"
+  "\\.t\\(ar\\(\\.\\(gz\\|bz2\\|xz\\|Z\\)\\)?\\|gz\\|a[zZ]\\|z2\\)\\'"
   "*Regular expression used to match tar file names."
+  :version "24.1"			; added xz
   :type 'regexp
   :group 'eshell-util)
 

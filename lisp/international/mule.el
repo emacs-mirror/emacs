@@ -1679,7 +1679,7 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\)\\'"
      . no-conversion-multibyte)
     ("\\.\\(exe\\|EXE\\)\\'" . no-conversion)
     ("\\.\\(sx[dmicw]\\|odt\\|tar\\|tgz\\)\\'" . no-conversion)
-    ("\\.\\(gz\\|Z\\|bz\\|bz2\\|gpg\\)\\'" . no-conversion)
+    ("\\.\\(gz\\|Z\\|bz\\|bz2\\|xz\\|gpg\\)\\'" . no-conversion)
     ("\\.\\(jpe?g\\|png\\|gif\\|tiff?\\|p[bpgn]m\\)\\'" . no-conversion)
     ("\\.pdf\\'" . no-conversion)
     ("/#[^/]+#\\'" . emacs-mule)))
@@ -1690,6 +1690,7 @@ A file whose name matches REGEXP is decoded by CODING-SYSTEM on reading.
 The settings in this alist take priority over `coding:' tags
 in the file (see the function `set-auto-coding')
 and the contents of `file-coding-system-alist'."
+  :version "24.1"                       ; added xz
   :group 'files
   :group 'mule
   :type '(repeat (cons (regexp :tag "File name regexp")

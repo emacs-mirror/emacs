@@ -1,3 +1,7 @@
+2010-09-25  Ulrich Mueller  <ulm@gentoo.org>
+
+	* woman.texi (Interface Options): xz compression is now supported.
+
 2010-09-24  Glenn Morris  <rgm@gnu.org>
 
 	* url.texi (Disk Caching): Tweak previous change.

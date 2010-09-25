@@ -1,3 +1,7 @@
+2010-09-25  Ulrich Mueller  <ulm@gentoo.org>
+
+	* etags.c (compressors, print_language_names): Support xz compression.
+
 2010-08-11  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* fakemail.c: Include stdlib.h for getenv. Remove declaration of

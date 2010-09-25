@@ -162,10 +162,11 @@ faster and conserves more memory."
 
 (defcustom eshell-ls-archive-regexp
   (concat "\\.\\(t\\(a[rz]\\|gz\\)\\|arj\\|lzh\\|"
-	  "zip\\|[zZ]\\|gz\\|bz2\\|deb\\|rpm\\)\\'")
+	  "zip\\|[zZ]\\|gz\\|bz2\\|xz\\|deb\\|rpm\\)\\'")
   "*A regular expression that matches names of file archives.
 This typically includes both traditional archives and compressed
 files."
+  :version "24.1"			; added xz
   :type 'regexp
   :group 'eshell-ls)
 

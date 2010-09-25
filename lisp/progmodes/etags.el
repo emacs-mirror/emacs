@@ -68,12 +68,14 @@ Use the `etags' program to make a tags table file."
   :type '(repeat file))
 
 ;;;###autoload
-(defcustom tags-compression-info-list (purecopy '("" ".Z" ".bz2" ".gz" ".tgz"))
+(defcustom tags-compression-info-list
+  (purecopy '("" ".Z" ".bz2" ".gz" ".xz" ".tgz"))
   "*List of extensions tried by etags when jka-compr is used.
 An empty string means search the non-compressed file.
 These extensions will be tried only if jka-compr was activated
 \(i.e. via customize of `auto-compression-mode' or by calling the function
 `auto-compression-mode')."
+  :version "24.1"			; added xz
   :type  '(repeat string)
   :group 'etags)
 

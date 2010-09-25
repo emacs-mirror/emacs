@@ -1,3 +1,14 @@
+2010-09-25  Ulrich Mueller  <ulm@gentoo.org>
+
+	* eshell/em-ls.el (eshell-ls-archive-regexp):
+	* eshell/esh-util.el (eshell-tar-regexp):
+	* ibuffer.el (ibuffer-compressed-file-name-regexp):
+	* info.el (Info-suffix-list):
+	* international/mule.el (auto-coding-alist):
+	* woman.el (woman-file-regexp, woman-file-compression-regexp):
+	* progmodes/etags.el (tags-compression-info-list):
+	Support xz compression.
+
 2010-09-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.el (get-free-disk-space): Don't assume the "df" output
