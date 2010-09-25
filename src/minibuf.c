@@ -236,7 +236,7 @@ string_to_object (Lisp_Object val, Lisp_Object defalt)
 {
   struct gcpro gcpro1, gcpro2;
   Lisp_Object expr_and_pos;
-  int pos;
+  EMACS_INT pos;
 
   GCPRO2 (val, defalt);
 
@@ -254,7 +254,7 @@ string_to_object (Lisp_Object val, Lisp_Object defalt)
     {
       /* Ignore trailing whitespace; any other trailing junk
 	 is an error.  */
-      int i;
+      EMACS_INT i;
       pos = string_char_to_byte (val, pos);
       for (i = pos; i < SBYTES (val); i++)
 	{

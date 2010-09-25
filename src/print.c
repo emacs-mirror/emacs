@@ -395,7 +395,7 @@ strout (const char *ptr, EMACS_INT size, EMACS_INT size_byte,
   else
     {
       /* PRINTCHARFUN is a Lisp function.  */
-      int i = 0;
+      EMACS_INT i = 0;
 
       if (size == size_byte)
 	{
@@ -489,7 +489,7 @@ print_string (Lisp_Object string, Lisp_Object printcharfun)
     {
       /* Otherwise, string may be relocated by printing one char.
 	 So re-fetch the string address for each character.  */
-      int i;
+      EMACS_INT i;
       EMACS_INT size = SCHARS (string);
       EMACS_INT size_byte = SBYTES (string);
       struct gcpro gcpro1;
@@ -1563,7 +1563,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	print_string (obj, printcharfun);
       else
 	{
-	  register int i, i_byte;
+	  register EMACS_INT i, i_byte;
 	  struct gcpro gcpro1;
 	  unsigned char *str;
 	  EMACS_INT size_byte;

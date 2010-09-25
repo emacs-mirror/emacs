@@ -1,5 +1,18 @@
 2010-09-25  Eli Zaretskii  <eliz@gnu.org>
 
+	* print.c (print_object, print_string, strout): Use EMACS_INT for
+	string indices.
+
+	* minibuf.c (string_to_object): Use EMACS_INT for string position
+	and size.
+
+	* marker.c (verify_bytepos): Use EMACS_INT for buffer positions.
+
+	* lread.c <read_from_string_index, read_from_string_index_byte>
+	<read_from_string_limit, readchar_count>: Define EMACS_INT.
+	(readchar, unreadchar, read_internal_start): Use EMACS_INT for
+	buffer positions and string length.
+
 	* keyboard.c <last_point_position, last_non_minibuf_size>: Declare
 	EMACS_INT.
 	(echo_truncate, adjust_point_for_property, read_char)

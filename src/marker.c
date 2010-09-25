@@ -247,11 +247,11 @@ buf_charpos_to_bytepos (struct buffer *b, EMACS_INT charpos)
 /* Used for debugging: recompute the bytepos corresponding to CHARPOS
    in the simplest, most reliable way.  */
 
-int
-verify_bytepos (int charpos)
+EMACS_INT
+verify_bytepos (EMACS_INT charpos)
 {
-  int below = 1;
-  int below_byte = 1;
+  EMACS_INT below = 1;
+  EMACS_INT below_byte = 1;
 
   while (below != charpos)
     {
