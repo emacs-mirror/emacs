@@ -8626,7 +8626,7 @@ of `image-library-alist', which see).  */)
 #if defined (HAVE_IMAGEMAGICK)
   if (EQ (type, Qimagemagick))
     {
-      /* MagickWandGenesis() initalizes the imagemagick library.  */
+      /* MagickWandGenesis() initializes the imagemagick library.  */
       MagickWandGenesis ();
       return CHECK_LIB_AVAILABLE (&imagemagick_type, init_imagemagick_functions,
 				  libraries);

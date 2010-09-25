@@ -19181,7 +19181,7 @@
 	(Ffont_shape_text): New function.
 	(Fopen_font): If the font size is not given, use 12-pixel.
 	(Ffont_at): New arg STRING.
-	(syms_of_font): Initalize font_charset_alist.
+	(syms_of_font): Initialize font_charset_alist.
 	Declare Ffont_shape_text as a Lisp function.  Call syms_of_XXfont
 	conditionally.
 
@@ -20178,7 +20178,7 @@
 
 	* font.c (font_unparse_fcname): Fix typo (swidth->width).
 	(font_list_entities): Check driver_list->on.
-	(register_font_driver): Initalize `on' member to 0.
+	(register_font_driver): Initialize `on' member to 0.
 	(font_update_drivers): New function.
 	(Fclear_font_cache): Check driver_list->on.
 

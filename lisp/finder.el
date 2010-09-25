@@ -278,7 +278,7 @@ from; the default is `load-path'."
 		  help-echo finder-help-echo))))
 
 (defun finder-unknown-keywords ()
-  "Return an alist of unknown keywords and number of their occurences.
+  "Return an alist of unknown keywords and number of their occurrences.
 Unknown keywords are those present in `finder-keywords-hash' but
 not `finder-known-keywords'."
   (let (alist)

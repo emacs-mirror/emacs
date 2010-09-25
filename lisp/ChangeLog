@@ -1,5 +1,11 @@
 2010-09-25  Juanma Barranquero  <lekktu@gmail.com>
 
+	* finder.el (finder-unknown-keywords):
+	* progmodes/gdb-mi.el (gdb-jsonify-buffer, gdb-running-threads-count):
+	* progmodes/etags.el (tags-table-including): Fix typos in docstrings.
+
+2010-09-25  Juanma Barranquero  <lekktu@gmail.com>
+
 	* server.el (server-start): Revert part of 2010-08-08 change.  Using
 	address 127.0.0.1 for local host is now done in Fmake_network_process.
 

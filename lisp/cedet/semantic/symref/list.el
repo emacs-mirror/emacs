@@ -492,7 +492,7 @@ Closed items will be skipped."
   (let ((count (semantic-symref-list-map-open-hits
 		(lambda () (replace-match newname nil t)))))
     (semantic-symref-list-update-open-hits)
-    (message "Renamed %d occurances." count)))
+    (message "Renamed %d occurrences." count)))
 
 ;;; REFACTORING UTILITIES
 ;;
@@ -501,7 +501,7 @@ Closed items will be skipped."
 (defun semantic-symref-list-map-open-hits (function)
   "For every open hit in the symref buffer, perform FUNCTION.
 The `match-data' will be set to a successful hit of the searched for symbol.
-Return the number of occurances FUNCTION was operated upon."
+Return the number of occurrences FUNCTION was operated upon."
 
   ;; First Pass in this function - a straight rename.
   ;; Second Pass - Allow context specification based on

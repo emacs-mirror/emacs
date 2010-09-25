@@ -314,7 +314,7 @@ This regexp should not start with a `^' character.")
   "Regular expression describing references to normal files.")
 
 ;; This includes the section as an optional part to catch hyphenated
-;; refernces to manpages.
+;; references to manpages.
 (defvar Man-hyphenated-reference-regexp
   (concat "\\(" Man-name-regexp "\\)\\((\\(" Man-section-regexp "\\))\\)?")
   "Regular expression describing a reference in the SEE ALSO section.")

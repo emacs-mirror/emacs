@@ -198,7 +198,7 @@ If SET-TO is a string, then replace the text of OLAID wit SET-TO."
   (oset ir fields srecode-field-archive)
   (setq srecode-field-archive nil)
 
-  ;; Initailize myself first.
+  ;; Initialize myself first.
   (call-next-method)
   )
 

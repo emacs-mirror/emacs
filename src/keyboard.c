@@ -3802,7 +3802,7 @@ kbd_buffer_unget_event (register struct input_event *event)
 
    HELP is the help form.
 
-   FRAME and WINDOW are the frame and windoiw where the help is
+   FRAME and WINDOW are the frame and window where the help is
    generated.  OBJECT is the Lisp object where the help was found (a
    buffer, a string, an overlay, or nil if neither from a string nor
    from a buffer).  POS is the position within OBJECT where the help

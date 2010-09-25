@@ -1,3 +1,11 @@
+2010-09-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* semantic/lex.el (semantic-ignore-comments): Doc fix.
+
+	* semantic/symref/list.el (semantic-symref-list-rename-open-hits):
+	Fix typo in error message.
+	(semantic-symref-list-map-open-hits): Fix typo in docstring.
+
 2010-09-21  Eric Ludlam  <zappo@gnu.org>
 
 	Synch SRecode to CEDET 1.0.

@@ -472,7 +472,7 @@ Subroutine of `visit-tags-table-buffer'.
 Looks for a tags table that has such tags or that includes a table
 that has them.  Returns the name of the first such table.
 Non-nil CORE-ONLY means check only tags tables that are already in
-buffers.  Nil CORE-ONLY is ignored."
+buffers.  If CORE-ONLY is nil, it is ignored."
   (let ((tables tags-table-computed-list)
 	(found nil))
     ;; Loop over the list, looking for a table containing tags for THIS-FILE.
