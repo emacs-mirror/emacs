@@ -1,7 +1,7 @@
 ;;; esh-var.el --- handling of variables
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -128,27 +128,27 @@ variable value, a subcommand, or even the result of a Lisp form."
 ;;; User Variables:
 
 (defcustom eshell-var-load-hook '(eshell-var-initialize)
-  "*A list of functions to call when loading `eshell-var'."
+  "A list of functions to call when loading `eshell-var'."
   :type 'hook
   :group 'eshell-var)
 
 (defcustom eshell-prefer-lisp-variables nil
-  "*If non-nil, prefer Lisp variables to environment variables."
+  "If non-nil, prefer Lisp variables to environment variables."
   :type 'boolean
   :group 'eshell-var)
 
 (defcustom eshell-complete-export-definition t
-  "*If non-nil, completing names for `export' shows current definition."
+  "If non-nil, completing names for `export' shows current definition."
   :type 'boolean
   :group 'eshell-var)
 
 (defcustom eshell-modify-global-environment nil
-  "*If non-nil, using `export' changes Emacs's global environment."
+  "If non-nil, using `export' changes Emacs's global environment."
   :type 'boolean
   :group 'eshell-var)
 
 (defcustom eshell-variable-name-regexp "[A-Za-z0-9_-]+"
-  "*A regexp identifying what constitutes a variable name reference.
+  "A regexp identifying what constitutes a variable name reference.
 Note that this only applies for '$NAME'.  If the syntax '$<NAME>' is
 used, then NAME can contain any character, including angle brackets,
 if they are quoted with a backslash."
@@ -183,7 +183,7 @@ if they are quoted with a backslash."
 	       eshell-command-arguments
 	     (eshell-apply-indices eshell-command-arguments
 				   indices)))))
-  "*This list provides aliasing for variable references.
+  "This list provides aliasing for variable references.
 It is very similar in concept to what `eshell-user-aliases-list' does
 for commands.  Each member of this defines defines the name of a
 command, and the Lisp value to return for that variable if it is

@@ -75,54 +75,54 @@
 ;;; User Variables:
 
 (defcustom eshell-mode-unload-hook nil
-  "*A hook that gets run when `eshell-mode' is unloaded."
+  "A hook that gets run when `eshell-mode' is unloaded."
   :type 'hook
   :group 'eshell-mode)
 
 (defcustom eshell-mode-hook nil
-  "*A hook that gets run when `eshell-mode' is entered."
+  "A hook that gets run when `eshell-mode' is entered."
   :type 'hook
   :group 'eshell-mode)
 
 (defcustom eshell-first-time-mode-hook nil
-  "*A hook that gets run the first time `eshell-mode' is entered.
+  "A hook that gets run the first time `eshell-mode' is entered.
 That is to say, the first time during an Emacs session."
   :type 'hook
   :group 'eshell-mode)
 
 (defcustom eshell-exit-hook '(eshell-query-kill-processes)
-  "*A hook that is run whenever `eshell' is exited.
+  "A hook that is run whenever `eshell' is exited.
 This hook is only run if exiting actually kills the buffer."
   :type 'hook
   :group 'eshell-mode)
 
 (defcustom eshell-kill-on-exit t
-  "*If non-nil, kill the Eshell buffer on the `exit' command.
+  "If non-nil, kill the Eshell buffer on the `exit' command.
 Otherwise, the buffer will simply be buried."
   :type 'boolean
   :group 'eshell-mode)
 
 (defcustom eshell-input-filter-functions nil
-  "*Functions to call before input is processed.
+  "Functions to call before input is processed.
 The input is contained in the region from `eshell-last-input-start' to
 `eshell-last-input-end'."
   :type 'hook
   :group 'eshell-mode)
 
 (defcustom eshell-send-direct-to-subprocesses nil
-  "*If t, send any input immediately to a subprocess."
+  "If t, send any input immediately to a subprocess."
   :type 'boolean
   :group 'eshell-mode)
 
 (defcustom eshell-expand-input-functions nil
-  "*Functions to call before input is parsed.
+  "Functions to call before input is parsed.
 Each function is passed two arguments, which bounds the region of the
 current input text."
   :type 'hook
   :group 'eshell-mode)
 
 (defcustom eshell-scroll-to-bottom-on-input nil
-  "*Controls whether input to interpreter causes window to scroll.
+  "Controls whether input to interpreter causes window to scroll.
 If nil, then do not scroll.  If t or `all', scroll all windows showing
 buffer.  If `this', scroll only the selected window.
 
@@ -133,7 +133,7 @@ See `eshell-preinput-scroll-to-bottom'."
   :group 'eshell-mode)
 
 (defcustom eshell-scroll-to-bottom-on-output nil
-  "*Controls whether interpreter output causes window to scroll.
+  "Controls whether interpreter output causes window to scroll.
 If nil, then do not scroll.  If t or `all', scroll all windows showing
 buffer.  If `this', scroll only the selected window.  If `others',
 scroll only those that are not the selected window.
@@ -147,7 +147,7 @@ See variable `eshell-scroll-show-maximum-output' and function
   :group 'eshell-mode)
 
 (defcustom eshell-scroll-show-maximum-output t
-  "*Controls how interpreter output causes window to scroll.
+  "Controls how interpreter output causes window to scroll.
 If non-nil, then show the maximum output when the window is scrolled.
 
 See variable `eshell-scroll-to-bottom-on-output' and function
@@ -156,7 +156,7 @@ See variable `eshell-scroll-to-bottom-on-output' and function
   :group 'eshell-mode)
 
 (defcustom eshell-buffer-maximum-lines 1024
-  "*The maximum size in lines for eshell buffers.
+  "The maximum size in lines for eshell buffers.
 Eshell buffers are truncated from the top to be no greater than this
 number, if the function `eshell-truncate-buffer' is on
 `eshell-output-filter-functions'."
@@ -168,14 +168,14 @@ number, if the function `eshell-truncate-buffer' is on
     eshell-handle-control-codes
     eshell-handle-ansi-color
     eshell-watch-for-password-prompt)
-  "*Functions to call before output is displayed.
+  "Functions to call before output is displayed.
 These functions are only called for output that is displayed
 interactively, and not for output which is redirected."
   :type 'hook
   :group 'eshell-mode)
 
 (defcustom eshell-preoutput-filter-functions nil
-  "*Functions to call before output is inserted into the buffer.
+  "Functions to call before output is inserted into the buffer.
 These functions get one argument, a string containing the text to be
 inserted.  They return the string as it should be inserted."
   :type 'hook
@@ -183,18 +183,18 @@ inserted.  They return the string as it should be inserted."
 
 (defcustom eshell-password-prompt-regexp
   "[Pp]ass\\(word\\|phrase\\).*:\\s *\\'"
-  "*Regexp matching prompts for passwords in the inferior process.
+  "Regexp matching prompts for passwords in the inferior process.
 This is used by `eshell-watch-for-password-prompt'."
   :type 'regexp
   :group 'eshell-mode)
 
 (defcustom eshell-skip-prompt-function nil
-  "*A function called from beginning of line to skip the prompt."
+  "A function called from beginning of line to skip the prompt."
   :type '(choice (const nil) function)
   :group 'eshell-mode)
 
 (defcustom eshell-status-in-modeline t
-  "*If non-nil, let the user know a command is running in the modeline."
+  "If non-nil, let the user know a command is running in the modeline."
   :type 'boolean
   :group 'eshell-mode)
 

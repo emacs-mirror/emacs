@@ -1,3 +1,15 @@
+2010-09-25  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/em-alias.el, eshell/em-banner.el, eshell/em-basic.el:
+	* eshell/em-cmpl.el, eshell/em-dirs.el, eshell/em-glob.el:
+	* eshell/em-hist.el, eshell/em-ls.el, eshell/em-pred.el:
+	* eshell/em-prompt.el, eshell/em-rebind.el, eshell/em-script.el:
+	* eshell/em-smart.el, eshell/em-term.el, eshell/em-unix.el:
+	* eshell/esh-cmd.el, eshell/esh-ext.el, eshell/esh-io.el:
+	* eshell/esh-mode.el, eshell/esh-proc.el, eshell/esh-test.el:
+	* eshell/esh-util.el, eshell/esh-var.el:
+	Remove leading `*' from docs of faces and defcustoms.
+
 2010-09-25  Ulrich Mueller  <ulm@gentoo.org>
 
 	* eshell/em-ls.el (eshell-ls-archive-regexp):

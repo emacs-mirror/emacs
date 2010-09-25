@@ -63,39 +63,39 @@ by zsh for filename generation."
 ;;; User Variables:
 
 (defcustom eshell-glob-load-hook '(eshell-glob-initialize)
-  "*A list of functions to run when `eshell-glob' is loaded."
+  "A list of functions to run when `eshell-glob' is loaded."
   :type 'hook
   :group 'eshell-glob)
 
 (defcustom eshell-glob-include-dot-files nil
-  "*If non-nil, glob patterns will match files beginning with a dot."
+  "If non-nil, glob patterns will match files beginning with a dot."
   :type 'boolean
   :group 'eshell-glob)
 
 (defcustom eshell-glob-include-dot-dot t
-  "*If non-nil, glob patterns that match dots will match . and .."
+  "If non-nil, glob patterns that match dots will match . and .."
   :type 'boolean
   :group 'eshell-glob)
 
 (defcustom eshell-glob-case-insensitive (eshell-under-windows-p)
-  "*If non-nil, glob pattern matching will ignore case."
+  "If non-nil, glob pattern matching will ignore case."
   :type 'boolean
   :group 'eshell-glob)
 
 (defcustom eshell-glob-show-progress nil
-  "*If non-nil, display progress messages during a recursive glob.
+  "If non-nil, display progress messages during a recursive glob.
 This option slows down recursive glob processing by quite a bit."
   :type 'boolean
   :group 'eshell-glob)
 
 (defcustom eshell-error-if-no-glob nil
-  "*If non-nil, it is an error for a glob pattern not to match.
+  "If non-nil, it is an error for a glob pattern not to match.
  This mimcs the behavior of zsh if non-nil, but bash if nil."
   :type 'boolean
   :group 'eshell-glob)
 
 (defcustom eshell-glob-chars-list '(?\] ?\[ ?* ?? ?~ ?\( ?\) ?| ?# ?^)
-  "*List of additional characters used in extended globbing."
+  "List of additional characters used in extended globbing."
   :type '(repeat character)
   :group 'eshell-glob)
 
@@ -117,7 +117,7 @@ This option slows down recursive glob processing by quite a bit."
 			 (if (eq (aref str (1+ pos)) ?*)
 			     "*" "+")) (+ pos 2))
 	       (cons "*" (1+ pos))))))
-  "*An alist for translation of extended globbing characters."
+  "An alist for translation of extended globbing characters."
   :type '(repeat (cons character (choice regexp function)))
   :group 'eshell-glob)
 
