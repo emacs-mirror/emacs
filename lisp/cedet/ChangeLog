@@ -1,3 +1,11 @@
+2010-09-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ede/linux.el (ede-project-class-files):
+	* ede/generic.el (ede-generic-new-autoloader):
+	* ede/emacs.el (ede-project-class-files):
+	* ede/simple.el (ede-project-class-files):
+	* ede/cpp-root.el (ede-project-class-files): Fix require name.
+
 2010-09-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* semantic/lex.el (semantic-ignore-comments): Doc fix.

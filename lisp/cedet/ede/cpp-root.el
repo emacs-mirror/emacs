@@ -131,7 +131,7 @@
 ;; (add-to-list 'ede-project-class-files
 ;; 	     (ede-project-autoload "cpp-root"
 ;; 	      :name "CPP ROOT"
-;; 	      :file 'ede-cpp-root
+;; 	      :file 'ede/cpp-root
 ;; 	      :proj-file 'MY-FILE-FOR-DIR
 ;;            :proj-root 'MY-ROOT-FCN
 ;; 	      :load-type 'MY-LOAD
@@ -241,7 +241,7 @@ ROOTPROJ is nil, since there is only one project."
 (add-to-list 'ede-project-class-files
 	     (ede-project-autoload "cpp-root"
 	      :name "CPP ROOT"
-	      :file 'ede-cpp-root
+	      :file 'ede/cpp-root
 	      :proj-file 'ede-cpp-root-project-file-for-dir
 	      :proj-root 'ede-cpp-root-project-root
 	      :load-type 'ede-cpp-root-load
