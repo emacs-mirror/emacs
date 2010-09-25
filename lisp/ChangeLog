@@ -1,3 +1,8 @@
+2010-09-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (get-free-disk-space): Don't assume the "df" output
+	columns line up (Bug#6995).
+
 2010-09-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* finder.el (finder-unknown-keywords):

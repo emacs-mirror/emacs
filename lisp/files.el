@@ -5622,22 +5622,17 @@ returns nil."
 					 directory-free-space-args
 					 dir)
 			   0)))
-	    ;; Usual format is as follows:
-	    ;; Filesystem ...    Used  Available  Capacity ...
-	    ;; /dev/sda6  ...48106535   35481255  10669850 ...
+	    ;; Assume that the "available" column is before the
+	    ;; "capacity" column.  Find the "%" and scan backward.
 	    (goto-char (point-min))
-	    (when (re-search-forward " +Avail[^ \n]*"
-				     (line-end-position) t)
-	      (let ((beg (match-beginning 0))
-		    (end (match-end 0))
-		    str)
-		(forward-line 1)
-		(setq str
-		      (buffer-substring-no-properties
-		       (+ beg (point) (- (point-min)))
-		       (+ end (point) (- (point-min)))))
-		(when (string-match "\\` *\\([^ ]+\\)" str)
-		  (match-string 1 str))))))))))
+	    (forward-line 1)
+	    (when (re-search-forward
+		   "[[:space:]]+[^[:space:]]+%[^%]*$"
+		   (line-end-position) t)
+	      (goto-char (match-beginning 0))
+	      (let ((endpt (point)))
+		(skip-chars-backward "^[:space:]")
+		(buffer-substring-no-properties (point) endpt)))))))))
 
 ;; The following expression replaces `dired-move-to-filename-regexp'.
 (defvar directory-listing-before-filename-regexp
