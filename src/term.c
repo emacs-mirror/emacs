@@ -2618,9 +2618,10 @@ term_clear_mouse_face (void)
    If POS is after end of W, return end of last line in W.
    - taken from msdos.c */
 static int
-fast_find_position (struct window *w, int pos, int *hpos, int *vpos)
+fast_find_position (struct window *w, EMACS_INT pos, int *hpos, int *vpos)
 {
-  int i, lastcol, line_start_position, maybe_next_line_p = 0;
+  int i, lastcol, maybe_next_line_p = 0;
+  EMACS_INT line_start_position;
   int yb = window_text_bottom_y (w);
   struct glyph_row *row = MATRIX_ROW (w->current_matrix, 0), *best_row = row;
 
@@ -2658,7 +2659,7 @@ fast_find_position (struct window *w, int pos, int *hpos, int *vpos)
   for (i = 0; i < row->used[TEXT_AREA]; i++)
     {
       struct glyph *glyph = row->glyphs[TEXT_AREA] + i;
-      int charpos;
+      EMACS_INT charpos;
 
       charpos = glyph->charpos;
       if (charpos == pos)
@@ -2719,7 +2720,8 @@ term_mouse_highlight (struct frame *f, int x, int y)
       && XFASTINT (w->last_modified) == BUF_MODIFF (b)
       && XFASTINT (w->last_overlay_modified) == BUF_OVERLAY_MODIFF (b))
     {
-      int pos, i, nrows = w->current_matrix->nrows;
+      int i, nrows = w->current_matrix->nrows;
+      EMACS_INT pos;
       struct glyph_row *row;
       struct glyph *glyph;
 
@@ -2763,7 +2765,8 @@ term_mouse_highlight (struct frame *f, int x, int y)
       /* Check for mouse-face.  */
       {
 	Lisp_Object mouse_face, overlay, position, *overlay_vec;
-	int noverlays, obegv, ozv;
+	int noverlays;
+	EMACS_INT obegv, ozv;
 	struct buffer *obuf;
 
 	/* If we get an out-of-range value, return now; avoid an error.  */

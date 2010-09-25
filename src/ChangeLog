@@ -1,5 +1,12 @@
 2010-09-25  Eli Zaretskii  <eliz@gnu.org>
 
+	* term.c (fast_find_position, term_mouse_highlight): Use EMACS_INT
+	for buffer positions.
+
+	* process.c (read_process_output, send_process)
+	(Fprocess_send_region, status_notify): Use EMACS_INT for buffer
+	and string positions and size.
+
 	* print.c (print_object, print_string, strout): Use EMACS_INT for
 	string indices.
 

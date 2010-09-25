@@ -5075,7 +5075,7 @@ read_process_output (Lisp_Object proc, register int channel)
   char *chars;
   register Lisp_Object outstream;
   register struct Lisp_Process *p = XPROCESS (proc);
-  register int opoint;
+  register EMACS_INT opoint;
   struct coding_system *coding = proc_decode_coding_system[channel];
   int carryover = p->decoding_carryover;
   int readmax = 4096;
@@ -5265,10 +5265,10 @@ read_process_output (Lisp_Object proc, register int channel)
   else if (!NILP (p->buffer) && !NILP (XBUFFER (p->buffer)->name))
     {
       Lisp_Object old_read_only;
-      int old_begv, old_zv;
-      int old_begv_byte, old_zv_byte;
-      int before, before_byte;
-      int opoint_byte;
+      EMACS_INT old_begv, old_zv;
+      EMACS_INT old_begv_byte, old_zv_byte;
+      EMACS_INT before, before_byte;
+      EMACS_INT opoint_byte;
       Lisp_Object text;
       struct buffer *b;
 
@@ -5405,11 +5405,11 @@ send_process_trap (int ignore)
 
 static void
 send_process (volatile Lisp_Object proc, const unsigned char *volatile buf,
-	      volatile int len, volatile Lisp_Object object)
+	      volatile EMACS_INT len, volatile Lisp_Object object)
 {
   /* Use volatile to protect variables from being clobbered by longjmp.  */
   struct Lisp_Process *p = XPROCESS (proc);
-  int rv;
+  EMACS_INT rv;
   struct coding_system *coding;
   struct gcpro gcpro1;
   SIGTYPE (*volatile old_sigpipe) (int);
@@ -5466,8 +5466,8 @@ send_process (volatile Lisp_Object proc, const unsigned char *volatile buf,
       coding->dst_object = Qt;
       if (BUFFERP (object))
 	{
-	  int from_byte, from, to;
-	  int save_pt, save_pt_byte;
+	  EMACS_INT from_byte, from, to;
+	  EMACS_INT save_pt, save_pt_byte;
 	  struct buffer *cur = current_buffer;
 
 	  set_buffer_internal (XBUFFER (object));
@@ -5519,7 +5519,7 @@ send_process (volatile Lisp_Object proc, const unsigned char *volatile buf,
       process_sent_to = proc;
       while (len > 0)
 	{
-	  int this = len;
+	  EMACS_INT this = len;
 
 	  /* Send this batch, using one or more write calls.  */
 	  while (this > 0)
@@ -5653,7 +5653,7 @@ Output from processes can arrive in between bunches.  */)
   (Lisp_Object process, Lisp_Object start, Lisp_Object end)
 {
   Lisp_Object proc;
-  int start1, end1;
+  EMACS_INT start1, end1;
 
   proc = get_process (process);
   validate_region (&start, &end);
@@ -6594,8 +6594,8 @@ status_notify (struct Lisp_Process *deleting_process)
 	    {
 	      Lisp_Object tem;
 	      struct buffer *old = current_buffer;
-	      int opoint, opoint_byte;
-	      int before, before_byte;
+	      EMACS_INT opoint, opoint_byte;
+	      EMACS_INT before, before_byte;
 
 	      /* Avoid error if buffer is deleted
 		 (probably that's why the process is dead, too) */
