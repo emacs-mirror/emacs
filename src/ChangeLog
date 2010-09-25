@@ -1,3 +1,8 @@
+2010-09-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* insdel.c (prepare_to_modify_buffer): Ensure the mark marker is
+	alive before using it (Bug#6977).
+
 2010-09-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* xdisp.c (face_before_or_after_it_pos): EMACS_INT/int fixup.
