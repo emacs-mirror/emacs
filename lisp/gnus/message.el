@@ -626,29 +626,23 @@ Done before generating the new subject of a forward."
   :type 'regexp)
 
 (defcustom message-cite-prefix-regexp
-  ;; Default to the value of `mail-citation-prefix-regexp' if available.
-  ;; Note: as for Emacs 21, XEmacs 21.4 and 21.5, it is unavailable
-  ;; unless sendmail.el is loaded.
-  (cond ((boundp 'mail-citation-prefix-regexp)
-	 mail-citation-prefix-regexp)
-	((string-match "[[:digit:]]" "1")
-	 ;; Support POSIX?  XEmacs 21.5.27 doesn't.
-	 "\\([ \t]*[_.[:word:]]+>+\\|[ \t]*[]>|}]\\)+")
-	(t
-	 ;; ?-, ?_ or ?. MUST NOT be in syntax entry w.
-	 (let (non-word-constituents)
-	   (with-syntax-table text-mode-syntax-table
-	     (setq non-word-constituents
-		   (concat
-		    (if (string-match "\\w" "_")  "" "_")
-		    (if (string-match "\\w" ".")  "" "."))))
-	   (if (equal non-word-constituents "")
-	       "\\([ \t]*\\(\\w\\)+>+\\|[ \t]*[]>|}]\\)+"
-	     (concat "\\([ \t]*\\(\\w\\|["
-		     non-word-constituents
-		     "]\\)+>+\\|[ \t]*[]>|}]\\)+")))))
+  (if (string-match "[[:digit:]]" "1")
+      ;; Support POSIX?  XEmacs 21.5.27 doesn't.
+      "\\([ \t]*[_.[:word:]]+>+\\|[ \t]*[]>|]\\)+"
+    ;; ?-, ?_ or ?. MUST NOT be in syntax entry w.
+    (let (non-word-constituents)
+      (with-syntax-table text-mode-syntax-table
+	(setq non-word-constituents
+	      (concat
+	       (if (string-match "\\w" "_")  "" "_")
+	       (if (string-match "\\w" ".")  "" "."))))
+      (if (equal non-word-constituents "")
+	  "\\([ \t]*\\(\\w\\)+>+\\|[ \t]*[]>|]\\)+"
+	(concat "\\([ \t]*\\(\\w\\|["
+		non-word-constituents
+		"]\\)+>+\\|[ \t]*[]>|]\\)+"))))
   "*Regexp matching the longest possible citation prefix on a line."
-  :version "23.2"
+  :version "24.1"
   :group 'message-insertion
   :link '(custom-manual "(message)Insertion Variables")
   :type 'regexp

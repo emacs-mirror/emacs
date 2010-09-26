@@ -238,7 +238,7 @@ some servers.")
 		     ?s host
 		     ?p port)))))
 
-(defun nnimap-credentials (address ports)
+(defun nnimap-credentials (address ports &optional inhibit-create)
   (let (port credentials)
     ;; Request the credentials from all ports, but only query on the
     ;; last port if all the previous ones have failed.
@@ -246,7 +246,10 @@ some servers.")
 		(setq port (pop ports)))
       (setq credentials
 	    (auth-source-user-or-password
-	     '("login" "password") address port nil (null ports))))
+	     '("login" "password") address port nil
+	     (if inhibit-create
+		 nil
+	       (null ports)))))
     credentials))
 
 (defun nnimap-keepalive ()
@@ -318,16 +321,21 @@ some servers.")
 	  (when (eq nnimap-stream 'starttls)
 	    (nnimap-command "STARTTLS")
 	    (starttls-negotiate (nnimap-process nnimap-object)))
+	  (when nnimap-server-port
+	    (push (format "%s" nnimap-server-port) ports))
 	  (unless (equal connection-result "PREAUTH")
 	    (if (not (setq credentials
 			   (if (eq nnimap-authenticator 'anonymous)
 			       (list "anonymous"
 				     (message-make-address))
-			     (nnimap-credentials
-			      nnimap-address
-			      (if nnimap-server-port
-				  (cons (format "%s" nnimap-server-port) ports)
-				ports)))))
+			     (or
+			      ;; First look for the credentials based
+			      ;; on the virtual server name.
+			      (nnimap-credentials
+			       (nnoo-current-server 'nnimap) ports t)
+			      ;; Then look them up based on the
+			      ;; physical address.
+			      (nnimap-credentials nnimap-address ports)))))
 		(setq nnimap-object nil)
 	      (setq login-result (nnimap-command "LOGIN %S %S"
 						 (car credentials)

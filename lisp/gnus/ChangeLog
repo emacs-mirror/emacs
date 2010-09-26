@@ -1,5 +1,32 @@
 2010-09-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* mail-source.el (mail-source-value): Revert previous patch.
+
+	* nnimap.el (nnimap-credentials): Allow inhibiting the password query
+	on failure.
+	(nnimap-open-connection): Look up both virtual and physical server name
+	credentials.
+
+	* gnus-win.el: Revert previous patch, since it made Gnus backtrace.
+
+2009-02-08  Dave Love  <fx@gnu.org>
+
+	* gnus-win.el (gnus-window-to-buffer-helper,
+	gnus-all-windows-visible-p): Function needn't be a symbol.
+
+	* mail-source.el (mail-source-value): Function needn't be a symbol.
+
+2010-09-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-cite-prefix-regexp): Remove } from the cite
+	prefix.
+
+	* gnus-art.el (gnus-treatment-function-alist): Do picons before
+	highlight again, so that the highlight is correct.
+
+	* gnus-picon.el (gnus-picon): Remove again.
+	(gnus-picon-create-glyph): Set the background XPM colour explicitly.
+
 	* gnus-art.el (gnus-treatment-function-alist): Insert picons after
 	doing the header highlightling, so that the background colour of the
 	picon is correct.
