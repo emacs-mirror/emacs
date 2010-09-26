@@ -2,6 +2,9 @@
 
 	* process.c (add_keyboard_wait_descriptor)
 	(delete_keyboard_wait_descriptor): Reinstate ifdef subprocesses.
+	(wait_reading_process_output): Don't pass write_mask to select
+	if SELECT_CANT_DO_WRITE_MASK is defined.
+	(SELECT_CANT_DO_WRITE_MASK): Define if SELECT_CANT_DO_WRITE_MASK.
 
 	* process.h (add_read_fd, delete_read_fd, add_write_fd)
 	(delete_write_fd): Declare.

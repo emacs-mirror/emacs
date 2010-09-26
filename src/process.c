@@ -201,8 +201,10 @@ int update_tick;
 
 /* Define NON_BLOCKING_CONNECT if we can support non-blocking connects.  */
 
+/* Only W32 has this, it really means that select can't take write mask.  */
 #ifdef BROKEN_NON_BLOCKING_CONNECT
 #undef NON_BLOCKING_CONNECT
+#define SELECT_CANT_DO_WRITE_MASK
 #else
 #ifndef NON_BLOCKING_CONNECT
 #ifdef HAVE_SELECT
@@ -4726,7 +4728,11 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 	  else
 	    Available = input_wait_mask;
           Writeok = write_mask;
+#ifdef SELECT_CANT_DO_WRITE_MASK
+          check_write = 0;
+#else
           check_write = 1;
+#endif
  	  check_delay = wait_channel >= 0 ? 0 : process_output_delay_count;
 	}
 
