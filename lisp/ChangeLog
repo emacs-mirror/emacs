@@ -1,3 +1,7 @@
+2010-09-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* window.el (walk-windows): Doc fix (bug#7105).
+
 2010-09-23  Glenn Morris  <rgm@gnu.org>
 
 	* isearch.el (isearch-lazy-highlight-cleanup)
