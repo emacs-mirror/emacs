@@ -75,7 +75,7 @@ static widget_value *merge_widget_value (widget_value *,
                                          widget_value *,
                                          int, int *);
 static void instantiate_widget_instance (widget_instance *);
-static int my_strcasecmp (char *, char *);
+static int my_strcasecmp (const char *, const char *);
 static void safe_free_str (char *);
 static void free_widget_value_tree (widget_value *);
 static widget_value *copy_widget_value_tree (widget_value *,
@@ -92,14 +92,14 @@ static void free_widget_instance (widget_instance *);
 static widget_info *get_widget_info (LWLIB_ID, Boolean);
 static widget_instance *get_widget_instance (Widget, Boolean);
 static widget_instance *find_instance (LWLIB_ID, Widget, Boolean);
-static Boolean safe_strcmp (char *, char *);
-static Widget name_to_widget (widget_instance *, char *);
+static Boolean safe_strcmp (const char *, const char *);
+static Widget name_to_widget (widget_instance *, const char *);
 static void set_one_value (widget_instance *, widget_value *, Boolean);
 static void update_one_widget_instance (widget_instance *, Boolean);
 static void update_all_widget_values (widget_info *, Boolean);
 static void initialize_widget_instance (widget_instance *);
-static widget_creation_function find_in_table (char *, widget_creation_entry *);
-static Boolean dialog_spec_p (char *);
+static widget_creation_function find_in_table (const char *, const widget_creation_entry *);
+static Boolean dialog_spec_p (const char *);
 static void destroy_one_instance (widget_instance *);
 static void lw_pop_all_widgets (LWLIB_ID, Boolean);
 static Boolean get_one_value (widget_instance *, widget_value *);
@@ -120,7 +120,7 @@ safe_strdup (const char *s)
 /* Like strcmp but ignore differences in case.  */
 
 static int
-my_strcasecmp (char *s1, char *s2)
+my_strcasecmp (const char *s1, const char *s2)
 {
   while (1)
     {
@@ -402,7 +402,7 @@ find_instance (LWLIB_ID id, Widget parent, Boolean pop_up_p)
 
 /* utility function for widget_value */
 static Boolean
-safe_strcmp (char *s1, char *s2)
+safe_strcmp (const char *s1, const char *s2)
 {
   if (!!s1 ^ !!s2) return True;
   return (s1 && s2) ? strcmp (s1, s2) : s1 ? False : !!s2;
@@ -586,7 +586,7 @@ merge_widget_value (widget_value *val1,
 
 /* modifying the widgets */
 static Widget
-name_to_widget (widget_instance *instance, char *name)
+name_to_widget (widget_instance *instance, const char *name)
 {
   Widget widget = NULL;
 
@@ -729,9 +729,9 @@ initialize_widget_instance (widget_instance *instance)
 
 
 static widget_creation_function
-find_in_table (char *type, widget_creation_entry *table)
+find_in_table (const char *type, const widget_creation_entry *table)
 {
-  widget_creation_entry* cur;
+  const widget_creation_entry* cur;
   for (cur = table; cur->type; cur++)
     if (!my_strcasecmp (type, cur->type))
       return cur->function;
@@ -739,7 +739,7 @@ find_in_table (char *type, widget_creation_entry *table)
 }
 
 static Boolean
-dialog_spec_p (char *name)
+dialog_spec_p (const char *name)
 {
   /* return True if name matches [EILPQeilpq][1-9][Bb] or
      [EILPQeilpq][1-9][Bb][Rr][1-9] */
@@ -1317,7 +1317,7 @@ lw_allow_resizing (Widget w, Boolean flag)
    to similar ones that are supported.  */
 
 int
-lw_separator_p (char *label, enum menu_separator *type, int motif_p)
+lw_separator_p (const char *label, enum menu_separator *type, int motif_p)
 {
   int separator_p = 0;
 
