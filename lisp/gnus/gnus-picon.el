@@ -85,6 +85,12 @@ added right to the textual representation."
 		 (const right))
   :group 'gnus-picon)
 
+(defcustom gnus-picon-inhibit-top-level-domains t
+  "If non-nil, don't piconify top-level domains.
+These are often not very interesting."
+  :type 'boolean
+  :group 'gnus-picon)
+
 ;;; Internal variables:
 
 (defvar gnus-picon-glyph-alist nil
@@ -188,7 +194,9 @@ replacement is added."
 	     (setcar spec (cons (gnus-picon-create-glyph file)
 				(car spec))))
 
-	   (dotimes (i (1- (length spec)))
+	   (dotimes (i (- (length spec)
+			  (if gnus-picon-inhibit-top-level-domains
+			      2 1)))
 	     (when (setq file (gnus-picon-find-face
 			       (concat "unknown@"
 				       (mapconcat

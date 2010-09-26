@@ -2301,9 +2301,9 @@ long lines if and only if arg is positive."
 	(insert "X-Boundary: ")
 	(gnus-add-text-properties start (point) '(invisible t intangible t))
 	(insert (let (str)
-		  (while (>= (1- (window-width)) (length str))
+		  (while (>= (window-width) (length str))
 		    (setq str (concat str gnus-body-boundary-delimiter)))
-		  (substring str 0 (1- (window-width))))
+		  (substring str 0 (window-width)))
 		"\n")
 	(gnus-put-text-property start (point) 'gnus-decoration 'header)))))
 

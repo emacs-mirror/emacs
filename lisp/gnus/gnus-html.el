@@ -226,7 +226,7 @@ CHARS is a regexp-like character alternative (e.g., \"[)$]\")."
                    :keymap gnus-html-image-map
                    :button-keymap gnus-html-image-map)
                   (let ((overlay (gnus-make-overlay start end))
-                        (spec (list url alt-text)))
+                        (spec (list url start end alt-text)))
                     (gnus-overlay-put overlay 'local-map gnus-html-image-map)
                     (gnus-overlay-put overlay 'gnus-image spec)
                     (gnus-put-text-property

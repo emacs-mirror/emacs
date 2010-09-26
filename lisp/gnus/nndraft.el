@@ -222,6 +222,11 @@ are generated if and only if they are also in `message-draft-headers'.")
 (deffoo nndraft-request-expire-articles (articles group &optional server force)
   (nndraft-possibly-change-group group)
   (let* ((nnmh-allow-delete-final t)
+	 (nnmail-expiry-target
+	  (or (gnus-group-find-parameter
+	       (gnus-group-prefixed-name "nndraft" (list 'nndraft server))
+	       'expiry-target t)
+	      nnmail-expiry-target))
 	 (res (nnoo-parent-function 'nndraft
 				    'nnmh-request-expire-articles
 				    (list articles group server force)))

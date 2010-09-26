@@ -96,7 +96,7 @@ some servers.")
 
 (defstruct nnimap
   group process commands capabilities select-result newlinep server
-  last-command-time)
+  last-command-time greeting)
 
 (defvar nnimap-object nil)
 
@@ -119,7 +119,6 @@ some servers.")
     (erase-buffer)
     (when (nnimap-possibly-change-group group server)
       (with-current-buffer (nnimap-buffer)
-	(nnimap-send-command "SELECT %S" (utf7-encode group t))
 	(erase-buffer)
 	(nnimap-wait-for-response
 	 (nnimap-send-command
@@ -318,6 +317,9 @@ some servers.")
 	    (nnheader-report 'nnimap
 			     "%s" (buffer-substring
 				   (point) (line-end-position)))
+	  (setf (nnimap-greeting nnimap-object)
+		(buffer-substring (line-beginning-position)
+				  (line-end-position)))
 	  (when (eq nnimap-stream 'starttls)
 	    (nnimap-command "STARTTLS")
 	    (starttls-negotiate (nnimap-process nnimap-object)))
@@ -419,10 +421,13 @@ some servers.")
 	  article)))
     ;; Check that we really got an article.
     (goto-char (point-min))
-    (unless (looking-at "\\* [0-9]+ FETCH")
+    (unless (re-search-forward "\\* [0-9]+ FETCH" nil t)
       (setq result nil))
     (when result
-      (goto-char (point-min))
+      ;; Remove any data that may have arrived before the FETCH data.
+      (beginning-of-line)
+      (unless (bobp)
+	(delete-region (point-min) (point)))
       (let ((bytes (nnimap-get-length)))
 	(delete-region (line-beginning-position)
 		       (progn (forward-line 1) (point)))
@@ -626,7 +631,7 @@ some servers.")
     articles)
    ((and force
 	 (eq nnmail-expiry-target 'delete))
-    (unless (nnimap-delete-article articles)
+    (unless (nnimap-delete-article (gnus-compress-sequence articles))
       (message "Article marked for deletion, but not expunged."))
     nil)
    (t
@@ -640,7 +645,7 @@ some servers.")
       (if (null deletable-articles)
 	  articles
 	(if (eq nnmail-expiry-target 'delete)
-	    (nnimap-delete-article deletable-articles)
+	    (nnimap-delete-article (gnus-compress-sequence deletable-articles))
 	  (setq deletable-articles
 		(nnimap-process-expiry-targets
 		 deletable-articles group server)))
@@ -667,7 +672,7 @@ some servers.")
     ;; Change back to the current group again.
     (nnimap-possibly-change-group group server)
     (setq deleted-articles (nreverse deleted-articles))
-    (nnimap-delete-article deleted-articles)
+    (nnimap-delete-article (gnus-compress-sequence deleted-articles))
     deleted-articles))
 
 (defun nnimap-find-expired-articles (group)

@@ -298,7 +298,7 @@ from the document.")
   t)
 
 (deffoo nndoc-request-list (&optional server)
-  nil)
+  t)
 
 (deffoo nndoc-request-newgroups (date &optional server)
   nil)

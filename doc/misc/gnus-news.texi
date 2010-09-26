@@ -68,8 +68,10 @@ remove-installed-shadows}.
 
 @item New version of @code{nnimap}
 
-@code{nnimap} has been reimplemented in a mostly-compatible way.
-@c Mention any incompatibilities.
+@code{nnimap} has been reimplemented in a mostly-compatible way.  See
+the Gnus manual for a description of the new interface.  In
+particular, @code{nnimap-inbox} and the client side split method has
+changed.
 
 @item Gnus includes the Emacs Lisp @acronym{SASL} library.
 

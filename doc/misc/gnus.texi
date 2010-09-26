@@ -23233,6 +23233,12 @@ want to add @samp{"unknown"} to this list.
 Ordered list of suffixes on picon file names to try.  Defaults to
 @code{("xpm" "gif" "xbm")} minus those not built-in your Emacs.
 
+@item gnus-picon-inhibit-top-level-domains
+@vindex gnus-picon-inhibit-top-level-domains
+If non-@code{nil} (which is the default), don't display picons for
+things like @samp{.net} and @samp{.de}, which aren't usually very
+interesting.
+
 @end table
 
 @node Gravatars

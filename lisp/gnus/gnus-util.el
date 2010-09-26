@@ -601,6 +601,8 @@ but also to the ones displayed in the echo area."
 		 (t
 		  (apply 'message ,format-string ,args))))))))
 
+(defvar gnus-action-message-log nil)
+
 (defun gnus-message-with-timestamp (format-string &rest args)
   "Display message with timestamp.  Arguments are the same as `message'.
 The `gnus-add-timestamp-to-message' variable controls how to add
@@ -615,13 +617,25 @@ Guideline for numbers:
 that take a long time, 7 - not very important messages on stuff, 9 - messages
 inside loops."
   (if (<= level gnus-verbose)
-      (if gnus-add-timestamp-to-message
-	  (apply 'gnus-message-with-timestamp args)
-	(apply 'message args))
+      (let ((message
+	     (if gnus-add-timestamp-to-message
+		 (apply 'gnus-message-with-timestamp args)
+	       (apply 'message args))))
+	(when (and (consp gnus-action-message-log)
+		   (<= level 3))
+	  (push message gnus-action-message-log))
+	message)
     ;; We have to do this format thingy here even if the result isn't
     ;; shown - the return value has to be the same as the return value
     ;; from `message'.
     (apply 'format args)))
+
+(defun gnus-final-warning ()
+  (when (and (consp gnus-action-message-log)
+	     (setq gnus-action-message-log
+		   (delete nil gnus-action-message-log)))
+    (message "Warning: %s"
+	     (mapconcat #'identity gnus-action-message-log "; "))))
 
 (defun gnus-error (level &rest args)
   "Beep an error if LEVEL is equal to or less than `gnus-verbose'.

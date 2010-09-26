@@ -1026,7 +1026,7 @@ supported."
                   (unless (member server gnus-agent-covered-methods)
                     (push server gnus-agent-covered-methods)
                     (setq gnus-agent-method-p-cache nil))
-                (gnus-message 1 "Ignoring disappeared server `%s'" server))))
+                (gnus-message 8 "Ignoring disappeared server `%s'" server))))
           (prog1 gnus-agent-covered-methods
             (setq gnus-agent-covered-methods nil))))
 
@@ -3752,7 +3752,7 @@ has been fetched."
 	    (erase-buffer)
             (cond ((not (eq 'nov (let (gnus-agent) ; Turn off agent
                                    (gnus-retrieve-headers
-                                    uncached-articles group fetch-old))))
+                                    uncached-articles group))))
                    (nnvirtual-convert-headers))
                   ((eq 'nntp (car gnus-current-select-method))
                    ;; The author of gnus-get-newsgroup-headers-xover
