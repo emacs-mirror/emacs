@@ -2002,10 +2002,13 @@ AC_SUBST(LIBSELINUX_LIBS)
 
 HAVE_GNUTLS=no
 if test "${with_gnutls}" = "yes" ; then
-  PKG_CHECK_MODULES([LIBGNUTLS], [gnutls >= 2.2.4])
-  AC_DEFINE(HAVE_GNUTLS)
-  HAVE_GNUTLS=yes
+  PKG_CHECK_MODULES([LIBGNUTLS], [gnutls >= 2.2.4], HAVE_GNUTLS=yes, HAVE_GNUTLS=no)
+  if test "${HAVE_GNUTLS}" = "yes"; then
+    AC_DEFINE(HAVE_GNUTLS)
+  fi
 fi
+AC_SUBST(LIBGNUTLS_LIBS)
+AC_SUBST(LIBGNUTLS_CFLAGS)
 
 dnl Do not put whitespace before the #include statements below.
 dnl Older compilers (eg sunos4 cc) choke on it.
