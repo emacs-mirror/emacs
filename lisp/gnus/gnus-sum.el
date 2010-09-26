@@ -451,8 +451,10 @@ and non-`vertical', do both horizontal and vertical recentering."
 		 (integer :tag "height")
 		 (sexp :menu-tag "both" t)))
 
-(defvar gnus-auto-center-group t
-  "*If non-nil, always center the group buffer.")
+(defcustom gnus-auto-center-group t
+  "If non-nil, always center the group buffer."
+  :group 'gnus-summary-maneuvering
+  :type 'boolean)
 
 (defcustom gnus-show-all-headers nil
   "*If non-nil, don't hide any headers."

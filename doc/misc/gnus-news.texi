@@ -103,6 +103,12 @@ EasyPG is included in Emacs 23 and available separately as well.
 @c ************************
 
 @itemize @bullet
+
+@item
+Symbols like @code{gcc-self} now has the same presedence rules in
+@code{gnus-parameters} as other ``real'' variables: The last match
+wins instead of the first match.
+
 @item
 Old intermediate incoming mail files (@file{Incoming*}) are deleted
 after a couple of days, not immediately.  @xref{Mail Source

@@ -3862,9 +3862,7 @@ The function `gnus-group-find-parameter' will do that for you."
 	      ;; Expand if necessary.
 	      (if (and (stringp result) (string-match "\\\\[0-9&]" result))
 		  (setq result (gnus-expand-group-parameter (car head)
-							    result group)))
-	      ;; Exit the loop early.
-	      (setq tail nil))))
+							    result group))))))
 	;; Done.
 	result))))
 
