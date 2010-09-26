@@ -240,15 +240,6 @@ time Emacs has been idle for IDLE `gnus-demon-timestep's."
 		 ;; this idle-cycle.
 		 (push (car handler) gnus-demon-idle-has-been-called)))))))))
 
-(defun gnus-demon-add-nocem ()
-  "Add daemonic NoCeM handling to Gnus."
-  (gnus-demon-add-handler 'gnus-demon-scan-nocem 60 30))
-
-(defun gnus-demon-scan-nocem ()
-  "Scan NoCeM groups for NoCeM messages."
-  (save-window-excursion
-    (gnus-nocem-scan-groups)))
-
 (defun gnus-demon-add-disconnection ()
   "Add daemonic server disconnection to Gnus."
   (gnus-demon-add-handler 'gnus-demon-close-connections nil 30))

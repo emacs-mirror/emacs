@@ -64,9 +64,6 @@ from the document.")
      (body-end . "")
      (file-end . "")
      (subtype digest guess))
-    (mime-parts
-     (generate-head-function . nndoc-generate-mime-parts-head)
-     (article-transform-function . nndoc-transform-mime-parts))
     (nsmail
      (article-begin .  "^From - "))
     (news
@@ -77,6 +74,9 @@ from the document.")
     (mbox
      (article-begin-function . nndoc-mbox-article-begin)
      (body-end-function . nndoc-mbox-body-end))
+    (mime-parts
+     (generate-head-function . nndoc-generate-mime-parts-head)
+     (article-transform-function . nndoc-transform-mime-parts))
     (babyl
      (article-begin . "\^_\^L *\n")
      (body-end . "\^_")

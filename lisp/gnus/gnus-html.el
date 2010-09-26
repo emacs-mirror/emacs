@@ -104,7 +104,12 @@ CHARS is a regexp-like character alternative (e.g., \"[)$]\")."
 					  (match-string 0 encoded-text)))
 				 t t encoded-text)
 		  s (1+ s)))
-	  encoded-text)))))
+	  encoded-text))))
+  ;; XEmacs does not have window-inside-pixel-edges
+  (defalias 'gnus-window-inside-pixel-edges
+    (if (fboundp 'window-inside-pixel-edges)
+        'window-inside-pixel-edges
+      'window-pixel-edges)))
 
 (defun gnus-html-encode-url (url)
   "Encode URL."
@@ -450,7 +455,7 @@ Return a string with image data."
       image
     (let* ((width (car size))
 	   (height (cdr size))
-	   (edges (window-pixel-edges (get-buffer-window (current-buffer))))
+	   (edges (gnus-window-inside-pixel-edges (get-buffer-window (current-buffer))))
 	   (window-width (truncate (* gnus-max-image-proportion
 				      (- (nth 2 edges) (nth 0 edges)))))
 	   (window-height (truncate (* gnus-max-image-proportion

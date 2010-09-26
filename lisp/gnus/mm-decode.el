@@ -1147,13 +1147,15 @@ in HANDLE."
   ;; time to adjust it, since we know at this point that it should
   ;; be unibyte.
   `(let* ((handle ,handle))
-     (with-temp-buffer
-       (mm-disable-multibyte)
-       (insert-buffer-substring (mm-handle-buffer handle))
-       (mm-decode-content-transfer-encoding
-	(mm-handle-encoding handle)
-	(mm-handle-media-type handle))
-       ,@forms)))
+     (when (and (mm-handle-buffer handle)
+		(buffer-name (mm-handle-buffer handle)))
+       (with-temp-buffer
+	 (mm-disable-multibyte)
+	 (insert-buffer-substring (mm-handle-buffer handle))
+	 (mm-decode-content-transfer-encoding
+	  (mm-handle-encoding handle)
+	  (mm-handle-media-type handle))
+	 ,@forms))))
 (put 'mm-with-part 'lisp-indent-function 1)
 (put 'mm-with-part 'edebug-form-spec '(body))
 
@@ -1246,9 +1248,13 @@ PROMPT overrides the default one used to ask user for a file name."
       (setq filename (gnus-map-function mm-file-name-rewrite-functions
 					(file-name-nondirectory filename))))
     (setq file
-          (read-file-name (or prompt "Save MIME part to: ")
+          (read-file-name (or prompt
+			      (format "Save MIME part to (default %s): "
+				      (or filename "")))
                           (or mm-default-directory default-directory)
-                          nil nil (or filename "")))
+			  (or filename "")))
+    (when (file-directory-p file)
+      (setq file (expand-file-name filename file)))
     (setq mm-default-directory (file-name-directory file))
     (and (or (not (file-exists-p file))
 	     (yes-or-no-p (format "File %s already exists; overwrite? "

@@ -308,11 +308,6 @@ be set in `.emacs' instead."
   :group 'gnus-start
   :type 'boolean)
 
-(defcustom gnus-play-startup-jingle nil
-  "If non-nil, play the Gnus jingle at startup."
-  :group 'gnus-start
-  :type 'boolean)
-
 (unless (fboundp 'gnus-group-remove-excess-properties)
   (defalias 'gnus-group-remove-excess-properties 'ignore))
 
@@ -960,8 +955,6 @@ be set in `.emacs' instead."
 
 (defvar gnus-group-buffer "*Group*")
 
-(autoload 'gnus-play-jingle "gnus-audio")
-
 (defface gnus-splash
   '((((class color)
       (background dark))
@@ -984,9 +977,7 @@ be set in `.emacs' instead."
       (erase-buffer)
       (unless gnus-inhibit-startup-message
 	(gnus-group-startup-message)
-	(sit-for 0)
-	(when gnus-play-startup-jingle
-	  (gnus-play-jingle))))))
+	(sit-for 0)))))
 
 (defun gnus-indent-rigidly (start end arg)
   "Indent rigidly using only spaces and no tabs."
@@ -1579,25 +1570,6 @@ articles.  This is not a good idea."
 		 integer
 		 (sexp :format "all"
 		       :value t)))
-
-(defcustom gnus-use-nocem nil
-  "*If non-nil, Gnus will read NoCeM cancel messages.
-You can also set this variable to a positive number as a group level.
-In that case, Gnus scans NoCeM messages when checking new news if this
-value is not exceeding a group level that you specify as the prefix
-argument to some commands, e.g. `gnus', `gnus-group-get-new-news', etc.
-Otherwise, Gnus does not scan NoCeM messages if you specify a group
-level to those commands."
-  :group 'gnus-meta
-  :type '(choice
-	  (const :tag "off" nil)
-	  (const :tag "on" t)
-	  (list :convert-widget
-		(lambda (widget)
-		  (list 'integer :tag "group level"
-			:value (if (boundp 'gnus-level-default-subscribed)
-				   gnus-level-default-subscribed
-				 3))))))
 
 (defcustom gnus-suppress-duplicates nil
   "*If non-nil, Gnus will mark duplicate copies of the same article as read."
@@ -2813,13 +2785,12 @@ gnus-registry.el will populate this if it's loaded.")
       rmail-summary-exists rmail-select-summary)
      ;; Only used in gnus-util, which has an autoload.
      ("rmailsum" rmail-update-summary)
-     ("gnus-audio" :interactive t gnus-audio-play)
      ("gnus-xmas" gnus-xmas-splash)
      ("score-mode" :interactive t gnus-score-mode)
      ("gnus-mh" gnus-summary-save-article-folder
       gnus-Folder-save-name gnus-folder-save-name)
      ("gnus-mh" :interactive t gnus-summary-save-in-folder)
-     ("gnus-demon" gnus-demon-add-nocem gnus-demon-add-scanmail
+     ("gnus-demon" gnus-demon-add-scanmail
       gnus-demon-add-rescan gnus-demon-add-scan-timestamps
       gnus-demon-add-disconnection gnus-demon-add-handler
       gnus-demon-remove-handler)
@@ -2830,8 +2801,6 @@ gnus-registry.el will populate this if it's loaded.")
       gnus-face-from-file)
      ("gnus-salt" gnus-highlight-selected-tree gnus-possibly-generate-tree
       gnus-tree-open gnus-tree-close gnus-carpal-setup-buffer)
-     ("gnus-nocem" gnus-nocem-scan-groups gnus-nocem-close
-      gnus-nocem-unwanted-article-p)
      ("gnus-srvr" gnus-enter-server-buffer gnus-server-set-info
       gnus-server-server-name)
      ("gnus-srvr" gnus-browse-foreign-server)
@@ -4395,7 +4364,7 @@ prompt the user for the name of an NNTP server to use."
   ;; When using the development version of Gnus, load the gnus-load
   ;; file.
   (unless (string-match "^Gnus" gnus-version)
-    (load "gnus-load"))
+    (load "gnus-load" nil t))
   (unless (byte-code-function-p (symbol-function 'gnus))
     (message "You should byte-compile Gnus")
     (sit-for 2))

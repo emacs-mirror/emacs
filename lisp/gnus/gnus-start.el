@@ -1063,15 +1063,6 @@ If LEVEL is non-nil, the news will be set up at level LEVEL."
 	       (gnus-server-opened gnus-select-method))
       (gnus-check-bogus-newsgroups))
 
-    ;; We might read in new NoCeM messages here.
-    (when (and (not dont-connect)
-	       gnus-use-nocem
-	       (or (and (numberp gnus-use-nocem)
-			(numberp level)
-			(>= level gnus-use-nocem))
-		   (not level)))
-      (gnus-nocem-scan-groups))
-
     ;; Read any slave files.
     (gnus-master-read-slave-newsrc)
 
@@ -1767,8 +1758,10 @@ If SCAN, request a scan of that group as well."
 		   (not (gnus-method-denied-p method)))
 	  (unless (gnus-server-opened method)
 	    (gnus-open-server method))
-	  (when (gnus-check-backend-function
-		 'retrieve-group-data-early (car method))
+	  (when (and
+		 (gnus-server-opened method)
+		 (gnus-check-backend-function
+		  'retrieve-group-data-early (car method)))
 	    (when (gnus-check-backend-function 'request-scan (car method))
 	      (gnus-request-scan nil method))
 	    (setcar (nthcdr 3 elem)
