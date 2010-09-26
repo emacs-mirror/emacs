@@ -1,3 +1,8 @@
+2010-09-26  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xgselect.c (xg_select): Clear file descriptors not set from
+	rfds and wfds.
+
 2010-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* syntax.c (back_comment): Detect the case where a 1-char comment
