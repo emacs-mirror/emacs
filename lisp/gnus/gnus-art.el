@@ -1692,13 +1692,13 @@ This requires GNU Libidn, and by default only enabled if it is found."
     (gnus-treat-strip-list-identifiers gnus-article-hide-list-identifiers)
     (gnus-treat-leading-whitespace gnus-article-remove-leading-whitespace)
     (gnus-treat-strip-pem gnus-article-hide-pem)
-    (gnus-treat-from-picon gnus-treat-from-picon)
-    (gnus-treat-mail-picon gnus-treat-mail-picon)
-    (gnus-treat-newsgroups-picon gnus-treat-newsgroups-picon)
     (gnus-treat-from-gravatar gnus-treat-from-gravatar)
     (gnus-treat-mail-gravatar gnus-treat-mail-gravatar)
     (gnus-treat-highlight-headers gnus-article-highlight-headers)
     (gnus-treat-highlight-signature gnus-article-highlight-signature)
+    (gnus-treat-from-picon gnus-treat-from-picon)
+    (gnus-treat-mail-picon gnus-treat-mail-picon)
+    (gnus-treat-newsgroups-picon gnus-treat-newsgroups-picon)
     (gnus-treat-strip-trailing-blank-lines
      gnus-article-remove-trailing-blank-lines)
     (gnus-treat-strip-leading-blank-lines

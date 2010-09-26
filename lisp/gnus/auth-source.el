@@ -32,9 +32,9 @@
 ;;; Code:
 
 (require 'gnus-util)
+(require 'netrc)
 
 (eval-when-compile (require 'cl))
-(autoload 'netrc-machine-user-or-password "netrc")
 (autoload 'secrets-create-item "secrets")
 (autoload 'secrets-delete-item "secrets")
 (autoload 'secrets-get-alias "secrets")
@@ -312,25 +312,41 @@ Return structure as specified by MODE."
     (setq result
 	  (mapcar
 	   (lambda (m)
-	     (cond
-	      ((equal "password" m)
-	       (let ((passwd (read-passwd
-			      (format "Password for %s on %s: " prot host))))
-		 (cond
-		  ;; Secret Service API.
-		  ((consp source)
-		   (apply
-		    'secrets-create-item
-		    (auth-get-source entry) name passwd spec))
-		  (t)) ;; netrc not implemented yes.
-		 passwd))
-	      ((equal "login" m)
-	       (or user
-		   (read-string (format "User name for %s on %s: " prot host))))
-	      (t
-	       "unknownuser")))
+	     (cons
+	      m
+	      (cond
+	       ((equal "password" m)
+		(let ((passwd (read-passwd
+			       (format "Password for %s on %s: " prot host))))
+		  (cond
+		   ;; Secret Service API.
+		   ((consp source)
+		    (apply
+		     'secrets-create-item
+		     (auth-get-source entry) name passwd spec))
+		   (t)) ;; netrc not implemented yes.
+		  passwd))
+	       ((equal "login" m)
+		(or user
+		    (read-string (format "User name for %s on %s: " prot host))))
+	       (t
+		"unknownuser"))))
 	   (if (consp mode) mode (list mode))))
-    (if (consp mode) result (car result))))
+    ;; Allow the source to save the data.
+    (cond
+     ((consp source)
+      ;; Secret Service API -- not implemented.
+      )
+     (t
+      ;; netrc interface.
+      (when (y-or-n-p (format "Do you want to save this password in %s? "
+			      source))
+	(netrc-store-data source host prot
+			  (or user (cdr (assoc "login" result)))
+			  (cdr (assoc "password" result))))))
+    (if (consp mode)
+	(mapcar #'cdr result)
+      (cdar result))))
 
 (defun auth-source-delete (entry &rest spec)
   "Delete credentials according to SPEC in ENTRY."

@@ -1,4 +1,150 @@
+2010-09-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (gnus-treatment-function-alist): Insert picons after
+	doing the header highlightling, so that the background colour of the
+	picon is correct.
+
+	* gnus-picon.el (gnus-picon-xbm): Removed obsolete face.
+	(gnus-picon): Ditto.
+	(gnus-picon): Reinstate.  The background colour for picons is white.
+	(gnus-picon-insert-glyph): Make the background white.
+
+	* nnml.el (nnml-open-nov): Don't return dead buffers.
+
+	* auth-source.el (auth-source-create): Query the user for whether to
+	store the credentials.
+
+	* auth-source.el (auth-source-user-or-password): Use the existing auth
+	sources, if any, for creation.
+
+	* gnus.el (gnus-group-fast-parameter): Return the last matching
+	parameter instead of the first matching parameter.
+
+2010-09-26  Julien Danjou  <julien@danjou.info>
+
+	* gnus-sum.el (gnus-auto-center-group): Transform into a defcustom.
+
+2010-09-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mml2015.el (mml2015-use): Remove gpg support.
+
+	* mml1991.el (mml1991-function-alist): Remove gpg function.
+	(mml1991-gpg-sign): Removed.
+
+2010-09-26  Andreas Seltenreich  <seltenreich@gmx.de>
+
+	* gnus-srvr.el (gnus-browse-subscribe-newsgroup-method): New variable.
+	(gnus-browse-unsubscribe-current-group): Document it.
+	(gnus-browse-unsubscribe-group): Use it.
+
+2010-09-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-read-ephemeral-bug-group): Add the bug email
+	address to the To list for easier response.
+
+	* gnus.el (gnus-play-startup-jingle): Removed.
+	(gnus-splash): Don't play jingle.
+	(gnus): Silence gnus-load message.
+
+	* gnus-art.el (gnus-treat-play-sounds): Removed.
+
+	* gnus.el (gnus-play-jingle): Remove audio support.
+
+	* gnus-cus.el (gnus-score-customize): Remove audio reference.
+
+	* earcon.el: Removed -- no users.
+
+	* gnus-audio.el: Removed -- no users of this package.
+
+	* gnus-sum.el (gnus-summary-limit-children): Remove nocem support.
+
+	* gnus-start.el (gnus-setup-news): Remove nocem support.
+
+	* gnus-group.el (gnus-group-get-new-news): Removed nocem call.
+
+	* gnus.el (gnus-use-nocem): Removed.
+
+	* gnus-demon.el (gnus-demon-add-nocem, gnus-demon-scan-nocem):
+	Removed.
+
+	* gnus-nocem.el (gnus-nocem-issuers): Removed file.  Apparently nobody
+	uses NoCeM any more.
+
+	* gnus-art.el (gnus-ctan-url): Seems not very useful -- removed.
+	(gnus-button-ctan-handler): Ditto.
+	(gnus-button-handle-ctan-bogus-regexp): Ditto.
+	(gnus-button-ctan-directory-regexp): Ditto.
+	(gnus-button-handle-ctan): Ditto.
+	(gnus-button-tex-level): Ditto.
+	(gnus-button-alist): Removed CTAN stuff.
+
 2010-09-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-wait-for-response): Reversed logic in the
+	nnimap-streaming test.
+
+	* gnus-start.el (gnus-get-unread-articles): Don't try to open failed
+	servers twice.
+
+	* nnimap.el (nnimap-open-connection): Add more error reporting when
+	nnimap fails early.
+
+	* nnheader.el (nnheader-get-report-string): New function.
+	(nnheader-get-report): Use it.
+
+	* gnus-int.el (gnus-check-server): Say what the error was when opening
+	failed.
+
+	* nnimap.el (nnimap-wait-for-response): Search further when we're not
+	using streaming.
+
+2010-09-25  Julien Danjou  <julien@danjou.info>
+
+	* gnus-html.el (gnus-html-rescale-image): Use our defalias
+	gnus-window-inside-pixel-edges.
+
+2010-09-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-srvr.el (gnus-server-copy-server): Add documentation.
+
+	* mm-decode.el (mm-save-part): Allow saving to other directories the
+	normal Emacs way.
+
+	* nndoc.el (nndoc-type-alist): Move mime-parts after mbox.  Suggested
+	by Jay Berkenbilt.
+
+	* gnus-art.el (gnus-mime-delete-part): Fix plural for "byte" when
+	there isn't a single byte.
+
+	* gnus-int.el (gnus-open-server): Don't query whether to go offline --
+	just do it.  It doesn't really seem to matter what the user responds
+	here, I think, so it's just a confusing question.
+
+	* nnimap.el (nnimap-retrieve-group-data-early): Fix typo in the
+	non-streaming case.
+
+	* gnus-art.el (gnus-flush-original-article-buffer): Separated out.
+	(gnus-article-encrypt-body): Use it.
+
+	* gnus-sum.el (gnus-summary-show-complete-article): New command and
+	keystroke.
+
+	* nnimap.el (nnimap-find-wanted-parts-1): Use
+	gnus-fetch-partial-articles.
+
+	* gnus-art.el (gnus-fetch-partial-articles): New variable.
+
+	* nnimap.el (nnimap-insert-partial-structure): New function.
+	(nnimap-get-partial-article): New function.
+	(nnimap-request-article): Use it.
+	(nnimap-wait-for-response): Return whether the wait was successful.
+	(nnimap-finish-retrieve-group-infos): Don't do anything if the
+	retrieval wasn't successful.
+	(nnimap-retrieve-group-data-early): Allow throttling servers.
+	(nnimap-streaming): New variable.
+	(nnimap-fetch-partial-articles): Removed.
+
+	* mm-decode.el (mm-with-part): Protect against killed buffers.
 
 	* nndraft.el (nndraft-retrieve-headers): Insert Lines and Chars headers
 	for prettier summary display.
@@ -209,7 +355,6 @@
 
 2010-09-23  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* netrc.el (netrc-parse): Remove encrypt.el mentions.
 	* encrypt.el: Removed.
 
 2010-09-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
