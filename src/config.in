@@ -255,6 +255,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have a gif (or ungif) library. */
 #undef HAVE_GIF
 
+/* Define if we have the GNU TLS library.  */
+#undef HAVE_GNUTLS
+
 /* Define to 1 if you have the gpm library (-lgpm). */
 #undef HAVE_GPM
 
@@ -1093,6 +1096,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Include the os and machine dependent files.  */
 #include config_opsysfile
 #include config_machfile
+
+#if HAVE_GNUTLS
+#define LIBGNUTLS $(LIBGNUTLS_LIBS)
+#else /* not HAVE_GNUTLS */
+#define LIBGNUTLS
+#endif /* not HAVE_GNUTLS */
 
 /* Set up some defines, C and LD flags for NeXTstep interface on GNUstep.
   (There is probably a better place to do this, but right now the Cocoa

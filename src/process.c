@@ -105,6 +105,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "sysselect.h"
 #include "syssignal.h"
 #include "syswait.h"
+#ifdef HAVE_GNUTLS
+#include "gnutls.h"
+#endif
 
 #if defined (USE_GTK) || defined (HAVE_GCONF)
 #include "xgselect.h"
@@ -581,6 +584,10 @@ make_process (Lisp_Object name)
   p->adaptive_read_buffering = 0;
   p->read_output_delay = 0;
   p->read_output_skip = 0;
+#endif
+
+#ifdef HAVE_GNUTLS
+  p->gnutls_initstage = GNUTLS_STAGE_EMPTY;
 #endif
 
   /* If name is already in use, modify it until it is unused.  */
@@ -1525,6 +1532,12 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
   XPROCESS (proc)->sentinel = Qnil;
   XPROCESS (proc)->filter = Qnil;
   XPROCESS (proc)->command = Flist (nargs - 2, args + 2);
+
+#ifdef HAVE_GNUTLS
+  /* AKA GNUTLS_INITSTAGE(proc).  */
+  XPROCESS (proc)->gnutls_initstage = GNUTLS_STAGE_EMPTY;
+  XPROCESS (proc)->gnutls_cred_type = Qnil;
+#endif
 
 #ifdef ADAPTIVE_READ_BUFFERING
   XPROCESS (proc)->adaptive_read_buffering
@@ -5099,7 +5112,13 @@ read_process_output (Lisp_Object proc, register int channel)
 #endif
   if (proc_buffered_char[channel] < 0)
     {
-      nbytes = emacs_read (channel, chars + carryover, readmax);
+#ifdef HAVE_GNUTLS
+      if (NETCONN_P(proc) && GNUTLS_PROCESS_USABLE (proc))
+	nbytes = emacs_gnutls_read (channel, XPROCESS (proc)->gnutls_state,
+                                    chars + carryover, readmax);
+      else
+#endif
+	nbytes = emacs_read (channel, chars + carryover, readmax);
 #ifdef ADAPTIVE_READ_BUFFERING
       if (nbytes > 0 && p->adaptive_read_buffering)
 	{
@@ -5132,7 +5151,13 @@ read_process_output (Lisp_Object proc, register int channel)
     {
       chars[carryover] = proc_buffered_char[channel];
       proc_buffered_char[channel] = -1;
-      nbytes = emacs_read (channel, chars + carryover + 1,  readmax - 1);
+#ifdef HAVE_GNUTLS
+      if (NETCONN_P(proc) && GNUTLS_PROCESS_USABLE (proc))
+	nbytes = emacs_gnutls_read (channel, XPROCESS (proc)->gnutls_state,
+                                    chars + carryover + 1, readmax - 1);
+      else
+#endif
+	nbytes = emacs_read (channel, chars + carryover + 1,  readmax - 1);
       if (nbytes < 0)
 	nbytes = 1;
       else
@@ -5542,7 +5567,14 @@ send_process (volatile Lisp_Object proc, const unsigned char *volatile buf,
 	      else
 #endif
 		{
-		  rv = emacs_write (outfd, (char *) buf, this);
+#ifdef HAVE_GNUTLS
+		  if (NETCONN_P(proc) && GNUTLS_PROCESS_USABLE (proc))
+		    rv = emacs_gnutls_write (outfd,
+					     XPROCESS (proc)->gnutls_state, 
+					     (char *) buf, this);
+		  else
+#endif
+		    rv = emacs_write (outfd, (char *) buf, this);
 #ifdef ADAPTIVE_READ_BUFFERING
 		  if (p->read_output_delay > 0
 		      && p->adaptive_read_buffering == 1)

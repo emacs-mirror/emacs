@@ -1,3 +1,22 @@
+2010-09-26  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* process.h: Set up GnuTLS support.
+
+	* process.c (make_process, Fstart_process)
+	(read_process_output, send_process): Set up GnuTLS support for
+	process input/output file descriptors.
+
+	* gnutls.h: The GnuTLS glue for Emacs, macros and enums.
+
+	* gnutls.c: The source code for GnuTLS support in Emacs.
+
+	* emacs.c: Set up GnuTLS support and call syms_of_gnutls.
+
+	* config.in: Set up GnuTLS support.
+
+	* Makefile.in (LIBGNUTLS_LIBS, LIBGNUTLS_CFLAGS, ALL_CFLAGS)
+	(obj, LIBES): Set up GnuTLS support.
+
 2010-09-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32.c (get_emacs_configuration_options): Fix previous change.

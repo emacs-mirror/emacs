@@ -171,6 +171,7 @@ OPTION_DEFAULT_ON([gpm],[don't use -lgpm for mouse support on a GNU/Linux consol
 OPTION_DEFAULT_ON([dbus],[don't compile with D-Bus support])
 OPTION_DEFAULT_ON([gconf],[don't compile with GConf support])
 OPTION_DEFAULT_ON([selinux],[don't compile with SELinux support])
+OPTION_DEFAULT_ON([gnutls],[don't use -lgnutls for SSL/TLS support])
 
 ## For the times when you want to build Emacs but don't have
 ## a suitable makeinfo, and can live without the manuals.
@@ -1999,6 +2000,13 @@ if test "${with_selinux}" = "yes"; then
 fi
 AC_SUBST(LIBSELINUX_LIBS)
 
+HAVE_GNUTLS=no
+if test "${with_gnutls}" = "yes" ; then
+  PKG_CHECK_MODULES([LIBGNUTLS], [gnutls >= 2.2.4])
+  AC_DEFINE(HAVE_GNUTLS)
+  HAVE_GNUTLS=yes
+fi
+
 dnl Do not put whitespace before the #include statements below.
 dnl Older compilers (eg sunos4 cc) choke on it.
 HAVE_XAW3D=no
@@ -3701,6 +3709,7 @@ echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
 echo "  Does Emacs use -ldbus?                                  ${HAVE_DBUS}"
 echo "  Does Emacs use -lgconf?                                 ${HAVE_GCONF}"
 echo "  Does Emacs use -lselinux?                               ${HAVE_LIBSELINUX}"
+echo "  Does Emacs use -lgnutls (BROKEN)?                       ${HAVE_GNUTLS}"
 echo "  Does Emacs use -lxml2?                                  ${HAVE_LIBXML2}"
 
 echo "  Does Emacs use -lfreetype?                              ${HAVE_FREETYPE}"

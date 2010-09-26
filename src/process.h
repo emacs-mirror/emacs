@@ -24,6 +24,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 #endif
 
+#ifdef HAVE_GNUTLS
+#include "gnutls.h"
+#endif
+
 /* This structure records information about a subprocess
    or network connection.
 
@@ -76,6 +80,10 @@ struct Lisp_Process
     /* Working buffer for encoding.  */
     Lisp_Object encoding_buf;
 
+#ifdef HAVE_GNUTLS
+    Lisp_Object gnutls_cred_type;
+#endif
+
     /* After this point, there are no Lisp_Objects any more.  */
     /* alloc.c assumes that `pid' is the first such non-Lisp slot.  */
 
@@ -121,6 +129,13 @@ struct Lisp_Process
        needs to be synced to `status'.  */
     unsigned int raw_status_new : 1;
     int raw_status;
+
+#ifdef HAVE_GNUTLS
+    gnutls_initstage_t gnutls_initstage;
+    gnutls_session_t gnutls_state;
+    gnutls_certificate_client_credentials x509_cred;
+    gnutls_anon_client_credentials_t anon_cred;
+#endif
 };
 
 /* Every field in the preceding structure except for the first two

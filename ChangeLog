@@ -1,3 +1,7 @@
+2010-09-26  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* configure.in: Set up GnuTLS.
+
 2010-09-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* configure.in: Announce whether libxml2 is linked to.
