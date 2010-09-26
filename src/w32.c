@@ -1956,8 +1956,9 @@ get_emacs_configuration_options (void)
 #endif
 #endif
 
-  if (_snprintf (cv, sizeof (cv), COMPILER_VERSION) < 0)
+  if (_snprintf (cv, sizeof (cv) - 1, COMPILER_VERSION) < 0)
     return "Error: not enough space for compiler version";
+  cv[sizeof (cv) - 1] = '\0';
 
   for (i = 0; options[i]; i++)
     size += strlen (options[i]);

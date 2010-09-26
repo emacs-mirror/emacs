@@ -1,3 +1,7 @@
+2010-09-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32.c (get_emacs_configuration_options): Fix previous change.
+
 2010-09-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* insdel.c (prepare_to_modify_buffer): Ensure the mark marker is
