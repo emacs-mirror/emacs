@@ -1,5 +1,8 @@
 2010-09-26  Jan Djärv  <jan.h.d@swipnet.se>
 
+	* process.c (add_keyboard_wait_descriptor)
+	(delete_keyboard_wait_descriptor): Reinstate ifdef subprocesses.
+
 	* process.h (add_read_fd, delete_read_fd, add_write_fd)
 	(delete_write_fd): Declare.
 

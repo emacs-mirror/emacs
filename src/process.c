@@ -7086,10 +7086,12 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 void
 add_keyboard_wait_descriptor (int desc)
 {
+#ifdef subprocesses /* actually means "not MSDOS" */
   FD_SET (desc, &input_wait_mask);
   FD_SET (desc, &non_process_wait_mask);
   if (desc > max_input_desc)
     max_input_desc = desc;
+#endif
 }
 
 /* From now on, do not expect DESC to give keyboard input.  */
@@ -7097,6 +7099,7 @@ add_keyboard_wait_descriptor (int desc)
 void
 delete_keyboard_wait_descriptor (int desc)
 {
+#ifdef subprocesses
   int fd;
   int lim = max_input_desc;
 
@@ -7107,6 +7110,7 @@ delete_keyboard_wait_descriptor (int desc)
     for (fd = 0; fd < lim; fd++)
       if (FD_ISSET (fd, &input_wait_mask) || FD_ISSET (fd, &write_mask))
         max_input_desc = fd;
+#endif
 }
 
 /* Setup coding systems of PROCESS.  */
