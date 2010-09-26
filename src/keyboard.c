@@ -3522,12 +3522,6 @@ restore_getcjmp (jmp_buf temp)
 static int
 readable_events (int flags)
 {
-#ifdef HAVE_DBUS
-  /* Check whether a D-Bus message has arrived.  */
-  if (xd_pending_messages () > 0)
-    return 1;
-#endif /* HAVE_DBUS */
-
   if (flags & READABLE_EVENTS_DO_TIMERS_NOW)
     timer_check (1);
 
@@ -6877,11 +6871,6 @@ get_input_pending (int *addr, int flags)
 void
 gobble_input (int expected)
 {
-#ifdef HAVE_DBUS
-  /* Read D-Bus messages.  */
-  xd_read_queued_messages ();
-#endif /* HAVE_DBUS */
-
 #ifdef SIGIO
   if (interrupt_input)
     {

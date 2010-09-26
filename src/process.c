@@ -294,9 +294,9 @@ static SELECT_TYPE non_keyboard_wait_mask;
 
 static SELECT_TYPE non_process_wait_mask;
 
-/* Mask for the gpm mouse input descriptor.  */
+/* Mask for selecting for write.  */
 
-static SELECT_TYPE gpm_wait_mask;
+static SELECT_TYPE write_mask;
 
 #ifdef NON_BLOCKING_CONNECT
 /* Mask of bits indicating the descriptors that we wait for connect to
@@ -316,11 +316,8 @@ static int num_pending_connects;
 /* The largest descriptor currently in use for a process object.  */
 static int max_process_desc;
 
-/* The largest descriptor currently in use for keyboard input.  */
-static int max_keyboard_desc;
-
-/* The largest descriptor currently in use for gpm mouse input.  */
-static int max_gpm_desc;
+/* The largest descriptor currently in use for input.  */
+static int max_input_desc;
 
 /* Indexed by descriptor, gives the process (if any) for that descriptor */
 Lisp_Object chan_process[MAXDESC];
@@ -365,6 +362,90 @@ static int pty_max_bytes;
 
 static char pty_name[24];
 #endif
+
+
+struct fd_callback_data
+{
+  fd_callback func;
+  void *data;
+#define FOR_READ  1
+#define FOR_WRITE 2
+  int condition; /* mask of the defines above.  */
+} fd_callback_info[MAXDESC];
+
+
+/* Add a file descriptor FD to be monitored for when read is possible.
+   When read is possible, call FUNC with argument DATA.  */
+
+void
+add_read_fd (int fd, fd_callback func, void *data)
+{
+  xassert (fd < MAXDESC);
+  add_keyboard_wait_descriptor (fd);
+
+  fd_callback_info[fd].func = func;
+  fd_callback_info[fd].data = data;
+  fd_callback_info[fd].condition |= FOR_READ;
+}
+
+/* Stop monitoring file descriptor FD for when read is possible.  */
+
+void
+delete_read_fd (int fd)
+{
+  xassert (fd < MAXDESC);
+  delete_keyboard_wait_descriptor (fd);
+
+  fd_callback_info[fd].condition &= ~FOR_READ;
+  if (fd_callback_info[fd].condition == 0)
+    {
+      fd_callback_info[fd].func = 0;
+      fd_callback_info[fd].data = 0;
+    }
+}
+
+/* Add a file descriptor FD to be monitored for when write is possible.
+   When write is possible, call FUNC with argument DATA.  */
+
+void
+add_write_fd (int fd, fd_callback func, void *data)
+{
+  xassert (fd < MAXDESC);
+  FD_SET (fd, &write_mask);
+  if (fd > max_input_desc)
+    max_input_desc = fd;
+
+  fd_callback_info[fd].func = func;
+  fd_callback_info[fd].data = data;
+  fd_callback_info[fd].condition |= FOR_WRITE;
+}
+
+/* Stop monitoring file descriptor FD for when write is possible.  */
+
+void
+delete_write_fd (int fd)
+{
+  int lim = max_input_desc;
+
+  xassert (fd < MAXDESC);
+  FD_CLR (fd, &write_mask);
+  fd_callback_info[fd].condition &= ~FOR_WRITE;
+  if (fd_callback_info[fd].condition == 0)
+    {
+      fd_callback_info[fd].func = 0;
+      fd_callback_info[fd].data = 0;
+
+      if (fd == max_input_desc)
+        for (fd = lim; fd >= 0; fd--)
+          if (FD_ISSET (fd, &input_wait_mask) || FD_ISSET (fd, &write_mask))
+            {
+              max_input_desc = fd;
+              break;
+            }
+      
+    }
+}
+
 
 /* Compute the Lisp form of the process status, p->status, from
    the numeric status that was returned by `wait'.  */
@@ -3620,6 +3701,7 @@ usage: (make-network-process &rest ARGS)  */)
       if (!FD_ISSET (inch, &connect_wait_mask))
 	{
 	  FD_SET (inch, &connect_wait_mask);
+	  FD_SET (inch, &write_mask);
 	  num_pending_connects++;
 	}
     }
@@ -4023,6 +4105,7 @@ deactivate_process (Lisp_Object proc)
       if (FD_ISSET (inchannel, &connect_wait_mask))
 	{
 	  FD_CLR (inchannel, &connect_wait_mask);
+	  FD_CLR (inchannel, &write_mask);
 	  if (--num_pending_connects < 0)
 	    abort ();
 	}
@@ -4401,10 +4484,8 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 {
   register int channel, nfds;
   SELECT_TYPE Available;
-#ifdef NON_BLOCKING_CONNECT
-  SELECT_TYPE Connecting;
-  int check_connect;
-#endif
+  SELECT_TYPE Writeok;
+  int check_write;
   int check_delay, no_avail;
   int xerrno;
   Lisp_Object proc;
@@ -4414,9 +4495,7 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
   int count = SPECPDL_INDEX ();
 
   FD_ZERO (&Available);
-#ifdef NON_BLOCKING_CONNECT
-  FD_ZERO (&Connecting);
-#endif
+  FD_ZERO (&Writeok);
 
   if (time_limit == 0 && microsecs == 0 && wait_proc && !NILP (Vinhibit_quit)
       && !(CONSP (wait_proc->status) && EQ (XCAR (wait_proc->status), Qexit)))
@@ -4552,19 +4631,16 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
       if (update_tick != process_tick)
 	{
 	  SELECT_TYPE Atemp;
-#ifdef NON_BLOCKING_CONNECT
 	  SELECT_TYPE Ctemp;
-#endif
 
           if (kbd_on_hold_p ())
             FD_ZERO (&Atemp);
           else
             Atemp = input_wait_mask;
-	  IF_NON_BLOCKING_CONNECT (Ctemp = connect_wait_mask);
+	  Ctemp = write_mask;
 
 	  EMACS_SET_SECS_USECS (timeout, 0, 0);
-	  if ((select (max (max (max_process_desc, max_keyboard_desc),
-			      max_gpm_desc) + 1,
+	  if ((select (max (max_process_desc, max_input_desc) + 1,
 		       &Atemp,
 #ifdef NON_BLOCKING_CONNECT
 		       (num_pending_connects > 0 ? &Ctemp : (SELECT_TYPE *)0),
@@ -4635,13 +4711,13 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 	    break;
 	  FD_SET (wait_proc->infd, &Available);
 	  check_delay = 0;
-	  IF_NON_BLOCKING_CONNECT (check_connect = 0);
+          check_write = 0;
 	}
       else if (!NILP (wait_for_cell))
 	{
 	  Available = non_process_wait_mask;
 	  check_delay = 0;
-	  IF_NON_BLOCKING_CONNECT (check_connect = 0);
+	  check_write = 0;
 	}
       else
 	{
@@ -4649,7 +4725,8 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 	    Available = non_keyboard_wait_mask;
 	  else
 	    Available = input_wait_mask;
-	  IF_NON_BLOCKING_CONNECT (check_connect = (num_pending_connects > 0));
+          Writeok = write_mask;
+          check_write = 1;
  	  check_delay = wait_channel >= 0 ? 0 : process_output_delay_count;
 	}
 
@@ -4674,10 +4751,6 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 	}
       else
 	{
-#ifdef NON_BLOCKING_CONNECT
-	  if (check_connect)
-	    Connecting = connect_wait_mask;
-#endif
 
 #ifdef ADAPTIVE_READ_BUFFERING
 	  /* Set the timeout for adaptive read buffering if any
@@ -4719,15 +4792,10 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 #else
 	  nfds = select
 #endif
-			(max (max (max_process_desc, max_keyboard_desc),
-			      max_gpm_desc) + 1,
-			 &Available,
-#ifdef NON_BLOCKING_CONNECT
-			 (check_connect ? &Connecting : (SELECT_TYPE *)0),
-#else
-			 (SELECT_TYPE *)0,
-#endif
-			 (SELECT_TYPE *)0, &timeout);
+            (max (max_process_desc, max_input_desc) + 1,
+             &Available,
+             (check_write ? &Writeok : (SELECT_TYPE *)0),
+             (SELECT_TYPE *)0, &timeout);
 	}
 
       xerrno = errno;
@@ -4767,7 +4835,7 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
       if (no_avail)
 	{
 	  FD_ZERO (&Available);
-	  IF_NON_BLOCKING_CONNECT (check_connect = 0);
+	  check_write = 0;
 	}
 
 #if 0 /* When polling is used, interrupt_input is 0,
@@ -4863,12 +4931,26 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
       if (no_avail || nfds == 0)
 	continue;
 
+      for (channel = 0; channel <= max_input_desc; ++channel)
+        {
+          struct fd_callback_data *d = &fd_callback_info[channel];
+          if (FD_ISSET (channel, &Available)
+              && d->func != 0
+              && (d->condition & FOR_READ) != 0)
+            d->func (channel, d->data, 1);
+          if (FD_ISSET (channel, &write_mask)
+              && d->func != 0
+              && (d->condition & FOR_WRITE) != 0)
+            d->func (channel, d->data, 0);
+          }
+
       /* Really FIRST_PROC_DESC should be 0 on Unix,
 	 but this is safer in the short run.  */
       for (channel = 0; channel <= max_process_desc; channel++)
 	{
 	  if (FD_ISSET (channel, &Available)
-	      && FD_ISSET (channel, &non_keyboard_wait_mask))
+	      && FD_ISSET (channel, &non_keyboard_wait_mask)
+              && !FD_ISSET (channel, &non_process_wait_mask))
 	    {
 	      int nread;
 
@@ -4973,7 +5055,7 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 		}
 	    }
 #ifdef NON_BLOCKING_CONNECT
-	  if (check_connect && FD_ISSET (channel, &Connecting)
+	  if (FD_ISSET (channel, &Writeok)
 	      && FD_ISSET (channel, &connect_wait_mask))
 	    {
 	      struct Lisp_Process *p;
@@ -6745,35 +6827,16 @@ DEFUN ("process-filter-multibyte-p", Fprocess_filter_multibyte_p,
 
 
 
-static int add_gpm_wait_descriptor_called_flag;
-
 void
 add_gpm_wait_descriptor (int desc)
 {
-  if (! add_gpm_wait_descriptor_called_flag)
-    FD_CLR (0, &input_wait_mask);
-  add_gpm_wait_descriptor_called_flag = 1;
-  FD_SET (desc, &input_wait_mask);
-  FD_SET (desc, &gpm_wait_mask);
-  if (desc > max_gpm_desc)
-    max_gpm_desc = desc;
+  add_keyboard_wait_descriptor (desc);
 }
 
 void
 delete_gpm_wait_descriptor (int desc)
 {
-  int fd;
-  int lim = max_gpm_desc;
-
-  FD_CLR (desc, &input_wait_mask);
-  FD_CLR (desc, &non_process_wait_mask);
-
-  if (desc == max_gpm_desc)
-    for (fd = 0; fd < lim; fd++)
-      if (FD_ISSET (fd, &input_wait_mask)
-	  && !FD_ISSET (fd, &non_keyboard_wait_mask)
-	  && !FD_ISSET (fd, &non_process_wait_mask))
-	max_gpm_desc = fd;
+  delete_keyboard_wait_descriptor (desc);
 }
 
 /* Return nonzero if *MASK has a bit set
@@ -6784,7 +6847,7 @@ keyboard_bit_set (fd_set *mask)
 {
   int fd;
 
-  for (fd = 0; fd <= max_keyboard_desc; fd++)
+  for (fd = 0; fd <= max_input_desc; fd++)
     if (FD_ISSET (fd, mask) && FD_ISSET (fd, &input_wait_mask)
 	&& !FD_ISSET (fd, &non_keyboard_wait_mask))
       return 1;
@@ -7023,12 +7086,10 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 void
 add_keyboard_wait_descriptor (int desc)
 {
-#ifdef subprocesses
   FD_SET (desc, &input_wait_mask);
   FD_SET (desc, &non_process_wait_mask);
-  if (desc > max_keyboard_desc)
-    max_keyboard_desc = desc;
-#endif
+  if (desc > max_input_desc)
+    max_input_desc = desc;
 }
 
 /* From now on, do not expect DESC to give keyboard input.  */
@@ -7036,20 +7097,16 @@ add_keyboard_wait_descriptor (int desc)
 void
 delete_keyboard_wait_descriptor (int desc)
 {
-#ifdef subprocesses
   int fd;
-  int lim = max_keyboard_desc;
+  int lim = max_input_desc;
 
   FD_CLR (desc, &input_wait_mask);
   FD_CLR (desc, &non_process_wait_mask);
 
-  if (desc == max_keyboard_desc)
+  if (desc == max_input_desc)
     for (fd = 0; fd < lim; fd++)
-      if (FD_ISSET (fd, &input_wait_mask)
-	  && !FD_ISSET (fd, &non_keyboard_wait_mask)
-	  && !FD_ISSET (fd, &gpm_wait_mask))
-	max_keyboard_desc = fd;
-#endif /* subprocesses */
+      if (FD_ISSET (fd, &input_wait_mask) || FD_ISSET (fd, &write_mask))
+        max_input_desc = fd;
 }
 
 /* Setup coding systems of PROCESS.  */
@@ -7306,7 +7363,9 @@ init_process (void)
   FD_ZERO (&input_wait_mask);
   FD_ZERO (&non_keyboard_wait_mask);
   FD_ZERO (&non_process_wait_mask);
+  FD_ZERO (&write_mask);
   max_process_desc = 0;
+  memset (fd_callback_info, 0, sizeof (fd_callback_info));
 
 #ifdef NON_BLOCKING_CONNECT
   FD_ZERO (&connect_wait_mask);
