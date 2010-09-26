@@ -1,5 +1,51 @@
 2010-09-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* nndoc.el (nndoc-request-list): Return success always.
+
+	* gnus-agent.el (gnus-agent-retrieve-headers): Don't propagate
+	`fetch-old' -- we only want to fetch the articles we've requested.  The
+	rest are in the agent, probably.
+	(gnus-agent-read-servers-validate): Change the level for the "Ignoring
+	disappeared server" to something low.  It's not important.
+
+	* nnimap.el (nnimap-get-whole-article): Remove the data that may have
+	arrived before the FETCH data.
+
+	* nnmh.el (nnmh-request-expire-articles): Don't try to fetch the expiry
+	target here, because we don't know the Gnus name of the group.
+
+	* nndraft.el (nndraft-request-expire-articles): Fetch the expiry target
+	for the correct group.
+
+	* gnus-ems.el (gnus-create-image): Ignore all image-creation errors.
+
+	* gnus.el (gnus): Give a final warning after startup.
+
+	* gnus-util.el (gnus-action-message-log): New variable.
+	(gnus-message): Use it.
+	(gnus-final-warning): New function.
+
+	* nnimap.el (nnimap-open-connection): Record the greeting.
+	(nnimap): Add greeting.
+
+2010-09-26  Julien Danjou  <julien@danjou.info>
+
+	* gnus-html.el (gnus-html-show-images): Fix gnus-html-display-image
+	arguments.
+	(gnus-html-wash-images): Fix spec computing to include start/end.
+
+	* gnus-art.el (gnus-article-treat-body-boundary): Fix length computing.
+
+2010-09-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-request-expire-articles): Compress ranges before
+	deletion.
+	(nnimap-retrieve-headers): Don't select the group, because that's
+	already done by nnimap-possibly-change-group.
+
+	* gnus-picon.el (gnus-picon-inhibit-top-level-domains): New variable.
+	(gnus-picon-transform-address): Use it.
+
 	* mail-source.el (mail-source-value): Revert previous patch.
 
 	* nnimap.el (nnimap-credentials): Allow inhibiting the password query
