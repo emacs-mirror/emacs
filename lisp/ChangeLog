@@ -1,5 +1,7 @@
 2010-09-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* net/gnutls.el (starttls-negotiate): Avoid the cl.el decf function.
+
 	* net/netrc.el (netrc-store-data): New function.
 
 2010-09-26  Teodor Zlatanov  <tzz@lifelogs.com>

@@ -82,7 +82,7 @@ CREDENTIALS-FILE is a filename with meaning dependent on CREDENTIALS."
           (n 25000))
       (while (and (not (gnutls-error-fatalp ret))
                   (> n 0))
-        (decf n)
+        (setq n (1- n))
         (gnutls-message-maybe
          (setq ret (gnutls-handshake proc))
          "handshake: %s")
