@@ -1,4 +1,12 @@
+2010-09-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (syms_of_dbusbind): Set $DBUS_FATAL_WARNINGS to "0".
+	(Bug#7113)
+
 2010-09-27  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xgselect.c (xg_select): Clear file descriptors not set from
+	rfds and wfds.
 
 	* process.c (wait_reading_process_output): Add missing FD_CLR
 	for write_mask (must mirror connect_wait_mask).
