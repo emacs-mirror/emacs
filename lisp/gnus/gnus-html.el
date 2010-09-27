@@ -286,7 +286,7 @@ Use ALT-TEXT for the image string."
 	  (setq url (match-string 1 parameters))
           (gnus-message 8 "gnus-html-wash-tags: fetching link URL %s" url)
 	  (gnus-article-add-button start end
-				   'browse-url url
+				   'browse-url (mm-url-decode-entities-string url)
 				   url)
 	  (let ((overlay (gnus-make-overlay start end)))
 	    (gnus-overlay-put overlay 'evaporate t)

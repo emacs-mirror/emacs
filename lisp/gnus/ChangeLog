@@ -2,9 +2,19 @@
 
 	* nnmail.el (nnmail-fancy-expiry-targets): Fix typo in docstring.
 
+2010-09-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-request-accept-article): Message the error on
+	error.
+
 2010-09-27  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-mime-delete-part): Fix Lisp type of byte(s).
+
+2010-09-26  Florian Ragwitz  <rafl@debian.org>
+
+	* gnus-html.el (gnus-html-wash-tags): Decode URL entities to avoid
+	handing broken links to browse-url.
 
 2010-09-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 

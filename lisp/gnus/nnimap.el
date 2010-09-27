@@ -772,7 +772,10 @@ some servers.")
 				 "\n"
 			       "\r\n"))
 	(let ((result (nnimap-get-response sequence)))
-	  (when result
+	  (if (not (car result))
+	      (progn
+		(message "%s" (nnheader-get-report-string 'nnimap))
+		nil)
 	    (cons group
 		  (nnimap-find-article-by-message-id group message-id))))))))
 
