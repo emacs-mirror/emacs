@@ -39,7 +39,6 @@
 (defconst pi float-pi "Obsolete since Emacs-23.3.  Use `float-pi' instead.")
 
 (defconst float-e (exp 1) "The value of e (2.7182818...).")
-(defvar e float-e "Obsolete since Emacs-23.3.  Use `float-e' instead.")
 
 (defconst degrees-to-radians (/ float-pi 180.0)
   "Degrees to radian conversion constant.")
@@ -49,10 +48,10 @@
 ;; these expand to a single multiply by a float when byte compiled
 
 (defmacro degrees-to-radians (x)
-  "Convert ARG from degrees to radians."
+  "Convert X from degrees to radians."
   (list '* degrees-to-radians x))
 (defmacro radians-to-degrees (x)
-  "Convert ARG from radians to degrees."
+  "Convert X from radians to degrees."
   (list '* radians-to-degrees x))
 
 (provide 'lisp-float-type)

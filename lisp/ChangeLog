@@ -1,3 +1,7 @@
+2010-09-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/float-sup.el (e): Remove.
+
 2010-09-27  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* net/gnutls.el (gnutls, gnutls-log-level): Add group and custom
