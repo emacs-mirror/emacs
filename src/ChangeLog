@@ -1,3 +1,15 @@
+2010-09-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (dbus_fd_cb, xd_get_dispatch_status)
+	(xd_pending_messages): Functions removed.
+	(xd_read_queued_messages): Add parameters fd, *data, for_read in
+	order to be compatible with add_read_fd.  Determine bus from data,
+	and call xd_read_message just for this bus.
+	(xd_add_watch): Use xd_read_queued_messages as callback function.
+	Add data.
+
+	* lisp.h (xd_pending_messages, xd_read_queued_messages): Remove.
+
 2010-09-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnutls.c (gnutls_log_function): Added more debugging.
