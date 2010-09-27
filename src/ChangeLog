@@ -1,6 +1,7 @@
 2010-09-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnutls.c (gnutls_log_function): Added more debugging.
+	(emacs_gnutls_read): Don't infloop while reading.
 
 2010-09-27  Kenichi Handa  <handa@m17n.org>
 

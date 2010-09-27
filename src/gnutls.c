@@ -67,12 +67,11 @@ emacs_gnutls_read (int fildes, gnutls_session_t state, char *buf,
 {
   register int rtnval;
 
-  do {
-    rtnval = gnutls_read (state, buf, nbyte);
-  } while (rtnval == GNUTLS_E_INTERRUPTED || rtnval == GNUTLS_E_AGAIN);
-  fsync (STDOUT_FILENO);
-
-  return (rtnval);
+  rtnval = gnutls_read (state, buf, nbyte);
+  if (rtnval >= 0)
+    return rtnval;
+  else
+    return -1;
 }
 
 /* convert an integer error to a Lisp_Object; it will be either a
@@ -268,8 +267,8 @@ KEYFILE and optionally CALLBACK.  */)
 
   state = XPROCESS (proc)->gnutls_state;
 
-  gnutls_global_set_log_level(4);
-  gnutls_global_set_log_function(gnutls_log_function);
+  //gnutls_global_set_log_level(4);
+  //gnutls_global_set_log_function(gnutls_log_function);
   
   /* always initialize globals.  */
   global_init = gnutls_emacs_global_init ();
