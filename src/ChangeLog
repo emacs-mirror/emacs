@@ -1,3 +1,8 @@
+2010-09-27  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* process.c (wait_reading_process_output): Add missing FD_CLR
+	for write_mask (must mirror connect_wait_mask).
+
 2010-09-27  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnutls.c (gnutls_log_function): Show level and "gnutls.c"

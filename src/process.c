@@ -5068,6 +5068,7 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 	      struct Lisp_Process *p;
 
 	      FD_CLR (channel, &connect_wait_mask);
+              FD_CLR (channel, &write_mask);
 	      if (--num_pending_connects < 0)
 		abort ();
 
