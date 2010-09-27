@@ -1,6 +1,6 @@
 2010-09-27  Michael Albinus  <michael.albinus@gmx.de>
 
-	* dbusbind.c (syms_of_dbusbind): Unset $DBUS_FATAL_WARNINGS.
+	* dbusbind.c (syms_of_dbusbind): Set $DBUS_FATAL_WARNINGS to "0".
 	(Bug#7113)
 
 2010-09-26  Jan Djärv  <jan.h.d@swipnet.se>

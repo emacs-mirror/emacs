@@ -2130,10 +2130,12 @@ message arrives.  */);
     doc: /* If non-nil, debug messages of D-Bus bindings are raised.  */);
 #ifdef DBUS_DEBUG
   Vdbus_debug = Qt;
+  /* We can also set environment DBUS_VERBOSE=1 in order to see more
+     traces.  */
 #else
   Vdbus_debug = Qnil;
   /* We do not want to abort.  */
-  unsetenv ("DBUS_FATAL_WARNINGS");
+  setenv ("DBUS_FATAL_WARNINGS", 0, 1);
 #endif
 
   Fprovide (intern_c_string ("dbusbind"), Qnil);
