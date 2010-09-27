@@ -16219,7 +16219,7 @@ dump_glyph (row, glyph, area)
       if (glyph->u.cmp.automatic)
 	fprintf (stderr,
 		 "[%d-%d]",
-		 glyph->u.cmp.from, glyph->u.cmp.to);
+		 glyph->slice.cmp.from, glyph->slice.cmp.to);
       fprintf (stderr, " . %4d %1.1d%1.1d\n",
 	       glyph->face_id,
 	       glyph->left_box_line_p,
@@ -20605,8 +20605,8 @@ fill_gstring_glyph_string (struct glyph_string *s, int face_id,
   glyph = s->row->glyphs[s->area] + start;
   last = s->row->glyphs[s->area] + end;
   s->cmp_id = glyph->u.cmp.id;
-  s->cmp_from = glyph->u.cmp.from;
-  s->cmp_to = glyph->u.cmp.to + 1;
+  s->cmp_from = glyph->slice.cmp.from;
+  s->cmp_to = glyph->slice.cmp.to + 1;
   s->face = FACE_FROM_ID (s->f, face_id);
   lgstring = composition_gstring_from_id (s->cmp_id);
   s->font = XFONT_OBJECT (LGSTRING_FONT (lgstring));
@@ -20614,8 +20614,8 @@ fill_gstring_glyph_string (struct glyph_string *s, int face_id,
   while (glyph < last
 	 && glyph->u.cmp.automatic
 	 && glyph->u.cmp.id == s->cmp_id
-	 && s->cmp_to == glyph->u.cmp.from)
-    s->cmp_to = (glyph++)->u.cmp.to + 1;
+	 && s->cmp_to == glyph->slice.cmp.from)
+    s->cmp_to = (glyph++)->slice.cmp.to + 1;
 
   for (i = s->cmp_from; i < s->cmp_to; i++)
     {
@@ -20705,7 +20705,7 @@ fill_image_glyph_string (struct glyph_string *s)
   xassert (s->first_glyph->type == IMAGE_GLYPH);
   s->img = IMAGE_FROM_ID (s->f, s->first_glyph->u.img_id);
   xassert (s->img);
-  s->slice = s->first_glyph->slice;
+  s->slice = s->first_glyph->slice.img;
   s->face = FACE_FROM_ID (s->f, s->first_glyph->face_id);
   s->font = s->face->font;
   s->width = s->first_glyph->pixel_width;
@@ -20811,8 +20811,8 @@ x_get_glyph_overhangs (struct glyph *glyph, struct frame *f, int *left, int *rig
 	  Lisp_Object gstring = composition_gstring_from_id (glyph->u.cmp.id);
 	  struct font_metrics metrics;
 
-	  composition_gstring_width (gstring, glyph->u.cmp.from,
-				     glyph->u.cmp.to + 1, &metrics);
+	  composition_gstring_width (gstring, glyph->slice.cmp.from,
+				     glyph->slice.cmp.to + 1, &metrics);
 	  if (metrics.rbearing > metrics.width)
 	    *right = metrics.rbearing - metrics.width;
 	  if (metrics.lbearing < 0)
@@ -21517,7 +21517,7 @@ append_glyph (struct it *it)
       glyph->glyph_not_available_p = it->glyph_not_available_p;
       glyph->face_id = it->face_id;
       glyph->u.ch = it->char_to_display;
-      glyph->slice = null_glyph_slice;
+      glyph->slice.img = null_glyph_slice;
       glyph->font_type = FONT_TYPE_UNKNOWN;
       if (it->bidi_p)
 	{
@@ -21574,13 +21574,14 @@ append_composite_glyph (struct it *it)
 	{
 	  glyph->u.cmp.automatic = 0;
 	  glyph->u.cmp.id = it->cmp_it.id;
+	  glyph->slice.cmp.from = glyph->slice.cmp.to = 0;
 	}
       else
 	{
 	  glyph->u.cmp.automatic = 1;
 	  glyph->u.cmp.id = it->cmp_it.id;
-	  glyph->u.cmp.from = it->cmp_it.from;
-	  glyph->u.cmp.to = it->cmp_it.to - 1;
+	  glyph->slice.cmp.from = it->cmp_it.from;
+	  glyph->slice.cmp.to = it->cmp_it.to - 1;
 	}
       glyph->avoid_cursor_p = it->avoid_cursor_p;
       glyph->multibyte_p = it->multibyte_p;
@@ -21591,7 +21592,6 @@ append_composite_glyph (struct it *it)
       glyph->padding_p = 0;
       glyph->glyph_not_available_p = 0;
       glyph->face_id = it->face_id;
-      glyph->slice = null_glyph_slice;
       glyph->font_type = FONT_TYPE_UNKNOWN;
       if (it->bidi_p)
 	{
@@ -21770,7 +21770,7 @@ produce_image_glyph (struct it *it)
 	  glyph->glyph_not_available_p = 0;
 	  glyph->face_id = it->face_id;
 	  glyph->u.img_id = img->id;
-	  glyph->slice = slice;
+	  glyph->slice.img = slice;
 	  glyph->font_type = FONT_TYPE_UNKNOWN;
 	  if (it->bidi_p)
 	    {
@@ -21831,7 +21831,7 @@ append_stretch_glyph (struct it *it, Lisp_Object object,
       glyph->face_id = it->face_id;
       glyph->u.stretch.ascent = ascent;
       glyph->u.stretch.height = height;
-      glyph->slice = null_glyph_slice;
+      glyph->slice.img = null_glyph_slice;
       glyph->font_type = FONT_TYPE_UNKNOWN;
       if (it->bidi_p)
 	{
@@ -24519,8 +24519,8 @@ note_mouse_highlight (struct frame *f, int x, int y)
 	      if ((image_map = Fplist_get (XCDR (img->spec), QCmap),
 		   !NILP (image_map))
 		  && (hotspot = find_hot_spot (image_map,
-					       glyph->slice.x + dx,
-					       glyph->slice.y + dy),
+					       glyph->slice.img.x + dx,
+					       glyph->slice.img.y + dy),
 		      CONSP (hotspot))
 		  && (hotspot = XCDR (hotspot), CONSP (hotspot)))
 		{

@@ -5460,8 +5460,8 @@ buffer_posn_from_coords (struct window *w, int *x, int *y, struct display_pos *p
 	  if (img)
 	    {
 	      *dy -= row->ascent - glyph->ascent;
-	      *dx += glyph->slice.x;
-	      *dy += glyph->slice.y;
+	      *dx += glyph->slice.img.x;
+	      *dy += glyph->slice.img.y;
 	      /* Image slices positions are still relative to the entire image */
 	      *width = img->width;
 	      *height = img->height;
@@ -5627,8 +5627,8 @@ marginal_area_string (struct window *w, enum window_part part,
 	      if (img != NULL)
 		*object = img->spec;
 	      y0 -= row->ascent - glyph->ascent;
-	      x0 += glyph->slice.x;
-	      y0 += glyph->slice.y;
+	      x0 += glyph->slice.img.x;
+	      y0 += glyph->slice.img.y;
 	    }
 #endif
 	}

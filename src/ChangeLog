@@ -1,3 +1,29 @@
+2010-09-27  Kenichi Handa  <handa@m17n.org>
+
+	These changes are to remove restriction on the number of glyphs in
+	one composition.
+
+	* dispextern.h (struct glyph): Change the member "slice" to union.
+	Remove u.cmp.from and u.cmp.to.  Give more bits to u.cmp.id.
+	(GLYPH_SLICE_EQUAL_P): Adjusted for the above change.
+
+	* dispnew.c (buffer_posn_from_coords): Use glyph->slice.img
+	instead of glyph->slice.
+	(marginal_area_string): Likewise.
+
+	* term.c (encode_terminal_code): Use glyph->slice.cmp instead of
+	glyph->u.cmp.
+	(append_composite_glyph): Likewise.
+
+	* xdisp.c (dump_glyph): Use glyph->slice.cmp instead of
+	glyph->u.cmp.
+	(fill_gstring_glyph_string, x_get_glyph_overhangs)
+	(append_composite_glyph): Likewise.
+	(fill_image_glyph_string): Use glyph->slice.img instead of
+	glyph->slice.
+	(append_glyph, produce_image_glyph, append_stretch_glyph)
+	(note_mouse_highlight): Likewise.
+
 2010-09-26  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* process.c (add_keyboard_wait_descriptor)
