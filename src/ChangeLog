@@ -1,3 +1,18 @@
+2010-09-27  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnutls.c (gnutls_log_function): Show level and "gnutls.c"
+	prefix.
+	(Fgnutls_boot): Use changed process members.  Use log level with a
+	function parameter to set it.  Bring back Emacs-level debugging
+	messages at log level 1 and 2.
+
+	* process.c (make_process): Initialize gnutls_log_level.
+
+	* process.h: Add gnutls_log_level and rename x509_cred and
+	anon_cred to have the gnutls_ prefix for consistency.
+
+	* gnutls.h (GNUTLS_LOG): Add convenience macro.
+
 2010-09-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32.c (g_b_init_get_sid_identifier_authority)

@@ -32,6 +32,16 @@
 
 ;;; Code:
 
+(defgroup gnutls nil
+  "Emacs interface to the GnuTLS library."
+  :prefix "gnutls-"
+  :group 'net-utils)
+
+(defcustom gnutls-log-level 2
+  "Logging level to be used by `starttls-negotiate' and GnuTLS."
+  :type 'integer
+  :group 'gnutls)
+
 (defun open-ssl-stream (name buffer host service)
   "Open a SSL connection for a service to a host.
 Returns a subprocess-object to represent the connection.
@@ -72,7 +82,9 @@ CREDENTIALS-FILE is a filename with meaning dependent on CREDENTIALS."
          ret)
 
     (gnutls-message-maybe
-     (setq ret (gnutls-boot proc priority-string credentials credentials-file))     
+     (setq ret (gnutls-boot proc priority-string
+                            credentials credentials-file
+                            nil nil gnutls-log-level))
      "boot: %s")
 
     (when (gnutls-errorp ret)

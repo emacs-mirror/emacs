@@ -46,6 +46,8 @@ typedef enum
 
 #define GNUTLS_PROCESS_USABLE(proc) (GNUTLS_INITSTAGE(proc) >= GNUTLS_STAGE_READY)
 
+#define GNUTLS_LOG(level, max, string) if (level <= max) { gnutls_log_function (level, "(Emacs) " string); }
+
 int
 emacs_gnutls_write (int fildes, gnutls_session_t state, char *buf,
                     unsigned int nbyte);

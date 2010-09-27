@@ -671,6 +671,7 @@ make_process (Lisp_Object name)
 
 #ifdef HAVE_GNUTLS
   p->gnutls_initstage = GNUTLS_STAGE_EMPTY;
+  p->gnutls_log_level = 0;
 #endif
 
   /* If name is already in use, modify it until it is unused.  */

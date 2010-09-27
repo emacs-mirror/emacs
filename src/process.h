@@ -133,8 +133,9 @@ struct Lisp_Process
 #ifdef HAVE_GNUTLS
     gnutls_initstage_t gnutls_initstage;
     gnutls_session_t gnutls_state;
-    gnutls_certificate_client_credentials x509_cred;
-    gnutls_anon_client_credentials_t anon_cred;
+    gnutls_certificate_client_credentials gnutls_x509_cred;
+    gnutls_anon_client_credentials_t gnutls_anon_cred;
+    int gnutls_log_level;
 #endif
 };
 
