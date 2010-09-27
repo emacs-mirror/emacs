@@ -1,5 +1,64 @@
 2010-09-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-sum.el (gnus-summary-read-group-1): Set gnus-newsgroup-highest.
+	(gnus-summary-insert-new-articles): Use gnus-newsgroup-highest to get
+	new articles.
+
+	* nnimap.el (nnimap-request-article): Don't partial-fetch single-part
+	parts.
+	(nnimap-request-article): Work with the t setting, too.
+
+	* gnus-sum.el (gnus-summary-exit): Kill the article buffer later, so
+	that you don't get flashes of other buffers.
+	(gnus-summary-show-complete-article): Intern before setting.
+
+2010-09-27  David Engster  <dengste@eml.cc>
+
+	* nnmairix.el: (nnmairix-replace-group-and-numbers): Deal with NOV as
+	well as HEADERS.
+	(nnmairix-retrieve-headers): Provide new argument for the above.
+
+2010-09-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-summary-move-article): Don't alter
+	gnus-newsgroup-active.  This makes `/ N' work after copying to the same
+	group.
+
+	* nnimap.el (nnimap-update-info): Don't destructively alter active.
+
+	* message.el (message-cite-prefix-regexp): Revert my last edit.
+
+	* gnus-sum.el (gnus-summary-show-complete-article): Bind the server
+	variable instead of the Gnus variable.
+
+	* nnimap.el (nnimap-find-wanted-parts-1): Use it.
+
+	* gnus-art.el (gnus-fetch-partial-articles): Moved back to nnimap
+	again.
+
+	* nnimap.el (nnimap-request-accept-article): Remove the "." at the end,
+	since some servers don't like it.
+	(nnimap-open-connection): Forget credentials if the server says the
+	password was wrong.
+	(nnimap-parse-line): Protect against invalid data.
+
+	* gnus-sum.el (gnus-summary-move-article): Add comment.
+	(gnus-summary-insert-new-articles): Copy the old-high watermark so that
+	nothing alters it while scanning for new messages.
+
+	* nnimap.el (nnimap-request-accept-article): Send a "." at the end,
+	which may or may not help.
+	(nnimap-open-connection): If we're doing a stream connection, and then
+	discover we're on a STARTTLS-capable server, then open a STARTTLS
+	connection instead.
+
+2010-09-27  Florian Ragwitz  <rafl@debian.org>  (tiny change)
+
+	* sieve-manage.el (sieve-manage-default-stream): Make default stream
+	customizable.
+
+2010-09-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
 	* nnimap.el (utf7): Required.
 
 	* message.el (message-cite-prefix-regexp): Remove "}" from citation
@@ -18,7 +77,7 @@
 
 	* gnus-art.el (gnus-mime-delete-part): Fix Lisp type of byte(s).
 
-2010-09-26  Florian Ragwitz  <rafl@debian.org>
+2010-09-26  Florian Ragwitz  <rafl@debian.org>  (tiny change)
 
 	* gnus-html.el (gnus-html-wash-tags): Decode URL entities to avoid
 	handing broken links to browse-url.

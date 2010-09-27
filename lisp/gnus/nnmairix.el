@@ -562,9 +562,8 @@ Other back ends might or might not work.")
 		 "retrieve-headers" articles folder nnmairix-backend-server fetch-old))
 	    (nnmairix-call-backend
 	     "retrieve-headers" articles folder nnmairix-backend-server fetch-old)))
-    (when (eq rval 'nov)
-      (nnmairix-replace-group-and-numbers articles folder group numcorr)
-      rval)))
+    (nnmairix-replace-group-and-numbers articles folder group numcorr rval)
+    rval))
 
 (deffoo nnmairix-request-article (article &optional group server to-buffer)
   (when server (nnmairix-open-server server))
@@ -1413,43 +1412,55 @@ nnmairix with nnml backends."
 	(setq cur lastplusone))
       (setq lastplusone (1+ cur)))))
 
-(defun nnmairix-replace-group-and-numbers (articles backendgroup mairixgroup numc)
+(defun nnmairix-replace-group-and-numbers (articles backendgroup mairixgroup numc type)
   "Replace folder names in Xref header and correct article numbers.
 Do this for all ARTICLES on BACKENDGROUP.  Replace using
-MAIRIXGROUP.  NUMC contains values for article number correction."
-  (let ((buf (get-buffer-create " *nnmairix buffer*"))
-	(corr (not (zerop numc)))
-	(name (buffer-name nntp-server-buffer))
-	header cur xref)
-    (with-current-buffer buf
-      (erase-buffer)
-      (set-buffer nntp-server-buffer)
-      (goto-char (point-min))
-      (nnheader-message 7 "nnmairix: Rewriting headers...")
-      (mapc
-       (lambda (article)
-         (when (or (looking-at (number-to-string article))
-                   (nnheader-find-nov-line article))
-           (setq cur (nnheader-parse-nov))
-           (when corr
-             (setq article (+ (mail-header-number cur) numc))
-             (mail-header-set-number cur article))
-           (setq xref (mail-header-xref cur))
-           (when (and (stringp xref)
-                      (string-match (format "[ \t]%s:[0-9]+" backendgroup) xref))
-             (setq xref (replace-match (format " %s:%d" mairixgroup article) t nil xref))
-             (mail-header-set-xref cur xref))
-           (set-buffer buf)
-           (nnheader-insert-nov cur)
-           (set-buffer nntp-server-buffer)
-           (when (not (eobp))
-             (forward-line 1))))
-       articles)
-      (nnheader-message 7 "nnmairix: Rewriting headers... done")
-      (kill-buffer nntp-server-buffer)
-      (set-buffer buf)
-      (rename-buffer name)
-      (setq nntp-server-buffer buf))))
+MAIRIXGROUP.  NUMC contains values for article number correction.
+TYPE is either 'nov or 'headers."
+  (nnheader-message 7 "nnmairix: Rewriting headers...")
+  (cond
+   ((eq type 'nov)
+    (let ((buf (get-buffer-create " *nnmairix buffer*"))
+	  (corr (not (zerop numc)))
+	  (name (buffer-name nntp-server-buffer))
+	  header cur xref)
+      (with-current-buffer buf
+	(erase-buffer)
+	(set-buffer nntp-server-buffer)
+	(goto-char (point-min))
+	(mapc
+	 (lambda (article)
+	   (when (or (looking-at (number-to-string article))
+		     (nnheader-find-nov-line article))
+	     (setq cur (nnheader-parse-nov))
+	     (when corr
+	       (setq article (+ (mail-header-number cur) numc))
+	       (mail-header-set-number cur article))
+	     (setq xref (mail-header-xref cur))
+	     (when (and (stringp xref)
+			(string-match (format "[ \t]%s:[0-9]+" backendgroup) xref))
+	       (setq xref (replace-match (format " %s:%d" mairixgroup article) t nil xref))
+	       (mail-header-set-xref cur xref))
+	     (set-buffer buf)
+	     (nnheader-insert-nov cur)
+	     (set-buffer nntp-server-buffer)
+	     (when (not (eobp))
+	       (forward-line 1))))
+	 articles)
+	(kill-buffer nntp-server-buffer)
+	(set-buffer buf)
+	(rename-buffer name)
+	(setq nntp-server-buffer buf))))
+   ((and (eq type 'headers)
+	 (not (zerop numc)))
+    (with-current-buffer nntp-server-buffer
+      (save-excursion
+	(goto-char (point-min))
+	(while (re-search-forward "^[23][0-9]+ \\([0-9]+\\)" nil t)
+	  (replace-match (number-to-string
+			  (+ (string-to-number (match-string 1)) numc))
+			 t t nil 1))))))
+  (nnheader-message 7 "nnmairix: Rewriting headers... done"))
 
 (defun nnmairix-backend-to-server (server)
   "Return nnmairix server most probably responsible for back end SERVER.

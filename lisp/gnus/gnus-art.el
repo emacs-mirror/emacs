@@ -257,22 +257,6 @@ This can also be a list of the above values."
 		 (regexp :value ".*"))
   :group 'gnus-article-signature)
 
-(defcustom gnus-fetch-partial-articles nil
-  "If non-nil, Gnus will fetch partial articles.
-If t, nnimap will fetch only the first part.  If a string, it
-will fetch all parts that have types that match that string.  A
-likely value would be \"text/\" to automatically fetch all
-textual parts.
-
-Currently only the nnimap backend actually supports partial
-article fetching.  If the backend doesn't support it, it has no
-effect."
-  :version "24.1"
-  :type '(choice (const nil)
-		 (const t)
-		 (regexp))
-  :group 'gnus-article)
-
 (defcustom gnus-hidden-properties '(invisible t intangible t)
   "Property list to use for hiding text."
   :type 'sexp

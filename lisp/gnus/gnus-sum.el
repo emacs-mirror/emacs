@@ -1431,6 +1431,7 @@ the type of the variable (string, integer, character, etc).")
 (defvar gnus-newsgroup-last-directory nil)
 (defvar gnus-newsgroup-auto-expire nil)
 (defvar gnus-newsgroup-active nil)
+(defvar gnus-newsgroup-highest nil)
 
 (defvar gnus-newsgroup-data nil)
 (defvar gnus-newsgroup-data-reverse nil)
@@ -1582,6 +1583,7 @@ This list will always be a subset of gnus-newsgroup-undownloaded.")
     (gnus-summary-mark-below . global)
     (gnus-orphan-score . global)
     gnus-newsgroup-active gnus-scores-exclude-files
+    gnus-newsgroup-highest
     gnus-newsgroup-history gnus-newsgroup-ancient
     gnus-newsgroup-sparse gnus-newsgroup-process-stack
     (gnus-newsgroup-adaptive . gnus-use-adaptive-scoring)
@@ -3957,6 +3959,7 @@ If NO-DISPLAY, don't generate a summary buffer."
       (setq gnus-newsgroup-active
 	    (gnus-copy-sequence
 	     (gnus-active gnus-newsgroup-name)))
+      (setq gnus-newsgroup-highest (cdr gnus-newsgroup-active))
       ;; You can change the summary buffer in some way with this hook.
       (gnus-run-hooks 'gnus-select-group-hook)
       (when (memq 'summary (gnus-update-format-specifications
@@ -7090,15 +7093,6 @@ If FORCE (the prefix), also save the .newsrc file(s)."
       (when gnus-use-scoring
 	(gnus-score-save)))
     (gnus-run-hooks 'gnus-summary-prepare-exit-hook)
-    ;; If we have several article buffers, we kill them at exit.
-    (unless gnus-single-article-buffer
-      (when (gnus-buffer-live-p gnus-article-buffer)
-	(with-current-buffer gnus-article-buffer
-	  ;; Don't kill sticky article buffers
-	  (unless (eq major-mode 'gnus-sticky-article-mode)
-	    (gnus-kill-buffer gnus-article-buffer)
-	    (setq gnus-article-current nil))))
-      (gnus-kill-buffer gnus-original-article-buffer))
     (when gnus-use-cache
       (gnus-cache-possibly-remove-articles)
       (gnus-cache-save-buffers))
@@ -7147,6 +7141,17 @@ If FORCE (the prefix), also save the .newsrc file(s)."
 	;; Return to group mode buffer.
 	(when (eq mode 'gnus-summary-mode)
 	  (gnus-kill-buffer buf)))
+
+      ;; If we have several article buffers, we kill them at exit.
+      (unless gnus-single-article-buffer
+	(when (gnus-buffer-live-p gnus-article-buffer)
+	  (with-current-buffer gnus-article-buffer
+	    ;; Don't kill sticky article buffers
+	    (unless (eq major-mode 'gnus-sticky-article-mode)
+	      (gnus-kill-buffer gnus-article-buffer)
+	      (setq gnus-article-current nil))))
+	(gnus-kill-buffer gnus-original-article-buffer))
+
       (setq gnus-current-select-method gnus-select-method)
       (set-buffer gnus-group-buffer)
       (if quit-config
@@ -9360,9 +9365,19 @@ article currently."
   (let ((gnus-keep-backlog nil)
 	(gnus-use-cache nil)
 	(gnus-agent nil)
-	(gnus-fetch-partial-articles nil))
-    (gnus-flush-original-article-buffer)
-    (gnus-summary-show-article)))
+	(variable (intern
+		   (format "%s-fetch-partial-articles"
+			   (car (gnus-find-method-for-group
+				 gnus-newsgroup-name)))
+		   obarray))
+	old-val)
+    (unwind-protect
+	(progn
+	  (setq old-val (symbol-value variable))
+	  (set variable nil)
+	  (gnus-flush-original-article-buffer)
+	  (gnus-summary-show-article))
+      (set variable old-val))))
 
 (defun gnus-summary-show-article (&optional arg)
   "Force redisplaying of the current article.
@@ -9797,8 +9812,9 @@ ACTION can be either `move' (the default), `crosspost' or `copy'."
 			   (not (memq article gnus-newsgroup-unreads)))
 		  ;; Mark this article as read in this group.
 		  (push (cons to-article gnus-read-mark) gnus-newsgroup-reads)
+		  ;; Increase the active status of this group.
 		  (setcdr (gnus-active to-group) to-article)
-		  (setcdr gnus-newsgroup-active to-article))
+ 		  (setcdr gnus-newsgroup-active to-article))
 
 		(while marks
 		  (when (eq (gnus-article-mark-to-type (cdar marks)) 'list)
@@ -12624,13 +12640,15 @@ If ALL is a number, fetch this number of articles."
   (interactive)
   (prog1
       (let ((old (sort (mapcar 'car gnus-newsgroup-data) '<))
-	    (old-active gnus-newsgroup-active)
+	    (old-high gnus-newsgroup-highest)
 	    (nnmail-fetched-sources (list t))
 	    i new)
 	(setq gnus-newsgroup-active
-	      (gnus-activate-group gnus-newsgroup-name 'scan))
-	(setq i (cdr gnus-newsgroup-active))
-	(while (> i (cdr old-active))
+	      (gnus-copy-sequence
+	       (gnus-activate-group gnus-newsgroup-name 'scan)))
+	(setq i (cdr gnus-newsgroup-active)
+	      gnus-newsgroup-highest i)
+	(while (> i old-high)
 	  (push i new)
 	  (decf i))
 	(if (not new)
