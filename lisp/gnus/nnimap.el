@@ -37,6 +37,7 @@
 (require 'gnus)
 (require 'nnoo)
 (require 'netrc)
+(require 'utf7)
 (require 'parse-time)
 
 (nnoo-declare nnimap)
