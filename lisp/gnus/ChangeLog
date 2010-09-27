@@ -1,3 +1,7 @@
+2010-09-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* nnmail.el (nnmail-fancy-expiry-targets): Fix typo in docstring.
+
 2010-09-27  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-mime-delete-part): Fix Lisp type of byte(s).

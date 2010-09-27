@@ -225,7 +225,7 @@ Example:
 
 In this case, articles containing the string \"boss\" in the To or the
 From header will be expired to the group \"nnfolder:Work\";
-articles containing the sting \"IMPORTANT\" in the Subject header will
+articles containing the string \"IMPORTANT\" in the Subject header will
 be expired to the group \"nnfolder:IMPORTANT.YYYY.MMM\"; and
 everything else will be expired to \"nnfolder:Archive-YYYY\"."
   :version "22.1"
