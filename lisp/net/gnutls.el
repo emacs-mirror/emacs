@@ -80,13 +80,11 @@ CREDENTIALS-FILE is a filename with meaning dependent on CREDENTIALS."
 
     (let ((ret 'gnutls-e-again)
           (n 25000))
-      (while (and (not (gnutls-error-fatalp ret))
+      (while (and (not (eq ret t))
+		  (not (gnutls-error-fatalp ret))
                   (> n 0))
         (setq n (1- n))
-        (gnutls-message-maybe
-         (setq ret (gnutls-handshake proc))
-         "handshake: %s")
-        ;(debug "handshake ret" ret (gnutls-error-string ret)))
+	(setq ret (gnutls-handshake proc))
         )
       (if (gnutls-errorp ret)
           (progn

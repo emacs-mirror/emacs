@@ -1,3 +1,8 @@
+2010-09-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/gnutls.el (starttls-negotiate): Stop looping when we get a t
+	back.
+
 2010-09-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/pcase.el (pcase-let*, pcase-let): plet -> pcase-let.

@@ -221,6 +221,10 @@ Lisp_Object gnutls_emacs_global_deinit (void)
   return gnutls_make_error (GNUTLS_E_SUCCESS);
 }
 
+static void gnutls_log_function (int level, const char* string) {
+  message("debug: %s", string);
+}
+
 DEFUN ("gnutls-boot", Fgnutls_boot, Sgnutls_boot, 3, 6, 0,
        doc: /* Initializes client-mode GnuTLS for process PROC.
 Currently only client mode is supported.  Returns a success/failure
@@ -264,6 +268,9 @@ KEYFILE and optionally CALLBACK.  */)
 
   state = XPROCESS (proc)->gnutls_state;
 
+  gnutls_global_set_log_level(4);
+  gnutls_global_set_log_function(gnutls_log_function);
+  
   /* always initialize globals.  */
   global_init = gnutls_emacs_global_init ();
   if (! NILP (Fgnutls_errorp (global_init)))
@@ -272,19 +279,13 @@ KEYFILE and optionally CALLBACK.  */)
   /* deinit and free resources.  */
   if (GNUTLS_INITSTAGE (proc) >= GNUTLS_STAGE_CRED_ALLOC)
   {
-      message ("gnutls: deallocating certificates");
-
       if (EQ (type, Qgnutls_x509pki))
       {
-          message ("gnutls: deallocating x509 certificates");
-
           x509_cred = XPROCESS (proc)->x509_cred;
           gnutls_certificate_free_credentials (x509_cred);
       }
       else if (EQ (type, Qgnutls_anon))
       {
-          message ("gnutls: deallocating anon certificates");
-
           anon_cred = XPROCESS (proc)->anon_cred;
           gnutls_anon_free_client_credentials (anon_cred);
       }
@@ -296,28 +297,20 @@ KEYFILE and optionally CALLBACK.  */)
 
       if (GNUTLS_INITSTAGE (proc) >= GNUTLS_STAGE_INIT)
       {
-          message ("gnutls: deinitializing");
-
           Fgnutls_deinit (proc);
       }
   }
 
   GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_EMPTY;
 
-  message ("gnutls: allocating credentials");
-
   if (EQ (type, Qgnutls_x509pki))
   {
-      message ("gnutls: allocating x509 credentials");
-
       x509_cred = XPROCESS (proc)->x509_cred;
       if (gnutls_certificate_allocate_credentials (&x509_cred) < 0)
         memory_full ();
   }
   else if (EQ (type, Qgnutls_anon))
   {
-      message ("gnutls: allocating anon credentials");
-
       anon_cred = XPROCESS (proc)->anon_cred;
       if (gnutls_anon_allocate_client_credentials (&anon_cred) < 0)
         memory_full ();
@@ -333,8 +326,6 @@ KEYFILE and optionally CALLBACK.  */)
 
   GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_CRED_ALLOC;
 
-  message ("gnutls: setting the trustfile");
-
   if (EQ (type, Qgnutls_x509pki))
   {
       if (STRINGP (trustfile))
@@ -346,11 +337,7 @@ KEYFILE and optionally CALLBACK.  */)
 
           if (ret < GNUTLS_E_SUCCESS)
             return gnutls_make_error (ret);
-
-          message ("gnutls: processed %d CA certificates", ret);
       }
-
-      message ("gnutls: setting the keyfile");
 
       if (STRINGP (keyfile))
       {
@@ -361,14 +348,10 @@ KEYFILE and optionally CALLBACK.  */)
 
           if (ret < GNUTLS_E_SUCCESS)
             return gnutls_make_error (ret);
-
-          message ("gnutls: processed %d CRL(s)", ret);
       }
   }
 
   GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_FILES;
-
-  message ("gnutls: gnutls_init");
 
   ret = gnutls_init (&state, GNUTLS_CLIENT);
 
@@ -378,8 +361,6 @@ KEYFILE and optionally CALLBACK.  */)
   XPROCESS (proc)->gnutls_state = state;
 
   GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_INIT;
-
-  message ("gnutls: setting the priority string");
 
   ret = gnutls_priority_set_direct(state,
                                    (char*) SDATA (priority_string),
@@ -490,15 +471,14 @@ or `gnutls-e-interrupted'. In that case you may resume the handshake
     GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_TRANSPORT_POINTERS_SET;
   }
 
-  message ("gnutls: handshake: handshaking");
   ret = gnutls_handshake (state);
-
   GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_HANDSHAKE_TRIED;
 
-  if (GNUTLS_E_SUCCESS == ret)
+  if (GNUTLS_E_SUCCESS == ret || ret == 0)
   {
     /* here we're finally done.  */
     GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_READY;
+    return Qt;
   }
 
   return gnutls_make_error (ret);
