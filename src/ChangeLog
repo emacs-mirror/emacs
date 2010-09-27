@@ -1,3 +1,24 @@
+2010-09-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32.c (g_b_init_get_sid_identifier_authority)
+	(GetSidIdentifierAuthority_Proc, get_sid_identifier_authority):
+	Remove, not used.
+	(globals_of_w32): Don't set g_b_init_get_sid_identifier_authority.
+	(init_winsock): Remove useless assignment.
+	(open_process_token, get_token_information, lookup_account_sid)
+	(get_sid_sub_authority, get_sid_sub_authority_count, get_file_security)
+	(get_security_descriptor_owner, get_security_descriptor_group)
+	(is_valid_sid, equal_sid, get_length_sid, copy_sid)
+	(get_native_system_info, get_system_times, init_user_info, crlf_to_lf)
+	(is_unc_volume, GetCachedVolumeInformation, get_volume_info)
+	(is_fat_volume, open_unc_volume, read_unc_volume, close_unc_volume)
+	(unc_volume_file_attributes, convert_from_time_t)
+	(create_toolhelp32_snapshot, process32_first, process32_next)
+	(open_thread_token, impersonate_self, revert_to_self)
+	(get_process_memory_info, get_process_working_set_size)
+	(global_memory_status, global_memory_status_ex, socket_to_fd)
+	(shutdown_handler): Make static.
+
 2010-09-27  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (dbus_fd_cb, xd_get_dispatch_status)
