@@ -1,3 +1,8 @@
+2010-09-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (syms_of_dbusbind): Unset $DBUS_FATAL_WARNINGS.
+	(Bug#7113)
+
 2010-09-26  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xgselect.c (xg_select): Clear file descriptors not set from

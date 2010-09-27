@@ -2132,6 +2132,8 @@ message arrives.  */);
   Vdbus_debug = Qt;
 #else
   Vdbus_debug = Qnil;
+  /* We do not want to abort.  */
+  unsetenv ("DBUS_FATAL_WARNINGS");
 #endif
 
   Fprovide (intern_c_string ("dbusbind"), Qnil);
