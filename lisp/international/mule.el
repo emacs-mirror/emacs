@@ -642,18 +642,19 @@ VALUE must be a translation table to use on encoding.
 
 VALUE must be a function to call after some text is inserted and
 decoded by the coding system itself and before any functions in
-`after-insert-functions' are called.  The arguments to this function
-are the same as those of a function in `after-insert-file-functions',
-i.e. LENGTH of the text to be decoded with point at the head of it,
-and the function should leave point unchanged.
+`after-insert-functions' are called.  This function is passed one
+argument; the number of characters in the text to convert, with
+point at the start of the text.  The function should leave point
+the same, and return the new character count.
 
 `:pre-write-conversion'
 
 VALUE must be a function to call after all functions in
-`write-region-annotate-functions' and `buffer-file-format' are called,
-and before the text is encoded by the coding system itself.  The
-arguments to this function are the same as those of a function in
-`write-region-annotate-functions'.
+`write-region-annotate-functions' and `buffer-file-format' are
+called, and before the text is encoded by the coding system
+itself.  This function should convert the whole text in the
+current buffer.  For backward compatibility, this funciton is
+passed two arguments which can be ignored.
 
 `:default-char'
 
