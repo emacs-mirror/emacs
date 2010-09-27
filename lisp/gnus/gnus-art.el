@@ -5072,7 +5072,7 @@ Deleting parts may malfunction or destroy the article; continue? "))
       (unless data
 	(error "No MIME part under point"))
       (with-current-buffer (mm-handle-buffer data)
-	(let ((bsize (format "%s" (buffer-size))))
+	(let ((bsize (buffer-size)))
 	  (erase-buffer)
 	  (insert
 	   (concat
@@ -5081,8 +5081,8 @@ Deleting parts may malfunction or destroy the article; continue? "))
 	    "|\n"
 	    "| Type:           " type "\n"
 	    "| Filename:       " filename "\n"
-	    "| Size (encoded): " bsize (format " byte%s\n"
-					       (if (= bsize 1)
+	    "| Size (encoded): " (format "%s byte%s\n"
+					 bsize (if (= bsize 1)
 						   ""
 						 "s"))
 	    (when description

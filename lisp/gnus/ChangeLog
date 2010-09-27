@@ -1,3 +1,7 @@
+2010-09-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-mime-delete-part): Fix Lisp type of byte(s).
+
 2010-09-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* nndoc.el (nndoc-request-list): Return success always.
