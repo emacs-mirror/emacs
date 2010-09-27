@@ -524,7 +524,7 @@ extern void poll_for_input_1 (void);
 extern void show_help_echo (Lisp_Object, Lisp_Object, Lisp_Object,
                             Lisp_Object, int);
 extern void gen_help_event (Lisp_Object, Lisp_Object, Lisp_Object,
-                            Lisp_Object, int);
+                            Lisp_Object, EMACS_INT);
 extern void kbd_buffer_store_help_event (Lisp_Object, Lisp_Object);
 extern Lisp_Object menu_item_eval_property (Lisp_Object);
 extern int  kbd_buffer_events_waiting (int);

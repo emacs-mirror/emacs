@@ -565,7 +565,7 @@ server or call `M-x server-force-delete' to forcibly disconnect it.")
 		       (if server-use-tcp
 			   (list :family 'ipv4  ;; We're not ready for IPv6 yet
 				 :service t
-				 :host (or server-host "127.0.0.1") ;; See bug#6781
+				 :host (or server-host 'local)
 				 :plist '(:authenticated nil))
 			 (list :family 'local
 			       :service server-file

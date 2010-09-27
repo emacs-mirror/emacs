@@ -1539,14 +1539,13 @@ decompressed data.  The buffer's multibyteness must be turned off."
 				       prog t (list t err-file) nil args)
 				jka-compr-acceptable-retval-list)
 		    (erase-buffer)
-		    (insert (mapconcat
-			     'identity
-			     (delete "" (split-string
-					 (prog2
-					     (insert-file-contents err-file)
-					     (buffer-string)
-					   (erase-buffer))))
-			     " ")
+		    (insert (mapconcat 'identity
+				       (split-string
+					(prog2
+					    (insert-file-contents err-file)
+					    (buffer-string)
+					  (erase-buffer)) t)
+				       " ")
 			    "\n")
 		    (setq err-msg
 			  (format "Error while executing \"%s %s < %s\""

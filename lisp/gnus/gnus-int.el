@@ -181,10 +181,15 @@ If it is down, start it up (again)."
       (prog1
 	  (setq result (gnus-open-server method))
 	(unless silent
-	  (gnus-message 5 "Opening %s server%s...%s" (car method)
-			(if (equal (nth 1 method) "") ""
-			  (format " on %s" (nth 1 method)))
-			(if result "done" "failed")))))))
+	  (gnus-message
+	   (if result 5 3)
+	   "Opening %s server%s...%s" (car method)
+	   (if (equal (nth 1 method) "") ""
+	     (format " on %s" (nth 1 method)))
+	   (if result
+	       "done"
+	     (format "failed: %s"
+		     (nnheader-get-report-string (car method))))))))))
 
 (defun gnus-get-function (method function &optional noerror)
   "Return a function symbol based on METHOD and FUNCTION."
@@ -226,10 +231,18 @@ If it is down, start it up (again)."
   (eq (nth 1 (assoc method gnus-opened-servers))
       'denied))
 
+(defvar gnus-backend-trace t)
+
 (defun gnus-open-server (gnus-command-method)
   "Open a connection to GNUS-COMMAND-METHOD."
   (when (stringp gnus-command-method)
     (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
+  (when gnus-backend-trace
+    (with-current-buffer (get-buffer-create "*gnus trace*")
+      (buffer-disable-undo)
+      (goto-char (point-max))
+      (insert (format-time-string "%H:%M:%S")
+	      (format " %S\n" gnus-command-method))))
   (let ((elem (assoc gnus-command-method gnus-opened-servers))
 	(server (gnus-method-to-server-name gnus-command-method)))
     ;; If this method was previously denied, we just return nil.
@@ -257,36 +270,31 @@ If it is down, start it up (again)."
 	  (setq elem (list gnus-command-method nil)
 		gnus-opened-servers (cons elem gnus-opened-servers)))
 	;; Set the status of this server.
-        (setcar (cdr elem)
-                (cond (result
-                       (if (eq open-server-function #'nnagent-open-server)
-                           ;; The agent's backend has a "special" status
-                           'offline
-                         'ok))
-                      ((and gnus-agent
-                            (gnus-agent-method-p gnus-command-method))
-                       (cond (gnus-server-unopen-status
-                              ;; Set the server's status to the unopen
-                              ;; status.  If that status is offline,
-                              ;; recurse to open the agent's backend.
-                              (setq open-offline (eq gnus-server-unopen-status 'offline))
-                              gnus-server-unopen-status)
-                             ((and
-			       (not gnus-batch-mode)
-			       (gnus-y-or-n-p
-				(format
-				 "Unable to open server %s (%s), go offline? "
-				 server
-				 (nnheader-get-report
-				  (car gnus-command-method)))))
-                              (setq open-offline t)
-                              'offline)
-                             (t
-                              ;; This agentized server was still denied
-                              'denied)))
-                      (t
-                       ;; This unagentized server must be denied
-                       'denied)))
+        (setcar
+	 (cdr elem)
+	 (cond (result
+		(if (eq open-server-function #'nnagent-open-server)
+		    ;; The agent's backend has a "special" status
+		    'offline
+		  'ok))
+	       ((and gnus-agent
+		     (gnus-agent-method-p gnus-command-method))
+		(cond
+		 (gnus-server-unopen-status
+		  ;; Set the server's status to the unopen
+		  ;; status.  If that status is offline,
+		  ;; recurse to open the agent's backend.
+		  (setq open-offline (eq gnus-server-unopen-status 'offline))
+		  gnus-server-unopen-status)
+		 ((not gnus-batch-mode)
+		  (setq open-offline t)
+		  'offline)
+		 (t
+		  ;; This agentized server was still denied
+		  'denied)))
+	       (t
+		;; This unagentized server must be denied
+		'denied)))
 
         ;; NOTE: I MUST set the server's status to offline before this
         ;; recursive call as this status will drive the
@@ -576,12 +584,21 @@ If GROUP is nil, all groups on GNUS-COMMAND-METHOD are scanned."
 	       (and group (gnus-group-real-name group))
 	       (nth 1 gnus-command-method)))))
 
-(defsubst gnus-request-update-info (info gnus-command-method)
+(defun gnus-request-update-info (info gnus-command-method)
+  (when (gnus-check-backend-function
+	 'request-update-info (car gnus-command-method))
+    (when (stringp gnus-command-method)
+      (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
+    (funcall (gnus-get-function gnus-command-method 'request-update-info)
+	     (gnus-group-real-name (gnus-info-group info)) info
+	     (nth 1 gnus-command-method))))
+
+(defsubst gnus-request-marks (info gnus-command-method)
   "Request that GNUS-COMMAND-METHOD update INFO."
   (when (stringp gnus-command-method)
     (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
   (when (gnus-check-backend-function
-	 'request-update-info (car gnus-command-method))
+	 'request-marks (car gnus-command-method))
     (let ((group (gnus-info-group info)))
       (and (funcall (gnus-get-function gnus-command-method
 				       'request-update-info)
@@ -601,6 +618,7 @@ If GROUP is nil, all groups on GNUS-COMMAND-METHOD are scanned."
 
 (defun gnus-request-expire-articles (articles group &optional force)
   (let* ((gnus-command-method (gnus-find-method-for-group group))
+	 (gnus-inhibit-demon t)
 	 (not-deleted
 	  (funcall
 	   (gnus-get-function gnus-command-method 'request-expire-articles)

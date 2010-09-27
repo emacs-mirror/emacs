@@ -243,6 +243,7 @@ tag with greater section value than LEVEL is found."
 	semantic-imenu-bucketize-file nil
 	semantic-imenu-bucketize-type-members nil
 	senator-step-at-start-end-tag-classes '(section)
+	senator-step-at-tag-classes '(section)
 	semantic-stickyfunc-sticky-classes '(section)
 	)
   (semantic-install-function-overrides

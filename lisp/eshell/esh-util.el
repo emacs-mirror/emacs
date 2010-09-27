@@ -32,7 +32,7 @@
 ;;; User Variables:
 
 (defcustom eshell-stringify-t t
-  "*If non-nil, the string representation of t is 't'.
+  "If non-nil, the string representation of t is 't'.
 If nil, t will be represented only in the exit code of the function,
 and not printed as a string.  This causes Lisp functions to behave
 similarly to external commands, as far as successful result output."
@@ -40,44 +40,45 @@ similarly to external commands, as far as successful result output."
   :group 'eshell-util)
 
 (defcustom eshell-group-file "/etc/group"
-  "*If non-nil, the name of the group file on your system."
+  "If non-nil, the name of the group file on your system."
   :type '(choice (const :tag "No group file" nil) file)
   :group 'eshell-util)
 
 (defcustom eshell-passwd-file "/etc/passwd"
-  "*If non-nil, the name of the passwd file on your system."
+  "If non-nil, the name of the passwd file on your system."
   :type '(choice (const :tag "No passwd file" nil) file)
   :group 'eshell-util)
 
 (defcustom eshell-hosts-file "/etc/hosts"
-  "*The name of the /etc/hosts file."
+  "The name of the /etc/hosts file."
   :type '(choice (const :tag "No hosts file" nil) file)
   :group 'eshell-util)
 
 (defcustom eshell-handle-errors t
-  "*If non-nil, Eshell will handle errors itself.
+  "If non-nil, Eshell will handle errors itself.
 Setting this to nil is offered as an aid to debugging only."
   :type 'boolean
   :group 'eshell-util)
 
 (defcustom eshell-private-file-modes 384 ; umask 177
-  "*The file-modes value to use for creating \"private\" files."
+  "The file-modes value to use for creating \"private\" files."
   :type 'integer
   :group 'eshell-util)
 
 (defcustom eshell-private-directory-modes 448 ; umask 077
-  "*The file-modes value to use for creating \"private\" directories."
+  "The file-modes value to use for creating \"private\" directories."
   :type 'integer
   :group 'eshell-util)
 
 (defcustom eshell-tar-regexp
-  "\\.t\\(ar\\(\\.\\(gz\\|bz2\\|Z\\)\\)?\\|gz\\|a[zZ]\\|z2\\)\\'"
-  "*Regular expression used to match tar file names."
+  "\\.t\\(ar\\(\\.\\(gz\\|bz2\\|xz\\|Z\\)\\)?\\|gz\\|a[zZ]\\|z2\\)\\'"
+  "Regular expression used to match tar file names."
+  :version "24.1"			; added xz
   :type 'regexp
   :group 'eshell-util)
 
 (defcustom eshell-convert-numeric-arguments t
-  "*If non-nil, converting arguments of numeric form to Lisp numbers.
+  "If non-nil, converting arguments of numeric form to Lisp numbers.
 Numeric form is tested using the regular expression
 `eshell-number-regexp'.
 
@@ -95,7 +96,7 @@ argument matches `eshell-number-regexp'."
   :group 'eshell-util)
 
 (defcustom eshell-number-regexp "-?\\([0-9]*\\.\\)?[0-9]+\\(e[-0-9.]+\\)?"
-  "*Regular expression used to match numeric arguments.
+  "Regular expression used to match numeric arguments.
 If `eshell-convert-numeric-arguments' is non-nil, and an argument
 matches this regexp, it will be converted to a Lisp number, using the
 function `string-to-number'."
@@ -103,7 +104,7 @@ function `string-to-number'."
   :group 'eshell-util)
 
 (defcustom eshell-ange-ls-uids nil
-  "*List of user/host/id strings, used to determine remote ownership."
+  "List of user/host/id strings, used to determine remote ownership."
   :type '(repeat (cons :tag "Host for User/UID map"
 		       (string :tag "Hostname")
 		       (repeat (cons :tag "User/UID List"

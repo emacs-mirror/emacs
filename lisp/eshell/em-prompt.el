@@ -39,7 +39,7 @@ as is common with most shells."
 ;;; User Variables:
 
 (defcustom eshell-prompt-load-hook '(eshell-prompt-initialize)
-  "*A list of functions to call when loading `eshell-prompt'."
+  "A list of functions to call when loading `eshell-prompt'."
   :type 'hook
   :group 'eshell-prompt)
 
@@ -55,7 +55,7 @@ prompt."
   :group 'eshell-prompt)
 
 (defcustom eshell-prompt-regexp "^[^#$\n]* [#$] "
-  "*A regexp which fully matches your eshell prompt.
+  "A regexp which fully matches your eshell prompt.
 This setting is important, since it affects how eshell will interpret
 the lines that are passed to it.
 If this variable is changed, all Eshell buffers must be exited and
@@ -64,7 +64,7 @@ re-entered for it to take effect."
   :group 'eshell-prompt)
 
 (defcustom eshell-highlight-prompt t
-  "*If non-nil, Eshell should highlight the prompt."
+  "If non-nil, Eshell should highlight the prompt."
   :type 'boolean
   :group 'eshell-prompt)
 
@@ -72,20 +72,20 @@ re-entered for it to take effect."
   '((((class color) (background light)) (:foreground "Red" :bold t))
     (((class color) (background dark)) (:foreground "Pink" :bold t))
     (t (:bold t)))
-  "*The face used to highlight prompt strings.
+  "The face used to highlight prompt strings.
 For highlighting other kinds of strings -- similar to shell mode's
 behavior -- simply use an output filer which changes text properties."
   :group 'eshell-prompt)
 (define-obsolete-face-alias 'eshell-prompt-face 'eshell-prompt "22.1")
 
 (defcustom eshell-before-prompt-hook nil
-  "*A list of functions to call before outputting the prompt."
+  "A list of functions to call before outputting the prompt."
   :type 'hook
   :options '(eshell-begin-on-new-line)
   :group 'eshell-prompt)
 
 (defcustom eshell-after-prompt-hook nil
-  "*A list of functions to call after outputting the prompt.
+  "A list of functions to call after outputting the prompt.
 Note that if `eshell-scroll-show-maximum-output' is non-nil, then
 setting `eshell-show-maximum-output' here won't do much.  It depends
 on whether the user wants the resizing to happen while output is

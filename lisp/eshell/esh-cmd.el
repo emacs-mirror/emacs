@@ -122,28 +122,28 @@ however."
   :group 'eshell)
 
 (defcustom eshell-prefer-lisp-functions nil
-  "*If non-nil, prefer Lisp functions to external commands."
+  "If non-nil, prefer Lisp functions to external commands."
   :type 'boolean
   :group 'eshell-cmd)
 
 (defcustom eshell-lisp-regexp "\\([(`]\\|#'\\)"
-  "*A regexp which, if matched at beginning of an argument, means Lisp.
+  "A regexp which, if matched at beginning of an argument, means Lisp.
 Such arguments will be passed to `read', and then evaluated."
   :type 'regexp
   :group 'eshell-cmd)
 
 (defcustom eshell-pre-command-hook nil
-  "*A hook run before each interactive command is invoked."
+  "A hook run before each interactive command is invoked."
   :type 'hook
   :group 'eshell-cmd)
 
 (defcustom eshell-post-command-hook nil
-  "*A hook run after each interactive command is invoked."
+  "A hook run after each interactive command is invoked."
   :type 'hook
   :group 'eshell-cmd)
 
 (defcustom eshell-prepare-command-hook nil
-  "*A set of functions called to prepare a named command.
+  "A set of functions called to prepare a named command.
 The command name and its argument are in `eshell-last-command-name'
 and `eshell-last-arguments'.  The functions on this hook can change
 the value of these symbols if necessary.
@@ -154,7 +154,7 @@ To prevent a command from executing at all, set
   :group 'eshell-cmd)
 
 (defcustom eshell-named-command-hook nil
-  "*A set of functions called before a named command is invoked.
+  "A set of functions called before a named command is invoked.
 Each function will be passed the command name and arguments that were
 passed to `eshell-named-command'.
 
@@ -180,7 +180,7 @@ call to `cd' using the arguments that were passed to the function."
 (defcustom eshell-pre-rewrite-command-hook
   '(eshell-no-command-conversion
     eshell-subcommand-arg-values)
-  "*A hook run before command rewriting begins.
+  "A hook run before command rewriting begins.
 The terms of the command to be rewritten is passed as arguments, and
 may be modified in place.  Any return value is ignored."
   :type 'hook
@@ -193,7 +193,7 @@ may be modified in place.  Any return value is ignored."
     eshell-rewrite-sexp-command
     eshell-rewrite-initial-subcommand
     eshell-rewrite-named-command)
-  "*A set of functions used to rewrite the command argument.
+  "A set of functions used to rewrite the command argument.
 Once parsing of a command line is completed, the next step is to
 rewrite the initial argument into something runnable.
 
@@ -207,14 +207,14 @@ forms or strings)."
   :group 'eshell-cmd)
 
 (defcustom eshell-post-rewrite-command-hook nil
-  "*A hook run after command rewriting is finished.
+  "A hook run after command rewriting is finished.
 Each function is passed the symbol containing the rewritten command,
 which may be modified directly.  Any return value is ignored."
   :type 'hook
   :group 'eshell-cmd)
 
 (defcustom eshell-complex-commands '("ls")
-  "*A list of commands names or functions, that determine complexity.
+  "A list of commands names or functions, that determine complexity.
 That is, if a command is defined by a function named eshell/NAME,
 and NAME is part of this list, it is invoked as a complex command.
 Complex commands are always correct, but run much slower.  If a
@@ -231,12 +231,12 @@ return non-nil if the command is complex."
 ;;; User Variables:
 
 (defcustom eshell-cmd-load-hook '(eshell-cmd-initialize)
-  "*A hook that gets run when `eshell-cmd' is loaded."
+  "A hook that gets run when `eshell-cmd' is loaded."
   :type 'hook
   :group 'eshell-cmd)
 
 (defcustom eshell-debug-command nil
-  "*If non-nil, enable debugging code.  SSLLOOWW.
+  "If non-nil, enable debugging code.  SSLLOOWW.
 This option is only useful for reporting bugs.  If you enable it, you
 will have to visit the file 'eshell-cmd.el' and run the command
 \\[eval-buffer]."
@@ -247,7 +247,7 @@ will have to visit the file 'eshell-cmd.el' and run the command
   '(eshell-named-command
     eshell-lisp-command
     eshell-process-identity)
-  "*A list of functions which might return an ansychronous process.
+  "A list of functions which might return an ansychronous process.
 If they return a process object, execution of the calling Eshell
 command will wait for completion (in the background) before finishing
 the command."
@@ -258,7 +258,7 @@ the command."
   '((eshell-in-subcommand-p t)
     (default-directory default-directory)
     (process-environment (eshell-copy-environment)))
-  "*A list of `let' bindings for subcommand environments."
+  "A list of `let' bindings for subcommand environments."
   :type 'sexp
   :group 'eshell-cmd)
 

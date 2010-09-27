@@ -1,3 +1,189 @@
+2010-09-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/pcase.el (pcase-let*, pcase-let): plet -> pcase-let.
+
+2010-09-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/gnutls.el (starttls-negotiate): Avoid the cl.el decf function.
+
+	* net/netrc.el (netrc-store-data): New function.
+
+2010-09-26  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/gnutls.el: GnuTLS glue code to set up a connection.
+
+2010-09-25  Julien Danjou  <julien@danjou.info>
+
+	* notifications.el: Call dbus-register-signal only if it is bound.
+
+2010-09-25  Glenn Morris  <rgm@gnu.org>
+
+	* eshell/em-alias.el, eshell/em-banner.el, eshell/em-basic.el:
+	* eshell/em-cmpl.el, eshell/em-dirs.el, eshell/em-glob.el:
+	* eshell/em-hist.el, eshell/em-ls.el, eshell/em-pred.el:
+	* eshell/em-prompt.el, eshell/em-rebind.el, eshell/em-script.el:
+	* eshell/em-smart.el, eshell/em-term.el, eshell/em-unix.el:
+	* eshell/esh-cmd.el, eshell/esh-ext.el, eshell/esh-io.el:
+	* eshell/esh-mode.el, eshell/esh-proc.el, eshell/esh-test.el:
+	* eshell/esh-util.el, eshell/esh-var.el:
+	Remove leading `*' from docs of faces and defcustoms.
+
+2010-09-25  Ulrich Mueller  <ulm@gentoo.org>
+
+	* eshell/em-ls.el (eshell-ls-archive-regexp):
+	* eshell/esh-util.el (eshell-tar-regexp):
+	* ibuffer.el (ibuffer-compressed-file-name-regexp):
+	* info.el (Info-suffix-list):
+	* international/mule.el (auto-coding-alist):
+	* woman.el (woman-file-regexp, woman-file-compression-regexp):
+	* progmodes/etags.el (tags-compression-info-list):
+	Support xz compression.
+
+2010-09-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (get-free-disk-space): Don't assume the "df" output
+	columns line up (Bug#6995).
+
+2010-09-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* finder.el (finder-unknown-keywords):
+	* progmodes/gdb-mi.el (gdb-jsonify-buffer, gdb-running-threads-count):
+	* progmodes/etags.el (tags-table-including): Fix typos in docstrings.
+
+2010-09-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-start): Revert part of 2010-08-08 change.  Using
+	address 127.0.0.1 for local host is now done in Fmake_network_process.
+
+2010-09-24  Glenn Morris  <rgm@gnu.org>
+
+	* image-mode.el, progmodes/compile.el, progmodes/gud.el:
+	* progmodes/mixal-mode.el, textmodes/bibtex-style.el:
+	* textmodes/css-mode.el, textmodes/dns-mode.el:
+	Move autoloaded auto-mode-alist entries to files.el.
+	* files.el (auto-mode-alist): Move entries here.
+
+2010-09-23  Glenn Morris  <rgm@gnu.org>
+
+	* isearch.el (isearch-lazy-highlight-cleanup)
+	(isearch-lazy-highlight-initial-delay)
+	(isearch-lazy-highlight-interval)
+	(isearch-lazy-highlight-max-at-a-time, isearch-lazy-highlight-face):
+	* net/net-utils.el (ipconfig-program-options):
+	Move aliases to options before the associated definitions.
+
+2010-09-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* newcomment.el (comment-normalize-vars): Better test validity of
+	comment-end-skip.
+
+2010-09-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/float-sup.el (float-pi): New name for `pi'.
+	(float-e): New name for `e'.
+	(degrees-to-radians, radians-to-degrees):
+	* calendar/solar.el (solar-longitude):
+	* calculator.el (calculator-registers, calculator-funcall):
+	* textmodes/artist.el (artist-spray-random-points):
+	* play/bubbles.el (bubbles--initialize-images): Use new names.
+
+2010-09-23  Eric M. Ludlam  <zappo@gnu.org>
+
+	Update to CEDET 1.0's version of EIEIO.
+
+	* emacs-lisp/eieio.el (eieio-specialized-key-to-generic-key):
+	New function.
+	(eieio-defmethod, eieio-generic-form, eieio-generic-call): Use it.
+	(eieio-default-eval-maybe): Eval val instead of unquoting only.
+	(class-precedence-list): If class is nil, return nil.
+	(eieio-generic-call): If class of first input arg is nil, don't
+	look up static methods, and do check for primary methods.
+	(initialize-instance): See if the default needs to be evaluated
+	during the constructor.
+	(eieio-perform-slot-validation-for-default): Don't do the check
+	for values that will eventually be evaluated.
+	(eieio-eval-default-p): New function.
+	(eieio-default-eval-maybe): Use it.
+
+2010-09-23  Jan Moringen  <jan.moringen@uni-bielefeld.de>
+
+	* emacs-lisp/eieio.el (eieio-defclass): Allow :c3
+	method-invocation-order.
+	(eieio-c3-candidate, eieio-c3-merge-lists): New functions.
+	(eieio-class-precedence-dfs): Compute class precedence list using
+	dfs algorithm.
+	(eieio-class-precedence-bfs): Compute class precedence list using
+	bfs algorithm.
+	(eieio-class-precedence-c3): Compute class precedence list using
+	c3 algorithm.
+	(class-precedence-list): New function.
+	(eieiomt-method-list, eieiomt-sym-optimize): Use it.
+	(inconsistent-class-hierarchy): New error symbol.
+	(call-next-method): Stow the replacement argument list for future
+	call-next-method invocations.
+
+2010-09-23  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/appt.el (appt-check): If not displaying the diary,
+	use (diary 1) to only get the entries we need.
+	(appt-make-list): Sort diary-list-entries, if we cannot guarantee
+	that it is in day order.  (Bug#7019)
+
+	* calendar/appt.el (appt-check): Rather than showing the diary,
+	just turn off invisible display, and only if needed.
+
+	* calendar/diary-lib.el (diary-list-entries): Doc fix.  (Bug#7019)
+
+2010-09-23  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-file-form-defvar):
+	(byte-compile-defvar, byte-compile-cl-warn):
+	Start warnings with lower-case, like the majority.
+
+	* files.el (auto-mode-alist): Add .xa, .xw, .xsw for ld-script-mode.
+
+	* files.el (auto-mode-alist): Prefer C-mode for .xs.  (Bug#7071)
+
+	* progmodes/ld-script.el (auto-mode-alist): Move to files.el.
+	* files.el (auto-mode-alist): Move ld-script entries here, further down
+	the list.
+
+	* vc/add-log.el: Don't require timezone when compiling.
+	(timezone-make-date-sortable): Autoload it.
+	(change-log-sortable-date-at): Don't require timezone.
+	Use `ignore-errors'.
+
+	* comint.el (comint-use-prompt-regexp-instead-of-fields):
+	Move alias before definition, so it does not need autoloading.
+
+	* emulation/crisp.el, emulation/cua-base.el, emulation/edt.el:
+	* emulation/pc-select.el, emulation/vip.el, international/iso-ascii.el:
+	* international/kkc.el, international/ogonek.el, mail/feedmail.el:
+	* net/browse-url.el, net/eudc-vars.el, net/net-utils.el:
+	* net/rcompile.el, net/rlogin.el, textmodes/enriched.el:
+	* textmodes/makeinfo.el, textmodes/page-ext.el, textmodes/picture.el:
+	* textmodes/refer.el, textmodes/spell.el, textmodes/table.el:
+	* textmodes/tex-mode.el, textmodes/two-column.el:
+	Remove leading `*' from docs of defcustoms etc.
+
+2010-09-23  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/netrc.el (netrc-parse): Remove encrypt.el mentions.
+
+2010-09-22  Dan Christensen  <jdc@uwo.ca>
+
+	* calendar/time-date.el (date-to-time): Try using parse-time-string
+	first before using the slower timezone-make-date-arpa-standard.
+
+2010-09-22  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* calendar/time-date.el (format-seconds): Comment fix.
+
+2010-09-22  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/package.el (package-menu-mode): `revert-buffer-function'
+	is not automatically buffer-local.
+
 2010-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/smie.el (smie-debug--describe-cycle): Fix typo.
@@ -426,7 +612,7 @@
 	(tramp-find-inline-encoding, tramp-call-local-coding-command)
 	(tramp-inline-compress-commands, tramp-find-inline-compress)
 	(tramp-compute-multi-hops, tramp-maybe-open-connection)
-	(tramp-send-command , tramp-wait-for-output)
+	(tramp-send-command, tramp-wait-for-output)
 	(tramp-send-command-and-check, tramp-barf-unless-okay)
 	(tramp-send-command-and-read, tramp-mode-string-to-int)
 	(tramp-convert-file-attributes, tramp-check-cached-permissions)
@@ -2415,8 +2601,6 @@
 
 	* help-fns.el (find-lisp-object-file-name): Doc fix (bug#6494).
 
-	* cedet/semantic/db-file.el (object-write): Fix typo in docstring.
-
 	* time.el (display-time-day-and-date): Remove spurious * in docstring.
 	(display-time-world-buffer-name, display-time-world-mode-map):
 	Fix typos in docstrings.
@@ -3604,12 +3788,6 @@
 
 	* international/mule.el (make-translation-table-from-vector): Doc fix.
 
-2010-06-03  Eric Ludlam  <zappo@gnu.org>
-
-	* cedet/semantic/lex-spp.el
-	(semantic-lex-spp-table-write-slot-value): Instead of erroring on
-	invalid values during save, just save a nil (Bug#6324).
-
 2010-06-03  Glenn Morris  <rgm@gnu.org>
 
 	* desktop.el (desktop-clear-preserve-buffers):
@@ -3717,11 +3895,6 @@
 
 	* vc-bzr.el (vc-bzr-revision-completion-table): Apply
 	`file-directory-p' to the filename part rather than to the whole text.
-
-2010-05-31  Jonathan Marchand  <jonathlela@gmail.com>  (tiny change)
-
-	* cedet/ede/cpp-root.el (ede-set-project-variables): Fix feature name
-	(bug#6231).
 
 2010-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -4873,67 +5046,6 @@
 	(filter-buffer-substring-functions): New variable.
 	(filter-buffer-substring): Use it.  Remove unused arg `noprops'.
 
-	Use a mode-line spec rather than a static string in Semantic.
-	* cedet/semantic/util-modes.el:
-	(semantic-minor-modes-format): New var to replace...
-	(semantic-minor-modes-status): Remove.
-	(semantic-mode-line-update): Construct a mode-line spec rather than
-	a static string so that mouse buttons can be used on individual minor
-	modes and so that semantic-mode-line-update only needs to be called
-	when global settings are changed.
-	(semantic-add-minor-mode, semantic-toggle-minor-mode-globally):
-	Call semantic-mode-line-update.
-	(semantic-toggle-minor-mode-globally): Don't assume mode is on
-	minor-mode-alist, check semantic-minor-mode-alist as well.
-	(semantic-stickyfunc-mode, semantic-show-parser-state-auto-marker)
-	(semantic-show-parser-state-marker, semantic-show-parser-state-mode)
-	(semantic-show-unmatched-syntax-mode, semantic-highlight-edits-mode):
-	* cedet/semantic/mru-bookmark.el (semantic-mru-bookmark-mode):
-	* cedet/semantic/idle.el (semantic-idle-scheduler-mode)
-	(define-semantic-idle-service, semantic-idle-summary-mode):
-	* cedet/semantic/decorate/mode.el (semantic-decoration-mode):
-	Don't call semantic-mode-line-update any more.
-
-2010-05-02  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	Use define-minor-mode in CEDET where applicable.
-
-	* cedet/srecode/mode.el (srecode-minor-mode,global-srecode-minor-mode):
-	Use define-minor-mode.
-
-	* cedet/semantic/util-modes.el (semantic-add-minor-mode):
-	Remove unused arg `keymap' and code redundant with define-minor-mode.
-	(semantic-toggle-minor-mode-globally): Only handle arg -1 and 1.
-	(semantic-stickyfunc-mode, global-semantic-show-unmatched-syntax-mode)
-	(semantic-highlight-func-mode, global-semantic-show-parser-state-mode)
-	(global-semantic-highlight-edits-mode, semantic-highlight-edits-mode)
-	(semantic-show-unmatched-syntax-mode, semantic-show-parser-state-mode)
-	(global-semantic-stickyfunc-mode, global-semantic-highlight-func-mode):
-	Use define-minor-mode.
-	(semantic-stickyfunc-mode-setup, semantic-highlight-edits-mode-setup)
-	(semantic-show-unmatched-syntax-mode-setup)
-	(semantic-show-parser-state-mode-setup)
-	(semantic-highlight-func-mode-setup): Inline into sole caller.
-
-	* cedet/semantic/mru-bookmark.el (global-semantic-mru-bookmark-mode)
-	(semantic-mru-bookmark-mode): Use define-minor-mode.
-	(semantic-mru-bookmark-mode-setup): Inline into sole caller.
-
-	* cedet/semantic/idle.el (define-semantic-idle-service):
-	Use define-minor-mode and inline setup function into its sole caller.
-	(semantic-idle-scheduler-mode-setup)
-	(semantic-idle-summary-mode-setup): Inline into sole caller.
-	(global-semantic-idle-scheduler-mode, semantic-idle-scheduler-mode):
-	Use define-minor-mode.
-
-	* cedet/semantic/decorate/mode.el (global-semantic-decoration-mode)
-	(semantic-decoration-mode): Use define-minor-mode.
-	(semantic-decoration-mode-setup): Inline into sole caller.
-
-	* cedet/ede/dired.el (ede-dired-minor-mode): Initialize in declaration.
-	(ede-dired-minor-mode): Use define-minor-mode and derived-mode-p.
-	(ede-dired-add-to-target): Use dolist.
-
 2010-05-01  Toru TSUNEYOSHI  <t_tuneyosi@hotmail.com>
             Michael Albinus  <michael.albinus@gmx.de>
 
@@ -4976,11 +5088,6 @@
 	* minibuffer.el (tags-completion-at-point-function): New function.
 	(completion-at-point-functions): Use it.
 
-	* cedet/semantic.el (semantic-completion-at-point-function):
-	New function.
-	(semantic-mode): Use semantic-completion-at-point-function for
-	completion-at-point-functions instead.
-
 	* progmodes/etags.el (complete-tag): Revert last change.
 
 2010-04-29  Alan Mackenzie  <acm@muc.de>
@@ -5006,12 +5113,6 @@
 	body of completion-at-point.
 
 	* progmodes/etags.el (complete-tag): Move to minibuffer.el.
-
-	* cedet/semantic.el (semantic-mode): When enabled, add
-	semantic-ia-complete-symbol to completion-at-point-functions.
-
-	* cedet/semantic/ia.el (semantic-ia-complete-symbol): Return nil
-	if Semantic is not active.
 
 2010-04-28  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -5297,11 +5398,6 @@
 	(vc-bzr-shelve-show, vc-bzr-shelve-apply)
 	(vc-bzr-shelve-apply-and-keep, vc-bzr-shelve-snapshot):
 	Don't use *vc-bzr-shelve*.
-
-2010-04-19  Chong Yidong  <cyd@stupidchicken.com>
-
-	* cedet/ede/pmake.el (ede-proj-makefile-insert-variables):
-	Don't destroy list before using it.
 
 2010-04-19  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -5845,12 +5941,6 @@
 	* emacs-lisp/authors.el (authors-fixed-entries): Add entry for Eli
 	Zaretskii.
 
-2010-04-02  Juanma Barranquero  <lekktu@gmail.com>
-
-	* cedet/semantic/imenu.el (semantic-imenu-bucketize-type-members)
-	(semantic-create-imenu-directory-index): Fix typos in docstrings.
-	(semantic-imenu-goto-function): Reflow docstring.
-
 2010-04-02  Juri Linkov  <juri@jurta.org>
 
 	* ehelp.el (electric-help-orig-major-mode):
@@ -6065,8 +6155,6 @@
 	* faces.el (set-face-attribute): Fix typo in docstring.
 	(face-valid-attribute-values): Reflow docstring.
 
-	* cedet/srecode/table.el (srecode-template-table): Fix docstring typo.
-
 2010-03-24  Glenn Morris  <rgm@gnu.org>
 
 	* textmodes/flyspell.el (sgml-lexical-context): Autoload it (Bug#5752).
@@ -6139,11 +6227,6 @@
 	(tramp-open-connection-setup-interactive-shell): Remove workaround
 	for OpenSolaris bug, it is not needed anymore.
 
-2010-03-24  Eric M. Ludlam  <zappo@gnu.org>
-
-	* cedet/semantic/imenu.el: New file, from the CEDET repository
-	(Bug#5412).
-
 2010-03-24  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/cl-macs.el (defsubst*): Add autoload cookie.  (Bug#4427)
@@ -6169,11 +6252,6 @@
 	(log-view-process-buffer, log-edit-extra-flags): Declare.
 
 	* log-edit.el (log-edit-before-checkin-process): Doc fix.
-
-	* cedet/semantic/bovine/c.el (semantic-c-describe-environment):
-	Consistently check ede-object is bound throughout.
-
-	* cedet/ede/project-am.el (ede-shell-run-something): Declare.
 
 2010-03-23  Sam Steingold  <sds@gnu.org>
 
@@ -6611,11 +6689,6 @@
 	(vc-git-show-log-entry): Use prog1.
 	(vc-git-after-dir-status-stage): Remove unused var `remaining'.
 
-2010-03-06  Glenn Morris  <rgm@gnu.org>
-
-	* cedet/semantic/grammar.el (semantic-grammar-header-template):
-	Update template copyright to GPLv3+.
-
 2010-03-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* man.el (Man-files-regexp): Tighten up the regexp (bug#5686).
@@ -6682,9 +6755,6 @@
 
 	* textmodes/reftex-toc.el (reftex-toc-promote-prepare):
 	* emacs-lisp/elint.el (elint-add-required-env):
-	* cedet/semantic/db-find.el
-	(semanticdb-find-translate-path-brutish-default):
-	* cedet/ede/make.el (ede-make-check-version):
 	* calendar/icalendar.el (icalendar--add-diary-entry):
 	* calc/calcalg2.el (math-tracing-integral):
 	* files.el (recover-session-finish): Use with-current-buffer
@@ -6849,12 +6919,6 @@
 
 	* doc-view.el (doc-view): Add to data custom group.
 
-	* cedet/data-debug.el (data-debug): Move to extensions group.
-
-	* cedet/ede.el (ede):
-	* cedet/srecode.el (srecode):
-	* cedet/semantic.el (semantic): Put in tools and extensions group.
-
 	* nxml/nxml-mode.el (nxml-faces): Remove from font-lock-faces group.
 
 	* textmodes/flyspell.el (flyspell-word): Obey the offset specified
@@ -6891,10 +6955,6 @@
 
 	* outline.el (outline-head-from-level):
 	* simple.el (with-wrapper-hook):
-	* cedet/ede.el (ede-run-target, project-delete-target)
-	(project-dist-files, ede-name, ede-documentation, ede-parent-project)
-	(ede-adebug-project, ede-adebug-project-parent)
-	(ede-adebug-project-root):
 	* emacs-lisp/elint.el (elint-extra-errors, elint-current-buffer)
 	(elint-defun, elint-buffer-env, elint-top-form-logged)
 	(elint-unbound-variable):
@@ -7343,70 +7403,10 @@
 
 2010-01-18  Juanma Barranquero  <lekktu@gmail.com>
 
-	* cedet/ede/locate.el (ede-locate-file-in-project)
-	(ede-locate-file-in-project-impl): Fix typos in docstrings.
-	(ede-enable-locate-on-project): Fix typos in error messages.
-
-	* cedet/semantic/util-modes.el (semantic-unmatched-syntax-face)
-	(semantic-stickyfunc-old-hlf, semantic-stickyfunc-header-line-format)
-	(semantic-stickyfunc-sticky-classes, semantic-highlight-func-mode-setup)
-	(semantic-stickyfunc-fetch-stickyline): Fix typos in docstrings.
-	(semantic-stickyfunc-popup-menu, semantic-highlight-func-popup-menu):
-	Fix typos in menu help.
-
 	* emacs-lisp/chart.el (chart-file-count, chart-rmail-from):
 	Fix typos in chart titles.
 
 	* whitespace.el (whitespace-style, global-whitespace-newline-mode):
-	* cedet/semantic.el (semantic-require-version, semantic--buffer-cache)
-	(semantic-unmatched-syntax-cache-check, semantic-unmatched-syntax-hook)
-	(semantic--before-fetch-tags-hook, semantic-new-buffer-fcn-was-run)
-	(semantic--umatched-syntax-needs-refresh-p, semantic-elapsed-time)
-	(semantic-parse-stream, semantic-parse-region)
-	(semantic-parse-region-default, semantic--set-buffer-cache)
-	(semantic-minimum-working-buffer-size, semantic-refresh-tags-safe)
-	(semantic-bovinate-toplevel, semantic-load-system-cache-loaded)
-	(semantic-default-submodes):
-	* cedet/semantic/db-ebrowse.el (semanticdb-table-ebrowse)
-	(semanticdb-create-ebrowse-database)
-	(semanticdb-find-tags-for-completion-method)
-	(semanticdb-find-tags-by-class-method)
-	(semanticdb-deep-find-tags-by-name-method)
-	(semanticdb-deep-find-tags-for-completion-method):
-	* cedet/semantic/db-el.el (semanticdb-elisp-mapatom-collector)
-	(semanticdb-find-tags-by-name-method, emacs-lisp-mode)
-	(semanticdb-find-tags-for-completion-method)
-	(semanticdb-find-tags-by-class-method)
-	(semanticdb-deep-find-tags-for-completion-method):
-	* cedet/semantic/db-find.el (semanticdb-find-translate-path)
-	(semanticdb-find-need-cache-update-p, semanticdb-find-result-with-nil-p)
-	(semanticdb-find-scanned-include-tags, semanticdb-find-tags-collector)
-	(semanticdb-find-tags-by-name-method)
-	(semanticdb-find-tags-by-name-regexp-method)
-	(semanticdb-find-tags-for-completion-method)
-	(semanticdb-find-tags-by-class-method)
-	(semanticdb-find-tags-external-children-of-type-method)
-	(semanticdb-find-tags-subclasses-of-type-method)
-	(semanticdb-deep-find-tags-by-name-method)
-	(semanticdb-deep-find-tags-by-name-regexp-method)
-	(semanticdb-deep-find-tags-for-completion-method):
-	* cedet/semantic/db-global.el (semanticdb-enable-gnu-global-hook)
-	(semanticdb-enable-gnu-global-in-buffer)
-	(semanticdb-find-tags-for-completion-method)
-	(semanticdb-deep-find-tags-by-name-method)
-	(semanticdb-deep-find-tags-for-completion-method):
-	* cedet/semantic/db-javascript.el (semanticdb-javascript-tags)
-	(javascript-mode, semanticdb-find-translate-path)
-	(semanticdb-find-tags-for-completion-method)
-	(semanticdb-find-tags-by-class-method)
-	(semanticdb-deep-find-tags-by-name-method)
-	(semanticdb-deep-find-tags-for-completion-method)
-	(semanticdb-find-tags-external-children-of-type-method):
-	* cedet/semantic/idle.el (semantic-idle-work-core-handler)
-	(define-semantic-idle-service, semantic-idle-summary-useful-context-p)
-	(global-semantic-idle-scheduler-mode):
-	* cedet/srecode/dictionary.el (srecode-field-value)
-	(srecode-dictionary-add-section-dictionary):
 	* emacs-lisp/eieio.el (eieio-error-unsupported-class-tags)
 	(eieio-generic-form, eieio-help-mode-augmentation-maybee, eieio-browse)
 	(describe-class, eieio-describe-generic, describe-generic):
@@ -7458,13 +7458,8 @@
 
 	* calc/calc.el (calc-command-flags): Give it an initial value.
 
-2010-01-17  Glenn Morris  <rgm@gnu.org>
-
-	* cedet/semantic/idle.el (semantic-idle-work-for-one-buffer): Doc fix.
-
 2010-01-17  Juanma Barranquero  <lekktu@gmail.com>
 
-	* cedet/semantic.el (semantic-mode):
 	* files.el (minibuffer-with-setup-hook):
 	* textmodes/artist.el (artist-mt, artist-key-undraw-continously)
 	(artist-key-draw-continously, artist-key-do-continously-continously)
@@ -7496,17 +7491,6 @@
 
 2010-01-16  Mario Lang  <mlang@delysid.org>
 
-	* cedet/ede/cpp-root.el (ede-cpp-root-project):
-	* cedet/ede/files.el (ede-expand-filename):
-	* cedet/ede/simple.el (ede-simple-project):
-	* cedet/semantic/complete.el (semantic-complete-read-tag-engine)
-	(semantic-complete-inline-tag-engine):
-	* cedet/semantic/db-el.el (semanticdb-equivalent-mode):
-	* cedet/semantic/db-global.el (semanticdb-equivalent-mode):
-	* cedet/semantic/db-javascript.el (semanticdb-equivalent-mode):
-	* cedet/semantic/db.el (semanticdb-equivalent-mode):
-	* cedet/semantic/decorate/include.el (semantic-decoration-unknown-include-describe):
-	* cedet/semantic/idle.el (semantic-idle-work-for-one-buffer):
 	* emacs-lisp/chart.el (chart-translate-namezone):
 	* textmodes/artist.el (artist-compute-popup-menu-table):
 	Remove duplicated words in doc-strings.
@@ -7535,13 +7519,6 @@
 	* find-cmd.el (find-constituents):
 	* vc-arch.el (vc-arch-root):
 	* window.el (window-body-height, pop-up-frames):
-	* cedet/semantic/edit.el (semantic-reparse-needed-change-hook)
-	(semantic-no-reparse-needed-change-hook):
-	* cedet/srecode/insert.el (srecode-resolve-argument-list)
-	(srecode-template-inserter-blank, srecode-template-inserter-variable)
-	(srecode-template-inserter-ask, srecode-template-inserter-width)
-	(srecode-template-inserter-section-start)
-	(srecode-template-inserter-section-end, srecode-insert-method):
 	* emacs-lisp/eieio-base.el (eieio-singleton, slot-missing):
 	* progmodes/ada-stmt.el (ada-if):
 	* progmodes/gdb-ui.el (gdb-jsonify-buffer):
@@ -7612,36 +7589,6 @@
 	* mail/emacsbug.el (report-emacs-bug-pretest-address): Set
 	it to bug-gnu-emacs rather than emacs-pretest-bug.
 
-2010-01-12  Juanma Barranquero  <lekktu@gmail.com>
-
-	* cedet/data-debug.el (data-debug): Fix customization group reference.
-
-2010-01-12  Juanma Barranquero  <lekktu@gmail.com>
-
-	* cedet/semantic/analyze.el (semantic-analyze-push-error)
-	(semantic-analyze-context, semantic-analyze-context-assignment)
-	(semantic-analyze-find-tag-sequence, semantic-analyze-find-tag):
-	* cedet/semantic/java.el (java-mode, semantic-tag-include-filename)
-	(semantic-java-doc-keywords-map):
-	* cedet/semantic/bovine/c.el (c-mode, semantic-c-member-of-autocast)
-	(semantic-lex-c-nested-namespace-ignore-second, semantic-parse-region)
-	(semantic-c-parse-lexical-token, semantic-c-debug-mode-init-pch)
-	(semantic-c-classname, semantic-format-tag-uml-prototype)
-	(semantic-c-dereference-namespace, semantic-analyze-type-constants):
-	* cedet/semantic/bovine/el.el (semantic-elisp-form-to-doc-string)
-	(semantic-emacs-lisp-obsoleted-doc, semantic-up-context)
-	(semantic-get-local-variables, semantic-end-of-command)
-	(semantic-beginning-of-command, semantic-ctxt-current-class-list)
-	(lisp-mode):
-	* cedet/semantic/bovine/make.el (makefile-mode):
-	* cedet/semantic/wisent/python.el (wisent-python-string-re)
-	(wisent-python-implicit-line-joining-p, wisent-python-forward-string)
-	(wisent-python-lex-beginning-of-line, wisent-python-lex-end-of-line)
-	(semantic-lex, semantic-get-local-variables, python-mode):
-	* cedet/semantic/wisent/python-wy.el (wisent-python-wy--keyword-table):
-	* cedet/srecode/extract.el (srecode-extract-state-set)
-	(srecode-extract-method): Fix typos in docstrings.
-
 2010-01-11  Sam Steingold  <sds@gnu.org>
 
 	* imenu.el (imenu-default-create-index-function): Detect infinite
@@ -7700,16 +7647,8 @@
 
 2010-01-10  Chong Yidong  <cyd@stupidchicken.com>
 
-	* cedet/semantic.el (semantic-new-buffer-setup-functions):
-	Add python parser.
-
 	* Makefile.in (ELCFILES): Add wisent/python-wy.el and
 	wisent/python.el.
-
-2010-01-10  Richard Kim  <emacs18@gmail.com>
-
-	* cedet/semantic/wisent/python-wy.el:
-	* cedet/semantic/wisent/python.el: New files.
 
 2010-01-09  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -7893,9 +7832,6 @@
 	(ediff-meta-mark-equal-files): Fix typos in messages.
 
 	* mpc.el (mpc-playlist-delete): Fix typo in error messages.
-
-	* cedet/semantic/db-typecache.el (semanticdb-typecache-find-default):
-	Fix typo in docstring.
 
 	* net/imap-hash.el (imap-hash-make): Doc fix.
 	(imap-hash-test): Fix typo in error message; reflow docstring.
@@ -8124,14 +8060,6 @@
 	check if it already has the `display' property added by
 	`Info-display-images-node', and not put the `invisible' property
 	in this case.
-
-2009-12-14  Chong Yidong  <cyd@stupidchicken.com>
-
-	* cedet/semantic/mru-bookmark.el (global-semantic-mru-bookmark-mode)
-	(semantic-mru-bookmark-mode): Doc fixes.
-
-	* cedet/semantic/db.el (semanticdb-cache-get): Use error instead
-	of assert.
 
 2009-12-13  Glenn Morris  <rgm@gnu.org>
 
@@ -8550,9 +8478,6 @@
 	* bindings.el (complete-symbol): Call semantic-ia-complete-symbol
 	if possible.
 
-	* cedet/semantic/ia.el (semantic-ia-complete-symbol):
-	Make argument optional.
-
 	* shell.el (shell): Require ansi-color (Bug#5113).
 
 	* ansi-color.el (ansi-color-for-comint-mode): Default to t.
@@ -8579,24 +8504,6 @@
 	when moving from a virtual node.
 	(Info-mode-menu): Add `Info-virtual-index' to the menu.
 	(Info-mode): Add `Info-virtual-index' to the docstring.
-
-2009-12-05  Eric Ludlam  <zappo@gnu.org>
-
-	* cedet/semantic/bovine/c.el (semantic-c-describe-environment):
-	Describe project macro symbols.
-
-	* cedet/semantic/complete.el (semantic-complete-do-completion):
-	Don't call semantic-collector-current-exact-match.
-
-	* cedet/ede.el (ede-apply-preprocessor-map): Accept lists of
-	ede-objects as targets.
-
-	* cedet/ede/pmake.el (ede-proj-makefile-insert-variables): Output
-	a target's object list even if compiler vars are already in the
-	Makefile.
-
-	* cedet/ede/emacs.el (ede-preprocessor-map): Add config.h to the
-	list of headers producing necessary macros.
 
 2009-12-05  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
@@ -9480,9 +9387,6 @@
 	* bookmark.el (bookmark-bmenu-hide-filenames): Remove assignment to
 	deleted variable bookmark-bmenu-bookmark-column.
 
-	* cedet/semantic/idle.el (global-semantic-idle-scheduler-mode):
-	Move after definition of global-semantic-idle-tag-highlight-mode.
-
 2009-11-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* bookmark.el (bookmark-bmenu-search): Clear echo area when exiting.
@@ -9547,56 +9451,6 @@
 	* dired-x.el (dired-guess-shell-alist-default):
 	Support xz format.  (Bug#4953)
 
-2009-11-22  Chong Yidong  <cyd@stupidchicken.com>
-
-	* cedet/srecode/map.el (srecode-get-maps):
-	* cedet/semantic/wisent/wisent.el (wisent-parse-toggle-verbose-flag):
-	* cedet/semantic/wisent/comp.el (wisent-toggle-verbose-flag):
-	* cedet/semantic/decorate/mode.el (semantic-decoration-mode)
-	(semantic-toggle-decoration-style):
-	* cedet/semantic/decorate/include.el
-	(semantic-decoration-include-describe)
-	(semantic-decoration-unknown-include-describe)
-	(semantic-decoration-unparsed-include-describe)
-	(semantic-decoration-all-include-summary):
-	* cedet/semantic/bovine/c.el (semantic-c-debug-mode-init):
-	* cedet/semantic/analyze/complete.el
-	(semantic-analyze-possible-completions):
-	* cedet/semantic/util-modes.el (semantic-highlight-edits-mode)
-	(semantic-show-unmatched-syntax-mode)
-	(semantic-show-parser-state-mode, semantic-stickyfunc-mode)
-	(semantic-highlight-func-mode):
-	* cedet/semantic/util.el (semantic-describe-buffer):
-	* cedet/semantic/symref.el (semantic-symref-find-references-by-name)
-	(semantic-symref-find-tags-by-name)
-	(semantic-symref-find-tags-by-regexp)
-	(semantic-symref-find-tags-by-completion)
-	(semantic-symref-find-file-references-by-name)
-	(semantic-symref-find-text):
-	* cedet/semantic/senator.el (senator-copy-tag, senator-kill-tag)
-	(senator-yank-tag):
-	* cedet/semantic/scope.el (semantic-calculate-scope):
-	* cedet/semantic/mru-bookmark.el (semantic-mru-bookmark-mode):
-	* cedet/semantic/idle.el (semantic-idle-scheduler-mode)
-	(define-semantic-idle-service):
-	* cedet/semantic/complete.el (semantic-complete-analyze-inline)
-	(semantic-complete-analyze-inline-idle):
-	* cedet/semantic/analyze.el (semantic-analyze-current-context):
-	* cedet/mode-local.el (describe-mode-local-bindings)
-	(describe-mode-local-bindings-in-mode):
-	* cedet/ede/make.el (ede-make-check-version):
-	* cedet/ede/locate.el (ede-enable-locate-on-project):
-	* cedet/cedet-idutils.el (cedet-idutils-expand-filename)
-	(cedet-idutils-version-check):
-	* cedet/cedet-global.el (cedet-gnu-global-expand-filename)
-	(cedet-gnu-global-version-check):
-	* cedet/cedet-cscope.el (cedet-cscope-expand-filename)
-	(cedet-cscope-version-check): Use called-interactively-p instead
-	of interactive-p.
-
-	* cedet/semantic/ia.el (semantic-ia-completion-format-tag-function):
-	Use semantic-format-tag-prototype.
-
 2009-11-22  Michael Kifer  <kifer@cs.stonybrook.edu>
 
 	* emulation/viper-cmd.el: Use viper-last-command-char instead of
@@ -9622,12 +9476,6 @@
 
 	* progmodes/subword.el (subword-mode-map): Fix subword-mode-map
 	generation from word-movement command names.
-
-2009-11-21  Chong Yidong  <cyd@stupidchicken.com>
-
-	* cedet/semantic/complete.el (semantic-complete-read-tag-engine)
-	(semantic-complete-jump-local, semantic-complete-jump):
-	Improve prompt string.
 
 2009-11-21  Jan Djärv  <jan.h.d@swipnet.se>
 
@@ -9715,13 +9563,6 @@
 	(bookmark-bmenu-search): New command.
 	(bookmark-bmenu-mode-map): Bind it.
 
-2009-11-20  Chong Yidong  <cyd@stupidchicken.com>
-
-	* cedet/semantic/complete.el (semantic-complete-inline-map): Doc fix.
-
-	* cedet/semantic/idle.el (define-semantic-idle-service)
-	(semantic-idle-summary-mode, semantic-idle-completions): Doc fix.
-
 2009-11-20  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* progmodes/cc-cmds.el: declare-functioned forward-subword and
@@ -9767,17 +9608,6 @@
 2009-11-20  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (ELCFILES): Regenerate.
-
-2009-11-20  Chong Yidong  <cyd@stupidchicken.com>
-
-	* cedet/cedet.el (cedet-menu-map): Re-order menu items.
-
-	* cedet/semantic.el: Enable idle-mode menu items only if
-	global-semantic-idle-scheduler-mode is enabled.
-	(semantic-default-submodes): Doc fix.
-
-	* cedet/semantic/idle.el (global-semantic-idle-scheduler-mode):
-	When turning off, disable other idle modes.
 
 2009-11-20  Jay Belanger  <jay.p.belanger@gmail.com>
 
@@ -10084,13 +9914,6 @@
 
 	* strokes.el (strokes-update-window-configuration): Make strokes
 	buffer current before erasing (Bug#4906).
-
-	* cedet/semantic/idle.el (semantic-idle-summary-mode)
-	(semantic-idle-summary-mode): Define using define-minor-mode
-	instead of define-semantic-idle-service.
-	(semantic-idle-summary-mode): New function.
-	(semantic-idle-summary-mode-setup): Use pre-command-hook to ensure
-	that mouse motion does not reset the echo area.
 
 2009-11-15  Juri Linkov  <juri@jurta.org>
 
@@ -10460,9 +10283,6 @@
 
 2009-11-08  Chong Yidong  <cyd@stupidchicken.com>
 
-	* cedet/semantic/ctxt.el (semantic-get-local-variables): Disable
-	the progress reporter entirely.
-
 	* emulation/cua-base.el: Add CUA property to some CC mode commands
 	(Bug#4100).
 
@@ -10745,79 +10565,6 @@
 
 	* emacs-lisp/autoload.el (generated-autoload-feature): Remove.
 	(autoload-rubric): Don't use any more.
-	* cedet/semantic/fw.el (semantic/loaddefs):
-	* cedet/srecode.el (srecode/loaddefs):
-	* cedet/ede.el (ede/loaddefs): Load rather than require.
-	* cedet/ede/cpp-root.el:
-	* cedet/ede/emacs.el:
-	* cedet/ede/files.el:
-	* cedet/ede/linux.el:
-	* cedet/ede/locate.el:
-	* cedet/ede/make.el:
-	* cedet/ede/shell.el:
-	* cedet/ede/speedbar.el:
-	* cedet/ede/system.el:
-	* cedet/ede/util.el:
-	* cedet/semantic/analyze.el:
-	* cedet/semantic/bovine.el:
-	* cedet/semantic/complete.el:
-	* cedet/semantic/ctxt.el:
-	* cedet/semantic/db-file.el:
-	* cedet/semantic/db-find.el:
-	* cedet/semantic/db-global.el:
-	* cedet/semantic/db-mode.el:
-	* cedet/semantic/db-typecache.el:
-	* cedet/semantic/db.el:
-	* cedet/semantic/debug.el:
-	* cedet/semantic/dep.el:
-	* cedet/semantic/doc.el:
-	* cedet/semantic/edit.el:
-	* cedet/semantic/find.el:
-	* cedet/semantic/format.el:
-	* cedet/semantic/html.el:
-	* cedet/semantic/ia-sb.el:
-	* cedet/semantic/ia.el:
-	* cedet/semantic/idle.el:
-	* cedet/semantic/lex-spp.el:
-	* cedet/semantic/lex.el:
-	* cedet/semantic/mru-bookmark.el:
-	* cedet/semantic/scope.el:
-	* cedet/semantic/senator.el:
-	* cedet/semantic/sort.el:
-	* cedet/semantic/symref.el:
-	* cedet/semantic/tag-file.el:
-	* cedet/semantic/tag-ls.el:
-	* cedet/semantic/tag-write.el:
-	* cedet/semantic/tag.el:
-	* cedet/semantic/util-modes.el:
-	* cedet/semantic/analyze/complete.el:
-	* cedet/semantic/analyze/refs.el:
-	* cedet/semantic/bovine/c.el:
-	* cedet/semantic/bovine/gcc.el:
-	* cedet/semantic/bovine/make.el:
-	* cedet/semantic/bovine/scm.el:
-	* cedet/semantic/decorate/include.el:
-	* cedet/semantic/decorate/mode.el:
-	* cedet/semantic/symref/cscope.el:
-	* cedet/semantic/symref/global.el:
-	* cedet/semantic/symref/grep.el:
-	* cedet/semantic/symref/idutils.el:
-	* cedet/semantic/symref/list.el:
-	* cedet/semantic/wisent/java-tags.el:
-	* cedet/semantic/wisent/javascript.el:
-	* cedet/srecode/compile.el:
-	* cedet/srecode/cpp.el:
-	* cedet/srecode/document.el:
-	* cedet/srecode/el.el:
-	* cedet/srecode/expandproto.el:
-	* cedet/srecode/getset.el:
-	* cedet/srecode/insert.el:
-	* cedet/srecode/java.el:
-	* cedet/srecode/map.el:
-	* cedet/srecode/mode.el:
-	* cedet/srecode/template.el:
-	* cedet/srecode/texi.el: Remove the file-local setting of
-	generated-autoload-feature.
 
 	* emacs-lisp/byte-run.el (define-obsolete-variable-alias): Use dolist,
 	and only put a prop if it is non-nil.
@@ -10833,8 +10580,6 @@
 	multi-word menu items).  Fix :help string for quit-window.
 
 2009-11-03  Glenn Morris  <rgm@gnu.org>
-
-	* cedet/mode-local.el (with-mode-local): Doc fix.
 
 	* emacs-lisp/bytecomp.el (byte-compile-file-form-defvar)
 	(byte-compile-file-form-define-abbrev-table)
@@ -10956,12 +10701,6 @@
 
 	* menu-bar.el (menu-bar-tools-menu): Add Semantic and EDE menu
 	items.
-
-	* cedet/cedet.el (cedet-menu-map): Remove Semantic and EDE menu
-	items.
-
-	* cedet/ede.el (ede-minor-mode):
-	* cedet/semantic.el (semantic-mode): Toggle menu separators.
 
 2009-10-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -11116,88 +10855,11 @@
 	(byte-compile-variable-ref, byte-compile-setq-default):
 	Respect `constants' member of byte-compile-warnings.
 
-	* cedet/semantic/tag.el (semantic--tag-link-list-to-buffer):
-	Use mapc rather than mapcar because the return value is never used.
-
-	* cedet/srecode/template.el, cedet/semantic/wisent/javascript.el:
-	* cedet/semantic/wisent/java-tags.el, cedet/semantic/texi.el:
-	* cedet/semantic/html.el:
-	Suppress harmless warnings about setting up semantic-imenu (not
-	part of Emacs) variables.
-
 2009-10-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-bzr.el (vc-bzr-revision-keywords): New var.
 	(vc-bzr-revision-completion-table): Use it to fix completion of "s:"
 	to "submit:".
-
-	* cedet/srecode/srt-mode.el (semantic-analyze-possible-completions):
-	* cedet/semantic/symref/list.el (semantic-symref-rb-toggle-expand-tag):
-	* cedet/semantic/symref/grep.el (semantic-symref-perform-search):
-	* cedet/semantic/bovine/gcc.el (semantic-gcc-query):
-	* cedet/semantic/bovine/c.el (semantic-c-parse-lexical-token):
-	* cedet/semantic/analyze/debug.el (semantic-analyzer-debug-add-buttons)
-	(semantic-analyzer-debug-global-symbol)
-	(semantic-analyzer-debug-missing-innertype)
-	(semantic-analyzer-debug-insert-include-summary):
-	* cedet/semantic/util.el (semantic-file-tag-table):
-	(semantic-describe-buffer-var-helper, semantic-something-to-tag-table)
-	(semantic-recursive-find-nonterminal-by-name):
-	* cedet/semantic/tag-ls.el (semantic-tag-calculate-parent-default):
-	* cedet/semantic/tag-file.el (semantic-prototype-file):
-	* cedet/semantic/symref.el (semantic-symref-parse-tool-output):
-	* cedet/semantic/sb.el (semantic-sb-fetch-tag-table):
-	* cedet/semantic/lex-spp.el (semantic-lex-spp-lex-text-string):
-	* cedet/semantic/idle.el (semantic-idle-work-for-one-buffer):
-	(semantic-idle-summary-maybe-highlight):
-	* cedet/semantic/ia-sb.el (semantic-ia-speedbar)
-	(semantic-ia-sb-tag-info):
-	* cedet/semantic/grammar.el (semantic-analyze-possible-completions):
-	* cedet/semantic/find.el (semantic-brute-find-tag-by-position):
-	* cedet/semantic/ede-grammar.el (project-compile-target):
-	(ede-proj-makefile-insert-variables):
-	* cedet/semantic/debug.el (semantic-debug-set-parser-location):
-	(semantic-debug-set-source-location, semantic-debug-interface-layout)
-	(semantic-debug-mode, semantic-debug):
-	* cedet/semantic/db.el (semanticdb-needs-refresh-p):
-	* cedet/semantic/db-typecache.el (semanticdb-typecache-refresh-for-buffer):
-	* cedet/semantic/db-javascript.el (semanticdb-equivalent-mode):
-	* cedet/semantic/db-find.el (semanticdb-find-log-new-search)
-	(semanticdb-find-translate-path-includes--internal)
-	(semanticdb-reset-log, semanticdb-find-log-activity):
-	* cedet/semantic/db-file.el (object-write):
-	* cedet/semantic/db-el.el (semanticdb-equivalent-mode):
-	* cedet/semantic/db-ebrowse.el (semanticdb-ebrowse-C-file-p)
-	(semanticdb-create-ebrowse-database):
-	* cedet/semantic/db-debug.el (semanticdb-table-sanity-check):
-	* cedet/semantic/complete.el (semantic-displayor-focus-request)
-	(semantic-collector-calculate-completions-raw)
-	(semantic-complete-read-tag-analyzer):
-	* cedet/semantic/analyze.el (semantic-analyze-pulse):
-	* cedet/ede/util.el (ede-update-version-in-source):
-	* cedet/ede/proj.el (project-delete-target):
-	* cedet/ede/proj-elisp.el (ede-update-version-in-source)
-	(ede-proj-flush-autoconf):
-	* cedet/ede/pconf.el (ede-proj-configure-synchronize)
-	(ede-proj-configure-synchronize):
-	* cedet/ede/locate.el (ede-locate-file-in-project-impl):
-	* cedet/ede/linux.el (ede-linux-version):
-	* cedet/ede/emacs.el (ede-emacs-version):
-	* cedet/ede/dired.el (ede-dired-add-to-target):
-	* cedet/ede.el (ede-buffer-header-file, ede-find-target)
-	(ede-buffer-documentation-files, ede-project-buffers, ede-set)
-	(ede-target-buffers, ede-buffers, ede-make-project-local-variable):
-	* cedet/cedet-idutils.el (cedet-idutils-fnid-call):
-	(cedet-idutils-lid-call, cedet-idutils-expand-filename)
-	(cedet-idutils-version-check):
-	* cedet/cedet-global.el (cedet-gnu-global-call):
-	(cedet-gnu-global-expand-filename, cedet-gnu-global-root)
-	(cedet-gnu-global-version-check, cedet-gnu-global-scan-hits):
-	* cedet/cedet-cscope.el (cedet-cscope-call)
-	(cedet-cscope-expand-filename, cedet-cscope-version-check):
-	Use with-current-buffer.
-	* cedet/ede.el (ede-make-project-local-variable)
-	(ede-set-project-variables, ede-set): Use dolist.
 
 2009-10-30  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -11241,16 +10903,6 @@
 	(calc-embedded-finish-edit, calc-embedded-make-info)
 	(calc-embedded-finish-command, calc-embedded-stack-change):
 	* calc/calc-aent.el (calcAlg-enter): Use with-current-buffer.
-
-	* cedet/mode-local.el (make-obsolete-overload): Add `when' argument.
-	(overload-docstring-extension): Use that info.
-	* cedet/semantic/fw.el (semantic-alias-obsolete): Pass the `when' info.
-	* cedet/semantic/idle.el (semantic-eldoc-current-symbol-info):
-	* cedet/semantic/tag-ls.el (semantic-nonterminal-protection)
-	(semantic-nonterminal-abstract, semantic-nonterminal-leaf)
-	(semantic-nonterminal-full-name): Add the new `when' info.
-	* cedet/semantic/decorate/mode.el (semantic/decorate): Require CL for
-	`assert'.
 
 	* pcomplete.el (pcomplete-comint-setup): If there's a choice, replace
 	shell-dynamic-complete-filename in preference to
@@ -11392,36 +11044,6 @@
 	* bookmark.el (bookmark-bmenu-list): Don't use switch-to-buffer if
 	we're inside a dedicated or minibuffer window.
 
-2009-10-25  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	* cedet/semantic/fw.el (semantic-alias-obsolete)
-	(semantic-varalias-obsolete): Make the `when' arg mandatory.
-	(define-mode-overload-implementation):
-	* cedet/semantic/decorate/mode.el (semantic-decorate-pending-decoration-hooks):
-	* cedet/semantic/wisent.el (wisent-lex-make-token-table):
-	* cedet/semantic/util.el (semantic-file-token-stream)
-	(semantic-something-to-stream):
-	* cedet/semantic/tag.el (semantic-tag-make-assoc-list)
-	(semantic-expand-nonterminal):
-	* cedet/semantic/tag-file.el (semantic-find-nonterminal)
-	(semantic-find-dependency, semantic-find-nonterminal)
-	(semantic-find-dependency):
-	* cedet/semantic/lex.el (semantic-flex-start, semantic-flex-end)
-	(semantic-flex-text, semantic-flex-make-keyword-table)
-	(semantic-flex-keyword-p, semantic-flex-keyword-put)
-	(semantic-flex-keyword-get, semantic-flex-map-keywords)
-	(semantic-flex-keywords, semantic-flex-buffer, semantic-flex-list):
-	* cedet/semantic/java.el (semantic-java-prototype-nonterminal):
-	* cedet/semantic/idle.el (semantic-before-idle-scheduler-reparse-hooks)
-	(semantic-after-idle-scheduler-reparse-hooks):
-	* cedet/semantic/edit.el (semantic-edits-incremental-reparse-failed-hooks):
-	* cedet/semantic/db-mode.el (semanticdb-mode-hooks):
-	* cedet/semantic.el (semantic-toplevel-bovine-table)
-	(semantic-toplevel-bovine-cache)
-	(semantic-before-toplevel-bovination-hook, semantic-init-hooks)
-	(semantic-init-mode-hooks, semantic-init-db-hooks)
-	(semantic-bovination-working-type): Provide the `when' arg.
-
 2009-10-24  Karl Fogel  <kfogel@red-bean.com>
 
 	* bookmark.el: Update documentation, especially documentation
@@ -11449,15 +11071,6 @@
 
 	* files.el (delete-directory): Delete symlinks to directories with
 	delete-file (Bug#4739).
-
-2009-10-24  Chong Yidong  <cyd@stupidchicken.com>
-
-	* cedet/semantic/util.el (semantic-recursive-find-nonterminal-by-name):
-	* cedet/semantic/tag.el (semantic-token-type-parent): Add WHEN
-	argument to make-obsolete.
-
-	* cedet/semantic/fw.el (semantic-alias-obsolete)
-	(semantic-varalias-obsolete): Add optional WHEN argument.
 
 2009-10-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -11660,16 +11273,6 @@
 
 	* help-fns.el: Don't require help-mode (to avoid bootstrap issues).
 
-2009-10-21  Eric Ludlam  <zappo@gnu.org>
-
-	* cedet/semantic/bovine/c.el (semantic-c-debug-mode-init)
-	(semantic-c-debug-mode-init-pch): New functions.
-	(semantic-c-debug-mode-init-last-mode): New var.
-	(semantic-c-parse-lexical-token): Use them.
-
-	* cedet/semantic/lex-spp.el (semantic-lex-spp-anlyzer-do-replace):
-	When extracting the argument list, limit only by point-max.
-
 2009-10-21  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-smb.el (tramp-smb-get-stat-capability): New defun.
@@ -11784,90 +11387,12 @@
 	(tar-header-block-tokenize): Decode the username and groupname.
 	(tar-chown-entry, tar-chgrp-entry): Encode the names (bug#4730).
 
-2009-10-17  Chong Yidong  <cyd@stupidchicken.com>
-
-	* cedet/srecode/srt.el:
-	* cedet/srecode/compile.el:
-	* cedet/semantic/mru-bookmark.el:
-	* cedet/semantic/debug.el:
-	* cedet/semantic/complete.el:
-	* cedet/semantic/analyze.el: Require CL when compiling.
-
-2009-10-17  Eric Ludlam  <zappo@gnu.org>
-
-	* cedet/semantic/scope.el
-	(semantic-analyze-scoped-inherited-tag-map): Wrap calculation of
-	tmpscope so that the regular scope will continue to work.
-
-	* cedet/semantic/idle.el (semantic-idle-tag-highlight):
-	Use semantic-idle-summary-highlight-face as the highlighting.
-
-	* emacs-lisp/eieio-base.el (eieio-persistent-save): If buffer
-	contains multibyte characters, choose first applicable coding
-	system automatically.
-
-	* cedet/ede/project-am.el (project-run-target): New method.
-	(project-run-target): New method.
-
-	* cedet/ede.el (ede-target): Add run target menu item.
-	(ede-project, ede-minor-keymap): Add ede-run-target binding.
-	(ede-run-target): New function.
-	(ede-target::project-run-target): New method.
-
-	* cedet/ede/proj.el (project-run-target): New method.
-
-	* cedet/ede/proj-shared.el (ede-gcc-libtool-shared-compiler)
-	(ede-g++-libtool-shared-compiler): Remove SHELL.  Remove COMMANDS.
-	Add :rules.
-	(ede-proj-target-makefile-shared-object): Only libtool compilers
-	now available.  Add linkers for libtool.
-	(ede-cc-linker-libtool, ede-g++-linker-libtool): New.
-	(ede-proj-makefile-target-name): Always use .la extension.
-
-	* cedet/ede/proj-prog.el (project-run-target): New method.
-
-	* cedet/ede/proj-obj.el (ede-cc-linker): Rename from ede-gcc-linker.
-	(ede-g++-linker): Change Change link lines.
-
-	* cedet/ede/pmake.el (ede-pmake-insert-variable-shared):
-	When searching for old variables, go to the end of the buffer and
-	search backward from there.
-	(ede-proj-makefile-automake-insert-subdirs)
-	(ede-proj-makefile-automake-insert-extradist): New methods.
-	(ede-proj-makefile-create): Use them.
-
-	* cedet/ede/pconf.el (ede-proj-configure-test-required-file):
-	Force FILE to expand to the current target.  Use file-exists-p to
-	check that it exists.
-
-	* cedet/ede/linux.el (ede-linux-version): Don't call "head".
-	(ede-linux-load): Wrap dir in file-name-as-directory.
-	Set :version slot.
-
-	* cedet/ede/files.el (ede-get-locator-object): When enabling
-	locate, do so on "top".
-
-	* cedet/ede/emacs.el (ede-emacs-file-existing): Wrap "dir" in
-	file-name-as-directory during compare.
-	(ede-emacs-version): Return Emacs/XEmacs differentiator.
-	Get version number from different places.  Don't call egrep.
-	(ede-emacs-load): Set :version slot.  Call file-name-as-directory
-	to set the directory.
-
-	* cedet/ede/shell.el: New file.
-
-	* cedet/inversion.el (inversion-decoders): Allow for stray . in
-	alpha/beta variants.
-
 2009-10-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* international/mule-cmds.el (select-safe-coding-system): If the file
 	has a coding cookie, use it regardless of any other setting (bug#4712).
 
 2009-10-17  Glenn Morris  <rgm@gnu.org>
-
-	* cedet/semantic/grammar.el (semantic-grammar--lex-delim-spec):
-	All errors should have messages.
 
 	* foldout.el (foldout-mouse-swallow-events):
 	* gs.el (gs-load-image): Replace obsolete forms of sit-for, sleep-for.
@@ -12167,16 +11692,6 @@
 	* calendar/calendar.el (calendar-split-width-threshold): New option.
 	(calendar-basic-setup): Use calendar-split-width-threshold.
 
-2009-10-10  Sascha Wilde  <wilde@sha-bang.de>
-
-	* cedet/ede/proj-shared.el (ede-proj-makefile-target-name):
-	Use .la for Automake.
-
-2009-10-09  Chong Yidong  <cyd@stupidchicken.com>
-
-	* cedet/ede/pconf.el (ede-proj-configure-synchronize):
-	Use "autoreconf -i".  Suggested by Andreas Schwab.
-
 2009-10-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* international/mule-cmds.el (ucs-names): Exclude new "Enclosed
@@ -12205,13 +11720,6 @@
 	(bookmark-jump-other-window): Just invoke bookmark-jump with new
 	argument now, so the two function's behaviors will match.  (Bug#3645)
 
-2009-10-08  Chong Yidong  <cyd@stupidchicken.com>
-
-	* cedet/ede/proj.el (project-make-dist, project-compile-project):
-	Fix filename test.
-	(ede-proj-dist-makefile): Use expand-file-name instead of concat
-	to expand file names.
-
 2009-10-08  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-file-name-real-user, tramp-file-name-domain)
@@ -12222,15 +11730,6 @@
 	case both directories are remote.
 	(tramp-smb-handle-expand-file-name): Implement "~" expansion.
 	(tramp-smb-maybe-open-connection): Flush the cache only if necessary.
-
-2009-10-08  Chong Yidong  <cyd@stupidchicken.com>
-
-	* cedet/ede/proj-obj.el (ede-gcc-linker): New var.
-	(ede-proj-target-makefile-objectcode): Use it.
-
-	* cedet/ede/source.el (ede-want-any-source-files-p)
-	(ede-want-any-auxiliary-files-p, ede-want-any-files-p):
-	Return search result.  This error was introduced while merging.
 
 2009-10-07  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -12506,26 +12005,6 @@
 	(Info-bookmark-jump): Document with a doc string, not just a comment.
 	(Bug#4203)
 
-2009-10-04  Chong Yidong  <cyd@stupidchicken.com>
-
-	* cedet/semantic.el (semantic-new-buffer-setup-functions): New option.
-	(semantic-new-buffer-fcn): Call parser setup functions here.
-	(semantic-mode): Don't call parser setup functions here, it's done
-	in semantic-new-buffer-fcn now.
-	(semantic-mode): Parse all existing buffers when enabled.
-
-	* cedet/srecode/compile.el (srecode-compile-file):
-	Call semantic-new-buffer-fcn if the buffer has not been parsed.
-
-2009-10-04  Chong Yidong  <cyd@stupidchicken.com>
-
-	* cedet/ede/pmake.el (ede-pmake-insert-variable-once): Delete.
-
-	* cedet/ede/proj-comp.el: Don't require ede/pmake at toplevel.
-	(proj-comp-insert-variable-once): New macro, renamed from
-	ede-pmake-insert-variable-once in ede/pmake.edl.
-	(ede-proj-makefile-insert-variables): Use it.
-
 2009-10-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.el (copy-directory): New defun.
@@ -12534,34 +12013,11 @@
 
 2009-10-04  Juanma Barranquero  <lekktu@gmail.com>
 
-	* cedet/ede/makefile-edit.el (makefile-beginning-of-command)
-	(makefile-end-of-command):
-	* cedet/srecode/srt-mode.el (semantic-beginning-of-context)
-	(semantic-end-of-context): Fix previous change.  Doc fixes.
-
-2009-10-04  Juanma Barranquero  <lekktu@gmail.com>
-
 	* files-x.el (modify-dir-local-variable)
-	(copy-dir-locals-to-file-locals-prop-line):
-	* cedet/ede/makefile-edit.el (makefile-beginning-of-command)
-	(makefile-end-of-command):
-	* cedet/semantic/lex.el (semantic-lex-token):
-	* cedet/semantic/analyze/fcn.el
-	(semantic-analyze-dereference-metatype-1):
-	* cedet/semantic/bovine/c.el (semantic-lex-cpp-define)
-	(semantic-lex-cpp-undef):
-	* cedet/semantic/wisent/wisent.el (wisent-skip-block):
-	* cedet/srecode/srt-mode.el (semantic-beginning-of-context)
-	(semantic-end-of-context): Fix typos in docstrings.
+	(copy-dir-locals-to-file-locals-prop-line): Fix typos in
+	docstrings.
 
 	* recentf.el (recentf-unload-function): New function.
-
-2009-10-04  Chong Yidong  <cyd@stupidchicken.com>
-
-	* cedet/ede.el (ede-project-placeholder-cache-file):
-	* cedet/semantic/db-file.el (semanticdb-default-save-directory):
-	* cedet/srecode/map.el (srecode-map-save-file):
-	Use locate-user-emacs-file.  Suggested by Juanma Barranquero.
 
 2009-10-04  Glenn Morris  <rgm@gnu.org>
 
@@ -12570,51 +12026,6 @@
 2009-10-04  Martin Rudalics  <rudalics@gmx.at>
 
 	* window.el (window-full-height-p): New function.  (Bug#4543)
-
-2009-10-03  Chong Yidong  <cyd@stupidchicken.com>
-
-	* cedet/srecode/insert.el: Require srecode/args.
-
-	* cedet/srecode/args.el: Require srecode/dictionary instead of
-	srecode/insert.
-
-	* cedet/srecode/srt-mode.el (srecode-template-mode): Doc fix.
-
-	* files.el (auto-mode-alist): Add .srt and Project.ede.
-
-	* cedet/semantic.el (semantic-mode):
-	Handle srecode-template-mode-hook as well.
-	(semantic-mode): Use js-mode-hook for Javascript hook.
-
-	* cedet/srecode/template.el: Remove hook variable.
-
-	* cedet/ede/proj-comp.el: Require ede/pmake when compiling.
-
-	* cedet/ede.el (ede-target-forms-menu): Don't enable if no
-	projects exist.
-	(ede-project-placeholder-cache-file): Default to a file in
-	user-emacs-directory.
-
-	* cedet/srecode/map.el (srecode-map-base-template-dir): Look for
-	templates in data-directory.
-	(srecode-map-save-file): Default to a file in user-emacs-directory.
-
-	* cedet/ede/srecode.el (ede-srecode-setup): Use default templates
-	directory.
-
-2009-09-30  Eric Ludlam  <zappo@gnu.org>
-
-	* cedet/semantic/util-modes.el (semantic-highlight-func-mode):
-	Doc fix.
-
-	* cedet/ede/proj-comp.el (ede-proj-makefile-insert-variables):
-	Only insert each variable once.
-
-	* cedet/ede/pmake.el (ede-pmake-insert-variable-once): New macro.
-	(ede-pmake-insert-variable-shared): Use it.
-
-	* cedet/ede/cpp-root.el (ede-preprocessor-map): Do not deref table
-	for lexical table iff table is nil.
 
 2009-10-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -12634,9 +12045,6 @@
 	* calendar/calendar.el (calendar-basic-setup): Handle the case where
 	the frame is wide.
 	(calendar-generate-window): Test for shrinkability rather than width.
-
-	* cedet/semantic/db-find.el (data-debug-insert-tag-list): Comment out
-	declaration, currently false.
 
 	* mail/rmail.el (rmail-generate-viewer-buffer): Be more careful about
 	reusing existing buffers, in case we happen to visit two files with the
@@ -12907,141 +12315,9 @@
 	* emacs-lisp/eieio.el (defclass, eieio-defclass-autoload)
 	(eieio-copy-parents-into-subclass, make-instance, class-children)
 	(eieio-generic-form):
-	* cedet/cedet-files.el (cedet-directory-name-to-file-name):
-	* cedet/cedet-idutils.el (cedet-idutils-search)
-	(cedet-idutils-expand-filename, cedet-idutils-support-for-directory)
-	(cedet-idutils-version-check):
-	* cedet/cedet.el (cedet-version):
-	* cedet/data-debug.el (data-debug-insert-overlay-button)
-	(data-debug-insert-overlay-list-button)
-	(data-debug-insert-buffer-button)
-	(data-debug-insert-buffer-list-button)
-	(data-debug-insert-process-button, data-debug-insert-ring-button)
-	(data-debug-insert-widget, data-debug-insert-stuff-list-button)
-	(data-debug-insert-stuff-vector-button)
-	(data-debug-insert-symbol-button, data-debug-insert-string)
-	(data-debug-insert-number, data-debug-insert-lambda-expression)
-	(data-debug-insert-nil, data-debug-insert-simple-thing)
-	(data-debug-insert-custom, data-debug-edebug-expr):
-	* cedet/ede.el (ede-auto-add-method, ede-project-class-files)
-	(global-ede-mode-map, ede-new, ede-debug-target)
-	(ede-customize-current-target, ede-buffers, ede-map-buffers, ede-set):
-	* cedet/semantic.el (semantic-minimum-working-buffer-size)
-	(semantic-fetch-tags, semantic-submode-list)
-	(semantic-default-submodes):
-	* cedet/ede/source.el (ede-source-match):
-	* cedet/ede/project-am.el (project-am-type-alist, project-add-file)
-	(project-am-package-info):
-	* cedet/ede/proj.el (ede-proj-target, project-new-target):
-	* cedet/ede/proj-elisp.el (ede-proj-tweak-autoconf):
-	* cedet/ede/proj-comp.el (ede-current-build-list):
-	* cedet/ede/makefile-edit.el (makefile-move-to-macro):
-	* cedet/ede/files.el (ede-toplevel-project-or-nil):
-	* cedet/ede/cpp-root.el (initialize-instance):
-	* cedet/ede/autoconf-edit.el (autoconf-find-last-macro)
-	(autoconf-parameter-strip, autoconf-insert-new-macro):
-	* cedet/semantic/wisent.el (wisent-lex-eoi):
-	* cedet/semantic/util-modes.el (global-semantic-show-parser-state-mode)
-	(semantic-show-parser-state-mode):
-	* cedet/semantic/texi.el (semantic-texi-environment-regexp):
-	* cedet/semantic/tag.el (semantic-tag-new-variable)
-	(semantic-tag-class, semantic-tag-new-variable, semantic-tag-copy)
-	(semantic--tag-deep-copy-attributes, semantic--tag-deep-copy-value)
-	(semantic--tag-deep-copy-tag-list)
-	(semantic-tag-components-with-overlays-default):
-	* cedet/semantic/symref.el (semantic-symref-find-text):
-	* cedet/semantic/senator.el (senator-yank-tag)
-	(senator-transpose-tags-up):
-	* cedet/semantic/scope.el (semantic-analyze-scoped-tags-default)
-	(semantic-analyze-scoped-inherited-tags, semantic-scope-find):
-	* cedet/semantic/sb.el (semantic-sb-autoexpand-length):
-	* cedet/semantic/lex.el (semantic-lex-comment-regex)
-	(semantic-lex-maximum-depth, define-lex, semantic-lex-token)
-	(semantic-lex-unterminated-syntax-protection, define-lex-analyzer):
-	* cedet/semantic/lex-spp.el
-	(semantic-lex-spp-dynamic-macro-symbol-obarray-stack)
-	(semantic-lex-spp-symbol, semantic-lex-spp-one-token-to-txt):
-	* cedet/semantic/idle.el
-	(semantic-idle-summary-current-symbol-info-brutish)
-	(semantic-idle-summary-current-symbol-info-default):
-	* cedet/semantic/grammar.el (semantic-grammar-recreate-package)
-	(semantic--grammar-macro-compl-dict):
-	* cedet/semantic/grammar-wy.el (semantic-grammar-wy--parse-table):
-	* cedet/semantic/format.el (semantic-format-tag-custom-list)
-	(semantic-format-tag-canonical-name-default):
-	* cedet/semantic/find.el (semantic-find-tag-by-overlay-in-region)
-	(semantic-find-tags-for-completion)
-	(semantic-find-tags-by-scope-protection-default)
-	(semantic-deep-find-tags-for-completion):
-	* cedet/semantic/edit.el
-	(semantic-edits-incremental-reparse-failed-hook)
-	(semantic-edits-verbose-flag, semantic-edits-assert-valid-region)
-	(semantic-edits-splice-remove, semantic-edits-splice-replace):
-	* cedet/semantic/doc.el (semantic-documentation-comment-preceeding-tag):
-	* cedet/semantic/dep.el (semantic-dependency-include-path):
-	* cedet/semantic/db.el (semanticdb-default-find-index-class)
-	(semanticdb-match-any-mode, semanticdb-with-match-any-mode)
-	(semanticdb-project-roots):
-	* cedet/semantic/db-find.el (semanticdb-implied-include-tags)
-	(semanticdb-find-adebug-insert-scanned-tag-cons)
-	(semanticdb-find-log-buffer-name, semanticdb-find-result-mapc)
-	(semanticdb-brute-deep-find-tags-for-completion):
-	* cedet/semantic/db-ebrowse.el (semanticdb-ebrowse-add-tree-to-table):
-	* cedet/semantic/ctxt.el (semantic-beginning-of-context-default)
-	(semantic-end-of-context-default)
-	(semantic-ctxt-current-function-default)
-	(semantic-ctxt-scoped-types-default):
-	* cedet/semantic/complete.el (semantic-complete-read-tag-engine)
-	(semantic-complete-inline-tag-engine)
-	(semantic-complete-inline-custom-type)
-	(semantic-complete-read-tag-analyzer):
-	* cedet/semantic/chart.el (semantic-chart-tags-by-class)
-	(semantic-chart-database-size):
-	* cedet/semantic/analyze.el (semantic-analyze-current-symbol)
-	(semantic-analyze-current-context):
-	* cedet/semantic/symref/list.el (semantic-symref)
-	(semantic-symref-hide-buffer, semantic-symref-symbol):
-	* cedet/semantic/symref/grep.el (semantic-symref-grep-use-template):
-	* cedet/semantic/symref/filter.el (semantic-symref-hits-in-region):
-	* cedet/semantic/bovine/el.el (semantic-elisp-form-to-doc-string):
-	* cedet/semantic/bovine/c.el (semantic-lex-c-preprocessor-symbol-map)
-	(semantic-c-parse-token-hack-depth, semantic-c--template-name-1)
-	(semantic-c-dereference-template):
-	* cedet/semantic/analyze/refs.el (semantic--analyze-refs-full-lookup)
-	(semantic--analyze-refs-full-lookup-with-parents)
-	(semantic--analyze-refs-full-lookup-simple):
-	* cedet/semantic/analyze/complete.el
-	(semantic-analyze-possible-completions):
-	* cedet/srecode/table.el (srecode-mode-table-new):
-	* cedet/srecode/srt.el (srecode-read-variable-name):
-	* cedet/srecode/srt-mode.el (srecode-macro-help, srecode-in-macro-p):
-	* cedet/srecode/semantic.el (srecode-semantic-handle-:tag)
-	(srecode-semantic-handle-:tagtype, srecode-semantic-insert-tag):
-	* cedet/srecode/map.el (srecode-current-map):
-	* cedet/srecode/insert.el (srecode-insert)
-	(srecode-insert-variable-secondname-handler, srecode-insert-method)
-	(srecode-template-inserter-point-override)
-	(srecode-insert-include-lookup):
-	* cedet/srecode/getset.el (srecode-auto-choose-class):
-	* cedet/srecode/extract.el (srecode-inserter-extract):
-	* cedet/srecode/document.el
-	(srecode-document-autocomment-return-last-alist)
-	(srecode-document-autocomment-param-type-alist)
-	(srecode-document-insert-function-comment)
-	(srecode-document-insert-variable-one-line-comment)
-	(srecode-document-function-name-comment):
-	* cedet/srecode/dictionary.el (srecode-create-dictionary)
-	(srecode-compound-toString):
-	* cedet/srecode/compile.el (srecode-flush-active-templates):
-	* cedet/srecode/args.el (srecode-semantic-handle-:blank):
-	Doc/message fixes.
 
 	* vc-cvs.el (vc-cvs-parse-entry): Be more careful with the
 	match-data.  (Bug#4555).
-
-	* cedet/semantic/bovine/gcc.el
-	(semantic-c-reset-preprocessor-symbol-map): Fix declaration.
-	(semantic-gcc-get-include-paths, semantic-gcc-setup-data): Doc fixes.
 
 	* emacs-lisp/check-declare.el (check-declare-scan): Read the declaration
 	rather than parsing it as a regexp.  This relaxes the layout
@@ -13057,40 +12333,7 @@
 	* term/w32-win.el (setup-default-fontset, set-fontset-font):
 	Remove unused declarations.
 
-2009-10-01  Juanma Barranquero  <lekktu@gmail.com>
-
-	* cedet/semantic/wisent/javat-wy.el
-	(wisent-java-tags-wy--keyword-table): Use \000 instead of literal ^@.
-
-2009-09-30  Juanma Barranquero  <lekktu@gmail.com>
-
-	* cedet/srecode/expandproto.el: Fix provide statement.
-
-2009-09-30  Eric Ludlam  <zappo@gnu.org>
-
-	* emacs-lisp/eieio.el (boolean-p): Delete.
-
-2009-09-30  Sascha Wilde  <wilde@sha-bang.de>
-
-	* cedet/ede/srecode.el: Fix provide statement.
-
 2009-09-30  Glenn Morris  <rgm@gnu.org>
-
-	* cedet/ede/proj.el (ede-proj-target-makefile-miscelaneous):
-	* cedet/ede/proj-aux.el (ede-aux-source):
-	* cedet/ede/proj-misc.el (ede-proj-target-makefile-miscelaneous)
-	(ede-misc-source):
-	* cedet/semantic/mru-bookmark.el (semantic-mrub-completing-read)
-	(semantic-mrub-switch-tags): Fix doc typos.
-
-	* cedet/semantic/db-global.el (data-debug-new-buffer)
-	(data-debug-insert-thing): Remove unneeded declarations (one broken).
-	(semanticdb-enable-gnu-global-databases): Fix prompt typo.
-
-	* cedet/semantic/analyze/fcn.el (semantic-scope-find): Fix declaration.
-
-	* cedet/semantic/bovine/gcc.el (semantic-gcc-setup): Replace runtime
-	use of CL function `remove-if-not'.
 
 	* emacs-lisp/authors.el (authors-ignored-files): Add "js2-mode.el".
 
@@ -13129,16 +12372,6 @@
 
 2009-09-29  Glenn Morris  <rgm@gnu.org>
 
-	* cedet/semantic/symref/idutils.el:
-	* cedet/semantic/symref/list.el: Relicense under GPLv3+.
-
-	* cedet/ede/srecode.el (srecode-resolve-arguments): Fix declaration.
-
-	* cedet/semantic/complete.el (semantic-displayor-focus-abstract-child-p):
-	* cedet/semantic/tag-file.el (semanticdb-table-child-p):
-	* cedet/srecode/compile.el (srecode-template-inserter-newline-child-p):
-	Mark declarations not understood by check-declare.
-
 	* emacs-lisp/check-declare.el (check-declare-locate): Remove pointless
 	file-name-nondirectory call preventing location of cedet files.
 	(check-declare-verify): Use literal search rather than re-search.
@@ -13176,15 +12409,6 @@
 
 	* Makefile.in (ELCFILES): Add CEDET files.
 
-2009-09-28  Eric Ludlam  <zappo@gnu.org>
-
-	CEDET (development tools) package merged.
-
-	* cedet/*.el:
-	* cedet/ede/*.el:
-	* cedet/semantic/*.el:
-	* cedet/srecode/*.el: New files.
-
 2009-09-28  Michael Albinus  <michael.albinus@gmx.de>
 
 	* Makefile.in (ELCFILES): Add net/tramp-imap.elc.
@@ -13197,26 +12421,6 @@
 2009-09-28  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* net/tramp-imap.el: New package.
-
-2009-09-28  Eric Ludlam  <zappo@gnu.org>
-
-	* emacs-lisp/chart.el:
-	* emacs-lisp/eieio-base.el:
-	* emacs-lisp/eieio-comp.el:
-	* emacs-lisp/eieio-custom.el:
-	* emacs-lisp/eieio-datadebug.el:
-	* emacs-lisp/eieio-opt.el:
-	* emacs-lisp/eieio-speedbar.el:
-	* emacs-lisp/eieio.el: New files.
-
-	* cedet/cedet-cscope.el:
-	* cedet/cedet-files.el:
-	* cedet/cedet-global.el:
-	* cedet/cedet-idutils.el:
-	* cedet/data-debug.el:
-	* cedet/inversion.el:
-	* cedet/mode-local.el:
-	* cedet/pulse.el: New files.
 
 2009-09-27  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 

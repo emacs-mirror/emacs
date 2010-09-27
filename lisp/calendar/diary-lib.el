@@ -711,14 +711,26 @@ The arguments are DATE and NUMBER; the entries selected are those
 for NUMBER days starting with date DATE.  The other entries are hidden
 using overlays.  If NUMBER is less than 1, this function does nothing.
 
-Returns a list of all relevant diary entries found, if any, in order by date.
+Returns a list of all relevant diary entries found.
 The list entries have the form ((MONTH DAY YEAR) STRING SPECIFIER) where
 \(MONTH DAY YEAR) is the date of the entry, STRING is the entry text, and
 SPECIFIER is the applicability.  If the variable `diary-list-include-blanks'
 is non-nil, this list includes a dummy diary entry consisting of the empty
 string for a date with no diary entries.
 
-After the list is prepared, the following hooks are run:
+If entries are being produced for multiple dates (i.e., NUMBER > 1),
+then this function normally returns the entries from any given
+diary file in date order.  The entries for any given day are in
+the order in which they were found in the file, not necessarily
+in time-of-day order.  Note that any functions present on the
+hooks (see below) may add entries, or change the order.  For
+example, `diary-include-other-diary-files' adds entries from any
+include files that it finds to the end of the original list.  The
+entries from each file will be in date order, but the overall
+list will not be.  If you want the entire list to be in time order,
+add `diary-sort-entries' to the end of `diary-list-entries-hook'.
+
+After the initial list is prepared, the following hooks are run:
 
   `diary-nongregorian-listing-hook' can cull dates from the diary
       and each included file, for example to process Islamic diary

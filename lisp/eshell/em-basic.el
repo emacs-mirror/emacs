@@ -77,7 +77,7 @@ same thing."
   :group 'eshell-module)
 
 (defcustom eshell-plain-echo-behavior nil
-  "*If non-nil, `echo' tries to behave like an ordinary shell echo.
+  "If non-nil, `echo' tries to behave like an ordinary shell echo.
 This comes at some detriment to Lisp functionality.  However, the Lisp
 equivalent of `echo' can always be achieved by using `identity'."
   :type 'boolean

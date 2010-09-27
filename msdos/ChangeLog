@@ -1,3 +1,9 @@
+2010-09-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1v2.inp (LINKER): Don't edit, variable was removed from
+	src/Makefile.in.
+	(LD_FIRSTFLAG): Edit to empty.
+
 2010-09-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* sed1v2.inp (LIBXML2_LIBS, LIBXML2_CFLAGS): Edit to empty.

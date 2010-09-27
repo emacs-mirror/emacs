@@ -83,7 +83,7 @@ public Class {{?NAME}} {{#PARENTS}}{{#FIRST}}extends {{/FIRST}}{{#NOTFIRST}}impl
 template include :blank
 "An include statement."
 ----
-import {{NAME}};
+import {{?NAME}};
 ----
 
 context misc

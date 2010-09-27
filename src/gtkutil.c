@@ -3716,6 +3716,8 @@ xg_tool_bar_menu_proxy (GtkToolItem *toolitem, gpointer user_data)
       GtkSettings *settings = gtk_widget_get_settings (GTK_WIDGET (wbutton));
       GtkImageType store_type = gtk_image_get_storage_type (wimage);
 
+      g_object_set (G_OBJECT (settings), "gtk-menu-images", TRUE, NULL);
+
       if (store_type == GTK_IMAGE_STOCK)
         {
           gchar *stock_id;

@@ -423,7 +423,7 @@ MAILCAPS if set; otherwise (on Unix) use the path from RFC 1524, plus
 		"/usr/local/etc/mailcap"))))
     (let ((fnames (reverse
 		   (if (stringp path)
-		       (delete "" (split-string path path-separator))
+		       (split-string path path-separator t)
 		     path)))
 	  fname)
       (while fnames
@@ -941,7 +941,7 @@ If FORCE, re-parse even if already parsed."
 		"/usr/local/etc/mime-types"
 		"/usr/local/www/conf/mime-types"))))
     (let ((fnames (reverse (if (stringp path)
-			       (delete "" (split-string path path-separator))
+			       (split-string path path-separator t)
 			     path)))
 	  fname)
       (while fnames

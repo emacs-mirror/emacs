@@ -678,9 +678,9 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   QUIT;
 
   {
-    register int nread;
+    register EMACS_INT nread;
     int first = 1;
-    int total_read = 0;
+    EMACS_INT total_read = 0;
     int carryover = 0;
     int display_on_the_fly = display_p;
     struct coding_system saved_coding;

@@ -68,8 +68,10 @@ remove-installed-shadows}.
 
 @item New version of @code{nnimap}
 
-@code{nnimap} has been reimplemented in a mostly-compatible way.
-@c Mention any incompatibilities.
+@code{nnimap} has been reimplemented in a mostly-compatible way.  See
+the Gnus manual for a description of the new interface.  In
+particular, @code{nnimap-inbox} and the client side split method has
+changed.
 
 @item Gnus includes the Emacs Lisp @acronym{SASL} library.
 
@@ -103,6 +105,12 @@ EasyPG is included in Emacs 23 and available separately as well.
 @c ************************
 
 @itemize @bullet
+
+@item
+Symbols like @code{gcc-self} now has the same presedence rules in
+@code{gnus-parameters} as other ``real'' variables: The last match
+wins instead of the first match.
+
 @item
 Old intermediate incoming mail files (@file{Incoming*}) are deleted
 after a couple of days, not immediately.  @xref{Mail Source
@@ -246,6 +254,16 @@ of the "Whomever writes:" line.  You need to set
 @code{message-insert-formatted-citation-line} as well.
 @end itemize
 
+@item Changes in Browse Server mode
+
+@itemize @bullet
+@item Gnus' sophisticated subscription methods are now available in
+Browse Server buffers as well using the variable
+@code{gnus-browse-subscribe-newsgroup-method}.
+
+@end itemize
+
+
 @item Changes in back ends
 
 @itemize @bullet
@@ -335,6 +353,8 @@ and moving of articles behave as before; i.e., the expirable marks will
 be unchanged except that the marks will be removed when copying or
 moving articles to a group that has not turned auto-expire on.
 @xref{Expiring Mail}.
+
+@item NoCeM support has been removed.
 
 @end itemize
 

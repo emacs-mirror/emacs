@@ -1783,7 +1783,7 @@ typedef enum { NEUTRAL_DIR, L2R, R2L } bidi_dir_t;
 /* Data type for storing information about characters we need to
    remember.  */
 struct bidi_saved_info {
-  int bytepos, charpos;		/* character's buffer position */
+  EMACS_INT bytepos, charpos;	/* character's buffer position */
   bidi_type_t type;		/* character's resolved bidi type */
   bidi_type_t type_after_w1;	/* original type of the character, after W1 */
   bidi_type_t orig_type;	/* type as we found it in the buffer */
@@ -2942,7 +2942,8 @@ void remember_mouse_glyph (struct frame *, int, int, NativeRectangle *);
 void mark_window_display_accurate (Lisp_Object, int);
 void redisplay_preserve_echo_area (int);
 int set_cursor_from_row (struct window *, struct glyph_row *,
-                         struct glyph_matrix *, int, int, int, int);
+                         struct glyph_matrix *, EMACS_INT, EMACS_INT,
+			 int, int);
 void init_iterator (struct it *, struct window *, EMACS_INT,
                     EMACS_INT, struct glyph_row *, enum face_id);
 void init_iterator_to_row_start (struct it *, struct window *,
@@ -2950,7 +2951,7 @@ void init_iterator_to_row_start (struct it *, struct window *,
 int get_next_display_element (struct it *);
 void set_iterator_to_next (struct it *, int);
 void start_display (struct it *, struct window *, struct text_pos);
-void move_it_to (struct it *, int, int, int, int, int);
+void move_it_to (struct it *, EMACS_INT, int, int, int, int);
 void move_it_vertically (struct it *, int);
 void move_it_vertically_backward (struct it *, int);
 void move_it_by_lines (struct it *, int, int);
@@ -2969,7 +2970,7 @@ extern int help_echo_showing_p;
 extern int current_mode_line_height, current_header_line_height;
 extern Lisp_Object help_echo_string, help_echo_window;
 extern Lisp_Object help_echo_object, previous_help_echo_string;
-extern int help_echo_pos;
+extern EMACS_INT help_echo_pos;
 extern struct frame *last_mouse_frame;
 extern int last_tool_bar_item;
 extern Lisp_Object Vmouse_autoselect_window;
@@ -3222,11 +3223,11 @@ extern Lisp_Object buffer_posn_from_coords (struct window *,
                                             Lisp_Object *,
                                             int *, int *, int *, int *);
 extern Lisp_Object mode_line_string (struct window *, enum window_part,
-                                     int *, int *, int *,
+                                     int *, int *, EMACS_INT *,
                                      Lisp_Object *,
                                      int *, int *, int *, int *);
 extern Lisp_Object marginal_area_string (struct window *, enum window_part,
-                                         int *, int *, int *,
+                                         int *, int *, EMACS_INT *,
                                          Lisp_Object *,
                                          int *, int *, int *, int *);
 extern void redraw_frame (struct frame *);
@@ -3249,9 +3250,9 @@ void shift_glyph_matrix (struct window *, struct glyph_matrix *,
                          int, int, int);
 void rotate_matrix (struct glyph_matrix *, int, int, int);
 void increment_matrix_positions (struct glyph_matrix *,
-                                 int, int, int, int);
+                                 int, int, EMACS_INT, EMACS_INT);
 void blank_row (struct window *, struct glyph_row *, int);
-void increment_row_positions (struct glyph_row *, int, int);
+void increment_row_positions (struct glyph_row *, EMACS_INT, EMACS_INT);
 void enable_glyph_matrix_rows (struct glyph_matrix *, int, int, int);
 void clear_glyph_row (struct glyph_row *);
 void prepare_desired_row (struct glyph_row *);

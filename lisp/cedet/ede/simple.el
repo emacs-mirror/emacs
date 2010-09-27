@@ -21,6 +21,10 @@
 
 ;;; Commentary:
 ;;
+;; NOTE: EDE Simple Projects are considered obsolete.  Use generic
+;; projects instead.  They have much better automatic support and
+;; simpler configuration.
+;;
 ;; A vast majority of projects use non-EDE project techniques, such
 ;; as hand written Makefiles, or other IDE's.
 ;;
@@ -40,6 +44,14 @@
 (require 'cedet-files)
 
 ;;; Code:
+
+(add-to-list 'ede-project-class-files
+	     (ede-project-autoload "simple-overlay"
+	      :name "Simple" :file 'ede/simple
+	      :proj-file 'ede-simple-projectfile-for-dir
+	      :load-type 'ede-simple-load
+	      :class-sym 'ede-simple-project)
+	     t)
 
 (defcustom ede-simple-save-directory "~/.ede"
   "*Directory where simple EDE project overlays are saved."

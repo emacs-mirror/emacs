@@ -51,7 +51,7 @@ it will default to `imap'.")
 
 (defvoo nnimap-stream 'ssl
   "How nnimap will talk to the IMAP server.
-Values are `ssl' and `network'.")
+Values are `ssl', `network', `starttls' or `shell'.")
 
 (defvoo nnimap-shell-program (if (boundp 'imap-shell-program)
 				 (if (listp imap-shell-program)
@@ -62,23 +62,23 @@ Values are `ssl' and `network'.")
 (defvoo nnimap-inbox nil
   "The mail box where incoming mail arrives and should be split out of.")
 
-(defvoo nnimap-expunge-inbox nil
-  "If non-nil, expunge the inbox after fetching mail.
-This is always done if the server supports UID EXPUNGE, but it's
-not done by default on servers that doesn't support that command.")
+(defvoo nnimap-split-methods nil
+  "How mail is split.
+Uses the same syntax as nnmail-split-methods")
 
 (defvoo nnimap-authenticator nil
   "How nnimap authenticate itself to the server.
 Possible choices are nil (use default methods) or `anonymous'.")
 
-(defvoo nnimap-fetch-partial-articles nil
-  "If non-nil, nnimap will fetch partial articles.
-If t, nnimap will fetch only the first part.  If a string, it
-will fetch all parts that have types that match that string.  A
-likely value would be \"text/\" to automatically fetch all
-textual parts.")
+(defvoo nnimap-expunge t
+  "If non-nil, expunge articles after deleting them.
+This is always done if the server supports UID EXPUNGE, but it's
+not done by default on servers that doesn't support that command.")
 
-(defvoo nnimap-expunge nil)
+(defvoo nnimap-streaming t
+  "If non-nil, try to use streaming commands with IMAP servers.
+Switching this off will make nnimap slower, but it helps with
+some servers.")
 
 (defvoo nnimap-connection-alist nil)
 
@@ -91,23 +91,25 @@ textual parts.")
 (defvar nnimap-split-download-body-default nil
   "Internal variable with default value for `nnimap-split-download-body'.")
 
+(defvar nnimap-keepalive-timer nil)
+(defvar nnimap-process-buffers nil)
+
 (defstruct nnimap
-  group process commands capabilities select-result newlinep)
+  group process commands capabilities select-result newlinep server
+  last-command-time greeting)
 
 (defvar nnimap-object nil)
 
 (defvar nnimap-mark-alist
-  '((read "\\Seen")
-    (tick "\\Flagged")
-    (reply "\\Answered")
+  '((read "\\Seen" %Seen)
+    (tick "\\Flagged" %Flagged)
+    (reply "\\Answered" %Answered)
     (expire "gnus-expire")
     (dormant "gnus-dormant")
     (score "gnus-score")
     (save "gnus-save")
     (download "gnus-download")
     (forward "gnus-forward")))
-
-(defvar nnimap-split-methods nil)
 
 (defun nnimap-buffer ()
   (nnimap-find-process-buffer nntp-server-buffer))
@@ -117,7 +119,6 @@ textual parts.")
     (erase-buffer)
     (when (nnimap-possibly-change-group group server)
       (with-current-buffer (nnimap-buffer)
-	(nnimap-send-command "SELECT %S" (utf7-encode group t))
 	(erase-buffer)
 	(nnimap-wait-for-response
 	 (nnimap-send-command
@@ -125,8 +126,7 @@ textual parts.")
 	  (nnimap-article-ranges (gnus-compress-sequence articles))
 	  (format "(UID RFC822.SIZE BODYSTRUCTURE %s)"
 		  (format
-		   (if (member "IMAP4REV1"
-			       (nnimap-capabilities nnimap-object))
+		   (if (nnimap-ver4-p)
 		       "BODY.PEEK[HEADER.FIELDS %s]"
 		     "RFC822.HEADER.LINES %s")
 		   (append '(Subject From Date Message-Id
@@ -136,19 +136,26 @@ textual parts.")
 	(nnimap-transform-headers))
       (insert-buffer-substring
        (nnimap-find-process-buffer (current-buffer))))
-    t))
+    'headers))
 
 (defun nnimap-transform-headers ()
   (goto-char (point-min))
-  (let (article bytes lines size)
+  (let (article bytes lines size string)
     (block nil
       (while (not (eobp))
 	(while (not (looking-at "^\\* [0-9]+ FETCH.*UID \\([0-9]+\\)"))
 	  (delete-region (point) (progn (forward-line 1) (point)))
 	  (when (eobp)
 	    (return)))
-	(setq article (match-string 1)
-	      bytes (nnimap-get-length)
+	(setq article (match-string 1))
+	;; Unfold quoted {number} strings.
+	(while (re-search-forward "[^]] {\\([0-9]+\\)}\r\n"
+				  (1+ (line-end-position)) t)
+	  (setq size (string-to-number (match-string 1)))
+	  (delete-region (+ (match-beginning 0) 2) (point))
+	  (setq string (delete-region (point) (+ (point) size)))
+	  (insert (format "%S" string)))
+	(setq bytes (nnimap-get-length)
 	      lines nil)
 	(beginning-of-line)
 	(setq size
@@ -158,7 +165,8 @@ textual parts.")
 		   (match-string 1)))
 	(beginning-of-line)
 	(when (search-forward "BODYSTRUCTURE" (line-end-position) t)
-	  (let ((structure (ignore-errors (read (current-buffer)))))
+	  (let ((structure (ignore-errors
+			     (read (current-buffer)))))
 	    (while (and (consp structure)
 			(not (stringp (car structure))))
 	      (setq structure (car structure)))
@@ -213,8 +221,10 @@ textual parts.")
     (buffer-disable-undo)
     (gnus-add-buffer)
     (set (make-local-variable 'after-change-functions) nil)
-    (set (make-local-variable 'nnimap-object) (make-nnimap))
+    (set (make-local-variable 'nnimap-object)
+	 (make-nnimap :server (nnoo-current-server 'nnimap)))
     (push (list buffer (current-buffer)) nnimap-connection-alist)
+    (push (current-buffer) nnimap-process-buffers)
     (current-buffer)))
 
 (defun nnimap-open-shell-stream (name buffer host port)
@@ -227,7 +237,7 @@ textual parts.")
 		     ?s host
 		     ?p port)))))
 
-(defun nnimap-credentials (address ports)
+(defun nnimap-credentials (address ports &optional inhibit-create)
   (let (port credentials)
     ;; Request the credentials from all ports, but only query on the
     ;; last port if all the previous ones have failed.
@@ -235,54 +245,99 @@ textual parts.")
 		(setq port (pop ports)))
       (setq credentials
 	    (auth-source-user-or-password
-	     '("login" "password") address port nil (null ports))))
+	     '("login" "password") address port nil
+	     (if inhibit-create
+		 nil
+	       (null ports)))))
     credentials))
 
+(defun nnimap-keepalive ()
+  (let ((now (current-time)))
+    (dolist (buffer nnimap-process-buffers)
+      (when (buffer-name buffer)
+	(with-current-buffer buffer
+	  (when (and nnimap-object
+		     (nnimap-last-command-time nnimap-object)
+		     (> (time-to-seconds
+			 (time-subtract
+			  now
+			  (nnimap-last-command-time nnimap-object)))
+			;; More than five minutes since the last command.
+			(* 5 60)))
+	    (nnimap-send-command "NOOP")))))))
+
 (defun nnimap-open-connection (buffer)
+  (unless nnimap-keepalive-timer
+    (setq nnimap-keepalive-timer (run-at-time (* 60 15) (* 60 15)
+					      'nnimap-keepalive)))
   (with-current-buffer (nnimap-make-process-buffer buffer)
     (let* ((coding-system-for-read 'binary)
 	   (coding-system-for-write 'binary)
+	   (port nil)
 	   (ports
 	    (cond
 	     ((eq nnimap-stream 'network)
 	      (open-network-stream
 	       "*nnimap*" (current-buffer) nnimap-address
-	       (or nnimap-server-port
-		   (if (netrc-find-service-number "imap")
-		       "imap"
-		     "143")))
+	       (setq port
+		     (or nnimap-server-port
+			 (if (netrc-find-service-number "imap")
+			     "imap"
+			   "143"))))
 	      '("143" "imap"))
 	     ((eq nnimap-stream 'shell)
 	      (nnimap-open-shell-stream
 	       "*nnimap*" (current-buffer) nnimap-address
-	       (or nnimap-server-port "imap"))
+	       (setq port (or nnimap-server-port "imap")))
+	      '("imap"))
+	     ((eq nnimap-stream 'starttls)
+	      (starttls-open-stream
+	       "*nnimap*" (current-buffer) nnimap-address
+	       (setq port (or nnimap-server-port "imap")))
 	      '("imap"))
 	     ((eq nnimap-stream 'ssl)
 	      (open-tls-stream
 	       "*nnimap*" (current-buffer) nnimap-address
-	       (or nnimap-server-port
-		   (if (netrc-find-service-number "imaps")
-		       "imaps"
-		     "993")))
+	       (setq port
+		     (or nnimap-server-port
+			 (if (netrc-find-service-number "imaps")
+			     "imaps"
+			   "993"))))
 	      '("143" "993" "imap" "imaps"))))
 	   connection-result login-result credentials)
       (setf (nnimap-process nnimap-object)
 	    (get-buffer-process (current-buffer)))
-      (when (and (nnimap-process nnimap-object)
-		 (memq (process-status (nnimap-process nnimap-object))
-		       '(open run)))
+      (if (not (and (nnimap-process nnimap-object)
+		    (memq (process-status (nnimap-process nnimap-object))
+			  '(open run))))
+	  (nnheader-report 'nnimap "Unable to contact %s:%s via %s"
+			   nnimap-address port nnimap-stream)
 	(gnus-set-process-query-on-exit-flag (nnimap-process nnimap-object) nil)
-	(when (setq connection-result (nnimap-wait-for-connection))
+	(if (not (setq connection-result (nnimap-wait-for-connection)))
+	    (nnheader-report 'nnimap
+			     "%s" (buffer-substring
+				   (point) (line-end-position)))
+	  (setf (nnimap-greeting nnimap-object)
+		(buffer-substring (line-beginning-position)
+				  (line-end-position)))
+	  (when (eq nnimap-stream 'starttls)
+	    (nnimap-command "STARTTLS")
+	    (starttls-negotiate (nnimap-process nnimap-object)))
+	  (when nnimap-server-port
+	    (push (format "%s" nnimap-server-port) ports))
 	  (unless (equal connection-result "PREAUTH")
 	    (if (not (setq credentials
 			   (if (eq nnimap-authenticator 'anonymous)
 			       (list "anonymous"
 				     (message-make-address))
-			     (nnimap-credentials
-			      nnimap-address
-			      (if nnimap-server-port
-				  (cons (format "%s" nnimap-server-port) ports)
-				ports)))))
+			     (or
+			      ;; First look for the credentials based
+			      ;; on the virtual server name.
+			      (nnimap-credentials
+			       (nnoo-current-server 'nnimap) ports t)
+			      ;; Then look them up based on the
+			      ;; physical address.
+			      (nnimap-credentials nnimap-address ports)))))
 		(setq nnimap-object nil)
 	      (setq login-result (nnimap-command "LOGIN %S %S"
 						 (car credentials)
@@ -331,7 +386,7 @@ textual parts.")
 (deffoo nnimap-request-article (article &optional group server to-buffer)
   (with-current-buffer nntp-server-buffer
     (let ((result (nnimap-possibly-change-group group server))
-	  parts)
+	  parts structure)
       (when (stringp article)
 	(setq article (nnimap-find-article-by-message-id group article)))
       (when (and result
@@ -339,36 +394,116 @@ textual parts.")
 	(erase-buffer)
 	(with-current-buffer (nnimap-buffer)
 	  (erase-buffer)
-	  (when nnimap-fetch-partial-articles
-	    (if (eq nnimap-fetch-partial-articles t)
+	  (when gnus-fetch-partial-articles
+	    (if (eq gnus-fetch-partial-articles t)
 		(setq parts '(1))
 	      (nnimap-command "UID FETCH %d (BODYSTRUCTURE)" article)
 	      (goto-char (point-min))
 	      (when (re-search-forward "FETCH.*BODYSTRUCTURE" nil t)
-		(let ((structure (ignore-errors (read (current-buffer)))))
-		  (setq parts (nnimap-find-wanted-parts structure))))))
-	  (setq result
-		(nnimap-command
-		 (if (member "IMAP4REV1" (nnimap-capabilities nnimap-object))
-		     "UID FETCH %d BODY.PEEK[]"
-		   "UID FETCH %d RFC822.PEEK")
-		 article))
-	  ;; Check that we really got an article.
-	  (goto-char (point-min))
-	  (unless (looking-at "\\* [0-9]+ FETCH")
-	    (setq result nil)))
-	(let ((buffer (nnimap-find-process-buffer (current-buffer))))
-	  (when (car result)
-	    (with-current-buffer (or to-buffer nntp-server-buffer)
-	      (insert-buffer-substring buffer)
-	      (goto-char (point-min))
-	      (let ((bytes (nnimap-get-length)))
-		(delete-region (line-beginning-position)
-			       (progn (forward-line 1) (point)))
-		(goto-char (+ (point) bytes))
-		(delete-region (point) (point-max))
-		(nnheader-ms-strip-cr))
-	      (cons group article))))))))
+		(setq structure (ignore-errors (read (current-buffer)))
+		      parts (nnimap-find-wanted-parts structure)))))
+	  (when (if parts
+		    (nnimap-get-partial-article article parts structure)
+		  (nnimap-get-whole-article article))
+	    (let ((buffer (current-buffer)))
+	      (with-current-buffer (or to-buffer nntp-server-buffer)
+		(erase-buffer)
+		(insert-buffer-substring buffer)
+		(nnheader-ms-strip-cr)
+		(cons group article)))))))))
+
+(defun nnimap-get-whole-article (article)
+  (let ((result
+	 (nnimap-command
+	  (if (nnimap-ver4-p)
+	      "UID FETCH %d BODY.PEEK[]"
+	    "UID FETCH %d RFC822.PEEK")
+	  article)))
+    ;; Check that we really got an article.
+    (goto-char (point-min))
+    (unless (re-search-forward "\\* [0-9]+ FETCH" nil t)
+      (setq result nil))
+    (when result
+      ;; Remove any data that may have arrived before the FETCH data.
+      (beginning-of-line)
+      (unless (bobp)
+	(delete-region (point-min) (point)))
+      (let ((bytes (nnimap-get-length)))
+	(delete-region (line-beginning-position)
+		       (progn (forward-line 1) (point)))
+	(goto-char (+ (point) bytes))
+	(delete-region (point) (point-max)))
+      t)))
+
+(defun nnimap-ver4-p ()
+  (member "IMAP4REV1" (nnimap-capabilities nnimap-object)))
+
+(defun nnimap-get-partial-article (article parts structure)
+  (let ((result
+	 (nnimap-command
+	  "UID FETCH %d (%s %s)"
+	  article
+	  (if (nnimap-ver4-p)
+	      "BODY.PEEK[HEADER]"
+	    "RFC822.HEADER")
+	  (if (nnimap-ver4-p)
+	      (mapconcat (lambda (part)
+			   (format "BODY.PEEK[%s]" part))
+			 parts " ")
+	    (mapconcat (lambda (part)
+			 (format "RFC822.PEEK[%s]" part))
+		       parts " ")))))
+    (when result
+      (nnimap-convert-partial-article structure))))
+
+(defun nnimap-convert-partial-article (structure)
+  ;; First just skip past the headers.
+  (goto-char (point-min))
+  (let ((bytes (nnimap-get-length))
+	id parts)
+    ;; Delete "FETCH" line.
+    (delete-region (line-beginning-position)
+		   (progn (forward-line 1) (point)))
+    (goto-char (+ (point) bytes))
+    ;; Collect all the body parts.
+    (while (looking-at ".*BODY\\[\\([.0-9]+\\)\\]")
+      (setq id (match-string 1)
+	    bytes (nnimap-get-length))
+      (beginning-of-line)
+      (delete-region (point) (progn (forward-line 1) (point)))
+      (push (list id (buffer-substring (point) (+ (point) bytes)))
+	    parts)
+      (delete-region (point) (+ (point) bytes)))
+    ;; Delete trailing junk.
+    (delete-region (point) (point-max))
+    ;; Now insert all the parts again where they fit in the structure.
+    (nnimap-insert-partial-structure structure parts)
+    t))
+
+(defun nnimap-insert-partial-structure (structure parts &optional subp)
+  (let ((type (car (last structure 4)))
+	(boundary (cadr (member "BOUNDARY" (car (last structure 3))))))
+    (when subp
+      (insert (format "Content-type: multipart/%s; boundary=%S\n\n"
+		      (downcase type) boundary)))
+    (while (not (stringp (car structure)))
+      (insert "\n--" boundary "\n")
+      (if (consp (caar structure))
+	  (nnimap-insert-partial-structure (pop structure) parts t)
+	(let ((bit (pop structure)))
+	  (insert (format  "Content-type: %s/%s"
+			   (downcase (nth 0 bit))
+			   (downcase (nth 1 bit))))
+	  (if (member "CHARSET" (nth 2 bit))
+	      (insert (format
+		       "; charset=%S\n" (cadr (member "CHARSET" (nth 2 bit)))))
+	    (insert "\n"))
+	  (insert (format "Content-transfer-encoding: %s\n"
+			  (nth 5 bit)))
+	  (insert "\n")
+	  (when (assoc (nth 9 bit) parts)
+	    (insert (cadr (assoc (nth 9 bit) parts)))))))
+    (insert "\n--" boundary "--\n")))
 
 (defun nnimap-find-wanted-parts (structure)
   (message-flatten-list (nnimap-find-wanted-parts-1 structure "")))
@@ -384,13 +519,14 @@ textual parts.")
 			   (number-to-string num)
 			 (format "%s.%s" prefix num)))
 		  parts)
-	  (let ((type (format "%s/%s" (nth 0 sub) (nth 1 sub))))
-	    (when (string-match nnimap-fetch-partial-articles type)
-	      (push (if (string= prefix "")
+	  (let ((type (format "%s/%s" (nth 0 sub) (nth 1 sub)))
+		(id (if (string= prefix "")
 			(number-to-string num)
-		      (format "%s.%s" prefix num))
-		    parts)))
-	  (incf num))))
+		      (format "%s.%s" prefix num))))
+	    (setcar (nthcdr 9 sub) id)
+	    (when (string-match gnus-fetch-partial-articles type)
+	      (push id parts))))
+	(incf num)))
     (nreverse parts)))
 
 (deffoo nnimap-request-group (group &optional server dont-check info)
@@ -419,13 +555,11 @@ textual parts.")
 	      (when info
 		(nnimap-update-infos marks (list info)))
 	      (goto-char (point-max))
-	      (cond
-	       (marks
-		(setq high (nth 3 (car marks))
-		      low (nth 4 (car marks))))
-	       ((re-search-backward "UIDNEXT \\([0-9]+\\)" nil t)
-		(setq high (1- (string-to-number (match-string 1)))
-		      low 1)))))
+	      (let ((uidnext (nth 5 (car marks))))
+		(setq high (if uidnext
+			       (1- uidnext)
+			     (nth 3 (car marks)))
+		      low (or (nth 4 (car marks)) uidnext)))))
 	  (erase-buffer)
 	  (insert
 	   (format
@@ -497,12 +631,13 @@ textual parts.")
     articles)
    ((and force
 	 (eq nnmail-expiry-target 'delete))
-    (unless (nnimap-delete-article articles)
+    (unless (nnimap-delete-article (gnus-compress-sequence articles))
       (message "Article marked for deletion, but not expunged."))
     nil)
    (t
     (let ((deletable-articles
-	   (if force
+	   (if (or force
+		   (eq nnmail-expiry-wait 'immediate))
 	       articles
 	     (gnus-sorted-intersection
 	      articles
@@ -510,7 +645,7 @@ textual parts.")
       (if (null deletable-articles)
 	  articles
 	(if (eq nnmail-expiry-target 'delete)
-	    (nnimap-delete-article deletable-articles)
+	    (nnimap-delete-article (gnus-compress-sequence deletable-articles))
 	  (setq deletable-articles
 		(nnimap-process-expiry-targets
 		 deletable-articles group server)))
@@ -537,7 +672,7 @@ textual parts.")
     ;; Change back to the current group again.
     (nnimap-possibly-change-group group server)
     (setq deleted-articles (nreverse deleted-articles))
-    (nnimap-delete-article deleted-articles)
+    (nnimap-delete-article (gnus-compress-sequence deleted-articles))
     deleted-articles))
 
 (defun nnimap-find-expired-articles (group)
@@ -580,13 +715,16 @@ textual parts.")
       t)
      (nnimap-expunge
       (nnimap-command "EXPUNGE")
-      t))))
+      t)
+     (t (gnus-message 7 (concat "nnimap: nnimap-expunge is not set and the "
+                                "server doesn't support UIDPLUS, so we won't "
+                                "delete this article now"))))))
 
 (deffoo nnimap-request-scan (&optional group server)
   (when (and (nnimap-possibly-change-group nil server)
-	     (equal group nnimap-inbox)
 	     nnimap-inbox
 	     nnimap-split-methods)
+    (message "nnimap %s splitting mail..." server)
     (nnimap-split-incoming-mail)))
 
 (defun nnimap-marks-to-flags (marks)
@@ -664,6 +802,7 @@ textual parts.")
 	  sequences responses)
       (when groups
 	(with-current-buffer (nnimap-buffer)
+	  (setf (nnimap-group nnimap-object) nil)
 	  (dolist (group groups)
 	    (push (list (nnimap-send-command "EXAMINE %S" (utf7-encode group t))
 			group)
@@ -713,6 +852,7 @@ textual parts.")
 		groups))
 	;; Then request the data.
 	(erase-buffer)
+	(setf (nnimap-group nnimap-object) nil)
 	(dolist (elem groups)
 	  (if (and qresyncp
 		   (nth 2 elem))
@@ -734,7 +874,12 @@ textual parts.")
 			  (nnimap-send-command "UID FETCH %d:* FLAGS" start)
 			  start
 			  (car elem))
-		    sequences))))
+		    sequences)))
+	  ;; Some servers apparently can't have many outstanding
+	  ;; commands, so throttle them.
+	  (when (and (not nnimap-streaming)
+		     (car sequences))
+	    (nnimap-wait-for-response (caar sequences))))
 	sequences))))
 
 (deffoo nnimap-finish-retrieve-group-infos (server infos sequences)
@@ -742,26 +887,26 @@ textual parts.")
 	     (nnimap-possibly-change-group nil server))
     (with-current-buffer (nnimap-buffer)
       ;; Wait for the final data to trickle in.
-      (nnimap-wait-for-response (cadar sequences))
-      ;; Now we should have all the data we need, no matter whether
-      ;; we're QRESYNCING, fetching all the flags from scratch, or
-      ;; just fetching the last 100 flags per group.
-      (nnimap-update-infos (nnimap-flags-to-marks
-			    (nnimap-parse-flags
-			     (nreverse sequences)))
-			   infos)
-      ;; Finally, just return something resembling an active file in
-      ;; the nntp buffer, so that the agent can save the info, too.
-      (with-current-buffer nntp-server-buffer
-	(erase-buffer)
-	(dolist (info infos)
-	  (let* ((group (gnus-info-group info))
-		 (active (gnus-active group)))
-	    (when active
-	      (insert (format "%S %d %d y\n"
-			      (gnus-group-real-name group)
-			      (cdr active)
-			      (car active))))))))))
+      (when (nnimap-wait-for-response (cadar sequences))
+	;; Now we should have all the data we need, no matter whether
+	;; we're QRESYNCING, fetching all the flags from scratch, or
+	;; just fetching the last 100 flags per group.
+	(nnimap-update-infos (nnimap-flags-to-marks
+			      (nnimap-parse-flags
+			       (nreverse sequences)))
+			     infos)
+	;; Finally, just return something resembling an active file in
+	;; the nntp buffer, so that the agent can save the info, too.
+	(with-current-buffer nntp-server-buffer
+	  (erase-buffer)
+	  (dolist (info infos)
+	    (let* ((group (gnus-info-group info))
+		   (active (gnus-active group)))
+	      (when active
+		(insert (format "%S %d %d y\n"
+				(gnus-group-real-name group)
+				(cdr active)
+				(car active)))))))))))
 
 (defun nnimap-update-infos (flags infos)
   (dolist (info infos)
@@ -770,27 +915,40 @@ textual parts.")
 
 (defun nnimap-update-info (info marks)
   (when marks
-    (destructuring-bind (existing flags high low uidnext start-article) marks
+    (destructuring-bind (existing flags high low uidnext start-article
+				  permanent-flags) marks
       (let ((group (gnus-info-group info))
 	    (completep (and start-article
 			    (= start-article 1))))
+	(when uidnext
+	  (setq high (1- uidnext)))
 	;; First set the active ranges based on high/low.
 	(if (or completep
 		(not (gnus-active group)))
 	    (gnus-set-active group
-			     (if high
-				 (cons low high)
+			     (cond
+			      ((and low high)
+			       (cons low high))
+			      (uidnext
 			       ;; No articles in this group.
-			       (cons (1- uidnext) uidnext)))
-	  (setcdr (gnus-active group) high))
+			       (cons uidnext (1- uidnext)))
+			      (start-article
+			       (cons start-article (1- start-article)))
+			      (t
+			       ;; No articles and no uidnext.
+			       nil)))
+	  (setcdr (gnus-active group) (or high (1- uidnext))))
+	(when (and (not high)
+		   uidnext)
+	  (setq high (1- uidnext)))
 	;; Then update the list of read articles.
 	(let* ((unread
 		(gnus-compress-sequence
 		 (gnus-set-difference
 		  (gnus-set-difference
 		   existing
-		   (cdr (assoc "\\Seen" flags)))
-		  (cdr (assoc "\\Flagged" flags)))))
+		   (cdr (assoc '%Seen flags)))
+		  (cdr (assoc '%Flagged flags)))))
 	       (read (gnus-range-difference
 		      (cons start-article high) unread)))
 	  (when (> start-article 1)
@@ -812,8 +970,11 @@ textual parts.")
 	      (push (cons 'active (gnus-active group)) marks)))
 	  (dolist (type (cdr nnimap-mark-alist))
 	    (let ((old-marks (assoc (car type) marks))
-		  (new-marks (gnus-compress-sequence
-			      (cdr (assoc (cadr type) flags)))))
+		  (new-marks
+		   (gnus-compress-sequence
+		    (cdr (or (assoc (caddr type) flags)	    ; %Flagged
+			     (assoc (intern (cadr type) obarray) flags)
+			     (assoc (cadr type) flags)))))) ; "\Flagged"
 	      (setq marks (delq old-marks marks))
 	      (pop old-marks)
 	      (when (and old-marks
@@ -835,12 +996,13 @@ textual parts.")
       (push (list group info active) nnimap-current-infos))))
 
 (defun nnimap-flags-to-marks (groups)
-  (let (data group totalp uidnext articles start-article mark)
+  (let (data group totalp uidnext articles start-article mark permanent-flags)
     (dolist (elem groups)
       (setq group (car elem)
-	    uidnext (cadr elem)
-	    start-article (caddr elem)
-	    articles (cdddr elem))
+	    uidnext (nth 1 elem)
+	    start-article (nth 2 elem)
+	    permanent-flags (nth 3 elem)
+	    articles (nthcdr 4 elem))
       (let ((high (caar articles))
 	    marks low existing)
 	(dolist (article articles)
@@ -850,36 +1012,49 @@ textual parts.")
 	    (setq mark (assoc flag marks))
 	    (if (not mark)
 		(push (list flag (car article)) marks)
-	      (setcdr mark (cons (car article) (cdr mark)))))
-	  (push (list group existing marks high low uidnext start-article)
-		data))))
+	      (setcdr mark (cons (car article) (cdr mark))))))
+	(push (list group existing marks high low uidnext start-article
+		    permanent-flags)
+	      data)))
     data))
 
 (defun nnimap-parse-flags (sequences)
   (goto-char (point-min))
-  (let (start end articles groups uidnext elems)
+  ;; Change \Delete etc to %Delete, so that the reader can read it.
+  (subst-char-in-region (point-min) (point-max)
+			?\\ ?% t)
+  (let (start end articles groups uidnext elems permanent-flags)
     (dolist (elem sequences)
       (destructuring-bind (group-sequence flag-sequence totalp group) elem
+	(setq start (point))
 	;; The EXAMINE was successful.
 	(when (and (search-forward (format "\n%d OK " group-sequence) nil t)
 		   (progn
 		     (forward-line 1)
-		     (setq start (point))
-		     (if (re-search-backward "UIDNEXT \\([0-9]+\\)"
-					       (or end (point-min)) t)
-			 (setq uidnext (string-to-number (match-string 1)))
-		       (setq uidnext nil))
-		     (goto-char start))
+		     (setq end (point))
+		     (goto-char start)
+		     (setq permanent-flags
+			   (and (search-forward "PERMANENTFLAGS "
+						 (or end (point-min)) t)
+				(read (current-buffer))))
+		     (goto-char start)
+		     (setq uidnext
+			   (and (search-forward "UIDNEXT "
+						 (or end (point-min)) t)
+				(read (current-buffer))))
+		     (goto-char end)
+		     (forward-line -1))
 		   ;; The UID FETCH FLAGS was successful.
 		   (search-forward (format "\n%d OK " flag-sequence) nil t))
-	  (setq end (point))
-	  (goto-char start)
-	  (while (re-search-forward "^\\* [0-9]+ FETCH (\\(.*\\))" end t)
-	    (setq elems (nnimap-parse-line (match-string 1)))
-	    (push (cons (string-to-number (cadr (member "UID" elems)))
-			(cadr (member "FLAGS" elems)))
+	  (setq start (point))
+	  (goto-char end)
+	  (while (search-forward " FETCH " start t)
+	    (setq elems (read (current-buffer)))
+	    (push (cons (cadr (memq 'UID elems))
+			(cadr (memq 'FLAGS elems)))
 		  articles))
-	  (push (nconc (list group uidnext totalp) articles) groups)
+	  (push (nconc (list group uidnext totalp permanent-flags) articles)
+		groups)
 	  (setq articles nil))))
     groups))
 
@@ -944,6 +1119,7 @@ textual parts.")
 
 (defun nnimap-command (&rest args)
   (erase-buffer)
+  (setf (nnimap-last-command-time nnimap-object) (current-time))
   (let* ((sequence (apply #'nnimap-send-command args))
 	 (response (nnimap-get-response sequence)))
     (if (equal (caar response) "OK")
@@ -971,17 +1147,22 @@ textual parts.")
 	 (match-string 1))))
 
 (defun nnimap-wait-for-response (sequence &optional messagep)
-  (let ((process (get-buffer-process (current-buffer))))
+  (let ((process (get-buffer-process (current-buffer)))
+	openp)
     (goto-char (point-max))
-    (while (and (memq (process-status process)
-		      '(open run))
-		(not (re-search-backward (format "^%d .*\n" sequence)
-					 (max (point-min) (- (point) 500))
-					 t)))
+    (while (and (setq openp (memq (process-status process)
+				  '(open run)))
+		(not (re-search-backward
+		      (format "^%d .*\n" sequence)
+		      (if nnimap-streaming
+			  (max (point-min) (- (point) 500))
+			(point-min))
+		      t)))
       (when messagep
 	(message "Read %dKB" (/ (buffer-size) 1000)))
       (nnheader-accept-process-output process)
-      (goto-char (point-max)))))
+      (goto-char (point-max)))
+    openp))
 
 (defun nnimap-parse-response ()
   (let ((lines (split-string (nnimap-last-response-string) "\r\n" t))
@@ -1055,8 +1236,7 @@ textual parts.")
     (nnimap-article-ranges articles)
     (format "(UID %s%s)"
 	    (format
-	     (if (member "IMAP4REV1"
-			 (nnimap-capabilities nnimap-object))
+	     (if (nnimap-ver4-p)
 		 "BODY.PEEK[HEADER] BODY.PEEK"
 	       "RFC822.PEEK"))
 	    (if nnimap-split-download-body-default
@@ -1082,32 +1262,38 @@ textual parts.")
 	(nnmail-split-incoming (current-buffer)
 			       #'nnimap-save-mail-spec
 			       nil nil
-			       #'nnimap-dummy-active-number)
+			       #'nnimap-dummy-active-number
+			       #'nnimap-save-mail-spec)
 	(when nnimap-incoming-split-list
 	  (let ((specs (nnimap-make-split-specs nnimap-incoming-split-list))
-		sequences)
+		sequences junk-articles)
 	    ;; Create any groups that doesn't already exist on the
 	    ;; server first.
 	    (dolist (spec specs)
-	      (unless (member (car spec) groups)
+	      (when (and (not (member (car spec) groups))
+			 (not (eq (car spec) 'junk)))
 		(nnimap-command "CREATE %S" (utf7-encode (car spec) t))))
 	    ;; Then copy over all the messages.
 	    (erase-buffer)
 	    (dolist (spec specs)
 	      (let ((group (car spec))
 		    (ranges (cdr spec)))
-		(push (list (nnimap-send-command "UID COPY %s %S"
-						 (nnimap-article-ranges ranges)
-						 (utf7-encode group t))
-			    ranges)
-		      sequences)))
+		(if (eq group 'junk)
+		    (setq junk-articles ranges)
+		  (push (list (nnimap-send-command
+			       "UID COPY %s %S"
+			       (nnimap-article-ranges ranges)
+			       (utf7-encode group t))
+			      ranges)
+			sequences))))
 	    ;; Wait for the last COPY response...
 	    (when sequences
 	      (nnimap-wait-for-response (caar sequences))
 	      ;; And then mark the successful copy actions as deleted,
 	      ;; and possibly expunge them.
 	      (nnimap-mark-and-expunge-incoming
-	       (nnimap-parse-copied-articles sequences)))))))))
+	       (nnimap-parse-copied-articles sequences)))
+            (nnimap-mark-and-expunge-incoming junk-articles)))))))
 
 (defun nnimap-mark-and-expunge-incoming (range)
   (when range
@@ -1122,7 +1308,7 @@ textual parts.")
 	(setq sequence (nnimap-send-command "UID EXPUNGE %s" range)))
        ;; If it doesn't support UID EXPUNGE, then we only expunge if the
        ;; user has configured it.
-       (nnimap-expunge-inbox
+       (nnimap-expunge
 	(setq sequence (nnimap-send-command "EXPUNGE"))))
       (nnimap-wait-for-response sequence))))
 
@@ -1139,8 +1325,8 @@ textual parts.")
   (let (new)
     (dolist (elem flags)
       (when (or (null (cdr elem))
-		(and (not (member "\\Deleted" (cdr elem)))
-		     (not (member "\\Seen" (cdr elem)))))
+		(and (not (memq '%Deleted (cdr elem)))
+		     (not (memq '%Seen (cdr elem)))))
 	(push (car elem) new)))
     (gnus-compress-sequence (nreverse new))))
 
@@ -1187,7 +1373,10 @@ textual parts.")
     (if (not (re-search-forward "X-nnimap-article: \\([0-9]+\\)" nil t))
 	(error "Invalid nnimap mail")
       (setq article (string-to-number (match-string 1))))
-    (push (list article group-art)
+    (push (list article
+		(if (eq group-art 'junk)
+		    (list (cons 'junk 1))
+		  group-art))
 	  nnimap-incoming-split-list)))
 
 (provide 'nnimap)

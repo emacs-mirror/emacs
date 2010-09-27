@@ -61,7 +61,7 @@ ordinary strings."
 ;;; User Variables:
 
 (defcustom eshell-pred-load-hook '(eshell-pred-initialize)
-  "*A list of functions to run when `eshell-pred' is loaded."
+  "A list of functions to run when `eshell-pred' is loaded."
   :type 'hook
   :group 'eshell-pred)
 
@@ -101,7 +101,7 @@ ordinary strings."
     (?m . (eshell-pred-file-time ?m "modification" 5))
     (?c . (eshell-pred-file-time ?c "change" 6))
     (?L . (eshell-pred-file-size)))
-  "*A list of predicates than can be applied to a globbing pattern.
+  "A list of predicates than can be applied to a globbing pattern.
 The format of each entry is
 
   (CHAR . PREDICATE-FUNC-SEXP)"
@@ -150,7 +150,7 @@ The format of each entry is
 		(eshell-pred-substitute t)
 	      (error "`g' modifier cannot be used alone"))))
     (?s . (eshell-pred-substitute)))
-  "*A list of modifiers than can be applied to an argument expansion.
+  "A list of modifiers than can be applied to an argument expansion.
 The format of each entry is
 
   (CHAR ENTRYWISE-P MODIFIER-FUNC-SEXP)"

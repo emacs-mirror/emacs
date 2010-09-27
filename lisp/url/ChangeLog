@@ -1,3 +1,26 @@
+2010-09-25  Julien Danjou  <julien@danjou.info>
+
+	* url-cache.el (url-cache-create-filename): Ensure no-port and
+	default-port end up with the same cache file.
+	(url-cache-create-filename-human-readable)
+	(url-cache-create-filename-using-md5): Argument is always in the form of
+	a string now.
+
+2010-09-23  Glenn Morris  <rgm@gnu.org>
+
+	* url-cache.el (url-is-cached): Doc fix.
+
+2010-09-23  Glenn Morris  <rgm@gnu.org>
+
+	* url-cache.el (url-cache-expired): Don't autoload.
+	Tweak previous change.
+	(url-cache-expire-time): Doc fix.
+
+2010-09-23  Julien Danjou  <julien@danjou.info>
+
+	* url-cache.el (url-cache-expire-time): New option.
+	(url-cache-expired): Rewrite.
+
 2010-09-19  Julien Danjou  <julien@danjou.info>
 
 	* url-cache.el (url-fetch-from-cache): New function.

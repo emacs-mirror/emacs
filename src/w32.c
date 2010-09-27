@@ -1925,7 +1925,25 @@ get_emacs_configuration (void)
 char *
 get_emacs_configuration_options (void)
 {
-  static char options_buffer[256];
+  static char *options_buffer;
+  char cv[32];  /* Enough for COMPILER_VERSION.  */
+  char *options[] = {
+    cv,  /* To be filled later.  */
+#ifdef EMACSDEBUG
+    " --no-opt",
+#endif
+    /* configure.bat already sets USER_CFLAGS and USER_LDFLAGS
+       with a starting space to save work here.  */
+#ifdef USER_CFLAGS
+    " --cflags", USER_CFLAGS,
+#endif
+#ifdef USER_LDFLAGS
+    " --ldflags", USER_LDFLAGS,
+#endif
+    NULL
+  };
+  size_t size = 0;
+  int i;
 
 /* Work out the effective configure options for this build.  */
 #ifdef _MSC_VER
@@ -1938,18 +1956,19 @@ get_emacs_configuration_options (void)
 #endif
 #endif
 
-  sprintf (options_buffer, COMPILER_VERSION);
-#ifdef EMACSDEBUG
-  strcat (options_buffer, " --no-opt");
-#endif
-#ifdef USER_CFLAGS
-  strcat (options_buffer, " --cflags");
-  strcat (options_buffer, USER_CFLAGS);
-#endif
-#ifdef USER_LDFLAGS
-  strcat (options_buffer, " --ldflags");
-  strcat (options_buffer, USER_LDFLAGS);
-#endif
+  if (_snprintf (cv, sizeof (cv) - 1, COMPILER_VERSION) < 0)
+    return "Error: not enough space for compiler version";
+  cv[sizeof (cv) - 1] = '\0';
+
+  for (i = 0; options[i]; i++)
+    size += strlen (options[i]);
+
+  options_buffer = xmalloc (size + 1);
+  options_buffer[0] = '\0';
+
+  for (i = 0; options[i]; i++)
+    strcat (options_buffer, options[i]);
+
   return options_buffer;
 }
 

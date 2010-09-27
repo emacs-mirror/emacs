@@ -1,7 +1,7 @@
 ;;; spell.el --- spelling correction interface for Emacs
 
-;; Copyright (C) 1985, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009, 2010  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: wp, unix
@@ -37,12 +37,12 @@
   :group 'applications)
 
 (defcustom spell-command "spell"
-  "*Command to run the spell program."
+  "Command to run the spell program."
   :type 'string
   :group 'spell)
 
 (defcustom spell-filter nil
-  "*Filter function to process text before passing it to spell program.
+  "Filter function to process text before passing it to spell program.
 This function might remove text-processor commands.
 nil means don't alter the text before checking it."
   :type '(choice (const nil) function)

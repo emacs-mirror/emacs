@@ -262,7 +262,6 @@ typedef BOOL (WINAPI * GetMonitorInfo_Proc)
   (IN HMONITOR monitor, OUT struct MONITOR_INFO* info);
 
 TrackMouseEvent_Proc track_mouse_event_fn = NULL;
-ClipboardSequence_Proc clipboard_sequence_fn = NULL;
 ImmGetCompositionString_Proc get_composition_string_fn = NULL;
 ImmGetContext_Proc get_ime_context_fn = NULL;
 ImmReleaseContext_Proc release_ime_context_fn = NULL;
@@ -7183,9 +7182,6 @@ globals_of_w32fns (void)
   */
   track_mouse_event_fn = (TrackMouseEvent_Proc)
     GetProcAddress (user32_lib, "TrackMouseEvent");
-  /* ditto for GetClipboardSequenceNumber.  */
-  clipboard_sequence_fn = (ClipboardSequence_Proc)
-    GetProcAddress (user32_lib, "GetClipboardSequenceNumber");
 
   monitor_from_point_fn = (MonitorFromPoint_Proc)
     GetProcAddress (user32_lib, "MonitorFromPoint");

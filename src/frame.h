@@ -310,7 +310,7 @@ struct frame
   /* Canonical X unit.  Width of default font, in pixels.  */
   int column_width;
 
-  /* Widht of space glyph of default font, in pixels.  */
+  /* Width of space glyph of default font, in pixels.  */
   int space_width;
 
   /* Canonical Y unit.  Height of a line, in pixels.  */

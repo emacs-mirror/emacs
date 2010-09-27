@@ -1359,7 +1359,7 @@ When non-nil, this must be the number of minutes, e.g. 60 for one hour."
   "Regular expression used to filter away specific tags in agenda views.
 This means that these tags will be present, but not be shown in the agenda
 line.  Secondary filtering will still work on the hidden tags.
-Nil means don't hide any tags."
+The value nil means don't hide any tags."
   :group 'org-agenda-line-format
   :type '(choice
 	  (const  :tag "Hide none" nil)

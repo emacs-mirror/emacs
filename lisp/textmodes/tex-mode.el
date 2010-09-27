@@ -58,14 +58,14 @@
 
 ;;;###autoload
 (defcustom tex-shell-file-name nil
-  "*If non-nil, the shell file name to run in the subshell used to run TeX."
+  "If non-nil, the shell file name to run in the subshell used to run TeX."
   :type '(choice (const :tag "None" nil)
 		 string)
   :group 'tex-run)
 
 ;;;###autoload
 (defcustom tex-directory (purecopy ".")
-  "*Directory in which temporary files are written.
+  "Directory in which temporary files are written.
 You can make this `/tmp' if your TEXINPUTS has no relative directories in it
 and you don't try to apply \\[tex-region] or \\[tex-buffer] when there are
 `\\input' commands with relative directories."
@@ -84,7 +84,7 @@ if it matches the first line of the file,
 
 ;;;###autoload
 (defcustom tex-main-file nil
-  "*The main TeX source file which includes this buffer's file.
+  "The main TeX source file which includes this buffer's file.
 The command `tex-file' runs TeX on the file specified by `tex-main-file'
 if the variable is non-nil."
   :type '(choice (const :tag "None" nil)
@@ -93,13 +93,13 @@ if the variable is non-nil."
 
 ;;;###autoload
 (defcustom tex-offer-save t
-  "*If non-nil, ask about saving modified buffers before \\[tex-file] is run."
+  "If non-nil, ask about saving modified buffers before \\[tex-file] is run."
   :type 'boolean
   :group 'tex-file)
 
 ;;;###autoload
 (defcustom tex-run-command (purecopy "tex")
-  "*Command used to run TeX subjob.
+  "Command used to run TeX subjob.
 TeX Mode sets `tex-command' to this string.
 See the documentation of that variable."
   :type 'string
@@ -107,7 +107,7 @@ See the documentation of that variable."
 
 ;;;###autoload
 (defcustom latex-run-command (purecopy "latex")
-  "*Command used to run LaTeX subjob.
+  "Command used to run LaTeX subjob.
 LaTeX Mode sets `tex-command' to this string.
 See the documentation of that variable."
   :type 'string
@@ -115,7 +115,7 @@ See the documentation of that variable."
 
 ;;;###autoload
 (defcustom slitex-run-command (purecopy "slitex")
-  "*Command used to run SliTeX subjob.
+  "Command used to run SliTeX subjob.
 SliTeX Mode sets `tex-command' to this string.
 See the documentation of that variable."
   :type 'string
@@ -123,7 +123,7 @@ See the documentation of that variable."
 
 ;;;###autoload
 (defcustom tex-start-options (purecopy "")
-  "*TeX options to use when starting TeX.
+  "TeX options to use when starting TeX.
 These immediately precede the commands in `tex-start-commands'
 and the input file name, with no separating space and are not shell-quoted.
 If nil, TeX runs with no options.  See the documentation of `tex-command'."
@@ -133,7 +133,7 @@ If nil, TeX runs with no options.  See the documentation of `tex-command'."
 
 ;;;###autoload
 (defcustom tex-start-commands (purecopy "\\nonstopmode\\input")
-  "*TeX commands to use when starting TeX.
+  "TeX commands to use when starting TeX.
 They are shell-quoted and precede the input file name, with a separating space.
 If nil, no commands are used.  See the documentation of `tex-command'."
   :type '(radio (const :tag "Interactive \(nil\)" nil)
@@ -157,14 +157,14 @@ If nil, no commands are used.  See the documentation of `tex-command'."
 
 ;;;###autoload
 (defcustom latex-block-names nil
-  "*User defined LaTeX block names.
+  "User defined LaTeX block names.
 Combined with `latex-standard-block-names' for minibuffer completion."
   :type '(repeat string)
   :group 'tex-run)
 
 ;;;###autoload
 (defcustom tex-bibtex-command (purecopy "bibtex")
-  "*Command used by `tex-bibtex-file' to gather bibliographic data.
+  "Command used by `tex-bibtex-file' to gather bibliographic data.
 If this string contains an asterisk (`*'), that is replaced by the file name;
 otherwise, the file name, preceded by blank, is added at the end."
   :type 'string
@@ -172,7 +172,7 @@ otherwise, the file name, preceded by blank, is added at the end."
 
 ;;;###autoload
 (defcustom tex-dvi-print-command (purecopy "lpr -d")
-  "*Command used by \\[tex-print] to print a .dvi file.
+  "Command used by \\[tex-print] to print a .dvi file.
 If this string contains an asterisk (`*'), that is replaced by the file name;
 otherwise, the file name, preceded by blank, is added at the end."
   :type 'string
@@ -180,7 +180,7 @@ otherwise, the file name, preceded by blank, is added at the end."
 
 ;;;###autoload
 (defcustom tex-alt-dvi-print-command (purecopy "lpr -d")
-  "*Command used by \\[tex-print] with a prefix arg to print a .dvi file.
+  "Command used by \\[tex-print] with a prefix arg to print a .dvi file.
 If this string contains an asterisk (`*'), that is replaced by the file name;
 otherwise, the file name, preceded by blank, is added at the end.
 
@@ -203,7 +203,7 @@ use."
     ((eq window-system 'x) ,(purecopy "xdvi"))
     ((eq window-system 'w32) ,(purecopy "yap"))
     (t ,(purecopy "dvi2tty * | cat -s")))
-  "*Command used by \\[tex-view] to display a `.dvi' file.
+  "Command used by \\[tex-view] to display a `.dvi' file.
 If it is a string, that specifies the command directly.
 If this string contains an asterisk (`*'), that is replaced by the file name;
 otherwise, the file name, preceded by a space, is added at the end.
@@ -214,14 +214,14 @@ If the value is a form, it is evaluated to get the command to use."
 
 ;;;###autoload
 (defcustom tex-show-queue-command (purecopy "lpq")
-  "*Command used by \\[tex-show-print-queue] to show the print queue.
+  "Command used by \\[tex-show-print-queue] to show the print queue.
 Should show the queue(s) that \\[tex-print] puts jobs on."
   :type 'string
   :group 'tex-view)
 
 ;;;###autoload
 (defcustom tex-default-mode 'latex-mode
-  "*Mode to enter for a new file that might be either TeX or LaTeX.
+  "Mode to enter for a new file that might be either TeX or LaTeX.
 This variable is used when it can't be determined whether the file
 is plain TeX or LaTeX or what because the file contains no commands.
 Normally set to either `plain-tex-mode' or `latex-mode'."
@@ -230,14 +230,14 @@ Normally set to either `plain-tex-mode' or `latex-mode'."
 
 ;;;###autoload
 (defcustom tex-open-quote (purecopy "``")
-  "*String inserted by typing \\[tex-insert-quote] to open a quotation."
+  "String inserted by typing \\[tex-insert-quote] to open a quotation."
   :type 'string
   :options '("``" "\"<" "\"`" "<<" "«")
   :group 'tex)
 
 ;;;###autoload
 (defcustom tex-close-quote (purecopy "''")
-  "*String inserted by typing \\[tex-insert-quote] to close a quotation."
+  "String inserted by typing \\[tex-insert-quote] to close a quotation."
   :type 'string
   :options '("''" "\">" "\"'" ">>" "»")
   :group 'tex)
@@ -327,7 +327,7 @@ Set by \\[tex-region], \\[tex-buffer], and \\[tex-file].")
 ;;;;
 
 (defcustom latex-imenu-indent-string ". "
-  "*String to add repeated in front of nested sectional units for Imenu.
+  "String to add repeated in front of nested sectional units for Imenu.
 An alternative value is \" . \", if you use a font with a narrow period."
   :type 'string
   :group 'tex)

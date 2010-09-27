@@ -391,8 +391,8 @@ used to render text.  If it is nil, text will simply be folded.")
   t)
 
 (deffoo nnrss-retrieve-groups (groups &optional server)
-  (nnrss-possibly-change-group nil server)
   (dolist (group groups)
+    (nnrss-possibly-change-group group server)
     (nnrss-check-group group server))
   (with-current-buffer nntp-server-buffer
     (erase-buffer)

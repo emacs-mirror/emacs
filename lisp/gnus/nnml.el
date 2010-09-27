@@ -846,7 +846,9 @@ article number.  This function is called narrowed to an article."
     buffer))
 
 (defun nnml-open-nov (group)
-  (or (cdr (assoc group nnml-nov-buffer-alist))
+  (or (let ((buffer (cdr (assoc group nnml-nov-buffer-alist))))
+	(and (buffer-name buffer)
+	     buffer))
       (let ((buffer (nnml-get-nov-buffer group)))
 	(push (cons group buffer) nnml-nov-buffer-alist)
 	buffer)))
@@ -1047,7 +1049,7 @@ Use the nov database for the current group if available."
     (nnml-save-marks group server))
   nil)
 
-(deffoo nnml-request-update-info (group info &optional server)
+(deffoo nnml-request-marks (group info &optional server)
   (nnml-possibly-change-directory group server)
   (when (and (not nnml-marks-is-evil) (nnml-marks-changed-p group server))
     (nnheader-message 8 "Updating marks for %s..." group)

@@ -1810,8 +1810,8 @@ what syntax class CHAR has.")
 
 (defvar semantic-ignore-comments t
   "Default comment handling.
-t means to strip comments when flexing.  Nil means to keep comments
-as part of the token stream.")
+The value t means to strip comments when flexing; nil means
+to keep comments as part of the token stream.")
 (make-variable-buffer-local 'semantic-ignore-comments)
 
 (defvar semantic-flex-enable-newlines nil

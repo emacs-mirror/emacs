@@ -27,20 +27,8 @@
 
 ;;; Code:
 (require 'autoconf)
-
-(defvar autoconf-new-automake-string
-  "dnl Process this file with autoconf to produce a configure script
-
-AC_INIT(%s)
-AM_INIT_AUTOMAKE([%s], 0)
-AM_CONFIG_HEADER(config.h)
-
-dnl End the configure script.
-AC_OUTPUT(Makefile, [date > stamp-h] )\n"
-  "This string is used to initialize a new configure.in.
-The default is designed to be used with automake.
-The first %s will be filled with the test file.
-The second %s will be filled with the program name.")
+(declare-function ede-srecode-setup "ede/srecode")
+(declare-function ede-srecode-insert "ede/srecode")
 
 (defun autoconf-new-program (rootdir program testfile)
   "Initialize a new configure.in in ROOTDIR for PROGRAM using TESTFILE.
@@ -49,6 +37,7 @@ PROGRAM is the program to be configured.
 TESTFILE is the file used with AC_INIT.
 configure the initial configure script using `autoconf-new-automake-string'"
   (interactive "DRoot Dir: \nsProgram: \nsTest File: ")
+  (require 'ede/srecode)
   (if (bufferp rootdir)
       (set-buffer rootdir)
     (let ((cf1 (expand-file-name "configure.in" rootdir))
@@ -62,7 +51,12 @@ configure the initial configure script using `autoconf-new-automake-string'"
       (find-file cf2)))
   ;; Note, we only ask about overwrite if a string/path is specified.
   (erase-buffer)
-  (insert (format autoconf-new-automake-string testfile program)))
+  (ede-srecode-setup)
+  (ede-srecode-insert
+   "file:ede-empty"
+   "TEST_FILE" testfile
+   "PROGRAM" program)
+  )
 
 (defvar autoconf-preferred-macro-order
   '("AC_INIT"
@@ -151,42 +145,44 @@ From the autoconf manual:
     (beginning-of-line)
     (looking-at (concat "\\(A[CM]_" macro "\\|" macro "\\)"))))
 
-(defun autoconf-find-last-macro (macro)
+(defun autoconf-find-last-macro (macro &optional ignore-bol)
   "Move to the last occurrence of MACRO in FILE, and return that point.
 The last macro is usually the one in which we would like to insert more
 items such as CHECK_HEADERS."
-  (let ((op (point)))
+  (let ((op (point)) (atbol (if ignore-bol "" "^")))
     (goto-char (point-max))
-    (if (re-search-backward (concat "^" (regexp-quote macro) "\\s-*\\((\\|$\\)") nil t)
+    (if (re-search-backward (concat atbol (regexp-quote macro) "\\s-*\\((\\|$\\)") nil t)
 	(progn
-	  (beginning-of-line)
+	  (unless ignore-bol (beginning-of-line))
 	  (point))
       (goto-char op)
       nil)))
 
 (defun autoconf-parameter-strip (param)
   "Strip the parameter PARAM  of whitespace and miscellaneous characters."
-  (when (string-match "^\\s-*\\[?\\s-*" param)
+  ;; force greedy match for \n.
+  (when (string-match "\\`\n*\\s-*\\[?\\s-*" param)
     (setq param (substring param (match-end 0))))
-  (when (string-match "\\s-*\\]?\\s-*$" param)
+  (when (string-match "\\s-*\\]?\\s-*\\'" param)
     (setq param (substring param 0  (match-beginning 0))))
   param)
 
-(defun autoconf-parameters-for-macro (macro)
+(defun autoconf-parameters-for-macro (macro &optional ignore-bol ignore-case)
   "Retrieve the parameters to MACRO.
 Returns a list of the arguments passed into MACRO as strings."
-  (save-excursion
-    (when (autoconf-find-last-macro macro)
-      (forward-sexp 1)
-      (mapcar
-       #'autoconf-parameter-strip
-       (when (looking-at "(")
-	 (let* ((start (+ (point) 1))
-		(end (save-excursion
-		       (forward-sexp 1)
-		       (- (point) 1)))
-		(ans (buffer-substring-no-properties start end)))
-	   (split-string ans "," t)))))))
+  (let ((case-fold-search ignore-case))
+    (save-excursion
+      (when (autoconf-find-last-macro macro ignore-bol)
+	(forward-sexp 1)
+	(mapcar
+	 #'autoconf-parameter-strip
+	 (when (looking-at "(")
+	   (let* ((start (+ (point) 1))
+		  (end (save-excursion
+			 (forward-sexp 1)
+			 (- (point) 1)))
+		  (ans (buffer-substring-no-properties start end)))
+	     (split-string ans "," t))))))))
 
 (defun autoconf-position-for-macro (macro)
   "Position the cursor where a new MACRO could be inserted.

@@ -76,8 +76,8 @@ BODY should be an expression, and BINDINGS should be a list of bindings
 of the form (UPAT EXP)."
   (if (null bindings) body
     `(pcase ,(cadr (car bindings))
-       (,(caar bindings) (plet* ,(cdr bindings) ,body))
-       (t (error "Pattern match failure in `plet'")))))
+       (,(caar bindings) (pcase-let* ,(cdr bindings) ,body))
+       (t (error "Pattern match failure in `pcase-let'")))))
 
 ;;;###autoload
 (defmacro pcase-let (bindings body)
@@ -85,13 +85,14 @@ of the form (UPAT EXP)."
 BODY should be an expression, and BINDINGS should be a list of bindings
 of the form (UPAT EXP)."
   (if (null (cdr bindings))
-      `(plet* ,bindings ,body)
+      `(pcase-let* ,bindings ,body)
     (setq bindings (mapcar (lambda (x) (cons (make-symbol "x") x)) bindings))
     `(let ,(mapcar (lambda (binding) (list (nth 0 binding) (nth 2 binding)))
                    bindings)
-       (plet* ,(mapcar (lambda (binding) (list (nth 1 binding) (nth 0 binding)))
-                       bindings)
-              ,body))))
+       (pcase-let*
+        ,(mapcar (lambda (binding) (list (nth 1 binding) (nth 0 binding)))
+                 bindings)
+        ,body))))
 
 (defun pcase-expand (exp cases)
   (let* ((defs (if (symbolp exp) '()

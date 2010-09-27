@@ -451,8 +451,10 @@ and non-`vertical', do both horizontal and vertical recentering."
 		 (integer :tag "height")
 		 (sexp :menu-tag "both" t)))
 
-(defvar gnus-auto-center-group t
-  "*If non-nil, always center the group buffer.")
+(defcustom gnus-auto-center-group t
+  "If non-nil, always center the group buffer."
+  :group 'gnus-summary-maneuvering
+  :type 'boolean)
 
 (defcustom gnus-show-all-headers nil
   "*If non-nil, don't hide any headers."
@@ -1539,22 +1541,34 @@ This list will always be a subset of gnus-newsgroup-undownloaded.")
 
 (defvar gnus-summary-local-variables
   '(gnus-newsgroup-name
+
+    ;; Marks lists
+    gnus-newsgroup-unreads
+    gnus-newsgroup-unselected
+    gnus-newsgroup-marked
+    gnus-newsgroup-spam-marked
+    gnus-newsgroup-reads
+    gnus-newsgroup-saved
+    gnus-newsgroup-replied
+    gnus-newsgroup-forwarded
+    gnus-newsgroup-recent
+    gnus-newsgroup-expirable
+    gnus-newsgroup-killed
+    gnus-newsgroup-unseen
+    gnus-newsgroup-seen
+    gnus-newsgroup-cached
+    gnus-newsgroup-downloadable
+    gnus-newsgroup-undownloaded
+    gnus-newsgroup-unsendable
+
     gnus-newsgroup-begin gnus-newsgroup-end
     gnus-newsgroup-last-rmail gnus-newsgroup-last-mail
     gnus-newsgroup-last-folder gnus-newsgroup-last-file
     gnus-newsgroup-last-directory
-    gnus-newsgroup-auto-expire gnus-newsgroup-unreads
-    gnus-newsgroup-unselected gnus-newsgroup-marked
-    gnus-newsgroup-spam-marked
-    gnus-newsgroup-reads gnus-newsgroup-saved
-    gnus-newsgroup-replied gnus-newsgroup-forwarded
-    gnus-newsgroup-recent
-    gnus-newsgroup-expirable
-    gnus-newsgroup-processable gnus-newsgroup-killed
-    gnus-newsgroup-downloadable gnus-newsgroup-undownloaded
+    gnus-newsgroup-auto-expire
+    gnus-newsgroup-processable
     gnus-newsgroup-unfetched
-    gnus-newsgroup-unsendable gnus-newsgroup-unseen
-    gnus-newsgroup-seen gnus-newsgroup-articles
+    gnus-newsgroup-articles
     gnus-newsgroup-bookmarks gnus-newsgroup-dormant
     gnus-newsgroup-headers gnus-newsgroup-threads
     gnus-newsgroup-prepared gnus-summary-highlight-line-function
@@ -1573,7 +1587,7 @@ This list will always be a subset of gnus-newsgroup-undownloaded.")
     (gnus-newsgroup-adaptive . gnus-use-adaptive-scoring)
     gnus-newsgroup-adaptive-score-file (gnus-reffed-article-number . -1)
     (gnus-newsgroup-expunged-tally . 0)
-    gnus-cache-removable-articles gnus-newsgroup-cached
+    gnus-cache-removable-articles
     gnus-newsgroup-data gnus-newsgroup-data-reverse
     gnus-newsgroup-limit gnus-newsgroup-limits
     gnus-newsgroup-charset gnus-newsgroup-display
@@ -2035,6 +2049,7 @@ increase the score of each group you read."
   "e" gnus-summary-end-of-article
   "^" gnus-summary-refer-parent-article
   "r" gnus-summary-refer-parent-article
+  "C" gnus-summary-show-complete-article
   "D" gnus-summary-enter-digest-group
   "R" gnus-summary-refer-references
   "T" gnus-summary-refer-thread
@@ -2112,7 +2127,9 @@ increase the score of each group you read."
   "W" gnus-html-show-images
   "f" gnus-treat-from-picon
   "m" gnus-treat-mail-picon
-  "n" gnus-treat-newsgroups-picon)
+  "n" gnus-treat-newsgroups-picon
+  "g" gnus-treat-from-gravatar
+  "h" gnus-treat-mail-gravatar)
 
 (gnus-define-keys (gnus-summary-wash-mime-map "M" gnus-summary-wash-map)
   "w" gnus-article-decode-mime-words
@@ -2142,11 +2159,9 @@ increase the score of each group you read."
 
 (gnus-define-keys (gnus-summary-help-map "H" gnus-summary-mode-map)
   "v" gnus-version
-  "f" gnus-summary-fetch-faq
   "d" gnus-summary-describe-group
   "h" gnus-summary-describe-briefly
   "i" gnus-info-find-node
-  "c" gnus-group-fetch-charter
   "C" gnus-group-fetch-control)
 
 (gnus-define-keys (gnus-summary-backend-map "B" gnus-summary-mode-map)
@@ -2362,6 +2377,8 @@ increase the score of each group you read."
 	      ["Show picons in From" gnus-treat-from-picon t]
 	      ["Show picons in mail headers" gnus-treat-mail-picon t]
 	      ["Show picons in news headers" gnus-treat-newsgroups-picon t]
+              ["Show Gravatars in From" gnus-treat-from-gravatar t]
+	      ["Show Gravatars in mail headers" gnus-treat-mail-gravatar t]
 	      ("View as different encoding"
 	       ,@(gnus-summary-menu-split
 		  (mapcar
@@ -2721,11 +2738,7 @@ gnus-summary-show-article-from-menu-as-charset-%s" cs))))
 	 ["Randomize" gnus-summary-sort-by-random t]
 	 ["Original sort" gnus-summary-sort-by-original t])
 	("Help"
-	 ["Fetch group FAQ" gnus-summary-fetch-faq t]
 	 ["Describe group" gnus-summary-describe-group t]
-	 ["Fetch charter" gnus-group-fetch-charter
-	  ,@(if (featurep 'xemacs) nil
-	      '(:help "Display the charter of the current group"))]
 	 ["Fetch control message" gnus-group-fetch-control
 	  ,@(if (featurep 'xemacs) nil
 	      '(:help "Display the archived control message for the current group"))]
@@ -5358,18 +5371,18 @@ or a straight list of headers."
 	    (if (= gnus-tmp-lines -1)
 		(setq gnus-tmp-lines "?")
 	      (setq gnus-tmp-lines (number-to-string gnus-tmp-lines)))
-              (gnus-put-text-property
-	       (point)
-	       (progn (eval gnus-summary-line-format-spec) (point))
-               'gnus-number number)
-	      (when gnus-visual-p
-		(forward-line -1)
-		(gnus-summary-highlight-line)
-		(when gnus-summary-update-hook
-		  (gnus-run-hooks 'gnus-summary-update-hook))
-		(forward-line 1))
+	    (gnus-put-text-property
+	     (point)
+	     (progn (eval gnus-summary-line-format-spec) (point))
+	     'gnus-number number)
+	    (when gnus-visual-p
+	      (forward-line -1)
+	      (gnus-summary-highlight-line)
+	      (when gnus-summary-update-hook
+		(gnus-run-hooks 'gnus-summary-update-hook))
+	      (forward-line 1))
 
-	      (setq gnus-tmp-prev-subject simp-subject)))
+	    (setq gnus-tmp-prev-subject simp-subject)))
 
 	(when (nth 1 thread)
 	  (push (list (max 0 gnus-tmp-level)
@@ -5976,6 +5989,10 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 	    (when add
 	      (push (list add 'add (list (cdr type))) delta-marks))
 	    (when del
+	      ;; Don't delete marks from outside the active range.  This
+	      ;; shouldn't happen, but is a sanity check.
+	      (setq del (gnus-sorted-range-intersection
+			 (gnus-active gnus-newsgroup-name) del))
 	      (push (list del 'del (list (cdr type))) delta-marks))))
 
 	(when list
@@ -6201,8 +6218,6 @@ The resulting hash table is returned, or nil if no Xrefs were found."
 	;; Update the group buffer.
 	(unless (gnus-ephemeral-group-p group)
 	  (gnus-group-update-group group t))))))
-
-(defvar gnus-newsgroup-none-id 0)
 
 (defun gnus-get-newsgroup-headers (&optional dependencies force-new)
   (let ((cur nntp-server-buffer)
@@ -7307,23 +7322,6 @@ The state which existed when entering the ephemeral is reset."
 	       (substring name (match-end 0)))
        t)))
   (gnus-message 3 "This dead summary is now alive again"))
-
-;; Suggested by Andrew Eskilsson <pi92ae@pt.hk-r.se>.
-(defun gnus-summary-fetch-faq (&optional faq-dir)
-  "Fetch the FAQ for the current group.
-If FAQ-DIR (the prefix), prompt for a directory to search for the faq
-in."
-  (interactive
-   (list
-    (when current-prefix-arg
-      (completing-read
-       "FAQ dir: " (and (listp gnus-group-faq-directory)
-			(mapcar 'list
-				gnus-group-faq-directory))))))
-  (let (gnus-faq-buffer)
-    (when (setq gnus-faq-buffer
-		(gnus-group-fetch-faq gnus-newsgroup-name faq-dir))
-      (gnus-configure-windows 'summary-faq))))
 
 ;; Suggested by Per Abrahamsen <amanda@iesd.auc.dk>.
 (defun gnus-summary-describe-group (&optional force)
@@ -8650,8 +8648,7 @@ fetch-old-headers verbiage, and so on."
 		   (null gnus-summary-expunge-below)
 		   (not (eq gnus-build-sparse-threads 'some))
 		   (not (eq gnus-build-sparse-threads 'more))
-		   (null gnus-thread-expunge-below)
-		   (not gnus-use-nocem)))
+		   (null gnus-thread-expunge-below)))
     (push gnus-newsgroup-limit gnus-newsgroup-limits)
     (setq gnus-newsgroup-limit nil)
     (mapatoms
@@ -8734,14 +8731,7 @@ fetch-old-headers verbiage, and so on."
 	      t)
 	    ;; Do the `display' group parameter.
 	    (and gnus-newsgroup-display
-		 (not (funcall gnus-newsgroup-display)))
-	    ;; Check NoCeM things.
-	    (when (and gnus-use-nocem
-		       (gnus-nocem-unwanted-article-p
-			(mail-header-id (car thread))))
-	      (setq gnus-newsgroup-unreads
-		    (delq number gnus-newsgroup-unreads))
-	      t)))
+		 (not (funcall gnus-newsgroup-display)))))
 	  ;; Nope, invisible article.
 	  0
 	;; Ok, this article is to be visible, so we add it to the limit
@@ -9361,6 +9351,18 @@ to save in."
 		  (ps-spool-buffer-with-faces)
 		(ps-spool-buffer)))))
       (kill-buffer buffer))))
+
+(defun gnus-summary-show-complete-article ()
+  "Show a complete version of the current article.
+This is only useful if you're looking at a partial version of the
+article currently."
+  (interactive)
+  (let ((gnus-keep-backlog nil)
+	(gnus-use-cache nil)
+	(gnus-agent nil)
+	(gnus-fetch-partial-articles nil))
+    (gnus-flush-original-article-buffer)
+    (gnus-summary-show-article)))
 
 (defun gnus-summary-show-article (&optional arg)
   "Force redisplaying of the current article.
@@ -11302,7 +11304,7 @@ If ARG is positive number, turn showing conversation threads on."
       (defalias 'gnus-remove-overlays 'remove-overlays)
     (defun gnus-remove-overlays (beg end name val)
       "Clear BEG and END of overlays whose property NAME has value VAL.
-For compatibility with Emacs 21 and XEmacs."
+For compatibility with XEmacs."
       (dolist (ov (gnus-overlays-in beg end))
 	(when (eq (gnus-overlay-get ov name) val)
 	  (gnus-delete-overlay ov))))))

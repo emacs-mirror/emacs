@@ -228,9 +228,11 @@ struct input_event
   /* For an ASCII_KEYSTROKE_EVENT and MULTIBYTE_CHAR_KEYSTROKE_EVENT,
      this is the character.
      For a NON_ASCII_KEYSTROKE_EVENT, this is the keysym code.
-     For a mouse event, this is the button number.  */
+     For a mouse event, this is the button number.
+     For a HELP_EVENT, this is the position within the object
+      (stored in ARG below) where the help was found.  */
   /* In WindowsNT, for a mouse wheel event, this is the delta.  */
-  int code;
+  EMACS_INT code;
   enum scroll_bar_part part;
 
   int modifiers;		/* See enum below for interpretation.  */

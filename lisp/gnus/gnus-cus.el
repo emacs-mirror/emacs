@@ -50,7 +50,7 @@ if that value is non-nil."
   (setq major-mode 'gnus-custom-mode
 	mode-name "Gnus Customize")
   (use-local-map widget-keymap)
-  ;; Emacs 21 stuff:
+  ;; Emacs stuff:
   (when (and (facep 'custom-button-face)
 	     (facep 'custom-button-pressed-face))
     (set (make-local-variable 'widget-button-face)
@@ -865,11 +865,6 @@ This can be changed using the `\\[gnus-score-change-score-file]' command."
 Check the [ ] for the entries you want to apply to this score file, then
 edit the value to suit your taste.  Don't forget to mark the checkbox,
 if you do all your changes will be lost.  ")
-    (widget-create 'push-button
-		   :action (lambda (&rest ignore)
-			     (require 'gnus-audio)
-			     (gnus-audio-play "Evil_Laugh.au"))
-		   "Bhahahah!")
     (widget-insert "\n\n")
     (make-local-variable 'gnus-custom-scores)
     (setq gnus-custom-scores

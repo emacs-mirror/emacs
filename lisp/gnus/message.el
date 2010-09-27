@@ -626,29 +626,23 @@ Done before generating the new subject of a forward."
   :type 'regexp)
 
 (defcustom message-cite-prefix-regexp
-  ;; Default to the value of `mail-citation-prefix-regexp' if available.
-  ;; Note: as for Emacs 21, XEmacs 21.4 and 21.5, it is unavailable
-  ;; unless sendmail.el is loaded.
-  (cond ((boundp 'mail-citation-prefix-regexp)
-	 mail-citation-prefix-regexp)
-	((string-match "[[:digit:]]" "1")
-	 ;; Support POSIX?  XEmacs 21.5.27 doesn't.
-	 "\\([ \t]*[_.[:word:]]+>+\\|[ \t]*[]>|}]\\)+")
-	(t
-	 ;; ?-, ?_ or ?. MUST NOT be in syntax entry w.
-	 (let (non-word-constituents)
-	   (with-syntax-table text-mode-syntax-table
-	     (setq non-word-constituents
-		   (concat
-		    (if (string-match "\\w" "_")  "" "_")
-		    (if (string-match "\\w" ".")  "" "."))))
-	   (if (equal non-word-constituents "")
-	       "\\([ \t]*\\(\\w\\)+>+\\|[ \t]*[]>|}]\\)+"
-	     (concat "\\([ \t]*\\(\\w\\|["
-		     non-word-constituents
-		     "]\\)+>+\\|[ \t]*[]>|}]\\)+")))))
+  (if (string-match "[[:digit:]]" "1")
+      ;; Support POSIX?  XEmacs 21.5.27 doesn't.
+      "\\([ \t]*[_.[:word:]]+>+\\|[ \t]*[]>|]\\)+"
+    ;; ?-, ?_ or ?. MUST NOT be in syntax entry w.
+    (let (non-word-constituents)
+      (with-syntax-table text-mode-syntax-table
+	(setq non-word-constituents
+	      (concat
+	       (if (string-match "\\w" "_")  "" "_")
+	       (if (string-match "\\w" ".")  "" "."))))
+      (if (equal non-word-constituents "")
+	  "\\([ \t]*\\(\\w\\)+>+\\|[ \t]*[]>|]\\)+"
+	(concat "\\([ \t]*\\(\\w\\|["
+		non-word-constituents
+		"]\\)+>+\\|[ \t]*[]>|]\\)+"))))
   "*Regexp matching the longest possible citation prefix on a line."
-  :version "23.2"
+  :version "24.1"
   :group 'message-insertion
   :link '(custom-manual "(message)Insertion Variables")
   :type 'regexp
@@ -5349,8 +5343,14 @@ Otherwise, generate and save a value for `canlock-password' first."
 
 (defun message-output (filename)
   "Append this article to Unix/babyl mail file FILENAME."
-  (if (and (file-readable-p filename)
-	   (mail-file-babyl-p filename))
+  (if (or (and (file-readable-p filename)
+	       (mail-file-babyl-p filename))
+	  ;; gnus-output-to-mail does the wrong thing with live, mbox
+	  ;; Rmail buffers in Emacs 23.
+	  ;; http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=597255
+	  (let ((buff (find-buffer-visiting filename)))
+	    (and buff (with-current-buffer buff
+			(eq major-mode 'rmail-mode)))))
       (gnus-output-to-rmail filename t)
     (gnus-output-to-mail filename t)))
 

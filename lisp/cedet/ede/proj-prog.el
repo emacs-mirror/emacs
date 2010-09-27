@@ -34,14 +34,14 @@
 ;;; Code:
 (defclass ede-proj-target-makefile-program
   (ede-proj-target-makefile-objectcode)
-  ((ldlibs :initarg :ldlibs
-	   :initform nil
-	   :type list
-	   :custom (repeat (string :tag "Library"))
-	   :documentation
-	   "Libraries, such as \"m\" or \"Xt\" which this program depends on.
-The linker flag \"-l\" is automatically prepended.  Do not include a \"lib\"
-prefix, or a \".so\" suffix.
+  ((ldlibs-local :initarg :ldlibs-local
+		 :initform nil
+		 :type list
+		 :custom (repeat (string :tag "Local Library"))
+		 :documentation
+	   "Libraries that are part of this project.
+The full path to these libraries should be specified, such as:
+../lib/libMylib.la  or ../ar/myArchive.a
 
 Note: Currently only used for Automake projects."
 	   )
@@ -51,10 +51,21 @@ Note: Currently only used for Automake projects."
 	    :custom (repeat (string :tag "Link Flag"))
 	    :documentation
 	    "Additional flags to add when linking this target.
-Use ldlibs to add addition libraries.  Use this to specify specific
-options to the linker.
+Use this to specify specific options to the linker.
+A Common use may be to add -L to specify in-project locations of libraries
+specified with ldlibs.")
+   (ldlibs :initarg :ldlibs
+	   :initform nil
+	   :type list
+	   :custom (repeat (string :tag "Library"))
+	   :documentation
+	   "Libraries, such as \"m\" or \"Xt\" which this program depends on.
+The linker flag \"-l\" is automatically prepended.  Do not include a \"lib\"
+prefix, or a \".so\" suffix.
+Use the 'ldflags' slot to specify where in-project libraries might be.
 
-Note: Not currently used.  This bug needs to be fixed.")
+Note: Currently only used for Automake projects."
+	   )
    )
    "This target is an executable program.")
 
@@ -70,27 +81,24 @@ Note: Not currently used.  This bug needs to be fixed.")
   "Insert bin_PROGRAMS variables needed by target THIS."
   (ede-pmake-insert-variable-shared
       (concat (ede-name this) "_LDADD")
-    (mapc (lambda (c) (insert " -l" c)) (oref this ldlibs)))
-  ;; For other targets THIS depends on
-  ;;
-  ;; NOTE: FIX THIS
-  ;;
-  ;;(ede-pmake-insert-variable-shared
-  ;;    (concat (ede-name this) "_DEPENDENCIES")
-  ;;  (mapcar (lambda (d) (insert d)) (oref this FOOOOOOOO)))
+    (mapc (lambda (l) (insert " " l)) (oref this ldlibs-local))
+    (mapc (lambda (c) (insert " " c)) (oref this ldflags))
+    (when (oref this ldlibs)
+      (mapc (lambda (d) (insert " -l" d)) (oref this ldlibs)))
+    )
   (call-next-method))
 
-(defmethod ede-proj-makefile-insert-rules ((this ede-proj-target-makefile-program))
-  "Insert rules needed by THIS target."
-  (let ((ede-proj-compiler-object-linkflags
-	 (mapconcat 'identity (oref this ldflags) " ")))
+(defmethod ede-proj-makefile-insert-variables ((this ede-proj-target-makefile-program))
+  "Insert variables needed by the compiler THIS."
+  (call-next-method)
+  (let ((lf (mapconcat 'identity (oref this ldflags) " ")))
     (with-slots (ldlibs) this
       (if ldlibs
-	  (setq ede-proj-compiler-object-linkflags
-		(concat ede-proj-compiler-object-linkflags
-			" -l"
-			(mapconcat 'identity ldlibs " -l")))))
-    (call-next-method)))
+	  (setq lf
+		(concat lf " -l" (mapconcat 'identity ldlibs " -l")))))
+    ;; LDFLAGS as needed.
+    (when (and lf (not (string= "" lf)))
+      (ede-pmake-insert-variable-once "LDDEPS" (insert lf)))))
 
 (defmethod project-debug-target ((obj ede-proj-target-makefile-program))
   "Debug a program target OBJ."

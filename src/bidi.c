@@ -79,10 +79,10 @@ static Lisp_Object bidi_type_table, bidi_mirror_table;
 
 /* What we need to know about the current paragraph.  */
 struct bidi_paragraph_info {
-  int start_bytepos;	/* byte position where it begins */
-  int end_bytepos;	/* byte position where it ends */
-  int embedding_level;	/* its basic embedding level */
-  bidi_dir_t base_dir;	/* its base direction */
+  EMACS_INT start_bytepos;	/* byte position where it begins */
+  EMACS_INT end_bytepos;	/* byte position where it ends */
+  int	    embedding_level;	/* its basic embedding level */
+  bidi_dir_t base_dir;		/* its base direction */
 };
 
 /* Data type for describing the bidirectional character categories.  */
@@ -313,7 +313,7 @@ bidi_cache_fetch_state (int idx, struct bidi_it *bidi_it)
    resolved levels in cached states.  DIR, if non-zero, means search
    in that direction from the last cache hit.  */
 static INLINE int
-bidi_cache_search (int charpos, int level, int dir)
+bidi_cache_search (EMACS_INT charpos, int level, int dir)
 {
   int i, i_start;
 
@@ -462,7 +462,7 @@ bidi_cache_iterator_state (struct bidi_it *bidi_it, int resolved)
 }
 
 static INLINE bidi_type_t
-bidi_cache_find (int charpos, int level, struct bidi_it *bidi_it)
+bidi_cache_find (EMACS_INT charpos, int level, struct bidi_it *bidi_it)
 {
   int i = bidi_cache_search (charpos, level, bidi_it->scan_dir);
 

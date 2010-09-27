@@ -193,8 +193,7 @@ Valid types include `google', `dejanews', and `gmane'.")
     (nnmail-generate-active (list (assoc server nnweb-group-alist)))
     t))
 
-(deffoo nnweb-request-update-info (group info &optional server)
-  (nnweb-possibly-change-server group server))
+(deffoo nnweb-request-update-info (group info &optional server))
 
 (deffoo nnweb-asynchronous-p ()
   nil)

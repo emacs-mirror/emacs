@@ -1,3 +1,16 @@
+2010-09-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* configure.in (HAVE_GNUTLS): Don't break if we don't have the
+	gnutls libraries.
+
+2010-09-26  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* configure.in: Set up GnuTLS.
+
+2010-09-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* configure.in: Announce whether libxml2 is linked to.
+
 2010-09-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in (LINKER): Rename to LD_FIRSTFLAG, do not include $(CC).

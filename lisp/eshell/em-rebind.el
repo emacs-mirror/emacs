@@ -43,7 +43,7 @@ the behavior of normal shells while the user editing new input text."
 ;;; User Variables:
 
 (defcustom eshell-rebind-load-hook '(eshell-rebind-initialize)
-  "*A list of functions to call when loading `eshell-rebind'."
+  "A list of functions to call when loading `eshell-rebind'."
   :type 'hook
   :group 'eshell-rebind)
 
@@ -55,14 +55,14 @@ the behavior of normal shells while the user editing new input text."
     ([delete]       . eshell-delete-backward-char)
     ([(control ?w)] . backward-kill-word)
     ([(control ?u)] . eshell-kill-input))
-  "*Bind some keys differently if point is in input text."
+  "Bind some keys differently if point is in input text."
   :type '(repeat (cons (vector :tag "Keys to bind"
 			       (repeat :inline t sexp))
 		       (function :tag "Command")))
   :group 'eshell-rebind)
 
 (defcustom eshell-confine-point-to-input t
-  "*If non-nil, do not allow the point to leave the current input.
+  "If non-nil, do not allow the point to leave the current input.
 This is more difficult to do nicely in Emacs than one might think.
 Basically, the `point-left' attribute is added to the input text, and
 a function is placed on that hook to take the point back to
@@ -77,13 +77,13 @@ people will left the point alone in the Eshell buffer.  Sigh."
   :group 'eshell-rebind)
 
 (defcustom eshell-error-if-move-away t
-  "*If non-nil, consider it an error to try to move outside current input.
+  "If non-nil, consider it an error to try to move outside current input.
 This is default behavior of shells like bash."
   :type 'boolean
   :group 'eshell-rebind)
 
 (defcustom eshell-remap-previous-input t
-  "*If non-nil, remap input keybindings on previous prompts as well."
+  "If non-nil, remap input keybindings on previous prompts as well."
   :type 'boolean
   :group 'eshell-rebind)
 
@@ -132,7 +132,7 @@ This is default behavior of shells like bash."
     forward-visible-line
     forward-comment
     forward-thing)
-  "*A list of commands that cannot leave the input area."
+  "A list of commands that cannot leave the input area."
   :type '(repeat function)
   :group 'eshell-rebind)
 

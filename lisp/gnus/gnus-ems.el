@@ -272,11 +272,12 @@
     (when face
       (setq props (plist-put props :foreground (face-foreground face)))
       (setq props (plist-put props :background (face-background face))))
-    (apply 'create-image file type data-p props)))
+    (ignore-errors
+      (apply 'create-image file type data-p props))))
 
 (defun gnus-put-image (glyph &optional string category)
   (let ((point (point)))
-    (insert-image glyph (or string "*"))
+    (insert-image glyph (or string " "))
     (put-text-property point (point) 'gnus-image-category category)
     (unless string
       (put-text-property (1- (point)) (point)

@@ -43,7 +43,9 @@
   (srecode-map-update-map t)
   ;; We don't call this unless we need it.  Load in the templates.
   (srecode-load-tables-for-mode 'makefile-mode)
-  (srecode-load-tables-for-mode 'makefile-mode 'ede))
+  (srecode-load-tables-for-mode 'makefile-mode 'ede)
+  (srecode-load-tables-for-mode 'autoconf-mode)
+  (srecode-load-tables-for-mode 'autoconf-mode 'ede))
 
 (defmacro ede-srecode-insert-with-dictionary (template &rest forms)
   "Insert TEMPLATE after executing FORMS with a dictionary.

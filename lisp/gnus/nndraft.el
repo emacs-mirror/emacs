@@ -79,7 +79,7 @@ are generated if and only if they are also in `message-draft-headers'.")
   (nndraft-possibly-change-group group)
   (with-current-buffer nntp-server-buffer
     (erase-buffer)
-    (let* (article)
+    (let (article lines chars)
       ;; We don't support fetching by Message-ID.
       (if (stringp (car articles))
 	  'headers
@@ -91,9 +91,12 @@ are generated if and only if they are also in `message-draft-headers'.")
 	    (if (search-forward "\n\n" nil t)
 		(forward-line -1)
 	      (goto-char (point-max)))
+	    (setq lines (count-lines (point) (point-max))
+		  chars (- (point-max) (point)))
 	    (delete-region (point) (point-max))
 	    (goto-char (point-min))
 	    (insert (format "221 %d Article retrieved.\n" article))
+	    (insert (format "Lines: %d\nChars: %d\n" lines chars))
 	    (widen)
 	    (goto-char (point-max))
 	    (insert ".\n")))
@@ -219,6 +222,11 @@ are generated if and only if they are also in `message-draft-headers'.")
 (deffoo nndraft-request-expire-articles (articles group &optional server force)
   (nndraft-possibly-change-group group)
   (let* ((nnmh-allow-delete-final t)
+	 (nnmail-expiry-target
+	  (or (gnus-group-find-parameter
+	       (gnus-group-prefixed-name "nndraft" (list 'nndraft server))
+	       'expiry-target t)
+	      nnmail-expiry-target))
 	 (res (nnoo-parent-function 'nndraft
 				    'nnmh-request-expire-articles
 				    (list articles group server force)))

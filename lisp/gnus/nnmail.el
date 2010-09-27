@@ -963,7 +963,7 @@ If SOURCE is a directory spec, try to return the group name component."
 	(goto-char end)))
     count))
 
-(defun nnmail-process-mmdf-mail-format (func artnum-func)
+(defun nnmail-process-mmdf-mail-format (func artnum-func &optional junk-func)
   (let ((delim "^\^A\^A\^A\^A$")
 	(case-fold-search t)
 	(count 0)
@@ -1011,7 +1011,7 @@ If SOURCE is a directory spec, try to return the group name component."
 	    (narrow-to-region start (point))
 	    (goto-char (point-min))
 	    (incf count)
-	    (nnmail-check-duplication message-id func artnum-func)
+	    (nnmail-check-duplication message-id func artnum-func junk-func)
 	    (setq end (point-max))))
 	(goto-char end)
 	(forward-line 2)))
@@ -1056,7 +1056,7 @@ If SOURCE is a directory spec, try to return the group name component."
   "Non-nil means group names are not encoded.")
 
 (defun nnmail-split-incoming (incoming func &optional exit-func
-				       group artnum-func)
+				       group artnum-func junk-func)
   "Go through the entire INCOMING file and pick out each individual mail.
 FUNC will be called with the buffer narrowed to each mail.
 INCOMING can also be a buffer object.  In that case, the mail
@@ -1087,7 +1087,8 @@ will be copied over from that buffer."
 		       (looking-at "BABYL OPTIONS:"))
 		   (nnmail-process-babyl-mail-format func artnum-func))
 		  ((looking-at "\^A\^A\^A\^A")
-		   (nnmail-process-mmdf-mail-format func artnum-func))
+		   (nnmail-process-mmdf-mail-format
+		    func artnum-func junk-func))
 		  ((looking-at "Return-Path:")
 		   (nnmail-process-maildir-mail-format func artnum-func))
 		  (t
@@ -1096,7 +1097,7 @@ will be copied over from that buffer."
 	  (funcall exit-func))
 	(kill-buffer (current-buffer))))))
 
-(defun nnmail-article-group (func &optional trace)
+(defun nnmail-article-group (func &optional trace junk-func)
   "Look at the headers and return an alist of groups that match.
 FUNC will be called with the group name to determine the article number."
   (let ((methods (or nnmail-split-methods '(("bogus" ""))))
@@ -1163,9 +1164,10 @@ FUNC will be called with the group name to determine the article number."
 	      ;; The article may be "cross-posted" to `junk'.  What
 	      ;; to do?  Just remove the `junk' spec.  Don't really
 	      ;; see anything else to do...
-	      (let (elem)
-		(while (setq elem (car (memq 'junk split)))
-		  (setq split (delq elem split))))
+	      (when (and (memq 'junk split)
+			 junk-func)
+		(funcall junk-func 'junk))
+	      (setq split (delq 'junk split))
 	      (when split
 		(setq group-art
 		      (mapcar
@@ -1714,7 +1716,8 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
       (message-narrow-to-head)
       (message-fetch-field header))))
 
-(defun nnmail-check-duplication (message-id func artnum-func)
+(defun nnmail-check-duplication (message-id func artnum-func
+					    &optional junk-func)
   (run-hooks 'nnmail-prepare-incoming-message-hook)
   ;; If this is a duplicate message, then we do not save it.
   (let* ((duplication (nnmail-cache-id-exists-p message-id))
@@ -1739,7 +1742,8 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
     (cond
      ((not duplication)
       (funcall func (setq group-art
-			  (nreverse (nnmail-article-group artnum-func))))
+			  (nreverse (nnmail-article-group
+				     artnum-func nil junk-func))))
       (nnmail-cache-insert message-id (caar group-art)))
      ((eq action 'delete)
       (setq group-art nil))
