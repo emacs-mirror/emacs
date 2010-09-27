@@ -1524,8 +1524,7 @@
 2010-08-26  David Reitter  <david.reitter@gmail.com>
 
 	* server.el (server-visit-files): Run pre-command-hook and
-	post-command-hook for each buffer while it is current
-	(Bug#6910).
+	post-command-hook for each buffer while it is current (Bug#6910).
 	(server-execute): Do not run hooks here.
 
 2010-08-26  Michael Albinus  <michael.albinus@gmx.de>
@@ -1866,10 +1865,10 @@
 2010-08-22  Leo  <sdl.web@gmail.com>
 
 	Fix buffer-list rename&refresh after killing a buffer in ido.
-	* lisp/ido.el: Revert Óscar's.
+	* ido.el: Revert Óscar's.
 	(ido-kill-buffer-at-head): Exit the minibuffer with ido-exit=refresh.
 	Remember the buffers at head, rather than their name.
-	* lisp/iswitchb.el (iswitchb-kill-buffer): Re-make the list.
+	* iswitchb.el (iswitchb-kill-buffer): Re-make the list.
 
 2010-08-22  Kirk Kelsey  <kirk.kelsey@0x4b.net>  (tiny change)
             Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -3383,7 +3382,7 @@
 2010-06-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Fix vc-annotate for renamed files when using Git.
-	* vc-git.el (vc-git-find-revision): Deal with empty results from
+	* vc/vc-git.el (vc-git-find-revision): Deal with empty results from
 	ls-files.  Doe not pass the object as a file name to cat-file, it
 	is not a file name.
 	(vc-git-annotate-command): Pass the file name using -- to avoid
@@ -3404,28 +3403,28 @@
 2010-06-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Fix annotating other revisions for renamed files in vc-annotate.
-	* vc-annotate.el (vc-annotate): Add an optional argument for the
+	* vc/vc-annotate.el (vc-annotate): Add an optional argument for the
 	VC backend.  Use it when non-nil.
 	(vc-annotate-warp-revision): Pass the VC backend to vc-annotate.
 	(Bug#6487)
 
 	Fix vc-annotate-show-changeset-diff-revision-at-line for git.
-	* vc-annotate.el (vc-annotate-show-diff-revision-at-line-internal):
+	* vc/vc-annotate.el (vc-annotate-show-diff-revision-at-line-internal):
 	Do not pass the file name to the 'previous-revision call when we
 	don't want a file diff.  (Bug#6489)
 
 2010-06-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Fix finding revisions for renamed files in vc-annotate.
-	* vc.el (vc-find-revision): Add an optional argument for
+	* vc/vc.el (vc-find-revision): Add an optional argument for
 	the VC backend.  Use it when non-nil.
-	* vc-annotate.el (vc-annotate-find-revision-at-line): Pass the VC
+	* vc/vc-annotate.el (vc-annotate-find-revision-at-line): Pass the VC
 	backend to vc-find-revision.  (Bug#6487)
 
 2010-06-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Fix reading file names in Git annotate buffers.
-	* vc-git.el (vc-git-annotate-extract-revision-at-line): Remove
+	* vc/vc-git.el (vc-git-annotate-extract-revision-at-line): Remove
 	trailing whitespace.  Suggested by Eric Hanchrow.  (Bug#6481)
 
 2010-06-20  Alan Mackenzie  <acm@muc.de>
@@ -3472,7 +3471,7 @@
 
 2010-06-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* vc-annotate.el (vc-annotate): Use vc-read-revision.
+	* vc/vc-annotate.el (vc-annotate): Use vc-read-revision.
 
 2010-06-16  Glenn Morris  <rgm@gnu.org>
 
@@ -3490,7 +3489,7 @@
 
 2010-06-16  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>  (tiny change)
 
-	* vc-svn.el (vc-svn-after-dir-status): Fix regexp for Subversions
+	* vc/vc-svn.el (vc-svn-after-dir-status): Fix regexp for Subversions
 	older than version 1.6.  (Bug#6361)
 
 2010-06-16  Helmut Eller  <eller.helmut@gmail.com>
@@ -4210,7 +4209,7 @@
 	* bs.el, expand.el, ido.el, image-dired.el, lpr.el, pcomplete.el,
 	* skeleton.el, term.el, time.el, wid-edit.el, woman.el,
 	* calc/calc-graph.el, calc/calc-help.el, calc/calc-incom.el,
-	* calc/calc.el, emacs-cl-extra.el, emacs-cl-loaddefs.el,
+	* calc/calc.el, emacs-lisp/cl-extra.el, emacs-lips/cl-loaddefs.el,
 	* emulation/cua-rect.el, emulation/viper-ex.el, eshell/esh-test.el,
 	* eshell/eshell.el, gnus/gnus-uu.el, gnus/nndoc.el, gnus/nnrss.el,
 	* gnus/rfc2047.el, gnus/utf7.el, international/utf-7.el,
@@ -4881,7 +4880,7 @@
 
 2010-05-07  Christian von Roques  <roques@mti.ag>  (tiny change)
 
-	* lisp/epg.el (epg-key-capablity-alist): Add "D" flag (Bug#5592).
+	* epg.el (epg-key-capablity-alist): Add "D" flag (Bug#5592).
 
 2010-05-07  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -5529,25 +5528,25 @@
 
 2010-04-18  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc.el (calc-mode-map): Bind "O" to `calc-missing-key'.
+	* calc/calc.el (calc-mode-map): Bind "O" to `calc-missing-key'.
 
-	* calc-bin.el (calc-radix): Have the "O" option turn on
+	* calc/calc-bin.el (calc-radix): Have the "O" option turn on
 	twos-complement mode.
 
 2010-04-17  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc-ext.el (calc-init-extensions): Add keybinding for 'calc-option'.
-	Add `calc-option-prefix-help' to calc-help autoloads.
+	* calc/calc-ext.el (calc-init-extensions): Add keybinding for
+	'calc-option'.  Add `calc-option-prefix-help' to calc-help autoloads.
 	(calc-inverse): Add "Option" to message, as appropriate.
 	(calc-hyperbolic): Add "Option" to message, as appropriate.
 	(calc-option, calc-is-option): New functions.
 
-	* calc-help.el (calc-full-help): Add `calc-option-help'.
+	* calc/calc-help.el (calc-full-help): Add `calc-option-help'.
 	(calc-option-prefix-help): New function.
 
-	* calc-misc.el (calc-help): Add "Option" entry.
+	* calc/calc-misc.el (calc-help): Add "Option" entry.
 
-	* calc.el (calc-local-var-list): Add `calc-option-flag'.
+	* calc/calc.el (calc-local-var-list): Add `calc-option-flag'.
 	(calc-option-flag): New variable.
 	(calc-do): Set `calc-option-flag to nil.
 	(calc-set-mode-line): Add "Opt " as appropriate.
@@ -6118,9 +6117,9 @@
 2010-03-27  Nick Roberts  <nickrob@snap.net.nz>
 
 	Restore GDB/MI fuctionality removed by r99212.
-	* lisp/progmodes/gdb-mi.el: Restore.
-	* lisp/progmodes/gdb-ui.el: Remove.
-	* lisp/progmodes/gud.el: Re-accommodate for gdb-mi.el.
+	* progmodes/gdb-mi.el: Restore.
+	* progmodes/gdb-ui.el: Remove.
+	* progmodes/gud.el: Re-accommodate for gdb-mi.el.
 
 2010-03-25  Glenn Morris  <rgm@gnu.org>
 
@@ -6802,11 +6801,6 @@
 
 	* files.el (hack-local-variables-filter): For eval forms, also
 	check safe-local-variable-p (Bug#5636).
-
-2010-02-24  Eduard Wiebe  <usenet@pusto.de>
-
-	* javascript.el (wisent-javascript-jv-expand-tag): Avoid c(ad)ddr
-	and use c(ad)r of cddr (Bug#5640).
 
 2010-02-22  Michael Albinus  <michael.albinus@gmx.de>
 
