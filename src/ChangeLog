@@ -39,21 +39,21 @@
 	(write_mask): New variable.
 	(max_input_desc): Renamed from max_keyboard_desc.
 	(fd_callback_info): New variable.
-	(add_read_fd, delete_read_fd, add_write_fd, delete_write_fd): New
-	functions.
+	(add_read_fd, delete_read_fd, add_write_fd, delete_write_fd):
+	New functions.
 	(Fmake_network_process): FD_SET write_mask.
 	(deactivate_process): FD_CLR write_mask.
 	(wait_reading_process_output): Connecting renamed to Writeok.
-	check_connect removed.  check_write is new.  Remove references to
-	gpm.  Use Writeok/check_write unconditionally (i.e. no #ifdef
+	check_connect removed.  check_write is new.  Remove references to gpm.
+	Use Writeok/check_write unconditionally (i.e. no #ifdef
 	NON_BLOCKING_CONNECT) instead of Connecting.
 	Loop over file descriptors and call callbacks in fd_callback_info
 	if file descriptor is ready for I/O.
 	(add_gpm_wait_descriptor): Just call add_keyboard_wait_descriptor.
 	(delete_gpm_wait_descriptor): Just call delete_keyboard_wait_descriptor.
 	(keyboard_bit_set): Use max_input_desc.
-	(add_keyboard_wait_descriptor, delete_keyboard_wait_descriptor): Remove
-	#ifdef subprocesses. Use max_input_desc.
+	(add_keyboard_wait_descriptor, delete_keyboard_wait_descriptor):
+	Remove #ifdef subprocesses.  Use max_input_desc.
 	(init_process): Initialize write_mask and fd_callback_info.
 
 	* keyboard.c (readable_events, gobble_input): Remove DBUS code.
@@ -61,20 +61,20 @@
 	* dbusbind.c: Include process.h.
 	(dbus_fd_cb, xd_find_watch_fd, xd_toggle_watch)
 	(xd_read_message_1): New functions.
-	(xd_add_watch, xd_remove_watch): Call xd_find_watch_fd.  Handle
-	watch for both read and write.
+	(xd_add_watch, xd_remove_watch): Call xd_find_watch_fd.
+	Handle watch for both read and write.
 	(Fdbus_init_bus): Also register xd_toggle_watch.
 	(Fdbus_call_method_asynchronously, Fdbus_method_return_internal)
 	(Fdbus_method_error_internal, Fdbus_send_signal): Remove call
 	to dbus_connection_flush.
-	(xd_read_message):  Move most of the code to xd_read_message_1.
+	(xd_read_message): Move most of the code to xd_read_message_1.
 	Call xd_read_message_1 until status is COMPLETE.
 
 2010-09-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term.c: Do not include sys/ioctl.h, not needed.
-	(init_tty): Reorder code to reduce the number of #ifdefs.  No code
-	changes.
+	(init_tty): Reorder code to reduce the number of #ifdefs.
+	No code changes.
 
 2010-09-26  Teodor Zlatanov  <tzz@lifelogs.com>
 
@@ -2997,7 +2997,7 @@
 	(smc_save_yourself_CB, x_session_initialize): Use SSDATA for strings
 	passed to strlen/strcpy/strcat.
 	(create_client_leader_window): Surround with #ifndef USE_GTK.  Cast
-	7:th arg to XChangeProperty to (unsigned char *)
+	7:th arg to XChangeProperty to (unsigned char *).
 
 	* xsettings.c (something_changedCB, parse_settings)
 	(apply_xft_settings): Reformat prototype.
