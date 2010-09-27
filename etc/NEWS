@@ -115,8 +115,8 @@ for this.
 
 ** ImageMagick support.
 It is now possible to use the Imagemagick library to load many new
-image formats in Emacs.  To enable this, use the configure option
-`--with-imagemagick'.
+image formats in Emacs.  It is enable by default.  To disable this, use
+the configure option `--without-imagemagick'.
 
 The new function `imagemagick-types' returns a list of image file
 extensions that your installation of ImageMagick supports.  The

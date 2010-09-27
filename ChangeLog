@@ -1,3 +1,7 @@
+2010-09-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* configure.in: Enable imagemagick by default.
+
 2010-09-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* configure.in (HAVE_GNUTLS): Don't break if we don't have the
