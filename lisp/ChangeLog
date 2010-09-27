@@ -1,5 +1,10 @@
 2010-09-27  Kenichi Handa  <handa@m17n.org>
 
+	* tar-mode.el (tar-header-block-tokenize): Decode filenames in
+	"ustar" format.
+
+2010-09-27  Kenichi Handa  <handa@m17n.org>
+
 	* international/mule.el (define-coding-system): Docstring fixed.
 
 	* international/mule-diag.el (describe-character-set): Use princ

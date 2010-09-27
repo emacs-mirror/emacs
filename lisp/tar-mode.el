@@ -286,7 +286,8 @@ write-date, checksum, link-type, and link-name."
             (let* ((size (tar-parse-octal-integer
                           string tar-size-offset tar-time-offset))
                    ;; -1 so as to strip the terminating 0 byte.
-                   (name (buffer-substring pos (+ pos size -1)))
+		   (name (decode-coding-string 
+			  (buffer-substring pos (+ pos size -1)) coding))
                    (descriptor (tar-header-block-tokenize
                                 (+ pos (tar-roundup-512 size))
 				coding)))
