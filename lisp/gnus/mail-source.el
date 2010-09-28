@@ -993,7 +993,7 @@ This only works when `display-time' is enabled."
     (if on
 	(progn
 	  (require 'time)
-	  ;; display-time-mail-function is an Emacs 21 feature.
+	  ;; display-time-mail-function is an Emacs feature.
 	  (setq display-time-mail-function #'mail-source-new-mail-p)
 	  ;; Set up the main timer.
 	  (setq mail-source-report-new-mail-timer

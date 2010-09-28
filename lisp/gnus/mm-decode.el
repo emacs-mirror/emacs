@@ -1479,7 +1479,7 @@ be determined."
    ;; Handle XEmacs
    ((fboundp 'valid-image-instantiator-format-p)
     (valid-image-instantiator-format-p format))
-   ;; Handle Emacs 21
+   ;; Handle Emacs
    ((fboundp 'image-type-available-p)
     (and (display-graphic-p)
 	 (image-type-available-p format)))
