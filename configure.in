@@ -2004,7 +2004,7 @@ HAVE_GNUTLS=no
 if test "${with_gnutls}" = "yes" ; then
   PKG_CHECK_MODULES([LIBGNUTLS], [gnutls >= 2.2.4], HAVE_GNUTLS=yes, HAVE_GNUTLS=no)
   if test "${HAVE_GNUTLS}" = "yes"; then
-    AC_DEFINE(HAVE_GNUTLS)
+    AC_DEFINE(HAVE_GNUTLS, 1, [Define if using GnuTLS.])
   fi
 fi
 AC_SUBST(LIBGNUTLS_LIBS)
