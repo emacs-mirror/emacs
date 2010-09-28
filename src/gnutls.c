@@ -265,8 +265,6 @@ KEYFILE and optionally CALLBACK.  */)
   gnutls_session_t state;
   gnutls_certificate_credentials_t x509_cred;
   gnutls_anon_client_credentials_t anon_cred;
-  gnutls_srp_client_credentials_t srp_cred;
-  gnutls_datum_t data;
   Lisp_Object global_init;
 
   CHECK_PROCESS (proc);
@@ -355,7 +353,7 @@ KEYFILE and optionally CALLBACK.  */)
           GNUTLS_LOG (1, max_log_level, "setting the trustfile");
           ret = gnutls_certificate_set_x509_trust_file
             (x509_cred,
-             XSTRING (trustfile)->data,
+             SDATA (trustfile),
              file_format);
 
           if (ret < GNUTLS_E_SUCCESS)
@@ -367,7 +365,7 @@ KEYFILE and optionally CALLBACK.  */)
           GNUTLS_LOG (1, max_log_level, "setting the keyfile");
           ret = gnutls_certificate_set_x509_crl_file
             (x509_cred,
-             XSTRING (keyfile)->data,
+             SDATA (keyfile),
              file_format);
 
           if (ret < GNUTLS_E_SUCCESS)
@@ -478,7 +476,6 @@ or `gnutls-e-interrupted'. In that case you may resume the handshake
 {
   gnutls_session_t state;
   int ret;
-  int max_log_level = XPROCESS (proc)->gnutls_log_level;
 
   CHECK_PROCESS (proc);
   state = XPROCESS (proc)->gnutls_state;
@@ -494,6 +491,8 @@ or `gnutls-e-interrupted'. In that case you may resume the handshake
     message ("gnutls: handshake: setting the transport pointers to %d/%d",
              XPROCESS (proc)->infd, XPROCESS (proc)->outfd);
 
+    /* FIXME: This can't be right: infd and outfd are integers (file handles)
+       whereas the function expects args of type gnutls_transport_ptr_t.  */
     gnutls_transport_set_ptr2 (state, XPROCESS (proc)->infd,
                                XPROCESS (proc)->outfd);
 
