@@ -2135,7 +2135,7 @@ message arrives.  */);
 #else
   Vdbus_debug = Qnil;
   /* We do not want to abort.  */
-  setenv ("DBUS_FATAL_WARNINGS", "0", 1);
+  putenv ("DBUS_FATAL_WARNINGS=0");
 #endif
 
   Fprovide (intern_c_string ("dbusbind"), Qnil);

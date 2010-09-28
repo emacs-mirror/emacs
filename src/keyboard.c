@@ -4106,6 +4106,11 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
       /* One way or another, wait until input is available; then, if
 	 interrupt handlers have not read it, read it now.  */
 
+#ifdef HAVE_DBUS
+      /* Read D-Bus messages.  */
+      xd_read_queued_messages ();
+#endif /* HAVE_DBUS */
+
 /* Note SIGIO has been undef'd if FIONREAD is missing.  */
 #ifdef SIGIO
       gobble_input (0);
@@ -4757,7 +4762,7 @@ timer_check (do_it_now)
 {
   EMACS_TIME nexttime;
 
-  do 
+  do
     {
       nexttime = timer_check_2 ();
     }
@@ -7051,11 +7056,6 @@ void
 gobble_input (expected)
      int expected;
 {
-#ifdef HAVE_DBUS
-  /* Read D-Bus messages.  */
-  xd_read_queued_messages ();
-#endif /* HAVE_DBUS */
-
 #ifdef SIGIO
   if (interrupt_input)
     {
