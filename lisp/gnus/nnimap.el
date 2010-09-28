@@ -40,6 +40,9 @@
 (require 'utf7)
 (require 'parse-time)
 
+(autoload 'auth-source-forget-user-or-password "auth-source")
+(autoload 'auth-source-user-or-password "auth-source")
+
 (nnoo-declare nnimap)
 
 (defvoo nnimap-address nil

@@ -1,5 +1,8 @@
 2010-09-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* nnimap.el (auth-source-forget-user-or-password)
+	(auth-source-user-or-password): Autoload.
+
 	* message.el (message-from-style, message-interactive)
 	(message-signature): Remove comment.
 	(message-cite-prefix-regexp): Default to mail-citation-prefix-regexp
