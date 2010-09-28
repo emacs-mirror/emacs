@@ -1,3 +1,14 @@
+2010-09-28  Julien Danjou  <julien@danjou.info>
+
+	* gnus-gravatar.el (gnus-gravatar-insert): Fix search in case
+	mail-address contains the same string as real-name.
+
+	* gnus-ems.el (gnus-put-image): Revert Lars, change and insert
+	non-blank in header, otherwise it'll get stripped.
+
+	* gnus-gravatar.el (gnus-gravatar-insert): Search backward for
+	real-name, and then for mail address rather than doing : or , search.
+
 2010-09-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* nnimap.el (auth-source-forget-user-or-password)
