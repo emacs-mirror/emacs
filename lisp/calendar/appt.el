@@ -335,41 +335,25 @@ displayed in a window:
                 (null appt-prev-comp-time) ; first check
                 (< cur-comp-time appt-prev-comp-time)) ; new day
             (ignore-errors
-              (if appt-display-diary
-                  (let ((diary-hook
-                         (if (assoc 'appt-make-list diary-hook)
-                             diary-hook
-                           (cons 'appt-make-list diary-hook))))
-                    (diary))
-                (let* ((diary-display-function 'appt-make-list)
-                       (d-buff (find-buffer-visiting diary-file))
-                       (selective
-                        (if d-buff    ; diary buffer exists
-                            (with-current-buffer d-buff
-                              diary-selective-display)))
-                       d-buff2)
+              (let ((diary-hook (if (assoc 'appt-make-list diary-hook)
+                                    diary-hook
+                                  (cons 'appt-make-list diary-hook)))
+                    d-buff d-buff2)
+                (if appt-display-diary
+                    (diary)
+                  (setq d-buff (find-buffer-visiting diary-file))
                   ;; Not displaying the diary, so we can ignore
                   ;; diary-number-of-entries.  Since appt.el only
                   ;; works on a daily basis, no need for more entries.
-                  ;; FIXME why not using diary-list-entries with
-                  ;; non-nil LIST-ONLY?
-                  (diary 1)
-                  ;; If the diary buffer existed before this command,
-                  ;; restore its display state.  Otherwise, kill it.
-                  (and (setq d-buff2 (find-buffer-visiting diary-file))
-                       (if d-buff
-                           (or selective
-                               (with-current-buffer d-buff2
-                                 (if diary-selective-display
-                                     ;; diary-show-all-entries displays
-                                     ;; the diary buffer.
-                                     (diary-unhide-everything))))
-                         ;; FIXME does not kill any included diary files.
-                         ;; The real issue is that (diary) should not
-                         ;; have the side effect of visiting all the
-                         ;; diary files.  It is not really appt.el's job to
-                         ;; clean up this mess...
-                         (kill-buffer d-buff2)))))))
+                  (diary-list-entries (calendar-current-date) 1 t)
+                  ;; If diary buffer did not exist before this command, kill it.
+                  ;; FIXME does not kill any included diary files.
+                  ;; The real issue is that (diary) should not have
+                  ;; the side effect of visiting all the diary files.
+                  ;; It is not really appt.el's job to clean up this mess...
+                  (and (not d-buff)
+                       (setq d-buff2 (find-buffer-visiting diary-file))
+                       (kill-buffer d-buff2))))))
         (setq appt-prev-comp-time cur-comp-time
               appt-mode-string nil
               appt-display-count nil)

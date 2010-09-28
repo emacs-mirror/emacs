@@ -1,3 +1,7 @@
+2010-09-28  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/appt.el (appt-check): Minor simplification.
+
 2010-09-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mail/sendmail.el (mail-citation-prefix-regexp): Remove "}" from
