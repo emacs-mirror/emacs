@@ -1,3 +1,14 @@
+2010-09-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-from-style, message-interactive)
+	(message-signature): Remove comment.
+	(message-cite-prefix-regexp): Default to mail-citation-prefix-regexp
+	always.
+	(message-sendmail-envelope-from): Comment fix.
+	(message-yank-prefix): Default to mail-yank-prefix always.
+	(message-indentation-spaces): Default to mail-indentation-spaces always.
+	(message-signature-file): Default to mail-signature-file always.
+
 2010-09-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-sum.el (gnus-summary-read-group-1): Set gnus-newsgroup-highest.
