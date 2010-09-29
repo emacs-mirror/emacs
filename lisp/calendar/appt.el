@@ -702,6 +702,7 @@ ARG is positive, otherwise off."
       (cancel-timer appt-timer)
       (setq appt-timer nil))
     (when appt-active
+      (diary-check-diary-file)
       (add-hook 'write-file-functions 'appt-update-list)
       (setq appt-timer (run-at-time t 60 'appt-check)
             global-mode-string
