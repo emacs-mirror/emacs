@@ -3,6 +3,20 @@
 	* xfont.c (xfont_open): Fix setting of font->average_width from
 	:avgwidth property (Bug#7123).
 
+2010-09-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (syms_of_dbusbind): Use putenv instead of setenv, it
+	is more portable.
+
+	* keyboard.c (gobble_input): Move call of xd_read_queued_messages ...
+	(kbd_buffer_get_event): ... here. This is needed for cygwin, which
+	has not defined SIGIO.
+
+2010-09-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (syms_of_dbusbind): Set $DBUS_FATAL_WARNINGS to "0".
+	(Bug#7113)
+
 2010-09-26  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xgselect.c (xg_select): Clear file descriptors not set from

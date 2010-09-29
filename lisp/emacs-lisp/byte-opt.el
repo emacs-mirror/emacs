@@ -381,9 +381,11 @@
 		form))
 	  ((or (byte-code-function-p fn)
 	       (eq 'lambda (car-safe fn)))
-           (byte-optimize-form-code-walker
-            (byte-compile-unfold-lambda form)
-            for-effect))
+	   (let ((newform (byte-compile-unfold-lambda form)))
+	     (if (eq newform form)
+		 ;; Some error occured, avoid infinite recursion
+		 form
+	       (byte-optimize-form-code-walker newform for-effect))))
 	  ((memq fn '(let let*))
 	   ;; recursively enter the optimizer for the bindings and body
 	   ;; of a let or let*.  This for depth-firstness: forms that

@@ -1,3 +1,14 @@
+2010-09-27  Drew Adams  <drew.adams@oracle.com>
+
+	* dired.el (dired-save-positions): Doc fix.  (Bug#7119)
+
+2010-09-27  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.in (ELCFILES): Update.
+
+	* emacs-lisp/byte-opt.el (byte-optimize-form-code-walker): Avoid
+	infinite recursion on erroneous lambda form.  (Bug#7114)
+
 2010-09-27  Kenichi Handa  <handa@m17n.org>
 
 	* tar-mode.el (tar-header-block-tokenize): Decode filenames in

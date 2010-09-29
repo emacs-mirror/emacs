@@ -311,11 +311,15 @@ ELCFILES = \
 	$(lisp)/cedet/cedet.elc \
 	$(lisp)/cedet/data-debug.elc \
 	$(lisp)/cedet/ede.elc \
+	$(lisp)/cedet/ede/auto.elc \
 	$(lisp)/cedet/ede/autoconf-edit.elc \
+	$(lisp)/cedet/ede/base.elc \
 	$(lisp)/cedet/ede/cpp-root.elc \
+	$(lisp)/cedet/ede/custom.elc \
 	$(lisp)/cedet/ede/dired.elc \
 	$(lisp)/cedet/ede/emacs.elc \
 	$(lisp)/cedet/ede/files.elc \
+	$(lisp)/cedet/ede/generic.elc \
 	$(lisp)/cedet/ede/linux.elc \
 	$(lisp)/cedet/ede/locate.elc \
 	$(lisp)/cedet/ede/make.elc \
