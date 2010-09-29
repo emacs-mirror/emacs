@@ -93,8 +93,7 @@ component group will show up when you enter the virtual group.")
 (deffoo nnvirtual-retrieve-headers (articles &optional newsgroup
 					     server fetch-old)
   (when (nnvirtual-possibly-change-server server)
-    (save-excursion
-      (set-buffer nntp-server-buffer)
+    (with-current-buffer nntp-server-buffer
       (erase-buffer)
       (if (stringp (car articles))
 	  'headers
@@ -170,8 +169,7 @@ component group will show up when you enter the virtual group.")
 	  ;; the nntp-server-buffer, which is where Gnus expects to find
 	  ;; them.
 	  (prog1
-	      (save-excursion
-		(set-buffer nntp-server-buffer)
+	      (with-current-buffer nntp-server-buffer
 		(erase-buffer)
 		(insert-buffer-substring vbuf)
 		;; FIX FIX FIX, we should be able to sort faster than
@@ -215,8 +213,7 @@ component group will show up when you enter the virtual group.")
 	 (t
 	  (setq nnvirtual-last-accessed-component-group cgroup)
 	  (if buffer
-	      (save-excursion
-		(set-buffer buffer)
+	      (with-current-buffer buffer
 		;; We bind this here to avoid double decoding.
 		(let ((gnus-article-decode-hook nil))
 		  (gnus-request-article-this-buffer (cdr amap) cgroup)))
@@ -250,7 +247,7 @@ component group will show up when you enter the virtual group.")
       t)))
 
 
-(deffoo nnvirtual-request-group (group &optional server dont-check)
+(deffoo nnvirtual-request-group (group &optional server dont-check info)
   (nnvirtual-possibly-change-server server)
   (setq nnvirtual-component-groups
 	(delete (nnvirtual-current-group) nnvirtual-component-groups))
@@ -335,8 +332,7 @@ component group will show up when you enter the virtual group.")
 	 (when (not (numberp (gnus-group-unread g)))
 	   (gnus-activate-group g)))
        nnvirtual-component-groups)
-      (save-excursion
-	(set-buffer gnus-group-buffer)
+      (with-current-buffer gnus-group-buffer
 	(gnus-group-catchup-current nil all)))))
 
 

@@ -175,10 +175,17 @@ Adds the following:
 
 (define-mode-local-override semantic-insert-foreign-tag
   texinfo-mode (foreign-tag)
-  "Insert TAG from a foreign buffer in TAGFILE.
+  "Insert FOREIGN-TAG from a foreign buffer in TAGFILE.
 Assume TAGFILE is a source buffer, and create a documentation
 thingy from it using the `document' tool."
-  (let ((srecode-semantic-selected-tag foreign-tag))
+  (srecode-texi-insert-tag-as-doc foreign-tag))
+
+(defun srecode-texi-insert-tag-as-doc (tag)
+  "Insert TAG into the current buffer with SRecode."
+  (when (not (eq major-mode 'texinfo-mode))
+    (error "Can only insert tags into texinfo in texinfo mode"))
+  (let ((srecode-semantic-selected-tag tag))
+    (srecode-load-tables-for-mode major-mode)
     ;; @todo - choose of the many types of tags to insert,
     ;; or put all that logic into srecode.
     (srecode-insert "declaration:function")))

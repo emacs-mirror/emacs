@@ -849,7 +849,8 @@ rotate_matrix (struct glyph_matrix *matrix, int first, int last, int by)
    DELTA_BYTES.  */
 
 void
-increment_matrix_positions (struct glyph_matrix *matrix, int start, int end, int delta, int delta_bytes)
+increment_matrix_positions (struct glyph_matrix *matrix, int start, int end,
+			    EMACS_INT delta, EMACS_INT delta_bytes)
 {
   /* Check that START and END are reasonable values.  */
   xassert (start >= 0 && start <= matrix->nrows);
@@ -1088,7 +1089,8 @@ blank_row (struct window *w, struct glyph_row *row, int y)
    ends.  */
 
 void
-increment_row_positions (struct glyph_row *row, int delta, int delta_bytes)
+increment_row_positions (struct glyph_row *row,
+			 EMACS_INT delta, EMACS_INT delta_bytes)
 {
   int area, i;
 
@@ -1200,7 +1202,8 @@ copy_row_except_pointers (struct glyph_row *to, struct glyph_row *from)
    positions in row TO by DELTA/ DELTA_BYTES.  */
 
 void
-copy_glyph_row_contents (struct glyph_row *to, struct glyph_row *from, int delta, int delta_bytes)
+copy_glyph_row_contents (struct glyph_row *to, struct glyph_row *from,
+			 EMACS_INT delta, EMACS_INT delta_bytes)
 {
   int area;
 
@@ -5420,6 +5423,22 @@ buffer_posn_from_coords (struct window *w, int *x, int *y, struct display_pos *p
   if (STRINGP (it.string))
     string = it.string;
   *pos = it.current;
+  if (it.what == IT_COMPOSITION
+      && it.cmp_it.nchars > 1
+      && it.cmp_it.reversed_p)
+    {
+      /* The current display element is a grapheme cluster in a
+	 composition.  In that case, we need the position of the first
+	 character of the cluster.  But, as it.cmp_it.reversed_p is 1,
+	 it.current points to the last character of the cluster, thus
+	 we must move back to the first character of the same
+	 cluster.  */
+      CHARPOS (pos->pos) -= it.cmp_it.nchars - 1;
+      if (STRINGP (it.string))
+	BYTEPOS (pos->pos) = string_char_to_byte (string, CHARPOS (pos->pos));
+      else
+	BYTEPOS (pos->pos) = CHAR_TO_BYTE (CHARPOS (pos->pos));
+    }
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (it.what == IT_IMAGE)
@@ -5441,8 +5460,8 @@ buffer_posn_from_coords (struct window *w, int *x, int *y, struct display_pos *p
 	  if (img)
 	    {
 	      *dy -= row->ascent - glyph->ascent;
-	      *dx += glyph->slice.x;
-	      *dy += glyph->slice.y;
+	      *dx += glyph->slice.img.x;
+	      *dy += glyph->slice.img.y;
 	      /* Image slices positions are still relative to the entire image */
 	      *width = img->width;
 	      *height = img->height;
@@ -5482,7 +5501,9 @@ buffer_posn_from_coords (struct window *w, int *x, int *y, struct display_pos *p
    *CHARPOS is set to the position in the string returned.  */
 
 Lisp_Object
-mode_line_string (struct window *w, enum window_part part, int *x, int *y, int *charpos, Lisp_Object *object, int *dx, int *dy, int *width, int *height)
+mode_line_string (struct window *w, enum window_part part,
+		  int *x, int *y, EMACS_INT *charpos, Lisp_Object *object,
+		  int *dx, int *dy, int *width, int *height)
 {
   struct glyph_row *row;
   struct glyph *glyph, *end;
@@ -5549,7 +5570,9 @@ mode_line_string (struct window *w, enum window_part part, int *x, int *y, int *
    the string returned.  */
 
 Lisp_Object
-marginal_area_string (struct window *w, enum window_part part, int *x, int *y, int *charpos, Lisp_Object *object, int *dx, int *dy, int *width, int *height)
+marginal_area_string (struct window *w, enum window_part part,
+		      int *x, int *y, EMACS_INT *charpos, Lisp_Object *object,
+		      int *dx, int *dy, int *width, int *height)
 {
   struct glyph_row *row = w->current_matrix->rows;
   struct glyph *glyph, *end;
@@ -5604,8 +5627,8 @@ marginal_area_string (struct window *w, enum window_part part, int *x, int *y, i
 	      if (img != NULL)
 		*object = img->spec;
 	      y0 -= row->ascent - glyph->ascent;
-	      x0 += glyph->slice.x;
-	      y0 += glyph->slice.y;
+	      x0 += glyph->slice.img.x;
+	      y0 += glyph->slice.img.y;
 	    }
 #endif
 	}

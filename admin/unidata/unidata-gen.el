@@ -95,7 +95,7 @@
     (with-temp-buffer
       ;; Insert a file of this format:
       ;;   (CHAR NAME CATEGORY ...)
-      ;; where CHAR is a charater code, the following elements are strings
+      ;; where CHAR is a character code, the following elements are strings
       ;; representing character properties.
       (insert-file-contents unidata-text-file)
       (goto-char (point-min))

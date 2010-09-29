@@ -149,7 +149,7 @@ as unread by Gnus.")
 	 (save-excursion (nnmail-find-file file))
 	 (string-to-number (file-name-nondirectory file)))))
 
-(deffoo nnmh-request-group (group &optional server dont-check)
+(deffoo nnmh-request-group (group &optional server dont-check info)
   (nnheader-init-server-buffer)
   (nnmh-possibly-change-directory group server)
   (let ((pathname (nnmail-group-pathname group nnmh-directory))
@@ -258,9 +258,6 @@ as unread by Gnus.")
 					       &optional server force)
   (nnmh-possibly-change-directory newsgroup server)
   (let ((is-old t)
-	(nnmail-expiry-target
-	 (or (gnus-group-find-parameter newsgroup 'expiry-target t)
-	     nnmail-expiry-target))
 	article rest mod-time)
     (nnheader-init-server-buffer)
 

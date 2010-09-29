@@ -2425,9 +2425,6 @@ The file-structure looks like this:
        (or compilation-auto-jump-to-first-error
 	   (eq compilation-scroll-output 'first-error))))
 
-;;;###autoload
-(add-to-list 'auto-mode-alist (cons (purecopy "\\.gcov\\'") 'compilation-mode))
-
 (provide 'compile)
 
 ;; arch-tag: 12465727-7382-4f72-b234-79855a00dd8c

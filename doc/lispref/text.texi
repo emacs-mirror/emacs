@@ -3230,12 +3230,16 @@ the @code{line-prefix} variable).  @xref{Truncation}.
 @cindex hooks for changing a character
 @kindex modification-hooks @r{(text property)}
 If a character has the property @code{modification-hooks}, then its
-value should be a list of functions; modifying that character calls all
-of those functions.  Each function receives two arguments: the beginning
-and end of the part of the buffer being modified.  Note that if a
-particular modification hook function appears on several characters
-being modified by a single primitive, you can't predict how many times
-the function will be called.
+value should be a list of functions; modifying that character calls
+all of those functions before the actual modification.  Each function
+receives two arguments: the beginning and end of the part of the
+buffer being modified.  Note that if a particular modification hook
+function appears on several characters being modified by a single
+primitive, you can't predict how many times the function will
+be called.
+Furthermore, insertion will not modify any existing character, so this
+hook will only be run when removing some characters, replacing them
+with others, or changing their text-properties.
 
 If these functions modify the buffer, they should bind
 @code{inhibit-modification-hooks} to @code{t} around doing so, to

@@ -109,8 +109,7 @@ Reports is as ham when HAM is set."
     ;; select this particular article
     (gnus-summary-select-article nil nil nil article)
     ;; resend it to the destination address
-    (save-excursion
-      (set-buffer gnus-original-article-buffer)
+    (with-current-buffer gnus-original-article-buffer
       (message-resend spam-report-resend-to))))
 
 (defun spam-report-resend-ham (articles)
@@ -292,8 +291,7 @@ symbol `ask', query before flushing the queue file."
     (gnus-message 7 "Processing requests using `%s'."
 		  spam-report-url-ping-function))
   (or file (setq file spam-report-requests-file))
-  (save-excursion
-    (set-buffer (find-file-noselect file))
+  (with-current-buffer (find-file-noselect file)
     (goto-char (point-min))
     (while (and (not (eobp))
 		(re-search-forward

@@ -3218,13 +3218,6 @@ Treats actions as defuns."
     (goto-char (point-max)))
   t)
 
-;; Besides .gdbinit, gdb documents other names to be usable for init
-;; files, cross-debuggers can use something like
-;; .PROCESSORNAME-gdbinit so that the host and target gdbinit files
-;; don't interfere with each other.
-;;;###autoload
-(add-to-list 'auto-mode-alist (cons (purecopy "/\\.[a-z0-9-]*gdbinit") 'gdb-script-mode))
-
 ;;;###autoload
 (define-derived-mode gdb-script-mode nil "GDB-Script"
   "Major mode for editing GDB scripts."

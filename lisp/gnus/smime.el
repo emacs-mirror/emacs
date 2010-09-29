@@ -708,8 +708,7 @@ The following commands are available:
   "Go to the SMIME buffer."
   (interactive)
   (unless (get-buffer smime-buffer)
-    (save-excursion
-      (set-buffer (get-buffer-create smime-buffer))
+    (with-current-buffer (get-buffer-create smime-buffer)
       (smime-mode)))
   (smime-draw-buffer)
   (switch-to-buffer smime-buffer))

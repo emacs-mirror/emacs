@@ -371,6 +371,7 @@ cleanall:	clean
 # Headers we would preprocess if we could.
 #
 ../src/config.h:	../nt/$(CONFIG_H)
+			$(DEL) $@
 			echo $(CONFIG_H) has changed.  Re-run configure.bat.
 			exit -1
 

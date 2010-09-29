@@ -6,7 +6,7 @@ function res = tcomp (fn)
 	 
   if nargin ~= 1
     print_usage()
-  endif
+  end
 
   data = dlmread(fn, 3, 0);
 
@@ -1412,7 +1412,7 @@ function create_pkgadddel (desc, packdir, nm, global_install)
     for i = 1:length (lst)
       nam = fullfile (packdir, "inst", lst(i).name);
       fwrite (instfid, extract_pkg (nam, ['^[#%][#%]* *' nm ': *(.*)$']));
-    endfor                                   # fixindent
+    endfor
 
     ## Search all C++ source files for PKG commands.
     lst = dir (fullfile (packdir, "src", "*.cc"));

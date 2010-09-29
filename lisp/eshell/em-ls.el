@@ -54,24 +54,24 @@ properties to colorize its output based on the setting of
    (function
     (lambda ()
       (fset 'insert-directory eshell-ls-orig-insert-directory))))
-  "*When unloading `eshell-ls', restore the definition of `insert-directory'."
+  "When unloading `eshell-ls', restore the definition of `insert-directory'."
   :type 'hook
   :group 'eshell-ls)
 
 (defcustom eshell-ls-initial-args nil
-  "*If non-nil, this list of args is included before any call to `ls'.
+  "If non-nil, this list of args is included before any call to `ls'.
 This is useful for enabling human-readable format (-h), for example."
   :type '(repeat :tag "Arguments" string)
   :group 'eshell-ls)
 
 (defcustom eshell-ls-dired-initial-args nil
-  "*If non-nil, args is included before any call to `ls' in Dired.
+  "If non-nil, args is included before any call to `ls' in Dired.
 This is useful for enabling human-readable format (-h), for example."
   :type '(repeat :tag "Arguments" string)
   :group 'eshell-ls)
 
 (defcustom eshell-ls-use-in-dired nil
-  "*If non-nil, use `eshell-ls' to read directories in Dired."
+  "If non-nil, use `eshell-ls' to read directories in Dired."
   :set (lambda (symbol value)
 	 (if value
 	     (unless (and (boundp 'eshell-ls-use-in-dired)
@@ -86,24 +86,24 @@ This is useful for enabling human-readable format (-h), for example."
   :group 'eshell-ls)
 
 (defcustom eshell-ls-default-blocksize 1024
-  "*The default blocksize to use when display file sizes with -s."
+  "The default blocksize to use when display file sizes with -s."
   :type 'integer
   :group 'eshell-ls)
 
 (defcustom eshell-ls-exclude-regexp nil
-  "*Unless -a is specified, files matching this regexp will not be shown."
+  "Unless -a is specified, files matching this regexp will not be shown."
   :type '(choice regexp (const nil))
   :group 'eshell-ls)
 
 (defcustom eshell-ls-exclude-hidden t
-  "*Unless -a is specified, files beginning with . will not be shown.
+  "Unless -a is specified, files beginning with . will not be shown.
 Using this boolean, instead of `eshell-ls-exclude-regexp', is both
 faster and conserves more memory."
   :type 'boolean
   :group 'eshell-ls)
 
 (defcustom eshell-ls-use-colors t
-  "*If non-nil, use colors in file listings."
+  "If non-nil, use colors in file listings."
   :type 'boolean
   :group 'eshell-ls)
 
@@ -111,7 +111,7 @@ faster and conserves more memory."
   '((((class color) (background light)) (:foreground "Blue" :weight bold))
     (((class color) (background dark)) (:foreground "SkyBlue" :weight bold))
     (t (:weight bold)))
-  "*The face used for highlight directories."
+  "The face used for highlight directories."
   :group 'eshell-ls)
 (define-obsolete-face-alias 'eshell-ls-directory-face
   'eshell-ls-directory "22.1")
@@ -119,14 +119,14 @@ faster and conserves more memory."
 (defface eshell-ls-symlink
   '((((class color) (background light)) (:foreground "Dark Cyan" :weight bold))
     (((class color) (background dark)) (:foreground "Cyan" :weight bold)))
-  "*The face used for highlight symbolic links."
+  "The face used for highlight symbolic links."
   :group 'eshell-ls)
 (define-obsolete-face-alias 'eshell-ls-symlink-face 'eshell-ls-symlink "22.1")
 
 (defface eshell-ls-executable
   '((((class color) (background light)) (:foreground "ForestGreen" :weight bold))
     (((class color) (background dark)) (:foreground "Green" :weight bold)))
-  "*The face used for highlighting executables (not directories, though)."
+  "The face used for highlighting executables (not directories, though)."
   :group 'eshell-ls)
 (define-obsolete-face-alias 'eshell-ls-executable-face
   'eshell-ls-executable "22.1")
@@ -134,14 +134,14 @@ faster and conserves more memory."
 (defface eshell-ls-readonly
   '((((class color) (background light)) (:foreground "Brown"))
     (((class color) (background dark)) (:foreground "Pink")))
-  "*The face used for highlighting read-only files."
+  "The face used for highlighting read-only files."
   :group 'eshell-ls)
 (define-obsolete-face-alias 'eshell-ls-readonly-face 'eshell-ls-readonly "22.1")
 
 (defface eshell-ls-unreadable
   '((((class color) (background light)) (:foreground "Grey30"))
     (((class color) (background dark)) (:foreground "DarkGrey")))
-  "*The face used for highlighting unreadable files."
+  "The face used for highlighting unreadable files."
   :group 'eshell-ls)
 (define-obsolete-face-alias 'eshell-ls-unreadable-face
   'eshell-ls-unreadable "22.1")
@@ -149,49 +149,50 @@ faster and conserves more memory."
 (defface eshell-ls-special
   '((((class color) (background light)) (:foreground "Magenta" :weight bold))
     (((class color) (background dark)) (:foreground "Magenta" :weight bold)))
-  "*The face used for highlighting non-regular files."
+  "The face used for highlighting non-regular files."
   :group 'eshell-ls)
 (define-obsolete-face-alias 'eshell-ls-special-face 'eshell-ls-special "22.1")
 
 (defface eshell-ls-missing
   '((((class color) (background light)) (:foreground "Red" :weight bold))
     (((class color) (background dark)) (:foreground "Red" :weight bold)))
-  "*The face used for highlighting non-existent file names."
+  "The face used for highlighting non-existent file names."
   :group 'eshell-ls)
 (define-obsolete-face-alias 'eshell-ls-missing-face 'eshell-ls-missing "22.1")
 
 (defcustom eshell-ls-archive-regexp
   (concat "\\.\\(t\\(a[rz]\\|gz\\)\\|arj\\|lzh\\|"
-	  "zip\\|[zZ]\\|gz\\|bz2\\|deb\\|rpm\\)\\'")
-  "*A regular expression that matches names of file archives.
+	  "zip\\|[zZ]\\|gz\\|bz2\\|xz\\|deb\\|rpm\\)\\'")
+  "A regular expression that matches names of file archives.
 This typically includes both traditional archives and compressed
 files."
+  :version "24.1"			; added xz
   :type 'regexp
   :group 'eshell-ls)
 
 (defface eshell-ls-archive
   '((((class color) (background light)) (:foreground "Orchid" :weight bold))
     (((class color) (background dark)) (:foreground "Orchid" :weight bold)))
-  "*The face used for highlighting archived and compressed file names."
+  "The face used for highlighting archived and compressed file names."
   :group 'eshell-ls)
 (define-obsolete-face-alias 'eshell-ls-archive-face 'eshell-ls-archive "22.1")
 
 (defcustom eshell-ls-backup-regexp
   "\\(\\`\\.?#\\|\\(\\.bak\\|~\\)\\'\\)"
-  "*A regular expression that matches names of backup files."
+  "A regular expression that matches names of backup files."
   :type 'regexp
   :group 'eshell-ls)
 
 (defface eshell-ls-backup
   '((((class color) (background light)) (:foreground "OrangeRed"))
     (((class color) (background dark)) (:foreground "LightSalmon")))
-  "*The face used for highlighting backup file names."
+  "The face used for highlighting backup file names."
   :group 'eshell-ls)
 (define-obsolete-face-alias 'eshell-ls-backup-face 'eshell-ls-backup "22.1")
 
 (defcustom eshell-ls-product-regexp
   "\\.\\(elc\\|o\\(bj\\)?\\|a\\|lib\\|res\\)\\'"
-  "*A regular expression that matches names of product files.
+  "A regular expression that matches names of product files.
 Products are files that get generated from a source file, and hence
 ought to be recreatable if they are deleted."
   :type 'regexp
@@ -200,13 +201,13 @@ ought to be recreatable if they are deleted."
 (defface eshell-ls-product
   '((((class color) (background light)) (:foreground "OrangeRed"))
     (((class color) (background dark)) (:foreground "LightSalmon")))
-  "*The face used for highlighting files that are build products."
+  "The face used for highlighting files that are build products."
   :group 'eshell-ls)
 (define-obsolete-face-alias 'eshell-ls-product-face 'eshell-ls-product "22.1")
 
 (defcustom eshell-ls-clutter-regexp
   "\\(^texput\\.log\\|^core\\)\\'"
-  "*A regular expression that matches names of junk files.
+  "A regular expression that matches names of junk files.
 These are mainly files that get created for various reasons, but don't
 really need to stick around for very long."
   :type 'regexp
@@ -215,7 +216,7 @@ really need to stick around for very long."
 (defface eshell-ls-clutter
   '((((class color) (background light)) (:foreground "OrangeRed" :weight bold))
     (((class color) (background dark)) (:foreground "OrangeRed" :weight bold)))
-  "*The face used for highlighting junk file names."
+  "The face used for highlighting junk file names."
   :group 'eshell-ls)
 (define-obsolete-face-alias 'eshell-ls-clutter-face 'eshell-ls-clutter "22.1")
 
@@ -249,7 +250,7 @@ calling FUNC with FILE as an argument."
 	    (,(eval func) ,file)))))
 
 (defcustom eshell-ls-highlight-alist nil
-  "*This alist correlates test functions to color.
+  "This alist correlates test functions to color.
 The format of the members of this alist is
 
   (TEST-SEXP . FACE)

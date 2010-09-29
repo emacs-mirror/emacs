@@ -92,6 +92,23 @@ all template files for that application will be loaded."
 	))
     ))
 
+;;; PROJECT
+;;
+;; Find if a template table has a project set, and if so, is the
+;; current buffer in that project.
+(defmethod srecode-template-table-in-project-p ((tab srecode-template-table))
+  "Return non-nil if the table TAB can be used in the current project.
+If TAB has a :project set, check that the directories match.
+If TAB is nil, then always return t."
+  (let ((proj (oref tab :project)))
+    ;; Return t if the project wasn't set.
+    (if (not proj) t
+      ;; If the project directory was set, lets check it.
+      (let ((dd (expand-file-name default-directory))
+	    (projexp (regexp-quote (directory-file-name proj))))
+	(if (string-match (concat "^" projexp) dd)
+	    t nil)))))
+
 ;;; SEARCH
 ;;
 ;; Find a given template based on name, and features of the current
@@ -103,13 +120,14 @@ all template files for that application will be loaded."
 Optional argument CONTEXT specifies that the template should part
 of a particular context.
 The APPLICATION argument is unused."
-  (if context
-      ;; If a context is specified, then look it up there.
-      (let ((ctxth (gethash context (oref tab contexthash))))
-	(when ctxth
-	  (gethash template-name ctxth)))
-    ;; No context, perhaps a merged name?
-    (gethash template-name (oref tab namehash))))
+  (when (srecode-template-table-in-project-p tab)
+    (if context
+	;; If a context is specified, then look it up there.
+	(let ((ctxth (gethash context (oref tab contexthash))))
+	  (when ctxth
+	    (gethash template-name ctxth)))
+      ;; No context, perhaps a merged name?
+      (gethash template-name (oref tab namehash)))))
 
 (defmethod srecode-template-get-table ((tab srecode-mode-table)
 				       template-name &optional
@@ -144,32 +162,33 @@ tables that do not belong to an application will be searched."
   "Find in the template name in table TAB, the template with BINDING.
 Optional argument CONTEXT specifies that the template should part
 of a particular context."
-  (let* ((keyout nil)
-	 (hashfcn (lambda (key value)
-		    (when (and (slot-boundp value 'binding)
-			       (oref value binding)
-			       (= (aref (oref value binding) 0) binding))
-		      (setq keyout key))))
-	 (contextstr (cond ((listp context)
-			    (car-safe context))
-			   ((stringp context)
-			    context)
-			   (t nil)))
-	 )
-    (if context
-	(let ((ctxth (gethash contextstr (oref tab contexthash))))
-	  (when ctxth
-	    ;; If a context is specified, then look it up there.
-	    (maphash hashfcn ctxth)
-	    ;; Context hashes EXCLUDE the context prefix which
-	    ;; we need to include, so concat it here
-	    (when keyout
-	      (setq keyout (concat contextstr ":" keyout)))
-	    )))
-    (when (not keyout)
-      ;; No context, or binding in context.  Try full hash.
-      (maphash hashfcn (oref tab namehash)))
-    keyout))
+  (when (srecode-template-table-in-project-p tab)
+    (let* ((keyout nil)
+	   (hashfcn (lambda (key value)
+		      (when (and (slot-boundp value 'binding)
+				 (oref value binding)
+				 (= (aref (oref value binding) 0) binding))
+			(setq keyout key))))
+	   (contextstr (cond ((listp context)
+			      (car-safe context))
+			     ((stringp context)
+			      context)
+			     (t nil)))
+	   )
+      (if context
+	  (let ((ctxth (gethash contextstr (oref tab contexthash))))
+	    (when ctxth
+	      ;; If a context is specified, then look it up there.
+	      (maphash hashfcn ctxth)
+	      ;; Context hashes EXCLUDE the context prefix which
+	      ;; we need to include, so concat it here
+	      (when keyout
+		(setq keyout (concat contextstr ":" keyout)))
+	      )))
+      (when (not keyout)
+	;; No context, or binding in context.  Try full hash.
+	(maphash hashfcn (oref tab namehash)))
+      keyout)))
 
 (defmethod srecode-template-get-table-for-binding
   ((tab srecode-mode-table) binding &optional context application)
@@ -220,7 +239,8 @@ Optional argument HASH is the hash table to fill in."
 	   )
       (while tabs
 	;; Exclude templates for a perticular application.
-	(when (not (oref (car tabs) :application))
+	(when (and (not (oref (car tabs) :application))
+		   (srecode-template-table-in-project-p (car tabs)))
 	  (maphash (lambda (key temp)
 		     (puthash key temp mhash)
 		     )

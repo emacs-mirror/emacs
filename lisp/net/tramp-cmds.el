@@ -50,6 +50,7 @@
 	  x)))
     (buffer-list))))
 
+;;;###tramp-autoload
 (defun tramp-cleanup-connection (vec)
   "Flush all connection related objects.
 This includes password cache, file cache, connection cache, buffers.

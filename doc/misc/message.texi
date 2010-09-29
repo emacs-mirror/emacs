@@ -1090,11 +1090,11 @@ the passphrase prompt.
 @subsection Using PGP/MIME
 
 @acronym{PGP/MIME} requires an external OpenPGP implementation, such
-as @uref{http://www.gnupg.org/, GNU Privacy Guard}.  Pre-OpenPGP
-implementations such as PGP 2.x and PGP 5.x are also supported.  One
+as @uref{http://www.gnupg.org/, GNU Privacy Guard}. Pre-OpenPGP
+implementations such as PGP 2.x and PGP 5.x are also supported. One
 Emacs interface to the PGP implementations, PGG (@pxref{Top, ,PGG,
-pgg, PGG Manual}), is included, but Mailcrypt and Florian Weimer's
-@code{gpg.el} are also supported.  @xref{PGP Compatibility}.
+pgg, PGG Manual}), is included, but Mailcrypt is also supported.
+@xref{PGP Compatibility}.
 
 @cindex gpg-agent
 Message internally calls GnuPG (the @command{gpg} command) to perform

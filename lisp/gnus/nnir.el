@@ -345,14 +345,16 @@
 (gnus-declare-backend "nnir" 'mail)
 
 (defvar nnir-imap-search-field "TEXT"
-  "The IMAP search item when doing an nnir search")
+  "The IMAP search item when doing an nnir search. To use raw
+  imap queries by default set this to \"\"")
 
 (defvar nnir-imap-search-arguments
   '(("Whole message" . "TEXT")
     ("Subject" . "SUBJECT")
     ("To" . "TO")
     ("From" . "FROM")
-    (nil . "HEADER \"%s\""))
+    ("Head" . "HEADER \"%s\"")
+    (nil . ""))
   "Mapping from user readable strings to IMAP search items for use in nnir")
 
 (defvar nnir-imap-search-argument-history ()
@@ -733,7 +735,7 @@ and show thread that contains this article."
   ;; Just set the server variables appropriately.
   (nnoo-change-server 'nnir server definitions))
 
-(deffoo nnir-request-group (group &optional server fast)
+(deffoo nnir-request-group (group &optional server fast info)
   "GROUP is the query string."
   (nnir-possibly-change-server server)
   ;; Check for cache and return that if appropriate.
@@ -744,8 +746,7 @@ and show thread that contains this article."
       nnir-artlist
     ;; Cache miss.
     (setq nnir-artlist (nnir-run-query group)))
-  (save-excursion
-    (set-buffer nntp-server-buffer)
+  (with-current-buffer nntp-server-buffer
     (if (zerop (length nnir-artlist))
 	(progn
 	  (setq nnir-current-query nil
@@ -957,6 +958,11 @@ pairs (also vectors, actually)."
 (autoload 'imap-search "imap")
 (autoload 'imap-quote-specials "imap")
 
+(eval-when-compile
+  (autoload 'nnimap-buffer "nnimap")
+  (autoload 'nnimap-command "nnimap")
+  (autoload 'nnimap-possibly-change-group "nnimap"))
+
 (defun nnir-run-imap (query srv &optional group-option)
   "Run a search against an IMAP back-end server.
 This uses a custom query language parser; see `nnir-imap-make-query' for
@@ -968,23 +974,30 @@ details on the language and supported extensions"
 	  (defs (caddr (gnus-server-to-method srv)))
 	  (criteria (or (cdr (assq 'criteria query))
 			nnir-imap-search-field))
-	  artlist buf)
+	  (gnus-inhibit-demon t)
+	  artlist)
       (message "Opening server %s" server)
       (condition-case ()
-	  (when (nnimap-open-server server defs) ;; xxx
-	    (setq buf nnimap-server-buffer) ;; xxx
-	    (message "Searching %s..." group)
-            (let ((arts 0)
-                  (mbx (gnus-group-real-name group)))
-              (when (imap-mailbox-select mbx nil buf)
-                (mapc
-                 (lambda (artnum)
-                   (push (vector group artnum 1) artlist)
-                   (setq arts (1+ arts)))
-                 (imap-search (nnir-imap-make-query criteria qstring) buf))
-                (message "Searching %s... %d matches" mbx arts)))
-            (message "Searching %s...done" group))
-        (quit nil))
+	  (when (nnimap-possibly-change-group (gnus-group-short-name group) server)
+	    (with-current-buffer (nnimap-buffer)
+	      (message "Searching %s..." group)
+	      (let ((arts 0)
+		    (result
+		     (nnimap-command "UID SEARCH  %s"
+				     (if (string= criteria "")
+					 qstring
+				       (nnir-imap-make-query criteria qstring)
+				       ))))
+		(mapc
+		 (lambda (artnum)
+		   (push (vector group artnum 1) artlist)
+		   (setq arts (1+ arts)))
+		 (and (car result)
+		      (delete 0 (mapcar #'string-to-number
+					(cdr (assoc "SEARCH" (cdr result)))))))
+		(message "Searching %s... %d matches" group arts)))
+	    (message "Searching %s...done" group))
+	(quit nil))
       (reverse artlist))))
 
 (defun nnir-imap-make-query (criteria qstring)
@@ -1537,17 +1550,13 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
 	   "find" group "-type" "f" "-name" "[0-9]*" "-exec"
 	   "grep"
 	   `("-l" ,@(and grep-options
-			 ;; Note: the 3rd arg of `split-string' is not
-			 ;; available in Emacs 21.
-			 (delete "" (split-string grep-options "\\s-")))
+			 (split-string grep-options "\\s-" t))
 	     "-e" ,regexp "{}" "+"))))
 
       ;; Translate relative paths to group names.
       (while (not (eobp))
-	(let* ((path (delete
-		      ""
-		      (split-string
-		       (buffer-substring (point) (line-end-position)) "/")))
+	(let* ((path (split-string
+		      (buffer-substring (point) (line-end-position)) "/" t))
 	       (art (string-to-number (car (last path)))))
 	  (while (string= "." (car path))
 	    (setq path (cdr path)))

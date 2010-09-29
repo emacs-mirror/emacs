@@ -32,6 +32,13 @@
   :type 'directory
   :group 'url-file)
 
+(defcustom url-cache-expire-time 3600
+  "Default maximum time in seconds before cache files expire.
+Used by the function `url-cache-expired'."
+  :version "24.1"
+  :type 'integer
+  :group 'url-cache)
+
 ;; Cache manager
 (defun url-cache-file-writable-p (file)
   "Follows the documentation of `file-writable-p', unlike `file-writable-p'."
@@ -62,18 +69,22 @@ FILE can be created or overwritten."
 ;;;###autoload
 (defun url-store-in-cache (&optional buff)
   "Store buffer BUFF in the cache."
-  (if (not (and buff (get-buffer buff)))
-      nil
-    (save-current-buffer
-      (and buff (set-buffer buff))
-      (let* ((fname (url-cache-create-filename (url-view-url t))))
-	(if (url-cache-prepare fname)
-	    (let ((coding-system-for-write 'binary))
-	      (write-region (point-min) (point-max) fname nil 5)))))))
+    (with-current-buffer (get-buffer (or buff (current-buffer)))
+      (let ((fname (url-cache-create-filename (url-view-url t))))
+        (if (url-cache-prepare fname)
+            (let ((coding-system-for-write 'binary))
+              (write-region (point-min) (point-max) fname nil 5))))))
+
+(defun url-fetch-from-cache (url)
+  "Fetch URL from cache and return a buffer with the content."
+  (with-current-buffer (generate-new-buffer " *temp*")
+    (url-cache-extract (url-cache-create-filename url))
+    (current-buffer)))
 
 ;;;###autoload
 (defun url-is-cached (url)
-  "Return non-nil if the URL is cached."
+  "Return non-nil if the URL is cached.
+The actual return value is the last modification time of the cache file."
   (let* ((fname (url-cache-create-filename url))
 	 (attribs (file-attributes fname)))
     (and fname				; got a filename
@@ -84,8 +95,7 @@ FILE can be created or overwritten."
 (defun url-cache-create-filename-human-readable (url)
   "Return a filename in the local cache for URL."
   (if url
-      (let* ((url (if (vectorp url) (url-recreate-url url) url))
-	     (urlobj (url-generic-parse-url url))
+      (let* ((urlobj (url-generic-parse-url url))
 	     (protocol (url-type urlobj))
 	     (hostname (url-host urlobj))
 	     (host-components
@@ -143,8 +153,7 @@ FILE can be created or overwritten."
 Very fast if you have an `md5' primitive function, suitably fast otherwise."
   (require 'md5)
   (if url
-      (let* ((url (if (vectorp url) (url-recreate-url url) url))
-	     (checksum (md5 url))
+      (let* ((checksum (md5 url))
 	     (urlobj (url-generic-parse-url url))
 	     (protocol (url-type urlobj))
 	     (hostname (url-host urlobj))
@@ -174,7 +183,13 @@ Very fast if you have an `md5' primitive function, suitably fast otherwise."
   :group 'url-cache)
 
 (defun url-cache-create-filename (url)
-  (funcall url-cache-creation-function url))
+  (funcall url-cache-creation-function
+           ;; We need to parse+recreate in order to remove the default port
+           ;; if it has been specified: e.g. http://www.example.com:80 will
+           ;; be transcoded as http://www.example.com
+           (url-recreate-url
+            (if (vectorp url) url
+              (url-generic-parse-url url)))))
 
 ;;;###autoload
 (defun url-cache-extract (fnam)
@@ -182,22 +197,19 @@ Very fast if you have an `md5' primitive function, suitably fast otherwise."
   (erase-buffer)
   (insert-file-contents-literally fnam))
 
-;;;###autoload
-(defun url-cache-expired (url mod)
-  "Return t if a cached file has expired."
-  (let* ((urlobj (if (vectorp url) url (url-generic-parse-url url)))
-	 (type (url-type urlobj)))
-    (cond
-     (url-standalone-mode
-      (not (file-exists-p (url-cache-create-filename url))))
-     ((string= type "http")
-      t)
-     ((member type '("file" "ftp"))
-      (if (or (equal mod '(0 0)) (not mod))
-	  t
-	(or (> (nth 0 mod) (nth 0 (current-time)))
-	    (> (nth 1 mod) (nth 1 (current-time))))))
-     (t nil))))
+(defun url-cache-expired (url &optional expire-time)
+  "Return non-nil if a cached URL is older than EXPIRE-TIME seconds.
+The default value of EXPIRE-TIME is `url-cache-expire-time'.
+If `url-standalone-mode' is non-nil, cached items never expire."
+  (if url-standalone-mode
+      (not (file-exists-p (url-cache-create-filename url)))
+    (let ((cache-time (url-is-cached url)))
+      (or (not cache-time)
+	  (time-less-p
+	   (time-add
+	    cache-time
+	    (seconds-to-time (or expire-time url-cache-expire-time)))
+	   (current-time))))))
 
 (provide 'url-cache)
 

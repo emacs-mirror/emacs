@@ -5449,49 +5449,47 @@ comment at the start of cc-engine.el for more info."
       (forward-char)
 
       (unless (looking-at c-<-op-cont-regexp)
-		(while (and
+	(while (and
 		(progn
-		      (c-forward-syntactic-ws)
-		 (let ((orig-record-found-types c-record-found-types))
-		   (when (or (and c-record-type-identifiers all-types)
-			     (c-major-mode-is 'java-mode))
-		     ;; All encountered identifiers are types, so set the
-		     ;; promote flag and parse the type.
-		     (progn
-		       (c-forward-syntactic-ws)
-		       (if (looking-at "\\?")
-			   (forward-char)
-			 (when (looking-at c-identifier-start)
-			   (let ((c-promote-possible-types t)
-				 (c-record-found-types t))
-			     (c-forward-type))))
+		  (c-forward-syntactic-ws)
+		  (let ((orig-record-found-types c-record-found-types))
+		    (when (or (and c-record-type-identifiers all-types)
+			      (c-major-mode-is 'java-mode))
+		      ;; All encountered identifiers are types, so set the
+		      ;; promote flag and parse the type.
+		      (progn
+			(c-forward-syntactic-ws)
+			(if (looking-at "\\?")
+			    (forward-char)
+			  (when (looking-at c-identifier-start)
+			    (let ((c-promote-possible-types t)
+				  (c-record-found-types t))
+			      (c-forward-type))))
 
-		     (c-forward-syntactic-ws)
+			(c-forward-syntactic-ws)
 
-		     (when (or (looking-at "extends")
-			       (looking-at "super"))
-		       (forward-word)
-		       (c-forward-syntactic-ws)
-		       (let ((c-promote-possible-types t)
-			    (c-record-found-types t))
-			 (c-forward-type)
-			 (c-forward-syntactic-ws))))))
+			(when (or (looking-at "extends")
+				  (looking-at "super"))
+			  (forward-word)
+			  (c-forward-syntactic-ws)
+			  (let ((c-promote-possible-types t)
+				(c-record-found-types t))
+			    (c-forward-type)
+			    (c-forward-syntactic-ws))))))
 
-		      (setq pos (point))
+		  (setq pos (point))
 
-		      (or
-		       ;; Note: These regexps exploit the match order in \| so
-		       ;; that "<>" is matched by "<" rather than "[^>:-]>".
-		       (c-syntactic-re-search-forward
-			;; Stop on ',', '|', '&', '+' and '-' to catch
-			;; common binary operators that could be between
-			;; two comparison expressions "a<b" and "c>d".
-			"[<;{},|+&-]\\|[>)]"
-			nil t t)
-		       t))
+		  ;; Note: These regexps exploit the match order in \| so
+		  ;; that "<>" is matched by "<" rather than "[^>:-]>".
+		  (c-syntactic-re-search-forward
+		   ;; Stop on ',', '|', '&', '+' and '-' to catch
+		   ;; common binary operators that could be between
+		   ;; two comparison expressions "a<b" and "c>d".
+		   "[<;{},|+&-]\\|[>)]"
+		   nil t t))
 
-		    (cond
-		     ((eq (char-before) ?>)
+		(cond
+		 ((eq (char-before) ?>)
 		  ;; Either an operator starting with '>' or the end of
 		  ;; the angle bracket arglist.
 
@@ -5532,14 +5530,14 @@ comment at the start of cc-engine.el for more info."
 			      (when (or (setq keyword-match
 					      (looking-at c-opt-<>-sexp-key))
 					(not (looking-at c-keywords-regexp)))
-				    (setq id-start (point))))
+				(setq id-start (point))))
 
-				(setq subres
-				      (let ((c-promote-possible-types t)
-					    (c-record-found-types t))
-					(c-forward-<>-arglist-recur
-					 (and keyword-match
-					      (c-keyword-member
+			    (setq subres
+				  (let ((c-promote-possible-types t)
+					(c-record-found-types t))
+				    (c-forward-<>-arglist-recur
+				     (and keyword-match
+					  (c-keyword-member
 					   (c-keyword-sym (match-string 1))
 					   'c-<>-type-kwds)))))
 			    )))
@@ -5560,16 +5558,16 @@ comment at the start of cc-engine.el for more info."
 				   (c-forward-syntactic-ws)
 				   (looking-at c-opt-identifier-concat-key)))
 			    (c-record-ref-id (cons id-start id-end))
-			      (c-record-type-id (cons id-start id-end))))))
-		      t)
+			  (c-record-type-id (cons id-start id-end))))))
+		  t)
 
-		((and (not c-restricted-<>-arglists)
-		      (or (and (eq (char-before) ?&)
-			       (not (eq (char-after) ?&)))
-			  (eq (char-before) ?,)))
-		      ;; Just another argument.	 Record the position.  The
-		      ;; type check stuff that made us stop at it is at
-		      ;; the top of the loop.
+		 ((and (not c-restricted-<>-arglists)
+		       (or (and (eq (char-before) ?&)
+				(not (eq (char-after) ?&)))
+			   (eq (char-before) ?,)))
+		  ;; Just another argument.	 Record the position.  The
+		  ;; type check stuff that made us stop at it is at
+		  ;; the top of the loop.
 		  (setq arg-start-pos (cons (point) arg-start-pos)))
 
 		 (t

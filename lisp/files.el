@@ -1,18 +1,3 @@
-;;  (defun auto-save-mode (arg)
-;;   "Toggle auto-saving of contents of current buffer.
-;; With prefix argument ARG, turn auto-saving on if positive, else off."
-;;     (interactive)
-;;     (if (> arg 0) auto-save (null auto-save)))
-
-
-;; (defun auto-fill-mode (arg)
-;;   "Toggle Auto Fill mode.
-;; With ARG, turn Auto Fill mode on if and only if ARG is positive.
-;; In Auto Fill mode, inserting a space at a column beyond `current-fill-column'
-;; automatically breaks the line at a previous space."
-;;    (interactive)
-;;    (if (> arg 0) auto-fill (null auto-fill)))
-
 ;;; files.el --- file input and output commands for Emacs
 
 ;; Copyright (C) 1985, 1986, 1987, 1992, 1993, 1994, 1995, 1996,
@@ -2226,6 +2211,15 @@ since only a single case-insensitive search through the alist is made."
      (cons (purecopy (car elt)) (cdr elt)))
    `(;; do this first, so that .html.pl is Polish html, not Perl
      ("\\.s?html?\\(\\.[a-zA-Z_]+\\)?\\'" . html-mode)
+     ("\\.svgz?\\'" . image-mode)
+     ("\\.svgz?\\'" . xml-mode)
+     ("\\.x[bp]m\\'" . image-mode)
+     ("\\.x[bp]m\\'" . c-mode)
+     ("\\.p[bpgn]m\\'" . image-mode)
+     ("\\.tiff?\\'" . image-mode)
+     ("\\.gif\\'" . image-mode)
+     ("\\.png\\'" . image-mode)
+     ("\\.jpe?g\\'" . image-mode)
      ("\\.te?xt\\'" . text-mode)
      ("\\.[tT]e[xX]\\'" . tex-mode)
      ("\\.ins\\'" . tex-mode)		;Installation files for TeX packages.
@@ -2261,6 +2255,14 @@ since only a single case-insensitive search through the alist is made."
      ("\\.te?xi\\'" . texinfo-mode)
      ("\\.[sS]\\'" . asm-mode)
      ("\\.asm\\'" . asm-mode)
+     ("\\.css\\'" . css-mode)
+     ("\\.mixal\\'" . mixal-mode)
+     ("\\.gcov\\'" . compilation-mode)
+     ;; Besides .gdbinit, gdb documents other names to be usable for init
+     ;; files, cross-debuggers can use something like
+     ;; .PROCESSORNAME-gdbinit so that the host and target gdbinit files
+     ;; don't interfere with each other.
+     ("/\\.[a-z0-9-]*gdbinit" . gdb-script-mode)
      ("[cC]hange\\.?[lL]og?\\'" . change-log-mode)
      ("[cC]hange[lL]og[-.][0-9]+\\'" . change-log-mode)
      ("\\$CHANGE_LOG\\$\\.TXT" . change-log-mode)
@@ -2277,6 +2279,7 @@ since only a single case-insensitive search through the alist is made."
      ("\\.cl[so]\\'" . latex-mode)		;LaTeX 2e class option
      ("\\.bbl\\'" . latex-mode)
      ("\\.bib\\'" . bibtex-mode)
+     ("\\.bst\\'" . bibtex-style-mode)
      ("\\.sql\\'" . sql-mode)
      ("\\.m[4c]\\'" . m4-mode)
      ("\\.mf\\'" . metafont-mode)
@@ -2325,6 +2328,20 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\|7Z\\)\\'" . archive-mode)
      ("[:/]_emacs\\'" . emacs-lisp-mode)
      ("/crontab\\.X*[0-9]+\\'" . shell-script-mode)
      ("\\.ml\\'" . lisp-mode)
+     ;; Linux-2.6.9 uses some different suffix for linker scripts:
+     ;; "ld", "lds", "lds.S", "lds.in", "ld.script", and "ld.script.balo".
+     ;; eCos uses "ld" and "ldi".  Netbsd uses "ldscript.*".
+     ("\\.ld[si]?\\'" . ld-script-mode)
+     ("ld\\.?script\\'" . ld-script-mode)
+     ;; .xs is also used for ld scripts, but seems to be more commonly
+     ;; associated with Perl .xs files (C with Perl bindings).  (Bug#7071)
+     ("\\.xs\\'" . c-mode)
+     ;; Explained in binutils ld/genscripts.sh.  Eg:
+     ;; A .x script file is the default script.
+     ;; A .xr script is for linking without relocation (-r flag).  Etc.
+     ("\\.x[abdsru]?[cnw]?\\'" . ld-script-mode)
+     ("\\.zone\\'" . dns-mode)
+     ("\\.soa\\'" . dns-mode)
      ;; Common Lisp ASDF package system.
      ("\\.asd\\'" . lisp-mode)
      ("\\.\\(asn\\|mib\\|smi\\)\\'" . snmp-mode)
@@ -5605,22 +5622,17 @@ returns nil."
 					 directory-free-space-args
 					 dir)
 			   0)))
-	    ;; Usual format is as follows:
-	    ;; Filesystem ...    Used  Available  Capacity ...
-	    ;; /dev/sda6  ...48106535   35481255  10669850 ...
+	    ;; Assume that the "available" column is before the
+	    ;; "capacity" column.  Find the "%" and scan backward.
 	    (goto-char (point-min))
-	    (when (re-search-forward " +Avail[^ \n]*"
-				     (line-end-position) t)
-	      (let ((beg (match-beginning 0))
-		    (end (match-end 0))
-		    str)
-		(forward-line 1)
-		(setq str
-		      (buffer-substring-no-properties
-		       (+ beg (point) (- (point-min)))
-		       (+ end (point) (- (point-min)))))
-		(when (string-match "\\` *\\([^ ]+\\)" str)
-		  (match-string 1 str))))))))))
+	    (forward-line 1)
+	    (when (re-search-forward
+		   "[[:space:]]+[^[:space:]]+%[^%]*$"
+		   (line-end-position) t)
+	      (goto-char (match-beginning 0))
+	      (let ((endpt (point)))
+		(skip-chars-backward "^[:space:]")
+		(buffer-substring-no-properties (point) endpt)))))))))
 
 ;; The following expression replaces `dired-move-to-filename-regexp'.
 (defvar directory-listing-before-filename-regexp

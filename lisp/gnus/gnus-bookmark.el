@@ -156,9 +156,6 @@ The default value is \(author subject date group annotation\)."
   "The current version of the format used by bookmark files.
 You should never need to change this.")
 
-(defvar gnus-bookmark-after-jump-hook nil
-  "Hook run after `gnus-bookmark-jump' jumps to a Gnus bookmark.")
-
 (defvar gnus-bookmark-alist ()
   "Association list of Gnus bookmarks and their records.
 The format of the alist is

@@ -314,7 +314,7 @@
 
 
 (defcustom feedmail-confirm-outgoing nil
-  "*If non-nil, give a y-or-n confirmation prompt before sending mail.
+  "If non-nil, give a y-or-n confirmation prompt before sending mail.
 This is done after the message is completely prepped, and you'll be
 looking at the top of the message in a buffer when you get the prompt.
 If set to the symbol 'queued, give the confirmation prompt only while
@@ -330,7 +330,7 @@ cases.  You can give a timeout for the prompt; see variable
 
 
 (defcustom feedmail-confirm-outgoing-timeout nil
-  "*If non-nil, a timeout in seconds at the send confirmation prompt.
+  "If non-nil, a timeout in seconds at the send confirmation prompt.
 If a positive number, it's a timeout before sending.  If a negative
 number, it's a timeout before not sending.  This will not work if your
 version of Emacs doesn't include the function `y-or-n-p-with-timeout'
@@ -341,7 +341,7 @@ version of Emacs doesn't include the function `y-or-n-p-with-timeout'
 
 
 (defcustom feedmail-nuke-bcc t
-  "*If non-nil remove Bcc: lines from the message headers.
+  "If non-nil remove Bcc: lines from the message headers.
 In any case, the Bcc: lines do participate in the composed address
 list.  You may want to leave them in if you're using sendmail
 \(see `feedmail-buffer-eating-function'\)."
@@ -351,7 +351,7 @@ list.  You may want to leave them in if you're using sendmail
 
 
 (defcustom feedmail-nuke-resent-bcc t
-  "*If non-nil remove Resent-Bcc: lines from the message headers.
+  "If non-nil remove Resent-Bcc: lines from the message headers.
 In any case, the Resent-Bcc: lines do participate in the composed
 address list.  You may want to leave them in if you're using sendmail
 \(see `feedmail-buffer-eating-function'\)."
@@ -361,7 +361,7 @@ address list.  You may want to leave them in if you're using sendmail
 
 
 (defcustom feedmail-deduce-bcc-where nil
-  "*Where Bcc:/Resent-Bcc: addresses should appear in the envelope list.
+  "Where Bcc:/Resent-Bcc: addresses should appear in the envelope list.
 Addresses for the message envelope are deduced by examining
 appropriate address headers in the message.  Generally, they will show
 up in the list of deduced addresses in the order that the headers
@@ -387,7 +387,7 @@ delivery agent that processes the addresses backwards."
 
 
 (defcustom feedmail-fill-to-cc t
-  "*If non-nil do smart filling of addressee header lines.
+  "If non-nil do smart filling of addressee header lines.
 Smart filling means breaking long lines at appropriate points and
 making continuation lines.  Despite the function name, it includes
 To:, Cc:, Bcc: (and their Resent-* forms), as well as From: and
@@ -399,14 +399,14 @@ as-is.  The filling is done after mail address alias expansion."
 
 
 (defcustom feedmail-fill-to-cc-fill-column default-fill-column
-  "*Fill column used by `feedmail-fill-to-cc'."
+  "Fill column used by `feedmail-fill-to-cc'."
   :group 'feedmail-headers
   :type 'integer
   )
 
 
 (defcustom feedmail-nuke-bcc-in-fcc nil
-  "*If non-nil remove [Resent-]Bcc: lines in message copies saved via Fcc:.
+  "If non-nil remove [Resent-]Bcc: lines in message copies saved via Fcc:.
 This is independent of whether the Bcc: header lines are actually sent
 with the message (see feedmail-nuke-bcc).  Though not implied in the name,
 the same Fcc: treatment applies to both Bcc: and Resent-Bcc: lines."
@@ -416,7 +416,7 @@ the same Fcc: treatment applies to both Bcc: and Resent-Bcc: lines."
 
 
 (defcustom feedmail-nuke-body-in-fcc nil
-  "*If non-nil remove body of message in copies saved via Fcc:.
+  "If non-nil remove body of message in copies saved via Fcc:.
 If a positive integer value, leave (up to) that many lines of the
 beginning of the body intact.  The result is that the Fcc: copy will
 consist only of the message headers, serving as a sort of an outgoing
@@ -427,7 +427,7 @@ message log."
 
 
 (defcustom feedmail-force-expand-mail-aliases nil
-  "*If non-nil, force the calling of `expand-mail-aliases'.
+  "If non-nil, force the calling of `expand-mail-aliases'.
 Normally, feedmail tries to figure out if you're using mailalias or
 mailabbrevs and only calls `expand-mail-aliases' if it thinks you're
 using the mailalias package.  This user option can be used to force
@@ -439,7 +439,7 @@ out."
 
 
 (defcustom feedmail-nuke-empty-headers t
-  "*If non-nil, remove header lines which have no contents.
+  "If non-nil, remove header lines which have no contents.
 A completely empty Subject: header is always removed, regardless of
 the setting of this variable.  The only time you would want them left
 in would be if you used some headers whose presence indicated
@@ -457,7 +457,7 @@ but common in some proprietary systems."
 ;; RFC-822 and RFC-1123, but are you *really* one of those cases
 ;; they're talking about?  I doubt it.)
 (defcustom feedmail-sender-line nil
-  "*If non-nil and the email has no Sender: header, use this value.
+  "If non-nil and the email has no Sender: header, use this value.
 May be nil, in which case nothing in particular is done with respect
 to Sender: lines.  By design, will not replace an existing Sender:
 line, but you can achieve that with a fiddle-plex 'replace action.
@@ -484,7 +484,7 @@ header is fiddled after the From: header is fiddled."
 
 
 (defcustom feedmail-force-binary-write t
-  "*If non-nil, force writing file as binary (this applies to queues and Fcc:).
+  "If non-nil, force writing file as binary (this applies to queues and Fcc:).
 On systems where there is a difference between binary and text files,
 feedmail will temporarily manipulate the value of `buffer-file-type'
 to make the writing as binary.  If nil, writing will be in text mode.
@@ -496,7 +496,7 @@ variables or other means, this option has no effect."
 
 
 (defcustom feedmail-from-line t
-  "*If non-nil and the email has no From: header, use this value.
+  "If non-nil and the email has no From: header, use this value.
 May be t, in which case a default is computed (and you probably won't
 be happy with it).  May be nil, in which case nothing in particular is
 done with respect to From: lines.  By design, will not replace an
@@ -526,7 +526,7 @@ to arrange for the message to get a From: line."
 
 
 (defcustom feedmail-deduce-envelope-from t
-  "*If non-nil, deduce message envelope \"from\" from header From: or Sender:.
+  "If non-nil, deduce message envelope \"from\" from header From: or Sender:.
 In other words, if there is a Sender: header in the message, temporarily
 change the value of `user-mail-address' to be the same while the message
 is being sent.  If there is no Sender: header, use the From: header,
@@ -555,14 +555,14 @@ influence what they will use as the envelope."
 
 
 (defcustom feedmail-x-mailer-line-user-appendage nil
-  "*See feedmail-x-mailer-line."
+  "See feedmail-x-mailer-line."
   :group 'feedmail-headers
   :type '(choice (const nil) (const t) string)
   )
 
 
 (defcustom feedmail-x-mailer-line t
-  "*Control the form of an X-Mailer: header in an outgoing message.
+  "Control the form of an X-Mailer: header in an outgoing message.
 Moderately useful for debugging, keeping track of your correspondents'
 mailer preferences, or just wearing your MUA on your sleeve.  You
 should probably know that some people are fairly emotional about the
@@ -592,7 +592,7 @@ by feedmail to either \"X-Mailer\" or \"X-Resent-Mailer\"."
 
 
 (defcustom feedmail-message-id-generator t
-  "*Specifies the creation of a Message-Id: header field.
+  "Specifies the creation of a Message-Id: header field.
 
 If nil, nothing is done about Message-Id:.
 
@@ -622,7 +622,7 @@ in the saved message if you use Fcc:."
 
 
 (defcustom feedmail-message-id-suffix nil
-  "*If non-nil, used as a suffix for generating unique Message-Id: headers.
+  "If non-nil, used as a suffix for generating unique Message-Id: headers.
 The function `feedmail-default-message-id-generator' creates its work based
 on a formatted date-time string, a random number, and a domain-looking suffix.
 You can control the suffix used by assigning a string value to this variable.
@@ -637,7 +637,7 @@ automatically."
 ;; this was suggested in various forms by several people; first was
 ;; Tony DeSimone in Oct 1992; sorry to be so tardy
 (defcustom feedmail-date-generator t
-  "*Specifies the creation of a Date: header field.
+  "Specifies the creation of a Date: header field.
 
 If nil, nothing is done about Date:.
 
@@ -671,7 +671,7 @@ in the saved message if you use Fcc:."
 
 
 (defcustom feedmail-fiddle-headers-upwardly t
-  "*Non-nil means fiddled header fields should go at the top of the header.
+  "Non-nil means fiddled header fields should go at the top of the header.
 nil means insert them at the bottom.  This is mostly a novelty issue since
 the standards define the ordering of header fields to be immaterial and it's
 fairly likely that some MTA along the way will have its own idea of what the
@@ -777,7 +777,7 @@ you are at accomplishing inherently inefficient things."
 
 
 (defcustom feedmail-enable-queue nil
-  "*If non-nil, provide for stashing outgoing messages in a queue.
+  "If non-nil, provide for stashing outgoing messages in a queue.
 This is the master on/off switch for feedmail message queuing.
 Queuing is quite handy for laptop-based users.  It's also handy if you
 get a lot of mail and process it more or less sequentially.  For
@@ -804,7 +804,7 @@ To transmit all the messages in the queue, invoke the command
 
 
 (defcustom feedmail-queue-runner-confirm-global nil
-  "*If non-nil, give a y-or-n confirmation prompt before running the queue.
+  "If non-nil, give a y-or-n confirmation prompt before running the queue.
 Prompt even if the queue is about to be processed as a result of a call to
 `feedmail-run-the-queue-no-prompts'.  This gives you a way to bail out
 without having to answer no to the individual message prompts."
@@ -814,7 +814,7 @@ without having to answer no to the individual message prompts."
 
 (defcustom feedmail-queue-directory
   (concat (getenv "HOME") "/mail/q")
-  "*Name of a directory where messages will be queued.
+  "Name of a directory where messages will be queued.
 Directory will be created if necessary.  Should be a string that
 doesn't end with a slash.  Default is \"$HOME/mail/q\"."
   :group 'feedmail-queue
@@ -824,7 +824,7 @@ doesn't end with a slash.  Default is \"$HOME/mail/q\"."
 
 (defcustom feedmail-queue-draft-directory
   (concat (getenv "HOME") "/mail/draft")
-  "*Name of a directory where draft messages will be queued.
+  "Name of a directory where draft messages will be queued.
 Directory will be created if necessary.  Should be a string that
 doesn't end with a slash.  Default is \"$HOME/mail/draft\"."
   :group 'feedmail-queue
@@ -833,7 +833,7 @@ doesn't end with a slash.  Default is \"$HOME/mail/draft\"."
 
 
 (defcustom feedmail-ask-before-queue t
-  "*If non-nil, feedmail will ask what you want to do with the message.
+  "If non-nil, feedmail will ask what you want to do with the message.
 Default choices for the message action prompt will include sending it
 immediately, putting it in the main queue, putting it in the draft
 queue, or returning to the buffer to continue editing.  Only matters if
@@ -845,7 +845,7 @@ without a prompt."
 
 
 (defcustom feedmail-ask-before-queue-prompt "FQM: Message action (q, i, d, e, ?)? [%s]: "
-  "*A string which will be used for the message action prompt.
+  "A string which will be used for the message action prompt.
 If it contains a \"%s\", that will be replaced with the value of
 `feedmail-ask-before-queue-default'."
   :group 'feedmail-queue
@@ -854,7 +854,7 @@ If it contains a \"%s\", that will be replaced with the value of
 
 
 (defcustom feedmail-ask-before-queue-reprompt "FQM: Please type q, i, d, or e; or ? for help [%s]: "
-  "*A string which will be used for repompting after invalid input.
+  "A string which will be used for repompting after invalid input.
 If it contains a \"%s\", that will be replaced with the value of
 `feedmail-ask-before-queue-default'."
   :group 'feedmail-queue
@@ -863,7 +863,7 @@ If it contains a \"%s\", that will be replaced with the value of
 
 
 (defcustom feedmail-ask-before-queue-default "queue"
-  "*Meaning if user hits return in response to the message action prompt.
+  "Meaning if user hits return in response to the message action prompt.
 Should be a character or a string; if a string, only the first
 character is significant.  Useful values are those described in
 the help for the message action prompt."
@@ -947,7 +947,7 @@ It may contain embedded line breaks.  It will be printed via `princ'."
 
 
 (defcustom feedmail-queue-chatty t
-  "*If non-nil, blat a few status messages and such in the mini-buffer.
+  "If non-nil, blat a few status messages and such in the mini-buffer.
 If nil, just do the work and don't pester people about what's going on.
 In some cases, though, specific options inspire mini-buffer prompting.
 That's not affected by this variable setting.  Also does not control
@@ -958,7 +958,7 @@ reporting of error/abnormal conditions."
 
 
 (defcustom feedmail-queue-chatty-sit-for 2
-  "*Duration of pause after most queue-related messages.
+  "Duration of pause after most queue-related messages.
 After some messages are divulged, it is prudent to pause before
 something else obliterates them.  This value controls the duration of
 the pause."
@@ -968,7 +968,7 @@ the pause."
 
 
 (defcustom feedmail-queue-run-orderer nil
-  "*If non-nil, name a function which will sort the queued messages.
+  "If non-nil, name a function which will sort the queued messages.
 The function is called during a running of the queue for sending, and
 takes one argument, a list of the files in the queue directory.  It
 may contain the names of non-message files, and it's okay to leave
@@ -982,7 +982,7 @@ they were placed in the queue."
 
 
 (defcustom feedmail-queue-use-send-time-for-date nil
-  "*If non-nil, use send time for the Date: header value.
+  "If non-nil, use send time for the Date: header value.
 This variable is used by the default date generating function,
 feedmail-default-date-generator.  If nil, the default, the
 last-modified timestamp of the queue file is used to create the
@@ -994,7 +994,7 @@ used."
 
 
 (defcustom feedmail-queue-use-send-time-for-message-id nil
-  "*If non-nil, use send time for the Message-Id: header value.
+  "If non-nil, use send time for the Message-Id: header value.
 This variable is used by the default Message-Id: generating function,
 `feedmail-default-message-id-generator'.  If nil, the default, the
 last-modified timestamp of the queue file is used to create the
@@ -1006,7 +1006,7 @@ used."
 
 
 (defcustom feedmail-ask-for-queue-slug nil
-  "*If non-nil, prompt user for part of the queue file name.
+  "If non-nil, prompt user for part of the queue file name.
 The file will automatically get the FQM suffix and an embedded
 sequence number for uniqueness, so don't specify that.  feedmail will
 get rid of all characters other than alphanumeric and hyphen in the
@@ -1023,7 +1023,7 @@ based on the subjects of the messages."
 
 
 (defcustom feedmail-queue-slug-maker 'feedmail-queue-subject-slug-maker
-  "*If non-nil, a function which creates part of the queued file name.
+  "If non-nil, a function which creates part of the queued file name.
 Takes a single argument giving the name of the directory into
 which the message will be queued.  The returned string should be just
 the non-directory filename part, without FQM suffix or uniquifying
@@ -1036,7 +1036,7 @@ any."
 
 
 (defcustom feedmail-queue-default-file-slug t
-  "*Indicates what to use for subject-less messages when forming a file name.
+  "Indicates what to use for subject-less messages when forming a file name.
 When feedmail queues a message, it creates a unique file name.  By default,
 the file name is based in part on the subject of the message being queued.
 If there is no subject, consult this variable.  See documentation for the
@@ -1059,7 +1059,7 @@ it's not expected to be a complete filename."
 
 
 (defcustom feedmail-queue-fqm-suffix ".fqm"
-  "*The FQM suffix used to distinguish feedmail queued message files.
+  "The FQM suffix used to distinguish feedmail queued message files.
 You probably want this to be a period followed by some letters and/or
 digits.  The distinction is to be able to tell them from other random
 files that happen to be in the `feedmail-queue-directory' or
@@ -1071,7 +1071,7 @@ queued message."
 
 
 (defcustom feedmail-nuke-buffer-after-queue nil
-  "*If non-nil, silently kill the buffer after a message is queued.
+  "If non-nil, silently kill the buffer after a message is queued.
 You might like that since a side-effect of queueing the message is
 that its buffer name gets changed to the filename.  That means that
 the buffer won't be reused for the next message you compose.  If you
@@ -1084,7 +1084,7 @@ message buffers."
 
 
 (defcustom feedmail-queue-auto-file-nuke nil
-  "*If non-nil, automatically delete queue files when a message is sent.
+  "If non-nil, automatically delete queue files when a message is sent.
 Normally, feedmail will notice such files when you send a message in
 immediate mode (i.e., not when you're running the queue) and will ask if
 you want to delete them.  Since the answer is usually yes, setting this
@@ -1154,7 +1154,7 @@ It shows the simple addresses and gets a confirmation.  Use as:
 
 
 (defcustom feedmail-last-chance-hook nil
-  "*User's last opportunity to modify the message on its way out.
+  "User's last opportunity to modify the message on its way out.
 It has already had all the header prepping from the standard package.
 The next step after running the hook will be to push the buffer into a
 subprocess that mails the mail.  The hook might be interested in
@@ -1172,7 +1172,7 @@ reused and things will get confused."
 
 
 (defcustom feedmail-before-fcc-hook nil
-  "*User's last opportunity to modify the message before Fcc action.
+  "User's last opportunity to modify the message before Fcc action.
 It has already had all the header prepping from the standard package.
 The next step after running the hook will be to save the message via
 Fcc: processing. The hook might be interested in these: (1)
@@ -1189,7 +1189,7 @@ internal buffers will be reused and things will get confused."
 
 (defcustom feedmail-queue-runner-mode-setter
   '(lambda (&optional arg) (mail-mode))
-  "*A function to set the proper mode of a message file.
+  "A function to set the proper mode of a message file.
 Called when the message is read back out of the queue directory with a single
 argument, the optional argument used in the call to
 `feedmail-run-the-queue' or `feedmail-run-the-queue-no-prompts'.
@@ -1204,7 +1204,7 @@ Called with funcall, not `call-interactively'."
 
 
 (defcustom feedmail-queue-alternative-mail-header-separator nil
-  "*Alternative header demarcation for queued messages.
+  "Alternative header demarcation for queued messages.
 If you sometimes get alternative values for `mail-header-separator' in
 queued messages, set the value of this variable to whatever it is.
 For example, `rmail-resend' uses a `mail-header-separator' value of empty
@@ -1221,7 +1221,7 @@ set `mail-header-separator' to the value of
 
 
 (defcustom feedmail-queue-runner-message-sender 'mail-send-and-exit
-  "*Function to initiate sending a message file.
+  "Function to initiate sending a message file.
 Called for each message read back out of the queue directory with a
 single argument, the optional argument used in the call to
 `feedmail-run-the-queue' or `feedmail-run-the-queue-no-prompts'.
@@ -1238,7 +1238,7 @@ your chance to have something different.  Called with `funcall', not
   '(lambda (fqm-file &optional arg)
      (delete-file fqm-file)
      (if (and arg feedmail-queue-chatty) (message "FQM: Nuked %s" fqm-file)))
-  "*Function that will be called after a message has been sent.
+  "Function that will be called after a message has been sent.
 Not called in the case of errors.  This function is called with two
 arguments: the name of the message queue file for the message just sent,
 and the optional argument used in the call to `feedmail-run-the-queue'
@@ -1265,7 +1265,7 @@ variable, but may depend on its value as described here.")
 
 
 (defcustom feedmail-buffer-eating-function 'feedmail-buffer-to-binmail
-  "*Function used to send the prepped buffer to a subprocess.
+  "Function used to send the prepped buffer to a subprocess.
 The function's three (mandatory) arguments are: (1) the buffer
 containing the prepped message; (2) a buffer where errors should be
 directed; and (3) a list containing the addresses individually as
@@ -1281,7 +1281,7 @@ to nil.  If you use the binmail form, check the value of
 
 
 (defcustom feedmail-binmail-template (if mail-interactive "/bin/mail %s" "/bin/rmail %s")
-  "*Command template for the subprocess which will get rid of the mail.
+  "Command template for the subprocess which will get rid of the mail.
 It can result in any command understandable by /bin/sh.  Might not
 work at all in non-Unix environments.  The single '%s', if present,
 gets replaced by the space-separated, simplified list of addressees.
@@ -1446,7 +1446,7 @@ with various lower-level mechanisms to provide features such as queueing."
 
 ;; From a VM mailing list discussion and some suggestions from Samuel Mikes <smikes@alumni.hmc.edu>
 (defun feedmail-queue-express-to-queue ()
-  "*Send message directly to the queue, with a minimum of fuss and bother."
+  "Send message directly to the queue, with a minimum of fuss and bother."
   (interactive)
   (let ((feedmail-enable-queue t)
 	(feedmail-ask-before-queue nil)
@@ -1458,7 +1458,7 @@ with various lower-level mechanisms to provide features such as queueing."
 
 
 (defun feedmail-queue-express-to-draft ()
-  "*Send message directly to the draft queue, with a minimum of fuss and bother."
+  "Send message directly to the draft queue, with a minimum of fuss and bother."
   (interactive)
   (let ((feedmail-queue-directory feedmail-queue-draft-directory))
     (feedmail-queue-express-to-queue)

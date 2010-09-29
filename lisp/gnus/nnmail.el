@@ -225,7 +225,7 @@ Example:
 
 In this case, articles containing the string \"boss\" in the To or the
 From header will be expired to the group \"nnfolder:Work\";
-articles containing the sting \"IMPORTANT\" in the Subject header will
+articles containing the string \"IMPORTANT\" in the Subject header will
 be expired to the group \"nnfolder:IMPORTANT.YYYY.MMM\"; and
 everything else will be expired to \"nnfolder:Archive-YYYY\"."
   :version "22.1"
@@ -614,6 +614,7 @@ using different case (i.e. mailing-list@domain vs Mailing-List@Domain)."
 
 (defvar nnmail-split-tracing nil)
 (defvar nnmail-split-trace nil)
+(defvar nnmail-inhibit-default-split-group nil)
 
 
 
@@ -674,8 +675,7 @@ using different case (i.e. mailing-list@domain vs Mailing-List@Domain)."
   "Returns an assoc of group names and active ranges.
 nn*-request-list should have been called before calling this function."
   ;; Go through all groups from the active list.
-  (save-excursion
-    (set-buffer nntp-server-buffer)
+  (with-current-buffer nntp-server-buffer
     (nnmail-parse-active)))
 
 (defun nnmail-parse-active ()
@@ -963,7 +963,7 @@ If SOURCE is a directory spec, try to return the group name component."
 	(goto-char end)))
     count))
 
-(defun nnmail-process-mmdf-mail-format (func artnum-func)
+(defun nnmail-process-mmdf-mail-format (func artnum-func &optional junk-func)
   (let ((delim "^\^A\^A\^A\^A$")
 	(case-fold-search t)
 	(count 0)
@@ -1011,7 +1011,7 @@ If SOURCE is a directory spec, try to return the group name component."
 	    (narrow-to-region start (point))
 	    (goto-char (point-min))
 	    (incf count)
-	    (nnmail-check-duplication message-id func artnum-func)
+	    (nnmail-check-duplication message-id func artnum-func junk-func)
 	    (setq end (point-max))))
 	(goto-char end)
 	(forward-line 2)))
@@ -1056,9 +1056,11 @@ If SOURCE is a directory spec, try to return the group name component."
   "Non-nil means group names are not encoded.")
 
 (defun nnmail-split-incoming (incoming func &optional exit-func
-				       group artnum-func)
+				       group artnum-func junk-func)
   "Go through the entire INCOMING file and pick out each individual mail.
-FUNC will be called with the buffer narrowed to each mail."
+FUNC will be called with the buffer narrowed to each mail.
+INCOMING can also be a buffer object.  In that case, the mail
+will be copied over from that buffer."
   (let ( ;; If this is a group-specific split, we bind the split
 	;; methods to just this group.
 	(nnmail-split-methods (if (and group
@@ -1066,12 +1068,13 @@ FUNC will be called with the buffer narrowed to each mail."
 				  (list (list group ""))
 				nnmail-split-methods))
 	(nnmail-group-names-not-encoded-p t))
-    (save-excursion
-      ;; Insert the incoming file.
-      (set-buffer (get-buffer-create nnmail-article-buffer))
+    ;; Insert the incoming file.
+    (with-current-buffer (get-buffer-create nnmail-article-buffer)
       (erase-buffer)
-      (let ((coding-system-for-read nnmail-incoming-coding-system))
-	(mm-insert-file-contents incoming))
+      (if (bufferp incoming)
+	  (insert-buffer-substring incoming)
+	(let ((coding-system-for-read nnmail-incoming-coding-system))
+	  (mm-insert-file-contents incoming)))
       (prog1
 	  (if (zerop (buffer-size))
 	      0
@@ -1084,7 +1087,8 @@ FUNC will be called with the buffer narrowed to each mail."
 		       (looking-at "BABYL OPTIONS:"))
 		   (nnmail-process-babyl-mail-format func artnum-func))
 		  ((looking-at "\^A\^A\^A\^A")
-		   (nnmail-process-mmdf-mail-format func artnum-func))
+		   (nnmail-process-mmdf-mail-format
+		    func artnum-func junk-func))
 		  ((looking-at "Return-Path:")
 		   (nnmail-process-maildir-mail-format func artnum-func))
 		  (t
@@ -1093,22 +1097,22 @@ FUNC will be called with the buffer narrowed to each mail."
 	  (funcall exit-func))
 	(kill-buffer (current-buffer))))))
 
-(defun nnmail-article-group (func &optional trace)
+(defun nnmail-article-group (func &optional trace junk-func)
   "Look at the headers and return an alist of groups that match.
 FUNC will be called with the group name to determine the article number."
   (let ((methods (or nnmail-split-methods '(("bogus" ""))))
 	(obuf (current-buffer))
 	group-art method grp)
     (if (and (sequencep methods)
-	     (= (length methods) 1))
+	     (= (length methods) 1)
+	     (not nnmail-inhibit-default-split-group))
 	;; If there is only just one group to put everything in, we
 	;; just return a list with just this one method in.
 	(setq group-art
 	      (list (cons (caar methods) (funcall func (caar methods)))))
       ;; We do actual comparison.
-      (save-excursion
-	;; Copy the article into the work buffer.
-	(set-buffer nntp-server-buffer)
+      ;; Copy the article into the work buffer.
+      (with-current-buffer nntp-server-buffer
 	(erase-buffer)
 	(insert-buffer-substring obuf)
 	;; Narrow to headers.
@@ -1149,7 +1153,8 @@ FUNC will be called with the group name to determine the article number."
 		       ;; just call this function here and use the
 		       ;; result.
 		       (or (funcall nnmail-split-methods)
-			   '("bogus"))
+			   (and (not nnmail-inhibit-default-split-group)
+				'("bogus")))
 		     (error
 		      (nnheader-message
 		       5 "Error in `nnmail-split-methods'; using `bogus' mail group: %S" error-info)
@@ -1159,9 +1164,10 @@ FUNC will be called with the group name to determine the article number."
 	      ;; The article may be "cross-posted" to `junk'.  What
 	      ;; to do?  Just remove the `junk' spec.  Don't really
 	      ;; see anything else to do...
-	      (let (elem)
-		(while (setq elem (car (memq 'junk split)))
-		  (setq split (delq elem split))))
+	      (when (and (memq 'junk split)
+			 junk-func)
+		(funcall junk-func 'junk))
+	      (setq split (delq 'junk split))
 	      (when split
 		(setq group-art
 		      (mapcar
@@ -1194,12 +1200,14 @@ FUNC will be called with the group name to determine the article number."
 			group-art))
 	      ;; This is the final group, which is used as a
 	      ;; catch-all.
-	      (unless group-art
+	      (when (and (not group-art)
+			 (not nnmail-inhibit-default-split-group))
 		(setq group-art
 		      (list (cons (car method)
 				  (funcall func (car method))))))))
 	  ;; Fall back on "bogus" if all else fails.
-	  (unless group-art
+	  (when (and (not group-art)
+		     (not nnmail-inhibit-default-split-group))
 	    (setq group-art (list (cons "bogus" (funcall func "bogus"))))))
 	;; Produce a trace if non-empty.
 	(when (and trace nnmail-split-trace)
@@ -1572,10 +1580,9 @@ See the documentation for the variable `nnmail-split-fancy' for details."
 	  (and nnmail-cache-buffer
 	       (buffer-name nnmail-cache-buffer)))
       ()				; The buffer is open.
-    (save-excursion
-      (set-buffer
+    (with-current-buffer
        (setq nnmail-cache-buffer
-	     (get-buffer-create " *nnmail message-id cache*")))
+	     (get-buffer-create " *nnmail message-id cache*"))
       (gnus-add-buffer)
       (when (file-exists-p nnmail-message-id-cache-file)
 	(nnheader-insert-file-contents nnmail-message-id-cache-file))
@@ -1587,8 +1594,7 @@ See the documentation for the variable `nnmail-split-fancy' for details."
 	     nnmail-treat-duplicates
 	     (buffer-name nnmail-cache-buffer)
 	     (buffer-modified-p nnmail-cache-buffer))
-    (save-excursion
-      (set-buffer nnmail-cache-buffer)
+    (with-current-buffer nnmail-cache-buffer
       ;; Weed out the excess number of Message-IDs.
       (goto-char (point-max))
       (when (search-backward "\n" nil t nnmail-message-id-cache-length)
@@ -1605,10 +1611,6 @@ See the documentation for the variable `nnmail-split-fancy' for details."
       (setq nnmail-cache-buffer nil)
       (gnus-kill-buffer (current-buffer)))))
 
-;; Compiler directives.
-(defvar group)
-(defvar group-art-list)
-(defvar group-art)
 (defun nnmail-cache-insert (id grp &optional subject sender)
   (when (stringp id)
     ;; this will handle cases like `B r' where the group is nil
@@ -1623,8 +1625,7 @@ See the documentation for the variable `nnmail-split-fancy' for details."
       ;; pass the first (of possibly >1) group which matches. -Josh
       (unless (gnus-buffer-live-p nnmail-cache-buffer)
 	(nnmail-cache-open))
-      (save-excursion
-	(set-buffer nnmail-cache-buffer)
+      (with-current-buffer nnmail-cache-buffer
 	(goto-char (point-max))
 	(if (and grp (not (string= "" grp))
 		 (gnus-methods-equal-p gnus-command-method
@@ -1657,8 +1658,7 @@ See the documentation for the variable `nnmail-split-fancy' for details."
 ;; cache.
 (defun nnmail-cache-fetch-group (id)
   (when (and nnmail-treat-duplicates nnmail-cache-buffer)
-    (save-excursion
-      (set-buffer nnmail-cache-buffer)
+    (with-current-buffer nnmail-cache-buffer
       (goto-char (point-max))
       (when (search-backward id nil t)
 	(beginning-of-line)
@@ -1702,8 +1702,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 
 (defun nnmail-cache-id-exists-p (id)
   (when nnmail-treat-duplicates
-    (save-excursion
-      (set-buffer nnmail-cache-buffer)
+    (with-current-buffer nnmail-cache-buffer
       (goto-char (point-max))
       (search-backward id nil t))))
 
@@ -1713,7 +1712,8 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
       (message-narrow-to-head)
       (message-fetch-field header))))
 
-(defun nnmail-check-duplication (message-id func artnum-func)
+(defun nnmail-check-duplication (message-id func artnum-func
+					    &optional junk-func)
   (run-hooks 'nnmail-prepare-incoming-message-hook)
   ;; If this is a duplicate message, then we do not save it.
   (let* ((duplication (nnmail-cache-id-exists-p message-id))
@@ -1738,7 +1738,8 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
     (cond
      ((not duplication)
       (funcall func (setq group-art
-			  (nreverse (nnmail-article-group artnum-func))))
+			  (nreverse (nnmail-article-group
+				     artnum-func nil junk-func))))
       (nnmail-cache-insert message-id (caar group-art)))
      ((eq action 'delete)
       (setq group-art nil))
@@ -1857,9 +1858,12 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
       (run-hooks 'nnmail-post-get-new-mail-hook))))
 
 (defun nnmail-expired-article-p (group time force &optional inhibit)
-  "Say whether an article that is TIME old in GROUP should be expired."
+  "Say whether an article that is TIME old in GROUP should be expired.
+If TIME is nil, then return the cutoff time for oldness instead."
   (if force
-      t
+      (if (null time)
+	  (current-time)
+	t)
     (let ((days (or (and nnmail-expiry-wait-function
 			 (funcall nnmail-expiry-wait-function group))
 		    nnmail-expiry-wait)))
@@ -1870,14 +1874,18 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 	     nil)
 	    ((eq days 'immediate)
 	     ;; We expire all articles on sight.
-	     t)
+	     (if (null time)
+		 (current-time)
+	       t))
 	    ((equal time '(0 0))
 	    ;; This is an ange-ftp group, and we don't have any dates.
 	     nil)
 	    ((numberp days)
 	     (setq days (days-to-time days))
 	     ;; Compare the time with the current time.
-	     (ignore-errors (time-less-p days (time-since time))))))))
+	     (if (null time)
+		 (time-subtract (current-time) days)
+	       (ignore-errors (time-less-p days (time-since time)))))))))
 
 (declare-function gnus-group-mark-article-read "gnus-group" (group article))
 

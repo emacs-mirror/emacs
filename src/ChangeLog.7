@@ -1040,7 +1040,7 @@
 
 	* lread.c: Remember the last TWO strings skipped with #@.
 	(prev_saved_doc_string*): New variables.
-	(Fload): Initalize prev_saved_doc_string.
+	(Fload): Initialize prev_saved_doc_string.
 	(read1): Copy saved_doc_string to prev_saved_doc_string
 	before storing a new string in saved_doc_string.
 	(read_list): Look in prev_saved_doc_string as well as

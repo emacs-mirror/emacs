@@ -156,7 +156,7 @@ OPTION_DEFAULT_ON([gif],[don't compile with GIF image support])
 OPTION_DEFAULT_ON([png],[don't compile with PNG image support])
 OPTION_DEFAULT_ON([rsvg],[don't compile with SVG image support])
 OPTION_DEFAULT_ON([xml2],[don't compile with XML parsing support])
-OPTION_DEFAULT_OFF([imagemagick],[compile with ImageMagick image support])
+OPTION_DEFAULT_ON([imagemagick],[don't compile with ImageMagick image support])
 
 OPTION_DEFAULT_ON([xft],[don't use XFT for anti aliased fonts])
 OPTION_DEFAULT_ON([libotf],[don't use libotf for OpenType font support])
@@ -171,6 +171,7 @@ OPTION_DEFAULT_ON([gpm],[don't use -lgpm for mouse support on a GNU/Linux consol
 OPTION_DEFAULT_ON([dbus],[don't compile with D-Bus support])
 OPTION_DEFAULT_ON([gconf],[don't compile with GConf support])
 OPTION_DEFAULT_ON([selinux],[don't compile with SELinux support])
+OPTION_DEFAULT_ON([gnutls],[don't use -lgnutls for SSL/TLS support])
 
 ## For the times when you want to build Emacs but don't have
 ## a suitable makeinfo, and can live without the manuals.
@@ -1839,17 +1840,19 @@ if test "${HAVE_X11}" = "yes" || test "${NS_IMPL_GNUSTEP}" = "yes"; then
 fi
 
 HAVE_IMAGEMAGICK=no
-if test "${with_imagemagick}" != "no"; then
-  IMAGEMAGICK_MODULE="Wand"
-  PKG_CHECK_MODULES(IMAGEMAGICK, $IMAGEMAGICK_MODULE, HAVE_IMAGEMAGICK=yes, :)
-  AC_SUBST(IMAGEMAGICK_CFLAGS)
-  AC_SUBST(IMAGEMAGICK_LIBS)
-
-  if test $HAVE_IMAGEMAGICK = yes; then
-    AC_DEFINE(HAVE_IMAGEMAGICK, 1, [Define to 1 if using imagemagick.])
-    CFLAGS="$CFLAGS $IMAGEMAGICK_CFLAGS"
-    LIBS="$IMAGEMAGICK_LIBS $LIBS"
-    AC_CHECK_FUNCS(MagickExportImagePixels)
+if test "${HAVE_X11}" = "yes"; then
+  if test "${with_imagemagick}" != "no"; then
+    IMAGEMAGICK_MODULE="Wand"
+    PKG_CHECK_MODULES(IMAGEMAGICK, $IMAGEMAGICK_MODULE, HAVE_IMAGEMAGICK=yes, :)
+    AC_SUBST(IMAGEMAGICK_CFLAGS)
+    AC_SUBST(IMAGEMAGICK_LIBS)
+  
+    if test $HAVE_IMAGEMAGICK = yes; then
+      AC_DEFINE(HAVE_IMAGEMAGICK, 1, [Define to 1 if using imagemagick.])
+      CFLAGS="$CFLAGS $IMAGEMAGICK_CFLAGS"
+      LIBS="$IMAGEMAGICK_LIBS $LIBS"
+      AC_CHECK_FUNCS(MagickExportImagePixels)
+    fi
   fi
 fi
 
@@ -1998,6 +2001,16 @@ if test "${with_selinux}" = "yes"; then
    fi
 fi
 AC_SUBST(LIBSELINUX_LIBS)
+
+HAVE_GNUTLS=no
+if test "${with_gnutls}" = "yes" ; then
+  PKG_CHECK_MODULES([LIBGNUTLS], [gnutls >= 2.2.4], HAVE_GNUTLS=yes, HAVE_GNUTLS=no)
+  if test "${HAVE_GNUTLS}" = "yes"; then
+    AC_DEFINE(HAVE_GNUTLS, 1, [Define if using GnuTLS.])
+  fi
+fi
+AC_SUBST(LIBGNUTLS_LIBS)
+AC_SUBST(LIBGNUTLS_CFLAGS)
 
 dnl Do not put whitespace before the #include statements below.
 dnl Older compilers (eg sunos4 cc) choke on it.
@@ -2541,7 +2554,14 @@ if test "${with_xml2}" != "no"; then
   ### I'm not sure what the version number should be, so I just guessed.
   PKG_CHECK_MODULES(LIBXML2, libxml-2.0 > 2.2.0, HAVE_LIBXML2=yes, HAVE_LIBXML2=no)
   if test "${HAVE_LIBXML2}" = "yes"; then
-    AC_DEFINE(HAVE_LIBXML2, 1, [Define to 1 if you have the libxml library (-lxml2).])
+    LIBS="$LIBXML2_LIBS $LIBS"
+    AC_CHECK_LIB(xml2, htmlReadMemory, HAVE_LIBXML2=yes, HAVE_LIBXML2=no)
+    if test "${HAVE_LIBXML2}" = "yes"; then
+      AC_DEFINE(HAVE_LIBXML2, 1, [Define to 1 if you have the libxml library (-lxml2).])
+    else
+      LIBXML2_LIBS=""
+      LIBXML2_CFLAGS=""
+    fi
   fi
 fi
 AC_SUBST(LIBXML2_LIBS)
@@ -3366,7 +3386,7 @@ fi
 AC_SUBST(LD_SWITCH_SYSTEM_TEMACS)
 
 
-LINKER=
+LD_FIRSTFLAG=
 ORDINARY_LINK=
 case "$opsys" in
   ## gnu: GNU needs its own crt0.
@@ -3376,14 +3396,14 @@ case "$opsys" in
   ## library search parth, i.e. it won't search /usr/lib for libc and
   ## friends.  Using -nostartfiles instead avoids this problem, and
   ## will also work on earlier NetBSD releases.
-  netbsd|openbsd) LINKER="\$(CC) -nostartfiles" ;;
+  netbsd|openbsd) LD_FIRSTFLAG="-nostartfiles" ;;
 
   ## macpcc: NAKAJI Hiroyuki <nakaji@tutrp.tut.ac.jp> says
   ##   MkLinux/LinuxPPC needs this.
   ## ibms390x only supports opsys = gnu-linux so it can be added here.
   gnu-*)
     case "$machine" in
-      macppc|ibms390x) LINKER="\$(CC) -nostdlib" ;;
+      macppc|ibms390x) LD_FIRSTFLAG="-nostdlib" ;;
     esac
     ;;
 esac
@@ -3391,12 +3411,12 @@ esac
 
 if test "x$ORDINARY_LINK" = "xyes"; then
 
-  LINKER="\$(CC)"
+  LD_FIRSTFLAG=""
   AC_DEFINE(ORDINARY_LINK, 1, [Define if the C compiler is the linker.])
 
-## The system files defining neither ORDINARY_LINK nor LINKER are:
+## The system files defining neither ORDINARY_LINK nor LD_FIRSTFLAG are:
 ## freebsd, gnu-* not on macppc|ibms390x.
-elif test "x$GCC" = "xyes" && test "x$LINKER" = "x"; then
+elif test "x$GCC" = "xyes" && test "x$LD_FIRSTFLAG" = "x"; then
 
   ## Versions of GCC >= 2.0 put their library, libgcc.a, in obscure
   ## places that are difficult to figure out at make time.  Fortunately,
@@ -3406,18 +3426,17 @@ elif test "x$GCC" = "xyes" && test "x$LINKER" = "x"; then
   ## Well, it is not quite perfect.  The "-nostdlib" keeps GCC from
   ## searching for libraries in its internal directories, so we have to
   ## ask GCC explicitly where to find libgcc.a (LIB_GCC below).
-  LINKER="\$(CC) -nostdlib"
+  LD_FIRSTFLAG="-nostdlib"
 fi
 
-test "x$LINKER" = "x" && LINKER=ld
 ## FIXME? What setting of EDIT_LDFLAGS should this have?
-test "$NS_IMPL_GNUSTEP" = "yes" && LINKER="\$(CC) -rdynamic"
+test "$NS_IMPL_GNUSTEP" = "yes" && LD_FIRSTFLAG="-rdynamic"
 
-AC_SUBST(LINKER)
+AC_SUBST(LD_FIRSTFLAG)
 
 
 ## FIXME? The logic here is not precisely the same as that above.
-## There is no check here for a pre-defined LINKER.
+## There is no check here for a pre-defined LD_FIRSTFLAG.
 ## Should we only be setting LIB_GCC if LD ~ -nostdlib?
 LIB_GCC=
 if test "x$GCC" = "xyes" && test "x$ORDINARY_LINK" != "xyes"; then
@@ -3690,10 +3709,13 @@ echo "  Does Emacs use a gif library?                           ${HAVE_GIF} $LIB
 echo "  Does Emacs use -lpng?                                   ${HAVE_PNG}"
 echo "  Does Emacs use -lrsvg-2?                                ${HAVE_RSVG}"
 echo "  Does Emacs use imagemagick?                             ${HAVE_IMAGEMAGICK}"
+
 echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
 echo "  Does Emacs use -ldbus?                                  ${HAVE_DBUS}"
 echo "  Does Emacs use -lgconf?                                 ${HAVE_GCONF}"
 echo "  Does Emacs use -lselinux?                               ${HAVE_LIBSELINUX}"
+echo "  Does Emacs use -lgnutls (BROKEN)?                       ${HAVE_GNUTLS}"
+echo "  Does Emacs use -lxml2?                                  ${HAVE_LIBXML2}"
 
 echo "  Does Emacs use -lfreetype?                              ${HAVE_FREETYPE}"
 echo "  Does Emacs use -lm17n-flt?                              ${HAVE_M17N_FLT}"

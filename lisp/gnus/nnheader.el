@@ -463,7 +463,7 @@ on your system, you could say something like:
       (let ((extra (mail-header-extra header)))
 	(while extra
 	  (insert (symbol-name (caar extra))
-		  ": " (cdar extra) "\t")
+		  ": " (if (stringp (cdar extra)) (cdar extra) "") "\t")
 	  (pop extra))))
     (insert "\n")
     (backward-char 1)
@@ -570,8 +570,6 @@ the line could be found."
 
 (defvar nntp-server-buffer nil)
 (defvar nntp-process-response nil)
-(defvar news-reply-yank-from nil)
-(defvar news-reply-yank-message-id nil)
 
 (defvar nnheader-callback-function nil)
 
@@ -824,19 +822,22 @@ The first string in ARGS can be a format string."
 	 (apply 'format args)))
   nil)
 
-(defun nnheader-get-report (backend)
+(defun nnheader-get-report-string (backend)
   "Get the most recent report from BACKEND."
   (condition-case ()
-      (nnheader-message 5 "%s" (symbol-value (intern (format "%s-status-string"
-							     backend))))
-    (error (nnheader-message 5 ""))))
+      (format "%s" (symbol-value (intern (format "%s-status-string"
+						 backend))))
+    (error "")))
+
+(defun nnheader-get-report (backend)
+  "Get the most recent report from BACKEND."
+  (nnheader-message 5 (nnheader-get-report-string backend)))
 
 (defun nnheader-insert (format &rest args)
   "Clear the communication buffer and insert FORMAT and ARGS into the buffer.
 If FORMAT isn't a format string, it and all ARGS will be inserted
 without formatting."
-  (save-excursion
-    (set-buffer nntp-server-buffer)
+  (with-current-buffer nntp-server-buffer
     (erase-buffer)
     (if (string-match "%" format)
 	(insert (apply 'format format args))

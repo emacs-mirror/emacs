@@ -267,27 +267,16 @@ DEFAULT-MAP specifies the default key map for ICON-LIST."
 		       ;; (tool-bar-add-item ICON DEF KEY &rest PROPS)
 		       (apply 'tool-bar-add-item icon nil nil :enable nil props)))
 		    ((equal fmap t) ;; Not a menu command
-		     (if (fboundp 'tool-bar-local-item)
-			 (apply 'tool-bar-local-item
-				icon command
-				(intern icon) ;; reuse icon or fmap here?
-				tool-bar-map props)
-		       ;; Emacs 21 compatibility:
-		       (apply 'tool-bar-add-item
-			      icon command
-			      (intern icon)
-			      props)))
+		     (apply 'tool-bar-local-item
+			    icon command
+			    (intern icon) ;; reuse icon or fmap here?
+			    tool-bar-map props))
 		    (t ;; A menu command
-		     (if (fboundp 'tool-bar-local-item-from-menu)
-			 (apply 'tool-bar-local-item-from-menu
-				;; (apply 'tool-bar-local-item icon def key
-				;; tool-bar-map props)
-				command icon tool-bar-map (symbol-value fmap)
-				props)
-		       ;; Emacs 21 compatibility:
-		       (apply 'tool-bar-add-item-from-menu
-			      command icon (symbol-value fmap)
-			      props))))
+		     (apply 'tool-bar-local-item-from-menu
+			    ;; (apply 'tool-bar-local-item icon def key
+			    ;; tool-bar-map props)
+			    command icon tool-bar-map (symbol-value fmap)
+			    props)))
 	      t))
 	  (if (symbolp icon-list)
 	      (eval icon-list)

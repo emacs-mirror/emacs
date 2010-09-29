@@ -40,6 +40,10 @@ This can be used in place of the default appt-message-warning-time.
 
 * Lisp changes in Emacs 23.3
 
+** `e' and `pi' are now called `float-e' and `float-pi'.
+  The old names are obsolete.
+** The use of unintern without an obarray arg is declared obsolete.
+
 ** New function byte-to-string, like char-to-string but for bytes.
 
 

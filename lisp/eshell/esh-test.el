@@ -43,7 +43,7 @@
 (defface eshell-test-ok
   '((((class color) (background light)) (:foreground "Green" :bold t))
     (((class color) (background dark)) (:foreground "Green" :bold t)))
-  "*The face used to highlight OK result strings."
+  "The face used to highlight OK result strings."
   :group 'eshell-test)
 (define-obsolete-face-alias 'eshell-test-ok-face 'eshell-test-ok "22.1")
 
@@ -51,12 +51,12 @@
   '((((class color) (background light)) (:foreground "OrangeRed" :bold t))
     (((class color) (background dark)) (:foreground "OrangeRed" :bold t))
     (t (:bold t)))
-  "*The face used to highlight FAILED result strings."
+  "The face used to highlight FAILED result strings."
   :group 'eshell-test)
 (define-obsolete-face-alias 'eshell-test-failed-face 'eshell-test-failed "22.1")
 
 (defcustom eshell-show-usage-metrics nil
-  "*If non-nil, display different usage metrics for each Eshell command."
+  "If non-nil, display different usage metrics for each Eshell command."
   :set (lambda (symbol value)
 	 (if value
 	     (add-hook 'eshell-mode-hook 'eshell-show-usage-metrics)

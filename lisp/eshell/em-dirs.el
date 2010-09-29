@@ -60,14 +60,14 @@ they lack somewhat in feel from the typical shell equivalents."
 ;;; User Variables:
 
 (defcustom eshell-dirs-load-hook '(eshell-dirs-initialize)
-  "*A hook that gets run when `eshell-dirs' is loaded."
+  "A hook that gets run when `eshell-dirs' is loaded."
   :type 'hook
   :group 'eshell-dirs)
 
 (defcustom eshell-pwd-convert-function (if (eshell-under-windows-p)
 					   'expand-file-name
 					 'identity)
-  "*The function used to normalize the value of Eshell's `pwd'.
+  "The function used to normalize the value of Eshell's `pwd'.
 The value returned by `pwd' is also used when recording the
 last-visited directory in the last-dir-ring, so it will affect the
 form of the list used by 'cd ='."
@@ -78,7 +78,7 @@ form of the list used by 'cd ='."
   :group 'eshell-dirs)
 
 (defcustom eshell-ask-to-save-last-dir 'always
-  "*Determine if the last-dir-ring should be automatically saved.
+  "Determine if the last-dir-ring should be automatically saved.
 The last-dir-ring is always preserved when exiting an Eshell buffer.
 However, when Emacs is being shut down, this variable determines
 whether to prompt the user, or just save the ring.
@@ -91,22 +91,22 @@ If set to `always', the list-dir-ring will always be saved, silently."
   :group 'eshell-dirs)
 
 (defcustom eshell-cd-shows-directory nil
-  "*If non-nil, using `cd' will report the directory it changes to."
+  "If non-nil, using `cd' will report the directory it changes to."
   :type 'boolean
   :group 'eshell-dirs)
 
 (defcustom eshell-cd-on-directory t
-  "*If non-nil, do a cd if a directory is in command position."
+  "If non-nil, do a cd if a directory is in command position."
   :type 'boolean
   :group 'eshell-dirs)
 
 (defcustom eshell-directory-change-hook nil
-  "*A hook to run when the current directory changes."
+  "A hook to run when the current directory changes."
   :type 'hook
   :group 'eshell-dirs)
 
 (defcustom eshell-list-files-after-cd nil
-  "*If non-nil, call \"ls\" with any remaining args after doing a cd.
+  "If non-nil, call \"ls\" with any remaining args after doing a cd.
 This is provided for convenience, since the same effect is easily
 achieved by adding a function to `eshell-directory-change-hook' that
 calls \"ls\" and references `eshell-last-arguments'."
@@ -114,39 +114,39 @@ calls \"ls\" and references `eshell-last-arguments'."
   :group 'eshell-dirs)
 
 (defcustom eshell-pushd-tohome nil
-  "*If non-nil, make pushd with no arg behave as 'pushd ~' (like `cd').
+  "If non-nil, make pushd with no arg behave as 'pushd ~' (like `cd').
 This mirrors the optional behavior of tcsh."
   :type 'boolean
   :group 'eshell-dirs)
 
 (defcustom eshell-pushd-dextract nil
-  "*If non-nil, make \"pushd +n\" pop the nth dir to the stack top.
+  "If non-nil, make \"pushd +n\" pop the nth dir to the stack top.
 This mirrors the optional behavior of tcsh."
   :type 'boolean
   :group 'eshell-dirs)
 
 (defcustom eshell-pushd-dunique nil
-  "*If non-nil, make pushd only add unique directories to the stack.
+  "If non-nil, make pushd only add unique directories to the stack.
 This mirrors the optional behavior of tcsh."
   :type 'boolean
   :group 'eshell-dirs)
 
 (defcustom eshell-dirtrack-verbose t
-  "*If non-nil, show the directory stack following directory change.
+  "If non-nil, show the directory stack following directory change.
 This is effective only if directory tracking is enabled."
   :type 'boolean
   :group 'eshell-dirs)
 
 (defcustom eshell-last-dir-ring-file-name
   (expand-file-name "lastdir" eshell-directory-name)
-  "*If non-nil, name of the file to read/write the last-dir-ring.
+  "If non-nil, name of the file to read/write the last-dir-ring.
 See also `eshell-read-last-dir-ring' and `eshell-write-last-dir-ring'.
 If it is nil, the last-dir-ring will not be written to disk."
   :type 'file
   :group 'eshell-dirs)
 
 (defcustom eshell-last-dir-ring-size 32
-  "*If non-nil, the size of the directory history ring.
+  "If non-nil, the size of the directory history ring.
 This ring is added to every time `cd' or `pushd' is used.  It simply
 stores the most recent directory locations Eshell has been in.  To
 return to the most recent entry, use 'cd -' (equivalent to 'cd -0').
@@ -167,7 +167,7 @@ thing again."
   :group 'eshell-dirs)
 
 (defcustom eshell-last-dir-unique t
-  "*If non-nil, `eshell-last-dir-ring' contains only unique entries."
+  "If non-nil, `eshell-last-dir-ring' contains only unique entries."
   :type 'boolean
   :group 'eshell-dirs)
 

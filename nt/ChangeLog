@@ -1,3 +1,29 @@
+2010-09-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat: Fix the condition for copying paths.h into
+	../src/epaths.h.
+
+2010-09-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* addpm.c (entry, add_registry, main):
+	* addsection.c (file_data, open_input_file, open_output_file)
+	(find_section, PTR_TO_OFFSET, copy_executable_and_add_section)
+	(COPY_CHUNK):
+	* cmdproxy.c (vfprintf, fprintf, printf, fail, warn, skip_space)
+	(skip_nonspace, get_next_token, search_dir, make_absolute)
+	(spawn, main):
+	* preprep.c (file_data, open_input_file, open_output_file)
+	(open_inout_file, find_section, PTR_TO_OFFSET, COPY_CHUNK, main):
+	Use const char*.
+
+	* cmdproxy.c (stdin): Don't define, not used.
+	(main): Don't assign remlen after last use.
+
+2010-09-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* configure.bat: Err out when the argument of --cflags contains
+	invalid characters (check implemented only for GCC).  (Bug#6820)
+
 2010-08-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* addpm.c (add_registry): Create App Paths of type REG_EXPAND_SZ.

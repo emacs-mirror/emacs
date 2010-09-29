@@ -1,7 +1,7 @@
 ;;; rcompile.el --- run a compilation on a remote machine
 
-;; Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Albert    <alon@milcse.rtsg.mot.com>
 ;; Maintainer: FSF
@@ -75,7 +75,7 @@
 
 
 (defcustom remote-compile-host nil
-  "*Host for remote compilations."
+  "Host for remote compilations."
   :type '(choice string (const nil))
   :group 'remote-compile)
 
@@ -86,7 +86,7 @@ nil means use the value returned by \\[user-login-name]."
   :group 'remote-compile)
 
 (defcustom remote-compile-run-before nil
-  "*Command to run before compilation.
+  "Command to run before compilation.
 This can be used for setting up environment variables,
 since rsh does not invoke the shell as a login shell and files like .login
 \(tcsh\) and .bash_profile \(bash\) are not run.
@@ -95,12 +95,12 @@ nil means run no commands."
   :group 'remote-compile)
 
 (defcustom remote-compile-prompt-for-host nil
-  "*Non-nil means prompt for host if not available from filename."
+  "Non-nil means prompt for host if not available from filename."
   :type 'boolean
   :group 'remote-compile)
 
 (defcustom remote-compile-prompt-for-user nil
-  "*Non-nil means prompt for user if not available from filename."
+  "Non-nil means prompt for user if not available from filename."
   :type 'boolean
   :group 'remote-compile)
 

@@ -35,6 +35,7 @@ CC = @CC@
 CFLAGS = @CFLAGS@
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
+LD_FIRSTFLAG=@LD_FIRSTFLAG@
 EXEEXT = @EXEEXT@
 version = @version@
 # Substitute an assignment for the MAKE variable, because
@@ -123,8 +124,6 @@ LIBS_SYSTEM=@LIBS_SYSTEM@
 
 ## Where to find libgcc.a, if using gcc and necessary.
 LIB_GCC=@LIB_GCC@
-
-LD=@LINKER@
 
 ## May use $CRT_DIR.
 LIB_STANDARD=@LIB_STANDARD@
@@ -287,6 +286,9 @@ LIBRESOLV = @LIBRESOLV@
 
 LIBSELINUX_LIBS = @LIBSELINUX_LIBS@
 
+LIBGNUTLS_LIBS = @LIBGNUTLS_LIBS@
+LIBGNUTLS_CFLAGS = @LIBGNUTLS_CFLAGS@
+
 INTERVALS_H = dispextern.h intervals.h composite.h
 
 GETLOADAVG_LIBS = @GETLOADAVG_LIBS@
@@ -326,6 +328,7 @@ ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(MYCPPFLAGS) -I. -I${srcdir} \
   ${LIBXML2_CFLAGS} ${DBUS_CFLAGS} \
   ${GCONF_CFLAGS} ${FREETYPE_CFLAGS} ${FONTCONFIG_CFLAGS} \
   ${LIBOTF_CFLAGS} ${M17N_FLT_CFLAGS} ${DEPFLAGS} ${PROFILING_CFLAGS} \
+  $(LIBGNUTLS_CFLAGS) \
   ${C_WARNINGS_SWITCH} ${CFLAGS}
 ALL_OBJC_CFLAGS=$(ALL_CFLAGS) $(GNU_OBJC_CFLAGS)
 
@@ -350,7 +353,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o menu.o $(XMENU_OBJ) window.o \
 	alloc.o data.o doc.o editfns.o callint.o \
 	eval.o floatfns.o fns.o font.o print.o lread.o \
 	syntax.o $(UNEXEC_OBJ) bytecode.o \
-	process.o callproc.o \
+	process.o gnutls.o callproc.o \
 	region-cache.o sound.o atimer.o \
 	doprnt.o strftime.o intervals.o textprop.o composite.o md5.o xml.o \
 	$(MSDOS_OBJ) $(MSDOS_X_OBJ) $(NS_OBJ) $(CYGWIN_OBJ) $(FONT_OBJ)
@@ -602,6 +605,7 @@ LIBES = $(LIBS) $(LIBX_BASE) $(LIBX_OTHER) $(LIBSOUND) \
    ${LIBXML2_LIBS} $(LIBGPM) $(LIBRESOLV) $(LIBS_SYSTEM) \
    $(LIBS_TERMCAP) $(GETLOADAVG_LIBS) ${GCONF_LIBS} ${LIBSELINUX_LIBS} \
    $(FREETYPE_LIBS) $(FONTCONFIG_LIBS) $(LIBOTF_LIBS) $(M17N_FLT_LIBS) \
+   $(LIBGNUTLS_LIBS) \
    $(LIB_GCC) $(LIB_MATH) $(LIB_STANDARD) $(LIB_GCC)
 
 all: emacs${EXEEXT} $(OTHER_FILES)
@@ -646,7 +650,7 @@ buildobj.h: Makefile
 
 
 temacs${EXEEXT}: $(START_FILES) stamp-oldxmenu ${obj} ${otherobj}
-	$(LD) ${TEMACS_LDFLAGS} ${TEMACS_LDFLAGS2} \
+	$(CC) $(LD_FIRSTFLAG) ${TEMACS_LDFLAGS} ${TEMACS_LDFLAGS2} \
 	  -o temacs ${START_FILES} ${obj} ${otherobj} ${LIBES}
 
 ## The following oldxmenu-related rules are only (possibly) used if

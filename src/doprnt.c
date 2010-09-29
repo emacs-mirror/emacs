@@ -33,20 +33,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 #endif
 
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-
 #include "lisp.h"
-
-#ifndef DBL_MAX_10_EXP
-#define DBL_MAX_10_EXP 308 /* IEEE double */
-#endif
 
 /* Since we use the macro CHAR_HEAD_P, we have to include this, but
    don't have to include others because CHAR_HEAD_P does not contains
    another macro.  */
 #include "character.h"
+
+#ifndef DBL_MAX_10_EXP
+#define DBL_MAX_10_EXP 308 /* IEEE double */
+#endif
 
 /* Generate output from a format-spec FORMAT,
    terminated at position FORMAT_END.
@@ -58,7 +54,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
    String arguments are passed as C strings.
    Integers are passed as C integers.  */
 
-int
+EMACS_INT
 doprnt (char *buffer, register int bufsize, const char *format,
 	const char *format_end, va_list ap)
 {
@@ -100,7 +96,7 @@ doprnt (char *buffer, register int bufsize, const char *format,
       if (*fmt == '%')	/* Check for a '%' character */
 	{
 	  unsigned size_bound = 0;
-	  int width;		/* Columns occupied by STRING.  */
+	  EMACS_INT width;  /* Columns occupied by STRING.  */
 
 	  fmt++;
 	  /* Copy this one %-spec into fmtcpy.  */

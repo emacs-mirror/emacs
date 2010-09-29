@@ -104,6 +104,7 @@ Use `semantic-analyze-current-tag' to debug this fcn."
   "Return the implementations derived in the reference analyzer REFS.
 Optional argument IN-BUFFER indicates that the returned tag should be in an active buffer."
   (let ((allhits (oref refs rawsearchdata))
+	(tag (oref refs :tag))
 	(impl nil)
 	)
     (semanticdb-find-result-mapc
@@ -113,7 +114,8 @@ Optional argument IN-BUFFER indicates that the returned tag should be in an acti
 	      (aT (cdr ans))
 	      (aDB (car ans))
 	      )
-	 (when (not (semantic-tag-prototype-p aT))
+	 (when (and (not (semantic-tag-prototype-p aT))
+		    (semantic-tag-similar-p tag aT :prototype-flag :parent))
 	   (when in-buffer (save-excursion (semantic-go-to-tag aT aDB)))
 	   (push aT impl))))
      allhits)
@@ -123,6 +125,7 @@ Optional argument IN-BUFFER indicates that the returned tag should be in an acti
   "Return the prototypes derived in the reference analyzer REFS.
 Optional argument IN-BUFFER indicates that the returned tag should be in an active buffer."
   (let ((allhits (oref refs rawsearchdata))
+	(tag (oref refs :tag))
 	(proto nil))
     (semanticdb-find-result-mapc
      (lambda (T DB)
@@ -131,7 +134,8 @@ Optional argument IN-BUFFER indicates that the returned tag should be in an acti
 	      (aT (cdr ans))
 	      (aDB (car ans))
 	      )
-	 (when (semantic-tag-prototype-p aT)
+	 (when (and (semantic-tag-prototype-p aT)
+		    (semantic-tag-similar-p tag aT :prototype-flag :parent))
 	   (when in-buffer (save-excursion (semantic-go-to-tag aT aDB)))
 	   (push aT proto))))
      allhits)
@@ -142,8 +146,8 @@ Optional argument IN-BUFFER indicates that the returned tag should be in an acti
 (defun semantic--analyze-refs-full-lookup (tag scope)
   "Perform a full lookup for all occurrences of TAG in the current project.
 TAG should be the tag currently under point.
-PARENT is the list of tags that are parents to TAG by
-containment, as opposed to reference."
+SCOPE is the scope the cursor is in.  From this a list of parents is
+derived.  If SCOPE does not have parents, then only a simple lookup is done."
   (if (not (oref scope parents))
       ;; If this tag has some named parent, but is not
       (semantic--analyze-refs-full-lookup-simple tag)
@@ -177,20 +181,36 @@ CLASS is the class of the tag that ought to be returned."
     ans))
 
 (defun semantic--analyze-refs-find-tags-with-parent (find-results parents)
-  "Find in FIND-RESULTS all tags with PARNTS.
+  "Find in FIND-RESULTS all tags with PARENTS.
 NAME is the name of the tag needing finding.
 PARENTS is a list of names."
-  (let ((ans nil))
+  (let ((ans nil) (usingnames nil))
+    ;; Loop over the find-results passed in.
     (semanticdb-find-result-mapc
      (lambda (tag db)
        (let* ((p (semantic-tag-named-parent tag))
-	      (ps (when (stringp p)
-		    (semantic-analyze-split-name p))))
+	      (ps (when (stringp p) (semantic-analyze-split-name p))))
 	 (when (stringp ps) (setq ps (list ps)))
-	 (when (and ps (equal ps parents))
-	   ;; We could optimize this, but it seems unlikely.
-	   (push (list db tag) ans))
-	 ))
+	 (when ps
+	   ;; If there is a perfect match, then use it.
+	   (if (equal ps parents)
+	       (push (list db tag) ans))
+	   ;; No match, find something from our list of using names.
+	   ;; Do we need to split UN?
+	   (save-excursion
+	     (semantic-go-to-tag tag db)
+	     (setq usingnames nil)
+	     (let ((imports (semantic-ctxt-imported-packages)))
+	       ;; Derive the names from all the using statements.
+	       (mapc (lambda (T)
+		       (setq usingnames
+			     (cons (semantic-format-tag-name-from-anything T) usingnames)))
+		     imports))
+	     (dolist (UN usingnames)
+	       (when (equal (cons UN ps) parents)
+		 (push (list db tag) ans)
+		 (setq usingnames (cdr usingnames))))
+	     ))))
      find-results)
     ans))
 
@@ -206,7 +226,7 @@ TAG should be the tag currently under point."
 	 ;; Find all hits for the first parent name.
 	 (brute (semanticdb-find-tags-collector
 		 (lambda (table tags)
-		   (semanticdb-find-tags-by-name-method table name tags)
+		   (semanticdb-deep-find-tags-by-name-method table name tags)
 		   )
 		 nil nil t))
 	 ;; Prime the answer.
@@ -214,6 +234,7 @@ TAG should be the tag currently under point."
 	 )
     ;; First parent is already search to initialize "brute".
     (setq plist (cdr plist))
+
     ;; Go through the list of parents, and try to find matches.
     ;; As we cycle through plist, for each level look for NAME,
     ;; and compare the named-parent, and also dive into the next item of
@@ -253,7 +274,8 @@ Only works for tags in the global namespace."
 		 (lambda (table tags)
 		   (semanticdb-find-tags-by-name-method table name tags)
 		   )
-		 nil nil t))
+		 nil ;; This may need to be the entire project??
+		 nil t))
 	 )
 
 	(when (and (not brute) (not noerror))

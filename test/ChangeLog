@@ -1,3 +1,11 @@
+2010-09-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent/prolog.prolog: Use normal spacing around !.
+
+2010-09-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent/octave.m: Remove one more `fixindent'.  Use `end'.
+
 2010-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* indent/octave.m: Remove some `fixindent' not needed any more.
@@ -18,7 +26,8 @@
 	(icalendar-testsuite--do-test-export): Code formatting.
 	(icalendar-testsuite--test-parse-vtimezone): Doc fix.
 	(icalendar-testsuite--do-test-import)
-	(icalendar-testsuite--do-test-cycle): Use icalendar-testsuite--compare-strings
+	(icalendar-testsuite--do-test-cycle):
+	Use icalendar-testsuite--compare-strings
 	(icalendar-testsuite--run-import-tests): Comment added.
 	(icalendar-testsuite--run-import-tests)
 	(icalendar-testsuite--run-real-world-tests): Fix expected results.

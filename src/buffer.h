@@ -865,7 +865,7 @@ extern int overlays_at (EMACS_INT pos, int extend, Lisp_Object **vec_ptr,
                         EMACS_INT *prev_ptr, int change_req);
 extern int sort_overlays (Lisp_Object *, int, struct window *);
 extern void recenter_overlay_lists (struct buffer *, EMACS_INT);
-extern int overlay_strings (EMACS_INT, struct window *, unsigned char **);
+extern EMACS_INT overlay_strings (EMACS_INT, struct window *, unsigned char **);
 extern void validate_region (Lisp_Object *, Lisp_Object *);
 extern void set_buffer_internal (struct buffer *);
 extern void set_buffer_internal_1 (struct buffer *);

@@ -67,8 +67,8 @@ DdeCallback (UINT uType, UINT uFmt, HCONV hconv,
 
 static struct entry
 {
-  char *name;
-  char *value;
+  const char *name;
+  const char *value;
 }
 env_vars[] =
 {
@@ -85,7 +85,7 @@ env_vars[] =
 };
 
 BOOL
-add_registry (char *path)
+add_registry (const char *path)
 {
   HKEY hrootkey = NULL;
   int i;
@@ -178,7 +178,7 @@ add_registry (char *path)
 
   for (i = 0; i < (sizeof (env_vars) / sizeof (env_vars[0])); i++)
     {
-      char * value = env_vars[i].value ? env_vars[i].value : path;
+      const char * value = env_vars[i].value ? env_vars[i].value : path;
 
       if (RegSetValueEx (hrootkey, env_vars[i].name,
 			 0, REG_EXPAND_SZ,
@@ -198,8 +198,8 @@ main (int argc, char *argv[])
   int shortcuts_created = 0;
   int com_available = 1;
   char modname[MAX_PATH];
-  char *prog_name;
-  char *emacs_path;
+  const char *prog_name;
+  const char *emacs_path;
   char *p;
   int quiet = 0;
   HRESULT result;

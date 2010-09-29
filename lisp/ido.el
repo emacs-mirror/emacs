@@ -3403,6 +3403,8 @@ for first matching file."
     (if default
         (setq ido-temp-list
               (cons default (delete default ido-temp-list))))
+    (if ido-use-virtual-buffers
+	(ido-add-virtual-buffers-to-list))
     (run-hooks 'ido-make-buffer-list-hook)
     ido-temp-list))
 

@@ -86,26 +86,26 @@ variable names, arguments, etc."
 ;;; User Variables:
 
 (defcustom eshell-cmpl-load-hook '(eshell-cmpl-initialize)
-  "*A list of functions to run when `eshell-cmpl' is loaded."
+  "A list of functions to run when `eshell-cmpl' is loaded."
   :type 'hook
   :group 'eshell-cmpl)
 
 (defcustom eshell-show-lisp-completions nil
-  "*If non-nil, include Lisp functions in the command completion list.
+  "If non-nil, include Lisp functions in the command completion list.
 If this variable is nil, Lisp completion can still be done in command
 position by using M-TAB instead of TAB."
   :type 'boolean
   :group 'eshell-cmpl)
 
 (defcustom eshell-show-lisp-alternatives t
-  "*If non-nil, and no other completions found, show Lisp functions.
+  "If non-nil, and no other completions found, show Lisp functions.
 Setting this variable means nothing if `eshell-show-lisp-completions'
 is non-nil."
   :type 'boolean
   :group 'eshell-cmpl)
 
 (defcustom eshell-no-completion-during-jobs t
-  "*If non-nil, don't allow completion while a process is running."
+  "If non-nil, don't allow completion while a process is running."
   :type 'boolean
   :group 'eshell-cmpl)
 
@@ -126,7 +126,7 @@ is non-nil."
     ("dbx"      . "\\`\\([^.]*\\|a\\.out\\)\\'")
     ("sdb"      . "\\`\\([^.]*\\|a\\.out\\)\\'")
     ("adb"      . "\\`\\([^.]*\\|a\\.out\\)\\'"))
-  "*An alist that defines simple argument type correlations.
+  "An alist that defines simple argument type correlations.
 This is provided for common commands, as a simplistic alternative
 to writing a completion function."
   :type '(repeat (cons string regexp))

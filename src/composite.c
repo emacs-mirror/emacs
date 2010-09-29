@@ -180,7 +180,8 @@ Lisp_Object composition_temp;
    If the composition is invalid, return -1.  */
 
 int
-get_composition_id (int charpos, int bytepos, int nchars, Lisp_Object prop, Lisp_Object string)
+get_composition_id (EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT nchars,
+		    Lisp_Object prop, Lisp_Object string)
 {
   Lisp_Object id, length, components, key, *key_contents;
   int glyph_len;
@@ -188,7 +189,8 @@ get_composition_id (int charpos, int bytepos, int nchars, Lisp_Object prop, Lisp
   int hash_index;
   unsigned hash_code;
   struct composition *cmp;
-  int i, ch;
+  EMACS_INT i;
+  int ch;
 
   /* PROP should be
 	Form-A: ((LENGTH . COMPONENTS) . MODIFICATION-FUNC)
@@ -290,7 +292,7 @@ get_composition_id (int charpos, int bytepos, int nchars, Lisp_Object prop, Lisp
       && VECTORP (AREF (components, 0)))
     {
       /* COMPONENTS is a glyph-string.  */
-      int len = ASIZE (key);
+      EMACS_UINT len = ASIZE (key);
 
       for (i = 1; i < len; i++)
 	if (! VECTORP (AREF (key, i)))
@@ -298,7 +300,7 @@ get_composition_id (int charpos, int bytepos, int nchars, Lisp_Object prop, Lisp
     }
   else if (VECTORP (components) || CONSP (components))
     {
-      int len = XVECTOR (key)->size;
+      EMACS_UINT len = XVECTOR (key)->size;
 
       /* The number of elements should be odd.  */
       if ((len % 2) == 0)
@@ -427,7 +429,9 @@ get_composition_id (int charpos, int bytepos, int nchars, Lisp_Object prop, Lisp
    This doesn't check the validity of composition.  */
 
 int
-find_composition (int pos, int limit, EMACS_INT *start, EMACS_INT *end, Lisp_Object *prop, Lisp_Object object)
+find_composition (EMACS_INT pos, EMACS_INT limit,
+		  EMACS_INT *start, EMACS_INT *end,
+		  Lisp_Object *prop, Lisp_Object object)
 {
   Lisp_Object val;
 
@@ -465,7 +469,7 @@ find_composition (int pos, int limit, EMACS_INT *start, EMACS_INT *end, Lisp_Obj
    FROM and TO with property PROP.  */
 
 static void
-run_composition_function (int from, int to, Lisp_Object prop)
+run_composition_function (EMACS_INT from, EMACS_INT to, Lisp_Object prop)
 {
   Lisp_Object func;
   EMACS_INT start, end;
@@ -628,7 +632,8 @@ make_composition_value_copy (Lisp_Object list)
    indices START and END in STRING.  */
 
 void
-compose_text (int start, int end, Lisp_Object components, Lisp_Object modification_func, Lisp_Object string)
+compose_text (EMACS_INT start, EMACS_INT end, Lisp_Object components,
+	      Lisp_Object modification_func, Lisp_Object string)
 {
   Lisp_Object prop;
 
@@ -735,7 +740,8 @@ composition_gstring_p (Lisp_Object gstring)
 }
 
 int
-composition_gstring_width (Lisp_Object gstring, int from, int to, struct font_metrics *metrics)
+composition_gstring_width (Lisp_Object gstring, EMACS_INT from, EMACS_INT to,
+			   struct font_metrics *metrics)
 {
   Lisp_Object *glyph;
   int width = 0;
@@ -907,7 +913,7 @@ autocmp_chars (Lisp_Object rule, EMACS_INT charpos, EMACS_INT bytepos, EMACS_INT
   EMACS_INT to;
   EMACS_INT pt = PT, pt_byte = PT_BYTE;
   Lisp_Object re, font_object, lgstring;
-  int len;
+  EMACS_INT len;
 
   record_unwind_save_match_data ();
   re = AREF (rule, 0);
@@ -1397,7 +1403,7 @@ composition_update_it (struct composition_it *cmp_it, EMACS_INT charpos, EMACS_I
       /* automatic composition */
       Lisp_Object gstring = composition_gstring_from_id (cmp_it->id);
       Lisp_Object glyph;
-      int from, to;
+      EMACS_INT from;
 
       if (cmp_it->nglyphs == 0)
 	{
@@ -1656,7 +1662,7 @@ find_automatic_composition (EMACS_INT pos, EMACS_INT limit, EMACS_INT *start, EM
 /* Return the adjusted point provided that point is moved from LAST_PT
    to NEW_PT.  */
 
-int
+EMACS_INT
 composition_adjust_point (EMACS_INT last_pt, EMACS_INT new_pt)
 {
   EMACS_INT charpos, bytepos, startpos, beg, end, pos;
@@ -1879,9 +1885,9 @@ See `find-composition' for more details.  */)
     id = COMPOSITION_ID (prop);
   else
     {
-      int start_byte = (NILP (string)
-			? CHAR_TO_BYTE (start)
-			: string_char_to_byte (string, start));
+      EMACS_INT start_byte = (NILP (string)
+			      ? CHAR_TO_BYTE (start)
+			      : string_char_to_byte (string, start));
       id = get_composition_id (start, start_byte, end - start, prop, string);
     }
 

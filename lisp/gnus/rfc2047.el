@@ -342,8 +342,8 @@ The buffer may be narrowed."
 (defconst rfc2047-syntax-table
   ;; (make-char-table 'syntax-table '(2)) only works in Emacs.
   (let ((table (make-syntax-table)))
-    ;; The following is done to work for setting all elements of the table
-    ;; in Emacs 21-23 and XEmacs; it appears to be the cleanest way.
+    ;; The following is done to work for setting all elements of the table;
+    ;; it appears to be the cleanest way.
     ;; Play safe and don't assume the form of the word syntax entry --
     ;; copy it from ?a.
     (if (fboundp 'set-char-table-range)	; Emacs
@@ -851,18 +851,8 @@ Point moves to the end of the region."
 
 (defun rfc2047-encode-parameter (param value)
   "Return and PARAM=VALUE string encoded in the RFC2047-like style.
-This is a replacement for the `rfc2231-encode-string' function.
-
-When attaching files as MIME parts, we should use the RFC2231 encoding
-to specify the file names containing non-ASCII characters.  However,
-many mail softwares don't support it in practice and recipients won't
-be able to extract files with correct names.  Instead, the RFC2047-like
-encoding is acceptable generally.  This function provides the very
-RFC2047-like encoding, resigning to such a regrettable trend.  To use
-it, put the following line in your ~/.gnus.el file:
-
-\(defalias 'mail-header-encode-parameter 'rfc2047-encode-parameter)
-"
+This is a substitution for the `rfc2231-encode-string' function, that
+is the standard but many mailers don't support it."
   (let ((rfc2047-encoding-type 'mime)
 	(rfc2047-encode-max-chars nil))
     (rfc2045-encode-string param (rfc2047-encode-string value))))

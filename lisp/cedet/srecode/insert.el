@@ -26,6 +26,9 @@
 ;; Manage the insertion process for a template.
 ;;
 
+(eval-when-compile
+  (require 'cl)) ;; for `lexical-let'
+
 (require 'srecode/compile)
 (require 'srecode/find)
 (require 'srecode/dictionary)
@@ -49,7 +52,7 @@ Possible values are:
 NOTE: The field feature does not yet work with XEmacs."
   :group 'srecode
   :type '(choice (const :tag "Ask" ask)
-		 (cons :tag "Field" field)))
+		 (const :tag "Field" field)))
 
 (defvar srecode-insert-with-fields-in-progress nil
   "Non-nil means that we are actively inserting a template with fields.")
@@ -86,7 +89,6 @@ DICT-ENTRIES are additional dictionary values to add."
 				    (car dict-entries)
 				    (car (cdr dict-entries)))
       (setq dict-entries (cdr (cdr dict-entries))))
-    ;;(srecode-resolve-arguments temp newdict)
     (srecode-insert-fcn temp newdict)
     ;; Don't put code here.  We need to return the end-mark
     ;; for this insertion step.
@@ -100,6 +102,10 @@ has set everything up already."
   ;; Perform the insertion.
   (let ((standard-output (or stream (current-buffer)))
 	(end-mark nil))
+    ;; Merge any template entries into the input dictionary.
+    (when (slot-boundp template 'dictionary)
+      (srecode-dictionary-merge dictionary (oref template dictionary)))
+
     (unless skipresolver
       ;; Make sure the semantic tags are up to date.
       (semantic-fetch-tags)
@@ -110,7 +116,7 @@ has set everything up already."
 	;; If there is a buffer, turn off various hooks.  This will cause
 	;; the mod hooks to be buffered up during the insert, but
 	;; prevent tools like font-lock from fontifying mid-template.
-	;; Especialy important during insertion of complex comments that
+	;; Especially important during insertion of complex comments that
 	;; cause the new font-lock to comment-color stuff after the inserted
 	;; comment.
 	;;
@@ -239,6 +245,9 @@ ST can be a class, or an object."
 (defmethod srecode-insert-method ((st srecode-template) dictionary)
   "Insert the srecoder template ST."
   ;; Merge any template entries into the input dictionary.
+  ;; This may happen twice since some templates arguments need
+  ;; these dictionary values earlier, but these values always
+  ;; need merging for template inserting in other templates.
   (when (slot-boundp st 'dictionary)
     (srecode-dictionary-merge dictionary (oref st dictionary)))
   ;; Do an insertion.
@@ -264,7 +273,7 @@ Use DICTIONARY to resolve any macros."
 ;; Specific srecode inserters.
 ;; The base class is from srecode-compile.
 ;;
-;; Each inserter handles various macro codes from the temlate.
+;; Each inserter handles various macro codes from the template.
 ;; The `code' slot specifies a character used to identify which
 ;; inserter is to be created.
 ;;
@@ -471,7 +480,7 @@ If SECONDNAME is nil, return VALUE."
 	;;    (setq val (format "%S" val))))
 	))
     ;; Output the dumb thing unless the type of thing specifically
-    ;; did the inserting forus.
+    ;; did the inserting for us.
     (when do-princ
       (princ val))))
 
@@ -498,7 +507,8 @@ If there is no entry, prompt the user for the value to use.
 The prompt text used is derived from the previous PROMPT command in the
 template file.")
 
-(defmethod srecode-inserter-apply-state ((ins srecode-template-inserter-ask) STATE)
+(defmethod srecode-inserter-apply-state
+  ((ins srecode-template-inserter-ask) STATE)
   "For the template inserter INS, apply information from STATE.
 Loop over the prompts to see if we have a match."
   (let ((prompts (oref STATE prompts))
@@ -669,7 +679,13 @@ Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."
   )
 
 (defvar srecode-template-inserter-point-override nil
-  "When non-nil, the point inserter will do this function instead.")
+  "Point-positioning method for the SRecode template inserter.
+When nil, perform normal point-positioning behavior.
+When the value is a cons cell (DEPTH . FUNCTION), call FUNCTION
+instead, unless the template nesting depth, measured
+by (length (oref srecode-template active)), is greater than
+DEPTH.")
+
 
 (defclass srecode-template-inserter-point (srecode-template-inserter)
   ((key :initform ?^
@@ -702,15 +718,20 @@ Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."
 				  dictionary)
   "Insert the STI inserter.
 Save point in the class allocated 'point' slot.
-If `srecode-template-inserter-point-override' then this generalized
-marker will do something else.  See `srecode-template-inserter-include-wrap'
-as an example."
-  (if srecode-template-inserter-point-override
+If `srecode-template-inserter-point-override' non-nil then this
+generalized marker will do something else.  See
+`srecode-template-inserter-include-wrap' as an example."
+  ;; If `srecode-template-inserter-point-override' is non-nil, its car
+  ;; is the maximum template nesting depth for which the override is
+  ;; valid. Compare this to the actual template nesting depth and
+  ;; maybe use the override function which is stored in the cdr.
+  (if (and srecode-template-inserter-point-override
+	   (<= (length (oref srecode-template active))
+	       (car srecode-template-inserter-point-override)))
       ;; Disable the old override while we do this.
-      (let ((over srecode-template-inserter-point-override)
+      (let ((over (cdr srecode-template-inserter-point-override))
 	    (srecode-template-inserter-point-override nil))
-	(funcall over dictionary)
-	)
+	(funcall over dictionary))
     (oset sti point (point-marker))
     ))
 
@@ -751,9 +772,15 @@ Loops over the embedded CODE which was saved here during compilation.
 The template to insert is stored in SLOT."
   (let ((dicts (srecode-dictionary-lookup-name
 		dictionary (oref sti :object-name))))
+    (when (not (listp dicts))
+      (error "Cannot insert section %S from non-section variable."
+	     (oref sti :object-name)))
     ;; If there is no section dictionary, then don't output anything
     ;; from this section.
     (while dicts
+      (when (not (srecode-dictionary-p (car dicts)))
+	(error "Cannot insert section %S from non-section variable."
+	       (oref sti :object-name)))
       (srecode-insert-subtemplate sti (car dicts) slot)
       (setq dicts (cdr dicts)))))
 
@@ -853,39 +880,44 @@ this template instance."
     ;; If there was no template name, throw an error
     (if (not templatenamepart)
 	(error "Include macro %s needs a template name" (oref sti :object-name)))
-    ;; Find the template by name, and save it.
-    (if (or (not (slot-boundp sti 'includedtemplate))
-	    (not (oref sti includedtemplate)))
-	(let ((tmpl (srecode-template-get-table (srecode-table)
-						templatenamepart))
-	      (active (oref srecode-template active))
-	      ctxt)
+
+    ;; NOTE: We used to cache the template and not look it up a second time,
+    ;; but changes in the template tables can change which template is
+    ;; eventually discovered, so now we always lookup that template.
+
+    ;; Calculate and store the discovered template
+    (let ((tmpl (srecode-template-get-table (srecode-table)
+					    templatenamepart))
+	  (active (oref srecode-template active))
+	  ctxt)
+      (when (not tmpl)
+	;; If it isn't just available, scan back through
+	;; the active template stack, searching for a matching
+	;; context.
+	(while (and (not tmpl) active)
+	  (setq ctxt (oref (car active) context))
+	  (setq tmpl (srecode-template-get-table (srecode-table)
+						 templatenamepart
+						 ctxt))
 	  (when (not tmpl)
-	    ;; If it isn't just available, scan back through
-	    ;; the active template stack, searching for a matching
-	    ;; context.
-	    (while (and (not tmpl) active)
-	      (setq ctxt (oref (car active) context))
-	      (setq tmpl (srecode-template-get-table (srecode-table)
-						     templatenamepart
-						     ctxt))
-	      (when (not tmpl)
-		(when (slot-boundp (car active) 'table)
-		  (let ((app (oref (oref (car active) table) application)))
-		    (when app
-		      (setq tmpl (srecode-template-get-table
-				  (srecode-table)
-				  templatenamepart
-				  ctxt app)))
-		    )))
-	      (setq active (cdr active)))
-	    (when (not tmpl)
-	      ;; If it wasn't in this context, look to see if it
-	      ;; defines its own context
-	      (setq tmpl (srecode-template-get-table (srecode-table)
-						     templatenamepart)))
-	    )
-	  (oset sti :includedtemplate tmpl)))
+	    (when (slot-boundp (car active) 'table)
+	      (let ((app (oref (oref (car active) table) application)))
+		(when app
+		  (setq tmpl (srecode-template-get-table
+			      (srecode-table)
+			      templatenamepart
+			      ctxt app)))
+		)))
+	  (setq active (cdr active)))
+	(when (not tmpl)
+	  ;; If it wasn't in this context, look to see if it
+	  ;; defines it's own context
+	  (setq tmpl (srecode-template-get-table (srecode-table)
+						 templatenamepart)))
+	)
+
+      ;; Store the found template into this object for later use.
+      (oset sti :includedtemplate tmpl))
 
     (if (not (oref sti includedtemplate))
 	;; @todo - Call into a debugger to help find the template in question.
@@ -955,23 +987,31 @@ insert the section it wraps into the location in the included
 template where a ^ inserter occurs."
   ;; Step 1: Look up the included inserter
   (srecode-insert-include-lookup sti dictionary)
-  ;; Step 2: Temporarilly override the point inserter.
-  (let* ((vaguely-unique-name sti)
-	 (srecode-template-inserter-point-override
-	  (lambda (dict2)
-	    (if (srecode-dictionary-lookup-name
-		 dict2 (oref vaguely-unique-name :object-name))
-		;; Insert our sectional part with looping.
-		(srecode-insert-method-helper
-		 vaguely-unique-name dict2 'template)
-	      ;; Insert our sectional part just once.
-	      (srecode-insert-subtemplate vaguely-unique-name
-					  dict2 'template))
-	   )))
+  ;; Step 2: Temporarily override the point inserter.
+  ;; We bind `srecode-template-inserter-point-override' to a cons cell
+  ;; (DEPTH . FUNCTION) that has the maximum template nesting depth,
+  ;; for which the override is valid, in DEPTH and a lambda function
+  ;; which implements the wrap insertion behavior in FUNCTION. The
+  ;; maximum valid nesting depth is just the current depth + 1.
+  (let ((srecode-template-inserter-point-override
+	 (lexical-let ((inserter1 sti))
+	   (cons
+	    ;; DEPTH
+	    (+ (length (oref srecode-template active)) 1)
+	    ;; FUNCTION
+	    (lambda (dict)
+	      (let ((srecode-template-inserter-point-override nil))
+		(if (srecode-dictionary-lookup-name
+		     dict (oref inserter1 :object-name))
+		    ;; Insert our sectional part with looping.
+		    (srecode-insert-method-helper
+		     inserter1 dict 'template)
+		  ;; Insert our sectional part just once.
+		  (srecode-insert-subtemplate
+		   inserter1 dict 'template))))))))
     ;; Do a regular insertion for an include, but with our override in
     ;; place.
-    (call-next-method)
-    ))
+    (call-next-method)))
 
 (provide 'srecode/insert)
 

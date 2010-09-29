@@ -1,3 +1,84 @@
+2010-09-29  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa.texi (Bug Reports): New section.
+
+2010-09-29  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (top_srcdir): Remove unused variable.
+
+2010-09-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-news.texi: Mention nnimap-inbox.
+
+	* gnus.texi (Picons): Document gnus-picon-inhibit-top-level-domains.
+
+2010-09-26  Julien Danjou  <julien@danjou.info>
+
+	* gnus.texi (Oort Gnus): Remove mention of ssl.el
+
+2010-09-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Security): Remove gpg.el mention.
+
+2010-09-26  Andreas Seltenreich  <seltenreich@gmx.de>
+
+	* gnus.texi (Browse Foreign Server): New variable
+	gnus-browse-subscribe-newsgroup-method.
+
+	* gnus-news.texi: Mention it.
+
+2010-09-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (NoCeM): Removed.
+	(Startup Variables): No jingle.
+
+2010-09-25  Ulrich Mueller  <ulm@gentoo.org>
+
+	* woman.texi (Interface Options): xz compression is now supported.
+
+2010-09-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Article Commands): Document gnus-fetch-partial-articles.
+	(Unavailable Servers): Document gnus-server-copy-server.
+	(Using IMAP): Document the new nnimap.
+
+2010-09-25  Julien Danjou  <julien@danjou.info>
+
+	* gnus.texi (Customizing Articles): Remove gnus-treat-translate
+
+2010-09-24  Glenn Morris  <rgm@gnu.org>
+
+	* url.texi (Disk Caching): Tweak previous change.
+
+2010-09-24  Julien Danjou  <julien@danjou.info>
+
+	* url.texi (Disk Caching): Mention url-cache-expire-time,
+	url-cache-expired, and url-fetch-from-cache.
+
+2010-09-24  Julien Danjou  <julien@danjou.info>
+
+	* gnus.texi: Add Gravatars.
+
+2010-09-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Startup Variables): Mention gnus-use-backend-marks.
+
+2010-09-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Expunging mailboxes): Update name of the expunging
+	command.
+
+2010-09-20  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* emacs-mime.texi (rfc2047): Update description for
+	rfc2047-encode-parameter.
+
+2010-09-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Inline methods): Remove "ssh1_old", "ssh2_old" and
+	"fish" methods.
+	(External methods): Remove "scp1_old" and "scp2_old" methods.
+
 2010-09-09  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi: Remove Japanese manual.  Fix typo.

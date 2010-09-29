@@ -29,9 +29,7 @@
 
 ;;; Code:
 
-(eval-when-compile
-
-  (require 'tramp-loaddefs))
+(require 'tramp-loaddefs)
 
 (eval-when-compile
 
@@ -40,7 +38,21 @@
 
 (eval-and-compile
 
+  (require 'advice)
   (require 'custom)
+  (require 'format-spec)
+
+  ;; As long as password.el is not part of (X)Emacs, it shouldn't be
+  ;; mandatory.
+  (if (featurep 'xemacs)
+      (load "password" 'noerror)
+    (or (require 'password-cache nil 'noerror)
+	(require 'password nil 'noerror))) ; Part of contrib.
+
+  ;; auth-source is relatively new.
+  (if (featurep 'xemacs)
+      (load "auth-source" 'noerror)
+    (require 'auth-source nil 'noerror))
 
   ;; Load the appropriate timer package.
   (if (featurep 'xemacs)
@@ -84,11 +96,6 @@
     (defvar byte-compile-not-obsolete-vars nil))
   (setq byte-compile-not-obsolete-vars '(directory-sep-char))
 
-  ;; `with-temp-message' does not exists in XEmacs.
-  (condition-case nil
-      (with-temp-message (current-message) nil)
-    (error (defmacro with-temp-message (message &rest body) `(progn ,@body))))
-
   ;; For not existing functions, or functions with a changed argument
   ;; list, there are compiler warnings.  We want to avoid them in
   ;; cases we know what we do.
@@ -101,10 +108,6 @@
   ;; `set-buffer-multibyte' comes from Emacs Leim.
   (unless (fboundp 'set-buffer-multibyte)
     (defalias 'set-buffer-multibyte 'ignore))
-
-  ;; `font-lock-add-keywords' does not exist in XEmacs.
-  (unless (fboundp 'font-lock-add-keywords)
-    (defalias 'font-lock-add-keywords 'ignore))
 
   ;; The following functions cannot be aliases of the corresponding
   ;; `tramp-handle-*' functions, because this would bypass the locking
@@ -177,6 +180,19 @@
        (ad-remove-advice
 	'file-expand-wildcards 'around 'tramp-advice-file-expand-wildcards)
        (ad-activate 'file-expand-wildcards)))))
+
+;; `with-temp-message' does not exists in XEmacs.
+(if (fboundp 'with-temp-message)
+    (defalias 'tramp-compat-with-temp-message 'with-temp-message)
+  (defmacro tramp-compat-with-temp-message (message &rest body)
+    "Display MESSAGE temporarily if non-nil while BODY is evaluated."
+    `(progn ,@body)))
+
+;; `font-lock-add-keywords' does not exist in XEmacs.
+(defun tramp-compat-font-lock-add-keywords (mode keywords &optional how)
+  "Add highlighting KEYWORDS for MODE."
+  (ignore-errors
+    (tramp-compat-funcall 'font-lock-add-keywords mode keywords how)))
 
 (defsubst tramp-compat-line-beginning-position ()
   "Return point at beginning of line (compat function).
@@ -461,6 +477,18 @@ Lisp error raised when PROGRAM is nil is trapped also, returning 1."
 	    (setq result t))
 	  (setenv "UNIX95" unix95)
 	  result)))))
+
+;; The following functions do not exist in XEmacs.  We ignore this;
+;; they are used for checking a remote tty.
+(defun tramp-compat-process-get (process propname)
+  "Return the value of PROCESS' PROPNAME property.
+This is the last value stored with `(process-put PROCESS PROPNAME VALUE)'."
+  (ignore-errors (tramp-compat-funcall 'process-get process propname)))
+
+(defun tramp-compat-process-put (process propname value)
+  "Change PROCESS' PROPNAME property to VALUE.
+It can be retrieved with `(process-get PROCESS PROPNAME)'."
+  (ignore-errors (tramp-compat-funcall 'process-put process propname value)))
 
 (add-hook 'tramp-unload-hook
 	  (lambda ()

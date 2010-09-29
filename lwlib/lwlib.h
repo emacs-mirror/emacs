@@ -132,14 +132,14 @@ typedef struct _widget_value
 
 typedef void (*lw_callback) (Widget w, LWLIB_ID id, void* data);
 
-void  lw_register_widget (char* type, char* name, LWLIB_ID id,
+void  lw_register_widget (const char* type, const char* name, LWLIB_ID id,
                           widget_value* val, lw_callback pre_activate_cb,
                           lw_callback selection_cb,
                           lw_callback post_activate_cb,
                           lw_callback highlight_cb);
 Widget lw_get_widget (LWLIB_ID id, Widget parent, Boolean pop_up_p);
 Widget lw_make_widget (LWLIB_ID id, Widget parent, Boolean pop_up_p);
-Widget lw_create_widget (char* type, char* name, LWLIB_ID id,
+Widget lw_create_widget (const char* type, const char* name, LWLIB_ID id,
                          widget_value* val, Widget parent, Boolean pop_up_p,
                          lw_callback pre_activate_cb,
                          lw_callback selection_cb,
@@ -186,7 +186,7 @@ void lw_set_main_areas (Widget parent,
    MOTIF_P non-zero means map separator types not supported by Motif
    to similar ones that are supported.  */
 
-int lw_separator_p (char *label, enum menu_separator *type,
+int lw_separator_p (const char *label, enum menu_separator *type,
                     int motif_p);
 
 #endif /* LWLIB_H */

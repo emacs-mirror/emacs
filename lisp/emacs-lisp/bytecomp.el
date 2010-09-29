@@ -308,7 +308,7 @@ If it is 'byte, then only byte-level optimizations will be logged."
 (defconst byte-compile-warning-types
   '(redefine callargs free-vars unresolved
 	     obsolete noruntime cl-functions interactive-only
-	     make-local mapcar constants suspicious)
+	     make-local mapcar constants suspicious lexical)
   "The list of warning types used when `byte-compile-warnings' is t.")
 (defcustom byte-compile-warnings t
   "List of warnings that the byte-compiler should issue (t for all).
@@ -1461,7 +1461,7 @@ extra args."
 	     (not (and (eq (get func 'byte-compile)
 			   'cl-byte-compile-compiler-macro)
 		       (string-match "\\`c[ad]+r\\'" (symbol-name func)))))
-	(byte-compile-warn "Function `%s' from cl package called at runtime"
+	(byte-compile-warn "function `%s' from cl package called at runtime"
 			   func)))
   form)
 
@@ -2268,6 +2268,11 @@ list that represents a doc string reference.
       ;; Since there is no doc string, we can compile this as a normal form,
       ;; and not do a file-boundary.
       (byte-compile-keep-pending form)
+    (when (and (symbolp (nth 1 form))
+               (not (string-match "[-*/:$]" (symbol-name (nth 1 form))))
+               (byte-compile-warning-enabled-p 'lexical))
+      (byte-compile-warn "global/dynamic var `%s' lacks a prefix"
+                         (nth 1 form)))
     (push (nth 1 form) byte-compile-bound-variables)
     (if (eq (car form) 'defconst)
 	(push (nth 1 form) byte-compile-const-variables))
@@ -4162,6 +4167,11 @@ if LFORMINFO is nil (meaning all bindings are dynamic)."
 
 (defun byte-compile-defvar (form)
   ;; This is not used for file-level defvar/consts with doc strings.
+  (when (and (symbolp (nth 1 form))
+             (not (string-match "[-*/:$]" (symbol-name (nth 1 form))))
+             (byte-compile-warning-enabled-p 'lexical))
+    (byte-compile-warn "global/dynamic var `%s' lacks a prefix"
+                       (nth 1 form)))
   (let ((fun (nth 0 form))
 	(var (nth 1 form))
 	(value (nth 2 form))

@@ -1,3 +1,17 @@
+2010-09-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Use const for some pointer arguments.
+	* lwlib.h (my_strcasecmp, safe_strcmp, name_to_widget)
+	(find_in_table, dialog_spec_p, lw_separator_p):
+	* lwlib.c (my_strcasecmp, safe_strcmp, name_to_widget)
+	(find_in_table, dialog_spec_p, lw_separator_p): Use const.
+
+2010-09-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* lwlib.h (lw_register_widget, lw_create_widget):
+	* lwlib.c (allocate_widget_info, lw_register_widget)
+	(lw_create_widget, separator_table): Use const.
+
 2010-07-29  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* xlwmenu.c (abort_gracefully): Mark as NO_RETURN.

@@ -239,7 +239,7 @@ letter but *do not* end with a period.  Please follow this convention
 for the sake of consistency."
   (while t
     (signal 'error (list (apply 'format args)))))
-(set-advertised-calling-convention 'error '(string &rest args))
+(set-advertised-calling-convention 'error '(string &rest args) "23.1")
 
 ;; We put this here instead of in frame.el so that it's defined even on
 ;; systems where frame.el isn't loaded.
@@ -1045,9 +1045,10 @@ is converted into a string by expressing it in decimal."
 (make-obsolete 'make-variable-frame-local
 	       "explicitly check for a frame-parameter instead." "22.2")
 (make-obsolete 'interactive-p 'called-interactively-p "23.2")
-(set-advertised-calling-convention 'called-interactively-p '(kind))
+(set-advertised-calling-convention 'called-interactively-p '(kind) "23.1")
 (set-advertised-calling-convention
- 'all-completions '(string collection &optional predicate))
+ 'all-completions '(string collection &optional predicate) "23.1")
+(set-advertised-calling-convention 'unintern '(name obarray) "23.3")
 
 ;;;; Obsolescence declarations for variables, and aliases.
 
@@ -2070,7 +2071,7 @@ floating point support."
 		(setq read (cons t read)))
 	    (push read unread-command-events)
 	    nil))))))
-(set-advertised-calling-convention 'sit-for '(seconds &optional nodisp))
+(set-advertised-calling-convention 'sit-for '(seconds &optional nodisp) "22.1")
 
 ;;; Atomic change groups.
 
@@ -2598,7 +2599,7 @@ discouraged."
   (start-process name buffer shell-file-name shell-command-switch
 		 (mapconcat 'identity args " ")))
 (set-advertised-calling-convention 'start-process-shell-command
-                                   '(name buffer command))
+                                   '(name buffer command) "23.1")
 
 (defun start-file-process-shell-command (name buffer &rest args)
   "Start a program in a subprocess.  Return the process object for it.
@@ -2609,7 +2610,7 @@ Similar to `start-process-shell-command', but calls `start-file-process'."
    (if (file-remote-p default-directory) "-c" shell-command-switch)
    (mapconcat 'identity args " ")))
 (set-advertised-calling-convention 'start-file-process-shell-command
-                                   '(name buffer command))
+                                   '(name buffer command) "23.1")
 
 (defun call-process-shell-command (command &optional infile buffer display
 					   &rest args)
@@ -3381,19 +3382,26 @@ is nil and `use-dialog-box' is non-nil."
   ;; ¡Beware! when I tried to edebug this code, Emacs got into a weird state
   ;; where all the keys were unbound (i.e. it somehow got triggered
   ;; within read-key, apparently).  I had to kill it.
-  (let ((answer 'none)
-        (xprompt prompt))
+  (let ((answer 'recenter))
     (if (and (display-popup-menus-p)
              (listp last-nonmenu-event)
              use-dialog-box)
         (setq answer
               (x-popup-dialog t `(,prompt ("yes" . act) ("No" . skip))))
+      (setq prompt (concat prompt
+                           (if (eq ?\s (aref prompt (1- (length prompt))))
+                               "" " ")
+                           "(y or n) "))
       (while
           (let* ((key
                   (let ((cursor-in-echo-area t))
                     (when minibuffer-auto-raise
                       (raise-frame (window-frame (minibuffer-window))))
-                    (read-key (propertize xprompt 'face 'minibuffer-prompt)))))
+                    (read-key (propertize (if (eq answer 'recenter)
+                                              prompt
+                                            (concat "Please answer y or n.  "
+                                                    prompt))
+                                          'face 'minibuffer-prompt)))))
             (setq answer (lookup-key query-replace-map (vector key) t))
             (cond
              ((memq answer '(skip act)) nil)
@@ -3401,10 +3409,7 @@ is nil and `use-dialog-box' is non-nil."
              ((memq answer '(exit-prefix quit)) (signal 'quit nil) t)
              (t t)))
         (ding)
-        (discard-input)
-        (setq xprompt
-              (if (eq answer 'recenter) prompt
-                (concat "Please answer y or n.  " prompt)))))
+        (discard-input)))
     (let ((ret (eq answer 'act)))
       (unless noninteractive
         (message "%s %s" prompt (if ret "y" "n")))

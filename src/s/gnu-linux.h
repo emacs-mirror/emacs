@@ -80,10 +80,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #endif  /* not HAVE_GRANTPT */
 
-/*  Define HAVE_TERMIOS if the system provides POSIX-style
-    functions and macros for terminal control.  */
-#define HAVE_TERMIOS
-
 /* Define HAVE_PTYS if the system supports pty devices.  */
 #define HAVE_PTYS
 

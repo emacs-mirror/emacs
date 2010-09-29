@@ -1,7 +1,7 @@
 ;;; page-ext.el --- extended page handling commands
 
-;; Copyright (C) 1990, 1991, 1993, 1994, 2001, 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1993, 1994, 2001, 2002, 2003, 2004, 2005,
+;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Robert J. Chassell <bob@gnu.org>
 ;; (according to ack.texi)
@@ -242,17 +242,17 @@
 
 
 (defcustom pages-directory-buffer-narrowing-p t
-  "*If non-nil, `pages-directory-goto' narrows pages buffer to entry."
+  "If non-nil, `pages-directory-goto' narrows pages buffer to entry."
   :type 'boolean
   :group 'pages)
 
 (defcustom pages-directory-for-adding-page-narrowing-p t
-  "*If non-nil, `add-new-page' narrows page buffer to new entry."
+  "If non-nil, `add-new-page' narrows page buffer to new entry."
   :type 'boolean
   :group 'pages)
 
 (defcustom pages-directory-for-adding-new-page-before-current-page-p t
-  "*If non-nil, `add-new-page' inserts new page before current page."
+  "If non-nil, `add-new-page' inserts new page before current page."
   :type 'boolean
   :group 'pages)
 
@@ -260,23 +260,23 @@
 ;;; Addresses related variables
 
 (defcustom pages-addresses-file-name "~/addresses"
-  "*Standard name for file of addresses. Entries separated by page-delimiter.
+  "Standard name for file of addresses. Entries separated by page-delimiter.
 Used by `pages-directory-for-addresses' function."
   :type 'file
   :group 'pages)
 
 (defcustom pages-directory-for-addresses-goto-narrowing-p t
-  "*If non-nil, `pages-directory-goto' narrows addresses buffer to entry."
+  "If non-nil, `pages-directory-goto' narrows addresses buffer to entry."
   :type 'boolean
   :group 'pages)
 
 (defcustom pages-directory-for-addresses-buffer-keep-windows-p t
-  "*If nil, `pages-directory-for-addresses' deletes other windows."
+  "If nil, `pages-directory-for-addresses' deletes other windows."
   :type 'boolean
   :group 'pages)
 
 (defcustom pages-directory-for-adding-addresses-narrowing-p t
-  "*If non-nil, `add-new-page' narrows addresses buffer to new entry."
+  "If non-nil, `add-new-page' narrows addresses buffer to new entry."
   :type 'boolean
   :group 'pages)
 

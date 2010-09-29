@@ -270,7 +270,7 @@
   :link '(emacs-library-link :tag "Lisp File" "cua-base.el"))
 
 (defcustom cua-enable-cua-keys t
-  "*Enable using C-z, C-x, C-c, and C-v for undo, cut, copy, and paste.
+  "Enable using C-z, C-x, C-c, and C-v for undo, cut, copy, and paste.
 If the value is t, these mappings are always enabled.  If the value is
 `shift', these keys are only enabled if the last region was marked with
 a shifted movement key.  If the value is nil, these keys are never
@@ -281,18 +281,18 @@ enabled."
   :group 'cua)
 
 (defcustom cua-remap-control-v t
-  "*If non-nil, C-v binding is used for paste (yank).
+  "If non-nil, C-v binding is used for paste (yank).
 Also, M-v is mapped to `cua-repeat-replace-region'."
   :type 'boolean
   :group 'cua)
 
 (defcustom cua-remap-control-z t
-  "*If non-nil, C-z binding is used for undo."
+  "If non-nil, C-z binding is used for undo."
   :type 'boolean
   :group 'cua)
 
 (defcustom cua-highlight-region-shift-only nil
-  "*If non-nil, only highlight region if marked with S-<move>.
+  "If non-nil, only highlight region if marked with S-<move>.
 When this is non-nil, CUA toggles `transient-mark-mode' on when the region
 is marked using shifted movement keys, and off when the mark is cleared.
 But when the mark was set using \\[cua-set-mark], Transient Mark mode
@@ -302,7 +302,7 @@ is not turned on."
 
 (defcustom cua-prefix-override-inhibit-delay
   (if (featurep 'lisp-float-type) (/ (float 1) (float 5)) nil)
-  "*If non-nil, time in seconds to delay before overriding prefix key.
+  "If non-nil, time in seconds to delay before overriding prefix key.
 If there is additional input within this time, the prefix key is
 used as a normal prefix key.  So typing a key sequence quickly will
 inhibit overriding the prefix key.
@@ -315,7 +315,7 @@ If the value is nil, use a shifted prefix key to inhibit the override."
   :group 'cua)
 
 (defcustom cua-delete-selection t
-  "*If non-nil, typed text replaces text in the active selection."
+  "If non-nil, typed text replaces text in the active selection."
   :type '(choice (const :tag "Disabled" nil)
 		 (other :tag "Enabled" t))
   :group 'cua)
@@ -326,13 +326,13 @@ If the value is nil, use a shifted prefix key to inhibit the override."
   :group 'cua)
 
 (defcustom cua-toggle-set-mark t
-  "*If non-nil, the `cua-set-mark' command toggles the mark."
+  "If non-nil, the `cua-set-mark' command toggles the mark."
   :type '(choice (const :tag "Disabled" nil)
 		 (other :tag "Enabled" t))
   :group 'cua)
 
 (defcustom cua-auto-mark-last-change nil
-  "*If non-nil, set implicit mark at position of last buffer change.
+  "If non-nil, set implicit mark at position of last buffer change.
 This means that \\[universal-argument] \\[cua-set-mark] will jump to the position
 of the last buffer change before jumping to the explicit marks on the mark ring.
 See `cua-set-mark' for details."
@@ -340,7 +340,7 @@ See `cua-set-mark' for details."
   :group 'cua)
 
 (defcustom cua-enable-register-prefix 'not-ctrl-u
-  "*If non-nil, registers are supported via numeric prefix arg.
+  "If non-nil, registers are supported via numeric prefix arg.
 If the value is t, any numeric prefix arg in the range 0 to 9 will be
 interpreted as a register number.
 If the value is `not-ctrl-u', using C-u to enter a numeric prefix is not
@@ -354,29 +354,29 @@ interpreted as a register number."
   :group 'cua)
 
 (defcustom cua-delete-copy-to-register-0 t
-  "*If non-nil, save last deleted region or rectangle to register 0."
+  "If non-nil, save last deleted region or rectangle to register 0."
   :type 'boolean
   :group 'cua)
 
 (defcustom cua-enable-region-auto-help nil
-  "*If non-nil, automatically show help for active region."
+  "If non-nil, automatically show help for active region."
   :type 'boolean
   :group 'cua)
 
 (defcustom cua-enable-modeline-indications nil
-  "*If non-nil, use minor-mode hook to show status in mode line."
+  "If non-nil, use minor-mode hook to show status in mode line."
   :type 'boolean
   :group 'cua)
 
 (defcustom cua-check-pending-input t
-  "*If non-nil, don't override prefix key if input pending.
+  "If non-nil, don't override prefix key if input pending.
 It is rumoured that `input-pending-p' is unreliable under some window
 managers, so try setting this to nil, if prefix override doesn't work."
   :type 'boolean
   :group 'cua)
 
 (defcustom cua-paste-pop-rotate-temporarily nil
-  "*If non-nil, \\[cua-paste-pop] only rotates the kill-ring temporarily.
+  "If non-nil, \\[cua-paste-pop] only rotates the kill-ring temporarily.
 This means that both \\[yank] and the first \\[yank-pop] in a sequence always insert
 the most recently killed text.  Each immediately following \\[cua-paste-pop] replaces
 the previous text with the next older element on the `kill-ring'.
@@ -388,7 +388,7 @@ recent \\[yank-pop] (or \\[yank]) command."
 ;;; Rectangle Customization
 
 (defcustom cua-virtual-rectangle-edges t
-  "*If non-nil, rectangles have virtual straight edges.
+  "If non-nil, rectangles have virtual straight edges.
 Note that although rectangles are always DISPLAYED with straight edges, the
 buffer is NOT modified, until you execute a command that actually modifies it.
 M-p toggles this feature when a rectangle is active."
@@ -396,7 +396,7 @@ M-p toggles this feature when a rectangle is active."
   :group 'cua)
 
 (defcustom cua-auto-tabify-rectangles 1000
-  "*If non-nil, automatically tabify after rectangle commands.
+  "If non-nil, automatically tabify after rectangle commands.
 This basically means that `tabify' is applied to all lines that
 are modified by inserting or deleting a rectangle.  If value is
 an integer, CUA will look for existing tabs in a region around
@@ -428,7 +428,7 @@ and after the region marked by the rectangle to search."
   :group 'cua)
 
 (defcustom cua-rectangle-modifier-key 'meta
-  "*Modifier key used for rectangle commands bindings.
+  "Modifier key used for rectangle commands bindings.
 On non-window systems, always use the meta modifier.
 Must be set prior to enabling CUA."
   :type '(choice (const :tag "Meta key" meta)
@@ -438,27 +438,27 @@ Must be set prior to enabling CUA."
   :group 'cua)
 
 (defcustom cua-enable-rectangle-auto-help t
-  "*If non-nil, automatically show help for region, rectangle and global mark."
+  "If non-nil, automatically show help for region, rectangle and global mark."
   :type 'boolean
   :group 'cua)
 
 (defface cua-rectangle
   '((default :inherit region)
     (((class color)) :foreground "white" :background "maroon"))
-  "*Font used by CUA for highlighting the rectangle."
+  "Font used by CUA for highlighting the rectangle."
   :group 'cua)
 
 (defface cua-rectangle-noselect
   '((default :inherit region)
     (((class color)) :foreground "white" :background "dimgray"))
-  "*Font used by CUA for highlighting the non-selected rectangle lines."
+  "Font used by CUA for highlighting the non-selected rectangle lines."
   :group 'cua)
 
 
 ;;; Global Mark Customization
 
 (defcustom cua-global-mark-keep-visible t
-  "*If non-nil, always keep global mark visible in other window."
+  "If non-nil, always keep global mark visible in other window."
   :type 'boolean
   :group 'cua)
 
@@ -466,11 +466,11 @@ Must be set prior to enabling CUA."
   '((((min-colors 88)(class color)) :foreground "black" :background "yellow1")
     (((class color)) :foreground "black" :background "yellow")
     (t :bold t))
-  "*Font used by CUA for highlighting the global mark."
+  "Font used by CUA for highlighting the global mark."
   :group 'cua)
 
 (defcustom cua-global-mark-blink-cursor-interval 0.20
-  "*Blink cursor at this interval when global mark is active."
+  "Blink cursor at this interval when global mark is active."
   :type '(choice (number :tag "Blink interval")
 		 (const :tag "No blink" nil))
   :group 'cua)
@@ -479,7 +479,7 @@ Must be set prior to enabling CUA."
 ;;; Cursor Indication Customization
 
 (defcustom cua-enable-cursor-indications nil
-  "*If non-nil, use different cursor colors for indications."
+  "If non-nil, use different cursor colors for indications."
   :type 'boolean
   :group 'cua)
 
@@ -517,7 +517,7 @@ a cons (TYPE . COLOR), then both properties are affected."
   :group 'cua)
 
 (defcustom cua-read-only-cursor-color "darkgreen"
-  "*Cursor color used in read-only buffers, if non-nil.
+  "Cursor color used in read-only buffers, if non-nil.
 Only used when `cua-enable-cursor-indications' is non-nil.
 
 If the value is a COLOR name, then only the `cursor-color' attribute will be
@@ -541,7 +541,7 @@ a cons (TYPE . COLOR), then both properties are affected."
   :group 'cua)
 
 (defcustom cua-overwrite-cursor-color "yellow"
-  "*Cursor color used when overwrite mode is set, if non-nil.
+  "Cursor color used when overwrite mode is set, if non-nil.
 Only used when `cua-enable-cursor-indications' is non-nil.
 
 If the value is a COLOR name, then only the `cursor-color' attribute will be
@@ -565,7 +565,7 @@ a cons (TYPE . COLOR), then both properties are affected."
   :group 'cua)
 
 (defcustom cua-global-mark-cursor-color "cyan"
-  "*Indication for active global mark.
+  "Indication for active global mark.
 Will change cursor color to specified color if string.
 Only used when `cua-enable-cursor-indications' is non-nil.
 

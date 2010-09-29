@@ -308,11 +308,6 @@ be set in `.emacs' instead."
   :group 'gnus-start
   :type 'boolean)
 
-(defcustom gnus-play-startup-jingle nil
-  "If non-nil, play the Gnus jingle at startup."
-  :group 'gnus-start
-  :type 'boolean)
-
 (unless (fboundp 'gnus-group-remove-excess-properties)
   (defalias 'gnus-group-remove-excess-properties 'ignore))
 
@@ -960,8 +955,6 @@ be set in `.emacs' instead."
 
 (defvar gnus-group-buffer "*Group*")
 
-(autoload 'gnus-play-jingle "gnus-audio")
-
 (defface gnus-splash
   '((((class color)
       (background dark))
@@ -984,9 +977,7 @@ be set in `.emacs' instead."
       (erase-buffer)
       (unless gnus-inhibit-startup-message
 	(gnus-group-startup-message)
-	(sit-for 0)
-	(when gnus-play-startup-jingle
-	  (gnus-play-jingle))))))
+	(sit-for 0)))))
 
 (defun gnus-indent-rigidly (start end arg)
   "Indent rigidly using only spaces and no tabs."
@@ -1470,75 +1461,6 @@ list, Gnus will try all the methods in the list until it finds a match."
 					(nnweb "refer" (nnweb-type google)))
 				 gnus-select-method))))
 
-(defcustom gnus-group-faq-directory
-  '("/ftp@mirrors.aol.com:/pub/rtfm/usenet/"
-    "/ftp@sunsite.doc.ic.ac.uk:/pub/usenet/news-faqs/"
-    "/ftp@src.doc.ic.ac.uk:/usenet/news-FAQS/"
-    "/ftp@ftp.seas.gwu.edu:/pub/rtfm/"
-    "/ftp@ftp.pasteur.fr:/pub/FAQ/"
-    "/ftp@rtfm.mit.edu:/pub/usenet/"
-    "/ftp@ftp.uni-paderborn.de:/pub/FAQ/"
-    "/ftp@ftp.sunet.se:/pub/usenet/"
-    "/ftp@nctuccca.nctu.edu.tw:/pub/Documents/rtfm/usenet-by-group/"
-    "/ftp@hwarang.postech.ac.kr:/pub/usenet/"
-    "/ftp@ftp.hk.super.net:/mirror/faqs/")
-  "*Directory where the group FAQs are stored.
-This will most commonly be on a remote machine, and the file will be
-fetched by ange-ftp.
-
-This variable can also be a list of directories.  In that case, the
-first element in the list will be used by default.  The others can
-be used when being prompted for a site.
-
-Note that Gnus uses an aol machine as the default directory.  If this
-feels fundamentally unclean, just think of it as a way to finally get
-something of value back from them.
-
-If the default site is too slow, try one of these:
-
-   North America: mirrors.aol.com		 /pub/rtfm/usenet
-		  ftp.seas.gwu.edu		 /pub/rtfm
-		  rtfm.mit.edu			 /pub/usenet
-   Europe:	  ftp.uni-paderborn.de		 /pub/FAQ
-		  src.doc.ic.ac.uk               /usenet/news-FAQS
-		  ftp.sunet.se			 /pub/usenet
-		  ftp.pasteur.fr                 /pub/FAQ
-   Asia:	  nctuccca.nctu.edu.tw		 /pub/Documents/rtfm/usenet-by-group/
-		  hwarang.postech.ac.kr		 /pub/usenet
-		  ftp.hk.super.net		 /mirror/faqs"
-  :group 'gnus-group-various
-  :type '(choice directory
-		 (repeat directory)))
-
-(defcustom gnus-group-charter-alist
-  '(("no" . (concat "http://no.news-admin.org/charter/" name ".txt"))
-    ("de" . (concat "http://purl.net/charta/" name ".html"))
-    ("dk" . (concat "http://www.usenet.dk/grupper.pl?get=" name))
-    ("england" . (concat "http://england.news-admin.org/charters/" name))
-    ("fr" . (concat "http://www.usenet-fr.net/fur/chartes/" name ".html"))
-    ("europa" . (concat "http://www.europa.usenet.eu.org/chartas/charta-en-"
-			(gnus-replace-in-string name "europa\\." "") ".html"))
-    ("nl" . (concat "http://www.xs4all.nl/~sister/usenet/charters/" name))
-    ("aus" . (concat "http://aus.news-admin.org/groupinfo.cgi/" name))
-    ("pl" . (concat "http://www.usenet.pl/opisy/" name))
-    ("ch" . (concat "http://www.use-net.ch/Usenet/charter.html#" name))
-    ("at" . (concat "http://www.usenet.at/chartas/" name "/charta"))
-    ("uk" . (concat "http://www.usenet.org.uk/" name ".html"))
-    ("dfw" . (concat "http://www.cirr.com/dfw/charters/" name ".html"))
-    ("se" . (concat "http://www.usenet-se.net/Reglementen/"
-		    (gnus-replace-in-string name "\\." "_") ".html"))
-    ("milw" . (concat "http://usenet.mil.wi.us/"
-		      (gnus-replace-in-string name "milw\\." "") "-charter"))
-    ("ca" . (concat "http://www.sbay.org/ca/charter-" name ".html"))
-    ("netins" . (concat "http://www.netins.net/usenet/charter/"
-			(gnus-replace-in-string name "\\." "-") "-charter.html")))
-  "*An alist of (HIERARCHY . FORM) pairs used to construct the URL of a charter.
-When FORM is evaluated `name' is bound to the name of the group."
-  :version "22.1"
-  :group 'gnus-group-various
-  :type '(repeat (cons (string :tag "Hierarchy") (sexp :tag "Form"))))
-(put 'gnus-group-charter-alist 'risky-local-variable t)
-
 (defcustom gnus-group-fetch-control-use-browse-url nil
   "*Non-nil means that control messages are displayed using `browse-url'.
 Otherwise they are fetched with ange-ftp and displayed in an ephemeral
@@ -1648,25 +1570,6 @@ articles.  This is not a good idea."
 		 integer
 		 (sexp :format "all"
 		       :value t)))
-
-(defcustom gnus-use-nocem nil
-  "*If non-nil, Gnus will read NoCeM cancel messages.
-You can also set this variable to a positive number as a group level.
-In that case, Gnus scans NoCeM messages when checking new news if this
-value is not exceeding a group level that you specify as the prefix
-argument to some commands, e.g. `gnus', `gnus-group-get-new-news', etc.
-Otherwise, Gnus does not scan NoCeM messages if you specify a group
-level to those commands."
-  :group 'gnus-meta
-  :type '(choice
-	  (const :tag "off" nil)
-	  (const :tag "on" t)
-	  (list :convert-widget
-		(lambda (widget)
-		  (list 'integer :tag "group level"
-			:value (if (boundp 'gnus-level-default-subscribed)
-				   gnus-level-default-subscribed
-				 3))))))
 
 (defcustom gnus-suppress-duplicates nil
   "*If non-nil, Gnus will mark duplicate copies of the same article as read."
@@ -2682,6 +2585,7 @@ a string, be sure to use a valid format, see RFC 2616."
 (defvar gnus-newsgroup-name nil)
 (defvar gnus-ephemeral-servers nil)
 (defvar gnus-server-method-cache nil)
+(defvar gnus-extended-servers nil)
 
 (defvar gnus-agent-fetching nil
   "Whether Gnus agent is in fetching mode.")
@@ -2697,9 +2601,6 @@ a string, be sure to use a valid format, see RFC 2616."
 
 (defvar gnus-tree-buffer "*Tree*"
   "Buffer where Gnus thread trees are displayed.")
-
-;; Dummy variable.
-(defvar gnus-use-generic-from nil)
 
 ;; Variable holding the user answers to all method prompts.
 (defvar gnus-method-history nil)
@@ -2728,8 +2629,6 @@ a string, be sure to use a valid format, see RFC 2616."
       ,(nnheader-concat gnus-cache-directory "active"))))
   "List of predefined (convenience) servers.")
 
-(defvar gnus-topic-indentation "") ;; Obsolete variable.
-
 (defconst gnus-article-mark-lists
   '((marked . tick) (replied . reply)
     (expirable . expire) (killed . killed)
@@ -2743,6 +2642,8 @@ a string, be sure to use a valid format, see RFC 2616."
   '((seen range)
     (killed range)
     (bookmark tuple)
+    (uid tuple)
+    (active tuple)
     (score tuple)))
 
 ;; Propagate flags to server, with the following exceptions:
@@ -2884,13 +2785,12 @@ gnus-registry.el will populate this if it's loaded.")
       rmail-summary-exists rmail-select-summary)
      ;; Only used in gnus-util, which has an autoload.
      ("rmailsum" rmail-update-summary)
-     ("gnus-audio" :interactive t gnus-audio-play)
      ("gnus-xmas" gnus-xmas-splash)
      ("score-mode" :interactive t gnus-score-mode)
      ("gnus-mh" gnus-summary-save-article-folder
       gnus-Folder-save-name gnus-folder-save-name)
      ("gnus-mh" :interactive t gnus-summary-save-in-folder)
-     ("gnus-demon" gnus-demon-add-nocem gnus-demon-add-scanmail
+     ("gnus-demon" gnus-demon-add-scanmail
       gnus-demon-add-rescan gnus-demon-add-scan-timestamps
       gnus-demon-add-disconnection gnus-demon-add-handler
       gnus-demon-remove-handler)
@@ -2901,8 +2801,6 @@ gnus-registry.el will populate this if it's loaded.")
       gnus-face-from-file)
      ("gnus-salt" gnus-highlight-selected-tree gnus-possibly-generate-tree
       gnus-tree-open gnus-tree-close gnus-carpal-setup-buffer)
-     ("gnus-nocem" gnus-nocem-scan-groups gnus-nocem-close
-      gnus-nocem-unwanted-article-p)
      ("gnus-srvr" gnus-enter-server-buffer gnus-server-set-info
       gnus-server-server-name)
      ("gnus-srvr" gnus-browse-foreign-server)
@@ -3563,7 +3461,7 @@ that that variable is buffer-local to the summary buffers."
 				   (nth 1 method))))
       method)))
 
-(defsubst gnus-method-to-server (method &optional nocache)
+(defsubst gnus-method-to-server (method &optional nocache no-enter-cache)
   (catch 'server-name
     (setq method (or method gnus-select-method))
 
@@ -3589,7 +3487,9 @@ that that variable is buffer-local to the summary buffers."
 		     (format "%s" (car method))
 		   (format "%s:%s" (car method) (cadr method))))
 	   (name-method (cons name method)))
-      (unless (member name-method gnus-server-method-cache)
+      (when (and (not (member name-method gnus-server-method-cache))
+		 (not no-enter-cache)
+		 (not (assoc (car name-method) gnus-server-method-cache)))
 	(push name-method gnus-server-method-cache))
       name)))
 
@@ -3631,11 +3531,13 @@ that that variable is buffer-local to the summary buffers."
 		(while alist
 		  (setq method (gnus-info-method (pop alist)))
 		  (when (and (not (stringp method))
-			     (equal server (gnus-method-to-server method)))
+			     (equal server
+				    (gnus-method-to-server method nil t)))
 		    (setq match method
 			  alist nil)))
 		match))))
-	(when result
+	(when (and result
+		   (not (assoc server gnus-server-method-cache)))
 	  (push (cons server result) gnus-server-method-cache))
 	result)))
 
@@ -3675,6 +3577,44 @@ that that variable is buffer-local to the summary buffers."
 	     (or (not (memq 'address (assoc (symbol-name (car m1))
 					    gnus-valid-select-methods)))
 		 (equal (nth 1 m1) (nth 1 m2)))))))
+
+(defun gnus-methods-sloppily-equal (m1 m2)
+  ;; Same method.
+  (or
+   (eq m1 m2)
+   ;; Type and name are equal.
+   (and
+    (eq (car m1) (car m2))
+    (equal (cadr m1) (cadr m2))
+    (gnus-sloppily-equal-method-parameters m1 m2))))
+
+(defsubst gnus-sloppily-equal-method-parameters (m1 m2)
+  ;; Check parameters for sloppy equalness.
+  (let ((p1 (copy-sequence (cddr m1)))
+	(p2 (copy-sequence (cddr m2)))
+	e1 e2)
+    (block nil
+      (while (setq e1 (pop p1))
+	(unless (setq e2 (assq (car e1) p2))
+	  ;; The parameter doesn't exist in p2.
+	  (return nil))
+	(setq p2 (delq e2 p2))
+	(unless (equal e1 e2)
+	  (if (not (and (stringp (cadr e1))
+			(stringp (cadr e2))))
+	      (return nil)
+	    ;; Special-case string parameter comparison so that we
+	    ;; can uniquify them.
+	    (let ((s1 (cadr e1))
+		  (s2 (cadr e2)))
+	      (when (string-match "/$" s1)
+		(setq s1 (directory-file-name s1)))
+	      (when (string-match "/$" s2)
+		(setq s2 (directory-file-name s2)))
+	      (unless (equal s1 s2)
+		(return nil))))))
+      ;; If p2 now is empty, they were equal.
+      (null p2))))
 
 (defun gnus-server-equal (m1 m2)
   "Say whether two methods are equal."
@@ -3922,9 +3862,7 @@ The function `gnus-group-find-parameter' will do that for you."
 	      ;; Expand if necessary.
 	      (if (and (stringp result) (string-match "\\\\[0-9&]" result))
 		  (setq result (gnus-expand-group-parameter (car head)
-							    result group)))
-	      ;; Exit the loop early.
-	      (setq tail nil))))
+							    result group))))))
 	;; Done.
 	result))))
 
@@ -4140,13 +4078,19 @@ If NEWSGROUP is nil, return the global kill file name instead."
 		      gnus-valid-select-methods)))
 
 (defun gnus-similar-server-opened (method)
-  (let ((opened gnus-opened-servers))
+  "Return non-nil if we have a similar server opened.
+This is defined as a server with the same name, but different
+parameters."
+  (let ((opened gnus-opened-servers)
+	open)
     (while (and method opened)
-      (when (and (equal (cadr method) (cadaar opened))
-		 (equal (car method) (caaar opened))
-		 (not (equal method (caar opened))))
-	(setq method nil))
-      (pop opened))
+      (setq open (car (pop opened)))
+      ;; Type and name are the same...
+      (when (and (equal (car method) (car open))
+		 (equal (cadr method) (cadr open))
+		 ;; ... but the rest of the parameters differ.
+		 (not (gnus-methods-sloppily-equal method open)))
+	(setq method nil)))
     (not method)))
 
 (defun gnus-server-extend-method (group method)
@@ -4157,9 +4101,12 @@ If NEWSGROUP is nil, return the global kill file name instead."
   (if (or (not (inline (gnus-similar-server-opened method)))
 	  (not (cddr method)))
       method
-    `(,(car method) ,(concat (cadr method) "+" group)
-      (,(intern (format "%s-address" (car method))) ,(cadr method))
-      ,@(cddr method))))
+    (setq method
+	  `(,(car method) ,(concat (cadr method) "+" group)
+	    (,(intern (format "%s-address" (car method))) ,(cadr method))
+	    ,@(cddr method)))
+    (push method gnus-extended-servers)
+    method))
 
 (defun gnus-server-status (method)
   "Return the status of METHOD."
@@ -4184,6 +4131,20 @@ If NEWSGROUP is nil, return the global kill file name instead."
 	(format "%s using %s" address (car server))
       (format "%s" (car server)))))
 
+(defun gnus-same-method-different-name (method)
+  (let ((slot (intern (concat (symbol-name (car method)) "-address"))))
+    (unless (assq slot (cddr method))
+      (setq method
+	    (append method (list (list slot (nth 1 method)))))))
+  (let ((methods gnus-extended-servers)
+	open found)
+    (while (and (not found)
+		(setq open (pop methods)))
+      (when (and (eq (car method) (car open))
+		 (gnus-sloppily-equal-method-parameters method open))
+	(setq found open)))
+    found))
+
 (defun gnus-find-method-for-group (group &optional info)
   "Find the select method that GROUP uses."
   (or gnus-override-method
@@ -4206,7 +4167,10 @@ If NEWSGROUP is nil, return the global kill file name instead."
 		(cond ((stringp method)
 		       (inline (gnus-server-to-method method)))
 		      ((stringp (cadr method))
-		       (inline (gnus-server-extend-method group method)))
+		       (or
+			(inline
+			 (gnus-same-method-different-name method))
+			(inline (gnus-server-extend-method group method))))
 		      (t
 		       method)))
 	  (cond ((equal (cadr method) "")
@@ -4395,10 +4359,16 @@ If ARG is non-nil and a positive number, Gnus will use that as the
 startup level.  If ARG is non-nil and not a positive number, Gnus will
 prompt the user for the name of an NNTP server to use."
   (interactive "P")
+  ;; When using the development version of Gnus, load the gnus-load
+  ;; file.
+  (unless (string-match "^Gnus" gnus-version)
+    (load "gnus-load" nil t))
   (unless (byte-code-function-p (symbol-function 'gnus))
     (message "You should byte-compile Gnus")
     (sit-for 2))
-  (gnus-1 arg dont-connect slave))
+  (let ((gnus-action-message-log (list nil)))
+    (gnus-1 arg dont-connect slave)
+    (gnus-final-warning)))
 
 ;; Allow redefinition of Gnus functions.
 

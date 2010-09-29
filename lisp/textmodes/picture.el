@@ -37,27 +37,27 @@
   :group 'wp)
 
 (defcustom picture-rectangle-ctl ?+
-  "*Character `picture-draw-rectangle' uses for top left corners."
+  "Character `picture-draw-rectangle' uses for top left corners."
   :type 'character
   :group 'picture)
 (defcustom picture-rectangle-ctr ?+
-  "*Character `picture-draw-rectangle' uses for top right corners."
+  "Character `picture-draw-rectangle' uses for top right corners."
   :type 'character
   :group 'picture)
 (defcustom picture-rectangle-cbr ?+
-  "*Character `picture-draw-rectangle' uses for bottom right corners."
+  "Character `picture-draw-rectangle' uses for bottom right corners."
   :type 'character
   :group 'picture)
 (defcustom picture-rectangle-cbl ?+
-  "*Character `picture-draw-rectangle' uses for bottom left corners."
+  "Character `picture-draw-rectangle' uses for bottom left corners."
   :type 'character
   :group 'picture)
 (defcustom picture-rectangle-v   ?|
-  "*Character `picture-draw-rectangle' uses for vertical lines."
+  "Character `picture-draw-rectangle' uses for vertical lines."
   :type 'character
   :group 'picture)
 (defcustom picture-rectangle-h   ?-
-  "*Character `picture-draw-rectangle' uses for horizontal lines."
+  "Character `picture-draw-rectangle' uses for horizontal lines."
   :type 'character
   :group 'picture)
 
@@ -363,7 +363,7 @@ With positive argument insert that many lines."
 ;; Picture Tabs
 
 (defcustom picture-tab-chars "!-~"
-  "*A character set which controls behavior of commands.
+  "A character set which controls behavior of commands.
 \\[picture-set-tab-stops] and \\[picture-tab-search].  It is NOT a
 regular expression, any regexp special characters will be quoted.
 It defines a set of \"interesting characters\" to look for when setting

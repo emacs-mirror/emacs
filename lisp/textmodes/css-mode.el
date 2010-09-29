@@ -264,7 +264,6 @@
 (defvar css-font-lock-defaults
   '(css-font-lock-keywords nil t))
 
-;;;###autoload (add-to-list 'auto-mode-alist (cons (purecopy "\\.css\\'") 'css-mode))
 ;;;###autoload
 (define-derived-mode css-mode fundamental-mode "CSS"
   "Major mode to edit Cascading Style Sheets."

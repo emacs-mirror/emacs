@@ -57,7 +57,11 @@
   ;; syntax-ppss-flush-cache since that would not only flush the cache but also
   ;; reset syntax-propertize--done which should not be done in this case).
   "Mode-specific function to apply the syntax-table properties.
-Called with 2 arguments: START and END.")
+Called with 2 arguments: START and END.
+This function can call `syntax-ppss' on any position before END, but it
+should not call `syntax-ppss-flush-cache', which means that it should not
+call `syntax-ppss' on some position and later modify the buffer on some
+earlier position.")
 
 (defvar syntax-propertize-chunk-size 500)
 
@@ -109,15 +113,35 @@ Put first the functions more likely to cause a change and cheaper to compute.")
       t t s 1))
    re t t))
 
+(defmacro syntax-propertize-precompile-rules (&rest rules)
+  "Return a precompiled form of RULES to pass to `syntax-propertize-rules'.
+The arg RULES can be of the same form as in `syntax-propertize-rules'.
+The return value is an object that can be passed as a rule to
+`syntax-propertize-rules'.
+I.e. this is useful only when you want to share rules among several
+syntax-propertize-functions."
+  (declare (debug syntax-propertize-rules))
+  ;; Precompile?  Yeah, right!
+  ;; Seriously, tho, this is a macro for 2 reasons:
+  ;; - we could indeed do some pre-compilation at some point in the future,
+  ;;   e.g. fi/when we switch to a DFA-based implementation of
+  ;;   syntax-propertize-rules.
+  ;; - this lets Edebug properly annotate the expressions inside RULES.
+  `',rules)
+
 (defmacro syntax-propertize-rules (&rest rules)
   "Make a function that applies RULES for use in `syntax-propertize-function'.
 The function will scan the buffer, applying the rules where they match.
 The buffer is scanned a single time, like \"lex\" would, rather than once
 per rule.
 
-Each rule has the form (REGEXP HIGHLIGHT1 ... HIGHLIGHTn), where REGEXP
-is an expression (evaluated at time of macro-expansion) that returns a regexp,
-and where HIGHLIGHTs have the form (NUMBER SYNTAX) which means to
+Each RULE can be a symbol, in which case that symbol's value should be,
+at macro-expansion time, a precompiled set of rules, as returned
+by `syntax-propertize-precompile-rules'.
+
+Otherwise, RULE should have the form (REGEXP HIGHLIGHT1 ... HIGHLIGHTn), where
+REGEXP is an expression (evaluated at time of macro-expansion) that returns
+a regexp, and where HIGHLIGHTs have the form (NUMBER SYNTAX) which means to
 apply the property SYNTAX to the chars matched by the subgroup NUMBER
 of the regular expression, if NUMBER did match.
 SYNTAX is an expression that returns a value to apply as `syntax-table'
@@ -132,11 +156,18 @@ Also SYNTAX is free to move point, in which case RULES may not be applied to
 some parts of the text or may be applied several times to other parts.
 
 Note: back-references in REGEXPs do not work."
-  (declare (debug (&rest (form &rest
+  (declare (debug (&rest &or symbolp    ;FIXME: edebug this eval step.
+                         (form &rest
                                (numberp
-                                [&or stringp
+                                [&or stringp ;FIXME: Use &wrap
                                      ("prog1" [&or stringp def-form] def-body)
                                      def-form])))))
+  (let ((newrules nil))
+    (while rules
+      (if (symbolp (car rules))
+          (setq rules (append (symbol-value (pop rules)) rules))
+        (push (pop rules) newrules)))
+    (setq rules (nreverse newrules)))
   (let* ((offset 0)
          (branches '())
          ;; We'd like to use a real DFA-based lexer, usually, but since Emacs
@@ -145,7 +176,8 @@ Note: back-references in REGEXPs do not work."
          (re
           (mapconcat
            (lambda (rule)
-             (let ((re (eval (car rule))))
+             (let* ((orig-re (eval (car rule)))
+                    (re orig-re))
                (when (and (assq 0 rule) (cdr rules))
                  ;; If there's more than 1 rule, and the rule want to apply
                  ;; highlight to match 0, create an extra group to be able to
@@ -229,7 +261,7 @@ Note: back-references in REGEXPs do not work."
                              code))))
                  (push (cons condition (nreverse code))
                        branches))
-               (incf offset (regexp-opt-depth re))
+               (incf offset (regexp-opt-depth orig-re))
                re))
            rules
            "\\|")))

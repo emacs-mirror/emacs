@@ -237,7 +237,7 @@ font_intern_prop (const char *str, int len, int force_symbol)
   int i;
   Lisp_Object tem;
   Lisp_Object obarray;
-  int nbytes, nchars;
+  EMACS_INT nbytes, nchars;
 
   if (len == 1 && *str == '*')
     return Qnil;

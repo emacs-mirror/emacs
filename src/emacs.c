@@ -32,10 +32,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 #endif
 
-#ifdef HAVE_SYS_IOCTL_H
-#include <sys/ioctl.h>
-#endif
-
 #ifdef WINDOWSNT
 #include <fcntl.h>
 #include <windows.h> /* just for w32.h */
@@ -62,6 +58,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "termhooks.h"
 #include "keyboard.h"
 #include "keymap.h"
+
+#ifdef HAVE_GNUTLS
+#include "gnutls.h"
+#endif
 
 #ifdef HAVE_NS
 #include "nsterm.h"
@@ -1572,6 +1572,10 @@ main (int argc, char **argv)
       syms_of_nsselect ();
       syms_of_fontset ();
 #endif /* HAVE_NS */
+
+#ifdef HAVE_GNUTLS
+      syms_of_gnutls ();
+#endif
 
 #ifdef HAVE_DBUS
       syms_of_dbusbind ();
