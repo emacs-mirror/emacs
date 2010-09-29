@@ -49,10 +49,10 @@ typedef enum
 #define GNUTLS_LOG(level, max, string) if (level <= max) { gnutls_log_function (level, "(Emacs) " string); }
 
 int
-emacs_gnutls_write (int fildes, gnutls_session_t state, char *buf,
+emacs_gnutls_write (int fildes, struct Lisp_Process *proc, char *buf,
                     unsigned int nbyte);
 int
-emacs_gnutls_read (int fildes, gnutls_session_t state, char *buf,
+emacs_gnutls_read (int fildes, struct Lisp_Process *proc, char *buf,
                    unsigned int nbyte);
 
 extern void syms_of_gnutls (void);

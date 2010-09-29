@@ -1,3 +1,17 @@
+2010-09-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* process.h (Lisp_Process): Add a gnutls_p field to Lisp_Process.
+
+	* process.c (make_process): Set the gnutls_p field to zero by
+	default.
+	(read_process_output): Always call the gnutls_read function if the
+	stream is a gnutls stream.
+	(send_process): Ditto for writes.
+
+	* gnutls.c (emacs_gnutls_write, emacs_gnutls_read): Refuse to read
+	or write anything until the state is GNUTLS_STAGE_READY.
+	(Fgnutls_boot): Mark the stream as being a gnutls stream.
+
 2010-09-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (reseat_1): Initialize bidi_it.paragraph_dir to

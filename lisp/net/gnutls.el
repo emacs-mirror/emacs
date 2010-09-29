@@ -37,7 +37,7 @@
   :prefix "gnutls-"
   :group 'net-utils)
 
-(defcustom gnutls-log-level 2
+(defcustom gnutls-log-level 0
   "Logging level to be used by `starttls-negotiate' and GnuTLS."
   :type 'integer
   :group 'gnutls)
@@ -91,20 +91,14 @@ CREDENTIALS-FILE is a filename with meaning dependent on CREDENTIALS."
       (error "Could not boot GnuTLS for this process"));
 
     (let ((ret 'gnutls-e-again)
-          (n 25000))
+          (n 250000))
       (while (and (not (eq ret t))
 		  (not (gnutls-error-fatalp ret))
                   (> n 0))
         (setq n (1- n))
-	(setq ret (gnutls-handshake proc))
-        )
-      (if (gnutls-errorp ret)
-          (progn
-            (message "Ouch, error return %s (%s)"
-                     ret (gnutls-error-string ret))
-            (setq proc nil))
-        (message "Handshake complete %s." ret)))
-     proc))
+	(setq ret (gnutls-handshake proc)))
+      (message "Handshake complete %s." ret))
+    proc))
 
 (defun starttls-open-stream (name buffer host service)
   "Open a TLS connection for a service to a host.

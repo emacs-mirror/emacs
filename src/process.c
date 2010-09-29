@@ -672,6 +672,7 @@ make_process (Lisp_Object name)
 #ifdef HAVE_GNUTLS
   p->gnutls_initstage = GNUTLS_STAGE_EMPTY;
   p->gnutls_log_level = 0;
+  p->gnutls_p = 0;
 #endif
 
   /* If name is already in use, modify it until it is unused.  */
@@ -5203,8 +5204,8 @@ read_process_output (Lisp_Object proc, register int channel)
   if (proc_buffered_char[channel] < 0)
     {
 #ifdef HAVE_GNUTLS
-      if (NETCONN_P(proc) && GNUTLS_PROCESS_USABLE (proc))
-	nbytes = emacs_gnutls_read (channel, XPROCESS (proc)->gnutls_state,
+      if (XPROCESS (proc)->gnutls_p)
+	nbytes = emacs_gnutls_read (channel, XPROCESS (proc),
                                     chars + carryover, readmax);
       else
 #endif
@@ -5242,8 +5243,8 @@ read_process_output (Lisp_Object proc, register int channel)
       chars[carryover] = proc_buffered_char[channel];
       proc_buffered_char[channel] = -1;
 #ifdef HAVE_GNUTLS
-      if (NETCONN_P(proc) && GNUTLS_PROCESS_USABLE (proc))
-	nbytes = emacs_gnutls_read (channel, XPROCESS (proc)->gnutls_state,
+      if (XPROCESS (proc)->gnutls_p)
+	nbytes = emacs_gnutls_read (channel, XPROCESS (proc),
                                     chars + carryover + 1, readmax - 1);
       else
 #endif
@@ -5658,9 +5659,9 @@ send_process (volatile Lisp_Object proc, const unsigned char *volatile buf,
 #endif
 		{
 #ifdef HAVE_GNUTLS
-		  if (NETCONN_P(proc) && GNUTLS_PROCESS_USABLE (proc))
+		  if (XPROCESS (proc)->gnutls_p)
 		    rv = emacs_gnutls_write (outfd,
-					     XPROCESS (proc)->gnutls_state, 
+					     XPROCESS (proc), 
 					     (char *) buf, this);
 		  else
 #endif

@@ -33,10 +33,14 @@ Lisp_Object Qgnutls_e_interrupted, Qgnutls_e_again,
 int global_initialized;
 
 int
-emacs_gnutls_write (int fildes, gnutls_session_t state, char *buf,
+emacs_gnutls_write (int fildes, struct Lisp_Process *proc, char *buf,
                     unsigned int nbyte)
 {
   register int rtnval, bytes_written;
+  gnutls_session_t state = proc->gnutls_state;
+
+  if (proc->gnutls_initstage != GNUTLS_STAGE_READY)
+    return 0;
 
   bytes_written = 0;
 
@@ -62,16 +66,20 @@ emacs_gnutls_write (int fildes, gnutls_session_t state, char *buf,
 }
 
 int
-emacs_gnutls_read (int fildes, gnutls_session_t state, char *buf,
+emacs_gnutls_read (int fildes, struct Lisp_Process *proc, char *buf,
                    unsigned int nbyte)
 {
   register int rtnval;
+  gnutls_session_t state = proc->gnutls_state;
+
+  if (proc->gnutls_initstage != GNUTLS_STAGE_READY)
+    return 0;
 
   rtnval = gnutls_read (state, buf, nbyte);
   if (rtnval >= 0)
     return rtnval;
   else
-    return -1;
+    return 0;
 }
 
 /* convert an integer error to a Lisp_Object; it will be either a
@@ -272,6 +280,7 @@ KEYFILE and optionally CALLBACK.  */)
   CHECK_STRING (priority_string);
 
   state = XPROCESS (proc)->gnutls_state;
+  XPROCESS (proc)->gnutls_p = 1;
 
   if (NUMBERP (loglevel))
     {
@@ -281,7 +290,7 @@ KEYFILE and optionally CALLBACK.  */)
       max_log_level = XINT (loglevel);
       XPROCESS (proc)->gnutls_log_level = max_log_level;
     }
-  
+
   /* always initialize globals.  */
   global_init = gnutls_emacs_global_init ();
   if (! NILP (Fgnutls_errorp (global_init)))
@@ -483,7 +492,7 @@ or `gnutls-e-interrupted'. In that case you may resume the handshake
   if (GNUTLS_INITSTAGE (proc) < GNUTLS_STAGE_HANDSHAKE_CANDO)
     return Qgnutls_e_not_ready_for_handshake;
 
-  
+
   if (GNUTLS_INITSTAGE (proc) < GNUTLS_STAGE_TRANSPORT_POINTERS_SET)
   {
     /* for a network process in Emacs infd and outfd are the same
@@ -502,7 +511,7 @@ or `gnutls-e-interrupted'. In that case you may resume the handshake
   ret = gnutls_handshake (state);
   GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_HANDSHAKE_TRIED;
 
-  if (GNUTLS_E_SUCCESS == ret)
+  if (ret == GNUTLS_E_SUCCESS)
   {
     /* here we're finally done.  */
     GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_READY;
