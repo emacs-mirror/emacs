@@ -1,3 +1,31 @@
+2010-09-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* print.c (print_object): Fix format string and argument types for
+	printing a Lisp_Misc_Marker.
+
+	* xdisp.c (pos_visible_p, c_string_pos, number_of_chars)
+	(load_overlay_strings, get_overlay_strings_1)
+	(get_overlay_strings, forward_to_next_line_start)
+	(back_to_previous_visible_line_start, reseat, reseat_to_string)
+	(get_next_display_element, next_element_from_string)
+	(next_element_from_c_string, next_element_from_buffer)
+	(move_it_vertically_backward, move_it_by_lines, add_to_log)
+	(message_dolog, message_log_check_duplicate, message2_nolog)
+	(message3, message3_nolog, vmessage, set_message, set_message_1)
+	(hscroll_window_tree, text_outside_line_unchanged_p)
+	(set_cursor_from_row, set_vertical_scroll_bar, redisplay_window)
+	(find_last_unchanged_at_beg_row)
+	(find_first_unchanged_at_end_row, row_containing_pos)
+	(trailing_whitespace_p, display_mode_element, decode_mode_spec)
+	(display_count_lines, x_produce_glyphs, note_mouse_highlight): Use
+	EMACS_INT for buffer and string positions.
+
+	* dispextern.h (struct it) <string_nchars>: Declare EMACS_INT.
+	(row_containing_pos): Adjust prototype.
+
+	* lisp.h (pos_visible_p, message2, message2_nolog, message3)
+	(message2_nolog, set_message): Adjust prototypes.
+
 2010-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* gnutls.c (Fgnutls_boot): Remove unused vars `data' and `srp_cred'.

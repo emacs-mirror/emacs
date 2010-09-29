@@ -2185,7 +2185,7 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	    strout ("in no buffer", -1, -1, printcharfun, 0);
 	  else
 	    {
-	      sprintf (buf, "at %d", marker_position (obj));
+	      sprintf (buf, "at %ld", (long)marker_position (obj));
 	      strout (buf, -1, -1, printcharfun, 0);
 	      strout (" in ", -1, -1, printcharfun, 0);
 	      print_string (XMARKER (obj)->buffer->name, printcharfun);
@@ -2199,9 +2199,9 @@ print_object (Lisp_Object obj, register Lisp_Object printcharfun, int escapeflag
 	    strout ("in no buffer", -1, -1, printcharfun, 0);
 	  else
 	    {
-	      sprintf (buf, "from %d to %d in ",
-		       marker_position (OVERLAY_START (obj)),
-		       marker_position (OVERLAY_END   (obj)));
+	      sprintf (buf, "from %ld to %ld in ",
+		       (long)marker_position (OVERLAY_START (obj)),
+		       (long)marker_position (OVERLAY_END   (obj)));
 	      strout (buf, -1, -1, printcharfun, 0);
 	      print_string (XMARKER (OVERLAY_START (obj))->buffer->name,
 			    printcharfun);
