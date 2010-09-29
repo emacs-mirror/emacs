@@ -1,3 +1,8 @@
+2010-09-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* nnmail.el (group, group-art-list, group-art):
+	Remove unneeded directives.
+
 2010-09-29  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-util.el (mm-codepage-iso-8859-list, mm-charset-eval-alist)

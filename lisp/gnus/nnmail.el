@@ -1611,10 +1611,6 @@ See the documentation for the variable `nnmail-split-fancy' for details."
       (setq nnmail-cache-buffer nil)
       (gnus-kill-buffer (current-buffer)))))
 
-;; Compiler directives.
-(defvar group)
-(defvar group-art-list)
-(defvar group-art)
 (defun nnmail-cache-insert (id grp &optional subject sender)
   (when (stringp id)
     ;; this will handle cases like `B r' where the group is nil
