@@ -8639,8 +8639,9 @@ $as_echo "#define HAVE_RSVG 1" >>confdefs.h
 fi
 
 HAVE_IMAGEMAGICK=no
-if test "${with_imagemagick}" != "no"; then
-  IMAGEMAGICK_MODULE="Wand"
+if test "${HAVE_X11}" = "yes"; then
+  if test "${with_imagemagick}" != "no"; then
+    IMAGEMAGICK_MODULE="Wand"
 
   succeeded=no
 
@@ -8738,13 +8739,13 @@ $as_echo "no" >&6; }
 
 
 
-  if test $HAVE_IMAGEMAGICK = yes; then
+    if test $HAVE_IMAGEMAGICK = yes; then
 
 $as_echo "#define HAVE_IMAGEMAGICK 1" >>confdefs.h
 
-    CFLAGS="$CFLAGS $IMAGEMAGICK_CFLAGS"
-    LIBS="$IMAGEMAGICK_LIBS $LIBS"
-    for ac_func in MagickExportImagePixels
+      CFLAGS="$CFLAGS $IMAGEMAGICK_CFLAGS"
+      LIBS="$IMAGEMAGICK_LIBS $LIBS"
+      for ac_func in MagickExportImagePixels
 do :
   ac_fn_c_check_func "$LINENO" "MagickExportImagePixels" "ac_cv_func_MagickExportImagePixels"
 if test "x$ac_cv_func_MagickExportImagePixels" = x""yes; then :
@@ -8755,6 +8756,7 @@ _ACEOF
 fi
 done
 
+    fi
   fi
 fi
 

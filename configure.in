@@ -1840,17 +1840,19 @@ if test "${HAVE_X11}" = "yes" || test "${NS_IMPL_GNUSTEP}" = "yes"; then
 fi
 
 HAVE_IMAGEMAGICK=no
-if test "${with_imagemagick}" != "no"; then
-  IMAGEMAGICK_MODULE="Wand"
-  PKG_CHECK_MODULES(IMAGEMAGICK, $IMAGEMAGICK_MODULE, HAVE_IMAGEMAGICK=yes, :)
-  AC_SUBST(IMAGEMAGICK_CFLAGS)
-  AC_SUBST(IMAGEMAGICK_LIBS)
-
-  if test $HAVE_IMAGEMAGICK = yes; then
-    AC_DEFINE(HAVE_IMAGEMAGICK, 1, [Define to 1 if using imagemagick.])
-    CFLAGS="$CFLAGS $IMAGEMAGICK_CFLAGS"
-    LIBS="$IMAGEMAGICK_LIBS $LIBS"
-    AC_CHECK_FUNCS(MagickExportImagePixels)
+if test "${HAVE_X11}" = "yes"; then
+  if test "${with_imagemagick}" != "no"; then
+    IMAGEMAGICK_MODULE="Wand"
+    PKG_CHECK_MODULES(IMAGEMAGICK, $IMAGEMAGICK_MODULE, HAVE_IMAGEMAGICK=yes, :)
+    AC_SUBST(IMAGEMAGICK_CFLAGS)
+    AC_SUBST(IMAGEMAGICK_LIBS)
+  
+    if test $HAVE_IMAGEMAGICK = yes; then
+      AC_DEFINE(HAVE_IMAGEMAGICK, 1, [Define to 1 if using imagemagick.])
+      CFLAGS="$CFLAGS $IMAGEMAGICK_CFLAGS"
+      LIBS="$IMAGEMAGICK_LIBS $LIBS"
+      AC_CHECK_FUNCS(MagickExportImagePixels)
+    fi
   fi
 fi
 
