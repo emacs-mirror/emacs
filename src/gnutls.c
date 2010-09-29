@@ -42,22 +42,22 @@ emacs_gnutls_handshake (struct Lisp_Process *proc)
     return;
 
   if (proc->gnutls_initstage < GNUTLS_STAGE_TRANSPORT_POINTERS_SET)
-  {
-    /* FIXME: This can't be right: infd and outfd are integers (file handles)
-       whereas the function expects args of type gnutls_transport_ptr_t.  */
-    gnutls_transport_set_ptr2 (state, proc->infd, proc->outfd);
+    {
+      gnutls_transport_set_ptr2 (state,
+				 (gnutls_transport_ptr_t) (long) proc->infd,
+				 (gnutls_transport_ptr_t) (long) proc->outfd);
 
-    proc->gnutls_initstage = GNUTLS_STAGE_TRANSPORT_POINTERS_SET;
-  }
+      proc->gnutls_initstage = GNUTLS_STAGE_TRANSPORT_POINTERS_SET;
+    }
 
   ret = gnutls_handshake (state);
   proc->gnutls_initstage = GNUTLS_STAGE_HANDSHAKE_TRIED;
 
   if (ret == GNUTLS_E_SUCCESS)
-  {
-    /* here we're finally done.  */
-    proc->gnutls_initstage = GNUTLS_STAGE_READY;
-  }
+    {
+      /* here we're finally done.  */
+      proc->gnutls_initstage = GNUTLS_STAGE_READY;
+    }
 }
 
 int
@@ -68,7 +68,7 @@ emacs_gnutls_write (int fildes, struct Lisp_Process *proc, char *buf,
   gnutls_session_t state = proc->gnutls_state;
 
   if (proc->gnutls_initstage != GNUTLS_STAGE_READY)
-    return 0;
+    return -1;
 
   bytes_written = 0;
 
@@ -100,10 +100,11 @@ emacs_gnutls_read (int fildes, struct Lisp_Process *proc, char *buf,
   register int rtnval;
   gnutls_session_t state = proc->gnutls_state;
 
-  if (proc->gnutls_initstage != GNUTLS_STAGE_READY) {
-    emacs_gnutls_handshake (proc);
-    return -1;
-  }
+  if (proc->gnutls_initstage != GNUTLS_STAGE_READY)
+    {
+      emacs_gnutls_handshake (proc);
+      return -1;
+    }
 
   rtnval = gnutls_read (state, buf, nbyte);
   if (rtnval >= 0)
@@ -119,16 +120,16 @@ emacs_gnutls_read (int fildes, struct Lisp_Process *proc, char *buf,
 Lisp_Object gnutls_make_error (int error)
 {
   switch (error)
-  {
-  case GNUTLS_E_SUCCESS:
-    return Qt;
-  case GNUTLS_E_AGAIN:
-    return Qgnutls_e_again;
-  case GNUTLS_E_INTERRUPTED:
-    return Qgnutls_e_interrupted;
-  case GNUTLS_E_INVALID_SESSION:
-    return Qgnutls_e_invalid_session;
-  }
+    {
+    case GNUTLS_E_SUCCESS:
+      return Qt;
+    case GNUTLS_E_AGAIN:
+      return Qgnutls_e_again;
+    case GNUTLS_E_INTERRUPTED:
+      return Qgnutls_e_interrupted;
+    case GNUTLS_E_INVALID_SESSION:
+      return Qgnutls_e_invalid_session;
+    }
 
   return make_number (error);
 }
@@ -163,17 +164,17 @@ ERROR is an integer or a symbol with an integer `gnutls-code' property.  */)
   if (EQ (err, Qt)) return Qnil;
 
   if (SYMBOLP (err))
-  {
-    code = Fget (err, Qgnutls_code);
-    if (NUMBERP (code))
     {
-      err = code;
+      code = Fget (err, Qgnutls_code);
+      if (NUMBERP (code))
+	{
+	  err = code;
+	}
+      else
+	{
+	  error ("Symbol has no numeric gnutls-code property");
+	}
     }
-    else
-    {
-      error ("Symbol has no numeric gnutls-code property");
-    }
-  }
 
   if (!NUMBERP (err))
     error ("Not an error symbol or code");
@@ -194,17 +195,17 @@ ERROR is an integer or a symbol with an integer `gnutls-code' property.  */)
   if (EQ (err, Qt)) return build_string ("Not an error");
 
   if (SYMBOLP (err))
-  {
-    code = Fget (err, Qgnutls_code);
-    if (NUMBERP (code))
     {
-      err = code;
+      code = Fget (err, Qgnutls_code);
+      if (NUMBERP (code))
+	{
+	  err = code;
+	}
+      else
+	{
+	  return build_string ("Symbol has no numeric gnutls-code property");
+	}
     }
-    else
-    {
-      return build_string ("Symbol has no numeric gnutls-code property");
-    }
-  }
 
   if (!NUMBERP (err))
     return build_string ("Not an error symbol or code");
@@ -223,10 +224,10 @@ See also `gnutls-init'.  */)
   state = XPROCESS (proc)->gnutls_state;
 
   if (GNUTLS_INITSTAGE (proc) >= GNUTLS_STAGE_INIT)
-  {
+    {
       gnutls_deinit (state);
       GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_INIT - 1;
-  }
+    }
 
   return Qt;
 }
@@ -314,7 +315,6 @@ KEYFILE and optionally CALLBACK.  */)
 
   if (NUMBERP (loglevel))
     {
-      message ("setting up log level %d", XINT (loglevel));
       gnutls_global_set_log_function (gnutls_log_function);
       gnutls_global_set_log_level (XINT (loglevel));
       max_log_level = XINT (loglevel);
@@ -328,67 +328,67 @@ KEYFILE and optionally CALLBACK.  */)
 
   /* deinit and free resources.  */
   if (GNUTLS_INITSTAGE (proc) >= GNUTLS_STAGE_CRED_ALLOC)
-  {
+    {
       GNUTLS_LOG (1, max_log_level, "deallocating credentials");
 
       if (EQ (type, Qgnutls_x509pki))
-      {
+	{
           GNUTLS_LOG (2, max_log_level, "deallocating x509 credentials");
           x509_cred = XPROCESS (proc)->gnutls_x509_cred;
           gnutls_certificate_free_credentials (x509_cred);
-      }
+	}
       else if (EQ (type, Qgnutls_anon))
-      {
+	{
           GNUTLS_LOG (2, max_log_level, "deallocating anon credentials");
           anon_cred = XPROCESS (proc)->gnutls_anon_cred;
           gnutls_anon_free_client_credentials (anon_cred);
-      }
+	}
       else
-      {
+	{
           error ("unknown credential type");
           ret = GNUTLS_EMACS_ERROR_INVALID_TYPE;
-      }
+	}
 
       if (GNUTLS_INITSTAGE (proc) >= GNUTLS_STAGE_INIT)
-      {
+	{
           GNUTLS_LOG (1, max_log_level, "deallocating x509 credentials");
           Fgnutls_deinit (proc);
-      }
-  }
+	}
+    }
 
   GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_EMPTY;
 
   GNUTLS_LOG (1, max_log_level, "allocating credentials");
 
   if (EQ (type, Qgnutls_x509pki))
-  {
+    {
       GNUTLS_LOG (2, max_log_level, "allocating x509 credentials");
       x509_cred = XPROCESS (proc)->gnutls_x509_cred;
       if (gnutls_certificate_allocate_credentials (&x509_cred) < 0)
         memory_full ();
-  }
+    }
   else if (EQ (type, Qgnutls_anon))
-  {
+    {
       GNUTLS_LOG (2, max_log_level, "allocating anon credentials");
       anon_cred = XPROCESS (proc)->gnutls_anon_cred;
       if (gnutls_anon_allocate_client_credentials (&anon_cred) < 0)
         memory_full ();
-  }
+    }
   else
-  {
+    {
       error ("unknown credential type");
       ret = GNUTLS_EMACS_ERROR_INVALID_TYPE;
-  }
+    }
 
   if (ret < GNUTLS_E_SUCCESS)
-      return gnutls_make_error (ret);
+    return gnutls_make_error (ret);
 
   GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_CRED_ALLOC;
 
   if (EQ (type, Qgnutls_x509pki))
-  {
+    {
       if (STRINGP (trustfile))
-      {
+	{
           GNUTLS_LOG (1, max_log_level, "setting the trustfile");
           ret = gnutls_certificate_set_x509_trust_file
             (x509_cred,
@@ -397,10 +397,10 @@ KEYFILE and optionally CALLBACK.  */)
 
           if (ret < GNUTLS_E_SUCCESS)
             return gnutls_make_error (ret);
-      }
+	}
 
       if (STRINGP (keyfile))
-      {
+	{
           GNUTLS_LOG (1, max_log_level, "setting the keyfile");
           ret = gnutls_certificate_set_x509_crl_file
             (x509_cred,
@@ -409,8 +409,8 @@ KEYFILE and optionally CALLBACK.  */)
 
           if (ret < GNUTLS_E_SUCCESS)
             return gnutls_make_error (ret);
-      }
-  }
+	}
+    }
 
   GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_FILES;
 
@@ -419,7 +419,7 @@ KEYFILE and optionally CALLBACK.  */)
   ret = gnutls_init (&state, GNUTLS_CLIENT);
 
   if (ret < GNUTLS_E_SUCCESS)
-      return gnutls_make_error (ret);
+    return gnutls_make_error (ret);
 
   XPROCESS (proc)->gnutls_state = state;
 
@@ -432,32 +432,26 @@ KEYFILE and optionally CALLBACK.  */)
                                    NULL);
 
   if (ret < GNUTLS_E_SUCCESS)
-      return gnutls_make_error (ret);
+    return gnutls_make_error (ret);
 
   GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_PRIORITY;
 
-  message ("gnutls: setting the credentials");
-
   if (EQ (type, Qgnutls_x509pki))
-  {
-      message ("gnutls: setting the x509 credentials");
-
+    {
       ret = gnutls_cred_set (state, GNUTLS_CRD_CERTIFICATE, x509_cred);
-  }
+    }
   else if (EQ (type, Qgnutls_anon))
-  {
-      message ("gnutls: setting the anon credentials");
-
+    {
       ret = gnutls_cred_set (state, GNUTLS_CRD_ANON, anon_cred);
-  }
+    }
   else
-  {
+    {
       error ("unknown credential type");
       ret = GNUTLS_EMACS_ERROR_INVALID_TYPE;
-  }
+    }
 
   if (ret < GNUTLS_E_SUCCESS)
-      return gnutls_make_error (ret);
+    return gnutls_make_error (ret);
 
   XPROCESS (proc)->gnutls_anon_cred = anon_cred;
   XPROCESS (proc)->gnutls_x509_cred = x509_cred;

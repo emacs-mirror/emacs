@@ -3,6 +3,11 @@
 	* gnutls.c (emacs_gnutls_handshake): Made into internal function.
 	(Fgnutls_boot): Start the handshake.
 	(emacs_gnutls_read): Perform the handshake from the reader loop.
+	(Fgnutls_boot): Remove some debugging messages.
+	Change indentation throughout to use the Emacs style.
+	(emacs_gnutls_handshake): Cast the fds to something that's
+	possibly the expected length.
+	(emacs_gnutls_write): Return -1 if we try to write before handshake.
 
 	* process.h (Lisp_Process): Add a gnutls_p field to Lisp_Process.
 
