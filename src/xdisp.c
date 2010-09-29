@@ -4646,7 +4646,6 @@ string_buffer_position_lim (struct window *w, Lisp_Object string,
 EMACS_INT
 string_buffer_position (struct window *w, Lisp_Object string, EMACS_INT around_charpos)
 {
-  Lisp_Object limit, prop, pos;
   const int MAX_DISTANCE = 1000;
   EMACS_INT found = string_buffer_position_lim (w, string, around_charpos,
 						around_charpos + MAX_DISTANCE,
