@@ -235,7 +235,7 @@ Optional argument STREAM is an optional stream of tags used to create menus."
   (setq imenu-default-goto-function 'semantic-imenu-goto-function)
   (prog1
       (if (and semantic-imenu-index-directory
-               (featurep 'semanticdb)
+               (featurep 'semantic/db)
                (semanticdb-minor-mode-p))
           (semantic-create-imenu-directory-index
 	   (or stream (semantic-fetch-tags-fast)))
