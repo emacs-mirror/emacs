@@ -1,5 +1,8 @@
 2010-09-29  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/diary-lib.el (diary-include-other-diary-files):
+	Trap some recursive includes.
+
 	* calendar/appt.el (appt-activate): Check diary file.
 
 2010-09-29  Katsumi Yamaoka  <yamaoka@jpl.org>

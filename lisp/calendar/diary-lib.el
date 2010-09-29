@@ -848,16 +848,18 @@ the variable `diary-include-string'."
           (diary-list-entries-hook 'diary-include-other-diary-files)
           (diary-display-function 'ignore)
           (diary-including t)
-          diary-hook diary-list-include-blanks)
+          diary-hook diary-list-include-blanks efile)
       (if (file-exists-p diary-file)
           (if (file-readable-p diary-file)
               (unwind-protect
-                  (setq diary-included-files
-                        (append diary-included-files
-                                (list (expand-file-name diary-file)))
-                        diary-entries-list
-                        (append diary-entries-list
-                                (diary-list-entries original-date number)))
+                  (if (member (setq efile (expand-file-name diary-file))
+                              diary-included-files)
+                      (error "Recursive diary include for %s" diary-file)
+                    (setq diary-included-files
+                          (append diary-included-files (list efile))
+                          diary-entries-list
+                          (append diary-entries-list
+                                  (diary-list-entries original-date number))))
                 (with-current-buffer (find-buffer-visiting diary-file)
                   (diary-unhide-everything)))
             (beep)
