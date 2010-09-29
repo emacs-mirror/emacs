@@ -1,5 +1,12 @@
 2010-09-29  Eli Zaretskii  <eliz@gnu.org>
 
+	* xdisp.c (reseat_1): Initialize bidi_it.paragraph_dir to
+	NEUTRAL_DIR.
+	(handle_invisible_prop, iterate_out_of_display_property)
+	(next_element_from_buffer): If bidi_it.first_elt is set, call
+	bidi_paragraph_init with NO_DEFAULT_P argument non-zero.
+	(Bug#7128)
+
 	* print.c (print_object): Fix format string and argument types for
 	printing a Lisp_Misc_Marker.
 

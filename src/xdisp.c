@@ -3831,7 +3831,7 @@ handle_invisible_prop (struct it *it)
 		     skip any text at the beginning, which resets the
 		     FIRST_ELT flag.  */
 		  bidi_paragraph_init (it->paragraph_embedding,
-				       &it->bidi_it, 0);
+				       &it->bidi_it, 1);
 		}
 	      do
 		{
@@ -5152,7 +5152,7 @@ iterate_out_of_display_property (struct it *it)
      of a new paragraph, next_element_from_buffer may not have a
      chance to do that.  */
   if (it->bidi_it.first_elt && it->bidi_it.charpos < ZV)
-    bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it, 0);
+    bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it, 1);
   /* prev_stop can be zero, so check against BEGV as well.  */
   while (it->bidi_it.charpos >= BEGV
 	 && it->prev_stop <= it->bidi_it.charpos
@@ -5584,7 +5584,10 @@ reseat_1 (struct it *it, struct text_pos pos, int set_stop_p)
   it->string_from_display_prop_p = 0;
   it->face_before_selective_p = 0;
   if (it->bidi_p)
-    it->bidi_it.first_elt = 1;
+    {
+      it->bidi_it.first_elt = 1;
+      it->bidi_it.paragraph_dir = NEUTRAL_DIR;
+    }
 
   if (set_stop_p)
     {
@@ -6675,7 +6678,7 @@ next_element_from_buffer (struct it *it)
 	{
 	  /* If we are at the beginning of a line, we can produce the
 	     next element right away.  */
-	  bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it, 0);
+	  bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it, 1);
 	  bidi_move_to_visually_next (&it->bidi_it);
 	}
       else
@@ -6689,7 +6692,7 @@ next_element_from_buffer (struct it *it)
 	  IT_BYTEPOS (*it) = CHAR_TO_BYTE (IT_CHARPOS (*it));
 	  it->bidi_it.charpos = IT_CHARPOS (*it);
 	  it->bidi_it.bytepos = IT_BYTEPOS (*it);
-	  bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it, 0);
+	  bidi_paragraph_init (it->paragraph_embedding, &it->bidi_it, 1);
 	  do
 	    {
 	      /* Now return to buffer position where we were asked to
