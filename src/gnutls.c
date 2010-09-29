@@ -32,6 +32,34 @@ Lisp_Object Qgnutls_e_interrupted, Qgnutls_e_again,
   Qgnutls_e_invalid_session, Qgnutls_e_not_ready_for_handshake;
 int global_initialized;
 
+void
+emacs_gnutls_handshake (struct Lisp_Process *proc)
+{
+  gnutls_session_t state = proc->gnutls_state;
+  int ret;
+
+  if (proc->gnutls_initstage < GNUTLS_STAGE_HANDSHAKE_CANDO)
+    return;
+
+  if (proc->gnutls_initstage < GNUTLS_STAGE_TRANSPORT_POINTERS_SET)
+  {
+    /* FIXME: This can't be right: infd and outfd are integers (file handles)
+       whereas the function expects args of type gnutls_transport_ptr_t.  */
+    gnutls_transport_set_ptr2 (state, proc->infd, proc->outfd);
+
+    proc->gnutls_initstage = GNUTLS_STAGE_TRANSPORT_POINTERS_SET;
+  }
+
+  ret = gnutls_handshake (state);
+  proc->gnutls_initstage = GNUTLS_STAGE_HANDSHAKE_TRIED;
+
+  if (ret == GNUTLS_E_SUCCESS)
+  {
+    /* here we're finally done.  */
+    proc->gnutls_initstage = GNUTLS_STAGE_READY;
+  }
+}
+
 int
 emacs_gnutls_write (int fildes, struct Lisp_Process *proc, char *buf,
                     unsigned int nbyte)
@@ -72,8 +100,10 @@ emacs_gnutls_read (int fildes, struct Lisp_Process *proc, char *buf,
   register int rtnval;
   gnutls_session_t state = proc->gnutls_state;
 
-  if (proc->gnutls_initstage != GNUTLS_STAGE_READY)
-    return 0;
+  if (proc->gnutls_initstage != GNUTLS_STAGE_READY) {
+    emacs_gnutls_handshake (proc);
+    return -1;
+  }
 
   rtnval = gnutls_read (state, buf, nbyte);
   if (rtnval >= 0)
@@ -435,6 +465,8 @@ KEYFILE and optionally CALLBACK.  */)
 
   GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_CRED_SET;
 
+  emacs_gnutls_handshake (XPROCESS (proc));
+
   return gnutls_make_error (GNUTLS_E_SUCCESS);
 }
 
@@ -463,59 +495,6 @@ This function may also return `gnutls-e-again', or
 
   ret = gnutls_bye (state,
                     NILP (cont) ? GNUTLS_SHUT_RDWR : GNUTLS_SHUT_WR);
-
-  return gnutls_make_error (ret);
-}
-
-DEFUN ("gnutls-handshake", Fgnutls_handshake,
-       Sgnutls_handshake, 1, 1, 0,
-       doc: /* Perform GNU TLS handshake for PROCESS.
-The identity of the peer is checked automatically.  This function will
-fail if any problem is encountered, and will return a negative error
-code. In case of a client, if it has been asked to resume a session,
-but the server didn't, then a full handshake will be performed.
-
-If the error `gnutls-e-not-ready-for-handshake' is returned, you
-didn't call `gnutls-boot' first.
-
-This function may also return the non-fatal errors `gnutls-e-again',
-or `gnutls-e-interrupted'. In that case you may resume the handshake
-(by calling this function again).  */)
-    (Lisp_Object proc)
-{
-  gnutls_session_t state;
-  int ret;
-
-  CHECK_PROCESS (proc);
-  state = XPROCESS (proc)->gnutls_state;
-
-  if (GNUTLS_INITSTAGE (proc) < GNUTLS_STAGE_HANDSHAKE_CANDO)
-    return Qgnutls_e_not_ready_for_handshake;
-
-
-  if (GNUTLS_INITSTAGE (proc) < GNUTLS_STAGE_TRANSPORT_POINTERS_SET)
-  {
-    /* for a network process in Emacs infd and outfd are the same
-       but this shows our intent more clearly.  */
-    message ("gnutls: handshake: setting the transport pointers to %d/%d",
-             XPROCESS (proc)->infd, XPROCESS (proc)->outfd);
-
-    /* FIXME: This can't be right: infd and outfd are integers (file handles)
-       whereas the function expects args of type gnutls_transport_ptr_t.  */
-    gnutls_transport_set_ptr2 (state, XPROCESS (proc)->infd,
-                               XPROCESS (proc)->outfd);
-
-    GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_TRANSPORT_POINTERS_SET;
-  }
-
-  ret = gnutls_handshake (state);
-  GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_HANDSHAKE_TRIED;
-
-  if (ret == GNUTLS_E_SUCCESS)
-  {
-    /* here we're finally done.  */
-    GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_READY;
-  }
 
   return gnutls_make_error (ret);
 }
@@ -561,7 +540,6 @@ syms_of_gnutls (void)
   defsubr (&Sgnutls_error_string);
   defsubr (&Sgnutls_boot);
   defsubr (&Sgnutls_deinit);
-  defsubr (&Sgnutls_handshake);
   defsubr (&Sgnutls_bye);
 }
 #endif

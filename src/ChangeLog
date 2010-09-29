@@ -1,5 +1,9 @@
 2010-09-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnutls.c (emacs_gnutls_handshake): Made into internal function.
+	(Fgnutls_boot): Start the handshake.
+	(emacs_gnutls_read): Perform the handshake from the reader loop.
+
 	* process.h (Lisp_Process): Add a gnutls_p field to Lisp_Process.
 
 	* process.c (make_process): Set the gnutls_p field to zero by

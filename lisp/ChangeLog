@@ -1,6 +1,8 @@
 2010-09-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/gnutls.el (starttls-negotiate): Loop a lot longer.
+	(starttls-negotiate): Just call boot, and let the handshake be
+	triggered from the read loop.
 
 2010-09-29  Glenn Morris  <rgm@gnu.org>
 

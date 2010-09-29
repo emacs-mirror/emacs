@@ -87,17 +87,6 @@ CREDENTIALS-FILE is a filename with meaning dependent on CREDENTIALS."
                             nil nil gnutls-log-level))
      "boot: %s")
 
-    (when (gnutls-errorp ret)
-      (error "Could not boot GnuTLS for this process"));
-
-    (let ((ret 'gnutls-e-again)
-          (n 250000))
-      (while (and (not (eq ret t))
-		  (not (gnutls-error-fatalp ret))
-                  (> n 0))
-        (setq n (1- n))
-	(setq ret (gnutls-handshake proc)))
-      (message "Handshake complete %s." ret))
     proc))
 
 (defun starttls-open-stream (name buffer host service)
