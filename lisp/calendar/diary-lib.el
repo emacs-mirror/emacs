@@ -700,7 +700,6 @@ of the appropriate type."
              (1+ (calendar-absolute-from-gregorian gdate))))))
   (goto-char (point-min)))
 
-(defvar diary-including) ; dynamically bound in diary-include-other-diary-files
 (defvar diary-included-files nil
   "List of any diary files included in the last call to `diary-list-entries'.")
 
@@ -759,10 +758,12 @@ LIST-ONLY is non-nil, in which case it just returns the list."
     (let* ((original-date date)    ; save for possible use in the hooks
            (date-string (calendar-date-string date))
            (diary-buffer (find-buffer-visiting diary-file))
+           ;; Dynamically bound in diary-include-other-diary-files.
+           (d-incp (and (boundp 'diary-including) diary-including))
            diary-entries-list file-glob-attrs)
-      (or (bound-and-true-p diary-including)
-          (setq diary-included-files nil))
-      (message "Preparing diary...")
+      (unless d-incp
+        (setq diary-included-files nil)
+        (message "Preparing diary..."))
       (save-current-buffer
         (if (not diary-buffer)
             (set-buffer (find-file-noselect diary-file t))
@@ -816,6 +817,7 @@ LIST-ONLY is non-nil, in which case it just returns the list."
                   (funcall (or diary-display-function
                                'diary-simple-display))))
               (run-hooks 'diary-hook)
+              (or d-incp (message "Preparing diary...done"))
               diary-entries-list)))))))
 
 (define-obsolete-function-alias 'list-diary-entries 'diary-list-entries "22.1")
@@ -846,22 +848,18 @@ the variable `diary-include-string'."
           nil t)
     (let ((diary-file (match-string-no-properties 1))
           (diary-list-entries-hook 'diary-include-other-diary-files)
-          (diary-display-function 'ignore)
           (diary-including t)
           diary-hook diary-list-include-blanks efile)
       (if (file-exists-p diary-file)
           (if (file-readable-p diary-file)
-              (unwind-protect
-                  (if (member (setq efile (expand-file-name diary-file))
-                              diary-included-files)
-                      (error "Recursive diary include for %s" diary-file)
-                    (setq diary-included-files
-                          (append diary-included-files (list efile))
-                          diary-entries-list
-                          (append diary-entries-list
-                                  (diary-list-entries original-date number))))
-                (with-current-buffer (find-buffer-visiting diary-file)
-                  (diary-unhide-everything)))
+              (if (member (setq efile (expand-file-name diary-file))
+                          diary-included-files)
+                  (error "Recursive diary include for %s" diary-file)
+                (setq diary-included-files
+                      (append diary-included-files (list efile))
+                      diary-entries-list
+                      (append diary-entries-list
+                              (diary-list-entries original-date number t))))
             (beep)
             (message "Can't read included diary file %s" diary-file)
             (sleep-for 2))
@@ -930,8 +928,7 @@ in the mode line.  This is an option for `diary-display-function'."
         (let ((window (display-buffer (current-buffer))))
           ;; d-s-p is passed from diary-list-entries.
           (set-window-point window diary-saved-point)
-          (set-window-start window (point-min))))
-      (message "Preparing diary...done"))))
+          (set-window-start window (point-min)))))))
 
 (define-obsolete-function-alias 'simple-diary-display
   'diary-simple-display "23.1")
@@ -1053,8 +1050,7 @@ This is an option for `diary-display-function'."
       (if (eq major-mode 'diary-fancy-display-mode)
           (run-hooks 'diary-fancy-display-mode-hook)
         (diary-fancy-display-mode))
-      (calendar-set-mode-line date-string)
-      (message "Preparing diary...done"))))
+      (calendar-set-mode-line date-string))))
 
 (define-obsolete-function-alias 'fancy-diary-display
   'diary-fancy-display "23.1")

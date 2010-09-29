@@ -1,5 +1,12 @@
 2010-09-29  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/diary-lib.el (diary-list-entries): Move the
+	"Preparing..." message entirely here.
+	(diary-simple-display, diary-fancy-display): Move "Preparing..."
+	messages to diary-list-entries.
+	(diary-include-other-diary-files): Use LIST-ONLY rather than setting
+	diary-display-function.
+
 	* calendar/diary-lib.el (diary-include-other-diary-files):
 	Trap some recursive includes.
 
