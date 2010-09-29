@@ -1476,7 +1476,7 @@ start_daemon_and_retry_set_socket (void)
   else if (dpid < 0)
     {
       fprintf (stderr, "Error: Cannot fork!\n");
-      exit (1);
+      exit (EXIT_FAILURE);
     }
   else
     {
@@ -1576,8 +1576,6 @@ main (int argc, char **argv)
       int i;
       for (i = 0; environ[i]; i++)
         {
-          char *name = xstrdup (environ[i]);
-          char *value = strchr (name, '=');
           send_to_emacs (emacs_socket, "-env ");
           quote_argument (emacs_socket, environ[i]);
           send_to_emacs (emacs_socket, " ");

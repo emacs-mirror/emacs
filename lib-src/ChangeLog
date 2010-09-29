@@ -1,3 +1,8 @@
+2010-09-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (main): Remove unused variables.
+	(start_daemon_and_retry_set_socket): Use EXIT_FAILURE.
+
 2010-09-25  Ulrich Mueller  <ulm@gentoo.org>
 
 	* etags.c (compressors, print_language_names): Support xz compression.
