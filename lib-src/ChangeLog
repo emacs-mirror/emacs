@@ -1,5 +1,7 @@
 2010-09-29  Juanma Barranquero  <lekktu@gmail.com>
 
+	* makefile.w32-in (../src/config.h): Remove target, it is stale.
+
 	* emacsclient.c (main): Remove unused variables.
 	(start_daemon_and_retry_set_socket): Use EXIT_FAILURE.
 
