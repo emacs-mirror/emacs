@@ -861,7 +861,7 @@ xfont_open (f, entity, pixel_size)
 
       val = Ffont_get (font_object, QCavgwidth);
       if (INTEGERP (val))
-	font->average_width = XINT (val);
+	font->average_width = XINT (val) / 10;
       if (font->average_width < 0)
 	font->average_width = - font->average_width;
       if (font->average_width == 0
