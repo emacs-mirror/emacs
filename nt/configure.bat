@@ -669,7 +669,7 @@ if not errorlevel 2 goto doCopy
 fc /b config.tmp ..\src\config.h >nul 2>&1
 if errorlevel 1 goto doCopy
 fc /b paths.h ..\src\epaths.h >nul 2>&1
-if errorlevel 0 goto dontCopy
+if not errorlevel 1 goto dontCopy
 
 :doCopy
 copy config.tmp ..\src\config.h

@@ -1,3 +1,8 @@
+2010-09-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat: Fix the condition for copying paths.h into
+	../src/epaths.h.
+
 2010-09-28  Juanma Barranquero  <lekktu@gmail.com>
 
 	* addpm.c (entry, add_registry, main):
