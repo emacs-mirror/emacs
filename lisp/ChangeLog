@@ -1,5 +1,10 @@
 2010-09-29  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/diary-lib.el (diary-list-entries): Use temp buffers when
+	not displaying the diary.
+	(diary-add-to-list): If no buffer-file-name, fall back to diary-file.
+	* calendar/appt.el (appt-check): No longer need to kill diary.
+
 	* calendar/diary-lib.el (diary-list-entries): Move the
 	"Preparing..." message entirely here.
 	(diary-simple-display, diary-fancy-display): Move "Preparing..."

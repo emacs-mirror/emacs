@@ -257,8 +257,6 @@ The variable `appt-audible' controls the audible reminder."
            (message "%s" string)))))
 
 
-(defvar diary-selective-display)
-
 (defun appt-check (&optional force)
   "Check for an appointment and update any reminder display.
 If optional argument FORCE is non-nil, reparse the diary file for
@@ -326,7 +324,7 @@ displayed in a window:
          (mode-line-only (unless full-check appt-now-displayed))
          now cur-comp-time appt-comp-time appt-warn-time)
     (when (or full-check mode-line-only)
-      (save-excursion
+      (save-excursion                   ; FIXME ?
         ;; Convert current time to minutes after midnight (12.01am = 1).
         (setq now (decode-time)
               cur-comp-time (+ (* 60 (nth 2 now)) (nth 1 now)))
@@ -337,23 +335,13 @@ displayed in a window:
             (ignore-errors
               (let ((diary-hook (if (assoc 'appt-make-list diary-hook)
                                     diary-hook
-                                  (cons 'appt-make-list diary-hook)))
-                    d-buff d-buff2)
+                                  (cons 'appt-make-list diary-hook))))
                 (if appt-display-diary
                     (diary)
-                  (setq d-buff (find-buffer-visiting diary-file))
                   ;; Not displaying the diary, so we can ignore
                   ;; diary-number-of-entries.  Since appt.el only
                   ;; works on a daily basis, no need for more entries.
-                  (diary-list-entries (calendar-current-date) 1 t)
-                  ;; If diary buffer did not exist before this command, kill it.
-                  ;; FIXME does not kill any included diary files.
-                  ;; The real issue is that (diary) should not have
-                  ;; the side effect of visiting all the diary files.
-                  ;; It is not really appt.el's job to clean up this mess...
-                  (and (not d-buff)
-                       (setq d-buff2 (find-buffer-visiting diary-file))
-                       (kill-buffer d-buff2))))))
+                  (diary-list-entries (calendar-current-date) 1 t)))))
         (setq appt-prev-comp-time cur-comp-time
               appt-mode-string nil
               appt-display-count nil)
