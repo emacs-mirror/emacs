@@ -1,3 +1,10 @@
+2010-09-29  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* pgg.el (pgg-run-at-time-1): Define it for XEmacs only; fix if/else
+	construction.
+
+	* calendar/time-date.el: No need to require cl for Emacs 21.
+
 2010-09-28  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/appt.el (appt-check): Minor simplification.

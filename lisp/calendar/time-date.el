@@ -39,9 +39,6 @@
 
 ;;; Code:
 
-;; Only necessary for `declare' when compiling Gnus with Emacs 21.
-(eval-when-compile (require 'cl))
-
 (defmacro with-decoded-time-value (varlist &rest body)
   "Decode a time value and bind it according to VARLIST, then eval BODY.
 

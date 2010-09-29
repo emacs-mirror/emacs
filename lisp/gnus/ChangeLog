@@ -1,3 +1,13 @@
+2010-09-29  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-util.el (mm-codepage-iso-8859-list, mm-charset-eval-alist)
+	(mm-mime-charset)
+	* rfc2047.el (rfc2047-syntax-table)
+	* utf7.el (utf7-utf-16-coding-system): Comment fix.
+
+	* nnrss.el (nnrss-read-server-data, nnrss-read-group-data): Use `load'
+	rather than `insert-file-contents' and `eval-region'.
+
 2010-09-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mail-source.el (mail-source-report-new-mail)
