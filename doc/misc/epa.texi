@@ -65,7 +65,8 @@ called EasyPG Library.
 @menu
 * Overview::                    
 * Quick start::                 
-* Commands::               
+* Commands::                    
+* Bug Reports::                 
 @end menu
 
 @node  Overview
@@ -397,6 +398,28 @@ default value is @code{nil}.
 If non-@code{nil}, disable auto-saving when opening an encrypted file.
 The default value is @code{t}.
 @end defvar
+
+@node Bug Reports
+@chapter Bug Reports
+
+Bugs and problems with EasyPG Assistant are actively worked on by the
+Emacs development team.  Feature requests and suggestions are also
+more than welcome.  Use @kbd{M-x report-emacs-bug}, @pxref{Bugs, ,
+Bugs, emacs, Reporting Bugs}.
+
+When submitting a bug report, please try to describe in excruciating
+detail the steps required to reproduce the problem.  Also try to
+collect necessary information to fix the bug, such as:
+
+@itemize @bullet
+@item the GnuPG version.  Send the output of @samp{gpg --version}.
+@item the GnuPG configuration.  Send the contents of @file{~/.gnupg/gpg.conf}.
+@end itemize
+
+Before reporting the bug, you should set @code{epg-debug} in the
+@file{~/.emacs} file and repeat the bug.  Then, include the contents
+of the @samp{ *epg-debug*} buffer.  Note that the first letter of the
+buffer name is a whitespace.
 
 @bye
 
