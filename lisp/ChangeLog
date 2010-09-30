@@ -1,3 +1,9 @@
+2010-09-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-start): Don't write pid to the authentication file.
+	(server-create-tty-frame): Don't send pid.
+	(server-process-filter): Send pid at the start of every connection.
+
 2010-09-30  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/diary-lib.el (view-diary-entries, list-diary-entries)

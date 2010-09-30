@@ -910,14 +910,13 @@ initialize_sockets (void)
 
 /*
  * Read the information needed to set up a TCP comm channel with
- * the Emacs server: host, port, pid and authentication string.
+ * the Emacs server: host, port, and authentication string.
  */
 int
 get_server_config (struct sockaddr_in *server, char *authentication)
 {
   char dotted[32];
   char *port;
-  char *pid;
   FILE *config = NULL;
 
   if (file_name_absolute_p (server_file))
@@ -948,12 +947,8 @@ get_server_config (struct sockaddr_in *server, char *authentication)
     return FALSE;
 
   if (fgets (dotted, sizeof dotted, config)
-      && (port = strchr (dotted, ':'))
-      && (pid = strchr (port, ' ')))
-    {
-      *port++ = '\0';
-      *pid++  = '\0';
-    }
+      && (port = strchr (dotted, ':')))
+    *port++ = '\0';
   else
     {
       message (TRUE, "%s: invalid configuration info\n", progname);
@@ -971,8 +966,6 @@ get_server_config (struct sockaddr_in *server, char *authentication)
     }
 
   fclose (config);
-
-  emacs_pid = atoi (pid);
 
   return TRUE;
 }
