@@ -1,5 +1,8 @@
 2010-09-30  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/diary-lib.el (view-diary-entries, list-diary-entries)
+	(show-all-diary-entries): Remove obsolete function aliases.
+
 	* calendar/appt.el (appt-issue-message, appt-visible, appt-msg-window):
 	Remove options, obsolete since 22.1.
 	(appt-display-format, appt-display-message): Remove

@@ -487,8 +487,6 @@ in the displayed three-month calendar."
   (diary-check-diary-file)
   (diary-list-entries (calendar-cursor-to-date t) arg))
 
-(define-obsolete-function-alias 'view-diary-entries 'diary-view-entries "22.1")
-
 
 ;;;###cal-autoload
 (defun diary-view-other-diary-entries (arg dfile)
@@ -828,8 +826,6 @@ LIST-ONLY is non-nil, in which case it just returns the list."
       (or d-incp (message "Preparing diary...done"))
       diary-entries-list)))
 
-(define-obsolete-function-alias 'list-diary-entries 'diary-list-entries "22.1")
-
 (defun diary-unhide-everything ()
   "Show all invisible text in the diary."
   (kill-local-variable 'diary-selective-display)
@@ -1131,9 +1127,6 @@ is created."
                  (with-current-buffer (window-buffer win)
                    (derived-mode-p 'calendar-mode)))
         (fit-window-to-buffer win)))))
-
-(define-obsolete-function-alias 'show-all-diary-entries
-  'diary-show-all-entries "22.1")
 
 ;;;###autoload
 (defun diary-mail-entries (&optional ndays)
