@@ -53,7 +53,7 @@
 (declare-function semantic-fetch-tags "semantic")
 (declare-function semantic-clear-toplevel-cache "semantic")
 
-(defconst semantic-tag-version "2.0pre7"
+(defconst semantic-tag-version "2.0"
   "Version string of semantic tags made with this code.")
 
 (defconst semantic-tag-incompatible-version "1.0"
@@ -221,6 +221,7 @@ See also the function `semantic-ctxt-current-mode'."
           ;; beginning of TAG.
           (or (and (>= (point) start) (< (point) end))
               (goto-char start))
+          (require 'semantic/ctxt)
           (semantic-ctxt-current-mode)))))
 
 (defsubst semantic--tag-attributes-cdr (tag)
