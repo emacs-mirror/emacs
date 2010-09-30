@@ -280,6 +280,11 @@ from the document.")
      (t
       (nnheader-insert "211 %d %d %d %s\n" number 1 number group)))))
 
+(deffoo nndoc-retrieve-groups (groups &optional server)
+  (dolist (group groups)
+    (nndoc-request-group group server))
+  t)
+
 (deffoo nndoc-request-type (group &optional article)
   (cond ((not article) 'unknown)
 	(nndoc-post-type nndoc-post-type)

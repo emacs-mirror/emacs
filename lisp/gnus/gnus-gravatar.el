@@ -33,14 +33,13 @@
 (defcustom gnus-gravatar-size 32
   "How big should gravatars be displayed."
   :type 'integer
+  :version "24.1"
   :group 'gnus-gravatar)
 
-(defcustom gnus-gravatar-relief 1
-  "If non-nil, adds a shadow rectangle around the image. The
-value, relief, specifies the width of the shadow lines, in
-pixels. If relief is negative, shadows are drawn so that the
-image appears as a pressed button; otherwise, it appears as an
-unpressed button."
+(defcustom gnus-gravatar-properties '(:ascent center :relief 1)
+  "List of image properties applied to Gravatar images."
+  :type 'list
+  :version "24.1"
   :group 'gnus-gravatar)
 
 (defun gnus-gravatar-transform-address (header category)
@@ -88,7 +87,7 @@ Set image category to CATEGORY."
                   (point (point))
                   (gravatar (append
                              gravatar
-                             `(:ascent center :relief ,gnus-gravatar-relief))))
+                             gnus-gravatar-properties)))
               (gnus-put-image gravatar nil category)
               (put-text-property point (point) 'gnus-gravatar address)
               (gnus-add-wash-type category)

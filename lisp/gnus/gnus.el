@@ -1427,6 +1427,7 @@ no need to set this variable."
   :group 'gnus-message
   :type '(choice (const :tag "default" nil)
 		 string))
+(make-obsolete-variable 'gnus-local-domain nil "24.1")
 
 (defvar gnus-local-organization nil
   "String with a description of what organization (if any) the user belongs to.
@@ -4241,9 +4242,9 @@ Allow completion over sensible values."
 		  gnus-predefined-server-alist
 		  gnus-server-alist))
 	 (method
-	  (completing-read
-	   prompt servers
-	   nil t nil 'gnus-method-history)))
+	  (gnus-completing-read
+	   prompt (mapcar 'car servers)
+	   t nil 'gnus-method-history)))
     (cond
      ((equal method "")
       (setq method gnus-select-method))

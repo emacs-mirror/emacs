@@ -70,6 +70,9 @@ Values are `ssl', `network', `starttls' or `shell'.")
   "How mail is split.
 Uses the same syntax as nnmail-split-methods")
 
+(make-obsolete-variable 'nnimap-split-rule "see `nnimap-split-methods'"
+			"Gnus 5.13")
+
 (defvoo nnimap-authenticator nil
   "How nnimap authenticate itself to the server.
 Possible choices are nil (use default methods) or `anonymous'.")
@@ -342,15 +345,6 @@ textual parts.")
 	    (when (eq nnimap-stream 'starttls)
 	      (nnimap-command "STARTTLS")
 	      (starttls-negotiate (nnimap-process nnimap-object)))
-	    ;; If this is a STARTTLS-capable server, then sever the
-	    ;; connection and start a STARTTLS connection instead.
-	    (when (and (eq nnimap-stream 'network)
-		       (member "STARTTLS" (nnimap-capabilities nnimap-object)))
-	      (let ((nnimap-stream 'starttls))
-		(delete-process (nnimap-process nnimap-object))
-		(kill-buffer (current-buffer))
-		(return
-		 (nnimap-open-connection buffer))))
 	    (when nnimap-server-port
 	      (push (format "%s" nnimap-server-port) ports))
 	    (unless (equal connection-result "PREAUTH")
@@ -428,7 +422,12 @@ textual parts.")
 	    (nnimap-command "UID FETCH %d (BODYSTRUCTURE)" article)
 	    (goto-char (point-min))
 	    (when (re-search-forward "FETCH.*BODYSTRUCTURE" nil t)
-	      (setq structure (ignore-errors (read (current-buffer)))
+	      (setq structure (ignore-errors
+				(let ((start (point)))
+				  (forward-sexp 1)
+				  (downcase-region start (point))
+				  (goto-char (point))
+				  (read (current-buffer))))
 		    parts (nnimap-find-wanted-parts structure))))
 	  (when (if parts
 		    (nnimap-get-partial-article article parts structure)
@@ -509,8 +508,15 @@ textual parts.")
     t))
 
 (defun nnimap-insert-partial-structure (structure parts &optional subp)
-  (let ((type (car (last structure 4)))
-	(boundary (cadr (member "BOUNDARY" (car (last structure 3))))))
+  (let (type boundary)
+    (let ((bstruc structure))
+      (while (consp (car bstruc))
+	(pop bstruc))
+      (setq type (car bstruc))
+      (setq bstruc (car (cdr bstruc)))
+      (when (and (stringp (car bstruc))
+		 (string= (downcase (car bstruc)) "boundary"))
+	(setq boundary (cadr bstruc))))
     (when subp
       (insert (format "Content-type: multipart/%s; boundary=%S\n\n"
 		      (downcase type) boundary)))
@@ -768,6 +774,7 @@ textual parts.")
   (when (nnimap-possibly-change-group group server)
     (let (sequence)
       (with-current-buffer (nnimap-buffer)
+	(erase-buffer)
 	;; Just send all the STORE commands without waiting for
 	;; response.  If they're successful, they're successful.
 	(dolist (action actions)
@@ -789,6 +796,7 @@ textual parts.")
 (deffoo nnimap-request-accept-article (group &optional server last)
   (when (nnimap-possibly-change-group nil server)
     (nnmail-check-syntax)
+    (nnimap-add-cr)
     (let ((message (buffer-string))
 	  (message-id (message-field-value "message-id"))
 	  sequence)
@@ -1288,7 +1296,9 @@ textual parts.")
 (defun nnimap-split-incoming-mail ()
   (with-current-buffer (nnimap-buffer)
     (let ((nnimap-incoming-split-list nil)
-	  (nnmail-split-methods nnimap-split-methods)
+	  (nnmail-split-methods (if (eq nnimap-split-methods 'default)
+				    nnmail-split-methods
+				  nnimap-split-methods))
 	  (nnmail-inhibit-default-split-group t)
 	  (groups (nnimap-get-groups))
 	  new-articles)
@@ -1339,6 +1349,7 @@ textual parts.")
 (defun nnimap-mark-and-expunge-incoming (range)
   (when range
     (setq range (nnimap-article-ranges range))
+    (erase-buffer)
     (let ((sequence
 	   (nnimap-send-command
 	    "UID STORE %s +FLAGS.SILENT (\\Deleted)" range)))

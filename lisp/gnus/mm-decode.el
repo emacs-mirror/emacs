@@ -1323,11 +1323,11 @@ Use CMD as the process."
   "Display HANDLE using METHOD."
   (let* ((type (mm-handle-media-type handle))
 	 (methods
-	  (mapcar (lambda (i) (list (cdr (assoc 'viewer i))))
+	  (mapcar (lambda (i) (cdr (assoc 'viewer i)))
 		  (mailcap-mime-info type 'all)))
 	 (method (let ((minibuffer-local-completion-map
 			mm-viewer-completion-map))
-		   (completing-read "Viewer: " methods))))
+		   (gnus-completing-read "Viewer" methods))))
     (when (string= method "")
       (error "No method given"))
     (if (string-match "^[^% \t]+$" method)

@@ -7999,10 +7999,9 @@ If FORCE, go to the article even if it isn't displayed.  If FORCE
 is a number, it is the line the article is to be displayed on."
   (interactive
    (list
-    (completing-read
-     "Article number or Message-ID: "
-     (mapcar (lambda (number) (list (int-to-string number)))
-	     gnus-newsgroup-limit))
+    (gnus-completing-read
+     "Article number or Message-ID"
+     (mapcar 'int-to-string gnus-newsgroup-limit))
     current-prefix-arg
     t))
   (prog1
@@ -8256,16 +8255,13 @@ articles that are younger than AGE days."
   (interactive
    (let ((header
 	  (intern
-	   (gnus-completing-read-with-default
-	    (symbol-name (car gnus-extra-headers))
+	   (gnus-completing-read
 	    (if current-prefix-arg
 		"Exclude extra header"
 	      "Limit extra header")
-	    (mapcar (lambda (x)
-		      (cons (symbol-name x) x))
-		    gnus-extra-headers)
-	    nil
-	    t))))
+	    (mapcar 'symbol-name gnus-extra-headers)
+	    t nil nil
+            (symbol-name (car gnus-extra-headers))))))
      (list header
 	   (read-string (format "%s header %s (regexp): "
 				(if current-prefix-arg "Exclude" "Limit to")
@@ -9234,14 +9230,14 @@ If HEADER is an empty string (or nil), the match is done on the entire
 article.  If BACKWARD (the prefix) is non-nil, search backward instead."
   (interactive
    (list (let ((completion-ignore-case t))
-	   (completing-read
-	    "Header name: "
-	    (mapcar (lambda (header) (list (format "%s" header)))
+	   (gnus-completing-read
+	    "Header name"
+	    (mapcar 'symbol-name
 		    (append
-		     '("Number" "Subject" "From" "Lines" "Date"
-		       "Message-ID" "Xref" "References" "Body")
+		     '(Number Subject From Lines Date
+		       Message-ID Xref References Body)
 		     gnus-extra-headers))
-	    nil 'require-match))
+	    'require-match))
 	 (read-string "Regexp: ")
 	 (read-key-sequence "Command: ")
 	 current-prefix-arg))
@@ -9937,9 +9933,9 @@ latter case, they will be copied into the relevant groups."
 				  (car (gnus-find-method-for-group
 					gnus-newsgroup-name)))))
 		(method
-		 (gnus-completing-read-with-default
-		  methname "Backend to use when respooling"
-		  methods nil t nil 'gnus-mail-method-history))
+		 (gnus-completing-read
+		  "Backend to use when respooling"
+		  methods t nil 'gnus-mail-method-history methname))
 		ms)
 	   (cond
 	    ((zerop (length (setq ms (gnus-servers-using-backend
@@ -9949,7 +9945,7 @@ latter case, they will be copied into the relevant groups."
 	     (car ms))
 	    (t
 	     (let ((ms-alist (mapcar (lambda (m) (cons (cadr m) m)) ms)))
-	       (cdr (assoc (completing-read "Server name: " ms-alist nil t)
+	       (cdr (assoc (gnus-completing-read "Server name" ms-alist t)
 			   ms-alist))))))))
   (unless method
     (error "No method given for respooling"))
@@ -11904,7 +11900,8 @@ save those articles instead."
     (nreverse split-name)))
 
 (defun gnus-valid-move-group-p (group)
-  (and (boundp group)
+  (and (symbolp group)
+       (boundp group)
        (symbol-name group)
        (symbol-value group)
        (gnus-get-function (gnus-find-method-for-group
@@ -11921,29 +11918,20 @@ save those articles instead."
 		      (format "these %d articles" (length articles))
 		    "this article")))
 	 (to-newsgroup
-	  (let (active group)
-	    (when (or (null split-name) (= 1 (length split-name)))
-	      (setq active (gnus-make-hashtable (length gnus-active-hashtb)))
-	      (mapatoms (lambda (symbol)
-			  (setq group (symbol-name symbol))
-			  (when (string-match "[^\000-\177]" group)
-			    (setq group (gnus-group-decoded-name group)))
-			  (set (intern group active) group))
-			gnus-active-hashtb))
-	    (cond
-	     ((null split-name)
-	      (gnus-completing-read-with-default
-	       default prom active 'gnus-valid-move-group-p nil prefix
-	       'gnus-group-history))
-	     ((= 1 (length split-name))
-	      (gnus-completing-read-with-default
-	       (car split-name) prom active 'gnus-valid-move-group-p nil nil
-	       'gnus-group-history))
-	     (t
-	      (gnus-completing-read-with-default
-	       nil prom (mapcar 'list (nreverse split-name)) nil nil nil
-	       'gnus-group-history)))))
-	 (to-method (gnus-server-to-method (gnus-group-method to-newsgroup)))
+          (cond
+           ((null split-name)
+            (gnus-group-completing-read
+             prom
+             (remove-if-not 'gnus-valid-move-group-p gnus-active-hashtb)
+             nil prefix nil default))
+           ((= 1 (length split-name))
+            (gnus-group-completing-read
+             prom (remove-if-not 'gnus-valid-move-group-p gnus-active-hashtb)
+             nil prefix 'gnus-group-history (car split-name)))
+           (t
+            (gnus-completing-read
+             prom (nreverse split-name) nil nil 'gnus-group-history))))
+         (to-method (gnus-server-to-method (gnus-group-method to-newsgroup)))
 	 encoded)
     (when to-newsgroup
       (if (or (string= to-newsgroup "")

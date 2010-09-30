@@ -1588,7 +1588,7 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
   (let ((sym (car parmspec))
         (prompt (cdr parmspec)))
     (if (listp prompt)
-	(let* ((result (apply 'completing-read prompt))
+	(let* ((result (gnus-completing-read prompt nil))
 	       (mapping (or (assoc result nnir-imap-search-arguments)
 			    (assoc nil nnir-imap-search-arguments))))
 	  (cons sym (format (cdr mapping) result)))

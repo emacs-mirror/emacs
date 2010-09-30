@@ -5131,11 +5131,10 @@ available media-types."
   (unless mime-type
     (setq mime-type
 	  (let ((default (gnus-mime-view-part-as-type-internal)))
-	    (completing-read
-	     (format "View as MIME type (default %s): "
-		     (car default))
-	     (mapcar #'list (mailcap-mime-types))
-	     pred nil nil nil
+	    (gnus-completing-read
+	     "View as MIME type"
+	     (remove-if-not pred (mailcap-mime-types))
+	     nil nil nil
 	     (car default)))))
   (gnus-article-check-buffer)
   (let ((handle (get-text-property (point) 'gnus-data)))
@@ -5404,7 +5403,7 @@ If no internal viewer is available, use an external viewer."
 (defun gnus-mime-action-on-part (&optional action)
   "Do something with the MIME attachment at \(point\)."
   (interactive
-   (list (completing-read "Action: " gnus-mime-action-alist nil t)))
+   (list (gnus-completing-read "Action" (mapcar 'car gnus-mime-action-alist) t)))
   (gnus-article-check-buffer)
   (let ((action-pair (assoc action gnus-mime-action-alist)))
     (if action-pair
@@ -8370,9 +8369,9 @@ For example:
   (interactive
    (list
     (or gnus-article-encrypt-protocol
-	(completing-read "Encrypt protocol: "
-			 gnus-article-encrypt-protocol-alist
-			 nil t))
+	(gnus-completing-read "Encrypt protocol"
+                              (mapcar 'car gnus-article-encrypt-protocol-alist)
+                              t))
     current-prefix-arg))
   ;; User might hit `K E' instead of `K e', so prompt once.
   (when (and gnus-article-encrypt-protocol

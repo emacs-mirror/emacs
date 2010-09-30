@@ -68,11 +68,11 @@
       . ,(lambda (prompt)
 	   "Return a charset."
 	   (intern
-	    (completing-read
+	    (gnus-completing-read
 	     prompt
-	     (mapcar (lambda (e) (list (symbol-name (car e))))
+	     (mapcar (lambda (e) (symbol-name (car e)))
 		     mm-mime-mule-charset-alist)
-	     nil t))))
+	     t))))
      ;; `subst-char-in-string' is not available in XEmacs 21.4.
      (subst-char-in-string
       . ,(lambda (from to string &optional inplace)
@@ -281,8 +281,8 @@ to the contents of the accessible portion of the buffer."
 	'read-coding-system))
      (t (lambda (prompt &optional default-coding-system)
 	  "Prompt the user for a coding system."
-	  (completing-read
-	   prompt (mapcar (lambda (s) (list (symbol-name (car s))))
+	  (gnus-completing-read
+	   prompt (mapcar (lambda (s) (symbol-name (car s)))
 			  mm-mime-mule-charset-alist)))))))
 
 (defvar mm-coding-system-list nil)
@@ -316,8 +316,8 @@ the alias.  Else windows-NUMBER is used."
 			 (cp-supported-codepages)
 		       ;; Removed in Emacs 23 (unicode), so signal an error:
 		       (error "`codepage-setup' not present in this Emacs version"))))
-     (list (completing-read "Setup DOS Codepage: (default 437) " candidates
-			    nil t nil nil "437"))))
+     (list (gnus-completing-read "Setup DOS Codepage" candidates
+                                 t nil nil "437"))))
   (when alias
     (setq alias (if (stringp alias)
 		    (intern alias)

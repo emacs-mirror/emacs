@@ -44,6 +44,32 @@
     (defmacro with-no-warnings (&rest body)
       `(progn ,@body))))
 
+(defcustom gnus-completing-read-function
+  #'gnus-std-completing-read
+  "Function to do a completing read."
+  :group 'gnus-meta
+  :type '(radio (function-item
+                 :doc "Use Emacs' standard `completing-read' function."
+                 gnus-std-completing-read)
+                (function-item :doc "Use iswitchb's completing-read function."
+                               gnus-icompleting-read)
+                (function-item :doc "Use ido's completing-read function."
+                               gnus-ido-completing-read)
+                (function)))
+
+(defcustom gnus-completion-styles
+  (if (and (boundp 'completion-styles-alist)
+           (boundp 'completion-styles))
+      (append (when (and (assq 'substring completion-styles-alist)
+                         (not (memq 'substring completion-styles)))
+                (list 'substring))
+              completion-styles)
+    nil)
+  "Value of `completion-styles' to use when completing."
+  :version "24.1"
+  :group 'gnus-meta
+  :type 'list)
+
 ;; Fixme: this should be a gnus variable, not nnmail-.
 (defvar nnmail-pathname-coding-system)
 (defvar nnmail-active-file-coding-system)
@@ -343,16 +369,6 @@ TIME defaults to the current time."
 	      (eq (lookup-key keymap key) 'undefined))
 	  (define-key keymap key (pop plist))
 	(pop plist)))))
-
-(defun gnus-completing-read-with-default (default prompt &rest args)
-  ;; Like `completing-read', except that DEFAULT is the default argument.
-  (let* ((prompt (if default
-		     (concat prompt " (default " default "): ")
-		   (concat prompt ": ")))
-	 (answer (apply 'completing-read prompt args)))
-    (if (or (null answer) (zerop (length answer)))
-	default
-      answer)))
 
 ;; Two silly functions to ensure that all `y-or-n-p' questions clear
 ;; the echo area.
@@ -1574,21 +1590,50 @@ SPEC is a predicate specifier that contains stuff like `or', `and',
 	`(,(car spec) ,@(mapcar 'gnus-make-predicate-1 (cdr spec)))
       (error "Invalid predicate specifier: %s" spec)))))
 
-(defun gnus-completing-read (prompt table &optional predicate require-match
-				    history)
-  (when (and history
-	     (not (boundp history)))
-    (set history nil))
-  (completing-read
-   (if (symbol-value history)
-       (concat prompt " (" (car (symbol-value history)) "): ")
-     (concat prompt ": "))
-   table
-   predicate
-   require-match
-   nil
-   history
-   (car (symbol-value history))))
+(defun gnus-std-completing-read (prompt collection &optional require-match
+                                        initial-input history def)
+  (completing-read prompt collection nil require-match
+                   initial-input history def))
+
+(defun gnus-icompleting-read (prompt collection &optional require-match
+                                     initial-input history def)
+  (require 'iswitchb)
+  (let ((iswitchb-make-buflist-hook
+         (lambda ()
+           (setq iswitchb-temp-buflist
+                 (let ((choices (append (list)
+                                        (when initial-input (list initial-input))
+                                        (symbol-value history) collection))
+                       filtered-choices)
+                   (while choices
+                     (when (and (car choices) (not (member (car choices) filtered-choices)))
+                       (setq filtered-choices (cons (car choices) filtered-choices)))
+                     (setq choices (cdr choices)))
+                   (nreverse filtered-choices))))))
+    (unwind-protect
+        (progn
+          (when (not iswitchb-mode)
+            (add-hook 'minibuffer-setup-hook 'iswitchb-minibuffer-setup))
+          (iswitchb-read-buffer prompt def require-match))
+      (when (not iswitchb-mode)
+        (remove-hook 'minibuffer-setup-hook 'iswitchb-minibuffer-setup)))))
+
+(defun gnus-ido-completing-read (prompt collection &optional require-match
+                                        initial-input history def)
+  (require 'ido)
+  (ido-completing-read prompt collection nil require-match
+                       initial-input history def))
+
+(defun gnus-completing-read (prompt collection &optional require-match
+                                    initial-input history def)
+  "Do a completing read with the configured `gnus-completing-read-function'."
+  (let ((completion-styles gnus-completion-styles))
+    (funcall
+     gnus-completing-read-function
+     (concat prompt (when def
+                      (concat " (default " def ")"))
+             ": ")
+     collection require-match initial-input history def)))
 
 (defun gnus-graphic-display-p ()
   (if (featurep 'xemacs)

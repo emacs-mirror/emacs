@@ -1048,9 +1048,9 @@ whether they are `offsite' or `onsite'."
 				    (cdr (assoc "feedid" listinfo)))))
 			   feedinfo)))
 	      (cdr (assoc
-		    (completing-read
-		     "Multiple feeds found.  Select one: "
-		     selection nil t) urllist)))))))))
+		    (gnus-completing-read
+		     "Multiple feeds found. Select one"
+		     selection t) urllist)))))))))
 
 (defun nnrss-rss-p (data)
   "Test if DATA is an RSS feed.

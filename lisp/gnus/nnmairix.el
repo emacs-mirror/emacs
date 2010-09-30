@@ -848,8 +848,8 @@ called interactively, user will be asked for parameters."
 All necessary information will be queried from the user."
   (interactive)
   (let* ((name (read-string "Name of the mairix server: "))
-	(server (completing-read "Back end server (TAB for completion): "
-				 (nnmairix-get-valid-servers) nil 1))
+	(server (gnus-completing-read "Back end server"
+				 (nnmairix-get-valid-servers) t))
 	(mairix (read-string "Command to call mairix: " "mairix"))
 	(defaultgroup (read-string "Default search group: "))
 	(backend (symbol-name (car (gnus-server-to-method server))))
@@ -1165,7 +1165,7 @@ nnmairix server. Only marks from current session will be set."
 If SKIPDEFAULT is t, the default search group will not be
 updated.
 If UPDATEDB is t, database for SERVERNAME will be updated first."
-  (interactive (list (completing-read "Update groups on server: "
+  (interactive (list (gnus-completing-read "Update groups on server"
 				(nnmairix-get-nnmairix-servers))))
   (save-excursion
     (when (string-match ".*:\\(.*\\)" servername)
@@ -1302,7 +1302,7 @@ Otherwise, ask user for server."
 	  (while
 	      (equal '("")
 		  (setq nnmairix-last-server
-			(list (completing-read "Server: " openedserver nil 1
+			(list (gnus-completing-read "Server" openedserver t
 					       (or nnmairix-last-server
 						   "nnmairix:"))))))
 	  nnmairix-last-server)
@@ -1492,10 +1492,10 @@ group."
 	  (when (not found)
 	    (setq mairixserver
 		  (gnus-server-to-method
-		   (completing-read
-		    (format "Cannot determine which nnmairix server indexes %s. Please specify: "
+		   (gnus-completing-read
+		    (format "Cannot determine which nnmairix server indexes %s. Please specify"
 			    (gnus-method-to-server server))
-		    (nnmairix-get-nnmairix-servers) nil nil "nnmairix:")))
+		    (nnmairix-get-nnmairix-servers) nil "nnmairix:")))
 	    ;; Save result in parameter of default search group so that
 	    ;; we don't have to ask again
 	    (setq defaultgroup (gnus-group-prefixed-name
@@ -1643,9 +1643,9 @@ search in raw mode."
 	      (gnus-registry-add-group mid cur)))))
       (if (> (length allgroups) 1)
 	  (setq group
-		(completing-read
-		 "Message exists in more than one group. Choose: "
-		 allgroups nil t))
+		(gnus-completing-read
+		 "Message exists in more than one group. Choose"
+		 allgroups t))
 	(setq group (car allgroups))))
     (if group
 	;; show article in summary buffer
@@ -1748,9 +1748,9 @@ SERVER."
 	     (gnus-group-prefixed-name group (car cur))
 	     allgroups))))
       (if (> (length allgroups) 1)
-	  (setq group (completing-read
-		       "Group %s exists on more than one IMAP server. Choose: "
-		       allgroups nil t))
+	  (setq group (gnus-completing-read
+		       "Group %s exists on more than one IMAP server. Choose"
+		       allgroups t))
 	(setq group (car allgroups))))
     group))
 

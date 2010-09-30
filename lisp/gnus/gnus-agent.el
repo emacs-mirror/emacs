@@ -459,10 +459,7 @@ manipulated as follows:
   (let ((def (or (gnus-group-group-name) gnus-newsgroup-name)))
     (when def
       (setq def (gnus-group-decoded-name def)))
-    (gnus-group-completing-read (if def
-				    (concat "Group Name (" def "): ")
-				  "Group Name: ")
-				nil nil t nil nil def)))
+    (gnus-group-completing-read nil nil t nil nil def)))
 
 ;;; Fetching setup functions.
 
@@ -816,9 +813,9 @@ be a select method."
   (interactive
    (list
     (intern
-     (completing-read
-      "Add to category: "
-      (mapcar (lambda (cat) (list (symbol-name (car cat))))
+     (gnus-completing-read
+      "Add to category"
+      (mapcar (lambda (cat) (symbol-name (car cat)))
 	      gnus-category-alist)
       nil t))
     current-prefix-arg))

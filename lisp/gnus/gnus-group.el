@@ -2164,44 +2164,35 @@ be permanent."
 		group)))
 	(goto-char start)))))
 
-(defun gnus-group-completing-read (prompt &optional collection predicate
-					  require-match initial-input hist def
-					  &rest args)
+(defun gnus-group-completing-read (&optional prompt collection
+                                             require-match initial-input hist def)
   "Read a group name with completion.  Non-ASCII group names are allowed.
 The arguments are the same as `completing-read' except that COLLECTION
 and HIST default to `gnus-active-hashtb' and `gnus-group-history'
 respectively if they are omitted."
-  (let ((completion-styles (and (boundp 'completion-styles)
-				completion-styles))
-	group)
-    (push 'substring completion-styles)
-    (mapatoms (lambda (symbol)
-		(setq group (symbol-name symbol))
-		(set (intern (if (string-match "[^\000-\177]" group)
-				 (gnus-group-decoded-name group)
-			       group)
-			     collection)
-		     group))
-	      (prog1
-		  (or collection
-		      (setq collection (or gnus-active-hashtb [0])))
-		(setq collection (gnus-make-hashtable (length collection)))))
-    (setq group (apply 'completing-read prompt collection predicate
-		       require-match initial-input
-		       (or hist 'gnus-group-history)
-		       def args))
-    (or (prog1
-	    (symbol-value (intern-soft group collection))
-	  (setq collection nil))
-	(mm-encode-coding-string group (gnus-group-name-charset nil group)))))
+  (let* ((choices (mapcar (lambda (symbol)
+                            (let ((group (symbol-name symbol)))
+                              (if (string-match "[^\000-\177]" group)
+                                  (gnus-group-decoded-name group)
+                                group)))
+                          (remove-if-not
+                           'symbolp
+                           (or collection (or gnus-active-hashtb [0])))))
+         (group
+          (gnus-completing-read (or prompt "Group") choices
+                                require-match initial-input
+                                (or hist 'gnus-group-history)
+                                def)))
+    (or (symbol-value (intern-soft group collection))
+        (mm-encode-coding-string group (gnus-group-name-charset nil group)))))
 
 ;;;###autoload
 (defun gnus-fetch-group (group &optional articles)
   "Start Gnus if necessary and enter GROUP.
 If ARTICLES, display those articles.
 Returns whether the fetching was successful or not."
-  (interactive (list (gnus-group-completing-read "Group name: "
-						 nil nil nil
+  (interactive (list (gnus-group-completing-read nil
+						 nil nil
 						 (gnus-group-name-at-point))))
   (unless (gnus-alive-p)
     (gnus-no-server))
@@ -2261,7 +2252,7 @@ Return the name of the group if selection was successful."
   (interactive
    (list
     ;; (gnus-read-group "Group name: ")
-    (gnus-group-completing-read "Group: ")
+    (gnus-group-completing-read)
     (gnus-read-method "From method: ")))
   ;; Transform the select method into a unique server.
   (when (stringp method)
@@ -2328,7 +2319,7 @@ specified by `gnus-gmane-group-download-format'."
   ;; See <http://gmane.org/export.php> for more information.
   (interactive
    (list
-    (gnus-group-completing-read "Gmane group: ")
+    (gnus-group-completing-read "Gmane group")
     (read-number "Start article number: ")
     (read-number "How many articles: ")))
   (unless range (setq range 500))
@@ -2362,7 +2353,7 @@ Valid input formats include:
   ;;   prompt the user to decide: "View via `browse-url' or in Gnus? "
   ;;   (`gnus-read-ephemeral-gmane-group-url')
   (interactive
-   (list (gnus-group-completing-read "Gmane URL: ")))
+   (list (gnus-group-completing-read "Gmane URL")))
   (let (group start range)
     (cond
      ;; URLs providing `group', `start' and `range':
@@ -2456,13 +2447,13 @@ If PROMPT (the prefix) is a number, use the prompt specified in
 `gnus-group-jump-to-group-prompt'."
   (interactive
    (list (gnus-group-completing-read
-	  "Group: " nil nil (gnus-read-active-file-p)
-	  (if current-prefix-arg
-	      (cdr (assq current-prefix-arg gnus-group-jump-to-group-prompt))
-	    (or (and (stringp gnus-group-jump-to-group-prompt)
-		     gnus-group-jump-to-group-prompt)
-		(let ((p (cdr (assq 0 gnus-group-jump-to-group-prompt))))
-		  (and (stringp p) p)))))))
+          nil nil (gnus-read-active-file-p)
+          (if current-prefix-arg
+              (cdr (assq current-prefix-arg gnus-group-jump-to-group-prompt))
+            (or (and (stringp gnus-group-jump-to-group-prompt)
+                     gnus-group-jump-to-group-prompt)
+                (let ((p (cdr (assq 0 gnus-group-jump-to-group-prompt))))
+                  (and (stringp p) p)))))))
 
   (when (equal group "")
     (error "Empty group name"))
@@ -2653,7 +2644,7 @@ If EXCLUDE-GROUP, do not go to that group."
 (defun gnus-group-make-group-simple (&optional group)
   "Add a new newsgroup.
 The user will be prompted for GROUP."
-  (interactive (list (gnus-group-completing-read "Group: ")))
+  (interactive (list (gnus-group-completing-read)))
   (gnus-group-make-group (gnus-group-real-name group)
 			 (gnus-group-server group)
 			 nil nil t))
@@ -2912,8 +2903,9 @@ and NEW-NAME will be prompted for."
 (defun gnus-group-make-useful-group (group method)
   "Create one of the groups described in `gnus-useful-groups'."
   (interactive
-   (let ((entry (assoc (completing-read "Create group: " gnus-useful-groups
-					nil t)
+   (let ((entry (assoc (gnus-completing-read "Create group"
+                                             (mapcar 'car gnus-useful-groups)
+                                             t)
 		       gnus-useful-groups)))
      (list (cadr entry)
 	   ;; Don't use `caddr' here since macros within the `interactive'
@@ -3005,11 +2997,11 @@ If SOLID (the prefix), create a solid group."
 			   (symbol-name (caar nnweb-type-definition))))
 	 (type
 	  (gnus-string-or
-	   (completing-read
-	    (format "Search engine type (default %s): " default-type)
-	    (mapcar (lambda (elem) (list (symbol-name (car elem))))
+	   (gnus-completing-read
+	    "Search engine type"
+	    (mapcar (lambda (elem) (symbol-name (car elem)))
 		    nnweb-type-definition)
-	    nil t nil 'gnus-group-web-type-history)
+	    t nil 'gnus-group-web-type-history)
 	   default-type))
 	 (search
 	  (read-string
@@ -3100,8 +3092,8 @@ mail messages or news articles in files that have numeric names."
   "Add the current group to a virtual group."
   (interactive
    (list current-prefix-arg
-	 (completing-read "Add to virtual group: " gnus-newsrc-hashtb nil t
-			  "nnvirtual:")))
+	 (gnus-group-completing-read "Add to virtual group"
+                                     nil t "nnvirtual:")))
   (unless (eq (car (gnus-find-method-for-group vgroup)) 'nnvirtual)
     (error "%s is not an nnvirtual group" vgroup))
   (gnus-close-group vgroup)
@@ -3672,7 +3664,7 @@ If given numerical prefix, toggle the N next groups."
 Killed newsgroups are subscribed.  If SILENT, don't try to update the
 group line."
   (interactive (list (gnus-group-completing-read
-		      "Group: " nil nil (gnus-read-active-file-p))))
+		      nil (gnus-read-active-file-p))))
   (let ((newsrc (gnus-group-entry group)))
     (cond
      ((string-match "^[ \t]*$" group)
@@ -4013,7 +4005,7 @@ If DONT-SCAN is non-nil, scan non-activated groups as well."
 If given a prefix argument, prompt for a group."
   (interactive
    (list (or (when current-prefix-arg
-	       (gnus-group-completing-read "Group: "))
+	       (gnus-group-completing-read))
 	     (gnus-group-group-name)
 	     gnus-newsgroup-name)))
   (unless group
@@ -4314,18 +4306,18 @@ If called interactively, this function will ask for a select method
 If not, METHOD should be a list where the first element is the method
 and the second element is the address."
   (interactive
-   (list (let ((how (completing-read
-		     "Which back end: "
-		     (append gnus-valid-select-methods gnus-server-alist)
-		     nil t (cons "nntp" 0) 'gnus-method-history)))
+   (list (let ((how (gnus-completing-read
+		     "Which back end"
+		     (mapcar 'car (append gnus-valid-select-methods gnus-server-alist))
+		     t (cons "nntp" 0) 'gnus-method-history)))
 	   ;; We either got a back end name or a virtual server name.
 	   ;; If the first, we also need an address.
 	   (if (assoc how gnus-valid-select-methods)
 	       (list (intern how)
 		     ;; Suggested by mapjph@bath.ac.uk.
-		     (completing-read
-		      "Address: "
-		      (mapcar 'list gnus-secondary-servers)))
+		     (gnus-completing-read
+		      "Address"
+		      gnus-secondary-servers))
 	     ;; We got a server name.
 	     how))))
   (gnus-browse-foreign-server method))

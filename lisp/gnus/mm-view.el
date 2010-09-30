@@ -31,6 +31,7 @@
 (require 'mm-decode)
 (require 'smime)
 
+(autoload 'gnus-completing-read "gnus-util")
 (autoload 'gnus-article-prepare-display "gnus-art")
 (autoload 'vcard-parse-string "vcard")
 (autoload 'vcard-format-string "vcard")
@@ -676,11 +677,9 @@
    (if (= (length smime-keys) 1)
        (cadar smime-keys)
      (smime-get-key-by-email
-      (completing-read
-       (concat "Decipher using key"
-	       (if smime-keys (concat "(default " (caar smime-keys) "): ")
-		 ": "))
-       smime-keys nil nil nil nil (car-safe (car-safe smime-keys))))))
+      (gnus-completing-read
+       "Decipher using key"
+       smime-keys nil nil nil (car-safe (car-safe smime-keys))))))
   (goto-char (point-min))
   (while (search-forward "\r\n" nil t)
     (replace-match "\n"))

@@ -40,6 +40,7 @@
 (autoload 'message-make-message-id "message")
 (declare-function gnus-setup-posting-charset "gnus-msg" (group))
 (autoload 'gnus-make-local-hook "gnus-util")
+(autoload 'gnus-completing-read "gnus-util")
 (autoload 'message-fetch-field "message")
 (autoload 'message-mark-active-p "message")
 (autoload 'message-info "message")
@@ -1188,9 +1189,10 @@ If not set, `default-directory' will be used."
 		      ;; looks like, and offer text/plain if it looks
 		      ;; like text/plain.
 		      "application/octet-stream"))
-	 (string (completing-read
-		  (format "Content type (default %s): " default)
-		  (mapcar 'list (mailcap-mime-types)))))
+	 (string (gnus-completing-read
+		  "Content type"
+		  (mailcap-mime-types)
+                  nil nil nil default)))
     (if (not (equal string ""))
 	string
       default)))
@@ -1204,10 +1206,10 @@ If not set, `default-directory' will be used."
 (defun mml-minibuffer-read-disposition (type &optional default filename)
   (unless default
     (setq default (mml-content-disposition type filename)))
-  (let ((disposition (completing-read
-		      (format "Disposition (default %s): " default)
-		      '(("attachment") ("inline") (""))
-		      nil t nil nil default)))
+  (let ((disposition (gnus-completing-read
+		      "Disposition"
+		      '("attachment" "inline")
+		      t nil nil default)))
     (if (not (equal disposition ""))
 	disposition
       default)))
@@ -1395,11 +1397,11 @@ TYPE is the MIME type to use."
 
 (defun mml-insert-multipart (&optional type)
   (interactive (if (message-in-body-p)
-		   (list (completing-read "Multipart type (default mixed): "
-					  '(("mixed") ("alternative")
-					    ("digest") ("parallel")
-					    ("signed") ("encrypted"))
-					  nil nil "mixed"))
+		   (list (gnus-completing-read "Multipart type"
+                                               '("mixed" "alternative"
+                                                 "digest" "parallel"
+                                                 "signed" "encrypted")
+                                               nil "mixed"))
 		 (error "Use this command in the message body")))
   (or type
       (setq type "mixed"))
