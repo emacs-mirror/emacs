@@ -688,9 +688,6 @@ $(OLDXMENU): $(OLDXMENU_TARGET)
 	@echo "Please run the `configure' script again."
 	exit 1
 
-ecrt0.o: ecrt0.c $(config_h)
-	@$(MKDEPDIR)
-	$(CC) -c $(ALL_CFLAGS) ${srcdir}/ecrt0.c
 doc.o: buildobj.h
 
 

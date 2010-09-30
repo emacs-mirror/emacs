@@ -1,3 +1,7 @@
+2010-09-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in: ecrt0.c does not exist anymore, do not mention it.
+
 2010-09-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32console.c (vga_stdcolor_name): Remove unused function;
