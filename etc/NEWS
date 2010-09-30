@@ -259,6 +259,21 @@ You can get a comparable behavior with:
 
 ** mpc.el: Can use pseudo tags of the form tag1|tag2 as a union of two tags.
 
+** Calendar, Diary, and Appt
+
+---
+*** The obsolete (since Emacs 22.1) method of enabling the appt package
+by adding appt-make-list to diary-hook has been removed.  Use appt-activate.
+
+---
+*** Some appt variables (obsolete since Emacs 22.1) have been removed:
+appt-issue-message (use the function appt-activate)
+appt-visible/appt-msg-window (use the variable appt-display-format)
+
+---
+*** Some diary function aliases (obsolete since Emacs 22.1) have been removed:
+view-diary-entries, list-diary-entries, show-all-diary-entries
+
 ** Customize
 
 *** Customize buffers now contain a search field.
@@ -569,6 +584,7 @@ Emacs Lisp parse tree.
 
 FIXME: These should be front-ended by xml.el.
 
+** FIXME GnuTLS
 
 ** Isearch
 
