@@ -1,3 +1,7 @@
+2010-09-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xml.c (parse_string): Use const.
+
 2010-09-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* eval.c (Fbacktrace): Don't overwrite print-level on exit.  Also

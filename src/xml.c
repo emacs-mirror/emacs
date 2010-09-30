@@ -80,7 +80,7 @@ parse_string (Lisp_Object string, Lisp_Object base_url, int htmlp)
   xmlNode *node;
   Lisp_Object result = Qnil;
   int ibeg, iend;
-  char *burl = "";
+  const char *burl = "";
 
   LIBXML_TEST_VERSION;
 
