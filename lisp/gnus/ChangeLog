@@ -1,3 +1,54 @@
+2010-09-30  Julien Danjou  <julien@danjou.info>
+
+	* gnus-agent.el (gnus-agent-add-group): Fix call to
+	gnus-completing-read.
+
+2010-09-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nndoc.el (nndoc-retrieve-groups): New function.
+
+	* nnimap.el (nnimap-split-incoming-mail): If nnimap-split-methods is
+	`default', use nnmail-split-methods.
+	(nnimap-request-article): Downcase the NILs so that they are nil.
+
+	* gnus-sum.el (gnus-valid-move-group-p): Make sure that `group' is a
+	symbol.
+
+	* nnimap.el (nnimap-open-connection): Revert the auto-network->starttls
+	code, since if the user has requested network, that's what they ought
+	to get.
+	(nnimap-request-set-mark): Erase the buffer before issuing commands.
+	(nnimap-split-rule): Mark as obsolete.
+
+	* pop3.el (pop3-send-streaming-command, pop3-stream-length): New
+	variable.
+
+	* nnimap.el (nnimap-insert-partial-structure): Get the type from the
+	correct slot, too.
+
+2010-09-29  Julien Danjou  <julien@danjou.info>
+
+	* gnus.el (gnus-local-domain): Declare variable obsolete.
+
+	* gnus-util.el (gnus-icompleting-read): Require iswitchb. Fix history
+	computing.
+	(gnus-ido-completing-read): Require ido.
+
+2010-09-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-registry.el: Don't prompt on load, which makes it impossible to
+	build Gnus.
+
+	* nnimap.el (nnimap-insert-partial-structure): Be way more permissive
+	when interpreting the structures.
+	(nnimap-request-accept-article): Add \r\n to the lines to make this
+	work with Cyrus.
+
+	* nnregistry.el: Added.
+
+	* nndraft.el (nndraft-request-expire-articles): Use the group name
+	instead if "nndraft".  Fix found by Nils Ackermann.
+
 2010-09-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* nnmail.el (group, group-art-list, group-art):
@@ -12,6 +63,24 @@
 
 	* nnrss.el (nnrss-read-server-data, nnrss-read-group-data): Use `load'
 	rather than `insert-file-contents' and `eval-region'.
+
+2010-09-29  Julien Danjou  <julien@danjou.info>
+
+	* gnus-gravatar.el (gnus-gravatar-properties): Add this properties in
+	replacement of `gnus-gravatar-relief' to mimic
+	`gnus-faces-properties-alist'.
+	Add :version property.
+
+2010-09-28  Florian Ragwitz  <rafl@debian.org>
+
+	* gnus-util.el (gnus-use-ido): Removed.
+	(gnus-std-completing-read): Add wrapper around completing-read.
+	(gnus-icompleting-read): Add wrapper around ibuffer-read-buffer.
+	(gnus-ido-completing-read): Add wrapper around ido-completing-read.
+	(gnus-completing-read-function): Add to chose from the above completion
+	functions or to provide a custom one.
+	(gnus-completing-read): Use the completing-read function configured
+	with gnus-completing-read-function.
 
 2010-09-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -31,6 +100,82 @@
 
 	* gnus-gravatar.el (gnus-gravatar-insert): Search backward for
 	real-name, and then for mail address rather than doing : or , search.
+
+2010-09-27  Julien Danjou  <julien@danjou.info>
+
+	* gnus-srvr.el (gnus-server-add-server): Use gnus-completing-read.
+	(gnus-server-goto-server): Use gnus-completing-read.
+
+	* mm-view.el (mm-view-pkcs7-decrypt): Use gnus-completing-read.
+
+	* mm-util.el (defalias): Use gnus-completing-read.
+	(mm-codepage-setup): Use gnus-completing-read.
+
+	* smime.el (smime-sign-buffer): Use gnus-completing-read.
+	(smime-decrypt-buffer): Use gnus-completing-read.
+
+	* mml-smime.el (mml-smime-openssl-sign-query): Use gnus-completing-read.
+
+	* mml.el (mml-minibuffer-read-type): Use gnus-completing-read.
+	(mml-minibuffer-read-disposition): Use gnus-completing-read.
+	(mml-insert-multipart): Use gnus-completing-read.
+
+	* gnus-msg.el (gnus-summary-yank-message): Use gnus-completing-read.
+
+	* gnus-int.el (gnus-start-news-server): Use gnus-completing-read.
+
+	* mm-decode.el (mm-interactively-view-part): Use gnus-completing-read.
+
+	* gnus-dired.el (gnus-dired-attach): Use gnus-completing-read.
+
+	* gnus.el (gnus-read-method): Use gnus-completing-read.
+
+	* gnus-bookmark.el (gnus-bookmark-jump): Use gnus-completing-read.
+
+	* gnus-art.el (gnus-mime-view-part-as-type): Use gnus-completing-read.
+	(gnus-mime-action-on-part): Use gnus-completing-read.
+	(gnus-article-encrypt-body): Use gnus-completing-read.
+
+	* gnus-topic.el (gnus-topic-jump-to-topic): Use gnus-completing-read.
+	(gnus-topic-move-matching): Use gnus-completing-read.
+	(gnus-topic-copy-matching): Use gnus-completing-read.
+	(gnus-topic-sort-topics): Use gnus-completing-read.
+	(gnus-topic-move): Use gnus-completing-read.
+
+	* gnus-agent.el (gnus-agent-read-group): Remove prompt computing.
+	(gnus-agent-add-group): Use gnus-completing-read.
+
+	* nnmairix.el (nnmairix-create-server-and-default-group): Use
+	gnus-completing-read.
+	(nnmairix-update-groups): Use gnus-completing-read.
+	(nnmairix-get-server): Use gnus-completing-read.
+	(nnmairix-backend-to-server): Use gnus-completing-read.
+	(nnmairix-goto-original-article): Use gnus-completing-read.
+	(nnmairix-get-group-from-file-path): Use gnus-completing-read.
+
+	* nnrss.el (nnrss-find-rss-via-syndic8): Use gnus-completing-read.
+
+	* gnus-group.el (gnus-group-completing-read): Use gnus-completing-read.
+	(gnus-group-make-useful-group): Use gnus-completing-read.
+	(gnus-group-make-web-group): Use gnus-completing-read.
+	(gnus-group-add-to-virtual): Use gnus-completing-read.
+	(gnus-group-browse-foreign-server): Use gnus-completing-read.
+
+	* gnus-sum.el (gnus-summary-goto-article): Use gnus-completing-read.
+	(gnus-summary-limit-to-extra): Use gnus-completing-read.
+	(gnus-summary-execute-command): Use gnus-completing-read.
+	(gnus-summary-respool-article): Use gnus-completing-read.
+	(gnus-read-move-group-name): Use gnus-completing-read.
+
+	* gnus-score.el (gnus-summary-increase-score): Use gnus-completing-read.
+	(gnus-summary-score-effect): Use gnus-completing-read.
+
+	* gnus-registry.el (gnus-registry-read-mark): Use gnus-completing-read.
+
+	* gnus-util.el (gnus-completing-read): Use gnus-use-ido to apply the
+	right completing-read function.
+	(gnus-use-ido): New variable
+	(gnus-completing-read-with-default): Remove.
 
 2010-09-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 

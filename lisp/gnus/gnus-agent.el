@@ -817,7 +817,7 @@ be a select method."
       "Add to category"
       (mapcar (lambda (cat) (symbol-name (car cat)))
 	      gnus-category-alist)
-      nil t))
+      t))
     current-prefix-arg))
   (let ((cat (assq category gnus-category-alist))
 	c groups)
