@@ -6112,6 +6112,63 @@ coding_inherit_eol_type (coding_system, parent)
   return coding_system;
 }
 
+
+/* Check if text-conversion and eol-conversion of CODING_SYSTEM are
+   decided for writing to a process.  If not, complement them, and
+   return a new coding system.  */
+
+Lisp_Object
+complement_process_encoding_system (coding_system)
+     Lisp_Object coding_system;
+{
+  Lisp_Object spec, attrs, coding_type, eol_type;
+
+  if (NILP (coding_system))
+    coding_system = Qundecided;
+  spec = CODING_SYSTEM_SPEC (coding_system);
+  attrs = AREF (spec, 0);
+  coding_type = CODING_ATTR_TYPE (attrs);
+  eol_type = AREF (spec, 2);
+
+  if (EQ (coding_type, Qundecided))
+    {
+      /* We must decide the text-conversion part.  */
+      if (CONSP (Vdefault_process_coding_system))
+	{
+	  coding_system = XCDR (Vdefault_process_coding_system);
+	  if (! NILP (coding_system))
+	    {
+	      spec = CODING_SYSTEM_SPEC (coding_system);
+	      attrs = AREF (spec, 0);
+	      coding_type = CODING_ATTR_TYPE (attrs);
+	      eol_type = AREF (spec, 2);
+	    }
+	}
+      if (EQ (coding_type, Qundecided))
+	{
+	  coding_system = preferred_coding_system ();
+	  spec = CODING_SYSTEM_SPEC (coding_system);
+	  attrs = AREF (spec, 0);
+	  coding_type = CODING_ATTR_TYPE (attrs);
+	  eol_type = AREF (spec, 2);
+	}
+      if (EQ (coding_type, Qundecided))
+	{
+	  coding_system = Qraw_text;
+	  coding_type = Qraw_text;
+	  eol_type = Qnil;
+	}
+    }
+  if (NILP (eol_type) || VECTORP (eol_type))
+    {
+      /* We must decide the eol-conversion part.  */      
+      coding_system = coding_inherit_eol_type (coding_system, Qnil);
+    }
+
+  return coding_system;
+}
+
+
 /* Emacs has a mechanism to automatically detect a coding system if it
    is one of Emacs' internal format, ISO2022, SJIS, and BIG5.  But,
    it's impossible to distinguish some coding systems accurately

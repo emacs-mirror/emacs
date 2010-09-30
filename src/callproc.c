@@ -287,21 +287,16 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	if (!NILP (Vcoding_system_for_write))
 	  val = Vcoding_system_for_write;
 	else if (! must_encode)
-	  val = Qnil;
+	  val = Qraw_text;
 	else
 	  {
 	    args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof *args2);
 	    args2[0] = Qcall_process;
 	    for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
 	    coding_systems = Ffind_operation_coding_system (nargs + 1, args2);
-	    if (CONSP (coding_systems))
-	      val = XCDR (coding_systems);
-	    else if (CONSP (Vdefault_process_coding_system))
-	      val = XCDR (Vdefault_process_coding_system);
-	    else
-	      val = Qnil;
+	    val = CONSP (coding_systems) ? XCDR (coding_systems) : Qnil;
 	  }
-	val = coding_inherit_eol_type (val, Qnil);
+	val = complement_process_encoding_system (val);
 	setup_coding_system (Fcheck_coding_system (val), &argument_coding);
 	coding_attrs = CODING_ID_ATTRS (argument_coding.id);
 	if (NILP (CODING_ATTR_ASCII_COMPAT (coding_attrs)))
@@ -954,20 +949,16 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
   if (!NILP (Vcoding_system_for_write))
     val = Vcoding_system_for_write;
   else if (NILP (current_buffer->enable_multibyte_characters))
-    val = Qnil;
+    val = Qraw_text;
   else
     {
       args2 = (Lisp_Object *) alloca ((nargs + 1) * sizeof *args2);
       args2[0] = Qcall_process_region;
       for (i = 0; i < nargs; i++) args2[i + 1] = args[i];
       coding_systems = Ffind_operation_coding_system (nargs + 1, args2);
-      if (CONSP (coding_systems))
-	val = XCDR (coding_systems);
-      else if (CONSP (Vdefault_process_coding_system))
-	val = XCDR (Vdefault_process_coding_system);
-      else
-	val = Qnil;
+      val = CONSP (coding_systems) ? XCDR (coding_systems) : Qnil;
     }
+  val = complement_process_encoding_system (val);
 
   {
     int count1 = SPECPDL_INDEX ();
