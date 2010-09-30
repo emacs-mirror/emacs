@@ -1,3 +1,8 @@
+2010-09-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion--replace):
+	Better preserve markers (bug#7138).
+
 2010-09-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* server.el (server-process-filter): Doc fix.
@@ -10,8 +15,8 @@
 
 	* Makefile.in (ELCFILES): Update.
 
-	* emacs-lisp/byte-opt.el (byte-optimize-form-code-walker): Avoid
-	infinite recursion on erroneous lambda form.  (Bug#7114)
+	* emacs-lisp/byte-opt.el (byte-optimize-form-code-walker):
+	Avoid infinite recursion on erroneous lambda form.  (Bug#7114)
 
 2010-09-27  Kenichi Handa  <handa@m17n.org>
 
