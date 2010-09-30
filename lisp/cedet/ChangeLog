@@ -1,3 +1,9 @@
+2010-09-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* semantic/bovine/el.el:
+	* semantic/mru-bookmark.el (global-semantic-mru-bookmark-mode):
+	Fix require statements.
+
 2010-09-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* semantic/tag.el (semantic-tag-version): Bump to 2.0.
