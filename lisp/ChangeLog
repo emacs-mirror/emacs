@@ -1,3 +1,7 @@
+2010-09-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* vc/vc-hooks.el (vc-default-mode-line-string): Doc fix.
+
 2010-09-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* server.el (server-start): Don't write pid to the authentication file.

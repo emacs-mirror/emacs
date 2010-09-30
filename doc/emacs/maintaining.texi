@@ -362,10 +362,16 @@ change, and later use the @kbd{C-x v a} command to copy it to
 
 @node VC Mode Line
 @subsection Version Control and the Mode Line
+@cindex VC, mode line indicator
 
   When you visit a file that is under version control, Emacs indicates
-this on the mode line.  For example, @samp{RCS-1.3} says that RCS is
-used for that file, and the current version is 1.3.
+this on the mode line.  For example, @samp{RCS-1.3} says that the RCS
+back end is used for that file, and the current version of the file is
+1.3.
+
+  The first part of the VC mode-line indicator is the name of the back
+end: @samp{RCS}, @samp{CVS}, @samp{Bzr}, etc.  The back-end name is
+followed by a single character and the version of the file.
 
   The character between the back-end name and the revision ID
 indicates the version control status of the file.  @samp{-} means that
@@ -373,6 +379,12 @@ the work file is not locked (if locking is in use), or not modified (if
 locking is not in use).  @samp{:} indicates that the file is locked, or
 that it is modified.  If the file is locked by some other user (for
 instance, @samp{jim}), that is displayed as @samp{RCS:jim:1.3}.
+@samp{@@} means that the file was locally added, but not yet committed
+to the master repository.  @samp{!} indicates that the file contains
+conflicts as result of a recent merge operation (@pxref{Merging}), or
+that the file was removed from the version control.  Finally, @samp{?}
+means that the file is under version control, but is missing from the
+working tree.
 
   On a graphical display, you can move the mouse over this mode line
 indicator to pop up a ``tool-tip'', which displays a more verbose
