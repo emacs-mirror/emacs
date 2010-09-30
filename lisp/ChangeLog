@@ -1,3 +1,13 @@
+2010-09-30  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/appt.el (appt-issue-message, appt-visible, appt-msg-window):
+	Remove options, obsolete since 22.1.
+	(appt-display-format, appt-display-message): Remove
+	backwards-compatibility code.
+	(appt-check): No longer check appt-issue-message.
+	(appt-make-list): No longer autoload it.  Doc fix.  No longer
+	activate the package.
+
 2010-09-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/gnutls.el (starttls-negotiate): Loop a lot longer.
