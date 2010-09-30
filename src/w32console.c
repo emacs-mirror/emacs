@@ -585,28 +585,6 @@ w32_face_attributes (struct frame *f, int face_id)
   return char_attr;
 }
 
-
-
-/* Given a color index, return its standard name.  */
-Lisp_Object
-vga_stdcolor_name (int idx)
-{
-  /* Standard VGA colors, in the order of their standard numbering
-     in the default VGA palette.  */
-  static char *vga_colors[16] = {
-    "black", "blue", "green", "cyan", "red", "magenta", "brown",
-    "lightgray", "darkgray", "lightblue", "lightgreen", "lightcyan",
-    "lightred", "lightmagenta", "yellow", "white"
-  };
-
-  extern Lisp_Object Qunspecified;
-
-  if (idx >= 0 && idx < sizeof (vga_colors) / sizeof (vga_colors[0]))
-    return build_string (vga_colors[idx]);
-  else
-    return Qunspecified;	/* meaning the default */
-}
-
 void
 initialize_w32_display (struct terminal *term)
 {
