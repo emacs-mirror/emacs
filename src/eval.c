@@ -3441,8 +3441,10 @@ Output stream used is value of `standard-output'.  */)
   Lisp_Object tail;
   Lisp_Object tem;
   struct gcpro gcpro1;
+  Lisp_Object old_print_level = Vprint_level;
 
-  XSETFASTINT (Vprint_level, 3);
+  if (NILP (Vprint_level))
+    XSETFASTINT (Vprint_level, 8);
 
   tail = Qnil;
   GCPRO1 (tail);
@@ -3483,7 +3485,7 @@ Output stream used is value of `standard-output'.  */)
       backlist = backlist->next;
     }
 
-  Vprint_level = Qnil;
+  Vprint_level = old_print_level;
   UNGCPRO;
   return Qnil;
 }

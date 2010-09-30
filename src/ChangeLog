@@ -1,3 +1,9 @@
+2010-09-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* eval.c (Fbacktrace): Don't overwrite print-level on exit.  Also
+	only override Vprint_level if it isn't already bound, and increase
+	the level to 8 to produce more useful backtraces for bug reports.
+
 2010-09-30  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* Makefile.in: ecrt0.c does not exist anymore, do not mention it.
