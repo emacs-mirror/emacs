@@ -1,3 +1,9 @@
+2010-10-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (TAGS, frc, TAGS-LISP, ../nt/TAGS, tags)
+	(TAGS-gmake, TAGS-nmake, TAGS-LISP-gmake, TAGS-LISP-nmake)
+	(nt-TAGS-gmake, nt-TAGS-nmake): New targets.
+
 2010-09-30  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* xml.c (parse_string): Use const.

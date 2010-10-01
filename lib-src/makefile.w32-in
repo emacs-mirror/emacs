@@ -378,6 +378,12 @@ cleanall:	clean
 getopt.h:		getopt_.h
 			$(CP) $(ALL_DEPS) $@
 
+### TAGS ###
+
+tags: TAGS
+TAGS: $(BLD)/etags.exe *.c *.h
+	$(BLD)/etags.exe *.c *.h
+
 ### DEPENDENCIES ###
 
 EMACS_ROOT	= ..

@@ -417,3 +417,16 @@ maintainer-clean-other-dirs-gmake:
 
 realclean: cleanall
 	- $(DEL_TREE) ../bin
+
+TAGS: TAGS-$(MAKETYPE)
+
+frc:
+TAGS-gmake: frc
+	../lib-src/$(BLD)/etags $(CURDIR)/*.c
+	$(MAKE) $(MFLAGS) -C ../src TAGS TAGS-LISP
+	$(MAKE) $(MFLAGS) -C ../lib-src TAGS
+
+TAGS-nmake:
+	echo This target is not supported with NMake
+
+.PHONY: frc
