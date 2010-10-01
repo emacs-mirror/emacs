@@ -77,7 +77,8 @@ this variable to the list of fields to be ignored.")
 (defvar nnrss-group-alist '()
   "List of RSS addresses.")
 
-(defvar nnrss-use-local nil)
+(defvar nnrss-use-local nil
+  "If non-nil nnrss will read the feeds from local files in nnrss-directory.")
 
 (defvar nnrss-description-field 'X-Gnus-Description
   "Field name used for DESCRIPTION.

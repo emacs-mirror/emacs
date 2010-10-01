@@ -267,6 +267,11 @@ NOTE: This variable is never seen to work in Emacs 20 and XEmacs 21.")
   "*Hook run just before posting an article.  It is supposed to be used
 to insert Cancel-Lock headers.")
 
+(defvoo nntp-server-list-active-group 'try
+  "If nil, then always use GROUP instead of LIST ACTIVE.
+This is usually slower, but on misconfigured servers that don't
+update their active files often, this can help.")
+
 ;;; Internal variables.
 
 (defvar nntp-record-commands nil
@@ -296,7 +301,6 @@ to insert Cancel-Lock headers.")
 (defvoo nntp-inhibit-output nil)
 
 (defvoo nntp-server-xover 'try)
-(defvoo nntp-server-list-active-group 'try)
 
 (defvar nntp-async-timer nil)
 (defvar nntp-async-process-list nil)

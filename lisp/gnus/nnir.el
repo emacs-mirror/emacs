@@ -881,7 +881,9 @@ ready to be added to the list of search results."
   (when (file-readable-p (concat prefix dirnam article))
     ;; remove trailing slash and, for nnmaildir, cur/new/tmp
     (setq dirnam
-	  (substring dirnam 0 (if (string= server "nnmaildir:") -5 -1)))
+	  (substring dirnam 0
+		     (if (string= (gnus-group-server server) "nnmaildir")
+			 -5 -1)))
 
     ;; Set group to dirnam without any leading dots or slashes,
     ;; and with all subsequent slashes replaced by dots
@@ -890,7 +892,7 @@ ready to be added to the list of search results."
                  "[/\\]" "." t)))
 
     (vector (nnir-group-full-name group server)
-	    (if (string= server "nnmaildir:")
+	    (if (string= (gnus-group-server server) "nnmaildir")
 		(nnmaildir-base-name-to-article-number
 		 (substring article 0 (string-match ":" article))
 		 group nil)
@@ -1200,7 +1202,7 @@ Windows NT 4.0."
 	   ;; is sufficient.  Note that we can't only use the value of
 	   ;; nnml-use-compressed-files because old articles might have been
 	   ;; saved with a different value.
-	   (article-pattern (if (string= server "nnmaildir:")
+	   (article-pattern (if (string= (gnus-group-server server) "nnmaildir")
 				":[0-9]+"
 			      "^[0-9]+\\(\\.[a-z0-9]+\\)?$"))
            score artno dirnam filenam)
@@ -1450,7 +1452,7 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
   (when group
     (error "The Namazu backend cannot search specific groups"))
   (save-excursion
-    (let ((article-pattern (if (string= server "nnmaildir:")
+    (let ((article-pattern (if (string= (gnus-group-server server) "nnmaildir")
 			       ":[0-9]+"
 			     "^[0-9]+$"))
           artlist

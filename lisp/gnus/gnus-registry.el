@@ -122,12 +122,14 @@ display."
   :type 'symbol)
 
 (defcustom gnus-registry-unfollowed-groups
-  '("delayed$" "drafts$" "queue$" "INBOX$")
+  '("delayed$" "drafts$" "queue$" "INBOX$" "^nnmairix:")
   "List of groups that gnus-registry-split-fancy-with-parent won't return.
 The group names are matched, they don't have to be fully
 qualified.  This parameter tells the Registry 'never split a
 message into a group that matches one of these, regardless of
-references.'"
+references.'
+
+nnmairix groups are specifically excluded because they are ephemeral."
   :group 'gnus-registry
   :type '(repeat regexp))
 
@@ -1127,6 +1129,7 @@ Returns the first place where the trail finds a group name."
   (setq gnus-registry-install t)	; in case it was 'ask or nil
   (gnus-registry-install-hooks)
   (gnus-registry-install-shortcuts)
+  (gnus-registry-install-nnregistry)
   (gnus-registry-read))
 
 ;;;###autoload
@@ -1142,6 +1145,19 @@ Returns the first place where the trail finds a group name."
   (add-hook 'gnus-read-newsrc-el-hook 'gnus-registry-read)
 
   (add-hook 'gnus-summary-prepare-hook 'gnus-registry-register-message-ids))
+
+;;;###autoload
+(defun gnus-registry-install-nnregistry ()
+  "Install the nnregistry refer method in `gnus-refer-article-method'."
+  (interactive)
+  (when (featurep 'nnregistry)
+    (setq gnus-refer-article-method
+          (delete-dups
+           (append
+            (if (listp gnus-refer-article-method)
+                gnus-refer-article-method
+              (list gnus-refer-article-method))
+            (list 'nnregistry))))))
 
 (defun gnus-registry-unload-hook ()
   "Uninstall the registry hooks."

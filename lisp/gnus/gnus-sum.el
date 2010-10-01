@@ -11327,15 +11327,19 @@ For compatibility with XEmacs."
   (gnus-remove-overlays (point-min) (point-max) 'invisible 'gnus-sum)
   (gnus-summary-position-point))
 
+(defsubst gnus-summary--inv (p)
+  (and (eq (get-char-property p 'invisible) 'gnus-sum) p))
+
 (defun gnus-summary-show-thread ()
   "Show thread subtrees.
 Returns nil if no thread was there to be shown."
   (interactive)
   (let* ((orig (point))
 	 (end (point-at-eol))
+         (end (or (gnus-summary--inv end) (gnus-summary--inv (1- end))))
 	 ;; Leave point at bol
 	 (beg (progn (beginning-of-line) (if (bobp) (point) (1- (point)))))
-	 (eoi (when (eq (get-char-property end 'invisible) 'gnus-sum)
+	 (eoi (when end
 		(if (fboundp 'next-single-char-property-change)
 		    (or (next-single-char-property-change end 'invisible)
 			(point-max))

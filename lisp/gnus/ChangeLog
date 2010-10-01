@@ -1,3 +1,59 @@
+2010-09-30  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-install-nnregistry): New function to
+	install the nnregistry refer method.
+	(gnus-registry-install-hooks): Use it.
+	(gnus-registry-unfollowed-groups): Add nnmairix to the default
+	unfollowed groups.
+
+2010-09-30  Jose A. Ortega Ruiz  <jao@gnu.org>  (tiny change)
+
+	* gnus-sum.el (gnus-summary-show-thread): Skip past invisible text when
+	expanding threads.
+
+2010-09-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnir.el: Use the server names without suffixes (bug #7009).
+
+	* nnimap.el (nnimap-open-connection): Reinstate the auto-upgrade from
+	unencrypted to STARTTLS, if possible.
+
+2010-09-30  Teemu Likonen  <tlikonen@iki.fi>  (tiny change)
+
+	* message.el (message-ignored-supersedes-headers): Strip Injection-*
+	headers before superseding.
+
+2010-09-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnrss.el (nnrss-use-local): Add documentation.
+
+	* nnimap.el (nnimap-extend-tls-programs): New function.
+	(nnimap-open-connection): Use tls.el exclusively, and not starttls.el.
+	(nnimap-wait-for-connection): Accept the greeting from the stupid
+	output from openssl s_client -starttls, too.
+
+	* nnimap.el (nnimap-find-article-by-message-id): Really return the
+	article number.
+	(nnimap-split-fancy): New variable.
+	(nnimap-split-incoming-mail): Use it.
+
+	* nntp.el (nntp-server-list-active-group): Document.
+
+	* nnimap.el (nnimap-find-article-by-message-id): Use EXAMINE instead of
+	SELECT to get the message-id.
+
+	* mail-source.el (mail-sources): Removed webmail support.
+	(defvar): Ditto.
+	(mail-source-fetcher-alist): Ditto.
+	(mail-source-fetch-webmail): Removed.
+
+	* webmail.el: Removed -- doesn't seem relevant any more.
+
+	* gnus.el: Fix up make-obsolete-variable declarations throughout.
+
+	* nnimap.el (nnimap-request-accept-article): Get the Message-ID without
+	the \r.
+
 2010-09-30  Julien Danjou  <julien@danjou.info>
 
 	* gnus-agent.el (gnus-agent-add-group): Fix call to
@@ -44,10 +100,12 @@
 	(nnimap-request-accept-article): Add \r\n to the lines to make this
 	work with Cyrus.
 
-	* nnregistry.el: Added.
-
 	* nndraft.el (nndraft-request-expire-articles): Use the group name
 	instead if "nndraft".  Fix found by Nils Ackermann.
+
+2010-09-29  Ludovic Courtes  <ludo@gnu.org>
+
+	* nnregistry.el: Added.
 
 2010-09-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 

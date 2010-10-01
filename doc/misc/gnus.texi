@@ -14394,6 +14394,12 @@ inhibit Gnus to add a @code{Message-ID} header, you could say:
 Note that not all servers support the recommended ID.  This works for
 INN versions 2.3.0 and later, for instance.
 
+@item nntp-server-list-active-group
+If @code{nil}, then always use @samp{GROUP} instead of @samp{LIST
+ACTIVE}.  This is usually slower, but on misconfigured servers that
+don't update their active files often, this can help.
+
+
 @end table
 
 @menu
@@ -14836,7 +14842,7 @@ Here's an example method that's more complex:
         (nnimap-inbox "INBOX")
         (nnimap-split-methods default)
         (nnimap-expunge t)
-        (nnimap-stream 'ssl)
+        (nnimap-stream ssl)
         (nnir-search-engine imap)
         (nnimap-expunge-inbox t))
 @end example
@@ -14905,6 +14911,9 @@ This is the @acronym{IMAP} mail box that will be scanned for new mail.
 Uses the same syntax as @code{nnmail-split-methods} (@pxref{Splitting
 Mail}), except the symbol @code{default}, which means that it should
 use the value of the @code{nnmail-split-methods} variable.
+
+@item nnimap-split-fancy
+Uses the same syntax as @code{nnmail-split-fancy}.
 
 @end table
 
@@ -15557,45 +15566,6 @@ An example @acronym{IMAP} mail source:
 (imap :server "mail.mycorp.com"
       :stream kerberos4
       :fetchflag "\\Seen")
-@end lisp
-
-@item webmail
-Get mail from a webmail server, such as @uref{http://www.hotmail.com/},
-@uref{http://webmail.netscape.com/}, @uref{http://www.netaddress.com/},
-@uref{http://mail.yahoo.com/}.
-
-NOTE: Webmail largely depends on cookies.  A "one-line-cookie" patch is
-required for url "4.0pre.46".
-
-WARNING: Mails may be lost.  NO WARRANTY.
-
-Keywords:
-
-@table @code
-@item :subtype
-The type of the webmail server.  The default is @code{hotmail}.  The
-alternatives are @code{netscape}, @code{netaddress}, @code{my-deja}.
-
-@item :user
-The user name to give to the webmail server.  The default is the login
-name.
-
-@item :password
-The password to give to the webmail server.  If not specified, the user is
-prompted.
-
-@item :dontexpunge
-If non-@code{nil}, only fetch unread articles and don't move them to
-trash folder after finishing the fetch.
-
-@end table
-
-An example webmail source:
-
-@lisp
-(webmail :subtype 'hotmail
-         :user "user-name"
-         :password "secret")
 @end lisp
 
 @item group
@@ -24196,8 +24166,8 @@ From Ted Zlatanov <tzz@@lifelogs.com>.
  spam-move-spam-nonspam-groups-only nil
  spam-mark-only-unseen-as-spam t
  spam-mark-ham-unread-before-move-from-spam-group t
- nnimap-split-rule 'nnimap-split-fancy
  ;; @r{understand what this does before you copy it to your own setup!}
+ ;; @r{for nnimap you'll probably want to set nnimap-split-methods, see the manual}
  nnimap-split-fancy '(|
                       ;; @r{trace references to parents and put in their group}
                       (: gnus-registry-split-fancy-with-parent)
@@ -24919,8 +24889,8 @@ messages stay in @samp{INBOX}:
 @example
 (setq spam-use-spamoracle t
       spam-split-group "Junk"
+      ;; @r{for nnimap you'll probably want to set nnimap-split-methods, see the manual}
       nnimap-split-inbox '("INBOX")
-      nnimap-split-rule 'nnimap-split-fancy
       nnimap-split-fancy '(| (: spam-split) "INBOX"))
 @end example
 
@@ -26239,7 +26209,7 @@ wrong show.
 Masanobu @sc{Umeda}---the writer of the original @sc{gnus}.
 
 @item
-Shenghuo Zhu---uudecode.el, mm-uu.el, rfc1843.el, webmail.el,
+Shenghuo Zhu---uudecode.el, mm-uu.el, rfc1843.el,
 nnwarchive and many, many other things connected with @acronym{MIME} and
 other types of en/decoding, as well as general bug fixing, new
 functionality and stuff.

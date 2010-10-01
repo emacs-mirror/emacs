@@ -38,6 +38,7 @@
 (require 'nnoo)
 (require 'netrc)
 (require 'utf7)
+(require 'tls)
 (require 'parse-time)
 
 (autoload 'auth-source-forget-user-or-password "auth-source")
@@ -70,8 +71,11 @@ Values are `ssl', `network', `starttls' or `shell'.")
   "How mail is split.
 Uses the same syntax as nnmail-split-methods")
 
+(defvoo nnimap-split-fancy nil
+  "Uses the same syntax as nnmail-split-fancy.")
+
 (make-obsolete-variable 'nnimap-split-rule "see `nnimap-split-methods'"
-			"Gnus 5.13")
+			"Emacs 24.1")
 
 (defvoo nnimap-authenticator nil
   "How nnimap authenticate itself to the server.
@@ -306,9 +310,11 @@ textual parts.")
 		 (setq port (or nnimap-server-port "imap")))
 		'("imap"))
 	       ((eq nnimap-stream 'starttls)
-		(starttls-open-stream
-		 "*nnimap*" (current-buffer) nnimap-address
-		 (setq port (or nnimap-server-port "imap")))
+		(let ((tls-program (nnimap-extend-tls-programs)))
+		  (open-tls-stream
+		   "*nnimap*" (current-buffer) nnimap-address
+		   (setq port (or nnimap-server-port "imap"))
+		   'starttls))
 		'("imap"))
 	       ((eq nnimap-stream 'ssl)
 		(open-tls-stream
@@ -342,11 +348,23 @@ textual parts.")
 		   #'upcase
 		   (nnimap-find-parameter
 		    "CAPABILITY" (cdr (nnimap-command "CAPABILITY")))))
-	    (when (eq nnimap-stream 'starttls)
-	      (nnimap-command "STARTTLS")
-	      (starttls-negotiate (nnimap-process nnimap-object)))
 	    (when nnimap-server-port
 	      (push (format "%s" nnimap-server-port) ports))
+	    ;; If this is a STARTTLS-capable server, then sever the
+	    ;; connection and start a STARTTLS connection instead.
+	    (when (and (eq nnimap-stream 'network)
+		       (member "STARTTLS" (nnimap-capabilities nnimap-object)))
+	      (let ((nnimap-stream 'starttls))
+		(let ((tls-process
+		       (nnimap-open-connection buffer)))
+		  ;; If the STARTTLS connection was successful, we
+		  ;; kill our first non-encrypted connection.  If it
+		  ;; wasn't successful, we just use our unencrypted
+		  ;; connection.
+		  (when (memq (process-status tls-process) '(open run))
+		    (delete-process (nnimap-process nnimap-object))
+		    (kill-buffer (current-buffer))
+		    (return tls-process)))))
 	    (unless (equal connection-result "PREAUTH")
 	      (if (not (setq credentials
 			     (if (eq nnimap-authenticator 'anonymous)
@@ -378,7 +396,16 @@ textual parts.")
 	    (when nnimap-object
 	      (when (member "QRESYNC" (nnimap-capabilities nnimap-object))
 		(nnimap-command "ENABLE QRESYNC"))
-	      t)))))))
+	      (nnimap-process nnimap-object))))))))
+
+(defun nnimap-extend-tls-programs ()
+  (let ((programs tls-program)
+	result)
+    (unless (consp programs)
+      (setq programs (list programs)))
+    (dolist (program programs)
+      (push (concat program " " "%s") result))
+    (nreverse result)))
 
 (defun nnimap-find-parameter (parameter elems)
   (let (result)
@@ -729,16 +756,20 @@ textual parts.")
 
 
 (defun nnimap-find-article-by-message-id (group message-id)
-  (when (nnimap-possibly-change-group group nil)
-    (with-current-buffer (nnimap-buffer)
-      (let ((result
-	     (nnimap-command "UID SEARCH HEADER Message-Id %S" message-id))
-	    article)
-	(when (car result)
-	  ;; Select the last instance of the message in the group.
-	  (and (setq article
-		     (car (last (assoc "SEARCH" (cdr result)))))
-	       (string-to-number article)))))))
+  (with-current-buffer (nnimap-buffer)
+    (erase-buffer)
+    (setf (nnimap-group nnimap-object) nil)
+    (nnimap-send-command "EXAMINE %S" (utf7-encode group t))
+    (let ((sequence
+	   (nnimap-send-command "UID SEARCH HEADER Message-Id %S" message-id))
+	  article result)
+      (setq result (nnimap-wait-for-response sequence))
+      (when (and result
+		 (car (setq result (nnimap-parse-response))))
+	;; Select the last instance of the message in the group.
+	(and (setq article
+		   (car (last (assoc "SEARCH" (cdr result)))))
+	     (string-to-number article))))))
 
 (defun nnimap-delete-article (articles)
   (with-current-buffer (nnimap-buffer)
@@ -796,10 +827,10 @@ textual parts.")
 (deffoo nnimap-request-accept-article (group &optional server last)
   (when (nnimap-possibly-change-group nil server)
     (nnmail-check-syntax)
-    (nnimap-add-cr)
-    (let ((message (buffer-string))
-	  (message-id (message-field-value "message-id"))
-	  sequence)
+    (let ((message-id (message-field-value "message-id"))
+	  sequence message)
+      (nnimap-add-cr)
+      (setq message (buffer-string))
       (with-current-buffer (nnimap-buffer)
 	(setq sequence (nnimap-send-command
 			"APPEND %S {%d}" (utf7-encode group t)
@@ -1183,11 +1214,11 @@ textual parts.")
     (goto-char (point-min))
     (while (and (memq (process-status process)
 		      '(open run))
-		(not (re-search-forward "^\\* .*\n" nil t)))
+		(not (re-search-forward "^[*.] .*\n" nil t)))
       (nnheader-accept-process-output process)
       (goto-char (point-min)))
     (forward-line -1)
-    (and (looking-at "\\* \\([A-Z0-9]+\\)")
+    (and (looking-at "[*.] \\([A-Z0-9]+\\)")
 	 (match-string 1))))
 
 (defun nnimap-wait-for-response (sequence &optional messagep)
@@ -1299,6 +1330,8 @@ textual parts.")
 	  (nnmail-split-methods (if (eq nnimap-split-methods 'default)
 				    nnmail-split-methods
 				  nnimap-split-methods))
+	  (nnmail-split-fancy (or nnimap-split-fancy
+				  nnmail-split-fancy))
 	  (nnmail-inhibit-default-split-group t)
 	  (groups (nnimap-get-groups))
 	  new-articles)
