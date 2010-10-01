@@ -1,3 +1,8 @@
+2010-10-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-extend-tls-programs): Only extend those programs
+	for starttls that tls.el implements; i.e. openssl.
+
 2010-10-01  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gravatar.el: Don't load image.el that XEmacs doesn't provide.

@@ -1,3 +1,10 @@
+2010-10-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/tls.el (tls-starttls-switches): Give up on using starttls with
+	gnutls-cli.
+	(tls-program): Add --insecure to be consistent with the defaults from
+	openssl s_client.  Now all three commands are insecure.
+
 2010-10-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (DEST, TAGS, TAGS-LISP, TAGS-nmake)
