@@ -1,10 +1,10 @@
 2010-09-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
-	* tls.el (tls-starttls-switches): New variable.
+	* net/tls.el (tls-starttls-switches): New variable.
 	(tls-find-starttls-argument): Use it.
 	(open-tls-stream): Ditto.
 
-1	* netrc.el (netrc-credentials): Return the value of the "default"
+	* net/netrc.el (netrc-credentials): Return the value of the "default"
 	entry.
 	(netrc-machine): Ditto.
 
