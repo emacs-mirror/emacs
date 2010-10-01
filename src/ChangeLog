@@ -1,3 +1,9 @@
+2010-10-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (set_cursor_from_row): When the row is truncated and
+	point is outside the range of displayed characters, position the
+	cursor inside the scroll margin.  (Bug#6349)
+
 2010-10-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Do not include stdlib.h and string.h, config.h does it.

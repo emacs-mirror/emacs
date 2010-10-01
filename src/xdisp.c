@@ -12494,8 +12494,10 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
   /* Non-zero means we've seen at least one glyph that came from a
      display string.  */
   int string_seen = 0;
-  /* Largest buffer position seen so far during scan of glyph row.  */
-  EMACS_INT bpos_max = last_pos;
+  /* Largest and smalles buffer positions seen so far during scan of
+     glyph row.  */
+  EMACS_INT bpos_max = pos_before;
+  EMACS_INT bpos_min = pos_after;
   /* Last buffer position covered by an overlay string with an integer
      `cursor' property.  */
   EMACS_INT bpos_covered = 0;
@@ -12585,6 +12587,8 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 
 	    if (glyph->charpos > bpos_max)
 	      bpos_max = glyph->charpos;
+	    if (glyph->charpos < bpos_min)
+	      bpos_min = glyph->charpos;
 	    if (!glyph->avoid_cursor_p)
 	      {
 		/* If we hit point, we've found the glyph on which to
@@ -12659,6 +12663,8 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 
 	    if (glyph->charpos > bpos_max)
 	      bpos_max = glyph->charpos;
+	    if (glyph->charpos < bpos_min)
+	      bpos_min = glyph->charpos;
 	    if (!glyph->avoid_cursor_p)
 	      {
 		if (dpos == 0)
@@ -12745,7 +12751,13 @@ set_cursor_from_row (struct window *w, struct glyph_row *row,
 	    }
 	}
       else if (match_with_avoid_cursor
-	       /* zero-width characters produce no glyphs */
+	       /* A truncated row may not include PT among its
+		  character positions.  Setting the cursor inside the
+		  scroll margin will trigger recalculation of hscroll
+		  in hscroll_window_tree.  */
+	       || (row->truncated_on_left_p && pt_old < bpos_min)
+	       || (row->truncated_on_right_p && pt_old > bpos_max)
+	       /* Zero-width characters produce no glyphs.  */
 	       || ((row->reversed_p
 		    ? glyph_after > glyphs_end
 		    : glyph_after < glyphs_end)
