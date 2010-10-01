@@ -48,13 +48,16 @@
   #'gnus-std-completing-read
   "Function to do a completing read."
   :group 'gnus-meta
-  :type '(radio (function-item
+  :type `(radio (function-item
                  :doc "Use Emacs' standard `completing-read' function."
                  gnus-std-completing-read)
-                (function-item :doc "Use iswitchb's completing-read function."
-                               gnus-icompleting-read)
-                (function-item :doc "Use ido's completing-read function."
-                               gnus-ido-completing-read)
+		,@(unless (featurep 'xemacs)
+		    '((function-item
+		       :doc "Use iswitchb's completing-read function."
+		       gnus-icompleting-read)
+		      (function-item
+		       :doc "Use ido's completing-read function."
+		       gnus-ido-completing-read)))
                 (function)))
 
 (defcustom gnus-completion-styles
@@ -1594,6 +1597,11 @@ SPEC is a predicate specifier that contains stuff like `or', `and',
                                         initial-input history def)
   (completing-read prompt collection nil require-match
                    initial-input history def))
+
+(defvar iswitchb-mode)
+(defvar iswitchb-temp-buflist)
+(declare-function iswitchb-read-buffer "iswitchb"
+		  (prompt &optional default require-match start matches-set))
 
 (defun gnus-icompleting-read (prompt collection &optional require-match
                                      initial-input history def)

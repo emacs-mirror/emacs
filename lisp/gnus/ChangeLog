@@ -1,5 +1,12 @@
 2010-10-01  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* gnus-util.el (gnus-completing-read-function): Exclude
+	gnus-icompleting-read and gnus-ido-completing-read from candidates for
+	XEmacs since iswitchb.el is very old and ido.el is unavailable in
+	XEmacs.
+	(iswitchb-mode, iswitchb-temp-buflist, iswitchb-read-buffer): Silence
+	the byte compiler.
+
 	* gravatar.el: Don't load image.el that XEmacs doesn't provide.
 	(gravatar-create-image): New function that's an alias to
 	gnus-xmas-create-image, gnus-create-image, or create-image.
