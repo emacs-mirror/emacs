@@ -1,5 +1,7 @@
 2010-10-01  Glenn Morris  <rgm@gnu.org>
 
+	* obsolete/sc.el: Remove file.
+
 	* files.el (temporary-file-directory): On darwin, also try
 	DARWIN_USER_TEMP_DIR (see discussion in bug#7135).
 
