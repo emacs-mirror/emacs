@@ -1,3 +1,8 @@
+2010-10-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-start): Revert part of revno 101688.
+	Let's not break compatibility gratuitously, shall we?
+
 2010-09-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/tls.el (tls-starttls-switches): New variable.

@@ -586,6 +586,7 @@ server or call `M-x server-force-delete' to forcibly disconnect it.")
 		(setq buffer-file-coding-system 'no-conversion)
 		(insert (format-network-address
 			 (process-contact server-process :local))
+			" " (number-to-string (emacs-pid)) ; Kept for compatibility
 			"\n" auth-key)))))))))
 
 ;;;###autoload
