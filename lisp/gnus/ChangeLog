@@ -1,5 +1,8 @@
 2010-10-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-html.el (gnus-html-prefetch-images): Adjust regexp to avoid
+	regexp backtrace overflows.
+
 	* nnimap.el (nnimap-extend-tls-programs): Only extend those programs
 	for starttls that tls.el implements; i.e. openssl.
 
