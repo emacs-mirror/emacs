@@ -1,6 +1,7 @@
 2010-10-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (frc, TAGS, TAGS-gmake, TAGS-nmake): New targets.
+	emacs-src.tags: New file.
 
 	* gmake.defs: Add a comment with a single quote to fix
 	fontification.  (Bug#7102)
