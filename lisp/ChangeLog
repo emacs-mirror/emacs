@@ -1,3 +1,8 @@
+2010-10-01  Glenn Morris  <rgm@gnu.org>
+
+	* files.el (temporary-file-directory): On darwin, also try
+	DARWIN_USER_TEMP_DIR (see discussion in bug#7135).
+
 2010-10-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* server.el (server-start): Revert part of revno 101688.
