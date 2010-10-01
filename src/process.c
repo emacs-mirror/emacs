@@ -82,6 +82,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <util.h>
 #endif
 
+#ifdef HAVE_PTY_H
+#include <pty.h>
+#endif
+
 #endif	/* subprocesses */
 
 #include "lisp.h"
@@ -170,13 +174,6 @@ extern Lisp_Object QCfilter;
 
 /* Define first descriptor number available for subprocesses.  */
 #define FIRST_PROC_DESC 3
-
-/* Define SIGCHLD as an alias for SIGCLD.  There are many conditionals
-   testing SIGCHLD.  */
-
-#if !defined (SIGCHLD) && defined (SIGCLD)
-#define SIGCHLD SIGCLD
-#endif /* SIGCLD */
 
 extern const char *get_operating_system_release (void);
 
@@ -356,14 +353,6 @@ struct sockaddr_and_len {
 /* Maximum number of bytes to send to a pty without an eof.  */
 static int pty_max_bytes;
 
-#ifdef HAVE_PTYS
-#ifdef HAVE_PTY_H
-#include <pty.h>
-#endif
-/* The file name of the pty opened by allocate_pty.  */
-
-static char pty_name[24];
-#endif
 
 
 struct fd_callback_data
@@ -562,6 +551,9 @@ status_message (struct Lisp_Process *p)
 }
 
 #ifdef HAVE_PTYS
+
+/* The file name of the pty opened by allocate_pty.  */
+static char pty_name[24];
 
 /* Open an available pty, returning a file descriptor.
    Return -1 on failure.

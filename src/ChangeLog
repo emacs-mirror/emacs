@@ -1,5 +1,9 @@
 2010-10-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* process.c: Move #include <pty.h> earlier.
+	(SIGCHLD): Remove conditional definition, syssignal.h defines it.
+	(pty_name): Move definition later.
+
 	* nsselect.m (syms_of_nsselect):
 	* nsmenu.m (syms_of_nsmenu):
 	* nsfns.m (syms_of_nsfns):
