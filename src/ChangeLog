@@ -1,3 +1,7 @@
+2010-10-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* point.h: Remove, unused.
+
 2010-10-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (TAGS, frc, TAGS-LISP, ../nt/TAGS, tags)
