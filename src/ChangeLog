@@ -1,5 +1,7 @@
 2010-10-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* callproc.c (SIGCHLD): Remove conditional definition, syssignal.h defines it.
+
 	* process.c: Move #include <pty.h> earlier.
 	(SIGCHLD): Remove conditional definition, syssignal.h defines it.
 	(pty_name): Move definition later.
