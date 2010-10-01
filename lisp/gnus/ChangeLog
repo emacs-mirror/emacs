@@ -1,12 +1,5 @@
 2010-10-01  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* gnus-util.el (gnus-completing-read-function): Exclude
-	gnus-icompleting-read and gnus-ido-completing-read from candidates for
-	XEmacs since iswitchb.el is very old and ido.el is unavailable in
-	XEmacs.
-	(iswitchb-mode, iswitchb-temp-buflist, iswitchb-read-buffer): Silence
-	the byte compiler.
-
 	* gravatar.el: Don't load image.el that XEmacs doesn't provide.
 	(gravatar-create-image): New function that's an alias to
 	gnus-xmas-create-image, gnus-create-image, or create-image.
@@ -142,17 +135,6 @@
 	replacement of `gnus-gravatar-relief' to mimic
 	`gnus-faces-properties-alist'.
 	Add :version property.
-
-2010-09-28  Florian Ragwitz  <rafl@debian.org>
-
-	* gnus-util.el (gnus-use-ido): Removed.
-	(gnus-std-completing-read): Add wrapper around completing-read.
-	(gnus-icompleting-read): Add wrapper around ibuffer-read-buffer.
-	(gnus-ido-completing-read): Add wrapper around ido-completing-read.
-	(gnus-completing-read-function): Add to chose from the above completion
-	functions or to provide a custom one.
-	(gnus-completing-read): Use the completing-read function configured
-	with gnus-completing-read-function.
 
 2010-09-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -317,11 +299,6 @@
 	discover we're on a STARTTLS-capable server, then open a STARTTLS
 	connection instead.
 
-2010-09-27  Florian Ragwitz  <rafl@debian.org>  (tiny change)
-
-	* sieve-manage.el (sieve-manage-default-stream): Make default stream
-	customizable.
-
 2010-09-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* nnimap.el (utf7): Required.
@@ -341,11 +318,6 @@
 2010-09-27  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-mime-delete-part): Fix Lisp type of byte(s).
-
-2010-09-26  Florian Ragwitz  <rafl@debian.org>  (tiny change)
-
-	* gnus-html.el (gnus-html-wash-tags): Decode URL entities to avoid
-	handing broken links to browse-url.
 
 2010-09-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 

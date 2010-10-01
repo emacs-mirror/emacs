@@ -162,12 +162,6 @@ for doing the actual authentication."
   :type 'integer
   :group 'sieve-manage)
 
-(defcustom sieve-manage-default-stream 'network
-  "Default stream type to use for `sieve-manage'.
-Must be a name of a stream in `sieve-manage-stream-alist'."
-  :type 'symbol
-  :group 'sieve-manage)
-
 ;; Internal variables:
 
 (defconst sieve-manage-local-variables '(sieve-manage-server
@@ -180,6 +174,7 @@ Must be a name of a stream in `sieve-manage-stream-alist'."
 					 sieve-manage-client-eol
 					 sieve-manage-server-eol
 					 sieve-manage-capability))
+(defconst sieve-manage-default-stream 'network)
 (defconst sieve-manage-coding-system-for-read 'binary)
 (defconst sieve-manage-coding-system-for-write 'binary)
 (defvar sieve-manage-stream nil)
