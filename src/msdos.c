@@ -29,13 +29,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <setjmp.h>
 #include "lisp.h"
 #include <stdio.h>
-#include <stdlib.h>
 #include <time.h>
 #include <sys/param.h>
 #include <sys/time.h>
 #include <dos.h>
 #include <errno.h>
-#include <string.h>	 /* for memset and string functions */
 #include <sys/stat.h>    /* for _fixpath */
 #include <unistd.h>	 /* for chdir, dup, dup2, etc. */
 #include <dir.h>	 /* for getdisk */

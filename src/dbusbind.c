@@ -19,7 +19,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #ifdef HAVE_DBUS
-#include <stdlib.h>
 #include <stdio.h>
 #include <dbus/dbus.h>
 #include <setjmp.h>

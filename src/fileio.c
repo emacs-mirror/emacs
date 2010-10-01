@@ -71,7 +71,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef WINDOWSNT
 #define NOMINMAX 1
 #include <windows.h>
-#include <stdlib.h>
 #include <fcntl.h>
 #endif /* not WINDOWSNT */
 
@@ -79,7 +78,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "msdos.h"
 #include <sys/param.h>
 #include <fcntl.h>
-#include <string.h>
 #endif
 
 #ifdef DOS_NT

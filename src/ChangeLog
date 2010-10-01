@@ -1,5 +1,29 @@
 2010-10-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	Do not include stdlib.h and string.h, config.h does it.
+	* xfont.c:
+	* w32term.c:
+	* w32reg.c:
+	* w32inevt.c:
+	* w32heap.c:
+	* w32console.c:
+	* w16select.c:
+	* unexsol.c:
+	* term.c:
+	* sound.c:
+	* scroll.c (m):
+	* gtkutil.c:
+	* font.c:
+	* filelock.c:
+	* fileio.c:
+	* dosfns.c:
+	* dbusbind.c:
+	* bidi.c:
+	* callproc.c:
+	* process.c:
+	* msdos.c:
+	* charset.c: Do not include stdlib.h and string.h, config.h does it.
+
 	* callproc.c (SIGCHLD): Remove conditional definition, syssignal.h defines it.
 
 	* process.c: Move #include <pty.h> earlier.
@@ -10,6 +34,7 @@
 	* nsmenu.m (syms_of_nsmenu):
 	* nsfns.m (syms_of_nsfns):
 	* msdos.c (syms_of_msdos):
+
 	* image.c (syms_of_image):
 	* charset.c (syms_of_charset): Use intern_c_string instead of intern.
 

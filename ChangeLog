@@ -1,3 +1,7 @@
+2010-10-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in: Include stdlib.h and string.h unconditionally.
+
 2010-09-29  Romain Francoise  <romain@orebokech.com>
 
 	* configure.in: Don't enable ImageMagick unless HAVE_X11.

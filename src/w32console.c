@@ -25,10 +25,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 
-#include <stdlib.h>
 #include <stdio.h>
 #include <windows.h>
-#include <string.h>
 #include <setjmp.h>
 
 #include "lisp.h"
