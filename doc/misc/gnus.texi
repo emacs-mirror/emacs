@@ -9477,6 +9477,14 @@ signature should be removed, or other symbol, meaning that the
 corresponding regular expression in @code{gnus-article-banner-alist} is
 used.
 
+For instance:
+
+@lisp
+(setq gnus-article-banner-alist
+      ((googleGroups .
+       "^\n*--~--~---------\\(.+\n\\)+")))
+@end lisp
+
 Regardless of a group, you can hide things like advertisements only when
 the sender of an article has a certain mail address specified in
 @code{gnus-article-address-banner-alist}.
@@ -15101,6 +15109,9 @@ function of your choice.  This function will be called without any
 arguments in a buffer narrowed to the headers of an incoming mail
 message.  The function should return a list of group names that it
 thinks should carry this mail message.
+
+This variable can also be a fancy split method.  See @xref{Fancy Mail
+Splitting} for the syntax.
 
 Note that the mail back ends are free to maul the poor, innocent,
 incoming headers all they want to.  They all add @code{Lines} headers;

@@ -2170,21 +2170,21 @@ be permanent."
 The arguments are the same as `completing-read' except that COLLECTION
 and HIST default to `gnus-active-hashtb' and `gnus-group-history'
 respectively if they are omitted."
-  (let* ((choices (mapcar (lambda (symbol)
+  (let* ((collection (or collection (or gnus-active-hashtb [0])))
+	 (choices (mapcar (lambda (symbol)
                             (let ((group (symbol-name symbol)))
                               (if (string-match "[^\000-\177]" group)
                                   (gnus-group-decoded-name group)
                                 group)))
-                          (remove-if-not
-                           'symbolp
-                           (or collection (or gnus-active-hashtb [0])))))
+                          (remove-if-not 'symbolp collection)))
          (group
           (gnus-completing-read (or prompt "Group") choices
                                 require-match initial-input
                                 (or hist 'gnus-group-history)
                                 def)))
-    (or (symbol-value (intern-soft group collection))
-        (mm-encode-coding-string group (gnus-group-name-charset nil group)))))
+    (if (symbol-value (intern-soft group collection))
+	group
+      (mm-encode-coding-string group (gnus-group-name-charset nil group)))))
 
 ;;;###autoload
 (defun gnus-fetch-group (group &optional articles)

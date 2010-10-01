@@ -1265,7 +1265,8 @@ For the `inline' alternatives, also see the variable
   (dolist (article (gnus-summary-work-articles n))
     (gnus-summary-select-article nil nil nil article)
     (with-current-buffer gnus-original-article-buffer
-      (message-resend address))
+      (let ((gnus-gcc-externalize-attachments nil))
+	(message-resend address)))
     (gnus-summary-mark-article-as-forwarded article)))
 
 ;; From: Matthieu Moy <Matthieu.Moy@imag.fr>

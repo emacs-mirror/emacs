@@ -104,7 +104,9 @@ mail belongs in that group.
 
 The last element should always have \"\" as the regexp.
 
-This variable can also have a function as its value."
+This variable can also have a function as its value, and it can
+also have a fancy split method as its value.  See
+`nnmail-split-fancy' for an explanation of that syntax."
   :group 'nnmail-split
   :type '(choice (repeat :tag "Alist" (group (string :tag "Name")
 					     (choice regexp function)))
@@ -1145,21 +1147,33 @@ FUNC will be called with the group name to determine the article number."
 	(run-hooks 'nnmail-split-hook)
 	(when (setq nnmail-split-tracing trace)
 	  (setq nnmail-split-trace nil))
-	(if (and (symbolp nnmail-split-methods)
-		 (fboundp nnmail-split-methods))
-	    (let ((split
-		   (condition-case error-info
-		       ;; `nnmail-split-methods' is a function, so we
-		       ;; just call this function here and use the
-		       ;; result.
-		       (or (funcall nnmail-split-methods)
-			   (and (not nnmail-inhibit-default-split-group)
-				'("bogus")))
-		     (error
-		      (nnheader-message
-		       5 "Error in `nnmail-split-methods'; using `bogus' mail group: %S" error-info)
-		      (sit-for 1)
-		      '("bogus")))))
+	(if (or (and (symbolp nnmail-split-methods)
+		     (fboundp nnmail-split-methods))
+		(and (listp nnmail-split-methods)
+		     ;; Not a regular split method, so it has to be a
+		     ;; fancy one.
+		     (not (let ((top-element (car-safe nnmail-split-methods)))
+			    (and (= 2 (length top-element))
+				 (stringp (nth 0 top-element))
+				 (stringp (nth 1 top-element)))))))
+	    (let* ((method-function
+		    (if (and (symbolp nnmail-split-methods)
+			     (fboundp nnmail-split-methods))
+			nnmail-split-methods
+		      'nnmail-split-fancy))
+		   (split
+		    (condition-case error-info
+			;; `nnmail-split-methods' is a function, so we
+			;; just call this function here and use the
+			;; result.
+			(or (funcall method-function)
+			    (and (not nnmail-inhibit-default-split-group)
+				 '("bogus")))
+		      (error
+		       (nnheader-message
+			5 "Error in `nnmail-split-methods'; using `bogus' mail group: %S" error-info)
+		       (sit-for 1)
+		       '("bogus")))))
 	      (setq split (mm-delete-duplicates split))
 	      ;; The article may be "cross-posted" to `junk'.  What
 	      ;; to do?  Just remove the `junk' spec.  Don't really

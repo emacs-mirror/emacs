@@ -1,5 +1,83 @@
 2010-10-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* gnus-start.el (gnus-check-bogus-newsgroups): Say how many groups
+	we're being queried about.  Suggested by Dan Jacobson.
+
+	* nndoc.el (nndoc-type-alist): Do babyl before mime-parts.  Suggested
+	by Jason Eisner.
+
+	* gnus-async.el (gnus-async-delete-prefetched-entry): Remove from hash
+	table, too.  Suggested by Stefan Wiens.
+	(gnus-async-prefetched-article-entry): Use intern-soft to avoid growing
+	the table unnecessary.  Suggested by Stefan Wiens.
+
+	* gnus-sum.el (gnus-summary-clear-local-variables): This is probably no
+	longer needed, and probably doesn't work either, as pointed out by
+	Stefan Wiens.
+	(gnus-summary-exit): Remove call to the clearing function.
+	(gnus-summary-exit-no-update): Ditto.
+
+	* gnus-art.el (gnus-summary-save-in-file): Use with-current-buffer
+	instead of gnus-eval-in-buffer-window to avoid popping up frames.
+	Reported by Stefan Monnier.
+	(gnus-summary-save-in-rmail): Ditto.
+
+	* gnus-sum.el (gnus-summary-select-article-buffer): Show only the
+	article buffer, instead of both the article buffer and the summary
+	buffer.  Sort of suggested by Dan Jacobson.
+
+	* gnus-win.el (gnus-buffer-configuration): Add an only-article spec.
+
+	* nnmbox.el (nnmbox-read-mbox): Mark buffer for deletion on Gnus exit.
+	Suggested by Dan Jacobson.
+
+	* mm-encode.el (mm-content-transfer-encoding-defaults): Try to make the
+	documentation clearer.
+
+	* message.el (message-shorten-references): Comment on the number "21".
+	Suggested by Stefan Monnier.
+
+	* gnus-sum.el (gnus-summary-scroll-up): Add more documentation.
+	Suggested by Dan Jacobson.
+
+	* gnus.el (gnus-large-newsgroup): Mention
+	gnus-large-ephemeral-newsgroup.  Suggested by Dan Jacobson.
+
+	* gnus-msg.el (gnus-summary-resend-message): When resending, don't
+	externalize attachments.  Bug reported by Steve Wen.
+
+	* gnus.el (gnus-continuum-version): Make inactive, since it doesn't
+	really message anything to the user.
+
+	* nnmail.el (nnmail-article-group): Allow using the fancy split method
+	directly.
+
+	* nnimap.el (nnimap-request-group): Low higher than high to signal no
+	messages in empty groups.
+
+2010-10-01  Ted Zlatanov  <tzz@lifelogs.com>
+
+	* nnimap.el (nnimap-request-group): Don't bug out when there's an empty
+	non-UIDNEXT group.
+
+2010-10-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-group.el (gnus-group-completing-read): Return the symbol name,
+	not the value from the collection.
+
+	* nnimap.el (nnimap-update-info): Ignore groups that have no UIDNEXT
+	values.  This sometimes happens on some groups that have no info.
+	(nnimap-request-newgroups): New function.
+
+2010-10-01  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-install-nnregistry): Move the feature
+	check into `gnus-registry-initialize'.
+	(gnus-registry-initialize): Ditto.
+	Fix and extend header docs.
+
+2010-10-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
 	* gnus-html.el (gnus-html-prefetch-images): Adjust regexp to avoid
 	regexp backtrace overflows.
 

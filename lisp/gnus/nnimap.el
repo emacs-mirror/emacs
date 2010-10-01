@@ -623,10 +623,11 @@ textual parts.")
 		(nnimap-update-infos marks (list info)))
 	      (goto-char (point-max))
 	      (let ((uidnext (nth 5 (car marks))))
-		(setq high (if uidnext
-			       (1- uidnext)
-			     (nth 3 (car marks)))
-		      low (or (nth 4 (car marks)) uidnext)))))
+		(setq high (or (if uidnext
+                                   (1- uidnext)
+                                 (nth 3 (car marks)))
+                               0)
+		      low (or (nth 4 (car marks)) uidnext 1)))))
 	  (erase-buffer)
 	  (insert
 	   (format
@@ -912,6 +913,16 @@ textual parts.")
 				  (or highest exists)))))))))
 	t))))
 
+(deffoo nnimap-request-newgroups (date &optional server)
+  (nnimap-possibly-change-group nil server)
+  (with-current-buffer nntp-server-buffer
+    (erase-buffer)
+    (dolist (group (with-current-buffer (nnimap-buffer)
+		     (nnimap-get-groups)))
+      (unless (assoc group nnimap-current-infos)
+	;; Insert dummy numbers here -- they don't matter.
+	(insert (format "%S 0 1 y\n" group))))))
+
 (deffoo nnimap-retrieve-group-data-early (server infos)
   (when (nnimap-possibly-change-group nil server)
     (with-current-buffer (nnimap-buffer)
@@ -990,7 +1001,9 @@ textual parts.")
       (nnimap-update-info info (cdr (assoc group flags))))))
 
 (defun nnimap-update-info (info marks)
-  (when marks
+  (when (and marks
+	     ;; Ignore groups with no UIDNEXT values.
+	     (nth 4 marks))
     (destructuring-bind (existing flags high low uidnext start-article
 				  permanent-flags) marks
       (let ((group (gnus-info-group info))
