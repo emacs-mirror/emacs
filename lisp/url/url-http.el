@@ -1244,20 +1244,21 @@ CBARGS as the arguments."
   (declare (special url-callback-arguments))
   ;; We are performing an asynchronous connection, and a status change
   ;; has occurred.
-  (with-current-buffer (process-buffer proc)
-    (cond
-     (url-http-connection-opened
-      (url-http-end-of-document-sentinel proc why))
-     ((string= (substring why 0 4) "open")
-      (setq url-http-connection-opened t)
-      (process-send-string proc (url-http-create-request)))
-     (t
-      (setf (car url-callback-arguments)
-	    (nconc (list :error (list 'error 'connection-failed why
-				      :host (url-host (or url-http-proxy url-current-object))
-				      :service (url-port (or url-http-proxy url-current-object))))
-		   (car url-callback-arguments)))
-      (url-http-activate-callback)))))
+  (when (buffer-name (process-buffer proc))
+    (with-current-buffer (process-buffer proc)
+      (cond
+       (url-http-connection-opened
+	(url-http-end-of-document-sentinel proc why))
+       ((string= (substring why 0 4) "open")
+	(setq url-http-connection-opened t)
+	(process-send-string proc (url-http-create-request)))
+       (t
+	(setf (car url-callback-arguments)
+	      (nconc (list :error (list 'error 'connection-failed why
+					:host (url-host (or url-http-proxy url-current-object))
+					:service (url-port (or url-http-proxy url-current-object))))
+		     (car url-callback-arguments)))
+	(url-http-activate-callback))))))
 
 ;; Since Emacs 19/20 does not allow you to change the
 ;; `after-change-functions' hook in the midst of running them, we fake
