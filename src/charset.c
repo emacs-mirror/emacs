@@ -2365,8 +2365,8 @@ syms_of_charset (void)
   Vemacs_mule_charset_list = Qnil;
 
   /* Don't staticpro them here.  It's done in syms_of_fns.  */
-  QCtest = intern (":test");
-  Qeq = intern ("eq");
+  QCtest = intern_c_string (":test");
+  Qeq = intern_c_string ("eq");
 
   staticpro (&Vcharset_hash_table);
   {

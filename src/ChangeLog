@@ -1,5 +1,12 @@
 2010-10-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* nsselect.m (syms_of_nsselect):
+	* nsmenu.m (syms_of_nsmenu):
+	* nsfns.m (syms_of_nsfns):
+	* msdos.c (syms_of_msdos):
+	* image.c (syms_of_image):
+	* charset.c (syms_of_charset): Use intern_c_string instead of intern.
+
 	* point.h: Remove, unused.
 
 2010-10-01  Eli Zaretskii  <eliz@gnu.org>
