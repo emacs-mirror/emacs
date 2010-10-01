@@ -3657,9 +3657,6 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
 
   add_keyboard_wait_descriptor (0);
 
-  /* FIXME: this should be removed,  done earlier. */
-  Wcm_clear (tty);
-
   tty->delete_in_insert_mode = 1;
 
   UseTabs (tty) = 0;
