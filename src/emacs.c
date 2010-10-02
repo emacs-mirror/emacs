@@ -378,7 +378,7 @@ fatal_error_signal (int sig)
     {
       fatal_error_in_progress = 1;
 
-      if (sig == SIGTERM || sig == SIGHUP)
+      if (sig == SIGTERM || sig == SIGHUP || sig == SIGINT)
         Fkill_emacs (make_number (sig));
 
       shut_down_emacs (sig, 0, Qnil);
@@ -1240,6 +1240,14 @@ main (int argc, char **argv)
 #ifdef SIGSYS
       signal (SIGSYS, fatal_error_signal);
 #endif
+#ifndef WINDOWSNT
+      /*  May need special treatment on MS-Windows. See
+          http://lists.gnu.org/archive/html/emacs-devel/2010-09/msg01062.html
+          Please update the doc of kill-emacs, kill-emacs-hook, and
+          NEWS if you change this.
+      */
+      if ( noninteractive ) signal (SIGINT, fatal_error_signal);
+#endif
       signal (SIGTERM, fatal_error_signal);
 #ifdef SIGXCPU
       signal (SIGXCPU, fatal_error_signal);
@@ -1988,6 +1996,9 @@ DEFUN ("kill-emacs", Fkill_emacs, Skill_emacs, 0, 1, "P",
 If ARG is an integer, return ARG as the exit program code.
 If ARG is a string, stuff it as keyboard input.
 
+This function is called upon receipt of the signals SIGTERM
+or SIGHUP, and (except on MS-Windows) SIGINT in batch mode.
+
 The value of `kill-emacs-hook', if not void,
 is a list of functions (of no args),
 all of which are called before Emacs is actually killed.  */)
@@ -2000,7 +2011,7 @@ all of which are called before Emacs is actually killed.  */)
   if (feof (stdin))
     arg = Qt;
 
-  if (!NILP (Vrun_hooks) && !noninteractive)
+  if (!NILP (Vrun_hooks))
     call1 (Vrun_hooks, intern ("kill-emacs-hook"));
 
   UNGCPRO;
@@ -2421,7 +2432,8 @@ in other similar situations), functions placed on this hook should not
 expect to be able to interact with the user.  To ask for confirmation,
 see `kill-emacs-query-functions' instead.
 
-The hook is not run in batch mode, i.e., if `noninteractive' is non-nil.  */);
+Before Emacs 24.1, the hook was not run in batch mode, i.e., if
+`noninteractive' was non-nil.  */);
   Vkill_emacs_hook = Qnil;
 
   DEFVAR_INT ("emacs-priority", &emacs_priority,

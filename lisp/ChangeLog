@@ -1,3 +1,8 @@
+2010-10-02  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-file): Use kill-emacs-hook to
+	delete tempfile if interrupted during compilation.
+
 2010-10-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/tls.el (tls-starttls-switches): Give up on using starttls with

@@ -1698,12 +1698,15 @@ The value is non-nil if there were no errors, nil if errors."
 	  (insert "\n")			; aaah, unix.
 	    (if (file-writable-p target-file)
 		;; We must disable any code conversion here.
-		(let ((coding-system-for-write 'no-conversion)
-		      ;; Write to a tempfile so that if another Emacs
-		      ;; process is trying to load target-file (eg in a
-		      ;; parallel bootstrap), it does not risk getting a
-		      ;; half-finished file.  (Bug#4196)
-		      (tempfile (make-temp-name target-file)))
+		(let* ((coding-system-for-write 'no-conversion)
+		       ;; Write to a tempfile so that if another Emacs
+		       ;; process is trying to load target-file (eg in a
+		       ;; parallel bootstrap), it does not risk getting a
+		       ;; half-finished file.  (Bug#4196)
+		       (tempfile (make-temp-name target-file))
+		       (kill-emacs-hook
+			(cons (lambda () (ignore-errors (delete-file tempfile)))
+			      kill-emacs-hook)))
 		  (if (memq system-type '(ms-dos 'windows-nt))
 		      (setq buffer-file-type t))
 		  (write-region (point-min) (point-max) tempfile nil 1)

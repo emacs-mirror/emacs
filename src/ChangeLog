@@ -1,3 +1,11 @@
+2010-10-02  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.c (fatal_error_signal): Also run Fkill_emacs on SIGINT.
+	(main) [!WINDOWSNT]: Handle SIGINT with fatal_error_signal
+	in batch-mode.
+	(Fkill_emacs): Doc fix.  Also run the hook in batch mode.
+	(kill-emacs-hook): Doc fix.
+
 2010-10-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* xml.c (Flibxml_parse_xml_region, Flibxml_parse_html_region)
