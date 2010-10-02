@@ -1,3 +1,9 @@
+2010-10-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* xml.c (Flibxml_parse_xml_region, Flibxml_parse_html_region)
+	(parse_region): Reworked to take regions instead of strings, and
+	renamed to reflect that these are the libxml functions.
+
 2010-10-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* term.c (init_tty) [DOS_NT]: Don't call Wcm_clear after setting

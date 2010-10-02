@@ -74,17 +74,24 @@ Lisp_Object make_dom (xmlNode *node)
 }
 
 static Lisp_Object
-parse_string (Lisp_Object string, Lisp_Object base_url, int htmlp)
+parse_region (Lisp_Object start, Lisp_Object end, Lisp_Object base_url, int htmlp)
 {
   xmlDoc *doc;
   xmlNode *node;
   Lisp_Object result = Qnil;
-  int ibeg, iend;
   const char *burl = "";
+  EMACS_INT bytes;
+  EMACS_INT istart, iend;
 
   LIBXML_TEST_VERSION;
 
-  CHECK_STRING (string);
+  validate_region (&start, &end);
+  
+  istart = XINT (start);
+  iend = XINT (end);
+
+  if (istart < GPT && GPT < iend)
+    move_gap (iend);
 
   if (! NILP (base_url))
     {
@@ -92,13 +99,18 @@ parse_string (Lisp_Object string, Lisp_Object base_url, int htmlp)
       burl = SDATA (base_url);
     }
 
-  doc = htmlp
-    ? htmlReadMemory (SDATA (string), SBYTES (string), burl, "utf-8",
-		      HTML_PARSE_RECOVER|HTML_PARSE_NONET|
-		      HTML_PARSE_NOWARNING|HTML_PARSE_NOERROR)
-    : xmlReadMemory (SDATA (string), SBYTES (string), burl, "utf-8",
-		     XML_PARSE_NONET|XML_PARSE_NOWARNING|
-		     XML_PARSE_NOERROR);
+  bytes = CHAR_TO_BYTE (iend) - CHAR_TO_BYTE (istart);
+  
+  if (htmlp)
+    doc = htmlReadMemory (BYTE_POS_ADDR (CHAR_TO_BYTE (istart)),
+			  bytes, burl, "utf-8",
+			  HTML_PARSE_RECOVER|HTML_PARSE_NONET|
+			  HTML_PARSE_NOWARNING|HTML_PARSE_NOERROR);
+  else
+    doc = xmlReadMemory (BYTE_POS_ADDR (CHAR_TO_BYTE (istart)),
+			 bytes, burl, "utf-8",
+			 XML_PARSE_NONET|XML_PARSE_NOWARNING|
+			 XML_PARSE_NOERROR);
 
   if (doc != NULL)
     {
@@ -112,24 +124,24 @@ parse_string (Lisp_Object string, Lisp_Object base_url, int htmlp)
   return result;
 }
 
-DEFUN ("xml-parse-html-string-internal", Fxml_parse_html_string_internal,
-       Sxml_parse_html_string_internal,
-       1, 2, 0,
-       doc: /* Parse STRING as an HTML document and return the parse tree.
+DEFUN ("libxml-parse-html-region", Flibxml_parse_html_region,
+       Slibxml_parse_html_region,
+       2, 3, 0,
+       doc: /* Parse the region as an HTML document and return the parse tree.
 If BASE-URL is non-nil, it is used to expand relative URLs.  */)
-  (Lisp_Object string, Lisp_Object base_url)
+  (Lisp_Object start, Lisp_Object end, Lisp_Object base_url)
 {
-  return parse_string (string, base_url, 1);
+  return parse_region (start, end, base_url, 1);
 }
 
-DEFUN ("xml-parse-string-internal", Fxml_parse_string_internal,
-       Sxml_parse_string_internal,
-       1, 2, 0,
-       doc: /* Parse STRING as an XML document and return the parse tree.
+DEFUN ("libxml-parse-xml-region", Flibxml_parse_xml_region,
+       Slibxml_parse_xml_region,
+       2, 3, 0,
+       doc: /* Parse the region as an XML document and return the parse tree.
 If BASE-URL is non-nil, it is used to expand relative URLs.  */)
-  (Lisp_Object string, Lisp_Object base_url)
+  (Lisp_Object start, Lisp_Object end, Lisp_Object base_url)
 {
-  return parse_string (string, base_url, 0);
+  return parse_region (start, end, base_url, 0);
 }
 
 
@@ -139,8 +151,8 @@ If BASE-URL is non-nil, it is used to expand relative URLs.  */)
 void
 syms_of_xml (void)
 {
-  defsubr (&Sxml_parse_html_string_internal);
-  defsubr (&Sxml_parse_string_internal);
+  defsubr (&Slibxml_parse_html_region);
+  defsubr (&Slibxml_parse_xml_region);
 }
 
 #endif /* HAVE_LIBXML2 */
