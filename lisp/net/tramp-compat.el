@@ -96,6 +96,11 @@
     (defvar byte-compile-not-obsolete-vars nil))
   (setq byte-compile-not-obsolete-vars '(directory-sep-char))
 
+  ;; `remote-file-name-inhibit-cache' has been introduced with Emacs 24.1.
+  ;; Besides `t', `nil', and integer, we use also timestamps (as
+  ;; returned by `current-time') internally.
+  (defvar remote-file-name-inhibit-cache nil)
+
   ;; For not existing functions, or functions with a changed argument
   ;; list, there are compiler warnings.  We want to avoid them in
   ;; cases we know what we do.

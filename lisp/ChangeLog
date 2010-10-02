@@ -1,3 +1,37 @@
+2010-10-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (remote-file-name-inhibit-cache): New defcustom.
+
+	* time.el (display-time-file-nonempty-p): Use
+	`remote-file-name-inhibit-cache'.
+
+	* net/tramp.el (tramp-completion-reread-directory-timeout): Fix
+	docstring.
+
+	* net/tramp-cache.el (tramp-cache-inhibit-cache): Remove.
+	(tramp-get-file-property): Replace `tramp-cache-inhibit-cache' by
+	`remote-file-name-inhibit-cache'.  Check also for an integer
+	value.  Add/increase counter when `tramp-verbose' >= 10.
+	(tramp-set-file-property): Add/increase counter when
+	`tramp-verbose' >= 10.
+
+	* net/tramp-cmds.el (tramp-cleanup-all-connections)
+	(tramp-cleanup-all-buffers): Set tramp-autoload cookie.
+	(tramp-bug): Set tramp-autoload cookie.  Report all interned
+	tramp-* variables.  Report also `remote-file-name-inhibit-cache'.
+	(tramp-reporter-dump-variable): Fix docstring.  Mask non-7bit
+	characters only in strings.
+
+	* net/tramp-compat.el (remote-file-name-inhibit-cache): Define due
+	to backward compatibility.
+
+	* net/tramp-sh.el (tramp-handle-verify-visited-file-modtime)
+	(tramp-handle-file-name-all-completions)
+	(tramp-handle-vc-registered): Use
+	`remote-file-name-inhibit-cache'.
+	(tramp-open-connection-setup-interactive-shell): Call
+	`tramp-cleanup-connection' directly.
+
 2010-10-02  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/checkdoc.el (checkdoc-minor-keymap): Remove obsolete alias.
