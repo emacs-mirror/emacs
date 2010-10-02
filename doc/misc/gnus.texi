@@ -15110,8 +15110,8 @@ arguments in a buffer narrowed to the headers of an incoming mail
 message.  The function should return a list of group names that it
 thinks should carry this mail message.
 
-This variable can also be a fancy split method.  See @xref{Fancy Mail
-Splitting} for the syntax.
+This variable can also be a fancy split method.  For the syntax,
+@pxref{Fancy Mail Splitting}.
 
 Note that the mail back ends are free to maul the poor, innocent,
 incoming headers all they want to.  They all add @code{Lines} headers;
