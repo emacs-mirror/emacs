@@ -86,7 +86,7 @@ parse_region (Lisp_Object start, Lisp_Object end, Lisp_Object base_url, int html
   LIBXML_TEST_VERSION;
 
   validate_region (&start, &end);
-  
+
   istart = XINT (start);
   iend = XINT (end);
 
@@ -100,7 +100,7 @@ parse_region (Lisp_Object start, Lisp_Object end, Lisp_Object base_url, int html
     }
 
   bytes = CHAR_TO_BYTE (iend) - CHAR_TO_BYTE (istart);
-  
+
   if (htmlp)
     doc = htmlReadMemory (BYTE_POS_ADDR (CHAR_TO_BYTE (istart)),
 			  bytes, burl, "utf-8",
