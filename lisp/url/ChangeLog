@@ -3,6 +3,7 @@
 	* url-util.el (url-display-percentage): Don't message when the URL
 	is silent.
 	(url-lazy-message): Ditto.
+	(url-lazy-message): Remove leftover debugging code.
 
 	* url-http.el (url-http-parse-headers): Pass the SILENT parameter
 	back to the fetching function.

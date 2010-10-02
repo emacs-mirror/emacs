@@ -184,10 +184,6 @@ Will not do anything if `url-show-status' is nil."
 	  (= url-lazy-message-time
 	     (setq url-lazy-message-time (nth 1 (current-time)))))
       nil
-    (message "hei: %s" url-current-object)
-    (with-current-buffer (get-buffer-create "back")
-      (let ((standard-output (current-buffer)))
-	(backtrace)))
     (apply 'message args)))
 
 ;;;###autoload
