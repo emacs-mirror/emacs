@@ -335,8 +335,8 @@ nt-TAGS-nmake:
 	echo This target is not supported with NMake
 	exit -1
 
-tags: TAGS TAGS-LISP ../nt/TAGS
-.PHONY: tags
+full-tags: TAGS TAGS-LISP ../nt/TAGS
+.PHONY: full-tags
 
 ### DEPENDENCIES ###
 

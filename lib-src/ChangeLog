@@ -1,3 +1,7 @@
+2010-10-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (tags): Remove target.
+
 2010-10-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (tags, TAGS): New targets.
