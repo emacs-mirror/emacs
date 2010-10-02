@@ -1,3 +1,10 @@
+2010-10-02  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (coding_inherit_eol_type): If parent doesn't specify
+	eol-format, inherit from the system's default.
+	(complement_process_encoding_system): Make a new coding system
+	inherit the original eol-format.
+
 2010-09-30  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (complement_process_encoding_system): New function.
