@@ -1,3 +1,12 @@
+2010-10-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el: New file.
+
+	* gnus-html.el (gnus-html-schedule-image-fetching): Be silent.
+
+	* gnus-topic.el (gnus-topic-move-group): Fix the syntax of the
+	completing read.
+
 2010-10-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-start.el (gnus-check-bogus-newsgroups): Say how many groups
