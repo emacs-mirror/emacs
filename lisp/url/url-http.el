@@ -643,7 +643,8 @@ should be shown to the user."
 		   (set (make-local-variable 'url-redirect-buffer)
 			(url-retrieve-internal
 			 redirect-uri url-callback-function
-			 url-callback-arguments))
+			 url-callback-arguments
+			 (url-silent url-current-object)))
 		   (url-mark-buffer-as-dead buffer))
 	       ;; We hit url-max-redirections, so issue an error and
 	       ;; stop redirecting.

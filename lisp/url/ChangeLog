@@ -1,3 +1,17 @@
+2010-10-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* url-util.el (url-display-percentage): Don't message when the URL
+	is silent.
+	(url-lazy-message): Ditto.
+
+	* url-http.el (url-http-parse-headers): Pass the SILENT parameter
+	back to the fetching function.
+
+	* url.el (url-retrieve): Add a silent parameter.
+	(url-retrieve-internal): Ditto.
+
+	* url-parse.el (url): Add a `silent' slot in the URL struct.
+
 2010-10-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* url-cookie.el (url-cookie-handle-set-cookie): Use

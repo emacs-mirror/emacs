@@ -177,11 +177,17 @@ Strips out default port numbers, etc."
 (defun url-lazy-message (&rest args)
   "Just like `message', but is a no-op if called more than once a second.
 Will not do anything if `url-show-status' is nil."
-  (if (or (null url-show-status)
+  (if (or (and url-current-object
+	       (url-silent url-current-object))
+	  (null url-show-status)
 	  (active-minibuffer-window)
 	  (= url-lazy-message-time
 	     (setq url-lazy-message-time (nth 1 (current-time)))))
       nil
+    (message "hei: %s" url-current-object)
+    (with-current-buffer (get-buffer-create "back")
+      (let ((standard-output (current-buffer)))
+	(backtrace)))
     (apply 'message args)))
 
 ;;;###autoload
@@ -222,7 +228,9 @@ Will not do anything if `url-show-status' is nil."
 
 ;;;###autoload
 (defun url-display-percentage (fmt perc &rest args)
-  (when url-show-status
+  (when (and url-show-status
+	     (or (null url-current-object)
+		 (not (url-silent url-current-object))))
     (if (null fmt)
 	(if (fboundp 'clear-progress-display)
 	    (clear-progress-display))
