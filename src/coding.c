@@ -6073,10 +6073,9 @@ raw_text_coding_system (coding_system)
 }
 
 
-/* If CODING_SYSTEM doesn't specify end-of-line format but PARENT
-   does, return one of the subsidiary that has the same eol-spec as
-   PARENT.  Otherwise, return CODING_SYSTEM.  If PARENT is nil,
-   inherit end-of-line format from the system's setting
+/* If CODING_SYSTEM doesn't specify end-of-line format, return one of
+   the subsidiary that has the same eol-spec as PARENT (if it is not
+   nil and specifies end-of-line format) or the system's setting
    (system_eol_type).  */
 
 Lisp_Object
@@ -6099,6 +6098,8 @@ coding_inherit_eol_type (coding_system, parent)
 
 	  parent_spec = CODING_SYSTEM_SPEC (parent);
 	  parent_eol_type = AREF (parent_spec, 2);
+	  if (VECTORP (parent_eol_type))
+	    parent_eol_type = system_eol_type;	    
 	}
       else
 	parent_eol_type = system_eol_type;
@@ -6132,7 +6133,7 @@ complement_process_encoding_system (coding_system)
 
   if (EQ (coding_type, Qundecided))
     {
-      /* We must decide the text-conversion part.  */
+      /* We must decide the text-conversion part ar first.  */
       if (CONSP (Vdefault_process_coding_system))
 	{
 	  coding_system = XCDR (Vdefault_process_coding_system);
@@ -6162,7 +6163,7 @@ complement_process_encoding_system (coding_system)
   if (NILP (eol_type) || VECTORP (eol_type))
     {
       /* We must decide the eol-conversion part.  */      
-      coding_system = coding_inherit_eol_type (coding_system, Qnil);
+      coding_system = coding_inherit_eol_type (coding_system, coding_system);
     }
 
   return coding_system;
