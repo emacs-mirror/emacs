@@ -23832,20 +23832,30 @@ coords_in_mouse_face_p (struct window *w, int hpos, int vpos)
       && vpos < dpyinfo->mouse_face_end_row)
     return 1;
 
-  if (MATRIX_ROW (w->current_matrix, vpos)->reversed_p)
+  if (!MATRIX_ROW (w->current_matrix, vpos)->reversed_p)
     {
-      if ((vpos == dpyinfo->mouse_face_beg_row
-	   && hpos <= dpyinfo->mouse_face_beg_col)
-	  || (vpos == dpyinfo->mouse_face_end_row
-	      && hpos > dpyinfo->mouse_face_end_col))
+      if (dpyinfo->mouse_face_beg_row == dpyinfo->mouse_face_end_row)
+	{
+	  if (dpyinfo->mouse_face_beg_col <= hpos && hpos < dpyinfo->mouse_face_end_col)
+	    return 1;
+	}
+      else if ((vpos == dpyinfo->mouse_face_beg_row
+		&& hpos >= dpyinfo->mouse_face_beg_col)
+	       || (vpos == dpyinfo->mouse_face_end_row
+		   && hpos < dpyinfo->mouse_face_end_col))
 	return 1;
     }
   else
     {
-      if ((vpos == dpyinfo->mouse_face_beg_row
-	   && hpos >= dpyinfo->mouse_face_beg_col)
-	  || (vpos == dpyinfo->mouse_face_end_row
-	      && hpos < dpyinfo->mouse_face_end_col))
+       if (dpyinfo->mouse_face_beg_row == dpyinfo->mouse_face_end_row)
+	{
+	  if (dpyinfo->mouse_face_end_col < hpos && hpos <= dpyinfo->mouse_face_beg_col)
+	    return 1;
+	}
+      else if ((vpos == dpyinfo->mouse_face_beg_row
+		&& hpos <= dpyinfo->mouse_face_beg_col)
+	       || (vpos == dpyinfo->mouse_face_end_row
+		   && hpos > dpyinfo->mouse_face_end_col))
 	return 1;
     }
   return 0;
@@ -24846,7 +24856,15 @@ note_mouse_highlight (struct frame *f, int x, int y)
       /* Clear mouse face if X/Y not over text.  */
       if (glyph == NULL
 	  || area != TEXT_AREA
-	  || !MATRIX_ROW (w->current_matrix, vpos)->displays_text_p)
+	  || !MATRIX_ROW (w->current_matrix, vpos)->displays_text_p
+	  /* R2L rows have a stretch glyph at their front, which
+	     stands for no text, whereas L2R rows have no glyphs at
+	     all beyond the end of text.  Treat such stretch glyphs as
+	     NULL glyphs in L2R rows.  */
+	  || (MATRIX_ROW (w->current_matrix, vpos)->reversed_p
+	      && glyph == MATRIX_ROW (w->current_matrix, vpos)->glyphs[TEXT_AREA]
+	      && glyph->type == STRETCH_GLYPH
+	      && glyph->avoid_cursor_p))
 	{
 	  if (clear_mouse_face (dpyinfo))
 	    cursor = No_Cursor;
