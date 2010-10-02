@@ -1,3 +1,20 @@
+2010-10-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in: Include stdlib.h and string.h unconditionally.
+
+2010-09-29  Romain Francoise  <romain@orebokech.com>
+
+	* configure.in: Don't enable ImageMagick unless HAVE_X11.
+
+2010-09-28  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (HAVE_GNUTLS): Add a description to make autoheader
+	happy.
+
+2010-09-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* configure.in: Enable imagemagick by default.
+
 2010-09-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* configure.in (HAVE_GNUTLS): Don't break if we don't have the

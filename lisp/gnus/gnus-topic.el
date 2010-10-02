@@ -161,9 +161,7 @@ See Info node `(gnus)Formatting Variables'."
 (defun gnus-topic-jump-to-topic (topic)
   "Go to TOPIC."
   (interactive
-   (list (completing-read "Go to topic: "
-			  (mapcar 'list (gnus-topic-list))
-			  nil t)))
+   (list (gnus-completing-read "Go to topic" (gnus-topic-list) t)))
   (let ((buffer-read-only nil))
     (dolist (topic (gnus-current-topics topic))
       (unless (gnus-topic-goto-topic topic)
@@ -1303,7 +1301,7 @@ When used interactively, PARENT will be the topic under point."
 If COPYP, copy the groups instead."
   (interactive
    (list current-prefix-arg
-	 (gnus-completing-read "Move to topic" gnus-topic-alist nil t
+	 (gnus-completing-read "Move to topic" (mapcar 'car gnus-topic-alist) t
 			       'gnus-topic-history)))
   (let ((use-marked (and (not n) (not (gnus-region-active-p))
 			 gnus-group-marked t))
@@ -1350,7 +1348,7 @@ If COPYP, copy the groups instead."
   "Copy the current group to a topic."
   (interactive
    (list current-prefix-arg
-	 (completing-read "Copy to topic: " gnus-topic-alist nil t)))
+	 (gnus-completing-read "Copy to topic" (mapcar 'car gnus-topic-alist) t)))
   (gnus-topic-move-group n topic t))
 
 (defun gnus-topic-kill-group (&optional n discard)
@@ -1443,7 +1441,8 @@ If PERMANENT, make it stay shown in subsequent sessions as well."
 	(gnus-topic-remove-topic t nil)
       (let ((topic
 	     (gnus-topic-find-topology
-	      (completing-read "Show topic: " gnus-topic-alist nil t))))
+	      (gnus-completing-read "Show topic"
+                                    (mapcar 'car gnus-topic-alist) t))))
 	(setcar (cddr (cadr topic)) nil)
 	(setcar (cdr (cadr topic)) 'visible)
 	(gnus-group-list-groups)))))
@@ -1491,7 +1490,8 @@ If NON-RECURSIVE (which is the prefix) is t, don't unmark its subtopics."
    (let (topic)
      (nreverse
       (list
-       (setq topic (completing-read "Move to topic: " gnus-topic-alist nil t))
+       (setq topic (gnus-completing-read "Move to topic"
+                                         (mapcar 'car gnus-topic-alist) t))
        (read-string (format "Move to %s (regexp): " topic))))))
   (gnus-group-mark-regexp regexp)
   (gnus-topic-move-group nil topic copyp))
@@ -1502,7 +1502,8 @@ If NON-RECURSIVE (which is the prefix) is t, don't unmark its subtopics."
    (let (topic)
      (nreverse
       (list
-       (setq topic (completing-read "Copy to topic: " gnus-topic-alist nil t))
+       (setq topic (gnus-completing-read "Copy to topic"
+                                         (mapcar 'car gnus-topic-alist) t))
        (read-string (format "Copy to %s (regexp): " topic))))))
   (gnus-topic-move-matching regexp topic t))
 
@@ -1723,8 +1724,9 @@ If REVERSE, sort in reverse order."
   "Sort topics in TOPIC alphabetically by topic name.
 If REVERSE, reverse the sorting order."
   (interactive
-   (list (completing-read "Sort topics in : " gnus-topic-alist nil t
-			  (gnus-current-topic))
+   (list (gnus-completing-read "Sort topics in"
+                               (mapcar 'car gnus-topic-alist) t
+                               (gnus-current-topic))
 	 current-prefix-arg))
   (let ((topic-topology (or (and topic (cdr (gnus-topic-find-topology topic)))
 			    gnus-topic-topology)))
@@ -1738,7 +1740,7 @@ If REVERSE, reverse the sorting order."
   (interactive
    (list
     (gnus-group-topic-name)
-    (completing-read "Move to topic: " gnus-topic-alist nil t)))
+    (gnus-completing-read "Move to topic" (mapcar 'car gnus-topic-alist) t)))
   (unless (and current to)
     (error "Can't find topic"))
   (let ((current-top (cdr (gnus-topic-find-topology current)))

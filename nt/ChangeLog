@@ -1,3 +1,32 @@
+2010-10-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (frc, TAGS, TAGS-gmake, TAGS-nmake): New targets.
+	emacs-src.tags: New file.
+
+	* gmake.defs: Add a comment with a single quote to fix
+	fontification.  (Bug#7102)
+
+2010-09-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat: Fix the condition for copying paths.h into
+	../src/epaths.h.
+
+2010-09-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* addpm.c (entry, add_registry, main):
+	* addsection.c (file_data, open_input_file, open_output_file)
+	(find_section, PTR_TO_OFFSET, copy_executable_and_add_section)
+	(COPY_CHUNK):
+	* cmdproxy.c (vfprintf, fprintf, printf, fail, warn, skip_space)
+	(skip_nonspace, get_next_token, search_dir, make_absolute)
+	(spawn, main):
+	* preprep.c (file_data, open_input_file, open_output_file)
+	(open_inout_file, find_section, PTR_TO_OFFSET, COPY_CHUNK, main):
+	Use const char*.
+
+	* cmdproxy.c (stdin): Don't define, not used.
+	(main): Don't assign remlen after last use.
+
 2010-09-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* configure.bat: Err out when the argument of --cflags contains

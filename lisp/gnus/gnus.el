@@ -1427,6 +1427,7 @@ no need to set this variable."
   :group 'gnus-message
   :type '(choice (const :tag "default" nil)
 		 string))
+(make-obsolete-variable 'gnus-local-domain nil "Emacs 24.1")
 
 (defvar gnus-local-organization nil
   "String with a description of what organization (if any) the user belongs to.
@@ -1490,7 +1491,9 @@ newsgroups."
   "*The number of articles which indicates a large newsgroup.
 If the number of articles in a newsgroup is greater than this value,
 confirmation is required for selecting the newsgroup.
-If it is nil, no confirmation is required."
+If it is nil, no confirmation is required.
+
+Also see `gnus-large-ephemeral-newsgroup'."
   :group 'gnus-group-select
   :type '(choice (const :tag "No limit" nil)
 		 integer))
@@ -3205,7 +3208,6 @@ If ARG, insert string at point."
 
 (defun gnus-continuum-version (&optional version)
   "Return VERSION as a floating point number."
-  (interactive)
   (unless version
     (setq version gnus-version))
   (when (or (string-match "^\\([^ ]+\\)? ?Gnus v?\\([0-9.]+\\)$" version)
@@ -4241,9 +4243,9 @@ Allow completion over sensible values."
 		  gnus-predefined-server-alist
 		  gnus-server-alist))
 	 (method
-	  (completing-read
-	   prompt servers
-	   nil t nil 'gnus-method-history)))
+	  (gnus-completing-read
+	   prompt (mapcar 'car servers)
+	   t nil 'gnus-method-history)))
     (cond
      ((equal method "")
       (setq method gnus-select-method))

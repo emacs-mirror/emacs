@@ -23,7 +23,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <stdio.h>
 #include <ctype.h>
-#include <string.h>
 #include <errno.h>
 #include <sys/file.h>
 
@@ -3657,9 +3656,6 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
   tty->type = xstrdup (terminal_type);
 
   add_keyboard_wait_descriptor (0);
-
-  /* FIXME: this should be removed,  done earlier. */
-  Wcm_clear (tty);
 
   tty->delete_in_insert_mode = 1;
 

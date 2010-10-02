@@ -812,7 +812,10 @@ If NO-DECODE is non-nil, don't decode STRING."
 ;;;
 
 (defvar mailcap-mime-extensions
-  '((""        . "text/plain")
+  '((""       . "text/plain")
+    (".1"     . "text/plain")  ;; Manual pages
+    (".3"     . "text/plain")
+    (".8"     . "text/plain")
     (".abs"   . "audio/x-mpeg")
     (".aif"   . "audio/aiff")
     (".aifc"  . "audio/aiff")
@@ -828,6 +831,7 @@ If NO-DECODE is non-nil, don't decode STRING."
     (".css"   . "text/css")
     (".dvi"   . "application/x-dvi")
     (".diff"  . "text/x-patch")
+    (".dpatch". "test/x-patch")
     (".el"    . "application/emacs-lisp")
     (".eps"   . "application/postscript")
     (".etx"   . "text/x-setext")
@@ -869,6 +873,7 @@ If NO-DECODE is non-nil, don't decode STRING."
     (".pict"  . "image/pict")
     (".png"   . "image/png")
     (".pnm"   . "image/x-portable-anymap")
+    (".pod"   . "text/plain")
     (".ppm"   . "image/portable-pixmap")
     (".ps"    . "application/postscript")
     (".qt"    . "video/quicktime")

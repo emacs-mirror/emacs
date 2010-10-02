@@ -114,9 +114,10 @@ top, left, right or bottom.  The Options => Show/Hide menu has entries
 for this.
 
 ** ImageMagick support.
-It is now possible to use the Imagemagick library to load many new
-image formats in Emacs.  To enable this, use the configure option
-`--with-imagemagick'.
+It is now possible to use the ImageMagick library to load many new
+image formats in Emacs.  By default, Emacs links with the ImageMagick
+libraries if they are present at build time.  To disable this, use
+the configure option `--without-imagemagick'.
 
 The new function `imagemagick-types' returns a list of image file
 extensions that your installation of ImageMagick supports.  The
@@ -257,6 +258,21 @@ You can get a comparable behavior with:
 (setq completion-pcm-complete-word-inserts-delimiters t)
 
 ** mpc.el: Can use pseudo tags of the form tag1|tag2 as a union of two tags.
+
+** Calendar, Diary, and Appt
+
+---
+*** The obsolete (since Emacs 22.1) method of enabling the appt package
+by adding appt-make-list to diary-hook has been removed.  Use appt-activate.
+
+---
+*** Some appt variables (obsolete since Emacs 22.1) have been removed:
+appt-issue-message (use the function appt-activate)
+appt-visible/appt-msg-window (use the variable appt-display-format)
+
+---
+*** Some diary function aliases (obsolete since Emacs 22.1) have been removed:
+view-diary-entries, list-diary-entries, show-all-diary-entries
 
 ** Customize
 
@@ -568,6 +584,7 @@ Emacs Lisp parse tree.
 
 FIXME: These should be front-ended by xml.el.
 
+** FIXME GnuTLS
 
 ** Isearch
 

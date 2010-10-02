@@ -1,3 +1,138 @@
+2010-10-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/tls.el (tls-starttls-switches): Give up on using starttls with
+	gnutls-cli.
+	(tls-program): Add --insecure to be consistent with the defaults from
+	openssl s_client.  Now all three commands are insecure.
+
+2010-10-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (DEST, TAGS, TAGS-LISP, TAGS-nmake)
+	(TAGS-LISP-nmake, TAGS-gmake, TAGS-LISP-gmake, TAGS-SH)
+	(TAGS-LISP-SH, TAGS-CMD, TAGS-LISP-CMD): New targets.
+
+2010-10-01  Glenn Morris  <rgm@gnu.org>
+
+	* obsolete/sc.el: Remove file.
+
+	* files.el (temporary-file-directory): On darwin, also try
+	DARWIN_USER_TEMP_DIR (see discussion in bug#7135).
+
+2010-10-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-start): Revert part of revno 101688.
+	Let's not break compatibility gratuitously, shall we?
+
+2010-09-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/tls.el (tls-starttls-switches): New variable.
+	(tls-find-starttls-argument): Use it.
+	(open-tls-stream): Ditto.
+
+	* net/netrc.el (netrc-credentials): Return the value of the "default"
+	entry.
+	(netrc-machine): Ditto.
+
+2010-09-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* vc/vc-hooks.el (vc-default-mode-line-string): Doc fix.
+
+2010-09-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-start): Don't write pid to the authentication file.
+	(server-create-tty-frame): Don't send pid.
+	(server-process-filter): Send pid at the start of every connection.
+
+2010-09-30  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (view-diary-entries, list-diary-entries)
+	(show-all-diary-entries): Remove obsolete function aliases.
+
+	* calendar/appt.el (appt-issue-message, appt-visible, appt-msg-window):
+	Remove options, obsolete since 22.1.
+	(appt-display-format, appt-display-message): Remove
+	backwards-compatibility code.
+	(appt-check): No longer check appt-issue-message.
+	(appt-make-list): No longer autoload it.  Doc fix.  No longer
+	activate the package.
+
+2010-09-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/gnutls.el (starttls-negotiate): Loop a lot longer.
+	(starttls-negotiate): Just call boot, and let the handshake be
+	triggered from the read loop.
+
+2010-09-29  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-list-entries): Use temp buffers when
+	not displaying the diary.
+	(diary-add-to-list): If no buffer-file-name, fall back to diary-file.
+	* calendar/appt.el (appt-check): No longer need to kill diary.
+
+	* calendar/diary-lib.el (diary-list-entries): Move the
+	"Preparing..." message entirely here.
+	(diary-simple-display, diary-fancy-display): Move "Preparing..."
+	messages to diary-list-entries.
+	(diary-include-other-diary-files): Use LIST-ONLY rather than setting
+	diary-display-function.
+
+	* calendar/diary-lib.el (diary-include-other-diary-files):
+	Trap some recursive includes.
+
+	* calendar/appt.el (appt-activate): Check diary file.
+
+2010-09-29  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* pgg.el (pgg-run-at-time-1): Define it for XEmacs only; fix if/else
+	construction.
+
+	* calendar/time-date.el: No need to require cl for Emacs 21.
+
+2010-09-28  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/appt.el (appt-check): Minor simplification.
+
+2010-09-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mail/sendmail.el (mail-citation-prefix-regexp): Remove "}" from
+	citation prefix.
+
+2010-09-27  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* emacs-lisp/byte-opt.el (byte-optimize-form-code-walker):
+	Avoid infinite recursion on erroneous lambda form.  (Bug#7114)
+
+2010-09-27  Kenichi Handa  <handa@m17n.org>
+
+	* tar-mode.el (tar-header-block-tokenize): Decode filenames in
+	"ustar" format.
+
+2010-09-27  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (define-coding-system): Docstring fixed.
+
+	* international/mule-diag.el (describe-character-set): Use princ
+	with proper print-length and print-level instead of insert.
+
+2010-09-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* window.el (walk-windows): Doc fix (bug#7105).
+
+2010-09-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/float-sup.el (e): Remove.
+
+2010-09-27  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/gnutls.el (gnutls, gnutls-log-level): Add group and custom
+	variable.
+	(starttls-negotiate): Use it.
+
+2010-09-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/gnutls.el (starttls-negotiate): Stop looping when we get a t
+	back.
+
 2010-09-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/pcase.el (pcase-let*, pcase-let): plet -> pcase-let.
@@ -1289,8 +1424,8 @@
 	Setup standard-display-table for 8-bit characters by storing 8-bit
 	characters in the element vector.
 
-	* disp-table.el (standard-display-8bit): Setup
-	standard-display-table for 8-bit characters by storing 8-bit
+	* disp-table.el (standard-display-8bit):
+	Setup standard-display-table for 8-bit characters by storing 8-bit
 	characters in the element vector.
 	(standard-display-european): Likewise.
 
@@ -1519,8 +1654,7 @@
 2010-08-26  David Reitter  <david.reitter@gmail.com>
 
 	* server.el (server-visit-files): Run pre-command-hook and
-	post-command-hook for each buffer while it is current
-	(Bug#6910).
+	post-command-hook for each buffer while it is current (Bug#6910).
 	(server-execute): Do not run hooks here.
 
 2010-08-26  Michael Albinus  <michael.albinus@gmx.de>
@@ -1556,8 +1690,8 @@
 	(tramp-compat-file-attributes): Handle only
 	`wrong-number-of-arguments' error.
 
-	* net/tramp-fish.el (tramp-fish-handle-copy-file): Add
-	PRESERVE_SELINUX_CONTEXT.
+	* net/tramp-fish.el (tramp-fish-handle-copy-file):
+	Add PRESERVE_SELINUX_CONTEXT.
 	(tramp-fish-handle-delete-file): Add TRASH arg.
 	(tramp-fish-handle-directory-files-and-attributes):
 	Do not use `tramp-fish-handle-file-attributes.
@@ -1575,8 +1709,8 @@
 	(with-tramp-dbus-call-method): Format trace message.
 	(tramp-gvfs-handle-copy-file): Handle PRESERVE-SELINUX-CONTEXT.
 	(tramp-gvfs-handle-copy-file, tramp-gvfs-handle-rename-file):
-	Implement backup call, when operation on local files fails.  Use
-	progress reporter.  Flush properties of changed files.
+	Implement backup call, when operation on local files fails.
+	Use progress reporter.  Flush properties of changed files.
 	(tramp-gvfs-handle-delete-file): Add TRASH arg.  Use
 	`tramp-compat-delete-file'.
 	(tramp-gvfs-handle-expand-file-name): Expand "~/".
@@ -1587,12 +1721,12 @@
 	into account for the resulting file name.
 	(tramp-gvfs-handler-askquestion): Preserve current message, in
 	order to let progress reporter continue afterwards.  (Bug#6257)
-	Return dummy mountpoint, when the answer is "no".  See
-	`tramp-gvfs-maybe-open-connection'.
+	Return dummy mountpoint, when the answer is "no".
+	See `tramp-gvfs-maybe-open-connection'.
 	(tramp-gvfs-handler-mounted-unmounted)
 	(tramp-gvfs-connection-mounted-p): Test also for new mountspec
-	attribute "default_location".  Set "prefix" property.  Handle
-	default-location.
+	attribute "default_location".  Set "prefix" property.
+	Handle default-location.
 	(tramp-gvfs-mount-spec): Return both prefix and mountspec.
 	(tramp-gvfs-maybe-open-connection): Test, whether mountpoint
 	exists.  Raise an error, if not (due to a corresponding answer
@@ -1606,8 +1740,8 @@
 	(tramp-imap-handle-file-local-copy): Use `with-progress-reporter'.
 	(tramp-imap-handle-delete-file): Add TRASH arg.
 
-	* net/tramp-smb.el (tramp-smb-handle-copy-file): Add
-	PRESERVE-SELINUX-CONTEXT.
+	* net/tramp-smb.el (tramp-smb-handle-copy-file):
+	Add PRESERVE-SELINUX-CONTEXT.
 	(tramp-smb-handle-copy-file)
 	(tramp-smb-handle-file-local-copy, tramp-smb-handle-rename-file)
 	(tramp-smb-handle-write-region, tramp-smb-maybe-open-connection):
@@ -1674,8 +1808,8 @@
 	(tramp-get-remote-path): Use `copy-tree'.
 	(tramp-completion-handle-file-name-all-completions): Ensure, that
 	non remote files are still checked.  Oops.
-	(tramp-handle-copy-file, tramp-do-copy-or-rename-file): Handle
-	PRESERVE-SELINUX-CONTEXT.
+	(tramp-handle-copy-file, tramp-do-copy-or-rename-file):
+	Handle PRESERVE-SELINUX-CONTEXT.
 	(tramp-do-copy-or-rename-file): Add progress reporter.
 	(tramp-do-copy-or-rename-file-directly): Do not use
 	`tramp-handle-file-remote-p'.
@@ -1689,8 +1823,8 @@
 	cache.
 	(tramp-handle-expand-file-name)
 	(tramp-completion-handle-file-name-all-completions)
-	(tramp-completion-handle-file-name-completion): Use
-	`tramp-connectable-p'.
+	(tramp-completion-handle-file-name-completion):
+	Use `tramp-connectable-p'.
 	(tramp-handle-start-file-process): Set connection property "vec".
 	Use it, in order to invalidate file caches.  Check only for
 	`remote-tty' process property.
@@ -1861,10 +1995,10 @@
 2010-08-22  Leo  <sdl.web@gmail.com>
 
 	Fix buffer-list rename&refresh after killing a buffer in ido.
-	* lisp/ido.el: Revert Óscar's.
+	* ido.el: Revert Óscar's.
 	(ido-kill-buffer-at-head): Exit the minibuffer with ido-exit=refresh.
 	Remember the buffers at head, rather than their name.
-	* lisp/iswitchb.el (iswitchb-kill-buffer): Re-make the list.
+	* iswitchb.el (iswitchb-kill-buffer): Re-make the list.
 
 2010-08-22  Kirk Kelsey  <kirk.kelsey@0x4b.net>  (tiny change)
             Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -3205,8 +3339,7 @@
 2010-07-03  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/zeroconf.el (zeroconf-resolve-service)
-	(zeroconf-service-resolver-handler): Use
-	`dbus-byte-array-to-string'.
+	(zeroconf-service-resolver-handler): Use `dbus-byte-array-to-string'.
 	(zeroconf-publish-service): Use `dbus-string-to-byte-array'.
 
 2010-07-03  Jan Moringen  <jan.moringen@uni-bielefeld.de>
@@ -3368,8 +3501,7 @@
 	* emacs-lisp/package-x.el: New file.  Package uploading
 	functionality split out from package.el.
 
-	* startup.el (command-line): Load packages after reading init
-	file.
+	* startup.el (command-line): Load packages after reading init file.
 
 2010-06-17  Tom Tromey  <tromey@redhat.com>
 
@@ -3378,7 +3510,7 @@
 2010-06-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Fix vc-annotate for renamed files when using Git.
-	* vc-git.el (vc-git-find-revision): Deal with empty results from
+	* vc/vc-git.el (vc-git-find-revision): Deal with empty results from
 	ls-files.  Doe not pass the object as a file name to cat-file, it
 	is not a file name.
 	(vc-git-annotate-command): Pass the file name using -- to avoid
@@ -3399,29 +3531,29 @@
 2010-06-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Fix annotating other revisions for renamed files in vc-annotate.
-	* vc-annotate.el (vc-annotate): Add an optional argument for the
+	* vc/vc-annotate.el (vc-annotate): Add an optional argument for the
 	VC backend.  Use it when non-nil.
 	(vc-annotate-warp-revision): Pass the VC backend to vc-annotate.
 	(Bug#6487)
 
 	Fix vc-annotate-show-changeset-diff-revision-at-line for git.
-	* vc-annotate.el (vc-annotate-show-diff-revision-at-line-internal):
+	* vc/vc-annotate.el (vc-annotate-show-diff-revision-at-line-internal):
 	Do not pass the file name to the 'previous-revision call when we
 	don't want a file diff.  (Bug#6489)
 
 2010-06-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Fix finding revisions for renamed files in vc-annotate.
-	* vc.el (vc-find-revision): Add an optional argument for
+	* vc/vc.el (vc-find-revision): Add an optional argument for
 	the VC backend.  Use it when non-nil.
-	* vc-annotate.el (vc-annotate-find-revision-at-line): Pass the VC
+	* vc/vc-annotate.el (vc-annotate-find-revision-at-line): Pass the VC
 	backend to vc-find-revision.  (Bug#6487)
 
 2010-06-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Fix reading file names in Git annotate buffers.
-	* vc-git.el (vc-git-annotate-extract-revision-at-line): Remove
-	trailing whitespace.  Suggested by Eric Hanchrow.  (Bug#6481)
+	* vc/vc-git.el (vc-git-annotate-extract-revision-at-line):
+	Remove trailing whitespace.  Suggested by Eric Hanchrow.  (Bug#6481)
 
 2010-06-20  Alan Mackenzie  <acm@muc.de>
 
@@ -3467,7 +3599,7 @@
 
 2010-06-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* vc-annotate.el (vc-annotate): Use vc-read-revision.
+	* vc/vc-annotate.el (vc-annotate): Use vc-read-revision.
 
 2010-06-16  Glenn Morris  <rgm@gnu.org>
 
@@ -3485,7 +3617,7 @@
 
 2010-06-16  Bob Rogers  <rogers-emacs@rgrjr.dyndns.org>  (tiny change)
 
-	* vc-svn.el (vc-svn-after-dir-status): Fix regexp for Subversions
+	* vc/vc-svn.el (vc-svn-after-dir-status): Fix regexp for Subversions
 	older than version 1.6.  (Bug#6361)
 
 2010-06-16  Helmut Eller  <eller.helmut@gmail.com>
@@ -4205,7 +4337,7 @@
 	* bs.el, expand.el, ido.el, image-dired.el, lpr.el, pcomplete.el,
 	* skeleton.el, term.el, time.el, wid-edit.el, woman.el,
 	* calc/calc-graph.el, calc/calc-help.el, calc/calc-incom.el,
-	* calc/calc.el, emacs-cl-extra.el, emacs-cl-loaddefs.el,
+	* calc/calc.el, emacs-lisp/cl-extra.el, emacs-lips/cl-loaddefs.el,
 	* emulation/cua-rect.el, emulation/viper-ex.el, eshell/esh-test.el,
 	* eshell/eshell.el, gnus/gnus-uu.el, gnus/nndoc.el, gnus/nnrss.el,
 	* gnus/rfc2047.el, gnus/utf7.el, international/utf-7.el,
@@ -4876,7 +5008,7 @@
 
 2010-05-07  Christian von Roques  <roques@mti.ag>  (tiny change)
 
-	* lisp/epg.el (epg-key-capablity-alist): Add "D" flag (Bug#5592).
+	* epg.el (epg-key-capablity-alist): Add "D" flag (Bug#5592).
 
 2010-05-07  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -5524,25 +5656,25 @@
 
 2010-04-18  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc.el (calc-mode-map): Bind "O" to `calc-missing-key'.
+	* calc/calc.el (calc-mode-map): Bind "O" to `calc-missing-key'.
 
-	* calc-bin.el (calc-radix): Have the "O" option turn on
+	* calc/calc-bin.el (calc-radix): Have the "O" option turn on
 	twos-complement mode.
 
 2010-04-17  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc-ext.el (calc-init-extensions): Add keybinding for 'calc-option'.
-	Add `calc-option-prefix-help' to calc-help autoloads.
+	* calc/calc-ext.el (calc-init-extensions): Add keybinding for
+	'calc-option'.  Add `calc-option-prefix-help' to calc-help autoloads.
 	(calc-inverse): Add "Option" to message, as appropriate.
 	(calc-hyperbolic): Add "Option" to message, as appropriate.
 	(calc-option, calc-is-option): New functions.
 
-	* calc-help.el (calc-full-help): Add `calc-option-help'.
+	* calc/calc-help.el (calc-full-help): Add `calc-option-help'.
 	(calc-option-prefix-help): New function.
 
-	* calc-misc.el (calc-help): Add "Option" entry.
+	* calc/calc-misc.el (calc-help): Add "Option" entry.
 
-	* calc.el (calc-local-var-list): Add `calc-option-flag'.
+	* calc/calc.el (calc-local-var-list): Add `calc-option-flag'.
 	(calc-option-flag): New variable.
 	(calc-do): Set `calc-option-flag to nil.
 	(calc-set-mode-line): Add "Opt " as appropriate.
@@ -6113,9 +6245,9 @@
 2010-03-27  Nick Roberts  <nickrob@snap.net.nz>
 
 	Restore GDB/MI fuctionality removed by r99212.
-	* lisp/progmodes/gdb-mi.el: Restore.
-	* lisp/progmodes/gdb-ui.el: Remove.
-	* lisp/progmodes/gud.el: Re-accommodate for gdb-mi.el.
+	* progmodes/gdb-mi.el: Restore.
+	* progmodes/gdb-ui.el: Remove.
+	* progmodes/gud.el: Re-accommodate for gdb-mi.el.
 
 2010-03-25  Glenn Morris  <rgm@gnu.org>
 
@@ -6213,10 +6345,6 @@
 2010-03-24  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/trampver.el: Update release number.
-
-2010-03-24  Glenn Morris  <rgm@gnu.org>
-
-	* Makefile.in (ELCFILES): Add cedet/semantic/imenu.el.
 
 2010-03-24  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -6797,11 +6925,6 @@
 
 	* files.el (hack-local-variables-filter): For eval forms, also
 	check safe-local-variable-p (Bug#5636).
-
-2010-02-24  Eduard Wiebe  <usenet@pusto.de>
-
-	* javascript.el (wisent-javascript-jv-expand-tag): Avoid c(ad)ddr
-	and use c(ad)r of cddr (Bug#5640).
 
 2010-02-22  Michael Albinus  <michael.albinus@gmx.de>
 

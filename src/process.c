@@ -31,7 +31,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_INTTYPES_H
 #include <inttypes.h>
 #endif
-#include <stdlib.h>
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -80,6 +79,10 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #ifdef HAVE_UTIL_H
 #include <util.h>
+#endif
+
+#ifdef HAVE_PTY_H
+#include <pty.h>
 #endif
 
 #endif	/* subprocesses */
@@ -170,13 +173,6 @@ extern Lisp_Object QCfilter;
 
 /* Define first descriptor number available for subprocesses.  */
 #define FIRST_PROC_DESC 3
-
-/* Define SIGCHLD as an alias for SIGCLD.  There are many conditionals
-   testing SIGCHLD.  */
-
-#if !defined (SIGCHLD) && defined (SIGCLD)
-#define SIGCHLD SIGCLD
-#endif /* SIGCLD */
 
 extern const char *get_operating_system_release (void);
 
@@ -356,14 +352,6 @@ struct sockaddr_and_len {
 /* Maximum number of bytes to send to a pty without an eof.  */
 static int pty_max_bytes;
 
-#ifdef HAVE_PTYS
-#ifdef HAVE_PTY_H
-#include <pty.h>
-#endif
-/* The file name of the pty opened by allocate_pty.  */
-
-static char pty_name[24];
-#endif
 
 
 struct fd_callback_data
@@ -563,6 +551,9 @@ status_message (struct Lisp_Process *p)
 
 #ifdef HAVE_PTYS
 
+/* The file name of the pty opened by allocate_pty.  */
+static char pty_name[24];
+
 /* Open an available pty, returning a file descriptor.
    Return -1 on failure.
    The file name of the terminal corresponding to the pty
@@ -671,6 +662,8 @@ make_process (Lisp_Object name)
 
 #ifdef HAVE_GNUTLS
   p->gnutls_initstage = GNUTLS_STAGE_EMPTY;
+  p->gnutls_log_level = 0;
+  p->gnutls_p = 0;
 #endif
 
   /* If name is already in use, modify it until it is unused.  */
@@ -5067,6 +5060,7 @@ wait_reading_process_output (int time_limit, int microsecs, int read_kbd,
 	      struct Lisp_Process *p;
 
 	      FD_CLR (channel, &connect_wait_mask);
+              FD_CLR (channel, &write_mask);
 	      if (--num_pending_connects < 0)
 		abort ();
 
@@ -5201,8 +5195,8 @@ read_process_output (Lisp_Object proc, register int channel)
   if (proc_buffered_char[channel] < 0)
     {
 #ifdef HAVE_GNUTLS
-      if (NETCONN_P(proc) && GNUTLS_PROCESS_USABLE (proc))
-	nbytes = emacs_gnutls_read (channel, XPROCESS (proc)->gnutls_state,
+      if (XPROCESS (proc)->gnutls_p)
+	nbytes = emacs_gnutls_read (channel, XPROCESS (proc),
                                     chars + carryover, readmax);
       else
 #endif
@@ -5240,8 +5234,8 @@ read_process_output (Lisp_Object proc, register int channel)
       chars[carryover] = proc_buffered_char[channel];
       proc_buffered_char[channel] = -1;
 #ifdef HAVE_GNUTLS
-      if (NETCONN_P(proc) && GNUTLS_PROCESS_USABLE (proc))
-	nbytes = emacs_gnutls_read (channel, XPROCESS (proc)->gnutls_state,
+      if (XPROCESS (proc)->gnutls_p)
+	nbytes = emacs_gnutls_read (channel, XPROCESS (proc),
                                     chars + carryover + 1, readmax - 1);
       else
 #endif
@@ -5656,9 +5650,9 @@ send_process (volatile Lisp_Object proc, const unsigned char *volatile buf,
 #endif
 		{
 #ifdef HAVE_GNUTLS
-		  if (NETCONN_P(proc) && GNUTLS_PROCESS_USABLE (proc))
+		  if (XPROCESS (proc)->gnutls_p)
 		    rv = emacs_gnutls_write (outfd,
-					     XPROCESS (proc)->gnutls_state, 
+					     XPROCESS (proc), 
 					     (char *) buf, this);
 		  else
 #endif

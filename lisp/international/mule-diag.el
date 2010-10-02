@@ -368,7 +368,8 @@ meanings of these arguments."
 	  (when val
 	    (if (cadr elt) (insert (cadr elt)))
 	    (if (nth 2 elt)
-		(insert (funcall (nth 2 elt) val)))
+		(let ((print-length 10) (print-level 2))
+		  (princ (funcall (nth 2 elt) val) (current-buffer))))
 	    (insert ?\n)))))))
 
 ;;; CODING-SYSTEM

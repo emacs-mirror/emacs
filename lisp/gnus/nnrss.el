@@ -77,7 +77,8 @@ this variable to the list of fields to be ignored.")
 (defvar nnrss-group-alist '()
   "List of RSS addresses.")
 
-(defvar nnrss-use-local nil)
+(defvar nnrss-use-local nil
+  "If non-nil nnrss will read the feeds from local files in nnrss-directory.")
 
 (defvar nnrss-description-field 'X-Gnus-Description
   "Field name used for DESCRIPTION.
@@ -561,12 +562,7 @@ which RSS 2.0 allows."
   (let ((file (nnrss-make-filename "nnrss" server))
 	(file-name-coding-system nnmail-pathname-coding-system))
     (when (file-exists-p file)
-      ;; In Emacs 21.3 and earlier, `load' doesn't support non-ASCII
-      ;; file names.  So, we use `insert-file-contents' instead.
-      (mm-with-multibyte-buffer
-	(let ((coding-system-for-read nnrss-file-coding-system))
-	  (insert-file-contents file)
-	  (eval-region (point-min) (point-max)))))))
+      (load file nil t t))))
 
 (defun nnrss-save-server-data (server)
   (gnus-make-directory nnrss-directory)
@@ -590,12 +586,7 @@ which RSS 2.0 allows."
   (let ((file (nnrss-make-filename group server))
 	(file-name-coding-system nnmail-pathname-coding-system))
     (when (file-exists-p file)
-      ;; In Emacs 21.3 and earlier, `load' doesn't support non-ASCII
-      ;; file names.  So, we use `insert-file-contents' instead.
-      (mm-with-multibyte-buffer
-	(let ((coding-system-for-read nnrss-file-coding-system))
-	  (insert-file-contents file)
-	  (eval-region (point-min) (point-max))))
+      (load file nil t t)
       (dolist (e nnrss-group-data)
 	(puthash (nth 9 e) t nnrss-group-hashtb)
 	(when (and (car e) (> nnrss-group-min (car e)))
@@ -1058,9 +1049,9 @@ whether they are `offsite' or `onsite'."
 				    (cdr (assoc "feedid" listinfo)))))
 			   feedinfo)))
 	      (cdr (assoc
-		    (completing-read
-		     "Multiple feeds found.  Select one: "
-		     selection nil t) urllist)))))))))
+		    (gnus-completing-read
+		     "Multiple feeds found. Select one"
+		     selection t) urllist)))))))))
 
 (defun nnrss-rss-p (data)
   "Test if DATA is an RSS feed.

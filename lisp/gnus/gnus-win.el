@@ -107,6 +107,9 @@ used to display Gnus windows."
      (vertical 1.0
 	       (summary 0.25)
 	       (faq 1.0 point)))
+    (only-article
+     (vertical 1.0
+	       (article 1.0 point)))
     (edit-article
      (vertical 1.0
 	       (article 1.0 point)))

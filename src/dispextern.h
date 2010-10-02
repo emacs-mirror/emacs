@@ -2067,7 +2067,7 @@ struct it
 
   /* Number of characters in the string (s, or it->string) we iterate
      over.  */
-  int string_nchars;
+  EMACS_INT string_nchars;
 
   /* Start and end of a visible region; -1 if the region is not
      visible in the window.  */
@@ -2914,7 +2914,7 @@ extern int  bidi_mirror_char (int);
 
 /* Defined in xdisp.c */
 
-struct glyph_row *row_containing_pos (struct window *, int,
+struct glyph_row *row_containing_pos (struct window *, EMACS_INT,
                                       struct glyph_row *,
                                       struct glyph_row *, int);
 EMACS_INT string_buffer_position (struct window *, Lisp_Object,

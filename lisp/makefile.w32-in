@@ -50,7 +50,11 @@ LC_ALL = C
 
 lisptagsfiles1 = $(lisp)/*.el
 lisptagsfiles2 = $(lisp)/*/*.el
-ETAGS = "../lib-src/$(BLD)/etags"
+lisptagsfiles3 = $(lisp)/*/*/*.el
+lisptagsfiles4 = $(lisp)/*/*/*/*.el
+ETAGS = "../lib-src/$(BLD)/etags.exe"
+## $(DEST) is overridden by ../src/makefile.w32-in.
+DEST=$(lisp)
 
 # Automatically generated autoload files, apart from lisp/loaddefs.el.
 LOADDEFS = $(lisp)/calendar/cal-loaddefs.el \
@@ -244,11 +248,42 @@ cvs-update: bzr-update
 update-authors:
 	$(emacs) -l authors -f batch-update-authors $(srcdir)/etc/AUTHORS $(srcdir)
 
-TAGS: $(lisptagsfiles1) $(lisptagsfiles2)
-	$(ETAGS) $(lisptagsfiles1) $(lisptagsfiles2)
+TAGS: TAGS-$(MAKETYPE)
 
-TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2)
-	$(ETAGS) -o TAGS-LISP $(lisptagsfiles1) $(lisptagsfiles2)
+TAGS-LISP: TAGS-LISP-$(MAKETYPE)
+
+TAGS-nmake:
+	echo This target is not supported with NMake
+	exit -1
+
+TAGS-LISP-nmake:
+	echo This target is not supported with NMake
+	exit -1
+
+TAGS-gmake: TAGS-$(SHELLTYPE)
+
+TAGS-LISP-gmake: TAGS-LISP-$(SHELLTYPE)
+
+TAGS-SH: $(lisptagsfiles1) $(lisptagsfiles2) $(lisptagsfiles3) $(lisptagsfiles4)
+	- $(DEL) TAGS
+	for dir in . $(WINS_UPDATES); do \
+	  $(ETAGS) -a $(lisp)/$$dir/*.el; \
+	done
+
+TAGS-LISP-SH: $(lisptagsfiles1) $(lisptagsfiles2) $(lisptagsfiles3) $(lisptagsfiles4)
+	- $(DEL) $(DEST)/TAGS-LISP
+	for dir in . $(WINS_UPDATES); do \
+	  $(ETAGS) -a -o $(DEST)/TAGS-LISP $(lisp)/$$dir/*.el; \
+	done
+
+TAGS-CMD: $(lisptagsfiles1) $(lisptagsfiles2) $(lisptagsfiles3) $(lisptagsfiles4)
+	- $(DEL) TAGS
+	for %%d in (. $(WINS_UPDATES)) do $(ETAGS) -a $(lisp)/%%d/*.el
+
+TAGS-LISP-CMD: $(lisptagsfiles1) $(lisptagsfiles2) $(lisptagsfiles3) $(lisptagsfiles4)
+	- $(DEL) $(DEST)/TAGS-LISP
+	for %%d in (. $(WINS_UPDATES)) do \
+	  $(ETAGS) -a -o $(DEST)/TAGS-LISP $(lisp)/%%d/*.el
 
 .SUFFIXES: .elc .el
 

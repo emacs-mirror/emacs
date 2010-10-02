@@ -36,10 +36,12 @@
 
 ;; Put this in your startup file (~/.gnus.el for instance)
 
+;; (require 'nnregistry) ;; optional, or see below (automatically calls `gnus-registry-install-nnregistry' when `gnus-registry-initialize' is called)
 ;; (setq gnus-registry-max-entries 2500
 ;;       gnus-registry-use-long-group-names t)
 
 ;; (gnus-registry-initialize)
+;; (gnus-registry-install-nnregistry) ;; optional, or see above (loading nnregistry makes it unnecessary)
 
 ;; Then use this in your fancy-split:
 
@@ -122,12 +124,14 @@ display."
   :type 'symbol)
 
 (defcustom gnus-registry-unfollowed-groups
-  '("delayed$" "drafts$" "queue$" "INBOX$")
+  '("delayed$" "drafts$" "queue$" "INBOX$" "^nnmairix:")
   "List of groups that gnus-registry-split-fancy-with-parent won't return.
 The group names are matched, they don't have to be fully
 qualified.  This parameter tells the Registry 'never split a
 message into a group that matches one of these, regardless of
-references.'"
+references.'
+
+nnmairix groups are specifically excluded because they are ephemeral."
   :group 'gnus-registry
   :type '(repeat regexp))
 
@@ -857,12 +861,11 @@ Uses `gnus-registry-marks' to find what shortcuts to install."
 
 (defun gnus-registry-read-mark ()
   "Read a mark name from the user with completion."
-  (let ((mark (gnus-completing-read-with-default
-	       (symbol-name gnus-registry-default-mark)
-	       "Label"
-	       (mapcar (lambda (x)	; completion list
-			 (cons (symbol-name (car-safe x)) (car-safe x)))
-		       gnus-registry-marks))))
+  (let ((mark (gnus-completing-read
+               "Label"
+               (mapcar 'symbol-name (mapcar 'car gnus-registry-marks))
+               nil nil nil
+	       (symbol-name gnus-registry-default-mark))))
     (when (stringp mark)
       (intern mark))))
 
@@ -1128,6 +1131,8 @@ Returns the first place where the trail finds a group name."
   (setq gnus-registry-install t)	; in case it was 'ask or nil
   (gnus-registry-install-hooks)
   (gnus-registry-install-shortcuts)
+  (when (featurep 'nnregistry)
+    (gnus-registry-install-nnregistry))
   (gnus-registry-read))
 
 ;;;###autoload
@@ -1143,6 +1148,18 @@ Returns the first place where the trail finds a group name."
   (add-hook 'gnus-read-newsrc-el-hook 'gnus-registry-read)
 
   (add-hook 'gnus-summary-prepare-hook 'gnus-registry-register-message-ids))
+
+;;;###autoload
+(defun gnus-registry-install-nnregistry ()
+  "Install the nnregistry refer method in `gnus-refer-article-method'."
+  (interactive)
+  (setq gnus-refer-article-method
+        (delete-dups
+         (append
+          (if (listp gnus-refer-article-method)
+              gnus-refer-article-method
+            (list gnus-refer-article-method))
+          (list 'nnregistry)))))
 
 (defun gnus-registry-unload-hook ()
   "Uninstall the registry hooks."
@@ -1172,10 +1189,6 @@ Returns the first place where the trail finds a group name."
       (gnus-registry-initialize)))
 ;;; we could call it here: (customize-variable 'gnus-registry-install)
   gnus-registry-install)
-
-(when (or (eq gnus-registry-install t)
-	  (gnus-registry-install-p))
-  (gnus-registry-initialize))
 
 ;; TODO: a few things
 

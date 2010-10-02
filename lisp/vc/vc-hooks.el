@@ -815,6 +815,9 @@ Format:
   \"BACKEND-REV\"        if the file is up-to-date
   \"BACKEND:REV\"        if the file is edited (or locked by the calling user)
   \"BACKEND:LOCKER:REV\" if the file is locked by somebody else
+  \"BACKEND@REV\"        if the file was locally added
+  \"BACKEND!REV\"        if the file contains conflicts or was removed
+  \"BACKEND?REV\"        if the file is under VC, but is missing
 
 This function assumes that the file is registered."
   (let* ((backend-name (symbol-name backend))

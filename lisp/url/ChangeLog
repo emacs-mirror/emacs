@@ -1,3 +1,11 @@
+2010-10-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* url-cookie.el (url-cookie-handle-set-cookie): Use
+	url-lazy-message for the cookie warning, which isn't very interesting.
+
+	* url-http.el (url-http-async-sentinel): Check that the buffer is
+	still alive before switching to it.
+
 2010-09-25  Julien Danjou  <julien@danjou.info>
 
 	* url-cache.el (url-cache-create-filename): Ensure no-port and

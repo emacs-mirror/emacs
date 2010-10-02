@@ -1,3 +1,12 @@
+2010-09-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* maintaining.texi (VC Mode Line): Mention all the possible VC status
+	indicator characters.
+
+2010-09-29  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (top_srcdir): Remove unused variable.
+
 2010-09-14  Glenn Morris  <rgm@gnu.org>
 
 	* cal-xtra.texi (Fancy Diary Display): Emphasize that sort should be

@@ -629,7 +629,7 @@ Select Methods
 
 * Server Buffer::               Making and editing virtual servers.
 * Getting News::                Reading USENET news with Gnus.
-* Using @acronym{IMAP}::                  Reading mail from @acronym{IMAP}.
+* Using IMAP::                  Reading mail from @acronym{IMAP}.
 * Getting Mail::                Reading your personal mail with Gnus.
 * Browsing the Web::            Getting messages from a plethora of Web sources.
 * Other Sources::               Reading directories, files.
@@ -9477,6 +9477,14 @@ signature should be removed, or other symbol, meaning that the
 corresponding regular expression in @code{gnus-article-banner-alist} is
 used.
 
+For instance:
+
+@lisp
+(setq gnus-article-banner-alist
+      ((googleGroups .
+       "^\n*--~--~---------\\(.+\n\\)+")))
+@end lisp
+
 Regardless of a group, you can hide things like advertisements only when
 the sender of an article has a certain mail address specified in
 @code{gnus-article-address-banner-alist}.
@@ -10797,7 +10805,7 @@ article is to use Muttprint (@pxref{Saving Articles}).
 @item A C
 @vindex gnus-fetch-partial-articles
 @findex gnus-summary-show-complete-article
-If @code{gnus-fetch-partial-articles} is non-@code{nil}, Gnus will
+If @code{<backend>-fetch-partial-articles} is non-@code{nil}, Gnus will
 fetch partial articles, if the backend it fetches them from supports
 it.  Currently only @code{nnimap} does.  If you're looking at a
 partial article, and want to see the complete article instead, then
@@ -13700,7 +13708,7 @@ The different methods all have their peculiarities, of course.
 @menu
 * Server Buffer::               Making and editing virtual servers.
 * Getting News::                Reading USENET news with Gnus.
-* Using @acronym{IMAP}::                  Reading mail from @acronym{IMAP}.
+* Using IMAP::                  Reading mail from @acronym{IMAP}.
 * Getting Mail::                Reading your personal mail with Gnus.
 * Browsing the Web::            Getting messages from a plethora of Web sources.
 * Other Sources::               Reading directories, files.
@@ -14394,6 +14402,12 @@ inhibit Gnus to add a @code{Message-ID} header, you could say:
 Note that not all servers support the recommended ID.  This works for
 INN versions 2.3.0 and later, for instance.
 
+@item nntp-server-list-active-group
+If @code{nil}, then always use @samp{GROUP} instead of @samp{LIST
+ACTIVE}.  This is usually slower, but on misconfigured servers that
+don't update their active files often, this can help.
+
+
 @end table
 
 @menu
@@ -14787,8 +14801,8 @@ there.
 @end table
 
 
-@node Using @acronym{IMAP}
-@section Using @acronym{IMAP}
+@node Using IMAP
+@section Using IMAP
 @cindex imap
 
 The most popular mail backend is probably @code{nnimap}, which
@@ -14798,14 +14812,14 @@ This means that it's a convenient choice when you're reading your mail
 from different locations, or with different user agents.
 
 @menu
-* Connecting to an @acronym{IMAP} Server::     Getting started with @acronym{IMAP}.
-* Customizing the @acronym{IMAP} Connection::  Variables for @acronym{IMAP} connection.
-* Client-Side @acronym{IMAP} Splitting::       Put mail in the correct mail box.
+* Connecting to an IMAP Server::     Getting started with @acronym{IMAP}.
+* Customizing the IMAP Connection::  Variables for @acronym{IMAP} connection.
+* Client-Side IMAP Splitting::       Put mail in the correct mail box.
 @end menu
 
 
-@node Connecting to an @acronym{IMAP} Server
-@subsection Connecting to an @acronym{IMAP} Server
+@node Connecting to an IMAP Server
+@subsection Connecting to an IMAP Server
 
 Connecting to an @acronym{IMAP} can be very easy.  Type @kbd{B} in the
 group buffer, or (if your primary interest is reading email), say
@@ -14826,17 +14840,17 @@ machine imap.gmail.com login <username> password <password> port imap
 That should basically be it for most users.
 
 
-@node Customizing the @acronym{IMAP} Connection
-@subsection Customizing the @acronym{IMAP} Connection
+@node Customizing the IMAP Connection
+@subsection Customizing the IMAP Connection
 
 Here's an example method that's more complex:
 
 @example
 (nnimap "imap.gmail.com"
         (nnimap-inbox "INBOX")
-        (nnimap-split-methods ,nnmail-split-methods)
+        (nnimap-split-methods default)
         (nnimap-expunge t)
-        (nnimap-stream 'ssl)
+        (nnimap-stream ssl)
         (nnir-search-engine imap)
         (nnimap-expunge-inbox t))
 @end example
@@ -14878,11 +14892,17 @@ this should be set to @code{anonymous}.
 Virtually all @code{IMAP} server support fast streaming of data.  If
 you have problems connecting to the server, try setting this to @code{nil}.
 
+@item nnimap-fetch-partial-articles
+If non-@code{nil}, fetch partial articles from the server.  If set to
+a string, then it's interpreted as a regexp, and parts that have
+matching types will be fetched.  For instance, @samp{"text/"} will
+fetch all textual parts, while leaving the rest on the server.
+
 @end table
 
 
-@node Client-Side @acronym{IMAP} Splitting
-@subsection Client-Side @acronym{IMAP} Splitting
+@node Client-Side IMAP Splitting
+@subsection Client-Side IMAP Splitting
 
 Many people prefer to do the sorting/splitting of mail into their mail
 boxes on the @acronym{IMAP} server.  That way they don't have to
@@ -14897,7 +14917,11 @@ This is the @acronym{IMAP} mail box that will be scanned for new mail.
 
 @item nnimap-split-methods
 Uses the same syntax as @code{nnmail-split-methods} (@pxref{Splitting
-Mail}).
+Mail}), except the symbol @code{default}, which means that it should
+use the value of the @code{nnmail-split-methods} variable.
+
+@item nnimap-split-fancy
+Uses the same syntax as @code{nnmail-split-fancy}.
 
 @end table
 
@@ -15085,6 +15109,9 @@ function of your choice.  This function will be called without any
 arguments in a buffer narrowed to the headers of an incoming mail
 message.  The function should return a list of group names that it
 thinks should carry this mail message.
+
+This variable can also be a fancy split method.  See @xref{Fancy Mail
+Splitting} for the syntax.
 
 Note that the mail back ends are free to maul the poor, innocent,
 incoming headers all they want to.  They all add @code{Lines} headers;
@@ -15460,7 +15487,7 @@ Get mail from a @acronym{IMAP} server.  If you don't want to use
 @acronym{IMAP} as intended, as a network mail reading protocol (ie
 with nnimap), for some reason or other, Gnus let you treat it similar
 to a @acronym{POP} server and fetches articles from a given
-@acronym{IMAP} mailbox.  @xref{Using @acronym{IMAP}}, for more information.
+@acronym{IMAP} mailbox.  @xref{Using IMAP}, for more information.
 
 Keywords:
 
@@ -15550,45 +15577,6 @@ An example @acronym{IMAP} mail source:
 (imap :server "mail.mycorp.com"
       :stream kerberos4
       :fetchflag "\\Seen")
-@end lisp
-
-@item webmail
-Get mail from a webmail server, such as @uref{http://www.hotmail.com/},
-@uref{http://webmail.netscape.com/}, @uref{http://www.netaddress.com/},
-@uref{http://mail.yahoo.com/}.
-
-NOTE: Webmail largely depends on cookies.  A "one-line-cookie" patch is
-required for url "4.0pre.46".
-
-WARNING: Mails may be lost.  NO WARRANTY.
-
-Keywords:
-
-@table @code
-@item :subtype
-The type of the webmail server.  The default is @code{hotmail}.  The
-alternatives are @code{netscape}, @code{netaddress}, @code{my-deja}.
-
-@item :user
-The user name to give to the webmail server.  The default is the login
-name.
-
-@item :password
-The password to give to the webmail server.  If not specified, the user is
-prompted.
-
-@item :dontexpunge
-If non-@code{nil}, only fetch unread articles and don't move them to
-trash folder after finishing the fetch.
-
-@end table
-
-An example webmail source:
-
-@lisp
-(webmail :subtype 'hotmail
-         :user "user-name"
-         :password "secret")
 @end lisp
 
 @item group
@@ -15929,7 +15917,7 @@ after @code{save-excursion} and @code{save-restriction} in the example
 above.  Also note that with the nnimap backend, message bodies will
 not be downloaded by default.  You need to set
 @code{nnimap-split-download-body} to @code{t} to do that
-(@pxref{Client-Side @acronym{IMAP} Splitting}).
+(@pxref{Client-Side IMAP Splitting}).
 
 @item (! @var{func} @var{split})
 If the split is a list, and the first element is @code{!}, then
@@ -23263,12 +23251,9 @@ The following variables offer control over how things are displayed.
 The size in pixels of gravatars. Gravatars are always square, so one
 number for the size is enough.
 
-@item gnus-gravatar-relief
-@vindex gnus-gravatar-relief
-If non-nil, adds a shadow rectangle around the image. The value,
-relief, specifies the width of the shadow lines, in pixels. If relief
-is negative, shadows are drawn so that the image appears as a pressed
-button; otherwise, it appears as an unpressed button.
+@item gnus-gravatar-properties
+@vindex gnus-gravatar-properties
+List of image properties applied to Gravatar images.
 
 @end table
 
@@ -23618,7 +23603,7 @@ call the external tools during splitting.  Example fancy split method:
 Note that with the nnimap back end, message bodies will not be
 downloaded by default.  You need to set
 @code{nnimap-split-download-body} to @code{t} to do that
-(@pxref{Client-Side @acronym{IMAP} Splitting}).
+(@pxref{Client-Side IMAP Splitting}).
 
 That is about it.  As some spam is likely to get through anyway, you
 might want to have a nifty function to call when you happen to read
@@ -23907,7 +23892,7 @@ the message headers; @code{nnimap-split-download-body} tells it to
 retrieve the message bodies as well.  We don't set this by default
 because it will slow @acronym{IMAP} down, and that is not an
 appropriate decision to make on behalf of the user.  @xref{Client-Side
-@acronym{IMAP} Splitting}.
+IMAP Splitting}.
 
 You have to specify one or more spam back ends for @code{spam-split}
 to use, by setting the @code{spam-use-*} variables.  @xref{Spam Back
@@ -24192,8 +24177,8 @@ From Ted Zlatanov <tzz@@lifelogs.com>.
  spam-move-spam-nonspam-groups-only nil
  spam-mark-only-unseen-as-spam t
  spam-mark-ham-unread-before-move-from-spam-group t
- nnimap-split-rule 'nnimap-split-fancy
  ;; @r{understand what this does before you copy it to your own setup!}
+ ;; @r{for nnimap you'll probably want to set nnimap-split-methods, see the manual}
  nnimap-split-fancy '(|
                       ;; @r{trace references to parents and put in their group}
                       (: gnus-registry-split-fancy-with-parent)
@@ -24915,8 +24900,8 @@ messages stay in @samp{INBOX}:
 @example
 (setq spam-use-spamoracle t
       spam-split-group "Junk"
+      ;; @r{for nnimap you'll probably want to set nnimap-split-methods, see the manual}
       nnimap-split-inbox '("INBOX")
-      nnimap-split-rule 'nnimap-split-fancy
       nnimap-split-fancy '(| (: spam-split) "INBOX"))
 @end example
 
@@ -26235,7 +26220,7 @@ wrong show.
 Masanobu @sc{Umeda}---the writer of the original @sc{gnus}.
 
 @item
-Shenghuo Zhu---uudecode.el, mm-uu.el, rfc1843.el, webmail.el,
+Shenghuo Zhu---uudecode.el, mm-uu.el, rfc1843.el,
 nnwarchive and many, many other things connected with @acronym{MIME} and
 other types of en/decoding, as well as general bug fixing, new
 functionality and stuff.

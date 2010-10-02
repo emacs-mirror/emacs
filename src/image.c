@@ -8718,11 +8718,11 @@ non-numeric, there is no explicit limit on the size of images.  */);
   staticpro (&QCheuristic_mask);
   QCindex = intern_c_string (":index");
   staticpro (&QCindex);
-  QCgeometry = intern (":geometry");
+  QCgeometry = intern_c_string (":geometry");
   staticpro (&QCgeometry);
-  QCcrop = intern (":crop");
+  QCcrop = intern_c_string (":crop");
   staticpro (&QCcrop);
-  QCrotation = intern (":rotation");
+  QCrotation = intern_c_string (":rotation");
   staticpro (&QCrotation);
   QCmatrix = intern_c_string (":matrix");
   staticpro (&QCmatrix);
@@ -8785,7 +8785,7 @@ non-numeric, there is no explicit limit on the size of images.  */);
 #endif
 
 #if defined (HAVE_IMAGEMAGICK)
-  Qimagemagick = intern ("imagemagick");
+  Qimagemagick = intern_c_string ("imagemagick");
   staticpro (&Qimagemagick);
   ADD_IMAGE_TYPE (Qimagemagick);
 #endif

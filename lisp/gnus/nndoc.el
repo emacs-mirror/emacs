@@ -74,14 +74,14 @@ from the document.")
     (mbox
      (article-begin-function . nndoc-mbox-article-begin)
      (body-end-function . nndoc-mbox-body-end))
-    (mime-parts
-     (generate-head-function . nndoc-generate-mime-parts-head)
-     (article-transform-function . nndoc-transform-mime-parts))
     (babyl
      (article-begin . "\^_\^L *\n")
      (body-end . "\^_")
      (body-begin-function . nndoc-babyl-body-begin)
      (head-begin-function . nndoc-babyl-head-begin))
+    (mime-parts
+     (generate-head-function . nndoc-generate-mime-parts-head)
+     (article-transform-function . nndoc-transform-mime-parts))
     (exim-bounce
      (article-begin . "^------ This is a copy of the message, including all the headers. ------\n\n")
      (body-end-function . nndoc-exim-bounce-body-end-function))
@@ -279,6 +279,11 @@ from the document.")
       (nnheader-report 'nndoc "No articles in group %s" group))
      (t
       (nnheader-insert "211 %d %d %d %s\n" number 1 number group)))))
+
+(deffoo nndoc-retrieve-groups (groups &optional server)
+  (dolist (group groups)
+    (nndoc-request-group group server))
+  t)
 
 (deffoo nndoc-request-type (group &optional article)
   (cond ((not article) 'unknown)

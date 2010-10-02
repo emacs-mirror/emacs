@@ -524,6 +524,11 @@
 	* ede/make.el (ede-make-check-version): Use
 	with-current-buffer instead of save-excursion.
 
+2010-02-24  Eduard Wiebe  <usenet@pusto.de>
+
+	* semantic/wisent/javascript.el (wisent-javascript-jv-expand-tag):
+	Avoid c(ad)ddr and use c(ad)r of cddr (Bug#5640).
+
 2010-02-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* data-debug.el (data-debug): Move to extensions group.

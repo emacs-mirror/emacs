@@ -56,11 +56,7 @@
 			   'epg)
 		       (error))
 		     (progn
-		       (ignore-errors
-			;; Avoid the "Recursive load suspected" error
-			;; in Emacs 21.1.
-			(let ((recursive-load-depth-limit 100))
-			  (require 'pgg)))
+		       (ignore-errors (require 'pgg))
 		       (and (fboundp 'pgg-sign-region)
 			    'pgg))
 		     (progn (ignore-errors

@@ -19,7 +19,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #ifdef HAVE_DBUS
-#include <stdlib.h>
 #include <stdio.h>
 #include <dbus/dbus.h>
 #include <setjmp.h>
@@ -800,16 +799,7 @@ xd_initialize (Lisp_Object bus, int raise_error)
   return connection;
 }
 
-/* Callback called when something is read to read ow write.  */
-
-static void
-dbus_fd_cb (int fd, void *data, int for_read)
-{
-  xd_read_queued_messages ();
-}
-
 /* Return the file descriptor for WATCH, -1 if not found.  */
-
 static int
 xd_find_watch_fd (DBusWatch *watch)
 {
@@ -824,9 +814,11 @@ xd_find_watch_fd (DBusWatch *watch)
   return fd;
 }
 
+/* Prototype.  */
+static void
+xd_read_queued_messages (int fd, void *data, int for_read);
 
 /* Start monitoring WATCH for possible I/O.  */
-
 static dbus_bool_t
 xd_add_watch (DBusWatch *watch, void *data)
 {
@@ -843,9 +835,9 @@ xd_add_watch (DBusWatch *watch, void *data)
   if (dbus_watch_get_enabled (watch))
     {
       if (flags & DBUS_WATCH_WRITABLE)
-        add_write_fd (fd, dbus_fd_cb, NULL);
+        add_write_fd (fd, xd_read_queued_messages, data);
       if (flags & DBUS_WATCH_READABLE)
-        add_read_fd (fd, dbus_fd_cb, NULL);
+        add_read_fd (fd, xd_read_queued_messages, data);
     }
   return TRUE;
 }
@@ -853,7 +845,6 @@ xd_add_watch (DBusWatch *watch, void *data)
 /* Stop monitoring WATCH for possible I/O.
    DATA is the used bus, either a string or QCdbus_system_bus or
    QCdbus_session_bus.  */
-
 static void
 xd_remove_watch (DBusWatch *watch, void *data)
 {
@@ -862,8 +853,8 @@ xd_remove_watch (DBusWatch *watch, void *data)
 
   XD_DEBUG_MESSAGE ("fd %d", fd);
 
-  if (fd == -1) return;
-
+  if (fd == -1)
+    return;
 
   /* Unset session environment.  */
   if (data != NULL && data == (void*) XHASH (QCdbus_session_bus))
@@ -879,7 +870,6 @@ xd_remove_watch (DBusWatch *watch, void *data)
 }
 
 /* Toggle monitoring WATCH for possible I/O.  */
-
 static void
 xd_toggle_watch (DBusWatch *watch, void *data)
 {
@@ -1613,54 +1603,9 @@ usage: (dbus-send-signal BUS SERVICE PATH INTERFACE SIGNAL &rest ARGS)  */)
   return Qt;
 }
 
-/* Check, whether there is pending input in the message queue of the
-   D-Bus BUS.  BUS is either a Lisp symbol, :system or :session, or a
-   string denoting the bus address.  */
-int
-xd_get_dispatch_status (Lisp_Object bus)
-{
-  DBusConnection *connection;
-
-  /* Open a connection to the bus.  */
-  connection = xd_initialize (bus, FALSE);
-  if (connection == NULL) return FALSE;
-
-  /* Non blocking read of the next available message.  */
-  dbus_connection_read_write (connection, 0);
-
-  /* Return.  */
-  return
-    (dbus_connection_get_dispatch_status (connection)
-     == DBUS_DISPATCH_DATA_REMAINS)
-    ? TRUE : FALSE;
-}
-
-/* Check for queued incoming messages from the buses.  */
-int
-xd_pending_messages (void)
-{
-  Lisp_Object busp = Vdbus_registered_buses;
-
-  while (!NILP (busp))
-    {
-      /* We do not want to have an autolaunch for the session bus.  */
-      if (EQ ((CAR_SAFE (busp)), QCdbus_session_bus)
-	  && getenv ("DBUS_SESSION_BUS_ADDRESS") == NULL)
-	continue;
-
-      if (xd_get_dispatch_status (CAR_SAFE (busp)))
-	return TRUE;
-
-      busp = CDR_SAFE (busp);
-    }
-
-  return FALSE;
-}
-
 /* Read one queued incoming message of the D-Bus BUS.
    BUS is either a Lisp symbol, :system or :session, or a string denoting
    the bus address.  */
-
 static void
 xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
 {
@@ -1814,7 +1759,6 @@ xd_read_message_1 (DBusConnection *connection, Lisp_Object bus)
 /* Read queued incoming messages of the D-Bus BUS.
    BUS is either a Lisp symbol, :system or :session, or a string denoting
    the bus address.  */
-
 static Lisp_Object
 xd_read_message (Lisp_Object bus)
 {
@@ -1830,19 +1774,28 @@ xd_read_message (Lisp_Object bus)
   return Qnil;
 }
 
-/* Read queued incoming messages from all buses.  */
-void
-xd_read_queued_messages (void)
+/* Callback called when something is ready to read or write.  */
+static void
+xd_read_queued_messages (int fd, void *data, int for_read)
 {
   Lisp_Object busp = Vdbus_registered_buses;
+  Lisp_Object bus = Qnil;
 
+  /* Find bus related to fd.  */
+  if (data != NULL)
+    while (!NILP (busp))
+      {
+	if (data == (void*) XHASH (CAR_SAFE (busp)))
+	  bus = CAR_SAFE (busp);
+	busp = CDR_SAFE (busp);
+      }
+
+  if (NILP(bus))
+    return;
+
+  /* We ignore all Lisp errors during the call.  */
   xd_in_read_queued_messages = 1;
-  while (!NILP (busp))
-    {
-      /* We ignore all Lisp errors during the call.  */
-      internal_catch (Qdbus_error, xd_read_message, CAR_SAFE (busp));
-      busp = CDR_SAFE (busp);
-    }
+  internal_catch (Qdbus_error, xd_read_message, bus);
   xd_in_read_queued_messages = 0;
 }
 
@@ -2207,8 +2160,12 @@ be called when the D-Bus reply message arrives.  */);
     doc: /* If non-nil, debug messages of D-Bus bindings are raised.  */);
 #ifdef DBUS_DEBUG
   Vdbus_debug = Qt;
+  /* We can also set environment DBUS_VERBOSE=1 in order to see more
+     traces.  */
 #else
   Vdbus_debug = Qnil;
+  /* We do not want to abort.  */
+  setenv ("DBUS_FATAL_WARNINGS", "0", 1);
 #endif
 
   Fprovide (intern_c_string ("dbusbind"), Qnil);

@@ -24,13 +24,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <errno.h>
 #include <stdio.h>
 #include <setjmp.h>
-
-/* Define SIGCHLD as an alias for SIGCLD.  */
-
-#if !defined (SIGCHLD) && defined (SIGCLD)
-#define SIGCHLD SIGCLD
-#endif /* SIGCLD */
-
 #include <sys/types.h>
 
 #ifdef HAVE_UNISTD_H
@@ -45,7 +38,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef WINDOWSNT
 #define NOMINMAX
 #include <windows.h>
-#include <stdlib.h>	/* for proper declaration of environ */
 #include <fcntl.h>
 #include "w32.h"
 #define _P_NOWAIT 1	/* from process.h */

@@ -586,7 +586,7 @@ server or call `M-x server-force-delete' to forcibly disconnect it.")
 		(setq buffer-file-coding-system 'no-conversion)
 		(insert (format-network-address
 			 (process-contact server-process :local))
-			" " (int-to-string (emacs-pid))
+			" " (number-to-string (emacs-pid)) ; Kept for compatibility
 			"\n" auth-key)))))))))
 
 ;;;###autoload
@@ -706,9 +706,6 @@ Server mode runs a process that accepts commands from the
     ;; Display *scratch* by default.
     (switch-to-buffer (get-buffer-create "*scratch*") 'norecord)
 
-    ;; Reply with our pid.
-    (server-send-string proc (concat "-emacs-pid "
-                                     (number-to-string (emacs-pid)) "\n"))
     frame))
 
 (defun server-create-window-system-frame (display nowait proc parent-id)
@@ -889,6 +886,9 @@ The following commands are accepted by the client:
   (condition-case err
       (progn
 	(server-add-client proc)
+	;; Send our pid
+	(server-send-string proc (concat "-emacs-pid "
+					 (number-to-string (emacs-pid)) "\n"))
 	(if (not (string-match "\n" string))
             ;; Save for later any partial line that remains.
             (when (> (length string) 0)

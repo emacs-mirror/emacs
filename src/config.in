@@ -1170,13 +1170,8 @@ SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
    not define __STDC__ (e.g. DEC C by default) or may define it as zero.  */
 #undef PROTOTYPES
 
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
-
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
 
 #ifdef HAVE_ALLOCA_H
 # include <alloca.h>

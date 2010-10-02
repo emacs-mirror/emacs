@@ -2657,16 +2657,16 @@ extern Lisp_Object restore_message_unwind (Lisp_Object);
 extern void pop_message (void);
 extern void restore_message (void);
 extern Lisp_Object current_message (void);
-extern void set_message (const char *s, Lisp_Object, int, int);
+extern void set_message (const char *s, Lisp_Object, EMACS_INT, int);
 extern void clear_message (int, int);
 extern void message (const char *, ...);
 extern void message_nolog (const char *, ...);
 extern void message1 (const char *);
 extern void message1_nolog (const char *);
-extern void message2 (const char *, int, int);
-extern void message2_nolog (const char *, int, int);
-extern void message3 (Lisp_Object, int, int);
-extern void message3_nolog (Lisp_Object, int, int);
+extern void message2 (const char *, EMACS_INT, int);
+extern void message2_nolog (const char *, EMACS_INT, int);
+extern void message3 (Lisp_Object, EMACS_INT, int);
+extern void message3_nolog (Lisp_Object, EMACS_INT, int);
 extern void message_dolog (const char *, EMACS_INT, int, int);
 extern void message_with_string (const char *, Lisp_Object, int);
 extern void message_log_maybe_newline (void);
@@ -2682,7 +2682,7 @@ void set_frame_cursor_types (struct frame *, Lisp_Object);
 extern void syms_of_xdisp (void);
 extern void init_xdisp (void);
 extern Lisp_Object safe_eval (Lisp_Object);
-extern int pos_visible_p (struct window *, int, int *,
+extern int pos_visible_p (struct window *, EMACS_INT, int *,
                           int *, int *, int *, int *, int *);
 
 /* Defined in xsettings.c */
@@ -3593,8 +3593,6 @@ extern int have_menus_p (void);
 
 #ifdef HAVE_DBUS
 /* Defined in dbusbind.c */
-int xd_pending_messages (void);
-void xd_read_queued_messages (void);
 void syms_of_dbusbind (void);
 #endif
 

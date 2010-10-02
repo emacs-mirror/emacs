@@ -1,3 +1,215 @@
+2010-10-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* xml.c (Flibxml_parse_xml_region, Flibxml_parse_html_region)
+	(parse_region): Reworked to take regions instead of strings, and
+	renamed to reflect that these are the libxml functions.
+
+2010-10-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* term.c (init_tty) [DOS_NT]: Don't call Wcm_clear after setting
+	screen dimensions in tty->Wcm.
+
+	* xdisp.c (set_cursor_from_row): When the row is truncated and
+	point is outside the range of displayed characters, position the
+	cursor inside the scroll margin.  (Bug#6349)
+
+2010-10-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Do not include stdlib.h and string.h, config.h does it.
+	* xfont.c:
+	* w32term.c:
+	* w32reg.c:
+	* w32inevt.c:
+	* w32heap.c:
+	* w32console.c:
+	* w16select.c:
+	* unexsol.c:
+	* term.c:
+	* sound.c:
+	* scroll.c (m):
+	* gtkutil.c:
+	* font.c:
+	* filelock.c:
+	* fileio.c:
+	* dosfns.c:
+	* dbusbind.c:
+	* bidi.c:
+	* callproc.c:
+	* process.c:
+	* msdos.c:
+	* charset.c: Do not include stdlib.h and string.h, config.h does it.
+
+	* callproc.c (SIGCHLD): Remove conditional definition, syssignal.h defines it.
+
+	* process.c: Move #include <pty.h> earlier.
+	(SIGCHLD): Remove conditional definition, syssignal.h defines it.
+	(pty_name): Move definition later.
+
+	* nsselect.m (syms_of_nsselect):
+	* nsmenu.m (syms_of_nsmenu):
+	* nsfns.m (syms_of_nsfns):
+	* msdos.c (syms_of_msdos):
+
+	* image.c (syms_of_image):
+	* charset.c (syms_of_charset): Use intern_c_string instead of intern.
+
+	* point.h: Remove, unused.
+
+2010-10-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (TAGS, frc, TAGS-LISP, ../nt/TAGS, tags)
+	(TAGS-gmake, TAGS-nmake, TAGS-LISP-gmake, TAGS-LISP-nmake)
+	(nt-TAGS-gmake, nt-TAGS-nmake): New targets.
+
+2010-09-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xml.c (parse_string): Use const.
+
+2010-09-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* eval.c (Fbacktrace): Don't overwrite print-level on exit.  Also
+	only override Vprint_level if it isn't already bound, and increase
+	the level to 8 to produce more useful backtraces for bug reports.
+
+2010-09-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in: ecrt0.c does not exist anymore, do not mention it.
+
+2010-09-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32console.c (vga_stdcolor_name): Remove unused function;
+	presumed dead after revno 82799 (2007-11-30).
+
+2010-09-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnutls.c (emacs_gnutls_handshake): Made into internal function.
+	(Fgnutls_boot): Start the handshake.
+	(emacs_gnutls_read): Perform the handshake from the reader loop.
+	(Fgnutls_boot): Remove some debugging messages.
+	Change indentation throughout to use the Emacs style.
+	(emacs_gnutls_handshake): Cast the fds to something that's
+	possibly the expected length.
+	(emacs_gnutls_write): Return -1 if we try to write before handshake.
+
+	* process.h (Lisp_Process): Add a gnutls_p field to Lisp_Process.
+
+	* process.c (make_process): Set the gnutls_p field to zero by
+	default.
+	(read_process_output): Always call the gnutls_read function if the
+	stream is a gnutls stream.
+	(send_process): Ditto for writes.
+
+	* gnutls.c (emacs_gnutls_write, emacs_gnutls_read): Refuse to read
+	or write anything until the state is GNUTLS_STAGE_READY.
+	(Fgnutls_boot): Mark the stream as being a gnutls stream.
+
+2010-09-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* xdisp.c (reseat_1): Initialize bidi_it.paragraph_dir to
+	NEUTRAL_DIR.
+	(handle_invisible_prop, iterate_out_of_display_property)
+	(next_element_from_buffer): If bidi_it.first_elt is set, call
+	bidi_paragraph_init with NO_DEFAULT_P argument non-zero.
+	(Bug#7128)
+
+	* print.c (print_object): Fix format string and argument types for
+	printing a Lisp_Misc_Marker.
+
+	* xdisp.c (pos_visible_p, c_string_pos, number_of_chars)
+	(load_overlay_strings, get_overlay_strings_1)
+	(get_overlay_strings, forward_to_next_line_start)
+	(back_to_previous_visible_line_start, reseat, reseat_to_string)
+	(get_next_display_element, next_element_from_string)
+	(next_element_from_c_string, next_element_from_buffer)
+	(move_it_vertically_backward, move_it_by_lines, add_to_log)
+	(message_dolog, message_log_check_duplicate, message2_nolog)
+	(message3, message3_nolog, vmessage, set_message, set_message_1)
+	(hscroll_window_tree, text_outside_line_unchanged_p)
+	(set_cursor_from_row, set_vertical_scroll_bar, redisplay_window)
+	(find_last_unchanged_at_beg_row)
+	(find_first_unchanged_at_end_row, row_containing_pos)
+	(trailing_whitespace_p, display_mode_element, decode_mode_spec)
+	(display_count_lines, x_produce_glyphs, note_mouse_highlight): Use
+	EMACS_INT for buffer and string positions.
+
+	* dispextern.h (struct it) <string_nchars>: Declare EMACS_INT.
+	(row_containing_pos): Adjust prototype.
+
+	* lisp.h (pos_visible_p, message2, message2_nolog, message3)
+	(message2_nolog, set_message): Adjust prototypes.
+
+2010-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnutls.c (Fgnutls_boot): Remove unused vars `data' and `srp_cred'.
+	(Fgnutls_boot): Use SDATA.
+	(Fgnutls_handshake): Remove unused var `max_log_level'.
+
+2010-09-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (syms_of_dbusbind): Set $DBUS_FATAL_WARNINGS to "0".
+	(Bug#7113)
+
+2010-09-27  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xgselect.c (xg_select): Clear file descriptors not set from
+	rfds and wfds.
+
+	* process.c (wait_reading_process_output): Add missing FD_CLR
+	for write_mask (must mirror connect_wait_mask).
+
+2010-09-27  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnutls.c (gnutls_log_function): Show level and "gnutls.c"
+	prefix.
+	(Fgnutls_boot): Use changed process members.  Use log level with a
+	function parameter to set it.  Bring back Emacs-level debugging
+	messages at log level 1 and 2.
+
+	* process.c (make_process): Initialize gnutls_log_level.
+
+	* process.h: Add gnutls_log_level and rename x509_cred and
+	anon_cred to have the gnutls_ prefix for consistency.
+
+	* gnutls.h (GNUTLS_LOG): Add convenience macro.
+
+2010-09-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32.c (g_b_init_get_sid_identifier_authority)
+	(GetSidIdentifierAuthority_Proc, get_sid_identifier_authority):
+	Remove, not used.
+	(globals_of_w32): Don't set g_b_init_get_sid_identifier_authority.
+	(init_winsock): Remove useless assignment.
+	(open_process_token, get_token_information, lookup_account_sid)
+	(get_sid_sub_authority, get_sid_sub_authority_count, get_file_security)
+	(get_security_descriptor_owner, get_security_descriptor_group)
+	(is_valid_sid, equal_sid, get_length_sid, copy_sid)
+	(get_native_system_info, get_system_times, init_user_info, crlf_to_lf)
+	(is_unc_volume, GetCachedVolumeInformation, get_volume_info)
+	(is_fat_volume, open_unc_volume, read_unc_volume, close_unc_volume)
+	(unc_volume_file_attributes, convert_from_time_t)
+	(create_toolhelp32_snapshot, process32_first, process32_next)
+	(open_thread_token, impersonate_self, revert_to_self)
+	(get_process_memory_info, get_process_working_set_size)
+	(global_memory_status, global_memory_status_ex, socket_to_fd)
+	(shutdown_handler): Make static.
+
+2010-09-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (dbus_fd_cb, xd_get_dispatch_status)
+	(xd_pending_messages): Functions removed.
+	(xd_read_queued_messages): Add parameters fd, *data, for_read in
+	order to be compatible with add_read_fd.  Determine bus from data,
+	and call xd_read_message just for this bus.
+	(xd_add_watch): Use xd_read_queued_messages as callback function.
+	Add data.
+
+	* lisp.h (xd_pending_messages, xd_read_queued_messages): Remove.
+
+2010-09-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnutls.c (gnutls_log_function): Added more debugging.
+	(emacs_gnutls_read): Don't infloop while reading.
+
 2010-09-27  Kenichi Handa  <handa@m17n.org>
 
 	These changes are to remove restriction on the number of glyphs in
@@ -39,21 +251,21 @@
 	(write_mask): New variable.
 	(max_input_desc): Renamed from max_keyboard_desc.
 	(fd_callback_info): New variable.
-	(add_read_fd, delete_read_fd, add_write_fd, delete_write_fd): New
-	functions.
+	(add_read_fd, delete_read_fd, add_write_fd, delete_write_fd):
+	New functions.
 	(Fmake_network_process): FD_SET write_mask.
 	(deactivate_process): FD_CLR write_mask.
 	(wait_reading_process_output): Connecting renamed to Writeok.
-	check_connect removed.  check_write is new.  Remove references to
-	gpm.  Use Writeok/check_write unconditionally (i.e. no #ifdef
+	check_connect removed.  check_write is new.  Remove references to gpm.
+	Use Writeok/check_write unconditionally (i.e. no #ifdef
 	NON_BLOCKING_CONNECT) instead of Connecting.
 	Loop over file descriptors and call callbacks in fd_callback_info
 	if file descriptor is ready for I/O.
 	(add_gpm_wait_descriptor): Just call add_keyboard_wait_descriptor.
 	(delete_gpm_wait_descriptor): Just call delete_keyboard_wait_descriptor.
 	(keyboard_bit_set): Use max_input_desc.
-	(add_keyboard_wait_descriptor, delete_keyboard_wait_descriptor): Remove
-	#ifdef subprocesses. Use max_input_desc.
+	(add_keyboard_wait_descriptor, delete_keyboard_wait_descriptor):
+	Remove #ifdef subprocesses.  Use max_input_desc.
 	(init_process): Initialize write_mask and fd_callback_info.
 
 	* keyboard.c (readable_events, gobble_input): Remove DBUS code.
@@ -61,20 +273,20 @@
 	* dbusbind.c: Include process.h.
 	(dbus_fd_cb, xd_find_watch_fd, xd_toggle_watch)
 	(xd_read_message_1): New functions.
-	(xd_add_watch, xd_remove_watch): Call xd_find_watch_fd.  Handle
-	watch for both read and write.
+	(xd_add_watch, xd_remove_watch): Call xd_find_watch_fd.
+	Handle watch for both read and write.
 	(Fdbus_init_bus): Also register xd_toggle_watch.
 	(Fdbus_call_method_asynchronously, Fdbus_method_return_internal)
 	(Fdbus_method_error_internal, Fdbus_send_signal): Remove call
 	to dbus_connection_flush.
-	(xd_read_message):  Move most of the code to xd_read_message_1.
+	(xd_read_message): Move most of the code to xd_read_message_1.
 	Call xd_read_message_1 until status is COMPLETE.
 
 2010-09-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term.c: Do not include sys/ioctl.h, not needed.
-	(init_tty): Reorder code to reduce the number of #ifdefs.  No code
-	changes.
+	(init_tty): Reorder code to reduce the number of #ifdefs.
+	No code changes.
 
 2010-09-26  Teodor Zlatanov  <tzz@lifelogs.com>
 
@@ -1038,7 +1250,7 @@
 
 2010-08-18  Jan Djärv  <jan.h.d@swipnet.se>
 
-	* gtkutil.c (update_frame_tool_bar): Literal stings are const char*.
+	* gtkutil.c (update_frame_tool_bar): Literal strings are const char*.
 
 2010-08-18  David De La Harpe Golden  <david@harpegolden.net>
 
@@ -2997,7 +3209,7 @@
 	(smc_save_yourself_CB, x_session_initialize): Use SSDATA for strings
 	passed to strlen/strcpy/strcat.
 	(create_client_leader_window): Surround with #ifndef USE_GTK.  Cast
-	7:th arg to XChangeProperty to (unsigned char *)
+	7:th arg to XChangeProperty to (unsigned char *).
 
 	* xsettings.c (something_changedCB, parse_settings)
 	(apply_xft_settings): Reformat prototype.

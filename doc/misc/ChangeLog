@@ -1,3 +1,45 @@
+2010-10-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Splitting Mail): Mention the new fancy splitting
+	function.
+	(Article Hiding): Add google banner example.  Suggested by Benjamin
+	Xu.
+
+2010-09-30  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus.texi (Spam Package Configuration Examples, SpamOracle): Remove
+	nnimap-split-rule from examples.
+
+2010-09-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Mail Source Specifiers): Remove webmail.el mentions.
+	(NNTP): Document nntp-server-list-active-group.  Suggested by Barry
+	Fishman.
+	(Client-Side IMAP Splitting): Add nnimap-split-fancy.
+
+2010-09-30  Julien Danjou  <julien@danjou.info>
+
+	* gnus.texi (Gravatars): Fix documentation about
+	gnu-gravatar-properties.
+
+2010-09-29  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa.texi (Bug Reports): New section.
+
+2010-09-29  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (top_srcdir): Remove unused variable.
+
+2010-09-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Using IMAP): Remove the @acronyms from the headings.
+	(Client-Side IMAP Splitting): Document 'default.
+
+2010-09-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Customizing the IMAP Connection): Document
+	nnimap-fetch-partial-articles.
+
 2010-09-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-news.texi: Mention nnimap-inbox.
@@ -6,7 +48,7 @@
 
 2010-09-26  Julien Danjou  <julien@danjou.info>
 
-	* gnus.texi (Oort Gnus): Remove mention of ssl.el
+	* gnus.texi (Oort Gnus): Remove mention of ssl.el.
 
 2010-09-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -36,7 +78,7 @@
 
 2010-09-25  Julien Danjou  <julien@danjou.info>
 
-	* gnus.texi (Customizing Articles): Remove gnus-treat-translate
+	* gnus.texi (Customizing Articles): Remove gnus-treat-translate.
 
 2010-09-24  Glenn Morris  <rgm@gnu.org>
 

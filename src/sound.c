@@ -86,8 +86,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* BEGIN: Windows Specific Includes */
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <limits.h>
 #include <windows.h>
 #include <mmsystem.h>

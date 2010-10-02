@@ -680,14 +680,14 @@ file for the command instead of the current score file."
 	  (and gnus-extra-headers
 	       (equal (nth 1 entry) "extra")
 	       (intern			; need symbol
-		(gnus-completing-read-with-default
-		 (symbol-name (car gnus-extra-headers))	; default response
-		 "Score extra header"	; prompt
-		 (mapcar (lambda (x)	; completion list
-			   (cons (symbol-name x) x))
-			 gnus-extra-headers)
-		 nil			; no completion limit
-		 t))))			; require match
+                (let ((collection (mapcar 'symbol-name gnus-extra-headers)))
+                  (gnus-completing-read
+                   "Score extra header"  ; prompt
+                   collection            ; completion list
+                   t                     ; require match
+                   nil                   ; no history
+                   nil                   ; no initial-input
+                   (car collection)))))) ; default value
     ;; extra is now nil or a symbol.
 
     ;; We have all the data, so we enter this score.
@@ -913,10 +913,13 @@ MATCH is the string we are looking for.
 TYPE is the score type.
 SCORE is the score to add.
 EXTRA is the possible non-standard header."
-  (interactive (list (completing-read "Header: "
-				      gnus-header-index
-				      (lambda (x) (fboundp (nth 2 x)))
-				      t)
+  (interactive (list (gnus-completing-read "Header"
+                                           (mapcar
+                                            'car
+                                            (remove-if-not
+                                             (lambda (x) (fboundp (nth 2 x)))
+                                             gnus-header-index))
+                                           t)
 		     (read-string "Match: ")
 		     (if (y-or-n-p "Use regexp match? ") 'r 's)
 		     (string-to-number (read-string "Score: "))))

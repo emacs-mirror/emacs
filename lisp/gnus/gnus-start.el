@@ -1465,7 +1465,7 @@ newsgroup."
 	  (push group bogus)))
       (if confirm
 	  (map-y-or-n-p
-	   "Remove bogus group %s? "
+	   (format "Remove bogus group %%s (of %d groups)? " (length bogus))
 	   (lambda (group)
 	     ;; Remove all bogus subscribed groups by first killing them, and
 	     ;; then removing them from the list of killed groups.

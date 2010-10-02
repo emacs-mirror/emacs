@@ -156,7 +156,7 @@ OPTION_DEFAULT_ON([gif],[don't compile with GIF image support])
 OPTION_DEFAULT_ON([png],[don't compile with PNG image support])
 OPTION_DEFAULT_ON([rsvg],[don't compile with SVG image support])
 OPTION_DEFAULT_ON([xml2],[don't compile with XML parsing support])
-OPTION_DEFAULT_OFF([imagemagick],[compile with ImageMagick image support])
+OPTION_DEFAULT_ON([imagemagick],[don't compile with ImageMagick image support])
 
 OPTION_DEFAULT_ON([xft],[don't use XFT for anti aliased fonts])
 OPTION_DEFAULT_ON([libotf],[don't use libotf for OpenType font support])
@@ -1840,17 +1840,19 @@ if test "${HAVE_X11}" = "yes" || test "${NS_IMPL_GNUSTEP}" = "yes"; then
 fi
 
 HAVE_IMAGEMAGICK=no
-if test "${with_imagemagick}" != "no"; then
-  IMAGEMAGICK_MODULE="Wand"
-  PKG_CHECK_MODULES(IMAGEMAGICK, $IMAGEMAGICK_MODULE, HAVE_IMAGEMAGICK=yes, :)
-  AC_SUBST(IMAGEMAGICK_CFLAGS)
-  AC_SUBST(IMAGEMAGICK_LIBS)
-
-  if test $HAVE_IMAGEMAGICK = yes; then
-    AC_DEFINE(HAVE_IMAGEMAGICK, 1, [Define to 1 if using imagemagick.])
-    CFLAGS="$CFLAGS $IMAGEMAGICK_CFLAGS"
-    LIBS="$IMAGEMAGICK_LIBS $LIBS"
-    AC_CHECK_FUNCS(MagickExportImagePixels)
+if test "${HAVE_X11}" = "yes"; then
+  if test "${with_imagemagick}" != "no"; then
+    IMAGEMAGICK_MODULE="Wand"
+    PKG_CHECK_MODULES(IMAGEMAGICK, $IMAGEMAGICK_MODULE, HAVE_IMAGEMAGICK=yes, :)
+    AC_SUBST(IMAGEMAGICK_CFLAGS)
+    AC_SUBST(IMAGEMAGICK_LIBS)
+  
+    if test $HAVE_IMAGEMAGICK = yes; then
+      AC_DEFINE(HAVE_IMAGEMAGICK, 1, [Define to 1 if using imagemagick.])
+      CFLAGS="$CFLAGS $IMAGEMAGICK_CFLAGS"
+      LIBS="$IMAGEMAGICK_LIBS $LIBS"
+      AC_CHECK_FUNCS(MagickExportImagePixels)
+    fi
   fi
 fi
 
@@ -2004,7 +2006,7 @@ HAVE_GNUTLS=no
 if test "${with_gnutls}" = "yes" ; then
   PKG_CHECK_MODULES([LIBGNUTLS], [gnutls >= 2.2.4], HAVE_GNUTLS=yes, HAVE_GNUTLS=no)
   if test "${HAVE_GNUTLS}" = "yes"; then
-    AC_DEFINE(HAVE_GNUTLS)
+    AC_DEFINE(HAVE_GNUTLS, 1, [Define if using GnuTLS.])
   fi
 fi
 AC_SUBST(LIBGNUTLS_LIBS)
@@ -3605,13 +3607,8 @@ SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
    not define __STDC__ (e.g. DEC C by default) or may define it as zero.  */
 #undef PROTOTYPES
 
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
-
-#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
-#endif
 
 #ifdef HAVE_ALLOCA_H
 # include <alloca.h>

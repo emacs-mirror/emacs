@@ -20,7 +20,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #ifdef USE_GTK
-#include <string.h>
 #include <signal.h>
 #include <stdio.h>
 #include <setjmp.h>
