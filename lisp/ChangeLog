@@ -1,5 +1,39 @@
 2010-10-02  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/checkdoc.el (checkdoc-minor-keymap): Remove obsolete alias.
+
+	* subr.el (char-bytes): Remove obsolete function.
+
+	* isearch.el (isearch-return-char): Remove obsolete function.
+
+	* mouse.el: No longer provide mldrag.
+	(mldrag-drag-mode-line, mldrag-drag-vertical-line):
+	Remove obsolete aliases.
+
+	* comint.el (comint-kill-output): Remove obsolete alias.
+
+	* composite.el (decompose-composite-char): Remove obsolete function.
+	* ps-def.el (decompose-composite-char): Remove unused function.
+
+	* iswitchb.el (iswitchb-default-keybindings): Remove obsolete function.
+
+	* outline.el (outline-visible): Remove obsolete function.
+
+	* term/pc-win.el (x-frob-font-slant, x-frob-font-weight):
+	* faces.el (internal-find-face, internal-get-face)
+	(frame-update-faces, frame-update-face-colors)
+	(x-frob-font-weight, x-frob-font-slant)
+	(internal-frob-font-weight, internal-frob-font-slant)
+	(x-make-font-bold, x-make-font-demibold, x-make-font-unbold)
+	(x-make-font-italic, x-make-font-oblique, x-make-font-unitalic)
+	(x-make-font-bold-italic): Remove functions and aliases, obsolete
+	since Emacs 21.1.
+	* emulation/viper-util.el (viper-get-face):
+	* obsolete/lucid.el (find-face, get-face): Use facep.
+	* vc/ediff-init.el (ediff-valid-color-p, ediff-get-face):
+	Remove unused functions.
+	* vc/ediff-util.el (ediff-submit-report): Doc fix.
+
 	* emacs-lisp/bytecomp.el (byte-compile-file): Use kill-emacs-hook to
 	delete tempfile if interrupted during compilation.
 

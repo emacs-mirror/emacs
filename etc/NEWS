@@ -538,6 +538,20 @@ similar to the ones created by shift-selection.  In previous Emacs
 versions, these regions were delineated by `mouse-drag-overlay', which
 has now been removed.
 
+** The following functions and aliases, obsolete since at least Emacs 21.1,
+have been removed:
+comint-kill-output, decompose-composite-char, outline-visible,
+internal-find-face, internal-get-face, frame-update-faces,
+frame-update-face-colors, x-frob-font-weight, x-frob-font-slant,
+x-make-font-bold, x-make-font-demibold, x-make-font-unbold
+x-make-font-italic, x-make-font-oblique, x-make-font-unitalic
+x-make-font-bold-italic, mldrag-drag-mode-line, mldrag-drag-vertical-line,
+iswitchb-default-keybindings, char-bytes, isearch-return-char
+
+** The following variables and aliases, obsolete since at least Emacs 21.1,
+have been removed:
+checkdoc-minor-keymap
+
 
 * Lisp changes in Emacs 24.1
 

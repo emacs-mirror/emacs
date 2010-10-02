@@ -99,11 +99,6 @@
 	      (setq count (1- count)))
 	    (+ (point) (* count step))))))
 
-  (or (fboundp 'decompose-composite-char)
-      (defun decompose-composite-char (char &optional type
-					    with-composition-rule)
-	nil))
-
   (or (fboundp 'encode-coding-string)
       (defun encode-coding-string (string coding-system &optional nocopy)
 	(if nocopy

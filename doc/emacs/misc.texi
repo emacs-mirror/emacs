@@ -786,8 +786,7 @@ pending in the shell buffer and not yet sent.
 @findex comint-delete-output
 Delete the last batch of output from a shell command
 (@code{comint-delete-output}).  This is useful if a shell command spews
-out lots of output that just gets in the way.  This command used to be
-called @code{comint-kill-output}.
+out lots of output that just gets in the way.
 
 @item C-c C-s
 @kindex C-c C-s @r{(Shell mode)}

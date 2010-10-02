@@ -286,15 +286,6 @@ Disowning it means there is no such selection."
   (if (x-selection-owner-p selection)
       t))
 
-;; From lisp/faces.el: we only have one font, so always return
-;; it, no matter which variety they've asked for.
-(defun x-frob-font-slant (font which)
-  font)
-(make-obsolete 'x-frob-font-slant 'make-face-... "21.1")
-(defun x-frob-font-weight (font which)
-  font)
-(make-obsolete 'x-frob-font-weight 'make-face-... "21.1")
-
 ;; From src/fontset.c:
 (fset 'query-fontset 'ignore)
 

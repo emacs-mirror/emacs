@@ -1,5 +1,8 @@
 2010-10-02  Glenn Morris  <rgm@gnu.org>
 
+	* character.c (Fchar_bytes): Remove obsolete function.
+	(syms_of_character): Remove Schar_bytes.
+
 	* emacs.c (fatal_error_signal): Also run Fkill_emacs on SIGINT.
 	(main) [!WINDOWSNT]: Handle SIGINT with fatal_error_signal
 	in batch-mode.

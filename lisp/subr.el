@@ -1,7 +1,8 @@
 ;;; subr.el --- basic lisp subroutines for Emacs
 
 ;; Copyright (C) 1985, 1986, 1992, 1994, 1995, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -1017,7 +1018,6 @@ and `event-end' functions."
 (define-obsolete-function-alias 'eval-current-buffer 'eval-buffer "22.1")
 (define-obsolete-function-alias 'string-to-int 'string-to-number "22.1")
 
-(make-obsolete 'char-bytes "now always returns 1." "20.4")
 (make-obsolete 'forward-point "use (+ (point) N) instead." "23.1")
 
 (defun insert-string (&rest args)

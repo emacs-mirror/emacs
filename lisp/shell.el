@@ -70,7 +70,7 @@
 ;; c-c c-c comint-interrupt-subjob 	   ^c
 ;; c-c c-z comint-stop-subjob	    	   ^z
 ;; c-c c-\ comint-quit-subjob	    	   ^\
-;; c-c c-o comint-kill-output		   Delete last batch of process output
+;; c-c c-o comint-delete-output		   Delete last batch of process output
 ;; c-c c-r comint-show-output		   Show last batch of process output
 ;; c-c c-l comint-dynamic-list-input-ring  List input history
 ;;         send-invisible                  Read line w/o echo & send to proc
