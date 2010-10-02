@@ -5,6 +5,14 @@
 	(note_mouse_highlight): Clear mouse highlight when mouse pointer
 	is in a R2L row on the stretch glyph that stands for no text
 	beyond the line end.
+	(row_containing_pos): Don't return too early when CHARPOS is in a
+	bidi-reordered continued line.  Return immediately when the first
+	hit is found in a line that is not continued, or when an exact
+	match for CHARPOS is found.
+	(mouse_face_from_buffer_pos): Rewrite to not assume that
+	START_CHARPOS is always in mouse_face_beg_row.  If necessary, swap
+	mouse_face_beg_row and mouse_face_end_row so that the former is
+	always above the latter or identical to it.
 
 2010-08-28  Eli Zaretskii  <eliz@gnu.org>
 
