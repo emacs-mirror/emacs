@@ -23903,12 +23903,17 @@ mouse_face_from_buffer_pos (Lisp_Object window,
   struct glyph *glyph, *end;
   EMACS_INT ignore, pos;
   int x;
+  int beg_set = 0;
 
   xassert (NILP (display_string) || STRINGP (display_string));
   xassert (NILP (before_string) || STRINGP (before_string));
   xassert (NILP (after_string) || STRINGP (after_string));
 
   /* Find the row with START_CHARPOS.  */
+  /* FIXME: Sometimes the caller gets "wise" and gives us the window
+     start position instead of the real start of the mouse face
+     property.  This completely messes up the logic of finding the
+     beg_row and end_row.  */
   if (start_charpos < MATRIX_ROW_START_CHARPOS (first)
       && (NILP (XBUFFER (w->buffer)->bidi_display_reordering)
 	  || row_containing_pos (w, start_charpos, first, NULL, 0) == NULL))
@@ -23917,6 +23922,7 @@ mouse_face_from_buffer_pos (Lisp_Object window,
       dpyinfo->mouse_face_beg_row = MATRIX_ROW_VPOS (first, w->current_matrix);
       dpyinfo->mouse_face_beg_x = first->x;
       dpyinfo->mouse_face_beg_y = first->y;
+      beg_set = 1;
     }
   else
     {
@@ -23994,7 +24000,9 @@ mouse_face_from_buffer_pos (Lisp_Object window,
      between START_CHARPOS and END_CHARPOS if the range of characters
      strides the bidi level boundary, e.g. if the beginning is in R2L
      text while the end is in L2R text or vice versa.  */
-  if (!r1->reversed_p)
+  if (beg_set)
+    ;
+  else if (!r1->reversed_p)
     {
       /* This row is in a left to right paragraph.  Scan it left to
 	 right.  */

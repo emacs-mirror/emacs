@@ -12,7 +12,8 @@
 	(mouse_face_from_buffer_pos): Rewrite to not assume that
 	START_CHARPOS is always in mouse_face_beg_row.  If necessary, swap
 	mouse_face_beg_row and mouse_face_end_row so that the former is
-	always above the latter or identical to it.
+	always above the latter or identical to it.  Don't compute beg_col
+	if already decided to paint from beginning of window.
 
 2010-08-28  Eli Zaretskii  <eliz@gnu.org>
 
