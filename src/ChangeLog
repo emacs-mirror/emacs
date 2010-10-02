@@ -1,3 +1,8 @@
+2010-10-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs.c (main): Remove !WINDOWSNT conditional.
+	(Fkill_emacs): Don't mention exemption on MS-Windows.
+
 2010-10-02  Glenn Morris  <rgm@gnu.org>
 
 	* character.c (Fchar_bytes): Remove obsolete function.

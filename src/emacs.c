@@ -1240,14 +1240,12 @@ main (int argc, char **argv)
 #ifdef SIGSYS
       signal (SIGSYS, fatal_error_signal);
 #endif
-#ifndef WINDOWSNT
       /*  May need special treatment on MS-Windows. See
           http://lists.gnu.org/archive/html/emacs-devel/2010-09/msg01062.html
           Please update the doc of kill-emacs, kill-emacs-hook, and
           NEWS if you change this.
       */
-      if ( noninteractive ) signal (SIGINT, fatal_error_signal);
-#endif
+      if (noninteractive) signal (SIGINT, fatal_error_signal);
       signal (SIGTERM, fatal_error_signal);
 #ifdef SIGXCPU
       signal (SIGXCPU, fatal_error_signal);
@@ -1997,7 +1995,7 @@ If ARG is an integer, return ARG as the exit program code.
 If ARG is a string, stuff it as keyboard input.
 
 This function is called upon receipt of the signals SIGTERM
-or SIGHUP, and (except on MS-Windows) SIGINT in batch mode.
+or SIGHUP, and upon SIGINT in batch mode.
 
 The value of `kill-emacs-hook', if not void,
 is a list of functions (of no args),

@@ -150,7 +150,7 @@ get and set the SELinux context of a file.
 for remote machines which support SELinux.
 
 ** The function kill-emacs is now run upon receipt of the signals SIGTERM
-and SIGHUP, and (except on MS-Windows) SIGINT in batch mode.
+and SIGHUP, and upon SIGINT in batch mode.
 
 ** kill-emacs-hook is now also run in batch mode.
 
