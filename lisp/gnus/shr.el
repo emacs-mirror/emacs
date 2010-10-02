@@ -30,6 +30,6 @@
 
 ;;; Code:
 
-(provice 'shr)
+(provide 'shr)
 
 ;;; shr.el ends here
