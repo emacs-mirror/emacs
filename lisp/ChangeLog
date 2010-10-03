@@ -1,5 +1,7 @@
 2010-10-03  Glenn Morris  <rgm@gnu.org>
 
+	* textmodes/artist.el (artist-replace-char): Drop Emacs 20 code.
+
 	* printing.el: Drop Emacs 20 code.
 
 	* calendar/appt.el (appt-delete): Don't autoload it (you can't use it
