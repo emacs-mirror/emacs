@@ -1786,7 +1786,8 @@ command_loop_1 (void)
 	  this_single_command_key_start = 0;
 	}
 
-      if (!NILP (current_buffer->mark_active) && !NILP (Vrun_hooks))
+      if (!NILP (current_buffer->mark_active)
+	  && !NILP (Vrun_hooks))
 	{
 	  /* In Emacs 22, setting transient-mark-mode to `only' was a
 	     way of turning it on for just one command.  This usage is
@@ -1805,6 +1806,9 @@ command_loop_1 (void)
 	      /* Even if not deactivating the mark, set PRIMARY if
 		 `select-active-regions' is non-nil.  */
 	      if (!NILP (Fwindow_system (Qnil))
+		  /* Even if mark_active is non-nil, the actual buffer
+		     marker may not have been set yet (Bug#7044).  */
+		  && XMARKER (current_buffer->mark)->buffer
 		  && (EQ (Vselect_active_regions, Qonly)
 		      ? EQ (CAR_SAFE (Vtransient_mark_mode), Qonly)
 		      : (!NILP (Vselect_active_regions)
