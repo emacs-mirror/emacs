@@ -1,3 +1,8 @@
+2010-10-03  Glenn Morris  <rgm@gnu.org>
+
+	* buffer.c (before-change-functions, after-change-functions):
+	Three-year overdue doc fix following 2007-08-13 change.
+
 2010-10-02  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (coding_inherit_eol_type): If parent doesn't specify
