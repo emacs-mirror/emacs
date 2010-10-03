@@ -1,3 +1,7 @@
+2010-10-03  Kevin Rodgers  <kevin.d.rodgers@gmail.com>
+
+	* subr.el (booleanp): Return t instead of a list (Bug#7086).
+
 2010-10-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* server.el (server-process-filter, server-return-error): Give

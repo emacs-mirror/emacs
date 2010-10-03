@@ -2420,8 +2420,9 @@ Otherwise, return nil."
   (or (stringp object) (null object)))
 
 (defun booleanp (object)
-  "Return non-nil if OBJECT is one of the two canonical boolean values: t or nil."
-  (memq object '(nil t)))
+  "Return t if OBJECT is one of the two canonical boolean values: t or nil.
+Otherwise, return nil."
+  (and (memq object '(nil t)) t))
 
 (defun field-at-pos (pos)
   "Return the field at position POS, taking stickiness etc into account."
