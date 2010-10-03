@@ -1,3 +1,9 @@
+2010-10-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* url-vars.el (url-mime-charset-string): Changed the default to
+	nil to avoid sending 1171 bytes of not very useful data to the
+	HTTP server every request.
+
 2010-10-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* url-util.el (url-display-percentage): Don't message when the URL

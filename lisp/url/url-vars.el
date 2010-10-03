@@ -234,7 +234,7 @@ Generated according to current coding system priorities."
 		(mapconcat 'symbol-name ordered ";q=0.5, ")
 		";q=0.5"))))
 
-(defvar url-mime-charset-string (url-mime-charset-string)
+(defvar url-mime-charset-string nil
   "*String to send in the Accept-charset: field in HTTP requests.
 The MIME charset corresponding to the most preferred coding system is
 given priority 1 and the rest are given priority 0.5.")
