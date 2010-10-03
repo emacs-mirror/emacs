@@ -1,5 +1,7 @@
 2010-10-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* xterm.c (NO_INLINE, noinline): Move definitions to ../configure.in.
+
 	Include <fcntl.h> unconditionally.
 	* termcap.c:
 	* sysdep.c:
