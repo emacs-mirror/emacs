@@ -559,7 +559,7 @@ make-local-hook
 
 ** The following variables and aliases, obsolete since at least Emacs 21.1,
 have been removed:
-checkdoc-minor-keymap
+checkdoc-minor-keymap, vc-header-alist
 
 
 * Lisp changes in Emacs 24.1

@@ -49,9 +49,6 @@ vc-BACKEND-master-templates.  To enable or disable VC for a given
 BACKEND, use `vc-handled-backends'."
  "21.1")
 
-(defvar vc-header-alist ())
-(make-obsolete-variable 'vc-header-alist 'vc-BACKEND-header "21.1")
-
 (defcustom vc-ignore-dir-regexp
   ;; Stop SMB, automounter, AFS, and DFS host lookups.
   locate-dominating-stop-dir-regexp

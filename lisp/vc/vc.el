@@ -770,7 +770,7 @@ See `run-hooks'."
      "\n#ifndef lint\nstatic char vcid[] = \"\%s\";\n#endif /* lint */\n"))
   "Associate static header string templates with file types.
 A \%s in the template is replaced with the first string associated with
-the file's version control type in `vc-header-alist'."
+the file's version control type in `vc-BACKEND-header'."
   :type '(repeat (cons :format "%v"
 		       (regexp :tag "File Type")
 		       (string :tag "Header String")))

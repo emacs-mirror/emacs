@@ -1,3 +1,15 @@
+2010-10-03  Glenn Morris  <rgm@gnu.org>
+
+	* vc/vc-hooks.el (vc-header-alist): Remove obsolete variable.
+	* vc/vc.el (vc-static-header-alist): Doc fix.
+	* vc/vc-cvs.el (vc-cvs-header):
+	* vc/vc-rcs.el (vc-rcs-header):
+	* vc/vc-sccs.el (vc-sccs-header):
+	* vc/vc-svn.el (vc-svn-header): Do not consult vc-header-alist.
+	* obsolete/vc-mcvs.el (vc-mcvs-header):
+	* progmodes/cperl-mode.el (cperl-mode): Only set vc-header-alist
+	on XEmacs.
+
 2010-10-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/bytecomp.el (byte-compile-from-buffer): Remove
