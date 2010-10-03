@@ -23,9 +23,7 @@ Boston, MA 02110-1301, USA.  */
 #include <lisp.h>		/* xmalloc is here */
 /* Get the O_* definitions for open et al.  */
 #include <sys/file.h>
-#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
-#endif
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif

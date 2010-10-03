@@ -1,5 +1,17 @@
 2010-10-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	Include <fcntl.h> unconditionally.
+	* termcap.c:
+	* sysdep.c:
+	* lread.c:
+	* keyboard.c:
+	* filelock.c:
+	* fileio.c:
+	* doc.c:
+	* callproc.c:
+	* alloc.c: Remove include guards for <fcntl.h>, process.c already
+	does it.
+
 	* process.c: Do not include <sys/wait.h>, syswait.h does it.
 
 	* sysdep.c (flush_pending_output): Remove code, does not do
