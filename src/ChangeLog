@@ -1,3 +1,12 @@
+2010-10-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnutls.c (emacs_gnutls_handshake, gnutls_make_error)
+	(gnutls_emacs_global_init, gnutls_emacs_global_deinit): Make static.
+	(Fgnutls_get_initstage, Fgnutls_deinit, Fgnutls_boot, Fgnutls_bye):
+	Fix typos in docstrings.
+	(Fgnutls_error_fatalp, Fgnutls_error_string): Doc fixes.
+	(Fgnutls_errorp): Doc fix; use ERR for the argument name.
+
 2010-10-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keyboard.c (command_loop_1): Make sure the mark is really alive
