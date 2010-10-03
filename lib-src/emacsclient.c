@@ -1499,6 +1499,7 @@ main (int argc, char **argv)
   char *cwd, *str;
   char string[BUFSIZ+1];
   int null_socket_name, null_server_file, start_daemon_if_needed;
+  int exit_status = EXIT_SUCCESS;
 
   main_argv = argv;
   progname = argv[0];
@@ -1698,7 +1699,8 @@ main (int argc, char **argv)
   fsync (1);
 
   /* Now, wait for an answer and print any messages.  */
-  while ((rl = recv (emacs_socket, string, BUFSIZ, 0)) > 0)
+  while (exit_status == EXIT_SUCCESS
+	 && (rl = recv (emacs_socket, string, BUFSIZ, 0)) > 0)
     {
       char *p;
       string[rl] = '\0';
@@ -1737,6 +1739,7 @@ main (int argc, char **argv)
             printf ("\n");
           fprintf (stderr, "*ERROR*: %s", str);
           needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
+	  exit_status = EXIT_FAILURE;
         }
 #ifdef SIGSTOP
       else if (strprefix ("-suspend ", string))
@@ -1754,7 +1757,8 @@ main (int argc, char **argv)
           if (needlf)
             printf ("\n");
           printf ("*ERROR*: Unknown message: %s", string);
-          needlf = string[0] == '\0' ? needlf : string[strlen (string) - 1] != '\n';
+          needlf = string[0]
+	    == '\0' ? needlf : string[strlen (string) - 1] != '\n';
         }
     }
 
@@ -1763,8 +1767,11 @@ main (int argc, char **argv)
   fflush (stdout);
   fsync (1);
 
+  if (rl < 0)
+    exit_status = EXIT_FAILURE;
+
   CLOSE_SOCKET (emacs_socket);
-  return EXIT_SUCCESS;
+  return exit_status;
 }
 
 #endif /* HAVE_SOCKETS && HAVE_INET_SOCKETS */

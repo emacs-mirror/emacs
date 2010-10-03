@@ -1,3 +1,8 @@
+2010-10-02  Wolfgang Schnerring  <wosc@wosc.de>  (tiny change)
+
+	* emacsclient.c (main): Return EXIT_FAILURE if Emacs sends us an
+	error string (Bug#6963).
+
 2010-10-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (tags): Remove target.
