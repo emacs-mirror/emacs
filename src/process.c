@@ -118,6 +118,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_NS
 #include "nsterm.h"
 #endif
+
 extern int timers_run;
 
 Lisp_Object Qeuid, Qegid, Qcomm, Qstate, Qppid, Qpgrp, Qsess, Qttname, Qtpgid;
@@ -1868,12 +1869,6 @@ create_process (Lisp_Object process, char **new_argv, Lisp_Object current_dir)
 	  report_file_error ("Setting file descriptor flags", Qnil);
 	}
     }
-#endif
-
-#if 0
-  /* Replaced by close_process_descs */
-  set_exclusive_use (inchannel);
-  set_exclusive_use (outchannel);
 #endif
 
 #ifdef O_NONBLOCK

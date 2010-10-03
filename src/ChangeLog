@@ -1,5 +1,11 @@
 2010-10-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	Remove unused code.
+	* sysdep.c (select_alarm, sys_select, read_input_waiting): Remove
+	select emulation, all systems support select.
+	(set_exclusive_use): Remove, the only user is in an #if 0 block.
+	* process.c (create_process): Remove #if 0 code.
+
 	Remove unused arguments for unexec.
 	The third one is never used, and the last two are always passed as zero.
 	* emacs.c (unexec): Add declaration.
