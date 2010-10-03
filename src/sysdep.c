@@ -363,22 +363,7 @@ wait_for_termination (int pid)
 void
 flush_pending_output (int channel)
 {
-#ifndef DOS_NT
-  /* If we try this, we get hit with SIGTTIN, because
-     the child's tty belongs to the child's pgrp. */
-#else
-#ifdef TCFLSH
-  ioctl (channel, TCFLSH, 1);
-#else
-#ifdef TIOCFLUSH
-  int zero = 0;
-  /* 3rd arg should be ignored
-     but some 4.2 kernels actually want the address of an int
-     and nonzero means something different.  */
-  ioctl (channel, TIOCFLUSH, &zero);
-#endif
-#endif
-#endif
+  /* FIXME: maybe this function should be removed */
 }
 
 /*  Set up the terminal at the other end of a pseudo-terminal that

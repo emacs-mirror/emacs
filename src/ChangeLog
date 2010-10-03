@@ -1,5 +1,8 @@
 2010-10-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* sysdep.c (flush_pending_output): Remove code, does not do
+	anything on any platform.
+
 	Remove unused code.
 	* sysdep.c (select_alarm, sys_select, read_input_waiting): Remove
 	select emulation, all systems support select.
