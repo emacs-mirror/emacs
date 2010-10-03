@@ -1,3 +1,11 @@
+2010-10-03  Glenn Morris  <rgm@gnu.org>
+
+	* ps-def.el (leading-code-private-22, charset-bytes, charset-id)
+	(charset-width, find-charset-region, chars-in-region, forward-point)
+	(encode-coding-string, coding-system-p, ccl-execute-on-string)
+	(define-ccl-program, multibyte-string-p, string-make-multibyte):
+	Remove compatibility cruft (none of these are used by ps*.el).
+
 2010-10-03  Kevin Rodgers  <kevin.d.rodgers@gmail.com>
 
 	* subr.el (booleanp): Return t instead of a list (Bug#7086).
