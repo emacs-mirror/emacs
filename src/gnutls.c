@@ -218,7 +218,7 @@ usage: (gnutls-error-string ERROR)  */)
 }
 
 DEFUN ("gnutls-deinit", Fgnutls_deinit, Sgnutls_deinit, 1, 1, 0,
-       doc: /* Deallocate GNU TLS resources associated with process PROC.
+       doc: /* Deallocate GnuTLS resources associated with process PROC.
 See also `gnutls-init'.  */)
   (Lisp_Object proc)
 {
@@ -236,8 +236,8 @@ See also `gnutls-init'.  */)
   return Qt;
 }
 
-/* Initializes global GNU TLS state to defaults.
-Call `gnutls-global-deinit' when GNU TLS usage is no longer needed.
+/* Initializes global GnuTLS state to defaults.
+Call `gnutls-global-deinit' when GnuTLS usage is no longer needed.
 Returns zero on success.  */
 static Lisp_Object
 gnutls_emacs_global_init (void)
@@ -252,7 +252,7 @@ gnutls_emacs_global_init (void)
   return gnutls_make_error (ret);
 }
 
-/* Deinitializes global GNU TLS state.
+/* Deinitializes global GnuTLS state.
 See also `gnutls-global-init'.  */
 static Lisp_Object
 gnutls_emacs_global_deinit (void)
