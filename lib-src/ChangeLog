@@ -1,3 +1,7 @@
+2010-10-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in: Remove ^L, old makes choke on it.
+
 2010-10-02  Wolfgang Schnerring  <wosc@wosc.de>  (tiny change)
 
 	* emacsclient.c (main): Return EXIT_FAILURE if Emacs sends us an
