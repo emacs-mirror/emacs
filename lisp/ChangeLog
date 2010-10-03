@@ -1,5 +1,8 @@
 2010-10-03  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/appt.el (appt-delete): Don't autoload it (you can't use it
+	without having used appt.el already).
+
 	* subr.el (make-local-hook): Remove function obsolete since 21.1.
 	* progmodes/cc-mode.el (make-local-hook): Don't do cc-bytecomp stuff.
 	(c-basic-common-init, c-font-lock-init): Only call make-local-hook on

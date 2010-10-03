@@ -456,7 +456,6 @@ sMinutes before the appointment to start warning: ")
       (setq appt-time-msg-list
             (appt-sort-list (nconc appt-time-msg-list (list time-msg)))))))
 
-;;;###autoload
 (defun appt-delete ()
   "Delete an appointment from the list of appointments."
   (interactive)
