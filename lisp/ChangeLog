@@ -1,3 +1,12 @@
+2010-10-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuffer.el (completion--some, completion--do-completion)
+	(minibuffer-complete-and-exit, minibuffer-completion-help)
+	(completion-basic-try-completion)
+	(completion-basic-all-completions)
+	(completion-pcm--find-all-completions): Use lexical-let to
+	avoid some false matches in variable completion (Bug#7056)
+
 2010-10-03  Olof Ohlsson Sax  <olof.ohlsson.sax@gmail.com>  (tiny change)
 
 	* vc-svn.el (vc-svn-merge-news): Use --non-interactive.  (Bug#7152)
