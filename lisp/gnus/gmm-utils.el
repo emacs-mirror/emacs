@@ -1,6 +1,7 @@
 ;;; gmm-utils.el --- Utility functions for Gnus, Message and MML
 
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Reiner Steib <reiner.steib@gmx.de>
 ;; Keywords: news
@@ -411,12 +412,9 @@ If mode is nil, use `major-mode' of the current buffer."
 
 In XEmacs, the seventh argument of `write-region' specifies the
 coding-system."
-  (if (and mustbenew
-	   (or (featurep 'xemacs)
-	       (= emacs-major-version 20)))
+  (if (and mustbenew (featurep 'xemacs))
       (if (file-exists-p filename)
-	  (signal 'file-already-exists
-		  (list "File exists" filename))
+	  (signal 'file-already-exists (list "File exists" filename))
 	(write-region start end filename append visit lockname))
     (write-region start end filename append visit lockname mustbenew)))
 

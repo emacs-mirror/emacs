@@ -1,5 +1,7 @@
 2010-10-03  Glenn Morris  <rgm@gnu.org>
 
+	* gmm-utils.el (gmm-write-region): Drop Emacs 20 compat cruft.
+
 	* gnus-util.el (gnus-make-local-hook): Simplify.
 
 2010-10-02  Julien Danjou  <julien@danjou.info>
