@@ -1,3 +1,7 @@
+2010-10-03  Glenn Morris  <rgm@gnu.org>
+
+	* fileio.c (Vdirectory_sep_char): Remove.
+
 2010-10-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* termhooks.h: Remove #ifdef CONSP.
