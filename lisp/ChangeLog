@@ -1,5 +1,7 @@
 2010-10-03  Glenn Morris  <rgm@gnu.org>
 
+	* obsolete/x-menu.el: Remove file, obsolete since 21.1
+
 	* textmodes/rst.el (rst-font-lock-keywords-function):
 	Drop Emacs 20 code.
 
