@@ -1,5 +1,7 @@
 2010-10-03  Glenn Morris  <rgm@gnu.org>
 
+	* smime.el (smime-cert-by-ldap-1): Drop Emacs 21 code.
+
 	* gnus-art.el (gnus-next-page-map): Drop Emacs 20 compat cruft.
 
 	* gmm-utils.el (gmm-write-region): Drop Emacs 20 compat cruft.
