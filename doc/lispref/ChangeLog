@@ -1,3 +1,8 @@
+2010-10-03  Glenn Morris  <rgm@gnu.org>
+
+	* files.texi (File Name Components): Remove ignored section about
+	deleted variable directory-sep-char.
+
 2010-10-03  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.texi (Magic File Names): New defopt

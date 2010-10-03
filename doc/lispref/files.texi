@@ -1758,20 +1758,6 @@ Note that the @samp{.~3~} in the two last examples is the backup part,
 not an extension.
 @end defun
 
-@ignore
-Andrew Innes says that this
-
-@c @defvar directory-sep-char
-This variable holds the character that Emacs normally uses to separate
-file name components.  The default value is @code{?/}, but on MS-Windows
-you can set it to @code{?\\}; then the functions that transform file names
-use backslashes in their output.
-
-File names using backslashes work as input to Lisp primitives even on
-MS-DOS and MS-Windows, even if @code{directory-sep-char} has its default
-value of @code{?/}.
-@end defvar
-@end ignore
 
 @node Relative File Names
 @subsection Absolute and Relative File Names

@@ -1,5 +1,9 @@
 2010-10-03  Glenn Morris  <rgm@gnu.org>
 
+	* subr.el (directory-sep-char): Remove obsolete variable.
+	* net/tramp-compat.el: Don't mess about with the byte-compiler unless
+	it is "necessary".
+
 	* vc/vc-hooks.el (vc-header-alist): Remove obsolete variable.
 	* vc/vc.el (vc-static-header-alist): Doc fix.
 	* vc/vc-cvs.el (vc-cvs-header):
