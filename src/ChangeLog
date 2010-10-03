@@ -1,5 +1,7 @@
 2010-10-03  Juanma Barranquero  <lekktu@gmail.com>
 
+	* makefile.w32-in (TAGS, TAGS-LISP, TAGS-gmake): Add $(FONTOBJ).
+
 	* gnutls.c (emacs_gnutls_handshake, gnutls_make_error)
 	(gnutls_emacs_global_init, gnutls_emacs_global_deinit): Make static.
 	(Fgnutls_get_initstage, Fgnutls_deinit, Fgnutls_boot, Fgnutls_bye):
