@@ -67,10 +67,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <bsdtty.h>
 #endif
 
-#ifdef HAVE_SYS_WAIT
-#include <sys/wait.h>
-#endif
-
 #ifdef HAVE_RES_INIT
 #include <netinet/in.h>
 #include <arpa/nameser.h>

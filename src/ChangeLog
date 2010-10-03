@@ -1,5 +1,7 @@
 2010-10-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* process.c: Do not include <sys/wait.h>, syswait.h does it.
+
 	* sysdep.c (flush_pending_output): Remove code, does not do
 	anything on any platform.
 
