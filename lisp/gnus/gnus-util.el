@@ -151,7 +151,7 @@ This is a compatibility function for different Emacsen."
 ;; up the byte compiler.
 (defalias 'gnus-make-local-hook (if (featurep 'xemacs)
                                     'make-local-hook
-                                  'ignore)
+                                  'ignore))
 
 (defun gnus-delete-first (elt list)
   "Delete by side effect the first occurrence of ELT as a member of LIST."
