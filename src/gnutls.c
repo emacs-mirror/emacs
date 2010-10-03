@@ -32,6 +32,13 @@ Lisp_Object Qgnutls_e_interrupted, Qgnutls_e_again,
   Qgnutls_e_invalid_session, Qgnutls_e_not_ready_for_handshake;
 int global_initialized;
 
+/* The following are for the property list of `gnutls-boot'.  */
+Lisp_Object Qgnutls_bootprop_priority;
+Lisp_Object Qgnutls_bootprop_trustfiles;
+Lisp_Object Qgnutls_bootprop_keyfiles;
+Lisp_Object Qgnutls_bootprop_callbacks;
+Lisp_Object Qgnutls_bootprop_loglevel;
+
 static void
 emacs_gnutls_handshake (struct Lisp_Process *proc)
 {
@@ -43,6 +50,9 @@ emacs_gnutls_handshake (struct Lisp_Process *proc)
 
   if (proc->gnutls_initstage < GNUTLS_STAGE_TRANSPORT_POINTERS_SET)
     {
+      /* This is how GnuTLS takes sockets: as file descriptors passed
+         in.  For an Emacs process socket, infd and outfd are the
+         same but we use this two-argument version for clarity.  */
       gnutls_transport_set_ptr2 (state,
 				 (gnutls_transport_ptr_t) (long) proc->infd,
 				 (gnutls_transport_ptr_t) (long) proc->outfd);
@@ -271,20 +281,29 @@ gnutls_log_function (int level, const char* string)
   message ("gnutls.c: [%d] %s", level, string);
 }
 
-DEFUN ("gnutls-boot", Fgnutls_boot, Sgnutls_boot, 3, 7, 0,
-       doc: /* Initialize client-mode GnuTLS for process PROC.
+static void
+gnutls_log_function2 (int level, const char* string, const char* extra)
+{
+  message ("gnutls.c: [%d] %s %s", level, string, extra);
+}
+
+DEFUN ("gnutls-boot", Fgnutls_boot, Sgnutls_boot, 3, 3, 0,
+       doc: /* Initialize GnuTLS client for process PROC with TYPE+PROPLIST.
 Currently only client mode is supported.  Returns a success/failure
 value you can check with `gnutls-errorp'.
 
-PRIORITY-STRING is a string describing the priority.
-TYPE is either `gnutls-anon' or `gnutls-x509pki'.
-TRUSTFILE is a PEM encoded trust file for `gnutls-x509pki'.
-KEYFILE is ... for `gnutls-x509pki' (TODO).
-CALLBACK is ... for `gnutls-x509pki' (TODO).
-LOGLEVEL is the debug level requested from GnuTLS, try 4.
+TYPE is a symbol, either `gnutls-anon' or `gnutls-x509pki'.
+PROPLIST is a property list with the following keys:
 
-LOGLEVEL will be set for this process AND globally for GnuTLS.  So if
-you set it higher or lower at any point, it affects global debugging.
+:priority is a GnuTLS priority string, defaults to "NORMAL".
+:trustfiles is a list of PEM-encoded trust files for `gnutls-x509pki'.
+:keyfiles is a list of PEM-encoded key files for `gnutls-x509pki'.
+:callbacks is an alist of callback functions (TODO).
+:loglevel is the debug level requested from GnuTLS, try 4.
+
+The debug level will be set for this process AND globally for GnuTLS.
+So if you set it higher or lower at any point, it affects global
+debugging.
 
 Note that the priority is set on the client.  The server does not use
 the protocols's priority except for disabling protocols that were not
@@ -295,11 +314,9 @@ functions are used.  This function allocates resources which can only
 be deallocated by calling `gnutls-deinit' or by calling it again.
 
 Each authentication type may need additional information in order to
-work.  For X.509 PKI (`gnutls-x509pki'), you need TRUSTFILE and
-KEYFILE and optionally CALLBACK.  */)
-  (Lisp_Object proc, Lisp_Object priority_string, Lisp_Object type,
-   Lisp_Object trustfile, Lisp_Object keyfile, Lisp_Object callback,
-   Lisp_Object loglevel)
+work.  For X.509 PKI (`gnutls-x509pki'), you probably need at least
+one trustfile (usually a CA bundle).  */)
+  (Lisp_Object proc, Lisp_Object type, Lisp_Object proplist)
 {
   int ret = GNUTLS_E_SUCCESS;
 
@@ -312,10 +329,25 @@ KEYFILE and optionally CALLBACK.  */)
   gnutls_certificate_credentials_t x509_cred;
   gnutls_anon_client_credentials_t anon_cred;
   Lisp_Object global_init;
+  char* priority_string_ptr = "NORMAL"; /* default priority string.  */
+  Lisp_Object tail;
+
+  /* Placeholders for the property list elements.  */
+  Lisp_Object priority_string;
+  Lisp_Object trustfiles;
+  Lisp_Object keyfiles;
+  Lisp_Object callbacks;
+  Lisp_Object loglevel;
 
   CHECK_PROCESS (proc);
   CHECK_SYMBOL (type);
-  CHECK_STRING (priority_string);
+  CHECK_LIST (proplist);
+
+  priority_string = Fplist_get (proplist, Qgnutls_bootprop_priority);
+  trustfiles      = Fplist_get (proplist, Qgnutls_bootprop_trustfiles);
+  keyfiles        = Fplist_get (proplist, Qgnutls_bootprop_keyfiles);
+  callbacks       = Fplist_get (proplist, Qgnutls_bootprop_callbacks);
+  loglevel        = Fplist_get (proplist, Qgnutls_bootprop_loglevel);
 
   state = XPROCESS (proc)->gnutls_state;
   XPROCESS (proc)->gnutls_p = 1;
@@ -394,29 +426,49 @@ KEYFILE and optionally CALLBACK.  */)
 
   if (EQ (type, Qgnutls_x509pki))
     {
-      if (STRINGP (trustfile))
+      for (tail = trustfiles; !NILP (tail); tail = Fcdr (tail))
 	{
-          GNUTLS_LOG (1, max_log_level, "setting the trustfile");
-          ret = gnutls_certificate_set_x509_trust_file
-            (x509_cred,
-             SDATA (trustfile),
-             file_format);
+	  Lisp_Object trustfile = Fcar (tail);
+          if (STRINGP (trustfile))
+            {
+              GNUTLS_LOG2 (1, max_log_level, "setting the trustfile: ",
+                           SDATA (trustfile));
+              ret = gnutls_certificate_set_x509_trust_file
+                (x509_cred,
+                 SDATA (trustfile),
+                 file_format);
+              
+              if (ret < GNUTLS_E_SUCCESS)
+                return gnutls_make_error (ret);
+            }
+          else
+            {
+              error ("Sorry, GnuTLS can't use non-string trustfile %s",
+                     trustfile);
+            }
+        }
 
-          if (ret < GNUTLS_E_SUCCESS)
-            return gnutls_make_error (ret);
-	}
-
-      if (STRINGP (keyfile))
+      for (tail = keyfiles; !NILP (tail); tail = Fcdr (tail))
 	{
-          GNUTLS_LOG (1, max_log_level, "setting the keyfile");
-          ret = gnutls_certificate_set_x509_crl_file
-            (x509_cred,
-             SDATA (keyfile),
-             file_format);
-
-          if (ret < GNUTLS_E_SUCCESS)
-            return gnutls_make_error (ret);
-	}
+	  Lisp_Object keyfile = Fcar (tail);
+          if (STRINGP (keyfile))
+            {
+              GNUTLS_LOG2 (1, max_log_level, "setting the keyfile: ",
+                           SDATA (keyfile));
+              ret = gnutls_certificate_set_x509_crl_file
+                (x509_cred,
+                 SDATA (keyfile),
+                 file_format);
+              
+              if (ret < GNUTLS_E_SUCCESS)
+                return gnutls_make_error (ret);
+            }
+          else
+            {
+              error ("Sorry, GnuTLS can't use non-string keyfile %s",
+                     keyfile);
+            }
+        }
     }
 
   GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_FILES;
@@ -432,10 +484,22 @@ KEYFILE and optionally CALLBACK.  */)
 
   GNUTLS_INITSTAGE (proc) = GNUTLS_STAGE_INIT;
 
+  if (STRINGP (priority_string))
+    {
+      priority_string_ptr = (char*) SDATA (priority_string);
+      GNUTLS_LOG2 (1, max_log_level, "got non-default priority string:",
+                   priority_string_ptr);
+    }
+  else
+    {
+      GNUTLS_LOG2 (1, max_log_level, "using default priority string:",
+                   priority_string_ptr);
+    }
+  
   GNUTLS_LOG (1, max_log_level, "setting the priority string");
 
   ret = gnutls_priority_set_direct (state,
-				    (char*) SDATA (priority_string),
+				    priority_string_ptr,
 				    NULL);
 
   if (ret < GNUTLS_E_SUCCESS)
@@ -513,6 +577,21 @@ syms_of_gnutls (void)
 
   Qgnutls_x509pki = intern_c_string ("gnutls-x509pki");
   staticpro (&Qgnutls_x509pki);
+
+  Qgnutls_bootprop_priority = intern_c_string ("priority");
+  staticpro (&Qgnutls_bootprop_priority);
+
+  Qgnutls_bootprop_trustfiles = intern_c_string ("trustfiles");
+  staticpro (&Qgnutls_bootprop_trustfiles);
+
+  Qgnutls_bootprop_keyfiles = intern_c_string ("keyfiles");
+  staticpro (&Qgnutls_bootprop_keyfiles);
+
+  Qgnutls_bootprop_callbacks = intern_c_string ("callbacks");
+  staticpro (&Qgnutls_bootprop_callbacks);
+
+  Qgnutls_bootprop_loglevel = intern_c_string ("loglevel");
+  staticpro (&Qgnutls_bootprop_loglevel);
 
   Qgnutls_e_interrupted = intern_c_string ("gnutls-e-interrupted");
   staticpro (&Qgnutls_e_interrupted);

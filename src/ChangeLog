@@ -1,3 +1,15 @@
+2010-10-03  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnutls.h (GNUTLS_LOG2): Convenience macro.
+
+	* gnutls.c: Add property list symbol holders.
+	(emacs_gnutls_handshake): Clarify how sockets are passed to
+	GnuTLS.
+	(gnutls_log_function2): Convenience function using GNUTLS_LOG2.
+	(Fgnutls_boot): Get all parameters from a plist.  Require trustfiles
+	and keyfiles to be a list of file names.  Default to "NORMAL" for
+	the priority string.  Improve logging.
+
 2010-10-03  Glenn Morris  <rgm@gnu.org>
 
 	* fileio.c (Vdirectory_sep_char): Remove.

@@ -57,34 +57,36 @@ Third arg is name of the host to connect to, or its IP address.
 Fourth arg SERVICE is name of the service desired, or an integer
 specifying a port number to connect to."
   (let ((proc (open-network-stream name buffer host service)))
-    (starttls-negotiate proc nil 'gnutls-x509pki)))
+    (starttls-negotiate proc 'gnutls-x509pki)))
 
 ;; (open-ssl-stream "tls" "tls-buffer" "yourserver.com" "https")
-(defun starttls-negotiate (proc &optional priority-string
-                                credentials credentials-file)
+;; (open-ssl-stream "tls" "tls-buffer" "imap.gmail.com" "imaps")
+(defun starttls-negotiate (proc type &optional priority-string
+                                trustfiles keyfiles)
   "Negotiate a SSL or TLS connection.
-PROC is the process returned by `starttls-open-stream'.
-PRIORITY-STRING is as per the GnuTLS docs.
-CREDENTIALS is `gnutls-x509pki' or `gnutls-anon'.
-CREDENTIALS-FILE is a filename with meaning dependent on CREDENTIALS."
-  (let* ((credentials (or credentials 'gnutls-x509pki))
-         (credentials-file (or credentials-file
-                               "/etc/ssl/certs/ca-certificates.crt"
-                               ;"/etc/ssl/certs/ca.pem"
-                               ))
-
+TYPE is `gnutls-x509pki' (default) or `gnutls-anon'.  Use nil for the default.
+PROC is a process returned by `open-network-stream'.
+PRIORITY-STRING is as per the GnuTLS docs, default is \"NORMAL\".
+TRUSTFILES is a list of CA bundles.
+KEYFILES is a list of client keys."
+  (let* ((type (or type 'gnutls-x509pki))
+         (trusfiles (or trustfiles
+                        '("/etc/ssl/certs/ca-certificates.crt")))
          (priority-string (or priority-string
                               (cond
-                               ((eq credentials 'gnutls-anon)
+                               ((eq type 'gnutls-anon)
                                 "NORMAL:+ANON-DH:!ARCFOUR-128")
-                               ((eq credentials 'gnutls-x509pki)
+                               ((eq type 'gnutls-x509pki)
                                 "NORMAL"))))
+         (params `(:priority ,priority-string
+                             :loglevel ,gnutls-log-level
+                             :trustfiles ,trustfiles
+                             :keyfiles ,keyfiles
+                             :callbacks nil))
          ret)
 
     (gnutls-message-maybe
-     (setq ret (gnutls-boot proc priority-string
-                            credentials credentials-file
-                            nil nil gnutls-log-level))
+     (setq ret (gnutls-boot proc type params))
      "boot: %s")
 
     proc))
