@@ -1,3 +1,8 @@
+2010-10-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Frequently Asked Questions): Mention
+	remote-file-name-inhibit-cache.
+
 2010-10-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.texi (Splitting Mail): Fix @xref syntax.
