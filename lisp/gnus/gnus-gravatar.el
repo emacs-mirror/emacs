@@ -76,7 +76,7 @@ Set image category to CATEGORY."
                      (search-backward mail-address nil t)))
           (goto-char (1- (point)))
           ;; If we're on the " quoting the name, go backward
-          (when (looking-at "\"")
+          (when (looking-at "[\"<]")
             (goto-char (1- (point))))
           ;; Do not do anything if there's already a gravatar. This can
           ;; happens if the buffer has been regenerated in the mean time, for

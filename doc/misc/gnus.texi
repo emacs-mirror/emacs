@@ -15111,7 +15111,7 @@ message.  The function should return a list of group names that it
 thinks should carry this mail message.
 
 This variable can also be a fancy split method.  For the syntax,
-@pxref{Fancy Mail Splitting}.
+see @ref{Fancy Mail Splitting}.
 
 Note that the mail back ends are free to maul the poor, innocent,
 incoming headers all they want to.  They all add @code{Lines} headers;

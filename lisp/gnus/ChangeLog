@@ -1,3 +1,28 @@
+2010-10-02  Julien Danjou  <julien@danjou.info>
+
+	* gnus-util.el (gnus-iswitchb-completing-read): New function.
+	(gnus-ido-completing-read): New function.
+	(gnus-emacs-completing-read): New function.
+	(gnus-completing-read): Use gnus-completing-read-function.
+	Add gnus-completing-read-function.
+
+2010-10-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-insert-document): Autoload.
+	(shr-img): Be silent.
+	(shr-insert): Add a newline after every picture before text.
+	(shr-add-font): Use overlays for combining faces.
+	(shr-insert): Pass upwards the text start point.
+
+	* mm-decode.el (mm-text-html-renderer): Default to shr.el rendering, if
+	possible.
+	(mm-shr): New function.
+
+2010-10-02  Julien Danjou  <julien@danjou.info>
+
+	* gnus-gravatar.el (gnus-gravatar-insert): Adjust character where we
+	should go backward.
+
 2010-10-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* shr.el (shr): Fix typo in provide call.

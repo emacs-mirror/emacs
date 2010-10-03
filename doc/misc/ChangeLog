@@ -1,6 +1,7 @@
 2010-10-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.texi (Splitting Mail): Fix @xref syntax.
+	(Splitting Mail): Really fix the @ref syntax.
 
 2010-10-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
