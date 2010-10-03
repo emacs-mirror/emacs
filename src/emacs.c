@@ -2118,6 +2118,10 @@ shut_down_emacs (int sig, int no_x, Lisp_Object stuff)
 
 #ifndef CANNOT_DUMP
 
+/* FIXME: maybe this should go into header file, config.h seems the
+   only one appropriate. */
+extern int unexec (const char *, const char *);
+
 DEFUN ("dump-emacs", Fdump_emacs, Sdump_emacs, 2, 2, 0,
        doc: /* Dump current state of Emacs into executable file FILENAME.
 Take symbols from SYMFILE (presumably the file you executed to run Emacs).
@@ -2185,13 +2189,13 @@ You must run Emacs in batch mode in order to dump it.  */)
      Meanwhile, my_edata is not valid on Windows.  */
   memory_warnings (my_edata, malloc_warning);
 #endif /* not WINDOWSNT */
-#endif
-#if !defined (SYSTEM_MALLOC) && defined (HAVE_GTK_AND_PTHREAD) && !defined SYNC_INPUT
+#if defined (HAVE_GTK_AND_PTHREAD) && !defined SYNC_INPUT
   /* Pthread may call malloc before main, and then we will get an endless
      loop, because pthread_self (see alloc.c) calls malloc the first time
      it is called on some systems.  */
   reset_malloc_hooks ();
 #endif
+#endif /* not SYSTEM_MALLOC */
 #ifdef DOUG_LEA_MALLOC
   malloc_state_ptr = malloc_get_state ();
 #endif
@@ -2199,8 +2203,7 @@ You must run Emacs in batch mode in order to dump it.  */)
 #ifdef USE_MMAP_FOR_BUFFERS
   mmap_set_vars (0);
 #endif
-  unexec (SDATA (filename),
-	  !NILP (symfile) ? SDATA (symfile) : 0, my_edata, 0, 0);
+  unexec (SDATA (filename), !NILP (symfile) ? SDATA (symfile) : 0);
 #ifdef USE_MMAP_FOR_BUFFERS
   mmap_set_vars (1);
 #endif

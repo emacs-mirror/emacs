@@ -1,3 +1,27 @@
+2010-10-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove unused arguments for unexec.
+	The third one is never used, and the last two are always passed as zero.
+	* emacs.c (unexec): Add declaration.
+	(Fdump_emacs): Only pass the first two arguments to unexec.
+	Simplify #ifdef.
+	* unexw32.c (unexec):
+	* unexsol.c (unexec):
+	* unexhp9k800.c (unexec):
+	* unexcw.c (unexec): Remove the last 3 arguments, unused.
+	* unexelf.c (unexec): Remove the last 3 arguments, unused.
+	(find_section): Use const.
+	* unexmacosx.c (unexec): Remove the last 3 arguments, unused.
+	(unexec_error): Declare it NO_RETURN.
+	* unexcoff.c (make_hdr): Assume bss_start is always zero, remove
+	it as an argument, remove data_start and entry_address arguments, unused.
+	(unexec): Remove bss_start, data_start and
+	entry_address arguments.
+	* unexaix.c (make_hdr): Assume bss_start is always zero, remove
+	it as an argument, remove data_start and entry_address arguments, unused.
+	(unexec): Remove bss_start, data_start and
+	entry_address arguments.
+
 2010-10-03  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (TAGS, TAGS-LISP, TAGS-gmake): Add $(FONTOBJ).
