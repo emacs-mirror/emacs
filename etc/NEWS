@@ -195,6 +195,9 @@ automatically when Emacs starts up.  To disable this, set
 `package-enable-at-startup' to nil.  To change which packages are
 loaded, customize `package-load-list'.
 
+** The user option `remote-file-name-inhibit-cache' controls whether
+the remote file-name cache is used for read access.
+
 
 * Editing Changes in Emacs 24.1
 
