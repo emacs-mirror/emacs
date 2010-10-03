@@ -1,5 +1,12 @@
 2010-10-03  Glenn Morris  <rgm@gnu.org>
 
+	* subr.el (make-local-hook): Remove function obsolete since 21.1.
+	* progmodes/cc-mode.el (make-local-hook): Don't do cc-bytecomp stuff.
+	(c-basic-common-init, c-font-lock-init): Only call make-local-hook on
+	XEmacs.
+	* progmodes/cc-styles.el (make-local-hook): Don't do cc-bytecomp stuff.
+	(c-make-styles-buffer-local): Only call make-local-hook on XEmacs.
+
 	* ps-def.el (leading-code-private-22, charset-bytes, charset-id)
 	(charset-width, find-charset-region, chars-in-region, forward-point)
 	(encode-coding-string, coding-system-p, ccl-execute-on-string)

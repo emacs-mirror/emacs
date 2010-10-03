@@ -149,11 +149,9 @@ This is a compatibility function for different Emacsen."
 ;; XEmacs.  In Emacs we don't need to call `make-local-hook' first.
 ;; It's harmless, though, so the main purpose of this alias is to shut
 ;; up the byte compiler.
-(defalias 'gnus-make-local-hook
-  (if (eq (get 'make-local-hook 'byte-compile)
-	  'byte-compile-obsolete)
-      'ignore				; Emacs
-    'make-local-hook))			; XEmacs
+(defalias 'gnus-make-local-hook (if (featurep 'xemacs)
+                                    'make-local-hook
+                                  'ignore)
 
 (defun gnus-delete-first (elt list)
   "Delete by side effect the first occurrence of ELT as a member of LIST."

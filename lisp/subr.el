@@ -1163,37 +1163,6 @@ to reread, so it now uses nil to mean `no event', instead of -1."
 
 ;;;; Hook manipulation functions.
 
-(defun make-local-hook (hook)
-  "Make the hook HOOK local to the current buffer.
-The return value is HOOK.
-
-You never need to call this function now that `add-hook' does it for you
-if its LOCAL argument is non-nil.
-
-When a hook is local, its local and global values
-work in concert: running the hook actually runs all the hook
-functions listed in *either* the local value *or* the global value
-of the hook variable.
-
-This function works by making t a member of the buffer-local value,
-which acts as a flag to run the hook functions in the default value as
-well.  This works for all normal hooks, but does not work for most
-non-normal hooks yet.  We will be changing the callers of non-normal
-hooks so that they can handle localness; this has to be done one by
-one.
-
-This function does nothing if HOOK is already local in the current
-buffer.
-
-Do not use `make-local-variable' to make a hook variable buffer-local."
-  (if (local-variable-p hook)
-      nil
-    (or (boundp hook) (set hook nil))
-    (make-local-variable hook)
-    (set hook (list t)))
-  hook)
-(make-obsolete 'make-local-hook "not necessary any more." "21.1")
-
 (defun add-hook (hook function &optional append local)
   "Add to the value of HOOK the function FUNCTION.
 FUNCTION is not added if already present.

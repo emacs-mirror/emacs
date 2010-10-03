@@ -1,3 +1,7 @@
+2010-10-03  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-util.el (gnus-make-local-hook): Simplify.
+
 2010-10-02  Julien Danjou  <julien@danjou.info>
 
 	* gnus-util.el (gnus-iswitchb-completing-read): New function.
