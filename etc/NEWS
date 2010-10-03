@@ -66,9 +66,14 @@ obsolete in Emacs 23.)
 
 * Changes in Emacs 24.1
 
-** New emacsclient argument --parent-id ID can be used to open a
+** emacsclient changes
+
+*** New emacsclient argument --parent-id ID can be used to open a
 client frame in parent X window ID, via XEmbed.  This works like the
 --parent-id argument to Emacs.
+
+*** If emacsclient shuts down as a result of Emacs signalling an
+error, its exit status is 1.
 
 ** Completion can cycle, depending on completion-cycle-threshold.
 

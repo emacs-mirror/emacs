@@ -876,6 +876,9 @@ The following commands are accepted by the client:
       (server-log "Authentication failed" proc)
       (server-send-string
        proc (concat "-error " (server-quote-arg "Authentication failed")))
+      ;; Before calling `delete-process', give emacsclient time to
+      ;; receive the error string and shut down on its own.
+      (sit-for 1)
       (delete-process proc)
       ;; We return immediately
       (return-from server-process-filter)))
@@ -1129,6 +1132,9 @@ The following commands are accepted by the client:
      proc (concat "-error " (server-quote-arg
                              (error-message-string err))))
     (server-log (error-message-string err) proc)
+    ;; Before calling `delete-process', give emacsclient time to
+    ;; receive the error string and shut down on its own.
+    (sit-for 5)
     (delete-process proc)))
 
 (defun server-goto-line-column (line-col)

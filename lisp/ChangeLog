@@ -1,3 +1,8 @@
+2010-10-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* server.el (server-process-filter, server-return-error): Give
+	emacsclient time to shut down after receiving an error string.
+
 2010-10-02  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.el (remote-file-name-inhibit-cache): New defcustom.
