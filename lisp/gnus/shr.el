@@ -220,7 +220,7 @@ fit these criteria."
     (let (column)
       (dolist (elem (split-string text))
 	(setq column (current-column))
-	(when (plusp column)
+	(when (> column 0)
 	  (if (> (+ column (length elem) 1) shr-width)
 	      (insert "\n")
 	    (insert " ")))

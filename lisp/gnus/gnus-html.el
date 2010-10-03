@@ -271,7 +271,7 @@ Use ALT-TEXT for the image string."
       (setq tag (match-string 1)
 	    parameters (match-string 2)
 	    start (match-beginning 0))
-      (when (plusp (length parameters))
+      (when (> (length parameters) 0)
 	(set-text-properties 0 (1- (length parameters)) nil parameters))
       (delete-region start (point))
       (when (search-forward (concat "</" tag ">") nil t)

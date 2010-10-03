@@ -149,7 +149,7 @@ Use streaming commands."
       (let ((size (pop3-stat process)))
 	(setq message-count (car size)
 	      message-total-size (cadr size)))
-      (when (plusp message-count)
+      (when (> message-count 0)
 	(pop3-send-streaming-command
 	 process "RETR" message-count message-total-size)
 	(pop3-write-to-file file)
