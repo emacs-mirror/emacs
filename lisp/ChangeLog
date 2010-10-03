@@ -1,3 +1,8 @@
+2010-10-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/bytecomp.el (byte-compile-from-buffer): Remove
+	obsolete use of binary-overwrite-mode (Bug#7001).
+
 2010-10-03  Glenn Morris  <rgm@gnu.org>
 
 	* obsolete/x-menu.el: Remove file, obsolete since 21.1

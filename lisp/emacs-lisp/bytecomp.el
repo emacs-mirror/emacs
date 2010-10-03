@@ -1800,15 +1800,7 @@ With argument ARG, insert value in current buffer after the form."
        (set-buffer-multibyte t)
        (erase-buffer)
        ;;	 (emacs-lisp-mode)
-       (setq case-fold-search nil)
-       ;; This is a kludge.  Some operating systems (OS/2, DOS) need
-       ;; to write files containing binary information specially.
-       ;; Under most circumstances, such files will be in binary
-       ;; overwrite mode, so those OS's use that flag to guess how
-       ;; they should write their data.  Advise them that .elc files
-       ;; need to be written carefully.  (There's no point running the
-       ;; mode hook, so don't call `binary-overwrite-mode'.)
-       (setq overwrite-mode 'overwrite-mode-binary))
+       (setq case-fold-search nil))
      (displaying-byte-compile-warnings
       (with-current-buffer bytecomp-inbuffer
 	(and bytecomp-filename
