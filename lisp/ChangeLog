@@ -1,5 +1,8 @@
 2010-10-03  Glenn Morris  <rgm@gnu.org>
 
+	* textmodes/rst.el (rst-font-lock-keywords-function):
+	Drop Emacs 20 code.
+
 	* textmodes/artist.el (artist-replace-char): Drop Emacs 20 code.
 
 	* printing.el: Drop Emacs 20 code.
