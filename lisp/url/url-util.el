@@ -248,7 +248,7 @@ Will not do anything if `url-show-status' is nil."
   "Return the directory part of FILE, for a URL."
   (cond
    ((null file) "")
-   ((string-match (eval-when-compile (regexp-quote "?")) file)
+   ((string-match "\\?" file)
     (file-name-directory (substring file 0 (match-beginning 0))))
    (t (file-name-directory file))))
 
@@ -257,7 +257,7 @@ Will not do anything if `url-show-status' is nil."
   "Return the nondirectory part of FILE, for a URL."
   (cond
    ((null file) "")
-   ((string-match (eval-when-compile (regexp-quote "?")) file)
+   ((string-match "\\?" file)
     (file-name-nondirectory (substring file 0 (match-beginning 0))))
    (t (file-name-nondirectory file))))
 
@@ -436,10 +436,8 @@ This uses `url-current-object', set locally to the buffer."
 	(url-recreate-url url-current-object)
       (message "%s" (url-recreate-url url-current-object)))))
 
-(eval-and-compile
-  (defvar url-get-url-filename-chars "-%.?@a-zA-Z0-9()_/:~=&"
-    "Valid characters in a URL.")
-  )
+(defvar url-get-url-filename-chars "-%.?@a-zA-Z0-9()_/:~=&"
+  "Valid characters in a URL.")
 
 (defun url-get-url-at-point (&optional pt)
   "Get the URL closest to point, but don't change position.
@@ -457,8 +455,7 @@ Has a preference for looking backward when not directly on a symbol."
 		  (if (not (bobp))
 		      (backward-char 1)))))
 	(if (and (char-after (point))
-		 (string-match (eval-when-compile
-				 (concat "[" url-get-url-filename-chars "]"))
+		 (string-match (concat "[" url-get-url-filename-chars "]")
 			       (char-to-string (char-after (point)))))
 	    (progn
 	      (skip-chars-backward url-get-url-filename-chars)
