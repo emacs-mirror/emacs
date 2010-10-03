@@ -1,5 +1,13 @@
 2010-10-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* test-distrib.c (cool_read):
+	* movemail.c (main, concat):
+	* make-docfile.c (scan_file, write_c_args):
+	* emacsclient.c	(get_server_config): Fix -Wconversion warning.
+	(egetenv): Move conditional definition earlier.
+	(progname): Use const.
+	* sorted-doc.c (xstrdup): Use const.
+
 	* Makefile.in: Remove ^L, old makes choke on it.
 
 2010-10-02  Wolfgang Schnerring  <wosc@wosc.de>  (tiny change)

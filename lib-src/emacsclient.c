@@ -39,6 +39,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 # define CLOSE_SOCKET closesocket
 # define INITIALIZE() (initialize_sockets ())
 
+char *w32_getenv (char *);
+#define egetenv(VAR) w32_getenv(VAR)
+
 #else /* !WINDOWSNT */
 
 # include "syswait.h"
@@ -62,6 +65,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #  define WCONTINUED 8
 # endif
 
+#define egetenv(VAR) getenv(VAR)
+
 #endif /* !WINDOWSNT */
 
 #undef signal
@@ -84,13 +89,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 char *getenv (const char *), *getwd (char *);
 #ifdef HAVE_GETCWD
 char *(getcwd) (char *, size_t);
-#endif
-
-#ifdef WINDOWSNT
-char *w32_getenv (char *);
-#define egetenv(VAR) w32_getenv(VAR)
-#else
-#define egetenv(VAR) getenv(VAR)
 #endif
 
 #ifndef VERSION
@@ -119,7 +117,7 @@ char *w32_getenv (char *);
 
 
 /* Name used to invoke this program.  */
-char *progname;
+const char *progname;
 
 /* The second argument to main. */
 char **main_argv;
@@ -752,7 +750,7 @@ send_to_emacs (HSOCKET s, const char *data)
 {
   while (data)
     {
-      int dlen = strlen (data);
+      size_t dlen = strlen (data);
       if (dlen + sblen >= SEND_BUFFER_SIZE)
 	{
 	  int part = SEND_BUFFER_SIZE - sblen;
