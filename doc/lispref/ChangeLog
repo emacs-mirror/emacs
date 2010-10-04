@@ -2325,6 +2325,12 @@
 
 	* display.texi (Images): Delete redundant @findex.
 
+2007-08-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* text.texi (Change Hooks): (after|before)-change-functions are no
+	longer bound to nil while running; rather inhibit-modification-hooks
+	is t.
+
 2007-08-16  Richard Stallman  <rms@gnu.org>
 
 	* processes.texi (Asynchronous Processes): Clarify

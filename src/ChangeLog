@@ -3,6 +3,16 @@
 	* coding.c (complement_process_encoding_system): Fix previous
 	change.
 
+2010-10-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (syms_of_dbusbind): Move putenv call ...
+	(Fdbus_init_bus): ... here.  (Bug#7113)
+
+2010-10-03  Glenn Morris  <rgm@gnu.org>
+
+	* buffer.c (before-change-functions, after-change-functions):
+	Three-year overdue doc fix following 2007-08-13 change.
+
 2010-10-02  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (coding_inherit_eol_type): If parent doesn't specify

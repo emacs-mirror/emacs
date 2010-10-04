@@ -854,6 +854,9 @@ This is an internal function, it shall not be used outside dbus.el.  */)
 					    NULL, (void*) XHASH (bus), NULL))
     XD_SIGNAL1 (build_string ("Cannot add watch functions"));
 
+  /* We do not want to abort.  */
+  putenv ("DBUS_FATAL_WARNINGS=0");
+
   /* Return.  */
   return Qnil;
 }
@@ -2130,12 +2133,11 @@ message arrives.  */);
     doc: /* If non-nil, debug messages of D-Bus bindings are raised.  */);
 #ifdef DBUS_DEBUG
   Vdbus_debug = Qt;
-  /* We can also set environment DBUS_VERBOSE=1 in order to see more
-     traces.  */
+  /* We can also set environment variable DBUS_VERBOSE=1 in order to
+     see more traces.  This requires libdbus-1 to be configured with
+     --enable-verbose-mode.  */
 #else
   Vdbus_debug = Qnil;
-  /* We do not want to abort.  */
-  putenv ("DBUS_FATAL_WARNINGS=0");
 #endif
 
   Fprovide (intern_c_string ("dbusbind"), Qnil);
