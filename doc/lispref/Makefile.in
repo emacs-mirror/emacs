@@ -100,9 +100,8 @@ pdf: elisp.pdf
 $(infodir):
 	mkdir $@
 
-## FIXME ? -I$infodir is that right, or should it be texinfodir?
 $(infodir)/elisp: $(infodir) $(srcs)
-	cd $(srcdir); $(MAKEINFO) -I. -I$(infodir) elisp.texi -o $@
+	cd $(srcdir); $(MAKEINFO) -I. -I$(texinfodir) elisp.texi -o $@
 
 elisp.dvi: $(srcs)
 	$(TEXI2DVI) -I $(srcdir) -I $(texinfodir) $(srcdir)/elisp.texi

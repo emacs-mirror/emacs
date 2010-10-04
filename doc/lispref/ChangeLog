@@ -2,6 +2,7 @@
 
 	* Makefile.in (dvi, pdf, $(infodir)): New targets.
 	($(infodir)/elisp): Ensure target directory exists.  Use $@.
+	Fix -I typo.
 	(clean): No 'make.out' or 'core' files.
 	(.PHONY): Declare clean rules.
 	(maintainer-clean): Delete pdf file.  Guard against cd failures.
