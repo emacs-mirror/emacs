@@ -446,6 +446,7 @@ sMinutes before the appointment to start warning: ")
   (and warntime
        (not (integerp warntime))
        (error "Argument WARNTIME must be an integer, or nil"))
+  (or appt-timer (appt-activate))
   (let ((time-msg (list (list (appt-convert-time time))
                         (concat time " " msg) t)))
     ;; It is presently non-sensical to have multiple warnings about
@@ -618,13 +619,16 @@ ARG is positive, otherwise off."
     (when appt-timer
       (cancel-timer appt-timer)
       (setq appt-timer nil))
-    (when appt-active
-      (diary-check-diary-file)
-      (add-hook 'write-file-functions 'appt-update-list)
-      (setq appt-timer (run-at-time t 60 'appt-check)
-            global-mode-string
-            (append global-mode-string '(appt-mode-string)))
-      (appt-check t))))
+    (if appt-active
+        (progn
+          (diary-check-diary-file)
+          (add-hook 'write-file-functions 'appt-update-list)
+          (setq appt-timer (run-at-time t 60 'appt-check)
+                global-mode-string
+                (append global-mode-string '(appt-mode-string)))
+          (appt-check t)
+          (message "Appointment reminders enabled"))
+      (message "Appointment reminders disabled"))))
 
 
 (provide 'appt)
