@@ -20,20 +20,16 @@ Boston, MA 02110-1301, USA.  */
 /* Emacs config.h may rename various library functions such as malloc.  */
 #include <config.h>
 #include <setjmp.h>
-#include <lisp.h>		/* xmalloc is here */
-/* Get the O_* definitions for open et al.  */
 #include <sys/file.h>
 #include <fcntl.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 
+#include "lisp.h"
+
 #ifndef NULL
 #define NULL (char *) 0
-#endif
-
-#ifndef O_RDONLY
-#define O_RDONLY 0
 #endif
 
 /* BUFSIZE is the initial size allocated for the buffer

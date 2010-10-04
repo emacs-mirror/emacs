@@ -1,3 +1,14 @@
+2010-10-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove O_RDONLY, O_WRONLY definitions, not needed.
+	* unexcoff.c:
+	* lread.c:
+	* fileio.c:
+	* doc.c:
+	* callproc.c:
+	* alloc.c:
+	* termcap.c: Remove O_RDONLY O_WRONLY definitions.
+
 2010-10-03  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnutls.h (GNUTLS_LOG2): Convenience macro.

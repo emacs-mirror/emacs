@@ -45,14 +45,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <sys/param.h>
 #endif /* MSDOS */
 
-#ifndef O_RDONLY
-#define O_RDONLY 0
-#endif
-
-#ifndef O_WRONLY
-#define O_WRONLY 1
-#endif
-
 #include "lisp.h"
 #include "commands.h"
 #include "buffer.h"
