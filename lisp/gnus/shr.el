@@ -214,14 +214,14 @@ fit these criteria."
       image)))
 
 (defun shr-tag-pre (cont)
-  (let ((shr-folding-mode nil))
+  (let ((shr-folding-mode 'none))
     (shr-ensure-newline)
     (shr-generic cont)
     (shr-ensure-newline)))
 
 (defun shr-tag-blockquote (cont)
   (let ((shr-indentation (+ shr-indentation 4)))
-    (shr-tag-pre cont)))
+    (shr-generic cont)))
 
 (defun shr-ensure-newline ()
   (unless (zerop (current-column))
@@ -233,7 +233,7 @@ fit these criteria."
     (setq shr-state nil))
   (cond
    ((eq shr-folding-mode 'none)
-    (insert t))
+    (insert text))
    (t
     (let ((first t)
 	  column)
@@ -244,7 +244,9 @@ fit these criteria."
 	(setq column (current-column))
 	(when (> column 0)
 	  (cond
-	   ((> (+ column (length elem) 1) shr-width)
+	   ((and (or (not first)
+		     (eq shr-state 'space))
+		 (> (+ column (length elem) 1) shr-width))
 	    (insert "\n"))
 	   ((not first)
 	    (insert " "))))
@@ -258,9 +260,11 @@ fit these criteria."
 	(unless shr-start
 	  (setq shr-start (point)))
 	(insert elem))
+      (setq shr-state nil)
       (when (and (string-match "[ \t\n]\\'" text)
 		 (not (bolp)))
-	(insert " "))))))
+	(insert " ")
+	(setq shr-state 'space))))))
 
 (defun shr-get-image-data (url)
   "Get image data for URL.
@@ -293,7 +297,8 @@ Return a string with image data."
   (shr-generic cont))
 
 (defun shr-tag-br (cont)
-  (shr-ensure-newline)
+  (unless (bobp)
+    (insert "\n"))
   (shr-generic cont))
 
 (defun shr-tag-h1 (cont)

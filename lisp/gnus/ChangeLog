@@ -1,6 +1,8 @@
 2010-10-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-ensure-paragraph): Fix the non-empty line case.
+	(shr-insert): Tweak line breaking.
+	(shr-insert): Handle <pre> better.
 
 2010-10-04  Julien Danjou  <julien@danjou.info>
 
