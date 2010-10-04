@@ -1932,6 +1932,26 @@ is allowed once again.  (Immediately, if `inhibit-quit' is nil.)"
             (get-char-table ,character ,display-table)))
     `(aref ,display-table ,character)))
 
+(defun gnus-rescale-image (image size)
+  "Rescale IMAGE to SIZE if possible.
+SIZE is in format (WIDTH . HEIGHT). Return a new image.
+Sizes are in pixels."
+  (if (or (not (fboundp 'imagemagick-types))
+	  (not (get-buffer-window (current-buffer))))
+      image
+    (let ((new-width (car size))
+          (new-height (cdr size)))
+      (when (> (cdr (image-size image t)) new-height)
+        (setq image (or (create-image (plist-get (cdr image) :data) 'imagemagick t
+                                      :height new-height)
+                        image)))
+      (when (> (car (image-size image t)) new-width)
+        (setq image (or
+                   (create-image (plist-get (cdr image) :data) 'imagemagick t
+                                 :width new-width)
+                   image)))
+      image)))
+
 (provide 'gnus-util)
 
 ;;; gnus-util.el ends here

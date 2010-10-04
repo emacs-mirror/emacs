@@ -105,12 +105,7 @@ CHARS is a regexp-like character alternative (e.g., \"[)$]\")."
 					  (match-string 0 encoded-text)))
 				 t t encoded-text)
 		  s (1+ s)))
-	  encoded-text))))
-  ;; XEmacs does not have window-inside-pixel-edges
-  (defalias 'gnus-window-inside-pixel-edges
-    (if (fboundp 'window-inside-pixel-edges)
-        'window-inside-pixel-edges
-      'window-pixel-edges)))
+	  encoded-text)))))
 
 (defun gnus-html-encode-url (url)
   "Encode URL."
@@ -436,7 +431,17 @@ Return a string with image data."
                                  (= (car size) 30)
                                  (= (cdr size) 30))))
                   ;; Good image, add it!
-                  (let ((image (gnus-html-rescale-image image data size)))
+                  (let ((image (gnus-html-rescale-image
+                                image
+                                ;; (width . height)
+                                (cons
+                                 ;; Aimed width
+                                 (truncate
+                                  (* gnus-max-image-proportion
+                                     (- (nth 2 edges) (nth 0 edges))))
+                                 ;; Aimed height
+                                 (truncate (* gnus-max-image-proportion
+                                              (- (nth 3 edges) (nth 1 edges))))))))
                     (delete-region start end)
                     (gnus-put-image image alt-text 'external)
                     (gnus-put-text-property start (point) 'help-echo alt-text)
@@ -458,31 +463,6 @@ Return a string with image data."
                   (gnus-put-image image alt-text 'internal)
                   (gnus-add-image 'internal image))
                 nil))))))))
-
-(defun gnus-html-rescale-image (image data size)
-  (if (or (not (fboundp 'imagemagick-types))
-	  (not (get-buffer-window (current-buffer))))
-      image
-    (let* ((width (car size))
-	   (height (cdr size))
-	   (edges (gnus-window-inside-pixel-edges
-		   (get-buffer-window (current-buffer))))
-	   (window-width (truncate (* gnus-max-image-proportion
-				      (- (nth 2 edges) (nth 0 edges)))))
-	   (window-height (truncate (* gnus-max-image-proportion
-				       (- (nth 3 edges) (nth 1 edges)))))
-	   scaled-image)
-      (when (> height window-height)
-	(setq image (or (create-image data 'imagemagick t
-				      :height window-height)
-			image))
-	(setq size (image-size image t)))
-      (when (> (car size) window-width)
-	(setq image (or
-		     (create-image data 'imagemagick t
-				   :width window-width)
-		     image)))
-      image)))
 
 (defun gnus-html-image-url-blocked-p (url blocked-images)
   "Find out if URL is blocked by BLOCKED-IMAGES."

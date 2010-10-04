@@ -1,3 +1,9 @@
+2010-10-03  Julien Danjou  <julien@danjou.info>
+
+	* emacs-mime.texi (Display Customization): Update
+	mm-inline-large-images documentation and add documentation for
+	mm-inline-large-images-proportion.
+
 2010-10-03  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Frequently Asked Questions): Mention

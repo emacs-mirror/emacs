@@ -1,3 +1,61 @@
+2010-10-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el: Add headings.
+	(shr-ensure-paragraph): Actually work.
+	(shr-tag-li): Make <ul> prettier.
+	(shr-insert): Get white space at the beginning/end of elements right.
+	(shr-tag-p): Collapse subsequent <p>s.
+	(shr-ensure-paragraph): Don't insert double line feeds after blank
+	lines.
+	(shr-insert): \t is also space.
+	(shr-tag-s): Fix "s" tag name function.
+	(shr-tag-s): Fix face prop name.
+
+2010-10-03  Julien Danjou  <julien@danjou.info>
+
+	* gnus-html.el (gnus-html-put-image): Use gnus-rescale-image.
+
+	* mm-view.el (gnus-window-inside-pixel-edges): Add autoload for
+	gnus-window-inside-pixel-edges.
+
+	* gnus-ems.el (gnus-window-inside-pixel-edges): Move from gnus-html to
+	gnus-ems.
+
+	* mm-view.el (mm-inline-image-emacs): Support image resizing.
+
+	* gnus-util.el (gnus-rescale-image): Add generic gnus-rescale-image
+	function.
+
+	* mm-decode.el (mm-inline-large-images): Enhance defcustom and add
+	resize choice.
+
+2010-10-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-tag-p): Don't insert newlines on empty tags at the
+	beginning of the buffer.
+
+	* gnus-sum.el (gnus-summary-select-article-buffer): Really select the
+	article buffer again.
+
+	* shr.el (shr-tag-p): Don't insert newlines at the start of the
+	buffer.
+
+	* mm-decode.el (mm-shr): Narrow before inserting, so that shr can know
+	when it's at the start of the buffer.
+
+	* shr.el (shr-tag-blockquote): Convert name.
+	(shr-rescale-image): Use the right image-size variant.
+
+	* gnus-sum.el (gnus-summary-select-article-buffer): If the article
+	buffer isn't shown, then select the current article first instead of
+	bugging out.
+	(gnus-summary-select-article-buffer): Show both the article and summary
+	buffers again.
+
+	* shr.el (shr-fontize-cont): Protect against regions with no text.
+	Rename tag functions to shr-tag-* for enhanced security.
+	(shr-tag-ul, shr-tag-ol, shr-tag-li, shr-tag-br): New functions.
+
 2010-10-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* shr.el (shr-insert):

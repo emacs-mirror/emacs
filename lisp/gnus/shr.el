@@ -53,6 +53,7 @@ fit these criteria."
 (defvar shr-folding-mode nil)
 (defvar shr-state nil)
 (defvar shr-start nil)
+(defvar shr-indentation 0)
 
 (defvar shr-width 70)
 
@@ -75,7 +76,7 @@ fit these criteria."
     (shr-descend (shr-transform-dom dom))))
 
 (defun shr-descend (dom)
-  (let ((function (intern (concat "shr-" (symbol-name (car dom))) obarray)))
+  (let ((function (intern (concat "shr-tag-" (symbol-name (car dom))) obarray)))
     (if (fboundp function)
 	(funcall function (cdr dom))
       (shr-generic (cdr dom)))))
@@ -85,37 +86,48 @@ fit these criteria."
     (cond
      ((eq (car sub) :text)
       (shr-insert (cdr sub)))
-     ((consp (cdr sub))
+     ((listp (cdr sub))
       (shr-descend sub)))))
 
-(defun shr-p (cont)
-  (shr-ensure-newline)
-  (insert "\n")
+(defun shr-tag-p (cont)
+  (shr-ensure-paragraph)
   (shr-generic cont)
-  (insert "\n"))
+  (shr-ensure-paragraph))
 
-(defun shr-b (cont)
+(defun shr-ensure-paragraph ()
+  (unless (bobp)
+    (if (bolp)
+	(unless (eql (char-after (- (point) 2)) ?\n)
+	  (insert "\n"))
+      (if (save-excursion
+	    (beginning-of-line)
+	    (looking-at " *"))
+	  (insert "\n")
+	(insert "\n\n")))))
+
+(defun shr-tag-b (cont)
   (shr-fontize-cont cont 'bold))
 
-(defun shr-i (cont)
+(defun shr-tag-i (cont)
   (shr-fontize-cont cont 'italic))
 
-(defun shr-u (cont)
+(defun shr-tag-u (cont)
   (shr-fontize-cont cont 'underline))
 
-(defun shr-s (cont)
-  (shr-fontize-cont cont 'strikethru))
+(defun shr-tag-s (cont)
+  (shr-fontize-cont cont 'strike-through))
 
-(defun shr-fontize-cont (cont type)
+(defun shr-fontize-cont (cont &rest types)
   (let (shr-start)
     (shr-generic cont)
-    (shr-add-font shr-start (point) type)))
+    (dolist (type types)
+      (shr-add-font (or shr-start (point)) (point) type))))
 
 (defun shr-add-font (start end type)
   (let ((overlay (make-overlay start end)))
     (overlay-put overlay 'face type)))
 
-(defun shr-a (cont)
+(defun shr-tag-a (cont)
   (let ((url (cdr (assq :href cont)))
 	shr-start)
     (shr-generic cont)
@@ -129,7 +141,10 @@ fit these criteria."
 (defun shr-browse-url (widget &rest stuff)
   (browse-url (widget-get widget :url)))
 
-(defun shr-img (cont)
+(defun shr-tag-img (cont)
+  (when (and (> (current-column) 0)
+	     (not (eq shr-state 'image)))
+    (insert "\n"))
   (let ((start (point-marker)))
     (let ((alt (cdr (assq :alt cont)))
 	  (url (cdr (assq :src cont))))
@@ -166,15 +181,17 @@ fit these criteria."
 (defun shr-put-image (data point alt)
   (if (not (display-graphic-p))
       (insert alt)
-    (let ((image (shr-rescale-image data)))
-      (put-image image point alt))))
+    (let ((image (ignore-errors
+		   (shr-rescale-image data))))
+      (when image
+	(put-image image point alt)))))
 
 (defun shr-rescale-image (data)
   (if (or (not (fboundp 'imagemagick-types))
 	  (not (get-buffer-window (current-buffer))))
       (create-image data nil t)
     (let* ((image (create-image data nil t))
-	   (size (image-size image))
+	   (size (image-size image t))
 	   (width (car size))
 	   (height (cdr size))
 	   (edges (window-inside-pixel-edges
@@ -196,14 +213,15 @@ fit these criteria."
 		     image)))
       image)))
 
-(defun shr-pre (cont)
+(defun shr-tag-pre (cont)
   (let ((shr-folding-mode nil))
     (shr-ensure-newline)
     (shr-generic cont)
     (shr-ensure-newline)))
 
-(defun shr-blockquote (cont)
-  (shr-pre cont))
+(defun shr-tag-blockquote (cont)
+  (let ((shr-indentation (+ shr-indentation 4)))
+    (shr-tag-pre cont)))
 
 (defun shr-ensure-newline ()
   (unless (zerop (current-column))
@@ -217,19 +235,32 @@ fit these criteria."
    ((eq shr-folding-mode 'none)
     (insert t))
    (t
-    (let (column)
+    (let ((first t)
+	  column)
+      (when (and (string-match "^[ \t\n]" text)
+		 (not (bolp)))
+	(insert " "))
       (dolist (elem (split-string text))
 	(setq column (current-column))
 	(when (> column 0)
-	  (if (> (+ column (length elem) 1) shr-width)
-	      (insert "\n")
-	    (insert " ")))
+	  (cond
+	   ((> (+ column (length elem) 1) shr-width)
+	    (insert "\n"))
+	   ((not first)
+	    (insert " "))))
+	(setq first nil)
+	(when (and (bolp)
+		   (> shr-indentation 0))
+	  (insert (make-string shr-indentation ? )))
 	;; The shr-start is a special variable that is used to pass
 	;; upwards the first point in the buffer where the text really
 	;; starts.
 	(unless shr-start
 	  (setq shr-start (point)))
-	(insert elem))))))
+	(insert elem))
+      (when (and (string-match "[ \t\n]$" text)
+		 (not (bolp)))
+	(insert " "))))))
 
 (defun shr-get-image-data (url)
   "Get image data for URL.
@@ -240,6 +271,53 @@ Return a string with image data."
     (when (or (search-forward "\n\n" nil t)
               (search-forward "\r\n\r\n" nil t))
       (buffer-substring (point) (point-max)))))
+
+(defvar shr-list-mode nil)
+
+(defun shr-tag-ul (cont)
+  (shr-ensure-paragraph)
+  (let ((shr-list-mode 'ul))
+    (shr-generic cont)))
+
+(defun shr-tag-ol (cont)
+  (let ((shr-list-mode 1))
+    (shr-generic cont)))
+
+(defun shr-tag-li (cont)
+  (shr-ensure-newline)
+  (if (numberp shr-list-mode)
+      (progn
+	(insert (format "%d " shr-list-mode))
+	(setq shr-list-mode (1+ shr-list-mode)))
+    (insert "* "))
+  (shr-generic cont))
+
+(defun shr-tag-br (cont)
+  (shr-ensure-newline)
+  (shr-generic cont))
+
+(defun shr-tag-h1 (cont)
+  (shr-heading cont 'bold 'underline))
+
+(defun shr-tag-h2 (cont)
+  (shr-heading cont 'bold))
+
+(defun shr-tag-h3 (cont)
+  (shr-heading cont 'italic))
+
+(defun shr-tag-h4 (cont)
+  (shr-heading cont))
+
+(defun shr-tag-h5 (cont)
+  (shr-heading cont))
+
+(defun shr-tag-h6 (cont)
+  (shr-heading cont))
+
+(defun shr-heading (cont &rest types)
+  (shr-ensure-paragraph)
+  (apply #'shr-fontize-cont cont types)
+  (shr-ensure-paragraph))
 
 (provide 'shr)
 
