@@ -1602,7 +1602,11 @@ SPEC is a predicate specifier that contains stuff like `or', `and',
                                           initial-input history def)
   "Call standard `completing-read-function'."
   (let ((completion-styles gnus-completion-styles))
-    (completing-read prompt collection nil require-match initial-input history def)))
+    (completing-read prompt
+                     ;; Old XEmacs (at least 21.4) expect an alist for
+                     ;; collection.
+                     (mapcar 'list collection)
+                     nil require-match initial-input history def)))
 
 (defun gnus-ido-completing-read (prompt collection &optional require-match
                                         initial-input history def)

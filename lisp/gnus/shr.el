@@ -30,6 +30,8 @@
 
 ;;; Code:
 
+(require 'browse-url)
+
 (defgroup shr nil
   "Simple HTML Renderer"
   :group 'mail)
@@ -56,6 +58,16 @@ fit these criteria."
 (defvar shr-indentation 0)
 
 (defvar shr-width 70)
+
+(defvar shr-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "a" 'shr-show-alt-text)
+    (define-key map "i" 'shr-browse-image)
+    (define-key map "I" 'shr-insert-image)
+    (define-key map "u" 'shr-copy-url)
+    (define-key map "v" 'shr-browse-url)
+    (define-key map "\r" 'shr-browse-url)
+    map))
 
 (defun shr-transform-dom (dom)
   (let ((result (list (pop dom))))
@@ -97,7 +109,9 @@ fit these criteria."
 (defun shr-ensure-paragraph ()
   (unless (bobp)
     (if (bolp)
-	(unless (eql (char-after (- (point) 2)) ?\n)
+	(unless (save-excursion
+		  (forward-line -1)
+		  (looking-at " *$"))
 	  (insert "\n"))
       (if (save-excursion
 	    (beginning-of-line)
@@ -129,17 +143,53 @@ fit these criteria."
 
 (defun shr-tag-a (cont)
   (let ((url (cdr (assq :href cont)))
+	(start (point))
 	shr-start)
     (shr-generic cont)
     (widget-convert-button
-     'link shr-start (point)
-     :action 'shr-browse-url
-     :url url
-     :keymap widget-keymap
-     :help-echo url)))
+     'link (or shr-start start) (point)
+     :help-echo url)
+    (put-text-property (or shr-start start) (point) 'keymap shr-map)
+    (put-text-property (or shr-start start) (point) 'shr-url url)))
 
-(defun shr-browse-url (widget &rest stuff)
-  (browse-url (widget-get widget :url)))
+(defun shr-browse-url ()
+  "Browse the URL under point."
+  (interactive)
+  (let ((url (get-text-property (point) 'shr-url)))
+    (if (not url)
+	(message "No link under point")
+      (browse-url url))))
+
+(defun shr-copy-url ()
+  "Copy the URL under point to the kill ring.
+If called twice, then try to fetch the URL and see whether it
+redirects somewhere else."
+  (interactive)
+  (let ((url (get-text-property (point) 'shr-url)))
+    (cond
+     ((not url)
+      (message "No URL under point"))
+     ;; Resolve redirected URLs.
+     ((equal url (car kill-ring))
+      (url-retrieve
+       url
+       (lambda (a)
+	 (when (and (consp a)
+		    (eq (car a) :redirect))
+	   (with-temp-buffer
+	     (insert (cadr a))
+	     (goto-char (point-min))
+	     ;; Remove common tracking junk from the URL.
+	     (when (re-search-forward ".utm_.*" nil t)
+	       (replace-match "" t t))
+	     (message "Copied %s" (buffer-string))
+	     (copy-region-as-kill (point-min) (point-max)))))))
+     ;; Copy the URL to the kill ring.
+     (t
+      (with-temp-buffer
+	(insert url)
+	(copy-region-as-kill (point-min) (point-max))
+	(message "Copied %s" url))))))
 
 (defun shr-tag-img (cont)
   (when (and (> (current-column) 0)
@@ -162,7 +212,27 @@ fit these criteria."
 		      (list (current-buffer) start (point-marker))
 		      t)))
       (insert " ")
+      (put-text-property start (point) 'keymap shr-map)
+      (put-text-property start (point) 'shr-alt alt)
+      (put-text-property start (point) 'shr-image url)
       (setq shr-state 'image))))
+
+(defun shr-show-alt-text ()
+  "Show the ALT text of the image under point."
+  (interactive)
+  (let ((text (get-text-property (point) 'shr-alt)))
+    (if (not text)
+	(message "No image under point")
+      (message "%s" text))))
+
+(defun shr-browse-image ()
+  "Browse the image under point."
+  (interactive)
+  (let ((url (get-text-property (point) 'shr-image)))
+    (if (not url)
+	(message "No image under point")
+      (message "Browsing %s..." url)
+      (browse-url url))))
 
 (defun shr-image-fetched (status buffer start end)
   (when (and (buffer-name buffer)
@@ -222,7 +292,8 @@ fit these criteria."
 (defun shr-tag-blockquote (cont)
   (shr-ensure-paragraph)
   (let ((shr-indentation (+ shr-indentation 4)))
-    (shr-generic cont)))
+    (shr-generic cont))
+  (shr-ensure-paragraph))
 
 (defun shr-ensure-newline ()
   (unless (zerop (current-column))
@@ -254,7 +325,7 @@ fit these criteria."
 	(setq first nil)
 	(when (and (bolp)
 		   (> shr-indentation 0))
-	  (insert (make-string shr-indentation ? )))
+	  (shr-indent))
 	;; The shr-start is a special variable that is used to pass
 	;; upwards the first point in the buffer where the text really
 	;; starts.
@@ -267,15 +338,20 @@ fit these criteria."
 	(insert " ")
 	(setq shr-state 'space))))))
 
+(defun shr-indent ()
+  (insert (make-string shr-indentation ? )))
+
 (defun shr-get-image-data (url)
   "Get image data for URL.
 Return a string with image data."
   (with-temp-buffer
     (mm-disable-multibyte)
-    (url-cache-extract (url-cache-create-filename url))
-    (when (or (search-forward "\n\n" nil t)
-              (search-forward "\r\n\r\n" nil t))
-      (buffer-substring (point) (point-max)))))
+    (when (ignore-errors
+	    (url-cache-extract (url-cache-create-filename url))
+	    t)
+      (when (or (search-forward "\n\n" nil t)
+		(search-forward "\r\n\r\n" nil t))
+	(buffer-substring (point) (point-max))))))
 
 (defvar shr-list-mode nil)
 
@@ -327,6 +403,140 @@ Return a string with image data."
   (shr-ensure-paragraph)
   (apply #'shr-fontize-cont cont types)
   (shr-ensure-paragraph))
+
+(defun shr-tag-table (cont)
+  (shr-ensure-paragraph)
+  (setq cont (or (cdr (assq 'tbody cont))
+		 cont))
+  (let* ((columns (shr-column-specs cont))
+	 (suggested-widths (shr-pro-rate-columns columns))
+	 (sketch (shr-make-table cont suggested-widths))
+	 (sketch-widths (shr-table-widths sketch (length suggested-widths))))
+    (shr-insert-table (shr-make-table cont sketch-widths t) sketch-widths)))
+
+(defun shr-insert-table (table widths)
+  (shr-insert-table-ruler widths)
+  (dolist (row table)
+    (let ((start (point))
+	  (height (let ((max 0))
+		    (dolist (column row)
+		      (setq max (max max (cadr column))))
+		    max)))
+      (dotimes (i height)
+	(shr-indent)
+	(insert "|\n"))
+      (dolist (column row)
+	(goto-char start)
+	(let ((lines (split-string (nth 2 column) "\n")))
+	  (dolist (line lines)
+	    (when (> (length line) 0)
+	      (end-of-line)
+	      (insert line "|")
+	      (forward-line 1)))
+	  ;; Add blank lines at padding at the bottom of the TD,
+	  ;; possibly.
+	  (dotimes (i (- height (length lines)))
+	    (end-of-line)
+	    (insert (make-string (length (car lines)) ? ) "|")
+	    (forward-line 1)))))
+    (shr-insert-table-ruler widths)))
+
+(defun shr-insert-table-ruler (widths)
+  (shr-indent)
+  (insert "+")
+  (dotimes (i (length widths))
+    (insert (make-string (aref widths i) ?-) ?+))
+  (insert "\n"))
+
+(defun shr-table-widths (table length)
+  (let ((widths (make-vector length 0)))
+    (dolist (row table)
+      (let ((i 0))
+	(dolist (column row)
+	  (aset widths i (max (aref widths i)
+			      (car column)))
+	  (incf i))))
+    widths))
+
+(defun shr-make-table (cont widths &optional fill)
+  (let ((trs nil))
+    (dolist (row cont)
+      (when (eq (car row) 'tr)
+	(let ((i 0)
+	      (tds nil))
+	  (dolist (column (cdr row))
+	    (when (memq (car column) '(td th))
+	      (push (shr-render-td (cdr column) (aref widths i) fill)
+		    tds)
+	      (setq i (1+ i))))
+	  (push (nreverse tds) trs))))
+    (nreverse trs)))
+
+(defun shr-render-td (cont width fill)
+  (with-temp-buffer
+    (let ((shr-width width)
+	  (shr-indentation 0))
+      (shr-generic cont))
+    (while (re-search-backward "\n *$" nil t)
+      (delete-region (match-beginning 0) (match-end 0)))
+    (goto-char (point-min))
+    (let ((max 0))
+      (while (not (eobp))
+	(end-of-line)
+	(setq max (max max (current-column)))
+	(forward-line 1))
+      (when fill
+	(goto-char (point-min))
+	(while (not (eobp))
+	  (end-of-line)
+	  (when (> (- width (current-column)) 0)
+	    (insert (make-string (- width (current-column)) ? )))
+	  (forward-line 1)))
+      (list max (count-lines (point-min) (point-max)) (buffer-string)))))
+
+(defun shr-pro-rate-columns (columns)
+  (let ((total-percentage 0)
+	(widths (make-vector (length columns) 0)))
+    (dotimes (i (length columns))
+      (incf total-percentage (aref columns i)))
+    (setq total-percentage (/ 1.0 total-percentage))
+    (dotimes (i (length columns))
+      (aset widths i (max (truncate (* (aref columns i)
+				       total-percentage
+				       shr-width))
+			  10)))
+    widths))
+
+;; Return a summary of the number and shape of the TDs in the table.
+(defun shr-column-specs (cont)
+  (let ((columns (make-vector (shr-max-columns cont) 1)))
+    (dolist (row cont)
+      (when (eq (car row) 'tr)
+	(let ((i 0))
+	  (dolist (column (cdr row))
+	    (when (memq (car column) '(td th))
+	      (let ((width (cdr (assq :width (cdr column)))))
+		(when (and width
+			   (string-match "\\([0-9]+\\)%" width))
+		  (aset columns i
+			(/ (string-to-number (match-string 1 width))
+			   100.0)))))
+	    (setq i (1+ i))))))
+    columns))
+
+(defun shr-count (cont elem)
+  (let ((i 0))
+    (dolist (sub cont)
+      (when (eq (car sub) elem)
+	(setq i (1+ i))))
+    i))
+
+(defun shr-max-columns (cont)
+  (let ((max 0))
+    (dolist (row cont)
+      (when (eq (car row) 'tr)
+	(setq max (max max (shr-count (cdr row) 'td)))))
+    max))
 
 (provide 'shr)
 

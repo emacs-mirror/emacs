@@ -1,11 +1,64 @@
 2010-10-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* shr.el (shr-tag-blockquote): Ensure paragraph after quote, too.
+	(shr-get-image-data): Ensure against the cache file missing.
+
+	* nnimap.el (nnimap-finish-retrieve-group-infos): Message while waiting
+	for data.
+
+	* spam-report.el (spam-report-url-ping-plain): Don't query about
+	killing the process.
+
+	* shr.el (shr-render-td): Protect against too-wide text.
+
+2010-10-04  Julien Danjou  <julien@danjou.info>
+
+	* mml-smime.el (mml-smime-openssl-encrypt-query): Fix choices.
+	(mml-smime-openssl-sign-query): Fix gnus-completing-read call.
+
+	* gravatar.el (gravatar-retrieved): Kill buffer when gravatar has been
+	retrieved.
+
+2010-10-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (browse-url): Required.
+	(shr-ensure-paragraph): Don't insert a new newline after empty-ish
+	lines.
+	(shr-show-alt-text, shr-browse-image): New commands.
+	(shr-browse-url, shr-copy-url): New commands.
+
+	* gnus-sum.el (gnus-widen-article-window): New variable.
+	(gnus-summary-select-article-buffer): Use it.
+
+	* message.el (message-idna-to-ascii-rhs-1): Don't bug out on addresses
+	without @ signs.
+
+2010-10-04  Michael Welsh Duggan  <md5i@md5i.com>  (tiny change)
+
+	* nnir.el (nnir-run-imap): Remove spurious space in search string.
+
+2010-10-04  Julien Danjou  <julien@danjou.info>
+
+	* gnus-util.el (gnus-emacs-completing-read): Mapcar collection to list,
+	for XEmacs.
+
+2010-10-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-salt.el: Remove all gnus-carpal stuff -- it's not useful.
+
+	* nnimap.el (nnimap-open-connection): Allow tls as a synonym for ssl.
+	(nnimap-close-server): Implement.
+
 	* shr.el (shr-ensure-paragraph): Fix the non-empty line case.
 	(shr-insert): Tweak line breaking.
 	(shr-insert): Handle <pre> better.
 	(shr-tag-li): Get <li> indentation right.
 	(shr-tag-li): Get <li> indentation even righter.
 	(shr-tag-blockquote): Ensure paragraph start.
+	(shr-make-table): Tweak table generation.
+	(shr-make-table): Fix typo.
+
+	* shr.el: Implement table rendering.
 
 2010-10-04  Julien Danjou  <julien@danjou.info>
 
@@ -1457,8 +1510,6 @@
 
 	* nnimap.el (nnimap-open-connection): If the user doesn't have a
 	/etc/services, supply some sensible port defaults.
-
-	* dgnushack.el: Define netrc-credentials.
 
 2010-09-17  Julien Danjou  <julien@danjou.info>
 

@@ -1186,9 +1186,7 @@ The following commands are available:
 (defun gnus-group-setup-buffer ()
   (set-buffer (gnus-get-buffer-create gnus-group-buffer))
   (unless (eq major-mode 'gnus-group-mode)
-    (gnus-group-mode)
-    (when gnus-carpal
-      (gnus-carpal-setup-buffer 'group))))
+    (gnus-group-mode)))
 
 (defun gnus-group-name-charset (method group)
   (if (null method)

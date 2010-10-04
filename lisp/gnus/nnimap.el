@@ -316,7 +316,7 @@ textual parts.")
 		   (setq port (or nnimap-server-port "imap"))
 		   'starttls))
 		'("imap"))
-	       ((eq nnimap-stream 'ssl)
+	       ((memq nnimap-stream '(ssl tls))
 		(open-tls-stream
 		 "*nnimap*" (current-buffer) nnimap-address
 		 (setq port
@@ -324,7 +324,9 @@ textual parts.")
 			   (if (netrc-find-service-number "imaps")
 			       "imaps"
 			     "993"))))
-		'("143" "993" "imap" "imaps"))))
+		'("143" "993" "imap" "imaps"))
+	       (t
+		(error "Unknown stream type: %s" nnimap-stream))))
 	     connection-result login-result credentials)
 	(setf (nnimap-process nnimap-object)
 	      (get-buffer-process (current-buffer)))
@@ -424,7 +426,10 @@ textual parts.")
     result))
 
 (deffoo nnimap-close-server (&optional server)
-  t)
+  (when (nnoo-change-server 'nnimap server nil)
+    (ignore-errors
+      (delete-process (get-buffer-process (nnimap-buffer))))
+    t))
 
 (deffoo nnimap-request-close ()
   t)
@@ -974,7 +979,7 @@ textual parts.")
 	     (nnimap-possibly-change-group nil server))
     (with-current-buffer (nnimap-buffer)
       ;; Wait for the final data to trickle in.
-      (when (nnimap-wait-for-response (cadar sequences))
+      (when (nnimap-wait-for-response (cadar sequences) t)
 	;; Now we should have all the data we need, no matter whether
 	;; we're QRESYNCING, fetching all the flags from scratch, or
 	;; just fetching the last 100 flags per group.
@@ -1251,7 +1256,7 @@ textual parts.")
 			(point-min))
 		      t)))
       (when messagep
-	(message "Read %dKB" (/ (buffer-size) 1000)))
+	(message "nnimap read %dk" (/ (buffer-size) 1000)))
       (nnheader-accept-process-output process)
       (goto-char (point-max)))
     openp))

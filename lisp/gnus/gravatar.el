@@ -125,7 +125,8 @@ You can provide a list of argument to pass to CB in CBARGS."
   (if (plist-get status :error)
       ;; Error happened.
       (apply cb 'error cbargs)
-    (apply cb (gravatar-data->image) cbargs)))
+    (apply cb (gravatar-data->image) cbargs))
+  (kill-buffer (current-buffer)))
 
 (provide 'gravatar)
 

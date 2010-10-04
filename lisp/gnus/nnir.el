@@ -985,7 +985,7 @@ details on the language and supported extensions"
 	      (message "Searching %s..." group)
 	      (let ((arts 0)
 		    (result
-		     (nnimap-command "UID SEARCH  %s"
+		     (nnimap-command "UID SEARCH %s"
 				     (if (string= criteria "")
 					 qstring
 				       (nnir-imap-make-query criteria qstring)

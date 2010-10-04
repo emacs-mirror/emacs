@@ -162,7 +162,7 @@ Whether the passphrase is cached at all is controlled by
 		(and from (smime-get-key-by-email from)))
 	      (smime-get-key-by-email
 	       (gnus-completing-read "Sign this part with what signature"
-                                     smime-keys nil nil
+                                     (mapcar 'car smime-keys) nil nil nil
                                      (and (listp (car-safe smime-keys))
                                           (caar smime-keys))))))))
 
@@ -221,7 +221,7 @@ Whether the passphrase is cached at all is controlled by
     (while (not done)
       (ecase (read (gnus-completing-read
 		    "Fetch certificate from"
-		    '(("dns") ("ldap") ("file")) t nil nil
+		    '("dns" "ldap" "file") t nil nil
                     "ldap"))
 	(dns (setq certs (append certs
 				 (mml-smime-get-dns-cert))))

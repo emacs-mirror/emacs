@@ -5736,7 +5736,9 @@ subscribed address (and not the additional To and Cc header contents)."
 		(mapcar (lambda (rhs) (or (cadr (split-string rhs "@")) ""))
 			(mapcar 'downcase
 				(mapcar
-				 'cadr
+				 (lambda (elem)
+				   (or (cadr elem)
+				       ""))
 				 (mail-extract-address-components field t))))))
 	;; Note that `rhs' will be "" if the address does not have
 	;; the domain part, i.e., if it is a local user's address.

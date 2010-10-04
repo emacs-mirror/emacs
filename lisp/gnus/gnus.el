@@ -1626,11 +1626,6 @@ slower."
 		(function-item mail-extract-address-components)
 		(function :tag "Other")))
 
-(defcustom gnus-carpal nil
-  "*If non-nil, display clickable icons."
-  :group 'gnus-meta
-  :type 'boolean)
-
 (defcustom gnus-shell-command-separator ";"
   "String used to separate shell commands."
   :group 'gnus-files
@@ -2803,7 +2798,7 @@ gnus-registry.el will populate this if it's loaded.")
       gnus-convert-image-to-gray-x-face gnus-convert-face-to-png
       gnus-face-from-file)
      ("gnus-salt" gnus-highlight-selected-tree gnus-possibly-generate-tree
-      gnus-tree-open gnus-tree-close gnus-carpal-setup-buffer)
+      gnus-tree-open gnus-tree-close)
      ("gnus-srvr" gnus-enter-server-buffer gnus-server-set-info
       gnus-server-server-name)
      ("gnus-srvr" gnus-browse-foreign-server)
