@@ -1,3 +1,10 @@
+2010-10-03  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/gnutls.el: Improve docs.  Remove starttls and ssl emulation.
+	Provide only `open-gnutls-stream' (formerly `open-ssl-stream') and
+	`gnutls-negotiate' (formerly `starttls-negotiate').  Remove
+	trivial wrapper `starttls-open-stream'.
+
 2010-10-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Make 'g' (AKA revert-buffer) rerun the VC log, log-incoming and

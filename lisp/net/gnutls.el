@@ -1,9 +1,10 @@
-;;; gnutls.el --- Support SSL and TLS connections through GnuTLS
+;;; gnutls.el --- Support SSL/TLS connections through GnuTLS
 ;; Copyright (C) 2010 Free Software Foundation, Inc.
 
 ;; Author: Ted Zlatanov <tzz@lifelogs.com>
 ;; Keywords: comm, tls, ssl, encryption
 ;; Originally-By: Simon Josefsson (See http://josefsson.org/emacs-security/)
+;; Thanks-To: Lars Magne Ingebrigtsen <larsi@gnus.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -27,8 +28,8 @@
 
 ;; Simple test:
 ;;
-;; (setq jas (open-ssl-stream "ssl" (current-buffer) "www.pdc.kth.se" 443))
-;; (process-send-string jas "GET /\r\n\r\n")
+;; (open-gnutls-stream "tls" "tls-buffer" "yourserver.com" "https")
+;; (open-gnutls-stream "tls" "tls-buffer" "imap.gmail.com" "imaps")
 
 ;;; Code:
 
@@ -42,8 +43,8 @@
   :type 'integer
   :group 'gnutls)
 
-(defun open-ssl-stream (name buffer host service)
-  "Open a SSL connection for a service to a host.
+(defun open-gnutls-stream (name buffer host service)
+  "Open a SSL/TLS connection for a service to a host.
 Returns a subprocess-object to represent the connection.
 Input and output work as for subprocesses; `delete-process' closes it.
 Args are NAME BUFFER HOST SERVICE.
@@ -55,15 +56,18 @@ BUFFER is the buffer (or `buffer-name') to associate with the process.
  with any buffer
 Third arg is name of the host to connect to, or its IP address.
 Fourth arg SERVICE is name of the service desired, or an integer
-specifying a port number to connect to."
-  (let ((proc (open-network-stream name buffer host service)))
-    (starttls-negotiate proc 'gnutls-x509pki)))
+specifying a port number to connect to.
 
-;; (open-ssl-stream "tls" "tls-buffer" "yourserver.com" "https")
-;; (open-ssl-stream "tls" "tls-buffer" "imap.gmail.com" "imaps")
-(defun starttls-negotiate (proc type &optional priority-string
-                                trustfiles keyfiles)
-  "Negotiate a SSL or TLS connection.
+This is a very simple wrapper around `gnutls-negotiate'.  See its
+documentation for the specific parameters you can use to open a
+GnuTLS connection, including specifying the credential type,
+trust and key files, and priority string."
+  (let ((proc (open-network-stream name buffer host service)))
+    (gnutls-negotiate proc 'gnutls-x509pki)))
+
+(defun gnutls-negotiate (proc type &optional priority-string
+                              trustfiles keyfiles)
+  "Negotiate a SSL/TLS connection.
 TYPE is `gnutls-x509pki' (default) or `gnutls-anon'.  Use nil for the default.
 PROC is a process returned by `open-network-stream'.
 PRIORITY-STRING is as per the GnuTLS docs, default is \"NORMAL\".
@@ -91,22 +95,6 @@ KEYFILES is a list of client keys."
 
     proc))
 
-(defun starttls-open-stream (name buffer host service)
-  "Open a TLS connection for a service to a host.
-Returns a subprocess-object to represent the connection.
-Input and output work as for subprocesses; `delete-process' closes it.
-Args are NAME BUFFER HOST SERVICE.
-NAME is name for process.  It is modified if necessary to make it unique.
-BUFFER is the buffer (or `buffer-name') to associate with the process.
- Process output goes at end of that buffer, unless you specify
- an output stream or filter function to handle the output.
- BUFFER may be also nil, meaning that this process is not associated
- with any buffer
-Third arg is name of the host to connect to, or its IP address.
-Fourth arg SERVICE is name of the service desired, or an integer
-specifying a port number to connect to."
-  (open-network-stream name buffer host service))
-
 (defun gnutls-message-maybe (doit format &rest params)
   "When DOIT, message with the caller name followed by FORMAT on PARAMS."
   ;; (apply 'debug format (or params '(nil)))
@@ -116,8 +104,6 @@ specifying a port number to connect to."
              doit (gnutls-error-string doit)
              (apply 'format format (or params '(nil))))))
 
-(provide 'ssl)
 (provide 'gnutls)
-(provide 'starttls)
 
 ;;; gnutls.el ends here
