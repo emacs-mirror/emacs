@@ -2,6 +2,8 @@
 
 	* url-http.el (url-http-wait-for-headers-change-function): Protect
 	against url-http-response-status for degenerate documents.
+	(url-http-wait-for-headers-change-function): Revert previous
+	change.  It lead to really slow loads.
 
 2010-10-03  Glenn Morris  <rgm@gnu.org>
 

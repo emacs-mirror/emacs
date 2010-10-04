@@ -1054,8 +1054,7 @@ the end of the document."
 		end-of-headers t)
 	  (url-http-clean-headers)))
 
-      (if (or (not end-of-headers)
-	      (not url-http-response-status))
+      (if (not end-of-headers)
 	  ;; Haven't seen the end of the headers yet, need to wait
 	  ;; for more data to arrive.
 	  nil
