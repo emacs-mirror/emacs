@@ -1,3 +1,11 @@
+2010-10-04  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (dvi, pdf, $(infodir)): New targets.
+	($(infodir)/elisp): Ensure target directory exists.  Use $@.
+	(clean): No 'make.out' or 'core' files.
+	(.PHONY): Declare clean rules.
+	(maintainer-clean): Delete pdf file.  Guard against cd failures.
+
 2010-10-03  Glenn Morris  <rgm@gnu.org>
 
 	* files.texi (File Name Components): Remove ignored section about
