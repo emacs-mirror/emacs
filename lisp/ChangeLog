@@ -1,3 +1,12 @@
+2010-10-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Make 'g' (AKA revert-buffer) rerun the VC log, log-incoming and
+	log-outgoing commands.
+	* vc/vc.el (vc-log-internal-common): Add a new argument and use it
+	to create a buffer local revert-buffer-function variable.
+	(vc-print-log-internal, vc-log-incoming, vc-log-outgoing): Pass a
+	revert-buffer-function lambda.
+
 2010-10-03  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* net/gnutls.el (starttls-negotiate): Use the plist interface to
