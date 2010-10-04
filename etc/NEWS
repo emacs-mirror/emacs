@@ -318,6 +318,10 @@ data is available locally.
 *** New key bindings: C-x v I and C-x v O bound to vc-log-incoming and
 vc-log-outgoing, respectively.
 
+*** The 'g' key in VC diff, log, log-incoming and log-outgoing buffers
+reruns the corresponding VC command to compute an up to date version
+of the buffer.
+
 *** vc-dir for Bzr supports viewing shelve contents and shelving snapshots.
 
 *** Special markup can be added to log-edit buffers.
