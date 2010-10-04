@@ -237,7 +237,7 @@ fit these criteria."
    (t
     (let ((first t)
 	  column)
-      (when (and (string-match "^[ \t\n]" text)
+      (when (and (string-match "\\`[ \t\n]" text)
 		 (not (bolp)))
 	(insert " "))
       (dolist (elem (split-string text))
@@ -258,7 +258,7 @@ fit these criteria."
 	(unless shr-start
 	  (setq shr-start (point)))
 	(insert elem))
-      (when (and (string-match "[ \t\n]$" text)
+      (when (and (string-match "[ \t\n]\\'" text)
 		 (not (bolp)))
 	(insert " "))))))
 
