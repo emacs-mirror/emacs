@@ -1206,6 +1206,17 @@ typedef unsigned size_t;
 #define NO_RETURN	/* nothing */
 #endif
 
+#if __GNUC__ >= 3  /* On GCC 3.0 we might get a warning.  */
+#define NO_INLINE __attribute__((noinline))
+#else
+#define NO_INLINE
+#endif
+
+/* Some versions of GNU/Linux define noinline in their headers.  */
+#ifdef noinline
+#undef noinline
+#endif
+
 /* These won't be used automatically yet.  We also need to know, at least,
    that the stack is continuous.  */
 #ifdef __GNUC__

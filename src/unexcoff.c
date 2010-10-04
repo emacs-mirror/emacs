@@ -34,36 +34,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
  * Modified heavily since then.
  *
  * Synopsis:
- *	unexec (new_name, a_name, data_start, bss_start, entry_address)
- *	char *new_name, *a_name;
- *	unsigned data_start, bss_start, entry_address;
+ *	unexec (const char *new_name, const char *old_name);
  *
  * Takes a snapshot of the program and makes an a.out format file in the
  * file named by the string argument new_name.
  * If a_name is non-NULL, the symbol table will be taken from the given file.
  * On some machines, an existing a_name file is required.
- *
- * The boundaries within the a.out file may be adjusted with the data_start
- * and bss_start arguments.  Either or both may be given as 0 for defaults.
- *
- * Data_start gives the boundary between the text segment and the data
- * segment of the program.  The text segment can contain shared, read-only
- * program code and literal data, while the data segment is always unshared
- * and unprotected.  Data_start gives the lowest unprotected address.
- * The value you specify may be rounded down to a suitable boundary
- * as required by the machine you are using.
- *
- * Specifying zero for data_start means the boundary between text and data
- * should not be the same as when the program was loaded.
- *
- * Bss_start indicates how much of the data segment is to be saved in the
- * a.out file and restored when the program is executed.  It gives the lowest
- * unsaved address, and is rounded up to a page boundary.  The default when 0
- * is given assumes that the entire data segment is to be stored, including
- * the previous data and bss as well as any additional storage allocated with
- * break (2).
- *
- * The new file is set up to start at entry_address.
  *
  * If you make improvements I'd like to get them too.
  * harpo!utah-cs!thomas, thomas@Utah-20
@@ -186,15 +162,16 @@ static void mark_x (const char *);
  * Modify the text and data sizes.
  */
 static int
-make_hdr (int new, int a_out, unsigned data_start, unsigned bss_start,
-	  unsigned entry_address, const char *a_name, const char *new_name)
+make_hdr (int new, int a_out,
+	  const char *a_name, const char *new_name)
 {
   auto struct scnhdr f_thdr;		/* Text section header */
   auto struct scnhdr f_dhdr;		/* Data section header */
   auto struct scnhdr f_bhdr;		/* Bss section header */
   auto struct scnhdr scntemp;		/* Temporary section header */
   register int scns;
-  unsigned int bss_end;
+  unsigned int bss_start;
+  unsigned int data_start;
 
   pagemask = getpagesize () - 1;
 
@@ -203,23 +180,8 @@ make_hdr (int new, int a_out, unsigned data_start, unsigned bss_start,
   data_start = ADDR_CORRECT (data_start);
   data_start = data_start & ~pagemask; /* (Down) to page boundary. */
 
-  bss_end = ADDR_CORRECT (sbrk (0)) + pagemask;
-  bss_end &= ~ pagemask;
-
-  /* Adjust data/bss boundary. */
-  if (bss_start != 0)
-    {
-      bss_start = (ADDR_CORRECT (bss_start) + pagemask);
-      /* (Up) to page bdry. */
-      bss_start &= ~ pagemask;
-      if (bss_start > bss_end)
-	{
-	  ERROR1 ("unexec: Specified bss_start (%u) is past end of program",
-		  bss_start);
-	}
-    }
-  else
-    bss_start = bss_end;
+  bss_start = ADDR_CORRECT (sbrk (0)) + pagemask;
+  bss_start &= ~ pagemask;
 
   if (data_start > bss_start)	/* Can't have negative data size. */
     {
@@ -300,7 +262,7 @@ make_hdr (int new, int a_out, unsigned data_start, unsigned bss_start,
 
   f_hdr.f_flags |= (F_RELFLG | F_EXEC);
   f_ohdr.dsize = bss_start - f_ohdr.data_start;
-  f_ohdr.bsize = bss_end - bss_start;
+  f_ohdr.bsize = 0;
   f_thdr.s_size = f_ohdr.tsize;
   f_thdr.s_scnptr = sizeof (f_hdr) + sizeof (f_ohdr);
   f_thdr.s_scnptr += (f_hdr.f_nscns) * (sizeof (f_thdr));
@@ -571,8 +533,7 @@ adjust_lnnoptrs (int writedesc, int readdesc, const char *new_name)
  * driving logic.
  */
 int
-unexec (const char *new_name, const char *a_name,
-	unsigned data_start, unsigned bss_start, unsigned entry_address)
+unexec (const char *new_name, const char *a_name)
 {
   int new = -1, a_out = -1;
 
@@ -585,7 +546,7 @@ unexec (const char *new_name, const char *a_name,
       PERROR (new_name);
     }
 
-  if (make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name) < 0
+  if (make_hdr (new, a_out, a_name, new_name) < 0
       || copy_text_and_data (new, a_out) < 0
       || copy_sym (new, a_out, a_name, new_name) < 0
       || adjust_lnnoptrs (new, a_out, new_name) < 0

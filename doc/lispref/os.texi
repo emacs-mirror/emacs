@@ -577,7 +577,6 @@ does not run the remaining functions in this hook.  Calling
 This variable is a normal hook; once @code{save-buffers-kill-emacs} is
 finished with all file saving and confirmation, it calls
 @code{kill-emacs} which runs the functions in this hook.
-@code{kill-emacs} does not run this hook in batch mode.
 
 @code{kill-emacs} may be invoked directly (that is not via
 @code{save-buffers-kill-emacs}) if the terminal is disconnected, or in

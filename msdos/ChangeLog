@@ -1,3 +1,8 @@
+2010-10-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* mainmake.v2 (TAGS tags): Use `find' to filter out loaddefs
+	files.  Make all file names in TAGS tables absolute.
+
 2010-10-01  Eli Zaretskii  <eliz@gnu.org>
 
 	* sed1v2.inp (LIBGNUTLS_LIBS, LIBGNUTLS_CFLAGS): Edit to empty.

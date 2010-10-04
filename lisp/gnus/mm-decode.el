@@ -105,7 +105,8 @@
 	 ,disposition ,description ,cache ,id))
 
 (defcustom mm-text-html-renderer
-  (cond ((executable-find "w3m") 'gnus-article-html)
+  (cond ((fboundp 'libxml-parse-html-region) 'mm-shr)
+	((executable-find "w3m") 'gnus-article-html)
 	((executable-find "links") 'links)
 	((executable-find "lynx") 'lynx)
 	((locate-library "w3") 'w3)
@@ -368,8 +369,12 @@ enables you to choose manually one of two types those mails include."
   :group 'mime-display)
 
 (defcustom mm-inline-large-images nil
-  "If non-nil, then all images fit in the buffer."
-  :type 'boolean
+  "If t, then all images fit in the buffer.
+If 'resize, try to resize the images so they fit."
+  :type '(radio
+          (const :tag "Inline large images as they are." t)
+          (const :tag "Resize large images." resize)
+          (const :tag "Do not inline large images." nil))
   :group 'mime-display)
 
 (defcustom mm-file-name-rewrite-functions
@@ -1673,6 +1678,16 @@ If RECURSIVE, search recursively."
 	 (mm-insert-part handle)
 	 (and (eq (mm-body-7-or-8) '7bit)
 	      (not (mm-long-lines-p 76))))))
+
+(defun mm-shr (handle)
+  (let ((article-buffer (current-buffer)))
+    (unless handle
+      (setq handle (mm-dissect-buffer t)))
+    (save-restriction
+      (narrow-to-region (point) (point))
+      (shr-insert-document
+       (mm-with-part handle
+	 (libxml-parse-html-region (point-min) (point-max)))))))
 
 (provide 'mm-decode)
 

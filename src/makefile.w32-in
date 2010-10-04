@@ -298,10 +298,10 @@ cleanall:	clean
 ##
 ## This works only with GNU Make.
 
-TAGS: $(OBJ0) $(OBJ1) $(WIN32OBJ)
+TAGS: $(OBJ0) $(OBJ1) $(WIN32OBJ) $(FONTOBJ)
 	$(MAKE) $(MFLAGS) TAGS-$(MAKETYPE)
 
-TAGS-LISP: $(OBJ0) $(OBJ1) $(WIN32OBJ)
+TAGS-LISP: $(OBJ0) $(OBJ1) $(WIN32OBJ) $(FONTOBJ)
 	$(MAKE) $(MFLAGS) TAGS-LISP-$(MAKETYPE)
 
 TAGS-gmake:
@@ -311,7 +311,9 @@ TAGS-gmake:
 	../lib-src/$(BLD)/etags.exe -a --regex=@../nt/emacs-src.tags \
 	  $(patsubst $(BLD)%.$(O),$(CURDIR)%.c,$(OBJ1))
 	../lib-src/$(BLD)/etags.exe -a --regex=@../nt/emacs-src.tags \
-	  $(patsubst $(BLD)%.$(O),$(CURDIR)%.c,$(WIN32OBJ)) $(CURDIR)/*.h
+	  $(patsubst $(BLD)%.$(O),$(CURDIR)%.c,$(WIN32OBJ)) \
+	  $(patsubst $(BLD)%.$(O),$(CURDIR)%.c,$(FONTOBJ)) \
+	  $(CURDIR)/*.h
 
 TAGS-nmake:
 	echo This target is not supported with NMake
@@ -335,8 +337,8 @@ nt-TAGS-nmake:
 	echo This target is not supported with NMake
 	exit -1
 
-tags: TAGS TAGS-LISP ../nt/TAGS
-.PHONY: tags
+full-tags: TAGS TAGS-LISP ../nt/TAGS
+.PHONY: full-tags
 
 ### DEPENDENCIES ###
 

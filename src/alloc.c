@@ -65,15 +65,12 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 extern POINTER_TYPE *sbrk ();
 #endif
 
-#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
-#endif
 #ifndef O_WRONLY
 #define O_WRONLY 1
 #endif
 
 #ifdef WINDOWSNT
-#include <fcntl.h>
 #include "w32.h"
 #endif
 

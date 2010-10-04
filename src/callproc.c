@@ -31,20 +31,16 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #include <sys/file.h>
-#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
-#endif
 
 #ifdef WINDOWSNT
 #define NOMINMAX
 #include <windows.h>
-#include <fcntl.h>
 #include "w32.h"
 #define _P_NOWAIT 1	/* from process.h */
 #endif
 
 #ifdef MSDOS	/* Demacs 1.1.1 91/10/16 HIRANO Satoshi */
-#include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/param.h>
 #endif /* MSDOS */

@@ -1,3 +1,20 @@
+2010-10-04  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (SHELL): Set it.
+	(INFO_TARGETS, DVI_TARGETS): Remove variables.
+	(info, dvi): Replace above variables with their expansions.
+	(info): Move mkdir from here...
+	($(infodir)/emacs): ... to here (for parallel builds).
+	(pdf): New target.
+	($(infodir)/emacs): Pass -o option to makeinfo.
+	(.PHONY): Declare clean rules.
+	(maintainer-clean): Delete dvi and pdf files.
+	Guard against cd failures.  Use a more restrictive delete.
+
+2010-10-02  Glenn Morris  <rgm@gnu.org>
+
+	* misc.texi (Shell Mode): Remove reference to old function name.
+
 2010-09-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* maintaining.texi (VC Mode Line): Mention all the possible VC status

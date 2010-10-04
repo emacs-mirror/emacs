@@ -1,3 +1,34 @@
+2010-10-03  Glenn Morris  <rgm@gnu.org>
+
+	* url-util.el (url-get-url-filename-chars): Don't eval-and-compile.
+	(url-get-url-at-point): Don't use eval-when-compile.
+
+	* url-cache.el (url-cache-create-filename-human-readable)
+	(url-cache-create-filename-using-md5):
+	* url-util.el (url-file-directory, url-file-nondirectory):
+	Don't use eval-when-compile and regexp-quote.
+
+2010-10-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* url-vars.el (url-mime-charset-string): Changed the default to
+	nil to avoid sending 1171 bytes of not very useful data to the
+	HTTP server every request.
+
+2010-10-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* url-util.el (url-display-percentage): Don't message when the URL
+	is silent.
+	(url-lazy-message): Ditto.
+	(url-lazy-message): Remove leftover debugging code.
+
+	* url-http.el (url-http-parse-headers): Pass the SILENT parameter
+	back to the fetching function.
+
+	* url.el (url-retrieve): Add a silent parameter.
+	(url-retrieve-internal): Ditto.
+
+	* url-parse.el (url): Add a `silent' slot in the URL struct.
+
 2010-10-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* url-cookie.el (url-cookie-handle-set-cookie): Use

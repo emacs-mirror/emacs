@@ -44,11 +44,6 @@ extern void (*fullscreen_hook) (struct frame *f);
 
 /* Input queue declarations and hooks.  */
 
-/* Expedient hack: only provide the below definitions to files that
-   are prepared to handle lispy things.  CONSP is defined if lisp.h
-   has been included before this file.  */
-#ifdef CONSP
-
 enum event_kind
 {
   NO_EVENT,			/* nothing happened.  This should never
@@ -316,8 +311,6 @@ extern void term_mouse_moveto (int, int);
 /* The device for which we have enabled gpm support.  */
 extern struct tty_display_info *gpm_tty;
 #endif
-
-#endif /* CONSP */
 
 
 struct ns_display_info;

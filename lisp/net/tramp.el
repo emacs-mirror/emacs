@@ -974,8 +974,8 @@ A remote directory might have changed its contents.  In order to
 make it visible during file name completion in the minibuffer,
 Tramp flushes its cache and rereads the directory contents when
 more than `tramp-completion-reread-directory-timeout' seconds
-have been gone since last remote command execution.  A value of 0
-would require an immediate reread during filename completion, nil
+have been gone since last remote command execution.  A value of `t'
+would require an immediate reread during filename completion, `nil'
 means to use always cached values for the directory contents."
   :group 'tramp
   :type '(choice (const nil) integer))

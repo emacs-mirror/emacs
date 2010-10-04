@@ -169,7 +169,7 @@ main (int argc, char **argv)
 {
   char *inname, *outname;
   int indesc, outdesc;
-  int nread;
+  ssize_t nread;
   int status;
   int c, preserve_mail = 0;
 
@@ -551,8 +551,7 @@ main (int argc, char **argv)
    string-comparing the two paths, because one or both of them might
    be symbolic links pointing to some other directory. */
 static char *
-mail_spool_name (inname)
-     char *inname;
+mail_spool_name (char *inname)
 {
   struct stat stat1, stat2;
   char *indir, *fname;
@@ -632,7 +631,7 @@ pfatal_and_delete (char *name)
 static char *
 concat (const char *s1, const char *s2, const char *s3)
 {
-  int len1 = strlen (s1), len2 = strlen (s2), len3 = strlen (s3);
+  size_t len1 = strlen (s1), len2 = strlen (s2), len3 = strlen (s3);
   char *result = (char *) xmalloc (len1 + len2 + len3 + 1);
 
   strcpy (result, s1);

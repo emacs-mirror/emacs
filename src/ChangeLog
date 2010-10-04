@@ -1,3 +1,106 @@
+2010-10-03  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnutls.h (GNUTLS_LOG2): Convenience macro.
+
+	* gnutls.c: Add property list symbol holders.
+	(emacs_gnutls_handshake): Clarify how sockets are passed to
+	GnuTLS.
+	(gnutls_log_function2): Convenience function using GNUTLS_LOG2.
+	(Fgnutls_boot): Get all parameters from a plist.  Require trustfiles
+	and keyfiles to be a list of file names.  Default to "NORMAL" for
+	the priority string.  Improve logging.
+
+2010-10-03  Glenn Morris  <rgm@gnu.org>
+
+	* fileio.c (Vdirectory_sep_char): Remove.
+
+2010-10-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* termhooks.h: Remove #ifdef CONSP.
+
+	* xterm.c (NO_INLINE, noinline): Move definitions to ../configure.in.
+
+	Include <fcntl.h> unconditionally.
+	* termcap.c:
+	* sysdep.c:
+	* lread.c:
+	* keyboard.c:
+	* filelock.c:
+	* fileio.c:
+	* doc.c:
+	* callproc.c:
+	* alloc.c: Remove include guards for <fcntl.h>, process.c already
+	does it.
+
+	* process.c: Do not include <sys/wait.h>, syswait.h does it.
+
+	* sysdep.c (flush_pending_output): Remove code, does not do
+	anything on any platform.
+
+	Remove unused code.
+	* sysdep.c (select_alarm, sys_select, read_input_waiting): Remove
+	select emulation, all systems support select.
+	(set_exclusive_use): Remove, the only user is in an #if 0 block.
+	* process.c (create_process): Remove #if 0 code.
+
+	Remove unused arguments for unexec.
+	The third one is never used, and the last two are always passed as zero.
+	* emacs.c (unexec): Add declaration.
+	(Fdump_emacs): Only pass the first two arguments to unexec.
+	Simplify #ifdef.
+	* unexw32.c (unexec):
+	* unexsol.c (unexec):
+	* unexhp9k800.c (unexec):
+	* unexcw.c (unexec): Remove the last 3 arguments, unused.
+	* unexelf.c (unexec): Remove the last 3 arguments, unused.
+	(find_section): Use const.
+	* unexmacosx.c (unexec): Remove the last 3 arguments, unused.
+	(unexec_error): Declare it NO_RETURN.
+	* unexcoff.c (make_hdr): Assume bss_start is always zero, remove
+	it as an argument, remove data_start and entry_address arguments, unused.
+	(unexec): Remove bss_start, data_start and
+	entry_address arguments.
+	* unexaix.c (make_hdr): Assume bss_start is always zero, remove
+	it as an argument, remove data_start and entry_address arguments, unused.
+	(unexec): Remove bss_start, data_start and
+	entry_address arguments.
+
+2010-10-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (TAGS, TAGS-LISP, TAGS-gmake): Add $(FONTOBJ).
+
+	* gnutls.c (emacs_gnutls_handshake, gnutls_make_error)
+	(gnutls_emacs_global_init, gnutls_emacs_global_deinit): Make static.
+	(Fgnutls_get_initstage, Fgnutls_deinit, Fgnutls_boot, Fgnutls_bye):
+	Fix typos in docstrings.
+	(Fgnutls_error_fatalp, Fgnutls_error_string): Doc fixes.
+	(Fgnutls_errorp): Doc fix; use ERR for the argument name.
+
+2010-10-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (command_loop_1): Make sure the mark is really alive
+	before using it (Bug#7044).
+
+2010-10-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (tags): Rename target to full-tags.
+
+2010-10-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs.c (main): Remove !WINDOWSNT conditional.
+	(Fkill_emacs): Don't mention exemption on MS-Windows.
+
+2010-10-02  Glenn Morris  <rgm@gnu.org>
+
+	* character.c (Fchar_bytes): Remove obsolete function.
+	(syms_of_character): Remove Schar_bytes.
+
+	* emacs.c (fatal_error_signal): Also run Fkill_emacs on SIGINT.
+	(main) [!WINDOWSNT]: Handle SIGINT with fatal_error_signal
+	in batch-mode.
+	(Fkill_emacs): Doc fix.  Also run the hook in batch mode.
+	(kill-emacs-hook): Doc fix.
+
 2010-10-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* xml.c (Flibxml_parse_xml_region, Flibxml_parse_html_region)

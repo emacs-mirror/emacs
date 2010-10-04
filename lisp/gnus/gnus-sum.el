@@ -6933,8 +6933,10 @@ displayed, no centering will be performed."
   (interactive)
   (if (not (gnus-buffer-live-p gnus-article-buffer))
       (error "There is no article buffer for this summary buffer")
-    (select-window (get-buffer-window gnus-article-buffer))
-    (gnus-configure-windows 'only-article t)))
+    (unless (get-buffer-window gnus-article-buffer)
+      (gnus-summary-show-article))
+    (gnus-configure-windows 'article t)
+    (select-window (get-buffer-window gnus-article-buffer))))
 
 (defun gnus-summary-universal-argument (arg)
   "Perform any operation on all articles that are process/prefixed."

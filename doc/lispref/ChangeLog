@@ -1,3 +1,26 @@
+2010-10-04  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (dvi, pdf, $(infodir)): New targets.
+	($(infodir)/elisp): Ensure target directory exists.  Use $@.
+	Fix -I typo.
+	(clean): No 'make.out' or 'core' files.
+	(.PHONY): Declare clean rules.
+	(maintainer-clean): Delete pdf file.  Guard against cd failures.
+
+2010-10-03  Glenn Morris  <rgm@gnu.org>
+
+	* files.texi (File Name Components): Remove ignored section about
+	deleted variable directory-sep-char.
+
+2010-10-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.texi (Magic File Names): New defopt
+	remote-file-name-inhibit-cache.
+
+2010-10-02  Glenn Morris  <rgm@gnu.org>
+
+	* os.texi (Killing Emacs): Hook now runs in batch mode.
+
 2010-09-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* text.texi (Special Properties): Clarify when modification-hooks run.

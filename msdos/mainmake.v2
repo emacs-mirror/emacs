@@ -147,16 +147,21 @@ FRC:
 
 # We cannot use [a-zA-Z]* like the mainline distribution does, because
 # that causes all file names to be returned in upper-case on DOS...
+# Must use `find' to filter out loaddefs files; ignore errors if `find'
+# is not available or is an MS `find'.
+# The "cd $(CURDIR)" gork is for when `find' fails and leaves us inside
+# `lisp' or one of its subdirectories.
 TAGS tags:	lib-src FRC
 	cd lib-src
 	if exist etags.exe mv -f etags.exe ../bin
 	cd ..
-	cd lisp
-	../bin/etags .../*.el
-	cd ..
+	- find $(CURDIR)/lisp -iname "*.el" -a -! -( -iname "*loaddefs.el" -o -iname "ldefs-boot.el" -) | ./bin/etags -o lisp/TAGS -
+	cd $(CURDIR)
 	cd src
 	../bin/etags --include=../lisp/TAGS \
-	'--regex=/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' *.c *.h s/msdos.h m/intel386.h
+	 --regex='/[ 	]*DEFVAR_[A-Z_ 	(]+"\([^"]+\)"/' \
+	 $(CURDIR)/src/*.c $(CURDIR)/src/*.h \
+         $(CURDIR)/src/s/msdos.h $(CURDIR)/src/m/intel386.h
 	cd ..
 	./bin/etags --include=src/TAGS
 

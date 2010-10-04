@@ -32,6 +32,7 @@
 (require 'smime)
 
 (autoload 'gnus-completing-read "gnus-util")
+(autoload 'gnus-window-inside-pixel-edges "gnus-ems")
 (autoload 'gnus-article-prepare-display "gnus-art")
 (autoload 'vcard-parse-string "vcard")
 (autoload 'vcard-format-string "vcard")
@@ -76,6 +77,13 @@
   :version "22.1"
   :group 'mime-display)
 
+(defcustom mm-inline-large-images-proportion 0.9
+  "Maximum proportion of large image resized when
+`mm-inline-large-images' is set to resize."
+  :type 'float
+  :version "24.1"
+  :group 'mime-display)
+
 ;;; Internal variables.
 
 ;;;
@@ -85,7 +93,18 @@
 (defun mm-inline-image-emacs (handle)
   (let ((b (point-marker))
 	(inhibit-read-only t))
-    (put-image (mm-get-image handle) b)
+    (put-image
+     (let ((image (mm-get-image handle)))
+       (if (eq mm-inline-large-images 'resize)
+           (gnus-rescale-image image
+                               (let ((edges (gnus-window-inside-pixel-edges
+                                             (get-buffer-window (current-buffer)))))
+                                 (cons (truncate (* mm-inline-large-images-proportion
+                                                    (- (nth 2 edges) (nth 0 edges))))
+                                       (truncate (* mm-inline-large-images-proportion
+                                                    (- (nth 3 edges) (nth 1 edges)))))))
+         image))
+     b)
     (insert "\n\n")
     (mm-handle-set-undisplayer
      handle

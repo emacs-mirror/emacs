@@ -10,8 +10,7 @@
 #include "coding.h"
 
 int
-unexec (char *new_name, char *old_name, unsigned int data_start,
-        unsigned int bss_start, unsigned int entry_address)
+unexec (const char *new_name, const char *old_name)
 {
   Lisp_Object data;
   Lisp_Object errstring;

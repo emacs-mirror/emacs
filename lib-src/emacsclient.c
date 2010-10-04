@@ -39,6 +39,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 # define CLOSE_SOCKET closesocket
 # define INITIALIZE() (initialize_sockets ())
 
+char *w32_getenv (char *);
+#define egetenv(VAR) w32_getenv(VAR)
+
 #else /* !WINDOWSNT */
 
 # include "syswait.h"
@@ -62,6 +65,8 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #  define WCONTINUED 8
 # endif
 
+#define egetenv(VAR) getenv(VAR)
+
 #endif /* !WINDOWSNT */
 
 #undef signal
@@ -84,13 +89,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 char *getenv (const char *), *getwd (char *);
 #ifdef HAVE_GETCWD
 char *(getcwd) (char *, size_t);
-#endif
-
-#ifdef WINDOWSNT
-char *w32_getenv (char *);
-#define egetenv(VAR) w32_getenv(VAR)
-#else
-#define egetenv(VAR) getenv(VAR)
 #endif
 
 #ifndef VERSION
@@ -119,7 +117,7 @@ char *w32_getenv (char *);
 
 
 /* Name used to invoke this program.  */
-char *progname;
+const char *progname;
 
 /* The second argument to main. */
 char **main_argv;
@@ -752,7 +750,7 @@ send_to_emacs (HSOCKET s, const char *data)
 {
   while (data)
     {
-      int dlen = strlen (data);
+      size_t dlen = strlen (data);
       if (dlen + sblen >= SEND_BUFFER_SIZE)
 	{
 	  int part = SEND_BUFFER_SIZE - sblen;
@@ -1499,6 +1497,7 @@ main (int argc, char **argv)
   char *cwd, *str;
   char string[BUFSIZ+1];
   int null_socket_name, null_server_file, start_daemon_if_needed;
+  int exit_status = EXIT_SUCCESS;
 
   main_argv = argv;
   progname = argv[0];
@@ -1698,7 +1697,8 @@ main (int argc, char **argv)
   fsync (1);
 
   /* Now, wait for an answer and print any messages.  */
-  while ((rl = recv (emacs_socket, string, BUFSIZ, 0)) > 0)
+  while (exit_status == EXIT_SUCCESS
+	 && (rl = recv (emacs_socket, string, BUFSIZ, 0)) > 0)
     {
       char *p;
       string[rl] = '\0';
@@ -1737,6 +1737,7 @@ main (int argc, char **argv)
             printf ("\n");
           fprintf (stderr, "*ERROR*: %s", str);
           needlf = str[0] == '\0' ? needlf : str[strlen (str) - 1] != '\n';
+	  exit_status = EXIT_FAILURE;
         }
 #ifdef SIGSTOP
       else if (strprefix ("-suspend ", string))
@@ -1754,7 +1755,8 @@ main (int argc, char **argv)
           if (needlf)
             printf ("\n");
           printf ("*ERROR*: Unknown message: %s", string);
-          needlf = string[0] == '\0' ? needlf : string[strlen (string) - 1] != '\n';
+          needlf = string[0]
+	    == '\0' ? needlf : string[strlen (string) - 1] != '\n';
         }
     }
 
@@ -1763,8 +1765,11 @@ main (int argc, char **argv)
   fflush (stdout);
   fsync (1);
 
+  if (rl < 0)
+    exit_status = EXIT_FAILURE;
+
   CLOSE_SOCKET (emacs_socket);
-  return EXIT_SUCCESS;
+  return exit_status;
 }
 
 #endif /* HAVE_SOCKETS && HAVE_INET_SOCKETS */

@@ -103,8 +103,7 @@ The actual return value is the last modification time of the cache file."
 	       (user-real-login-name)
 	       (cons (or protocol "file")
 		     (reverse (split-string (or hostname "localhost")
-					    (eval-when-compile
-					      (regexp-quote ".")))))))
+					    "\\.")))))
 	     (fname    (url-filename urlobj)))
 	(if (and fname (/= (length fname) 0) (= (aref fname 0) ?/))
 	    (setq fname (substring fname 1 nil)))
@@ -164,8 +163,7 @@ Very fast if you have an `md5' primitive function, suitably fast otherwise."
 		     (nreverse
 		      (delq nil
 			    (split-string (or hostname "localhost")
-					  (eval-when-compile
-					    (regexp-quote "."))))))))
+					  "\\."))))))
 	     (fname    (url-filename urlobj)))
 	(and fname
 	     (expand-file-name checksum

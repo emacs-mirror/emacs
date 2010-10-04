@@ -88,13 +88,20 @@
   ;; `directory-sep-char' is an obsolete variable in Emacs.  But it is
   ;; used in XEmacs, so we set it here and there.  The following is
   ;; needed to pacify Emacs byte-compiler.
-  (unless (boundp 'byte-compile-not-obsolete-var)
-    (defvar byte-compile-not-obsolete-var nil))
-  (setq byte-compile-not-obsolete-var 'directory-sep-char)
-  ;; Emacs 23.2.
-  (unless (boundp 'byte-compile-not-obsolete-vars)
-    (defvar byte-compile-not-obsolete-vars nil))
-  (setq byte-compile-not-obsolete-vars '(directory-sep-char))
+  ;; Note that it was removed altogether in Emacs 24.1.
+  (when (boundp 'directory-sep-char)
+    (unless (boundp 'byte-compile-not-obsolete-var)
+      (defvar byte-compile-not-obsolete-var nil))
+    (setq byte-compile-not-obsolete-var 'directory-sep-char)
+    ;; Emacs 23.2.
+    (unless (boundp 'byte-compile-not-obsolete-vars)
+      (defvar byte-compile-not-obsolete-vars nil))
+    (setq byte-compile-not-obsolete-vars '(directory-sep-char)))
+
+  ;; `remote-file-name-inhibit-cache' has been introduced with Emacs 24.1.
+  ;; Besides `t', `nil', and integer, we use also timestamps (as
+  ;; returned by `current-time') internally.
+  (defvar remote-file-name-inhibit-cache nil)
 
   ;; For not existing functions, or functions with a changed argument
   ;; list, there are compiler warnings.  We want to avoid them in

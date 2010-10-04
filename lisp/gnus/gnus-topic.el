@@ -1302,7 +1302,7 @@ If COPYP, copy the groups instead."
   (interactive
    (list current-prefix-arg
 	 (gnus-completing-read "Move to topic" (mapcar 'car gnus-topic-alist) t
-			       'gnus-topic-history)))
+			       nil 'gnus-topic-history)))
   (let ((use-marked (and (not n) (not (gnus-region-active-p))
 			 gnus-group-marked t))
 	(groups (gnus-group-process-prefix n))
@@ -1348,7 +1348,8 @@ If COPYP, copy the groups instead."
   "Copy the current group to a topic."
   (interactive
    (list current-prefix-arg
-	 (gnus-completing-read "Copy to topic" (mapcar 'car gnus-topic-alist) t)))
+	 (gnus-completing-read
+	  "Copy to topic" (mapcar 'car gnus-topic-alist) t)))
   (gnus-topic-move-group n topic t))
 
 (defun gnus-topic-kill-group (&optional n discard)

@@ -1572,14 +1572,11 @@ See %s for details" proc nnmairix-mairix-output-buffer)))
 (defun nnmairix-replace-illegal-chars (header)
   "Replace illegal characters in HEADER for mairix query."
   (when header
-    (if (> emacs-major-version 20)
-	(while (string-match "[^-.@/,& [:alnum:]]" header)
-	  (setq header (replace-match "" t t header)))
-      (while (string-match "[[]{}:<>]" header)
-	(setq header (replace-match "" t t header))))
+    (while (string-match "[^-.@/,& [:alnum:]]" header)
+      (setq header (replace-match "" t t header)))
     (while (string-match "[-& ]" header)
       (setq header (replace-match "," t t header)))
-  header))
+    header))
 
 (defun nnmairix-group-toggle-parameter (group parameter description &optional par)
   "Toggle on GROUP a certain PARAMETER.

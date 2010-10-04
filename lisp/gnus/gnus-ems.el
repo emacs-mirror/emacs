@@ -307,6 +307,12 @@
 		end nil))))))
 
 (eval-and-compile
+  ;; XEmacs does not have window-inside-pixel-edges
+  (defalias 'gnus-window-inside-pixel-edges
+    (if (fboundp 'window-inside-pixel-edges)
+        'window-inside-pixel-edges
+      'window-pixel-edges))
+
   (if (fboundp 'set-process-plist)
       (progn
 	(defalias 'gnus-set-process-plist 'set-process-plist)

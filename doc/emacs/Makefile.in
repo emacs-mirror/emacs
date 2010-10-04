@@ -19,6 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
+SHELL = /bin/sh
 
 # Where to find the source code.  $(srcdir) will be the man
 # subdirectory of the source tree.  This is
@@ -37,10 +38,6 @@ texinfodir = $(srcdir)/../misc
 # The makeinfo program is part of the Texinfo distribution.
 # Use --force so that it generates output even if there are errors.
 MAKEINFO = makeinfo --force
-
-INFO_TARGETS = $(infodir)/emacs
-DVI_TARGETS  = emacs.dvi
-
 
 TEXI2DVI = texi2dvi
 TEXI2PDF = texi2pdf
@@ -111,22 +108,22 @@ EMACSSOURCES= \
 	${srcdir}/kmacro.texi \
 	$(EMACS_XTRA)
 
-info: $(infodir) $(INFO_TARGETS)
+info: $(infodir)/emacs
 
 $(infodir):
 	mkdir $@
 
-dvi: $(DVI_TARGETS)
+dvi: emacs.dvi
+pdf: emacs.pdf
 
-# Note that all the Info targets build the Info files
-# in srcdir.  There is no provision for Info files
-# to exist in the build directory.
+# Note that all the Info targets build the Info files in srcdir.
+# There is no provision for Info files to exist in the build directory.
 # In a distribution of Emacs, the Info files should be up to date.
 
 emacs : $(infodir)/emacs
 
-$(infodir)/emacs: ${EMACSSOURCES}
-	cd $(srcdir); $(MAKEINFO) emacs.texi
+$(infodir)/emacs: $(infodir) ${EMACSSOURCES}
+	cd $(srcdir); $(MAKEINFO) emacs.texi -o $@
 
 emacs.dvi: ${EMACSSOURCES}
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs.texi
@@ -141,6 +138,7 @@ emacs-xtra.dvi: emacs-xtra.texi $(EMACS_XTRA)
 emacs-xtra.pdf: emacs-xtra.texi $(EMACS_XTRA)
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/emacs-xtra.texi
 
+.PHONY: mostlyclean clean distclean maintainer-clean
 
 mostlyclean:
 	rm -f *.log *.cp *.fn *.ky *.op *.ops *.pg *.vr core *.tp *.core
@@ -153,14 +151,7 @@ distclean: clean
 #	rm -f Makefile
 
 maintainer-clean: distclean
-	for file in $(INFO_TARGETS); do rm -f $${file}*; done
-
-
-# Formerly this directory had texindex.c and getopt.c in it
-# and this makefile built them to make texindex.
-# That caused trouble because this is run entirely in the source directory.
-# Since we expect to get texi2dvi from elsewhere,
-# it is ok to expect texindex from elsewhere also.
-
+	rm -f emacs.dvi emacs.pdf
+	-cd $(infodir) && rm -f emacs emacs-[1-9] emacs-[1-9][0-9]
 
 ### Makefile ends here

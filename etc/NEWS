@@ -66,9 +66,14 @@ obsolete in Emacs 23.)
 
 * Changes in Emacs 24.1
 
-** New emacsclient argument --parent-id ID can be used to open a
+** emacsclient changes
+
+*** New emacsclient argument --parent-id ID can be used to open a
 client frame in parent X window ID, via XEmbed.  This works like the
 --parent-id argument to Emacs.
+
+*** If emacsclient shuts down as a result of Emacs signalling an
+error, its exit status is 1.
 
 ** Completion can cycle, depending on completion-cycle-threshold.
 
@@ -149,6 +154,11 @@ get and set the SELinux context of a file.
 *** Tramp offers handlers for file-selinux-context and set-file-selinux-context
 for remote machines which support SELinux.
 
+** The function kill-emacs is now run upon receipt of the signals SIGTERM
+and SIGHUP, and upon SIGINT in batch mode.
+
+** kill-emacs-hook is now also run in batch mode.
+
 ** New scrolling commands `scroll-up-command' and `scroll-down-command'
 (bound to C-v/[next] and M-v/[prior]) does not signal errors at top/bottom
 of buffer at first key-press (instead moves to top/bottom of buffer)
@@ -184,6 +194,9 @@ selected for installation.
 automatically when Emacs starts up.  To disable this, set
 `package-enable-at-startup' to nil.  To change which packages are
 loaded, customize `package-load-list'.
+
+** The user option `remote-file-name-inhibit-cache' controls whether
+the remote file-name cache is used for read access.
 
 
 * Editing Changes in Emacs 24.1
@@ -304,6 +317,10 @@ data is available locally.
 
 *** New key bindings: C-x v I and C-x v O bound to vc-log-incoming and
 vc-log-outgoing, respectively.
+
+*** The 'g' key in VC diff, log, log-incoming and log-outgoing buffers
+reruns the corresponding VC command to compute an up to date version
+of the buffer.
 
 *** vc-dir for Bzr supports viewing shelve contents and shelving snapshots.
 
@@ -532,6 +549,21 @@ If the alist entries are added, they override the value of
 similar to the ones created by shift-selection.  In previous Emacs
 versions, these regions were delineated by `mouse-drag-overlay', which
 has now been removed.
+
+** The following functions and aliases, obsolete since at least Emacs 21.1,
+have been removed:
+comint-kill-output, decompose-composite-char, outline-visible,
+internal-find-face, internal-get-face, frame-update-faces,
+frame-update-face-colors, x-frob-font-weight, x-frob-font-slant,
+x-make-font-bold, x-make-font-demibold, x-make-font-unbold
+x-make-font-italic, x-make-font-oblique, x-make-font-unitalic
+x-make-font-bold-italic, mldrag-drag-mode-line, mldrag-drag-vertical-line,
+iswitchb-default-keybindings, char-bytes, isearch-return-char,
+make-local-hook
+
+** The following variables and aliases, obsolete since at least Emacs 21.1,
+have been removed:
+checkdoc-minor-keymap, vc-header-alist, directory-sep-char
 
 
 * Lisp changes in Emacs 24.1

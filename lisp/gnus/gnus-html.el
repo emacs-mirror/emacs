@@ -37,6 +37,7 @@
 (require 'url-cache)
 (require 'xml)
 (require 'browse-url)
+(require 'help-fns)
 
 (defcustom gnus-html-image-cache-ttl (days-to-time 7)
   "Time used to determine if we should use images from the cache."
@@ -104,12 +105,7 @@ CHARS is a regexp-like character alternative (e.g., \"[)$]\")."
 					  (match-string 0 encoded-text)))
 				 t t encoded-text)
 		  s (1+ s)))
-	  encoded-text))))
-  ;; XEmacs does not have window-inside-pixel-edges
-  (defalias 'gnus-window-inside-pixel-edges
-    (if (fboundp 'window-inside-pixel-edges)
-        'window-inside-pixel-edges
-      'window-pixel-edges)))
+	  encoded-text)))))
 
 (defun gnus-html-encode-url (url)
   "Encode URL."
@@ -270,7 +266,7 @@ Use ALT-TEXT for the image string."
       (setq tag (match-string 1)
 	    parameters (match-string 2)
 	    start (match-beginning 0))
-      (when (plusp (length parameters))
+      (when (> (length parameters) 0)
 	(set-text-properties 0 (1- (length parameters)) nil parameters))
       (delete-region start (point))
       (when (search-forward (concat "</" tag ">") nil t)
@@ -368,10 +364,12 @@ Use ALT-TEXT for the image string."
   "Retrieve IMAGE, and place it into BUFFER on arrival."
   (gnus-message 8 "gnus-html-schedule-image-fetching: buffer %s, image %s"
                 buffer image)
-  (ignore-errors
-    (url-retrieve (car image)
-                  'gnus-html-image-fetched
-                  (list buffer image))))
+  (let ((args (list (car image)
+		    'gnus-html-image-fetched
+		    (list buffer image))))
+    (when (> (length (help-function-arglist 'url-retrieve)) 4)
+      (setq args (nconc args (list t))))
+    (apply #'url-retrieve args)))
 
 (defun gnus-html-image-fetched (status buffer image)
   "Callback function called when image has been fetched."
@@ -399,7 +397,8 @@ Return a string with image data."
 
 (defun gnus-html-put-image (data url &optional alt-text)
   (when (gnus-graphic-display-p)
-    (let* ((start (text-property-any (point-min) (point-max) 'gnus-image-url url))
+    (let* ((start (text-property-any (point-min) (point-max)
+				     'gnus-image-url url))
            (end (when start
                   (next-single-property-change start 'gnus-image-url))))
       ;; Image found?
@@ -413,7 +412,8 @@ Return a string with image data."
                             (image-size image t)))))
           (save-excursion
             (goto-char start)
-            (let ((alt-text (or alt-text (buffer-substring-no-properties start end))))
+            (let ((alt-text (or alt-text
+				(buffer-substring-no-properties start end))))
               (if (and image
                        ;; Kludge to avoid displaying 30x30 gif images, which
                        ;; seems to be a signal of a broken image.
@@ -421,8 +421,9 @@ Return a string with image data."
                                      (glyphp image)
                                    (listp image))
                                  (eq (if (featurep 'xemacs)
-                                         (let ((d (cdadar (specifier-spec-list
-                                                           (glyph-image image)))))
+                                         (let ((d (cdadar
+						   (specifier-spec-list
+						    (glyph-image image)))))
                                            (and (vectorp d)
                                                 (aref d 0)))
                                        (plist-get (cdr image) :type))
@@ -430,48 +431,38 @@ Return a string with image data."
                                  (= (car size) 30)
                                  (= (cdr size) 30))))
                   ;; Good image, add it!
-                  (let ((image (gnus-html-rescale-image image data size)))
+                  (let ((image (gnus-html-rescale-image
+                                image
+                                ;; (width . height)
+                                (cons
+                                 ;; Aimed width
+                                 (truncate
+                                  (* gnus-max-image-proportion
+                                     (- (nth 2 edges) (nth 0 edges))))
+                                 ;; Aimed height
+                                 (truncate (* gnus-max-image-proportion
+                                              (- (nth 3 edges) (nth 1 edges))))))))
                     (delete-region start end)
                     (gnus-put-image image alt-text 'external)
                     (gnus-put-text-property start (point) 'help-echo alt-text)
-                    (gnus-overlay-put (gnus-make-overlay start (point)) 'local-map
-                                      gnus-html-displayed-image-map)
-                    (gnus-put-text-property start (point) 'gnus-alt-text alt-text)
+                    (gnus-overlay-put
+		     (gnus-make-overlay start (point)) 'local-map
+		     gnus-html-displayed-image-map)
+                    (gnus-put-text-property start (point)
+					    'gnus-alt-text alt-text)
                     (when url
-                      (gnus-put-text-property start (point) 'gnus-image-url url))
+                      (gnus-put-text-property start (point)
+					      'gnus-image-url url))
                     (gnus-add-image 'external image)
                     t)
                 ;; Bad image, try to show something else
                 (when (fboundp 'find-image)
                   (delete-region start end)
-                  (setq image (find-image '((:type xpm :file "lock-broken.xpm"))))
+                  (setq image (find-image
+			       '((:type xpm :file "lock-broken.xpm"))))
                   (gnus-put-image image alt-text 'internal)
                   (gnus-add-image 'internal image))
                 nil))))))))
-
-(defun gnus-html-rescale-image (image data size)
-  (if (or (not (fboundp 'imagemagick-types))
-	  (not (get-buffer-window (current-buffer))))
-      image
-    (let* ((width (car size))
-	   (height (cdr size))
-	   (edges (gnus-window-inside-pixel-edges (get-buffer-window (current-buffer))))
-	   (window-width (truncate (* gnus-max-image-proportion
-				      (- (nth 2 edges) (nth 0 edges)))))
-	   (window-height (truncate (* gnus-max-image-proportion
-				       (- (nth 3 edges) (nth 1 edges)))))
-	   scaled-image)
-      (when (> height window-height)
-	(setq image (or (create-image data 'imagemagick t
-				      :height window-height)
-			image))
-	(setq size (image-size image t)))
-      (when (> (car size) window-width)
-	(setq image (or
-		     (create-image data 'imagemagick t
-				   :width window-width)
-		     image)))
-      image)))
 
 (defun gnus-html-image-url-blocked-p (url blocked-images)
   "Find out if URL is blocked by BLOCKED-IMAGES."

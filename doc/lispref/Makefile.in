@@ -92,14 +92,16 @@ srcs = \
   $(srcdir)/gpl.texi \
   $(srcdir)/doclicense.texi
 
-
-.PHONY: clean
-
 # The info file is named `elisp'.
 info: $(infodir)/elisp
+dvi: elisp.dvi
+pdf: elisp.pdf
 
-$(infodir)/elisp: $(srcs)
-	cd $(srcdir); $(MAKEINFO) -I. -I$(infodir) elisp.texi -o $(infodir)/elisp
+$(infodir):
+	mkdir $@
+
+$(infodir)/elisp: $(infodir) $(srcs)
+	cd $(srcdir); $(MAKEINFO) -I. -I$(texinfodir) elisp.texi -o $@
 
 elisp.dvi: $(srcs)
 	$(TEXI2DVI) -I $(srcdir) -I $(texinfodir) $(srcdir)/elisp.texi
@@ -107,13 +109,16 @@ elisp.dvi: $(srcs)
 elisp.pdf: $(srcs)
 	$(TEXI2PDF) -I $(srcdir) -I $(texinfodir) $(srcdir)/elisp.texi
 
+.PHONY: clean distclean maintainer-clean
+
 clean:
 	rm -f *.toc *.aux *.log *.cp *.cps *.fn *.fns *.tp *.tps \
               *.vr *.vrs *.pg *.pgs *.ky *.kys elisp[12]*
-	rm -f make.out core
 
 distclean: clean
 
 maintainer-clean: clean
-	rm -f elisp.dvi elisp.oaux
-	cd $(infodir); rm -f elisp elisp-[1-9] elisp-[1-9][0-9]
+	rm -f elisp.dvi elisp.pdf elisp.oaux
+	-cd $(infodir) && rm -f elisp elisp-[1-9] elisp-[1-9][0-9]
+
+### Makefile ends here

@@ -380,7 +380,6 @@ getopt.h:		getopt_.h
 
 ### TAGS ###
 
-tags: TAGS
 TAGS: $(BLD)/etags.exe *.c *.h
 	$(BLD)/etags.exe *.c *.h
 

@@ -92,9 +92,9 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   :version "21.1"
   :group 'vc)
 
-(defcustom vc-cvs-header (or (cdr (assoc 'CVS vc-header-alist)) '("\$Id\$"))
+(defcustom vc-cvs-header '("\$Id\$")
   "Header keywords to be inserted by `vc-insert-headers'."
-  :version "21.1"
+  :version "24.1"     ; no longer consult the obsolete vc-header-alist
   :type '(repeat string)
   :group 'vc)
 

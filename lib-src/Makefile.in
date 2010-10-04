@@ -177,7 +177,6 @@ CPP_CFLAGS = ${BASE_CFLAGS} ${PROFILING_CFLAGS} ${CPPFLAGS} ${CFLAGS}
 
 LOADLIBES=$(LIBS_SYSTEM)
 
-
 ## This is the default compilation command.
 ## But we should never rely on it, because some make version failed to
 ## find it for getopt.o.

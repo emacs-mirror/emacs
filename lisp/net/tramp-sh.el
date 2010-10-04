@@ -1366,8 +1366,8 @@ of."
 	      (not (tramp-file-name-handler 'file-remote-p f nil 'connected)))
 	  t
 	(with-parsed-tramp-file-name f nil
-	  (tramp-flush-file-property v localname)
-	  (let* ((attr (file-attributes f))
+	  (let* ((remote-file-name-inhibit-cache t)
+		 (attr (file-attributes f))
 		 (modtime (nth 5 attr))
 		 (mt (visited-file-modtime)))
 
@@ -1770,46 +1770,39 @@ and gid of the corresponding user is taken.  Both parameters must be integers."
        (mapcar
 	'list
         (or
-         ;; Try cache first
-         (and
-          ;; Ignore if expired
-          (or (not (integerp tramp-completion-reread-directory-timeout))
-              (<= (tramp-time-diff
-                   (current-time)
-                   (tramp-get-file-property
-                    v localname "last-completion" '(0 0 0)))
-                  tramp-completion-reread-directory-timeout))
+	 ;; Try cache entries for filename, filename with last
+	 ;; character removed, filename with last two characters
+	 ;; removed, ..., and finally the empty string - all
+	 ;; concatenated to the local directory name.
+         (let ((remote-file-name-inhibit-cache
+		(or remote-file-name-inhibit-cache
+		    tramp-completion-reread-directory-timeout)))
 
-          ;; Try cache entries for filename, filename with last
-          ;; character removed, filename with last two characters
-          ;; removed, ..., and finally the empty string - all
-          ;; concatenated to the local directory name
-
-          ;; This is inefficient for very long filenames, pity
-          ;; `reduce' is not available...
-          (car
-           (apply
-            'append
-            (mapcar
-             (lambda (x)
-               (let ((cache-hit
-                      (tramp-get-file-property
-                       v
-                       (concat localname (substring filename 0 x))
-                       "file-name-all-completions"
-                       nil)))
-                 (when cache-hit (list cache-hit))))
-             (tramp-compat-number-sequence (length filename) 0 -1)))))
+	   ;; This is inefficient for very long filenames, pity
+	   ;; `reduce' is not available...
+	   (car
+	    (apply
+	     'append
+	     (mapcar
+	      (lambda (x)
+		(let ((cache-hit
+		       (tramp-get-file-property
+			v
+			(concat localname (substring filename 0 x))
+			"file-name-all-completions"
+			nil)))
+		  (when cache-hit (list cache-hit))))
+	      (tramp-compat-number-sequence (length filename) 0 -1)))))
 
          ;; Cache expired or no matching cache entry found so we need
-         ;; to perform a remote operation
+         ;; to perform a remote operation.
          (let (result)
            ;; Get a list of directories and files, including reliably
            ;; tagging the directories with a trailing '/'.  Because I
            ;; rock.  --daniel@danann.net
 
            ;; Changed to perform `cd' in the same remote op and only
-           ;; get entries starting with `filename'. Capture any `cd'
+           ;; get entries starting with `filename'.  Capture any `cd'
            ;; error messages.  Ensure any `cd' and `echo' aliases are
            ;; ignored.
            (tramp-send-command
@@ -1903,9 +1896,6 @@ tramp-handle-file-name-all-completions: internal error accessing `%s': `%s'"
 		   (tramp-set-file-property
 		    v (concat localname entry) "file-exists-p" t))
 		 result)
-
-           (tramp-set-file-property
-            v localname "last-completion" (current-time))
 
            ;; Store result in the cache
            (tramp-set-file-property
@@ -3669,7 +3659,7 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 	;; There could be new files, created by the vc backend.  We
 	;; cannot reuse the old cache entries, therefore.
 	(let (tramp-vc-registered-file-names
-	      (tramp-cache-inhibit-cache (current-time))
+	      (remote-file-name-inhibit-cache (current-time))
 	      (file-name-handler-alist
 	       `((,tramp-file-name-regexp . tramp-vc-file-name-handler))))
 
@@ -4085,7 +4075,7 @@ process to set up.  VEC specifies the connection."
 	;; Keep the debug buffer.
 	(rename-buffer
 	 (generate-new-buffer-name tramp-temp-buffer-name) 'unique)
-	(tramp-compat-funcall 'tramp-cleanup-connection vec)
+	(tramp-cleanup-connection vec)
 	(if (= (point-min) (point-max))
 	    (kill-buffer nil)
 	  (rename-buffer (tramp-debug-buffer-name vec) 'unique))

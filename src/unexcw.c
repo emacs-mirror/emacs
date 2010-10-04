@@ -248,8 +248,7 @@ add_exe_suffix_if_necessary (const char *name, char *modified)
 }
 
 int
-unexec (char *outfile, char *infile, unsigned start_data, unsigned d1,
-	unsigned d2)
+unexec (const char *outfile, const char *infile)
 {
   char infile_buffer[FILENAME_MAX];
   char outfile_buffer[FILENAME_MAX];

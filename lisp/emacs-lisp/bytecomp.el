@@ -1698,12 +1698,15 @@ The value is non-nil if there were no errors, nil if errors."
 	  (insert "\n")			; aaah, unix.
 	    (if (file-writable-p target-file)
 		;; We must disable any code conversion here.
-		(let ((coding-system-for-write 'no-conversion)
-		      ;; Write to a tempfile so that if another Emacs
-		      ;; process is trying to load target-file (eg in a
-		      ;; parallel bootstrap), it does not risk getting a
-		      ;; half-finished file.  (Bug#4196)
-		      (tempfile (make-temp-name target-file)))
+		(let* ((coding-system-for-write 'no-conversion)
+		       ;; Write to a tempfile so that if another Emacs
+		       ;; process is trying to load target-file (eg in a
+		       ;; parallel bootstrap), it does not risk getting a
+		       ;; half-finished file.  (Bug#4196)
+		       (tempfile (make-temp-name target-file))
+		       (kill-emacs-hook
+			(cons (lambda () (ignore-errors (delete-file tempfile)))
+			      kill-emacs-hook)))
 		  (if (memq system-type '(ms-dos 'windows-nt))
 		      (setq buffer-file-type t))
 		  (write-region (point-min) (point-max) tempfile nil 1)
@@ -1797,14 +1800,7 @@ With argument ARG, insert value in current buffer after the form."
        (set-buffer-multibyte t)
        (erase-buffer)
        ;;	 (emacs-lisp-mode)
-       (setq case-fold-search nil)
-       ;; This is a kludge.  Some operating systems (OS/2, DOS) need to
-       ;; write files containing binary information specially.
-       ;; Under most circumstances, such files will be in binary
-       ;; overwrite mode, so those OS's use that flag to guess how
-       ;; they should write their data.  Advise them that .elc files
-       ;; need to be written carefully.
-       (setq overwrite-mode 'overwrite-mode-binary))
+       (setq case-fold-search nil))
      (displaying-byte-compile-warnings
       (with-current-buffer bytecomp-inbuffer
 	(and bytecomp-filename

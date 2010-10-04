@@ -44,11 +44,19 @@
     (defmacro with-no-warnings (&rest body)
       `(progn ,@body))))
 
-(defcustom gnus-use-ido nil
-  "Whether to use `ido' for `completing-read'."
+(defcustom gnus-completing-read-function 'gnus-emacs-completing-read
+  "Function use to do completing read."
   :version "24.1"
   :group 'gnus-meta
-  :type 'boolean)
+  :type '(radio (function-item
+                 :doc "Use Emacs standard `completing-read' function."
+                 gnus-emacs-completing-read)
+                (function-item
+                 :doc "Use `ido-completing-read' function."
+                 gnus-ido-completing-read)
+                (function-item
+                 :doc "Use iswitchb based completing-read function."
+                 gnus-iswitchb-completing-read)))
 
 (defcustom gnus-completion-styles
   (if (and (boundp 'completion-styles-alist)
@@ -141,11 +149,9 @@ This is a compatibility function for different Emacsen."
 ;; XEmacs.  In Emacs we don't need to call `make-local-hook' first.
 ;; It's harmless, though, so the main purpose of this alias is to shut
 ;; up the byte compiler.
-(defalias 'gnus-make-local-hook
-  (if (eq (get 'make-local-hook 'byte-compile)
-	  'byte-compile-obsolete)
-      'ignore				; Emacs
-    'make-local-hook))			; XEmacs
+(defalias 'gnus-make-local-hook (if (featurep 'xemacs)
+                                    'make-local-hook
+                                  'ignore))
 
 (defun gnus-delete-first (elt list)
   "Delete by side effect the first occurrence of ELT as a member of LIST."
@@ -1585,17 +1591,46 @@ SPEC is a predicate specifier that contains stuff like `or', `and',
 
 (defun gnus-completing-read (prompt collection &optional require-match
                                     initial-input history def)
-  "Call `completing-read' or `ido-completing-read'.
-Depends on `gnus-use-ido'."
+  "Call `gnus-completing-read-function'."
+  (funcall gnus-completing-read-function
+           (concat prompt (when def
+                            (concat " (default " def ")"))
+                   ": ")
+           collection require-match initial-input history def))
+
+(defun gnus-emacs-completing-read (prompt collection &optional require-match
+                                          initial-input history def)
+  "Call standard `completing-read-function'."
   (let ((completion-styles gnus-completion-styles))
-    (funcall
-     (if gnus-use-ido
-         'ido-completing-read
-       'completing-read)
-     (concat prompt (when def
-                      (concat " (default " def ")"))
-             ": ")
-     collection nil require-match initial-input history def)))
+    (completing-read prompt collection nil require-match initial-input history def)))
+
+(defun gnus-ido-completing-read (prompt collection &optional require-match
+                                        initial-input history def)
+  "Call `ido-completing-read-function'."
+  (require 'ido)
+  (ido-completing-read prompt collection nil require-match initial-input history def))
+
+(defun gnus-iswitchb-completing-read (prompt collection &optional require-match
+                                            initial-input history def)
+  "`iswitchb' based completing-read function."
+  (require 'iswitchb)
+  (let ((iswitchb-make-buflist-hook
+         (lambda ()
+           (setq iswitchb-temp-buflist
+                 (let ((choices (append
+                                 (when initial-input (list initial-input))
+                                 (symbol-value history) collection))
+                       filtered-choices)
+                   (dolist (x choices)
+                     (setq filtered-choices (adjoin x filtered-choices)))
+                   (nreverse filtered-choices))))))
+    (unwind-protect
+        (progn
+          (when (not iswitchb-mode)
+            (add-hook 'minibuffer-setup-hook 'iswitchb-minibuffer-setup))
+          (iswitchb-read-buffer prompt def require-match))
+      (when (not iswitchb-mode)
+        (remove-hook 'minibuffer-setup-hook 'iswitchb-minibuffer-setup)))))
 
 (defun gnus-graphic-display-p ()
   (if (featurep 'xemacs)
@@ -1896,6 +1931,26 @@ is allowed once again.  (Immediately, if `inhibit-quit' is nil.)"
               (aref ,display-table ,character)
             (get-char-table ,character ,display-table)))
     `(aref ,display-table ,character)))
+
+(defun gnus-rescale-image (image size)
+  "Rescale IMAGE to SIZE if possible.
+SIZE is in format (WIDTH . HEIGHT). Return a new image.
+Sizes are in pixels."
+  (if (or (not (fboundp 'imagemagick-types))
+	  (not (get-buffer-window (current-buffer))))
+      image
+    (let ((new-width (car size))
+          (new-height (cdr size)))
+      (when (> (cdr (image-size image t)) new-height)
+        (setq image (or (create-image (plist-get (cdr image) :data) 'imagemagick t
+                                      :height new-height)
+                        image)))
+      (when (> (car (image-size image t)) new-width)
+        (setq image (or
+                   (create-image (plist-get (cdr image) :data) 'imagemagick t
+                                 :width new-width)
+                   image)))
+      image)))
 
 (provide 'gnus-util)
 

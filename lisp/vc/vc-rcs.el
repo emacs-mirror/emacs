@@ -77,10 +77,10 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   :version "21.1"
   :group 'vc)
 
-(defcustom vc-rcs-header (or (cdr (assoc 'RCS vc-header-alist)) '("\$Id\$"))
+(defcustom vc-rcs-header '("\$Id\$")
   "Header keywords to be inserted by `vc-insert-headers'."
   :type '(repeat string)
-  :version "21.1"
+  :version "24.1"     ; no longer consult the obsolete vc-header-alist
   :group 'vc)
 
 (defcustom vc-rcsdiff-knows-brief nil

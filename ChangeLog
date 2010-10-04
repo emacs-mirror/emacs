@@ -1,3 +1,7 @@
+2010-10-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (NO_INLINE, noinline): Move here from src/xterm.c.
+
 2010-10-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in: Include stdlib.h and string.h unconditionally.

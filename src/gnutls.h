@@ -48,6 +48,8 @@ typedef enum
 
 #define GNUTLS_LOG(level, max, string) if (level <= max) { gnutls_log_function (level, "(Emacs) " string); }
 
+#define GNUTLS_LOG2(level, max, string, extra) if (level <= max) { gnutls_log_function2 (level, "(Emacs) " string, extra); }
+
 int
 emacs_gnutls_write (int fildes, struct Lisp_Process *proc, char *buf,
                     unsigned int nbyte);

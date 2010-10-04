@@ -1,3 +1,161 @@
+2010-10-04  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/appt.el (appt-add): Ensure reminders are enabled.
+	(appt-activate): Give status messages.
+
+2010-10-03  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/gnutls.el: Improve docs.  Remove starttls and ssl emulation.
+	Provide only `open-gnutls-stream' (formerly `open-ssl-stream') and
+	`gnutls-negotiate' (formerly `starttls-negotiate').  Remove
+	trivial wrapper `starttls-open-stream'.
+
+2010-10-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Make 'g' (AKA revert-buffer) rerun the VC log, log-incoming and
+	log-outgoing commands.
+	* vc/vc.el (vc-log-internal-common): Add a new argument and use it
+	to create a buffer local revert-buffer-function variable.
+	(vc-print-log-internal, vc-log-incoming, vc-log-outgoing): Pass a
+	revert-buffer-function lambda.
+
+2010-10-03  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* net/gnutls.el (starttls-negotiate): Use the plist interface to
+	`gnutls-boot'.  Make TYPE the only required parameter.  Allow
+	TRUSTFILES and KEYFILES to be lists.
+	(open-ssl-stream): Use it.
+
+2010-10-03  Glenn Morris  <rgm@gnu.org>
+
+	* subr.el (directory-sep-char): Remove obsolete variable.
+	* net/tramp-compat.el: Don't mess about with the byte-compiler unless
+	it is "necessary".
+
+	* vc/vc-hooks.el (vc-header-alist): Remove obsolete variable.
+	* vc/vc.el (vc-static-header-alist): Doc fix.
+	* vc/vc-cvs.el (vc-cvs-header):
+	* vc/vc-rcs.el (vc-rcs-header):
+	* vc/vc-sccs.el (vc-sccs-header):
+	* vc/vc-svn.el (vc-svn-header): Do not consult vc-header-alist.
+	* obsolete/vc-mcvs.el (vc-mcvs-header):
+	* progmodes/cperl-mode.el (cperl-mode): Only set vc-header-alist
+	on XEmacs.
+
+2010-10-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/bytecomp.el (byte-compile-from-buffer): Remove
+	obsolete use of binary-overwrite-mode (Bug#7001).
+
+2010-10-03  Glenn Morris  <rgm@gnu.org>
+
+	* obsolete/x-menu.el: Remove file, obsolete since 21.1
+
+	* textmodes/rst.el (rst-font-lock-keywords-function):
+	Drop Emacs 20 code.
+
+	* textmodes/artist.el (artist-replace-char): Drop Emacs 20 code.
+
+	* printing.el: Drop Emacs 20 code.
+
+	* calendar/appt.el (appt-delete): Don't autoload it (you can't use it
+	without having used appt.el already).
+
+	* subr.el (make-local-hook): Remove function obsolete since 21.1.
+	* progmodes/cc-mode.el (make-local-hook): Don't do cc-bytecomp stuff.
+	(c-basic-common-init, c-font-lock-init): Only call make-local-hook on
+	XEmacs.
+	* progmodes/cc-styles.el (make-local-hook): Don't do cc-bytecomp stuff.
+	(c-make-styles-buffer-local): Only call make-local-hook on XEmacs.
+
+	* ps-def.el (leading-code-private-22, charset-bytes, charset-id)
+	(charset-width, find-charset-region, chars-in-region, forward-point)
+	(encode-coding-string, coding-system-p, ccl-execute-on-string)
+	(define-ccl-program, multibyte-string-p, string-make-multibyte):
+	Remove compatibility cruft (none of these are used by ps*.el).
+
+2010-10-03  Kevin Rodgers  <kevin.d.rodgers@gmail.com>
+
+	* subr.el (booleanp): Return t instead of a list (Bug#7086).
+
+2010-10-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* server.el (server-process-filter, server-return-error): Give
+	emacsclient time to shut down after receiving an error string.
+
+2010-10-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (remote-file-name-inhibit-cache): New defcustom.
+
+	* time.el (display-time-file-nonempty-p): Use
+	`remote-file-name-inhibit-cache'.
+
+	* net/tramp.el (tramp-completion-reread-directory-timeout): Fix
+	docstring.
+
+	* net/tramp-cache.el (tramp-cache-inhibit-cache): Remove.
+	(tramp-get-file-property): Replace `tramp-cache-inhibit-cache' by
+	`remote-file-name-inhibit-cache'.  Check also for an integer
+	value.  Add/increase counter when `tramp-verbose' >= 10.
+	(tramp-set-file-property): Add/increase counter when
+	`tramp-verbose' >= 10.
+
+	* net/tramp-cmds.el (tramp-cleanup-all-connections)
+	(tramp-cleanup-all-buffers): Set tramp-autoload cookie.
+	(tramp-bug): Set tramp-autoload cookie.  Report all interned
+	tramp-* variables.  Report also `remote-file-name-inhibit-cache'.
+	(tramp-reporter-dump-variable): Fix docstring.  Mask non-7bit
+	characters only in strings.
+
+	* net/tramp-compat.el (remote-file-name-inhibit-cache): Define due
+	to backward compatibility.
+
+	* net/tramp-sh.el (tramp-handle-verify-visited-file-modtime)
+	(tramp-handle-file-name-all-completions)
+	(tramp-handle-vc-registered): Use
+	`remote-file-name-inhibit-cache'.
+	(tramp-open-connection-setup-interactive-shell): Call
+	`tramp-cleanup-connection' directly.
+
+2010-10-02  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/checkdoc.el (checkdoc-minor-keymap): Remove obsolete alias.
+
+	* subr.el (char-bytes): Remove obsolete function.
+
+	* isearch.el (isearch-return-char): Remove obsolete function.
+
+	* mouse.el: No longer provide mldrag.
+	(mldrag-drag-mode-line, mldrag-drag-vertical-line):
+	Remove obsolete aliases.
+
+	* comint.el (comint-kill-output): Remove obsolete alias.
+
+	* composite.el (decompose-composite-char): Remove obsolete function.
+	* ps-def.el (decompose-composite-char): Remove unused function.
+
+	* iswitchb.el (iswitchb-default-keybindings): Remove obsolete function.
+
+	* outline.el (outline-visible): Remove obsolete function.
+
+	* term/pc-win.el (x-frob-font-slant, x-frob-font-weight):
+	* faces.el (internal-find-face, internal-get-face)
+	(frame-update-faces, frame-update-face-colors)
+	(x-frob-font-weight, x-frob-font-slant)
+	(internal-frob-font-weight, internal-frob-font-slant)
+	(x-make-font-bold, x-make-font-demibold, x-make-font-unbold)
+	(x-make-font-italic, x-make-font-oblique, x-make-font-unitalic)
+	(x-make-font-bold-italic): Remove functions and aliases, obsolete
+	since Emacs 21.1.
+	* emulation/viper-util.el (viper-get-face):
+	* obsolete/lucid.el (find-face, get-face): Use facep.
+	* vc/ediff-init.el (ediff-valid-color-p, ediff-get-face):
+	Remove unused functions.
+	* vc/ediff-util.el (ediff-submit-report): Doc fix.
+
+	* emacs-lisp/bytecomp.el (byte-compile-file): Use kill-emacs-hook to
+	delete tempfile if interrupted during compilation.
+
 2010-10-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/tls.el (tls-starttls-switches): Give up on using starttls with
