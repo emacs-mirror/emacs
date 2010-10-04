@@ -104,10 +104,6 @@
 
 (require 'tramp)
 
-;; We call several `tramp-handle-*' functions directly.  So we must
-;; reqire that package as well.
-(require 'tramp-sh)
-
 (require 'dbus)
 (require 'url-parse)
 (require 'url-util)
@@ -405,6 +401,7 @@ Every entry is a list (NAME ADDRESS).")
     (file-name-directory . tramp-handle-file-name-directory)
     (file-name-nondirectory . tramp-handle-file-name-nondirectory)
     ;; `file-name-sans-versions' performed by default handler.
+    ;; CCC: Must be checked!
     (file-newer-than-file-p . tramp-handle-file-newer-than-file-p)
     (file-ownership-preserved-p . ignore)
     (file-readable-p . tramp-gvfs-handle-file-readable-p)

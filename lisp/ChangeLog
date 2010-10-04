@@ -1,3 +1,31 @@
+2010-10-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	Continue reorganization of load dependencies.  (Bug#7156)
+
+	* net/tramp.el (tramp-handle-file-local-copy-hook)
+	(tramp-delete-temp-file-function): Move down.
+	(tramp-exists-file-name-handler): Move up.
+	(tramp-register-file-name-handlers): Simplify autoload.
+	(tramp-handle-write-region-hook, tramp-handle-directory-file-name)
+	(tramp-handle-directory-files, tramp-handle-dired-uncache)
+	(tramp-handle-file-modes, tramp-handle-file-name-as-directory)
+	(tramp-handle-file-name-completion)
+	(tramp-handle-file-name-directory)
+	(tramp-handle-file-name-nondirectory, tramp-handle-file-regular-p)
+	(tramp-handle-file-remote-p, tramp-handle-file-symlink-p)
+	(tramp-handle-find-backup-file-name)
+	(tramp-handle-insert-file-contents, tramp-handle-load)
+	(tramp-handle-substitute-in-file-name)
+	(tramp-handle-unhandled-file-name-directory)
+	(tramp-mode-string-to-int, tramp-local-host-p)
+	(tramp-make-tramp-temp-file): Moved from tramp-sh.el.
+
+	* net/tramp-gvfs.el (top):
+	* net/tramp-smb.el (top): Do not require 'tramp-sh.
+
+	* net/tramp-sh.el (all): Move several objects to tramp.el, see
+	there.  Rename `tramp-handle-*' to `tramp-sh-handle-*'.
+
 2010-10-04  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/appt.el (appt-add): Ensure reminders are enabled.
