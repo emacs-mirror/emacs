@@ -431,17 +431,19 @@ Return a string with image data."
                                  (= (car size) 30)
                                  (= (cdr size) 30))))
                   ;; Good image, add it!
-                  (let ((image (gnus-html-rescale-image
+                  (let ((image (gnus-rescale-image
                                 image
-                                ;; (width . height)
-                                (cons
-                                 ;; Aimed width
-                                 (truncate
-                                  (* gnus-max-image-proportion
-                                     (- (nth 2 edges) (nth 0 edges))))
-                                 ;; Aimed height
-                                 (truncate (* gnus-max-image-proportion
-                                              (- (nth 3 edges) (nth 1 edges))))))))
+                                (let ((edges (gnus-window-inside-pixel-edges
+                                              (get-buffer-window (current-buffer)))))
+                                  ;; (width . height)
+                                  (cons
+                                   ;; Aimed width
+                                   (truncate
+                                    (* gnus-max-image-proportion
+                                       (- (nth 2 edges) (nth 0 edges))))
+                                   ;; Aimed height
+                                   (truncate (* gnus-max-image-proportion
+                                                (- (nth 3 edges) (nth 1 edges)))))))))
                     (delete-region start end)
                     (gnus-put-image image alt-text 'external)
                     (gnus-put-text-property start (point) 'help-echo alt-text)

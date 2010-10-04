@@ -1,5 +1,13 @@
 2010-10-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* shr.el (shr-ensure-paragraph): Fix the non-empty line case.
+
+2010-10-04  Julien Danjou  <julien@danjou.info>
+
+	* gnus-html.el (gnus-html-put-image): Fix resize image code.
+
+2010-10-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
 	* shr.el (shr-insert): Use string anchors instead of line anchors.
 
 2010-10-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>

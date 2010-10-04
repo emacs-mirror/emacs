@@ -101,7 +101,7 @@ fit these criteria."
 	  (insert "\n"))
       (if (save-excursion
 	    (beginning-of-line)
-	    (looking-at " *"))
+	    (looking-at " *$"))
 	  (insert "\n")
 	(insert "\n\n")))))
 
