@@ -1,3 +1,9 @@
+2010-10-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (echo_prompt): Function moved into read_key_sequence.
+	(read_key_sequence): Inline echo_prompt.
+	(echo_dash): Add a dash only if key is continued (Bug#7137).
+
 2010-10-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	Remove O_RDONLY, O_WRONLY definitions, not needed.
