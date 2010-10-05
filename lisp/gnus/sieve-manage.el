@@ -553,13 +553,18 @@ password is remembered in the buffer."
 	  (setq sieve-manage-state 'auth)))))
 
 (defun sieve-manage-capability (&optional name value buffer)
+  "Check if capability NAME of server BUFFER match VALUE.
+If it does, return the server value of NAME. If not returns nil.
+If VALUE is nil, do not check VALUE and return server value.
+If NAME is nil, return the full server list of capabilities."
   (with-current-buffer (or buffer (current-buffer))
     (if (null name)
 	sieve-manage-capability
-      (if (null value)
-	  (nth 1 (assoc name sieve-manage-capability))
-	(when (string-match value (nth 1 (assoc name sieve-manage-capability)))
-	  (nth 1 (assoc name sieve-manage-capability)))))))
+      (let ((server-value (cadr (assoc name sieve-manage-capability))))
+        (when (or (null value)
+                  (and server-value
+                       (string-match value server-value)))
+          server-value)))))
 
 (defun sieve-manage-listscripts (&optional buffer)
   (with-current-buffer (or buffer (current-buffer))

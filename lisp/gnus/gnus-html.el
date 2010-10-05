@@ -191,17 +191,16 @@ CHARS is a regexp-like character alternative (e.g., \"[)$]\")."
 	    ;; URLs with cid: have their content stashed in other
 	    ;; parts of the MIME structure, so just insert them
 	    ;; immediately.
-	    (let ((handle (mm-get-content-id
-			   (setq url (match-string 1 url))))
-		  image)
-	      (when handle
-		(mm-with-part handle
-		  (setq image (gnus-create-image (buffer-string)
-						 nil t))))
+	    (let* ((handle (mm-get-content-id
+                            (setq url (match-string 1 url))))
+                   (image (when handle
+                            (gnus-create-image (mm-with-part handle (buffer-string))
+                                               nil t))))
 	      (when image
                 (let ((string (buffer-substring start end)))
                   (delete-region start end)
-                  (gnus-put-image image (gnus-string-or string "*") 'cid)
+                  (gnus-put-image (gnus-rescale-image image (gnus-html-maximum-image-size))
+                                  (gnus-string-or string "*") 'cid)
                   (gnus-add-image 'cid image))))
 	  ;; Normal, external URL.
           (let ((alt-text (when (string-match "\\(alt\\|title\\)=\"\\([^\"]+\\)"
@@ -398,7 +397,22 @@ Return a string with image data."
               (search-forward "\r\n\r\n" nil t))
       (buffer-substring (point) (point-max)))))
 
+(defun gnus-html-maximum-image-size ()
+  "Return the maximum size of an image according to `gnus-max-image-proportion'."
+  (let ((edges (gnus-window-inside-pixel-edges
+                (get-buffer-window (current-buffer)))))
+    ;; (width . height)
+    (cons
+     ;; Aimed width
+     (truncate
+      (* gnus-max-image-proportion
+         (- (nth 2 edges) (nth 0 edges))))
+     ;; Aimed height
+     (truncate (* gnus-max-image-proportion
+                  (- (nth 3 edges) (nth 1 edges)))))))
+
 (defun gnus-html-put-image (data url &optional alt-text)
+  "Put an image with DATA from URL and optional ALT-TEXT."
   (when (gnus-graphic-display-p)
     (let* ((start (text-property-any (point-min) (point-max)
 				     'gnus-image-url url))
@@ -434,19 +448,7 @@ Return a string with image data."
                                  (= (car size) 30)
                                  (= (cdr size) 30))))
                   ;; Good image, add it!
-                  (let ((image (gnus-rescale-image
-                                image
-                                (let ((edges (gnus-window-inside-pixel-edges
-                                              (get-buffer-window (current-buffer)))))
-                                  ;; (width . height)
-                                  (cons
-                                   ;; Aimed width
-                                   (truncate
-                                    (* gnus-max-image-proportion
-                                       (- (nth 2 edges) (nth 0 edges))))
-                                   ;; Aimed height
-                                   (truncate (* gnus-max-image-proportion
-                                                (- (nth 3 edges) (nth 1 edges)))))))))
+                  (let ((image (gnus-rescale-image image (gnus-html-maximum-image-size))))
                     (delete-region start end)
                     (gnus-put-image image alt-text 'external)
                     (gnus-put-text-property start (point) 'help-echo alt-text)

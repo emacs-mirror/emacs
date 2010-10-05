@@ -1,3 +1,12 @@
+2010-10-05  Julien Danjou  <julien@danjou.info>
+
+	* gnus-html.el (gnus-html-wash-images): Rescale image from cid too.
+	(gnus-html-maximum-image-size): Add this function.
+	(gnus-html-put-image): Use gnus-html-maximum-image-size.
+
+	* sieve-manage.el (sieve-manage-capability): Do not bug out when the
+	server-value of the capability is nil.
+
 2010-10-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-tag-em): Add <EM> tag.
