@@ -37,7 +37,7 @@
 (require 'url-cache)
 (require 'xml)
 (require 'browse-url)
-(require 'help-fns)
+(eval-and-compile (unless (featurep 'xemacs) (require 'help-fns)))
 
 (defcustom gnus-html-image-cache-ttl (days-to-time 7)
   "Time used to determine if we should use images from the cache."
@@ -367,7 +367,10 @@ Use ALT-TEXT for the image string."
   (let ((args (list (car image)
 		    'gnus-html-image-fetched
 		    (list buffer image))))
-    (when (> (length (help-function-arglist 'url-retrieve)) 4)
+    (when (> (length (if (featurep 'xemacs)
+			 (split-string (function-arglist 'url-retrieve))
+		       (help-function-arglist 'url-retrieve)))
+	     4)
       (setq args (nconc args (list t))))
     (apply #'url-retrieve args)))
 
