@@ -1,3 +1,7 @@
+2010-10-05  Glenn Morris  <rgm@gnu.org>
+
+	* obsolete/rnews.el, obsolete/rnewspost.el: Remove files.
+
 2010-10-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	Continue reorganization of load dependencies.  (Bug#7156)
