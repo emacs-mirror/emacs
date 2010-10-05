@@ -2310,7 +2310,7 @@ The method used must be an out-of-band method."
 				  (append copy-args (list source target))))))
 		  (tramp-message
 		   v 6 "%s" (mapconcat 'identity (process-command p) " "))
-		  (tramp-set-process-query-on-exit-flag p nil)
+		  (tramp-compat-set-process-query-on-exit-flag p nil)
 		  (tramp-process-actions p v tramp-actions-copy-out-of-band))))
 
 	  ;; Reset the transfer process properties.
@@ -2677,7 +2677,7 @@ the result will be a local, non-Tramp, filename."
 	    ;; Set sentinel and query flag for this process.
 	    (tramp-set-connection-property p "vector" v)
 	    (set-process-sentinel p 'tramp-process-sentinel)
-	    (tramp-set-process-query-on-exit-flag p t)
+	    (tramp-compat-set-process-query-on-exit-flag p t)
 	    ;; Return process.
 	    p))
       ;; Save exit.
@@ -3694,10 +3694,10 @@ process to set up.  VEC specifies the connection."
 	  (setq cs-encode (cdr cs))
 	  (unless cs-decode (setq cs-decode 'undecided))
 	  (unless cs-encode (setq cs-encode 'undecided))
-	  (setq cs-encode (tramp-coding-system-change-eol-conversion
+	  (setq cs-encode (tramp-compat-coding-system-change-eol-conversion
 			   cs-encode 'unix))
 	  (when (search-forward "\r" nil t)
-	    (setq cs-decode (tramp-coding-system-change-eol-conversion
+	    (setq cs-decode (tramp-compat-coding-system-change-eol-conversion
 			     cs-decode 'dos)))
 	  (tramp-compat-funcall
 	   'set-buffer-process-coding-system cs-decode cs-encode)
@@ -4244,7 +4244,7 @@ connection if a previous connection has died for some reason."
 	     vec 6 "%s" (mapconcat 'identity (process-command p) " "))
 
 	    ;; Check whether process is alive.
-	    (tramp-set-process-query-on-exit-flag p nil)
+	    (tramp-compat-set-process-query-on-exit-flag p nil)
 	    (tramp-barf-if-no-shell-prompt
 	     p 60 "Couldn't find local shell prompt %s" tramp-encoding-shell)
 

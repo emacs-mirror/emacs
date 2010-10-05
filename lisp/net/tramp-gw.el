@@ -107,7 +107,7 @@
      tramp-gw-vector 4
      "Opening auxiliary process `%s', speaking with process `%s'"
      proc tramp-gw-gw-proc)
-    (tramp-set-process-query-on-exit-flag proc nil)
+    (tramp-compat-set-process-query-on-exit-flag proc nil)
     ;; We don't want debug messages, because the corresponding debug
     ;; buffer might be undecided.
     (let (tramp-verbose)
@@ -154,7 +154,7 @@ instead of the host name declared in TARGET-VEC."
 	     :name (tramp-buffer-name aux-vec) :buffer nil :host 'local
 	     :server t :noquery t :service t :coding 'binary))
       (set-process-sentinel tramp-gw-aux-proc 'tramp-gw-aux-proc-sentinel)
-      (tramp-set-process-query-on-exit-flag tramp-gw-aux-proc nil)
+      (tramp-compat-set-process-query-on-exit-flag tramp-gw-aux-proc nil)
       (tramp-message
        vec 4 "Opening auxiliary process `%s', listening on port %d"
        tramp-gw-aux-proc (process-contact tramp-gw-aux-proc :service))))
@@ -199,7 +199,7 @@ instead of the host name declared in TARGET-VEC."
 	   (tramp-file-name-real-host target-vec)
 	   (tramp-file-name-port target-vec)))
     (set-process-sentinel tramp-gw-gw-proc 'tramp-gw-gw-proc-sentinel)
-    (tramp-set-process-query-on-exit-flag tramp-gw-gw-proc nil)
+    (tramp-compat-set-process-query-on-exit-flag tramp-gw-gw-proc nil)
     (tramp-message
      vec 4 "Opened %s process `%s'"
      (case gw-method ('tunnel "HTTP tunnel") ('socks "SOCKS"))
@@ -230,7 +230,7 @@ authentication is requested from proxy server, provide it."
       (setq proc (open-network-stream
 		  name buffer (nth 1 socks-server) (nth 2 socks-server)))
       (set-process-coding-system proc 'binary 'binary)
-      (tramp-set-process-query-on-exit-flag proc nil)
+      (tramp-compat-set-process-query-on-exit-flag proc nil)
       ;; Send CONNECT command.
       (process-send-string proc (format "%s%s\r\n" command authentication))
       (tramp-message

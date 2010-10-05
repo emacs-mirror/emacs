@@ -1,3 +1,47 @@
+2010-10-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-directory-files-and-attributes)
+	(tramp-handle-file-exists-p, tramp-handle-file-newer-than-file-p):
+	New defuns, taken from tramp-smb.el.
+	(tramp-coding-system-change-eol-conversion)
+	(tramp-set-process-query-on-exit-flag): Removed.
+
+	* net/tramp-compat.el (top): Do not check for byte-compiler
+	objects.
+	(tramp-compat-coding-system-change-eol-conversion)
+	(tramp-compat-set-process-query-on-exit-flag): New defuns, taken
+	from tramp.el.
+
+	* net/tramp-gvfs.el:
+	* net/tramp-gw.el: Replace `tramp-set-process-query-on-exit-flag'
+	by `tramp-compat-set-process-query-on-exit-flag'.
+
+	* net/tramp-imap.el (tramp-imap-file-name-handler-alist): Use
+	`tramp-handle-directory-files-and-attributes',
+	`tramp-handle-file-exists-p' and
+	`tramp-handle-file-newer-than-file-p'.
+	(tramp-imap-handle-file-exists-p)
+	(tramp-imap-handle-file-executable-p)
+	(tramp-imap-handle-file-readable-p)
+	(tramp-imap-handle-directory-files-and-attributes)
+	(tramp-imap-handle-file-newer-than-file-p): Removed.
+
+	* net/tramp-sh.el: Replace `tramp-set-process-query-on-exit-flag'
+	by `tramp-compat-set-process-query-on-exit-flag' and
+	`tramp-coding-system-change-eol-conversion' by
+	`tramp-compat-coding-system-change-eol-conversion'.
+
+	* net/tramp-smb.el (tramp-smb-file-name-handler-alist): Use
+	`tramp-handle-directory-files-and-attributes',
+	`tramp-handle-file-exists-p' and
+	`tramp-handle-file-newer-than-file-p'.
+	(tramp-smb-handle-directory-files-and-attributes)
+	(tramp-smb-handle-file-exists-p)
+	(tramp-smb-handle-file-newer-than-file-p): Removed.
+	(tramp-smb-maybe-open-connection): Replace
+	`tramp-set-process-query-on-exit-flag' by
+	`tramp-compat-set-process-query-on-exit-flag'.
+
 2010-10-05  Glenn Morris  <rgm@gnu.org>
 
 	* obsolete/rnews.el, obsolete/rnewspost.el: Remove files.

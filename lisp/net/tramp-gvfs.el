@@ -401,7 +401,6 @@ Every entry is a list (NAME ADDRESS).")
     (file-name-directory . tramp-handle-file-name-directory)
     (file-name-nondirectory . tramp-handle-file-name-nondirectory)
     ;; `file-name-sans-versions' performed by default handler.
-    ;; CCC: Must be checked!
     (file-newer-than-file-p . tramp-handle-file-newer-than-file-p)
     (file-ownership-preserved-p . ignore)
     (file-readable-p . tramp-gvfs-handle-file-readable-p)
@@ -1194,7 +1193,7 @@ connection if a previous connection has died for some reason."
 	      :name (tramp-buffer-name vec)
 	      :buffer (tramp-get-buffer vec)
 	      :server t :host 'local :service t)))
-      (tramp-set-process-query-on-exit-flag p nil)))
+      (tramp-compat-set-process-query-on-exit-flag p nil)))
 
   (unless (tramp-gvfs-connection-mounted-p vec)
     (let* ((method (tramp-file-name-method vec))

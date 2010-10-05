@@ -2609,12 +2609,25 @@ User is always nil."
 		result)))
       (if nosort result (sort result 'string<)))))
 
+(defun tramp-handle-directory-files-and-attributes
+  (directory &optional full match nosort id-format)
+  "Like `directory-files-and-attributes' for Tramp files."
+  (mapcar
+   (lambda (x)
+     (cons x (tramp-compat-file-attributes
+	      (if full x (expand-file-name x directory)) id-format)))
+   (directory-files directory full match nosort)))
+
 (defun tramp-handle-dired-uncache (dir &optional dir-p)
   "Like `dired-uncache' for Tramp files."
   ;; DIR-P is valid for XEmacs only.
   (with-parsed-tramp-file-name
       (if (or dir-p (file-directory-p dir)) dir (file-name-directory dir)) nil
     (tramp-flush-directory-property v localname)))
+
+(defun tramp-handle-file-exists-p (filename)
+  "Like `file-exists-p' for Tramp files."
+  (not (null (file-attributes filename))))
 
 (defun tramp-handle-file-modes (filename)
   "Like `file-modes' for Tramp files."
@@ -2668,6 +2681,14 @@ User is always nil."
   "Like `file-name-nondirectory' but aware of Tramp files."
   (with-parsed-tramp-file-name file nil
     (tramp-run-real-handler 'file-name-nondirectory (list localname))))
+
+(defun tramp-handle-file-newer-than-file-p (file1 file2)
+  "Like `file-newer-than-file-p' for Tramp files."
+  (cond
+   ((not (file-exists-p file1)) nil)
+   ((not (file-exists-p file2)) t)
+   (t (tramp-time-less-p (nth 5 (file-attributes file2))
+			 (nth 5 (file-attributes file1))))))
 
 (defun tramp-handle-file-regular-p (filename)
   "Like `file-regular-p' for Tramp files."
@@ -3550,32 +3571,6 @@ T1 and T2 are time values (as returned by `current-time' for example)."
 	   (+ (* (car time) 65536.0)
 	      (cadr time)
 	      (/ (or (nth 2 time) 0) 1000000.0))))))
-
-(defun tramp-coding-system-change-eol-conversion (coding-system eol-type)
-  "Return a coding system like CODING-SYSTEM but with given EOL-TYPE.
-EOL-TYPE can be one of `dos', `unix', or `mac'."
-  (cond ((fboundp 'coding-system-change-eol-conversion)
-         (tramp-compat-funcall
-	  'coding-system-change-eol-conversion coding-system eol-type))
-        ((fboundp 'subsidiary-coding-system)
-         (tramp-compat-funcall
-	  'subsidiary-coding-system coding-system
-	  (cond ((eq eol-type 'dos) 'crlf)
-		((eq eol-type 'unix) 'lf)
-		((eq eol-type 'mac) 'cr)
-		(t
-		 (error "Unknown EOL-TYPE `%s', must be %s"
-			eol-type
-			"`dos', `unix', or `mac'")))))
-        (t (error "Can't change EOL conversion -- is MULE missing?"))))
-
-(defun tramp-set-process-query-on-exit-flag (process flag)
-  "Specify if query is needed for process when Emacs is exited.
-If the second argument flag is non-nil, Emacs will query the user before
-exiting if process is running."
-  (if (fboundp 'set-process-query-on-exit-flag)
-      (tramp-compat-funcall 'set-process-query-on-exit-flag process flag)
-    (tramp-compat-funcall 'process-kill-without-query process flag)))
 
 ;; Currently (as of Emacs 20.5), the function `shell-quote-argument'
 ;; does not deal well with newline characters.  Newline is replaced by
