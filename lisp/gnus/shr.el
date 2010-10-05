@@ -125,6 +125,9 @@ fit these criteria."
 (defun shr-tag-i (cont)
   (shr-fontize-cont cont 'italic))
 
+(defun shr-tag-em (cont)
+  (shr-fontize-cont cont 'bold))
+
 (defun shr-tag-u (cont)
   (shr-fontize-cont cont 'underline))
 

@@ -1,3 +1,15 @@
+2010-10-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-tag-em): Add <EM> tag.
+
+2010-10-05  Florian Ragwitz  <rafl@debian.org>  (tiny change)
+
+	* sieve-manage.el (sieve-manage-default-stream): Make default stream
+	customizable.
+
+	* gnus-html.el (gnus-html-wash-tags): Decode URL entities to avoid
+	handing broken links to browse-url.
+
 2010-10-05  Julien Danjou  <julien@danjou.info>
 
 	* gnus-util.el (gnus-emacs-completing-read)
