@@ -23,7 +23,7 @@
 
 ;;; Commentary:
 
-;; This file has been obsolete since Emacs 22.1.
+;; This file has been obsolete since Emacs 21.1.
 
 ;;; Change Log:
 
