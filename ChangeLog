@@ -1,3 +1,7 @@
+2010-10-05  Glenn Morris  <rgm@gnu.org>
+
+	* .dir-locals.el: The Emacs convention is sentence-end-double-space.
+
 2010-10-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in (NO_INLINE, noinline): Move here from src/xterm.c.
