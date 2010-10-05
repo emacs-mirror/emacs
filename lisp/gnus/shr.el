@@ -427,16 +427,33 @@ Return a string with image data."
   (apply #'shr-fontize-cont cont types)
   (shr-ensure-paragraph))
 
+;; Table rendering is the only complicated thing here.  We do this by
+;; first counting how many TDs there are in each TR, and registering
+;; how wide they think they should be ("width=45%", etc).  Then we
+;; render each TD separately (this is done in temporary buffers, so
+;; that we can use all the rendering machinery as if we were in the
+;; main buffer).  Now we know how much space each TD really takes, so
+;; we then render everything again with the new widths, and finally
+;; insert all these boxes into the main buffer.
 (defun shr-tag-table (cont)
   (shr-ensure-paragraph)
   (setq cont (or (cdr (assq 'tbody cont))
 		 cont))
   (let* ((shr-inhibit-images t)
+	 ;; Find all suggested widths.
 	 (columns (shr-column-specs cont))
+	 ;; Compute how many characters wide each TD should be.
 	 (suggested-widths (shr-pro-rate-columns columns))
+	 ;; Do a "test rendering" to see how big each TD is (this can
+	 ;; be smaller (if there's little text) or bigger (if there's
+	 ;; unbreakable text).
 	 (sketch (shr-make-table cont suggested-widths))
 	 (sketch-widths (shr-table-widths sketch (length suggested-widths))))
+    ;; Then render the table again with these new "hard" widths.
     (shr-insert-table (shr-make-table cont sketch-widths t) sketch-widths))
+  ;; Finally, insert all the images after the table.  The Emacs buffer
+  ;; model isn't strong enough to allow us to put the images actually
+  ;; into the tables.
   (dolist (elem (shr-find-elements cont 'img))
     (shr-tag-img (cdr elem))))
 
@@ -506,10 +523,14 @@ Return a string with image data."
   (let ((trs nil))
     (dolist (row cont)
       (when (eq (car row) 'tr)
-	(let ((i 0)
-	      (tds nil))
-	  (dolist (column (cdr row))
-	    (when (memq (car column) '(td th))
+	(let ((tds nil)
+	      (columns (cdr row))
+	      (i 0)
+	      column)
+	  (while (< i (length widths))
+	    (setq column (pop columns))
+	    (when (or (memq (car column) '(td th))
+		      (null column))
 	      (push (shr-render-td (cdr column) (aref widths i) fill)
 		    tds)
 	      (setq i (1+ i))))
@@ -531,11 +552,16 @@ Return a string with image data."
 	(forward-line 1))
       (when fill
 	(goto-char (point-min))
-	(while (not (eobp))
-	  (end-of-line)
-	  (when (> (- width (current-column)) 0)
-	    (insert (make-string (- width (current-column)) ? )))
-	  (forward-line 1)))
+	;; If the buffer is totally empty, then put a single blank
+	;; line here.
+	(if (zerop (buffer-size))
+	    (insert (make-string width ? ))
+	  ;; Otherwise, fill the buffer.
+	  (while (not (eobp))
+	    (end-of-line)
+	    (when (> (- width (current-column)) 0)
+	      (insert (make-string (- width (current-column)) ? )))
+	    (forward-line 1))))
       (list max
 	    (count-lines (point-min) (point-max))
 	    (buffer-string)

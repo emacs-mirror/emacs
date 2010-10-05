@@ -1,5 +1,9 @@
 2010-10-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* shr.el (shr-render-td): Allow blank/missing <TD>s.
+
+	* shr.el: Document the table-rendering algorithm.
+
 	* gnus-html.el (gnus-html-schedule-image-fetching): Protect against
 	invalid URLs.
 
