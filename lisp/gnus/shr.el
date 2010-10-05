@@ -191,25 +191,6 @@ redirects somewhere else."
 	(copy-region-as-kill (point-min) (point-max))
 	(message "Copied %s" url))))))
 
-(eval-and-compile
-  (defalias 'shr-encode-url-chars
-    ;; Neither Emacs 22 nor XEmacs provides this function.
-    (if (fboundp 'browse-url-url-encode-chars)
-	'browse-url-url-encode-chars
-      (lambda (text chars)
-	"URL-encode the chars in TEXT that match CHARS.
-CHARS is a regexp-like character alternative (e.g., \"[)$]\")."
-	(let ((encoded-text (copy-sequence text))
-	      (s 0))
-	  (while (setq s (string-match chars encoded-text s))
-	    (setq encoded-text
-		  (replace-match (format "%%%x"
-					 (string-to-char
-					  (match-string 0 encoded-text)))
-				 t t encoded-text)
-		  s (1+ s)))
-	  encoded-text)))))
-
 (defun shr-tag-img (cont)
   (when (and (> (current-column) 0)
 	     (not (eq shr-state 'image)))
@@ -223,7 +204,7 @@ CHARS is a regexp-like character alternative (e.g., \"[)$]\")."
        ((and shr-blocked-images
 	     (string-match shr-blocked-images url))
 	(insert alt))
-       ((url-is-cached (shr-encode-url-chars url "[&)$ ]"))
+       ((url-is-cached (browse-url-url-encode-chars url "[&)$ ]"))
 	(shr-put-image (shr-get-image-data url) (point) alt))
        (t
 	(insert alt)

@@ -1,9 +1,3 @@
-2010-10-05  Katsumi Yamaoka  <yamaoka@jpl.org>
-
-	* shr.el (shr-encode-url-chars): New function, that's an alias to
-	browse-url-url-encode-chars or a copy of it.
-	(shr-tag-img): Use it.
-
 2010-10-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-tag-blockquote): Ensure paragraph after quote, too.
