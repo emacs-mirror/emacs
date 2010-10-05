@@ -1679,14 +1679,27 @@ If RECURSIVE, search recursively."
 	 (and (eq (mm-body-7-or-8) '7bit)
 	      (not (mm-long-lines-p 76))))))
 
+(declare-function libxml-parse-html-region "xml.c"
+		  (start end &optional base-url))
+(declare-function shr-insert-document "shr" (dom))
+
 (defun mm-shr (handle)
-  (let ((article-buffer (current-buffer)))
+  (let ((article-buffer (current-buffer))
+	charset)
     (unless handle
       (setq handle (mm-dissect-buffer t)))
+    (setq charset (mail-content-type-get (mm-handle-type handle) 'charset))
     (save-restriction
       (narrow-to-region (point) (point))
       (shr-insert-document
        (mm-with-part handle
+	 (when (and charset
+		    (setq charset (mm-charset-to-coding-system charset))
+		    (not (eq charset 'ascii)))
+	   (insert (prog1
+		       (mm-decode-coding-string (buffer-string) charset)
+		     (erase-buffer)
+		     (mm-enable-multibyte))))
 	 (libxml-parse-html-region (point-min) (point-max)))))))
 
 (provide 'mm-decode)
