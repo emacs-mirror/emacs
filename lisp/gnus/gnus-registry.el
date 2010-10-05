@@ -1153,13 +1153,16 @@ Returns the first place where the trail finds a group name."
 (defun gnus-registry-install-nnregistry ()
   "Install the nnregistry refer method in `gnus-refer-article-method'."
   (interactive)
-  (setq gnus-refer-article-method
-        (delete-dups
-         (append
-          (if (listp gnus-refer-article-method)
-              gnus-refer-article-method
-            (list gnus-refer-article-method))
-          (list 'nnregistry)))))
+  (cond ((eq 'nnregistry gnus-refer-article-method))
+	((null gnus-refer-article-method)
+	 (setq gnus-refer-article-method 'nnregistry))
+	((consp gnus-refer-article-method)
+	 (unless (memq 'nnregistry gnus-refer-article-method)
+	   (setq gnus-refer-article-method
+		 (append gnus-refer-article-method '(nnregistry)))))
+	(t
+	 (setq gnus-refer-article-method
+	       (list gnus-refer-article-method 'nnregistry)))))
 
 (defun gnus-registry-unload-hook ()
   "Uninstall the registry hooks."

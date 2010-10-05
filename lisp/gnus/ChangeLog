@@ -1,5 +1,13 @@
 2010-10-05  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* gnus-util.el (gnus-completing-read-function): Exclude
+	gnus-icompleting-read and gnus-ido-completing-read from candidates for
+	XEmacs since iswitchb.el is very old and ido.el is unavailable in
+	XEmacs.
+
+	* gnus-registry.el (gnus-registry-install-nnregistry): Rewrite so as
+	not to use `delete-dups' that is unavailable in XEmacs 21.4.
+
 	* gnus-html.el: Don't require help-fns under XEmacs.
 	(gnus-html-schedule-image-fetching): Work for XEmacs.
 
