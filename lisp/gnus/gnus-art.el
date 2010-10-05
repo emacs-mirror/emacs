@@ -1639,6 +1639,12 @@ This requires GNU Libidn, and by default only enabled if it is found."
   :group 'gnus-article
   :type 'boolean)
 
+(defcustom gnus-blocked-images "."
+  "Images that have URLs matching this regexp will be blocked."
+  :version "24.1"
+  :group 'gnus-art
+  :type 'regexp)
+
 ;;; Internal variables
 
 (defvar gnus-english-month-names

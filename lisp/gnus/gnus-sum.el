@@ -4985,6 +4985,10 @@ Unscored articles will be counted as having a score of zero."
    (t
     (gnus-thread-total-score-1 (list thread)))))
 
+(defun gnus-article-sort-by-most-recent-number (h1 h2)
+  "Sort articles by number."
+  (gnus-article-sort-by-number h1 h2))
+
 (defun gnus-thread-sort-by-most-recent-number (h1 h2)
   "Sort threads such that the thread with the most recently arrived article comes first."
   (> (gnus-thread-highest-number h1) (gnus-thread-highest-number h2)))
@@ -4994,6 +4998,10 @@ Unscored articles will be counted as having a score of zero."
   (apply 'max (mapcar (lambda (header)
 			(mail-header-number header))
 		      (message-flatten-list thread))))
+
+(defun gnus-article-sort-by-most-recent-date (h1 h2)
+  "Sort articles by number."
+  (gnus-article-sort-by-date h1 h2))
 
 (defun gnus-thread-sort-by-most-recent-date (h1 h2)
   "Sort threads such that the thread with the most recently dated article comes first."

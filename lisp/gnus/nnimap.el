@@ -926,7 +926,8 @@ textual parts.")
 		     (nnimap-get-groups)))
       (unless (assoc group nnimap-current-infos)
 	;; Insert dummy numbers here -- they don't matter.
-	(insert (format "%S 0 1 y\n" group))))))
+	(insert (format "%S 0 1 y\n" group))))
+    t))
 
 (deffoo nnimap-retrieve-group-data-early (server infos)
   (when (nnimap-possibly-change-group nil server)

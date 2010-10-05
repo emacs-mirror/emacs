@@ -57,12 +57,6 @@
   :group 'gnus-art
   :type 'integer)
 
-(defcustom gnus-blocked-images "."
-  "Images that have URLs matching this regexp will be blocked."
-  :version "24.1"
-  :group 'gnus-art
-  :type 'regexp)
-
 (defcustom gnus-max-image-proportion 0.9
   "How big pictures displayed are in relation to the window they're in.
 A value of 0.7 means that they are allowed to take up 70% of the
@@ -371,7 +365,8 @@ Use ALT-TEXT for the image string."
 		       (help-function-arglist 'url-retrieve)))
 	     4)
       (setq args (nconc args (list t))))
-    (apply #'url-retrieve args)))
+    (ignore-errors
+      (apply #'url-retrieve args))))
 
 (defun gnus-html-image-fetched (status buffer image)
   "Callback function called when image has been fetched."

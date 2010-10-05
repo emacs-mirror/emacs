@@ -2651,7 +2651,10 @@ The user will be prompted for GROUP."
   "Add a new newsgroup.
 The user will be prompted for a NAME, for a select METHOD, and an
 ADDRESS.  NAME should be a human-readable string (i.e., not be encoded
-even if it contains non-ASCII characters) unless ENCODED is non-nil."
+even if it contains non-ASCII characters) unless ENCODED is non-nil.
+
+If the backend supports it, the group will also be created on the
+server."
   (interactive
    (list
     (gnus-read-group "Group name: ")

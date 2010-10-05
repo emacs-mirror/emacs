@@ -1684,7 +1684,16 @@ If RECURSIVE, search recursively."
 (declare-function shr-insert-document "shr" (dom))
 
 (defun mm-shr (handle)
+  ;; Require since we bind its variables.
+  (require 'shr)
   (let ((article-buffer (current-buffer))
+	(shr-blocked-images (with-current-buffer gnus-summary-buffer
+			      gnus-blocked-images))
+	(shr-content-function (lambda (id)
+				(let ((handle (mm-get-content-id id)))
+				  (when handle
+				    (mm-with-part handle
+				      (buffer-string))))))
 	charset)
     (unless handle
       (setq handle (mm-dissect-buffer t)))

@@ -1,3 +1,41 @@
+2010-10-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-html.el (gnus-html-schedule-image-fetching): Protect against
+	invalid URLs.
+
+	* shr.el (shr-tag-img): Shorten ALT texts and allow them to be
+	line-broken.
+	(shr-tag-img): Ignore image fetching errors.
+	(shr-overlays-in-region): Compute overlay positions correctly.
+
+	* mm-decode.el (mm-shr): Require shr.
+
+	* gnus-art.el (gnus-blocked-images): Move variable here.
+
+	* shr.el (shr-insert-table): Bind free variable.
+
+	* mm-decode.el (mm-shr): Bind shr-content-function.
+
+	* shr.el (shr-content-function): New variable.
+
+	* gnus-sum.el (gnus-article-sort-by-most-recent-date): New function,
+	added for symmetry.
+
+	* nnir.el (nnir-retrieve-headers): Don't bug out on invalid data.
+
+	* gnus-group.el (gnus-group-make-group): Doc fix.
+
+	* nnimap.el (nnimap-request-newgroups): Return success.
+
+	* shr.el (shr-find-elements): New function.
+	(shr-tag-table): Put all the images after the table.
+	(shr-tag-table): Really inhibit images inside the table.
+	(shr-collect-overlays): Copy over overlays from the TD elements to the
+	main document.
+
+	* mm-decode.el (mm-shr): Bind shr-blocked-images to
+	gnus-blocked-images.
+
 2010-10-05  Julien Danjou  <julien@danjou.info>
 
 	* gnus-html.el (gnus-html-wash-images): Rescale image from cid too.
@@ -40,6 +78,9 @@
 	* mm-decode.el (mm-shr): Decode contents by charset.
 
 2010-10-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-open-connection): Give an error if nnimap-stream is
+	unknown.
 
 	* shr.el (shr-tag-blockquote): Ensure paragraph after quote, too.
 	(shr-get-image-data): Ensure against the cache file missing.

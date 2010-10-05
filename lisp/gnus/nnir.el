@@ -792,40 +792,30 @@ and show thread that contains this article."
 	  (if nnir-get-article-nov-override-function
 	      (setq novitem (funcall nnir-get-article-nov-override-function
 				     artitem))
-	  ;; else, set novitem through nnheader-parse-nov/nnheader-parse-head
+	    ;; else, set novitem through nnheader-parse-nov/nnheader-parse-head
 	    (case (setq foo (gnus-retrieve-headers (list artno)
 						   artfullgroup nil))
 	      (nov
 	       (goto-char (point-min))
-	       (setq novitem (nnheader-parse-nov))
-	       (unless novitem
-		 (pop-to-buffer nntp-server-buffer)
-		 (error
-		  "nnheader-parse-nov returned nil for article %s in group %s"
-		  artno artfullgroup)))
+	       (setq novitem (nnheader-parse-nov)))
 	      (headers
 	       (goto-char (point-min))
-	       (setq novitem (nnheader-parse-head))
-	       (unless novitem
-		 (pop-to-buffer nntp-server-buffer)
-		 (error
-		  "nnheader-parse-head returned nil for article %s in group %s"
-		  artno artfullgroup)))
+	       (setq novitem (nnheader-parse-head)))
 	      (t (error "Unknown header type %s while requesting article %s of group %s"
 			foo artno artfullgroup)))))
 	;; replace article number in original group with article number
         ;; in nnir group
-        (mail-header-set-number novitem art)
-        (mail-header-set-from novitem
-                              (mail-header-from novitem))
-        (mail-header-set-subject
-         novitem
-         (format "[%d: %s/%d] %s"
-                 artrsv artgroup artno
-                 (mail-header-subject novitem)))
-        ;;-(mail-header-set-extra novitem nil)
-        (push novitem novdata)
-        (setq artlist (cdr artlist)))
+	(when novitem
+	  (mail-header-set-number novitem art)
+	  (mail-header-set-from novitem
+				(mail-header-from novitem))
+	  (mail-header-set-subject
+	   novitem
+	   (format "[%d: %s/%d] %s"
+		   artrsv artgroup artno
+		   (mail-header-subject novitem)))
+	  (push novitem novdata)
+	  (setq artlist (cdr artlist))))
       (setq novdata (nreverse novdata))
       (set-buffer nntp-server-buffer) (erase-buffer)
       (mapc 'nnheader-insert-nov novdata)

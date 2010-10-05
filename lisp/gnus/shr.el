@@ -52,10 +52,16 @@ fit these criteria."
   :group 'shr
   :type 'regexp)
 
+(defvar shr-content-function nil
+  "If bound, this should be a function that will return the content.
+This is used for cid: URLs, and the function is called with the
+cid: URL as the argument.")
+
 (defvar shr-folding-mode nil)
 (defvar shr-state nil)
 (defvar shr-start nil)
 (defvar shr-indentation 0)
+(defvar shr-inhibit-images nil)
 
 (defvar shr-width 70)
 
@@ -204,16 +210,30 @@ redirects somewhere else."
       (when (zerop (length alt))
 	(setq alt "[img]"))
       (cond
-       ((and shr-blocked-images
-	     (string-match shr-blocked-images url))
-	(insert alt))
+       ((and (not shr-inhibit-images)
+	     (string-match "\\`cid:" url))
+	(let ((url (substring url (match-end 0)))
+	      image)
+	  (if (or (not shr-content-function)
+		  (not (setq image (funcall shr-content-function url))))
+	      (insert alt)
+	    (shr-put-image image (point) alt))))
+       ((or shr-inhibit-images
+	    (and shr-blocked-images
+		 (string-match shr-blocked-images url)))
+	(setq shr-start (point))
+	(let ((shr-state 'space))
+	  (if (> (length alt) 8)
+	      (shr-insert (substring alt 0 8))
+	    (shr-insert alt))))
        ((url-is-cached (browse-url-url-encode-chars url "[&)$ ]"))
 	(shr-put-image (shr-get-image-data url) (point) alt))
        (t
 	(insert alt)
-	(url-retrieve url 'shr-image-fetched
-		      (list (current-buffer) start (point-marker))
-		      t)))
+	(ignore-errors
+	  (url-retrieve url 'shr-image-fetched
+			(list (current-buffer) start (point-marker))
+			t))))
       (insert " ")
       (put-text-property start (point) 'keymap shr-map)
       (put-text-property start (point) 'shr-alt alt)
@@ -411,11 +431,23 @@ Return a string with image data."
   (shr-ensure-paragraph)
   (setq cont (or (cdr (assq 'tbody cont))
 		 cont))
-  (let* ((columns (shr-column-specs cont))
+  (let* ((shr-inhibit-images t)
+	 (columns (shr-column-specs cont))
 	 (suggested-widths (shr-pro-rate-columns columns))
 	 (sketch (shr-make-table cont suggested-widths))
 	 (sketch-widths (shr-table-widths sketch (length suggested-widths))))
-    (shr-insert-table (shr-make-table cont sketch-widths t) sketch-widths)))
+    (shr-insert-table (shr-make-table cont sketch-widths t) sketch-widths))
+  (dolist (elem (shr-find-elements cont 'img))
+    (shr-tag-img (cdr elem))))
+
+(defun shr-find-elements (cont type)
+  (let (result)
+    (dolist (elem cont)
+      (cond ((eq (car elem) type)
+	     (push elem result))
+	    ((consp (cdr elem))
+	     (setq result (nconc (shr-find-elements (cdr elem) type) result)))))
+    (nreverse result)))
 
 (defun shr-insert-table (table widths)
   (shr-insert-table-ruler widths)
@@ -430,11 +462,20 @@ Return a string with image data."
 	(insert "|\n"))
       (dolist (column row)
 	(goto-char start)
-	(let ((lines (split-string (nth 2 column) "\n")))
+	(let ((lines (split-string (nth 2 column) "\n"))
+	      (overlay-lines (nth 3 column))
+	      overlay overlay-line)
 	  (dolist (line lines)
+	    (setq overlay-line (pop overlay-lines))
 	    (when (> (length line) 0)
 	      (end-of-line)
 	      (insert line "|")
+	      (dolist (overlay overlay-line)
+		(let ((o (make-overlay (- (point) (nth 0 overlay) 1)
+				       (- (point) (nth 1 overlay) 1)))
+		      (properties (nth 2 overlay)))
+		  (while properties
+		    (overlay-put o (pop properties) (pop properties)))))
 	      (forward-line 1)))
 	  ;; Add blank lines at padding at the bottom of the TD,
 	  ;; possibly.
@@ -495,7 +536,34 @@ Return a string with image data."
 	  (when (> (- width (current-column)) 0)
 	    (insert (make-string (- width (current-column)) ? )))
 	  (forward-line 1)))
-      (list max (count-lines (point-min) (point-max)) (buffer-string)))))
+      (list max
+	    (count-lines (point-min) (point-max))
+	    (buffer-string)
+	    (and fill
+		 (shr-collect-overlays))))))
+
+(defun shr-collect-overlays ()
+  (save-excursion
+    (goto-char (point-min))
+    (let ((overlays nil))
+      (while (not (eobp))
+	(push (shr-overlays-in-region (point) (line-end-position))
+	      overlays)
+	(forward-line 1))
+      (nreverse overlays))))
+
+(defun shr-overlays-in-region (start end)
+  (let (result)
+    (dolist (overlay (overlays-in start end))
+      (push (list (if (> start (overlay-start overlay))
+		      (- end start)
+		    (- end (overlay-start overlay)))
+		  (if (< end (overlay-end overlay))
+		      0
+		    (- end (overlay-end overlay)))
+		  (overlay-properties overlay))
+	    result))
+    (nreverse result)))
 
 (defun shr-pro-rate-columns (columns)
   (let ((total-percentage 0)
@@ -523,8 +591,8 @@ Return a string with image data."
 			   (string-match "\\([0-9]+\\)%" width))
 		  (aset columns i
 			(/ (string-to-number (match-string 1 width))
-			   100.0)))))
-	    (setq i (1+ i))))))
+			   100.0))))
+	      (setq i (1+ i)))))))
     columns))
 
 (defun shr-count (cont elem)
@@ -538,7 +606,8 @@ Return a string with image data."
   (let ((max 0))
     (dolist (row cont)
       (when (eq (car row) 'tr)
-	(setq max (max max (shr-count (cdr row) 'td)))))
+	(setq max (max max (+ (shr-count (cdr row) 'td)
+			      (shr-count (cdr row) 'th))))))
     max))
 
 (provide 'shr)
