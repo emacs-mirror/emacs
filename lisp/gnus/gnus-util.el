@@ -1611,16 +1611,17 @@ SPEC is a predicate specifier that contains stuff like `or', `and',
                      (mapcar 'list collection)
                      nil require-match initial-input history def)))
 
+(autoload 'ido-completing-read "ido")
 (defun gnus-ido-completing-read (prompt collection &optional require-match
                                         initial-input history def)
   "Call `ido-completing-read-function'."
-  (require 'ido)
   (ido-completing-read prompt collection nil require-match initial-input history def))
 
+
+(autoload 'iswitchb-read-buffer "iswitchb")
 (defun gnus-iswitchb-completing-read (prompt collection &optional require-match
                                             initial-input history def)
   "`iswitchb' based completing-read function."
-  (require 'iswitchb)
   (let ((iswitchb-make-buflist-hook
          (lambda ()
            (setq iswitchb-temp-buflist

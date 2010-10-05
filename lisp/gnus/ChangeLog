@@ -1,3 +1,8 @@
+2010-10-05  Julien Danjou  <julien@danjou.info>
+
+	* gnus-util.el (gnus-emacs-completing-read)
+	(gnus-iswitchb-completing-read): Use autoload rather than require.
+
 2010-10-05  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-util.el (gnus-completing-read-function): Exclude
