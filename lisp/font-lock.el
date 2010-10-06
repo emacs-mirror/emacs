@@ -1,8 +1,8 @@
 ;;; font-lock.el --- Electric font lock mode
 
 ;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;   Free Software Foundation, Inc.
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+;;   2010  Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski
 ;;	Richard Stallman
@@ -102,11 +102,10 @@
 
 ;; Modes that support Font Lock mode do so by defining one or more variables
 ;; whose values specify the fontification.  Font Lock mode knows of these
-;; variable names from (a) the buffer local variable `font-lock-defaults', if
-;; non-nil, or (b) the global variable `font-lock-defaults-alist', if the major
-;; mode has an entry.  (Font Lock mode is set up via (a) where a mode's
-;; patterns are distributed with the mode's package library, and (b) where a
-;; mode's patterns are distributed with font-lock.el itself.  An example of (a)
+;; variable names from the buffer local variable `font-lock-defaults'.
+;; (Font Lock mode is set up via (a) where a mode's patterns are
+;; distributed with the mode's package library, and (b) where a mode's
+;; patterns are distributed with font-lock.el itself.  An example of (a)
 ;; is Pascal mode, an example of (b) is Lisp mode.  Normally, the mechanism is
 ;; (a); (b) is used where it is not clear which package library should contain
 ;; the pattern definitions.)  Font Lock mode chooses which variable to use for
@@ -1758,8 +1757,7 @@ A LEVEL of nil is equal to a LEVEL of 0, a LEVEL of t is equal to
 
 (defun font-lock-refresh-defaults ()
   "Restart fontification in current buffer after recomputing from defaults.
-Recompute fontification variables using `font-lock-defaults' (or,
-if nil, using `font-lock-defaults-alist') and
+Recompute fontification variables using `font-lock-defaults' and
 `font-lock-maximum-decoration'.  Then restart fontification.
 
 Use this function when you have changed any of the above
@@ -1779,8 +1777,8 @@ preserve `hi-lock-mode' highlighting patterns."
 
 (defun font-lock-set-defaults ()
   "Set fontification defaults appropriately for this mode.
-Sets various variables using `font-lock-defaults' (or, if nil, using
-`font-lock-defaults-alist') and `font-lock-maximum-decoration'."
+Sets various variables using `font-lock-defaults' and
+`font-lock-maximum-decoration'."
   ;; Set fontification defaults if not previously set for correct major mode.
   (unless (and font-lock-set-defaults
 	       (eq font-lock-major-mode major-mode))
@@ -1788,10 +1786,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
     (set (make-local-variable 'font-lock-set-defaults) t)
     (make-local-variable 'font-lock-fontified)
     (make-local-variable 'font-lock-multiline)
-    (let* ((defaults (or font-lock-defaults
-			 (cdr (assq major-mode
-				    (with-no-warnings
-                                      font-lock-defaults-alist)))))
+    (let* ((defaults font-lock-defaults)
 	   (keywords
 	    (font-lock-choose-keywords (nth 0 defaults)
 				       (font-lock-value-in-major-mode font-lock-maximum-decoration)))
@@ -2082,8 +2077,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 ;;  ;; Activate less/more fontification entries if there are multiple levels for
 ;;  ;; the current buffer.  Sets `font-lock-fontify-level' to be of the form
 ;;  ;; (CURRENT-LEVEL IS-LOWER-LEVEL-P IS-HIGHER-LEVEL-P) for menu activation.
-;;  (let ((keywords (or (nth 0 font-lock-defaults)
-;;		      (nth 1 (assq major-mode font-lock-defaults-alist))))
+;;  (let ((keywords (nth 0 font-lock-defaults))
 ;;	(level (font-lock-value-in-major-mode font-lock-maximum-decoration)))
 ;;    (make-local-variable 'font-lock-fontify-level)
 ;;    (if (or (symbolp keywords) (= (length keywords) 1))
@@ -2353,5 +2347,4 @@ in which C preprocessor directives are used. e.g. `asm-mode' and
 
 (provide 'font-lock)
 
-;; arch-tag: 682327e4-64d8-4057-b20b-1fbb9f1fc54c
 ;;; font-lock.el ends here

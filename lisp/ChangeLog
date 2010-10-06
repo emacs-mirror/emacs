@@ -1,5 +1,12 @@
 2010-10-06  Glenn Morris  <rgm@gnu.org>
 
+	* font-core.el (font-lock-defaults-alist): Remove variable.
+	(font-lock-mode): Doc fix.
+	(font-lock-default-function): Do not consult font-lock-defaults-alist.
+	* font-lock.el (font-lock-refresh-defaults): Doc fix.
+	(font-lock-set-defaults): Doc fix.
+	Do not consult font-lock-defaults-alist.
+
 	* hilit-chg.el (hilit-chg-get-diff-list-hk): Declare `e' for compiler.
 
 	* emacs-lisp/cl.el: No longer provide cl-19.
