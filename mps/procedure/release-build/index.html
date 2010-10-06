@@ -42,8 +42,8 @@
 
 <p> This is the procedure for building a generic release of the Memory Pool System (an "mps-kit") from the version sources. </p>
 
-<p> The intended readership of this document is Ravenbrook development staff.  
-	(If you are a user of the MPS, and want to build object code from 
+<p> The intended readership of this document is Ravenbrook development staff.
+	(If you are a user of the MPS, and want to build object code from
 	an mps-kit, please see the readme.txt file in the kit). </p>
 
 <p> This document is not confidential. </p>
@@ -72,19 +72,19 @@ and the correct release name. </p> </li>
 <li><p> In
     <code>version/<i>VERSION</i>/code/version.c</code>,
     and <code>w3build.bat</code>,
-    set 
+    set
     <code>MPS_RELEASE</code>
-    to the correct value (see the rules in the comments), 
+    to the correct value (see the rules in the comments),
     and check strings that contain copyright dates, etc.
 </p> </li>
 
 <li><p> Please update
-    <code>version/<i>VERSION</i>/example/hello-world/index.txt</code>, 
+    <code>version/<i>VERSION</i>/example/hello-world/index.txt</code>,
     so that it works with the RELEASE you are creating
     (eg. 1.106.1 &rarr; 1.106.2).
 </p> </li>
 
-<li><p> <strong>Submit <code>readme.txt</code>, 
+<li><p> <strong>Submit <code>readme.txt</code>,
 <code>version.c</code>, and other changed files
 to Perforce before you continue.</strong> </p></li>
 
@@ -158,7 +158,7 @@ release RELEASE." </p> </li>
 
 <li> <p> Using the Windows file-browser, copy the version/VERSION directory, paste a copy, and rename it mps-kit-RELEASE. </p></li>
 
-<li> <p> Use the Info-ZIP command-line utility "zip" to create a new archive of these files, called "mps-kit-RELEASE.zip" in the directory "release/RELEASE": </p> 
+<li> <p> Use the Info-ZIP command-line utility "zip" to create a new archive of these files, called "mps-kit-RELEASE.zip" in the directory "release/RELEASE": </p>
   <blockquote> <pre><code>zip -r  release\RELEASE\mps-kit-RELEASE.zip  mps-kit-RELEASE</code></pre> </blockquote>
 </li>
 
@@ -168,7 +168,7 @@ zip -A  release\RELEASE\mps-kit-RELEASE.exe
 </code></pre> </blockquote>
 </li>
 
-<li> <p> You can check both archives like this: </p> 
+<li> <p> You can check both archives like this: </p>
   <blockquote> <pre><code>unzip -tq  release\RELEASE\mps-kit-RELEASE.zip
 unzip -tq  release\RELEASE\mps-kit-RELEASE.exe
 </code></pre> </blockquote>
@@ -191,12 +191,6 @@ releases. </p></li>
 add the release to the list of releases for VERSION, in a manner
 consistent with previous releases. </p></li>
 
-<li><p> Edit the
-<code>//info.ravenbrook.com/infosys/cgi/data.py</code> script to add
-the release changelevel to the <code>releases</code> table, so that the
-correct set of known and fixed issues can be derived and shown on the 
-project's <code>issues</code> page. </p></li>
-
 <li><p> Submit these changes with the comment "MPS: registered release
 RELEASE."  </p></li>
 
@@ -205,19 +199,21 @@ RELEASE."  </p></li>
     Edit the main MPS Project index page at
     <code>//info.ravenbrook.com/project/mps/index.html</code>,
     to refer to the new release:
-  </p> 
+  </p>
   <ul>
-    <li> update links to 'the latest release' or 
-      'download' (important); 
+    <li> update links to 'the latest release' or
+      'download' (important);
     </li>
     <li> consider updating the 'project status' section. </li>
   </ul>
 </li>
 
+<li><p> Visit the <a href="http://info.ravenbrook.com/infosys/cgi/data_update.cgi">project updater</a>, go to "Find new releases", select "mps (Memory Pool System)" from the dropdown, and hit "Find releases". If you've carried out the process correctly, the project updater will discover your new release, and the set of known and fixed issues for that release can be derived and shown on the project's <code>issues</code> page. </p></li>
+
 <li><p>
   Inform the project manager and staff by e-mail to <a
   href="mailto:mps-staff@ravenbrook.com">mps-staff@ravenbrook.com</a>.
-  Consider announcing the new release by e-mail to 
+  Consider announcing the new release by e-mail to
   <a href="mailto:mps-discussion@ravenbrook.com">mps-discussion@ravenbrook.com</a>.
 </p></li>
 
@@ -331,6 +327,16 @@ RELEASE."  </p></li>
   <td>2008-01-07</td>
   <td><a href="mailto:rhsk@ravenbrook.com">RHSK</a></td>
   <td>Release changelevel was in issue.cgi, now in data.py.</td>
+</tr>
+
+<tr valign="top">
+
+  <td>2010&#x2011;10&#x2011;06</td>
+
+  <td><a href="mailto:gdr@ravenbrook.com">GDR</a></td>
+
+  <td>Use the project updater to register new releases.</td>
+
 </tr>
 
 </table>
