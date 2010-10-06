@@ -1,3 +1,7 @@
+2010-10-06  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi (Usage, Installation): Remove outdated information.
+
 2010-08-26  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.1.19.
