@@ -2190,7 +2190,9 @@ if it is not a list."
 				      require-match initial-input
 				      (or hist 'gnus-group-history)
 				      def))
-    (if (symbol-value (intern-soft group collection))
+    (if (if (listp collection)
+	    (member group (mapcar 'symbol-name collection))
+	  (symbol-value (intern-soft group collection)))
 	group
       (mm-encode-coding-string group (gnus-group-name-charset nil group)))))
 
