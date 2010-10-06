@@ -317,13 +317,16 @@ textual parts.")
 		   'starttls))
 		'("imap"))
 	       ((memq nnimap-stream '(ssl tls))
-		(open-tls-stream
-		 "*nnimap*" (current-buffer) nnimap-address
-		 (setq port
-		       (or nnimap-server-port
-			   (if (netrc-find-service-number "imaps")
-			       "imaps"
-			     "993"))))
+		(funcall (if (and nil
+				  (fboundp 'open-gnutls-stream))
+			     'open-gnutls-stream
+			   'open-tls-stream)
+			 "*nnimap*" (current-buffer) nnimap-address
+			 (setq port
+			       (or nnimap-server-port
+				   (if (netrc-find-service-number "imaps")
+				       "imaps"
+				     "993"))))
 		'("143" "993" "imap" "imaps"))
 	       (t
 		(error "Unknown stream type: %s" nnimap-stream))))

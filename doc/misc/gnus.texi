@@ -17401,13 +17401,12 @@ incompatible group parameters, slightly different from those of other
 mail back ends.
 
 @code{nnmaildir} is largely similar to @code{nnml}, with some notable
-differences.  Each message is stored in a separate file, but the
-filename is unrelated to the article number in Gnus.  @code{nnmaildir}
+differences. Each message is stored in a separate file, but the
+filename is unrelated to the article number in Gnus. @code{nnmaildir}
 also stores the equivalent of @code{nnml}'s overview files in one file
-per article, so it uses about twice as many inodes as @code{nnml}.  (Use
-@code{df -i} to see how plentiful your inode supply is.)  If this slows
-you down or takes up very much space, consider switching to
-@uref{http://www.namesys.com/, ReiserFS} or another non-block-structured
+per article, so it uses about twice as many inodes as @code{nnml}.
+(Use @code{df -i} to see how plentiful your inode supply is.) If this
+slows you down or takes up very much space, a non-block-structured
 file system.
 
 Since maildirs don't require locking for delivery, the maildirs you use

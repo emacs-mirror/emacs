@@ -1,3 +1,16 @@
+2010-10-06  Julien Danjou  <julien@danjou.info>
+
+	* message.texi (PGP Compatibility): Remove reference to gpg-2comp,
+	broken link.
+
+	* gnus-faq.texi (FAQ 8-3): Remove references to my.gnus.org.
+
+	* gnus.texi (Comparing Mail Back Ends): Remove broken link and allusion
+	to ReiserFS.
+
+	* gnus-faq.texi (FAQ 5-5): Fix Flyspell URL.
+	(FAQ 7-1): Fix getmail URL.
+
 2010-10-06  Daiki Ueno  <ueno@unixuser.org>
 
 	* epa.texi (Caching Passphrases): New section.

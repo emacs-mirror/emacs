@@ -509,8 +509,7 @@ that it is for swish++, not Wais."
   :group 'nnir)
 
 ;; Swish-E.
-;; URL: http://sunsite.berkeley.edu/SWISH-E/
-;; New version: http://www.boe.es/swish-e
+;; URL: http://swish-e.org/
 ;; Variables `nnir-swish-e-index-file', `nnir-swish-e-program' and
 ;; `nnir-swish-e-additional-switches'
 
@@ -596,7 +595,7 @@ arrive at the correct group name, \"mail.misc\"."
   :type '(directory)
   :group 'nnir)
 
-;; Namazu engine, see <URL:http://ww.namazu.org/>
+;; Namazu engine, see <URL:http://www.namazu.org/>
 
 (defcustom nnir-namazu-program "namazu"
   "*Name of Namazu search executable."

@@ -1,3 +1,22 @@
+2010-10-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-insert): Get 'space transition right.
+
+	* nnimap.el (nnimap-open-connection): Prepare to support
+	open-gnutls-stream.
+
+	* shr.el: Rearrange function order to be more logical.
+
+2010-10-06  Julien Danjou  <julien@danjou.info>
+
+	* nnrss.el (nnrss-check-group): Remove 404 URL in comment.
+	(nnrss-discover-feed): Remove 404 URL in docstring.
+
+	* nnir.el: Fix Swish-E URL.
+	Fix Namazu URL.
+
+	* message.el (message-change-subject): Remove 404 URL in a comment.
+
 2010-10-06  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-mime-view-part-as-type): Make it work when being

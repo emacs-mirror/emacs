@@ -57,13 +57,17 @@ fit these criteria."
 This is used for cid: URLs, and the function is called with the
 cid: URL as the argument.")
 
+(defvar shr-width 70
+  "Frame width to use for rendering.")
+
+;;; Internal variables.
+
 (defvar shr-folding-mode nil)
 (defvar shr-state nil)
 (defvar shr-start nil)
 (defvar shr-indentation 0)
 (defvar shr-inhibit-images nil)
-
-(defvar shr-width 70)
+(defvar shr-list-mode nil)
 
 (defvar shr-map
   (let ((map (make-sparse-keymap)))
@@ -75,99 +79,13 @@ cid: URL as the argument.")
     (define-key map "\r" 'shr-browse-url)
     map))
 
-(defun shr-transform-dom (dom)
-  (let ((result (list (pop dom))))
-    (dolist (arg (pop dom))
-      (push (cons (intern (concat ":" (symbol-name (car arg))) obarray)
-		  (cdr arg))
-	    result))
-    (dolist (sub dom)
-      (if (stringp sub)
-	  (push (cons :text sub) result)
-	(push (shr-transform-dom sub) result)))
-    (nreverse result)))
+;; Public functions and commands.
 
 ;;;###autoload
 (defun shr-insert-document (dom)
   (let ((shr-state nil)
 	(shr-start nil))
     (shr-descend (shr-transform-dom dom))))
-
-(defun shr-descend (dom)
-  (let ((function (intern (concat "shr-tag-" (symbol-name (car dom))) obarray)))
-    (if (fboundp function)
-	(funcall function (cdr dom))
-      (shr-generic (cdr dom)))))
-
-(defun shr-generic (cont)
-  (dolist (sub cont)
-    (cond
-     ((eq (car sub) :text)
-      (shr-insert (cdr sub)))
-     ((listp (cdr sub))
-      (shr-descend sub)))))
-
-(defun shr-tag-p (cont)
-  (shr-ensure-paragraph)
-  (shr-generic cont)
-  (shr-ensure-paragraph))
-
-(defun shr-ensure-paragraph ()
-  (unless (bobp)
-    (if (bolp)
-	(unless (save-excursion
-		  (forward-line -1)
-		  (looking-at " *$"))
-	  (insert "\n"))
-      (if (save-excursion
-	    (beginning-of-line)
-	    (looking-at " *$"))
-	  (insert "\n")
-	(insert "\n\n")))))
-
-(defun shr-tag-b (cont)
-  (shr-fontize-cont cont 'bold))
-
-(defun shr-tag-i (cont)
-  (shr-fontize-cont cont 'italic))
-
-(defun shr-tag-em (cont)
-  (shr-fontize-cont cont 'bold))
-
-(defun shr-tag-u (cont)
-  (shr-fontize-cont cont 'underline))
-
-(defun shr-tag-s (cont)
-  (shr-fontize-cont cont 'strike-through))
-
-(defun shr-fontize-cont (cont &rest types)
-  (let (shr-start)
-    (shr-generic cont)
-    (dolist (type types)
-      (shr-add-font (or shr-start (point)) (point) type))))
-
-(defun shr-add-font (start end type)
-  (let ((overlay (make-overlay start end)))
-    (overlay-put overlay 'face type)))
-
-(defun shr-tag-a (cont)
-  (let ((url (cdr (assq :href cont)))
-	(start (point))
-	shr-start)
-    (shr-generic cont)
-    (widget-convert-button
-     'link (or shr-start start) (point)
-     :help-echo url)
-    (put-text-property (or shr-start start) (point) 'keymap shr-map)
-    (put-text-property (or shr-start start) (point) 'shr-url url)))
-
-(defun shr-browse-url ()
-  "Browse the URL under point."
-  (interactive)
-  (let ((url (get-text-property (point) 'shr-url)))
-    (if (not url)
-	(message "No link under point")
-      (browse-url url))))
 
 (defun shr-copy-url ()
   "Copy the URL under point to the kill ring.
@@ -200,46 +118,6 @@ redirects somewhere else."
 	(copy-region-as-kill (point-min) (point-max))
 	(message "Copied %s" url))))))
 
-(defun shr-tag-img (cont)
-  (when (and (> (current-column) 0)
-	     (not (eq shr-state 'image)))
-    (insert "\n"))
-  (let ((start (point-marker)))
-    (let ((alt (cdr (assq :alt cont)))
-	  (url (cdr (assq :src cont))))
-      (when (zerop (length alt))
-	(setq alt "[img]"))
-      (cond
-       ((and (not shr-inhibit-images)
-	     (string-match "\\`cid:" url))
-	(let ((url (substring url (match-end 0)))
-	      image)
-	  (if (or (not shr-content-function)
-		  (not (setq image (funcall shr-content-function url))))
-	      (insert alt)
-	    (shr-put-image image (point) alt))))
-       ((or shr-inhibit-images
-	    (and shr-blocked-images
-		 (string-match shr-blocked-images url)))
-	(setq shr-start (point))
-	(let ((shr-state 'space))
-	  (if (> (length alt) 8)
-	      (shr-insert (substring alt 0 8))
-	    (shr-insert alt))))
-       ((url-is-cached (browse-url-url-encode-chars url "[&)$ ]"))
-	(shr-put-image (shr-get-image-data url) (point) alt))
-       (t
-	(insert alt)
-	(ignore-errors
-	  (url-retrieve url 'shr-image-fetched
-			(list (current-buffer) start (point-marker))
-			t))))
-      (insert " ")
-      (put-text-property start (point) 'keymap shr-map)
-      (put-text-property start (point) 'shr-alt alt)
-      (put-text-property start (point) 'shr-image url)
-      (setq shr-state 'image))))
-
 (defun shr-show-alt-text ()
   "Show the ALT text of the image under point."
   (interactive)
@@ -255,6 +133,112 @@ redirects somewhere else."
     (if (not url)
 	(message "No image under point")
       (message "Browsing %s..." url)
+      (browse-url url))))
+
+;;; Utility functions.
+
+(defun shr-transform-dom (dom)
+  (let ((result (list (pop dom))))
+    (dolist (arg (pop dom))
+      (push (cons (intern (concat ":" (symbol-name (car arg))) obarray)
+		  (cdr arg))
+	    result))
+    (dolist (sub dom)
+      (if (stringp sub)
+	  (push (cons :text sub) result)
+	(push (shr-transform-dom sub) result)))
+    (nreverse result)))
+
+(defun shr-descend (dom)
+  (let ((function (intern (concat "shr-tag-" (symbol-name (car dom))) obarray)))
+    (if (fboundp function)
+	(funcall function (cdr dom))
+      (shr-generic (cdr dom)))))
+
+(defun shr-generic (cont)
+  (dolist (sub cont)
+    (cond
+     ((eq (car sub) :text)
+      (shr-insert (cdr sub)))
+     ((listp (cdr sub))
+      (shr-descend sub)))))
+
+(defun shr-insert (text)
+  (when (eq shr-state 'image)
+    (insert "\n")
+    (setq shr-state nil))
+  (cond
+   ((eq shr-folding-mode 'none)
+    (insert text))
+   (t
+    (let ((first t)
+	  column)
+      (when (and (string-match "\\`[ \t\n]" text)
+		 (not (bolp)))
+	(insert " ")
+	(setq shr-state 'space))
+      (dolist (elem (split-string text))
+	(setq column (current-column))
+	(when (> column 0)
+	  (cond
+	   ((and (or (not first)
+		     (eq shr-state 'space))
+		 (> (+ column (length elem) 1) shr-width))
+	    (insert "\n"))
+	   ((not first)
+	    (insert " "))))
+	(setq first nil)
+	(when (and (bolp)
+		   (> shr-indentation 0))
+	  (shr-indent))
+	;; The shr-start is a special variable that is used to pass
+	;; upwards the first point in the buffer where the text really
+	;; starts.
+	(unless shr-start
+	  (setq shr-start (point)))
+	(insert elem))
+      (setq shr-state nil)
+      (when (and (string-match "[ \t\n]\\'" text)
+		 (not (bolp)))
+	(insert " ")
+	(setq shr-state 'space))))))
+
+(defun shr-ensure-newline ()
+  (unless (zerop (current-column))
+    (insert "\n")))
+
+(defun shr-ensure-paragraph ()
+  (unless (bobp)
+    (if (bolp)
+	(unless (save-excursion
+		  (forward-line -1)
+		  (looking-at " *$"))
+	  (insert "\n"))
+      (if (save-excursion
+	    (beginning-of-line)
+	    (looking-at " *$"))
+	  (insert "\n")
+	(insert "\n\n")))))
+
+(defun shr-indent ()
+  (insert (make-string shr-indentation ? )))
+
+(defun shr-fontize-cont (cont &rest types)
+  (let (shr-start)
+    (shr-generic cont)
+    (dolist (type types)
+      (shr-add-font (or shr-start (point)) (point) type))))
+
+(defun shr-add-font (start end type)
+  (let ((overlay (make-overlay start end)))
+    (overlay-put overlay 'face type)))
+
+(defun shr-browse-url ()
+  "Browse the URL under point."
+  (interactive)
+  (let ((url (get-text-property (point) 'shr-url)))
+    (if (not url)
+	(message "No link under point")
       (browse-url url))))
 
 (defun shr-image-fetched (status buffer start end)
@@ -306,64 +290,6 @@ redirects somewhere else."
 		     image)))
       image)))
 
-(defun shr-tag-pre (cont)
-  (let ((shr-folding-mode 'none))
-    (shr-ensure-newline)
-    (shr-generic cont)
-    (shr-ensure-newline)))
-
-(defun shr-tag-blockquote (cont)
-  (shr-ensure-paragraph)
-  (let ((shr-indentation (+ shr-indentation 4)))
-    (shr-generic cont))
-  (shr-ensure-paragraph))
-
-(defun shr-ensure-newline ()
-  (unless (zerop (current-column))
-    (insert "\n")))
-
-(defun shr-insert (text)
-  (when (eq shr-state 'image)
-    (insert "\n")
-    (setq shr-state nil))
-  (cond
-   ((eq shr-folding-mode 'none)
-    (insert text))
-   (t
-    (let ((first t)
-	  column)
-      (when (and (string-match "\\`[ \t\n]" text)
-		 (not (bolp)))
-	(insert " "))
-      (dolist (elem (split-string text))
-	(setq column (current-column))
-	(when (> column 0)
-	  (cond
-	   ((and (or (not first)
-		     (eq shr-state 'space))
-		 (> (+ column (length elem) 1) shr-width))
-	    (insert "\n"))
-	   ((not first)
-	    (insert " "))))
-	(setq first nil)
-	(when (and (bolp)
-		   (> shr-indentation 0))
-	  (shr-indent))
-	;; The shr-start is a special variable that is used to pass
-	;; upwards the first point in the buffer where the text really
-	;; starts.
-	(unless shr-start
-	  (setq shr-start (point)))
-	(insert elem))
-      (setq shr-state nil)
-      (when (and (string-match "[ \t\n]\\'" text)
-		 (not (bolp)))
-	(insert " ")
-	(setq shr-state 'space))))))
-
-(defun shr-indent ()
-  (insert (make-string shr-indentation ? )))
-
 (defun shr-get-image-data (url)
   "Get image data for URL.
 Return a string with image data."
@@ -376,7 +302,95 @@ Return a string with image data."
 		(search-forward "\r\n\r\n" nil t))
 	(buffer-substring (point) (point-max))))))
 
-(defvar shr-list-mode nil)
+(defun shr-heading (cont &rest types)
+  (shr-ensure-paragraph)
+  (apply #'shr-fontize-cont cont types)
+  (shr-ensure-paragraph))
+
+;;; Tag-specific rendering rules.
+
+(defun shr-tag-p (cont)
+  (shr-ensure-paragraph)
+  (shr-generic cont)
+  (shr-ensure-paragraph))
+
+(defun shr-tag-b (cont)
+  (shr-fontize-cont cont 'bold))
+
+(defun shr-tag-i (cont)
+  (shr-fontize-cont cont 'italic))
+
+(defun shr-tag-em (cont)
+  (shr-fontize-cont cont 'bold))
+
+(defun shr-tag-u (cont)
+  (shr-fontize-cont cont 'underline))
+
+(defun shr-tag-s (cont)
+  (shr-fontize-cont cont 'strike-through))
+
+(defun shr-tag-a (cont)
+  (let ((url (cdr (assq :href cont)))
+	(start (point))
+	shr-start)
+    (shr-generic cont)
+    (widget-convert-button
+     'link (or shr-start start) (point)
+     :help-echo url)
+    (put-text-property (or shr-start start) (point) 'keymap shr-map)
+    (put-text-property (or shr-start start) (point) 'shr-url url)))
+
+(defun shr-tag-img (cont)
+  (when (and (> (current-column) 0)
+	     (not (eq shr-state 'image)))
+    (insert "\n"))
+  (let ((start (point-marker)))
+    (let ((alt (cdr (assq :alt cont)))
+	  (url (cdr (assq :src cont))))
+      (when (zerop (length alt))
+	(setq alt "[img]"))
+      (cond
+       ((and (not shr-inhibit-images)
+	     (string-match "\\`cid:" url))
+	(let ((url (substring url (match-end 0)))
+	      image)
+	  (if (or (not shr-content-function)
+		  (not (setq image (funcall shr-content-function url))))
+	      (insert alt)
+	    (shr-put-image image (point) alt))))
+       ((or shr-inhibit-images
+	    (and shr-blocked-images
+		 (string-match shr-blocked-images url)))
+	(setq shr-start (point))
+	(let ((shr-state 'space))
+	  (if (> (length alt) 8)
+	      (shr-insert (substring alt 0 8))
+	    (shr-insert alt))))
+       ((url-is-cached (browse-url-url-encode-chars url "[&)$ ]"))
+	(shr-put-image (shr-get-image-data url) (point) alt))
+       (t
+	(insert alt)
+	(ignore-errors
+	  (url-retrieve url 'shr-image-fetched
+			(list (current-buffer) start (point-marker))
+			t))))
+      (insert " ")
+      (put-text-property start (point) 'keymap shr-map)
+      (put-text-property start (point) 'shr-alt alt)
+      (put-text-property start (point) 'shr-image url)
+      (setq shr-state 'image))))
+
+(defun shr-tag-pre (cont)
+  (let ((shr-folding-mode 'none))
+    (shr-ensure-newline)
+    (shr-generic cont)
+    (shr-ensure-newline)))
+
+(defun shr-tag-blockquote (cont)
+  (shr-ensure-paragraph)
+  (let ((shr-indentation (+ shr-indentation 4)))
+    (shr-generic cont))
+  (shr-ensure-paragraph))
 
 (defun shr-tag-ul (cont)
   (shr-ensure-paragraph)
@@ -422,10 +436,7 @@ Return a string with image data."
 (defun shr-tag-h6 (cont)
   (shr-heading cont))
 
-(defun shr-heading (cont &rest types)
-  (shr-ensure-paragraph)
-  (apply #'shr-fontize-cont cont types)
-  (shr-ensure-paragraph))
+;;; Table rendering algorithm.
 
 ;; Table rendering is the only complicated thing here.  We do this by
 ;; first counting how many TDs there are in each TR, and registering
