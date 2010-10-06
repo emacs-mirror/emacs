@@ -912,7 +912,7 @@ This is used to map a mode number to a permission string.")
     (insert-file-contents-literally
      . tramp-sh-handle-insert-file-contents-literally)
     (write-region . tramp-sh-handle-write-region)
-    (find-backup-file-name . tramp-sh-handle-find-backup-file-name)
+    (find-backup-file-name . tramp-handle-find-backup-file-name)
     (make-auto-save-file-name . tramp-sh-handle-make-auto-save-file-name)
     (unhandled-file-name-directory . tramp-handle-unhandled-file-name-directory)
     (dired-compress-file . tramp-sh-handle-dired-compress-file)

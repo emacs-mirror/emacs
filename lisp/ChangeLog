@@ -1,3 +1,8 @@
+2010-10-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-sh-file-name-handler-alist): Use
+	`tramp-handle-find-backup-file-name'.
+
 2010-10-06  Glenn Morris  <rgm@gnu.org>
 
 	* font-core.el (font-lock-defaults-alist): Remove variable.
