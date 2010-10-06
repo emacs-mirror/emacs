@@ -1,3 +1,7 @@
+2010-10-06  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/cl.el: No longer provide cl-19.
+
 2010-10-05  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-handle-directory-files-and-attributes)

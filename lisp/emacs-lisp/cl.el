@@ -645,7 +645,6 @@ If ALIST is non-nil, the new pairs are prepended to it."
 (load "cl-loaddefs" nil 'quiet)
 
 ;; This goes here so that cl-macs can find it if it loads right now.
-(provide 'cl-19)     ; usage: (require 'cl-19 "cl")
 (provide 'cl)
 
 ;; Things to do after byte-compiler is loaded.
