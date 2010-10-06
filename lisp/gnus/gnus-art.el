@@ -5139,7 +5139,9 @@ available media-types."
 	  (let ((default (gnus-mime-view-part-as-type-internal)))
 	    (gnus-completing-read
 	     "View as MIME type"
-	     (gnus-remove-if-not pred (mailcap-mime-types))
+	     (if pred
+		 (gnus-remove-if-not pred (mailcap-mime-types))
+	       (mailcap-mime-types))
 	     nil nil nil
 	     (car default)))))
   (gnus-article-check-buffer)

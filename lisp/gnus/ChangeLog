@@ -1,5 +1,8 @@
 2010-10-06  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* gnus-art.el (gnus-mime-view-part-as-type): Make it work when being
+	called interactively.
+
 	* gnus-util.el (gnus-remove-if): Allow hash table.
 	(gnus-remove-if-not): New function.
 
