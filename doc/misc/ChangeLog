@@ -1,5 +1,7 @@
 2010-10-06  Julien Danjou  <julien@danjou.info>
 
+	* sieve.texi (Manage Sieve API): Document sieve-manage-authenticate.
+
 	* message.texi (PGP Compatibility): Remove reference to gpg-2comp,
 	broken link.
 

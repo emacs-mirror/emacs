@@ -292,6 +292,10 @@ Check if a server is open or not.
 @findex sieve-manage-close
 Close a server connection.
 
+@item sieve-manage-authenticate
+@findex sieve-manage-authenticate
+Authenticate to the server.
+
 @item sieve-manage-capability
 @findex sieve-manage-capability
 Return a list of capabilities the server supports.

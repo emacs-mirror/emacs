@@ -320,17 +320,12 @@ Server  : " server ":" (or port "2000") "
       (insert "\n"))))
 
 (defun sieve-open-server (server &optional port)
+  "Open SERVER (on PORT) and authenticate."
   (with-current-buffer
       ;; open server
       (set (make-local-variable 'sieve-manage-buffer)
            (sieve-manage-open server))
-    ;; authenticate
-    (if (eq sieve-manage-state 'nonauth)
-      (if (funcall (nth 2 (assq sieve-manage-auth
-                                sieve-manage-authenticator-alist))
-                   (current-buffer))
-          (setq sieve-manage-state 'auth))
-      (eq sieve-manage-state 'auth))))
+    (sieve-manage-authenticate)))
 
 (defun sieve-refresh-scriptlist ()
   (interactive)

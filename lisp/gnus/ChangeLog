@@ -1,3 +1,13 @@
+2010-10-06  Julien Danjou  <julien@danjou.info>
+
+	* sieve-manage.el: Update example in `Commentary'.
+
+	* sieve.el (sieve-open-server): Use sieve-manage-authenticate.
+
+	* sieve-manage.el (sieve-manage-open): Use sieve-manage-default-port,
+	not 2000.
+	(sieve-manage-authenticate): Re-add function.
+
 2010-10-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-insert): Get 'space transition right.
