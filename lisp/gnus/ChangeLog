@@ -77,6 +77,8 @@
 
 2010-10-05  Julien Danjou  <julien@danjou.info>
 
+	* sieve-manage.el (sieve-sasl-auth): Use auth-source to authenticate.
+
 	* gnus-html.el (gnus-html-wash-images): Rescale image from cid too.
 	(gnus-html-maximum-image-size): Add this function.
 	(gnus-html-put-image): Use gnus-html-maximum-image-size.
