@@ -553,8 +553,10 @@ Return a string with image data."
     (let ((shr-width width)
 	  (shr-indentation 0))
       (shr-generic cont))
-    (while (re-search-backward "\n *$" nil t)
-      (delete-region (match-beginning 0) (match-end 0)))
+    (delete-region
+     (point)
+     (+ (point)
+	(skip-chars-backward " \t\n")))
     (goto-char (point-min))
     (let ((max 0))
       (while (not (eobp))

@@ -1,6 +1,7 @@
 2010-10-06  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-insert): Get 'space transition right.
+	(shr-render-td): Only delete space at the end of the TD.
 
 	* nnimap.el (nnimap-open-connection): Prepare to support
 	open-gnutls-stream.
