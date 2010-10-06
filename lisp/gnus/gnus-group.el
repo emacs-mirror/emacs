@@ -2163,23 +2163,33 @@ be permanent."
 	(goto-char start)))))
 
 (defun gnus-group-completing-read (&optional prompt collection
-                                             require-match initial-input hist def)
+					     require-match initial-input hist
+					     def)
   "Read a group name with completion.  Non-ASCII group names are allowed.
 The arguments are the same as `completing-read' except that COLLECTION
 and HIST default to `gnus-active-hashtb' and `gnus-group-history'
-respectively if they are omitted."
-  (let* ((collection (or collection (or gnus-active-hashtb [0])))
-	 (choices (mapcar (lambda (symbol)
-                            (let ((group (symbol-name symbol)))
-                              (if (string-match "[^\000-\177]" group)
-                                  (gnus-group-decoded-name group)
-                                group)))
-                          (remove-if-not 'symbolp collection)))
-         (group
-          (gnus-completing-read (or prompt "Group") choices
-                                require-match initial-input
-                                (or hist 'gnus-group-history)
-                                def)))
+respectively if they are omitted.  Regards COLLECTION as a hash table
+if it is not a list."
+  (or collection (setq collection gnus-active-hashtb))
+  (let (choices group)
+    (if (listp collection)
+	(dolist (symbol collection)
+	  (setq group (symbol-name symbol))
+	  (push (if (string-match "[^\000-\177]" group)
+		    (gnus-group-decoded-name group)
+		  group)
+		choices))
+      (mapatoms (lambda (symbol)
+		  (setq group (symbol-name symbol))
+		  (push (if (string-match "[^\000-\177]" group)
+			    (gnus-group-decoded-name group)
+			  group)
+			choices))
+		collection))
+    (setq group (gnus-completing-read (or prompt "Group") (nreverse choices)
+				      require-match initial-input
+				      (or hist 'gnus-group-history)
+				      def))
     (if (symbol-value (intern-soft group collection))
 	group
       (mm-encode-coding-string group (gnus-group-name-charset nil group)))))

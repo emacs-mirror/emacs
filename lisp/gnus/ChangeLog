@@ -1,3 +1,16 @@
+2010-10-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-util.el (gnus-remove-if): Allow hash table.
+	(gnus-remove-if-not): New function.
+
+	* gnus-art.el (gnus-mime-view-part-as-type)
+	* gnus-score.el (gnus-summary-score-effect)
+	* gnus-sum.el (gnus-read-move-group-name):
+	Replace remove-if-not with gnus-remove-if-not.
+
+	* gnus-group.el (gnus-group-completing-read):
+	Regard collection as a hash table if it is not a list.
+
 2010-10-05  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-render-td): Allow blank/missing <TD>s.

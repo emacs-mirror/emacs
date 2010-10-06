@@ -1307,13 +1307,40 @@ This function saves the current buffer."
        (with-current-buffer gnus-group-buffer
 	 (eq major-mode 'gnus-group-mode))))
 
-(defun gnus-remove-if (predicate list)
-  "Return a copy of LIST with all items satisfying PREDICATE removed."
+(defun gnus-remove-if (predicate sequence &optional hash-table-p)
+  "Return a copy of SEQUENCE with all items satisfying PREDICATE removed.
+SEQUENCE should be a list, a vector, or a string.  Returns always a list.
+If HASH-TABLE-P is non-nil, regards SEQUENCE as a hash table."
   (let (out)
-    (while list
-      (unless (funcall predicate (car list))
-	(push (car list) out))
-      (setq list (cdr list)))
+    (if hash-table-p
+	(mapatoms (lambda (symbol)
+		    (unless (funcall predicate symbol)
+		      (push symbol out)))
+		  sequence)
+      (unless (listp sequence)
+	(setq sequence (append sequence nil)))
+      (while sequence
+	(unless (funcall predicate (car sequence))
+	  (push (car sequence) out))
+	(setq sequence (cdr sequence))))
+    (nreverse out)))
+
+(defun gnus-remove-if-not (predicate sequence &optional hash-table-p)
+  "Return a copy of SEQUENCE with all items not satisfying PREDICATE removed.
+SEQUENCE should be a list, a vector, or a string.  Returns always a list.
+If HASH-TABLE-P is non-nil, regards SEQUENCE as a hash table."
+  (let (out)
+    (if hash-table-p
+	(mapatoms (lambda (symbol)
+		    (when (funcall predicate symbol)
+		      (push symbol out)))
+		  sequence)
+      (unless (listp sequence)
+	(setq sequence (append sequence nil)))
+      (while sequence
+	(when (funcall predicate (car sequence))
+	  (push (car sequence) out))
+	(setq sequence (cdr sequence))))
     (nreverse out)))
 
 (if (fboundp 'assq-delete-all)
