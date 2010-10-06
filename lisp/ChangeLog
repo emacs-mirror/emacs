@@ -1,5 +1,7 @@
 2010-10-06  Glenn Morris  <rgm@gnu.org>
 
+	* hilit-chg.el (hilit-chg-get-diff-list-hk): Declare `e' for compiler.
+
 	* emacs-lisp/cl.el: No longer provide cl-19.
 
 2010-10-05  Michael Albinus  <michael.albinus@gmx.de>

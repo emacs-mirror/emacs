@@ -921,7 +921,7 @@ changes are made, so \\[highlight-changes-next-change] and
 
 
 (defun hilit-chg-get-diff-info (buf-a file-a buf-b file-b)
-  (let ((e nil) x y)   ;; e is set by function hilit-chg-get-diff-list-hk
+  (let (e x y)   ; e,x,y are set by function hilit-chg-get-diff-list-hk
     (ediff-setup buf-a file-a buf-b file-b
 	       nil nil   ; buf-c file-C
 	       'hilit-chg-get-diff-list-hk
@@ -932,10 +932,11 @@ changes are made, so \\[highlight-changes-next-change] and
 
 
 (defun hilit-chg-get-diff-list-hk ()
-  ;; x and y are dynamically bound by hilit-chg-get-diff-info
+  ;; e, x and y are dynamically bound by hilit-chg-get-diff-info
   ;; which calls this function as a hook
-  (defvar x)  ;; placate the byte-compiler
+  (defvar x)                            ; placate the byte-compiler
   (defvar y)
+  (defvar e)
   (setq e (current-buffer))
   (let ((n 0) extent p va vb a b)
     (setq x nil y nil)    ;; x and y are bound by hilit-chg-get-diff-info
@@ -1035,5 +1036,4 @@ This is called when `global-highlight-changes-mode' is turned on."
 
 (provide 'hilit-chg)
 
-;; arch-tag: de00301d-5bad-44da-aa82-e0e010b0c463
 ;;; hilit-chg.el ends here
