@@ -202,7 +202,7 @@ ENVADD = TEXINPUTS="$(srcdir):$(TEXINPUTS)" MAKEINFO="$(MAKEINFO) -I$(srcdir)"
 info: $(INFO_TARGETS)
 
 $(infodir):
-	mkdir $@
+	mkdir $@ || test -d $@
 
 dvi: $(DVI_TARGETS)
 

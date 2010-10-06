@@ -6,6 +6,7 @@
 	(clean): Delete specific dvi and pdf files.
 	(infoclean, dist): New rules.
 	(maintainer-clean): Use infoclean.
+	($(infodir)): Add parallel build workaround.
 
 2010-10-04  Glenn Morris  <rgm@gnu.org>
 

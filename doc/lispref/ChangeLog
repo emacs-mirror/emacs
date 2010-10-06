@@ -5,6 +5,7 @@
 	(mostlyclean, infoclean, dist): New rules.
 	(clean): Delete dvi and pdf files.
 	(maintainer-clean): Remove elisp.oaux, use infoclean.
+	($(infodir)): Add parallel build workaround.
 
 2010-10-04  Glenn Morris  <rgm@gnu.org>
 

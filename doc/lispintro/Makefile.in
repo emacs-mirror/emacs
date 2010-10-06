@@ -38,7 +38,7 @@ DVIPS = dvips
 info: ${infodir}/eintr
 
 $(infodir):
-	mkdir $@
+	mkdir $@ || test -d $@
 
 dvi: emacs-lisp-intro.dvi
 html: emacs-lisp-intro.html

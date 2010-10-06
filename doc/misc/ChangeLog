@@ -5,6 +5,7 @@
 	(mostlyclean): Tidy up.
 	(clean): Only delete the specific dvi and pdf files.
 	(maintainer-clean): Be more restrictive in what we delete.
+	($(infodir)): Add parallel build workaround.
 
 2010-10-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 

@@ -111,7 +111,7 @@ EMACSSOURCES= \
 info: $(infodir)/emacs
 
 $(infodir):
-	mkdir $@
+	mkdir $@ || test -d $@
 
 dvi: emacs.dvi
 pdf: emacs.pdf

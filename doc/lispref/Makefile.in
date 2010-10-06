@@ -97,7 +97,7 @@ dvi: elisp.dvi
 pdf: elisp.pdf
 
 $(infodir):
-	mkdir $@
+	mkdir $@ || test -d $@
 
 $(infodir)/elisp: $(infodir) $(srcs)
 	cd $(srcdir); $(MAKEINFO) -I. -I$(texinfodir) elisp.texi -o $@
