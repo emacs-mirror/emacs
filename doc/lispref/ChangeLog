@@ -1,3 +1,11 @@
+2010-10-06  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in: Rearrange to more closely resemble doc/emacs/Makefile.
+	(INSTALL_INFO): Remove unused variable.
+	(mostlyclean, infoclean, dist): New rules.
+	(clean): Delete dvi and pdf files.
+	(maintainer-clean): Remove elisp.oaux, use infoclean.
+
 2010-10-04  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (dvi, pdf, $(infodir)): New targets.

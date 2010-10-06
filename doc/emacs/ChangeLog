@@ -1,3 +1,12 @@
+2010-10-06  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (EMACS_XTRA): Add the main source file.
+	(emacs-xtra.dvi, emacs-xtra.pdf): Remove explicit emacs-xtra.texi.
+	(mostlyclean): No core files, reorder other files.
+	(clean): Delete specific dvi and pdf files.
+	(infoclean, dist): New rules.
+	(maintainer-clean): Use infoclean.
+
 2010-10-04  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (SHELL): Set it.

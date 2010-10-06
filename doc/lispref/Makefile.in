@@ -19,6 +19,7 @@
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
+SHELL = /bin/sh
 
 # Standard configure variables.
 srcdir = @srcdir@
@@ -30,11 +31,9 @@ infodir = ../../info
 # Directory with the (customized) texinfo.tex file.
 texinfodir = $(srcdir)/../misc
 
+MAKEINFO = makeinfo --force
 TEXI2DVI = texi2dvi
 TEXI2PDF = texi2pdf
-SHELL = /bin/sh
-INSTALL_INFO = install-info
-MAKEINFO = makeinfo --force
 
 # List of all the texinfo files in the manual:
 
@@ -109,16 +108,34 @@ elisp.dvi: $(srcs)
 elisp.pdf: $(srcs)
 	$(TEXI2PDF) -I $(srcdir) -I $(texinfodir) $(srcdir)/elisp.texi
 
-.PHONY: clean distclean maintainer-clean
+.PHONY: mostlyclean clean distclean maintainer-clean infoclean
 
-clean:
-	rm -f *.toc *.aux *.log *.cp *.cps *.fn *.fns *.tp *.tps \
-              *.vr *.vrs *.pg *.pgs *.ky *.kys elisp[12]*
+## [12] stuff is from two-volume.make.
+mostlyclean:
+	rm -f *.aux *.log *.toc *.cp *.cps *.fn *.fns *.ky *.kys \
+	  *.op *.ops *.pg *.pgs *.tp *.tps *.vr *.vrs
+	rm -f elisp[12]*
+
+clean: mostlyclean
+	rm -f elisp.dvi elisp.pdf vol[12].pdf
 
 distclean: clean
 
-maintainer-clean: clean
-	rm -f elisp.dvi elisp.pdf elisp.oaux
+infoclean:
 	-cd $(infodir) && rm -f elisp elisp-[1-9] elisp-[1-9][0-9]
+
+maintainer-clean: distclean infoclean
+
+## Note this excludes the two-volume stuff.
+dist:
+	rm -rf lispref
+	mkdir lispref
+	cp ${srcdir}/*.texi ${texinfodir}/texinfo.tex \
+	  ${srcdir}/ChangeLog* ${srcdir}/README lispref/
+	sed -e 's/@sr[c]dir@/./' -e 's/\(texinfodir *=\).*/\1 ./' \
+	  -e 's/\(infodir *=\).*/\1 ./' -e 's/^\(clean:.*\)/\1 infoclean/' \
+	  ${srcdir}/Makefile.in > lispref/Makefile
+	tar -cf elisp-texi.tar lispref
+	rm -rf lispref
 
 ### Makefile ends here

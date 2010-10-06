@@ -1,3 +1,17 @@
+2010-10-06  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (SHELL): Use /bin/sh, like every other Makefile.in.
+	(INFO_SOURCES, INFO_TARGETS, DVI_TARGETS): Remove variables.
+	($(infodir), html, pdf, infoclean, dist): New rules.
+	(${infodir}/eintr): Ensure $infodir exists.  Use $@.
+	(emacs-lisp-intro.dvi, emacs-lisp-intro.pdf, emacs-lisp-intro.html):
+	Use $^.
+	(.PHONY): Declare clean rules.
+	(mostlyclean): Delete more temp files.
+	(clean): Delete specific dvi, pdf and html files.
+	(maintainer-clean): Use infoclean.
+	(.NOEXPORT): Remove, unused by any other Makefile.in.
+
 2010-09-21  Glenn Morris  <rgm@gnu.org>
 
 	* cons-1.eps, cons-2.eps, cons-2a.eps, cons-3.eps, cons-4.eps:
