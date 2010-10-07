@@ -361,7 +361,7 @@ Use ALT-TEXT for the image string."
 		    'gnus-html-image-fetched
 		    (list buffer image))))
     (when (> (length (if (featurep 'xemacs)
-			 (split-string (function-arglist 'url-retrieve))
+			 (cdr (split-string (function-arglist 'url-retrieve)))
 		       (help-function-arglist 'url-retrieve)))
 	     4)
       (setq args (nconc args (list t))))

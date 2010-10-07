@@ -1,3 +1,11 @@
+2010-10-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-html.el (gnus-html-schedule-image-fetching): Remove function
+	name from XEmacs' function-arglist.
+
+	* gnus-gravatar.el (gnus-gravatar-insert): Don't add properties to
+	gravatar under XEmacs.
+
 2010-10-07  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* auth-source.el: Update docs with TODO items.
