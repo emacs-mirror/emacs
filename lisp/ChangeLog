@@ -1,3 +1,7 @@
+2010-10-07  Miles Bader  <Miles Bader <miles@gnu.org>>
+
+	* emacs-lisp/regexp-opt.el (regexp-opt): Add `symbols' mode.
+
 2010-10-07  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmail.el (mail-sendmail-delimit-header, mail-header-end)
