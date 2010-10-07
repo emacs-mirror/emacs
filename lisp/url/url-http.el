@@ -874,13 +874,14 @@ should be shown to the user."
   (url-http-debug "url-http-end-of-document-sentinel in buffer (%s)"
 		  (process-buffer proc))
   (url-http-idle-sentinel proc why)
-  (with-current-buffer (process-buffer proc)
-    (goto-char (point-min))
-    (if (not (looking-at "HTTP/"))
-	;; HTTP/0.9 just gets passed back no matter what
-	(url-http-activate-callback)
-      (if (url-http-parse-headers)
-	  (url-http-activate-callback)))))
+  (when (buffer-name (process-buffer proc))
+    (with-current-buffer (process-buffer proc)
+      (goto-char (point-min))
+      (if (not (looking-at "HTTP/"))
+	  ;; HTTP/0.9 just gets passed back no matter what
+	  (url-http-activate-callback)
+	(if (url-http-parse-headers)
+	    (url-http-activate-callback))))))
 
 (defun url-http-simple-after-change-function (st nd length)
   ;; Function used when we do NOT know how long the document is going to be
