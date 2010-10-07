@@ -42,6 +42,13 @@
   :version "24.1"
   :group 'gnus-gravatar)
 
+(defcustom gnus-gravatar-too-ugly (if (boundp 'gnus-article-x-face-too-ugly)
+				      gnus-article-x-face-too-ugly)
+  "Regexp matching posters whose avatar shouldn't be shown automatically."
+  :type '(choice regexp (const nil))
+  :version "24.1"
+  :group 'gnus-gravatar)
+
 (defun gnus-gravatar-transform-address (header category)
   (gnus-with-article-headers
     (let ((addresses
@@ -55,10 +62,16 @@
              (mail-fetch-field header)))))
       (let ((gravatar-size gnus-gravatar-size))
         (dolist (address addresses)
-          (gravatar-retrieve
-           (car address)
-           'gnus-gravatar-insert
-           (list header address category)))))))
+	  (unless (and gnus-gravatar-too-ugly
+		       (or (string-match gnus-gravatar-too-ugly
+					 (car address))
+			   (and (cdr address)
+				(string-match gnus-gravatar-too-ugly
+					      (cdr address)))))
+	    (gravatar-retrieve
+	     (car address)
+	     'gnus-gravatar-insert
+	     (list header address category))))))))
 
 (defun gnus-gravatar-insert (gravatar header address category)
   "Insert GRAVATAR for ADDRESS in HEADER in current article buffer.

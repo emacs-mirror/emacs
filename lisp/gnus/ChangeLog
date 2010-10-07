@@ -1,3 +1,9 @@
+2010-10-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-gravatar.el (gnus-gravatar-too-ugly): New user option.
+	(gnus-gravatar-transform-address): Don't show avatars of people of
+	which mail addresses match gnus-gravatar-too-ugly.
+
 2010-10-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (shr-table-widths): Expand TD elements to fill available

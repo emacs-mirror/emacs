@@ -827,6 +827,7 @@ Image Enhancements
 * Smileys::                     Show all those happy faces the way they were
                                   meant to be shown.
 * Picons::                      How to display pictures of what you're reading.
+* Gravatars::                   Display the avatar of people you read.
 * XVarious::                    Other XEmacsy Gnusey variables.
 
 Thwarting Email Spam
@@ -23194,6 +23195,12 @@ number for the size is enough.
 @item gnus-gravatar-properties
 @vindex gnus-gravatar-properties
 List of image properties applied to Gravatar images.
+
+@item gnus-gravatar-too-ugly
+@vindex gnus-gravatar-too-ugly
+Regexp that matches mail addresses or names of people of which avatars
+should not be displayed, or @code{nil}.  It default to the value of
+@code{gnus-article-x-face-too-ugly} (@pxref{X-Face}).
 
 @end table
 
