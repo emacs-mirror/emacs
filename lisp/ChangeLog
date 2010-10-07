@@ -1,3 +1,8 @@
+2010-10-07  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/appt.el (appt-activate): Give a warning rather than an error
+	if there is no diary-file.
+
 2010-10-06  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-sh.el (tramp-sh-file-name-handler-alist): Use
