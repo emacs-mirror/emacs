@@ -151,6 +151,34 @@ See the documentation for `list-load-path-shadows' for further information."
 		 (and (= (nth 7 (file-attributes f1))
 			 (nth 7 (file-attributes f2)))
 		      (eq 0 (call-process "cmp" nil nil nil "-s" f1 f2))))))))
+
+(defvar shadow-font-lock-keywords
+  `((,(format "hides \\(%s.*\\)"
+	      (file-name-directory (locate-library "simple.el")))
+     . (1 font-lock-warning-face)))
+  "Keywords to highlight in `shadow-mode'.")
+
+(define-derived-mode shadow-mode fundamental-mode "Shadow"
+  "Major mode for load-path shadows buffer."
+  (set (make-local-variable 'font-lock-defaults)
+       '((shadow-font-lock-keywords)))
+  (setq buffer-undo-list t
+	buffer-read-only t))
+
+;; TODO use text-properties instead, a la dired.
+(require 'button)
+(define-button-type 'shadow-find-file
+  'follow-link t
+;;  'face 'default
+  'action (lambda (button)
+	    (let ((file (concat (button-get button 'shadow-file) ".el")))
+	      (or (file-exists-p file)
+		  (setq file (concat file ".gz")))
+	      (if (file-readable-p file)
+		  (pop-to-buffer (find-file-noselect file))
+		(error "Cannot read file"))))
+  'help-echo "mouse-2, RET: find this file")
+
 
 ;;;###autoload
 (defun list-load-path-shadows (&optional stringp)
@@ -234,14 +262,20 @@ function, `find-emacs-lisp-shadows'."
 	      ;; Create the *Shadows* buffer and display shadowings there.
 	      (let ((string (buffer-string)))
 		(with-current-buffer (get-buffer-create "*Shadows*")
-                  (fundamental-mode)    ;run after-change-major-mode-hook.
 		  (display-buffer (current-buffer))
-		  (setq buffer-undo-list t
-			buffer-read-only nil)
-		  (erase-buffer)
-		  (insert string)
-		  (insert msg "\n")
-		  (setq buffer-read-only t)))
+		  (shadow-mode)	    ; run after-change-major-mode-hook
+		  (let ((inhibit-read-only t))
+		    (erase-buffer)
+		    (insert string)
+		    (insert msg "\n")
+		    (while (re-search-backward "\\(^.*\\) hides \\(.*$\\)"
+					       nil t)
+		      (dotimes (i 2)
+			(make-button (match-beginning (1+ i))
+				     (match-end (1+ i))
+				     'type 'shadow-find-file 'shadow-file
+				     (match-string (1+ i)))))
+		    (goto-char (point-max)))))
 	    ;; We are non-interactive, print shadows via message.
 	    (unless (zerop n)
 	      (message "This site has duplicate Lisp libraries with the same name.
@@ -259,5 +293,4 @@ version unless you know what you are doing.\n")
 
 (provide 'shadow)
 
-;; arch-tag: 0480e8a7-62ed-4a12-a9f6-f44ded9b0830
 ;;; shadow.el ends here

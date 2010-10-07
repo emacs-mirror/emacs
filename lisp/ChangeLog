@@ -1,5 +1,10 @@
 2010-10-07  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/shadow.el (shadow-font-lock-keywords): New variable.
+	(shadow-mode): New mode.
+	(shadow-find-file): New button.
+	(list-load-path-shadows): Use shadow-mode and buttons.
+
 	* iimage.el (iimage-version): Remove.
 	(iimage-mode-image-search-path, iimage-mode-image-regex-alist):
 	Turn into defcustoms.
