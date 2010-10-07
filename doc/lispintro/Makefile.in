@@ -23,6 +23,7 @@ SHELL = /bin/sh
 
 srcdir = @srcdir@
 VPATH = @srcdir@
+version=@version@
 
 infodir = ../../info
 # Directory with the (customized) texinfo.tex file.
@@ -70,6 +71,7 @@ mostlyclean:
 clean: mostlyclean
 	rm -f emacs-lisp-intro.dvi emacs-lisp-intro.pdf
 	rm -rf emacs-lisp-intro.html/
+	rm -f emacs-lispintro-${version}.tar*
 
 distclean: clean
 
@@ -79,15 +81,16 @@ infoclean:
 maintainer-clean: distclean infoclean
 
 dist:
-	rm -rf lispintro
-	mkdir lispintro
+	rm -rf emacs-lispintro-${version}
+	mkdir emacs-lispintro-${version}
 	cp ${srcdir}/*.texi ${srcdir}/*.eps ${srcdir}/*.pdf \
 	  ${texinfodir}/texinfo.tex \
-	  ${srcdir}/ChangeLog* ${srcdir}/README lispintro/
+	  ${srcdir}/ChangeLog* ${srcdir}/README emacs-lispintro-${version}/
 	sed -e 's/@sr[c]dir@/./' -e 's/\(texinfodir *=\).*/\1 ./' \
 	  -e 's/\(infodir *=\).*/\1 ./' -e 's/^\(clean:.*\)/\1 infoclean/' \
-	  ${srcdir}/Makefile.in > lispintro/Makefile
-	tar -cf emacs-lisp-intro-texi.tar lispintro
-	rm -rf lispintro
+	  -e "s/@ver[s]ion@/${version}/" \
+	  ${srcdir}/Makefile.in > emacs-lispintro-${version}/Makefile
+	tar -cf emacs-lispintro-${version}.tar emacs-lispintro-${version}
+	rm -rf emacs-lispintro-${version}
 
 ### Makefile ends here

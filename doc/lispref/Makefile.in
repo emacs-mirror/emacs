@@ -27,6 +27,8 @@ srcdir = @srcdir@
 # Tell make where to find source files; this is needed for the makefiles.
 VPATH=@srcdir@
 
+version=@version@
+
 infodir = ../../info
 # Directory with the (customized) texinfo.tex file.
 texinfodir = $(srcdir)/../misc
@@ -118,6 +120,7 @@ mostlyclean:
 
 clean: mostlyclean
 	rm -f elisp.dvi elisp.pdf vol[12].pdf
+	rm -f emacs-lispref-${version}.tar*
 
 distclean: clean
 
@@ -128,14 +131,15 @@ maintainer-clean: distclean infoclean
 
 ## Note this excludes the two-volume stuff.
 dist:
-	rm -rf lispref
-	mkdir lispref
+	rm -rf emacs-lispref-${version}
+	mkdir emacs-lispref-${version}
 	cp ${srcdir}/*.texi ${texinfodir}/texinfo.tex \
-	  ${srcdir}/ChangeLog* ${srcdir}/README lispref/
+	  ${srcdir}/ChangeLog* ${srcdir}/README emacs-lispref-${version}/
 	sed -e 's/@sr[c]dir@/./' -e 's/\(texinfodir *=\).*/\1 ./' \
 	  -e 's/\(infodir *=\).*/\1 ./' -e 's/^\(clean:.*\)/\1 infoclean/' \
-	  ${srcdir}/Makefile.in > lispref/Makefile
-	tar -cf elisp-texi.tar lispref
-	rm -rf lispref
+	  -e "s/@ver[s]ion@/${version}/" \
+	  ${srcdir}/Makefile.in > emacs-lispref-${version}/Makefile
+	tar -cf emacs-lispref-${version}.tar emacs-lispref-${version}
+	rm -rf emacs-lispref-${version}
 
 ### Makefile ends here

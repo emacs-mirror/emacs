@@ -28,6 +28,9 @@ srcdir=@srcdir@
 # Tell make where to find source files; this is needed for the makefiles.
 VPATH=@srcdir@
 
+# Only for make dist.
+version=@version@
+
 ## Where the output files go.
 ## Note that the setfilename command in the .texi files assumes this.
 infodir=../../info
@@ -148,6 +151,7 @@ mostlyclean:
 ## Products not in the release tarfiles.
 clean: mostlyclean
 	rm -f emacs.dvi emacs-xtra.dvi emacs.pdf emacs-xtra.pdf
+	rm -f emacs-manual-${version}.tar*
 
 distclean: clean
 
@@ -161,15 +165,16 @@ maintainer-clean: distclean infoclean
 ## The [c] is a dumb way to prevent configure expanding it.
 ## The emacs: rule becomes circular when we change infodir to ".".
 dist:
-	rm -rf emacs
-	mkdir emacs
+	rm -rf emacs-manual-${version}
+	mkdir emacs-manual-${version}
 	cp ${srcdir}/*.texi ${texinfodir}/texinfo.tex \
-	  ${srcdir}/ChangeLog* emacs/
+	  ${srcdir}/ChangeLog* emacs-manual-${version}/
 	sed -e 's/@sr[c]dir@/./' -e 's/\(texinfodir *=\).*/\1 ./' \
 	  -e 's/\(infodir *=\).*/\1 ./' -e '/^emacs *:/d' \
 	  -e 's/^\(clean:.*\)/\1 infoclean/' \
-	  ${srcdir}/Makefile.in > emacs/Makefile
-	tar -cf emacs-texi.tar emacs
-	rm -rf emacs
+	  -e "s/@ver[s]ion@/${version}/" \
+	  ${srcdir}/Makefile.in > emacs-manual-${version}/Makefile
+	tar -cf emacs-manual-${version}.tar emacs-manual-${version}
+	rm -rf emacs-manual-${version}
 
 ### Makefile ends here
