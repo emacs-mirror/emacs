@@ -3,6 +3,9 @@
 	* emacs-lisp/shadow.el (shadow-font-lock-keywords)
 	(load-path-shadows-mode, list-load-path-shadows): Rename shadow-mode to
 	load-path-shadows-mode, update references.
+	(load-path-shadows-font-lock-keywords, load-path-shadows-find-file):
+	Rename variable and button.
+	(list-load-path-shadows): Update button caller.
 
 2010-10-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 

@@ -152,7 +152,7 @@ See the documentation for `list-load-path-shadows' for further information."
 			 (nth 7 (file-attributes f2)))
 		      (eq 0 (call-process "cmp" nil nil nil "-s" f1 f2))))))))
 
-(defvar shadow-font-lock-keywords
+(defvar load-path-shadows-font-lock-keywords
   `((,(format "hides \\(%s.*\\)"
 	      (file-name-directory (locate-library "simple.el")))
      . (1 font-lock-warning-face)))
@@ -161,13 +161,13 @@ See the documentation for `list-load-path-shadows' for further information."
 (define-derived-mode load-path-shadows-mode fundamental-mode "LP-Shadows"
   "Major mode for load-path shadows buffer."
   (set (make-local-variable 'font-lock-defaults)
-       '((shadow-font-lock-keywords)))
+       '((load-path-shadows-font-lock-keywords)))
   (setq buffer-undo-list t
 	buffer-read-only t))
 
 ;; TODO use text-properties instead, a la dired.
 (require 'button)
-(define-button-type 'shadow-find-file
+(define-button-type 'load-path-shadows-find-file
   'follow-link t
 ;;  'face 'default
   'action (lambda (button)
@@ -273,7 +273,8 @@ function, `find-emacs-lisp-shadows'."
 		      (dotimes (i 2)
 			(make-button (match-beginning (1+ i))
 				     (match-end (1+ i))
-				     'type 'shadow-find-file 'shadow-file
+				     'type 'load-path-shadows-find-file
+				     'shadow-file
 				     (match-string (1+ i)))))
 		    (goto-char (point-max)))))
 	    ;; We are non-interactive, print shadows via message.
