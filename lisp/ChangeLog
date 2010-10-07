@@ -1,5 +1,10 @@
 2010-10-07  Glenn Morris  <rgm@gnu.org>
 
+	* iimage.el (iimage-version): Remove.
+	(iimage-mode-image-search-path, iimage-mode-image-regex-alist):
+	Turn into defcustoms.
+	(iimage-mode-map): Give it a doc string.
+
 	* calendar/appt.el (appt-activate): Give a warning rather than an error
 	if there is no diary-file.
 
