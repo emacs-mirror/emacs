@@ -137,7 +137,7 @@ complement to the DAP itself.
 LDAP servers usually store (but are not limited to) information about
 people such as their name, phone number, email address, office
 location, etc@enddots{} More information about LDAP can be found at
-@url{http://www.openldap.org/}
+@url{http://www.openldap.org/}.
 
 EUDC requires external support to access LDAP directory servers
 (@pxref{LDAP Requirements})
@@ -148,17 +148,15 @@ EUDC requires external support to access LDAP directory servers
 @section CCSO PH/QI
 
 The Central Computing Services Office (CCSO) of the University of
-Illinois at Urbana Champaign (UIUC) created and freely distributes a
-directory system that is currently in use in more than 300 organizations
-around the world.  The system records information about people such as
-their address, phone number, email, academic information or any other
-details it was configured to.
+Illinois at Urbana Champaign created and freely distributed a
+directory system that was used by many organizations in the 1990s.
+The system records information about people such as their address,
+phone number, email, academic information or any other details it was
+configured to.  Nowadays this system is not widely used.
 
 The system consists of two parts: a database server traditionally called
-@samp{qi} and a command-line client called @samp{ph}.
-@url{ftp://uiarchive.cso.uiuc.edu/pub/packages/ph} is the main
-distribution site.  @url{http://www.uiuc.edu/cgi-bin/ph/lookup?Query=.}
-provides a listing of the active @samp{qi} servers.
+@samp{qi} and a command-line client called @samp{ph}.  As of 2010, the
+code can still be downloaded from @url{http://www-dev.cites.uiuc.edu/ph/}.
 
 The original command-line @samp{ph} client that comes with the
 @samp{ph/qi} distribution provides additional features like the
@@ -225,18 +223,10 @@ email composition buffers (@pxref{Inline Query Expansion})
 @comment  node-name,  next,  previous,  up
 @section LDAP Requirements
 
-LDAP support is added by means of @file{ldap.el} which is part of Emacs.
+LDAP support is added by means of @file{ldap.el}, which is part of Emacs.
 @file{ldap.el} needs an external command line utility named
-@file{ldapsearch} which is available as part of LDAP toolkits:
-
-@itemize @bullet
-@item
-Open LDAP Libraries
-(@url{http://www.openldap.org/})
-@item
-University of Michigan's LDAP Client software
-(@url{http://www.umich.edu/~dirsvcs/ldap/})
-@end itemize
+@file{ldapsearch}, available as part of Open LDAP
+(@url{http://www.openldap.org/}).
 
 
 @node Usage, Credits, Installation, Top
@@ -968,7 +958,3 @@ in testing and proofreading the code and docs of @file{ph.el}.
 @printindex vr
 
 @bye
-
-@ignore
-   arch-tag: 1b79460b-4ea1-441d-ab45-05ddd16ef241
-@end ignore
