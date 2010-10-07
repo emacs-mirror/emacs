@@ -1,5 +1,11 @@
 2010-10-07  Glenn Morris  <rgm@gnu.org>
 
+	* mail/rmail.el (mail-sendmail-delimit-header, mail-header-end)
+	(mail-position-on-field): Remove declarations.
+	(mail-position-on-field): Autoload it.
+	(rmail-retry-failure): Replace use of mail-sendmail-delimit-header
+	and mail-header-end.  Don't require sendmail.
+
 	* emacs-lisp/shadow.el (shadow-font-lock-keywords): New variable.
 	(shadow-mode): New mode.
 	(shadow-find-file): New button.
