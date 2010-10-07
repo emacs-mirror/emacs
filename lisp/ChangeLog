@@ -1,5 +1,8 @@
 2010-10-07  Glenn Morris  <rgm@gnu.org>
 
+	* hilit-chg.el (hilit-chg-get-diff-info, hilit-chg-get-diff-list-hk):
+	Prefix things.
+
 	* emacs-lisp/shadow.el (shadow-font-lock-keywords)
 	(load-path-shadows-mode, list-load-path-shadows): Rename shadow-mode to
 	load-path-shadows-mode, update references.
