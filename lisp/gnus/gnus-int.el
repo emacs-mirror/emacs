@@ -41,6 +41,16 @@
   :group 'gnus-start
   :type 'hook)
 
+(defcustom gnus-after-set-mark-hook nil
+  "Hook called just after marks are set in a group."
+  :group 'gnus-start
+  :type 'hook)
+
+(defcustom gnus-before-update-mark-hook nil
+  "Hook called just before marks are updated in a group."
+  :group 'gnus-start
+  :type 'hook)
+
 (defcustom gnus-server-unopen-status nil
   "The default status if the server is not able to open.
 If the server is covered by Gnus agent, the possible values are
@@ -471,7 +481,8 @@ If FETCH-OLD, retrieve all headers (or some subset thereof) in the group."
 	action
       (funcall (gnus-get-function gnus-command-method 'request-set-mark)
 	       (gnus-group-real-name group) action
-	       (nth 1 gnus-command-method)))))
+	       (nth 1 gnus-command-method))
+      (gnus-run-hook-with-args gnus-after-set-mark-hook group action))))
 
 (defun gnus-request-update-mark (group article mark)
   "Allow the back end to change the mark the user tries to put on an article."
@@ -479,6 +490,7 @@ If FETCH-OLD, retrieve all headers (or some subset thereof) in the group."
     (if (not (gnus-check-backend-function
 	      'request-update-mark (car gnus-command-method)))
 	mark
+      (gnus-run-hook-with-args gnus-before-update-mark-hook group article mark)
       (funcall (gnus-get-function gnus-command-method 'request-update-mark)
 	       (gnus-group-real-name group) article mark))))
 

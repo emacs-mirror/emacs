@@ -1290,6 +1290,11 @@ ARG is passed to the first function."
   (save-current-buffer
     (apply 'run-hooks funcs)))
 
+(defun gnus-run-hook-with-args (hook &rest args)
+  "Does the same as `run-hook-with-args', but saves the current buffer."
+  (save-current-buffer
+    (apply 'run-hook-with-args hook args)))
+
 (defun gnus-run-mode-hooks (&rest funcs)
   "Run `run-mode-hooks' if it is available, otherwise `run-hooks'.
 This function saves the current buffer."
