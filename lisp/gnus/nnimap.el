@@ -652,6 +652,11 @@ textual parts.")
     (with-current-buffer (nnimap-buffer)
       (car (nnimap-command "DELETE %S" (utf7-encode group t))))))
 
+(deffoo nnimap-request-rename-group (group new-name &optional server)
+  (when (nnimap-possibly-change-group nil server)
+    (with-current-buffer (nnimap-buffer)
+      (car (nnimap-command "RENAME %S %S" (utf7-encode group t) (utf7-encode new-name t))))))
+
 (deffoo nnimap-request-expunge-group (group &optional server)
   (when (nnimap-possibly-change-group group server)
     (with-current-buffer (nnimap-buffer)

@@ -1,3 +1,12 @@
+2010-10-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-table-widths): Expand TD elements to fill available
+	space.
+
+2010-10-07  Julien Danjou  <julien@danjou.info>
+
+	* nnimap.el (nnimap-request-rename-group): Add this method.
+
 2010-10-07  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-html.el (gnus-html-schedule-image-fetching): Remove function
