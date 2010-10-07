@@ -156,9 +156,9 @@ See the documentation for `list-load-path-shadows' for further information."
   `((,(format "hides \\(%s.*\\)"
 	      (file-name-directory (locate-library "simple.el")))
      . (1 font-lock-warning-face)))
-  "Keywords to highlight in `shadow-mode'.")
+  "Keywords to highlight in `load-path-shadows-mode'.")
 
-(define-derived-mode shadow-mode fundamental-mode "Shadow"
+(define-derived-mode load-path-shadows-mode fundamental-mode "LP-Shadows"
   "Major mode for load-path shadows buffer."
   (set (make-local-variable 'font-lock-defaults)
        '((shadow-font-lock-keywords)))
@@ -263,7 +263,7 @@ function, `find-emacs-lisp-shadows'."
 	      (let ((string (buffer-string)))
 		(with-current-buffer (get-buffer-create "*Shadows*")
 		  (display-buffer (current-buffer))
-		  (shadow-mode)	    ; run after-change-major-mode-hook
+		  (load-path-shadows-mode) ; run after-change-major-mode-hook
 		  (let ((inhibit-read-only t))
 		    (erase-buffer)
 		    (insert string)
