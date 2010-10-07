@@ -1258,8 +1258,10 @@ PROMPT overrides the default one used to ask user for a file name."
 				      (or filename "")))
                           (or mm-default-directory default-directory)
 			  (or filename "")))
-    (when (file-directory-p file)
-      (setq file (expand-file-name filename file)))
+    (if (file-directory-p file)
+	(setq file (expand-file-name filename file))
+      (setq file (expand-file-name
+		  file (or mm-default-directory default-directory))))
     (setq mm-default-directory (file-name-directory file))
     (and (or (not (file-exists-p file))
 	     (yes-or-no-p (format "File %s already exists; overwrite? "

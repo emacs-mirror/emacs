@@ -30,6 +30,7 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
 (require 'browse-url)
 
 (defgroup shr nil
@@ -68,6 +69,7 @@ cid: URL as the argument.")
 (defvar shr-indentation 0)
 (defvar shr-inhibit-images nil)
 (defvar shr-list-mode nil)
+(defvar shr-content-cache nil)
 
 (defvar shr-map
   (let ((map (make-sparse-keymap)))
@@ -83,6 +85,7 @@ cid: URL as the argument.")
 
 ;;;###autoload
 (defun shr-insert-document (dom)
+  (setq shr-content-cache nil)
   (let ((shr-state nil)
 	(shr-start nil))
     (shr-descend (shr-transform-dom dom))))
@@ -135,6 +138,17 @@ redirects somewhere else."
       (message "Browsing %s..." url)
       (browse-url url))))
 
+(defun shr-insert-image ()
+  "Insert the image under point into the buffer."
+  (interactive)
+  (let ((url (get-text-property (point) 'shr-image)))
+    (if (not url)
+	(message "No image under point")
+      (message "Inserting %s..." url)
+      (url-retrieve url 'shr-image-fetched
+		    (list (current-buffer) (1- (point)) (point-marker))
+		    t))))
+
 ;;; Utility functions.
 
 (defun shr-transform-dom (dom)
@@ -175,20 +189,8 @@ redirects somewhere else."
 	  column)
       (when (and (string-match "\\`[ \t\n]" text)
 		 (not (bolp)))
-	(insert " ")
-	(setq shr-state 'space))
+	(insert " "))
       (dolist (elem (split-string text))
-	(setq column (current-column))
-	(when (> column 0)
-	  (cond
-	   ((and (or (not first)
-		     (eq shr-state 'space))
-		 (> (+ column (length elem) 1) shr-width))
-	    (insert "\n")
-	    (put-text-property (1- (point)) (point) 'shr-break t))
-	   ((not first)
-	    (insert " "))))
-	(setq first nil)
 	(when (and (bolp)
 		   (> shr-indentation 0))
 	  (shr-indent))
@@ -197,12 +199,19 @@ redirects somewhere else."
 	;; starts.
 	(unless shr-start
 	  (setq shr-start (point)))
-	(insert elem))
-      (setq shr-state nil)
-      (when (and (string-match "[ \t\n]\\'" text)
-		 (not (bolp)))
-	(insert " ")
-	(setq shr-state 'space))))))
+	(insert elem)
+	(when (> (current-column) shr-width)
+	  (if (not (search-backward " " (line-beginning-position) t))
+	      (insert "\n")
+	    (delete-char 1)
+	    (insert "\n")
+	    (put-text-property (1- (point)) (point) 'shr-break t)
+	    (when (> shr-indentation 0)
+	      (shr-indent))
+	    (end-of-line)))
+	(insert " "))
+      (unless (string-match "[ \t\n]\\'" text)
+	(delete-char -1))))))
 
 (defun shr-ensure-newline ()
   (unless (zerop (current-column))
@@ -396,11 +405,14 @@ Return a string with image data."
 (defun shr-tag-ul (cont)
   (shr-ensure-paragraph)
   (let ((shr-list-mode 'ul))
-    (shr-generic cont)))
+    (shr-generic cont))
+  (shr-ensure-paragraph))
 
 (defun shr-tag-ol (cont)
+  (shr-ensure-paragraph)
   (let ((shr-list-mode 1))
-    (shr-generic cont)))
+    (shr-generic cont))
+  (shr-ensure-paragraph))
 
 (defun shr-tag-li (cont)
   (shr-ensure-newline)
@@ -436,6 +448,10 @@ Return a string with image data."
 
 (defun shr-tag-h6 (cont)
   (shr-heading cont))
+
+(defun shr-tag-hr (cont)
+  (shr-ensure-newline)
+  (insert (make-string shr-width ?-) "\n"))
 
 ;;; Table rendering algorithm.
 
@@ -496,16 +512,15 @@ Return a string with image data."
 	      overlay overlay-line)
 	  (dolist (line lines)
 	    (setq overlay-line (pop overlay-lines))
-	    (when (> (length line) 0)
-	      (end-of-line)
-	      (insert line "|")
-	      (dolist (overlay overlay-line)
-		(let ((o (make-overlay (- (point) (nth 0 overlay) 1)
-				       (- (point) (nth 1 overlay) 1)))
-		      (properties (nth 2 overlay)))
-		  (while properties
-		    (overlay-put o (pop properties) (pop properties)))))
-	      (forward-line 1)))
+	    (end-of-line)
+	    (insert line "|")
+	    (dolist (overlay overlay-line)
+	      (let ((o (make-overlay (- (point) (nth 0 overlay) 1)
+				     (- (point) (nth 1 overlay) 1)))
+		    (properties (nth 2 overlay)))
+		(while properties
+		  (overlay-put o (pop properties) (pop properties)))))
+	    (forward-line 1))
 	  ;; Add blank lines at padding at the bottom of the TD,
 	  ;; possibly.
 	  (dotimes (i (- height (length lines)))
@@ -570,13 +585,18 @@ Return a string with image data."
 
 (defun shr-render-td (cont width fill)
   (with-temp-buffer
-    (let ((shr-width width)
-	  (shr-indentation 0))
-      (shr-generic cont))
-    (delete-region
-     (point)
-     (+ (point)
-	(skip-chars-backward " \t\n")))
+    (let ((cache (cdr (assoc (cons width cont) shr-content-cache))))
+      (if cache
+	  (insert cache)
+	(let ((shr-width width)
+	      (shr-indentation 0))
+	  (shr-generic cont))
+	(delete-region
+	 (point)
+	 (+ (point)
+	    (skip-chars-backward " \t\n")))
+	(push (cons (cons width cont) (buffer-string))
+	      shr-content-cache)))
     (goto-char (point-min))
     (let ((max 0))
       (while (not (eobp))

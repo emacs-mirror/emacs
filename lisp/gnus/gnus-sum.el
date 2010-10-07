@@ -8686,8 +8686,8 @@ fetch-old-headers verbiage, and so on."
 	       (apply '+ (mapcar 'gnus-summary-limit-children
 				 (cdr thread)))
 	     0))
-           (number (mail-header-number (car thread)))
-	  score)
+	   (number (mail-header-number (car thread)))
+	   score)
       (if (and
 	   (not (memq number gnus-newsgroup-marked))
 	   (or
@@ -8732,8 +8732,8 @@ fetch-old-headers verbiage, and so on."
 	      t)
 	    ;; Do the `display' group parameter.
 	    (and gnus-newsgroup-display
-                 (let ((gnus-number number))
-                   (not (funcall gnus-newsgroup-display))))))
+		 (let ((gnus-number number))
+		   (not (funcall gnus-newsgroup-display))))))
 	  ;; Nope, invisible article.
 	  0
 	;; Ok, this article is to be visible, so we add it to the limit

@@ -1016,8 +1016,10 @@ textual parts.")
 
 (defun nnimap-update-info (info marks)
   (when (and marks
-	     ;; Ignore groups with no UIDNEXT values.
-	     (nth 4 marks))
+	     ;; Ignore groups with no UIDNEXT/marks.  This happens for
+	     ;; completely empty groups.
+	     (or (car marks)
+		 (nth 4 marks)))
     (destructuring-bind (existing flags high low uidnext start-article
 				  permanent-flags) marks
       (let ((group (gnus-info-group info))
@@ -1044,9 +1046,6 @@ textual parts.")
 	   group
 	   (cons (car (gnus-active group))
 		 (or high (1- uidnext)))))
-	(when (and (not high)
-		   uidnext)
-	  (setq high (1- uidnext)))
 	;; Then update the list of read articles.
 	(let* ((unread
 		(gnus-compress-sequence

@@ -4321,7 +4321,8 @@ and the second element is the address."
   (interactive
    (list (let ((how (gnus-completing-read
 		     "Which back end"
-		     (mapcar 'car (append gnus-valid-select-methods gnus-server-alist))
+		     (mapcar 'car (append gnus-valid-select-methods
+					  gnus-server-alist))
 		     t (cons "nntp" 0) 'gnus-method-history)))
 	   ;; We either got a back end name or a virtual server name.
 	   ;; If the first, we also need an address.

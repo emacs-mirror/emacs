@@ -2585,6 +2585,11 @@ a string, be sure to use a valid format, see RFC 2616."
 (defvar gnus-server-method-cache nil)
 (defvar gnus-extended-servers nil)
 
+;; The carpal mode has been removed, but define the variable for
+;; backwards compatability.
+(defvar gnus-carpal nil)
+(make-obsolete-variable 'gnus-carpal nil "Emacs 24.1")
+
 (defvar gnus-agent-fetching nil
   "Whether Gnus agent is in fetching mode.")
 

@@ -1647,7 +1647,8 @@ SPEC is a predicate specifier that contains stuff like `or', `and',
 (defun gnus-ido-completing-read (prompt collection &optional require-match
                                         initial-input history def)
   "Call `ido-completing-read-function'."
-  (ido-completing-read prompt collection nil require-match initial-input history def))
+  (ido-completing-read prompt collection nil require-match
+		       initial-input history def))
 
 
 (autoload 'iswitchb-read-buffer "iswitchb")

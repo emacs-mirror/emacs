@@ -1,3 +1,29 @@
+2010-10-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (require): Require cl when compiling.
+	(shr-tag-hr): New function.
+
+	* nnimap.el (nnimap-update-info): Remove double setting of high.
+	(nnimap-update-info): Don't ignore groups that have no UIDNEXT.  This
+	makes nnimap work properly on Courier again.
+
+	* gnus.el (gnus-carpal): The carpal mode has been removed, but define
+	the variable for backwards compatability.
+
+	* mm-decode.el (mm-save-part): If given a non-directory result, expand
+	the file name before using to avoid setting mm-default-directory to
+	nil.
+
+	* gnus-start.el (gnus-get-unread-articles): Require gnus-agent before
+	bidning gnus-agent variables.
+
+	* shr.el (shr-render-td): Use a cache for the table rendering function
+	to avoid getting an exponential rendering behaviour in nested tables.
+	(shr-insert): Rework the line-breaking algorithm.
+	(shr-insert): Don't leave trailing spaces.
+	(shr-insert-table): Also insert empty TDs.
+	(shr-tag-blockquote): Ensure paragraphs after </ul>.
+
 2010-10-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* gnus-sum.el (gnus-number): Rename from `number'.
