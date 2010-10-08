@@ -1,3 +1,8 @@
+2010-10-08  Glenn Morris  <rgm@gnu.org>
+
+	* emacsclient.c (set_local_socket) [DARWIN_OS]: Try as a fall-back
+	DARWIN_USER_TEMP_DIR.  (Bug#3992)
+
 2010-10-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* test-distrib.c (cool_read):

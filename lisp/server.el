@@ -859,7 +859,7 @@ The following commands are accepted by the client:
   returned by -eval.
 
 `-error DESCRIPTION'
-  Signal an error (but continue processing).
+  Signal an error and delete process PROC.
 
 `-suspend'
   Suspend this terminal, i.e., stop the client process.

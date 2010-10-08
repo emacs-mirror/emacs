@@ -1,3 +1,54 @@
+2010-10-08  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (complement_process_encoding_system): Fix previous change.
+
+2010-10-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (syms_of_dbusbind): Move putenv call ...
+	(Fdbus_init_bus): ... here.  (Bug#7113)
+
+2010-10-08  Glenn Morris  <rgm@gnu.org>
+
+	* buffer.c (before-change-functions, after-change-functions):
+	Three-year overdue doc fix following 2007-08-13 change.
+
+2010-10-08  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (coding_inherit_eol_type): If parent doesn't specify
+	eol-format, inherit from the system's default.
+	(complement_process_encoding_system): Make a new coding system
+	inherit the original eol-format.
+
+2010-10-08  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (complement_process_encoding_system): New function.
+
+	* coding.h (complement_process_encoding_system): Extern it.
+
+	* callproc.c (Fcall_process): Complement the coding system for
+	encoding arguments.
+	(Fcall_process_region): Complement the coding system for encoding
+	the input to the process.
+
+	* process.c (Fstart_process): Complement the coding system for
+	encoding arguments.
+	(send_process): Complement the coding system for encoding what
+	sent to the process.
+
+2010-10-08  Kenichi Handa  <handa@m17n.org>
+
+	* xfont.c (xfont_open): Fix setting of font->average_width from
+	:avgwidth property (Bug#7123).
+
+2010-10-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (syms_of_dbusbind): Use putenv instead of setenv, it
+	is more portable.
+
+	* keyboard.c (gobble_input): Move call of xd_read_queued_messages ...
+	(kbd_buffer_get_event): ... here. This is needed for cygwin, which
+	has not defined SIGIO.
+
 2010-10-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xterm.c (x_draw_relief_rect): If box width is larger than 1,

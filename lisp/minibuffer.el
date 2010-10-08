@@ -133,8 +133,8 @@ the closest directory separators."
   "Apply FUN to each element of XS in turn.
 Return the first non-nil returned value.
 Like CL's `some'."
-  (let ((firsterror nil)
-        res)
+  (lexical-let ((firsterror nil)
+		res)
     (while (and (not res) xs)
       (condition-case err
           (setq res (funcall fun (pop xs)))
@@ -485,10 +485,30 @@ in the last `cdr'."
 (defun completion--replace (beg end newtext)
   "Replace the buffer text between BEG and END with NEWTEXT.
 Moves point to the end of the new text."
-  ;; This should be in subr.el.
+  ;; Maybe this should be in subr.el.
   ;; You'd think this is trivial to do, but details matter if you want
   ;; to keep markers "at the right place" and be robust in the face of
   ;; after-change-functions that may themselves modify the buffer.
+  (let ((prefix-len 0))
+    ;; Don't touch markers in the shared prefix (if any).
+    (while (and (< prefix-len (length newtext))
+                (< (+ beg prefix-len) end)
+                (eq (char-after (+ beg prefix-len))
+                    (aref newtext prefix-len)))
+      (setq prefix-len (1+ prefix-len)))
+    (unless (zerop prefix-len)
+      (setq beg (+ beg prefix-len))
+      (setq newtext (substring newtext prefix-len))))
+  (let ((suffix-len 0))
+    ;; Don't touch markers in the shared suffix (if any).
+    (while (and (< suffix-len (length newtext))
+                (< beg (- end suffix-len))
+                (eq (char-before (- end suffix-len))
+                    (aref newtext (- (length newtext) suffix-len 1))))
+      (setq suffix-len (1+ suffix-len)))
+    (unless (zerop suffix-len)
+      (setq end (- end suffix-len))
+      (setq newtext (substring newtext 0 (- suffix-len)))))
   (goto-char beg)
   (insert newtext)
   (delete-region (point) (+ (point) (- end beg))))
@@ -520,15 +540,16 @@ E = after completion we now have an Exact match.
  101  5 ??? impossible
  110  6 some completion happened
  111  7 completed to an exact completion"
-  (let* ((beg (field-beginning))
-         (end (field-end))
-         (string (buffer-substring beg end))
-         (comp (funcall (or try-completion-function
-			    'completion-try-completion)
-			string
-			minibuffer-completion-table
-			minibuffer-completion-predicate
-			(- (point) beg))))
+  (lexical-let*
+      ((beg (field-beginning))
+       (end (field-end))
+       (string (buffer-substring beg end))
+       (comp (funcall (or try-completion-function
+			  'completion-try-completion)
+		      string
+		      minibuffer-completion-table
+		      minibuffer-completion-predicate
+		      (- (point) beg))))
     (cond
      ((null comp)
       (minibuffer-hide-completions)
@@ -541,14 +562,15 @@ E = after completion we now have an Exact match.
       ;; `completed' should be t if some completion was done, which doesn't
       ;; include simply changing the case of the entered string.  However,
       ;; for appearance, the string is rewritten if the case changes.
-      (let* ((comp-pos (cdr comp))
-	     (completion (car comp))
-	     (completed (not (eq t (compare-strings completion nil nil
-						    string nil nil t))))
-	     (unchanged (eq t (compare-strings completion nil nil
-					       string nil nil nil))))
+      (lexical-let*
+	  ((comp-pos (cdr comp))
+	   (completion (car comp))
+	   (completed (not (eq t (compare-strings completion nil nil
+						  string nil nil t))))
+	   (unchanged (eq t (compare-strings completion nil nil
+					     string nil nil nil))))
         (if unchanged
-          (goto-char end)
+	    (goto-char end)
           ;; Insert in minibuffer the chars we got.
           (completion--replace beg end completion))
 	;; Move point to its completion-mandated destination.
@@ -729,8 +751,8 @@ If `minibuffer-completion-confirm' is `confirm-after-completion',
  `minibuffer-confirm-exit-commands', and accept the input
  otherwise."
   (interactive)
-  (let ((beg (field-beginning))
-        (end (field-end)))
+  (lexical-let ((beg (field-beginning))
+		(end (field-end)))
     (cond
      ;; Allow user to specify null string
      ((= beg end) (exit-minibuffer))
@@ -1107,14 +1129,13 @@ variables.")
   "Display a list of possible completions of the current minibuffer contents."
   (interactive)
   (message "Making completion list...")
-  (let* ((non-essential t)
-	 (start (field-beginning))
-         (string (field-string))
-         (completions (completion-all-completions
-                       string
-                       minibuffer-completion-table
-                       minibuffer-completion-predicate
-                       (- (point) (field-beginning)))))
+  (lexical-let* ((start (field-beginning))
+		 (string (field-string))
+		 (completions (completion-all-completions
+			       string
+			       minibuffer-completion-table
+			       minibuffer-completion-predicate
+			       (- (point) (field-beginning)))))
     (message nil)
     (if (and completions
              (or (consp (cdr completions))
@@ -1767,9 +1788,10 @@ Return the new suffix."
             (substring afterpoint 0 (cdr bounds)))))
 
 (defun completion-basic-try-completion (string table pred point)
-  (let* ((beforepoint (substring string 0 point))
-         (afterpoint (substring string point))
-         (bounds (completion-boundaries beforepoint table pred afterpoint)))
+  (lexical-let*
+      ((beforepoint (substring string 0 point))
+       (afterpoint (substring string point))
+       (bounds (completion-boundaries beforepoint table pred afterpoint)))
     (if (zerop (cdr bounds))
         ;; `try-completion' may return a subtly different result
         ;; than `all+merge', so try to use it whenever possible.
@@ -1780,22 +1802,30 @@ Return the new suffix."
              (concat completion
                      (completion--merge-suffix completion point afterpoint))
              (length completion))))
-      (let* ((suffix (substring afterpoint (cdr bounds)))
-             (prefix (substring beforepoint 0 (car bounds)))
-             (pattern (completion-basic--pattern
-                       beforepoint afterpoint bounds))
-             (all (completion-pcm--all-completions prefix pattern table pred)))
+      (lexical-let*
+	  ((suffix (substring afterpoint (cdr bounds)))
+	   (prefix (substring beforepoint 0 (car bounds)))
+	   (pattern (delete
+		     "" (list (substring beforepoint (car bounds))
+			      'point
+			      (substring afterpoint 0 (cdr bounds)))))
+	   (all (completion-pcm--all-completions prefix pattern table pred)))
         (if minibuffer-completing-file-name
             (setq all (completion-pcm--filename-try-filter all)))
         (completion-pcm--merge-try pattern all prefix suffix)))))
 
 (defun completion-basic-all-completions (string table pred point)
-  (let* ((beforepoint (substring string 0 point))
-         (afterpoint (substring string point))
-         (bounds (completion-boundaries beforepoint table pred afterpoint))
-         (prefix (substring beforepoint 0 (car bounds)))
-         (pattern (completion-basic--pattern beforepoint afterpoint bounds))
-         (all (completion-pcm--all-completions prefix pattern table pred)))
+  (lexical-let*
+      ((beforepoint (substring string 0 point))
+       (afterpoint (substring string point))
+       (bounds (completion-boundaries beforepoint table pred afterpoint))
+       (suffix (substring afterpoint (cdr bounds)))
+       (prefix (substring beforepoint 0 (car bounds)))
+       (pattern (delete
+		 "" (list (substring beforepoint (car bounds))
+			  'point
+			  (substring afterpoint 0 (cdr bounds)))))
+       (all (completion-pcm--all-completions prefix pattern table pred)))
     (completion-hilit-commonality all point (car bounds))))
 
 ;;; Partial-completion-mode style completion.
@@ -1958,12 +1988,13 @@ POINT is a position inside STRING.
 FILTER is a function applied to the return value, that can be used, e.g. to
 filter out additional entries (because TABLE migth not obey PRED)."
   (unless filter (setq filter 'identity))
-  (let* ((beforepoint (substring string 0 point))
-         (afterpoint (substring string point))
-         (bounds (completion-boundaries beforepoint table pred afterpoint))
-         (prefix (substring beforepoint 0 (car bounds)))
-         (suffix (substring afterpoint (cdr bounds)))
-         firsterror)
+  (lexical-let*
+      ((beforepoint (substring string 0 point))
+       (afterpoint (substring string point))
+       (bounds (completion-boundaries beforepoint table pred afterpoint))
+       (prefix (substring beforepoint 0 (car bounds)))
+       (suffix (substring afterpoint (cdr bounds)))
+       firsterror)
     (setq string (substring string (car bounds) (+ point (cdr bounds))))
     (let* ((relpoint (- point (car bounds)))
            (pattern (completion-pcm--string->pattern string relpoint))

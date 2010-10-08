@@ -1,5 +1,51 @@
 2010-10-08  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/cl-compat.el, emacs-lisp/lmenu.el: Move to obsolete/.
+
+	* emacs-lisp/shadow.el (lisp-shadow): Change prefix.
+	(shadows-compare-text-p): Make it an obsolete alias for...
+	(load-path-shadows-compare-text): ... new name.
+	(find-emacs-lisp-shadows): Update for above name change.
+	(load-path-shadows-same-file-or-nonexistent): New name for the old
+	shadow-same-file-or-nonexistent.
+
+2010-10-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuffer.el (completion--some, completion--do-completion)
+	(minibuffer-complete-and-exit, minibuffer-completion-help)
+	(completion-basic-try-completion)
+	(completion-basic-all-completions)
+	(completion-pcm--find-all-completions): Use lexical-let to
+	avoid some false matches in variable completion (Bug#7056)
+
+2010-10-08  Olof Ohlsson Sax  <olof.ohlsson.sax@gmail.com>  (tiny change)
+
+	* vc-svn.el (vc-svn-merge-news): Use --non-interactive.  (Bug#7152)
+
+2010-10-08  Leo  <sdl.web@gmail.com>
+
+	* dnd.el (dnd-get-local-file-name): If MUST-EXIST is non-nil, only
+	return non-nil if the file exists (Bug#7090).
+
+2010-10-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion--replace):
+	Better preserve markers (bug#7138).
+
+2010-10-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-process-filter): Doc fix.
+
+2010-10-08  Drew Adams  <drew.adams@oracle.com>
+
+	* dired.el (dired-save-positions): Doc fix.  (Bug#7119)
+
+2010-10-08  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.in (ELCFILES): Update.
+
+2010-10-08  Glenn Morris  <rgm@gnu.org>
+
 	* vc/ediff-wind.el (ediff-setup-control-frame):
 	* vc/ediff-ptch.el (ediff-default-backup-extension):
 	* vc/ediff-diff.el (ediff-shell, ediff-diff-options)
