@@ -3815,12 +3815,13 @@ You should probably use `gnus-find-method-for-group' instead."
 
 (defun gnus-expand-group-parameter (match value group)
   "Use MATCH to expand VALUE in GROUP."
-  (with-temp-buffer
-    (insert group)
-    (goto-char (point-min))
-    (while (re-search-forward match nil t)
-      (replace-match value))
-    (buffer-string)))
+  (let ((start (string-match match group)))
+    (if start
+        (let ((matched-string (substring group start (match-end 0))))
+          ;; Build match groups
+          (string-match match matched-string)
+          (replace-match value nil nil matched-string))
+      group)))
 
 (defun gnus-expand-group-parameters (match parameters group)
   "Go through PARAMETERS and expand them according to the match data."

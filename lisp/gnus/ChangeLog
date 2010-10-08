@@ -81,6 +81,9 @@
 
 2010-10-06  Julien Danjou  <julien@danjou.info>
 
+	* gnus.el (gnus-expand-group-parameter): Only return and act on what
+	was matched.
+
 	* sieve-manage.el: Update example in `Commentary'.
 
 	* sieve.el (sieve-open-server): Use sieve-manage-authenticate.
