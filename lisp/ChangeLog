@@ -1,3 +1,12 @@
+2010-10-08  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/shadow.el (lisp-shadow): Change prefix.
+	(shadows-compare-text-p): Make it an obsolete alias for...
+	(load-path-shadows-compare-text): ... new name.
+	(find-emacs-lisp-shadows): Update for above name change.
+	(load-path-shadows-same-file-or-nonexistent): New name for the old
+	shadow-same-file-or-nonexistent.
+
 2010-10-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* minibuffer.el (completion--some, completion--do-completion)

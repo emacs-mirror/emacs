@@ -53,10 +53,13 @@
 
 (defgroup lisp-shadow nil
   "Locate Emacs Lisp file shadowings."
-  :prefix "shadows-"
+  :prefix "load-path-shadows-"
   :group 'lisp)
 
-(defcustom shadows-compare-text-p nil
+(define-obsolete-variable-alias 'shadows-compare-text-p
+  'load-path-shadows-compare-text "23.3")
+
+(defcustom load-path-shadows-compare-text nil
   "If non-nil, then shadowing files are reported only if their text differs.
 This is slower, but filters out some innocuous shadowing."
   :type 'boolean
@@ -124,11 +127,11 @@ See the documentation for `list-load-path-shadows' for further information."
 		;; Report it unless the files are identical.
 		(let ((base1 (concat (cdr orig-dir) "/" file))
 		      (base2 (concat dir "/" file)))
-		  (if (not (and shadows-compare-text-p
-				(shadow-same-file-or-nonexistent
+		  (if (not (and load-path-shadows-compare-text
+				(load-path-shadows-same-file-or-nonexistent
 				 (concat base1 ".el") (concat base2 ".el"))
 				;; This is a bit strict, but safe.
-				(shadow-same-file-or-nonexistent
+				(load-path-shadows-same-file-or-nonexistent
 				 (concat base1 ".elc") (concat base2 ".elc"))))
 		      (setq shadows
 			    (append shadows (list base1 base2)))))
@@ -140,7 +143,7 @@ See the documentation for `list-load-path-shadows' for further information."
 
 ;; Return true if neither file exists, or if both exist and have identical
 ;; contents.
-(defun shadow-same-file-or-nonexistent (f1 f2)
+(defun load-path-shadows-same-file-or-nonexistent (f1 f2)
   (let ((exists1 (file-exists-p f1))
 	(exists2 (file-exists-p f2)))
     (or (and (not exists1) (not exists2))
