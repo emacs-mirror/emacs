@@ -113,7 +113,10 @@ If gravatar is already displayed, remove it."
   (gnus-with-article-buffer
     (if (memq 'from-gravatar gnus-article-wash-types)
         (gnus-delete-images 'from-gravatar)
-      (gnus-gravatar-transform-address "from" 'from-gravatar))))
+      (let ((gnus-gravatar-too-ugly
+	     (unless buffer-read-only ;; When type `W D g'
+	       gnus-gravatar-too-ugly)))
+	(gnus-gravatar-transform-address "from" 'from-gravatar)))))
 
 ;;;###autoload
 (defun gnus-treat-mail-gravatar ()
@@ -123,8 +126,11 @@ If gravatars are already displayed, remove them."
     (gnus-with-article-buffer
       (if (memq 'mail-gravatar gnus-article-wash-types)
           (gnus-delete-images 'mail-gravatar)
-        (gnus-gravatar-transform-address "cc" 'mail-gravatar)
-        (gnus-gravatar-transform-address "to" 'mail-gravatar))))
+	(let ((gnus-gravatar-too-ugly
+	       (unless buffer-read-only ;; When type `W D h'
+		 gnus-gravatar-too-ugly)))
+	  (gnus-gravatar-transform-address "cc" 'mail-gravatar)
+	  (gnus-gravatar-transform-address "to" 'mail-gravatar)))))
 
 (provide 'gnus-gravatar)
 

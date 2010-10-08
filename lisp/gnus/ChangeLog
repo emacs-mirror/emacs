@@ -1,5 +1,9 @@
 2010-10-08  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* gnus-gravatar.el (gnus-treat-from-gravatar)
+	(gnus-treat-mail-gravatar): Bind gnus-gravatar-too-ugly to nil when
+	called interactively.
+
 	* gnus-art.el (gnus-mime-view-part-externally)
 	(gnus-mime-view-part-internally): Make predicate function passed to
 	gnus-mime-view-part-as-type assume argument is a mime type, not a list
