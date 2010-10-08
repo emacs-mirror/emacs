@@ -1,6 +1,7 @@
 ;;; htmlfontify.el --- htmlise a buffer/source tree with optional hyperlinks
 
-;; Copyright (C) 2002, 2003, 2009, 2010  Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Emacs Lisp Archive Entry
 ;; Package: htmlfontify
@@ -2370,5 +2371,8 @@ Use a fallback method for obtaining the rgb values for a color.
 
 (provide 'htmlfontify)
 
-;; arch-tag: 944e5e63-c81d-4baa-a82a-0275f9c30e61
+;; Local Variables:
+;; coding: utf-8
+;; End:
+
 ;;; htmlfontify.el ends here
