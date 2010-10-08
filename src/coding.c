@@ -6124,53 +6124,32 @@ complement_process_encoding_system (coding_system)
 {
   Lisp_Object coding_base = Qnil, eol_base = Qnil;
   Lisp_Object spec, attrs;
+  int i;
 
-  if (NILP (coding_system))
-    coding_system = Qundecided;
-  spec = CODING_SYSTEM_SPEC (coding_system);
-  attrs = AREF (spec, 0);
-  if (! EQ (CODING_ATTR_TYPE (attrs), Qundecided))
-    coding_base = CODING_ATTR_BASE_NAME (attrs);
-  if (! VECTORP (AREF (spec, 2)))
-    eol_base = coding_system;
-
-  if (NILP (coding_base))
+  for (i = 0; i < 3; i++)
     {
-      /* We must decide the text-conversion part ar first.  */
-      if (CONSP (Vdefault_process_coding_system)
-	  && ! NILP (XCDR (Vdefault_process_coding_system)))
-	{
-	  coding_system = XCDR (Vdefault_process_coding_system);
-	  spec = CODING_SYSTEM_SPEC (coding_system);
-	  attrs = AREF (spec, 0);
-	  if (! EQ (CODING_ATTR_TYPE (attrs), Qundecided))
-	    coding_base = CODING_ATTR_BASE_NAME (attrs);
-	  if (NILP (eol_base) && ! VECTORP (AREF (spec, 2)))
-	    eol_base = coding_system;
-	}
-      if (NILP (coding_base))
-	{
-	  coding_system = preferred_coding_system ();
-	  spec = CODING_SYSTEM_SPEC (coding_system);
-	  attrs = AREF (spec, 0);
-	  if (! EQ (CODING_ATTR_TYPE (attrs), Qundecided))
-	    coding_base = CODING_ATTR_BASE_NAME (attrs);
-	  if (NILP (eol_base) && ! VECTORP (AREF (spec, 2)))
-	    eol_base = coding_system;
-	}
-      if (NILP (coding_base))
-	{
-	  spec = CODING_SYSTEM_SPEC (Qraw_text);
-	  attrs = AREF (spec, 0);
-	  if (! EQ (CODING_ATTR_TYPE (attrs), Qundecided))
-	    coding_base = CODING_ATTR_BASE_NAME (attrs);
-	  if (NILP (eol_base) && ! VECTORP (AREF (spec, 2)))
-	    eol_base = coding_system;
-	}
+      if (i == 1)
+	coding_system = CDR_SAFE (Vdefault_process_coding_system);
+      else if (i == 2)
+	coding_system = preferred_coding_system ();
+      spec = CODING_SYSTEM_SPEC (coding_system);
+      if (NILP (spec))
+	continue;
+      attrs = AREF (spec, 0);
+      if (NILP (coding_base) && ! EQ (CODING_ATTR_TYPE (attrs), Qundecided))
+	coding_base = CODING_ATTR_BASE_NAME (attrs);
+      if (NILP (eol_base) && ! VECTORP (AREF (spec, 2)))
+	eol_base = coding_system;
+      if (! NILP (coding_base) && ! NILP (eol_base))
+	break;
     }
 
-  /* We must decide the eol-conversion part (if not yet done).  */
-  return coding_inherit_eol_type (coding_base, eol_base);
+  if (i > 0)
+    /* The original CODING_SYSTEM didn't specify text-conversion or
+       eol-conversion.  Be sure that we return a fully complemented
+       coding system.  */
+    coding_system = coding_inherit_eol_type (coding_base, eol_base);
+  return coding_system;
 }
 
 
