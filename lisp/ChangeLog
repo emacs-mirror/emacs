@@ -1,5 +1,7 @@
 2010-10-08  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/cl-compat.el, emacs-lisp/lmenu.el: Move to obsolete/.
+
 	* emacs-lisp/shadow.el (lisp-shadow): Change prefix.
 	(shadows-compare-text-p): Make it an obsolete alias for...
 	(load-path-shadows-compare-text): ... new name.
