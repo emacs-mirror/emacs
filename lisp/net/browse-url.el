@@ -937,10 +937,7 @@ Galeon, Konqueror, Netscape, Mosaic, Lynx in an xterm, and then W3."
 ;;;###autoload
 (defun browse-url-xdg-open (url &optional new-window)
   (interactive (browse-url-interactive-arg "URL: "))
-  (call-process "/bin/sh" nil nil nil
-		"-c"
-		(concat "nohup xdg-open " (shell-quote-argument url)
-			">/dev/null 2>&1 </dev/null")))
+  (call-process "nohup" nil nil nil "xdg-open" url))
 
 ;;;###autoload
 (defun browse-url-netscape (url &optional new-window)
