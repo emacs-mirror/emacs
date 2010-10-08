@@ -250,7 +250,7 @@ kill ring).
 
 ** latex-electric-env-pair-mode keeps \begin..\end matched on the fly.
 
-** FIXME: xdg-open for browse-url and reportbug, 2010/08.  (Close bug#4546?)
+** FIXME: xdg-open for browse-url and reportbug, 2010/08.
 
 ** Archive Mode has basic support to browse 7z archives.
 
