@@ -39,7 +39,7 @@
 	* progmodes/octave-mod.el (octave-smie-op-levels): Remove dummy entry
 	that is now unnecessary.
 
-2010-10-07  Miles Bader  <Miles Bader <miles@gnu.org>>
+2010-10-07  Miles Bader  <miles@gnu.org>
 
 	* emacs-lisp/regexp-opt.el (regexp-opt): Add `symbols' mode.
 
@@ -17110,7 +17110,7 @@ See ChangeLog.14 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-    Copyright (C) 2009, 2010  Free Software Foundation, Inc.
+  Copyright (C) 2009, 2010  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -17126,5 +17126,3 @@ See ChangeLog.14 for earlier changes.
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
-;; arch-tag: d3e45e38-19e2-49b6-8dc2-7cb26adcc5a1
