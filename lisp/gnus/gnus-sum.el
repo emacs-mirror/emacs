@@ -10528,7 +10528,7 @@ ARTICLE can also be a list of articles."
 	    (not (equal gnus-newsgroup-name (car gnus-article-current))))
     (error "No current article selected"))
   ;; Remove old bookmark, if one exists.
-  (gnus-pull article gnus-newsgroup-bookmarks)
+  (gnus-alist-pull article gnus-newsgroup-bookmarks)
   ;; Set the new bookmark, which is on the form
   ;; (article-number . line-number-in-body).
   (push
@@ -10549,7 +10549,7 @@ ARTICLE can also be a list of articles."
   ;; Remove old bookmark, if one exists.
   (if (not (assq article gnus-newsgroup-bookmarks))
       (gnus-message 6 "No bookmark in current article.")
-    (gnus-pull article gnus-newsgroup-bookmarks)
+    (gnus-alist-pull article gnus-newsgroup-bookmarks)
     (gnus-message 6 "Removed bookmark.")))
 
 ;; Suggested by Daniel Quinlan <quinlan@best.com>.
@@ -10675,7 +10675,7 @@ If NO-EXPIRE, auto-expiry will be inhibited."
 	       (setq gnus-newsgroup-unreads
 		     (gnus-add-to-sorted-list gnus-newsgroup-unreads
 					      article))))
-	(gnus-pull article gnus-newsgroup-reads)
+	(gnus-alist-pull article gnus-newsgroup-reads)
 
 	;; See whether the article is to be put in the cache.
 	(and gnus-use-cache
@@ -10849,7 +10849,7 @@ If NO-EXPIRE, auto-expiry will be inhibited."
 	    (t
 	     (setq gnus-newsgroup-unreads
 		   (gnus-add-to-sorted-list gnus-newsgroup-unreads article))))
-      (gnus-pull article gnus-newsgroup-reads)
+      (gnus-alist-pull article gnus-newsgroup-reads)
       t)))
 
 (defalias 'gnus-summary-mark-as-unread-forward

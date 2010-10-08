@@ -3027,7 +3027,7 @@ If SOLID (the prefix), create a solid group."
 		  (nnweb-ephemeral-p t))))
     (if solid
 	(progn
-	  (gnus-pull 'nnweb-ephemeral-p method)
+	  (gnus-alist-pull 'nnweb-ephemeral-p method)
 	  (gnus-group-make-group group method))
       (gnus-group-read-ephemeral-group
        group method t

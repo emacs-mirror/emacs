@@ -1366,7 +1366,7 @@ Return the modified alist."
 	(when (string-match r word)
 	  (throw 'found r))))))
 
-(defmacro gnus-pull (key alist &optional assoc-p)
+(defmacro gnus-alist-pull (key alist &optional assoc-p)
   "Modify ALIST to be without KEY."
   (unless (symbolp alist)
     (error "Not a symbol: %s" alist))

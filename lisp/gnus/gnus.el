@@ -3944,7 +3944,7 @@ If ALLOW-LIST, also allow list as a result."
 	(when params
 	  (setq params (delq name params))
 	  (while (assq name params)
-	    (gnus-pull name params))
+	    (gnus-alist-pull name params))
 	  (gnus-info-set-params info params))))))
 
 (defun gnus-group-add-score (group &optional score)

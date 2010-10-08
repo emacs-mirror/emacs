@@ -1,3 +1,17 @@
+2010-10-08  Julien Danjou  <julien@danjou.info>
+
+	* gnus.texi: add mm-shr
+
+2010-10-08  Ludovic Courtès  <ludo@gnu.org>
+
+	* gnus.texi (Finding the Parent, The Gnus Registry)
+	(Registry Article Refer Method): Update docs for nnregistry.el.
+
+2010-10-08  Daiki Ueno  <ueno@unixuser.org>
+
+	* auth.texi (Help for users)
+	(GnuPG and EasyPG Assistant Configuration): Update docs.
+
 2010-10-08  Glenn Morris  <rgm@gnu.org>
 
 	* cl.texi (Organization, Installation, Old CL Compatibility):

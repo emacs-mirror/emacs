@@ -9812,6 +9812,10 @@ Customization, emacs-mime, The Emacs MIME Manual}) to convert the
 can use include:
 
 @table @code
+@item mm-shr
+Use Gnus simple html renderer.
+
+@table @code
 @item gnus-article-html
 Use Gnus rendered based on w3m.
 
@@ -10989,9 +10993,12 @@ do not do a particularly excellent job at it.  That is, @code{nnmbox},
 @code{nnbabyl}, @code{nnmaildir}, @code{nnml}, are able to locate
 articles from any groups, while @code{nnfolder}, and @code{nnimap} are
 only able to locate articles that have been posted to the current
-group.  (Anything else would be too time consuming.)  @code{nnmh} does
-not support this at all.
+group.  @code{nnmh} does not support this at all.
 
+Fortunately, the special @code{nnregistry} back end is able to locate
+articles in any groups, regardless of their back end (@pxref{Registry
+Article Refer Method, fetching by @code{Message-ID} using the
+registry}).
 
 @node Alternative Approaches
 @section Alternative Approaches
@@ -12452,7 +12459,7 @@ section only describes the default method.
 @item mm-text-html-renderer
 @vindex mm-text-html-renderer
 If set to @code{gnus-article-html}, Gnus will use the built-in method,
-that's based on @code{curl} and @code{w3m}.
+that's based on @code{w3m}.
 
 @item gnus-blocked-images
 @vindex gnus-blocked-images
@@ -25374,6 +25381,13 @@ the sender in addition to the Message-ID.  Several strategies are
 available.
 
 @item
+Refer to messages by ID
+
+Commands like @code{gnus-summary-refer-parent-article} can take
+advantage of the registry to jump to the referred article, regardless
+of the group the message is in.
+
+@item
 Store custom flags and keywords
 
 The registry can store custom flags and keywords for a message.  For
@@ -25392,6 +25406,7 @@ of all messages matching a particular set of criteria.
 @menu
 * Setup::
 * Fancy splitting to parent::
+* Registry Article Refer Method::
 * Store custom flags and keywords::
 * Store arbitrary data::
 @end menu
@@ -25467,6 +25482,42 @@ registry will keep.
 @defvar gnus-registry-cache-file
 The file where the registry will be stored between Gnus sessions.
 @end defvar
+
+@node Registry Article Refer Method
+@subsection Fetching by @code{Message-ID} Using the Registry
+
+The registry knows how to map each @code{Message-ID} to the group it's
+in.  This can be leveraged to enhance the ``article refer method'',
+the thing that tells Gnus how to look up an article given its
+Message-ID (@pxref{Finding the Parent}).
+
+@vindex nnregistry
+@vindex gnus-refer-article-method
+
+The @code{nnregistry} refer method does exactly that.  It has the
+advantage that an article may be found regardless of the group it's
+in---provided its @code{Message-ID} is known to the registry.  It can
+be enabled by augmenting the start-up file with something along these
+lines:
+
+@example
+;; Keep enough entries to have a good hit rate when referring to an
+;; article using the registry.  Use long group names so that Gnus
+;; knows where the article is.
+(setq gnus-registry-max-entries 2500
+      gnus-registry-use-long-group-names t)
+
+(gnus-registry-initialize)
+
+(setq gnus-refer-article-method
+      '(current
+	(nnregistry)
+	(nnweb "gmane" (nnweb-type gmane))))
+@end example
+
+The example above instructs Gnus to first look up the article in the
+current group, or, alternatively, using the registry, and finally, if
+all else fails, using Gmane.
 
 @node Fancy splitting to parent
 @subsection Fancy splitting to parent
