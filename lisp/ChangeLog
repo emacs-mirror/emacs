@@ -1,3 +1,18 @@
+2010-10-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (custom-variable, custom-face): Doc fix.
+	(custom-face-edit): Add value-create attribute.
+	(custom-face-edit-value-create)
+	(custom-face-edit-value-visibility-action): New functions.  Hide
+	unused face attributes by default, and add a visibility toggle.
+	(custom-face-edit-deactivate): Show empty values with shadow face.
+	(custom-face-selected): Only use this for face specs with default
+	attributes.
+	(custom-face-value-create): Cleanup.
+
+	* wid-edit.el (widget-checklist-value-create): Use dolist.
+	(widget-checklist-match-find): Make second arg optional.
+
 2010-10-07  Glenn Morris  <rgm@gnu.org>
 
 	* hilit-chg.el (hilit-chg-get-diff-info, hilit-chg-get-diff-list-hk):

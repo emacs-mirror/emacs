@@ -2237,11 +2237,10 @@ when he invoked the menu."
 
 (defun widget-checklist-value-create (widget)
   ;; Insert all values
-  (let ((alist (widget-checklist-match-find widget (widget-get widget :value)))
-	(args (widget-get widget :args)))
-    (while args
-      (widget-checklist-add-item widget (car args) (assq (car args) alist))
-      (setq args (cdr args)))
+  (let ((alist (widget-checklist-match-find widget))
+	(args  (widget-get widget :args)))
+    (dolist (item args)
+      (widget-checklist-add-item widget item (assq item alist)))
     (widget-put widget :children (nreverse (widget-get widget :children)))))
 
 (defun widget-checklist-add-item (widget type chosen)
@@ -2314,9 +2313,10 @@ If the item is checked, CHOSEN is a cons whose cdr is the value."
 		     values nil)))))
     (cons found rest)))
 
-(defun widget-checklist-match-find (widget vals)
+(defun widget-checklist-match-find (widget &optional vals)
   "Find the vals which match a type in the checklist.
 Return an alist of (TYPE MATCH)."
+  (or vals (setq vals (widget-get widget :value)))
   (let ((greedy (widget-get widget :greedy))
 	(args (copy-sequence (widget-get widget :args)))
 	found)
@@ -2809,11 +2809,10 @@ Return an alist of (TYPE MATCH)."
 	argument answer found)
     (while args
       (setq argument (car args)
-	    args (cdr args)
-	    answer (widget-match-inline argument vals))
-      (if answer
-	  (setq vals (cdr answer)
-		found (append found (car answer)))
+	    args     (cdr args))
+      (if (setq answer (widget-match-inline argument vals))
+	  (setq found (append found (car answer))
+		vals (cdr answer))
 	(setq vals nil
 	      args nil)))
     (if answer

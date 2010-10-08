@@ -1914,7 +1914,7 @@ something in this group has been edited but not set.")
 SET for current session only." "\
 something in this group has been set but not saved.")
     (changed ":" custom-changed "\
-CHANGED outside Customize; operating on it here may be unreliable." "\
+CHANGED outside Customize." "\
 something in this group has been changed outside customize.")
     (saved "!" custom-saved "\
 SAVED and set." "\
@@ -2456,16 +2456,22 @@ However, setting it through Custom sets the default value.")
 (define-widget 'custom-variable 'custom
   "A widget for displaying a Custom variable.
 
-The following property has a special meaning for this widget:
-:hidden-states - A list of widget states for which the widget's initial
-                 contents should be hidden."
+The following properties have special meanings for this widget:
+
+:hidden-states should be a list of widget states for which the
+  widget's initial contents are to be hidden.
+
+:custom-form should be a symbol describing how to display and
+  edit the variable---either `edit' (using edit widgets),
+  `lisp' (as a Lisp sexp), or `mismatch' (should not happen);
+  if nil, use the return value of `custom-variable-default-form'."
   :format "%v"
   :help-echo "Set or reset this variable."
   :documentation-property #'custom-variable-documentation
   :custom-category 'option
   :custom-state nil
   :custom-menu 'custom-variable-menu-create
-  :custom-form nil ; defaults to value of `custom-variable-default-form'
+  :custom-form nil
   :value-create 'custom-variable-value-create
   :action 'custom-variable-action
   :hidden-states '(standard)
@@ -3026,23 +3032,63 @@ to switch between two values."
 ;;; The `custom-face-edit' Widget.
 
 (define-widget 'custom-face-edit 'checklist
-  "Edit face attributes."
-  :format "%t: %v"
-  :tag "Attributes"
-  :extra-offset 13
+  "Widget for editing face attributes."
+  :format "%v"
+  :extra-offset 3
   :button-args '(:help-echo "Control whether this attribute has any effect.")
   :value-to-internal 'custom-face-edit-fix-value
   :match (lambda (widget value)
 	   (widget-checklist-match widget
 				   (custom-face-edit-fix-value widget value)))
+  :value-create 'custom-face-edit-value-create
   :convert-widget 'custom-face-edit-convert-widget
   :args (mapcar (lambda (att)
-		  (list 'group
-			:inline t
+		  (list 'group :inline t
 			:sibling-args (widget-get (nth 1 att) :sibling-args)
 			(list 'const :format "" :value (nth 0 att))
 			(nth 1 att)))
 		custom-face-attributes))
+
+(defun custom-face-edit-value-create (widget)
+  (let* ((value (widget-get widget :value)) ; list of key-value pairs
+	 (alist (widget-checklist-match-find widget value))
+	 (args  (widget-get widget :args))
+	 (show-all (widget-get widget :show-all-attributes))
+	 (buttons (widget-get widget :buttons))
+	 entry)
+    (unless (looking-back "^ *")
+      (insert ?\n))
+    (insert-char ?\s (widget-get widget :extra-offset))
+    (if (or alist show-all)
+	(dolist (prop args)
+	  (setq entry (assq prop alist))
+	  (if (or entry show-all)
+	      (widget-checklist-add-item widget prop entry)))
+      (insert (propertize "-- Empty face --" 'face 'shadow) ?\n))
+    (let ((indent (widget-get widget :indent)))
+      (if indent (insert-char ?\s (widget-get widget :indent))))
+    (push (widget-create-child-and-convert
+	   widget 'visibility
+	   :help-echo "Show or hide all face attributes."
+	   :button-face 'custom-visibility
+	   :pressed-face 'custom-visibility
+	   :mouse-face 'highlight
+	   :on "Hide Unused Attributes"    :off "Show All Attributes"
+	   :on-image nil :off-image nil
+	   :always-active t
+	   :action 'custom-face-edit-value-visibility-action
+	   show-all)
+	  buttons)
+    (insert ?\n)
+    (widget-put widget :buttons buttons)
+    (widget-put widget :children (nreverse (widget-get widget :children)))))
+
+(defun custom-face-edit-value-visibility-action (widget &rest ignore)
+  ;; Toggle hiding of face attributes.
+  (let ((parent (widget-get widget :parent)))
+    (widget-put parent :show-all-attributes
+		(not (widget-get parent :show-all-attributes)))
+    (custom-redraw parent)))
 
 (defun custom-face-edit-fix-value (widget value)
   "Ignoring WIDGET, convert :bold and :italic in VALUE to new form.
@@ -3092,7 +3138,7 @@ Also change :reverse-video to :inverse-video."
       (save-excursion
 	(goto-char from)
 	(widget-default-delete widget)
-	(insert tag ": *\n")
+	(insert tag ": " (propertize "--" 'face 'shadow) "\n")
 	(widget-put widget :inactive
 		    (cons value (cons from (- (point) from))))))))
 
@@ -3235,14 +3281,23 @@ Only match frames that support the specified face attributes.")
   :version "20.3")
 
 (define-widget 'custom-face 'custom
-  "Customize face."
+  "Widget for customizing a face.
+The widget value is the face name (a symbol).
+
+The following properties have special meanings for this widget:
+
+:custom-form should be a symbol describing how to display and
+  edit the face attributes---either `selected' (attributes for
+  selected display only), `all' (all attributes), `lisp' (as a
+  Lisp sexp), or `mismatch' (should not happen); if nil, use
+  the return value of `custom-face-default-form'."
   :sample-face 'custom-face-tag
   :help-echo "Set or reset this face."
   :documentation-property #'face-doc-string
   :value-create 'custom-face-value-create
   :action 'custom-face-action
   :custom-category 'face
-  :custom-form nil ; defaults to value of `custom-face-default-form'
+  :custom-form nil
   :custom-set 'custom-face-set
   :custom-mark-to-save 'custom-face-mark-to-save
   :custom-reset-current 'custom-redraw
@@ -3273,30 +3328,16 @@ Only match frames that support the specified face attributes.")
   (not (face-spec-set-match-display value (selected-frame))))
 
 (define-widget 'custom-face-selected 'group
-  "Edit the attributes of the selected display in a face specification."
-  :args '((choice :inline t
-		  (group :tag "With Defaults" :inline t
-		   (group (const :tag "" default)
-			  (custom-face-edit :tag " Default\n Attributes"))
-		   (repeat :format ""
-			   :inline t
-			   (group custom-display-unselected sexp))
-		   (group (sexp :format "")
-			  (custom-face-edit :tag " Overriding\n Attributes"))
-		   (repeat :format ""
-			   :inline t
-			   sexp))
-		  (group :tag "No Defaults" :inline t
-			 (repeat :format ""
-				 :inline t
-				 (group custom-display-unselected sexp))
-			 (group (sexp :format "")
-				(custom-face-edit :tag "\n Attributes"))
-			 (repeat :format ""
-				 :inline t
-				 sexp)))))
-
-
+  "Widget for editing the attributes of a face on the selected display."
+  :args '((group :tag "No Defaults" :inline t
+		 (repeat :format ""
+			 :inline t
+			 (group custom-display-unselected sexp))
+		 (group (sexp :format "")
+			(custom-face-edit :tag "\n Attributes"))
+		 (repeat :format ""
+			 :inline t
+			 sexp))))
 
 (defconst custom-face-selected (widget-convert 'custom-face-selected)
   "Converted version of the `custom-face-selected' widget.")
@@ -3344,120 +3385,114 @@ SPEC must be a full face spec."
 
 (defun custom-face-value-create (widget)
   "Create a list of the display specifications for WIDGET."
-  (let ((buttons (widget-get widget :buttons))
-	children
-	(symbol (widget-get widget :value))
-	(tag (widget-get widget :tag))
-	(state (widget-get widget :custom-state))
-	(begin (point))
-	(is-last (widget-get widget :custom-last))
-	(prefix (widget-get widget :custom-prefix)))
-    (unless tag
-      (setq tag (prin1-to-string symbol)))
-    (cond ((eq custom-buffer-style 'tree)
-	   (insert prefix (if is-last " `--- " " |--- "))
-	   (push (widget-create-child-and-convert
-		  widget 'custom-browse-face-tag)
-		 buttons)
-	   (insert " " tag "\n")
-	   (widget-put widget :buttons buttons))
-	  (t
-	   ;; Visibility.
-	   (push (widget-create-child-and-convert
-		  widget 'custom-visibility
-		  :help-echo "Hide or show this face."
-		  :on "Hide"
-		  :off "Show"
-		  :on-image "down"
-		  :off-image "right"
-		  :action 'custom-toggle-parent
-		  (not (eq state 'hidden)))
-		 buttons)
-	   (insert " ")
-	   ;; Create tag.
-	   (insert tag)
-	   (widget-specify-sample widget begin (point))
-	   (if (eq custom-buffer-style 'face)
-	       (insert " ")
-	     (if (string-match "face\\'" tag)
-		 (insert ":")
-	       (insert " face: ")))
-	   ;; Sample.
-	   (push (widget-create-child-and-convert widget 'item
-						  :format "(%{%t%})"
-						  :sample-face symbol
-						  :tag "sample")
-		 buttons)
-	   ;; Magic.
-	   (insert "\n")
-	   (let ((magic (widget-create-child-and-convert
-			 widget 'custom-magic nil)))
-	     (widget-put widget :custom-magic magic)
-	     (push magic buttons))
-	   ;; Update buttons.
-	   (widget-put widget :buttons buttons)
-	   ;; Insert documentation.
-	   (widget-put widget :documentation-indent 3)
-	   (widget-add-documentation-string-button
-	    widget :visibility-widget 'custom-visibility)
+  (let* ((buttons (widget-get widget :buttons))
+	 (symbol  (widget-get widget :value))
+	 (tag (or (widget-get widget :tag)
+		  (prin1-to-string symbol)))
+	 (hiddenp (eq (widget-get widget :custom-state) 'hidden))
+	 children)
 
-	   ;; The comment field
-	   (unless (eq state 'hidden)
-	     (let* ((comment (get symbol 'face-comment))
-		    (comment-widget
-		     (widget-create-child-and-convert
-		      widget 'custom-comment
-		      :parent widget
-		      :value (or comment ""))))
-	       (widget-put widget :comment-widget comment-widget)
-	       (push comment-widget children)))
-	   ;; See also.
-	   (unless (eq state 'hidden)
-	     (when (eq (widget-get widget :custom-level) 1)
-	       (custom-add-parent-links widget))
-	     (custom-add-see-also widget))
-	   ;; Editor.
-	   (unless (eq (preceding-char) ?\n)
-	     (insert "\n"))
-	   (unless (eq state 'hidden)
-	     (message "Creating face editor...")
-	     (custom-load-widget widget)
-	     (unless (widget-get widget :custom-form)
-		 (widget-put widget :custom-form custom-face-default-form))
-	     (let* ((symbol (widget-value widget))
-		    (spec (or (get symbol 'customized-face)
-			      (get symbol 'saved-face)
-			      (get symbol 'face-defface-spec)
-			      ;; Attempt to construct it.
-			      (list (list t (custom-face-attributes-get
-					     symbol (selected-frame))))))
-		    (form (widget-get widget :custom-form))
-		    (indent (widget-get widget :indent))
-		    edit)
-	       ;; If the user has changed this face in some other way,
-	       ;; edit it as the user has specified it.
-	       (if (not (face-spec-match-p symbol spec (selected-frame)))
-		   (setq spec (list (list t (face-attr-construct symbol (selected-frame))))))
-	       (setq spec (custom-pre-filter-face-spec spec))
-	       (setq edit (widget-create-child-and-convert
-			   widget
-			   (cond ((and (eq form 'selected)
-				       (widget-apply custom-face-selected
-						     :match spec))
-				  (when indent (insert-char ?\  indent))
-				  'custom-face-selected)
-				 ((and (not (eq form 'lisp))
-				       (widget-apply custom-face-all
-						     :match spec))
-				  'custom-face-all)
-				 (t
-				  (when indent (insert-char ?\  indent))
-				  'sexp))
-			   :value spec))
-	       (custom-face-state-set widget)
-	       (push edit children)
-	       (widget-put widget :children children))
-	     (message "Creating face editor...done"))))))
+    (if (eq custom-buffer-style 'tree)
+
+	;; Draw a tree-style `custom-face' widget
+	(progn
+	  (insert (widget-get widget :custom-prefix)
+		  (if (widget-get widget :custom-last) " `--- " " |--- "))
+	  (push (widget-create-child-and-convert
+		 widget 'custom-browse-face-tag)
+		buttons)
+	  (insert " " tag "\n")
+	  (widget-put widget :buttons buttons))
+
+      ;; Draw an ordinary `custom-face' widget
+      (let ((opoint (point)))
+	;; Visibility indicator.
+	(push (widget-create-child-and-convert
+	       widget 'custom-visibility
+	       :help-echo "Hide or show this face."
+	       :on "Hide" :off "Show"
+	       :on-image "down" :off-image "right"
+	       :action 'custom-toggle-parent
+	       (not hiddenp))
+	      buttons)
+	;; Face name (tag).
+	(insert " " tag)
+	(widget-specify-sample widget opoint (point)))
+      (insert
+       (cond ((eq custom-buffer-style 'face) " ")
+	     ((string-match "face\\'" tag)   ":")
+	     (t " face: ")))
+
+      ;; Face sample.
+      (push (widget-create-child-and-convert
+	     widget 'item
+	     :format "(%{%t%})" :sample-face symbol :tag "sample")
+	    buttons)
+      ;; Magic.
+      (insert "\n")
+      (let ((magic (widget-create-child-and-convert
+		    widget 'custom-magic nil)))
+	(widget-put widget :custom-magic magic)
+	(push magic buttons))
+
+      ;; Update buttons.
+      (widget-put widget :buttons buttons)
+
+      ;; Insert documentation.
+      (widget-put widget :documentation-indent 3)
+      (widget-add-documentation-string-button
+       widget :visibility-widget 'custom-visibility)
+      ;; The comment field
+      (unless hiddenp
+	(let* ((comment (get symbol 'face-comment))
+	       (comment-widget
+		(widget-create-child-and-convert
+		 widget 'custom-comment
+		 :parent widget
+		 :value (or comment ""))))
+	  (widget-put widget :comment-widget comment-widget)
+	  (push comment-widget children)))
+
+      ;; Editor.
+      (unless (eq (preceding-char) ?\n)
+	(insert "\n"))
+      (unless hiddenp
+	(custom-load-widget widget)
+	(unless (widget-get widget :custom-form)
+	  (widget-put widget :custom-form custom-face-default-form))
+
+	(let* ((spec (or (get symbol 'customized-face)
+			 (get symbol 'saved-face)
+			 (get symbol 'face-defface-spec)
+			 ;; Attempt to construct it.
+			 (list (list t (custom-face-attributes-get
+					symbol (selected-frame))))))
+	       (form (widget-get widget :custom-form))
+	       (indent (widget-get widget :indent))
+	       edit-widget-type edit)
+	  ;; If the user has changed this face in some other way,
+	  ;; edit it as the user has specified it.
+	  (if (not (face-spec-match-p symbol spec (selected-frame)))
+	      (setq spec `((t ,(face-attr-construct symbol
+						    (selected-frame))))))
+	  (setq spec (custom-pre-filter-face-spec spec))
+
+	  (cond ((and (eq form 'selected)
+		      (widget-apply custom-face-selected :match spec))
+		 (when indent (insert-char ?\s indent))
+		 (setq edit-widget-type 'custom-face-selected))
+		((and (not (eq form 'lisp))
+		      (widget-apply custom-face-all :match spec))
+		 (setq edit-widget-type 'custom-face-all))
+		(t
+		 (when indent
+		   (insert-char ?\s indent))
+		 (setq edit-widget-type 'sexp)))
+	  (setq edit (widget-create-child-and-convert
+		      widget edit-widget-type :value spec))
+	  (custom-face-state-set widget)
+	  (push edit children)
+	  (widget-put widget :children children))))))
 
 (defvar custom-face-menu
   `(("Set for Current Session" custom-face-set)
