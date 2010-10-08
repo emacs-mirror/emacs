@@ -1,3 +1,9 @@
+2010-10-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xterm.c (x_draw_relief_rect): If box width is larger than 1,
+	draw the outermost line using the black relief, for legibility.
+	Omit drawing the four corner pixels.
+
 2010-10-04  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keyboard.c (echo_prompt): Function moved into read_key_sequence.
