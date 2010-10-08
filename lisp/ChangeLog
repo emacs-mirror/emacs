@@ -1,3 +1,7 @@
+2010-10-08  Glenn Morris  <rgm@gnu.org>
+
+	* net/browse-url.el (browse-url-xdg-open): Shell-quote url.  (Bug#7166)
+
 2010-10-07  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cus-edit.el (custom-variable, custom-face): Doc fix.

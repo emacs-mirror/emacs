@@ -939,7 +939,7 @@ Galeon, Konqueror, Netscape, Mosaic, Lynx in an xterm, and then W3."
   (interactive (browse-url-interactive-arg "URL: "))
   (call-process "/bin/sh" nil nil nil
 		"-c"
-		(concat "nohup xdg-open " url
+		(concat "nohup xdg-open " (shell-quote-argument url)
 			">/dev/null 2>&1 </dev/null")))
 
 ;;;###autoload
@@ -1571,5 +1571,4 @@ from `browse-url-elinks-wrapper'."
 
 (provide 'browse-url)
 
-;; arch-tag: d2079573-5c06-4097-9598-f550fba19430
 ;;; browse-url.el ends here
