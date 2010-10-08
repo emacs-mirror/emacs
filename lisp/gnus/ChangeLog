@@ -1,3 +1,7 @@
+2010-10-08  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* shr.el (shr-table-widths): Don't use cl function `reduce'.
+
 2010-10-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* shr.el (require): Require cl when compiling.
