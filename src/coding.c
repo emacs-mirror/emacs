@@ -6122,50 +6122,33 @@ Lisp_Object
 complement_process_encoding_system (coding_system)
      Lisp_Object coding_system;
 {
-  Lisp_Object spec, attrs, coding_type, eol_type;
+  Lisp_Object coding_base = Qnil, eol_base = Qnil;
+  Lisp_Object spec, attrs;
+  int i;
 
-  if (NILP (coding_system))
-    coding_system = Qundecided;
-  spec = CODING_SYSTEM_SPEC (coding_system);
-  attrs = AREF (spec, 0);
-  coding_type = CODING_ATTR_TYPE (attrs);
-  eol_type = AREF (spec, 2);
-
-  if (EQ (coding_type, Qundecided))
+  for (i = 0; i < 3; i++)
     {
-      /* We must decide the text-conversion part ar first.  */
-      if (CONSP (Vdefault_process_coding_system))
-	{
-	  coding_system = XCDR (Vdefault_process_coding_system);
-	  if (! NILP (coding_system))
-	    {
-	      spec = CODING_SYSTEM_SPEC (coding_system);
-	      attrs = AREF (spec, 0);
-	      coding_type = CODING_ATTR_TYPE (attrs);
-	      eol_type = AREF (spec, 2);
-	    }
-	}
-      if (EQ (coding_type, Qundecided))
-	{
-	  coding_system = preferred_coding_system ();
-	  spec = CODING_SYSTEM_SPEC (coding_system);
-	  attrs = AREF (spec, 0);
-	  coding_type = CODING_ATTR_TYPE (attrs);
-	  eol_type = AREF (spec, 2);
-	}
-      if (EQ (coding_type, Qundecided))
-	{
-	  coding_system = Qraw_text;
-	  coding_type = Qraw_text;
-	  eol_type = Qnil;
-	}
-    }
-  if (NILP (eol_type) || VECTORP (eol_type))
-    {
-      /* We must decide the eol-conversion part.  */      
-      coding_system = coding_inherit_eol_type (coding_system, coding_system);
+      if (i == 1)
+	coding_system = CDR_SAFE (Vdefault_process_coding_system);
+      else if (i == 2)
+	coding_system = preferred_coding_system ();
+      spec = CODING_SYSTEM_SPEC (coding_system);
+      if (NILP (spec))
+	continue;
+      attrs = AREF (spec, 0);
+      if (NILP (coding_base) && ! EQ (CODING_ATTR_TYPE (attrs), Qundecided))
+	coding_base = CODING_ATTR_BASE_NAME (attrs);
+      if (NILP (eol_base) && ! VECTORP (AREF (spec, 2)))
+	eol_base = coding_system;
+      if (! NILP (coding_base) && ! NILP (eol_base))
+	break;
     }
 
+  if (i > 0)
+    /* The original CODING_SYSTEM didn't specify text-conversion or
+       eol-conversion.  Be sure that we return a fully complemented
+       coding system.  */
+    coding_system = coding_inherit_eol_type (coding_base, eol_base);
   return coding_system;
 }
 
