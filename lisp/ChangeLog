@@ -1,5 +1,10 @@
 2010-10-08  Glenn Morris  <rgm@gnu.org>
 
+	* vc/ediff-wind.el (ediff-setup-control-frame):
+	* vc/ediff-ptch.el (ediff-default-backup-extension):
+	* vc/ediff-diff.el (ediff-shell, ediff-diff-options)
+	(ediff-exec-process): Remove system-types emx, windows-95.
+
 	* net/browse-url.el (browse-url-xdg-open): Shell-quote url.  (Bug#7166)
 
 2010-10-07  Chong Yidong  <cyd@stupidchicken.com>
