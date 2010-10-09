@@ -29,6 +29,7 @@ TAGS
 TAGS-LISP
 info/*
 admin/unidata/unidata.txt
+doc/emacs/emacsver.texi
 leim/leim-list.el
 leim/quail/*.el
 leim/changed.misc
