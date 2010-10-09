@@ -1,3 +1,8 @@
+2010-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp.el (lisp-completion-at-point):
+	Use emacs-lisp-mode-syntax-table for the whole function.
+
 2010-10-09  Richard Sharman  <richard_sharman@mitel.com>  (tiny change)
 
 	* progmodes/gdb-ui.el (gdb-mouse-toggle-breakpoint-margin)
@@ -7,8 +12,8 @@
 2010-10-05  David Koppelman  <koppel@ece.lsu.edu>
 
 	* hi-lock.el (hi-lock-font-lock-hook): Check font-lock-fontified
-	instead of font-lock-mode before adding keywords. Removed
-	hi-lock-mode off code. Removed inhibit hack.
+	instead of font-lock-mode before adding keywords.
+	Remove hi-lock-mode off code.  Remove inhibit hack.
 	(hi-lock-set-pattern): Only add keywords if font-lock-fontified
 	non-nil; removed hook inhibit hack.
 
