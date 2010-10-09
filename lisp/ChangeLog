@@ -1,3 +1,9 @@
+2010-10-09  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* ibuffer.el (ibuffer-visit-buffer): To mimick list-buffers
+	behaviour, don't bury the ibuffer buffer when visiting other
+	buffers.
+
 2010-10-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cus-edit.el (custom-commands, custom-buffer-create-internal)

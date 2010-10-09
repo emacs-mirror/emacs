@@ -1053,7 +1053,6 @@ If optional argument SINGLE is non-nil, then also ensure there is only
 one window."
   (interactive "P")
   (let ((buf (ibuffer-current-buffer t)))
-    (bury-buffer (current-buffer))
     (switch-to-buffer buf)
     (when single
       (delete-other-windows))))
