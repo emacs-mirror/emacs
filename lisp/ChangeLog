@@ -1,5 +1,9 @@
 2010-10-09  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/cal-hebrew.el (holiday-hebrew-rosh-hashanah)
+	(holiday-hebrew-passover, holiday-hebrew-tisha-b-av)
+	(holiday-hebrew-misc): Small simplifications.
+
 	* emacs-lisp/authors.el (authors-valid-file-names): Add b2m.c.
 
 	* net/browse-url.el: Don't require thingatpt, term, dired,
