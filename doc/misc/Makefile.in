@@ -314,11 +314,11 @@ ede.pdf: ${srcdir}/ede.texi
 ediff : $(infodir)/ediff
 $(infodir)/ediff: ediff.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) ediff.texi
-ediff.dvi: ediff.texi
-	$(ENVADD) $(TEXI2DVI) ${srcdir}/ediff.texi
-ediff.pdf: ediff.texi
-	$(ENVADD) $(TEXI2PDF) ${srcdir}/ediff.texi
+	cd $(srcdir); $(MAKEINFO) $<
+ediff.dvi: ${srcdir}/ediff.texi
+	$(ENVADD) $(TEXI2DVI) $<
+ediff.pdf: ${srcdir}/ediff.texi
+	$(ENVADD) $(TEXI2PDF) $<
 
 edt : $(infodir)/edt
 $(infodir)/edt: edt.texi
@@ -350,11 +350,11 @@ emacs-mime.pdf: ${srcdir}/emacs-mime.texi
 epa : $(infodir)/epa
 $(infodir)/epa: epa.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) epa.texi
-epa.dvi: epa.texi
-	$(ENVADD) $(TEXI2DVI) ${srcdir}/epa.texi
-epa.pdf: epa.texi
-	$(ENVADD) $(TEXI2PDF) ${srcdir}/epa.texi
+	cd $(srcdir); $(MAKEINFO) $<
+epa.dvi: ${srcdir}/epa.texi
+	$(ENVADD) $(TEXI2DVI) $<
+epa.pdf: ${srcdir}/epa.texi
+	$(ENVADD) $(TEXI2PDF) $<
 
 erc : $(infodir)/erc
 $(infodir)/erc: erc.texi
