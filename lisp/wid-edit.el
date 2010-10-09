@@ -57,8 +57,6 @@
 
 ;;; Code:
 
-(defvar widget)
-
 ;;; Compatibility.
 
 (defun widget-event-point (event)
@@ -1462,11 +1460,15 @@ The value of the :type attribute should be an unconverted widget type."
   :notify 'widget-default-notify
   :prompt-value 'widget-default-prompt-value)
 
+(defvar widget--completing-widget)
+
 (defun widget-default-complete (widget)
   "Call the value of the :complete-function property of WIDGET.
-If that does not exist, call the value of `widget-complete-field'."
-  (call-interactively (or (widget-get widget :complete-function)
-			  widget-complete-field)))
+If that does not exist, call the value of `widget-complete-field'.
+During this call, `widget--completing-widget' is bound to WIDGET."
+  (let ((widget--completing-widget widget))
+    (call-interactively (or (widget-get widget :complete-function)
+			    widget-complete-field))))
 
 (defun widget-default-create (widget)
   "Create WIDGET at point in the current buffer."
@@ -3048,14 +3050,13 @@ as the value."
   :complete-function 'ispell-complete-word
   :prompt-history 'widget-string-prompt-value-history)
 
-(defvar widget)
-
 (defun widget-string-complete ()
   "Complete contents of string field.
 Completions are taken from the :completion-alist property of the
 widget.  If that isn't a list, it's evalled and expected to yield a list."
   (interactive)
-  (let* ((completion-ignore-case (widget-get widget :completion-ignore-case))
+  (let* ((widget widget--completing-widget)
+	 (completion-ignore-case (widget-get widget :completion-ignore-case))
 	 (alist (widget-get widget :completion-alist))
 	 (_ (unless (listp alist)
 	      (setq alist (eval alist)))))
@@ -3100,9 +3101,10 @@ It reads a file name from an editable text field."
 (defun widget-file-complete ()
   "Perform completion on file name preceding point."
   (interactive)
-  (completion-in-region (widget-field-start widget)
-                        (max (point) (widget-field-text-end widget))
-                        'completion-file-name-table))
+  (let ((widget widget--completing-widget))
+    (completion-in-region (widget-field-start widget)
+			  (max (point) (widget-field-text-end widget))
+			  'completion-file-name-table)))
 
 (defun widget-file-prompt-value (widget prompt value unbound)
   ;; Read file from minibuffer.
@@ -3725,7 +3727,7 @@ example:
   (widget-insert " ")
   (widget-create-child-and-convert
    widget 'push-button
-   :tag "Choose" :action 'widget-color--choose-action)
+   :tag " Choose " :action 'widget-color--choose-action)
   (widget-insert " "))
 
 (defun widget-color--choose-action (widget &optional event)

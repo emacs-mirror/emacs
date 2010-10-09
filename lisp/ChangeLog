@@ -1,3 +1,20 @@
+2010-10-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (custom-commands, custom-buffer-create-internal)
+	(custom-magic-value-create): Pad button tags with spaces.
+	(custom-face-edit): New variable.
+	(custom-face-value-create): Determine whether to use the usual
+	face editor here, instead of using custom-face-selected.  Pass
+	face defaults to custom-face-edit widget.
+	(custom-face-selected, custom-display-unselected): Delete widgets.
+	(custom-display-unselected-match): Function removed.
+	(custom-face-set, custom-face-mark-to-save): Accept
+	custom-face-edit widgets as the direct widget child.
+
+	* wid-edit.el (widget--completing-widget): New var.
+	(widget-default-complete): Bind it when doing completion.
+	(widget-string-complete, widget-file-complete): Use it.
+
 2010-10-09  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/cal-hebrew.el (holiday-hebrew-rosh-hashanah)
