@@ -32,8 +32,10 @@ version=@version@
 infodir = ../../info
 # Directory with the (customized) texinfo.tex file.
 texinfodir = $(srcdir)/../misc
+# Directory with emacsver.texi.
+emacsdir =  $(srcdir)/../emacs
 
-MAKEINFO = makeinfo --force
+MAKEINFO = makeinfo --force -I $(emacsdir)
 TEXI2DVI = texi2dvi
 TEXI2PDF = texi2pdf
 
@@ -143,6 +145,8 @@ dist:
 	  -e 's/\(infodir *=\).*/\1 ./' -e 's/^\(clean:.*\)/\1 infoclean/' \
 	  -e "s/@ver[s]ion@/${version}/" \
 	  ${srcdir}/Makefile.in > emacs-lispref-${version}/Makefile
+	sed -e "s/@ver[s]ion@/${version}/" \
+	  ${emacsdir}/emacsver.texi.in > emacs-lispref-${version}/emacsver.texi
 	tar -cf emacs-lispref-${version}.tar emacs-lispref-${version}
 	rm -rf emacs-lispref-${version}
 

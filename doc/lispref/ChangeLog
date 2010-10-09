@@ -1,5 +1,11 @@
 2010-10-09  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (emacsdir): New variable.
+	(MAKEINFO): Add -I $emacsdir.
+	(dist): Copy emacsver.texi.
+	* book-spine.texinfo, elisp.texi, vol2.texi, vol1.texi:
+	Set EMACSVER by including emacsver.texi.
+
 	* Makefile.in (.PHONY): Declare info, dvi, pdf, dist.
 
 2010-10-07  Glenn Morris  <rgm@gnu.org>

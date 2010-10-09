@@ -1,5 +1,7 @@
 2010-10-09  Glenn Morris  <rgm@gnu.org>
 
+	* admin.el (set-version): No need to act on doc/ files any more.
+
 	* quick-install-emacs (PUBLIC_LIBSRC_BINARIES): Remove b2m.
 
 2010-09-05  Juanma Barranquero  <lekktu@gmail.com>

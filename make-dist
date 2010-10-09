@@ -666,9 +666,10 @@ echo "Making links to \`info'"
  ln emacs dummy~ ; ln emacs \#dummy\#
  rm -f *~ \#*\# core .arch-inventory .gitignore)
 
+# FIXME ? Why including *.aux etc?
 echo "Making links to \`doc/emacs'"
 (cd doc/emacs
- ln *.texi *.aux *.fns *.kys *.vrs ../../${tempdir}/doc/emacs
+ ln *.texi *.texi.in *.aux *.fns *.kys *.vrs ../../${tempdir}/doc/emacs
  ln makefile.w32-in ../../${tempdir}/doc/emacs
  test -f Makefile.in && ln Makefile.in ../../${tempdir}/doc/emacs
  ln ChangeLog ../../${tempdir}/doc/emacs

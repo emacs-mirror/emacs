@@ -159,6 +159,7 @@ clean: mostlyclean
 	rm -f emacs-manual-${version}.tar*
 
 distclean: clean
+	rm -f emacsver.texi
 
 ## In the standalone tarfile, the clean rule runs this.
 infoclean:
@@ -179,6 +180,8 @@ dist:
 	  -e 's/\(infodir *=\).*/\1 ./' -e 's/^\(clean:.*\)/\1 infoclean/' \
 	  -e "s/@ver[s]ion@/${version}/" \
 	  ${srcdir}/Makefile.in > emacs-manual-${version}/Makefile
+	sed -e "s/@ver[s]ion@/${version}/" \
+	  ${srcdir}/emacsver.texi.in > emacs-manual-${version}/emacsver.texi
 	tar -cf emacs-manual-${version}.tar emacs-manual-${version}
 	rm -rf emacs-manual-${version}
 

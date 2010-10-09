@@ -1,10 +1,14 @@
 2010-10-09  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (emacsdir): New variable.
+	($(infodir)/efaq): Pass -I $(emacsdir) to makeinfo.
+	* faq.texi (VER): Replace with EMACSVER from emacsver.texi.
+
 	* Makefile.in (.PHONY): Declare info, dvi, pdf and the clean rules.
 
 2010-10-08  Julien Danjou  <julien@danjou.info>
 
-	* gnus.texi: add mm-shr
+	* gnus.texi: Add mm-shr.
 
 2010-10-08  Ludovic Courtès  <ludo@gnu.org>
 

@@ -32,6 +32,9 @@ VPATH=@srcdir@
 ## Where the output files go.
 ## Note that the setfilename command in the .texi files assumes this.
 infodir=../../info
+## Directory with emacsver.texi.
+## Currently only used by efaq; could be added to MAKEINFO.
+emacsdir = $(srcdir)/../emacs
 
 # The makeinfo program is part of the Texinfo distribution.
 # Use --force so that it generates output even if there are errors.
@@ -362,7 +365,7 @@ eudc.pdf: eudc.texi
 
 efaq : $(infodir)/efaq
 $(infodir)/efaq: faq.texi $(infodir)
-	cd $(srcdir); $(MAKEINFO) faq.texi
+	cd $(srcdir); $(MAKEINFO) -I $(emacsdir) faq.texi
 faq.dvi: faq.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/faq.texi
 faq.pdf: faq.texi

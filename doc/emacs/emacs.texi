@@ -5,7 +5,7 @@
 
 @c The edition number appears in several places in this file
 @set EDITION   Sixteenth
-@set EMACSVER  24.0.50
+@include emacsver.texi
 
 @copying
 This is the @value{EDITION} edition of the @cite{GNU Emacs Manual},@*
@@ -51,7 +51,6 @@ developing GNU and promoting software freedom.''
 @tex
 @ifset smallbook
 @fonttextsize 10
-@set EMACSVER 22
 \global\let\urlcolor=\Black % don't print links in grayscale
 \global\let\linkcolor=\Black
 @end ifset
@@ -1575,7 +1574,3 @@ Lisp programming.
 @printindex cp
 
 @bye
-
-@ignore
-   arch-tag: ed48740a-410b-46ea-9387-c9a9252a3392
-@end ignore
