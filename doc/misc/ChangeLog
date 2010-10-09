@@ -1,5 +1,11 @@
 2010-10-09  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in ($(infodir)): Delete rule.
+	(mkinfodir): New.  Use it in all the info rules, rather than depending
+	on infodir.
+
+2010-10-09  Glenn Morris  <rgm@gnu.org>
+
 	* gnus.texi (Article Washing): Fix previous change.
 
 	* Makefile.in (emacsdir): New variable.

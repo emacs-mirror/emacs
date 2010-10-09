@@ -1,5 +1,11 @@
 2010-10-09  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in ($(infodir)): Delete rule.
+	(mkinfodir): New.
+	($(infodir)/eintr): Use $mkinfodir instead of infodir.
+
+2010-10-09  Glenn Morris  <rgm@gnu.org>
+
 	* Makefile.in (.PHONY): Declare info, dvi, html, pdf, dist.
 
 2010-10-07  Glenn Morris  <rgm@gnu.org>

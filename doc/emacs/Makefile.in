@@ -117,13 +117,15 @@ EMACSSOURCES= \
 	${srcdir}/kmacro.texi \
 	$(EMACS_XTRA)
 
+## This seems pointless.  The info/ directory exists in both the
+## repository and the release tarfiles.  We do not use any
+## equivalent of mkdir -p/mkinstalldirs, so this is not a general
+## solution anyway.  The second test -d is for parallel builds.
+mkinfodir = @test -d ${infodir} || mkdir ${infodir} || test -d ${infodir}
+
 .PHONY: info dvi pdf
 
 info: $(infodir)/emacs
-
-$(infodir):
-	mkdir $@ || test -d $@
-
 dvi: emacs.dvi
 pdf: emacs.pdf
 
@@ -131,7 +133,8 @@ pdf: emacs.pdf
 # There is no provision for Info files to exist in the build directory.
 # In a distribution of Emacs, the Info files should be up to date.
 
-$(infodir)/emacs: $(infodir) ${EMACSSOURCES}
+$(infodir)/emacs: ${EMACSSOURCES}
+	$(mkinfodir)
 	cd $(srcdir); $(MAKEINFO) emacs.texi -o $@
 
 emacs.dvi: ${EMACSSOURCES}

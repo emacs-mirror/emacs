@@ -96,6 +96,8 @@ srcs = \
   $(srcdir)/gpl.texi \
   $(srcdir)/doclicense.texi
 
+mkinfodir = @test -d ${infodir} || mkdir ${infodir} || test -d ${infodir}
+
 .PHONY: info dvi pdf
 
 # The info file is named `elisp'.
@@ -103,10 +105,8 @@ info: $(infodir)/elisp
 dvi: elisp.dvi
 pdf: elisp.pdf
 
-$(infodir):
-	mkdir $@ || test -d $@
-
-$(infodir)/elisp: $(infodir) $(srcs)
+$(infodir)/elisp: $(srcs)
+	$(mkinfodir)
 	cd $(srcdir); $(MAKEINFO) -I. -I$(texinfodir) elisp.texi -o $@
 
 elisp.dvi: $(srcs)

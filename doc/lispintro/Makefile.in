@@ -34,14 +34,13 @@ TEXI2DVI = texi2dvi
 TEXI2PDF = texi2pdf
 DVIPS = dvips
 
+mkinfodir = @test -d ${infodir} || mkdir ${infodir} || test -d ${infodir}
+
 .SUFFIXES: .dvi .ps .texi
 
 .PHONY: info dvi html pdf
 
 info: ${infodir}/eintr
-
-$(infodir):
-	mkdir $@ || test -d $@
 
 dvi: emacs-lisp-intro.dvi
 html: emacs-lisp-intro.html
@@ -49,7 +48,8 @@ pdf: emacs-lisp-intro.pdf
 
 # The file name eintr must fit within 5 characters, to allow for
 # -NN extensions to fit into DOS 8+3 limits without clashing.
-${infodir}/eintr: $(infodir) ${srcdir}/emacs-lisp-intro.texi
+${infodir}/eintr: ${srcdir}/emacs-lisp-intro.texi
+	$(mkinfodir)
 	cd $(srcdir); $(MAKEINFO) emacs-lisp-intro.texi -o $@
 
 emacs-lisp-intro.dvi: ${srcdir}/emacs-lisp-intro.texi

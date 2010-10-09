@@ -1,5 +1,11 @@
 2010-10-09  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in ($(infodir)): Delete rule.
+	(mkinfodir): New.
+	($(infodir)/elisp): Use $mkinfodir instead of infodir.
+
+2010-10-09  Glenn Morris  <rgm@gnu.org>
+
 	* Makefile.in (emacsdir): New variable.
 	(MAKEINFO): Add -I $emacsdir.
 	(dist): Copy emacsver.texi.

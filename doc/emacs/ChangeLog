@@ -1,5 +1,9 @@
 2010-10-09  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in ($(infodir)): Delete rule.
+	(mkinfodir): New.
+	($(infodir)/emacs): Use $mkinfodir instead of infodir.
+
 	* Makefile.in (distclean): Do not delete emacsver.texi.
 	* emacsver.texi: New file, replacing emacsver.texi.in.
 
