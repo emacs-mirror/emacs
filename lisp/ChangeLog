@@ -1,3 +1,11 @@
+2010-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* net/browse-url.el: Don't require thingatpt, term, dired,
+	executable, or w3-auto when compiling.
+	(dired-get-filename, term-char-mode, term-send-down, term-send-string):
+	Declare.
+	(browse-url-text-emacs): Require term.
+
 2010-10-08  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* net/browse-url.el (browse-url-xdg-open): Remove use of /bin/sh.

@@ -205,12 +205,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Variables
 
-(eval-when-compile (require 'cl)
-		   (require 'thingatpt)
-                   (require 'term)
-		   (require 'dired)
-                   (require 'executable)
-		   (require 'w3-auto nil t))
+(eval-when-compile (require 'cl))
 
 (defgroup browse-url nil
   "Use a web browser to look at a URL."
@@ -755,6 +750,9 @@ narrowed."
 	(delete-file file-name))))
 
 (add-hook 'kill-buffer-hook 'browse-url-delete-temp-file)
+
+(declare-function dired-get-filename "dired"
+		  (&optional localp no-error-if-not-filep))
 
 ;;;###autoload
 (defun browse-url-of-dired-file ()
@@ -1384,6 +1382,10 @@ with possible additional arguments `browse-url-xterm-args'."
 
 ;; --- Lynx in an Emacs "term" window ---
 
+(declare-function term-char-mode "term" ())
+(declare-function term-send-down "term" ())
+(declare-function term-send-string "term" (proc str))
+
 ;;;###autoload
 (defun browse-url-text-emacs (url &optional new-buffer)
   "Ask a text browser to load URL.
@@ -1404,6 +1406,7 @@ used instead of `browse-url-new-window-flag'."
 	 (buf (get-buffer "*text browser*"))
 	 (proc (and buf (get-buffer-process buf)))
 	 (n browse-url-text-input-attempts))
+    (require 'term)
     (if (and (browse-url-maybe-new-window new-buffer) buf)
 	;; Rename away the OLD buffer. This isn't very polite, but
 	;; term insists on working in a buffer named *lynx* and would
