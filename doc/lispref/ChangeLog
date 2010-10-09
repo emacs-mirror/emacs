@@ -1,5 +1,7 @@
 2010-10-09  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (dist): Anchor regexps.
+
 	* Makefile.in (srcs): Put elisp.texi first.
 	($(infodir)/elisp, elisp.dvi, elisp.pdf): Use $<.
 

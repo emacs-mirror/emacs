@@ -1,5 +1,7 @@
 2010-10-09  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (dist): Anchor regexps.
+
 	* Makefile.in (EMACSSOURCES): Put emacs.texi first.
 	($(infodir)/emacs, emacs.dvi, emacs.pdf, emacs-xtra.dvi)
 	(emacs-xtra.pdf): Use $<.

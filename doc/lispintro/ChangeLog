@@ -1,5 +1,7 @@
 2010-10-09  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (dist): Anchor regexps.
+
 	* Makefile.in (${infodir}/eintr, emacs-lisp-intro.dvi)
 	(emacs-lisp-intro.pdf, emacs-lisp-intro.html): Use $<.
 

@@ -179,8 +179,8 @@ dist:
 	mkdir emacs-manual-${version}
 	cp ${srcdir}/*.texi ${texinfodir}/texinfo.tex \
 	  ${srcdir}/ChangeLog* emacs-manual-${version}/
-	sed -e 's/@sr[c]dir@/./' -e 's/\(texinfodir *=\).*/\1 ./' \
-	  -e 's/\(infodir *=\).*/\1 ./' -e 's/^\(clean:.*\)/\1 infoclean/' \
+	sed -e 's/@sr[c]dir@/./' -e 's/^\(texinfodir *=\).*/\1 ./' \
+	  -e 's/^\(infodir *=\).*/\1 ./' -e 's/^\(clean:.*\)/\1 infoclean/' \
 	  -e "s/@ver[s]ion@/${version}/" \
 	  ${srcdir}/Makefile.in > emacs-manual-${version}/Makefile
 	tar -cf emacs-manual-${version}.tar emacs-manual-${version}

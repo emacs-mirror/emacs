@@ -90,8 +90,8 @@ dist:
 	cp ${srcdir}/*.texi ${srcdir}/*.eps ${srcdir}/*.pdf \
 	  ${texinfodir}/texinfo.tex \
 	  ${srcdir}/ChangeLog* ${srcdir}/README emacs-lispintro-${version}/
-	sed -e 's/@sr[c]dir@/./' -e 's/\(texinfodir *=\).*/\1 ./' \
-	  -e 's/\(infodir *=\).*/\1 ./' -e 's/^\(clean:.*\)/\1 infoclean/' \
+	sed -e 's/@sr[c]dir@/./' -e 's/^\(texinfodir *=\).*/\1 ./' \
+	  -e 's/^\(infodir *=\).*/\1 ./' -e 's/^\(clean:.*\)/\1 infoclean/' \
 	  -e "s/@ver[s]ion@/${version}/" \
 	  ${srcdir}/Makefile.in > emacs-lispintro-${version}/Makefile
 	tar -cf emacs-lispintro-${version}.tar emacs-lispintro-${version}
