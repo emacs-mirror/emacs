@@ -1,3 +1,7 @@
+2010-10-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xterm.c (x_draw_relief_rect): Clear corner pixels.
+
 2010-10-08  Michael Albinus  <michael.albinus@gmx.de>
 
 	* keyboard.c: Revert last change; it was not intended to be

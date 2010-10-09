@@ -1967,6 +1967,9 @@ x_draw_relief_rect (struct frame *f,
       if (width == 1)
 	XDrawLine (dpy, window, gc, left_x, top_y + 1, left_x, bottom_y);
 
+      XClearArea (dpy, window, left_x, top_y, 1, 1, False);
+      XClearArea (dpy, window, left_x, bottom_y, 1, 1, False);
+
       for (i = (width > 1 ? 1 : 0); i < width; ++i)
 	XDrawLine (dpy, window, gc,
 		   left_x + i, top_y + i, left_x + i, bottom_y - i + 1);
@@ -2006,9 +2009,13 @@ x_draw_relief_rect (struct frame *f,
 
   /* Right.  */
   if (right_p)
-    for (i = 0; i < width; ++i)
-      XDrawLine (dpy, window, gc,
-		 right_x - i, top_y + i + 1, right_x - i, bottom_y - i);
+    {
+      XClearArea (dpy, window, right_x, top_y, 1, 1, False);
+      XClearArea (dpy, window, right_x, bottom_y, 1, 1, False);
+      for (i = 0; i < width; ++i)
+	XDrawLine (dpy, window, gc,
+		   right_x - i, top_y + i + 1, right_x - i, bottom_y - i);
+    }
 
   XSetClipMask (dpy, gc, None);
 }
