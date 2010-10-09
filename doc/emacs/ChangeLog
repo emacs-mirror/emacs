@@ -4,6 +4,7 @@
 	* emacs.texi: Set EMACSVER by including emacsver.texi.
 	* Makefile.in (distclean): Delete emacsver.texi.
 	(dist): Copy emacsver.texi.
+	(EMACSSOURCES): Add emacsver.texi.
 
 	* ack.texi (Acknowledgments): No more b2m.c.
 

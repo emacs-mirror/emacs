@@ -4,6 +4,8 @@
 
 	* Makefile.in (emacsdir): New variable.
 	($(infodir)/efaq): Pass -I $(emacsdir) to makeinfo.
+	Depend on emacsver.texi.
+
 	* faq.texi (VER): Replace with EMACSVER from emacsver.texi.
 
 	* Makefile.in (.PHONY): Declare info, dvi, pdf and the clean rules.

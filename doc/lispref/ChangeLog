@@ -3,6 +3,8 @@
 	* Makefile.in (emacsdir): New variable.
 	(MAKEINFO): Add -I $emacsdir.
 	(dist): Copy emacsver.texi.
+	(srcs): Add emacsver.texi.
+
 	* book-spine.texinfo, elisp.texi, vol2.texi, vol1.texi:
 	Set EMACSVER by including emacsver.texi.
 

@@ -364,7 +364,7 @@ eudc.pdf: eudc.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/eudc.texi
 
 efaq : $(infodir)/efaq
-$(infodir)/efaq: faq.texi $(infodir)
+$(infodir)/efaq: faq.texi $(emacsdir)/emacsver.texi $(infodir)
 	cd $(srcdir); $(MAKEINFO) -I $(emacsdir) faq.texi
 faq.dvi: faq.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/faq.texi

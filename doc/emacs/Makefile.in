@@ -70,6 +70,7 @@ EMACS_XTRA= \
 	$(srcdir)/msdog-xtra.texi
 
 EMACSSOURCES= \
+	${srcdir}/emacsver.texi \
 	${srcdir}/emacs.texi \
 	${srcdir}/doclicense.texi \
 	${srcdir}/gpl.texi \

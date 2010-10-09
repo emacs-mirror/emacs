@@ -42,6 +42,7 @@ TEXI2PDF = texi2pdf
 # List of all the texinfo files in the manual:
 
 srcs = \
+  $(emacsdir)/emacsver.texi \
   $(srcdir)/abbrevs.texi \
   $(srcdir)/advice.texi \
   $(srcdir)/anti.texi \
