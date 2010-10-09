@@ -1,5 +1,9 @@
 2010-10-09  Glenn Morris  <rgm@gnu.org>
 
+	* emacs-lisp/shadow.el (find-emacs-lisp-shadows): Rename it...
+	(load-path-shadows-find): ... to this.
+	(list-load-path-shadows): Update for above change.
+
 	* mail/mail-utils.el (mail-mbox-from): Also try return-path.
 
 2010-10-08  Glenn Morris  <rgm@gnu.org>
