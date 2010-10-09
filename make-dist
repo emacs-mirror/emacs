@@ -480,7 +480,7 @@ echo "Making links to \`lib-src'"
 (cd lib-src
  ln [a-zA-Z]*.[chmy] ../${tempdir}/lib-src
  ln ChangeLog Makefile.in README testfile vcdiff ../${tempdir}/lib-src
- ln b2m.pl grep-changelog rcs2log rcs-checkin ../${tempdir}/lib-src
+ ln grep-changelog rcs2log rcs-checkin ../${tempdir}/lib-src
  ln makefile.w32-in ../${tempdir}/lib-src
  ## If we ended up with a symlink, or if we did not get anything
  ## due to a cross-device symlink, copy the file.
@@ -769,5 +769,4 @@ else
   rm -rf ${tempparent}
 fi
 
-# arch-tag: 26e3eb50-a394-4ab2-82b2-d8e5af500de7
 ### make-dist ends here

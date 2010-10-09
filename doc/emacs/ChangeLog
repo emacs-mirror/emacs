@@ -1,5 +1,7 @@
 2010-10-09  Glenn Morris  <rgm@gnu.org>
 
+	* ack.texi (Acknowledgments): No more b2m.c.
+
 	* Makefile.in (.PHONY): Declare info, dvi, pdf, dist.
 	(emacs): Remove rule.
 	(dist): No need to deal with the emacs rule any more.

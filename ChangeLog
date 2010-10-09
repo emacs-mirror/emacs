@@ -1,3 +1,8 @@
+2010-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* INSTALL, make-dist: Remove references to b2m.
+	* Makefile.in (MAN_PAGES): Remove b2m.1.
+
 2010-10-05  Glenn Morris  <rgm@gnu.org>
 
 	* .dir-locals.el: The Emacs convention is sentence-end-double-space.

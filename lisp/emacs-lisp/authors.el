@@ -507,6 +507,7 @@ Changes to files in this list are not listed.")
     "ymakefile"
     "permute-index" "index.perm"
     "ibmrs6000.inp"
+    "b2m.c"
     "emacs.ico"
     "emacs21.ico"
     "LPF" "LEDIT" "OTHER.EMACSES"
@@ -1027,5 +1028,4 @@ the Emacs source tree, from which to build the file."
 
 (provide 'authors)
 
-;; arch-tag: 659d5900-5ff2-43b0-954c-a315cc1e4dc1
 ;;; authors.el ends here

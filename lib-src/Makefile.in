@@ -1,6 +1,7 @@
 # Makefile for lib-src subdirectory in GNU Emacs.
 # Copyright (C) 1985, 1987, 1988, 1993, 1994, 2001, 2002, 2003, 2004,
-#   2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+#   2005, 2006, 2007, 2008, 2009, 2010
+#   Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -111,7 +112,7 @@ INSTALL_STRIP =
 
 # Things that a user might actually run, which should be installed in bindir.
 INSTALLABLES = etags${EXEEXT} ctags${EXEEXT} emacsclient${EXEEXT} \
-               b2m${EXEEXT} ebrowse${EXEEXT}
+               ebrowse${EXEEXT}
 
 INSTALLABLE_SCRIPTS = rcs-checkin grep-changelog
 STAMP_INST_SCRIPTS = stamp-rcs-checkin stamp-grep-changelog
@@ -358,10 +359,6 @@ digest-doc${EXEEXT}: ${srcdir}/digest-doc.c
 
 sorted-doc${EXEEXT}: ${srcdir}/sorted-doc.c
 	$(CC) ${ALL_CFLAGS} ${srcdir}/sorted-doc.c $(LOADLIBES) -o sorted-doc
-
-b2m${EXEEXT}: ${srcdir}/b2m.c ../src/config.h $(GETOPTDEPS)
-	$(CC) ${ALL_CFLAGS} ${srcdir}/b2m.c  -DVERSION="\"${version}\"" \
-	   $(GETOPTOBJS) $(LOADLIBES) -o b2m
 
 movemail${EXEEXT}: movemail.o pop.o $(GETOPTDEPS)
 	$(CC) ${LINK_CFLAGS} ${MOVE_FLAGS} movemail.o pop.o \

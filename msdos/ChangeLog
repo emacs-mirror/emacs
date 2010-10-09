@@ -1,3 +1,7 @@
+2010-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* mainmake.v2 (install): Remove b2m.
+
 2010-10-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* mainmake.v2 (TAGS tags): Use `find' to filter out loaddefs

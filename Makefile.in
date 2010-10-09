@@ -125,7 +125,7 @@ libexecdir=@libexecdir@
 # (and they contain cross-references that expect them to be there).
 mandir=@mandir@
 man1dir=$(mandir)/man1
-MAN_PAGES=b2m.1 ctags.1 ebrowse.1 emacs.1 emacsclient.1 etags.1 \
+MAN_PAGES=ctags.1 ebrowse.1 emacs.1 emacsclient.1 etags.1 \
           grep-changelog.1 rcs-checkin.1
 
 # Where to install and expect the info files describing Emacs.	In the

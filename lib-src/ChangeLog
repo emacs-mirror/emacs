@@ -1,3 +1,9 @@
+2010-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* b2m.c, b2m.pl: Remove files.
+	* Makefile.in (INSTALLABLES): Remove b2m.
+	* makefile.w32-in ($(BLD)/b2m.$(O)): Remove.
+
 2010-10-08  Glenn Morris  <rgm@gnu.org>
 
 	* emacsclient.c (set_local_socket) [DARWIN_OS]: Try as a fall-back
