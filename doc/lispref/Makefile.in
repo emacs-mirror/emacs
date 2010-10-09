@@ -130,7 +130,7 @@ clean: mostlyclean
 distclean: clean
 
 infoclean:
-	-cd $(infodir) && rm -f elisp elisp-[1-9] elisp-[1-9][0-9]
+	-cd $(srcdir) && cd $(infodir) && rm -f elisp elisp-[1-9] elisp-[1-9][0-9]
 
 maintainer-clean: distclean infoclean
 

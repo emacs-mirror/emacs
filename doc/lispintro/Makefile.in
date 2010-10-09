@@ -78,7 +78,7 @@ clean: mostlyclean
 distclean: clean
 
 infoclean:
-	-cd $(infodir) && rm -f eintr eintr-[1-9]
+	-cd $(srcdir) && cd $(infodir) && rm -f eintr eintr-[1-9]
 
 maintainer-clean: distclean infoclean
 

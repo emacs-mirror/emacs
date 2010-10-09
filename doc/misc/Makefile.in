@@ -675,8 +675,9 @@ clean: mostlyclean
 distclean: clean
 #	rm -f Makefile
 
+## infodir is relative to srcdir.
 maintainer-clean: distclean
-	for file in $(INFO_TARGETS); do \
+	cd $(srcdir); for file in $(INFO_TARGETS); do \
 	  rm -f $${file} $${file}-[1-9] $${file}-[1-9][0-9]; \
 	done
 

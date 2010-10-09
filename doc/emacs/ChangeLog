@@ -1,5 +1,7 @@
 2010-10-09  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (infoclean): Remove harmless, long-standing error.
+
 	* Makefile.in ($(infodir)): Delete rule.
 	(mkinfodir): New.
 	($(infodir)/emacs): Use $mkinfodir instead of infodir.
