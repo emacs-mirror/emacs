@@ -1,5 +1,9 @@
 2010-10-09  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* ibuffer.el (ibuffer-mode-map): Don't redefine the cursor keys,
+	since that's too annoying.  Move the filter groups commands to
+	TAB/backtab.
+
 	* epa.el (epa-passphrase-callback-function): Say what we're
 	querying the password for.
 
