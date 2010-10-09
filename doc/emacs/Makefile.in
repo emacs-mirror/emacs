@@ -33,6 +33,11 @@ version=@version@
 
 ## Where the output files go.
 ## Note that the setfilename command in the .texi files assumes this.
+## This is a bit funny.  Because the info files are in the
+## distribution tarfiles, they are always made in $scrdir/../../info,
+## even for out-of-tree builds.  So infodir is really relative to srcdir.
+## The use of VPATH makes it work out, but why not set
+## infodir = $(srcdir)/../../info and make it explicit?
 infodir=../../info
 # Directory with the (customized) texinfo.tex file.
 texinfodir = $(srcdir)/../misc
@@ -111,6 +116,8 @@ EMACSSOURCES= \
 	${srcdir}/kmacro.texi \
 	$(EMACS_XTRA)
 
+.PHONY: info dvi pdf
+
 info: $(infodir)/emacs
 
 $(infodir):
@@ -122,8 +129,6 @@ pdf: emacs.pdf
 # Note that all the Info targets build the Info files in srcdir.
 # There is no provision for Info files to exist in the build directory.
 # In a distribution of Emacs, the Info files should be up to date.
-
-emacs : $(infodir)/emacs
 
 $(infodir)/emacs: $(infodir) ${EMACSSOURCES}
 	cd $(srcdir); $(MAKEINFO) emacs.texi -o $@
@@ -161,17 +166,17 @@ infoclean:
 
 maintainer-clean: distclean infoclean
 
+.PHONY: dist
+
 ## Make a standalone tarfile of the Emacs manual sources.
 ## The [c] is a dumb way to prevent configure expanding it.
-## The emacs: rule becomes circular when we change infodir to ".".
 dist:
 	rm -rf emacs-manual-${version}
 	mkdir emacs-manual-${version}
 	cp ${srcdir}/*.texi ${texinfodir}/texinfo.tex \
 	  ${srcdir}/ChangeLog* emacs-manual-${version}/
 	sed -e 's/@sr[c]dir@/./' -e 's/\(texinfodir *=\).*/\1 ./' \
-	  -e 's/\(infodir *=\).*/\1 ./' -e '/^emacs *:/d' \
-	  -e 's/^\(clean:.*\)/\1 infoclean/' \
+	  -e 's/\(infodir *=\).*/\1 ./' -e 's/^\(clean:.*\)/\1 infoclean/' \
 	  -e "s/@ver[s]ion@/${version}/" \
 	  ${srcdir}/Makefile.in > emacs-manual-${version}/Makefile
 	tar -cf emacs-manual-${version}.tar emacs-manual-${version}

@@ -36,6 +36,8 @@ DVIPS = dvips
 
 .SUFFIXES: .dvi .ps .texi
 
+.PHONY: info dvi html pdf
+
 info: ${infodir}/eintr
 
 $(infodir):
@@ -79,6 +81,8 @@ infoclean:
 	-cd $(infodir) && rm -f eintr eintr-[1-9]
 
 maintainer-clean: distclean infoclean
+
+.PHONY: dist
 
 dist:
 	rm -rf emacs-lispintro-${version}

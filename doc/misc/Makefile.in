@@ -199,6 +199,8 @@ TEXI2PDF = texi2pdf
 ENVADD = TEXINPUTS="$(srcdir):$(TEXINPUTS)" MAKEINFO="$(MAKEINFO) -I$(srcdir)"
 
 
+.PHONY: info dvi pdf
+
 info: $(INFO_TARGETS)
 
 $(infodir):
@@ -610,6 +612,8 @@ woman.dvi: woman.texi
 woman.pdf: woman.texi
 	$(ENVADD) $(TEXI2PDF) ${srcdir}/woman.texi
 
+
+.PHONY: mostlyclean clean distclean maintainer-clean
 
 mostlyclean:
 	rm -f *.aux *.log *.cp *.cps *.fn *.fns *.ky *.kys \

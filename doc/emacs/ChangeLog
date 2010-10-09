@@ -1,3 +1,9 @@
+2010-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (.PHONY): Declare info, dvi, pdf, dist.
+	(emacs): Remove rule.
+	(dist): No need to deal with the emacs rule any more.
+
 2010-10-07  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (version): New, set by configure.

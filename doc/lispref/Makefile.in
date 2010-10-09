@@ -93,6 +93,8 @@ srcs = \
   $(srcdir)/gpl.texi \
   $(srcdir)/doclicense.texi
 
+.PHONY: info dvi pdf
+
 # The info file is named `elisp'.
 info: $(infodir)/elisp
 dvi: elisp.dvi
@@ -128,6 +130,8 @@ infoclean:
 	-cd $(infodir) && rm -f elisp elisp-[1-9] elisp-[1-9][0-9]
 
 maintainer-clean: distclean infoclean
+
+.PHONY: dist
 
 ## Note this excludes the two-volume stuff.
 dist:
