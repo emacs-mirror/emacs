@@ -1,3 +1,11 @@
+2010-10-05  David Koppelman  <koppel@ece.lsu.edu>
+
+	* hi-lock.el (hi-lock-font-lock-hook): Check font-lock-fontified
+	instead of font-lock-mode before adding keywords. Removed
+	hi-lock-mode off code. Removed inhibit hack.
+	(hi-lock-set-pattern): Only add keywords if font-lock-fontified
+	non-nil; removed hook inhibit hack.
+
 2010-10-09  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/shadow.el (find-emacs-lisp-shadows): Rename it...
