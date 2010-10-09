@@ -9815,7 +9815,6 @@ can use include:
 @item mm-shr
 Use Gnus simple html renderer.
 
-@table @code
 @item gnus-article-html
 Use Gnus rendered based on w3m.
 
