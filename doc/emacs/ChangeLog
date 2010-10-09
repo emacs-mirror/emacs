@@ -1,5 +1,10 @@
 2010-10-09  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (distclean): Do not delete emacsver.texi.
+	* emacsver.texi: New file, replacing emacsver.texi.in.
+
+2010-10-09  Glenn Morris  <rgm@gnu.org>
+
 	* emacsver.texi.in: New file.
 	* emacs.texi: Set EMACSVER by including emacsver.texi.
 	* Makefile.in (distclean): Delete emacsver.texi.

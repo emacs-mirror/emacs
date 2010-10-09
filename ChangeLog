@@ -1,5 +1,9 @@
 2010-10-09  Glenn Morris  <rgm@gnu.org>
 
+	* configure.in (AC_OUTPUT): Remove doc/emacs/emacsver.texi.
+
+2010-10-09  Glenn Morris  <rgm@gnu.org>
+
 	* configure.in: Combine some conditionals.
 
 	* configure.in (AC_OUTPUT): Add doc/emacs/emacsver.texi.

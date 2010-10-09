@@ -160,7 +160,6 @@ clean: mostlyclean
 	rm -f emacs-manual-${version}.tar*
 
 distclean: clean
-	rm -f emacsver.texi
 
 ## In the standalone tarfile, the clean rule runs this.
 infoclean:
