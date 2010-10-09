@@ -25510,8 +25510,8 @@ lines:
 
 (setq gnus-refer-article-method
       '(current
-	(nnregistry)
-	(nnweb "gmane" (nnweb-type gmane))))
+        (nnregistry)
+        (nnweb "gmane" (nnweb-type gmane))))
 @end example
 
 The example above instructs Gnus to first look up the article in the
