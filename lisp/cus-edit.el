@@ -3379,6 +3379,30 @@ SPEC must be a full face spec."
   "Return the customized SPEC in a form suitable for setting the face."
   (custom-filter-face-spec spec 3))
 
+(defun custom-face-widget-to-spec (widget)
+  "Return a face spec corresponding to WIDGET.
+WIDGET should be a `custom-face' widget."
+  (unless (eq (widget-type widget) 'custom-face)
+    (error "Invalid widget"))
+  (let ((child (car (widget-get widget :children))))
+    (custom-post-filter-face-spec
+     (if (eq (widget-type child) 'custom-face-edit)
+	 `((t ,(widget-value child)))
+       (widget-value child)))))
+
+(defun custom-face-get-current-spec (face)
+  (let ((spec (or (get face 'customized-face)
+		  (get face 'saved-face)
+		  (get face 'face-defface-spec)
+		  ;; Attempt to construct it.
+		  `((t ,(custom-face-attributes-get
+			 face (selected-frame)))))))
+    ;; If the user has changed this face in some other way,
+    ;; edit it as the user has specified it.
+    (if (not (face-spec-match-p face spec (selected-frame)))
+	(setq spec `((t ,(face-attr-construct face (selected-frame))))))
+    (custom-pre-filter-face-spec spec)))
+
 (defun custom-face-value-create (widget)
   "Create a list of the display specifications for WIDGET."
   (let* ((buttons (widget-get widget :buttons))
@@ -3464,21 +3488,10 @@ SPEC must be a full face spec."
 	(unless (widget-get widget :custom-form)
 	  (widget-put widget :custom-form custom-face-default-form))
 
-	(let* ((spec (or (get symbol 'customized-face)
-			 (get symbol 'saved-face)
-			 (get symbol 'face-defface-spec)
-			 ;; Attempt to construct it.
-			 (list (list t (custom-face-attributes-get
-					symbol (selected-frame))))))
+	(let* ((spec (custom-face-get-current-spec symbol))
 	       (form (widget-get widget :custom-form))
 	       (indent (widget-get widget :indent))
 	       face-alist face-entry spec-default spec-match editor)
-	  ;; If the user has changed this face in some other way,
-	  ;; edit it as the user has specified it.
-	  (if (not (face-spec-match-p symbol spec (selected-frame)))
-	      (setq spec `((t ,(face-attr-construct symbol
-						    (selected-frame))))))
-	  (setq spec (custom-pre-filter-face-spec spec))
 
 	  ;; Find a display in SPEC matching the selected display.
 	  ;; This will use the usual face customization interface.
@@ -3570,43 +3583,43 @@ widget.  If FILTER is nil, ACTION is always valid.")
   (widget-put widget :custom-form 'lisp)
   (custom-redraw widget))
 
+(defun custom-face-state (face)
+  "Return the current state of the face FACE.
+This is one of `set', `saved', `changed', `themed', or `rogue'."
+  (let* ((comment (get face 'face-comment))
+	 (state
+	  (cond
+	   ((or (get face 'customized-face)
+		(get face 'customized-face-comment))
+	    (if (equal (get face 'customized-face-comment) comment)
+		'set
+	      'changed))
+	   ((or (get face 'saved-face)
+		(get face 'saved-face-comment))
+	    (if (equal (get face 'saved-face-comment) comment)
+		(cond
+		 ((eq 'user (caar (get face 'theme-face)))
+		  'saved)
+		 ((eq 'changed (caar (get face 'theme-face)))
+		  'changed)
+		 (t 'themed))
+	      'changed))
+	   ((get face 'face-defface-spec)
+	    (if (equal comment nil)
+		'standard
+	      'changed))
+	   (t 'rogue))))
+    ;; If the user called set-face-attribute to change the default for
+    ;; new frames, this face is "set outside of Customize".
+    (if (and (not (eq state 'rogue))
+	     (get face 'face-modified))
+	'changed
+      state)))
+
 (defun custom-face-state-set (widget)
   "Set the state of WIDGET."
-  (let* ((symbol (widget-value widget))
-	 (comment (get symbol 'face-comment))
-	 tmp temp
-	 (state
-	  (cond ((progn
-		   (setq tmp (get symbol 'customized-face))
-		   (setq temp (get symbol 'customized-face-comment))
-		   (or tmp temp))
-		 (if (equal temp comment)
-		     'set
-		   'changed))
-		((progn
-		   (setq tmp (get symbol 'saved-face))
-		   (setq temp (get symbol 'saved-face-comment))
-		   (or tmp temp))
-		 (if (equal temp comment)
-		     (cond
-		      ((eq 'user (caar (get symbol 'theme-face)))
-		       'saved)
-		      ((eq 'changed (caar (get symbol 'theme-face)))
-		       'changed)
-		      (t 'themed))
-		   'changed))
-		((get symbol 'face-defface-spec)
-		 (if (equal comment nil)
-		     'standard
-		   'changed))
-		(t
-		 'rogue))))
-    ;; If the user called set-face-attribute to change the default
-    ;; for new frames, this face is "set outside of Customize".
-    (if (and (not (eq state 'rogue))
-	     (get symbol 'face-modified))
-	(setq state 'changed))
-    (widget-put widget :custom-state state)))
+  (widget-put widget :custom-state
+	      (custom-face-state (widget-value widget))))
 
 (defun custom-face-action (widget &optional event)
   "Show the menu for `custom-face' WIDGET.
@@ -3626,11 +3639,7 @@ Optional EVENT is the location for the menu."
 (defun custom-face-set (widget)
   "Make the face attributes in WIDGET take effect."
   (let* ((symbol (widget-value widget))
-	 (child (car (widget-get widget :children)))
-	 (value (custom-post-filter-face-spec
-		 (if (eq (widget-type child) 'custom-face-edit)
-		     `((t ,(widget-value child)))
-		   (widget-value child))))
+	 (value  (custom-face-widget-to-spec widget))
 	 (comment-widget (widget-get widget :comment-widget))
 	 (comment (widget-value comment-widget)))
     (when (equal comment "")
@@ -3652,11 +3661,7 @@ Optional EVENT is the location for the menu."
 (defun custom-face-mark-to-save (widget)
   "Mark for saving the face edited by WIDGET."
   (let* ((symbol (widget-value widget))
-	 (child (car (widget-get widget :children)))
-	 (value (custom-post-filter-face-spec
-		 (if (eq (widget-type child) 'custom-face-edit)
-		     `((t ,(widget-value child)))
-		   (widget-value child))))
+	 (value  (custom-face-widget-to-spec widget))
 	 (comment-widget (widget-get widget :comment-widget))
 	 (comment (widget-value comment-widget)))
     (when (equal comment "")

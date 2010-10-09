@@ -1,3 +1,21 @@
+2010-10-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (custom-face-widget-to-spec)
+	(custom-face-get-current-spec, custom-face-state): New functions.
+	(custom-face-set, custom-face-mark-to-save)
+	(custom-face-value-create, custom-face-state-set): Use them.
+
+	* cus-theme.el (custom-theme--listed-faces): New var.
+	(customize-create-theme): Use *Custom Theme* as the buffer name.
+	Set revert-buffer-function.  Optional arg BUFFER.  Insert all
+	faces listed in custom-theme--listed-faces.
+	(custom-theme-revert): New function.
+	(custom-theme-add-variable, custom-theme-add-face): Insert at the
+	bottom of the list.
+	(custom-theme-write): Prompt for theme name if empty.
+	(custom-theme-write-variables): Use dolist.
+	(custom-theme-write-faces): Handle hidden (collapsed) widgets.
+
 2010-10-09  Alan Mackenzie  <acm@muc.de>
 
 	Enhance fontification of declarators to take account of the
