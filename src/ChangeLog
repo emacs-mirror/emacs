@@ -1,3 +1,17 @@
+2010-10-09  Eli Zaretskii  <eliz@gnu.org>
+
+	Finished work on mouse_face_from_buffer_pos for bidi-reordered
+	rows.  Need lots of testing, including bug#1220.
+	Next task: get rid of fast_find_position, call
+	mouse_face_from_buffer_pos instead.
+
+	* xdisp.c (rows_from_pos_range): New function.
+	(mouse_face_from_buffer_pos): Use it instead of calling
+	row_containing_pos for START_CHARPOS and END_CHARPOS.
+	(note_mouse_highlight): When bidi reordering is turned on in a
+	buffer, call next-single-property-change and
+	previous-single-property-change with last argument nil.
+
 2010-10-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* xdisp.c (coords_in_mouse_face_p): Fix the conditions for when

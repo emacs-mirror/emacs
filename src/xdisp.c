@@ -23878,6 +23878,129 @@ cursor_in_mouse_face_p (struct window *w)
 
 
 
+/* Find the glyph rows START_ROW and END_ROW of window W that display
+   characters between buffer positions START_CHARPOS and END_CHARPOS
+   (excluding END_CHARPOS).  This is similar to row_containing_pos,
+   but is more accurate when bidi reordering makes buffer positions
+   change non-linearly with glyph rows.  */
+static void
+rows_from_pos_range (struct window *w,
+		     EMACS_INT start_charpos, EMACS_INT end_charpos,
+		     struct glyph_row **start, struct glyph_row **end)
+{
+  struct glyph_row *first = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
+  int last_y = window_text_bottom_y (w);
+  struct glyph_row *row;
+
+  *start = NULL;
+  *end = NULL;
+
+  while (!first->enabled_p
+	 && first < MATRIX_BOTTOM_TEXT_ROW (w->current_matrix, w))
+    first++;
+
+  /* Find the START row.  */
+  for (row = first;
+       row->enabled_p && MATRIX_ROW_BOTTOM_Y (row) <= last_y;
+       row++)
+    {
+      /* A row can potentially be the START row if the range of the
+	 characters it displays intersects the range
+	 [START_CHARPOS..END_CHARPOS).  */
+      if (! ((start_charpos < MATRIX_ROW_START_CHARPOS (row)
+	      && end_charpos < MATRIX_ROW_START_CHARPOS (row))
+	     /* See the commentary in row_containing_pos, for the
+		explanation of the complicated way to check whether
+		some position is beyond the end of the characters
+		displayed by a row.  */
+	     || ((start_charpos > MATRIX_ROW_END_CHARPOS (row)
+		  || (start_charpos == MATRIX_ROW_END_CHARPOS (row)
+		      && !row->ends_at_zv_p
+		      && !MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (row)))
+		 && (end_charpos > MATRIX_ROW_END_CHARPOS (row)
+		     || (end_charpos == MATRIX_ROW_END_CHARPOS (row)
+			 && !row->ends_at_zv_p
+			 && !MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (row))))))
+	{
+	  /* Found a candidate row.  Now make sure at least one of the
+	     glyphs it displays has a charpos from the range
+	     [START_CHARPOS..END_CHARPOS).
+
+	     This is not obvious because bidi reordering could have
+	     buffer positions of a row be 1,2,3,102,101,100, and if we
+	     want to highlight characters in [50..60), we don't want
+	     this row, even though [50..60) does intersect [1..103),
+	     the range of character positions given by the row's start
+	     and end positions.  */
+	  struct glyph *g = row->glyphs[TEXT_AREA];
+	  struct glyph *e = g + row->used[TEXT_AREA];
+
+	  while (g < e)
+	    {
+	      if (BUFFERP (g->object)
+		  && start_charpos <= g->charpos && g->charpos < end_charpos)
+		*start = row;
+	      g++;
+	    }
+	  if (*start)
+	    break;
+	}
+    }
+
+  /* Find the END row.  */
+  if (!*start
+      /* If the last row is partially visible, start looking for END
+	 from that row, instead of starting from FIRST.  */
+      && !(row->enabled_p
+	   && row->y < last_y && MATRIX_ROW_BOTTOM_Y (row) > last_y))
+    row = first;
+  for ( ; row->enabled_p && MATRIX_ROW_BOTTOM_Y (row) <= last_y; row++)
+    {
+      struct glyph_row *next = row + 1;
+
+      if (!next->enabled_p
+	  || next >= MATRIX_BOTTOM_TEXT_ROW (w->current_matrix, w)
+	  /* The first row >= START whose range of displayed characters
+	     does NOT intersect the range [START_CHARPOS..END_CHARPOS]
+	     is the row END + 1.  */
+	  || (start_charpos < MATRIX_ROW_START_CHARPOS (next)
+	      && end_charpos < MATRIX_ROW_START_CHARPOS (next))
+	  || ((start_charpos > MATRIX_ROW_END_CHARPOS (next)
+	       || (start_charpos == MATRIX_ROW_END_CHARPOS (next)
+		   && !next->ends_at_zv_p
+		   && !MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (next)))
+	      && (end_charpos > MATRIX_ROW_END_CHARPOS (next)
+		  || (end_charpos == MATRIX_ROW_END_CHARPOS (next)
+		      && !next->ends_at_zv_p
+		      && !MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (next)))))
+	{
+	  *end = row;
+	  break;
+	}
+      else
+	{
+	  /* If the next row's edges intersect [START_CHARPOS..END_CHARPOS],
+	     but none of the characters it displays are in the range, it is
+	     also END + 1. */
+	  struct glyph *g = next->glyphs[TEXT_AREA];
+	  struct glyph *e = g + next->used[TEXT_AREA];
+
+	  while (g < e)
+	    {
+	      if (BUFFERP (g->object)
+		  && start_charpos <= g->charpos && g->charpos < end_charpos)
+		break;
+	      g++;
+	    }
+	  if (g == e)
+	    {
+	      *end = row;
+	      break;
+	    }
+	}
+    }
+}
+
 /* This function sets the mouse_face_* elements of DPYINFO, assuming
    the mouse cursor is on a glyph with buffer charpos MOUSE_CHARPOS in
    window WINDOW.  START_CHARPOS and END_CHARPOS are buffer positions
@@ -23903,56 +24026,39 @@ mouse_face_from_buffer_pos (Lisp_Object window,
   struct glyph *glyph, *end;
   EMACS_INT ignore, pos;
   int x;
-  int beg_set = 0;
 
   xassert (NILP (display_string) || STRINGP (display_string));
   xassert (NILP (before_string) || STRINGP (before_string));
   xassert (NILP (after_string) || STRINGP (after_string));
 
-  /* Find the row with START_CHARPOS.  */
   /* FIXME: Sometimes the caller gets "wise" and gives us the window
      start position instead of the real start of the mouse face
      property.  This completely messes up the logic of finding the
      beg_row and end_row.  */
-  if (start_charpos < MATRIX_ROW_START_CHARPOS (first)
-      && (NILP (XBUFFER (w->buffer)->bidi_display_reordering)
-	  || row_containing_pos (w, start_charpos, first, NULL, 0) == NULL))
-    {
-      dpyinfo->mouse_face_beg_col = 0;
-      dpyinfo->mouse_face_beg_row = MATRIX_ROW_VPOS (first, w->current_matrix);
-      dpyinfo->mouse_face_beg_x = first->x;
-      dpyinfo->mouse_face_beg_y = first->y;
-      beg_set = 1;
-    }
-  else
-    {
-      r1 = row_containing_pos (w, start_charpos, first, NULL, 0);
-      if (r1 == NULL)
-	r1 = MATRIX_ROW (w->current_matrix, XFASTINT (w->window_end_vpos));
 
-      /* If the before-string or display-string contains newlines,
-	 row_containing_pos skips to its last row.  Move back.  */
-      if (!NILP (before_string) || !NILP (display_string))
+  /* Find the rows corresponding to START_CHARPOS and END_CHARPOS.  */
+  rows_from_pos_range (w, start_charpos, end_charpos, &r1, &r2);
+  if (r1 == NULL)
+    r1 = MATRIX_ROW (w->current_matrix, XFASTINT (w->window_end_vpos));
+  /* If the before-string or display-string contains newlines,
+     row_containing_pos skips to its last row.  Move back.  */
+  if (!NILP (before_string) || !NILP (display_string))
+    {
+      struct glyph_row *prev;
+      while ((prev = r1 - 1, prev >= first)
+	     && MATRIX_ROW_END_CHARPOS (prev) == start_charpos
+	     && prev->used[TEXT_AREA] > 0)
 	{
-	  struct glyph_row *prev;
-	  while ((prev = r1 - 1, prev >= first)
-		 && MATRIX_ROW_END_CHARPOS (prev) == start_charpos
-		 && prev->used[TEXT_AREA] > 0)
-	    {
-	      struct glyph *beg = prev->glyphs[TEXT_AREA];
-	      glyph = beg + prev->used[TEXT_AREA];
-	      while (--glyph >= beg && INTEGERP (glyph->object));
-	      if (glyph < beg
-		  || !(EQ (glyph->object, before_string)
-		       || EQ (glyph->object, display_string)))
-		break;
-	      r1 = prev;
-	    }
+	  struct glyph *beg = prev->glyphs[TEXT_AREA];
+	  glyph = beg + prev->used[TEXT_AREA];
+	  while (--glyph >= beg && INTEGERP (glyph->object));
+	  if (glyph < beg
+	      || !(EQ (glyph->object, before_string)
+		   || EQ (glyph->object, display_string)))
+	    break;
+	  r1 = prev;
 	}
     }
-
-  /* Find the row with END_CHARPOS.  */
-  r2 = row_containing_pos (w, end_charpos, first, NULL, 0);
   if (r2 == NULL)
     {
       r2 = MATRIX_ROW (w->current_matrix, XFASTINT (w->window_end_vpos));
@@ -23972,7 +24078,6 @@ mouse_face_from_buffer_pos (Lisp_Object window,
 	   ++next)
 	r2 = next;
     }
-
   /* The rest of the display engine assumes that mouse_face_beg_row is
      either above below mouse_face_end_row or identical to it.  But
      with bidi-reordered continued lines, the row for START_CHARPOS
@@ -23985,6 +24090,7 @@ mouse_face_from_buffer_pos (Lisp_Object window,
       r2 = r1;
       r1 = tem;
     }
+
   dpyinfo->mouse_face_beg_y = r1->y;
   dpyinfo->mouse_face_beg_row = MATRIX_ROW_VPOS (r1, w->current_matrix);
   dpyinfo->mouse_face_end_y = r2->y;
@@ -24000,9 +24106,7 @@ mouse_face_from_buffer_pos (Lisp_Object window,
      between START_CHARPOS and END_CHARPOS if the range of characters
      strides the bidi level boundary, e.g. if the beginning is in R2L
      text while the end is in L2R text or vice versa.  */
-  if (beg_set)
-    ;
-  else if (!r1->reversed_p)
+  if (!r1->reversed_p)
     {
       /* This row is in a left to right paragraph.  Scan it left to
 	 right.  */
@@ -25027,17 +25131,30 @@ note_mouse_highlight (struct frame *f, int x, int y)
 		{
 		  Lisp_Object before, after;
 		  Lisp_Object before_string, after_string;
+		  /* To correctly find the limits of mouse highlight
+		     in a bidi-reordered buffer, we must not use the
+		     optimization of limiting the search in
+		     previous-single-property-change and
+		     next-single-property-change, because
+		     rows_from_pos_range needs the real start and end
+		     positions to DTRT in this case.  */
+		  Lisp_Object lim1 =
+		    NILP (XBUFFER (buffer)->bidi_display_reordering)
+		    ? Fmarker_position (w->start)
+		    : Qnil;
+		  Lisp_Object lim2 =
+		    NILP (XBUFFER (buffer)->bidi_display_reordering)
+		    ? make_number (BUF_Z (XBUFFER (buffer))
+				   - XFASTINT (w->window_end_pos))
+		    : Qnil;
 
 		  if (NILP (overlay))
 		    {
 		      /* Handle the text property case.  */
 		      before = Fprevious_single_property_change
-			(make_number (pos + 1), Qmouse_face, buffer,
-			 Fmarker_position (w->start));
+			(make_number (pos + 1), Qmouse_face, buffer, lim1);
 		      after = Fnext_single_property_change
-			(make_number (pos), Qmouse_face, buffer,
-			 make_number (BUF_Z (XBUFFER (buffer))
-				      - XFASTINT (w->window_end_pos)));
+			(make_number (pos), Qmouse_face, buffer, lim2);
 		      before_string = after_string = Qnil;
 		    }
 		  else
