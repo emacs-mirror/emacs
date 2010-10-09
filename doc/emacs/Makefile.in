@@ -121,7 +121,7 @@ EMACSSOURCES= \
 ## repository and the release tarfiles.  We do not use any
 ## equivalent of mkdir -p/mkinstalldirs, so this is not a general
 ## solution anyway.  The second test -d is for parallel builds.
-mkinfodir = @test -d ${infodir} || mkdir ${infodir} || test -d ${infodir}
+mkinfodir = @cd ${srcdir}; test -d ${infodir} || mkdir ${infodir} || test -d ${infodir}
 
 .PHONY: info dvi pdf
 

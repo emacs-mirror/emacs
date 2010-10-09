@@ -34,7 +34,7 @@ TEXI2DVI = texi2dvi
 TEXI2PDF = texi2pdf
 DVIPS = dvips
 
-mkinfodir = @test -d ${infodir} || mkdir ${infodir} || test -d ${infodir}
+mkinfodir = @cd ${srcdir}; test -d ${infodir} || mkdir ${infodir} || test -d ${infodir}
 
 .SUFFIXES: .dvi .ps .texi
 

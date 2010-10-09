@@ -96,7 +96,7 @@ srcs = \
   $(srcdir)/gpl.texi \
   $(srcdir)/doclicense.texi
 
-mkinfodir = @test -d ${infodir} || mkdir ${infodir} || test -d ${infodir}
+mkinfodir = @cd ${srcdir}; test -d ${infodir} || mkdir ${infodir} || test -d ${infodir}
 
 .PHONY: info dvi pdf
 
