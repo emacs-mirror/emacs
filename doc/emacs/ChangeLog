@@ -11,6 +11,7 @@
 	($(infodir)/emacs): Use $mkinfodir instead of infodir.
 
 	* Makefile.in (distclean): Do not delete emacsver.texi.
+	(dist): Remove reference to emacsver.texi.in.
 	* emacsver.texi: New file, replacing emacsver.texi.in.
 
 2010-10-09  Glenn Morris  <rgm@gnu.org>

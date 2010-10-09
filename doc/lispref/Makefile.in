@@ -146,8 +146,6 @@ dist:
 	  -e 's/\(infodir *=\).*/\1 ./' -e 's/^\(clean:.*\)/\1 infoclean/' \
 	  -e "s/@ver[s]ion@/${version}/" \
 	  ${srcdir}/Makefile.in > emacs-lispref-${version}/Makefile
-	sed -e "s/@ver[s]ion@/${version}/" \
-	  ${emacsdir}/emacsver.texi.in > emacs-lispref-${version}/emacsver.texi
 	tar -cf emacs-lispref-${version}.tar emacs-lispref-${version}
 	rm -rf emacs-lispref-${version}
 
