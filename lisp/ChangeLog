@@ -1,3 +1,7 @@
+2010-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* mail/mail-utils.el (mail-mbox-from): Also try return-path.
+
 2010-10-08  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/cl-compat.el, emacs-lisp/lmenu.el: Move to obsolete/.
