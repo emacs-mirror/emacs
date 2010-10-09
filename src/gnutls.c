@@ -86,9 +86,9 @@ emacs_gnutls_write (int fildes, struct Lisp_Process *proc, char *buf,
     {
       rtnval = gnutls_write (state, buf, nbyte);
 
-      if (rtnval == -1)
+      if (rtnval < 0)
         {
-          if (errno == EINTR)
+          if (rtnval == GNUTLS_E_AGAIN || rtnval == GNUTLS_E_INTERRUPTED)
             continue;
           else
             return (bytes_written ? bytes_written : -1);
