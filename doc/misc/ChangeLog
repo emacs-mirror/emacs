@@ -1,3 +1,9 @@
+2010-10-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (emacsdir): New variable.
+	($(infodir)/efaq, faq.dvi): Depend on emacsver.texi.
+	(ENVADD, $(infodir)/efaq): Add -I$(emacsdir).
+
 2010-10-09  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (mostlyclean): Delete *.toc.
