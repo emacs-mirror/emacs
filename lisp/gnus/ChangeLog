@@ -1,3 +1,12 @@
+2010-10-09  Julien Danjou  <julien@danjou.info>
+
+	* gnus-gravatar.el (gnus-gravatar-transform-address): Error errors when
+	retrieving gravatars.
+
+	* shr.el (shr-table-corner): Add.
+	(shr-table-line): Add.
+	(shr-insert-table-ruler): Use the above defcustoms to insert tables.
+
 2010-10-08  Julien Danjou  <julien@danjou.info>
 
 	* mm-decode.el (mm-text-html-renderer): Add mm-shr in choice list.

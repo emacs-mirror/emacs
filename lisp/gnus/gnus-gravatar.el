@@ -68,10 +68,11 @@
 			   (and (cdr address)
 				(string-match gnus-gravatar-too-ugly
 					      (cdr address)))))
-	    (gravatar-retrieve
-	     (car address)
-	     'gnus-gravatar-insert
-	     (list header address category))))))))
+	    (ignore-errors
+              (gravatar-retrieve
+               (car address)
+               'gnus-gravatar-insert
+               (list header address category)))))))))
 
 (defun gnus-gravatar-insert (gravatar header address category)
   "Insert GRAVATAR for ADDRESS in HEADER in current article buffer.

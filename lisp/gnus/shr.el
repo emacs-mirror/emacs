@@ -53,6 +53,16 @@ fit these criteria."
   :group 'shr
   :type 'regexp)
 
+(defcustom shr-table-line ?-
+  "Character used to draw table line."
+  :group 'shr
+  :type 'char)
+
+(defcustom shr-table-corner ?+
+  "Charater used to draw table corner."
+  :group 'shr
+  :type 'char)
+
 (defvar shr-content-function nil
   "If bound, this should be a function that will return the content.
 This is used for cid: URLs, and the function is called with the
@@ -532,9 +542,9 @@ Return a string with image data."
 
 (defun shr-insert-table-ruler (widths)
   (shr-indent)
-  (insert "+")
+  (insert shr-table-corner)
   (dotimes (i (length widths))
-    (insert (make-string (aref widths i) ?-) ?+))
+    (insert (make-string (aref widths i) shr-table-line) shr-table-corner))
   (insert "\n"))
 
 (defun shr-table-widths (table suggested-widths)
