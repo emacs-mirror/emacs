@@ -24,12 +24,9 @@ SHELL = /bin/sh
 # Standard configure variables.
 srcdir = @srcdir@
 
-# Tell make where to find source files; this is needed for the makefiles.
-VPATH=@srcdir@
-
 version=@version@
 
-infodir = ../../info
+infodir = $(srcdir)/../../info
 # Directory with the (customized) texinfo.tex file.
 texinfodir = $(srcdir)/../misc
 # Directory with emacsver.texi.
@@ -96,7 +93,7 @@ srcs = \
   $(srcdir)/gpl.texi \
   $(srcdir)/doclicense.texi
 
-mkinfodir = @cd ${srcdir}; test -d ${infodir} || mkdir ${infodir} || test -d ${infodir}
+mkinfodir = @test -d ${infodir} || mkdir ${infodir} || test -d ${infodir}
 
 .PHONY: info dvi pdf
 
@@ -107,7 +104,7 @@ pdf: elisp.pdf
 
 $(infodir)/elisp: $(srcs)
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) -I. -I$(texinfodir) $< -o $@
+	$(MAKEINFO) -I. -I$(texinfodir) $< -o $@
 
 elisp.dvi: $(srcs)
 	$(TEXI2DVI) -I $(srcdir) -I $(texinfodir) $<
@@ -130,7 +127,7 @@ clean: mostlyclean
 distclean: clean
 
 infoclean:
-	-cd $(srcdir) && cd $(infodir) && rm -f elisp elisp-[1-9] elisp-[1-9][0-9]
+	-cd $(infodir) && rm -f elisp elisp-[1-9] elisp-[1-9][0-9]
 
 maintainer-clean: distclean infoclean
 

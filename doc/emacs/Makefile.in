@@ -25,9 +25,6 @@ SHELL = /bin/sh
 # of the source tree.  This is set by configure's `--srcdir' option.
 srcdir=@srcdir@
 
-# Tell make where to find source files; this is needed for the makefiles.
-VPATH=@srcdir@
-
 # Only for make dist.
 version=@version@
 
@@ -35,10 +32,8 @@ version=@version@
 ## Note that the setfilename command in the .texi files assumes this.
 ## This is a bit funny.  Because the info files are in the
 ## distribution tarfiles, they are always made in $scrdir/../../info,
-## even for out-of-tree builds.  So infodir is really relative to srcdir.
-## The use of VPATH makes it work out, but why not set
-## infodir = $(srcdir)/../../info and make it explicit?
-infodir=../../info
+## even for out-of-tree builds.
+infodir = $(srcdir)/../../info
 # Directory with the (customized) texinfo.tex file.
 texinfodir = $(srcdir)/../misc
 
@@ -121,7 +116,7 @@ EMACSSOURCES= \
 ## repository and the release tarfiles.  We do not use any
 ## equivalent of mkdir -p/mkinstalldirs, so this is not a general
 ## solution anyway.  The second test -d is for parallel builds.
-mkinfodir = @cd ${srcdir}; test -d ${infodir} || mkdir ${infodir} || test -d ${infodir}
+mkinfodir = @test -d ${infodir} || mkdir ${infodir} || test -d ${infodir}
 
 .PHONY: info dvi pdf
 
@@ -135,7 +130,7 @@ pdf: emacs.pdf
 
 $(infodir)/emacs: ${EMACSSOURCES}
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) $< -o $@
+	$(MAKEINFO) $< -o $@
 
 emacs.dvi: ${EMACSSOURCES}
 	$(ENVADD) $(TEXI2DVI) $<
@@ -166,7 +161,7 @@ distclean: clean
 
 ## In the standalone tarfile, the clean rule runs this.
 infoclean:
-	-cd $(srcdir) && cd $(infodir) && rm -f emacs emacs-[1-9] emacs-[1-9][0-9]
+	-cd $(infodir) && rm -f emacs emacs-[1-9] emacs-[1-9][0-9]
 
 maintainer-clean: distclean infoclean
 

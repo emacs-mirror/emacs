@@ -1,5 +1,9 @@
 2010-10-09  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (VPATH): Remove.
+	(infodir): Make it absolute.
+	(mkinfodir, $(infodir)/eintr, infoclean): No need to cd $srcdir.
+
 	* Makefile.in (dist): Anchor regexps.
 
 	* Makefile.in (${infodir}/eintr, emacs-lisp-intro.dvi)
