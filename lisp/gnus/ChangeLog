@@ -1,5 +1,7 @@
 2010-10-09  Julien Danjou  <julien@danjou.info>
 
+	* nnir.el (nnir-read-parm): Fix call to gnus-completing-read.
+
 	* gnus-gravatar.el (gnus-gravatar-transform-address): Error errors when
 	retrieving gravatars.
 

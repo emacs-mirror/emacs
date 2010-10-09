@@ -376,7 +376,7 @@ result, `gnus-retrieve-headers' will be called instead.")
     (imap    nnir-run-imap
              ((criteria
 	       "Search in: "                      ; Prompt
-	       ,nnir-imap-search-arguments        ; alist for completing
+	       ,(mapcar 'car nnir-imap-search-arguments) ; alist for completing
 	       nil                                ; no filtering
 	       nil                                ; allow any user input
 	       nil                                ; initial value
@@ -1579,7 +1579,7 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
   (let ((sym (car parmspec))
         (prompt (cdr parmspec)))
     (if (listp prompt)
-	(let* ((result (gnus-completing-read prompt nil))
+	(let* ((result (apply 'gnus-completing-read prompt))
 	       (mapping (or (assoc result nnir-imap-search-arguments)
 			    (assoc nil nnir-imap-search-arguments))))
 	  (cons sym (format (cdr mapping) result)))
