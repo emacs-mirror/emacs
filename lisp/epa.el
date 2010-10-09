@@ -635,8 +635,15 @@ If SECRET is non-nil, list secret keys instead of public keys."
 
 (defun epa-passphrase-callback-function (context key-id handback)
   (if (eq key-id 'SYM)
-      (read-passwd "Passphrase for symmetric encryption: "
-		   (eq (epg-context-operation context) 'encrypt))
+      (read-passwd
+       (format "Passphrase for symmetric encryption%s: "
+	       (let ((elem (epg-context-passphrase-callback context)))
+		 ;; Add the file name to the prompt, if any.
+		 (if (and (consp elem)
+			  (stringp (cdr elem)))
+		     (format " for %s" (cdr elem))
+		   "")))
+       (eq (epg-context-operation context) 'encrypt))
     (read-passwd
      (if (eq key-id 'PIN)
 	"Passphrase for PIN: "
