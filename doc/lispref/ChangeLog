@@ -10,6 +10,7 @@
 	($(infodir)/elisp): Use $mkinfodir instead of infodir.
 
 	* Makefile.in (dist): Remove reference to emacsver.texi.in.
+	Also copy emacsver.texi, and edit $emacsdir.
 
 2010-10-09  Glenn Morris  <rgm@gnu.org>
 
