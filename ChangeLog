@@ -1,5 +1,7 @@
 2010-10-09  Glenn Morris  <rgm@gnu.org>
 
+	* make-dist: No more doc/emacs/*.texi.in.
+
 	* configure.in (AC_OUTPUT): Remove doc/emacs/emacsver.texi.
 
 2010-10-09  Glenn Morris  <rgm@gnu.org>
