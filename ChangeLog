@@ -1,5 +1,7 @@
 2010-10-09  Glenn Morris  <rgm@gnu.org>
 
+	* configure.in: Combine some conditionals.
+
 	* configure.in (AC_OUTPUT): Add doc/emacs/emacsver.texi.
 	* make-dist: Include doc/emacs/*.texi.in.
 

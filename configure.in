@@ -850,14 +850,12 @@ fi
 
 dnl Add our options to ac_link now, after it is set up.
 
-if test x$GCC = xyes && test "x$GCC_LINK_TEST_OPTIONS" != x
-then
-  ac_link="$ac_link $GCC_LINK_TEST_OPTIONS"
-fi
-
-if test x$GCC = x && test "x$NON_GCC_LINK_TEST_OPTIONS" != x
-then
-  ac_link="$ac_link $NON_GCC_LINK_TEST_OPTIONS"
+if test x$GCC = xyes; then
+  test "x$GCC_LINK_TEST_OPTIONS" != x && \
+    ac_link="$ac_link $GCC_LINK_TEST_OPTIONS"
+else
+  test "x$NON_GCC_LINK_TEST_OPTIONS" != x && \
+    ac_link="$ac_link $NON_GCC_LINK_TEST_OPTIONS"
 fi
 
 dnl We need -znocombreloc if we're using a relatively recent GNU ld.
@@ -867,7 +865,7 @@ dnl Treat GCC specially since it just gives a non-fatal `unrecognized option'
 dnl if not built to support GNU ld.
 
 late_LDFLAGS=$LDFLAGS
-if test "$GCC" = yes; then
+if test x$GCC = xyes; then
   LDFLAGS="$LDFLAGS -Wl,-znocombreloc"
 else
   LDFLAGS="$LDFLAGS -znocombreloc"
@@ -3540,17 +3538,14 @@ AH_BOTTOM([
 #include config_opsysfile
 #include config_machfile
 
-/* Set up some defines, C and LD flags for NeXTstep interface on GNUstep.
-  (There is probably a better place to do this, but right now the Cocoa
-   side does this in s/darwin.h and we cannot
-   parallel this exactly since GNUstep is multi-OS.  */
-#ifdef HAVE_NS
-# ifdef NS_IMPL_GNUSTEP
 /* GNUstep needs a bit more pure memory.  Of the existing knobs,
-SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.  */
+   SYSTEM_PURESIZE_EXTRA seems like the least likely to cause problems.
+  (There is probably a better place to do this, but right now the
+   Cocoa side does this in s/darwin.h and we cannot parallel this
+   exactly since GNUstep is multi-OS.  */
+#if defined HAVE_NS && defined NS_IMPL_GNUSTEP
 #  define SYSTEM_PURESIZE_EXTRA 30000
-# endif /* NS_IMPL_GNUSTEP */
-#endif /* HAVE_NS */
+#endif
 
 /* SIGTYPE is the macro we actually use.  */
 #ifndef SIGTYPE
