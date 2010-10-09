@@ -70,8 +70,8 @@ EMACS_XTRA= \
 	$(srcdir)/msdog-xtra.texi
 
 EMACSSOURCES= \
-	${srcdir}/emacsver.texi \
 	${srcdir}/emacs.texi \
+	${srcdir}/emacsver.texi \
 	${srcdir}/doclicense.texi \
 	${srcdir}/gpl.texi \
 	${srcdir}/screen.texi \
@@ -135,20 +135,20 @@ pdf: emacs.pdf
 
 $(infodir)/emacs: ${EMACSSOURCES}
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) emacs.texi -o $@
+	cd $(srcdir); $(MAKEINFO) $< -o $@
 
 emacs.dvi: ${EMACSSOURCES}
-	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs.texi
+	$(ENVADD) $(TEXI2DVI) $<
 
 emacs.pdf: ${EMACSSOURCES}
-	$(ENVADD) $(TEXI2PDF) ${srcdir}/emacs.texi
+	$(ENVADD) $(TEXI2PDF) $<
 
 
 emacs-xtra.dvi: $(EMACS_XTRA)
-	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs-xtra.texi
+	$(ENVADD) $(TEXI2DVI) $<
 
 emacs-xtra.pdf: $(EMACS_XTRA)
-	$(ENVADD) $(TEXI2PDF) ${srcdir}/emacs-xtra.texi
+	$(ENVADD) $(TEXI2PDF) $<
 
 .PHONY: mostlyclean clean distclean maintainer-clean infoclean
 

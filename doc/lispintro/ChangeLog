@@ -1,5 +1,8 @@
 2010-10-09  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (${infodir}/eintr, emacs-lisp-intro.dvi)
+	(emacs-lisp-intro.pdf, emacs-lisp-intro.html): Use $<.
+
 	* Makefile.in (infoclean): Remove harmless, long-standing error.
 
 	* Makefile.in ($(infodir)): Delete rule.

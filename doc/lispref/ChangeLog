@@ -1,5 +1,8 @@
 2010-10-09  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (srcs): Put elisp.texi first.
+	($(infodir)/elisp, elisp.dvi, elisp.pdf): Use $<.
+
 	* Makefile.in (infoclean): Remove harmless, long-standing error.
 
 	* Makefile.in ($(infodir)): Delete rule.

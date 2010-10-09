@@ -42,6 +42,7 @@ TEXI2PDF = texi2pdf
 # List of all the texinfo files in the manual:
 
 srcs = \
+  $(srcdir)/elisp.texi \
   $(emacsdir)/emacsver.texi \
   $(srcdir)/abbrevs.texi \
   $(srcdir)/advice.texi \
@@ -56,7 +57,6 @@ srcs = \
   $(srcdir)/debugging.texi \
   $(srcdir)/display.texi \
   $(srcdir)/edebug.texi \
-  $(srcdir)/elisp.texi \
   $(srcdir)/errors.texi \
   $(srcdir)/eval.texi \
   $(srcdir)/files.texi \
@@ -107,13 +107,13 @@ pdf: elisp.pdf
 
 $(infodir)/elisp: $(srcs)
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) -I. -I$(texinfodir) elisp.texi -o $@
+	cd $(srcdir); $(MAKEINFO) -I. -I$(texinfodir) $< -o $@
 
 elisp.dvi: $(srcs)
-	$(TEXI2DVI) -I $(srcdir) -I $(texinfodir) $(srcdir)/elisp.texi
+	$(TEXI2DVI) -I $(srcdir) -I $(texinfodir) $<
 
 elisp.pdf: $(srcs)
-	$(TEXI2PDF) -I $(srcdir) -I $(texinfodir) $(srcdir)/elisp.texi
+	$(TEXI2PDF) -I $(srcdir) -I $(texinfodir) $<
 
 .PHONY: mostlyclean clean distclean maintainer-clean infoclean
 

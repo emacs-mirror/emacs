@@ -50,16 +50,16 @@ pdf: emacs-lisp-intro.pdf
 # -NN extensions to fit into DOS 8+3 limits without clashing.
 ${infodir}/eintr: ${srcdir}/emacs-lisp-intro.texi
 	$(mkinfodir)
-	cd $(srcdir); $(MAKEINFO) emacs-lisp-intro.texi -o $@
+	cd $(srcdir); $(MAKEINFO) $< -o $@
 
 emacs-lisp-intro.dvi: ${srcdir}/emacs-lisp-intro.texi
-	$(TEXI2DVI) -I $(srcdir) -I $(texinfodir) $^
+	$(TEXI2DVI) -I $(srcdir) -I $(texinfodir) $<
 
 emacs-lisp-intro.pdf: ${srcdir}/emacs-lisp-intro.texi
-	$(TEXI2PDF) -I $(srcdir) -I $(texinfodir) $^
+	$(TEXI2PDF) -I $(srcdir) -I $(texinfodir) $<
 
 emacs-lisp-intro.html: ${srcdir}/emacs-lisp-intro.texi
-	$(MAKEINFO) --html -o $@ $^
+	$(MAKEINFO) --html -o $@ $<
 
 .dvi.ps:
 	$(DVIPS) $< -o $@
