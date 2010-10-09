@@ -5646,17 +5646,23 @@ comment at the start of cc-engine.el for more info."
 
 (defun c-forward-name ()
   ;; Move forward over a complete name if at the beginning of one,
-  ;; stopping at the next following token.  If the point is not at
-  ;; something that are recognized as name then it stays put.  A name
-  ;; could be something as simple as "foo" in C or something as
+  ;; stopping at the next following token.  A keyword, as such,
+  ;; doesn't count as a name.  If the point is not at something that
+  ;; is recognized as a name then it stays put.
+  ;;
+  ;; A name could be something as simple as "foo" in C or something as
   ;; complex as "X<Y<class A<int>::B, BIT_MAX >> b>, ::operator<> ::
   ;; Z<(a>b)> :: operator const X<&foo>::T Q::G<unsigned short
   ;; int>::*volatile const" in C++ (this function is actually little
   ;; more than a `looking-at' call in all modes except those that,
-  ;; like C++, have `c-recognize-<>-arglists' set).  Return nil if no
-  ;; name is found, 'template if it's an identifier ending with an
-  ;; angle bracket arglist, 'operator of it's an operator identifier,
-  ;; or t if it's some other kind of name.
+  ;; like C++, have `c-recognize-<>-arglists' set).
+  ;;
+  ;; Return
+  ;; o - nil if no name is found;
+  ;; o - 'template if it's an identifier ending with an angle bracket
+  ;;   arglist;
+  ;; o - 'operator of it's an operator identifier;
+  ;; o - t if it's some other kind of name.
   ;;
   ;; This function records identifier ranges on
   ;; `c-record-type-identifiers' and `c-record-ref-identifiers' if
@@ -5808,16 +5814,28 @@ comment at the start of cc-engine.el for more info."
     (goto-char pos)
     res))
 
-(defun c-forward-type ()
+(defun c-forward-type (&optional brace-block-too)
   ;; Move forward over a type spec if at the beginning of one,
-  ;; stopping at the next following token.  Return t if it's a known
-  ;; type that can't be a name or other expression, 'known if it's an
-  ;; otherwise known type (according to `*-font-lock-extra-types'),
-  ;; 'prefix if it's a known prefix of a type, 'found if it's a type
-  ;; that matches one in `c-found-types', 'maybe if it's an identfier
-  ;; that might be a type, or nil if it can't be a type (the point
-  ;; isn't moved then).  The point is assumed to be at the beginning
-  ;; of a token.
+  ;; stopping at the next following token.  The keyword "typedef"
+  ;; isn't part of a type spec here.
+  ;;
+  ;; BRACE-BLOCK-TOO, when non-nil, means move over the brace block in
+  ;; constructs like "struct foo {...} bar ;" or "struct {...} bar;".
+  ;; The current (2009-03-10) intention is to convert all uses of
+  ;; `c-forward-type' to call with this parameter set, then to
+  ;; eliminate it.
+  ;;
+  ;; Return
+  ;;   o - t if it's a known type that can't be a name or other
+  ;;     expression;
+  ;;   o - 'known if it's an otherwise known type (according to
+  ;;     `*-font-lock-extra-types');
+  ;;   o - 'prefix if it's a known prefix of a type;
+  ;;   o - 'found if it's a type that matches one in `c-found-types';
+  ;;   o - 'maybe if it's an identfier that might be a type; or
+  ;;   o -  nil if it can't be a type (the point isn't moved then).
+  ;;
+  ;; The point is assumed to be at the beginning of a token.
   ;;
   ;; Note that this function doesn't skip past the brace definition
   ;; that might be considered part of the type, e.g.
@@ -5836,32 +5854,39 @@ comment at the start of cc-engine.el for more info."
 
     ;; Skip leading type modifiers.  If any are found we know it's a
     ;; prefix of a type.
-    (when c-opt-type-modifier-key
+    (when c-opt-type-modifier-key ; e.g. "const" "volatile", but NOT "typedef"
       (while (looking-at c-opt-type-modifier-key)
 	(goto-char (match-end 1))
 	(c-forward-syntactic-ws)
 	(setq res 'prefix)))
 
     (cond
-     ((looking-at c-type-prefix-key)
-      ;; Looking at a keyword that prefixes a type identifier,
-      ;; e.g. "class".
+     ((looking-at c-type-prefix-key) ; e.g. "struct", "class", but NOT
+				     ; "typedef".
       (goto-char (match-end 1))
       (c-forward-syntactic-ws)
       (setq pos (point))
-      (if (memq (setq name-res (c-forward-name)) '(t template))
-	  (progn
-	    (when (eq name-res t)
-	      ;; In many languages the name can be used without the
-	      ;; prefix, so we add it to `c-found-types'.
-	      (c-add-type pos (point))
-	      (when (and c-record-type-identifiers
-			 c-last-identifier-range)
-		(c-record-type-id c-last-identifier-range)))
-	    (setq res t))
-	;; Invalid syntax.
-	(goto-char start)
-	(setq res nil)))
+
+      (setq name-res (c-forward-name))
+      (setq res (not (null name-res)))
+      (when (eq name-res t)
+	;; In many languages the name can be used without the
+	;; prefix, so we add it to `c-found-types'.
+	(c-add-type pos (point))
+	(when (and c-record-type-identifiers
+		   c-last-identifier-range)
+	  (c-record-type-id c-last-identifier-range)))
+      (when (and brace-block-too
+		 (memq res '(t nil))
+		 (eq (char-after) ?\{)
+		 (save-excursion
+		   (c-safe
+		     (progn (c-forward-sexp)
+			    (c-forward-syntactic-ws)
+			    (setq pos (point))))))
+	(goto-char pos)
+	(setq res t))
+      (unless res (goto-char start)))	; invalid syntax
 
      ((progn
 	(setq pos nil)
@@ -5951,14 +5976,13 @@ comment at the start of cc-engine.el for more info."
 	     (setq res nil)))))
 
     (when res
-      ;; Skip trailing type modifiers.  If any are found we know it's
+      ;; Skip trailing type modifiers.	If any are found we know it's
       ;; a type.
       (when c-opt-type-modifier-key
-	(while (looking-at c-opt-type-modifier-key)
+	(while (looking-at c-opt-type-modifier-key) ; e.g. "const", "volatile"
 	  (goto-char (match-end 1))
 	  (c-forward-syntactic-ws)
 	  (setq res t)))
-
       ;; Step over any type suffix operator.  Do not let the existence
       ;; of these alter the classification of the found type, since
       ;; these operators typically are allowed in normal expressions
@@ -5968,7 +5992,7 @@ comment at the start of cc-engine.el for more info."
 	  (goto-char (match-end 1))
 	  (c-forward-syntactic-ws)))
 
-      (when c-opt-type-concat-key
+      (when c-opt-type-concat-key	; Only/mainly for pike.
 	;; Look for a trailing operator that concatenates the type
 	;; with a following one, and if so step past that one through
 	;; a recursive call.  Note that we don't record concatenated
@@ -6119,11 +6143,15 @@ comment at the start of cc-engine.el for more info."
   ;;      car ^                                     ^ point
   ;;     Foo::Foo (int b) : Base (b) {}
   ;; car ^                ^ point
-  ;;
-  ;;   The cdr of the return value is non-nil iff a `c-typedef-decl-kwds'
-  ;;   specifier (e.g. class, struct, enum, typedef) is found in the
-  ;;   declaration, i.e. the declared identifier(s) are types.
-  ;;
+  ;; 
+  ;;   The cdr of the return value is non-nil when a
+  ;;   `c-typedef-decl-kwds' specifier is found in the declaration.
+  ;;   Specifically it is a dotted pair (A . B) where B is t when a
+  ;;   `c-typedef-kwds' ("typedef") is present, and A is t when some
+  ;;   other `c-typedef-decl-kwds' (e.g. class, struct, enum)
+  ;;   specifier is present.  I.e., (some of) the declared
+  ;;   identifier(s) are types.
+  ;; 
   ;; If a cast is parsed:
   ;;
   ;;   The point is left at the first token after the closing paren of
@@ -6181,9 +6209,11 @@ comment at the start of cc-engine.el for more info."
 	;; If `backup-at-type' is nil then the other variables have
 	;; undefined values.
 	backup-at-type backup-type-start backup-id-start
-	;; Set if we've found a specifier that makes the defined
-	;; identifier(s) types.
+	;; Set if we've found a specifier (apart from "typedef") that makes
+	;; the defined identifier(s) types.
 	at-type-decl
+	;; Set if we've a "typedef" keyword.
+	at-typedef
 	;; Set if we've found a specifier that can start a declaration
 	;; where there's no type.
 	maybe-typeless
@@ -6223,12 +6253,14 @@ comment at the start of cc-engine.el for more info."
 
 	  ;; Look for a specifier keyword clause.
 	  (when (looking-at c-prefix-spec-kwds-re)
+	    (if (looking-at c-typedef-key)
+		(setq at-typedef t))
 	    (setq kwd-sym (c-keyword-sym (match-string 1)))
 	    (save-excursion
 	      (c-forward-keyword-clause 1)
 	      (setq kwd-clause-end (point))))
 
-	  (when (setq found-type (c-forward-type))
+	  (when (setq found-type (c-forward-type t)) ; brace-block-too
 	    ;; Found a known or possible type or a prefix of a known type.
 
 	    (when at-type
@@ -6293,6 +6325,8 @@ comment at the start of cc-engine.el for more info."
 			  (setq backup-maybe-typeless t)))
 
 		    (when (c-keyword-member kwd-sym 'c-typedef-decl-kwds)
+		      ;; This test only happens after we've scanned a type.
+		      ;; So, with valid syntax, kwd-sym can't be 'typedef.
 		      (setq at-type-decl t))
 		    (when (c-keyword-member kwd-sym 'c-typeless-decl-kwds)
 		      (setq maybe-typeless t))
@@ -6892,7 +6926,9 @@ comment at the start of cc-engine.el for more info."
 	    (goto-char type-start)
 	    (c-forward-type))))
 
-      (cons id-start at-type-decl))
+      (cons id-start
+	    (and (or at-type-decl at-typedef)
+		 (cons at-type-decl at-typedef))))
 
      (t
       ;; False alarm.  Restore the recorded ranges.
