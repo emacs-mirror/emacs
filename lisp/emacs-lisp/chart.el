@@ -62,11 +62,7 @@
 (require 'eieio)
 
 ;;; Code:
-(defvar chart-map nil "Keymap used in chart mode.")
-(if chart-map
-    ()
-  (setq chart-map (make-sparse-keymap))
-  )
+(defvar chart-map (make-sparse-keymap) "Keymap used in chart mode.")
 
 (defvar chart-local-object nil
   "Local variable containing the locally displayed chart object.")

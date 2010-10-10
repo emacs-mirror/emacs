@@ -1,5 +1,27 @@
 2010-10-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* shell.el (shell-mode-map):
+	* progmodes/modula2.el (m2-mode-map):
+	* progmodes/inf-lisp.el (inferior-lisp-mode-map):
+	* play/mpuz.el (mpuz-mode-map):
+	* play/landmark.el (lm-mode-map):
+	* play/decipher.el (decipher-mode-map):
+	* play/5x5.el (5x5-mode-map):
+	* net/telnet.el (telnet-mode-map):
+	* net/quickurl.el (quickurl-list-mode-map):
+	* net/mairix.el (mairix-searches-mode-map):
+	* net/eudc-hotlist.el (eudc-hotlist-mode-map):
+	* net/dig.el (dig-mode-map):
+	* mail/mspools.el (mspools-mode-map):
+	* hexl.el (hexl-mode-map):
+	* emulation/ws-mode.el (wordstar-C-k-map, wordstar-mode-map)
+	(wordstar-C-o-map, wordstar-C-q-map):
+	* emacs-lisp/edebug.el (edebug-eval-mode-map):
+	* emacs-lisp/chart.el (chart-map):
+	* edmacro.el (edmacro-mode-map):
+	* erc/erc-list.el (erc-list-menu-mode-map):
+	* array.el (array-mode-map): Declare and define in one step.
+
 	* vc/log-view.el (log-view-mode-map): Bind revert-buffer.
 
 2010-10-10  Daiki Ueno  <ueno@unixuser.org>
