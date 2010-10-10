@@ -386,13 +386,8 @@ temacs:
 /* We do not use mmap because that fails with NFS.
    Instead we read the whole file, modify it, and write it out.  */
 
-#ifndef emacs
-#define fatal(a, b, c) fprintf (stderr, a, b, c), exit (1)
-#include <string.h>
-#else
 #include <config.h>
 extern void fatal (const char *msgid, ...);
-#endif
 
 #include <sys/types.h>
 #include <stdio.h>
@@ -403,7 +398,7 @@ extern void fatal (const char *msgid, ...);
 #include <fcntl.h>
 #if !defined (__NetBSD__) && !defined (__OpenBSD__)
 #include <elf.h>
-#endif
+#endif /* not __NetBSD__ and not __OpenBSD__ */
 #include <sys/mman.h>
 #if defined (_SYSTYPE_SYSV)
 #include <sys/elf_mips.h>
@@ -1287,13 +1282,8 @@ temacs:
   /* Write out new_file, and free the buffers.  */
 
   if (write (new_file, new_base, new_file_size) != new_file_size)
-#ifndef emacs
-    fatal ("Didn't write %d bytes: errno %d\n",
-	   new_file_size, errno);
-#else
     fatal ("Didn't write %d bytes to %s: errno %d\n",
 	   new_file_size, new_name, errno);
-#endif
   munmap (old_base, old_file_size);
   munmap (new_base, new_file_size);
 

@@ -17,12 +17,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
-#ifdef emacs
 #include <config.h>
 #include <setjmp.h>
 #include "lisp.h"
-#endif
-
 #include "mem-limits.h"
 
 /*

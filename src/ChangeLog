@@ -1,5 +1,11 @@
 2010-10-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vm-limit.c:
+	* unexhp9k800.c:
+	* unexelf.c:
+	* unexaix.c:
+	* termcap.c: Remove #ifdef emacs / #ifndef emacs code, unused.
+
 	* Makefile.in (temacs): Use $(ALL_CFLAGS) on the link line.
 	(PROFILING_LDFLAGS): Remove, not needed anymore.
 
