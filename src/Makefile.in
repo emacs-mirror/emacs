@@ -64,8 +64,6 @@ bootstrap_exe = $(abs_builddir)/bootstrap-emacs$(EXEEXT)
 OTHER_FILES = @OTHER_FILES@
 
 ## Flags to pass for profiling builds
-CRT_DIR=@CRT_DIR@
-
 PROFILING_CFLAGS = @PROFILING_CFLAGS@
 PROFILING_LDFLAGS = @PROFILING_LDFLAGS@
 
@@ -125,8 +123,10 @@ LIBS_SYSTEM=@LIBS_SYSTEM@
 ## Where to find libgcc.a, if using gcc and necessary.
 LIB_GCC=@LIB_GCC@
 
+CRT_DIR=@CRT_DIR@
 ## May use $CRT_DIR.
 LIB_STANDARD=@LIB_STANDARD@
+START_FILES = @START_FILES@
 
 ## -lm, or empty.
 LIB_MATH=@LIB_MATH@
@@ -294,8 +294,6 @@ INTERVALS_H = dispextern.h intervals.h composite.h
 GETLOADAVG_LIBS = @GETLOADAVG_LIBS@
 
 RUN_TEMACS = `/bin/pwd`/temacs
-
-START_FILES = @START_FILES@
 
 UNEXEC_OBJ = @UNEXEC_OBJ@
 

@@ -1,6 +1,8 @@
 2010-10-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* Makefile.in: Use $(...) everywhere instead of ${...}
+	(CRT_DIR): Move near potential user.
+	(START_FILE): Move near CRT_DIR, it might use it.
 
 	* sysdep.c (LPASS8): Remove, unused.
 	(emacs_ospeed): Change from being a global to a local in the only
