@@ -336,7 +336,10 @@ Return structure as specified by MODE."
                   passwd))
                ((equal "login" m)
                 (or user
-                    (read-string (format "User name for %s on %s: " prot host))))
+                    (read-string
+		     (format "User name for %s on %s (default %s): " prot host
+			     (user-login-name))
+		     nil nil (user-login-name))))
                (t
                 "unknownuser"))))
            (if (consp mode) mode (list mode))))

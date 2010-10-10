@@ -295,7 +295,9 @@ textual parts.")
 	     (port nil)
 	     (ports
 	      (cond
-	       ((eq nnimap-stream 'network)
+	       ((or (eq nnimap-stream 'network)
+		    (and (eq nnimap-stream 'starttls)
+			 (fboundp 'open-gnutls-stream)))
 		(open-network-stream
 		 "*nnimap*" (current-buffer) nnimap-address
 		 (setq port
@@ -357,8 +359,16 @@ textual parts.")
 	      (push (format "%s" nnimap-server-port) ports))
 	    ;; If this is a STARTTLS-capable server, then sever the
 	    ;; connection and start a STARTTLS connection instead.
-	    (when (and (eq nnimap-stream 'network)
-		       (member "STARTTLS" (nnimap-capabilities nnimap-object)))
+	    (cond
+	     ((and (or (and (eq nnimap-stream 'network)
+			    (member "STARTTLS"
+				    (nnimap-capabilities nnimap-object)))
+		       (eq nnimap-stream 'starttls))
+		   (fboundp 'open-gnutls-stream))
+	      (nnimap-command "STARTTLS")
+	      (gnutls-negotiate (nnimap-process nnimap-object) nil))
+	     ((and (eq nnimap-stream 'network)
+		   (member "STARTTLS" (nnimap-capabilities nnimap-object)))
 	      (let ((nnimap-stream 'starttls))
 		(let ((tls-process
 		       (nnimap-open-connection buffer)))
@@ -369,7 +379,7 @@ textual parts.")
 		  (when (memq (process-status tls-process) '(open run))
 		    (delete-process (nnimap-process nnimap-object))
 		    (kill-buffer (current-buffer))
-		    (return tls-process)))))
+		    (return tls-process))))))
 	    (unless (equal connection-result "PREAUTH")
 	      (if (not (setq credentials
 			     (if (eq nnimap-authenticator 'anonymous)
@@ -949,7 +959,7 @@ textual parts.")
       (erase-buffer)
       (setf (nnimap-group nnimap-object) nil)
       ;; QRESYNC handling isn't implemented.
-      (let ((qresyncp (member "notQRESYNC" (nnimap-capabilities nnimap-object)))
+      (let ((qresyncp (member "QRESYNC" (nnimap-capabilities nnimap-object)))
 	    params groups sequences active uidvalidity modseq group)
 	;; Go through the infos and gather the data needed to know
 	;; what and how to request the data.
@@ -964,7 +974,8 @@ textual parts.")
 		   modseq)
 	      (push
 	       (list (nnimap-send-command "EXAMINE %S (QRESYNC (%s %s))"
-					  group uidvalidity modseq)
+					  (utf7-encode group t)
+					  uidvalidity modseq)
 		     'qresync
 		     nil group 'qresync)
 	       sequences)
@@ -982,7 +993,8 @@ textual parts.")
 		     ;; examine), but will tell us whether the group
 		     ;; is read-only or not.
 		     "SELECT")))
-	      (push (list (nnimap-send-command "%s %S" command group)
+	      (push (list (nnimap-send-command "%s %S" command
+					       (utf7-encode group t))
 			  (nnimap-send-command "UID FETCH %d:* FLAGS" start)
 			  start group command)
 		    sequences)))
@@ -1038,7 +1050,9 @@ textual parts.")
      ;; completely empty groups.
      ((and (not existing)
 	   (not uidnext))
-      )
+      (let ((active (cdr (assq 'active (gnus-info-params info)))))
+	(when active
+	  (gnus-set-active (gnus-info-group info) active))))
      ;; We have a mismatch between the old and new UIDVALIDITY
      ;; identifiers, so we have to re-request the group info (the next
      ;; time).  This virtually never happens.
@@ -1051,9 +1065,11 @@ textual parts.")
       (gnus-group-remove-parameter info 'modseq))
      ;; We have the data needed to update.
      (t
-      (let ((group (gnus-info-group info))
-	    (completep (and start-article
-			    (= start-article 1))))
+      (let* ((group (gnus-info-group info))
+	     (completep (and start-article
+			     (= start-article 1)))
+	     (active (or (gnus-active group)
+			 (cdr (assq 'active (gnus-info-params info))))))
 	(when uidnext
 	  (setq high (1- uidnext)))
 	;; First set the active ranges based on high/low.
@@ -1066,6 +1082,8 @@ textual parts.")
 			      (uidnext
 			       ;; No articles in this group.
 			       (cons uidnext (1- uidnext)))
+			      (active
+			       active)
 			      (start-article
 			       (cons start-article (1- start-article)))
 			      (t
@@ -1073,7 +1091,7 @@ textual parts.")
 			       nil)))
 	  (gnus-set-active
 	   group
-	   (cons (car (gnus-active group))
+	   (cons (car active)
 		 (or high (1- uidnext)))))
 	;; See whether this is a read-only group.
 	(unless (eq permanent-flags 'not-scanned)
@@ -1089,7 +1107,7 @@ textual parts.")
 		   (not start-article))
 	      ;; We've gotten the data by QRESYNCing.
 	      (nnimap-update-qresync-info
-	       info (nnimap-imap-ranges-to-gnus-ranges vanished) flags)
+	       info existing (nnimap-imap-ranges-to-gnus-ranges vanished) flags)
 	    ;; Do normal non-QRESYNC flag updates.
 	    ;; Update the list of read articles.
 	    (let* ((unread
@@ -1137,13 +1155,35 @@ textual parts.")
 	(gnus-group-set-parameter info 'modseq highestmodseq)
 	(nnimap-store-info info (gnus-active group)))))))
 
-(defun nnimap-update-qresync-info (info vanished flags)
+(defun nnimap-update-qresync-info (info existing vanished flags)
   ;; Add all the vanished articles to the list of read articles.
   (gnus-info-set-read
    info
-   (gnus-range-add (gnus-info-read info)
-		   vanished))
-  )
+   (gnus-add-to-range
+    (gnus-add-to-range
+     (gnus-range-add (gnus-info-read info)
+		     vanished)
+     (cdr (assq '%Flagged flags)))
+    (cdr (assq '%Seen flags))))
+  (let ((marks (gnus-info-marks info)))
+    (dolist (type (cdr nnimap-mark-alist))
+      (let ((ticks (assoc (car type) marks))
+	    (new-marks
+	     (cdr (or (assoc (caddr type) flags) ; %Flagged
+		      (assoc (intern (cadr type) obarray) flags)
+		      (assoc (cadr type) flags))))) ; "\Flagged"
+	(setq marks (delq ticks marks))
+	(pop ticks)
+	;; Add the new marks we got.
+	(setq ticks (gnus-add-to-range ticks new-marks))
+	;; Remove the marks from messages that don't have them.
+	(setq ticks (gnus-remove-from-range
+		     ticks
+		     (gnus-compress-sequence
+		      (gnus-sorted-complement existing new-marks))))
+	(when ticks
+	  (push (cons (car type) ticks) marks)))
+      (gnus-info-set-marks info marks t))))
 
 (defun nnimap-imap-ranges-to-gnus-ranges (irange)
   (if (zerop (length irange))
@@ -1355,20 +1395,28 @@ textual parts.")
 (defun nnimap-wait-for-response (sequence &optional messagep)
   (let ((process (get-buffer-process (current-buffer)))
 	openp)
-    (goto-char (point-max))
-    (while (and (setq openp (memq (process-status process)
-				  '(open run)))
-		(not (re-search-backward
-		      (format "^%d .*\n" sequence)
-		      (if nnimap-streaming
-			  (max (point-min) (- (point) 500))
-			(point-min))
-		      t)))
-      (when messagep
-	(message "nnimap read %dk" (/ (buffer-size) 1000)))
-      (nnheader-accept-process-output process)
-      (goto-char (point-max)))
-    openp))
+    (condition-case nil
+        (progn
+	  (goto-char (point-max))
+	  (while (and (setq openp (memq (process-status process)
+					'(open run)))
+		      (not (re-search-backward
+			    (format "^%d .*\n" sequence)
+			    (if nnimap-streaming
+				(max (point-min) (- (point) 500))
+			      (point-min))
+			    t)))
+	    (when messagep
+	      (message "nnimap read %dk" (/ (buffer-size) 1000)))
+	    (nnheader-accept-process-output process)
+	    (goto-char (point-max)))
+          openp)
+      (quit
+       ;; The user hit C-g while we were waiting: kill the process, in case
+       ;; it's a gnutls-cli process that's stuck (tends to happen a lot behind
+       ;; NAT routers).
+       (delete-process process)
+       nil))))
 
 (defun nnimap-parse-response ()
   (let ((lines (split-string (nnimap-last-response-string) "\r\n" t))

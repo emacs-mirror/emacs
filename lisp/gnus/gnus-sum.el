@@ -3841,7 +3841,8 @@ This function is intended to be used in
 
 (defun gnus-summary-set-local-parameters (group)
   "Go through the local params of GROUP and set all variable specs in that list."
-  (let ((vars '(quit-config)))          ; Ignore quit-config.
+  (let ((vars '(quit-config active)))	; Ignore things that aren't
+					; really variables.
     (dolist (elem (gnus-group-find-parameter group))
       (and (consp elem)			; Has to be a cons.
 	   (consp (cdr elem))		; The cdr has to be a list.

@@ -1,3 +1,41 @@
+2010-10-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-update-qresync-info): \Flagged messages are read
+	for Gnus.
+	(nnimap-retrieve-group-data-early): utf7-encode the group parameters.
+	(nnimap-update-qresync-info): Mark \Seen articles as read.
+
+	* gnus-sum.el (gnus-summary-set-local-parameters): Ignore the `active'
+	non-variable, too.
+
+	* nnimap.el (nnimap-open-connection): Use gnutls STARTTLS, if
+	available.
+	(nnimap-update-info): Rely more on the current active than the param
+	active to avoid marking articles as read too much.
+
+	* auth-source.el (auth-source-create): Use (user-login-name) for the
+	user name default.
+
+	* nnimap.el (nnimap-update-info): If the server doesn't return any
+	useful info, just use the previous info.
+	(nnimap-update-info): Prefer old info over start-article.
+	(nnimap-update-qresync-info): Finish implementing QRESYNC.
+
+2010-10-10  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* nnir.el (autoload): Clean up autoloads.
+	(nnir-imap-default-search-key): Renamed from
+	nnir-imap-search-field. Use key rather than value.
+	(nnir-imap-search-other): New variable.
+	(nnir-read-parm): Use it.
+	(nnir-imap-expr-to-imap): Use %S rather than imap-quote-specials.
+	(gnus-summary-nnir-goto-thread): Modify to work with imap.
+
+2010-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* nnimap.el (nnimap-wait-for-response): If the user hits `C-g', kill
+	the process, too.
+
 2010-10-09  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* spam.el (gnus-summary-mode-map): Bind to "$".  Suggested by Russ
