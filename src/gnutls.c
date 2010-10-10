@@ -77,8 +77,15 @@ emacs_gnutls_write (int fildes, struct Lisp_Process *proc, char *buf,
   register int rtnval, bytes_written;
   gnutls_session_t state = proc->gnutls_state;
 
-  if (proc->gnutls_initstage != GNUTLS_STAGE_READY)
+  if (proc->gnutls_initstage != GNUTLS_STAGE_READY) {
+#ifdef EWOULDBLOCK
+    errno = EWOULDBLOCK;
+#endif
+#ifdef EAGAIN
+    errno = EAGAIN;
+#endif
     return -1;
+  }
 
   bytes_written = 0;
 
