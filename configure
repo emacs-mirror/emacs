@@ -749,7 +749,6 @@ build_os
 build_vendor
 build_cpu
 build
-PROFILING_LDFLAGS
 PROFILING_CFLAGS
 MAINT
 GZIP_INFO
@@ -3038,12 +3037,9 @@ fi
 
 if test x$ac_enable_profiling != x ; then
    PROFILING_CFLAGS="-DPROFILING=1 -pg"
-   PROFILING_LDFLAGS="-pg"
 else
    PROFILING_CFLAGS=
-   PROFILING_LDFLAGS=
 fi
-
 
 
 # Check whether --enable-autodepend was given.
@@ -7679,7 +7675,7 @@ tmp_CPPFLAGS="$CPPFLAGS"
 tmp_CFLAGS="$CFLAGS"
 CPPFLAGS="$CPPFLAGS -x objective-c"
 CFLAGS="$CFLAGS -x objective-c"
-TEMACS_LDFLAGS2="\${LDFLAGS} \${PROFILING_LDFLAGS}"
+TEMACS_LDFLAGS2="\${LDFLAGS}"
 if test "${with_ns}" != no; then
   if test "${opsys}" = darwin; then
      NS_IMPL_COCOA=yes

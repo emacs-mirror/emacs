@@ -1,5 +1,8 @@
 2010-10-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* Makefile.in (temacs): Use $(ALL_CFLAGS) on the link line.
+	(PROFILING_LDFLAGS): Remove, not needed anymore.
+
 	* Makefile.in: Use $(...) everywhere instead of ${...}
 	(CRT_DIR): Move near potential user.
 	(START_FILE): Move near CRT_DIR, it might use it.

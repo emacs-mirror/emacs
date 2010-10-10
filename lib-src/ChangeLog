@@ -1,3 +1,7 @@
+2010-10-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (PROFILING_LDFLAGS): Remove, not needed.
+
 2010-10-09  Glenn Morris  <rgm@gnu.org>
 
 	* b2m.c, b2m.pl: Remove files.

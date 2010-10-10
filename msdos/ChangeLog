@@ -1,3 +1,8 @@
+2010-10-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* sed1v2.inp (PROFILING_LDFLAGS):
+	* sed3v2.inp (PROFILING_LDFLAGS): Remove, not defined anymore.
+
 2010-10-09  Glenn Morris  <rgm@gnu.org>
 
 	* mainmake.v2 (install): Remove b2m.
