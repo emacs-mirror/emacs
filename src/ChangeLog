@@ -1,5 +1,7 @@
 2010-10-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* Makefile.in: Use $(...) everywhere instead of ${...}
+
 	* sysdep.c (LPASS8): Remove, unused.
 	(emacs_ospeed): Change from being a global to a local in the only
 	user: init_baud_rate.
