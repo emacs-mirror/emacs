@@ -1,3 +1,9 @@
+2010-10-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* sysdep.c (LPASS8): Remove, unused.
+	(emacs_ospeed): Change from being a global to a local in the only
+	user: init_baud_rate.
+
 2010-10-09  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnutls.c (syms_of_gnutls): All the bootprops are keywords.
