@@ -1,3 +1,10 @@
+2010-10-10  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa.el (epa-passphrase-callback-function): Display filename
+	passed as the 3rd arg.
+	* epa-file.el (epa-file-passphrase-callback-function): Pass
+	filename to epa-passphrase-callback-function.
+
 2010-10-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cus-edit.el (custom-face-widget-to-spec)

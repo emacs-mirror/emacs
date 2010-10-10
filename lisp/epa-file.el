@@ -67,10 +67,11 @@ way."
 			(cons entry
 			      epa-file-passphrase-alist)))
 		(setq passphrase (epa-passphrase-callback-function context
-								   key-id nil))
+								   key-id
+								   file))
 		(setcdr entry (copy-sequence passphrase))
 		passphrase))))
-    (epa-passphrase-callback-function context key-id nil)))
+    (epa-passphrase-callback-function context key-id file)))
 
 ;;;###autoload
 (defun epa-file-handler (operation &rest args)

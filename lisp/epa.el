@@ -637,12 +637,10 @@ If SECRET is non-nil, list secret keys instead of public keys."
   (if (eq key-id 'SYM)
       (read-passwd
        (format "Passphrase for symmetric encryption%s: "
-	       (let ((elem (epg-context-passphrase-callback context)))
-		 ;; Add the file name to the prompt, if any.
-		 (if (and (consp elem)
-			  (stringp (cdr elem)))
-		     (format " for %s" (cdr elem))
-		   "")))
+	       ;; Add the file name to the prompt, if any.
+	       (if (stringp handback)
+		   (format " for %s" handback)
+		 ""))
        (eq (epg-context-operation context) 'encrypt))
     (read-passwd
      (if (eq key-id 'PIN)
