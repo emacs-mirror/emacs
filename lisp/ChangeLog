@@ -1,3 +1,7 @@
+2010-10-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc/log-view.el (log-view-mode-map): Bind revert-buffer.
+
 2010-10-10  Daiki Ueno  <ueno@unixuser.org>
 
 	* epa.el (epa-passphrase-callback-function): Display filename

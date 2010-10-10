@@ -128,6 +128,7 @@
 (easy-mmode-defmap log-view-mode-map
   '(("z" . kill-this-buffer)
     ("q" . quit-window)
+    ("g" . revert-buffer)
     ("m" . log-view-toggle-mark-entry)
     ("e" . log-view-modify-change-comment)
     ("d" . log-view-diff)
