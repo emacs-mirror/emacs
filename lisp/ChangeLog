@@ -1,3 +1,7 @@
+2010-10-10  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.in (ELCFILES): Update.
+
 2010-10-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/lisp.el (lisp-completion-at-point):
