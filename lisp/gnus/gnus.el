@@ -3391,14 +3391,14 @@ that that variable is buffer-local to the summary buffers."
 (defun gnus-news-group-p (group &optional article)
   "Return non-nil if GROUP (and ARTICLE) come from a news server."
   (cond ((gnus-member-of-valid 'post group) ;Ordinary news group
-	 t)				;is news of course.
+	 t)				    ;is news of course.
 	((not (gnus-member-of-valid 'post-mail group)) ;Non-combined.
 	 nil)				;must be mail then.
 	((vectorp article)		;Has header info.
 	 (eq (gnus-request-type group (mail-header-id article)) 'news))
-	((null article)			;Hasn't header info
+	((null article)			       ;Hasn't header info
 	 (eq (gnus-request-type group) 'news)) ;(unknown ==> mail)
-	((< article 0)			;Virtual message
+	((< article 0)			       ;Virtual message
 	 nil)				;we don't know, guess mail.
 	(t				;Has positive number
 	 (eq (gnus-request-type group article) 'news)))) ;use it.
@@ -3923,8 +3923,11 @@ If ALLOW-LIST, also allow list as a result."
 			   group 'params))))
 
 (defun gnus-group-set-parameter (group name value)
-  "Set parameter NAME to VALUE in GROUP."
-  (let ((info (gnus-get-info group)))
+  "Set parameter NAME to VALUE in GROUP.
+GROUP can also be an INFO structure."
+  (let ((info (if (listp group)
+		  group
+		(gnus-get-info group))))
     (when info
       (gnus-group-remove-parameter group name)
       (let ((old-params (gnus-info-params info))
@@ -3934,11 +3937,14 @@ If ALLOW-LIST, also allow list as a result."
 		    (not (eq (caar old-params) name)))
 	    (setq new-params (append new-params (list (car old-params)))))
 	  (setq old-params (cdr old-params)))
-	(gnus-group-set-info new-params group 'params)))))
+	(gnus-group-set-info new-params (gnus-info-group info) 'params)))))
 
 (defun gnus-group-remove-parameter (group name)
-  "Remove parameter NAME from GROUP."
-  (let ((info (gnus-get-info group)))
+  "Remove parameter NAME from GROUP.
+GROUP can also be an INFO structure."
+  (let ((info (if (listp group)
+		  group
+		(gnus-get-info group))))
     (when info
       (let ((params (gnus-info-params info)))
 	(when params

@@ -23750,12 +23750,14 @@ yourself, so that the message is processed as spam when you exit the
 group:
 
 @table @kbd
-@item M-d
+@item $
+@itemx M-d
 @itemx M s x
 @itemx S x
-@kindex M-d
-@kindex S x
-@kindex M s x
+@kindex $ (Summary)
+@kindex M-d (Summary)
+@kindex S x (Summary)
+@kindex M s x (Summary)
 @findex gnus-summary-mark-as-spam
 @findex gnus-summary-mark-as-spam
 Mark current article as spam, showing it with the @samp{$} mark

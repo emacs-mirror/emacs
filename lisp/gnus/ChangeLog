@@ -1,3 +1,31 @@
+2010-10-09  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* spam.el (gnus-summary-mode-map): Bind to "$".  Suggested by Russ
+	Allbery.
+
+	* shr.el: Rework the way things are indented by <li> slightly.
+
+	* gnus.el (gnus-group-set-parameter): Fix typo.
+
+	* nnimap.el: Start implementing QRESYNC support.
+
+2010-10-09  Julien Danjou  <julien@danjou.info>
+
+	* nnir.el (nnir-engines): Fix too many arguments.
+
+2010-10-09  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnmail.el (nnmail-expiry-target-group): Say that every expiry target
+	group is the "last", so that the backends like nnfolder actually save
+	their folders.
+
+	* nnimap.el (nnimap-open-connection): If we have gnutls loaded, then
+	try to use that for the tls stream.
+	(nnimap-retrieve-group-data-early): Rework the marks code to heed
+	UIDVALIDITY and find out which groups are read-only and not.
+	(nnimap-get-flags): Use the same marks parsing code as the rest of
+	nnimap.
+
 2010-10-09  Julien Danjou  <julien@danjou.info>
 
 	* nnir.el (nnir-read-parm): Fix call to gnus-completing-read.

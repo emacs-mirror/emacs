@@ -377,7 +377,6 @@ result, `gnus-retrieve-headers' will be called instead.")
              ((criteria
 	       "Search in: "                      ; Prompt
 	       ,(mapcar 'car nnir-imap-search-arguments) ; alist for completing
-	       nil                                ; no filtering
 	       nil                                ; allow any user input
 	       nil                                ; initial value
 	       nnir-imap-search-argument-history  ; the history to use

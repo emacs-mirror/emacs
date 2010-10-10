@@ -230,7 +230,7 @@ redirects somewhere else."
 
 (defun shr-ensure-paragraph ()
   (unless (bobp)
-    (if (bolp)
+    (if (<= (current-column) shr-indentation)
 	(unless (save-excursion
 		  (forward-line -1)
 		  (looking-at " *$"))
@@ -242,7 +242,8 @@ redirects somewhere else."
 	(insert "\n\n")))))
 
 (defun shr-indent ()
-  (insert (make-string shr-indentation ? )))
+  (when (> shr-indentation 0)
+    (insert (make-string shr-indentation ? ))))
 
 (defun shr-fontize-cont (cont &rest types)
   (let (shr-start)
@@ -332,6 +333,7 @@ Return a string with image data."
 
 (defun shr-tag-p (cont)
   (shr-ensure-paragraph)
+  (shr-indent)
   (shr-generic cont)
   (shr-ensure-paragraph))
 
@@ -404,11 +406,13 @@ Return a string with image data."
 (defun shr-tag-pre (cont)
   (let ((shr-folding-mode 'none))
     (shr-ensure-newline)
+    (shr-indent)
     (shr-generic cont)
     (shr-ensure-newline)))
 
 (defun shr-tag-blockquote (cont)
   (shr-ensure-paragraph)
+  (shr-indent)
   (let ((shr-indentation (+ shr-indentation 4)))
     (shr-generic cont))
   (shr-ensure-paragraph))
@@ -426,7 +430,8 @@ Return a string with image data."
   (shr-ensure-paragraph))
 
 (defun shr-tag-li (cont)
-  (shr-ensure-newline)
+  (shr-ensure-paragraph)
+  (shr-indent)
   (let* ((bullet
 	  (if (numberp shr-list-mode)
 	      (prog1
@@ -439,7 +444,8 @@ Return a string with image data."
 
 (defun shr-tag-br (cont)
   (unless (bobp)
-    (insert "\n"))
+    (insert "\n")
+    (shr-indent))
   (shr-generic cont))
 
 (defun shr-tag-h1 (cont)

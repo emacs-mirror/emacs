@@ -1,3 +1,7 @@
+2010-10-09  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Spam Package Introduction): Mention `$'.
+
 2010-10-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (emacsdir): New variable.
