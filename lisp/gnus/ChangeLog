@@ -1,3 +1,7 @@
+2010-10-11  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-int.el (gnus-run-hook-with-args): Autoload from gnus-util.el.
+
 2010-10-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* nnimap.el (nnimap-update-qresync-info): \Flagged messages are read

@@ -31,6 +31,7 @@
 (require 'message)
 (require 'gnus-range)
 
+(autoload 'gnus-run-hook-with-args "gnus-util")
 (autoload 'gnus-agent-expire "gnus-agent")
 (autoload 'gnus-agent-regenerate-group "gnus-agent")
 (autoload 'gnus-agent-read-servers-validate-native "gnus-agent")
