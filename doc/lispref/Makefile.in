@@ -35,6 +35,7 @@ emacsdir =  $(srcdir)/../emacs
 MAKEINFO = makeinfo --force -I $(emacsdir)
 TEXI2DVI = texi2dvi
 TEXI2PDF = texi2pdf
+DVIPS = dvips
 
 # List of all the texinfo files in the manual:
 
@@ -95,12 +96,12 @@ srcs = \
 
 mkinfodir = @test -d ${infodir} || mkdir ${infodir} || test -d ${infodir}
 
-.PHONY: info dvi pdf
+.PHONY: info dvi pdf ps
 
-# The info file is named `elisp'.
 info: $(infodir)/elisp
 dvi: elisp.dvi
 pdf: elisp.pdf
+ps: elisp.ps
 
 $(infodir)/elisp: $(srcs)
 	$(mkinfodir)
@@ -108,6 +109,9 @@ $(infodir)/elisp: $(srcs)
 
 elisp.dvi: $(srcs)
 	$(TEXI2DVI) -I $(srcdir) -I $(texinfodir) $<
+
+elisp.ps: elisp.dvi
+	$(DVIPS) -o $@ $<
 
 elisp.pdf: $(srcs)
 	$(TEXI2PDF) -I $(srcdir) -I $(texinfodir) $<
@@ -121,7 +125,7 @@ mostlyclean:
 	rm -f elisp[12]*
 
 clean: mostlyclean
-	rm -f elisp.dvi elisp.pdf vol[12].pdf
+	rm -f elisp.dvi elisp.pdf elisp.ps vol[12].pdf
 	rm -f emacs-lispref-${version}.tar*
 
 distclean: clean

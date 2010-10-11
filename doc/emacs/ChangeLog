@@ -1,3 +1,11 @@
+2010-10-11  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (.texi.dvi): Remove unnecessary suffix rule.
+	(DVIPS): New variable.
+	(.PHONY): Add ps.
+	(ps, emacs.ps, emacs-xtra.ps): New targets.
+	(clean): Delete ps files.
+
 2010-10-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (EMACSSOURCES): Add emacsver.texi.

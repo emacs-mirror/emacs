@@ -43,11 +43,8 @@ MAKEINFO = makeinfo --force
 
 TEXI2DVI = texi2dvi
 TEXI2PDF = texi2pdf
+DVIPS = dvips
 
-# The following rule does not work with all versions of `make'.
-.SUFFIXES: .texi .dvi
-.texi.dvi:
-	$(TEXI2DVI) $<
 
 ENVADD = TEXINPUTS="$(srcdir):$(texinfodir):$(TEXINPUTS)" MAKEINFO="$(MAKEINFO) -I$(srcdir)"
 
@@ -118,11 +115,12 @@ EMACSSOURCES= \
 ## solution anyway.  The second test -d is for parallel builds.
 mkinfodir = @test -d ${infodir} || mkdir ${infodir} || test -d ${infodir}
 
-.PHONY: info dvi pdf
+.PHONY: info dvi pdf ps
 
 info: $(infodir)/emacs
 dvi: emacs.dvi
 pdf: emacs.pdf
+ps: emacs.ps
 
 # Note that all the Info targets build the Info files in srcdir.
 # There is no provision for Info files to exist in the build directory.
@@ -135,12 +133,18 @@ $(infodir)/emacs: ${EMACSSOURCES}
 emacs.dvi: ${EMACSSOURCES}
 	$(ENVADD) $(TEXI2DVI) $<
 
+emacs.ps: emacs.dvi
+	$(DVIPS) -o $@ $<
+
 emacs.pdf: ${EMACSSOURCES}
 	$(ENVADD) $(TEXI2PDF) $<
 
 
 emacs-xtra.dvi: $(EMACS_XTRA)
 	$(ENVADD) $(TEXI2DVI) $<
+
+emacs-xtra.ps: emacs-xtra.dvi
+	$(DVIPS) -o $@ $<
 
 emacs-xtra.pdf: $(EMACS_XTRA)
 	$(ENVADD) $(TEXI2PDF) $<
@@ -154,7 +158,8 @@ mostlyclean:
 
 ## Products not in the release tarfiles.
 clean: mostlyclean
-	rm -f emacs.dvi emacs-xtra.dvi emacs.pdf emacs-xtra.pdf
+	rm -f emacs.dvi emacs-xtra.dvi emacs.pdf emacs-xtra.pdf \
+	  emacs.ps emacs-xtra.ps
 	rm -f emacs-manual-${version}.tar*
 
 distclean: clean

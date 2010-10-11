@@ -198,11 +198,6 @@ PDF_TARGETS = \
 TEXI2DVI = texi2dvi
 TEXI2PDF = texi2pdf
 
-# The following rule does not work with all versions of `make'.
-.SUFFIXES: .texi .dvi
-.texi.dvi:
-	$(TEXI2DVI) $<
-
 ENVADD = TEXINPUTS="$(srcdir):$(TEXINPUTS)" MAKEINFO="$(MAKEINFO) -I$(srcdir)"
 
 mkinfodir = @cd ${srcdir}; test -d ${infodir} || mkdir ${infodir} || test -d ${infodir}

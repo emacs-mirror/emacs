@@ -35,15 +35,14 @@ DVIPS = dvips
 
 mkinfodir = @test -d ${infodir} || mkdir ${infodir} || test -d ${infodir}
 
-.SUFFIXES: .dvi .ps .texi
-
-.PHONY: info dvi html pdf
+.PHONY: info dvi html pdf ps
 
 info: ${infodir}/eintr
 
 dvi: emacs-lisp-intro.dvi
 html: emacs-lisp-intro.html
 pdf: emacs-lisp-intro.pdf
+ps: emacs-lisp-intro.ps
 
 # The file name eintr must fit within 5 characters, to allow for
 # -NN extensions to fit into DOS 8+3 limits without clashing.
@@ -54,14 +53,14 @@ ${infodir}/eintr: ${srcdir}/emacs-lisp-intro.texi
 emacs-lisp-intro.dvi: ${srcdir}/emacs-lisp-intro.texi
 	$(TEXI2DVI) -I $(srcdir) -I $(texinfodir) $<
 
+emacs-lisp-intro.ps: emacs-lisp-intro.dvi
+	$(DVIPS) -o $@ $<
+
 emacs-lisp-intro.pdf: ${srcdir}/emacs-lisp-intro.texi
 	$(TEXI2PDF) -I $(srcdir) -I $(texinfodir) $<
 
 emacs-lisp-intro.html: ${srcdir}/emacs-lisp-intro.texi
 	$(MAKEINFO) --html -o $@ $<
-
-.dvi.ps:
-	$(DVIPS) $< -o $@
 
 .PHONY: mostlyclean clean distclean maintainer-clean infoclean
 
@@ -70,7 +69,7 @@ mostlyclean:
 	  *.op *.ops *.pg *.pgs *.tp *.tps *.vr *.vrs
 
 clean: mostlyclean
-	rm -f emacs-lisp-intro.dvi emacs-lisp-intro.pdf
+	rm -f emacs-lisp-intro.dvi emacs-lisp-intro.pdf emacs-lisp-intro.ps
 	rm -rf emacs-lisp-intro.html/
 	rm -f emacs-lispintro-${version}.tar*
 

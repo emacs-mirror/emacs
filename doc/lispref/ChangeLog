@@ -1,3 +1,10 @@
+2010-10-11  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (DVIPS): New variable.
+	(.PHONY): Add ps.
+	(ps, elisp.ps): New targets.
+	(clean): Delete ps file.
+
 2010-10-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (emacsdir): New variable.
