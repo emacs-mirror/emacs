@@ -1,3 +1,8 @@
+2010-10-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-topic.el (gnus-topic-read-group): If after the last group,
+	select the last group.
+
 2010-10-11  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus-int.el (gnus-run-hook-with-args): Autoload from gnus-util.el.
