@@ -32,7 +32,7 @@ texinfodir = $(srcdir)/../misc
 # Directory with emacsver.texi.
 emacsdir =  $(srcdir)/../emacs
 
-MAKEINFO = makeinfo --force -I $(emacsdir)
+MAKEINFO = makeinfo --force -I $(emacsdir) -I $(srcdir)
 TEXI2DVI = texi2dvi
 TEXI2PDF = texi2pdf
 DVIPS = dvips

@@ -39,7 +39,7 @@ texinfodir = $(srcdir)/../misc
 
 # The makeinfo program is part of the Texinfo distribution.
 # Use --force so that it generates output even if there are errors.
-MAKEINFO = makeinfo --force
+MAKEINFO = makeinfo --force -I $(srcdir)
 
 TEXI2DVI = texi2dvi
 TEXI2PDF = texi2pdf
@@ -129,7 +129,7 @@ ps: emacs.ps
 
 $(infodir)/emacs: ${EMACSSOURCES}
 	$(mkinfodir)
-	$(MAKEINFO) $< -o $@
+	$(MAKEINFO) -o $@ $<
 
 emacs.dvi: ${EMACSSOURCES}
 	$(ENVADD) $(TEXI2DVI) $<

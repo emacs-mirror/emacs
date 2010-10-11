@@ -28,7 +28,7 @@ infodir = $(srcdir)/../../info
 # Directory with the (customized) texinfo.tex file.
 texinfodir = $(srcdir)/../misc
 
-MAKEINFO = makeinfo --force
+MAKEINFO = makeinfo --force -I $(srcdir)
 TEXI2DVI = texi2dvi
 TEXI2PDF = texi2pdf
 DVIPS = dvips

@@ -1,5 +1,7 @@
 2010-10-11  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (MAKEINFO): Add explicit -I$srcdir.
+
 	* Makefile.in (.texi.dvi): Remove unnecessary suffix rule.
 	(DVIPS): New variable.
 	(.PHONY): Add html, ps.
