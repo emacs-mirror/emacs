@@ -1,3 +1,17 @@
+2010-10-11  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* lpath.el: Fbind gnutls-negotiate for Emacs 22 and XEmacsen.
+
+	* nnimap.el (gnutls-negotiate): Silence the byte compiler.
+
+	* gnus-art.el, gnus-cache.el, gnus-fun.el, gnus-group.el,
+	gnus-picon.el, gnus-spec.el, gnus-sum.el, gnus-util.el, gnus.el,
+	mail-source.el, message.el, mm-bodies.el, mm-decode.el, mm-extern.el,
+	mm-util.el, mm-view.el, mml-smime.el, mml.el, mml1991.el, mml2015.el,
+	nnfolder.el, nnheader.el, nnmail.el, nnmaildir.el, nnrss.el, nntp.el,
+	rfc1843.el, sieve-manage.el, smime.el, spam.el:
+	Fix comment for declare-function.
+
 2010-10-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* nnimap.el (nnimap-request-rename-group): Select group read-only

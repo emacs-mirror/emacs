@@ -1,3 +1,8 @@
+2010-10-11  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mail/hashcash.el, net/imap.el, pgg-parse.el, pgg.el:
+	Fix comment for declare-function.
+
 2010-10-11  Chong Yidong  <cyd@stupidchicken.com>
 
 	* custom.el (custom-fix-face-spec): New function; code moved from

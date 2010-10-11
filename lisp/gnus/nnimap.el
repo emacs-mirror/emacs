@@ -26,6 +26,10 @@
 
 ;;; Code:
 
+;; For Emacs <22.2 and XEmacs.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+
 (eval-and-compile
   (require 'nnheader))
 
@@ -283,6 +287,8 @@ textual parts.")
 			;; More than five minutes since the last command.
 			(* 5 60)))
 	    (nnimap-send-command "NOOP")))))))
+
+(declare-function gnutls-negotiate "subr" (fn file &optional arglist fileonly))
 
 (defun nnimap-open-connection (buffer)
   (unless nnimap-keepalive-timer
