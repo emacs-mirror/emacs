@@ -28,7 +28,7 @@ infodir = $(srcdir)/../../info
 # Directory with the (customized) texinfo.tex file.
 texinfodir = $(srcdir)/../misc
 
-MAKEINFO = makeinfo
+MAKEINFO = makeinfo --force
 TEXI2DVI = texi2dvi
 TEXI2PDF = texi2pdf
 DVIPS = dvips
@@ -48,7 +48,7 @@ ps: emacs-lisp-intro.ps
 # -NN extensions to fit into DOS 8+3 limits without clashing.
 ${infodir}/eintr: ${srcdir}/emacs-lisp-intro.texi
 	$(mkinfodir)
-	$(MAKEINFO) $< -o $@
+	$(MAKEINFO) -o $@ $<
 
 emacs-lisp-intro.dvi: ${srcdir}/emacs-lisp-intro.texi
 	$(TEXI2DVI) -I $(srcdir) -I $(texinfodir) $<

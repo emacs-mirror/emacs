@@ -4,6 +4,7 @@
 	(.PHONY): Add ps.
 	(ps, emacs-lisp-intro.ps): New targets.
 	(clean): Delete ps file.
+	(MAKEINFO): Use --force like the other doc/ Makefiles do.
 
 2010-10-09  Glenn Morris  <rgm@gnu.org>
 

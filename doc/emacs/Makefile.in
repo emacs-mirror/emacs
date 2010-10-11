@@ -115,10 +115,11 @@ EMACSSOURCES= \
 ## solution anyway.  The second test -d is for parallel builds.
 mkinfodir = @test -d ${infodir} || mkdir ${infodir} || test -d ${infodir}
 
-.PHONY: info dvi pdf ps
+.PHONY: info dvi html pdf ps
 
 info: $(infodir)/emacs
 dvi: emacs.dvi
+html: emacs.html
 pdf: emacs.pdf
 ps: emacs.ps
 
@@ -139,6 +140,8 @@ emacs.ps: emacs.dvi
 emacs.pdf: ${EMACSSOURCES}
 	$(ENVADD) $(TEXI2PDF) $<
 
+emacs.html: ${EMACSSOURCES}
+	$(MAKEINFO) --html -o $@ $<
 
 emacs-xtra.dvi: $(EMACS_XTRA)
 	$(ENVADD) $(TEXI2DVI) $<
@@ -160,6 +163,7 @@ mostlyclean:
 clean: mostlyclean
 	rm -f emacs.dvi emacs-xtra.dvi emacs.pdf emacs-xtra.pdf \
 	  emacs.ps emacs-xtra.ps
+	rm -rf emacs.html/
 	rm -f emacs-manual-${version}.tar*
 
 distclean: clean

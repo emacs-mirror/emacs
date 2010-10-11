@@ -100,15 +100,19 @@ mkinfodir = @test -d ${infodir} || mkdir ${infodir} || test -d ${infodir}
 
 info: $(infodir)/elisp
 dvi: elisp.dvi
+html: elisp.html
 pdf: elisp.pdf
 ps: elisp.ps
 
 $(infodir)/elisp: $(srcs)
 	$(mkinfodir)
-	$(MAKEINFO) -I. -I$(texinfodir) $< -o $@
+	$(MAKEINFO) -o $@ $<
 
 elisp.dvi: $(srcs)
 	$(TEXI2DVI) -I $(srcdir) -I $(texinfodir) $<
+
+elisp.html: $(srcs)
+	$(MAKEINFO) --html -o $@ $<
 
 elisp.ps: elisp.dvi
 	$(DVIPS) -o $@ $<
@@ -126,6 +130,7 @@ mostlyclean:
 
 clean: mostlyclean
 	rm -f elisp.dvi elisp.pdf elisp.ps vol[12].pdf
+	rm -rf elisp.html
 	rm -f emacs-lispref-${version}.tar*
 
 distclean: clean

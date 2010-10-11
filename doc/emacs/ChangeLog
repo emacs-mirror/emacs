@@ -2,9 +2,9 @@
 
 	* Makefile.in (.texi.dvi): Remove unnecessary suffix rule.
 	(DVIPS): New variable.
-	(.PHONY): Add ps.
-	(ps, emacs.ps, emacs-xtra.ps): New targets.
-	(clean): Delete ps files.
+	(.PHONY): Add html, ps.
+	(html, emacs.html, ps, emacs.ps, emacs-xtra.ps): New targets.
+	(clean): Delete html, ps files.
 
 2010-10-09  Eli Zaretskii  <eliz@gnu.org>
 
