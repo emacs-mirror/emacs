@@ -59,7 +59,12 @@ fit these criteria."
   :type 'char)
 
 (defcustom shr-table-corner ?+
-  "Charater used to draw table corner."
+  "Character used to draw table corner."
+  :group 'shr
+  :type 'char)
+
+(defcustom shr-hr-line ?-
+  "Character used to draw hr line."
   :group 'shr
   :type 'char)
 
@@ -188,7 +193,8 @@ redirects somewhere else."
       (shr-descend sub)))))
 
 (defun shr-insert (text)
-  (when (eq shr-state 'image)
+  (when (and (eq shr-state 'image)
+	     (not (string-match "\\`[ \t\n]+\\'" text)))
     (insert "\n")
     (setq shr-state nil))
   (cond
@@ -211,7 +217,7 @@ redirects somewhere else."
 	(unless shr-start
 	  (setq shr-start (point)))
 	(insert elem)
-	(when (> (current-column) shr-width)
+	(when (> (shr-current-column) shr-width)
 	  (if (not (search-backward " " (line-beginning-position) t))
 	      (insert "\n")
 	    (delete-char 1)
@@ -223,6 +229,26 @@ redirects somewhere else."
 	(insert " "))
       (unless (string-match "[ \t\n]\\'" text)
 	(delete-char -1))))))
+
+(defun shr-find-fill-point ()
+  (let ((found nil))
+    (while (and (not found)
+		(not (bolp)))
+      (when (or (eq (preceding-char) ? )
+		(aref fill-find-break-point-function-table (preceding-char)))
+	(setq found (point)))
+      (backward-char 1))
+    (or found
+	(end-of-line))))
+
+(defun shr-current-column ()
+  (let ((column 0))
+    (save-excursion
+      (beginning-of-line)
+      (while (not (eolp))
+	(incf column (char-width (following-char)))
+	(forward-char 1)))
+    column))
 
 (defun shr-ensure-newline ()
   (unless (zerop (current-column))
@@ -468,7 +494,7 @@ Return a string with image data."
 
 (defun shr-tag-hr (cont)
   (shr-ensure-newline)
-  (insert (make-string shr-width ?-) "\n"))
+  (insert (make-string shr-width shr-hr-line) "\n"))
 
 ;;; Table rendering algorithm.
 

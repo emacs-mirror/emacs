@@ -667,6 +667,9 @@ textual parts.")
 (deffoo nnimap-request-rename-group (group new-name &optional server)
   (when (nnimap-possibly-change-group nil server)
     (with-current-buffer (nnimap-buffer)
+      ;; Make sure we don't have this group open read/write.
+      (nnimap-command "EXAMINE %S" (utf7-encode group 7))
+      (setf (nnimap-group nnimap-object) nil)
       (car (nnimap-command "RENAME %S %S"
 			   (utf7-encode group t) (utf7-encode new-name t))))))
 
@@ -1627,8 +1630,10 @@ textual parts.")
 	(forward-char (1+ bytes))
 	(setq bytes (nnimap-get-length))
 	(delete-region (line-beginning-position) (line-end-position))
-	(forward-char (1+ bytes))
-	(delete-region (line-beginning-position) (line-end-position))))))
+	;; There's a body; skip past that.
+	(when bytes
+	  (forward-char (1+ bytes))
+	  (delete-region (line-beginning-position) (line-end-position)))))))
 
 (defun nnimap-dummy-active-number (group &optional server)
   1)

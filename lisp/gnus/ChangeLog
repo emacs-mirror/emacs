@@ -1,5 +1,31 @@
 2010-10-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* nnimap.el (nnimap-request-rename-group): Select group read-only
+	before renaming it.
+
+	* shr.el (shr-insert): Fix up the white space only regexp.
+
+	* nnimap.el (nnimap-transform-split-mail): Not all articles have
+	bodies.  Protect against this.  Reported by Michael Welsh Duggan.
+
+	* shr.el (shr-current-column): New function.
+	(shr-find-fill-point): New function.
+
+2010-10-11  Michael Welsh Duggan  <md5i@md5i.com>  (tiny change)
+
+	* sieve-manage.el (sieve-manage-open): Allow port names as well as port
+	numbers.
+
+2010-10-11  Julien Danjou  <julien@danjou.info>
+
+	* shr.el (shr-hr-line): Add.
+	(shr-tag-hr): Use shr-hr-line to specify which character to use to
+	display hr lines.
+	(shr-max-columns): Do not change state to nil if we just inserting
+	spaces.
+
+2010-10-11  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
 	* gnus-topic.el (gnus-topic-read-group): If after the last group,
 	select the last group.
 

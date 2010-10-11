@@ -150,7 +150,7 @@ for doing the actual authentication."
   :group 'sieve-manage)
 
 (defcustom sieve-manage-default-port 2000
-  "Default port number for managesieve protocol."
+  "Default port number or service name for managesieve protocol."
   :type 'integer
   :group 'sieve-manage)
 
@@ -389,7 +389,7 @@ Optional argument AUTH indicates authenticator to use, see
 If nil, chooses the best stream the server is capable of.
 Optional argument BUFFER is buffer (buffer, or string naming buffer)
 to work in."
-  (setq buffer (or buffer (format " *sieve* %s:%d" server (or port sieve-manage-default-port))))
+  (setq buffer (or buffer (format " *sieve* %s:%s" server (or port sieve-manage-default-port))))
   (with-current-buffer (get-buffer-create buffer)
     (mapc 'make-local-variable sieve-manage-local-variables)
     (sieve-manage-disable-multibyte)
