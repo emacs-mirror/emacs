@@ -272,6 +272,14 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 		      (const control) (const meta)
 		      (const alt) (const hyper)
 		      (const super)) "23.1")
+	     (ns-right-alternate-modifier
+	      ns
+	      (choice (const :tag "No modifier (work as alternate/option)" none)
+		      (const :tag "Use the value of ns-alternate-modifier"
+			     left)
+		      (const control) (const meta)
+		      (const alt) (const hyper)
+		      (const super)) "23.3")
 	     (ns-function-modifier
 	      ns
 	      (choice (const :tag "No modifier (work as function)" none)

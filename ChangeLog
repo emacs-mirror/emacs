@@ -1,3 +1,7 @@
+2010-10-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* make-dist: Don't distribute src/buildobj.h.  (Bug#7167)
+
 2010-10-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in (PROFILING_LDFLAGS): Do not define, remove all uses.

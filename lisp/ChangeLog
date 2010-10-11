@@ -1,3 +1,32 @@
+2010-10-12  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* term/ns-win.el (ns-right-alternate-modifier): New defvar.
+	(ns-right-option-modifier): New alias for ns-right-alternate-modifier.
+	(mac-right-option-modifier): New alias for ns-right-option-modifier.
+
+	* cus-start.el (all): ns-right-alternate-modifier is new.
+
+2010-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp.el (lisp-completion-at-point):
+	Use emacs-lisp-mode-syntax-table for the whole function.
+
+2010-10-12  David Koppelman  <koppel@ece.lsu.edu>
+
+	* hi-lock.el (hi-lock-font-lock-hook): Check font-lock-fontified
+	instead of font-lock-mode before adding keywords.
+	Remove hi-lock-mode off code.  Remove inhibit hack.
+	(hi-lock-set-pattern): Only add keywords if font-lock-fontified
+	non-nil; removed hook inhibit hack.
+
+2010-10-12  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/shadow.el (find-emacs-lisp-shadows): Rename it...
+	(load-path-shadows-find): ... to this.
+	(list-load-path-shadows): Update for above change.
+
+	* mail/mail-utils.el (mail-mbox-from): Also try return-path.
+
 2010-10-11  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mail/hashcash.el, net/imap.el, pgg-parse.el, pgg.el:
