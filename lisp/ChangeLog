@@ -1,3 +1,25 @@
+2010-10-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.el (custom-fix-face-spec): New function; code moved from
+	custom-face-edit-fix-value.
+	(custom-push-theme): Use it when checking if a face has been
+	changed outside customize.
+	(custom-available-themes): New function.
+	(load-theme): Use it.
+
+	* cus-edit.el (custom-face-edit-fix-value): Use
+	custom-fix-face-spec.
+
+	* custom.el (custom-push-theme): Cleanup (use cond).
+	(disable-theme): Recompute the saved-face property.
+	(custom-theme-recalc-face): Follow face alias before setting prop.
+
+	* image.el (image-checkbox-checked, image-checkbox-unchecked): New
+	variables, containing checkbox images.
+
+	* startup.el (fancy-startup-tail):
+	* wid-edit.el (checkbox): Use them.
+
 2010-10-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* shell.el (shell-mode-map):

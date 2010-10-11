@@ -3102,27 +3102,7 @@ face attributes (as specified by a `default' defface entry)."
 (defun custom-face-edit-fix-value (widget value)
   "Ignoring WIDGET, convert :bold and :italic in VALUE to new form.
 Also change :reverse-video to :inverse-video."
-  (if (listp value)
-      (let (result)
-	(while value
-	  (let ((key (car value))
-		(val (car (cdr value))))
-	    (cond ((eq key :italic)
-		   (push :slant result)
-		   (push (if val 'italic 'normal) result))
-		  ((eq key :bold)
-		   (push :weight result)
-		   (push (if val 'bold 'normal) result))
-		  ((eq key :reverse-video)
-		   (push :inverse-video result)
-		   (push val result))
-		  (t
-		   (push key result)
-		   (push val result))))
-	  (setq value (cdr (cdr value))))
-	(setq result (nreverse result))
-	result)
-    value))
+  (custom-fix-face-spec value))
 
 (defun custom-face-edit-convert-widget (widget)
   "Convert :args as widget types in WIDGET."

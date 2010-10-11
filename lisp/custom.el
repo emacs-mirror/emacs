@@ -819,48 +819,80 @@ See `custom-known-themes' for a list of known themes."
 	 (setting (assq theme old))  ; '(theme value)
 	 (theme-settings             ; '(prop symbol theme value)
 	  (get theme 'theme-settings)))
-    (if (eq mode 'reset)
-	;; Remove a setting.
-	(when setting
-	  (let (res)
-	    (dolist (theme-setting theme-settings)
-	      (if (and (eq (car  theme-setting) prop)
-		       (eq (cadr theme-setting) symbol))
-		  (setq res theme-setting)))
-	    (put theme 'theme-settings (delq res theme-settings)))
-	  (put symbol prop (delq setting old)))
-      (if setting
-	  ;; Alter an existing setting.
-	  (let (res)
-	    (dolist (theme-setting theme-settings)
-	      (if (and (eq (car  theme-setting) prop)
-		       (eq (cadr theme-setting) symbol))
-		  (setq res theme-setting)))
-	    (put theme 'theme-settings
-		 (cons (list prop symbol theme value)
-		       (delq res theme-settings)))
-	    (setcar (cdr setting) value))
-	;; Add a new setting.
+    (cond
+     ;; Remove a setting:
+     ((eq mode 'reset)
+      (when setting
+	(let (res)
+	  (dolist (theme-setting theme-settings)
+	    (if (and (eq (car  theme-setting) prop)
+		     (eq (cadr theme-setting) symbol))
+		(setq res theme-setting)))
+	  (put theme 'theme-settings (delq res theme-settings)))
+	(put symbol prop (delq setting old))))
+     ;; Alter an existing setting:
+     (setting
+      (let (res)
+	(dolist (theme-setting theme-settings)
+	  (if (and (eq (car  theme-setting) prop)
+		   (eq (cadr theme-setting) symbol))
+	      (setq res theme-setting)))
+	(put theme 'theme-settings
+	     (cons (list prop symbol theme value)
+		   (delq res theme-settings)))
+	(setcar (cdr setting) value)))
+     ;; Add a new setting:
+     (t
+      (unless old
 	;; If the user changed the value outside of Customize, we
 	;; first save the current value to a fake theme, `changed'.
 	;; This ensures that the user-set value comes back if the
 	;; theme is later disabled.
-	(if (null old)
-	    (if (and (eq prop 'theme-value)
-		     (boundp symbol))
-		(let ((sv (get symbol 'standard-value)))
-		  (unless (and sv
-                               (equal (eval (car sv)) (symbol-value symbol)))
-                    (setq old (list (list 'changed (symbol-value symbol))))))
-	      (if (and (facep symbol)
-		       (not (face-spec-match-p symbol (get symbol 'face-defface-spec))))
-		  (setq old (list (list 'changed (list
-		    (append '(t) (custom-face-attributes-get symbol nil)))))))))
-	(put symbol prop (cons (list theme value) old))
-	(put theme 'theme-settings
-	     (cons (list prop symbol theme value)
-		   theme-settings))))))
+	(cond ((and (eq prop 'theme-value)
+		    (boundp symbol))
+	       (let ((sv (get symbol 'standard-value)))
+		 (unless (and sv
+			      (equal (eval (car sv)) (symbol-value symbol)))
+		   (setq old (list (list 'changed (symbol-value symbol)))))))
+	      ((and (facep symbol)
+		    (not (face-attr-match-p
+			  symbol
+			  (custom-fix-face-spec
+			   (face-spec-choose
+			    (get symbol 'face-defface-spec))))))
+	       (setq old `((changed
+			    (,(append '(t) (custom-face-attributes-get
+					    symbol nil)))))))))
+      (put symbol prop (cons (list theme value) old))
+      (put theme 'theme-settings
+	   (cons (list prop symbol theme value) theme-settings))))))
 
+(defun custom-fix-face-spec (spec)
+  "Convert face SPEC, replacing obsolete :bold and :italic attributes.
+Also change :reverse-video to :inverse-video."
+  (when (listp spec)
+    (if (or (memq :bold spec)
+	    (memq :italic spec)
+	    (memq :inverse-video spec))
+	(let (result)
+	  (while spec
+	    (let ((key (car spec))
+		  (val (car (cdr spec))))
+	      (cond ((eq key :italic)
+		     (push :slant result)
+		     (push (if val 'italic 'normal) result))
+		    ((eq key :bold)
+		     (push :weight result)
+		     (push (if val 'bold 'normal) result))
+		    ((eq key :reverse-video)
+		     (push :inverse-video result)
+		     (push val result))
+		    (t
+		     (push key result)
+		     (push val result))))
+	    (setq spec (cddr spec)))
+	  (nreverse result))
+      spec)))
 
 (defun custom-set-variables (&rest args)
   "Install user customizations of variable values specified in ARGS.
@@ -895,7 +927,7 @@ COMMENT is a comment string about SYMBOL.
 EXP itself is saved unevaluated as SYMBOL property `saved-value' and
 in SYMBOL's list property `theme-value' \(using `custom-push-theme')."
   (custom-check-theme theme)
- 
+
   ;; Process all the needed autoloads before anything else, so that the
   ;; subsequent code has all the info it needs (e.g. which var corresponds
   ;; to a minor mode), regardless of the ordering of the variables.
@@ -1062,7 +1094,10 @@ property `theme-feature' (which is usually a symbol created by
 This also enables the theme; use `disable-theme' to disable it."
   ;; Note we do no check for validity of the theme here.
   ;; This allows to pull in themes by a file-name convention
-  (interactive "SCustom theme name: ")
+  (interactive
+   (list
+    (intern (completing-read "Load custom theme: "
+			     (mapcar 'symbol-name (custom-available-themes))))))
   ;; If reloading, clear out the old theme settings.
   (when (custom-theme-p theme)
     (disable-theme theme)
@@ -1073,6 +1108,21 @@ This also enables the theme; use `disable-theme' to disable it."
 		       (cons custom-theme-directory load-path)
 		     load-path)))
     (load (symbol-name (custom-make-theme-feature theme)))))
+
+(defun custom-available-themes ()
+  (let* ((load-path (if (file-directory-p custom-theme-directory)
+			(cons custom-theme-directory load-path)
+		      load-path))
+	 sym themes)
+    (dolist (dir load-path)
+      (dolist (file (file-expand-wildcards
+		     (expand-file-name "*-theme.el" dir) t))
+	(setq file (file-name-nondirectory file))
+	(and (string-match "\\`\\(.+\\)-theme.el\\'" file)
+	     (setq sym (intern (match-string 1 file)))
+	     (not (memq sym '(cus user changed color)))
+	     (push sym themes))))
+    (delete-dups themes)))
 
 ;;; Enabling and disabling loaded themes.
 
@@ -1085,7 +1135,10 @@ If it is already enabled, just give it highest precedence (after `user').
 
 If THEME does not specify any theme settings, this tries to load
 the theme from its theme file, by calling `load-theme'."
-  (interactive "SEnable Custom theme: ")
+  (interactive (list (intern
+		      (completing-read
+		       "Enable custom theme: "
+		       obarray (lambda (sym) (get sym 'theme-settings))))))
   (if (not (custom-theme-p theme))
       (load-theme theme)
     ;; This could use a bit of optimization -- cyd
@@ -1143,21 +1196,28 @@ and always takes precedence over other Custom Themes."
 See `custom-enabled-themes' for a list of enabled themes."
   (interactive (list (intern
 		      (completing-read
-		       "Disable Custom theme: "
+		       "Disable custom theme: "
 		       (mapcar 'symbol-name custom-enabled-themes)
 		       nil t))))
   (when (custom-theme-enabled-p theme)
     (let ((settings (get theme 'theme-settings)))
       (dolist (s settings)
-	(let* ((prop (car s))
+	(let* ((prop   (car s))
 	       (symbol (cadr s))
-	       (spec-list (get symbol prop)))
-	  (put symbol prop (assq-delete-all theme spec-list))
-	  (if (eq prop 'theme-value)
-	      (custom-theme-recalc-variable symbol)
+	       (val (assq-delete-all theme (get symbol prop))))
+	  (put symbol prop val)
+	  (cond
+	   ((eq prop 'theme-value)
+	    (custom-theme-recalc-variable symbol))
+	   ((eq prop 'theme-face)
+	    ;; If the face spec specified by this theme is in the
+	    ;; saved-face property, reset that property.
+	    (when (equal (nth 3 s) (get symbol 'saved-face))
+	      (put symbol 'saved-face
+		   (and val (cadr (car val)))))
 	    (custom-theme-recalc-face symbol)))))
-    (setq custom-enabled-themes
-	  (delq theme custom-enabled-themes))))
+      (setq custom-enabled-themes
+	    (delq theme custom-enabled-themes)))))
 
 (defun custom-variable-theme-value (variable)
   "Return (list VALUE) indicating the custom theme value of VARIABLE.
@@ -1183,10 +1243,10 @@ This function returns nil if no custom theme specifies a value for VARIABLE."
 
 (defun custom-theme-recalc-face (face)
   "Set FACE according to currently enabled custom themes."
-  (if (facep face)
-      (face-spec-set face
-                     (get (or (get face 'face-alias) face)
-                          'face-override-spec))))
+  (if (get face 'face-alias)
+      (setq face (get face 'face-alias)))
+  (face-spec-set face (get face 'face-override-spec)))
+
 
 ;;; XEmacs compability functions
 
