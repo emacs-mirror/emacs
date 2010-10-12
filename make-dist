@@ -1,29 +1,32 @@
 #!/bin/sh
+### make-dist: create an Emacs distribution tar file from current srcdir
 
-#### make-dist: create an Emacs distribution tar file from the current
-#### source tree.  This basically creates a duplicate directory
-#### structure, and then hard links into it only those files that should
-#### be distributed.  This means that if you add a file with an odd name,
-#### you should make sure that this script will include it.
+## Copyright (C) 1995, 1997, 1998, 2000, 2001, 2002, 2003, 2004, 2005,
+##   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
-# Copyright (C) 1995, 1997, 1998, 2000, 2001, 2002, 2003, 2004, 2005,
-#   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+## This file is part of GNU Emacs.
 
-# This file is part of GNU Emacs.
-#
-# GNU Emacs is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+## GNU Emacs is free software: you can redistribute it and/or modify
+## it under the terms of the GNU General Public License as published by
+## the Free Software Foundation, either version 3 of the License, or
+## (at your option) any later version.
 
-# GNU Emacs is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+## GNU Emacs is distributed in the hope that it will be useful,
+## but WITHOUT ANY WARRANTY; without even the implied warranty of
+## MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+## GNU General Public License for more details.
 
-# You should have received a copy of the GNU General Public License
-# along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+## You should have received a copy of the GNU General Public License
+## along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
+### Commentary:
+
+## This basically creates a duplicate directory structure, and then
+## hard links into it only those files that should be distributed.
+## This means that if you add a file with an odd name, you should make
+## sure that this script will include it.
+
+### Code:
 
 progname="$0"
 
@@ -163,10 +166,10 @@ echo Version numbers are $version and $shortversion
 
 if [ $update = yes ];
 then
-  if grep -s "@set EMACSVER  *${shortversion}" ./doc/emacs/emacs.texi > /dev/null; then
+  if grep -s "@set EMACSVER  *${shortversion}" ./doc/emacs/emacsver.texi > /dev/null; then
     true
   else
-    echo "You must update the version number in \`./doc/emacs/emacs.texi'"
+    echo "You must update the version number in \`./doc/emacs/emacsver.texi'"
     sleep 5
   fi
 fi
@@ -247,7 +250,7 @@ if [ "x`ls -t configure configure.in | sed q`" != "xconfigure" ]; then
   autoconf || { x=$?; echo Autoconf FAILED! >&2; exit $x; }
 fi
 
-### Make sure src/config-in.stamp is newer than configure.in.
+### Make sure src/stamp-h.in is newer than configure.in.
 if [ "x`ls -t src/stamp-h.in configure.in | sed q`" != "xsrc/stamp-h.in" ]; then
   echo "\`./configure.in' is newer than \`./src/stamp-h.in'" >&2
   echo "Running autoheader" >&2
@@ -259,10 +262,10 @@ fi
 if [ $update = yes ];
 then
   echo "Updating Info files"
-  (cd doc/emacs; make -f Makefile.in srcdir=. info)
-  (cd doc/misc; make -f Makefile.in srcdir=. info)
-  (cd doc/lispref; make -f Makefile.in srcdir=. info)
-  (cd doc/lispintro; make -f Makefile.in SHELL=/bin/sh srcdir=. info VPATH=.)
+  (cd doc/emacs; make info)
+  (cd doc/misc; make info)
+  (cd doc/lispref; make info)
+  (cd doc/lispintro; make info)
 
   echo "Updating finder, custom and autoload data"
   (cd lisp; make updates EMACS="$EMACS")
@@ -314,11 +317,7 @@ echo "Making links to top-level files"
 ln INSTALL README BUGS move-if-change ${tempdir}
 ln ChangeLog Makefile.in configure configure.in ${tempdir}
 ln config.bat make-dist update-subdirs vpath.sed .dir-locals.el ${tempdir}
-### Copy these files; they're cross-filesystem symlinks.
-cp mkinstalldirs ${tempdir}
-cp config.sub ${tempdir}
-cp config.guess ${tempdir}
-cp install-sh ${tempdir}
+ln mkinstalldirs config.sub config.guess install-sh ${tempdir}
 
 echo "Updating version number in README"
 (cd ${tempdir}
@@ -344,7 +343,7 @@ for subdir in lisp site-lisp \
 	      etc/images/smilies etc/images/smilies/grayscale \
 	      etc/images/smilies/medium etc/images/tree-widget \
 	      etc/images/tree-widget/default etc/images/tree-widget/folder \
-	      etc/refcards etc/schema etc/tutorials info doc doc/emacs \
+	      etc/refcards etc/schema etc/srecode etc/tutorials info doc doc/emacs \
 	      doc/misc doc/man doc/lispref doc/lispintro m4 msdos \
 	      nextstep nextstep/Cocoa nextstep/Cocoa/Emacs.base \
 	      nextstep/Cocoa/Emacs.base/Contents \
@@ -363,17 +362,14 @@ do
 done
 
 echo "Making links to \`lisp' and its subdirectories"
-### Don't distribute TAGS, =*.el files, site-init.el, site-load.el, or default.el.
+### Don't distribute site-init.el, site-load.el, or default.el.
 (cd lisp
  ln [a-zA-Z]*.el ../${tempdir}/lisp
  ln [a-zA-Z]*.elc ../${tempdir}/lisp
- ## simula.el doesn't keep abbreviations in simula.defns any more.
- ## ln [a-zA-Z]*.defns ../${tempdir}/lisp
  ln ChangeLog ChangeLog.*[0-9] ../${tempdir}/lisp
  ln Makefile.in makefile.w32-in ../${tempdir}/lisp
- test -f README && ln README ../${tempdir}/lisp
+ ln README ../${tempdir}/lisp
  (cd ../${tempdir}/lisp
-  rm -f TAGS =*
   rm -f site-init site-init.el site-init.elc
   rm -f site-load site-load.el site-load.elc
   rm -f site-start site-start.el site-start.elc
@@ -398,22 +394,18 @@ echo "Making links to \`lisp' and its subdirectories"
    mkdir -p ../${tempdir}/lisp/$file
    ln $file/[a-zA-Z0-9]*.el ../${tempdir}/lisp/$file
    ln $file/[a-zA-Z0-9]*.elc ../${tempdir}/lisp/$file
-   ## calc/README.priv
-   for f in $file/[a-zA-Z]*.xpm $file/[a-zA-Z]*.[xp]bm \
-       $file/README $file/ChangeLog $file/ChangeLog.*[0-9] \
+   ## calc/README.prev
+   for f in $file/README $file/ChangeLog $file/ChangeLog.*[0-9] \
        $file/README.prev; do
-     if [ -f $f ]; then
-       ln $f ../${tempdir}/lisp/$file
-     fi
+     [ -f $f ] || continue
+     ln $f ../${tempdir}/lisp/$file
    done
  done )
 
 echo "Making links to \`leim' and its subdirectories"
-### Don't distribute TAGS, or =*.el files.
 (cd leim
  ln makefile.w32-in ../${tempdir}/leim
  ln ChangeLog README ../${tempdir}/leim
-
  ln CXTERM-DIC/README CXTERM-DIC/*.tit ../${tempdir}/leim/CXTERM-DIC
  ln SKK-DIC/README SKK-DIC/SKK-JISYO.L ../${tempdir}/leim/SKK-DIC
  ln MISC-DIC/README MISC-DIC/*.* ../${tempdir}/leim/MISC-DIC
@@ -426,43 +418,21 @@ echo "Making links to \`leim' and its subdirectories"
  rm -f ../${tempdir}/leim/quail/quick-b5.*
  rm -f ../${tempdir}/leim/quail/quick-cns.*
  rm -f ../${tempdir}/leim/quail/tsang-b5.*
- rm -f ../${tempdir}/leim/quail/tsang-cns.*
-
- cd ../${tempdir}/leim
- rm -f TAGS =* */=*)
+ rm -f ../${tempdir}/leim/quail/tsang-cns.*)
 
 echo "Making links to \`src'"
 ### Don't distribute =*.[ch] files, or the configured versions of
 ### config.in, paths.in, or Makefile.in, or TAGS.
 (cd src
  echo "  (It is ok if ln fails in some cases.)"
- ln [a-zA-Z]*.c ../${tempdir}/src
- ln [a-zA-Z]*.h ../${tempdir}/src
- ln [a-zA-Z]*.m ../${tempdir}/src
+ ln [a-zA-Z]*.[chm] ../${tempdir}/src
  ln [a-zA-Z]*.in ../${tempdir}/src
  ln [a-zA-Z]*.mk ../${tempdir}/src
- ## If we ended up with a symlink, or if we did not get anything
- ## due to a cross-device symlink, copy the file.
- for file in [a-zA-Z]*.[hcs] [a-zA-Z]*.in; do
-   if test -f ../${tempdir}/src/$file; then
-     # test -f appears to succeed for a symlink
-     if test -L ../${tempdir}/src/$file; then
-       rm ../${tempdir}/src/$file
-       cp -p $file ../${tempdir}/src
-       chmod a-w ../${tempdir}/src/$file
-     fi
-   else
-     rm ../${tempdir}/src/$file
-     cp -p $file ../${tempdir}/src
-     chmod a-w ../${tempdir}/src/$file
-   fi
- done
  ln README ChangeLog ChangeLog.*[0-9] ../${tempdir}/src
  ln makefile.w32-in ../${tempdir}/src
  ln .gdbinit .dbxinit ../${tempdir}/src
  cd ../${tempdir}/src
- rm -f config.h epaths.h Makefile buildobj.h
- rm -f =* TAGS)
+ rm -f config.h epaths.h Makefile buildobj.h)
 
 echo "Making links to \`src/bitmaps'"
 (cd src/bitmaps
@@ -482,25 +452,8 @@ echo "Making links to \`lib-src'"
  ln ChangeLog Makefile.in README testfile vcdiff ../${tempdir}/lib-src
  ln grep-changelog rcs2log rcs-checkin ../${tempdir}/lib-src
  ln makefile.w32-in ../${tempdir}/lib-src
- ## If we ended up with a symlink, or if we did not get anything
- ## due to a cross-device symlink, copy the file.
- for file in [a-zA-Z]*.[chy]; do
-   if test -f ../${tempdir}/lib-src/$file; then
-     # test -f appears to succeed for a symlink
-     if test -L ../${tempdir}/lib-src/$file; then
-       rm ../${tempdir}/lib-src/$file
-       cp $file ../${tempdir}/lib-src
-       chmod a-w ../${tempdir}/lib-src/$file
-     fi
-   else
-     rm ../${tempdir}/lib-src/$file
-     cp $file ../${tempdir}/lib-src
-     chmod a-w ../${tempdir}/lib-src/$file
-   fi
- done
  cd ../${tempdir}/lib-src
- rm -f getopt.h
- rm -f =* TAGS)
+ rm -f getopt.h)
 
 echo "Making links to \`m4'"
 (cd m4
@@ -508,10 +461,10 @@ echo "Making links to \`m4'"
 
 echo "Making links to \`nt'"
 (cd nt
- ln emacs.manifest emacs.rc emacsclient.rc config.nt [a-z]*.c ../${tempdir}/nt
- ln nmake.defs gmake.defs subdirs.el ../${tempdir}/nt
- ln [a-z]*.bat [a-z]*.h ../${tempdir}/nt
- ln ChangeLog INSTALL README makefile.w32-in ../${tempdir}/nt)
+ ln emacs.manifest emacs.rc emacsclient.rc config.nt ../${tempdir}/nt
+ ln emacs-src.tags nmake.defs gmake.defs subdirs.el ../${tempdir}/nt
+ ln [a-z]*.bat [a-z]*.[ch] ../${tempdir}/nt
+ ln ChangeLog INSTALL README README.W32 makefile.w32-in ../${tempdir}/nt)
 
 echo "Making links to \`nt/inc'"
 (cd nt/inc
@@ -537,14 +490,12 @@ echo "Making links to \`nt/icons'"
 echo "Making links to \`msdos'"
 (cd msdos
  ln ChangeLog INSTALL README emacs.ico emacs.pif ../${tempdir}/msdos
- ln is_exec.c sigaction.c mainmake.v2 sed*.inp ../${tempdir}/msdos
- cd ../${tempdir}/msdos
- rm -f =*)
+ ln is_exec.c sigaction.c mainmake.v2 sed*.inp ../${tempdir}/msdos)
 
 ## FIXME are DEV-NOTES and FOR-RELEASE appropriate?
 echo "Making links to \`nextstep'"
 (cd nextstep
- ln AUTHORS ChangeLog DEV-NOTES FOR-RELEASE README INSTALL ../${tempdir}/nextstep)
+ ln AUTHORS ChangeLog README INSTALL ../${tempdir}/nextstep)
 
 echo "Making links to \`nextstep/Cocoa/Emacs.base/Contents'"
 (cd nextstep/Cocoa/Emacs.base/Contents
@@ -568,83 +519,57 @@ echo "Making links to \`nextstep/GNUstep/Emacs.base/Resources'"
 
 echo "Making links to \`oldXMenu'"
 (cd oldXMenu
- ln *.c *.h *.in ../${tempdir}/oldXMenu
+ ln *.[ch] *.in ../${tempdir}/oldXMenu
  ln README ChangeLog ../${tempdir}/oldXMenu)
 
 echo "Making links to \`lwlib'"
 (cd lwlib
- ln *.c *.h *.in ../${tempdir}/lwlib
+ ln *.[ch] *.in ../${tempdir}/lwlib
  ln README ChangeLog ../${tempdir}/lwlib)
 
 echo "Making links to \`etc'"
-### Don't distribute = files, TAGS, DOC files, backups, autosaves, or
-### tex litter.
 (cd etc
- files=`ls -d * | grep -v '^e$' \
-        | grep -v '^charsets$' | grep -v '^gnus$' | grep -v '^images$' | grep -v '^nxml$' \
-        | grep -v '^refcards$' | grep -v '^tutorials$'| grep -v '^schema$'`
- ln $files ../${tempdir}/etc
- ## If we ended up with a symlink, or if we did not get anything
- ## due to a cross-device symlink, copy the file.
- for file in $files; do
-   if test -f ../${tempdir}/etc/$file; then
-     # test -f appears to succeed for a symlink
-     if test -L ../${tempdir}/etc/$file; then
-       rm ../${tempdir}/etc/$file
-       cp $file ../${tempdir}/etc
-       chmod a-w ../${tempdir}/etc/$file
-     fi
-   else
-     rm ../${tempdir}/etc/$file
-     cp $file ../${tempdir}/etc
-     chmod a-w ../${tempdir}/etc/$file
-   fi
- done
- cd ../${tempdir}/etc
- rm -f fns*.el
- rm -f DOC* *~ \#*\# *.dvi *.log *.orig *.rej *,v =* core
- rm -f TAGS)
+ for f in *; do
+   [ -f "$f" ] || continue
+   case "$f" in
+    DOC*) continue ;;
+   esac
+   ln $f ../${tempdir}/etc
+ done)
 
-for dir in etc/charsets etc/e etc/gnus etc/nxml etc/tutorials etc/refcards etc/schema ; do
+for dir in etc/*/; do
+    case "$dir" in
+        etc/images/) continue ;;
+    esac
     echo "Making links to \`${dir}'"
     (cd ${dir}
-	ln `ls -d *` ../../${tempdir}/${dir}
-	cd ../../${tempdir}/${dir}
-	rm -f *~ \#*\# *,v =* core)
+     ln * ../../${tempdir}/${dir})
 done
 
 echo "Making links to \`etc/images'"
 (cd etc/images
  for f in *; do
      [ -f "$f" ] || continue
-     case $f in
-         (*~|\#*\#|*,v|=*|core) continue ;;
-     esac
      ln $f ../../${tempdir}/etc/images
  done)
 
-for dir in etc/images/custom etc/images/ezimage etc/images/gnus \
-    etc/images/gud etc/images/icons etc/images/low-color etc/images/mail \
-    etc/images/mpc etc/images/smilies ; do
+for dir in etc/images/*/; do
     echo "Making links to \`${dir}'"
     (cd ${dir}
      for f in *; do
          [ -f "$f" ] || continue
-         case $f in
-             (*~|\#*\#|*,v|=*|core) continue ;;
-         esac
          ln $f ../../../${tempdir}/${dir}
      done
      )
 done
 
-for dir in etc/images/tree-widget/default etc/images/tree-widget/folder \
-    etc/images/smilies/grayscale  etc/images/smilies/medium; do
+for dir in etc/images/*/*/; do
+    case "$dir" in
+        etc/images/icons/hicolor/) continue ;;
+    esac
     echo "Making links to \`${dir}'"
     (cd ${dir}
-     ln `ls -d *` ../../../../${tempdir}/${dir}
-     cd ../../../../${tempdir}/${dir}
-     rm -f *~ \#*\# *,v =* core)
+     ln `ls -d *` ../../../../${tempdir}/${dir})
 done
 
 for dir in etc/images/icons/hicolor/*/apps \
@@ -652,73 +577,37 @@ for dir in etc/images/icons/hicolor/*/apps \
     echo "Making links to \`${dir}'"
     (cd ${dir}
      ln `ls -d *` ../../../../../../${tempdir}/${dir}
-     cd ../../../../../../${tempdir}/${dir}
-     rm -f *~ \#*\# *,v =* core)
+     cd ../../../../../../${tempdir}/${dir})
 done
 
 echo "Making links to \`info'"
-# Don't distribute backups or autosaves.
 (cd info
- ln `find . -type f -print` ../${tempdir}/info
- #ln [a-zA-Z]* ../${tempdir}/info
- cd ../${tempdir}/info
- # Avoid an error when expanding the wildcards later.
- ln emacs dummy~ ; ln emacs \#dummy\#
- rm -f *~ \#*\# core .arch-inventory .gitignore)
+ ln `find . -type f -print` ../${tempdir}/info)
 
-# FIXME ? Why including *.aux etc?
 echo "Making links to \`doc/emacs'"
 (cd doc/emacs
- ln *.texi *.aux *.fns *.kys *.vrs ../../${tempdir}/doc/emacs
- ln makefile.w32-in ../../${tempdir}/doc/emacs
- test -f Makefile.in && ln Makefile.in ../../${tempdir}/doc/emacs
- ln ChangeLog ../../${tempdir}/doc/emacs
- cd ../../${tempdir}/doc/emacs
- rm -f \#*\# =* *~ core emacs-index* *.Z *.z xmail
- rm -f emacs.?? termcap.?? gdb.?? *.log *.toc *.dvi *.oaux)
+ ln *.texi *.in makefile.w32-in ChangeLog* ../../${tempdir}/doc/emacs)
 
 echo "Making links to \`doc/misc'"
 (cd doc/misc
- ln *.texi *.aux *.fns *.kys *.vrs ../../${tempdir}/doc/misc
- ln makefile.w32-in ../../${tempdir}/doc/misc
- ln gnus-news.el ../../${tempdir}/doc/misc
- test -f README && ln README ../../${tempdir}/doc/misc
- test -f Makefile.in && ln Makefile.in ../../${tempdir}/doc/misc
- ln ChangeLog ../../${tempdir}/doc/misc
- cp texinfo.tex ../../${tempdir}/doc/misc
- cd ../../${tempdir}/doc/misc
- rm -f \#*\# =* *~ core emacs-index* *.Z *.z xmail
- rm -f emacs.?? termcap.?? gdb.?? *.log *.toc *.dvi *.oaux)
+ ln *.texi *.tex *.in makefile.w32-in gnus-news.el ChangeLog* ../../${tempdir}/doc/misc)
 
-## FIXME book-spine.texinfo unused?
 echo "Making links to \`doc/lispref'"
 (cd doc/lispref
- ln *.texi *.aux *.fns *.kys *.vrs ../../${tempdir}/doc/lispref
+ ln *.texi *.in makefile.w32-in README ChangeLog* ../../${tempdir}/doc/lispref
  ln *.txt *.el spellfile tindex.pl ../../${tempdir}/doc/lispref
- ln makefile.w32-in ../../${tempdir}/doc/lispref
- ln book-spine.texinfo two-volume.make ../../${tempdir}/doc/lispref
- test -f README && ln README ../../${tempdir}/doc/lispref
- test -f Makefile.in && ln Makefile.in ../../${tempdir}/doc/lispref
- ln ChangeLog ../../${tempdir}/doc/lispref
- cd ../../${tempdir}/doc/lispref
- rm -f \#*\# =* *~ core elisp-index* *.Z *.z xmail
- rm -f elisp.?? *.log *.toc *.dvi *.oaux)
+ ln two-volume.make ../../${tempdir}/doc/lispref)
 
 echo "Making links to \`doc/lispintro'"
 (cd doc/lispintro
- ln *.texi *.aux *.fns *.kys *.vrs *.eps *.pdf ../../${tempdir}/doc/lispintro
- ln makefile.w32-in ../../${tempdir}/doc/lispintro
- test -f README && ln README ../../${tempdir}/doc/lispintro
- test -f Makefile.in && ln Makefile.in ../../${tempdir}/doc/lispintro
- ln ChangeLog ../../${tempdir}/doc/lispintro
- cd ../../${tempdir}/doc/lispintro
- rm -f \#*\# =* *~ core *.Z *.z xmail
- rm -f emacs-lisp-intro.?? *.log *.toc *.dvi *.oaux)
+ ln *.texi *.in makefile.w32-in *.eps *.pdf ../../${tempdir}/doc/lispintro
+ ln README ChangeLog* ../../${tempdir}/doc/lispintro
+ cd ../../${tempdir}/doc/lispintro)
 
 echo "Making links to \`doc/man'"
 (cd doc/man
- ln *.1 ../../${tempdir}/doc/man
- ln ChangeLog ../../${tempdir}/doc/man)
+ ln ChangeLog* *.1 ../../${tempdir}/doc/man
+ cd ../../${tempdir}/doc/man)
 
 ### It would be nice if they could all be symlinks to top-level copy, but
 ### you're not supposed to have any symlinks in distribution tar files.
@@ -735,6 +624,10 @@ if [ "${newer}" ]; then
   ## them with.
   find ${tempparent} \( -name '*.elc' -o ! -newer ${newer} \) -exec rm -f {} \;
 fi
+
+## Don't distribute backups, autosaves, etc.
+echo "Removing unwanted files"
+find ${tempparent} \( -name '*~' -o -name '#*#' -o -name '.*ignore' -o -name '=*' -o -name 'TAGS' \) -exec rm -f {} \;
 
 if [ "${make_tar}" = yes ]; then
   if [ "${default_gzip}" = "" ]; then
