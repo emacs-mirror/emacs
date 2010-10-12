@@ -453,7 +453,6 @@ echo "Making links to \`msdos'"
  ln ChangeLog INSTALL README emacs.ico emacs.pif ../${tempdir}/msdos
  ln is_exec.c sigaction.c mainmake.v2 sed*.inp ../${tempdir}/msdos)
 
-## FIXME are DEV-NOTES and FOR-RELEASE appropriate?
 echo "Making links to \`nextstep'"
 (cd nextstep
  ln AUTHORS ChangeLog README INSTALL ../${tempdir}/nextstep)
