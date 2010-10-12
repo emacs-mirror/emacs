@@ -1,3 +1,9 @@
+2010-10-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-sum.el (gnus-summary-mark-as-unread-forward)
+	(gnus-summary-mark-as-unread-backward, gnus-summary-mark-as-unread):
+	Remove long obsoleted functions.
+
 2010-10-11  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* nnimap.el (gnutls-negotiate): Silence the byte compiler.
