@@ -4634,7 +4634,7 @@ DEFUN ("font-variation-glyphs", Ffont_variation_glyphs, Sfont_variation_glyphs,
        doc: /* Return a list of variation glyphs for CHAR in FONT-OBJECT.
 Each element of the value is a cons (VARIATION-SELECTOR . GLYPH-ID),
 where
-  VARIATION-SELECTOR is a chracter code of variation selection
+  VARIATION-SELECTOR is a character code of variation selection
     (#xFE00..#xFE0F or #xE0100..#xE01EF)
   GLYPH-ID is a glyph code of the corresponding variation glyph.  */)
      (font_object, character)

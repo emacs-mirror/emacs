@@ -3107,7 +3107,7 @@
 
 	* lisp.h (enum Lisp_Type): Lisp_Process, Lisp_Window, Lisp_Frame,
 	Lisp_Subr deleted.
-	(PSEUDOVECTORP, GC_PSEUDOVECTORP):  Add paren for proper nesting.
+	(PSEUDOVECTORP, GC_PSEUDOVECTORP): Add paren for proper nesting.
 	(PROCESSP, GC_PROCESSP, XSETPROCESS): Rewrite to use pseudovectors.
 	(WINDOWP, GC_WINDOWP, XSETWINDOW): Likewise.
 	(FRAMEP, GC_FRAMEP): Likewise.
@@ -4093,7 +4093,7 @@
 
 	* xterm.h: Delete X10 code.
 
-	* xfns.c (Fx_create_frame): Don't increment refernce_count
+	* xfns.c (Fx_create_frame): Don't increment reference_count
 	until the frame is put on the frame list.
 
 	* xterm.c (x_initialize): Init x_noop_count, x_focus_frame
@@ -7039,7 +7039,7 @@
 
 1994-06-07  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
-	* mips-siemens.h:  Include pyramid.h, not mips.h.
+	* mips-siemens.h: Include pyramid.h, not mips.h.
 	(LOAD_AVE_TYPE, LOAD_AVE_CVT): Definitions deleted.
 	(NO_ARG_ARRAY, HAVE_ALLOCA): Defined.
 	(BROKEN_FIONREAD): Add #undef.
