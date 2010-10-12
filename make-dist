@@ -153,8 +153,7 @@ then
 fi
 
 ### Find out which version of Emacs this is.
-version=`grep 'char emacs_version' src/emacs.c \
-	 | sed -e 's/^[^"]*"\([^"]*\)".*$/\1/'`
+version=`sed -n '/char emacs_version/ s/^[^"]*"\([^"]*\)".*$/\1/p' src/emacs.c`
 if [ ! "${version}" ]; then
   echo "${progname}: can't find current Emacs version in \`./src/emacs.c'" >&2
   exit 1
