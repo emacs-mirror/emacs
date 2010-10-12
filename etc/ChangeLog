@@ -1,3 +1,7 @@
+2010-10-12  Glenn Morris  <rgm@gnu.org>
+
+	* BABYL: Remove file.
+
 2010-09-21  Eric Ludlam  <zappo@gnu.org>
 
 	* srecode/java.srt: Make NAME be a prompt.
