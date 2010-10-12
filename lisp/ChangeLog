@@ -1,3 +1,38 @@
+2010-10-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-theme.el (describe-theme, customize-themes)
+	(custom-theme-save): New commands.
+	(custom-new-theme-mode-map): Bind C-x C-s.
+	(custom-new-theme-mode): Use custom--initialize-widget-variables.
+	(customize-create-theme): New optional arg THEME.
+	(custom-theme-revert): Use it.
+	(custom-theme-visit-theme): Remove dead code.
+	(custom-theme-merge-theme): Use custom-available-themes.
+	(custom-theme-write): Make interactive.
+	(custom-theme-write): Use custom-theme-name-valid-p.
+	(describe-theme-1, custom-theme-choose-revert)
+	(custom-theme-checkbox-toggle, custom-theme-selections-toggle):
+	New funs.
+	(custom-theme-allow-multiple-selections): New option.
+	(custom-theme-choose-mode): New major mode.
+
+	* custom.el (custom-theme-set-variables): Remove dead code.  Obey
+	custom--inhibit-theme-enable.
+	(custom--inhibit-theme-enable): New var.
+	(provide-theme): Obey it.
+	(load-theme): Replace load with manual read/eval, in order to
+	check for correctness.  Use custom-theme-name-valid-p.
+	(custom-theme-name-valid-p): New function.
+	(custom-available-themes): Use it.
+
+	* cus-edit.el (custom--initialize-widget-variables): New function.
+	(Custom-mode): Use it.
+
+	* cus-face.el (custom-theme-set-faces): Remove dead code.  Obey
+	custom--inhibit-theme-enable.
+
+	* help-mode.el (help-theme-def, help-theme-edit): New buttons.
+
 2010-10-12  Juanma Barranquero  <lekktu@gmail.com>
 
 	* net/telnet.el (telnet-mode-map): Fix previous change (bug#7193).

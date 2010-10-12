@@ -959,48 +959,39 @@ in SYMBOL's list property `theme-value' \(using `custom-push-theme')."
 			(t (or (nth 3 a2)
                                (eq (get sym2 'custom-set)
                                    'custom-set-minor-mode))))))))
-  (while args
-    (let ((entry (car args)))
-      (if (listp entry)
-	  (let* ((symbol (indirect-variable (nth 0 entry)))
-		 (value (nth 1 entry))
-		 (now (nth 2 entry))
-		 (requests (nth 3 entry))
-		 (comment (nth 4 entry))
-		 set)
-	    (when requests
-	      (put symbol 'custom-requests requests)
-	      (mapc 'require requests))
-	    (setq set (or (get symbol 'custom-set) 'custom-set-default))
-	    (put symbol 'saved-value (list value))
-	    (put symbol 'saved-variable-comment comment)
-	    (custom-push-theme 'theme-value symbol theme 'set value)
-	    ;; Allow for errors in the case where the setter has
-	    ;; changed between versions, say, but let the user know.
-	    (condition-case data
-		(cond (now
-		       ;; Rogue variable, set it now.
-		       (put symbol 'force-value t)
-		       (funcall set symbol (eval value)))
-		      ((default-boundp symbol)
-		       ;; Something already set this, overwrite it.
-		       (funcall set symbol (eval value))))
-	      (error
-	       (message "Error setting %s: %s" symbol data)))
-	    (setq args (cdr args))
-	    (and (or now (default-boundp symbol))
-		 (put symbol 'variable-comment comment)))
-        ;; I believe this is dead-code, because the `sort' code above would
-        ;; have burped before we could get here.  --Stef
-	;; Old format, a plist of SYMBOL VALUE pairs.
-	(message "Warning: old format `custom-set-variables'")
-	(ding)
-	(sit-for 2)
-	(let ((symbol (indirect-variable (nth 0 args)))
-	      (value (nth 1 args)))
+
+  (dolist (entry args)
+    (unless (listp entry)
+      (error "Incompatible Custom theme spec"))
+    (let* ((symbol (indirect-variable (nth 0 entry)))
+	   (value (nth 1 entry)))
+      (custom-push-theme 'theme-value symbol theme 'set value)
+      (unless custom--inhibit-theme-enable
+	;; Now set the variable.
+	(let* ((now (nth 2 entry))
+	       (requests (nth 3 entry))
+	       (comment (nth 4 entry))
+	       set)
+	  (when requests
+	    (put symbol 'custom-requests requests)
+	    (mapc 'require requests))
+	  (setq set (or (get symbol 'custom-set) 'custom-set-default))
 	  (put symbol 'saved-value (list value))
-	  (custom-push-theme 'theme-value symbol theme 'set value))
-	(setq args (cdr (cdr args)))))))
+	  (put symbol 'saved-variable-comment comment)
+	  ;; Allow for errors in the case where the setter has
+	  ;; changed between versions, say, but let the user know.
+	  (condition-case data
+	      (cond (now
+		     ;; Rogue variable, set it now.
+		     (put symbol 'force-value t)
+		     (funcall set symbol (eval value)))
+		    ((default-boundp symbol)
+		     ;; Something already set this, overwrite it.
+		     (funcall set symbol (eval value))))
+	    (error
+	     (message "Error setting %s: %s" symbol data)))
+	  (and (or now (default-boundp symbol))
+	       (put symbol 'variable-comment comment)))))))
 
 
 ;;; Defining themes.
@@ -1072,6 +1063,12 @@ into this directory."
   :group 'customize
   :version "22.1")
 
+(defvar custom--inhibit-theme-enable nil
+  "If non-nil, loading a theme does not enable it.
+This internal variable is set by `load-theme' when its NO-ENABLE
+argument is non-nil, and it affects `custom-theme-set-variables',
+`custom-theme-set-faces', and `provide-theme'." )
+
 (defun provide-theme (theme)
   "Indicate that this file provides THEME.
 This calls `provide' to provide the feature name stored in THEME's
@@ -1081,35 +1078,83 @@ property `theme-feature' (which is usually a symbol created by
       (error "Custom theme cannot be named %S" theme))
   (custom-check-theme theme)
   (provide (get theme 'theme-feature))
-  ;; Loading a theme also enables it.
-  (push theme custom-enabled-themes)
-  ;; `user' must always be the highest-precedence enabled theme.
-  ;; Make that remain true.  (This has the effect of making user settings
-  ;; override the ones just loaded, too.)
-  (let ((custom-enabling-themes t))
-    (enable-theme 'user)))
+  (unless custom--inhibit-theme-enable
+    ;; Loading a theme also enables it.
+    (push theme custom-enabled-themes)
+    ;; `user' must always be the highest-precedence enabled theme.
+    ;; Make that remain true.  (This has the effect of making user settings
+    ;; override the ones just loaded, too.)
+    (let ((custom-enabling-themes t))
+      (enable-theme 'user))))
 
-(defun load-theme (theme)
+(defun load-theme (theme &optional no-enable)
   "Load a theme's settings from its file.
-This also enables the theme; use `disable-theme' to disable it."
+Normally, this also enables the theme; use `disable-theme' to
+disable it.  If optional arg NO-ENABLE is non-nil, don't enable
+the theme."
   ;; Note we do no check for validity of the theme here.
   ;; This allows to pull in themes by a file-name convention
   (interactive
    (list
     (intern (completing-read "Load custom theme: "
-			     (mapcar 'symbol-name (custom-available-themes))))))
+			     (mapcar 'symbol-name
+				     (custom-available-themes))))))
+  (unless (custom-theme-name-valid-p theme)
+    (error "Invalid theme name `%s'" theme))
   ;; If reloading, clear out the old theme settings.
   (when (custom-theme-p theme)
     (disable-theme theme)
     (put theme 'theme-settings nil)
     (put theme 'theme-feature nil)
     (put theme 'theme-documentation nil))
-  (let ((load-path (if (file-directory-p custom-theme-directory)
-		       (cons custom-theme-directory load-path)
-		     load-path)))
-    (load (symbol-name (custom-make-theme-feature theme)))))
+  (let ((fn (locate-file (concat (symbol-name theme) "-theme.el")
+			 (cons custom-theme-directory load-path)
+			 '("" "c"))))
+    (unless fn
+      (error "Unable to find theme file for `%s'." theme))
+    ;; Instead of simply loading the theme file, read it manually.
+    (with-temp-buffer
+      (insert-file-contents fn)
+      (let ((custom--inhibit-theme-enable no-enable)
+	    sexp scar)
+	(while (setq sexp (let ((read-circle nil))
+			    (condition-case nil
+				(read (current-buffer))
+			      (end-of-file nil))))
+	  ;; Perform some checks on each sexp before evaluating it.
+	  (cond
+	   ((not (listp sexp)))
+	   ((eq (setq scar (car sexp)) 'deftheme)
+	    (unless (eq (cadr sexp) theme)
+	      (error "Incorrect theme name in `deftheme'"))
+	    (and (symbolp (nth 1 sexp))
+		 (stringp (nth 2 sexp))
+		 (eval (list scar (nth 1 sexp) (nth 2 sexp)))))
+	   ((or (eq scar 'custom-theme-set-variables)
+		(eq scar 'custom-theme-set-faces))
+	    (unless (equal (nth 1 sexp) `(quote ,theme))
+	      (error "Incorrect theme name in theme settings"))
+	    (dolist (entry (cddr sexp))
+	      (unless (eq (car-safe entry) 'quote)
+		(error "Unsafe expression in theme settings")))
+	    (eval sexp))
+	   ((and (eq scar 'provide-theme)
+		 (equal (cadr sexp) `(quote ,theme))
+		 (= (length sexp) 2))
+	    (eval sexp))))))))
+
+(defun custom-theme-name-valid-p (name)
+  "Return t if NAME is a valid name for a Custom theme, nil otherwise.
+NAME should be a symbol."
+  (and (symbolp name)
+       name
+       (not (or (zerop (length (symbol-name name)))
+		(eq name 'cus)
+		(eq name 'user)
+		(eq name 'changed)))))
 
 (defun custom-available-themes ()
+  "Return a list of available Custom themes (symbols)."
   (let* ((load-path (if (file-directory-p custom-theme-directory)
 			(cons custom-theme-directory load-path)
 		      load-path))
@@ -1120,7 +1165,7 @@ This also enables the theme; use `disable-theme' to disable it."
 	(setq file (file-name-nondirectory file))
 	(and (string-match "\\`\\(.+\\)-theme.el\\'" file)
 	     (setq sym (intern (match-string 1 file)))
-	     (not (memq sym '(cus user changed color)))
+	     (custom-theme-name-valid-p sym)
 	     (push sym themes))))
     (delete-dups themes)))
 

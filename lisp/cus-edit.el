@@ -439,9 +439,6 @@
 ;;; Custom mode keymaps
 
 (defvar custom-mode-map
-  ;; This keymap should be dense, but a dense keymap would prevent inheriting
-  ;; "\r" bindings from the parent map.
-  ;; Actually, this misfeature of dense keymaps was fixed on 2001-11-26.
   (let ((map (make-keymap)))
     (set-keymap-parent map widget-keymap)
     (define-key map [remap self-insert-command] 'Custom-no-edit)
@@ -4706,6 +4703,25 @@ If several parents are listed, go to the first of them."
   (if (eq (widget-get (widget-get widget :parent) :custom-state) 'modified)
       (message "To install your edits, invoke [State] and choose the Set operation")))
 
+(defun custom--initialize-widget-variables ()
+  (set (make-local-variable 'widget-documentation-face) 'custom-documentation)
+  (set (make-local-variable 'widget-button-face) custom-button)
+  (set (make-local-variable 'widget-button-pressed-face) custom-button-pressed)
+  (set (make-local-variable 'widget-mouse-face) custom-button-mouse)
+  ;; We need this because of the "More" button on docstrings.
+  ;; Otherwise clicking on "More" can push point offscreen, which
+  ;; causes the window to recenter on point, which pushes the
+  ;; newly-revealed docstring offscreen; which is annoying.  -- cyd.
+  (set (make-local-variable 'widget-button-click-moves-point) t)
+  ;; When possible, use relief for buttons, not bracketing.  This test
+  ;; may not be optimal.
+  (when custom-raised-buttons
+    (set (make-local-variable 'widget-push-button-prefix) "")
+    (set (make-local-variable 'widget-push-button-suffix) "")
+    (set (make-local-variable 'widget-link-prefix) "")
+    (set (make-local-variable 'widget-link-suffix) ""))
+  (setq show-trailing-whitespace nil))
+
 (define-derived-mode Custom-mode nil "Custom"
   "Major mode for editing customization buffers.
 
@@ -4743,28 +4759,7 @@ if that value is non-nil."
 	     (setq custom-tool-bar-map map))))
   (make-local-variable 'custom-options)
   (make-local-variable 'custom-local-buffer)
-  (make-local-variable 'widget-documentation-face)
-  (setq widget-documentation-face 'custom-documentation)
-  (make-local-variable 'widget-button-face)
-  (setq widget-button-face custom-button)
-  (setq show-trailing-whitespace nil)
-
-  ;; We need this because of the "More" button on docstrings.
-  ;; Otherwise clicking on "More" can push point offscreen, which
-  ;; causes the window to recenter on point, which pushes the
-  ;; newly-revealed docstring offscreen; which is annoying.  -- cyd.
-  (set (make-local-variable 'widget-button-click-moves-point) t)
-
-  (set (make-local-variable 'widget-button-pressed-face) custom-button-pressed)
-  (set (make-local-variable 'widget-mouse-face) custom-button-mouse)
-
-  ;; When possible, use relief for buttons, not bracketing.  This test
-  ;; may not be optimal.
-  (when custom-raised-buttons
-    (set (make-local-variable 'widget-push-button-prefix) "")
-    (set (make-local-variable 'widget-push-button-suffix) "")
-    (set (make-local-variable 'widget-link-prefix) "")
-    (set (make-local-variable 'widget-link-suffix) ""))
+  (custom--initialize-widget-variables)
   (add-hook 'widget-edit-functions 'custom-state-buffer-message nil t))
 
 (put 'Custom-mode 'mode-class 'special)
