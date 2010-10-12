@@ -1,7 +1,5 @@
 2010-10-11  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* lpath.el: Fbind gnutls-negotiate for Emacs 22 and XEmacsen.
-
 	* nnimap.el (gnutls-negotiate): Silence the byte compiler.
 
 	* gnus-art.el, gnus-cache.el, gnus-fun.el, gnus-group.el,
