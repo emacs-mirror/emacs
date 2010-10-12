@@ -56,7 +56,7 @@ Do not call this mode function yourself.  It is meant for internal use."
 (defvar custom-theme-insert-variable-marker nil)
 (defvar custom-theme-insert-face-marker nil)
 
-(defvar custom-theme--listed-faces '(default fixed-pitch
+(defvar custom-theme--listed-faces '(default cursor fixed-pitch
   variable-pitch escape-glyph minibuffer-prompt highlight region
   shadow secondary-selection trailing-whitespace
   font-lock-builtin-face font-lock-comment-delimiter-face
@@ -478,21 +478,37 @@ It includes all faces in list FACES."
   (princ " is a custom theme")
   (let ((fn (locate-file (concat (symbol-name theme) "-theme.el")
 			 (cons custom-theme-directory load-path)
-			 '("" "c"))))
+			 '("" "c")))
+	doc)
     (when fn
       (princ " in `")
       (help-insert-xref-button (file-name-nondirectory fn)
 			       'help-theme-def fn)
       (princ "'"))
-    (princ ".\n"))
-  (if (not (memq theme custom-known-themes))
-      (princ "It is not loaded.")
-    (if (custom-theme-enabled-p theme)
-	(princ "It is loaded and enabled.\n")
-      (princ "It is loaded but disabled.\n"))
-    (princ "\nDocumentation:\n")
-    (princ (or (get theme 'theme-documentation)
-	       "No documentation available.")))
+    (princ ".\n")
+    (if (not (memq theme custom-known-themes))
+	(progn
+	  (princ "It is not loaded.")
+	  ;; Attempt to grab the theme documentation
+	  (when fn
+	    (with-temp-buffer
+	      (insert-file-contents fn)
+	      (let ((sexp (let ((read-circle nil))
+			    (condition-case nil
+				(read (current-buffer))
+			      (end-of-file nil)))))
+		(and sexp (listp sexp)
+		     (eq (car sexp) 'deftheme)
+		     (setq doc (nth 2 sexp)))))))
+      (if (custom-theme-enabled-p theme)
+	  (princ "It is loaded and enabled.")
+	(princ "It is loaded but disabled."))
+      (setq doc (get theme 'theme-documentation)))
+
+    (princ "\n\nDocumentation:\n")
+    (princ (if (stringp doc)
+	       doc
+	     "No documentation available.")))
   (princ "\n\nYou can ")
   (help-insert-xref-button "customize" 'help-theme-edit theme)
   (princ " this theme."))

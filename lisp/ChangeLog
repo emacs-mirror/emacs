@@ -1,5 +1,16 @@
 2010-10-12  Chong Yidong  <cyd@stupidchicken.com>
 
+	* cus-theme.el (custom-theme--listed-faces): Add cursor face.
+	(describe-theme-1): Extract doc from unloaded themes.
+
+	* custom.el (custom-theme-name-valid-p): Don't list color-themes.
+
+	* themes/tango-theme.el:
+	* themes/tango-dark-theme.el:
+	* themes/wheatgrass-theme.el: New files.
+
+2010-10-12  Chong Yidong  <cyd@stupidchicken.com>
+
 	* cus-theme.el (describe-theme, customize-themes)
 	(custom-theme-save): New commands.
 	(custom-new-theme-mode-map): Bind C-x C-s.

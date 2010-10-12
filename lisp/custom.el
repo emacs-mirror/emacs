@@ -1149,6 +1149,9 @@ NAME should be a symbol."
   (and (symbolp name)
        name
        (not (or (zerop (length (symbol-name name)))
+		;; There's a third-party package named color-theme.el.
+		;; Don't treat that as a theme.
+		(eq name 'color)
 		(eq name 'cus)
 		(eq name 'user)
 		(eq name 'changed)))))
