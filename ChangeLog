@@ -1,3 +1,8 @@
+2010-10-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure (ns_appdir, OLDXMENU, TOOLTIP_SUPPORT): Remove
+	trailing / from directory names.
+
 2010-10-12  Glenn Morris  <rgm@gnu.org>
 
 	* make-dist: Update and simplify.
