@@ -57,8 +57,6 @@
 
 ;;; Code:
 
-(defvar widget)
-
 ;;; Compatibility.
 
 (defun widget-event-point (event)
@@ -1462,11 +1460,15 @@ The value of the :type attribute should be an unconverted widget type."
   :notify 'widget-default-notify
   :prompt-value 'widget-default-prompt-value)
 
+(defvar widget--completing-widget)
+
 (defun widget-default-complete (widget)
   "Call the value of the :complete-function property of WIDGET.
-If that does not exist, call the value of `widget-complete-field'."
-  (call-interactively (or (widget-get widget :complete-function)
-			  widget-complete-field)))
+If that does not exist, call the value of `widget-complete-field'.
+During this call, `widget--completing-widget' is bound to WIDGET."
+  (let ((widget--completing-widget widget))
+    (call-interactively (or (widget-get widget :complete-function)
+			    widget-complete-field))))
 
 (defun widget-default-create (widget)
   "Create WIDGET at point in the current buffer."
@@ -2193,19 +2195,9 @@ when he invoked the menu."
   ;; We could probably do the same job as the images using single
   ;; space characters in a boxed face with a stretch specification to
   ;; make them square.
-  :on-glyph '(create-image "\300\300\141\143\067\076\034\030"
-			   'xbm t :width 8 :height 8
-			   :background "grey75"	; like default mode line
-			   :foreground "black"
-			   :relief -2
-			   :ascent 'center)
+  :on-glyph image-checkbox-checked
   :off "[ ]"
-  :off-glyph '(create-image (make-string 8 0)
-			    'xbm t :width 8 :height 8
-			    :background "grey75"
-			    :foreground "black"
-			    :relief -2
-			    :ascent 'center)
+  :off-glyph image-checkbox-unchecked
   :help-echo "Toggle this item."
   :action 'widget-checkbox-action)
 
@@ -2237,11 +2229,10 @@ when he invoked the menu."
 
 (defun widget-checklist-value-create (widget)
   ;; Insert all values
-  (let ((alist (widget-checklist-match-find widget (widget-get widget :value)))
-	(args (widget-get widget :args)))
-    (while args
-      (widget-checklist-add-item widget (car args) (assq (car args) alist))
-      (setq args (cdr args)))
+  (let ((alist (widget-checklist-match-find widget))
+	(args  (widget-get widget :args)))
+    (dolist (item args)
+      (widget-checklist-add-item widget item (assq item alist)))
     (widget-put widget :children (nreverse (widget-get widget :children)))))
 
 (defun widget-checklist-add-item (widget type chosen)
@@ -2314,9 +2305,10 @@ If the item is checked, CHOSEN is a cons whose cdr is the value."
 		     values nil)))))
     (cons found rest)))
 
-(defun widget-checklist-match-find (widget vals)
+(defun widget-checklist-match-find (widget &optional vals)
   "Find the vals which match a type in the checklist.
 Return an alist of (TYPE MATCH)."
+  (or vals (setq vals (widget-get widget :value)))
   (let ((greedy (widget-get widget :greedy))
 	(args (copy-sequence (widget-get widget :args)))
 	found)
@@ -2809,11 +2801,10 @@ Return an alist of (TYPE MATCH)."
 	argument answer found)
     (while args
       (setq argument (car args)
-	    args (cdr args)
-	    answer (widget-match-inline argument vals))
-      (if answer
-	  (setq vals (cdr answer)
-		found (append found (car answer)))
+	    args     (cdr args))
+      (if (setq answer (widget-match-inline argument vals))
+	  (setq found (append found (car answer))
+		vals (cdr answer))
 	(setq vals nil
 	      args nil)))
     (if answer
@@ -3049,14 +3040,13 @@ as the value."
   :complete-function 'ispell-complete-word
   :prompt-history 'widget-string-prompt-value-history)
 
-(defvar widget)
-
 (defun widget-string-complete ()
   "Complete contents of string field.
 Completions are taken from the :completion-alist property of the
 widget.  If that isn't a list, it's evalled and expected to yield a list."
   (interactive)
-  (let* ((completion-ignore-case (widget-get widget :completion-ignore-case))
+  (let* ((widget widget--completing-widget)
+	 (completion-ignore-case (widget-get widget :completion-ignore-case))
 	 (alist (widget-get widget :completion-alist))
 	 (_ (unless (listp alist)
 	      (setq alist (eval alist)))))
@@ -3101,9 +3091,10 @@ It reads a file name from an editable text field."
 (defun widget-file-complete ()
   "Perform completion on file name preceding point."
   (interactive)
-  (completion-in-region (widget-field-start widget)
-                        (max (point) (widget-field-text-end widget))
-                        'completion-file-name-table))
+  (let ((widget widget--completing-widget))
+    (completion-in-region (widget-field-start widget)
+			  (max (point) (widget-field-text-end widget))
+			  'completion-file-name-table)))
 
 (defun widget-file-prompt-value (widget prompt value unbound)
   ;; Read file from minibuffer.
@@ -3726,7 +3717,7 @@ example:
   (widget-insert " ")
   (widget-create-child-and-convert
    widget 'push-button
-   :tag "Choose" :action 'widget-color--choose-action)
+   :tag " Choose " :action 'widget-color--choose-action)
   (widget-insert " "))
 
 (defun widget-color--choose-action (widget &optional event)

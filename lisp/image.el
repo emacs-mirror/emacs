@@ -721,7 +721,20 @@ shall be displayed."
 	 (cons (concat "\\." extension "\\'") 'imagemagick)
 	 image-type-file-name-regexps)))))
 
+
+;;; Inline stock images
 
+(defvar image-checkbox-checked
+  (create-image "\300\300\141\143\067\076\034\030"
+		'xbm t :width 8 :height 8 :background "grey75"
+		:foreground "black" :relief -2 :ascent 'center)
+  "Image of a checked checkbox.")
+
+(defvar image-checkbox-unchecked
+  (create-image (make-string 8 0)
+		'xbm t :width 8 :height 8 :background "grey75"
+		:foreground "black" :relief -2 :ascent 'center)
+  "Image of an unchecked checkbox.")
 
 (provide 'image)
 

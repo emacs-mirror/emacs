@@ -49,16 +49,11 @@
   sigsetreturn (_sigreturn);
 */
 
-#ifdef emacs
 #include <config.h>
-#endif
-
 #include <stdio.h>
 #include <fcntl.h>
 #include <errno.h>
-
 #include <a.out.h>
-
 #include <dl.h>
 
 /* brk value to restore, stored as a global.

@@ -1,3 +1,32 @@
+2010-09-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* semantic/bovine/el.el:
+	* semantic/mru-bookmark.el (global-semantic-mru-bookmark-mode):
+	Fix require statements.
+
+2010-09-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* semantic/tag.el (semantic-tag-version): Bump to 2.0.
+
+	* semantic/db-typecache.el (semanticdb-typecache-find-default):
+	* semantic/imenu.el (semantic-create-imenu-index):
+	* semantic/grammar.el (semantic--grammar-macro-function-tag):
+	* semantic/fw.el (semanticdb-without-unloaded-file-searches): Fix
+	require.  Suggested by David Engster.
+
+	* semantic/bovine/c-by.el: Regenerate.
+
+2010-09-29  Eric Ludlam  <zappo@gnu.org>
+
+	* semantic/lex-spp.el (semantic-lex-spp-debug-symbol): New var.
+	(semantic-lex-spp-enable-debug-symbol): New command
+	(semantic-lex-spp-value-valid-p)
+	(semantic-lex-spp-validate-value): New functions
+	(semantic-lex-spp-symbol-set)
+	(semantic-lex-spp-symbol-push): Add call to validate value.
+	(semantic-lex-spp-table-write-slot-value): Instead of erroring on
+	invalid values during save, just save a nil.
+
 2010-09-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* ede/linux.el (ede-project-class-files):
@@ -464,11 +493,6 @@
 	* ede/dired.el (ede-dired-minor-mode): Initialize in declaration.
 	(ede-dired-minor-mode): Use define-minor-mode and derived-mode-p.
 	(ede-dired-add-to-target): Use dolist.
-
-2010-04-18  Chong Yidong  <cyd@stupidchicken.com>
-
-	* ede/pmake.el (ede-proj-makefile-insert-variables):
-	Don't destroy list before using it.
 
 2010-04-29  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -1058,10 +1082,6 @@
 	* semantic/idle.el (semantic-idle-tag-highlight):
 	Use semantic-idle-summary-highlight-face as the highlighting.
 
-	* emacs-lisp/eieio-base.el (eieio-persistent-save): If buffer
-	contains multibyte characters, choose first applicable coding
-	system automatically.
-
 	* ede/project-am.el (project-run-target): New method.
 	(project-run-target): New method.
 
@@ -1389,10 +1409,6 @@
 
 	* srecode/expandproto.el: Fix provide statement.
 
-2009-09-30  Eric Ludlam  <zappo@gnu.org>
-
-	* emacs-lisp/eieio.el (boolean-p): Delete.
-
 2009-09-30  Sascha Wilde  <wilde@sha-bang.de>
 
 	* ede/srecode.el: Fix provide statement.
@@ -1437,15 +1453,6 @@
 	* srecode/*.el: New files.
 
 2009-09-28  Eric Ludlam  <zappo@gnu.org>
-
-	* emacs-lisp/chart.el:
-	* emacs-lisp/eieio-base.el:
-	* emacs-lisp/eieio-comp.el:
-	* emacs-lisp/eieio-custom.el:
-	* emacs-lisp/eieio-datadebug.el:
-	* emacs-lisp/eieio-opt.el:
-	* emacs-lisp/eieio-speedbar.el:
-	* emacs-lisp/eieio.el: New files.
 
 	* cedet-cscope.el:
 	* cedet-files.el:

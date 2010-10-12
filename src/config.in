@@ -255,7 +255,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have a gif (or ungif) library. */
 #undef HAVE_GIF
 
-/* Define if we have the GNU TLS library.  */
+/* Define if using GnuTLS. */
 #undef HAVE_GNUTLS
 
 /* Define to 1 if you have the gpm library (-lgpm). */
@@ -407,6 +407,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Define to 1 if you have the `Xext' library (-lXext). */
 #undef HAVE_LIBXEXT
+
+/* Define to 1 if you have the libxml library (-lxml2). */
+#undef HAVE_LIBXML2
 
 /* Define to 1 if you have the `Xmu' library (-lXmu). */
 #undef HAVE_LIBXMU
@@ -816,9 +819,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Define to 1 if you have the SM library (-lSM). */
 #undef HAVE_X_SM
 
-/* Define to 1 if you have the libxml2 library (-lxml2). */
-#undef HAVE_LIBXML2
-
 /* Define to 1 if you want to use the X window system. */
 #undef HAVE_X_WINDOWS
 
@@ -1096,12 +1096,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 /* Include the os and machine dependent files.  */
 #include config_opsysfile
 #include config_machfile
-
-#if HAVE_GNUTLS
-#define LIBGNUTLS $(LIBGNUTLS_LIBS)
-#else /* not HAVE_GNUTLS */
-#define LIBGNUTLS
-#endif /* not HAVE_GNUTLS */
 
 /* Set up some defines, C and LD flags for NeXTstep interface on GNUstep.
   (There is probably a better place to do this, but right now the Cocoa

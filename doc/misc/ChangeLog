@@ -1,3 +1,105 @@
+2010-10-12  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa.texi (Caching Passphrases):
+	* auth.texi (GnuPG and EasyPG Assistant Configuration): Clarify
+	some configurations require to set up gpg-agent.
+
+2010-10-11  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (.texi.dvi): Remove unnecessary suffix rule.
+
+2010-10-09  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Spam Package Introduction): Mention `$'.
+
+2010-10-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (emacsdir): New variable.
+	($(infodir)/efaq, faq.dvi): Depend on emacsver.texi.
+	(ENVADD, $(infodir)/efaq): Add -I$(emacsdir).
+
+2010-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (mostlyclean): Delete *.toc.
+
+	* Makefile.in: Use $< in rules.
+
+	* Makefile.in (maintainer-clean): Remove harmless, long-standing error.
+
+	* Makefile.in ($(infodir)): Delete rule.
+	(mkinfodir): New.  Use it in all the info rules, rather than depending
+	on infodir.
+
+2010-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* gnus.texi (Article Washing): Fix previous change.
+
+	* Makefile.in (emacsdir): New variable.
+	($(infodir)/efaq): Pass -I $(emacsdir) to makeinfo.
+	Depend on emacsver.texi.
+
+	* faq.texi (VER): Replace with EMACSVER from emacsver.texi.
+
+	* Makefile.in (.PHONY): Declare info, dvi, pdf and the clean rules.
+
+2010-10-08  Julien Danjou  <julien@danjou.info>
+
+	* gnus.texi: Add mm-shr.
+
+2010-10-08  Ludovic Courtès  <ludo@gnu.org>
+
+	* gnus.texi (Finding the Parent, The Gnus Registry)
+	(Registry Article Refer Method): Update docs for nnregistry.el.
+
+2010-10-08  Daiki Ueno  <ueno@unixuser.org>
+
+	* auth.texi (Help for users)
+	(GnuPG and EasyPG Assistant Configuration): Update docs.
+
+2010-10-08  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi (Organization, Installation, Old CL Compatibility):
+	Deprecate cl-compat for new code.
+	(Usage, Installation): Remove outdated information.
+
+	* eudc.texi (CCSO PH/QI, LDAP Requirements): Remove old information.
+
+2010-10-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Gravatars): Document gnus-gravatar-too-ugly.
+
+2010-10-06  Julien Danjou  <julien@danjou.info>
+
+	* sieve.texi (Manage Sieve API): Document sieve-manage-authenticate.
+
+	* message.texi (PGP Compatibility): Remove reference to gpg-2comp,
+	broken link.
+
+	* gnus-faq.texi (FAQ 8-3): Remove references to my.gnus.org.
+
+	* gnus.texi (Comparing Mail Back Ends): Remove broken link and allusion
+	to ReiserFS.
+
+	* gnus-faq.texi (FAQ 5-5): Fix Flyspell URL.
+	(FAQ 7-1): Fix getmail URL.
+
+2010-10-06  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa.texi (Caching Passphrases): New section.
+
+2010-10-06  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (SHELL): Set it.
+	(info): Move the mkdir dependency to the individual info files.
+	(mostlyclean): Tidy up.
+	(clean): Only delete the specific dvi and pdf files.
+	(maintainer-clean): Be more restrictive in what we delete.
+	($(infodir)): Add parallel build workaround.
+
+2010-10-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Misc Article): Document gnus-widen-article-window.
+
 2010-10-03  Julien Danjou  <julien@danjou.info>
 
 	* emacs-mime.texi (Display Customization): Update
@@ -7026,12 +7128,11 @@
 
 ;; Local Variables:
 ;; coding: utf-8
-;; fill-column: 79
-;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,
-      2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+  Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,
+    2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+    Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -7047,5 +7148,3 @@
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
-;; arch-tag: 08b2903e-900c-4c72-a4a9-e76416a80803

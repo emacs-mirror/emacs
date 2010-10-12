@@ -25,7 +25,7 @@
 
 ;;; Code:
 
-;; For Emacs < 22.2.
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 (eval-when-compile
@@ -470,6 +470,12 @@ and non-`vertical', do both horizontal and vertical recentering."
 (defcustom gnus-single-article-buffer nil
   "*If non-nil, display all articles in the same buffer.
 If nil, each group will get its own article buffer."
+  :version "24.1"
+  :group 'gnus-article-various
+  :type 'boolean)
+
+(defcustom gnus-widen-article-window nil
+  "If non-nil, selecting the article buffer will display only the article buffer."
   :version "24.1"
   :group 'gnus-article-various
   :type 'boolean)
@@ -3493,8 +3499,6 @@ display only a single character."
       ;; Fix by Sudish Joseph <joseph@cis.ohio-state.edu>
       (setq gnus-summary-buffer (set-buffer (gnus-get-buffer-create buffer)))
       (gnus-summary-mode group)
-      (when gnus-carpal
-	(gnus-carpal-setup-buffer 'summary))
       (when (gnus-group-quit-config group)
 	(set (make-local-variable 'gnus-single-article-buffer) nil))
       (make-local-variable 'gnus-article-buffer)
@@ -3837,7 +3841,8 @@ This function is intended to be used in
 
 (defun gnus-summary-set-local-parameters (group)
   "Go through the local params of GROUP and set all variable specs in that list."
-  (let ((vars '(quit-config)))          ; Ignore quit-config.
+  (let ((vars '(quit-config active)))	; Ignore things that aren't
+					; really variables.
     (dolist (elem (gnus-group-find-parameter group))
       (and (consp elem)			; Has to be a cons.
 	   (consp (cdr elem))		; The cdr has to be a list.
@@ -4981,6 +4986,10 @@ Unscored articles will be counted as having a score of zero."
    (t
     (gnus-thread-total-score-1 (list thread)))))
 
+(defun gnus-article-sort-by-most-recent-number (h1 h2)
+  "Sort articles by number."
+  (gnus-article-sort-by-number h1 h2))
+
 (defun gnus-thread-sort-by-most-recent-number (h1 h2)
   "Sort threads such that the thread with the most recently arrived article comes first."
   (> (gnus-thread-highest-number h1) (gnus-thread-highest-number h2)))
@@ -4990,6 +4999,10 @@ Unscored articles will be counted as having a score of zero."
   (apply 'max (mapcar (lambda (header)
 			(mail-header-number header))
 		      (message-flatten-list thread))))
+
+(defun gnus-article-sort-by-most-recent-date (h1 h2)
+  "Sort articles by number."
+  (gnus-article-sort-by-date h1 h2))
 
 (defun gnus-thread-sort-by-most-recent-date (h1 h2)
   "Sort threads such that the thread with the most recently dated article comes first."
@@ -5670,17 +5683,17 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 			    (unseen . unseen))
 			  gnus-article-mark-lists))
       (push (cons (cdr elem)
-		  (gnus-byte-compile
+		  (gnus-byte-compile    ;Why bother?
 		   `(lambda () (gnus-article-marked-p ',(cdr elem)))))
 	    gnus-summary-display-cache)))
   (let ((gnus-category-predicate-alist gnus-summary-display-cache)
 	(gnus-category-predicate-cache gnus-summary-display-cache))
     (gnus-get-predicate display)))
 
-;; Uses the dynamically bound `number' variable.
-(defvar number)
+;; Uses the dynamically bound `gnus-number' variable.
+(defvar gnus-number)
 (defun gnus-article-marked-p (type &optional article)
-  (let ((article (or article number)))
+  (let ((article (or article gnus-number)))
     (cond
      ((eq type 'tick)
       (memq article gnus-newsgroup-marked))
@@ -6935,7 +6948,11 @@ displayed, no centering will be performed."
       (error "There is no article buffer for this summary buffer")
     (unless (get-buffer-window gnus-article-buffer)
       (gnus-summary-show-article))
-    (gnus-configure-windows 'article t)
+    (gnus-configure-windows
+     (if gnus-widen-article-window
+	 'only-article
+       'article)
+     t)
     (select-window (get-buffer-window gnus-article-buffer))))
 
 (defun gnus-summary-universal-argument (arg)
@@ -8267,9 +8284,9 @@ articles that are younger than AGE days."
   (unless gnus-newsgroup-display
     (error "There is no `display' group parameter"))
   (let (articles)
-    (dolist (number gnus-newsgroup-articles)
+    (dolist (gnus-number gnus-newsgroup-articles)
       (when (funcall gnus-newsgroup-display)
-	(push number articles)))
+	(push gnus-number articles)))
     (gnus-summary-limit articles))
   (gnus-summary-position-point))
 
@@ -8670,8 +8687,8 @@ fetch-old-headers verbiage, and so on."
 	       (apply '+ (mapcar 'gnus-summary-limit-children
 				 (cdr thread)))
 	     0))
-	  (number (mail-header-number (car thread)))
-	  score)
+	   (number (mail-header-number (car thread)))
+	   score)
       (if (and
 	   (not (memq number gnus-newsgroup-marked))
 	   (or
@@ -8716,7 +8733,8 @@ fetch-old-headers verbiage, and so on."
 	      t)
 	    ;; Do the `display' group parameter.
 	    (and gnus-newsgroup-display
-		 (not (funcall gnus-newsgroup-display)))))
+		 (let ((gnus-number number))
+		   (not (funcall gnus-newsgroup-display))))))
 	  ;; Nope, invisible article.
 	  0
 	;; Ok, this article is to be visible, so we add it to the limit
@@ -10511,7 +10529,7 @@ ARTICLE can also be a list of articles."
 	    (not (equal gnus-newsgroup-name (car gnus-article-current))))
     (error "No current article selected"))
   ;; Remove old bookmark, if one exists.
-  (gnus-pull article gnus-newsgroup-bookmarks)
+  (gnus-alist-pull article gnus-newsgroup-bookmarks)
   ;; Set the new bookmark, which is on the form
   ;; (article-number . line-number-in-body).
   (push
@@ -10532,7 +10550,7 @@ ARTICLE can also be a list of articles."
   ;; Remove old bookmark, if one exists.
   (if (not (assq article gnus-newsgroup-bookmarks))
       (gnus-message 6 "No bookmark in current article.")
-    (gnus-pull article gnus-newsgroup-bookmarks)
+    (gnus-alist-pull article gnus-newsgroup-bookmarks)
     (gnus-message 6 "Removed bookmark.")))
 
 ;; Suggested by Daniel Quinlan <quinlan@best.com>.
@@ -10658,7 +10676,7 @@ If NO-EXPIRE, auto-expiry will be inhibited."
 	       (setq gnus-newsgroup-unreads
 		     (gnus-add-to-sorted-list gnus-newsgroup-unreads
 					      article))))
-	(gnus-pull article gnus-newsgroup-reads)
+	(gnus-alist-pull article gnus-newsgroup-reads)
 
 	;; See whether the article is to be put in the cache.
 	(and gnus-use-cache
@@ -10832,7 +10850,7 @@ If NO-EXPIRE, auto-expiry will be inhibited."
 	    (t
 	     (setq gnus-newsgroup-unreads
 		   (gnus-add-to-sorted-list gnus-newsgroup-unreads article))))
-      (gnus-pull article gnus-newsgroup-reads)
+      (gnus-alist-pull article gnus-newsgroup-reads)
       t)))
 
 (defalias 'gnus-summary-mark-as-unread-forward
@@ -11910,11 +11928,12 @@ save those articles instead."
            ((null split-name)
             (gnus-group-completing-read
              prom
-             (remove-if-not 'gnus-valid-move-group-p gnus-active-hashtb)
+             (gnus-remove-if-not 'gnus-valid-move-group-p gnus-active-hashtb t)
              nil prefix nil default))
            ((= 1 (length split-name))
             (gnus-group-completing-read
-             prom (remove-if-not 'gnus-valid-move-group-p gnus-active-hashtb)
+             prom
+	     (gnus-remove-if-not 'gnus-valid-move-group-p gnus-active-hashtb t)
              nil prefix 'gnus-group-history (car split-name)))
            (t
             (gnus-completing-read

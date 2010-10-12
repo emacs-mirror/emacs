@@ -24,7 +24,7 @@
 
 ;;; Code:
 
-;; For Emacs < 22.2.
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 
@@ -115,6 +115,7 @@
   "Render of HTML contents.
 It is one of defined renderer types, or a rendering function.
 The defined renderer types are:
+`mm-shr': use Gnus simple HTML renderer;
 `gnus-article-html' : use Gnus renderer based on w3m;
 `w3m'  : use emacs-w3m;
 `w3m-standalone': use w3m;
@@ -124,7 +125,8 @@ The defined renderer types are:
 `html2text' : use html2text;
 nil    : use external viewer (default web browser)."
   :version "24.1"
-  :type '(choice (const gnus-article-html)
+  :type '(choice (const mm-shr)
+                 (const gnus-article-html)
                  (const w3)
                  (const w3m :tag "emacs-w3m")
 		 (const w3m-standalone :tag "standalone w3m" )
@@ -1258,8 +1260,10 @@ PROMPT overrides the default one used to ask user for a file name."
 				      (or filename "")))
                           (or mm-default-directory default-directory)
 			  (or filename "")))
-    (when (file-directory-p file)
-      (setq file (expand-file-name filename file)))
+    (if (file-directory-p file)
+	(setq file (expand-file-name filename file))
+      (setq file (expand-file-name
+		  file (or mm-default-directory default-directory))))
     (setq mm-default-directory (file-name-directory file))
     (and (or (not (file-exists-p file))
 	     (yes-or-no-p (format "File %s already exists; overwrite? "
@@ -1679,14 +1683,36 @@ If RECURSIVE, search recursively."
 	 (and (eq (mm-body-7-or-8) '7bit)
 	      (not (mm-long-lines-p 76))))))
 
+(declare-function libxml-parse-html-region "xml.c"
+		  (start end &optional base-url))
+(declare-function shr-insert-document "shr" (dom))
+
 (defun mm-shr (handle)
-  (let ((article-buffer (current-buffer)))
+  ;; Require since we bind its variables.
+  (require 'shr)
+  (let ((article-buffer (current-buffer))
+	(shr-blocked-images (with-current-buffer gnus-summary-buffer
+			      gnus-blocked-images))
+	(shr-content-function (lambda (id)
+				(let ((handle (mm-get-content-id id)))
+				  (when handle
+				    (mm-with-part handle
+				      (buffer-string))))))
+	charset)
     (unless handle
       (setq handle (mm-dissect-buffer t)))
+    (setq charset (mail-content-type-get (mm-handle-type handle) 'charset))
     (save-restriction
       (narrow-to-region (point) (point))
       (shr-insert-document
        (mm-with-part handle
+	 (when (and charset
+		    (setq charset (mm-charset-to-coding-system charset))
+		    (not (eq charset 'ascii)))
+	   (insert (prog1
+		       (mm-decode-coding-string (buffer-string) charset)
+		     (erase-buffer)
+		     (mm-enable-multibyte))))
 	 (libxml-parse-html-region (point-min) (point-max)))))))
 
 (provide 'mm-decode)

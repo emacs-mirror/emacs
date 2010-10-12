@@ -25,7 +25,7 @@
 
 ;;; Code:
 
-;; For Emacs < 22.2.
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 (eval-when-compile
@@ -1638,6 +1638,12 @@ This requires GNU Libidn, and by default only enabled if it is found."
   :version "22.1"
   :group 'gnus-article
   :type 'boolean)
+
+(defcustom gnus-blocked-images "."
+  "Images that have URLs matching this regexp will be blocked."
+  :version "24.1"
+  :group 'gnus-art
+  :type 'regexp)
 
 ;;; Internal variables
 
@@ -5133,7 +5139,9 @@ available media-types."
 	  (let ((default (gnus-mime-view-part-as-type-internal)))
 	    (gnus-completing-read
 	     "View as MIME type"
-	     (remove-if-not pred (mailcap-mime-types))
+	     (if pred
+		 (gnus-remove-if-not pred (mailcap-mime-types))
+	       (mailcap-mime-types))
 	     nil nil nil
 	     (car default)))))
   (gnus-article-check-buffer)
@@ -5373,7 +5381,7 @@ specified charset."
          (mm-enable-external t))
     (if (not (stringp method))
 	(gnus-mime-view-part-as-type
-	 nil (lambda (types) (stringp (mailcap-mime-info (car types)))))
+	 nil (lambda (type) (stringp (mailcap-mime-info type))))
       (when handle
 	(if (mm-handle-undisplayer handle)
 	    (mm-remove-part handle)
@@ -5394,7 +5402,7 @@ If no internal viewer is available, use an external viewer."
 	 (inhibit-read-only t))
     (if (not (mm-inlinable-p handle))
         (gnus-mime-view-part-as-type
-         nil (lambda (types) (mm-inlinable-p handle (car types))))
+         nil (lambda (type) (mm-inlinable-p handle type)))
       (when handle
 	(if (mm-handle-undisplayer handle)
 	    (mm-remove-part handle)

@@ -621,17 +621,19 @@ ARG is positive, otherwise off."
       (setq appt-timer nil))
     (if appt-active
         (progn
-          (diary-check-diary-file)
           (add-hook 'write-file-functions 'appt-update-list)
           (setq appt-timer (run-at-time t 60 'appt-check)
                 global-mode-string
                 (append global-mode-string '(appt-mode-string)))
           (appt-check t)
-          (message "Appointment reminders enabled"))
+          (message "Appointment reminders enabled%s"
+                   ;; Someone might want to use appt-add without a diary.
+                   (if (ignore-errors (diary-check-diary-file))
+                       ""
+                     " (no diary file found)")))
       (message "Appointment reminders disabled"))))
 
 
 (provide 'appt)
 
-;; arch-tag: bf5791c4-8921-499e-a26f-772b1788d347
 ;;; appt.el ends here

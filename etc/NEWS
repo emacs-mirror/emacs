@@ -195,6 +195,10 @@ automatically when Emacs starts up.  To disable this, set
 `package-enable-at-startup' to nil.  To change which packages are
 loaded, customize `package-load-list'.
 
+** Custom Themes
+
+*** `M-x customize-themes' lists Custom themes which can be enabled.
+
 ** The user option `remote-file-name-inhibit-cache' controls whether
 the remote file-name cache is used for read access.
 
@@ -250,7 +254,7 @@ kill ring).
 
 ** latex-electric-env-pair-mode keeps \begin..\end matched on the fly.
 
-** FIXME: xdg-open for browse-url and reportbug, 2010/08.  (Close bug#4546?)
+** FIXME: xdg-open for browse-url and reportbug, 2010/08.
 
 ** Archive Mode has basic support to browse 7z archives.
 
@@ -550,6 +554,8 @@ similar to the ones created by shift-selection.  In previous Emacs
 versions, these regions were delineated by `mouse-drag-overlay', which
 has now been removed.
 
+** cl.el no longer provides `cl-19'.
+
 ** The following functions and aliases, obsolete since at least Emacs 21.1,
 have been removed:
 comint-kill-output, decompose-composite-char, outline-visible,
@@ -563,7 +569,11 @@ make-local-hook
 
 ** The following variables and aliases, obsolete since at least Emacs 21.1,
 have been removed:
-checkdoc-minor-keymap, vc-header-alist, directory-sep-char
+checkdoc-minor-keymap, vc-header-alist, directory-sep-char,
+font-lock-defaults-alist
+
+** The following files, obsolete since at least Emacs 21.1, have been removed:
+sc.el, x-menu.el, rnews.el, rnewspost.el
 
 
 * Lisp changes in Emacs 24.1

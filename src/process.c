@@ -1670,6 +1670,11 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
 	  val = XCDR (Vdefault_process_coding_system);
       }
     XPROCESS (proc)->encode_coding_system = val;
+    /* Note: At this momemnt, the above coding system may leave
+       text-conversion or eol-conversion unspecified.  They will be
+       decided after we read output from the process and decode it by
+       some coding system, or just before we actually send a text to
+       the process.  */
   }
 
 
@@ -1712,6 +1717,7 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
 	tem = Fsubstring (tem, make_number (2), Qnil);
 
       {
+	Lisp_Object arg_encoding = Qnil;
 	struct gcpro gcpro1;
 	GCPRO1 (tem);
 
@@ -1729,9 +1735,14 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
 	    tem = Fcons (args[i], tem);
 	    CHECK_STRING (XCAR (tem));
 	    if (STRING_MULTIBYTE (XCAR (tem)))
-	      XSETCAR (tem,
-		       code_convert_string_norecord
-		       (XCAR (tem), XPROCESS (proc)->encode_coding_system, 1));
+	      {
+		if (NILP (arg_encoding))
+		  arg_encoding = (complement_process_encoding_system
+				  (XPROCESS (proc)->encode_coding_system));
+		XSETCAR (tem,
+			 code_convert_string_norecord
+			 (XCAR (tem), arg_encoding, 1));
+	      }
 	  }
 
 	UNGCPRO;
@@ -5529,12 +5540,21 @@ send_process (volatile Lisp_Object proc, const unsigned char *volatile buf,
 	  && !NILP (XBUFFER (object)->enable_multibyte_characters))
       || EQ (object, Qt))
     {
+      p->encode_coding_system
+	= complement_process_encoding_system (p->encode_coding_system);
       if (!EQ (Vlast_coding_system_used, p->encode_coding_system))
-	/* The coding system for encoding was changed to raw-text
-	   because we sent a unibyte text previously.  Now we are
-	   sending a multibyte text, thus we must encode it by the
-	   original coding system specified for the current process.  */
-	setup_coding_system (p->encode_coding_system, coding);
+	{
+	  /* The coding system for encoding was changed to raw-text
+	     because we sent a unibyte text previously.  Now we are
+	     sending a multibyte text, thus we must encode it by the
+	     original coding system specified for the current process.
+
+	     Another reason we comming here is that the coding system
+	     was just complemented and new one was returned by
+	     complement_process_encoding_system.  */
+	  setup_coding_system (p->encode_coding_system, coding);
+	  Vlast_coding_system_used = p->encode_coding_system;
+	}
       coding->src_multibyte = 1;
     }
   else

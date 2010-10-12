@@ -1,3 +1,9 @@
+2010-10-12  Glenn Morris  <rgm@gnu.org>
+
+	* TODO: Merge ../nextstep/FOR-RELEASE into this file.
+
+	* BABYL: Remove file.
+
 2010-09-21  Eric Ludlam  <zappo@gnu.org>
 
 	* srecode/java.srt: Make NAME be a prompt.

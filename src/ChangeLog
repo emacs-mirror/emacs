@@ -1,3 +1,132 @@
+2010-10-12  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (Qleft): Declare.
+	(ns_right_alternate_modifier): New variable
+	(NSRightAlternateKeyMask): New define.
+	(EV_MODIFIERS): Parse NSRightAlternateKeyMask if
+	ns_right_alternate_modifier isn't Qleft.
+	(keyDown): If ns_right_alternate_modifier isn't Qleft, use it
+	as emacs modifier for NSRightAlternateKeyMask.
+	(syms_of_nsterm): DEFVAR_LISP ns-right-alternate-modifier.
+
+2010-10-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnutls.c (emacs_gnutls_write): If we're trying to write before
+	gnutls is ready, return EAGAIN as the errno.
+
+2010-10-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vm-limit.c:
+	* unexhp9k800.c:
+	* unexelf.c:
+	* unexaix.c:
+	* termcap.c: Remove #ifdef emacs / #ifndef emacs code, unused.
+
+	* Makefile.in (temacs): Use $(ALL_CFLAGS) on the link line.
+	(PROFILING_LDFLAGS): Remove, not needed anymore.
+
+	* Makefile.in: Use $(...) everywhere instead of ${...}
+	(CRT_DIR): Move near potential user.
+	(START_FILE): Move near CRT_DIR, it might use it.
+
+	* sysdep.c (LPASS8): Remove, unused.
+	(emacs_ospeed): Change from being a global to a local in the only
+	user: init_baud_rate.
+
+2010-10-09  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnutls.c (syms_of_gnutls): All the bootprops are keywords.
+	(emacs_gnutls_write): Remove the debuggin fsync call.
+	(emacs_gnutls_read): Return -1 if we got an error from
+	gnutls_read.  This allows us to actually read lots of data from
+	the GnuTLS stream.
+	(emacs_gnutls_write): Check for GNUTLS_E_AGAIN and not EINTR.
+	According to the documentation, this is correct, and it seems to
+	make things work.
+
+2010-10-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xterm.c (x_draw_relief_rect): Clear corner pixels.
+
+2010-10-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* keyboard.c: Revert last change; it was not intended to be
+	synchronized with the trunk.
+
+2010-10-08  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (complement_process_encoding_system): Fix previous change.
+
+2010-10-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (syms_of_dbusbind): Move putenv call ...
+	(Fdbus_init_bus): ... here.  (Bug#7113)
+
+2010-10-08  Glenn Morris  <rgm@gnu.org>
+
+	* buffer.c (before-change-functions, after-change-functions):
+	Three-year overdue doc fix following 2007-08-13 change.
+
+2010-10-08  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (coding_inherit_eol_type): If parent doesn't specify
+	eol-format, inherit from the system's default.
+	(complement_process_encoding_system): Make a new coding system
+	inherit the original eol-format.
+
+2010-10-08  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (complement_process_encoding_system): New function.
+
+	* coding.h (complement_process_encoding_system): Extern it.
+
+	* callproc.c (Fcall_process): Complement the coding system for
+	encoding arguments.
+	(Fcall_process_region): Complement the coding system for encoding
+	the input to the process.
+
+	* process.c (Fstart_process): Complement the coding system for
+	encoding arguments.
+	(send_process): Complement the coding system for encoding what
+	sent to the process.
+
+2010-10-08  Kenichi Handa  <handa@m17n.org>
+
+	* xfont.c (xfont_open): Fix setting of font->average_width from
+	:avgwidth property (Bug#7123).
+
+2010-10-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (syms_of_dbusbind): Use putenv instead of setenv, it
+	is more portable.
+
+	* keyboard.c (gobble_input): Move call of xd_read_queued_messages ...
+	(kbd_buffer_get_event): ... here. This is needed for cygwin, which
+	has not defined SIGIO.
+
+2010-10-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xterm.c (x_draw_relief_rect): If box width is larger than 1,
+	draw the outermost line using the black relief, for legibility.
+	Omit drawing the four corner pixels.
+
+2010-10-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (echo_prompt): Function moved into read_key_sequence.
+	(read_key_sequence): Inline echo_prompt.
+	(echo_dash): Add a dash only if key is continued (Bug#7137).
+
+2010-10-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	Remove O_RDONLY, O_WRONLY definitions, not needed.
+	* unexcoff.c:
+	* lread.c:
+	* fileio.c:
+	* doc.c:
+	* callproc.c:
+	* alloc.c:
+	* termcap.c: Remove O_RDONLY O_WRONLY definitions.
+
 2010-10-03  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnutls.h (GNUTLS_LOG2): Convenience macro.

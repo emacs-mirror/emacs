@@ -97,14 +97,6 @@ struct aouthdr
 
 #include <sys/file.h>
 
-#ifndef O_RDONLY
-#define O_RDONLY 0
-#endif
-#ifndef O_RDWR
-#define O_RDWR 2
-#endif
-
-
 extern char *start_of_data (void);		/* Start of initialized data */
 
 static long block_copy_start;		/* Old executable start point */

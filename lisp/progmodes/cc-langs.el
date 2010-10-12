@@ -1565,6 +1565,17 @@ be a subset of `c-primitive-type-kwds'."
 	    ;; In CORBA PSDL:
 	    "strong"))
 
+(c-lang-defconst c-typedef-kwds
+  "Prefix keyword\(s\) like \"typedef\" which make a type declaration out
+of a variable declaration."
+  t        '("typedef")
+  (awk idl java) nil)
+
+(c-lang-defconst c-typedef-key
+  ;; Adorned regexp matching `c-typedef-kwds'.
+  t (c-make-keywords-re t (c-lang-const c-typedef-kwds)))
+(c-lang-defvar c-typedef-key (c-lang-const c-typedef-key))
+
 (c-lang-defconst c-type-prefix-kwds
   "Keywords where the following name - if any - is a type name, and
 where the keyword together with the symbol works as a type in
@@ -1730,6 +1741,10 @@ will be handled."
   ;; Unlike most other languages, exception names are not handled as
   ;; types in IDL since they only can occur in "raises" specs.
   idl  (delete "exception" (append (c-lang-const c-typedef-decl-kwds) nil)))
+
+(c-lang-defconst c-typedef-decl-key
+  t  (c-make-keywords-re t (c-lang-const c-typedef-decl-kwds)))
+(c-lang-defvar c-typedef-decl-key (c-lang-const c-typedef-decl-key))
 
 (c-lang-defconst c-typeless-decl-kwds
   "Keywords introducing declarations where the \(first) identifier

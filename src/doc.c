@@ -31,10 +31,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 #endif
 
-#ifndef O_RDONLY
-#define O_RDONLY 0
-#endif
-
 #include "lisp.h"
 #include "buffer.h"
 #include "keyboard.h"

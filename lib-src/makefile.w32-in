@@ -395,12 +395,6 @@ $(BLD)/alloca.$(O) : \
 	$(EMACS_ROOT)/src/config.h \
 	$(EMACS_ROOT)/src/blockinput.h
 
-$(BLD)/b2m.$(O) : \
-	$(SRC)/b2m.c \
-	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/m/intel386.h \
-	$(EMACS_ROOT)/lib-src/../src/config.h
-
 $(BLD)/ctags.$(O) : \
 	$(SRC)/ctags.c \
 	$(EMACS_ROOT)/nt/inc/sys/param.h \

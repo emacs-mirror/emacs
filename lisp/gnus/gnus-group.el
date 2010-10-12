@@ -25,7 +25,7 @@
 
 ;;; Code:
 
-;; For Emacs < 22.2.
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 
@@ -1186,9 +1186,7 @@ The following commands are available:
 (defun gnus-group-setup-buffer ()
   (set-buffer (gnus-get-buffer-create gnus-group-buffer))
   (unless (eq major-mode 'gnus-group-mode)
-    (gnus-group-mode)
-    (when gnus-carpal
-      (gnus-carpal-setup-buffer 'group))))
+    (gnus-group-mode)))
 
 (defun gnus-group-name-charset (method group)
   (if (null method)
@@ -2165,24 +2163,36 @@ be permanent."
 	(goto-char start)))))
 
 (defun gnus-group-completing-read (&optional prompt collection
-                                             require-match initial-input hist def)
+					     require-match initial-input hist
+					     def)
   "Read a group name with completion.  Non-ASCII group names are allowed.
 The arguments are the same as `completing-read' except that COLLECTION
 and HIST default to `gnus-active-hashtb' and `gnus-group-history'
-respectively if they are omitted."
-  (let* ((collection (or collection (or gnus-active-hashtb [0])))
-	 (choices (mapcar (lambda (symbol)
-                            (let ((group (symbol-name symbol)))
-                              (if (string-match "[^\000-\177]" group)
-                                  (gnus-group-decoded-name group)
-                                group)))
-                          (remove-if-not 'symbolp collection)))
-         (group
-          (gnus-completing-read (or prompt "Group") choices
-                                require-match initial-input
-                                (or hist 'gnus-group-history)
-                                def)))
-    (if (symbol-value (intern-soft group collection))
+respectively if they are omitted.  Regards COLLECTION as a hash table
+if it is not a list."
+  (or collection (setq collection gnus-active-hashtb))
+  (let (choices group)
+    (if (listp collection)
+	(dolist (symbol collection)
+	  (setq group (symbol-name symbol))
+	  (push (if (string-match "[^\000-\177]" group)
+		    (gnus-group-decoded-name group)
+		  group)
+		choices))
+      (mapatoms (lambda (symbol)
+		  (setq group (symbol-name symbol))
+		  (push (if (string-match "[^\000-\177]" group)
+			    (gnus-group-decoded-name group)
+			  group)
+			choices))
+		collection))
+    (setq group (gnus-completing-read (or prompt "Group") (nreverse choices)
+				      require-match initial-input
+				      (or hist 'gnus-group-history)
+				      def))
+    (if (if (listp collection)
+	    (member group (mapcar 'symbol-name collection))
+	  (symbol-value (intern-soft group collection)))
 	group
       (mm-encode-coding-string group (gnus-group-name-charset nil group)))))
 
@@ -2653,7 +2663,10 @@ The user will be prompted for GROUP."
   "Add a new newsgroup.
 The user will be prompted for a NAME, for a select METHOD, and an
 ADDRESS.  NAME should be a human-readable string (i.e., not be encoded
-even if it contains non-ASCII characters) unless ENCODED is non-nil."
+even if it contains non-ASCII characters) unless ENCODED is non-nil.
+
+If the backend supports it, the group will also be created on the
+server."
   (interactive
    (list
     (gnus-read-group "Group name: ")
@@ -3014,7 +3027,7 @@ If SOLID (the prefix), create a solid group."
 		  (nnweb-ephemeral-p t))))
     (if solid
 	(progn
-	  (gnus-pull 'nnweb-ephemeral-p method)
+	  (gnus-alist-pull 'nnweb-ephemeral-p method)
 	  (gnus-group-make-group group method))
       (gnus-group-read-ephemeral-group
        group method t
@@ -4308,7 +4321,8 @@ and the second element is the address."
   (interactive
    (list (let ((how (gnus-completing-read
 		     "Which back end"
-		     (mapcar 'car (append gnus-valid-select-methods gnus-server-alist))
+		     (mapcar 'car (append gnus-valid-select-methods
+					  gnus-server-alist))
 		     t (cons "nntp" 0) 'gnus-method-history)))
 	   ;; We either got a back end name or a virtual server name.
 	   ;; If the first, we also need an address.

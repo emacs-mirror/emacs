@@ -1255,6 +1255,8 @@ that group.
 
 If performed over a topic line, toggle folding the topic."
   (interactive "P")
+  (when (and (eobp) (not (gnus-group-group-name)))
+    (forward-line -1))
   (if (gnus-group-topic-p)
       (let ((gnus-group-list-mode
 	     (if all (cons (if (numberp all) all 7) t) gnus-group-list-mode)))

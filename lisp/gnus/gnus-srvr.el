@@ -301,9 +301,7 @@ The following commands are available:
   "Initialize the server buffer."
   (unless (get-buffer gnus-server-buffer)
     (with-current-buffer (gnus-get-buffer-create gnus-server-buffer)
-      (gnus-server-mode)
-      (when gnus-carpal
-	(gnus-carpal-setup-buffer 'server)))))
+      (gnus-server-mode))))
 
 (defun gnus-server-prepare ()
   (gnus-set-format 'server-mode)
@@ -806,8 +804,6 @@ claim them."
 	    (funcall gnus-group-prepare-function
 		     gnus-level-killed 'ignore 1 'ignore))
 	(gnus-get-buffer-create gnus-browse-buffer)
-	(when gnus-carpal
-	  (gnus-carpal-setup-buffer 'browse))
 	(gnus-configure-windows 'browse)
 	(buffer-disable-undo)
 	(let ((buffer-read-only nil))

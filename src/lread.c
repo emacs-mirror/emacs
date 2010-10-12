@@ -55,9 +55,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif /* HAVE_SETLOCALE */
 
 #include <fcntl.h>
-#ifndef O_RDONLY
-#define O_RDONLY 0
-#endif
 
 #ifdef HAVE_FSEEKO
 #define file_offset off_t

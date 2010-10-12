@@ -117,18 +117,17 @@
 	  (sort-fields col (point-min) (point-max))
 	(sort-numeric-fields col (point-min) (point-max))))))
 
-(defvar erc-list-menu-mode-map nil
+(defvar erc-list-menu-mode-map
+  (let ((map (make-keymap)))
+    (suppress-keymap map)
+    (define-key map "k" 'erc-list-kill)
+    (define-key map "j" 'erc-list-join)
+    (define-key map "g" 'erc-list-revert)
+    (define-key map "n" 'next-line)
+    (define-key map "p" 'previous-line)
+    (define-key map "q" 'quit-window)
+    map)
   "Local keymap for `erc-list-mode' buffers.")
-
-(unless erc-list-menu-mode-map
-  (setq erc-list-menu-mode-map (make-keymap))
-  (suppress-keymap erc-list-menu-mode-map)
-  (define-key erc-list-menu-mode-map "k" 'erc-list-kill)
-  (define-key erc-list-menu-mode-map "j" 'erc-list-join)
-  (define-key erc-list-menu-mode-map "g" 'erc-list-revert)
-  (define-key erc-list-menu-mode-map "n" 'next-line)
-  (define-key erc-list-menu-mode-map "p" 'previous-line)
-  (define-key erc-list-menu-mode-map "q" 'quit-window))
 
 (defvar erc-list-menu-sort-button-map nil
   "Local keymap for ERC list menu mode sorting buttons.")

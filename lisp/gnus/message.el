@@ -29,6 +29,7 @@
 
 ;;; Code:
 
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 (eval-when-compile
@@ -2151,7 +2152,6 @@ Leading \"Re: \" is not stripped by this function.  Use the function
 
 (defun message-change-subject (new-subject)
   "Ask for NEW-SUBJECT header, append (was: <Old Subject>)."
-  ;; <URL:http://www.landfield.com/usefor/drafts/draft-ietf-usefor-useage--1.02.unpaged>
   (interactive
    (list
     (read-from-minibuffer "New subject: ")))
@@ -5736,7 +5736,9 @@ subscribed address (and not the additional To and Cc header contents)."
 		(mapcar (lambda (rhs) (or (cadr (split-string rhs "@")) ""))
 			(mapcar 'downcase
 				(mapcar
-				 'cadr
+				 (lambda (elem)
+				   (or (cadr elem)
+				       ""))
 				 (mail-extract-address-components field t))))))
 	;; Note that `rhs' will be "" if the address does not have
 	;; the domain part, i.e., if it is a local user's address.

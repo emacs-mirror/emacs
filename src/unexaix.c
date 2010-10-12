@@ -40,13 +40,8 @@ what you give them.   Help stamp out software-hoarding!  */
  *
  */
 
-#ifndef emacs
-#define PERROR(arg) perror (arg); return -1
-#else
 #include <config.h>
 #define PERROR(file) report_error (file, new)
-#endif
-
 #include <a.out.h>
 /* Define getpagesize () if the system does not.
    Note that this may depend on symbols defined in a.out.h
@@ -92,7 +87,6 @@ static int adjust_lnnoptrs (int, int, char *);
 
 static int pagemask;
 
-#ifdef emacs
 #include <setjmp.h>
 #include "lisp.h"
 
@@ -103,7 +97,6 @@ report_error (char *file, int fd)
     close (fd);
   report_file_error ("Cannot unexec", Fcons (build_string (file), Qnil));
 }
-#endif /* emacs */
 
 #define ERROR0(msg) report_error_1 (new, msg, 0, 0); return -1
 #define ERROR1(msg,x) report_error_1 (new, msg, x, 0); return -1
@@ -113,12 +106,7 @@ static void
 report_error_1 (int fd, char *msg, int a1, int a2)
 {
   close (fd);
-#ifdef emacs
   error (msg, a1, a2);
-#else
-  fprintf (stderr, msg, a1, a2);
-  fprintf (stderr, "\n");
-#endif
 }
 
 static int make_hdr (int, int, unsigned, unsigned, unsigned, char *, char *);

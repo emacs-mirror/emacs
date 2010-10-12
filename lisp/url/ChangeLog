@@ -1,3 +1,15 @@
+2010-10-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* url-http.el (url-http-end-of-document-sentinel): Protect against
+	the process buffer being killed.
+
+2010-10-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* url-http.el (url-http-wait-for-headers-change-function): Protect
+	against url-http-response-status for degenerate documents.
+	(url-http-wait-for-headers-change-function): Revert previous
+	change.  It lead to really slow loads.
+
 2010-10-03  Glenn Morris  <rgm@gnu.org>
 
 	* url-util.el (url-get-url-filename-chars): Don't eval-and-compile.

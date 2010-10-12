@@ -456,10 +456,7 @@ Non-nil means always go to the next Octave code line after sending."
      octave-smie-bnf-table
      '((assoc "\n" ";")))
 
-    (smie-precs-precedence-table
-     (append octave-operator-table
-             '((nonassoc " -dummy- "))) ;Bogus anchor at the end.
-     ))))
+    (smie-precs-precedence-table octave-operator-table))))
 
 ;; Tokenizing needs to be refined so that ";;" is treated as two
 ;; tokens and also so as to recognize the \n separator (and

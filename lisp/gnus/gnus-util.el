@@ -33,7 +33,7 @@
 
 ;;; Code:
 
-;; For Emacs < 22.2.
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 (eval-when-compile
@@ -48,15 +48,18 @@
   "Function use to do completing read."
   :version "24.1"
   :group 'gnus-meta
-  :type '(radio (function-item
+  :type `(radio (function-item
                  :doc "Use Emacs standard `completing-read' function."
                  gnus-emacs-completing-read)
-                (function-item
-                 :doc "Use `ido-completing-read' function."
-                 gnus-ido-completing-read)
-                (function-item
-                 :doc "Use iswitchb based completing-read function."
-                 gnus-iswitchb-completing-read)))
+		;; iswitchb.el is very old and ido.el is unavailable
+		;; in XEmacs, so we exclude those function items.
+		,@(unless (featurep 'xemacs)
+		    '((function-item
+		       :doc "Use `ido-completing-read' function."
+		       gnus-ido-completing-read)
+		      (function-item
+		       :doc "Use iswitchb based completing-read function."
+		       gnus-iswitchb-completing-read)))))
 
 (defcustom gnus-completion-styles
   (if (and (boundp 'completion-styles-alist)
@@ -1287,6 +1290,11 @@ ARG is passed to the first function."
   (save-current-buffer
     (apply 'run-hooks funcs)))
 
+(defun gnus-run-hook-with-args (hook &rest args)
+  "Does the same as `run-hook-with-args', but saves the current buffer."
+  (save-current-buffer
+    (apply 'run-hook-with-args hook args)))
+
 (defun gnus-run-mode-hooks (&rest funcs)
   "Run `run-mode-hooks' if it is available, otherwise `run-hooks'.
 This function saves the current buffer."
@@ -1304,13 +1312,40 @@ This function saves the current buffer."
        (with-current-buffer gnus-group-buffer
 	 (eq major-mode 'gnus-group-mode))))
 
-(defun gnus-remove-if (predicate list)
-  "Return a copy of LIST with all items satisfying PREDICATE removed."
+(defun gnus-remove-if (predicate sequence &optional hash-table-p)
+  "Return a copy of SEQUENCE with all items satisfying PREDICATE removed.
+SEQUENCE should be a list, a vector, or a string.  Returns always a list.
+If HASH-TABLE-P is non-nil, regards SEQUENCE as a hash table."
   (let (out)
-    (while list
-      (unless (funcall predicate (car list))
-	(push (car list) out))
-      (setq list (cdr list)))
+    (if hash-table-p
+	(mapatoms (lambda (symbol)
+		    (unless (funcall predicate symbol)
+		      (push symbol out)))
+		  sequence)
+      (unless (listp sequence)
+	(setq sequence (append sequence nil)))
+      (while sequence
+	(unless (funcall predicate (car sequence))
+	  (push (car sequence) out))
+	(setq sequence (cdr sequence))))
+    (nreverse out)))
+
+(defun gnus-remove-if-not (predicate sequence &optional hash-table-p)
+  "Return a copy of SEQUENCE with all items not satisfying PREDICATE removed.
+SEQUENCE should be a list, a vector, or a string.  Returns always a list.
+If HASH-TABLE-P is non-nil, regards SEQUENCE as a hash table."
+  (let (out)
+    (if hash-table-p
+	(mapatoms (lambda (symbol)
+		    (when (funcall predicate symbol)
+		      (push symbol out)))
+		  sequence)
+      (unless (listp sequence)
+	(setq sequence (append sequence nil)))
+      (while sequence
+	(when (funcall predicate (car sequence))
+	  (push (car sequence) out))
+	(setq sequence (cdr sequence))))
     (nreverse out)))
 
 (if (fboundp 'assq-delete-all)
@@ -1331,7 +1366,7 @@ Return the modified alist."
 	(when (string-match r word)
 	  (throw 'found r))))))
 
-(defmacro gnus-pull (key alist &optional assoc-p)
+(defmacro gnus-alist-pull (key alist &optional assoc-p)
   "Modify ALIST to be without KEY."
   (unless (symbolp alist)
     (error "Not a symbol: %s" alist))
@@ -1602,18 +1637,24 @@ SPEC is a predicate specifier that contains stuff like `or', `and',
                                           initial-input history def)
   "Call standard `completing-read-function'."
   (let ((completion-styles gnus-completion-styles))
-    (completing-read prompt collection nil require-match initial-input history def)))
+    (completing-read prompt
+                     ;; Old XEmacs (at least 21.4) expect an alist for
+                     ;; collection.
+                     (mapcar 'list collection)
+                     nil require-match initial-input history def)))
 
+(autoload 'ido-completing-read "ido")
 (defun gnus-ido-completing-read (prompt collection &optional require-match
                                         initial-input history def)
   "Call `ido-completing-read-function'."
-  (require 'ido)
-  (ido-completing-read prompt collection nil require-match initial-input history def))
+  (ido-completing-read prompt collection nil require-match
+		       initial-input history def))
 
+
+(autoload 'iswitchb-read-buffer "iswitchb")
 (defun gnus-iswitchb-completing-read (prompt collection &optional require-match
                                             initial-input history def)
   "`iswitchb' based completing-read function."
-  (require 'iswitchb)
   (let ((iswitchb-make-buflist-hook
          (lambda ()
            (setq iswitchb-temp-buflist

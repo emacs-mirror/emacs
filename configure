@@ -749,7 +749,6 @@ build_os
 build_vendor
 build_cpu
 build
-PROFILING_LDFLAGS
 PROFILING_CFLAGS
 MAINT
 GZIP_INFO
@@ -3038,12 +3037,9 @@ fi
 
 if test x$ac_enable_profiling != x ; then
    PROFILING_CFLAGS="-DPROFILING=1 -pg"
-   PROFILING_LDFLAGS="-pg"
 else
    PROFILING_CFLAGS=
-   PROFILING_LDFLAGS=
 fi
-
 
 
 # Check whether --enable-autodepend was given.
@@ -7679,7 +7675,7 @@ tmp_CPPFLAGS="$CPPFLAGS"
 tmp_CFLAGS="$CFLAGS"
 CPPFLAGS="$CPPFLAGS -x objective-c"
 CFLAGS="$CFLAGS -x objective-c"
-TEMACS_LDFLAGS2="\${LDFLAGS} \${PROFILING_LDFLAGS}"
+TEMACS_LDFLAGS2="\${LDFLAGS}"
 if test "${with_ns}" != no; then
   if test "${opsys}" = darwin; then
      NS_IMPL_COCOA=yes
@@ -8058,7 +8054,6 @@ int
 main ()
 {
   char *data, *data2, *data3;
-  const char *cdata2;
   int i, pagesize;
   int fd, fd2;
 
@@ -8083,10 +8078,10 @@ main ()
   fd2 = open ("conftest.txt", O_RDWR | O_CREAT | O_TRUNC, 0600);
   if (fd2 < 0)
     return 4;
-  cdata2 = "";
-  if (write (fd2, cdata2, 1) != 1)
+  data2 = "";
+  if (write (fd2, data2, 1) != 1)
     return 5;
-  data2 = (char *) mmap (0, pagesize, PROT_READ | PROT_WRITE, MAP_SHARED, fd2, 0L);
+  data2 = mmap (0, pagesize, PROT_READ | PROT_WRITE, MAP_SHARED, fd2, 0L);
   if (data2 == MAP_FAILED)
     return 6;
   for (i = 0; i < pagesize; ++i)
@@ -9509,7 +9504,8 @@ $as_echo "no" >&6; }
   fi
 
   if test "${HAVE_GNUTLS}" = "yes"; then
-    $as_echo "#define HAVE_GNUTLS 1" >>confdefs.h
+
+$as_echo "#define HAVE_GNUTLS 1" >>confdefs.h
 
   fi
 fi

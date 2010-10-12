@@ -77,8 +77,15 @@ emacs_gnutls_write (int fildes, struct Lisp_Process *proc, char *buf,
   register int rtnval, bytes_written;
   gnutls_session_t state = proc->gnutls_state;
 
-  if (proc->gnutls_initstage != GNUTLS_STAGE_READY)
+  if (proc->gnutls_initstage != GNUTLS_STAGE_READY) {
+#ifdef EWOULDBLOCK
+    errno = EWOULDBLOCK;
+#endif
+#ifdef EAGAIN
+    errno = EAGAIN;
+#endif
     return -1;
+  }
 
   bytes_written = 0;
 
@@ -86,9 +93,9 @@ emacs_gnutls_write (int fildes, struct Lisp_Process *proc, char *buf,
     {
       rtnval = gnutls_write (state, buf, nbyte);
 
-      if (rtnval == -1)
+      if (rtnval < 0)
         {
-          if (errno == EINTR)
+          if (rtnval == GNUTLS_E_AGAIN || rtnval == GNUTLS_E_INTERRUPTED)
             continue;
           else
             return (bytes_written ? bytes_written : -1);
@@ -98,7 +105,6 @@ emacs_gnutls_write (int fildes, struct Lisp_Process *proc, char *buf,
       nbyte -= rtnval;
       bytes_written += rtnval;
     }
-  fsync (STDOUT_FILENO);
 
   return (bytes_written);
 }
@@ -120,7 +126,7 @@ emacs_gnutls_read (int fildes, struct Lisp_Process *proc, char *buf,
   if (rtnval >= 0)
     return rtnval;
   else
-    return 0;
+    return -1;
 }
 
 /* convert an integer error to a Lisp_Object; it will be either a
@@ -578,19 +584,19 @@ syms_of_gnutls (void)
   Qgnutls_x509pki = intern_c_string ("gnutls-x509pki");
   staticpro (&Qgnutls_x509pki);
 
-  Qgnutls_bootprop_priority = intern_c_string ("priority");
+  Qgnutls_bootprop_priority = intern_c_string (":priority");
   staticpro (&Qgnutls_bootprop_priority);
 
-  Qgnutls_bootprop_trustfiles = intern_c_string ("trustfiles");
+  Qgnutls_bootprop_trustfiles = intern_c_string (":trustfiles");
   staticpro (&Qgnutls_bootprop_trustfiles);
 
-  Qgnutls_bootprop_keyfiles = intern_c_string ("keyfiles");
+  Qgnutls_bootprop_keyfiles = intern_c_string (":keyfiles");
   staticpro (&Qgnutls_bootprop_keyfiles);
 
-  Qgnutls_bootprop_callbacks = intern_c_string ("callbacks");
+  Qgnutls_bootprop_callbacks = intern_c_string (":callbacks");
   staticpro (&Qgnutls_bootprop_callbacks);
 
-  Qgnutls_bootprop_loglevel = intern_c_string ("loglevel");
+  Qgnutls_bootprop_loglevel = intern_c_string (":loglevel");
   staticpro (&Qgnutls_bootprop_loglevel);
 
   Qgnutls_e_interrupted = intern_c_string ("gnutls-e-interrupted");

@@ -1,7 +1,8 @@
 ;;; ediff-diff.el --- diff-related utilities
 
-;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-;;   2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -54,8 +55,7 @@ Must produce output compatible with Unix's diff3 program."
 (fset 'ediff-set-actual-diff-options '(lambda () nil))
 
 (defcustom ediff-shell
-  (cond ((eq system-type 'emx) "cmd") ; OS/2
-	((memq system-type '(ms-dos windows-nt windows-95))
+  (cond ((memq system-type '(ms-dos windows-nt))
 	 shell-file-name) ; no standard name on MS-DOS
 	(t  "sh")) ; UNIX
   "The shell used to run diff and patch.
@@ -85,7 +85,7 @@ are `-I REGEXP', to ignore changes whose lines match the REGEXP."
   (ediff-set-actual-diff-options))
 
 (defcustom ediff-diff-options
-  (if (memq system-type '(ms-dos windows-nt windows-95)) "--binary" "")
+  (if (memq system-type '(ms-dos windows-nt)) "--binary" "")
   "Options to pass to `ediff-diff-program'.
 If Unix diff is used as `ediff-diff-program',
 then a useful option is `-w', to ignore space.
@@ -1229,15 +1229,14 @@ delimiter regions"))
 	  (with-current-buffer buffer
 	    (erase-buffer)
 	    (setq default-directory directory)
-	    (if (or (memq system-type '(emx ms-dos windows-nt windows-95))
+	    (if (or (memq system-type '(ms-dos windows-nt))
 		    synch)
-		;; In OS/2 (emx) do it synchronously, since OS/2 doesn't let us
+		;; In Windows do it synchronously, since Windows doesn't let us
 		;; delete files used by other processes. Thus, in ediff-buffers
 		;; and similar functions, we can't delete temp files because
 		;; they might be used by the asynch process that computes
 		;; custom diffs. So, we have to wait till custom diff
 		;; subprocess is done.
-		;; Similarly for Windows-*
 		;; In DOS, must synchronize because DOS doesn't have
 		;; asynchronous processes.
 		(apply 'call-process program nil buffer nil args)
@@ -1533,5 +1532,4 @@ affects only files whose names match the expression."
 ;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;; End:
 
-;; arch-tag: a86d448e-58d7-4572-a1d9-fdedfa22f648
 ;;; ediff-diff.el ends here

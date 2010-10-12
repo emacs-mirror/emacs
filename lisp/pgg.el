@@ -36,6 +36,7 @@
 
 ;; Don't merge these two `eval-when-compile's.
 (eval-when-compile
+  ;; For Emacs <22.2 and XEmacs.
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r)))
   (require 'cl))
 

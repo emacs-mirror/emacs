@@ -100,14 +100,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "commands.h"
 
-#ifndef O_WRONLY
-#define O_WRONLY 1
-#endif
-
-#ifndef O_RDONLY
-#define O_RDONLY 0
-#endif
-
 #ifndef S_ISLNK
 #  define lstat stat
 #endif

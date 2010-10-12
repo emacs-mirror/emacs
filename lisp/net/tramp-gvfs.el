@@ -104,10 +104,6 @@
 
 (require 'tramp)
 
-;; We call several `tramp-handle-*' functions directly.  So we must
-;; reqire that package as well.
-(require 'tramp-sh)
-
 (require 'dbus)
 (require 'url-parse)
 (require 'url-util)
@@ -1197,7 +1193,7 @@ connection if a previous connection has died for some reason."
 	      :name (tramp-buffer-name vec)
 	      :buffer (tramp-get-buffer vec)
 	      :server t :host 'local :service t)))
-      (tramp-set-process-query-on-exit-flag p nil)))
+      (tramp-compat-set-process-query-on-exit-flag p nil)))
 
   (unless (tramp-gvfs-connection-mounted-p vec)
     (let* ((method (tramp-file-name-method vec))

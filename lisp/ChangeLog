@@ -1,3 +1,429 @@
+2010-10-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-theme.el (describe-theme, customize-themes)
+	(custom-theme-save): New commands.
+	(custom-new-theme-mode-map): Bind C-x C-s.
+	(custom-new-theme-mode): Use custom--initialize-widget-variables.
+	(customize-create-theme): New optional arg THEME.
+	(custom-theme-revert): Use it.
+	(custom-theme-visit-theme): Remove dead code.
+	(custom-theme-merge-theme): Use custom-available-themes.
+	(custom-theme-write): Make interactive.
+	(custom-theme-write): Use custom-theme-name-valid-p.
+	(describe-theme-1, custom-theme-choose-revert)
+	(custom-theme-checkbox-toggle, custom-theme-selections-toggle):
+	New funs.
+	(custom-theme-allow-multiple-selections): New option.
+	(custom-theme-choose-mode): New major mode.
+
+	* custom.el (custom-theme-set-variables): Remove dead code.  Obey
+	custom--inhibit-theme-enable.
+	(custom--inhibit-theme-enable): New var.
+	(provide-theme): Obey it.
+	(load-theme): Replace load with manual read/eval, in order to
+	check for correctness.  Use custom-theme-name-valid-p.
+	(custom-theme-name-valid-p): New function.
+	(custom-available-themes): Use it.
+
+	* cus-edit.el (custom--initialize-widget-variables): New function.
+	(Custom-mode): Use it.
+
+	* cus-face.el (custom-theme-set-faces): Remove dead code.  Obey
+	custom--inhibit-theme-enable.
+
+	* help-mode.el (help-theme-def, help-theme-edit): New buttons.
+
+2010-10-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* net/telnet.el (telnet-mode-map): Fix previous change (bug#7193).
+
+2010-10-12  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* term/ns-win.el (ns-right-alternate-modifier): New defvar.
+	(ns-right-option-modifier): New alias for ns-right-alternate-modifier.
+	(mac-right-option-modifier): New alias for ns-right-option-modifier.
+
+	* cus-start.el (all): ns-right-alternate-modifier is new.
+
+2010-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp.el (lisp-completion-at-point):
+	Use emacs-lisp-mode-syntax-table for the whole function.
+
+2010-10-12  David Koppelman  <koppel@ece.lsu.edu>
+
+	* hi-lock.el (hi-lock-font-lock-hook): Check font-lock-fontified
+	instead of font-lock-mode before adding keywords.
+	Remove hi-lock-mode off code.  Remove inhibit hack.
+	(hi-lock-set-pattern): Only add keywords if font-lock-fontified
+	non-nil; removed hook inhibit hack.
+
+2010-10-12  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/shadow.el (find-emacs-lisp-shadows): Rename it...
+	(load-path-shadows-find): ... to this.
+	(list-load-path-shadows): Update for above change.
+
+	* mail/mail-utils.el (mail-mbox-from): Also try return-path.
+
+2010-10-11  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mail/hashcash.el, net/imap.el, pgg-parse.el, pgg.el:
+	Fix comment for declare-function.
+
+2010-10-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.el (custom-fix-face-spec): New function; code moved from
+	custom-face-edit-fix-value.
+	(custom-push-theme): Use it when checking if a face has been
+	changed outside customize.
+	(custom-available-themes): New function.
+	(load-theme): Use it.
+
+	* cus-edit.el (custom-face-edit-fix-value): Use
+	custom-fix-face-spec.
+
+	* custom.el (custom-push-theme): Cleanup (use cond).
+	(disable-theme): Recompute the saved-face property.
+	(custom-theme-recalc-face): Follow face alias before setting prop.
+
+	* image.el (image-checkbox-checked, image-checkbox-unchecked): New
+	variables, containing checkbox images.
+
+	* startup.el (fancy-startup-tail):
+	* wid-edit.el (checkbox): Use them.
+
+2010-10-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* shell.el (shell-mode-map):
+	* progmodes/modula2.el (m2-mode-map):
+	* progmodes/inf-lisp.el (inferior-lisp-mode-map):
+	* play/mpuz.el (mpuz-mode-map):
+	* play/landmark.el (lm-mode-map):
+	* play/decipher.el (decipher-mode-map):
+	* play/5x5.el (5x5-mode-map):
+	* net/telnet.el (telnet-mode-map):
+	* net/quickurl.el (quickurl-list-mode-map):
+	* net/mairix.el (mairix-searches-mode-map):
+	* net/eudc-hotlist.el (eudc-hotlist-mode-map):
+	* net/dig.el (dig-mode-map):
+	* mail/mspools.el (mspools-mode-map):
+	* hexl.el (hexl-mode-map):
+	* emulation/ws-mode.el (wordstar-C-k-map, wordstar-mode-map)
+	(wordstar-C-o-map, wordstar-C-q-map):
+	* emacs-lisp/edebug.el (edebug-eval-mode-map):
+	* emacs-lisp/chart.el (chart-map):
+	* edmacro.el (edmacro-mode-map):
+	* erc/erc-list.el (erc-list-menu-mode-map):
+	* array.el (array-mode-map): Declare and define in one step.
+
+	* vc/log-view.el (log-view-mode-map): Bind revert-buffer.
+
+2010-10-10  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa.el (epa-passphrase-callback-function): Display filename
+	passed as the 3rd arg.
+	* epa-file.el (epa-file-passphrase-callback-function): Pass
+	filename to epa-passphrase-callback-function.
+
+2010-10-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (custom-face-widget-to-spec)
+	(custom-face-get-current-spec, custom-face-state): New functions.
+	(custom-face-set, custom-face-mark-to-save)
+	(custom-face-value-create, custom-face-state-set): Use them.
+
+	* cus-theme.el (custom-theme--listed-faces): New var.
+	(customize-create-theme): Use *Custom Theme* as the buffer name.
+	Set revert-buffer-function.  Optional arg BUFFER.  Insert all
+	faces listed in custom-theme--listed-faces.
+	(custom-theme-revert): New function.
+	(custom-theme-add-variable, custom-theme-add-face): Insert at the
+	bottom of the list.
+	(custom-theme-write): Prompt for theme name if empty.
+	(custom-theme-write-variables): Use dolist.
+	(custom-theme-write-faces): Handle hidden (collapsed) widgets.
+
+2010-10-09  Alan Mackenzie  <acm@muc.de>
+
+	Enhance fontification of declarators to take account of the
+	presence/absence of "typedef".
+
+	* cc-engine.el (c-forward-type): New &optional param
+	"brace-block-too".
+	(c-forward-decl-or-cast-1): cdr of return value now indicates the
+	presence of either or both of a "struct"-like keyword and
+	"typedef".
+
+	* cc-fonts.el (c-complex-decl-matchers): Remove the heuristic
+	fontification of declarators which follow a "}".
+	(c-font-lock-declarations): Fontify declarators according to the
+	presence/absence of "typedef".
+
+	* cc-langs.el (c-typedef-kwds c-typedef-key): New lang variable
+	for "typedef".
+	(c-typedef-decl-key): New lang variable built from
+	c-typedef-decl-kwds.
+
+2010-10-09  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* ibuffer.el (ibuffer-mode-map): Don't redefine the cursor keys,
+	since that's too annoying.  Move the filter groups commands to
+	TAB/backtab.
+
+	* epa.el (epa-passphrase-callback-function): Say what we're
+	querying the password for.
+
+	* ibuffer.el (ibuffer-visit-buffer): To mimick list-buffers
+	behaviour, don't bury the ibuffer buffer when visiting other
+	buffers.
+
+2010-10-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (custom-commands, custom-buffer-create-internal)
+	(custom-magic-value-create): Pad button tags with spaces.
+	(custom-face-edit): New variable.
+	(custom-face-value-create): Determine whether to use the usual
+	face editor here, instead of using custom-face-selected.  Pass
+	face defaults to custom-face-edit widget.
+	(custom-face-selected, custom-display-unselected): Delete widgets.
+	(custom-display-unselected-match): Function removed.
+	(custom-face-set, custom-face-mark-to-save): Accept
+	custom-face-edit widgets as the direct widget child.
+
+	* wid-edit.el (widget--completing-widget): New var.
+	(widget-default-complete): Bind it when doing completion.
+	(widget-string-complete, widget-file-complete): Use it.
+
+2010-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-hebrew.el (holiday-hebrew-rosh-hashanah)
+	(holiday-hebrew-passover, holiday-hebrew-tisha-b-av)
+	(holiday-hebrew-misc): Small simplifications.
+
+	* emacs-lisp/authors.el (authors-valid-file-names): Add b2m.c.
+
+	* net/browse-url.el: Don't require thingatpt, term, dired,
+	executable, or w3-auto when compiling.
+	(dired-get-filename, term-char-mode, term-send-down, term-send-string):
+	Declare.
+	(browse-url-text-emacs): Require term.
+
+2010-10-08  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* net/browse-url.el (browse-url-xdg-open): Remove use of /bin/sh.
+
+2010-10-08  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/cl-compat.el, emacs-lisp/lmenu.el: Move to obsolete/.
+
+	* emacs-lisp/shadow.el (lisp-shadow): Change prefix.
+	(shadows-compare-text-p): Make it an obsolete alias for...
+	(load-path-shadows-compare-text): ... new name.
+	(find-emacs-lisp-shadows): Update for above name change.
+	(load-path-shadows-same-file-or-nonexistent): New name for the old
+	shadow-same-file-or-nonexistent.
+
+2010-10-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* minibuffer.el (completion--some, completion--do-completion)
+	(minibuffer-complete-and-exit, minibuffer-completion-help)
+	(completion-basic-try-completion)
+	(completion-basic-all-completions)
+	(completion-pcm--find-all-completions): Use lexical-let to
+	avoid some false matches in variable completion (Bug#7056)
+
+2010-10-08  Olof Ohlsson Sax  <olof.ohlsson.sax@gmail.com>  (tiny change)
+
+	* vc-svn.el (vc-svn-merge-news): Use --non-interactive.  (Bug#7152)
+
+2010-10-08  Leo  <sdl.web@gmail.com>
+
+	* dnd.el (dnd-get-local-file-name): If MUST-EXIST is non-nil, only
+	return non-nil if the file exists (Bug#7090).
+
+2010-10-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuffer.el (completion--replace):
+	Better preserve markers (bug#7138).
+
+2010-10-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-process-filter): Doc fix.
+
+2010-10-08  Drew Adams  <drew.adams@oracle.com>
+
+	* dired.el (dired-save-positions): Doc fix.  (Bug#7119)
+
+2010-10-08  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* Makefile.in (ELCFILES): Update.
+
+2010-10-08  Glenn Morris  <rgm@gnu.org>
+
+	* vc/ediff-wind.el (ediff-setup-control-frame):
+	* vc/ediff-ptch.el (ediff-default-backup-extension):
+	* vc/ediff-diff.el (ediff-shell, ediff-diff-options)
+	(ediff-exec-process): Remove system-types emx, windows-95.
+
+	* net/browse-url.el (browse-url-xdg-open): Shell-quote url.  (Bug#7166)
+
+2010-10-07  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (custom-variable, custom-face): Doc fix.
+	(custom-face-edit): Add value-create attribute.
+	(custom-face-edit-value-create)
+	(custom-face-edit-value-visibility-action): New functions.  Hide
+	unused face attributes by default, and add a visibility toggle.
+	(custom-face-edit-deactivate): Show empty values with shadow face.
+	(custom-face-selected): Only use this for face specs with default
+	attributes.
+	(custom-face-value-create): Cleanup.
+
+	* wid-edit.el (widget-checklist-value-create): Use dolist.
+	(widget-checklist-match-find): Make second arg optional.
+
+2010-10-07  Glenn Morris  <rgm@gnu.org>
+
+	* hilit-chg.el (hilit-chg-get-diff-info, hilit-chg-get-diff-list-hk):
+	Prefix things.
+
+	* emacs-lisp/shadow.el (shadow-font-lock-keywords)
+	(load-path-shadows-mode, list-load-path-shadows): Rename shadow-mode to
+	load-path-shadows-mode, update references.
+	(load-path-shadows-font-lock-keywords, load-path-shadows-find-file):
+	Rename variable and button.
+	(list-load-path-shadows): Update button caller.
+
+2010-10-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/smie.el (smie-bnf-classify): New function.
+	(smie-bnf-precedence-table): Use it to remember the closers/openers.
+	(smie-merge-prec2s): Handle those new entries.
+	(smie-prec2-levels): Only set precedence to nil for actual
+	openers/closers.
+	* progmodes/octave-mod.el (octave-smie-op-levels): Remove dummy entry
+	that is now unnecessary.
+
+2010-10-07  Miles Bader  <miles@gnu.org>
+
+	* emacs-lisp/regexp-opt.el (regexp-opt): Add `symbols' mode.
+
+2010-10-07  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (mail-sendmail-delimit-header, mail-header-end)
+	(mail-position-on-field): Remove declarations.
+	(mail-position-on-field): Autoload it.
+	(rmail-retry-failure): Replace use of mail-sendmail-delimit-header
+	and mail-header-end.  Don't require sendmail.
+
+	* emacs-lisp/shadow.el (shadow-font-lock-keywords): New variable.
+	(shadow-mode): New mode.
+	(shadow-find-file): New button.
+	(list-load-path-shadows): Use shadow-mode and buttons.
+
+	* iimage.el (iimage-version): Remove.
+	(iimage-mode-image-search-path, iimage-mode-image-regex-alist):
+	Turn into defcustoms.
+	(iimage-mode-map): Give it a doc string.
+
+	* calendar/appt.el (appt-activate): Give a warning rather than an error
+	if there is no diary-file.
+
+2010-10-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-sh.el (tramp-sh-file-name-handler-alist):
+	Use `tramp-handle-find-backup-file-name'.
+
+2010-10-06  Glenn Morris  <rgm@gnu.org>
+
+	* font-core.el (font-lock-defaults-alist): Remove variable.
+	(font-lock-mode): Doc fix.
+	(font-lock-default-function): Do not consult font-lock-defaults-alist.
+	* font-lock.el (font-lock-refresh-defaults): Doc fix.
+	(font-lock-set-defaults): Doc fix.
+	Do not consult font-lock-defaults-alist.
+
+	* hilit-chg.el (hilit-chg-get-diff-list-hk): Declare `e' for compiler.
+
+	* emacs-lisp/cl.el: No longer provide cl-19.
+
+2010-10-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-directory-files-and-attributes)
+	(tramp-handle-file-exists-p, tramp-handle-file-newer-than-file-p):
+	New defuns, taken from tramp-smb.el.
+	(tramp-coding-system-change-eol-conversion)
+	(tramp-set-process-query-on-exit-flag): Removed.
+
+	* net/tramp-compat.el (top): Do not check for byte-compiler
+	objects.
+	(tramp-compat-coding-system-change-eol-conversion)
+	(tramp-compat-set-process-query-on-exit-flag): New defuns, taken
+	from tramp.el.
+
+	* net/tramp-gvfs.el:
+	* net/tramp-gw.el: Replace `tramp-set-process-query-on-exit-flag'
+	by `tramp-compat-set-process-query-on-exit-flag'.
+
+	* net/tramp-imap.el (tramp-imap-file-name-handler-alist): Use
+	`tramp-handle-directory-files-and-attributes',
+	`tramp-handle-file-exists-p' and
+	`tramp-handle-file-newer-than-file-p'.
+	(tramp-imap-handle-file-exists-p)
+	(tramp-imap-handle-file-executable-p)
+	(tramp-imap-handle-file-readable-p)
+	(tramp-imap-handle-directory-files-and-attributes)
+	(tramp-imap-handle-file-newer-than-file-p): Removed.
+
+	* net/tramp-sh.el: Replace `tramp-set-process-query-on-exit-flag'
+	by `tramp-compat-set-process-query-on-exit-flag' and
+	`tramp-coding-system-change-eol-conversion' by
+	`tramp-compat-coding-system-change-eol-conversion'.
+
+	* net/tramp-smb.el (tramp-smb-file-name-handler-alist): Use
+	`tramp-handle-directory-files-and-attributes',
+	`tramp-handle-file-exists-p' and
+	`tramp-handle-file-newer-than-file-p'.
+	(tramp-smb-handle-directory-files-and-attributes)
+	(tramp-smb-handle-file-exists-p)
+	(tramp-smb-handle-file-newer-than-file-p): Removed.
+	(tramp-smb-maybe-open-connection): Replace
+	`tramp-set-process-query-on-exit-flag' by
+	`tramp-compat-set-process-query-on-exit-flag'.
+
+2010-10-05  Glenn Morris  <rgm@gnu.org>
+
+	* obsolete/rnews.el, obsolete/rnewspost.el: Remove files.
+
+2010-10-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	Continue reorganization of load dependencies.  (Bug#7156)
+
+	* net/tramp.el (tramp-handle-file-local-copy-hook)
+	(tramp-delete-temp-file-function): Move down.
+	(tramp-exists-file-name-handler): Move up.
+	(tramp-register-file-name-handlers): Simplify autoload.
+	(tramp-handle-write-region-hook, tramp-handle-directory-file-name)
+	(tramp-handle-directory-files, tramp-handle-dired-uncache)
+	(tramp-handle-file-modes, tramp-handle-file-name-as-directory)
+	(tramp-handle-file-name-completion)
+	(tramp-handle-file-name-directory)
+	(tramp-handle-file-name-nondirectory, tramp-handle-file-regular-p)
+	(tramp-handle-file-remote-p, tramp-handle-file-symlink-p)
+	(tramp-handle-find-backup-file-name)
+	(tramp-handle-insert-file-contents, tramp-handle-load)
+	(tramp-handle-substitute-in-file-name)
+	(tramp-handle-unhandled-file-name-directory)
+	(tramp-mode-string-to-int, tramp-local-host-p)
+	(tramp-make-tramp-temp-file): Moved from tramp-sh.el.
+
+	* net/tramp-gvfs.el (top):
+	* net/tramp-smb.el (top): Do not require 'tramp-sh.
+
+	* net/tramp-sh.el (all): Move several objects to tramp.el, see
+	there.  Rename `tramp-handle-*' to `tramp-sh-handle-*'.
+
 2010-10-04  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/appt.el (appt-add): Ensure reminders are enabled.
@@ -11668,6 +12094,12 @@
 	(tar-header-block-tokenize): Decode the username and groupname.
 	(tar-chown-entry, tar-chgrp-entry): Encode the names (bug#4730).
 
+2009-10-17  Eric Ludlam  <zappo@gnu.org>
+
+	* emacs-lisp/eieio-base.el (eieio-persistent-save): If buffer
+	contains multibyte characters, choose first applicable coding
+	system automatically.
+
 2009-10-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* international/mule-cmds.el (select-safe-coding-system): If the file
@@ -12614,6 +13046,10 @@
 	* term/w32-win.el (setup-default-fontset, set-fontset-font):
 	Remove unused declarations.
 
+2009-09-30  Eric Ludlam  <zappo@gnu.org>
+
+	* emacs-lisp/eieio.el (boolean-p): Delete.
+
 2009-09-30  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/authors.el (authors-ignored-files): Add "js2-mode.el".
@@ -12702,6 +13138,17 @@
 2009-09-28  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* net/tramp-imap.el: New package.
+
+2009-09-28  Eric Ludlam  <zappo@gnu.org>
+
+	* emacs-lisp/chart.el:
+	* emacs-lisp/eieio-base.el:
+	* emacs-lisp/eieio-comp.el:
+	* emacs-lisp/eieio-custom.el:
+	* emacs-lisp/eieio-datadebug.el:
+	* emacs-lisp/eieio-opt.el:
+	* emacs-lisp/eieio-speedbar.el:
+	* emacs-lisp/eieio.el: New files.
 
 2009-09-27  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
@@ -16950,7 +17397,7 @@ See ChangeLog.14 for earlier changes.
 ;; coding: utf-8
 ;; End:
 
-    Copyright (C) 2009, 2010  Free Software Foundation, Inc.
+  Copyright (C) 2009, 2010  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -16966,5 +17413,3 @@ See ChangeLog.14 for earlier changes.
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
-;; arch-tag: d3e45e38-19e2-49b6-8dc2-7cb26adcc5a1

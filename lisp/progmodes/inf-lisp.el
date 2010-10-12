@@ -80,19 +80,17 @@ mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
   :type 'regexp
   :group 'inferior-lisp)
 
-(defvar inferior-lisp-mode-map nil)
-(unless inferior-lisp-mode-map
-  (setq inferior-lisp-mode-map (copy-keymap comint-mode-map))
-  (set-keymap-parent inferior-lisp-mode-map lisp-mode-shared-map)
-  (define-key inferior-lisp-mode-map "\C-x\C-e" 'lisp-eval-last-sexp)
-  (define-key inferior-lisp-mode-map "\C-c\C-l" 'lisp-load-file)
-  (define-key inferior-lisp-mode-map "\C-c\C-k" 'lisp-compile-file)
-  (define-key inferior-lisp-mode-map "\C-c\C-a" 'lisp-show-arglist)
-  (define-key inferior-lisp-mode-map "\C-c\C-d" 'lisp-describe-sym)
-  (define-key inferior-lisp-mode-map "\C-c\C-f"
-    'lisp-show-function-documentation)
-  (define-key inferior-lisp-mode-map "\C-c\C-v"
-    'lisp-show-variable-documentation))
+(defvar inferior-lisp-mode-map
+  (let ((map (copy-keymap comint-mode-map)))
+    (set-keymap-parent map lisp-mode-shared-map)
+    (define-key map "\C-x\C-e" 'lisp-eval-last-sexp)
+    (define-key map "\C-c\C-l" 'lisp-load-file)
+    (define-key map "\C-c\C-k" 'lisp-compile-file)
+    (define-key map "\C-c\C-a" 'lisp-show-arglist)
+    (define-key map "\C-c\C-d" 'lisp-describe-sym)
+    (define-key map "\C-c\C-f" 'lisp-show-function-documentation)
+    (define-key map "\C-c\C-v" 'lisp-show-variable-documentation)
+    map))
 
 ;;; These commands augment Lisp mode, so you can process Lisp code in
 ;;; the source files.

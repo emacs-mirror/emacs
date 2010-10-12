@@ -420,7 +420,7 @@ Thank you for your help in stamping out bugs.
 		     ;; There may be an old " *gnus article copy*" buffer.
 		     (let (gnus-article-copy)
 		       (gnus-configure-posting-styles ,group)))))
-       (gnus-pull ',(intern gnus-draft-meta-information-header)
+       (gnus-alist-pull ',(intern gnus-draft-meta-information-header)
 		  message-required-headers)
        (when (and ,group
 		  (not (string= ,group "")))

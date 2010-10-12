@@ -645,18 +645,6 @@ static int store_user_signal_events (void);
 static int cannot_suspend;
 
 
-/* Install the string STR as the beginning of the string of echoing,
-   so that it serves as a prompt for the next character.
-   Also start echoing.  */
-
-void
-echo_prompt (Lisp_Object str)
-{
-  current_kboard->echo_string = str;
-  current_kboard->echo_after_prompt = SCHARS (str);
-  echo_now ();
-}
-
 /* Add C to the echo string, if echoing is going on.
    C can be a character, which is printed prettily ("M-C-x" and all that
    jazz), or a symbol, whose name is printed.  */
@@ -753,6 +741,9 @@ echo_dash (void)
 {
   /* Do nothing if not echoing at all.  */
   if (NILP (current_kboard->echo_string))
+    return;
+
+  if (this_command_key_count == 0)
     return;
 
   if (!current_kboard->immediate_echo
@@ -9125,7 +9116,14 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
   if (INTERACTIVE)
     {
       if (!NILP (prompt))
-	echo_prompt (prompt);
+	{
+	  /* Install the string STR as the beginning of the string of
+	     echoing, so that it serves as a prompt for the next
+	     character.  */
+	  current_kboard->echo_string = prompt;
+	  current_kboard->echo_after_prompt = SCHARS (prompt);
+	  echo_now ();
+	}
       else if (cursor_in_echo_area
 	       && (FLOATP (Vecho_keystrokes) || INTEGERP (Vecho_keystrokes))
 	       && NILP (Fzerop (Vecho_keystrokes)))

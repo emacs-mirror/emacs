@@ -4,6 +4,8 @@
 @settitle book-spine
 @c %**end of header
 
+@include emacsver.texi
+
 @c need dot in text so first space command works!
 .
 @sp 7
@@ -11,7 +13,7 @@
 @center @titlefont{GNU Emacs Lisp Reference Manual}
 @sp 5
 @center GNU
-@center Emacs Version 24.0.50
+@center Emacs Version @value{EMACSVER}
 @center for Unix Users
 @sp 5
 
@@ -23,7 +25,3 @@
 @sp 5
 @center Free Software Foundation
 @bye
-
-@ignore
-   arch-tag: 4466c7ca-e549-4119-948c-6eed34e1ff87
-@end ignore

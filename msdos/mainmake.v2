@@ -129,7 +129,7 @@ emacs misc lispref lispintro:	FRC
 install: all
 	if not exist bin\nul md bin
 	cd lib-src
-	command.com /c >/dev/null for %p in (hexl etags ctags b2m ebrowse) do\
+	command.com /c >/dev/null for %p in (hexl etags ctags ebrowse) do\
 	   if exist %p.exe mv -f %p.exe ../bin
 	if exist fns.el update fns.el ../bin/fns.el
 	cd ..
@@ -287,4 +287,3 @@ bootstrap: bootstrap-clean FRC
 	command.com /e:2048 /c config msdos
 	$(MAKE) $(MFLAGS) info all
 
-# arch-tag: 6fee5130-4c53-46c6-93d3-d0ea852298b9

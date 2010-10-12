@@ -66,9 +66,6 @@ extern POINTER_TYPE *sbrk ();
 #endif
 
 #include <fcntl.h>
-#ifndef O_WRONLY
-#define O_WRONLY 1
-#endif
 
 #ifdef WINDOWSNT
 #include "w32.h"

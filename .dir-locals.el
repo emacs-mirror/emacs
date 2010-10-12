@@ -1,4 +1,5 @@
 ((nil . ((tab-width . 8)
+         (sentence-end-double-space . t)
          (fill-column . 70)))
  (c-mode . ((c-file-style . "GNU")))
  (change-log-mode . ((add-log-time-zone-rule . t)
@@ -6,5 +7,3 @@
 		     (bug-reference-url-format . "http://debbugs.gnu.org/%s")
 		     (mode . bug-reference)))
  (diff-mode . ((mode . whitespace))))
-
-;; arch-tag: fb93c160-e9fe-4184-aad1-e4f5daa11cbd

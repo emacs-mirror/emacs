@@ -1,7 +1,8 @@
 ;;; ediff-wind.el --- window manipulation utilities
 
-;; Copyright (C) 1994, 1995, 1996, 1997, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997, 2000, 2001, 2002, 2003, 2004,
+;;   2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Package: ediff
@@ -978,12 +979,11 @@ into icons, regardless of the window manager."
 	  (set-specifier left-toolbar-width (list ctl-frame 0))
 	  (set-specifier right-toolbar-width (list ctl-frame 0))))
 
-    ;; Under OS/2 (emx) we have to call modify frame parameters twice, in order
-    ;; to make sure that at least once we do it for non-iconified frame.  If
-    ;; appears that in the OS/2 port of Emacs, one can't modify frame
-    ;; parameters of iconified frames.  As a precaution, we do likewise for
-    ;; windows-nt.
-    (if (memq system-type '(emx windows-nt windows-95))
+    ;; As a precaution, we call modify frame parameters twice, in
+    ;; order to make sure that at least once we do it for
+    ;; a non-iconified frame.  (It appears that in the Windows port of
+    ;; Emacs, one can't modify frame parameters of iconified frames.)
+    (if (eq system-type 'windows-nt)
 	(modify-frame-parameters ctl-frame adjusted-parameters))
 
     ;; make or zap toolbar (if not requested)
@@ -1310,5 +1310,4 @@ It assumes that it is called from within the control buffer."
 ;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;; End:
 
-;; arch-tag: 73d9a5d7-eed7-4d9c-8b4b-21d5d78eb597
 ;;; ediff-wind.el ends here

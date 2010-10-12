@@ -28,8 +28,8 @@
 
 ;;; Code:
 
-;; For Emacs < 22.2.
 (eval-and-compile
+  ;; For Emacs <22.2 and XEmacs.
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r)))
 
   (if (locate-library "password-cache")

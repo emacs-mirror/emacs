@@ -25,7 +25,7 @@
 
 ;;; Code:
 
-;; For Emacs < 22.2.
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 
@@ -1914,7 +1914,7 @@ If TIME is nil, then return the cutoff time for oldness instead."
     (unless (eq target 'delete)
       (when (or (gnus-request-group target)
 		(gnus-request-create-group target))
-	(let ((group-art (gnus-request-accept-article target nil nil t)))
+	(let ((group-art (gnus-request-accept-article target nil t t)))
 	  (when (consp group-art)
 	    (gnus-group-mark-article-read target (cdr group-art))))))))
 

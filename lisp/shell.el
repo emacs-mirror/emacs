@@ -334,26 +334,25 @@ Thus, this does not include the shell's current directory.")
 (defvar shell-dirstack-query nil
   "Command used by `shell-resync-dirs' to query the shell.")
 
-(defvar shell-mode-map nil)
-(cond ((not shell-mode-map)
-       (setq shell-mode-map (nconc (make-sparse-keymap) comint-mode-map))
-       (define-key shell-mode-map "\C-c\C-f" 'shell-forward-command)
-       (define-key shell-mode-map "\C-c\C-b" 'shell-backward-command)
-       (define-key shell-mode-map "\t" 'comint-dynamic-complete)
-       (define-key shell-mode-map (kbd "M-RET") 'shell-resync-dirs)
-       (define-key shell-mode-map "\M-?"
-	 'comint-dynamic-list-filename-completions)
-       (define-key shell-mode-map [menu-bar completion]
-	 (cons "Complete"
-	       (copy-keymap (lookup-key comint-mode-map [menu-bar completion]))))
-       (define-key-after (lookup-key shell-mode-map [menu-bar completion])
-	 [complete-env-variable] '("Complete Env. Variable Name" .
-				   shell-dynamic-complete-environment-variable)
-	 'complete-file)
-       (define-key-after (lookup-key shell-mode-map [menu-bar completion])
-	 [expand-directory] '("Expand Directory Reference" .
-			      shell-replace-by-expanded-directory)
-	 'complete-expand)))
+(defvar shell-mode-map
+  (let ((map (nconc (make-sparse-keymap) comint-mode-map)))
+    (define-key map "\C-c\C-f" 'shell-forward-command)
+    (define-key map "\C-c\C-b" 'shell-backward-command)
+    (define-key map "\t" 'comint-dynamic-complete)
+    (define-key map (kbd "M-RET") 'shell-resync-dirs)
+    (define-key map "\M-?" 'comint-dynamic-list-filename-completions)
+    (define-key map [menu-bar completion]
+      (cons "Complete"
+	    (copy-keymap (lookup-key comint-mode-map [menu-bar completion]))))
+    (define-key-after (lookup-key map [menu-bar completion])
+      [complete-env-variable] '("Complete Env. Variable Name" .
+				shell-dynamic-complete-environment-variable)
+      'complete-file)
+    (define-key-after (lookup-key map [menu-bar completion])
+      [expand-directory] '("Expand Directory Reference" .
+			   shell-replace-by-expanded-directory)
+      'complete-expand)
+    map))
 
 (defcustom shell-mode-hook '()
   "Hook for customizing Shell mode."

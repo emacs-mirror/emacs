@@ -797,7 +797,6 @@ Various
 * Compilation::                 How to speed Gnus up.
 * Mode Lines::                  Displaying information in the mode lines.
 * Highlighting and Menus::      Making buffers look all nice and cozy.
-* Buttons::                     Get tendinitis in ten easy steps!
 * Daemons::                     Gnus can do things behind your back.
 * Undo::                        Some actions can be undone.
 * Predicate Specifiers::        Specifying predicates.
@@ -828,6 +827,7 @@ Image Enhancements
 * Smileys::                     Show all those happy faces the way they were
                                   meant to be shown.
 * Picons::                      How to display pictures of what you're reading.
+* Gravatars::                   Display the avatar of people you read.
 * XVarious::                    Other XEmacsy Gnusey variables.
 
 Thwarting Email Spam
@@ -9812,6 +9812,9 @@ Customization, emacs-mime, The Emacs MIME Manual}) to convert the
 can use include:
 
 @table @code
+@item mm-shr
+Use Gnus simple html renderer.
+
 @item gnus-article-html
 Use Gnus rendered based on w3m.
 
@@ -10989,9 +10992,12 @@ do not do a particularly excellent job at it.  That is, @code{nnmbox},
 @code{nnbabyl}, @code{nnmaildir}, @code{nnml}, are able to locate
 articles from any groups, while @code{nnfolder}, and @code{nnimap} are
 only able to locate articles that have been posted to the current
-group.  (Anything else would be too time consuming.)  @code{nnmh} does
-not support this at all.
+group.  @code{nnmh} does not support this at all.
 
+Fortunately, the special @code{nnregistry} back end is able to locate
+articles in any groups, regardless of their back end (@pxref{Registry
+Article Refer Method, fetching by @code{Message-ID} using the
+registry}).
 
 @node Alternative Approaches
 @section Alternative Approaches
@@ -12452,7 +12458,7 @@ section only describes the default method.
 @item mm-text-html-renderer
 @vindex mm-text-html-renderer
 If set to @code{gnus-article-html}, Gnus will use the built-in method,
-that's based on @code{curl} and @code{w3m}.
+that's based on @code{w3m}.
 
 @item gnus-blocked-images
 @vindex gnus-blocked-images
@@ -12846,6 +12852,11 @@ only yank the text in the region.
 If non-@code{nil}, use the same article buffer for all the groups.
 (This is the default.)  If @code{nil}, each group will have its own
 article buffer.
+
+@item gnus-widen-article-window
+@cindex gnus-widen-article-window
+If non-@code{nil}, selecting the article buffer with the @kbd{h}
+command will ``widen'' the article window to take the entire frame.
 
 @vindex gnus-article-decode-hook
 @item gnus-article-decode-hook
@@ -17397,13 +17408,12 @@ incompatible group parameters, slightly different from those of other
 mail back ends.
 
 @code{nnmaildir} is largely similar to @code{nnml}, with some notable
-differences.  Each message is stored in a separate file, but the
-filename is unrelated to the article number in Gnus.  @code{nnmaildir}
+differences. Each message is stored in a separate file, but the
+filename is unrelated to the article number in Gnus. @code{nnmaildir}
 also stores the equivalent of @code{nnml}'s overview files in one file
-per article, so it uses about twice as many inodes as @code{nnml}.  (Use
-@code{df -i} to see how plentiful your inode supply is.)  If this slows
-you down or takes up very much space, consider switching to
-@uref{http://www.namesys.com/, ReiserFS} or another non-block-structured
+per article, so it uses about twice as many inodes as @code{nnml}.
+(Use @code{df -i} to see how plentiful your inode supply is.) If this
+slows you down or takes up very much space, a non-block-structured
 file system.
 
 Since maildirs don't require locking for delivery, the maildirs you use
@@ -21717,7 +21727,6 @@ four days, Gnus will decay the scores four times, for instance.
 * Compilation::                 How to speed Gnus up.
 * Mode Lines::                  Displaying information in the mode lines.
 * Highlighting and Menus::      Making buffers look all nice and cozy.
-* Buttons::                     Get tendinitis in ten easy steps!
 * Daemons::                     Gnus can do things behind your back.
 * Undo::                        Some actions can be undone.
 * Predicate Specifiers::        Specifying predicates.
@@ -22178,8 +22187,7 @@ glitches.  Use at your own peril.
 buffer should be given.  Here's an excerpt of this variable:
 
 @lisp
-((group (vertical 1.0 (group 1.0 point)
-                      (if gnus-carpal (group-carpal 4))))
+((group (vertical 1.0 (group 1.0 point)))
  (article (vertical 1.0 (summary 0.25 point)
                         (article 1.0))))
 @end lisp
@@ -22217,7 +22225,6 @@ Here's a more complicated example:
 @lisp
 (article (vertical 1.0 (group 4)
                        (summary 0.25 point)
-                       (if gnus-carpal (summary-carpal 4))
                        (article 1.0)))
 @end lisp
 
@@ -22228,20 +22235,16 @@ occupy, not a percentage.
 If the @dfn{split} looks like something that can be @code{eval}ed (to be
 precise---if the @code{car} of the split is a function or a subr), this
 split will be @code{eval}ed.  If the result is non-@code{nil}, it will
-be used as a split.  This means that there will be three buffers if
-@code{gnus-carpal} is @code{nil}, and four buffers if @code{gnus-carpal}
-is non-@code{nil}.
+be used as a split.
 
 Not complicated enough for you?  Well, try this on for size:
 
 @lisp
 (article (horizontal 1.0
              (vertical 0.5
-                 (group 1.0)
-                 (gnus-carpal 4))
+                 (group 1.0))
              (vertical 1.0
                  (summary 0.25 point)
-                 (summary-carpal 4)
                  (article 1.0))))
 @end lisp
 
@@ -22616,62 +22619,6 @@ Hook called after creating the browse mode menu.
 Hook called after creating the score mode menu.
 
 @end table
-
-
-@node Buttons
-@section Buttons
-@cindex buttons
-@cindex mouse
-@cindex click
-
-Those new-fangled @dfn{mouse} contraptions is very popular with the
-young, hep kids who don't want to learn the proper way to do things
-these days.  Why, I remember way back in the summer of '89, when I was
-using Emacs on a Tops 20 system.  Three hundred users on one single
-machine, and every user was running Simula compilers.  Bah!
-
-Right.
-
-@vindex gnus-carpal
-Well, you can make Gnus display bufferfuls of buttons you can click to
-do anything by setting @code{gnus-carpal} to @code{t}.  Pretty simple,
-really.  Tell the chiropractor I sent you.
-
-
-@table @code
-
-@item gnus-carpal-mode-hook
-@vindex gnus-carpal-mode-hook
-Hook run in all carpal mode buffers.
-
-@item gnus-carpal-button-face
-@vindex gnus-carpal-button-face
-Face used on buttons.
-
-@item gnus-carpal-header-face
-@vindex gnus-carpal-header-face
-Face used on carpal buffer headers.
-
-@item gnus-carpal-group-buffer-buttons
-@vindex gnus-carpal-group-buffer-buttons
-Buttons in the group buffer.
-
-@item gnus-carpal-summary-buffer-buttons
-@vindex gnus-carpal-summary-buffer-buttons
-Buttons in the summary buffer.
-
-@item gnus-carpal-server-buffer-buttons
-@vindex gnus-carpal-server-buffer-buttons
-Buttons in the server buffer.
-
-@item gnus-carpal-browse-buffer-buttons
-@vindex gnus-carpal-browse-buffer-buttons
-Buttons in the browse buffer.
-@end table
-
-All the @code{buttons} variables are lists.  The elements in these list
-are either cons cells where the @code{car} contains a text to be displayed and
-the @code{cdr} contains a function symbol, or a simple string.
 
 
 @node Daemons
@@ -23255,6 +23202,12 @@ number for the size is enough.
 @vindex gnus-gravatar-properties
 List of image properties applied to Gravatar images.
 
+@item gnus-gravatar-too-ugly
+@vindex gnus-gravatar-too-ugly
+Regexp that matches mail addresses or names of people of which avatars
+should not be displayed, or @code{nil}.  It default to the value of
+@code{gnus-article-x-face-too-ugly} (@pxref{X-Face}).
+
 @end table
 
 If you want to see them in the From field, set:
@@ -23797,12 +23750,14 @@ yourself, so that the message is processed as spam when you exit the
 group:
 
 @table @kbd
-@item M-d
+@item $
+@itemx M-d
 @itemx M s x
 @itemx S x
-@kindex M-d
-@kindex S x
-@kindex M s x
+@kindex $ (Summary)
+@kindex M-d (Summary)
+@kindex S x (Summary)
+@kindex M s x (Summary)
 @findex gnus-summary-mark-as-spam
 @findex gnus-summary-mark-as-spam
 Mark current article as spam, showing it with the @samp{$} mark
@@ -25427,6 +25382,13 @@ the sender in addition to the Message-ID.  Several strategies are
 available.
 
 @item
+Refer to messages by ID
+
+Commands like @code{gnus-summary-refer-parent-article} can take
+advantage of the registry to jump to the referred article, regardless
+of the group the message is in.
+
+@item
 Store custom flags and keywords
 
 The registry can store custom flags and keywords for a message.  For
@@ -25445,6 +25407,7 @@ of all messages matching a particular set of criteria.
 @menu
 * Setup::
 * Fancy splitting to parent::
+* Registry Article Refer Method::
 * Store custom flags and keywords::
 * Store arbitrary data::
 @end menu
@@ -25520,6 +25483,42 @@ registry will keep.
 @defvar gnus-registry-cache-file
 The file where the registry will be stored between Gnus sessions.
 @end defvar
+
+@node Registry Article Refer Method
+@subsection Fetching by @code{Message-ID} Using the Registry
+
+The registry knows how to map each @code{Message-ID} to the group it's
+in.  This can be leveraged to enhance the ``article refer method'',
+the thing that tells Gnus how to look up an article given its
+Message-ID (@pxref{Finding the Parent}).
+
+@vindex nnregistry
+@vindex gnus-refer-article-method
+
+The @code{nnregistry} refer method does exactly that.  It has the
+advantage that an article may be found regardless of the group it's
+in---provided its @code{Message-ID} is known to the registry.  It can
+be enabled by augmenting the start-up file with something along these
+lines:
+
+@example
+;; Keep enough entries to have a good hit rate when referring to an
+;; article using the registry.  Use long group names so that Gnus
+;; knows where the article is.
+(setq gnus-registry-max-entries 2500
+      gnus-registry-use-long-group-names t)
+
+(gnus-registry-initialize)
+
+(setq gnus-refer-article-method
+      '(current
+        (nnregistry)
+        (nnweb "gmane" (nnweb-type gmane))))
+@end example
+
+The example above instructs Gnus to first look up the article in the
+current group, or, alternatively, using the registry, and finally, if
+all else fails, using Gmane.
 
 @node Fancy splitting to parent
 @subsection Fancy splitting to parent
@@ -26650,10 +26649,6 @@ Buttons}).
 @item
 You can do lots of strange stuff with the Gnus window & frame
 configuration (@pxref{Window Layout}).
-
-@item
-You can click on buttons instead of using the keyboard
-(@pxref{Buttons}).
 
 @end itemize
 

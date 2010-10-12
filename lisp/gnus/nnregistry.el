@@ -25,7 +25,8 @@
 
 ;; This file provides the `nnregistry' Gnus back-end.  It can be used
 ;; in `gnus-refer-article-method' to quickly search for a message by
-;; id, regardless of the back-end that stores it.
+;; id, regardless of the back-end that stores it.  See the Gnus manual
+;; for usage examples and more information.
 
 ;;; Code:
 

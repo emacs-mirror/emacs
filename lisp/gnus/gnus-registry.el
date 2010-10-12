@@ -36,16 +36,17 @@
 
 ;; Put this in your startup file (~/.gnus.el for instance)
 
-;; (require 'nnregistry) ;; optional, or see below (automatically calls `gnus-registry-install-nnregistry' when `gnus-registry-initialize' is called)
 ;; (setq gnus-registry-max-entries 2500
 ;;       gnus-registry-use-long-group-names t)
 
 ;; (gnus-registry-initialize)
-;; (gnus-registry-install-nnregistry) ;; optional, or see above (loading nnregistry makes it unnecessary)
 
 ;; Then use this in your fancy-split:
 
 ;; (: gnus-registry-split-fancy-with-parent)
+
+;; You should also consider using the nnregistry backend to look up
+;; articles.  See the Gnus manual for more information.
 
 ;; TODO:
 
@@ -1131,8 +1132,6 @@ Returns the first place where the trail finds a group name."
   (setq gnus-registry-install t)	; in case it was 'ask or nil
   (gnus-registry-install-hooks)
   (gnus-registry-install-shortcuts)
-  (when (featurep 'nnregistry)
-    (gnus-registry-install-nnregistry))
   (gnus-registry-read))
 
 ;;;###autoload
@@ -1148,18 +1147,6 @@ Returns the first place where the trail finds a group name."
   (add-hook 'gnus-read-newsrc-el-hook 'gnus-registry-read)
 
   (add-hook 'gnus-summary-prepare-hook 'gnus-registry-register-message-ids))
-
-;;;###autoload
-(defun gnus-registry-install-nnregistry ()
-  "Install the nnregistry refer method in `gnus-refer-article-method'."
-  (interactive)
-  (setq gnus-refer-article-method
-        (delete-dups
-         (append
-          (if (listp gnus-refer-article-method)
-              gnus-refer-article-method
-            (list gnus-refer-article-method))
-          (list 'nnregistry)))))
 
 (defun gnus-registry-unload-hook ()
   "Uninstall the registry hooks."

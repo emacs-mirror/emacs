@@ -1674,6 +1674,7 @@ If SCAN, request a scan of that group as well."
 ;; and compute how many unread articles there are in each group.
 (defun gnus-get-unread-articles (&optional level)
   (setq gnus-server-method-cache nil)
+  (require 'gnus-agent)
   (let* ((newsrc (cdr gnus-newsrc-alist))
 	 (alevel (or level gnus-activate-level (1+ gnus-level-subscribed)))
 	 (foreign-level

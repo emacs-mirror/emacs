@@ -123,18 +123,11 @@ struct utimbuf {
 #endif
 #endif
 
-/* LPASS8 is new in 4.3, and makes cbreak mode provide all 8 bits.  */
-#ifndef LPASS8
-#define LPASS8 0
-#endif
-
 static const int baud_convert[] =
   {
     0, 50, 75, 110, 135, 150, 200, 300, 600, 1200,
     1800, 2400, 4800, 9600, 19200, 38400
   };
-
-int emacs_ospeed;
 
 void croak (char *) NO_RETURN;
 
@@ -275,6 +268,8 @@ stuff_char (char c)
 void
 init_baud_rate (int fd)
 {
+  int emacs_ospeed;
+ 
   if (noninteractive)
     emacs_ospeed = 0;
   else

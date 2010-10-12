@@ -339,23 +339,34 @@
 (eval-when-compile
   (require 'cl))
 
+
+(eval-when-compile
+  (autoload 'nnimap-buffer "nnimap")
+  (autoload 'nnimap-command "nnimap")
+  (autoload 'nnimap-possibly-change-group "nnimap"))
+
 (nnoo-declare nnir)
 (nnoo-define-basics nnir)
 
 (gnus-declare-backend "nnir" 'mail)
 
-(defvar nnir-imap-search-field "TEXT"
-  "The IMAP search item when doing an nnir search. To use raw
-  imap queries by default set this to \"\"")
+(defvar nnir-imap-default-search-key "Whole message"
+  "The default IMAP search key for an nnir search. Must be one of
+  the keys in nnir-imap-search-arguments. To use raw imap queries
+  by default set this to \"Imap\"")
 
 (defvar nnir-imap-search-arguments
   '(("Whole message" . "TEXT")
     ("Subject" . "SUBJECT")
     ("To" . "TO")
     ("From" . "FROM")
-    ("Head" . "HEADER \"%s\"")
-    (nil . ""))
-  "Mapping from user readable strings to IMAP search items for use in nnir")
+    ("Imap" . ""))
+  "Mapping from user readable keys to IMAP search items for use in nnir")
+
+(defvar nnir-imap-search-other "HEADER %S"
+  "The IMAP search item to use for anything other than
+  nnir-imap-search-arguments. By default this is the name of an
+  email header field")
 
 (defvar nnir-imap-search-argument-history ()
   "The history for querying search options in nnir")
@@ -375,13 +386,12 @@ result, `gnus-retrieve-headers' will be called instead.")
              ())
     (imap    nnir-run-imap
              ((criteria
-	       "Search in: "                      ; Prompt
-	       ,nnir-imap-search-arguments        ; alist for completing
-	       nil                                ; no filtering
+	       "Search in"                        ; Prompt
+	       ,(mapcar 'car nnir-imap-search-arguments) ; alist for completing
 	       nil                                ; allow any user input
 	       nil                                ; initial value
 	       nnir-imap-search-argument-history  ; the history to use
-	       ,nnir-imap-search-field            ; default
+	       ,nnir-imap-default-search-key      ; default
 	       )))
     (swish++ nnir-run-swish++
              ((group . "Group spec: ")))
@@ -509,8 +519,7 @@ that it is for swish++, not Wais."
   :group 'nnir)
 
 ;; Swish-E.
-;; URL: http://sunsite.berkeley.edu/SWISH-E/
-;; New version: http://www.boe.es/swish-e
+;; URL: http://swish-e.org/
 ;; Variables `nnir-swish-e-index-file', `nnir-swish-e-program' and
 ;; `nnir-swish-e-additional-switches'
 
@@ -596,7 +605,7 @@ arrive at the correct group name, \"mail.misc\"."
   :type '(directory)
   :group 'nnir)
 
-;; Namazu engine, see <URL:http://ww.namazu.org/>
+;; Namazu engine, see <URL:http://www.namazu.org/>
 
 (defcustom nnir-namazu-program "namazu"
   "*Name of Namazu search executable."
@@ -704,19 +713,30 @@ and show thread that contains this article."
   (let* ((cur (gnus-summary-article-number))
          (group (nnir-artlist-artitem-group nnir-artlist cur))
          (backend-number (nnir-artlist-artitem-number nnir-artlist cur))
-	 server backend-group)
-    (setq server (nnir-group-server group))
-    (setq backend-group (gnus-group-real-name group))
-    (gnus-group-read-ephemeral-group
-     backend-group
-     (gnus-server-to-method server)
-     t                                  ; activate
-     (cons (current-buffer)
-           'summary)                    ; window config
-     nil
-     (list backend-number))
-    (gnus-summary-limit (list backend-number))
-    (gnus-summary-refer-thread)))
+	 (id (mail-header-id (gnus-summary-article-header)))
+	 (refs (split-string
+		(mail-header-references (gnus-summary-article-header)))))
+    (if (string= (car (gnus-group-method group)) "nnimap")
+	(with-current-buffer (nnimap-buffer)
+	  (let* ((cmd (let ((value
+			     (format
+			      "(OR HEADER REFERENCES %s HEADER Message-Id %s)"
+			      id id)))
+			(dolist (refid refs value)
+			  (setq value (format
+				       "(OR (OR HEADER Message-Id %s HEADER REFERENCES %s) %s)"
+				       refid refid value)))))
+		 (result (nnimap-command
+			  "UID SEARCH %s" cmd)))
+	    (gnus-summary-read-group-1 group t t gnus-summary-buffer nil
+				       (and (car result)
+					    (delete 0 (mapcar #'string-to-number
+							      (cdr (assoc "SEARCH" (cdr result)))))))))
+      (gnus-summary-read-group-1 group t t gnus-summary-buffer
+				 nil (list backend-number))
+      (gnus-summary-limit (list backend-number))
+      (gnus-summary-refer-thread))))
+
 
 (if (fboundp 'eval-after-load)
     (eval-after-load "gnus-sum"
@@ -792,40 +812,30 @@ and show thread that contains this article."
 	  (if nnir-get-article-nov-override-function
 	      (setq novitem (funcall nnir-get-article-nov-override-function
 				     artitem))
-	  ;; else, set novitem through nnheader-parse-nov/nnheader-parse-head
+	    ;; else, set novitem through nnheader-parse-nov/nnheader-parse-head
 	    (case (setq foo (gnus-retrieve-headers (list artno)
 						   artfullgroup nil))
 	      (nov
 	       (goto-char (point-min))
-	       (setq novitem (nnheader-parse-nov))
-	       (unless novitem
-		 (pop-to-buffer nntp-server-buffer)
-		 (error
-		  "nnheader-parse-nov returned nil for article %s in group %s"
-		  artno artfullgroup)))
+	       (setq novitem (nnheader-parse-nov)))
 	      (headers
 	       (goto-char (point-min))
-	       (setq novitem (nnheader-parse-head))
-	       (unless novitem
-		 (pop-to-buffer nntp-server-buffer)
-		 (error
-		  "nnheader-parse-head returned nil for article %s in group %s"
-		  artno artfullgroup)))
+	       (setq novitem (nnheader-parse-head)))
 	      (t (error "Unknown header type %s while requesting article %s of group %s"
 			foo artno artfullgroup)))))
 	;; replace article number in original group with article number
         ;; in nnir group
-        (mail-header-set-number novitem art)
-        (mail-header-set-from novitem
-                              (mail-header-from novitem))
-        (mail-header-set-subject
-         novitem
-         (format "[%d: %s/%d] %s"
-                 artrsv artgroup artno
-                 (mail-header-subject novitem)))
-        ;;-(mail-header-set-extra novitem nil)
-        (push novitem novdata)
-        (setq artlist (cdr artlist)))
+	(when novitem
+	  (mail-header-set-number novitem art)
+	  (mail-header-set-from novitem
+				(mail-header-from novitem))
+	  (mail-header-set-subject
+	   novitem
+	   (format "[%d: %s/%d] %s"
+		   artrsv artgroup artno
+		   (mail-header-subject novitem)))
+	  (push novitem novdata)
+	  (setq artlist (cdr artlist))))
       (setq novdata (nreverse novdata))
       (set-buffer nntp-server-buffer) (erase-buffer)
       (mapc 'nnheader-insert-nov novdata)
@@ -948,22 +958,9 @@ pairs (also vectors, actually)."
 
 ;; IMAP interface.
 ;; todo:
-;; nnir invokes this two (2) times???!
-;; we should not use nnimap at all but open our own server connection
-;; we should not LIST * but use nnimap-list-pattern from defs
 ;; send queries as literals
 ;; handle errors
 
-(autoload 'nnimap-open-server "nnimap")
-(defvar nnimap-server-buffer) ;; nnimap.el
-(autoload 'imap-mailbox-select "imap")
-(autoload 'imap-search "imap")
-(autoload 'imap-quote-specials "imap")
-
-(eval-when-compile
-  (autoload 'nnimap-buffer "nnimap")
-  (autoload 'nnimap-command "nnimap")
-  (autoload 'nnimap-possibly-change-group "nnimap"))
 
 (defun nnir-run-imap (query srv &optional group-option)
   "Run a search against an IMAP back-end server.
@@ -975,7 +972,8 @@ details on the language and supported extensions"
 	  (group (or group-option (gnus-group-group-name)))
 	  (defs (caddr (gnus-server-to-method srv)))
 	  (criteria (or (cdr (assq 'criteria query))
-			nnir-imap-search-field))
+			(cdr (assoc nnir-imap-default-search-key
+				    nnir-imap-search-arguments))))
 	  (gnus-inhibit-demon t)
 	  artlist)
       (message "Opening server %s" server)
@@ -985,7 +983,7 @@ details on the language and supported extensions"
 	      (message "Searching %s..." group)
 	      (let ((arts 0)
 		    (result
-		     (nnimap-command "UID SEARCH  %s"
+		     (nnimap-command "UID SEARCH %s"
 				     (if (string= criteria "")
 					 qstring
 				       (nnir-imap-make-query criteria qstring)
@@ -1056,7 +1054,7 @@ In future the following will be added to the language:
   (cond
    ;; Simple string term
    ((stringp expr)
-    (format "%s \"%s\"" criteria (imap-quote-specials expr)))
+    (format "%s %S" criteria expr))
    ;; Trivial term: and
    ((eq expr 'and) nil)
    ;; Composite term: or expression
@@ -1590,9 +1588,9 @@ Tested with Namazu 2.0.6 on a GNU/Linux system."
   (let ((sym (car parmspec))
         (prompt (cdr parmspec)))
     (if (listp prompt)
-	(let* ((result (gnus-completing-read prompt nil))
+	(let* ((result (apply 'gnus-completing-read prompt))
 	       (mapping (or (assoc result nnir-imap-search-arguments)
-			    (assoc nil nnir-imap-search-arguments))))
+			    (cons nil nnir-imap-search-other))))
 	  (cons sym (format (cdr mapping) result)))
       (cons sym (read-string prompt)))))
 
