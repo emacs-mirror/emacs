@@ -507,38 +507,9 @@ for dir in etc/*/; do
      ln * ../../${tempdir}/${dir})
 done
 
-echo "Making links to \`etc/images'"
-(cd etc/images
- for f in *; do
-     [ -f "$f" ] || continue
-     ln $f ../../${tempdir}/etc/images
- done)
-
-for dir in etc/images/*/; do
-    echo "Making links to \`${dir}'"
-    (cd ${dir}
-     for f in *; do
-         [ -f "$f" ] || continue
-         ln $f ../../../${tempdir}/${dir}
-     done
-     )
-done
-
-for dir in etc/images/*/*/; do
-    case "$dir" in
-        etc/images/icons/hicolor/) continue ;;
-    esac
-    echo "Making links to \`${dir}'"
-    (cd ${dir}
-     ln `ls -d *` ../../../../${tempdir}/${dir})
-done
-
-for dir in etc/images/icons/hicolor/*/apps \
-    etc/images/icons/hicolor/*/mimetypes; do
-    echo "Making links to \`${dir}'"
-    (cd ${dir}
-     ln `ls -d *` ../../../../../../${tempdir}/${dir}
-     cd ../../../../../../${tempdir}/${dir})
+echo "Making links to \`etc/images' and its subdirectories"
+for f in `find etc/images -type f`; do
+  ln $f $tempdir/$f
 done
 
 echo "Making links to \`info'"
