@@ -1,3 +1,9 @@
+2010-10-12  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa.texi (Caching Passphrases):
+	* auth.texi (GnuPG and EasyPG Assistant Configuration): Clarify
+	some configurations require to set up gpg-agent.
+
 2010-10-11  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (.texi.dvi): Remove unnecessary suffix rule.
