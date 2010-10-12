@@ -488,27 +488,11 @@ echo "Making links to \`lwlib'"
  ln *.[ch] *.in ../${tempdir}/lwlib
  ln README ChangeLog ../${tempdir}/lwlib)
 
-echo "Making links to \`etc'"
-(cd etc
- for f in *; do
-   [ -f "$f" ] || continue
-   case "$f" in
-    DOC*) continue ;;
-   esac
-   ln $f ../${tempdir}/etc
- done)
-
-for dir in etc/*/; do
-    case "$dir" in
-        etc/images/) continue ;;
-    esac
-    echo "Making links to \`${dir}'"
-    (cd ${dir}
-     ln * ../../${tempdir}/${dir})
-done
-
-echo "Making links to \`etc/images' and its subdirectories"
-for f in `find etc/images -type f`; do
+echo "Making links to \`etc' and its subdirectories"
+for f in `find etc -type f`; do
+  case $f in
+    etc/DOC*) continue ;;
+  esac
   ln $f $tempdir/$f
 done
 
