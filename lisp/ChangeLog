@@ -1,11 +1,15 @@
- 2010-10-10  Jan Djärv  <jan.h.d@swipnet.se>
- 
- 	* term/ns-win.el (ns-right-alternate-modifier): New defvar.
- 	(ns-right-option-modifier): New alias for ns-right-alternate-modifier.
- 	(mac-right-option-modifier): New alias for ns-right-option-modifier.
- 
- 	* cus-start.el (all): ns-right-alternate-modifier is new.
- 
+2010-10-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* composite.el (compose-region): Fix typo in docstring.
+
+2010-10-10  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* term/ns-win.el (ns-right-alternate-modifier): New defvar.
+	(ns-right-option-modifier): New alias for ns-right-alternate-modifier.
+	(mac-right-option-modifier): New alias for ns-right-option-modifier.
+
+	* cus-start.el (all): ns-right-alternate-modifier is new.
+
 2010-10-10  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* Makefile.in (ELCFILES): Update.

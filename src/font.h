@@ -574,7 +574,7 @@ struct font_driver
      FONT-ENTITY and it must be opened to check it, return -1.  */
   int (*has_char) P_ ((Lisp_Object font, int c));
 
-  /* Return a glyph code of FONT for characer C (Unicode code point).
+  /* Return a glyph code of FONT for character C (Unicode code point).
      If FONT doesn't have such a glyph, return FONT_INVALID_CODE.  */
   unsigned (*encode_char) P_ ((struct font *font, int c));
 

@@ -346,7 +346,7 @@ w32font_has_char (entity, c)
 }
 
 /* w32 implementation of encode_char for font backend.
-   Return a glyph code of FONT for characer C (Unicode code point).
+   Return a glyph code of FONT for character C (Unicode code point).
    If FONT doesn't have such a glyph, return FONT_INVALID_CODE.
 
    For speed, the gdi backend uses unicode (Emacs calls encode_char
