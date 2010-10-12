@@ -1,6 +1,6 @@
 2010-10-12  Juanma Barranquero  <lekktu@gmail.com>
 
-	* net/telnet.el (telnet-mode-map): Fix previous change.
+	* net/telnet.el (telnet-mode-map): Fix previous change (bug#7193).
 
 2010-10-12  Jan Djärv  <jan.h.d@swipnet.se>
 
