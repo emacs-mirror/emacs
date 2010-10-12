@@ -327,22 +327,14 @@ echo "Updating version number in README"
 
 
 echo "Creating subdirectories"
-for subdir in lisp site-lisp \
+for subdir in site-lisp \
 	      leim leim/CXTERM-DIC leim/MISC-DIC \
 	      leim/SKK-DIC leim/ja-dic leim/quail \
 	      src src/m src/s src/bitmaps lib-src oldXMenu lwlib \
 	      nt nt/inc nt/inc/sys nt/inc/arpa nt/inc/netinet nt/icons \
-	      etc etc/charsets etc/e etc/gnus etc/nxml \
-	      etc/images etc/images/custom etc/images/ezimage etc/images/gnus \
-	      etc/images/gud etc/images/icons etc/images/icons/hicolor \
-	      etc/images/icons/hicolor/*x* etc/images/icons/hicolor/scalable \
-	      etc/images/icons/hicolor/*/apps etc/images/icons/hicolor/*/mimetypes \
-	      etc/images/low-color etc/images/mail etc/images/mpc \
-	      etc/images/smilies etc/images/smilies/grayscale \
-	      etc/images/smilies/medium etc/images/tree-widget \
-	      etc/images/tree-widget/default etc/images/tree-widget/folder \
-	      etc/refcards etc/schema etc/srecode etc/tutorials info doc doc/emacs \
-	      doc/misc doc/man doc/lispref doc/lispintro m4 msdos \
+	      `find etc lisp -type d` \
+	      doc doc/emacs doc/misc doc/man doc/lispref doc/lispintro \
+	      info m4 msdos \
 	      nextstep nextstep/Cocoa nextstep/Cocoa/Emacs.base \
 	      nextstep/Cocoa/Emacs.base/Contents \
 	      nextstep/Cocoa/Emacs.base/Contents/Resources \
@@ -360,45 +352,16 @@ do
 done
 
 echo "Making links to \`lisp' and its subdirectories"
+files=`find lisp \( -name '*.el' -o -name '*.elc' -o -name 'ChangeLog*' \
+ -o -name 'README*' \)`
+
 ### Don't distribute site-init.el, site-load.el, or default.el.
-(cd lisp
- ln [a-zA-Z]*.el ../${tempdir}/lisp
- ln [a-zA-Z]*.elc ../${tempdir}/lisp
- ln ChangeLog ChangeLog.*[0-9] ../${tempdir}/lisp
- ln Makefile.in makefile.w32-in ../${tempdir}/lisp
- ln README ../${tempdir}/lisp
- (cd ../${tempdir}/lisp
-  rm -f site-init site-init.el site-init.elc
-  rm -f site-load site-load.el site-load.elc
-  rm -f site-start site-start.el site-start.elc
-  rm -f default default.el default.elc
-  )
-
- ## Find all subdirs of lisp dir
- for file in `find . -type d -print`; do
-   case $file in
-     . | .. | */=*)
-       ;;
-     *)
-       if [ -d $file ]; then
-	 subdirs="$file $subdirs"
-       fi
-       ;;
-   esac
- done
-
- for file in $subdirs; do
-   echo "  lisp/$file"
-   mkdir -p ../${tempdir}/lisp/$file
-   ln $file/[a-zA-Z0-9]*.el ../${tempdir}/lisp/$file
-   ln $file/[a-zA-Z0-9]*.elc ../${tempdir}/lisp/$file
-   ## calc/README.prev
-   for f in $file/README $file/ChangeLog $file/ChangeLog.*[0-9] \
-       $file/README.prev; do
-     [ -f $f ] || continue
-     ln $f ../${tempdir}/lisp/$file
-   done
- done )
+for file in lisp/Makefile.in lisp/makefile.w32-in $files; do
+  case $file in
+    */site-init*|*/site-load*|*/default*) continue ;;
+  esac
+  ln $file $tempdir/$file
+done
 
 echo "Making links to \`leim' and its subdirectories"
 (cd leim
@@ -419,8 +382,8 @@ echo "Making links to \`leim' and its subdirectories"
  rm -f ../${tempdir}/leim/quail/tsang-cns.*)
 
 echo "Making links to \`src'"
-### Don't distribute =*.[ch] files, or the configured versions of
-### config.in, paths.in, or Makefile.in, or TAGS.
+### Don't distribute the configured versions of
+### config.in, paths.in, buildobj.h, or Makefile.in.
 (cd src
  echo "  (It is ok if ln fails in some cases.)"
  ln [a-zA-Z]*.[chm] ../${tempdir}/src
