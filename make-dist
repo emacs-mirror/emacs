@@ -299,7 +299,7 @@ tempdir="${tempparent}/${emacsname}"
 ### This trap ensures that the staging directory will be cleaned up even
 ### when the script is interrupted in mid-career.
 if [ "${clean_up}" = yes ]; then
-  trap "echo 'Interrupted...cleaning up the staging directory'; rm -rf ${tempparent}; exit 1" 1 2 15
+  trap "echo 'Cleaning up the staging directory'; rm -rf ${tempparent}" EXIT
 fi
 
 echo "Creating top directory: \`${tempdir}'"
@@ -571,10 +571,7 @@ if [ "${make_tar}" = yes ]; then
     > ${emacsname}.tar${gzip_extension}
 fi
 
-if [ "${clean_up}" = yes ]; then
-  echo "Cleaning up the staging directory"
-  rm -rf ${tempparent}
-else
+if [ "${clean_up}" != yes ]; then
   (cd ${tempparent}; mv ${emacsname} ..)
   rm -rf ${tempparent}
 fi
