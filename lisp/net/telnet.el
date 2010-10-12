@@ -63,7 +63,7 @@ LOGIN-NAME, which is optional, says what to log in as on that machine.")
 (defvar telnet-new-line "\r")
 (defvar telnet-mode-map
   (let ((map (nconc (make-sparse-keymap) comint-mode-map)))
-    (define-key telnet-mode-map "\C-m" 'telnet-send-input)
+    (define-key map "\C-m" 'telnet-send-input)
     ;; (define-key telnet-mode-map "\C-j" 'telnet-send-input)
     (define-key map "\C-c\C-q" 'send-process-next-char)
     (define-key map "\C-c\C-c" 'telnet-interrupt-subjob)
