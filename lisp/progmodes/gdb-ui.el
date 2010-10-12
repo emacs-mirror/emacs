@@ -2195,7 +2195,7 @@ If not in a source or disassembly buffer just set point."
 	    (if	(posn-object posn)
 		(let* ((bptno (get-text-property
 			       0 'gdb-bptno (car (posn-string posn)))))
-		  (string-match "\\([0-9+]\\)*" bptno)
+		  (string-match "\\([0-9]+\\)*" bptno)
 		  (gdb-enqueue-input
 		   (list
 		    (concat gdb-server-prefix
@@ -2222,7 +2222,7 @@ If not in a source or disassembly buffer just set point."
 	      (setq obj (overlay-get overlay 'before-string))))
 	  (when (stringp obj)
 	    (let* ((bptno (get-text-property 0 'gdb-bptno obj)))
-	      (string-match "\\([0-9+]\\)*" bptno)
+	      (string-match "\\([0-9]+\\)*" bptno)
 	      (gdb-enqueue-input
 	       (list
 		(concat gdb-server-prefix

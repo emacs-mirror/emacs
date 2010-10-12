@@ -65,16 +65,15 @@ There are several subdirectories:
             which can't be directly produced by your keyboard.
 `lib-src'   holds the source code for some utility programs for use by or
             with Emacs, like movemail and etags.
-`etc'       holds miscellaneous architecture-independent data files
-            Emacs uses, like the tutorial text and the Zippy the Pinhead
-            quote database.  The contents of the `lisp', `leim', `info',
-            `man', `lispref', and `lispintro' subdirectories are
-            architecture-independent too.
+`etc'       holds miscellaneous architecture-independent data files Emacs
+            uses, like the tutorial text and tool bar images.
+            The contents of the `lisp', `leim', `info', and `doc'
+            subdirectories are architecture-independent too.
 `info'      holds the Info documentation tree for Emacs.
 `doc/emacs' holds the source code for the Emacs Manual.  If you modify the
             manual sources, you will need the `makeinfo' program to produce
             an updated manual.  `makeinfo' is part of the GNU Texinfo
-            package; you need version 4.6 or later of Texinfo.
+            package; you need a suitably recent version of Texinfo.
 `doc/lispref'   holds the source code for the Emacs Lisp reference manual.
 `doc/lispintro' holds the source code for the Introduction to Programming
                 in Emacs Lisp manual.
@@ -85,10 +84,9 @@ There are several subdirectories:
             to building and running Emacs on Windows 9X/ME/NT/2000/XP.
 `test'      holds tests for various aspects of Emacs's functionality.
 
-   Building Emacs on non-Posix platforms requires to install tools
-that aren't part of the standard distribution of the OS.  The
-platform-specific README files and installation instructions should
-list the required tools.
+   Building Emacs on non-Posix platforms requires tools that aren't part
+of the standard distribution of the OS.  The platform-specific README
+files and installation instructions should list the required tools.
 
 
 This file is part of GNU Emacs.

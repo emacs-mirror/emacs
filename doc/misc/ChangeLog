@@ -1,3 +1,8 @@
+2010-10-08  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi (Organization, Installation, Old CL Compatibility):
+	Deprecate cl-compat for new code.
+
 2010-10-07  Glenn Morris  <rgm@gnu.org>
 
 	* eudc.texi (CCSO PH/QI, LDAP Requirements): Remove old information.

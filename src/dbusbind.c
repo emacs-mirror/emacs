@@ -1571,7 +1571,7 @@ usage: (dbus-send-signal BUS SERVICE PATH INTERFACE SIGNAL &rest ARGS)  */)
 
 /* Check, whether there is pending input in the message queue of the
    D-Bus BUS.  BUS is a Lisp symbol, either :system or :session.  */
-int
+static Lisp_Object
 xd_get_dispatch_status (bus)
      Lisp_Object bus;
 {
@@ -1587,23 +1587,34 @@ xd_get_dispatch_status (bus)
   return
     (dbus_connection_get_dispatch_status (connection)
      == DBUS_DISPATCH_DATA_REMAINS)
-    ? TRUE : FALSE;
+    ? Qt : Qnil;
 }
 
 /* Check for queued incoming messages from the system and session buses.  */
 int
 xd_pending_messages ()
 {
+  int ret = FALSE;
+  xd_in_read_queued_messages = 1;
 
   /* Vdbus_registered_objects_table will be initialized as hash table
      in dbus.el.  When this package isn't loaded yet, it doesn't make
      sense to handle D-Bus messages.  */
-  return (HASH_TABLE_P (Vdbus_registered_objects_table)
-	  ? (xd_get_dispatch_status (QCdbus_system_bus)
-	     || ((getenv ("DBUS_SESSION_BUS_ADDRESS") != NULL)
-		 ? xd_get_dispatch_status (QCdbus_session_bus)
-		 : FALSE))
-	  : FALSE);
+  if (HASH_TABLE_P (Vdbus_registered_objects_table))
+    {
+      ret = (!NILP (internal_catch (Qdbus_error, xd_get_dispatch_status,
+				    QCdbus_system_bus)));
+      if (ret) goto theend;
+
+      ret = ((getenv ("DBUS_SESSION_BUS_ADDRESS") != NULL) &&
+	     (!NILP (internal_catch (Qdbus_error, xd_get_dispatch_status,
+				     QCdbus_session_bus))));
+    }
+
+  /* Return.  */
+ theend:
+  xd_in_read_queued_messages = 0;
+  return ret;
 }
 
 /* Read queued incoming message of the D-Bus BUS.  BUS is a Lisp

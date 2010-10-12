@@ -401,6 +401,7 @@ The buffer should be narrowed to just the header."
   (let ((from (or (mail-fetch-field "from")
 		  (mail-fetch-field "really-from")
 		  (mail-fetch-field "sender")
+		  (mail-fetch-field "return-path")
 		  "unknown"))
 	(date (mail-fetch-field "date")))
     (format "From %s %s\n" (mail-strip-quoted-names from)
@@ -411,5 +412,4 @@ The buffer should be narrowed to just the header."
 
 (provide 'mail-utils)
 
-;; arch-tag: b24aec2f-fd65-4ceb-9e39-3cc2827036fd
 ;;; mail-utils.el ends here

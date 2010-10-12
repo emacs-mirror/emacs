@@ -1,12 +1,22 @@
+2010-10-10  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (Qleft): Declare.
+	(ns_right_alternate_modifier): New variable
+	(NSRightAlternateKeyMask): New define.
+	(EV_MODIFIERS): Parse NSRightAlternateKeyMask if
+	ns_right_alternate_modifier isn't Qleft.
+	(keyDown): If ns_right_alternate_modifier isn't Qleft, use it
+	as emacs modifier for NSRightAlternateKeyMask.
+	(syms_of_nsterm): DEFVAR_LISP ns-right-alternate-modifier.
+
+2010-10-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (xd_get_dispatch_status): Return a Lisp_Object.
+	(xd_pending_messages): Catch xd_get_dispatch_status calls.
+
 2010-10-08  Kenichi Handa  <handa@m17n.org>
 
-	* coding.c (complement_process_encoding_system): Fix previous
-	change.
-
-2010-10-04  Kenichi Handa  <handa@m17n.org>
-
-	* coding.c (complement_process_encoding_system): Fix previous
-	change.
+	* coding.c (complement_process_encoding_system): Fix previous change.
 
 2010-10-03  Michael Albinus  <michael.albinus@gmx.de>
 

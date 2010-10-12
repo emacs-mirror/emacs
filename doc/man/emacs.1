@@ -41,9 +41,9 @@ CTRL-h or F1 enters the Help facility.
 Help Tutorial (CTRL-h t) starts an interactive tutorial to quickly
 teach beginners the fundamentals of
 .I Emacs.
-Help Apropos (CTRL-h a) helps you find a command given its
-functionality, Help Key (CTRL-h k) describes a given key sequence, and
-Help Function (CTRL-h f) describes a given Lisp function.
+Help Apropos (CTRL-h a) helps you find a command with a name matching
+a given pattern, Help Key (CTRL-h k) describes a given key sequence,
+and Help Function (CTRL-h f) describes a given Lisp function.
 .PP
 .IR "GNU Emacs" 's
 many special packages handle mail reading (RMail) and sending (Mail),
@@ -531,12 +531,12 @@ is the number of color planes.
 .SH MANUALS
 You can order printed copies of the GNU Emacs Manual from the Free
 Software Foundation, which develops GNU software.
-See the file ORDERS for ordering information.
+See the online store at <http://shop.fsf.org/>.
 .br
-Your local Emacs maintainer might also have copies available.
+Your local administrator might also have copies available.
 As with all software and publications from FSF, everyone is permitted
 to make and distribute copies of the Emacs manual.
-The TeX source to the manual is also included in the Emacs source
+The Texinfo source to the manual is also included in the Emacs source
 distribution.
 .
 .
@@ -545,7 +545,8 @@ distribution.
 The complete text of the Emacs reference manual is included in a
 convenient tree structured form.
 Also includes the Emacs Lisp Reference Manual, useful to anyone
-wishing to write programs in the Emacs Lisp extension language.
+wishing to write programs in the Emacs Lisp extension language,
+and the Introduction to Programming in Emacs Lisp.
 
 /usr/local/share/emacs/$VERSION/lisp \(em Lisp source files and
 compiled files that define most editing commands.
@@ -572,9 +573,8 @@ There is a mailing list, bug-gnu-emacs@gnu.org, for reporting Emacs
 bugs and fixes.
 But before reporting something as a bug, please try to be sure that
 it really is a bug, not a misunderstanding or a deliberate feature.
-We ask you to read the section ``Reporting Emacs Bugs'' near the
-end of the reference manual (or Info system) for hints on how and
-when to report bugs.
+We ask you to read the section ``Reporting Bugs'' in the Emacs manual
+for hints on how and when to report bugs.
 Also, include the version number of the Emacs you are running in
 \fIevery\fR bug report that you send in.
 Bugs tend actually to be fixed if they can be isolated, so it is
@@ -596,10 +596,7 @@ file /usr/local/share/emacs/$VERSION/etc/MAILINGLISTS.
 .I Emacs
 is free; anyone may redistribute copies of
 .I Emacs
-to
-anyone under the terms stated in the
-.I Emacs
-General Public License,
+to anyone under the terms stated in the GNU General Public License,
 a copy of which accompanies each copy of
 .I Emacs
 and which also
@@ -611,7 +608,7 @@ may sometimes be received packaged with distributions of Unix systems,
 but it is never included in the scope of any license covering those
 systems.
 Such inclusion violates the terms on which distribution is permitted.
-In fact, the primary purpose of the General Public License is to
+In fact, the primary purpose of the GNU General Public License is to
 prohibit anyone from attaching any other restrictions to
 redistribution of
 .IR Emacs .
