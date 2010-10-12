@@ -344,7 +344,7 @@ Return a string with image data."
   (with-temp-buffer
     (mm-disable-multibyte)
     (when (ignore-errors
-	    (url-cache-extract (url-cache-create-filename url))
+	    (url-cache-extract (url-cache-create-filename (shr-encode-url url)))
 	    t)
       (when (or (search-forward "\n\n" nil t)
 		(search-forward "\r\n\r\n" nil t))
@@ -389,19 +389,40 @@ Return a string with image data."
     (put-text-property (or shr-start start) (point) 'keymap shr-map)
     (put-text-property (or shr-start start) (point) 'shr-url url)))
 
+(defun shr-encode-url (url)
+  "Encode URL."
+  (browse-url-url-encode-chars url "[)$ ]"))
+
 (defun shr-tag-img (cont)
   (when (and (> (current-column) 0)
 	     (not (eq shr-state 'image)))
     (insert "\n"))
-  (let ((start (point-marker)))
-    (let ((alt (cdr (assq :alt cont)))
-	  (url (cdr (assq :src cont))))
+  (let ((alt (cdr (assq :alt cont)))
+        (url (cdr (assq :src cont)))
+        (width (cdr (assq :width cont))))
+    ;; Only respect align if width specified.
+    (when width
+      ;; Check that width is not larger than max width, otherwise ignore
+      ;; align
+      (let ((max-width (* fill-column (frame-char-width)))
+            (width (string-to-number width)))
+        (when (< width max-width)
+          (let ((align (cdr (assq :align cont))))
+            (cond ((string= align "right")
+                   (insert (propertize
+                            " " 'display
+                            `(space . (:align-to ,(list (- max-width width)))))))
+                  ((string= align "center")
+                   (insert (propertize
+                            " " 'display
+                            `(space . (:balign-to ,(list (- (/ max-width 2) width))))))))))))
+    (let ((start (point-marker)))
       (when (zerop (length alt))
-	(setq alt "[img]"))
+        (setq alt "[img]"))
       (cond
        ((and (not shr-inhibit-images)
-	     (string-match "\\`cid:" url))
-	(let ((url (substring url (match-end 0)))
+             (string-match "\\`cid:" url))
+        (let ((url (substring url (match-end 0)))
 	      image)
 	  (if (or (not shr-content-function)
 		  (not (setq image (funcall shr-content-function url))))
@@ -415,12 +436,12 @@ Return a string with image data."
 	  (if (> (length alt) 8)
 	      (shr-insert (substring alt 0 8))
 	    (shr-insert alt))))
-       ((url-is-cached (browse-url-url-encode-chars url "[&)$ ]"))
+       ((url-is-cached (shr-encode-url url))
 	(shr-put-image (shr-get-image-data url) (point) alt))
        (t
 	(insert alt)
 	(ignore-errors
-	  (url-retrieve url 'shr-image-fetched
+	  (url-retrieve (shr-encode-url url) 'shr-image-fetched
 			(list (current-buffer) start (point-marker))
 			t))))
       (insert " ")

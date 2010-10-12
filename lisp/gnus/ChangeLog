@@ -1,4 +1,29 @@
+2010-10-12  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-gravatar.el (gnus-gravatar-too-ugly): Don't test if
+	gnus-article-x-face-too-ugly is bound.
+
 2010-10-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* rfc2231.el (rfc2231-parse-string): Ignore repeated parts.
+
+	* nnimap.el (nnimap-request-rename-group): Unselect by selecting a
+	mailbox that doesn't exist.
+
+2010-10-12  Julien Danjou  <julien@danjou.info>
+
+	* shr.el (shr-tag-img): Encode URL properly when retrieving.
+	(shr-get-image-data): Encode URL properly when fetching from cache.
+	(shr-tag-img): Use aligned-to spaces to align correctly images.
+
+	* gnus-gravatar.el (gnus-gravatar-insert): Check if buffer is alive
+	before inserting the Gravatar.
+
+	* shr.el (shr-tag-img): Add align attribute support for <img>.
+
+2010-10-12  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-gravatar.el (gnus-art): Required.
 
 	* gnus-sum.el (gnus-summary-mark-as-unread-forward)
 	(gnus-summary-mark-as-unread-backward, gnus-summary-mark-as-unread):

@@ -25,6 +25,7 @@
 ;;; Code:
 
 (require 'gravatar)
+(require 'gnus-art)
 
 (defgroup gnus-gravatar nil
   "Gnus Gravatar."
@@ -42,8 +43,7 @@
   :version "24.1"
   :group 'gnus-gravatar)
 
-(defcustom gnus-gravatar-too-ugly (if (boundp 'gnus-article-x-face-too-ugly)
-				      gnus-article-x-face-too-ugly)
+(defcustom gnus-gravatar-too-ugly gnus-article-x-face-too-ugly
   "Regexp matching posters whose avatar shouldn't be shown automatically."
   :type '(choice regexp (const nil))
   :version "24.1"
@@ -79,32 +79,34 @@
 Set image category to CATEGORY."
   (unless (eq gravatar 'error)
     (gnus-with-article-headers
-      (gnus-article-goto-header header)
-      (mail-header-narrow-to-field)
-      (let ((real-name (cdr address))
-            (mail-address (car address)))
-        (when (if real-name             ; have a realname, go for it!
-                  (and (search-forward real-name nil t)
-                       (search-backward real-name nil t))
-                (and (search-forward mail-address nil t)
-                     (search-backward mail-address nil t)))
-          (goto-char (1- (point)))
-          ;; If we're on the " quoting the name, go backward
-          (when (looking-at "[\"<]")
-            (goto-char (1- (point))))
-          ;; Do not do anything if there's already a gravatar. This can
-          ;; happens if the buffer has been regenerated in the mean time, for
-          ;; example we were fetching someaddress, and then we change to
-          ;; another mail with the same someaddress.
-          (unless (memq 'gnus-gravatar (text-properties-at (point)))
-            (let ((inhibit-read-only t)
-                  (point (point)))
-	      (unless (featurep 'xemacs)
-		(setq gravatar (append gravatar gnus-gravatar-properties)))
-              (gnus-put-image gravatar nil category)
-              (put-text-property point (point) 'gnus-gravatar address)
-              (gnus-add-wash-type category)
-              (gnus-add-image category gravatar))))))))
+      ;; The buffer can be gone at this time
+      (when (buffer-live-p (current-buffer))
+        (gnus-article-goto-header header)
+        (mail-header-narrow-to-field)
+        (let ((real-name (cdr address))
+              (mail-address (car address)))
+          (when (if real-name             ; have a realname, go for it!
+                    (and (search-forward real-name nil t)
+                         (search-backward real-name nil t))
+                  (and (search-forward mail-address nil t)
+                       (search-backward mail-address nil t)))
+            (goto-char (1- (point)))
+            ;; If we're on the " quoting the name, go backward
+            (when (looking-at "[\"<]")
+              (goto-char (1- (point))))
+            ;; Do not do anything if there's already a gravatar. This can
+            ;; happens if the buffer has been regenerated in the mean time, for
+            ;; example we were fetching someaddress, and then we change to
+            ;; another mail with the same someaddress.
+            (unless (memq 'gnus-gravatar (text-properties-at (point)))
+              (let ((inhibit-read-only t)
+                    (point (point)))
+                (unless (featurep 'xemacs)
+                  (setq gravatar (append gravatar gnus-gravatar-properties)))
+                (gnus-put-image gravatar nil category)
+                (put-text-property point (point) 'gnus-gravatar address)
+                (gnus-add-wash-type category)
+                (gnus-add-image category gravatar)))))))))
 
 ;;;###autoload
 (defun gnus-treat-from-gravatar ()
