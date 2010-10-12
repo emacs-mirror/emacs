@@ -279,21 +279,17 @@ then
   $EMACS -batch -f batch-byte-recompile-directory lisp leim
 fi
 
+## What is this file for?  It goes in srcdir, not the tarfile.
+## Why does it exclude term/ ?
 echo "Making lisp/MANIFEST"
 
-(cd lisp;
- files=`echo [!=]*.el | sed -e 's/ subdirs.el / /' -e 's/ default.el / /'`
- for dir in [!=]*; do
-  if [ -d $dir ] && [ $dir != term ]
-  then
-    echo $dir
-    thisdir=`echo $dir/[!=]*.el | sed -e 's/ subdirs.el / /'`
-    files="$files $thisdir"
-  fi
- done
- for file in $files
- do sed -n 's/^;;; //p; q' $file
- done | sort > MANIFEST)
+files=`find lisp -type f -name '*.el'`
+for file in $files; do
+   case "$file" in
+     */subdirs.el|*/default.el|*/loaddefs.el|*/term/*) continue ;;
+   esac
+   sed -n 's/^;;; //p; q' $file
+done | sort > lisp/MANIFEST
 
 echo "Creating staging directory: \`${tempparent}'"
 
@@ -319,6 +315,8 @@ ln ChangeLog Makefile.in configure configure.in ${tempdir}
 ln config.bat make-dist update-subdirs vpath.sed .dir-locals.el ${tempdir}
 ln mkinstalldirs config.sub config.guess install-sh ${tempdir}
 
+## FIXME why do we bother doing this? set-version in admin/admin.el
+## does this, and more besides.
 echo "Updating version number in README"
 (cd ${tempdir}
  awk \
@@ -448,7 +446,7 @@ echo "Making links to \`src/s'"
 
 echo "Making links to \`lib-src'"
 (cd lib-src
- ln [a-zA-Z]*.[chmy] ../${tempdir}/lib-src
+ ln [a-zA-Z]*.[ch] ../${tempdir}/lib-src
  ln ChangeLog Makefile.in README testfile vcdiff ../${tempdir}/lib-src
  ln grep-changelog rcs2log rcs-checkin ../${tempdir}/lib-src
  ln makefile.w32-in ../${tempdir}/lib-src
