@@ -1,5 +1,7 @@
 2010-10-12  Glenn Morris  <rgm@gnu.org>
 
+	* FOR-RELEASE: Merge into ../etc/TODO.
+
 	* DEV-NOTES: Move to ../admin/notes/nextstep.
 
 2010-05-07  Chong Yidong  <cyd@stupidchicken.com>
