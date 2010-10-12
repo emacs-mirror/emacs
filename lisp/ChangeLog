@@ -12059,6 +12059,12 @@
 	(tar-header-block-tokenize): Decode the username and groupname.
 	(tar-chown-entry, tar-chgrp-entry): Encode the names (bug#4730).
 
+2009-10-17  Eric Ludlam  <zappo@gnu.org>
+
+	* emacs-lisp/eieio-base.el (eieio-persistent-save): If buffer
+	contains multibyte characters, choose first applicable coding
+	system automatically.
+
 2009-10-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* international/mule-cmds.el (select-safe-coding-system): If the file
@@ -13005,6 +13011,10 @@
 	* term/w32-win.el (setup-default-fontset, set-fontset-font):
 	Remove unused declarations.
 
+2009-09-30  Eric Ludlam  <zappo@gnu.org>
+
+	* emacs-lisp/eieio.el (boolean-p): Delete.
+
 2009-09-30  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/authors.el (authors-ignored-files): Add "js2-mode.el".
@@ -13093,6 +13103,17 @@
 2009-09-28  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* net/tramp-imap.el: New package.
+
+2009-09-28  Eric Ludlam  <zappo@gnu.org>
+
+	* emacs-lisp/chart.el:
+	* emacs-lisp/eieio-base.el:
+	* emacs-lisp/eieio-comp.el:
+	* emacs-lisp/eieio-custom.el:
+	* emacs-lisp/eieio-datadebug.el:
+	* emacs-lisp/eieio-opt.el:
+	* emacs-lisp/eieio-speedbar.el:
+	* emacs-lisp/eieio.el: New files.
 
 2009-09-27  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 

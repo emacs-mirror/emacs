@@ -1082,10 +1082,6 @@
 	* semantic/idle.el (semantic-idle-tag-highlight):
 	Use semantic-idle-summary-highlight-face as the highlighting.
 
-	* emacs-lisp/eieio-base.el (eieio-persistent-save): If buffer
-	contains multibyte characters, choose first applicable coding
-	system automatically.
-
 	* ede/project-am.el (project-run-target): New method.
 	(project-run-target): New method.
 
@@ -1413,10 +1409,6 @@
 
 	* srecode/expandproto.el: Fix provide statement.
 
-2009-09-30  Eric Ludlam  <zappo@gnu.org>
-
-	* emacs-lisp/eieio.el (boolean-p): Delete.
-
 2009-09-30  Sascha Wilde  <wilde@sha-bang.de>
 
 	* ede/srecode.el: Fix provide statement.
@@ -1461,15 +1453,6 @@
 	* srecode/*.el: New files.
 
 2009-09-28  Eric Ludlam  <zappo@gnu.org>
-
-	* emacs-lisp/chart.el:
-	* emacs-lisp/eieio-base.el:
-	* emacs-lisp/eieio-comp.el:
-	* emacs-lisp/eieio-custom.el:
-	* emacs-lisp/eieio-datadebug.el:
-	* emacs-lisp/eieio-opt.el:
-	* emacs-lisp/eieio-speedbar.el:
-	* emacs-lisp/eieio.el: New files.
 
 	* cedet-cscope.el:
 	* cedet-files.el:
