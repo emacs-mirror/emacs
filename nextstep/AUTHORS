@@ -1,5 +1,5 @@
-In addition to the folks listed in ../AUTHORS responsible for GNU Emacs itself,
-the NeXTstep port owes to the following people:
+In addition to the folks listed in etc/AUTHORS responsible for GNU Emacs
+itself, the NeXTstep port owes to the following people:
 
 Carl Edman
     original author and maintainer, mainly UI
@@ -44,8 +44,7 @@ project for a period.
 Suggestions from Darcy Brockbank, Timothy Bissell, Scott Byer, David
 Griffiths, Scott Hess, Eberhard Mandler, John C. Randolph, and Bradley
 Taylor all helped things along at one point or another.  Axel Seibert
-<seiberta@@informatik.tu-muenchen.de> and Paul J. Sanchez
-<paul@@whimsy.umsl.edu> offered their time and machines to make a
+and Paul J. Sanchez offered their time and machines to make a
 binary release possible.
 
 We would also like to thank a number of people who kept up the
