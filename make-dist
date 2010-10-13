@@ -425,7 +425,7 @@ echo "Making links to \`msdos'"
 
 echo "Making links to \`nextstep'"
 (cd nextstep
- ln AUTHORS ChangeLog README INSTALL ../${tempdir}/nextstep)
+ ln ChangeLog README INSTALL ../${tempdir}/nextstep)
 
 echo "Making links to \`nextstep/Cocoa/Emacs.base/Contents'"
 (cd nextstep/Cocoa/Emacs.base/Contents

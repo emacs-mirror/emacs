@@ -1,3 +1,7 @@
+2010-10-13  Glenn Morris  <rgm@gnu.org>
+
+	* NEXTSTEP: New file, extracted from ../nextstep/{AUTHORS,README}.
+
 2010-10-12  Glenn Morris  <rgm@gnu.org>
 
 	* TODO: Merge ../nextstep/FOR-RELEASE into this file.

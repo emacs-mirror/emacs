@@ -1,6 +1,8 @@
 2010-10-13  Glenn Morris  <rgm@gnu.org>
 
 	* README: Remove information duplicated in AUTHORS.
+	Move historical information to new file ../etc/NEXTSTEP.
+	* AUTHORS: Merge into ./etc/NEXTSTEP and remove file.
 
 2010-10-12  Glenn Morris  <rgm@gnu.org>
 
