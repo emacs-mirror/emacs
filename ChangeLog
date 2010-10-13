@@ -1,3 +1,10 @@
+2010-10-13  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Remove --compress.  Check for the appropriate
+	gzip-like executable, and if not found, don't compress.
+	Check version number in README, don't change it.
+	Use find for nt/inc/*.h.
+
 2010-10-12  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure (ns_appdir, OLDXMENU, TOOLTIP_SUPPORT): Remove
