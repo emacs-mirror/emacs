@@ -1,3 +1,13 @@
+2010-10-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* auth.texi (GnuPG and EasyPG Assistant Configuration): Fix up the
+	@item syntax for in-Emacs makeinfo.
+
+2010-10-13  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth.texi (GnuPG and EasyPG Assistant Configuration): Fix syntax and
+	trim sentence.
+
 2010-10-12  Daiki Ueno  <ueno@unixuser.org>
 
 	* epa.texi (Caching Passphrases):

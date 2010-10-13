@@ -680,7 +680,7 @@ are supported for %s."
       ((string= fstring "%d")
        (setq dontinsert t)
        (if insert
-	   (list `(princ ,(car flist)))
+	   `(insert (int-to-string ,(car flist)))
 	 (list `(int-to-string ,(car flist)))))
       ;; Just lots of chars and strings.
       ((string-match "\\`\\(%[cs]\\)+\\'" fstring)

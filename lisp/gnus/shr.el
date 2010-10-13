@@ -219,8 +219,8 @@ redirects somewhere else."
 	(unless shr-start
 	  (setq shr-start (point)))
 	(insert elem)
-	(when (> (shr-current-column) shr-width)
-	  (if (not (search-backward " " (line-beginning-position) t))
+	(while (> (current-column) shr-width)
+	  (if (not (shr-find-fill-point))
 	      (insert "\n")
 	    (delete-char 1)
 	    (insert "\n")
@@ -235,22 +235,15 @@ redirects somewhere else."
 (defun shr-find-fill-point ()
   (let ((found nil))
     (while (and (not found)
-		(not (bolp)))
-      (when (or (eq (preceding-char) ? )
-		(aref fill-find-break-point-function-table (preceding-char)))
+		(> (current-column) shr-indentation))
+      (when (and (or (eq (preceding-char) ? )
+		     (aref fill-find-break-point-function-table
+			   (preceding-char)))
+		 (<= (current-column) shr-width))
 	(setq found (point)))
       (backward-char 1))
     (or found
 	(end-of-line))))
-
-(defun shr-current-column ()
-  (let ((column 0))
-    (save-excursion
-      (beginning-of-line)
-      (while (not (eolp))
-	(incf column (char-width (following-char)))
-	(forward-char 1)))
-    column))
 
 (defun shr-ensure-newline ()
   (unless (zerop (current-column))

@@ -1,3 +1,30 @@
+2010-10-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* shr.el (shr-find-fill-point): Don't inloop on indented text.
+
+	* nnimap.el (nnimap-open-connection): Fix open-tls-stream call.
+	(nnimap-parse-flags): Fix regexp.
+
+	* shr.el (shr-find-fill-point): Use a filling algorithm that should
+	probably work for CJVK text, too.
+
+	* nnimap.el (nnimap-extend-tls-programs): Removed.
+	(nnimap-open-connection): Bind STARTTLS to openssl explicitly.
+
+2010-10-13  Julien Danjou  <julien@danjou.info>
+
+	* nnimap.el (nnimap-parse-flags): Be more strict when looking for FETCH
+	responses.
+
+2010-10-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* mm-decode.el (mm-shr): Allow use from non-Gnus users.
+
+	* gnus-spec.el (gnus-parse-simple-format): princ doesn't really insert
+	anything in Emacs.
+
+	* shr.el (shr-current-column): Remove buggy and unnecessary function.
+
 2010-10-13  Julien Danjou  <julien@danjou.info>
 
 	* shr.el (shr-width): Make shr-width a defcustom with default to

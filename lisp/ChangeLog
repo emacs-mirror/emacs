@@ -1,3 +1,10 @@
+2010-10-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* net/tls.el (tls-program): Remove spurious %s from openssl.
+	(tls-starttls-switches): Remove starttls hack.
+	(open-tls-stream): Ditto.
+	(tls-find-starttls-argument): Ditto.
+
 2010-10-13  Juanma Barranquero  <lekktu@gmail.com>
 
 	* image.el (image-library-alist): Declare as obsolete alias.
