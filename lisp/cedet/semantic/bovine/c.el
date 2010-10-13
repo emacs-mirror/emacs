@@ -39,6 +39,7 @@
 (declare-function semantic-brute-find-tag-by-attribute "semantic/find")
 (declare-function semanticdb-minor-mode-p "semantic/db-mode")
 (declare-function semanticdb-needs-refresh-p "semantic/db")
+(declare-function semanticdb-typecache-faux-namespace "semantic/db-typecache")
 (declare-function c-forward-conditional "cc-cmds")
 (declare-function ede-system-include-path "ede")
 
@@ -158,7 +159,7 @@ part of the preprocessor map.")
 Each entry is a cons cell like this:
   ( \"KEYWORD\" . \"REPLACEMENT\" )
 Where KEYWORD is the macro that gets replaced in the lexical phase,
-and REPLACEMENT is a string that is inserted in it's place.  Empty string
+and REPLACEMENT is a string that is inserted in its place.  Empty string
 implies that the lexical analyzer will discard KEYWORD when it is encountered.
 
 Alternately, it can be of the form:
@@ -295,6 +296,7 @@ Moves completely over balanced #if blocks."
       (cond
        ((looking-at "^\\s-*#\\s-*if")
 	;; We found a nested if.  Skip it.
+	;; @TODO - can we use the new c-scan-conditionals
 	(c-forward-conditional 1))
        ((looking-at "^\\s-*#\\s-*elif")
 	;; We need to let the preprocessor analize this one.
@@ -348,7 +350,6 @@ Uses known macro tables in SPP to determine what block to skip."
 	  ;; (message "%s %s yes" ift sym)
 	  (beginning-of-line)
 	  (setq pt (point))
-	  ;;(c-forward-conditional 1)
 	  ;; This skips only a section of a conditional.  Once that section
 	  ;; is opened, encountering any new #else or related conditional
 	  ;; should be skipped.
@@ -356,8 +357,8 @@ Uses known macro tables in SPP to determine what block to skip."
 	  (setq semantic-lex-end-point (point))
 	  (semantic-push-parser-warning (format "Skip #%s %s" ift sym)
 					pt (point))
-;;	  (semantic-lex-push-token
-;;	   (semantic-lex-token 'c-preprocessor-skip pt (point)))
+	  ;;	  (semantic-lex-push-token
+	  ;;	   (semantic-lex-token 'c-preprocessor-skip pt (point)))
 	  nil)
       ;; Else, don't ignore it, but do handle the internals.
       ;;(message "%s %s no" ift sym)
@@ -703,58 +704,60 @@ the regular parser."
 	 (symtext (semantic-lex-token-text lexicaltoken))
 	 (macros (get-text-property 0 'macros symtext))
 	 )
-    (with-current-buffer buf
-      (erase-buffer)
-      (when (not (eq major-mode mode))
-	(save-match-data
+    (if (> semantic-c-parse-token-hack-depth 5)
+	nil
+      (with-current-buffer buf
+	(erase-buffer)
+	(when (not (eq major-mode mode))
+	  (save-match-data
 
-	  ;; Protect against user hooks throwing errors.
-	  (condition-case nil
-	      (funcall mode)
-	    (error
-	     (if (y-or-n-p
-		  (format "There was an error initializing %s in buffer \"%s\".  Debug your hooks? "
-			  mode (buffer-name)))
-		 (semantic-c-debug-mode-init mode)
-	       (message "Macro parsing state may be broken...")
-	       (sit-for 1))))
-	  ) ; save match data
+	    ;; Protect against user hooks throwing errors.
+	    (condition-case nil
+		(funcall mode)
+	      (error
+	       (if (y-or-n-p
+		    (format "There was an error initializing %s in buffer \"%s\".  Debug your hooks? "
+			    mode (buffer-name)))
+		   (semantic-c-debug-mode-init mode)
+		 (message "Macro parsing state may be broken...")
+		 (sit-for 1))))
+	    )				; save match data
 
-	;; Hack in mode-local
-	(activate-mode-local-bindings)
-	;; CHEATER!  The following 3 lines are from
-	;; `semantic-new-buffer-fcn', but we don't want to turn
-	;; on all the other annoying modes for this little task.
-	(setq semantic-new-buffer-fcn-was-run t)
-	(semantic-lex-init)
-	(semantic-clear-toplevel-cache)
-	(remove-hook 'semantic-lex-reset-hooks 'semantic-lex-spp-reset-hook
-		     t)
-	)
-      ;; Get the macro symbol table right.
-      (setq semantic-lex-spp-dynamic-macro-symbol-obarray spp-syms)
-      ;; (message "%S" macros)
-      (dolist (sym macros)
-	(semantic-lex-spp-symbol-set (car sym) (cdr sym)))
+	  ;; Hack in mode-local
+	  (activate-mode-local-bindings)
+	  ;; CHEATER!  The following 3 lines are from
+	  ;; `semantic-new-buffer-fcn', but we don't want to turn
+	  ;; on all the other annoying modes for this little task.
+	  (setq semantic-new-buffer-fcn-was-run t)
+	  (semantic-lex-init)
+	  (semantic-clear-toplevel-cache)
+	  (remove-hook 'semantic-lex-reset-hooks 'semantic-lex-spp-reset-hook
+		       t)
+	  )
+	;; Get the macro symbol table right.
+	(setq semantic-lex-spp-dynamic-macro-symbol-obarray spp-syms)
+	;; (message "%S" macros)
+	(dolist (sym macros)
+	  (semantic-lex-spp-symbol-set (car sym) (cdr sym)))
 
-      (insert symtext)
+	(insert symtext)
 
-      (setq stream
-	    (semantic-parse-region-default
-	     (point-min) (point-max) nonterminal depth returnonerror))
+	(setq stream
+	      (semantic-parse-region-default
+	       (point-min) (point-max) nonterminal depth returnonerror))
 
-      ;; Clean up macro symbols
-      (dolist (sym macros)
-	(semantic-lex-spp-symbol-remove (car sym)))
+	;; Clean up macro symbols
+	(dolist (sym macros)
+	  (semantic-lex-spp-symbol-remove (car sym)))
 
-      ;; Convert the text of the stream.
-      (dolist (tag stream)
-	;; Only do two levels here 'cause I'm lazy.
-	(semantic--tag-set-overlay tag (list start end))
-	(dolist (stag (semantic-tag-components-with-overlays tag))
-	  (semantic--tag-set-overlay stag (list start end))
-	  ))
-      )
+	;; Convert the text of the stream.
+	(dolist (tag stream)
+	  ;; Only do two levels here 'cause I'm lazy.
+	  (semantic--tag-set-overlay tag (list start end))
+	  (dolist (stag (semantic-tag-components-with-overlays tag))
+	    (semantic--tag-set-overlay stag (list start end))
+	    ))
+	))
     stream))
 
 (defvar semantic-c-debug-mode-init-last-mode nil
@@ -920,8 +923,34 @@ now.
 	 ;; of type "typedef".
 	 ;; Each elt of NAME is ( STARS NAME )
 	 (let ((vl nil)
-	       (names (semantic-tag-name tag)))
+	       (names (semantic-tag-name tag))
+	       (super (semantic-tag-get-attribute tag :superclasses))
+	       (addlast nil))
+
+	   (when (and (semantic-tag-of-type-p tag "typedef")
+		      (semantic-tag-of-class-p super 'type)
+		      (semantic-tag-type-members super))
+	     ;; This is a typedef of a real type.  Extract
+	     ;; the super class, and stick it into the tags list.
+	     (setq addlast super)
+
+	     ;; Clone super and remove the members IFF super has a name.
+	     ;; Note: anonymous struct/enums that are typedef'd shouldn't
+	     ;; exist in the top level type list, so they will appear only
+	     ;; in the :typedef slot of the typedef.
+	     (setq super (semantic-tag-clone super))
+	     (if (not (string= (semantic-tag-name super) ""))
+		 (semantic-tag-put-attribute super :members nil)
+	       (setq addlast nil))
+
+	     ;; Add in props to the full superclass.
+	     (when addlast
+	       (semantic--tag-copy-properties tag addlast)
+	       (semantic--tag-set-overlay addlast (semantic-tag-overlay tag)))
+	     )
+
 	   (while names
+
 	     (setq vl (cons (semantic-tag-new-type
 			     (nth 1 (car names)) ; name
 			     "typedef"
@@ -938,16 +967,18 @@ now.
 			     ;; is expanded out as.  Just the
 			     ;; name shows up as a parent of this
 			     ;; typedef.
-			     :typedef
-			     (semantic-tag-get-attribute tag :superclasses)
+			     :typedef super
 			     ;;(semantic-tag-type-superclasses tag)
 			     :documentation
 			     (semantic-tag-docstring tag))
 			    vl))
 	     (semantic--tag-copy-properties tag (car vl))
-	     (semantic--tag-set-overlay (car vl)
-					(semantic-tag-overlay tag))
+	     (semantic--tag-set-overlay (car vl) (semantic-tag-overlay tag))
 	     (setq names (cdr names)))
+
+	   ;; Add typedef superclass last.
+	   (when addlast (setq vl (cons addlast vl)))
+
 	   vl))
 	((and (listp (car tag))
 	      (semantic-tag-of-class-p (car tag) 'variable))
@@ -999,6 +1030,7 @@ Optional argument STAR and REF indicate the number of * and & in the typedef."
 					(car tokenpart)))
 			  (and (stringp (car (nth 2 tokenpart)))
 			       (string= (car (nth 2 tokenpart)) (car tokenpart)))
+			  (nth 10 tokenpart) ; initializers
 			  )
 		      (not (car (nth 3 tokenpart)))))
 		(fcnpointer (string-match "^\\*" (car tokenpart)))
@@ -1029,7 +1061,10 @@ Optional argument STAR and REF indicate the number of * and & in the typedef."
 			 (semantic-tag-new-type
 			  ;; name
 			  (or (car semantic-c-classname)
-			      (car (nth 2 tokenpart)))
+			      (let ((split (semantic-analyze-split-name-c-mode
+					    (car (nth 2 tokenpart)))))
+				(if (stringp split) split
+				  (car (last split)))))
 			  ;; type
 			  (or (cdr semantic-c-classname)
 			      "class")
@@ -1580,6 +1615,48 @@ DO NOT return the list of tags encompassing point."
     tagreturn
     ))
 
+(define-mode-local-override semantic-ctxt-imported-packages c++-mode (&optional point)
+  "Return the list of using tag types in scope of POINT."
+  (when point (goto-char (point)))
+  (let ((tagsaroundpoint (semantic-find-tag-by-overlay))
+	(namereturn nil)
+	(tmp nil)
+	)
+    ;; Collect using statements from the top level.
+    (setq tmp (semantic-find-tags-by-class 'using (current-buffer)))
+    (dolist (T tmp) (setq namereturn (cons (semantic-tag-type T) namereturn)))
+    ;; Move through the tags around point looking for more using statements
+    (while (cdr tagsaroundpoint)  ; don't search the last one
+      (setq tmp (semantic-find-tags-by-class 'using (semantic-tag-components (car tagsaroundpoint))))
+      (dolist (T tmp) (setq namereturn (cons (semantic-tag-type T) namereturn)))
+      (setq tagsaroundpoint (cdr tagsaroundpoint))
+      )
+    namereturn))
+
+(define-mode-local-override semanticdb-expand-nested-tag c++-mode (tag)
+  "Expand TAG if it has a fully qualified name.
+For types with a :parent, create faux namespaces to put TAG into."
+  (let ((p (semantic-tag-get-attribute tag :parent)))
+    (if (and p (semantic-tag-of-class-p tag 'type))
+	;; Expand the tag
+	(let ((s (semantic-analyze-split-name p))
+	      (newtag (semantic-tag-copy tag nil t)))
+	  ;; Erase the qualified name.
+	  (semantic-tag-put-attribute newtag :parent nil)
+	  ;; Fixup the namespace name
+	  (setq s (if (stringp s) (list s) (nreverse s)))
+	  ;; Loop over all the parents, creating the nested
+	  ;; namespace.
+	  (require 'semantic/db-typecache)
+	  (dolist (namespace s)
+	    (setq newtag (semanticdb-typecache-faux-namespace
+			  namespace (list newtag)))
+	    )
+	  ;; Return the last created namespace.
+	  newtag)
+      ;; Else, return tag unmodified.
+      tag)))
+
 (define-mode-local-override semantic-get-local-variables c++-mode ()
   "Do what `semantic-get-local-variables' does, plus add `this' if needed."
   (let* ((origvar (semantic-get-local-variables-default))
@@ -1759,7 +1836,9 @@ DO NOT return the list of tags encompassing point."
 	  (princ "\n")
 	  ))
 
-      (when (arrayp semantic-lex-spp-project-macro-symbol-obarray)
+      (when (and (boundp 'ede-object)
+		 ede-object
+		 (arrayp semantic-lex-spp-project-macro-symbol-obarray))
 	(princ "\n  Project symbol map:\n")
 	(princ "      Your project symbol map is derived from the EDE object:\n      ")
 	(princ (object-print ede-object))

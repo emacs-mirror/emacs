@@ -4193,7 +4193,7 @@ into account variable-width characters and line continuation."
     (or (and (= (vertical-motion
 		 (cons (or goal-column
 			   (if (consp temporary-goal-column)
-			       (truncate (car temporary-goal-column))
+			       (car temporary-goal-column)
 			     temporary-goal-column))
 		       arg))
 		arg)
@@ -4260,7 +4260,7 @@ into account variable-width characters and line continuation."
 		  (goto-char (next-char-property-change (point))))
 		;; Move a line.
 		;; We don't use `end-of-line', since we want to escape
-		;; from field boundaries ocurring exactly at point.
+		;; from field boundaries occurring exactly at point.
 		(goto-char (constrain-to-field
 			    (let ((inhibit-field-text-motion t))
 			      (line-end-position))

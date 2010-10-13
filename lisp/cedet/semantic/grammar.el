@@ -928,6 +928,12 @@ Lisp code."
         ;; If running interactively, eval declarations and epilogue
         ;; code, then pop to the buffer visiting the generated file.
         (eval-region (point) (point-max))
+	;; Loop over the defvars and eval them explicitly to force
+	;; them to be evaluated and ready to use.
+        (goto-char (point-min))
+	(while (re-search-forward "(defvar " nil t)
+	  (eval-defun nil))
+	;; Move cursor to a logical spot in the generated code.
         (goto-char (point-min))
         (pop-to-buffer (current-buffer))
         ;; The generated code has been evaluated and updated into
@@ -1513,7 +1519,7 @@ Return the tag found or nil if not found."
   (car (semantic-find-tags-by-class
         'function
         (or (semantic-find-tags-by-name name (current-buffer))
-            (and (featurep 'semanticdb)
+            (and (featurep 'semantic/db)
                  semanticdb-current-database
                  (cdar (semanticdb-find-tags-by-name name nil t)))))))
 

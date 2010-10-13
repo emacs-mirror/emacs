@@ -217,6 +217,14 @@ Adds a filename and copies the tags."
    (semanticdb-full-filename table)
    tags))
 
+(defun semanticdb-typecache-faux-namespace (name members)
+  "Create a new namespace tag with NAME and a set of MEMBERS.
+The new tag will be a faux tag, used as a placeholder in a typecache."
+  (let ((tag (semantic-tag-new-type name "namespace" members nil)))
+    ;; Make sure we mark this as a fake tag.
+    (semantic-tag-set-faux tag)
+    tag))
+
 (defun semanticdb-typecache-merge-streams (cache1 cache2)
   "Merge into CACHE1 and CACHE2 together.  The Caches will be merged in place."
   (if (or (and (not cache1) (not cache2))
@@ -256,23 +264,22 @@ Adds a filename and copies the tags."
 	    (setq ans (cons next ans))
 	  ;; ELSE - We have a NAME match.
 	  (setq type (semantic-tag-type next))
-	  (if (semantic-tag-of-type-p prev type) ; Are they the same datatype
+	  (if (or (semantic-tag-of-type-p prev type) ; Are they the same datatype
+		  (semantic-tag-faux-p prev)
+		  (semantic-tag-faux-p next) ; or either a faux tag?
+		  )
 	      ;; Same Class, we can do a merge.
 	      (cond
 	       ((and (semantic-tag-of-class-p next 'type)
 		     (string= type "namespace"))
 		;; Namespaces - merge the children together.
 		(setcar ans
-			(semantic-tag-new-type
+			(semanticdb-typecache-faux-namespace
 			 (semantic-tag-name prev) ; - they are the same
-			 "namespace"	; - we know this as fact
 			 (semanticdb-typecache-merge-streams
 			  (semanticdb-typecache-safe-tag-members prev)
 			  (semanticdb-typecache-safe-tag-members next))
-			 nil		; - no attributes
 			 ))
-		;; Make sure we mark this as a fake tag.
-		(semantic-tag-set-faux (car ans))
 		)
 	       ((semantic-tag-prototype-p next)
 		;; NEXT is a prototype... so keep previous.
@@ -299,6 +306,12 @@ Adds a filename and copies the tags."
 ;;; Refresh / Query API
 ;;
 ;; Queries that can be made for the typecache.
+(define-overloadable-function semanticdb-expand-nested-tag (tag)
+  "Expand TAG from fully qualified names.
+If TAG has fully qualified names, expand it to a series of nested
+namespaces instead."
+  tag)
+
 (defmethod semanticdb-typecache-file-tags ((table semanticdb-abstract-table))
   "No tags available from non-file based tables."
   nil)
@@ -313,10 +326,13 @@ all included files."
 
     ;; Make sure our file-tags list is up to date.
     (when (not (oref cache filestream))
-      (let ((tags  (semantic-find-tags-by-class 'type table)))
+      (let ((tags  (semantic-find-tags-by-class 'type table))
+	    (exptags nil))
 	(when tags
 	  (setq tags (semanticdb-typecache-safe-tag-list tags table))
-	  (oset cache filestream (semanticdb-typecache-merge-streams tags nil)))))
+	  (dolist (T tags)
+	    (push (semanticdb-expand-nested-tag T) exptags))
+	  (oset cache filestream (semanticdb-typecache-merge-streams exptags nil)))))
 
     ;; Return our cache.
     (oref cache filestream)
@@ -372,6 +388,7 @@ a master list."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;; Search Routines
+;;
 ;;;###autoload
 (define-overloadable-function semanticdb-typecache-find (type &optional path find-file-match)
   "Search the typecache for TYPE in PATH.
@@ -386,16 +403,20 @@ TYPE is the datatype to find.
 PATH is the search path, which should be one table object.
 If FIND-FILE-MATCH is non-nil, then force the file belonging to the
 found tag to be loaded."
-  (semanticdb-typecache-find-method (or path semanticdb-current-table)
-				    type find-file-match))
+  (if (not (and (featurep 'semantic/db) semanticdb-current-database))
+      nil ;; No DB, no search
+    (save-excursion
+      (semanticdb-typecache-find-method (or path semanticdb-current-table)
+					type find-file-match))))
 
 (defun semanticdb-typecache-find-by-name-helper (name table)
   "Find the tag with NAME in TABLE, which is from a typecache.
 If more than one tag has NAME in TABLE, we will prefer the tag that
 is of class 'type."
   (let* ((names (semantic-find-tags-by-name name table))
-	 (types (semantic-find-tags-by-class 'type names)))
-    (or (car-safe types) (car-safe names))))
+	 (nmerge (semanticdb-typecache-merge-streams names nil))
+	 (types (semantic-find-tags-by-class 'type nmerge)))
+    (or (car-safe types) (car-safe nmerge))))
 
 (defmethod semanticdb-typecache-find-method ((table semanticdb-abstract-table)
 					     type find-file-match)

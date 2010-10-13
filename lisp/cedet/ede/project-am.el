@@ -30,27 +30,19 @@
 ;; fashion.
 ;;
 ;; project-am uses the structure defined in all good GNU projects with
-;; the Automake file as it's base template, and then maintains that
+;; the Automake file as its base template, and then maintains that
 ;; information during edits, automatically updating the automake file
 ;; where appropriate.
-
-
-;; (eval-and-compile
-;;   ;; Compatibility for makefile mode.
-;;   (condition-case nil
-;;       (require 'makefile "make-mode")
-;;     (error (require 'make-mode "make-mode")))
-
-;;   ;; Requiring the .el files prevents incomplete builds.
-;;   (require 'eieio "eieio.el")
-;;   (require 'ede "ede.el"))
 
 (require 'make-mode)
 (require 'ede)
 (require 'ede/make)
 (require 'ede/makefile-edit)
+(require 'semantic/find) ;; for semantic-find-tags-by-...
+(require 'ede/autoconf-edit)
 
 (declare-function autoconf-parameters-for-macro "ede/autoconf-edit")
+(declare-function ede-shell-run-something "ede/shell")
 (eval-when-compile (require 'compile))
 
 ;;; Code:
@@ -104,7 +96,7 @@
     ;; ("ltlibcustom" project-am-lib ".*?_LTLIBRARIES" t)
     )
   "Alist of type names and the type of object to create for them.
-Each entry is of th form:
+Each entry is of the form:
   (EMACSNAME CLASS AUTOMAKEVAR INDIRECT)
 where EMACSNAME is a name for Emacs to use.
 CLASS is the EDE target class to represent the target.
@@ -112,6 +104,23 @@ AUTOMAKEVAR is the Automake variable to identify.  This cannot be a
    regular expression.
 INDIRECT is optional.  If it is non-nil, then the variable in
 question lists other variables that need to be looked up.")
+
+
+(defconst project-am-meta-type-alist
+  '((project-am-program "_PROGRAMS$" t)
+    (project-am-lib "_\\(LIBS\\|LIBRARIES\\|LTLIBRARIES\\)$" t)
+
+    ;; direct primary target use a dummy object (man target)
+    ;; update to: * 3.3 Uniform  in automake-1.11 info node.
+    (project-am-man "_\\(DATA\\|HEADERS\\|PYTHON\\|JAVA\\|SCRIPTS\\|MANS\\|TEXINFOS\\)$" nil)
+    )
+  "Alist of meta-target type, each entry has form:
+     (CLASS REGEXPVAR INDIRECT)
+where CLASS is the EDE target class for target.
+REGEXPVAR is the regexp used in `semantic-find-tags-by-name-regexp'.
+INDIRECT is optional. If it is non-nil, then the variable in it have
+other meta-variable based on this name.")
+
 
 (defclass project-am-target (ede-target)
   nil
@@ -291,16 +300,6 @@ buffer being in order to provide a smart default target type."
       ;; Rescan the object in this makefile.
       (project-rescan ede-object))))
 
-;(defun project-am-rescan-toplevel ()
-;  "Rescan all projects in which the current buffer resides."
-;  (interactive)
-;  (let* ((tlof (project-am-find-topmost-level default-directory))
-;	 (tlo (project-am-load tlof))
-;	 (ede-deep-rescan t))  ; scan deep in this case.
-;    ;; tlo is the top level object for whatever file we are in
-;    ;; or nil.  If we have an object, call the rescan method.
-;    (if tlo (project-am-rescan tlo))))
-
 ;;
 ;; NOTE TO SELF
 ;;
@@ -404,6 +403,7 @@ Argument COMMAND is the command to use for compiling the target."
 
 (defmethod project-run-target ((obj project-am-objectcode))
   "Run the current project target in comint buffer."
+  (require 'ede/shell)
   (let ((tb (get-buffer-create " *padt*"))
 	(dd (oref obj path))
 	(cmd nil))
@@ -427,45 +427,17 @@ Argument COMMAND is the command to use for compiling the target."
 
 ;;; Project loading and saving
 ;;
-(defun project-am-load (project &optional rootproj)
-  "Read an automakefile PROJECT into our data structure.
-Make sure that the tree down to our makefile is complete so that there
-is cohesion in the project.  Return the project file (or sub-project).
+(defun project-am-load (directory &optional rootproj)
+  "Read an automakefile DIRECTORY into our data structure.
 If a given set of projects has already been loaded, then do nothing
 but return the project for the directory given.
 Optional ROOTPROJ is the root EDE project."
-  ;; @TODO - rationalize this to the newer EDE way of doing things.
-  (setq project (expand-file-name project))
-  (let* ((ede-constructing t)
-	 (fn (project-am-find-topmost-level (file-name-as-directory project)))
-	 (amo nil)
-	 (trimmed (if (string-match (regexp-quote fn)
-				    project)
-		      (replace-match "" t t project)
-		    ""))
-	 (subdir nil))
-    (setq amo (object-assoc (expand-file-name "Makefile.am" fn)
-			    'file ede-projects))
-    (if amo
-	(error "Synchronous error in ede/project-am objects")
-      (let ((project-am-constructing t))
-	(setq amo (project-am-load-makefile fn))))
-    (if (not amo)
-	nil
-      ;; Now scan down from amo, and find the current directory
-      ;; from the PROJECT file.
-      (while (< 0 (length trimmed))
-	(if (string-match "\\([a-zA-Z0-9.-]+\\)/" trimmed)
-	    (setq subdir (match-string 0 trimmed)
-		  trimmed (replace-match "" t t trimmed))
-	  (error "Error scanning down path for project"))
-	(setq amo (project-am-subtree
-		   amo
-		   (expand-file-name "Makefile.am"
-				     (expand-file-name subdir fn)))
-	      fn (expand-file-name subdir fn)))
-      amo)
-    ))
+  (let* ((ede-constructiong t)
+	 (amo (object-assoc (expand-file-name "Makefile.am" directory)
+			    'file ede-projects)))
+    (when (not amo)
+      (setq amo (project-am-load-makefile directory)))
+    amo))
 
 (defun project-am-find-topmost-level (dir)
   "Find the topmost automakefile starting with DIR."
@@ -486,17 +458,19 @@ Kill the makefile if it was not loaded before the load."
 	  (fb nil)
 	  (kb (get-file-buffer fn)))
      (if (not (file-exists-p fn))
-	nil
-      (save-excursion
-	(if kb (setq fb kb)
-	  ;; We need to find-file this thing, but don't use
-	  ;; any semantic features.
-	  (let ((semantic-init-hook nil))
-	    (setq fb (find-file-noselect fn)))
-	  )
-	(set-buffer fb)
-	(prog1 ,@forms
-	  (if (not kb) (kill-buffer (current-buffer))))))))
+	 nil
+       (save-excursion
+	 (if kb (setq fb kb)
+	   ;; We need to find-file this thing, but don't use
+	   ;; any semantic features.
+	   (let ((semantic-init-hook nil)
+		 (recentf-exclude '( (lambda (f) t) ))
+		 )
+	     (setq fb (find-file-noselect fn)))
+	   )
+	 (set-buffer fb)
+	 (prog1 ,@forms
+	   (if (not kb) (kill-buffer (current-buffer))))))))
 (put 'project-am-with-makefile-current 'lisp-indent-function 1)
 
 (add-hook 'edebug-setup-hook
@@ -505,14 +479,18 @@ Kill the makefile if it was not loaded before the load."
 	      (form def-body))))
 
 
-(defun project-am-load-makefile (path)
+(defun project-am-load-makefile (path &optional suggestedname)
   "Convert PATH into a project Makefile, and return its project object.
-It does not check for existing project objects.  Use `project-am-load'."
+It does not check for existing project objects.  Use `project-am-load'.
+Optional argument SUGGESTEDNAME will be the project name.
+This is used when subprojects are made in named subdirectories."
   (project-am-with-makefile-current path
     (if (and ede-object (project-am-makefile-p ede-object))
 	ede-object
       (let* ((pi (project-am-package-info path))
-	     (pn (or (nth 0 pi) (project-am-last-dir fn)))
+	     (sfn (when suggestedname
+		    (project-am-last-dir suggestedname)))
+	     (pn (or sfn (nth 0 pi) (project-am-last-dir fn)))
 	     (ver (or (nth 1 pi) "0.0"))
 	     (bug (nth 2 pi))
 	     (cof (nth 3 pi))
@@ -530,21 +508,6 @@ It does not check for existing project objects.  Use `project-am-load'."
 	ampf))))
 
 ;;; Methods:
-(defmethod ede-find-target ((amf project-am-makefile) buffer)
-  "Fetch the target belonging to BUFFER."
-  (or (call-next-method)
-      (let ((targ (oref amf targets))
-	    (sobj (oref amf subproj))
-	    (obj nil))
-	(while (and targ (not obj))
-	  (if (ede-buffer-mine (car targ) buffer)
-	      (setq obj (car targ)))
-	  (setq targ (cdr targ)))
-	(while (and sobj (not obj))
-	  (setq obj (project-am-buffer-object (car sobj) buffer)
-		sobj (cdr sobj)))
-	obj)))
-
 (defmethod project-targets-for-file ((proj project-am-makefile))
   "Return a list of targets the project PROJ."
   (oref proj targets))
@@ -554,44 +517,110 @@ It does not check for existing project objects.  Use `project-am-load'."
 CURRPROJ is the current project being scanned.
 DIR is the directory to apply to new targets."
   (let* ((otargets (oref currproj targets))
+	 ;; `ntargets' results in complete targets list
+	 ;; not only the new targets by diffing.
 	 (ntargets nil)
 	 (tmp nil)
 	 )
-      (mapc
-       ;; Map all the different types
-       (lambda (typecar)
-	 (let ((macro (nth 2 typecar))
-	       (class (nth 1 typecar))
-	       (indirect (nth 3 typecar))
-	       ;(name (car typecar))
-	       )
-	   (if indirect
-	       ;; Map all the found objects
-	       (mapc (lambda (lstcar)
-		       (setq tmp (object-assoc lstcar 'name otargets))
-		       (when (not tmp)
-			 (setq tmp (apply class lstcar :name lstcar
-					  :path dir nil)))
-		       (project-rescan tmp)
-		       (setq ntargets (cons tmp ntargets)))
-		     (makefile-macro-file-list macro))
-	     ;; Non-indirect will have a target whos sources
-	     ;; are actual files, not names of other targets.
-	     (let ((files (makefile-macro-file-list macro)))
-	       (when files
-		 (setq tmp (object-assoc macro 'name otargets))
-		 (when (not tmp)
-		   (setq tmp (apply class macro :name macro
-				    :path dir nil)))
-		 (project-rescan tmp)
-		 (setq ntargets (cons tmp ntargets))
-		 ))
-	     )
-	   ))
-       project-am-type-alist)
-      ntargets))
 
-(defmethod project-rescan ((this project-am-makefile))
+    (mapc
+     ;; Map all the different types
+     (lambda (typecar)
+       (let ((macro (nth 2 typecar))
+	     (class (nth 1 typecar))
+	     (indirect (nth 3 typecar))
+	     )
+	 (if indirect
+	     ;; Map all the found objects
+	     (mapc (lambda (lstcar)
+		     (setq tmp (object-assoc lstcar 'name otargets))
+		     (when (not tmp)
+		       (setq tmp (apply class lstcar :name lstcar
+					:path dir nil)))
+		     (project-rescan tmp)
+		     (setq ntargets (cons tmp ntargets)))
+		   (makefile-macro-file-list macro))
+	   ;; Non-indirect will have a target whos sources
+	   ;; are actual files, not names of other targets.
+	   (let ((files (makefile-macro-file-list macro)))
+	     (when files
+	       (setq tmp (object-assoc macro 'name otargets))
+	       (when (not tmp)
+		 (setq tmp (apply class macro :name macro
+				  :path dir nil)))
+	       (project-rescan tmp)
+	       (setq ntargets (cons tmp ntargets))
+	       ))
+	   )
+	 ))
+     project-am-type-alist)
+
+    ;; At now check variables for meta-target regexp
+    ;; We have to check ntargets to avoid useless rescan.
+    ;; Also we have check otargets to prevent duplication.
+    (mapc
+     (lambda (typecar)
+       (let ((class (nth 0 typecar))
+	     (metaregex (nth 1 typecar))
+	     (indirect (nth 2 typecar)))
+	 (if indirect
+	     ;; Map all the found objects
+	     (mapc
+	      (lambda (lstcar)
+		(unless (object-assoc lstcar 'name ntargets)
+		  (or
+		   (setq tmp (object-assoc lstcar 'name otargets))
+		   (setq tmp (apply class lstcar :name lstcar
+				    :path dir nil)))
+		  (project-rescan tmp)
+		  (setq ntargets (cons tmp ntargets))))
+	      ;; build a target list to map over
+	      (let (atargets)
+		(dolist (TAG
+			 (semantic-find-tags-by-name-regexp
+			  metaregex (semantic-find-tags-by-class
+				     'variable (semantic-fetch-tags))))
+		  ;; default-value have to be a list
+		  (when (cadr (assoc ':default-value TAG))
+		    (setq atargets
+			  (append
+			   (nreverse (cadr (assoc ':default-value TAG)))
+			   atargets))))
+		(nreverse atargets)))
+
+	   ;; else not indirect, TODO: FIX various direct meta type in a sane way.
+	   (dolist (T (semantic-find-tags-by-name-regexp
+		       metaregex (semantic-find-tags-by-class
+				  'variable (semantic-fetch-tags))))
+	     (unless (setq tmp (object-assoc (car T) 'name ntargets))
+	       (or (setq tmp (object-assoc (car T) 'name otargets))
+		   ;; we are really new
+		   (setq tmp (apply class (car T) :name (car T)
+				    :path dir nil)))
+	       (project-rescan tmp)
+	       (setq ntargets (cons tmp ntargets))))
+	   )))
+     project-am-meta-type-alist)
+    ntargets))
+
+(defun project-am-expand-subdirlist (place subdirs)
+  "Store in PLACE the SUBDIRS expanded from variables.
+Strip out duplicates, and recurse on variables."
+  (mapc (lambda (sp)
+	  (let ((var (makefile-extract-varname-from-text sp)))
+	    (if var
+		;; If it is a variable, expand that variable, and keep going.
+		(project-am-expand-subdirlist
+		 place (makefile-macro-file-list var))
+	      ;; Else, add SP in if it isn't a dup.
+	      (if (member sp (symbol-value place))
+		  nil ; don't do it twice.
+		(set place (cons sp (symbol-value place))) ;; add
+		))))
+	subdirs)
+  )
+
+(defmethod project-rescan ((this project-am-makefile) &optional suggestedname)
   "Rescan the makefile for all targets and sub targets."
   (project-am-with-makefile-current (file-name-directory (oref this file))
     ;;(message "Scanning %s..." (oref this file))
@@ -601,10 +630,10 @@ DIR is the directory to apply to new targets."
 	   (bug (nth 2 pi))
 	   (cof (nth 3 pi))
 	   (osubproj (oref this subproj))
-	   (csubproj (or
-		      ;; If DIST_SUBDIRS doesn't exist, then go for the
-		      ;; static list of SUBDIRS.  The DIST version should
-		      ;; contain SUBDIRS plus extra stuff.
+	   ;; 1/30/10 - We need to append these two lists together,
+	   ;; then strip out duplicates.  Expanding this list (via
+	   ;; references to other variables should also strip out dups
+	   (csubproj (append
 		      (makefile-macro-file-list "DIST_SUBDIRS")
 		      (makefile-macro-file-list "SUBDIRS")))
 	   (csubprojexpanded nil)
@@ -615,79 +644,57 @@ DIR is the directory to apply to new targets."
 	   (tmp nil)
 	   (ntargets (project-am-scan-for-targets this dir))
 	   )
-
-      (and pn (string= (directory-file-name
-			(oref this directory))
-		       (directory-file-name
-			(project-am-find-topmost-level
-			 (oref this directory))))
-	   (oset this name pn)
-	   (and pv (oset this version pv))
-	   (and bug (oset this mailinglist bug))
-	   (oset this configureoutputfiles cof))
-
-;      ;; LISP is different.  Here there is only one kind of lisp (that I know of
-;      ;; anyway) so it doesn't get mapped when it is found.
-;      (if (makefile-move-to-macro "lisp_LISP")
-; 	  (let ((tmp (project-am-lisp "lisp"
-; 				      :name "lisp"
-; 				      :path dir)))
-; 	    (project-rescan tmp)
-; 	    (setq ntargets (cons tmp ntargets))))
-;
+      (if suggestedname
+	  (oset this name (project-am-last-dir suggestedname))
+	;; Else, setup toplevel project info.
+	(and pn (string= (directory-file-name
+			  (oref this directory))
+			 (directory-file-name
+			  (project-am-find-topmost-level
+			   (oref this directory))))
+	     (oset this name pn)
+	     (and pv (oset this version pv))
+	     (and bug (oset this mailinglist bug))
+	     (oset this configureoutputfiles cof)))
       ;; Now that we have this new list, chuck the old targets
       ;; and replace it with the new list of targets I just created.
       (oset this targets (nreverse ntargets))
       ;; We still have a list of targets.  For all buffers, make sure
       ;; their object still exists!
-
       ;; FIGURE THIS OUT
-
-      (mapc (lambda (sp)
- 	      (let ((var (makefile-extract-varname-from-text sp))
- 		    )
- 		(if (not var)
- 		    (setq csubprojexpanded (cons sp csubprojexpanded))
- 		  ;; If it is a variable, expand that variable, and keep going.
- 		  (let ((varexp (makefile-macro-file-list var)))
- 		    (dolist (V varexp)
- 		      (setq csubprojexpanded (cons V csubprojexpanded)))))
- 		))
- 	    csubproj)
-
+      (project-am-expand-subdirlist 'csubprojexpanded csubproj)
       ;; Ok, now lets look at all our sub-projects.
       (mapc (lambda (sp)
- 	      (let* ((subdir (file-name-as-directory
- 			      (expand-file-name
- 			       sp (file-name-directory (oref this :file)))))
- 		     (submake (expand-file-name
- 			       "Makefile.am"
- 			       subdir)))
- 		(if (string= submake (oref this :file))
- 		    nil	;; don't recurse.. please!
-
- 		  ;; For each project id found, see if we need to recycle,
- 		  ;; and if we do not, then make a new one.  Check the deep
- 		  ;; rescan value for behavior patterns.
- 		  (setq tmp (object-assoc
- 			     submake
- 			     'file osubproj))
- 		  (if (not tmp)
- 		      (setq tmp
- 			    (condition-case nil
- 				;; In case of problem, ignore it.
- 				(project-am-load-makefile subdir)
- 			      (error nil)))
- 		    ;; If we have tmp, then rescan it only if deep mode.
- 		    (if ede-deep-rescan
- 			(project-rescan tmp)))
- 		  ;; Tac tmp onto our list of things to keep, but only
- 		  ;; if tmp was found.
- 		  (when tmp
- 		    ;;(message "Adding %S" (object-print tmp))
- 		    (setq nsubproj (cons tmp nsubproj)))))
- 	      )
- 	    (nreverse csubprojexpanded))
+	      (let* ((subdir (file-name-as-directory
+			      (expand-file-name
+			       sp (file-name-directory (oref this :file)))))
+		     (submake (expand-file-name
+			       "Makefile.am"
+			       subdir)))
+		(if (string= submake (oref this :file))
+		    nil	;; don't recurse.. please!
+		  ;; For each project id found, see if we need to recycle,
+		  ;; and if we do not, then make a new one.  Check the deep
+		  ;; rescan value for behavior patterns.
+		  (setq tmp (object-assoc
+			     submake
+			     'file osubproj))
+		  (if (not tmp)
+		      (setq tmp
+			    (condition-case nil
+				;; In case of problem, ignore it.
+				(project-am-load-makefile subdir subdir)
+			      (error nil)))
+		    ;; If we have tmp, then rescan it only if deep mode.
+		    (if ede-deep-rescan
+			(project-rescan tmp subdir)))
+		  ;; Tac tmp onto our list of things to keep, but only
+		  ;; if tmp was found.
+		  (when tmp
+		    ;;(message "Adding %S" (object-print tmp))
+		    (setq nsubproj (cons tmp nsubproj)))))
+	      )
+	    (nreverse csubprojexpanded))
       (oset this subproj nsubproj)
       ;; All elements should be updated now.
       )))
@@ -696,12 +703,16 @@ DIR is the directory to apply to new targets."
 (defmethod project-rescan ((this project-am-program))
   "Rescan object THIS."
   (oset this :source (makefile-macro-file-list (project-am-macro this)))
+  (unless (oref this :source)
+    (oset this :source (list (concat (oref this :name) ".c"))))
   (oset this :ldadd (makefile-macro-file-list
 		     (concat (oref this :name) "_LDADD"))))
 
 (defmethod project-rescan ((this project-am-lib))
   "Rescan object THIS."
-  (oset this :source (makefile-macro-file-list (project-am-macro this))))
+  (oset this :source (makefile-macro-file-list (project-am-macro this)))
+  (unless (oref this :source)
+    (oset this :source (list (concat (file-name-sans-extension (oref this :name)) ".c")))))
 
 (defmethod project-rescan ((this project-am-texinfo))
   "Rescan object THIS."
@@ -726,19 +737,6 @@ DIR is the directory to apply to new targets."
 (defmethod project-rescan ((this project-am-extra-dist))
   "Rescan object THIS."
   (oset this :source (makefile-macro-file-list "EXTRA_DIST")))
-  ;; NOTE: The below calls 'file' then checks that it is some sort of
-  ;; text file.  The  file command may not be available on all platforms
-  ;; and some files may not exist yet.  (ie - auto-generated)
-
-  ;;(mapc
-  ;; (lambda (f)
-  ;;   ;; prevent garbage to be parsed, could we use :aux ?
-  ;;   (if (and (not (member f (oref this :source)))
-  ;;	      (string-match-p "ASCII\\|text"
-  ;;			      (shell-command-to-string
-  ;;			       (concat "file " f))))
-  ;;	 (oset this :source (cons f (oref this :source)))))
-  ;; (makefile-macro-file-list "EXTRA_DIST")))
 
 (defmethod project-am-macro ((this project-am-objectcode))
   "Return the default macro to 'edit' for this object type."
@@ -808,22 +806,24 @@ nil means that this buffer belongs to no-one."
 
 (defmethod ede-buffer-mine ((this project-am-objectcode) buffer)
   "Return t if object THIS lays claim to the file in BUFFER."
-  (member (file-name-nondirectory (buffer-file-name buffer))
+  (member (file-relative-name (buffer-file-name buffer) (oref this :path))
 	  (oref this :source)))
 
 (defmethod ede-buffer-mine ((this project-am-texinfo) buffer)
   "Return t if object THIS lays claim to the file in BUFFER."
-  (let ((bfn (buffer-file-name buffer)))
-    (or (string= (oref this :name)  (file-name-nondirectory bfn))
-	(member (file-name-nondirectory bfn) (oref this :include)))))
+  (let ((bfn (file-relative-name (buffer-file-name buffer)
+				 (oref this :path))))
+    (or (string= (oref this :name)  bfn)
+	(member bfn (oref this :include)))))
 
 (defmethod ede-buffer-mine ((this project-am-man) buffer)
   "Return t if object THIS lays claim to the file in BUFFER."
-  (string= (oref this :name) (buffer-file-name buffer)))
+  (string= (oref this :name)
+	   (file-relative-name (buffer-file-name buffer) (oref this :path))))
 
 (defmethod ede-buffer-mine ((this project-am-lisp) buffer)
   "Return t if object THIS lays claim to the file in BUFFER."
-  (member (file-name-nondirectory (buffer-file-name buffer))
+  (member (file-relative-name (buffer-file-name buffer) (oref this :path))
 	  (oref this :source)))
 
 (defmethod project-am-subtree ((ampf project-am-makefile) subdir)
@@ -954,7 +954,6 @@ Kill the Configure buffer if it was not already in a buffer."
     (cond
      ;; Try configure.in or configure.ac
      (conf-in
-      (require 'ede/autoconf-edit)
       (project-am-with-config-current conf-in
 	(let ((aci (autoconf-parameters-for-macro "AC_INIT"))
 	      (aia (autoconf-parameters-for-macro "AM_INIT_AUTOMAKE"))
@@ -980,7 +979,7 @@ Kill the Configure buffer if it was not already in a buffer."
 				(t acf))))
 	    (if (> (length outfiles) 1)
 		(setq configfiles outfiles)
-	      (setq configfiles (split-string (car outfiles) " " t)))
+	      (setq configfiles (split-string (car outfiles) "\\s-" t)))
 	    )
 	  ))
       )
@@ -1004,6 +1003,18 @@ Calculates the info with `project-am-extract-package-info'."
   (let ((top (ede-toplevel)))
     (when top (setq dir (oref top :directory)))
     (project-am-extract-package-info dir)))
+
+;; for simple per project include path extension
+(defmethod ede-system-include-path ((this project-am-makefile))
+  "Return `project-am-localvars-include-path', usually local variable
+per file or in .dir-locals.el or similar."
+  (bound-and-true-p project-am-localvars-include-path))
+
+(defmethod ede-system-include-path ((this project-am-target))
+  "Return `project-am-localvars-include-path', usually local variable
+per file or in .dir-locals.el or similar."
+  (bound-and-true-p project-am-localvars-include-path))
+
 
 (provide 'ede/project-am)
 

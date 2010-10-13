@@ -271,30 +271,37 @@ and `lazy-highlight-interval')."
   :group 'isearch
   :group 'matching)
 
+(define-obsolete-variable-alias 'isearch-lazy-highlight-cleanup
+                                'lazy-highlight-cleanup
+                                "22.1")
+
 (defcustom lazy-highlight-cleanup t
   "Controls whether to remove extra highlighting after a search.
 If this is nil, extra highlighting can be \"manually\" removed with
 \\[lazy-highlight-cleanup]."
   :type 'boolean
   :group 'lazy-highlight)
-(define-obsolete-variable-alias 'isearch-lazy-highlight-cleanup
-                                'lazy-highlight-cleanup
+
+(define-obsolete-variable-alias 'isearch-lazy-highlight-initial-delay
+                                'lazy-highlight-initial-delay
                                 "22.1")
 
 (defcustom lazy-highlight-initial-delay 0.25
   "Seconds to wait before beginning to lazily highlight all matches."
   :type 'number
   :group 'lazy-highlight)
-(define-obsolete-variable-alias 'isearch-lazy-highlight-initial-delay
-                                'lazy-highlight-initial-delay
+
+(define-obsolete-variable-alias 'isearch-lazy-highlight-interval
+                                'lazy-highlight-interval
                                 "22.1")
 
 (defcustom lazy-highlight-interval 0 ; 0.0625
   "Seconds between lazily highlighting successive matches."
   :type 'number
   :group 'lazy-highlight)
-(define-obsolete-variable-alias 'isearch-lazy-highlight-interval
-                                'lazy-highlight-interval
+
+(define-obsolete-variable-alias 'isearch-lazy-highlight-max-at-a-time
+                                'lazy-highlight-max-at-a-time
                                 "22.1")
 
 (defcustom lazy-highlight-max-at-a-time 20
@@ -305,9 +312,6 @@ A value of nil means highlight all matches."
   :type '(choice (const :tag "All" nil)
 		 (integer :tag "Some"))
   :group 'lazy-highlight)
-(define-obsolete-variable-alias 'isearch-lazy-highlight-max-at-a-time
-                                'lazy-highlight-max-at-a-time
-                                "22.1")
 
 (defface lazy-highlight
   '((((class color) (min-colors 88) (background light))
@@ -323,10 +327,10 @@ A value of nil means highlight all matches."
   :group 'lazy-highlight
   :group 'basic-faces)
 (define-obsolete-face-alias 'isearch-lazy-highlight-face 'lazy-highlight "22.1")
-(defvar lazy-highlight-face 'lazy-highlight)
 (define-obsolete-variable-alias 'isearch-lazy-highlight-face
                                 'lazy-highlight-face
                                 "22.1")
+(defvar lazy-highlight-face 'lazy-highlight)
 
 ;; Define isearch help map.
 

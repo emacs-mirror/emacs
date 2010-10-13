@@ -163,19 +163,6 @@ include at the beginning:
 @end example
 
 @noindent
-If you want to ensure that the new (Gillespie) version of @dfn{CL}
-is the one that is present, add an additional @code{(require 'cl-19)}
-call:
-
-@example
-(require 'cl)
-(require 'cl-19)
-@end example
-
-@noindent
-The second call will fail (with ``@file{cl-19.el} not found'') if
-the old @file{cl.el} package was in use.
-
 It is safe to arrange to load @dfn{CL} at all times, e.g.,
 in your @file{.emacs} file.  But it's a good idea, for portability,
 to @code{(require 'cl)} in your code even if you do this.
@@ -219,39 +206,26 @@ will take care of pulling in the other files when they are
 needed.
 
 There is another file, @file{cl-compat.el}, which defines some
-routines from the older @file{cl.el} package that are no longer
+routines from the older @file{cl.el} package that are not otherwise
 present in the new package.  This includes internal routines
 like @code{setelt} and @code{zip-lists}, deprecated features
 like @code{defkeyword}, and an emulation of the old-style
-multiple-values feature.  @xref{Old CL Compatibility}.
+multiple-values feature.  This file is obsolete and should not be used
+in new code.  @xref{Old CL Compatibility}.
 
 @node Installation, Naming Conventions, Organization, Overview
 @section Installation
 
 @noindent
-Installation of the @dfn{CL} package is simple:  Just put the
-byte-compiled files @file{cl.elc}, @file{cl-extra.elc},
-@file{cl-seq.elc}, @file{cl-macs.elc}, and @file{cl-compat.elc}
-into a directory on your @code{load-path}.
+The @dfn{CL} package is distributed with Emacs, so there is no need
+to install anything.
 
-There are no special requirements to compile this package:
-The files do not have to be loaded before they are compiled,
-nor do they need to be compiled in any particular order.
-
-You may choose to put the files into your main @file{lisp/}
-directory, replacing the original @file{cl.el} file there.  Or,
-you could put them into a directory that comes before @file{lisp/}
-on your @code{load-path} so that the old @file{cl.el} is
-effectively hidden.
-
-Also, format the @file{cl.texinfo} file and put the resulting
-Info files in the @file{info/} directory or another suitable place.
-
-You may instead wish to leave this package's components all in
-their own directory, and then add this directory to your
-@code{load-path} and @code{Info-directory-list}.
-Add the directory to the front of the list so the old @dfn{CL}
-package and its documentation are hidden.
+If you do need to install it, just put the byte-compiled files
+@file{cl.elc}, @file{cl-extra.elc}, @file{cl-seq.elc},
+@file{cl-macs.elc}, and (if necessary) @file{cl-compat.elc} into a
+directory on your @code{load-path}.  Also, format the @file{cl.texi}
+file and put the resulting Info files into a directory in your
+@code{Info-directory-list}.
 
 @node Naming Conventions,  , Installation, Overview
 @section Naming Conventions
@@ -5076,8 +5050,8 @@ Lisp.
 @noindent
 The @dfn{CL} package includes emulations of some features of the
 old @file{cl.el}, in the form of a compatibility package
-@code{cl-compat}.  To use it, put @code{(require 'cl-compat)} in
-your program.
+@code{cl-compat}.  This file is obsolete and may be removed in future,
+so it should not be used in new code.
 
 The old package defined a number of internal routines without
 @code{cl-} prefixes or other annotations.  Call to these routines

@@ -36,8 +36,8 @@
   ((menu :initform nil)
    (keybindings :initform nil)
    (phony :initform t)
-   (sourcetype :initform (ede-source-emacs))
-   (availablecompilers :initform (ede-emacs-compiler ede-xemacs-compiler))
+   (sourcetype :initform '(ede-source-emacs))
+   (availablecompilers :initform '(ede-emacs-compiler ede-xemacs-compiler))
    (aux-packages :initarg :aux-packages
 		 :initform nil
 		 :type list
@@ -259,7 +259,7 @@ is found, such as a `-version' variable, or the standard header."
 ;; Autoload generators
 ;;
 (defclass ede-proj-target-elisp-autoloads (ede-proj-target-elisp)
-  ((availablecompilers :initform (ede-emacs-cedet-autogen-compiler))
+  ((availablecompilers :initform '(ede-emacs-cedet-autogen-compiler))
    (aux-packages :initform ("cedet-autogen"))
    (phony :initform t)
    (autoload-file :initarg :autoload-file

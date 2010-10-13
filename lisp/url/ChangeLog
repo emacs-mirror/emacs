@@ -1,3 +1,19 @@
+2010-09-18  Glenn Morris  <rgm@gnu.org>
+
+	* url-cache.el (url-is-cached): Doc fix.
+
+2010-09-11  Julien Danjou  <julien@danjou.info>
+
+	* url-cache (url-store-in-cache): Make `buff' argument really optional.
+
+2010-09-09  Glenn Morris  <rgm@gnu.org>
+
+	* url-cookie.el (url-cookie-expired-p): Tweak previous change.
+
+2010-09-09  shawn boles  <shawn.boles@gmail.com>  (tiny change)
+
+	* url-cookie.el (url-cookie-expired-p): Simplify and fix.  (Bug#6957)
+
 2010-07-26  Michael Albinus  <michael.albinus@gmx.de>
 
 	* url-http (url-http-parse-headers): Disable file name handlers at

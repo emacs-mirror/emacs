@@ -72,6 +72,12 @@ SCOPE is the scope of the search, such as 'project or 'subdirs."
 	)
     (cedet-cscope-call (list "-d" "-L" idx searchtext))))
 
+(defun cedet-cscope-create (flags)
+  "Create a CScope database at the current directory.
+FLAGS are additional flags to pass to cscope beyond the
+options -cR."
+  (cedet-cscope-call (append (list "-cR") flags)))
+
 (defun cedet-cscope-call (flags)
   "Call CScope with the list of FLAGS."
   (let ((b (get-buffer-create "*CEDET CScope*"))
@@ -112,13 +118,19 @@ Return a fully qualified filename."
 If DIR is not supplied, use the current default directory.
 This works by running cscope on a bogus symbol, and looking for
 the error code."
+  (interactive "DDirectory: ")
   (save-excursion
     (let ((default-directory (or dir default-directory)))
       (set-buffer (cedet-cscope-call (list "-d" "-L" "-7" "moose")))
       (goto-char (point-min))
-      (if (looking-at "[^ \n]*cscope: ")
-	  nil
-	t))))
+      (let ((ans (looking-at "[^ \n]*cscope: ")))
+	(if (called-interactively-p 'interactive)
+	    (if ans
+		(message "No support for CScope in %s" default-directory)
+	      (message "CScope is supported in %s" default-directory))
+	  (if ans
+	      nil
+	    t))))))
 
 (defun cedet-cscope-version-check (&optional noerror)
   "Check the version of the installed CScope command.
@@ -149,6 +161,14 @@ return nil."
 	  (when (called-interactively-p 'interactive)
 	    (message "CScope %s  - Good enough for CEDET." rev))
 	  t)))))
+
+(defun cedet-cscope-create/update-database (&optional dir)
+  "Create a CScope database in DIR.
+CScope will automatically choose incremental rebuild if
+there is already a database in DIR."
+  (interactive "DDirectory: ")
+  (let ((default-directory dir))
+    (cedet-cscope-create nil)))
 
 (provide 'cedet-cscope)
 

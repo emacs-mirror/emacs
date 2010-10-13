@@ -245,7 +245,7 @@ If DB is not specified, then use the current database."
 	   ;; @todo - It should ask if we are not called from a hook.
 	   ;;         How?
 	   (if (or supress-questions
-		   (y-or-n-p (format "Skip Error: %S ?" (car (cdr foo)))))
+		   (y-or-n-p (format "Skip Error: %s ?" (car (cdr foo)))))
 	       (message "Save Error: %S: %s" (car (cdr foo))
 			objname)
 	     (error "%S" (car (cdr foo))))))))

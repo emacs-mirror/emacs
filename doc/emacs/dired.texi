@@ -75,13 +75,12 @@ a directory name.
 
   The variable @code{dired-listing-switches} specifies the options to
 give to @code{ls} for listing the directory; this string @emph{must}
-contain @samp{-l}.  If you use a numeric prefix argument with the
-@code{dired} command, you can specify the @code{ls} switches with the
-minibuffer before you enter the directory specification.  No matter
-how they are specified, the @code{ls} switches can include short
-options (that is, single characters) requiring no arguments, and long
-options (starting with @samp{--}) whose arguments are specified with
-@samp{=}.
+contain @samp{-l}.  If you use a prefix argument with the @code{dired}
+command, you can specify the @code{ls} switches with the minibuffer
+before you enter the directory specification.  No matter how they are
+specified, the @code{ls} switches can include short options (that is,
+single characters) requiring no arguments, and long options (starting
+with @samp{--}) whose arguments are specified with @samp{=}.
 
   On MS-Windows and MS-DOS systems, Emacs @emph{emulates} @code{ls};
 see @ref{ls in Lisp}, for options and peculiarities of that emulation.

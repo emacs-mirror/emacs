@@ -1,3 +1,11 @@
+2010-10-12  Glenn Morris  <rgm@gnu.org>
+
+	* BUGS, INSTALL.BZR, README: Updates.
+
+2010-10-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* make-dist: Don't distribute src/buildobj.h.  (Bug#7167)
+
 2010-06-23  Glenn Morris  <rgm@gnu.org>
 
 	* info/dir: Start descriptions in column 32, per Texinfo convention.

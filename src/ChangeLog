@@ -1,3 +1,146 @@
+2010-10-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* font.c (Ffont_variation_glyphs):
+	* ccl.c (Fccl_execute_on_string): Fix typo in docstring.
+
+2010-10-10  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* nsterm.m (Qleft): Declare.
+	(ns_right_alternate_modifier): New variable
+	(NSRightAlternateKeyMask): New define.
+	(EV_MODIFIERS): Parse NSRightAlternateKeyMask if
+	ns_right_alternate_modifier isn't Qleft.
+	(keyDown): If ns_right_alternate_modifier isn't Qleft, use it
+	as emacs modifier for NSRightAlternateKeyMask.
+	(syms_of_nsterm): DEFVAR_LISP ns-right-alternate-modifier.
+
+2010-10-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (xd_get_dispatch_status): Return a Lisp_Object.
+	(xd_pending_messages): Catch xd_get_dispatch_status calls.
+
+2010-10-08  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (complement_process_encoding_system): Fix previous change.
+
+2010-10-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (syms_of_dbusbind): Move putenv call ...
+	(Fdbus_init_bus): ... here.  (Bug#7113)
+
+2010-10-03  Glenn Morris  <rgm@gnu.org>
+
+	* buffer.c (before-change-functions, after-change-functions):
+	Three-year overdue doc fix following 2007-08-13 change.
+
+2010-10-02  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (coding_inherit_eol_type): If parent doesn't specify
+	eol-format, inherit from the system's default.
+	(complement_process_encoding_system): Make a new coding system
+	inherit the original eol-format.
+
+2010-09-30  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (complement_process_encoding_system): New function.
+
+	* coding.h (complement_process_encoding_system): Extern it.
+
+	* callproc.c (Fcall_process): Complement the coding system for
+	encoding arguments.
+	(Fcall_process_region): Complement the coding system for encoding
+	the input to the process.
+
+	* process.c (Fstart_process): Complement the coding system for
+	encoding arguments.
+	(send_process): Complement the coding system for encoding what
+	sent to the process.
+
+2010-09-29  Kenichi Handa  <handa@m17n.org>
+
+	* xfont.c (xfont_open): Fix setting of font->average_width from
+	:avgwidth property (Bug#7123).
+
+2010-09-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (syms_of_dbusbind): Use putenv instead of setenv, it
+	is more portable.
+
+	* keyboard.c (gobble_input): Move call of xd_read_queued_messages ...
+	(kbd_buffer_get_event): ... here. This is needed for cygwin, which
+	has not defined SIGIO.
+
+2010-09-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (syms_of_dbusbind): Set $DBUS_FATAL_WARNINGS to "0".
+	(Bug#7113)
+
+2010-09-26  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xgselect.c (xg_select): Clear file descriptors not set from
+	rfds and wfds.
+
+2010-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* syntax.c (back_comment): Detect the case where a 1-char comment
+	starter is also the 2nd char of a 2-char comment ender.
+
+2010-09-17  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_tool_bar_menu_proxy): Set gtk-menu-items to TRUE.
+
+2010-09-12  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (get_current_vm_state): New function.
+	(do_ewmh_fullscreen): Call get_current_vm_state and compare with
+	want_fullscreen so set_wm_state calls are few (Bug#7013).
+	(x_handle_net_wm_state): Move code to get_current_vm_state and
+	call that function.
+
+2010-09-11  Courtney Bane  <emacs-bugs-7626@cbane.org>  (tiny change)
+
+	* term.c (tty_set_terminal_modes): Don't initialize twice (bug#7002).
+
+2010-09-08  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (encode_coding_iso_2022): Don't optimize for ASCII if
+	we may use designation or locking-shift.
+
+2010-09-07  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (detect_coding_emacs_mule): Fix checking of multibyte
+	sequence when the source is multibyte.
+
+2010-08-31  Kenichi Handa  <handa@m17n.org>
+
+	* dispextern.h (FACE_FOR_CHAR): Use an ASCII face for 8-bit
+	characters.
+
+	* term.c (encode_terminal_code): Fix the previous change.
+	(produce_glyphs): Don't set it->char_to_display here.
+	Don't handle unibyte-display-via-language-environment here.
+	(produce_special_glyphs): Set temp_it.char_to_display before
+	calling produce_glyphs.
+
+	* xdisp.c (get_next_display_element): Set it->char_to_display
+	here.  Convert all 8-bit bytes from unibyte buffer/string to 8-bit
+	characters.
+	(get_overlay_arrow_glyph_row): Set it.char_to_display too before
+	calling PRODUCE_GLYPHS.
+	(append_space_for_newline): Save and store it->char_to_display.
+	Set it->char_to_display before calling PRODUCE_GLYPHS.
+	(extend_face_to_end_of_line): Set it->char_to_display before
+	calling PRODUCE_GLYPHS.
+	(get_glyph_face_and_encoding): Set the glyph code an 8-bit
+	character to its byte value.
+	(get_char_glyph_code): New function.
+	(produce_stretch_glyph): Set it2.char_to_display too before
+	calling x_produce_glyphs.
+	(x_produce_glyphs): Simplify by using the same code for ASCII and
+	non-ASCII characters.  Don't set it->char_to_display here.
+	Don't handle unibyte-display-via-language-environment here.  For a
+	character of no glyph, use font->space_width instead of FONT_WIDTH.
+
 2010-08-29  Kenichi Handa  <handa@m17n.org>
 
 	* term.c (encode_terminal_code): Encode byte chars to the
@@ -24,8 +167,8 @@
 
 2010-08-09  Peter O'Gorman <pogma@thewrittenword.com>  (tiny change)
 
-	* s/hpux10-20.h (HAVE_TERMIOS, NO_TERMIO, ORDINARY_LINK): New
-	definitions.
+	* s/hpux10-20.h (HAVE_TERMIOS, NO_TERMIO, ORDINARY_LINK):
+	New definitions.
 	(HAVE_TERMIO): Remove.
 
 2010-08-06  Kenichi Handa  <handa@m17n.org>
@@ -33,7 +176,7 @@
 	* charset.c: Include <stdlib.h>
 	(struct charset_sort_data): New struct.
 	(charset_compare): New function.
-	(Fsort_charsets): New funciton.
+	(Fsort_charsets): New function.
 	(syms_of_charset): Declare Fsort_charsets as a Lisp function.
 
 	* coding.c (decode_coding_iso_2022): Fix checking of dimension
@@ -261,16 +404,16 @@
 
 	* ftfont.c (M17N_FLT_USE_NEW_FEATURE): Define it if we can use the
 	new feature of libotf and m17n-flt.
-	(ftfont_check_otf) [M17N_FLT_USE_NEW_FEATURE]: Call
-	OTF_check_features even if no specific feature is given.
+	(ftfont_check_otf) [M17N_FLT_USE_NEW_FEATURE]:
+	Call OTF_check_features even if no specific feature is given.
 	(PACK_OTF_TAG) [M17N_FLT_USE_NEW_FEATURE]: New macro.
 	(ftfont_drive_otf) [M17N_FLT_USE_NEW_FEATURE]: Handle the case
 	that OUT is NULL.  Use OTF_drive_gsub_with_log and
 	OTF_drive_gpos_with_log instead of OTF_drive_gsub and
 	OTF_drive_gpos.
 	(ftfont_try_otf) [M17N_FLT_USE_NEW_FEATURE]: New function.
-	(ftfont_shape_by_flt) [M17N_FLT_USE_NEW_FEATURE]: Setup
-	mflt_enable_new_feature and mflt_try_otf.
+	(ftfont_shape_by_flt) [M17N_FLT_USE_NEW_FEATURE]:
+	Setup mflt_enable_new_feature and mflt_try_otf.
 
 2010-04-19  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -13734,7 +13877,7 @@
 	(Ffont_shape_text): New function.
 	(Fopen_font): If the font size is not given, use 12-pixel.
 	(Ffont_at): New arg STRING.
-	(syms_of_font): Initalize font_charset_alist.
+	(syms_of_font): Initialize font_charset_alist.
 	Declare Ffont_shape_text as a Lisp function.  Call syms_of_XXfont
 	conditionally.
 
@@ -14731,7 +14874,7 @@
 
 	* font.c (font_unparse_fcname): Fix typo (swidth->width).
 	(font_list_entities): Check driver_list->on.
-	(register_font_driver): Initalize `on' member to 0.
+	(register_font_driver): Initialize `on' member to 0.
 	(font_update_drivers): New function.
 	(Fclear_font_cache): Check driver_list->on.
 

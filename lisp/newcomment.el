@@ -318,7 +318,8 @@ the variables are properly set."
 		   "+\\)[ \t]*")))
     (unless (and comment-end-skip
 		 ;; In case comment-end has changed since last time.
-		 (string-match comment-end-skip comment-end))
+		 (string-match comment-end-skip
+                               (if (string= "" comment-end) "\n" comment-end)))
       (let ((ce (if (string= "" comment-end) "\n"
 		  (comment-string-strip comment-end t t))))
 	(set (make-local-variable 'comment-end-skip)

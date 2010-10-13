@@ -1,3 +1,27 @@
+2010-09-14  Glenn Morris  <rgm@gnu.org>
+
+	* cal-xtra.texi (Fancy Diary Display): Emphasize that sort should be
+	the last hook item.
+
+	* calendar.texi (Appointments): Also updated when a diary include file
+	is saved.
+
+2010-09-12  Glenn Morris  <rgm@gnu.org>
+
+	* trouble.texi (Bugs): Update the section intro.
+	(Known Problems): New section.
+	(Checklist): Misc updates.  Prefer M-x report-emacs-bug.
+	(Sending Patches): Bug fixes are best as responses to existing bugs.
+	* emacs.texi (Known Problems): Add menu entry for new section.
+
+2010-09-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* dired.texi (Dired Enter): Minor doc fix (Bug#6982).
+
+2010-09-02  Glenn Morris  <rgm@gnu.org>
+
+	* misc.texi (Saving Emacs Sessions): Mention desktop-path.  (Bug#6948)
+
 2010-08-21  Glenn Morris  <rgm@gnu.org>
 
 	* misc.texi (Amusements): Mention bubbles and animate.
@@ -123,7 +147,7 @@
 
 	* custom.texi (Init Examples): Add xref to Mail Header.
 
-	* emacs.texi (Top):  Fix xrefs.
+	* emacs.texi (Top): Fix xrefs.
 
 2010-03-25  Chong Yidong  <cyd@stupidchicken.com>
 

@@ -1,3 +1,7 @@
+2010-09-05  Alexander Klimov  <alserkli@inbox.ru>  (tiny change)
+
+	* files.texi (Directory Names): Use \` rather than ^.
+
 2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* modes.texi (Defining Minor Modes): Doc fix (Bug#6880).
@@ -2320,6 +2324,12 @@
 2007-08-25  Richard Stallman  <rms@gnu.org>
 
 	* display.texi (Images): Delete redundant @findex.
+
+2007-08-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* text.texi (Change Hooks): (after|before)-change-functions are no
+	longer bound to nil while running; rather inhibit-modification-hooks
+	is t.
 
 2007-08-16  Richard Stallman  <rms@gnu.org>
 

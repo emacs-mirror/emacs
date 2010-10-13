@@ -460,7 +460,7 @@ echo "Making links to \`src'"
  ln makefile.w32-in ../${tempdir}/src
  ln .gdbinit .dbxinit ../${tempdir}/src
  cd ../${tempdir}/src
- rm -f config.h epaths.h Makefile Makefile.c
+ rm -f config.h epaths.h Makefile Makefile.c buildobj.h
  rm -f =* TAGS)
 
 echo "Making links to \`src/bitmaps'"

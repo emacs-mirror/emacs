@@ -939,6 +939,13 @@ minor mode is enabled."
   "List of tag classes which stickyfunc will display in the header line.")
 (make-variable-buffer-local 'semantic-stickyfunc-sticky-classes)
 
+(defcustom semantic-stickyfunc-show-only-functions-p nil
+  "Non-nil means don't show lines that aren't part of a tag.
+If this is nil, then comments or other text between tags that is
+1 line above the top of the current window will be shown."
+  :group 'semantic
+  :type 'boolean)
+
 (defun semantic-stickyfunc-tag-to-stick ()
   "Return the tag to stick at the current point."
   (let ((tags (nreverse (semantic-find-tag-by-overlay (point)))))
@@ -955,45 +962,51 @@ minor mode is enabled."
   "Make the function at the top of the current window sticky.
 Capture its function declaration, and place it in the header line.
 If there is no function, disable the header line."
-  (let ((str
-	 (save-excursion
-	   (goto-char (window-start (selected-window)))
-	   (forward-line -1)
-	   (end-of-line)
-	   ;; Capture this function
-	   (let* ((tag (semantic-stickyfunc-tag-to-stick)))
-	     ;; TAG is nil if there was nothing of the appropriate type there.
-	     (if (not tag)
-		 ;; Set it to be the text under the header line
-		 (buffer-substring (point-at-bol) (point-at-eol))
-	       ;; Get it
-	       (goto-char (semantic-tag-start tag))
-               ;; Klaus Berndl <klaus.berndl@sdm.de>:
-               ;; goto the tag name; this is especially needed for languages
-               ;; like c++ where a often used style is like:
-               ;;     void
-               ;;     ClassX::methodM(arg1...)
-               ;;     {
-               ;;       ...
-               ;;     }
-               ;; Without going to the tag-name we would get"void" in the
-               ;; header line which is IMHO not really useful
-               (search-forward (semantic-tag-name tag) nil t)
-	       (buffer-substring (point-at-bol) (point-at-eol))
-	       ))))
-	(start 0))
-    (while (string-match "%" str start)
-      (setq str (replace-match "%%" t t str 0)
-	    start (1+ (match-end 0)))
-      )
-    ;; In 21.4 (or 22.1) the heder doesn't expand tabs.  Hmmmm.
-    ;; We should replace them here.
-    ;;
-    ;; This hack assumes that tabs are kept smartly at tab boundaries
-    ;; instead of in a tab boundary where it might only represent 4 spaces.
-    (while (string-match "\t" str start)
-      (setq str (replace-match "        " t t str 0)))
-    str))
+  (save-excursion
+    (goto-char (window-start (selected-window)))
+    (let* ((noshow (bobp))
+	   (str
+	    (progn
+	      (forward-line -1)
+	      (end-of-line)
+	      ;; Capture this function
+	      (let* ((tag (semantic-stickyfunc-tag-to-stick)))
+		;; TAG is nil if there was nothing of the appropriate type there.
+		(if (not tag)
+		    ;; Set it to be the text under the header line
+		    (if noshow
+			""
+		      (if semantic-stickyfunc-show-only-functions-p ""
+			(buffer-substring (point-at-bol) (point-at-eol))
+			))
+		  ;; Go get the first line of this tag.
+		  (goto-char (semantic-tag-start tag))
+		  ;; Klaus Berndl <klaus.berndl@sdm.de>:
+		  ;; goto the tag name; this is especially needed for languages
+		  ;; like c++ where a often used style is like:
+		  ;;     void
+		  ;;     ClassX::methodM(arg1...)
+		  ;;     {
+		  ;;       ...
+		  ;;     }
+		  ;; Without going to the tag-name we would get"void" in the
+		  ;; header line which is IMHO not really useful
+		  (search-forward (semantic-tag-name tag) nil t)
+		  (buffer-substring (point-at-bol) (point-at-eol))
+		  ))))
+	   (start 0))
+      (while (string-match "%" str start)
+	(setq str (replace-match "%%" t t str 0)
+	      start (1+ (match-end 0)))
+	)
+      ;; In 21.4 (or 22.1) the header doesn't expand tabs.  Hmmmm.
+      ;; We should replace them here.
+      ;;
+      ;; This hack assumes that tabs are kept smartly at tab boundaries
+      ;; instead of in a tab boundary where it might only represent 4 spaces.
+      (while (string-match "\t" str start)
+	(setq str (replace-match "        " t t str 0)))
+      str)))
 
 (defun semantic-stickyfunc-menu (event)
   "Popup a menu that can help a user understand stickyfunc-mode.

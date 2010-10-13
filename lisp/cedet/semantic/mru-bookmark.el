@@ -246,7 +246,7 @@ been edited, and you can re-visit them with \\[semantic-mrub-switch-tags]."
   :group 'semantic
   :group 'semantic-modes
   :type 'boolean
-  :require 'semantic-util-modes
+  :require 'semantic/util-modes
   :initialize 'custom-initialize-default
   :set (lambda (sym val)
          (global-semantic-mru-bookmark-mode (if val 1 -1))))

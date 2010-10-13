@@ -37,6 +37,7 @@
 (declare-function srecode-compile-parse-inserter "srecode/compile")
 (declare-function srecode-dump-code-list "srecode/compile")
 (declare-function srecode-load-tables-for-mode "srecode/find")
+(declare-function srecode-template-table-in-project-p "srecode/find")
 (declare-function srecode-insert-code-stream "srecode/insert")
 (declare-function data-debug-new-buffer "data-debug")
 (declare-function data-debug-insert-object-slots "eieio-datadebug")
@@ -157,40 +158,49 @@ buffer's table.
 If BUFFER-OR-PARENT is t, then this dictionary should not be
 associated with a buffer or parent."
   (save-excursion
+    ;; Handle the parent
     (let ((parent nil)
 	  (buffer nil)
 	  (origin nil)
 	  (initfrombuff nil))
-      (cond ((bufferp buffer-or-parent)
-	     (set-buffer buffer-or-parent)
-	     (setq buffer buffer-or-parent
-		   origin (buffer-name buffer-or-parent)
-		   initfrombuff t))
-	    ((srecode-dictionary-child-p buffer-or-parent)
-	     (setq parent buffer-or-parent
-		   buffer (oref buffer-or-parent buffer)
-		   origin (concat (object-name buffer-or-parent) " in "
-				  (if buffer (buffer-name buffer)
-				    "no buffer")))
-	     (when buffer
-	       (set-buffer buffer)))
-	    ((eq buffer-or-parent t)
-	     (setq buffer nil
-		   origin "Unspecified Origin"))
-	    (t
-	     (setq buffer (current-buffer)
-		   origin (concat "Unspecified.  Assume "
-				  (buffer-name buffer))
-		   initfrombuff t)
-	     )
-	    )
+      (cond
+       ;; Parent is a buffer
+       ((bufferp buffer-or-parent)
+	(set-buffer buffer-or-parent)
+	(setq buffer buffer-or-parent
+	      origin (buffer-name buffer-or-parent)
+	      initfrombuff t))
+
+       ;; Parent is another dictionary
+       ((srecode-dictionary-child-p buffer-or-parent)
+	(setq parent buffer-or-parent
+	      buffer (oref buffer-or-parent buffer)
+	      origin (concat (object-name buffer-or-parent) " in "
+			     (if buffer (buffer-name buffer)
+			       "no buffer")))
+	(when buffer
+	  (set-buffer buffer)))
+
+       ;; No parent
+       ((eq buffer-or-parent t)
+	(setq buffer nil
+	      origin "Unspecified Origin"))
+
+       ;; Default to unspecified parent
+       (t
+	(setq buffer (current-buffer)
+	      origin (concat "Unspecified.  Assume "
+			     (buffer-name buffer))
+	      initfrombuff t)))
+
+      ;; Create the new dictionary object.
       (let ((dict (srecode-dictionary
 		   major-mode
-		   :buffer buffer
-		   :parent parent
-		   :namehash  (make-hash-table :test 'equal
-					       :size 20)
-		   :origin origin)))
+		   :buffer   buffer
+		   :parent   parent
+		   :namehash (make-hash-table :test 'equal
+					      :size 20)
+		   :origin   origin)))
 	;; Only set up the default variables if we are being built
 	;; directroy for a particular buffer.
 	(when initfrombuff
@@ -211,34 +221,37 @@ associated with a buffer or parent."
 TPL is an object representing a compiled template file."
   (when tpl
     (let ((tabs (oref tpl :tables)))
+      (require 'srecode/find) ; For srecode-template-table-in-project-p
       (while tabs
-	(let ((vars (oref (car tabs) variables)))
-	  (while vars
-	    (srecode-dictionary-set-value
-	     dict (car (car vars)) (cdr (car vars)))
-	    (setq vars (cdr vars))))
-	(setq tabs (cdr tabs))))))
+	(when (srecode-template-table-in-project-p (car tabs))
+	  (let ((vars (oref (car tabs) variables)))
+	    (while vars
+	      (srecode-dictionary-set-value
+	       dict (car (car vars)) (cdr (car vars)))
+	      (setq vars (cdr vars)))))
+  	(setq tabs (cdr tabs))))))
 
 
 (defmethod srecode-dictionary-set-value ((dict srecode-dictionary)
 					 name value)
   "In dictionary DICT, set NAME to have VALUE."
   ;; Validate inputs
-  (if (not (stringp name))
-      (signal 'wrong-type-argument (list name 'stringp)))
+  (unless (stringp name)
+    (signal 'wrong-type-argument (list name 'stringp)))
+
   ;; Add the value.
   (with-slots (namehash) dict
     (puthash name value namehash))
   )
 
 (defmethod srecode-dictionary-add-section-dictionary ((dict srecode-dictionary)
-						      name &optional show-only)
+						      name &optional show-only force)
   "In dictionary DICT, add a section dictionary for section macro NAME.
 Return the new dictionary.
 
-You can add several dictionaries to the same section macro.
-For each dictionary added to a macro, the block of codes in the
-template will be repeated.
+You can add several dictionaries to the same section entry.
+For each dictionary added to a variable, the block of codes in
+the template will be repeated.
 
 If optional argument SHOW-ONLY is non-nil, then don't add a new dictionary
 if there is already one in place.  Also, don't add FIRST/LAST entries.
@@ -255,10 +268,11 @@ which will enable SECTIONS to be enabled.
 Adding a new dictionary will alter these values in previously
 inserted dictionaries."
   ;; Validate inputs
-  (if (not (stringp name))
-      (signal 'wrong-type-argument (list name 'stringp)))
+  (unless (stringp name)
+    (signal 'wrong-type-argument (list name 'stringp)))
+
   (let ((new (srecode-create-dictionary dict))
-	(ov (srecode-dictionary-lookup-name dict name)))
+	(ov  (srecode-dictionary-lookup-name dict name t)))
 
     (when (not show-only)
       ;; Setup the FIRST/NOTFIRST and LAST/NOTLAST entries.
@@ -275,7 +289,9 @@ inserted dictionaries."
 	(srecode-dictionary-show-section new "LAST"))
       )
 
-    (when (or (not show-only) (null ov))
+    (when (or force
+	      (not show-only)
+	      (null ov))
       (srecode-dictionary-set-value dict name (append ov (list new))))
     ;; Return the new sub-dictionary.
     new))
@@ -283,8 +299,9 @@ inserted dictionaries."
 (defmethod srecode-dictionary-show-section ((dict srecode-dictionary) name)
   "In dictionary DICT, indicate that the section NAME should be exposed."
   ;; Validate inputs
-  (if (not (stringp name))
-      (signal 'wrong-type-argument (list name 'stringp)))
+  (unless (stringp name)
+    (signal 'wrong-type-argument (list name 'stringp)))
+
   ;; Showing a section is just like making a section dictionary, but
   ;; with no dictionary values to add.
   (srecode-dictionary-add-section-dictionary dict name t)
@@ -294,51 +311,120 @@ inserted dictionaries."
   "In dictionary DICT, indicate that the section NAME should be hidden."
   ;; We need to find the has value, and then delete it.
   ;; Validate inputs
-  (if (not (stringp name))
-      (signal 'wrong-type-argument (list name 'stringp)))
+  (unless (stringp name)
+    (signal 'wrong-type-argument (list name 'stringp)))
+
   ;; Add the value.
   (with-slots (namehash) dict
     (remhash name namehash))
   nil)
 
-(defmethod srecode-dictionary-merge ((dict srecode-dictionary) otherdict)
-  "Merge into DICT the dictionary entries from OTHERDICT."
+(defmethod srecode-dictionary-add-entries ((dict srecode-dictionary)
+					   entries &optional state)
+  "Add ENTRIES to DICT.
+
+ENTRIES is a list of even length of dictionary entries to
+add. ENTRIES looks like this:
+
+  (NAME_1 VALUE_1 NAME_2 VALUE_2 ...)
+
+The following rules apply:
+ * NAME_N is a string
+and for values
+ * If VALUE_N is t, the section NAME_N is shown.
+ * If VALUE_N is a string, an ordinary value is inserted.
+ * If VALUE_N is a dictionary, it is inserted as entry NAME_N.
+ * Otherwise, a compound variable is created for VALUE_N.
+
+The optional argument STATE has to non-nil when compound values
+are inserted. An error is signaled if ENTRIES contains compound
+values but STATE is nil."
+  (while entries
+    (let ((name  (nth 0 entries))
+	  (value (nth 1 entries)))
+      (cond
+       ;; Value is t; show a section.
+       ((eq value t)
+	(srecode-dictionary-show-section dict name))
+
+       ;; Value is a simple string; create an ordinary dictionary
+       ;; entry
+       ((stringp value)
+	(srecode-dictionary-set-value dict name value))
+
+       ;; Value is a dictionary; insert as child dictionary.
+       ((srecode-dictionary-child-p value)
+	(srecode-dictionary-merge
+	 (srecode-dictionary-add-section-dictionary dict name)
+	 value t))
+
+       ;; Value is some other object; create a compound value.
+       (t
+	(unless state
+	  (error "Cannot insert compound values without state."))
+
+	(srecode-dictionary-set-value
+	 dict name
+	 (srecode-dictionary-compound-variable
+	  name :value value :state state)))))
+    (setq entries (nthcdr 2 entries)))
+  dict)
+
+(defmethod srecode-dictionary-merge ((dict srecode-dictionary) otherdict
+				     &optional force)
+  "Merge into DICT the dictionary entries from OTHERDICT.
+Unless the optional argument FORCE is non-nil, values in DICT are
+not modified, even if there are values of the same names in
+OTHERDICT."
   (when otherdict
     (maphash
      (lambda (key entry)
-       ;; Only merge in the new values if there was no old value.
+       ;; The new values is only merged in if there was no old value
+       ;; or FORCE is non-nil.
+       ;;
        ;; This protects applications from being whacked, and basically
        ;; makes these new section dictionary entries act like
        ;; "defaults" instead of overrides.
-       (when (not (srecode-dictionary-lookup-name dict key))
-	 (cond ((and (listp entry) (srecode-dictionary-p (car entry)))
-		;; A list of section dictionaries.
-		;; We need to merge them in.
-		(while entry
-		  (let ((new-sub-dict
-			 (srecode-dictionary-add-section-dictionary
-			  dict key)))
-		    (srecode-dictionary-merge new-sub-dict (car entry)))
-		  (setq entry (cdr entry)))
-		  )
+       (when (or force
+		 (not (srecode-dictionary-lookup-name dict key t)))
+	 (cond
+	  ;; A list of section dictionaries. We need to merge them in.
+	  ((and (listp entry)
+		(srecode-dictionary-p (car entry)))
+	   (dolist (sub-dict entry)
+	     (srecode-dictionary-merge
+	      (srecode-dictionary-add-section-dictionary
+	       dict key t t)
+	      sub-dict force)))
 
-	       (t
-		(srecode-dictionary-set-value dict key entry)))
-	       ))
+	  ;; Other values can be set directly.
+	  (t
+	   (srecode-dictionary-set-value dict key entry)))))
      (oref otherdict namehash))))
 
 (defmethod srecode-dictionary-lookup-name ((dict srecode-dictionary)
-					   name)
-  "Return information about the current DICT's value for NAME."
+					   name &optional non-recursive)
+  "Return information about DICT's value for NAME.
+DICT is a dictionary, and NAME is a string that is treated as the
+name of an entry in the dictionary. If such an entry exists, its
+value is returned. Otherwise, nil is returned. Normally, the
+lookup is recursive in the sense that the parent of DICT is
+searched for NAME if it is not found in DICT.  This recursive
+lookup can be disabled by the optional argument NON-RECURSIVE.
+
+This function derives values for some special NAMEs, such as
+'FIRST' and 'LAST'."
   (if (not (slot-boundp dict 'namehash))
       nil
-    ;; Get the value of this name from the dictionary
-    (or (with-slots (namehash) dict
-	  (gethash name namehash))
-	(and (not (member name '("FIRST" "LAST" "NOTFIRST" "NOTLAST")))
-	     (oref dict parent)
-	     (srecode-dictionary-lookup-name (oref dict parent) name))
-	)))
+    ;; Get the value of this name from the dictionary or its parent
+    ;; unless the lookup should be non-recursive.
+    (with-slots (namehash parent) dict
+      (or (gethash name namehash)
+	  (and (not non-recursive)
+	       (not (member name '("FIRST" "LAST" "NOTFIRST" "NOTLAST")))
+	       parent
+	       (srecode-dictionary-lookup-name parent name)))))
+  )
 
 (defmethod srecode-root-dictionary ((dict srecode-dictionary))
   "For dictionary DICT, return the root dictionary.
@@ -431,10 +517,22 @@ inserted with a new editable field.")
 	   (start (point))
 	   (name (oref sti :object-name)))
 
-      (if (or (not dv) (string= dv ""))
-	  (insert name)
-	(insert dv))
+      (cond
+       ;; No default value.
+       ((not dv) (insert name))
+       ;; A compound value as the default?  Recurse.
+       ((srecode-dictionary-compound-value-child-p dv)
+	(srecode-compound-toString dv function dictionary))
+       ;; A string that is empty?  Use the name.
+       ((and (stringp dv) (string= dv ""))
+	(insert name))
+       ;; Insert strings
+       ((stringp dv) (insert dv))
+       ;; Some other issue
+       (t
+	(error "Unknown default value for value %S" name)))
 
+      ;; Create a field from the inserter.
       (srecode-field name :name name
 		     :start start
 		     :end (point)
@@ -481,6 +579,53 @@ STATE is the current compiler state."
 	  )
 	(setq sectiondicts (cdr sectiondicts)))
       new)))
+
+(defun srecode-create-dictionaries-from-tags (tags state)
+  "Create a dictionary with entries according to TAGS.
+
+TAGS should be in the format produced by the template file
+grammar. That is
+
+TAGS = (ENTRY_1 ENTRY_2 ...)
+
+where
+
+ENTRY_N = (NAME ENTRY_N_1 ENTRY_N_2 ...) | TAG
+
+where TAG is a semantic tag of class 'variable. The (NAME ... )
+form creates a child dictionary which is stored under the name
+NAME. The TAG form creates a value entry or section dictionary
+entry whose name is the name of the tag.
+
+STATE is the current compiler state."
+  (let ((dict    (srecode-create-dictionary t))
+	(entries (apply #'append
+			(mapcar
+			 (lambda (entry)
+			   (cond
+			    ;; Entry is a tag
+			    ((semantic-tag-p entry)
+			     (let ((name  (semantic-tag-name entry))
+				   (value (semantic-tag-variable-default entry)))
+			       (list name
+				     (if (and (listp value)
+					      (= (length value) 1)
+					      (stringp (car value)))
+					 (car value)
+				       value))))
+
+			    ;; Entry is a nested dictionary
+			    (t
+			     (let ((name    (car entry))
+				   (entries (cdr entry)))
+			       (list name
+				     (srecode-create-dictionaries-from-tags
+				      entries state))))))
+			 tags))))
+    (srecode-dictionary-add-entries
+     dict entries state)
+    dict)
+  )
 
 ;;; DUMP DICTIONARY
 ;;

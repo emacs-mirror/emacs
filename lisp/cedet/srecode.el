@@ -40,7 +40,7 @@
 (require 'mode-local)
 (load "srecode/loaddefs" nil 'nomessage)
 
-(defvar srecode-version "1.0pre7"
+(defvar srecode-version "1.0"
   "Current version of the Semantic Recoder.")
 
 ;;; Code:

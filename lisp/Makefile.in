@@ -311,11 +311,15 @@ ELCFILES = \
 	$(lisp)/cedet/cedet.elc \
 	$(lisp)/cedet/data-debug.elc \
 	$(lisp)/cedet/ede.elc \
+	$(lisp)/cedet/ede/auto.elc \
 	$(lisp)/cedet/ede/autoconf-edit.elc \
+	$(lisp)/cedet/ede/base.elc \
 	$(lisp)/cedet/ede/cpp-root.elc \
+	$(lisp)/cedet/ede/custom.elc \
 	$(lisp)/cedet/ede/dired.elc \
 	$(lisp)/cedet/ede/emacs.elc \
 	$(lisp)/cedet/ede/files.elc \
+	$(lisp)/cedet/ede/generic.elc \
 	$(lisp)/cedet/ede/linux.elc \
 	$(lisp)/cedet/ede/locate.elc \
 	$(lisp)/cedet/ede/make.elc \
@@ -512,7 +516,6 @@ ELCFILES = \
 	$(lisp)/emacs-lisp/chart.elc \
 	$(lisp)/emacs-lisp/check-declare.elc \
 	$(lisp)/emacs-lisp/checkdoc.elc \
-	$(lisp)/emacs-lisp/cl-compat.elc \
 	$(lisp)/emacs-lisp/cl-extra.elc \
 	$(lisp)/emacs-lisp/cl-indent.elc \
 	$(lisp)/emacs-lisp/cl-macs.elc \
@@ -547,7 +550,6 @@ ELCFILES = \
 	$(lisp)/emacs-lisp/lisp-mnt.elc \
 	$(lisp)/emacs-lisp/lisp-mode.elc \
 	$(lisp)/emacs-lisp/lisp.elc \
-	$(lisp)/emacs-lisp/lmenu.elc \
 	$(lisp)/emacs-lisp/macroexp.elc \
 	$(lisp)/emacs-lisp/map-ynp.elc \
 	$(lisp)/emacs-lisp/pp.elc \
@@ -1077,12 +1079,14 @@ ELCFILES = \
 	$(lisp)/nxml/xmltok.elc \
 	$(lisp)/nxml/xsd-regexp.elc \
 	$(lisp)/obsolete/awk-mode.elc \
+	$(lisp)/obsolete/cl-compat.elc \
 	$(lisp)/obsolete/fast-lock.elc \
 	$(lisp)/obsolete/iso-acc.elc \
 	$(lisp)/obsolete/iso-insert.elc \
 	$(lisp)/obsolete/iso-swed.elc \
 	$(lisp)/obsolete/lazy-lock.elc \
 	$(lisp)/obsolete/levents.elc \
+	$(lisp)/obsolete/lmenu.elc \
 	$(lisp)/obsolete/lucid.elc \
 	$(lisp)/obsolete/old-whitespace.elc \
 	$(lisp)/obsolete/options.elc \

@@ -1,3 +1,9 @@
+2010-09-21  Glenn Morris  <rgm@gnu.org>
+
+	* cons-1.eps, cons-2.eps, cons-2a.eps, cons-3.eps, cons-4.eps:
+	* cons-5.eps, lambda-1.eps, lambda-2.eps, lambda-3.eps:
+	Add first line EPSF magic comment.  (Bug#7064)
+
 2010-06-23  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp-intro.texi: Untabify.

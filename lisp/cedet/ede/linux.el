@@ -112,6 +112,18 @@ ROOTPROJ is nil, since there is only one project."
       )
   )
 
+;;;###autoload
+(add-to-list 'ede-project-class-files
+	     (ede-project-autoload "linux"
+	      :name "LINUX ROOT"
+	      :file 'ede/linux
+	      :proj-file "scripts/ver_linux"
+	      :proj-root 'ede-linux-project-root
+	      :load-type 'ede-linux-load
+	      :class-sym 'ede-linux-project
+	      :new-p nil)
+	     t)
+
 (defclass ede-linux-target-c (ede-target)
   ()
   "EDE Linux Project target for C code.
@@ -124,7 +136,7 @@ All directories need at least one target.")
 
 (defmethod initialize-instance ((this ede-linux-project)
 				&rest fields)
-  "Make sure the :file is fully expanded."
+  "Make sure the targets slot is bound."
   (call-next-method)
   (unless (slot-boundp this 'targets)
     (oset this :targets nil)))

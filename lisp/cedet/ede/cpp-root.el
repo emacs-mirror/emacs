@@ -131,7 +131,7 @@
 ;; (add-to-list 'ede-project-class-files
 ;; 	     (ede-project-autoload "cpp-root"
 ;; 	      :name "CPP ROOT"
-;; 	      :file 'ede-cpp-root
+;; 	      :file 'ede/cpp-root
 ;; 	      :proj-file 'MY-FILE-FOR-DIR
 ;;            :proj-root 'MY-ROOT-FCN
 ;; 	      :load-type 'MY-LOAD
@@ -236,6 +236,18 @@ Argument DIR is the directory it is created for.
 ROOTPROJ is nil, since there is only one project."
   ;; Snoop through our master list.
   (ede-cpp-root-file-existing dir))
+
+;;;###autoload
+(add-to-list 'ede-project-class-files
+	     (ede-project-autoload "cpp-root"
+	      :name "CPP ROOT"
+	      :file 'ede/cpp-root
+	      :proj-file 'ede-cpp-root-project-file-for-dir
+	      :proj-root 'ede-cpp-root-project-root
+	      :load-type 'ede-cpp-root-load
+	      :class-sym 'ede-cpp-root
+	      :new-p nil)
+	     t)
 
 ;;; CLASSES
 ;;
@@ -503,6 +515,21 @@ Also set up the lexical preprocessor map."
 (defmethod ede-preprocessor-map ((this ede-cpp-root-target))
   "Get the pre-processor map for project THIS."
   (ede-preprocessor-map  (ede-target-parent this)))
+
+;;; Quick Hack
+(defun ede-create-lots-of-projects-under-dir (dir projfile &rest attributes)
+  "Create a bunch of projects under directory DIR.
+PROJFILE is a file name sans directory that indicates a subdirectory
+is a project directory.
+Generic ATTRIBUTES, such as :include-path can be added.
+Note: This needs some work."
+  (let ((files (directory-files dir t)))
+    (dolist (F files)
+      (if (file-exists-p (expand-file-name projfile F))
+	  `(ede-cpp-root-project (file-name-nondirectory F)
+				 :name (file-name-nondirectory F)
+				 :file (expand-file-name projfile F)
+				 attributes)))))
 
 (provide 'ede/cpp-root)
 

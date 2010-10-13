@@ -4501,9 +4501,9 @@ The flag is set if the currently compiled format contains a `%T'.")
   "A flag, set by `org-compile-prefix-format'.
 The flag is set if the currently compiled format contains a `%e'.")
 (defvar org-prefix-category-length nil
-  "Used by `org-compile-prefix-format' to remember the category field widh.")
+  "Used by `org-compile-prefix-format' to remember the category field width.")
 (defvar org-prefix-category-max-length nil
-  "Used by `org-compile-prefix-format' to remember the category field widh.")
+  "Used by `org-compile-prefix-format' to remember the category field width.")
 
 (defun org-format-agenda-item (extra txt &optional category tags dotime
 				     noprefix remove-re habitp)
