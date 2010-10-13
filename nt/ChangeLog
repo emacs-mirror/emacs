@@ -1,3 +1,7 @@
+2010-10-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* INSTALL: Refer to `dynamic-library-alist'.
+
 2010-10-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* INSTALL: Add note about problematic characters passed to configure.

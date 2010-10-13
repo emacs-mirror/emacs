@@ -567,10 +567,6 @@ static struct image_type *image_types;
 
 Lisp_Object Vimage_types;
 
-/* An alist of image types and libraries that implement the type.  */
-
-Lisp_Object Vimage_library_alist;
-
 /* Cache for delayed-loading image types.  */
 
 static Lisp_Object Vimage_type_cache;
@@ -645,7 +641,7 @@ lookup_image_type (Lisp_Object symbol)
   struct image_type *type;
 
   /* We must initialize the image-type if it hasn't been already.  */
-  if (NILP (Finit_image_library (symbol, Vimage_library_alist)))
+  if (NILP (Finit_image_library (symbol, Vdynamic_library_alist)))
     return 0;			/* unimplemented */
 
   for (type = image_types; type; type = type->next)
@@ -1923,10 +1919,11 @@ mark_image_cache (struct image_cache *c)
   }
 
 /* Load a DLL implementing an image type.
-   The `image-library-alist' variable associates a symbol,
-   identifying an image type, to a list of possible filenames.
+   The argument LIBRARIES is usually the variable
+   `dynamic-library-alist', which associates a symbol, identifying
+   an external DLL library, to a list of possible filenames.
    The function returns NULL if no library could be loaded for
-   the given image type, or if the library was previously loaded;
+   the given symbol, or if the library was previously loaded;
    else the handle of the DLL.  */
 static HMODULE
 w32_delayed_load (Lisp_Object libraries, Lisp_Object type)
@@ -8583,7 +8580,7 @@ Return non-nil if TYPE is a supported image type.
 
 Image types pbm and xbm are prebuilt; other types are loaded here.
 Libraries to load are specified in alist LIBRARIES (usually, the value
-of `image-library-alist', which see).  */)
+of `dynamic-library-alist', which see).  */)
   (Lisp_Object type, Lisp_Object libraries)
 {
   Lisp_Object tested;
@@ -8658,20 +8655,6 @@ syms_of_image (void)
 Each element of the list is a symbol for an image type, like 'jpeg or 'png.
 To check whether it is really supported, use `image-type-available-p'.  */);
   Vimage_types = Qnil;
-
-  DEFVAR_LISP ("image-library-alist", &Vimage_library_alist,
-    doc: /* Alist of image types vs external libraries needed to display them.
-
-Each element is a list (IMAGE-TYPE LIBRARY...), where the car is a symbol
-representing a supported image type, and the rest are strings giving
-alternate filenames for the corresponding external libraries.
-
-Emacs tries to load the libraries in the order they appear on the
-list; if none is loaded, the running session of Emacs won't
-support the image type.  Types 'pbm and 'xbm don't need to be
-listed; they are always supported.  */);
-  Vimage_library_alist = Qnil;
-  Fput (intern_c_string ("image-library-alist"), Qrisky_local_variable, Qt);
 
   DEFVAR_LISP ("max-image-size", &Vmax_image_size,
     doc: /* Maximum size of images.

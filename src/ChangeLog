@@ -1,3 +1,16 @@
+2010-10-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs.c (Vdynamic_library_alist)
+	(syms_of_emacs) <dynamic-library-alist>: Move from image.c and rename.
+	Doc fix.
+
+	* lisp.h (Vdynamic_library_alist): Declare extern.
+
+	* image.c (Vimage_library_alist)
+	(syms_of_image) <image-library-alist>: Move to emacs.c and rename.
+	(lookup_image_type): Use Vdynamic_library_alist.
+	(Finit_image_library): Doc fix.
+
 2010-10-12  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* Makefile.in (lispsource, libsrc, etc, oldxmenudir, lwlibdir)

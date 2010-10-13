@@ -578,6 +578,11 @@ sc.el, x-menu.el, rnews.el, rnewspost.el
 
 * Lisp changes in Emacs 24.1
 
+** `image-library-alist' is renamed to `dynamic-library-alist'.
+The variable is now used to load all kind of supported dynamic libraries,
+not just image libraries.  The previous name is still available as an
+obsolete alias.
+
 ** New variable syntax-propertize-function to set syntax-table properties.
 Replaces font-lock-syntactic-keywords which are now obsolete.
 This allows syntax-table properties to be set independently from font-lock:

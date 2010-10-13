@@ -3300,6 +3300,7 @@ extern Lisp_Object Vbefore_init_time, Vafter_init_time;
 extern Lisp_Object Vinstallation_directory;
 extern Lisp_Object empty_unibyte_string, empty_multibyte_string;
 extern Lisp_Object Qfile_name_handler_alist;
+extern Lisp_Object Vdynamic_library_alist;
 extern void (*fatal_error_signal_hook) (void);
 EXFUN (Fkill_emacs, 1) NO_RETURN;
 #if HAVE_SETLOCALE

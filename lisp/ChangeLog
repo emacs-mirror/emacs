@@ -1,3 +1,11 @@
+2010-10-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* image.el (image-library-alist): Declare as obsolete alias.
+	(image-type-available-p): Use `dynamic-library-alist'.
+
+	* term/w32-win.el (dynamic-library-alist):
+	Use instead of `image-library-alist'.
+
 2010-10-13  IRIE Shinsuke  <irieshinsuke@yahoo.co.jp>  (tiny change)
 
 	* subr.el (last): Make it faster.  (Bug#7174)
