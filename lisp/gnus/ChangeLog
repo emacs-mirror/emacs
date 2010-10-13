@@ -1,5 +1,7 @@
 2010-10-13  Katsumi Yamaoka  <yamaoka@jpl.org>
 
+	* gnus-dired.el (gnus-dired-attach): Silence XEmacs 21.5 when compiling.
+
 	* gnus-gravatar.el (gnus-gravatar-transform-address): Adjust avatars'
 	position when (X-)Faces exist.
 	(gnus-treat-from-gravatar, gnus-treat-mail-gravatar): Force displaying
