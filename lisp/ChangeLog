@@ -1,3 +1,7 @@
+2010-10-13  Stephen Berman  <stephen.berman@gmx.net>
+
+	* subr.el (last): Use `safe-length' instead of `length' (bug#7206).
+
 2010-10-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* net/tls.el (tls-program): Remove spurious %s from openssl.
