@@ -1,3 +1,7 @@
+2010-10-13  Glenn Morris  <rgm@gnu.org>
+
+	* subr.el (last): Deal with dotted lists (reported in bug#7174).
+
 2010-10-13  Stephen Berman  <stephen.berman@gmx.net>
 
 	* subr.el (last): Use `safe-length' instead of `length' (bug#7206).

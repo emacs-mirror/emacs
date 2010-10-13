@@ -289,7 +289,7 @@ If LIST is nil, return nil.
 If N is non-nil, return the Nth-to-last link of LIST.
 If N is bigger than the length of LIST, return LIST."
   (if n
-      (and (> n 0)
+      (and (>= n 0)
            (let ((m (safe-length list)))
              (if (< n m) (nthcdr (- m n) list) list)))
     (and list
