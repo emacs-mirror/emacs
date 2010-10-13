@@ -1,5 +1,15 @@
 2010-10-13  Juanma Barranquero  <lekktu@gmail.com>
 
+	* makefile.w32-in (TLIB2): Rename from TLIBW32.
+	(OBJ2): New macro.
+	(WIN32OBJ, FONTOBJ): Remove.
+	(OBJ1): Redistribute object files with OBJ2.
+	(LIBS, $(TEMACS)): Use TLIB2.
+	(make-buildobj-CMD, make-buildobj-SH): Use OBJ2.
+	($(TLIB2), TAGS, TAGS-LISP, TAGS-gmake): Depend on OBJ2.
+
+2010-10-13  Juanma Barranquero  <lekktu@gmail.com>
+
 	* emacs.c (Vdynamic_library_alist)
 	(syms_of_emacs) <dynamic-library-alist>: Move from image.c and rename.
 	Doc fix.
