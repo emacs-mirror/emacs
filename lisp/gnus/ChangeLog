@@ -1,5 +1,8 @@
 2010-10-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* nnimap.el (nnimap-close-server): Forget the nnimap data on close.
+	This should make server editing work better.
+
 	* shr.el (shr-find-fill-point): Don't inloop on indented text.
 
 	* nnimap.el (nnimap-open-connection): Fix open-tls-stream call.
