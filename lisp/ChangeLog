@@ -1,3 +1,7 @@
+2010-10-13  IRIE Shinsuke  <irieshinsuke@yahoo.co.jp>  (tiny change)
+
+	* subr.el (last): Make it faster.  (Bug#7174)
+
 2010-10-13  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>  (tiny change)
 
 	* Makefile.in (compile-clean): Use `` instead of $().  (Bug#7178)
