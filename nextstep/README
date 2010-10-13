@@ -10,19 +10,6 @@ Cocoa libraries.
 
 See the INSTALL file in this directory for compilation instructions.
 
-Those primarily responsible for the port were, in chronological order:
-Michael Brouwer, Carl Edman, Christian Limpach, Scott Bender,
-Christophe de Dinechin, and Adrian Robert.
-
-Peter Dyballa assisted in a variety of ways to improve text rendering
-and keyboard handling, Adam Ratcliffe documented the Preferences
-panel, David M. Cooke contributed fixes to XPM handling, and Carsten
-Bormann helped get dired working for non-ASCII filenames.  People who
-provided additional assistance include Adam Fedor, Fred Kiefer, M. Uli
-Klusterer, Alexander Malmberg, Jonas Matton, and Riccardo Mottola.
-See AUTHORS file and "Release History" below for more information.
-
-
 Requirements
 ------------
 MacOS X 10.4 or later
