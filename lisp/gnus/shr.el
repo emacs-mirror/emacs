@@ -68,13 +68,15 @@ fit these criteria."
   :group 'shr
   :type 'char)
 
+(defcustom shr-width fill-column
+  "Frame width to use for rendering."
+  :type 'integer
+  :group 'shr)
+
 (defvar shr-content-function nil
   "If bound, this should be a function that will return the content.
 This is used for cid: URLs, and the function is called with the
 cid: URL as the argument.")
-
-(defvar shr-width 70
-  "Frame width to use for rendering.")
 
 ;;; Internal variables.
 
@@ -404,7 +406,7 @@ Return a string with image data."
     (when width
       ;; Check that width is not larger than max width, otherwise ignore
       ;; align
-      (let ((max-width (* fill-column (frame-char-width)))
+      (let ((max-width (* shr-width (frame-char-width)))
             (width (string-to-number width)))
         (when (< width max-width)
           (let ((align (cdr (assq :align cont))))

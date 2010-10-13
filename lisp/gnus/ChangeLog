@@ -1,3 +1,9 @@
+2010-10-13  Julien Danjou  <julien@danjou.info>
+
+	* shr.el (shr-width): Make shr-width a defcustom with default to
+	fill-column.
+	(shr-tag-img): Use shr-width rather than fill-column.
+
 2010-10-13  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-dired.el (gnus-dired-attach): Silence XEmacs 21.5 when compiling.
