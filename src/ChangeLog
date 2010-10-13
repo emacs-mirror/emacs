@@ -1,3 +1,14 @@
+2010-10-13  Damyan Pepper  <damyanp@gmail.com>
+
+	Fix handling of font properties on Windows (bug#6303).
+	* font.c (font_filter_properties): New function, refactored from
+	ftfont_filter_properties.
+	* font.h (font_filter_properties): Declare.
+	* ftfont.c (ftfont_filter_properties): Use font_filter_properties.
+	* w32font.c (w32font_booleans, w32font_non_booleans): New variables.
+	(w32font_filter_properties): New function.
+	(w32font_driver): Add w32font_filter_properties.
+
 2010-10-12  Juanma Barranquero  <lekktu@gmail.com>
 
 	* font.c (Ffont_variation_glyphs):

@@ -2446,6 +2446,25 @@ in the font selection dialog. */)
   return DECODE_SYSTEM (build_string (buf));
 }
 
+static const char *w32font_booleans [] = {
+  NULL,
+};
+
+static const char *w32font_non_booleans [] = {
+  ":script",
+  ":antialias",
+  ":style",
+  NULL,
+};
+
+static void
+w32font_filter_properties (font, alist)
+     Lisp_Object font;
+     Lisp_Object alist;
+{
+  font_filter_properties (font, alist, w32font_booleans, w32font_non_booleans);
+}
+
 struct font_driver w32font_driver =
   {
     0, /* Qgdi */
@@ -2475,7 +2494,7 @@ struct font_driver w32font_driver =
     NULL, /* shape */
     NULL, /* check */
     NULL, /* get_variation_glyphs */
-    NULL, /* filter_properties */
+    w32font_filter_properties,
   };
 
 
