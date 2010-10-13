@@ -1,3 +1,7 @@
+2010-10-13  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>  (tiny change)
+
+	* Makefile.in (compile-clean): Use `` instead of $().  (Bug#7178)
+
 2010-10-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cus-theme.el (custom-theme--listed-faces): Add cursor face.
