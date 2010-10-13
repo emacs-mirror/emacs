@@ -1910,7 +1910,7 @@ mark_image_cache (struct image_cache *c)
 #ifdef HAVE_NTGUI
 
 /* Macro for defining functions that will be loaded from image DLLs.  */
-#define DEF_IMGLIB_FN(func) int (FAR CDECL *fn_##func)()
+#define DEF_IMGLIB_FN(func,args) int (FAR CDECL *fn_##func)args
 
 /* Macro for loading those image functions from the library.  */
 #define LOAD_IMGLIB_FN(lib,func) {					\
@@ -3265,10 +3265,12 @@ xpm_free_colors (Display *dpy, Colormap cmap, Pixel *pixels, int npixels, void *
 
 /* XPM library details.  */
 
-DEF_IMGLIB_FN (XpmFreeAttributes);
-DEF_IMGLIB_FN (XpmCreateImageFromBuffer);
-DEF_IMGLIB_FN (XpmReadFileToImage);
-DEF_IMGLIB_FN (XImageFree);
+DEF_IMGLIB_FN (XpmFreeAttributes, (XpmAttributes *));
+DEF_IMGLIB_FN (XpmCreateImageFromBuffer, (Display *, char *, xpm_XImage **,
+					  xpm_XImage **, XpmAttributes *));
+DEF_IMGLIB_FN (XpmReadFileToImage, (Display *, char *, xpm_XImage **,
+				    xpm_XImage **, XpmAttributes *));
+DEF_IMGLIB_FN (XImageFree, (xpm_XImage *));
 
 static int
 init_xpm_functions (Lisp_Object libraries)
@@ -5436,27 +5438,31 @@ png_image_p (Lisp_Object object)
 #ifdef HAVE_NTGUI
 /* PNG library details.  */
 
-DEF_IMGLIB_FN (png_get_io_ptr);
-DEF_IMGLIB_FN (png_sig_cmp);
-DEF_IMGLIB_FN (png_create_read_struct);
-DEF_IMGLIB_FN (png_create_info_struct);
-DEF_IMGLIB_FN (png_destroy_read_struct);
-DEF_IMGLIB_FN (png_set_read_fn);
-DEF_IMGLIB_FN (png_set_sig_bytes);
-DEF_IMGLIB_FN (png_read_info);
-DEF_IMGLIB_FN (png_get_IHDR);
-DEF_IMGLIB_FN (png_get_valid);
-DEF_IMGLIB_FN (png_set_strip_16);
-DEF_IMGLIB_FN (png_set_expand);
-DEF_IMGLIB_FN (png_set_gray_to_rgb);
-DEF_IMGLIB_FN (png_set_background);
-DEF_IMGLIB_FN (png_get_bKGD);
-DEF_IMGLIB_FN (png_read_update_info);
-DEF_IMGLIB_FN (png_get_channels);
-DEF_IMGLIB_FN (png_get_rowbytes);
-DEF_IMGLIB_FN (png_read_image);
-DEF_IMGLIB_FN (png_read_end);
-DEF_IMGLIB_FN (png_error);
+DEF_IMGLIB_FN (png_get_io_ptr, (png_structp));
+DEF_IMGLIB_FN (png_sig_cmp, (png_bytep, png_size_t, png_size_t));
+DEF_IMGLIB_FN (png_create_read_struct, (png_const_charp, png_voidp,
+					png_error_ptr, png_error_ptr));
+DEF_IMGLIB_FN (png_create_info_struct, (png_structp));
+DEF_IMGLIB_FN (png_destroy_read_struct, (png_structpp, png_infopp, png_infopp));
+DEF_IMGLIB_FN (png_set_read_fn, (png_structp, png_voidp, png_rw_ptr));
+DEF_IMGLIB_FN (png_set_sig_bytes, (png_structp, int));
+DEF_IMGLIB_FN (png_read_info, (png_structp, png_infop));
+DEF_IMGLIB_FN (png_get_IHDR, (png_structp, png_infop,
+			      png_uint_32 *, png_uint_32 *,
+			      int *, int *, int *, int *, int *));
+DEF_IMGLIB_FN (png_get_valid, (png_structp, png_infop, png_uint_32));
+DEF_IMGLIB_FN (png_set_strip_16, (png_structp));
+DEF_IMGLIB_FN (png_set_expand, (png_structp));
+DEF_IMGLIB_FN (png_set_gray_to_rgb, (png_structp));
+DEF_IMGLIB_FN (png_set_background, (png_structp, png_color_16p,
+				    int, int, double));
+DEF_IMGLIB_FN (png_get_bKGD, (png_structp, png_infop, png_color_16p *));
+DEF_IMGLIB_FN (png_read_update_info, (png_structp, png_infop));
+DEF_IMGLIB_FN (png_get_channels, (png_structp, png_infop));
+DEF_IMGLIB_FN (png_get_rowbytes, (png_structp, png_infop));
+DEF_IMGLIB_FN (png_read_image, (png_structp, png_bytepp));
+DEF_IMGLIB_FN (png_read_end, (png_structp, png_infop));
+DEF_IMGLIB_FN (png_error, (png_structp, png_const_charp));
 
 static int
 init_png_functions (Lisp_Object libraries)
@@ -6039,14 +6045,14 @@ jpeg_image_p (Lisp_Object object)
 #ifdef HAVE_NTGUI
 
 /* JPEG library details.  */
-DEF_IMGLIB_FN (jpeg_CreateDecompress);
-DEF_IMGLIB_FN (jpeg_start_decompress);
-DEF_IMGLIB_FN (jpeg_finish_decompress);
-DEF_IMGLIB_FN (jpeg_destroy_decompress);
-DEF_IMGLIB_FN (jpeg_read_header);
-DEF_IMGLIB_FN (jpeg_read_scanlines);
-DEF_IMGLIB_FN (jpeg_std_error);
-DEF_IMGLIB_FN (jpeg_resync_to_restart);
+DEF_IMGLIB_FN (jpeg_CreateDecompress, (j_decompress_ptr, int, size_t));
+DEF_IMGLIB_FN (jpeg_start_decompress, (j_decompress_ptr));
+DEF_IMGLIB_FN (jpeg_finish_decompress, (j_decompress_ptr));
+DEF_IMGLIB_FN (jpeg_destroy_decompress, (j_decompress_ptr));
+DEF_IMGLIB_FN (jpeg_read_header, (j_decompress_ptr, boolean));
+DEF_IMGLIB_FN (jpeg_read_scanlines, (j_decompress_ptr, JSAMPARRAY, JDIMENSION));
+DEF_IMGLIB_FN (jpeg_std_error, (struct jpeg_error_mgr *));
+DEF_IMGLIB_FN (jpeg_resync_to_restart, (j_decompress_ptr, int));
 
 static int
 init_jpeg_functions (Lisp_Object libraries)
@@ -6572,14 +6578,17 @@ tiff_image_p (Lisp_Object object)
 #ifdef HAVE_NTGUI
 
 /* TIFF library details.  */
-DEF_IMGLIB_FN (TIFFSetErrorHandler);
-DEF_IMGLIB_FN (TIFFSetWarningHandler);
-DEF_IMGLIB_FN (TIFFOpen);
-DEF_IMGLIB_FN (TIFFClientOpen);
-DEF_IMGLIB_FN (TIFFGetField);
-DEF_IMGLIB_FN (TIFFReadRGBAImage);
-DEF_IMGLIB_FN (TIFFClose);
-DEF_IMGLIB_FN (TIFFSetDirectory);
+DEF_IMGLIB_FN (TIFFSetErrorHandler, (TIFFErrorHandler));
+DEF_IMGLIB_FN (TIFFSetWarningHandler, (TIFFErrorHandler));
+DEF_IMGLIB_FN (TIFFOpen, (const char *, const char *));
+DEF_IMGLIB_FN (TIFFClientOpen, (const char *, const char *, thandle_t,
+				TIFFReadWriteProc, TIFFReadWriteProc,
+				TIFFSeekProc, TIFFCloseProc, TIFFSizeProc,
+				TIFFMapFileProc, TIFFUnmapFileProc));
+DEF_IMGLIB_FN (TIFFGetField, (TIFF *, ttag_t, ...));
+DEF_IMGLIB_FN (TIFFReadRGBAImage, (TIFF *, uint32, uint32, uint32 *, int));
+DEF_IMGLIB_FN (TIFFClose, (TIFF *));
+DEF_IMGLIB_FN (TIFFSetDirectory, (TIFF *, tdir_t));
 
 static int
 init_tiff_functions (Lisp_Object libraries)
@@ -7021,10 +7030,10 @@ gif_image_p (Lisp_Object object)
 #ifdef HAVE_NTGUI
 
 /* GIF library details.  */
-DEF_IMGLIB_FN (DGifCloseFile);
-DEF_IMGLIB_FN (DGifSlurp);
-DEF_IMGLIB_FN (DGifOpen);
-DEF_IMGLIB_FN (DGifOpenFileName);
+DEF_IMGLIB_FN (DGifCloseFile, (GifFileType *));
+DEF_IMGLIB_FN (DGifSlurp, (GifFileType *));
+DEF_IMGLIB_FN (DGifOpen, (void *, InputFunc));
+DEF_IMGLIB_FN (DGifOpenFileName, (const char *));
 
 static int
 init_gif_functions (Lisp_Object libraries)

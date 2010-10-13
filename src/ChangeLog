@@ -1,5 +1,10 @@
 2010-10-13  Juanma Barranquero  <lekktu@gmail.com>
 
+	* image.c (DEF_IMGLIB_FN): Add argument to adapt to strict
+	prototypes; all callers changed.
+
+2010-10-13  Juanma Barranquero  <lekktu@gmail.com>
+
 	* makefile.w32-in (TLIB2): Rename from TLIBW32.
 	(OBJ2): New macro.
 	(WIN32OBJ, FONTOBJ): Remove.
