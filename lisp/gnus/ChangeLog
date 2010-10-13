@@ -1,3 +1,10 @@
+2010-10-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-gravatar.el (gnus-gravatar-transform-address): Adjust avatars'
+	position when (X-)Faces exist.
+	(gnus-treat-from-gravatar, gnus-treat-mail-gravatar): Force displaying
+	avatars when called interactively.
+
 2010-10-12  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-gravatar.el (gnus-gravatar-too-ugly): Don't test if
