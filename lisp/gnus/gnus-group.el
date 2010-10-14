@@ -1548,7 +1548,7 @@ if it is a string, only list groups matching REGEXP."
 	      ?m ? ))
 	 (gnus-tmp-moderated-string
 	  (if (eq gnus-tmp-moderated ?m) "(m)" ""))
-         (gnus-tmp-group-icon (gnus-group-get-icon gnus-tmp-qualified-group))
+         (gnus-tmp-group-icon (gnus-group-get-icon gnus-tmp-group))
 	 (gnus-tmp-news-server (or (cadr gnus-tmp-method) ""))
 	 (gnus-tmp-news-method (or (car gnus-tmp-method) ""))
 	 (gnus-tmp-news-method-string

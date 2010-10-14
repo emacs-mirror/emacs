@@ -1,3 +1,13 @@
+2010-10-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-open-connection): tls-program should be a list of
+	programs.
+
+2010-10-14  Julien Danjou  <julien@danjou.info>
+
+	* gnus-group.el (gnus-group-insert-group-line): Fix group argument to
+	`gnus-group-get-icon'.
+
 2010-10-13  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* nnimap.el (nnimap-close-server): Forget the nnimap data on close.
