@@ -245,7 +245,10 @@ Might do a non-blocking connection; use `process-status' to check."
 		(coding-system-for-write 'binary))
 	    (setq conn (case gw-method
 			 (tls
-			  (open-tls-stream name buffer host service))
+			  (funcall (if (fboundp 'open-gnutls-stream)
+				       'open-gnutls-stream
+				     'open-tls-stream)
+				   name buffer host service))
 			 (ssl
 			  (open-ssl-stream name buffer host service))
 			 ((native)
