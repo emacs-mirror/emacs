@@ -1261,8 +1261,7 @@ See `custom-enabled-themes' for a list of enabled themes."
 	    ;; If the face spec specified by this theme is in the
 	    ;; saved-face property, reset that property.
 	    (when (equal (nth 3 s) (get symbol 'saved-face))
-	      (put symbol 'saved-face
-		   (and val (cadr (car val)))))
+	      (put symbol 'saved-face (and val (cadr (car val)))))
 	    (custom-theme-recalc-face symbol)))))
       (setq custom-enabled-themes
 	    (delq theme custom-enabled-themes)))))
@@ -1293,7 +1292,9 @@ This function returns nil if no custom theme specifies a value for VARIABLE."
   "Set FACE according to currently enabled custom themes."
   (if (get face 'face-alias)
       (setq face (get face 'face-alias)))
-  (face-spec-set face (get face 'face-override-spec)))
+  ;; Reset the faces for each frame.
+  (dolist (frame (frame-list))
+    (face-spec-recalc face frame)))
 
 
 ;;; XEmacs compability functions

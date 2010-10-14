@@ -1,3 +1,18 @@
+2010-10-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* faces.el (face-spec-reset-face): Reset all attributes in one
+	single call to set-face-attribute.
+	(face-spec-match-p): Make it a defsubst.
+	(frame-set-background-mode): New arg KEEP-FACE-SPECS.
+	(x-create-frame-with-faces, tty-create-frame-with-faces)
+	(tty-set-up-initial-frame-faces): Don't recompute face specs in
+	frame-set-background-mode, since they are recomputed immediately
+	afterwards in face-set-after-frame-default.
+	(face-set-after-frame-default): Minor optimization.
+	(cursor): Provide non-trivial defface spec.
+
+	* custom.el (custom-theme-recalc-face): Simplify.
+
 2010-10-14  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-alg.el (math-var): Renamed from `var'.
