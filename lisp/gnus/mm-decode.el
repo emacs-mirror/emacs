@@ -1686,6 +1686,7 @@ If RECURSIVE, search recursively."
 (declare-function libxml-parse-html-region "xml.c"
 		  (start end &optional base-url))
 (declare-function shr-insert-document "shr" (dom))
+(defvar shr-blocked-images)
 
 (defun mm-shr (handle)
   ;; Require since we bind its variables.
