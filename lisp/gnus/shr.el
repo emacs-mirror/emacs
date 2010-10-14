@@ -56,17 +56,17 @@ fit these criteria."
 (defcustom shr-table-line ?-
   "Character used to draw table line."
   :group 'shr
-  :type 'char)
+  :type 'character)
 
 (defcustom shr-table-corner ?+
   "Character used to draw table corner."
   :group 'shr
-  :type 'char)
+  :type 'character)
 
 (defcustom shr-hr-line ?-
   "Character used to draw hr line."
   :group 'shr
-  :type 'char)
+  :type 'character)
 
 (defcustom shr-width fill-column
   "Frame width to use for rendering."
@@ -404,14 +404,17 @@ Return a string with image data."
             (width (string-to-number width)))
         (when (< width max-width)
           (let ((align (cdr (assq :align cont))))
-            (cond ((string= align "right")
-                   (insert (propertize
-                            " " 'display
-                            `(space . (:align-to ,(list (- max-width width)))))))
-                  ((string= align "center")
-                   (insert (propertize
-                            " " 'display
-                            `(space . (:balign-to ,(list (- (/ max-width 2) width))))))))))))
+            (cond
+	     ((string= align "right")
+	      (insert (propertize
+		       " " 'display
+		       `(space . (:align-to
+				  ,(list (- max-width width)))))))
+	     ((string= align "center")
+	      (insert (propertize
+		       " " 'display
+		       `(space . (:balign-to
+				  ,(list (- (/ max-width 2) width))))))))))))
     (let ((start (point-marker)))
       (when (zerop (length alt))
         (setq alt "[img]"))
@@ -537,6 +540,11 @@ Return a string with image data."
 	 ;; unbreakable text).
 	 (sketch (shr-make-table cont suggested-widths))
 	 (sketch-widths (shr-table-widths sketch suggested-widths)))
+    ;; This probably won't work very well.
+    (when (> (1+ (loop for width across sketch-widths
+		       summing (1+ width)))
+	     (frame-width))
+      (setq truncate-lines t))
     ;; Then render the table again with these new "hard" widths.
     (shr-insert-table (shr-make-table cont sketch-widths t) sketch-widths))
   ;; Finally, insert all the images after the table.  The Emacs buffer

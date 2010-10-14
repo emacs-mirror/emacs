@@ -4474,7 +4474,6 @@ commands:
   ;; face.
   (set (make-local-variable 'nobreak-char-display) nil)
   (setq cursor-in-non-selected-windows nil)
-  (setq truncate-lines gnus-article-truncate-lines)
   (gnus-set-default-directory)
   (buffer-disable-undo)
   (setq buffer-read-only t
@@ -4534,9 +4533,11 @@ Internal variable.")
 	  (setq gnus-button-marker-list nil)
 	  (unless (eq major-mode 'gnus-article-mode)
 	    (gnus-article-mode))
+	  (setq truncate-lines gnus-article-truncate-lines)
 	  (current-buffer))
       (with-current-buffer (gnus-get-buffer-create name)
 	(gnus-article-mode)
+	(setq truncate-lines gnus-article-truncate-lines)
 	(make-local-variable 'gnus-summary-buffer)
 	(setq gnus-summary-buffer
 	      (gnus-summary-buffer-name gnus-newsgroup-name))

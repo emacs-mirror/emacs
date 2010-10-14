@@ -8824,31 +8824,35 @@ Return the number of articles fetched."
 
 (defun gnus-summary-refer-thread (&optional limit)
   "Fetch all articles in the current thread.
-If LIMIT (the numerical prefix), fetch that many old headers instead
-of what's specified by the `gnus-refer-thread-limit' variable."
+If no backend-specific 'request-thread function is available
+fetch LIMIT (the numerical prefix) old headers. If LIMIT is nil
+fetch what's specified by the `gnus-refer-thread-limit'
+variable."
   (interactive "P")
   (let ((id (mail-header-id (gnus-summary-article-header)))
 	(limit (if limit (prefix-numeric-value limit)
 		 gnus-refer-thread-limit)))
-    (unless (eq gnus-fetch-old-headers 'invisible)
-      (gnus-message 5 "Fetching headers for %s..." gnus-newsgroup-name)
-      ;; Retrieve the headers and read them in.
-      (if (eq (if (numberp limit)
-		  (gnus-retrieve-headers
-		   (list (min
-			  (+ (mail-header-number
-			      (gnus-summary-article-header))
-			     limit)
-			  gnus-newsgroup-end))
-		   gnus-newsgroup-name (* limit 2))
-		;; gnus-refer-thread-limit is t, i.e. fetch _all_
-		;; headers.
-		(gnus-retrieve-headers (list gnus-newsgroup-end)
-				       gnus-newsgroup-name limit))
-	      'nov)
-	  (gnus-build-all-threads)
-	(error "Can't fetch thread from back ends that don't support NOV"))
-      (gnus-message 5 "Fetching headers for %s...done" gnus-newsgroup-name))
+    (if  (gnus-check-backend-function 'request-thread gnus-newsgroup-name)
+	(gnus-request-thread id)
+      (unless (eq gnus-fetch-old-headers 'invisible)
+	(gnus-message 5 "Fetching headers for %s..." gnus-newsgroup-name)
+	;;	Retrieve the headers and read them in.
+	(if (numberp limit)
+	    (gnus-retrieve-headers
+	     (list (min
+		    (+ (mail-header-number
+			(gnus-summary-article-header))
+		       limit)
+		    gnus-newsgroup-end))
+	     gnus-newsgroup-name (* limit 2))
+	  ;; gnus-refer-thread-limit is t, i.e. fetch _all_
+	  ;; headers.
+	  (gnus-retrieve-headers (list gnus-newsgroup-end)
+				 gnus-newsgroup-name limit)
+	  (gnus-message 5 "Fetching headers for %s...done"
+			gnus-newsgroup-name))))
+    (when (eq gnus-headers-retrieved-by 'nov)
+      (gnus-build-all-threads))
     (gnus-summary-limit-include-thread id)))
 
 (defun gnus-summary-refer-article (message-id)

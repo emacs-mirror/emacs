@@ -1,5 +1,31 @@
 2010-10-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
+	* nnimap.el (nnimap-open-connection): Message when opening connection
+	for debugging purposes.
+
+	* gnus-art.el (gnus-article-setup-buffer): Set article mode truncation
+	on every setup buffer call to allow this to change from article to
+	article.
+
+	* shr.el (shr-tag-table): Experimental feature: Truncate lines in
+	buffers where we have a wide table.
+
+2010-10-14  Andrew Cohen  <cohen@andy.bu.edu>
+
+	* gnus-sum.el (gnus-summary-refer-thread): Implement a version that
+	uses *-request-thread.
+
+2010-10-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnimap.el (nnimap-open-connection): Remove %s from openssl
+	incantation, which is no longer valid.
+
+2010-10-14  Julien Danjou  <julien@danjou.info>
+
+	* shr.el: Fix defcustom type (char -> character).
+
+2010-10-14  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
 	* nnimap.el (nnimap-open-connection): tls-program should be a list of
 	programs.
 
