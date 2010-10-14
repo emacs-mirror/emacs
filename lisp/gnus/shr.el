@@ -379,9 +379,10 @@ Return a string with image data."
 	shr-start)
     (shr-generic cont)
     (widget-convert-button
-     'link (or shr-start start) (point)
-     :help-echo url)
-    (put-text-property (or shr-start start) (point) 'keymap shr-map)
+     'url-link (or shr-start start) (point)
+     :help-echo url
+     :keymap shr-map
+     url)
     (put-text-property (or shr-start start) (point) 'shr-url url)))
 
 (defun shr-encode-url (url)

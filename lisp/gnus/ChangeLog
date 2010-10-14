@@ -5,6 +5,8 @@
 
 2010-10-14  Julien Danjou  <julien@danjou.info>
 
+	* shr.el (shr-tag-a): Use url-link as widget type.
+
 	* gnus-group.el (gnus-group-insert-group-line): Fix group argument to
 	`gnus-group-get-icon'.
 
