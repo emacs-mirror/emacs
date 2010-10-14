@@ -1437,7 +1437,7 @@ OPERATOR :=
 	;; Normal arithmethic operators (same meaning as C code).
 	+ | - | * | / | %
 
-	;; Bitwize operators (same meaning as C code)
+	;; Bitwise operators (same meaning as C code)
 	| & | `|' | ^
 
 	;; Shifting operators (same meaning as C code)

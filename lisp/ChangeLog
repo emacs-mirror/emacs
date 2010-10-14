@@ -1,3 +1,23 @@
+2010-10-14  Kenichi Handa  <handa@m17n.org>
+
+	* mail/rmail.el (rmail-show-message-1): Catch an error of
+	base64-decode-region and just show an error message (bug#7165).
+
+	* ps-mule.el (ps-mule-font-spec-list): Delete it.  Not used
+	anymore.
+	(ps-mule-begin-job): Fix for the case that only ENCODING is set in
+	a font-spec (bug#7197).
+
+2010-10-14  Glenn Morris  <rgm@gnu.org>
+
+	* mail/emacsbug.el (report-emacs-bug): Mention debbugs.gnu.org.
+
+2010-10-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/mule.el (define-coding-system):
+	* international/titdic-cnv.el (quail-cxterm-package-ext-info):
+	* composite.el (compose-region): Fix typo in docstring.
+
 2010-10-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cus-face.el (custom-theme-set-faces): Call custom-push-theme

@@ -452,7 +452,7 @@ Do this by extracting the lowest directory name."
 ;; Targets and projects are often associated with other files, such as
 ;; header files, documentation files and the like.  Have strong
 ;; associations can make useful user commands to quickly navigate
-;; between the files base on their associations.
+;; between the files based on their associations.
 ;;
 (defun ede-header-file ()
   "Return the header file for the current buffer.

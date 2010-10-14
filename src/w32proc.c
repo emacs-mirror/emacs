@@ -168,7 +168,7 @@ new_child (void)
   child_process *cp;
   DWORD id;
 
-  for (cp = child_procs+(child_proc_count-1); cp >= child_procs; cp--)
+  for (cp = child_procs + (child_proc_count-1); cp >= child_procs; cp--)
     if (!CHILD_ACTIVE (cp))
       goto Initialise;
   if (child_proc_count == MAX_CHILDREN)
@@ -268,7 +268,7 @@ find_child_pid (DWORD pid)
 {
   child_process *cp;
 
-  for (cp = child_procs+(child_proc_count-1); cp >= child_procs; cp--)
+  for (cp = child_procs + (child_proc_count-1); cp >= child_procs; cp--)
     if (CHILD_ACTIVE (cp) && pid == cp->pid)
       return cp;
   return NULL;
@@ -495,7 +495,7 @@ sys_wait (int *status)
     }
   else
     {
-      for (cp = child_procs+(child_proc_count-1); cp >= child_procs; cp--)
+      for (cp = child_procs + (child_proc_count-1); cp >= child_procs; cp--)
 	/* some child_procs might be sockets; ignore them */
 	if (CHILD_ACTIVE (cp) && cp->procinfo.hProcess
 	    && (cp->fd < 0 || (fd_info[cp->fd].flags & FILE_AT_EOF) != 0))
@@ -895,7 +895,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
 	escape_char = is_cygnus_app ? '"' : '\\';
     }
 
-  /* Cygwin apps needs quoting a bit more often */
+  /* Cygwin apps needs quoting a bit more often.  */
   if (escape_char == '"')
     sepchars = "\r\n\t\f '";
 
@@ -1245,7 +1245,7 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 count_children:
   /* Add handles of child processes.  */
   nc = 0;
-  for (cp = child_procs+(child_proc_count-1); cp >= child_procs; cp--)
+  for (cp = child_procs + (child_proc_count-1); cp >= child_procs; cp--)
     /* Some child_procs might be sockets; ignore them.  Also some
        children may have died already, but we haven't finished reading
        the process output; ignore them too.  */

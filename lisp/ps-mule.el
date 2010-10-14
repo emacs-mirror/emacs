@@ -320,31 +320,19 @@ by `ps-font-family' and `ps-header-font-family'.
 
 See also `ps-mule-font-info-database-bdf'.")
 
-(defvar ps-mule-font-spec-list nil
-  "Array of FONT-SPEC lists for each font type.
-
-Elements are for `normal' font, `bold' font, `italic' font, and
-`bold-italic' font in this order.
-
-Each element is a list of FONT-SPEC which has this form:
-
-	(ID CHARSET (FONT-SRC FONT-NAME ENCODING) EXTRA-DATA)
-
-Where
-
-ID is a number for this FONT-SPEC and is unique in the list.
-
-CHARSET, FONT-SRC, FONT-NAME, ENCODING are the same as those in
-`ps-mule-font-info-database' (which see).
-
-EXTRA-DATA is a data attached by external libraries.
-
-Each list is ordered by the current charset priorities.
-
-This variable is setup by `ps-mule-begin-job' from
-`ps-mule-font-info-database'.")
-
 ;; Functions to access each element of FONT-SPEC.
+;;
+;; FONT-SPEC is a vector of this form:
+;; 	[ID CHARSET FONT-ID FONT-SRC FONT-NAME ENCODING BYTES EXTRA-DATA]
+;; Where
+;;
+;; ID is an identification number for this FONT-SPEC and is unique in the list.
+;;
+;; CHARSET, FONT-SRC, FONT-NAME, ENCODING, and BYTES are the same as those in
+;; `ps-mule-font-info-database' (which see).
+;;
+;; EXTRA-DATA is a data attached by external libraries.
+
 (defsubst ps-mule-font-spec-id (font-spec) (aref font-spec 0))
 (defsubst ps-mule-font-spec-charset (font-spec) (aref font-spec 1))
 (defsubst ps-mule-font-spec-font-id (font-spec) (aref font-spec 2))
@@ -1044,7 +1032,7 @@ It checks if all multi-byte characters in the region are printable or not."
   (if (and (not (find-composition from to))
 	   (save-excursion
 	     (goto-char from)
-	     (= (skip-chars-forward "\x00-\xFF" to) to)))
+	     (= (skip-chars-forward "\x00-\x7F" to) to)))
       ;; All characters can be printed by normal PostScript fonts.
       (setq ps-basic-plot-string-function 'ps-basic-plot-string
 	    ps-encode-header-string-function 'identity)
@@ -1086,17 +1074,19 @@ It checks if all multi-byte characters in the region are printable or not."
 	      (setq font-info-list (cons font-info font-info-list))))
 	(setq font-info-list (nreverse font-info-list)))
 
+      ;; Now font-info-list is an alist ordered by charset priority.
       ;; Store FONT-SPECs in each element of font-spec-alist.
       (dolist (font-info font-info-list)
 	(let ((font-spec-vec (make-vector 4 nil))
 	      (charset (car font-info))
-	      encoding font-spec)
+	      encoding bytes font-spec)
 	  (dolist (e (cdr font-info))
-	    (setq encoding (or (nth 3 e) charset)
-		  font-spec (vector id-max charset font-id
+	    (setq encoding (nth 3 e) bytes (nth 4 e))
+	    (unless encoding
+	      (setq encoding charset bytes (charset-dimension charset)))
+	    (setq font-spec (vector id-max charset font-id
 				    (nth 1 e) (nth 2 e) encoding
-				    (or (nth 4 e) (charset-dimension encoding))
-				    nil)
+				    (or bytes 1) nil)
 		  id-max (1+ id-max))
 	    (if (ps-mule-check-font font-spec)
 		(aset font-spec-vec

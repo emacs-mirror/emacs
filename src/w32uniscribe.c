@@ -439,7 +439,7 @@ uniscribe_shape (Lisp_Object lgstring)
 }
 
 /* Uniscribe implementation of encode_char for font backend.
-   Return a glyph code of FONT for characer C (Unicode code point).
+   Return a glyph code of FONT for character C (Unicode code point).
    If FONT doesn't have such a glyph, return FONT_INVALID_CODE.  */
 static unsigned
 uniscribe_encode_char (struct font *font, int c)

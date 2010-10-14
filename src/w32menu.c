@@ -997,7 +997,7 @@ w32_dialog_show (FRAME_PTR f, int keymaps,
 		 Lisp_Object title, Lisp_Object header,
 		 char **error)
 {
-  int i, nb_buttons=0;
+  int i, nb_buttons = 0;
   char dialog_name[6];
   int menu_item_selection;
 
@@ -1740,7 +1740,7 @@ syms_of_w32menu (void)
 void
 globals_of_w32menu (void)
 {
-	/* See if Get/SetMenuItemInfo functions are available.  */
+  /* See if Get/SetMenuItemInfo functions are available.  */
   HMODULE user32 = GetModuleHandle ("user32.dll");
   get_menu_item_info = (GetMenuItemInfoA_Proc) GetProcAddress (user32, "GetMenuItemInfoA");
   set_menu_item_info = (SetMenuItemInfoA_Proc) GetProcAddress (user32, "SetMenuItemInfoA");
