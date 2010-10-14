@@ -1,3 +1,7 @@
+2010-10-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* tutorials/TUTORIAL.es: Fix typos.
+
 2010-09-21  Eric Ludlam  <zappo@gnu.org>
 
 	* srecode/java.srt: Make NAME be a prompt.

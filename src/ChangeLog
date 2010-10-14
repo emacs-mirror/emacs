@@ -1,3 +1,19 @@
+2010-10-13  Damyan Pepper  <damyanp@gmail.com>
+
+	Fix handling of font properties on Windows (bug#6303).
+	* font.c (font_filter_properties): New function, refactored from
+	ftfont_filter_properties.
+	* font.h (font_filter_properties): Declare.
+	* ftfont.c (ftfont_filter_properties): Use font_filter_properties.
+	* w32font.c (w32font_booleans, w32font_non_booleans): New variables.
+	(w32font_filter_properties): New function.
+	(w32font_driver): Add w32font_filter_properties.
+
+2010-10-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* font.c (Ffont_variation_glyphs):
+	* ccl.c (Fccl_execute_on_string): Fix typo in docstring.
+
 2010-10-10  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* nsterm.m (Qleft): Declare.
@@ -134,7 +150,7 @@
 	(x_produce_glyphs): Simplify by using the same code for ASCII and
 	non-ASCII characters.  Don't set it->char_to_display here.
 	Don't handle unibyte-display-via-language-environment here.  For a
-	charater of no glyph, use font->space_width instead of FONT_WIDTH.
+	character of no glyph, use font->space_width instead of FONT_WIDTH.
 
 2010-08-29  Kenichi Handa  <handa@m17n.org>
 
@@ -171,7 +187,7 @@
 	* charset.c: Include <stdlib.h>
 	(struct charset_sort_data): New struct.
 	(charset_compare): New function.
-	(Fsort_charsets): New funciton.
+	(Fsort_charsets): New function.
 	(syms_of_charset): Declare Fsort_charsets as a Lisp function.
 
 	* coding.c (decode_coding_iso_2022): Fix checking of dimension
@@ -13872,7 +13888,7 @@
 	(Ffont_shape_text): New function.
 	(Fopen_font): If the font size is not given, use 12-pixel.
 	(Ffont_at): New arg STRING.
-	(syms_of_font): Initalize font_charset_alist.
+	(syms_of_font): Initialize font_charset_alist.
 	Declare Ffont_shape_text as a Lisp function.  Call syms_of_XXfont
 	conditionally.
 
@@ -14869,7 +14885,7 @@
 
 	* font.c (font_unparse_fcname): Fix typo (swidth->width).
 	(font_list_entities): Check driver_list->on.
-	(register_font_driver): Initalize `on' member to 0.
+	(register_font_driver): Initialize `on' member to 0.
 	(font_update_drivers): New function.
 	(Fclear_font_cache): Check driver_list->on.
 

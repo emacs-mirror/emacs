@@ -1140,7 +1140,7 @@
 	(rcirc-keepalive-seconds): Remove variable.
 	(rcirc-server-name, rcirc-timeout-timer, rcirc-connecting)
 	(rcirc-process, rcirc-user-disconnect): New variables.
-	(rcirc-connect): Initalize new variables.
+	(rcirc-connect): Initialize new variables.
 	(rcirc-keepalive): Don't send keepalive pings before connection
 	is completed.
 	(rcirc-sentinel): Do mark all channels with activity when

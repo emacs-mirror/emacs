@@ -147,7 +147,7 @@
 
 	* custom.texi (Init Examples): Add xref to Mail Header.
 
-	* emacs.texi (Top):  Fix xrefs.
+	* emacs.texi (Top): Fix xrefs.
 
 2010-03-25  Chong Yidong  <cyd@stupidchicken.com>
 

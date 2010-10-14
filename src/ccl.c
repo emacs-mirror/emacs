@@ -450,7 +450,7 @@ extern int charset_unicode;
    Therefore, the instruction code range is 0..16384(0x3fff).
  */
 
-/* Read a multibyte characeter.
+/* Read a multibyte character.
    A code point is stored into reg[rrr].  A charset ID is stored into
    reg[RRR].  */
 
@@ -2058,7 +2058,7 @@ If R0..R7 are nil, they are initialized to 0.
 If IC is nil, it is initialized to head of the CCL program.
 
 If optional 4th arg CONTINUE is non-nil, keep IC on read operation
-when read buffer is exausted, else, IC is always set to the end of
+when read buffer is exhausted, else, IC is always set to the end of
 CCL-PROGRAM on exit.
 
 It returns the contents of write buffer as a string,

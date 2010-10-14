@@ -1,3 +1,7 @@
+2010-10-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* nnmail.el (nnmail-fancy-expiry-targets): Fix typo in docstring.
+
 2010-09-21  Glenn Morris  <rgm@gnu.org>
 
 	* message.el (message-output): Use gnus-output-to-rmail if a buffer is

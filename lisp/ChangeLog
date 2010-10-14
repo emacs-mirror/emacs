@@ -5,14 +5,24 @@
 	(ps-mule-begin-job): Fix for the case that only ENCODING is set in
 	a font-spec (bug#7197).
 
- 2010-10-10  Jan Djärv  <jan.h.d@swipnet.se>
- 
- 	* term/ns-win.el (ns-right-alternate-modifier): New defvar.
- 	(ns-right-option-modifier): New alias for ns-right-alternate-modifier.
- 	(mac-right-option-modifier): New alias for ns-right-option-modifier.
- 
- 	* cus-start.el (all): ns-right-alternate-modifier is new.
- 
+2010-10-13  Glenn Morris  <rgm@gnu.org>
+
+	* mail/emacsbug.el (report-emacs-bug): Mention debbugs.gnu.org.
+
+2010-10-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/mule.el (define-coding-system):
+	* international/titdic-cnv.el (quail-cxterm-package-ext-info):
+	* composite.el (compose-region): Fix typo in docstring.
+
+2010-10-10  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* term/ns-win.el (ns-right-alternate-modifier): New defvar.
+	(ns-right-option-modifier): New alias for ns-right-alternate-modifier.
+	(mac-right-option-modifier): New alias for ns-right-option-modifier.
+
+	* cus-start.el (all): ns-right-alternate-modifier is new.
+
 2010-10-10  Andreas Schwab  <schwab@linux-m68k.org>
 
 	* Makefile.in (ELCFILES): Update.
@@ -25,7 +35,7 @@
 2010-10-09  Richard Sharman  <richard_sharman@mitel.com>  (tiny change)
 
 	* progmodes/gdb-ui.el (gdb-mouse-toggle-breakpoint-margin)
-	(gdb-mouse-toggle-breakpoint-fringe):  Correct regexp to
+	(gdb-mouse-toggle-breakpoint-fringe): Correct regexp to
 	work when breakpoint number exceeds nine.
 
 2010-10-05  David Koppelman  <koppel@ece.lsu.edu>
@@ -1068,7 +1078,7 @@
 
 2010-05-03  Chong Yidong  <cyd@stupidchicken.com>
 
-	* international/mule.el (auto-coding-alist):  Only purecopy
+	* international/mule.el (auto-coding-alist): Only purecopy
 	car of each item, not the whole list (Bug#6083).
 
 2010-05-02  Chong Yidong  <cyd@stupidchicken.com>

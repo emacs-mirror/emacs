@@ -1873,7 +1873,7 @@ struct composition_it
      are not iterating over a composition now.  */
   int id;
   /* If non-negative, character that triggers the automatic
-     composition at `stop_pos', and this is an automatic compositoin.
+     composition at `stop_pos', and this is an automatic composition.
      If negative, this is a static composition.  This is set to -2
      temporarily if searching of composition reach a limit or a
      newline.  */

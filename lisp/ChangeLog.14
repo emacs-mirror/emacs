@@ -640,7 +640,7 @@
 
 2009-04-11  Chong Yidong  <cyd@stupidchicken.com>
 
-	* files.el (dir-locals-directory-cache):  Rename from
+	* files.el (dir-locals-directory-cache): Rename from
 	dir-locals-directory-alist.  Change format to include
 	the mtime of the directory-local variables file (Bug#2833).
 	(dir-locals-set-directory-class): New arg mtime.  Store it in

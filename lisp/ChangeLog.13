@@ -7567,7 +7567,7 @@
 	(ediff-setup-windows-plain-merge)
 	(ediff-setup-windows-plain-compare, ediff-setup-control-frame)
 	(ediff-refresh-control-frame, ediff-get-visible-buffer-window):
-	* ediff-util.el (ediff-setup-keymap, )
+	* ediff-util.el (ediff-setup-keymap)
 	(ediff-toggle-wide-display, ediff-toggle-multiframe)
 	(ediff-toggle-use-toolbar, ediff-really-quit)
 	(ediff-good-frame-under-mouse)
