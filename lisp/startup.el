@@ -6,6 +6,7 @@
 
 ;; Maintainer: FSF
 ;; Keywords: internal
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -785,15 +786,16 @@ opening the first frame (e.g. open a connection to an X server).")
                 argi (match-string 1 argi)))
 	(when (string-match "\\`--." orig-argi)
 	  (let ((completion (try-completion argi longopts)))
-	    (if (eq completion t)
-		(setq argi (substring argi 1))
-	      (if (stringp completion)
-		  (let ((elt (assoc completion longopts)))
-		    (or elt
-			(error "Option `%s' is ambiguous" argi))
-		    (setq argi (substring (car elt) 1)))
-		(setq argval nil
-                      argi orig-argi)))))
+	    (cond ((eq completion t)
+		   (setq argi (substring argi 1)))
+		  ((stringp completion)
+		   (let ((elt (assoc completion longopts)))
+		     (unless elt
+		       (error "Option `%s' is ambiguous" argi))
+		     (setq argi (substring (car elt) 1))))
+		  (t
+		   (setq argval nil
+			 argi orig-argi)))))
 	(cond
 	 ;; The --display arg is handled partly in C, partly in Lisp.
 	 ;; When it shows up here, we just put it back to be handled
@@ -1561,23 +1563,21 @@ a face or button specification."
 		 (kill-buffer "*GNU Emacs*")))
        "  ")
       (when (or user-init-file custom-file)
-	(let ((checked (create-image "\300\300\141\143\067\076\034\030"
-				     'xbm t :width 8 :height 8 :background "grey75"
-				     :foreground "black" :relief -2 :ascent 'center))
-	      (unchecked (create-image (make-string 8 0)
-				       'xbm t :width 8 :height 8 :background "grey75"
-				       :foreground "black" :relief -2 :ascent 'center)))
-	  (insert-button
-	   " " :on-glyph checked :off-glyph unchecked 'checked nil
-	   'display unchecked 'follow-link t
-	   'action (lambda (button)
-		     (if (overlay-get button 'checked)
-			 (progn (overlay-put button 'checked nil)
-				(overlay-put button 'display (overlay-get button :off-glyph))
-				(setq startup-screen-inhibit-startup-screen nil))
-		       (overlay-put button 'checked t)
-		       (overlay-put button 'display (overlay-get button :on-glyph))
-		       (setq startup-screen-inhibit-startup-screen t)))))
+	(insert-button
+	 " "
+	 :on-glyph image-checkbox-checked
+	 :off-glyph image-checkbox-unchecked
+	 'checked nil 'display image-checkbox-unchecked 'follow-link t
+	 'action (lambda (button)
+		   (if (overlay-get button 'checked)
+		       (progn (overlay-put button 'checked nil)
+			      (overlay-put button 'display
+					   (overlay-get button :off-glyph))
+			      (setq startup-screen-inhibit-startup-screen nil))
+		     (overlay-put button 'checked t)
+		     (overlay-put button 'display
+				  (overlay-get button :on-glyph))
+		     (setq startup-screen-inhibit-startup-screen t))))
 	(fancy-splash-insert :face '(variable-pitch (:height 0.9))
 			     " Never show it again.")))))
 
@@ -2230,6 +2230,11 @@ A fancy display is used on graphic displays, normal otherwise."
 		   (unless (< cl1-column 1)
 		     (move-to-column (1- cl1-column)))
 		   (setq cl1-column 0))
+
+		  ;; These command lines now have no effect.
+		  ((string-match "\\`--?\\(no-\\)?\\(uni\\|multi\\)byte$" argi)
+		   (display-warning 'initialization
+				    (format "Ignoring obsolete arg %s" argi)))
 
 		  ((equal argi "--")
 		   (setq just-files t))

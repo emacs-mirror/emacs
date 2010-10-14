@@ -6,7 +6,6 @@
 ;; Keywords: wp, convenience
 ;; Author: Takaaki Ota <Takaaki.Ota@am.sony.com>
 ;; Created: Sat Jul 08 2000 13:28:45 (PST)
-;; Revised: Fri Aug 21 2009 00:16:58 (PDT)
 
 ;; This file is part of GNU Emacs.
 
@@ -651,7 +650,7 @@
   :group 'table)
 
 (defcustom table-time-before-update 0.2
-  "*Time in seconds before updating the cell contents after typing.
+  "Time in seconds before updating the cell contents after typing.
 Updating the cell contents on the screen takes place only after this
 specified amount of time has passed after the last modification to the
 cell contents.  When the contents of a table cell changes repetitively
@@ -665,7 +664,7 @@ annoying delay before the typed result start appearing on the screen."
   :group 'table)
 
 (defcustom table-time-before-reformat 0.2
-  "*Time in seconds before reformatting the table.
+  "Time in seconds before reformatting the table.
 This many seconds must pass in addition to `table-time-before-update'
 before the table is updated with newly widened width or heightened
 height."
@@ -674,7 +673,7 @@ height."
   :group 'table)
 
 (defcustom table-command-prefix [(control c) (control c)]
-  "*Key sequence to be used as prefix for table command key bindings."
+  "Key sequence to be used as prefix for table command key bindings."
   :type '(vector (repeat :inline t sexp))
   :tag "Table Command Prefix"
   :group 'table)
@@ -685,30 +684,30 @@ height."
     (((class color))
      (:foreground "gray90" :background "blue"))
     (t (:bold t)))
-  "*Face used for table cell contents."
+  "Face used for table cell contents."
   :tag "Cell Face"
   :group 'table)
 
 (defcustom table-cell-horizontal-chars "-="
-  "*Characters that may be used for table cell's horizontal border line."
+  "Characters that may be used for table cell's horizontal border line."
   :tag "Cell Horizontal Boundary Characters"
   :type 'string
   :group 'table)
 
 (defcustom table-cell-vertical-char ?\|
-  "*Character that forms table cell's vertical border line."
+  "Character that forms table cell's vertical border line."
   :tag "Cell Vertical Boundary Character"
   :type 'character
   :group 'table)
 
 (defcustom table-cell-intersection-char ?\+
-  "*Character that forms table cell's corner."
+  "Character that forms table cell's corner."
   :tag "Cell Intersection Character"
   :type 'character
   :group 'table)
 
 (defcustom table-word-continuation-char ?\\
-  "*Character that indicates word continuation into the next line.
+  "Character that indicates word continuation into the next line.
 This character has a special meaning only in the fixed width mode,
 that is when `table-fixed-width-mode' is non-nil .  In the fixed width
 mode this character indicates that the location is continuing into the
@@ -727,7 +726,7 @@ select a character that is unlikely to appear in your document."
   (set variable value))
 
 (defcustom table-fixed-width-mode nil
-  "*Cell width is fixed when this is non-nil.
+  "Cell width is fixed when this is non-nil.
 Normally it should be nil for allowing automatic cell width expansion
 that widens a cell when it is necessary.  When non-nil, typing in a
 cell does not automatically expand the cell width.  A word that is too
@@ -742,7 +741,7 @@ run-time."
   :group 'table)
 
 (defcustom table-detect-cell-alignment t
-  "*Detect cell contents alignment automatically.
+  "Detect cell contents alignment automatically.
 When non-nil cell alignment is automatically determined by the
 appearance of the current cell contents when recognizing tables as a
 whole.  This applies to `table-recognize', `table-recognize-region'
@@ -752,38 +751,38 @@ and `table-recognize-table' but not to `table-recognize-cell'."
   :group 'table)
 
 (defcustom table-dest-buffer-name "table"
-  "*Default buffer name (without a suffix) for source generation."
+  "Default buffer name (without a suffix) for source generation."
   :tag "Source Buffer Name"
   :type 'string
   :group 'table)
 
 (defcustom table-html-delegate-spacing-to-user-agent nil
-  "*Non-nil delegates cell contents spacing entirely to user agent.
+  "Non-nil delegates cell contents spacing entirely to user agent.
 Otherwise, when nil, it preserves the original spacing and line breaks."
   :tag "HTML delegate spacing"
   :type 'boolean
   :group 'table)
 
 (defcustom table-html-th-rows 0
-  "*Number of top rows to become header cells automatically in HTML generation."
+  "Number of top rows to become header cells automatically in HTML generation."
   :tag "HTML Header Rows"
   :type 'integer
   :group 'table)
 
 (defcustom table-html-th-columns 0
-  "*Number of left columns to become header cells automatically in HTML generation."
+  "Number of left columns to become header cells automatically in HTML generation."
   :tag "HTML Header Columns"
   :type 'integer
   :group 'table)
 
 (defcustom table-html-table-attribute "border=\"1\""
-  "*Table attribute that applies to the table in HTML generation."
+  "Table attribute that applies to the table in HTML generation."
   :tag "HTML table attribute"
   :type 'string
   :group 'table)
 
 (defcustom table-html-cell-attribute ""
-  "*Cell attribute that applies to all cells in HTML generation.
+  "Cell attribute that applies to all cells in HTML generation.
 Do not specify \"align\" and \"valign\" because they are determined by
 the cell contents dynamically."
   :tag "HTML cell attribute"
@@ -791,28 +790,28 @@ the cell contents dynamically."
   :group 'table)
 
 (defcustom table-cals-thead-rows 1
-  "*Number of top rows to become header rows in CALS table."
+  "Number of top rows to become header rows in CALS table."
   :tag "CALS Header Rows"
   :type 'integer
   :group 'table)
 
 ;;;###autoload
 (defcustom table-cell-map-hook nil
-  "*Normal hooks run when finishing construction of `table-cell-map'.
+  "Normal hooks run when finishing construction of `table-cell-map'.
 User can modify `table-cell-map' by adding custom functions here."
   :tag "Cell Keymap Hooks"
   :type 'hook
   :group 'table-hooks)
 
 (defcustom table-disable-incompatibility-warning nil
-  "*Disable compatibility warning notice.
+  "Disable compatibility warning notice.
 When nil user is reminded of known incompatible issues."
   :tag "Disable Incompatibility Warning"
   :type 'boolean
   :group 'table)
 
 (defcustom table-abort-recognition-when-input-pending t
-  "*Abort current recognition process when input pending.
+  "Abort current recognition process when input pending.
 Abort current recognition process when we are not sure that no input
 is available.  When non-nil lengthy recognition process is aborted
 simply by any key input."
@@ -822,19 +821,19 @@ simply by any key input."
 
 ;;;###autoload
 (defcustom table-load-hook nil
-  "*List of functions to be called after the table is first loaded."
+  "List of functions to be called after the table is first loaded."
   :type 'hook
   :group 'table-hooks)
 
 ;;;###autoload
 (defcustom table-point-entered-cell-hook nil
-  "*List of functions to be called after point entered a table cell."
+  "List of functions to be called after point entered a table cell."
   :type 'hook
   :group 'table-hooks)
 
 ;;;###autoload
 (defcustom table-point-left-cell-hook nil
-  "*List of functions to be called after point left a table cell."
+  "List of functions to be called after point left a table cell."
   :type 'hook
   :group 'table-hooks)
 
@@ -860,7 +859,7 @@ time.")
 ;;; No need of user configuration
 
 (defconst table-paragraph-start "[ \t\n\f]"
-  "*Regexp for beginning of a line that starts OR separates paragraphs.")
+  "Regexp for beginning of a line that starts OR separates paragraphs.")
 (defconst table-cache-buffer-name " *table cell cache*"
   "Cell cache buffer name.")
 (defvar table-cell-info-lu-coordinate nil
@@ -5589,15 +5588,6 @@ It returns COLUMN unless STR contains some wide characters."
 (run-hooks 'table-load-hook)
 
 (provide 'table)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Local Variables: ***
-;; time-stamp-line-limit: 16 ***
-;; time-stamp-start: ";; Revised:[ \t]+" ***
-;; time-stamp-end: "$" ***
-;; time-stamp-format: "%3a %3b %02d %:y %02H:%02M:%02S (%Z)" ***
-;; End: ***
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; arch-tag: 0d69b03e-aa5f-4e72-8806-5727217617e0
 ;;; table.el ends here

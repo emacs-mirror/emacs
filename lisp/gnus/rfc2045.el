@@ -39,5 +39,4 @@
 
 (provide 'rfc2045)
 
-;; arch-tag: 9ca54127-97bc-432c-b6e2-8c59cadba306
 ;;; rfc2045.el ends here

@@ -151,7 +151,7 @@ If TCP-P, the first two bytes of the package with be the length field."
       (lsh (if (dns-get 'truncated-p spec) 1 0) -1)
       (lsh (if (dns-get 'recursion-desired-p spec) 1 0) 0)))
     (dns-write-bytes
-     (cond 
+     (cond
       ((eq (dns-get 'response-code spec) 'no-error) 0)
       ((eq (dns-get 'response-code spec) 'format-error) 1)
       ((eq (dns-get 'response-code spec) 'server-failure) 2)
@@ -438,5 +438,4 @@ If REVERSEP, look up an IP address."
 
 (provide 'dns)
 
-;; arch-tag: d0edd0c4-4cce-4538-ae92-06c3356ee80a
 ;;; dns.el ends here

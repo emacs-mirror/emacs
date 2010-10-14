@@ -32,7 +32,7 @@
 
 ;;; Code:
 
-;; For Emacs < 22.2.
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 
@@ -166,7 +166,6 @@ ftp://ftp.math.psu.edu/pub/simpson/chinese/hzp/hzp.doc"
 		      (equal (car ctl) "text/plain"))
 	      (rfc1843-decode-region (point) (point-max))))))))
 
-(defvar rfc1843-old-gnus-decode-header-function  nil)
 (defvar gnus-decode-header-methods)
 (defvar gnus-decode-encoded-word-methods)
 
@@ -192,5 +191,4 @@ ftp://ftp.math.psu.edu/pub/simpson/chinese/hzp/hzp.doc"
 
 (provide 'rfc1843)
 
-;; arch-tag: 5149c301-a6ca-4731-9c9d-ba616e2cb687
 ;;; rfc1843.el ends here

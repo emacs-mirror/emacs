@@ -6,6 +6,7 @@
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Version: 2.02
 ;; Keywords: extensions
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -1818,8 +1819,6 @@ Example:
 (defsetf window-start set-window-start)
 (defsetf window-width () (store)
   (list 'progn (list 'enlarge-window (list '- store '(window-width)) t) store))
-(defsetf x-get-cutbuffer x-store-cutbuffer t)
-(defsetf x-get-cut-buffer x-store-cut-buffer t)   ; groan.
 (defsetf x-get-secondary-selection x-own-secondary-selection t)
 (defsetf x-get-selection x-own-selection t)
 

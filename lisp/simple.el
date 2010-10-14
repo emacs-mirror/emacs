@@ -6,6 +6,7 @@
 
 ;; Maintainer: FSF
 ;; Keywords: internal
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -456,72 +457,43 @@ Call `auto-fill-function' if the current column number is greater
 than the value of `fill-column' and ARG is nil."
   (interactive "*P")
   (barf-if-buffer-read-only)
-  ;; Inserting a newline at the end of a line produces better redisplay in
-  ;; try_window_id than inserting at the beginning of a line, and the textual
-  ;; result is the same.  So, if we're at beginning of line, pretend to be at
-  ;; the end of the previous line.
-  (let ((flag (and (not (bobp))
-		   (bolp)
-		   ;; Make sure no functions want to be told about
-		   ;; the range of the changes.
-		   (not after-change-functions)
-		   (not before-change-functions)
-		   ;; Make sure there are no markers here.
-		   (not (buffer-has-markers-at (1- (point))))
-		   (not (buffer-has-markers-at (point)))
-		   ;; Make sure no text properties want to know
-		   ;; where the change was.
-		   (not (get-char-property (1- (point)) 'modification-hooks))
-		   (not (get-char-property (1- (point)) 'insert-behind-hooks))
-		   (or (eobp)
-		       (not (get-char-property (point) 'insert-in-front-hooks)))
-		   ;; Make sure the newline before point isn't intangible.
-		   (not (get-char-property (1- (point)) 'intangible))
-		   ;; Make sure the newline before point isn't read-only.
-		   (not (get-char-property (1- (point)) 'read-only))
-		   ;; Make sure the newline before point isn't invisible.
-		   (not (get-char-property (1- (point)) 'invisible))
-		   ;; Make sure the newline before point has the same
-		   ;; properties as the char before it (if any).
-		   (< (or (previous-property-change (point)) -2)
-		      (- (point) 2))))
-	(was-page-start (and (bolp)
-			     (looking-at page-delimiter)))
-	(beforepos (point)))
-    (if flag (backward-char 1))
-    ;; Call self-insert so that auto-fill, abbrev expansion etc. happens.
-    ;; Set last-command-event to tell self-insert what to insert.
-    (let ((last-command-event ?\n)
-	  ;; Don't auto-fill if we have a numeric argument.
-	  ;; Also not if flag is true (it would fill wrong line);
-	  ;; there is no need to since we're at BOL.
-	  (auto-fill-function (if (or arg flag) nil auto-fill-function)))
-      (unwind-protect
-	  (self-insert-command (prefix-numeric-value arg))
-	;; If we get an error in self-insert-command, put point at right place.
-	(if flag (forward-char 1))))
-    ;; Even if we did *not* get an error, keep that forward-char;
-    ;; all further processing should apply to the newline that the user
-    ;; thinks he inserted.
-
-    ;; Mark the newline(s) `hard'.
-    (if use-hard-newlines
-	(set-hard-newline-properties
-	 (- (point) (prefix-numeric-value arg)) (point)))
-    ;; If the newline leaves the previous line blank,
-    ;; and we have a left margin, delete that from the blank line.
-    (or flag
-	(save-excursion
-	  (goto-char beforepos)
-	  (beginning-of-line)
-	  (and (looking-at "[ \t]$")
-	       (> (current-left-margin) 0)
-	       (delete-region (point) (progn (end-of-line) (point))))))
-    ;; Indent the line after the newline, except in one case:
-    ;; when we added the newline at the beginning of a line
-    ;; which starts a page.
-    (or was-page-start
-	(move-to-left-margin nil t)))
+  ;; Call self-insert so that auto-fill, abbrev expansion etc. happens.
+  ;; Set last-command-event to tell self-insert what to insert.
+  (let* ((was-page-start (and (bolp) (looking-at page-delimiter)))
+         (beforepos (point))
+         (last-command-event ?\n)
+         ;; Don't auto-fill if we have a numeric argument.
+         (auto-fill-function (if arg nil auto-fill-function))
+         (postproc
+          ;; Do the rest in post-self-insert-hook, because we want to do it
+          ;; *before* other functions on that hook.
+          (lambda ()
+            ;; Mark the newline(s) `hard'.
+            (if use-hard-newlines
+                (set-hard-newline-properties
+                 (- (point) (prefix-numeric-value arg)) (point)))
+            ;; If the newline leaves the previous line blank, and we
+            ;; have a left margin, delete that from the blank line.
+            (save-excursion
+              (goto-char beforepos)
+              (beginning-of-line)
+              (and (looking-at "[ \t]$")
+                   (> (current-left-margin) 0)
+                   (delete-region (point)
+                                  (line-end-position))))
+            ;; Indent the line after the newline, except in one case:
+            ;; when we added the newline at the beginning of a line which
+            ;; starts a page.
+            (or was-page-start
+                (move-to-left-margin nil t)))))
+    (unwind-protect
+        (progn
+          (add-hook 'post-self-insert-hook postproc)
+          (self-insert-command (prefix-numeric-value arg)))
+      ;; We first used let-binding to protect the hook, but that was naive
+      ;; since add-hook affects the symbol-default value of the variable,
+      ;; whereas the let-binding might only protect the buffer-local value.
+      (remove-hook 'post-self-insert-hook postproc)))
   nil)
 
 (defun set-hard-newline-properties (from to)
@@ -803,15 +775,16 @@ If BACKWARD-ONLY is non-nil, only delete them before point."
        (constrain-to-field nil orig-pos t)))))
 
 (defun beginning-of-buffer (&optional arg)
-  "Move point to the beginning of the buffer; leave mark at previous position.
-With \\[universal-argument] prefix, do not set mark at previous position.
+  "Move point to the beginning of the buffer.
 With numeric arg N, put point N/10 of the way from the beginning.
+If the buffer is narrowed, this command uses the beginning of the
+accessible part of the buffer.
 
-If the buffer is narrowed, this command uses the beginning and size
-of the accessible part of the buffer.
+If Transient Mark mode is disabled, leave mark at previous
+position, unless a \\[universal-argument] prefix is supplied.
 
 Don't use this command in Lisp programs!
-\(goto-char (point-min)) is faster and avoids clobbering the mark."
+\(goto-char (point-min)) is faster."
   (interactive "^P")
   (or (consp arg)
       (region-active-p)
@@ -828,15 +801,16 @@ Don't use this command in Lisp programs!
   (if (and arg (not (consp arg))) (forward-line 1)))
 
 (defun end-of-buffer (&optional arg)
-  "Move point to the end of the buffer; leave mark at previous position.
-With \\[universal-argument] prefix, do not set mark at previous position.
+  "Move point to the end of the buffer.
 With numeric arg N, put point N/10 of the way from the end.
+If the buffer is narrowed, this command uses the end of the
+accessible part of the buffer.
 
-If the buffer is narrowed, this command uses the beginning and size
-of the accessible part of the buffer.
+If Transient Mark mode is disabled, leave mark at previous
+position, unless a \\[universal-argument] prefix is supplied.
 
 Don't use this command in Lisp programs!
-\(goto-char (point-max)) is faster and avoids clobbering the mark."
+\(goto-char (point-max)) is faster."
   (interactive "^P")
   (or (consp arg) (region-active-p) (push-mark))
   (let ((size (- (point-max) (point-min))))
@@ -1301,6 +1275,40 @@ to get different commands to edit and resubmit."
       (if command-history
 	  (error "Argument %d is beyond length of command history" arg)
 	(error "There are no previous complex commands to repeat")))))
+
+(defun read-extended-command ()
+  "Read command name to invoke in `execute-extended-command'."
+  (minibuffer-with-setup-hook
+      (lambda ()
+	(set (make-local-variable 'minibuffer-default-add-function)
+	     (lambda ()
+	       ;; Get a command name at point in the original buffer
+	       ;; to propose it after M-n.
+	       (with-current-buffer (window-buffer (minibuffer-selected-window))
+		 (and (commandp (function-called-at-point))
+		      (format "%S" (function-called-at-point)))))))
+    ;; Read a string, completing from and restricting to the set of
+    ;; all defined commands.  Don't provide any initial input.
+    ;; Save the command read on the extended-command history list.
+    (completing-read
+     (concat (cond
+	      ((eq current-prefix-arg '-) "- ")
+	      ((and (consp current-prefix-arg)
+		    (eq (car current-prefix-arg) 4)) "C-u ")
+	      ((and (consp current-prefix-arg)
+		    (integerp (car current-prefix-arg)))
+	       (format "%d " (car current-prefix-arg)))
+	      ((integerp current-prefix-arg)
+	       (format "%d " current-prefix-arg)))
+	     ;; This isn't strictly correct if `execute-extended-command'
+	     ;; is bound to anything else (e.g. [menu]).
+	     ;; It could use (key-description (this-single-command-keys)),
+	     ;; but actually a prompt other than "M-x" would be confusing,
+	     ;; because "M-x" is a well-known prompt to read a command
+	     ;; and it serves as a shorthand for "Extended command: ".
+	     "M-x ")
+     obarray 'commandp t nil 'extended-command-history)))
+
 
 (defvar minibuffer-history nil
   "Default minibuffer history list.
@@ -2892,11 +2900,8 @@ This variable holds a function that Emacs calls whenever text
 is put in the kill ring, to make the new kill available to other
 programs.
 
-The function takes one or two arguments.
-The first argument, TEXT, is a string containing
-the text which should be made available.
-The second, optional, argument PUSH, has the same meaning as the
-similar argument to `x-set-cut-buffer', which see.")
+The function takes one argument, TEXT, which is a string containing
+the text which should be made available.")
 
 (defvar interprogram-paste-function nil
   "Function to call to get text cut from other programs.
@@ -3013,7 +3018,7 @@ argument should still be a \"useful\" string for such uses."
 	  (setcdr (nthcdr (1- kill-ring-max) kill-ring) nil))))
   (setq kill-ring-yank-pointer kill-ring)
   (if interprogram-cut-function
-      (funcall interprogram-cut-function string (not replace))))
+      (funcall interprogram-cut-function string)))
 
 (defun kill-append (string before-p &optional yank-handler)
   "Append STRING to the end of the latest kill in the kill ring.
@@ -3103,7 +3108,8 @@ If the buffer is read-only, Emacs will beep and refrain from deleting
 the text, but put the text in the kill ring anyway.  This means that
 you can use the killing commands to copy text from a read-only buffer.
 
-This is the primitive for programs to kill text (as opposed to deleting it).
+Lisp programs should use this function for killing text.
+ (To delete text, use `delete-region'.)
 Supply two arguments, character positions indicating the stretch of text
  to be killed.
 Any command that calls this function is a \"kill command\".
@@ -4337,7 +4343,7 @@ into account variable-width characters and line continuation."
     (or (and (= (vertical-motion
 		 (cons (or goal-column
 			   (if (consp temporary-goal-column)
-			       (truncate (car temporary-goal-column))
+			       (car temporary-goal-column)
 			     temporary-goal-column))
 		       arg))
 		arg)
@@ -4404,7 +4410,7 @@ into account variable-width characters and line continuation."
 		  (goto-char (next-char-property-change (point))))
 		;; Move a line.
 		;; We don't use `end-of-line', since we want to escape
-		;; from field boundaries ocurring exactly at point.
+		;; from field boundaries occurring exactly at point.
 		(goto-char (constrain-to-field
 			    (let ((inhibit-field-text-motion t))
 			      (line-end-position))
@@ -5468,21 +5474,40 @@ it skips the contents of comments that end before point."
   :type 'boolean
   :group 'paren-blinking)
 
+(defun blink-matching-check-mismatch (start end)
+  "Return whether or not START...END are matching parens.
+END is the current point and START is the blink position.
+START might be nil if no matching starter was found.
+Returns non-nil if we find there is a mismatch."
+  (let* ((end-syntax (syntax-after (1- end)))
+         (matching-paren (and (consp end-syntax)
+                              (eq (syntax-class end-syntax) 5)
+                              (cdr end-syntax))))
+    ;; For self-matched chars like " and $, we can't know when they're
+    ;; mismatched or unmatched, so we can only do it for parens.
+    (when matching-paren
+      (not (and start
+                (or
+                 (eq (char-after start) matching-paren)
+                 ;; The cdr might hold a new paren-class info rather than
+                 ;; a matching-char info, in which case the two CDRs
+                 ;; should match.
+                 (eq matching-paren (cdr-safe (syntax-after start)))))))))
+
+(defvar blink-matching-check-function #'blink-matching-check-mismatch
+  "Function to check parentheses mismatches.
+The function takes two arguments (START and END) where START is the
+position just before the opening token and END is the position right after.
+START can be nil, if it was not found.
+The function should return non-nil if the two tokens do not match.")
+
 (defun blink-matching-open ()
   "Move cursor momentarily to the beginning of the sexp before point."
   (interactive)
-  (when (and (> (point) (point-min))
-	     blink-matching-paren
-	     ;; Verify an even number of quoting characters precede the close.
-	     (= 1 (logand 1 (- (point)
-			       (save-excursion
-				 (forward-char -1)
-				 (skip-syntax-backward "/\\")
-				 (point))))))
+  (when (and (not (bobp))
+	     blink-matching-paren)
     (let* ((oldpos (point))
-	   (message-log-max nil)  ; Don't log messages about paren matching.
-	   (atdollar (eq (syntax-class (syntax-after (1- oldpos))) 8))
-	   (isdollar)
+	   (message-log-max nil) ; Don't log messages about paren matching.
 	   (blinkpos
             (save-excursion
               (save-restriction
@@ -5495,38 +5520,29 @@ it skips the contents of comments that end before point."
                        (and parse-sexp-ignore-comments
                             (not blink-matching-paren-dont-ignore-comments))))
                   (condition-case ()
-                      (scan-sexps oldpos -1)
+                      (progn
+                        (forward-sexp -1)
+                        ;; backward-sexp skips backward over prefix chars,
+                        ;; so move back to the matching paren.
+                        (while (and (< (point) (1- oldpos))
+                                    (let ((code (syntax-after (point))))
+                                      (or (eq (syntax-class code) 6)
+                                          (eq (logand 1048576 (car code))
+                                              1048576))))
+                          (forward-char 1))
+                        (point))
                     (error nil))))))
-	   (matching-paren
-            (and blinkpos
-                 ;; Not syntax '$'.
-                 (not (setq isdollar
-                            (eq (syntax-class (syntax-after blinkpos)) 8)))
-                 (let ((syntax (syntax-after blinkpos)))
-                   (and (consp syntax)
-                        (eq (syntax-class syntax) 4)
-                        (cdr syntax))))))
+           (mismatch (funcall blink-matching-check-function blinkpos oldpos)))
       (cond
-       ;; isdollar is for:
-       ;; http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg00871.html
-       ((not (or (and isdollar blinkpos)
-                 (and atdollar (not blinkpos)) ; see below
-                 (eq matching-paren (char-before oldpos))
-                 ;; The cdr might hold a new paren-class info rather than
-                 ;; a matching-char info, in which case the two CDRs
-                 ;; should match.
-                 (eq matching-paren (cdr (syntax-after (1- oldpos))))))
-	(if (minibufferp)
-	    (minibuffer-message " [Mismatched parentheses]")
-	  (message "Mismatched parentheses")))
-       ((not blinkpos)
-        (or blink-matching-paren-distance
-            ;; Don't complain when `$' with no blinkpos, because it
-            ;; could just be the first one typed in the buffer.
-            atdollar
+       (mismatch
+        (if blinkpos
             (if (minibufferp)
-		(minibuffer-message " [Unmatched parenthesis]")
-	      (message "Unmatched parenthesis"))))
+                (minibuffer-message " [Mismatched parentheses]")
+              (message "Mismatched parentheses"))
+          (if (minibufferp)
+              (minibuffer-message " [Unmatched parenthesis]")
+            (message "Unmatched parenthesis"))))
+       ((not blinkpos) nil)
        ((pos-visible-in-window-p blinkpos)
         ;; Matching open within window, temporarily move to blinkpos but only
         ;; if `blink-matching-paren-on-screen' is non-nil.
@@ -5569,7 +5585,29 @@ it skips the contents of comments that end before point."
             (message "Matches %s"
                      (substring-no-properties open-paren-line-string)))))))))
 
-(setq blink-paren-function 'blink-matching-open)
+(defvar blink-paren-function 'blink-matching-open
+  "Function called, if non-nil, whenever a close parenthesis is inserted.
+More precisely, a char with closeparen syntax is self-inserted.")
+
+(defun blink-paren-post-self-insert-function ()
+  (when (and (eq (char-before) last-command-event) ; Sanity check.
+             (memq (char-syntax last-command-event) '(?\) ?\$))
+             blink-paren-function
+             (not executing-kbd-macro)
+             (not noninteractive)
+	     ;; Verify an even number of quoting characters precede the close.
+	     (= 1 (logand 1 (- (point)
+			       (save-excursion
+				 (forward-char -1)
+				 (skip-syntax-backward "/\\")
+				 (point))))))
+    (funcall blink-paren-function)))
+
+(add-hook 'post-self-insert-hook #'blink-paren-post-self-insert-function
+          ;; Most likely, this hook is nil, so this arg doesn't matter,
+          ;; but I use it as a reminder that this function usually
+          ;; likes to be run after others since it does `sit-for'.
+          'append)
 
 ;; This executes C-g typed while Emacs is waiting for a command.
 ;; Quitting out of a program does not go through here;

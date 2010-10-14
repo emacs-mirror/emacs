@@ -154,38 +154,37 @@ For example, to display ciphertext in the `bold' face, use
                             'bold)))
 in your `.emacs' file.")
 
-(defvar decipher-mode-map nil
+(defvar decipher-mode-map
+  (let ((map (make-keymap)))
+    (suppress-keymap map)
+    (define-key map "A" 'decipher-show-alphabet)
+    (define-key map "C" 'decipher-complete-alphabet)
+    (define-key map "D" 'decipher-digram-list)
+    (define-key map "F" 'decipher-frequency-count)
+    (define-key map "M" 'decipher-make-checkpoint)
+    (define-key map "N" 'decipher-adjacency-list)
+    (define-key map "R" 'decipher-restore-checkpoint)
+    (define-key map "U" 'decipher-undo)
+    (define-key map " " 'decipher-keypress)
+    (define-key map [remap undo] 'decipher-undo)
+    (define-key map [remap advertised-undo] 'decipher-undo)
+    (let ((key ?a))
+      (while (<= key ?z)
+	(define-key map (vector key) 'decipher-keypress)
+	(incf key)))
+    map)
   "Keymap for Decipher mode.")
-(if (not decipher-mode-map)
-    (progn
-      (setq decipher-mode-map (make-keymap))
-      (suppress-keymap decipher-mode-map)
-      (define-key decipher-mode-map "A" 'decipher-show-alphabet)
-      (define-key decipher-mode-map "C" 'decipher-complete-alphabet)
-      (define-key decipher-mode-map "D" 'decipher-digram-list)
-      (define-key decipher-mode-map "F" 'decipher-frequency-count)
-      (define-key decipher-mode-map "M" 'decipher-make-checkpoint)
-      (define-key decipher-mode-map "N" 'decipher-adjacency-list)
-      (define-key decipher-mode-map "R" 'decipher-restore-checkpoint)
-      (define-key decipher-mode-map "U" 'decipher-undo)
-      (define-key decipher-mode-map " " 'decipher-keypress)
-      (define-key decipher-mode-map [remap undo] 'decipher-undo)
-      (define-key decipher-mode-map [remap advertised-undo] 'decipher-undo)
-      (let ((key ?a))
-        (while (<= key ?z)
-          (define-key decipher-mode-map (vector key) 'decipher-keypress)
-          (incf key)))))
 
-(defvar decipher-stats-mode-map nil
-  "Keymap for Decipher-Stats mode.")
-(if (not decipher-stats-mode-map)
-    (progn
-      (setq decipher-stats-mode-map (make-keymap))
-      (suppress-keymap decipher-stats-mode-map)
-      (define-key decipher-stats-mode-map "D" 'decipher-digram-list)
-      (define-key decipher-stats-mode-map "F" 'decipher-frequency-count)
-      (define-key decipher-stats-mode-map "N" 'decipher-adjacency-list)
-      ))
+
+(defvar decipher-stats-mode-map
+  (let ((map (make-keymap)))
+    (suppress-keymap map)
+    (define-key map "D" 'decipher-digram-list)
+    (define-key map "F" 'decipher-frequency-count)
+    (define-key map "N" 'decipher-adjacency-list)
+    map)
+"Keymap for Decipher-Stats mode.")
+
 
 (defvar decipher-mode-syntax-table nil
   "Decipher mode syntax table")

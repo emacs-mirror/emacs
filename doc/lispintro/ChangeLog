@@ -1,3 +1,59 @@
+2010-10-11  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (.dvi.ps): Remove unnecessary suffix rule.
+	(.PHONY): Add ps.
+	(ps, emacs-lisp-intro.ps): New targets.
+	(clean): Delete ps file.
+	(MAKEINFO): Use --force like the other doc/ Makefiles do.
+	Add explicit -I$srcdir.
+
+2010-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (VPATH): Remove.
+	(infodir): Make it absolute.
+	(mkinfodir, $(infodir)/eintr, infoclean): No need to cd $srcdir.
+
+	* Makefile.in (dist): Anchor regexps.
+
+	* Makefile.in (${infodir}/eintr, emacs-lisp-intro.dvi)
+	(emacs-lisp-intro.pdf, emacs-lisp-intro.html): Use $<.
+
+	* Makefile.in (infoclean): Remove harmless, long-standing error.
+
+	* Makefile.in ($(infodir)): Delete rule.
+	(mkinfodir): New.
+	($(infodir)/eintr): Use $mkinfodir instead of infodir.
+
+2010-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (.PHONY): Declare info, dvi, html, pdf, dist.
+
+2010-10-07  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (version): New, set by configure.
+	(clean): Delete dist tar file.
+	(dist): Use version in tar name.
+
+2010-10-06  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (SHELL): Use /bin/sh, like every other Makefile.in.
+	(INFO_SOURCES, INFO_TARGETS, DVI_TARGETS): Remove variables.
+	($(infodir), html, pdf, infoclean, dist): New rules.
+	(${infodir}/eintr): Ensure $infodir exists.  Use $@.
+	(emacs-lisp-intro.dvi, emacs-lisp-intro.pdf, emacs-lisp-intro.html):
+	Use $^.
+	(.PHONY): Declare clean rules.
+	(mostlyclean): Delete more temp files.
+	(clean): Delete specific dvi, pdf and html files.
+	(maintainer-clean): Use infoclean.
+	(.NOEXPORT): Remove, unused by any other Makefile.in.
+
+2010-09-21  Glenn Morris  <rgm@gnu.org>
+
+	* cons-1.eps, cons-2.eps, cons-2a.eps, cons-3.eps, cons-4.eps:
+	* cons-5.eps, lambda-1.eps, lambda-2.eps, lambda-3.eps:
+	Add first line EPSF magic comment.  (Bug#7064)
+
 2010-06-23  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp-intro.texi: Untabify.
@@ -386,11 +442,10 @@
 
 ;; Local Variables:
 ;; coding: utf-8
-;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007,
-	2008, 2009, 2010  Free Software Foundation, Inc.
+  Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+    2010  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -406,5 +461,3 @@
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
-;;; arch-tag: ee4f8e1f-e14c-4d2e-86de-4dd697e6f1c3

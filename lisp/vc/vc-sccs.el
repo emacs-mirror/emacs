@@ -6,6 +6,7 @@
 
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
+;; Package: vc
 
 ;; This file is part of GNU Emacs.
 
@@ -70,9 +71,10 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
   :version "21.1"
   :group 'vc)
 
-(defcustom vc-sccs-header (or (cdr (assoc 'SCCS vc-header-alist)) '("%W%"))
+(defcustom vc-sccs-header '("%W%")
   "Header keywords to be inserted by `vc-insert-headers'."
   :type '(repeat string)
+  :version "24.1"     ; no longer consult the obsolete vc-header-alist
   :group 'vc)
 
 ;;;###autoload

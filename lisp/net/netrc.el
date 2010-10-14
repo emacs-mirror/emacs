@@ -34,14 +34,10 @@
 ;;; .netrc and .authinfo rc parsing
 ;;;
 
-;; use encrypt if loaded (encrypt-file-alist has to be set as well)
-(autoload 'encrypt-find-model "encrypt")
-(autoload 'encrypt-insert-file-contents "encrypt")
 (defalias 'netrc-point-at-eol
   (if (fboundp 'point-at-eol)
       'point-at-eol
     'line-end-position))
-(defvar encrypt-file-alist)
 (eval-when-compile
   ;; This is unnecessary in the compiled version as it is a macro.
   (if (fboundp 'bound-and-true-p)
@@ -54,12 +50,19 @@
  "Netrc configuration."
  :group 'comm)
 
+(defcustom netrc-file "~/.authinfo"
+  "File where user credentials are stored."
+  :type 'file
+  :group 'netrc)
+
 (defvar netrc-services-file "/etc/services"
   "The name of the services file.")
 
-(defun netrc-parse (file)
+(defun netrc-parse (&optional file)
   (interactive "fFile to Parse: ")
   "Parse FILE and return a list of all entries in the file."
+  (unless file
+    (setq file netrc-file))
   (if (listp file)
       file
     (when (file-exists-p file)
@@ -67,12 +70,8 @@
 	(let ((tokens '("machine" "default" "login"
 			"password" "account" "macdef" "force"
 			"port"))
-	      (encryption-model (when (netrc-bound-and-true-p encrypt-file-alist)
-				  (encrypt-find-model file)))
 	      alist elem result pair)
-	  (if encryption-model
-	      (encrypt-insert-file-contents file encryption-model)
-	    (insert-file-contents file))
+          (insert-file-contents file)
 	  (goto-char (point-min))
 	  ;; Go through the file, line by line.
 	  (while (not (eobp))
@@ -132,19 +131,23 @@ Entries without port tokens default to DEFAULTPORT."
       ;; No machine name matches, so we look for default entries.
       (while rest
 	(when (assoc "default" (car rest))
-	  (push (car rest) result))
+	  (let ((elem (car rest)))
+	    (setq elem (delete (assoc "default" elem) elem))
+	    (push elem result)))
 	(pop rest)))
     (when result
       (setq result (nreverse result))
-      (while (and result
-		  (not (netrc-port-equal
-			(or port defaultport "nntp")
-			;; when port is not given in the netrc file,
-			;; it should mean "any port"
-			(or (netrc-get (car result) "port")
-			    defaultport port))))
-	(pop result))
-      (car result))))
+      (if (not port)
+	  (car result)
+	(while (and result
+		    (not (netrc-port-equal
+			  (or port defaultport "nntp")
+			  ;; when port is not given in the netrc file,
+			  ;; it should mean "any port"
+			  (or (netrc-get (car result) "port")
+			      defaultport port))))
+	  (pop result))
+	(car result)))))
 
 (defun netrc-machine-user-or-password (mode authinfo-file-or-list machines ports defaults)
   "Get the user name or password according to MODE from AUTHINFO-FILE-OR-LIST.
@@ -160,9 +163,9 @@ MODE can be \"login\" or \"password\", suitable for passing to
 	(defaults (or defaults '(nil)))
 	info)
     (if (listp mode)
-	(setq info 
-	      (mapcar 
-	       (lambda (mode-element) 
+	(setq info
+	      (mapcar
+	       (lambda (mode-element)
 		 (netrc-machine-user-or-password
 		  mode-element
 		  authinfo-list
@@ -221,7 +224,33 @@ MODE can be \"login\" or \"password\", suitable for passing to
 			  (eq type (car (cddr service)))))))
     (cadr service)))
 
+(defun netrc-store-data (file host port user password)
+  (with-temp-buffer
+    (when (file-exists-p file)
+      (insert-file-contents file))
+    (goto-char (point-max))
+    (unless (bolp)
+      (insert "\n"))
+    (insert (format "machine %s login %s password %s port %s\n"
+		    host user password port))
+    (write-region (point-min) (point-max) file nil 'silent)))
+
+;;;###autoload
+(defun netrc-credentials (machine &rest ports)
+  "Return a user name/password pair.
+Port specifications will be prioritised in the order they are
+listed in the PORTS list."
+  (let ((list (netrc-parse))
+	found)
+    (if (not ports)
+	(setq found (netrc-machine list machine))
+      (while (and ports
+		  (not found))
+	(setq found (netrc-machine list machine (pop ports)))))
+    (when found
+      (list (cdr (assoc "login" found))
+	    (cdr (assoc "password" found))))))
+
 (provide 'netrc)
 
-;; arch-tag: af9929cc-2d12-482f-936e-eb4366f9fa55
 ;;; netrc.el ends here

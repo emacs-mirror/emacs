@@ -299,8 +299,6 @@ struct x_display_info
   /* Atom used in XEmbed client messages.  */
   Atom Xatom_XEMBED;
  
-  int cut_buffers_initialized; /* Whether we're sure they all exist */
-
   /* The frame (if any) which has the X window that has keyboard focus.
      Zero if none.  This is examined by Ffocus_frame in xfns.c.  Note
      that a mere EnterNotify event can set this; if you need to know the

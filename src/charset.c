@@ -28,7 +28,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
 #include <ctype.h>
 #include <sys/types.h>
@@ -427,7 +426,7 @@ load_charset_map (struct charset *charset, struct charset_map_entries *entries, 
 
 
 /* Read a hexadecimal number (preceded by "0x") from the file FP while
-   paying attention to comment charcter '#'.  */
+   paying attention to comment character '#'.  */
 
 static INLINE unsigned
 read_hex (FILE *fp, int *eof)
@@ -2365,8 +2364,8 @@ syms_of_charset (void)
   Vemacs_mule_charset_list = Qnil;
 
   /* Don't staticpro them here.  It's done in syms_of_fns.  */
-  QCtest = intern (":test");
-  Qeq = intern ("eq");
+  QCtest = intern_c_string (":test");
+  Qeq = intern_c_string ("eq");
 
   staticpro (&Vcharset_hash_table);
   {

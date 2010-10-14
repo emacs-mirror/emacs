@@ -374,12 +374,18 @@ message as follows:
 @vindex mm-inline-large-images
 When displaying inline images that are larger than the window, Emacs
 does not enable scrolling, which means that you cannot see the whole
-image.  To prevent this, the library tries to determine the image size
+image. To prevent this, the library tries to determine the image size
 before displaying it inline, and if it doesn't fit the window, the
 library will display it externally (e.g. with @samp{ImageMagick} or
-@samp{xv}).  Setting this variable to @code{t} disables this check and
+@samp{xv}). Setting this variable to @code{t} disables this check and
 makes the library display all inline images as inline, regardless of
-their size.
+their size. If you set this variable to @code{resize}, the image will
+be displayed resized to fit in the window, if Emacs has the ability to
+resize images.
+
+@item mm-inline-large-images-proportion
+@vindex mm-inline-images-max-proportion
+The proportion used when resizing large images.
 
 @item mm-inline-override-types
 @vindex mm-inline-override-types
@@ -394,7 +400,7 @@ variable will cause @samp{text/html} parts to be treated as attachments.
 @item mm-text-html-renderer
 @vindex mm-text-html-renderer
 This selects the function used to render @acronym{HTML}.  The predefined
-renderers are selected by the symbols @code{w3},
+renderers are selected by the symbols @code{gnus-article-html}, @code{w3},
 @code{w3m}@footnote{See @uref{http://emacs-w3m.namazu.org/} for more
 information about emacs-w3m}, @code{links}, @code{lynx},
 @code{w3m-standalone} or @code{html2text}.  If @code{nil} use an
@@ -1469,21 +1475,9 @@ Decode a string and return the results.
 
 @item rfc2047-encode-parameter
 @findex rfc2047-encode-parameter
-Encode a parameter in the RFC2047-like style.  This is a replacement for
-the @code{rfc2231-encode-string} function.  @xref{rfc2231}.
-
-When attaching files as @acronym{MIME} parts, we should use the RFC2231
-encoding to specify the file names containing non-@acronym{ASCII}
-characters.  However, many mail softwares don't support it in practice
-and recipients won't be able to extract files with correct names.
-Instead, the RFC2047-like encoding is acceptable generally.  This
-function provides the very RFC2047-like encoding, resigning to such a
-regrettable trend.  To use it, put the following line in your
-@file{~/.gnus.el} file:
-
-@lisp
-(defalias 'mail-header-encode-parameter 'rfc2047-encode-parameter)
-@end lisp
+Encode a parameter in the RFC2047-like style.  This is a substitution
+for the @code{rfc2231-encode-string} function, that is the standard but
+many mailers don't support it.  @xref{rfc2231}.
 
 @end table
 
@@ -1889,7 +1883,3 @@ Documentation of the text/plain format parameter for flowed text.
 @c mode: texinfo
 @c coding: iso-8859-1
 @c End:
-
-@ignore
-   arch-tag: c7ef2fd0-a91c-4e10-aa52-c1a2b11b1a8d
-@end ignore

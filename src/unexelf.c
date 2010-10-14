@@ -33,33 +33,12 @@ what you give them.   Help stamp out software-hoarding!  */
  * Modified heavily since then.
  *
  * Synopsis:
- *	unexec (new_name, old_name, data_start, bss_start, entry_address)
- *	char *new_name, *old_name;
- *	unsigned data_start, bss_start, entry_address;
+ *	unexec (const char *new_name, const char *old_name);
  *
  * Takes a snapshot of the program and makes an a.out format file in the
  * file named by the string argument new_name.
  * If old_name is non-NULL, the symbol table will be taken from the given file.
  * On some machines, an existing old_name file is required.
- *
- * The boundaries within the a.out file may be adjusted with the data_start
- * and bss_start arguments.  Either or both may be given as 0 for defaults.
- *
- * Data_start gives the boundary between the text segment and the data
- * segment of the program.  The text segment can contain shared, read-only
- * program code and literal data, while the data segment is always unshared
- * and unprotected.  Data_start gives the lowest unprotected address.
- * The value you specify may be rounded down to a suitable boundary
- * as required by the machine you are using.
- *
- * Bss_start indicates how much of the data segment is to be saved in the
- * a.out file and restored when the program is executed.  It gives the lowest
- * unsaved address, and is rounded up to a page boundary.  The default when 0
- * is given assumes that the entire data segment is to be stored, including
- * the previous data and bss as well as any additional storage allocated with
- * break (2).
- *
- * The new file is set up to start at entry_address.
  *
  */
 
@@ -407,13 +386,8 @@ temacs:
 /* We do not use mmap because that fails with NFS.
    Instead we read the whole file, modify it, and write it out.  */
 
-#ifndef emacs
-#define fatal(a, b, c) fprintf (stderr, a, b, c), exit (1)
-#include <string.h>
-#else
 #include <config.h>
 extern void fatal (const char *msgid, ...);
-#endif
 
 #include <sys/types.h>
 #include <stdio.h>
@@ -424,7 +398,7 @@ extern void fatal (const char *msgid, ...);
 #include <fcntl.h>
 #if !defined (__NetBSD__) && !defined (__OpenBSD__)
 #include <elf.h>
-#endif
+#endif /* not __NetBSD__ and not __OpenBSD__ */
 #include <sys/mman.h>
 #if defined (_SYSTYPE_SYSV)
 #include <sys/elf_mips.h>
@@ -610,7 +584,7 @@ round_up (ElfW(Addr) x, ElfW(Addr) y)
    if NOERROR is 0; we return -1 if NOERROR is nonzero.  */
 
 static int
-find_section (const char *name, char *section_names, char *file_name,
+find_section (const char *name, const char *section_names, const char *file_name,
 	      ElfW(Ehdr) *old_file_h, ElfW(Shdr) *old_section_h, int noerror)
 {
   int idx;
@@ -646,8 +620,7 @@ find_section (const char *name, char *section_names, char *file_name,
  *
  */
 void
-unexec (char *new_name, char *old_name, unsigned int data_start,
-	unsigned int bss_start, unsigned int entry_address)
+unexec (const char *new_name, const char *old_name)
 {
   int new_file, old_file, new_file_size;
 
@@ -1309,13 +1282,8 @@ temacs:
   /* Write out new_file, and free the buffers.  */
 
   if (write (new_file, new_base, new_file_size) != new_file_size)
-#ifndef emacs
-    fatal ("Didn't write %d bytes: errno %d\n",
-	   new_file_size, errno);
-#else
     fatal ("Didn't write %d bytes to %s: errno %d\n",
 	   new_file_size, new_name, errno);
-#endif
   munmap (old_base, old_file_size);
   munmap (new_base, new_file_size);
 

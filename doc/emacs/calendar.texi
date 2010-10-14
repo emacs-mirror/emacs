@@ -1508,7 +1508,14 @@ automatically just after midnight.  You can force an update at any
 time by re-enabling appointment notification.  Both these actions also
 display the day's diary buffer, unless you set
 @code{appt-display-diary} to @code{nil}.  The appointments list is
-also updated whenever the diary file is saved.
+also updated whenever the diary file (or a file it includes; see
+@iftex
+@inforef{Fancy Diary Display,, emacs-xtra})
+@end iftex
+@ifnottex
+@ref{Fancy Diary Display})
+@end ifnottex
+is saved.
 
 @findex appt-add
 @findex appt-delete

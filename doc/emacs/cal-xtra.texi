@@ -613,7 +613,9 @@ each day's diary entries by their time of day.  Here's how:
 @noindent
 For each day, this sorts diary entries that begin with a recognizable
 time of day according to their times.  Diary entries without times come
-first within each day.
+first within each day.  Note how the sort command is placed at the end
+of the hook list, in case earlier members of the list change the order
+of the diary entries, or add items.
 
 @vindex diary-include-string
   Your main diary file can include other files.  This permits a group of

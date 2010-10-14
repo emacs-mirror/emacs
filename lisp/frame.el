@@ -5,6 +5,7 @@
 
 ;; Maintainer: FSF
 ;; Keywords: internal
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -906,15 +907,16 @@ Calls `suspend-emacs' if invoked from the controlling tty device,
      (t (suspend-emacs)))))
 
 (defun make-frame-names-alist ()
+  ;; Only consider the frames on the same display.
   (let* ((current-frame (selected-frame))
 	 (falist
 	  (cons
 	   (cons (frame-parameter current-frame 'name) current-frame) nil))
-	 (frame (next-frame nil t)))
+	 (frame (next-frame nil 0)))
     (while (not (eq frame current-frame))
       (progn
-	(setq falist (cons (cons (frame-parameter frame 'name) frame) falist))
-	(setq frame (next-frame frame t))))
+	(push (cons (frame-parameter frame 'name) frame) falist)
+	(setq frame (next-frame frame 0))))
     falist))
 
 (defvar frame-name-history nil)
@@ -1209,8 +1211,7 @@ frame's display)."
 (defun display-selections-p (&optional display)
   "Return non-nil if DISPLAY supports selections.
 A selection is a way to transfer text or other data between programs
-via special system buffers called `selection' or `cut buffer' or
-`clipboard'.
+via special system buffers called `selection' or `clipboard'.
 DISPLAY can be a display name, a frame, or nil (meaning the selected
 frame's display)."
   (let ((frame-type (framep-on-display display)))

@@ -25,7 +25,7 @@
 
 ;;; Code:
 
-;; For Emacs < 22.2.
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 
@@ -77,7 +77,8 @@ this variable to the list of fields to be ignored.")
 (defvar nnrss-group-alist '()
   "List of RSS addresses.")
 
-(defvar nnrss-use-local nil)
+(defvar nnrss-use-local nil
+  "If non-nil nnrss will read the feeds from local files in nnrss-directory.")
 
 (defvar nnrss-description-field 'X-Gnus-Description
   "Field name used for DESCRIPTION.
@@ -134,8 +135,7 @@ used to render text.  If it is nil, text will simply be folded.")
   (setq group (nnrss-decode-group-name group))
   (nnrss-possibly-change-group group server)
   (let (e)
-    (save-excursion
-      (set-buffer nntp-server-buffer)
+    (with-current-buffer nntp-server-buffer
       (erase-buffer)
       (dolist (article articles)
 	(if (setq e (assq article nnrss-group-data))
@@ -179,7 +179,7 @@ used to render text.  If it is nil, text will simply be folded.")
 		    "\n")))))
   'nov)
 
-(deffoo nnrss-request-group (group &optional server dont-check)
+(deffoo nnrss-request-group (group &optional server dont-check info)
   (setq group (nnrss-decode-group-name group))
   (nnheader-message 6 "nnrss: Requesting %s..." group)
   (nnrss-possibly-change-group group server)
@@ -342,11 +342,6 @@ used to render text.  If it is nil, text will simply be folded.")
       ;; we return the article number.
       (cons nnrss-group (car e))))))
 
-(deffoo nnrss-request-list (&optional server)
-  (nnrss-possibly-change-group nil server)
-  (nnrss-generate-active)
-  t)
-
 (deffoo nnrss-open-server (server &optional defs connectionless)
   (nnrss-read-server-data server)
   (nnoo-change-server 'nnrss server defs)
@@ -389,13 +384,23 @@ used to render text.  If it is nil, text will simply be folded.")
 
 (deffoo nnrss-request-list-newsgroups (&optional server)
   (nnrss-possibly-change-group nil server)
-  (save-excursion
-    (set-buffer nntp-server-buffer)
+  (with-current-buffer nntp-server-buffer
     (erase-buffer)
     (dolist (elem nnrss-group-alist)
       (if (third elem)
 	  (insert (car elem) "\t" (third elem) "\n"))))
   t)
+
+(deffoo nnrss-retrieve-groups (groups &optional server)
+  (dolist (group groups)
+    (nnrss-possibly-change-group group server)
+    (nnrss-check-group group server))
+  (with-current-buffer nntp-server-buffer
+    (erase-buffer)
+    (dolist (group groups)
+      (let ((elem (assoc group nnrss-server-data)))
+	(insert (format "%S %s 1 y\n" group (or (cadr elem) 0)))))
+    'active))
 
 (nnoo-define-skeleton nnrss)
 
@@ -479,26 +484,12 @@ nnrss: %s: Not valid XML %s and w3-parse doesn't work %s"
     (nnrss-read-group-data group server)
     (setq nnrss-group group)))
 
-(defvar nnrss-extra-categories '(nnrss-snarf-moreover-categories))
-
-(defun nnrss-generate-active ()
-  (when (y-or-n-p "Fetch extra categories? ")
-    (mapc 'funcall nnrss-extra-categories))
-  (save-excursion
-    (set-buffer nntp-server-buffer)
-    (erase-buffer)
-    (dolist (elem nnrss-group-alist)
-      (insert (prin1-to-string (car elem)) " 0 1 y\n"))
-    (dolist (elem nnrss-server-data)
-      (unless (assoc (car elem) nnrss-group-alist)
-	(insert (prin1-to-string (car elem)) " 0 1 y\n")))))
-
 (autoload 'timezone-parse-date "timezone")
 
 (defun nnrss-normalize-date (date)
   "Return a date string of DATE in the RFC822 style.
 This function handles the ISO 8601 date format described in
-<URL:http://www.w3.org/TR/NOTE-datetime>, and also the RFC822 style
+URL `http://www.w3.org/TR/NOTE-datetime', and also the RFC822 style
 which RSS 2.0 allows."
   (let (case-fold-search vector year month day time zone cts given)
     (cond ((null date))			; do nothing for this case
@@ -571,12 +562,7 @@ which RSS 2.0 allows."
   (let ((file (nnrss-make-filename "nnrss" server))
 	(file-name-coding-system nnmail-pathname-coding-system))
     (when (file-exists-p file)
-      ;; In Emacs 21.3 and earlier, `load' doesn't support non-ASCII
-      ;; file names.  So, we use `insert-file-contents' instead.
-      (mm-with-multibyte-buffer
-	(let ((coding-system-for-read nnrss-file-coding-system))
-	  (insert-file-contents file)
-	  (eval-region (point-min) (point-max)))))))
+      (load file nil t t))))
 
 (defun nnrss-save-server-data (server)
   (gnus-make-directory nnrss-directory)
@@ -600,12 +586,7 @@ which RSS 2.0 allows."
   (let ((file (nnrss-make-filename group server))
 	(file-name-coding-system nnmail-pathname-coding-system))
     (when (file-exists-p file)
-      ;; In Emacs 21.3 and earlier, `load' doesn't support non-ASCII
-      ;; file names.  So, we use `insert-file-contents' instead.
-      (mm-with-multibyte-buffer
-	(let ((coding-system-for-read nnrss-file-coding-system))
-	  (insert-file-contents file)
-	  (eval-region (point-min) (point-max))))
+      (load file nil t t)
       (dolist (e nnrss-group-data)
 	(puthash (nth 9 e) t nnrss-group-hashtb)
 	(when (and (car e) (> nnrss-group-min (car e)))
@@ -722,9 +703,6 @@ which RSS 2.0 allows."
 	    (push (list group nnrss-group-max url) nnrss-server-data)))
 	(setq changed t))
       (setq xml (nnrss-fetch url)))
-    ;; See
-    ;; http://feeds.archive.org/validator/docs/howto/declare_namespaces.html
-    ;; for more RSS namespaces.
     (setq dc-ns (nnrss-get-namespace-prefix xml "http://purl.org/dc/elements/1.1/")
 	  rdf-ns (nnrss-get-namespace-prefix xml "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
 	  rss-ns (nnrss-get-namespace-prefix xml "http://purl.org/rss/1.0/")
@@ -868,33 +846,6 @@ It is useful when `(setq nnrss-use-local t)'."
 	 (append nnheader-file-name-translation-alist '((?' . ?_)))))
     (nnheader-translate-file-chars name)))
 
-(defvar nnrss-moreover-url
-  "http://w.moreover.com/categories/category_list_rss.html"
-  "The url of moreover.com categories.")
-
-(defun nnrss-snarf-moreover-categories ()
-  "Snarf RSS links from moreover.com."
-  (interactive)
-  (let (category name url changed)
-    (with-temp-buffer
-      (nnrss-insert nnrss-moreover-url)
-      (goto-char (point-min))
-      (while (re-search-forward
-	      "<a name=\"\\([^\"]+\\)\">\\|<a href=\"\\(http://[^\"]*moreover\\.com[^\"]+page\\?c=\\([^\"&]+\\)&o=rss\\)" nil t)
-	(if (match-string 1)
-	    (setq category (match-string 1))
-	  (setq url (match-string 2)
-		name (mm-url-decode-entities-string
-		      (rfc2231-decode-encoded-string
-		       (match-string 3))))
-	  (if category
-	      (setq name (concat category "." name)))
-	  (unless (assoc name nnrss-server-data)
-	    (setq changed t)
-	    (push (list name 0 url) nnrss-server-data)))))
-    (if changed
-	(nnrss-save-server-data ""))))
-
 (defun nnrss-node-text (namespace local-name element)
   (let* ((node (assq (intern (concat namespace (symbol-name local-name)))
 		     element))
@@ -1012,7 +963,7 @@ whether they are `offsite' or `onsite'."
 
 (defun nnrss-discover-feed (url)
   "Given a page, find an RSS feed using Mark Pilgrim's
-`ultra-liberal rss locator' (http://diveintomark.org/2002/08/15.html)."
+`ultra-liberal rss locator'."
 
   (let ((parsed-page (nnrss-fetch url)))
 
@@ -1095,9 +1046,9 @@ whether they are `offsite' or `onsite'."
 				    (cdr (assoc "feedid" listinfo)))))
 			   feedinfo)))
 	      (cdr (assoc
-		    (completing-read
-		     "Multiple feeds found.  Select one: "
-		     selection nil t) urllist)))))))))
+		    (gnus-completing-read
+		     "Multiple feeds found. Select one"
+		     selection t) urllist)))))))))
 
 (defun nnrss-rss-p (data)
   "Test if DATA is an RSS feed.
@@ -1134,5 +1085,4 @@ prefix), return the prefix."
 
 (provide 'nnrss)
 
-;; arch-tag: 12910c07-0cdf-44fb-8d2c-416ded64c267
 ;;; nnrss.el ends here

@@ -20,7 +20,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include <config.h>
 #include <stdio.h>
-#include <string.h>
 #include <setjmp.h>
 #include "lisp.h"
 #include "termchar.h"
@@ -94,7 +93,7 @@ calculate_scrolling (FRAME_PTR frame,
 		     int free_at_end)
 {
   register int i, j;
-  int frame_lines = FRAME_LINES (frame);
+  EMACS_INT frame_lines = FRAME_LINES (frame);
   register struct matrix_elt *p, *p1;
   register int cost, cost1;
 
@@ -115,7 +114,7 @@ calculate_scrolling (FRAME_PTR frame,
   /* Discourage long scrolls on fast lines.
      Don't scroll nearly a full frame height unless it saves
      at least 1/4 second.  */
-  int extra_cost = baud_rate / (10 * 4 * FRAME_LINES (frame));
+  int extra_cost = (int) (baud_rate / (10 * 4 * FRAME_LINES (frame)));
 
   if (baud_rate <= 0)
     extra_cost = 1;
@@ -428,7 +427,7 @@ calculate_direct_scrolling (FRAME_PTR frame,
 			    int free_at_end)
 {
   register int i, j;
-  int frame_lines = FRAME_LINES (frame);
+  EMACS_INT frame_lines = FRAME_LINES (frame);
   register struct matrix_elt *p, *p1;
   register int cost, cost1, delta;
 
@@ -448,7 +447,7 @@ calculate_direct_scrolling (FRAME_PTR frame,
   /* Discourage long scrolls on fast lines.
      Don't scroll nearly a full frame height unless it saves
      at least 1/4 second.  */
-  int extra_cost = baud_rate / (10 * 4 * FRAME_LINES (frame));
+  int extra_cost = (int) (baud_rate / (10 * 4 * FRAME_LINES (frame)));
 
   if (baud_rate <= 0)
     extra_cost = 1;
@@ -886,9 +885,9 @@ scroll_cost (FRAME_PTR frame, int from, int to, int amount)
 {
   /* Compute how many lines, at bottom of frame,
      will not be involved in actual motion.  */
-  int limit = to;
-  int offset;
-  int height = FRAME_LINES (frame);
+  EMACS_INT limit = to;
+  EMACS_INT offset;
+  EMACS_INT height = FRAME_LINES (frame);
 
   if (amount == 0)
     return 0;
@@ -921,8 +920,8 @@ scroll_cost (FRAME_PTR frame, int from, int to, int amount)
 static void
 line_ins_del (FRAME_PTR frame, int ov1, int pf1, int ovn, int pfn, register int *ov, register int *mf)
 {
-  register int i;
-  register int frame_lines = FRAME_LINES (frame);
+  register EMACS_INT i;
+  register EMACS_INT frame_lines = FRAME_LINES (frame);
   register int insert_overhead = ov1 * 10;
   register int next_insert_cost = ovn * 10;
 

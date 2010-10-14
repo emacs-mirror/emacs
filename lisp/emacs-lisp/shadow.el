@@ -24,7 +24,7 @@
 
 ;;; Commentary:
 
-;; The functions in this file detect (`find-emacs-lisp-shadows')
+;; The functions in this file detect (`load-path-shadows-find')
 ;; and display (`list-load-path-shadows') potential load-path
 ;; problems that arise when Emacs Lisp files "shadow" each other.
 ;;
@@ -53,16 +53,19 @@
 
 (defgroup lisp-shadow nil
   "Locate Emacs Lisp file shadowings."
-  :prefix "shadows-"
+  :prefix "load-path-shadows-"
   :group 'lisp)
 
-(defcustom shadows-compare-text-p nil
+(define-obsolete-variable-alias 'shadows-compare-text-p
+  'load-path-shadows-compare-text "23.3")
+
+(defcustom load-path-shadows-compare-text nil
   "If non-nil, then shadowing files are reported only if their text differs.
 This is slower, but filters out some innocuous shadowing."
   :type 'boolean
   :group 'lisp-shadow)
 
-(defun find-emacs-lisp-shadows (&optional path)
+(defun load-path-shadows-find (&optional path)
   "Return a list of Emacs Lisp files that create shadows.
 This function does the work for `list-load-path-shadows'.
 
@@ -124,11 +127,11 @@ See the documentation for `list-load-path-shadows' for further information."
 		;; Report it unless the files are identical.
 		(let ((base1 (concat (cdr orig-dir) "/" file))
 		      (base2 (concat dir "/" file)))
-		  (if (not (and shadows-compare-text-p
-				(shadow-same-file-or-nonexistent
+		  (if (not (and load-path-shadows-compare-text
+				(load-path-shadows-same-file-or-nonexistent
 				 (concat base1 ".el") (concat base2 ".el"))
 				;; This is a bit strict, but safe.
-				(shadow-same-file-or-nonexistent
+				(load-path-shadows-same-file-or-nonexistent
 				 (concat base1 ".elc") (concat base2 ".elc"))))
 		      (setq shadows
 			    (append shadows (list base1 base2)))))
@@ -138,9 +141,12 @@ See the documentation for `list-load-path-shadows' for further information."
     ;; Return the list of shadowings.
     shadows))
 
+(define-obsolete-function-alias 'find-emacs-lisp-shadows
+  'load-path-shadows-find "23.3")
+
 ;; Return true if neither file exists, or if both exist and have identical
 ;; contents.
-(defun shadow-same-file-or-nonexistent (f1 f2)
+(defun load-path-shadows-same-file-or-nonexistent (f1 f2)
   (let ((exists1 (file-exists-p f1))
 	(exists2 (file-exists-p f2)))
     (or (and (not exists1) (not exists2))
@@ -151,6 +157,34 @@ See the documentation for `list-load-path-shadows' for further information."
 		 (and (= (nth 7 (file-attributes f1))
 			 (nth 7 (file-attributes f2)))
 		      (eq 0 (call-process "cmp" nil nil nil "-s" f1 f2))))))))
+
+(defvar load-path-shadows-font-lock-keywords
+  `((,(format "hides \\(%s.*\\)"
+	      (file-name-directory (locate-library "simple.el")))
+     . (1 font-lock-warning-face)))
+  "Keywords to highlight in `load-path-shadows-mode'.")
+
+(define-derived-mode load-path-shadows-mode fundamental-mode "LP-Shadows"
+  "Major mode for load-path shadows buffer."
+  (set (make-local-variable 'font-lock-defaults)
+       '((load-path-shadows-font-lock-keywords)))
+  (setq buffer-undo-list t
+	buffer-read-only t))
+
+;; TODO use text-properties instead, a la dired.
+(require 'button)
+(define-button-type 'load-path-shadows-find-file
+  'follow-link t
+;;  'face 'default
+  'action (lambda (button)
+	    (let ((file (concat (button-get button 'shadow-file) ".el")))
+	      (or (file-exists-p file)
+		  (setq file (concat file ".gz")))
+	      (if (file-readable-p file)
+		  (pop-to-buffer (find-file-noselect file))
+		(error "Cannot read file"))))
+  'help-echo "mouse-2, RET: find this file")
+
 
 ;;;###autoload
 (defun list-load-path-shadows (&optional stringp)
@@ -193,7 +227,7 @@ XXX.elc in an early directory \(that does not contain XXX.el\) is
 considered to shadow a later file XXX.el, and vice-versa.
 
 Shadowings are located by calling the (non-interactive) companion
-function, `find-emacs-lisp-shadows'."
+function, `load-path-shadows-find'."
   (interactive)
   (let* ((path (copy-sequence load-path))
 	(tem path)
@@ -217,7 +251,7 @@ function, `find-emacs-lisp-shadows'."
 		  (setq tem nil)))
 	    (setq tem (cdr tem)))))
 
-    (let* ((shadows (find-emacs-lisp-shadows path))
+    (let* ((shadows (load-path-shadows-find path))
 	   (n (/ (length shadows) 2))
 	   (msg (format "%s Emacs Lisp load-path shadowing%s found"
 			(if (zerop n) "No" (concat "\n" (number-to-string n)))
@@ -234,14 +268,21 @@ function, `find-emacs-lisp-shadows'."
 	      ;; Create the *Shadows* buffer and display shadowings there.
 	      (let ((string (buffer-string)))
 		(with-current-buffer (get-buffer-create "*Shadows*")
-                  (fundamental-mode)    ;run after-change-major-mode-hook.
 		  (display-buffer (current-buffer))
-		  (setq buffer-undo-list t
-			buffer-read-only nil)
-		  (erase-buffer)
-		  (insert string)
-		  (insert msg "\n")
-		  (setq buffer-read-only t)))
+		  (load-path-shadows-mode) ; run after-change-major-mode-hook
+		  (let ((inhibit-read-only t))
+		    (erase-buffer)
+		    (insert string)
+		    (insert msg "\n")
+		    (while (re-search-backward "\\(^.*\\) hides \\(.*$\\)"
+					       nil t)
+		      (dotimes (i 2)
+			(make-button (match-beginning (1+ i))
+				     (match-end (1+ i))
+				     'type 'load-path-shadows-find-file
+				     'shadow-file
+				     (match-string (1+ i)))))
+		    (goto-char (point-max)))))
 	    ;; We are non-interactive, print shadows via message.
 	    (unless (zerop n)
 	      (message "This site has duplicate Lisp libraries with the same name.
@@ -259,5 +300,4 @@ version unless you know what you are doing.\n")
 
 (provide 'shadow)
 
-;; arch-tag: 0480e8a7-62ed-4a12-a9f6-f44ded9b0830
 ;;; shadow.el ends here

@@ -4,6 +4,7 @@
 ;;   2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -67,6 +68,7 @@ The buffer-local variable `indent-line-function' determines how to do this,
 but the functions `indent-relative' and `indent-relative-maybe' are
 special; we don't actually use them here."
   (interactive)
+  (syntax-propertize (line-end-position))
   (if (memq indent-line-function
 	    '(indent-relative indent-relative-maybe))
       ;; These functions are used for tabbing, but can't be used for
@@ -417,7 +419,7 @@ column to indent to; if it is nil, use one of the three methods above."
 	    (goto-char start)
 	    (while (< (point) end)
 	      (or (and (bolp) (eolp))
-		  (funcall indent-line-function))
+		  (indent-according-to-mode))
 	      (forward-line 1))
 	    (move-marker end nil))))
     (setq column (prefix-numeric-value column))

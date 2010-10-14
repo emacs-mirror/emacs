@@ -5,6 +5,7 @@
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Keywords: faces files
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -31,33 +32,13 @@
 (eval-when-compile
   (require 'cl)
 
-  (defmacro with-buffer-unmodified (&rest body)
-    "Eval BODY, preserving the current buffer's modified state."
-    (declare (debug t))
-    (let ((modified (make-symbol "modified")))
-      `(let ((,modified (buffer-modified-p)))
-	 (unwind-protect
-	     (progn ,@body)
-	   (unless ,modified
-	     (restore-buffer-modified-p nil))))))
-
   (defmacro with-buffer-prepared-for-jit-lock (&rest body)
     "Execute BODY in current buffer, overriding several variables.
 Preserves the `buffer-modified-p' state of the current buffer."
     (declare (debug t))
-    `(let ((buffer-undo-list t)
-           (inhibit-read-only t)
-           (inhibit-point-motion-hooks t)
-           (inhibit-modification-hooks t)
-           deactivate-mark
-           buffer-file-name
-           buffer-file-truename)
-       ;; Do reset the modification status from within the let, since
-       ;; otherwise set-buffer-modified-p may try to unlock the file.
-       (with-buffer-unmodified
-           ,@body))))
-
-
+    `(let ((inhibit-point-motion-hooks t))
+       (with-silent-modifications
+         ,@body))))
 
 ;;; Customization.
 

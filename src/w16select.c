@@ -28,7 +28,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef MSDOS
 
 #include <config.h>
-#include <string.h>
 #include <dpmi.h>
 #include <go32.h>
 #include <sys/farptr.h>

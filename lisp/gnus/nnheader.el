@@ -27,6 +27,7 @@
 
 ;;; Code:
 
+;; For Emacs <22.2 and XEmacs.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 (eval-when-compile (require 'cl))
@@ -77,7 +78,7 @@ Integer values will in effect be rounded up to the nearest multiple of
   "*Length of each read operation when trying to fetch HEAD headers.")
 
 (defvar nnheader-read-timeout
-  (if (string-match "windows-nt\\|os/2\\|emx\\|cygwin"
+  (if (string-match "windows-nt\\|os/2\\|cygwin"
 		    (symbol-name system-type))
       ;; http://thread.gmane.org/v9655t3pjo.fsf@marauder.physik.uni-ulm.de
       ;;
@@ -102,7 +103,7 @@ Shorter values mean quicker response, but are more CPU intensive.")
 (defvar nnheader-file-name-translation-alist
   (let ((case-fold-search t))
     (cond
-     ((string-match "windows-nt\\|os/2\\|emx\\|cygwin"
+     ((string-match "windows-nt\\|os/2\\|cygwin"
 		    (symbol-name system-type))
       (append (mapcar (lambda (c) (cons c ?_))
 		      '(?: ?* ?\" ?< ?> ??))
@@ -463,7 +464,7 @@ on your system, you could say something like:
       (let ((extra (mail-header-extra header)))
 	(while extra
 	  (insert (symbol-name (caar extra))
-		  ": " (cdar extra) "\t")
+		  ": " (if (stringp (cdar extra)) (cdar extra) "") "\t")
 	  (pop extra))))
     (insert "\n")
     (backward-char 1)
@@ -570,8 +571,6 @@ the line could be found."
 
 (defvar nntp-server-buffer nil)
 (defvar nntp-process-response nil)
-(defvar news-reply-yank-from nil)
-(defvar news-reply-yank-message-id nil)
 
 (defvar nnheader-callback-function nil)
 
@@ -786,8 +785,7 @@ If FULL, translate everything."
 	;; We translate -- but only the file name.  We leave the directory
 	;; alone.
 	(if (and (featurep 'xemacs)
-		 (memq system-type '(cygwin32 win32 w32 mswindows windows-nt
-					      cygwin)))
+		 (memq system-type '(windows-nt cygwin)))
 	    ;; This is needed on NT and stuff, because
 	    ;; file-name-nondirectory is not enough to split
 	    ;; file names, containing ':', e.g.
@@ -825,19 +823,22 @@ The first string in ARGS can be a format string."
 	 (apply 'format args)))
   nil)
 
-(defun nnheader-get-report (backend)
+(defun nnheader-get-report-string (backend)
   "Get the most recent report from BACKEND."
   (condition-case ()
-      (nnheader-message 5 "%s" (symbol-value (intern (format "%s-status-string"
-							     backend))))
-    (error (nnheader-message 5 ""))))
+      (format "%s" (symbol-value (intern (format "%s-status-string"
+						 backend))))
+    (error "")))
+
+(defun nnheader-get-report (backend)
+  "Get the most recent report from BACKEND."
+  (nnheader-message 5 (nnheader-get-report-string backend)))
 
 (defun nnheader-insert (format &rest args)
   "Clear the communication buffer and insert FORMAT and ARGS into the buffer.
 If FORMAT isn't a format string, it and all ARGS will be inserted
 without formatting."
-  (save-excursion
-    (set-buffer nntp-server-buffer)
+  (with-current-buffer nntp-server-buffer
     (erase-buffer)
     (if (string-match "%" format)
 	(insert (apply 'format format args))
@@ -1086,5 +1087,4 @@ See `find-file-noselect' for the arguments."
 
 (provide 'nnheader)
 
-;; arch-tag: a9c4b7d9-52ae-4ec9-b196-dfd93124d202
 ;;; nnheader.el ends here

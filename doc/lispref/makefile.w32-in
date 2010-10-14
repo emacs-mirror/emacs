@@ -25,6 +25,9 @@ srcdir = .
 infodir = $(srcdir)/../../info
 usermanualdir = $(srcdir)/../emacs
 
+# Directory with emacsver.texi.
+emacsdir = $(srcdir)/../emacs
+
 # Redefine `TEX' if `tex' does not invoke plain TeX.  For example:
 # TEX=platex
 TEX=tex
@@ -43,6 +46,7 @@ manual = elisp-manual-23-$(VERSION)
 # List of all the texinfo files in the manual:
 
 srcs = \
+  $(emacsdir)/emacsver.texi \
   $(srcdir)/abbrevs.texi \
   $(srcdir)/advice.texi \
   $(srcdir)/anti.texi \
@@ -107,10 +111,12 @@ $(infodir)/dir:
 	$(INSTALL_INFO) --info-dir=$(infodir) $(infodir)/elisp
 
 $(infodir)/elisp: $(srcs)
-	$(MAKEINFO) -I. -I$(srcdir) -o $(infodir)/elisp $(srcdir)/elisp.texi
+	$(MAKEINFO) -I. -I$(srcdir) -I$(emacsdir) \
+	  -o $(infodir)/elisp $(srcdir)/elisp.texi
 
 elisp.dvi: $(srcs)
-	$(texinputdir) $(TEX) -I $(usermanualdir) $(srcdir)/elisp.texi
+	$(texinputdir) $(TEX) -I $(usermanualdir) -I$(emacsdir) \
+	  $(srcdir)/elisp.texi
 
 clean:
 	- $(DEL) *.toc *.aux *.log *.cp *.cps *.fn *.fns *.tp *.tps \

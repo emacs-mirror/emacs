@@ -311,7 +311,7 @@ display row, and VPOS is the row number (0-based) containing POS.  */)
   (Lisp_Object pos, Lisp_Object window, Lisp_Object partially)
 {
   register struct window *w;
-  register int posint;
+  register EMACS_INT posint;
   register struct buffer *buf;
   struct text_pos top;
   Lisp_Object in_window = Qnil;
@@ -2500,7 +2500,7 @@ window-start value is reasonable when this function is called.  */)
   (Lisp_Object window)
 {
   struct window *w;
-  int startpos;
+  EMACS_INT startpos;
   int top, new_top;
 
   if (NILP (window))
@@ -3629,7 +3629,7 @@ selected window before each command.  */)
      redisplay_window has altered point after scrolling,
      because it makes the change only in the window.  */
   {
-    register int new_point = marker_position (w->pointm);
+    register EMACS_INT new_point = marker_position (w->pointm);
     if (new_point < BEGV)
       SET_PT (BEGV);
     else if (new_point > ZV)
@@ -4848,7 +4848,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
 	      /* Maybe modify window start instead of scrolling.  */
 	      if (rbot > 0 || w->vscroll < 0)
 		{
-		  int spos;
+		  EMACS_INT spos;
 
 		  Fset_window_vscroll (window, make_number (0), Qt);
 		  /* If there are other text lines above the current row,
@@ -4902,7 +4902,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
   start_display (&it, w, start);
   if (whole)
     {
-      int start_pos = IT_CHARPOS (it);
+      EMACS_INT start_pos = IT_CHARPOS (it);
       int dy = WINDOW_FRAME_LINE_HEIGHT (w);
       dy = max ((window_box_height (w)
 		 - next_screen_context_lines * dy),
@@ -4981,8 +4981,8 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
 
   if (! vscrolled)
     {
-      int pos = IT_CHARPOS (it);
-      int bytepos;
+      EMACS_INT pos = IT_CHARPOS (it);
+      EMACS_INT bytepos;
 
       /* If in the middle of a multi-glyph character move forward to
 	 the next character.  */
@@ -5052,7 +5052,7 @@ window_scroll_pixel_based (Lisp_Object window, int n, int whole, int noerror)
     }
   else if (n < 0)
     {
-      int charpos, bytepos;
+      EMACS_INT charpos, bytepos;
       int partial_p;
 
       /* Save our position, for the
@@ -5122,13 +5122,13 @@ static void
 window_scroll_line_based (Lisp_Object window, int n, int whole, int noerror)
 {
   register struct window *w = XWINDOW (window);
-  register int opoint = PT, opoint_byte = PT_BYTE;
-  register int pos, pos_byte;
+  register EMACS_INT opoint = PT, opoint_byte = PT_BYTE;
+  register EMACS_INT pos, pos_byte;
   register int ht = window_internal_height (w);
   register Lisp_Object tem;
   int lose;
   Lisp_Object bolp;
-  int startpos;
+  EMACS_INT startpos;
   Lisp_Object original_pos = Qnil;
 
   /* If scrolling screen-fulls, compute the number of lines to
@@ -5573,7 +5573,7 @@ and redisplay normally--don't erase and redraw the frame.  */)
   struct buffer *buf = XBUFFER (w->buffer);
   struct buffer *obuf = current_buffer;
   int center_p = 0;
-  int charpos, bytepos;
+  EMACS_INT charpos, bytepos;
   int iarg;
   int this_scroll_margin;
 
@@ -5914,7 +5914,7 @@ the return value is nil.  Otherwise the value is t.  */)
   Lisp_Object new_current_buffer;
   Lisp_Object frame;
   FRAME_PTR f;
-  int old_point = -1;
+  EMACS_INT old_point = -1;
 
   CHECK_WINDOW_CONFIGURATION (configuration);
 

@@ -7,6 +7,7 @@
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
 ;; Keywords: calendar
 ;; Human-Keywords: calendar
+;; Package: calendar
 
 ;; This file is part of GNU Emacs.
 

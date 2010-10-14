@@ -55,84 +55,84 @@ by name)."
   :group 'eshell-module)
 
 (defcustom eshell-unix-load-hook '(eshell-unix-initialize)
-  "*A list of functions to run when `eshell-unix' is loaded."
+  "A list of functions to run when `eshell-unix' is loaded."
   :type 'hook
   :group 'eshell-unix)
 
 (defcustom eshell-plain-grep-behavior nil
-  "*If non-nil, standalone \"grep\" commands will behave normally.
+  "If non-nil, standalone \"grep\" commands will behave normally.
 Standalone in this context means not redirected, and not on the
 receiving side of a command pipeline."
   :type 'boolean
   :group 'eshell-unix)
 
 (defcustom eshell-no-grep-available (not (eshell-search-path "grep"))
-  "*If non-nil, no grep is available on the current machine."
+  "If non-nil, no grep is available on the current machine."
   :type 'boolean
   :group 'eshell-unix)
 
 (defcustom eshell-plain-diff-behavior nil
-  "*If non-nil, standalone \"diff\" commands will behave normally.
+  "If non-nil, standalone \"diff\" commands will behave normally.
 Standalone in this context means not redirected, and not on the
 receiving side of a command pipeline."
   :type 'boolean
   :group 'eshell-unix)
 
 (defcustom eshell-plain-locate-behavior (featurep 'xemacs)
-  "*If non-nil, standalone \"locate\" commands will behave normally.
+  "If non-nil, standalone \"locate\" commands will behave normally.
 Standalone in this context means not redirected, and not on the
 receiving side of a command pipeline."
   :type 'boolean
   :group 'eshell-unix)
 
 (defcustom eshell-rm-removes-directories nil
-  "*If non-nil, `rm' will remove directory entries.
+  "If non-nil, `rm' will remove directory entries.
 Otherwise, `rmdir' is required."
   :type 'boolean
   :group 'eshell-unix)
 
 (defcustom eshell-rm-interactive-query (= (user-uid) 0)
-  "*If non-nil, `rm' will query before removing anything."
+  "If non-nil, `rm' will query before removing anything."
   :type 'boolean
   :group 'eshell-unix)
 
 (defcustom eshell-mv-interactive-query (= (user-uid) 0)
-  "*If non-nil, `mv' will query before overwriting anything."
+  "If non-nil, `mv' will query before overwriting anything."
   :type 'boolean
   :group 'eshell-unix)
 
 (defcustom eshell-mv-overwrite-files t
-  "*If non-nil, `mv' will overwrite files without warning."
+  "If non-nil, `mv' will overwrite files without warning."
   :type 'boolean
   :group 'eshell-unix)
 
 (defcustom eshell-cp-interactive-query (= (user-uid) 0)
-  "*If non-nil, `cp' will query before overwriting anything."
+  "If non-nil, `cp' will query before overwriting anything."
   :type 'boolean
   :group 'eshell-unix)
 
 (defcustom eshell-cp-overwrite-files t
-  "*If non-nil, `cp' will overwrite files without warning."
+  "If non-nil, `cp' will overwrite files without warning."
   :type 'boolean
   :group 'eshell-unix)
 
 (defcustom eshell-ln-interactive-query (= (user-uid) 0)
-  "*If non-nil, `ln' will query before overwriting anything."
+  "If non-nil, `ln' will query before overwriting anything."
   :type 'boolean
   :group 'eshell-unix)
 
 (defcustom eshell-ln-overwrite-files nil
-  "*If non-nil, `ln' will overwrite files without warning."
+  "If non-nil, `ln' will overwrite files without warning."
   :type 'boolean
   :group 'eshell-unix)
 
 (defcustom eshell-default-target-is-dot nil
-  "*If non-nil, the default destination for cp, mv or ln is `.'."
+  "If non-nil, the default destination for cp, mv or ln is `.'."
   :type 'boolean
   :group 'eshell-unix)
 
 (defcustom eshell-du-prefer-over-ange nil
-  "*Use Eshell's du in ange-ftp remote directories.
+  "Use Eshell's du in ange-ftp remote directories.
 Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
   :type 'boolean
   :group 'eshell-unix)

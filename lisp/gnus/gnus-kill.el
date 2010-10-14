@@ -349,8 +349,7 @@ If NEWSGROUP is nil, return the global kill file instead."
 
 (defun gnus-expunge (marks)
   "Remove lines marked with MARKS."
-  (save-excursion
-    (set-buffer gnus-summary-buffer)
+  (with-current-buffer gnus-summary-buffer
     (gnus-summary-limit-to-marks marks 'reverse)))
 
 (defun gnus-apply-kill-file-unless-scored ()
@@ -442,8 +441,7 @@ Returns the number of articles marked as read."
 	  (progn
 	    (delete-region beg (point))
 	    (insert (or (eval form) "")))
-	(save-excursion
-	  (set-buffer gnus-summary-buffer)
+	(with-current-buffer gnus-summary-buffer
 	  (ignore-errors (eval form)))))
     (and (buffer-modified-p)
 	 gnus-kill-save-kill-file
@@ -555,8 +553,7 @@ COMMAND must be a Lisp expression or a string representing a key sequence."
 	  (and (eq 'quote (car (nth 2 object)))
 	       (not (consp (cdadr (nth 2 object))))))
       (concat "\n" (gnus-prin1-to-string object))
-    (save-excursion
-      (set-buffer (gnus-get-buffer-create "*Gnus PP*"))
+    (with-current-buffer (gnus-get-buffer-create "*Gnus PP*")
       (buffer-disable-undo)
       (erase-buffer)
       (insert (format "\n(%S %S\n  '(" (nth 0 object) (nth 1 object)))
@@ -610,8 +607,7 @@ COMMAND must be a Lisp expression or a string representing a key sequence."
 	     6 "Searching for article: %d..." (mail-header-number header))
 	    (gnus-article-setup-buffer)
 	    (gnus-article-prepare (mail-header-number header) t)
-	    (when (save-excursion
-		    (set-buffer gnus-article-buffer)
+	    (when (with-current-buffer gnus-article-buffer
 		    (goto-char (point-min))
 		    (setq did-kill (re-search-forward regexp nil t)))
 	      (cond ((stringp form)	;Keyboard macro.
@@ -715,5 +711,4 @@ Usage: emacs -batch -l ~/.emacs -l gnus -f gnus-batch-score"
 
 (provide 'gnus-kill)
 
-;; arch-tag: b30c0f53-df1a-490b-b81e-17b13474f395
 ;;; gnus-kill.el ends here

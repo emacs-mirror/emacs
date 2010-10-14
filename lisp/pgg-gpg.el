@@ -4,10 +4,11 @@
 ;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
-;; Symmetric encryption and gpg-agent support added by: 
+;; Symmetric encryption and gpg-agent support added by:
 ;;   Sascha Wilde <wilde@sha-bang.de>
 ;; Created: 1999/10/28
 ;; Keywords: PGP, OpenPGP, GnuPG
+;; Package: pgg
 
 ;; This file is part of GNU Emacs.
 
@@ -406,5 +407,4 @@ passphrase cache or user."
 
 (provide 'pgg-gpg)
 
-;; arch-tag: 2aa5d5d8-93a0-4865-9312-33e29830e000
 ;;; pgg-gpg.el ends here

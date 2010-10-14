@@ -159,52 +159,52 @@
   :type 'hook
   :group 'lm)
 
-(defvar lm-mode-map nil
+(defvar lm-mode-map
+  (let ((map (make-sparse-keymap)))
+    ;; Key bindings for cursor motion.
+    (define-key map "y" 'lm-move-nw)		; y
+    (define-key map "u" 'lm-move-ne)		; u
+    (define-key map "b" 'lm-move-sw)		; b
+    (define-key map "n" 'lm-move-se)		; n
+    (define-key map "h" 'backward-char)		; h
+    (define-key map "l" 'forward-char)		; l
+    (define-key map "j" 'lm-move-down)		; j
+    (define-key map "k" 'lm-move-up)		; k
+
+    (define-key map [kp-7] 'lm-move-nw)
+    (define-key map [kp-9] 'lm-move-ne)
+    (define-key map [kp-1] 'lm-move-sw)
+    (define-key map [kp-3] 'lm-move-se)
+    (define-key map [kp-4] 'backward-char)
+    (define-key map [kp-6] 'forward-char)
+    (define-key map [kp-2] 'lm-move-down)
+    (define-key map [kp-8] 'lm-move-up)
+
+    (define-key map "\C-n" 'lm-move-down)		; C-n
+    (define-key map "\C-p" 'lm-move-up)		; C-p
+
+    ;; Key bindings for entering Human moves.
+    (define-key map "X" 'lm-human-plays)		; X
+    (define-key map "x" 'lm-human-plays)		; x
+
+    (define-key map " " 'lm-start-robot)		; SPC
+    (define-key map [down-mouse-1] 'lm-start-robot)
+    (define-key map [drag-mouse-1] 'lm-click)
+    (define-key map [mouse-1] 'lm-click)
+    (define-key map [down-mouse-2] 'lm-click)
+    (define-key map [mouse-2] 'lm-mouse-play)
+    (define-key map [drag-mouse-2] 'lm-mouse-play)
+
+    (define-key map [remap previous-line] 'lm-move-up)
+    (define-key map [remap next-line] 'lm-move-down)
+    (define-key map [remap beginning-of-line] 'lm-beginning-of-line)
+    (define-key map [remap end-of-line] 'lm-end-of-line)
+    (define-key map [remap undo] 'lm-human-takes-back)
+    (define-key map [remap advertised-undo] 'lm-human-takes-back)
+    map)
   "Local keymap to use in Lm mode.")
 
-(if lm-mode-map nil
-  (setq lm-mode-map (make-sparse-keymap))
 
-  ;; Key bindings for cursor motion.
-  (define-key lm-mode-map "y" 'lm-move-nw)		; y
-  (define-key lm-mode-map "u" 'lm-move-ne)		; u
-  (define-key lm-mode-map "b" 'lm-move-sw)		; b
-  (define-key lm-mode-map "n" 'lm-move-se)		; n
-  (define-key lm-mode-map "h" 'backward-char)		; h
-  (define-key lm-mode-map "l" 'forward-char)		; l
-  (define-key lm-mode-map "j" 'lm-move-down)		; j
-  (define-key lm-mode-map "k" 'lm-move-up)		; k
-
-  (define-key lm-mode-map [kp-7] 'lm-move-nw)
-  (define-key lm-mode-map [kp-9] 'lm-move-ne)
-  (define-key lm-mode-map [kp-1] 'lm-move-sw)
-  (define-key lm-mode-map [kp-3] 'lm-move-se)
-  (define-key lm-mode-map [kp-4] 'backward-char)
-  (define-key lm-mode-map [kp-6] 'forward-char)
-  (define-key lm-mode-map [kp-2] 'lm-move-down)
-  (define-key lm-mode-map [kp-8] 'lm-move-up)
-
-  (define-key lm-mode-map "\C-n" 'lm-move-down)		; C-n
-  (define-key lm-mode-map "\C-p" 'lm-move-up)		; C-p
-
-  ;; Key bindings for entering Human moves.
-  (define-key lm-mode-map "X" 'lm-human-plays)		; X
-  (define-key lm-mode-map "x" 'lm-human-plays)		; x
-
-  (define-key lm-mode-map " " 'lm-start-robot)		; SPC
-  (define-key lm-mode-map [down-mouse-1] 'lm-start-robot)
-  (define-key lm-mode-map [drag-mouse-1] 'lm-click)
-  (define-key lm-mode-map [mouse-1] 'lm-click)
-  (define-key lm-mode-map [down-mouse-2] 'lm-click)
-  (define-key lm-mode-map [mouse-2] 'lm-mouse-play)
-  (define-key lm-mode-map [drag-mouse-2] 'lm-mouse-play)
-
-  (define-key lm-mode-map [remap previous-line] 'lm-move-up)
-  (define-key lm-mode-map [remap next-line] 'lm-move-down)
-  (define-key lm-mode-map [remap beginning-of-line] 'lm-beginning-of-line)
-  (define-key lm-mode-map [remap end-of-line] 'lm-end-of-line)
-  (define-key lm-mode-map [remap undo] 'lm-human-takes-back)
-  (define-key lm-mode-map [remap advertised-undo] 'lm-human-takes-back))
 
 (defvar lm-emacs-won ()
   "*For making font-lock use the winner's face for the line.")

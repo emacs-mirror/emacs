@@ -3,6 +3,7 @@
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Keywords: PGP, GnuPG
+;; Package: epa
 
 ;; This file is part of GNU Emacs.
 
@@ -66,10 +67,11 @@ way."
 			(cons entry
 			      epa-file-passphrase-alist)))
 		(setq passphrase (epa-passphrase-callback-function context
-								   key-id nil))
+								   key-id
+								   file))
 		(setcdr entry (copy-sequence passphrase))
 		passphrase))))
-    (epa-passphrase-callback-function context key-id nil)))
+    (epa-passphrase-callback-function context key-id file)))
 
 ;;;###autoload
 (defun epa-file-handler (operation &rest args)
@@ -157,12 +159,17 @@ way."
 	  (if (or beg end)
 	      (setq string (substring string (or beg 0) end)))
 	  (save-excursion
-	    (save-restriction
-	      (narrow-to-region (point) (point))
-	      (epa-file-decode-and-insert string file visit beg end replace)
-	      (setq length (- (point-max) (point-min))))
-	    (if replace
-		(delete-region (point) (point-max)))
+	    ;; If visiting, bind off buffer-file-name so that
+	    ;; file-locking will not ask whether we should
+	    ;; really edit the buffer.
+	    (let ((buffer-file-name
+		   (if visit nil buffer-file-name)))
+	      (save-restriction
+		(narrow-to-region (point) (point))
+		(epa-file-decode-and-insert string file visit beg end replace)
+		(setq length (- (point-max) (point-min))))
+	      (if replace
+		  (delete-region (point) (point-max))))
 	    (if visit
 		(set-visited-file-modtime))))
       (if (and local-copy

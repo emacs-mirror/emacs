@@ -23,19 +23,11 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #include <stdio.h>
 #include <ctype.h>
-#include <string.h>
 #include <errno.h>
 #include <sys/file.h>
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif
-
-#if HAVE_TERMIOS_H
-#include <termios.h>		/* For TIOCNOTTY. */
-#endif
-#ifdef HAVE_SYS_IOCTL_H
-#include <sys/ioctl.h>
 #endif
 
 #include <signal.h>
@@ -250,7 +242,6 @@ tty_set_terminal_modes (struct terminal *terminal)
             cmputc ('\n');
         }
 
-      OUTPUT_IF (tty, tty->TS_termcap_modes);
       OUTPUT_IF (tty, visible_cursor ? tty->TS_cursor_visible : tty->TS_cursor_normal);
       OUTPUT_IF (tty, tty->TS_keypad_mode);
       losecursor (tty);
@@ -602,7 +593,7 @@ encode_terminal_code (struct glyph *src, int src_len, struct coding_system *codi
 	  if (src->u.cmp.automatic)
 	    {
 	      gstring = composition_gstring_from_id (src->u.cmp.id);
-	      required = src->u.cmp.to + 1 - src->u.cmp.from;
+	      required = src->slice.cmp.to + 1 - src->slice.cmp.from;
 	    }
 	  else
 	    {
@@ -619,7 +610,7 @@ encode_terminal_code (struct glyph *src, int src_len, struct coding_system *codi
 	    }
 
 	  if (src->u.cmp.automatic)
-	    for (i = src->u.cmp.from; i <= src->u.cmp.to; i++)
+	    for (i = src->slice.cmp.from; i <= src->slice.cmp.to; i++)
 	      {
 		Lisp_Object g = LGSTRING_GLYPH (gstring, i);
 		int c = LGLYPH_CHAR (g);
@@ -692,7 +683,8 @@ encode_terminal_code (struct glyph *src, int src_len, struct coding_system *codi
 						  encode_terminal_src_size);
 		  buf = encode_terminal_src + nbytes;
 		}
-	      if (char_charset (c, charset_list, NULL))
+	      if (CHAR_BYTE8_P (c)
+		  || char_charset (c, charset_list, NULL))
 		{
 		  /* Store the multibyte form of C at BUF.  */
 		  buf += CHAR_STRING (c, buf);
@@ -1617,18 +1609,15 @@ produce_glyphs (struct it *it)
       goto done;
     }
 
-  /* Maybe translate single-byte characters to multibyte.  */
-  it->char_to_display = it->c;
-
-  if (it->c >= 040 && it->c < 0177)
+  if (it->char_to_display >= 040 && it->char_to_display < 0177)
     {
       it->pixel_width = it->nglyphs = 1;
       if (it->glyph_row)
 	append_glyph (it);
     }
-  else if (it->c == '\n')
+  else if (it->char_to_display == '\n')
     it->pixel_width = it->nglyphs = 0;
-  else if (it->c == '\t')
+  else if (it->char_to_display == '\t')
     {
       int absolute_x = (it->current_x
 			+ it->continuation_lines_width);
@@ -1659,32 +1648,19 @@ produce_glyphs (struct it *it)
       it->pixel_width = nspaces;
       it->nglyphs = nspaces;
     }
-  else if (CHAR_BYTE8_P (it->c))
+  else if (CHAR_BYTE8_P (it->char_to_display))
     {
-      if (unibyte_display_via_language_environment
-	  && (it->c >= 0240))
-	{
-	  it->char_to_display = BYTE8_TO_CHAR (it->c);
-	  it->pixel_width = CHAR_WIDTH (it->char_to_display);
-	  it->nglyphs = it->pixel_width;
-	  if (it->glyph_row)
-	    append_glyph (it);
-	}
-      else
-	{
-	  /* Coming here means that it->c is from display table, thus
-	     we must send the raw 8-bit byte as is to the terminal.
-	     Although there's no way to know how many columns it
-	     occupies on a screen, it is a good assumption that a
-	     single byte code has 1-column width.  */
-	  it->pixel_width = it->nglyphs = 1;
-	  if (it->glyph_row)
-	    append_glyph (it);
-	}
+      /* Coming here means that we must send the raw 8-bit byte as is
+	 to the terminal.  Although there's no way to know how many
+	 columns it occupies on a screen, it is a good assumption that
+	 a single byte code has 1-column width.  */
+      it->pixel_width = it->nglyphs = 1;
+      if (it->glyph_row)
+	append_glyph (it);
     }
   else
     {
-      it->pixel_width = CHAR_WIDTH (it->c);
+      it->pixel_width = CHAR_WIDTH (it->char_to_display);
       it->nglyphs = it->pixel_width;
 
       if (it->glyph_row)
@@ -1814,8 +1790,8 @@ append_composite_glyph (struct it *it)
 	{
 	  glyph->u.cmp.automatic = 1;
 	  glyph->u.cmp.id = it->cmp_it.id;
-	  glyph->u.cmp.from = it->cmp_it.from;
-	  glyph->u.cmp.to = it->cmp_it.to - 1;
+	  glyph->slice.cmp.from = it->cmp_it.from;
+	  glyph->slice.cmp.to = it->cmp_it.to - 1;
 	}
 
       glyph->face_id = it->face_id;
@@ -1920,7 +1896,7 @@ produce_special_glyphs (struct it *it, enum display_element_type what)
   else
     abort ();
 
-  temp_it.c = GLYPH_CHAR (glyph);
+  temp_it.c = temp_it.char_to_display = GLYPH_CHAR (glyph);
   temp_it.face_id = GLYPH_FACE (glyph);
   temp_it.len = CHAR_BYTES (temp_it.c);
 
@@ -2637,9 +2613,10 @@ term_clear_mouse_face (void)
    If POS is after end of W, return end of last line in W.
    - taken from msdos.c */
 static int
-fast_find_position (struct window *w, int pos, int *hpos, int *vpos)
+fast_find_position (struct window *w, EMACS_INT pos, int *hpos, int *vpos)
 {
-  int i, lastcol, line_start_position, maybe_next_line_p = 0;
+  int i, lastcol, maybe_next_line_p = 0;
+  EMACS_INT line_start_position;
   int yb = window_text_bottom_y (w);
   struct glyph_row *row = MATRIX_ROW (w->current_matrix, 0), *best_row = row;
 
@@ -2677,7 +2654,7 @@ fast_find_position (struct window *w, int pos, int *hpos, int *vpos)
   for (i = 0; i < row->used[TEXT_AREA]; i++)
     {
       struct glyph *glyph = row->glyphs[TEXT_AREA] + i;
-      int charpos;
+      EMACS_INT charpos;
 
       charpos = glyph->charpos;
       if (charpos == pos)
@@ -2738,7 +2715,8 @@ term_mouse_highlight (struct frame *f, int x, int y)
       && XFASTINT (w->last_modified) == BUF_MODIFF (b)
       && XFASTINT (w->last_overlay_modified) == BUF_OVERLAY_MODIFF (b))
     {
-      int pos, i, nrows = w->current_matrix->nrows;
+      int i, nrows = w->current_matrix->nrows;
+      EMACS_INT pos;
       struct glyph_row *row;
       struct glyph *glyph;
 
@@ -2782,7 +2760,8 @@ term_mouse_highlight (struct frame *f, int x, int y)
       /* Check for mouse-face.  */
       {
 	Lisp_Object mouse_face, overlay, position, *overlay_vec;
-	int noverlays, obegv, ozv;
+	int noverlays;
+	EMACS_INT obegv, ozv;
 	struct buffer *obuf;
 
 	/* If we get an out-of-range value, return now; avoid an error.  */
@@ -3423,6 +3402,15 @@ init_tty (const char *name, const char *terminal_type, int must_succeed)
   tty->Wcm = (struct cm *) xmalloc (sizeof (struct cm));
   Wcm_clear (tty);
 
+  encode_terminal_src_size = 0;
+  encode_terminal_dst_size = 0;
+
+#ifdef HAVE_GPM
+  terminal->mouse_position_hook = term_mouse_position;
+  mouse_face_window = Qnil;
+#endif
+
+  
 #ifndef DOS_NT
   set_tty_hooks (terminal);
 
@@ -3475,78 +3463,6 @@ init_tty (const char *name, const char *terminal_type, int must_succeed)
   tty->type = xstrdup (terminal_type);
 
   add_keyboard_wait_descriptor (fileno (tty->input));
-
-#endif	/* !DOS_NT */
-
-  encode_terminal_src_size = 0;
-  encode_terminal_dst_size = 0;
-
-#ifdef HAVE_GPM
-  terminal->mouse_position_hook = term_mouse_position;
-  mouse_face_window = Qnil;
-#endif
-
-#ifdef DOS_NT
-#ifdef WINDOWSNT
-  initialize_w32_display (terminal);
-#else  /* MSDOS */
-  if (strcmp (terminal_type, "internal") == 0)
-    terminal->type = output_msdos_raw;
-  initialize_msdos_display (terminal);
-#endif	/* MSDOS */
-  tty->output = stdout;
-  tty->input = stdin;
-  /* The following two are inaccessible from w32console.c.  */
-  terminal->delete_frame_hook = &tty_free_frame_resources;
-  terminal->delete_terminal_hook = &delete_tty;
-
-  tty->name = xstrdup (name);
-  terminal->name = xstrdup (name);
-  tty->type = xstrdup (terminal_type);
-
-  add_keyboard_wait_descriptor (0);
-
-  Wcm_clear (tty);
-
-#ifdef WINDOWSNT
-  {
-    struct frame *f = XFRAME (selected_frame);
-
-    FrameRows (tty) = FRAME_LINES (f);
-    FrameCols (tty) = FRAME_COLS (f);
-    tty->specified_window = FRAME_LINES (f);
-
-    FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
-    FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none;
-  }
-#else  /* MSDOS */
-  {
-    int height, width;
-    get_tty_size (fileno (tty->input), &width, &height);
-    FrameCols (tty) = width;
-    FrameRows (tty) = height;
-  }
-#endif	/* MSDOS */
-  tty->delete_in_insert_mode = 1;
-
-  UseTabs (tty) = 0;
-  terminal->scroll_region_ok = 0;
-
-  /* Seems to insert lines when it's not supposed to, messing up the
-     display.  In doing a trace, it didn't seem to be called much, so I
-     don't think we're losing anything by turning it off.  */
-  terminal->line_ins_del_ok = 0;
-#ifdef WINDOWSNT
-  terminal->char_ins_del_ok = 1;
-  baud_rate = 19200;
-#else  /* MSDOS */
-  terminal->char_ins_del_ok = 0;
-  init_baud_rate (fileno (tty->input));
-#endif	/* MSDOS */
-
-  tty->TN_max_colors = 16;  /* Required to be non-zero for tty-display-color-p */
-
-#else  /* not DOS_NT */
 
   Wcm_clear (tty);
 
@@ -3699,7 +3615,61 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
   tty->TF_underscore = tgetflag ("ul");
   tty->TF_teleray = tgetflag ("xt");
 
-#endif /* !DOS_NT  */
+#else /* DOS_NT */
+#ifdef WINDOWSNT
+  {
+    struct frame *f = XFRAME (selected_frame);
+
+    initialize_w32_display (terminal);
+
+    FrameRows (tty) = FRAME_LINES (f);
+    FrameCols (tty) = FRAME_COLS (f);
+    tty->specified_window = FRAME_LINES (f);
+
+    FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
+    FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none;
+    terminal->char_ins_del_ok = 1;
+    baud_rate = 19200;
+  }
+#else  /* MSDOS */
+  {
+    int height, width;
+    if (strcmp (terminal_type, "internal") == 0)
+      terminal->type = output_msdos_raw;
+    initialize_msdos_display (terminal);
+
+    get_tty_size (fileno (tty->input), &width, &height);
+    FrameCols (tty) = width;
+    FrameRows (tty) = height;
+    terminal->char_ins_del_ok = 0;
+    init_baud_rate (fileno (tty->input));
+  }
+#endif	/* MSDOS */
+  tty->output = stdout;
+  tty->input = stdin;
+  /* The following two are inaccessible from w32console.c.  */
+  terminal->delete_frame_hook = &tty_free_frame_resources;
+  terminal->delete_terminal_hook = &delete_tty;
+
+  tty->name = xstrdup (name);
+  terminal->name = xstrdup (name);
+  tty->type = xstrdup (terminal_type);
+
+  add_keyboard_wait_descriptor (0);
+
+  tty->delete_in_insert_mode = 1;
+
+  UseTabs (tty) = 0;
+  terminal->scroll_region_ok = 0;
+
+  /* Seems to insert lines when it's not supposed to, messing up the
+     display.  In doing a trace, it didn't seem to be called much, so I
+     don't think we're losing anything by turning it off.  */
+  terminal->line_ins_del_ok = 0;
+
+  tty->TN_max_colors = 16;  /* Required to be non-zero for tty-display-color-p */
+#endif	/* DOS_NT */
+
   terminal->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
   init_kboard (terminal->kboard);
   terminal->kboard->Vwindow_system = Qnil;

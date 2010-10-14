@@ -244,9 +244,9 @@ A possible way to install this would be:
   (when (boundp 'font-lock-syntactic-keywords)
     (remove-text-properties beg end '(syntax-table nil)))
   ;; instead of just using (remove-text-properties beg end '(face
-  ;; nil)), we find regions with a non-nil face test-property, skip
+  ;; nil)), we find regions with a non-nil face text-property, skip
   ;; positions with the ansi-color property set, and remove the
-  ;; remaining face test-properties.
+  ;; remaining face text-properties.
   (while (setq beg (text-property-not-all beg end 'face nil))
     (setq beg (or (text-property-not-all beg end 'ansi-color t) end))
     (when (get-text-property beg 'face)

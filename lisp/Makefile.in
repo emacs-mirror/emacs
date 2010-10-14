@@ -33,10 +33,9 @@ VPATH = $(srcdir)
 # to use an absolute file name.
 EMACS = ${abs_top_builddir}/src/emacs
 
-# Command line flags for Emacs.  This must include --multibyte,
-# otherwise some files will not compile.
+# Command line flags for Emacs.
 
-EMACSOPT = -batch --no-site-file --multibyte
+EMACSOPT = -batch --no-site-file
 
 # Extra flags to pass to the byte compiler
 BYTE_COMPILE_EXTRA_FLAGS =
@@ -57,7 +56,8 @@ ETAGS = ../lib-src/etags
 LOADDEFS = $(lisp)/calendar/cal-loaddefs.el \
 	$(lisp)/calendar/diary-loaddefs.el \
 	$(lisp)/calendar/hol-loaddefs.el \
-	$(lisp)/mh-e/mh-loaddefs.el
+	$(lisp)/mh-e/mh-loaddefs.el \
+	$(lisp)/net/tramp-loaddefs.el
 
 # Elisp files auto-generated.
 AUTOGENEL = loaddefs.el \
@@ -329,6 +329,24 @@ $(MH_E_DIR)/mh-loaddefs.el: $(MH_E_SRC)
 	   --eval "(setq generated-autoload-file \"$@\")" \
 	   --eval "(setq make-backup-files nil)" \
 	   -f batch-update-autoloads $(MH_E_DIR)
+
+# Update TRAMP internal autoloads. Maybe we could move trmp*.el into
+# an own subdirectory. OTOH, it does not hurt to keep them in
+# lisp/net.
+TRAMP_DIR = $(lisp)/net
+TRAMP_SRC = $(TRAMP_DIR)/tramp.el  $(TRAMP_DIR)/tramp-cache.el  \
+	$(TRAMP_DIR)/tramp-cmds.el $(TRAMP_DIR)/tramp-compat.el \
+	$(TRAMP_DIR)/tramp-ftp.el  $(TRAMP_DIR)/tramp-gvfs.el   \
+	$(TRAMP_DIR)/tramp-gw.el   $(TRAMP_DIR)/tramp-imap.el   \
+	$(TRAMP_DIR)/tramp-sh.el   $(TRAMP_DIR)/tramp-smb.el    \
+	$(TRAMP_DIR)/tramp-uu.el   $(TRAMP_DIR)/trampver.el
+
+$(TRAMP_DIR)/tramp-loaddefs.el: $(TRAMP_SRC)
+	$(emacs) -l autoload \
+	   --eval "(setq generate-autoload-cookie \";;;###tramp-autoload\")" \
+	   --eval "(setq generated-autoload-file \"$@\")" \
+	   --eval "(setq make-backup-files nil)" \
+	   -f batch-update-autoloads $(TRAMP_DIR)
 
 CAL_DIR = $(lisp)/calendar
 ## Those files that may contain internal calendar autoload cookies.

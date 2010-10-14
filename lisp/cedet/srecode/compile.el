@@ -35,19 +35,17 @@
 (require 'semantic)
 (require 'eieio)
 (require 'eieio-base)
-(require 'srecode)
 (require 'srecode/table)
+(require 'srecode/dictionary)
 
 (declare-function srecode-template-inserter-newline-child-p "srecode/insert"
 		  t t)
-(declare-function srecode-create-section-dictionary "srecode/dictionary")
-(declare-function srecode-dictionary-compound-variable "srecode/dictionary")
 
 ;;; Code:
 
 ;;; Template Class
 ;;
-;; Templatets describe a patter of text that can be inserted into a
+;; Templates describe a pattern of text that can be inserted into a
 ;; buffer.
 ;;
 (defclass srecode-template (eieio-named)
@@ -213,6 +211,7 @@ Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."
 	(mode nil)
 	(application nil)
 	(priority nil)
+	(project nil)
 	(vars nil)
 	)
 
@@ -256,6 +255,8 @@ Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."
 		     (setq application (read firstvalue)))
 		    ((string= name "priority")
 		     (setq priority (read firstvalue)))
+		    ((string= name "project")
+		     (setq project firstvalue))
 		    (t
 		     ;; Assign this into some table of variables.
 		     (setq vars (cons (cons name firstvalue) vars))
@@ -297,12 +298,19 @@ Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."
     ;; Calculate priority
     ;;
     (if (not priority)
-	(let ((d (file-name-directory (buffer-file-name)))
-	      (sd (file-name-directory (locate-library "srecode")))
-	      (defaultdelta (if (eq mode 'default) 20 0)))
-	  (if (string= d sd)
-	      (setq priority (+ 80 defaultdelta))
-	    (setq priority (+ 30 defaultdelta)))
+	(let ((d (expand-file-name (file-name-directory (buffer-file-name))))
+	      (sd (expand-file-name (file-name-directory (locate-library "srecode"))))
+	      (defaultdelta (if (eq mode 'default) 0 10)))
+	  ;; @TODO :   WHEN INTEGRATING INTO EMACS
+	  ;;   The location of Emacs default templates needs to be specified
+	  ;;   here to also have a lower priority.
+	  (if (string-match (concat "^" sd) d)
+	      (setq priority (+ 30 defaultdelta))
+	    ;; If the user created template is for a project, then
+	    ;; don't add as much as if it is unique to just some user.
+	    (if (stringp project)
+		(setq priority (+ 50 defaultdelta))
+	      (setq priority (+ 80 defaultdelta))))
 	  (message "Templates %s has estimated priority of %d"
 		   (file-name-nondirectory (buffer-file-name))
 		   priority))
@@ -311,56 +319,56 @@ Arguments ESCAPE-START and ESCAPE-END are the current escape sequences in use."
 	       priority))
 
     ;; Save it up!
-    (srecode-compile-template-table table mode priority application vars)
+    (srecode-compile-template-table table mode priority application project vars)
     )
 )
 
-(defun srecode-compile-one-template-tag (tag STATE)
-  "Compile a template tag TAG into an srecode template class.
-STATE is the current compile state as an object `srecode-compile-state'."
-  (require 'srecode/dictionary)
-  (let* ((context (oref STATE context))
-	 (codeout  (srecode-compile-split-code
-		    tag (semantic-tag-get-attribute tag :code)
-		    STATE))
-	 (code (cdr codeout))
-	 (args (semantic-tag-function-arguments tag))
-	 (binding (semantic-tag-get-attribute tag :binding))
-	 (rawdicts (semantic-tag-get-attribute tag :dictionaries))
-	 (sdicts (srecode-create-section-dictionary rawdicts STATE))
-	 (addargs nil)
-	 )
-;    (message "Compiled %s to %d codes with %d args and %d prompts."
-;	     (semantic-tag-name tag)
-;	     (length code)
-;	     (length args)
-;	     (length prompts))
-    (while args
-      (setq addargs (cons (intern (car args)) addargs))
-      (when (eq (car addargs) :blank)
-	;; If we have a wrap, then put wrap inserters on both
-	;; ends of the code.
-	(setq code (append
-		    (list (srecode-compile-inserter "BLANK"
-						    "\r"
-						    STATE
-						    :secondname nil
-						    :where 'begin))
-		    code
-		    (list (srecode-compile-inserter "BLANK"
-						    "\r"
-						    STATE
-						    :secondname nil
-						    :where 'end))
-			  )))
-      (setq args (cdr args)))
+(defun srecode-compile-one-template-tag (tag state)
+  "Compile a template tag TAG into a srecode template object.
+STATE is the current compile state as an object of class
+`srecode-compile-state'."
+  (let* ((context   (oref state context))
+	 (code      (cdr (srecode-compile-split-code
+			  tag (semantic-tag-get-attribute tag :code)
+			  state)))
+	 (args      (semantic-tag-function-arguments tag))
+	 (binding   (semantic-tag-get-attribute tag :binding))
+	 (dict-tags (semantic-tag-get-attribute tag :dictionaries))
+	 (root-dict (when dict-tags
+		      (srecode-create-dictionaries-from-tags
+		       dict-tags state)))
+	 (addargs))
+    ;; Examine arguments.
+    (dolist (arg args)
+      (let ((symbol (intern arg)))
+	(push symbol addargs)
+
+	;; If we have a wrap, then put wrap inserters on both ends of
+	;; the code.
+	(when (eq symbol :blank)
+	  (setq code (append
+		      (list (srecode-compile-inserter
+			     "BLANK"
+			     "\r"
+			     state
+			     :secondname nil
+			     :where 'begin))
+		      code
+		      (list (srecode-compile-inserter
+			     "BLANK"
+			     "\r"
+			     state
+			     :secondname nil
+			     :where 'end)))))))
+
+    ;; Construct and return the template object.
     (srecode-template (semantic-tag-name tag)
-		      :context context
-		      :args (nreverse addargs)
-		      :dictionary sdicts
-		      :binding binding
-		      :code code)
-    ))
+		      :context    context
+		      :args       (nreverse addargs)
+		      :dictionary root-dict
+		      :binding    binding
+		      :code       code))
+  )
 
 (defun srecode-compile-do-hard-newline-p (comp)
   "Examine COMP to decide if the upcoming newline should be hard.
@@ -514,12 +522,13 @@ to the inserter constructor."
       (if (not new) (error "SRECODE: Unknown macro code %S" key))
       new)))
 
-(defun srecode-compile-template-table (templates mode priority application vars)
+(defun srecode-compile-template-table (templates mode priority application project vars)
   "Compile a list of TEMPLATES into an semantic recode table.
 The table being compiled is for MODE, or the string \"default\".
 PRIORITY is a numerical value that indicates this tables location
 in an ordered search.
 APPLICATION is the name of the application these templates belong to.
+PROJECT is a directory name which these templates scope to.
 A list of defined variables VARS provides a variable table."
   (let ((namehash (make-hash-table :test 'equal
 				   :size (length templates)))
@@ -549,6 +558,9 @@ A list of defined variables VARS provides a variable table."
 
 	(setq lp (cdr lp))))
 
+    (when (stringp project)
+      (setq project (expand-file-name project)))
+
     (let* ((table (srecode-mode-table-new mode (buffer-file-name)
 		   :templates (nreverse templates)
 		   :namehash namehash
@@ -556,7 +568,8 @@ A list of defined variables VARS provides a variable table."
 		   :variables vars
 		   :major-mode mode
 		   :priority priority
-		   :application application))
+		   :application application
+		   :project project))
 	   (tmpl (oref table templates)))
       ;; Loop over all the templates, and xref.
       (while tmpl

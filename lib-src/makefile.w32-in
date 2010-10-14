@@ -371,11 +371,17 @@ cleanall:	clean
 # Headers we would preprocess if we could.
 #
 ../src/config.h:	../nt/$(CONFIG_H)
+			$(DEL) $@
 			echo $(CONFIG_H) has changed.  Re-run configure.bat.
 			exit -1
 
 getopt.h:		getopt_.h
 			$(CP) $(ALL_DEPS) $@
+
+### TAGS ###
+
+TAGS: $(BLD)/etags.exe *.c *.h
+	$(BLD)/etags.exe *.c *.h
 
 ### DEPENDENCIES ###
 
@@ -388,12 +394,6 @@ $(BLD)/alloca.$(O) : \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/src/config.h \
 	$(EMACS_ROOT)/src/blockinput.h
-
-$(BLD)/b2m.$(O) : \
-	$(SRC)/b2m.c \
-	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/m/intel386.h \
-	$(EMACS_ROOT)/lib-src/../src/config.h
 
 $(BLD)/ctags.$(O) : \
 	$(SRC)/ctags.c \

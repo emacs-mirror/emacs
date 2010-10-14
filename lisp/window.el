@@ -6,6 +6,7 @@
 
 ;; Maintainer: FSF
 ;; Keywords: internal
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -54,6 +55,7 @@ This macro saves and restores the current buffer, since otherwise
 its normal operation could make a different buffer current.  The
 order of recently selected windows and the buffer list ordering
 are not altered by this macro (unless they are altered in BODY)."
+  (declare (indent 0) (debug t))
   `(let ((save-selected-window-window (selected-window))
 	 ;; It is necessary to save all of these, because calling
 	 ;; select-window changes frame-selected-window for whatever
@@ -160,8 +162,8 @@ counts, `walk-windows' includes the windows in the frame from
 which you entered the minibuffer, as well as the minibuffer
 window.
 
-ALL-FRAMES nil or omitted means cycle through all windows on
- WINDOW's frame, plus the minibuffer window if specified by the
+ALL-FRAMES nil or omitted means cycle through all windows on the
+ selected frame, plus the minibuffer window if specified by the
  MINIBUF argument, see above.  If the minibuffer counts, cycle
  through all windows on all frames that share that minibuffer
  too.
@@ -173,8 +175,8 @@ ALL-FRAMES 0 means cycle through all windows on all visible and
  iconified frames.
 ALL-FRAMES a frame means cycle through all windows on that frame
  only.
-Anything else means cycle through all windows on WINDOW's frame
- and no others.
+Anything else means cycle through all windows on the selected
+ frame and no others.
 
 This function changes neither the order of recently selected
 windows nor the buffer list."

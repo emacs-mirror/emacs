@@ -96,19 +96,24 @@ The returned regexp is typically more efficient than the equivalent regexp:
    (concat open (mapconcat 'regexp-quote STRINGS \"\\\\|\") close))
 
 If PAREN is `words', then the resulting regexp is additionally surrounded
-by \\=\\< and \\>."
+by \\=\\< and \\>.
+If PAREN is `symbols', then the resulting regexp is additionally surrounded
+by \\=\\_< and \\_>."
   (save-match-data
     ;; Recurse on the sorted list.
     (let* ((max-lisp-eval-depth 10000)
 	   (max-specpdl-size 10000)
 	   (completion-ignore-case nil)
 	   (completion-regexp-list nil)
-	   (words (eq paren 'words))
 	   (open (cond ((stringp paren) paren) (paren "\\(")))
 	   (sorted-strings (delete-dups
 			    (sort (copy-sequence strings) 'string-lessp)))
 	   (re (regexp-opt-group sorted-strings (or open t) (not open))))
-      (if words (concat "\\<" re "\\>") re))))
+      (cond ((eq paren 'words)
+	     (concat "\\<" re "\\>"))
+	    ((eq paren 'symbols)
+	     (concat "\\_<" re "\\_>"))
+	    (t re)))))
 
 ;;;###autoload
 (defun regexp-opt-depth (regexp)
@@ -120,7 +125,7 @@ This means the number of non-shy regexp grouping constructs
     (string-match regexp "")
     ;; Count the number of open parentheses in REGEXP.
     (let ((count 0) start last)
-      (while (string-match "\\\\(\\(\\?:\\)?" regexp start)
+      (while (string-match "\\\\(\\(\\?[0-9]*:\\)?" regexp start)
 	(setq start (match-end 0))	      ; Start of next search.
 	(when (and (not (match-beginning 1))
 		   (subregexp-context-p regexp (match-beginning 0) last))

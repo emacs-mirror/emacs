@@ -127,7 +127,7 @@ x_get_customization_string (XrmDatabase db, const char *name, const char *class)
    Return NULL otherwise.  */
 
 static char *
-magic_file_p (const char *string, int string_len, const char *class, const char *escaped_suffix, const char *suffix)
+magic_file_p (const char *string, EMACS_INT string_len, const char *class, const char *escaped_suffix, const char *suffix)
 {
   char *lang = getenv ("LANG");
 

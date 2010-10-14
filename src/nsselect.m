@@ -549,10 +549,10 @@ nxatoms_of_nsselect (void)
 void
 syms_of_nsselect (void)
 {
-  QCLIPBOARD = intern ("CLIPBOARD");	staticpro (&QCLIPBOARD);
-  QSECONDARY = intern ("SECONDARY");	staticpro (&QSECONDARY);
-  QTEXT      = intern ("TEXT"); 	staticpro (&QTEXT);
-  QFILE_NAME = intern ("FILE_NAME"); 	staticpro (&QFILE_NAME);
+  QCLIPBOARD = intern_c_string ("CLIPBOARD");	staticpro (&QCLIPBOARD);
+  QSECONDARY = intern_c_string ("SECONDARY");	staticpro (&QSECONDARY);
+  QTEXT      = intern_c_string ("TEXT"); 	staticpro (&QTEXT);
+  QFILE_NAME = intern_c_string ("FILE_NAME"); 	staticpro (&QFILE_NAME);
 
   defsubr (&Sx_disown_selection_internal);
   defsubr (&Sx_get_selection_internal);
@@ -605,7 +605,7 @@ The functions are called with one argument, the selection type\n\
 \(a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD').");
   Vns_lost_selection_hooks = Qnil;
 
-  Qforeign_selection = intern ("foreign-selection");
+  Qforeign_selection = intern_c_string ("foreign-selection");
   staticpro (&Qforeign_selection);
 }
 

@@ -212,15 +212,16 @@ extern Lisp_Object Vauto_composition_function;
 extern Lisp_Object Qauto_composition_function;
 extern Lisp_Object Vcomposition_function_table;
 
-extern int get_composition_id (int, int, int, Lisp_Object, Lisp_Object);
-extern int find_composition (int, int, EMACS_INT *, EMACS_INT *, Lisp_Object *,
-                             Lisp_Object);
+extern int get_composition_id (EMACS_INT, EMACS_INT, EMACS_INT,
+			       Lisp_Object, Lisp_Object);
+extern int find_composition (EMACS_INT, EMACS_INT, EMACS_INT *, EMACS_INT *,
+			     Lisp_Object *, Lisp_Object);
 extern void update_compositions (EMACS_INT, EMACS_INT, int);
 extern void make_composition_value_copy (Lisp_Object);
 extern void compose_region (int, int, Lisp_Object, Lisp_Object,
                             Lisp_Object);
 extern void syms_of_composite (void);
-extern void compose_text (int, int, Lisp_Object, Lisp_Object,
+extern void compose_text (EMACS_INT, EMACS_INT, Lisp_Object, Lisp_Object,
                           Lisp_Object);
 
 /* Macros for lispy glyph-string.  This is completely different from
@@ -306,7 +307,7 @@ struct font_metrics;
 extern Lisp_Object composition_gstring_put_cache (Lisp_Object, int);
 extern Lisp_Object composition_gstring_from_id (int);
 extern int composition_gstring_p (Lisp_Object);
-extern int composition_gstring_width (Lisp_Object, int, int,
+extern int composition_gstring_width (Lisp_Object, EMACS_INT, EMACS_INT,
                                       struct font_metrics *);
 
 extern void composition_compute_stop_pos (struct composition_it *,
@@ -319,7 +320,7 @@ extern int composition_reseat_it (struct composition_it *,
 extern int composition_update_it (struct composition_it *,
                                   EMACS_INT, EMACS_INT, Lisp_Object);
 
-extern int composition_adjust_point (EMACS_INT, EMACS_INT);
+extern EMACS_INT composition_adjust_point (EMACS_INT, EMACS_INT);
 
 EXFUN (Fcompose_region_internal, 4);
 EXFUN (Fcompose_string_internal, 5);

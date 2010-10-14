@@ -1,4 +1,4 @@
-/* Pro-process emacs.exe for profiling by MSVC.
+/* Pre-process emacs.exe for profiling by MSVC.
    Copyright (C) 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
      2008, 2009, 2010  Free Software Foundation, Inc.
 
@@ -37,9 +37,9 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 PIMAGE_NT_HEADERS
 (__stdcall * pfnCheckSumMappedFile) (LPVOID BaseAddress,
-				    DWORD FileLength,
-				    LPDWORD HeaderSum,
-				    LPDWORD CheckSum);
+				     DWORD FileLength,
+				     LPDWORD HeaderSum,
+				     LPDWORD CheckSum);
 
 #undef min
 #undef max
@@ -50,15 +50,15 @@ PIMAGE_NT_HEADERS
 /* File handling.  */
 
 typedef struct file_data {
-    char          *name;
-    unsigned long  size;
-    HANDLE         file;
-    HANDLE         file_mapping;
-    unsigned char *file_base;
+  const char    *name;
+  unsigned long  size;
+  HANDLE         file;
+  HANDLE         file_mapping;
+  unsigned char *file_base;
 } file_data;
 
 int
-open_input_file (file_data *p_file, char *filename)
+open_input_file (file_data *p_file, const char *filename)
 {
   HANDLE file;
   HANDLE file_mapping;
@@ -90,7 +90,7 @@ open_input_file (file_data *p_file, char *filename)
 }
 
 int
-open_output_file (file_data *p_file, char *filename, unsigned long size)
+open_output_file (file_data *p_file, const char *filename, unsigned long size)
 {
   HANDLE file;
   HANDLE file_mapping;
@@ -120,7 +120,7 @@ open_output_file (file_data *p_file, char *filename, unsigned long size)
 }
 
 int
-open_inout_file (file_data *p_file, char *filename)
+open_inout_file (file_data *p_file, const char *filename)
 {
   HANDLE file;
   HANDLE file_mapping;
@@ -178,7 +178,7 @@ get_unrounded_section_size (PIMAGE_SECTION_HEADER p_section)
 
 /* Return pointer to section header for named section. */
 IMAGE_SECTION_HEADER *
-find_section (char * name, IMAGE_NT_HEADERS * nt_header)
+find_section (const char *name, IMAGE_NT_HEADERS *nt_header)
 {
   PIMAGE_SECTION_HEADER section;
   int i;
@@ -295,7 +295,7 @@ relocate_offset (DWORD offset,
 #define PTR_TO_RVA(ptr) ((DWORD)(ptr) - (DWORD) GetModuleHandle (NULL))
 
 #define PTR_TO_OFFSET(ptr, pfile_data) \
-          ((unsigned char *)(ptr) - (pfile_data)->file_base)
+          ((unsigned const char *)(ptr) - (pfile_data)->file_base)
 
 #define OFFSET_TO_PTR(offset, pfile_data) \
           ((pfile_data)->file_base + (DWORD)(offset))
@@ -361,7 +361,7 @@ copy_executable_and_move_sections (file_data *p_infile,
 
 #define COPY_CHUNK(message, src, size)						\
   do {										\
-    unsigned char *s = (void *)(src);						\
+    unsigned const char *s = (void *)(src);					\
     unsigned long count = (size);						\
     printf ("%s\n", (message));							\
     printf ("\t0x%08x Offset in input file.\n", s - p_infile->file_base);	\
@@ -766,7 +766,7 @@ main (int argc, char **argv)
   PIMAGE_NT_HEADERS nt_header;
   file_data in_file, out_file;
   char out_filename[MAX_PATH], in_filename[MAX_PATH];
-  char *ptr;
+  const char *ptr;
 
   strcpy (in_filename, argv[1]);
   strcpy (out_filename, argv[2]);

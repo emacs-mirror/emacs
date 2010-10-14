@@ -1,3 +1,102 @@
+2010-10-07  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* url-http.el (url-http-end-of-document-sentinel): Protect against
+	the process buffer being killed.
+
+2010-10-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* url-http.el (url-http-wait-for-headers-change-function): Protect
+	against url-http-response-status for degenerate documents.
+	(url-http-wait-for-headers-change-function): Revert previous
+	change.  It lead to really slow loads.
+
+2010-10-03  Glenn Morris  <rgm@gnu.org>
+
+	* url-util.el (url-get-url-filename-chars): Don't eval-and-compile.
+	(url-get-url-at-point): Don't use eval-when-compile.
+
+	* url-cache.el (url-cache-create-filename-human-readable)
+	(url-cache-create-filename-using-md5):
+	* url-util.el (url-file-directory, url-file-nondirectory):
+	Don't use eval-when-compile and regexp-quote.
+
+2010-10-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* url-vars.el (url-mime-charset-string): Changed the default to
+	nil to avoid sending 1171 bytes of not very useful data to the
+	HTTP server every request.
+
+2010-10-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* url-util.el (url-display-percentage): Don't message when the URL
+	is silent.
+	(url-lazy-message): Ditto.
+	(url-lazy-message): Remove leftover debugging code.
+
+	* url-http.el (url-http-parse-headers): Pass the SILENT parameter
+	back to the fetching function.
+
+	* url.el (url-retrieve): Add a silent parameter.
+	(url-retrieve-internal): Ditto.
+
+	* url-parse.el (url): Add a `silent' slot in the URL struct.
+
+2010-10-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* url-cookie.el (url-cookie-handle-set-cookie): Use
+	url-lazy-message for the cookie warning, which isn't very interesting.
+
+	* url-http.el (url-http-async-sentinel): Check that the buffer is
+	still alive before switching to it.
+
+2010-09-25  Julien Danjou  <julien@danjou.info>
+
+	* url-cache.el (url-cache-create-filename): Ensure no-port and
+	default-port end up with the same cache file.
+	(url-cache-create-filename-human-readable)
+	(url-cache-create-filename-using-md5): Argument is always in the form of
+	a string now.
+
+2010-09-23  Glenn Morris  <rgm@gnu.org>
+
+	* url-cache.el (url-is-cached): Doc fix.
+
+2010-09-23  Glenn Morris  <rgm@gnu.org>
+
+	* url-cache.el (url-cache-expired): Don't autoload.
+	Tweak previous change.
+	(url-cache-expire-time): Doc fix.
+
+2010-09-23  Julien Danjou  <julien@danjou.info>
+
+	* url-cache.el (url-cache-expire-time): New option.
+	(url-cache-expired): Rewrite.
+
+2010-09-19  Julien Danjou  <julien@danjou.info>
+
+	* url-cache.el (url-fetch-from-cache): New function.
+
+2010-09-18  Julien Danjou  <julien@danjou.info>
+
+	* url-vars.el (url-cache-expired): Remove unused variable.
+
+2010-09-14  Julien Danjou  <julien@danjou.info>
+
+	* url-cache (url-store-in-cache): Make `buff' argument really optional.
+
+2010-09-14  Glenn Morris  <rgm@gnu.org>
+
+	* url-cookie.el (url-cookie-expired-p): Tweak previous change.
+
+2010-09-14  shawn boles  <shawn.boles@gmail.com>  (tiny change)
+
+	* url-cookie.el (url-cookie-expired-p): Simplify and fix.  (Bug#6957)
+
+2010-09-11  Glenn Morris  <rgm@gnu.org>
+
+	* url-cache.el, url-gw.el, url-history.el, url-irc.el, url-util.el:
+	* url-vars.el: Remove leading `*' from defcustom docs.
+
 2010-07-27  Michael Albinus  <michael.albinus@gmx.de>
 
 	* url-http (url-http-parse-headers): Disable file name handlers at

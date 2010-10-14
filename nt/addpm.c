@@ -67,8 +67,8 @@ DdeCallback (UINT uType, UINT uFmt, HCONV hconv,
 
 static struct entry
 {
-  char *name;
-  char *value;
+  const char *name;
+  const char *value;
 }
 env_vars[] =
 {
@@ -85,7 +85,7 @@ env_vars[] =
 };
 
 BOOL
-add_registry (char *path)
+add_registry (const char *path)
 {
   HKEY hrootkey = NULL;
   int i;
@@ -113,7 +113,7 @@ add_registry (char *path)
       emacs_path = (char *) alloca (len);
       sprintf (emacs_path, "%s\\bin\\emacs.exe", path);
 
-      RegSetValueEx (hrootkey, NULL, 0, REG_SZ, emacs_path, len);
+      RegSetValueEx (hrootkey, NULL, 0, REG_EXPAND_SZ, emacs_path, len);
 
       /* Look for a GTK installation. If found, add it to the library search
          path for Emacs so that the image libraries it provides are available
@@ -135,7 +135,8 @@ add_registry (char *path)
                   len = strlen (path) + 5 + size;
                   dll_paths = (char *) alloca (size + strlen (path) + 1);
                   sprintf (dll_paths, "%s\\bin;%s", path, gtk_path);
-                  RegSetValueEx (hrootkey, "Path", 0, REG_SZ, dll_paths, len);
+                  RegSetValueEx (hrootkey, "Path", 0, REG_EXPAND_SZ,
+				 dll_paths, len);
 
 		  /* Set the same path for runemacs.exe, as the Explorer shell
 		     looks this up, so the above does not take effect when
@@ -145,7 +146,7 @@ add_registry (char *path)
 				      KEY_WRITE, NULL, &runemacs_key, NULL)
 		      == ERROR_SUCCESS)
 		    {
-		      RegSetValueEx (runemacs_key, "Path", 0, REG_SZ,
+		      RegSetValueEx (runemacs_key, "Path", 0, REG_EXPAND_SZ,
 				     dll_paths, len);
 
 		      RegCloseKey (runemacs_key);
@@ -177,7 +178,7 @@ add_registry (char *path)
 
   for (i = 0; i < (sizeof (env_vars) / sizeof (env_vars[0])); i++)
     {
-      char * value = env_vars[i].value ? env_vars[i].value : path;
+      const char * value = env_vars[i].value ? env_vars[i].value : path;
 
       if (RegSetValueEx (hrootkey, env_vars[i].name,
 			 0, REG_EXPAND_SZ,
@@ -197,8 +198,8 @@ main (int argc, char *argv[])
   int shortcuts_created = 0;
   int com_available = 1;
   char modname[MAX_PATH];
-  char *prog_name;
-  char *emacs_path;
+  const char *prog_name;
+  const char *emacs_path;
   char *p;
   int quiet = 0;
   HRESULT result;

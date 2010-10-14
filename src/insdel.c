@@ -2051,14 +2051,15 @@ prepare_to_modify_buffer (EMACS_INT start, EMACS_INT end,
 
   /* If `select-active-regions' is non-nil, save the region text.  */
   if (!NILP (current_buffer->mark_active)
+      && XMARKER (current_buffer->mark)->buffer
       && NILP (Vsaved_region_selection)
       && (EQ (Vselect_active_regions, Qonly)
 	  ? EQ (CAR_SAFE (Vtransient_mark_mode), Qonly)
 	  : (!NILP (Vselect_active_regions)
 	     && !NILP (Vtransient_mark_mode))))
     {
-      int b = XINT (Fmarker_position (current_buffer->mark));
-      int e = XINT (make_number (PT));
+      EMACS_INT b = XMARKER (current_buffer->mark)->charpos;
+      EMACS_INT e = PT;
       if (b < e)
 	Vsaved_region_selection = make_buffer_string (b, e, 0);
       else if (b > e)

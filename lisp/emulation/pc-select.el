@@ -85,7 +85,7 @@
   :group 'emulations)
 
 (defcustom pc-select-override-scroll-error t
-  "*Non-nil means don't generate error on scrolling past edge of buffer.
+  "Non-nil means don't generate error on scrolling past edge of buffer.
 This variable applies in PC Selection mode only.
 The scroll commands normally generate an error if you try to scroll
 past the top or bottom of the buffer.  This is annoying when selecting
@@ -98,14 +98,14 @@ errors are suppressed."
                                 "24.1")
 
 (defcustom pc-select-selection-keys-only nil
-  "*Non-nil means only bind the basic selection keys when started.
+  "Non-nil means only bind the basic selection keys when started.
 Other keys that emulate pc-behavior will be untouched.
 This gives mostly Emacs-like behavior with only the selection keys enabled."
   :type 'boolean
   :group 'pc-select)
 
 (defcustom pc-select-meta-moves-sexps nil
-  "*Non-nil means move sexp-wise with Meta key, otherwise move word-wise."
+  "Non-nil means move sexp-wise with Meta key, otherwise move word-wise."
   :type 'boolean
   :group 'pc-select)
 

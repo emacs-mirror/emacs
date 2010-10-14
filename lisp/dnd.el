@@ -6,6 +6,7 @@
 ;; Author: Jan Djärv <jan.h.d@swipnet.se>
 ;; Maintainer: FSF
 ;; Keywords: window, drag, drop
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -154,10 +155,11 @@ Return nil if URI is not a local file."
       (let* ((decoded-f (decode-coding-string
 			 f
 			 (or file-name-coding-system
-			     default-file-name-coding-system)))
-	     (try-f (if (file-readable-p decoded-f) decoded-f f)))
-	(when (file-readable-p try-f) try-f)))))
-
+			     default-file-name-coding-system))))
+	(setq f (cond ((file-readable-p decoded-f) decoded-f)
+		      ((file-readable-p f) f)
+		      (t nil)))))
+    f))
 
 (defun dnd-open-local-file (uri action)
   "Open a local file.

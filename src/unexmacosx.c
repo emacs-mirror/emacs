@@ -190,6 +190,8 @@ static off_t data_segment_old_fileoff = 0;
 
 static struct segment_command *data_segment_scp;
 
+static void unexec_error (const char *format, ...) NO_RETURN;
+
 /* Read N bytes from infd into memory starting at address DEST.
    Return true if successful, false otherwise.  */
 static int
@@ -1217,9 +1219,8 @@ dump_it (void)
    from it.  The file names of the output and input files are outfile
    and infile, respectively.  The three other parameters are
    ignored.  */
-void
-unexec (char *outfile, char *infile, void *start_data, void *start_bss,
-        void *entry_address)
+int
+unexec (const char *outfile, const char *infile)
 {
   if (in_dumped_exec)
     unexec_error ("Unexec from a dumped executable is not supported.");
@@ -1249,6 +1250,7 @@ unexec (char *outfile, char *infile, void *start_data, void *start_bss,
   dump_it ();
 
   close (outfd);
+  return 0;
 }
 
 

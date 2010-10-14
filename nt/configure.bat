@@ -1,6 +1,6 @@
 @echo off
 rem   ----------------------------------------------------------------------
-rem   Configuration script for MS Windows 95/98/Me and NT/2000/XP
+rem   Configuration script for MS Windows operating systems
 rem   Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005,
 rem      2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
@@ -22,7 +22,7 @@ rem   along with GNU Emacs.  If not, see http://www.gnu.org/licenses/.
 rem   ----------------------------------------------------------------------
 rem   YOU'LL NEED THE FOLLOWING UTILITIES TO MAKE EMACS:
 rem
-rem   + MS Windows 95/98/Me or NT/2000/XP
+rem   + MS Windows 95, NT or later
 rem   + either MSVC 2.x or later, or gcc-2.95 or later (with GNU make 3.75
 rem     or later) and the Mingw32 and W32 API headers and libraries.
 rem   + Visual Studio 2005 is not supported at this time.
@@ -116,6 +116,7 @@ if "%1" == "--without-xpm" goto withoutxpm
 if "%1" == "--with-svg" goto withsvg
 if "%1" == "--distfiles" goto distfiles
 if "%1" == "" goto checkutils
+
 :usage
 echo Usage: configure [options]
 echo Options:
@@ -137,61 +138,82 @@ echo.   --without-xpm           do not use XPM library even if it is installed
 echo.   --with-svg              use the RSVG library (experimental)
 echo.   --distfiles             path to files for make dist, e.g. libXpm.dll
 goto end
+
 rem ----------------------------------------------------------------------
+
 :setprefix
 shift
 set prefix=%1
 shift
 goto again
+
 rem ----------------------------------------------------------------------
+
 :withgcc
 set COMPILER=gcc
 shift
 goto again
+
 rem ----------------------------------------------------------------------
+
 :withmsvc
 set COMPILER=cl
 shift
 goto again
+
 rem ----------------------------------------------------------------------
+
 :nodebug
 set nodebug=Y
 shift
 goto again
+
 rem ----------------------------------------------------------------------
+
 :noopt
 set noopt=Y
 shift
 goto again
+
 rem ----------------------------------------------------------------------
+
 :enablechecking
 set enablechecking=Y
 shift
 goto again
+
 rem ----------------------------------------------------------------------
+
 :profile
 set profile=Y
 shift
 goto again
+
 rem ----------------------------------------------------------------------
+
 :nocygwin
 set nocygwin=Y
 shift
 goto again
+
 rem ----------------------------------------------------------------------
+
 :usercflags
 shift
 set usercflags=%usercflags%%sep1%%1
 set sep1= %nothing%
 shift
 goto again
+
 rem ----------------------------------------------------------------------
+
 :userldflags
 shift
 set userldflags=%userldflags%%sep2%%1
 set sep2= %nothing%
 shift
 goto again
+
 rem ----------------------------------------------------------------------
 
 :withoutpng
@@ -249,6 +271,7 @@ goto again
 
 rem ----------------------------------------------------------------------
 rem    Check that necessary utilities (cp and rm) are present.
+
 :checkutils
 echo Checking for 'cp'...
 cp configure.bat junk.bat
@@ -257,9 +280,11 @@ echo Checking for 'rm'...
 rm junk.bat
 if exist junk.bat goto needrm
 goto checkcompiler
+
 :needcp
 echo You need 'cp' (the Unix file copy program) to build Emacs.
 goto end
+
 :needrm
 del junk.bat
 echo You need 'rm' (the Unix file delete program) to build Emacs.
@@ -267,6 +292,7 @@ goto end
 
 rem ----------------------------------------------------------------------
 rem   Auto-detect compiler if not specified, and validate GCC if chosen.
+
 :checkcompiler
 if (%COMPILER%)==(cl) goto compilercheckdone
 if (%COMPILER%)==(gcc) goto checkgcc
@@ -301,6 +327,7 @@ if exist junk.o set nocygwin=Y
 :chkapi
 echo The failed program was: >>config.log
 type junk.c >>config.log
+
 :chkapiN
 rm -f junk.c junk.o
 rem ----------------------------------------------------------------------
@@ -320,8 +347,10 @@ echo {PIMAGE_SECTION_HEADER pSection = IMAGE_FIRST_SECTION(pHeader);} >>junk.c
 if (%nocygwin%) == (Y) goto chkapi1
 set cf=%usercflags%
 goto chkapi2
+
 :chkapi1
 set cf=%usercflags% -mno-cygwin
+
 :chkapi2
 echo on
 gcc %cf% -c junk.c
@@ -329,9 +358,25 @@ gcc %cf% -c junk.c
 @echo gcc %cf% -c junk.c >>config.log
 gcc %cf% -c junk.c >>config.log 2>&1
 set cf=
-if exist junk.o goto gccOk
+if exist junk.o goto chkuser
 echo The failed program was: >>config.log
 type junk.c >>config.log
+goto nocompiler
+
+:chkuser
+rm -f junk.o
+echo int main (int argc, char *argv[]) {>junk.c
+echo char *usercflags = "%usercflags%";>>junk.c
+echo }>>junk.c
+echo gcc -Werror -c junk.c >>config.log
+gcc -Werror -c junk.c >>config.log 2>&1
+if exist junk.o goto gccOk
+echo.
+echo Error in --cflags argument: %usercflags%
+echo Backslashes and quotes cannot be used with --cflags.  Please use forward
+echo slashes for filenames and paths (e.g. when passing directories to -I).
+rm -f junk.c
+goto end
 
 :nocompiler
 echo.
@@ -357,10 +402,12 @@ type junk.c >>config.log
 set mf=-mcpu=i686
 rm -f junk.c junk.o
 goto gccdebug
+
 :gccMtuneOk
 echo GCC supports -mtune=pentium4 >>config.log
 set mf=-mtune=pentium4
 rm -f junk.c junk.o
+
 :gccdebug
 rem Check for DWARF-2 debug info support, else default to stabs
 echo main(){} >junk.c
@@ -372,6 +419,7 @@ type junk.c >>config.log
 set dbginfo=-gstabs+
 rm -f junk.c junk.o
 goto compilercheckdone
+
 :gccdwarf
 echo GCC supports DWARF-2 >>config.log
 set dbginfo=-gdwarf-2 -g3
@@ -565,6 +613,7 @@ goto :distfilesDone
 set fileNotFound=
 
 rem ----------------------------------------------------------------------
+
 :genmakefiles
 echo Generating makefiles
 if %COMPILER% == gcc set MAKECMD=gmake
@@ -597,6 +646,8 @@ echo. >>config.settings
 copy config.nt config.tmp
 echo. >>config.tmp
 echo /* Start of settings from configure.bat.  */ >>config.tmp
+rem   We write USER_CFLAGS and USER_LDFLAGS starting with a space to simplify
+rem   processing of compiler options in w32.c:get_emacs_configuration_options
 if (%docflags%) == (Y) echo #define USER_CFLAGS " %usercflags%">>config.tmp
 if (%doldflags%) == (Y) echo #define USER_LDFLAGS " %userldflags%">>config.tmp
 if (%profile%) == (Y) echo #define PROFILING 1 >>config.tmp
@@ -618,7 +669,8 @@ if not errorlevel 2 goto doCopy
 fc /b config.tmp ..\src\config.h >nul 2>&1
 if errorlevel 1 goto doCopy
 fc /b paths.h ..\src\epaths.h >nul 2>&1
-if errorlevel 0 goto dontCopy
+if not errorlevel 1 goto dontCopy
+
 :doCopy
 copy config.tmp ..\src\config.h
 copy paths.h ..\src\epaths.h
@@ -648,6 +700,7 @@ fc /b foo.bar foo.bar >nul 2>&1
 if not errorlevel 2 goto doUpdateSubdirs
 fc /b subdirs.el ..\site-lisp\subdirs.el >nul 2>&1
 if not errorlevel 1 goto dontUpdateSubdirs
+
 :doUpdateSubdirs
 if exist ..\site-lisp\subdirs.el del ..\site-lisp\subdirs.el
 copy subdirs.el ..\site-lisp\subdirs.el
@@ -716,6 +769,7 @@ goto end
 echo Your environment size is too small.  Please enlarge it and rerun configure.
 echo For example, type "command.com /e:2048" to have 2048 bytes available.
 set $foo$=
+
 :end
 set prefix=
 set nodebug=

@@ -152,12 +152,8 @@ filenames."
 	  (setq destination
 		(if (= (length bufs) 1)
 		    (get-buffer (car bufs))
-		  (completing-read "Attach to which mail composition buffer: "
-				   (mapcar
-				    (lambda (b)
-				      (cons b (get-buffer b)))
-				    bufs)
-				   nil t)))
+		  (gnus-completing-read "Attach to which mail composition buffer"
+                                         bufs t)))
 	;; setup a new mail composition buffer
 	(let ((mail-user-agent gnus-dired-mail-mode)
 	      ;; A workaround to prevent Gnus from displaying the Gnus
@@ -204,7 +200,7 @@ If ARG is non-nil, open it in a new buffer."
 		  (setq method
 			(cdr (assoc 'viewer
 				    (car (mailcap-mime-info mime-type
-							    'all 
+							    'all
 							    'no-decode)))))))
 	    (let ((view-command (mm-mailcap-command method file-name nil)))
 	      (message "viewing via %s" view-command)
@@ -261,5 +257,4 @@ file to save in."
 
 (provide 'gnus-dired)
 
-;; arch-tag: 44737731-e445-4638-a31e-713c7590ec76
 ;;; gnus-dired.el ends here

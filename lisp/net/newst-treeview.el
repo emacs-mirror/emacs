@@ -8,6 +8,7 @@
 ;; Created:     2007
 ;; Keywords:    News, RSS, Atom
 ;; Time-stamp:  "6. Dezember 2009, 19:17:28 (ulf)"
+;; Package:     newsticker
 
 ;; ======================================================================
 

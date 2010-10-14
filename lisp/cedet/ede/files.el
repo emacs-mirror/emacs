@@ -38,6 +38,7 @@
 (declare-function ede-locate-file-in-hash "ede/locate")
 (declare-function ede-locate-add-file-to-hash "ede/locate")
 (declare-function ede-locate-file-in-project "ede/locate")
+(declare-function ede-locate-flush-hash "ede/locate")
 
 (defvar ede--disable-inode nil
   "Set to 't' to simulate systems w/out inode support.")
@@ -57,43 +58,28 @@ the current EDE project."
 	     (ede-project-root-directory (ede-current-project))))
     (find-file fname)))
 
+(defun ede-flush-project-hash ()
+  "Flush the file locate hash for the current project."
+  (interactive)
+  (require 'ede/locate)
+  (let* ((loc (ede-get-locator-object (ede-current-project))))
+    (ede-locate-flush-hash loc)))
+
 ;;; Placeholders for ROOT directory scanning on base objects
 ;;
 (defmethod ede-project-root ((this ede-project-placeholder))
-  "If a project knows it's root, return it here.
+  "If a project knows its root, return it here.
 Allows for one-project-object-for-a-tree type systems."
   (oref this rootproject))
 
 (defmethod ede-project-root-directory ((this ede-project-placeholder)
 				       &optional file)
-  "If a project knows it's root, return it here.
+  "If a project knows its root, return it here.
 Allows for one-project-object-for-a-tree type systems.
 Optional FILE is the file to test.  It is ignored in preference
 of the anchor file for the project."
   (file-name-directory (expand-file-name (oref this file))))
 
-
-(defmethod ede-project-root ((this ede-project-autoload))
-  "If a project knows it's root, return it here.
-Allows for one-project-object-for-a-tree type systems."
-  nil)
-
-(defmethod ede-project-root-directory ((this ede-project-autoload)
-				       &optional file)
-  "If a project knows it's root, return it here.
-Allows for one-project-object-for-a-tree type systems.
-Optional FILE is the file to test.  If there is no FILE, use
-the current buffer."
-  (when (not file)
-    (setq file default-directory))
-  (when (slot-boundp this :proj-root)
-    (let ((rootfcn (oref this proj-root)))
-      (when rootfcn
-	(condition-case nil
-	    (funcall rootfcn file)
-	  (error
-	   (funcall rootfcn)))
-	))))
 
 (defmethod ede--project-inode ((proj ede-project-placeholder))
   "Get the inode of the directory project PROJ is in."
@@ -262,27 +248,30 @@ Do this whenever a new project is created, as opposed to loaded."
 (defun ede-directory-project-p (dir &optional force)
   "Return a project description object if DIR has a project.
 Optional argument FORCE means to ignore a hash-hit of 'nomatch.
-This depends on an up to date `ede-project-class-files' variable."
-  (let* ((dirtest (expand-file-name dir))
-	 (match (ede-directory-project-from-hash dirtest)))
-    (cond
-     ((and (eq match 'nomatch) (not force))
-      nil)
-     ((and match (not (eq match 'nomatch)))
-      match)
-     (t
-      (let ((types ede-project-class-files)
-	    (ret nil))
-	;; Loop over all types, loading in the first type that we find.
-	(while (and types (not ret))
-	  (if (ede-dir-to-projectfile (car types) dirtest)
-	      (progn
-		;; We found one!  Require it now since we will need it.
-		(require (oref (car types) file))
-		(setq ret (car types))))
-	  (setq types (cdr types)))
-	(ede-directory-project-add-description-to-hash dirtest (or ret 'nomatch))
-	ret)))))
+This depends on an up to date `ede-project-class-files' variable.
+Any directory that contains the file .ede-ignore will allways
+return nil."
+  (when (not (file-exists-p (expand-file-name ".ede-ignore" dir)))
+    (let* ((dirtest (expand-file-name dir))
+	   (match (ede-directory-project-from-hash dirtest)))
+      (cond
+       ((and (eq match 'nomatch) (not force))
+	nil)
+       ((and match (not (eq match 'nomatch)))
+	match)
+       (t
+	(let ((types ede-project-class-files)
+	      (ret nil))
+	  ;; Loop over all types, loading in the first type that we find.
+	  (while (and types (not ret))
+	    (if (ede-dir-to-projectfile (car types) dirtest)
+		(progn
+		  ;; We found one!  Require it now since we will need it.
+		  (require (oref (car types) file))
+		  (setq ret (car types))))
+	    (setq types (cdr types)))
+	  (ede-directory-project-add-description-to-hash dirtest (or ret 'nomatch))
+	  ret))))))
 
 ;;; TOPLEVEL
 ;;
@@ -324,7 +313,7 @@ nil is returned if the current directory is not a part of a project."
 	  ;; If PROJ didn't know, or there is no PROJ, then
 
 	  ;; Loop up to the topmost project, and then load that single
-	  ;; project, and it's sub projects.  When we are done, identify the
+	  ;; project, and its sub projects.  When we are done, identify the
 	  ;; sub-project object belonging to file.
 	  (while (and (not ans) newpath proj)
 	    (setq toppath newpath
@@ -337,24 +326,6 @@ nil is returned if the current directory is not a part of a project."
 	      (setq ans (ede-project-root-directory proj)))
 	    )
 	  (or ans toppath))))))
-
-;;; TOPLEVEL PROJECT
-;;
-;; The toplevel project is a way to identify the EDE structure that belongs
-;; to the top of a project.
-
-(defun ede-toplevel (&optional subproj)
-  "Return the ede project which is the root of the current project.
-Optional argument SUBPROJ indicates a subproject to start from
-instead of the current project."
-  (or ede-object-root-project
-      (let* ((cp (or subproj (ede-current-project)))
-	     )
-	(or (and cp (ede-project-root cp))
-	    (progn
-	      (while (ede-parent-project cp)
-		(setq cp (ede-parent-project cp)))
-	      cp)))))
 
 ;;; DIRECTORY CONVERSION STUFF
 ;;
@@ -372,11 +343,13 @@ Argument THIS is the project to convert PATH to."
 	    (substring fptf (match-end 0))
 	  (error "Cannot convert relativize path %s" fp))))))
 
-(defmethod ede-convert-path ((this ede-target) path)
+(defmethod ede-convert-path ((this ede-target) path &optional project)
   "Convert path in a standard way for a given project.
 Default to making it project relative.
-Argument THIS is the project to convert PATH to."
-  (let ((proj (ede-target-parent this)))
+Argument THIS is the project to convert PATH to.
+Optional PROJECT is the project that THIS belongs to.  Associating
+a target to a project is expensive, so using this can speed things up."
+  (let ((proj (or project (ede-target-parent this))))
     (if proj
 	(let ((p (ede-convert-path proj path))
 	      (lp (or (oref this path) "")))
@@ -406,7 +379,8 @@ FILENAME should be just a filename which occurs in a directory controlled
 by this project.
 Optional argument FORCE forces the default filename to be provided even if it
 doesn't exist.
-If FORCE equals 'newfile, then the cache is ignored."
+If FORCE equals 'newfile, then the cache is ignored and a new file in THIS
+is returned."
   (require 'ede/locate)
   (let* ((loc (ede-get-locator-object this))
 	 (ha (ede-locate-file-in-hash loc filename))
@@ -467,21 +441,36 @@ doesn't exist."
 	(proj (oref this subproj))
 	(found nil))
     ;; find it Locally.
-    (setq found
-	  (cond ((file-exists-p (expand-file-name filename path))
-		 (expand-file-name filename path))
-		((file-exists-p (expand-file-name  (concat "include/" filename) path))
-		 (expand-file-name (concat "include/" filename) path))
-		(t
-		 (while (and (not found) proj)
-		   (setq found (when (car proj)
-				 (ede-expand-filename (car proj) filename))
-			 proj (cdr proj)))
-		 found)))
+    (setq found (or (ede-expand-filename-local this filename)
+		    (ede-expand-filename-impl-via-subproj this filename)))
     ;; Use an external locate tool.
     (when (not found)
       (require 'ede/locate)
       (setq found (car (ede-locate-file-in-project loc filename))))
+    ;; Return it
+    found))
+
+(defmethod ede-expand-filename-local ((this ede-project) filename)
+  "Expand filename locally to project THIS with filesystem tests."
+  (let ((path (ede-project-root-directory this)))
+    (cond ((file-exists-p (expand-file-name filename path))
+	   (expand-file-name filename path))
+	  ((file-exists-p (expand-file-name  (concat "include/" filename) path))
+	   (expand-file-name (concat "include/" filename) path)))))
+
+(defmethod ede-expand-filename-impl-via-subproj ((this ede-project) filename)
+  "Return a fully qualified file name based on project THIS.
+FILENAME should be just a filename which occurs in a directory controlled
+by this project."
+  (let ((proj (list (ede-toplevel this)))
+	(found nil))
+    ;; find it Locally.
+    (while (and (not found) proj)
+      (let ((thisproj (car proj)))
+	(setq proj (append (cdr proj) (oref thisproj subproj)))
+	(setq found (when thisproj
+		      (ede-expand-filename-local thisproj filename)))
+	))
     ;; Return it
     found))
 

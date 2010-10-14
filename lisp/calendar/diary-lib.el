@@ -187,11 +187,12 @@ you will probably also want to add `diary-mark-included-diary-files' to
 
      (setq diary-display-function 'diary-fancy-display)
      (add-hook 'diary-list-entries-hook 'diary-include-other-diary-files)
-     (add-hook 'diary-list-entries-hook 'diary-sort-entries)
+     (add-hook 'diary-list-entries-hook 'diary-sort-entries t)
 
 in your `.emacs' file to cause the fancy diary buffer to be displayed with
 diary entries from various included files, each day's entries sorted into
-lexicographic order."
+lexicographic order.  Note how the sort function is placed last,
+so that it can sort the entries included from other files."
   :type 'hook
   :options '(diary-include-other-diary-files diary-sort-entries)
   :group 'diary)
@@ -383,14 +384,14 @@ The format of the header is specified by `diary-header-line-format'."
                      "Some text is hidden - press \"s\" in calendar \
 before edit/copy"
                    "Diary"))
-           ?\s (frame-width)))
+           ?\s (window-width)))
   "Format of the header line displayed by `diary-simple-display'.
 Only used if `diary-header-line-flag' is non-nil."
   :group 'diary
   :type 'sexp
   :initialize 'custom-initialize-default
   :set 'diary-set-header
-  :version "22.1")
+  :version "23.3")                      ; frame-width -> window-width
 
 ;; The first version of this also checked for diary-selective-display
 ;; in the non-fancy case. This was an attempt to distinguish between
@@ -485,8 +486,6 @@ in the displayed three-month calendar."
   (interactive "p")
   (diary-check-diary-file)
   (diary-list-entries (calendar-cursor-to-date t) arg))
-
-(define-obsolete-function-alias 'view-diary-entries 'diary-view-entries "22.1")
 
 
 ;;;###cal-autoload
@@ -593,19 +592,20 @@ The entry is added to the list as (DATE STRING SPECIFIER LOCATOR
 GLOBCOLOR), where LOCATOR has the form (MARKER FILENAME LITERAL),
 FILENAME being the file containing the diary entry."
   (when (and date string)
-    (if diary-file-name-prefix
-        (let ((prefix (funcall diary-file-name-prefix-function
-                               (buffer-file-name))))
-          (or (string-equal prefix "")
-              (setq string (format "[%s] %s" prefix string)))))
-    (and diary-modify-entry-list-string-function
-         (setq string (funcall diary-modify-entry-list-string-function
-                               string)))
-    (setq diary-entries-list
-          (append diary-entries-list
-                  (list (list date string specifier
-                              (list marker (buffer-file-name) literal)
-                              globcolor))))))
+    ;; b-f-n is nil if we are visiting an include file in a temp-buffer.
+    (let ((dfile (or (buffer-file-name) diary-file)))
+      (if diary-file-name-prefix
+          (let ((prefix (funcall diary-file-name-prefix-function dfile)))
+            (or (string-equal prefix "")
+                (setq string (format "[%s] %s" prefix string)))))
+      (and diary-modify-entry-list-string-function
+           (setq string (funcall diary-modify-entry-list-string-function
+                                 string)))
+      (setq diary-entries-list
+            (append diary-entries-list
+                    (list (list date string specifier
+                                (list marker dfile literal)
+                                globcolor)))))))
 
 (define-obsolete-function-alias 'add-to-diary-list 'diary-add-to-list "23.1")
 
@@ -699,6 +699,9 @@ of the appropriate type."
              (1+ (calendar-absolute-from-gregorian gdate))))))
   (goto-char (point-min)))
 
+(defvar diary-included-files nil
+  "List of any diary files included in the last call to `diary-list-entries'.")
+
 ;; FIXME non-greg and list hooks run same number of times?
 (defun diary-list-entries (date number &optional list-only)
   "Create and display a buffer containing the relevant lines in `diary-file'.
@@ -706,14 +709,26 @@ The arguments are DATE and NUMBER; the entries selected are those
 for NUMBER days starting with date DATE.  The other entries are hidden
 using overlays.  If NUMBER is less than 1, this function does nothing.
 
-Returns a list of all relevant diary entries found, if any, in order by date.
+Returns a list of all relevant diary entries found.
 The list entries have the form ((MONTH DAY YEAR) STRING SPECIFIER) where
 \(MONTH DAY YEAR) is the date of the entry, STRING is the entry text, and
 SPECIFIER is the applicability.  If the variable `diary-list-include-blanks'
 is non-nil, this list includes a dummy diary entry consisting of the empty
 string for a date with no diary entries.
 
-After the list is prepared, the following hooks are run:
+If entries are being produced for multiple dates (i.e., NUMBER > 1),
+then this function normally returns the entries from any given
+diary file in date order.  The entries for any given day are in
+the order in which they were found in the file, not necessarily
+in time-of-day order.  Note that any functions present on the
+hooks (see below) may add entries, or change the order.  For
+example, `diary-include-other-diary-files' adds entries from any
+include files that it finds to the end of the original list.  The
+entries from each file will be in date order, but the overall
+list will not be.  If you want the entire list to be in time order,
+add `diary-sort-entries' to the end of `diary-list-entries-hook'.
+
+After the initial list is prepared, the following hooks are run:
 
   `diary-nongregorian-listing-hook' can cull dates from the diary
       and each included file, for example to process Islamic diary
@@ -742,64 +757,74 @@ LIST-ONLY is non-nil, in which case it just returns the list."
     (let* ((original-date date)    ; save for possible use in the hooks
            (date-string (calendar-date-string date))
            (diary-buffer (find-buffer-visiting diary-file))
-           diary-entries-list file-glob-attrs)
-      (message "Preparing diary...")
-      (save-current-buffer
-        (if (not diary-buffer)
-            (set-buffer (find-file-noselect diary-file t))
-          (set-buffer diary-buffer)
-          (or (verify-visited-file-modtime diary-buffer)
-              (revert-buffer t t)))
-        ;; Setup things like the header-line-format and invisibility-spec.
-        (if (eq major-mode (default-value 'major-mode))
-            (diary-mode)
-          ;; This kludge is to make customizations to
-          ;; diary-header-line-flag after diary has been displayed
-          ;; take effect. Unconditionally calling (diary-mode)
-          ;; clobbers file local variables.
-          ;; http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-03/msg00363.html
-          ;; http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-04/msg00404.html
-          (if (eq major-mode 'diary-mode)
-              (setq header-line-format (and diary-header-line-flag
-                                            diary-header-line-format))))
-        ;; d-s-p is passed to the diary display function.
-        (let ((diary-saved-point (point)))
-          (save-excursion
-            (save-restriction
-              (widen)                   ; bug#5093
-              (setq file-glob-attrs (cadr (diary-pull-attrs nil "")))
-              (with-syntax-table diary-syntax-table
-                (goto-char (point-min))
-                (unless list-only
-                  (let ((ol (make-overlay (point-min) (point-max) nil t nil)))
-                    (set (make-local-variable 'diary-selective-display) t)
-                    (overlay-put ol 'invisible 'diary)
-                    (overlay-put ol 'evaporate t)))
-                (dotimes (idummy number)
-                  (let ((sexp-found (diary-list-sexp-entries date))
-                        (entry-found (diary-list-entries-2
-                                      date diary-nonmarking-symbol
-                                      file-glob-attrs list-only)))
-                    (if diary-list-include-blanks
-                        (or sexp-found entry-found
-                            (diary-add-to-list date "" "" "" "")))
-                    (setq date
-                          (calendar-gregorian-from-absolute
-                           (1+ (calendar-absolute-from-gregorian date)))))))
-              (goto-char (point-min))
-              (run-hooks 'diary-nongregorian-listing-hook
-                         'diary-list-entries-hook)
-              (unless list-only
-                (if (and diary-display-function
-                         (listp diary-display-function))
-                    ;; Backwards compatibility.
-                    (run-hooks 'diary-display-function)
-                  (funcall (or diary-display-function
-                               'diary-simple-display))))
-              (run-hooks 'diary-hook)
-              diary-entries-list)))))))
-
-(define-obsolete-function-alias 'list-diary-entries 'diary-list-entries "22.1")
+           ;; Dynamically bound in diary-include-other-diary-files.
+           (d-incp (and (boundp 'diary-including) diary-including))
+           diary-entries-list file-glob-attrs temp-buff)
+      (unless d-incp
+        (setq diary-included-files nil)
+        (message "Preparing diary..."))
+      (unwind-protect
+          (with-current-buffer (or diary-buffer
+                                   (if list-only
+                                       (setq temp-buff (generate-new-buffer
+                                                        " *diary-temp*"))
+                                     (find-file-noselect diary-file t)))
+            (if diary-buffer
+                (or (verify-visited-file-modtime diary-buffer)
+                    (revert-buffer t t)))
+            (if temp-buff
+                ;; If including, caller has already verified it is readable.
+                (insert-file-contents diary-file)
+              ;; Setup things like the header-line-format and invisibility-spec.
+              (if (eq major-mode (default-value 'major-mode))
+                  (diary-mode)
+                ;; This kludge is to make customizations to
+                ;; diary-header-line-flag after diary has been displayed
+                ;; take effect. Unconditionally calling (diary-mode)
+                ;; clobbers file local variables.
+                ;; http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-03/msg00363.html
+                ;; http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-04/msg00404.html
+                (if (eq major-mode 'diary-mode)
+                    (setq header-line-format (and diary-header-line-flag
+                                                  diary-header-line-format)))))
+            ;; d-s-p is passed to the diary display function.
+            (let ((diary-saved-point (point)))
+              (save-excursion
+                (save-restriction
+                  (widen)                   ; bug#5093
+                  (setq file-glob-attrs (cadr (diary-pull-attrs nil "")))
+                  (with-syntax-table diary-syntax-table
+                    (goto-char (point-min))
+                    (unless list-only
+                      (let ((ol (make-overlay (point-min) (point-max) nil t nil)))
+                        (set (make-local-variable 'diary-selective-display) t)
+                        (overlay-put ol 'invisible 'diary)
+                        (overlay-put ol 'evaporate t)))
+                    (dotimes (idummy number)
+                      (let ((sexp-found (diary-list-sexp-entries date))
+                            (entry-found (diary-list-entries-2
+                                          date diary-nonmarking-symbol
+                                          file-glob-attrs list-only)))
+                        (if diary-list-include-blanks
+                            (or sexp-found entry-found
+                                (diary-add-to-list date "" "" "" "")))
+                        (setq date
+                              (calendar-gregorian-from-absolute
+                               (1+ (calendar-absolute-from-gregorian date)))))))
+                  (goto-char (point-min))
+                  (run-hooks 'diary-nongregorian-listing-hook
+                             'diary-list-entries-hook)
+                  (unless list-only
+                    (if (and diary-display-function
+                             (listp diary-display-function))
+                        ;; Backwards compatibility.
+                        (run-hooks 'diary-display-function)
+                      (funcall (or diary-display-function
+                                   'diary-simple-display))))
+                  (run-hooks 'diary-hook)))))
+        (and temp-buff (buffer-name temp-buff) (kill-buffer temp-buff)))
+      (or d-incp (message "Preparing diary...done"))
+      diary-entries-list)))
 
 (defun diary-unhide-everything ()
   "Show all invisible text in the diary."
@@ -827,16 +852,18 @@ the variable `diary-include-string'."
           nil t)
     (let ((diary-file (match-string-no-properties 1))
           (diary-list-entries-hook 'diary-include-other-diary-files)
-          (diary-display-function 'ignore)
-          diary-hook diary-list-include-blanks)
+          (diary-including t)
+          diary-hook diary-list-include-blanks efile)
       (if (file-exists-p diary-file)
           (if (file-readable-p diary-file)
-              (unwind-protect
-                  (setq diary-entries-list
-                        (append diary-entries-list
-                                (diary-list-entries original-date number)))
-                (with-current-buffer (find-buffer-visiting diary-file)
-                  (diary-unhide-everything)))
+              (if (member (setq efile (expand-file-name diary-file))
+                          diary-included-files)
+                  (error "Recursive diary include for %s" diary-file)
+                (setq diary-included-files
+                      (append diary-included-files (list efile))
+                      diary-entries-list
+                      (append diary-entries-list
+                              (diary-list-entries original-date number t))))
             (beep)
             (message "Can't read included diary file %s" diary-file)
             (sleep-for 2))
@@ -905,8 +932,7 @@ in the mode line.  This is an option for `diary-display-function'."
         (let ((window (display-buffer (current-buffer))))
           ;; d-s-p is passed from diary-list-entries.
           (set-window-point window diary-saved-point)
-          (set-window-start window (point-min))))
-      (message "Preparing diary...done"))))
+          (set-window-start window (point-min)))))))
 
 (define-obsolete-function-alias 'simple-diary-display
   'diary-simple-display "23.1")
@@ -1028,8 +1054,7 @@ This is an option for `diary-display-function'."
       (if (eq major-mode 'diary-fancy-display-mode)
           (run-hooks 'diary-fancy-display-mode-hook)
         (diary-fancy-display-mode))
-      (calendar-set-mode-line date-string)
-      (message "Preparing diary...done"))))
+      (calendar-set-mode-line date-string))))
 
 (define-obsolete-function-alias 'fancy-diary-display
   'diary-fancy-display "23.1")
@@ -1102,9 +1127,6 @@ is created."
                  (with-current-buffer (window-buffer win)
                    (derived-mode-p 'calendar-mode)))
         (fit-window-to-buffer win)))))
-
-(define-obsolete-function-alias 'show-all-diary-entries
-  'diary-show-all-entries "22.1")
 
 ;;;###autoload
 (defun diary-mail-entries (&optional ndays)
@@ -1574,7 +1596,10 @@ be used instead of a colon (:) to separate the hour and minute parts."
                       (string-lessp ts1 ts2)))))))
 
 (defun diary-sort-entries ()
-  "Sort the list of diary entries by time of day."
+  "Sort the list of diary entries by time of day.
+If you add this function to `diary-list-entries-hook', it should
+be the last item in the hook, in case earlier items add diary
+entries, or change the order."
   (setq diary-entries-list (sort diary-entries-list 'diary-entry-compare)))
 
 (define-obsolete-function-alias 'sort-diary-entries 'diary-sort-entries "23.1")

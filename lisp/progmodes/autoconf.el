@@ -43,9 +43,6 @@
 (defvar autoconf-mode-hook nil
   "Hook run by `autoconf-mode'.")
 
-(defconst autoconf-font-lock-syntactic-keywords
-  '(("\\<dnl\\>" 0 '(11))))
-
 (defconst autoconf-definition-regexp
   "AC_\\(SUBST\\|DEFINE\\(_UNQUOTED\\)?\\)(\\[*\\(\\sw+\\)\\]*")
 
@@ -94,8 +91,8 @@ searching backwards at another AC_... command."
        "^[ \t]*A[CM]_\\(\\sw\\|\\s_\\)+")
   (set (make-local-variable 'comment-start) "dnl ")
   (set (make-local-variable 'comment-start-skip) "\\(?:\\<dnl\\|#\\) +")
-  (set (make-local-variable 'font-lock-syntactic-keywords)
-       autoconf-font-lock-syntactic-keywords)
+  (set (make-local-variable 'syntax-propertize-function)
+       (syntax-propertize-rules ("\\<dnl\\>" (0 "<"))))
   (set (make-local-variable 'font-lock-defaults)
        `(autoconf-font-lock-keywords nil nil (("_" . "w"))))
   (set (make-local-variable 'imenu-generic-expression)

@@ -1,12 +1,12 @@
 # BidiMirroring-6.0.0.txt
-# Date: 2009-11-10, 17:09:00 PST [KW]
+# Date: 2010-06-21, 12:09:00 PDT [KW]
 #
 # Bidi_Mirroring_Glyph Property
 # 
 # This file is an informative contributory data file in the
 # Unicode Character Database.
 #
-# Copyright (c) 1991-2009 Unicode, Inc.
+# Copyright (c) 1991-2010 Unicode, Inc.
 # For terms of use, see http://www.unicode.org/terms_of_use.html
 #
 # This data file lists characters that have the Bidi_Mirrored=True property
@@ -473,8 +473,8 @@ FF63; FF62 # [BEST FIT] HALFWIDTH RIGHT CORNER BRACKET
 # 22FF; Z NOTATION BAG MEMBERSHIP
 # 2320; TOP HALF INTEGRAL
 # 2321; BOTTOM HALF INTEGRAL
-# 27CC; LONG DIVISION
 # 27C0; THREE DIMENSIONAL ANGLE
+# 27CC; LONG DIVISION
 # 27D3; LOWER RIGHT CORNER WITH DOT
 # 27D4; UPPER LEFT CORNER WITH DOT
 # 27DC; LEFT MULTIMAP

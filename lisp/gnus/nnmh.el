@@ -149,7 +149,7 @@ as unread by Gnus.")
 	 (save-excursion (nnmail-find-file file))
 	 (string-to-number (file-name-nondirectory file)))))
 
-(deffoo nnmh-request-group (group &optional server dont-check)
+(deffoo nnmh-request-group (group &optional server dont-check info)
   (nnheader-init-server-buffer)
   (nnmh-possibly-change-directory group server)
   (let ((pathname (nnmail-group-pathname group nnmh-directory))
@@ -207,40 +207,48 @@ as unread by Gnus.")
 (defun nnmh-request-list-1 (dir)
   (setq dir (expand-file-name dir))
   ;; Recurse down all directories.
-  (let ((dirs (and (file-readable-p dir)
-		   (nnheader-directory-files dir t nil t)))
-	rdir)
+  (let ((files (nnheader-directory-files dir t nil t))
+	(max 0)
+	min rdir num subdirectoriesp file)
     ;; Recurse down directories.
-    (while (setq rdir (pop dirs))
-      (when (and (file-directory-p rdir)
-		 (file-readable-p rdir)
-		 (not (equal (file-truename rdir)
-			     (file-truename dir))))
-	(nnmh-request-list-1 rdir))))
-  ;; For each directory, generate an active file line.
-  (unless (string= (expand-file-name nnmh-toplev) dir)
-    (let ((files (mapcar 'string-to-number
-			 (directory-files dir nil "^[0-9]+$" t))))
-      (when files
-	(with-current-buffer nntp-server-buffer
-	  (goto-char (point-max))
-	  (insert
-	   (format
-	    "%s %.0f %.0f y\n"
-	    (progn
-	      (string-match
-	       (regexp-quote
-		(file-truename (file-name-as-directory
-				(expand-file-name nnmh-toplev))))
-	       dir)
-	      (mm-string-to-multibyte   ;Why?  Isn't it multibyte already?
-	       (mm-encode-coding-string
-		(nnheader-replace-chars-in-string
-		 (substring dir (match-end 0))
-		 ?/ ?.)
-		nnmail-pathname-coding-system)))
-	    (apply 'max files)
-	    (apply 'min files)))))))
+    (setq subdirectoriesp (> (nth 1 (file-attributes dir)) 2))
+    (dolist (rdir files)
+      (if (or (not subdirectoriesp)
+	      (file-regular-p rdir))
+	  (progn
+	    (setq file (file-name-nondirectory rdir))
+	    (when (string-match "^[0-9]+$" file)
+	      (setq num (string-to-number file))
+	      (setq max (max max num))
+	      (when (or (null min)
+			(< num min))
+		(setq min num))))
+	;; This is a directory.
+	(when (and (file-readable-p rdir)
+		   (not (equal (file-truename rdir)
+			       (file-truename dir))))
+	  (nnmh-request-list-1 rdir))))
+    ;; For each directory, generate an active file line.
+    (unless (string= (expand-file-name nnmh-toplev) dir)
+      (with-current-buffer nntp-server-buffer
+	(goto-char (point-max))
+	(insert
+	 (format
+	  "%s %.0f %.0f y\n"
+	  (progn
+	    (string-match
+	     (regexp-quote
+	      (file-truename (file-name-as-directory
+			      (expand-file-name nnmh-toplev))))
+	     dir)
+	    (mm-string-to-multibyte ;Why?  Isn't it multibyte already?
+	     (mm-encode-coding-string
+	      (nnheader-replace-chars-in-string
+	       (substring dir (match-end 0))
+	       ?/ ?.)
+	      nnmail-pathname-coding-system)))
+	  (or max 0)
+	  (or min 1))))))
   t)
 
 (deffoo nnmh-request-newgroups (date &optional server)
@@ -250,9 +258,6 @@ as unread by Gnus.")
 					       &optional server force)
   (nnmh-possibly-change-directory newsgroup server)
   (let ((is-old t)
-	(nnmail-expiry-target
-	 (or (gnus-group-find-parameter newsgroup 'expiry-target t)
-	     nnmail-expiry-target))
 	article rest mod-time)
     (nnheader-init-server-buffer)
 
@@ -287,7 +292,7 @@ as unread by Gnus.")
 (deffoo nnmh-close-group (group &optional server)
   t)
 
-(deffoo nnmh-request-move-article (article group server accept-form 
+(deffoo nnmh-request-move-article (article group server accept-form
 					   &optional last move-is-internal)
   (let ((buf (get-buffer-create " *nnmh move*"))
 	result)
@@ -312,7 +317,7 @@ as unread by Gnus.")
   (nnmh-possibly-change-directory group server)
   (nnmail-check-syntax)
   (when nnmail-cache-accepted-message-ids
-    (nnmail-cache-insert (nnmail-fetch-field "message-id") 
+    (nnmail-cache-insert (nnmail-fetch-field "message-id")
 			 group
 			 (nnmail-fetch-field "subject")
 			 (nnmail-fetch-field "from")))
@@ -574,5 +579,4 @@ as unread by Gnus.")
 
 (provide 'nnmh)
 
-;; arch-tag: 36c12a98-3bad-44b3-9953-628078ef0e04
 ;;; nnmh.el ends here

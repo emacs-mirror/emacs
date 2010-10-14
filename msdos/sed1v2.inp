@@ -31,6 +31,7 @@ s/\.h\.in/.h-in/
 /^ALL_CFLAGS *=/s/@[^@\n]*@//g
 /^CPPFLAGS *=/s/@[^@\n]*@//
 /^LDFLAGS *=/s/@[^@\n]*@//
+/^LD_FIRSTFLAG *=/s/@[^@\n]*@//
 /^LIBS *=/s/@[^@\n]*@//
 /^LIBES *=/,/^ *$/ {
   s/@[^@\n]*@//g
@@ -42,7 +43,6 @@ s/\.h\.in/.h-in/
 /^C_SWITCH_X_SITE *=/s/@C_SWITCH_X_SITE@//
 /^C_WARNINGS_SWITCH *=/s/@C_WARNINGS_SWITCH@//
 /^PROFILING_CFLAGS *=/s/@PROFILING_CFLAGS@//
-/^PROFILING_LDFLAGS *=/s/@PROFILING_LDFLAGS@//
 #/^LD_SWITCH_X_SITE *=/s/@LD_SWITCH_X_SITE@//
 /^LD_SWITCH_SYSTEM_TEMACS *=/s/@LD_SWITCH_SYSTEM_TEMACS@//
 /^LD_SWITCH_X_SITE_AUX *=/s/@LD_SWITCH_X_SITE_AUX@//
@@ -51,7 +51,6 @@ s/\.h\.in/.h-in/
 /^TEMACS_LDFLAGS2 *=/s/@TEMACS_LDFLAGS2@/$(LDFLAGS)/
 /^LIBS_SYSTEM *=/s/@LIBS_SYSTEM@//
 /^LIB_GCC *=/s/@LIB_GCC@//
-/^LD *=/s/@LINKER@/$(CC)/
 /^LIB_STANDARD *=/s/@LIB_STANDARD@//
 /^LIB_MATH *=/s/@LIB_MATH@/-lm/
 /^LIBTIFF *=/s/@LIBTIFF@//
@@ -88,6 +87,10 @@ s/\.h\.in/.h-in/
 /^CFLAGS_SOUND *=/s/@CFLAGS_SOUND@//
 /^RSVG_LIBS *=/s/@RSVG_LIBS@//
 /^RSVG_CFLAGS *=/s/@RSVG_CFLAGS@//
+/^IMAGEMAGICK_LIBS *=/s/@IMAGEMAGICK_LIBS@//
+/^IMAGEMAGICK_CFLAGS *=/s/@IMAGEMAGICK_CFLAGS@//
+/^LIBXML2_LIBS *=/s/@LIBXML2_LIBS@//
+/^LIBXML2_CFLAGS *=/s/@LIBXML2_CFLAGS@//
 /^WIDGET_OBJ *=/s/@WIDGET_OBJ@//
 /^CYGWIN_OBJ *=/s/@CYGWIN_OBJ@//
 /^MSDOS_OBJ *=/s/= */= dosfns.o msdos.o w16select.o/
@@ -100,6 +103,8 @@ s/\.h\.in/.h-in/
 /^GNU_OBJC_CFLAGS*=/s/@GNU_OBJC_CFLAGS@//
 /^LIBRESOLV *=/s/@LIBRESOLV@//
 /^LIBSELINUX_LIBS *=/s/@LIBSELINUX_LIBS@//
+/^LIBGNUTLS_LIBS *=/s/@[^@\n]*@//
+/^LIBGNUTLS_CFLAGS *=/s/@[^@\n]*@//
 /^GETLOADAVG_LIBS *=/s/@[^@\n]*@//
 /^START_FILES *=/s/@START_FILES@//
 /^OTHER_FILES *=/s/@OTHER_FILES@//

@@ -31,9 +31,9 @@
 (defclass ede-proj-target-makefile-info (ede-proj-target-makefile)
   ((menu :initform nil)
    (keybindings :initform nil)
-   (availablecompilers :initform (ede-makeinfo-compiler
-				  ede-texi2html-compiler))
-   (sourcetype :initform (ede-makeinfo-source))
+   (availablecompilers :initform '(ede-makeinfo-compiler
+				   ede-texi2html-compiler))
+   (sourcetype :initform '(ede-makeinfo-source))
    (mainmenu :initarg :mainmenu
 	     :initform ""
 	     :type string

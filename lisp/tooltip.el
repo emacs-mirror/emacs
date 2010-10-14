@@ -5,6 +5,7 @@
 
 ;; Author: Gerd Moellmann <gerd@acm.org>
 ;; Keywords: help c mouse tools
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

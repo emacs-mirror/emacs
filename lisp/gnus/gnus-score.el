@@ -680,14 +680,14 @@ file for the command instead of the current score file."
 	  (and gnus-extra-headers
 	       (equal (nth 1 entry) "extra")
 	       (intern			; need symbol
-		(gnus-completing-read-with-default
-		 (symbol-name (car gnus-extra-headers))	; default response
-		 "Score extra header"	; prompt
-		 (mapcar (lambda (x)	; completion list
-			   (cons (symbol-name x) x))
-			 gnus-extra-headers)
-		 nil			; no completion limit
-		 t))))			; require match
+                (let ((collection (mapcar 'symbol-name gnus-extra-headers)))
+                  (gnus-completing-read
+                   "Score extra header"  ; prompt
+                   collection            ; completion list
+                   t                     ; require match
+                   nil                   ; no history
+                   nil                   ; no initial-input
+                   (car collection)))))) ; default value
     ;; extra is now nil or a symbol.
 
     ;; We have all the data, so we enter this score.
@@ -708,8 +708,7 @@ file for the command instead of the current score file."
 
     ;; Change score file to the "all.SCORE" file.
     (when (eq symp 'a)
-      (save-excursion
-	(set-buffer gnus-summary-buffer)
+      (with-current-buffer gnus-summary-buffer
 	(gnus-score-load-file
 	 ;; This is a kludge; yes...
 	 (cond
@@ -735,14 +734,12 @@ file for the command instead of the current score file."
 
     (when (eq symp 'a)
       ;; We change the score file back to the previous one.
-      (save-excursion
-	(set-buffer gnus-summary-buffer)
+      (with-current-buffer gnus-summary-buffer
 	(gnus-score-load-file current-score-file)))))
 
 (defun gnus-score-insert-help (string alist idx)
   (setq gnus-score-help-winconf (current-window-configuration))
-  (save-excursion
-    (set-buffer (gnus-get-buffer-create "*Score Help*"))
+  (with-current-buffer (gnus-get-buffer-create "*Score Help*")
     (buffer-disable-undo)
     (delete-windows-on (current-buffer))
     (erase-buffer)
@@ -916,10 +913,13 @@ MATCH is the string we are looking for.
 TYPE is the score type.
 SCORE is the score to add.
 EXTRA is the possible non-standard header."
-  (interactive (list (completing-read "Header: "
-				      gnus-header-index
-				      (lambda (x) (fboundp (nth 2 x)))
-				      t)
+  (interactive (list (gnus-completing-read "Header"
+                                           (mapcar
+                                            'car
+                                            (gnus-remove-if-not
+                                             (lambda (x) (fboundp (nth 2 x)))
+                                             gnus-header-index))
+                                           t)
 		     (read-string "Match: ")
 		     (if (y-or-n-p "Use regexp match? ") 'r 's)
 		     (string-to-number (read-string "Score: "))))
@@ -1117,8 +1117,8 @@ EXTRA is the possible non-standard header."
       (make-local-variable 'gnus-prev-winconf)
       (setq gnus-prev-winconf winconf))
     (gnus-message
-     4 (substitute-command-keys
-	"\\<gnus-score-mode-map>\\[gnus-score-edit-exit] to save edits"))))
+     4 "%s" (substitute-command-keys
+	     "\\<gnus-score-mode-map>\\[gnus-score-edit-exit] to save edits"))))
 
 (defun gnus-score-edit-all-score ()
   "Edit the all.SCORE file."
@@ -1145,8 +1145,8 @@ EXTRA is the possible non-standard header."
     (make-local-variable 'gnus-prev-winconf)
     (setq gnus-prev-winconf winconf))
   (gnus-message
-   4 (substitute-command-keys
-      "\\<gnus-score-mode-map>\\[gnus-score-edit-exit] to save edits")))
+   4 "%s" (substitute-command-keys
+	   "\\<gnus-score-mode-map>\\[gnus-score-edit-exit] to save edits")))
 
 (defun gnus-score-edit-file-at-point (&optional format)
   "Edit score file at point in Score Trace buffers.
@@ -1270,8 +1270,7 @@ If FORMAT, also format the current score file."
 	       exclude-files))
 	     gnus-scores-exclude-files))
       (when local
-	(save-excursion
-	  (set-buffer gnus-summary-buffer)
+	(with-current-buffer gnus-summary-buffer
 	  (while local
 	    (and (consp (car local))
 		 (symbolp (caar local))
@@ -1395,7 +1394,7 @@ If FORMAT, also format the current score file."
       (if err
 	  (progn
 	    (ding)
-	    (gnus-message 3 err)
+	    (gnus-message 3 "%s" err)
 	    (sit-for 2)
 	    nil)
 	alist)))))
@@ -1528,8 +1527,7 @@ If FORMAT, also format the current score file."
 		    (cons (cons header (or gnus-summary-default-score 0))
 			  gnus-scores-articles))))
 
-	  (save-excursion
-	    (set-buffer (gnus-get-buffer-create "*Headers*"))
+	  (with-current-buffer (gnus-get-buffer-create "*Headers*")
 	    (buffer-disable-undo)
 	    (when (gnus-buffer-live-p gnus-summary-buffer)
 	      (message-clone-locals gnus-summary-buffer))
@@ -1854,8 +1852,7 @@ score in `gnus-newsgroup-scored' by SCORE."
 
       ;; Change score file to the adaptive score file.  All entries that
       ;; this function makes will be put into this file.
-      (save-excursion
-	(set-buffer gnus-summary-buffer)
+      (with-current-buffer gnus-summary-buffer
 	(gnus-score-load-file
 	 (or gnus-newsgroup-adaptive-score-file
 	     (gnus-score-file-name
@@ -1946,15 +1943,13 @@ score in `gnus-newsgroup-scored' by SCORE."
 		   (setq rest entries)))
 	    (setq entries rest))))
       ;; We change the score file back to the previous one.
-      (save-excursion
-	(set-buffer gnus-summary-buffer)
+      (with-current-buffer gnus-summary-buffer
 	(gnus-score-load-file current-score-file))
       (list (cons "references" news)))))
 
 (defun gnus-score-add-followups (header score scores &optional thread)
   "Add a score entry to the adapt file."
-  (save-excursion
-    (set-buffer gnus-summary-buffer)
+  (with-current-buffer gnus-summary-buffer
     (let* ((id (mail-header-id header))
 	   (scores (car scores))
 	   entry dont)
@@ -2055,8 +2050,11 @@ score in `gnus-newsgroup-scored' by SCORE."
 
 	  ;; Evil hackery to make match usable in non-standard headers.
 	  (when extra
-	    (setq match (concat "[ (](" extra " \\. \"[^)]*"
-				match "[^\"]*\")[ )]")
+	    (setq match (concat "[ (](" extra " \\. \"\\([^\"]*\\\\\"\\)*[^\"]*"
+				(if (eq search-func 're-search-forward)
+				    match
+				  (regexp-quote match))
+				"\\([^\"]*\\\\\"\\)*[^\"]*\")[ )]")
 		  search-func 're-search-forward)) ; XXX danger?!?
 
 	  (cond
@@ -2279,8 +2277,7 @@ score in `gnus-newsgroup-scored' by SCORE."
   "Create adaptive score rules for this newsgroup."
   (when gnus-newsgroup-adaptive
     ;; We change the score file to the adaptive score file.
-    (save-excursion
-      (set-buffer gnus-summary-buffer)
+    (with-current-buffer gnus-summary-buffer
       (gnus-score-load-file
        (or gnus-newsgroup-adaptive-score-file
 	   (gnus-home-score-file gnus-newsgroup-name t)
@@ -2694,8 +2691,7 @@ GROUP using BNews sys file syntax."
 	 (trans (cdr (assq ?: nnheader-file-name-translation-alist)))
 	 (group-trans (nnheader-translate-file-chars group t))
 	 ofiles not-match regexp)
-    (save-excursion
-      (set-buffer (gnus-get-buffer-create "*gnus score files*"))
+    (with-current-buffer (gnus-get-buffer-create "*gnus score files*")
       (buffer-disable-undo)
       ;; Go through all score file names and create regexp with them
       ;; as the source.
@@ -3119,5 +3115,4 @@ See Info node `(gnus)Scoring Tips' for examples of good regular expressions."
 
 (provide 'gnus-score)
 
-;; arch-tag: d3922589-764d-46ae-9954-9330fd192634
 ;;; gnus-score.el ends here

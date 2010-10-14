@@ -6,6 +6,7 @@
 
 ;; Maintainer: FSF
 ;; Keywords: help, internal
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -644,7 +645,20 @@ it is displayed along with the global value."
 		  ;; inappropriate e.g C-h v <RET> features <RET>
 		  ;; (help-xref-on-pp from (point))
 		  (if (< (point) (+ from 20))
-		      (delete-region (1- from) from)))))
+		      (delete-region (1- from) from))
+		  (let* ((sv (get variable 'standard-value))
+			 (origval (and (consp sv)
+				       (condition-case nil
+					   (eval (car sv))
+					 (error :help-eval-error)))))
+		    (when (and (consp sv)
+                               (not (equal origval val))
+                               (not (equal origval :help-eval-error)))
+		      (princ "\nOriginal value was \n")
+		      (setq from (point))
+		      (pp origval)
+		      (if (< (point) (+ from 20))
+			  (delete-region (1- from) from)))))))
 	    (terpri)
 
 	    (when locus

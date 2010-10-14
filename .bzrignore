@@ -56,6 +56,7 @@ lisp/**/loaddefs.el
 lisp/cus-load.el
 lisp/eshell/esh-groups.el
 lisp/finder-inf.el
+lisp/gnus/_dir-locals.el
 nextstep/Emacs.app
 nt/config.log
 src/_dbxinit
@@ -71,3 +72,5 @@ src/gdb.ini
 src/prefix-args*
 src/stamp-oldxmenu
 src/temacs
+test/indent/*.new
++*

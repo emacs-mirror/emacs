@@ -6,6 +6,7 @@
 ;; Author: jka@ece.cmu.edu (Jay K. Adams)
 ;; Maintainer: FSF
 ;; Keywords: data
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -334,6 +335,7 @@ Return the new status of auto compression (non-nil means on)."
 
 (defmacro with-auto-compression-mode (&rest body)
   "Evalute BODY with automatic file compression and uncompression enabled."
+  (declare (indent 0))
   (let ((already-installed (make-symbol "already-installed")))
     `(let ((,already-installed (jka-compr-installed-p)))
        (unwind-protect
@@ -343,8 +345,6 @@ Return the new status of auto compression (non-nil means on)."
 	     ,@body)
 	 (unless ,already-installed
 	   (jka-compr-uninstall))))))
-(put 'with-auto-compression-mode 'lisp-indent-function 0)
-
 
 ;; This is what we need to know about jka-compr-handler
 ;; in order to decide when to call it.

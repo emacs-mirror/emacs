@@ -97,8 +97,7 @@ RFC 2646 suggests 66 characters for readability."
 
 ;;;###autoload
 (defun fill-flowed (&optional buffer delete-space)
-  (save-excursion
-    (set-buffer (or (current-buffer) buffer))
+  (with-current-buffer (or (current-buffer) buffer)
     (goto-char (point-min))
     ;; Remove space stuffing.
     (while (re-search-forward "^\\( \\|>+ $\\)" nil t)
@@ -221,5 +220,4 @@ RFC 2646 suggests 66 characters for readability."
 
 (provide 'flow-fill)
 
-;; arch-tag: addc0040-bc53-4f17-b4bc-1eb44eed6f0b
 ;;; flow-fill.el ends here

@@ -4,6 +4,7 @@
 ;;   Free Software Foundation, Inc.
 ;; Keywords: email, spam, filter, rmail
 ;; Author: Eli Tziperman <eli AT deas.harvard.edu>
+;; Package: rmail
 
 ;; This file is part of GNU Emacs.
 

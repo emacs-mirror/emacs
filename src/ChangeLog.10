@@ -6914,7 +6914,7 @@
 
 	* search.c (search_buffer): Give up BM search on case-fold-search
 	if one of a target character has a case-equivalence of different
-	charset even if that target charcter is an ASCII.
+	charset even if that target character is an ASCII.
 
 	* casefiddle.c (casify_object): Fix for the case that case
 	conversion change the byte length.
@@ -21089,7 +21089,7 @@
 
 	* w32.c (g_b_init_is_windows_9x, g_b_init_open_process_token)
 	(g_b_init_get_token_information, g_b_init_lookup_account_sid)
-	(g_b_init_get_sid_identifier_authority ): Add several static
+	(g_b_init_get_sid_identifier_authority): Add several static
 	global variables.
 
 	* w32.c (globals_of_w32): New function.  Used to initialize those

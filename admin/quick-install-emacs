@@ -28,7 +28,7 @@
 ## install emacs very often.  See the --help output for more details.
 
 
-PUBLIC_LIBSRC_BINARIES='b2m emacsclient etags ctags ebrowse'
+PUBLIC_LIBSRC_BINARIES='emacsclient etags ctags ebrowse'
 PUBLIC_LIBSRC_SCRIPTS='grep-changelog rcs-checkin'
 
 AVOID="CVS -DIC README COPYING ChangeLog ~ [.]orig$ [.]rej$ Makefile$ Makefile.in$ makefile$ makefile.w32-in$ stamp-subdir [.]cvsignore [.]arch-ids [{]arch[}] [.][cho]$ make-docfile testfile test-distrib"
@@ -374,5 +374,3 @@ END {
 done
 
 ) | eval $EXEC
-
-# arch-tag: 9322b572-9755-4cf7-a67a-21e6505f1477

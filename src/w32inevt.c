@@ -27,7 +27,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <config.h>
 #endif
 
-#include <stdlib.h>
 #include <stdio.h>
 #include <windows.h>
 #include <setjmp.h>

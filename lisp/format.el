@@ -4,6 +4,7 @@
 ;;   2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

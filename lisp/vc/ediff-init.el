@@ -4,6 +4,7 @@
 ;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
+;; Package: ediff
 
 ;; This file is part of GNU Emacs.
 
@@ -785,16 +786,6 @@ TYPE-OF-EMACS is either 'xemacs or 'emacs."
   (if (and (ediff-has-face-support-p) ediff-use-faces) 'face 'ascii)
   "")
 
-
-(if (ediff-has-face-support-p)
-    (if (featurep 'xemacs)
-	(progn
-	  (defalias 'ediff-valid-color-p 'valid-color-name-p)
-	  (defalias 'ediff-get-face 'get-face))
-      (defalias 'ediff-valid-color-p (if (fboundp 'color-defined-p)
-					 'color-defined-p
-				       'x-color-defined-p))
-      (defalias 'ediff-get-face 'internal-get-face)))
 
 (if (ediff-window-display-p)
     (if (featurep 'xemacs)

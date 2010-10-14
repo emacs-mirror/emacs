@@ -1,3 +1,43 @@
+2010-10-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* sed1v2.inp (PROFILING_LDFLAGS):
+	* sed3v2.inp (PROFILING_LDFLAGS): Remove, not defined anymore.
+
+2010-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* mainmake.v2 (install): Remove b2m.
+
+2010-10-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* mainmake.v2 (TAGS tags): Use `find' to filter out loaddefs
+	files.  Make all file names in TAGS tables absolute.
+
+2010-10-01  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1v2.inp (LIBGNUTLS_LIBS, LIBGNUTLS_CFLAGS): Edit to empty.
+
+2010-09-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1v2.inp (LINKER): Don't edit, variable was removed from
+	src/Makefile.in.
+	(LD_FIRSTFLAG): Edit to empty.
+
+2010-09-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1v2.inp (LIBXML2_LIBS, LIBXML2_CFLAGS): Edit to empty.
+
+2010-08-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* sedleim.inp (RUN-EMACS): Don't use --multibyte.
+
+2010-08-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* sed1v2.inp (IMAGEMAGICK_LIBS, IMAGEMAGICK_CFLAGS): Edit to empty.
+
+2010-08-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* mainmake.v2 (version): Update due to change in emacs.c.
+
 2010-08-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* sed1v2.inp (UNEXEC_OBJ): Edit to unexcoff.o, due to renaming of
@@ -56,10 +96,10 @@
 	instead of lisp/version.el (see revno 100306).
 
 	* sed1v2.inp (MKDEPDIR): Edit to empty.
-	Delete lines in rules that invoke $(MKDEPDIR).
-	Fix editing rules that begin with "cd ../lisp".
-	Edit out sh if-then-else-fi constructs that test ${CANNOT_DUMP}.
-	Edit out "|| exit ;\" constructs in emacs${EXEEXT} rule.
+	Delete lines in rules that invoke $(MKDEPDIR).  Fix editing rules
+	that begin with "cd ../lisp".  Edit out sh if-then-else-fi
+	constructs that test ${CANNOT_DUMP}.  Edit out "|| exit ;\"
+	constructs in emacs${EXEEXT} rule.
 
 2010-06-03  Dan Nicolaescu  <dann@ics.uci.edu>
 

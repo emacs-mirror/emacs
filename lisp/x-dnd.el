@@ -6,6 +6,7 @@
 ;; Author: Jan Djärv <jan.h.d@swipnet.se>
 ;; Maintainer: FSF
 ;; Keywords: window, drag, drop
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

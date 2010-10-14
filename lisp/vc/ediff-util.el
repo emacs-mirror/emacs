@@ -1,9 +1,11 @@
 ;;; ediff-util.el --- the core commands and utilities of ediff
 
 ;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
+;; Package: ediff
 
 ;; This file is part of GNU Emacs.
 
@@ -3993,7 +3995,7 @@ byte-compilation may produce output like this:
 	   ........................
        While compiling the end of the data:
 	 ** The following functions are not known to be defined:
-	   ediff-valid-color-p, ediff-set-face,
+	   xxx, yyy
 	   ........................
 
 These are NOT errors, but inevitable warnings, which ought to be ignored.

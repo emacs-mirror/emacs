@@ -1,0 +1,197 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Emacs Lisp Reference Manual.
+@c Copyright (C) 2010
+@c   Free Software Foundation, Inc.
+@c See the file elisp.texi for copying conditions.
+@setfilename ../../info/package
+@node Packaging, Antinews, System Interface, Top
+@chapter Preparing Lisp code for distribution
+@cindex packaging
+
+  Emacs provides a standard way for Emacs Lisp code to be distributed
+to users.  This approach lets users easily download, install,
+uninstall, and upgrade Lisp code that they might want to use.
+
+  A @dfn{package} is simply one or more files, formatted and bundled
+in a particular way.  Typically a package includes primarily Emacs
+Lisp code, but it is possible to create other kinds of packages as
+well.
+
+@menu
+* Packaging Basics::        The basic concepts of Emacs Lisp packages.
+* Simple Packages::         How to package a single .el file.
+* Multi-file Packages::     How to package multiple files.
+@end menu
+
+@node Packaging Basics
+@section Packaging Basics
+@cindex packaging basics
+
+  A package has a few attributes:
+@cindex package attributes
+
+@table @asis
+@item Name
+A string, the name of the package.  This attribute is mandatory.  If
+it does not exist, the package cannot be installed by the package
+manager.
+
+@item Version
+A version number, which is anything that can be parsed by
+@code{version-to-list}.  This attribute is mandatory.  If it does not
+exist, the package cannot be installed by the package manager.
+
+@item Brief description
+This is shown to the user in the package menu buffer.  It is just a
+single line.  On a terminal with 80 characters per line, there are
+only 36 characters available in the package menu mode for showing the
+brief description, so it is best to keep it very brief.  If no brief
+name is given, an empty string is used.
+
+@item Long description
+This can be a @file{README} file or the like.  This is available to
+the user before the package is installed, via the package menu.  It
+should more fully describe the package and its capabilities, so a user
+can read it to decide whether he wants to install the package.  This
+attribute is optional.
+
+@item Dependencies
+This is a list of other packages and their minimal acceptable
+versions.  This is used both at download time (to make sure all the
+needed code is available) and at activation time (to ensure a package
+is only activated if all its dependencies have been successfully
+activated).  This attribute is optional.
+
+@item Manual
+A package can optionally include an Info manual.
+@end table
+
+  Conceptually, a package goes through several state transitions (in
+reality some of these transitions are grouped together):
+
+@table @asis
+@item Download
+Fetch the package from somewhere.
+
+@item Install
+Unpack the package, or write a @file{.el} file into the appropriate
+install directory.  This step also includes extracting autoloads and
+byte-compiling the Emacs Lisp code.
+
+@item Activate
+Update @code{load-path} and @code{Info-directory-list} and evaluate
+the autoloads, so that the package is ready for the user to use.
+@end table
+
+  It is best for users if packages do not do too much work at
+activation time.  The best approach is to have activation consist of
+some autoloads and little more.
+
+@node Simple Packages
+@section Simple Packages
+@cindex single file packages
+
+  The simplest package consists of a single Emacs Lisp source file.
+In this case, all the attributes of the package (@pxref{Packaging
+Basics}) are taken from this file.
+
+  The package system expects this @file{.el} file to conform to the
+Emacs Lisp library header conventions.  @xref{Library Headers}.
+
+  The name of the package is the same as the base name of the
+@file{.el} file, as written in the first comment line.  For example,
+given the header line:
+
+@smallexample
+;;; superfrobnicator.el --- frobnicate and bifurcate flanges
+@end smallexample
+
+the package name will be @samp{superfrobnicator}.
+
+  The short description of the package is also taken from the first
+line of the file.
+
+  If the file has a ``Commentary'' header, then it is used as the long
+description.
+
+  The version of the package comes either from the ``Package-Version''
+header, if it exists, or from the ``Version'' header.  A package is
+required to have a version number.  Each release of a package must be
+accompanied by an increase in the version number.
+
+  If the file has a ``Package-Requires'' header, then that is used as
+the package dependencies.  Otherwise, the package is assumed not to
+have any dependencies.
+
+  A single-file package cannot have an Info manual.
+
+  The file will be scanned for autoload cookies at install time.
+@xref{Autoload}.
+
+@node Multi-file Packages
+@section Multi-file Packages
+@cindex multi-file packages
+
+  A multi-file package is just a @file{.tar} file.  While less
+convenient to create than a single-file package, a multi-file package
+also offers more features: it can include an Info manual, multiple
+Emacs Lisp files, and also other data files needed by a package.
+
+  The contents of the @file{.tar} file must all appear beneath a
+single directory, named after the package and version.  Files can
+appear in subdirectories of this top-most directory, but Emacs Lisp
+code will only be found (and thus byte-compiled) at the top-most
+level.  Also, the @file{.tar} file is typically also given this same
+name.  For example, if you are distributing version 1.3 of the
+superfrobnicator, the package file would be named
+``superfrobnicator-1.3.tar'' and the contents would all appear in the
+directory @file{superfrobnicator-1.3} in that @file{.tar}.
+
+  The package must include a @file{-pkg.el} file, named after the
+package.  In our example above, this file would be called
+@file{superfrobnicator-pkg.el}.  This file must have a single form in
+it, a call to @code{define-package}.  The package dependencies and
+brief description are taken from this form.
+
+@defun define-package name version &optional docstring requirements
+Define a package.  @var{name} is the name of the package, a string.
+@var{version} is the package's version, a string.  It must be in a
+form that can be understood by @code{version-to-list}.
+@var{docstring} is the short description of the package.
+@var{requirements} is a list of required packages and their versions.
+@end defun
+
+  If a @file{README} file exists in the content directory, then it is
+used as the long description.
+
+  If the package has an Info manual, you should distribute the needed
+info files, plus a @file{dir} file made with @command{install-info}.
+@xref{Invoking install-info, Invoking install-info, Invoking
+install-info, texinfo, Texinfo}.
+
+  Do not include any @file{.elc} files in the package.  Those will be
+created at install time.  Note that there is no way to control the
+order in which files are byte-compiled; your package must be robust
+here.
+
+  The installation process will scan all the @file{.el} files in the
+package for autoload cookies.  @xref{Autoload}.  They are extracted
+into a @file{-autoloads.el} file (e.g.,
+@file{superfrobnicator-autoloads.el}), so do not include a file of
+that name in your package.
+
+  Any other files in the @file{.tar} file are simply unpacked when the
+package is installed.  This can be useful if your package needs
+auxiliary data files --- e.g., icons or sounds.
+
+  Emacs Lisp code installed via the package manager must take special
+care to be location-independent.  One easy way to do this is to make
+references to auxiliary data files relative to @var{load-file-name}.
+For example:
+
+@smallexample
+(defconst superfrobnicator-base (file-name-directory load-file-name))
+
+(defun superfrobnicator-fetch-image (file)
+  (expand-file-name file superfrobnicator-base))
+@end smallexample

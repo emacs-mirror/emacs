@@ -1,3 +1,31 @@
+2010-08-28  Kenichi Handa  <handa@m17n.org>
+
+	* quail/japanese.el (quail-japanese-update-translation): Fix
+	handling of invalid key.
+
+2010-08-15  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* quail/vntelex.el ("vietnamese-telex"): Doc fix.
+
+	* quail/georgian.el: Remove extra backslashes.
+
+2010-08-14  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* quail/arabic.el: Quote [ and ].
+	* quail/latin-ltx.el: Likewise.
+
+	* quail/greek.el ("greek", "greek-postfix"): Change string to
+	character.
+
+2010-08-13  Kenichi Handa  <handa@m17n.org>
+
+	* quail/greek.el ("greek-postfix"): Add rules for Greek style
+	quotes.
+
+2010-08-09  Kenichi Handa  <handa@m17n.org>
+
+	* quail/greek.el ("greek"): Add rules for Greek style quotes.
+
 2010-05-15  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (install): Remove references to CVS-related files.

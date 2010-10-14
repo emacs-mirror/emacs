@@ -78,7 +78,8 @@ just the lexical token and not the string."
 	   (start (if starttag
 		      (semantic-tag-end starttag)
 		    (point-min))))
-      (when (re-search-backward comment-start-skip start t)
+      (when (and comment-start-skip
+		 (re-search-backward comment-start-skip start t))
 	;; We found a comment that doesn't belong to the body
 	;; of a function.
 	(semantic-doc-snarf-comment-for-tag nosnarf)))

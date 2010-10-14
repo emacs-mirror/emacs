@@ -77,10 +77,9 @@ are generated if and only if they are also in `message-draft-headers'.")
 
 (deffoo nndraft-retrieve-headers (articles &optional group server fetch-old)
   (nndraft-possibly-change-group group)
-  (save-excursion
-    (set-buffer nntp-server-buffer)
+  (with-current-buffer nntp-server-buffer
     (erase-buffer)
-    (let* (article)
+    (let (article lines chars)
       ;; We don't support fetching by Message-ID.
       (if (stringp (car articles))
 	  'headers
@@ -92,9 +91,12 @@ are generated if and only if they are also in `message-draft-headers'.")
 	    (if (search-forward "\n\n" nil t)
 		(forward-line -1)
 	      (goto-char (point-max)))
+	    (setq lines (count-lines (point) (point-max))
+		  chars (- (point-max) (point)))
 	    (delete-region (point) (point-max))
 	    (goto-char (point-min))
 	    (insert (format "221 %d Article retrieved.\n" article))
+	    (insert (format "Lines: %d\nChars: %d\n" lines chars))
 	    (widen)
 	    (goto-char (point-max))
 	    (insert ".\n")))
@@ -119,8 +121,7 @@ are generated if and only if they are also in `message-draft-headers'.")
 			      mm-text-coding-system)
 			  mm-auto-save-coding-system)))
 		   (nnmail-find-file newest)))
-	(save-excursion
-	  (set-buffer nntp-server-buffer)
+	(with-current-buffer nntp-server-buffer
 	  (goto-char (point-min))
 	  ;; If there's a mail header separator in this file,
 	  ;; we remove it.
@@ -184,7 +185,7 @@ are generated if and only if they are also in `message-draft-headers'.")
       (add-hook hook 'nndraft-generate-headers nil t))
     article))
 
-(deffoo nndraft-request-group (group &optional server dont-check)
+(deffoo nndraft-request-group (group &optional server dont-check info)
   (nndraft-possibly-change-group group)
   (unless dont-check
     (let* ((pathname (nnmail-group-pathname group nndraft-directory))
@@ -202,15 +203,14 @@ are generated if and only if they are also in `message-draft-headers'.")
 			'nnmh-request-group
 			(list group server dont-check)))
 
-(deffoo nndraft-request-move-article (article group server accept-form 
+(deffoo nndraft-request-move-article (article group server accept-form
 				      &optional last move-is-internal)
   (nndraft-possibly-change-group group)
   (let ((buf (get-buffer-create " *nndraft move*"))
 	result)
     (and
      (nndraft-request-article article group server)
-     (save-excursion
-       (set-buffer buf)
+     (with-current-buffer buf
        (erase-buffer)
        (insert-buffer-substring nntp-server-buffer)
        (setq result (eval accept-form))
@@ -222,6 +222,11 @@ are generated if and only if they are also in `message-draft-headers'.")
 (deffoo nndraft-request-expire-articles (articles group &optional server force)
   (nndraft-possibly-change-group group)
   (let* ((nnmh-allow-delete-final t)
+	 (nnmail-expiry-target
+	  (or (gnus-group-find-parameter
+	       (gnus-group-prefixed-name group (list 'nndraft server))
+	       'expiry-target t)
+	      nnmail-expiry-target))
 	 (res (nnoo-parent-function 'nndraft
 				    'nnmh-request-expire-articles
 				    (list articles group server force)))
@@ -313,5 +318,4 @@ are generated if and only if they are also in `message-draft-headers'.")
 
 (provide 'nndraft)
 
-;; arch-tag: 3ce26ca0-41cb-48b1-8703-4dad35e188aa
 ;;; nndraft.el ends here

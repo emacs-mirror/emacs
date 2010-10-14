@@ -31,10 +31,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #include <sys/file.h>
-#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
-#endif
-#include <string.h>
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>

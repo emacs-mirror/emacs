@@ -8,7 +8,7 @@
 @c Please remember to update the edition number in README as well.
 @c And also the copies in vol1.texi and vol2.texi.
 @set VERSION  3.0
-@set EMACSVER 24.0.50
+@include emacsver.texi
 @set DATE July 2009
 
 @c in general, keep the following line commented out, unless doing a
@@ -158,6 +158,8 @@ Cover art by Etienne Suvasa.
 * Display::                 Features for controlling the screen display.
 * System Interface::        Getting the user id, system type, environment
                               variables, and other such things.
+
+* Packaging::               Preparing Lisp code for distribution.
 
 Appendices
 
@@ -1394,6 +1396,12 @@ Operating System Interface
 * Session Management::      Saving and restoring state with
                               X Session Management.
 
+Preparing Lisp code for distribution
+
+* Packaging Basics::        The basic concepts of Emacs Lisp packages.
+* Simple Packages::         How to package a single .el file.
+* Multi-file Packages::     How to package multiple files.
+
 Starting Up Emacs
 
 * Startup Summary::         Sequence of actions Emacs performs at startup.
@@ -1490,6 +1498,8 @@ Object Internals
 @include display.texi
 @include os.texi
 
+@include package.texi
+
 @c MOVE to Emacs Manual:  include misc-modes.texi
 
 @c appendices
@@ -1519,7 +1529,3 @@ Object Internals
 
 
 These words prevent "local variables" above from confusing Emacs.
-
-@ignore
-   arch-tag: f7e9a219-a0e1-4776-b631-08eaa1d49b34
-@end ignore

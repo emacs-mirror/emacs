@@ -142,11 +142,16 @@ Lisp_Object ns_input_spi_name, ns_input_spi_arg;
 Lisp_Object Vx_toolkit_scroll_bars;
 static Lisp_Object Qmodifier_value;
 Lisp_Object Qalt, Qcontrol, Qhyper, Qmeta, Qsuper, Qnone;
-extern Lisp_Object Qcursor_color, Qcursor_type, Qns;
+extern Lisp_Object Qcursor_color, Qcursor_type, Qns, Qleft;
 
 /* Specifies which emacs modifier should be generated when NS receives
    the Alternate modifer.  May be Qnone or any of the modifier lisp symbols. */
 Lisp_Object ns_alternate_modifier;
+
+/* Specifies which emacs modifier should be generated when NS receives
+   the right Alternate modifer.  Has same values as ns_alternate_modifier plus
+   the value Qleft which means whatever value ns_alternate_modifier has.  */
+Lisp_Object ns_right_alternate_modifier;
 
 /* Specifies which emacs modifier should be generated when NS receives
    the Command modifer.  May be any of the modifier lisp symbols. */
@@ -218,12 +223,17 @@ static BOOL inNsSelect = 0;
 
 /* Convert modifiers in a NeXTSTEP event to emacs style modifiers.  */
 #define NS_FUNCTION_KEY_MASK 0x800000
+#define NSRightAlternateKeyMask (0x000040 | NSAlternateKeyMask)
 #define EV_MODIFIERS(e)                               \
     ((([e modifierFlags] & NSHelpKeyMask) ?           \
            hyper_modifier : 0)                        \
-     | (([e modifierFlags] & NSAlternateKeyMask) ?    \
+     | (!EQ (ns_right_alternate_modifier, Qleft) && \
+        (([e modifierFlags] & NSRightAlternateKeyMask) \
+         == NSRightAlternateKeyMask) ? \
+           parse_solitary_modifier (ns_right_alternate_modifier) : 0) \
+     | (([e modifierFlags] & NSAlternateKeyMask) ?                 \
            parse_solitary_modifier (ns_alternate_modifier) : 0)   \
-     | (([e modifierFlags] & NSShiftKeyMask) ?        \
+     | (([e modifierFlags] & NSShiftKeyMask) ?     \
            shift_modifier : 0)                        \
      | (([e modifierFlags] & NSControlKeyMask) ?      \
            parse_solitary_modifier (ns_control_modifier) : 0)     \
@@ -2251,6 +2261,11 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
   struct frame *f = WINDOW_XFRAME (w);
   struct glyph *phys_cursor_glyph;
   int overspill;
+  struct glyph *cursor_glyph;
+
+  /* If cursor is out of bounds, don't draw garbage.  This can happen
+     in mini-buffer windows when switching between echo area glyphs
+     and mini-buffer.  */
 
   NSTRACE (dumpcursor);
 //fprintf(stderr, "drawcursor (%d,%d) activep = %d\tonp = %d\tc_type = %d\twidth = %d\n",x,y, active_p,on_p,cursor_type,cursor_width);
@@ -2328,6 +2343,13 @@ ns_draw_window_cursor (struct window *w, struct glyph_row *glyph_row,
     case BAR_CURSOR:
       s = r;
       s.size.width = min (cursor_width, 2); //FIXME(see above)
+
+      /* If the character under cursor is R2L, draw the bar cursor
+         on the right of its glyph, rather than on the left.  */
+      cursor_glyph = get_phys_cursor_glyph (w);
+      if ((cursor_glyph->resolved_level & 1) != 0)
+        s.origin.x += cursor_glyph->pixel_width - s.size.width;
+
       NSRectFill (s);
       break;
     }
@@ -4428,7 +4450,13 @@ ns_term_shutdown (int sig)
           emacs_event->modifiers |=
             parse_solitary_modifier (ns_function_modifier);
 
-      if (flags & NSAlternateKeyMask) /* default = meta */
+      if (!EQ (ns_right_alternate_modifier, Qleft)
+          && ((flags & NSRightAlternateKeyMask) == NSRightAlternateKeyMask)) 
+	{
+	  emacs_event->modifiers |= parse_solitary_modifier
+            (ns_right_alternate_modifier);
+	}
+      else if (flags & NSAlternateKeyMask) /* default = meta */
         {
           if ((NILP (ns_alternate_modifier) || EQ (ns_alternate_modifier, Qnone))
               && !fnKeysym)
@@ -6190,6 +6218,14 @@ Set to control, meta, alt, super, or hyper means it is taken to be that key.\n\
 Set to none means that the alternate / option key is not interpreted by Emacs\n\
 at all, allowing it to be used at a lower level for accented character entry.");
   ns_alternate_modifier = Qmeta;
+
+  DEFVAR_LISP ("ns-right-alternate-modifier", &ns_right_alternate_modifier,
+               "This variable describes the behavior of the right alternate or option key.\n\
+Set to control, meta, alt, super, or hyper means it is taken to be that key.\n\
+Set to left means be the same key as `ns-alternate-modifier'.\n\
+Set to none means that the alternate / option key is not interpreted by Emacs\n\
+at all, allowing it to be used at a lower level for accented character entry.");
+  ns_right_alternate_modifier = Qleft;
 
   DEFVAR_LISP ("ns-command-modifier", &ns_command_modifier,
                "This variable describes the behavior of the command key.\n\

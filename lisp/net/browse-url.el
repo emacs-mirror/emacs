@@ -1,7 +1,8 @@
 ;;; browse-url.el --- pass a URL to a WWW browser
 
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
+;;   2004, 2005, 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Denis Howe <dbh@doc.ic.ac.uk>
 ;; Maintainer: FSF
@@ -204,12 +205,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Variables
 
-(eval-when-compile (require 'cl)
-		   (require 'thingatpt)
-                   (require 'term)
-		   (require 'dired)
-                   (require 'executable)
-		   (require 'w3-auto nil t))
+(eval-when-compile (require 'cl))
 
 (defgroup browse-url nil
   "Use a web browser to look at a URL."
@@ -607,7 +603,7 @@ down (this *won't* always work)."
   :group 'browse-url)
 
 (defcustom browse-url-elinks-wrapper '("xterm" "-e")
-  "*Wrapper command prepended to the Elinks command-line."
+  "Wrapper command prepended to the Elinks command-line."
   :type '(repeat (string :tag "Wrapper"))
   :group 'browse-url)
 
@@ -754,6 +750,9 @@ narrowed."
 	(delete-file file-name))))
 
 (add-hook 'kill-buffer-hook 'browse-url-delete-temp-file)
+
+(declare-function dired-get-filename "dired"
+		  (&optional localp no-error-if-not-filep))
 
 ;;;###autoload
 (defun browse-url-of-dired-file ()
@@ -936,10 +935,7 @@ Galeon, Konqueror, Netscape, Mosaic, Lynx in an xterm, and then W3."
 ;;;###autoload
 (defun browse-url-xdg-open (url &optional new-window)
   (interactive (browse-url-interactive-arg "URL: "))
-  (call-process "/bin/sh" nil nil nil
-		"-c"
-		(concat "nohup xdg-open " url
-			">/dev/null 2>&1 </dev/null")))
+  (call-process "nohup" nil nil nil "xdg-open" url))
 
 ;;;###autoload
 (defun browse-url-netscape (url &optional new-window)
@@ -1386,6 +1382,10 @@ with possible additional arguments `browse-url-xterm-args'."
 
 ;; --- Lynx in an Emacs "term" window ---
 
+(declare-function term-char-mode "term" ())
+(declare-function term-send-down "term" ())
+(declare-function term-send-string "term" (proc str))
+
 ;;;###autoload
 (defun browse-url-text-emacs (url &optional new-buffer)
   "Ask a text browser to load URL.
@@ -1406,6 +1406,7 @@ used instead of `browse-url-new-window-flag'."
 	 (buf (get-buffer "*text browser*"))
 	 (proc (and buf (get-buffer-process buf)))
 	 (n browse-url-text-input-attempts))
+    (require 'term)
     (if (and (browse-url-maybe-new-window new-buffer) buf)
 	;; Rename away the OLD buffer. This isn't very polite, but
 	;; term insists on working in a buffer named *lynx* and would
@@ -1570,5 +1571,4 @@ from `browse-url-elinks-wrapper'."
 
 (provide 'browse-url)
 
-;; arch-tag: d2079573-5c06-4097-9598-f550fba19430
 ;;; browse-url.el ends here

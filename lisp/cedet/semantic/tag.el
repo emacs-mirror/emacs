@@ -53,7 +53,7 @@
 (declare-function semantic-fetch-tags "semantic")
 (declare-function semantic-clear-toplevel-cache "semantic")
 
-(defconst semantic-tag-version "2.0pre7"
+(defconst semantic-tag-version "2.0"
   "Version string of semantic tags made with this code.")
 
 (defconst semantic-tag-incompatible-version "1.0"
@@ -221,6 +221,7 @@ See also the function `semantic-ctxt-current-mode'."
           ;; beginning of TAG.
           (or (and (>= (point) start) (< (point) end))
               (goto-char start))
+          (require 'semantic/ctxt)
           (semantic-ctxt-current-mode)))))
 
 (defsubst semantic--tag-attributes-cdr (tag)
@@ -687,18 +688,24 @@ This function is for internal use only."
 ;;
 (defun semantic-tag-deep-copy-one-tag (tag &optional filter)
   "Make a deep copy of TAG, applying FILTER to each child-tag.
-Properties and overlay info are not copied.
-FILTER takes TAG as an argument, and should returns a semantic-tag.
+No properties are copied except for :filename.
+Overlay will be a vector.
+FILTER takes TAG as an argument, and should return a `semantic-tag'.
 It is safe for FILTER to modify the input tag and return it."
   (when (not filter) (setq filter 'identity))
   (when (not (semantic-tag-p tag))
     (signal 'wrong-type-argument (list tag 'semantic-tag-p)))
-  (funcall filter (list (semantic-tag-name tag)
-                        (semantic-tag-class tag)
-                        (semantic--tag-deep-copy-attributes
-			 (semantic-tag-attributes tag) filter)
-                        nil
-                        nil)))
+  (let ((ol (semantic-tag-overlay tag))
+	(fn (semantic-tag-file-name tag)))
+    (funcall filter (list (semantic-tag-name tag)
+			  (semantic-tag-class tag)
+			  (semantic--tag-deep-copy-attributes
+			   (semantic-tag-attributes tag) filter)
+			  ;; Only copy the filename property
+			  (when fn (list :filename fn))
+			  ;; Only setup a vector if we had an overlay.
+			  (when ol (vector (semantic-tag-start tag)
+					   (semantic-tag-end tag)))))))
 
 (defun semantic--tag-deep-copy-attributes (attrs &optional filter)
   "Make a deep copy of ATTRS, applying FILTER to each child-tag.
@@ -877,7 +884,7 @@ That is the value of the `:throws' attribute."
   "Return the parent of the function that TAG describes.
 That is the value of the `:parent' attribute.
 A function has a parent if it is a method of a class, and if the
-function does not appear in body of it's parent class."
+function does not appear in body of its parent class."
   (semantic-tag-named-parent tag))
 
 (defsubst semantic-tag-function-destructor-p (tag)

@@ -849,7 +849,8 @@ rotate_matrix (struct glyph_matrix *matrix, int first, int last, int by)
    DELTA_BYTES.  */
 
 void
-increment_matrix_positions (struct glyph_matrix *matrix, int start, int end, int delta, int delta_bytes)
+increment_matrix_positions (struct glyph_matrix *matrix, int start, int end,
+			    EMACS_INT delta, EMACS_INT delta_bytes)
 {
   /* Check that START and END are reasonable values.  */
   xassert (start >= 0 && start <= matrix->nrows);
@@ -1088,7 +1089,8 @@ blank_row (struct window *w, struct glyph_row *row, int y)
    ends.  */
 
 void
-increment_row_positions (struct glyph_row *row, int delta, int delta_bytes)
+increment_row_positions (struct glyph_row *row,
+			 EMACS_INT delta, EMACS_INT delta_bytes)
 {
   int area, i;
 
@@ -1200,7 +1202,8 @@ copy_row_except_pointers (struct glyph_row *to, struct glyph_row *from)
    positions in row TO by DELTA/ DELTA_BYTES.  */
 
 void
-copy_glyph_row_contents (struct glyph_row *to, struct glyph_row *from, int delta, int delta_bytes)
+copy_glyph_row_contents (struct glyph_row *to, struct glyph_row *from,
+			 EMACS_INT delta, EMACS_INT delta_bytes)
 {
   int area;
 
@@ -5351,9 +5354,15 @@ update_frame_line (struct frame *f, int vpos)
  ***********************************************************************/
 
 /* Determine what's under window-relative pixel position (*X, *Y).
-   Return the object (string or buffer) that's there.
+   Return the OBJECT (string or buffer) that's there.
    Return in *POS the position in that object.
-   Adjust *X and *Y to character positions.  */
+   Adjust *X and *Y to character positions.
+   Return in *DX and *DY the pixel coordinates of the click,
+   relative to the top left corner of OBJECT, or relative to
+   the top left corner of the character glyph at (*X, *Y)
+   if OBJECT is nil.
+   Return WIDTH and HEIGHT of the object at (*X, *Y), or zero
+   if the coordinates point to an empty area of the display.  */
 
 Lisp_Object
 buffer_posn_from_coords (struct window *w, int *x, int *y, struct display_pos *pos, Lisp_Object *object, int *dx, int *dy, int *width, int *height)
@@ -5366,7 +5375,7 @@ buffer_posn_from_coords (struct window *w, int *x, int *y, struct display_pos *p
 #ifdef HAVE_WINDOW_SYSTEM
   struct image *img = 0;
 #endif
-  int x0, x1;
+  int x0, x1, to_x;
 
   /* We used to set current_buffer directly here, but that does the
      wrong thing with `face-remapping-alist' (bug#2044).  */
@@ -5377,8 +5386,33 @@ buffer_posn_from_coords (struct window *w, int *x, int *y, struct display_pos *p
   start_display (&it, w, startp);
 
   x0 = *x - WINDOW_LEFT_MARGIN_WIDTH (w);
-  move_it_to (&it, -1, x0 + it.first_visible_x, *y, -1,
-	      MOVE_TO_X | MOVE_TO_Y);
+
+  /* First, move to the beginning of the row corresponding to *Y.  We
+     need to be in that row to get the correct value of base paragraph
+     direction for the text at (*X, *Y).  */
+  move_it_to (&it, -1, 0, *y, -1, MOVE_TO_X | MOVE_TO_Y);
+
+  /* TO_X is the pixel position that the iterator will compute for the
+     glyph at *X.  We add it.first_visible_x because iterator
+     positions include the hscroll.  */
+  to_x = x0 + it.first_visible_x;
+  if (it.bidi_it.paragraph_dir == R2L)
+    /* For lines in an R2L paragraph, we need to mirror TO_X wrt the
+       text area.  This is because the iterator, even in R2L
+       paragraphs, delivers glyphs as if they started at the left
+       margin of the window.  (When we actually produce glyphs for
+       display, we reverse their order in PRODUCE_GLYPHS, but the
+       iterator doesn't know about that.)  The following line adjusts
+       the pixel position to the iterator geometry, which is what
+       move_it_* routines use.  (The -1 is because in a window whose
+       text-area width is W, the rightmost pixel position is W-1, and
+       it should be mirrored into zero pixel position.)  */
+    to_x = window_box_width (w, TEXT_AREA) - to_x - 1;
+
+  /* Now move horizontally in the row to the glyph under *X.  Second
+     argument is ZV to prevent move_it_in_display_line from matching
+     based on buffer positions.  */
+  move_it_in_display_line (&it, ZV, to_x, MOVE_TO_X);
 
   Fset_buffer (old_current_buffer);
 
@@ -5389,6 +5423,22 @@ buffer_posn_from_coords (struct window *w, int *x, int *y, struct display_pos *p
   if (STRINGP (it.string))
     string = it.string;
   *pos = it.current;
+  if (it.what == IT_COMPOSITION
+      && it.cmp_it.nchars > 1
+      && it.cmp_it.reversed_p)
+    {
+      /* The current display element is a grapheme cluster in a
+	 composition.  In that case, we need the position of the first
+	 character of the cluster.  But, as it.cmp_it.reversed_p is 1,
+	 it.current points to the last character of the cluster, thus
+	 we must move back to the first character of the same
+	 cluster.  */
+      CHARPOS (pos->pos) -= it.cmp_it.nchars - 1;
+      if (STRINGP (it.string))
+	BYTEPOS (pos->pos) = string_char_to_byte (string, CHARPOS (pos->pos));
+      else
+	BYTEPOS (pos->pos) = CHAR_TO_BYTE (CHARPOS (pos->pos));
+    }
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (it.what == IT_IMAGE)
@@ -5410,8 +5460,8 @@ buffer_posn_from_coords (struct window *w, int *x, int *y, struct display_pos *p
 	  if (img)
 	    {
 	      *dy -= row->ascent - glyph->ascent;
-	      *dx += glyph->slice.x;
-	      *dy += glyph->slice.y;
+	      *dx += glyph->slice.img.x;
+	      *dy += glyph->slice.img.y;
 	      /* Image slices positions are still relative to the entire image */
 	      *width = img->width;
 	      *height = img->height;
@@ -5451,7 +5501,9 @@ buffer_posn_from_coords (struct window *w, int *x, int *y, struct display_pos *p
    *CHARPOS is set to the position in the string returned.  */
 
 Lisp_Object
-mode_line_string (struct window *w, enum window_part part, int *x, int *y, int *charpos, Lisp_Object *object, int *dx, int *dy, int *width, int *height)
+mode_line_string (struct window *w, enum window_part part,
+		  int *x, int *y, EMACS_INT *charpos, Lisp_Object *object,
+		  int *dx, int *dy, int *width, int *height)
 {
   struct glyph_row *row;
   struct glyph *glyph, *end;
@@ -5518,7 +5570,9 @@ mode_line_string (struct window *w, enum window_part part, int *x, int *y, int *
    the string returned.  */
 
 Lisp_Object
-marginal_area_string (struct window *w, enum window_part part, int *x, int *y, int *charpos, Lisp_Object *object, int *dx, int *dy, int *width, int *height)
+marginal_area_string (struct window *w, enum window_part part,
+		      int *x, int *y, EMACS_INT *charpos, Lisp_Object *object,
+		      int *dx, int *dy, int *width, int *height)
 {
   struct glyph_row *row = w->current_matrix->rows;
   struct glyph *glyph, *end;
@@ -5573,8 +5627,8 @@ marginal_area_string (struct window *w, enum window_part part, int *x, int *y, i
 	      if (img != NULL)
 		*object = img->spec;
 	      y0 -= row->ascent - glyph->ascent;
-	      x0 += glyph->slice.x;
-	      y0 += glyph->slice.y;
+	      x0 += glyph->slice.img.x;
+	      y0 += glyph->slice.img.y;
 	    }
 #endif
 	}

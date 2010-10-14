@@ -18,6 +18,17 @@
 
 @itemize @bullet
 
+@item Supported Emacs versions
+The following Emacs versions are supported by No Gnus:
+@itemize @bullet
+
+@item Emacs 22 and up
+@item XEmacs 21.4
+@item XEmacs 21.5
+@item SXEmacs
+
+@end itemize
+
 @item Installation changes
 
 @itemize @bullet
@@ -55,6 +66,13 @@ remove-installed-shadows}.
 
 @itemize @bullet
 
+@item New version of @code{nnimap}
+
+@code{nnimap} has been reimplemented in a mostly-compatible way.  See
+the Gnus manual for a description of the new interface.  In
+particular, @code{nnimap-inbox} and the client side split method has
+changed.
+
 @item Gnus includes the Emacs Lisp @acronym{SASL} library.
 
 This provides a clean @acronym{API} to @acronym{SASL} mechanisms from
@@ -87,6 +105,12 @@ EasyPG is included in Emacs 23 and available separately as well.
 @c ************************
 
 @itemize @bullet
+
+@item
+Symbols like @code{gcc-self} now has the same presedence rules in
+@code{gnus-parameters} as other ``real'' variables: The last match
+wins instead of the first match.
+
 @item
 Old intermediate incoming mail files (@file{Incoming*}) are deleted
 after a couple of days, not immediately.  @xref{Mail Source
@@ -230,6 +254,16 @@ of the "Whomever writes:" line.  You need to set
 @code{message-insert-formatted-citation-line} as well.
 @end itemize
 
+@item Changes in Browse Server mode
+
+@itemize @bullet
+@item Gnus' sophisticated subscription methods are now available in
+Browse Server buffers as well using the variable
+@code{gnus-browse-subscribe-newsgroup-method}.
+
+@end itemize
+
+
 @item Changes in back ends
 
 @itemize @bullet
@@ -320,12 +354,12 @@ be unchanged except that the marks will be removed when copying or
 moving articles to a group that has not turned auto-expire on.
 @xref{Expiring Mail}.
 
+@item NoCeM support has been removed.
+
+@item Carpal mode has been removed.
+
 @end itemize
 
 @end itemize
 
 @c gnus-news.texi ends here.
-
-@ignore
-   arch-tag: 872c7569-4340-4d73-9d1d-7826d9f94a51
-@end ignore

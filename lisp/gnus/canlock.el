@@ -247,5 +247,4 @@ it fails."
 
 (provide 'canlock)
 
-;; arch-tag: 033c4f09-b9f1-459d-bd0d-254430283f78
 ;;; canlock.el ends here

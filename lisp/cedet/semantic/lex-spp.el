@@ -173,10 +173,42 @@ The search priority is:
       (setq semantic-lex-spp-dynamic-macro-symbol-obarray-stack
 	    (make-vector 13 0))))
 
+(defun semantic-lex-spp-value-valid-p (value)
+  "Return non-nil if VALUE is valid."
+  (or (null value)
+      (stringp value)
+      (and (consp value)
+	   (or (semantic-lex-token-p (car value))
+	       (eq (car (car value)) 'spp-arg-list)))))
+
+(defvar semantic-lex-spp-debug-symbol nil
+  "A symbol to break on if it is being set somewhere.")
+
+(defun semantic-lex-spp-enable-debug-symbol (sym)
+  "Enable debugging for symbol SYM.
+Disable debugging by entering nothing."
+  (interactive "sSymbol: ")
+  (if (string= sym "")
+      (setq semantic-lex-spp-debug-symbol nil)
+    (setq semantic-lex-spp-debug-symbol sym)))
+
+(defmacro semantic-lex-spp-validate-value (name value)
+  "Validate the NAME and VALUE of a macro before it is set."
+;  `(progn
+;     (when (not (semantic-lex-spp-value-valid-p ,value))
+;       (error "Symbol \"%s\" with bogus value %S" ,name ,value))
+;     (when (and semantic-lex-spp-debug-symbol
+;		(string= semantic-lex-spp-debug-symbol name))
+;       (debug))
+;     )
+  nil
+  )
+
 (defun semantic-lex-spp-symbol-set (name value &optional obarray-in)
   "Set value of spp symbol with NAME to VALUE and return VALUE.
 If optional OBARRAY-IN is non-nil, then use that obarray instead of
 the dynamic map."
+  (semantic-lex-spp-validate-value name value)
   (if (and (stringp value) (string= value "")) (setq value nil))
   (set (intern name (or obarray-in
 			(semantic-lex-spp-dynamic-map)))
@@ -192,6 +224,7 @@ the dynamic map."
 (defun semantic-lex-spp-symbol-push (name value)
   "Push macro NAME with VALUE into the map.
 Reverse with `semantic-lex-spp-symbol-pop'."
+  (semantic-lex-spp-validate-value name value)
   (let* ((map (semantic-lex-spp-dynamic-map))
 	 (stack (semantic-lex-spp-dynamic-map-stack))
 	 (mapsym (intern name map))
@@ -864,42 +897,45 @@ and variable state from the current buffer."
 			   semantic-lex-spp-expanded-macro-stack
 			   ))
 	 )
-    (with-current-buffer buf
-      (erase-buffer)
-      ;; Below is a painful hack to make sure everything is setup correctly.
-      (when (not (eq major-mode mode))
-	(save-match-data
+    (if (> semantic-lex-spp-hack-depth 5)
+	nil
+      (with-current-buffer buf
+	(erase-buffer)
+	;; Below is a painful hack to make sure everything is setup correctly.
+	(when (not (eq major-mode mode))
+	  (save-match-data
 
-	  ;; Protect against user-hooks that throw errors.
-	  (condition-case nil
-	      (funcall mode)
-	    (error nil))
+	    ;; Protect against user-hooks that throw errors.
+	    (condition-case nil
+		(funcall mode)
+	      (error nil))
 
-	  ;; Hack in mode-local
-	  (activate-mode-local-bindings)
-	  ;; CHEATER!  The following 3 lines are from
-	  ;; `semantic-new-buffer-fcn', but we don't want to turn
-	  ;; on all the other annoying modes for this little task.
-	  (setq semantic-new-buffer-fcn-was-run t)
-	  (semantic-lex-init)
-	  (semantic-clear-toplevel-cache)
-	  (remove-hook 'semantic-lex-reset-hooks 'semantic-lex-spp-reset-hook
-		       t)
-	  ))
+	    ;; Hack in mode-local
+	    (activate-mode-local-bindings)
 
-      ;; Second Cheat: copy key variables regarding macro state from the
-      ;; the originating buffer we are parsing.  We need to do this every time
-      ;; since the state changes.
-      (dolist (V important-vars)
-	(set V (semantic-buffer-local-value V origbuff)))
-      (insert text)
-      (goto-char (point-min))
+	    ;; CHEATER!  The following 3 lines are from
+	    ;; `semantic-new-buffer-fcn', but we don't want to turn
+	    ;; on all the other annoying modes for this little task.
+	    (setq semantic-new-buffer-fcn-was-run t)
+	    (semantic-lex-init)
+	    (semantic-clear-toplevel-cache)
+	    (remove-hook 'semantic-lex-reset-hooks 'semantic-lex-spp-reset-hook
+			 t)
+	    ))
 
-      (setq fresh-toks (semantic-lex-spp-stream-for-macro (point-max))))
+	;; Second Cheat: copy key variables regarding macro state from the
+	;; the originating buffer we are parsing.  We need to do this every time
+	;; since the state changes.
+	(dolist (V important-vars)
+	  (set V (semantic-buffer-local-value V origbuff)))
+	(insert text)
+	(goto-char (point-min))
 
-    (dolist (tok fresh-toks)
-      (when (memq (semantic-lex-token-class tok) '(symbol semantic-list))
-	(setq toks (cons tok toks))))
+	(setq fresh-toks (semantic-lex-spp-stream-for-macro (point-max))))
+
+      (dolist (tok fresh-toks)
+	(when (memq (semantic-lex-token-class tok) '(symbol semantic-list))
+	  (setq toks (cons tok toks)))))
 
     (nreverse toks)))
 

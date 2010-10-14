@@ -118,7 +118,7 @@ Used by the decoration style: `semantic-decoration-on-includes'."
   '((((class color) (background dark))
      (:background "#900000"))
     (((class color) (background light))
-     (:background "#ff5050")))
+     (:background "#fff0f0")))
   "*Face used to show includes that cannot be found.
 Used by the decoration style: `semantic-decoration-on-unknown-includes'."
   :group 'semantic-faces)
@@ -302,16 +302,19 @@ This mode provides a nice context menu on the include statements."
 	)
       ))
 
-    (let ((ol (semantic-decorate-tag tag
-				     (semantic-tag-start tag)
-				     (semantic-tag-end tag)
-				     face))
-	  )
-      (semantic-overlay-put ol 'mouse-face 'highlight)
-      (semantic-overlay-put ol 'keymap map)
-      (semantic-overlay-put ol 'help-echo
-			    "Header File : mouse-3 - Context menu")
-      )))
+    ;; @TODO - if not a tag w/ a position, we need to get one.  How?
+
+    (when (semantic-tag-with-position-p tag)
+      (let ((ol (semantic-decorate-tag tag
+				       (semantic-tag-start tag)
+				       (semantic-tag-end tag)
+				       face))
+	    )
+	(semantic-overlay-put ol 'mouse-face 'highlight)
+	(semantic-overlay-put ol 'keymap map)
+	(semantic-overlay-put ol 'help-echo
+			      "Header File : mouse-3 - Context menu")
+	))))
 
 ;;; Regular Include Functions
 ;;

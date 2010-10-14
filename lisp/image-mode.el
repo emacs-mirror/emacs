@@ -4,6 +4,7 @@
 ;;
 ;; Author: Richard Stallman <rms@gnu.org>
 ;; Keywords: multimedia
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -34,18 +35,6 @@
 
 (require 'image)
 (eval-when-compile (require 'cl))
-
-;;;###autoload (push (cons (purecopy "\\.jpe?g\\'")    'image-mode) auto-mode-alist)
-;;;###autoload (push (cons (purecopy "\\.png\\'")      'image-mode) auto-mode-alist)
-;;;###autoload (push (cons (purecopy "\\.gif\\'")      'image-mode) auto-mode-alist)
-;;;###autoload (push (cons (purecopy "\\.tiff?\\'")    'image-mode) auto-mode-alist)
-;;;###autoload (push (cons (purecopy "\\.p[bpgn]m\\'") 'image-mode) auto-mode-alist)
-
-;;;###autoload (push (cons (purecopy "\\.x[bp]m\\'")   'c-mode)     auto-mode-alist)
-;;;###autoload (push (cons (purecopy "\\.x[bp]m\\'")   'image-mode) auto-mode-alist)
-
-;;;###autoload (push (cons (purecopy "\\.svgz?\\'")    'xml-mode)   auto-mode-alist)
-;;;###autoload (push (cons (purecopy "\\.svgz?\\'")    'image-mode) auto-mode-alist)
 
 ;;; Image mode window-info management.
 
@@ -493,7 +482,10 @@ was inserted."
 			    (buffer-substring-no-properties (point-min) (point-max)))
 			 filename))
 	 (type (image-type file-or-data nil data-p))
-	 (image (create-animated-image file-or-data type data-p))
+         (image0 (create-animated-image file-or-data type data-p))
+	 (image (append image0
+                        (image-transform-properties image0)
+                        ))
 	 (props
 	  `(display ,image
 		    intangible ,image
@@ -556,6 +548,84 @@ the image file and `image-mode' showing the image as an image."
     (when (not (string= image-type (bookmark-prop-get bmk 'image-type)))
       (image-toggle-display))))
 
+
+(defvar image-transform-minor-mode-map
+  (let ((map (make-sparse-keymap)))
+;    (define-key map  [(control ?+)] 'image-scale-in)
+;    (define-key map  [(control ?-)] 'image-scale-out)
+;    (define-key map  [(control ?=)] 'image-scale-none)
+;;    (define-key map "c f h" 'image-scale-fit-height)
+;;    (define-key map "c ]" 'image-rotate-right)
+    map)
+  "Minor mode keymap for transforming the view of images Image mode.")
+
+(define-minor-mode image-transform-mode
+  "minor mode for scaleing and rotation"
+  nil "image-transform"
+  image-transform-minor-mode-map)
+
+(defvar image-transform-resize   nil
+  "The image resize operation. See the command
+  `image-transform-set-scale' for more information." )
+
+(defvar image-transform-rotation 0.0)
+
+
+(defun image-transform-properties (display)
+  "Calculate the display properties for transformations; scaling
+and rotation. "
+  (let*
+      ((size (image-size display t))
+       (height
+        (cond
+         ((and (numberp image-transform-resize) (eq 100 image-transform-resize))
+          nil)
+         ((numberp image-transform-resize)
+          (* image-transform-resize (cdr size)))
+         ((eq image-transform-resize 'fit-height)
+          (- (nth 3 (window-inside-pixel-edges)) (nth 1 (window-inside-pixel-edges))))
+         (t nil)))
+       (width (if (eq image-transform-resize 'fit-width)
+                  (- (nth 2 (window-inside-pixel-edges)) (nth 0 (window-inside-pixel-edges))))))
+
+    `(,@(if height (list :height height))
+      ,@(if width (list :width width))
+      ,@(if (not (equal 0.0 image-transform-rotation))
+            (list :rotation image-transform-rotation))
+      ;;TODO fit-to-* should consider the rotation angle
+      )))
+
+(defun image-transform-set-scale (scale)
+  "SCALE sets the scaling for images. "
+  (interactive "nscale:")
+  (image-transform-set-resize (float scale)))
+
+(defun image-transform-fit-to-height ()
+  "Fit image height to window height. "
+  (interactive)
+  (image-transform-set-resize 'fit-height))
+
+(defun image-transform-fit-to-width ()
+  "Fit image width to window width. "
+  (interactive)
+  (image-transform-set-resize 'fit-width))
+
+(defun image-transform-set-resize (resize)
+  "Set the resize mode for images. The RESIZE value can be the
+symbol fit-height which fits the image to the window height. The
+symbol fit-width fits the image to the window width.  A number
+indicates a scaling factor. nil indicates scale to 100%. "
+  (setq image-transform-resize resize)
+  (if (eq 'image-mode major-mode) (image-toggle-display-image)))
+
+(defun image-transform-set-rotation (rotation)
+  "Set the image ROTATION angle. "
+  (interactive "nrotation:")
+  ;;TODO 0 90 180 270 degrees are the only reasonable angles here
+  ;;otherwise combining with rescaling will get very awkward
+  (setq image-transform-rotation (float rotation))
+  (if (eq major-mode 'image-mode) (image-toggle-display-image)))
+
 (provide 'image-mode)
 
 ;; arch-tag: b5b2b7e6-26a7-4b79-96e3-1546b5c4c6cb

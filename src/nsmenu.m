@@ -1808,7 +1808,7 @@ syms_of_nsmenu (void)
   defsubr (&Sns_reset_menu);
   defsubr (&Smenu_or_popup_active_p);
 
-  Qdebug_on_next_call = intern ("debug-on-next-call");
+  Qdebug_on_next_call = intern_c_string ("debug-on-next-call");
   staticpro (&Qdebug_on_next_call);
 }
 

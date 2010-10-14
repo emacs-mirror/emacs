@@ -6,6 +6,7 @@
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;; Maintainer: Pavel Janík <Pavel@Janik.cz>
 ;; Keywords: comm
+;; Package: eudc
 
 ;; This file is part of GNU Emacs.
 
@@ -32,8 +33,17 @@
 (require 'eudc)
 
 (defvar eudc-hotlist-menu nil)
-(defvar eudc-hotlist-mode-map nil)
 (defvar eudc-hotlist-list-beginning nil)
+
+(defvar eudc-hotlist-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "a" 'eudc-hotlist-add-server)
+    (define-key map "d" 'eudc-hotlist-delete-server)
+    (define-key map "s" 'eudc-hotlist-select-server)
+    (define-key map "t" 'eudc-hotlist-transpose-servers)
+    (define-key map "q" 'eudc-hotlist-quit-edit)
+    (define-key map "x" 'kill-this-buffer)
+    map))
 
 (defun eudc-hotlist-mode ()
   "Major mode used to edit the hotlist of servers.
@@ -167,16 +177,6 @@ These are the special commands of this mode:
 	  (progn
 	    (forward-line 1)
 	    (transpose-lines 1))))))
-
-(setq eudc-hotlist-mode-map
-      (let ((map (make-sparse-keymap)))
-	(define-key map "a" 'eudc-hotlist-add-server)
-	(define-key map "d" 'eudc-hotlist-delete-server)
-	(define-key map "s" 'eudc-hotlist-select-server)
-	(define-key map "t" 'eudc-hotlist-transpose-servers)
-	(define-key map "q" 'eudc-hotlist-quit-edit)
-	(define-key map "x" 'kill-this-buffer)
-	map))
 
 (defconst eudc-hotlist-menu
   '("EUDC Hotlist Edit"

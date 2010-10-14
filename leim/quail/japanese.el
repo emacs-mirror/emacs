@@ -43,20 +43,25 @@
 		(or quail-current-str quail-current-key)
 	      ""))
     (if (integerp control-flag)
-	(if (= control-flag 0)
-	    (setq quail-current-str (aref quail-current-key 0))
-	  (cond ((= (aref quail-current-key 0) ?n)
+	(let ((keylen (length quail-current-key)))
+	  (cond ((= control-flag 0)
+		 (setq quail-current-str (aref quail-current-key 0)
+		       control-flag t))
+		((= (aref quail-current-key 0) ?n)
 		 (setq quail-current-str ?ん)
 		 (if (and quail-japanese-use-double-n
+			  (> keylen 0)
 			  (= (aref quail-current-key 1) ?n))
 		     (setq control-flag t)))
-		((= (aref quail-current-key 0) (aref quail-current-key 1))
+		((and (> keylen 1)
+		      (= (aref quail-current-key 0) (aref quail-current-key 1)))
 		 (setq quail-current-str ?っ))
 		(t
 		 (setq quail-current-str (aref quail-current-key 0))))
 	  (if (integerp control-flag)
 	      (setq unread-command-events
-		    (list (aref quail-current-key control-flag)))))))
+		    (string-to-list
+		     (substring quail-current-key control-flag)))))))
   control-flag)
 
 ;; Convert Hiragana <-> Katakana in the current translation region.

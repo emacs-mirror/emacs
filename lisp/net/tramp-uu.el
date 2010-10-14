@@ -1,10 +1,11 @@
 ;;; tramp-uu.el --- uuencode in Lisp
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007,
-;;   2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+;;   2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: Kai Großjohann <kai.grossjohann@gmx.net>
 ;; Keywords: comm, terminals
+;; Package: tramp
 
 ;; This file is part of GNU Emacs.
 
@@ -49,6 +50,7 @@
   "Return the byte that is encoded as CHAR."
   (cdr (assq char tramp-uu-b64-char-to-byte)))
 
+;;;###tramp-autoload
 (defun tramp-uuencode-region (beg end)
   "UU-encode the region between BEG and END."
   ;; First we base64 encode the region, then we transmogrify that into
@@ -85,6 +87,10 @@
       (insert "`\nend\n")
       (goto-char beg)
       (insert "begin 600 xxx\n"))))
+
+(add-hook 'tramp-unload-hook
+	  (lambda ()
+	    (unload-feature 'tramp-uu 'force)))
 
 (provide 'tramp-uu)
 

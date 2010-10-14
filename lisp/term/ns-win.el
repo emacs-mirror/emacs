@@ -66,6 +66,7 @@
 ;; nsterm.m
 (defvar ns-version-string)
 (defvar ns-alternate-modifier)
+(defvar ns-right-alternate-modifier)
 
 ;;;; Command line argument handling.
 
@@ -284,6 +285,7 @@ The properties returned may include `top', `left', `height', and `width'."
 (defvaralias 'mac-command-modifier 'ns-command-modifier)
 (defvaralias 'mac-control-modifier 'ns-control-modifier)
 (defvaralias 'mac-option-modifier 'ns-option-modifier)
+(defvaralias 'mac-right-option-modifier 'ns-right-option-modifier)
 (defvaralias 'mac-function-modifier 'ns-function-modifier)
 (declare-function ns-do-applescript "nsfns.m" (script))
 (defalias 'do-applescript 'ns-do-applescript)
@@ -293,7 +295,7 @@ The properties returned may include `top', `left', `height', and `width'."
   (unless (terminal-parameter frame 'x-setup-function-keys)
     (with-selected-frame frame
       (setq interprogram-cut-function 'x-select-text
-	    interprogram-paste-function 'x-cut-buffer-or-selection-value)
+	    interprogram-paste-function 'x-selection-value)
       (let ((map (copy-keymap ns-alternatives-map)))
 	(set-keymap-parent map (keymap-parent local-function-key-map))
 	(set-keymap-parent local-function-key-map map))
@@ -815,6 +817,7 @@ unless the current buffer is a scratch buffer."
 
 ;; You say tomAYto, I say tomAHto..
 (defvaralias 'ns-option-modifier 'ns-alternate-modifier)
+(defvaralias 'ns-right-option-modifier 'ns-right-alternate-modifier)
 
 (defun ns-do-hide-emacs ()
   (interactive)
@@ -1015,23 +1018,21 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 
 ;; We keep track of the last text selected here, so we can check the
 ;; current selection against it, and avoid passing back our own text
-;; from x-cut-buffer-or-selection-value.
+;; from x-selection-value.
 (defvar ns-last-selected-text nil)
 
-(defun x-select-text (text &optional push)
+(defun x-select-text (text)
   "Select TEXT, a string, according to the window system.
 
-On X, put TEXT in the primary X selection.  For backward
-compatibility with older X applications, set the value of X cut
-buffer 0 as well, and if the optional argument PUSH is non-nil,
-rotate the cut buffers.  If `x-select-enable-clipboard' is
-non-nil, copy the text to the X clipboard as well.
+On X, if `x-select-enable-clipboard' is non-nil, copy TEXT to the
+clipboard.  If `x-select-enable-primary' is non-nil, put TEXT in
+the primary selection.
 
 On Windows, make TEXT the current selection.  If
 `x-select-enable-clipboard' is non-nil, copy the text to the
-clipboard as well.  The argument PUSH is ignored.
+clipboard as well.
 
-On Nextstep, put TEXT in the pasteboard; PUSH is ignored."
+On Nextstep, put TEXT in the pasteboard."
   ;; Don't send the pasteboard too much text.
   ;; It becomes slow, and if really big it causes errors.
   (ns-set-pasteboard text)
@@ -1040,11 +1041,10 @@ On Nextstep, put TEXT in the pasteboard; PUSH is ignored."
 ;; Return the value of the current Nextstep selection.  For
 ;; compatibility with older Nextstep applications, this checks cut
 ;; buffer 0 before retrieving the value of the primary selection.
-(defun x-cut-buffer-or-selection-value ()
+(defun x-selection-value ()
   (let (text)
 
-    ;; Consult the selection, then the cut buffer.  Treat empty strings
-    ;; as if they were unset.
+    ;; Consult the selection.  Treat empty strings as if they were unset.
     (or text (setq text (ns-get-pasteboard)))
     (if (string= text "") (setq text nil))
 

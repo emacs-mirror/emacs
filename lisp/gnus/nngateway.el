@@ -89,5 +89,4 @@ parameter -- the gateway address.")
 
 (provide 'nngateway)
 
-;; arch-tag: f7ecb92e-b10c-43d5-9a9b-1314233341fc
 ;;; nngateway.el ends here

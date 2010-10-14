@@ -2008,7 +2008,7 @@ detect_coding_emacs_mule (struct coding_system *coding,
 	}
       else
 	{
-	  int more_bytes = emacs_mule_bytes[*src_base] - 1;
+	  int more_bytes = emacs_mule_bytes[c] - 1;
 
 	  while (more_bytes > 0)
 	    {
@@ -4490,7 +4490,10 @@ encode_coding_iso_2022 (struct coding_system *coding)
   charset_list = CODING_ATTR_CHARSET_LIST (attrs);
   coding->safe_charsets = SDATA (CODING_ATTR_SAFE_CHARSETS (attrs));
 
-  ascii_compatible = ! NILP (CODING_ATTR_ASCII_COMPAT (attrs));
+  ascii_compatible
+    = (! NILP (CODING_ATTR_ASCII_COMPAT (attrs))
+       && ! (CODING_ISO_FLAGS (coding) & (CODING_ISO_FLAG_DESIGNATION
+					  | CODING_ISO_FLAG_LOCKING_SHIFT)));
 
   while (charbuf < charbuf_end)
     {
@@ -6013,10 +6016,9 @@ raw_text_coding_system (Lisp_Object coding_system)
 }
 
 
-/* If CODING_SYSTEM doesn't specify end-of-line format but PARENT
-   does, return one of the subsidiary that has the same eol-spec as
-   PARENT.  Otherwise, return CODING_SYSTEM.  If PARENT is nil,
-   inherit end-of-line format from the system's setting
+/* If CODING_SYSTEM doesn't specify end-of-line format, return one of
+   the subsidiary that has the same eol-spec as PARENT (if it is not
+   nil and specifies end-of-line format) or the system's setting
    (system_eol_type).  */
 
 Lisp_Object
@@ -6038,6 +6040,8 @@ coding_inherit_eol_type (Lisp_Object coding_system, Lisp_Object parent)
 
 	  parent_spec = CODING_SYSTEM_SPEC (parent);
 	  parent_eol_type = AREF (parent_spec, 2);
+	  if (VECTORP (parent_eol_type))
+	    parent_eol_type = system_eol_type;
 	}
       else
 	parent_eol_type = system_eol_type;
@@ -6050,6 +6054,45 @@ coding_inherit_eol_type (Lisp_Object coding_system, Lisp_Object parent)
     }
   return coding_system;
 }
+
+
+/* Check if text-conversion and eol-conversion of CODING_SYSTEM are
+   decided for writing to a process.  If not, complement them, and
+   return a new coding system.  */
+
+Lisp_Object
+complement_process_encoding_system (Lisp_Object coding_system)
+{
+  Lisp_Object coding_base = Qnil, eol_base = Qnil;
+  Lisp_Object spec, attrs;
+  int i;
+
+  for (i = 0; i < 3; i++)
+    {
+      if (i == 1)
+	coding_system = CDR_SAFE (Vdefault_process_coding_system);
+      else if (i == 2)
+	coding_system = preferred_coding_system ();
+      spec = CODING_SYSTEM_SPEC (coding_system);
+      if (NILP (spec))
+	continue;
+      attrs = AREF (spec, 0);
+      if (NILP (coding_base) && ! EQ (CODING_ATTR_TYPE (attrs), Qundecided))
+	coding_base = CODING_ATTR_BASE_NAME (attrs);
+      if (NILP (eol_base) && ! VECTORP (AREF (spec, 2)))
+	eol_base = coding_system;
+      if (! NILP (coding_base) && ! NILP (eol_base))
+	break;
+    }
+
+  if (i > 0)
+    /* The original CODING_SYSTEM didn't specify text-conversion or
+       eol-conversion.  Be sure that we return a fully complemented
+       coding system.  */
+    coding_system = coding_inherit_eol_type (coding_base, eol_base);
+  return coding_system;
+}
+
 
 /* Emacs has a mechanism to automatically detect a coding system if it
    is one of Emacs' internal format, ISO2022, SJIS, and BIG5.  But,

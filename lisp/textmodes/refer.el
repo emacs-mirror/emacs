@@ -1,7 +1,7 @@
 ;;; refer.el --- look up references in bibliography files
 
-;; Copyright (C) 1992, 1996, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1996, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Ashwin Ram <ashwin@cc.gatech.edu>
 ;; Maintainer: Gernot Heiser <gernot@acm.org>
@@ -96,7 +96,7 @@ happen anyway)."
   :group 'refer)
 
 (defcustom refer-bib-files 'dir
-  "*List of \\.bib files to search for references,
+  "List of \\.bib files to search for references,
 or one of the following special values:
 nil  = prompt for \\.bib file (if visiting a \\.bib file, use it as default)
 auto = read \\.bib file names from appropriate command in buffer (see
@@ -115,7 +115,7 @@ each time it is needed."
   :group 'refer)
 
 (defcustom refer-cache-bib-files t
-  "*Variable determining whether the value of `refer-bib-files' should be cached.
+  "Variable determining whether the value of `refer-bib-files' should be cached.
 If t, initialize the value of refer-bib-files the first time it is used.  If
 nil, re-read the list of \\.bib files depending on the value of `refer-bib-files'
 each time it is needed."
@@ -123,7 +123,7 @@ each time it is needed."
   :group 'refer)
 
 (defcustom refer-bib-files-regexp "\\\\bibliography"
-  "*Regexp matching a bibliography file declaration.
+  "Regexp matching a bibliography file declaration.
 The current buffer is expected to contain a line such as
 \\bibliography{file1,file2,file3}
 which is read to set up `refer-bib-files'.  The regexp must specify the command

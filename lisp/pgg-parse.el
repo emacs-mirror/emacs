@@ -6,6 +6,7 @@
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Created: 1999/10/28
 ;; Keywords: PGP, OpenPGP, GnuPG
+;; Package: pgg
 
 ;; This file is part of GNU Emacs.
 
@@ -35,6 +36,7 @@
 ;;; Code:
 
 (eval-when-compile
+  ;; For Emacs <22.2 and XEmacs.
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r)))
   (require 'cl))
 
@@ -518,5 +520,4 @@
 
 (provide 'pgg-parse)
 
-;; arch-tag: 16c2eb82-1313-4a7c-a70f-420709b5b43e
 ;;; pgg-parse.el ends here

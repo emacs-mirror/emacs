@@ -1,3 +1,313 @@
+2010-10-12  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa.texi (Caching Passphrases):
+	* auth.texi (GnuPG and EasyPG Assistant Configuration): Clarify
+	some configurations require to set up gpg-agent.
+
+2010-10-11  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (.texi.dvi): Remove unnecessary suffix rule.
+
+2010-10-09  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Spam Package Introduction): Mention `$'.
+
+2010-10-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (emacsdir): New variable.
+	($(infodir)/efaq, faq.dvi): Depend on emacsver.texi.
+	(ENVADD, $(infodir)/efaq): Add -I$(emacsdir).
+
+2010-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (mostlyclean): Delete *.toc.
+
+	* Makefile.in: Use $< in rules.
+
+	* Makefile.in (maintainer-clean): Remove harmless, long-standing error.
+
+	* Makefile.in ($(infodir)): Delete rule.
+	(mkinfodir): New.  Use it in all the info rules, rather than depending
+	on infodir.
+
+2010-10-09  Glenn Morris  <rgm@gnu.org>
+
+	* gnus.texi (Article Washing): Fix previous change.
+
+	* Makefile.in (emacsdir): New variable.
+	($(infodir)/efaq): Pass -I $(emacsdir) to makeinfo.
+	Depend on emacsver.texi.
+
+	* faq.texi (VER): Replace with EMACSVER from emacsver.texi.
+
+	* Makefile.in (.PHONY): Declare info, dvi, pdf and the clean rules.
+
+2010-10-08  Julien Danjou  <julien@danjou.info>
+
+	* gnus.texi: Add mm-shr.
+
+2010-10-08  Ludovic Courtès  <ludo@gnu.org>
+
+	* gnus.texi (Finding the Parent, The Gnus Registry)
+	(Registry Article Refer Method): Update docs for nnregistry.el.
+
+2010-10-08  Daiki Ueno  <ueno@unixuser.org>
+
+	* auth.texi (Help for users)
+	(GnuPG and EasyPG Assistant Configuration): Update docs.
+
+2010-10-08  Glenn Morris  <rgm@gnu.org>
+
+	* cl.texi (Organization, Installation, Old CL Compatibility):
+	Deprecate cl-compat for new code.
+	(Usage, Installation): Remove outdated information.
+
+	* eudc.texi (CCSO PH/QI, LDAP Requirements): Remove old information.
+
+2010-10-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Gravatars): Document gnus-gravatar-too-ugly.
+
+2010-10-06  Julien Danjou  <julien@danjou.info>
+
+	* sieve.texi (Manage Sieve API): Document sieve-manage-authenticate.
+
+	* message.texi (PGP Compatibility): Remove reference to gpg-2comp,
+	broken link.
+
+	* gnus-faq.texi (FAQ 8-3): Remove references to my.gnus.org.
+
+	* gnus.texi (Comparing Mail Back Ends): Remove broken link and allusion
+	to ReiserFS.
+
+	* gnus-faq.texi (FAQ 5-5): Fix Flyspell URL.
+	(FAQ 7-1): Fix getmail URL.
+
+2010-10-06  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa.texi (Caching Passphrases): New section.
+
+2010-10-06  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (SHELL): Set it.
+	(info): Move the mkdir dependency to the individual info files.
+	(mostlyclean): Tidy up.
+	(clean): Only delete the specific dvi and pdf files.
+	(maintainer-clean): Be more restrictive in what we delete.
+	($(infodir)): Add parallel build workaround.
+
+2010-10-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Misc Article): Document gnus-widen-article-window.
+
+2010-10-03  Julien Danjou  <julien@danjou.info>
+
+	* emacs-mime.texi (Display Customization): Update
+	mm-inline-large-images documentation and add documentation for
+	mm-inline-large-images-proportion.
+
+2010-10-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Frequently Asked Questions): Mention
+	remote-file-name-inhibit-cache.
+
+2010-10-02  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Splitting Mail): Fix @xref syntax.
+	(Splitting Mail): Really fix the @ref syntax.
+
+2010-10-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Splitting Mail): Mention the new fancy splitting
+	function.
+	(Article Hiding): Add google banner example.  Suggested by Benjamin
+	Xu.
+
+2010-09-30  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus.texi (Spam Package Configuration Examples, SpamOracle): Remove
+	nnimap-split-rule from examples.
+
+2010-09-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Mail Source Specifiers): Remove webmail.el mentions.
+	(NNTP): Document nntp-server-list-active-group.  Suggested by Barry
+	Fishman.
+	(Client-Side IMAP Splitting): Add nnimap-split-fancy.
+
+2010-09-30  Julien Danjou  <julien@danjou.info>
+
+	* gnus.texi (Gravatars): Fix documentation about
+	gnu-gravatar-properties.
+
+2010-09-29  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa.texi (Bug Reports): New section.
+
+2010-09-29  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (top_srcdir): Remove unused variable.
+
+2010-09-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Using IMAP): Remove the @acronyms from the headings.
+	(Client-Side IMAP Splitting): Document 'default.
+
+2010-09-27  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Customizing the IMAP Connection): Document
+	nnimap-fetch-partial-articles.
+
+2010-09-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-news.texi: Mention nnimap-inbox.
+
+	* gnus.texi (Picons): Document gnus-picon-inhibit-top-level-domains.
+
+2010-09-26  Julien Danjou  <julien@danjou.info>
+
+	* gnus.texi (Oort Gnus): Remove mention of ssl.el.
+
+2010-09-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Security): Remove gpg.el mention.
+
+2010-09-26  Andreas Seltenreich  <seltenreich@gmx.de>
+
+	* gnus.texi (Browse Foreign Server): New variable
+	gnus-browse-subscribe-newsgroup-method.
+
+	* gnus-news.texi: Mention it.
+
+2010-09-26  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (NoCeM): Removed.
+	(Startup Variables): No jingle.
+
+2010-09-25  Ulrich Mueller  <ulm@gentoo.org>
+
+	* woman.texi (Interface Options): xz compression is now supported.
+
+2010-09-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Article Commands): Document gnus-fetch-partial-articles.
+	(Unavailable Servers): Document gnus-server-copy-server.
+	(Using IMAP): Document the new nnimap.
+
+2010-09-25  Julien Danjou  <julien@danjou.info>
+
+	* gnus.texi (Customizing Articles): Remove gnus-treat-translate.
+
+2010-09-24  Glenn Morris  <rgm@gnu.org>
+
+	* url.texi (Disk Caching): Tweak previous change.
+
+2010-09-24  Julien Danjou  <julien@danjou.info>
+
+	* url.texi (Disk Caching): Mention url-cache-expire-time,
+	url-cache-expired, and url-fetch-from-cache.
+
+2010-09-24  Julien Danjou  <julien@danjou.info>
+
+	* gnus.texi: Add Gravatars.
+
+2010-09-23  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Startup Variables): Mention gnus-use-backend-marks.
+
+2010-09-21  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Expunging mailboxes): Update name of the expunging
+	command.
+
+2010-09-20  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* emacs-mime.texi (rfc2047): Update description for
+	rfc2047-encode-parameter.
+
+2010-09-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Inline methods): Remove "ssh1_old", "ssh2_old" and
+	"fish" methods.
+	(External methods): Remove "scp1_old" and "scp2_old" methods.
+
+2010-09-09  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi: Remove Japanese manual.  Fix typo.
+
+	* trampver.texi: Update release number.  Remove japanesemanual.
+
+2010-09-09  Glenn Morris  <rgm@gnu.org>
+
+	* org.texi: Restore clobbered changes (copyright years, untabify).
+
+2010-09-04  Julien Danjou  <julien@danjou.info>  (tiny change)
+
+	* gnus.texi (Adaptive Scoring): Fix typo.
+
+2010-09-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Article Display): Document gnus-html-show-images.
+
+2010-09-02  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* cl.texi (Basic Setf): Remove x-get-cut-buffer and x-get-cutbuffer.
+
+2010-09-01  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (HTML): Document gnus-max-image-proportion.
+
+2010-08-31  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (HTML): Document gnus-blocked-images.
+
+	* message.texi (Wide Reply): Document message-prune-recipient-rules.
+
+2010-08-30  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Summary Mail Commands): Note that only the addresses from
+	the first message are used for wide replies.
+	(Changing Servers): Remove documentation on gnus-change-server and
+	friends, since it's been removed.
+
+2010-08-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Drafts): Mention B DEL.
+
+2010-08-29  Tim Landscheidt  <tim@tim-landscheidt.de>  (tiny change)
+
+	* gnus.texi (Delayed Articles): Mention that the Date header is the
+	original one, even if you delay.
+
+2010-08-29  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Asynchronous Fetching): Document
+	gnus-async-post-fetch-function.
+	(HTML): Made into its own section.
+
+2010-08-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.1.19.
+
+	* tramp.texi (Inline methods, Default Method): Mention
+	`tramp-inline-compress-start-size'.  Remove "kludgy" phrase.  Remove
+	remark about doubled "-t" argument.
+	(Auto-save and Backup): Remove reference to Emacs 21.
+	(Filename Syntax): Describe port numbers.
+	(Frequently Asked Questions): Adapt supported (X)Emacs versions.  Adapt
+	supported MS Windows versions.  Remove obsolete URL.  Recommend "sshx"
+	and "scpx" for echoing shells.  Use the $() syntax, texi2dvi reports
+	errors with the backquotes.
+	(External packages): File attributes cache flushing for asynchronous
+	processes.
+	(Traces and Profiles): Describe verbose level 9.
+
+	* trampver.texi: Update release number.
+
+2010-08-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Alternative Buses): New chapter.
+
 2010-08-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* cl.texi (Mapping over Sequences): Rename mapc => cl-mapc.
@@ -6818,12 +7128,11 @@
 
 ;; Local Variables:
 ;; coding: utf-8
-;; fill-column: 79
-;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,
-      2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010  Free Software Foundation, Inc.
+  Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,
+    2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
+    Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
@@ -6839,5 +7148,3 @@
 
   You should have received a copy of the GNU General Public License
   along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-
-;; arch-tag: 08b2903e-900c-4c72-a4a9-e76416a80803

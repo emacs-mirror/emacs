@@ -3,6 +3,7 @@
 ;; Copyright (C) 2008, 2009, 2010 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
+;; Package: cedet
 
 ;; This file is part of GNU Emacs.
 
@@ -30,6 +31,12 @@
 
 (defcustom cedet-global-command "global"
   "Command name for the GNU Global executable."
+  :type 'string
+  :group 'cedet)
+
+(defcustom cedet-global-gtags-command "gtags"
+  "Command name for the GNU Global gtags executable.
+GTAGS is used to create the tags table queried by the 'global' command."
   :type 'string
   :group 'cedet)
 
@@ -71,6 +78,19 @@ SCOPE is the scope of the search, such as 'project or 'subdirs."
       (setq default-directory cd)
       (erase-buffer))
     (apply 'call-process cedet-global-command
+	   nil b nil
+	   flags)
+    b))
+
+(defun cedet-gnu-global-gtags-call (flags)
+  "Create GNU Global TAGS using gtags with FLAGS."
+  (let ((b (get-buffer-create "*CEDET Global gtags*"))
+	(cd default-directory)
+	)
+    (with-current-buffer b
+      (setq default-directory cd)
+      (erase-buffer))
+    (apply 'call-process cedet-global-gtags-command
 	   nil b nil
 	   flags)
     b))
@@ -151,6 +171,18 @@ return nil."
 			 hits)))
       ;; Return the results
       (nreverse hits))))
+
+(defun cedet-gnu-global-create/update-database (&optional dir)
+  "Create a GNU Global database in DIR.
+If a database already exists, then just update it."
+  (interactive "DDirectory: ")
+  (let ((root (cedet-gnu-global-root dir)))
+    (if root (setq dir root))
+    (let ((default-directory dir))
+      (cedet-gnu-global-gtags-call
+       (when root
+	 '("-i");; Incremental update flag.
+	 )))))
 
 (provide 'cedet-global)
 

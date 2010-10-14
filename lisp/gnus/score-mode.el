@@ -116,5 +116,4 @@ This mode is an extended emacs-lisp mode.
 
 (provide 'score-mode)
 
-;; arch-tag: a74a416b-2505-4ad4-bc4e-a418c96b8845
 ;;; score-mode.el ends here

@@ -1,6 +1,7 @@
 ;;; gmm-utils.el --- Utility functions for Gnus, Message and MML
 
-;; Copyright (C) 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 2006, 2007, 2008, 2009, 2010
+;;   Free Software Foundation, Inc.
 
 ;; Author: Reiner Steib <reiner.steib@gmx.de>
 ;; Keywords: news
@@ -267,27 +268,16 @@ DEFAULT-MAP specifies the default key map for ICON-LIST."
 		       ;; (tool-bar-add-item ICON DEF KEY &rest PROPS)
 		       (apply 'tool-bar-add-item icon nil nil :enable nil props)))
 		    ((equal fmap t) ;; Not a menu command
-		     (if (fboundp 'tool-bar-local-item)
-			 (apply 'tool-bar-local-item
-				icon command
-				(intern icon) ;; reuse icon or fmap here?
-				tool-bar-map props)
-		       ;; Emacs 21 compatibility:
-		       (apply 'tool-bar-add-item
-			      icon command
-			      (intern icon)
-			      props)))
+		     (apply 'tool-bar-local-item
+			    icon command
+			    (intern icon) ;; reuse icon or fmap here?
+			    tool-bar-map props))
 		    (t ;; A menu command
-		     (if (fboundp 'tool-bar-local-item-from-menu)
-			 (apply 'tool-bar-local-item-from-menu
-				;; (apply 'tool-bar-local-item icon def key
-				;; tool-bar-map props)
-				command icon tool-bar-map (symbol-value fmap)
-				props)
-		       ;; Emacs 21 compatibility:
-		       (apply 'tool-bar-add-item-from-menu
-			      command icon (symbol-value fmap)
-			      props))))
+		     (apply 'tool-bar-local-item-from-menu
+			    ;; (apply 'tool-bar-local-item icon def key
+			    ;; tool-bar-map props)
+			    command icon tool-bar-map (symbol-value fmap)
+			    props)))
 	      t))
 	  (if (symbolp icon-list)
 	      (eval icon-list)
@@ -422,16 +412,12 @@ If mode is nil, use `major-mode' of the current buffer."
 
 In XEmacs, the seventh argument of `write-region' specifies the
 coding-system."
-  (if (and mustbenew
-	   (or (featurep 'xemacs)
-	       (= emacs-major-version 20)))
+  (if (and mustbenew (featurep 'xemacs))
       (if (file-exists-p filename)
-	  (signal 'file-already-exists
-		  (list "File exists" filename))
+	  (signal 'file-already-exists (list "File exists" filename))
 	(write-region start end filename append visit lockname))
     (write-region start end filename append visit lockname mustbenew)))
 
 (provide 'gmm-utils)
 
-;; arch-tag: e0b60920-2ce6-40c1-bfc0-cadbbe26b602
 ;;; gmm-utils.el ends here

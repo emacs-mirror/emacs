@@ -68,12 +68,10 @@ used to display Gnus windows."
 (defvar gnus-buffer-configuration
   '((group
      (vertical 1.0
-	       (group 1.0 point)
-	       (if gnus-carpal '(group-carpal 4))))
+	       (group 1.0 point)))
     (summary
      (vertical 1.0
-	       (summary 1.0 point)
-	       (if gnus-carpal '(summary-carpal 4))))
+	       (summary 1.0 point)))
     (article
      (cond
       (gnus-use-trees
@@ -84,16 +82,13 @@ used to display Gnus windows."
       (t
        '(vertical 1.0
 		  (summary 0.25 point)
-		  (if gnus-carpal '(summary-carpal 4))
 		  (article 1.0)))))
     (server
      (vertical 1.0
-	       (server 1.0 point)
-	       (if gnus-carpal '(server-carpal 2))))
+	       (server 1.0 point)))
     (browse
      (vertical 1.0
-	       (browse 1.0 point)
-	       (if gnus-carpal '(browse-carpal 2))))
+	       (browse 1.0 point)))
     (message
      (vertical 1.0
 	       (message 1.0 point)))
@@ -107,6 +102,9 @@ used to display Gnus windows."
      (vertical 1.0
 	       (summary 0.25)
 	       (faq 1.0 point)))
+    (only-article
+     (vertical 1.0
+	       (article 1.0 point)))
     (edit-article
      (vertical 1.0
 	       (article 1.0 point)))
@@ -142,7 +140,6 @@ used to display Gnus windows."
     (pipe
      (vertical 1.0
 	       (summary 0.25 point)
-	       (if gnus-carpal '(summary-carpal 4))
 	       ("*Shell Command Output*" 1.0)))
     (bug
      (vertical 1.0
@@ -186,10 +183,6 @@ See the Gnus manual for an explanation of the syntax used.")
     (edit-group . gnus-group-edit-buffer)
     (edit-form . gnus-edit-form-buffer)
     (edit-server . gnus-server-edit-buffer)
-    (group-carpal . gnus-carpal-group-buffer)
-    (summary-carpal . gnus-carpal-summary-buffer)
-    (server-carpal . gnus-carpal-server-buffer)
-    (browse-carpal . gnus-carpal-browse-buffer)
     (edit-score . gnus-score-edit-buffer)
     (message . gnus-message-buffer)
     (mail . gnus-message-buffer)
@@ -590,5 +583,4 @@ should have point."
 
 (provide 'gnus-win)
 
-;; arch-tag: ccd5a394-2ddf-4397-b8f8-6d80d3e46e2b
 ;;; gnus-win.el ends here

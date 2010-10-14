@@ -1,7 +1,7 @@
 ;;; lucid.el --- emulate some Lucid Emacs functions
 
-;; Copyright (C) 1993, 1995, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: emulations
@@ -89,8 +89,8 @@ This function exists for compatibility with XEmacs."
    ((display-grayscale-p device) 'grayscale)
    (t 'mono)))
 
-(defalias 'find-face 'internal-find-face)
-(defalias 'get-face 'internal-get-face)
+(defalias 'find-face 'facep)
+(defalias 'get-face 'facep)
 ;; internal-try-face-font was removed from faces.el in rev 1.139, 1999/07/21.
 ;;;(defalias 'try-face-font 'internal-try-face-font)
 

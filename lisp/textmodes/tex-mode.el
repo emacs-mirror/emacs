@@ -58,14 +58,14 @@
 
 ;;;###autoload
 (defcustom tex-shell-file-name nil
-  "*If non-nil, the shell file name to run in the subshell used to run TeX."
+  "If non-nil, the shell file name to run in the subshell used to run TeX."
   :type '(choice (const :tag "None" nil)
 		 string)
   :group 'tex-run)
 
 ;;;###autoload
 (defcustom tex-directory (purecopy ".")
-  "*Directory in which temporary files are written.
+  "Directory in which temporary files are written.
 You can make this `/tmp' if your TEXINPUTS has no relative directories in it
 and you don't try to apply \\[tex-region] or \\[tex-buffer] when there are
 `\\input' commands with relative directories."
@@ -84,7 +84,7 @@ if it matches the first line of the file,
 
 ;;;###autoload
 (defcustom tex-main-file nil
-  "*The main TeX source file which includes this buffer's file.
+  "The main TeX source file which includes this buffer's file.
 The command `tex-file' runs TeX on the file specified by `tex-main-file'
 if the variable is non-nil."
   :type '(choice (const :tag "None" nil)
@@ -93,13 +93,13 @@ if the variable is non-nil."
 
 ;;;###autoload
 (defcustom tex-offer-save t
-  "*If non-nil, ask about saving modified buffers before \\[tex-file] is run."
+  "If non-nil, ask about saving modified buffers before \\[tex-file] is run."
   :type 'boolean
   :group 'tex-file)
 
 ;;;###autoload
 (defcustom tex-run-command (purecopy "tex")
-  "*Command used to run TeX subjob.
+  "Command used to run TeX subjob.
 TeX Mode sets `tex-command' to this string.
 See the documentation of that variable."
   :type 'string
@@ -107,7 +107,7 @@ See the documentation of that variable."
 
 ;;;###autoload
 (defcustom latex-run-command (purecopy "latex")
-  "*Command used to run LaTeX subjob.
+  "Command used to run LaTeX subjob.
 LaTeX Mode sets `tex-command' to this string.
 See the documentation of that variable."
   :type 'string
@@ -115,7 +115,7 @@ See the documentation of that variable."
 
 ;;;###autoload
 (defcustom slitex-run-command (purecopy "slitex")
-  "*Command used to run SliTeX subjob.
+  "Command used to run SliTeX subjob.
 SliTeX Mode sets `tex-command' to this string.
 See the documentation of that variable."
   :type 'string
@@ -123,7 +123,7 @@ See the documentation of that variable."
 
 ;;;###autoload
 (defcustom tex-start-options (purecopy "")
-  "*TeX options to use when starting TeX.
+  "TeX options to use when starting TeX.
 These immediately precede the commands in `tex-start-commands'
 and the input file name, with no separating space and are not shell-quoted.
 If nil, TeX runs with no options.  See the documentation of `tex-command'."
@@ -133,7 +133,7 @@ If nil, TeX runs with no options.  See the documentation of `tex-command'."
 
 ;;;###autoload
 (defcustom tex-start-commands (purecopy "\\nonstopmode\\input")
-  "*TeX commands to use when starting TeX.
+  "TeX commands to use when starting TeX.
 They are shell-quoted and precede the input file name, with a separating space.
 If nil, no commands are used.  See the documentation of `tex-command'."
   :type '(radio (const :tag "Interactive \(nil\)" nil)
@@ -157,14 +157,14 @@ If nil, no commands are used.  See the documentation of `tex-command'."
 
 ;;;###autoload
 (defcustom latex-block-names nil
-  "*User defined LaTeX block names.
+  "User defined LaTeX block names.
 Combined with `latex-standard-block-names' for minibuffer completion."
   :type '(repeat string)
   :group 'tex-run)
 
 ;;;###autoload
 (defcustom tex-bibtex-command (purecopy "bibtex")
-  "*Command used by `tex-bibtex-file' to gather bibliographic data.
+  "Command used by `tex-bibtex-file' to gather bibliographic data.
 If this string contains an asterisk (`*'), that is replaced by the file name;
 otherwise, the file name, preceded by blank, is added at the end."
   :type 'string
@@ -172,7 +172,7 @@ otherwise, the file name, preceded by blank, is added at the end."
 
 ;;;###autoload
 (defcustom tex-dvi-print-command (purecopy "lpr -d")
-  "*Command used by \\[tex-print] to print a .dvi file.
+  "Command used by \\[tex-print] to print a .dvi file.
 If this string contains an asterisk (`*'), that is replaced by the file name;
 otherwise, the file name, preceded by blank, is added at the end."
   :type 'string
@@ -180,7 +180,7 @@ otherwise, the file name, preceded by blank, is added at the end."
 
 ;;;###autoload
 (defcustom tex-alt-dvi-print-command (purecopy "lpr -d")
-  "*Command used by \\[tex-print] with a prefix arg to print a .dvi file.
+  "Command used by \\[tex-print] with a prefix arg to print a .dvi file.
 If this string contains an asterisk (`*'), that is replaced by the file name;
 otherwise, the file name, preceded by blank, is added at the end.
 
@@ -203,7 +203,7 @@ use."
     ((eq window-system 'x) ,(purecopy "xdvi"))
     ((eq window-system 'w32) ,(purecopy "yap"))
     (t ,(purecopy "dvi2tty * | cat -s")))
-  "*Command used by \\[tex-view] to display a `.dvi' file.
+  "Command used by \\[tex-view] to display a `.dvi' file.
 If it is a string, that specifies the command directly.
 If this string contains an asterisk (`*'), that is replaced by the file name;
 otherwise, the file name, preceded by a space, is added at the end.
@@ -214,14 +214,14 @@ If the value is a form, it is evaluated to get the command to use."
 
 ;;;###autoload
 (defcustom tex-show-queue-command (purecopy "lpq")
-  "*Command used by \\[tex-show-print-queue] to show the print queue.
+  "Command used by \\[tex-show-print-queue] to show the print queue.
 Should show the queue(s) that \\[tex-print] puts jobs on."
   :type 'string
   :group 'tex-view)
 
 ;;;###autoload
 (defcustom tex-default-mode 'latex-mode
-  "*Mode to enter for a new file that might be either TeX or LaTeX.
+  "Mode to enter for a new file that might be either TeX or LaTeX.
 This variable is used when it can't be determined whether the file
 is plain TeX or LaTeX or what because the file contains no commands.
 Normally set to either `plain-tex-mode' or `latex-mode'."
@@ -230,14 +230,14 @@ Normally set to either `plain-tex-mode' or `latex-mode'."
 
 ;;;###autoload
 (defcustom tex-open-quote (purecopy "``")
-  "*String inserted by typing \\[tex-insert-quote] to open a quotation."
+  "String inserted by typing \\[tex-insert-quote] to open a quotation."
   :type 'string
   :options '("``" "\"<" "\"`" "<<" "«")
   :group 'tex)
 
 ;;;###autoload
 (defcustom tex-close-quote (purecopy "''")
-  "*String inserted by typing \\[tex-insert-quote] to close a quotation."
+  "String inserted by typing \\[tex-insert-quote] to close a quotation."
   :type 'string
   :options '("''" "\">" "\"'" ">>" "»")
   :group 'tex)
@@ -327,7 +327,7 @@ Set by \\[tex-region], \\[tex-buffer], and \\[tex-file].")
 ;;;;
 
 (defcustom latex-imenu-indent-string ". "
-  "*String to add repeated in front of nested sectional units for Imenu.
+  "String to add repeated in front of nested sectional units for Imenu.
 An alternative value is \" . \", if you use a font with a narrow period."
   :type 'string
   :group 'tex)
@@ -488,10 +488,6 @@ An alternative value is \" . \", if you use a font with a narrow period."
 	   ;; (arg "\\(?:{\\(\\(?:[^{}\\]+\\|\\\\.\\|{[^}]*}\\)+\\)\\|\\\\[a-z*]+\\)"))
 	   (arg "{\\(\\(?:[^{}\\]+\\|\\\\.\\|{[^}]*}\\)+\\)"))
       (list
-       ;; font-lock-syntactic-keywords causes the \ of \end{verbatim} to be
-       ;; highlighted as tex-verbatim face.  Let's undo that.
-       ;; This is ugly and brittle :-(  --Stef
-       '("^\\(\\\\\\)end" (1 (get-text-property (match-end 1) 'face) t))
        ;; display $$ math $$
        ;; We only mark the match between $$ and $$ because the $$ delimiters
        ;; themselves have already been marked (along with $..$) by syntactic
@@ -642,28 +638,90 @@ An alternative value is \" . \", if you use a font with a narrow period."
 (put 'tex-verbatim-environments 'safe-local-variable
      (lambda (x) (null (delq t (mapcar 'stringp x)))))
 
-(defvar tex-font-lock-syntactic-keywords
-  '((eval . `(,(concat "^\\\\begin *{"
-                       (regexp-opt tex-verbatim-environments t)
-                       "}.*\\(\n\\)") 2 "|"))
-    ;; Technically, we'd like to put the "|" property on the \n preceding
-    ;; the \end, but this would have 2 disadvantages:
-    ;; 1 - it's wrong if the verbatim env is empty (the same \n is used to
-    ;;     start and end the fenced-string).
-    ;; 2 - font-lock considers the preceding \n as being part of the
-    ;;     preceding line, so things gets screwed every time the previous
-    ;;     line is re-font-locked on its own.
-    ;; There's a hack in tex-font-lock-keywords-1 to remove the verbatim
-    ;; face from the \ but C-M-f still jumps to the wrong spot :-(  --Stef
-    (eval . `(,(concat "^\\(\\\\\\)end *{"
-                       (regexp-opt tex-verbatim-environments t)
-                       "}\\(.?\\)") (1 "|") (3 "<")))
-    ;; ("^\\(\\\\\\)begin *{comment}" 1 "< b")
-    ;; ("^\\\\end *{comment}.*\\(\n\\)" 1 "> b")
+(eval-when-compile
+  (defconst tex-syntax-propertize-rules
+    (syntax-propertize-precompile-rules
     ("\\\\verb\\**\\([^a-z@*]\\)"
-     ;; Do it last, because it uses syntax-ppss which needs the
-     ;; syntax-table properties of previous entries.
-     1 (tex-font-lock-verb (match-end 1)))))
+      (1 (prog1 "\""
+           (tex-font-lock-verb
+            (match-beginning 0) (char-after (match-beginning 1))))))))
+
+  (defconst latex-syntax-propertize-rules
+    (syntax-propertize-precompile-rules
+     tex-syntax-propertize-rules
+     ("\\\\\\(?:end\\|begin\\) *\\({[^\n{}]*}\\)"
+      (1 (ignore
+          (tex-env-mark (match-beginning 0)
+                        (match-beginning 1) (match-end 1))))))))
+
+(defun tex-env-mark (cmd start end)
+  (when (= cmd (line-beginning-position))
+    (let ((arg (buffer-substring-no-properties (1+ start) (1- end))))
+      (when (member arg tex-verbatim-environments)
+        (if (eq ?b (char-after (1+ cmd)))
+            ;; \begin
+            (put-text-property (line-end-position)
+                               (line-beginning-position 2)
+                               'syntax-table (string-to-syntax "< c"))
+          ;; In the case of an empty verbatim env, the \n after the \begin is
+          ;; the same as the \n before the \end.  Lucky for us, the "> c"
+          ;; property associated to the \end will be placed afterwards, so it
+          ;; will override the "< c".
+          (put-text-property (1- cmd) cmd
+                             'syntax-table (string-to-syntax "> c"))
+          ;; The text between \end{verbatim} and \n is ignored, so we'll treat
+          ;; it as a comment.
+          (put-text-property end (min (1+ end) (line-end-position))
+                             'syntax-table (string-to-syntax "<"))))))
+  ;; Mark env args for possible electric pairing.
+  (unless (get-char-property (1+ start) 'text-clones) ;Already paired-up.
+    (put-text-property start end 'latex-env-pair t)))
+
+(define-minor-mode latex-electric-env-pair-mode
+  "Automatically update the \\end arg when editing the \\begin one.
+And vice-versa."
+  :lighter "/e"
+  (if latex-electric-env-pair-mode
+      (add-hook 'before-change-functions
+                #'latex-env-before-change nil 'local)
+    (remove-hook 'before-change-functions
+                 #'latex-env-before-change 'local)))
+
+(defun latex-env-before-change (start end)
+  (when (get-text-property start 'latex-env-pair)
+    (condition-case err
+        (with-silent-modifications
+          ;; Remove properties even if don't find a pair.
+          (remove-text-properties
+           (previous-single-property-change (1+ start) 'latex-env-pair)
+           (next-single-property-change start 'latex-env-pair)
+           '(latex-env-pair))
+          (unless (or (get-char-property start 'text-clones)
+                      (get-char-property (1+ start) 'text-clones)
+                      (save-excursion
+                        (goto-char start)
+                        (not (re-search-backward
+                              "\\\\\\(?:end\\|begi\\(n\\)\\) *{"
+                              (line-beginning-position) t))))
+            (let ((cmd-start (match-beginning 0))
+                  (type (match-end 1))  ;nil for \end, else \begin.
+                  (arg-start (1- (match-end 0))))
+              (save-excursion
+                (goto-char (match-end 0))
+                (when (and (looking-at "[^\n{}]*}")
+                           (> (match-end 0) end))
+                  (let ((arg-end (match-end 0)))
+                    (if (null type)     ;\end
+                        (progn (goto-char arg-end)
+                               (latex-forward-sexp -1) (forward-word 1))
+                      (goto-char cmd-start)
+                      (latex-forward-sexp 1)
+                      (let (forward-sexp-function) (backward-sexp)))
+                    (when (looking-at
+                           (regexp-quote (buffer-substring arg-start arg-end)))
+                      (text-clone-create arg-start arg-end))))))))
+      (scan-error nil)
+      (error (message "Error in latex-env-before-change: %s" err)))))
 
 (defun tex-font-lock-unfontify-region (beg end)
   (font-lock-default-unfontify-region beg end)
@@ -730,37 +788,32 @@ Not smaller than the value set by `tex-suscript-height-minimum'."
 (define-obsolete-face-alias 'tex-verbatim-face 'tex-verbatim "22.1")
 (defvar tex-verbatim-face 'tex-verbatim)
 
-(defun tex-font-lock-verb (end)
-  "Place syntax-table properties on the \verb construct.
-END is the position of the first delimiter after \verb."
-  (unless (nth 8 (syntax-ppss end))
+(defun tex-font-lock-verb (start delim)
+  "Place syntax table properties on the \verb construct.
+START is the position of the \\ and DELIM is the delimiter char."
     ;; Do nothing if the \verb construct is itself inside a comment or
     ;; verbatim env.
-    (save-excursion
+  (unless (nth 8 (save-excursion (syntax-ppss start)))
       ;; Let's find the end and mark it.
-      ;; We used to do it inside tex-font-lock-syntactic-face-function, but
-      ;; this leads to funny effects when jumping to the end of the buffer,
-      ;; because font-lock applies font-lock-syntactic-keywords to the whole
-      ;; preceding text but font-lock-syntactic-face-function only to the
-      ;; actually displayed text.
-      (goto-char end)
-      (let ((char (char-before)))
-        (skip-chars-forward (string ?^ char)) ;; Use `end' ?
-        (when (eq (char-syntax (preceding-char)) ?/)
-          (put-text-property (1- (point)) (point) 'syntax-table '(1)))
+    ;; This may span more than a single line, but we don't bother
+    ;; placing a syntax-multiline property since such multiline verbs aren't
+    ;; valid anyway.
+    (skip-chars-forward (string ?^ delim))
         (unless (eobp)
-          (put-text-property (point) (1+ (point)) 'syntax-table '(7))
-          ;; Cause the rest of the buffer to be re-fontified.
-          ;; (remove-text-properties (1+ (point)) (point-max) '(fontified))
-          )))
-    "\""))
+      (when (eq (char-syntax (preceding-char)) ?/)
+        (put-text-property (1- (point)) (point)
+                           'syntax-table (string-to-syntax ".")))
+      (put-text-property (point) (1+ (point))
+                         'syntax-table (string-to-syntax "\"")))))
 
 ;; Use string syntax but math face for $...$.
 (defun tex-font-lock-syntactic-face-function (state)
   (let ((char (nth 3 state)))
     (cond
-     ((not char) font-lock-comment-face)
+     ((not char)
+      (if (eq 2 (nth 7 state)) tex-verbatim-face font-lock-comment-face))
      ((eq char ?$) tex-math-face)
+     ;; A \verb element.
      (t tex-verbatim-face))))
 
 
@@ -1163,10 +1216,9 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
 	 (font-lock-syntactic-face-function
 	  . tex-font-lock-syntactic-face-function)
 	 (font-lock-unfontify-region-function
-	  . tex-font-lock-unfontify-region)
-	 (font-lock-syntactic-keywords
-	  . tex-font-lock-syntactic-keywords)
-	 (parse-sexp-lookup-properties . t)))
+	  . tex-font-lock-unfontify-region)))
+  (set (make-local-variable 'syntax-propertize-function)
+       (syntax-propertize-rules latex-syntax-propertize-rules))
   ;; TABs in verbatim environments don't do what you think.
   (set (make-local-variable 'indent-tabs-mode) nil)
   ;; Other vars that should be buffer-local.
@@ -2812,15 +2864,15 @@ There might be text before point."
 	     ;; syntax-table can't deal with.  We could turn it
 	     ;; into a non-comment, or use `\n%' or `%^' as the comment.
 	     ;; Instead, we include it in the ^^A comment.
-	     (eval-when-compile (string-to-syntax "< b"))
-	   (eval-when-compile (string-to-syntax ">"))))
+             (string-to-syntax "< b")
+           (string-to-syntax ">")))
 	(let ((end (line-end-position)))
 	  (if (< end (point-max))
 	      (put-text-property
 	       end (1+ end)
 	       'syntax-table
-	       (eval-when-compile (string-to-syntax "> b")))))
-	(eval-when-compile (string-to-syntax "< b")))))
+               (string-to-syntax "> b"))))
+        (string-to-syntax "< b"))))
 
 (defun doctex-font-lock-syntactic-face-function (state)
   ;; Mark DocTeX documentation, which is parsed as a style A comment
@@ -2832,11 +2884,12 @@ There might be text before point."
       (tex-font-lock-syntactic-face-function state)
     font-lock-doc-face))
 
-(defvar doctex-font-lock-syntactic-keywords
-  (append
-   tex-font-lock-syntactic-keywords
-   ;; For DocTeX comment-in-doc.
-   `(("\\(\\^\\)\\^A" (1 (doctex-font-lock-^^A))))))
+(eval-when-compile
+  (defconst doctex-syntax-propertize-rules
+    (syntax-propertize-precompile-rules
+     latex-syntax-propertize-rules
+     ;; For DocTeX comment-in-doc.
+     ("\\(\\^\\)\\^A" (1 (doctex-font-lock-^^A))))))
 
 (defvar doctex-font-lock-keywords
   (append tex-font-lock-keywords
@@ -2850,12 +2903,12 @@ There might be text before point."
 	      (mapcar
 	       (lambda (x)
 		 (case (car-safe x)
-		   (font-lock-syntactic-keywords
-		    (cons (car x) 'doctex-font-lock-syntactic-keywords))
 		   (font-lock-syntactic-face-function
 		    (cons (car x) 'doctex-font-lock-syntactic-face-function))
 		   (t x)))
-	       (cdr font-lock-defaults)))))
+	       (cdr font-lock-defaults))))
+  (set (make-local-variable 'syntax-propertize-function)
+       (syntax-propertize-rules doctex-syntax-propertize-rules)))
 
 (run-hooks 'tex-mode-load-hook)
 

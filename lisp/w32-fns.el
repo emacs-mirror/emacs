@@ -5,6 +5,7 @@
 
 ;; Author: Geoff Voelker <voelker@cs.washington.edu>
 ;; Keywords: internal
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -424,40 +425,32 @@ bit output with no translation."
                         'w32-charset-info-alist "21.1")
 
 
-;;;; Selections and cut buffers
+;;;; Selections
 
 ;; We keep track of the last text selected here, so we can check the
 ;; current selection against it, and avoid passing back our own text
-;; from x-cut-buffer-or-selection-value.
+;; from x-selection-value.
 (defvar x-last-selected-text nil)
 
-;; It is said that overlarge strings are slow to put into the cut buffer.
-;; Note this value is overridden below.
-(defvar x-cut-buffer-max 20000
-  "Max number of characters to put in the cut buffer.")
-
-(defun x-select-text (text &optional push)
+(defun x-select-text (text)
   "Select TEXT, a string, according to the window system.
 
-On X, put TEXT in the primary X selection.  For backward
-compatibility with older X applications, set the value of X cut
-buffer 0 as well, and if the optional argument PUSH is non-nil,
-rotate the cut buffers.  If `x-select-enable-clipboard' is
-non-nil, copy the text to the X clipboard as well.
+On X, if `x-select-enable-clipboard' is non-nil, copy TEXT to the
+clipboard.  If `x-select-enable-primary' is non-nil, put TEXT in
+the primary selection.
 
 On Windows, make TEXT the current selection.  If
 `x-select-enable-clipboard' is non-nil, copy the text to the
-clipboard as well.  The argument PUSH is ignored.
+clipboard as well.
 
-On Nextstep, put TEXT in the pasteboard; PUSH is ignored."
+On Nextstep, put TEXT in the pasteboard."
   (if x-select-enable-clipboard
       (w32-set-clipboard-data text))
   (setq x-last-selected-text text))
 
 (defun x-get-selection-value ()
   "Return the value of the current selection.
-Consult the selection, then the cut buffer.  Treat empty strings as if
-they were unset."
+Consult the selection.  Treat empty strings as if they were unset."
   (if x-select-enable-clipboard
       (let (text)
 	;; Don't die if x-get-selection signals an error.
@@ -475,7 +468,7 @@ they were unset."
 	 (t
 	  (setq x-last-selected-text text))))))
 
-(defalias 'x-cut-buffer-or-selection-value 'x-get-selection-value)
+(defalias 'x-selection-value 'x-get-selection-value)
 
 ;; Arrange for the kill and yank functions to set and check the clipboard.
 (setq interprogram-cut-function 'x-select-text)

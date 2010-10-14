@@ -939,7 +939,6 @@ See `sh-feature'.")
 ;; These are used for the syntax table stuff (derived from cperl-mode).
 ;; Note: parse-sexp-lookup-properties must be set to t for it to work.
 (defconst sh-st-punc (string-to-syntax "."))
-(defconst sh-st-symbol (string-to-syntax "_"))
 (defconst sh-here-doc-syntax (string-to-syntax "|")) ;; generic string
 
 (defconst sh-escaped-line-re
@@ -957,7 +956,7 @@ See `sh-feature'.")
 (defvar sh-here-doc-re sh-here-doc-open-re)
 (make-variable-buffer-local 'sh-here-doc-re)
 
-(defun sh-font-lock-close-heredoc (bol eof indented)
+(defun sh-font-lock-close-heredoc (bol eof indented eol)
   "Determine the syntax of the \\n after an EOF.
 If non-nil INDENTED indicates that the EOF was indented."
   (let* ((eof-re (if eof (regexp-quote eof) ""))
@@ -971,6 +970,8 @@ If non-nil INDENTED indicates that the EOF was indented."
 	 (ere (concat "^" (if indented "[ \t]*") eof-re "\n"))
 	 (start (save-excursion
 		  (goto-char bol)
+                  ;; FIXME: will incorrectly find a <<EOF embedded inside
+                  ;; the heredoc.
 		  (re-search-backward (concat sre "\\|" ere) nil t))))
     ;; If subgroup 1 matched, we found an open-heredoc, otherwise we first
     ;; found a close-heredoc which makes the current close-heredoc inoperant.
@@ -990,7 +991,7 @@ If non-nil INDENTED indicates that the EOF was indented."
 		     (sh-in-comment-or-string (point)))))
 	  ;; No <<EOF2 found after our <<.
 	  (= (point) start)))
-      sh-here-doc-syntax)
+      (put-text-property eol (1+ eol) 'syntax-table sh-here-doc-syntax))
      ((not (or start (save-excursion (re-search-forward sre nil t))))
       ;; There's no <<EOF either before or after us,
       ;; so we should remove ourselves from font-lock's keywords.
@@ -1000,7 +1001,7 @@ If non-nil INDENTED indicates that the EOF was indented."
 		    (regexp-opt sh-here-doc-markers t) "\\(\n\\)"))
       nil))))
 
-(defun sh-font-lock-open-heredoc (start string)
+(defun sh-font-lock-open-heredoc (start string eol)
   "Determine the syntax of the \\n after a <<EOF.
 START is the position of <<.
 STRING is the actual word used as delimiter (e.g. \"EOF\").
@@ -1030,13 +1031,8 @@ Point is at the beginning of the next line."
           ;; Don't bother fixing it now, but place a multiline property so
           ;; that when jit-lock-context-* refontifies the rest of the
           ;; buffer, it also refontifies the current line with it.
-          (put-text-property start (point) 'font-lock-multiline t)))
-    sh-here-doc-syntax))
-
-(defun sh-font-lock-here-doc (limit)
-  "Search for a heredoc marker."
-  ;; This looks silly, but it's because `sh-here-doc-re' keeps changing.
-  (re-search-forward sh-here-doc-re limit t))
+          (put-text-property start (point) 'syntax-multiline t)))
+    (put-text-property eol (1+ eol) 'syntax-table sh-here-doc-syntax)))
 
 (defun sh-font-lock-quoted-subshell (limit)
   "Search for a subshell embedded in a string.
@@ -1045,9 +1041,7 @@ subshells can nest."
   ;; FIXME: This can (and often does) match multiple lines, yet it makes no
   ;; effort to handle multiline cases correctly, so it ends up being
   ;; rather flakey.
-  (when (and (re-search-forward "\"\\(?:\\(?:.\\|\n\\)*?[^\\]\\(?:\\\\\\\\\\)*\\)??\\(\\$(\\|`\\)" limit t)
-             ;; Make sure the " we matched is an opening quote.
-	     (eq ?\" (nth 3 (syntax-ppss))))
+  (when (eq ?\" (nth 3 (syntax-ppss))) ; Check we matched an opening quote.
     ;; bingo we have a $( or a ` inside a ""
     (let ((char (char-after (point)))
           ;; `state' can be: double-quote, backquote, code.
@@ -1082,8 +1076,7 @@ subshells can nest."
                  (double-quote nil)
                  (t (setq state (pop states)))))
           (t (error "Internal error in sh-font-lock-quoted-subshell")))
-        (forward-char 1)))
-    t))
+        (forward-char 1)))))
 
 
 (defun sh-is-quoted-p (pos)
@@ -1122,7 +1115,7 @@ subshells can nest."
     (when (progn (backward-char 2)
                  (if (> start (line-end-position))
                      (put-text-property (point) (1+ start)
-                                        'font-lock-multiline t))
+                                        'syntax-multiline t))
                  ;; FIXME: The `in' may just be a random argument to
                  ;; a normal command rather than the real `in' keyword.
                  ;; I.e. we should look back to try and find the
@@ -1136,40 +1129,44 @@ subshells can nest."
       sh-st-punc
     nil))
 
-(defun sh-font-lock-flush-syntax-ppss-cache (limit)
-  ;; This should probably be a standard function provided by font-lock.el
-  ;; (or syntax.el).
-  (syntax-ppss-flush-cache (point))
-  (goto-char limit)
-  nil)
-
-(defconst sh-font-lock-syntactic-keywords
-  ;; A `#' begins a comment when it is unquoted and at the beginning of a
-  ;; word.  In the shell, words are separated by metacharacters.
-  ;; The list of special chars is taken from the single-unix spec
-  ;; of the shell command language (under `quoting') but with `$' removed.
-  `(("[^|&;<>()`\\\"' \t\n]\\(#+\\)" 1 ,sh-st-symbol)
-    ;; In a '...' the backslash is not escaping.
-    ("\\(\\\\\\)'" (1 (sh-font-lock-backslash-quote)))
-    ;; The previous rule uses syntax-ppss, but the subsequent rules may
-    ;; change the syntax, so we have to tell syntax-ppss that the states it
-    ;; has just computed will need to be recomputed.
-    (sh-font-lock-flush-syntax-ppss-cache)
-    ;; Make sure $@ and $? are correctly recognized as sexps.
-    ("\\$\\([?@]\\)" 1 ,sh-st-symbol)
-    ;; Find HEREDOC starters and add a corresponding rule for the ender.
-    (sh-font-lock-here-doc
-     (2 (sh-font-lock-open-heredoc
-	 (match-beginning 0) (match-string 1)) nil t)
-     (5 (sh-font-lock-close-heredoc
-	 (match-beginning 0) (match-string 4)
-         (and (match-beginning 3) (/= (match-beginning 3) (match-end 3))))
-      nil t))
-    ;; Distinguish the special close-paren in `case'.
-    (")" 0 (sh-font-lock-paren (match-beginning 0)))
-    ;; highlight (possibly nested) subshells inside "" quoted regions correctly.
-    ;; This should be at the very end because it uses syntax-ppss.
-    (sh-font-lock-quoted-subshell)))
+(defun sh-syntax-propertize-function (start end)
+  (goto-char start)
+  (while (prog1
+             (re-search-forward sh-here-doc-re end 'move)
+           (save-excursion
+             (save-match-data
+               (funcall
+                (syntax-propertize-rules
+                 ;; A `#' begins a comment when it is unquoted and at the
+                 ;; beginning of a word.  In the shell, words are separated by
+                 ;; metacharacters.  The list of special chars is taken from
+                 ;; the single-unix spec of the shell command language (under
+                 ;; `quoting') but with `$' removed.
+                 ("[^|&;<>()`\\\"' \t\n]\\(#+\\)" (1 "_"))
+                 ;; In a '...' the backslash is not escaping.
+                 ("\\(\\\\\\)'" (1 (sh-font-lock-backslash-quote)))
+                 ;; Make sure $@ and $? are correctly recognized as sexps.
+                 ("\\$\\([?@]\\)" (1 "_"))
+                 ;; Distinguish the special close-paren in `case'.
+                 (")" (0 (sh-font-lock-paren (match-beginning 0))))
+                 ;; Highlight (possibly nested) subshells inside "" quoted
+                 ;; regions correctly.
+                 ("\"\\(?:\\(?:.\\|\n\\)*?[^\\]\\(?:\\\\\\\\\\)*\\)??\\(\\$(\\|`\\)"
+                  (1 (ignore
+                      ;; Save excursion because we want to also apply other
+                      ;; syntax-propertize rules within the affected region.
+                      (save-excursion
+                        (sh-font-lock-quoted-subshell end))))))
+                (prog1 start (setq start (point))) (point)))))
+    (if (match-beginning 2)
+        ;; FIXME: actually, once we see an heredoc opener, we should just
+        ;; search for its ender without propertizing anything in it.
+        (sh-font-lock-open-heredoc
+	 (match-beginning 0) (match-string 1) (match-beginning 2))
+      (sh-font-lock-close-heredoc
+       (match-beginning 0) (match-string 4)
+       (and (match-beginning 3) (/= (match-beginning 3) (match-end 3)))
+       (match-beginning 5)))))
 
 (defun sh-font-lock-syntactic-face-function (state)
   (let ((q (nth 3 state)))
@@ -1553,9 +1550,12 @@ with your script for an edit-interpret-debug cycle."
           sh-font-lock-keywords-1 sh-font-lock-keywords-2)
          nil nil
          ((?/ . "w") (?~ . "w") (?. . "w") (?- . "w") (?_ . "w")) nil
-         (font-lock-syntactic-keywords . sh-font-lock-syntactic-keywords)
          (font-lock-syntactic-face-function
           . sh-font-lock-syntactic-face-function)))
+  (set (make-local-variable 'syntax-propertize-function)
+       #'sh-syntax-propertize-function)
+  (add-hook 'syntax-propertize-extend-region-functions
+            #'syntax-propertize-multiline 'append 'local)
   (set (make-local-variable 'skeleton-pair-alist) '((?` _ ?`)))
   (set (make-local-variable 'skeleton-pair-filter-function) 'sh-quoted-p)
   (set (make-local-variable 'skeleton-further-elements)
@@ -2207,10 +2207,9 @@ STRING	     This is ignored for the purposes of calculating
       ;; Note: setting result to t means we are done and will return nil.
       ;;(This function never returns just t.)
       (cond
-       ((or (and (boundp 'font-lock-string-face) (not (bobp))
-		 (eq (get-text-property (1- (point)) 'face)
-		     font-lock-string-face))
+       ((or (nth 3 (syntax-ppss (point)))
 	    (eq (get-text-property (point) 'face) sh-heredoc-face))
+	;; String continuation -- don't indent
 	(setq result t)
 	(setq have-result t))
        ((looking-at "\\s-*#")		; was (equal this-kw "#")

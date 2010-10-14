@@ -41,5 +41,4 @@ what the desired charsets is to be ignored.")
 
 (provide 'mail-prsvr)
 
-;; arch-tag: 9ba878cc-8b43-4f7a-85b1-69b1a9a5d9f5
 ;;; mail-prsvr.el ends here

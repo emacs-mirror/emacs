@@ -67,7 +67,7 @@ int undo_inhibit_record_point;
    undo record that will be added just after this command terminates.  */
 
 static void
-record_point (int pt)
+record_point (EMACS_INT pt)
 {
   int at_boundary;
 
@@ -129,7 +129,7 @@ record_point (int pt)
    because we don't need to record the contents.)  */
 
 void
-record_insert (int beg, int length)
+record_insert (EMACS_INT beg, EMACS_INT length)
 {
   Lisp_Object lbeg, lend;
 
@@ -164,7 +164,7 @@ record_insert (int beg, int length)
    of the characters in STRING, at location BEG.  */
 
 void
-record_delete (int beg, Lisp_Object string)
+record_delete (EMACS_INT beg, Lisp_Object string)
 {
   Lisp_Object sbeg;
 
@@ -192,7 +192,7 @@ record_delete (int beg, Lisp_Object string)
    won't be inverted automatically by undoing the buffer modification.  */
 
 void
-record_marker_adjustment (Lisp_Object marker, int adjustment)
+record_marker_adjustment (Lisp_Object marker, EMACS_INT adjustment)
 {
   if (EQ (current_buffer->undo_list, Qt))
     return;
@@ -215,7 +215,7 @@ record_marker_adjustment (Lisp_Object marker, int adjustment)
    The replacement must not change the number of characters.  */
 
 void
-record_change (int beg, int length)
+record_change (EMACS_INT beg, EMACS_INT length)
 {
   record_delete (beg, make_buffer_string (beg, beg + length, 1));
   record_insert (beg, length);
@@ -250,7 +250,9 @@ record_first_change (void)
    for LENGTH characters starting at position BEG in BUFFER.  */
 
 void
-record_property_change (int beg, int length, Lisp_Object prop, Lisp_Object value, Lisp_Object buffer)
+record_property_change (EMACS_INT beg, EMACS_INT length,
+			Lisp_Object prop, Lisp_Object value,
+			Lisp_Object buffer)
 {
   Lisp_Object lbeg, lend, entry;
   struct buffer *obuf = current_buffer, *buf = XBUFFER (buffer);
@@ -601,7 +603,7 @@ Return what remains of the list.  */)
 		{
 		  /* Element (STRING . POS) means STRING was deleted.  */
 		  Lisp_Object membuf;
-		  int pos = XINT (cdr);
+		  EMACS_INT pos = XINT (cdr);
 
 		  membuf = car;
 		  if (pos < 0)

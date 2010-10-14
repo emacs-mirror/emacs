@@ -22,12 +22,6 @@ hardware (as true compiled code is), byte-code is completely
 transportable from machine to machine without recompilation.  It is not,
 however, as fast as true compiled code.
 
-  Compiling a Lisp file with the Emacs byte compiler always reads the
-file as multibyte text, even if Emacs was started with @samp{--unibyte},
-unless the file specifies otherwise.  This is so that compilation gives
-results compatible with running the same file without compilation.
-@xref{Loading Non-ASCII}.
-
   In general, any version of Emacs can run byte-compiled code produced
 by recent earlier versions of Emacs, but the reverse is not true.
 

@@ -1942,18 +1942,38 @@ x_draw_relief_rect (struct frame *f,
     gc = f->output_data.x->black_relief.gc;
   XSetClipRectangles (dpy, gc, 0, 0, clip_rect, 1, Unsorted);
 
+  /* This code is more complicated than it has to be, because of two
+     minor hacks to make the boxes look nicer: (i) if width > 1, draw
+     the outermost line using the black relief.  (ii) Omit the four
+     corner pixels.  */
+
   /* Top.  */
   if (top_p)
-    for (i = 0; i < width; ++i)
-      XDrawLine (dpy, window, gc,
-		 left_x + i * left_p, top_y + i,
-		 right_x + 1 - i * right_p, top_y + i);
+    {
+      if (width == 1)
+	XDrawLine (dpy, window, gc,
+		   left_x  + (left_p  ? 1 : 0), top_y,
+		   right_x + (right_p ? 0 : 1), top_y);
+
+      for (i = 1; i < width; ++i)
+	XDrawLine (dpy, window, gc,
+		   left_x  + i * left_p, top_y + i,
+		   right_x + 1 - i * right_p, top_y + i);
+    }
 
   /* Left.  */
   if (left_p)
-    for (i = 0; i < width; ++i)
-      XDrawLine (dpy, window, gc,
-		 left_x + i, top_y + i, left_x + i, bottom_y - i + 1);
+    {
+      if (width == 1)
+	XDrawLine (dpy, window, gc, left_x, top_y + 1, left_x, bottom_y);
+
+      XClearArea (dpy, window, left_x, top_y, 1, 1, False);
+      XClearArea (dpy, window, left_x, bottom_y, 1, 1, False);
+
+      for (i = (width > 1 ? 1 : 0); i < width; ++i)
+	XDrawLine (dpy, window, gc,
+		   left_x + i, top_y + i, left_x + i, bottom_y - i + 1);
+    }
 
   XSetClipMask (dpy, gc, None);
   if (raised_p)
@@ -1962,18 +1982,40 @@ x_draw_relief_rect (struct frame *f,
     gc = f->output_data.x->white_relief.gc;
   XSetClipRectangles (dpy, gc, 0, 0, clip_rect, 1, Unsorted);
 
+  if (width > 1)
+    {
+      /* Outermost top line.  */
+      if (top_p)
+	XDrawLine (dpy, window, gc,
+		   left_x  + (left_p  ? 1 : 0), top_y,
+		   right_x + (right_p ? 0 : 1), top_y);
+
+      /* Outermost left line.  */
+      if (left_p)
+	XDrawLine (dpy, window, gc, left_x, top_y + 1, left_x, bottom_y);
+    }
+
   /* Bottom.  */
   if (bot_p)
-    for (i = 0; i < width; ++i)
+    {
       XDrawLine (dpy, window, gc,
-		 left_x + i * left_p, bottom_y - i,
-		 right_x + 1 - i * right_p, bottom_y - i);
+		 left_x  + (left_p  ? 1 : 0), bottom_y,
+		 right_x + (right_p ? 0 : 1), bottom_y);
+      for (i = 1; i < width; ++i)
+	XDrawLine (dpy, window, gc,
+		   left_x  + i * left_p, bottom_y - i,
+		   right_x + 1 - i * right_p, bottom_y - i);
+    }
 
   /* Right.  */
   if (right_p)
-    for (i = 0; i < width; ++i)
-      XDrawLine (dpy, window, gc,
-		 right_x - i, top_y + i + 1, right_x - i, bottom_y - i);
+    {
+      XClearArea (dpy, window, right_x, top_y, 1, 1, False);
+      XClearArea (dpy, window, right_x, bottom_y, 1, 1, False);
+      for (i = 0; i < width; ++i)
+	XDrawLine (dpy, window, gc,
+		   right_x - i, top_y + i + 1, right_x - i, bottom_y - i);
+    }
 
   XSetClipMask (dpy, gc, None);
 }
@@ -4004,7 +4046,7 @@ xt_action_hook (Widget widget, XtPointer client_data, String action_name,
 		XEvent *event, String *params, Cardinal *num_params)
 {
   int scroll_bar_p;
-  char *end_action;
+  const char *end_action;
 
 #ifdef USE_MOTIF
   scroll_bar_p = XmIsScrollBar (widget);
@@ -7729,18 +7771,6 @@ x_error_handler (Display *display, XErrorEvent *error)
 
 /* .gdbinit puts a breakpoint here, so make sure it is not inlined.  */
 
-#if __GNUC__ >= 3  /* On GCC 3.0 we might get a warning.  */
-#define NO_INLINE __attribute__((noinline))
-#else
-#define NO_INLINE
-#endif
-
-/* Some versions of GNU/Linux define noinline in their headers.  */
-
-#ifdef noinline
-#undef noinline
-#endif
-
 /* On older GCC versions, just putting x_error_quitter
    after x_error_handler prevents inlining into the former.  */
 
@@ -8285,19 +8315,89 @@ x_set_sticky (struct frame *f, Lisp_Object new_value, Lisp_Object old_value)
                 "_NET_WM_STATE_STICKY", NULL);
 }
 
+/* Return the current _NET_WM_STATE.
+   SIZE_STATE is set to one of the FULLSCREEN_* values.
+   STICKY is set to 1 if the sticky state is set, 0 if not.  */
+
+static void
+get_current_vm_state (struct frame *f,
+                      Window window,
+                      int *size_state,
+                      int *sticky)
+{
+  Atom actual_type;
+  unsigned long actual_size, bytes_remaining;
+  int i, rc, actual_format;
+  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  long max_len = 65536;
+  Display *dpy = FRAME_X_DISPLAY (f);
+  unsigned char *tmp_data = NULL;
+  Atom target_type = XA_ATOM;
+
+  *sticky = 0;
+  *size_state = FULLSCREEN_NONE;
+
+  BLOCK_INPUT;
+  x_catch_errors (dpy);
+  rc = XGetWindowProperty (dpy, window, dpyinfo->Xatom_net_wm_state,
+                           0, max_len, False, target_type,
+                           &actual_type, &actual_format, &actual_size,
+                           &bytes_remaining, &tmp_data);
+
+  if (rc != Success || actual_type != target_type || x_had_errors_p (dpy))
+    {
+      if (tmp_data) XFree (tmp_data);
+      x_uncatch_errors ();
+      UNBLOCK_INPUT;
+      return;
+    }
+
+  x_uncatch_errors ();
+
+  for (i = 0; i < actual_size; ++i)
+    {
+      Atom a = ((Atom*)tmp_data)[i];
+      if (a == dpyinfo->Xatom_net_wm_state_maximized_horz) 
+        {
+          if (*size_state == FULLSCREEN_HEIGHT)
+            *size_state = FULLSCREEN_MAXIMIZED;
+          else
+            *size_state = FULLSCREEN_WIDTH;
+        }
+      else if (a == dpyinfo->Xatom_net_wm_state_maximized_vert)
+        {
+          if (*size_state == FULLSCREEN_WIDTH)
+            *size_state = FULLSCREEN_MAXIMIZED;
+          else
+            *size_state = FULLSCREEN_HEIGHT;
+        }
+      else if (a == dpyinfo->Xatom_net_wm_state_fullscreen_atom)
+        *size_state = FULLSCREEN_BOTH;
+      else if (a == dpyinfo->Xatom_net_wm_state_sticky)
+        *sticky = 1;
+    }
+
+  if (tmp_data) XFree (tmp_data);
+  UNBLOCK_INPUT;
+}
+
 /* Do fullscreen as specified in extended window manager hints */
 
 static int
 do_ewmh_fullscreen (struct frame *f)
 {
   int have_net_atom = wm_supports (f, "_NET_WM_STATE");
+  Lisp_Object lval = get_frame_param (f, Qfullscreen);
+  int cur, dummy;
+
+  get_current_vm_state (f, FRAME_OUTER_WINDOW (f), &cur, &dummy);
 
   /* Some window managers don't say they support _NET_WM_STATE, but they do say
      they support _NET_WM_STATE_FULLSCREEN.  Try that also.  */
   if (!have_net_atom)
       have_net_atom = wm_supports (f, "_NET_WM_STATE_FULLSCREEN");
 
-  if (have_net_atom)
+  if (have_net_atom && cur != f->want_fullscreen)
     {
       Lisp_Object frame;
       const char *fs = "_NET_WM_STATE_FULLSCREEN";
@@ -8306,26 +8406,41 @@ do_ewmh_fullscreen (struct frame *f)
 
       XSETFRAME (frame, f);
 
-      set_wm_state (frame, 0, fs, NULL);
-      set_wm_state (frame, 0, fh, NULL);
-      set_wm_state (frame, 0, fw, NULL);
-
-      /* If there are _NET_ atoms we assume we have extended window manager
-         hints.  */
+      /* Keep number of calls to set_wm_state as low as possible.
+         Some window managers, or possible Gtk+, hangs when too many
+         are sent at once.  */
       switch (f->want_fullscreen)
         {
         case FULLSCREEN_BOTH:
+          if (cur == FULLSCREEN_WIDTH || cur == FULLSCREEN_MAXIMIZED
+              || cur == FULLSCREEN_HEIGHT)
+            set_wm_state (frame, 0, fw, fh);
           set_wm_state (frame, 1, fs, NULL);
           break;
         case FULLSCREEN_WIDTH:
-          set_wm_state (frame, 1, fw, NULL);
+          if (cur == FULLSCREEN_BOTH || cur == FULLSCREEN_HEIGHT
+              || cur == FULLSCREEN_MAXIMIZED)
+            set_wm_state (frame, 0, fs, fh);
+          if (cur != FULLSCREEN_MAXIMIZED)
+            set_wm_state (frame, 1, fw, NULL);
           break;
         case FULLSCREEN_HEIGHT:
-          set_wm_state (frame, 1, fh, NULL);
+          if (cur == FULLSCREEN_BOTH || cur == FULLSCREEN_WIDTH
+              || cur == FULLSCREEN_MAXIMIZED)
+            set_wm_state (frame, 0, fs, fw);
+          if (cur != FULLSCREEN_MAXIMIZED)
+            set_wm_state (frame, 1, fh, NULL);
           break;
         case FULLSCREEN_MAXIMIZED:
+          if (cur == FULLSCREEN_BOTH)
+            set_wm_state (frame, 0, fs, NULL);
           set_wm_state (frame, 1, fw, fh);
           break;
+        case FULLSCREEN_NONE:
+          if (cur == FULLSCREEN_BOTH)
+            set_wm_state (frame, 0, fs, NULL);
+          else
+            set_wm_state (frame, 0, fw, fh);
         }
 
       f->want_fullscreen = FULLSCREEN_NONE;
@@ -8351,57 +8466,11 @@ XTfullscreen_hook (FRAME_PTR f)
 static void
 x_handle_net_wm_state (struct frame *f, XPropertyEvent *event)
 {
-  Atom actual_type;
-  unsigned long actual_size, bytes_remaining;
-  int i, rc, actual_format, value = FULLSCREEN_NONE;
-  struct x_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
-  long max_len = 65536;
-  Display *dpy = FRAME_X_DISPLAY (f);
-  unsigned char *tmp_data = NULL;
-  Atom target_type = XA_ATOM;
+  int value = FULLSCREEN_NONE;
   Lisp_Object lval;
   int sticky = 0;
 
-  BLOCK_INPUT;
-  x_catch_errors (dpy);
-  rc = XGetWindowProperty (dpy, event->window,
-                           event->atom, 0, max_len, False, target_type,
-                           &actual_type, &actual_format, &actual_size,
-                           &bytes_remaining, &tmp_data);
-
-  if (rc != Success || actual_type != target_type || x_had_errors_p (dpy))
-    {
-      if (tmp_data) XFree (tmp_data);
-      x_uncatch_errors ();
-      UNBLOCK_INPUT;
-      return;
-    }
-
-  x_uncatch_errors ();
-
-  for (i = 0; i < actual_size; ++i)
-    {
-      Atom a = ((Atom*)tmp_data)[i];
-      if (a == dpyinfo->Xatom_net_wm_state_maximized_horz)
-        {
-          if (value == FULLSCREEN_HEIGHT)
-            value = FULLSCREEN_MAXIMIZED;
-          else
-            value = FULLSCREEN_WIDTH;
-        }
-      else if (a == dpyinfo->Xatom_net_wm_state_maximized_vert)
-        {
-          if (value == FULLSCREEN_WIDTH)
-            value = FULLSCREEN_MAXIMIZED;
-          else
-            value = FULLSCREEN_HEIGHT;
-        }
-      else if (a == dpyinfo->Xatom_net_wm_state_fullscreen_atom)
-        value = FULLSCREEN_BOTH;
-      else if (a == dpyinfo->Xatom_net_wm_state_sticky)
-        sticky = 1;
-    }
-
+  get_current_vm_state (f, event->window, &value, &sticky);
   lval = Qnil;
   switch (value)
     {
@@ -8421,9 +8490,6 @@ x_handle_net_wm_state (struct frame *f, XPropertyEvent *event)
 
   store_frame_param (f, Qfullscreen, lval);
   store_frame_param (f, Qsticky, sticky ? Qt : Qnil);
-
-  if (tmp_data) XFree (tmp_data);
-  UNBLOCK_INPUT;
 }
 
 /* Check if we need to resize the frame due to a fullscreen request.
@@ -10123,8 +10189,6 @@ x_term_init (Lisp_Object display_name, char *xrm_option, char *resource_name)
     = XInternAtom (dpyinfo->display, "_NET_WM_ICON_NAME", False);
   dpyinfo->Xatom_net_wm_name
     = XInternAtom (dpyinfo->display, "_NET_WM_NAME", False);
-
-  dpyinfo->cut_buffers_initialized = 0;
 
   dpyinfo->x_dnd_atoms_size = 8;
   dpyinfo->x_dnd_atoms_length = 0;

@@ -368,11 +368,11 @@ If ARG (or prefix) is non-nil, force prompting for all fields."
 				 header ": ")))
 	     (setq value
 		   (if (listp (nth 1 head))
-		       (completing-read prompt (cons '("*" nil) (nth 1 head))
-					nil t value
-					gnus-diary-header-value-history)
+		       (gnus-completing-read prompt (cons '("*" nil) (nth 1 head))
+                                             t value
+                                             'gnus-diary-header-value-history)
 		     (read-string prompt value
-				  gnus-diary-header-value-history))))
+				  'gnus-diary-header-value-history))))
 	   (setq ask nil)
 	   (setq invalid nil)
 	   (condition-case ()
@@ -401,5 +401,4 @@ If ARG (or prefix) is non-nil, force prompting for all fields."
 
 (provide 'gnus-diary)
 
-;; arch-tag: 98467e70-337e-4ddc-b92d-45d403ff1b4b
 ;;; gnus-diary.el ends here

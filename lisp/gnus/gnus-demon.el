@@ -92,7 +92,7 @@ time Emacs has been idle for IDLE `gnus-demon-timestep's."
 
 (defun gnus-demon-remove-handler (function &optional no-init)
   "Remove the handler FUNCTION from the list of handlers."
-  (gnus-pull function gnus-demon-handlers)
+  (gnus-alist-pull function gnus-demon-handlers)
   (unless no-init
     (gnus-demon-init)))
 
@@ -240,15 +240,6 @@ time Emacs has been idle for IDLE `gnus-demon-timestep's."
 		 ;; this idle-cycle.
 		 (push (car handler) gnus-demon-idle-has-been-called)))))))))
 
-(defun gnus-demon-add-nocem ()
-  "Add daemonic NoCeM handling to Gnus."
-  (gnus-demon-add-handler 'gnus-demon-scan-nocem 60 30))
-
-(defun gnus-demon-scan-nocem ()
-  "Scan NoCeM groups for NoCeM messages."
-  (save-window-excursion
-    (gnus-nocem-scan-groups)))
-
 (defun gnus-demon-add-disconnection ()
   "Add daemonic server disconnection to Gnus."
   (gnus-demon-add-handler 'gnus-demon-close-connections nil 30))
@@ -291,11 +282,9 @@ minutes, the connection is closed."
   (let ((win (current-window-configuration)))
     (unwind-protect
 	(save-window-excursion
-	  (save-excursion
-	    (when (gnus-alive-p)
-	      (save-excursion
-		(set-buffer gnus-group-buffer)
-		(gnus-group-get-new-news)))))
+	  (when (gnus-alive-p)
+	    (with-current-buffer gnus-group-buffer
+	      (gnus-group-get-new-news))))
       (set-window-configuration win))))
 
 (defun gnus-demon-add-scan-timestamps ()
@@ -319,5 +308,4 @@ minutes, the connection is closed."
 
 (provide 'gnus-demon)
 
-;; arch-tag: 8dd5cd3d-6ae4-46b4-9b15-f5fca09fd392
 ;;; gnus-demon.el ends here

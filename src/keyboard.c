@@ -62,9 +62,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #include <unistd.h>
 #endif
 
-#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
-#endif
 
 /* This is to get the definitions of the XK_ symbols.  */
 #ifdef HAVE_X_WINDOWS
@@ -304,7 +302,7 @@ EMACS_INT extra_keyboard_modifiers;
 Lisp_Object meta_prefix_char;
 
 /* Last size recorded for a current buffer which is not a minibuffer.  */
-static int last_non_minibuf_size;
+static EMACS_INT last_non_minibuf_size;
 
 /* Number of idle seconds before an auto-save and garbage collection.  */
 static Lisp_Object Vauto_save_timeout;
@@ -337,7 +335,7 @@ Lisp_Object real_this_command;
 Lisp_Object Vthis_original_command;
 
 /* The value of point when the last command was started.  */
-int last_point_position;
+EMACS_INT last_point_position;
 
 /* The buffer that was current when the last command was started.  */
 Lisp_Object last_point_position_buffer;
@@ -368,7 +366,7 @@ Lisp_Object Vselect_active_regions;
    Used by the `select-active-regions' feature.  */
 Lisp_Object Vsaved_region_selection;
 
-Lisp_Object Qx_set_selection, QPRIMARY;
+Lisp_Object Qx_set_selection, QPRIMARY, Qhandle_switch_frame;
 
 Lisp_Object Qself_insert_command;
 Lisp_Object Qforward_char;
@@ -621,7 +619,7 @@ static Lisp_Object make_lispy_movement (struct frame *, Lisp_Object,
                                         Lisp_Object, Lisp_Object,
                                         unsigned long);
 #endif
-static Lisp_Object modify_event_symbol (int, unsigned, Lisp_Object,
+static Lisp_Object modify_event_symbol (EMACS_INT, unsigned, Lisp_Object,
                                         Lisp_Object, const char **,
                                         Lisp_Object *, unsigned);
 static Lisp_Object make_lispy_switch_frame (Lisp_Object);
@@ -647,18 +645,6 @@ static int store_user_signal_events (void);
 static int cannot_suspend;
 
 
-/* Install the string STR as the beginning of the string of echoing,
-   so that it serves as a prompt for the next character.
-   Also start echoing.  */
-
-void
-echo_prompt (Lisp_Object str)
-{
-  current_kboard->echo_string = str;
-  current_kboard->echo_after_prompt = SCHARS (str);
-  echo_now ();
-}
-
 /* Add C to the echo string, if echoing is going on.
    C can be a character, which is printed prettily ("M-C-x" and all that
    jazz), or a symbol, whose name is printed.  */
@@ -755,6 +741,9 @@ echo_dash (void)
 {
   /* Do nothing if not echoing at all.  */
   if (NILP (current_kboard->echo_string))
+    return;
+
+  if (this_command_key_count == 0)
     return;
 
   if (!current_kboard->immediate_echo
@@ -867,7 +856,7 @@ echo_length (void)
    switches frames while entering a key sequence.  */
 
 static void
-echo_truncate (int nchars)
+echo_truncate (EMACS_INT nchars)
 {
   if (STRINGP (current_kboard->echo_string))
     current_kboard->echo_string
@@ -1480,7 +1469,7 @@ some_mouse_moved (void)
 static int read_key_sequence (Lisp_Object *, int, Lisp_Object,
                               int, int, int);
 void safe_run_hooks (Lisp_Object);
-static void adjust_point_for_property (int, int);
+static void adjust_point_for_property (EMACS_INT, int);
 
 /* Cancel hourglass from protect_unwind.
    ARG is not used.  */
@@ -1492,6 +1481,11 @@ cancel_hourglass_unwind (Lisp_Object arg)
   return Qnil;
 }
 #endif
+
+/* FIXME: This is wrong rather than test window-system, we should call
+   a new set-selection, which will then dispatch to x-set-selection, or
+   tty-set-selection, or w32-set-selection, ...  */
+EXFUN (Fwindow_system, 1);
 
 Lisp_Object
 command_loop_1 (void)
@@ -1781,7 +1775,8 @@ command_loop_1 (void)
 	  this_single_command_key_start = 0;
 	}
 
-      if (!NILP (current_buffer->mark_active) && !NILP (Vrun_hooks))
+      if (!NILP (current_buffer->mark_active)
+	  && !NILP (Vrun_hooks))
 	{
 	  /* In Emacs 22, setting transient-mark-mode to `only' was a
 	     way of turning it on for just one command.  This usage is
@@ -1799,13 +1794,19 @@ command_loop_1 (void)
 	    {
 	      /* Even if not deactivating the mark, set PRIMARY if
 		 `select-active-regions' is non-nil.  */
-	      if (EQ (Vselect_active_regions, Qonly)
-		  ? EQ (CAR_SAFE (Vtransient_mark_mode), Qonly)
-		  : (!NILP (Vselect_active_regions)
-		     && !NILP (Vtransient_mark_mode)))
+	      if (!NILP (Fwindow_system (Qnil))
+		  /* Even if mark_active is non-nil, the actual buffer
+		     marker may not have been set yet (Bug#7044).  */
+		  && XMARKER (current_buffer->mark)->buffer
+		  && (EQ (Vselect_active_regions, Qonly)
+		      ? EQ (CAR_SAFE (Vtransient_mark_mode), Qonly)
+		      : (!NILP (Vselect_active_regions)
+			 && !NILP (Vtransient_mark_mode)))
+		  && !EQ (Vthis_command, Qhandle_switch_frame))
 		{
-		  int beg = XINT (Fmarker_position (current_buffer->mark));
-		  int end = XINT (make_number (PT));
+		  EMACS_INT beg =
+		    XINT (Fmarker_position (current_buffer->mark));
+		  EMACS_INT end = PT;
 		  if (beg < end)
 		    call2 (Qx_set_selection, QPRIMARY,
 			   make_buffer_string (beg, end, 0));
@@ -1862,7 +1863,7 @@ command_loop_1 (void)
    LAST_PT is the last position of point.  */
 
 static void
-adjust_point_for_property (int last_pt, int modified)
+adjust_point_for_property (EMACS_INT last_pt, int modified)
 {
   EMACS_INT beg, end;
   Lisp_Object val, overlay, tmp;
@@ -1871,7 +1872,7 @@ adjust_point_for_property (int last_pt, int modified)
      user can keep inserting another character at point or keep
      deleting characters around point.  */
   int check_composition = ! modified, check_display = 1, check_invisible = 1;
-  int orig_pt = PT;
+  EMACS_INT orig_pt = PT;
 
   /* FIXME: cycling is probably not necessary because these properties
      can't be usefully combined anyway.  */
@@ -2774,7 +2775,8 @@ read_char (int commandflag, int nmaps, Lisp_Object *maps, Lisp_Object prev_event
 
   if (INTERACTIVE && NILP (c))
     {
-      int delay_level, buffer_size;
+      int delay_level;
+      EMACS_INT buffer_size;
 
       /* Slow down auto saves logarithmically in size of current buffer,
 	 and garbage collect while we're at it.  */
@@ -3513,12 +3515,6 @@ restore_getcjmp (jmp_buf temp)
 static int
 readable_events (int flags)
 {
-#ifdef HAVE_DBUS
-  /* Check whether a D-Bus message has arrived.  */
-  if (xd_pending_messages () > 0)
-    return 1;
-#endif /* HAVE_DBUS */
-
   if (flags & READABLE_EVENTS_DO_TIMERS_NOW)
     timer_check (1);
 
@@ -3788,22 +3784,20 @@ kbd_buffer_unget_event (register struct input_event *event)
 }
 
 
-/* Generate HELP_EVENT input_events in BUFP which has room for
-   SIZE events.  If there's not enough room in BUFP, ignore this
-   event.
+/* Generate a HELP_EVENT input_event and store it in the keyboard
+   buffer.
 
    HELP is the help form.
 
-   FRAME is the frame on which the help is generated.  OBJECT is the
-   Lisp object where the help was found (a buffer, a string, an
-   overlay, or nil if neither from a string nor from a buffer.  POS is
-   the position within OBJECT where the help was found.
-
-   Value is the number of input_events generated.  */
+   FRAME and WINDOW are the frame and window where the help is
+   generated.  OBJECT is the Lisp object where the help was found (a
+   buffer, a string, an overlay, or nil if neither from a string nor
+   from a buffer).  POS is the position within OBJECT where the help
+   was found.  */
 
 void
 gen_help_event (Lisp_Object help, Lisp_Object frame, Lisp_Object window,
-		Lisp_Object object, int pos)
+		Lisp_Object object, EMACS_INT pos)
 {
   struct input_event event;
 
@@ -5273,7 +5267,8 @@ make_lispy_position (struct frame *f, Lisp_Object *x, Lisp_Object *y,
       /* It's a click in window window at frame coordinates (x,y)  */
       struct window *w = XWINDOW (window);
       Lisp_Object string_info = Qnil;
-      int textpos = -1, rx = -1, ry = -1;
+      EMACS_INT textpos = -1;
+      int rx = -1, ry = -1;
       int dx = -1, dy = -1;
       int width = -1, height = -1;
       Lisp_Object object = Qnil;
@@ -5292,7 +5287,7 @@ make_lispy_position (struct frame *f, Lisp_Object *x, Lisp_Object *y,
 	  /* Mode line or header line.  Look for a string under
 	     the mouse that may have a `local-map' property.  */
 	  Lisp_Object string;
-	  int charpos;
+	  EMACS_INT charpos;
 
 	  posn = part == ON_MODE_LINE ? Qmode_line : Qheader_line;
 	  rx = wx, ry = wy;
@@ -5316,7 +5311,7 @@ make_lispy_position (struct frame *f, Lisp_Object *x, Lisp_Object *y,
       else if (part == ON_LEFT_MARGIN || part == ON_RIGHT_MARGIN)
 	{
 	  Lisp_Object string;
-	  int charpos;
+	  EMACS_INT charpos;
 
 	  posn = (part == ON_LEFT_MARGIN) ? Qleft_margin : Qright_margin;
 	  rx = wx, ry = wy;
@@ -5451,7 +5446,7 @@ make_lispy_event (struct input_event *event)
     case MULTIBYTE_CHAR_KEYSTROKE_EVENT:
       {
 	Lisp_Object lispy_c;
-	int c = event->code;
+	EMACS_INT c = event->code;
 	if (event->kind == ASCII_KEYSTROKE_EVENT)
 	  {
 	    c &= 0377;
@@ -6575,7 +6570,7 @@ reorder_modifiers (Lisp_Object symbol)
    in the symbol's name.  */
 
 static Lisp_Object
-modify_event_symbol (int symbol_num, unsigned int modifiers, Lisp_Object symbol_kind,
+modify_event_symbol (EMACS_INT symbol_num, unsigned int modifiers, Lisp_Object symbol_kind,
 		     Lisp_Object name_alist_or_stem, const char **name_table,
 		     Lisp_Object *symbol_table, unsigned int table_size)
 {
@@ -6639,7 +6634,7 @@ modify_event_symbol (int symbol_num, unsigned int modifiers, Lisp_Object symbol_
       if (NILP (value))
 	{
 	  char buf[20];
-	  sprintf (buf, "key-%d", symbol_num);
+	  sprintf (buf, "key-%ld", (long)symbol_num);
 	  value = intern (buf);
 	}
 
@@ -6869,11 +6864,6 @@ get_input_pending (int *addr, int flags)
 void
 gobble_input (int expected)
 {
-#ifdef HAVE_DBUS
-  /* Read D-Bus messages.  */
-  xd_read_queued_messages ();
-#endif /* HAVE_DBUS */
-
 #ifdef SIGIO
   if (interrupt_input)
     {
@@ -8298,7 +8288,7 @@ parse_tool_bar_item (Lisp_Object key, Lisp_Object item)
         {
           const char *bad_label = "!!?GARBLED ITEM?!!";
           /* `:label LABEL-STRING'.  */
-          PROP (TOOL_BAR_ITEM_HELP) = STRINGP (value)
+          PROP (TOOL_BAR_ITEM_LABEL) = STRINGP (value)
             ? value
             : make_string (bad_label, strlen (bad_label));
           have_label = 1;
@@ -9126,7 +9116,14 @@ read_key_sequence (Lisp_Object *keybuf, int bufsize, Lisp_Object prompt,
   if (INTERACTIVE)
     {
       if (!NILP (prompt))
-	echo_prompt (prompt);
+	{
+	  /* Install the string STR as the beginning of the string of
+	     echoing, so that it serves as a prompt for the next
+	     character.  */
+	  current_kboard->echo_string = prompt;
+	  current_kboard->echo_after_prompt = SCHARS (prompt);
+	  echo_now ();
+	}
       else if (cursor_in_echo_area
 	       && (FLOATP (Vecho_keystrokes) || INTEGERP (Vecho_keystrokes))
 	       && NILP (Fzerop (Vecho_keystrokes)))
@@ -10345,13 +10342,12 @@ give to the command you invoke, if it asks for an argument.  */)
   (Lisp_Object prefixarg)
 {
   Lisp_Object function;
-  char buf[40];
-  int saved_last_point_position;
+  EMACS_INT saved_last_point_position;
   Lisp_Object saved_keys, saved_last_point_position_buffer;
   Lisp_Object bindings, value;
   struct gcpro gcpro1, gcpro2, gcpro3;
 #ifdef HAVE_WINDOW_SYSTEM
-  /* The call to Fcompleting_read wil start and cancel the hourglass,
+  /* The call to Fcompleting_read will start and cancel the hourglass,
      but if the hourglass was already scheduled, this means that no
      hourglass will be shown for the actual M-x command itself.
      So we restart it if it is already scheduled.  Note that checking
@@ -10364,31 +10360,9 @@ give to the command you invoke, if it asks for an argument.  */)
 			XVECTOR (this_command_keys)->contents);
   saved_last_point_position_buffer = last_point_position_buffer;
   saved_last_point_position = last_point_position;
-  buf[0] = 0;
   GCPRO3 (saved_keys, prefixarg, saved_last_point_position_buffer);
 
-  if (EQ (prefixarg, Qminus))
-    strcpy (buf, "- ");
-  else if (CONSP (prefixarg) && XINT (XCAR (prefixarg)) == 4)
-    strcpy (buf, "C-u ");
-  else if (CONSP (prefixarg) && INTEGERP (XCAR (prefixarg)))
-    sprintf (buf, "%ld ", (long) XINT (XCAR (prefixarg)));
-  else if (INTEGERP (prefixarg))
-    sprintf (buf, "%ld ", (long) XINT (prefixarg));
-
-  /* This isn't strictly correct if execute-extended-command
-     is bound to anything else.  Perhaps it should use
-     this_command_keys?  */
-  strcat (buf, "M-x ");
-
-  /* Prompt with buf, and then read a string, completing from and
-     restricting to the set of all defined commands.  Don't provide
-     any initial input.  Save the command read on the extended-command
-     history list. */
-  function = Fcompleting_read (build_string (buf),
-			       Vobarray, Qcommandp,
-			       Qt, Qnil, Qextended_command_history, Qnil,
-			       Qnil);
+  function = call0 (intern ("read-extended-command"));
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (hstarted) start_hourglass ();
@@ -10836,7 +10810,7 @@ stuff_buffered_input (Lisp_Object stuffstring)
 
   if (STRINGP (stuffstring))
     {
-      register int count;
+      register EMACS_INT count;
 
       p = SDATA (stuffstring);
       count = SBYTES (stuffstring);
@@ -11506,11 +11480,11 @@ init_keyboard (void)
          Emacs on SIGINT when there are no termcap frames on the
          controlling terminal. */
       signal (SIGINT, interrupt_signal);
-#if defined (HAVE_TERMIO) || defined (HAVE_TERMIOS)
+#ifndef DOS_NT
       /* For systems with SysV TERMIO, C-g is set up for both SIGINT and
 	 SIGQUIT and we can't tell which one it will give us.  */
       signal (SIGQUIT, interrupt_signal);
-#endif /* HAVE_TERMIO */
+#endif /* not DOS_NT */
     }
 /* Note SIGIO has been undef'd if FIONREAD is missing.  */
 #ifdef SIGIO
@@ -11725,6 +11699,8 @@ syms_of_keyboard (void)
   staticpro (&Qx_set_selection);
   QPRIMARY = intern_c_string ("PRIMARY");
   staticpro (&QPRIMARY);
+  Qhandle_switch_frame = intern_c_string ("handle-switch-frame");
+  staticpro (&Qhandle_switch_frame);
 
   Qinput_method_exit_on_first_char = intern_c_string ("input-method-exit-on-first-char");
   staticpro (&Qinput_method_exit_on_first_char);

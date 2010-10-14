@@ -335,7 +335,6 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
 
 (defvar gnus-uu-shar-begin-string "^#! */bin/sh")
 
-(defvar gnus-uu-shar-file-name nil)
 (defvar gnus-uu-shar-name-marker
   "begin 0?[0-7][0-7][0-7][ \t]+\\(\\(\\w\\|[.\\:]\\)*\\b\\)")
 
@@ -827,8 +826,7 @@ When called interactively, prompt for REGEXP."
 (defun gnus-uu-save-article (buffer in-state)
   (cond
    (gnus-uu-save-separate-articles
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (let ((coding-system-for-write mm-text-coding-system))
 	(gnus-write-buffer
 	 (concat gnus-uu-saved-article-name gnus-current-article)))
@@ -838,8 +836,7 @@ When called interactively, prompt for REGEXP."
 	    ((eq in-state 'last) (list 'end))
 	    (t (list 'middle)))))
    ((not gnus-uu-save-in-digest)
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (write-region (point-min) (point-max) gnus-uu-saved-article-name t)
       (cond ((eq in-state 'first) (list gnus-uu-saved-article-name 'begin))
 	    ((eq in-state 'first-and-last) (list gnus-uu-saved-article-name
@@ -857,11 +854,9 @@ When called interactively, prompt for REGEXP."
 	      (eq in-state 'first-and-last))
 	  (progn
 	    (setq state (list 'begin))
-	    (save-excursion
-	      (set-buffer (gnus-get-buffer-create "*gnus-uu-body*"))
+	    (with-current-buffer (gnus-get-buffer-create "*gnus-uu-body*")
 	      (erase-buffer))
-	    (save-excursion
-	      (set-buffer (gnus-get-buffer-create "*gnus-uu-pre*"))
+	    (with-current-buffer (gnus-get-buffer-create "*gnus-uu-pre*")
 	      (erase-buffer)
 	      (insert (format
 		       "Date: %s\nFrom: %s\nSubject: %s Digest\n\n"
@@ -873,8 +868,7 @@ When called interactively, prompt for REGEXP."
 	      (insert "Topics:\n")))
 	(when (not (eq in-state 'end))
 	  (setq state (list 'middle))))
-      (save-excursion
-	(set-buffer "*gnus-uu-body*")
+      (with-current-buffer "*gnus-uu-body*"
 	(goto-char (setq beg (point-max)))
 	(save-excursion
 	  (save-restriction
@@ -940,8 +934,7 @@ When called interactively, prompt for REGEXP."
 	(when (re-search-forward "^Subject: \\(.*\\)$" nil t)
 	  (setq subj (buffer-substring (match-beginning 1) (match-end 1))))
 	(when subj
-	  (save-excursion
-	    (set-buffer "*gnus-uu-pre*")
+	  (with-current-buffer "*gnus-uu-pre*"
 	    (insert (format "   %s\n" subj)))))
       (when (or (eq in-state 'last)
 		(eq in-state 'first-and-last))
@@ -951,8 +944,7 @@ When called interactively, prompt for REGEXP."
 	      (insert-buffer-substring "*gnus-uu-pre*")
 	      (goto-char (point-max))
 	      (insert-buffer-substring "*gnus-uu-body*"))
-	  (save-excursion
-	    (set-buffer "*gnus-uu-pre*")
+	  (with-current-buffer "*gnus-uu-pre*"
 	    (insert (format "\n\n%s\n\n" (make-string 70 ?-)))
 	    (if gnus-uu-digest-buffer
 		(with-current-buffer gnus-uu-digest-buffer
@@ -960,8 +952,7 @@ When called interactively, prompt for REGEXP."
 		  (insert-buffer-substring "*gnus-uu-pre*"))
 	      (let ((coding-system-for-write mm-text-coding-system))
 		(gnus-write-buffer gnus-uu-saved-article-name))))
-	  (save-excursion
-	    (set-buffer "*gnus-uu-body*")
+	  (with-current-buffer "*gnus-uu-body*"
 	    (goto-char (point-max))
 	    (insert
 	     (concat (setq end-string (format "End of %s Digest" name))
@@ -993,8 +984,7 @@ When called interactively, prompt for REGEXP."
 
 (defun gnus-uu-binhex-article (buffer in-state)
   (let (state start-char)
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (widen)
       (goto-char (point-min))
       (when (not (re-search-forward gnus-uu-binhex-begin-line nil t))
@@ -1030,8 +1020,7 @@ When called interactively, prompt for REGEXP."
 ;; yEnc
 
 (defun gnus-uu-yenc-article (buffer in-state)
-  (save-excursion
-    (set-buffer gnus-original-article-buffer)
+  (with-current-buffer gnus-original-article-buffer
     (widen)
     (let ((file-name (yenc-extract-filename))
 	  state start-char)
@@ -1065,8 +1054,7 @@ When called interactively, prompt for REGEXP."
 (defun gnus-uu-decode-postscript-article (process-buffer in-state)
   (let ((state (list 'ok))
 	start-char end-char file-name)
-    (save-excursion
-      (set-buffer process-buffer)
+    (with-current-buffer process-buffer
       (goto-char (point-min))
       (if (not (re-search-forward gnus-uu-postscript-begin-string nil t))
 	  (setq state (list 'wrong-type))
@@ -1128,8 +1116,7 @@ When called interactively, prompt for REGEXP."
   ;; replaces the last thing that looks like "2/3" with "[0-9]+/3"
   ;; or, if it can't find something like that, tries "2 of 3", then
   ;; finally just replaces the next to last number with "[0-9]+".
-  (save-excursion
-    (set-buffer (gnus-get-buffer-create gnus-uu-output-buffer-name))
+  (with-current-buffer (gnus-get-buffer-create gnus-uu-output-buffer-name)
     (buffer-disable-undo)
     (erase-buffer)
     (insert (regexp-quote string))
@@ -1228,8 +1215,7 @@ When called interactively, prompt for REGEXP."
   ;; decoded in.  Returns the list of expanded strings.
   (let ((out-list string-list)
 	string)
-    (save-excursion
-      (set-buffer (gnus-get-buffer-create gnus-uu-output-buffer-name))
+    (with-current-buffer (gnus-get-buffer-create gnus-uu-output-buffer-name)
       (buffer-disable-undo)
       (while string-list
 	(erase-buffer)
@@ -1332,11 +1318,9 @@ When called interactively, prompt for REGEXP."
 	(gnus-summary-display-article article)
 
 	;; Push the article to the processing function.
-	(save-excursion
-	  (set-buffer gnus-original-article-buffer)
+	(with-current-buffer gnus-original-article-buffer
 	  (let ((buffer-read-only nil))
-	    (save-excursion
-	      (set-buffer gnus-summary-buffer)
+	    (with-current-buffer gnus-summary-buffer
 	      (setq process-state
 		    (funcall process-function
 			     gnus-original-article-buffer state)))))
@@ -1477,8 +1461,7 @@ When called interactively, prompt for REGEXP."
 
 (defun gnus-uu-uustrip-article (process-buffer in-state)
   ;; Uudecodes a file asynchronously.
-  (save-excursion
-    (set-buffer process-buffer)
+  (with-current-buffer process-buffer
     (let ((state (list 'wrong-type))
 	  process-connection-type case-fold-search buffer-read-only
 	  files start-char)
@@ -1600,8 +1583,7 @@ Gnus might fail to display all of it.")
 (defun gnus-uu-unshar-article (process-buffer in-state)
   (let ((state (list 'ok))
 	start-char)
-    (save-excursion
-      (set-buffer process-buffer)
+    (with-current-buffer process-buffer
       (goto-char (point-min))
       (if (not (re-search-forward gnus-uu-shar-begin-string nil t))
 	  (setq state (list 'wrong-type))
@@ -1688,8 +1670,7 @@ Gnus might fail to display all of it.")
 
     (setq command (format "cd %s ; %s" dir (gnus-uu-command action file-path)))
 
-    (save-excursion
-      (set-buffer (gnus-get-buffer-create gnus-uu-output-buffer-name))
+    (with-current-buffer (gnus-get-buffer-create gnus-uu-output-buffer-name)
       (erase-buffer))
 
     (gnus-message 5 "Unpacking: %s..." (gnus-uu-command action file-path))
@@ -2039,9 +2020,8 @@ If no file has been included, the user will be asked for a file."
       (setq file-name file-path))
 
     (unwind-protect
-	(if (save-excursion
-	      (set-buffer (setq uubuf
-				(gnus-get-buffer-create uuencode-buffer-name)))
+	(if (with-current-buffer
+		(setq uubuf (gnus-get-buffer-create uuencode-buffer-name))
 	      (erase-buffer)
 	      (funcall gnus-uu-post-encode-method file-path file-name))
 	    (insert-buffer-substring uubuf)
@@ -2073,8 +2053,8 @@ If no file has been included, the user will be asked for a file."
     (setq beg-binary (point))
     (setq end-binary (point-max))
 
-    (save-excursion
-      (set-buffer (setq uubuf (gnus-get-buffer-create encoded-buffer-name)))
+    (with-current-buffer
+	(setq uubuf (gnus-get-buffer-create encoded-buffer-name))
       (erase-buffer)
       (insert-buffer-substring post-buf beg-binary end-binary)
       (goto-char (point-min))
@@ -2129,8 +2109,7 @@ If no file has been included, the user will be asked for a file."
 	  (insert (format " (%d/%d)" i parts)))
 
 	(goto-char (point-max))
-	(save-excursion
-	  (set-buffer uubuf)
+	(with-current-buffer uubuf
 	  (goto-char beg)
 	  (if (= i parts)
 	      (goto-char (point-max))
@@ -2170,5 +2149,4 @@ If no file has been included, the user will be asked for a file."
 
 (provide 'gnus-uu)
 
-;; arch-tag: 05312384-0a83-4720-9a58-b3160b888853
 ;;; gnus-uu.el ends here

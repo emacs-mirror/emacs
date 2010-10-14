@@ -411,9 +411,10 @@ This variable is generally set from `tcl-proc-regexp',
 `tcl-typeword-list', and `tcl-keyword-list' by the function
 `tcl-set-font-lock-keywords'.")
 
-(defvar tcl-font-lock-syntactic-keywords
-  ;; Mark the few `#' that are not comment-markers.
-  '(("[^;[{ \t\n][ \t]*\\(#\\)" (1 ".")))
+(defconst tcl-syntax-propertize-function
+  (syntax-propertize-rules
+   ;; Mark the few `#' that are not comment-markers.
+   ("[^;[{ \t\n][ \t]*\\(#\\)" (1 ".")))
   "Syntactic keywords for `tcl-mode'.")
 
 ;; FIXME need some way to recognize variables because array refs look
@@ -593,9 +594,9 @@ Commands:
   (set (make-local-variable 'outline-level) 'tcl-outline-level)
 
   (set (make-local-variable 'font-lock-defaults)
-       '(tcl-font-lock-keywords nil nil nil beginning-of-defun
- 	 (font-lock-syntactic-keywords . tcl-font-lock-syntactic-keywords)
- 	 (parse-sexp-lookup-properties . t)))
+       '(tcl-font-lock-keywords nil nil nil beginning-of-defun))
+  (set (make-local-variable 'syntax-propertize-function)
+       tcl-syntax-propertize-function)
 
   (set (make-local-variable 'imenu-generic-expression)
        tcl-imenu-generic-expression)

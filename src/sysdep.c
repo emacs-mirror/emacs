@@ -35,15 +35,7 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #include "lisp.h"
-/* Including stdlib.h isn't necessarily enough to get srandom
-   declared, e.g. without __USE_XOPEN_EXTENDED with glibc 2.  */
-
-/* The w32 build defines select stuff in w32.h, which is included by
-   sys/select.h (included below).   */
-#ifndef WINDOWSNT
 #include "sysselect.h"
-#endif
-
 #include "blockinput.h"
 
 #ifdef WINDOWSNT
@@ -79,22 +71,15 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 #endif
 
 #include <sys/file.h>
-
-#ifdef HAVE_FCNTL_H
 #include <fcntl.h>
-#endif
-
-#ifndef MSDOS
-#include <sys/ioctl.h>
-#endif
 
 #include "systty.h"
 #include "syswait.h"
 
-#if defined (USG)
+#ifdef HAVE_SYS_UTSNAME_H
 #include <sys/utsname.h>
 #include <memory.h>
-#endif /* USG */
+#endif /* HAVE_SYS_UTSNAME_H */
 
 #include "keyboard.h"
 #include "frame.h"
@@ -138,29 +123,11 @@ struct utimbuf {
 #endif
 #endif
 
-/* LPASS8 is new in 4.3, and makes cbreak mode provide all 8 bits.  */
-#ifndef LPASS8
-#define LPASS8 0
-#endif
-
 static const int baud_convert[] =
   {
     0, 50, 75, 110, 135, 150, 200, 300, 600, 1200,
     1800, 2400, 4800, 9600, 19200, 38400
   };
-
-#ifdef HAVE_SPEED_T
-#include <termios.h>
-#else
-#if defined (HAVE_LIBNCURSES) && ! defined (NCURSES_OSPEED_T)
-#else
-#if defined (HAVE_TERMIOS_H) && defined (GNU_LINUX)
-#include <termios.h>
-#endif
-#endif
-#endif
-
-int emacs_ospeed;
 
 void croak (char *) NO_RETURN;
 
@@ -301,6 +268,8 @@ stuff_char (char c)
 void
 init_baud_rate (int fd)
 {
+  int emacs_ospeed;
+ 
   if (noninteractive)
     emacs_ospeed = 0;
   else
@@ -308,32 +277,11 @@ init_baud_rate (int fd)
 #ifdef DOS_NT
     emacs_ospeed = 15;
 #else  /* not DOS_NT */
-#ifdef HAVE_TERMIOS
       struct termios sg;
 
       sg.c_cflag = B9600;
       tcgetattr (fd, &sg);
       emacs_ospeed = cfgetospeed (&sg);
-#else /* not TERMIOS */
-#ifdef HAVE_TERMIO
-      struct termio sg;
-
-      sg.c_cflag = B9600;
-#ifdef HAVE_TCATTR
-      tcgetattr (fd, &sg);
-#else
-      ioctl (fd, TCGETA, &sg);
-#endif
-      emacs_ospeed = sg.c_cflag & CBAUD;
-#else /* neither TERMIOS nor TERMIO */
-      struct sgttyb sg;
-
-      sg.sg_ospeed = B9600;
-      if (ioctl (fd, TIOCGETP, &sg) < 0)
-	abort ();
-      emacs_ospeed = sg.sg_ospeed;
-#endif /* not HAVE_TERMIO */
-#endif /* not HAVE_TERMIOS */
 #endif /* not DOS_NT */
     }
 
@@ -343,16 +291,6 @@ init_baud_rate (int fd)
     baud_rate = 1200;
 }
 
-
-/*ARGSUSED*/
-void
-set_exclusive_use (int fd)
-{
-#ifdef FIOCLEX
-  ioctl (fd, FIOCLEX, 0);
-#endif
-  /* Ok to do nothing if this feature does not exist */
-}
 
 
 int wait_debugging;   /* Set nonzero to make following function work under dbx
@@ -417,22 +355,7 @@ wait_for_termination (int pid)
 void
 flush_pending_output (int channel)
 {
-#ifdef HAVE_TERMIOS
-  /* If we try this, we get hit with SIGTTIN, because
-     the child's tty belongs to the child's pgrp. */
-#else
-#ifdef TCFLSH
-  ioctl (channel, TCFLSH, 1);
-#else
-#ifdef TIOCFLUSH
-  int zero = 0;
-  /* 3rd arg should be ignored
-     but some 4.2 kernels actually want the address of an int
-     and nonzero means something different.  */
-  ioctl (channel, TIOCFLUSH, &zero);
-#endif
-#endif
-#endif
+  /* FIXME: maybe this function should be removed */
 }
 
 /*  Set up the terminal at the other end of a pseudo-terminal that
@@ -447,8 +370,6 @@ child_setup_tty (int out)
   struct emacs_tty s;
 
   EMACS_GET_TTY (out, &s);
-
-#if defined (HAVE_TERMIO) || defined (HAVE_TERMIOS)
   s.main.c_oflag |= OPOST;	/* Enable output postprocessing */
   s.main.c_oflag &= ~ONLCR;	/* Disable map of NL to CR-NL on output */
 #ifdef NLDLY
@@ -526,22 +447,10 @@ child_setup_tty (int out)
   s.main.c_cc[VTIME] = 0;
 #endif
 
-#else /* not HAVE_TERMIO */
-
-  s.main.sg_flags &= ~(ECHO | CRMOD | ANYP | ALLDELAY | RAW | LCASE
-		       | CBREAK | TANDEM);
-  s.main.sg_flags |= LPASS8;
-  s.main.sg_erase = 0377;
-  s.main.sg_kill = 0377;
-  s.lmode = LLITOUT | s.lmode;        /* Don't strip 8th bit */
-
-#endif /* not HAVE_TERMIO */
-
   EMACS_SET_TTY (out, &s, 0);
-
 #endif /* not WINDOWSNT */
 }
-#endif	/* MSDOS */
+#endif	/* not MSDOS */
 
 
 /* Record a signal code and the handler for it.  */
@@ -841,37 +750,10 @@ int
 emacs_get_tty (int fd, struct emacs_tty *settings)
 {
   /* Retrieve the primary parameters - baud rate, character size, etcetera.  */
-#ifdef HAVE_TCATTR
+#ifndef DOS_NT
   /* We have those nifty POSIX tcmumbleattr functions.  */
   memset (&settings->main, 0, sizeof (settings->main));
   if (tcgetattr (fd, &settings->main) < 0)
-    return -1;
-
-#else
-#ifdef HAVE_TERMIO
-  /* The SYSV-style interface?  */
-  if (ioctl (fd, TCGETA, &settings->main) < 0)
-    return -1;
-
-#else
-#ifndef DOS_NT
-  /* I give up - I hope you have the BSD ioctls.  */
-  if (ioctl (fd, TIOCGETP, &settings->main) < 0)
-    return -1;
-#endif /* not DOS_NT */
-#endif
-#endif
-
-  /* Suivant - Do we have to get struct ltchars data?  */
-#ifdef HAVE_LTCHARS
-  if (ioctl (fd, TIOCGLTC, &settings->ltchars) < 0)
-    return -1;
-#endif
-
-  /* How about a struct tchars and a wordful of lmode bits?  */
-#ifdef HAVE_TCHARS
-  if (ioctl (fd, TIOCGETC, &settings->tchars) < 0
-      || ioctl (fd, TIOCLGET, &settings->lmode) < 0)
     return -1;
 #endif
 
@@ -888,7 +770,7 @@ int
 emacs_set_tty (int fd, struct emacs_tty *settings, int flushp)
 {
   /* Set the primary parameters - baud rate, character size, etcetera.  */
-#ifdef HAVE_TCATTR
+#ifndef DOS_NT
   int i;
   /* We have those nifty POSIX tcmumbleattr functions.
      William J. Smith <wjs@wiis.wang.com> writes:
@@ -926,34 +808,6 @@ emacs_set_tty (int fd, struct emacs_tty *settings, int flushp)
 	else
 	  continue;
       }
-
-#else
-#ifdef HAVE_TERMIO
-  /* The SYSV-style interface?  */
-  if (ioctl (fd, flushp ? TCSETAF : TCSETAW, &settings->main) < 0)
-    return -1;
-
-#else
-#ifndef DOS_NT
-  /* I give up - I hope you have the BSD ioctls.  */
-  if (ioctl (fd, (flushp) ? TIOCSETP : TIOCSETN, &settings->main) < 0)
-    return -1;
-#endif /* not DOS_NT */
-
-#endif
-#endif
-
-  /* Suivant - Do we have to get struct ltchars data?  */
-#ifdef HAVE_LTCHARS
-  if (ioctl (fd, TIOCSLTC, &settings->ltchars) < 0)
-    return -1;
-#endif
-
-  /* How about a struct tchars and a wordful of lmode bits?  */
-#ifdef HAVE_TCHARS
-  if (ioctl (fd, TIOCSETC, &settings->tchars) < 0
-      || ioctl (fd, TIOCLSET, &settings->lmode) < 0)
-    return -1;
 #endif
 
   /* We have survived the tempest.  */
@@ -974,13 +828,6 @@ int old_fcntl_owner[MAXDESC];
 unsigned char _sobuf[BUFSIZ+8];
 #else
 char _sobuf[BUFSIZ];
-#endif
-
-#ifdef HAVE_LTCHARS
-static struct ltchars new_ltchars = {-1,-1,-1,-1,-1,-1};
-#endif
-#ifdef HAVE_TCHARS
-static struct tchars new_tchars = {-1,-1,-1,-1,-1,-1};
 #endif
 
 /* Initialize the terminal mode on all tty devices that are currently
@@ -1016,7 +863,7 @@ init_sys_modes (struct tty_display_info *tty_out)
 
   tty = *tty_out->old_tty;
 
-#if defined (HAVE_TERMIO) || defined (HAVE_TERMIOS)
+#if !defined (DOS_NT)
   XSETINT (Vtty_erase_char, tty.main.c_cc[VERASE]);
 
   tty.main.c_iflag |= (IGNBRK);	/* Ignore break condition */
@@ -1088,12 +935,11 @@ init_sys_modes (struct tty_display_info *tty_out)
 					   of C-z */
 #endif /* VSWTCH */
 
-#if defined (__mips__) || defined (HAVE_TCATTR)
 #ifdef VSUSP
-  tty.main.c_cc[VSUSP] = CDISABLE;	/* Turn off mips handling of C-z.  */
+  tty.main.c_cc[VSUSP] = CDISABLE;	/* Turn off handling of C-z.  */
 #endif /* VSUSP */
 #ifdef V_DSUSP
-  tty.main.c_cc[V_DSUSP] = CDISABLE; /* Turn off mips handling of C-y.  */
+  tty.main.c_cc[V_DSUSP] = CDISABLE; /* Turn off handling of C-y.  */
 #endif /* V_DSUSP */
 #ifdef VDSUSP /* Some systems have VDSUSP, some have V_DSUSP.  */
   tty.main.c_cc[VDSUSP] = CDISABLE;
@@ -1129,7 +975,6 @@ init_sys_modes (struct tty_display_info *tty_out)
       tty.main.c_cc[VSTOP] = CDISABLE;
 #endif /* VSTOP */
     }
-#endif /* mips or HAVE_TCATTR */
 
 #ifdef AIX
   tty.main.c_cc[VSTRT] = CDISABLE;
@@ -1152,41 +997,8 @@ init_sys_modes (struct tty_display_info *tty_out)
   tty.main.c_iflag &= ~IGNBRK;
   tty.main.c_iflag &= ~BRKINT;
 #endif
-#else /* if not HAVE_TERMIO */
-#ifndef DOS_NT
-  XSETINT (Vtty_erase_char, tty.main.sg_erase);
-  tty.main.sg_flags &= ~(ECHO | CRMOD | XTABS);
-  if (meta_key)
-    tty.main.sg_flags |= ANYP;
-  tty.main.sg_flags |= interrupt_input ? RAW : CBREAK;
 #endif /* not DOS_NT */
-#endif /* not HAVE_TERMIO */
 
-  /* If going to use CBREAK mode, we must request C-g to interrupt
-     and turn off start and stop chars, etc.  If not going to use
-     CBREAK mode, do this anyway so as to turn off local flow
-     control for user coming over network on 4.2; in this case,
-     only t_stopc and t_startc really matter.  */
-#ifndef HAVE_TERMIO
-#ifdef HAVE_TCHARS
-  /* Note: if not using CBREAK mode, it makes no difference how we
-     set this */
-  tty.tchars = new_tchars;
-  tty.tchars.t_intrc = quit_char;
-  if (tty_out->flow_control)
-    {
-      tty.tchars.t_startc = '\021';
-      tty.tchars.t_stopc = '\023';
-    }
-
-  tty.lmode = LDECCTQ | LLITOUT | LPASS8 | LNOFLSH | tty_out->old_tty.lmode;
-
-#endif /* HAVE_TCHARS */
-#endif /* not HAVE_TERMIO */
-
-#ifdef HAVE_LTCHARS
-  tty.ltchars = new_ltchars;
-#endif /* HAVE_LTCHARS */
 #ifdef MSDOS	/* Demacs 1.1.2 91/10/20 Manabu Higashida, MW Aug 1993 */
   if (!tty_out->term_initted)
     internal_terminal_init ();
@@ -1205,7 +1017,7 @@ init_sys_modes (struct tty_display_info *tty_out)
   if (!tty_out->flow_control) ioctl (fileno (tty_out->input), TIOCSTART, 0);
 #endif
 
-#if defined (HAVE_TERMIOS) || defined (HPUX)
+#if !defined (DOS_NT)
 #ifdef TCOON
   if (!tty_out->flow_control) tcflow (fileno (tty_out->input), TCOON);
 #endif
@@ -1640,242 +1452,6 @@ init_system_name (void)
 	*p = '-';
   }
 }
-
-#ifndef MSDOS
-#if !defined (HAVE_SELECT)
-
-#include "sysselect.h"
-#undef select
-
-#if defined (HAVE_X_WINDOWS) && !defined (HAVE_SELECT)
-/* Cause explanatory error message at compile time,
-   since the select emulation is not good enough for X.  */
-int *x = &x_windows_lose_if_no_select_system_call;
-#endif
-
-/* Emulate as much as select as is possible under 4.1 and needed by Gnu Emacs
- * Only checks read descriptors.
- */
-/* How long to wait between checking fds in select */
-#define SELECT_PAUSE 1
-int select_alarmed;
-
-/* For longjmp'ing back to read_input_waiting.  */
-
-jmp_buf read_alarm_throw;
-
-/* Nonzero if the alarm signal should throw back to read_input_waiting.
-   The read_socket_hook function sets this to 1 while it is waiting.  */
-
-int read_alarm_should_throw;
-
-void
-select_alarm (int ignore)
-{
-  select_alarmed = 1;
-  signal (SIGALRM, SIG_IGN);
-  SIGNAL_THREAD_CHECK (SIGALRM);
-  if (read_alarm_should_throw)
-    longjmp (read_alarm_throw, 1);
-}
-
-#ifndef WINDOWSNT
-/* Only rfds are checked.  */
-int
-sys_select (int nfds,
-	    SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
-	    EMACS_TIME *timeout)
-{
-  /* XXX This needs to be updated for multi-tty support.  Is there
-     anybody who needs to emulate select these days?  */
- int ravail = 0;
-  SELECT_TYPE orfds;
-  int timeoutval;
-  int *local_timeout;
-  extern int proc_buffered_char[];
-  extern int process_tick, update_tick;
-  unsigned char buf;
-
-#if defined (HAVE_SELECT) && defined (HAVE_X_WINDOWS)
-  /* If we're using X, then the native select will work; we only need the
-     emulation for non-X usage.  */
-  if (!NILP (Vinitial_window_system))
-    return select (nfds, rfds, wfds, efds, timeout);
-#endif
-  timeoutval = timeout ? EMACS_SECS (*timeout) : 100000;
-  local_timeout = &timeoutval;
-  FD_ZERO (&orfds);
-  if (rfds)
-    {
-      orfds = *rfds;
-      FD_ZERO (rfds);
-    }
-  if (wfds)
-    FD_ZERO (wfds);
-  if (efds)
-    FD_ZERO (efds);
-
-  /* If we are looking only for the terminal, with no timeout,
-     just read it and wait -- that's more efficient.  */
-  if (*local_timeout == 100000 && process_tick == update_tick
-      && FD_ISSET (0, &orfds))
-    {
-      int fd;
-      for (fd = 1; fd < nfds; ++fd)
-	if (FD_ISSET (fd, &orfds))
-	  goto hardway;
-      if (! detect_input_pending ())
-	read_input_waiting ();
-      FD_SET (0, rfds);
-      return 1;
-    }
-
- hardway:
-  /* Once a second, till the timer expires, check all the flagged read
-   * descriptors to see if any input is available.  If there is some then
-   * set the corresponding bit in the return copy of rfds.
-   */
-  while (1)
-    {
-      register int to_check, fd;
-
-      if (rfds)
-	{
-	  for (to_check = nfds, fd = 0; --to_check >= 0; fd++)
-	    {
-	      if (FD_ISSET (fd, &orfds))
-		{
-		  int avail = 0, status = 0;
-
-		  if (fd == 0)
-		    avail = detect_input_pending (); /* Special keyboard handler */
-		  else
-		    {
-#ifdef FIONREAD
-		      status = ioctl (fd, FIONREAD, &avail);
-#else /* no FIONREAD */
-		      /* Hoping it will return -1 if nothing available
-			 or 0 if all 0 chars requested are read.  */
-		      if (proc_buffered_char[fd] >= 0)
-			avail = 1;
-		      else
-			{
-			  avail = read (fd, &buf, 1);
-			  if (avail > 0)
-			    proc_buffered_char[fd] = buf;
-			}
-#endif /* no FIONREAD */
-		    }
-		  if (status >= 0 && avail > 0)
-		    {
-		      FD_SET (fd, rfds);
-		      ravail++;
-		    }
-		}
-	    }
-	}
-      if (*local_timeout == 0 || ravail != 0 || process_tick != update_tick)
-	break;
-
-      turn_on_atimers (0);
-      signal (SIGALRM, select_alarm);
-      select_alarmed = 0;
-      alarm (SELECT_PAUSE);
-
-      /* Wait for a SIGALRM (or maybe a SIGTINT) */
-      while (select_alarmed == 0 && *local_timeout != 0
-	     && process_tick == update_tick)
-	{
-	  /* If we are interested in terminal input,
-	     wait by reading the terminal.
-	     That makes instant wakeup for terminal input at least.  */
-	  if (FD_ISSET (0, &orfds))
-	    {
-	      read_input_waiting ();
-	      if (detect_input_pending ())
-		select_alarmed = 1;
-	    }
-	  else
-	    pause ();
-	}
-      (*local_timeout) -= SELECT_PAUSE;
-
-      /* Reset the old alarm if there was one.  */
-      turn_on_atimers (1);
-
-      if (*local_timeout == 0)  /* Stop on timer being cleared */
-	break;
-    }
-  return ravail;
-}
-#endif /* not WINDOWSNT */
-
-/* Read keyboard input into the standard buffer,
-   waiting for at least one character.  */
-
-void
-read_input_waiting (void)
-{
-  /* XXX This needs to be updated for multi-tty support.  Is there
-     anybody who needs to emulate select these days?  */
-  int nread, i;
-
-  if (read_socket_hook)
-    {
-      struct input_event hold_quit;
-
-      EVENT_INIT (hold_quit);
-      hold_quit.kind = NO_EVENT;
-
-      read_alarm_should_throw = 0;
-      if (! setjmp (read_alarm_throw))
-	nread = (*read_socket_hook) (0, 1, &hold_quit);
-      else
-	nread = -1;
-
-      if (hold_quit.kind != NO_EVENT)
-	kbd_buffer_store_event (&hold_quit);
-    }
-  else
-    {
-      struct input_event e;
-      char buf[3];
-      nread = read (fileno (stdin), buf, 1);
-      EVENT_INIT (e);
-
-      /* Scan the chars for C-g and store them in kbd_buffer.  */
-      e.kind = ASCII_KEYSTROKE_EVENT;
-      e.frame_or_window = selected_frame;
-      e.modifiers = 0;
-      for (i = 0; i < nread; i++)
-	{
-	  /* Convert chars > 0177 to meta events if desired.
-	     We do this under the same conditions that read_avail_input does.  */
-	  if (read_socket_hook == 0)
-	    {
-	      /* If the user says she has a meta key, then believe her. */
-	      if (meta_key == 1 && (buf[i] & 0x80))
-		e.modifiers = meta_modifier;
-	      if (meta_key != 2)
-		buf[i] &= ~0x80;
-	    }
-
-	  XSETINT (e.code, buf[i]);
-	  kbd_buffer_store_event (&e);
-	  /* Don't look at input that follows a C-g too closely.
-	     This reduces lossage due to autorepeat on C-g.  */
-	  if (buf[i] == quit_char)
-	    break;
-	}
-    }
-}
-
-#if !defined (HAVE_SELECT)
-#define select sys_select
-#endif
-
-#endif /* not HAVE_SELECT */
-#endif /* not MSDOS */
 
 /* POSIX signals support - DJB */
 /* Anyone with POSIX signals should have ANSI C declarations */
@@ -2426,7 +2002,6 @@ dup2 (int oldd, int newd)
 #ifndef HAVE_GETTIMEOFDAY
 #ifdef HAVE_TIMEVAL
 
-/* ARGSUSED */
 int
 gettimeofday (struct timeval *tp, struct timezone *tzp)
 {
@@ -2688,7 +2263,7 @@ strsignal (int code)
 }
 #endif /* HAVE_STRSIGNAL */
 
-#ifdef HAVE_TERMIOS
+#ifndef DOS_NT
 /* For make-serial-process  */
 int
 serial_open (char *port)
@@ -2717,9 +2292,6 @@ serial_open (char *port)
 
   return fd;
 }
-#endif /* TERMIOS  */
-
-#ifdef HAVE_TERMIOS
 
 #if !defined (HAVE_CFMAKERAW)
 /* Workaround for targets which are missing cfmakeraw.  */
@@ -2906,7 +2478,7 @@ serial_configure (struct Lisp_Process *p,
   p->childp = childp2;
 
 }
-#endif /* TERMIOS  */
+#endif /* not DOS_NT  */
 
 /* System depended enumeration of and access to system processes a-la ps(1).  */
 

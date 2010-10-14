@@ -1758,20 +1758,6 @@ Note that the @samp{.~3~} in the two last examples is the backup part,
 not an extension.
 @end defun
 
-@ignore
-Andrew Innes says that this
-
-@c @defvar directory-sep-char
-This variable holds the character that Emacs normally uses to separate
-file name components.  The default value is @code{?/}, but on MS-Windows
-you can set it to @code{?\\}; then the functions that transform file names
-use backslashes in their output.
-
-File names using backslashes work as input to Lisp primitives even on
-MS-DOS and MS-Windows, even if @code{directory-sep-char} has its default
-value of @code{?/}.
-@end defvar
-@end ignore
 
 @node Relative File Names
 @subsection Absolute and Relative File Names
@@ -1933,7 +1919,7 @@ The variable @code{directory-abbrev-alist} contains an alist of
 abbreviations to use for file directories.  Each element has the form
 @code{(@var{from} . @var{to})}, and says to replace @var{from} with
 @var{to} when it appears in a directory name.  The @var{from} string is
-actually a regular expression; it should always start with @samp{^}.
+actually a regular expression; it should always start with @samp{\`}.
 The @var{to} string should be an ordinary absolute directory name.  Do
 not use @samp{~} to stand for a home directory in that string.  The
 function @code{abbreviate-file-name} performs these substitutions.
@@ -1946,9 +1932,9 @@ and so on are normally accessed through symbolic links named @file{/fsf}
 and so on.
 
 @example
-(("^/home/fsf" . "/fsf")
- ("^/home/gp" . "/gp")
- ("^/home/gd" . "/gd"))
+(("\\`/home/fsf" . "/fsf")
+ ("\\`/home/gp" . "/gp")
+ ("\\`/home/gd" . "/gd"))
 @end example
 @end defopt
 
@@ -2856,6 +2842,34 @@ This is useful for running a subprocess; every subprocess must have a
 non-magic directory to serve as its current directory, and this function
 is a good way to come up with one.
 @end defun
+
+@defopt remote-file-name-inhibit-cache
+Whether to use the remote file-name cache for read access.
+
+File attributes of remote files are cached for better performance.  If
+they are changed out of Emacs' control, the cached values become
+invalid, and must be reread.
+
+When set to @code{nil}, cached values are always used.  This shall be
+set with care.  When set to @code{t}, cached values are never used.
+ALthough this is the safest value, it could result in performance
+degradation.
+
+A compromise is to set it to a positive number.  This means that
+cached values are used for that amount of seconds since they were
+cached.
+
+In case a remote file is checked regularly, it might be reasonable to
+let-bind this variable to a value less then the time period between
+two checks.  Example:
+
+@example
+(defun display-time-file-nonempty-p (file)
+  (let ((remote-file-name-inhibit-cache (- display-time-interval 5)))
+    (and (file-exists-p file)
+         (< 0 (nth 7 (file-attributes (file-chase-links file)))))))
+@end example
+@end defopt
 
 @node Format Conversion
 @section File Format Conversion

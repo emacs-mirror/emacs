@@ -264,10 +264,6 @@ in the @code{sieve} group (@kbd{M-x customize-group RET sieve RET}):
 
 @table @code
 
-@item sieve-manage-default-user
-@vindex sieve-manage-default-user
-Sets the default username.
-
 @item sieve-manage-default-port
 @vindex sieve-manage-default-port
 Sets the default port to use, the suggested port number is @code{2000}.
@@ -356,7 +352,3 @@ A Protocol for Remotely Managing Sieve Scripts
 @bye
 
 @c End:
-
-@ignore
-   arch-tag: 6e3ad0af-2eaf-4f35-a081-d40f4a683ec3
-@end ignore

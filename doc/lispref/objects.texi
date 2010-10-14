@@ -1189,8 +1189,8 @@ Syntax tables (@pxref{Syntax Tables}).
 @node Bool-Vector Type
 @subsection Bool-Vector Type
 
-  A @dfn{bool-vector} is a one-dimensional array of elements that
-must be @code{t} or @code{nil}.
+  A @dfn{bool-vector} is a one-dimensional array whose elements must
+be @code{t} or @code{nil}.
 
   The printed representation of a bool-vector is like a string, except
 that it begins with @samp{#&} followed by the length.  The string

@@ -1231,8 +1231,7 @@ without any interpretation."
   (if (featurep 'xemacs)
       (term-send-raw-string
        (or (condition-case () (x-get-selection) (error ()))
-	   (x-get-cutbuffer)
-	   (error "No selection or cut buffer available")))
+	   (error "No selection available")))
     ;; Give temporary modes such as isearch a chance to turn off.
     (run-hooks 'mouse-leave-buffer-hook)
     (setq this-command 'yank)

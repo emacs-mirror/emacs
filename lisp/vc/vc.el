@@ -770,7 +770,7 @@ See `run-hooks'."
      "\n#ifndef lint\nstatic char vcid[] = \"\%s\";\n#endif /* lint */\n"))
   "Associate static header string templates with file types.
 A \%s in the template is replaced with the first string associated with
-the file's version control type in `vc-header-alist'."
+the file's version control type in `vc-BACKEND-header'."
   :type '(repeat (cons :format "%v"
 		       (regexp :tag "File Type")
 		       (string :tag "Header String")))
@@ -2027,8 +2027,10 @@ Not all VC backends support short logs!")
     (setq type (if vc-short-log 'short 'long))
     (lexical-let
 	((working-revision working-revision)
+	 (backend backend)
 	 (limit limit)
 	 (shortlog vc-short-log)
+	 (files files)
 	 (is-start-revision is-start-revision))
       (vc-log-internal-common
        backend buffer-name files type
@@ -2039,7 +2041,9 @@ Not all VC backends support short logs!")
 	 (vc-print-log-setup-buttons working-revision
 				     is-start-revision limit ret))
        (lambda (bk)
-	 (vc-call-backend bk 'show-log-entry working-revision))))))
+	 (vc-call-backend bk 'show-log-entry working-revision))
+       (lambda (ignore-auto noconfirm)
+	 (vc-print-log-internal backend files working-revision is-start-revision limit))))))
 
 (defvar vc-log-view-type nil
   "Set this to differentiate the different types of logs.")
@@ -2051,7 +2055,8 @@ Not all VC backends support short logs!")
 			       type
 			       backend-func
 			       setup-buttons-func
-			       goto-location-func)
+			       goto-location-func
+			       rev-buff-func)
   (let (retval)
     (with-current-buffer (get-buffer-create buffer-name)
       (set (make-local-variable 'vc-log-view-type) type))
@@ -2062,7 +2067,9 @@ Not all VC backends support short logs!")
       ;; to t, so let's keep doing it, just in case.
       (vc-call-backend backend 'log-view-mode)
       (set (make-local-variable 'log-view-vc-backend) backend)
-      (set (make-local-variable 'log-view-vc-fileset) files))
+      (set (make-local-variable 'log-view-vc-fileset) files)
+      (set (make-local-variable 'revert-buffer-function)
+	   rev-buff-func))
     (vc-exec-after
      `(let ((inhibit-read-only t))
 	(funcall ',setup-buttons-func ',backend ',files ',retval)
@@ -2080,7 +2087,14 @@ Not all VC backends support short logs!")
        (vc-call-backend bk type-arg buf remote-location)))
    (lambda (bk files-arg ret))
    (lambda (bk)
-     (goto-char (point-min)))))
+     (goto-char (point-min)))
+   (lexical-let
+    ((backend backend)
+     (remote-location remote-location)
+     (buffer-name buffer-name)
+     (type type))
+    (lambda (ignore-auto noconfirm)
+      (vc-incoming-outgoing-internal backend remote-location buffer-name type)))))
 
 ;;;###autoload
 (defun vc-print-log (&optional working-revision limit)
@@ -2140,8 +2154,11 @@ When called interactively with a prefix argument, prompt for LIMIT."
 
 ;;;###autoload
 (defun vc-log-incoming (&optional remote-location)
-  "Show a log of changes that will be received with a pull operation from REMOTE-LOCATION."
-  (interactive "sRemote location (empty for default): ")
+  "Show a log of changes that will be received with a pull operation from REMOTE-LOCATION.
+When called interactively with a prefix argument, prompt for REMOTE-LOCATION.."
+  (interactive
+   (when current-prefix-arg
+     (list (read-string "Remote location (empty for default): "))))
   (let ((backend (vc-deduce-backend))
 	rootdir working-revision)
     (unless backend
@@ -2150,8 +2167,11 @@ When called interactively with a prefix argument, prompt for LIMIT."
 
 ;;;###autoload
 (defun vc-log-outgoing (&optional remote-location)
-  "Show a log of changes that will be sent with a push operation to REMOTE-LOCATION."
-  (interactive "sRemote location (empty for default): ")
+  "Show a log of changes that will be sent with a push operation to REMOTE-LOCATION.
+When called interactively with a prefix argument, prompt for REMOTE-LOCATION."
+  (interactive
+   (when current-prefix-arg
+     (list (read-string "Remote location (empty for default): "))))
   (let ((backend (vc-deduce-backend))
 	rootdir working-revision)
     (unless backend

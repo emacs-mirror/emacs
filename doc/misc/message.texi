@@ -182,6 +182,37 @@ Addresses that match the @code{message-dont-reply-to-names} regular
 expression (or list of regular expressions) will be removed from the
 @code{Cc} header. A value of @code{nil} means exclude your name only.
 
+@vindex message-prune-recipient-rules
+@code{message-prune-recipient-rules} is used to prune the addresses
+used when doing a wide reply.  It's meant to be used to remove
+duplicate addresses and the like.  It's a list of lists, where the
+first element is a regexp to match the address to trigger the rule,
+and the second is a regexp that will be expanded based on the first,
+to match addresses to be pruned.
+
+It's complicated to explain, but it's easy to use.
+
+For instance, if you get an email from @samp{foo@@example.org}, but
+@samp{foo@@zot.example.org} is also in the @code{Cc} list, then your
+wide reply will go out to both these addresses, since they are unique.
+
+To avoid this, do something like the following:
+
+@lisp
+(setq message-prune-recipient-rules
+      '(("^\\([^@@]+\\)@@\\(.*\\)" "\\1@@.*[.]\\2")))
+@end lisp
+
+If, for instance, you want all wide replies that involve messages from
+@samp{cvs@@example.org} to go to that address, and nowhere else (i.e.,
+remove all other recipients if @samp{cvs@@example.org} is in the
+recipient list:
+
+@lisp
+(setq message-prune-recipient-rules
+      '(("cvs@@example.org" ".")))
+@end lisp
+
 @vindex message-wide-reply-confirm-recipients
 If @code{message-wide-reply-confirm-recipients} is non-@code{nil} you
 will be asked to confirm that you want to reply to multiple
@@ -1059,11 +1090,11 @@ the passphrase prompt.
 @subsection Using PGP/MIME
 
 @acronym{PGP/MIME} requires an external OpenPGP implementation, such
-as @uref{http://www.gnupg.org/, GNU Privacy Guard}.  Pre-OpenPGP
-implementations such as PGP 2.x and PGP 5.x are also supported.  One
+as @uref{http://www.gnupg.org/, GNU Privacy Guard}. Pre-OpenPGP
+implementations such as PGP 2.x and PGP 5.x are also supported. One
 Emacs interface to the PGP implementations, PGG (@pxref{Top, ,PGG,
-pgg, PGG Manual}), is included, but Mailcrypt and Florian Weimer's
-@code{gpg.el} are also supported.  @xref{PGP Compatibility}.
+pgg, PGG Manual}), is included, but Mailcrypt is also supported.
+@xref{PGP Compatibility}.
 
 @cindex gpg-agent
 Message internally calls GnuPG (the @command{gpg} command) to perform
@@ -1118,11 +1149,8 @@ If you have imported your old PGP 2.x key into GnuPG, and want to send
 signed and encrypted messages to your fellow PGP 2.x users, you'll
 discover that the receiver cannot understand what you send. One
 solution is to use PGP 2.x instead (i.e., if you use @code{pgg}, set
-@code{pgg-default-scheme} to @code{pgp}).  If you do want to use
-GnuPG, you can use a compatibility script called @code{gpg-2comp}
-available from
-@uref{http://muppet.faveve.uni-stuttgart.de/~gero/gpg-2comp/}.  You
-could also convince your fellow PGP 2.x users to convert to GnuPG.
+@code{pgg-default-scheme} to @code{pgp}). You could also convince your
+fellow PGP 2.x users to convert to GnuPG.
 @vindex mml-signencrypt-style-alist
 As a final workaround, you can make the sign and encryption work in
 two steps; separately sign, then encrypt a message.  If you would like
@@ -1645,7 +1673,8 @@ the problem will actually occur.
 @cindex split large message
 The limitation of messages sent as message/partial.  The lower bound
 of message size in characters, beyond which the message should be sent
-in several parts.  If it is @code{nil}, the size is unlimited.
+in several parts.  If it is @code{nil} (which is the default), the
+size is unlimited.
 
 @end table
 
@@ -2441,7 +2470,3 @@ basis of the new @code{Cc} header, except if this header is
 @bye
 
 @c End:
-
-@ignore
-   arch-tag: 16ab76af-a281-4e34-aed6-5624569f7601
-@end ignore

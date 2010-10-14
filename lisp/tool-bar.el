@@ -5,6 +5,7 @@
 ;;
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: mouse frames
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 
@@ -309,6 +310,23 @@ holds a keymap."
 				(popup-menu menu-bar-help-menu))
 		       'help
 		       :help "Pop up the Help menu")))
+
+(if (featurep 'move-toolbar)
+    (defcustom tool-bar-position 'top
+      "Specify on which side the tool bar shall be.
+Possible values are `top' (tool bar on top), `bottom' (tool bar at bottom),
+`left' (tool bar on left) and `right' (tool bar on right).
+Customize `tool-bar-mode' if you want to show or hide the tool bar."
+      :type '(choice (const top)
+		     (const bottom)
+		     (const left)
+		     (const right))
+      :group 'frames
+      :initialize 'custom-initialize-default
+      :set (lambda (sym val)
+	     (set-default sym val)
+	     (modify-all-frames-parameters 
+	      (list (cons 'tool-bar-position val))))))
 
 
 (provide 'tool-bar)

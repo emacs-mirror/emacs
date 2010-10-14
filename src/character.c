@@ -336,16 +336,6 @@ If the multibyte character does not represent a byte, return -1.  */)
     }
 }
 
-DEFUN ("char-bytes", Fchar_bytes, Schar_bytes, 1, 1, 0,
-       doc: /* Return 1 regardless of the argument CHAR.
-This is now an obsolete function.  We keep it just for backward compatibility.
-usage: (char-bytes CHAR)  */)
-  (Lisp_Object ch)
-{
-  CHECK_CHARACTER (ch);
-  return make_number (1);
-}
-
 DEFUN ("char-width", Fchar_width, Schar_width, 1, 1, 0,
        doc: /* Return width of CHAR when displayed in the current buffer.
 The width is measured by how many columns it occupies on the screen.
@@ -378,11 +368,12 @@ usage: (char-width CHAR)  */)
    characters and bytes of the substring in *NCHARS and *NBYTES
    respectively.  */
 
-int
-c_string_width (const unsigned char *str, int len, int precision, int *nchars, int *nbytes)
+EMACS_INT
+c_string_width (const unsigned char *str, EMACS_INT len, int precision,
+		EMACS_INT *nchars, EMACS_INT *nbytes)
 {
-  int i = 0, i_byte = 0;
-  int width = 0;
+  EMACS_INT i = 0, i_byte = 0;
+  EMACS_INT width = 0;
   struct Lisp_Char_Table *dp = buffer_display_table ();
 
   while (i_byte < len)
@@ -429,8 +420,8 @@ c_string_width (const unsigned char *str, int len, int precision, int *nchars, i
    current buffer.  The width is measured by how many columns it
    occupies on the screen.  */
 
-int
-strwidth (const unsigned char *str, int len)
+EMACS_INT
+strwidth (const unsigned char *str, EMACS_INT len)
 {
   return c_string_width (str, len, -1, NULL, NULL);
 }
@@ -442,17 +433,18 @@ strwidth (const unsigned char *str, int len)
    PRECISION, and set number of characters and bytes of the substring
    in *NCHARS and *NBYTES respectively.  */
 
-int
-lisp_string_width (Lisp_Object string, int precision, int *nchars, int *nbytes)
+EMACS_INT
+lisp_string_width (Lisp_Object string, int precision,
+		   EMACS_INT *nchars, EMACS_INT *nbytes)
 {
-  int len = SCHARS (string);
+  EMACS_INT len = SCHARS (string);
   /* This set multibyte to 0 even if STRING is multibyte when it
      contains only ascii and eight-bit-graphic, but that's
      intentional.  */
   int multibyte = len < SBYTES (string);
   unsigned char *str = SDATA (string);
-  int i = 0, i_byte = 0;
-  int width = 0;
+  EMACS_INT i = 0, i_byte = 0;
+  EMACS_INT width = 0;
   struct Lisp_Char_Table *dp = buffer_display_table ();
 
   while (i < len)
@@ -570,11 +562,11 @@ EMACS_INT
 multibyte_chars_in_text (const unsigned char *ptr, EMACS_INT nbytes)
 {
   const unsigned char *endp = ptr + nbytes;
-  int chars = 0;
+  EMACS_INT chars = 0;
 
   while (ptr < endp)
     {
-      int len = MULTIBYTE_LENGTH (ptr, endp);
+      EMACS_INT len = MULTIBYTE_LENGTH (ptr, endp);
 
       if (len == 0)
 	abort ();
@@ -592,10 +584,11 @@ multibyte_chars_in_text (const unsigned char *ptr, EMACS_INT nbytes)
    represented by 2-byte in a multibyte text.  */
 
 void
-parse_str_as_multibyte (const unsigned char *str, int len, int *nchars, int *nbytes)
+parse_str_as_multibyte (const unsigned char *str, EMACS_INT len,
+			EMACS_INT *nchars, EMACS_INT *nbytes)
 {
   const unsigned char *endp = str + len;
-  int n, chars = 0, bytes = 0;
+  EMACS_INT n, chars = 0, bytes = 0;
 
   if (len >= MAX_MULTIBYTE_LENGTH)
     {
@@ -633,12 +626,13 @@ parse_str_as_multibyte (const unsigned char *str, int len, int *nchars, int *nby
    area and that is enough.  Return the number of bytes of the
    resulting text.  */
 
-int
-str_as_multibyte (unsigned char *str, int len, int nbytes, int *nchars)
+EMACS_INT
+str_as_multibyte (unsigned char *str, EMACS_INT len, EMACS_INT nbytes,
+		  EMACS_INT *nchars)
 {
   unsigned char *p = str, *endp = str + nbytes;
   unsigned char *to;
-  int chars = 0;
+  EMACS_INT chars = 0;
   int n;
 
   if (nbytes >= MAX_MULTIBYTE_LENGTH)
@@ -709,11 +703,11 @@ str_as_multibyte (unsigned char *str, int len, int nbytes, int *nchars)
    bytes it may ocupy when converted to multibyte string by
    `str_to_multibyte'.  */
 
-int
-parse_str_to_multibyte (const unsigned char *str, int len)
+EMACS_INT
+parse_str_to_multibyte (const unsigned char *str, EMACS_INT len)
 {
   const unsigned char *endp = str + len;
-  int bytes;
+  EMACS_INT bytes;
 
   for (bytes = 0; str < endp; str++)
     bytes += (*str < 0x80) ? 1 : 2;
@@ -727,8 +721,8 @@ parse_str_to_multibyte (const unsigned char *str, int len)
    that we can use LEN bytes at STR as a work area and that is
    enough.  */
 
-int
-str_to_multibyte (unsigned char *str, int len, int bytes)
+EMACS_INT
+str_to_multibyte (unsigned char *str, EMACS_INT len, EMACS_INT bytes)
 {
   unsigned char *p = str, *endp = str + bytes;
   unsigned char *to;
@@ -756,8 +750,8 @@ str_to_multibyte (unsigned char *str, int len, int bytes)
    actually converts characters in the range 0x80..0xFF to
    unibyte.  */
 
-int
-str_as_unibyte (unsigned char *str, int bytes)
+EMACS_INT
+str_as_unibyte (unsigned char *str, EMACS_INT bytes)
 {
   const unsigned char *p = str, *endp = str + bytes;
   unsigned char *to;
@@ -818,14 +812,14 @@ str_to_unibyte (const unsigned char *src, unsigned char *dst, EMACS_INT chars, i
 }
 
 
-int
+EMACS_INT
 string_count_byte8 (Lisp_Object string)
 {
   int multibyte = STRING_MULTIBYTE (string);
-  int nbytes = SBYTES (string);
+  EMACS_INT nbytes = SBYTES (string);
   unsigned char *p = SDATA (string);
   unsigned char *pend = p + nbytes;
-  int count = 0;
+  EMACS_INT count = 0;
   int c, len;
 
   if (multibyte)
@@ -851,10 +845,10 @@ string_count_byte8 (Lisp_Object string)
 Lisp_Object
 string_escape_byte8 (Lisp_Object string)
 {
-  int nchars = SCHARS (string);
-  int nbytes = SBYTES (string);
+  EMACS_INT nchars = SCHARS (string);
+  EMACS_INT nbytes = SBYTES (string);
   int multibyte = STRING_MULTIBYTE (string);
-  int byte8_count;
+  EMACS_INT byte8_count;
   const unsigned char *src, *src_end;
   unsigned char *dst;
   Lisp_Object val;
@@ -869,12 +863,22 @@ string_escape_byte8 (Lisp_Object string)
     return string;
 
   if (multibyte)
-    /* Convert 2-byte sequence of byte8 chars to 4-byte octal.  */
-    val = make_uninit_multibyte_string (nchars + byte8_count * 3,
-					nbytes + byte8_count * 2);
+    {
+      if ((MOST_POSITIVE_FIXNUM - nchars) / 3 < byte8_count
+	  || (MOST_POSITIVE_FIXNUM - nbytes) / 2 < byte8_count)
+	error ("Maximum string size exceeded");
+
+      /* Convert 2-byte sequence of byte8 chars to 4-byte octal.  */
+      val = make_uninit_multibyte_string (nchars + byte8_count * 3,
+					  nbytes + byte8_count * 2);
+    }
   else
-    /* Convert 1-byte sequence of byte8 chars to 4-byte octal.  */
-    val = make_uninit_string (nbytes + byte8_count * 3);
+    {
+      if ((MOST_POSITIVE_FIXNUM - nchars) / 3 < byte8_count)
+	error ("Maximum string size exceeded");
+      /* Convert 1-byte sequence of byte8 chars to 4-byte octal.  */
+      val = make_uninit_string (nbytes + byte8_count * 3);
+    }
 
   src = SDATA (string);
   src_end = src + nbytes;
@@ -1059,7 +1063,6 @@ syms_of_character (void)
   defsubr (&Scharacterp);
   defsubr (&Sunibyte_char_to_multibyte);
   defsubr (&Smultibyte_char_to_unibyte);
-  defsubr (&Schar_bytes);
   defsubr (&Schar_width);
   defsubr (&Sstring_width);
   defsubr (&Schar_direction);

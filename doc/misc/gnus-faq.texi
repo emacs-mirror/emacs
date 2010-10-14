@@ -4,9 +4,6 @@
 @c Copyright (C) 1995, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
 @c   2009, 2010 Free Software Foundation, Inc.
 @c
-@c Do not modify this file, it was generated from gnus-faq.xml, available from
-@c <URL:http://my.gnus.org/FAQ/>.
-@c
 @setfilename gnus-faq.info
 @settitle Frequently Asked Questions
 @c %**end of header
@@ -40,20 +37,9 @@
 @subheading Abstract
 
 This is the new Gnus Frequently Asked Questions list.
-If you have a Web browser, the official hypertext version is at
-@uref{http://my.gnus.org/FAQ/},
-the Docbook source is available from
-@uref{http://sourceforge.net/projects/gnus/, http://sourceforge.net}.
 
 Please submit features and suggestions to the 
-@email{faq-discuss@@my.gnus.org, FAQ discussion list}.
-The list is protected against junk mail with
-@uref{http://smarden.org/qconfirm/index.html, qconfirm}. As
-a subscriber, your submissions will automatically pass.  You can
-also subscribe to the list by sending a blank email to
-@email{faq-discuss-subscribe@@my.gnus.org, faq-discuss-subscribe@@my.gnus.org}
-and @uref{http://mail1.kens.com/cgi-bin/ezmlm-browse?command=monthbythread%26list=faq-discuss, browse
-the archive (BROKEN)}.
+@email{ding@@gnus.org, ding list}.
 
 @node FAQ - Changes
 @subheading Changes
@@ -98,8 +84,6 @@ would like to thank Steve Baur and Per Abrahamsen for doing a wonderful
 job with this FAQ before him. We would like to do the same - thanks,
 Justin!
 
-If you have a Web browser, the official hypertext version is at:
-@uref{http://my.gnus.org/FAQ/}.
 This version is much nicer than the unofficial hypertext
 versions that are archived at Utrecht, Oxford, Smart Pages, Ohio
 State, and other FAQ archives. See the resources question below
@@ -107,7 +91,7 @@ if you want information on obtaining it in another format.
 
 The information contained here was compiled with the assistance
 of the Gnus development mailing list, and any errors or
-misprints are the my.gnus.org team's fault, sorry.
+misprints are the Gnus team's fault, sorry.
 
 @node FAQ 1 - Installation FAQ
 @subsection Installation FAQ
@@ -1042,8 +1026,7 @@ in Gnus Country :-). It's a three step process: First we
 make faces (specifications of how summary-line shall look
 like) for those postings, then we'll give them some
 special score and finally we'll tell Gnus to use the new
-faces. You can find detailed instructions on how to do it on
-@uref{http://my.gnus.org/node/view/224, my.gnus.org}
+faces.
 
 @node FAQ 4-12
 @subsubheading Question 4.12
@@ -1414,7 +1397,7 @@ or @uref{http://aspell.sourceforge.net/, aspell}
 installed and in your Path. Then you need 
 @uref{http://www.kdstevens.com/~stevens/ispell-page.html, ispell.el}
 and for on-the-fly spell-checking 
-@uref{http://www-sop.inria.fr/mimosa/personnel/Manuel.Serrano/flyspell/flyspell.html, flyspell.el}.
+@uref{http://www-sop.inria.fr/members/Manuel.Serrano/flyspell/flyspell.html, flyspell.el}.
 Ispell.el is shipped with Emacs and available through the XEmacs package system, 
 flyspell.el is shipped with Emacs and part of XEmacs text-modes package which is 
 available through the package system, so there should be no need to install them 
@@ -1987,7 +1970,7 @@ server like
 @uref{http://www.isc.org/products/INN/, inn}. 
 Then you want to fetch your Mail, popular choices
 are @uref{http://www.catb.org/~esr/fetchmail/, fetchmail}
-and @uref{http://www.qcc.ca/~charlesc/software/getmail-3.0/, getmail}.
+and @uref{http://pyropus.ca/software/getmail/, getmail}.
 You should tell those to write the mail to your disk and
 Gnus to read it from there. Last but not least the mail
 sending part: This can be done with every MTA like
@@ -2141,12 +2124,8 @@ Which websites should I know?
 
 @subsubheading Answer
 
-The two most important ones are the
+The most important one is the
 @uref{http://www.gnus.org, official Gnus website}.
-and it's sister site 
-@uref{http://my.gnus.org, my.gnus.org (MGO)},
-hosting an archive of lisp snippets, howtos, a (not
-really finished) tutorial and this FAQ.
 
 Tell me about other sites which are interesting.
 
@@ -2331,7 +2310,3 @@ NUA is an acronym for News User Agent, it's the program you
 use to read and write Usenet news.
 
 @end table
-
-@ignore
-arch-tag: 64dc5692-edb4-4848-a965-7aa0181acbb8
-@end ignore

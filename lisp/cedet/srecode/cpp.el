@@ -26,16 +26,33 @@
 
 ;;; Code:
 
+(require 'srecode)
+(require 'srecode/dictionary)
+(require 'srecode/semantic)
+(require 'semantic/tag)
+
+;;; Customization
+;;
+
+(defgroup srecode-cpp nil
+  "C++-specific Semantic Recoder settings."
+  :group 'srecode)
+
+(defcustom srecode-cpp-namespaces
+  '("std" "boost")
+  "List expansion candidates for the :using-namespaces argument.
+A dictionary entry of the named PREFIX_NAMESPACE with the value
+NAMESPACE:: is created for each namespace unless the current
+buffer contains a using NAMESPACE; statement "
+  :group 'srecode-cpp
+  :type  '(repeat string))
+
 ;;; :cpp ARGUMENT HANDLING
 ;;
 ;; When a :cpp argument is required, fill the dictionary with
 ;; information about the current C++ file.
 ;;
 ;; Error if not in a C++ mode.
-
-(require 'srecode)
-(require 'srecode/dictionary)
-(require 'srecode/semantic)
 
 ;;;###autoload
 (defun srecode-semantic-handle-:cpp (dict)
@@ -57,6 +74,23 @@ HEADER - Shown section if in a header file."
       (setq fsym (replace-match "_" t t fsym)))
     (srecode-dictionary-set-value dict "FILENAME_SYMBOL" fsym)
     )
+  )
+
+(defun srecode-semantic-handle-:using-namespaces (dict)
+  "Add macros into the dictionary DICT based on used namespaces.
+Adds the following:
+PREFIX_NAMESPACE - for each NAMESPACE in `srecode-cpp-namespaces'."
+  (let ((tags (semantic-find-tags-by-class
+	       'using (semantic-fetch-tags))))
+    (dolist (name srecode-cpp-namespaces)
+      (let ((variable (format "PREFIX_%s" (upcase name)))
+	    (prefix   (format "%s::"      name)))
+	(srecode-dictionary-set-value dict variable prefix)
+	(dolist (tag tags)
+	  (when (and (eq (semantic-tag-get-attribute tag :kind)
+			 'namespace)
+		     (string= (semantic-tag-name tag) name))
+	    (srecode-dictionary-set-value dict variable ""))))))
   )
 
 (define-mode-local-override srecode-semantic-apply-tag-to-dict
@@ -97,6 +131,7 @@ special behavior for tag of classes include, using and function."
 	 (srecode-semantic-tag (semantic-tag-name value-tag)
 			       :prime value-tag)
 	 value-dict))
+
       ;; Discriminate using statements referring to namespaces and
       ;; types.
       (when (eq (semantic-tag-get-attribute tag :kind) 'namespace)
@@ -111,7 +146,8 @@ special behavior for tag of classes include, using and function."
       ;; when they make sense. My best bet would be
       ;; (semantic-tag-function-parent tag), but it is not there, when
       ;; the function is defined in the scope of a class.
-      (let ((member    't)
+      (let ((member t)
+	    (templates (semantic-tag-get-attribute tag :template))
 	    (modifiers (semantic-tag-modifiers tag)))
 
 	;; Add modifiers into the dictionary
@@ -119,6 +155,9 @@ special behavior for tag of classes include, using and function."
 	  (let ((modifier-dict (srecode-dictionary-add-section-dictionary
 				dict "MODIFIERS")))
 	    (srecode-dictionary-set-value modifier-dict "NAME" modifier)))
+
+	;; Add templates into child dictionaries.
+	(srecode-cpp-apply-templates dict templates)
 
 	;; When the function is a member function, it can have
 	;; additional modifiers.
@@ -133,9 +172,38 @@ special behavior for tag of classes include, using and function."
 	  ;; entry.
 	  (when (semantic-tag-get-attribute tag :pure-virtual-flag)
 	    (srecode-dictionary-show-section dict "PURE"))
-	  )
-	))
+	  )))
+
+     ;;
+     ;; CLASS
+     ;;
+     ((eq class 'type)
+      ;; For classes, add template parameters.
+      (when (or (semantic-tag-of-type-p tag "class")
+		(semantic-tag-of-type-p tag "struct"))
+
+	;; Add templates into child dictionaries.
+	(let ((templates (semantic-tag-get-attribute tag :template)))
+	  (srecode-cpp-apply-templates dict templates))))
      ))
+  )
+
+
+;;; Helper functions
+;;
+
+(defun srecode-cpp-apply-templates (dict templates)
+  "Add section dictionaries for TEMPLATES to DICT."
+  (when templates
+    (let ((templates-dict (srecode-dictionary-add-section-dictionary
+			   dict "TEMPLATES")))
+      (dolist (template templates)
+	(let ((template-dict (srecode-dictionary-add-section-dictionary
+			      templates-dict "ARGS")))
+	  (srecode-semantic-apply-tag-to-dict
+	   (srecode-semantic-tag (semantic-tag-name template)
+				 :prime template)
+	   template-dict)))))
   )
 
 (provide 'srecode/cpp)

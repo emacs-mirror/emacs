@@ -2859,10 +2859,7 @@ details check the Rst Faces Defaults group."
 
 	 ;; There seems to be a bug leading to error "Stack overflow in regexp
 	 ;; matcher" when "|" or "\\*" are the characters searched for
-	 (re-imendbeg
-	  (if (< emacs-major-version 21)
-	      "]"
-	    "\\]\\|\\\\."))
+	 (re-imendbeg "\\]\\|\\\\.")
 	 ;; inline markup content end
 	 (re-imend (concat re-imendbeg "\\)*[^\t \\\\]\\)"))
 	 ;; inline markup content without asterisk

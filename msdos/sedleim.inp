@@ -34,7 +34,7 @@ s|\([ 	]\)echo|\1djecho|g
 
 /RUN-EMACS *=/,/^$/c\
 export EMACSLOADPATH=${buildlisppath}\
-RUN-EMACS = ${BUILT-EMACS} -batch --no-init-file --no-site-file --multibyte
+RUN-EMACS = ${BUILT-EMACS} -batch --no-init-file --no-site-file
 
 /^	cd ../c\
 	${MAKE} -C ../src ${MFLAGS} emacs

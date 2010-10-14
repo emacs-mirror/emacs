@@ -21,8 +21,6 @@ along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "usg5-4-common.h"
 
-/* fnf@cygnus.com says these exist.  */
-#define HAVE_TCATTR
 /* #define HAVE_GETWD  (appears to be buggy on SVR4.2) */
 #undef HAVE_GETWD
 

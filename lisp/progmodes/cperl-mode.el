@@ -1,8 +1,8 @@
 ;;; cperl-mode.el --- Perl code editing commands for Emacs
 
 ;; Copyright (C) 1985, 1986, 1987, 1991, 1992, 1993, 1994, 1995, 1996, 1997,
-;; 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
-;;     Free Software Foundation, Inc.
+;; 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+;; 2010  Free Software Foundation, Inc.
 
 ;; Author: Ilya Zakharevich
 ;;	Bob Olson
@@ -1802,13 +1802,12 @@ or as help on variables `cperl-tips', `cperl-problems',
   (set 'vc-rcs-header cperl-vc-rcs-header)
   (make-local-variable 'vc-sccs-header)
   (set 'vc-sccs-header cperl-vc-sccs-header)
-  ;; This one is obsolete...
-  (make-local-variable 'vc-header-alist)
-  (with-no-warnings
-   (set 'vc-header-alist (or cperl-vc-header-alist ; Avoid warning
-			     `((SCCS ,(car cperl-vc-sccs-header))
-			       (RCS ,(car cperl-vc-rcs-header)))))
-   )
+  (when (featurep 'xemacs)
+    ;; This one is obsolete...
+    (make-local-variable 'vc-header-alist)
+    (set 'vc-header-alist (or cperl-vc-header-alist ; Avoid warning
+			      `((SCCS ,(car cperl-vc-sccs-header))
+				(RCS ,(car cperl-vc-rcs-header))))))
   (cond ((boundp 'compilation-error-regexp-alist-alist);; xemacs 20.x
 	 (make-local-variable 'compilation-error-regexp-alist-alist)
 	 (set 'compilation-error-regexp-alist-alist
@@ -1840,7 +1839,13 @@ or as help on variables `cperl-tips', `cperl-problems',
   (make-local-variable 'cperl-syntax-state)
   (setq cperl-syntax-state nil)		; reset syntaxification cache
   (if cperl-use-syntax-table-text-property
-      (progn
+      (if (boundp 'syntax-propertize-function)
+          (progn
+            ;; Reset syntaxification cache.
+            (set (make-local-variable 'cperl-syntax-done-to) nil)
+            (set (make-local-variable 'syntax-propertize-function)
+                 (lambda (start end)
+                   (goto-char start) (cperl-fontify-syntaxically end))))
 	(make-local-variable 'parse-sexp-lookup-properties)
 	;; Do not introduce variable if not needed, we check it!
 	(set 'parse-sexp-lookup-properties t)

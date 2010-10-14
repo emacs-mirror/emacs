@@ -223,7 +223,7 @@ The name of the function or case is included between the braces."
   "*List of contexts where auto lineup of :'s or ='s should be done.
 Elements can be of type: 'paramlist', 'declaration' or 'case', which will
 do auto lineup in parameterlist, declarations or case-statements
-respectively. The word 'all' will do all lineups. '(case paramlist) for
+respectively.  The word 'all' will do all lineups.  '(case paramlist) for
 instance will do lineup in case-statements and parameterlist, while '(all)
 will do all lineups."
   :type '(set :extra-offset 8
@@ -311,7 +311,7 @@ are handled in another way, and should not be added to this list."
 
 
 ;;;###autoload
-(defun pascal-mode ()
+(define-derived-mode pascal-mode prog-mode "Pascal"
   "Major mode for editing Pascal code. \\<pascal-mode-map>
 TAB indents for Pascal code.  Delete converts tabs to spaces as it moves back.
 
@@ -334,60 +334,47 @@ Other useful functions are:
 
 Variables controlling indentation/edit style:
 
- pascal-indent-level (default 3)
+ `pascal-indent-level' (default 3)
     Indentation of Pascal statements with respect to containing block.
- pascal-case-indent (default 2)
+ `pascal-case-indent' (default 2)
     Indentation for case statements.
- pascal-auto-newline (default nil)
+ `pascal-auto-newline' (default nil)
     Non-nil means automatically newline after semicolons and the punctuation
     mark after an end.
- pascal-indent-nested-functions (default t)
+ `pascal-indent-nested-functions' (default t)
     Non-nil means nested functions are indented.
- pascal-tab-always-indent (default t)
+ `pascal-tab-always-indent' (default t)
     Non-nil means TAB in Pascal mode should always reindent the current line,
     regardless of where in the line point is when the TAB command is used.
- pascal-auto-endcomments (default t)
+ `pascal-auto-endcomments' (default t)
     Non-nil means a comment { ... } is set after the ends which ends cases and
     functions. The name of the function or case will be set between the braces.
- pascal-auto-lineup (default t)
+ `pascal-auto-lineup' (default t)
     List of contexts where auto lineup of :'s or ='s should be done.
 
-See also the user variables pascal-type-keywords, pascal-start-keywords and
-pascal-separator-keywords.
+See also the user variables `pascal-type-keywords', `pascal-start-keywords' and
+`pascal-separator-keywords'.
 
 Turning on Pascal mode calls the value of the variable pascal-mode-hook with
 no args, if that value is non-nil."
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map pascal-mode-map)
-  (setq major-mode 'pascal-mode)
-  (setq mode-name "Pascal")
-  (setq local-abbrev-table pascal-mode-abbrev-table)
-  (set-syntax-table pascal-mode-syntax-table)
-  (make-local-variable 'indent-line-function)
-  (setq indent-line-function 'pascal-indent-line)
-  (make-local-variable 'comment-indent-function)
-  (setq comment-indent-function 'pascal-indent-comment)
-  (make-local-variable 'parse-sexp-ignore-comments)
-  (setq parse-sexp-ignore-comments nil)
-  (make-local-variable 'blink-matching-paren-dont-ignore-comments)
-  (setq blink-matching-paren-dont-ignore-comments t)
-  (make-local-variable 'case-fold-search)
-  (setq case-fold-search t)
-  (make-local-variable 'comment-start)
-  (setq comment-start "{")
-  (make-local-variable 'comment-start-skip)
-  (setq comment-start-skip "(\\*+ *\\|{ *")
-  (make-local-variable 'comment-end)
-  (setq comment-end "}")
+  (set (make-local-variable 'local-abbrev-table) pascal-mode-abbrev-table)
+  (set (make-local-variable 'indent-line-function) 'pascal-indent-line)
+  (set (make-local-variable 'comment-indent-function) 'pascal-indent-comment)
+  (set (make-local-variable 'parse-sexp-ignore-comments) nil)
+  (set (make-local-variable 'blink-matching-paren-dont-ignore-comments) t)
+  (set (make-local-variable 'case-fold-search) t)
+  (set (make-local-variable 'comment-start) "{")
+  (set (make-local-variable 'comment-start-skip) "(\\*+ *\\|{ *")
+  (set (make-local-variable 'comment-end) "}")
   ;; Font lock support
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults '(pascal-font-lock-keywords nil t))
+  (set (make-local-variable 'font-lock-defaults)
+       '(pascal-font-lock-keywords nil t))
   ;; Imenu support
-  (make-local-variable 'imenu-generic-expression)
-  (setq imenu-generic-expression pascal-imenu-generic-expression)
-  (setq imenu-case-fold-search t)
-  (run-mode-hooks 'pascal-mode-hook))
+  (set (make-local-variable 'imenu-generic-expression)
+       pascal-imenu-generic-expression)
+  (set (make-local-variable 'imenu-case-fold-search) t)
+  ;; Pascal-mode's own hide/show support.
+  (add-to-invisibility-spec '(pascal . t)))
 
 
 
@@ -1478,18 +1465,12 @@ Pascal Outline mode provides some additional commands.
   (unless pascal-outline-mode
     (pascal-show-all)))
 
-(defun pascal-outline-change (b e pascal-flag)
-  (save-excursion
-    ;; This used to use selective display so the boundaries used by the
-    ;; callers didn't have to be precise, since it just looked for \n or \^M
-    ;; and switched them.
-    (goto-char b) (setq b (line-end-position))
-    (goto-char e) (setq e (line-end-position)))
+(defun pascal-outline-change (b e hide)
   (when (> e b)
     ;; We could try and optimize this in the case where the region is
     ;; already hidden.  But I'm not sure it's worth the trouble.
     (remove-overlays b e 'invisible 'pascal)
-    (when (eq pascal-flag ?\^M)
+    (when hide
       (let ((ol (make-overlay b e nil t nil)))
         (overlay-put ol 'invisible 'pascal)
         (overlay-put ol 'evaporate t)))))
@@ -1497,7 +1478,7 @@ Pascal Outline mode provides some additional commands.
 (defun pascal-show-all ()
   "Show all of the text in the buffer."
   (interactive)
-  (pascal-outline-change (point-min) (point-max) ?\n))
+  (pascal-outline-change (point-min) (point-max) nil))
 
 (defun pascal-hide-other-defuns ()
   "Show only the current defun."
@@ -1505,42 +1486,45 @@ Pascal Outline mode provides some additional commands.
   (save-excursion
     (let ((beg (progn (if (not (looking-at "\\(function\\|procedure\\)\\>"))
 			  (pascal-beg-of-defun))
-		      (point)))
+		      (line-beginning-position)))
 	  (end (progn (pascal-end-of-defun)
 		      (backward-sexp 1)
-		      (search-forward "\n\\|\^M" nil t)
-		      (point)))
+                      (line-beginning-position 2)))
 	  (opoint (point-min)))
+      ;; BEG at BOL.
+      ;; OPOINT at EOL.
+      ;; END at BOL.
       (goto-char (point-min))
 
       ;; Hide all functions before current function
-      (while (re-search-forward "^\\(function\\|procedure\\)\\>" beg 'move)
-	(pascal-outline-change opoint (1- (match-beginning 0)) ?\^M)
-	(setq opoint (point))
+      (while (re-search-forward "^[ \t]*\\(function\\|procedure\\)\\>"
+                                beg 'move)
+	(pascal-outline-change opoint (line-end-position 0) t)
+	(setq opoint (line-end-position))
 	;; Functions may be nested
 	(if (> (progn (pascal-end-of-defun) (point)) beg)
 	    (goto-char opoint)))
       (if (> beg opoint)
-	  (pascal-outline-change opoint (1- beg) ?\^M))
+	  (pascal-outline-change opoint (1- beg) t))
 
       ;; Show current function
-      (pascal-outline-change beg end ?\n)
+      (pascal-outline-change (1- beg) end nil)
       ;; Hide nested functions
       (forward-char 1)
       (while (re-search-forward "^\\(function\\|procedure\\)\\>" end 'move)
-	(setq opoint (point))
+	(setq opoint (line-end-position))
 	(pascal-end-of-defun)
-	(pascal-outline-change opoint (point) ?\^M))
+	(pascal-outline-change opoint (line-end-position) t))
 
       (goto-char end)
       (setq opoint end)
 
       ;; Hide all function after current function
       (while (re-search-forward "^\\(function\\|procedure\\)\\>" nil 'move)
-	(pascal-outline-change opoint (1- (match-beginning 0)) ?\^M)
-	(setq opoint (point))
+	(pascal-outline-change opoint (line-end-position 0) t)
+	(setq opoint (line-end-position))
 	(pascal-end-of-defun))
-      (pascal-outline-change opoint (point-max) ?\^M)
+      (pascal-outline-change opoint (point-max) t)
 
       ;; Hide main program
       (if (< (progn (forward-line -1) (point)) end)
@@ -1548,7 +1532,7 @@ Pascal Outline mode provides some additional commands.
 	    (goto-char beg)
 	    (pascal-end-of-defun)
 	    (backward-sexp 1)
-	    (pascal-outline-change (point) (point-max) ?\^M))))))
+	    (pascal-outline-change (line-end-position) (point-max) t))))))
 
 (defun pascal-outline-next-defun ()
   "Move to next function/procedure, hiding all others."

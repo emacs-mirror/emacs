@@ -4,6 +4,7 @@
 
 ;; Author: Ivan Kanis
 ;; Keywords: vc tools
+;; Package: vc
 
 ;; This file is part of GNU Emacs.
 
@@ -170,10 +171,12 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 		      (let ((process-environment
 			     ;; Avoid localization of messages so we
 			     ;; can parse the output.
-			     (append (list "TERM=dumb" "LANGUAGE=C" "HGRCPATH=")
+			     (append (list "TERM=dumb" "LANGUAGE=C")
 				     process-environment)))
 			(process-file
 			 "hg" nil t nil
+			 "--config" "alias.status=status"
+			 "--config" "defaults.status="
 			 "status" "-A" (file-relative-name file)))
                     ;; Some problem happened.  E.g. We can't find an `hg'
                     ;; executable.
@@ -198,7 +201,7 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
       ((status nil)
        (default-directory (file-name-directory file))
        ;; Avoid localization of messages so we can parse the output.
-       (avoid-local-env (append (list "TERM=dumb" "LANGUAGE=C" "HGRCPATH=")
+       (avoid-local-env (append (list "TERM=dumb" "LANGUAGE=C")
 				     process-environment))
        (out
         (with-output-to-string
@@ -210,6 +213,8 @@ If nil, use the value of `vc-diff-switches'.  If t, use no switches."
 			;; Ignore all errors.
 			(process-file
 			 "hg" nil t nil
+			 "--config" "alias.parents=parents"
+			 "--config" "defaults.parents="
 			 "parents" "--template" "{rev}" (file-relative-name file)))
                     ;; Some problem happened.  E.g. We can't find an `hg'
                     ;; executable.

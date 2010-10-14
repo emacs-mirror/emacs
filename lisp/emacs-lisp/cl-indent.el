@@ -7,6 +7,7 @@
 ;; Created: July 1987
 ;; Maintainer: FSF
 ;; Keywords: lisp, tools
+;; Package: emacs
 
 ;; This file is part of GNU Emacs.
 

@@ -1273,22 +1273,24 @@ process's buffer, mimicking the actions of Emacs when there is no
 filter.  Such filter functions need to use @code{set-buffer} in order to
 be sure to insert in that buffer.  To avoid setting the current buffer
 semipermanently, these filter functions must save and restore the
-current buffer.  They should also update the process marker, and in some
-cases update the value of point.  Here is how to do these things:
+current buffer.  They should also check whether the buffer is still
+alive, update the process marker, and in some cases update the value
+of point.  Here is how to do these things:
 
 @smallexample
 @group
 (defun ordinary-insertion-filter (proc string)
-  (with-current-buffer (process-buffer proc)
-    (let ((moving (= (point) (process-mark proc))))
+  (when (buffer-live-p (process-buffer proc))
+    (with-current-buffer (process-buffer proc)
+      (let ((moving (= (point) (process-mark proc))))
 @end group
 @group
-      (save-excursion
-        ;; @r{Insert the text, advancing the process marker.}
-        (goto-char (process-mark proc))
-        (insert string)
-        (set-marker (process-mark proc) (point)))
-      (if moving (goto-char (process-mark proc))))))
+        (save-excursion
+          ;;  @r{Insert the text, advancing the process marker.}
+          (goto-char (process-mark proc))
+          (insert string)
+          (set-marker (process-mark proc) (point)))
+        (if moving (goto-char (process-mark proc)))))))
 @end group
 @end smallexample
 
@@ -1314,12 +1316,6 @@ previously, eliminate the variable @code{moving} and call
 expression searching or matching had to explicitly save and restore the
 match data.  Now Emacs does this automatically for filter functions;
 they never need to do it explicitly.  @xref{Match Data}.
-
-  A filter function that writes the output into the buffer of the
-process should check whether the buffer is still alive.  If it tries to
-insert into a dead buffer, it will get an error.  The expression
-@code{(buffer-name (process-buffer @var{process}))} returns @code{nil}
-if the buffer is dead.
 
   The output to the function may come in chunks of any size.  A program
 that produces the same output twice in a row may send it as one batch of

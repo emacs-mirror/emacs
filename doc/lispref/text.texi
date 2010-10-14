@@ -59,6 +59,7 @@ the character after point.
                        position stored in a register.
 * Base 64::          Conversion to or from base 64 encoding.
 * MD5 Checksum::     Compute the MD5 "message digest"/"checksum".
+* Parsing HTML::     Parsing HTML and XML.
 * Atomic Changes::   Installing several buffer changes "atomically".
 * Change Hooks::     Supplying functions to be run when text is changed.
 @end menu
@@ -1126,16 +1127,13 @@ use @code{string=} to compare it with the last text Emacs provided.)
 @defvar interprogram-cut-function
 This variable provides a way of communicating killed text to other
 programs, when you are using a window system.  Its value should be
-@code{nil} or a function of one required and one optional argument.
+@code{nil} or a function of one required argument.
 
 If the value is a function, @code{kill-new} and @code{kill-append} call
-it with the new first element of the kill ring as the first argument.
-The second, optional, argument has the same meaning as the @var{push}
-argument to @code{x-set-cut-buffer} (@pxref{Definition of
-x-set-cut-buffer}) and only affects the second and later cut buffers.
+it with the new first element of the kill ring as the argument.
 
 The normal use of this function is to set the window system's primary
-selection (and first cut buffer) from the newly killed text.
+selection from the newly killed text.
 @xref{Window System Selections}.
 @end defvar
 
@@ -3232,12 +3230,16 @@ the @code{line-prefix} variable).  @xref{Truncation}.
 @cindex hooks for changing a character
 @kindex modification-hooks @r{(text property)}
 If a character has the property @code{modification-hooks}, then its
-value should be a list of functions; modifying that character calls all
-of those functions.  Each function receives two arguments: the beginning
-and end of the part of the buffer being modified.  Note that if a
-particular modification hook function appears on several characters
-being modified by a single primitive, you can't predict how many times
-the function will be called.
+value should be a list of functions; modifying that character calls
+all of those functions before the actual modification.  Each function
+receives two arguments: the beginning and end of the part of the
+buffer being modified.  Note that if a particular modification hook
+function appears on several characters being modified by a single
+primitive, you can't predict how many times the function will
+be called.
+Furthermore, insertion will not modify any existing character, so this
+hook will only be run when removing some characters, replacing them
+with others, or changing their text-properties.
 
 If these functions modify the buffer, they should bind
 @code{inhibit-modification-hooks} to @code{t} around doing so, to
@@ -4108,6 +4110,49 @@ using the specified or chosen coding system.  However, if
 @var{noerror} is non-@code{nil}, it silently uses @code{raw-text}
 coding instead.
 @end defun
+
+@node Parsing HTML
+@section Parsing HTML
+@cindex parsing html
+@cindex parsing xml
+
+Emacs provides an interface to the @code{libxml2} library via two
+functions: @code{html-parse-buffer} and @code{xml-parse-buffer}.  The
+HTML function will parse ``real world'' HTML and try to return a
+sensible parse tree, while the XML function is somewhat stricter about
+syntax.
+
+They both take a two optional parameter.  The first is a buffer, and
+the second is a base URL to be used to expand relative URLs in the
+document, if any.
+
+Here's an example demonstrating the structure of the parsed data you
+get out.  Given this HTML document:
+
+@example
+<html><hEad></head><body width=101><div class=thing>Foo<div>Yes
+@end example
+
+You get this parse tree:
+
+@example
+(html
+ (head)
+ (body
+  (:width . "101")
+  (div
+   (:class . "thing")
+   (text . "Foo")
+   (div
+    (text . "Yes\n")))))
+@end example
+
+It's a simple tree structure, where the @code{car} for each node is
+the name of the node, and the @code{cdr} is the value, or the list of
+values.
+
+Attributes are coded the same way as child nodes, but with @samp{:} as
+the first character.
 
 @node Atomic Changes
 @section Atomic Change Groups

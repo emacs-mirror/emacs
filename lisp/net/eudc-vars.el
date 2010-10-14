@@ -1,11 +1,12 @@
 ;;; eudc-vars.el --- Emacs Unified Directory Client
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008, 2009, 2010  Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@cpe.fr>
 ;; Maintainer: Pavel Janík <Pavel@Janik.cz>
 ;; Keywords: comm
+;; Package: eudc
 
 ;; This file is part of GNU Emacs.
 
@@ -38,7 +39,7 @@
   :group 'comm)
 
 (defcustom eudc-server nil
-  "*The name or IP address of the directory server.
+  "The name or IP address of the directory server.
 A port number may be specified by appending a colon and a
 number to the name of the server.  Use `localhost' if the directory
 server resides on your computer (BBDB backend)."
@@ -55,7 +56,7 @@ This variable is updated when protocol-specific libraries
 are loaded, *do not change manually*.")
 
 (defcustom eudc-protocol nil
-  "*The directory protocol to use to query the server.
+  "The directory protocol to use to query the server.
 Supported protocols are specified by `eudc-supported-protocols'."
   :type  `(choice :menu-tag "Protocol"
 		  ,@(mapcar (lambda (s)
@@ -66,13 +67,13 @@ Supported protocols are specified by `eudc-supported-protocols'."
 
 
 (defcustom eudc-strict-return-matches t
-  "*Ignore or allow entries not containing all requested return attributes.
+  "Ignore or allow entries not containing all requested return attributes.
 If non-nil, such entries are ignored."
   :type  'boolean
   :group 'eudc)
 
 (defcustom eudc-default-return-attributes nil
-  "*A list of default attributes to extract from directory entries.
+  "A list of default attributes to extract from directory entries.
 If set to the symbol `all', return all attributes.
 A value of nil means return the default attributes as configured in the
 server."
@@ -86,7 +87,7 @@ server."
   :group 'eudc)
 
 (defcustom eudc-multiple-match-handling-method 'select
-  "*What to do when multiple entries match an inline expansion query.
+  "What to do when multiple entries match an inline expansion query.
 Possible values are:
 `first' (equivalent to nil) which means keep the first match only,
 `select' pop-up a selection buffer,
@@ -106,7 +107,7 @@ Possible values are:
   :group 'eudc)
 
 (defcustom eudc-duplicate-attribute-handling-method '((email . duplicate))
-  "*A method to handle entries containing duplicate attributes.
+  "A method to handle entries containing duplicate attributes.
 This is either an alist (ATTR . METHOD) or a symbol METHOD.
 The alist form of the variable associates a method to an individual attribute,
 the second form specifies a method applicable to all attributes.
@@ -135,7 +136,7 @@ different values."
 
 (defcustom eudc-inline-query-format '((name)
 				      (firstname name))
-  "*Format of an inline expansion query.
+  "Format of an inline expansion query.
 This is a list of FORMATs.  A FORMAT is itself a list of one or more
 EUDC attribute names.  A FORMAT applies if it contains as many attributes as
 there are individual words in the inline query string.
@@ -163,12 +164,12 @@ must be set in a protocol/server-local fashion, see `eudc-server-set' and
   :group 'eudc)
 
 (defcustom eudc-expansion-overwrites-query t
-  "*If non-nil, expanding a query overwrites the query string."
+  "If non-nil, expanding a query overwrites the query string."
   :type  'boolean
   :group 'eudc)
 
 (defcustom eudc-inline-expansion-format '("%s" email)
-  "*A list specifying the format of the expansion of inline queries.
+  "A list specifying the format of the expansion of inline queries.
 This variable controls what `eudc-expand-inline' actually inserts in
 the buffer.  First element is a string passed to `format'.  Remaining
 elements are symbols indicating attribute names; the corresponding values
@@ -188,7 +189,7 @@ are passed as additional arguments to `format'."
   :group 'eudc)
 
 (defcustom eudc-inline-expansion-servers 'server-then-hotlist
-  "*Which servers to contact for the expansion of inline queries.
+  "Which servers to contact for the expansion of inline queries.
 Possible values are:
   `current-server': the EUDC current server.
   `hotlist': the servers of the hotlist in the order they appear,
@@ -202,7 +203,7 @@ Possible values are:
   :group 'eudc)
 
 (defcustom eudc-max-servers-to-query nil
-  "*Maximum number of servers to query for an inline expansion.
+  "Maximum number of servers to query for an inline expansion.
 If nil, query all servers available from `eudc-inline-expansion-servers'."
   :tag "Max Number of Servers to Query"
   :type '(choice :tag "Max. Servers"
@@ -217,7 +218,7 @@ If nil, query all servers available from `eudc-inline-expansion-servers'."
   :group 'eudc)
 
 (defcustom eudc-query-form-attributes '(name firstname email phone)
-  "*A list of attributes presented in the query form."
+  "A list of attributes presented in the query form."
   :tag   "Attributes in Query Forms"
   :type  '(repeat
 	   (choice
@@ -248,7 +249,7 @@ If nil, query all servers available from `eudc-inline-expansion-servers'."
 					     (telephonenumber . "Phone")
 					     (uniqueidentifier . "ID")
 					     (objectclass . "Object Class"))
-  "*Alist of user-defined names for directory attributes.
+  "Alist of user-defined names for directory attributes.
 These names are used as prompt strings in query/response forms
 instead of the raw directory attribute names.
 Prompt strings for attributes that are not listed here
@@ -261,14 +262,14 @@ at `_' characters and capitalizing the individual words."
   :group 'eudc)
 
 (defcustom eudc-use-raw-directory-names nil
-  "*If non-nil, use attributes names as defined in the directory.
+  "If non-nil, use attributes names as defined in the directory.
 Otherwise, directory query/response forms display the user attribute
 names defined in `eudc-user-attribute-names-alist'."
   :type  'boolean
   :group 'eudc)
 
 (defcustom eudc-attribute-display-method-alist nil
-  "*An alist specifying methods to display attribute values.
+  "An alist specifying methods to display attribute values.
 Each member of the list is of the form (NAME . FUNC) where NAME is a lowercased
 string naming a directory attribute (translated according to
 `eudc-user-attribute-names-alist' if `eudc-use-raw-directory-names' is
@@ -282,7 +283,7 @@ attribute values for display."
 
 (defcustom eudc-external-viewers '(("ImageMagick" "display" "-")
 				   ("ShowAudio" "showaudio"))
-  "*A list of viewer program specifications.
+  "A list of viewer program specifications.
 Viewers are programs which can be piped a directory attribute value for
 display or arbitrary processing.  Each specification is a list whose
 first element is a string naming the viewer.  The second element is the
@@ -299,12 +300,12 @@ arguments that should be passed to the program."
   :group 'eudc)
 
 (defcustom eudc-options-file "~/.eudc-options"
-  "*A file where the `servers' hotlist is stored."
+  "A file where the `servers' hotlist is stored."
   :type '(file :Tag "File Name:")
   :group 'eudc)
 
 (defcustom eudc-mode-hook nil
-  "*Normal hook run on entry to EUDC mode."
+  "Normal hook run on entry to EUDC mode."
   :type '(repeat (sexp :tag "Hook definition"))
   :group 'eudc)
 
@@ -322,7 +323,7 @@ arguments that should be passed to the program."
     (address . (eudc-bbdbify-address address "Address"))
     (phone . ((eudc-bbdbify-phone phone "Phone")
 	      (eudc-bbdbify-phone office_phone "Office Phone"))))
-  "*A mapping from BBDB to PH/QI fields.
+  "A mapping from BBDB to PH/QI fields.
 This is a list of cons cells (BBDB-FIELD . SPEC-OR-LIST) where
 BBDB-FIELD is the name of a field that must be defined in your BBDB
 environment (standard field names are `name', `company', `net', `phone',
@@ -357,7 +358,7 @@ BBDB fields.  SPECs are sexps which are evaluated:
     (net . mail)
     (address . (eudc-bbdbify-address postaladdress "Address"))
     (phone . ((eudc-bbdbify-phone telephonenumber "Phone"))))
-  "*A mapping from BBDB to LDAP attributes.
+  "A mapping from BBDB to LDAP attributes.
 This is a list of cons cells (BBDB-FIELD . SPEC-OR-LIST) where
 BBDB-FIELD is the name of a field that must be defined in your BBDB
 environment (standard field names are `name', `company', `net', `phone',

@@ -194,7 +194,7 @@
 ;;;
 
 (defcustom edt-keep-current-page-delimiter nil
-  "*Emacs MUST be restarted for a change in value to take effect!
+  "Emacs MUST be restarted for a change in value to take effect!
 Non-nil leaves Emacs value of `page-delimiter' unchanged within EDT
 Emulation.  If set to nil (the default), the `page-delimiter' variable
 is set to \"\\f\" when edt-emulation-on is first invoked.  This
@@ -204,7 +204,7 @@ is restored when edt-emulation-off is called."
   :group 'edt)
 
 (defcustom edt-use-EDT-control-key-bindings nil
-  "*Emacs MUST be restarted for a change in value to take effect!
+  "Emacs MUST be restarted for a change in value to take effect!
 Non-nil causes the control key bindings to be replaced with EDT
 bindings.  If set to nil (the default), EDT control key bindings are
 not used and the current Emacs control key bindings are retained for
@@ -213,7 +213,7 @@ use within the EDT emulation."
   :group 'edt)
 
 (defcustom edt-word-entities '(?\t)
-  "*Specifies the list of EDT word entity characters.
+  "Specifies the list of EDT word entity characters.
 The default list, (\?\\t), contains just the TAB character, which
 emulates EDT.  Characters are specified in the list using their
 decimal ASCII values.  A question mark, followed by the actual
@@ -238,14 +238,14 @@ will be treated as if it were a separate word."
   :group 'edt)
 
 (defcustom edt-top-scroll-margin 10
-  "*Scroll margin at the top of the screen.
+  "Scroll margin at the top of the screen.
 Interpreted as a percent of the current window size with a default
 setting of 10%.  If set to 0, top scroll margin is disabled."
   :type 'integer
   :group 'edt)
 
 (defcustom edt-bottom-scroll-margin 15
-  "*Scroll margin at the bottom of the screen.
+  "Scroll margin at the bottom of the screen.
 Interpreted as a percent of the current window size with a default
 setting of 15%.  If set to 0, bottom scroll margin is disabled."
   :type 'integer

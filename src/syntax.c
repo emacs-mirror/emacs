@@ -185,7 +185,8 @@ INTERVAL interval_of (int, Lisp_Object);
    start/end of OBJECT.  */
 
 void
-update_syntax_table (int charpos, int count, int init, Lisp_Object object)
+update_syntax_table (EMACS_INT charpos, int count, int init,
+		     Lisp_Object object)
 {
   Lisp_Object tmp_table;
   int cnt = 0, invalidate = 1;
@@ -475,7 +476,7 @@ find_defun_start (EMACS_INT pos, EMACS_INT pos_byte)
 /* Return the SYNTAX_COMEND_FIRST of the character before POS, POS_BYTE.  */
 
 static int
-prev_char_comend_first (int pos, int pos_byte)
+prev_char_comend_first (EMACS_INT pos, EMACS_INT pos_byte)
 {
   int c, val;
 
@@ -557,8 +558,9 @@ back_comment (EMACS_INT from, EMACS_INT from_byte, EMACS_INT stop, int comnested
      that determines quote parity to the comment-end.  */
   while (from != stop)
     {
-      int temp_byte, prev_syntax;
-      int com2start, com2end;
+      EMACS_INT temp_byte;
+      int prev_syntax, com2start, com2end;
+      int comstart;
 
       /* Move back and examine a character.  */
       DEC_BOTH (from, from_byte);
@@ -578,7 +580,8 @@ back_comment (EMACS_INT from, EMACS_INT from_byte, EMACS_INT stop, int comnested
 		       || SYNTAX_FLAGS_COMMENT_NESTED (syntax)) == comnested);
       com2end = (SYNTAX_FLAGS_COMEND_FIRST (syntax)
 		 && SYNTAX_FLAGS_COMEND_SECOND (prev_syntax));
-
+      comstart = (com2start || code == Scomment);
+      
       /* Nasty cases with overlapping 2-char comment markers:
 	 - snmp-mode: -- c -- foo -- c --
 	              --- c --
@@ -589,15 +592,17 @@ back_comment (EMACS_INT from, EMACS_INT from_byte, EMACS_INT stop, int comnested
 		      ///   */
 
       /* If a 2-char comment sequence partly overlaps with another,
-	 we don't try to be clever.  */
-      if (from > stop && (com2end || com2start))
+	 we don't try to be clever.  E.g. |*| in C, or }% in modes that
+	 have %..\n and %{..}%.  */
+      if (from > stop && (com2end || comstart))
 	{
-	  int next = from, next_byte = from_byte, next_c, next_syntax;
+	  EMACS_INT next = from, next_byte = from_byte;
+	  int next_c, next_syntax;
 	  DEC_BOTH (next, next_byte);
 	  UPDATE_SYNTAX_TABLE_BACKWARD (next);
 	  next_c = FETCH_CHAR_AS_MULTIBYTE (next_byte);
 	  next_syntax = SYNTAX_WITH_FLAGS (next_c);
-	  if (((com2start || comnested)
+	  if (((comstart || comnested)
 	       && SYNTAX_FLAGS_COMEND_SECOND (syntax)
 	       && SYNTAX_FLAGS_COMEND_FIRST (next_syntax))
 	      || ((com2end || comnested)
@@ -1239,12 +1244,12 @@ Lisp_Object Vfind_word_boundary_function_table;
    If that many words cannot be found before the end of the buffer, return 0.
    COUNT negative means scan backward and stop at word beginning.  */
 
-int
-scan_words (register int from, register int count)
+EMACS_INT
+scan_words (register EMACS_INT from, register EMACS_INT count)
 {
-  register int beg = BEGV;
-  register int end = ZV;
-  register int from_byte = CHAR_TO_BYTE (from);
+  register EMACS_INT beg = BEGV;
+  register EMACS_INT end = ZV;
+  register EMACS_INT from_byte = CHAR_TO_BYTE (from);
   register enum syntaxcode code;
   int ch0, ch1;
   Lisp_Object func, script, pos;
@@ -1452,14 +1457,14 @@ skip_chars (int forwardp, Lisp_Object string, Lisp_Object lim, int handle_iso_cl
   int *char_ranges;
   int n_char_ranges = 0;
   int negate = 0;
-  register int i, i_byte;
+  register EMACS_INT i, i_byte;
   /* Set to 1 if the current buffer is multibyte and the region
      contains non-ASCII chars.  */
   int multibyte;
   /* Set to 1 if STRING is multibyte and it contains non-ASCII
      chars.  */
   int string_multibyte;
-  int size_byte;
+  EMACS_INT size_byte;
   const unsigned char *str;
   int len;
   Lisp_Object iso_classes;
@@ -1771,9 +1776,9 @@ skip_chars (int forwardp, Lisp_Object string, Lisp_Object lim, int handle_iso_cl
     }
 
   {
-    int start_point = PT;
-    int pos = PT;
-    int pos_byte = PT_BYTE;
+    EMACS_INT start_point = PT;
+    EMACS_INT pos = PT;
+    EMACS_INT pos_byte = PT_BYTE;
     unsigned char *p = PT_ADDR, *endp, *stop;
 
     if (forwardp)
@@ -1943,9 +1948,9 @@ skip_syntaxes (int forwardp, Lisp_Object string, Lisp_Object lim)
   register unsigned int c;
   unsigned char fastmap[0400];
   int negate = 0;
-  register int i, i_byte;
+  register EMACS_INT i, i_byte;
   int multibyte;
-  int size_byte;
+  EMACS_INT size_byte;
   unsigned char *str;
 
   CHECK_STRING (string);
@@ -1998,9 +2003,9 @@ skip_syntaxes (int forwardp, Lisp_Object string, Lisp_Object lim)
       fastmap[i] ^= 1;
 
   {
-    int start_point = PT;
-    int pos = PT;
-    int pos_byte = PT_BYTE;
+    EMACS_INT start_point = PT;
+    EMACS_INT pos = PT;
+    EMACS_INT pos_byte = PT_BYTE;
     unsigned char *p = PT_ADDR, *endp, *stop;
 
     if (forwardp)
@@ -2391,7 +2396,8 @@ between them, return t; otherwise return nil.  */)
 	  if (code == Scomment_fence)
 	    {
 	      /* Skip until first preceding unquoted comment_fence.  */
-	      int found = 0, ini = from, ini_byte = from_byte;
+	      int found = 0;
+	      EMACS_INT ini = from, ini_byte = from_byte;
 
 	      while (1)
 		{
@@ -2907,11 +2913,11 @@ DEFUN ("backward-prefix-chars", Fbackward_prefix_chars, Sbackward_prefix_chars,
 This includes chars with "quote" or "prefix" syntax (' or p).  */)
   (void)
 {
-  int beg = BEGV;
-  int opoint = PT;
-  int opoint_byte = PT_BYTE;
-  int pos = PT;
-  int pos_byte = PT_BYTE;
+  EMACS_INT beg = BEGV;
+  EMACS_INT opoint = PT;
+  EMACS_INT opoint_byte = PT_BYTE;
+  EMACS_INT pos = PT;
+  EMACS_INT pos_byte = PT_BYTE;
   int c;
 
   if (pos <= beg)
