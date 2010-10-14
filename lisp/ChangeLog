@@ -1,5 +1,8 @@
 2010-10-14  Kenichi Handa  <handa@m17n.org>
 
+	* mail/rmail.el (rmail-show-message-1): Catch an error of
+	base64-decode-region and just show an error message (bug#7165).
+
 	* ps-mule.el (ps-mule-font-spec-list): Delete it.  Not used
 	anymore.
 	(ps-mule-begin-job): Fix for the case that only ENCODING is set in
