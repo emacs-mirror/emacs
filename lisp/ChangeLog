@@ -1,3 +1,10 @@
+2010-10-14  Kenichi Handa  <handa@m17n.org>
+
+	* ps-mule.el (ps-mule-font-spec-list): Delete it.  Not used
+	anymore.
+	(ps-mule-begin-job): Fix for the case that only ENCODING is set in
+	a font-spec (bug#7197).
+
  2010-10-10  Jan Djärv  <jan.h.d@swipnet.se>
  
  	* term/ns-win.el (ns-right-alternate-modifier): New defvar.
