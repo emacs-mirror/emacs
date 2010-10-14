@@ -568,7 +568,7 @@ w32font_draw (s, from, to, x, y, with_background)
 
       /* Save clip region for later restoration.  */
       orig_clip = CreateRectRgn (0, 0, 0, 0);
-      if (!GetClipRgn(s->hdc, orig_clip))
+      if (!GetClipRgn (s->hdc, orig_clip))
 	{
 	  DeleteObject (orig_clip);
 	  orig_clip = NULL;
@@ -1833,7 +1833,7 @@ w32_registry (w32_charset, font_type)
     return font_type == TRUETYPE_FONTTYPE ? Qiso10646_1 : Qunknown;
 
   charset = w32_to_x_charset (w32_charset, NULL);
-  return font_intern_prop (charset, strlen(charset), 1);
+  return font_intern_prop (charset, strlen (charset), 1);
 }
 
 static int
@@ -1847,7 +1847,7 @@ w32_decode_weight (fnweight)
   if (fnweight >= FW_NORMAL)     return 100;
   if (fnweight >= FW_LIGHT)      return 50;
   if (fnweight >= FW_EXTRALIGHT) return 40;
-  if (fnweight > FW_THIN)        return 20;
+  if (fnweight >  FW_THIN)       return 20;
   return 0;
 }
 
@@ -1862,7 +1862,7 @@ w32_encode_weight (n)
   if (n >= 100) return FW_NORMAL;
   if (n >= 50)  return FW_LIGHT;
   if (n >= 40)  return FW_EXTRALIGHT;
-  if (n >= 20)  return  FW_THIN;
+  if (n >= 20)  return FW_THIN;
   return 0;
 }
 
@@ -1873,9 +1873,9 @@ w32_to_fc_weight (n)
      int n;
 {
   if (n >= FW_EXTRABOLD) return intern ("black");
-  if (n >= FW_BOLD) return intern ("bold");
-  if (n >= FW_SEMIBOLD) return intern ("demibold");
-  if (n >= FW_NORMAL) return intern ("medium");
+  if (n >= FW_BOLD)      return intern ("bold");
+  if (n >= FW_SEMIBOLD)  return intern ("demibold");
+  if (n >= FW_NORMAL)    return intern ("medium");
   return intern ("light");
 }
 
@@ -1965,7 +1965,6 @@ fill_in_logfont (f, logfont, font_spec)
       if (family != FF_DONTCARE)
         logfont->lfPitchAndFamily = family | DEFAULT_PITCH;
     }
-
 
   /* Set pitch based on the spacing property.  */
   tmp = AREF (font_spec, FONT_SPACING_INDEX);
@@ -2317,7 +2316,8 @@ w32font_full_name (font, font_obj, pixel_size, name, nbytes)
    is written.  If the buffer is not large enough to contain the name,
    the function returns -1, otherwise it returns the number of bytes
    written to FCNAME.  */
-static int logfont_to_fcname(font, pointsize, fcname, size)
+static int
+logfont_to_fcname (font, pointsize, fcname, size)
      LOGFONT* font;
      int pointsize;
      char *fcname;

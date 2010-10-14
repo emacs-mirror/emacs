@@ -582,8 +582,8 @@ w32_console_mouse_position (FRAME_PTR *f,
   *part = 0;
   SELECTED_FRAME ()->mouse_moved = 0;
 
-  XSETINT(*x, movement_pos.X);
-  XSETINT(*y, movement_pos.Y);
+  XSETINT (*x, movement_pos.X);
+  XSETINT (*y, movement_pos.Y);
   *time = movement_time;
 
   UNBLOCK_INPUT;

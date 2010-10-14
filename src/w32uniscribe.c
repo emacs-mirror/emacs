@@ -175,7 +175,7 @@ uniscribe_otf_capability (font)
 
   f = XFRAME (selected_frame);
   context = get_frame_dc (f);
-  old_font = SelectObject (context, FONT_HANDLE(font));
+  old_font = SelectObject (context, FONT_HANDLE (font));
 
   features = otf_features (context, "GSUB");
   XSETCAR (capability, features);
@@ -287,7 +287,7 @@ uniscribe_shape (lgstring)
 	     passed in.  */
 	  f = XFRAME (selected_frame);
 	  context = get_frame_dc (f);
-	  old_font = SelectObject (context, FONT_HANDLE(font));
+	  old_font = SelectObject (context, FONT_HANDLE (font));
 
 	  result = ScriptShape (context, &(uniscribe_font->cache),
 				chars + items[i].iCharPos, nchars_in_run,
@@ -322,7 +322,7 @@ uniscribe_shape (lgstring)
 	      /* Cache not complete...  */
 	      f = XFRAME (selected_frame);
 	      context = get_frame_dc (f);
-	      old_font = SelectObject (context, FONT_HANDLE(font));
+	      old_font = SelectObject (context, FONT_HANDLE (font));
 
 	      result = ScriptPlace (context, &(uniscribe_font->cache),
 				    glyphs, nglyphs, attributes, &(items[i].a),
@@ -397,7 +397,7 @@ uniscribe_shape (lgstring)
 		      /* Cache incomplete... */
 		      f = XFRAME (selected_frame);
 		      context = get_frame_dc (f);
-		      old_font = SelectObject (context, FONT_HANDLE(font));
+		      old_font = SelectObject (context, FONT_HANDLE (font));
 		      result = ScriptGetGlyphABCWidth (context,
 						       &(uniscribe_font->cache),
 						       glyphs[j], &char_metric);
@@ -509,7 +509,7 @@ uniscribe_encode_char (font, c)
                  the frame.  */
               f = XFRAME (selected_frame);
               context = get_frame_dc (f);
-              old_font = SelectObject (context, FONT_HANDLE(font));
+              old_font = SelectObject (context, FONT_HANDLE (font));
               result = ScriptShape (context, &(uniscribe_font->cache),
                                     ch, len, 2, &(items[0].a),
                                     glyphs, clusters, attrs, &nglyphs);
@@ -650,7 +650,8 @@ static char* NOTHING = "    ";
 /* Check if font supports the otf script/language/features specified.
    OTF_SPEC is in the format
      (script lang [(gsub_feature ...)|nil] [(gpos_feature ...)]?) */
-int uniscribe_check_otf (font, otf_spec)
+int
+uniscribe_check_otf (font, otf_spec)
      LOGFONT *font;
      Lisp_Object otf_spec;
 {
@@ -947,7 +948,7 @@ struct font_driver uniscribe_font_driver =
     NULL, /* get_outline */
     NULL, /* free_outline */
     NULL, /* anchor_point */
-    uniscribe_otf_capability, /* Defined so (font-get FONTOBJ :otf) works.  */ 
+    uniscribe_otf_capability, /* Defined so (font-get FONTOBJ :otf) works.  */
     NULL, /* otf_drive - use shape instead.  */
     NULL, /* start_for_frame */
     NULL, /* end_for_frame */

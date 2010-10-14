@@ -216,7 +216,7 @@ get_next_msg (lpmsg, bWait)
                   if (!UnionRect (&(lpmsg->rect), &(lpmsg->rect),
                                   &(lpCur->w32msg.rect)))
                     {
-                      SetRectEmpty(&(lpmsg->rect));
+                      SetRectEmpty (&(lpmsg->rect));
                     }
 
                   myfree (lpCur);
@@ -414,7 +414,6 @@ XParseGeometry (string, x, y, width, height)
 		return (0);
 	      strind = nextCharacter;
 	      mask |= YNegative;
-
 	    }
 	  else
 	    {
@@ -428,7 +427,7 @@ XParseGeometry (string, x, y, width, height)
 	}
     }
 
-  /* If strind isn't at the end of the string the it's an invalid
+  /* If strind isn't at the end of the string then it's an invalid
      geometry specification. */
 
   if (*strind != '\0') return (0);
