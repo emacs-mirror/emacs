@@ -1,5 +1,8 @@
 2010-10-14  Chong Yidong  <cyd@stupidchicken.com>
 
+	* cus-face.el (custom-theme-set-faces): Call custom-push-theme
+	only after checking the theme-face property.
+
 	* faces.el (face-spec-reset-face): Reset all attributes in one
 	single call to set-face-attribute.
 	(face-spec-match-p): Make it a defsubst.
