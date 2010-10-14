@@ -3954,7 +3954,7 @@ static char dbcs_lead = 0;
    recursively with different messages by the system.
 */
 
-int
+static int
 w32_read_socket (struct terminal *terminal, int expected,
 		 struct input_event *hold_quit)
 {

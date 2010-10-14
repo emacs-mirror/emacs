@@ -1,3 +1,13 @@
+2010-10-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32fns.c (w32_wnd_proc, file_dialog_callback):
+	* w32font.c (w32_generic_family):
+	* w32inevt.c (key_event):
+	* w32menu.c (fill_in_menu):
+	* w32proc.c (reader_thread, w32_executable_type, compare_env)
+	(merge_and_sort_env, int_from_hex, enum_locale_fn, enum_codepage_fn):
+	* w32term.c (w32_read_socket): Make static.
+
 2010-10-13  Juanma Barranquero  <lekktu@gmail.com>
 
 	* image.c (DEF_IMGLIB_FN): Add argument to adapt to strict

@@ -1058,7 +1058,7 @@ w32_enumfont_pattern_entity (Lisp_Object frame,
 
 
 /* Convert generic families to the family portion of lfPitchAndFamily.  */
-BYTE
+static BYTE
 w32_generic_family (Lisp_Object name)
 {
   /* Generic families.  */

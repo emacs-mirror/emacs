@@ -1900,7 +1900,7 @@ w32_load_cursor (LPCTSTR name)
   return cursor;
 }
 
-extern LRESULT CALLBACK w32_wnd_proc (HWND, UINT, WPARAM, LPARAM);
+static LRESULT CALLBACK w32_wnd_proc (HWND, UINT, WPARAM, LPARAM);
 
 static BOOL
 w32_init_class (HINSTANCE hinst)
@@ -2672,7 +2672,7 @@ post_character_message (HWND hwnd, UINT msg,
 
 /* Main window procedure */
 
-LRESULT CALLBACK
+static LRESULT CALLBACK
 w32_wnd_proc (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
   struct frame *f;
@@ -5903,7 +5903,7 @@ extern Lisp_Object Qfile_name_history;
    read-only when "Directories" is selected in the filter.  This
    allows us to work around the fact that the standard Open File
    dialog does not support directories.  */
-UINT CALLBACK
+static UINT CALLBACK
 file_dialog_callback (HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
   if (msg == WM_NOTIFY)

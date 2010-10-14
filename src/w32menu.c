@@ -106,6 +106,7 @@ static Lisp_Object simple_dialog_show (FRAME_PTR, Lisp_Object, Lisp_Object);
 #endif
 
 static void utf8to16 (unsigned char *, int, WCHAR *);
+static int fill_in_menu (HMENU, widget_value *);
 
 void w32_free_menu_strings (HWND);
 
@@ -1568,7 +1569,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 }
 
 /* Construct native Windows menu(bar) based on widget_value tree.  */
-int
+static int
 fill_in_menu (HMENU menu, widget_value *wv)
 {
   int items_added = 0;

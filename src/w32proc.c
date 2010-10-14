@@ -159,7 +159,7 @@ int child_proc_count = 0;
 child_process child_procs[ MAX_CHILDREN ];
 child_process *dead_child = NULL;
 
-DWORD WINAPI reader_thread (void *arg);
+static DWORD WINAPI reader_thread (void *arg);
 
 /* Find an unused process slot.  */
 child_process *
@@ -279,7 +279,7 @@ find_child_pid (DWORD pid)
    is normally blocked until woken by select() to check for input by
    reading one char.  When the read completes, char_avail is signaled
    to wake up the select emulator and the thread blocks itself again. */
-DWORD WINAPI
+static DWORD WINAPI
 reader_thread (void *arg)
 {
   child_process *cp;
@@ -608,7 +608,7 @@ get_result:
 # define IMAGE_OPTIONAL_HEADER32 IMAGE_OPTIONAL_HEADER
 #endif
 
-void
+static void
 w32_executable_type (char * filename,
 		     int * is_dos_app,
 		     int * is_cygnus_app,
@@ -726,7 +726,7 @@ unwind:
   close_file_data (&executable);
 }
 
-int
+static int
 compare_env (const void *strp1, const void *strp2)
 {
   const char *str1 = *(const char **)strp1, *str2 = *(const char **)strp2;
@@ -750,7 +750,7 @@ compare_env (const void *strp1, const void *strp2)
     return 1;
 }
 
-void
+static void
 merge_and_sort_env (char **envp1, char **envp2, char **new_envp)
 {
   char **optr, **nptr;
@@ -1999,7 +1999,7 @@ human-readable form.  */)
   return make_number (GetThreadLocale ());
 }
 
-DWORD
+static DWORD
 int_from_hex (char * s)
 {
   DWORD val = 0;
@@ -2021,7 +2021,7 @@ int_from_hex (char * s)
    function isn't given a context pointer.  */
 Lisp_Object Vw32_valid_locale_ids;
 
-BOOL CALLBACK
+static BOOL CALLBACK
 enum_locale_fn (LPTSTR localeNum)
 {
   DWORD id = int_from_hex (localeNum);
@@ -2085,7 +2085,7 @@ If successful, the new locale id is returned, otherwise nil.  */)
    function isn't given a context pointer.  */
 Lisp_Object Vw32_valid_codepages;
 
-BOOL CALLBACK
+static BOOL CALLBACK
 enum_codepage_fn (LPTSTR codepageNum)
 {
   DWORD id = atoi (codepageNum);
