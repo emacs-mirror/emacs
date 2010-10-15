@@ -1,3 +1,8 @@
+2010-10-15  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* Makefile.in (really-oldXMenu): Fix typo in variable name that
+	made building the X menu fail.
+
 2010-10-14  Damyan Pepper  <damyanp@gmail.com>
 
 	Fix handling of font properties on Windows (bug#6303).
