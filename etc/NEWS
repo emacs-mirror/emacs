@@ -230,9 +230,9 @@ should use delete-char with a negative argument instead.
 The default handling of clipboard and primary selections has been
 changed to conform with other X applications.
 
-The new behavior is that by default Emacs does not put text into the
-clipboard, and does not add it to kill-ring, merely because the text
-was selected.  Only commands that kill text or copy it to the
+The new behavior is that by default Emacs does not put selected text
+into the clipboard, and does not add it to kill-ring, merely because
+the text was selected.  Only commands that kill text or copy it to the
 kill-ring (C-w, M-w, C-k, etc.) put the killed text into the
 clipboard.  Selected text is put into the primary selection (on
 systems, such as X, that support the primary selection separately from
@@ -240,14 +240,15 @@ the clipboard).
 
 Similarly, Emacs by default does not retrieve text from the clipboard
 when the mouse (e.g., mouse-2) is used for pasting text selected in
-another application.  Text from the clipboard is retrieved only by
-C-y, M-y and other commands that yank text from the kill-ring.  Mouse
-commands that paste text retrieve text from the primary selection, on
-systems that support it separately from the clipboard.
+another application.  Mouse commands that paste text retrieve text
+from the primary selection, on systems that support it separately from
+the clipboard.  Text from the clipboard is retrieved only by C-y, M-y
+and other commands that yank text from the kill-ring.
 
 In other words, the default behavior is that mouse gestures that
-select and paste text work with the primary selection, while keyboard
-commands that kill/copy and paste text work with the clipboard.
+select and paste text work with the primary selection (on X), while
+keyboard commands that kill/copy and paste text work with the
+clipboard.
 
 This change also means that the "Copy", "Cut", and "Paste" items of
 the menu-bar "Edit" menu are now exactly equivalent to, respectively
@@ -255,9 +256,9 @@ M-w, C-w, and C-y.
 
 To get back the previous behavior, whereby mouse gestures set the
 clipboard and retrieve text from there, customize the variables
-`mouse-drag-copy-region' and (on X only) `x-select-enable-primary'.
-If you don't want Emacs to put the text into the clipboard, only to
-the primary selection, additionally customize
+`mouse-drag-copy-region' and (on X only) `x-select-enable-primary' to
+non-nil values.  If you don't want Emacs to put the text into the
+clipboard, only to the primary selection, additionally customize
 `x-select-enable-clipboard' to nil.
 
 These changes in the default behavior are reflected in the default
@@ -272,7 +273,7 @@ mouse-dragging or shift-selection).
 
 *** `mouse-2' is now bound to `mouse-yank-primary'.
 Previously, it was bound to `mouse-yank-at-click' (which is now
-unbound by default.
+unbound by default).
 
 *** `x-select-enable-clipboard' now defaults to t on all platforms.
 Thus, killing and yanking now use the clipboard (in addition to the
