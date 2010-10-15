@@ -233,7 +233,7 @@ changed to conform with other X applications.
 *** `select-active-regions' now defaults to t, so active regions set
 the primary selection.
 
-It also accepts a new value, `lazy', which means to only set the
+It also accepts a new value, `only', which means to only set the
 primary selection for temporarily active regions (usually made by
 mouse-dragging or shift-selection).
 
