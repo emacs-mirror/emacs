@@ -1,3 +1,7 @@
+2010-10-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* image.c (tiff_load): Cast 3rd argument to avoid compiler warning.
+
 2010-10-15  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* Makefile.in (really-oldXMenu): Fix typo in variable name that

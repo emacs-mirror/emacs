@@ -6793,8 +6793,9 @@ tiff_load (struct frame *f, struct image *img)
       memsrc.len = SBYTES (specified_data);
       memsrc.index = 0;
 
-      /* Casting return value avoids a GCC warning on W32.  */
-      tiff = (TIFF *)fn_TIFFClientOpen ("memory_source", "r", &memsrc,
+      /* Casting arguments return value avoids a GCC warning on W32.  */
+      tiff = (TIFF *)fn_TIFFClientOpen ("memory_source", "r",
+					(thandle_t) &memsrc,
 					(TIFFReadWriteProc) tiff_read_from_memory,
 					(TIFFReadWriteProc) tiff_write_from_memory,
 					tiff_seek_in_memory,
