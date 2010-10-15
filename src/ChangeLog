@@ -1,3 +1,12 @@
+2010-10-15  Kenichi Handa  <handa@m17n.org>
+
+	Fix incorrect font metrics when the same font is opened with
+	different pixelsizes.
+
+	* xftfont.c: Include composite.h.
+	(xftfont_shape): New function.
+	(syms_of_xftfont): Set xftfont_driver.shape.
+
 2010-10-13  Damyan Pepper  <damyanp@gmail.com>
 
 	Fix handling of font properties on Windows (bug#6303).
